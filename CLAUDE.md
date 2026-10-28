@@ -6972,7 +6972,10 @@ Fem egenskaper som inte ska tas bort:
    artikeln först, mappningens `sourceUrl` bara när den slutar på samma artikel
    (`~<artikel>.html`, en ommappad rad kan bära en gammal adress), sist
    `lib/gpsr/aosom-data.json`. Utan träff blir märket `null`, och butiken låter
-   Fyndplats stå.
+   Fyndplats stå. ☠️ "Aosom" räknas inte som märke (Leonard 2026-10-28,
+   oavsett stora eller små bokstäver): nästa källa prövas, annars `null`, och
+   artikelnumret följer med ändå. Regeln bor i `markeFor`, inte i
+   `markeUrAosomUrl`, som produktsidornas GPSR-flik också läser.
 5. **Ett Aosom-flöde som faller stoppar inte svaret.** Numren kommer ur
    mappningarna, och märket ur de två reservkällorna.
 

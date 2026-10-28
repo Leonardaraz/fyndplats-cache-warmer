@@ -98,6 +98,13 @@ describe("markeFor", () => {
     expect(markeFor("TEST-0003", undefined, kallor({}, { "TEST-0003": "Vinsetto" }))).toEqual({ marke: "Vinsetto", kalla: "gpsr" });
   });
 
+  it("Aosom räknas inte som märke: nästa källa prövas (Leonard 2026-10-28)", () => {
+    const k = kallor({ "TEST-0005": adress("aosom-hocker", "TEST-0005") }, { "TEST-0005": "AOSOM" });
+    expect(markeFor("TEST-0005", adress("homcom-hocker", "TEST-0005"), k)).toEqual({ marke: "HOMCOM", kalla: "mappningen" });
+    expect(markeFor("TEST-0005", undefined, kallor({}, { "TEST-0005": "aosom" }))).toEqual({ marke: null, kalla: null });
+    expect(markeFor("TEST-0005", adress("aosom-hocker", "TEST-0005"), k)).toEqual({ marke: null, kalla: null });
+  });
+
   it("null när adressen inte börjar med ett känt märke", () => {
     const k = kallor({ "TEST-0004": adress("heimtrainer-fahrrad", "TEST-0004") });
     expect(markeFor("TEST-0004", undefined, k)).toEqual({ marke: null, kalla: null });
@@ -114,6 +121,15 @@ describe("byggPrisjaktArtiklar", () => {
     expect(artiklar.produkter).toEqual({});
     expect(rakning).toMatchObject({ aosomRader: 1, enArtikel: 1, medMarke: 1, utanMarke: 0 });
     expect(rakning.markeKalla).toEqual({ flodet: 1, mappningen: 0, gpsr: 0 });
+  });
+
+  it("en vara vars enda märke är Aosom behåller numret men får inget märke", () => {
+    const { artiklar, rakning } = byggPrisjaktArtiklar(
+      [enRad("p1", "TEST-0006", "v1", adress("aosom-pall", "TEST-0006"))],
+      kallor({ "TEST-0006": adress("aosom-pall", "TEST-0006") }, { "TEST-0006": "Aosom" }),
+    );
+    expect(artiklar.varianter).toEqual({ v1: { mpn: "TEST-0006", marke: null } });
+    expect(rakning).toMatchObject({ medMarke: 0, utanMarke: 1 });
   });
 
   it("nycklar på produkten när variant-id saknas", () => {

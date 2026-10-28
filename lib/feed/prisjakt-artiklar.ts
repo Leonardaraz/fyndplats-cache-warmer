@@ -22,6 +22,11 @@
 //      artikeln ("~<artikel>.html"). En ommappad rad kan bära en gammal adress.
 //   3. lib/gpsr/aosom-data.json — samma härledning ur flödet, gjord 2026-09-27.
 // Ger ingen av dem ett känt märke står Fyndplats kvar i flödet.
+//
+// "Aosom" räknas inte som ett märke (Leonard 2026-10-28), oavsett stora eller
+// små bokstäver. Ger en källa "Aosom" prövas nästa, och ger ingen ett annat
+// märke blir märket null. Artikelnumret följer med ändå. markeUrAosomUrl rörs
+// inte, eftersom produktsidornas GPSR-flik läser den.
 
 import { createHash, timingSafeEqual } from "node:crypto";
 import type { ProductMappingRecord } from "../store";
@@ -90,6 +95,11 @@ export function adressensArtikel(url: string): string | null {
   return m ? m[1] : null;
 }
 
+/** Ett märke att skriva i Prisjakt-flödet. "Aosom" är leverantörens namn och räknas inte. */
+function arVarumarke(marke: string | null): marke is string {
+  return !!marke && marke.trim().toLowerCase() !== "aosom";
+}
+
 /**
  * Märket för en artikel, och var det kom ifrån. `radensAdress` är mappningens
  * `sourceUrl` och gäller bara när den slutar på samma artikel.
@@ -100,15 +110,15 @@ export function markeFor(
   kallor: MarkeKallor,
 ): { marke: string | null; kalla: MarkeKalla | null } {
   const flodet = markeUrAosomUrl(kallor.flodetsAdresser.get(artikel));
-  if (flodet) return { marke: flodet, kalla: "flodet" };
+  if (arVarumarke(flodet)) return { marke: flodet, kalla: "flodet" };
 
   if (radensAdress && adressensArtikel(radensAdress)?.toUpperCase() === artikel.toUpperCase()) {
     const rad = markeUrAosomUrl(radensAdress);
-    if (rad) return { marke: rad, kalla: "mappningen" };
+    if (arVarumarke(rad)) return { marke: rad, kalla: "mappningen" };
   }
 
   const gpsr = kallor.gpsrMarke(artikel);
-  if (gpsr) return { marke: gpsr, kalla: "gpsr" };
+  if (arVarumarke(gpsr)) return { marke: gpsr, kalla: "gpsr" };
   return { marke: null, kalla: null };
 }
 
