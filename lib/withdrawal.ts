@@ -18,6 +18,7 @@ import { Resend } from "resend";
 import { render } from "@react-email/render";
 
 import { sql } from "./db";
+import { angerarenden, anvanderWix, ordrar } from "./wix-lager";
 import { getProducts } from "./products";
 import WithdrawalReceiptEmail from "../emails/withdrawal-receipt";
 import { returadressRader, type Returadress } from "./returadress";
@@ -85,12 +86,18 @@ export async function lookupOrderItems(
   const mail = (email || "").trim().toLowerCase();
   if (!num || !mail) return { found: false, items: [] };
   try {
-    const res = await sql/*sql*/`
-      SELECT items_json FROM orders
-      WHERE order_number = ${num} AND lower(email) = ${mail}
-      LIMIT 1
-    `;
-    const row = res.rows[0] as { items_json?: unknown } | undefined;
+    let row: { items_json?: unknown } | undefined;
+    if (await anvanderWix()) {
+      const items = await ordrar.raderFor(num, mail);
+      row = items ? { items_json: items } : undefined;
+    } else {
+      const res = await sql/*sql*/`
+        SELECT items_json FROM orders
+        WHERE order_number = ${num} AND lower(email) = ${mail}
+        LIMIT 1
+      `;
+      row = res.rows[0] as { items_json?: unknown } | undefined;
+    }
     if (!row) return { found: false, items: [] };
     const raw = Array.isArray(row.items_json) ? row.items_json : [];
     const items: WithdrawalLineItem[] = raw.map((it: Record<string, unknown>) => ({
@@ -150,6 +157,17 @@ export interface WithdrawalRecord {
 
 export async function recordWithdrawal(rec: WithdrawalRecord): Promise<boolean> {
   try {
+    if (await anvanderWix()) {
+      await angerarenden.logga({
+        caseId: rec.caseId,
+        orderNumber: rec.orderNumber || null,
+        email: rec.email,
+        items: rec.items,
+        reason: rec.reason || null,
+        matchedOrder: rec.matchedOrder,
+      });
+      return true;
+    }
     await ensureTable();
     await sql/*sql*/`
       INSERT INTO withdrawal_requests (id, order_number, email, items_json, reason, matched_order, created_at)

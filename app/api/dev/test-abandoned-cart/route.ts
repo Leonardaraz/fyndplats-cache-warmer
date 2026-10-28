@@ -17,6 +17,7 @@
 
 import { NextResponse } from 'next/server';
 import { sql, runMigration } from '@/lib/db';
+import { anvanderWix, anvandaAdresser, kundvagnMejl, kundvagnar } from '@/lib/wix-lager';
 import {
   enqueueAbandonedCart,
   fetchDueCarts,
@@ -58,12 +59,18 @@ const sampleCart = (overrides: Partial<{ id: string; email: string; phone: strin
   delaysMsOverride: { 1: 1_000, 2: 2_000, 3: 3_000 } as Record<1 | 2 | 3, number>,
 });
 
+// Vagnen i det lager butiken använder (lib/wix-lager.ts), i CartRow-form.
+async function lasVagn(cartId: string) {
+  if (await anvanderWix()) return kundvagnar.hamta(cartId);
+  const r = await sql/*sql*/`SELECT id, email, phone, shipping_addr_hash, items_json, subtotal_minor, currency, recover_url, next_step, next_step_at, status, discount_code, discount_code_wix_id FROM abandoned_carts WHERE id = ${cartId}`;
+  return r.rows[0] ?? null;
+}
+
 // Run every due step until the cart is done or skipped. Used by the simulator.
 async function runUntilDone(cartId: string, max = 5) {
   const out = [];
   for (let i = 0; i < max; i++) {
-    const due = await sql/*sql*/`SELECT id, email, phone, shipping_addr_hash, items_json, subtotal_minor, currency, recover_url, next_step, next_step_at, status, discount_code, discount_code_wix_id FROM abandoned_carts WHERE id = ${cartId}`;
-    const row = due.rows[0];
+    const row = await lasVagn(cartId);
     if (!row || row.status !== 'pending') break;
     const result = await processDueCart(row as never, { now: new Date(Date.now() + 10_000) });
     out.push(result);
@@ -103,7 +110,8 @@ export async function POST(request: Request) {
     const cart = sampleCart({ id: `test-nc-${Date.now()}` });
     const hash = hashAddress(cart.shippingAddress);
     if (hash) {
-      await sql/*sql*/`INSERT INTO used_addresses (hash) VALUES (${hash}) ON CONFLICT DO NOTHING`;
+      if (await anvanderWix()) await anvandaAdresser.registrera(hash, null, null);
+      else await sql/*sql*/`INSERT INTO used_addresses (hash) VALUES (${hash}) ON CONFLICT DO NOTHING`;
     }
     const enq = await enqueueAbandonedCart(cart);
     const results = await runUntilDone(cart.cartId);
@@ -120,8 +128,7 @@ export async function POST(request: Request) {
   if (action === 'simulate_cooldown') {
     const first = sampleCart({ id: `test-cd1-${Date.now()}` });
     const enqA = await enqueueAbandonedCart(first);
-    const firstRow = await sql/*sql*/`SELECT id, email, phone, shipping_addr_hash, items_json, subtotal_minor, currency, recover_url, next_step, next_step_at, status, discount_code, discount_code_wix_id FROM abandoned_carts WHERE id = ${first.cartId}`;
-    const step1 = await processDueCart(firstRow.rows[0] as never);
+    const step1 = await processDueCart((await lasVagn(first.cartId)) as never);
     // Second cart, same email, immediately — should be refused.
     const second = sampleCart({ id: `test-cd2-${Date.now()}`, email: first.email });
     const enqB = await enqueueAbandonedCart(second);
@@ -131,8 +138,7 @@ export async function POST(request: Request) {
   if (action === 'simulate_conversion') {
     const cart = sampleCart({ id: `test-cv-${Date.now()}` });
     const enq = await enqueueAbandonedCart(cart);
-    const firstRow = await sql/*sql*/`SELECT id, email, phone, shipping_addr_hash, items_json, subtotal_minor, currency, recover_url, next_step, next_step_at, status, discount_code, discount_code_wix_id FROM abandoned_carts WHERE id = ${cart.cartId}`;
-    const step1 = await processDueCart(firstRow.rows[0] as never);
+    const step1 = await processDueCart((await lasVagn(cart.cartId)) as never);
     const conv = await onOrderConverted({
       cartId: cart.cartId,
       email: cart.email,
@@ -151,6 +157,9 @@ export async function POST(request: Request) {
 // so we can verify the live flow end-to-end without a Resend dashboard.
 export async function GET(request: Request) {
   if (!authorised(request)) return NextResponse.json({ ok: false, error: 'unauthorised' }, { status: 401 });
+  if (await anvanderWix()) {
+    return NextResponse.json({ ok: true, carts: await kundvagnar.senaste(20), sentEmails: await kundvagnMejl.senaste(20) });
+  }
   const carts = await sql/*sql*/`
     SELECT id, email, status, next_step, next_step_at, abandoned_at, discount_code
       FROM abandoned_carts ORDER BY created_at DESC LIMIT 20

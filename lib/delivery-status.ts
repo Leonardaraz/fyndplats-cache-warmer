@@ -150,3 +150,61 @@ export function levereratBeslut(args: {
   if (förstaLevererad !== null && nu - förstaLevererad >= VÄNTA_PÅ_ÖVRIGA_DAGAR * 86_400_000) return "skicka";
   return "vänta";
 }
+
+/** En rad ur tracking_mapping, som svepet behöver den. */
+export interface SvepPaket {
+  tracking_number: string;
+  order_id: string | null;
+  customer_email: string;
+  customer_name: string | null;
+  status: string;
+  created_at: string | null;
+  levererad_at: string | null;
+}
+
+export interface SvepKandidat {
+  order_id: string;
+  tracking_number: string;
+  customer_email: string;
+  customer_name: string | null;
+  /** Nycklarna ett levererat-mejl för ordern kan ha skickats under. */
+  nycklar: string[];
+}
+
+/**
+ * Leveranssvepets urval utan SQL, för Wix-lagret. Samma regler som frågan i
+ * lib/delivery-order.ts (`ordrarAttSvepa`): paket med order och utan karantän
+ * grupperas per order, kunden tas från orderns senast skapade paket, och en
+ * order är med bara om något av dess paket levererades inom `svepMaxDagar`.
+ * Raderna ska redan vara begränsade till paket skapade inom pollens fönster.
+ * Nycklarna är orderns nyckel och varje paketnummer: finns ett levererat-mejl
+ * under någon av dem är kunden redan meddelad.
+ */
+export function svepKandidater(rader: SvepPaket[], nuMs: number, svepMaxDagar: number): SvepKandidat[] {
+  const perOrder = new Map<string, SvepPaket[]>();
+  for (const r of rader) {
+    if (!r.order_id || r.status === "ambiguous") continue;
+    const lista = perOrder.get(r.order_id) ?? [];
+    lista.push(r);
+    perOrder.set(r.order_id, lista);
+  }
+  const grans = nuMs - svepMaxDagar * 24 * 60 * 60 * 1000;
+  const ut: SvepKandidat[] = [];
+  for (const [orderId, paket] of perOrder) {
+    const levererade = paket.filter((p) => p.status === "delivered");
+    const nyligen = levererade.some((p) => {
+      const t = p.levererad_at ? Date.parse(p.levererad_at) : NaN;
+      return Number.isFinite(t) && t > grans;
+    });
+    if (!nyligen) continue;
+    const senast = [...paket].sort((a, b) => String(b.created_at ?? "").localeCompare(String(a.created_at ?? "")))[0];
+    ut.push({
+      order_id: orderId,
+      tracking_number: levererade[0].tracking_number,
+      customer_email: senast.customer_email,
+      customer_name: senast.customer_name,
+      nycklar: [orderNyckel(orderId), ...paket.map((p) => p.tracking_number)],
+    });
+  }
+  return ut;
+}

@@ -16,6 +16,7 @@
 
 import { Resend } from 'resend';
 import { sql } from './db';
+import { anvanderWix, anvandaAdresser, kundvagnMejl, kundvagnar } from './wix-lager';
 import { hashAddress, normalisePhone, type NormalisableAddress } from './address-hash';
 import { mintAbandonedCartCoupon, revokeCoupon } from './discount-codes';
 import { renderAbandonedCart1 } from '../emails/abandoned-cart-1';
@@ -81,6 +82,68 @@ function unsubHeaders(email: string): Record<string, string> {
 }
 
 // ---------------------------------------------------------------------------
+// Tabellerna. Varje läsning och skrivning går genom de här, och de väljer
+// lager: Postgres eller Wix CMS (lib/wix-lager.ts, flytten 2026-10-29).
+// ---------------------------------------------------------------------------
+
+/** Har adressen fått ett kundvagnsmejl sedan `cutoff` (från en annan vagn än `utomCartId`)? */
+async function mejladNyligen(emailLower: string, cutoff: Date, utomCartId?: string): Promise<boolean> {
+  if (await anvanderWix()) return kundvagnMejl.nyligen(emailLower, cutoff.toISOString(), utomCartId);
+  const recent = utomCartId
+    ? await sql/*sql*/`
+        SELECT 1 FROM sent_emails
+        WHERE LOWER(email) = ${emailLower}
+          AND sent_at >= ${cutoff.toISOString()}
+          AND cart_id <> ${utomCartId}
+        LIMIT 1
+      `
+    : await sql/*sql*/`
+        SELECT 1 FROM sent_emails
+        WHERE LOWER(email) = ${emailLower}
+          AND sent_at >= ${cutoff.toISOString()}
+        LIMIT 1
+      `;
+  return (recent.rowCount ?? 0) > 0;
+}
+
+/** `INSERT INTO sent_emails … ON CONFLICT (cart_id, step) DO NOTHING`. */
+async function loggaMejl(cart: CartRow, step: 1 | 2 | 3, resendId: string | null, discountCode: string | null = null): Promise<void> {
+  if (await anvanderWix()) {
+    await kundvagnMejl.logga({ cartId: cart.id, step, resendId, email: cart.email, discountCode });
+    return;
+  }
+  await sql/*sql*/`
+    INSERT INTO sent_emails (cart_id, step, resend_id, email, discount_code)
+    VALUES (${cart.id}, ${step}, ${resendId}, ${cart.email}, ${discountCode})
+    ON CONFLICT (cart_id, step) DO NOTHING
+  `;
+}
+
+/** Sätter vagnens status (och updated_at). */
+async function sattStatus(cartId: string, status: string): Promise<void> {
+  if (await anvanderWix()) {
+    await kundvagnar.uppdatera(cartId, { status });
+    return;
+  }
+  await sql/*sql*/`
+    UPDATE abandoned_carts SET status=${status}, updated_at=NOW() WHERE id=${cartId}
+  `;
+}
+
+/** Flyttar vagnen till nästa steg. */
+async function sattNastaSteg(cartId: string, nextStep: number, nextStepAt: string): Promise<void> {
+  if (await anvanderWix()) {
+    await kundvagnar.uppdatera(cartId, { nextStep, nextStepAt });
+    return;
+  }
+  await sql/*sql*/`
+    UPDATE abandoned_carts
+       SET next_step = ${nextStep}, next_step_at = ${nextStepAt}, updated_at = NOW()
+     WHERE id = ${cartId}
+  `;
+}
+
+// ---------------------------------------------------------------------------
 // Enqueue
 // ---------------------------------------------------------------------------
 
@@ -97,17 +160,29 @@ export async function enqueueAbandonedCart(input: AbandonedCartInput): Promise<E
 
   // 30-day cooldown: if we have *any* sent_emails row for this email in the window, refuse.
   const cooldownCutoff = new Date(now.getTime() - COOLDOWN_DAYS * 24 * ONE_HOUR_MS);
-  const recent = await sql/*sql*/`
-    SELECT 1 FROM sent_emails
-    WHERE LOWER(email) = ${email}
-      AND sent_at >= ${cooldownCutoff.toISOString()}
-    LIMIT 1
-  `;
-  if (recent.rowCount && recent.rowCount > 0) {
+  if (await mejladNyligen(email, cooldownCutoff)) {
     return { enqueued: false, reason: 'cooldown', cartId: input.cartId };
   }
 
   const nextStepAt = new Date(input.abandonedAt.getTime() + delays[1]);
+
+  if (await anvanderWix()) {
+    const ny = await kundvagnar.skapa({
+      id: input.cartId,
+      email,
+      phone,
+      shippingAddrHash: addrHash,
+      items: input.items,
+      subtotalMinor: input.subtotalMinor,
+      currency: input.currency ?? 'SEK',
+      recoverUrl: input.recoverUrl ?? null,
+      abandonedAt: input.abandonedAt.toISOString(),
+      nextStepAt: nextStepAt.toISOString(),
+    });
+    return ny
+      ? { enqueued: true, cartId: input.cartId }
+      : { enqueued: false, reason: 'already_exists', cartId: input.cartId };
+  }
 
   // Idempotent upsert keyed on cartId.
   const ins = await sql/*sql*/`
@@ -156,7 +231,16 @@ export async function onOrderConverted(input: OrderConversionInput): Promise<{
   let revokedCode = false;
   let recordedAddress = false;
 
-  if (input.cartId) {
+  if (input.cartId && (await anvanderWix())) {
+    const k = await kundvagnar.konvertera(input.cartId);
+    if (k.konverterad) {
+      cancelledCart = true;
+      if (k.rabattWixId) {
+        await revokeCoupon(k.rabattWixId);
+        revokedCode = true;
+      }
+    }
+  } else if (input.cartId) {
     const rows = await sql/*sql*/`
       UPDATE abandoned_carts
          SET status = 'converted', updated_at = NOW()
@@ -179,7 +263,14 @@ export async function onOrderConverted(input: OrderConversionInput): Promise<{
   // E-post är den enda gemensamma nyckeln mellan vagnen och ordern. Avbryt alla
   // kundens pending-vagnar och återkalla ev. kuponger.
   const convEmail = input.email?.toLowerCase().trim() ?? null;
-  if (convEmail) {
+  if (convEmail && (await anvanderWix())) {
+    const k = await kundvagnar.konverteraForEpost(convEmail);
+    if (k.antal > 0) cancelledCart = true;
+    for (const wixId of k.rabattWixIdn) {
+      await revokeCoupon(wixId);
+      revokedCode = true;
+    }
+  } else if (convEmail) {
     const rows = await sql/*sql*/`
       UPDATE abandoned_carts
          SET status = 'converted', updated_at = NOW()
@@ -202,11 +293,15 @@ export async function onOrderConverted(input: OrderConversionInput): Promise<{
   const phone = normalisePhone(input.phone);
   const email = input.email?.toLowerCase().trim() ?? null;
   if (addrHash) {
-    await sql/*sql*/`
-      INSERT INTO used_addresses (hash, email, phone)
-      VALUES (${addrHash}, ${email}, ${phone})
-      ON CONFLICT (hash) DO NOTHING
-    `;
+    if (await anvanderWix()) {
+      await anvandaAdresser.registrera(addrHash, email, phone);
+    } else {
+      await sql/*sql*/`
+        INSERT INTO used_addresses (hash, email, phone)
+        VALUES (${addrHash}, ${email}, ${phone})
+        ON CONFLICT (hash) DO NOTHING
+      `;
+    }
     recordedAddress = true;
   }
 
@@ -235,6 +330,7 @@ interface CartRow {
 
 export async function fetchDueCarts(limit = 25, nowOverride?: Date): Promise<CartRow[]> {
   const now = (nowOverride ?? new Date()).toISOString();
+  if (await anvanderWix()) return (await kundvagnar.forfallna(now, limit)) as unknown as CartRow[];
   const result = await sql/*sql*/`
     SELECT id, email, phone, shipping_addr_hash, items_json, subtotal_minor,
            currency, recover_url, next_step, next_step_at, status,
@@ -267,25 +363,14 @@ export async function processDueCart(
   try {
     // Cooldown re-check: another flow for this email may have started since we enqueued.
     const cooldownCutoff = new Date(now.getTime() - COOLDOWN_DAYS * 24 * ONE_HOUR_MS);
-    const recent = await sql/*sql*/`
-      SELECT 1 FROM sent_emails
-      WHERE LOWER(email) = ${cart.email.toLowerCase()}
-        AND sent_at >= ${cooldownCutoff.toISOString()}
-        AND cart_id <> ${cart.id}
-      LIMIT 1
-    `;
-    if (recent.rowCount && recent.rowCount > 0) {
-      await sql/*sql*/`
-        UPDATE abandoned_carts SET status='skipped', updated_at=NOW() WHERE id=${cart.id}
-      `;
+    if (await mejladNyligen(cart.email.toLowerCase(), cooldownCutoff, cart.id)) {
+      await sattStatus(cart.id, 'skipped');
       return { cartId: cart.id, step, action: 'skipped_cooldown' };
     }
 
     // GDPR opt-out: if the recipient has unsubscribed, stop the whole flow.
     if (await isSuppressed(cart.email)) {
-      await sql/*sql*/`
-        UPDATE abandoned_carts SET status='unsubscribed', updated_at=NOW() WHERE id=${cart.id}
-      `;
+      await sattStatus(cart.id, 'unsubscribed');
       return { cartId: cart.id, step, action: 'skipped_unsubscribed' };
     }
 
@@ -293,32 +378,20 @@ export async function processDueCart(
       const result = await sendStep1(cart);
       // delays here are relative to abandoned_at; for tests we simply advance from now.
       const scheduledNext = new Date(now.getTime() + (delays[2] - delays[1])).toISOString();
-      await sql/*sql*/`
-        UPDATE abandoned_carts
-           SET next_step = 2, next_step_at = ${scheduledNext}, updated_at = NOW()
-         WHERE id = ${cart.id}
-      `;
+      await sattNastaSteg(cart.id, 2, scheduledNext);
       return result;
     }
 
     if (step === 2) {
       const result = await sendStep2(cart);
       const scheduledNext = new Date(now.getTime() + (delays[3] - delays[2])).toISOString();
-      await sql/*sql*/`
-        UPDATE abandoned_carts
-           SET next_step = 3, next_step_at = ${scheduledNext}, updated_at = NOW()
-         WHERE id = ${cart.id}
-      `;
+      await sattNastaSteg(cart.id, 3, scheduledNext);
       return result;
     }
 
     if (step === 3) {
       const result = await sendStep3(cart);
-      await sql/*sql*/`
-        UPDATE abandoned_carts
-           SET status = 'done', updated_at = NOW()
-         WHERE id = ${cart.id}
-      `;
+      await sattStatus(cart.id, 'done');
       return result;
     }
 
@@ -353,11 +426,7 @@ async function sendStep1(cart: CartRow): Promise<ProcessResult> {
     text,
     headers: unsubHeaders(cart.email),
   });
-  await sql/*sql*/`
-    INSERT INTO sent_emails (cart_id, step, resend_id, email)
-    VALUES (${cart.id}, 1, ${send.data?.id ?? null}, ${cart.email})
-    ON CONFLICT (cart_id, step) DO NOTHING
-  `;
+  await loggaMejl(cart, 1, send.data?.id ?? null);
   // Push parallellt med +1h-mejlet (snabb påminnelse; mejlet är backup).
   // Fire-and-forget — får aldrig fälla eller fördröja cron-flödet. Kanal 'cart'
   // respekterar mottagarens cartReminders-preferens.
@@ -389,11 +458,7 @@ async function sendStep2(cart: CartRow): Promise<ProcessResult> {
     text,
     headers: unsubHeaders(cart.email),
   });
-  await sql/*sql*/`
-    INSERT INTO sent_emails (cart_id, step, resend_id, email)
-    VALUES (${cart.id}, 2, ${send.data?.id ?? null}, ${cart.email})
-    ON CONFLICT (cart_id, step) DO NOTHING
-  `;
+  await loggaMejl(cart, 2, send.data?.id ?? null);
   return { cartId: cart.id, step: 2, action: 'sent', resendId: send.data?.id };
 }
 
@@ -415,11 +480,7 @@ async function sendStep3NoCode(cart: CartRow): Promise<ProcessResult> {
     text,
     headers: unsubHeaders(cart.email),
   });
-  await sql/*sql*/`
-    INSERT INTO sent_emails (cart_id, step, resend_id, email)
-    VALUES (${cart.id}, 3, ${send.data?.id ?? null}, ${cart.email})
-    ON CONFLICT (cart_id, step) DO NOTHING
-  `;
+  await loggaMejl(cart, 3, send.data?.id ?? null);
   return { cartId: cart.id, step: 3, action: 'sent_no_code', resendId: send.data?.id };
 }
 
@@ -429,19 +490,27 @@ async function sendStep3(cart: CartRow): Promise<ProcessResult> {
 
   let addressKnown = false;
   if (cart.shipping_addr_hash) {
-    const r = await sql/*sql*/`
-      SELECT 1 FROM used_addresses WHERE hash = ${cart.shipping_addr_hash} LIMIT 1
-    `;
-    addressKnown = (r.rowCount ?? 0) > 0;
+    if (await anvanderWix()) {
+      addressKnown = await anvandaAdresser.finnsHash(cart.shipping_addr_hash);
+    } else {
+      const r = await sql/*sql*/`
+        SELECT 1 FROM used_addresses WHERE hash = ${cart.shipping_addr_hash} LIMIT 1
+      `;
+      addressKnown = (r.rowCount ?? 0) > 0;
+    }
   }
 
   let phoneKnown = false;
   const phoneNorm = normalisePhone(cart.phone);
   if (phoneNorm) {
-    const r = await sql/*sql*/`
-      SELECT 1 FROM used_addresses WHERE phone = ${phoneNorm} LIMIT 1
-    `;
-    phoneKnown = (r.rowCount ?? 0) > 0;
+    if (await anvanderWix()) {
+      phoneKnown = await anvandaAdresser.finnsTelefon(phoneNorm);
+    } else {
+      const r = await sql/*sql*/`
+        SELECT 1 FROM used_addresses WHERE phone = ${phoneNorm} LIMIT 1
+      `;
+      phoneKnown = (r.rowCount ?? 0) > 0;
+    }
   }
 
   const shouldSendNoCode = belowMin || addressKnown || phoneKnown;
@@ -463,13 +532,17 @@ async function sendStep3(cart: CartRow): Promise<ProcessResult> {
     return sendStep3NoCode(cart);
   }
 
-  await sql/*sql*/`
-    UPDATE abandoned_carts
-       SET discount_code = ${minted.code},
-           discount_code_wix_id = ${minted.wixCouponId},
-           updated_at = NOW()
-     WHERE id = ${cart.id}
-  `;
+  if (await anvanderWix()) {
+    await kundvagnar.uppdatera(cart.id, { discountCode: minted.code, discountCodeWixId: minted.wixCouponId });
+  } else {
+    await sql/*sql*/`
+      UPDATE abandoned_carts
+         SET discount_code = ${minted.code},
+             discount_code_wix_id = ${minted.wixCouponId},
+             updated_at = NOW()
+       WHERE id = ${cart.id}
+    `;
+  }
 
   const subject = '5% extra för att slutföra';
   const { html, text } = await renderAbandonedCart3({
@@ -490,11 +563,7 @@ async function sendStep3(cart: CartRow): Promise<ProcessResult> {
     text,
     headers: unsubHeaders(cart.email),
   });
-  await sql/*sql*/`
-    INSERT INTO sent_emails (cart_id, step, resend_id, email, discount_code)
-    VALUES (${cart.id}, 3, ${send.data?.id ?? null}, ${cart.email}, ${minted.code})
-    ON CONFLICT (cart_id, step) DO NOTHING
-  `;
+  await loggaMejl(cart, 3, send.data?.id ?? null, minted.code);
   return {
     cartId: cart.id,
     step: 3,

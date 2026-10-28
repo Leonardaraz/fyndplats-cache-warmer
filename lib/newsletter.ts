@@ -12,6 +12,7 @@
 
 import { createHmac } from "crypto";
 import { sql } from "./db";
+import { anvanderWix, nyhetsbrev } from "./wix-lager";
 
 export type SubscribeResult =
   | { ok: true; already: boolean }
@@ -64,6 +65,10 @@ export async function subscribe(emailRaw: string, source: string, consent: boole
   const email = emailRaw.toLowerCase().trim();
   if (!isValidEmail(email)) return { ok: false, error: "invalid_email" };
   if (!consent) return { ok: false, error: "consent_required" };
+  if (await anvanderWix()) {
+    const { already } = await nyhetsbrev.prenumerera(email, source, consent);
+    return { ok: true, already };
+  }
   await ensureTable();
   const res = await sql/*sql*/`
     INSERT INTO newsletter_subscribers (email, source, status, consent)
@@ -87,6 +92,10 @@ export async function unsubscribe(emailRaw: string, token: string): Promise<{ ok
   const email = emailRaw.toLowerCase().trim();
   if (!isValidEmail(email)) return { ok: false, error: "invalid_email" };
   if (token !== unsubscribeToken(email)) return { ok: false, error: "invalid_token" };
+  if (await anvanderWix()) {
+    await nyhetsbrev.avregistrera(email);
+    return { ok: true };
+  }
   await ensureTable();
   await sql/*sql*/`
     INSERT INTO newsletter_subscribers (email, source, status, consent)
@@ -103,6 +112,7 @@ export async function isSuppressed(emailRaw: string): Promise<boolean> {
   const email = emailRaw.toLowerCase().trim();
   if (!isValidEmail(email)) return false;
   try {
+    if (await anvanderWix()) return await nyhetsbrev.arAvregistrerad(email);
     await ensureTable();
     const r = await sql/*sql*/`
       SELECT 1 FROM newsletter_subscribers

@@ -14,6 +14,7 @@
 // vid DB-fel: hellre ett (eventuellt dubbelt) mejl än ett tappat.
 
 import { sql } from "./db";
+import { anvanderWix, orderbekraftelser } from "./wix-lager";
 
 let ensured: Promise<void> | null = null;
 function ensureTable(): Promise<void> {
@@ -41,6 +42,7 @@ function ensureTable(): Promise<void> {
 export async function claimOrderConfirmation(orderId: string, orderNumber?: string): Promise<boolean> {
   if (!orderId) return true;
   try {
+    if (await anvanderWix()) return await orderbekraftelser.ansprak(orderId, orderNumber ?? null);
     await ensureTable();
     const { rows } = await sql/*sql*/`
       INSERT INTO order_confirmation_sent (order_id, order_number)
@@ -60,6 +62,10 @@ export async function claimOrderConfirmation(orderId: string, orderNumber?: stri
 export async function releaseOrderConfirmation(orderId: string): Promise<void> {
   if (!orderId) return;
   try {
+    if (await anvanderWix()) {
+      await orderbekraftelser.slapp(orderId);
+      return;
+    }
     await sql/*sql*/`DELETE FROM order_confirmation_sent WHERE order_id = ${orderId}`;
   } catch (err) {
     console.error("[order-dedup] release misslyckades", err instanceof Error ? err.message : err);

@@ -16,6 +16,7 @@
 // (ON CONFLICT DO NOTHING) så Wix-retries och sync-cron inte dubbelräknar.
 
 import { sql } from "./db";
+import { anvanderWix, ordrar } from "./wix-lager";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -94,6 +95,19 @@ export async function recordOrder(
     new Date().toISOString();
 
   try {
+    if (await anvanderWix()) {
+      const { inserted } = await ordrar.spegla({
+        id,
+        orderNumber: orderNumber ?? null,
+        email: email ?? null,
+        totalMinor,
+        currency,
+        itemCount,
+        items,
+        createdAt: createdIso,
+      });
+      return { recorded: true, inserted };
+    }
     const res = await sql/*sql*/`
       INSERT INTO orders (id, order_number, email, total_minor, currency, item_count, items_json, created_at)
       VALUES (

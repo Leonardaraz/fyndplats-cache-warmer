@@ -9,7 +9,8 @@
 // updated_at, så väntetiden mot de andra paketen hade börjat om varje gång.
 
 import { sql } from "./db";
-import { POLL_MAX_ÅLDER_DAGAR, orderNyckel } from "./delivery-status";
+import { anvanderWix, leveransnotiser, sparning } from "./wix-lager";
+import { POLL_MAX_ÅLDER_DAGAR, orderNyckel, svepKandidater } from "./delivery-status";
 
 let ensured: Promise<void> | null = null;
 function ensureKolumn(): Promise<void> {
@@ -37,6 +38,7 @@ function ensureKolumn(): Promise<void> {
 
 /** Markerar paketet levererat. levererad_at sätts bara första gången. */
 export async function markeraLevererad(trackingNumber: string): Promise<void> {
+  if (await anvanderWix()) return sparning.markeraLevererad(trackingNumber);
   await ensureKolumn();
   await sql/*sql*/`
     UPDATE tracking_mapping
@@ -57,18 +59,24 @@ export interface OrderPaket {
 /** Status för orderns alla paket. 'ambiguous' räknas inte: vi vet inte vems
  *  paket det är, och det ska inte hålla tillbaka mejlet. */
 export async function läsOrderPaket(orderId: string): Promise<OrderPaket> {
-  await ensureKolumn();
-  const r = await sql<{ status: string; levererad_at: Date | string | null }>/*sql*/`
-    SELECT status, levererad_at FROM tracking_mapping
-     WHERE order_id = ${orderId} AND status <> 'ambiguous'
-  `;
+  let rader: { status: string; levererad_at: Date | string | null }[];
+  if (await anvanderWix()) {
+    rader = await sparning.forOrder(orderId);
+  } else {
+    await ensureKolumn();
+    const r = await sql<{ status: string; levererad_at: Date | string | null }>/*sql*/`
+      SELECT status, levererad_at FROM tracking_mapping
+       WHERE order_id = ${orderId} AND status <> 'ambiguous'
+    `;
+    rader = r.rows;
+  }
   let förstaLevererad: number | null = null;
-  for (const rad of r.rows) {
+  for (const rad of rader) {
     if (!rad.levererad_at) continue;
     const t = new Date(rad.levererad_at).getTime();
     if (Number.isFinite(t) && (förstaLevererad === null || t < förstaLevererad)) förstaLevererad = t;
   }
-  return { statusar: r.rows.map((x) => x.status), förstaLevererad };
+  return { statusar: rader.map((x) => x.status), förstaLevererad };
 }
 
 /** Svepet tar bara ordrar där ett paket levererades de senaste dagarna. Ett
@@ -96,6 +104,17 @@ export interface OrderAttSvepa {
  * mejl, och svepet hade annars skickat ett till för varje gammal order.
  */
 export async function ordrarAttSvepa(gräns = 30): Promise<OrderAttSvepa[]> {
+  if (await anvanderWix()) {
+    // Samma urval som frågan nedan, räknat i svepKandidater (lib/delivery-status).
+    const nu = Date.now();
+    const rader = await sparning.forSvep(new Date(nu - POLL_MAX_ÅLDER_DAGAR * 24 * 60 * 60 * 1000).toISOString());
+    const kandidater = svepKandidater(rader, nu, SVEP_MAX_DAGAR);
+    const meddelade = await leveransnotiser.medStatus(kandidater.flatMap((k) => k.nycklar), "delivered");
+    return kandidater
+      .filter((k) => !k.nycklar.some((n) => meddelade.has(n)))
+      .slice(0, gräns)
+      .map(({ order_id, tracking_number, customer_email, customer_name }) => ({ order_id, tracking_number, customer_email, customer_name }));
+  }
   await ensureKolumn();
   const r = await sql.query<OrderAttSvepa>(
     `WITH o AS (

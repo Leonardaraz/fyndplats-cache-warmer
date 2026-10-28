@@ -27,6 +27,7 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { render } from "@react-email/render";
 import { sql, runMigration } from "@/lib/db";
+import { anvanderWix, trustpilot } from "@/lib/wix-lager";
 import { cronClock, isSwedishHour } from "@/lib/cron-time";
 import {
   isTrustpilotConfigured,
@@ -58,11 +59,13 @@ function isAuthorised(request: Request): boolean {
 }
 
 async function alreadyInvited(orderId: string): Promise<boolean> {
+  if (await anvanderWix()) return trustpilot.finns(orderId);
   const { rows } = await sql/*sql*/`SELECT 1 FROM trustpilot_invites WHERE order_id = ${orderId} LIMIT 1`;
   return rows.length > 0;
 }
 
 async function recordInvite(orderId: string, email: string, channel: string, resendId?: string): Promise<void> {
+  if (await anvanderWix()) return trustpilot.registrera(orderId, email, channel, resendId ?? null);
   await sql/*sql*/`
     INSERT INTO trustpilot_invites (order_id, email, channel, resend_id)
     VALUES (${orderId}, ${email}, ${channel}, ${resendId ?? null})

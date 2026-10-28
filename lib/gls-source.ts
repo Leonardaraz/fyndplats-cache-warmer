@@ -19,6 +19,7 @@
 // /sparning visar då det 17TRACK har, som förut.
 
 import { sql } from "./db";
+import { anvanderWix, sparning } from "./wix-lager";
 import { resolveOrderId } from "./wix-order-lookup";
 import { orderPostnummer } from "./wix-order-fields";
 import { glsSokUrl, tolkaGlsSvar, type GlsSparning } from "./gls-track";
@@ -29,13 +30,20 @@ const WIX_BASE = "https://www.wixapis.com";
 async function postnummerForPaket(sparningsnummer: string): Promise<string | null> {
   // /api/track skickar numret i versaler. Raden bär det som det skrevs in i
   // Wix, så jämförelsen görs i versaler på båda sidor.
-  const { rows } = await sql<{ order_id: string | null }>/*sql*/`
-    SELECT order_id FROM tracking_mapping
-     WHERE UPPER(tracking_number) = ${sparningsnummer}
-       AND status <> 'ambiguous'
-     LIMIT 1
-  `;
-  const orderId = await resolveOrderId(rows[0]?.order_id);
+  let radensOrder: string | null | undefined;
+  if (await anvanderWix()) {
+    const rad = await sparning.hamtaVersaler(sparningsnummer);
+    radensOrder = rad && rad.status !== "ambiguous" ? rad.order_id : null;
+  } else {
+    const { rows } = await sql<{ order_id: string | null }>/*sql*/`
+      SELECT order_id FROM tracking_mapping
+       WHERE UPPER(tracking_number) = ${sparningsnummer}
+         AND status <> 'ambiguous'
+       LIMIT 1
+    `;
+    radensOrder = rows[0]?.order_id;
+  }
+  const orderId = await resolveOrderId(radensOrder);
   const key = process.env.WIX_API_KEY;
   const site = process.env.WIX_SITE_ID;
   if (!orderId || !key || !site) return null;

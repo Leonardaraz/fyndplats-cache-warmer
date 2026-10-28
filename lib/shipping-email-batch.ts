@@ -17,6 +17,7 @@
 // samtidiga webhook-anrop för samma order kan inte båda skicka.
 
 import { sql } from "./db";
+import { anvanderWix, fraktmejlKo } from "./wix-lager";
 import { sandningsRader, slaIhopRader, heltSkickad, type KoadSandning, type SandningsRad } from "./fraktmejl-rader";
 
 export { sandningsRader, slaIhopRader, heltSkickad };
@@ -55,6 +56,10 @@ function ensureTable(): Promise<void> {
  *  då mejlet direkt som förr, hellre ett extra mejl än ett tappat. */
 export async function koaSandning(orderGuid: string, s: KoadSandning): Promise<boolean> {
   try {
+    if (await anvanderWix()) {
+      await fraktmejlKo.koa(orderGuid, s);
+      return true;
+    }
     await ensureTable();
     await sql/*sql*/`
       INSERT INTO shipping_email_queue (tracking_number, order_guid, carrier, line_items)
@@ -71,6 +76,13 @@ export async function koaSandning(orderGuid: string, s: KoadSandning): Promise<b
 /** Tar atomiskt alla väntande nummer för ordern. Tom lista = inget att skicka
  *  (eller någon annan hann före). */
 export async function taVantande(orderGuid: string): Promise<KoadSandning[]> {
+  if (await anvanderWix()) {
+    return (await fraktmejlKo.taVantande(orderGuid)).map((r) => ({
+      trackingNumber: r.trackingNumber,
+      carrier: r.carrier,
+      lineItems: r.lineItems as SandningsRad[],
+    }));
+  }
   await ensureTable();
   const { rows } = await sql<{ tracking_number: string; carrier: string | null; line_items: SandningsRad[] | string }>/*sql*/`
     UPDATE shipping_email_queue SET sent_at = NOW()
@@ -90,7 +102,8 @@ export async function taVantande(orderGuid: string): Promise<KoadSandning[]> {
 export async function slappVantande(trackingNumbers: string[]): Promise<void> {
   for (const tn of trackingNumbers) {
     try {
-      await sql/*sql*/`UPDATE shipping_email_queue SET sent_at = NULL WHERE tracking_number = ${tn}`;
+      if (await anvanderWix()) await fraktmejlKo.slapp(tn);
+      else await sql/*sql*/`UPDATE shipping_email_queue SET sent_at = NULL WHERE tracking_number = ${tn}`;
     } catch (err) {
       console.error("[fraktmejl] kunde inte släppa", tn, err instanceof Error ? err.message : err);
     }
@@ -99,6 +112,7 @@ export async function slappVantande(trackingNumbers: string[]): Promise<void> {
 
 /** Ordrar vars äldsta väntande nummer har väntat minst `minuter`. */
 export async function ordrarSomVantat(minuter: number = VANTETID_MIN, max = 25): Promise<string[]> {
+  if (await anvanderWix()) return fraktmejlKo.ordrarSomVantat(new Date(Date.now() - minuter * 60_000).toISOString(), max);
   await ensureTable();
   const { rows } = await sql<{ order_guid: string }>/*sql*/`
     SELECT order_guid FROM shipping_email_queue

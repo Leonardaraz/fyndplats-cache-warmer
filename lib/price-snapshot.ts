@@ -24,6 +24,7 @@
 // fyrdubblar radantalet och ingen yta visar variantvis rea idag.
 
 import { sql } from "./db";
+import { anvanderWix, prishistorik } from "./wix-lager";
 import { getProducts } from "./products";
 import {
   jamforpris,
@@ -54,6 +55,11 @@ export type SnapshotResultat = {
   gallrade: number;
   fel?: string;
 };
+
+/** YYYY-MM-DD `dagar` dagar före `datum`: samma som Postgres `datum::date - dagar`. */
+function datumMinus(datum: string, dagar: number): string {
+  return new Date(Date.parse(`${datum}T00:00:00.000Z`) - dagar * 86_400_000).toISOString().slice(0, 10);
+}
 
 /** Rader per INSERT. 500 × 4 parametrar = 2 000, väl under Postgres tak på
  *  65 535, och få nog att felsöka när en sats gör fel. */
@@ -90,6 +96,14 @@ export async function skrivDagensPriser(nu: Date = new Date()): Promise<Snapshot
         continue;
       }
       rader.push({ produktId: p.id, prisMinor: minor, valuta: p.currency || "SEK" });
+    }
+
+    if (await anvanderWix()) {
+      const u = await prishistorik.sparaDag(datum, rader);
+      skrivna = u.sparade;
+      if (u.fel.length) throw new Error(`${u.fel.length} rader skrevs inte, första: ${u.fel[0].fel}`);
+      const gallrade = await prishistorik.gallra(datumMinus(datum, SPAR_DAGAR));
+      return { ok: true, datum, skrivna, hoppade, gallrade };
     }
 
     for (let i = 0; i < rader.length; i += SATS) {
@@ -133,6 +147,10 @@ export async function jamforprisFor(
   if (!produktId || aktuellt === null) return null;
   const datum = idagISO(nu);
   try {
+    if (await anvanderWix()) {
+      const observationer: Observation[] = await prishistorik.forProdukt(produktId, datumMinus(datum, SPAR_DAGAR));
+      return jamforpris(observationer, datum, aktuellt);
+    }
     const rader = await sql/*sql*/`
       SELECT to_char(observed_on, 'YYYY-MM-DD') AS datum, price_minor
       FROM price_history
