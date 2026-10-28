@@ -74,6 +74,15 @@ on:
         required: false
         default: ""
         type: string
+      feed_sok:
+        # ☠️ NYTT 2026-10-28 (satsbordet 7758a61c): samma väg som i
+        # aosom-remap.yml. Orden hittar EXAKT en rad i feeden på servern, och
+        # artikelnumret skrivs aldrig ut och står aldrig i någon input. Används
+        # bara när `sku` är tomt, och ger en riktad körning på den ena artikeln.
+        description: "Ord som hittar EXAKT en rad i Aosoms feed, t.ex. 'satztisch glasplatte schwarz' (alla måste finnas). Artikelnumret hämtas på servern och syns aldrig. Används bara när sku är tomt."
+        required: false
+        default: ""
+        type: string
       godkann_pris:
         # En människas godkännande av ett känt prishopp över 40 %-taket, för
         # den här körningen (Leonard 2026-09-30, gunghästens rosa). Bara taket
@@ -114,6 +123,7 @@ jobs:
           LIMIT: ${{ inputs.limit }}
           MAX_ROUNDS: ${{ inputs.max_rounds }}
           SKU: ${{ inputs.sku }}
+          FEED_SOK: ${{ inputs.feed_sok }}
           GODKANN: ${{ inputs.godkann_pris }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           BASE_SECRET: ${{ secrets.POLL_TRACKING_URL }}
@@ -185,6 +195,32 @@ jobs:
             fi
             printf '%s' "$body"
           }
+
+          # ☠️ ARTIKELN PÅ ORD (feed_sok). Hittar EXAKT en rad i feeden, tar
+          # artikelnumret ur svaret i minnet och maskerar det FÖRE allt annat som
+          # skrivs ut. Fler eller färre än en träff är ett fel, aldrig ett val.
+          if [ -z "${SKU:-}" ] && [ -n "${FEED_SOK:-}" ]; then
+            sok=$(curl -sS --get --max-time 120 \
+              -H "Authorization: Bearer ${CRON_SECRET}" \
+              --data-urlencode "q=${FEED_SOK}" \
+              "${rot}/api/admin/aosom-feed-search?allaRader=1") || {
+                echo "::error::feedsökningen gick inte fram" >&2
+                exit 1
+              }
+            if [ "$(echo "$sok" | jq -r '.ok // false')" != "true" ]; then
+              echo "::error::feedsökningen svarade fel: $(echo "$sok" | head -c 300 | redigera)" >&2
+              exit 1
+            fi
+            antal=$(echo "$sok" | jq -r '.traffar // 0')
+            if [ "${antal}" != "1" ]; then
+              echo "::error::feed_sok måste ge EXAKT en träff i feeden, fick ${antal}. Förfina orden." >&2
+              echo "$sok" | jq -r '.visade[]? | "    [träff] \(.namn)"' | redigera >&2
+              exit 1
+            fi
+            SKU=$(echo "$sok" | jq -r '.visade[0].sku')
+            echo "::add-mask::${SKU}"
+            echo "feed_sok: 1 träff — $(echo "$sok" | jq -r '.visade[0].namn' | redigera) (artikelnumret hämtat på servern, skrivs inte ut)"
+          fi
 
           granskade=0; lager=0; priser=0; utan=0
           urfeeden=0; slutsalda=0; misslyckade=0; varningar=0
