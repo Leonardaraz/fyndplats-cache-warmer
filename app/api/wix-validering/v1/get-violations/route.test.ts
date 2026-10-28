@@ -4,7 +4,13 @@ import { MemoryStore } from "@/lib/store/memory";
 import { FYNDPLATS_KASSA_APP_ID } from "@/lib/wix/fyndplats-kassa";
 
 let store: MemoryStore;
-vi.mock("@/lib/store/factory", () => ({ getStore: () => store }));
+let storeFel: Error | null = null;
+vi.mock("@/lib/store/factory", () => ({
+  getStore: () => {
+    if (storeFel) throw storeFel;
+    return store;
+  },
+}));
 
 import { POST } from "./route";
 
@@ -70,6 +76,7 @@ async function overtradelser(body: string): Promise<unknown[]> {
 }
 
 beforeEach(async () => {
+  storeFel = null;
   store = new MemoryStore();
   await store.saveMapping({
     wixProductId: "wix-aosom",
@@ -143,6 +150,13 @@ describe("/api/wix-validering/v1/get-violations", () => {
     vi.spyOn(store, "getMappingByWixProductId").mockRejectedValue(new Error("databasen svarar inte"));
     vi.spyOn(console, "error").mockImplementation(() => {});
     expect(await overtradelser(anrop("62152"))).toEqual([]);
+  });
+
+  it("släpper igenom köpet när lagret inte går att öppna", async () => {
+    storeFel = new Error('Okänt STORE_BACKEND="postgress"');
+    const fel = vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(await overtradelser(anrop("62152"))).toEqual([]);
+    expect(fel).toHaveBeenCalledWith(expect.stringContaining("kontrollen föll"));
   });
 
   it("släpper igenom köpet när kontrollen tar för lång tid", async () => {

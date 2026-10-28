@@ -57,11 +57,9 @@ export function verifyJwtRs256(token: string, publicKeyPem: string): Record<stri
 }
 
 /**
- * Delar ett env-värde med en eller flera PEM-nycklar efter varandra. Butikens
- * webhook tar emot flera nycklar i samma värde (headless-site,
- * app/api/wix-webhook/route.ts, 2026-06-17), och samma värde kan ha kopierats
- * hit. Literala "\n" blir riktiga radbrytningar, ett vanligt misstag när en
- * PEM klistras in i Vercel.
+ * Delar ett env-värde med en eller flera PEM-nycklar efter varandra
+ * (WIX_VALIDERING_PUBLIC_KEY, när Wix byter kassans nyckel). Literala "\n" blir
+ * riktiga radbrytningar, ett vanligt misstag när en PEM klistras in i Vercel.
  */
 export function delaPemNycklar(pem: string | undefined): string[] {
   if (!pem) return [];
