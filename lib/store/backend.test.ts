@@ -105,3 +105,15 @@ describe("invarianten: EN definition, ingen läser miljövariabeln själv", () =
     expect(träffar).toEqual([]);
   });
 });
+
+describe("DRIFTEN_I_WIX", () => {
+  it("☠️ är FALSK i koden som bär Wix-versionerna — växlingen är en egen deploy", async () => {
+    // Steg 1 av flytten tillbaka (2026-10-29): koden och kopieringen ska kunna
+    // deployas utan att produktionen byter lager. När kopian är verifierad
+    // flippas växeln i en egen PR, och då ändras det här testet med flit.
+    const { DRIFTEN_I_WIX } = await import("./backend");
+    expect(DRIFTEN_I_WIX).toBe(false);
+    vi.stubEnv("STORE_BACKEND", "postgres");
+    expect(storeBackend()).toBe("postgres");
+  });
+});

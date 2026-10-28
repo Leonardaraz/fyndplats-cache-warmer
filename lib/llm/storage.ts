@@ -22,8 +22,7 @@
 
 import { storeBackend, type StoreBackend } from "../store/backend";
 import { sql } from "../db/client";
-
-const WIX_BASE = "https://www.wixapis.com";
+import { allaRader, fraga, hamta, spara, taBortMedFilter } from "../db/wix-data-klient";
 
 export const LLM_COLLECTIONS = {
   cache: process.env.WIX_DATA_COL_LLM_CACHE ?? "FyndplatsClaudeCache",
@@ -35,15 +34,6 @@ export const LLM_COLLECTIONS = {
 
 function backend(): StoreBackend {
   return storeBackend();
-}
-
-function headers(): Record<string, string> {
-  const token = process.env.WIX_API_TOKEN;
-  if (!token) throw new Error("WIX_API_TOKEN saknas — kan inte använda Wix Data-backend för LLM.");
-  const h: Record<string, string> = { "Content-Type": "application/json", Authorization: token };
-  const siteId = process.env.WIX_SITE_ID;
-  if (siteId) h["wix-site-id"] = siteId;
-  return h;
 }
 
 // In-memory fallback (default när STORE_BACKEND=memory). Globalt så samma map
@@ -69,17 +59,14 @@ export async function llmGet<T>(col: string, id: string): Promise<T | null> {
                               where collection = ${col} and key = ${id} limit 1`;
     return (rows[0] as { data?: T } | undefined)?.data ?? null;
   }
-  const url = `${WIX_BASE}/data/v2/items/${encodeURIComponent(id)}?dataCollectionId=${encodeURIComponent(col)}`;
-  const res = await fetch(url, { method: "GET", headers: headers() });
-  if (res.status === 404) return null;
-  if (!res.ok) {
+  try {
+    return await hamta<T>(col, id);
+  } catch (e) {
     // Tyst tolerans: cache/stats är best-effort. Vi vill INTE krascha importen
     // bara för att en stats-rad inte gick att läsa.
-    console.warn(`[llm-storage] get ${col}/${id} -> ${res.status}`);
+    console.warn(`[llm-storage] get ${col}/${id}: ${e instanceof Error ? e.message.slice(0, 160) : e}`);
     return null;
   }
-  const body = (await res.json()) as { dataItem?: { data?: T } };
-  return body.dataItem?.data ?? null;
 }
 
 export async function llmSave(col: string, id: string, data: Record<string, unknown>): Promise<void> {
@@ -96,14 +83,10 @@ export async function llmSave(col: string, id: string, data: Record<string, unkn
                 do update set data = excluded.data, at = excluded.at`;
     return;
   }
-  const res = await fetch(`${WIX_BASE}/data/v2/items/save`, {
-    method: "POST",
-    headers: headers(),
-    body: JSON.stringify({ dataCollectionId: col, dataItem: { id, dataCollectionId: col, data } }),
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    console.warn(`[llm-storage] save ${col}/${id} -> ${res.status}: ${text.slice(0, 200)}`);
+  try {
+    await spara(col, id, data);
+  } catch (e) {
+    console.warn(`[llm-storage] save ${col}/${id}: ${e instanceof Error ? e.message.slice(0, 200) : e}`);
   }
 }
 
@@ -129,27 +112,15 @@ export async function llmQuery<T>(
                               order by at desc nulls last limit ${limit}`;
     return rows.map((r) => (r as { data: T }).data);
   }
-  const res = await fetch(`${WIX_BASE}/data/v2/items/query`, {
-    method: "POST",
-    headers: headers(),
-    body: JSON.stringify({
-      dataCollectionId: col,
-      query: { filter: filter ?? {}, sort: sort ?? [], paging: { limit } },
-    }),
-  });
-  if (!res.ok) {
-    // 404 (kollektion saknas) tolereras — admin-sidan visar tom lista och
-    // Leonard kan skapa kollektionen vid första riktiga skrivningen.
-    if (res.status === 404) return [];
-    const text = await res.text();
-    if (res.status === 400 && /not found|does not exist|unknown collection/i.test(text)) {
-      return [];
-    }
-    console.warn(`[llm-storage] query ${col} -> ${res.status}: ${text.slice(0, 200)}`);
+  try {
+    return limit <= 1000
+      ? await fraga<T>(col, { filter, sort, limit })
+      : (await allaRader<T>(col, { filter, sort })).slice(0, limit);
+  } catch (e) {
+    // Admin-sidan visar hellre en tom lista än kraschar på stats.
+    console.warn(`[llm-storage] query ${col}: ${e instanceof Error ? e.message.slice(0, 200) : e}`);
     return [];
   }
-  const body = (await res.json()) as { dataItems?: { data?: T }[] };
-  return (body.dataItems ?? []).map((d) => d.data).filter((d): d is T => Boolean(d));
 }
 
 /**
@@ -191,18 +162,7 @@ export async function llmPruneOlderThan(
     }
     return `${n} rader`;
   }
-  const res = await fetch(`${WIX_BASE}/wix-data/v2/bulk/items/async-remove-by-filter`, {
-    method: "POST",
-    headers: headers(),
-    body: JSON.stringify({ dataCollectionId: col, filter: { at: { $lt: cutoff } } }),
-  });
-  if (!res.ok) {
-    throw new Error(
-      `llm-prune ${col} (${res.status}): ${(await res.text()).slice(0, 200)}`,
-    );
-  }
-  const body = (await res.json()) as { jobId?: string };
-  return body.jobId ?? "";
+  return taBortMedFilter(col, { at: { $lt: cutoff } });
 }
 
 /** Endast för tester: tömmer in-memory-bucketen. Saknar effekt i prod. */

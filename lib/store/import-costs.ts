@@ -22,20 +22,7 @@
 
 import { storeBackend } from "./backend";
 import { sql } from "../db/client";
-
-const WIX_BASE = "https://www.wixapis.com";
-
-function headers(): Record<string, string> {
-  const token = process.env.WIX_API_TOKEN;
-  if (!token) throw new Error("WIX_API_TOKEN saknas i miljön.");
-  const h: Record<string, string> = {
-    "Content-Type": "application/json",
-    Authorization: token,
-  };
-  const siteId = process.env.WIX_SITE_ID;
-  if (siteId) h["wix-site-id"] = siteId;
-  return h;
-}
+import { allaRader, spara } from "../db/wix-data-klient";
 
 const COLLECTION_ID =
   process.env.WIX_DATA_COL_IMPORT_COSTS ?? "FyndplatsImportCosts";
@@ -60,27 +47,11 @@ export class ImportCostStore {
       const rader = await sql()`select data from import_costs order by at desc nulls last`;
       return rader.map((r) => (r as { data: ImportCostRecord }).data);
     }
-    const res = await fetch(`${WIX_BASE}/data/v2/items/query`, {
-      method: "POST",
-      headers: headers(),
-      body: JSON.stringify({
-        dataCollectionId: COLLECTION_ID,
-        query: { filter: {}, paging: { limit: 1000 } },
-      }),
-    });
-    if (!res.ok) {
-      // Saknad kollektion → behandla som tom (samma mönster som WixDataStore).
-      if (res.status === 404) return [];
-      const text = await res.text();
-      if (res.status === 400 && /not found|does not exist|unknown collection/i.test(text)) {
-        return [];
-      }
-      throw new Error(`ImportCostStore.listAll (${res.status}): ${text.slice(0, 300)}`);
-    }
-    const body = (await res.json()) as { dataItems?: { data?: ImportCostRecord }[] };
-    return (body.dataItems ?? [])
-      .map((d) => d.data)
-      .filter((d): d is ImportCostRecord => Boolean(d?.productId && typeof d.costSek === "number"));
+    // ☠️ Med markör till slutet. Den gamla vägen läste EN sida om 1 000 rader,
+    // och tabellen hade 1 283 när datan flyttade tillbaka till Wix
+    // (2026-10-29): var femte override hade tyst saknats.
+    const rader = await allaRader<ImportCostRecord>(COLLECTION_ID);
+    return rader.filter((d) => Boolean(d?.productId && typeof d.costSek === "number"));
   }
 
   async upsert(record: ImportCostRecord): Promise<void> {
@@ -90,22 +61,7 @@ export class ImportCostStore {
                   on conflict (id) do update set at = excluded.at, data = excluded.data`;
       return;
     }
-    const res = await fetch(`${WIX_BASE}/data/v2/items/save`, {
-      method: "POST",
-      headers: headers(),
-      body: JSON.stringify({
-        dataCollectionId: COLLECTION_ID,
-        dataItem: {
-          id: record.productId,
-          dataCollectionId: COLLECTION_ID,
-          data: { _id: record.productId, ...record },
-        },
-      }),
-    });
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`ImportCostStore.upsert (${res.status}): ${text.slice(0, 300)}`);
-    }
+    await spara(COLLECTION_ID, record.productId, { ...record } as Record<string, unknown>);
   }
 
   async upsertMany(records: ImportCostRecord[]): Promise<{ saved: number; failed: number; errors: string[] }> {

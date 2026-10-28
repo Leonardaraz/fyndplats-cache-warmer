@@ -5,10 +5,13 @@
 // mellanrum, uppmätt på order 10079). Den som får in raden skickar, den andra
 // hoppar. Faller utskicket släpps raden igen, så nästa körning försöker på nytt.
 //
-// Tabellen finns bara i Postgres och skapas vid första användningen, som
-// färgbildstabellen (lib/db/schema.ts).
+// I Postgres skapas tabellen vid första användningen, som färgbildstabellen
+// (lib/db/schema.ts). I Wix är det kollektionen FyndplatsFakturaUtskick.
 
 import { sql } from "@/lib/db/client";
+import { hamta, infoga, patcha, satt, taBort, taBortFalt } from "@/lib/db/wix-data-klient";
+import { NYA } from "@/lib/db/wix-kollektioner";
+import { storeBackend } from "@/lib/store/backend";
 
 export type Utskickstyp = "faktura" | "kvitto";
 
@@ -78,6 +81,61 @@ export const postgresUtskickslogg: Utskickslogg = {
     return rader.length ? new Date(rader[0].skickad_at) : null;
   },
 };
+
+/** Radens id i Wix: en per order och typ, samma nyckel som Postgres primärnyckel. */
+export function utskicksId(orderId: string, typ: Utskickstyp): string {
+  return `${orderId}__${typ}`;
+}
+
+/**
+ * Samma regler i Wix. Raden tas med ett ANSPRÅK (insert): Wix vägrar ett id
+ * som finns (WDE0074), och den som får in raden skickar. Ett tvetydigt svar
+ * avgörs av klientens återläsning (lib/db/wix-data-klient.ts#infoga), så ett
+ * nätverksfel kan inte få två körningar att båda tro att de äger raden.
+ */
+export const wixUtskickslogg: Utskickslogg = {
+  async ta(orderId, typ, ordernummer) {
+    return (
+      (await infoga(NYA.fakturaUtskick, utskicksId(orderId, typ), {
+        orderId,
+        typ,
+        ordernummer,
+        tagenAt: new Date().toISOString(),
+      })) === "skapad"
+    );
+  },
+  async bekrafta(orderId, typ, resendId) {
+    await patcha(NYA.fakturaUtskick, utskicksId(orderId, typ), [
+      satt("skickadAt", new Date().toISOString()),
+      resendId ? satt("resendId", resendId) : taBortFalt("resendId"),
+    ]);
+  },
+  async slapp(orderId, typ) {
+    // Bara en rad som INTE är skickad släpps — samma villkor som Postgres.
+    await taBort(NYA.fakturaUtskick, utskicksId(orderId, typ), { skickadAt: { $exists: false } });
+  },
+  async finns(orderId, typ) {
+    return (await hamta(NYA.fakturaUtskick, utskicksId(orderId, typ))) !== null;
+  },
+  async skickad(orderId, typ) {
+    const rad = await hamta<{ skickadAt?: string }>(NYA.fakturaUtskick, utskicksId(orderId, typ));
+    return rad?.skickadAt ? new Date(rad.skickadAt) : null;
+  },
+};
+
+let minneslogg: ReturnType<typeof minnesUtskickslogg> | null = null;
+
+/** Loggen i drift: Wix eller Postgres (lib/store/backend.ts), minnet när STORE_BACKEND=memory. */
+export function getUtskickslogg(): Utskickslogg {
+  switch (storeBackend()) {
+    case "memory":
+      return (minneslogg ??= minnesUtskickslogg());
+    case "wix-data":
+      return wixUtskickslogg;
+    case "postgres":
+      return postgresUtskickslogg;
+  }
+}
 
 /** För tester: samma regler i minnet. */
 export function minnesUtskickslogg(
