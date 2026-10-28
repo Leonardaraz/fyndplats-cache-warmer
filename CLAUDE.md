@@ -4574,12 +4574,12 @@ Nio egenskaper som inte ska tas bort:
    variantbild) och kontrollera live att sidan och varukorgens bild är oförändrade.
 3. Hela svepet med `bekrafta` = torrkörningens antal. Mätt 2026-10-28: ungefär 1 minut 55 sekunder per skiva om 40 produkter, utanför synkfönstren.
 
-**Utfall 2026-10-28 (Leonards *ja prov och hela*, FLAGGADE lärdom 255–257).** Hela svepet skrev **2 168 produkter och 3 373 varianter** i fem körningar mellan 14:29 och 16:37 UTC, utan en enda
-riktig avvikelse. Kvitton: torrkörningen efteråt ger *PLAN: 0 produkter* och 6 299 av 6 299 varianter i aktiva Aosom-mappningar har en kostnad; antalet varianter med kostnad i hela katalogen
+**Utfall 2026-10-28 (Leonards *ja prov och hela*, FLAGGADE lärdom 255–258).** Hela svepet skrev **2 168 produkter och 3 373 varianter** i fem körningar mellan 14:29 och 16:37 UTC, utan en enda
+riktig avvikelse i kostnaden (fyra variantbilder behövde rättas efteråt, punkt 4). Kvitton: torrkörningen efteråt ger *PLAN: 0 produkter* och 6 299 av 6 299 varianter i aktiva Aosom-mappningar har en kostnad; antalet varianter med kostnad i hela katalogen
 (`products/query-variants` med `MERCHANT_DATA`) steg med exakt de 1 881 som torrkörningen 15:10 sa skulle återstå (5 130 → 7 011 av 8 792); delvis ifyllda produkter är noll (var 331). Kvar utan
 kostnad är 886 produkter (1 781 varianter): AliExpress-sidor och pensionerade eller saknade mappningar, som modulen aldrig rör.
 
-Tre saker att ta med vid nästa sådan körning:
+Fyra saker att ta med vid nästa sådan körning:
 
 1. ☠️ **Svepet stannade fyra gånger, alltid på ett övergående läsproblem, och stoppet är rätt även då:** fem Wix 500 i rad, en Wix 503 på läsningen efter skrivningen (`75e1a5b6`) och två gånger
    variantbildsuppföljningens egen före-och-efter-jämförelse när EFTER-läsningen släpade (`97b5e7e9` och `c5541fef`: *revisionen gick inte fram*, så kostnaden såg ut att ha försvunnit). Läs
@@ -4588,6 +4588,7 @@ Tre saker att ta med vid nästa sådan körning:
 2. **En pågående körnings logg går inte att läsa** (404 tills jobbet är klart). Följ den i Vercels runtime-logg: `skarpt: planen` ger en rad per skiva, `avvikelse` orsaken.
 3. **Kontrollen efter skrivningen läser lagret med POST, och `skapaWixAnrop` försöker bara om GET** (`lib/polish/skrivplan-wix.ts`, används av ungefär femton rutter). En övergående 503 där blir en
    avvikelse. Förslag, inte byggt och väntar på Leonards ja: samma återförsök för POST mot `/query`, `/search` och `/query-variants`.
+4. ☠️ **Kör `variantbild.yml` torr över hela katalogen efteråt, för uppföljningen kan missa.** Kontrollen 2026-10-28 (1 210 flervariantsprodukter, 30 minuter) fann 1 206 rätta och **fyra där variantbilden (varukorgens, kassans och orderns bild) var huvudbilden på 6 varianter** (`96451d83`, `973e6901`, `97b1d071` och `c519b4fe`). Alla fyra skrevs av svepet under de två minuter där Wix läsning släpade och som slutade i stopp 3 och 4 (15:53 och 16:12), och uppföljningen loggade ingen rättning för dem: den såg bilderna som rätta, och Wix nollställde dem därefter. Orsaken är inte bevisad, men mönstret talar för läsfördröjning. De rättades med `variantbild.yml` skarp på just de fyra (4 av 4 rättade, 0 avvikelser) och lästes tillbaka: variantbilden är färgens första foto på varje variant, kostnad på alla, priserna orörda. Nattens `/api/cron/variantbild` (05:35 UTC) hade rättat dem också, men då hade varukorgen visat fel färg i ungefär tolv timmar.
 
 ⚠️ **Varje skrivning ändrar produktens `updatedDate`**, och butikens cron `uppdatera-andrade` (var femte minut) bygger då om sidan (ISR-skrivning). Mätt under svepet i butikens runtime-logg: 177
 respektive 236 ändrade sidor i två fönster (före svepet 4 till 9), och cron-jobbet värmde 120 per körning utan fel. Kostnaden i kronor är inte mätt.
