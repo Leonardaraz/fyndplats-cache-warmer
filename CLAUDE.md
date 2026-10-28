@@ -1615,8 +1615,8 @@ och lager om, och minsta avvikelse stoppar.
   utfall, inget fel. Tills dess visar varukorgen, kassan och ordern fel färg på
   en sida vars pris just skrivits. ✅ `updateV3VariantPrices` anropar sedan
   2026-10-28 `refreshVariantMedia` direkt efter en prisskrivning på en
-  flervariantsprodukt (Leonards ja 2026-10-27, FLAGGADE lärdom 204 och 234, på
-  grenen och inte mergat). Uppföljningen läser om tills PATCH-svarets revision
+  flervariantsprodukt (Leonards ja 2026-10-27, FLAGGADE lärdom 204 och 234,
+  mergat med #779 2026-10-28). Uppföljningen läser om tills PATCH-svarets revision
   nåtts, ger den aldrig upp skrivs inget, och ett fel i den fäller aldrig
   prisskrivningen (`foljUppVariantbild: false` hoppar den).
 
@@ -4474,8 +4474,9 @@ Fem egenskaper som inte ska tas bort:
    `verifiera-live.py` jämför bara mängden foton per kombination, inte ordningen, så första bilden kontrolleras för sig.
 4. ☠️ **Fyra kombinationer hade bara tre egna foton och fick ett foto till** (minimum fyra bilder): `3b868848` Vit × 63 cm, `7bc96b8f` Ljusgrå × 91 × 76 cm, `91f5c078`
    Mörkgrå × 205 cm och `c438d4ba` Guld × 50 × 110 cm. Det är undantag från exakt ägare och väntar på Leonards besked.
-5. **Varukorgens, kassans och orderns bild är fortfarande färgens första foto för alla storlekar** (motorändringen (d) under *Kvar efter natten*). Elva sidor har dessutom kvar
-   foton under en kombination Aosom inte visar dem under, men rätt första bild (`harma-aldre-bilder.tsv`): de väntar på Leonards besked.
+5. **Varukorgens, kassans och orderns bild är fortfarande färgens första foto för alla storlekar** (motorändringen (d) under *Kvar efter natten*). Elva sidor hade dessutom kvar
+   foton under en kombination Aosom inte visar dem under, men rätt första bild (`harma-aldre-bilder.tsv`): sju är rättade 2026-10-28 och fyra lämnades, se *De elva
+   Härma-sidorna som låg utanför* nedan.
 
 ☠️ **Wix-varukostnaden (`revenueDetails.cost`) saknas på 28 av de 30 sidorna, och på 2 633 produkter i katalogen (2026-10-24).** Den här rundan tappar
 den inte (skriptet läser med `MERCHANT_DATA`, skickar kostnaden tillbaka och jämför den före och efter), men en skrivning av `options` och `variantsInfo` som är
@@ -4495,8 +4496,8 @@ Det påverkar bara Wix egen vinst- och marginalrapport. Husets lönsamhetsövers
 kundsidor berörs. Verktygen som läser med `MERCHANT_DATA` (och skickar kostnaden tillbaka där de skriver `variantsInfo`) är `lib/aosom/sammanslagning.ts`, `lib/wix/variant-media.ts`,
 `farg-forst.js`, `galleri-tillagg.js`, `skriv-storlekskort.js`, `variantbild-farg.js` och `harma-skriv.js`. Filer som skriver `variantsInfo` utan att nämna fältet
 är bland andra `lib/aosom/bilder-bort.ts`, `fargbilder-kor.ts`, `livsbild.ts`, `remap-kollaps.ts`, `lib/polish/skrivplan.ts`, `lank-om-bilder.js`,
-`skriv-fargbilder.js`, `bygg-agare.py` och rundornas skript (inte prövat fil för fil). **(1) är gjort på grenen 2026-10-28 (FLAGGADE lärdom 233, commit `07c5395f` och `8c0a04c6`, inte mergat). (2) är byggt och testat men ännu inte körts (se *Kostnaden skrivs in* nedan).** Leonard sa ja till båda
-2026-10-27 (de sex punkterna), och (2) körs först när koden är mergad (hans *merga*):
+`skriv-fargbilder.js`, `bygg-agare.py` och rundornas skript (inte prövat fil för fil). **(1) är gjort och mergat (PR #779, 2026-10-28, FLAGGADE lärdom 233). (2) körs sedan 2026-10-28 14:29 UTC (se *Kostnaden skrivs in* nedan).** Leonard sa ja till båda
+2026-10-27 (de sex punkterna), och ja till prov och hela svepet 2026-10-28:
 (1) de verktygen läser med `MERCHANT_DATA` och skickar kostnaden tillbaka, så att fler sidor inte tappar den, och (2) kostnaden skrivs tillbaka på de 2 964
 sidorna (2 633 utan och 331 med delvis) ur mappningens `landedCostSek`, torrt först och med samma före-och-efter-kontroll som resten.
 
@@ -4526,15 +4527,15 @@ Tre följder för den som tar fråga 5:
 
 ✅ Följd 1 och 3 är gjorda 2026-10-28: `updateV3VariantPrices` läser med `MERCHANT_DATA`, skickar kostnaden tillbaka på varje variant och faller tillbaka på dagens läsning
 vid 403 (svaret säger då att kostnaden inte följde med), och verktygen i `lib/aosom/` och `tools/polish-gates/` som skriver `variantsInfo` gör likadant (`lib/wix/produkt-kostnad.ts`,
-FLAGGADE lärdom 233). Följd 2, att skriva kostnaden på sidorna som saknar den, är byggd (se *Kostnaden skrivs in* nedan) och körs först efter mergen.
+FLAGGADE lärdom 233). Följd 2, att skriva kostnaden på sidorna som saknar den, ligger på `main` sedan #779 och körs 2026-10-28 (se *Kostnaden skrivs in* nedan).
 
 `products/query-variants` ger varianterna för hela katalogen på 15 sekunder (1 000 per sida, markör, `productId` går inte att filtrera på): `sku`, `visible`,
 `optionChoices`, `price`, `media`, `productData` (produkt-id, namn, adress, synlighet) och med `MERCHANT_DATA` kostnaden. Det är den bulkväg till variant-SKU:erna
 som raden om SKU-kollisionskollen (2026-09-07) säger saknas: en SKU-revision över hela katalogen är nio anrop, inte 5 527.
 
-#### Kostnaden skrivs in: `/api/admin/varukostnad` (punkt 5b, byggd 2026-10-28, ej körd)
+#### Kostnaden skrivs in: `/api/admin/varukostnad` (punkt 5b, körd 2026-10-28)
 
-Följd 2 ovan är byggd, testad och mutationsprövad, men körs inte mot Wix förrän koden ligger på `main` (Leonards *merga*): rutten och workflowen måste finnas i produktion
+Följd 2 ovan är byggd, testad och mutationsprövad och ligger på `main` sedan #779 (2026-10-28, 12:30 UTC). Rutten och workflowen måste finnas i produktion
 (`workflow_dispatch` kör `main` som default). Workflowen heter **"Varukostnad — fyll i kostnaden på Aosom-varianter som saknar den"** (`varukostnad.yml`, lägena `torr` ·
 `skarp`) → `/api/admin/varukostnad` → `lib/wix/varukostnad.ts` (planen, skrivningen, svepet) och `lib/wix/synkfonster.ts`. Torrt som default.
 
@@ -4566,16 +4567,54 @@ Nio egenskaper som inte ska tas bort:
 9. ☠️ **Svaret bär bara Wix-id och räknare**, eftersom workflowens logg är publik: inga kostnader, artikelnummer, namn eller sluggar. Wix felkroppar kan eka värdet som
    skickades, så decimaltal och artikelnummer redigeras (`redigeraFeltext`) i modulen, i rutten och en gång till i workflowen.
 
-**Körordning efter mergen** (alla tre med `lage=torr` först, och bara utanför synkfönstret när det blir skarpt):
+**Körordning** (alla tre med `lage=torr` först, och bara utanför synkfönstret när det blir skarpt):
 
 1. `torr`: läs `totalt` och räknarna. `utanKatalogvariant` och `utanMappningskostnad` ska vara små, och `redanKostnad` rörs aldrig.
 2. Ett prov med `ids`: en publicerad flervariantsprodukt, ett dolt utkast och en enkel produkt, `bekrafta` = 3. Läs tillbaka i Wix (kostnad, pris, SKU, synlighet, lager och
    variantbild) och kontrollera live att sidan och varukorgens bild är oförändrade.
-3. Hela svepet med `bekrafta` = torrkörningens antal. Uppskattat några timmar (40 produkter per skiva à några minuter, en väntan på ungefär 20 minuter runt varje synkfönster),
-   inte mätt.
+3. Hela svepet med `bekrafta` = torrkörningens antal. Mätt 2026-10-28: ungefär 1 minut 55 sekunder per skiva om 40 produkter, utanför synkfönstren.
 
-⚠️ **Varje skrivning ändrar produktens `updatedDate`**, och butikens cron `uppdatera-andrade` (var femte minut) bygger då om sidan (ISR-skrivning). Några tusen ombyggda
-sidor är en synlig men liten post i Vercel-fakturan (ISR Writes var 15 % av den uppmätta veckan, se projektets inledning). Kostnaden är inte mätt.
+**Utfall 2026-10-28 (Leonards *ja prov och hela*, FLAGGADE lärdom 255–258).** Hela svepet skrev **2 168 produkter och 3 373 varianter** i fem körningar mellan 14:29 och 16:37 UTC, utan en enda
+riktig avvikelse i kostnaden (fyra variantbilder behövde rättas efteråt, punkt 4). Kvitton: torrkörningen efteråt ger *PLAN: 0 produkter* och 6 299 av 6 299 varianter i aktiva Aosom-mappningar har en kostnad; antalet varianter med kostnad i hela katalogen
+(`products/query-variants` med `MERCHANT_DATA`) steg med exakt de 1 881 som torrkörningen 15:10 sa skulle återstå (5 130 → 7 011 av 8 792); delvis ifyllda produkter är noll (var 331). Kvar utan
+kostnad är 886 produkter (1 781 varianter): AliExpress-sidor och pensionerade eller saknade mappningar, som modulen aldrig rör.
+
+Fyra saker att ta med vid nästa sådan körning:
+
+1. ☠️ **Svepet stannade fyra gånger, alltid på ett övergående läsproblem, och stoppet är rätt även då:** fem Wix 500 i rad, en Wix 503 på läsningen efter skrivningen (`75e1a5b6`) och två gånger
+   variantbildsuppföljningens egen före-och-efter-jämförelse när EFTER-läsningen släpade (`97b5e7e9` och `c5541fef`: *revisionen gick inte fram*, så kostnaden såg ut att ha försvunnit). Läs
+   produkten i Wix innan du startar om, för stoppraden ser likadan ut för ett läsproblem och en riktig avvikelse. Omstarten är torr, läs `PLAN: N produkter`, skarp med `bekrafta` = N (planen får
+   krympa men aldrig växa, och produkten som stoppade körningen är redan skriven, så N är ett färre än *kvar* i stoppraden).
+2. **En pågående körnings logg går inte att läsa** (404 tills jobbet är klart). Följ den i Vercels runtime-logg: `skarpt: planen` ger en rad per skiva, `avvikelse` orsaken.
+3. **Kontrollen efter skrivningen läser lagret med POST, och `skapaWixAnrop` försöker bara om GET** (`lib/polish/skrivplan-wix.ts`, används av ungefär femton rutter). En övergående 503 där blir en
+   avvikelse. Förslag, inte byggt och väntar på Leonards ja: samma återförsök för POST mot `/query`, `/search` och `/query-variants`.
+4. ☠️ **Kör `variantbild.yml` torr över hela katalogen efteråt, för uppföljningen kan missa.** Kontrollen 2026-10-28 (1 210 flervariantsprodukter, 30 minuter) fann 1 206 rätta och **fyra där variantbilden (varukorgens, kassans och orderns bild) var huvudbilden på 6 varianter** (`96451d83`, `973e6901`, `97b1d071` och `c519b4fe`). Alla fyra skrevs av svepet under de två minuter där Wix läsning släpade och som slutade i stopp 3 och 4 (15:53 och 16:12), och uppföljningen loggade ingen rättning för dem: den såg bilderna som rätta, och Wix nollställde dem därefter. Orsaken är inte bevisad, men mönstret talar för läsfördröjning. De rättades med `variantbild.yml` skarp på just de fyra (4 av 4 rättade, 0 avvikelser) och lästes tillbaka: variantbilden är färgens första foto på varje variant, kostnad på alla, priserna orörda. Nattens `/api/cron/variantbild` (05:35 UTC) hade rättat dem också, men då hade varukorgen visat fel färg i ungefär tolv timmar.
+
+⚠️ **Varje skrivning ändrar produktens `updatedDate`**, och butikens cron `uppdatera-andrade` (var femte minut) bygger då om sidan (ISR-skrivning). Mätt under svepet i butikens runtime-logg: 177
+respektive 236 ändrade sidor i två fönster (före svepet 4 till 9), och cron-jobbet värmde 120 per körning utan fel. Kostnaden i kronor är inte mätt.
+
+#### De elva Härma-sidorna som låg utanför: minimal ägarplan (2026-10-28)
+
+Leonard 2026-10-28: *"Ja prio att fixa."* om de elva tvåaxliga sidorna som den första rundan lämnade. Analysen (butikens sidodata mot Aosoms galleri per kombination) gav
+**30 foton på elva sidor** som visas under en kombination Aosom inte visar dem under, och inget som saknas där Aosom visar det. Sju sidor är rättade (`0136e7d9`, `01ac2f63`,
+`4a2ab58e`, `6d35a04f`, `8901f76d`, `926ec7a2`, `c3d1fa41`: 17 foton under fel kombination borta, 194 → 177 foton i vyerna, **25 av 25 kombinationer rätt i en riktig webbläsare**,
+första bilden och varukorgens bild oförändrade på alla 25, minst fyra foton överallt). Fyra lämnades orörda (`1d4eb6b1`, `4d9ba658`, `543b9076`, `aafbf543`). Planer, tabell och
+före-läge ligger i `tools/polish-assets/runda-bilder-harma-exakt-2/`, och FLAGGADE har lärdom 251–253.
+
+Fyra egenskaper som inte ska tas bort:
+
+1. **Bara de felplacerade fotona ändras** (`tools/polish-gates/bygg-harma-minimal.py`, med självprov). Den fulla byggaren ger varje äldre foto den exakta rektangeln, och det ger 3–14
+   ändringar per sida, fler länkar än Wix tar på sidor som redan ligger på taket och en ny första bild på de kombinationer där packshoten inte är feedens. Är första bilden redan rätt
+   är den minimala planen det som räcker.
+2. ☠️ **Torrkörningens `forsta` och `varukorg` jämförs mot före-läget, rad för rad.** Ett foto som går från en länk till två slår ett med färre som kombinationens första bild (lika
+   antal: det som står först i färgens lista), och då byter Vits första foto, alltså varukorgens, kassans och orderns bild. Det hände på två av sju sidor och syntes varken i antal eller
+   i vy. Lagat med en andra länk på packshoten (`["Vit", "85 tum"]`) och `ordning` som lägger kombinationernas nuvarande första foton först i färgens lista.
+3. ☠️ **En sida på Wix tak (15 länkade bilder per val) lämnas, och ingenting tas bort utan Leonards ja.** Fyra sidor låg på 15 i båda storlekarna, och exakt ägare kostar en länk till
+   per foto. De felplacerade fotona är närbilder av samma färg utan nästan identisk tvilling i galleriet, så en borttagning tar bort fotot också där det är rätt. Enda tydliga felet
+   är spännet `435f39` på verktygslådan. Frågan står i FLAGGADE.
+4. ☠️ **Skriv en sida först när kostnadsjobbet passerat den eller inte nått den, aldrig samtidigt.** Jobbet går i id-ordning och tar bara produkter som saknar kostnad på någon variant, så
+   en sida med kostnad på alla varianter rörs aldrig, och en som jobbet inte nått får sin kostnad efteråt ur en färsk läsning. Skrivarna här bär kostnaden tillbaka och jämför den före och
+   efter (`avvikelser: []` på alla sju).
 
 ### Nattens utkast blev sju sammanslagna sidor: mät varje vy live (2026-10-22)
 
