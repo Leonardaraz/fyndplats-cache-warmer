@@ -67,22 +67,18 @@ describe("auktionernas lager", () => {
     expect(fetchAnrop).toHaveLength(7);
   });
 
-  it("AUCTIONS_BACKEND=postgres går till Postgres och rör aldrig Wix Data", async () => {
+  it("☠️ AUCTIONS_BACKEND=postgres går till Wix sedan flytten tillbaka 2026-10-29, och rör aldrig Postgres", async () => {
+    // Vercel låter oss inte ändra AUCTIONS_BACKEND (403). Växeln DRIFTEN_I_WIX
+    // gör att postgres betyder Wix, så auktionerna följer resten av drift-datan.
     vi.stubEnv("AUCTIONS_BACKEND", "postgres");
-    expect(auktionslager()).toBe("postgres");
+    expect(auktionslager()).toBe("wix-data");
     await queryAuctions(["live", "queued"], { köHuvud: 200 });
-    await queryAuctions(["sold", "expired"]);
     await senastSalda(6);
     await saveAuction(DOK);
     await saveAuctionsBulk([DOK]);
     await removeAuctionsBulk(["auction-p1"]);
     await removeAuction("auction-p1");
-    expect(pg.pgQueryAuctions.mock.calls).toEqual([[["live", "queued"], 200], [["sold", "expired"], undefined]]);
-    expect(pg.pgSenastSalda).toHaveBeenCalledWith(6);
-    expect(pg.pgSaveAuction).toHaveBeenCalledWith(DOK);
-    expect(pg.pgSaveAuctionsBulk).toHaveBeenCalledWith([DOK]);
-    expect(pg.pgRemoveAuctionsBulk).toHaveBeenCalledWith(["auction-p1"]);
-    expect(pg.pgRemoveAuction).toHaveBeenCalledWith("auction-p1");
-    expect(fetchAnrop).toEqual([]);
+    for (const f of Object.values(pg)) expect(f).not.toHaveBeenCalled();
+    expect(fetchAnrop.every((a) => a.includes("FyndplatsAuctions"))).toBe(true);
   });
 });
