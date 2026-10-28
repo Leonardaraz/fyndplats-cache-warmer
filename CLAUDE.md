@@ -1615,8 +1615,8 @@ och lager om, och minsta avvikelse stoppar.
   utfall, inget fel. Tills dess visar varukorgen, kassan och ordern fel färg på
   en sida vars pris just skrivits. ✅ `updateV3VariantPrices` anropar sedan
   2026-10-28 `refreshVariantMedia` direkt efter en prisskrivning på en
-  flervariantsprodukt (Leonards ja 2026-10-27, FLAGGADE lärdom 204 och 234, på
-  grenen och inte mergat). Uppföljningen läser om tills PATCH-svarets revision
+  flervariantsprodukt (Leonards ja 2026-10-27, FLAGGADE lärdom 204 och 234,
+  mergat med #779 2026-10-28). Uppföljningen läser om tills PATCH-svarets revision
   nåtts, ger den aldrig upp skrivs inget, och ett fel i den fäller aldrig
   prisskrivningen (`foljUppVariantbild: false` hoppar den).
 
@@ -4496,8 +4496,8 @@ Det påverkar bara Wix egen vinst- och marginalrapport. Husets lönsamhetsövers
 kundsidor berörs. Verktygen som läser med `MERCHANT_DATA` (och skickar kostnaden tillbaka där de skriver `variantsInfo`) är `lib/aosom/sammanslagning.ts`, `lib/wix/variant-media.ts`,
 `farg-forst.js`, `galleri-tillagg.js`, `skriv-storlekskort.js`, `variantbild-farg.js` och `harma-skriv.js`. Filer som skriver `variantsInfo` utan att nämna fältet
 är bland andra `lib/aosom/bilder-bort.ts`, `fargbilder-kor.ts`, `livsbild.ts`, `remap-kollaps.ts`, `lib/polish/skrivplan.ts`, `lank-om-bilder.js`,
-`skriv-fargbilder.js`, `bygg-agare.py` och rundornas skript (inte prövat fil för fil). **(1) är gjort på grenen 2026-10-28 (FLAGGADE lärdom 233, commit `07c5395f` och `8c0a04c6`, inte mergat). (2) är byggt och testat men ännu inte körts (se *Kostnaden skrivs in* nedan).** Leonard sa ja till båda
-2026-10-27 (de sex punkterna), och (2) körs först när koden är mergad (hans *merga*):
+`skriv-fargbilder.js`, `bygg-agare.py` och rundornas skript (inte prövat fil för fil). **(1) är gjort och mergat (PR #779, 2026-10-28, FLAGGADE lärdom 233). (2) körs sedan 2026-10-28 14:29 UTC (se *Kostnaden skrivs in* nedan).** Leonard sa ja till båda
+2026-10-27 (de sex punkterna), och ja till prov och hela svepet 2026-10-28:
 (1) de verktygen läser med `MERCHANT_DATA` och skickar kostnaden tillbaka, så att fler sidor inte tappar den, och (2) kostnaden skrivs tillbaka på de 2 964
 sidorna (2 633 utan och 331 med delvis) ur mappningens `landedCostSek`, torrt först och med samma före-och-efter-kontroll som resten.
 
@@ -4527,15 +4527,15 @@ Tre följder för den som tar fråga 5:
 
 ✅ Följd 1 och 3 är gjorda 2026-10-28: `updateV3VariantPrices` läser med `MERCHANT_DATA`, skickar kostnaden tillbaka på varje variant och faller tillbaka på dagens läsning
 vid 403 (svaret säger då att kostnaden inte följde med), och verktygen i `lib/aosom/` och `tools/polish-gates/` som skriver `variantsInfo` gör likadant (`lib/wix/produkt-kostnad.ts`,
-FLAGGADE lärdom 233). Följd 2, att skriva kostnaden på sidorna som saknar den, är byggd (se *Kostnaden skrivs in* nedan) och körs först efter mergen.
+FLAGGADE lärdom 233). Följd 2, att skriva kostnaden på sidorna som saknar den, ligger på `main` sedan #779 och körs 2026-10-28 (se *Kostnaden skrivs in* nedan).
 
 `products/query-variants` ger varianterna för hela katalogen på 15 sekunder (1 000 per sida, markör, `productId` går inte att filtrera på): `sku`, `visible`,
 `optionChoices`, `price`, `media`, `productData` (produkt-id, namn, adress, synlighet) och med `MERCHANT_DATA` kostnaden. Det är den bulkväg till variant-SKU:erna
 som raden om SKU-kollisionskollen (2026-09-07) säger saknas: en SKU-revision över hela katalogen är nio anrop, inte 5 527.
 
-#### Kostnaden skrivs in: `/api/admin/varukostnad` (punkt 5b, byggd 2026-10-28, ej körd)
+#### Kostnaden skrivs in: `/api/admin/varukostnad` (punkt 5b, körd 2026-10-28)
 
-Följd 2 ovan är byggd, testad och mutationsprövad, men körs inte mot Wix förrän koden ligger på `main` (Leonards *merga*): rutten och workflowen måste finnas i produktion
+Följd 2 ovan är byggd, testad och mutationsprövad och ligger på `main` sedan #779 (2026-10-28, 12:30 UTC). Rutten och workflowen måste finnas i produktion
 (`workflow_dispatch` kör `main` som default). Workflowen heter **"Varukostnad — fyll i kostnaden på Aosom-varianter som saknar den"** (`varukostnad.yml`, lägena `torr` ·
 `skarp`) → `/api/admin/varukostnad` → `lib/wix/varukostnad.ts` (planen, skrivningen, svepet) och `lib/wix/synkfonster.ts`. Torrt som default.
 
