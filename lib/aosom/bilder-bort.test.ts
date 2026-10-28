@@ -15,6 +15,7 @@ import {
 } from "./bilder-bort";
 import { lasProdukt } from "./fargbilder-kor";
 import type { WixAnrop } from "../polish/skrivplan";
+import { KOSTNAD_EJ_LASBAR } from "../wix/produkt-kostnad";
 
 type Obj = Record<string, unknown>;
 
@@ -71,12 +72,16 @@ function kärra(): Obj {
   };
 }
 
-function fejkWix(start: Obj = kärra()) {
+/** Varukostnaden som Wix räknar marginal på. `profit` och `profitMargin` är skrivskyddade. */
+const KOSTNAD = { cost: { amount: "850.00", formattedAmount: "850,00 kr" }, profit: { amount: "150.00" }, profitMargin: 15 };
+
+function fejkWix(start: Obj = kärra(), opts: { kostnad?: boolean } = {}) {
   const p: Obj = start;
+  if (opts.kostnad) for (const v of ((p.variantsInfo as Obj).variants as Obj[])) v.revenueDetails = structuredClone(KOSTNAD);
   const fel: Record<string, number> = {};
   const patchar: string[][] = [];
   /** Wix tappar alt-texterna i galleri-PATCH:en. */
-  const sabotage: { altText?: boolean; gamlaLasningar?: number } = {};
+  const sabotage: { altText?: boolean; gamlaLasningar?: number; kostnadNekad?: boolean; tappaKostnad?: boolean } = {};
   let fore: Obj | null = null;
   const kast = (k: string, msg: string) => {
     if ((fel[k] ?? 0) > 0) {
@@ -90,11 +95,19 @@ function fejkWix(start: Obj = kärra()) {
 
   const wix: WixAnrop = async (metod, sokvag, kropp) => {
     if (metod === "GET") {
+      const medKostnad = sokvag.includes("MERCHANT_DATA");
+      if (medKostnad && sabotage.kostnadNekad) throw new Error("Wix 403: NO_PERMISSION_TO_READ_MERCHANT_DATA");
+      // Som Wix: utan MERCHANT_DATA finns ingen `revenueDetails` i svaret.
+      const svar = (x: Obj) => {
+        const k = structuredClone(x);
+        if (!medKostnad) for (const v of ((k.variantsInfo as Obj).variants as Obj[])) delete v.revenueDetails;
+        return { product: k };
+      };
       if (fore && (sabotage.gamlaLasningar ?? 0) > 0) {
         sabotage.gamlaLasningar!--;
-        return { product: structuredClone(fore) };
+        return svar(fore);
       }
-      return { product: structuredClone(p) };
+      return svar(p);
     }
     if (metod === "PATCH") {
       const k = kropp as { product: Obj; fieldMask: { paths: string[] } };
@@ -118,8 +131,14 @@ function fejkWix(start: Obj = kärra()) {
         const g = new Set(galleri());
         const opts = k.product.options as Obj[];
         if (lankade(opts).some((m) => !g.has(m))) throw new Error("Wix 404: PRODUCT_MEDIA_NOT_EXIST");
+        for (const v of (((k.product.variantsInfo as Obj).variants ?? []) as Obj[])) {
+          const rd = (v.revenueDetails ?? {}) as Obj;
+          if ("profit" in rd || "profitMargin" in rd) throw new Error("Wix 400: profit och profitMargin är skrivskyddade");
+        }
         p.options = structuredClone(opts);
+        // En variantsInfo-PATCH ERSÄTTER varianterna: det som inte skickas finns inte kvar.
         p.variantsInfo = structuredClone(k.product.variantsInfo);
+        if (sabotage.tappaKostnad) for (const v of ((p.variantsInfo as Obj).variants as Obj[])) delete v.revenueDetails;
         p.visible = k.product.visible;
       }
       p.revision = String(Number(p.revision) + 1);
@@ -256,6 +275,34 @@ describe("skrivBort", () => {
         fieldMask: { paths: ["media"] },
       }),
     ).rejects.toThrow(/PRODUCT_MEDIA_NOT_EXIST/);
+  });
+
+  it("☠️ varukostnaden följer med länkskrivningen — utan MERCHANT_DATA hade PATCH:en nollat den", async () => {
+    const w = fejkWix(kärra(), { kostnad: true });
+    const plan = await planFor(w, TYSK_OCH_ENGELSK);
+    const u = await skrivBort(plan, { wix: w.wix, vanta: async () => {} });
+    expect(u.ok).toBe(true);
+    const varianter = (w.p.variantsInfo as Obj).variants as Obj[];
+    expect(varianter).toHaveLength(3);
+    for (const v of varianter) expect(v.revenueDetails, "varje variant behåller sin kostnad").toEqual({ cost: KOSTNAD.cost });
+  });
+
+  it("☠️ nekas kostnadsfältet skrivs sidan ändå, och svaret säger att kostnaden inte följde med", async () => {
+    const w = fejkWix(kärra(), { kostnad: true });
+    w.sabotage.kostnadNekad = true;
+    const plan = await planFor(w, TYSK_OCH_ENGELSK);
+    const u = await skrivBort(plan, { wix: w.wix, vanta: async () => {} });
+    expect(u.ok).toBe(true);
+    expect(u.steg).toContain(KOSTNAD_EJ_LASBAR);
+  });
+
+  it("☠️ en kostnad som ändå försvinner i skrivningen stoppar körningen", async () => {
+    const w = fejkWix(kärra(), { kostnad: true });
+    w.sabotage.tappaKostnad = true;
+    const plan = await planFor(w, TYSK_OCH_ENGELSK);
+    const u = await skrivBort(plan, { wix: w.wix, vanta: async () => {} });
+    expect(u.ok).toBe(false);
+    expect(u.fel).toMatch(/kostnad ändrades/);
   });
 
   it("☠️ en plan med hinder skriver ingenting och rör inte Wix", async () => {

@@ -26,6 +26,7 @@
 // och allt annat står i tabellen. En omkörning ser läget och gör resten.
 
 import { felText, type WixAnrop } from "../polish/skrivplan";
+import { KOSTNAD_EJ_LASBAR, kostnadAv, lasMedKostnad, variantsInfoMedKostnad } from "../wix/produkt-kostnad";
 import { refreshVariantMedia, variantbildSteg } from "../wix/variant-media";
 import type { FargbildLager } from "../store/fargbilder";
 import {
@@ -74,8 +75,17 @@ export interface ProduktLast {
   bilder: Bild[];
   optioner: SidOption[];
   varianter: VariantLage[];
-  /** GET-svaret ordagrant — options och variantsInfo skickas tillbaka ur det. */
+  /**
+   * GET-svaret — options och variantsInfo skickas tillbaka ur det. Varianternas
+   * `revenueDetails` bär bara kostnaden (`variantsInfoMedKostnad`): `profit` och
+   * `profitMargin` är skrivskyddade, och utan kostnaden nollar PATCH:en den.
+   */
   ra: Obj;
+  /**
+   * Gick varukostnaden att läsa (MERCHANT_DATA)? Är den false skickas inga
+   * kostnader tillbaka, och skrivningen nollar dem (lib/wix/produkt-kostnad.ts).
+   */
+  kostnadLasbar: boolean;
 }
 
 function produktAv(svar: unknown): Obj | null {
@@ -86,7 +96,7 @@ function produktAv(svar: unknown): Obj | null {
 const str = (x: unknown) => (typeof x === "string" ? x : "");
 
 /** V3-produkten i verktygets form. Exporterad för testerna. */
-export function tolkaProdukt(p: Obj): ProduktLast {
+export function tolkaProdukt(p: Obj, kostnadLasbar = true): ProduktLast {
   const items = ((((p.media as Obj | undefined)?.itemsInfo as Obj | undefined)?.items) ?? []) as Obj[];
   const optioner = ((p.options ?? []) as Obj[]).map((o) => ({
     namn: str(o.name),
@@ -110,6 +120,7 @@ export function tolkaProdukt(p: Obj): ProduktLast {
       sku: str(v.sku),
       pris: pris === undefined || pris === null ? null : String(pris),
       val,
+      kostnad: kostnadAv(v),
     };
   });
   return {
@@ -120,14 +131,16 @@ export function tolkaProdukt(p: Obj): ProduktLast {
     bilder: items.map((m) => ({ id: str(m.id), alt: str(m.altText) })).filter((b) => b.id),
     optioner,
     varianter,
-    ra: p,
+    ra: { ...p, variantsInfo: variantsInfoMedKostnad(p.variantsInfo) },
+    kostnadLasbar,
   };
 }
 
 export async function lasProdukt(wix: WixAnrop, id: string): Promise<ProduktLast | null> {
   try {
-    const p = produktAv(await wix("GET", `/stores/v3/products/${encodeURIComponent(id)}?${FALT}`));
-    return p ? tolkaProdukt(p) : null;
+    const { svar, kostnadLasbar } = await lasMedKostnad(wix, `/stores/v3/products/${encodeURIComponent(id)}?${FALT}`);
+    const p = produktAv(svar);
+    return p ? tolkaProdukt(p, kostnadLasbar) : null;
   } catch (e) {
     if (/Wix 404/.test(String((e as Error)?.message ?? e))) return null;
     throw e;
@@ -250,6 +263,7 @@ export async function skrivSida(plan: SidPlan, deps: SkrivDeps): Promise<SkrivUt
   if (!fore) return fall("sidan gick inte att läsa");
   if (!sammaUtgangslage(plan, fore)) return fall("sidan har ändrats sedan planen — kör planen igen");
   const foreLage = { synlig: fore.synlig, optioner: fore.optioner, varianter: fore.varianter };
+  if (!fore.kostnadLasbar) steg.push(KOSTNAD_EJ_LASBAR);
 
   // ── 4: först när Wix läst tillbaka som planen räknas sidan som skriven ──
   // Raderna från steg 0 är obekräftade tills hit. Faller något däremellan

@@ -63,6 +63,7 @@ import type { ProductMappingRecord } from "../store";
 import type { StoredReview } from "../store/reviews";
 import { validateRedirect, type RedirectRow } from "../wix/redirects";
 import { redigera, felText, type WixAnrop } from "../polish/skrivplan";
+import { KOSTNAD_EJ_LASBAR, lasMedKostnad, variantsInfoMedKostnad } from "../wix/produkt-kostnad";
 import { refreshVariantMedia, variantbildSteg } from "../wix/variant-media";
 import { SKU_MAX } from "../import/sku";
 import { harVerkligSeFrakt, type AosomRow } from "./feed";
@@ -1078,13 +1079,20 @@ function kontrollera(
  * och `visible` med — en variantsInfo-PATCH publicerar annars ett utkast. Val
  * som inte står i kartan lämnas som de är, och ett val i kartan får HELA sin
  * lista (se BildKarta).
+ *
+ * ☠️ Läsningen här ber om varukostnaden (MERCHANT_DATA), trots att planens läsning
+ * inte gör det. Skrivsteget ovan lägger kostnaden på varje variant ur mappningen,
+ * och den här PATCH:en ersätter varianterna: utan fältet i läsningen nollades just
+ * den kostnaden i nästa steg. Returnerar om kostnaden gick att läsa; false betyder
+ * att den inte följde med och att anroparen ska säga det.
  */
 async function kopplaValbilder(
   wix: WixAnrop,
   id: string,
   bildPerVal: BildKarta,
-): Promise<void> {
-  const p = await lasProdukt(wix, id);
+): Promise<boolean> {
+  const lasning = await lasMedKostnad(wix, `/stores/v3/products/${encodeURIComponent(id)}?${FALT}`);
+  const p = produktAv(lasning.svar);
   if (!p) throw new Error("produkten gick inte att läsa inför bildkopplingen");
   const optioner = optionerAv(p).map((o) => ({
     ...o,
@@ -1097,9 +1105,10 @@ async function kopplaValbilder(
     },
   }));
   await wix("PATCH", `/stores/v3/products/${encodeURIComponent(id)}`, {
-    product: { revision: p.revision, visible: p.visible, options: optioner, variantsInfo: p.variantsInfo },
+    product: { revision: p.revision, visible: p.visible, options: optioner, variantsInfo: variantsInfoMedKostnad(p.variantsInfo) },
     fieldMask: { paths: ["options", "variantsInfo", "visible"] },
   });
+  return lasning.kostnadLasbar;
 }
 
 /**
@@ -1339,7 +1348,9 @@ export async function korSammanslagning(
   let k = kontrollera(await lasProdukt(deps.wix, input.behall), plan, fore, forvantadeBilder, bildPerVal);
   for (let forsok = 0; k.ok && k.lankade < krav && forsok < KOPPLING_FORSOK; forsok++) {
     try {
-      await kopplaValbilder(deps.wix, input.behall, bildPerVal);
+      if (!(await kopplaValbilder(deps.wix, input.behall, bildPerVal)) && !steg.includes(KOSTNAD_EJ_LASBAR)) {
+        steg.push(KOSTNAD_EJ_LASBAR);
+      }
     } catch {
       // Ett 404/409 medan bilden fortfarande tas emot — försök igen.
     }

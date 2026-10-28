@@ -56,6 +56,7 @@
 
 import { createHash } from "node:crypto";
 import { WIX_MAX_BILDER_PER_PRODUKT } from "../wix/limits";
+import { likaKostnad } from "../wix/produkt-kostnad";
 
 // ── ägarreglerna, ordagrant ur butikens lib/variant-bilder.ts ────────────────
 
@@ -751,6 +752,8 @@ export interface VariantLage {
   pris?: string | null;
   /** Variantens val, t.ex. "Färg=Grå|Storlek=90 cm". */
   val?: string;
+  /** Varukostnaden (revenueDetails.cost) som text, eller null. Saknas fältet jämförs den inte. */
+  kostnad?: string | null;
 }
 
 /**
@@ -812,6 +815,7 @@ export function kontrolleraEfter(
     if ((v.sku ?? "") !== (e.sku ?? "")) fel.push("en variants SKU ändrades");
     if ((v.pris ?? null) !== (e.pris ?? null)) fel.push("en variants pris ändrades");
     if ((v.val ?? "") !== (e.val ?? "")) fel.push("en variants val ändrades");
+    if (!likaKostnad(v.kostnad, e.kostnad)) fel.push("en variants kostnad ändrades");
   }
   return [...new Set(fel)];
 }

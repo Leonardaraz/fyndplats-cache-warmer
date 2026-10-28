@@ -88,6 +88,7 @@ import type { AosomRow } from "./feed";
 import type { WixAnrop } from "../polish/skrivplan";
 import { felText } from "../polish/skrivplan";
 import { WIX_MAX_BILDER_PER_PRODUKT } from "../wix/limits";
+import { KOSTNAD_EJ_LASBAR } from "../wix/produkt-kostnad";
 import { refreshVariantMedia, variantbildSteg } from "../wix/variant-media";
 import { isAosomMapping } from "../store/supplier";
 import { aosomArtikelbild, type AosomVariantArtikel } from "./artiklar";
@@ -1089,6 +1090,7 @@ export async function skrivSida(p: ProduktPlan, deps: LivsbildDeps): Promise<Par
   if (!fore) return fall("sidan gick inte att läsa");
   if (!sammaUtgangslage(plan, fore)) return fall("sidan har ändrats sedan planen — kör planen igen");
   const foreLage = { synlig: fore.synlig, optioner: fore.optioner, varianter: fore.varianter };
+  if (!fore.kostnadLasbar) steg.push(KOSTNAD_EJ_LASBAR);
 
   // ── 1: galleriet, ensamt, vid id ───────────────────────────────────────
   let galleriPatchat = false;

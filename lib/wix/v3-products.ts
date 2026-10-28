@@ -6,6 +6,7 @@
 // för flexibility.
 
 import { produktensMedianycklar, type ProduktMedia } from "./produkt-media";
+import { arKostnadNekadSvar } from "./produkt-kostnad";
 import type { VariantbildStatus } from "./variant-media";
 
 const WIX_BASE = "https://www.wixapis.com";
@@ -833,7 +834,7 @@ export interface VariantPriceWriteOpts {
 
 /** Wix svarar 403 på MERCHANT_DATA när nyckeln saknar SCOPE.STORES.PRODUCT_READ_ADMIN (uppmätt 2026-09-27). */
 function arKostnadsBehorighet(status: number, text: string): boolean {
-  return status === 403 || /NO_PERMISSION_TO_READ_MERCHANT_DATA/i.test(text);
+  return arKostnadNekadSvar(status, text);
 }
 
 /**

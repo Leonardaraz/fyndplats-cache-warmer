@@ -14,6 +14,7 @@ import type { AosomRow } from "./feed";
 import type { ProductMappingRecord } from "../store";
 import type { WixAnrop } from "../polish/skrivplan";
 import { MinnesFargbildLager } from "../store/fargbilder";
+import { KOSTNAD_EJ_LASBAR } from "../wix/produkt-kostnad";
 import { WIX_BILDTAK } from "./fargbilder";
 
 // Syntetiska artikelnummer — riktiga får aldrig stå i en testfil, repot är
@@ -121,7 +122,16 @@ function fejkWix(over: { sida?: Obj; utkast?: Obj; stavning?: Record<string, str
     if (metod === "GET" && sokvag.startsWith("/stores/v3/products/")) {
       const p = produkter[idAv(sokvag)];
       if (!p) throw new Error("Wix 404: finns inte");
-      return { product: structuredClone(p) };
+      const svar = structuredClone(p);
+      // Som Wix: utan MERCHANT_DATA finns ingen `revenueDetails` i svaret, och med den
+      // räknar Wix `profit` och `profitMargin` av kostnaden (skrivskyddade).
+      for (const v of ((svar.variantsInfo as { variants?: Obj[] } | undefined)?.variants ?? [])) {
+        if (!sokvag.includes("MERCHANT_DATA")) delete v.revenueDetails;
+        else if ((v.revenueDetails as Obj | undefined)?.cost) {
+          v.revenueDetails = { ...(v.revenueDetails as Obj), profit: { amount: "100.00" }, profitMargin: 10 };
+        }
+      }
+      return { product: svar };
     }
     if (metod === "POST" && sokvag === "/stores/v3/inventory-items/query") {
       const id = ((kropp as Obj).query as { filter: { productId: string } }).filter.productId;
@@ -192,6 +202,16 @@ function fejkWix(over: { sida?: Obj; utkast?: Obj; stavning?: Record<string, str
       } else {
         kast("koppling");
         p.options = structuredClone(k.product.options);
+        // En variantsInfo-PATCH ERSÄTTER varianterna: det som inte skickas finns inte kvar.
+        // `profit` och `profitMargin` är skrivskyddade.
+        const skickade = (k.product.variantsInfo as { variants?: Obj[] } | undefined)?.variants;
+        if (skickade) {
+          for (const v of skickade) {
+            const rd = (v.revenueDetails ?? {}) as Obj;
+            if ("profit" in rd || "profitMargin" in rd) throw new Error("Wix 400: profit och profitMargin är skrivskyddade");
+          }
+          p.variantsInfo = structuredClone(k.product.variantsInfo);
+        }
         stavaOm(p);
       }
       p.revision = String(Number(p.revision) + 1);
@@ -487,6 +507,37 @@ describe("färgsammanslagning — skrivningen", () => {
     expect(varianter[1].revenueDetails).toEqual({ cost: { amount: "612.50" } });
   });
 
+  it("☠️ kostnaden ur mappningen finns kvar efter bildkopplingen — länksteget ersätter varianterna", async () => {
+    // Länksteget skickar variantsInfo ur en egen läsning. Utan MERCHANT_DATA i den
+    // läsningen nollade PATCH:en just de kostnader skrivsteget lagt dit.
+    const w = fejkWix({
+      sida: {
+        variantsInfo: { variants: [{
+          id: "var-sida", visible: true, sku: "FP-stol", choices: [],
+          price: { actualPrice: { amount: "699" } },
+          revenueDetails: { cost: { amount: "1" }, profit: { amount: "698" }, profitMargin: 0.99 },
+        }] },
+      },
+    });
+    const utkast = mappning("G-7", "utkast", { draftStatus: "pending_review", needsAiPolish: true });
+    utkast.variants[0].landedCostSek = 612.5;
+    const { deps } = miljo({ wix: w, mappningar: [mappning("A-1", "sida"), utkast] });
+
+    const svar = await korSammanslagning(PAR, deps, { apply: true });
+
+    expect(svar.ok).toBe(true);
+    const lank = w.anrop.filter((a) => a.metod === "PATCH" && !a.sokvag.includes("products-with-inventory") && (a.kropp as { fieldMask: { paths: string[] } }).fieldMask.paths.includes("variantsInfo"));
+    expect(lank.length).toBeGreaterThan(0);
+    // Skrivskyddade `profit` och `profitMargin` ekas aldrig tillbaka: bara kostnaden skickas.
+    for (const a of lank) {
+      const skickade = ((a.kropp as { product: { variantsInfo: { variants: Obj[] } } }).product.variantsInfo.variants);
+      for (const v of skickade) expect(Object.keys(v.revenueDetails as Obj)).toEqual(["cost"]);
+    }
+    const varianter = (w.produkter.sida.variantsInfo as { variants: Obj[] }).variants;
+    expect(varianter.map((v) => v.revenueDetails)).toEqual([{ cost: { amount: "525.00" } }, { cost: { amount: "612.50" } }]);
+    expect(svar.steg).not.toContain(KOSTNAD_EJ_LASBAR);
+  });
+
   it("☠️ varje färg får sin egen bild i varukorgen: variantens bild rättas efter kopplingen", async () => {
     // Bilderna kopplas med val-id, och då räknar Wix inte om variantens bild
     // (lib/wix/variant-media.ts). Utan rättningen hade den nya grå färgen
@@ -516,6 +567,8 @@ describe("färgsammanslagning — skrivningen", () => {
     const svar = await korSammanslagning(PAR, deps, { apply: true });
     expect(svar.ok).toBe(true);
     expect(svar.steg.some((r) => /variantbilder: kunde inte kontrolleras.*MERCHANT_DATA/.test(r))).toBe(true);
+    // Länksteget skrev ändå, och sa att kostnaden inte följde med.
+    expect(svar.steg).toContain(KOSTNAD_EJ_LASBAR);
     expect(w.anrop.filter((a) => a.metod === "PATCH" && a.sokvag.includes("products-with-inventory") && !arVariantskrivning(a))).toHaveLength(0);
     expect(rader.get("sida")!.variants).toHaveLength(2);
   });

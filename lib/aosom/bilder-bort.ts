@@ -37,6 +37,7 @@
 
 import { createHash } from "node:crypto";
 import { felText, type WixAnrop } from "../polish/skrivplan";
+import { KOSTNAD_EJ_LASBAR, likaKostnad } from "../wix/produkt-kostnad";
 import { refreshVariantMedia, variantbildSteg } from "../wix/variant-media";
 import type { Bild, VariantLage } from "./fargbilder";
 import {
@@ -220,6 +221,7 @@ export function kontrolleraBort(
     if ((v.sku ?? "") !== (e.sku ?? "")) fel.push("en variants SKU ändrades");
     if ((v.pris ?? null) !== (e.pris ?? null)) fel.push("en variants pris ändrades");
     if ((v.val ?? "") !== (e.val ?? "")) fel.push("en variants val ändrades");
+    if (!likaKostnad(v.kostnad, e.kostnad)) fel.push("en variants kostnad ändrades");
   }
   return [...new Set(fel)];
 }
@@ -278,6 +280,7 @@ export async function skrivBort(plan: BortPlan, deps: BortDeps): Promise<BortUtf
     // då har planen räknats om och `lankadeFore` är redan utan bilderna.
     if (!sammaUtgangslage(plan, fore)) return fall("sidan har ändrats sedan planen — kör planen igen");
     const foreLage = { synlig: fore.synlig, optioner: fore.optioner, varianter: fore.varianter };
+    if (!fore.kostnadLasbar) steg.push(KOSTNAD_EJ_LASBAR);
 
     // ── 1: länkarna, före galleriet ──────────────────────────────────────
     if (andrade.length > 0) {
