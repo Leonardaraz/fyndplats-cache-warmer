@@ -62,6 +62,8 @@ Varje sida: `bygg-agare.py --kompakt --utan-vy` via ExecuteWixAPI (`avvikelser: 
 | varukorgens bild (färgens första foto), före → efter | **lika på 25 av 25** |
 | minsta antal foton i en vy | 4 (Leonards minimum) |
 
+Efter kostnadssvepet (`varukostnad.yml`, 14:29–16:37 UTC, CLAUDE.md under *Kostnaden skrivs in*) kontrollerades alla sju sidor igen med `kolla-agare.py` (16:37 UTC): **7 av 7 stämmer mot sina planer**, varje kombination lika som före svepet, och alla varianter har kostnad (3 av 3, 3 av 3, 3 av 3, 4 av 4, 6 av 6, 3 av 3 och 3 av 3). Svepet skrev `6d35a04f` 15:32, `926ec7a2` 15:51 och `c3d1fa41` 16:12, alltså efter ägarplanerna, och butikens cache renderades om efter varje skrivning (15:41, 16:00 och 16:15), så kontrollen speglar slutläget. Kostnadsskrivningen rörde inga länkar.
+
 ## Fyra sidor lämnades: Wix tar högst 15 länkade bilder per val
 
 `1d4eb6b1` matstationen, `4d9ba658` kattrappan, `543b9076` hundtrappan och `aafbf543` verktygslådan har 15 länkade bilder på båda storlekarna redan (`aafbf543`: Röd, Svart och Röd och 3 lådor).

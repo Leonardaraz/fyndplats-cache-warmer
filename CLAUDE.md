@@ -4567,16 +4567,30 @@ Nio egenskaper som inte ska tas bort:
 9. ☠️ **Svaret bär bara Wix-id och räknare**, eftersom workflowens logg är publik: inga kostnader, artikelnummer, namn eller sluggar. Wix felkroppar kan eka värdet som
    skickades, så decimaltal och artikelnummer redigeras (`redigeraFeltext`) i modulen, i rutten och en gång till i workflowen.
 
-**Körordning efter mergen** (alla tre med `lage=torr` först, och bara utanför synkfönstret när det blir skarpt):
+**Körordning** (alla tre med `lage=torr` först, och bara utanför synkfönstret när det blir skarpt):
 
 1. `torr`: läs `totalt` och räknarna. `utanKatalogvariant` och `utanMappningskostnad` ska vara små, och `redanKostnad` rörs aldrig.
 2. Ett prov med `ids`: en publicerad flervariantsprodukt, ett dolt utkast och en enkel produkt, `bekrafta` = 3. Läs tillbaka i Wix (kostnad, pris, SKU, synlighet, lager och
    variantbild) och kontrollera live att sidan och varukorgens bild är oförändrade.
-3. Hela svepet med `bekrafta` = torrkörningens antal. Uppskattat några timmar (40 produkter per skiva à några minuter, en väntan på ungefär 20 minuter runt varje synkfönster),
-   inte mätt.
+3. Hela svepet med `bekrafta` = torrkörningens antal. Mätt 2026-10-28: ungefär 1 minut 55 sekunder per skiva om 40 produkter, utanför synkfönstren.
 
-⚠️ **Varje skrivning ändrar produktens `updatedDate`**, och butikens cron `uppdatera-andrade` (var femte minut) bygger då om sidan (ISR-skrivning). Några tusen ombyggda
-sidor är en synlig men liten post i Vercel-fakturan (ISR Writes var 15 % av den uppmätta veckan, se projektets inledning). Kostnaden är inte mätt.
+**Utfall 2026-10-28 (Leonards *ja prov och hela*, FLAGGADE lärdom 255–257).** Hela svepet skrev **2 168 produkter och 3 373 varianter** i fem körningar mellan 14:29 och 16:37 UTC, utan en enda
+riktig avvikelse. Kvitton: torrkörningen efteråt ger *PLAN: 0 produkter* och 6 299 av 6 299 varianter i aktiva Aosom-mappningar har en kostnad; antalet varianter med kostnad i hela katalogen
+(`products/query-variants` med `MERCHANT_DATA`) steg med exakt de 1 881 som torrkörningen 15:10 sa skulle återstå (5 130 → 7 011 av 8 792); delvis ifyllda produkter är noll (var 331). Kvar utan
+kostnad är 886 produkter (1 781 varianter): AliExpress-sidor och pensionerade eller saknade mappningar, som modulen aldrig rör.
+
+Tre saker att ta med vid nästa sådan körning:
+
+1. ☠️ **Svepet stannade fyra gånger, alltid på ett övergående läsproblem, och stoppet är rätt även då:** fem Wix 500 i rad, en Wix 503 på läsningen efter skrivningen (`75e1a5b6`) och två gånger
+   variantbildsuppföljningens egen före-och-efter-jämförelse när EFTER-läsningen släpade (`97b5e7e9` och `c5541fef`: *revisionen gick inte fram*, så kostnaden såg ut att ha försvunnit). Läs
+   produkten i Wix innan du startar om, för stoppraden ser likadan ut för ett läsproblem och en riktig avvikelse. Omstarten är torr, läs `PLAN: N produkter`, skarp med `bekrafta` = N (planen får
+   krympa men aldrig växa, och produkten som stoppade körningen är redan skriven, så N är ett färre än *kvar* i stoppraden).
+2. **En pågående körnings logg går inte att läsa** (404 tills jobbet är klart). Följ den i Vercels runtime-logg: `skarpt: planen` ger en rad per skiva, `avvikelse` orsaken.
+3. **Kontrollen efter skrivningen läser lagret med POST, och `skapaWixAnrop` försöker bara om GET** (`lib/polish/skrivplan-wix.ts`, används av ungefär femton rutter). En övergående 503 där blir en
+   avvikelse. Förslag, inte byggt och väntar på Leonards ja: samma återförsök för POST mot `/query`, `/search` och `/query-variants`.
+
+⚠️ **Varje skrivning ändrar produktens `updatedDate`**, och butikens cron `uppdatera-andrade` (var femte minut) bygger då om sidan (ISR-skrivning). Mätt under svepet i butikens runtime-logg: 177
+respektive 236 ändrade sidor i två fönster (före svepet 4 till 9), och cron-jobbet värmde 120 per körning utan fel. Kostnaden i kronor är inte mätt.
 
 #### De elva Härma-sidorna som låg utanför: minimal ägarplan (2026-10-28)
 
