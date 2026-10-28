@@ -145,6 +145,30 @@ describe("källornas form = lagrens form", () => {
     expect(utanWixFalt({ _id: 1, _owner: 2, _createdDate: 3, _updatedDate: 4, x: 5 })).toEqual({ x: 5 });
   });
 
+  it("☠️ utanWixFalt stryker null på översta nivån bara med utanNull — `$exists: false` matchar inte null i Wix", () => {
+    const task = { taskId: "o1:l1", status: "pending", claimToken: null, aliexpressOrderId: null, rader: [{ a: null }] };
+    const ut = utanWixFalt(task, { utanNull: true });
+    expect("claimToken" in ut).toBe(false);
+    expect("aliexpressOrderId" in ut).toBe(false);
+    // Bara översta nivån: inuti listor och objekt rörs ingenting.
+    expect(ut.rader).toEqual([{ a: null }]);
+    expect(ut.status).toBe("pending");
+    // Utan flaggan står null kvar, som i Neon.
+    expect(utanWixFalt(task).claimToken).toBeNull();
+  });
+
+  it("mappningar kommer över med sina null-fält, exakt som i Neon", async () => {
+    db.rader = [{ id: "p1", data: { wixProductId: "p1", aosomSyncedQty: null }, andrad: new Date() }];
+    const [rad] = await kalla("mappings").lasNeon(null, 10);
+    expect(rad.data).toEqual({ wixProductId: "p1", aosomSyncedQty: null });
+  });
+
+  it("☠️ en task från Neon med null i låsfälten blir claimbar i kopian", async () => {
+    db.rader = [{ id: "o1:l1", data: { taskId: "o1:l1", status: "pending", claimToken: null, aliexpressOrderId: null }, andrad: new Date() }];
+    const [rad] = await kalla("tasks").lasNeon(null, 10);
+    expect(rad.data).toEqual({ taskId: "o1:l1", status: "pending" });
+  });
+
   it("☠️ läser med markör (keyset), aldrig offset", async () => {
     db.rader = [];
     await kalla("reviews").lasNeon("p1__r9", 500);

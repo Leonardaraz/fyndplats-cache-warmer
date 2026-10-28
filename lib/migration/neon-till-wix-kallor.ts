@@ -29,13 +29,28 @@ import type { Kalla, KallRad, WixPost, WixSida } from "./neon-till-wix";
 
 type Rad = Record<string, unknown>;
 
-/** Wix interna fält följde med när datan kopierades TILL Neon 2026-08-31. Kopian tillbaka ska inte bära dem. */
-export function utanWixFalt(data: unknown): Rad {
+/**
+ * Wix interna fält följde med när datan kopierades TILL Neon 2026-08-31. Kopian tillbaka ska inte bära dem.
+ *
+ * ☠️ `utanNull` STRYKER FÄLT SOM ÄR `null` PÅ ÖVERSTA NIVÅN. Uppmätt mot Wix
+ * 2026-10-29: `{ f: { $exists: false } }` matchar INTE en rad där `f` är
+ * `null`, bara en rad där fältet saknas. Dubbel-order-låset (`FRI_TASK` i
+ * lib/store/wix-data.ts) kräver att `aliexpressOrderId` och `claimToken`
+ * saknas eller är tomma, så en task som kom över med `claimToken: null` hade
+ * aldrig gått att claima, och en betald order hade inte kunnat läggas.
+ *
+ * Bara för tasks, där ett Wix-filter läser fältet. Övriga tabeller kommer över
+ * exakt som i Neon, null och allt: koden läser dem i dag ur samma JSON, och en
+ * `=== null`-kontroll någonstans hade annars bytt svar efter växlingen.
+ * Jämförelsen (`jamforbar`) räknar null som saknat, så verifieringen påverkas inte.
+ */
+export function utanWixFalt(data: unknown, opts: { utanNull?: boolean } = {}): Rad {
   const d = { ...((data ?? {}) as Rad) };
   delete d._id;
   delete d._owner;
   delete d._createdDate;
   delete d._updatedDate;
+  if (opts.utanNull) for (const k of Object.keys(d)) if (d[k] === null) delete d[k];
   return d;
 }
 
@@ -100,7 +115,12 @@ function kalla(
 }
 
 /** Tabeller där `data` bär hela posten (PostgresStore, sync-loggen, recensioner, auktioner …). */
-function specKalla(spec: TabellSpec, andradKol: string | null, andradIData?: (d: Rad) => unknown): Kalla {
+function specKalla(
+  spec: TabellSpec,
+  andradKol: string | null,
+  andradIData?: (d: Rad) => unknown,
+  opts: { utanNull?: boolean } = {},
+): Kalla {
   const idKol = spec.kolumner[spec.idFält];
   return kalla(
     spec.tabell,
@@ -109,7 +129,7 @@ function specKalla(spec: TabellSpec, andradKol: string | null, andradIData?: (d:
     idKol,
     `data${andradKol ? `, ${andradKol} as andrad` : ""}`,
     (r) => {
-      const data = utanWixFalt(r.data);
+      const data = utanWixFalt(r.data, opts);
       return {
         id: String(r.id),
         data,
@@ -123,8 +143,8 @@ export function neonKallor(): Kalla[] {
   return [
     // WixDataStore.saveMapping: { ...record }
     specKalla(MAPPNINGAR, "updated_at"),
-    // WixDataStore.upsertTask: { ...task }
-    specKalla(TASKS, "updated_at"),
+    // WixDataStore.upsertTask: { ...task }, utan null (se utanWixFalt)
+    specKalla(TASKS, "updated_at", undefined, { utanNull: true }),
     // WixDataStore.markEventSeen: { seenAt }
     kalla(WEBHOOK_EVENTS.tabell, WEBHOOK_EVENTS.kollektion, "webhook_events", "event_id", "seen_at, data", (r) => {
       const seenAt = (r.data as Rad | null)?.seenAt ?? iso(r.seen_at);

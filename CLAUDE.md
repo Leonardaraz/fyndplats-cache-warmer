@@ -8393,6 +8393,20 @@ Nio egenskaper som inte ska tas bort:
 9. **Färgbilderna är ett dokument per sida i Wix**, inte en rad per bild.
    Postgres ersatte en sidas rader i en sats; ett Wix-dokument skrivs atomiskt,
    så en ersättning kan aldrig lämna sidan utan rader.
+10. ☠️ **`$exists: false` matchar inte `null`** (uppmätt 2026-10-29). En rad
+    där fältet är `null` räknas som att fältet finns. Dubbel-order-låset
+    (`FRI_TASK`) kräver att `claimToken` och `aliexpressOrderId` saknas eller
+    är tomma, så tasks kopieras utan null-fält (`utanNull`), och `updateTask`
+    tar bort ett fält som sätts till `null` i stället för att skriva null.
+    Övriga tabeller kommer över exakt som i Neon.
+11. ☠️ **Ett `_id` i Wix är högst 128 tecken: ASCII-bokstäver, siffror och
+    skiljetecken** (uppmätt 2026-10-29, `WDE0075`). Mellanslag och å, ä, ö
+    avvisas. Motorns nycklar (order-id, task-id, artikel-id) klarar det;
+    butikens e-postnycklar gör det inte alltid, se dess `CLAUDE.md`.
+
+Planen 2026-10-29 (efter #791): alla 20 kollektioner fanns och var tomma, och
+motorns Neon-databas har inga andra tabeller. **Butiken har alltså en egen
+Neon-databas**, och dess tabeller kopieras av butiken själv.
 
 ## ☠️ Drift-datan bor i Postgres sedan 2026-08-31 — inte i Wix Data
 

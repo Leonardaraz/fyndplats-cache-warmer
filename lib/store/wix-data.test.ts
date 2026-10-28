@@ -318,6 +318,13 @@ describe("WixDataStore — claimTask/releaseTask/updateTask (PATCH CAS wire-form
     );
   });
 
+  it("☠️ updateTask: null → REMOVE_FIELD, aldrig ett null-fält som FRI_TASK inte ser som tomt", async () => {
+    const fetchMock = mockFetch({ json: { dataItem: { data: {} } } });
+    await new WixDataStore().updateTask("o1:l1", { claimToken: null as unknown as string });
+    const body = JSON.parse((fetchMock.mock.calls[0] as [string, RequestInit])[1].body as string);
+    expect(body.patch.fieldModifications).toEqual([{ action: "REMOVE_FIELD", fieldPath: "claimToken" }]);
+  });
+
   it("releaseTask kastar ALDRIG (även 500) — fail-open", async () => {
     mockFetch({ status: 500, json: {} });
     await expect(new WixDataStore().releaseTask("x", "t")).resolves.toBeUndefined();
