@@ -1,0 +1,457 @@
+diff --git a/CLAUDE.md b/CLAUDE.md
+index 472269df..aabc77c8 100644
+--- a/CLAUDE.md
++++ b/CLAUDE.md
+@@ -59,8 +59,12 @@ fort någon tittade (kund, sökmotor, länkförladdning).
+   sin deadline lämnar nu resten till ett led: ett POST till samma rutt med
+   listan i kroppen och `CRON_SECRET`, som svarar 202 och värmer efter svaret.
+   Högst åtta led (`MAX_LED` i `lib/warm-urval.ts`), och listorna värms av det
+-  led som gör katalogen klar. Läs `[varm-katalogen] led N`-raderna i loggen
+-  efter en deploy: den sista ska säga `katalogen klar`.
++  led som gör katalogen klar. Hinner det inte med listorna (deployen
++  2026-10-24 00:33 UTC: `Listor: 0/133 (avbruten på deadline)`) lämnar det
++  resten till ett listled: samma POST med `listorFran` (plats i listornas
++  ordning) i stället för `kvar`. Läs `[varm-katalogen] led N`-raderna i loggen
++  efter en deploy: den sista ska säga `katalogen klar. Listor: 133/133` eller
++  `listorna klara`.
+ - Menyns siffror hämtas från `/api/meny-antal` och varukorgens förslag från
+   `/api/kundvagn-forslag`, i webbläsaren. Länkarna ligger kvar i HTML:en.
+ - `validFrom` är första dagen i månaden och `priceValidUntil` sista dagen i
+diff --git a/app/api/cron/varm-katalogen/route.ts b/app/api/cron/varm-katalogen/route.ts
+index da39b526..9429a0d2 100644
+--- a/app/api/cron/varm-katalogen/route.ts
++++ b/app/api/cron/varm-katalogen/route.ts
+@@ -29,6 +29,12 @@
+ // och hinner det inte heller klart startar det nästa, högst MAX_LED. Listorna
+ // värms av det led som gör katalogen klar. Se lib/warm-urval.ts.
+ //
++// ☠️ OCH LISTORNA HANN INTE HELLER (2026-10-24). Led 2 efter butiksdeployen
++// 00:33 UTC värmde sina 1 796 sista produkter på hela sin deadline och loggade
++// `Listor: 0/133 (avbruten på deadline)`. Ett avbrutet listpass lämnar nu resten
++// till ett listled: samma POST med `listorFran` (plats i listornas ordning) i
++// stället för `kvar`. Det räknar om nycklarna ur kategorierna och fortsätter.
++//
+ // AUTH: samma konvention som grannarna — Vercel Cron skickar
+ // "Authorization: Bearer $CRON_SECRET". Är secreten osatt kör rutten ändå men
+ // loggar en varning; exponeringen är att någon renderar VÅRA EGNA sidor, vilket
+@@ -41,7 +47,8 @@ import { getCollections, getProductSitemapEntries } from "../../../../lib/produc
+ import { hamtaKundvagnsUnderlag } from "../../../../lib/kundvagn-underlag";
+ import { bearerVarde, sammaHemlighet } from "../../../../lib/hemlig-jamforelse";
+ import {
+-  arSakerSlug, katalogenArKall, kvarEfterPass, roterad, startaLed, tolkaLed, varmAlla, varmBildkartan, varmListor,
++  arSakerSlug, katalogenArKall, kvarEfterPass, roterad, startaLed, startaListled, tolkaLed, varmAlla, varmBildkartan,
++  varmListor, varmListorMedOverlamning,
+ } from "../../../../lib/warm";
+ import type { ListNyckel } from "../../../../lib/list-key";
+ 
+@@ -64,6 +71,24 @@ function listnycklar(kategorier: Awaited<ReturnType<typeof getCollections>>): {
+   };
+ }
+ 
++type ListUtfall = Awaited<ReturnType<typeof varmListorMedOverlamning<ListNyckel>>>;
++
++/** Värm listorna från plats `fran`, och lämna det som inte hinns till led `nastaLed`. */
++function varmListorFran(alla: readonly ListNyckel[], fran: number, nastaLed: number, deadline: number): Promise<ListUtfall> {
++  return varmListorMedOverlamning(alla, fran, nastaLed, (nycklar) => varmListor(nycklar, deadline), startaListled);
++}
++
++/** Listornas del av loggraden. Ett led som inte startade sägs i loggen, för då förblir resten kalla. */
++function listrad(r: ListUtfall, nastaLed: number): string {
++  const { pass, av, kvar, nasta } = r;
++  const fel = pass.fel ? ` (fel ${pass.fel})` : "";
++  if (nasta === null) return `Listor: ${pass.ok}/${av}${fel}`;
++  if (nasta !== "startat") {
++    console.error(`[varm-katalogen] listorna slutade vid led ${nastaLed - 1} (${nasta}): ${kvar} listor förblir kalla tills de besöks`);
++  }
++  return `Listor: ${pass.ok}/${av}${fel} (avbruten på deadline, ${kvar} kvar) → led ${nastaLed}: ${nasta}`;
++}
++
+ function authorisera(request: Request): AuthUtfall {
+   const expected = process.env.CRON_SECRET;
+   if (!expected) return process.env.VERCEL ? "oskyddad" : "ok";
+@@ -148,15 +173,19 @@ export async function GET(request: Request) {
+     });
+   }
+ 
+-  const listor = await varmListor(allaListor, deadline);
+-  console.log(`${rad}Listor: ${listor.ok}/${allaListor.length}`);
+-  return NextResponse.json({ ok: true, katalog: slugs.length, prov, varmning, kedja: null, bildkartan, kundvagnsUnderlag, listor });
++  const listor = await varmListorFran(allaListor, 0, 1, deadline);
++  console.log(`${rad}${listrad(listor, 1)}`);
++  return NextResponse.json({
++    ok: true, katalog: slugs.length, prov, varmning,
++    kedja: listor.nasta === null ? null : { kvarListor: listor.kvar, led1: listor.nasta },
++    bildkartan, kundvagnsUnderlag, listor: listor.pass,
++  });
+ }
+ 
+ /**
+- * Ett LED i kedjan efter en deploy: värm `kvar`, och starta nästa led om inte
+- * heller det här hinner klart. Svarar 202 direkt; värmningen sker efter svaret,
+- * inom samma maxDuration.
++ * Ett LED i kedjan efter en deploy: värm `kvar` (produktsidor) eller listorna från
++ * `listorFran`, och starta nästa led om inte heller det här hinner klart. Svarar
++ * 202 direkt; värmningen sker efter svaret, inom samma maxDuration.
+  */
+ export async function POST(request: Request) {
+   const start = Date.now();
+@@ -170,10 +199,22 @@ export async function POST(request: Request) {
+   }
+   const tolkat = tolkaLed(await request.json().catch(() => null));
+   if ("fel" in tolkat) return NextResponse.json({ ok: false, error: tolkat.fel }, { status: 400 });
+-  const { led, kvar } = tolkat;
++  const { led } = tolkat;
+ 
+   after(async () => {
+     const deadline = start + VARMNING_MS;
++
++    if ("listorFran" in tolkat) {
++      const { alla } = listnycklar(await getCollections());
++      const listor = await varmListorFran(alla, tolkat.listorFran, led + 1, deadline);
++      console.log(
++        `[varm-katalogen] led ${led}: listor från ${tolkat.listorFran}. ${listrad(listor, led + 1)}`
++          + `${listor.nasta === null ? " — listorna klara" : ""}`,
++      );
++      return;
++    }
++
++    const { kvar } = tolkat;
+     const pass = await varmAlla(kvar, deadline);
+     if (pass.avbruten) {
+       const rest = kvarEfterPass(kvar, pass);
+@@ -188,12 +229,15 @@ export async function POST(request: Request) {
+       return;
+     }
+     const { alla } = listnycklar(await getCollections());
+-    const listor = await varmListor(alla, deadline);
++    const listor = await varmListorFran(alla, 0, led + 1, deadline);
+     console.log(
+       `[varm-katalogen] led ${led}: värmde ${pass.ok}/${kvar.length}${pass.fel ? ` (fel ${pass.fel})` : ""} — katalogen klar. `
+-        + `Listor: ${listor.ok}/${alla.length}${listor.avbruten ? " (avbruten på deadline)" : ""}`,
++        + listrad(listor, led + 1),
+     );
+   });
+ 
+-  return NextResponse.json({ ok: true, led, sidor: kvar.length }, { status: 202 });
++  return NextResponse.json(
++    "listorFran" in tolkat ? { ok: true, led, listorFran: tolkat.listorFran } : { ok: true, led, sidor: tolkat.kvar.length },
++    { status: 202 },
++  );
+ }
+diff --git a/lib/warm-urval.ts b/lib/warm-urval.ts
+index 36a2ddab..89fc9fbf 100644
+--- a/lib/warm-urval.ts
++++ b/lib/warm-urval.ts
+@@ -119,22 +119,90 @@ export function arSakerSlug(slug: unknown): slug is string {
+ 
+ export type Led = { led: number; kvar: string[] };
+ 
++/** Ett led som värmer listsidorna, från och med plats `listorFran` i listornas
++ *  ordning (alla, rea, kategorierna). Se "Listorna efter produkterna" nedan. */
++export type Listled = { led: number; listorFran: number };
++
++/** Så högt index ett listled får börja på. Listorna är två plus en per kategori,
++ *  133 den 2026-10-24. */
++export const MAX_LISTOR = 10_000;
++
+ /**
+  * Läser ett leds kropp. Allt som inte är ett giltigt led avvisas: ett led ska
+- * bara kunna värma produktsidor, och aldrig bli fler än MAX_LED. Kronans körning
+- * skickar bara säkra slugs (arSakerSlug), så en osäker slug i kroppen betyder
+- * att kroppen inte kommer därifrån.
++ * bara kunna värma produktsidor eller listsidor, och aldrig bli fler än MAX_LED.
++ * Kronans körning skickar bara säkra slugs (arSakerSlug), så en osäker slug i
++ * kroppen betyder att kroppen inte kommer därifrån. Ett listled bär ett heltal
++ * och ingenting annat: listornas nycklar räknas om ur kategorierna i ledet självt,
++ * så kroppen kan aldrig peka på en sökväg.
+  */
+-export function tolkaLed(kropp: unknown): Led | { fel: string } {
++export function tolkaLed(kropp: unknown): Led | Listled | { fel: string } {
+   if (!kropp || typeof kropp !== "object" || Array.isArray(kropp)) {
+     return { fel: "kroppen ska vara ett objekt" };
+   }
+-  const { led, kvar } = kropp as { led?: unknown; kvar?: unknown };
++  const { led, kvar, listorFran } = kropp as { led?: unknown; kvar?: unknown; listorFran?: unknown };
+   if (typeof led !== "number" || !Number.isInteger(led) || led < 1 || led > MAX_LED) {
+     return { fel: `led ska vara ett heltal 1–${MAX_LED}` };
+   }
++  if (listorFran !== undefined) {
++    if (kvar !== undefined) return { fel: "ett led är antingen produkter (kvar) eller listor (listorFran), aldrig båda" };
++    if (typeof listorFran !== "number" || !Number.isInteger(listorFran) || listorFran < 0 || listorFran > MAX_LISTOR) {
++      return { fel: `listorFran ska vara ett heltal 0–${MAX_LISTOR}` };
++    }
++    return { led, listorFran };
++  }
+   if (!Array.isArray(kvar) || kvar.length === 0) return { fel: "kvar ska vara en lista med minst en slug" };
+   if (kvar.length > MAX_KVAR) return { fel: `kvar får ha högst ${MAX_KVAR} slugs` };
+   if (!kvar.every(arSakerSlug)) return { fel: "kvar har en ogiltig slug" };
+   return { led, kvar: kvar as string[] };
+ }
++
++// ── Listorna efter produkterna ────────────────────────────────────────────
++//
++// ☠️ DET LED SOM GÖR KATALOGEN KLAR HANN INTE MED LISTORNA (2026-10-24).
++// Produktlistorna bakom "Visa fler", filter och sortering (app/api/lista, en per
++// kategori plus alla och rea) värms av det led som värmer sista produkterna, och
++// de delar ledets deadline. Efter butiksdeployen 00:33 UTC värmde led 2 sina
++// 1 796 sista produkter på hela sina 200 s och loggade sedan
++// `Listor: 0/133 (avbruten på deadline)`: kedjan värmde ingen av de 133.
++// Huvudlistorna blev varma av nästa kvartskörning (de värms i varje körning),
++// men de ungefär 120 underkategorilistorna stod kalla tills någon bad om dem.
++// Listsidornas egen HTML var varm ändå, 18 av 21 var förbyggda av deployen.
++//
++// Ett avbrutet listpass lämnar därför resten till ett nytt led, på samma sätt
++// som ett avbrutet produktpass, med platsen i listornas ordning i kroppen. Ledet
++// räknar om nycklarna ur kategorierna och fortsätter där det förra slutade.
++
++/** Hur det gick att starta nästa led i en värmning. Typen bor här, inte i
++ *  warm.ts, så att överlämningen nedan kan provas utan den modulen. */
++export type LedStart = "startat" | "sista-ledet" | "inte-produktion" | "ingen-hemlighet" | "nekat" | "fel";
++
++export type ListPass = { ok: number; fel: number; avbruten: boolean };
++
++/** Var nästa listled ska börja: allt före `fran + ok + fel` är hämtat. Fel
++ *  räknas som hämtade, de görs inte om (som kvarEfterPass för produkterna). */
++export function listorEfterPass(fran: number, pass: { ok: number; fel: number }): number {
++  return fran + Math.max(0, pass.ok + pass.fel);
++}
++
++/**
++ * Värm listorna från plats `fran`, och lämna det som inte hann till ett nytt led
++ * (nummer `nastaLed`). `varm` och `starta` är injicerade: warm.ts skickar in
++ * varmListor och startaListled, och testet skickar in låtsasversioner.
++ *
++ * Ett pass som hann klart startar ingenting. `nasta` är null då, annars hur det
++ * gick att starta ledet, så att anroparen kan logga ett led som inte startade.
++ */
++export async function varmListorMedOverlamning<K>(
++  alla: readonly K[],
++  fran: number,
++  nastaLed: number,
++  varm: (nycklar: readonly K[]) => Promise<ListPass>,
++  starta: (fran: number, led: number) => Promise<LedStart>,
++): Promise<{ pass: ListPass; av: number; kvar: number; nasta: LedStart | null }> {
++  const att = alla.slice(fran);
++  const pass = await varm(att);
++  if (!pass.avbruten) return { pass, av: att.length, kvar: 0, nasta: null };
++  const kvar = Math.max(0, att.length - pass.ok - pass.fel);
++  const nasta = await starta(listorEfterPass(fran, pass), nastaLed);
++  return { pass, av: att.length, kvar, nasta };
++}
+diff --git a/lib/warm.test.ts b/lib/warm.test.ts
+index 6dd8d237..9feb53ae 100644
+--- a/lib/warm.test.ts
++++ b/lib/warm.test.ts
+@@ -4,7 +4,12 @@
+ // i något gränssnitt, bara på fakturan. Därför låses den här.
+ import test from "node:test";
+ import assert from "node:assert/strict";
+-import { arSakerSlug, fastProv, kvarEfterPass, MAX_KVAR, MAX_LED, PROV_STORLEK, roterad, tolkaLed } from "./warm-urval.ts";
++import { readFileSync } from "node:fs";
++import {
++  arSakerSlug, fastProv, kvarEfterPass, listorEfterPass, MAX_KVAR, MAX_LED, MAX_LISTOR, PROV_STORLEK, roterad, tolkaLed,
++  varmListorMedOverlamning,
++} from "./warm-urval.ts";
++import type { LedStart, ListPass } from "./warm-urval.ts";
+ 
+ const katalog = (n: number) => Array.from({ length: n }, (_, i) => `produkt-${i}`);
+ 
+@@ -153,7 +158,7 @@ function kedja(n: number, kapacitet: number): { varmda: Set<string>; led: number
+   while (resultat.avbruten && led + 1 <= MAX_LED) {
+     led++;
+     const kropp = tolkaLed(JSON.parse(JSON.stringify({ led, kvar: rest })));
+-    assert.ok(!("fel" in kropp), "kroppen som kedjan själv bygger ska alltid tas emot");
++    assert.ok(!("fel" in kropp) && "kvar" in kropp, "kroppen som kedjan själv bygger ska alltid tas emot");
+     resultat = pass(kropp.kvar);
+     rest = kvarEfterPass(kropp.kvar, resultat);
+   }
+@@ -177,3 +182,125 @@ test("kedjan stannar efter MAX_LED och säger hur många som blev kvar", () => {
+   assert.equal(k.kvar, 500);
+   assert.equal(k.varmda.size, kapacitet * (MAX_LED + 1));
+ });
++
++// ── Listorna efter produkterna ────────────────────────────────────────────
++//
++// 2026-10-24: led 2 efter butiksdeployen värmde sina 1 796 sista produkter på hela
++// sin deadline och loggade `Listor: 0/133 (avbruten på deadline)`. Ingen lista
++// värmdes av kedjan. Ett avbrutet listpass lämnar nu resten till ett listled.
++
++const listor = (n: number) => Array.from({ length: n }, (_, i) => `kategori/lista-${i}`);
++
++/** En låtsasvärmare som hinner `kapacitet` listor och sedan stoppar på sin deadline. */
++function varmare(kapacitet: number, varmda: Set<string>) {
++  return async (nycklar: readonly string[]): Promise<ListPass> => {
++    const gjorda = nycklar.slice(0, kapacitet);
++    gjorda.forEach((k) => varmda.add(k));
++    return { ok: gjorda.length, fel: 0, avbruten: gjorda.length < nycklar.length };
++  };
++}
++
++test("ett listled tas emot med ett heltal och inget annat", () => {
++  assert.deepEqual(tolkaLed({ led: 3, listorFran: 0 }), { led: 3, listorFran: 0 });
++  assert.deepEqual(tolkaLed({ led: MAX_LED, listorFran: 120 }), { led: MAX_LED, listorFran: 120 });
++  assert.deepEqual(tolkaLed({ led: 2, listorFran: MAX_LISTOR }), { led: 2, listorFran: MAX_LISTOR });
++  for (const [namn, kropp] of [
++    ["negativt", { led: 1, listorFran: -1 }],
++    ["decimaler", { led: 1, listorFran: 1.5 }],
++    ["som text", { led: 1, listorFran: "0" }],
++    ["null", { led: 1, listorFran: null }],
++    ["över taket", { led: 1, listorFran: MAX_LISTOR + 1 }],
++    ["led över taket", { led: MAX_LED + 1, listorFran: 0 }],
++    ["led 0", { led: 0, listorFran: 0 }],
++    ["både produkter och listor", { led: 1, kvar: ["a"], listorFran: 0 }],
++    ["en tom lista och listor", { led: 1, kvar: [], listorFran: 0 }],
++  ] as const) {
++    assert.ok("fel" in tolkaLed(kropp), namn);
++  }
++});
++
++test("nästa listled börjar där det förra slutade, och fel görs inte om", () => {
++  assert.equal(listorEfterPass(0, { ok: 3, fel: 1 }), 4);
++  assert.equal(listorEfterPass(40, { ok: 10, fel: 2 }), 52);
++  assert.equal(listorEfterPass(7, { ok: 0, fel: 0 }), 7, "ett pass som inte hann börja flyttar inte platsen");
++});
++
++test("listorna lämnas till ett led när deadline tog slut före dem (2026-10-24)", async () => {
++  // Led 2 hade 0 sekunder kvar åt 133 listor.
++  const varmda = new Set<string>();
++  const startade: Array<[number, number]> = [];
++  const r = await varmListorMedOverlamning(listor(133), 0, 3, varmare(0, varmda), async (fran, led): Promise<LedStart> => {
++    startade.push([fran, led]);
++    return "startat";
++  });
++  assert.deepEqual(startade, [[0, 3]], "ett led startas, från första listan, med nästa leds nummer");
++  assert.equal(r.nasta, "startat");
++  assert.equal(r.kvar, 133);
++  assert.equal(r.av, 133);
++  assert.equal(varmda.size, 0);
++});
++
++test("ett listpass som hinner klart startar inget led", async () => {
++  const varmda = new Set<string>();
++  let anrop = 0;
++  const r = await varmListorMedOverlamning(listor(133), 0, 3, varmare(133, varmda), async (): Promise<LedStart> => {
++    anrop++;
++    return "startat";
++  });
++  assert.equal(anrop, 0);
++  assert.equal(r.nasta, null);
++  assert.equal(r.kvar, 0);
++  assert.equal(varmda.size, 133);
++});
++
++test("ett led som inte kunde startas sägs i svaret, så att loggen kan varna", async () => {
++  const r = await varmListorMedOverlamning(listor(10), 0, MAX_LED + 1, varmare(4, new Set()), async (): Promise<LedStart> => "sista-ledet");
++  assert.equal(r.nasta, "sista-ledet");
++  assert.equal(r.kvar, 6, "sex listor förblir kalla");
++});
++
++/** Kör listkedjan på låtsas, ett led i taget, med kroppen genom samma tolkning som rutten. */
++async function listkedja(n: number, kapacitet: number, forstaLed: number) {
++  const alla = listor(n);
++  const varmda = new Set<string>();
++  let kropp: unknown = { led: forstaLed, listorFran: 0 };
++  let leden = 0;
++  let sista: Awaited<ReturnType<typeof varmListorMedOverlamning<string>>> | undefined;
++  while (kropp) {
++    const tolkat = tolkaLed(JSON.parse(JSON.stringify(kropp)));
++    assert.ok(!("fel" in tolkat) && "listorFran" in tolkat, "kroppen som kedjan själv bygger ska alltid tas emot");
++    kropp = null;
++    sista = await varmListorMedOverlamning(alla, tolkat.listorFran, tolkat.led + 1, varmare(kapacitet, varmda), async (fran, nummer): Promise<LedStart> => {
++      if (nummer > MAX_LED) return "sista-ledet";
++      kropp = { led: nummer, listorFran: fran };
++      return "startat";
++    });
++    leden++;
++  }
++  return { varmda, leden, sista: sista! };
++}
++
++test("listkedjan värmer alla 133 listor även när varje led bara hinner en del", async () => {
++  const k = await listkedja(133, 50, 3);
++  assert.equal(k.varmda.size, 133, "varje lista värms");
++  assert.equal(k.leden, 3, "50 + 50 + 33");
++  assert.equal(k.sista.nasta, null);
++});
++
++test("listkedjan stannar efter MAX_LED och säger hur många som blev kvar", async () => {
++  // Börjar på led MAX_LED - 1: led 7 och 8 hinner 20 var, och led 9 finns inte.
++  const k = await listkedja(133, 20, MAX_LED - 1);
++  assert.equal(k.leden, 2);
++  assert.equal(k.varmda.size, 40);
++  assert.equal(k.sista.nasta, "sista-ledet");
++  assert.equal(k.sista.kvar, 133 - 40);
++});
++
++test("rutten värmer aldrig alla listor förbi överlämningen", () => {
++  // Hela listan går genom varmListorFran (som lämnar över resten till ett led).
++  // Ett direktanrop varmListor(alla…) är hur de 133 listorna blev ovärmda 2026-10-24.
++  const rutt = readFileSync(new URL("../app/api/cron/varm-katalogen/route.ts", import.meta.url), "utf8");
++  assert.ok(!/varmListor\(\s*alla(Listor)?\s*,/.test(rutt), "varmListor(alla…) direkt i rutten");
++  assert.equal(rutt.match(/varmListorFran\(/g)?.length, 4, "en definition och tre anrop: GET, produktledet och listledet");
++  assert.ok(rutt.includes("startaListled"), "rutten ger överlämningen sin startare");
++});
+diff --git a/lib/warm.ts b/lib/warm.ts
+index d171fdcf..2d245b94 100644
+--- a/lib/warm.ts
++++ b/lib/warm.ts
+@@ -28,10 +28,12 @@ import { SITE } from "./site-urls";
+ import { listaUrl, type ListNyckel } from "./list-key";
+ // Provurvalet bor i en egen, beroendefri fil så node:test kan importera det —
+ // den här modulen drar in site-urls, som testköraren inte kan ladda.
+-import { fastProv, MAX_LED, MISS_FOR_KALL, PARALLELLT } from "./warm-urval";
++import { fastProv, MAX_LED, MISS_FOR_KALL, PARALLELLT, type LedStart } from "./warm-urval";
+ export {
+-  arSakerSlug, fastProv, kvarEfterPass, MAX_LED, MISS_FOR_KALL, PARALLELLT, PROV_STORLEK, roterad, tolkaLed,
++  arSakerSlug, fastProv, kvarEfterPass, listorEfterPass, MAX_LED, MAX_LISTOR, MISS_FOR_KALL, PARALLELLT, PROV_STORLEK,
++  roterad, tolkaLed, varmListorMedOverlamning,
+ } from "./warm-urval";
++export type { LedStart, ListPass } from "./warm-urval";
+ 
+ 
+ 
+@@ -120,12 +122,8 @@ export async function katalogenArKall(
+   return { kall: missar >= MISS_FOR_KALL, missar, av: urval.length };
+ }
+ 
+-/** Hur det gick att starta nästa led i en värmning (se warm-urval.ts, kedjan). */
+-export type LedStart = "startat" | "sista-ledet" | "inte-produktion" | "ingen-hemlighet" | "nekat" | "fel";
+-
+ /**
+- * Starta nästa led i en värmning som inte hann klart: ett anrop till
+- * /api/cron/varm-katalogen med det som återstår i kroppen.
++ * Skicka ett led: ett anrop till /api/cron/varm-katalogen med ledets kropp.
+  *
+  * Ledet svarar 202 direkt och värmer efter svaret (after()), så funktionen här
+  * väntar bara på kvittot. Två försök med två sekunders mellanrum; ett nekat svar
+@@ -134,8 +132,8 @@ export type LedStart = "startat" | "sista-ledet" | "inte-produktion" | "ingen-he
+  * Bara i produktion, för ledet värmer produktionens sidor (SITE), och en preview
+  * har inte tömt dem.
+  */
+-export async function startaLed(kvar: readonly string[], led: number): Promise<LedStart> {
+-  if (led > MAX_LED) return "sista-ledet";
++async function skickaLed(kropp: { led: number } & Record<string, unknown>): Promise<LedStart> {
++  if (kropp.led > MAX_LED) return "sista-ledet";
+   if (process.env.VERCEL_ENV !== "production") return "inte-produktion";
+   const hemlighet = process.env.CRON_SECRET;
+   if (!hemlighet) return "ingen-hemlighet";
+@@ -148,7 +146,7 @@ export async function startaLed(kvar: readonly string[], led: number): Promise<L
+           "content-type": "application/json",
+           "user-agent": "fyndplats-warmer",
+         },
+-        body: JSON.stringify({ led, kvar }),
++        body: JSON.stringify(kropp),
+         cache: "no-store",
+         signal: AbortSignal.timeout(15_000),
+       });
+@@ -161,3 +159,10 @@ export async function startaLed(kvar: readonly string[], led: number): Promise<L
+   }
+   return "fel";
+ }
++
++/** Starta nästa led i en värmning som inte hann klart: det som återstår av produkterna. */
++export const startaLed = (kvar: readonly string[], led: number): Promise<LedStart> => skickaLed({ led, kvar });
++
++/** Starta ett led som värmer listsidorna från plats `fran` i deras ordning
++ *  (warm-urval.ts, "Listorna efter produkterna"). */
++export const startaListled = (fran: number, led: number): Promise<LedStart> => skickaLed({ led, listorFran: fran });
