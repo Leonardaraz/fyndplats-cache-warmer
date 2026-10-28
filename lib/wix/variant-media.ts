@@ -414,6 +414,14 @@ export interface VariantbildOpts {
   vanta?: (ms: number) => Promise<void>;
   /** Omläsningar medan Wix läsning släpar efter skrivningen. */
   omlasningar?: number;
+  /**
+   * Revisionen produkten har efter en skrivning som just gjorts (`updateV3VariantPrices`).
+   * ☠️ Läsningen släpar efter skrivningen: utan den ser första läsningen ut som produkten
+   * FÖRE prisskrivningen, alla varianter står på sin bild, och ingenting rättas. Då är
+   * variantbilden nollställd till huvudbilden tills nattens cron kommer. Med den läses
+   * produkten om (`omlasningar` gånger) tills revisionen är minst den här.
+   */
+  minRevision?: number;
 }
 
 const OMLASNING_PAUS_MS = 1500;
@@ -422,6 +430,23 @@ async function lasProdukt(wix: WixAnrop, id: string, falt = VARIANTBILD_FALT): P
   const svar = obj(await wix("GET", `/stores/v3/products/${encodeURIComponent(id)}?${falt}`));
   const p = obj(svar.product);
   return str(p.id) ? p : null;
+}
+
+/** Som `lasProdukt`, men väntar ut en läsning som släpar: omläsning tills revisionen når `minRevision`. */
+async function lasProduktTillRevision(
+  wix: WixAnrop,
+  id: string,
+  falt: string,
+  minRevision: number | undefined,
+  vanta: (ms: number) => Promise<void>,
+  varv: number,
+): Promise<Obj | null> {
+  let p = await lasProdukt(wix, id, falt);
+  for (let i = 1; p && minRevision !== undefined && Number(p.revision) < minRevision && i < varv; i++) {
+    await vanta(OMLASNING_PAUS_MS);
+    p = await lasProdukt(wix, id, falt);
+  }
+  return p;
 }
 
 /**
@@ -475,7 +500,14 @@ export async function refreshVariantMedia(
   try {
     // Först utan kostnaden: de flesta produkter är redan rätt, och jämförelsen
     // ska fungera även med en nyckel som inte får läsa handelsdata.
-    const forst = await lasProdukt(wix, productId, VARIANTBILD_LASFALT);
+    const forst = await lasProduktTillRevision(
+      wix,
+      productId,
+      VARIANTBILD_LASFALT,
+      opts.minRevision,
+      vanta,
+      Math.max(1, opts.omlasningar ?? 4),
+    );
     if (!forst) return utfall("fel", { fel: "produkten gick inte att läsa" });
     const visible = forst.visible !== false;
     if (varianterAv(forst).length < 2) return utfall("en_variant", { visible });

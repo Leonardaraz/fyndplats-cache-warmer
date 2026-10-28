@@ -6,6 +6,7 @@
 // för flexibility.
 
 import { produktensMedianycklar, type ProduktMedia } from "./produkt-media";
+import type { VariantbildStatus } from "./variant-media";
 
 const WIX_BASE = "https://www.wixapis.com";
 const DEFAULT_HEADLESS_SITE_ID = "e6d27e90-4749-4720-9afe-0bbe91c1b3d3";
@@ -814,6 +815,53 @@ export interface VariantPriceWriteResult {
   updated: number;
   /** Nycklar som inte fanns i produktens variantlista (skrevs aldrig). */
   missing: string[];
+  /**
+   * Flervariantsprodukt: vad uppföljningen av variantbilden blev (`rattad`, `ratt`, `fel` …).
+   * Saknas på en produkt med en variant, där ingenting nollställs.
+   */
+  variantbild?: VariantbildStatus;
+}
+
+export interface VariantPriceWriteOpts {
+  /**
+   * `false` hoppar uppföljningen av variantbilden på en flervariantsprodukt. Default `true`: en
+   * variantsInfo-PATCH med val-id nollställer variantens bild (varukorg, kassa, order), och
+   * ingen annan väg rättar den förrän nattens cron.
+   */
+  foljUppVariantbild?: boolean;
+}
+
+/** Wix svarar 403 på MERCHANT_DATA när nyckeln saknar SCOPE.STORES.PRODUCT_READ_ADMIN (uppmätt 2026-09-27). */
+function arKostnadsBehorighet(status: number, text: string): boolean {
+  return status === 403 || /NO_PERMISSION_TO_READ_MERCHANT_DATA/i.test(text);
+}
+
+/**
+ * Variantbilden efter en prisskrivning på en flervariantsprodukt. Fail-open: priset ÄR skrivet, och
+ * ett fel här får aldrig se ut som att prisskrivningen föll. Modulerna importeras när de behövs:
+ * `skrivplan-wix` läser rubrikerna härifrån, så en vanlig import hade blivit en cirkel.
+ */
+async function foljUppVariantbildEfterPris(
+  productId: string,
+  minRevision: number | undefined,
+): Promise<VariantbildStatus | undefined> {
+  try {
+    const [{ refreshVariantMedia }, { skapaWixAnrop }] = await Promise.all([
+      import("./variant-media"),
+      import("../polish/skrivplan-wix"),
+    ]);
+    const u = await refreshVariantMedia(skapaWixAnrop(), productId, { minRevision });
+    if (u.status === "avvikelse" || u.status === "fel" || u.status === "ej_rattad") {
+      console.warn(
+        `[v3.prisskrivning] variantbild: ${u.status} för ${productId}${u.fel ? ` (${u.fel})` : ""}`
+        + `${u.avvikelser?.length ? ` — ${u.avvikelser.join("; ")}` : ""}`,
+      );
+    }
+    return u.status;
+  } catch (e) {
+    console.warn(`[v3.prisskrivning] variantbild: uppföljningen föll för ${productId}: ${String((e as Error)?.message ?? e).slice(0, 200)}`);
+    return undefined;
+  }
 }
 
 /**
@@ -833,14 +881,27 @@ export interface VariantPriceWriteResult {
 export async function updateV3VariantPrices(
   productId: string,
   writes: ReadonlyArray<VariantPriceWrite>,
+  opts: VariantPriceWriteOpts = {},
 ): Promise<VariantPriceWriteResult> {
   if (writes.length === 0) return { updated: 0, missing: [] };
 
-  const url = `${WIX_BASE}/stores/v3/products/${encodeURIComponent(productId)}?fields=VARIANT_OPTION_CHOICE_NAMES`;
-  const res = await fetch(url, { method: "GET", headers: headers() });
+  // ☠️ VARUKOSTNADEN LÄSES MED, OCH SKICKAS TILLBAKA PÅ VARJE VARIANT. En variantsInfo-PATCH
+  // ersätter varianten: en läsning utan MERCHANT_DATA bär ingen kostnad, och varianterna som
+  // inte stod i `writes` gick då tillbaka utan sin (härlett ur koden 2026-10-24; kostnaden
+  // saknades på 2 633 produkter). Saknar nyckeln behörigheten (403) läses produkten som förut,
+  // med den gamla följden: bara de varianter som skrivs får kostnad (`costAmount`).
+  const baseUrl = `${WIX_BASE}/stores/v3/products/${encodeURIComponent(productId)}?fields=VARIANT_OPTION_CHOICE_NAMES`;
+  let res = await fetch(`${baseUrl}&fields=MERCHANT_DATA`, { method: "GET", headers: headers() });
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`updateV3VariantPrices GET ${productId} (${res.status}): ${text.slice(0, 300)}`);
+    if (!arKostnadsBehorighet(res.status, text)) {
+      throw new Error(`updateV3VariantPrices GET ${productId} (${res.status}): ${text.slice(0, 300)}`);
+    }
+    res = await fetch(baseUrl, { method: "GET", headers: headers() });
+    if (!res.ok) {
+      const text2 = await res.text();
+      throw new Error(`updateV3VariantPrices GET ${productId} (${res.status}): ${text2.slice(0, 300)}`);
+    }
   }
   /* eslint-disable @typescript-eslint/no-explicit-any */
   const data = (await res.json()) as { product?: any };
@@ -849,6 +910,12 @@ export async function updateV3VariantPrices(
   const variants: any[] = product.variantsInfo?.variants ?? [];
   if (variants.length === 0) {
     throw new Error(`updateV3VariantPrices: produkt ${productId} har inga varianter.`);
+  }
+  // `profit` och `profitMargin` räknas av Wix och är skrivskyddade — bara kostnaden går tillbaka.
+  for (const v of variants) {
+    const kost = v?.revenueDetails?.cost;
+    if (kost && typeof kost === "object") v.revenueDetails = { cost: kost };
+    else if (v && "revenueDetails" in v) delete v.revenueDetails;
   }
 
   const byId = new Map<string, any>();
@@ -951,8 +1018,36 @@ export async function updateV3VariantPrices(
       `updateV3VariantPrices PATCH ${productId} (${patch.status}): ${text.slice(0, 300)}`,
     );
   }
+
+  // ☠️ EN VARIANTSINFO-PATCH MED VAL-ID NOLLSTÄLLER VARIANTENS BILD (varukorg, kassa, order).
+  //
+  // Mätt 2026-10-24: Aosom-synken skrev regelpriset på klöspelaren `81a60db2` 09:21:21 UTC, och
+  // direkt efteråt hade Beige och Brun huvudbilden som variantbild i stället för sina egna.
+  // Nattens `/api/cron/variantbild` (05:35 UTC) rättar det, men fönstret är upp till ett dygn,
+  // och under det visar en kund som lägger färgen i korgen fel foto. Därför rättas bilden här,
+  // direkt efter skrivningen (Leonards ja 2026-10-27, punkt 2).
+  //
+  // Bara en flervariantsprodukt: en produkt med en variant har ingen färg att visa fel.
+  let variantbild: VariantbildStatus | undefined;
+  if (variants.length >= 2 && opts.foljUppVariantbild !== false) {
+    // Läsningen släpar efter skrivningen, så uppföljningen får veta vilken revision den ska
+    // vänta in. Svarar PATCH:en utan revision räknas den fram: en lyckad skrivning går alltid
+    // minst ett steg.
+    let revision = NaN;
+    try {
+      const svar = (await patch.json()) as { product?: { revision?: string | number } };
+      revision = Number(svar?.product?.revision);
+    } catch {
+      /* PATCH:en tog; revisionen räknas fram nedan */
+    }
+    const minRevision = Number.isFinite(revision) && revision > 0 ? revision : Number(product.revision) + 1;
+    variantbild = await foljUppVariantbildEfterPris(
+      productId,
+      Number.isFinite(minRevision) ? minRevision : undefined,
+    );
+  }
   /* eslint-enable @typescript-eslint/no-explicit-any */
-  return { updated, missing };
+  return { updated, missing, ...(variantbild ? { variantbild } : {}) };
 }
 
 /** Hämtar fullständig variant-data för en produkt (för variantmappning).
