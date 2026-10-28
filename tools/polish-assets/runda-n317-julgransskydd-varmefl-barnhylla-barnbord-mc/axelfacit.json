@@ -1,0 +1,43 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "1934e60e": {
+  "tyska": "81L x 43B x 57H cm",
+  "svenska": "81 x 43 x 57 cm",
+  "bokstaver": "LBH",
+  "hojd": 57,
+  "bredd": 81,
+  "djup": 43
+ },
+ "2fdf90ed": {
+  "tyska": "60L x 30B x 15H cm",
+  "svenska": "60 x 30 x 15 cm",
+  "bokstaver": "LBH",
+  "hojd": 15,
+  "bredd": 60,
+  "djup": 30
+ },
+ "4cb3b806": {
+  "tyska": "",
+  "svenska": "64L x 64B x 50,5H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischmaße: 64B x 64T x 50,5H cm | ✔ Tischplattenmaße: 60B x 60T cm | ✔ Tischplattenhöhe: 50,5H cm | ✔ Stuhlmaße: 36B x 34T x 51H cm | ✔ Sitzgröße: Ø26 x 30H cm | ✔ Maße der Tischbeine: 4,5B x 2T cm | ✔ Maße der Stuhlbeine: 4B x 2T cm"
+ },
+ "d1e14ae8": {
+  "tyska": "Ø60 x 28H cm",
+  "svenska": "Ø60 x 28H cm",
+  "bokstaver": "H",
+  "hojd": 28
+ },
+ "d4e51ab1": {
+  "tyska": "",
+  "svenska": "69,5L x 45B x 51H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischmaße: 69,5L x 45B x 51H cm | ✔ Stuhlmaße: 33L x 37B x 55H cm | ✔ Tischplattengröße: 67L x 40B cm | ✔ Sitzmaße: 30L x 24B cm | ✔ Innenmaße der Schublade: 62L x 28,5B x 6H cm | ✔ Maße des Tischbeins: 51L x 1,2B x 45H cm | ✔ Maße des Stuhlbeins: 37L x 1,2B x 23,5H cm"
+ },
+ "e23fa98b": {
+  "tyska": "180L x 1,6T x 180H cm",
+  "svenska": "180L x 1,6B x 180H cm",
+  "bokstaver": "LTH",
+  "djup": 1.6,
+  "hojd": 180,
+  "bredd": 180
+ }
+}
