@@ -2,7 +2,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  matchPhrase, orderEventsNewestFirst, svCountry, svLocation, dedupeEvents,
+  matchPhrase, matchPhraseForStage, AVI_FRAS, orderEventsNewestFirst, svCountry, svLocation, dedupeEvents,
   landForHandelse, harOrt, svenskVaggklocka, tidForHandelse, rimligTid, rattaPlatser,
 } from "./track-i18n.ts";
 
@@ -394,4 +394,33 @@ test("dedupeEvents – samma leverans från två transportörer blir en rad", ()
 test("upphämtningsställe med bindestreck översätts", () => {
   assert.equal(matchPhrase("Package arrived at pick-up point"), "Paketet finns för upphämtning hos ditt ombud.");
   assert.equal(matchPhrase("Available for pick-up"), "Paketet finns för upphämtning hos ditt ombud.");
+});
+
+test("☠️ matchPhraseForStage: en leveransfras kräver stage Delivered", () => {
+  const brevlada = "Paketet har levererats till mottagarens brevlåda.";
+  // En riktig leverans, eller en händelse utan stage, översätts som förut.
+  assert.equal(matchPhraseForStage("The shipment item has been delivered to the recipient's mailbox", "Delivered"), brevlada);
+  assert.equal(matchPhraseForStage("The shipment item has been delivered to the recipient's mailbox"), brevlada);
+  assert.equal(matchPhraseForStage("The shipment item has been delivered to the recipient's mailbox", ""), brevlada);
+  assert.equal(matchPhraseForStage("Delivered", "Delivered"), "Paketet är levererat.");
+  // En avi låter som en leverans men är det inte.
+  for (const text of [
+    "A notification has been delivered to the recipient",
+    "A notice has been left in the recipient's mailbox",
+    "Reminder: the item has been delivered to the recipient's mailbox",
+    "The recipient has been notified and the item delivered to the service point",
+  ]) {
+    assert.equal(matchPhraseForStage(text, "OutForDelivery"), AVI_FRAS, text);
+  }
+  // Annars ingen fras: anroparen visar stagens egen text.
+  assert.equal(matchPhraseForStage("The item has been delivered to the service point", "AvailableForPickup"), null);
+  assert.equal(matchPhraseForStage("Delivered", "InTransit"), null);
+});
+
+test("matchPhraseForStage: övriga fraser rörs inte av stage", () => {
+  for (const text of ["Arrived at sorting center", "Out for delivery", "Package arrived at pick-up point", "Delivery attempt failed"]) {
+    assert.equal(matchPhraseForStage(text, "OutForDelivery"), matchPhrase(text), text);
+    assert.equal(matchPhraseForStage(text, "Delivered"), matchPhrase(text), text);
+  }
+  assert.equal(matchPhraseForStage("Mystery text", "OutForDelivery"), null);
 });

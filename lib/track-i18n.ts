@@ -371,6 +371,32 @@ export function matchPhrase(description: string): string | null {
   return null;
 }
 
+/** Fraserna i PHRASE_SV som säger att paketet har kommit fram till kunden. */
+const LEVERANSFRASER = new Set(["Paketet har levererats till mottagarens brevlåda.", "Paketet är levererat."]);
+
+/** Ett meddelande till mottagaren om paketet, eller en påminnelse. */
+const AVI = /\b(?:notif(?:y|ied|ication)|notice|reminder)\b/i;
+
+export const AVI_FRAS = "Du har fått en avi om paketet.";
+
+/**
+ * matchPhrase, kontrollerad mot händelsens stage hos 17TRACK.
+ *
+ * ☠️ En text som låter som en leverans är inte alltid en. Ett DHL-paket som
+ * PostNord delade ut stod som "Paketet har levererats till mottagarens
+ * brevlåda." tre gånger (6, 8 och 10 oktober 2026) medan det väntade hos
+ * ombudet, och det levererades först den 12:e. 17TRACK kallade de tre
+ * händelserna OutForDelivery, inte Delivered. En leveransfras används därför bara när
+ * stage är Delivered eller saknas. Annars blir det AVI_FRAS om texten talar om
+ * ett meddelande eller en påminnelse, och null i övriga fall, så att anroparen
+ * visar stagens egen text, som för INTE_LEVERERAT.
+ */
+export function matchPhraseForStage(description: string, stage?: string): string | null {
+  const fras = matchPhrase(description);
+  if (!fras || !LEVERANSFRASER.has(fras) || !stage || stage === "Delivered") return fras;
+  return AVI.test(description) ? AVI_FRAS : null;
+}
+
 /** En spårnings-händelse med någon form av tidsstämpel (fältnamn varierar). */
 export type TimedEvent = {
   time?: string;

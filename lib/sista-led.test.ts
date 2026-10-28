@@ -17,6 +17,7 @@ import {
   POSTNORD_SPARNING,
   UPS_SPARNING,
   dsvLed,
+  harKommitTillSverige,
   postnordLed,
   sistaLedInfoFor,
   sistaLedRuta,
@@ -228,5 +229,58 @@ test("transportorLankar: utan känt fraktbolag blir det alla fem, med UPS sist",
 test("transportorLankar: numret kodas i varje adress", () => {
   for (const l of transportorLankar("AB 12/3&x")) {
     assert.ok(l.url.includes("AB%2012%2F3%26x"), `${l.name}: ${l.url}`);
+  }
+});
+
+test("harKommitTillSverige: en plats i Sverige, med eller utan ort", () => {
+  assert.equal(harKommitTillSverige(["Tyskland", "", undefined]), false);
+  assert.equal(harKommitTillSverige([]), false);
+  assert.equal(harKommitTillSverige(["Tyskland", "Malmö, Sverige"]), true);
+  assert.equal(harKommitTillSverige(["Sverige"]), true);
+  assert.equal(harKommitTillSverige([" Göteborg, Sverige "]), true);
+  assert.equal(harKommitTillSverige(["Sverigestraße, Tyskland"]), false);
+});
+
+test("PostNord innan paketet kommit till Sverige: rutan säger det och visar ingen knapp", () => {
+  // PostNord svarar "Försändelsen hittades inte" tills paketet kommit hit
+  // (DHL-paket från Tyskland, 2026-10-28). En knapp dit vore en återvändsgränd.
+  for (const status of ["InTransit", "InfoReceived", "Exception"]) {
+    const ruta = sistaLedRuta(postnordLed("CC000000001DE"), { transportor: "DHL", status, iSverige: false });
+    assert.equal(
+      ruta.text,
+      "DHL lämnar över paketet till PostNord, som delar ut det i Sverige. "
+        + "PostNord visar paketet när det har kommit till Sverige, med samma spårningsnummer. "
+        + "Fram till dess ser du var det är här nedanför.",
+      status,
+    );
+    assert.equal(ruta.knapp, undefined, status);
+    assert.doesNotMatch(ruta.text, /[–—]/);
+  }
+});
+
+test("PostNord när paketet kommit till Sverige: dåtid och knapp till PostNord", () => {
+  const ruta = sistaLedRuta(postnordLed("CC000000001DE"), { transportor: "DHL", status: "InTransit", iSverige: true });
+  assert.equal(
+    ruta.text,
+    "DHL har lämnat över paketet till PostNord, som delar ut det i Sverige. Spårningsnumret är detsamma hos PostNord.",
+  );
+  assert.deepEqual(ruta.knapp, { text: "Följ paketet hos PostNord", href: POSTNORD_SPARNING + "CC000000001DE" });
+});
+
+test("PostNord levererat: knappen finns kvar även utan en plats i Sverige", () => {
+  const ruta = sistaLedRuta(postnordLed("CC000000001DE"), {
+    transportor: "DHL",
+    status: "Delivered",
+    levererad: true,
+    iSverige: false,
+  });
+  assert.equal(ruta.knapp?.text, "Visa paketet hos PostNord");
+});
+
+test("DSV påverkas inte av om paketet syns i Sverige", () => {
+  const info = dsvLed(DSV_NR);
+  for (const iSverige of [undefined, false, true]) {
+    const ruta = sistaLedRuta(info, { transportor: "GLS", status: "InTransit", iSverige });
+    assert.deepEqual(ruta, sistaLedRuta(info, { transportor: "GLS", status: "InTransit" }), String(iSverige));
   }
 });

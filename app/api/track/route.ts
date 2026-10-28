@@ -23,7 +23,7 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import {
-  PHRASE_SV, svLocation, svCountry, svenskVaggklocka, dedupeEvents, tidForHandelse,
+  matchPhrase, matchPhraseForStage, svLocation, svCountry, svenskVaggklocka, dedupeEvents, tidForHandelse,
   rimligTid, rattaPlatser, orderEventsNewestFirst,
 } from "@/lib/track-i18n";
 import { maskCarrier, transportorAvNummer, transportorForNummer } from "@/lib/carrier-mask";
@@ -140,9 +140,14 @@ const STAGE_SV: Record<string, string> = {
 };
 
 function toSwedish(description: string, stage?: string): string {
-  for (const [re, sv] of PHRASE_SV) {
-    if (re.test(description)) return sv;
+  const fras = matchPhraseForStage(description, stage);
+  if (fras !== matchPhrase(description)) {
+    // En leveransfras på en händelse som 17TRACK inte kallar levererad
+    // (matchPhraseForStage). Originaltexten loggas, så att den kan få en egen
+    // svensk fras om den varken är en avi eller täcks av stagens text.
+    console.info(`[track] leveransfras mot stage ${stage}: "${description.slice(0, 200)}" → ${fras ?? "stagens text"}`);
   }
+  if (fras) return fras;
   if (stage && STAGE_SV[stage]) return STAGE_SV[stage];
   return description; // okänd text → visa originalet hellre än tomt
 }

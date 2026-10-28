@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { orderEventsNewestFirst } from "@/lib/track-i18n";
 import { DELIVERY_TIME } from "@/lib/shipping";
-import { sistaLedRuta, type SistaLedInfo } from "@/lib/sista-led";
+import { harKommitTillSverige, sistaLedRuta, type SistaLedInfo } from "@/lib/sista-led";
 import { transportorRad } from "@/lib/carrier-mask";
 
 // Anropar /api/track i headless (Next.js API-route) som proxar till 17TRACK
@@ -197,7 +197,12 @@ export function TrackingWidget() {
   // ett annat än vårt, och en knapp till deras spårning (ombudets adress och
   // öppettider, eller bokningen av leveransdagen).
   const led = data?.sistaLedInfo
-    ? sistaLedRuta(data.sistaLedInfo, { transportor: carrier, status, levererad: delivered })
+    ? sistaLedRuta(data.sistaLedInfo, {
+        transportor: carrier,
+        status,
+        levererad: delivered,
+        iSverige: harKommitTillSverige(events.map((ev) => ev.place)),
+      })
     : null;
 
   return (
