@@ -4495,7 +4495,7 @@ Det påverkar bara Wix egen vinst- och marginalrapport. Husets lönsamhetsövers
 kundsidor berörs. Verktygen som läser med `MERCHANT_DATA` (och skickar kostnaden tillbaka där de skriver `variantsInfo`) är `lib/aosom/sammanslagning.ts`, `lib/wix/variant-media.ts`,
 `farg-forst.js`, `galleri-tillagg.js`, `skriv-storlekskort.js`, `variantbild-farg.js` och `harma-skriv.js`. Filer som skriver `variantsInfo` utan att nämna fältet
 är bland andra `lib/aosom/bilder-bort.ts`, `fargbilder-kor.ts`, `livsbild.ts`, `remap-kollaps.ts`, `lib/polish/skrivplan.ts`, `lank-om-bilder.js`,
-`skriv-fargbilder.js`, `bygg-agare.py` och rundornas skript (inte prövat fil för fil). **(1) är gjort på grenen 2026-10-28 (FLAGGADE lärdom 233, commit `07c5395f` och `8c0a04c6`, inte mergat). (2) är inte gjort.** Leonard sa ja till båda
+`skriv-fargbilder.js`, `bygg-agare.py` och rundornas skript (inte prövat fil för fil). **(1) är gjort på grenen 2026-10-28 (FLAGGADE lärdom 233, commit `07c5395f` och `8c0a04c6`, inte mergat). (2) är byggt och testat men ännu inte körts (se *Kostnaden skrivs in* nedan).** Leonard sa ja till båda
 2026-10-27 (de sex punkterna), och (2) körs först när koden är mergad (hans *merga*):
 (1) de verktygen läser med `MERCHANT_DATA` och skickar kostnaden tillbaka, så att fler sidor inte tappar den, och (2) kostnaden skrivs tillbaka på de 2 964
 sidorna (2 633 utan och 331 med delvis) ur mappningens `landedCostSek`, torrt först och med samma före-och-efter-kontroll som resten.
@@ -4526,11 +4526,56 @@ Tre följder för den som tar fråga 5:
 
 ✅ Följd 1 och 3 är gjorda 2026-10-28: `updateV3VariantPrices` läser med `MERCHANT_DATA`, skickar kostnaden tillbaka på varje variant och faller tillbaka på dagens läsning
 vid 403 (svaret säger då att kostnaden inte följde med), och verktygen i `lib/aosom/` och `tools/polish-gates/` som skriver `variantsInfo` gör likadant (`lib/wix/produkt-kostnad.ts`,
-FLAGGADE lärdom 233). Följd 2, att skriva kostnaden på sidorna som saknar den, väntar på mergen.
+FLAGGADE lärdom 233). Följd 2, att skriva kostnaden på sidorna som saknar den, är byggd (se *Kostnaden skrivs in* nedan) och körs först efter mergen.
 
 `products/query-variants` ger varianterna för hela katalogen på 15 sekunder (1 000 per sida, markör, `productId` går inte att filtrera på): `sku`, `visible`,
 `optionChoices`, `price`, `media`, `productData` (produkt-id, namn, adress, synlighet) och med `MERCHANT_DATA` kostnaden. Det är den bulkväg till variant-SKU:erna
 som raden om SKU-kollisionskollen (2026-09-07) säger saknas: en SKU-revision över hela katalogen är nio anrop, inte 5 527.
+
+#### Kostnaden skrivs in: `/api/admin/varukostnad` (punkt 5b, byggd 2026-10-28, ej körd)
+
+Följd 2 ovan är byggd, testad och mutationsprövad, men körs inte mot Wix förrän koden ligger på `main` (Leonards *merga*): rutten och workflowen måste finnas i produktion
+(`workflow_dispatch` kör `main` som default). Workflowen heter **"Varukostnad — fyll i kostnaden på Aosom-varianter som saknar den"** (`varukostnad.yml`, lägena `torr` ·
+`skarp`) → `/api/admin/varukostnad` → `lib/wix/varukostnad.ts` (planen, skrivningen, svepet) och `lib/wix/synkfonster.ts`. Torrt som default.
+
+Nio egenskaper som inte ska tas bort:
+
+1. ☠️ **Bara Aosom, med ett positivt filter** (`isAosomMapping`, aldrig "allt utom AliExpress"). AliExpress-radernas `landedCostSek` är importtidens tal och fryser, så ett
+   skrivet tal hade gett Wix en för bra vinstsiffra. Ett annat värde på `leverantor` är 400, så att en tredje leverantör är ett beslut och ingen tyst följd. Pensionerade
+   och raderade rader hoppas över.
+2. ☠️ **En befintlig kostnad skrivs aldrig över**, varken i planen (`redanKostnad`) eller i skrivningen, som läser produkten färskt och räknar om vad som saknas: en kostnad
+   som skrivits mellan planen och skrivningen ger `redan_klar`. Modulen fyller luckor och är ingen prisreparation.
+3. ☠️ **Värdet är mappningens `landedCostSek.toFixed(2)`**, samma tal som importen skriver. Noll, minus och saknat tal ger ingen kandidat (`utanMappningskostnad`).
+4. ☠️ **Skrivningen är en `products`-PATCH med varianterna ordagrant ur produktens egen GET (`fields=MERCHANT_DATA`)**, bara med kostnaden ifylld på de varianter som
+   saknar den, och `visible` och `options` med (annars publicerar en variantsInfo-PATCH ett utkast, och en flervariantsprodukt ger 428). Priset hämtas aldrig ur planen: ett
+   pris som prissynken skrivit mellan planen och skrivningen hade annars skrivits över med det gamla. Nekas `MERCHANT_DATA` (403) skrivs ingenting, för en skrivning som inte
+   kan läsa kostnaden ersätter varianterna utan den, och det är felet som ska bort.
+5. ☠️ **Före-och-efter-kontrollen stoppar vid minsta avvikelse.** Produkten läses om tills revisionen gått fram (Wix läsning släpar efter skrivningen), och allt utom kostnaden på
+   de skrivna varianterna ska vara lika: namn, adress, synlighet, val, variant-id, SKU, pris, jämförpris, kostnaden på de andra varianterna och lagret. Belopp jämförs som tal
+   (`1099.40` och `1099.4` är samma). Föll kontrollen efter skrivningen vet vi inte vad Wix har, och det är också en avvikelse.
+6. ☠️ **Flervariantsprodukter får variantbilden uppföljd** (`refreshVariantMedia` med revisionen som skrevs), eftersom en skrivning med val-id nollställer variantens bild
+   (lärdom 204 och 234). En avvikelse därifrån stoppar också.
+7. ☠️ **Godkännandet är planens antal.** Första skarpa varvet kräver `bekrafta` = torrkörningens `totalt`, följande varv `hogst` = förra varvets `aterstod`, och planen får krympa
+   men aldrig växa (samma form som *Pensionerade utkast raderas efter fjorton dygn*). Det finns ingen kör-allt-flagga. `ids` (högst 60 Wix-id) tar ett litet prov, och
+   `bekrafta` gäller då deras antal. Svepet stannar vid första avvikelse och efter fem fel i följd (ett nekat `MERCHANT_DATA` fäller varje produkt), och markören (`efter`) är
+   sista behandlade produktens id, så att en produkt som alltid faller inte ligger först i varje skiva.
+8. ☠️ **Aldrig inne i Aosoms synkfönster** (`lib/wix/synkfonster.ts`: :12–:29 UTC var tredje timme, 00, 03 … 21). Skrivaren jämför lagret före och efter varje produkt, så en
+   synkskrivning mitt i hade stoppat körningen. Rutten vägrar skarpt där (409, `vantaTillUtc`), kortar tidsbudgeten så att varvet slutar 30 sekunder före nästa fönster och
+   vägrar när det inte ryms 45 sekunder. Workflowen väntar ut fönstret (från :10) och försöker om skivan om rutten ändå säger nej. Regeln stod förut bara här och i varje
+   workflows egen bash-funktion, och en regel man måste komma ihåg glöms bort.
+9. ☠️ **Svaret bär bara Wix-id och räknare**, eftersom workflowens logg är publik: inga kostnader, artikelnummer, namn eller sluggar. Wix felkroppar kan eka värdet som
+   skickades, så decimaltal och artikelnummer redigeras (`redigeraFeltext`) i modulen, i rutten och en gång till i workflowen.
+
+**Körordning efter mergen** (alla tre med `lage=torr` först, och bara utanför synkfönstret när det blir skarpt):
+
+1. `torr`: läs `totalt` och räknarna. `utanKatalogvariant` och `utanMappningskostnad` ska vara små, och `redanKostnad` rörs aldrig.
+2. Ett prov med `ids`: en publicerad flervariantsprodukt, ett dolt utkast och en enkel produkt, `bekrafta` = 3. Läs tillbaka i Wix (kostnad, pris, SKU, synlighet, lager och
+   variantbild) och kontrollera live att sidan och varukorgens bild är oförändrade.
+3. Hela svepet med `bekrafta` = torrkörningens antal. Uppskattat några timmar (40 produkter per skiva à några minuter, en väntan på ungefär 20 minuter runt varje synkfönster),
+   inte mätt.
+
+⚠️ **Varje skrivning ändrar produktens `updatedDate`**, och butikens cron `uppdatera-andrade` (var femte minut) bygger då om sidan (ISR-skrivning). Några tusen ombyggda
+sidor är en synlig men liten post i Vercel-fakturan (ISR Writes var 15 % av den uppmätta veckan, se projektets inledning). Kostnaden är inte mätt.
 
 ### Nattens utkast blev sju sammanslagna sidor: mät varje vy live (2026-10-22)
 

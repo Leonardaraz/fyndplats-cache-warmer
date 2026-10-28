@@ -426,14 +426,14 @@ export interface VariantbildOpts {
 
 const OMLASNING_PAUS_MS = 1500;
 
-async function lasProdukt(wix: WixAnrop, id: string, falt = VARIANTBILD_FALT): Promise<Obj | null> {
+export async function lasProdukt(wix: WixAnrop, id: string, falt = VARIANTBILD_FALT): Promise<Obj | null> {
   const svar = obj(await wix("GET", `/stores/v3/products/${encodeURIComponent(id)}?${falt}`));
   const p = obj(svar.product);
   return str(p.id) ? p : null;
 }
 
 /** Som `lasProdukt`, men väntar ut en läsning som släpar: omläsning tills revisionen når `minRevision`. */
-async function lasProduktTillRevision(
+export async function lasProduktTillRevision(
   wix: WixAnrop,
   id: string,
   falt: string,
@@ -454,7 +454,7 @@ async function lasProduktTillRevision(
  * filtret bara på första sidan, markören bär frågan. Kastar hellre än
  * returnerar en halv lista.
  */
-async function lasLager(wix: WixAnrop, id: string): Promise<LagerPost[]> {
+export async function lasLager(wix: WixAnrop, id: string): Promise<LagerPost[]> {
   const poster: LagerPost[] = [];
   let cursor: string | undefined;
   for (let sida = 0; sida < 20; sida++) {
