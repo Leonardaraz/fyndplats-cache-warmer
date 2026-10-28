@@ -10,7 +10,7 @@ bee5a15d	200	guldhamster,dvarghamster	bostad	4900	98	50	50	PASS	färgval på 13f
 7901a6d1	189	-	hons	-	-	-	-	PASS	lekställning med gungor och sittpinnar för höns: ingen bostad, ingen golvyta och inget antal höns utlovas
 e3aa6881	139	-	rastgard	-	-	-	-	PASS	rastgård av stål och tyg 185 x 75 x 75 cm med tak: ersätter inte en bostad. Samma hage som adef1330 (185 x 75 x 50 cm) men högre: läggs som storleksval där (T102), inte som egen sida
 c404cced	26	-	hons	-	-	-	-	PASS	hönshus med hage och värpbo 150,5 x 54 x 87 cm, naturträ: färgval på c5541fef (grå), samma hus. Läggs som färgval (T102). Leverantörens 2-3 höns utlovas inte
-96c75ca6	128	-	hons	-	-	-	-	PASS	samma hönshus i vitt: färgval på c5541fef (grå). Läggs som färgval (T102). Leverantörens 2-3 höns utlovas inte
+96c75ca6	128	-	hons	-	-	-	-	PASS	samma hönshus med vit ram i stället för ljusgrå (Aosom kallar det vitt), så grått och vitt: färgval på c5541fef (grå). Aosom anger 1–2 cm andra mått (151,5 cm, husets höjd 66 cm), värdens mått står kvar. Läggs som färgval (T102). Leverantörens 2-3 höns utlovas inte
 0b22e0a5	27	-	hons	-	-	-	-	PASS	dubbelt hönshus med två utlopp 247 x 118 x 114 cm, gult: färgval på f55f89b3 (grå). Läggs som färgval (T102)
 67a368d1	39	-	hons	-	-	-	-	PASS	hönshus med utlopp och värpbo 200 x 104 x 145 cm, brunt; leverantörens plats för fyra höns utlovas inte, texten anger golvyta och riktmärket
 5f954f14	20	-	hund	-	-	-	-	PASS	hundbox (hundbur i MDF och stål) med innermått 107 x 74 x 59 cm för tillfällig vistelse; regelmeningen om stängd bur och bärförmågan i kg står på sidan, aldrig kroppslängd eller raser
