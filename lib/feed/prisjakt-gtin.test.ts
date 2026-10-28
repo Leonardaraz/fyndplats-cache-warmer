@@ -38,6 +38,11 @@ describe("PRISJAKT_GTIN (testet med koder)", () => {
     for (const [id, kod] of poster) assert.equal(giltigtGtin13(kod), true, `${id} ${kod}`);
   });
 
+  it("kontorsstolen som Prisjakt lade på en annan vara är borttagen (2026-10-28)", () => {
+    assert.equal(Object.hasOwn(PRISJAKT_GTIN, "3921d391-dbaf-45d4-8710-a0cdb587a4bc"), false);
+    assert.equal(Object.values(PRISJAKT_GTIN).includes("4255826823975"), false);
+  });
+
   it("ingen kod används på två varor", () => {
     const koder = poster.map(([, kod]) => kod);
     assert.equal(new Set(koder).size, koder.length);

@@ -1,12 +1,16 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
+  begransaFarger,
   fraktFor,
   giltigtGtin13,
+  giltigtMarke,
+  giltigtMpn,
   giltigtPrisjaktId,
   prisjaktItem,
   prisjaktTider,
   tillPrisjakt,
+  type PrisjaktArtiklar,
   type PrisjaktShipping,
 } from "./prisjakt.ts";
 
@@ -29,6 +33,7 @@ function item(opts: {
   labels?: boolean;
   size?: string;
   description?: string;
+  color?: string;
 }): string {
   return `    <item>
       <g:id>${opts.id ?? ID}</g:id>
@@ -43,7 +48,7 @@ function item(opts: {
       <g:brand>Fyndplats</g:brand>
       <g:condition>new</g:condition>${opts.labels ? `\n      <g:custom_label_0>500_1000</g:custom_label_0>\n      <g:custom_label_1>kampanj-2026-09</g:custom_label_1>` : ""}
       <g:identifier_exists>no</g:identifier_exists>
-      <g:color>Ekdekor</g:color>${opts.size ? `\n      <g:size>${opts.size}</g:size>` : ""}
+      <g:color>${opts.color ?? "Ekdekor"}</g:color>${opts.size ? `\n      <g:size>${opts.size}</g:size>` : ""}
       <g:product_type>Möbler &gt; Sovrum</g:product_type>
       <g:google_product_category>6356</g:google_product_category>
     </item>`;
@@ -280,5 +285,106 @@ describe("tillPrisjakt med GTIN-karta", () => {
   it("utan karta är flödet som förut, utan en enda g:gtin", () => {
     assert.doesNotMatch(tillPrisjakt(feed([A, B]), S), /gtin/);
     assert.equal(tillPrisjakt(feed([A, B]), S, {}), tillPrisjakt(feed([A, B]), S));
+  });
+});
+
+describe("begransaFarger", () => {
+  it("behåller de tre första färgerna", () => {
+    assert.equal(begransaFarger("Rosa/gul/grön/lila"), "Rosa/gul/grön");
+    assert.equal(begransaFarger("Svart / Vit / Grå / Röd"), "Svart/Vit/Grå");
+  });
+
+  it("lämnar tre färger eller färre tecken för tecken", () => {
+    for (const f of ["Ekdekor", "Svart och vit", "Röd/gul/blå", "Svart / Vit", ""]) assert.equal(begransaFarger(f), f);
+  });
+});
+
+describe("prisjaktItem: färgen", () => {
+  it("g:color får högst tre färger", () => {
+    const out = prisjaktItem(item({ price: "249.00", color: "Röd/grön/blå/gul" }).trim(), S)!;
+    assert.match(out, /<g:color>Röd\/grön\/blå<\/g:color>/);
+  });
+
+  it("en färg rörs inte", () => {
+    const out = prisjaktItem(item({ price: "249.00" }).trim(), S)!;
+    assert.match(out, /<g:color>Ekdekor<\/g:color>/);
+  });
+});
+
+// Påhittade artikelnummer (TEST-…). Riktiga får aldrig stå i repot.
+describe("giltigtMpn och giltigtMarke", () => {
+  it("ett artikelnummer är bokstäver, siffror och bindestreck", () => {
+    assert.equal(giltigtMpn("TEST-0001"), true);
+    for (const f of ["", "A", "-TEST", "TEST 1", "TEST<1>", "TEST&1", "x".repeat(41)]) assert.equal(giltigtMpn(f), false, f);
+  });
+
+  it("ett märke är kort text utan XML-tecken", () => {
+    assert.equal(giltigtMarke("HOMCOM"), true);
+    assert.equal(giltigtMarke("kleankin"), true);
+    for (const f of [null, undefined, "", " HOMCOM", "A<B", "A&B", "a".repeat(71)]) assert.equal(giltigtMarke(f), false, String(f));
+  });
+});
+
+describe("prisjaktItem med artikel (bara den hemliga adressen)", () => {
+  it("g:mpn före koden och frakten, och varans märke i stället för Fyndplats", () => {
+    const out = prisjaktItem(item({ price: "249.00" }).trim(), S, "4006381333931", { mpn: "TEST-0001", marke: "HOMCOM" })!;
+    assert.match(out, /<g:mpn>TEST-0001<\/g:mpn><g:gtin>4006381333931<\/g:gtin><g:shipping>/);
+    assert.match(out, /<g:brand>HOMCOM<\/g:brand>/);
+    assert.doesNotMatch(out, /Fyndplats<\/g:brand>/);
+    assert.equal(out.match(/<g:brand>/g)?.length, 1);
+  });
+
+  it("utan säkert märke står Fyndplats kvar, men numret följer med", () => {
+    const out = prisjaktItem(item({ price: "249.00" }).trim(), S, undefined, { mpn: "TEST-0001", marke: null })!;
+    assert.match(out, /<g:mpn>TEST-0001<\/g:mpn>/);
+    assert.match(out, /<g:brand>Fyndplats<\/g:brand>/);
+  });
+
+  it("ett ogiltigt nummer skrivs inte, och då byts inte märket heller", () => {
+    const out = prisjaktItem(item({ price: "249.00" }).trim(), S, undefined, { mpn: "TEST<1>", marke: "HOMCOM" })!;
+    assert.doesNotMatch(out, /mpn/);
+    assert.match(out, /<g:brand>Fyndplats<\/g:brand>/);
+  });
+
+  it("ett ogiltigt märke skrivs inte", () => {
+    const out = prisjaktItem(item({ price: "249.00" }).trim(), S, undefined, { mpn: "TEST-0001", marke: "<script>" })!;
+    assert.match(out, /<g:brand>Fyndplats<\/g:brand>/);
+  });
+});
+
+describe("tillPrisjakt med artiklar", () => {
+  const GRUPP_A = "11111111-1111-4111-8111-111111111111";
+  const GRUPP_B = "22222222-2222-4222-8222-222222222222";
+  const A = item({ id: "a1", group: GRUPP_A, price: "249.00" });
+  const B = item({ id: "b2", group: GRUPP_B, price: "399.00" });
+  const radFor = (xml: string, id: string) => xml.split("\n").find((r) => r.includes(`<g:id>${id}</g:id>`)) ?? "";
+  const tomma: PrisjaktArtiklar = { varianter: {}, produkter: {} };
+
+  it("variantens nyckel ger numret och märket, och bara på den varianten", () => {
+    const out = tillPrisjakt(feed([A, B]), S, {}, { varianter: { a1: { mpn: "TEST-0001", marke: "Outsunny" } }, produkter: {} });
+    assert.match(radFor(out, "a1"), /<g:mpn>TEST-0001<\/g:mpn>/);
+    assert.match(radFor(out, "a1"), /<g:brand>Outsunny<\/g:brand>/);
+    assert.doesNotMatch(radFor(out, "b2"), /mpn/);
+    assert.match(radFor(out, "b2"), /<g:brand>Fyndplats<\/g:brand>/);
+  });
+
+  it("produktens nyckel gäller bara en produkt med exakt en variant, slutsålda medräknade", () => {
+    const art: PrisjaktArtiklar = { varianter: {}, produkter: { [GRUPP_A]: { mpn: "TEST-0002", marke: "PawHut" } } };
+    assert.match(radFor(tillPrisjakt(feed([A, B]), S, {}, art), "a1"), /<g:mpn>TEST-0002<\/g:mpn>/);
+    const syskon = item({ id: "a2", group: GRUPP_A, price: "249.00", stock: "out_of_stock" });
+    assert.doesNotMatch(tillPrisjakt(feed([A, syskon]), S, {}, art), /mpn/);
+  });
+
+  it("variantens nyckel går före produktens", () => {
+    const art: PrisjaktArtiklar = {
+      varianter: { a1: { mpn: "TEST-0003", marke: null } },
+      produkter: { [GRUPP_A]: { mpn: "TEST-0004", marke: null } },
+    };
+    assert.match(radFor(tillPrisjakt(feed([A]), S, {}, art), "a1"), /<g:mpn>TEST-0003<\/g:mpn>/);
+  });
+
+  it("utan artiklar, eller med tomma, är flödet exakt som förut", () => {
+    assert.equal(tillPrisjakt(feed([A, B]), S, {}, tomma), tillPrisjakt(feed([A, B]), S));
+    assert.doesNotMatch(tillPrisjakt(feed([A, B]), S), /mpn/);
   });
 });

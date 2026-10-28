@@ -624,9 +624,12 @@ Flödet byggs ur Google-flödet som PriceRunner-flödet, och skillnaderna ligger
   (`prisjaktTider`). ☠️ Saknas en av de fyra stryker Prisjakt alla. Med tiderna
   i flödet behövs inga leveranstjänster i Business Center.
 - Googles kampanjetiketter, `g:identifier_exists`, `g:size` (som kräver
-  `g:size_system`) och extrabilderna tas bort. Ingen mpn: en mpn får bara vara
-  tillverkarens eget nummer. Som regel ingen GTIN heller, utom i testet nedan.
-- **Testet med koder (2026-10-23).** 903 varor får en `g:gtin` ur
+  `g:size_system`) och extrabilderna tas bort. Ingen mpn i det öppna flödet, och
+  som regel ingen GTIN, utom i testet nedan. Märke och artikelnummer finns bara
+  på den hemliga adressen (se nästa avsnitt).
+- `g:color` har högst tre färger, skilda med `/` (`begransaFarger`). Fyra varor
+  hade fler och fick varningen "Ogiltlig" i Business Center (2026-10-28).
+- **Testet med koder (2026-10-23).** 902 varor får en `g:gtin` ur
   `lib/feed/prisjakt-gtin.ts` (variantens id → EAN-13), bara i Prisjakt-flödet:
   `PRISJAKT_GTIN_URVAL` (50 varor, genomgångna för hand en och en) och
   `PRISJAKT_GTIN_UTOKNING` (853, samma maskinella kontroller men en snabbare
@@ -637,23 +640,69 @@ Flödet byggs ur Google-flödet som PriceRunner-flödet, och skillnaderna ligger
   de vars sida har en EAN ingår, så varor med flera färger och nyare artiklar
   saknar kod. `tillPrisjakt` använder en kod bara när den är giltig, inte står på
   två varor och produkten har exakt en variant i Google-flödet (slutsålda
-  medräknade). Rutten loggar `[prisjakt] g:gtin på X av 903 varor i kartan`, och
+  medräknade). Rutten loggar `[prisjakt] g:gtin på X av 902 varor i kartan`, och
   färre betyder slutsålda varor eller varor som fått en andra variant. Utvärdera
   i Business Center (kopplas erbjudandet till rätt produktsida?) och ta bort
-  felkopplade varor ur kartan. Backa genom att tömma `PRISJAKT_GTIN_UTOKNING` till
+  felkopplade varor ur kartan. Uppmätt 2026-10-28: 9 matchade erbjudanden, alla
+  med `g:gtin`, och ett av dem fel. Kontorsstolen `3921d391-…` låg på Prisjakts
+  sida för en sammetsstol av ett annat märke och är borttagen ur kartan. Backa genom att tömma `PRISJAKT_GTIN_UTOKNING` till
   `{}` (tillbaka till de 50), eller båda: flödet blir då byte för byte som förut.
   Artikelnummer, inköpspriser och adresser får aldrig stå i kartan (repot är
   publikt); `prisjakt-gtin.test.ts` vaktar formen på varje rad.
 
-☠️ **Vercels CDN cachar inga svar över 10 MB.** Dokumentationen säger 10 MB för
-icke-strömmade svar och 20 MB för strömmade, och våra flöden beter sig som
-icke-strömmade. Uppmätt på förhandsbygget 2026-10-19: Prisjakt-flödet
-på 15,4 MB gav MISS tre gånger i rad och byggdes om varje gång (35–105 s),
-bildsitemapen på 7,6 MB gav HIT andra gången. Prisjakt-flödet körs därför vid
-anrop och hålls under gränsen: en vara per rad utan indrag (−1,4 MB) och inga
-extrabilder (−5 MB) ger ~9,1 MB med 6 691 varor. Över 9,5 MB loggar routen en
-varning. Växer katalogen så långt är nästa steg att korta beskrivningarna
-(2,4 MB).
+☠️ **Vercels CDN cachar inga icke-strömmade svar över 10 MB.** Dokumentationen
+säger 10 MB för icke-strömmade svar och 20 MB för strömmade
+(vercel.com/docs/caching/cdn-cache, "Cacheable response criteria"). Uppmätt på
+förhandsbygget 2026-10-19: Prisjakt-flödet på 15,4 MB gav MISS tre gånger i rad
+och byggdes om varje gång (35–105 s), bildsitemapen på 7,6 MB gav HIT andra
+gången. Prisjakt-flödet körs därför vid anrop och hålls litet: en vara per rad
+utan indrag (−1,4 MB) och inga extrabilder (−5 MB) gav 9,30 MB med 6 818 varor
+(2026-10-28). **Sedan 2026-10-28 strömmas båda Prisjakt-rutternas svar**
+(`lib/feed/prisjakt-svar.ts`, bitar om 64 kB utan Content-Length), så gränsen är
+20 MB. Över 19 MB loggar rutterna en varning.
+
+## Prisjakt: märke och artikelnummer på en hemlig adress (Leonard 2026-10-28)
+
+Prisjakt matchade 9 av 6 818 erbjudanden, alla nio med `g:gtin`. Prisjakts
+produktsidor för Aosom-varor heter märke plus Aosoms artikelnummer, och Business
+Center ber den som har många erbjudanden att skicka EAN och tillverkarens
+artikelnummer.
+
+☠️ **Leonards beslut 2026-10-28: i Prisjakt-flödet, och bara där, är `g:brand`
+varans riktiga märke (HOMCOM, Outsunny, PawHut …) och `g:mpn` Aosoms
+artikelnummer.** Det är ett medvetet undantag från två husregler: att märket är
+Fyndplats och att artikelnumret aldrig når kunden. Flödet med uppgifterna finns
+bara på en hemlig adress. Överallt annars gäller reglerna som förut, och
+Google-, PriceRunner- och det öppna Prisjakt-flödet byggs utan numren.
+
+- **Adressen** är `/feed/prisjakt-<kod>.xml` (`app/feed/[fil]/route.ts`). Koden
+  är miljövariabeln `PRISJAKT_FLODE_KOD` i Vercel, minst 32 bokstäver och
+  siffror. ☠️ Koden står aldrig i repot, i en PR, i den här filen eller i en
+  loggrad. Saknas variabeln, eller är koden för kort, finns ingen hemlig adress:
+  varje filnamn svarar 404. Ett fel filnamn ger 404. Svaren bär `X-Robots-Tag:
+  noindex`. `lib/feed/prisjakt-adress.test.ts` fäller om något som ser ut som
+  adressen checkas in, och om ett annat flöde än den hemliga rutten hämtar
+  numren.
+- **Numren och märkena** hämtas från motorns `/api/prisjakt-artiklar` (grenen
+  main) när flödet byggs, med `REVIEW_INGEST_SECRET`. Mappningarna bor i
+  motorns Postgres och aldrig i en fil här (repot är publikt).
+  `lib/feed/prisjakt-motor.ts` hämtar dem utan cache och kastar på fel status,
+  fel form eller färre än 1 000 poster. Då svarar adressen 503 och CDN:en
+  serverar förra flödet (`stale-if-error`), i stället för ett flöde där numren
+  saknas.
+- **Per variant.** En sammanslagen sida har en artikel per färg, och motorn
+  nycklar på Wix-variant-id (flödets `g:id`). En sida med en artikel där
+  mappningen saknar variant-id nycklas på produkten, och den nyckeln används bara
+  när produkten har exakt en variant i Google-flödet, samma regel som GTIN.
+- **Märket gissas aldrig.** Motorn tar det ur adressen till Aosoms egen
+  produktsida (samma härledning som GPSR-fliken): Aosom-flödet först,
+  mappningens adress bara när den slutar på samma artikel, sist GPSR-datan.
+  Utan säker källa står Fyndplats kvar, och ett märke skrivs bara på en vara som
+  fått ett nummer.
+- **Den öppna adressen `/feed/prisjakt.xml`** byggs som förut, utan märke och
+  artikelnummer, men med färgtaket och utan kontorsstolens kod. ☠️ Den ska tas
+  bort i deployen efter att Leonard bytt till den hemliga adressen i Business
+  Center.
 
 ☠️ **Google- och PriceRunner-flödet förnyas inte, och är inte lagat.** De är
 route-ISR (`revalidate = 3600`) och ~15 MB. Uppmätt 2026-10-19: `/feed/google.xml`
