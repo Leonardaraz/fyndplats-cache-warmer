@@ -1,0 +1,31 @@
+# kort	lager	art	typ	A	L	K	H	beslut	not
+# Skärmning 2026-10-28 av 27 nya dolda djurbostadsutkast ur nattens importer 2026-10-26 och 2026-10-27. Måtten är markplanets innermått (cm², cm).
+# Rader utan siffror är bedömda av en människa. Aldrig artikelnummer, aldrig inköpspris. Regler och tabeller står i tools/polish-gates/djurbostad.py.
+# Den första skärmen (108 utkast) ligger i djurbostader-skarm-2026-10-21. Dubbletter mot publicerade sidor är avgjorda i familjesvepet 2026-10-28: bee5a15d, e3aa6881, c404cced, 96c75ca6 och 0b22e0a5 läggs som val på publicerade sidor, inte som egna sidor.
+54a521d9	98	dvarghamster,guldhamster,gerbil	bostad	4416	96	46	31	PASS	markplan 96 x 46 cm (nedre våningen, innermått enligt källan), höjd 31 cm; mellersta och övre våningen räknas inte in
+bc4d6682	78	dvarghamster,guldhamster	bostad	3447	75.6	45.6	28	PASS	markplan 75,6 x 45,6 cm (nedre våningen, innermått enligt källan), höjd 28 cm; de övre våningarna och hyllan under räknas inte in
+8a685913	25	dvarghamster,gerbil	bostad	3464	75.3	46	54	PASS	markplan ungefär 75,3 x 46 cm (yttermått 79,3 x 50 cm minus väggarna, innermått anges inte), höjd 54,8 cm; leverantören nämner dvärghamstrar och mindre ökenråttor
+ca626b65	200	dvarghamster,guldhamster	bostad	2549	71.6	35.6	31.5	PASS	markplan 71,6 x 35,6 cm (nedre våningen, innermått enligt källan), höjd 31,5 cm; mellersta och övre våningen räknas inte in
+bee5a15d	200	guldhamster,dvarghamster	bostad	4900	98	50	50	PASS	färgval på 13fe619f: samma bur, 100 x 52 x 50 cm, i naturträ; markplan som på 13fe619f. Läggs som val där (T102), inte som egen sida
+7901a6d1	189	-	hons	-	-	-	-	PASS	lekställning med gungor och sittpinnar för höns: ingen bostad, ingen golvyta och inget antal höns utlovas
+e3aa6881	139	-	rastgard	-	-	-	-	PASS	rastgård av stål och tyg 185 x 75 x 75 cm med tak: ersätter inte en bostad. Samma hage som adef1330 (185 x 75 x 50 cm) men högre: läggs som storleksval där (T102), inte som egen sida
+c404cced	26	-	hons	-	-	-	-	PASS	hönshus med hage och värpbo 150,5 x 54 x 87 cm, naturträ: färgval på c5541fef (grå), samma hus. Läggs som färgval (T102). Leverantörens 2-3 höns utlovas inte
+96c75ca6	128	-	hons	-	-	-	-	PASS	samma hönshus i vitt: färgval på c5541fef (grå). Läggs som färgval (T102). Leverantörens 2-3 höns utlovas inte
+0b22e0a5	27	-	hons	-	-	-	-	PASS	dubbelt hönshus med två utlopp 247 x 118 x 114 cm, gult: färgval på f55f89b3 (grå). Läggs som färgval (T102)
+67a368d1	39	-	hons	-	-	-	-	PASS	hönshus med utlopp och värpbo 200 x 104 x 145 cm, brunt; leverantörens plats för fyra höns utlovas inte, texten anger golvyta och riktmärket
+5f954f14	20	-	hund	-	-	-	-	PASS	hundbox (hundbur i MDF och stål) med innermått 107 x 74 x 59 cm för tillfällig vistelse; regelmeningen om stängd bur och bärförmågan i kg står på sidan, aldrig kroppslängd eller raser
+bfc2bdc1	25	-	hund	-	-	-	-	PASS	hundbox (hundbur i MDF och metall) med innermått 89 x 54,5 x 60 cm för tillfällig vistelse; regelmeningen om stängd bur och bärförmågan i kg står på sidan, aldrig kroppslängd eller raser
+e323a679	65	-	hall	-	-	-	-	PASS	sköldpaddshus 84 x 51 x 103 cm med hylla under och lamphållare. Huvudrummet 32 x 44 x 32 cm (0,14 m²) och lekdelen 41,5 x 44 x 32 cm (0,18 m²) ger ungefär 0,32 m² med höjden 32 cm: räcker till landsköldpaddor med skal upp till 15 cm (0,3 m² och 25 cm, bilaga 1:7) med knapp marginal, inte till 16-20 cm (0,5 m² och 30 cm)
+07b3fe1c	200	-	hall	-	-	-	-	PASS	sköldpaddshus i två våningar: solytan 99 x 52,5 x 31 cm (0,52 m²) och huset 30 x 48 x 31 cm (0,14 m²) ger 0,66 m² med höjden 31 cm: räcker till landsköldpaddor med skal upp till 20 cm (0,5 m² och 30 cm, bilaga 1:7). Färgsyskonet 066ba111 läggs som färgval
+066ba111	158	-	hall	-	-	-	-	PASS	färgval på 07b3fe1c (svart och gul i stället för svart och grå), samma hus
+3d855300	163	-	hall	-	-	-	-	PASS	sköldpaddshus med utlopp 113 x 106,5 x 44,5 cm: huset 100 x 33 x 42 cm (0,33 m²) och solytan 100 x 77 x 29 cm (0,77 m²) ger 1,1 m² med höjden minst 29 cm: räcker till landsköldpaddor med skal upp till 15 cm (0,3 m² och 25 cm, bilaga 1:7), inte till 16-20 cm (solytan är 29 cm hög mot 30 cm). Leverantören nämner också kanin i en bisats, som sidan inte skriver
+6ba45e68	200	-	hall	-	-	-	-	HOLD	två hus på 26 x 46 cm (0,12 m² vardera) och en löpyta på 55 x 46 cm (0,25 m²) ger ungefär 0,49 m² golvyta, men höjden anges inte för husen eller löpytan (totalhöjden 93 cm inkluderar hyllan under); avgörs på måttbilden
+52093746	90	-	hall	-	-	-	-	FAIL	samma hus som acbb7bad: aktivitetsytan på marknivå är 119 x 53,5 cm men bara 16,5 cm hög invändigt, under 20 cm som kravet är även för den minsta sköldpaddan (bilaga 1:7); bara det högra huset (53,4 x 32 x 30 cm, 0,17 m²) når 20 cm
+8fb6684c	66	-	hall	-	-	-	-	FAIL	kaninstall som leverantören skriver för dvärgkaniner: kortaste sida 43,5 cm mot 50 cm (bilaga 1:3), och löpgården under huset är 31 cm hög mot 50 cm
+1b8efaf3	85	-	hall	-	-	-	-	FAIL	samma stall som 8fb6684c i grått och vitt: kortaste sida 43,5 cm mot 50 cm för dvärgkanin, som leverantören nämner (bilaga 1:3)
+2531834f	200	-	hall	-	-	-	-	HOLD	huset 46 x 39 x 30 cm (0,18 m²) klarar hamster och mus men inte kanin eller marsvin, och leverantören nämner kanin och Kleintiere
+d3fcbf41	68	-	hall	-	-	-	-	HOLD	leverantören nämner ingen art (Kleintiere); övre våningen 77 x 35,7 x 36 cm (0,27 m²) klarar hamster men inte marsvin (0,3 m² och 40 cm kortaste sida)
+b10cb02d	34	-	hall	-	-	-	-	HOLD	leverantören nämner kanin, marsvin, dvärghamster, råtta och gerbil. Innermåttet 112 x 49 x 54 cm klarar marsvin men är 1 cm under 50 cm kortaste sida för dvärgkanin (bilaga 1:3), och brickan under är utdragbar, så golvet kan vara galler (8 kap. 8 §); avgörs på bilderna
+cc3b3039	18	-	hall	-	-	-	-	HOLD	innermått saknas: buren är 99 x 52 x 54 cm utvändigt, under 0,5 m² invändigt för dvärgkanin, men en löpgård på 99 x 60,5 cm hör till; leverantören nämner igel, som L 80 inte täcker. Avgörs på bilderna
+f6678e05	103	-	hall	-	-	-	-	HOLD	kattbur i fyra våningar, 105 x 70 x 140 cm (0,74 m² golvyta): kräver artbedömning och beslut om kattgård; se 87cbcb7f och d8d3d714
+15cde61e	29	-	hall	-	-	-	-	HOLD	ankhus: L 80 gäller inte ankor och SJVFS 2019:23 ger inget mått för en hobbyflock; huset 89 x 64 cm (0,57 m²) saknar utlopp
