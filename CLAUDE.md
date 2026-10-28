@@ -743,8 +743,10 @@ objekt är rätt: de flesta produkter har inga egna omdömen än.
 premium"*. Temat gäller 28 oktober 00:00 till 1 november 00:00 svensk tid och
 syns på fyra ställen: toppremsan (en skära, och "Glad halloween" på dator), en
 glödande linje under sidhuvudet, startsidans hjälte (natthimmel, en skördemåne
-bakom produktbilderna, fladdermöss och ett spindelnät i hörnet) och
-löftesremsan under hjälten. Produktsidor, kort och kassan ser ut som vanligt.
+med fladdermöss och ett spindelnät i hörnet) och löftesremsan under hjälten.
+Månen står bakom produktbilderna på dator och i rubrikens höjd på surfplatta
+och mobil, så att den aldrig hamnar bakom text; varje bredd från 360 till 1440
+px är granskad. Produktsidor, kort och kassan ser ut som vanligt.
 Inga texter, priser eller länkar ändras.
 
 `lib/sasongstema.ts` håller datumen och bygger ett skript som sätter

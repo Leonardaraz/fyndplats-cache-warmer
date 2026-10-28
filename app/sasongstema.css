@@ -111,16 +111,41 @@
 :root[data-tema="halloween"] a.uspitem:hover,
 :root[data-tema="halloween"] a.uspitem:focus-visible{color:var(--hw-pumpa-ljus);text-decoration-color:rgba(255,184,120,.5)}
 
-/* Mobil: bilderna ligger under texten, och en måne där hade hamnat bakom
-   förtroenderaden. Där står månen i stället till höger om rubrikens första
-   rad, "Fyndplats —", som slutar på samma ställe på alla telefoner (40 px,
-   balanserad radbrytning). Den sitter på rubriken och inte på textspalten,
-   eftersom märket ovanför bryts på två rader på en smal telefon.
-   Fladdermössen flyger tvärs över den. */
+/* Under 901 px ligger bilderna under texten, och en måne där hade hamnat
+   bakom förtroenderaden. Månen står i stället i rubrikens höjd, på två sätt:
+
+   460–900 px: från ungefär 490 px går rubriken på två rader och fyller
+   spalten, och då hade månen hamnat över "köp". Den står i stället uppe till
+   höger, i höjd med märket, där det finns plats bredvid det.
+
+   Under 460 px: rubriken går på tre rader, och den första, "Fyndplats —",
+   slutar på samma ställe på alla telefoner (40 px, balanserad radbrytning).
+   Månen står till höger om den, och sitter på rubriken och inte på
+   textspalten, eftersom märket ovanför bryts på två rader på en smal
+   telefon.
+
+   Fladdermössen flyger tvärs över månen i båda lägena. */
 @media(max-width:900px){
   :root[data-tema="halloween"]{--hw-nat:120px}
   :root[data-tema="halloween"] .heromosaic::before,
   :root[data-tema="halloween"] .heromosaic::after{display:none}
+}
+@media(min-width:460px) and (max-width:900px){
+  :root[data-tema="halloween"] .herogrid{--hw-mane:clamp(76px,12vw,104px);--hw-topp:44px}
+  :root[data-tema="halloween"] .herogrid::before{content:"";position:absolute;z-index:-1;pointer-events:none;
+    width:var(--hw-mane);height:var(--hw-mane);border-radius:50%;right:4px;top:var(--hw-topp);
+    background:var(--hw-mane-yta);
+    box-shadow:0 0 34px 6px rgba(255,206,150,.30),0 0 110px 30px rgba(244,122,53,.14)}
+  :root[data-tema="halloween"] .herogrid::after{content:"";position:absolute;z-index:-1;pointer-events:none;
+    width:calc(var(--hw-mane)*1.3);height:calc(var(--hw-mane)*.75);right:calc(var(--hw-mane)*-.1);
+    top:calc(var(--hw-topp) + var(--hw-mane)*.12);
+    background:url(/tema/halloween-fladdermoss.svg) center/contain no-repeat;animation:hwSvavaMobil 11s ease-in-out infinite}
+}
+/* Hjältens luft ovanför märket är 40 px här, inte 60 (globals.css). */
+@media(min-width:460px) and (max-width:540px){
+  :root[data-tema="halloween"] .herogrid{--hw-topp:26px}
+}
+@media(max-width:459px){
   :root[data-tema="halloween"] .hero h1{position:relative;isolation:isolate;--hw-mane:clamp(56px,19vw,84px)}
   :root[data-tema="halloween"] .hero h1::before{content:"";position:absolute;z-index:-1;pointer-events:none;
     width:var(--hw-mane);height:var(--hw-mane);border-radius:50%;right:calc(var(--hw-mane)*-.08);top:-8px;
