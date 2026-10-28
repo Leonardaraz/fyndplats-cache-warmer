@@ -1,0 +1,133 @@
+/* Säsongsteman. Datumen och skriptet som slår på dem står i lib/sasongstema.ts.
+
+   ☠️ VARJE regel här står under :root[data-tema="…"]. Attributet sätts bara
+   inom temats datum, så en regel utan prefixet hade ändrat butiken året runt.
+   lib/sasongstema.test.ts fäller en sådan regel.
+
+   Bilderna ligger i public/tema/ och hämtas bara när en regel som pekar på dem
+   gäller, alltså bara under temat. */
+
+/* ── Halloween (Leonard 2026-10-28) ──────────────────────────────────────
+   "ge hemsidan halloween look nu under halloween som ändå ser proffsigt ut o
+   premium". Svart, pumpa och ben i stället för grönt och lila, inga emojis,
+   och bara på fyra ställen: toppremsan, en linje under sidhuvudet, startsidans
+   hjälte och löftesremsan under den. Produktkort, produktsidor och kassan
+   ser ut som vanligt. */
+:root[data-tema="halloween"]{
+  --hw-ben:#F6EEE4;
+  --hw-ben-dampad:#CFC2B5;
+  --hw-pumpa:#FF9A4D;
+  --hw-pumpa-ljus:#FFB878;
+  /* Månen: en skördemåne med fyra svaga kratrar. Samma yta på dator och mobil. */
+  --hw-mane-yta:
+    radial-gradient(circle at 63% 60%,rgba(205,140,82,.30) 0 8%,transparent 9.5%),
+    radial-gradient(circle at 34% 64%,rgba(205,140,82,.24) 0 5.5%,transparent 7%),
+    radial-gradient(circle at 70% 28%,rgba(205,140,82,.22) 0 4.5%,transparent 6%),
+    radial-gradient(circle at 44% 30%,rgba(205,140,82,.16) 0 3%,transparent 4.5%),
+    radial-gradient(circle at 38% 34%,#FFF7EA 0%,#FDE6C2 34%,#F6C88E 68%,#E9A967 100%);
+}
+
+/* Toppremsan: natt i stället för kol, en skära i stället för lastbilen och en
+   hälsning på dator. På mobil får texten bara två rader (CLS, se .promorow i
+   globals.css), så där står skäran ensam. */
+:root[data-tema="halloween"] .promo{background:linear-gradient(90deg,#0C090F 0%,#1C1320 50%,#0C090F 100%)}
+:root[data-tema="halloween"] .promo b{color:var(--hw-pumpa-ljus)}
+:root[data-tema="halloween"] .promo b.klarna-mark{color:#FFB3C7}
+:root[data-tema="halloween"] .promo-ikon{display:none}
+:root[data-tema="halloween"] .promotext::before{content:"";display:inline-block;width:13px;height:13px;margin-right:7px;
+  vertical-align:-2px;background:url(/tema/halloween-mane.svg) center/contain no-repeat}
+@media(min-width:901px){
+  :root[data-tema="halloween"] .promotext::before{content:"Glad halloween";width:auto;height:auto;padding:0 12px 0 20px;
+    margin-right:12px;border-right:1px solid rgba(255,255,255,.22);background-position:left center;background-size:13px;
+    font-family:var(--font-display),Georgia,serif;font-style:italic;font-weight:500;font-size:var(--text-sm);
+    letter-spacing:.01em;color:var(--hw-pumpa-ljus);vertical-align:0}
+}
+
+/* En tunn glödande linje under sidhuvudet, på varje sida. */
+:root[data-tema="halloween"] .sidhuvud::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;pointer-events:none;
+  background:linear-gradient(90deg,rgba(244,122,53,0) 4%,rgba(244,122,53,.8) 30%,#C2410C 50%,rgba(244,122,53,.8) 70%,rgba(244,122,53,0) 96%)}
+
+/* Startsidans hjälte: natthimmel, måne, fladdermöss och ett spindelnät i hörnet. */
+:root[data-tema="halloween"] .hero{
+  background:
+    url(/tema/halloween-spindelvav.svg) left -4px top -4px/var(--hw-nat,230px) auto no-repeat,
+    radial-gradient(circle at 9% 62%,rgba(255,236,214,.55) 0 .9px,transparent 1.6px),
+    radial-gradient(circle at 23% 11%,rgba(255,236,214,.6) 0 1px,transparent 1.7px),
+    radial-gradient(circle at 37% 86%,rgba(255,236,214,.4) 0 .8px,transparent 1.5px),
+    radial-gradient(circle at 46% 7%,rgba(255,236,214,.5) 0 .9px,transparent 1.6px),
+    radial-gradient(circle at 61% 93%,rgba(255,236,214,.45) 0 .9px,transparent 1.6px),
+    radial-gradient(circle at 72% 5%,rgba(255,236,214,.55) 0 1px,transparent 1.7px),
+    radial-gradient(circle at 88% 9%,rgba(255,236,214,.5) 0 .9px,transparent 1.6px),
+    radial-gradient(circle at 96% 48%,rgba(255,236,214,.45) 0 .9px,transparent 1.6px),
+    radial-gradient(circle at 4% 92%,rgba(255,236,214,.4) 0 .8px,transparent 1.5px),
+    radial-gradient(120% 70% at 75% 118%,rgba(244,122,53,.2),transparent 62%),
+    linear-gradient(162deg,#0F0B12 0%,#17111C 46%,#1F1517 100%)}
+/* Hjältens två glöd behövs inte på natten. */
+:root[data-tema="halloween"] .hero::before,
+:root[data-tema="halloween"] .hero::after{display:none}
+
+/* Månen stiger upp bakom produktbilderna. Den sitter på bildernas ram, inte på
+   hjälten, så att den aldrig hamnar bakom rubriken oavsett skärmbredd. */
+:root[data-tema="halloween"] .heromosaic{position:relative;isolation:isolate;--hw-mane:clamp(170px,17vw,250px)}
+:root[data-tema="halloween"] .heromosaic::before{content:"";position:absolute;z-index:-1;pointer-events:none;
+  width:var(--hw-mane);height:var(--hw-mane);border-radius:50%;
+  left:calc(var(--hw-mane)*-.6);top:calc(var(--hw-mane)*-.2);
+  background:var(--hw-mane-yta);
+  box-shadow:0 0 50px 8px rgba(255,206,150,.32),0 0 150px 46px rgba(244,122,53,.16)}
+/* Fladdermössen flyger ut från månen, upp åt vänster. */
+:root[data-tema="halloween"] .heromosaic::after{content:"";position:absolute;z-index:-1;pointer-events:none;
+  width:calc(var(--hw-mane)*1.05);height:calc(var(--hw-mane)*.61);
+  left:calc(var(--hw-mane)*-1);top:calc(var(--hw-mane)*-.26);
+  background:url(/tema/halloween-fladdermoss.svg) center/contain no-repeat;transform:scaleX(-1);
+  animation:hwSvava 11s ease-in-out infinite}
+@keyframes hwSvava{0%,100%{transform:scaleX(-1) translate(0,0)}50%{transform:scaleX(-1) translate(10px,-7px)}}
+
+:root[data-tema="halloween"] .hero .heroinner,
+:root[data-tema="halloween"] .hero h1{color:var(--hw-ben)}
+:root[data-tema="halloween"] .hero h1 em{color:var(--hw-pumpa)}
+@supports ((-webkit-background-clip:text) or (background-clip:text)){
+  :root[data-tema="halloween"] .hero h1 em{background:linear-gradient(100deg,#FFC98A 0%,#FF9A4D 45%,#F2722B 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+}
+:root[data-tema="halloween"] .hero p{color:var(--hw-ben-dampad)}
+:root[data-tema="halloween"] .hero .badge{background:rgba(255,255,255,.06);border-color:rgba(255,184,120,.26);color:var(--hw-ben);
+  box-shadow:none;backdrop-filter:blur(6px)}
+:root[data-tema="halloween"] .hero .btn-primary{box-shadow:0 14px 34px -14px rgba(244,122,53,.85),inset 0 1px 0 rgba(255,255,255,.16)}
+:root[data-tema="halloween"] .hero .btn-quiet{color:var(--hw-ben)}
+:root[data-tema="halloween"] .hero .btn-quiet:hover,
+:root[data-tema="halloween"] .hero .btn-quiet:focus-visible{color:var(--hw-pumpa-ljus);text-decoration-color:rgba(255,184,120,.5)}
+:root[data-tema="halloween"] .hero .herotrust>a{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.12);color:var(--hw-ben);
+  box-shadow:none}
+:root[data-tema="halloween"] .hero .herotrust>a:hover,
+:root[data-tema="halloween"] .hero .herotrust>a:focus-visible{border-color:rgba(255,184,120,.45)}
+:root[data-tema="halloween"] .hero .ht-sub{color:rgba(246,238,228,.66)}
+:root[data-tema="halloween"] .hero .herotile{box-shadow:0 0 0 1px rgba(255,255,255,.07),0 22px 44px -20px rgba(0,0,0,.75)}
+:root[data-tema="halloween"] .hero .herotile:hover{box-shadow:0 0 0 1px rgba(255,184,120,.35),0 26px 52px -20px rgba(0,0,0,.8)}
+
+/* Löftesremsan fortsätter natten, med pumpafärgade ikoner. */
+:root[data-tema="halloween"] .usp{background:#130F16;border-bottom:1px solid rgba(255,255,255,.06)}
+:root[data-tema="halloween"] .uspitem{color:var(--hw-ben)}
+:root[data-tema="halloween"] .uspitem svg{color:var(--hw-pumpa)}
+:root[data-tema="halloween"] a.uspitem:hover,
+:root[data-tema="halloween"] a.uspitem:focus-visible{color:var(--hw-pumpa-ljus);text-decoration-color:rgba(255,184,120,.5)}
+
+/* Mobil: bilderna ligger under texten, och en måne där hade hamnat bakom
+   förtroenderaden. Där står månen i stället till höger om rubrikens första
+   rad, "Fyndplats —", som slutar på samma ställe på alla telefoner (40 px,
+   balanserad radbrytning). Den sitter på rubriken och inte på textspalten,
+   eftersom märket ovanför bryts på två rader på en smal telefon.
+   Fladdermössen flyger tvärs över den. */
+@media(max-width:900px){
+  :root[data-tema="halloween"]{--hw-nat:120px}
+  :root[data-tema="halloween"] .heromosaic::before,
+  :root[data-tema="halloween"] .heromosaic::after{display:none}
+  :root[data-tema="halloween"] .hero h1{position:relative;isolation:isolate;--hw-mane:clamp(56px,19vw,84px)}
+  :root[data-tema="halloween"] .hero h1::before{content:"";position:absolute;z-index:-1;pointer-events:none;
+    width:var(--hw-mane);height:var(--hw-mane);border-radius:50%;right:calc(var(--hw-mane)*-.08);top:-8px;
+    background:var(--hw-mane-yta);
+    box-shadow:0 0 30px 5px rgba(255,206,150,.30),0 0 90px 26px rgba(244,122,53,.14)}
+  :root[data-tema="halloween"] .hero h1::after{content:"";position:absolute;z-index:-1;pointer-events:none;
+    width:calc(var(--hw-mane)*1.3);height:calc(var(--hw-mane)*.75);right:calc(var(--hw-mane)*-.22);top:calc(var(--hw-mane)*.04);
+    background:url(/tema/halloween-fladdermoss.svg) center/contain no-repeat;animation:hwSvavaMobil 11s ease-in-out infinite}
+}
+@keyframes hwSvavaMobil{0%,100%{transform:translate(0,0)}50%{transform:translate(-8px,-6px)}}
