@@ -1,0 +1,27 @@
+{
+ "runda": "runda-t103-farg-pa-skoldpaddshus-med-lampstall-givare-alt",
+ "produkter": [
+  {
+   "kort": "066ba111",
+   "pid": "066ba111-3211-42ec-9ccc-2b99f82a78c4",
+   "media": [
+    {
+     "id": "b379ce_4e6ad64bedda4f5aa32ed04f4c3bd3f5~mv2.jpg",
+     "altText": "Sköldpaddshus i gult trä med svart ram, med ett hus med spetsigt tak, en solyta med nätlock och ett svart lampställ, på ben med en hylla under, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_87a1cbce9aa740ed982d03932d585ce2~mv2.jpg",
+     "altText": "Huset i ett vardagsrum framför en tavla och en grå gardin, med en svart lampa på lampstället och vaser, en växt och en korg på hyllan under"
+    },
+    {
+     "id": "b379ce_a0f8ee0215a24f2aa64df3bee3e519f2~mv2.jpg",
+     "altText": "Huset i ett ljust rum med en vit panelvägg, en växt och en randig matta, med en korg och vaser på hyllan under och en lampa på lampstället"
+    },
+    {
+     "id": "b379ce_9510b65f62e84fa691964f8314789859~mv2.jpg",
+     "altText": "Huset sett snett uppifrån med nätlock över solytan och huset, och en korg på hyllan under, på ett trägolv"
+    }
+   ]
+  }
+ ]
+}

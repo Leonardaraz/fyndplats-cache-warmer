@@ -1,0 +1,5 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+07b3fe1c 0,52 räknat ur källans mått på solytan, 99 × 52,5 cm
+07b3fe1c 0,14 räknat ur källans mått på huset, 30 × 48 cm
+07b3fe1c 0,66 summan av solytans och husets golvyta
