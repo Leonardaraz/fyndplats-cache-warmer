@@ -16,12 +16,25 @@ name: Migrering — flytta drift-datan tillbaka till Wix
 #   delta        efter växlingen: kräver vaxling och kopierad_sedan. Wix vinner
 #                varje rad drift rört efter växlingen.
 #
+# SYSTEM: `motor` är motorns tabeller (lib/migration/neon-till-wix.ts). `butik`
+# är butikens egna Neon-databas (grenen headless-site, lib/neon-till-wix.ts):
+# motorn skickar anropet vidare med ADMIN_SECRET
+# (app/api/admin/butik-neon-till-wix), och butiken redigerar sitt svar själv.
+#
 # ☠️ SVARET BÄR ALDRIG RADERNAS INNEHÅLL — antal, fältnamn och id (hashade där
 # id:t kan bära fritext). Markören mellan varven är förseglad.
 
 on:
   workflow_dispatch:
     inputs:
+      system:
+        description: "motor · butik"
+        required: true
+        default: "motor"
+        type: choice
+        options:
+          - motor
+          - butik
       mode:
         description: "plan · kopiera-torr · kopiera · verifiera · delta"
         required: true
@@ -65,6 +78,7 @@ jobs:
       - name: Kör
         env:
           BASE: ${{ secrets.POLL_TRACKING_URL }}
+          SYSTEM: ${{ inputs.system }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           MODE: ${{ inputs.mode }}
           TABELLER: ${{ inputs.tabeller }}
@@ -81,7 +95,11 @@ jobs:
           fi
 
           bas="${BASE%/api/cron/poll-tracking}"
-          url="${bas}/api/admin/neon-till-wix"
+          if [ "${SYSTEM}" = "butik" ]; then
+            url="${bas}/api/admin/butik-neon-till-wix"
+          else
+            url="${bas}/api/admin/neon-till-wix"
+          fi
           anropa() { curl -sS --max-time 300 -H "Authorization: Bearer ${CRON_SECRET}" "$1"; }
           urlkoda() { jq -rn --arg v "$1" '$v|@uri'; }
 
@@ -94,7 +112,7 @@ jobs:
               echo "::error::Rutten svarade fel: $(echo "$svar" | jq -r '.error // "okänt fel"')" >&2
               exit 1
             fi
-            echo "$svar" | jq -r '.lager | "  lager: drift=\(.drift) recensioner=\(.recensioner) auktioner=\(.auktioner) driftenIWix=\(.driftenIWix)"'
+            echo "$svar" | jq -r '.lager | "  lager: drift=\(.drift) recensioner=\(.recensioner) auktioner=\(.auktioner) driftenIWix=\(.driftenIWix)\(if .vaxelRad then " växelns rad=\(.vaxelRad)" else "" end)"'
             echo "$svar" | jq -r '.tabeller[] | "  \(.tabell)  neon=\(.neon)  wix=\(.wix)  (\(.kollektion))"'
             echo "  — andra tabeller i samma Neon-databas (butikens, om den är delad):"
             echo "$svar" | jq -r '.andraTabeller[] | "    \(.tabell)  \(.rader)"'
