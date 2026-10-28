@@ -29,15 +29,16 @@ function korSkript(skript: string, nuMs: number, utanDokument = false): Record<s
 }
 
 describe("Halloween-temats datum", () => {
-  it("gäller 28 oktober 00:00 till 1 november 00:00 svensk tid", () => {
+  it("har börjat före mergen och slutar måndag 2 november 03:00 svensk tid", () => {
     assert.equal(svenskTid(halloween.fran), "2026-10-28 00:00");
-    assert.equal(svenskTid(halloween.till), "2026-11-01 00:00");
+    assert.equal(svenskTid(halloween.till), "2026-11-02 03:00");
   });
 
-  it("slås på vid första sekunden och av vid midnatt efter halloween", () => {
+  it("står kvar över halloweenhelgen och slås av måndag 03:00", () => {
     assert.equal(aktivtTema(ms(halloween.fran) - 1), null);
     assert.equal(aktivtTema(ms(halloween.fran)), "halloween");
-    assert.equal(aktivtTema(ms("2026-10-31T22:59:59Z")), "halloween");
+    assert.equal(aktivtTema(ms("2026-10-31T23:00:00Z")), "halloween"); // 1 november 00:00
+    assert.equal(aktivtTema(ms("2026-11-02T01:59:59Z")), "halloween"); // måndag 02:59:59
     assert.equal(aktivtTema(ms(halloween.till)), null);
     assert.equal(aktivtTema(ms("2027-10-30T12:00:00Z")), null);
   });

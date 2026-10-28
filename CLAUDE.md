@@ -740,7 +740,8 @@ objekt är rätt: de flesta produkter har inga egna omdömen än.
 ## Säsongstema: Halloween (Leonard 2026-10-28)
 
 *"ge hemsidan halloween look nu under halloween som ändå ser proffsigt ut o
-premium"*. Temat gäller 28 oktober 00:00 till 1 november 00:00 svensk tid och
+premium"*, och *"temat börjar direkt efter mergen inatt och ändras tillbaka
+måndag kl 03:00"*. Temat gäller till måndag 2 november 03:00 svensk tid och
 syns på fyra ställen: toppremsan (en skära, och "Glad halloween" på dator), en
 glödande linje under sidhuvudet, startsidans hjälte (natthimmel, en skördemåne
 med fladdermöss och ett spindelnät i hörnet) och löftesremsan under hjälten.
@@ -756,7 +757,7 @@ bilderna i `public/tema/`.
 **Datumet läses i webbläsaren, inte på servern.** Sidorna cachas (startsidan en
 timme, produktsidorna sex), och ett tema som renderats på servern hade legat
 kvar efter sista dagen eller krävt en deploy till för att tas bort. Nu
-försvinner det av sig självt vid midnatt, utan deploy.
+försvinner det av sig självt måndag 03:00, utan deploy.
 
 Fyra egenskaper som inte ska tas bort, låsta av `lib/sasongstema.test.ts`:
 
@@ -778,4 +779,4 @@ byta den mot skäran. Den är `aria-hidden` även utan tema.
 För att se temat utanför datumen: Playwrights `page.clock.setFixedTime` med ett
 datum inom temat. Nästa år byts datumen i `SASONGSTEMAN` och i testet, som
 räknar om dem till svensk tid. Sverige går över till vintertid sista söndagen
-i oktober, så midnatt efter halloween är 23:00 UTC.
+i oktober, så 03:00 den 2 november är 02:00 UTC.

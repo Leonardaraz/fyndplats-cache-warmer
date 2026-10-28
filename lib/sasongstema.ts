@@ -25,9 +25,11 @@ export interface Sasongstema {
 }
 
 export const SASONGSTEMAN: readonly Sasongstema[] = [
-  // 28 oktober 00:00 till 1 november 00:00 svensk tid. Vintertid (UTC+1) sedan
-  // 25 oktober, och halloween är lördagen den 31:a.
-  { namn: "halloween", fran: "2026-10-27T23:00:00Z", till: "2026-10-31T23:00:00Z" },
+  // Till måndag 2 november 03:00 svensk tid (Leonard 2026-10-28: "temat börjar
+  // direkt efter mergen inatt och ändras tillbaka måndag kl 03:00"). Starten
+  // ligger före mergen, så temat syns från första sidan efter deployen.
+  // Vintertid (UTC+1) sedan 25 oktober, så 03:00 är 02:00 UTC.
+  { namn: "halloween", fran: "2026-10-27T23:00:00Z", till: "2026-11-02T02:00:00Z" },
 ];
 
 const NAMN = /^[a-z]+$/;
