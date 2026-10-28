@@ -1613,9 +1613,12 @@ och lager om, och minsta avvikelse stoppar.
   `/api/cron/variantbild` (05:35 UTC) rättar samma sak, och det var den som
   rättade Svart på skrivbordsstativet `ee3a9dbc` 05:37 UTC samma morgon: ett rätt
   utfall, inget fel. Tills dess visar varukorgen, kassan och ordern fel färg på
-  en sida vars pris just skrivits. Förslaget att låta `updateV3VariantPrices`
-  anropa `refreshVariantMedia` efter en prisskrivning på en flervariantsprodukt
-  väntar på Leonards ja (FLAGGADE, lärdom 204).
+  en sida vars pris just skrivits. ✅ `updateV3VariantPrices` anropar sedan
+  2026-10-28 `refreshVariantMedia` direkt efter en prisskrivning på en
+  flervariantsprodukt (Leonards ja 2026-10-27, FLAGGADE lärdom 204 och 234, på
+  grenen och inte mergat). Uppföljningen läser om tills PATCH-svarets revision
+  nåtts, ger den aldrig upp skrivs inget, och ett fel i den fäller aldrig
+  prisskrivningen (`foljUppVariantbild: false` hoppar den).
 
 ### Aosom beställs i klump, inte via API (`lib/aosom/bulk-order.ts`)
 
@@ -4304,7 +4307,8 @@ Fyra egenskaper som inte ska tas bort:
 **Kvar efter natten:** (a) de 16 kombinationerna ovan väntar på chattens svar för Härma Aosom (130 varianter på 30 sidor, filen ligger hos Leonard). (b) Hamsterburen väntar på Leonards besked. (c) Rad 137 i färgfilen
 (`c3d1fa41`) kan tas nu, eftersom sidans nya vyer finns: de 12 kandidaterna jämförs med `cowork-jfr.py` mot varje kombination. (d) Motorn (steg 4): varukorgens bild är färgens första för alla storlekar, och
 sammanslagningen kopplar fortfarande en ny storlek i en befintlig färg bara till färgen eller storleken. (e) Nattens `/api/cron/variantbild` (05:35 UTC) ska kontrollera alla flervariantsprodukter (1 174 natten före) och inte rätta någon
-av de 17 sidornas varianter: läs raden `{"ratt":…}` i Vercels runtime-logg. (f) Listsidorna i värmarens sista led (se ovan).
+av de 17 sidornas varianter: läs raden `{"ratt":…}` i Vercels runtime-logg. (f) Listsidorna i värmarens sista led (se ovan). Patchen för ett eget listled ligger klar i `tools/polish-assets/butik-varmning-listor-2026-10-28/` (inte deployad, FLAGGADE lärdom 235):
+den väntar på Leonards ja till en butiks-PR och bör följa med nästa butiksdeploy.
 
 #### Originalen tillbaka: inga Fyndplats-kort där leverantören har en måttbild (Leonards svar 11, 2026-10-24)
 
@@ -4444,10 +4448,34 @@ Tre egenskaper som inte ska tas bort:
 3. ☠️ **Varukorgens bild är fortfarande färgens första foto för båda storlekarna** (Svart × 60 liter visar 45-litersartikelns packshot i varukorg, kassa
    och order). Det gäller alla tvåaxliga sidor och kräver motorändringen (d) under *Kvar efter natten*.
 
-⚠️ **Samma mönster finns på de andra Härma-sidorna, mätt och inte rättat** (FLAGGADE, lärdom 232). Efter att soptunnan rättats har 12 av de 30 sidorna minst en
-kombination där butikens första bild är ett foto Aosom visar för en annan kombination (22 av 130 kombinationer), och 18 av de 22 har minst fyra egna foton och kan
-göras exakta. Tabellen `harma-aldre-bilder.tsv` och underlaget `aosom-galleri-per-kombination.json` (vilka kombinationer Aosom visar varje gammalt foto
-under, utan artikelnummer) ligger i rundans mapp, eftersom Härma-analysen bara finns i en privat scratchpad. Väntar på Leonards ja.
+✅ **Samma mönster fanns på de andra Härma-sidorna och är rättat 2026-10-28** (Leonards ja 2026-10-27, punkt 6, FLAGGADE lärdom 232 och 238, rundan
+`tools/polish-assets/runda-bilder-harma-exakt/`). Efter att soptunnan rättats hade 12 av de 30 sidorna minst en kombination där butikens första bild var ett foto Aosom
+visar för en annan kombination (22 av 130 kombinationer). Tabellen `harma-aldre-bilder.tsv` och underlaget `aosom-galleri-per-kombination.json` (vilka kombinationer
+Aosom visar varje gammalt foto under, utan artikelnummer) ligger i soptunnans mapp, eftersom Härma-analysen bara finns i en privat scratchpad.
+
+#### Härma-sidorna: exakt ägare på 13 sidor (2026-10-28)
+
+Sensorsoptunnan `92fc308c` togs som prov, sedan de tolv sidor där första bilden var fel. **137 av 361 foton fick ny ägare**, bilderna per kombination gick från 500 till
+379, första bilden bytte på 23 av 61 kombinationer, och ingen kombination ligger under fyra bilder. Skrivet två sidor per körning 02:25–02:47 UTC utanför Aosoms fönster,
+`variantbild-farg.js` direkt efter (02:48–02:50 UTC), 0 avvikelser i Wix-återläsningen på alla 13. Live: 13 av 13 sidor lika med planen (`kolla-agare.py`) och 61 av 61
+kombinationer OK i en riktig webbläsare. Före-och-efter-tabellen per kombination, planerna, README och en återställningsplan (`fore-agare.json`) ligger i rundans mapp.
+
+Fem egenskaper som inte ska tas bort:
+
+1. **Planen byggs av `tools/polish-gates/bygg-harma-agare.py` och är ett förslag.** Ett äldre foto som Aosom visar under en REKTANGEL av kombinationer (färger × storlekar,
+   räknat mot de kombinationer sidan har) får exakt den rektangeln som ägare, ett foto utan uppgift eller utan rektangel behåller sina länkar, och `ordning` lägger
+   kombinationens packshot först i färgens lista. Planen granskas på kontaktark med planens ägare och nuvarande länkar under varje bild, prövas torrt med `bygg-agare.py --torr`
+   och skrivs sedan, utanför Aosoms synkfönster.
+2. ☠️ **15 länkade bilder per val, och regeln glömdes (FLAGGADE lärdom 217–219 och 238).** Odlingstunneln `38f70f83` föll med `400 … choicesSettings is invalid` (200 cm skulle få
+   16) och hammocken `91f5c078` hade 17 på 205 cm. Ett foto med en ägarlista räknas mot varje val i listan, så ett foto för en kombination kostar en länk i färgen och en i storleken.
+   Lagat så att regeln inte behöver minnas: `bygg-agare.py` vägrar bygga en plan över 15, `lank-om-bilder.js` avvisar den innan något skrivs (`LANKTAK`), och `bygg-harma-agare.py`
+   märker de över 15 i rapporten.
+3. ☠️ **Butikens första bild per kombination är `variantTable[].image`, inte vyns första bild i galleriets ordning.** Den är lika med webbläsarens första bild på 61 av 61.
+   `verifiera-live.py` jämför bara mängden foton per kombination, inte ordningen, så första bilden kontrolleras för sig.
+4. ☠️ **Fyra kombinationer hade bara tre egna foton och fick ett foto till** (minimum fyra bilder): `3b868848` Vit × 63 cm, `7bc96b8f` Ljusgrå × 91 × 76 cm, `91f5c078`
+   Mörkgrå × 205 cm och `c438d4ba` Guld × 50 × 110 cm. Det är undantag från exakt ägare och väntar på Leonards besked.
+5. **Varukorgens, kassans och orderns bild är fortfarande färgens första foto för alla storlekar** (motorändringen (d) under *Kvar efter natten*). Elva sidor har dessutom kvar
+   foton under en kombination Aosom inte visar dem under, men rätt första bild (`harma-aldre-bilder.tsv`): de väntar på Leonards besked.
 
 ☠️ **Wix-varukostnaden (`revenueDetails.cost`) saknas på 28 av de 30 sidorna, och på 2 633 produkter i katalogen (2026-10-24).** Den här rundan tappar
 den inte (skriptet läser med `MERCHANT_DATA`, skickar kostnaden tillbaka och jämför den före och efter), men en skrivning av `options` och `variantsInfo` som är
@@ -4467,7 +4495,8 @@ Det påverkar bara Wix egen vinst- och marginalrapport. Husets lönsamhetsövers
 kundsidor berörs. Verktygen som läser med `MERCHANT_DATA` (och skickar kostnaden tillbaka där de skriver `variantsInfo`) är `lib/aosom/sammanslagning.ts`, `lib/wix/variant-media.ts`,
 `farg-forst.js`, `galleri-tillagg.js`, `skriv-storlekskort.js`, `variantbild-farg.js` och `harma-skriv.js`. Filer som skriver `variantsInfo` utan att nämna fältet
 är bland andra `lib/aosom/bilder-bort.ts`, `fargbilder-kor.ts`, `livsbild.ts`, `remap-kollaps.ts`, `lib/polish/skrivplan.ts`, `lank-om-bilder.js`,
-`skriv-fargbilder.js`, `bygg-agare.py` och rundornas skript (inte prövat fil för fil). **Ingenting är rättat.** Två saker kan göras, och båda kräver Leonards ja:
+`skriv-fargbilder.js`, `bygg-agare.py` och rundornas skript (inte prövat fil för fil). **(1) är gjort på grenen 2026-10-28 (FLAGGADE lärdom 233, commit `07c5395f` och `8c0a04c6`, inte mergat). (2) är inte gjort.** Leonard sa ja till båda
+2026-10-27 (de sex punkterna), och (2) körs först när koden är mergad (hans *merga*):
 (1) de verktygen läser med `MERCHANT_DATA` och skickar kostnaden tillbaka, så att fler sidor inte tappar den, och (2) kostnaden skrivs tillbaka på de 2 964
 sidorna (2 633 utan och 331 med delvis) ur mappningens `landedCostSek`, torrt först och med samma före-och-efter-kontroll som resten.
 
@@ -4494,6 +4523,10 @@ Tre följder för den som tar fråga 5:
    `NO_PERMISSION_TO_READ_MERCHANT_DATA`, se `lib/wix/variant-media.ts`), och `variantbild.yml` (skarp, run 40129592550, 2026-10-24 20:24 UTC) läste med fältet på
    30 av 30 sidor utan fel, så nyckeln har behörigheten nu. Men ett 403 skulle annars stoppa varje prisskrivning (synken, prisreparationen och prishöjningen) för
    ett kosmetiskt fält. Antingen faller läsningen tillbaka på dagens vid 403, eller så tas kostnaden ur mappningen, som `sammanslagning.ts` gör.
+
+✅ Följd 1 och 3 är gjorda 2026-10-28: `updateV3VariantPrices` läser med `MERCHANT_DATA`, skickar kostnaden tillbaka på varje variant och faller tillbaka på dagens läsning
+vid 403 (svaret säger då att kostnaden inte följde med), och verktygen i `lib/aosom/` och `tools/polish-gates/` som skriver `variantsInfo` gör likadant (`lib/wix/produkt-kostnad.ts`,
+FLAGGADE lärdom 233). Följd 2, att skriva kostnaden på sidorna som saknar den, väntar på mergen.
 
 `products/query-variants` ger varianterna för hela katalogen på 15 sekunder (1 000 per sida, markör, `productId` går inte att filtrera på): `sku`, `visible`,
 `optionChoices`, `price`, `media`, `productData` (produkt-id, namn, adress, synlighet) och med `MERCHANT_DATA` kostnaden. Det är den bulkväg till variant-SKU:erna

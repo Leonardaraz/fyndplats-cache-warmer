@@ -26,6 +26,9 @@ async function () {
   //   4. Ingen bild tas bort ur galleriet, och ingen länk tappas tyst: återläsningen jämför varje vals lista mot planen.
   //   5. Varianternas id, SKU, synlighet och pris, produktens synlighet, namn och adress och galleriets ordning ska vara lika före
   //      och efter. Avviker något är svaret `ok: false`.
+  //   6. ☠️ Ett val får högst LANKTAK (15) länkade bilder. Wix avvisar 16 och fler med `400 … optionSettings.choicesSettings is invalid`
+  //      (mätt 2026-10-24, lärdom 217, och igen 2026-10-28 när Härma-sidorna omlänkades: 38f70f83 skulle ge 200 cm 16 och 91f5c078 205 cm 17).
+  //      Planen avvisas innan något skrivs. Galleriets tak är ett annat tal (50, lib/wix/limits.ts).
   // Efter en omlänkning kan variantens bild (varukorgens bild) vara fel. Kör variantbild.yml (dryRun=false) eller rutten
   // `/api/cron/variantbild`, som räknar om den.
   //
@@ -35,6 +38,7 @@ async function () {
   const PLANER = [{ id: "", axel: "Färg", tomt: [], lankar: {} }];
   const TORR = false;
   const FLERA_I_OPTION = false;
+  const LANKTAK = 15;
   const T0 = Date.now();
 
   const lika = function (a, b) { return String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase(); };
@@ -98,6 +102,7 @@ async function () {
       if (new Set(lista).size !== lista.length) return fel("plan", "en fil står två gånger i listan för " + namn);
       const tomtOk = (PLAN.tomt || []).some(function (t) { return lika(t, namn); });
       if (lista.length === 0 && gamla[c.choiceId].length > 0 && !tomtOk) return fel("plan", namn + " hade länkade bilder och skulle lämnas utan (lägg valet i `tomt` om det är meningen)");
+      if (lista.length > LANKTAK && lista.join(",") !== gamla[c.choiceId].join(",")) return fel("plan", namn + " skulle få " + lista.length + " länkade bilder, och Wix tar högst " + LANKTAK + " per val (ingenting skrevs)");
       nya[c.choiceId] = lista;
     }
     const slutligt = {};
