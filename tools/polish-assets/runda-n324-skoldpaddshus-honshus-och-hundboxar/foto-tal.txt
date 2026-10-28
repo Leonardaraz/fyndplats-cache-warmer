@@ -1,0 +1,21 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+3d855300 0,33 räknat ur källans mått på huset, 100 × 33 cm
+3d855300 0,77 räknat ur källans mått på solytan, 100 × 77 cm
+3d855300 1,1 summan av husets och solytans golvyta
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+e323a679 0,32 summan av huvudrummets 0,14 m² och lekytans 0,18 m²
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+07b3fe1c 0,52 räknat ur källans mått på solytan, 99 × 52,5 cm
+07b3fe1c 0,14 räknat ur källans mått på huset, 30 × 48 cm
+07b3fe1c 0,66 summan av solytans och husets golvyta
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+67a368d1 0,89 räknat ur källans mått på huset, 94 × 95 cm
+67a368d1 0,86 räknat ur källans mått på hagen, 94 × 92 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
