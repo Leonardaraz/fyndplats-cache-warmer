@@ -119,7 +119,9 @@ export class WixDataStore implements Store {
     // en parallell full-replace som läste före claimen. undefined → REMOVE_FIELD
     // (override-clear). Iterera patch-objektet direkt (inte JSON-roundtrip — undefined
     // försvinner då). Saknad task → "not-found" → tyst no-op (bevarar gammalt kontrakt).
-    const mods = Object.entries(patch).map(([k, v]) => (v === undefined ? taBortFalt(k) : satt(k, v)));
+    // ☠️ null tas också bort, sätts aldrig: `$exists: false` i FRI_TASK matchar inte
+    // ett fält som är null (uppmätt 2026-10-29), och då hade tasken aldrig gått att claima.
+    const mods = Object.entries(patch).map(([k, v]) => (v === undefined || v === null ? taBortFalt(k) : satt(k, v)));
     if (mods.length === 0) return;
     await patcha(COL.tasks, taskId, mods);
   }
