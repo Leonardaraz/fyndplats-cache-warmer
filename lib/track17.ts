@@ -61,6 +61,13 @@ const CARRIER_PATTERNS: Array<[RegExp, CarrierHint]> = [
   // (DPD Standardpaket, order #10051 september 2026). Smalt (^01) av samma
   // skäl som PostNord ovan. Används bara när 17TRACK inte själv känner igen numret.
   [/^01\d{12}$/, DPD],
+  // DPD Polska: 14 siffror som börjar på 13. PostNord delar ut paketen i
+  // Sverige med samma nummer, och PostNords egen spårning visar hela resan,
+  // från DPD Polska fram till Sverige. Två riktiga paket från samma avsändare
+  // 2026-10-27: 17TRACK kände inte igen numren, så de registrerades aldrig och
+  // /sparning stod tom. Registreras som PostNord och inte som DPD (PL), eftersom
+  // det är PostNords spårning som visar hela vägen (Leonard 2026-10-27).
+  [/^13\d{12}$/, POSTNORD_SE],
 ];
 
 /**

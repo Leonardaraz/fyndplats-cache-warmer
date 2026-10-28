@@ -80,6 +80,37 @@ export function maskCarrierOrUndefined(name: string | null | undefined): string 
 export const DPD_NUMMER = /^01\d{12}$/;
 
 /**
+ * UPS:s nummer: "1Z", sex tecken för avsändaren, två för tjänsten och åtta
+ * siffror, 18 tecken i allt. Bara UPS använder formen. VEVOR skickar med UPS
+ * (Leonard 2026-10-27).
+ */
+export const UPS_NUMMER = /^1Z[0-9A-Z]{16}$/;
+
+/**
+ * Nummer som PostNords spårning visar hela vägen: UPU S10 utfärdat i Sverige,
+ * parcel connect (14 siffror som börjar på 07) och DPD Polska (14 siffror som
+ * börjar på 13), som PostNord delar ut i Sverige med samma nummer
+ * (2026-10-27). Samma mönster som lib/track17.ts registrerar som PostNord, och
+ * carrier-mask.test.ts fäller om de glider isär, som för DPD_NUMMER.
+ */
+const POSTNORD_NUMMER = [/^[A-Z]{2}\d{9}SE$/, /^07\d{12}$/, /^13\d{12}$/];
+
+/**
+ * Fraktbolaget när numret ensamt avgör det. /sparning visar då bara det
+ * bolagets knapp innan några händelser finns. Bara prövade former som ingen
+ * annan använder räknas. Ett GLS-nummer liknar för mycket annat
+ * (lib/gls-track.ts), så det och allt annat ger undefined, och då visas alla
+ * fraktbolagen.
+ */
+export function transportorAvNummer(trackingNumber: string): "UPS" | "DPD" | "PostNord" | undefined {
+  const nummer = trackingNumber.trim().toUpperCase();
+  if (UPS_NUMMER.test(nummer)) return "UPS";
+  if (DPD_NUMMER.test(nummer)) return "DPD";
+  if (POSTNORD_NUMMER.some((re) => re.test(nummer))) return "PostNord";
+  return undefined;
+}
+
+/**
  * Transportören som numret hör till, och vem som delar ut i Sverige när det är
  * en annan. 17TRACK anger SISTA ledet: ett DHL-paket från Tyskland med nummer
  * på formen "CC145357991DE" (UPU S10, utfärdat av Deutsche Post DHL) står som

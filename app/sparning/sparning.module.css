@@ -65,6 +65,12 @@ ol.steg {
     padding: 18px 16px 16px;
   }
 }
+/* De smalaste telefonerna: stegens namn behöver bredden (globals.css, .steps). */
+@media (max-width: 359px) {
+  .sok {
+    padding: 16px 10px 14px;
+  }
+}
 
 /* Frågorna följer direkt på leveransstegen, i samma vita yta: utan detta
    staplas två sektioners luft (144 px) mellan dem. */

@@ -15,13 +15,17 @@ import assert from "node:assert/strict";
 import {
   DSV_SPARNING,
   POSTNORD_SPARNING,
+  UPS_SPARNING,
   dsvLed,
   postnordLed,
   sistaLedInfoFor,
   sistaLedRuta,
+  transportorLankar,
 } from "./sista-led.ts";
 
 const DSV_NR = "1000000001";
+// UPS:s eget exempelnummer, inget riktigt paket.
+const UPS_NR = "1Z999AA10123456784";
 
 test("dsvLed: DSV:s eget nummer, länk till deras spårning och det gamla namnet", () => {
   assert.deepEqual(dsvLed(DSV_NR), {
@@ -201,5 +205,28 @@ test("rutans texter: inga engelska rester och inga tankstreck", () => {
       assert.doesNotMatch(allt, /parcel ?shop|delivery|pickup|shipment|tracking/i, allt);
       assert.doesNotMatch(allt, /[–—]/, allt);
     }
+  }
+});
+
+test("transportorLankar: ett känt fraktbolag får bara sin egen länk", () => {
+  assert.deepEqual(transportorLankar(UPS_NR, "UPS"), [{ name: "UPS", url: UPS_SPARNING + UPS_NR }]);
+  assert.deepEqual(transportorLankar("RR123456789SE", "PostNord"), [
+    { name: "PostNord", url: POSTNORD_SPARNING + "RR123456789SE" },
+  ]);
+  assert.deepEqual(transportorLankar("01234567890123", "DPD").map((l) => l.name), ["DPD"]);
+});
+
+test("transportorLankar: utan känt fraktbolag blir det alla fem, med UPS sist", () => {
+  for (const kand of [undefined, "", "Fraktpartner"]) {
+    const lankar = transportorLankar("RR123456789DE", kand);
+    assert.deepEqual(lankar.map((l) => l.name), ["PostNord", "GLS", "DHL", "DPD", "UPS"], String(kand));
+    assert.equal(lankar[0].url, POSTNORD_SPARNING + "RR123456789DE");
+    assert.equal(lankar[4].url, UPS_SPARNING + "RR123456789DE");
+  }
+});
+
+test("transportorLankar: numret kodas i varje adress", () => {
+  for (const l of transportorLankar("AB 12/3&x")) {
+    assert.ok(l.url.includes("AB%2012%2F3%26x"), `${l.name}: ${l.url}`);
   }
 });

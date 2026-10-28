@@ -16,6 +16,9 @@
 // DSV:s spårning visar mottagarens postnummer och ort för den som har numret,
 // precis som transportörernas egna sidor gör med sina nummer. Vår sida skickar
 // fortfarande aldrig postnumret till webbläsaren.
+//
+// Här bor också reservlänkarna till transportörernas egna sidor
+// (transportorLankar), som /sparning visar innan några händelser finns.
 
 export type SistaLedNamn = "DSV" | "PostNord";
 
@@ -40,6 +43,31 @@ export const DSV_SPARNING = "https://www.dsv.com/mydsv/tracking-public/?refNumbe
 
 /** PostNords spårning, samma adress som /api/track:s reservlänkar. */
 export const POSTNORD_SPARNING = "https://www.postnord.se/vara-verktyg/spara-brev-paket-och-pall?shipmentId=";
+
+/**
+ * UPS:s spårning. VEVOR skickar med UPS (Leonard 2026-10-27). Sidan tar numret
+ * i adressen och svarade 200 på svenska samma dag.
+ */
+export const UPS_SPARNING = "https://www.ups.com/track?loc=sv_SE&tracknum=";
+
+/**
+ * Direktlänkar till fraktbolagen. /sparning visar dem när ingen källa har
+ * händelser än, så att kunden alltid kan söka själv. `kand` är fraktbolaget
+ * när numret ensamt avgör det (transportorAvNummer i lib/carrier-mask.ts), och
+ * då blir det bara det bolagets länk. Annars blir det alla.
+ */
+export function transportorLankar(sparningsnummer: string, kand?: string): Array<{ name: string; url: string }> {
+  const nr = encodeURIComponent(sparningsnummer);
+  const alla = [
+    { name: "PostNord", url: POSTNORD_SPARNING + nr },
+    { name: "GLS", url: `https://gls-group.eu/EU/en/parcel-tracking?match=${nr}` },
+    { name: "DHL", url: `https://www.dhl.com/se-sv/home/sparning.html?tracking-id=${nr}` },
+    { name: "DPD", url: `https://tracking.dpd.de/status/sv_SE/parcel/${nr}` },
+    { name: "UPS", url: UPS_SPARNING + nr },
+  ];
+  const egen = alla.filter((l) => l.name === kand);
+  return egen.length > 0 ? egen : alla;
+}
 
 export function dsvLed(nummer?: string, satt?: "ombud" | "bokad"): SistaLedInfo {
   return {

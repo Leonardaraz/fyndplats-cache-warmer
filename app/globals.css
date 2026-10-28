@@ -635,12 +635,11 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 .track-form .buy{width:auto;max-width:none;white-space:nowrap}
 .track-hint{font-size:var(--text-xs);color:var(--soft);margin-top:10px}
 .track-err{color:var(--sale-fill);font-weight:600;font-size:var(--text-sm);margin-top:10px}
-/* Pending = paketet är registrerat hos 17TRACK men carrier-data inte synkroniserad ännu.
-   Info-färg (brand-orange) istället för fel-röd så kunden förstår att det fungerar. */
-.track-pending{color:var(--brand);font-weight:600;font-size:var(--text-sm);margin-top:10px;background:#FFF4ED;padding:10px 14px;border-radius:var(--r-sm);border-left:3px solid var(--brand)}
-/* Transportörslänkar under pending-meddelandet — kunden är aldrig fast i tom vy. */
-.track-fallback{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px}
-.track-fallback a{font-size:var(--text-sm);font-weight:700;color:var(--brand);text-decoration:underline;text-underline-offset:3px}
+/* Knapparna till fraktbolagen i kortet för ett registrerat paket utan händelser:
+   en knapp när numret avgör fraktbolaget, annars en per bolag. */
+.track-knappar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:18px}
+.track-knappar p{flex-basis:100%;margin:0;font-size:var(--text-sm);color:var(--soft)}
+.track-knappar .track-led-btn{margin-top:0}
 .track-result{margin-top:28px;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:26px;box-shadow:var(--e3);position:relative;overflow:hidden}
 .track-result::before{content:"";position:absolute;inset:0 0 auto 0;height:5px;background:linear-gradient(90deg,var(--peach),var(--orange),#F84848)}
 .track-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin:8px 0 18px}
@@ -653,7 +652,7 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 .track-empty{font-size:var(--text-sm);color:var(--soft);padding:18px 20px;background:var(--warm);border-radius:var(--r-md);line-height:1.55}
 .track-eta{font-size:var(--text-base);margin-bottom:20px}
 /* Sista ledet (lib/sista-led): vem som delar ut i Sverige, deras nummer och en
-   knapp till deras spårning. Samma varma ton som .track-pending. */
+   knapp till deras spårning. */
 .track-led{margin:22px 0 0;padding:16px 18px;background:var(--warm);border-radius:var(--r-md);border-left:3px solid var(--orange)}
 .track-led-h{font-size:var(--text-sm);font-weight:700;margin-bottom:4px}
 .track-led p{font-size:var(--text-sm);line-height:1.55;margin:0}
@@ -673,6 +672,22 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 .step.current .dot{background:var(--sale-fill);border-color:var(--sale-fill);box-shadow:0 0 0 5px rgba(248,72,72,.16)}
 .step.done-all .dot{background:#1E9E57;border-color:#1E9E57}
 .step.done-all::before{background:#1E9E57}
+/* Stegen på mobil. Fem namn i fem kolumner ryms inte med kortets 26 px kant:
+   "Nära dig" och "Levererad" gick in i varandra på 360 och 390 px
+   (2026-10-27). Kortet får smalare kant, stegen går ut i den och namnen blir
+   mindre. Mätt på textens rektanglar vid 320, 340, 360, 390 och 430 px. */
+@media(max-width:540px){
+  .track-result{padding:20px 14px}
+  .steps{margin-left:-10px;margin-right:-10px}
+  .step .slbl{font-size:11px}
+}
+@media(max-width:359px){
+  .track-result{padding:18px 12px}
+  .steps{margin-left:0;margin-right:0}
+  .step .slbl{font-size:10px;letter-spacing:-.01em}
+  .step:first-child .slbl{text-align:left}
+  .step:last-child .slbl{text-align:right}
+}
 .track-h{font-size:var(--text-lg);font-weight:700;margin:30px 0 3px}
 .track-sub{font-size:var(--text-xs);color:var(--soft);margin-bottom:16px}
 .timeline{position:relative;padding-left:26px}
