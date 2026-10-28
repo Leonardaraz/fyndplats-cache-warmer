@@ -1,0 +1,53 @@
+{
+ "runda": "runda-n318-audi-elbil-och-fyra-fatoljer-givare-alt",
+ "produkter": [
+  {
+   "kort": "fa0839a8",
+   "pid": "fa0839a8-75c4-428e-974b-aa8c3fd118bd",
+   "media": [
+    {
+     "id": "b379ce_7adaf1a037c546d1b730dbc6e5291c9e~mv2.jpg",
+     "altText": "Rosa eldriven Audi A5L för barn med strålkastare, sits och ratt, snett framifrån mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_6a3dc33ebac34d87af9a58ac16bf6514~mv2.jpg",
+     "altText": "En flicka med hårspänne kör den rosa elbilen på en gångväg i en park med höga träd"
+    },
+    {
+     "id": "b379ce_7df0d9774bdf4b928ffe0d9f177578eb~mv2.jpg",
+     "altText": "Den rosa elbilen med tända strålkastare på en stenlagd uppfart i skymningen, framför ett hus med upplysta fönster"
+    },
+    {
+     "id": "b379ce_3bd02a4534f14789a257b1a720b036ee~mv2.jpg",
+     "altText": "Den rosa elbilen med uppfälld dörr på en stenlagd uppfart framför en rabatt"
+    }
+   ]
+  },
+  {
+   "kort": "7969ce5a",
+   "pid": "7969ce5a-f1a8-4924-9e73-bc3b11c36271",
+   "media": [
+    {
+     "id": "b379ce_060c4322cdeb4337a0dfec2403c491af~mv2.jpg",
+     "altText": "Gräddvit elektrisk uppresningsfåtölj i chenille med utfällt fotstöd, snett uppifrån mot vit bakgrund"
+    },
+    {
+     "id": "b379ce_0a9cf651feb24008b3de3c5072c39fe6~mv2.jpg",
+     "altText": "Den gräddvita fåtöljen i uppfällt läge på sin metallbas, i ett ljust vardagsrum med en skänk och en kruka"
+    },
+    {
+     "id": "b379ce_f98ef2968c374f12ab228fa2857a26c8~mv2.jpg",
+     "altText": "Den gräddvita fåtöljen i upprätt läge i ett vardagsrum med en golvlampa och en kruka"
+    },
+    {
+     "id": "b379ce_c4e461c10eeb45b8a419fba4e3e702f7~mv2.jpg",
+     "altText": "En kvinna med grått hår reser sig ur den gräddvita fåtöljen när den lyfter upp henne, i ett ljust vardagsrum"
+    },
+    {
+     "id": "b379ce_ed4e4546d07e4701bcc3980cafc7218e~mv2.jpg",
+     "altText": "En kvinna med grått hår vilar tillbakalutad i den gräddvita fåtöljen med fotstödet utfällt, i ett vardagsrum med ett litet bord"
+    }
+   ]
+  }
+ ]
+}

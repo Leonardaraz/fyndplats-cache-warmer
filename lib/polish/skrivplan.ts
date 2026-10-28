@@ -28,6 +28,7 @@
 // strängar med artikelnummerform, och felmeddelandena citerar aldrig träffen.
 
 import { WIX_MAX_BILDER_PER_PRODUKT } from "../wix/limits";
+import { lasMedKostnad, variantMedKostnad } from "../wix/produkt-kostnad";
 
 export const MAX_PRODUKTER = 20;
 export const WIX_STORES_APP_ID = "215238eb-22a5-4c36-9e7b-e7c08025e04e";
@@ -440,7 +441,10 @@ export async function stegSku(plan: Skrivplan, wix: WixAnrop, torr: boolean): Pr
     }
     try {
       // Färsk GET med valens namn — variantobjektet byggs ALDRIG från grunden.
-      const prod = produktAv(await wix("GET", `/stores/v3/products/${p.pid}?fields=VARIANT_OPTION_CHOICE_NAMES`));
+      // ☠️ Med varukostnaden (MERCHANT_DATA): en variantsInfo-PATCH ersätter varianten,
+      // och utan fältet i läsningen nollade varje polering sidans kostnad.
+      const lasning = await lasMedKostnad(wix, `/stores/v3/products/${p.pid}?fields=VARIANT_OPTION_CHOICE_NAMES`);
+      const prod = produktAv(lasning.svar);
       const vs = (((prod.variantsInfo as Obj | undefined)?.variants ?? []) as Obj[]);
       if (vs.length !== 1) {
         rader.push({ kort: p.kort, ok: false, fel: `oväntat antal varianter: ${vs.length} — hoppad` });
@@ -459,6 +463,8 @@ export async function stegSku(plan: Skrivplan, wix: WixAnrop, torr: boolean): Pr
         skuAndras: vs[0].sku !== p.sku,
         variantSynligFore: vs[0].visible === true,
         prisFore: pris,
+        // Syns bara när den inte gick att läsa: då följer inte kostnaden med skrivningen.
+        ...(lasning.kostnadLasbar ? {} : { kostnad: "går inte att läsa (MERCHANT_DATA nekas) — följer inte med" }),
       };
       if (torr) {
         rader.push(rad);
@@ -475,7 +481,7 @@ export async function stegSku(plan: Skrivplan, wix: WixAnrop, torr: boolean): Pr
       const produkt: Obj = {
         revision: prod.revision,
         visible: prod.visible,
-        variantsInfo: { variants: vs.map((v) => ({ ...v, sku: p.sku, visible: true })) },
+        variantsInfo: { variants: vs.map((v) => ({ ...variantMedKostnad(v), sku: p.sku, visible: true })) },
       };
       const vagar = ["variantsInfo", "visible"];
       if (Array.isArray(prod.options)) {

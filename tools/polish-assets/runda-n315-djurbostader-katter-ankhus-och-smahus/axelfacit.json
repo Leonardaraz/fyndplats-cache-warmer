@@ -1,0 +1,48 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "2a56e438": {
+  "tyska": "100L x 82,5B x 91H cm",
+  "svenska": "100L x 82,5B x 91H cm",
+  "bokstaver": "LBH",
+  "hojd": 91,
+  "bredd": 100,
+  "djup": 82.5
+ },
+ "4eeca5c6": {
+  "tyska": "156L x 80B x 180H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 180,
+  "bredd": 156,
+  "djup": 80
+ },
+ "87cbcb7f": {
+  "tyska": "",
+  "svenska": "105L x 105B x 140H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Empfohlene Größe: 105L x 105B x 140H cm, 1,1 m² | ✔ Einzelpaneelgröße: 35L x 35B cm | ✔ Sprungplattform: 70L x 35B cm | ✔ Höhe der Sprungplattform: 35H cm | ✔ Maschengitter: 4,3L x 4,3B cm"
+ },
+ "a1aeed81": {
+  "tyska": "70L x 43B x 45H cm",
+  "svenska": "70 x 43 x 45 cm",
+  "bokstaver": "LBH",
+  "hojd": 45,
+  "bredd": 70,
+  "djup": 43
+ },
+ "d8d3d714": {
+  "tyska": "70L x 70B x 105H cm",
+  "svenska": "70 x 70 x 105 cm",
+  "bokstaver": "LBH",
+  "hojd": 105,
+  "bredd": 70,
+  "djup": 70
+ },
+ "e8140392": {
+  "tyska": "63B x 82T x 76H cm",
+  "svenska": "63cm x 82cm x 76cm",
+  "bokstaver": "BTH",
+  "djup": 82,
+  "hojd": 76,
+  "bredd": 63
+ }
+}

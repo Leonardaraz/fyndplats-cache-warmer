@@ -28,6 +28,7 @@ import type { AosomRow } from "./feed";
 import type { ProductMappingRecord } from "../store";
 import type { WixAnrop } from "../polish/skrivplan";
 import type { Bild, SidOption } from "./fargbilder";
+import { KOSTNAD_EJ_LASBAR } from "../wix/produkt-kostnad";
 
 type Obj = Record<string, unknown>;
 
@@ -76,6 +77,9 @@ function flera(wixId: string): ProductMappingRecord {
   });
 }
 
+/** Varukostnaden som Wix räknar marginal på. `profit` och `profitMargin` är skrivskyddade. */
+const KOSTNAD = { cost: { amount: "850.00", formattedAmount: "850,00 kr" }, profit: { amount: "150.00" }, profitMargin: 15 };
+
 /** En V3-produkt i Wix form. `farger` = valens länkade bilder. */
 function v3(n: number, galleri: string[], farger?: { gra: string[]; bla: string[] }, over: Obj = {}): Obj {
   const alt = (g: string) => (g === "KORT" ? "Måttkort för soffan" : g.startsWith("B") ? "Den blå soffan" : `Soffa ${g}`);
@@ -123,6 +127,10 @@ function varld(produkter: Obj[], mappningar: ProductMappingRecord[], kallor = KA
     tarInte: new Set<string>(),
     /** Sidstorlek i sökningen. */
     sidstorlek: 100,
+    /** Nyckeln får inte läsa varukostnaden: MERCHANT_DATA svarar 403. */
+    kostnadNekad: false,
+    /** Wix tappar varukostnaden i en variantsInfo-skrivning trots att den skickas. */
+    tappaKostnad: false,
   };
   const fore = new Map<string, Obj>();
   const wix: WixAnrop = async (metod, sokvag, kropp) => {
@@ -139,11 +147,19 @@ function varld(produkter: Obj[], mappningar: ProductMappingRecord[], kallor = KA
     const x = p.get(wid);
     if (!x) throw new Error("Wix 404: finns inte");
     if (metod === "GET") {
+      const medKostnad = sokvag.includes("MERCHANT_DATA");
+      if (medKostnad && v.kostnadNekad) throw new Error("Wix 403: NO_PERMISSION_TO_READ_MERCHANT_DATA");
+      // Som Wix: utan MERCHANT_DATA finns ingen `revenueDetails` i svaret.
+      const svar = (y: Obj) => {
+        const k = structuredClone(y);
+        if (!medKostnad) for (const vr of (((k.variantsInfo as Obj | undefined)?.variants ?? []) as Obj[])) delete vr.revenueDetails;
+        return { product: k };
+      };
       if (v.gamlaLasningar > 0 && fore.has(wid)) {
         v.gamlaLasningar--;
-        return { product: structuredClone(fore.get(wid)) };
+        return svar(fore.get(wid)!);
       }
-      return { product: structuredClone(x) };
+      return svar(x);
     }
     const k = kropp as { product: Obj; fieldMask: { paths: string[] } };
     patchar.push({ paths: k.fieldMask.paths, product: structuredClone(k.product) });
@@ -155,8 +171,14 @@ function varld(produkter: Obj[], mappningar: ProductMappingRecord[], kallor = KA
         v.lank404--;
         throw new Error("Wix 404: PRODUCT_MEDIA_NOT_EXIST");
       }
+      for (const vr of ((((k.product.variantsInfo as Obj | undefined)?.variants) ?? []) as Obj[])) {
+        const rd = (vr.revenueDetails ?? {}) as Obj;
+        if ("profit" in rd || "profitMargin" in rd) throw new Error("Wix 400: profit och profitMargin är skrivskyddade");
+      }
       x.options = structuredClone(k.product.options);
+      // En variantsInfo-PATCH ERSÄTTER varianterna: det som inte skickas finns inte kvar.
       x.variantsInfo = structuredClone(k.product.variantsInfo);
+      if (v.tappaKostnad) for (const vr of ((x.variantsInfo as Obj).variants as Obj[])) delete vr.revenueDetails;
       x.visible = k.product.visible;
     }
     x.revision = String(Number(x.revision) + 1);
@@ -542,6 +564,44 @@ describe("planeraOchSkriv", () => {
     expect(s.utfall[0].steg.some((x) => /länkar: 2 val \(2 försök\)/.test(x))).toBe(true);
     // Kopplingen sparas för den infogade filen, mot Blås artikel.
     expect(w.sparade[0].aosomBildFiler).toEqual([{ fileId: fil(52), kalla: kallUrl(SKU_B, 2) }]);
+  });
+
+  describe("varukostnaden (revenueDetails.cost)", () => {
+    /** Som den sammanslagna sidan ovan, men varje variant bär Wix kostnad, vinst och marginal. */
+    const medKostnad = () => {
+      const produkt = v3(1, ["A1", "A2", "A3", "KORT", "B1"], { gra: ["A1"], bla: ["B1"] });
+      for (const vr of ((produkt.variantsInfo as Obj).variants as Obj[])) vr.revenueDetails = structuredClone(KOSTNAD);
+      return produkt;
+    };
+    const atgard = par([`${id(1)}:c-gra:flytta`, `${id(1)}:c-bla:${fil(52)}`]);
+
+    it("☠️ följer med länkskrivningen — utan MERCHANT_DATA hade PATCH:en nollat den", async () => {
+      const w = varld([medKostnad()], [flera(id(1))], k);
+      const { sha } = await planeraOchSkriv(atgard, { skriv: false }, w.deps);
+      const s = await planeraOchSkriv(atgard, { skriv: true, bekrafta: sha }, w.deps);
+      expect([s.stoppadAv, s.skrivna]).toEqual(["klart", 1]);
+      const varianter = (w.p.get(id(1))!.variantsInfo as Obj).variants as Obj[];
+      expect(varianter).toHaveLength(2);
+      for (const vr of varianter) expect(vr.revenueDetails, "varje variant behåller sin kostnad").toEqual({ cost: KOSTNAD.cost });
+    });
+
+    it("☠️ nekas kostnadsfältet skrivs sidan ändå, och svaret säger att kostnaden inte följde med", async () => {
+      const w = varld([medKostnad()], [flera(id(1))], k);
+      w.v.kostnadNekad = true;
+      const { sha } = await planeraOchSkriv(atgard, { skriv: false }, w.deps);
+      const s = await planeraOchSkriv(atgard, { skriv: true, bekrafta: sha }, w.deps);
+      expect([s.stoppadAv, s.skrivna]).toEqual(["klart", 1]);
+      expect(s.utfall[0].steg).toContain(KOSTNAD_EJ_LASBAR);
+    });
+
+    it("☠️ en kostnad som ändå försvinner i skrivningen stoppar körningen", async () => {
+      const w = varld([medKostnad()], [flera(id(1))], k);
+      w.v.tappaKostnad = true;
+      const { sha } = await planeraOchSkriv(atgard, { skriv: false }, w.deps);
+      const s = await planeraOchSkriv(atgard, { skriv: true, bekrafta: sha }, w.deps);
+      expect(s.stoppadAv).not.toBe("klart");
+      expect(JSON.stringify(s.utfall)).toMatch(/kostnad ändrades/);
+    });
   });
 
   it("sammanslagen sida: hindren per färg", async () => {

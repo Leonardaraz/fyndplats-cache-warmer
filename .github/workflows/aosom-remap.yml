@@ -44,6 +44,17 @@ on:
         required: false
         default: ""
         type: string
+      feed_sok:
+        # ☠️ NYTT 2026-10-28 (satsbordet 7758a61c). En vara utan Aosom-utkast går
+        # inte att ommappa utan att artikelnumret passerar en publik input: nattens
+        # import hoppar över varor där frakten kostar mer än varan
+        # (skipFreightHeavy=1), så utkastet finns aldrig. Orden hittar raden i
+        # feeden PÅ SERVERN (samma sökning som aosom-feed-search.yml), och
+        # artikelnumret skrivs aldrig ut och står aldrig i någon input.
+        description: "Ord som hittar EXAKT en rad i Aosoms feed, t.ex. 'satztisch glasplatte schwarz' (alla måste finnas). Artikelnumret hämtas på servern och syns aldrig. Används bara när sku och dubblett är tomma."
+        required: false
+        default: ""
+        type: string
       duplicate_wix_product_id:
         description: "Dubblettsidan som pensioneras (rejected). TOMT = ingen."
         required: false
@@ -92,6 +103,7 @@ jobs:
           MODE: ${{ inputs.mode }}
           PRODUCT_ID: ${{ inputs.wix_product_id }}
           SKU: ${{ inputs.sku }}
+          FEED_SOK: ${{ inputs.feed_sok }}
           DUPLICATE: ${{ inputs.duplicate_wix_product_id }}
           BEHALL: ${{ inputs.behall_variant }}
           MIN_MARGIN: ${{ inputs.min_margin_pct }}
@@ -112,8 +124,36 @@ jobs:
           if [ -n "${SKU}" ]; then
             echo "::add-mask::${SKU}"
           fi
+          # ☠️ ARTIKELN PÅ ORD (feed_sok). Hittar EXAKT en rad i feeden, tar
+          # artikelnumret ur svaret i minnet och maskerar det FÖRE allt annat som
+          # skrivs ut. Namnet skrivs ut (redigerat) så att man ser vilken vara det
+          # blev. Fler eller färre än en träff är ett fel, aldrig ett val.
+          if [ -z "${SKU}" ] && [ -z "${DUPLICATE}" ] && [ -n "${FEED_SOK:-}" ]; then
+            rot="${BASE%/api/cron/poll-tracking}"
+            sok=$(curl -sS --get --max-time 120 \
+              -H "Authorization: Bearer ${CRON_SECRET}" \
+              --data-urlencode "q=${FEED_SOK}" \
+              "${rot}/api/admin/aosom-feed-search?allaRader=1") || {
+                echo "::error::feedsökningen gick inte fram" >&2
+                exit 1
+              }
+            if [ "$(echo "$sok" | jq -r '.ok // false')" != "true" ]; then
+              echo "::error::feedsökningen svarade fel: $(echo "$sok" | head -c 300 | perl -pe 's/\b(?:\d{2}[A-Z]|[A-Z]\d{2}|\d[A-Z]\d|\d{3})-\d{3}(?!\d)[A-Z0-9]*\b/‹REDIGERAT›/g')" >&2
+              exit 1
+            fi
+            antal=$(echo "$sok" | jq -r '.traffar // 0')
+            if [ "${antal}" != "1" ]; then
+              echo "::error::feed_sok måste ge EXAKT en träff i feeden, fick ${antal}. Förfina orden." >&2
+              echo "$sok" | jq -r '.visade[]? | "    [träff] \(.namn)"' \
+                | perl -pe 's/\b(?:\d{2}[A-Z]|[A-Z]\d{2}|\d[A-Z]\d|\d{3})-\d{3}(?!\d)[A-Z0-9]*\b/‹REDIGERAT›/g' >&2
+              exit 1
+            fi
+            SKU=$(echo "$sok" | jq -r '.visade[0].sku')
+            echo "::add-mask::${SKU}"
+            echo "feed_sok: 1 träff — $(echo "$sok" | jq -r '.visade[0].namn' | perl -pe 's/\b(?:\d{2}[A-Z]|[A-Z]\d{2}|\d[A-Z]\d|\d{3})-\d{3}(?!\d)[A-Z0-9]*\b/‹REDIGERAT›/g') (artikelnumret hämtat på servern, skrivs inte ut)"
+          fi
           if [ -z "${SKU}" ] && [ -z "${DUPLICATE}" ]; then
-            echo "::error::Ange duplicate_wix_product_id (Aosom-utkastet) sa hamtas artikelnumret darifran, eller sku" >&2
+            echo "::error::Ange duplicate_wix_product_id (Aosom-utkastet), feed_sok eller sku" >&2
             exit 1
           fi
 

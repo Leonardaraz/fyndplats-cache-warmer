@@ -8,6 +8,7 @@ import { describe, expect, it, vi } from "vitest";
 import { doldaPerFil, planeraSida, type Bild, type SidOption, type SidPlan } from "./fargbilder";
 import { lasSidaIn, mediaPost, skrivSida, tolkaProdukt } from "./fargbilder-kor";
 import { MinnesFargbildLager } from "../store/fargbilder";
+import { KOSTNAD_EJ_LASBAR } from "../wix/produkt-kostnad";
 import type { WixAnrop } from "../polish/skrivplan";
 
 // Fixturerna kommer ur torrkörningen 2026-09-30, när Wix tak antogs vara 15, och
@@ -47,15 +48,21 @@ function v3(id: string, namn: string, synlig: boolean, bilder: Bild[], optioner:
   };
 }
 
-function fejkWix(f: Fixtur) {
+/** Varukostnaden som Wix räknar marginal på. `profit` och `profitMargin` är skrivskyddade. */
+const KOSTNAD = { cost: { amount: "850.00", formattedAmount: "850,00 kr" }, profit: { amount: "150.00" }, profitMargin: 15 };
+
+function fejkWix(f: Fixtur, opts: { kostnad?: boolean } = {}) {
   const produkter: Record<string, Obj> = {
     [f.sida.id]: v3(f.sida.id, f.sida.namn, true, f.sida.bilder, f.sida.optioner),
   };
   for (const g of f.givare) produkter[g.id] = v3(g.id, g.namn, false, g.bilder, []);
+  if (opts.kostnad) {
+    for (const v of ((produkter[f.sida.id].variantsInfo as Obj).variants as Obj[])) v.revenueDetails = structuredClone(KOSTNAD);
+  }
   const fel: Record<string, number> = {};
   const patchar: string[][] = [];
   /** Låter Wix "tappa" något i en skrivning, för att se att återläsningen märker det. */
-  const sabotage: { altText?: boolean; gamlaLasningar?: number } = {};
+  const sabotage: { altText?: boolean; gamlaLasningar?: number; kostnadNekad?: boolean; tappaKostnad?: boolean } = {};
   /** Produkten före senaste galleri-PATCH, som en gammal läsning svarar med. */
   const fore: Record<string, Obj> = {};
   const kast = (k: string, msg: string) => {
@@ -74,11 +81,19 @@ function fejkWix(f: Fixtur) {
     const p = produkter[id];
     if (metod === "GET") {
       if (!p) throw new Error("Wix 404: finns inte");
+      const medKostnad = sokvag.includes("MERCHANT_DATA");
+      if (medKostnad && sabotage.kostnadNekad) throw new Error("Wix 403: NO_PERMISSION_TO_READ_MERCHANT_DATA");
+      // Som Wix: utan MERCHANT_DATA finns ingen `revenueDetails` i svaret.
+      const svar = (x: Obj) => {
+        const k = structuredClone(x);
+        if (!medKostnad) for (const v of ((k.variantsInfo as Obj).variants as Obj[])) delete v.revenueDetails;
+        return { product: k };
+      };
       if (fore[id] && (sabotage.gamlaLasningar ?? 0) > 0) {
         sabotage.gamlaLasningar!--;
-        return { product: structuredClone(fore[id]) };
+        return svar(fore[id]);
       }
-      return { product: structuredClone(p) };
+      return svar(p);
     }
     if (metod === "PATCH") {
       const k = kropp as { product: Obj; fieldMask: { paths: string[] } };
@@ -102,8 +117,14 @@ function fejkWix(f: Fixtur) {
         const nyaLankar = opts.flatMap((o) =>
           (((o.choicesSettings as Obj).choices ?? []) as Obj[]).flatMap((c) => ((c.linkedMedia ?? []) as Obj[]).map((m) => String(m.id))));
         if (nyaLankar.some((m) => !g.has(m))) throw new Error("Wix 404: PRODUCT_MEDIA_NOT_EXIST");
+        for (const v of (((k.product.variantsInfo as Obj).variants ?? []) as Obj[])) {
+          const rd = (v.revenueDetails ?? {}) as Obj;
+          if ("profit" in rd || "profitMargin" in rd) throw new Error("Wix 400: profit och profitMargin är skrivskyddade");
+        }
         p.options = structuredClone(opts);
+        // En variantsInfo-PATCH ERSÄTTER varianterna: det som inte skickas finns inte kvar.
         p.variantsInfo = structuredClone(k.product.variantsInfo);
+        if (sabotage.tappaKostnad) for (const v of ((p.variantsInfo as Obj).variants as Obj[])) delete v.revenueDetails;
         p.visible = k.product.visible;
       }
       p.revision = String(Number(p.revision) + 1);
@@ -190,6 +211,43 @@ describe("skrivSida", () => {
     const sistaLank = anrop.map((a) => a.startsWith("PATCH")).lastIndexOf(true);
     expect(anrop.slice(sistaLank).some((a) => a.startsWith("GET") && a.includes("VARIANT_OPTION_CHOICE_NAMES"))).toBe(true);
     expect(u.steg).toContain("variantbilder: rätt");
+  });
+
+  it("☠️ varukostnaden följer med länkskrivningen — utan MERCHANT_DATA hade PATCH:en nollat den", async () => {
+    const f = fixtur("matskap");
+    const w = fejkWix(f, { kostnad: true });
+    const lager = new MinnesFargbildLager();
+    const plan = await planFor(w, lager, f.sida.id);
+    const u = await skrivSida(plan, { wix: w.wix, lager, vanta: async () => {} });
+    expect(u.ok).toBe(true);
+    const varianter = (w.produkter[f.sida.id].variantsInfo as Obj).variants as Obj[];
+    expect(varianter.length).toBeGreaterThan(0);
+    for (const v of varianter) {
+      expect(v.revenueDetails, "varje variant behåller sin kostnad").toEqual({ cost: KOSTNAD.cost });
+    }
+    expect(u.steg.join(" ")).not.toMatch(/MERCHANT_DATA/);
+  });
+
+  it("☠️ nekas kostnadsfältet skrivs sidan ändå, och svaret säger att kostnaden inte följde med", async () => {
+    const f = fixtur("matskap");
+    const w = fejkWix(f, { kostnad: true });
+    w.sabotage.kostnadNekad = true;
+    const lager = new MinnesFargbildLager();
+    const plan = await planFor(w, lager, f.sida.id);
+    const u = await skrivSida(plan, { wix: w.wix, lager, vanta: async () => {} });
+    expect(u.ok).toBe(true);
+    expect(u.steg).toContain(KOSTNAD_EJ_LASBAR);
+  });
+
+  it("☠️ en kostnad som ändå försvinner i skrivningen stoppar körningen", async () => {
+    const f = fixtur("matskap");
+    const w = fejkWix(f, { kostnad: true });
+    w.sabotage.tappaKostnad = true;
+    const lager = new MinnesFargbildLager();
+    const plan = await planFor(w, lager, f.sida.id);
+    const u = await skrivSida(plan, { wix: w.wix, lager, vanta: async () => {} });
+    expect(u.ok).toBe(false);
+    expect(u.fel).toMatch(/kostnad ändrades/);
   });
 
   it("en koppling som faller medan Wix tar emot bilderna försöks om", async () => {

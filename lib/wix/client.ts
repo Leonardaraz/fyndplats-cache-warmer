@@ -3,6 +3,7 @@
 // https://dev.wix.com/docs/api-reference/business-solutions/stores/catalog-v3/products-v3/create-product
 import { isDryRun } from "../audit";
 import { skapaWixAnrop } from "../polish/skrivplan-wix";
+import { KOSTNAD_EJ_LASBAR, KOSTNADSFALT, arKostnadNekadSvar, variantsInfoMedKostnad } from "./produkt-kostnad";
 import { refreshVariantMedia } from "./variant-media";
 
 // Exporterad så read-only-moduler (t.ex. lib/wix/prune-customizations.ts) kan
@@ -845,7 +846,21 @@ export async function linkChoiceMedia(productId: string, links: ChoiceMediaLink[
   if (isDryRun() || links.length === 0) return 0;
   const url = `${WIX_BASE}/stores/v3/products/${encodeURIComponent(productId)}?fields=MEDIA_ITEMS_INFO`;
   /* eslint-disable @typescript-eslint/no-explicit-any */
+  // ☠️ Läsningen ber om varukostnaden (MERCHANT_DATA). PATCH:en nedan skickar variantsInfo
+  // ordagrant ur den, och en variantsInfo-PATCH ersätter varianten: utan fältet i läsningen
+  // nollades kostnaden på varje variant i samma stund som importen kopplade bilderna
+  // (lib/wix/produkt-kostnad.ts). Nekar Wix fältet (403, nyckeln saknar SCOPE.STORES.
+  // PRODUCT_READ_ADMIN) läses produkten utan det och kopplingen går som förut — en
+  // bildkoppling får aldrig fälla en import — men det loggas.
+  let medKostnad = true;
   const getProductRaw = async (): Promise<any | null> => {
+    if (medKostnad) {
+      const res = await fetch(`${url}&${KOSTNADSFALT}`, { headers: wixHeaders() });
+      if (res.ok) return (await res.json()).product;
+      if (!arKostnadNekadSvar(res.status, await res.text())) return null;
+      medKostnad = false;
+      console.warn(`[wix.linkChoiceMedia] ${KOSTNAD_EJ_LASBAR}: ${productId}`);
+    }
     const res = await fetch(url, { headers: wixHeaders() });
     return res.ok ? (await res.json()).product : null;
   };
@@ -906,7 +921,7 @@ export async function linkChoiceMedia(productId: string, links: ChoiceMediaLink[
       const [options, intended] = applyLinks(product);
       if (intended > 0) {
         const body = {
-          product: { revision: product.revision, options, variantsInfo: product.variantsInfo },
+          product: { revision: product.revision, options, variantsInfo: variantsInfoMedKostnad(product.variantsInfo) },
           fieldMask: { paths: ["options", "variantsInfo"] },
         };
         const res = await fetch(`${WIX_BASE}/stores/v3/products/${encodeURIComponent(productId)}`, {

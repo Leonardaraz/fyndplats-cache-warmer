@@ -675,3 +675,84 @@ describe("refreshVariantMedia", () => {
     expect(variantbildSteg(u).stopp).toBe(false);
   });
 });
+
+/**
+ * Efter en prisskrivning (`updateV3VariantPrices`) är sidan i läget Wix lämnar den i: priset är nytt och
+ * variantbilden nollställd. Läsningen släpar, så första GET:en kan visa produkten FÖRE prisskrivningen.
+ */
+describe("refreshVariantMedia direkt efter en prisskrivning (minRevision)", () => {
+  /** Produkten som Wix har den efter prisskrivningen: revision 30, Blå sänkt från 1 299 till 1 199 kr. */
+  function efterPris(): Obj {
+    const p = stol();
+    p.revision = "30";
+    (vAv(p, "v-bla").price as Obj).actualPrice = { amount: "1199" };
+    return p;
+  }
+
+  /** Låtsas-Wix vars första `antal` läsningar visar produkten som den var FÖRE prisskrivningen. */
+  function slapar(antal: number) {
+    const w = fejkWix(efterPris());
+    const gammal = stol();
+    let lasningar = 0;
+    const wix: WixAnrop = async (metod, sokvag, kropp) => {
+      if (metod === "GET" && lasningar < antal) {
+        lasningar++;
+        const ut = structuredClone(gammal);
+        if (!sokvag.includes("MERCHANT_DATA")) for (const v of varianterAv(ut)) delete v.revenueDetails;
+        return { product: ut };
+      }
+      return w.wix(metod, sokvag, kropp);
+    };
+    return { ...w, wix };
+  }
+
+  it("☠️ en läsning som släpar väntas ut: PATCH-kroppen bär det NYA priset, aldrig det gamla", async () => {
+    const w = slapar(2);
+    const u = await refreshVariantMedia(w.wix, "stol", { vanta, minRevision: 30 });
+    expect(u.status).toBe("rattad");
+    const skriv = w.anrop.filter((a) => a.metod === "PATCH");
+    expect(skriv).toHaveLength(1);
+    const kropp = skriv[0].kropp as { product: { revision: string; variantsInfo: { variants: Obj[] } } };
+    expect(kropp.product.revision).toBe("30");
+    const bla = kropp.product.variantsInfo.variants.find((v) => v.id === "v-bla")!;
+    expect((bla.price as Obj).actualPrice).toEqual({ amount: "1199" });
+    expect((vAv(w.p, "v-bla").price as Obj).actualPrice).toEqual({ amount: "1199" });
+    expect(variantbildLage(w.p).avvikande).toEqual([]);
+  });
+
+  it("☠️ ger läsningen aldrig upp den nya revisionen skrivs inget: optimistisk samtidighet fäller PATCH:en", async () => {
+    // Varje läsning visar produkten FÖRE prisskrivningen. PATCH-kroppen bär då revision 29 medan Wix
+    // har 30, och Wix avvisar den. Utan revisionen hade det gamla priset skrivits över det nya.
+    const w = slapar(99);
+    const u = await refreshVariantMedia(w.wix, "stol", { vanta, minRevision: 30 });
+    expect(u.status).toBe("fel");
+    expect(w.p.revision).toBe("30");
+    expect((vAv(w.p, "v-bla").price as Obj).actualPrice).toEqual({ amount: "1199" });
+    expect(variantbildLage(w.p).avvikande.length).toBeGreaterThan(0);
+  });
+
+  it("utan minRevision läses sidan en gång innan den bedöms, som förut", async () => {
+    const w = fejkWix(stol());
+    const u = await refreshVariantMedia(w.wix, "stol", { vanta });
+    expect(u.status).toBe("rattad");
+    // Bedömningen utan handelsdata, sedan före och efter skrivningen med.
+    expect(w.anrop.filter((a) => a.metod === "GET" && !a.sokvag.includes("MERCHANT_DATA"))).toHaveLength(1);
+    expect(w.anrop.filter((a) => a.metod === "GET" && a.sokvag.includes("MERCHANT_DATA"))).toHaveLength(2);
+  });
+
+  it("minRevision som redan är nådd kostar ingen omläsning", async () => {
+    const w = fejkWix(efterPris());
+    const u = await refreshVariantMedia(w.wix, "stol", { vanta, minRevision: 30 });
+    expect(u.status).toBe("rattad");
+    // En läsning utan handelsdata, en med, och efter skrivningen en. Ingen omläsning i början.
+    expect(w.anrop.filter((a) => a.metod === "GET")).toHaveLength(3);
+  });
+
+  it("väntan har ett tak: omläsningarna är högst `omlasningar`", async () => {
+    const pauser: number[] = [];
+    const w = slapar(99);
+    await refreshVariantMedia(w.wix, "stol", { vanta: async (ms) => { pauser.push(ms); }, minRevision: 30, omlasningar: 3 });
+    // Tre läsningar före skrivningen = två pauser, sedan ger den upp.
+    expect(pauser.length).toBe(2);
+  });
+});

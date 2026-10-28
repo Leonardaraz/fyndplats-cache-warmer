@@ -19,6 +19,7 @@
 // auktionen (ger överstruket ord.pris i storefronten) och rensas vid slut.
 
 import { WIX_BASE, wixHeaders } from "@/lib/wix/client";
+import { KOSTNAD_EJ_LASBAR, KOSTNADSFALT, arKostnadNekadSvar, variantMedKostnad } from "@/lib/wix/produkt-kostnad";
 import { auctionsBackend } from "@/lib/store/backend";
 import type { AuctionDoc } from "./engine";
 import {
@@ -255,10 +256,19 @@ async function applyVariantPatch(
   resolve: (v: RawVariant) => VariantTarget | null,
   precheck?: (variants: RawVariant[]) => void,
 ): Promise<void> {
-  const getRes = await fetch(`${WIX_BASE}/stores/v3/products/${productId}`, {
+  // ☠️ Läsningen ber om varukostnaden (MERCHANT_DATA). PATCH:en nedan skickar hela
+  // variantsInfo, och den ersätter varianterna: utan fältet i läsningen nollades
+  // kostnaden på auktionsprodukten vid varje prissänkning. Nekas fältet (403) läses
+  // produkten utan det och priset sätts som förut — en prissänkning får aldrig
+  // stoppas av ett kosmetiskt fält — men det loggas (lib/wix/produkt-kostnad.ts).
+  let getRes = await fetch(`${WIX_BASE}/stores/v3/products/${productId}?${KOSTNADSFALT}`, {
     method: "GET",
     headers: headers(),
   });
+  if (!getRes.ok && arKostnadNekadSvar(getRes.status, await getRes.clone().text())) {
+    console.warn(`[auction] ${KOSTNAD_EJ_LASBAR}: ${productId}`);
+    getRes = await fetch(`${WIX_BASE}/stores/v3/products/${productId}`, { method: "GET", headers: headers() });
+  }
   if (!getRes.ok) {
     const text = await getRes.text();
     throw new Error(`patch GET ${getRes.status}: ${text.slice(0, 200)}`);
@@ -271,8 +281,10 @@ async function applyVariantPatch(
     throw new Error(`patch(${productId}): saknar revision/varianter`);
   }
   precheck?.(p.variantsInfo.variants);
-  const variants = p.variantsInfo.variants.map((v) => {
-    const t = resolve(v);
+  const variants = p.variantsInfo.variants.map((raw) => {
+    // Bara kostnaden går tillbaka av revenueDetails (profit och profitMargin är skrivskyddade).
+    const v = variantMedKostnad(raw);
+    const t = resolve(raw);
     if (!t) return v;
     return {
       ...v,

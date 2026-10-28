@@ -388,6 +388,36 @@ describe("stegSku", () => {
     expect(JSON.stringify(u)).not.toContain("FP-gammal-tysk-sku");
   });
 
+  it("☠️ varukostnaden följer med: läsningen ber om den och PATCH:en bär den, men inte profit och marginal", async () => {
+    const kostnad = { cost: { amount: "850.00", formattedAmount: "850,00 kr" } };
+    const { wix, anrop } = fakeWix((a) => {
+      if (a.metod !== "GET") return { product: { revision: "10" } };
+      // Som Wix: kostnaden kommer bara med MERCHANT_DATA.
+      const rd = a.sokvag.includes("MERCHANT_DATA") ? { revenueDetails: { ...kostnad, profit: { amount: "150.00" }, profitMargin: 15 } } : {};
+      return { product: { revision: "9", visible: true, variantsInfo: { variants: [{ ...variant, ...rd }] } } };
+    });
+    const u = await stegSku(plan(), wix, false);
+    expect(u.ok).toBe(true);
+    expect(anrop[0].sokvag).toContain("fields=MERCHANT_DATA");
+    const patch = anrop.find((a) => a.metod === "PATCH");
+    const skickad = ((patch?.kropp as { product: { variantsInfo: { variants: Record<string, unknown>[] } } }).product.variantsInfo.variants[0]);
+    expect(skickad.revenueDetails).toEqual(kostnad);
+    expect(u.rader[0]).not.toHaveProperty("kostnad");
+  });
+
+  it("☠️ nekas kostnadsfältet skrivs SKU:n ändå, och raden säger att kostnaden inte följde med", async () => {
+    const { wix, anrop } = fakeWix((a) => {
+      if (a.sokvag.includes("MERCHANT_DATA")) return new Error('Wix 403: {"message":"NO_PERMISSION_TO_READ_MERCHANT_DATA"}');
+      return a.metod === "GET"
+        ? { product: { revision: "9", visible: true, variantsInfo: { variants: [variant] } } }
+        : { product: { revision: "10" } };
+    });
+    const u = await stegSku(plan(), wix, false);
+    expect(u.ok).toBe(true);
+    expect(u.rader[0]).toMatchObject({ kostnad: expect.stringContaining("MERCHANT_DATA") });
+    expect(anrop.some((a) => a.metod === "PATCH")).toBe(true);
+  });
+
   it("☠️ en dold enda variant blir synlig, annars visar den publicerade sidan Slutsåld", async () => {
     const dold = { ...variant, visible: false };
     const { wix, anrop } = fakeWix((a) =>

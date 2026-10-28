@@ -44,6 +44,9 @@ en bild som gäller alla val ska vara olänkad. Att tala om ägaren för varje b
 en länk som ligger kvar på fel val tas bort, och en bild som planen glömt stoppar körningen i stället för att ligga kvar som den var.
 
 ☠️ Planen ska omfatta HELA galleriet. Saknas en bild i `agare` svarar skriptet `ok: false, steg: "agare"` och skriver ingenting.
+☠️ Wix tar högst 15 länkade bilder per val (2026-10-28, mätt först 2026-10-24: 16 och fler ger `400 … optionSettings.choicesSettings is invalid`). Ett foto med en
+ägarlista räknas mot varje val i listan. Verktyget räknar planens länkar per val och vägrar bygga skriptet över 15, och lank-om-bilder.js avvisar planen på nytt innan den
+skriver. Utan spärren föll odlingstunneln 38f70f83 (200 cm skulle få 16) i Storlek-skrivningen efter att Färg redan skrivits om, och hammocken 91f5c078 skulle ha fått 17.
 ☠️ Alla val i alla optioner får sin lista skriven, så ingen gammal länk blir kvar på ett val som planen inte nämner. Valen utan bilder i planen töms, och
 lank-om-bilder.js kräver `tomt` för ett val som hade bilder. Optioner som inte är färg skrivs först, färgen sist: en bild som flyttas från färg till storlek
 är då ägd av båda en kort stund (butiken ser färgen) i stället för av ingen (butiken visar den under varje val).
@@ -52,6 +55,19 @@ Kör ut.js via ExecuteWixAPI (en sida per körning: skriptet skriver två option
 import json, os, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+MAX_LANKAR_PER_VAL = 15  # Wix: högst 15 länkade bilder per val. Samma tal som LANKTAK i lank-om-bilder.js och harma-skriv.js. Galleriets tak är ett annat (50).
+
+
+def lankar_per_val(agare):
+    """Planens länkar per val (gemener): ett foto med en ägarlista räknas mot varje val i listan, '-' mot inget."""
+    antal = {}
+    for v in agare.values():
+        if v == "-":
+            continue
+        for n in ([v] if isinstance(v, str) else v):
+            k = n.strip().lower()
+            antal[k] = antal.get(k, 0) + 1
+    return antal
 
 
 def giltig_agare(v):
@@ -133,6 +149,11 @@ def main():
         for k, lista in (s.get("ordning") or {}).items():
             if not isinstance(lista, list) or not lista or any(not isinstance(h, str) or len(h) != 6 for h in lista) or len(set(lista)) != len(lista):
                 sys.exit("ogiltig ordning för %s: %r" % (k, lista))
+    for s in spec:
+        for namn, antal in sorted(lankar_per_val(s["agare"]).items()):
+            if antal > MAX_LANKAR_PER_VAL:
+                sys.exit("☠️ %s: planen ger %r %d länkade bilder, och Wix tar högst %d per val. Ingenting byggt. Länka ett foto bara till färgen (eller bara till storleken) eller ta bort det ur valets lista."
+                         % (str(s["id"])[:8], namn, antal, MAX_LANKAR_PER_VAL))
     flera = [s for s in spec if any(isinstance(v, list) and len(v) > 1 for v in s["agare"].values())]
     if flera and not torr:
         for s in flera:

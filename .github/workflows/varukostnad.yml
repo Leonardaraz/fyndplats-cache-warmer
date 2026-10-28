@@ -1,0 +1,299 @@
+name: Varukostnad — fyll i kostnaden på Aosom-varianter som saknar den
+
+# Wix har ett fält för varukostnaden på varje variant (`revenueDetails.cost`), och det driver Wix egen vinst-
+# och marginalrapport. En variantsInfo-skrivning som lästes utan MERCHANT_DATA ersatte varianterna och nollade
+# kostnaden, så ungefär 2 600 publicerade produkter saknar den helt och 330 har den på några varianter (mätt
+# 2026-10-24). Skrivarna är lagade (lib/wix/produkt-kostnad.ts). Den här workflowen fyller i det som saknas,
+# ur mappningens landade kostnad, via /api/admin/varukostnad (lib/wix/varukostnad.ts).
+#
+# Husets egen lönsamhetsöversikt läser mappningen och är orörd. Det här gäller bara Wix egen rapport.
+#
+# ☠️ BARA AOSOM. AliExpress-radernas kostnad är importtidens tal och fryser; ett skrivet tal hade gett Wix en för
+# bra vinstsiffra. En BEFINTLIG kostnad skrivs aldrig över: planen tar bara varianter som saknar den.
+#
+# Torrt först, alltid. `torr` räknar planen och skriver ingenting; läs antalet produkter ("totalt"). `skarp`
+# kräver det exakta antalet som `bekrafta`: listan är kvitteringen på att en människa läst planen. Därefter
+# loopar workflowen skivor och skickar det som återstod som tak (`hogst`) i varje följande anrop, så att planen
+# får krympa men aldrig växa.
+#
+# Ett litet prov först: `ids` (högst 60 Wix-produkt-id) tar bara de produkterna, och `bekrafta` gäller då deras
+# antal i planen. Ta gärna en publicerad flervariantsprodukt, ett dolt utkast och en enkel produkt.
+#
+# ☠️ Skriver aldrig inne i Aosoms synkfönster (xx:12–xx:29 UTC var tredje timme): jobbet väntar ut det, och
+# rutten vägrar skarpt där ändå (409). Skrivningen jämför lagret före och efter varje produkt.
+#
+# ☠️ Rutten stoppar vid första avvikelse (något annat än kostnaden ändrades) och efter fem fel i följd, och det
+# här jobbet stoppar med den. Ingenting mer skrivs.
+#
+# Varje skrivning ändrar produktens `updatedDate`, och butikens cron (`uppdatera-andrade`, var femte minut)
+# bygger då om sidan. Ungefär tre tusen sidor byggs om under några timmar.
+#
+# ☠️ LOGGEN ÄR PUBLIK. Jobbet skriver bara räknare och Wix-produkt-id: aldrig kostnader, artikelnummer, namn
+# eller adresser.
+
+on:
+  workflow_dispatch:
+    inputs:
+      lage:
+        description: "torr = räkna planen, skriv inget · skarp = skriv kostnaden (kräver bekrafta)"
+        required: true
+        default: "torr"
+        type: choice
+        options:
+          - torr
+          - skarp
+      bekrafta:
+        description: "Skarpt: torrkörningens antal produkter (fältet totalt i planen). Tomt vid torr körning."
+        required: false
+        default: ""
+        type: string
+      skiva:
+        description: "Produkter som skrivs per anrop (40 ryms på ruttens tidsbudget)"
+        required: false
+        default: "40"
+        type: string
+      utkast:
+        description: "ja = dolda utkast tas med (default, så de är rätt när de publiceras) · nej = bara publicerade"
+        required: false
+        default: "ja"
+        type: choice
+        options:
+          - "ja"
+          - "nej"
+      ids:
+        description: "Valfritt: bara dessa Wix-produkt-id (kommaseparerade, högst 60). Tomt = hela planen."
+        required: false
+        default: ""
+        type: string
+
+concurrency:
+  # Samma grupp som polish-write: två skrivare mot samma sida samtidigt ger revisionskonflikter.
+  group: polish-write
+  cancel-in-progress: false
+
+jobs:
+  varukostnad:
+    runs-on: ubuntu-latest
+    # GitHubs tak är sex timmar. Jobbet stannar själv efter 330 minuter så att summeringen hinner skrivas.
+    timeout-minutes: 345
+    steps:
+      - name: Kor
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          LAGE: ${{ inputs.lage }}
+          BEKRAFTA: ${{ inputs.bekrafta }}
+          SKIVA: ${{ inputs.skiva }}
+          UTKAST: ${{ inputs.utkast }}
+          IDS: ${{ inputs.ids }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          if [ "${LAGE}" != "torr" ] && [ "${LAGE}" != "skarp" ]; then
+            echo "::error::lage ska vara torr eller skarp" >&2
+            exit 1
+          fi
+          if ! [[ "${SKIVA}" =~ ^[0-9]+$ ]] || [ "${SKIVA}" -lt 1 ] || [ "${SKIVA}" -gt 200 ]; then
+            echo "::error::skiva ska vara ett heltal mellan 1 och 200" >&2
+            exit 1
+          fi
+          BEKRAFTA="$(printf '%s' "${BEKRAFTA:-}" | tr -d '[:space:]')"
+          if [ "${LAGE}" = "skarp" ] && ! [[ "${BEKRAFTA}" =~ ^[0-9]+$ ]]; then
+            echo "::error::skarpt kraver bekrafta: torrkorningens antal produkter (totalt). Kor torrt forst." >&2
+            exit 1
+          fi
+          ids="$(printf '%s' "${IDS:-}" | tr -d '[:space:]')"
+          if [ -n "${ids}" ] && ! [[ "${ids}" =~ ^[0-9a-f-]{36}(,[0-9a-f-]{36}){0,59}$ ]]; then
+            echo "::error::ids ska vara upp till 60 Wix-produkt-id (uuid), kommaseparerade" >&2
+            exit 1
+          fi
+
+          # URL:en skrivs aldrig ut. Den ligger i en variabel och används bara av curl.
+          url="${BASE%/api/cron/poll-tracking}/api/admin/varukostnad"
+          utk=1; [ "${UTKAST}" = "nej" ] && utk=0
+          idsq=""; [ -n "${ids}" ] && idsq="&ids=${ids}"
+
+          # ☠️ SISTA SKYDDET MOT ETT ARTIKELNUMMER ELLER ETT BELOPP I LOGGEN. Rutten redigerar redan sina felkroppar,
+          # men fritext har ingen form att lita på. Formerna är husets artikelnummer och decimaltal.
+          redigera() {
+            perl -pe 's/\b(?:\d{2}[A-Z]|[A-Z]\d{2}|\d[A-Z]\d|\d{3})-\d{3}(?!\d)[A-Z0-9]*\b/‹REDIGERAT›/g; s/aosom:\S+/aosom:‹REDIGERAT›/g; s/\b\d+[.,]\d+\b/‹tal›/g'
+          }
+
+          # Felen går till stderr: en kommandosubstitution slukar stdout.
+          HTTP=""
+          anropa() {
+            local svar kropp
+            svar="$(curl -sS -w '\n%{http_code}' --max-time 310 \
+              -H "Authorization: Bearer ${CRON_SECRET}" "$1")" || svar=$'\n000'
+            HTTP="$(printf '%s' "$svar" | tail -n1)"
+            kropp="$(printf '%s' "$svar" | sed '$d')"
+            printf '%s' "$kropp" > svar.json
+            if ! jq -e . svar.json > /dev/null 2>&1; then
+              echo "::error::HTTP ${HTTP}, svaret ar inte JSON: $(head -c 200 svar.json | redigera)" >&2
+              return 1
+            fi
+            [ "${HTTP}" = "200" ]
+          }
+
+          # Aosoms synk skriver lager och priser runt :12–:29 UTC var tredje timme (00, 03, 06 …). Rutten vägrar
+          # skarpt där och från ungefär 75 sekunder före, så jobbet väntar ut hela fönstret i stället.
+          vanta_synk() {
+            local h m s
+            h="$(date -u +%-H)"; m="$(date -u +%-M)"; s="$(date -u +%-S)"
+            if [ $((h % 3)) -eq 0 ] && [ "${m}" -ge 10 ] && [ "${m}" -lt 30 ]; then
+              echo "synkfonster ($(date -u +%H:%M) UTC) — vantar till :30"
+              sleep $(( (30 - m) * 60 - s + 10 ))
+            fi
+          }
+
+          summera() {
+            {
+              echo "### Varukostnad — ${LAGE}"
+              echo ""
+              echo "$1"
+            } >> "${GITHUB_STEP_SUMMARY}"
+          }
+
+          # ── Torrt ────────────────────────────────────────────────────────────────────────────
+          if [ "${LAGE}" = "torr" ]; then
+            anropa "${url}?dryRun=true&utkast=${utk}${idsq}" || {
+              echo "::error::torrkorningen föll: $(jq -r '(.error // "okänt fel") + " " + (.message // "")' svar.json | redigera)" >&2
+              exit 1
+            }
+            totalt="$(jq -r '.totalt // 0' svar.json)"
+            echo "PLAN: ${totalt} produkter"
+            jq -r '.plan | "  Aosom-mappningar: \(.aosomMappningar) (pensionerade hoppas over: \(.pensionerade))\n  varianter i mappningen: \(.mappningsvarianter)\n  finns inte i Wix (eller pa en annan produkt): \(.utanKatalogvariant)\n  mappningen saknar kostnad: \(.utanMappningskostnad)\n  har redan en kostnad i Wix (rors aldrig): \(.redanKostnad)\n  varianter som skulle fa en kostnad: \(.attSkriva)\n  produkter: \(.produkter) (varav dolda utkast: \(.utkast), med tva eller fler varianter: \(.flervariant))"' svar.json
+            jq -r '"  forsta produkterna: " + ((.forsta // []) | join(", "))' svar.json
+            summera "| | |
+          |---|---:|
+          | produkter i planen (\`bekrafta\` vid skarp körning) | ${totalt} |
+          | varianter som skulle få en kostnad | $(jq -r '.plan.attSkriva // 0' svar.json) |
+          | har redan en kostnad (rörs aldrig) | $(jq -r '.plan.redanKostnad // 0' svar.json) |
+          | finns inte i Wix | $(jq -r '.plan.utanKatalogvariant // 0' svar.json) |"
+            exit 0
+          fi
+
+          # ── Skarpt ───────────────────────────────────────────────────────────────────────────
+          tot_skrivna=0; tot_varianter=0; tot_redan=0; tot_fel=0; tot_avv=0
+          aterstod=0; efter=""; skivor=0; forsta=1; vantningar=0; stilla=0
+          problem=""; stopp=""
+          while :; do
+            if [ "${SECONDS}" -gt 19800 ]; then
+              echo "::warning::330 minuter har gatt: stannar. Kor torrt igen och fortsatt med nytt bekrafta." >&2
+              stopp="tiden"
+              break
+            fi
+            skivor=$((skivor + 1))
+            if [ "${skivor}" -gt 150 ]; then
+              echo "::error::150 skivor och planen ar inte genomgangen — stannar" >&2
+              stopp="skivor"
+              break
+            fi
+            vanta_synk
+
+            q="dryRun=false&utkast=${utk}&limit=${SKIVA}&maxSeconds=240${idsq}"
+            [ -n "${efter}" ] && q="${q}&efter=${efter}"
+            if [ "${forsta}" = "1" ]; then q="${q}&bekrafta=${BEKRAFTA}"; else q="${q}&hogst=${aterstod}"; fi
+
+            rc=0; anropa "${url}?${q}" || rc=$?
+
+            # Rutten vagrade for att synkfonstret var nara: vanta och forsok samma skiva igen.
+            if [ "${HTTP}" = "409" ] && jq -e '(.error // "") | startswith("synkfonster")' svar.json > /dev/null 2>&1; then
+              vantningar=$((vantningar + 1))
+              skivor=$((skivor - 1))
+              if [ "${vantningar}" -gt 30 ]; then
+                echo "::error::rutten vagrar for synkfonstret trots 30 vantningar — stannar" >&2
+                stopp="synk"
+                break
+              fi
+              echo "rutten sa synkfonster — vantar 120 s"
+              sleep 120
+              continue
+            fi
+
+            if [ "${rc}" != "0" ] && [ "$(jq -r '.stoppadAv // ""' svar.json)" = "" ]; then
+              echo "::error::rutten svarade HTTP ${HTTP}: $(jq -r '(.error // "okänt fel") + " " + (.message // "") + " " + (.rad // "")' svar.json | head -c 400 | redigera)" >&2
+              stopp="fel"
+              break
+            fi
+
+            totalt="$(jq -r '.totalt // 0' svar.json)"
+            skrivna="$(jq -r '.skrivna // 0' svar.json)"
+            varianter="$(jq -r '.varianterSkrivna // 0' svar.json)"
+            redan="$(jq -r '.redanKlara // 0' svar.json)"
+            fel="$(jq -r '.fel // 0' svar.json)"
+            avv="$(jq -r '.avvikelser // 0' svar.json)"
+            behandlade="$(jq -r '.behandlade // 0' svar.json)"
+            ejnadda="$(jq -r '.ejNadda // 0' svar.json)"
+            aterstod="$(jq -r '.aterstod // 0' svar.json)"
+            nasta="$(jq -r '.nasta // ""' svar.json)"
+            stoppadav="$(jq -r '.stoppadAv // ""' svar.json)"
+            echo "skiva ${skivor}: planen ${totalt}, behandlade ${behandlade}, skrivna ${skrivna} (${varianter} varianter), redan klara ${redan}, fel ${fel}, avvikelser ${avv}, ej nadda ${ejnadda}, aterstar ${aterstod}${stoppadav:+, stopp: ${stoppadav}}"
+            tot_skrivna=$((tot_skrivna + skrivna)); tot_varianter=$((tot_varianter + varianter)); tot_redan=$((tot_redan + redan))
+            tot_fel=$((tot_fel + fel)); tot_avv=$((tot_avv + avv))
+            forsta=0
+
+            # Bara det som inte gick rent: id, status och skal. Wix-fel redigeras.
+            p="$(jq -r '.produkter[]? | "  \(.id) \(.status)\(if .variantbild then " variantbild=" + .variantbild else "" end)\(if .avvikelser then ": " + (.avvikelser | join("; ")) else "" end)\(if .felText then " — " + .felText else "" end)"' svar.json | redigera)"
+            if [ -n "${p}" ]; then
+              echo "${p}"
+              problem="${problem}${p}"$'\n'
+            fi
+
+            if [ "${stoppadav}" = "avvikelse" ] || [ "${stoppadav}" = "fel_i_foljd" ]; then
+              echo "::error::rutten stoppade (${stoppadav}). Ingenting mer skrivs." >&2
+              stopp="${stoppadav}"
+              break
+            fi
+            if [ "${rc}" != "0" ]; then
+              echo "::error::rutten svarade HTTP ${HTTP} utan att forklara — stannar" >&2
+              stopp="fel"
+              break
+            fi
+            [ "${ejnadda}" = "0" ] && break
+
+            # Ingen framgang i tva skivor i foljd ar ett fel, inte en lugn natt.
+            if [ "${behandlade}" = "0" ]; then
+              stilla=$((stilla + 1))
+              if [ "${stilla}" -ge 2 ]; then
+                echo "::error::tva skivor utan en enda behandlad produkt — stannar" >&2
+                stopp="stilla"
+                break
+              fi
+            else
+              stilla=0
+            fi
+            if [ -n "${nasta}" ] && [ "${nasta}" = "${efter}" ]; then
+              echo "::error::markoren rorde sig inte — stannar" >&2
+              stopp="markor"
+              break
+            fi
+            efter="${nasta}"
+          done
+
+          summera "| | |
+          |---|---:|
+          | skivor | ${skivor} |
+          | produkter skrivna | ${tot_skrivna} |
+          | varianter som fick en kostnad | ${tot_varianter} |
+          | redan klara när de lästes | ${tot_redan} |
+          | fel (produkten saknar fortfarande kostnaden) | ${tot_fel} |
+          | avvikelser (något annat än kostnaden ändrades) | ${tot_avv} |
+          | produkter som fortfarande saknar kostnad | ${aterstod} |
+          | stopp | ${stopp:-inget} |
+          $( [ -n "${problem}" ] && printf '\n```\n%s```\n' "${problem}" )"
+
+          echo "SUMMA (skarpt): ${tot_skrivna} produkter skrivna (${tot_varianter} varianter), redan klara ${tot_redan}, fel ${tot_fel}, avvikelser ${tot_avv}, kvar ${aterstod}, stopp: ${stopp:-inget}"
+          if [ -n "${stopp}" ]; then exit 1; fi
+          if [ "${tot_avv}" != "0" ]; then
+            echo "::error::${tot_avv} avvikelse(r): skrivningen andrade nagot annat an kostnaden" >&2
+            exit 1
+          fi
+          if [ "${aterstod}" != "0" ]; then
+            echo "::error::${aterstod} produkter saknar fortfarande kostnaden (fel eller ej nadda): kor torrt for att se laget" >&2
+            exit 1
+          fi

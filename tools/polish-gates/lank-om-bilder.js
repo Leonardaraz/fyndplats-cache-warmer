@@ -26,6 +26,9 @@ async function () {
   //   4. Ingen bild tas bort ur galleriet, och ingen länk tappas tyst: återläsningen jämför varje vals lista mot planen.
   //   5. Varianternas id, SKU, synlighet och pris, produktens synlighet, namn och adress och galleriets ordning ska vara lika före
   //      och efter. Avviker något är svaret `ok: false`.
+  //   6. ☠️ Ett val får högst LANKTAK (15) länkade bilder. Wix avvisar 16 och fler med `400 … optionSettings.choicesSettings is invalid`
+  //      (mätt 2026-10-24, lärdom 217, och igen 2026-10-28 när Härma-sidorna omlänkades: 38f70f83 skulle ge 200 cm 16 och 91f5c078 205 cm 17).
+  //      Planen avvisas innan något skrivs. Galleriets tak är ett annat tal (50, lib/wix/limits.ts).
   // Efter en omlänkning kan variantens bild (varukorgens bild) vara fel. Kör variantbild.yml (dryRun=false) eller rutten
   // `/api/cron/variantbild`, som räknar om den.
   //
@@ -35,6 +38,7 @@ async function () {
   const PLANER = [{ id: "", axel: "Färg", tomt: [], lankar: {} }];
   const TORR = false;
   const FLERA_I_OPTION = false;
+  const LANKTAK = 15;
   const T0 = Date.now();
 
   const lika = function (a, b) { return String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase(); };
@@ -53,9 +57,20 @@ async function () {
     });
     return ut;
   };
+  // ☠️ Varukostnaden (revenueDetails.cost) följer med tillbaka. En variantsInfo-PATCH ersätter varianten, och en läsning utan MERCHANT_DATA bär
+  // ingen kostnad: förut nollade varje länkskrivning här kostnaden på varje variant (lib/wix/produkt-kostnad.ts). `profit` och `profitMargin` räknas
+  // av Wix och är skrivskyddade, så bara kostnaden skickas.
+  const utanVinst = function (vi) {
+    const ut = JSON.parse(JSON.stringify(vi));
+    (ut.variants || []).forEach(function (v) {
+      const kost = v.revenueDetails && v.revenueDetails.cost;
+      if (kost && typeof kost === "object") v.revenueDetails = { cost: kost }; else delete v.revenueDetails;
+    });
+    return ut;
+  };
   const lankEn = async function (PLAN) {
     const URL = "https://www.wixapis.com/stores/v3/products/" + PLAN.id;
-    const FALT = "?fields=MEDIA_ITEMS_INFO&fields=VARIANT_OPTION_CHOICE_NAMES";
+    const FALT = "?fields=MEDIA_ITEMS_INFO&fields=VARIANT_OPTION_CHOICE_NAMES&fields=MERCHANT_DATA";
     const las = async function () { return (await wix.request({ method: "GET", url: URL + FALT })).data.product; };
     const galleriAv = function (p) { return ((p.media && p.media.itemsInfo && p.media.itemsInfo.items) || []).map(function (i) { return i.id; }); };
     const fel = function (steg, text) { return { ok: false, steg: steg, id: String(PLAN.id).slice(0, 8), fel: text }; };
@@ -87,6 +102,7 @@ async function () {
       if (new Set(lista).size !== lista.length) return fel("plan", "en fil står två gånger i listan för " + namn);
       const tomtOk = (PLAN.tomt || []).some(function (t) { return lika(t, namn); });
       if (lista.length === 0 && gamla[c.choiceId].length > 0 && !tomtOk) return fel("plan", namn + " hade länkade bilder och skulle lämnas utan (lägg valet i `tomt` om det är meningen)");
+      if (lista.length > LANKTAK && lista.join(",") !== gamla[c.choiceId].join(",")) return fel("plan", namn + " skulle få " + lista.length + " länkade bilder, och Wix tar högst " + LANKTAK + " per val (ingenting skrevs)");
       nya[c.choiceId] = lista;
     }
     const slutligt = {};
@@ -125,7 +141,7 @@ async function () {
         await wix.request({
           method: "PATCH",
           url: URL,
-          body: { product: { revision: pn.revision, visible: pn.visible, options: nyaOptions, variantsInfo: pn.variantsInfo }, fieldMask: { paths: ["options", "variantsInfo", "visible"] } },
+          body: { product: { revision: pn.revision, visible: pn.visible, options: nyaOptions, variantsInfo: utanVinst(pn.variantsInfo) }, fieldMask: { paths: ["options", "variantsInfo", "visible"] } },
         });
         skriven = true;
       } catch (e) {
@@ -158,8 +174,8 @@ async function () {
       if (avvik.length === 0) break;
     }
     if (galleriAv(p2).join(",") !== galleri0.join(",")) avvik.push("galleriets ordning");
-    const varV = function (p) { return ((p.variantsInfo && p.variantsInfo.variants) || []).map(function (v) { return [v.id, v.sku, v.visible, v.price && v.price.actualPrice && v.price.actualPrice.amount].join("|"); }).join(";"); };
-    if (varV(p0) !== varV(p2)) avvik.push("varianternas id, SKU, synlighet eller pris");
+    const varV = function (p) { return ((p.variantsInfo && p.variantsInfo.variants) || []).map(function (v) { return [v.id, v.sku, v.visible, v.price && v.price.actualPrice && v.price.actualPrice.amount, v.revenueDetails && v.revenueDetails.cost && v.revenueDetails.cost.amount].join("|"); }).join(";"); };
+    if (varV(p0) !== varV(p2)) avvik.push("varianternas id, SKU, synlighet, pris eller kostnad");
     if (p0.visible !== p2.visible) avvik.push("synligheten");
     if (p0.slug !== p2.slug || p0.name !== p2.name) avvik.push("namn eller adress");
     const andra = (p2.options || []).filter(function (o) { return !lika(o.name, axelNamn); });
