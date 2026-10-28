@@ -41,7 +41,10 @@ står i butikens `CLAUDE.md`. Butiken deployas på natten, kring kl. 03 svensk t
 ⚠️ **Det gäller butikens egna byggen** (grenen `headless-site`). En merge till `main` i
 det här repot bygger bara motorn: `vercel.json` avbryter butiksprojektets bygge, och
 butikens cache ligger kvar. Mätt 2026-09-27: butikssidor renderade 15:02 UTC hade
-fortfarande sin cache 15:24, efter motorns produktionsbygge 15:08.
+fortfarande sin cache 15:24, efter motorns produktionsbygge 15:08. Mätt igen 2026-10-28 vid mergen av
+#786 (bara dokumentation och verktyg): motorns och butikens produktionsbygge blev båda `CANCELED` med
+`#ignored-build-step`, och 17 butikssidor behöll sin cache (åldern växte med exakt den förflutna tiden,
+8 sekunder och 5 minuter 55 sekunder efter mergen, FLAGGADE lärdom 260).
 
 ### Särskilt för import- och poleringspass
 
@@ -4586,8 +4589,13 @@ Fyra saker att ta med vid nästa sådan körning:
    produkten i Wix innan du startar om, för stoppraden ser likadan ut för ett läsproblem och en riktig avvikelse. Omstarten är torr, läs `PLAN: N produkter`, skarp med `bekrafta` = N (planen får
    krympa men aldrig växa, och produkten som stoppade körningen är redan skriven, så N är ett färre än *kvar* i stoppraden).
 2. **En pågående körnings logg går inte att läsa** (404 tills jobbet är klart). Följ den i Vercels runtime-logg: `skarpt: planen` ger en rad per skiva, `avvikelse` orsaken.
-3. **Kontrollen efter skrivningen läser lagret med POST, och `skapaWixAnrop` försöker bara om GET** (`lib/polish/skrivplan-wix.ts`, används av ungefär femton rutter). En övergående 503 där blir en
-   avvikelse. Förslag, inte byggt och väntar på Leonards ja: samma återförsök för POST mot `/query`, `/search` och `/query-variants`.
+3. ✅ **Kontrollen efter skrivningen läser lagret med POST, och `skapaWixAnrop` försökte bara om GET** (`lib/polish/skrivplan-wix.ts`, används av ungefär femton rutter). En övergående 503 där blev en
+   avvikelse. Lagat 2026-10-28 (Leonards ja): en POST vars sökväg slutar på `/query`, `/search` eller `/query-variants` (frågesträngen oräknad) försöks om som en GET, tre försök med 1 och 3
+   sekunders paus på 429, 5xx och nätverksfel. ☠️ En skrivande POST och en PATCH försöks ALDRIG om (en bulk-POST kan ha gått igenom fast svaret uteblev), och en sökväg som har `/query`
+   mitt i adressen räknas inte. Varje återförsök loggas som `[wix-anrop] försöker om <metod> <sökväg> (<felets början>)`. `lib/polish/skrivplan-wix.test.ts` låser det (35 tester, åtta
+   mutationer fälldes av rätt test). Det löser stopp 2 men inte stopp 3 och 4, där läsningen svarade 200 med ett äldre läge. Katalogsvepets och sökningens egna återförsöksslingor
+   (`variantbild-koll.ts`, `livsbild.ts`) ligger kvar som yttre lager. ⚠️ Gäller först när ändringen är mergad och motorn byggd, och är obevisad i drift tills en rad `[wix-anrop] försöker om`
+   syns i runtime-loggen.
 4. ☠️ **Kör `variantbild.yml` torr över hela katalogen efteråt, för uppföljningen kan missa.** Kontrollen 2026-10-28 (1 210 flervariantsprodukter, 30 minuter) fann 1 206 rätta och **fyra där variantbilden (varukorgens, kassans och orderns bild) var huvudbilden på 6 varianter** (`96451d83`, `973e6901`, `97b1d071` och `c519b4fe`). Alla fyra skrevs av svepet under de två minuter där Wix läsning släpade och som slutade i stopp 3 och 4 (15:53 och 16:12), och uppföljningen loggade ingen rättning för dem: den såg bilderna som rätta, och Wix nollställde dem därefter. Orsaken är inte bevisad, men mönstret talar för läsfördröjning. De rättades med `variantbild.yml` skarp på just de fyra (4 av 4 rättade, 0 avvikelser) och lästes tillbaka: variantbilden är färgens första foto på varje variant, kostnad på alla, priserna orörda. Nattens `/api/cron/variantbild` (05:35 UTC) hade rättat dem också, men då hade varukorgen visat fel färg i ungefär tolv timmar.
 
 ⚠️ **Varje skrivning ändrar produktens `updatedDate`**, och butikens cron `uppdatera-andrade` (var femte minut) bygger då om sidan (ISR-skrivning). Mätt under svepet i butikens runtime-logg: 177
@@ -4598,8 +4606,8 @@ respektive 236 ändrade sidor i två fönster (före svepet 4 till 9), och cron-
 Leonard 2026-10-28: *"Ja prio att fixa."* om de elva tvåaxliga sidorna som den första rundan lämnade. Analysen (butikens sidodata mot Aosoms galleri per kombination) gav
 **30 foton på elva sidor** som visas under en kombination Aosom inte visar dem under, och inget som saknas där Aosom visar det. Sju sidor är rättade (`0136e7d9`, `01ac2f63`,
 `4a2ab58e`, `6d35a04f`, `8901f76d`, `926ec7a2`, `c3d1fa41`: 17 foton under fel kombination borta, 194 → 177 foton i vyerna, **25 av 25 kombinationer rätt i en riktig webbläsare**,
-första bilden och varukorgens bild oförändrade på alla 25, minst fyra foton överallt). Fyra lämnades orörda (`1d4eb6b1`, `4d9ba658`, `543b9076`, `aafbf543`). Planer, tabell och
-före-läge ligger i `tools/polish-assets/runda-bilder-harma-exakt-2/`, och FLAGGADE har lärdom 251–253.
+första bilden och varukorgens bild oförändrade på alla 25, minst fyra foton överallt). Fyra lämnades vid Wix tak (`1d4eb6b1`, `4d9ba658`, `543b9076`, `aafbf543`): Leonard 2026-10-28, *Vi gör som du rekommenderar*, så deras närbilder ligger kvar, utom spännet `435f39`
+på verktygslådan, som är borttaget (punkt 3). Planer, tabell och före-läge ligger i `tools/polish-assets/runda-bilder-harma-exakt-2/`, och FLAGGADE har lärdom 251–253 och 260.
 
 Fyra egenskaper som inte ska tas bort:
 
@@ -4611,7 +4619,9 @@ Fyra egenskaper som inte ska tas bort:
    i vy. Lagat med en andra länk på packshoten (`["Vit", "85 tum"]`) och `ordning` som lägger kombinationernas nuvarande första foton först i färgens lista.
 3. ☠️ **En sida på Wix tak (15 länkade bilder per val) lämnas, och ingenting tas bort utan Leonards ja.** Fyra sidor låg på 15 i båda storlekarna, och exakt ägare kostar en länk till
    per foto. De felplacerade fotona är närbilder av samma färg utan nästan identisk tvilling i galleriet, så en borttagning tar bort fotot också där det är rätt. Enda tydliga felet
-   är spännet `435f39` på verktygslådan. Frågan står i FLAGGADE.
+   var spännet `435f39` på verktygslådan. ✅ Avgjort 2026-10-28 (Leonard: *Vi gör som du rekommenderar*): närbilderna ligger kvar och spännet togs bort. Det var ett olänkat foto på plats 14 av 31
+   och togs bort med `bilder-bort.yml` (torr, sedan skarp med planens sha): galleriet 31 → 30, varje kombination 10, 9, 9 och 8 → 9, 8, 8 och 7 foton, och första bilden, varukorgens bild,
+   länkar, SKU, pris, kostnad och lager oförändrade. Läst tillbaka i en separat läsning i Wix och mätt i en riktig webbläsare, en kombination i taget.
 4. ☠️ **Skriv en sida först när kostnadsjobbet passerat den eller inte nått den, aldrig samtidigt.** Jobbet går i id-ordning och tar bara produkter som saknar kostnad på någon variant, så
    en sida med kostnad på alla varianter rörs aldrig, och en som jobbet inte nått får sin kostnad efteråt ur en färsk läsning. Skrivarna här bär kostnaden tillbaka och jämför den före och
    efter (`avvikelser: []` på alla sju).
