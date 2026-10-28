@@ -435,6 +435,45 @@ export function matchPhraseForStage(description: string, stage?: string): string
   return AVI.test(description) ? AVI_FRAS : null;
 }
 
+/**
+ * Stagar där paketet inte bara är på väg. Stagens allmänna text kan där säga
+ * något annat än transportören: ett PostNord-paket stod som "Det har uppstått
+ * en avvikelse i leveransen." (Exception) när kunden hade fått en sms-avi om
+ * det (2026-10-28).
+ */
+const AVVIKANDE_STAGE = new Set([
+  "AvailableForPickup", "OutForDelivery", "DeliveryFailure", "Undelivered",
+  "Exception", "Expired", "NotFound", "Returning", "Returned",
+]);
+
+/**
+ * Loggraden för en händelse som visas utan egen svensk fras: stagens
+ * allmänna text på en avvikande stage, eller transportörens egen text när
+ * stagen saknas. Med originaltexten i loggen kan den få en egen fras.
+ * null när en fras träffade, och på en vanlig transportstage, där stagens
+ * text ("Paketet är på väg.") stämmer.
+ */
+export function textUtanFras(description: string, fras: string | null, stage?: string, subStatus?: string): string | null {
+  if (fras || !description.trim()) return null;
+  if (stage && !AVVIKANDE_STAGE.has(stage)) return null;
+  const typ = [stage || "ingen stage", subStatus].filter(Boolean).join(", ");
+  return `[track] text utan fras (${typ}): "${loggtext(description)}"`;
+}
+
+/**
+ * En transportörstext som den får stå i loggen: på en rad, högst 200 tecken,
+ * med e-postadresser och sifferföljder från fem siffror bortbytta, så att
+ * telefon- och spårningsnummer inte hamnar där.
+ */
+export function loggtext(text: string): string {
+  return text
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\S+@\S+/g, "[e-post]")
+    .replace(/\+?\d(?:[ -]?\d){4,}/g, "#")
+    .slice(0, 200);
+}
+
 /** En spårnings-händelse med någon form av tidsstämpel (fältnamn varierar). */
 export type TimedEvent = {
   time?: string;
