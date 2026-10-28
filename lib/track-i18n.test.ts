@@ -424,3 +424,33 @@ test("matchPhraseForStage: övriga fraser rörs inte av stage", () => {
   }
   assert.equal(matchPhraseForStage("Mystery text", "OutForDelivery"), null);
 });
+
+test("dedupeEvents – samma händelse från två transportörer, den ena med bara landet", () => {
+  // DHL och PostNord rapporterade varje leverans så (genomgången 2026-10-28).
+  const ut = dedupeEvents([
+    { time: "2026-10-28T13:34:36.000Z", description: "Paketet är levererat.", location: "Uddevalla, Sverige" },
+    { time: "2026-10-28T13:34:00.000Z", description: "Paketet är levererat.", location: "Sverige" },
+    { time: "2026-10-28T13:34:10.000Z", description: "Paketet är levererat.", location: "" },
+  ]);
+  assert.deepEqual(ut.map((e) => e.location), ["Uddevalla, Sverige"]);
+});
+
+test("dedupeEvents – två orter samma minut är två händelser", () => {
+  const ut = dedupeEvents([
+    { time: "2026-10-22T09:20:00.000Z", description: "Paketet är på väg genom transportnätet.", location: "Gorzow Wielkopolski, Polen" },
+    { time: "2026-10-22T09:20:00.000Z", description: "Paketet är på väg genom transportnätet.", location: "Dobra, Polen" },
+    { time: "2026-10-22T09:20:00.000Z", description: "Paketet är på väg genom transportnätet.", location: "Tyskland" },
+  ]);
+  assert.equal(ut.length, 3);
+});
+
+test("svLocation – en ort stavas likadant, och en transportör är ingen plats", () => {
+  assert.equal(svLocation("Koege, Denmark"), "Køge, Danmark");
+  assert.equal(svLocation("", { city: "Koege", country: "DK" }), "Køge, Danmark");
+  assert.equal(svLocation("", { city: "Køge", country: "DK" }), "Køge, Danmark");
+  assert.equal(svLocation("", { city: "El Prat De Llobregat (barcelona)", country: "ES" }), "El Prat de Llobregat, Spanien");
+  assert.equal(svLocation("PostNord"), "");
+  assert.equal(svLocation("", { city: "PostNord", country: "SE" }), "Sverige");
+  assert.equal(svLocation("Malmö, Sweden"), "Malmö, Sverige");
+});
+

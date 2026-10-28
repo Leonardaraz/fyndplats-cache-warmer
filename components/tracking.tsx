@@ -4,6 +4,7 @@ import { orderEventsNewestFirst } from "@/lib/track-i18n";
 import { DELIVERY_TIME } from "@/lib/shipping";
 import { harKommitTillSverige, sistaLedRuta, type SistaLedInfo } from "@/lib/sista-led";
 import { transportorRad } from "@/lib/carrier-mask";
+import { LAGE_TEXT, lageMarke, sparningsLage } from "@/lib/sparning-lage";
 
 // Anropar /api/track i headless (Next.js API-route) som proxar till 17TRACK
 // API och bevarar anonymisering (CN/HK/TW/SG/MY-events strippade, kinesiska
@@ -180,8 +181,6 @@ export function TrackingWidget() {
   // ——— rendering ———
   const status = data?.status || "";
   const delivered = !!data?.delivered || status === "Delivered";
-  const isException = status === "Exception" || status === "Expired"
-    || status === "DeliveryFailure" || status === "Undelivered";
   const carrier = data?.carrier || "Fyndplats Frakt";
   // Nyast först (som 17track) → den aktiva markören (.ev.first) hamnar på
   // NUVARANDE steg överst, inte på äldsta "Registrerad".
@@ -193,10 +192,15 @@ export function TrackingWidget() {
   }));
   const stage = computeStage(status, events.length, delivered);
   const finalStage = stage;
+  // Märket och raden under det: levererat, på väg, på väg tillbaka eller en
+  // avvikelse (lib/sparning-lage). events[0] är den senaste händelsen.
+  const lage = sparningsLage(status, delivered, events[0]);
+  const marke = lageMarke(lage);
   // Rutan om sista ledet: vem som delar ut i Sverige, deras nummer när det är
   // ett annat än vårt, och en knapp till deras spårning (ombudets adress och
   // öppettider, eller bokningen av leveransdagen).
-  const led = data?.sistaLedInfo
+  // Ett paket på väg tillbaka ska inte få en ruta om leveransen i Sverige.
+  const led = data?.sistaLedInfo && lage !== "retur"
     ? sistaLedRuta(data.sistaLedInfo, {
         transportor: carrier,
         status,
@@ -259,18 +263,16 @@ export function TrackingWidget() {
               <div className="track-label">Spårningsnummer</div>
               <div className="track-tn">{data.trackingNumber || tn}</div>
             </div>
-            <span className={`track-badge ${delivered ? "done" : isException ? "warn" : "transit"}`}>
-              {delivered ? "Levererad" : isException ? "Behöver kollas" : "På väg till dig"}
-            </span>
+            <span className={`track-badge ${marke.klass}`}>{marke.text}</span>
           </div>
 
           <div className="track-eta">
-            {delivered ? (
+            {lage === "levererad" ? (
               <>Ditt paket är <b>levererat</b>. Tack för att du handlar hos Fyndplats.</>
-            ) : isException ? (
-              <>Spårningen är pausad. Vi följer paketet – hör av dig till <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> om du undrar.</>
-            ) : (
+            ) : lage === "pa-vag" ? (
               <>Beräknad leverans: <b>{data.eta || DELIVERY_TIME}</b></>
+            ) : (
+              <>{LAGE_TEXT[lage].fore} <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> {LAGE_TEXT[lage].efter}</>
             )}
           </div>
 

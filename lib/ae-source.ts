@@ -19,6 +19,7 @@
 import { dedupeEvents } from "./track-i18n";
 import { maskCarrier } from "./carrier-mask";
 import { LEAKY_PATTERN, deriveAeStatus, translateAeDescription, type AeStatus } from "./ae-track";
+import { AE_ETIKETT } from "./ae-etikett";
 
 export const AE_EVENTS_URL =
   process.env.CACHE_WARMER_TRACKING_URL
@@ -72,7 +73,8 @@ export async function fetchAliExpressEvents(
           time: e.time ?? "",
           description: translateAeDescription(e.description ?? ""),
           location: "",
-          status: "",
+          // Rubriken ur händelsens egen text, samma regler som paketets status.
+          status: AE_ETIKETT[deriveAeStatus([e.description ?? ""])],
         }))
         // Origin-anonymisering: rader vars text ändå röjer dropship-ursprunget
         // filtreras bort helt (samma policy som 17TRACK-flödets isHiddenLocation).

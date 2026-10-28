@@ -151,12 +151,32 @@ export function svLocation(
   rawLocation: string | undefined | null,
   address?: { city?: string; state?: string; country?: string } | null,
 ): string {
-  const place = (address?.city ?? "").trim() || (address?.state ?? "").trim();
+  const place = ort(address?.city ?? "") || ort(address?.state ?? "");
   const countrySv = svCountry(address?.country);
   if (place || countrySv) return [place, countrySv].filter(Boolean).join(", ");
   const raw = (rawLocation ?? "").trim();
   if (!raw) return "";
-  return raw.split(",").map((seg) => svCountry(seg)).filter(Boolean).join(", ");
+  return raw.split(",").map((seg) => ort(svCountry(seg))).filter(Boolean).join(", ");
+}
+
+/**
+ * Samma ort med två stavningar. DPD skriver "Koege" och PostNord "Køge", så
+ * samma terminal stavades olika från paket till paket (16 och 15 paket i
+ * genomgången av alla 135 paket 2026-10-28).
+ */
+const ORTNAMN: Record<string, string> = {
+  KOEGE: "Køge",
+  "EL PRAT DE LLOBREGAT (BARCELONA)": "El Prat de Llobregat",
+};
+
+/** Ett transportörsnamn är ingen plats: PostNords förhandsbesked kom med
+ *  platsen "PostNord" (samma genomgång). */
+const TRANSPORTOR_SOM_PLATS = /^(?:postnord|posten|dhl|dpd|gls|ups|bring|budbee|instabox|dsv|db schenker)$/i;
+
+function ort(segment: string): string {
+  const s = segment.trim();
+  if (TRANSPORTOR_SOM_PLATS.test(s)) return "";
+  return ORTNAMN[s.toUpperCase()] ?? s;
 }
 
 function platsDelar(rawLocation: string | undefined | null): string[] {
@@ -349,14 +369,32 @@ export function dedupeEvents<
   T extends { time?: string; description?: string; location?: string },
 >(events: T[]): T[] {
   const seen = new Set<string>();
-  const out: T[] = [];
+  const unika: T[] = [];
   for (const e of events) {
     const key = `${minutnyckel(e.time)}|${e.description ?? ""}|${e.location ?? ""}`;
     if (seen.has(key)) continue;
     seen.add(key);
-    out.push(e);
+    unika.push(e);
   }
-  return out;
+  // Samma händelse från två transportörer där den ena bara anger landet:
+  // "Paketet är levererat." i "Uddevalla, Sverige" och i "Sverige" samma
+  // minut. DHL och PostNord rapporterade varje leverans så på DHL-paketen
+  // (genomgången 2026-10-28). Den mindre exakta raden tas bort. Två olika
+  // orter samma minut är två händelser och står kvar.
+  return unika.filter((e) => !unika.some((annan) =>
+    annan !== e
+    && minutnyckel(annan.time) === minutnyckel(e.time)
+    && (annan.description ?? "") === (e.description ?? "")
+    && sagerMindreOm(e.location, annan.location)));
+}
+
+/** Om platsen `a` bara är en del av `b` från slutet: tom, eller samma land
+ *  som b utan b:s ort. */
+function sagerMindreOm(a: string | undefined, b: string | undefined): boolean {
+  const pa = platsDelar(a);
+  const pb = platsDelar(b);
+  if (pa.length >= pb.length) return false;
+  return pa.every((del, i) => del === pb[pb.length - pa.length + i]);
 }
 
 /**
