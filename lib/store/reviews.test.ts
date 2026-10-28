@@ -109,8 +109,9 @@ describe("ReviewStore.upsert: kundbilden flyttas hem vid publicering", () => {
     // upsert. Alla andra test kör upsert direkt, så en regression i den
     // kopplingen hade passerat sviten orörd.
     vi.mocked(ownImageUrlForReview).mockResolvedValue(EGEN);
+    const lasning = { dataItem: { data: rad({ status: "pending" }) } };
     fetchSpion
-      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ dataItem: { data: rad({ status: "pending" }) } }) })
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => lasning, text: async () => JSON.stringify(lasning) })
       .mockResolvedValueOnce({ ok: true, status: 200, text: async () => "" });
 
     await new ReviewStore().setStatus("p1", "r1", "approved");
@@ -145,65 +146,61 @@ describe("ReviewStore.upsert: statusfallbacken", () => {
   });
 });
 
-describe("ReviewStore.query: paginering", () => {
-  /** Svar med `n` rader, med unika id:n från `start`. */
-  function sida(n: number, start: number) {
-    return {
-      ok: true,
-      status: 200,
-      json: async () => ({
-        dataItems: Array.from({ length: n }, (_, i) => ({
-          data: rad({ productId: "p1", reviewIdAE: `r${start + i}` }),
-        })),
-      }),
+describe("ReviewStore: listorna läser med markör", () => {
+  /** Svar med `n` rader från `start`, och nästa markör om det finns en. */
+  function sida(n: number, start: number, nasta?: string) {
+    const kropp = {
+      // Wix bär alltid radens `_id` (produkt__recension), och det är på den som dubbletter känns igen.
+      dataItems: Array.from({ length: n }, (_, i) => ({
+        data: { _id: `p1__r${start + i}`, ...rad({ productId: "p1", reviewIdAE: `r${start + i}` }) },
+      })),
+      pagingMetadata: { cursors: nasta ? { next: nasta } : {} },
     };
+    return { ok: true, status: 200, json: async () => kropp, text: async () => JSON.stringify(kropp) };
   }
 
-  function offsetFor(call: number): number {
-    return JSON.parse(fetchSpion.mock.calls[call][1].body as string).query.paging.offset;
+  function query(call: number) {
+    return JSON.parse(fetchSpion.mock.calls[call][1].body as string).query;
   }
 
-  // Kollektionen hade 1932 rader 2026-08-19 och Wix tar max 1000 per fråga.
-  // Utan paginering var listningen tyst kapad: /admin/reviews fick de nyaste
-  // och fick aldrig veta att resten fanns. Sedan DeepL togs bort är den sidan
-  // enda vägen från `pending` till publicerad — en rad som inte syns där kan
-  // aldrig bli svensk, och AE-recensioner är ofta månader gamla så de hamnar
-  // var som helst i den datumsorterade listan.
-  it("hämtar vidare tills en sida är kortare än sidstorleken", async () => {
+  // Kollektionen hade 1932 rader 2026-08-19 och 14 973 när datan flyttade
+  // tillbaka till Wix (2026-10-29). Wix tar max 1000 per fråga. Utan markör
+  // var listningen tyst kapad: /admin/reviews fick de nyaste och fick aldrig
+  // veta att resten fanns — och den sidan är enda vägen från `pending` till
+  // publicerad.
+  it("följer markören till slutet, nyast först", async () => {
     fetchSpion
-      .mockResolvedValueOnce(sida(500, 0))
-      .mockResolvedValueOnce(sida(500, 500))
-      .mockResolvedValueOnce(sida(120, 1000));
+      .mockResolvedValueOnce(sida(1000, 0, "c1"))
+      .mockResolvedValueOnce(sida(1000, 1000, "c2"))
+      .mockResolvedValueOnce(sida(120, 2000));
 
     const alla = await new ReviewStore().listAll();
 
-    expect(alla).toHaveLength(1120);
+    expect(alla).toHaveLength(2120);
     expect(fetchSpion).toHaveBeenCalledTimes(3);
-    expect(offsetFor(0)).toBe(0);
-    expect(offsetFor(1)).toBe(500);
-    expect(offsetFor(2)).toBe(1000);
+    expect(query(0).sort).toEqual([{ fieldName: "date", order: "DESC" }]);
+    expect(query(1)).toEqual({ cursorPaging: { limit: 1000, cursor: "c1" } });
+    expect(query(2)).toEqual({ cursorPaging: { limit: 1000, cursor: "c2" } });
   });
 
-  it("slutar direkt när första sidan inte är full", async () => {
+  it("en lista upp till 1 000 är EN fråga med limit", async () => {
     fetchSpion.mockResolvedValueOnce(sida(12, 0));
 
-    expect(await new ReviewStore().listAll()).toHaveLength(12);
+    expect(await new ReviewStore().listByProduct("p1")).toHaveLength(12);
     expect(fetchSpion).toHaveBeenCalledTimes(1);
+    expect(query(0).paging).toEqual({ limit: 100 });
+    expect(query(0).filter).toEqual({ productId: "p1" });
   });
 
   it("dedupar rader som dyker upp i två sidor", async () => {
-    // Sorteringen sker på `date`, som både kan sakna värde och ha dubbletter,
-    // så en rad kan i teorin komma med i två sidor när gränsen går mitt i en
-    // grupp lika värden. Den ska räknas en gång.
     fetchSpion
-      .mockResolvedValueOnce(sida(500, 0))
-      .mockResolvedValueOnce(sida(500, 499)) // r499 igen
-      .mockResolvedValueOnce(sida(0, 999));
+      .mockResolvedValueOnce(sida(1000, 0, "c1"))
+      .mockResolvedValueOnce(sida(1000, 999)); // r999 igen
 
     const alla = await new ReviewStore().listAll();
 
-    expect(alla).toHaveLength(999);
-    expect(new Set(alla.map((r) => r.reviewIdAE)).size).toBe(999);
+    expect(alla).toHaveLength(1999);
+    expect(new Set(alla.map((r) => r.reviewIdAE)).size).toBe(1999);
   });
 
   it("listByStatus filtrerar hos Wix, inte hos oss", async () => {
@@ -211,16 +208,29 @@ describe("ReviewStore.query: paginering", () => {
 
     await new ReviewStore().listByStatus("pending");
 
-    const q = JSON.parse(fetchSpion.mock.calls[0][1].body as string).query;
-    expect(q.filter).toEqual({ status: "pending" });
+    expect(query(0).filter).toEqual({ status: "pending" });
   });
 
-  it("respekterar taket och slutar hämta där", async () => {
-    fetchSpion.mockResolvedValue(sida(500, 0));
+  it("respekterar taket", async () => {
+    fetchSpion.mockResolvedValueOnce(sida(1000, 0, "c1")).mockResolvedValueOnce(sida(1000, 1000));
 
-    const alla = await new ReviewStore().listAll(500);
+    const alla = await new ReviewStore().listAll(1500);
 
-    expect(alla).toHaveLength(500);
-    expect(fetchSpion).toHaveBeenCalledTimes(1);
+    expect(alla).toHaveLength(1500);
+  });
+
+  it("☠️ betygen grupperas sida för sida — fler än 1 000 produkter tappas inte", async () => {
+    const grupper = (n: number, start: number) => {
+      const kropp = { results: Array.from({ length: n }, (_, i) => ({ productId: `p${start + i}`, antal: 2, snitt: 4.55 })) };
+      return { ok: true, status: 200, json: async () => kropp, text: async () => JSON.stringify(kropp) };
+    };
+    fetchSpion.mockResolvedValueOnce(grupper(1000, 0)).mockResolvedValueOnce(grupper(250, 1000));
+
+    const betyg = await new ReviewStore().aggregateByProduct();
+
+    expect(betyg).toHaveLength(1250);
+    expect(betyg[0]).toEqual({ productId: "p0", antal: 2, snitt: 4.6 });
+    const andra = JSON.parse(fetchSpion.mock.calls[1][1].body as string);
+    expect(andra.paging).toEqual({ limit: 1000, offset: 1000 });
   });
 });

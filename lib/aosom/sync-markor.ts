@@ -24,6 +24,8 @@
 import { sql } from "@/lib/db/client";
 import { SYNC_MARKOR_DDL } from "@/lib/db/schema";
 import { storeBackend } from "@/lib/store/backend";
+import { hamta, spara } from "@/lib/db/wix-data-klient";
+import { NYA } from "@/lib/db/wix-kollektioner";
 import type { AosomSyncSummary } from "./sync";
 
 /** Rotationernas namn. Okända namn vägras av rutten. */
@@ -99,9 +101,28 @@ class PostgresSyncMarkorLager implements SyncMarkorLager {
   }
 }
 
+/** En rad per rotation i Wix, `_id` = rotationens namn. Läsbar bara för admin
+ *  (markören är ett artikelnummer, se filens huvud). */
+export class WixSyncMarkorLager implements SyncMarkorLager {
+  async las(rotation: Rotation): Promise<string | null> {
+    const rad = await hamta<{ markor?: string | null }>(NYA.syncMarkor, rotation);
+    return rad?.markor ?? null;
+  }
+
+  async spara(rotation: Rotation, markor: string | null): Promise<void> {
+    await spara(NYA.syncMarkor, rotation, { markor, at: new Date().toISOString() });
+  }
+}
+
 let minne: MinnesSyncMarkorLager | null = null;
 
 export function getSyncMarkorLager(): SyncMarkorLager {
-  if (storeBackend() === "memory") return (minne ??= new MinnesSyncMarkorLager());
-  return new PostgresSyncMarkorLager();
+  switch (storeBackend()) {
+    case "memory":
+      return (minne ??= new MinnesSyncMarkorLager());
+    case "wix-data":
+      return new WixSyncMarkorLager();
+    case "postgres":
+      return new PostgresSyncMarkorLager();
+  }
 }

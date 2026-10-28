@@ -1,0 +1,168 @@
+name: Migrering — flytta drift-datan tillbaka till Wix
+
+# Flytten tillbaka till Wix CMS (lib/migration/neon-till-wix.ts), Leonards
+# beslut 2026-10-28. Samma nyckel-lösa upplägg som kopieringen till Postgres:
+# produktionen har Wix-nyckeln OCH DATABASE_URL, GitHub Actions har
+# CRON_SECRET, och de möts här. Ingen hemlighet passerar en chatt.
+#
+# LÄGEN:
+#   plan         radantal i Neon och Wix per tabell, och alla tabeller i
+#                Neon-databasen. Skriver ingenting.
+#   kopiera-torr som kopiera, men skriver ingenting: visar vad som skulle skrivas.
+#   kopiera      skriver varje Neon-rad som saknas i Wix eller skiljer sig.
+#                Raderar ingenting. Vägrar när driften redan går i Wix.
+#   verifiera    jämför rad för rad åt båda hållen. Skriver ingenting.
+#                Fäller jobbet om något saknas, skiljer sig eller är extra.
+#   delta        efter växlingen: kräver vaxling och kopierad_sedan. Wix vinner
+#                varje rad drift rört efter växlingen.
+#
+# ☠️ SVARET BÄR ALDRIG RADERNAS INNEHÅLL — antal, fältnamn och id (hashade där
+# id:t kan bära fritext). Markören mellan varven är förseglad.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "plan · kopiera-torr · kopiera · verifiera · delta"
+        required: true
+        default: "plan"
+        type: choice
+        options:
+          - plan
+          - kopiera-torr
+          - kopiera
+          - verifiera
+          - delta
+      tabeller:
+        description: "Bara dessa, kommaseparerat (tomt = alla)"
+        required: false
+        default: ""
+        type: string
+      vaxling:
+        description: "delta: när växlings-PR:en mergades (ISO, UTC)"
+        required: false
+        default: ""
+        type: string
+      kopierad_sedan:
+        description: "delta: när den sista kopieringen startade (ISO, UTC)"
+        required: false
+        default: ""
+        type: string
+      max_varv:
+        description: "Hur många varv markören får loopa"
+        required: false
+        default: "60"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  flytta:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          MODE: ${{ inputs.mode }}
+          TABELLER: ${{ inputs.tabeller }}
+          VAXLING: ${{ inputs.vaxling }}
+          KOPIERAD_SEDAN: ${{ inputs.kopierad_sedan }}
+          MAX_VARV: ${{ inputs.max_varv }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # Till STDERR: en ::error::-rad på stdout slukas av kommandosubstitutionen.
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+
+          bas="${BASE%/api/cron/poll-tracking}"
+          url="${bas}/api/admin/neon-till-wix"
+          anropa() { curl -sS --max-time 300 -H "Authorization: Bearer ${CRON_SECRET}" "$1"; }
+          urlkoda() { jq -rn --arg v "$1" '$v|@uri'; }
+
+          q=""
+          [ -n "${TABELLER}" ] && q="&tabeller=$(urlkoda "${TABELLER}")"
+
+          if [ "${MODE}" = "plan" ]; then
+            svar=$(anropa "${url}?lage=plan${q}")
+            if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+              echo "::error::Rutten svarade fel: $(echo "$svar" | jq -r '.error // "okänt fel"')" >&2
+              exit 1
+            fi
+            echo "$svar" | jq -r '.lager | "  lager: drift=\(.drift) recensioner=\(.recensioner) auktioner=\(.auktioner) driftenIWix=\(.driftenIWix)"'
+            echo "$svar" | jq -r '.tabeller[] | "  \(.tabell)  neon=\(.neon)  wix=\(.wix)  (\(.kollektion))"'
+            echo "  — andra tabeller i samma Neon-databas (butikens, om den är delad):"
+            echo "$svar" | jq -r '.andraTabeller[] | "    \(.tabell)  \(.rader)"'
+            exit 0
+          fi
+
+          case "${MODE}" in
+            kopiera-torr) lage="kopiera"; dry="true" ;;
+            kopiera)      lage="kopiera"; dry="false" ;;
+            verifiera)    lage="verifiera"; dry="true" ;;
+            delta)        lage="delta"; dry="false" ;;
+          esac
+
+          extra=""
+          if [ "${lage}" = "delta" ]; then
+            if [ -z "${VAXLING}" ] || [ -z "${KOPIERAD_SEDAN}" ]; then
+              echo "::error::delta kräver vaxling och kopierad_sedan" >&2
+              exit 1
+            fi
+            extra="&vaxling=$(urlkoda "${VAXLING}")&kopieradSedan=$(urlkoda "${KOPIERAD_SEDAN}")"
+          fi
+
+          after=""; varv=0
+          fel=0; ejgodkand=0
+          while :; do
+            varv=$((varv + 1))
+            if [ "$varv" -gt "${MAX_VARV}" ]; then
+              echo "::warning::Nådde max_varv (${MAX_VARV}) — kör igen" >&2
+              exit 1
+            fi
+            u="${url}?lage=${lage}&dryRun=${dry}${q}${extra}"
+            [ -n "$after" ] && u="${u}&after=$(urlkoda "$after")"
+            svar=$(anropa "$u")
+            if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+              echo "::error::Rutten svarade fel: $(echo "$svar" | jq -r '.error // "okänt fel"')" >&2
+              exit 1
+            fi
+            echo "--- varv ${varv} ---"
+            echo "$svar" | jq -r '.summering.tabeller[] | "  \(.tabell)  granskade \(.granskade)  lika \(.lika)  saknas \(.saknas)  olika \(.olika)\(if .wixNyare > 0 then "  wixNyare \(.wixNyare)" else "" end)\(if .extra > 0 then "  extra \(.extra)" else "" end)\(if .nyaIWix > 0 then "  nyaIWix \(.nyaIWix)" else "" end)\(if .borttagenIWix > 0 then "  borttagenIWix \(.borttagenIWix)" else "" end)  skrivna \(.skrivna)\(if .borttagna > 0 then "  borttagna \(.borttagna)" else "" end)"'
+            echo "$svar" | jq -r '.summering.tabeller[] | select((.exempel.saknas|length) + (.exempel.olika|length) + (.exempel.extra|length) > 0) | "    [exempel] \(.tabell): saknas \(.exempel.saknas|join(",")) · olika \(.exempel.olika|join(",")) · extra \(.exempel.extra|join(","))"'
+            echo "$svar" | jq -r '.summering.tabeller[] | select((.olikaFalt|length) > 0) | "    [fält] \(.tabell): \(.olikaFalt|to_entries|map("\(.key)=\(.value)")|join(" "))"'
+            echo "$svar" | jq -r '.summering.tabeller[] | .fel[]? | "    [fel] \(.)"' >&2
+            n=$(echo "$svar" | jq -r '[.summering.tabeller[] | .fel | length] | add // 0')
+            fel=$((fel + n))
+            if [ "${lage}" = "verifiera" ]; then
+              m=$(echo "$svar" | jq -r '[.summering.tabeller[] | .saknas + .olika + .extra] | add // 0')
+              ejgodkand=$((ejgodkand + m))
+            fi
+            t=$(echo "$svar" | jq -r '.tokens // empty | "nycklar: neon=\(.neon) wix=\(.wix) lika=\(.lika) skrivna=\(.skrivna)"')
+            [ -n "$t" ] && echo "  ${t}"
+            if [ "${lage}" = "verifiera" ] && [ "$(echo "$svar" | jq -r '.tokens.lika // "inga"')" = "false" ]; then
+              ejgodkand=$((ejgodkand + 1))
+            fi
+            after=$(echo "$svar" | jq -r '.markor // ""')
+            [ -z "$after" ] && break
+            echo "  (fortsätter i $(echo "$svar" | jq -r '.markorTabell // "?"') …)"
+          done
+
+          echo
+          if [ "$fel" -gt 0 ]; then
+            echo "::error::${fel} fel — se [fel] ovan" >&2
+            exit 1
+          fi
+          if [ "${lage}" = "verifiera" ]; then
+            if [ "$ejgodkand" -gt 0 ]; then
+              echo "::error::Verifieringen fällde: ${ejgodkand} rader saknas, skiljer sig eller är extra" >&2
+              exit 1
+            fi
+            echo "OK: varje Neon-rad finns i Wix med samma innehåll, och Wix har inget extra."
+          fi
+          echo "KLART (${MODE})."

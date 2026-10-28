@@ -25,6 +25,31 @@ export const STORE_BACKENDS = ["memory", "wix-data", "postgres"] as const;
 export type StoreBackend = (typeof STORE_BACKENDS)[number];
 
 /**
+ * ☠️ FLYTTEN TILLBAKA TILL WIX AVGÖRS HÄR, I KODEN (2026-10-29).
+ *
+ * Drift-datan flyttade till Neon 2026-08-31 för att Wix tog 4 000 rader. Sajten
+ * står sedan 2026-10-28 på Elite (10 miljoner rader), och Neon kostar pengar
+ * varje timme, så datan flyttar tillbaka (Leonards beslut 2026-10-28).
+ *
+ * Vercel nekar oss att ändra miljövariablerna (403 på både läsning och
+ * skapande), och `STORE_BACKEND`, `REVIEWS_BACKEND` står på "postgres" i
+ * produktion. Växeln ligger därför här, samma väg som auktionernas växling
+ * 2026-09-30. När den är sann betyder "postgres" i en variabel Wix: värdet
+ * pekar på ett lager som inte längre är i drift.
+ *
+ * Ordningen, och varför den är en egen deploy:
+ *   1. koden med Wix-versionerna och kopieringen deployas, växeln FALSK — inget händer
+ *   2. kopiera Neon → Wix, verifiera rad för rad
+ *   3. växeln SANN, deploy                       ← här byter produktionen lager
+ *   4. deltakopiering av det som skrevs till Neon mellan 2 och 3, verifiera
+ *   5. följ driften några dygn, sedan stängs Neon
+ *
+ * Vägen tillbaka är växeln falsk igen — men bara med en omvänd deltakopiering,
+ * annars tappas allt som skrivits till Wix efter steg 3.
+ */
+export const DRIFTEN_I_WIX = false;
+
+/**
  * Läser `STORE_BACKEND`. Default `"memory"` (dev/test), som förut.
  *
  * KASTAR på okända värden. Det är med flit: en tyst fallback gör en felstavad
@@ -37,6 +62,7 @@ export function storeBackend(): StoreBackend {
   // gissning än att göra det osatta valet. En riktig felstavning ("postgress")
   // är fortfarande icke-tom och fälls nedan.
   const raw = (process.env.STORE_BACKEND ?? "").trim() || "memory";
+  if (raw === "postgres" && DRIFTEN_I_WIX) return "wix-data";
   if ((STORE_BACKENDS as readonly string[]).includes(raw)) return raw as StoreBackend;
   throw new Error(
     `Okänt STORE_BACKEND="${raw}". Tillåtna värden: ${STORE_BACKENDS.join(", ")}.`,
@@ -88,6 +114,7 @@ export function reviewsBackend(): StoreBackend {
   const raw = (process.env.REVIEWS_BACKEND ?? "").trim();
   // Osatt = kvar i Wix. Default:en pekar åt det håll som INTE tappar data.
   if (!raw) return "wix-data";
+  if (raw === "postgres" && DRIFTEN_I_WIX) return "wix-data";
   if ((STORE_BACKENDS as readonly string[]).includes(raw)) return raw as StoreBackend;
   throw new Error(
     `Okänt REVIEWS_BACKEND="${raw}". Tillåtna värden: ${STORE_BACKENDS.join(", ")}.`,
@@ -128,6 +155,7 @@ export type AuctionBackend = (typeof AUCTION_BACKENDS)[number];
  */
 export function auctionsBackend(): AuctionBackend {
   const raw = (process.env.AUCTIONS_BACKEND ?? "").trim();
+  if (DRIFTEN_I_WIX && (!raw || raw === "postgres")) return "wix-data";
   if (!raw) return "postgres";
   if ((AUCTION_BACKENDS as readonly string[]).includes(raw)) return raw as AuctionBackend;
   throw new Error(

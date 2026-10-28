@@ -9,9 +9,8 @@
 // byta lager. Butiken läser och avslutar via motorns rutter (/api/auctions/*),
 // så den följer med i samma växling.
 //
-// Wix Data-mönstren speglar beprövade vägar i repot:
-//   query  = POST /wix-data/v2/items/query   (samma som lib/headless m.fl.)
-//   save   = POST /data/v2/items/save        (full-ersättning, samma som score-images)
+// Wix Data går via lib/db/wix-data-klient.ts sedan 2026-10-29: markör till
+// slutet, massanrop i omgångar och återförsök på kvotstopp (WDE0014).
 //
 // Pris-PATCH följer SEO-runbookens hårda regler: färsk revision precis före
 // PATCH, `options` + `variantsInfo` skickas ihop (428-fällan), och priser är
@@ -21,6 +20,7 @@
 import { WIX_BASE, wixHeaders } from "@/lib/wix/client";
 import { KOSTNAD_EJ_LASBAR, KOSTNADSFALT, arKostnadNekadSvar, variantMedKostnad } from "@/lib/wix/produkt-kostnad";
 import { auctionsBackend } from "@/lib/store/backend";
+import { allaRader, fraga, sparaManga, spara, taBort, taBortManga } from "@/lib/db/wix-data-klient";
 import type { AuctionDoc } from "./engine";
 import {
   pgQueryAuctions,
@@ -55,7 +55,7 @@ export async function queryAuctions(
   statuses: string[],
   opts: { köHuvud?: number } = {},
 ): Promise<AuctionDoc[]> {
-  return iPostgres() ? pgQueryAuctions(statuses, opts.köHuvud) : wixQueryAuctions(statuses);
+  return iPostgres() ? pgQueryAuctions(statuses, opts.köHuvud) : wixQueryAuctions(statuses, opts.köHuvud);
 }
 
 /**
@@ -64,26 +64,22 @@ export async function queryAuctions(
  */
 export async function senastSalda(limit: number): Promise<AuctionDoc[]> {
   if (iPostgres()) return pgSenastSalda(limit);
-  const res = await fetch(`${WIX_BASE}/wix-data/v2/items/query`, {
-    method: "POST",
-    headers: headers(),
-    body: JSON.stringify({
-      dataCollectionId: AUCTION_COLLECTION,
-      query: {
-        filter: { status: "sold" },
-        sort: [{ fieldName: "endedAt", order: "DESC" }],
-        paging: { limit: Math.min(Math.max(1, limit), 50) },
-      },
-    }),
+  const rader = await fraga<AuctionDoc & { _id?: string }>(AUCTION_COLLECTION, {
+    filter: { status: "sold" },
+    sort: [{ fieldName: "endedAt", order: "DESC" }],
+    limit: Math.min(Math.max(1, limit), 50),
   });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`senastSalda ${res.status}: ${text.slice(0, 200)}`);
+  return rader.map(tillDok).filter((d) => d && d.productId);
+}
+
+/** En rad ur Wix som auktionsdokument. Wix ger ibland datum som `{"$date": …}`; motorn och butiken gör Date.parse. */
+function tillDok(d: AuctionDoc & { _id?: string }): AuctionDoc {
+  const ut = { ...d } as Record<string, unknown>;
+  for (const k of ["startAt", "endedAt"]) {
+    const v = ut[k];
+    if (v && typeof v === "object" && typeof (v as { $date?: unknown }).$date === "string") ut[k] = (v as { $date: string }).$date;
   }
-  const body = (await res.json()) as { dataItems?: Array<{ id?: string; data?: AuctionDoc & { _id?: string } }> };
-  return (body.dataItems ?? [])
-    .map((it) => ({ ...(it.data as AuctionDoc), _id: it.data?._id ?? it.id }))
-    .filter((d) => d && d.productId);
+  return ut as unknown as AuctionDoc;
 }
 
 export async function saveAuction(doc: AuctionDoc): Promise<void> {
@@ -103,46 +99,49 @@ export async function removeAuction(id: string): Promise<void> {
   return iPostgres() ? pgRemoveAuction(id) : wixRemoveAuction(id);
 }
 
-async function wixQueryAuctions(statuses: string[]): Promise<AuctionDoc[]> {
-  const res = await fetch(`${WIX_BASE}/wix-data/v2/items/query`, {
-    method: "POST",
-    headers: headers(),
-    body: JSON.stringify({
-      dataCollectionId: AUCTION_COLLECTION,
-      query: {
-        filter: { status: { $in: statuses } },
-        sort: [{ fieldName: "queueOrder", order: "ASC" }],
-        // Hela katalogen kan ligga i kön (400+ dokument) — 100 skulle tyst
-        // tappa slutet av kön och göra recycling blind för äldre poster.
-        paging: { limit: 1000 },
-      },
-    }),
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`queryAuctions ${res.status}: ${text.slice(0, 200)}`);
+/**
+ * Alla med status i `statuses`, i köordning — med markör till slutet.
+ *
+ * ☠️ Den gamla vägen läste EN sida om 1 000 rader. Kön var 4 522 rader när
+ * datan flyttade tillbaka till Wix (2026-10-29): seeden, pensioneringens
+ * spärr och morgonmejlet hade sett en fjärdedel av den, utan ett ord.
+ *
+ * `köHuvud` som i Postgres: bara kön begränsas, till de första N i
+ * köordning. Ticken går var tionde minut och främjar högst fem; att läsa hela
+ * kön varje gång hade ätit läskvoten för ingenting.
+ */
+async function wixQueryAuctions(statuses: string[], köHuvud?: number): Promise<AuctionDoc[]> {
+  if (statuses.length === 0) return [];
+  const iKöordning = [{ fieldName: "queueOrder", order: "ASC" as const }];
+  const begränsa = typeof köHuvud === "number" && köHuvud >= 0 && statuses.includes("queued");
+  let rader: (AuctionDoc & { _id?: string })[];
+  if (begränsa) {
+    const övriga = statuses.filter((st) => st !== "queued");
+    const huvud = Math.floor(köHuvud);
+    const [andra, kö] = await Promise.all([
+      övriga.length
+        ? allaRader<AuctionDoc & { _id?: string }>(AUCTION_COLLECTION, { filter: { status: { $in: övriga } }, sort: iKöordning })
+        : Promise.resolve([]),
+      huvud === 0
+        ? Promise.resolve([])
+        : huvud <= 1000
+          ? fraga<AuctionDoc & { _id?: string }>(AUCTION_COLLECTION, { filter: { status: "queued" }, sort: iKöordning, limit: huvud })
+          : allaRader<AuctionDoc & { _id?: string }>(AUCTION_COLLECTION, { filter: { status: "queued" }, sort: iKöordning }).then((r) => r.slice(0, huvud)),
+    ]);
+    rader = [...andra, ...kö].sort((a, b) => (a.queueOrder ?? Infinity) - (b.queueOrder ?? Infinity));
+  } else {
+    rader = await allaRader<AuctionDoc & { _id?: string }>(AUCTION_COLLECTION, {
+      filter: { status: { $in: statuses } },
+      sort: iKöordning,
+    });
   }
-  const body = (await res.json()) as { dataItems?: Array<{ id?: string; data?: AuctionDoc & { _id?: string } }> };
-  return (body.dataItems ?? [])
-    .map((it) => ({ ...(it.data as AuctionDoc), _id: it.data?._id ?? it.id }))
-    .filter((d) => d && d.productId);
+  return rader.map(tillDok).filter((d) => d && d.productId);
 }
 
 /** Full-ersättande save (Wix Data har ingen partial-patch värd namnet här). */
 async function wixSaveAuction(doc: AuctionDoc): Promise<void> {
   if (!doc._id) throw new Error("saveAuction: dokumentet saknar _id");
-  const res = await fetch(`${WIX_BASE}/data/v2/items/save`, {
-    method: "POST",
-    headers: headers(),
-    body: JSON.stringify({
-      dataCollectionId: AUCTION_COLLECTION,
-      dataItem: { id: doc._id, dataCollectionId: AUCTION_COLLECTION, data: doc },
-    }),
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`saveAuction(${doc.slug}) ${res.status}: ${text.slice(0, 200)}`);
-  }
+  await spara(AUCTION_COLLECTION, doc._id, { ...doc } as unknown as Record<string, unknown>);
 }
 
 /**
@@ -152,27 +151,13 @@ async function wixSaveAuction(doc: AuctionDoc): Promise<void> {
  * Returnerar felbeskrivningar (tom lista = allt sparat).
  */
 async function wixSaveAuctionsBulk(docs: AuctionDoc[]): Promise<string[]> {
-  const errors: string[] = [];
-  for (let i = 0; i < docs.length; i += 100) {
-    const chunk = docs.slice(i, i + 100);
-    const res = await fetch(`${WIX_BASE}/wix-data/v2/bulk/items/save`, {
-      method: "POST",
-      headers: headers(),
-      body: JSON.stringify({
-        dataCollectionId: AUCTION_COLLECTION,
-        dataItems: chunk.map((d) => ({ id: d._id, dataCollectionId: AUCTION_COLLECTION, data: d })),
-      }),
-    });
-    if (!res.ok) {
-      const text = await res.text();
-      errors.push(`bulkSave[${i}–${i + chunk.length - 1}] ${res.status}: ${text.slice(0, 200)}`);
-      continue;
-    }
-    const body = (await res.json()) as { bulkActionMetadata?: { totalFailures?: number } };
-    const failures = body.bulkActionMetadata?.totalFailures ?? 0;
-    if (failures > 0) errors.push(`bulkSave[${i}–${i + chunk.length - 1}]: ${failures} items misslyckades`);
-  }
-  return errors;
+  const utan = docs.filter((d) => !d._id);
+  if (utan.length) return [`bulkSave: ${utan.length} dokument saknar _id`];
+  const u = await sparaManga(
+    AUCTION_COLLECTION,
+    docs.map((d) => ({ id: d._id as string, data: { ...d } as unknown as Record<string, unknown> })),
+  );
+  return u.fel.map((f) => `bulkSave ${f.id}: ${f.fel}`);
 }
 
 /**
@@ -180,20 +165,7 @@ async function wixSaveAuctionsBulk(docs: AuctionDoc[]): Promise<string[]> {
  * Returnerar felbeskrivningar (tom lista = allt borttaget).
  */
 async function wixRemoveAuctionsBulk(ids: string[]): Promise<string[]> {
-  const errors: string[] = [];
-  for (let i = 0; i < ids.length; i += 100) {
-    const chunk = ids.slice(i, i + 100);
-    const res = await fetch(`${WIX_BASE}/wix-data/v2/bulk/items/remove`, {
-      method: "POST",
-      headers: headers(),
-      body: JSON.stringify({ dataCollectionId: AUCTION_COLLECTION, dataItemIds: chunk }),
-    });
-    if (!res.ok) {
-      const text = await res.text();
-      errors.push(`bulkRemove[${i}–${i + chunk.length - 1}] ${res.status}: ${text.slice(0, 200)}`);
-    }
-  }
-  return errors;
+  return (await taBortManga(AUCTION_COLLECTION, ids)).fel.map((f) => `bulkRemove ${f}`);
 }
 
 /**
@@ -227,14 +199,8 @@ export async function productExists(productId: string): Promise<boolean> {
 }
 
 async function wixRemoveAuction(id: string): Promise<void> {
-  const res = await fetch(
-    `${WIX_BASE}/wix-data/v2/items/${encodeURIComponent(id)}?dataCollectionId=${AUCTION_COLLECTION}`,
-    { method: "DELETE", headers: headers() },
-  );
-  if (!res.ok && res.status !== 404) {
-    const text = await res.text();
-    throw new Error(`removeAuction(${id}) ${res.status}: ${text.slice(0, 200)}`);
-  }
+  // "fanns-inte" = redan borta, som 404 förut.
+  await taBort(AUCTION_COLLECTION, id);
 }
 
 interface RawVariant {

@@ -62,7 +62,9 @@ describe("auktionernas lager", () => {
     await removeAuction("auction-p1");
     for (const f of Object.values(pg)) expect(f).not.toHaveBeenCalled();
     expect(fetchAnrop.every((a) => a.includes("FyndplatsAuctions"))).toBe(true);
-    expect(fetchAnrop).toHaveLength(6);
+    // Sju anrop: köns huvud och de levande läses var för sig (köHuvud gäller
+    // bara kön, som i Postgres), sedan sålda, en save, en massave och två borttagningar.
+    expect(fetchAnrop).toHaveLength(7);
   });
 
   it("AUCTIONS_BACKEND=postgres går till Postgres och rör aldrig Wix Data", async () => {

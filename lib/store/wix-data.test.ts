@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { WixDataStore } from "./wix-data";
+import { __sattVantaForTester } from "../db/wix-data-klient";
+
+// Klienten väntar 1, 3 och 8 sekunder mellan försöken. I testerna gör den det inte.
+beforeEach(() => __sattVantaForTester(async () => {}));
+afterEach(() => __sattVantaForTester(null));
 
 // Etablerar fetch-mocking-convention för repot: mocka global.fetch via vi.fn(),
 // stubba env-vars med vi.stubEnv för deterministisk auth-header, återställ
@@ -149,7 +154,7 @@ describe("WixDataStore — AliExpress-tokens", () => {
   });
 });
 
-describe("WixDataStore — paginering (listMappings/listTasks)", () => {
+describe("WixDataStore — markör (listMappings/listTasks)", () => {
   beforeEach(() => {
     vi.stubEnv("WIX_API_TOKEN", "test-wix-token");
     vi.stubEnv("WIX_SITE_ID", "test-site-id");
@@ -161,72 +166,105 @@ describe("WixDataStore — paginering (listMappings/listTasks)", () => {
     vi.restoreAllMocks();
   });
 
-  // Mocka /query sida-för-sida: varje element = en sidas data-rader.
-  function mockQueryPages(pages: Record<string, unknown>[][]) {
+  // Mocka /query sida-för-sida: varje element = en sidas data-rader och nästa markör.
+  function mockQueryPages(pages: { rader: Record<string, unknown>[]; nasta?: string }[]) {
     const fn = vi.fn();
     for (const page of pages) {
+      const kropp = {
+        dataItems: page.rader.map((data) => ({ data })),
+        pagingMetadata: { cursors: page.nasta ? { next: page.nasta } : {} },
+      };
       fn.mockResolvedValueOnce({
         ok: true,
         status: 200,
-        json: async () => ({ dataItems: page.map((data) => ({ data })) }),
-        text: async () => "",
+        json: async () => kropp,
+        text: async () => JSON.stringify(kropp),
       } as Response);
     }
     global.fetch = fn as unknown as typeof fetch;
     return fn;
   }
 
-  it("listMappings paginerar förbi 100-taket (100 + 30 = 130)", async () => {
-    const page1 = Array.from({ length: 100 }, (_, i) => ({ _id: `m${i}`, wixProductId: `m${i}` }));
-    const page2 = Array.from({ length: 30 }, (_, i) => ({ _id: `m${100 + i}`, wixProductId: `m${100 + i}` }));
-    const fetchMock = mockQueryPages([page1, page2]);
+  it("listMappings följer markören till slutet (500 + 30 = 530)", async () => {
+    const page1 = Array.from({ length: 500 }, (_, i) => ({ _id: `m${i}`, wixProductId: `m${i}` }));
+    const page2 = Array.from({ length: 30 }, (_, i) => ({ _id: `m${500 + i}`, wixProductId: `m${500 + i}` }));
+    const fetchMock = mockQueryPages([{ rader: page1, nasta: "c1" }, { rader: page2 }]);
 
     const all = await new WixDataStore().listMappings();
 
-    expect(all).toHaveLength(130);
+    expect(all).toHaveLength(530);
     expect(fetchMock).toHaveBeenCalledTimes(2);
-    // andra anropet ska be om offset 100 (= fixen som förr saknades)
+    // Andra anropet bär BARA markören: Wix ignorerar filter och sortering på
+    // följande sidor, och en offset hade sorterat om hela kollektionen.
     const body2 = JSON.parse((fetchMock.mock.calls[1] as [string, RequestInit])[1].body as string);
-    expect(body2.query.paging.offset).toBe(100);
-    expect(body2.query.paging.limit).toBe(100);
+    expect(body2.query).toEqual({ cursorPaging: { limit: 500, cursor: "c1" } });
   });
 
-  it("listMappings gör bara ETT anrop när första sidan är ofullständig (<100)", async () => {
+  it("listMappings gör bara ETT anrop när Wix inte har någon nästa sida", async () => {
     const page1 = Array.from({ length: 12 }, (_, i) => ({ _id: `m${i}`, wixProductId: `m${i}` }));
-    const fetchMock = mockQueryPages([page1]);
+    const fetchMock = mockQueryPages([{ rader: page1 }]);
 
     const all = await new WixDataStore().listMappings();
 
     expect(all).toHaveLength(12);
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    // page-0-anropet utelämnar offset → exakt samma body som tidigare beteende
     const body0 = JSON.parse((fetchMock.mock.calls[0] as [string, RequestInit])[1].body as string);
-    expect(body0.query.paging).toEqual({ limit: 100 });
+    expect(body0.query.cursorPaging).toEqual({ limit: 500 });
   });
 
-  it("listMappings tolererar 404 (saknad/tom collection) → []", async () => {
+  it("☠️ listMappings KASTAR på 404 — en saknad kollektion är inte en tom katalog", async () => {
+    // Före flytten tillbaka (2026-10-29) blev 404 en tom lista. Efter den finns
+    // kollektionen, och en tom lista hade sett ut exakt som en katalog utan
+    // produkter: synken hade inte synkat något och ingenting hade sagt till.
     const fn = vi.fn().mockResolvedValue({
       ok: false, status: 404, json: async () => ({}), text: async () => "{}",
     } as Response);
     global.fetch = fn as unknown as typeof fetch;
 
-    expect(await new WixDataStore().listMappings()).toEqual([]);
+    await expect(new WixDataStore().listMappings()).rejects.toThrow(/Wix Data query FyndplatsMappings \(404/);
   });
 
   it("listTasks dedupar på _id om sidor överlappar vid samtidig skrivning", async () => {
     const page1 = Array.from({ length: 100 }, (_, i) => ({ _id: `t${i}`, taskId: `t${i}` }));
-    // sida 2 inleds med en dubblett (t99) + 59 nya = 60 rader (<100 → stopp)
     const page2 = [
       { _id: "t99", taskId: "t99" },
       ...Array.from({ length: 59 }, (_, i) => ({ _id: `t${100 + i}`, taskId: `t${100 + i}` })),
     ];
-    const fetchMock = mockQueryPages([page1, page2]);
+    const fetchMock = mockQueryPages([{ rader: page1, nasta: "c1" }, { rader: page2 }]);
 
     const all = await new WixDataStore().listTasks();
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(all).toHaveLength(159); // 100 + 59 unika; dubbletten t99 borttagen
     expect(new Set(all.map((t) => (t as { taskId: string }).taskId)).size).toBe(159);
+  });
+
+  it("☠️ getTaskByTrackingNumber hittar numret oavsett versaler, som Postgres-vägen", async () => {
+    const fetchMock = mockQueryPages([
+      { rader: [] },
+      { rader: [{ _id: "o1:l1", taskId: "o1:l1", trackingNumber: "cc150235939de" }] },
+    ]);
+
+    const t = await new WixDataStore().getTaskByTrackingNumber("CC150235939DE");
+
+    expect(t?.taskId).toBe("o1:l1");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("createTaskIfAbsent är ETT anspråk: WDE0074 betyder att tasken redan fanns", async () => {
+    const fn = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 409,
+      json: async () => ({}),
+      text: async () => '{"message":"WDE0074: WD_ITEM_ALREADY_EXISTS"}',
+    } as Response);
+    global.fetch = fn as unknown as typeof fetch;
+
+    const skapad = await new WixDataStore().createTaskIfAbsent({ taskId: "o1:l1" } as never);
+
+    expect(skapad).toBe(false);
+    expect(fn).toHaveBeenCalledTimes(1);
+    expect((fn.mock.calls[0] as [string, RequestInit])[0]).toBe("https://www.wixapis.com/data/v2/items");
   });
 });
 
@@ -283,62 +321,5 @@ describe("WixDataStore — claimTask/releaseTask/updateTask (PATCH CAS wire-form
   it("releaseTask kastar ALDRIG (även 500) — fail-open", async () => {
     mockFetch({ status: 500, json: {} });
     await expect(new WixDataStore().releaseTask("x", "t")).resolves.toBeUndefined();
-  });
-});
-
-describe("queryAll — taket kastar i stället för att avkorta", () => {
-  beforeEach(() => {
-    vi.stubEnv("WIX_API_TOKEN", "test-wix-token");
-    vi.stubEnv("WIX_SITE_ID", "test-site-id");
-  });
-  afterEach(() => {
-    vi.unstubAllEnvs();
-    global.fetch = ORIGINAL_FETCH;
-    vi.restoreAllMocks();
-  });
-
-  /** Svarar med en full sida varje gång — en kollektion som aldrig tar slut. */
-  function alltidFullSida() {
-    let n = 0;
-    const fn = vi.fn().mockImplementation(async () => ({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        dataItems: Array.from({ length: 100 }, () => ({ data: { _id: `rad-${n++}` } })),
-      }),
-      text: async () => "",
-    } as Response));
-    global.fetch = fn as unknown as typeof fetch;
-    return fn;
-  }
-
-  it("☠️ en kollektion större än taket ger ett FEL, inte en halv lista", async () => {
-    // Taket var tidigare en tyst avkortning: `listMappings()` hade returnerat de
-    // första 10 000 raderna och synken slutat se resten utan att någonting
-    // klagade — produkterna hade bara tystnat. Vid 5 470 mappningar och en
-    // Aosom-feed på 5 566 artiklar kvar är det inte en teoretisk gräns.
-    alltidFullSida();
-    await expect(new WixDataStore().listMappings()).rejects.toThrow(/passerade 10000 rader|passerade 10 000 rader/);
-  });
-
-  it("en kollektion under taket returneras helt och hållet", async () => {
-    let anrop = 0;
-    global.fetch = vi.fn().mockImplementation(async () => {
-      // Två fulla sidor, sedan en halv → 250 rader, klart under taket.
-      const antal = anrop++ < 2 ? 100 : 50;
-      return {
-        ok: true,
-        status: 200,
-        json: async () => ({
-          dataItems: Array.from({ length: antal }, (_, i) => ({
-            data: { _id: `rad-${anrop}-${i}` },
-          })),
-        }),
-        text: async () => "",
-      } as Response;
-    }) as unknown as typeof fetch;
-
-    const rader = await new WixDataStore().listMappings();
-    expect(rader).toHaveLength(250);
   });
 });

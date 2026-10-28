@@ -18,12 +18,14 @@
 // körning jämför HELA tabellen med det läsarna använder, inte bara fönstrets
 // filer: en gammal fil ligger utanför nattens fönster och ses annars bara vid
 // en full genomgång, så en fil som tagits i bruk och släppts igen däremellan
-// hade behållit sin gamla tid. Postgres i drift, en lista i minnet när
-// STORE_BACKEND=memory (dev och test).
+// hade behållit sin gamla tid. Wix eller Postgres i drift (lib/store/backend.ts),
+// en lista i minnet när STORE_BACKEND=memory (dev och test).
 
 import { sql } from "@/lib/db/client";
 import { KARENS_DDL } from "@/lib/db/schema";
 import { storeBackend } from "./backend";
+import { allaRader, sparaManga, taBortManga } from "@/lib/db/wix-data-klient";
+import { NYA } from "@/lib/db/wix-kollektioner";
 
 /** Så länge en fil måste ha varit oanvänd innan den raderas. */
 export const KARENS_DYGN = 3;
@@ -111,11 +113,63 @@ export class PostgresKarens implements KarensLager {
   }
 }
 
+/**
+ * En rad per fil i Wix, `_id` = fil-id, med `forstSedd` och `senastSedd`.
+ *
+ * Postgres gjorde registreringen i EN sats. Här läses de befintliga raderna
+ * först och skrivs sedan i omgångar: en fil som redan står där behåller sin
+ * `forstSedd`. Bara städningens egen körning skriver, en åt gången, så det
+ * finns ingen samtidig skrivare att tävla med.
+ */
+export class WixKarens implements KarensLager {
+  async registrera(filIdn: ReadonlyArray<string>, nu: number): Promise<Map<string, number>> {
+    const ut = new Map<string, number>();
+    const unika = [...new Set(filIdn)];
+    if (unika.length === 0) return ut;
+    const befintliga = new Map<string, string>();
+    for (let i = 0; i < unika.length; i += 500) {
+      const rader = await allaRader<{ _id: string; forstSedd?: string }>(NYA.karens, {
+        filter: { _id: { $in: unika.slice(i, i + 500) } },
+      });
+      for (const r of rader) if (r.forstSedd) befintliga.set(r._id, r.forstSedd);
+    }
+    const nuIso = new Date(nu).toISOString();
+    const u = await sparaManga(
+      NYA.karens,
+      unika.map((id) => ({ id, data: { forstSedd: befintliga.get(id) ?? nuIso, senastSedd: nuIso } })),
+    );
+    if (u.fel.length) throw new Error(`karenstabellen: ${u.fel.length} rader gick inte att skriva (${u.fel[0].fel})`);
+    for (const id of unika) ut.set(id, Date.parse(befintliga.get(id) ?? nuIso));
+    // ☠️ Varje fil måste ha fått en tid, som i Postgres-vägen.
+    for (const id of filIdn) {
+      if (!Number.isFinite(ut.get(id))) throw new Error(`karenstabellen svarade utan tid för en fil`);
+    }
+    return ut;
+  }
+
+  async lasAlla(): Promise<string[]> {
+    const rader = await allaRader<{ _id: string }>(NYA.karens);
+    return rader.map((r) => r._id);
+  }
+
+  async glom(filIdn: ReadonlyArray<string>): Promise<void> {
+    if (filIdn.length === 0) return;
+    const u = await taBortManga(NYA.karens, [...new Set(filIdn)]);
+    if (u.fel.length) throw new Error(`karenstabellen: ${u.fel.length} rader gick inte att glömma (${u.fel[0]})`);
+  }
+}
+
 let minne: MinnesKarens | null = null;
 
 export function getKarensLager(): KarensLager {
-  if (storeBackend() === "memory") return (minne ??= new MinnesKarens());
-  return new PostgresKarens();
+  switch (storeBackend()) {
+    case "memory":
+      return (minne ??= new MinnesKarens());
+    case "wix-data":
+      return new WixKarens();
+    case "postgres":
+      return new PostgresKarens();
+  }
 }
 
 /** Endast för tester: ett nytt, tomt lager i minnet. */

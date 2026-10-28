@@ -8,24 +8,15 @@
 // Speglar migrations/003_aliexpress_sync.sql så att framtida Postgres-flytt
 // blir en drop-in (samma fältnamn i camelCase här / snake_case i SQL).
 //
-// Felmönster: 404 / "unknown collection" → tom lista (semantiskt = kollektion
-// ej skapad än). Annars throw med komplett fel-body så Vercel-loggen är läsbar.
+// Felmönster: Wix-vägen går via lib/db/wix-data-klient.ts (återförsök på
+// kvotstopp, markör förbi 1 000 rader). En saknad kollektion är ett fel, inte
+// en tom lista — efter flytten tillbaka 2026-10-29 finns alla kollektioner.
 
 import { storeBackend } from "../store/backend";
 import { sql } from "../db/client";
 import { byggSortering, byggVillkor } from "../db/wix-filter";
 import { SYNC_ALERTS, SYNC_LOG, SYNC_STATE, type TabellSpec } from "../db/tabeller";
-
-const WIX_BASE = "https://www.wixapis.com";
-
-function headers(): Record<string, string> {
-  const token = process.env.WIX_API_TOKEN;
-  if (!token) throw new Error("WIX_API_TOKEN saknas i miljön.");
-  const h: Record<string, string> = { "Content-Type": "application/json", Authorization: token };
-  const siteId = process.env.WIX_SITE_ID;
-  if (siteId) h["wix-site-id"] = siteId;
-  return h;
-}
+import { allaRader, fraga, hamta, spara as wixSpara, taBort, taBortMedFilter } from "../db/wix-data-klient";
 
 const COL = {
   log: process.env.WIX_DATA_COL_SYNC_LOG ?? "FyndplatsAliExpressSyncLog",
@@ -201,18 +192,7 @@ async function pgSave(collection: string, id: string, data: object): Promise<voi
 
 async function save(collection: string, id: string, data: object): Promise<void> {
   if (storeBackend() === "postgres") return pgSave(collection, id, data);
-  const res = await fetch(`${WIX_BASE}/data/v2/items/save`, {
-    method: "POST",
-    headers: headers(),
-    body: JSON.stringify({
-      dataCollectionId: collection,
-      dataItem: { id, dataCollectionId: collection, data: { _id: id, ...data } },
-    }),
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Wix Data save ${collection} (${res.status}): ${text.slice(0, 300)}`);
-  }
+  await wixSpara(collection, id, { ...(data as Record<string, unknown>) });
 }
 
 /**
@@ -234,17 +214,7 @@ async function removeByFilter(collection: string, filter: Record<string, unknown
     // raderade rader ett faktiskt kvitto.
     return `${rader.length} rader`;
   }
-  const res = await fetch(`${WIX_BASE}/data/v2/bulk/items/async-remove-by-filter`, {
-    method: "POST",
-    headers: headers(),
-    body: JSON.stringify({ dataCollectionId: collection, filter }),
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Wix Data remove-by-filter ${collection} (${res.status}): ${text.slice(0, 300)}`);
-  }
-  const body = (await res.json()) as { jobId?: string };
-  return body.jobId ?? "";
+  return taBortMedFilter(collection, filter);
 }
 
 async function get<T>(collection: string, id: string): Promise<T | null> {
@@ -256,15 +226,7 @@ async function get<T>(collection: string, id: string): Promise<T | null> {
     );
     return ((rader[0] as { data?: T } | undefined)?.data ?? null) as T | null;
   }
-  const url = `${WIX_BASE}/data/v2/items/${encodeURIComponent(id)}?dataCollectionId=${encodeURIComponent(collection)}`;
-  const res = await fetch(url, { method: "GET", headers: headers() });
-  if (res.status === 404) return null;
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Wix Data get ${collection} (${res.status}): ${text.slice(0, 300)}`);
-  }
-  const body = (await res.json()) as { dataItem?: { data?: T } };
-  return body.dataItem?.data ?? null;
+  return hamta<T>(collection, id);
 }
 
 async function query<T>(
@@ -284,24 +246,9 @@ async function query<T>(
     );
     return rader.map((r) => (r as { data: T }).data);
   }
-  const res = await fetch(`${WIX_BASE}/data/v2/items/query`, {
-    method: "POST",
-    headers: headers(),
-    body: JSON.stringify({
-      dataCollectionId: collection,
-      query: { filter: filter ?? {}, sort: sort ?? [], paging: { limit } },
-    }),
-  });
-  if (!res.ok) {
-    if (res.status === 404) return [];
-    const text = await res.text();
-    if (res.status === 400 && /not found|does not exist|unknown collection/i.test(text)) {
-      return [];
-    }
-    throw new Error(`Wix Data query ${collection} (${res.status}): ${text.slice(0, 300)}`);
-  }
-  const body = (await res.json()) as { dataItems?: { data?: T }[] };
-  return (body.dataItems ?? []).map((d) => d.data).filter((d): d is T => Boolean(d));
+  // Över en sida (1 000) läses resten med markör och kapas till `limit`.
+  if (limit <= 1000) return fraga<T>(collection, { filter, sort, limit });
+  return (await allaRader<T>(collection, { filter, sort })).slice(0, limit);
 }
 
 async function remove(collection: string, id: string): Promise<void> {
@@ -310,13 +257,8 @@ async function remove(collection: string, id: string): Promise<void> {
     await sql().query(`delete from ${tabell} where ${kolumner[idFält]} = $1`, [id]);
     return;
   }
-  const url = `${WIX_BASE}/data/v2/items/${encodeURIComponent(id)}?dataCollectionId=${encodeURIComponent(collection)}`;
-  const res = await fetch(url, { method: "DELETE", headers: headers() });
-  // 404 = redan borta. Tystna.
-  if (!res.ok && res.status !== 404) {
-    const text = await res.text();
-    throw new Error(`Wix Data delete ${collection}/${id} (${res.status}): ${text.slice(0, 300)}`);
-  }
+  // "fanns-inte" = redan borta. Tystna.
+  await taBort(collection, id);
 }
 
 export class SyncStore {

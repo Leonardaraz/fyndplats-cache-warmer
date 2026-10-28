@@ -1,20 +1,27 @@
 import type { FulfillmentTask, TaskStatus } from "../orders/types";
 import type { AliExpressTokenRecord, AuditEntry, ProductMappingRecord, Store } from "./index";
+import {
+  allaRader,
+  fraga,
+  hamta,
+  infoga,
+  patcha,
+  satt,
+  spara,
+  taBortFalt,
+  taBortMedFilter,
+} from "../db/wix-data-klient";
 
 // WixDataStore: persisterar mappningar, tasks, webhook-event och audit-rader
-// i Wix Data-collections (CMS). Använd via STORE_BACKEND=wix-data i env.
+// i Wix Data-collections (CMS). Använd via STORE_BACKEND=wix-data i env, eller
+// `DRIFTEN_I_WIX` i lib/store/backend.ts.
 // API: https://dev.wix.com/docs/api-reference/business-solutions/cms/data-items
-
-const WIX_BASE = "https://www.wixapis.com";
-
-function headers(): Record<string, string> {
-  const token = process.env.WIX_API_TOKEN;
-  if (!token) throw new Error("WIX_API_TOKEN saknas i miljön.");
-  const h: Record<string, string> = { "Content-Type": "application/json", Authorization: token };
-  const siteId = process.env.WIX_SITE_ID;
-  if (siteId) h["wix-site-id"] = siteId;
-  return h;
-}
+//
+// ☠️ ALLT GÅR VIA lib/db/wix-data-klient.ts sedan 2026-10-29. Den här filen
+// hade egna fetch-hjälpare med offset-sidning och ett tak på 10 000 rader, och
+// ingen av dem försökte om ett kvotstopp (WDE0014). Med drift-datan tillbaka i
+// Wix är kvoten sajtens (1 500 skrivningar i minuten), och ett tappat
+// kvotstopp hade varit en tappad task.
 
 const COL = {
   mappings: process.env.WIX_DATA_COL_MAPPINGS ?? "FyndplatsMappings",
@@ -26,258 +33,85 @@ const COL = {
 
 // Singleton-id för AliExpress-token-raden. En enda rad per Wix-site eftersom
 // vi bara har en AliExpress-app per Fyndplats-konto.
-const ALIEXPRESS_TOKEN_ID = "aliexpress-main";
+export const ALIEXPRESS_TOKEN_ID = "aliexpress-main";
 
-/**
- * Wix Data error-body kan i värsta fall innehålla request-body-fält i
- * valideringsfel. För token-collectionen MÅSTE vi inte logga den raden eftersom
- * den skulle läcka access/refresh-tokens till Vercel-loggarna.
- */
-function isSensitiveCollection(dataCollectionId: string): boolean {
-  return dataCollectionId === COL.tokens;
+/** Audit-radens id. Samma form i Postgres, så kopierade rader och nya kolliderar i stället för att dubbleras. */
+export function auditId(entry: AuditEntry): string {
+  return `${entry.at}-${entry.kind}-${entry.ref ?? "_"}`;
 }
 
-function wixErrorMessage(
-  op: string,
-  dataCollectionId: string,
-  status: number,
-  body: string,
-): string {
-  const safe = isSensitiveCollection(dataCollectionId) ? "[redacted]" : body.slice(0, 300);
-  return `Wix Data ${op} ${dataCollectionId} (${status}): ${safe}`;
-}
-
-async function save(dataCollectionId: string, id: string, data: Record<string, unknown>): Promise<void> {
-  const res = await fetch(`${WIX_BASE}/data/v2/items/save`, {
-    method: "POST",
-    headers: headers(),
-    body: JSON.stringify({ dataCollectionId, dataItem: { id, dataCollectionId, data } }),
-  });
-  if (!res.ok) {
-    throw new Error(wixErrorMessage("save", dataCollectionId, res.status, await res.text()));
-  }
-}
-
-/**
- * Asynkron massradering. Wix kör jobbet i bakgrunden och svarar direkt med ett
- * jobId — raderingen är alltså INTE klar när anropet returnerar. Samma endpoint
- * som synk-loggens retention (lib/sync/sync-log.ts).
- */
-async function removeByFilter(dataCollectionId: string, filter: Record<string, unknown>): Promise<string> {
-  const res = await fetch(`${WIX_BASE}/data/v2/bulk/items/async-remove-by-filter`, {
-    method: "POST",
-    headers: headers(),
-    body: JSON.stringify({ dataCollectionId, filter }),
-  });
-  if (!res.ok) {
-    throw new Error(wixErrorMessage("remove-by-filter", dataCollectionId, res.status, await res.text()));
-  }
-  const body = (await res.json()) as { jobId?: string };
-  return body.jobId ?? "";
-}
-
-type PatchResult = "applied" | "condition-failed" | "not-found";
-
-/**
- * Patch Data Item med valfritt `condition.filter` — atomisk compare-and-set.
- * Empiriskt verifierat mot riktig Wix Data: två samtidiga conditional-patchar →
- * exakt EN lyckas, förloraren får HTTP 428 kod WDE0193. Endpoint `/data/v2/items/{id}`
- * (samma bas som save/get/query, bekräftat fungerande för PATCH). `fieldPath` UTAN
- * `data.`-prefix (get() unwrappar dataItem.data → fälten ligger på rotnivå i filtret).
- *  • 2xx → "applied"
- *  • 428 + WDE0193 (mot OTRUNKERAD body) → "condition-failed" (villkoret matchade inte)
- *  • 404 → "not-found" (tasken finns inte)
- *  • annat → THROW (okänt → anroparen avgör fail-closed/open)
- */
-async function patchItem(
-  dataCollectionId: string,
-  dataItemId: string,
-  fieldModifications: unknown[],
-  condition?: { filter: Record<string, unknown> },
-): Promise<PatchResult> {
-  const res = await fetch(`${WIX_BASE}/data/v2/items/${encodeURIComponent(dataItemId)}`, {
-    method: "PATCH",
-    headers: headers(),
-    body: JSON.stringify({
-      dataCollectionId,
-      patch: { dataItemId, fieldModifications },
-      ...(condition ? { condition } : {}),
-    }),
-  });
-  if (res.ok) return "applied";
-  if (res.status === 404) return "not-found";
-  const text = await res.text(); // OTRUNKERAD för WDE0193-detektion (wixErrorMessage trunkerar till 300)
-  if (res.status === 428 && /WDE0193/.test(text)) return "condition-failed";
-  throw new Error(wixErrorMessage("patch", dataCollectionId, res.status, text));
-}
-
-async function get<T>(dataCollectionId: string, id: string): Promise<T | null> {
-  const url = `${WIX_BASE}/data/v2/items/${encodeURIComponent(id)}?dataCollectionId=${encodeURIComponent(dataCollectionId)}`;
-  const res = await fetch(url, { method: "GET", headers: headers() });
-  if (res.status === 404) return null;
-  if (!res.ok) {
-    throw new Error(
-      wixErrorMessage(`get/${id}`, dataCollectionId, res.status, await res.text()),
-    );
-  }
-  const body = (await res.json()) as { dataItem?: { data?: T } };
-  return body.dataItem?.data ?? null;
-}
-
-/** En sida ur en Wix Data-collection. Saknad kollektion (404 / vissa 400) → []. */
-async function queryPage<T>(
-  dataCollectionId: string,
-  filter: Record<string, unknown> | undefined,
-  sort: { fieldName: string; order: "ASC" | "DESC" }[] | undefined,
-  limit: number,
-  offset: number,
-): Promise<T[]> {
-  // offset utelämnas vid 0 så page-0-anropet ger exakt samma body som förr.
-  const paging: Record<string, number> = { limit };
-  if (offset > 0) paging.offset = offset;
-  const res = await fetch(`${WIX_BASE}/data/v2/items/query`, {
-    method: "POST",
-    headers: headers(),
-    body: JSON.stringify({
-      dataCollectionId,
-      query: { filter: filter ?? {}, sort: sort ?? [], paging },
-    }),
-  });
-  if (!res.ok) {
-    // Saknad kollektion (404) eller "inte ännu skapad" på siten (vissa 400)
-    // ska tolereras tyst — semantiskt detsamma som tom kollektion. Annars
-    // crashar t.ex. poll-tracking-cronen i evighet innan FyndplatsTasks
-    // ens har skapats av första fulfillment-flödet.
-    if (res.status === 404) return [];
-    const text = await res.text();
-    if (res.status === 400 && /not found|does not exist|unknown collection/i.test(text)) {
-      return [];
-    }
-    throw new Error(wixErrorMessage("query", dataCollectionId, res.status, text));
-  }
-  const body = (await res.json()) as { dataItems?: { data?: T }[] };
-  return (body.dataItems ?? []).map((d) => d.data).filter((d): d is T => Boolean(d));
-}
-
-/** Första sidan (≤ limit rader). För topp-N/log-läsningar (t.ex. listAudit). */
-async function query<T>(
-  dataCollectionId: string,
-  filter?: Record<string, unknown>,
-  sort?: { fieldName: string; order: "ASC" | "DESC" }[],
-  limit = 100,
-): Promise<T[]> {
-  return queryPage<T>(dataCollectionId, filter, sort, limit, 0);
-}
-
-/**
- * ALLA rader i en collection, sid-paginerat (Wix Data-tak = 100/sida). Wix Data
- * `query` utan paging gav bara de FÖRSTA 100 → listMappings/listTasks tappade tyst
- * allt därutöver: admin visade "100 mappade" trots 229 rader, stock-syncen +
- * import-dedupen såg bara 100, och orderläggningen kunde inte hitta en task bortom
- * de 100 första. Dedupar på _id ifall offset-paging överlappar vid samtidig skrivning.
- */
-/** Tak för hur många rader `queryAll` hämtar innan den ger upp. Exporterad så
- *  testet kan verifiera att taket KASTAR i stället för att avkorta tyst. */
-export const MAX_QUERY_ALL_ROWS = 10_000;
-
-async function queryAll<T>(
-  dataCollectionId: string,
-  filter?: Record<string, unknown>,
-  sort?: { fieldName: string; order: "ASC" | "DESC" }[],
-): Promise<T[]> {
-  const pageSize = 100;
-  const out: T[] = [];
-  const seen = new Set<string>();
-  // ☠️ TAKET KASTAR NUMERA I STÄLLET FÖR ATT AVKORTA TYST.
-  //
-  // Kommentaren här sa "långt över nuvarande skala" och skrevs när katalogen var
-  // ~900 mappningar. 2026-08-31 är den 5 470 — 55 % av taket — och Aosom-feeden
-  // har 5 566 artiklar kvar att importera. Vid 10 000 hade `listMappings()`
-  // returnerat de första 10 000 och synken slutat se resten, UTAN felmeddelande:
-  // produkterna hade bara tystnat, precis som om de inte fanns.
-  //
-  // Samma klass av bugg som retention-konstanterna och den obegränsade
-  // fan-outen: en konstant som var rätt när den sattes och blir fel när volymen
-  // växer under den. Ingen commit att skylla på. Skillnaden är att de två andra
-  // upptäcktes av ett haveri — den här ska skrika i stället.
-  for (let offset = 0; ; offset += pageSize) {
-    if (offset > MAX_QUERY_ALL_ROWS) {
-      throw new Error(
-        `queryAll(${dataCollectionId}) passerade ${MAX_QUERY_ALL_ROWS} rader. `
-          + "Höj taket eller byt till cursor-paging — en avkortad lista är värre än ett fel.",
-      );
-    }
-    const items = await queryPage<T>(dataCollectionId, filter, sort, pageSize, offset);
-    for (const it of items) {
-      const id = (it as { _id?: unknown })._id;
-      if (typeof id === "string") {
-        if (seen.has(id)) continue;
-        seen.add(id);
-      }
-      out.push(it);
-    }
-    if (items.length < pageSize) break;
-  }
-  return out;
-}
+/** Villkoret för dubbel-order-låset: varken beställd eller claimad. */
+const FRI_TASK = {
+  $and: [
+    { $or: [{ aliexpressOrderId: "" }, { aliexpressOrderId: { $exists: false } }] },
+    { $or: [{ claimToken: "" }, { claimToken: { $exists: false } }] },
+  ],
+};
 
 export class WixDataStore implements Store {
   async hasSeenEvent(eventId: string): Promise<boolean> {
-    const item = await get<{ id: string }>(COL.events, eventId);
-    return item !== null;
+    return (await hamta(COL.events, eventId)) !== null;
   }
 
   async markEventSeen(eventId: string): Promise<void> {
-    await save(COL.events, eventId, { _id: eventId, seenAt: new Date().toISOString() });
+    await spara(COL.events, eventId, { seenAt: new Date().toISOString() });
   }
 
   async saveMapping(record: ProductMappingRecord): Promise<void> {
-    await save(COL.mappings, record.wixProductId, { _id: record.wixProductId, ...record });
+    await spara(COL.mappings, record.wixProductId, { ...record } as Record<string, unknown>);
   }
 
   async getMappingByWixProductId(wixProductId: string): Promise<ProductMappingRecord | null> {
-    return get<ProductMappingRecord>(COL.mappings, wixProductId);
+    return hamta<ProductMappingRecord>(COL.mappings, wixProductId);
   }
 
+  /** ALLA mappningar, med markör. Ingen offset och inget tyst tak (se klienten). */
   async listMappings(): Promise<ProductMappingRecord[]> {
-    return queryAll<ProductMappingRecord>(COL.mappings);
+    return allaRader<ProductMappingRecord>(COL.mappings, { sidstorlek: 500 });
   }
 
   async upsertTask(task: FulfillmentTask): Promise<void> {
-    await save(COL.tasks, task.taskId, { _id: task.taskId, ...task });
+    await spara(COL.tasks, task.taskId, { ...task } as Record<string, unknown>);
   }
 
+  /**
+   * Skapar bara om taskId saknas — ETT anspråk (insert), inte läs-sedan-skriv.
+   * Den gamla vägen hade ett fönster där två webhook-leveranser kunde passera
+   * kontrollen samtidigt. Wix vägrar ett id som finns (WDE0074).
+   */
   async createTaskIfAbsent(task: FulfillmentTask): Promise<boolean> {
-    const existing = await get<FulfillmentTask>(COL.tasks, task.taskId);
-    if (existing) return false;
-    await this.upsertTask(task);
-    return true;
+    return (await infoga(COL.tasks, task.taskId, { ...task } as Record<string, unknown>)) === "skapad";
   }
 
   async listTasks(status?: TaskStatus): Promise<FulfillmentTask[]> {
-    const filter = status ? { status } : undefined;
-    return queryAll<FulfillmentTask>(COL.tasks, filter);
+    return allaRader<FulfillmentTask>(COL.tasks, { filter: status ? { status } : {} });
   }
 
   async listTasksByOrderId(orderId: string): Promise<FulfillmentTask[]> {
-    // Server-side-filter på rot-fältet `orderId` (get() unwrappar dataItem.data →
-    // fälten ligger på rotnivå i filtret, samma konvention som claim-CAS:en).
-    return queryAll<FulfillmentTask>(COL.tasks, { orderId });
+    // Server-side-filter på rot-fältet `orderId` (fälten ligger på rotnivå i data).
+    return allaRader<FulfillmentTask>(COL.tasks, { filter: { orderId } });
   }
 
+  /**
+   * ☠️ VERSALOKÄNSLIGT, som Postgres-vägen. Rutten versaliserar kundens
+   * inmatning, och en task som bär numret gemener hade annars gett exakt den
+   * tysta 404 som migreringen redan gav en gång (2026-09-01). Wix filter på
+   * likhet är versalkänsligt, så en exakt träff prövas först och sedan hela
+   * listan jämförd i versaler. Tasks är några hundra rader: en eller två sidor.
+   */
   async getTaskByTrackingNumber(trackingNumber: string): Promise<FulfillmentTask | null> {
     if (!trackingNumber) return null;
-    // Server-side-filter på rot-fältet, samma konvention som listTasksByOrderId.
-    const träffar = await queryAll<FulfillmentTask>(COL.tasks, { trackingNumber });
-    return träffar[0] ?? null;
+    const exakt = await fraga<FulfillmentTask>(COL.tasks, { filter: { trackingNumber }, limit: 1 });
+    if (exakt[0]) return exakt[0];
+    const sokt = trackingNumber.toUpperCase();
+    const alla = await allaRader<FulfillmentTask>(COL.tasks, { filter: { trackingNumber: { $exists: true } } });
+    return alla.find((t) => typeof t.trackingNumber === "string" && t.trackingNumber.toUpperCase() === sokt) ?? null;
   }
 
   async setTaskStatus(taskId: string, status: TaskStatus): Promise<void> {
     // PATCH SET_FIELD i stället för read-then-save full-replace (annars nollar en
     // parallell skrivning claimToken). Saknad task → "not-found" → tyst no-op.
-    await patchItem(COL.tasks, taskId, [
-      { action: "SET_FIELD", fieldPath: "status", setFieldOptions: { value: status } },
-    ]);
+    await patcha(COL.tasks, taskId, [satt("status", status)]);
   }
 
   async updateTask(taskId: string, patch: Partial<FulfillmentTask>): Promise<void> {
@@ -285,51 +119,20 @@ export class WixDataStore implements Store {
     // en parallell full-replace som läste före claimen. undefined → REMOVE_FIELD
     // (override-clear). Iterera patch-objektet direkt (inte JSON-roundtrip — undefined
     // försvinner då). Saknad task → "not-found" → tyst no-op (bevarar gammalt kontrakt).
-    const mods = Object.entries(patch).map(([k, v]) =>
-      v === undefined
-        ? { action: "REMOVE_FIELD", fieldPath: k }
-        : { action: "SET_FIELD", fieldPath: k, setFieldOptions: { value: v } },
-    );
+    const mods = Object.entries(patch).map(([k, v]) => (v === undefined ? taBortFalt(k) : satt(k, v)));
     if (mods.length === 0) return;
-    await patchItem(COL.tasks, taskId, mods);
+    await patcha(COL.tasks, taskId, mods);
   }
 
   async claimTask(taskId: string, token: string): Promise<boolean> {
     // Atomisk CAS: sätt claimToken ENBART om tasken varken är beställd eller claimad.
     // Empiriskt verifierat (3/3 + fält-löst + TOCTOU). "applied" = vi vann. 428/404 = false.
-    const r = await patchItem(
-      COL.tasks,
-      taskId,
-      [{ action: "SET_FIELD", fieldPath: "claimToken", setFieldOptions: { value: token } }],
-      {
-        filter: {
-          $and: [
-            { $or: [{ aliexpressOrderId: "" }, { aliexpressOrderId: { $exists: false } }] },
-            { $or: [{ claimToken: "" }, { claimToken: { $exists: false } }] },
-          ],
-        },
-      },
-    );
-    return r === "applied";
+    return (await patcha(COL.tasks, taskId, [satt("claimToken", token)], FRI_TASK)) === "applied";
   }
 
   async cancelTaskIfFree(taskId: string): Promise<"applied" | "blocked" | "not-found"> {
-    // Samma CAS-villkor som claimTask (empiriskt verifierat) → cancel och orderläggning
-    // utesluter varandra. "applied" = vi avbröt rent; 428/condition-failed = "blocked"
-    // (claimad/beställd → anroparen läser om); 404 = "not-found".
-    const r = await patchItem(
-      COL.tasks,
-      taskId,
-      [{ action: "SET_FIELD", fieldPath: "status", setFieldOptions: { value: "cancelled" } }],
-      {
-        filter: {
-          $and: [
-            { $or: [{ aliexpressOrderId: "" }, { aliexpressOrderId: { $exists: false } }] },
-            { $or: [{ claimToken: "" }, { claimToken: { $exists: false } }] },
-          ],
-        },
-      },
-    );
+    // Samma CAS-villkor som claimTask → cancel och orderläggning utesluter varandra.
+    const r = await patcha(COL.tasks, taskId, [satt("status", "cancelled")], FRI_TASK);
     return r === "applied" ? "applied" : r === "not-found" ? "not-found" : "blocked";
   }
 
@@ -337,35 +140,30 @@ export class WixDataStore implements Store {
     // Rör bara om VI håller låset (condition {claimToken: token}). Fail-open: ett
     // release-fel får ALDRIG fälla orderflödet → svälj och logga.
     try {
-      await patchItem(
-        COL.tasks,
-        taskId,
-        [{ action: "REMOVE_FIELD", fieldPath: "claimToken" }],
-        { filter: { claimToken: token } },
-      );
+      await patcha(COL.tasks, taskId, [taBortFalt("claimToken")], { claimToken: token });
     } catch (e) {
       console.warn(`[wix-data] releaseTask(${taskId}) misslyckades:`, e instanceof Error ? e.message : e);
     }
   }
 
   async appendAudit(entry: AuditEntry): Promise<void> {
-    const id = `${entry.at}-${entry.kind}-${entry.ref ?? "_"}`;
-    await save(COL.audit, id, { _id: id, ...entry });
+    await spara(COL.audit, auditId(entry), { ...entry } as Record<string, unknown>);
   }
 
+  /** De senaste, sorterade på `at` (index i Wix, se lib/db/wix-kollektioner.ts). */
   async listAudit(limit = 100): Promise<AuditEntry[]> {
-    return query<AuditEntry>(COL.audit, undefined, [{ fieldName: "at", order: "DESC" }], limit);
+    return fraga<AuditEntry>(COL.audit, { sort: [{ fieldName: "at", order: "DESC" }], limit: Math.min(limit, 1000) });
   }
 
   async pruneAuditOlderThan(days: number, nowMs = Date.now()): Promise<string> {
     // Filtrerar på `at` (vårt eget ISO-fält, samma som listAudit sorterar på),
     // inte Wix `_createdDate` — `at` är det appen faktiskt äger och sätter.
     const cutoff = new Date(nowMs - days * 24 * 60 * 60 * 1000).toISOString();
-    return removeByFilter(COL.audit, { at: { $lt: cutoff } });
+    return taBortMedFilter(COL.audit, { at: { $lt: cutoff } });
   }
 
   async getAliExpressTokens(): Promise<AliExpressTokenRecord | null> {
-    const raw = await get<{
+    const raw = await hamta<{
       accessToken?: string;
       refreshToken?: string;
       expiresAt?: string;
@@ -401,8 +199,7 @@ export class WixDataStore implements Store {
         "saveAliExpressTokens: ogiltig expiresAt. Skickar inte till Wix — caller måste validera tokens.expires_in före anrop.",
       );
     }
-    await save(COL.tokens, ALIEXPRESS_TOKEN_ID, {
-      _id: ALIEXPRESS_TOKEN_ID,
+    await spara(COL.tokens, ALIEXPRESS_TOKEN_ID, {
       accessToken: record.accessToken,
       refreshToken: record.refreshToken,
       expiresAt: record.expiresAt.toISOString(),

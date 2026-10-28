@@ -32,17 +32,7 @@ import { isExternalSupplierImage, ownImageUrlForReview } from "../wix/media-impo
 import { reviewsBackend } from "./backend";
 import { PostgresReviewStore } from "./reviews-postgres";
 import { reviewImageFields, reviewImages } from "../reviews/images";
-
-const WIX_BASE = "https://www.wixapis.com";
-
-function headers(): Record<string, string> {
-  const token = process.env.WIX_API_TOKEN;
-  if (!token) throw new Error("WIX_API_TOKEN saknas i miljön.");
-  const h: Record<string, string> = { "Content-Type": "application/json", Authorization: token };
-  const siteId = process.env.WIX_SITE_ID;
-  if (siteId) h["wix-site-id"] = siteId;
-  return h;
-}
+import { aggregera, allaRader, fraga, hamta, spara, type Sortering } from "../db/wix-data-klient";
 
 const COLLECTION_ID =
   process.env.WIX_DATA_COL_REVIEWS ?? "FyndplatsImportedReviews";
@@ -50,7 +40,8 @@ const COLLECTION_ID =
 export type ReviewStatus = "pending" | "approved" | "rejected" | "edited";
 
 /** Wix Data tar max 1000 rader per fråga — vi paginerar med den sidstorleken. */
-const QUERY_PAGE_SIZE = 500;
+/** Nyast först: listorna i /admin/reviews och produktsidan sorterar så. Index i Wix (lib/db/wix-kollektioner.ts). */
+const NYAST_FORST: Sortering = [{ fieldName: "date", order: "DESC" }];
 
 /**
  * Tak för hur många rader en listning hämtar. Inte en sanning om kollektionen,
@@ -232,18 +223,7 @@ export interface ReviewStoreLike {
 
 export class ReviewStore implements ReviewStoreLike {
   async exists(productId: string, reviewIdAE: string): Promise<boolean> {
-    const id = reviewDocId(productId, reviewIdAE);
-    const url = `${WIX_BASE}/data/v2/items/${encodeURIComponent(id)}?dataCollectionId=${encodeURIComponent(COLLECTION_ID)}`;
-    const res = await fetch(url, { method: "GET", headers: headers() });
-    if (res.status === 404) return false;
-    if (!res.ok) {
-      const text = await res.text();
-      if (res.status === 400 && /not found|does not exist|unknown collection/i.test(text)) {
-        return false;
-      }
-      throw new Error(`ReviewStore.exists (${res.status}): ${text.slice(0, 200)}`);
-    }
-    return true;
+    return (await hamta(COLLECTION_ID, reviewDocId(productId, reviewIdAE))) !== null;
   }
 
   async upsert(review: StoredReview): Promise<void> {
@@ -251,57 +231,33 @@ export class ReviewStore implements ReviewStoreLike {
     // Statusfallbacken och hemflytten av bilden bor i normaliseraFörSkrivning,
     // så Postgres-lagret lyder exakt samma regler. Se den funktionen.
     const skickas = await normaliseraFörSkrivning(review);
-    const res = await fetch(`${WIX_BASE}/data/v2/items/save`, {
-      method: "POST",
-      headers: headers(),
-      body: JSON.stringify({
-        dataCollectionId: COLLECTION_ID,
-        dataItem: {
-          id,
-          dataCollectionId: COLLECTION_ID,
-          data: { _id: id, ...skickas },
-        },
-      }),
-    });
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`ReviewStore.upsert (${res.status}): ${text.slice(0, 200)}`);
-    }
+    await spara(COLLECTION_ID, id, { ...skickas } as Record<string, unknown>);
   }
 
   async listByProduct(productId: string, limit = 100): Promise<StoredReview[]> {
-    return this.query({ productId }, limit);
+    return this.lista({ productId }, limit);
   }
 
-  /** Wix egen aggregering, grupperad på productId. Uppmätt 388 grupper /
-   *  1 695 omdömen i ETT svar (butiken 2026-08-17). */
+  /**
+   * Wix egen aggregering, grupperad på productId, SIDA FÖR SIDA.
+   *
+   * ☠️ Den gamla vägen bad om en sida på 1 000 grupper. Uppmätt 388 grupper
+   * 2026-08-17 — men när datan flyttade tillbaka till Wix 2026-10-29 fanns
+   * 14 973 omdömen, och fler än 1 000 produkter med omdömen hade fått sina
+   * stjärnor tyst bortkapade från korten. `aggregera` läser till sista sidan.
+   */
   async aggregateByProduct(): Promise<ProduktBetyg[]> {
-    const res = await fetch(`${WIX_BASE}/data/v2/items/aggregate`, {
-      method: "POST",
-      headers: headers(),
-      body: JSON.stringify({
-        dataCollectionId: COLLECTION_ID,
-        initialFilter: { status: { $in: VISIBLE_STATUSES } },
-        aggregation: {
-          groupingFields: ["productId"],
-          operations: [
-            { resultFieldName: "antal", itemCount: {} },
-            { resultFieldName: "snitt", average: { itemFieldName: "rating" } },
-          ],
-        },
-        // Katalogen har ~390 produkter med omdömen. Taket är satt med marginal
-        // så svaret ryms i en sida.
-        paging: { limit: 1000 },
-      }),
+    const rader = await aggregera<{ productId?: string; antal?: number; snitt?: number }>(COLLECTION_ID, {
+      initialFilter: { status: { $in: VISIBLE_STATUSES } },
+      aggregation: {
+        groupingFields: ["productId"],
+        operations: [
+          { resultFieldName: "antal", itemCount: {} },
+          { resultFieldName: "snitt", average: { itemFieldName: "rating" } },
+        ],
+      },
     });
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`ReviewStore.aggregateByProduct (${res.status}): ${text.slice(0, 200)}`);
-    }
-    const body = (await res.json()) as {
-      results?: { productId?: string; antal?: number; snitt?: number }[];
-    };
-    return (body.results ?? [])
+    return rader
       .filter((r) => r.productId && Number(r.antal) > 0)
       .map((r) => ({
         productId: String(r.productId),
@@ -311,7 +267,7 @@ export class ReviewStore implements ReviewStoreLike {
   }
 
   async listAll(limit = MAX_LIST_ALL): Promise<StoredReview[]> {
-    return this.query({}, limit);
+    return this.lista({}, limit);
   }
 
   /**
@@ -323,17 +279,11 @@ export class ReviewStore implements ReviewStoreLike {
    * listan. Att hämta "de nyaste N" och filtrera efteråt hittar den inte.
    */
   async listByStatus(status: ReviewStatus, limit = MAX_LIST_ALL): Promise<StoredReview[]> {
-    return this.query({ status }, limit);
+    return this.lista({ status }, limit);
   }
 
   private async get(productId: string, reviewIdAE: string): Promise<StoredReview | null> {
-    const id = reviewDocId(productId, reviewIdAE);
-    const url = `${WIX_BASE}/data/v2/items/${encodeURIComponent(id)}?dataCollectionId=${encodeURIComponent(COLLECTION_ID)}`;
-    const res = await fetch(url, { method: "GET", headers: headers() });
-    if (res.status === 404) return null;
-    if (!res.ok) throw new Error(`ReviewStore.get (${res.status})`);
-    const body = (await res.json()) as { dataItem?: { data?: StoredReview } };
-    return body.dataItem?.data ?? null;
+    return hamta<StoredReview>(COLLECTION_ID, reviewDocId(productId, reviewIdAE));
   }
 
   /** Moderering: sätt status (godkänn/avvisa). */
@@ -351,61 +301,19 @@ export class ReviewStore implements ReviewStoreLike {
   }
 
   /**
-   * Hämtar ALLA rader som matchar filtret, sida för sida.
+   * Raderna som matchar filtret, nyast först, högst `limit`.
    *
-   * Wix Data tar max 1000 per fråga, och kollektionen passerade det för länge
-   * sedan (1932 rader 2026-08-19). Utan paginering var frågan tyst kapad: man
-   * fick de 1000 nyaste och fick aldrig veta att resten fanns. Det spelade
-   * mindre roll när importerade recensioner auto-godkändes och aldrig behövde
-   * öppnas — men sedan 2026-08-19 är /admin/reviews enda vägen från `pending`
-   * till publicerad, och en rad som inte syns där kan aldrig bli svensk.
-   *
-   * Dubbletter dedupas på dokument-id: sorteringen sker på `date`, som både
-   * kan sakna värde och ha dubbletter, så en rad kan i teorin dyka upp i två
-   * sidor när gränsen går mitt i en grupp lika värden.
+   * Upp till en sida (1 000) är det EN fråga. Över det läses allt med markör
+   * och kapas här — kollektionen passerade 1 000 rader 2026-08-19, och utan
+   * markör var frågan tyst kapad: man fick de nyaste och fick aldrig veta att
+   * resten fanns.
    */
-  private async query(filter: Record<string, unknown>, limit: number): Promise<StoredReview[]> {
-    const ut: StoredReview[] = [];
-    const sedda = new Set<string>();
-    for (let offset = 0; ut.length < limit; offset += QUERY_PAGE_SIZE) {
-      const sida = await this.queryPage(filter, Math.min(QUERY_PAGE_SIZE, limit - ut.length), offset);
-      for (const r of sida) {
-        const id = reviewDocId(r.productId, r.reviewIdAE);
-        if (sedda.has(id)) continue;
-        sedda.add(id);
-        ut.push(r);
-      }
-      // Kortare sida än vi bad om = sista sidan.
-      if (sida.length < QUERY_PAGE_SIZE) break;
-    }
-    return ut;
-  }
-
-  private async queryPage(
-    filter: Record<string, unknown>,
-    limit: number,
-    offset: number,
-  ): Promise<StoredReview[]> {
-    const res = await fetch(`${WIX_BASE}/data/v2/items/query`, {
-      method: "POST",
-      headers: headers(),
-      body: JSON.stringify({
-        dataCollectionId: COLLECTION_ID,
-        query: { filter, sort: [{ fieldName: "date", order: "DESC" }], paging: { limit, offset } },
-      }),
-    });
-    if (!res.ok) {
-      if (res.status === 404) return [];
-      const text = await res.text();
-      if (res.status === 400 && /not found|does not exist|unknown collection/i.test(text)) {
-        return [];
-      }
-      throw new Error(`ReviewStore.query (${res.status}): ${text.slice(0, 200)}`);
-    }
-    const body = (await res.json()) as { dataItems?: { data?: StoredReview }[] };
-    return (body.dataItems ?? [])
-      .map((d) => d.data)
-      .filter((d): d is StoredReview => Boolean(d?.productId && d?.reviewIdAE));
+  private async lista(filter: Record<string, unknown>, limit: number): Promise<StoredReview[]> {
+    const rader =
+      limit <= 1000
+        ? await fraga<StoredReview>(COLLECTION_ID, { filter, sort: NYAST_FORST, limit })
+        : (await allaRader<StoredReview>(COLLECTION_ID, { filter, sort: NYAST_FORST })).slice(0, limit);
+    return rader.filter((d) => Boolean(d?.productId && d?.reviewIdAE));
   }
 }
 
