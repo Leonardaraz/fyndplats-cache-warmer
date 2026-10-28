@@ -1,6 +1,6 @@
 // lib/feed/prisjakt-gtin.ts
 //
-// TESTET MED KODER (2026-10-23). 903 varor i Prisjakt-feeden får en g:gtin. Google-
+// TESTET MED KODER (2026-10-23). 902 varor i Prisjakt-feeden får en g:gtin. Google-
 // och PriceRunner-feeden rörs inte, och resten av katalogen är orörd.
 //
 // VARFÖR. Prisjakt kopplar ett erbjudande till en befintlig produktsida via EAN.
@@ -19,7 +19,7 @@
 // TVÅ DELAR, som kan följas upp och backas var för sig:
 //  - URVAL: 50 varor med EN variant där titel, mått och pris dessutom stämde
 //    tydligt mot deras sida. Genomgångna för hand en och en.
-//  - UTOKNING: 853 varor till. De klarade samma kontroller, vårt pris ligger
+//  - UTOKNING: 852 varor till. De klarade samma kontroller, vårt pris ligger
 //    inom 0,45–1,6 gånger deras, och alla titlar jämfördes mot deras sida
 //    (mått, antal, färg). Varor som motsade den togs bort. Det är en snabbare
 //    genomgång än urvalets, och bara EN variant per produkt och bara varor som var
@@ -30,6 +30,12 @@
 // ⚠️ KODEN ÄR EN ANNAN SÄLJARES. Kontrollsiffran stämmer, men vi kan inte stämma av
 // den mot GS1. Titta i Prisjakts Business Center att varorna kopplas till RÄTT
 // produktsida, och ta bort de som inte gör det härifrån.
+//
+// BORTTAGEN 2026-10-28: variant 3921d391-dbaf-45d4-8710-a0cdb587a4bc, den armlösa
+// kontorsstolen i vitt konstläder. Prisjakt lade den på produktsidan för en
+// sammetsstol av ett annat märke, alltså hörde koden inte till vår vara. En av de
+// nio matchningar Prisjakt gjort (Leonard). prisjakt-gtin.test.ts vaktar att den
+// inte kommer tillbaka.
 //
 // SÅ TAR MAN BORT DEM. Töm UTOKNING till `{}` för att gå tillbaka till de 50, eller
 // båda till `{}`. Flödet blir då byte för byte som förut.
@@ -517,7 +523,6 @@ export const PRISJAKT_GTIN_UTOKNING: Readonly<Record<string, string>> = {
   "44c4fe09-3751-4c94-ad2c-f6e6f0544ab0": "4255826825771", // Arbetspall med rygg och fotring – sitthöjd 49–65 cm
   "c20cc4c7-e9d7-4046-bc73-b7025c01d7c9": "4255826853446", // Armlös accentstol i gummiträ med flätad sits och rygg i rotting…
   "4f104a55-6a21-4790-9e9e-662b1f98907a": "4255826860925", // Armlös kontorsstol i beige konstläder med extra kudde – 63 × 67…
-  "3921d391-dbaf-45d4-8710-a0cdb587a4bc": "4255826823975", // Armlös kontorsstol i vitt konstläder med fem hjul och höjdjuste…
   "2b88c435-5316-4745-a056-8ab8ae834b3f": "4255826826396", // Armlösa matstolar i svart sammet med hög rygg och metallben, fy…
   "0b592b29-a1c0-4f0b-8da8-111ea3487e70": "4255826854412", // Barbord 121,5 cm med vinställ och glashållare – två barpallar i…
   "6b77d862-8cc2-43d9-8f66-b49523330129": "4255826822794", // Barbord 91 cm med hylla i gaveln och två pallar – ekfärgad skiv…
