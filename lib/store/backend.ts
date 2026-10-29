@@ -47,7 +47,7 @@ export type StoreBackend = (typeof STORE_BACKENDS)[number];
  * Vägen tillbaka är växeln falsk igen — men bara med en omvänd deltakopiering,
  * annars tappas allt som skrivits till Wix efter steg 3.
  */
-export const DRIFTEN_I_WIX = false;
+export const DRIFTEN_I_WIX = true;
 
 /**
  * Läser `STORE_BACKEND`. Default `"memory"` (dev/test), som förut.

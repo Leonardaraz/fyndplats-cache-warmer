@@ -22,24 +22,17 @@ describe("fårRaderas — spärrlistan", () => {
     expect(fårRaderas("FyndplatsRedirects")).toBe(false);
   });
 
-  it("☠️ auktionerna får raderas BARA när de bor i Postgres", () => {
-    // Läser motorn auktionerna ur Wix hade en radering tömt den levande
-    // auktionen. Leonards ja (2026-09-29) gäller raderingen efter en verifierad
-    // växling, inte före. Växlingen är defaulten sedan 2026-09-30, så en osatt
-    // variabel betyder Postgres — men wix-data (vägen tillbaka) spärrar.
-    vi.stubEnv("AUCTIONS_BACKEND", "wix-data");
-    expect(fårRaderas("FyndplatsAuctions")).toBe(false);
-    vi.stubEnv("AUCTIONS_BACKEND", "");
-    expect(fårRaderas("FyndplatsAuctions")).toBe(true);
-    vi.stubEnv("AUCTIONS_BACKEND", "postgres");
-    expect(fårRaderas("FyndplatsAuctions")).toBe(true);
-  });
-
-  it("recensionerna är SLÄPPTA — butiken läser dem via API:t sedan 2026-09-02", () => {
-    // ☠️ Det här testet vänder riktning med flit, så ändringen är en MEDVETEN
-    // handling och inte en rad som tyst försvann ur en lista. Villkoren står i
-    // kommentaren vid ALDRIG_RADERA och är mätta, inte antagna.
-    expect(fårRaderas("FyndplatsImportedReviews")).toBe(true);
+  it("☠️ sedan flytten tillbaka (2026-10-29) får ingenting raderas: Wix är källan", () => {
+    // Verktyget raderar Wix-rader som finns i Neon-kopian. Efter flytten är
+    // varje sådan rad levande data: auktionerna, recensionerna, mappningarna.
+    // Inget miljövärde öppnar spärren.
+    for (const v of ["", "postgres", "wix-data"]) {
+      vi.stubEnv("AUCTIONS_BACKEND", v);
+      expect(fårRaderas("FyndplatsAuctions")).toBe(false);
+    }
+    expect(fårRaderas("FyndplatsImportedReviews")).toBe(false);
+    for (const s of ATT_KOPIERA) expect(fårRaderas(s.kollektion)).toBe(false);
+    for (const k of LLM_SAMLINGAR) expect(fårRaderas(k)).toBe(false);
   });
 
   it("☠️ men recensionerna har INGET retention-fönster — det är den hårda spärren", () => {
@@ -61,17 +54,6 @@ describe("fårRaderas — spärrlistan", () => {
 
   it("☠️ spärrlistan vinner ÖVER kopielistan", () => {
     for (const namn of ALDRIG_RADERA) expect(fårRaderas(namn)).toBe(false);
-  });
-
-  it("de flyttade kollektionerna får raderas", () => {
-    // Växelstyrda kollektioner (auktionerna) räknas som flyttade först efter
-    // växlingen — testet ovan låser den andra riktningen.
-    vi.stubEnv("AUCTIONS_BACKEND", "postgres");
-    for (const spec of ATT_KOPIERA) {
-      if ((ALDRIG_RADERA as readonly string[]).includes(spec.kollektion)) continue;
-      expect(fårRaderas(spec.kollektion)).toBe(true);
-    }
-    for (const k of LLM_SAMLINGAR) expect(fårRaderas(k)).toBe(true);
   });
 
   it("☠️ en okänd kollektion får ALDRIG raderas — bara uppräknade", () => {

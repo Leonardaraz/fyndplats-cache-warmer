@@ -8349,7 +8349,7 @@ Postgres.
 | 1 | koden: Wix-versioner + kopieringen, `DRIFTEN_I_WIX = false` | nej |
 | 2 | kollektioner, behörighet ADMIN och index i Wix | nej |
 | 3 | `kopiera`, sedan `verifiera` rad för rad | nej |
-| 4 | `DRIFTEN_I_WIX = true` i en egen PR → deploy | **ja** |
+| 4 | `DRIFTEN_I_WIX = true` i en egen PR → deploy (gjort 2026-10-29) | **ja** |
 | 5 | `delta` direkt efter, sedan `verifiera` | nej |
 | 6 | följ driften några dygn, sedan stängs Neon | — |
 
@@ -8364,7 +8364,7 @@ Nio egenskaper som inte ska tas bort:
 1. ☠️ **Växeln ligger i koden** (`DRIFTEN_I_WIX`, `lib/store/backend.ts`).
    Vercel nekar oss att läsa och ändra miljövariablerna (403), och
    `STORE_BACKEND`, `REVIEWS_BACKEND` står på `postgres`. När växeln är sann
-   betyder det värdet Wix. Ett test låser att den är falsk i steg 1.
+   betyder det värdet Wix. Ett test låser att den är sann sedan växlingen 2026-10-29.
 2. ☠️ **Klienten läser med markör till slutet och kastar i stället för att
    kapa.** Den gamla Wix-vägen läste auktionskön, importkostnaderna och
    recensionernas betyg med EN sida om 1 000 — alla tre var större än så när
@@ -8406,7 +8406,25 @@ Nio egenskaper som inte ska tas bort:
 
 Planen 2026-10-29 (efter #791): alla 20 kollektioner fanns och var tomma, och
 motorns Neon-databas har inga andra tabeller. **Butiken har alltså en egen
-Neon-databas**, och dess tabeller kopieras av butiken själv.
+Neon-databas**, och dess tabeller kopieras av butiken själv: workflowens val
+`system: butik` går via `/api/admin/butik-neon-till-wix`, som skickar anropet
+vidare till butikens `/api/admin/neon-till-wix` med `ADMIN_SECRET` som kakan
+`fp_admin`. Butikens svar är redigerat där (hashade id, korta fel).
+
+**Utfallet 2026-10-29**, i den ordning det gjordes:
+
+| steg | när (UTC) | utfall |
+|---|---|---|
+| kopiera, tre små tabeller | 23:37 | tasks 146, synkmarkörer 2, fakturaloggen 3 |
+| kopiera, allt | 23:40–23:44 | ~55 000 rader, noll fel, två varv |
+| verifiera | 23:47–23:48 | alla 20 tabeller lika rad för rad, nycklarna lika |
+| index | 23:55 | alla ACTIVE, radantalen som kopian |
+| växeln sann | den här PR:en | se `delta` nedan |
+
+Efter mergen: kör `kopiera` en gång till precis före (dess start är
+`kopierad_sedan`), merga, vänta tills bygget är READY, och kör `delta` med
+`vaxling` = mergens tid. Ett hoppat `delta` lämnar det som skrevs till Neon
+mellan kopian och växlingen kvar där.
 
 ## ☠️ Drift-datan bor i Postgres sedan 2026-08-31 — inte i Wix Data
 

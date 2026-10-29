@@ -32,8 +32,8 @@ afterEach(() => {
 describe("☠️ reviewsBackend är FRIKOPPLAD från storeBackend", () => {
   it("osatt → wix-data, även när drift-datan står på postgres", () => {
     process.env.STORE_BACKEND = "postgres";
-    expect(storeBackend()).toBe("postgres");
-    // Kärnan: recensionerna ligger ETT STEG EFTER i sin egen migrering.
+    // Sedan flytten tillbaka (2026-10-29) betyder postgres Wix (DRIFTEN_I_WIX).
+    expect(storeBackend()).toBe("wix-data");
     expect(reviewsBackend()).toBe("wix-data");
   });
 
@@ -42,9 +42,11 @@ describe("☠️ reviewsBackend är FRIKOPPLAD från storeBackend", () => {
     expect(reviewsBackend()).toBe("wix-data");
   });
 
-  it("växlingen är en MEDVETEN handling", () => {
+  it("☠️ postgres betyder Wix sedan flytten tillbaka 2026-10-29", () => {
+    // Vercel låter oss inte ändra REVIEWS_BACKEND (403), så den står kvar på
+    // postgres. Växeln DRIFTEN_I_WIX gör att värdet betyder Wix.
     process.env.REVIEWS_BACKEND = "postgres";
-    expect(reviewsBackend()).toBe("postgres");
+    expect(reviewsBackend()).toBe("wix-data");
   });
 
   it("☠️ en felstavning KASTAR, den gissar inte", () => {

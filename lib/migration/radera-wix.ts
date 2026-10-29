@@ -33,7 +33,7 @@
 
 import { ATT_KOPIERA, AUDIT, AUKTIONER, LLM_SAMLINGAR, SYNC_LOG } from "@/lib/db/tabeller";
 import { AUDIT_RETENTION_DAYS, SYNC_LOG_RETENTION_DAYS } from "@/lib/retention";
-import { auctionsBackend } from "@/lib/store/backend";
+import { auctionsBackend, DRIFTEN_I_WIX } from "@/lib/store/backend";
 
 /** Kollektioner som ALDRIG får röras, oavsett vad kopielistan säger.
  *  `FyndplatsRedirects` läses direkt av butiksrepot; flyttas den måste butiken
@@ -92,6 +92,11 @@ const VÄXELSTYRDA: Record<string, () => boolean> = {
 };
 
 export function fårRaderas(kollektion: string): boolean {
+  // ☠️ Sedan flytten tillbaka (2026-10-29) är Wix källan, och varje rad som
+  // också finns i Neon är en levande rad. Verktyget raderar Wix-rader som finns
+  // i kopian, så det får inte radera någonting alls. Rutten vägrar redan (409)
+  // när drift-datan inte står på Postgres; det här är den andra spärren.
+  if (DRIFTEN_I_WIX) return false;
   if ((ALDRIG_RADERA as readonly string[]).includes(kollektion)) return false;
   const växel = VÄXELSTYRDA[kollektion];
   if (växel && !växel()) return false;
