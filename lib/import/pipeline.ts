@@ -68,7 +68,7 @@ import { matchesColorName, isColorAxis } from "./color-match";
 import { sortedSizeChoices } from "./variant-sort";
 import { buildVariantSkus } from "./sku";
 import { audit } from "../audit";
-import { aliExpressIdFromListing } from "@/lib/aliexpress/product-id";
+import { aliExpressIdFromListing, arAliExpressListningsId } from "@/lib/aliexpress/product-id";
 /**
  * Paus mellan bilduppladdningar, i ms. Default 150.
  *
@@ -414,7 +414,7 @@ export async function importProduct(
   if (
     dsPriceReconcileEnabled() &&
     needsDsPriceReconcile(sourceVariants) &&
-    /^\d{6,}$/.test(String(product.supplierProductId || ""))
+    arAliExpressListningsId(product.supplierProductId)
   ) {
     reconcileAttempted = true;
     try {
@@ -516,7 +516,13 @@ export async function importProduct(
   // namn. Hoppar API-anropet helt när skrapan redan gav swatch-bilder → ingen extra
   // kostnad/regression. Best-effort — fäller aldrig importen.
   let effectiveSwatchImages = product.swatchImages;
-  if (variantImageBackfillEnabled() && needsSwatchBackfill(product)) {
+  // Bara för en AliExpress-produkt: kompletteringen frågar AliExpress DS-API:t,
+  // och en Aosom- eller VEVOR-produkt har inget id där (arAliExpressListningsId).
+  if (
+    variantImageBackfillEnabled() &&
+    needsSwatchBackfill(product) &&
+    arAliExpressListningsId(product.supplierProductId)
+  ) {
     const backfilled = await enrichSwatchImagesFromApi(product, { getProduct: getProductOnce });
     const axis = Object.keys(backfilled)[0];
     if (axis) {
@@ -540,7 +546,11 @@ export async function importProduct(
   // den (XSS + dropship-anonymisering) och använd den. Best-effort — fäller aldrig
   // importen. Gäller både rå-läge (descriptionHtml → Wix direkt) och AI-läge
   // (rawDescription → SEO-generering).
-  if (descriptionBackfillEnabled() && needsDescriptionBackfill(product)) {
+  if (
+    descriptionBackfillEnabled() &&
+    needsDescriptionBackfill(product) &&
+    arAliExpressListningsId(product.supplierProductId)
+  ) {
     try {
       const ds = await getProductOnce(product.supplierProductId);
       const detail = sanitizeDescriptionHtml(ds.description || "");
@@ -575,7 +585,7 @@ export async function importProduct(
   // aldrig importen, och rör ingenting när skrapan faktiskt gav specar.
   if (
     Object.keys(product.specifications || {}).length === 0 &&
-    /^\d{6,}$/.test(String(product.supplierProductId || ""))
+    arAliExpressListningsId(product.supplierProductId)
   ) {
     try {
       const ds = await getProductOnce(product.supplierProductId);

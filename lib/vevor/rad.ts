@@ -14,8 +14,9 @@
 // saknad rad (`saknadRad: "okand"`), och adaptern säger det för allt annat vi
 // inte vet. En fryst läsare betyder att VEVOR spärrat oss: då vet vi ingenting.
 //
-// Den landade kostnaden lämnas null. Prisregeln (rabatt, momsdelare) är steg 5
-// och väntar på Leonards besked. Null betyder att synken inte rör priset.
+// Den landade kostnaden lämnas null. Prisregeln finns sedan steg 4
+// (lib/vevor/pris.ts, rabatten i konfigurationen), och synken kopplar in den i
+// steg 5. Null betyder att synken inte rör priset.
 
 import type { Leverantorsrad } from "@/lib/sync/leverantorsrad";
 import type { Avlasning } from "./lager";

@@ -71,6 +71,10 @@ function miljo(): Miljo {
     larma: async (amne) => {
       larm.push(amne);
     },
+    // Fast dragning: med Math.random valde var tionde körning av ett test en
+    // sida som testet gör trasig som kontrollsida, och körningen stoppades.
+    // Tester som prövar spridningen sätter en egen följd.
+    slump: () => 0.5,
   };
   return { lager, deps, anrop, larm, svar, karta, robots, underlag, nu: () => nu, flytta: (ms) => (nu += ms) };
 }

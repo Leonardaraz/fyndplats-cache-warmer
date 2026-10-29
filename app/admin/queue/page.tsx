@@ -4,7 +4,8 @@
 
 import Link from "next/link";
 import { getStore } from "@/lib/store/factory";
-import type { ProductMappingRecord } from "@/lib/store/index";
+import { LEVERANTORER, type MappingSupplier, type ProductMappingRecord } from "@/lib/store/index";
+import { mappingSupplier } from "@/lib/store/supplier";
 import { getSupplierStore, type SupplierRecord, type SupplierStatus } from "@/lib/import/supplier-tracking";
 import {
   acceptCategorySuggestion,
@@ -16,6 +17,24 @@ import {
 import { PolishButton } from "./polish-button";
 
 export const dynamic = "force-dynamic";
+
+/**
+ * Så många kort visas utan `?alla=1`. Med VEVOR:s ~15 600 utkast ovanpå Aosoms
+ * hade sidan annars renderat tiotusentals kort, var och ett med bilder och
+ * formulär, och inte gått att ladda. Filtren (leverantör, polering, pris)
+ * smalnar av till det man vill se.
+ */
+const MAX_KORT = 300;
+
+const LEVERANTORSNAMN: Record<MappingSupplier, string> = {
+  aliexpress: "AliExpress",
+  aosom: "Aosom",
+  vevor: "VEVOR",
+};
+
+function arLeverantor(v: unknown): v is MappingSupplier {
+  return typeof v === "string" && (LEVERANTORER as readonly string[]).includes(v);
+}
 
 function pendingFirst(a: ProductMappingRecord, b: ProductMappingRecord): number {
   return (b.createdAt ?? "").localeCompare(a.createdAt ?? "");
@@ -81,6 +100,8 @@ export default async function QueuePage({
   const euOnly = sp.eu === "1" || sp.eu === "true";
   const polishOnly = sp.polish === "1" || sp.polish === "true";
   const priceOnly = sp.pris === "1" || sp.pris === "true";
+  const visaAlla = sp.alla === "1" || sp.alla === "true";
+  const lev = arLeverantor(sp.lev) ? sp.lev : null;
   const sortMode = sp.sort === "eu" ? "eu" : "date";
 
   const store = getStore();
@@ -101,6 +122,8 @@ export default async function QueuePage({
   // Prisspärren: går att filtrera fram, precis som EU och polering. En räknare
   // utan filter är svår att agera på när kön är lång.
   if (priceOnly) pending = pending.filter((m) => typeof m.priceUnverified === "string");
+  if (lev) pending = pending.filter((m) => mappingSupplier(m) === lev);
+  const visade = visaAlla ? pending : pending.slice(0, MAX_KORT);
   const recent = all
     .filter((m) => m.draftStatus === "published" || m.draftStatus === "rejected")
     .sort(pendingFirst)
@@ -112,6 +135,11 @@ export default async function QueuePage({
   // gick att bekräfta. De är det mest brådskande i kön — en felprissatt produkt
   // säljer med fel marginal så fort någon publicerar den.
   const priceUnverifiedCount = pendingAll.filter((m) => typeof m.priceUnverified === "string").length;
+  const perLeverantor = new Map<string, number>();
+  for (const m of pendingAll) {
+    const l = mappingSupplier(m);
+    perLeverantor.set(l, (perLeverantor.get(l) ?? 0) + 1);
+  }
 
   // Aggregera bild-analys-statistik för översikt högst upp.
   const stats = pending.reduce(
@@ -193,6 +221,15 @@ export default async function QueuePage({
           />
         ) : null}
         <span style={{ borderLeft: "1px solid #e5e7eb", margin: "0 4px" }} />
+        {LEVERANTORER.filter((l) => (perLeverantor.get(l) ?? 0) > 0).map((l) => (
+          <ChipLink
+            key={l}
+            href={buildQs(sp, { lev: lev === l ? undefined : l })}
+            active={lev === l}
+            label={`${LEVERANTORSNAMN[l]} (${perLeverantor.get(l) ?? 0})`}
+          />
+        ))}
+        <span style={{ borderLeft: "1px solid #e5e7eb", margin: "0 4px" }} />
         <ChipLink
           href={buildQs(sp, { sort: undefined })}
           active={sortMode === "date"}
@@ -205,13 +242,19 @@ export default async function QueuePage({
         />
       </div>
 
-      <h2>Väntar på granskning ({pending.length}{euOnly ? ` av ${totalPending}` : ""})</h2>
+      <h2>Väntar på granskning ({pending.length}{pending.length !== totalPending ? ` av ${totalPending}` : ""})</h2>
+      {visade.length < pending.length ? (
+        <p style={{ fontSize: 13, color: "#475569" }}>
+          Visar de första {visade.length}. Smalna av med filtren ovan, eller{" "}
+          <Link href={buildQs(sp, { alla: "1" })}>visa alla {pending.length}</Link> (tung sida).
+        </p>
+      ) : null}
       {pending.length === 0 ? (
         <p style={{ color: "#888" }}>Inga produkter väntar på granskning.</p>
       ) : (
         <form>
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {pending.map((p) => (
+            {visade.map((p) => (
               <QueueCard
                 key={p.wixProductId}
                 product={p}
@@ -457,6 +500,7 @@ function QueueCard({
                   : ""}
               </span>
             ) : null}
+            {p.vevorGranskning ? <VevorBadges g={p.vevorGranskning} /> : null}
           </div>
           <div style={{ fontSize: 12, color: "#666", marginTop: 2 }}>
             {p.variants.length} varianter · importerad{" "}
@@ -658,6 +702,50 @@ function CategoryRow({
       <b>Okategoriserad.</b>{" "}
       <span style={{ fontSize: 12 }}>{cat.reason || "Sätt kategori manuellt i Wix."}</span>
     </div>
+  );
+}
+
+/**
+ * Det poleringen ska kontrollera på ett VEVOR-utkast (lib/vevor/granskning.ts).
+ * Inget av det får publiceras förrän GPSR-uppgifterna finns (steg 7).
+ */
+function VevorBadges({ g }: { g: NonNullable<ProductMappingRecord["vevorGranskning"]> }) {
+  const stil = (bg: string, color: string, border: string) => ({
+    display: "inline-block",
+    fontSize: 10,
+    fontWeight: 600,
+    padding: "2px 8px",
+    borderRadius: 999,
+    background: bg,
+    color,
+    border: `1px solid ${border}`,
+    marginLeft: 6,
+  });
+  return (
+    <>
+      <span
+        title="Tillverkare och EU-ansvarig ska stå på produktsidan (GPSR). Publicera inte förrän uppgifterna finns."
+        style={stil("#fef3c7", "#92400e", "#fcd34d")}
+      >
+        📄 GPSR: {g.gpsr === "manual_ej_last" ? "manualen inte läst" : "ingen manual"}
+      </span>
+      {g.medicinteknik ? (
+        <span
+          title="Kategorin kan vara medicinteknik. Kontrollera CE-märkning och dokument före publicering."
+          style={stil("#fee2e2", "#991b1b", "#fca5a5")}
+        >
+          ⚕️ Kan vara medicinteknik
+        </span>
+      ) : null}
+      {g.bildgranskning ? (
+        <span
+          title={`Bilderna följde inte VEVOR:s vanliga mönster (${g.bildmonster}). Titta på dem före publicering.`}
+          style={stil("#e0e7ff", "#3730a3", "#a5b4fc")}
+        >
+          🖼️ Granska bilderna
+        </span>
+      ) : null}
+    </>
   );
 }
 

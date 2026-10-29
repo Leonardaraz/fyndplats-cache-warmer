@@ -70,6 +70,21 @@ export class WixDataStore implements Store {
     return allaRader<ProductMappingRecord>(COL.mappings, { sidstorlek: 500 });
   }
 
+  /** Hundra id per fråga. Kollektionen har inget index på fälten, men 22 000 rader är en snabb genomsökning. */
+  async mappningarForLeverantorsId(ids: string[]): Promise<ProductMappingRecord[]> {
+    const unika = [...new Set(ids.filter(Boolean))];
+    const ut = new Map<string, ProductMappingRecord>();
+    for (let i = 0; i < unika.length; i += 100) {
+      const del = unika.slice(i, i + 100);
+      const rader = await allaRader<ProductMappingRecord>(COL.mappings, {
+        filter: { $or: [{ supplierProductId: { $in: del } }, { importSparr: { $in: del } }] },
+        sidstorlek: 500,
+      });
+      for (const r of rader) ut.set(r.wixProductId, r);
+    }
+    return [...ut.values()];
+  }
+
   async upsertTask(task: FulfillmentTask): Promise<void> {
     await spara(COL.tasks, task.taskId, { ...task } as Record<string, unknown>);
   }

@@ -32,7 +32,7 @@ export async function lasPrioritetsunderlag(): Promise<Prioritetsunderlag> {
 }
 
 /** Larmet går till OPS_ALERT_EMAIL. Saknas adressen syns det i loggen, och läsaren fortsätter. */
-async function larma(amne: string, text: string): Promise<void> {
+export async function larma(amne: string, text: string): Promise<void> {
   const till = process.env.OPS_ALERT_EMAIL?.trim();
   if (!till) {
     console.error(`[vevor-lasare] OPS_ALERT_EMAIL saknas, larmet gick inte: ${amne}`);
