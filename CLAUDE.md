@@ -8359,7 +8359,7 @@ Workflowen är **"Migrering — flytta drift-datan tillbaka till Wix"**
 (Neon-tabellerna i Wix form). All Wix-trafik går via
 `lib/db/wix-data-klient.ts`.
 
-Nio egenskaper som inte ska tas bort:
+Tolv egenskaper som inte ska tas bort:
 
 1. ☠️ **Växeln ligger i koden** (`DRIFTEN_I_WIX`, `lib/store/backend.ts`).
    Vercel nekar oss att läsa och ändra miljövariablerna (403), och
@@ -8403,6 +8403,14 @@ Nio egenskaper som inte ska tas bort:
     skiljetecken** (uppmätt 2026-10-29, `WDE0075`). Mellanslag och å, ä, ö
     avvisas. Motorns nycklar (order-id, task-id, artikel-id) klarar det;
     butikens e-postnycklar gör det inte alltid, se dess `CLAUDE.md`.
+12. ☠️ **En sidad aggregering måste sorteras på grupperingsfälten**
+    (uppmätt 2026-10-29). Utan sortering kommer grupperna i en ny ordning för
+    varje anrop, och sidorna överlappar: av recensionernas 3 663 produkter kom
+    2 625 fram med offset och 2 504 med markör, trots att sidorna innehöll
+    1 000 + 1 000 + 1 000 + 663 rader. Efter växlingen saknade ~1 000
+    produktkort sina stjärnor. Sorterat på `productId` ger båda vägarna 3 663
+    produkter och 12 404 omdömen, samma tal som Neon. `aggregera` sorterar
+    alltid och kastar om en grupp kommer två gånger.
 
 Planen 2026-10-29 (efter #791): alla 20 kollektioner fanns och var tomma, och
 motorns Neon-databas har inga andra tabeller. **Butiken har alltså en egen
@@ -8419,7 +8427,9 @@ vidare till butikens `/api/admin/neon-till-wix` med `ADMIN_SECRET` som kakan
 | kopiera, allt | 23:40–23:44 | ~55 000 rader, noll fel, två varv |
 | verifiera | 23:47–23:48 | alla 20 tabeller lika rad för rad, nycklarna lika |
 | index | 23:55 | alla ACTIVE, radantalen som kopian |
-| växeln sann | den här PR:en | se `delta` nedan |
+| växeln sann (#794) | 00:01:39, READY 00:03:05 | motorn läser och skriver Wix |
+| `delta` | 00:03–00:05 | alla 20 tabeller lika, ingenting att skriva |
+| stjärnbetygen | 00:05 | 2 697 produkter i stället för 3 663, se punkt 12 |
 
 Efter mergen: kör `kopiera` en gång till precis före (dess start är
 `kopierad_sedan`), merga, vänta tills bygget är READY, och kör `delta` med
