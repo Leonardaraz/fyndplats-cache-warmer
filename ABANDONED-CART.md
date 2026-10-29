@@ -28,7 +28,7 @@ All enforced in `lib/abandoned-cart.ts`:
 2. **Shipping address lock for the 5% code.** A normalised SHA-256 hash of the address (line1 + line2 + postal + city + country, diacritics and non-alnum stripped) is computed on every order; if that hash is in `used_addresses`, the customer is treated as a returning buyer and email 3 falls through to the no-code variant.
 3. **Phone lock for the 5% code.** Same logic against the normalised phone (Swedish format → `+46…`).
 4. **24 h TTL** on the code (`expirationTime` on Wix coupon).
-5. **Single-use** on the code (`usageLimit: 1`, `limitedToOnePerCustomer: true`).
+5. **Single-use** on the code (`usageLimit: 1`, `limitPerCustomer: 1`).
 6. **Cart subtotal must be > 200 kr** to receive the code (Wix `minimumSubtotal: 200`; we also guard locally so we don't waste a coupon mint on a sub-200kr cart).
 7. **Convert cancels the flow.** When `order_created` fires for a cart we already have in `abandoned_carts`, `onOrderConverted` flips the row to `converted`, revokes the Wix coupon if one was minted, and seeds the shipping address + phone into `used_addresses`.
 
@@ -38,7 +38,9 @@ All enforced in `lib/abandoned-cart.ts`:
 - **Ingest (poller)**: Vercel Cron `*/15 * * * *` → `GET /api/cron/abandoned-checkout-poller`. Calls `POST /ecom/v1/abandoned-checkout/query` (works with the existing `WIX_API_KEY`), keeps ABANDONED checkouts whose `createdDate` is within the lookback window (default 24h, `?hours=` overridable), and enqueues each via `enqueueAbandonedCart`. Idempotent: enqueue is keyed on the abandoned-checkout id (`ON CONFLICT DO NOTHING`) and the per-email 30-day cooldown also applies, so repeated polls are no-ops. See `lib/abandoned-checkout-poll.ts`.
 - **Scheduling (sender)**: Vercel Cron `*/15 * * * *` → `GET /api/cron/abandoned-cart-sender`. We chose this over Upstash QStash because: delays are hours-scale, the cron secret is a single env var, and we wanted a single deployable surface. Rows carry their own `next_step_at`; the cron picks any row where `status='pending'` and `next_step_at <= NOW()` and advances it one step. Idempotency is enforced by a unique `(cart_id, step)` constraint on `sent_emails`.
 - **Webhook (optional, secondary)**: `wix.ecom.v1.abandoned_checkout` slug `created` → `/api/wix-webhook` → `handleAbandonedCheckoutCreated`. This was the original (never-delivered) source; the poller now covers ingest. If the Dev Center subscription is ever added it will coexist safely with the poller.
-- **Coupons**: minted on demand at email 3 send time via `POST https://www.wixapis.com/stores/v2/coupons`. The Wix coupon id is stored on the cart row so `onOrderConverted` can revoke it.
+- **Coupons**: minted on demand at email 3 send time via `POST https://www.wixapis.com/stores/v2/coupons`. The Wix coupon id is stored on the cart row so `onOrderConverted` can revoke it. The body is built in `lib/rabattkupong.ts`.
+
+  ☠️ **No coupon was ever minted from 2026-05-30 to 2026-10-29.** The body sent `startTime` and `expirationTime` as ISO dates, and Wix answered 400 `Not a numeric value` every time: the API wants milliseconds in a string (`"1793289938682"`). Email 3 then fell back to the no-code variant, which is why nobody noticed. The same body also sent `scope` together with `minimumSubtotal` (the schema makes them ONE-OF) and `limitedToOnePerCustomer`, which does not exist (it is `limitPerCustomer`). The fixed body was measured against Wix with inactive test coupons that were deleted straight after, and `lib/rabattkupong.test.ts` fails on each of the three old mistakes. If `[abandoned-cart] coupon mint failed` shows up in the logs again, read the Wix message before you call it transient.
 
 ## Files
 
