@@ -8,7 +8,8 @@ Allt som jämförs kommer ur skrivplanen: koden skriver ingenting. Klistra in ut
 
   --prefix       sidan är en sammanslagen värd: bara värdens första bilder (planens antal) och deras alt-texter jämförs, för givarens bilder ligger efter dem.
   --givarbilder  <givarrunda>:<givare-id8>:<värd-id8>  jämför också bilderna efter värdens egna: givarrundans `bildplan.json` (fil-id och alt-text i galleriets
-                 ordning) mot det som ligger i värdens galleri efter värdens bilder. Kan anges en gång per givare. ☠️ Alt-texterna paras med filen och inte med platsen:
+                 ordning) mot det som ligger i värdens galleri efter värdens bilder. Kan anges en gång per givare, och flera givare på samma
+                 värd läggs efter varandra i den ordning de anges (sammanslagningens ordning). ☠️ Alt-texterna paras med filen och inte med platsen:
                  en extra bild (position 10) läggs sist i givarens galleri fast den står i mitten av `tas_med`, så platsen går inte att gissa (T95, 2026-10-24).
   givare-id8=fullt-id   kontrollerar att givaren är dold.
 
@@ -65,7 +66,15 @@ for grunda, giv8, vard8 in GIVBILDER:
     plan = json.load(open(f'{ROT}/{grunda}/bildplan.json', encoding='utf-8'))
     traff = [p for p in plan['produkter'] if p['kort'] == giv8]
     assert len(traff) == 1, f'{giv8} finns inte exakt en gång i {grunda}/bildplan.json'
-    DON[vard8] = dict(ids=[m['id'] for m in traff[0]['media']], alts=[m['altText'] for m in traff[0]['media']])
+    ids = [m['id'] for m in traff[0]['media']]
+    alts = [m['altText'] for m in traff[0]['media']]
+    if vard8 in DON:
+        # ☠️ Flera givare på samma värd läggs efter varandra i den ordning de anges. Förut ersatte den sista givaren de tidigare, och
+        # soffbordets tre givare (T104, 2026-10-29) jämfördes som en: "18 mot 6" i läsningen, fast galleriet var rätt.
+        DON[vard8]['ids'] += ids
+        DON[vard8]['alts'] += alts
+    else:
+        DON[vard8] = dict(ids=ids, alts=alts)
 
 js = '''async function () {
   const EXP = %s;

@@ -27,6 +27,20 @@ export class MemoryStore implements Store {
     return this.mappings.get(wixProductId) ?? null;
   }
 
+  async getMappingsByWixProductIds(wixProductIds: string[]): Promise<Map<string, ProductMappingRecord>> {
+    const ut = new Map<string, ProductMappingRecord>();
+    for (const id of wixProductIds) {
+      const m = this.mappings.get(id);
+      if (m) ut.set(id, m);
+    }
+    return ut;
+  }
+
+  async saveMappings(records: ProductMappingRecord[]): Promise<{ fel: { wixProductId: string; fel: string }[] }> {
+    for (const r of records) this.mappings.set(r.wixProductId, r);
+    return { fel: [] };
+  }
+
   async listMappings(): Promise<ProductMappingRecord[]> {
     return [...this.mappings.values()];
   }

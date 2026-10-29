@@ -1,0 +1,127 @@
+name: Recensioner — byt Y, X, Z och W i initialerna mot andra bokstäver
+
+# Leonard 2026-10-29: recensioner vars initialer har bokstäverna Y, X, Z eller W
+# ska få andra, slumpmässiga bokstäver. Bara den förbjudna bokstaven byts
+# ("Z.K." blir t.ex. "R.K."). Bokstaven väljs deterministiskt ur recensionens id,
+# så torrkörningen visar exakt vad en skarp körning skriver. Text, betyg, datum
+# och status rörs inte. Logiken: lib/reviews/slumpa-initialer.ts.
+#
+# Kundomdömen (förstahandsomdömen med kundens egna initialer) rörs inte, om inte
+# kundomdomen = ja.
+#
+# Torrt som default: räknar och visar exempel. skarp = ja kräver dessutom
+# bekrafta = exakt det antal torrkörningen visade ("attSkrivaDennaKorning").
+# Varje rad läses tillbaka. Blir det rader kvar (hogst eller tidsbudget): kör
+# torrt igen och sedan skarpt med det nya antalet.
+#
+# ☠️ LOGGEN BÄR BARA RÄKNARE OCH EXEMPEL PÅ INITIALER (de syns redan på
+# produktsidan). Inga namn, inga id:n.
+#
+# Återanvänder befintliga repository secrets:
+#   POLL_TRACKING_URL — bas-URL:en härleds härifrån (byter path-suffix)
+#   CRON_SECRET — samma värde som CRON_SECRET i Vercel env vars
+
+on:
+  workflow_dispatch:
+    inputs:
+      skarp:
+        description: "ja = skriv. nej = torrkörning (räknar och visar exempel)."
+        required: false
+        default: "nej"
+        type: choice
+        options:
+          - "nej"
+          - "ja"
+      bekrafta:
+        description: "Skarpt: antalet rader torrkörningen visade (attSkrivaDennaKorning)"
+        required: false
+        default: ""
+        type: string
+      kundomdomen:
+        description: "ja = ta med kundomdömen. nej (standard) = lämna dem orörda."
+        required: false
+        default: "nej"
+        type: choice
+        options:
+          - "nej"
+          - "ja"
+      hogst:
+        description: "Högst så många rader per körning (standard 500, högst 2000)"
+        required: false
+        default: "500"
+        type: string
+
+jobs:
+  slumpa:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Byt bokstäver i initialerna
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SKARP: ${{ inputs.skarp }}
+          BEKRAFTA: ${{ inputs.bekrafta }}
+          KUND: ${{ inputs.kundomdomen }}
+          HOGST: ${{ inputs.hogst }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          case "${HOGST:-500}" in ''|*[!0-9]*) echo "::error::hogst måste vara ett tal" >&2; exit 1 ;; esac
+          case "${BEKRAFTA:-}" in *[!0-9]*) echo "::error::bekrafta måste vara ett tal" >&2; exit 1 ;; esac
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/recensioner-initialer-slumpa?hogst=${HOGST:-500}"
+          [ "${KUND:-nej}" = "ja" ] && url="${url}&kundomdomen=ja"
+          if [ "${SKARP:-nej}" = "ja" ]; then
+            url="${url}&skarp=ja&bekrafta=${BEKRAFTA:-}"
+          fi
+
+          svar="$(curl -sS -w '\n%{http_code}' --max-time 290 -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" "$url")"
+          kod="$(printf '%s' "$svar" | tail -n1)"
+          json="$(printf '%s' "$svar" | sed '$d')"
+          if [ "$kod" != "200" ]; then
+            echo "::error::HTTP ${kod}" >&2
+            printf '%s\n' "$json" | jq -c '{ok, error}' >&2 || true
+            exit 1
+          fi
+
+          printf '%s' "$json" | jq -r '"\(.totalt) rader att ändra (\(.attSkrivaDennaKorning) denna körning), \(.kundomdomenHoppade) kundomdömen orörda, \(.annanForm) i annan form, skrivet: \(.skrivet // "inget")"'
+          stopp="$(printf '%s' "$json" | jq -r '.stopp // ""')"
+
+          {
+            echo "### Byt bokstäver i initialerna — $([ "${SKARP:-nej}" = "ja" ] && echo SKARP || echo TORRKÖRNING)"
+            echo ""
+            echo "| | |"
+            echo "|---|---:|"
+            echo "| rader i lagret | $(printf '%s' "$json" | jq -r '.granskade') |"
+            echo "| att ändra, totalt | $(printf '%s' "$json" | jq -r '.totalt') |"
+            echo "| **att skriva denna körning (bekrafta)** | **$(printf '%s' "$json" | jq -r '.attSkrivaDennaKorning')** |"
+            echo "| kundomdömen lämnade orörda | $(printf '%s' "$json" | jq -r '.kundomdomenHoppade') |"
+            echo "| annan form (rörs inte) | $(printf '%s' "$json" | jq -r '.annanForm') |"
+            echo "| med Y / X / Z / W | $(printf '%s' "$json" | jq -r '.perBokstav | "\(.Y) / \(.X) / \(.Z) / \(.W)"') |"
+            if [ "$(printf '%s' "$json" | jq -r '.skrivet != null')" = "true" ]; then
+              echo "| ändrade och tillbakalästa | $(printf '%s' "$json" | jq -r '.skrivet.andrade') |"
+              echo "| fel | $(printf '%s' "$json" | jq -r '.skrivet.fel') |"
+              echo "| lästes tillbaka först vid ett senare försök | $(printf '%s' "$json" | jq -r '.skrivet.sentOmLasta') |"
+              echo "| avvikelser (saknas / initialer / status / text) | $(printf '%s' "$json" | jq -r '.skrivet.avvikelser | "\(.saknas) / \(.initialer) / \(.status) / \(.text)"') |"
+              echo "| kvar | $(printf '%s' "$json" | jq -r '.skrivet.kvar') |"
+            fi
+            echo ""
+            echo "Exempel: $(printf '%s' "$json" | jq -r '.exempel | join(", ")')"
+            [ -n "$stopp" ] && echo "" && echo "**Stopp:** ${stopp}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "${SKARP:-nej}" = "ja" ]; then
+            if [ -n "$stopp" ]; then
+              echo "::error::Inget ändrat: ${stopp}" >&2
+              exit 1
+            fi
+            if [ "$(printf '%s' "$json" | jq -r '.skrivet.fel')" != "0" ]; then
+              echo "::error::$(printf '%s' "$json" | jq -r '.skrivet.fel') rader gick inte att läsa tillbaka med de nya initialerna" >&2
+              exit 1
+            fi
+          fi

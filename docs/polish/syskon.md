@@ -141,7 +141,7 @@ Hindren stoppar körningen. Varningarna stoppar ingenting men ska läsas.
 | `samma_produkt` | `behall` och `utkast` är samma id. | Rätta id:na. |
 | `behall_saknar_mappning`, `utkast_saknar_mappning` | Id:t saknar mappningsrad. | Kontrollera id:t. |
 | `behall_saknas_i_wix`, `utkast_saknas_i_wix` | Produkten finns inte i Wix. | Kontrollera id:t. |
-| `behall_ej_aosom`, `utkast_ej_aosom` | Sidan eller givaren är inte en Aosom-mappning. | En AliExpress-sida kan inte ta emot syskon. Mappa om den först, eller gör syskonet till en egen sida, se runbookens *Dubblettskärmen*. En givare som inte är Aosom flaggas. |
+| `behall_ej_aosom`, `utkast_ej_aosom` | Sidan eller givaren är inte en Aosom-mappning. | En AliExpress-sida kan inte ta emot syskon. Mappa om den först, eller gör syskonet till en egen sida, se runbookens *Dubblettskärmen*. En givare som inte är Aosom flaggas. Finns det en Aosom-artikel i flödet för sidans egen färg? Svaret ger `aosom-syskon-import.yml` i läget `plan` med givarens id (41 s): en tom syskonlista betyder nej, och givaren blir en egen sida med färgen i namnet och egna ord (T104, `a8cd3914`, N327). |
 | `utkast_saknar_artikel` | Givaren har ingen artikel. | Flagga. |
 | `samma_artikel` | Givaren har samma artikel som sidan. | Det är en dubblett, inte ett syskon. Pensionera. |
 | `artikeln_upptagen` | Artikeln sitter redan på en annan sida. | Utred vilken sida som ska ha den innan du går vidare. |

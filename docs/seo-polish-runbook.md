@@ -1195,6 +1195,10 @@ eftersom den behöver sammanslagningsfilen: `python3 tools/polish-gates/gate-var
 <värdrundans katalog> merge_<prefix>.json`. Den fäller en värdbild vars alt-text nämner
 givarens färg (`en grå katt` på en beige tunna). Sammanslagningen länkar då inte bilden till
 värdens färg, och butiken visar den bara under givarens (N314, 2026-10-25, lärdom 224).
+Den fäller också ett nytt värdnamn (`namn.tsv`) som bär värdens eller givarens färg som hela ord:
+sammanslagningens plan vägrar då med `namnet_bar_farg`, och plan-förkontrollen kan inte se det nya
+namnet, eftersom den läser namnet som det står i Wix före värdrundan (T104, 2026-10-29, matbordet
+`9053bc1a`).
 Efter sammanslagningen läser `tools/polish-kedja/mkgalleri.py` värdens galleri och val i ett
 anrop och räknar vyn per val.
 
