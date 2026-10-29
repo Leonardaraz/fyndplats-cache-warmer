@@ -632,12 +632,32 @@ export async function taBortMedFilter(
  * Wix egen aggregering, sida för sida. Grupperna kan bli fler än en sida
  * (recensionerna har omdömen på över 1 000 produkter), och en kapad
  * gruppering hade gett produkter utan stjärnor utan att något sa till.
+ *
+ * ☠️ SORTERAD PÅ GRUPPERINGSFÄLTEN (2026-10-29). Utan sortering kommer
+ * grupperna i en annan ordning för varje anrop, och sidorna överlappar.
+ * Uppmätt på recensionerna samma natt som motorn växlade till Wix, 3 663
+ * grupper i fyra sidor:
+ *
+ *   offset utan sortering           2 625 unika
+ *   markör utan sortering           2 504 unika
+ *   båda, sorterade på productId    3 663 unika, 12 404 omdömen (= Neons tal)
+ *
+ * Antalet RADER var rätt hela tiden (1 000 + 1 000 + 1 000 + 663), så en
+ * räknare hade inte sett felet. Korten för ~1 000 produkter tappade sina
+ * stjärnor. En grupp som kommer två gånger KASTAR därför: då har ordningen
+ * glidit igen, och en annan grupp saknas.
  */
 export async function aggregera<T = Record<string, unknown>>(
   kollektion: string,
-  kropp: { initialFilter?: Record<string, unknown>; aggregation: Record<string, unknown> },
+  kropp: {
+    initialFilter?: Record<string, unknown>;
+    aggregation: { groupingFields?: string[]; operations: Record<string, unknown>[] };
+  },
   val: Klientval = {},
 ): Promise<T[]> {
+  const falt = kropp.aggregation.groupingFields ?? [];
+  const sortering = falt.map((fieldName) => ({ fieldName, order: "ASC" }));
+  const sedda = new Set<string>();
   const ut: T[] = [];
   const sid = 1000;
   for (let offset = 0; offset <= ALLA_RADER_TAK; offset += sid) {
@@ -646,12 +666,24 @@ export async function aggregera<T = Record<string, unknown>>(
       kollektion,
       "POST",
       "/items/aggregate",
-      { dataCollectionId: kollektion, ...kropp, paging: { limit: sid, offset } },
+      {
+        dataCollectionId: kollektion,
+        ...kropp,
+        ...(sortering.length > 0 ? { sort: sortering } : {}),
+        paging: { limit: sid, offset },
+      },
       "lasning",
       val,
     );
     if (!s.ok) throw felFor("aggregate", kollektion, s);
     const sida = s.json?.results ?? [];
+    for (const rad of sida) {
+      const nyckel = JSON.stringify(falt.map((f) => (rad as Record<string, unknown>)[f] ?? null));
+      if (sedda.has(nyckel)) {
+        throw new Error(`aggregera(${kollektion}): samma grupp på två sidor — sidorna överlappar`);
+      }
+      sedda.add(nyckel);
+    }
     ut.push(...sida);
     if (sida.length < sid) return ut;
   }

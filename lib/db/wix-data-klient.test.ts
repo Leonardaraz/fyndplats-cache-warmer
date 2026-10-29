@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   __sattVantaForTester,
+  aggregera,
   allaRader,
   hamta,
   infoga,
@@ -129,6 +130,43 @@ describe("allaRader", () => {
   it("☠️ ett fel mitt i svepet kastar — en halv lista ser ut som en hel", async () => {
     fetchSpion.mockResolvedValueOnce(sida(1000, 0, "c1")).mockResolvedValue(svar({ status: 400, text: "{}" }));
     await expect(allaRader("C")).rejects.toThrow(/Wix Data query C \(400/);
+  });
+});
+
+describe("aggregera", () => {
+  const AGGREGATION = {
+    groupingFields: ["productId"],
+    operations: [{ resultFieldName: "antal", itemCount: {} }],
+  };
+  const grupper = (fran: number, till: number) =>
+    Array.from({ length: till - fran }, (_, i) => ({ productId: `p${String(fran + i).padStart(4, "0")}`, antal: 1 }));
+
+  it("☠️ sorterar på grupperingsfälten i VARJE anrop och läser till sista sidan", async () => {
+    fetchSpion.mockResolvedValueOnce(svar({ body: { results: grupper(0, 1000) } }));
+    fetchSpion.mockResolvedValueOnce(svar({ body: { results: grupper(1000, 1003) } }));
+    const rader = await aggregera("FyndplatsImportedReviews", { aggregation: AGGREGATION });
+    expect(rader).toHaveLength(1003);
+    for (const i of [0, 1]) {
+      expect(kropp(i).sort).toEqual([{ fieldName: "productId", order: "ASC" }]);
+      expect(kropp(i).aggregation).toEqual(AGGREGATION);
+    }
+    expect(kropp(0).paging).toEqual({ limit: 1000, offset: 0 });
+    expect(kropp(1).paging).toEqual({ limit: 1000, offset: 1000 });
+  });
+
+  it("☠️ samma grupp på två sidor kastar — en överlappande lista har rätt antal rader men saknar grupper", async () => {
+    fetchSpion.mockResolvedValueOnce(svar({ body: { results: grupper(0, 1000) } }));
+    fetchSpion.mockResolvedValueOnce(svar({ body: { results: [{ productId: "p0005", antal: 1 }, ...grupper(1000, 1002)] } }));
+    await expect(aggregera("FyndplatsImportedReviews", { aggregation: AGGREGATION })).rejects.toThrow(/överlappar/);
+  });
+
+  it("utan grupperingsfält skickas ingen sortering", async () => {
+    fetchSpion.mockResolvedValueOnce(svar({ body: { results: [{ antal: 7 }] } }));
+    const rader = await aggregera("FyndplatsImportedReviews", {
+      aggregation: { operations: [{ resultFieldName: "antal", itemCount: {} }] },
+    });
+    expect(rader).toEqual([{ antal: 7 }]);
+    expect(kropp(0).sort).toBeUndefined();
   });
 });
 

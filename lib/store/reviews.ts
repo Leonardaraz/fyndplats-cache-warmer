@@ -244,7 +244,9 @@ export class ReviewStore implements ReviewStoreLike {
    * ☠️ Den gamla vägen bad om en sida på 1 000 grupper. Uppmätt 388 grupper
    * 2026-08-17 — men när datan flyttade tillbaka till Wix 2026-10-29 fanns
    * 14 973 omdömen, och fler än 1 000 produkter med omdömen hade fått sina
-   * stjärnor tyst bortkapade från korten. `aggregera` läser till sista sidan.
+   * stjärnor tyst bortkapade från korten. `aggregera` läser till sista sidan,
+   * sorterat på productId: osorterade sidor överlappar, och samma natt saknade
+   * ~1 000 produkter sina stjärnor fast antalet rader stämde.
    */
   async aggregateByProduct(): Promise<ProduktBetyg[]> {
     const rader = await aggregera<{ productId?: string; antal?: number; snitt?: number }>(COLLECTION_ID, {
