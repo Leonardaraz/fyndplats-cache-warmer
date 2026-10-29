@@ -112,15 +112,15 @@ describe("skrivSlumpa", () => {
     const v = varld(rader);
     const plan = planeraSlumpa(rader, { medKundomdomen: false, hogst: 500 });
     const svar = await skrivSlumpa(v.deps, plan);
-    expect(svar).toEqual({ andrade: 2, fel: 0, kvar: 0 });
+    expect(svar).toMatchObject({ andrade: 2, fel: 0, kvar: 0, sentOmLasta: 0 });
     expect(v.lager.every((r) => !harForbjudenBokstav(r.initials))).toBe(true);
     expect(v.lager[1]).toMatchObject({ status: "pending", textSwedish: "Bra produkt" });
   });
   it("en skrivning som inte sitter räknas som fel", async () => {
     const rader = [rad({})];
     const v = varld(rader, { tappa: true });
-    const svar = await skrivSlumpa(v.deps, planeraSlumpa(rader, { medKundomdomen: false, hogst: 500 }));
-    expect(svar).toEqual({ andrade: 0, fel: 1, kvar: 1 });
+    const svar = await skrivSlumpa({ ...v.deps, vanta: async () => {} }, planeraSlumpa(rader, { medKundomdomen: false, hogst: 500 }));
+    expect(svar).toMatchObject({ andrade: 0, fel: 1, kvar: 1, avvikelser: { initialer: 1, saknas: 0, status: 0, text: 0 } });
   });
   it("en omkörning efter en skarp körning hittar ingenting mer att ändra", async () => {
     const rader = [rad({ reviewIdAE: "a" }), rad({ reviewIdAE: "b", initials: "K.Y." })];
@@ -128,11 +128,43 @@ describe("skrivSlumpa", () => {
     await skrivSlumpa(v.deps, planeraSlumpa(rader, { medKundomdomen: false, hogst: 500 }));
     expect(planeraSlumpa(v.lager, { medKundomdomen: false, hogst: 500 }).totalt).toBe(0);
   });
+  it("en rad som lagret visar sent räknas som ändrad, och som sent omläst", async () => {
+    const rader = [rad({ reviewIdAE: "a" })];
+    const v = varld(rader);
+    let lasningar = 0;
+    const svar = await skrivSlumpa(
+      {
+        ...v.deps,
+        vanta: async () => {},
+        lasOm: async (p, id) => (lasningar++ < 2 ? structuredClone(rader[0]) : v.deps.lasOm(p, id)),
+      },
+      planeraSlumpa(rader, { medKundomdomen: false, hogst: 500 }),
+    );
+    expect(svar).toMatchObject({ andrade: 1, fel: 0, sentOmLasta: 1 });
+  });
+  it("skiljer på vilket fält som avviker", async () => {
+    const rader = [rad({ reviewIdAE: "a" }), rad({ reviewIdAE: "b" }), rad({ reviewIdAE: "c" })];
+    const v = varld(rader);
+    const svar = await skrivSlumpa(
+      {
+        ...v.deps,
+        vanta: async () => {},
+        lasOm: async (_p, id) => {
+          const r = structuredClone(v.lager.find((x) => x.reviewIdAE === id)!);
+          if (id === "a") return null;
+          if (id === "b") return { ...r, status: "rejected" as const };
+          return { ...r, textSwedish: "annan text" };
+        },
+      },
+      planeraSlumpa(rader, { medKundomdomen: false, hogst: 500 }),
+    );
+    expect(svar.avvikelser).toEqual({ saknas: 1, initialer: 0, status: 1, text: 1 });
+  });
   it("stannar när tidsbudgeten är slut och säger hur många som är kvar", async () => {
     const rader = [rad({ reviewIdAE: "a" }), rad({ reviewIdAE: "b" })];
     const v = varld(rader);
     let n = 0;
     const svar = await skrivSlumpa({ ...v.deps, slut: () => n++ >= 1 }, planeraSlumpa(rader, { medKundomdomen: false, hogst: 500 }));
-    expect(svar).toEqual({ andrade: 1, fel: 0, kvar: 1 });
+    expect(svar).toMatchObject({ andrade: 1, fel: 0, kvar: 1 });
   });
 });

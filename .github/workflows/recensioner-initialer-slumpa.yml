@@ -106,6 +106,8 @@ jobs:
             if [ "$(printf '%s' "$json" | jq -r '.skrivet != null')" = "true" ]; then
               echo "| ändrade och tillbakalästa | $(printf '%s' "$json" | jq -r '.skrivet.andrade') |"
               echo "| fel | $(printf '%s' "$json" | jq -r '.skrivet.fel') |"
+              echo "| lästes tillbaka först vid ett senare försök | $(printf '%s' "$json" | jq -r '.skrivet.sentOmLasta') |"
+              echo "| avvikelser (saknas / initialer / status / text) | $(printf '%s' "$json" | jq -r '.skrivet.avvikelser | "\(.saknas) / \(.initialer) / \(.status) / \(.text)"') |"
               echo "| kvar | $(printf '%s' "$json" | jq -r '.skrivet.kvar') |"
             fi
             echo ""

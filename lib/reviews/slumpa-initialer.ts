@@ -67,6 +67,8 @@ export interface SlumpaDeps {
   lasOm(productId: string, reviewIdAE: string): Promise<StoredReview | null>;
   /** True när tidsbudgeten är slut. */
   slut?: () => boolean;
+  /** Paus mellan återläsningsförsöken. Injicerbar så testerna slipper vänta. */
+  vanta?: (ms: number) => Promise<void>;
 }
 
 export interface SlumpaPlan {
@@ -113,9 +115,24 @@ export function planeraSlumpa(
   };
 }
 
+/** Vad som skilde sig när en rad inte läste tillbaka som planerat. */
+export interface Avvikelser {
+  saknas: number;
+  initialer: number;
+  status: number;
+  text: number;
+}
+
+/** Pauser (ms) före varje återläsningsförsök. Lagret kan ligga efter en skrivning. */
+export const ATERLAS_PAUSER = [0, 300, 900, 2000];
+
 export interface SlumpaSvar {
   andrade: number;
   fel: number;
+  /** Av felen: vilket fält som skilde sig efter sista försöket. Bara räknare. */
+  avvikelser: Avvikelser;
+  /** Rader som läste tillbaka rätt först vid ett andra eller senare försök. */
+  sentOmLasta: number;
   /** Rader som återstår efter den här körningen (tidsbudget eller `hogst`). */
   kvar: number;
 }
@@ -125,19 +142,46 @@ export interface SlumpaSvar {
  * de nya initialerna, oförändrad status och oförändrad text.
  */
 export async function skrivSlumpa(deps: SlumpaDeps, plan: SlumpaPlan): Promise<SlumpaSvar> {
-  const svar: SlumpaSvar = { andrade: 0, fel: 0, kvar: plan.totalt };
+  const vanta = deps.vanta ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+  const svar: SlumpaSvar = {
+    andrade: 0,
+    fel: 0,
+    avvikelser: { saknas: 0, initialer: 0, status: 0, text: 0 },
+    sentOmLasta: 0,
+    kvar: plan.totalt,
+  };
   for (const { r, nya } of plan.attAndra) {
     if (deps.slut?.()) break;
     try {
       await deps.upsert({ ...r, initials: nya });
-      const efter = await deps.lasOm(r.productId, r.reviewIdAE);
-      if (efter && efter.initials === nya && efter.status === r.status && efter.textSwedish === r.textSwedish) {
+      // ☠️ Återläsningen provas flera gånger: lagret kan ligga efter en skrivning
+      // (127 av 1 000 rader föll på första försöket 2026-10-29 trots att
+      // skrivningen satt). En rad räknas som fel först när alla försök avvikit.
+      let avvik: keyof Avvikelser | null = "saknas";
+      let forsok = 0;
+      for (const paus of ATERLAS_PAUSER) {
+        if (paus) await vanta(paus);
+        forsok++;
+        const efter = await deps.lasOm(r.productId, r.reviewIdAE);
+        if (!efter) avvik = "saknas";
+        else if (efter.initials !== nya) avvik = "initialer";
+        else if (efter.status !== r.status) avvik = "status";
+        else if (efter.textSwedish !== r.textSwedish) avvik = "text";
+        else {
+          avvik = null;
+          break;
+        }
+      }
+      if (avvik === null) {
         svar.andrade++;
+        if (forsok > 1) svar.sentOmLasta++;
       } else {
         svar.fel++;
+        svar.avvikelser[avvik]++;
       }
     } catch {
       svar.fel++;
+      svar.avvikelser.saknas++;
     }
   }
   svar.kvar = plan.totalt - svar.andrade;

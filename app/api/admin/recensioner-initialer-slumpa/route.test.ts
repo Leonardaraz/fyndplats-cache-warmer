@@ -76,7 +76,7 @@ describe("recensioner-initialer-slumpa", () => {
 
   it("skarpt med rätt bekräftelse byter bokstäverna men inte kundomdömet", async () => {
     const json = await (await POST(begaran("?skarp=ja&bekrafta=2"))).json();
-    expect(json.skrivet).toEqual({ andrade: 2, fel: 0, kvar: 0 });
+    expect(json.skrivet).toMatchObject({ andrade: 2, fel: 0, kvar: 0 });
     expect(varld.rader.find((r) => r.reviewIdAE === "a")!.initials).toMatch(/^[A-V]\.K\.$/);
     expect(varld.rader.find((r) => r.reviewIdAE === "c")).toMatchObject({ status: "pending", textSwedish: "Bra produkt" });
     expect(varld.rader.find((r) => r.reviewIdAE === "d")!.initials).toBe("X.A.");
