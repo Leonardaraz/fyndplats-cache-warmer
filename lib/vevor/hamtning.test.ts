@@ -40,6 +40,12 @@ describe("klassaSvar", () => {
     expect(klassaSvar(301, "", "https://annan.example.test/x-p_000000000009")).toEqual({ typ: "omdirigerad", till: null });
   });
 
+  it("☠️ en omdirigering till en spärrad sökväg eller en trasig adress är en flytt bort, aldrig ett fel", () => {
+    expect(klassaSvar(301, "", "/products/x-p_000000000009")).toEqual({ typ: "omdirigerad", till: null });
+    expect(klassaSvar(301, "", "/api/x-p_000000000009")).toEqual({ typ: "omdirigerad", till: null });
+    expect(klassaSvar(301, "", "http://[trasig")).toEqual({ typ: "omdirigerad", till: null });
+  });
+
   it("serverfel är tillfälliga", () => {
     expect(klassaSvar(500, "fel")).toEqual({ typ: "tillfalligt", skal: "http 500" });
     expect(klassaSvar(502, "")).toEqual({ typ: "tillfalligt", skal: "http 502" });
@@ -50,7 +56,31 @@ describe("klassaSvar", () => {
   });
 });
 
+describe("Takt", () => {
+  it("en Crawl-delay gör mellanrummet längre, aldrig kortare än en sekund", async () => {
+    let nu = 0;
+    const tider: number[] = [];
+    const t = new Takt(() => nu, async (ms) => {
+      nu += ms;
+    });
+    t.satt(3_000);
+    for (let i = 0; i < 3; i++) {
+      await t.invanta();
+      tider.push(nu);
+    }
+    expect(tider).toEqual([0, 3_000, 6_000]);
+    t.satt(10);
+    expect(t.mellanrumMs).toBe(MIN_MELLANRUM_MS);
+    t.satt(Number.NaN);
+    expect(t.mellanrumMs).toBe(MIN_MELLANRUM_MS);
+  });
+});
+
 describe("tillatenSokvag", () => {
+  it("robots.txt får alltid läsas", () => {
+    expect(tillatenSokvag("/robots.txt")).toBe(true);
+  });
+
   it("☠️ aldrig /api/* och aldrig det robots.txt spärrar", () => {
     expect(tillatenSokvag("/api/goods/stock")).toBe(false);
     expect(tillatenSokvag("/products/x-p_000000000001")).toBe(false);

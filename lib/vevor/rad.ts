@@ -6,7 +6,9 @@
 //   i_lager / slut   en giltig avläsning, högst 12 timmar gammal
 //   ej_levererbar    sidan skickar inte till Sverige, eller från fel lager
 //   borta            sidan bekräftat borta (två signaler, minst ett dygn isär)
-//   okand            ingen avläsning, för gammal avläsning, eller läsaren fryst
+//   okand            ingen avläsning, för gammal avläsning, läsaren fryst, eller
+//                    senaste försöket misslyckades (tidsgräns, tolkningsfel, fel
+//                    språk eller valuta, en första 404, en spärr i robots.txt)
 //
 // ☠️ OKÄNT RÖR ALDRIG LAGRET OCH BLIR ALDRIG 0. Profilen säger det för en
 // saknad rad (`saknadRad: "okand"`), och adaptern säger det för allt annat vi
@@ -33,6 +35,10 @@ export function vevorRad(a: Avlasning | undefined, nu: number, fryst: boolean): 
   // svarat 404 två gånger med minst ett dygn emellan, och avläsningen före dem
   // är per definition gammal. En ny giltig läsning nollställer borta.
   if (a.borta || a.status === "borta") return { ...bas, status: "borta", saldo: 0 };
+  // Senaste försöket misslyckades: den giltiga avläsningen före är inte längre beskedet.
+  if (a.misslyckadAt && Date.parse(a.misslyckadAt) >= Date.parse(a.lastAt)) {
+    return { ...bas, status: "okand", saldo: 0 };
+  }
   const alder = nu - Date.parse(a.lastAt);
   if (!Number.isFinite(alder) || alder > MAX_ALDER_MS || alder < -60_000) {
     return { ...bas, status: "okand", saldo: 0 };

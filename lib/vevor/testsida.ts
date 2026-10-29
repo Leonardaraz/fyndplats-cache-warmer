@@ -12,6 +12,10 @@ export interface Testsida {
   lang: string;
   globalLang: string;
   valuta: string;
+  /** Sajtens egen valuta i `window.GLOBAL`. Samma som erbjudandets om den inte anges. */
+  globalValuta: string | null;
+  /** Ett andra erbjudande i JSON-LD, eller null. Har aldrig mätts på en riktig sida. */
+  extraErbjudande: { valuta: string; pris: number } | null;
   pris: number | string | null;
   lager: number | string | null;
   tillganglighet: string;
@@ -34,6 +38,8 @@ export function testsida(over: Partial<Testsida> = {}): string {
     lang: "sv",
     globalLang: "sv",
     valuta: "SEK",
+    globalValuta: null,
+    extraErbjudande: null,
     pris: 999.5,
     lager: 12,
     tillganglighet: "https://schema.org/InStock",
@@ -48,7 +54,7 @@ export function testsida(over: Partial<Testsida> = {}): string {
     ...over,
   };
   const global = `<script>window.GLOBAL = window.GLOBAL || {};</script>
-<script>window.GLOBAL = {"CLOSINGDOWN_NOTICE":"null","PIPELINE":"EU","LANG":"${t.globalLang}","CURRENCY":"${t.valuta}","SITE_NAME":"Test {med} klamrar"};</script>`;
+<script>window.GLOBAL = {"CLOSINGDOWN_NOTICE":"null","PIPELINE":"EU","LANG":"${t.globalLang}","CURRENCY":"${t.globalValuta ?? t.valuta}","SITE_NAME":"Test {med} klamrar"};</script>`;
   if (t.utanProdukt) {
     return `<!DOCTYPE html><html lang="${t.lang}"><head><title>404 Ej Hittad</title>${global}</head><body>${"x".repeat(3000)}</body></html>`;
   }
@@ -91,6 +97,16 @@ export function testsida(over: Partial<Testsida> = {}): string {
           shippingRate: { "@type": "MonetaryAmount", value: f.belopp, currency: f.valuta },
         })),
       },
+      ...(t.extraErbjudande
+        ? [
+            {
+              "@type": "Offer",
+              priceCurrency: t.extraErbjudande.valuta,
+              price: t.extraErbjudande.pris,
+              availability: t.tillganglighet,
+            },
+          ]
+        : []),
     ],
   };
   const brod = {
@@ -123,3 +139,30 @@ ${t.manual ? '<a href="/pages/contact-us/TESTMANUAL01">Manual</a>' : ""}
 ${"<!-- utfyllnad -->".repeat(200)}
 </body></html>`;
 }
+
+/** VEVOR:s robots.txt som den stod 2026-10-29. */
+export const VEVOR_ROBOTS = `User-agent: *
+
+Disallow: /deals?categoryIdList=
+Disallow: /*?star
+Disallow: /*?sort_by
+Disallow: /*?sort
+Disallow: /*?type
+Disallow: /*?rate
+Disallow: /products/*
+Disallow: /collections/*
+Disallow: /product/*
+Disallow: /wp-content/uploads/wc-logs/
+Disallow: /wp-content/uploads/woocommerce_transient_files/
+Disallow: /wp-content/uploads/woocommerce_uploads/
+Disallow: /wp-admin/
+Allow: /wp-admin/admin-ajax.php
+
+User-agent: facebookcatalog/1.0
+Disallow: /*.mp4$
+
+User-agent: Googlebot
+Disallow: /api/*
+Disallow: /wp/*
+Sitemap: https://eur.vevor.com/sitemap/sitemap-index.xml
+`;

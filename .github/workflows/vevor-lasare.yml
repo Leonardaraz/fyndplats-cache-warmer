@@ -8,6 +8,10 @@ name: VEVOR — läsaren
 #   av      schemat slutar läsa; avläsningarna står kvar
 #   tina    läsaren får läsa igen efter en spärr från VEVOR
 #
+# Läsaren läser VEVOR:s robots.txt en gång per dygn och hämtar aldrig en sida
+# den spärrar. `sparrade` i prov är sådana sidor, och `aterlagda` är sidor som
+# lades tillbaka i kön när en spärr stoppade körningen.
+#
 # Skriver bara antal och tider. Svaren bär inga artikelnummer, adresser eller
 # priser, och repot är publikt.
 #
@@ -82,7 +86,7 @@ jobs:
           # Bara antal, tider och skäl. Kontrollsidornas id står aldrig i svaret.
           case "$LAGE" in
             prov)
-              echo "$svar" | jq '{utfall, skal, lasta, giltiga, iLager, slutsalda, ejLevererbara, saknade, flyttade, tillfalliga, tolkningsfel, blockerad, kontroller, karta, prioritet, skrivna}' || true
+              echo "$svar" | jq '{utfall, skal, lasta, giltiga, iLager, slutsalda, ejLevererbara, saknade, flyttade, tillfalliga, tolkningsfel, sparrade, blockerad, robots, kontroller, karta, prioritet, aterlagda, skrivna}' || true
               utfall=$(echo "$svar" | jq -r '.utfall')
               if [ "$(echo "$svar" | jq -r '.blockerad // ""')" != "" ]; then
                 echo "::error::VEVOR spärrade läsningen. Läsaren är fryst." >&2
@@ -99,6 +103,6 @@ jobs:
               fi
               ;;
             *)
-              echo "$svar" | jq '{aktiv, fryst, kontroller, kartaAt, prioriteradAt, antal, senasteKorning}' || true
+              echo "$svar" | jq '{aktiv, fryst, kontroller, kartaAt, prioriteradAt, robotsAt, robotsRegler, stoppIFoljd, antal, senasteKorning}' || true
               ;;
           esac

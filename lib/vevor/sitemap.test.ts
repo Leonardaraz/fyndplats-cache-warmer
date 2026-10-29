@@ -1,7 +1,7 @@
 import { gzipSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
 import { Takt } from "./hamtning";
-import { MIN_KARTRADER, kartrader, lasKartan, produktkartor } from "./sitemap";
+import { MIN_KARTRADER, kartText, kartrader, lasKartan, produktkartor } from "./sitemap";
 
 const takt = () => new Takt(() => 0, async () => undefined);
 const id = (n: number) => String(n).padStart(12, "0");
@@ -47,6 +47,39 @@ describe("sajtkartan", () => {
       "https://eur.vevor.com/sitemap/sitemap-index.xml",
       "https://eur.vevor.com/sitemap/sitemap_product_1.xml.gz",
     ]);
+  });
+
+  it("en .gz som redan packats upp på vägen läses som den är", async () => {
+    expect(kartText(new TextEncoder().encode("<urlset/>"))).toBe("<urlset/>");
+    expect(kartText(gzipSync("<urlset/>"))).toBe("<urlset/>");
+    const r = await lasKartan({
+      takt: takt(),
+      hamtare: async (url) =>
+        url.endsWith("sitemap-index.xml")
+          ? new Response(INDEX, { status: 200 })
+          : new Response(karta(MIN_KARTRADER + 1), { status: 200 }),
+    });
+    expect(r.ok && r.rader.length).toBe(MIN_KARTRADER + 1);
+  });
+
+  it("☠️ en adress på en sökväg läsaren aldrig får läsa kommer aldrig in i kön", () => {
+    const r = kartrader(karta(1, loc("https://eur.vevor.com/products/x-p_000000000009")));
+    expect(r.rader).toHaveLength(1);
+    expect(r.ogiltiga).toBe(1);
+  });
+
+  it("☠️ en karta som robots.txt spärrar hämtas inte", async () => {
+    const hamtade: string[] = [];
+    const r = await lasKartan({
+      takt: takt(),
+      tillaten: (v) => !v.includes("sitemap_product"),
+      hamtare: async (url) => {
+        hamtade.push(url);
+        return new Response(INDEX, { status: 200 });
+      },
+    });
+    expect(r).toEqual({ ok: false, skal: "robots.txt spärrar kartan" });
+    expect(hamtade).toEqual(["https://eur.vevor.com/sitemap/sitemap-index.xml"]);
   });
 
   it("☠️ en karta med för få produkter är trasig, aldrig ett krympt sortiment", async () => {

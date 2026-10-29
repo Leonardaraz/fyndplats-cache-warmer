@@ -43,6 +43,12 @@ const SPARRMARKORER = [
   /Too Many Requests/i,
 ];
 
+/** Står det spärrsidans ord i texten? Läser bara början, där spärrsidorna har dem. */
+export function harSparrmarkor(text: string): boolean {
+  const borjan = text.slice(0, 20_000);
+  return SPARRMARKORER.some((m) => m.test(borjan));
+}
+
 export type Blockering = "403" | "429" | "captcha" | "tom";
 
 export type Svar =
@@ -61,12 +67,19 @@ export function klassaSvar(status: number, kropp: string, plats: string | null =
   if (status === 429) return { typ: "blockerad", skal: "429" };
   if (status === 404 || status === 410) return { typ: "saknas", status };
   if (status >= 300 && status < 400) {
-    const till = plats ? sokvagUr(new URL(plats, VEVOR_BAS).toString()) : null;
-    return { typ: "omdirigerad", till: till && webbIdUr(till) ? till : null };
+    // Bara en produktsida som läsaren får läsa räknas som ett mål. Allt annat,
+    // och en adress som inte går att tolka, är en flytt bort från sidan.
+    let till: string | null = null;
+    try {
+      till = plats ? sokvagUr(new URL(plats, VEVOR_BAS).toString()) : null;
+    } catch {
+      till = null;
+    }
+    return { typ: "omdirigerad", till: till && webbIdUr(till) && tillatenSokvag(till) ? till : null };
   }
   if (status >= 500) {
     // En spärr kan svara 503 med en utmaning. Då är det en spärr, inte ett serverfel.
-    if (SPARRMARKORER.some((m) => m.test(kropp.slice(0, 20_000)))) return { typ: "blockerad", skal: "captcha" };
+    if (harSparrmarkor(kropp)) return { typ: "blockerad", skal: "captcha" };
     return { typ: "tillfalligt", skal: `http ${status}` };
   }
   if (status !== 200) return { typ: "tillfalligt", skal: `http ${status}` };
@@ -80,11 +93,14 @@ export function klassaSvar(status: number, kropp: string, plats: string | null =
 }
 
 /**
- * Får sökvägen läsas? Bara produktsidor och sajtkartan. Aldrig /api/*, och
- * aldrig det robots.txt spärrar för alla (/products/, /collections/, /product/).
+ * Får sökvägen läsas? Bara produktsidor, sajtkartan och robots.txt. Aldrig
+ * /api/*, och aldrig det robots.txt spärrade för alla 2026-10-29 (/products/,
+ * /collections/, /product/). Det VEVOR spärrar senare läses ur robots.txt
+ * varje dygn (lib/vevor/robots.ts) och prövas utöver det här.
  */
 export function tillatenSokvag(sokvag: string): boolean {
   if (!sokvag.startsWith("/")) return false;
+  if (sokvag === "/robots.txt") return true;
   if (/^\/(api|products|collections|product|wp-admin|wp)\//i.test(sokvag)) return false;
   return webbIdUr(sokvag) !== null || /^\/sitemap\/sitemap[\w-]*\.xml(\.gz)?$/.test(sokvag);
 }
@@ -92,18 +108,30 @@ export function tillatenSokvag(sokvag: string): boolean {
 export type Hamtare = (url: string, init: RequestInit) => Promise<Response>;
 
 /**
- * Håller takten: väntar tills minst `MIN_MELLANRUM_MS` gått sedan förra
- * anropet började. Alla anrop till VEVOR i en körning går genom samma takt.
+ * Håller takten: väntar tills minst `mellanrum` gått sedan förra anropet
+ * började. Alla anrop till VEVOR i en körning går genom samma takt. Mellanrummet
+ * är aldrig under `MIN_MELLANRUM_MS`, men längre när robots.txt sätter en
+ * Crawl-delay (`satt`).
  */
 export class Takt {
   private senast = Number.NEGATIVE_INFINITY;
+  private mellanrum = MIN_MELLANRUM_MS;
   constructor(
     private readonly klocka: () => number = Date.now,
     private readonly vanta: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms)),
   ) {}
 
+  /** Sätter mellanrummet. Kortare än `MIN_MELLANRUM_MS` blir det aldrig. */
+  satt(mellanrumMs: number): void {
+    this.mellanrum = Number.isFinite(mellanrumMs) ? Math.max(MIN_MELLANRUM_MS, mellanrumMs) : MIN_MELLANRUM_MS;
+  }
+
+  get mellanrumMs(): number {
+    return this.mellanrum;
+  }
+
   async invanta(): Promise<void> {
-    const kvar = this.senast + MIN_MELLANRUM_MS - this.klocka();
+    const kvar = this.senast + this.mellanrum - this.klocka();
     if (kvar > 0) await this.vanta(kvar);
     this.senast = this.klocka();
   }

@@ -27,11 +27,11 @@ import {
   patcha,
   rakna,
   satt,
-  spara,
   sparaManga,
   taBort,
 } from "@/lib/db/wix-data-klient";
 import { VEVOR_KOL } from "@/lib/db/wix-kollektioner";
+import type { Robotsregel } from "./robots";
 import type { Sidinnehall, Tolkningsfel } from "./sida";
 
 /** Hur ofta en sida läses. `katalog` = aldrig läst, står först i kön. */
@@ -43,6 +43,8 @@ export type Utfallskod =
   | "flyttad"
   | "tillfalligt"
   | "skrivfel"
+  /** Inte hämtad: robots.txt eller husets regler spärrar sökvägen. */
+  | "sparrad"
   | `tolkningsfel:${Tolkningsfel}`;
 
 export interface Sidrad {
@@ -81,6 +83,12 @@ export interface Avlasning extends Omit<Sidinnehall, "egenskaper"> {
   toppkategori: string | null;
   borta: boolean;
   bortaAt: string | null;
+  /**
+   * När ett senare försök att läsa sidan misslyckades: tidsgräns, tolkningsfel,
+   * fel språk eller valuta, en första 404, en spärr i robots.txt. Är den senare
+   * än `lastAt` är artikeln okänd (lib/vevor/rad.ts). En giltig läsning nollar den.
+   */
+  misslyckadAt: string | null;
 }
 
 export interface Korningssummering {
@@ -98,11 +106,21 @@ export interface Korningssummering {
   flyttade: number;
   tillfalliga: number;
   tolkningsfel: Partial<Record<Tolkningsfel, number>>;
+  /** Sidor som inte hämtades för att robots.txt eller husets regler spärrar dem. */
+  sparrade: number;
   blockerad: string | null;
-  kontroller: { lasta: number; ok: number; fel: number; ersatta: number };
+  /**
+   * Kontrollsidorna: lästa, giltiga, otolkbara (stoppar körningen), saknade i
+   * den här körningen (tre stoppar den) och utbytta av alla skäl.
+   */
+  kontroller: { lasta: number; ok: number; fel: number; saknade: number; ersatta: number };
+  /** robots.txt: hämtad i den här körningen eller läst ur förra dygnets, och antal regler som gäller oss. */
+  robots: { hamtad: boolean; regler: number; crawlDelaySek: number | null } | null;
   karta: { lasta: number; nya: number; borta: number; tillbaka: number; kvar: number } | null;
   prioritet: { het: number; publicerad: number; andrade: number } | null;
-  skrivna: { avlasningar: number; sidor: number; borta: number; fel: number };
+  /** Sidor ur kön som lades tillbaka, utspridda, när en spärr stoppade körningen. */
+  aterlagda: number;
+  skrivna: { avlasningar: number; sidor: number; borta: number; misslyckade: number; fel: number };
 }
 
 export interface Lasartillstand {
@@ -119,6 +137,15 @@ export interface Lasartillstand {
   /** Senaste larm per skäl, så att samma larm inte går varje körning. */
   larmAt: Record<string, string>;
   senasteKorning: Korningssummering | null;
+  /** robots.txt:s regler för oss, och när filen lästes. Läses om efter ett dygn. */
+  robots: { at: string; regler: Robotsregel[]; crawlDelaySek: number | null } | null;
+  /** Körningar i följd som stoppats utan att skriva (spärr, kontrollsida, robots.txt). Larmet går först vid tre. */
+  stoppIFoljd: number;
+  /**
+   * Kontrollsidor som föll, och när. Väljs inte igen på en vecka. En lista och
+   * inte ett objekt med webb-id som nycklar: Wix fältnamn tål inte allt.
+   */
+  uteslutnaKontroller: { id: string; at: string }[];
 }
 
 export const TOMT_TILLSTAND: Lasartillstand = {
@@ -129,6 +156,9 @@ export const TOMT_TILLSTAND: Lasartillstand = {
   prioriteradAt: null,
   larmAt: {},
   senasteKorning: null,
+  robots: null,
+  stoppIFoljd: 0,
+  uteslutnaKontroller: [],
 };
 
 export interface Raknare {
@@ -141,7 +171,12 @@ export interface Raknare {
 
 export interface VevorLager {
   lasTillstand(): Promise<Lasartillstand>;
-  sparaTillstand(t: Lasartillstand): Promise<void>;
+  /**
+   * Skriver bara de angivna fälten. ☠️ Aldrig hela raden: körningen och
+   * strömbrytaren (`aktiv`, `fryst`) skriver var sina fält, och en körning som
+   * skrev tillbaka hela raden hade ångrat ett "av" som kom medan den läste.
+   */
+  uppdateraTillstand(andring: Partial<Lasartillstand>): Promise<void>;
   /** Låset. Sant om vi fick det: ingen annan körning håller ett som inte gått ut. */
   tagLas(agare: string, nu: number, ttlMs: number): Promise<boolean>;
   slappLas(agare: string): Promise<void>;
@@ -156,13 +191,23 @@ export interface VevorLager {
   avlasningar(skus: string[]): Promise<Map<string, Avlasning>>;
   /** Sparar avläsningarna. Svarar med artikelnumren Wix inte bekräftade. */
   sparaAvlasningar(rader: Avlasning[]): Promise<string[]>;
-  /** Webb-id för upp till `max` artiklar i lager: kandidater till kontrollsidor. */
-  kontrollkandidater(max: number): Promise<string[]>;
+  /**
+   * Upp till `max` avläsningar i lager: kandidater till kontrollsidor.
+   * `slump` (0–1) väljer var i listan urvalet börjar, så att samma kandidater
+   * inte kommer tillbaka varje gång.
+   */
+  kontrollkandidater(max: number, slump: number): Promise<Avlasning[]>;
   rakna(nuIso: string): Promise<Raknare>;
 }
 
 const TILLSTAND = "tillstand";
 const LAS = "las";
+
+/** Var ett urval om `limit` börjar bland `antal` rader, för `slump` mellan 0 och 1. */
+export function startpunkt(antal: number, limit: number, slump: number): number {
+  const s = Number.isFinite(slump) ? Math.min(Math.max(slump, 0), 0.999_999) : 0;
+  return Math.floor(s * Math.max(0, antal - limit));
+}
 
 function iOmgangarOm<T>(lista: T[], n: number): T[][] {
   const ut: T[][] = [];
@@ -176,8 +221,17 @@ export class WixVevorLager implements VevorLager {
     return { ...TOMT_TILLSTAND, ...(rad ?? {}) };
   }
 
-  async sparaTillstand(t: Lasartillstand): Promise<void> {
-    await spara(VEVOR_KOL.lasare, TILLSTAND, { ...t } as unknown as Record<string, unknown>);
+  async uppdateraTillstand(andring: Partial<Lasartillstand>): Promise<void> {
+    const falt = Object.entries(andring).filter(([, v]) => v !== undefined);
+    if (falt.length === 0) return;
+    const andringar = falt.map(([k, v]) => satt(k, v));
+    if ((await patcha(VEVOR_KOL.lasare, TILLSTAND, andringar)) === "applied") return;
+    // Raden finns inte än: skapa den. Hann någon annan före, ändra deras.
+    const ny = { ...TOMT_TILLSTAND, ...andring } as unknown as Record<string, unknown>;
+    if ((await infoga(VEVOR_KOL.lasare, TILLSTAND, ny)) === "skapad") return;
+    if ((await patcha(VEVOR_KOL.lasare, TILLSTAND, andringar)) !== "applied") {
+      throw new Error("läsarens tillstånd gick inte att skriva");
+    }
   }
 
   async tagLas(agare: string, nu: number, ttlMs: number): Promise<boolean> {
@@ -255,13 +309,15 @@ export class WixVevorLager implements VevorLager {
     return u.fel.map((f) => f.id);
   }
 
-  async kontrollkandidater(max: number): Promise<string[]> {
-    const rader = await fraga<Avlasning>(VEVOR_KOL.avlasningar, {
+  async kontrollkandidater(max: number, slump: number): Promise<Avlasning[]> {
+    const limit = Math.min(Math.max(1, max), 1000);
+    const antal = await rakna(VEVOR_KOL.avlasningar, { status: "i_lager" });
+    return fraga<Avlasning>(VEVOR_KOL.avlasningar, {
       filter: { status: "i_lager" },
       sort: [{ fieldName: "_id", order: "ASC" }],
-      limit: Math.min(Math.max(1, max), 1000),
+      limit,
+      offset: startpunkt(antal, limit, slump),
     });
-    return rader.map((r) => r.webbId).filter(Boolean);
   }
 
   async rakna(nuIso: string): Promise<Raknare> {
@@ -298,8 +354,9 @@ export class MinnesVevorLager implements VevorLager {
   async lasTillstand() {
     return structuredClone(this.tillstand);
   }
-  async sparaTillstand(t: Lasartillstand) {
-    this.tillstand = structuredClone(t);
+  async uppdateraTillstand(andring: Partial<Lasartillstand>) {
+    const falt = Object.fromEntries(Object.entries(andring).filter(([, v]) => v !== undefined));
+    this.tillstand = structuredClone({ ...this.tillstand, ...falt });
   }
   async tagLas(agare: string, nu: number, ttlMs: number) {
     if (this.las && this.las.utgar > nu) return false;
@@ -358,12 +415,12 @@ export class MinnesVevorLager implements VevorLager {
     }
     return fel;
   }
-  async kontrollkandidater(max: number) {
-    return [...this.avlasningsrader.values()]
+  async kontrollkandidater(max: number, slump: number) {
+    const alla = [...this.avlasningsrader.values()]
       .filter((r) => r.status === "i_lager")
-      .sort((a, b) => (a.sku < b.sku ? -1 : 1))
-      .slice(0, max)
-      .map((r) => r.webbId);
+      .sort((a, b) => (a.sku < b.sku ? -1 : 1));
+    const fran = startpunkt(alla.length, max, slump);
+    return alla.slice(fran, fran + max).map((r) => structuredClone(r));
   }
   async rakna(nuIso: string) {
     const sidor = [...this.sidrader.values()];

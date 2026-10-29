@@ -10,7 +10,7 @@
 // Aosom-synkens MIN_FEED_RADER.
 
 import { gunzipSync } from "node:zlib";
-import { hamtaFil, type Hamtare, type Svar, type Takt } from "./hamtning";
+import { hamtaFil, tillatenSokvag, type Hamtare, type Svar, type Takt } from "./hamtning";
 import { sokvagUr, webbIdUr } from "./sida";
 
 export const SITEMAP_INDEX = "/sitemap/sitemap-index.xml";
@@ -35,7 +35,11 @@ export function produktkartor(indexXml: string): string[] {
     .filter((s): s is string => !!s && /^\/sitemap\/sitemap_product_\d+\.xml\.gz$/.test(s));
 }
 
-/** Produktsidorna i en karta. Adresser på andra värdar och utan webb-id räknas, inte tas med. */
+/**
+ * Produktsidorna i en karta. Adresser på andra värdar, utan webb-id eller på en
+ * sökväg läsaren aldrig får läsa (`tillatenSokvag`) räknas, men tas inte med:
+ * en sådan rad i kön hade aldrig gått att läsa.
+ */
 export function kartrader(xml: string): { rader: Kartrad[]; ogiltiga: number } {
   const rader: Kartrad[] = [];
   const sedda = new Set<string>();
@@ -43,7 +47,7 @@ export function kartrader(xml: string): { rader: Kartrad[]; ogiltiga: number } {
   for (const u of locVarden(xml)) {
     const sokvag = sokvagUr(u);
     const webbId = sokvag ? webbIdUr(sokvag) : null;
-    if (!sokvag || !webbId) {
+    if (!sokvag || !webbId || !tillatenSokvag(sokvag)) {
       ogiltiga++;
       continue;
     }
@@ -58,25 +62,50 @@ export type Kartsvar =
   | { ok: true; rader: Kartrad[]; ogiltiga: number }
   | { ok: false; skal: string; svar?: Exclude<Svar, { typ: "sida" }> };
 
-function text(data: Uint8Array, gz: boolean): string {
-  return Buffer.from(gz ? gunzipSync(data) : data).toString("utf8");
+/** Största uppackade karta. Den mätta är ~1 MB packad. */
+const MAX_UPPACKAD = 200_000_000;
+
+/**
+ * Filen som text. Packas upp bara när den börjar som gzip: en server som skickar
+ * `.gz` med `Content-Encoding: gzip` får fetch att packa upp den redan på vägen,
+ * och då är byten vanlig XML.
+ */
+export function kartText(data: Uint8Array): string {
+  const gz = data.length >= 2 && data[0] === 0x1f && data[1] === 0x8b;
+  return Buffer.from(gz ? gunzipSync(data, { maxOutputLength: MAX_UPPACKAD }) : data).toString("utf8");
 }
 
-/** Läser indexet och varje produktkarta, i takt. */
-export async function lasKartan(opts: { takt: Takt; hamtare?: Hamtare }): Promise<Kartsvar> {
+/**
+ * Läser indexet och varje produktkarta, i takt. `tillaten` är robots.txt:s
+ * regler: en karta som robots.txt spärrar hämtas inte.
+ */
+export async function lasKartan(opts: {
+  takt: Takt;
+  hamtare?: Hamtare;
+  tillaten?: (sokvag: string) => boolean;
+}): Promise<Kartsvar> {
+  const tillaten = opts.tillaten ?? (() => true);
+  if (!tillaten(SITEMAP_INDEX)) return { ok: false, skal: "robots.txt spärrar kartan" };
   const index = await hamtaFil(SITEMAP_INDEX, opts);
   if (index.typ !== "fil") return { ok: false, skal: `indexet: ${index.typ}`, svar: index };
-  const kartor = produktkartor(text(index.data, false));
+  let indexXml: string;
+  try {
+    indexXml = kartText(index.data);
+  } catch {
+    return { ok: false, skal: "indexet gick inte att packa upp" };
+  }
+  const kartor = produktkartor(indexXml);
   if (kartor.length === 0) return { ok: false, skal: "indexet saknar produktkartor" };
   const rader: Kartrad[] = [];
   const sedda = new Set<string>();
   let ogiltiga = 0;
   for (const k of kartor) {
+    if (!tillaten(k)) return { ok: false, skal: "robots.txt spärrar kartan" };
     const fil = await hamtaFil(k, opts);
     if (fil.typ !== "fil") return { ok: false, skal: `en produktkarta: ${fil.typ}`, svar: fil };
     let xml: string;
     try {
-      xml = text(fil.data, true);
+      xml = kartText(fil.data);
     } catch {
       return { ok: false, skal: "en produktkarta gick inte att packa upp" };
     }

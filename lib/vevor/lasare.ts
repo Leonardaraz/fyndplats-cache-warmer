@@ -2,26 +2,37 @@
 //
 // VAD EN KÖRNING GÖR, i ordning:
 //   1. Avstängd, fryst eller upptagen: gör ingenting.
-//   2. Kartan, en gång per dygn: nya produktadresser blir rader i kön.
-//   3. Prioriteringen, en gång i timmen (lib/vevor/prioritet.ts).
-//   4. Kontrollsidorna: tio kända produkter läses först.
-//   5. Kön: sidor vars tid passerat, en i taget, högst en per sekund.
-//   6. Spärrarna, och sedan skrivningen.
+//   2. robots.txt, en gång per dygn (lib/vevor/robots.ts). Går den inte att
+//      läsa läses ingenting den körningen.
+//   3. Kartan, en gång per dygn: nya produktadresser blir rader i kön.
+//   4. Prioriteringen, en gång i timmen (lib/vevor/prioritet.ts).
+//   5. Kontrollsidorna: tio kända produkter läses först.
+//   6. Kön: sidor vars tid passerat, en i taget, högst en per sekund. En sida
+//      som robots.txt spärrar hämtas inte.
+//   7. Spärrarna, och sedan skrivningen.
 //
 // ☠️ VID 403, 429, CAPTCHA ELLER TOM SIDA FRYSER LÄSAREN. Ingenting från
 // körningen skrivs, ett larm går, och läsaren står still tills en människa
 // tinar den (workflowen "VEVOR — läsaren"). Inget nytt försök av sig själv:
 // en spärr är VEVOR:s svar, och det är Leonards sak att tolka det.
 //
-// ☠️ SPÄRRARNA SKRIVER INGENTING FRÅN KÖRNINGEN, inte bara det misstänkta:
+// ☠️ SPÄRRARNA SKRIVER INGEN AVLÄSNING FRÅN KÖRNINGEN, inte bara den misstänkta:
 //   - en kontrollsida saknar pris, lager eller artikelnummer
 //   - mer än 10 % av sidorna gick inte att tolka
 //   - mer än 40 % av de giltiga sidorna är slutsålda (normalt ~23 %)
 //   - mer än 20 % av sidorna saknas (normalt ~6 % av kartans adresser)
 // De tre första är Leonards (2026-10-28), den fjärde skyddar samma sak: en
 // layoutändring eller en spärr som svarar 404 ser ut som tusen borttagna
-// varor. Skrivs de inte, läses samma sidor om nästa körning, och ingen skada
-// är skedd.
+// varor. Ingen skada är skedd: avläsningarna åldras, och efter tolv timmar är
+// artikeln okänd (lib/vevor/rad.ts).
+//
+// ☠️ EN SPÄRR FÅR INTE LÅSA KÖN. Sidorna som lästes läggs tillbaka i kön,
+// utspridda över två timmar, så att samma sidor inte läses ihop igen. Annars
+// hade en klunga riktigt slutsålda varor fällt varje körning för alltid. En
+// kontrollsida som faller byts ut och väljs inte igen på en vecka: en enda
+// udda produkt hade annars stoppat läsaren för gott. Larmet går först när tre
+// körningar i följd stoppats. Ett verkligt fel stoppar varje körning, en
+// slumpvis klunga gör det inte.
 //
 // ☠️ BORTA KRÄVER TVÅ SIGNALER MED MINST ETT DYGN EMELLAN. En signal är en
 // 404, en flytt bort från produktsidan, eller en sida utan produktdata när
@@ -32,8 +43,18 @@
 // eller priser: repot och dess Actions-loggar är publika.
 
 import { randomUUID } from "node:crypto";
-import { hamta, Takt, type Blockering, type Hamtare, type Svar } from "./hamtning";
-import { SIDFRAGA, tolkaProduktsida, webbIdUr, type Sidinnehall, type Tolkningsfel } from "./sida";
+import {
+  hamta,
+  hamtaFil,
+  harSparrmarkor,
+  Takt,
+  tillatenSokvag,
+  type Blockering,
+  type Hamtare,
+  type Svar,
+} from "./hamtning";
+import { MAX_ROBOTS_BYTE, ROBOTS_SOKVAG, reglerFor, tillatenAvRobots, tolkaRobots, type Robotsregler } from "./robots";
+import { SIDFRAGA, tolkaProduktsida, webbIdUr, type Sidinnehall, type Tolkning, type Tolkningsfel } from "./sida";
 import { lasKartan, type Kartrad } from "./sitemap";
 import { INTERVALL_MS, klassbyten, onskadeKlasser, type Prioritetsunderlag } from "./prioritet";
 import { VART_FLODE } from "./rad";
@@ -73,11 +94,20 @@ export const NYA_KARTRADER_PER_KORNING = 500;
 const MIN_KARTANDEL = 0.8;
 
 const OM_TILLFALLIGT = 30 * MINUT;
-const OM_TOLKNINGSFEL = 6 * TIMME;
 /** Efter första saknas-signalen: nästa läsning efter mer än ett dygn. */
 const OM_SAKNAS = 25 * TIMME;
 const OM_BORTA = 7 * DYGN;
+/** En sida robots.txt spärrar prövas igen när filen lästs om. */
+const OM_SPARRAD = DYGN;
 const LARMPAUS = 6 * TIMME;
+/** Så många körningar i följd ska en spärr ha stoppat innan larmet går. */
+export const SPARRAR_FOR_LARM = 3;
+/** En stoppad körnings sidor läggs tillbaka utspridda över det här spannet. */
+export const ATERLAGG_MIN = 5 * MINUT;
+export const ATERLAGG_MAX = 2 * TIMME;
+/** En kontrollsida som fallit väljs inte igen på så här länge. */
+const UTESLUTEN = 7 * DYGN;
+const MAX_UTESLUTNA = 200;
 const LAS_TTL = 290_000;
 /** Tid som sparas till skrivningen i slutet. */
 const SKRIVMARGINAL = 30_000;
@@ -87,6 +117,8 @@ export interface LasarDeps {
   hamtare?: Hamtare;
   klocka?: () => number;
   vanta?: (ms: number) => Promise<void>;
+  /** Ett tal mellan 0 och 1. Sprider återlagda sidor och väljer kontrollsidor. */
+  slump?: () => number;
   prioritetsunderlag: () => Promise<Prioritetsunderlag>;
   larma: (amne: string, text: string) => Promise<void>;
 }
@@ -105,9 +137,11 @@ export interface Behandlad {
   avlasning?: Avlasning;
   /** Artikeln som just bekräftats borta, och sidan den lästes från. */
   borta?: { sku: string; webbId: string };
+  /** Artikeln vars sida inte gick att läsa: den blir okänd tills nästa giltiga läsning. */
+  misslyckad?: { sku: string; webbId: string };
   /** En ny sida att lägga i kön (en flytt till en annan adress). */
   ny?: Sidrad;
-  typ: "giltig" | "saknas" | "flyttad" | "tolkningsfel" | "tillfalligt";
+  typ: "giltig" | "saknas" | "flyttad" | "tolkningsfel" | "tillfalligt" | "sparrad";
   fel?: Tolkningsfel;
 }
 
@@ -128,11 +162,14 @@ function tomSummering(start: number): Korningssummering {
     flyttade: 0,
     tillfalliga: 0,
     tolkningsfel: {},
+    sparrade: 0,
     blockerad: null,
-    kontroller: { lasta: 0, ok: 0, fel: 0, ersatta: 0 },
+    kontroller: { lasta: 0, ok: 0, fel: 0, saknade: 0, ersatta: 0 },
+    robots: null,
     karta: null,
     prioritet: null,
-    skrivna: { avlasningar: 0, sidor: 0, borta: 0, fel: 0 },
+    aterlagda: 0,
+    skrivna: { avlasningar: 0, sidor: 0, borta: 0, misslyckade: 0, fel: 0 },
   };
 }
 
@@ -179,8 +216,12 @@ export function avlasningAv(s: Sidinnehall, r: Sidrad, nuIso: string): Avlasning
     toppkategori: s.kategorier[0]?.namn ?? null,
     borta: false,
     bortaAt: null,
+    misslyckadAt: null,
   };
 }
+
+/** Artikeln vars sida inte gick att läsa, när sidan har en känd artikel. */
+const misslyckadFor = (r: Sidrad) => (r.sku ? { sku: r.sku, webbId: r.webbId } : undefined);
 
 /** En saknas-signal: den första i sviten, eller den som bekräftar borta. */
 function saknasSignal(r: Sidrad, nu: number): Behandlad {
@@ -195,6 +236,7 @@ function saknasSignal(r: Sidrad, nu: number): Behandlad {
   }
   return {
     typ: "saknas",
+    misslyckad: r.borta ? undefined : misslyckadFor(r),
     rad: {
       ...r,
       saknasForstaAt: r.saknasForstaAt ?? nuIso,
@@ -205,12 +247,30 @@ function saknasSignal(r: Sidrad, nu: number): Behandlad {
   };
 }
 
+/** En sida som inte hämtades: robots.txt eller husets regler spärrar den. Prövas igen om ett dygn. */
+export function sparrad(r: Sidrad, nu: number): Behandlad {
+  return {
+    typ: "sparrad",
+    misslyckad: r.borta ? undefined : misslyckadFor(r),
+    rad: { ...r, senastForsokAt: iso(nu), senastUtfall: "sparrad", nastaLasning: iso(nu + OM_SPARRAD) },
+  };
+}
+
+/** Tolkningen, och ett undantag som ett tolkningsfel: en udda sida får inte fälla körningen. */
+function tolka(html: string): Tolkning {
+  try {
+    return tolkaProduktsida(html);
+  } catch {
+    return { ok: false, fel: "undantag" };
+  }
+}
+
 /** Vad ett svar betyder för sidan. Ren: ingen IO. */
 export function behandla(r: Sidrad, svar: Exclude<Svar, { typ: "blockerad" }>, nu: number): Behandlad {
   const nuIso = iso(nu);
   switch (svar.typ) {
     case "sida": {
-      const t = tolkaProduktsida(svar.html);
+      const t = tolka(svar.html);
       if (t.ok) {
         const klass = r.klass === "katalog" ? "utkast" : r.klass;
         return {
@@ -234,10 +294,14 @@ export function behandla(r: Sidrad, svar: Exclude<Svar, { typ: "blockerad" }>, n
       // då ska ingenting bli borta.
       const ute = !r.iKartan && !!r.saknadIKartanSedan && nu - Date.parse(r.saknadIKartanSedan) >= DYGN;
       if (t.fel === "ej_produktsida" && ute) return saknasSignal(r, nu);
+      // Läses om i sidans vanliga takt, inte oftare: en sida som aldrig går att
+      // tolka ska inte ta större plats i körningarna än de andra, och väga
+      // tyngre i spärren för otolkbara sidor.
       return {
         typ: "tolkningsfel",
         fel: t.fel,
-        rad: { ...r, senastForsokAt: nuIso, senastUtfall: `tolkningsfel:${t.fel}`, nastaLasning: iso(nu + OM_TOLKNINGSFEL) },
+        misslyckad: misslyckadFor(r),
+        rad: { ...r, senastForsokAt: nuIso, senastUtfall: `tolkningsfel:${t.fel}`, nastaLasning: iso(nu + INTERVALL_MS[r.klass]) },
       };
     }
     case "saknas":
@@ -259,6 +323,7 @@ export function behandla(r: Sidrad, svar: Exclude<Svar, { typ: "blockerad" }>, n
     case "tillfalligt":
       return {
         typ: "tillfalligt",
+        misslyckad: misslyckadFor(r),
         rad: { ...r, senastForsokAt: nuIso, senastUtfall: "tillfalligt", nastaLasning: iso(nu + OM_TILLFALLIGT) },
       };
   }
@@ -283,6 +348,9 @@ function raknaIn(s: Korningssummering, b: Behandlad): void {
       return;
     case "tolkningsfel":
       if (b.fel) s.tolkningsfel[b.fel] = (s.tolkningsfel[b.fel] ?? 0) + 1;
+      return;
+    case "sparrad":
+      s.sparrade++;
       return;
   }
 }
@@ -313,13 +381,14 @@ function larmtext(rubrik: string, s: Korningssummering, fryst: boolean): string 
     `${rubrik}.`,
     "",
     `Körningen ${s.start}: ${s.lasta} sidor lästa, ${s.giltiga} giltiga, ${s.slutsalda} slutsålda, ` +
-      `${s.saknade} saknade, ${antalTolkningsfel(s)} otolkbara, ${s.tillfalliga} tillfälliga fel.`,
+      `${s.saknade} saknade, ${antalTolkningsfel(s)} otolkbara, ${s.tillfalliga} tillfälliga fel, ` +
+      `${s.sparrade} spärrade av robots.txt.`,
     `Kontrollsidor: ${s.kontroller.ok} av ${s.kontroller.lasta} gick att läsa.`,
     "",
     fryst
       ? "Läsaren är FRYST. Ingenting från körningen skrevs, och den läser ingenting förrän den tinas: " +
         'workflowen "VEVOR — läsaren", läget tina.'
-      : "Ingenting från körningen skrevs. Sidorna läses om i nästa körning.",
+      : "Ingen avläsning från körningen skrevs. Sidorna ligger kvar i kön och läses om.",
   ].join("\n");
 }
 
@@ -330,10 +399,16 @@ interface Kartutfall {
   summa: NonNullable<Korningssummering["karta"]>;
 }
 
-/** Läser kartan och lägger nya adresser i kön. */
-async function synkaKartan(lager: VevorLager, takt: Takt, hamtare: Hamtare | undefined, nu: number): Promise<Kartutfall> {
+/** Läser kartan och lägger nya adresser i kön. `tillaten` är robots.txt:s regler. */
+async function synkaKartan(
+  lager: VevorLager,
+  takt: Takt,
+  hamtare: Hamtare | undefined,
+  nu: number,
+  tillaten: (sokvag: string) => boolean,
+): Promise<Kartutfall> {
   const summa = { lasta: 0, nya: 0, borta: 0, tillbaka: 0, kvar: 0 };
-  const k = await lasKartan({ takt, hamtare });
+  const k = await lasKartan({ takt, hamtare, tillaten });
   if (!k.ok) {
     if (k.svar?.typ === "blockerad") return { blockerad: k.svar.skal, klar: false, summa };
     return { fel: `kartan: ${k.skal}`, klar: false, summa };
@@ -367,12 +442,64 @@ async function synkaKartan(lager: VevorLager, takt: Takt, hamtare: Hamtare | und
   return { klar: summa.kvar === 0 && fel.size === 0, summa };
 }
 
+type Robotsutfall =
+  | { ok: true; regler: Robotsregler; hamtad: boolean }
+  | { ok: false; blockerad?: Blockering; skal: string };
+
+/**
+ * robots.txt, högst ett dygn gammal (RFC 9309, avsnitt 2.4). En fil som inte
+ * går att läsa betyder att ingenting är tillåtet (avsnitt 2.3.1.4).
+ */
+async function lasRobots(t: Lasartillstand, takt: Takt, hamtare: Hamtare | undefined, nu: number): Promise<Robotsutfall> {
+  const sparad = t.robots;
+  if (sparad && nu - Date.parse(sparad.at) < DYGN) {
+    return { ok: true, regler: { regler: sparad.regler, crawlDelaySek: sparad.crawlDelaySek }, hamtad: false };
+  }
+  const svar = await hamtaFil(ROBOTS_SOKVAG, { takt, hamtare });
+  switch (svar.typ) {
+    case "fil": {
+      const text = Buffer.from(svar.data.subarray(0, MAX_ROBOTS_BYTE)).toString("utf8");
+      // En HTML-sida där robots.txt skulle stå är en spärrsida eller ett fel, aldrig regler.
+      if (/<html/i.test(text)) {
+        return harSparrmarkor(text)
+          ? { ok: false, blockerad: "captcha", skal: "robots.txt: spärrsida" }
+          : { ok: false, skal: "robots.txt var en HTML-sida" };
+      }
+      return { ok: true, regler: reglerFor(tolkaRobots(text)), hamtad: true };
+    }
+    case "saknas":
+      // Ingen robots.txt: allt är tillåtet. Husets egna regler gäller ändå.
+      return { ok: true, regler: { regler: [], crawlDelaySek: null }, hamtad: true };
+    case "blockerad":
+      return { ok: false, blockerad: svar.skal, skal: `robots.txt: ${svar.skal}` };
+    case "omdirigerad":
+      return { ok: false, skal: "robots.txt flyttades" };
+    case "tillfalligt":
+      return { ok: false, skal: "robots.txt gick inte att läsa" };
+  }
+}
+
+/** Uteslutna kontrollsidor utan dem som legat längre än en vecka, högst de 200 senaste. */
+function rensaUteslutna(u: Lasartillstand["uteslutnaKontroller"], nu: number): Map<string, string> {
+  const kvar = (Array.isArray(u) ? u : [])
+    .filter((x) => x && typeof x.id === "string" && nu - Date.parse(x.at) < UTESLUTEN)
+    .sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0))
+    .slice(0, MAX_UTESLUTNA);
+  return new Map(kvar.map((x) => [x.id, x.at]));
+}
+
+/** Är avläsningens senaste försök ett misslyckande? */
+export function misslyckadSenast(a: Pick<Avlasning, "misslyckadAt" | "lastAt">): boolean {
+  return !!a.misslyckadAt && Date.parse(a.misslyckadAt) >= Date.parse(a.lastAt);
+}
+
 /**
  * En körning. Ett enskilt sidfel fäller den inte. Ett fel mot Wix (kön,
  * skrivningen) kastar, och då har ingenting mer skrivits.
  */
 export async function korVevorLasare(deps: LasarDeps, val: Korval): Promise<Korningssummering> {
   const klocka = deps.klocka ?? Date.now;
+  const slump = deps.slump ?? Math.random;
   const start = klocka();
   const nuIso = iso(start);
   const s = tomSummering(start);
@@ -390,10 +517,25 @@ export async function korVevorLasare(deps: LasarDeps, val: Korval): Promise<Korn
     const takt = new Takt(klocka, deps.vanta);
     const kvarTid = () => val.budgetMs - (klocka() - start);
 
+    // Det körningen själv ändrar i tillståndet. Det skrivs fält för fält
+    // (`uppdateraTillstand`), så att ett "av" eller "tina" som kom medan
+    // körningen läste står kvar.
+    const andring: Partial<Lasartillstand> = {};
+    let larmAt = { ...tillstand.larmAt };
+    let kartaKlar = false;
+    let prioriterad = false;
+    /** Kontrollsidorna som behålls, eller null om körningen aldrig prövade dem. */
+    let kontrollista: string[] | null = null;
+    const uteslutna = rensaUteslutna(tillstand.uteslutnaKontroller, start);
+    const resultat = new Map<string, Behandlad>();
+    /** Sidor ur kön som hämtades, som de såg ut före. Läggs tillbaka om körningen stoppas. */
+    const lastaUrKon: Sidrad[] = [];
+
     const larma = async (skal: string, rubrik: string, fryst = false) => {
-      const senast = tillstand.larmAt[skal];
+      const senast = larmAt[skal];
       if (!fryst && senast && start - Date.parse(senast) < LARMPAUS) return;
-      tillstand.larmAt = { ...tillstand.larmAt, [skal]: nuIso };
+      larmAt = { ...larmAt, [skal]: nuIso };
+      andring.larmAt = larmAt;
       try {
         await deps.larma(rubrik, larmtext(rubrik, s, fryst));
       } catch (e) {
@@ -401,30 +543,99 @@ export async function korVevorLasare(deps: LasarDeps, val: Korval): Promise<Korn
       }
     };
 
+    const avslutaMed = async (utfall: Korningssummering["utfall"], skal: string | null): Promise<Korningssummering> => {
+      if (kartaKlar) andring.kartaAt = nuIso;
+      if (prioriterad) andring.prioriteradAt = nuIso;
+      const senaste = avsluta(s, klocka, utfall, skal);
+      await lager.uppdateraTillstand({ ...andring, senasteKorning: senaste });
+      return senaste;
+    };
+
     /** Fryser: inget från körningen skrivs, och läsaren står still tills den tinas. */
     const frys = async (skal: Blockering): Promise<Korningssummering> => {
       s.blockerad = skal;
-      tillstand.fryst = { at: nuIso, skal };
       // Frysningen sparas FÖRE larmet: ett larm som faller får inte lämna läsaren ofryst.
-      await lager.sparaTillstand(tillstand);
+      await lager.uppdateraTillstand({ fryst: { at: nuIso, skal } });
       await larma("blockerad", `VEVOR-läsaren är fryst: spärr från VEVOR (${skal})`, true);
-      tillstand.senasteKorning = avsluta(s, klocka, "stoppad", `spärr från VEVOR: ${skal}`);
-      await lager.sparaTillstand(tillstand);
-      return tillstand.senasteKorning;
+      const senaste = avsluta(s, klocka, "stoppad", `spärr från VEVOR: ${skal}`);
+      await lager.uppdateraTillstand({ larmAt, senasteKorning: senaste });
+      return senaste;
     };
 
-    // ── 2. Kartan, en gång per dygn (och tills alla adresser ligger i kön) ──
-    let kartaKlar = false;
+    /** Kontrollsidorna som behålls, påfyllda med kända produkter i lager som inte fallit nyss. */
+    const fyllKontroller = async () => {
+      if (kontrollista === null) return;
+      const lista = [...kontrollista];
+      if (lista.length < KONTROLLER) {
+        try {
+          for (const a of await lager.kontrollkandidater(KONTROLLER * 3, slump())) {
+            if (lista.length >= KONTROLLER) break;
+            const id = a.webbId;
+            const iDag = resultat.get(id);
+            if (!id || lista.includes(id) || uteslutna.has(id) || misslyckadSenast(a)) continue;
+            if (iDag && (iDag.typ !== "giltig" || iDag.avlasning?.status !== "i_lager")) continue;
+            lista.push(id);
+          }
+        } catch (e) {
+          console.error("[vevor-lasare] kontrollsidorna gick inte att fylla på:", e instanceof Error ? e.message : String(e));
+        }
+      }
+      andring.kontroller = lista;
+      andring.uteslutnaKontroller = [...uteslutna]
+        .map(([id, at]) => ({ id, at }))
+        .sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0))
+        .slice(0, MAX_UTESLUTNA);
+    };
+
+    /**
+     * En spärr stoppade körningen. Ingen avläsning skrivs. Sidorna ur kön läggs
+     * tillbaka utspridda, så att samma sidor inte läses ihop igen, och de som
+     * robots.txt spärrade får sin nya tid. Larmet går vid tredje stoppet i följd.
+     */
+    const stoppa = async (stopp: string, larmSkal: string): Promise<Korningssummering> => {
+      const tillbaka = lastaUrKon.map((r) => ({
+        ...r,
+        nastaLasning: iso(start + ATERLAGG_MIN + Math.min(Math.max(slump(), 0), 1) * (ATERLAGG_MAX - ATERLAGG_MIN)),
+      }));
+      const sparradeRader = [...resultat.values()].filter((b) => b.typ === "sparrad").map((b) => b.rad);
+      const fel = new Set(await lager.sparaSidor([...tillbaka, ...sparradeRader]));
+      s.aterlagda = tillbaka.filter((r) => !fel.has(r.webbId)).length;
+      const iFoljd = (tillstand.stoppIFoljd ?? 0) + 1;
+      andring.stoppIFoljd = iFoljd;
+      if (iFoljd >= SPARRAR_FOR_LARM) {
+        await larma(larmSkal, `VEVOR-läsaren har inte skrivit någon avläsning i ${iFoljd} körningar i följd: ${stopp}`);
+      }
+      await fyllKontroller();
+      return avslutaMed("stoppad", stopp);
+    };
+
+    const ta = (b: Behandlad) => {
+      resultat.set(b.rad.webbId, b);
+      raknaIn(s, b);
+    };
+
+    // ── 2. robots.txt, en gång per dygn ──
+    const robots = await lasRobots(tillstand, takt, deps.hamtare, start);
+    if (!robots.ok) {
+      if (robots.blockerad) return await frys(robots.blockerad);
+      return await stoppa(robots.skal, "robots");
+    }
+    if (robots.hamtad) andring.robots = { at: nuIso, ...robots.regler };
+    s.robots = { hamtad: robots.hamtad, regler: robots.regler.regler.length, crawlDelaySek: robots.regler.crawlDelaySek };
+    if (robots.regler.crawlDelaySek !== null) takt.satt(robots.regler.crawlDelaySek * 1000);
+    /** Får sökvägen hämtas? Husets regler och robots.txt. */
+    const far = (sokvag: string, fraga = "") => tillatenSokvag(sokvag) && tillatenAvRobots(robots.regler, sokvag + fraga);
+
+    // ── 3. Kartan, en gång per dygn (och tills alla adresser ligger i kön) ──
     if (!tillstand.kartaAt || start - Date.parse(tillstand.kartaAt) >= DYGN) {
-      const k = await synkaKartan(lager, takt, deps.hamtare, start);
+      const k = await synkaKartan(lager, takt, deps.hamtare, start, (v) => far(v));
       if (k.blockerad) return await frys(k.blockerad);
       s.karta = k.summa;
       kartaKlar = k.klar;
       if (k.fel) await larma("karta", `VEVOR-läsaren: ${k.fel}`);
     }
 
-    // ── 3. Prioriteringen, en gång i timmen ──
-    let prioriterad = false;
+    // ── 4. Prioriteringen, en gång i timmen ──
     if (!tillstand.prioriteradAt || start - Date.parse(tillstand.prioriteradAt) >= TIMME) {
       try {
         const u = await deps.prioritetsunderlag();
@@ -449,18 +660,13 @@ export async function korVevorLasare(deps: LasarDeps, val: Korval): Promise<Korn
       }
     }
 
-    const resultat = new Map<string, Behandlad>();
-    const ta = (b: Behandlad) => {
-      resultat.set(b.rad.webbId, b);
-      raknaIn(s, b);
-    };
-
-    // ── 4. Kontrollsidorna ──
+    // ── 5. Kontrollsidorna ──
+    const behallna: string[] = [];
     const kontrollrader = tillstand.kontroller.length > 0 ? await lager.sidor(tillstand.kontroller) : new Map<string, Sidrad>();
-    const kvarKontroller: string[] = [];
     for (const id of tillstand.kontroller) {
       const r = kontrollrader.get(id);
-      if (!r || r.borta) {
+      if (!r || r.borta || !far(r.sokvag, SIDFRAGA)) {
+        // Borta sedan tidigare körningar, eller spärrad: byts ut, stoppar inget.
         s.kontroller.ersatta++;
         continue;
       }
@@ -472,78 +678,99 @@ export async function korVevorLasare(deps: LasarDeps, val: Korval): Promise<Korn
       ta(b);
       if (b.typ === "giltig") {
         s.kontroller.ok++;
-        kvarKontroller.push(id);
+        // En kontrollsida ska vara i lager, så att en som plötsligt säger slut
+        // syns. En som sålt slut byts ut, men kan väljas igen.
+        if (b.avlasning?.status === "i_lager") behallna.push(id);
+        else s.kontroller.ersatta++;
       } else if (b.typ === "saknas" || b.typ === "flyttad") {
+        s.kontroller.saknade++;
         s.kontroller.ersatta++;
-      } else {
+      } else if (b.typ === "tolkningsfel") {
+        // Stoppar körningen, och sidan väljs inte igen på en vecka: en enda
+        // udda produkt får inte stoppa varje körning.
         s.kontroller.fel++;
-        kvarKontroller.push(id);
+        s.kontroller.ersatta++;
+        uteslutna.set(id, nuIso);
+      } else {
+        // Ett tillfälligt fel säger ingenting om sidan. Den byts ut, men stoppar inget.
+        s.kontroller.ersatta++;
       }
     }
+    kontrollista = behallna;
     let stopp: string | null = null;
     if (s.kontroller.fel > 0) {
       stopp = `${s.kontroller.fel} av ${s.kontroller.lasta} kontrollsidor saknade pris, lager eller artikelnummer`;
-    } else if (s.kontroller.lasta > 0 && s.kontroller.ersatta >= MAX_SAKNADE_KONTROLLER) {
-      stopp = `${s.kontroller.ersatta} kontrollsidor saknades`;
+    } else if (s.kontroller.saknade >= MAX_SAKNADE_KONTROLLER) {
+      stopp = `${s.kontroller.saknade} kontrollsidor saknades`;
     }
+    if (stopp) return await stoppa(stopp, "kontroll");
 
-    // ── 5. Kön ──
-    if (!stopp) {
-      const ko = await lager.forfallna(nuIso, val.maxSidor + KONTROLLER);
-      let tillfalligaIFoljd = 0;
-      let lastaIKon = 0;
-      for (const r of ko) {
-        if (lastaIKon >= val.maxSidor || kvarTid() < SKRIVMARGINAL) break;
-        if (resultat.has(r.webbId)) continue;
-        const svar = await hamta(r.sokvag, { takt, hamtare: deps.hamtare, fraga: SIDFRAGA });
-        s.lasta++;
-        lastaIKon++;
-        if (svar.typ === "blockerad") return await frys(svar.skal);
-        const b = behandla(r, svar, start);
-        ta(b);
-        tillfalligaIFoljd = b.typ === "tillfalligt" ? tillfalligaIFoljd + 1 : 0;
-        if (tillfalligaIFoljd >= MAX_TILLFALLIGA_I_FOLJD) {
-          // Fem fel i följd är ett nät- eller serverproblem. Det som lästs skrivs.
-          console.warn("[vevor-lasare] fem tillfälliga fel i följd, slutar läsa för den här körningen");
-          break;
-        }
+    // ── 6. Kön ──
+    const ko = await lager.forfallna(nuIso, val.maxSidor + KONTROLLER);
+    let tillfalligaIFoljd = 0;
+    let lastaIKon = 0;
+    for (const r of ko) {
+      if (lastaIKon >= val.maxSidor || kvarTid() < SKRIVMARGINAL) break;
+      if (resultat.has(r.webbId)) continue;
+      if (!far(r.sokvag, SIDFRAGA)) {
+        // Hämtas inte: robots.txt eller husets regler spärrar sökvägen.
+        ta(sparrad(r, start));
+        continue;
       }
-      stopp = sparr(s);
+      const svar = await hamta(r.sokvag, { takt, hamtare: deps.hamtare, fraga: SIDFRAGA });
+      s.lasta++;
+      lastaIKon++;
+      if (svar.typ === "blockerad") return await frys(svar.skal);
+      lastaUrKon.push(r);
+      const b = behandla(r, svar, start);
+      ta(b);
+      tillfalligaIFoljd = b.typ === "tillfalligt" ? tillfalligaIFoljd + 1 : 0;
+      if (tillfalligaIFoljd >= MAX_TILLFALLIGA_I_FOLJD) {
+        // Fem fel i följd är ett nät- eller serverproblem. Det som lästs skrivs.
+        console.warn("[vevor-lasare] fem tillfälliga fel i följd, slutar läsa för den här körningen");
+        break;
+      }
     }
+    if (s.sparrade >= 10) await larma("robots", `VEVOR-läsaren: robots.txt spärrar ${s.sparrade} sidor i kön`);
+    stopp = sparr(s);
+    if (stopp) return await stoppa(stopp, "sparr");
 
-    if (stopp) {
-      await larma(stopp.includes("kontrollsidor") ? "kontroll" : "sparr", `VEVOR-läsaren skrev ingenting: ${stopp}`);
-      if (kartaKlar) tillstand.kartaAt = nuIso;
-      if (prioriterad) tillstand.prioriteradAt = nuIso;
-      tillstand.senasteKorning = avsluta(s, klocka, "stoppad", stopp);
-      await lager.sparaTillstand(tillstand);
-      return tillstand.senasteKorning;
-    }
-
-    // ── 6. Skrivningen: avläsningarna först, sidorna sist ──
+    // ── 7. Skrivningen: avläsningarna först, sidorna sist ──
     const avlasningar = new Map<string, Avlasning>();
     for (const b of resultat.values()) if (b.avlasning) avlasningar.set(b.avlasning.sku, b.avlasning);
     const felAvl = new Set(await lager.sparaAvlasningar([...avlasningar.values()]));
 
+    // Borta och misslyckade märks bara på en avläsning som kom från just den sidan.
     const bortaPar = [...resultat.values()].flatMap((b) => (b.borta ? [b.borta] : []));
-    const felBorta = new Set<string>();
-    let markerade = 0;
-    if (bortaPar.length > 0) {
-      const befintliga = await lager.avlasningar(bortaPar.map((p) => p.sku));
-      const markera: Avlasning[] = [];
+    const missPar = [...resultat.values()].flatMap((b) => (b.misslyckad ? [b.misslyckad] : []));
+    const felMark = new Set<string>();
+    let markeradeBorta = 0;
+    let markeradeMiss = 0;
+    if (bortaPar.length + missPar.length > 0) {
+      const befintliga = await lager.avlasningar([...bortaPar, ...missPar].map((p) => p.sku));
+      const bortaMark: Avlasning[] = [];
+      const missMark: Avlasning[] = [];
       for (const p of bortaPar) {
         const a = befintliga.get(p.sku);
-        // Bara när artikelns senaste avläsning kom från just den här sidan.
-        if (a && a.webbId === p.webbId && !a.borta) markera.push({ ...a, borta: true, bortaAt: nuIso, status: "borta" });
+        if (a && a.webbId === p.webbId && !a.borta) bortaMark.push({ ...a, borta: true, bortaAt: nuIso, status: "borta" });
       }
-      for (const sku of await lager.sparaAvlasningar(markera)) felBorta.add(sku);
-      markerade = markera.length - felBorta.size;
+      for (const p of missPar) {
+        const a = befintliga.get(p.sku);
+        if (!a || a.webbId !== p.webbId || a.borta || misslyckadSenast(a) || bortaMark.some((m) => m.sku === p.sku)) continue;
+        missMark.push({ ...a, misslyckadAt: nuIso });
+      }
+      for (const sku of await lager.sparaAvlasningar([...bortaMark, ...missMark])) felMark.add(sku);
+      markeradeBorta = bortaMark.filter((a) => !felMark.has(a.sku)).length;
+      markeradeMiss = missMark.filter((a) => !felMark.has(a.sku)).length;
     }
 
     const sidrader: Sidrad[] = [];
     for (const b of resultat.values()) {
       let rad = b.rad;
-      const skrevsInte = (b.avlasning && felAvl.has(b.avlasning.sku)) || (b.borta && felBorta.has(b.borta.sku));
+      const skrevsInte =
+        (b.avlasning && felAvl.has(b.avlasning.sku)) ||
+        (b.borta && felMark.has(b.borta.sku)) ||
+        (b.misslyckad && felMark.has(b.misslyckad.sku));
       if (skrevsInte) {
         // Avläsningen sitter inte i Wix: läs om snart, och låt inte sidan se klar ut.
         rad = { ...rad, borta: b.borta ? false : rad.borta, senastUtfall: "skrivfel", nastaLasning: iso(start + OM_TILLFALLIGT) };
@@ -555,27 +782,14 @@ export async function korVevorLasare(deps: LasarDeps, val: Korval): Promise<Korn
     s.skrivna = {
       avlasningar: avlasningar.size - felAvl.size,
       sidor: sidrader.length - felSidor.length,
-      borta: markerade,
-      fel: felAvl.size + felBorta.size + felSidor.length,
+      borta: markeradeBorta,
+      misslyckade: markeradeMiss,
+      fel: felAvl.size + felMark.size + felSidor.length,
     };
 
-    // Kontrollsidorna fylls på med kända produkter i lager.
-    if (kvarKontroller.length < KONTROLLER) {
-      try {
-        for (const id of await lager.kontrollkandidater(KONTROLLER * 3)) {
-          if (kvarKontroller.length >= KONTROLLER) break;
-          if (!kvarKontroller.includes(id)) kvarKontroller.push(id);
-        }
-      } catch (e) {
-        console.error("[vevor-lasare] kontrollsidorna gick inte att fylla på:", e instanceof Error ? e.message : String(e));
-      }
-    }
-    tillstand.kontroller = kvarKontroller;
-    if (kartaKlar) tillstand.kartaAt = nuIso;
-    if (prioriterad) tillstand.prioriteradAt = nuIso;
-    tillstand.senasteKorning = avsluta(s, klocka, "klar", null);
-    await lager.sparaTillstand(tillstand);
-    return tillstand.senasteKorning;
+    andring.stoppIFoljd = 0;
+    await fyllKontroller();
+    return await avslutaMed("klar", null);
   } finally {
     await lager.slappLas(agare).catch(() => undefined);
   }
@@ -588,8 +802,11 @@ export function loggrad(s: Korningssummering): string {
   return (
     `[vevor-lasare] ${s.utfall}${s.skal ? ` (${s.skal})` : ""}: ${s.lasta} sidor lästa, ${s.giltiga} giltiga ` +
     `(${s.iLager} i lager, ${s.slutsalda} slutsålda, ${s.ejLevererbara} ej levererbara), ${s.saknade} saknade, ` +
-    `${t} otolkbara, ${s.tillfalliga} tillfälliga fel. Kontroller ${s.kontroller.ok}/${s.kontroller.lasta}. ` +
-    `Skrivet: ${s.skrivna.avlasningar} avläsningar, ${s.skrivna.sidor} sidor, ${s.skrivna.borta} borta, ${s.skrivna.fel} fel.` +
+    `${t} otolkbara, ${s.tillfalliga} tillfälliga fel, ${s.sparrade} spärrade av robots.txt. ` +
+    `Kontroller ${s.kontroller.ok}/${s.kontroller.lasta}. ` +
+    `Skrivet: ${s.skrivna.avlasningar} avläsningar, ${s.skrivna.sidor} sidor, ${s.skrivna.borta} borta, ` +
+    `${s.skrivna.misslyckade} okända, ${s.skrivna.fel} fel.` +
+    (s.aterlagda ? ` ${s.aterlagda} sidor tillbaka i kön.` : "") +
     karta
   );
 }

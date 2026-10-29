@@ -31,6 +31,7 @@ function avlasning(over: Partial<Avlasning> = {}): Avlasning {
     toppkategori: null,
     borta: false,
     bortaAt: null,
+    misslyckadAt: null,
     ...over,
   };
 }
@@ -78,6 +79,25 @@ describe("vevorRad", () => {
   it("ett trasigt eller framtida datum är okänt", () => {
     expect(vevorRad(avlasning({ lastAt: "inte ett datum" }), NU, false)?.status).toBe("okand");
     expect(vevorRad(avlasning({ lastAt: new Date(NU + 3_600_000).toISOString() }), NU, false)?.status).toBe("okand");
+  });
+
+  it("☠️ senaste försöket misslyckades: okänd direkt, inte först efter tolv timmar", () => {
+    const fore = new Date(NU - 3_600_000).toISOString();
+    const efter = new Date(NU - 600_000).toISOString();
+    const rad = vevorRad(avlasning({ lastAt: fore, misslyckadAt: efter, saldo: 0, status: "slut" }), NU, false);
+    expect(rad?.status).toBe("okand");
+    expect(lagerbesked(rad, profil, synligt).kant).toBe(false);
+  });
+
+  it("ett misslyckande före den giltiga läsningen spelar ingen roll", () => {
+    const fore = new Date(NU - 3_600_000).toISOString();
+    const efter = new Date(NU - 600_000).toISOString();
+    expect(vevorRad(avlasning({ lastAt: efter, misslyckadAt: fore }), NU, false)?.status).toBe("i_lager");
+  });
+
+  it("en äldre avläsning utan fältet är som förut", () => {
+    const { misslyckadAt: _, ...utan } = avlasning();
+    expect(vevorRad(utan as Avlasning, NU, false)?.status).toBe("i_lager");
   });
 
   it("priset rörs inte än: den landade kostnaden är null", () => {

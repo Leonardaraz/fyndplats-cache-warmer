@@ -33,6 +33,9 @@ function publikt(t: Lasartillstand) {
     kontroller: t.kontroller.length,
     kartaAt: t.kartaAt,
     prioriteradAt: t.prioriteradAt,
+    robotsAt: t.robots?.at ?? null,
+    robotsRegler: t.robots?.regler.length ?? null,
+    stoppIFoljd: t.stoppIFoljd,
     senasteKorning: t.senasteKorning,
   };
 }
@@ -58,14 +61,15 @@ export async function POST(req: NextRequest) {
   }
   try {
     const lager = new WixVevorLager();
-    const t = await lager.lasTillstand();
-    if (atgard === "pa") t.aktiv = true;
-    if (atgard === "av") t.aktiv = false;
+    // Bara det fält åtgärden gäller. En körning som pågår skriver sina egna
+    // fält och kan inte ångra det här (lib/vevor/lager.ts, uppdateraTillstand).
+    if (atgard === "pa") await lager.uppdateraTillstand({ aktiv: true });
+    if (atgard === "av") await lager.uppdateraTillstand({ aktiv: false });
     if (atgard === "tina") {
+      const t = await lager.lasTillstand();
       if (t.fryst) console.log(`[vevor-lasare] tinad, var fryst sedan ${t.fryst.at} (${t.fryst.skal})`);
-      t.fryst = null;
+      await lager.uppdateraTillstand({ fryst: null });
     }
-    await lager.sparaTillstand(t);
     // Läs tillbaka: ett svar utan fel är inget kvitto.
     const efter = await lager.lasTillstand();
     const stammer =

@@ -105,8 +105,11 @@ export type Tolkningsfel =
   | "saknar_pris"
   | "saknar_lager"
   | "motsagelse_sku"
+  | "motsagelse_pris"
   | "motsagelse_lager"
-  | "okand_tillganglighet";
+  | "okand_tillganglighet"
+  /** Tolkningen kastade. Sätts av läsaren (lib/vevor/lasare.ts), aldrig här. */
+  | "undantag";
 
 export type Tolkning = { ok: true; sida: Sidinnehall } | { ok: false; fel: Tolkningsfel };
 
@@ -124,10 +127,15 @@ const NAMNGIVNA: Record<string, string> = {
   nbsp: " ",
 };
 
+/** Ett tecken ur en numerisk entitet. Ett tal utanför Unicode blir ersättningstecknet i stället för ett undantag. */
+function tecken(kod: number): string {
+  return Number.isInteger(kod) && kod >= 0 && kod <= 0x10ffff ? String.fromCodePoint(kod) : "\uFFFD";
+}
+
 function avkoda(s: string): string {
   return s
-    .replace(/&#(\d+);/g, (_, d: string) => String.fromCodePoint(Number(d)))
-    .replace(/&#x([0-9a-f]+);/gi, (_, h: string) => String.fromCodePoint(parseInt(h, 16)))
+    .replace(/&#(\d+);/g, (_, d: string) => tecken(Number(d)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, h: string) => tecken(parseInt(h, 16)))
     .replace(/&([a-z]+);/gi, (m, namn: string) => NAMNGIVNA[namn.toLowerCase()] ?? m);
 }
 
@@ -239,7 +247,13 @@ export function utanWebp(url: string): string {
 
 /** Mappen i en bildadress: `https://img.vevorstatic.com/us/<mapp>/…`. */
 function bildmapp(url: string): string | null {
-  const m = /^https?:\/\/[^/]+\/[a-z]{2}\/([^/?#]+)\//i.exec(decodeURIComponent(url));
+  let adress = url;
+  try {
+    adress = decodeURIComponent(url);
+  } catch {
+    // Ett ensamt % i adressen: jämför den som den står.
+  }
+  const m = /^https?:\/\/[^/]+\/[a-z]{2}\/([^/?#]+)\//i.exec(adress);
   return m ? m[1] : null;
 }
 
@@ -385,8 +399,15 @@ export function tolkaProduktsida(html: string): Tolkning {
     return { ok: false, fel: "fel_sprak" };
   }
 
-  const offer = lista<Record<string, unknown>>(produkt.offers).find((o) => o && typeof o === "object");
-  if (!offer || strang(offer.priceCurrency) !== "SEK") return { ok: false, fel: "fel_valuta" };
+  // Valutan: både erbjudandet och sajtens egen inställning. Uppmätt 2026-10-29:
+  // "CURRENCY":"SEK" på 68 ställen av 68 i 34 sidor, och exakt ett erbjudande.
+  const valutor = [...html.matchAll(/"CURRENCY"\s*:\s*"([^"]*)"/g)].map((m) => m[1]);
+  if (valutor.length === 0 || valutor.some((v) => v !== "SEK")) return { ok: false, fel: "fel_valuta" };
+  const erbjudanden = lista<Record<string, unknown>>(produkt.offers).filter((o) => o && typeof o === "object");
+  const offer = erbjudanden[0];
+  if (!offer || erbjudanden.some((o) => strang(o.priceCurrency) !== "SEK")) return { ok: false, fel: "fel_valuta" };
+  // Flera erbjudanden har aldrig mätts. Säger de olika priser vet vi inte vilket som gäller.
+  if (new Set(erbjudanden.map((o) => tal(o.price))).size > 1) return { ok: false, fel: "motsagelse_pris" };
 
   const sku = strang(pd.goodsSn);
   const ldSku = strang(produkt.sku);

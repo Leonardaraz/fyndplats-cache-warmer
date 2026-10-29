@@ -3,6 +3,27 @@ import { fonsterObjekt, sidadress, sokvagUr, tolkaProduktsida, utanWebp, webbIdU
 import { TESTSKU, TESTWEBBID, testSokvag, testsida } from "./testsida";
 
 describe("tolkaProduktsida", () => {
+  it("☠️ sajtens egen valuta måste också vara kronor", () => {
+    expect(tolkaProduktsida(testsida({ globalValuta: "EUR" }))).toEqual({ ok: false, fel: "fel_valuta" });
+  });
+
+  it("☠️ flera erbjudanden: samma valuta och samma pris, annars okänt", () => {
+    expect(tolkaProduktsida(testsida({ extraErbjudande: { valuta: "EUR", pris: 999.5 } }))).toEqual({ ok: false, fel: "fel_valuta" });
+    expect(tolkaProduktsida(testsida({ extraErbjudande: { valuta: "SEK", pris: 1099 } }))).toEqual({ ok: false, fel: "motsagelse_pris" });
+    expect(tolkaProduktsida(testsida({ extraErbjudande: { valuta: "SEK", pris: 999.5 } })).ok).toBe(true);
+  });
+
+  it("☠️ en trasig bildadress eller entitet fäller inte tolkningen", () => {
+    const html = testsida()
+      .replace("test-f1.jpg", "test-%E0%A4%A.jpg")
+      .replace("Hållbar: ram i", "Hållbar &#99999999; ram i");
+    const t = tolkaProduktsida(html);
+    expect(t.ok).toBe(true);
+    if (!t.ok) return;
+    expect(t.sida.bilder.some((b) => b.url.includes("%E0%A4%A"))).toBe(true);
+    expect(t.sida.punkter[0]).toContain("\uFFFD");
+  });
+
   it("läser en giltig sida: pris i kronor ur JSON-LD, lager, kategorier, tabeller och bilder", () => {
     const t = tolkaProduktsida(testsida());
     expect(t.ok).toBe(true);
