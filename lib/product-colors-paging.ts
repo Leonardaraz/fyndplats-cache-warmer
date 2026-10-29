@@ -21,11 +21,27 @@
 // Alla sidor eller ingen: ett fel på sida två ger fel antal i facetten, och
 // det ser friskt ut. Därför kastar hämtningen i stället för att lämna ifrån sig
 // en halv karta. Anroparen fångar felet och visar ingen facett alls.
+//
+// EN SIDA FÖRSÖKS OM INNAN DEN FÄLLER ALLT (2026-10-29). Frågan är nu 13 sidor
+// (1 224 produkter med optioner), och produktionen loggade 8 fel på sex timmar,
+// alla "HTTP 503 på sida 11–13", mot cirka 100 lyckade hämtningar. Varje fel
+// tömde färgfiltret och kortens färgbilder: katalogen hämtas en gång per
+// instans och räknas inte som degraderad när färgerna saknas, så felet levde
+// hela instansens livstid och i varje sida den byggde. Nu försöks en sida om
+// efter 0,5 och 2 sekunder på 429, 5xx och nätfel, samma steg som
+// varianthämtningen till Google-flödet (fetchAllVariantsRaw i lib/products.ts).
+// En annan 4xx (till exempel 400 INVALID_CURSOR) är inget tillfälligt fel och
+// kastar direkt.
 
 export const FARGVAL_FILTER = { "options.id": { $exists: true } };
 
-/** Sidor om 100. Katalogen har 239 produkter med optioner (2026-09-24). */
+/** Sidor om 100. Katalogen har 1 224 produkter med optioner (2026-10-29). */
 export const FARGVAL_SIDTAK = 30;
+
+/** Väntan före varje nytt försök på samma sida. Tre försök per sida. */
+export const FARGVAL_OMFORSOK_MS = [500, 2_000];
+
+const vantaMs = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 export type FargvalSvar = {
   ok: boolean;
@@ -51,9 +67,12 @@ export async function hamtaFargval<O>(
   sidtak: number = FARGVAL_SIDTAK,
   /** Valfri: läser mer ur samma svar (färgbilderna) utan en andra hämtning. */
   ocksa?: (id: string, options: O | undefined) => void,
-): Promise<{ farger: Map<string, string[]>; medOptioner: number }> {
+  /** Pausen före ett nytt försök. Testerna byter ut den mot en som inte väntar. */
+  vanta: (ms: number) => Promise<void> = vantaMs,
+): Promise<{ farger: Map<string, string[]>; medOptioner: number; omforsok: number }> {
   const farger = new Map<string, string[]>();
   let medOptioner = 0;
+  let omforsok = 0;
   let cursor: string | undefined;
   for (let sida = 1; ; sida++) {
     if (sida > sidtak) {
@@ -61,9 +80,25 @@ export async function hamtaFargval<O>(
         `färgfrågan har fler än ${sidtak} sidor (${medOptioner} produkter med optioner hittills) — visar hellre ingen facett än fel antal`,
       );
     }
-    const res = await post(fargvalKropp(cursor));
-    if (!res.ok) {
-      throw new Error(`färgfrågan svarade HTTP ${res.status} på sida ${sida} — visar hellre ingen facett än fel antal`);
+    const kropp = fargvalKropp(cursor);
+    let res: FargvalSvar | null = null;
+    let fel = "";
+    for (let forsok = 0; ; forsok++) {
+      try {
+        res = await post(kropp);
+        if (res.ok) break;
+        fel = `HTTP ${res.status}`;
+        if (res.status !== 429 && res.status < 500) break;
+      } catch (e) {
+        res = null;
+        fel = `nätfel (${(e as Error).message})`;
+      }
+      if (forsok >= FARGVAL_OMFORSOK_MS.length) break;
+      omforsok++;
+      await vanta(FARGVAL_OMFORSOK_MS[forsok]);
+    }
+    if (!res?.ok) {
+      throw new Error(`färgfrågan svarade ${fel} på sida ${sida} — visar hellre ingen facett än fel antal`);
     }
     const data = (await res.json()) as FargvalSida<O> | null;
     for (const p of data?.products || []) {
@@ -76,5 +111,5 @@ export async function hamtaFargval<O>(
     cursor = data?.pagingMetadata?.cursors?.next || undefined;
     if (!cursor || !data?.pagingMetadata?.hasNext) break;
   }
-  return { farger, medOptioner };
+  return { farger, medOptioner, omforsok };
 }

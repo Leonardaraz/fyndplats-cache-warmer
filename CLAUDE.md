@@ -197,6 +197,21 @@ Loggraden visar numera två tider, `— 51 sidor på … s, allt på … s`, dä
 fortfarande hela katalogen, så den raden kommer lika ofta som förut, bara
 snabbare.
 
+### Färgfrågan försöker om en sida innan den ger upp (2026-10-29)
+
+Färgfrågan är nu 13 sidor (1 224 produkter med optioner). Produktionen loggade
+`färgfrågan svarade HTTP 503 på sida 11–13` åtta gånger på sex timmar, mot
+ungefär 100 lyckade hämtningar. Varje fel tömde färgfiltret och kortens
+färgbilder för hela instansen: katalogen hämtas en gång per instans och räknas
+inte som degraderad när färgerna saknas, så sidorna den byggde cachades utan
+dem.
+
+Nu försöks en sida om efter 0,5 och 2 s vid 429, 5xx och nätfel, samma steg som
+varianthämtningen till Google-flödet. En annan 4xx kastar direkt. Står felet
+kvar efter tre försök kastar hämtningen som förut, för hellre ingen facett än
+fel antal. Loggraden `[wix] färgval hämtade` slutar på `, N omförsök` när ett
+omförsök behövdes.
+
 ## Länkar som bara renderas vid hovring finns inte för Google (2026-09-24)
 
 Mega-menyn renderade bara den hovrade panelen. Googlebot hovrar och klickar
