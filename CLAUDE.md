@@ -1624,10 +1624,26 @@ och lager om, och minsta avvikelse stoppar.
   sammanslagningen. Kollapsen (`remap-kollaps.ts`) kopplar inga bilder och
   lämnar en variant utan val, så den har inget att räkna på.
 - **Den dagliga kollen** `/api/cron/variantbild?dryRun=false` (05:35 UTC)
-  sveper hela katalogen, utkast med. Först läses alla flervariantsprodukter
+  sveper alla produkter med val, utkast med. Först läses alla flervariantsprodukter
   (fyra i taget, inget skrivs), sedan rättas de med fel bild en i taget.
   Leonards ja 2026-10-03: "kör den så det fungerar fullt ut". Ett handanrop
   utan `dryRun=false` bara listar.
+- ☠️ **Svepet frågar bara efter produkter med val** (`MED_VAL_FILTER`,
+  `options.id $exists`, sedan 2026-10-29). En produkt med fler än en variant
+  har alltid val, så filtret kan inte missa en. Uppmätt mot hela katalogen,
+  utkast med: samma 1 211 flervariantsprodukter med och utan filtret, 13 sidor
+  i stället för 64 och 14 sekunder i stället för 57. VEVOR-varorna har en
+  variant och inga val, så importen gör inte svepet längre. Utan filtret hade
+  katalogsvepet blivit ungefär tre och en halv gånger så långt efter importen,
+  och kollen har 240 sekunder. Det som inte hinns med en natt hinns inte heller
+  nästa, för varje körning börjar från början. Filtret går bara med på första
+  sidan (filter plus markör ger 400 INVALID_CURSOR).
+- **En skiva är inget fel.** `variantbild.yml` delar listan i skivor om 60
+  (`?limit=`). Rapporten säger varför körningen slutade (`slutade`: `klar`,
+  `grans`, `tid` eller `avvikelse`), och bara `tid` och `avvikelse` loggas som
+  fel. Förut loggades varje skiva utom den sista som "tidsbudgeten tog slut":
+  20 fel i Vercel 14–28 oktober, och inget av dem var nattens cron, som blev
+  klar varje natt (2026-10-29: 1 210 av 1 210 på drygt två minuter).
 - ✅ **Utkast är prövade och rättas också** (2026-10-03, utkastet d4118d39):
   efter skrivningen fortfarande `visible: false`, rätt bild, SKU och pris lika,
   lagret orört (antal och revision). Kontrollen fäller en ändrad synlighet.

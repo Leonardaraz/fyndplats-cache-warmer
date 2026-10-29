@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { WixAnrop } from "../polish/skrivplan";
-import { korVariantbildKoll, listaKatalogen } from "./variantbild-koll";
+import { korVariantbildKoll, listaKatalogen, MED_VAL_FILTER } from "./variantbild-koll";
 
 type Obj = Record<string, unknown>;
 
@@ -42,20 +42,37 @@ function produkt(id: string, visible: boolean, fel: boolean): Obj {
   };
 }
 
-/** Katalogen i sidor om två, plus en GET per produkt. */
-function fejkWix(produkter: Obj[], enVariant: string[] = [], over: { andraPrisPa?: string } = {}) {
-  const katalog = [
-    ...produkter.map((p) => ({ id: p.id, visible: p.visible, variantSummary: { variantCount: 2 } })),
+/**
+ * Katalogen i sidor om två, plus en GET per produkt. `enVariant` är produkter
+ * utan val, `over.enVal` produkter med ett enda val (en variant men val).
+ *
+ * Frågan beter sig som Wix: filtret på val gäller den första sidan, markören
+ * bär det vidare, och filter plus markör svarar 400 INVALID_CURSOR. Ett annat
+ * filter avvisas, som ett odeklarerat fält gör hos Wix.
+ */
+function fejkWix(produkter: Obj[], enVariant: string[] = [], over: { andraPrisPa?: string; enVal?: string[] } = {}) {
+  const katalog: { id: unknown; visible: unknown; variantSummary: { variantCount: number }; options?: Obj[] }[] = [
+    ...produkter.map((p) => ({ id: p.id, visible: p.visible, variantSummary: { variantCount: 2 }, options: p.options as Obj[] })),
     ...enVariant.map((id) => ({ id, visible: true, variantSummary: { variantCount: 1 } })),
+    ...(over.enVal ?? []).map((id) => ({ id, visible: true, variantSummary: { variantCount: 1 }, options: [{ id: "o1" }] })),
   ];
   const anrop: { metod: string; sokvag: string; kropp?: unknown }[] = [];
   const wix: WixAnrop = async (metod, sokvag, kropp) => {
     anrop.push({ metod, sokvag, kropp });
     if (metod === "POST" && sokvag === "/stores/v3/products/query") {
-      const paging = ((kropp as Obj).query as Obj).cursorPaging as { cursor?: string };
-      const fran = Number(paging.cursor ?? 0);
-      const sida = katalog.slice(fran, fran + 2);
-      const nasta = fran + 2 < katalog.length ? String(fran + 2) : undefined;
+      const query = (kropp as Obj).query as Obj;
+      const paging = query.cursorPaging as { cursor?: string };
+      if (paging.cursor && query.filter) {
+        throw new Error("Wix 400: INVALID_CURSOR Sort or filter can not be specified together with cursor");
+      }
+      if (query.filter && JSON.stringify(query.filter) !== JSON.stringify({ "options.id": { $exists: true } })) {
+        throw new Error("Wix 400: not declared as filterable");
+      }
+      const medVal = paging.cursor ? paging.cursor.startsWith("v") : !!query.filter;
+      const fran = paging.cursor ? Number(paging.cursor.slice(1)) : 0;
+      const urval = medVal ? katalog.filter((p) => (p.options ?? []).length > 0) : katalog;
+      const sida = urval.slice(fran, fran + 2);
+      const nasta = fran + 2 < urval.length ? `${medVal ? "v" : "k"}${fran + 2}` : undefined;
       return { products: sida, pagingMetadata: { cursors: nasta ? { next: nasta } : {}, hasNext: !!nasta } };
     }
     const id = decodeURIComponent(sokvag.split("?")[0].split("/").pop()!);
@@ -79,12 +96,27 @@ const vanta = async () => {};
 const langt = () => Date.now() + 60_000;
 
 describe("listaKatalogen", () => {
-  it("går igenom alla sidor, utkast med", async () => {
-    const w = fejkWix([produkt("a", true, false), produkt("b", false, true), produkt("c", true, true)], ["d"]);
+  it("går igenom alla sidor med produkter som har val, utkast med", async () => {
+    const w = fejkWix([produkt("a", true, false), produkt("b", false, true), produkt("c", true, true)], ["d"], { enVal: ["e"] });
     const lista = await listaKatalogen(w.wix, vanta);
+    // "d" har inga val och kommer aldrig med. "e" har ett val och en variant:
+    // den följer med frågan, och urvalet på antalet varianter görs i kollen.
     expect(lista.map((p) => [p.id, p.visible, p.varianter])).toEqual([
-      ["a", true, 2], ["b", false, 2], ["c", true, 2], ["d", true, 1],
+      ["a", true, 2], ["b", false, 2], ["c", true, 2], ["e", true, 1],
     ]);
+  });
+
+  it("☠️ filtret går bara med på första sidan, markören bär det vidare", async () => {
+    const w = fejkWix([produkt("a", true, false), produkt("b", false, true), produkt("c", true, true)], ["d"]);
+    await listaKatalogen(w.wix, vanta);
+    const fragor = w.anrop.filter((a) => a.sokvag === "/stores/v3/products/query").map((a) => (a.kropp as Obj).query as Obj);
+    expect(fragor).toHaveLength(2);
+    expect(fragor[0]).toEqual({ filter: MED_VAL_FILTER, cursorPaging: { limit: 100 } });
+    expect(fragor[1]).toEqual({ cursorPaging: { limit: 100, cursor: "v2" } });
+  });
+
+  it("filtret är det uppmätta: produkter som har val", () => {
+    expect(MED_VAL_FILTER).toEqual({ "options.id": { $exists: true } });
   });
 
   it("☠️ ett fel mitt i svepet kastar, aldrig en halv lista", async () => {
@@ -102,10 +134,11 @@ describe("den dagliga kollen", () => {
     const w = fejkWix([produkt("a", true, false), produkt("b", false, true), produkt("c", true, true)], ["d"]);
     const r = await korVariantbildKoll(w.wix, { deadline: langt(), vanta });
     expect(r.torr).toBe(true);
-    expect(r.katalogen).toBe(4);
+    expect(r.medVal).toBe(3);
     expect(r.flervariant).toBe(3);
     expect(r.kontrollerade).toBe(3);
     expect(r.fullstandig).toBe(true);
+    expect(r.slutade).toBe("klar");
     expect(r.medFelBild).toEqual({ publicerade: 1, utkast: 1, varianter: 2 });
     expect(r.produkter.map((p) => [p.id, p.status, p.exempel])).toEqual([["b", "torr", ["Blå"]], ["c", "torr", ["Blå"]]]);
     expect(w.anrop.some((a) => a.metod === "PATCH")).toBe(false);
@@ -135,6 +168,7 @@ describe("den dagliga kollen", () => {
     const r = await korVariantbildKoll(w.wix, { torr: false, deadline: langt(), vanta });
     expect(r.stoppad).toBe(true);
     expect(r.fullstandig).toBe(false);
+    expect(r.slutade).toBe("avvikelse");
     expect(r.summa).toEqual({ avvikelse: 1, torr: 1 });
     expect(w.anrop.filter((a) => a.metod === "PATCH")).toHaveLength(1);
     expect(r.produkter.find((p) => p.id === "e")!.status).toBe("torr");
@@ -146,11 +180,45 @@ describe("den dagliga kollen", () => {
     expect(r.kontrollerade).toBe(0);
     expect(r.nasta).toBe(0);
     expect(r.fullstandig).toBe(false);
+    expect(r.slutade).toBe("tid");
 
     const fortsatt = await korVariantbildKoll(w.wix, { start: 1, deadline: langt(), vanta });
     expect(fortsatt.kontrollerade).toBe(1);
     expect(fortsatt.produkter.map((p) => p.id)).toEqual(["c"]);
     expect(fortsatt.nasta).toBeNull();
+    expect(fortsatt.slutade).toBe("klar");
+  });
+
+  it("☠️ en skiva som når sin gräns slutar på `grans`, inte på tiden", async () => {
+    const w = fejkWix([produkt("a", true, false), produkt("c", true, true)]);
+    const r = await korVariantbildKoll(w.wix, { limit: 1, deadline: langt(), vanta });
+    expect(r.kontrollerade).toBe(1);
+    expect(r.nasta).toBe(1);
+    expect(r.fullstandig).toBe(false);
+    expect(r.slutade).toBe("grans");
+  });
+
+  describe("med en klocka som går under körningen", () => {
+    afterEach(() => vi.restoreAllMocks());
+
+    it("☠️ skarpt: tiden tar slut innan rättningen, och det är `tid` även när listan är läst", async () => {
+      let nu = 1_000;
+      vi.spyOn(Date, "now").mockImplementation(() => nu);
+      const w = fejkWix([produkt("c", true, true)]);
+      // Läsningen hinner, men klockan har passerat gränsen när rättningen ska börja.
+      const wix: WixAnrop = async (metod, sokvag, kropp) => {
+        const svar = await w.wix(metod, sokvag, kropp);
+        if (metod === "GET") nu = 10_000;
+        return svar;
+      };
+      const r = await korVariantbildKoll(wix, { torr: false, deadline: 5_000, vanta });
+      expect(r.kontrollerade).toBe(1);
+      expect(r.nasta).toBeNull();
+      expect(r.summa).toEqual({ torr: 1 });
+      expect(r.fullstandig).toBe(false);
+      expect(r.slutade).toBe("tid");
+      expect(w.anrop.some((a) => a.metod === "PATCH")).toBe(false);
+    });
   });
 
   it("provet: bara de angivna produkterna, utan katalogsvep", async () => {

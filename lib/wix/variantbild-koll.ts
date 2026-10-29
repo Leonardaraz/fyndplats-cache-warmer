@@ -1,11 +1,12 @@
 // Den dagliga kollen av variantbilderna (lib/wix/variant-media.ts).
 //
-// Svepet går över HELA katalogen, utkast och AliExpress-sidor med, och
+// Svepet går över alla produkter med val, utkast och AliExpress-sidor med, och
 // jämför varje variants bild med den förväntade på alla produkter med fler än
 // en variant. `variantsInfo` finns aldrig i sökprojektionen (CLAUDE.md), så
 // varje sådan produkt kostar en GET, och `variantSummary.variantCount` går
 // inte att filtrera på (400 "not declared as filterable", uppmätt 2026-10-03).
-// Urvalet görs därför här, ur katalogsvepet.
+// Frågan tar därför produkterna med val (`MED_VAL_FILTER`), och urvalet på
+// antalet varianter görs här.
 //
 // Nattens cron kör skarpt (Leonards ja 2026-10-03: "kör den så det fungerar
 // fullt ut"), utkast med. Två steg: först läses alla flervariantsprodukter,
@@ -33,6 +34,21 @@ const SVEP_PAUS_MS = [1_000, 3_000, 8_000];
  */
 const SAMTIDIGA_TORRT = 4;
 
+/**
+ * Bara produkter med val. En produkt med fler än en variant har alltid val,
+ * eftersom varianterna är kombinationer av valen, så filtret kan inte missa
+ * en. Uppmätt 2026-10-29 mot hela katalogen, utkast med: samma 1 211
+ * flervariantsprodukter med och utan filtret, 13 sidor i stället för 64 och
+ * 14 sekunder i stället för 57. VEVOR-varorna har en variant och inga val, så
+ * importen gör inte svepet längre. Utan filtret hade svepet efter importen
+ * blivit ungefär tre och en halv gånger så långt.
+ *
+ * ☠️ Filtret går bara med på FÖRSTA sidan. Markören bär frågan, och filter
+ * plus markör svarar 400 INVALID_CURSOR (samma form som butikens färgfilter,
+ * headless-site lib/product-colors-paging.ts).
+ */
+export const MED_VAL_FILTER = { "options.id": { $exists: true } };
+
 export interface KatalogRad {
   id: string;
   visible: boolean;
@@ -42,8 +58,12 @@ export interface KatalogRad {
 const obj = (v: unknown): Obj => (v && typeof v === "object" && !Array.isArray(v) ? (v as Obj) : {});
 
 /**
- * Hela katalogen: id, synlighet och antal varianter. Utan synlighetsvillkor,
- * med flit — utkasten ska med. Kastar hellre än returnerar en halv lista.
+ * Alla produkter med val: id, synlighet och antal varianter. Utan
+ * synlighetsvillkor, med flit — utkasten ska med. Kastar hellre än returnerar
+ * en halv lista.
+ *
+ * Namnet är kvar från när svepet läste hela katalogen. Katalogtakets test
+ * (lib/wix/katalogtak.test.ts, VEVOR steg 5) anropar funktionen med det.
  */
 export async function listaKatalogen(
   wix: WixAnrop,
@@ -54,11 +74,12 @@ export async function listaKatalogen(
   for (let sida = 0; sida < MAX_SIDOR; sida++) {
     if (sida > 0) await vanta(SIDPAUS_MS);
     const cursorPaging: Obj = cursor ? { limit: 100, cursor } : { limit: 100 };
+    const query: Obj = cursor ? { cursorPaging } : { filter: MED_VAL_FILTER, cursorPaging };
     let svar: Obj | null = null;
     let sistaFel = "";
     for (let forsok = 0; forsok <= SVEP_PAUS_MS.length; forsok++) {
       try {
-        svar = obj(await wix("POST", "/stores/v3/products/query", { query: { cursorPaging } }));
+        svar = obj(await wix("POST", "/stores/v3/products/query", { query }));
         break;
       } catch (e) {
         sistaFel = String((e as Error)?.message ?? e).slice(0, 200);
@@ -116,7 +137,8 @@ export interface KollProdukt {
 export interface KollRapport {
   torr: boolean;
   utkast: boolean;
-  katalogen: number;
+  /** Produkter med val som svepet läste (0 i provet med `ids`). */
+  medVal: number;
   flervariant: number;
   start: number;
   kontrollerade: number;
@@ -124,6 +146,11 @@ export interface KollRapport {
   nasta: number | null;
   fullstandig: boolean;
   stoppad: boolean;
+  /**
+   * Varför körningen slutade. `grans` är en planerad skiva (`limit`) och inget
+   * fel: workflowen fortsätter med `nasta`. `tid` och `avvikelse` är fel.
+   */
+  slutade: "klar" | "grans" | "tid" | "avvikelse";
   summa: Partial<Record<VariantbildUtfall["status"], number>>;
   /** Publicerade / utkast med fel bild. */
   medFelBild: { publicerade: number; utkast: number; varianter: number };
@@ -136,13 +163,13 @@ export async function korVariantbildKoll(wix: WixAnrop, opts: KollOpts): Promise
   const utkast = opts.utkast !== false;
   const vanta = opts.vanta ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
 
-  let katalogen = 0;
+  let medVal = 0;
   let lista: KatalogRad[];
   if (opts.ids?.length) {
     lista = opts.ids.map((id) => ({ id, visible: true, varianter: 2 }));
   } else {
     const alla = await listaKatalogen(wix, vanta);
-    katalogen = alla.length;
+    medVal = alla.length;
     lista = alla.filter((p) => p.varianter > 1);
   }
   const start = Math.max(0, Math.trunc(opts.start ?? 0));
@@ -181,6 +208,16 @@ export async function korVariantbildKoll(wix: WixAnrop, opts: KollOpts): Promise
   while (kontrollerade < utfall.length && utfall[kontrollerade] !== null) kontrollerade++;
   const nastaPos = start + kontrollerade;
   const nasta = nastaPos < lista.length ? nastaPos : null;
+  // Tiden tog slut om en läsning aldrig påbörjades, eller om en skarp körning
+  // lämnade fel bild orättad. Annars är en återstående lista en planerad skiva.
+  const tidenTog = utfall.some((u) => u === null) || (!torr && utfall.some((u) => u?.status === "torr"));
+  const slutade: KollRapport["slutade"] = stoppad
+    ? "avvikelse"
+    : tidenTog
+      ? "tid"
+      : nasta !== null
+        ? "grans"
+        : "klar";
 
   const summa: KollRapport["summa"] = {};
   const medFelBild = { publicerade: 0, utkast: 0, varianter: 0 };
@@ -210,14 +247,15 @@ export async function korVariantbildKoll(wix: WixAnrop, opts: KollOpts): Promise
   return {
     torr,
     utkast,
-    katalogen,
+    medVal,
     flervariant: lista.length,
     start,
     kontrollerade: utfall.filter(Boolean).length,
     nasta,
     // Skarpt: också varje produkt med fel bild ska ha hunnit rättas.
-    fullstandig: nasta === null && !stoppad && (torr || !utfall.some((u) => u?.status === "torr")),
+    fullstandig: slutade === "klar",
     stoppad,
+    slutade,
     summa,
     medFelBild,
     produkter,
