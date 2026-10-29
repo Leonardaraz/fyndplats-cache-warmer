@@ -509,24 +509,30 @@ export interface AosomSyncDeps {
     grossSek: number,
     landedCostSek: number,
   ) => Promise<void>;
-  saveMapping: (m: ProductMappingRecord) => Promise<void>;
   /**
-   * Mappningsraden så som den står i lagret NU, eller null när den är borta.
-   *
-   * ☠️ LÄSES OM STRAX FÖRE VARJE STÄMPEL. `listAosom` läses en gång när
-   * körningen startar, och en körning tar minuter. Sparades raden som den såg
-   * ut då skrev synken tyst över allt som skrivits på den under tiden: spegeln
-   * 4117e161 tappade sin sammanslagning så 03:20 den 2026-09-30 (B71 i
-   * tools/polish-gates/FLAGGADE.md). Se `stampelPaFarskRad`.
+   * Sparar tuggans stämplar i klump och svarar PER RAD: de rader som inte
+   * bevisligen sparades, med skälet. Se `stamplaTuggan`.
    */
-  lasMappning: (wixProductId: string) => Promise<ProductMappingRecord | null>;
+  sparaMappningar: (rader: ProductMappingRecord[]) => Promise<{ fel: { wixProductId: string; fel: string }[] }>;
+  /**
+   * Mappningsraderna så som de står i lagret NU, nycklade på Wix-produkt-id.
+   * En rad som är borta finns inte i svaret.
+   *
+   * ☠️ LÄSES OM STRAX FÖRE STÄMPLARNA, för hela tuggan i ett anrop.
+   * `listAosom` läses en gång när körningen startar, och en körning tar
+   * minuter. Sparades raden som den såg ut då skrev synken tyst över allt som
+   * skrivits på den under tiden: spegeln 4117e161 tappade sin sammanslagning
+   * så 03:20 den 2026-09-30 (B71 i tools/polish-gates/FLAGGADE.md). Se
+   * `stampelPaFarskRad`.
+   */
+  lasMappningar: (wixProductIds: string[]) => Promise<Map<string, ProductMappingRecord>>;
   /**
    * Orderrader som kan vara sålda utan att synas i Aosoms flöde: tasks med
    * status `pending` eller `ordered`. Urvalet görs i körningen
    * (`vantarPaFlodet`), så att klockan går att styra i testerna. Läses om för
    * varje tugga, direkt efter butikens lager.
    *
-   * ☠️ OBLIGATORISK, av samma skäl som `lasMappning`: en valfri dep glöms av
+   * ☠️ OBLIGATORISK, av samma skäl som `lasMappningar`: en valfri dep glöms av
    * nästa anropare, och utan avdraget kan samma sista exemplar säljas två
    * gånger — se `LAGER_BUFFERT` och `medSaldaAvdragna`. Ett läsfel stoppar
    * tuggans lagerskrivningar, precis som ett fel i lagerläsningen.
@@ -546,7 +552,7 @@ export interface AosomSyncDeps {
    * listpris lästes när den främjades, och ett nytt pris före starten hade
    * gjort startpriset till ett annat än det kunden såg dagen före.
    *
-   * ☠️ OBLIGATORISK, av samma skäl som `lasMappning`. Ett läsfel stoppar alla
+   * ☠️ OBLIGATORISK, av samma skäl som `lasMappningar`. Ett läsfel stoppar alla
    * prisskrivningar i körningen men inte lagret, och felet bärs i
    * `prislistaFel`, som fäller workflow-jobbet.
    */
@@ -1404,6 +1410,95 @@ export function stampelPaFarskRad(
   };
 }
 
+/** En produkt vars Wix-skrivning gick igenom och som ska stämplas. */
+export interface Stampeljobb {
+  p: Produktplan;
+  skrivet: Parameters<typeof stampelPaFarskRad>[2];
+}
+
+/**
+ * Stämplar tuggans produkter: läser om raderna i ETT anrop och sparar dem i
+ * ETT, efter att tuggans alla Wix-skrivningar är gjorda.
+ *
+ * ☠️ UPPMÄTT 2026-10-29, när driften flyttat till Wix. Stämpeln läste och
+ * sparade en rad i taget, två Wix-anrop per skriven produkt à 110–220 ms
+ * (samma anrop tog millisekunder i Postgres). Lagerkörningen 00:20 UTC
+ * skrev 470 saldon, granskade 3 150 av 4 809 och stannade på tidsbudgeten:
+ * stämplarna åt runt 200 av 240 sekunder. Femtio rader läses på 140–270 ms
+ * med `$in`, så tuggan kostar nu två anrop i stället för upp till hundra.
+ *
+ * Reglerna är `stampelPaFarskRad`s, oförändrade: stämpeln läggs på den färska
+ * raden, och en rad som raderats, bytt artikel, bytt form eller tappat en
+ * variant stämplas inte. Fönstret mellan omläsningen och skrivningen är
+ * tuggans två anrop, under en sekund.
+ *
+ * ☠️ Går omläsningen inte att göra stämplas INGEN av tuggans produkter, och
+ * var och en räknas som misslyckad. Wix är redan skrivet. Nästa körning ser
+ * driften mot butiken (`motButikensSaldo`) och stämplar då. En rad som inte
+ * sparades räknas som misslyckad, de andra står kvar som sparade. Funktionen
+ * kastar aldrig: ett fel här fäller produkter, inte körningen.
+ */
+export async function stamplaTuggan(
+  jobb: readonly Stampeljobb[],
+  deps: Pick<AosomSyncDeps, "lasMappningar" | "sparaMappningar" | "fx">,
+  summary: Pick<AosomSyncSummary, "misslyckade" | "stampelHoppade" | "errors">,
+  nu: number,
+): Promise<void> {
+  const misslyckad = (p: Produktplan, error: string) => {
+    summary.misslyckade++;
+    summary.errors.push({ sku: p.sku, wixProductId: p.m.wixProductId, error });
+  };
+
+  let farska: Map<string, ProductMappingRecord>;
+  try {
+    farska = await deps.lasMappningar(jobb.map((j) => j.p.m.wixProductId));
+  } catch (err) {
+    const fel = err instanceof Error ? err.message : String(err);
+    for (const { p } of jobb) misslyckad(p, `mappningarna gick inte att läsa om: ${fel} — Wix är skrivet, stämpeln väntar till nästa körning`);
+    return;
+  }
+
+  const stamplar: ProductMappingRecord[] = [];
+  const planFor = new Map<string, Produktplan>();
+  for (const { p, skrivet } of jobb) {
+    let stampel: ReturnType<typeof stampelPaFarskRad>;
+    try {
+      stampel = stampelPaFarskRad(p, farska.get(p.m.wixProductId) ?? null, skrivet, deps.fx.usdToSek, nu);
+    } catch (err) {
+      misslyckad(p, err instanceof Error ? err.message : String(err));
+      continue;
+    }
+    if ("skal" in stampel) {
+      summary.stampelHoppade++;
+      summary.errors.push({
+        sku: p.sku,
+        wixProductId: p.m.wixProductId,
+        error: `mappningen ändrades under körningen (${stampel.skal}) — Wix är skrivet, stämpeln väntar till nästa körning`,
+      });
+      continue;
+    }
+    stamplar.push(stampel);
+    planFor.set(stampel.wixProductId, p);
+  }
+  if (stamplar.length === 0) return;
+
+  let fel: { wixProductId: string; fel: string }[];
+  try {
+    fel = (await deps.sparaMappningar(stamplar)).fel;
+  } catch (err) {
+    const f = err instanceof Error ? err.message : String(err);
+    fel = stamplar.map((s) => ({ wixProductId: s.wixProductId, fel: f }));
+  }
+  for (const f of fel) {
+    summary.misslyckade++;
+    summary.errors.push({
+      sku: planFor.get(f.wixProductId)?.sku ?? f.wixProductId,
+      wixProductId: f.wixProductId,
+      error: `mappningen sparades inte: ${f.fel} — Wix är skrivet, stämpeln väntar till nästa körning`,
+    });
+  }
+}
+
 /**
  * Kör en tugga av lager- och prissynken.
  *
@@ -1899,8 +1994,10 @@ export async function runAosomSync(
     summary.aterILager += aterITuggan.length;
     /** Produkter vars pris skrevs i tuggan. Deras mejl visar inget pris, se nedan. */
     const prisSkrivet = new Set<string>();
+    /** Produkter vars Wix-skrivning gick igenom och som ska stämplas (`stamplaTuggan`). */
+    const attStampla: Stampeljobb[] = [];
 
-    // ── FAS 4 + 5: PRISET, SEDAN MAPPNINGEN — PER PRODUKT ────────────────
+    // ── FAS 4: PRISET — PER PRODUKT ──────────────────────────────────────
     // Priset är per produkt hos Wix (`updateV3VariantPrices` tar ett
     // produkt-id), så den delen kan inte batchas. Den är också den lilla
     // delen: efter konvergens vill nästan inga priser skrivas.
@@ -1975,41 +2072,7 @@ export async function runAosomSync(
           continue;
         }
         skrivna++;
-
-        // ── MAPPNINGEN SIST ──────────────────────────────────────────────
-        // Wix skrivs FÖRE mappningen, samma ordning och samma skäl som
-        // price-repair: går bara den ena igenom står kunden inför rätt pris
-        // medan bokföringen är gammal, och nästa körning rättar det. Omvänd
-        // ordning hade gjort mappningen "synkad" medan kunden köper till fel
-        // pris — och då hittar ingen felet igen.
-        //
-        // ☠️ `aosomSyncedQty` stämplas BARA när saldot faktiskt skrevs. Skrevs
-        // bara priset behåller fältet sitt gamla värde, så nästa körning
-        // fortfarande ser att saldot vill skrivas.
-        //
-        // ☠️ OCH RADEN LÄSES OM FÖRST. Stämpeln läggs på raden som den står
-        // nu, inte på ögonblicksbilden från körningens start — se
-        // `stampelPaFarskRad`. Har raden ändrats så att stämpeln inte går att
-        // lägga säkert väntar den till nästa körning, och det syns.
-        if (!dryRun) {
-          const stampel = stampelPaFarskRad(
-            p,
-            await deps.lasMappning(p.m.wixProductId),
-            { lager: skrevLager, pris: skrevPris, prisSkrivna },
-            deps.fx.usdToSek,
-            now(),
-          );
-          if ("skal" in stampel) {
-            summary.stampelHoppade++;
-            summary.errors.push({
-              sku: p.sku,
-              wixProductId: p.m.wixProductId,
-              error: `mappningen ändrades under körningen (${stampel.skal}) — Wix är skrivet, stämpeln väntar till nästa körning`,
-            });
-          } else {
-            await deps.saveMapping(stampel);
-          }
-        }
+        if (!dryRun) attStampla.push({ p, skrivet: { lager: skrevLager, pris: skrevPris, prisSkrivna } });
       } catch (err) {
         summary.misslyckade++;
         summary.errors.push({
@@ -2019,6 +2082,25 @@ export async function runAosomSync(
         });
       }
     }
+
+    // ── FAS 5: MAPPNINGEN SIST, FÖR HELA TUGGAN ──────────────────────────
+    // Wix skrivs FÖRE mappningen, samma ordning och samma skäl som
+    // price-repair: går bara den ena igenom står kunden inför rätt pris medan
+    // bokföringen är gammal, och nästa körning rättar det. Omvänd ordning hade
+    // gjort mappningen "synkad" medan kunden köper till fel pris — och då
+    // hittar ingen felet igen. Bara produkter vars Wix-skrivning gick igenom
+    // står i `attStampla`. Torrläget stämplar ingenting och läser inte om.
+    //
+    // ☠️ `aosomSyncedQty` stämplas BARA när saldot faktiskt skrevs. Skrevs
+    // bara priset behåller fältet sitt gamla värde, så nästa körning
+    // fortfarande ser att saldot vill skrivas.
+    //
+    // ☠️ OCH RADERNA LÄSES OM FÖRST, en gång för tuggan. Stämpeln läggs på
+    // raden som den står nu, inte på ögonblicksbilden från körningens start —
+    // se `stampelPaFarskRad` och `stamplaTuggan`. Har raden ändrats så att
+    // stämpeln inte går att lägga säkert väntar den till nästa körning, och
+    // det syns.
+    if (attStampla.length > 0) await stamplaTuggan(attStampla, deps, summary, now());
 
     // ── RESTOCK-MEJLEN ───────────────────────────────────────────────────
     // Efter prisdelen, så att mejlet läser butikens namn, bild och pris när
@@ -2154,8 +2236,8 @@ export async function liveDeps(): Promise<AosomSyncDeps> {
         );
       }
     },
-    saveMapping: (m) => store.saveMapping(m),
-    lasMappning: (wixProductId) => store.getMappingByWixProductId(wixProductId),
+    sparaMappningar: (rader) => store.saveMappings(rader),
+    lasMappningar: (wixProductIds) => store.getMappingsByWixProductIds(wixProductIds),
     // Väntande och beställda tasks, även AliExpress-ordrarnas: de matchar
     // ingen Aosom-sida och gör därför ingenting. Urvalet (`vantarPaFlodet`)
     // görs i körningen. Två små frågor per tugga, för bara pågående ordrar

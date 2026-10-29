@@ -78,6 +78,29 @@ export class PostgresStore implements Store {
     return rows[0] ? rensa<ProductMappingRecord>(rows[0] as { data: unknown }) : null;
   }
 
+  // En rad i taget: Postgres är reserven sedan driften flyttade till Wix
+  // (2026-10-29), och varje fråga tar millisekunder.
+  async getMappingsByWixProductIds(wixProductIds: string[]): Promise<Map<string, ProductMappingRecord>> {
+    const ut = new Map<string, ProductMappingRecord>();
+    for (const id of new Set(wixProductIds)) {
+      const m = await this.getMappingByWixProductId(id);
+      if (m) ut.set(id, m);
+    }
+    return ut;
+  }
+
+  async saveMappings(records: ProductMappingRecord[]): Promise<{ fel: { wixProductId: string; fel: string }[] }> {
+    const fel: { wixProductId: string; fel: string }[] = [];
+    for (const r of records) {
+      try {
+        await this.saveMapping(r);
+      } catch (err) {
+        fel.push({ wixProductId: r.wixProductId, fel: err instanceof Error ? err.message : String(err) });
+      }
+    }
+    return { fel };
+  }
+
   /**
    * ☠️ INGET TAK HÄR, till skillnad från Wix-varianten.
    *

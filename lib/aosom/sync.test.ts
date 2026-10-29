@@ -161,10 +161,14 @@ function deps(over: Partial<AosomSyncDeps> = {}) {
     setPrice: async (id, variant, pris, kostnad) => {
       priser.push({ id, pris, kostnad, variant });
     },
-    saveMapping: async (m) => { sparade.push(m); },
-    // Raden så som den står i lagret när synken ska stämpla. Standard: samma
-    // rad som körningen läste, alltså ingenting har hänt under körningen.
-    lasMappning: async (id) => (await bas.listAosom()).find((m) => m.wixProductId === id) ?? null,
+    sparaMappningar: async (rader) => {
+      sparade.push(...rader);
+      return { fel: [] };
+    },
+    // Raderna så som de står i lagret när synken ska stämpla. Standard: samma
+    // rader som körningen läste, alltså ingenting har hänt under körningen.
+    lasMappningar: async (ids) =>
+      new Map((await bas.listAosom()).filter((m) => ids.includes(m.wixProductId)).map((m) => [m.wixProductId, m])),
     // Inga sålda orderrader, om testet inte säger annat.
     lasSaldaOrderrader: async () => [],
     // Ingen levande fyndauktion, om testet inte säger annat.
@@ -1036,7 +1040,7 @@ describe("☠️ en levande fyndauktion äger priset (2026-10-13)", () => {
         lasAuktionsprodukter: async () => auktion,
         fetchFeed: async () => feedMed(rad("A-1"), rad("G-7")),
         listAosom: async () => [sida],
-        lasMappning: async () => sida,
+        lasMappningar: async (ids) => new Map(ids.map((id) => [id, sida])),
         lasLagerposter: async () => [
           { id: "inv-svart", revision: "1", productId: "wix-stol", variantId: "wixvar-svart", quantity: S50 },
           { id: "inv-gra", revision: "1", productId: "wix-stol", variantId: "wixvar-gra", quantity: S50 },
@@ -1927,6 +1931,10 @@ describe("☠️ en rad som ändrats under körningen skrivs inte över", () => 
     };
   }
 
+  /** Omläsningen svarar med `rad` för varje efterfrågat id, eller med ingenting. */
+  const farsk = (rad: ProductMappingRecord | null) => async (ids: string[]) =>
+    new Map(rad ? ids.map((id) => [id, rad] as const) : []);
+
   it("☠️ en sammanslagning under körningen skrivs inte över — stämpeln väntar", async () => {
     const fore = mappning("A-1");
     const efter: ProductMappingRecord = {
@@ -1943,7 +1951,7 @@ describe("☠️ en rad som ändrats under körningen skrivs inte över", () => 
     const { d, lager, sparade } = deps({
       fetchFeed: async () => feedMed(rad("A-1"), rad("G-7", { qty: 13 })),
       listAosom: async () => [fore],
-      lasMappning: async () => efter,
+      lasMappningar: farsk(efter),
     });
     const s = await runAosomSync(d, { dryRun: false });
 
@@ -1968,7 +1976,7 @@ describe("☠️ en rad som ändrats under körningen skrivs inte över", () => 
     const { d, sparade } = deps({
       fetchFeed: async () => feedMed(rad("A-1")),
       listAosom: async () => [fore],
-      lasMappning: async () => efter,
+      lasMappningar: farsk(efter),
     });
     const s = await runAosomSync(d, { dryRun: false });
 
@@ -1988,7 +1996,7 @@ describe("☠️ en rad som ändrats under körningen skrivs inte över", () => 
     const { d, sparade } = deps({
       fetchFeed: async () => feedMed(rad("A-1")),
       listAosom: async () => [fore],
-      lasMappning: async () => efter,
+      lasMappningar: farsk(efter),
     });
     const s = await runAosomSync(d, { dryRun: false });
 
@@ -2000,7 +2008,7 @@ describe("☠️ en rad som ändrats under körningen skrivs inte över", () => 
     const { d, sparade } = deps({
       fetchFeed: async () => feedMed(rad("A-1")),
       listAosom: async () => [mappning("A-1")],
-      lasMappning: async () => null,
+      lasMappningar: farsk(null),
     });
     const s = await runAosomSync(d, { dryRun: false });
 
@@ -2027,7 +2035,7 @@ describe("☠️ en rad som ändrats under körningen skrivs inte över", () => 
       // Svart 50 → S50 (oförändrad), grå 13 → S13 (ska skrivas).
       fetchFeed: async () => feedMed(rad("A-1"), rad("G-7", { qty: 13 })),
       listAosom: async () => [fore],
-      lasMappning: async () => efter,
+      lasMappningar: farsk(efter),
       // Den röda fanns inte när synken läste lagret.
       lasLagerposter: async () => [
         { id: "inv-svart", revision: "1", productId: "wix-stol", variantId: "wixvar-svart", quantity: S50 },
@@ -2055,9 +2063,9 @@ describe("☠️ en rad som ändrats under körningen skrivs inte över", () => 
     const { d, sparade } = deps({
       fetchFeed: async () => feedMed(rad("A-1")),
       listAosom: async () => [mappning("A-1")],
-      lasMappning: async () => {
+      lasMappningar: async (ids) => {
         lasningar++;
-        return mappning("A-1");
+        return farsk(mappning("A-1"))(ids);
       },
     });
     const s = await runAosomSync(d);
@@ -2067,11 +2075,35 @@ describe("☠️ en rad som ändrats under körningen skrivs inte över", () => 
     expect(sparade).toEqual([]);
   });
 
-  it("ett läsfel vid omläsningen fäller bara sin produkt", async () => {
-    const { d, sparade } = deps({
-      lasMappning: async (id) => {
-        if (id === "wix-A-1") throw new Error("Postgres svarade inte");
-        return mappning("B-2");
+  it("☠️ ett läsfel vid omläsningen stämplar ingen i tuggan — Wix är redan skrivet", async () => {
+    // Raderna läses om i ett anrop per tugga. Går det inte vet synken inte
+    // hur raderna ser ut nu, och en stämpel på ögonblicksbilden kan skriva
+    // över det som hänt under körningen. Varje produkt räknas som misslyckad,
+    // och nästa körning ser driften mot butiken och stämplar då.
+    const { d, lager, sparade } = deps({
+      lasMappningar: async () => {
+        throw new Error("Wix svarade inte");
+      },
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(lager.map((l) => l.id).sort()).toEqual(["wix-A-1", "wix-B-2"]);
+    expect(s.lagerUppdaterade).toBe(2);
+    expect(s.misslyckade).toBe(2);
+    expect(s.errors).toEqual([
+      { sku: "A-1", wixProductId: "wix-A-1", error: expect.stringMatching(/gick inte att läsa om: Wix svarade inte/) },
+      { sku: "B-2", wixProductId: "wix-B-2", error: expect.stringMatching(/gick inte att läsa om: Wix svarade inte/) },
+    ]);
+    expect(sparade).toEqual([]);
+  });
+
+  it("☠️ en rad som inte sparades fäller bara sin produkt — de andra står kvar", async () => {
+    // Samma regel som lagret: en rad räknas bara när lagret bekräftat den.
+    const sparade: string[] = [];
+    const { d } = deps({
+      sparaMappningar: async (rader) => {
+        sparade.push(...rader.filter((r) => r.wixProductId !== "wix-A-1").map((r) => r.wixProductId));
+        return { fel: [{ wixProductId: "wix-A-1", fel: "inte bekräftad av Wix" }] };
       },
     });
     const s = await runAosomSync(d, { dryRun: false });
@@ -2079,9 +2111,52 @@ describe("☠️ en rad som ändrats under körningen skrivs inte över", () => 
     expect(s.lagerUppdaterade).toBe(2);
     expect(s.misslyckade).toBe(1);
     expect(s.errors).toEqual([
-      { sku: "A-1", wixProductId: "wix-A-1", error: expect.stringMatching(/Postgres/) },
+      { sku: "A-1", wixProductId: "wix-A-1", error: expect.stringMatching(/sparades inte: inte bekräftad av Wix/) },
     ]);
+    expect(sparade).toEqual(["wix-B-2"]);
+  });
+
+  it("en hoppad stämpel håller inte tillbaka tuggans andra", async () => {
+    const a = mappning("A-1");
+    const omMappad: ProductMappingRecord = {
+      ...a,
+      supplierProductId: "aosom:Z-9",
+      variants: [{ ...a.variants[0], supplierVariantId: "Z-9" }],
+    };
+    const { d, sparade } = deps({
+      lasMappningar: async () => new Map([["wix-A-1", omMappad], ["wix-B-2", mappning("B-2")]]),
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+
+    expect(s.stampelHoppade).toBe(1);
+    expect(s.misslyckade).toBe(0);
     expect(sparade.map((m) => m.wixProductId)).toEqual(["wix-B-2"]);
+  });
+
+  it("☠️ stämplarna läses om och sparas i ETT anrop per tugga, inte ett per produkt", async () => {
+    // Uppmätt 2026-10-29 på Wix: två anrop per skriven produkt åt runt 200 av
+    // lagerkörningens 240 sekunder. 70 produkter är två tuggor (50 + 20).
+    const skus = Array.from({ length: 70 }, (_, i) => `C-${String(i).padStart(2, "0")}`);
+    const lasta: number[] = [];
+    const sparadeOmgangar: number[] = [];
+    const { d } = deps({
+      fetchFeed: async () => feedMed(...skus.map((k) => rad(k))),
+      listAosom: async () => skus.map((k) => mappning(k)),
+      lasMappningar: async (ids) => {
+        lasta.push(ids.length);
+        return new Map(ids.map((id) => [id, mappning(id.replace(/^wix-/, ""))] as const));
+      },
+      sparaMappningar: async (rader) => {
+        sparadeOmgangar.push(rader.length);
+        return { fel: [] };
+      },
+    });
+    const s = await runAosomSync(d, { dryRun: false, skipPrices: true });
+
+    expect(s.lagerUppdaterade).toBe(70);
+    expect(lasta).toEqual([50, 20]);
+    expect(sparadeOmgangar).toEqual([50, 20]);
+    expect(s.misslyckade).toBe(0);
   });
 });
 

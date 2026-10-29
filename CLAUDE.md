@@ -1085,12 +1085,13 @@ sammanslagning vägrades (`behall_har_redan_optioner`). Samma väg kunde ta
 tillbaka poleringens SKU och status, ångra en ommappning och återskapa en
 raderad rad.
 
-Nu läses raden om strax före stämpeln (`lasMappning` →
-`getMappingByWixProductId`), och `stampelPaFarskRad` lägger bara synkens egna
-fält på den färska raden: `aosomSyncedQty` och `aosomSyncedAt`, och per variant
-`aosomSyncedQty`, `grossSek`, `landedCostSek` och `costUsd`. Varianterna
-matchas på Wix-id och artikel, aldrig på plats i listan, så en färg som lagts
-till under körningen lämnas orörd.
+Nu läses raden om strax före stämpeln, för hela tuggan i ett anrop sedan
+2026-10-29 (`lasMappningar` → `getMappingsByWixProductIds`, se nästa avsnitt),
+och `stampelPaFarskRad` lägger bara synkens egna fält på den färska raden:
+`aosomSyncedQty` och `aosomSyncedAt`, och per variant `aosomSyncedQty`,
+`grossSek`, `landedCostSek` och `costUsd`. Varianterna matchas på Wix-id och
+artikel, aldrig på plats i listan, så en färg som lagts till under körningen
+lämnas orörd.
 
 Fyra egenskaper som inte ska tas bort:
 
@@ -1106,9 +1107,9 @@ Fyra egenskaper som inte ska tas bort:
 4. **Torrkörningen läser inte om raden.** Den stämplar ingenting, så det finns
    inget att skydda.
 
-⚠️ `saveMapping` är fortfarande en villkorslös upsert, så ett fönster på några
-millisekunder mellan omläsningen och skrivningen finns kvar. Förut var
-fönstret hela körningen.
+⚠️ Stämplarna sparas fortfarande med en villkorslös upsert, så ett fönster
+mellan omläsningen och skrivningen finns kvar: tuggans två anrop, under en
+sekund. Förut var fönstret hela körningen.
 
 ⚠️ **En överhoppad stämpel efter en PRISskrivning läker inte av sig själv.**
 Wix har det nya priset, men mappningens `grossSek`, `landedCostSek` och
@@ -1119,6 +1120,33 @@ bara för en rad som ändrats mitt i en prisskrivning, och priser skrivs bara
 skäl. Står `stampelHoppade` över noll efter en körning med priser, titta på
 produkten i `errors`: mappningens pris kan vara det gamla tills kostnaden
 ändras nästa gång.
+
+### Stämplarna läses och sparas en tugga i taget (2026-10-29)
+
+Efter flytten till Wix CMS stannade lagerkörningen på tidsbudgeten. Körningen
+00:20 UTC skrev 470 saldon, granskade 3 150 av 4 809 och lämnade 1 659 till
+nästa. Stämpeln läste och sparade en rad i taget, alltså två Wix-anrop per
+skriven produkt. Uppmätt samma dag tog en läsning 110–220 ms, och stämplarna
+åt runt 200 av 240 sekunder. I Postgres tog samma anrop millisekunder.
+
+Nu stämplas en tugga i taget (`stamplaTuggan`). Tuggans rader läses om i ett
+anrop (`lasMappningar` → `getMappingsByWixProductIds`, `$in` på `_id`, femtio
+rader på 140–270 ms), och stämplarna sparas i ett (`sparaMappningar` →
+`saveMappings` → `sparaManga`). Det blir två anrop per tugga om femtio i
+stället för upp till hundra.
+
+Tre egenskaper som inte ska tas bort:
+
+1. ☠️ **Stämplarna läggs efter tuggans alla Wix-skrivningar**, och bara för
+   produkter vars skrivning gick igenom. "Wix före mappningen" gäller som
+   förut, per produkt.
+2. ☠️ **Går omläsningen inte att göra stämplas ingen i tuggan**, och varje
+   produkt räknas som misslyckad. Förut föll bara den produkt vars läsning
+   föll. En stämpel på ögonblicksbilden hade kunnat skriva över det som hänt
+   under körningen. Nästa körning ser driften mot butiken och stämplar då.
+3. **En rad räknas som sparad bara när Wix bekräftat den** (`sparaManga`, samma
+   regler som `tolkaBulkUtfall`). En rad som inte sparades räknas som
+   misslyckad, och de andra står kvar.
 
 ### Så körs den för hand
 
@@ -1208,7 +1236,7 @@ Fyra egenskaper som inte ska tas bort:
    men lagret synkas. Felet står i `prislistaFel` och fäller workflow-jobbet.
 3. **Spärren ligger före uträkningen**, som `prisLast`, så en produkt i
    auktion hamnar aldrig i `varningar`.
-4. **Depen är obligatorisk**, av samma skäl som `lasMappning`.
+4. **Depen är obligatorisk**, av samma skäl som `lasMappningar`.
 
 När auktionen är slut skriver nästa priskörning regelpriset.
 
