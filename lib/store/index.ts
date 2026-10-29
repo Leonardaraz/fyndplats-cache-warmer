@@ -303,13 +303,15 @@ export interface ProductMappingRecord {
   /**
    * VEVOR: det poleringen ska kontrollera före publicering
    * (lib/vevor/granskning.ts): GPSR-status, möjlig medicinteknik och
-   * bildmönstret. Sätts av importen.
+   * bildmönstret. Sätts av importen. GPSR-statusen skrivs om när uppgifterna
+   * förs in (/api/admin/vevor-gpsr, lib/vevor/gpsr.ts); importen sätter bara
+   * de två sista.
    *
    * ☠️ BÄR INGA IDENTIFIERARE. Poleringens läsning skriver ut fältet i en
    * publik Actions-logg, så det får aldrig bära artikelnummer eller adresser.
    */
   vevorGranskning?: {
-    gpsr: "manual_ej_last" | "ingen_manual";
+    gpsr: "komplett" | "bara_tillverkare" | "saknas" | "manual_ej_last" | "ingen_manual";
     medicinteknik: boolean;
     bildmonster: "ny" | "gammal" | "okant";
     bildgranskning: boolean;

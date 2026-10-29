@@ -15,6 +15,7 @@ import {
   ARTNR,
   artikelnummerformer,
   fnv1a64,
+  type Publiceringsplan,
   redigera,
   type Skrivplan,
   type SkrivProdukt,
@@ -548,5 +549,85 @@ describe("stegVerifiera", () => {
         expect(u.rader[0].fel).toBe(vantat);
       }
     });
+  });
+});
+
+describe("publiceringsspärren i text- och verifieringssteget (steg 7)", () => {
+  const PID = "1a2b3c4d-0000-4000-8000-000000000001";
+  const hindrad: Publiceringsplan = {
+    hinder: new Map([[PID, "GPSR ej komplett (ingen manual)"]]),
+    marke: new Map(),
+    markesnamn: new Map(),
+  };
+  const medMarke: Publiceringsplan = {
+    hinder: new Map(),
+    marke: new Map([[PID, "marke-vevor"]]),
+    markesnamn: new Map([[PID, "VEVOR"]]),
+  };
+
+  it("☠️ en hindrad produkt skrivs med visible: false och rapporteras som inte publicerad", async () => {
+    const { wix, anrop } = fakeWix((a) => (a.metod === "GET" ? { product: { revision: "7", visible: false } } : { product: { revision: "8" } }));
+    const u = await stegText(plan(), wix, false, hindrad);
+    const patch = anrop.find((a) => a.metod === "PATCH");
+    expect((patch?.kropp as { product: { visible: boolean } }).product.visible).toBe(false);
+    expect(u.rader[0]).toMatchObject({ publicerad: false, hinder: "GPSR ej komplett (ingen manual)" });
+  });
+
+  it("torrkörningen säger att produkten inte publiceras", async () => {
+    const { wix } = fakeWix(() => ({ product: { revision: "3", visible: false } }));
+    const u = await stegText(plan(), wix, true, hindrad);
+    expect(u.rader[0]).toMatchObject({ publiceras: false });
+  });
+
+  it("märket skrivs med id och står i fältmasken", async () => {
+    const { wix, anrop } = fakeWix((a) => (a.metod === "GET" ? { product: { revision: "7", visible: false } } : { product: { revision: "8" } }));
+    await stegText(plan(), wix, false, medMarke);
+    const kropp = anrop.find((a) => a.metod === "PATCH")?.kropp as { product: Record<string, unknown>; fieldMask: { paths: string[] } };
+    expect(kropp.product.brand).toEqual({ id: "marke-vevor" });
+    expect(kropp.product.visible).toBe(true);
+    expect(kropp.fieldMask.paths).toContain("brand");
+  });
+
+  function lagrad(over: Record<string, unknown> = {}) {
+    const p = produkt();
+    return {
+      product: {
+        revision: "12",
+        name: p.namn,
+        slug: p.slug,
+        visible: true,
+        plainDescription: HTML,
+        seoData: {
+          tags: [
+            { type: "title", children: p.seoTitel },
+            { type: "meta", props: { name: "description", content: p.seoBesk } },
+          ],
+          settings: { keywords: [] },
+        },
+        media: { itemsInfo: { items: p.media } },
+        directCategoriesInfo: { categories: [{ id: "kat-hem" }] },
+        variantsInfo: { variants: [{ id: p.variantId, sku: p.sku, visible: true }] },
+        ...over,
+      },
+    };
+  }
+
+  it("☠️ verifieringen fäller en hindrad produkt som ändå är synlig", async () => {
+    const { wix } = fakeWix((a) => (a.sokvag.endsWith("/query") ? KATEGORIER : lagrad({ visible: true })));
+    const u = await stegVerifiera(plan(), wix, hindrad);
+    expect(u.rader[0]).toMatchObject({ ok: false, fel: expect.stringContaining("synlig") });
+  });
+
+  it("godkänner en hindrad produkt som är dold", async () => {
+    const { wix } = fakeWix((a) => (a.sokvag.endsWith("/query") ? KATEGORIER : lagrad({ visible: false })));
+    const u = await stegVerifiera(plan(), wix, hindrad);
+    expect(u.rader[0]).toMatchObject({ ok: true, publicerad: false });
+  });
+
+  it("fäller ett märke som inte sitter, godkänner ett som gör det", async () => {
+    const utan = fakeWix((a) => (a.sokvag.endsWith("/query") ? KATEGORIER : lagrad()));
+    expect((await stegVerifiera(plan(), utan.wix, medMarke)).rader[0]).toMatchObject({ ok: false, fel: expect.stringContaining("marke") });
+    const med = fakeWix((a) => (a.sokvag.endsWith("/query") ? KATEGORIER : lagrad({ brand: { id: "marke-vevor", name: "Vevor" } })));
+    expect((await stegVerifiera(plan(), med.wix, medMarke)).rader[0]).toMatchObject({ ok: true });
   });
 });

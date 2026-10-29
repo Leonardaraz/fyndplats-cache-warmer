@@ -1,0 +1,142 @@
+name: VEVOR — produktsäkerhet (GPSR)
+
+# Tillverkaren och EU-ansvarig för VEVOR-varor (lib/vevor/gpsr.ts). En
+# VEVOR-vara publiceras inte förrän båda är kompletta med namn, postadress och
+# e-post (lib/publicering.ts). VEVOR:s produktsidor har inte uppgifterna, så
+# de förs in här: ur manualen, ur VEVOR:s svar eller ur ett beslut av Leonard.
+#
+#   status  antal VEVOR-varor per GPSR-status
+#   las     den första varans status och uppgifter i wix_ids
+#   satt    för in samma uppgifter för varorna i wix_ids (högst 50, till
+#           exempel syskon med samma manual). Torrt om inte skarp är ja.
+#   rensa   tar bort uppgifterna. Torrt om inte skarp är ja.
+#   standard        för in uppgifter som gäller ALLA VEVOR-varor utan egen
+#                   rad (wix_ids lämnas tomt). Torrt om inte skarp är ja.
+#   rensa-standard  tar bort standardraden. Torrt om inte skarp är ja.
+#
+# En part skrivs "namn | adress | e-post", adressen på en rad med land. Lämna
+# eu_ansvarig tomt när källan bara nämner tillverkaren. kalla säger var
+# uppgifterna kommer ifrån, med egna ord ("manualen", "VEVOR:s svar 2026-11-02").
+#
+# Loggen bär Wix-id, status och parterna, som står på den publika
+# produktsidan. Aldrig artikelnummer eller manualens adress: repot är publikt.
+#
+# ⚠️ Rutten finns bara där den är deployad. Kör från main när den ligger där.
+
+on:
+  workflow_dispatch:
+    inputs:
+      lage:
+        description: "status, las, satt, rensa, standard eller rensa-standard"
+        required: true
+        default: status
+        type: choice
+        options: [status, las, satt, rensa, standard, rensa-standard]
+      wix_ids:
+        description: "Wix-produkt-id, kommaseparerade (las, satt och rensa)"
+        required: false
+        default: ""
+      tillverkare:
+        description: "satt: namn | adress | e-post"
+        required: false
+        default: ""
+      eu_ansvarig:
+        description: "satt: namn | adress | e-post (tomt om källan inte nämner någon)"
+        required: false
+        default: ""
+      kalla:
+        description: "satt: var uppgifterna kommer ifrån"
+        required: false
+        default: ""
+      skarp:
+        description: "satt och rensa: ja skriver, nej prövar bara"
+        required: false
+        default: "nej"
+        type: choice
+        options: ["nej", "ja"]
+
+jobs:
+  kor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          LAGE: ${{ inputs.lage }}
+          WIX_IDS: ${{ inputs.wix_ids }}
+          TILLVERKARE: ${{ inputs.tillverkare }}
+          EU_ANSVARIG: ${{ inputs.eu_ansvarig }}
+          KALLA: ${{ inputs.kalla }}
+          SKARP: ${{ inputs.skarp }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # Till STDERR: en ::error::-rad på stdout slukas av kommandosubstitutionen.
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          rot="${BASE%/api/cron/poll-tracking}"
+
+          ids=$(printf '%s' "$WIX_IDS" | tr ',; ' '\n\n\n' | grep -v '^$' | jq -R . | jq -sc .)
+          torr="true"
+          if [ "$SKARP" = "ja" ]; then torr="false"; fi
+
+          # "namn | adress | e-post" → JSON, null när fältet är tomt.
+          part() {
+            if [ -z "$(printf '%s' "$1" | tr -d '[:space:]')" ]; then echo null; return; fi
+            printf '%s' "$1" | jq -Rc 'split("|") | map(gsub("^\\s+|\\s+$"; "")) | if length == 3 then {namn: .[0], adress: .[1], epost: .[2]} else "ogiltig" end'
+          }
+
+          case "$LAGE" in
+            status)
+              svar=$(curl -sS --max-time 110 -H "Authorization: Bearer ${CRON_SECRET}" "${rot}/api/admin/vevor-gpsr") || {
+                echo "::error::Anropet gick inte fram" >&2; exit 1; }
+              ;;
+            las)
+              forsta=$(echo "$ids" | jq -r '.[0] // ""')
+              if [ -z "$forsta" ]; then echo "::error::wix_ids saknas" >&2; exit 1; fi
+              svar=$(curl -sS --max-time 60 -H "Authorization: Bearer ${CRON_SECRET}" \
+                "${rot}/api/admin/vevor-gpsr?wixProductId=${forsta}") || {
+                echo "::error::Anropet gick inte fram" >&2; exit 1; }
+              ;;
+            satt|standard)
+              tv=$(part "$TILLVERKARE")
+              eu=$(part "$EU_ANSVARIG")
+              if [ "$tv" = '"ogiltig"' ] || [ "$eu" = '"ogiltig"' ]; then
+                echo "::error::En part skrivs: namn | adress | e-post" >&2; exit 1
+              fi
+              kropp=$(jq -nc --arg atgard "$LAGE" --argjson ids "$ids" --argjson tv "$tv" --argjson eu "$eu" --arg kalla "$KALLA" --argjson torr "$torr" \
+                '{atgard: $atgard, wixProductIds: $ids, tillverkare: $tv, euAnsvarig: $eu, kalla: $kalla, dryRun: $torr}')
+              svar=$(curl -sS --max-time 110 -X POST -H "Authorization: Bearer ${CRON_SECRET}" \
+                -H "Content-Type: application/json" -d "$kropp" "${rot}/api/admin/vevor-gpsr") || {
+                echo "::error::Anropet gick inte fram" >&2; exit 1; }
+              ;;
+            rensa)
+              kropp=$(jq -nc --argjson ids "$ids" --argjson torr "$torr" '{atgard: "rensa", wixProductIds: $ids, dryRun: $torr}')
+              svar=$(curl -sS --max-time 110 -X POST -H "Authorization: Bearer ${CRON_SECRET}" \
+                -H "Content-Type: application/json" -d "$kropp" "${rot}/api/admin/vevor-gpsr") || {
+                echo "::error::Anropet gick inte fram" >&2; exit 1; }
+              ;;
+            rensa-standard)
+              kropp=$(jq -nc --argjson torr "$torr" '{atgard: "rensa_standard", dryRun: $torr}')
+              svar=$(curl -sS --max-time 110 -X POST -H "Authorization: Bearer ${CRON_SECRET}" \
+                -H "Content-Type: application/json" -d "$kropp" "${rot}/api/admin/vevor-gpsr") || {
+                echo "::error::Anropet gick inte fram" >&2; exit 1; }
+              ;;
+            *)
+              echo "::error::okänt läge" >&2; exit 1
+              ;;
+          esac
+
+          if ! echo "$svar" | jq -e 'type == "object"' >/dev/null 2>&1; then
+            echo "::error::Svaret var inte JSON. Är rutten deployad där workflowen kör?" >&2
+            exit 1
+          fi
+          # Svaret bär Wix-id, status och parterna. Det skrivs ut som det är.
+          echo "$svar" | jq '.' || true
+          if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+            echo "::error::$(echo "$svar" | jq -r '.error // "en eller flera varor föll, se raderna ovan"')" >&2
+            exit 1
+          fi

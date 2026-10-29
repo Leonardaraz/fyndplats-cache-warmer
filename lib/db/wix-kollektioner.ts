@@ -46,11 +46,13 @@ export const NYA = {
 /**
  * VEVOR-läsarens kollektioner (lib/vevor/lager.ts, 2026-10-29). Raderna bär
  * artikelnummer, adresser och priser — läsbara bara för admin, som allt här.
+ * `gpsr` är tillverkaren och EU-ansvarig per artikel (lib/vevor/gpsr-lager.ts).
  */
 export const VEVOR_KOL = {
   sidor: "FyndplatsVevorSidor",
   avlasningar: "FyndplatsVevorAvlasningar",
   lasare: "FyndplatsVevorLasare",
+  gpsr: "FyndplatsVevorGpsr",
 } as const;
 
 export const KOLLEKTIONER: KollektionSpec[] = [
@@ -121,4 +123,5 @@ export const KOLLEKTIONER: KollektionSpec[] = [
   },
   { id: VEVOR_KOL.avlasningar, index: [{ namn: "status", falt: [asc("status")] }] },
   { id: VEVOR_KOL.lasare, index: [] },
+  { id: VEVOR_KOL.gpsr, index: [] },
 ];

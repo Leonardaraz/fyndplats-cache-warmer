@@ -14,6 +14,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { audit } from "@/lib/audit";
 import { checkToken } from "@/lib/auth";
+import { hinderText, publiceringshinder } from "@/lib/publicering";
 import { getStore } from "@/lib/store/factory";
 import { getProduct, setProductVisibility } from "@/lib/wix/client";
 
@@ -66,6 +67,14 @@ export async function POST(req: NextRequest) {
       const mapping = await store.getMappingByWixProductId(id);
       if (!mapping) {
         errors.push(`${id}: mappning saknas`);
+        continue;
+      }
+
+      // Publiceringsspärren (lib/publicering.ts): en VEVOR-vara publiceras
+      // genom poleringen, inte här.
+      const hinder = action === "publish" ? publiceringshinder(mapping, null, "ko") : null;
+      if (hinder) {
+        errors.push(`${id}: ${hinderText(hinder)}`);
         continue;
       }
 

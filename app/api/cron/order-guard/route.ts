@@ -13,6 +13,7 @@
 //   - Dygnets synk-digest: slut hos leverantör / återställda / dolda /
 //     hämtningsfel — en rad per produkt med AliExpress- + sajtlänk (ersätter
 //     per-produkt- och per-körnings-mejlen som stängdes av 2026-07-14)
+//   - VEVOR-sidor publicerade utan komplett produktsäkerhet (GPSR), med Wix-id
 //   - Status: synk-rollup, öppna sync-larm, auktionens live/kö
 //
 // Mejlet skickas ÄVEN när allt är grönt — uteblivet morgonmejl är i sig
@@ -38,6 +39,8 @@ import {
   type GuardOrderInput,
 } from "@/lib/orders/guard";
 import { searchProductSummaries } from "@/lib/wix/client";
+import { vevorPubliceradeUtanGpsr } from "@/lib/vevor/gpsr-vakt";
+import { wixGpsrLager } from "@/lib/vevor/gpsr-lager";
 import { sendEmail } from "@/lib/email/resend";
 import { audit } from "@/lib/audit";
 import { isPersistentBackend } from "@/lib/store/backend";
@@ -76,6 +79,22 @@ export async function GET(req: NextRequest) {
     const store = getStore();
     const now = Date.now();
     const sectionErrors: string[] = [];
+
+    // VEVOR-sidor som är publicerade utan komplett produktsäkerhet
+    // (lib/vevor/gpsr-vakt.ts). Startas här och väntas in före mejlet:
+    // mappningarna är hela tabellen, och läsningen ska inte ligga i serie med
+    // resten. Best-effort som allt annat utom tasks och audit.
+    const vevorKoll = vevorPubliceradeUtanGpsr({
+      mappningar: () => store.listMappings(),
+      synliga: async (ids) => {
+        const info = await searchProductSummaries(ids);
+        return new Set([...info.values()].filter((p) => p.visible !== false).map((p) => p.id));
+      },
+      lager: wixGpsrLager,
+    }).then(
+      (ids) => ({ ok: true as const, ids }),
+      (err: unknown) => ({ ok: false as const, fel: (err instanceof Error ? err.message : String(err)).slice(0, 150) }),
+    );
 
     // Tasks + audit är vaktens kärna — failar de är hela körningen ett fel
     // (fångas av yttre catch → 500 → syns i Vercel-loggar och GitHub-workflow).
@@ -156,6 +175,10 @@ export async function GET(req: NextRequest) {
       sectionErrors.push(`Auktionsstatus gick inte att läsa: ${(err as Error).message.slice(0, 150)}`);
     }
 
+    const vevor = await vevorKoll;
+    if (vevor.ok) extras.vevorUtanGpsr = vevor.ids;
+    else sectionErrors.push(`VEVOR-sidornas produktsäkerhet gick inte att kontrollera: ${vevor.fel}`);
+
     const findings = buildGuardFindings({ orders, tasks, auditEntries, nowMs: now });
     const email = buildGuardEmail(findings, extras, now);
 
@@ -182,6 +205,7 @@ export async function GET(req: NextRequest) {
       awaitingShipment: findings.awaitingShipment.length,
       heldForReview: findings.heldForReview.length,
       pollErrorTasks: findings.pollErrors.length,
+      vevorUtanGpsr: extras.vevorUtanGpsr?.length ?? null,
       sectionErrors: sectionErrors.length,
       email: emailResult.id ? "sent" : emailResult.skipped ?? "unknown",
     };

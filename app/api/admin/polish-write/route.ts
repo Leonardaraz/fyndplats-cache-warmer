@@ -19,6 +19,10 @@ import { type NextRequest, NextResponse } from "next/server";
 import { isAuthorized } from "@/lib/auth";
 import { felText, korSteg, STEG, type Steg, valideraPlan } from "@/lib/polish/skrivplan";
 import { skapaWixAnrop } from "@/lib/polish/skrivplan-wix";
+import { byggPubliceringsplan } from "@/lib/polish/publiceringsplan";
+import { markeId } from "@/lib/polish/marke";
+import { getStore } from "@/lib/store/factory";
+import { wixGpsrLager } from "@/lib/vevor/gpsr-lager";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -56,9 +60,20 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const utfall = await korSteg(steg as Steg, v.plan, skapaWixAnrop(), torr);
+    const wix = skapaWixAnrop();
+    // Publiceringsspärren (lib/publicering.ts) och märket, för textsteget och
+    // verifieringen. En VEVOR-vara utan komplett GPSR skrivs men publiceras inte.
+    const store = getStore();
+    const pub = await byggPubliceringsplan(v.plan, steg as Steg, torr, {
+      mappningar: (ids) => store.getMappingsByWixProductIds(ids),
+      gpsr: wixGpsrLager,
+      markeId: (namn) => markeId(namn, wix),
+    });
+    const utfall = await korSteg(steg as Steg, v.plan, wix, torr, pub);
+    const ejPublicerade = pub.hinder.size;
     console.log(
-      `[polish-write] ${v.plan.runda} ${steg}${torr ? " (torrt)" : ""}: ${utfall.avbrutet ?? utfall.sammanfattning}`,
+      `[polish-write] ${v.plan.runda} ${steg}${torr ? " (torrt)" : ""}: ${utfall.avbrutet ?? utfall.sammanfattning}`
+        + (ejPublicerade ? `, ${ejPublicerade} publiceras inte (spärr)` : ""),
     );
     return NextResponse.json({
       ok: utfall.ok,
@@ -66,6 +81,7 @@ export async function POST(req: NextRequest) {
       dryRun: torr,
       runda: v.plan.runda,
       sammanfattning: utfall.sammanfattning,
+      ...(ejPublicerade ? { ejPublicerade } : {}),
       ...(utfall.avbrutet ? { avbrutet: utfall.avbrutet } : {}),
       rader: utfall.rader,
     });

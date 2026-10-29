@@ -24,6 +24,8 @@ import { getStore } from "@/lib/store/factory";
 import { getPricingRules } from "@/lib/store/pricing-config";
 import { applicera, prisgrind, validera, type Patch } from "@/lib/polish/mapping-access";
 import { v3ProduktFinns } from "@/lib/wix/v3-products";
+import { hinderText, publiceringshinderFor } from "@/lib/publicering";
+import { wixGpsrLager } from "@/lib/vevor/gpsr-lager";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -163,6 +165,19 @@ export async function POST(req: NextRequest) {
         },
         { status: 404 },
       );
+    }
+
+    // ☠️ PUBLICERINGSSPÄRREN (lib/publicering.ts). En VEVOR-vara utan komplett
+    // GPSR stämplas inte som publicerad: stämpeln följer textsteget, och där
+    // publicerades den inte. Ingenting skrivs.
+    if ((rå as Patch).draftStatus === "published") {
+      const hinder = (await publiceringshinderFor([före], "polering", wixGpsrLager)).get(före.wixProductId);
+      if (hinder) {
+        return NextResponse.json(
+          { ok: false, error: `INGENTING skrevs: ${hinderText(hinder)}.` },
+          { status: 409 },
+        );
+      }
     }
 
     const { ny, okändaVariantIds } = applicera(före, rå as Patch);
