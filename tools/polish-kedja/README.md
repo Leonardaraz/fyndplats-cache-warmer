@@ -87,7 +87,14 @@ Rundnamnet får vara högst 60 tecken, och givarrundan blir `<rundnamn>-givare-a
    `commit_push.sh`.
 4. Förkontrollen av sammanslagningar: `forplan.sh`-mönstret (`aosom-sammanslagning.yml
    mode=plan`) mot färska Wix-sidor, och en genomgång av BÅDA sidornas bilder sida vid sida.
-   Ett färgsyskon avgörs på bilderna, inte på måtten (lärdom 40).
+   Ett färgsyskon avgörs på bilderna, inte på måtten (lärdom 40). ☠️ Kör planen innan värdens
+   text skrivs, inte efter: `behall_ej_aosom` (en AliExpress-värd) stoppar hela raden, och T104
+   hade då redan en färdig värdtext för `a8cd3914`. Frågar planen om det finns en vit Aosom-artikel
+   att mappa om värden mot är svaret `aosom-syskon-import.yml` i läget `plan` med givarens id (41 s):
+   noll syskon i listan betyder att varken sammanslagning eller ommappning går, och givaren blir en
+   egen sida med färgen i namnet (N327). Planen vägrar också med `namnet_bar_farg` så länge värdens
+   gamla namn bär färgen, även när värdrundan byter namnet; läs den raden som väntad, och kör
+   `gate-vardalt-farg.py`, som läser det nya namnet.
 5. Kedjan: `mall-rund/exempel/kor_t78.sh` (värdskrivning, omdirigering, givarbilder, sammanslagning;
    `kor_n314.sh` är samma kedja för tre värdar på en gång, med `merge_n314.json`)
    eller `kor_n288.sh`-mönstret för en ny sida (bara `ghw.py write`). ☠️ Skriv givarrundans namn

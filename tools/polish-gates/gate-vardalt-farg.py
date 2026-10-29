@@ -19,6 +19,12 @@ bildens plats i `bilder.tsv`, inte galleriplatsen). Avslutar med 1 vid minst ett
 (`en katt` i stället för `en grå katt`) före värdrundan, eller länka bilden till värdens färg efter sammanslagningen med
 `bygg-lank.py`.
 
+Namnkontrollen (2026-10-29, T104): sammanslagningens plan vägrar med `namnet_bar_farg` när värdens NAMN bär värdens färg som hela ord
+(`innehallerOrdet` i lib/aosom/sammanslagning.ts), och den läser namnet som det står i Wix när planen körs, alltså före värdrundans namnbyte.
+Förkontrollen i planläge fäller därför varje värd vars namn byts ut i rundan (matbordet `9053bc1a`), och det går inte att se om det nya namnet
+duger. Gaten läser värdens NYA namn ur rundans `namn.tsv` och fäller om det bär värdens eller givarens färg som hela ord. Den känner bara de
+färger som står i merge-filen (`farg_behall`, `farg_utkast`): en värd som redan har färgaxeln har fler färger än så, och de ser bara planen.
+
 Reglerna är portade ur lib/aosom/fargbilder.ts (`fargFormer`, `nammdaFarger`, `arKort`, `BAKGRUND`). Ändras de där måste de ändras här;
 `--self-test` prövar dem mot fallet som hittades och fyra kontroller som inte får fälla."""
 import json, os, re, sys
@@ -52,6 +58,13 @@ def nammda_farger(alt, etiketter):
         if re.search(r'(?<!' + ORD + r')(?:' + '|'.join(re.escape(f) for f in former) + r')(?!' + ORD + r')', text, re.I):
             traffar.append(e)
     return traffar
+
+
+def innehaller_ordet(text, ord_):
+    """Samma regel som `innehallerOrdet` i lib/aosom/sammanslagning.ts: gemener, allt utom a–ö och siffror blir mellanslag, och ordet ska stå som hela ord."""
+    t = ' ' + re.sub(r'[^a-zåäöé0-9]+', ' ', (text or '').lower()) + ' '
+    o = re.sub(r'[^a-zåäöé0-9]+', ' ', (ord_ or '').lower()).strip()
+    return bool(o) and (' ' + o + ' ') in t
 
 
 def ar_kort(alt):
@@ -91,6 +104,13 @@ def self_test():
     assert bedom('Klöstunnan med grånande sisal', 'Beige', 'Grå') == 'ok'
     # Båda färgerna: gemensam, alltså visas fotot under båda.
     assert bedom('Beige klöstunna bredvid en grå', 'Beige', 'Grå') == 'delad'
+    # Namnkontrollen: färgen ska stå som hela ord (en fras som `grå marmor` som hela följden), inte inuti ett annat ord.
+    assert innehaller_ordet('Kontorsstol med nackstöd, svart', 'Svart')
+    assert innehaller_ordet('Soffbord, grå marmor, 2-pack', 'Grå marmor')
+    assert not innehaller_ordet('Ljusgrå kudde', 'Grå')
+    assert not innehaller_ordet('Soffbord i marmor-, betong- och trälook', 'Grå marmor')
+    assert not innehaller_ordet('Litet runt matbord Ø75 cm med korsade stålben', 'Ljusbrun')
+    assert innehaller_ordet('Litet runt matbord Ø75 cm – ljusbrun skiva och korsade ben', 'Ljusbrun')
     print('självtest OK')
 
 
@@ -107,14 +127,26 @@ def main(a):
         d = rad.split('\t')
         if len(d) >= 3:
             alt.setdefault(d[0], []).append((d[1], d[2]))
+    namn = {}
+    if os.path.exists(os.path.join(rund, 'namn.tsv')):
+        for rad in open(os.path.join(rund, 'namn.tsv'), encoding='utf-8').read().splitlines():
+            d = rad.split('\t')
+            if len(d) >= 2:
+                namn[d[0]] = d[1]
     fynd = 0
     kollade = 0
     for fil in a[1:]:
         for m in json.load(open(fil, encoding='utf-8')):
             behall, utkast = m.get('farg_behall'), m.get('farg_utkast')
+            id8 = m['behall'][:8]
+            if id8 in namn:
+                for f in (behall, utkast):
+                    if f and innehaller_ordet(namn[id8], f):
+                        fynd += 1
+                        print(f'FÄLLER {id8}: det nya namnet bär färgen {f!r} som hela ord, och sammanslagningen vägrar då med namnet_bar_farg '
+                              f'(namnet blir fel för varje annan färg sidan får): {namn[id8]}')
             if not behall or not utkast:
                 continue
-            id8 = m['behall'][:8]
             rader = alt.get(id8)
             if not rader:
                 print(f'{id8}: inga alt-texter i {rund}/alt.tsv (en annan runda?)')
