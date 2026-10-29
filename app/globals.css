@@ -713,6 +713,19 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
      /kategori/mobler, 2026-10-01). En rad centreras nu i samma höjd. */
   .promorow{gap:10px;justify-content:space-between;min-height:2.7em}
 }
+/* Smal telefon. Sidhuvudets rad har ingen sidomarginal (.hrow nollar
+   .container-paddingen) och behöver 339 px: loggan 159, hjärtat och kundvagnen
+   38 vardera, menyknappen 44 och tre mellanrum på 20. Under 340 px hamnade
+   menyknappen utanför skärmen, 19 px vid 320 (uppmätt 2026-10-28), och det
+   syntes inte som sidledsscroll eftersom body klipper det som sticker ut.
+   Mindre mellanrum och en mindre logga ger 276 px, så raden ryms ned till
+   280 px (ihopvikt Galaxy Fold). Knapparna behåller sin storlek, och från
+   340 px ser sidhuvudet ut som förut. */
+@media(max-width:339px){
+  .hrow{gap:8px}
+  .hrow .brand{gap:8px;font-size:20px}
+  .hrow .brand .mark{width:28px;height:28px}
+}
 
 @media(max-width:900px){
   .catgrid,.cards{grid-template-columns:repeat(2,1fr)}
