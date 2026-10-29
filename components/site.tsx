@@ -80,7 +80,7 @@ export async function SiteHeader() {
       <script dangerouslySetInnerHTML={{ __html: INTRO_EN_GANG }} />
       <div className="promo">
         <div className="container promorow">
-          <span className="promotext">🚚 Fri frakt över <b>499 kr</b> · Betala smidigt med <b className="klarna-mark">Klarna</b></span>
+          <span className="promotext"><span className="promo-ikon" aria-hidden="true">🚚 </span>Fri frakt över <b>499 kr</b> · Betala smidigt med <b className="klarna-mark">Klarna</b></span>
           <Social className="promo-social" />
         </div>
       </div>

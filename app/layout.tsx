@@ -5,6 +5,9 @@ import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
+// Säsongstemat (Halloween 2026). Varje regel står under :root[data-tema="…"],
+// som TEMA_SKRIPT sätter bara inom temats datum (lib/sasongstema.ts).
+import "./sasongstema.css";
 import { CartProvider } from "../components/cart";
 import { SiteHeader, SiteFooter } from "../components/site";
 import { WishlistProvider } from "../components/wishlist";
@@ -22,6 +25,7 @@ import { KlarnaSDK } from "../components/klarna-sdk";
 import { consentBootstrapScript } from "../lib/consent";
 import { TIDIGA_KLICK_SKRIPT } from "../lib/tidiga-klick";
 import { TRUSTPILOT_PROFIL_URL } from "../lib/trustpilot-profil";
+import { TEMA_SKRIPT } from "../lib/sasongstema";
 
 const GA_MEASUREMENT_ID = "G-W6NZ87CX2Q";
 
@@ -227,8 +231,11 @@ export default async function RootLayout({
   // sidbyte. Med vår mjuka scroll gled produktsidan upp från listans position
   // efter ett tryck på ett kort (CLS 0,33, 2026-10-01). Med attributet byter
   // Next direkt, och mjuk scroll gäller fortfarande inom sidan.
+  // suppressHydrationWarning: TEMA_SKRIPT sätter data-tema på <html> innan
+  // React tar över, och attributet finns inte i serverns HTML. Gäller bara
+  // <html>-elementets egna attribut, inte något under det.
   return (
-    <html lang="sv" data-scroll-behavior="smooth" className={`${geist.variable} ${fraunces.variable}`}>
+    <html lang="sv" data-scroll-behavior="smooth" className={`${geist.variable} ${fraunces.variable}`} suppressHydrationWarning>
       <head>
         {/* Hint browsers to open the TLS connection to Wix's image CDN early —
             every product image (hero, mosaic, PDP) is hosted at static.wixstatic.com,
@@ -251,6 +258,12 @@ export default async function RootLayout({
         <link rel="dns-prefetch" href="https://osm.klarnaservices.com" />
       </head>
       <body>
+        {/* Säsongstemat först, innan något syns: skriptet sätter data-tema på
+            <html> om dagens datum ligger inom ett tema (lib/sasongstema.ts),
+            så att sidhuvudet och startsidan ritas med temat från början.
+            Datumet läses i webbläsaren, så temat försvinner av sig självt
+            efter sista dagen, även på sidor som ligger cachade. */}
+        <script dangerouslySetInnerHTML={{ __html: TEMA_SKRIPT }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(orgJsonLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(websiteJsonLd) }} />
         {/* Laddningslinjen överst vid sidbyte. Ett tryck på en länk lät den

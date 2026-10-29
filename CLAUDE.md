@@ -736,3 +736,47 @@ låsta av `lib/produkt-jsonld.test.ts`:
 Betygen (`aggregateRating`, `review`) skickas bara för omdömen från våra egna
 kunder (`lib/review-schema.ts`). Att Search Console saknar dem på nästan alla
 objekt är rätt: de flesta produkter har inga egna omdömen än.
+
+## Säsongstema: Halloween (Leonard 2026-10-28)
+
+*"ge hemsidan halloween look nu under halloween som ändå ser proffsigt ut o
+premium"*, och *"temat börjar direkt efter mergen inatt och ändras tillbaka
+måndag kl 03:00"*. Temat gäller till måndag 2 november 03:00 svensk tid och
+syns på fyra ställen: toppremsan (en skära, och "Glad halloween" på dator), en
+glödande linje under sidhuvudet, startsidans hjälte (natthimmel, en skördemåne
+med fladdermöss och ett spindelnät i hörnet) och löftesremsan under hjälten.
+Månen står bakom produktbilderna på dator och i rubrikens höjd på surfplatta
+och mobil, så att den aldrig hamnar bakom text; varje bredd från 360 till 1440
+px är granskad. Produktsidor, kort och kassan ser ut som vanligt.
+Inga texter, priser eller länkar ändras.
+
+`lib/sasongstema.ts` håller datumen och bygger ett skript som sätter
+`data-tema="halloween"` på `<html>`. All stil står i `app/sasongstema.css`,
+bilderna i `public/tema/`.
+
+**Datumet läses i webbläsaren, inte på servern.** Sidorna cachas (startsidan en
+timme, produktsidorna sex), och ett tema som renderats på servern hade legat
+kvar efter sista dagen eller krävt en deploy till för att tas bort. Nu
+försvinner det av sig självt måndag 03:00, utan deploy.
+
+Fyra egenskaper som inte ska tas bort, låsta av `lib/sasongstema.test.ts`:
+
+1. ☠️ **Varje regel i `app/sasongstema.css` står under
+   `:root[data-tema="…"]`.** En regel utan prefixet, eller en `@import`, hade
+   ändrat butiken året runt.
+2. ☠️ **`@keyframes` har egna namn.** De gäller i hela dokumentet, temat eller
+   ej, så ett namn som `heroFloat` hade skrivit över butikens animation.
+3. **Skriptet står först i `<body>`, och `<html>` har
+   `suppressHydrationWarning`.** Attributet finns då innan sidhuvudet ritas
+   (ingen blinkning, ingen layoutförskjutning), och React varnar inte för ett
+   attribut som saknas i serverns HTML.
+4. **Varje klass som temat riktar sig mot finns i koden.** Byter en klass namn
+   fäller testet, i stället för att temat tyst slutar fungera där.
+
+Lastbilen i toppremsan ligger i `<span class="promo-ikon">` så att temat kan
+byta den mot skäran. Den är `aria-hidden` även utan tema.
+
+För att se temat utanför datumen: Playwrights `page.clock.setFixedTime` med ett
+datum inom temat. Nästa år byts datumen i `SASONGSTEMAN` och i testet, som
+räknar om dem till svensk tid. Sverige går över till vintertid sista söndagen
+i oktober, så 03:00 den 2 november är 02:00 UTC.
