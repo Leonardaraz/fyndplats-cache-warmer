@@ -1,0 +1,45 @@
+[
+ {
+  "behall": "9053bc1a-b062-44e7-84ce-214dc3ac64c5",
+  "utkast": "0693d244-b93a-492b-a108-3bf91b031099",
+  "farg_utkast": "Svart",
+  "farg_behall": "Ljusbrun",
+  "sku": "FP-runt-matbord-75-korsben-svart",
+  "bilder": "1,2,3,4,5,6"
+ },
+ {
+  "behall": "d0fe9214-a95d-42e5-9bd4-323c56b6d0c0",
+  "utkast": "4916e4c9-ca22-49c9-8ced-dfa723097618",
+  "farg_utkast": "Brun",
+  "sku": "FP-massagefatolj-fotstod-brun",
+  "bilder": "1,2,3,4,5,6"
+ },
+ {
+  "behall": "e4211f71-7432-4bec-bfaa-f8e925611836",
+  "utkast": "ca50b825-00c2-414f-accb-ec3f29a56590",
+  "farg_utkast": "Röd",
+  "sku": "FP-sockervaddsmaskin-hemma-rod",
+  "bilder": "1,2,3,4,5"
+ },
+ {
+  "behall": "af9378d6-5369-468a-a5fb-36bf5341a171",
+  "utkast": "4616559f-ecee-4f1b-92f0-fc2f5bb33f38",
+  "farg_utkast": "Grå betong",
+  "sku": "FP-runt-soffbord-2p-gra-betong",
+  "bilder": "1,2,3,4,5,6"
+ },
+ {
+  "behall": "af9378d6-5369-468a-a5fb-36bf5341a171",
+  "utkast": "c29ca3f5-f33d-43b0-b8c8-14bf5b6be559",
+  "farg_utkast": "Mörkgrå marmor",
+  "sku": "FP-runt-soffbord-2p-mork-marmor",
+  "bilder": "1,2,3,4,5,6"
+ },
+ {
+  "behall": "af9378d6-5369-468a-a5fb-36bf5341a171",
+  "utkast": "8a0dc5dd-fa6c-49ac-b64f-a28dac0dbe4a",
+  "farg_utkast": "Rustikbrun",
+  "sku": "FP-runt-soffbord-2p-rustik",
+  "bilder": "1,2,3,4,5,6"
+ }
+]
