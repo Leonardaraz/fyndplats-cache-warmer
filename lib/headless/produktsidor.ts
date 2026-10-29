@@ -26,6 +26,13 @@ export interface AndradProdukt {
   id: string;
   /** Nuvarande slug, om den är känd — annars slår butiken upp den. */
   slug?: string;
+  /**
+   * Vad som ändrats. Utan `vad` töms produktens egen post (pris, lager, text),
+   * men INTE recensionshämtningen, som har sin egen cachepost (tagg
+   * `recensioner-<id>`, sex timmar). En recensionsändring måste därför skicka
+   * `"recensioner"`, annars bygger butiken om sidan med de gamla recensionerna.
+   */
+  vad?: "produkt" | "recensioner";
 }
 
 export interface ButikensSvar {
@@ -48,7 +55,8 @@ export async function uppdateraProduktsidor(
     const id = typeof p?.id === "string" ? p.id.trim() : "";
     if (!id || sett.has(id)) continue;
     sett.add(id);
-    poster.push(p.slug ? { id, slug: p.slug } : { id });
+    const vad = p.vad === "produkt" || p.vad === "recensioner" ? p.vad : undefined;
+    poster.push({ id, ...(p.slug ? { slug: p.slug } : {}), ...(vad ? { vad } : {}) });
   }
   if (poster.length === 0) return { utfall: "tom" };
 

@@ -101,6 +101,8 @@ jobs:
             printf '%s' "$json" | jq -r '.traffar[] | "| \(.status) | \(.datum) | \(.initialer) | \(.productId)/\(.reviewIdAE) | \(.text | gsub("\\|"; "/")) |"'
             echo ""
             echo "**Dolda nu:** ${dolda}${stopp:+ — stopp: ${stopp}}"
+            echo ""
+            echo "**Butiken sagd att förnya sidan:** $(printf '%s' "$json" | jq -r '.butiken.utfall // "inte tillfrågad"')"
           } >> "$GITHUB_STEP_SUMMARY"
 
           if [ "${SKARP:-nej}" = "ja" ] && [ -n "$stopp" ]; then
