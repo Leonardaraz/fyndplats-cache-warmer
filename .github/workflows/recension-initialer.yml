@@ -1,0 +1,123 @@
+name: Recensioner — ändra initialerna på en utpekad recension
+
+# Byter initialerna (bokstäverna) på EN recension som letas upp på det kunden
+# ser: en bit av texten plus gärna de nuvarande initialerna och datumet. Texten,
+# betyget, datumet och statusen rörs inte. Se lib/reviews/andra-initialer.ts.
+#
+# Torrt som default: visar träffarna och vad de skulle få. skarp = ja skriver,
+# men bara när träffarna är minst 1 och högst max (standard 1), och varje rad
+# läses tillbaka. Annars skrivs ingenting.
+#
+# ☠️ LOGGEN BÄR BARA DET SOM REDAN SYNS PÅ PRODUKTSIDAN (initialer, datum, en
+# textbit) plus id:n. Kundens råa namn och land lämnar aldrig lagret.
+#
+# Återanvänder befintliga repository secrets:
+#   POLL_TRACKING_URL — bas-URL:en härleds härifrån (byter path-suffix)
+#   CRON_SECRET — samma värde som CRON_SECRET i Vercel env vars
+
+on:
+  workflow_dispatch:
+    inputs:
+      text:
+        description: "Del av recensionstexten (minst 10 tecken), som den står på produktsidan"
+        required: true
+        type: string
+      nya:
+        description: "De nya initialerna, t.ex. S.K. (en eller två bokstäver)"
+        required: true
+        type: string
+      initialer:
+        description: "Nuvarande initialer, t.ex. Q.R. (valfritt men rekommenderat)"
+        required: false
+        default: ""
+        type: string
+      datum:
+        description: "Datumet, t.ex. 2025-11-12 (valfritt men rekommenderat)"
+        required: false
+        default: ""
+        type: string
+      produkt:
+        description: "Wix produkt-id (valfritt)"
+        required: false
+        default: ""
+        type: string
+      max:
+        description: "Högst så många rader får ändras (1–10)"
+        required: false
+        default: "1"
+        type: string
+      skarp:
+        description: "ja = ändra. nej = torrkörning (visar träffarna)."
+        required: false
+        default: "nej"
+        type: choice
+        options:
+          - "nej"
+          - "ja"
+
+jobs:
+  initialer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ändra initialerna
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SKARP: ${{ inputs.skarp }}
+          TEXT: ${{ inputs.text }}
+          NYA: ${{ inputs.nya }}
+          INITIALER: ${{ inputs.initialer }}
+          DATUM: ${{ inputs.datum }}
+          PRODUKT: ${{ inputs.produkt }}
+          MAX: ${{ inputs.max }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/recension-initialer"
+          [ "${SKARP:-nej}" = "ja" ] && url="${url}?skarp=ja"
+
+          body="$(jq -n --arg text "$TEXT" --arg nya "$NYA" --arg initialer "$INITIALER" --arg datum "$DATUM" \
+            --arg produkt "$PRODUKT" --arg max "${MAX:-1}" \
+            '{text: $text, nya: $nya, initialer: $initialer, datum: $datum, produkt: $produkt, max: ($max | tonumber? // 1)}')"
+
+          svar="$(curl -sS -w '\n%{http_code}' --max-time 150 -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" -H "Content-Type: application/json" \
+            --data "$body" "$url")"
+          kod="$(printf '%s' "$svar" | tail -n1)"
+          json="$(printf '%s' "$svar" | sed '$d')"
+          if [ "$kod" != "200" ]; then
+            echo "::error::HTTP ${kod}" >&2
+            printf '%s\n' "$json" | jq -c '{ok, error}' >&2 || true
+            exit 1
+          fi
+
+          printf '%s' "$json" | jq -r '.traffar[] | "\(.status)\t\(.datum)\t\(.initialer)\t\(.productId)/\(.reviewIdAE)\t\(.text)"'
+          stopp="$(printf '%s' "$json" | jq -r '.stopp // ""')"
+          andrade="$(printf '%s' "$json" | jq -r '.andrade | length')"
+          fel="$(printf '%s' "$json" | jq -r '.fel | length')"
+          nya="$(printf '%s' "$json" | jq -r '.nya // ""')"
+
+          {
+            echo "### Ändra initialer — $([ "${SKARP:-nej}" = "ja" ] && echo SKARP || echo TORRKÖRNING)"
+            echo ""
+            echo "Granskade rader: $(printf '%s' "$json" | jq -r '.granskade')"
+            echo ""
+            echo "Nya initialer: **${nya:-ogiltiga}**"
+            echo ""
+            echo "| status | datum | nuvarande initialer | id | text |"
+            echo "|---|---|---|---|---|"
+            printf '%s' "$json" | jq -r '.traffar[] | "| \(.status) | \(.datum) | \(.initialer) | \(.productId)/\(.reviewIdAE) | \(.text | gsub("\\|"; "/")) |"'
+            echo ""
+            echo "**Ändrade och tillbakalästa:** ${andrade}, fel: ${fel}${stopp:+ — stopp: ${stopp}}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "${SKARP:-nej}" = "ja" ] && { [ -n "$stopp" ] || [ "$fel" != "0" ]; }; then
+            echo "::error::Inget ändrat eller fel: ${stopp:-${fel} rader gick inte att läsa tillbaka med de nya initialerna}" >&2
+            exit 1
+          fi
+          echo "KLART: ${andrade} ändrade${stopp:+ (stopp: ${stopp})}"

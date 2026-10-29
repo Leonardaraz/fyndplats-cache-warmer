@@ -60,6 +60,21 @@ describe("uppdateraProduktsidor", () => {
     });
   });
 
+  it("`vad` följer med per produkt så butiken kan tömma recensionerna, och utelämnas när den saknas eller är ogiltig", async () => {
+    process.env.ADMIN_SECRET = "hemlig";
+    const { f, anrop } = fejkFetch(() => new Response("{}", { status: 200 }));
+    await uppdateraProduktsidor(
+      [{ id: A, vad: "recensioner" }, { id: B, slug: "gungstol-beige", vad: "produkt" }, { id: "c1c1c1c1-0000-4000-8000-000000000001", vad: "nonsens" as never }],
+      "recension",
+      f,
+    );
+    expect(JSON.parse(String(anrop[0].init.body)).produkter).toEqual([
+      { id: A, vad: "recensioner" },
+      { id: B, slug: "gungstol-beige", vad: "produkt" },
+      { id: "c1c1c1c1-0000-4000-8000-000000000001" },
+    ]);
+  });
+
   it("butikens adress följer HEADLESS_BASE_URL", async () => {
     process.env.ADMIN_SECRET = "hemlig";
     process.env.HEADLESS_BASE_URL = "https://preview.example.com/";
