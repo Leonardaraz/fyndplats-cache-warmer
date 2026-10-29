@@ -12,18 +12,20 @@
 //
 // Ren modul, inga importer utom typer, så att node-testköraren laddar den.
 
-import type { GpsrAnsvarig, GpsrData } from "./gpsr-flik";
+import type { GpsrData, GpsrPart } from "./gpsr-flik";
 
 export interface OrderSakerhetVara {
   namn: string;
   marke: string | null;
   rader: string[];
+  /** Raden om bruksanvisningen, sist bland raderna. */
+  bruksanvisning: string;
 }
 
 export interface OrderSakerhet {
   varor: OrderSakerhetVara[];
-  /** Tillverkarna, utan dubbletter — för Aosom-varorna alltid en. */
-  ansvariga: GpsrAnsvarig[];
+  /** Parterna, utan dubbletter: för Aosom-varorna en, för VEVOR-varorna två. */
+  ansvariga: GpsrPart[];
 }
 
 /**
@@ -37,7 +39,7 @@ export function byggOrderSakerhet(
   gpsr: readonly (GpsrData | null)[],
 ): OrderSakerhet | null {
   const varor: OrderSakerhetVara[] = [];
-  const ansvariga: GpsrAnsvarig[] = [];
+  const ansvariga: GpsrPart[] = [];
   const settNamn = new Set<string>();
   const settAnsvarig = new Set<string>();
   namn.forEach((n, i) => {
@@ -45,12 +47,14 @@ export function byggOrderSakerhet(
     if (!g) return;
     if (!settNamn.has(n)) {
       settNamn.add(n);
-      varor.push({ namn: n, marke: g.marke, rader: [...g.sakerhet] });
+      varor.push({ namn: n, marke: g.marke, rader: [...g.sakerhet], bruksanvisning: g.bruksanvisning });
     }
-    const nyckel = `${g.ansvarig.namn}|${g.ansvarig.gata}|${g.ansvarig.ort}`;
-    if (!settAnsvarig.has(nyckel)) {
-      settAnsvarig.add(nyckel);
-      ansvariga.push({ ...g.ansvarig });
+    for (const p of g.parter) {
+      const nyckel = `${p.roll}|${p.namn}|${p.rader.join("|")}`;
+      if (!settAnsvarig.has(nyckel)) {
+        settAnsvarig.add(nyckel);
+        ansvariga.push({ ...p, rader: [...p.rader] });
+      }
     }
   });
   return varor.length ? { varor, ansvariga } : null;
