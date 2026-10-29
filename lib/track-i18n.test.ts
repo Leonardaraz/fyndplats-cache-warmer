@@ -2,7 +2,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  matchPhrase, orderEventsNewestFirst, svCountry, svLocation, dedupeEvents,
+  matchPhrase, matchPhraseForStage, AVI_FRAS, orderEventsNewestFirst, svCountry, svLocation, dedupeEvents,
   landForHandelse, harOrt, svenskVaggklocka, tidForHandelse, rimligTid, rattaPlatser,
 } from "./track-i18n.ts";
 
@@ -395,3 +395,62 @@ test("upphämtningsställe med bindestreck översätts", () => {
   assert.equal(matchPhrase("Package arrived at pick-up point"), "Paketet finns för upphämtning hos ditt ombud.");
   assert.equal(matchPhrase("Available for pick-up"), "Paketet finns för upphämtning hos ditt ombud.");
 });
+
+test("☠️ matchPhraseForStage: en leveransfras kräver stage Delivered", () => {
+  const brevlada = "Paketet har levererats till mottagarens brevlåda.";
+  // En riktig leverans, eller en händelse utan stage, översätts som förut.
+  assert.equal(matchPhraseForStage("The shipment item has been delivered to the recipient's mailbox", "Delivered"), brevlada);
+  assert.equal(matchPhraseForStage("The shipment item has been delivered to the recipient's mailbox"), brevlada);
+  assert.equal(matchPhraseForStage("The shipment item has been delivered to the recipient's mailbox", ""), brevlada);
+  assert.equal(matchPhraseForStage("Delivered", "Delivered"), "Paketet är levererat.");
+  // En avi låter som en leverans men är det inte.
+  for (const text of [
+    "A notification has been delivered to the recipient",
+    "A notice has been left in the recipient's mailbox",
+    "Reminder: the item has been delivered to the recipient's mailbox",
+    "The recipient has been notified and the item delivered to the service point",
+  ]) {
+    assert.equal(matchPhraseForStage(text, "OutForDelivery"), AVI_FRAS, text);
+  }
+  // Annars ingen fras: anroparen visar stagens egen text.
+  assert.equal(matchPhraseForStage("The item has been delivered to the service point", "AvailableForPickup"), null);
+  assert.equal(matchPhraseForStage("Delivered", "InTransit"), null);
+});
+
+test("matchPhraseForStage: övriga fraser rörs inte av stage", () => {
+  for (const text of ["Arrived at sorting center", "Out for delivery", "Package arrived at pick-up point", "Delivery attempt failed"]) {
+    assert.equal(matchPhraseForStage(text, "OutForDelivery"), matchPhrase(text), text);
+    assert.equal(matchPhraseForStage(text, "Delivered"), matchPhrase(text), text);
+  }
+  assert.equal(matchPhraseForStage("Mystery text", "OutForDelivery"), null);
+});
+
+test("dedupeEvents – samma händelse från två transportörer, den ena med bara landet", () => {
+  // DHL och PostNord rapporterade varje leverans så (genomgången 2026-10-28).
+  const ut = dedupeEvents([
+    { time: "2026-10-28T13:34:36.000Z", description: "Paketet är levererat.", location: "Uddevalla, Sverige" },
+    { time: "2026-10-28T13:34:00.000Z", description: "Paketet är levererat.", location: "Sverige" },
+    { time: "2026-10-28T13:34:10.000Z", description: "Paketet är levererat.", location: "" },
+  ]);
+  assert.deepEqual(ut.map((e) => e.location), ["Uddevalla, Sverige"]);
+});
+
+test("dedupeEvents – två orter samma minut är två händelser", () => {
+  const ut = dedupeEvents([
+    { time: "2026-10-22T09:20:00.000Z", description: "Paketet är på väg genom transportnätet.", location: "Gorzow Wielkopolski, Polen" },
+    { time: "2026-10-22T09:20:00.000Z", description: "Paketet är på väg genom transportnätet.", location: "Dobra, Polen" },
+    { time: "2026-10-22T09:20:00.000Z", description: "Paketet är på väg genom transportnätet.", location: "Tyskland" },
+  ]);
+  assert.equal(ut.length, 3);
+});
+
+test("svLocation – en ort stavas likadant, och en transportör är ingen plats", () => {
+  assert.equal(svLocation("Koege, Denmark"), "Køge, Danmark");
+  assert.equal(svLocation("", { city: "Koege", country: "DK" }), "Køge, Danmark");
+  assert.equal(svLocation("", { city: "Køge", country: "DK" }), "Køge, Danmark");
+  assert.equal(svLocation("", { city: "El Prat De Llobregat (barcelona)", country: "ES" }), "El Prat de Llobregat, Spanien");
+  assert.equal(svLocation("PostNord"), "");
+  assert.equal(svLocation("", { city: "PostNord", country: "SE" }), "Sverige");
+  assert.equal(svLocation("Malmö, Sweden"), "Malmö, Sverige");
+});
+

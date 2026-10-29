@@ -88,6 +88,18 @@ export function sistaLedInfoFor(sistaLed: string | undefined, sparningsnummer: s
   return sistaLed === "PostNord" ? postnordLed(sparningsnummer) : undefined;
 }
 
+/**
+ * Om någon händelse har skett i Sverige. PostNord har ingenting att visa innan
+ * paketet kommit hit: ett DHL-paket från Tyskland gav "Försändelsen hittades
+ * inte" hos PostNord medan det stod på DHL:s terminal i Tyskland (2026-10-28),
+ * och ett tidigare paket med samma sorts nummer fick sin första händelse hos
+ * PostNord vid skanningen i Malmö, drygt tre dygn efter den sista i Tyskland.
+ * Platserna är spårningssidans egna ("Malmö, Sverige", "Sverige").
+ */
+export function harKommitTillSverige(platser: Array<string | undefined>): boolean {
+  return platser.some((p) => /(?:^|,\s*)Sverige$/.test((p ?? "").trim()));
+}
+
 export interface SistaLedRuta {
   rubrik: string;
   /** Partnern, för raden med deras nummer. */
@@ -113,27 +125,39 @@ const AVVIKELSE = new Set(["Returning", "DeliveryFailure", "Undelivered", "Excep
  * den syns och bara tills paketet körs ut, ombudet först när ombudet syns, och
  * ingenting av det när paketet är på väg tillbaka eller inte kunde lämnas.
  * Innan något syns säger rutan att DSV hör av sig, vilket gäller i båda fallen.
+ *
+ * `iSverige` (harKommitTillSverige) gäller PostNord. Innan paketet kommit till
+ * Sverige svarar PostNord "Försändelsen hittades inte", så rutan säger det och
+ * visar ingen knapp. Utan uppgiften ser rutan ut som förut.
  */
 export function sistaLedRuta(
   info: SistaLedInfo,
-  opts: { transportor: string; status?: string; levererad?: boolean },
+  opts: { transportor: string; status?: string; levererad?: boolean; iSverige?: boolean },
 ): SistaLedRuta {
   const avvikelse = !opts.levererad && AVVIKELSE.has(opts.status ?? "");
-  const ruta = (text: string, knapptext: string): SistaLedRuta => ({
+  const ruta = (text: string, knapptext?: string): SistaLedRuta => ({
     rubrik: "Leverans i Sverige",
     namn: info.namn,
     text,
     ...(info.nummer ? { nummer: info.nummer } : {}),
-    ...(info.lank ? { knapp: { text: knapptext, href: info.lank } } : {}),
+    ...(info.lank && knapptext ? { knapp: { text: knapptext, href: info.lank } } : {}),
   });
 
   if (info.namn === "PostNord") {
     const samma = "Spårningsnumret är detsamma hos PostNord";
     if (opts.levererad) return ruta(`PostNord delade ut paketet i Sverige. ${samma}.`, "Visa paketet hos PostNord");
+    if (opts.iSverige === false) {
+      return ruta(
+        `${opts.transportor} lämnar över paketet till PostNord, som delar ut det i Sverige. `
+          + "PostNord visar paketet när det har kommit till Sverige, med samma spårningsnummer. "
+          + "Fram till dess ser du var det är här nedanför.",
+      );
+    }
     if (avvikelse) {
       return ruta(`PostNord delar ut paketet i Sverige. ${samma}, och där ser du vad som händer med paketet nu.`, "Följ paketet hos PostNord");
     }
-    return ruta(`${opts.transportor} lämnar över paketet till PostNord, som delar ut det i Sverige. ${samma}.`, "Följ paketet hos PostNord");
+    const lamnar = opts.iSverige ? "har lämnat över" : "lämnar över";
+    return ruta(`${opts.transportor} ${lamnar} paketet till PostNord, som delar ut det i Sverige. ${samma}.`, "Följ paketet hos PostNord");
   }
 
   const namn = info.tidigare ? `${info.namn} (tidigare ${info.tidigare})` : info.namn;
