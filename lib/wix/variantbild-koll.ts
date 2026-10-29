@@ -16,11 +16,12 @@
 import type { WixAnrop } from "../polish/skrivplan";
 import { mapWithConcurrency } from "../concurrency";
 import { refreshVariantMedia, type VariantbildUtfall } from "./variant-media";
+import { KATALOG_SIDTAK } from "./limits";
 
 type Obj = Record<string, unknown>;
 
-/** Sidtak för katalogsvepet: 100 per sida, alltså 30 000 produkter. */
-const MAX_SIDOR = 300;
+/** Sidtak för katalogsvepet: Wix eget (lib/wix/limits.ts). 300 sidor hade räckt till ~22 000, men inte långt till. */
+const MAX_SIDOR = KATALOG_SIDTAK;
 /** Paus mellan katalogsidor, som prislistan. */
 const SIDPAUS_MS = 120;
 /** Svepets egna återförsök på POST, ett yttre lager över skapaWixAnrop:s återförsök av läsande POST. */

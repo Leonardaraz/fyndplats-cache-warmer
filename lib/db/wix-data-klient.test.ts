@@ -115,6 +115,19 @@ describe("allaRader", () => {
     expect(kropp(1).query).toEqual({ cursorPaging: { limit: 1000, cursor: "c1" } });
   });
 
+  it("☠️ `falt` skickas med på VARJE sida, inte bara den första", async () => {
+    fetchSpion.mockResolvedValueOnce(sida(1000, 0, "c1")).mockResolvedValueOnce(sida(3, 1000));
+    await allaRader("C", { filter: { status: "x" }, falt: ["sku", "saldo"] });
+    expect((kropp(0).query as Record<string, unknown>).fields).toEqual(["sku", "saldo"]);
+    expect(kropp(1).query).toEqual({ cursorPaging: { limit: 1000, cursor: "c1" }, fields: ["sku", "saldo"] });
+  });
+
+  it("utan `falt` frågar den efter hela raderna, som förut", async () => {
+    fetchSpion.mockResolvedValueOnce(sida(3, 0));
+    await allaRader("C");
+    expect((kropp(0).query as Record<string, unknown>).fields).toBeUndefined();
+  });
+
   it("☠️ kastar hellre än kapar: över taket", async () => {
     fetchSpion.mockImplementation(async () => sida(1000, Math.random() * 1e9, `c${Math.random()}`));
     await expect(allaRader("C", { tak: 2500 })).rejects.toThrow(/passerade 2500 rader/);

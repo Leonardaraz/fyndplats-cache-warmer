@@ -17,6 +17,15 @@ function task(id: string): FulfillmentTask {
 }
 
 describe("MemoryStore", () => {
+  it("listMappingsMedPrefix tar bara raderna med prefixet, exakt", async () => {
+    const s = new MemoryStore();
+    const rad = (wixProductId: string, supplierProductId: string) =>
+      ({ wixProductId, supplierProductId, variants: [] }) as never;
+    await s.saveMappings([rad("w1", "aosom:TEST-1"), rad("w2", "vevor:TEST2"), rad("w3", "100500"), rad("w4", "VEVOR:TEST4")]);
+    expect((await s.listMappingsMedPrefix("vevor:")).map((m) => m.wixProductId)).toEqual(["w2"]);
+    expect((await s.listMappingsMedPrefix("aosom:")).map((m) => m.wixProductId)).toEqual(["w1"]);
+  });
+
   it("dedupes webhook events", async () => {
     const s = new MemoryStore();
     expect(await s.hasSeenEvent("e1")).toBe(false);

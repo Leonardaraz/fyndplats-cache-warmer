@@ -359,6 +359,23 @@ describe("WixDataStore — mappningarForLeverantorsId", () => {
     // Samma rad i två svar blir en.
     expect(rader).toHaveLength(1);
   });
+
+  it("listMappingsMedPrefix frågar med $startsWith, och provar prefixet i koden efteråt", async () => {
+    const fn = mockFetch({
+      json: {
+        dataItems: [
+          { data: { _id: "w1", wixProductId: "w1", supplierProductId: "vevor:TESTA" } },
+          // Wix jämför utan hänsyn till skiftläge. Raden ska inte följa med.
+          { data: { _id: "w2", wixProductId: "w2", supplierProductId: "VEVOR:TESTB" } },
+        ],
+      },
+    });
+    const rader = await new WixDataStore().listMappingsMedPrefix("vevor:");
+    const kropp = JSON.parse((fn.mock.calls[0] as [string, RequestInit])[1].body as string);
+    expect(kropp.dataCollectionId).toBe("FyndplatsMappings");
+    expect(kropp.query.filter).toEqual({ supplierProductId: { $startsWith: "vevor:" } });
+    expect(rader.map((r) => r.wixProductId)).toEqual(["w1"]);
+  });
 });
 
 // Aosom-synkens stämplar läses om och sparas en tugga i taget (2026-10-29):

@@ -36,6 +36,7 @@ import { randomUUID } from "node:crypto";
 import type { AliExpressProduct } from "@/lib/import/types";
 import type { ImportResult } from "@/lib/import/pipeline";
 import type { ProductMappingRecord } from "@/lib/store";
+import { WIX_MAX_PRODUKTER } from "@/lib/wix/limits";
 import { RabattFel } from "./pris";
 import { valjVevorBilder } from "./bilder";
 import { vevorGranskning } from "./granskning";
@@ -54,8 +55,8 @@ import {
   type VevorImportLager,
 } from "./import-lager";
 
-/** Wix tak per butik (Stores). */
-export const WIX_MAX_PRODUKTER = 50_000;
+/** Wix tak per butik (Stores). Definitionen bor i lib/wix/limits.ts. */
+export { WIX_MAX_PRODUKTER };
 /** Så många platser lämnas åt allt annat som skapar produkter. */
 export const TAK_MARGINAL = 1_000;
 /** Avläsningar per fråga. En sida om 100 är ~1 MB. */

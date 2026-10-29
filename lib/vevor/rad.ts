@@ -14,12 +14,16 @@
 // saknad rad (`saknadRad: "okand"`), och adaptern säger det för allt annat vi
 // inte vet. En fryst läsare betyder att VEVOR spärrat oss: då vet vi ingenting.
 //
-// Den landade kostnaden lämnas null. Prisregeln finns sedan steg 4
-// (lib/vevor/pris.ts, rabatten i konfigurationen), och synken kopplar in den i
-// steg 5. Null betyder att synken inte rör priset.
+// DEN LANDADE KOSTNADEN räknas med prisregeln från steg 4 (lib/vevor/pris.ts),
+// samma funktion som importen använder, så att ett utkast och synkens pris
+// räknas lika. Utan rabatt (null) lämnas den null, och då rör synken inte
+// priset. Föregående avläsnings kostnad (`forraLandadKostnadSek`) räknas på
+// samma sätt ur `forraPrisSek`: synken skriver ett nytt pris först när de två
+// ger samma regelpris (steg 5, `prisKraverTvaAvlasningar`).
 
 import type { Leverantorsrad } from "@/lib/sync/leverantorsrad";
-import type { Avlasning } from "./lager";
+import type { SynkAvlasning } from "./lager";
+import { vevorLandadKostnadSek } from "./pris";
 
 /** Äldre avläsning än så är okänd. Leonard 2026-10-28. */
 export const MAX_ALDER_MS = 12 * 3_600_000;
@@ -27,8 +31,27 @@ export const MAX_ALDER_MS = 12 * 3_600_000;
 /** Lagret VEVOR ska skicka från. Allt som mätts 2026-10-29 bar "EU". */
 export const VART_FLODE = "EU";
 
-/** Beskedet för en artikel. Undefined = ingen avläsning: profilens regel för saknad rad gäller. */
-export function vevorRad(a: Avlasning | undefined, nu: number, fryst: boolean): Leverantorsrad | undefined {
+/** Landad kostnad för ett pris, eller null när priset eller rabatten saknas eller inte är giltiga. */
+function landadEllerNull(prisSek: number | null | undefined, rabatt: number | null): number | null {
+  if (rabatt === null || typeof prisSek !== "number") return null;
+  try {
+    return vevorLandadKostnadSek(prisSek, rabatt);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Beskedet för en artikel. Undefined = ingen avläsning: profilens regel för
+ * saknad rad gäller. `rabatt` är PRO-rabatten som andel, eller null när den
+ * inte är känd: då bär raden ingen kostnad och priset rörs inte.
+ */
+export function vevorRad(
+  a: SynkAvlasning | undefined,
+  nu: number,
+  fryst: boolean,
+  rabatt: number | null = null,
+): Leverantorsrad | undefined {
   if (!a) return undefined;
   const bas = { leverantor: "vevor" as const, artikel: a.sku, landadKostnadSek: null, lastAt: a.lastAt };
   if (fryst) return { ...bas, status: "okand", saldo: 0 };
@@ -45,5 +68,11 @@ export function vevorRad(a: Avlasning | undefined, nu: number, fryst: boolean): 
     return { ...bas, status: "okand", saldo: 0 };
   }
   if (!a.levererasTillSe || a.flode !== VART_FLODE) return { ...bas, status: "ej_levererbar", saldo: a.saldo };
-  return { ...bas, status: a.saldo > 0 ? "i_lager" : "slut", saldo: a.saldo };
+  return {
+    ...bas,
+    status: a.saldo > 0 ? "i_lager" : "slut",
+    saldo: a.saldo,
+    landadKostnadSek: landadEllerNull(a.prisSek, rabatt),
+    forraLandadKostnadSek: landadEllerNull(a.forraPrisSek, rabatt),
+  };
 }

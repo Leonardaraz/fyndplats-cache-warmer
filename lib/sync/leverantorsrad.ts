@@ -9,12 +9,18 @@
 // i taget, betyder en saknad avläsning att vi inte vet. Då ska synken inte röra
 // något: okänt blir aldrig 0.
 //
-// Allt efter ingången är gemensamt: bufferten, avdraget för sålda enheter,
-// prislåset, auktionslåset, spärren på 40 % och butiken som facit. Varje
-// leverantör ger en adapter som lämnar `Leverantorsrad`, och en profil här som
-// säger vad en saknad rad betyder.
+// Allt efter ingången är gemensamt: avdraget för sålda enheter, prislåset,
+// auktionslåset, spärren på 40 % och butiken som facit. Varje leverantör ger en
+// adapter som lämnar `Leverantorsrad`, och en profil här som säger vad en
+// saknad rad betyder, vilken buffert som gäller, när listan är trasig, hur
+// länge en beställd order dras av och om ett nytt pris kräver två avläsningar.
+//
+// Sedan steg 5 (2026-10-29) kör samma motor för båda leverantörerna
+// (`korSynk` i lib/aosom/sync.ts). Aosoms feed och VEVOR:s avläsningar
+// (lib/vevor/synk.ts) är två källor till den.
 
 import type { Leverantor, MappingSupplier } from "../store";
+import { AOSOM_ID_PREFIX, VEVOR_ID_PREFIX } from "../store/leverantorsprefix";
 import { assertNever } from "../assert-never";
 
 /**
@@ -37,6 +43,12 @@ export interface Leverantorsrad {
   saldo: number;
   /** Landad kostnad INKLUSIVE moms (husets konvention), eller null när den inte är känd. */
   landadKostnadSek: number | null;
+  /**
+   * Landad kostnad vid FÖREGÅENDE avläsning av artikeln, när källan har en.
+   * Läses bara när profilen kräver två lika avläsningar för ett nytt pris
+   * (`prisKraverTvaAvlasningar`). Saknas den skrivs inget nytt pris.
+   */
+  forraLandadKostnadSek?: number | null;
   /** När beskedet lästes, ISO 8601. */
   lastAt: string;
 }
@@ -48,24 +60,106 @@ export interface Leverantorsprofil {
   saknadRad: SaknadRad;
   /** Gäller konkurrentregeln (dealproffsens pris) för leverantörens varor? */
   konkurrentregel: boolean;
+  /** Prefixet i `supplierProductId`. Synkens urval och radens artikel läses på det. */
+  prefix: string;
+  /**
+   * Vi visar leverantörens saldo minus bufferten, och saldon på eller under
+   * den som slut (`synligtSaldo` i lib/aosom/sync.ts).
+   */
+  buffert: number;
+  /**
+   * Under så här många rader är leverantörens lista trasig, inte sortimentet,
+   * och körningen avbryts. null: listan kan inte halvhämtas till ett
+   * lagerbesked, eftersom en saknad rad redan är okänd (`saknadRad: "okand"`).
+   */
+  minRader: number | null;
+  /**
+   * Hur länge en order som markerats beställd dras av från leverantörens
+   * saldo (`vantarPaFlodet` i lib/aosom/sync.ts). Leverantörens tal visar
+   * ordern först efter en stund, och till dess hade samma enhet kunnat säljas
+   * igen. Visar talet redan ordern dras den av två gånger, och det är åt det
+   * säkra hållet.
+   */
+  bestalldOsynligMs: number;
+  /**
+   * Skrivs ett nytt pris först när två avläsningar i rad ger samma regelpris?
+   * Raden bär då föregående avläsnings kostnad (`forraLandadKostnadSek`).
+   */
+  prisKraverTvaAvlasningar: boolean;
 }
+
+const TIMME = 60 * 60 * 1000;
+
+/**
+ * Aosom. Feeden ger alla rader i ett anrop, tre gånger per dygn.
+ *
+ *   - En saknad rad är ett lagerbesked. Aosoms B2B-guide: "Items with low stock
+ *     may be temporarily removed to avoid overselling." Sidan ligger kvar med 0.
+ *   - Bufferten är 0 sedan 2026-10-06 (Leonard: "ta bort den där 1 kvar
+ *     bufferten"). Se `LAGER_BUFFERT` i lib/aosom/sync.ts.
+ *   - Under 2 000 rader är feeden trasig (`MIN_FEED_RADER`): den har legat på
+ *     ~6 000, och en halvhämtad CSV får aldrig nolla katalogen.
+ *   - En beställd order dras av i tolv timmar (`NYSS_BESTALLD_MS`): feeden
+ *     exporteras tre gånger per dygn, högst åtta timmar emellan, plus fyra
+ *     timmars marginal.
+ *   - Ett nytt pris skrivs direkt. Feeden är Aosoms egen prislista i euro.
+ */
+export const AOSOM_PROFIL = {
+  saknadRad: "slut",
+  konkurrentregel: true,
+  prefix: AOSOM_ID_PREFIX,
+  buffert: 0,
+  minRader: 2000,
+  bestalldOsynligMs: 12 * TIMME,
+  prisKraverTvaAvlasningar: false,
+} satisfies Leverantorsprofil;
+
+/**
+ * VEVOR. Sajten läses en sida i taget (lib/vevor/lasare.ts), och en
+ * avläsning är högst tolv timmar gammal innan den är okänd (lib/vevor/rad.ts).
+ *
+ *   - En sida som inte gick att läsa betyder att vi inte vet. Okänt rör aldrig
+ *     lagret och blir aldrig 0.
+ *   - Konkurrentregeln gäller inte VEVOR-varor (Leonard 2026-10-21).
+ *   - Ingen buffert (Leonard 2026-10-28).
+ *   - Ingen gräns för antal rader: varje avläsning är sitt eget besked, och en
+ *     som saknas är okänd. Läsarens egna spärrar stoppar en trasig körning
+ *     innan något skrivs.
+ *   - En beställd order dras av i tolv timmar, lika länge som en avläsning
+ *     håller. ☠️ Det är inte en gissning om VEVOR:s fördröjning: en avläsning
+ *     tagen FÖRE ordern är antingen yngre än tolv timmar, och då dras ordern
+ *     av, eller okänd. Kortare än avläsningens livstid får fönstret aldrig bli
+ *     (testat i lib/vevor/synk.test.ts).
+ *   - Ett nytt pris skrivs först när två avläsningar i rad ger samma regelpris.
+ *     VEVOR räknar om sina priser från euro, och ett pris som hoppar fram och
+ *     tillbaka ska inte nå kunden.
+ */
+export const VEVOR_PROFIL = {
+  saknadRad: "okand",
+  konkurrentregel: false,
+  prefix: VEVOR_ID_PREFIX,
+  buffert: 0,
+  minRader: null,
+  bestalldOsynligMs: 12 * TIMME,
+  prisKraverTvaAvlasningar: true,
+} satisfies Leverantorsprofil;
+
+/** Leverantörerna som synkas här, alltså de med en profil. */
+export type SynkadLeverantor = "aosom" | "vevor";
+
+/** Profilen för en leverantör som synkas här. Alltid en profil, aldrig null. */
+export const SYNKPROFILER: Record<SynkadLeverantor, Leverantorsprofil> = {
+  aosom: AOSOM_PROFIL,
+  vevor: VEVOR_PROFIL,
+};
 
 /**
  * Profilen per leverantör. En `Record`, så att en ny leverantör måste få en.
  * null betyder att leverantören inte synkas här: synken rör ingenting på dess
  * rader.
- *
- * Bufferten, minsta antal rader och fönstret för beställda enheter är kvar som
- * Aosom-konstanter i lib/aosom/sync.ts. De flyttar hit i steg 5, när VEVOR:s
- * värden är bestämda; att hitta på dem nu hade gett profilen tal ingen beslutat.
  */
 export const PROFILER: Record<Leverantor, Leverantorsprofil | null> = {
-  // Aosoms guide: "Items with low stock may be temporarily removed to avoid
-  // overselling." En saknad rad är ett lagerbesked; sidan ligger kvar med 0.
-  aosom: { saknadRad: "slut", konkurrentregel: true },
-  // En sida som inte gick att läsa betyder att vi inte vet. Konkurrentregeln
-  // gäller inte VEVOR-varor (Leonard 2026-10-21). Ingen synk läser VEVOR än.
-  vevor: { saknadRad: "okand", konkurrentregel: false },
+  ...SYNKPROFILER,
   // AliExpress har en egen synk (lib/sync/aliexpress-sync.ts).
   aliexpress: null,
   okand: null,
@@ -88,6 +182,8 @@ export interface Lagerbesked {
    * hit, är okänd eller har ingen känd kostnad. Då rörs priset inte.
    */
   landad: number | null;
+  /** Landad kostnad vid föregående avläsning, eller null (`forraLandadKostnadSek`). */
+  forraLandad: number | null;
 }
 
 const OKANT: Lagerbesked = {
@@ -97,6 +193,7 @@ const OKANT: Lagerbesked = {
   saknas: false,
   slut: false,
   landad: null,
+  forraLandad: null,
 };
 
 /**
@@ -115,7 +212,7 @@ export function lagerbesked(
   if (!rad) {
     switch (profil.saknadRad) {
       case "slut":
-        return { kant: true, synligt: 0, ejLevererbar: false, saknas: true, slut: false, landad: null };
+        return { kant: true, synligt: 0, ejLevererbar: false, saknas: true, slut: false, landad: null, forraLandad: null };
       case "okand":
         return OKANT;
       default:
@@ -126,7 +223,7 @@ export function lagerbesked(
     case "okand":
       return OKANT;
     case "borta":
-      return { kant: true, synligt: 0, ejLevererbar: false, saknas: true, slut: false, landad: null };
+      return { kant: true, synligt: 0, ejLevererbar: false, saknas: true, slut: false, landad: null, forraLandad: null };
     case "ej_levererbar":
       return {
         kant: true,
@@ -135,6 +232,7 @@ export function lagerbesked(
         saknas: false,
         slut: false,
         landad: null,
+        forraLandad: null,
       };
     case "i_lager":
     case "slut": {
@@ -146,6 +244,7 @@ export function lagerbesked(
         saknas: false,
         slut: synligt === 0,
         landad: rad.landadKostnadSek,
+        forraLandad: rad.forraLandadKostnadSek ?? null,
       };
     }
     default:

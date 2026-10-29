@@ -89,7 +89,35 @@ export interface Avlasning extends Omit<Sidinnehall, "egenskaper"> {
    * än `lastAt` är artikeln okänd (lib/vevor/rad.ts). En giltig läsning nollar den.
    */
   misslyckadAt: string | null;
+  /**
+   * Priset i SEK vid artikelns FÖREGÅENDE giltiga avläsning, eller null när det
+   * inte finns någon (den första avläsningen, eller äldre rader). Läsaren
+   * sätter det när den skriver en ny avläsning (`medForraPris` i
+   * lib/vevor/lasare.ts). Synken skriver ett nytt pris först när de två
+   * avläsningarna ger samma regelpris (steg 5, lib/vevor/synk.ts).
+   */
+  forraPrisSek?: number | null;
 }
+
+/**
+ * Fälten synken läser ur en avläsning. Bara de hämtas (`avlasningarForSynk`):
+ * en hel avläsning bär texten, specifikationen och galleriet, och synken läser
+ * alla avläsningar i varje körning.
+ */
+export const SYNKFALT = [
+  "sku",
+  "status",
+  "saldo",
+  "prisSek",
+  "forraPrisSek",
+  "lastAt",
+  "misslyckadAt",
+  "borta",
+  "levererasTillSe",
+  "flode",
+] as const satisfies readonly (keyof Avlasning)[];
+
+export type SynkAvlasning = Pick<Avlasning, (typeof SYNKFALT)[number]>;
 
 export interface Korningssummering {
   start: string;
@@ -189,6 +217,8 @@ export interface VevorLager {
   /** Sparar sidorna. Svarar med webb-id för dem Wix inte bekräftade. */
   sparaSidor(rader: Sidrad[]): Promise<string[]>;
   avlasningar(skus: string[]): Promise<Map<string, Avlasning>>;
+  /** Alla avläsningar, med bara synkens fält (`SYNKFALT`). */
+  avlasningarForSynk(): Promise<SynkAvlasning[]>;
   /** Sparar avläsningarna. Svarar med artikelnumren Wix inte bekräftade. */
   sparaAvlasningar(rader: Avlasning[]): Promise<string[]>;
   /**
@@ -331,6 +361,10 @@ export class WixVevorLager implements VevorLager {
     return u.fel.map((f) => f.id);
   }
 
+  async avlasningarForSynk(): Promise<SynkAvlasning[]> {
+    return allaRader<SynkAvlasning>(VEVOR_KOL.avlasningar, { falt: SYNKFALT, sidstorlek: 1000 });
+  }
+
   async kontrollkandidater(max: number, slump: number): Promise<Avlasning[]> {
     const limit = Math.min(Math.max(1, max), 1000);
     const antal = await rakna(VEVOR_KOL.avlasningar, { status: "i_lager" });
@@ -436,6 +470,11 @@ export class MinnesVevorLager implements VevorLager {
       else this.avlasningsrader.set(r.sku, structuredClone(r));
     }
     return fel;
+  }
+  async avlasningarForSynk() {
+    return [...this.avlasningsrader.values()].map(
+      (r) => Object.fromEntries(SYNKFALT.map((f) => [f, structuredClone(r[f])])) as SynkAvlasning,
+    );
   }
   async kontrollkandidater(max: number, slump: number) {
     const alla = [...this.avlasningsrader.values()]

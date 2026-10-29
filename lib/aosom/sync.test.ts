@@ -2762,10 +2762,10 @@ describe("☠️ steg 3: planeraProdukt slår upp profilen på mappningens lever
     }
   });
 
-  it("en VEVOR-rad i lager planeras med samma buffert som en Aosom-rad (steg 5 ger VEVOR egna tal)", () => {
+  it("en VEVOR-rad i lager planeras med VEVOR:s buffert, som är 0 (Leonard 2026-10-28)", () => {
     const p = planeraProdukt(vevorMappning(), "TEST-0001", vevorRad({ saldo: 50 }), facit, planDeps, {});
     expect(p.okand).toBeUndefined();
-    expect(p.nyttSaldo).toBe(S50);
+    expect(p.nyttSaldo).toBe(50);
   });
 
   it("☠️ konkurrentregeln följer profilen: VEVOR får husets pris trots grupp och färskt konkurrentpris", () => {

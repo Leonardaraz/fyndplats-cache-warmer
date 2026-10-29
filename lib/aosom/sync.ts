@@ -27,14 +27,14 @@
 // bevakare (`aterkomnaLagerrader`, sedan 2026-09-30) — det enda den skickar ut.
 
 import { fetchAosomFeed, harVerkligSeFrakt, landedCostEur, type AosomRow } from "./feed";
-import { aosomSupplierProductId, type AosomFx } from "./to-product";
+import type { AosomFx } from "./to-product";
 import {
-  aosomArtikelbild,
-  arIAosomSynkensUrval,
-  aosomArtikelForTask,
-  aosomArtiklarPaRaden,
-  radensArtikel,
-  type AosomArtikelbild,
+  artikelbild,
+  artikelForTask,
+  artikelUtanPrefix,
+  artiklarPaRaden,
+  arISynkensUrval,
+  type Artikelbild,
 } from "./artiklar";
 import { SUPPLIER_VAT_RATE } from "../auction/seed";
 import type { FulfillmentTask } from "../orders/types";
@@ -42,8 +42,17 @@ import { computePriceWithRules } from "../import/pricing";
 import type { PricingRules } from "../import/types";
 import { tillampaKonkurrentregel, type KonkurrentUtfall } from "../pricing/konkurrentregel";
 import type { ProductMappingRecord } from "../store";
-import { isAosomMapping, mappingSupplier } from "../store/supplier";
-import { lagerbesked, PROFILER, type Leverantorsprofil, type Leverantorsrad } from "../sync/leverantorsrad";
+import { mappingSupplier } from "../store/supplier";
+import { AOSOM_ID_PREFIX } from "../store/leverantorsprefix";
+import {
+  AOSOM_PROFIL,
+  lagerbesked,
+  PROFILER,
+  SYNKPROFILER,
+  type Leverantorsprofil,
+  type Leverantorsrad,
+  type SynkadLeverantor,
+} from "../sync/leverantorsrad";
 import { MIN_WIX_PRODUKTER, type WixProduktPris } from "../wix/v3-products";
 import type { RestockUtskick } from "../restock/notify";
 
@@ -57,8 +66,11 @@ const DEFAULT_TIME_BUDGET_MS = 240_000;
  * EN produkt; här kan en halvhämtad CSV nolla HELA katalogen i en körning.
  * Feeden har legat på 6 057 rader; ett svar under en tredjedel av det är ett
  * transportfel som ska fälla körningen, inte tolkas som att lagret tagit slut.
+ *
+ * Talet bor i Aosoms profil (`AOSOM_PROFIL`, lib/sync/leverantorsrad.ts), och
+ * motorn läser det därifrån (`minRader`).
  */
-export const MIN_FEED_RADER = 2000;
+export const MIN_FEED_RADER = AOSOM_PROFIL.minRader;
 
 /**
  * Vi visar Aosoms saldo MINUS det här, och saldon på eller under det som
@@ -81,8 +93,10 @@ export const MIN_FEED_RADER = 2000;
  * säljas två gånger innan Aosoms lista hunnit visa vår beställning. Det vi
  * sålt dras därför av separat tills Aosoms flöde visar det (`vantarPaFlodet`)
  * — ta aldrig bort det avdraget.
+ *
+ * Talet bor i Aosoms profil (`AOSOM_PROFIL.buffert`, lib/sync/leverantorsrad.ts).
  */
-export const LAGER_BUFFERT = 0;
+export const LAGER_BUFFERT = AOSOM_PROFIL.buffert;
 
 /**
  * Produkter per tugga i loopen — och därmed per Wix-anrop.
@@ -214,6 +228,17 @@ export interface AosomSyncSummary {
   okantBesked: number;
   /** Wix-id för produkterna i `okantBesked`. Publika id, aldrig artikelnummer. */
   okantBeskedProdukter: string[];
+  /**
+   * Av `okantBesked`: rader där mappningens leverantör inte är källans
+   * (`Produktplan.oense`). Urvalet tog dem på prefixet, men `supplier`-fältet
+   * säger något annat. Ska vara 0, och ingen körning lagar det av sig själv.
+   */
+  leverantorOense: number;
+  /**
+   * Produkter vars nya regelpris väntar på en andra avläsning med samma pris
+   * (`prisKraverTvaAvlasningar`, VEVOR). Inget pris skrevs. Alltid 0 för Aosom.
+   */
+  prisVantar: number;
   /** Ingen förändring — varken lager eller pris. */
   oforandrade: number;
   /**
@@ -415,11 +440,14 @@ export function jamforelsePris(
   return { pris: wix.priceSek };
 }
 
-/** Lagersaldot vi faktiskt visar för kund, givet leverantörens siffra. */
-export function synligtSaldo(leverantorensSaldo: number): number {
+/**
+ * Lagersaldot vi faktiskt visar för kund, givet leverantörens siffra och
+ * leverantörens buffert (profilen). Utan buffert gäller Aosoms.
+ */
+export function synligtSaldo(leverantorensSaldo: number, buffert: number = LAGER_BUFFERT): number {
   const q = Math.trunc(leverantorensSaldo);
-  if (!Number.isFinite(q) || q <= LAGER_BUFFERT) return 0;
-  return q - LAGER_BUFFERT;
+  if (!Number.isFinite(q) || q <= buffert) return 0;
+  return q - buffert;
 }
 
 /** Landad kostnad INKLUSIVE moms, husets konvention för `landedCostSek`. */
@@ -574,6 +602,77 @@ export interface AosomSyncDeps {
 }
 
 /**
+ * Motorns beroenden: allt i `AosomSyncDeps` utom källan. Samma för Aosom och
+ * VEVOR (lib/vevor/synk.ts). Dokumentationen för varje fält står på
+ * `AosomSyncDeps`, där den skrevs.
+ */
+export type SynkDeps = Omit<AosomSyncDeps, "fetchFeed" | "listAosom" | "fx"> & {
+  /**
+   * Leverantörens mappningsrader: de som bär leverantörens prefix
+   * (`listMappingsMedPrefix`). Motorn väljer urvalet ur dem.
+   */
+  listMappningar: () => Promise<ProductMappingRecord[]>;
+  /** USD → SEK, för `costUsd` på mappningen. Samma kurs som prissättningen. */
+  fx: { usdToSek: number };
+};
+
+/** Vad en källa lämnar till motorn inför en körning. */
+export interface Kallaslasning {
+  /** Antal rader i källan, före dubbletter. Kvittot på att den lästes, och det `minRader` prövas mot. */
+  antal: number;
+  /** En rad per artikel, nycklad på artikelnumret. */
+  rader: ReadonlyMap<string, Leverantorsrad>;
+  /**
+   * Varför priserna inte går att räkna i körningen, eller null. Raderna bär då
+   * ingen kostnad, så inget pris skrivs, och skälet går ut i `prislistaFel`.
+   * Lagret synkas som vanligt.
+   */
+  prisFel?: string | null;
+}
+
+/**
+ * Var en synk får sina rader ifrån. En per leverantör: Aosoms feed
+ * (`aosomKalla`) och VEVOR:s avläsningar (lib/vevor/synk.ts).
+ *
+ * ☠️ KÄLLAN LÄSES EN GÅNG, FÖRE ALLT ANNAT, och kastar hellre än svarar halvt.
+ * Motorn prövar sedan antalet mot profilens `minRader`.
+ */
+export interface Synkkalla {
+  /** Leverantören. Dess profil (lib/sync/leverantorsrad.ts) styr resten. */
+  leverantor: SynkadLeverantor;
+  /** Källans namn i felmeddelanden, till exempel "Aosom-feeden". */
+  namn: string;
+  las(): Promise<Kallaslasning>;
+}
+
+/** Aosoms feed som källa. Raden byggs av `aosomTillRad`, precis som förut. */
+export function aosomKalla(deps: Pick<AosomSyncDeps, "fetchFeed" | "fx" | "now">): Synkkalla {
+  return {
+    leverantor: "aosom",
+    namn: "Aosom-feeden",
+    async las() {
+      const feed = await deps.fetchFeed();
+      // Samma nyckel som förut, artikelnumret, och vid en dubblett i feeden
+      // vinner den sista.
+      const lastAt = new Date((deps.now ?? Date.now)()).toISOString();
+      return {
+        antal: feed.length,
+        rader: new Map(feed.map((r) => [r.sku, aosomTillRad(r, deps.fx.eurToSek, lastAt)] as const)),
+      };
+    },
+  };
+}
+
+/**
+ * Prefixet för radens leverantör, ur profilen. En rad utan profil når aldrig
+ * hit (planen blir okänd i `planeraProdukt`), men skulle den göra det gäller
+ * Aosoms prefix, som innan VEVOR fanns.
+ */
+function prefixFor(m: Pick<ProductMappingRecord, "supplier" | "supplierProductId">): string {
+  return PROFILER[mappingSupplier(m)]?.prefix ?? AOSOM_ID_PREFIX;
+}
+
+/**
  * Det planeringen behöver ur körningen. `iAuktion` kommer ur
  * `lasAuktionsprodukter`, inte från anroparen.
  */
@@ -644,6 +743,17 @@ export interface Produktplan {
    * aldrig 0.
    */
   okand?: boolean;
+  /**
+   * Okänd för att mappningens leverantör inte är källans: urvalet tog raden på
+   * prefixet, men `supplier`-fältet säger något annat. Räknas för sig
+   * (`leverantorOense`), för det lagar ingen körning av sig själv.
+   */
+  oense?: boolean;
+  /**
+   * Ett nytt regelpris väntar på en andra avläsning med samma pris
+   * (`prisKraverTvaAvlasningar`). Inget pris skrevs.
+   */
+  prisVantar?: boolean;
 }
 
 /** Planen för en produkt vars besked är okänt: ingenting skrivs, ingenting stämplas. */
@@ -681,8 +791,11 @@ export type SaldOrderrad = Pick<
  * Hur länge en order räknas som osynlig i Aosoms flöde efter att den markerats
  * beställd. Flödet uppdateras tre gånger per dygn, alltså högst åtta timmar
  * mellan två exporter, och fyra timmars marginal ovanpå det.
+ *
+ * Talet bor i Aosoms profil (`AOSOM_PROFIL.bestalldOsynligMs`). VEVOR har sitt
+ * eget i sin profil.
  */
-export const NYSS_BESTALLD_MS = 12 * 60 * 60 * 1000;
+export const NYSS_BESTALLD_MS = AOSOM_PROFIL.bestalldOsynligMs;
 
 /**
  * Ska orderraden dras av från flödets saldo? Ren.
@@ -701,11 +814,15 @@ export const NYSS_BESTALLD_MS = 12 * 60 * 60 * 1000;
  * 2026-10-01 eller beställdes via AliExpress, och flödet har haft tid att visa
  * den.
  */
-export function vantarPaFlodet(r: Pick<SaldOrderrad, "status" | "orderedAt">, nuMs: number): boolean {
+export function vantarPaFlodet(
+  r: Pick<SaldOrderrad, "status" | "orderedAt">,
+  nuMs: number,
+  fonsterMs: number = NYSS_BESTALLD_MS,
+): boolean {
   if (r.status === "pending") return true;
   if (r.status !== "ordered" || !r.orderedAt) return false;
   const t = Date.parse(r.orderedAt);
-  return Number.isFinite(t) && nuMs - t < NYSS_BESTALLD_MS;
+  return Number.isFinite(t) && nuMs - t < fonsterMs;
 }
 
 /** Ett prishopp över taket som en människa godkänt för den här körningen. */
@@ -737,6 +854,36 @@ interface Prisutfall {
   utanWixPris: boolean;
   varning: Produktplan["varning"];
   godkantHopp: GodkantHopp | null;
+  /** Ett nytt pris väntar på en andra avläsning med samma regelpris. */
+  prisVantar: boolean;
+}
+
+/**
+ * Regelpriset för en landad kostnad: husets regel, och konkurrentregeln när
+ * profilen säger att den gäller. Ren. En definition för det nya priset och för
+ * föregående avläsnings pris, så att de två jämförs med samma regel.
+ */
+function regelprisFor(
+  landad: number,
+  profil: Leverantorsprofil,
+  konkurrent: ProductMappingRecord["konkurrent"],
+  prisgrupp: ProductMappingRecord["prisgrupp"],
+  deps: Pick<SynkDeps, "fx" | "rules" | "now">,
+): KonkurrentUtfall {
+  const costUsd = landad / deps.fx.usdToSek;
+  // Kategorin är null: Aosom-utkast är okategoriserade tills poleringen sätter
+  // den, och prisregeln har ändå inga kategorimultiplikatorer (rensade
+  // 2026-08-27 — "Husdjur: 2,5" hade satt 60 % marginal på hela
+  // PawHut-sortimentet utan att någon regel sa det).
+  const regelPris = computePriceWithRules(costUsd, deps.rules, null).grossSek;
+  return tillampaKonkurrentregel({
+    regelPris,
+    landadInklMoms: landad,
+    konkurrent: profil.konkurrentregel ? konkurrent : undefined,
+    prisgrupp: profil.konkurrentregel ? prisgrupp : undefined,
+    nu: (deps.now ?? Date.now)(),
+    rounding: deps.rules.rounding,
+  });
 }
 
 /**
@@ -751,20 +898,16 @@ interface Prisutfall {
  */
 function planeraPris(
   nyLandad: number,
+  forraLandad: number | null,
   profil: Leverantorsprofil,
   konkurrent: ProductMappingRecord["konkurrent"],
   prisgrupp: ProductMappingRecord["prisgrupp"],
   facit: { pris: number } | "saknas" | "flera",
   sku: string,
-  deps: Pick<AosomSyncDeps, "fx" | "rules" | "now">,
+  deps: Pick<SynkDeps, "fx" | "rules" | "now">,
   tillatHopp = false,
 ): Prisutfall {
-  const costUsd = nyLandad / deps.fx.usdToSek;
-  // Kategorin är null: Aosom-utkast är okategoriserade tills poleringen sätter
-  // den, och prisregeln har ändå inga kategorimultiplikatorer (rensade
-  // 2026-08-27 — "Husdjur: 2,5" hade satt 60 % marginal på hela
-  // PawHut-sortimentet utan att någon regel sa det).
-  const regelPris = computePriceWithRules(costUsd, deps.rules, null).grossSek;
+  const regel = regelprisFor(nyLandad, profil, konkurrent, prisgrupp, deps);
 
   // ── KONKURRENTREGELN (2026-09-15) ────────────────────────────────────
   // Husets regelpris är GOLVET. Bär raden en prisgrupp och ett färskt
@@ -777,15 +920,7 @@ function planeraPris(
   //
   // Gäller regeln inte leverantören (`profil.konkurrentregel`, VEVOR enligt
   // Leonards beslut 2026-10-21) skickas varken grupp eller konkurrentpris in,
-  // och regeln svarar med husets pris.
-  const regel = tillampaKonkurrentregel({
-    regelPris,
-    landadInklMoms: nyLandad,
-    konkurrent: profil.konkurrentregel ? konkurrent : undefined,
-    prisgrupp: profil.konkurrentregel ? prisgrupp : undefined,
-    nu: (deps.now ?? Date.now)(),
-    rounding: deps.rules.rounding,
-  });
+  // och regeln svarar med husets pris. Se `regelprisFor`.
   const ut: Prisutfall = {
     nyttPris: null,
     nyLandad: null,
@@ -793,6 +928,7 @@ function planeraPris(
     utanWixPris: false,
     varning: null,
     godkantHopp: null,
+    prisVantar: false,
   };
   if (regel.typ === "fryst") return ut;
   const pris = regel.pris;
@@ -810,6 +946,19 @@ function planeraPris(
   if (pris < MIN_RIMLIGT_PRIS_SEK) {
     ut.varning = { sku, fran: gammalt, till: pris, andringPct: 0 };
     return ut;
+  }
+  // ── TVÅ AVLÄSNINGAR I RAD (VEVOR, steg 5) ─────────────────────────────
+  // VEVOR räknar om sina priser från euro, så ett pris kan hoppa fram och
+  // tillbaka mellan två avläsningar. Ett NYTT pris skrivs därför först när
+  // föregående avläsning gav samma regelpris. Saknas föregående avläsning
+  // väntar priset också. Ligger FÖRE taket: ett hopp vi ännu inte tänker
+  // skriva ska inte hamna i `varningar`.
+  if (profil.prisKraverTvaAvlasningar && pris !== gammalt) {
+    const forra = forraLandad === null ? null : regelprisFor(forraLandad, profil, konkurrent, prisgrupp, deps);
+    if (!forra || forra.typ === "fryst" || forra.pris !== pris) {
+      ut.prisVantar = true;
+      return ut;
+    }
   }
   if (gammalt > 0) {
     const andringPct = ((pris - gammalt) / gammalt) * 100;
@@ -853,7 +1002,7 @@ export function planeraProdukt(
   sku: string,
   rad: Leverantorsrad | undefined,
   wixPris: WixProduktPris | undefined,
-  deps: Pick<AosomSyncDeps, "fx" | "rules" | "now">,
+  deps: Pick<SynkDeps, "fx" | "rules" | "now">,
   opts: Planval,
 ): Produktplan {
   const variant = m.variants?.[0];
@@ -870,7 +1019,7 @@ export function planeraProdukt(
   const profil = PROFILER[leverantor];
   if (!profil) return planeraOkand(m, sku);
   if (rad && rad.leverantor !== leverantor) return planeraOkand(m, sku);
-  const besked = lagerbesked(rad, profil, synligtSaldo);
+  const besked = lagerbesked(rad, profil, (saldo) => synligtSaldo(saldo, profil.buffert));
   if (!besked.kant) return planeraOkand(m, sku);
 
   // ── LAGER ──────────────────────────────────────────────────────────────
@@ -947,6 +1096,7 @@ export function planeraProdukt(
 
   const pr = planeraPris(
     besked.landad,
+    besked.forraLandad,
     profil,
     m.konkurrent,
     m.prisgrupp,
@@ -960,6 +1110,7 @@ export function planeraProdukt(
   plan.varning = pr.varning;
   plan.nyttPris = pr.nyttPris;
   plan.nyLandad = pr.nyLandad;
+  if (pr.prisVantar) plan.prisVantar = true;
   if (pr.godkantHopp) plan.godkandaHopp = [pr.godkantHopp];
   return plan;
 }
@@ -990,10 +1141,10 @@ function sidansNyttSaldo(varianter: ReadonlyArray<VariantPlan>, onskatSaldo: num
  */
 export function planeraFlerartikel(
   m: ProductMappingRecord,
-  bild: Extract<AosomArtikelbild, { typ: "flera" }>,
+  bild: Extract<Artikelbild, { typ: "flera" }>,
   perSku: ReadonlyMap<string, Leverantorsrad>,
   variantPriser: ReadonlyMap<string, number> | undefined,
-  deps: Pick<AosomSyncDeps, "fx" | "rules" | "now">,
+  deps: Pick<SynkDeps, "fx" | "rules" | "now">,
   opts: Planval,
 ): Produktplan {
   const leverantor = mappingSupplier(m);
@@ -1028,7 +1179,7 @@ export function planeraFlerartikel(
     // summan av färgernas, och en summa med en okänd term är okänd. Samma sak
     // när raden kommer från en annan leverantör än mappningens.
     if (rad && rad.leverantor !== leverantor) return planeraOkand(m, bild.artikel);
-    const besked = lagerbesked(rad, profil, synligtSaldo);
+    const besked = lagerbesked(rad, profil, (saldo) => synligtSaldo(saldo, profil.buffert));
     if (!besked.kant) return planeraOkand(m, bild.artikel);
     const feedSaldo = besked.synligt;
     const ejSkeppbar = besked.ejLevererbar;
@@ -1063,6 +1214,7 @@ export function planeraFlerartikel(
     const pris = variantPriser?.get(va.wixVariantId);
     const pr = planeraPris(
       besked.landad,
+      besked.forraLandad,
       profil,
       egen ? m.konkurrent : undefined,
       m.prisgrupp,
@@ -1073,6 +1225,7 @@ export function planeraFlerartikel(
     );
     if (egen) plan.konkurrent = pr.konkurrent;
     if (pr.utanWixPris) plan.utanWixPris = true;
+    if (pr.prisVantar) plan.prisVantar = true;
     if (pr.varning) varningar.push(pr.varning);
     if (pr.godkantHopp) godkanda.push(pr.godkantHopp);
     vp.nyttPris = pr.nyttPris;
@@ -1157,7 +1310,7 @@ export function medSaldaAvdragna(p: Produktplan, rader: ReadonlyArray<SaldOrderr
   for (const r of rader) {
     const n = antal(r);
     if (n === 0) continue;
-    const a = aosomArtikelForTask(r, p.m);
+    const a = artikelForTask(r, p.m, prefixFor(p.m));
     if ("artikel" in a) perArtikel.set(a.artikel, (perArtikel.get(a.artikel) ?? 0) + n);
     else okopplade += n;
   }
@@ -1358,7 +1511,8 @@ export function stampelPaFarskRad(
   if ((farsk.supplierProductId ?? "").trim() !== (p.m.supplierProductId ?? "").trim()) {
     return { skal: "raden har bytt artikel" };
   }
-  if (aosomArtikelbild(farsk).typ !== aosomArtikelbild(p.m).typ) return { skal: "raden har bytt form" };
+  const prefix = prefixFor(p.m);
+  if (artikelbild(farsk, prefix).typ !== artikelbild(p.m, prefix).typ) return { skal: "raden har bytt form" };
 
   const fore = p.m.variants ?? [];
   const variants = [...(farsk.variants ?? [])];
@@ -1440,7 +1594,7 @@ export interface Stampeljobb {
  */
 export async function stamplaTuggan(
   jobb: readonly Stampeljobb[],
-  deps: Pick<AosomSyncDeps, "lasMappningar" | "sparaMappningar" | "fx">,
+  deps: Pick<SynkDeps, "lasMappningar" | "sparaMappningar" | "fx">,
   summary: Pick<AosomSyncSummary, "misslyckade" | "stampelHoppade" | "errors">,
   nu: number,
 ): Promise<void> {
@@ -1536,30 +1690,55 @@ export function aterkomnaLagerrader(
   return tillbaka.length > 0 ? tillbaka : null;
 }
 
+/** Aosom-synken: motorn med Aosoms feed som källa. Oförändrad utåt sedan steg 5. */
 export async function runAosomSync(
   deps: AosomSyncDeps,
   opts: AosomSyncOptions = {},
 ): Promise<AosomSyncSummary> {
+  return korSynk({ ...deps, listMappningar: deps.listAosom }, aosomKalla(deps), opts);
+}
+
+/**
+ * Lager- och prissynken för EN leverantör, med raderna ur `kalla` och reglerna
+ * ur leverantörens profil (lib/sync/leverantorsrad.ts).
+ *
+ * Det här var `runAosomSync` fram till steg 5 (2026-10-29). Allt som var Aosom
+ * i den låg i källan (feeden och dess radformat) och i fyra tal: bufferten,
+ * minsta antal rader, fönstret för beställda enheter och urvalets prefix. De
+ * står nu i profilen, och VEVOR-synken (lib/vevor/synk.ts) kör samma motor med
+ * sin egen källa och profil. Inget annat skiljer: avdraget för sålda enheter,
+ * rättelsen mot butiken, prislåset, auktionslåset, taket, stämpeln på den
+ * färska raden och restock-mejlen är desamma.
+ */
+export async function korSynk(
+  deps: SynkDeps,
+  kalla: Synkkalla,
+  opts: AosomSyncOptions = {},
+): Promise<AosomSyncSummary> {
+  const profil = SYNKPROFILER[kalla.leverantor];
   const dryRun = opts.dryRun !== false;
   const limit = Math.max(1, opts.limit ?? DEFAULT_LIMIT);
   const timeBudgetMs = opts.timeBudgetMs ?? DEFAULT_TIME_BUDGET_MS;
   const now = deps.now ?? (() => Date.now());
   const start = now();
 
-  const feed = await deps.fetchFeed();
+  const kallan = await kalla.las();
 
   // ☠️ MASSFEL-SPÄRREN. Kollas FÖRE allt annat och kastar — en halvhämtad feed
-  // får aldrig se ut som att sortimentet tagit slut.
-  if (feed.length < MIN_FEED_RADER) {
+  // får aldrig se ut som att sortimentet tagit slut. Gränsen är profilens
+  // (`minRader`). En källa utan gräns (VEVOR) kan inte halvhämtas till ett
+  // lagerbesked: en saknad rad är redan okänd.
+  if (profil.minRader !== null && kallan.antal < profil.minRader) {
     throw new Error(
-      `Aosom-feeden gav bara ${feed.length} rader (minst ${MIN_FEED_RADER} krävs). `
+      `${kalla.namn} gav bara ${kallan.antal} rader (minst ${profil.minRader} krävs). `
         + `Körningen avbryts — det här är ett hämtningsfel, inte ett lagerbesked.`,
     );
   }
 
-  // ☠️ BUTIKENS PRISER, EN GÅNG. ~54 anrop för hela katalogen — se
-  // `listV3ProductPrices`. Hämtas FÖRE loopen så en produkt aldrig jämförs mot
-  // ett facit som hunnit ändras mitt i körningen.
+  // ☠️ BUTIKENS PRISER, EN GÅNG. Ett anrop per 100 produkter i HELA katalogen
+  // (`listV3ProductPrices`): ~64 i dag och ~220 efter VEVOR-importen, och de
+  // räknas in i körningens tidsbudget. Hämtas FÖRE loopen så en produkt aldrig
+  // jämförs mot ett facit som hunnit ändras mitt i körningen.
   //
   // Massfel-spärren speglar MIN_FEED_RADER: svarar Wix med en handfull
   // produkter är det ett läsfel, och alternativet vore att tolka det som "de
@@ -1611,26 +1790,31 @@ export async function runAosomSync(
       prislistaFel = prislistaFel ? `${prislistaFel}; ${auktionsFel}` : auktionsFel;
     }
   }
+  // Källan kan inte räkna priser i körningen (VEVOR utan rabatt i
+  // konfigurationen). Raderna bär då ingen kostnad och inget pris skrivs, men
+  // körningen får inte se frisk ut: skälet går ut i `prislistaFel`.
+  if (kallan.prisFel) prislistaFel = prislistaFel ? `${prislistaFel}; ${kallan.prisFel}` : kallan.prisFel;
   const planval: Planval = {
     skipPrices: opts.skipPrices || auktionsFel !== null,
     godkannPrisandring: opts.godkannPrisandring,
     iAuktion,
   };
 
-  // Synkens gemensamma radformat (lib/sync/leverantorsrad.ts). Samma nyckel
-  // som förut, artikelnumret, och vid en dubblett i feeden vinner den sista.
-  const lastAt = new Date(now()).toISOString();
-  const perSku = new Map(feed.map((r) => [r.sku, aosomTillRad(r, deps.fx.eurToSek, lastAt)] as const));
+  // Synkens gemensamma radformat (lib/sync/leverantorsrad.ts), nycklat på
+  // artikelnumret. Källan byggde det (`Synkkalla`).
+  const perSku = kallan.rader;
   const onlySkus = opts.onlySkus?.length ? new Set(opts.onlySkus) : null;
 
   // `sku` är RADENS artikel även på en färgsammanslagen sida — den bär
   // markören, så `?after=` betyder samma sak som förut. Artikeln per variant
   // står i `bild` (lib/aosom/artiklar.ts). `?sku=` träffar en sammanslagen
-  // sida på vilken som helst av dess artiklar.
-  const mappningar = (await deps.listAosom())
-    .filter(arIAosomSynkensUrval)
-    .map((m) => ({ m, sku: radensArtikel(m), bild: aosomArtikelbild(m) }))
-    .filter((x) => !onlySkus || aosomArtiklarPaRaden(x.m).some((a) => onlySkus.has(a)))
+  // sida på vilken som helst av dess artiklar. Urvalet och artikeln läses på
+  // leverantörens prefix (profilen).
+  const prefix = profil.prefix;
+  const mappningar = (await deps.listMappningar())
+    .filter((m) => arISynkensUrval(m, prefix))
+    .map((m) => ({ m, sku: artikelUtanPrefix(m, prefix), bild: artikelbild(m, prefix) }))
+    .filter((x) => !onlySkus || artiklarPaRaden(x.m, prefix).some((a) => onlySkus.has(a)))
     .filter((x) => !opts.after || x.sku.localeCompare(opts.after) > 0)
     .sort((a, b) => a.sku.localeCompare(b.sku));
 
@@ -1650,7 +1834,7 @@ export async function runAosomSync(
   // granskningen och en körning som stannar har läst exakt det den hann pröva.
   let variantPrisFel: string | null = null;
   const lasVariantPriserFor = async (
-    tugga: readonly { m: ProductMappingRecord; bild: AosomArtikelbild }[],
+    tugga: readonly { m: ProductMappingRecord; bild: Artikelbild }[],
   ): Promise<Map<string, Map<string, number>>> => {
     const idn = tugga.filter((x) => x.bild.typ === "flera").map((x) => x.m.wixProductId);
     if (planval.skipPrices || idn.length === 0) return new Map();
@@ -1669,7 +1853,7 @@ export async function runAosomSync(
 
   const summary: AosomSyncSummary = {
     dryRun,
-    feedRader: feed.length,
+    feedRader: kallan.antal,
     granskade: 0,
     lagerUppdaterade: 0,
     prisUppdaterade: 0,
@@ -1678,6 +1862,8 @@ export async function runAosomSync(
     ejSkeppbara: 0,
     okantBesked: 0,
     okantBeskedProdukter: [],
+    leverantorOense: 0,
+    prisVantar: 0,
     oforandrade: 0,
     utanWixPris: 0,
     prisLasta: 0,
@@ -1753,12 +1939,13 @@ export async function runAosomSync(
     // gör det.
     const variantPriser = await lasVariantPriserFor(tugga);
     const allaPlaner = tugga.map(({ m, sku, bild }) => {
-      // ☠️ AOSOM-SYNKEN PLANERAR BARA AOSOM-RADER. Urvalet går på prefixet
-      // `aosom:` (`listAosom`), men leverantören avgörs av `supplier`-fältet
-      // när det finns (`mappingSupplier`). Säger fältet en annan leverantör är
-      // fält och id oense, och då rörs raden inte — inte heller nollningen av
-      // en tvetydig sida, som läser varianterna som Aosom-artiklar.
-      if (!isAosomMapping(m)) return planeraOkand(m, sku);
+      // ☠️ SYNKEN PLANERAR BARA KÄLLANS LEVERANTÖRS RADER. Urvalet går på
+      // prefixet (`aosom:`, `vevor:`), men leverantören avgörs av
+      // `supplier`-fältet när det finns (`mappingSupplier`). Säger fältet en
+      // annan leverantör är fält och id oense, och då rörs raden inte — inte
+      // heller nollningen av en tvetydig sida, som läser varianterna som
+      // källans artiklar.
+      if (mappingSupplier(m) !== kalla.leverantor) return { ...planeraOkand(m, sku), oense: true };
       if (bild.typ === "flera") {
         return planeraFlerartikel(m, bild, perSku, variantPriser.get(m.wixProductId), deps, planval);
       }
@@ -1768,13 +1955,14 @@ export async function runAosomSync(
     // ☠️ OKÄNT RÖRS INTE. En plan märkt `okand` når varken avdraget,
     // rättelsen mot butiken, skrivningen eller stämpeln — den räknas och
     // sorteras bort här. Aosom ger aldrig ett okänt besked; regeln finns för
-    // leverantörer vars sida kan gå att inte läsa (VEVOR, steg 5), och för en
-    // rad vars fält och id är oense (ovan).
+    // VEVOR, vars sida kan gå att inte läsa eller vars avläsning kan vara för
+    // gammal, och för en rad vars fält och id är oense (ovan).
     const planer = allaPlaner.filter((p) => !p.okand);
     for (const p of allaPlaner) {
       if (!p.okand) continue;
       summary.okantBesked++;
       summary.okantBeskedProdukter.push(p.m.wixProductId);
+      if (p.oense) summary.leverantorOense++;
     }
 
     summary.granskade += tugga.length;
@@ -1785,6 +1973,7 @@ export async function runAosomSync(
       if (p.slutsald) summary.slutsalda++;
       if (p.ejSkeppbar) summary.ejSkeppbara++;
       if (p.utanWixPris) summary.utanWixPris++;
+      if (p.prisVantar) summary.prisVantar++;
       if (p.prisLast) summary.prisLasta++;
       if (p.iAuktion) {
         summary.iAuktion++;
@@ -1837,7 +2026,7 @@ export async function runAosomSync(
         const nu = now();
         for (const r of await deps.lasSaldaOrderrader()) {
           const pid = (r.wixCatalogItemId ?? "").trim();
-          if (!pid || !vantarPaFlodet(r, nu)) continue;
+          if (!pid || !vantarPaFlodet(r, nu, profil.bestalldOsynligMs)) continue;
           const lista = saldaPerProdukt.get(pid);
           if (lista) lista.push(r);
           else saldaPerProdukt.set(pid, [r]);
@@ -2169,12 +2358,16 @@ export function aosomSkrivPausMs(): number {
   return Number.isFinite(n) && n >= 0 ? n : 120;
 }
 
-/** Standard-deps mot skarpa systemet. Bryts ut så testerna slipper mocka moduler. */
-export async function liveDeps(): Promise<AosomSyncDeps> {
-  const [{ getStore }, { getPricingRules }, { eurToSekFromEnv }, wix, v3] = await Promise.all([
+/**
+ * Motorns beroenden mot skarpa systemet, utom källan och mappningarna: Wix
+ * lager och priser, stämplarna, ordrarna, auktionerna och restock-mejlen.
+ * Delas av Aosom-synken och VEVOR-synken (lib/vevor/synk.ts), så att de två
+ * skriver till butiken på exakt samma sätt.
+ */
+export async function gemensammaSynkDeps(): Promise<Omit<SynkDeps, "listMappningar">> {
+  const [{ getStore }, { getPricingRules }, wix, v3] = await Promise.all([
     import("../store/factory"),
     import("../store/pricing-config"),
-    import("../config"),
     import("../wix/client"),
     import("../wix/v3-products"),
   ]);
@@ -2185,12 +2378,7 @@ export async function liveDeps(): Promise<AosomSyncDeps> {
   const pausa = () => (pausMs > 0 ? new Promise((r) => setTimeout(r, pausMs)) : Promise.resolve());
 
   return {
-    fetchFeed: () => fetchAosomFeed(),
     listWixPriser: () => v3.listV3ProductPrices(),
-    listAosom: async () =>
-      (await store.listMappings()).filter((m) =>
-        (m.supplierProductId ?? "").startsWith(aosomSupplierProductId("")),
-      ),
     lasLagerposter: (ids) => wix.queryInventoryItemsByProductIds(ids),
     // Ett GET per färgsammanslagen sida, en i taget, och bara för tuggans
     // sidor (`lasVariantPriserFor`). De var ~360 den 2026-10-13 — lästa alla
@@ -2263,7 +2451,28 @@ export async function liveDeps(): Promise<AosomSyncDeps> {
       const { mejlaBevakare } = await import("../restock/notify");
       return mejlaBevakare(wixProductId, opts);
     },
-    fx: { eurToSek: eurToSekFromEnv(), usdToSek: rules.usdToSek },
+    fx: { usdToSek: rules.usdToSek },
     rules,
+  };
+}
+
+/** Standard-deps mot skarpa systemet. Bryts ut så testerna slipper mocka moduler. */
+export async function liveDeps(): Promise<AosomSyncDeps> {
+  const [gemensamma, { getStore }, { eurToSekFromEnv }] = await Promise.all([
+    gemensammaSynkDeps(),
+    import("../store/factory"),
+    import("../config"),
+  ]);
+  const store = getStore();
+  return {
+    ...gemensamma,
+    fetchFeed: () => fetchAosomFeed(),
+    // ☠️ BARA RADERNA MED AOSOMS PREFIX, INTE HELA KATALOGEN (steg 5,
+    // 2026-10-29). Den gamla vägen läste alla mappningar och filtrerade här.
+    // Uppmätt samma dag: 4 827 av 7 398 rader bar prefixet, och efter
+    // VEVOR-importen blir katalogen runt 22 000 rader. Varje schemalagd
+    // körning hade läst dem alla innan den granskat en enda produkt.
+    listAosom: () => store.listMappingsMedPrefix(AOSOM_PROFIL.prefix),
+    fx: { eurToSek: eurToSekFromEnv(), usdToSek: gemensamma.fx.usdToSek },
   };
 }

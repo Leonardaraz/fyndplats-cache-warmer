@@ -361,6 +361,15 @@ export interface Store {
    * körning hade blivit 44 sidor om 500 rader var femte minut.
    */
   mappningarForLeverantorsId(ids: string[]): Promise<ProductMappingRecord[]>;
+  /**
+   * Raderna vars `supplierProductId` börjar med prefixet ("aosom:", "vevor:").
+   *
+   * För synkerna, som var och en arbetar med EN leverantörs rader. Att läsa
+   * hela katalogen och filtrera i koden hade efter VEVOR-importen betytt runt
+   * 22 000 rader per körning för Aosom-synkens ~5 000 (uppmätt 2026-10-29:
+   * 4 827 av 7 398 bar prefixet "aosom:").
+   */
+  listMappingsMedPrefix(prefix: string): Promise<ProductMappingRecord[]>;
 
   // --- Fulfillment-tasks ---
   upsertTask(task: FulfillmentTask): Promise<void>;
