@@ -360,3 +360,68 @@ describe("WixDataStore — mappningarForLeverantorsId", () => {
     expect(rader).toHaveLength(1);
   });
 });
+
+// Aosom-synkens stämplar läses om och sparas en tugga i taget (2026-10-29):
+// två anrop per tugga om 50 i stället för två per skriven produkt.
+describe("WixDataStore — mappningar i klump", () => {
+  beforeEach(() => {
+    vi.stubEnv("WIX_API_TOKEN", "test-wix-token");
+    vi.stubEnv("WIX_SITE_ID", "test-site-id");
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    global.fetch = ORIGINAL_FETCH;
+    vi.restoreAllMocks();
+  });
+
+  function svar(kropp: unknown) {
+    return { ok: true, status: 200, json: async () => kropp, text: async () => JSON.stringify(kropp) } as Response;
+  }
+
+  it("läser hundra id per fråga med $in på _id, och bara de efterfrågade raderna kommer med", async () => {
+    const idn = Array.from({ length: 150 }, (_, i) => `w${i}`);
+    const fn = vi.fn()
+      .mockResolvedValueOnce(svar({
+        dataItems: [
+          { data: { _id: "w0", wixProductId: "w0" } },
+          // En rad som inte efterfrågades: ska inte smyga sig in.
+          { data: { _id: "annan", wixProductId: "annan" } },
+        ],
+      }))
+      .mockResolvedValueOnce(svar({ dataItems: [{ data: { _id: "w149", wixProductId: "w149" } }] }));
+    global.fetch = fn as unknown as typeof fetch;
+
+    const rader = await new WixDataStore().getMappingsByWixProductIds(idn);
+
+    expect([...rader.keys()]).toEqual(["w0", "w149"]);
+    expect(fn).toHaveBeenCalledTimes(2);
+    const kroppar = fn.mock.calls.map((c) => JSON.parse((c as [string, RequestInit])[1].body as string));
+    expect(kroppar[0].query.filter._id.$in).toHaveLength(100);
+    expect(kroppar[1].query.filter._id.$in).toHaveLength(50);
+  });
+
+  it("sparar i ett massanrop och svarar med de rader Wix inte bekräftade", async () => {
+    const fn = vi.fn().mockResolvedValue(svar({
+      results: [
+        { itemMetadata: { id: "w1", originalIndex: 0, success: true } },
+        { itemMetadata: { id: "w2", originalIndex: 1, success: false, error: { code: "WDE0074", description: "fel" } } },
+      ],
+      bulkActionMetadata: { totalSuccesses: 1, totalFailures: 1, undetailedFailures: 0 },
+    }));
+    global.fetch = fn as unknown as typeof fetch;
+
+    const m = (id: string) => ({ wixProductId: id, supplierProductId: `aosom:${id}`, variants: [] }) as never;
+    const utfall = await new WixDataStore().saveMappings([m("w1"), m("w2")]);
+
+    expect(fn).toHaveBeenCalledTimes(1);
+    const [url, init] = fn.mock.calls[0] as [string, RequestInit];
+    expect(url).toMatch(/\/bulk\/items\/save$/);
+    const kropp = JSON.parse(init.body as string);
+    expect(kropp.dataItems.map((d: { id: string; data: { _id: string } }) => [d.id, d.data._id])).toEqual([
+      ["w1", "w1"],
+      ["w2", "w2"],
+    ]);
+    expect(utfall.fel).toEqual([{ wixProductId: "w2", fel: expect.stringMatching(/WDE0074/) }]);
+  });
+});
