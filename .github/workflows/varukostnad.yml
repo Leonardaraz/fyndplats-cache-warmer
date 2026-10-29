@@ -120,7 +120,7 @@ jobs:
           # ☠️ SISTA SKYDDET MOT ETT ARTIKELNUMMER ELLER ETT BELOPP I LOGGEN. Rutten redigerar redan sina felkroppar,
           # men fritext har ingen form att lita på. Formerna är husets artikelnummer och decimaltal.
           redigera() {
-            perl -pe 's/\b(?:\d{2}[A-Z]|[A-Z]\d{2}|\d[A-Z]\d|\d{3})-\d{3}(?!\d)[A-Z0-9]*\b/‹REDIGERAT›/g; s/aosom:\S+/aosom:‹REDIGERAT›/g; s/\b\d+[.,]\d+\b/‹tal›/g'
+            perl -pe 's/\b(?:\d{2}[A-Z]|[A-Z]\d{2}|\d[A-Z]\d|\d{3})-\d{3}(?!\d)[A-Z0-9]*\b/‹REDIGERAT›/g; s/aosom:\S+/aosom:‹REDIGERAT›/g; s/\b(?=[A-Z0-9]*\d)(?=[A-Z0-9]*[A-Z])[A-Z0-9]{17,24}\b/‹REDIGERAT›/g; s/vevor:\S+/vevor:‹REDIGERAT›/g; s/\b\d+[.,]\d+\b/‹tal›/g'
           }
 
           # Felen går till stderr: en kommandosubstitution slukar stdout.

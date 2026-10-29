@@ -1,0 +1,125 @@
+// Påhittade VEVOR-sidor för testerna. Bara för tester.
+//
+// Formen följer de riktiga sidorna (uppmätt 2026-10-29): `<html lang>`,
+// `window.GLOBAL`, `window.PRODUCT_DATA`, JSON-LD med Product och
+// BreadcrumbList, specifikationstabellen, punktlistan, den inbäddade
+// beskrivningen, bildlistan och syskonlänkarna. Varje nummer, adress och pris
+// här är påhittat.
+
+export interface Testsida {
+  sku: string;
+  webbId: string;
+  lang: string;
+  globalLang: string;
+  valuta: string;
+  pris: number | string | null;
+  lager: number | string | null;
+  tillganglighet: string;
+  ldSku: string | null;
+  frakt: { land: string[]; belopp: number; valuta: string }[];
+  flode: string;
+  manual: boolean;
+  /** Utan produktdata, som VEVOR:s 404-sida. */
+  utanProdukt: boolean;
+}
+
+export const TESTSKU = "TESTSKUABCDEFGH0001";
+export const TESTWEBBID = "000000000001";
+export const testSokvag = (webbId = TESTWEBBID) => `/testkategori-c_100/test-produkt-p_${webbId}`;
+
+export function testsida(over: Partial<Testsida> = {}): string {
+  const t: Testsida = {
+    sku: TESTSKU,
+    webbId: TESTWEBBID,
+    lang: "sv",
+    globalLang: "sv",
+    valuta: "SEK",
+    pris: 999.5,
+    lager: 12,
+    tillganglighet: "https://schema.org/InStock",
+    ldSku: null,
+    frakt: [
+      { land: ["LI", "MC"], belopp: 5, valuta: "EUR" },
+      { land: ["DE", "SE", "DK"], belopp: 0, valuta: "EUR" },
+    ],
+    flode: "EU",
+    manual: true,
+    utanProdukt: false,
+    ...over,
+  };
+  const global = `<script>window.GLOBAL = window.GLOBAL || {};</script>
+<script>window.GLOBAL = {"CLOSINGDOWN_NOTICE":"null","PIPELINE":"EU","LANG":"${t.globalLang}","CURRENCY":"${t.valuta}","SITE_NAME":"Test {med} klamrar"};</script>`;
+  if (t.utanProdukt) {
+    return `<!DOCTYPE html><html lang="${t.lang}"><head><title>404 Ej Hittad</title>${global}</head><body>${"x".repeat(3000)}</body></html>`;
+  }
+  const produktdata = {
+    goodsSn: t.sku,
+    goodsSpu: "12345",
+    stock: t.lager,
+    pipelineCode: t.flode,
+    title: "Testprodukt från data",
+    attr: { " Färg": "Svart", Storlek: "Stor" },
+  };
+  const bild = (fil: string, mapp = t.sku) =>
+    `https://img.example-cdn.test/us/${mapp}/original_img-v2/${fil}?timestamp=1&format=webp&format=webp`;
+  const bilder = [
+    { type: "img", origin: bild("test-m100-1.2.jpg"), bigSrc: bild("test-m100-1.2.jpg").replace("original_img", "goods_img_big"), alt: "None" },
+    { type: "video", video: "https://video.example-cdn.test/test.mp4", cover: bild("test-cover.jpg") },
+    { type: "img", origin: bild("test-f1.jpg"), alt: "None" },
+    { type: "img", origin: bild("test-annan.jpg", "ANNANMAPP0000000001"), alt: "None" },
+  ];
+  const syskon = [
+    { url: `https://eur.vevor.com/testkategori-c_100/syskon-p_000000000002`, webGoodSn: "000000000002", goodSn: "TESTSKUSYSKON000002", canBuy: 1 },
+    { url: `https://eur.vevor.com${testSokvag(t.webbId)}`, webGoodSn: t.webbId, goodSn: t.sku, canBuy: 1 },
+  ];
+  const ld = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: "VEVOR Testprodukt, 90 kg lastkapacitet &amp; 7 hållare",
+    sku: t.ldSku ?? t.sku,
+    mpn: t.ldSku ?? t.sku,
+    brand: { "@type": "Brand", name: "VEVOR" },
+    offers: [
+      {
+        "@type": "Offer",
+        priceCurrency: t.valuta,
+        price: t.pris,
+        availability: t.tillganglighet,
+        shippingDetails: t.frakt.map((f) => ({
+          "@type": "OfferShippingDetails",
+          shippingDestination: f.land.map((l) => ({ "@type": "DefinedRegion", addressCountry: l })),
+          shippingRate: { "@type": "MonetaryAmount", value: f.belopp, currency: f.valuta },
+        })),
+      },
+    ],
+  };
+  const brod = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://eur.vevor.com" },
+      { "@type": "ListItem", position: 3, name: "Underkategori", item: "https://eur.vevor.com/under-c_200" },
+      { "@type": "ListItem", position: 2, name: "Toppkategori", item: "https://eur.vevor.com/topp-c_100" },
+    ],
+  };
+  return `<!DOCTYPE html>
+<html lang="${t.lang}" class="ROOT-LANG-${t.lang}">
+<head><title>Testprodukt</title>${global}
+<script type="application/ld+json">${JSON.stringify(ld)}</script>
+<script type="application/ld+json">${JSON.stringify(brod)}</script>
+<script>window.PRODUCT_DATA = ${JSON.stringify(produktdata)};</script>
+<script>window.PRODUCT_DATA_PRICE = "aW50ZSBlbiBzaWZmcmE=";</script>
+<script>window.AGGIMAGEANDVIDEOLIST = ${JSON.stringify(bilder)};</script>
+<script>window.DETAIL_ATTR_LINK = ${JSON.stringify(syskon)};</script>
+</head><body>
+<section><ul class="detailGuide_cont js-toggleCont"> <li> Hållbar: ram i <b>kolstål</b>. </li> <li> Enkel montering &amp; skötsel. </li> </ul></section>
+<section><div class="DM_at-goodsDescAttrInner">
+<dl class="goodsDesc_item goodsDesc_item_even"> <dt>Artikelmodellnummer</dt> <dd> TEST-1</dd> </dl>
+<dl class="goodsDesc_item "> <dt> Maximal lastkapacitet</dt> <dd> 90,7 kg</dd> </dl>
+</div></section>
+<div id="js-DM_at-goodDescRich"><html><head><style>.x { color: red; }</style></head><body><h3>Prestanda</h3><p>Denna testvagn klarar terräng.</p></body></html></div>
+${t.manual ? '<a href="/pages/contact-us/TESTMANUAL01">Manual</a>' : ""}
+<a href="https://eur.vevor.com/pages/contact-us">Kontakt</a>
+${"<!-- utfyllnad -->".repeat(200)}
+</body></html>`;
+}

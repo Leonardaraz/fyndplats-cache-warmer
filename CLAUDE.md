@@ -5978,8 +5978,8 @@ sidorna (Wix-variantens `sku` och mappningsradens).
 
 VEVOR kan bli den tredje leverantören. Inga VEVOR-varor finns i butiken. Det
 som byggts är grunden, som gör motorn bättre även om VEVOR aldrig blir av.
-Steg 2, läsaren av VEVOR:s produktsidor, byggs inte förrän VEVOR svarat på
-fråga 4 i mejlet (får vi läsa sidorna?) och Leonard har bestämt sig.
+Steg 2, läsaren av VEVOR:s produktsidor, är byggd sedan Leonards beslut
+2026-10-28 — se *VEVOR: steg 2* nedan.
 
 ### Steg 1: varje val mellan leverantörer tar ställning till alla
 
@@ -6101,9 +6101,12 @@ synken.
 - **Bufferten, `MIN_FEED_RADER` och fönstret för beställda enheter** är kvar som
   Aosom-konstanter i `lib/aosom/sync.ts`. De flyttar till profilen i steg 5,
   när VEVOR:s värden är bestämda.
-- ☠️ **Loggspärren fångar inte VEVOR:s artikelnummer** (22 tecken, versaler och
-  siffror). `redigera()` i workflowerna och `ARTNR` i grindarna måste utökas i
-  steg 2, innan ett VEVOR-nummer kan nå en logg.
+- ✅ **Loggspärren fångar VEVOR:s artikelnummer sedan steg 2** (19 eller 22
+  tecken, versaler och siffror i ett). `redigera()` i de sex workflows som har
+  den tvättar formen, och `ARTNR` i `artikelnummer-i-logg.test.ts` fäller den i
+  en workflows källa. ⚠️ `gatelib.ARTNR` (poleringens grind på kundtexten, med
+  speglar i `gate-form.py` och `lib/polish/skrivplan.ts`) är inte utökad: den
+  hör till steg 4, när VEVOR-text börjar nå poleringen.
 - **AE-synken har ingen torrkörning per anrop.** Dess urval är samma uttryck som
   förut, nu som `arIAeSynkensUrval`, och räkningen visar dess storlek.
 
@@ -6111,6 +6114,83 @@ synken.
 annan körning av synken pågår. Räkningen ska ge `utanFalt.vevorPrefix` 0 och
 `perLeverantor.vevor` 0. Synken ska ge `okantBesked` 0, och samma granskade,
 lager, priser och fel som en torrkörning direkt före mergen.
+
+## VEVOR: steg 2, läsaren av produktsidorna (2026-10-29)
+
+Leonards beslut 2026-10-28: vi får läsa och hämta VEVOR:s produkter från de
+publika sidorna, alla produkter, utan urval. Läsaren gör det och sparar en
+avläsning per artikel i Wix. Steg 4 (importen) och steg 5 (synken) läser
+avläsningarna; ingen av dem läser VEVOR själv.
+
+`lib/vevor/sida.ts` (tolkningen) → `hamtning.ts` (takt, spärrar) →
+`sitemap.ts` (produktkartan) → `lasare.ts` (körningen) → `lager.ts` (Wix) →
+`rad.ts` (synkens ingång). Cron `/api/cron/vevor-lasare` var femte minut,
+strömbrytaren och upptiningen i `/api/admin/vevor-lasare`, workflowen
+**"VEVOR — läsaren"** (`status` · `prov` · `pa` · `av` · `tina`).
+
+**Uppmätt 2026-10-29** på 36 slumpade adresser ur VEVOR:s produktkarta, med
+`?lang=sv&currency=SEK`:
+
+| | |
+|---|--:|
+| produktsidor, alla `lang="sv"`, `"LANG":"sv"` och `priceCurrency` SEK | 34 |
+| borttagna, med en riktig 404 ("404 Ej Hittad") | 2 |
+| slutsålda bland de 22 nya: lager 0 OCH `OutOfStock`, alltid överens | 6 |
+| sidor med tillverkare eller EU-representant i texten | 0 |
+| tid att tolka en sida | 3–16 ms |
+
+Åtta egenskaper som inte ska tas bort:
+
+1. ☠️ **Spärrar fryser läsaren.** 403, 429, en captcha eller en tom sida:
+   ingenting från körningen skrivs, ett larm går till `OPS_ALERT_EMAIL`, och
+   läsaren läser ingenting, inte ens för hand, förrän någon kör `tina`.
+   Inget nytt försök av sig själv och ingen kringgång: inga proxyer, ingen
+   låtsad webbläsare.
+2. ☠️ **Ärlig och långsam.** User-Agent med info@fyndplats.com, en sida i
+   taget, minst en sekund mellan anropen (`Takt`), aldrig `/api/*` eller det
+   robots.txt spärrar (`tillatenSokvag`), och ingen omdirigering följs.
+3. ☠️ **Okänt rör aldrig lagret.** En sida som inte klarar varje kontroll
+   (svenska, kronor, pris, lager, artikelnummer, inga motsägelser) ger ett
+   tolkningsfel och ingen avläsning. `vevorRad` gör en avläsning äldre än 12
+   timmar okänd, och allt okänt när läsaren är fryst.
+4. ☠️ **Fyra spärrar skriver ingenting från körningen:** en kontrollsida (tio
+   kända produkter, varje körning) saknar pris, lager eller artikelnummer;
+   fler än 10 % otolkbara; fler än 40 % slutsålda; fler än 20 % saknade.
+   Sidorna läses om i nästa körning.
+5. ☠️ **Borta kräver två signaler med minst ett dygn emellan.** En 404, en
+   flytt bort från produktsidan, eller en sida utan produktdata när adressen
+   saknats i kartan i ett dygn. En sida som läses giltig är aldrig borta, vad
+   kartan än säger: den går att beställa. Det är min tolkning av promptens
+   "404 eller saknas i sitemap", och den är vald åt det håll där en levande
+   vara inte döljs.
+6. ☠️ **En trasig karta rör ingenting.** Färre än 5 000 adresser, eller färre
+   än 80 % av dem vi känner, och ingen sida flyttas. Högst 500 nya rader per
+   körning, för Wix skrivkvot delas med hela sajten.
+7. **Upsert per artikel.** Avläsningen nycklas på VEVOR:s artikelnummer, sidan
+   på webb-id:t. En omkörning skriver samma rader igen.
+8. ☠️ **Loggen, svaret och larmet bär bara antal.** Kontrollsidornas webb-id
+   står i tillståndet men aldrig i ett svar.
+
+**Takten:** aldrig lästa först (katalogen, ~13 timmar med 100 sidor per
+körning), sedan publicerade var fjärde timme, lågt lager (≤ 3), obeställda
+ordrar och levande auktioner varje timme, och utkasten en gång per dygn.
+Prioriteringen görs en gång i timmen (`lib/vevor/prioritet.ts`); innan steg 4
+finns inga VEVOR-mappningar, och då är allt utkast.
+
+**Manualerna läses inte** (Leonard 2026-10-29: "vi behöver inte ladda ner och
+läsa alla"). Läsaren sparar om sidan länkar en manual, och länken. GPSR-
+uppgifterna hämtas per produkt när de behövs. 2 av 7 sparade manualer hade
+tillverkaren som text och 1 en EU-representant, så automatiken hade ändå inte
+räckt. Den enklaste vägen är att VEVOR själva anger ett EU-bolag för alla varor,
+som Aosom gör med MH Handel GmbH.
+
+**Inte gjort, med flit:** priset (`landadKostnadSek` är null tills prisregeln
+är bestämd, se steg 5), importen (steg 4), synken (steg 5) och manualerna.
+
+**Efter mergen,** i den ordningen: kollektionerna finns redan (skapade med
+ADMIN och index före mergen). Kör workflowen i läget `prov` med `max` 50 och
+läs svaret: noll spärrar, noll `fel_sprak` och `fel_valuta`. Slå sedan på
+schemat med `pa`. Klart när hela katalogen är läst med under 2 % okänt.
 
 ## Prissättningen är marknadskalibrerad, inte påhittad (`FyndplatsPricingConfig`)
 

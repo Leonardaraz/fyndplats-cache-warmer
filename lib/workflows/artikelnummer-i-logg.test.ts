@@ -36,9 +36,14 @@ const WORKFLOWS = join(ROT, ".github", "workflows");
  * siffror utan svans finns också som artikelnummer, men den går inte att
  * skilja från ett intervall ("800-834") på formen — den kanalen stängs av
  * reglerna nedan i stället.
+ *
+ * VEVOR:s form sedan 2026-10-29, när läsaren (lib/vevor) började spara dem:
+ * versaler och siffror i ett, 19 eller 22 tecken i de 34 uppmätta. Mönstret
+ * tar 17–24 och kräver både en bokstav och en siffra, så att långa tal och
+ * versalord går fria. Samma form tvättas bort av `redigera()` i workflowerna.
  */
 const ARTNR =
-  /\b\d{2}[A-Z]-\d{3}(?!\d)[A-Z0-9]*\b|\b[A-Z]\d{2}-\d{3}(?!\d)[A-Z0-9]*\b|\b\d{3}-\d{3}(?!\d)[A-Z0-9]{2,}\b|\b\d[A-Z]\d-\d{3}(?!\d)[A-Z0-9]*\b/g;
+  /\b\d{2}[A-Z]-\d{3}(?!\d)[A-Z0-9]*\b|\b[A-Z]\d{2}-\d{3}(?!\d)[A-Z0-9]*\b|\b\d{3}-\d{3}(?!\d)[A-Z0-9]{2,}\b|\b\d[A-Z]\d-\d{3}(?!\d)[A-Z0-9]*\b|\b(?=[A-Z0-9]*\d)(?=[A-Z0-9]*[A-Z])[A-Z0-9]{17,24}\b/g;
 
 /** jq-interpolation av ett fält som bär artikelnumret: `\(.sku)`, `map(.sku)`. */
 const ARTIKELFALT = /\\\((?:[^()]|\([^()]*\))*\.(?:sku|artikel|artikelnummer|supplierProductId|aosomSku)\b|map\(\s*\.sku\s*\)/g;

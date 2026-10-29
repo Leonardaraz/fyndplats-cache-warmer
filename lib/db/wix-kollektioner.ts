@@ -43,6 +43,16 @@ export const NYA = {
   fakturaUtskick: "FyndplatsFakturaUtskick",
 } as const;
 
+/**
+ * VEVOR-läsarens kollektioner (lib/vevor/lager.ts, 2026-10-29). Raderna bär
+ * artikelnummer, adresser och priser — läsbara bara för admin, som allt här.
+ */
+export const VEVOR_KOL = {
+  sidor: "FyndplatsVevorSidor",
+  avlasningar: "FyndplatsVevorAvlasningar",
+  lasare: "FyndplatsVevorLasare",
+} as const;
+
 export const KOLLEKTIONER: KollektionSpec[] = [
   { id: col("WIX_DATA_COL_MAPPINGS", "FyndplatsMappings"), index: [] },
   {
@@ -100,4 +110,15 @@ export const KOLLEKTIONER: KollektionSpec[] = [
   { id: NYA.karens, index: [] },
   { id: NYA.fargbilder, index: [] },
   { id: NYA.fakturaUtskick, index: [] },
+  {
+    id: VEVOR_KOL.sidor,
+    index: [
+      // Kön: varje körning läser de sidor vars tid passerat, äldst först.
+      { namn: "ko", falt: [asc("nastaLasning")] },
+      { namn: "sku", falt: [asc("sku")] },
+      { namn: "klass", falt: [asc("klass")] },
+    ],
+  },
+  { id: VEVOR_KOL.avlasningar, index: [{ namn: "status", falt: [asc("status")] }] },
+  { id: VEVOR_KOL.lasare, index: [] },
 ];
