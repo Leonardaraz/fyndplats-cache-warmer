@@ -68,7 +68,7 @@ jobs:
           # EPREL-nummer i texten, och manualens egen kod (IN…), som går att
           # söka fram varan på.
           redigera() {
-            perl -pe 's/\b(?:\d{2}[A-Z]|[A-Z]\d{2}|\d[A-Z]\d|\d{3})-\d{3}(?!\d)[A-Z0-9]*\b/‹REDIGERAT›/gi; s/aosom:\S+/aosom:‹REDIGERAT›/g; s#(?:https?://|www\.)\S+#‹LÄNK›#gi; s/(eprel\D{0,40})\d{4,}/$1‹NR›/gi; s/\bIN\d{6,}\S*/‹KOD›/g'
+            perl -pe 's/\b(?:\d{2}[A-Z]|[A-Z]\d{2}|\d[A-Z]\d|\d{3})-\d{3}(?!\d)[A-Z0-9]*\b/‹REDIGERAT›/gi; s/aosom:\S+/aosom:‹REDIGERAT›/g; s/\b(?=[A-Z0-9]*\d)(?=[A-Z0-9]*[A-Z])[A-Z0-9]{17,24}\b/‹REDIGERAT›/g; s/vevor:\S+/vevor:‹REDIGERAT›/g; s#(?:https?://|www\.)\S+#‹LÄNK›#gi; s/(eprel\D{0,40})\d{4,}/$1‹NR›/gi; s/\bIN\d{6,}\S*/‹KOD›/g'
           }
 
           # Svaret bär manualernas adresser. Det skrivs aldrig ut; vid fel

@@ -135,3 +135,15 @@ export function aosomSkuOf(
   const id = m.supplierProductId ?? "";
   return id.startsWith(AOSOM_ID_PREFIX) ? id.slice(AOSOM_ID_PREFIX.length) : null;
 }
+
+/**
+ * VEVOR:s artikelnummer utan prefix, eller null för andra leverantörer.
+ * Positivt filter, som `aosomSkuOf`: bara en VEVOR-rad ger ett nummer.
+ */
+export function vevorSkuOf(
+  m: Pick<ProductMappingRecord, "supplier" | "supplierProductId">,
+): string | null {
+  if (mappingSupplier(m) !== "vevor") return null;
+  const id = m.supplierProductId ?? "";
+  return id.startsWith(VEVOR_ID_PREFIX) ? id.slice(VEVOR_ID_PREFIX.length) : null;
+}

@@ -1,0 +1,108 @@
+name: VEVOR — läsaren
+
+# VEVOR-läsarens läge, strömbrytare och provkörning (lib/vevor/lasare.ts).
+#
+#   status  läget och antalen: sidor i kön, avläsningar per status, senaste körningen
+#   prov    en körning för hand med högst `max` sidor, även när läsaren är avstängd
+#   pa      schemat (var femte minut) börjar läsa
+#   av      schemat slutar läsa; avläsningarna står kvar
+#   tina    läsaren får läsa igen efter en spärr från VEVOR
+#
+# Läsaren läser VEVOR:s robots.txt en gång per dygn och hämtar aldrig en sida
+# den spärrar. `sparrade` i prov är sådana sidor, och `aterlagda` är sidor som
+# lades tillbaka i kön när en spärr stoppade körningen.
+#
+# Skriver bara antal och tider. Svaren bär inga artikelnummer, adresser eller
+# priser, och repot är publikt.
+#
+# ⚠️ Rutterna finns bara där de är deployade. Kör från main när de ligger där.
+
+on:
+  workflow_dispatch:
+    inputs:
+      lage:
+        description: "status, prov, pa, av eller tina"
+        required: true
+        default: status
+        type: choice
+        options: [status, prov, pa, av, tina]
+      max:
+        description: "Högst så många sidor i läget prov (1–200)"
+        required: false
+        default: "50"
+
+jobs:
+  kor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          LAGE: ${{ inputs.lage }}
+          MAX: ${{ inputs.max }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # Till STDERR: en ::error::-rad på stdout slukas av kommandosubstitutionen.
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          rot="${BASE%/api/cron/poll-tracking}"
+
+          case "$LAGE" in
+            status)
+              svar=$(curl -sS --max-time 90 -H "Authorization: Bearer ${CRON_SECRET}" "${rot}/api/admin/vevor-lasare") || {
+                echo "::error::Anropet gick inte fram" >&2; exit 1; }
+              ;;
+            prov)
+              if ! [[ "$MAX" =~ ^[0-9]+$ ]] || [ "$MAX" -lt 1 ] || [ "$MAX" -gt 200 ]; then
+                echo "::error::max ska vara ett heltal mellan 1 och 200" >&2; exit 1
+              fi
+              svar=$(curl -sS --max-time 320 -H "Authorization: Bearer ${CRON_SECRET}" \
+                "${rot}/api/cron/vevor-lasare?manuell=1&max=${MAX}") || {
+                echo "::error::Anropet gick inte fram" >&2; exit 1; }
+              ;;
+            pa|av|tina)
+              svar=$(curl -sS --max-time 90 -X POST -H "Authorization: Bearer ${CRON_SECRET}" \
+                -H "Content-Type: application/json" -d "{\"atgard\":\"${LAGE}\"}" "${rot}/api/admin/vevor-lasare") || {
+                echo "::error::Anropet gick inte fram" >&2; exit 1; }
+              ;;
+            *)
+              echo "::error::okänt läge" >&2; exit 1
+              ;;
+          esac
+
+          if ! echo "$svar" | jq -e 'type == "object"' >/dev/null 2>&1; then
+            echo "::error::Svaret var inte JSON. Är rutten deployad där workflowen kör?" >&2
+            exit 1
+          fi
+          if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+            echo "::error::$(echo "$svar" | jq -r '.error // "okänt fel"')" >&2
+            exit 1
+          fi
+
+          # Bara antal, tider och skäl. Kontrollsidornas id står aldrig i svaret.
+          case "$LAGE" in
+            prov)
+              echo "$svar" | jq '{utfall, skal, lasta, giltiga, iLager, slutsalda, ejLevererbara, saknade, flyttade, tillfalliga, tolkningsfel, sparrade, blockerad, robots, kontroller, karta, prioritet, aterlagda, skrivna}' || true
+              utfall=$(echo "$svar" | jq -r '.utfall')
+              if [ "$(echo "$svar" | jq -r '.blockerad // ""')" != "" ]; then
+                echo "::error::VEVOR spärrade läsningen. Läsaren är fryst." >&2
+                exit 1
+              fi
+              sprak=$(echo "$svar" | jq -r '(.tolkningsfel.fel_sprak // 0) + (.tolkningsfel.fel_valuta // 0)')
+              if [ "$sprak" != "0" ]; then
+                echo "::error::${sprak} sidor kom inte på svenska eller i kronor" >&2
+                exit 1
+              fi
+              if [ "$utfall" != "klar" ]; then
+                echo "::error::Körningen slutade som ${utfall}: $(echo "$svar" | jq -r '.skal // ""')" >&2
+                exit 1
+              fi
+              ;;
+            *)
+              echo "$svar" | jq '{aktiv, fryst, kontroller, kartaAt, prioriteradAt, robotsAt, robotsRegler, stoppIFoljd, antal, senasteKorning}' || true
+              ;;
+          esac
