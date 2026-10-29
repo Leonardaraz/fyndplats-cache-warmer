@@ -8,6 +8,7 @@
 import { produktensMedianycklar, type ProduktMedia } from "./produkt-media";
 import { arKostnadNekadSvar } from "./produkt-kostnad";
 import type { VariantbildStatus } from "./variant-media";
+import { KATALOG_SIDTAK } from "./limits";
 
 const WIX_BASE = "https://www.wixapis.com";
 const DEFAULT_HEADLESS_SITE_ID = "e6d27e90-4749-4720-9afe-0bbe91c1b3d3";
@@ -99,8 +100,11 @@ export interface WixV3Variant {
  * publicerad produkt ser ut som ett utkast. Recensionssvepet hoppar då över
  * den, och prisjämförelsen mot dealproffsen lägger den i listan "polera dessa
  * först". Båda felen är tysta och båda pekar åt fel håll.
+ *
+ * Sedan 2026-10-29 är taket Wix eget (`KATALOG_SIDTAK`): 300 sidor hade räckt
+ * till VEVOR-importens ~22 000 produkter, men inte långt till.
  */
-const MAX_SYNLIGA_SIDOR = 300;
+const MAX_SYNLIGA_SIDOR = KATALOG_SIDTAK;
 
 export interface V3ProduktInfo {
   /** Butikens URL är `/produkt/<slug>` — Wix-id:t ger 404. Uppmätt 2026-09-15. */
@@ -1130,8 +1134,12 @@ export interface WixProduktPris {
  */
 export const MIN_WIX_PRODUKTER = 500;
 
-/** Tak på sidor. Räcker till 20 000 produkter — katalogen är 5 400. */
-const MAX_PRIS_SIDOR = 200;
+/**
+ * Tak på sidor: Wix eget (`KATALOG_SIDTAK`). Det var 200 sidor, alltså 20 000
+ * produkter, och VEVOR-importen tar katalogen till ~22 000. Prislistan och
+ * flödessvepet nedan hade då kastat vid varje körning.
+ */
+const MAX_PRIS_SIDOR = KATALOG_SIDTAK;
 
 /**
  * Backoff per sida. Följer `Retry-After` när Wix skickar den.
