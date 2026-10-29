@@ -20,7 +20,7 @@
 import { sql } from "./db";
 import { anvanderWix, kundvagnar, nyhetsbrev, ordrar } from "./wix-lager";
 import { getProducts, type Product } from "./products";
-import { productCountLabel } from "./rating";
+import { morgonVarningar } from "./morgon-varningar";
 
 const STOCKHOLM_TZ = "Europe/Stockholm";
 const LOW_STOCK_THRESHOLD = 5;
@@ -460,11 +460,9 @@ export async function buildDashboard(now = new Date()): Promise<DashboardData> {
     getServiceSection(),
   ]);
 
-  const warnings: string[] = [];
-  if (inventory.outOfStock.length > 0) warnings.push(`${productCountLabel(inventory.outOfStock.length)} slut i lager`);
-  if (inventory.lowStock.length > 0) warnings.push(`${productCountLabel(inventory.lowStock.length)} med lågt lager (<${LOW_STOCK_THRESHOLD})`);
-  if (abandoned.available && abandoned.notRecovered24h > 0)
-    warnings.push(`${abandoned.notRecovered24h} ej återhämtade kundvagnar (24h)`);
+  // Lagret larmar inte längre: med dropship är det alltid något som är slut
+  // (lib/morgon-varningar.ts). Siffrorna står kvar i inventory.
+  const warnings = morgonVarningar(abandoned);
 
   return {
     generatedAt: now.toISOString(),

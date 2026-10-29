@@ -197,6 +197,16 @@ Loggraden visar numera två tider, `— 51 sidor på … s, allt på … s`, dä
 fortfarande hela katalogen, så den raden kommer lika ofta som förut, bara
 snabbare.
 
+## Morgonmejlets ⚠️-ruta: bara avvikelser (2026-10-29)
+
+Rutan larmade varje morgon för produkter slut i lager och med lågt lager. Med
+omkring 5 000 dropship-varor är båda alltid fler än noll (2026-10-29: 529 och
+133), så mejlet sa "⚠️ 2 sak(er) att kolla" varje dag. Leonard samma dag: bara
+avvikelser i rutan. Regeln bor i `lib/morgon-varningar.ts` och gäller både
+mejlet och `/admin/dashboard`. I dag larmar bara ej återhämtade kundvagnar.
+Lagersiffrorna står kvar i statusraden. Lägg inte tillbaka en varning som är
+sann varje dag: ett larm som alltid fyrar lär mottagaren att sluta läsa.
+
 ## Länkar som bara renderas vid hovring finns inte för Google (2026-09-24)
 
 Mega-menyn renderade bara den hovrade panelen. Googlebot hovrar och klickar
