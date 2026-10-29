@@ -8464,6 +8464,21 @@ Efter mergen: kör `kopiera` en gång till precis före (dess start är
 `vaxling` = mergens tid. Ett hoppat `delta` lämnar det som skrevs till Neon
 mellan kopian och växlingen kvar där.
 
+**Butikens flytt samma natt** (läget `butik`). Butikens växel är en rad i Wix
+(`FyndplatsButikInstallningar/datalager`), så omslaget krävde inget bygge:
+
+| steg | när (UTC) | utfall |
+|---|---|---|
+| kopiera | 03:05–03:21 | 181 174 rader i 15 tabeller, varav prishistoriken 180 309, noll fel |
+| verifiera | 03:24–03:32 | alla 15 tabeller lika rad för rad, inget extra i Wix |
+| index | 03:24 | 18 egna index på 10 kollektioner, alla ACTIVE |
+| växeln till `wix` | 03:33:27 | raden läst tillbaka |
+| `delta` två gånger | 03:36–03:45, 03:55–04:03 | alla tabeller lika, ingenting att skriva eller ta bort |
+| driften | 03:37–04:01 | ett GLS-paket spårades ur Wix, ordersynken hittade 54 av 54 ordrar, inga körfel |
+
+Neon ligger kvar som reserv till 2026-11-05 (Leonards ja). Sedan tas
+Postgres-vägarna bort i båda repona, och Neon kan sägas upp.
+
 ## ☠️ Drift-datan bor i Postgres sedan 2026-08-31 — inte i Wix Data
 
 Wix CMS slutade ta emot nya rader: *"You've reached your 4,000 items limit
