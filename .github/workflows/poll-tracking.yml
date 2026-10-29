@@ -1,11 +1,14 @@
 name: Poll AliExpress tracking
 
-# Pingar /api/cron/poll-tracking var 3:e timme så Next.js-appen kan hämta
-# spårningsnummer från AliExpress DS API och pusha dem till Wix Stores.
+# Pingar /api/cron/poll-tracking så Next.js-appen kan hämta spårningsnummer
+# från AliExpress DS API och pusha dem till Wix Stores.
 #
-# Använder GitHub Actions istället för Vercel Cron eftersom Vercel Hobby
-# bara tillåter daglig schemaläggning. GitHub Actions är gratis och stödjer
-# valfri cron-frekvens.
+# ☠️ BARA FÖR HAND (sedan 2026-10-29). Spårningen går varje timme från
+# vercel.json, eftersom motorn ligger på Pro och Vercels cron går på minuten.
+# GitHub körde det här schemat (var tredje timme) 22 gånger på fem dagar i
+# stället för ~41, med 2,3–8,4 timmar mellan körningarna. Schemat ska inte
+# tillbaka som reserv: rutten har ingen spärr mot två samtidiga körningar,
+# och båda hade försökt skicka samma rad (se CLAUDE.md).
 #
 # Krävs som repository secret (Settings → Secrets and variables → Actions):
 #   POLL_TRACKING_URL — fullständig URL, t.ex.
@@ -14,8 +17,6 @@ name: Poll AliExpress tracking
 #                 (genereras med `openssl rand -hex 32`)
 
 on:
-  schedule:
-    - cron: "0 */3 * * *"
   workflow_dispatch:
 
 jobs:
