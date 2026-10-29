@@ -64,6 +64,20 @@ export function tolkaRabatt(text: string | null | undefined): number {
   return procent / 100;
 }
 
+/**
+ * Rabattens läge utan värdet: satt, saknas eller ogiltig. För svar och
+ * workflows, som aldrig får bära nivån.
+ */
+export function rabattlage(text: string | null | undefined): "satt" | "saknas" | "ogiltig" {
+  if (!(text ?? "").trim()) return "saknas";
+  try {
+    tolkaRabatt(text);
+    return "satt";
+  } catch {
+    return "ogiltig";
+  }
+}
+
 /** Landad kostnad i SEK, inklusive svensk moms. Kastar på ett pris som inte är ett positivt tal. */
 export function vevorLandadKostnadSek(prisSek: number, rabatt: number): number {
   if (!Number.isFinite(prisSek) || prisSek <= 0) throw new Error("VEVOR-priset är inte ett positivt tal");

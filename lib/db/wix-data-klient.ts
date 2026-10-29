@@ -305,10 +305,16 @@ export const ALLA_RADER_TAK = 500_000;
  *
  * Kastar hellre än kapar: över `tak` rader, eller om samma markör kommer
  * tillbaka två gånger (en loop som annars hade gått tills lambdan dog).
+ *
+ * `falt` begränsar svaret till de fälten (och `_id`). Skickas med på VARJE
+ * sida, inte bara den första: uppmätt 2026-10-29 att Wix tar emot `fields`
+ * tillsammans med markören och svarar med bara de fälten. Att markören bär
+ * urvalet själv, som den bär filtret, är inte mätt, och Stores sökning gör
+ * det inte (CLAUDE.md, "`fields` är TVÄRTOM").
  */
 export async function allaRader<T = Record<string, unknown>>(
   kollektion: string,
-  q: { filter?: Record<string, unknown>; sort?: Sortering; sidstorlek?: number; tak?: number } = {},
+  q: { filter?: Record<string, unknown>; sort?: Sortering; sidstorlek?: number; tak?: number; falt?: readonly string[] } = {},
   opts: { medSystemfalt?: boolean } & Klientval = {},
 ): Promise<T[]> {
   const sid = Math.min(Math.max(1, q.sidstorlek ?? 1000), 1000);
@@ -321,6 +327,7 @@ export async function allaRader<T = Record<string, unknown>>(
     const query: Record<string, unknown> = markor
       ? { cursorPaging: { limit: sid, cursor: markor } }
       : { filter: q.filter ?? {}, sort: q.sort ?? [], cursorPaging: { limit: sid } };
+    if (q.falt?.length) query.fields = [...q.falt];
     const s = await anropa<{
       dataItems?: { data?: Record<string, unknown> }[];
       pagingMetadata?: { cursors?: { next?: string | null } };

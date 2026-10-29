@@ -6,6 +6,7 @@ import { sendEmail } from "@/lib/email/resend";
 import { queryAuctions } from "@/lib/auction/store";
 import { getStore } from "@/lib/store/factory";
 import { vevorSkuOf } from "@/lib/store/supplier";
+import { VEVOR_ID_PREFIX } from "@/lib/store/leverantorsprefix";
 import { WixVevorLager } from "./lager";
 import type { LasarDeps } from "./lasare";
 import type { Prioritetsunderlag, VevorProdukt } from "./prioritet";
@@ -18,7 +19,10 @@ import type { Prioritetsunderlag, VevorProdukt } from "./prioritet";
 export async function lasPrioritetsunderlag(): Promise<Prioritetsunderlag> {
   const store = getStore();
   const produkter: VevorProdukt[] = [];
-  for (const m of await store.listMappings()) {
+  // Bara raderna med VEVOR:s prefix (steg 5). Efter importen är katalogen
+  // runt 22 000 rader, och prioriteringen går en gång i timmen inne i
+  // läsarens körning, med läsarens tidsbudget.
+  for (const m of await store.listMappingsMedPrefix(VEVOR_ID_PREFIX)) {
     const sku = vevorSkuOf(m);
     if (sku) produkter.push({ wixProductId: m.wixProductId, sku, publicerad: m.draftStatus === "published" });
   }

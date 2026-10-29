@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { lagerbesked, PROFILER, type Leverantorsprofil, type Leverantorsrad } from "./leverantorsrad";
+import {
+  AOSOM_PROFIL,
+  lagerbesked,
+  PROFILER,
+  VEVOR_PROFIL,
+  type Leverantorsprofil,
+  type Leverantorsrad,
+} from "./leverantorsrad";
 
 // ☠️ Påhittade artikelnummer. Inga riktiga nummer i ett publikt repo.
 const rad = (over: Partial<Leverantorsrad> = {}): Leverantorsrad => ({
@@ -11,15 +18,15 @@ const rad = (over: Partial<Leverantorsrad> = {}): Leverantorsrad => ({
   lastAt: "2026-10-21T06:00:00Z",
   ...over,
 });
-const SLUT_OM_SAKNAS: Leverantorsprofil = { saknadRad: "slut", konkurrentregel: true };
-const OKANT_OM_SAKNAS: Leverantorsprofil = { saknadRad: "okand", konkurrentregel: false };
+const SLUT_OM_SAKNAS: Leverantorsprofil = { ...AOSOM_PROFIL, saknadRad: "slut" };
+const OKANT_OM_SAKNAS: Leverantorsprofil = { ...VEVOR_PROFIL, saknadRad: "okand" };
 const utanBuffert = (n: number) => Math.max(0, Math.trunc(n));
 const medBuffertTva = (n: number) => Math.max(0, Math.trunc(n) - 2);
 
 describe("lagerbesked", () => {
   it("i lager: saldot efter bufferten, och priset kan räknas", () => {
     expect(lagerbesked(rad({ saldo: 5 }), SLUT_OM_SAKNAS, utanBuffert)).toEqual({
-      kant: true, synligt: 5, ejLevererbar: false, saknas: false, slut: false, landad: 1000,
+      kant: true, synligt: 5, ejLevererbar: false, saknas: false, slut: false, landad: 1000, forraLandad: null,
     });
   });
 
@@ -35,7 +42,7 @@ describe("lagerbesked", () => {
 
   it("en saknad rad med regeln slut: saldo 0, räknas som saknad, inget pris", () => {
     expect(lagerbesked(undefined, SLUT_OM_SAKNAS, utanBuffert)).toEqual({
-      kant: true, synligt: 0, ejLevererbar: false, saknas: true, slut: false, landad: null,
+      kant: true, synligt: 0, ejLevererbar: false, saknas: true, slut: false, landad: null, forraLandad: null,
     });
   });
 
@@ -63,13 +70,39 @@ describe("lagerbesked", () => {
   });
 });
 
+const TIMME = 3_600_000;
+
 describe("PROFILER", () => {
-  it("Aosom: en saknad rad är slut, och konkurrentregeln gäller — som före steg 3", () => {
-    expect(PROFILER.aosom).toEqual({ saknadRad: "slut", konkurrentregel: true });
+  it("Aosom: samma tal som före steg 5 — saknad rad är slut, buffert 0, 2 000 rader, tolv timmar", () => {
+    expect(PROFILER.aosom).toEqual({
+      saknadRad: "slut",
+      konkurrentregel: true,
+      prefix: "aosom:",
+      buffert: 0,
+      minRader: 2000,
+      bestalldOsynligMs: 12 * TIMME,
+      prisKraverTvaAvlasningar: false,
+    });
   });
 
-  it("☠️ VEVOR: en saknad avläsning är okänd, och konkurrentregeln gäller inte (Leonard 2026-10-21)", () => {
-    expect(PROFILER.vevor).toEqual({ saknadRad: "okand", konkurrentregel: false });
+  it("☠️ VEVOR: saknad avläsning är okänd, ingen konkurrentregel, ingen buffert, två avläsningar för ett nytt pris", () => {
+    expect(PROFILER.vevor).toEqual({
+      saknadRad: "okand",
+      konkurrentregel: false,
+      prefix: "vevor:",
+      buffert: 0,
+      minRader: null,
+      bestalldOsynligMs: 12 * TIMME,
+      prisKraverTvaAvlasningar: true,
+    });
+  });
+
+  it("föregående avläsnings kostnad följer med ett känt besked, aldrig ett okänt", () => {
+    expect(lagerbesked(rad({ forraLandadKostnadSek: 900 }), SLUT_OM_SAKNAS, utanBuffert).forraLandad).toBe(900);
+    expect(lagerbesked(rad({ status: "okand", forraLandadKostnadSek: 900 }), OKANT_OM_SAKNAS, utanBuffert).forraLandad)
+      .toBeNull();
+    expect(lagerbesked(rad({ status: "ej_levererbar", forraLandadKostnadSek: 900 }), SLUT_OM_SAKNAS, utanBuffert).forraLandad)
+      .toBeNull();
   });
 
   it("AliExpress och okänd leverantör synkas inte här", () => {

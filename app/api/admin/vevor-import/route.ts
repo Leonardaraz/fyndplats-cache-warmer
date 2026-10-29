@@ -18,7 +18,7 @@ import { getAppConfig } from "@/lib/store/app-config";
 import { countProducts, headlessSiteId } from "@/lib/wix/media-audit";
 import { WixVevorImportLager, type Importtillstand } from "@/lib/vevor/import-lager";
 import { TAK_MARGINAL, WIX_MAX_PRODUKTER } from "@/lib/vevor/import";
-import { tolkaRabatt } from "@/lib/vevor/pris";
+import { rabattlage as rabattlageFor } from "@/lib/vevor/pris";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -45,14 +45,7 @@ function publikt(t: Importtillstand) {
 
 /** Rabatten utan värdet: satt, saknas eller ogiltig. */
 async function rabattlage(): Promise<"satt" | "saknas" | "ogiltig"> {
-  const text = (await getAppConfig()).vevorProRabatt;
-  if (!text) return "saknas";
-  try {
-    tolkaRabatt(text);
-    return "satt";
-  } catch {
-    return "ogiltig";
-  }
+  return rabattlageFor((await getAppConfig()).vevorProRabatt);
 }
 
 export async function GET(req: NextRequest) {
