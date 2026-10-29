@@ -68,10 +68,15 @@ async function handle(req: NextRequest) {
       console.log(`[variantbild] ${p.id} ${p.visible ? "publicerad" : "utkast"} ${p.status} fel=${p.fel} ${p.exempel.join(", ")}`);
     }
     // ☠️ Ett avkortat svep får inte se friskt ut (CLAUDE.md: ett tak ska
-    // logga ett fel, aldrig kapa tyst).
-    if (!rapport.fullstandig) {
+    // logga ett fel, aldrig kapa tyst). En planerad skiva (`?limit=`) är
+    // däremot inget fel. Workflowen delar listan i skivor om 60, och varje
+    // skiva utom den sista loggades förut som "tidsbudgeten tog slut": 20 fel
+    // i Vercel 14–28 oktober, och inget av dem var nattens cron.
+    if (rapport.slutade === "grans") {
+      console.log(`[variantbild] skivan klar, fortsätt med ?start=${rapport.nasta}`);
+    } else if (!rapport.fullstandig) {
       console.error(
-        `[variantbild] OFULLSTÄNDIG: ${rapport.stoppad ? "stoppad av en avvikelse" : "tidsbudgeten tog slut"}, `
+        `[variantbild] OFULLSTÄNDIG: ${rapport.slutade === "avvikelse" ? "stoppad av en avvikelse" : "tidsbudgeten tog slut"}, `
           + `fortsätt med ?start=${rapport.nasta ?? "?"}`,
       );
     }
