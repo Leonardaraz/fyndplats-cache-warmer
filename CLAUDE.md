@@ -37,6 +37,16 @@ fort någon tittade (kund, sökmotor, länkförladdning).
   `recensioner-<id>` och sidan, och värmer sidan. Motorn säger dessutom till
   direkt vid fyndauktionens prissteg via `/api/admin/uppdatera-produkter`
   (nyckeln som kakan `fp_admin` eller Bearer — aldrig i adressen).
+- ☠️ **Varje synlig sida som töms värms också** (sedan 2026-10-29,
+  `varmningsplan` i `lib/produkt-cache.ts`). Förut värmdes bara de 120 nyaste
+  per körning, och kl. 12:46 UTC den dagen ändrades 998 produkter på en gång:
+  878 sidor låg tömda tills en kund öppnade dem (8 av 80 slumpade produktsidor
+  svarade `REVALIDATED` på 1,0–1,3 s samma kväll, mot 0,3 s ur cachen). En
+  ändring töms av två eller tre körningar, så alla värms först sista gången den
+  syns (äldre än sex minuter), och de 120 nyaste direkt. Det som inte hinns
+  inom körningen tar uppvärmningens led (`POST /api/cron/varm-katalogen`). En
+  dold produkt töms men värms inte: sidan svarar 404, och VEVOR-importens
+  utkast gav förut "värmde 0 av 74 (fel 74)" i varje körning.
 - ☠️ **Cronen kräver `CRON_SECRET`.** Saknas den svarar
   `/api/cron/uppdatera-andrade` 503 och ingenting töms — då gäller bara
   säkerhetsnätet på sex timmar.

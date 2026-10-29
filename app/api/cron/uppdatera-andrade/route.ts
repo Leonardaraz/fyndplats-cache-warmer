@@ -12,7 +12,9 @@
 //   · Köp: produkterna i nya ordrar (lagret efter köpet).
 //   · Motorn: produkter vars recensioner ändrats (motorns /api/review-andringar).
 // Varje träff får sin cachepost och sin sida tömda, och sidan värms efteråt så
-// att nästa kund får den färdigbyggd.
+// att nästa kund får den färdigbyggd. Vilka som värms, och när, avgör
+// `varmningsplan` (lib/produkt-cache.ts): alla synliga sidor sista gången en
+// ändring syns, och det som inte hinns tas av uppvärmningens led.
 //
 // FÖNSTRET ÄR ELVA MINUTER, CRONEN GÅR VAR FEMTE. Två skäl:
 //   · Wix läsning kan släpa efter en skrivning (motorns CLAUDE.md). En sida som
@@ -32,22 +34,26 @@
 
 import { NextResponse, after } from "next/server";
 import { andradeIWix, andradeRecensioner, kopteProdukter, uppdateraProduktsidor } from "../../../../lib/produktsidor-uppdatera";
-import type { AndradProdukt } from "../../../../lib/produkt-cache";
+import { varmningsplan, type AndradProdukt } from "../../../../lib/produkt-cache";
 import { bearerVarde, sammaHemlighet } from "../../../../lib/hemlig-jamforelse";
-import { varmAlla } from "../../../../lib/warm";
+import { arSakerSlug, kvarEfterPass, startaLed, varmAlla } from "../../../../lib/warm";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 const FONSTER_MINUTER = 11;
-/** Så många sidor värms per körning (en natts prissynk kan röra hundratals);
- *  resten byggs om vid nästa besök — färskt, eftersom de redan är tömda. */
-const MAX_VARMA = 120;
+/** Cronens takt i vercel.json. Nästa körnings fönster börjar FONSTER − INTERVALL minuter bakåt. */
+const INTERVALL_MINUTER = 5;
+/** Så många sidor värms direkt vid en ändrings första tömningar. Vid den sista
+ *  värms alla (lib/produkt-cache.ts, `varmningsplan`), och det som inte hinns
+ *  inom körningen tas av uppvärmningens led (/api/cron/varm-katalogen, POST). */
+const VARMA_DIREKT = 120;
 /** Tömningen verkställs efter svaret (waitUntil). Värmningen väntar in den. */
 const VANTA_FORE_VARMNING_MS = 5_000;
-/** Sista värmningen startar senast så här långt före maxDuration (en sidhämtning får ta 60 s). */
-const MARGINAL_MS = 70_000;
+/** Sista värmningen startar senast så här långt före maxDuration: en sidhämtning
+ *  får ta 60 s, och att starta ett led efteråt upp till ~32 s (lib/warm.ts). */
+const MARGINAL_MS = 100_000;
 
 export async function GET(request: Request) {
   const start = Date.now();
@@ -96,14 +102,27 @@ export async function GET(request: Request) {
   if (poster.length === 0) return NextResponse.json(sammanfattning, { status });
 
   const plan = await uppdateraProduktsidor(poster);
+  const vplan = varmningsplan(poster, plan.slugPerId, {
+    start,
+    sistaSynMs: (FONSTER_MINUTER - INTERVALL_MINUTER) * 60_000,
+    direkt: VARMA_DIREKT,
+  });
   // Värmningen går mot produktionsadressen (lib/site-urls.ts). En preview ska
   // inte värma produktionens sidor — de har inte tömts.
-  const varma = process.env.VERCEL_ENV === "production" ? plan.slugs.slice(0, MAX_VARMA) : [];
+  const varma = process.env.VERCEL_ENV === "production" ? vplan.slugs.filter(arSakerSlug) : [];
   if (varma.length) {
     after(async () => {
       await new Promise((r) => setTimeout(r, VANTA_FORE_VARMNING_MS));
       const r = await varmAlla(varma, start + maxDuration * 1000 - MARGINAL_MS);
-      console.log(`[uppdatera-andrade] värmde ${r.ok} av ${varma.length} (fel ${r.fel}${r.avbruten ? ", avbruten" : ""})`);
+      let led = "";
+      if (r.avbruten) {
+        const kvar = kvarEfterPass(varma, r);
+        led = `, ${kvar.length} kvar → led: ${await startaLed(kvar, 1)}`;
+      }
+      console.log(
+        `[uppdatera-andrade] värmde ${r.ok} av ${varma.length} (fel ${r.fel}${r.avbruten ? ", avbruten" : ""}${led}), `
+          + `sista gången ${vplan.sista}, dolda ${vplan.dolda}`,
+      );
     });
   }
 
@@ -119,6 +138,8 @@ export async function GET(request: Request) {
       sidor: plan.sokvagar.length,
       utanSlug: plan.utanSlug.length,
       varms: varma.length,
+      sistaGangen: vplan.sista,
+      dolda: vplan.dolda,
       ...(plan.uppslagFel ? { uppslagFel: plan.uppslagFel } : {}),
     },
     { status },
