@@ -330,6 +330,14 @@ export interface Store {
   // --- Produktmappningar ---
   saveMapping(record: ProductMappingRecord): Promise<void>;
   getMappingByWixProductId(wixProductId: string): Promise<ProductMappingRecord | null>;
+  /** Flera rader på en gång, nycklade på Wix-produkt-id. En rad som saknas finns inte i svaret. */
+  getMappingsByWixProductIds(wixProductIds: string[]): Promise<Map<string, ProductMappingRecord>>;
+  /**
+   * Sparar flera rader och svarar PER RAD: de som inte bevisligen sparades,
+   * med skälet. I Wix räknas en rad bara när Wix uttryckligen bekräftat den
+   * (`sparaManga`).
+   */
+  saveMappings(records: ProductMappingRecord[]): Promise<{ fel: { wixProductId: string; fel: string }[] }>;
   listMappings(): Promise<ProductMappingRecord[]>;
 
   // --- Fulfillment-tasks ---

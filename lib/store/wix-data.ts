@@ -8,6 +8,7 @@ import {
   patcha,
   satt,
   spara,
+  sparaManga,
   taBortFalt,
   taBortMedFilter,
 } from "../db/wix-data-klient";
@@ -63,6 +64,35 @@ export class WixDataStore implements Store {
 
   async getMappingByWixProductId(wixProductId: string): Promise<ProductMappingRecord | null> {
     return hamta<ProductMappingRecord>(COL.mappings, wixProductId);
+  }
+
+  /**
+   * En fråga per hundra id (`$in` på `_id`, som är Wix-produkt-id:t). Uppmätt
+   * 2026-10-29: femtio rader på 140–270 ms, mot 110–220 ms för EN rad med get.
+   * Bara rader vars `_id` efterfrågades kommer med.
+   */
+  async getMappingsByWixProductIds(wixProductIds: string[]): Promise<Map<string, ProductMappingRecord>> {
+    const ut = new Map<string, ProductMappingRecord>();
+    const unika = [...new Set(wixProductIds)];
+    for (let i = 0; i < unika.length; i += 100) {
+      const del = new Set(unika.slice(i, i + 100));
+      const rader = await fraga<ProductMappingRecord & { _id?: unknown }>(COL.mappings, {
+        filter: { _id: { $in: [...del] } },
+        limit: 1000,
+      });
+      for (const r of rader) {
+        if (typeof r._id === "string" && del.has(r._id)) ut.set(r._id, r);
+      }
+    }
+    return ut;
+  }
+
+  async saveMappings(records: ProductMappingRecord[]): Promise<{ fel: { wixProductId: string; fel: string }[] }> {
+    const utfall = await sparaManga(
+      COL.mappings,
+      records.map((r) => ({ id: r.wixProductId, data: { ...r } as Record<string, unknown> })),
+    );
+    return { fel: utfall.fel.map((f) => ({ wixProductId: f.id, fel: f.fel })) };
   }
 
   /** ALLA mappningar, med markör. Ingen offset och inget tyst tak (se klienten). */
