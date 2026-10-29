@@ -6123,12 +6123,10 @@ synken.
   namnbyte rör 37 ställen i sju filer, 82 i tester, poleringens workflow och
   `tools/polish-gates/gate-lager.py`, och kräver en migrering av alla
   Aosom-rader. Mellan deployen och migreringen hade den ena halvan läst ett tomt
-  fält, och synken hade då sett varje stämpel som saknad. Det görs i steg 5,
-  när VEVOR-synken behöver fälten, tillsammans med `aosomFreightShare` och
-  `aosomBildFiler`.
-- **Bufferten, `MIN_FEED_RADER` och fönstret för beställda enheter** är kvar som
-  Aosom-konstanter i `lib/aosom/sync.ts`. De flyttar till profilen i steg 5,
-  när VEVOR:s värden är bestämda.
+  fält, och synken hade då sett varje stämpel som saknad. Steg 5 lät namnen
+  stå: VEVOR-raderna stämplas i samma fält (se *VEVOR: steg 5*).
+- ✅ **Bufferten, `MIN_FEED_RADER` och fönstret för beställda enheter** står i
+  profilen sedan steg 5. Konstanterna i `lib/aosom/sync.ts` läser Aosoms profil.
 - ✅ **Loggspärren fångar VEVOR:s artikelnummer sedan steg 2** (19 eller 22
   tecken, versaler och siffror i ett). `redigera()` i de sex workflows som har
   den tvättar formen, och `ARTNR` i `artikelnummer-i-logg.test.ts` fäller den i
@@ -6253,14 +6251,251 @@ tillverkaren som text och 1 en EU-representant, så automatiken hade ändå inte
 räckt. Den enklaste vägen är att VEVOR själva anger ett EU-bolag för alla varor,
 som Aosom gör med MH Handel GmbH.
 
-**Inte gjort, med flit:** priset (`landadKostnadSek` är null tills prisregeln
-är bestämd, se steg 5), importen (steg 4), synken (steg 5) och manualerna.
+**Inte gjort, med flit:** manualerna. Prisregeln och importen kom i steg 4 och
+synken i steg 5, se de avsnitten. `vevorRad` räknar den landade kostnaden med
+importens prisregel sedan steg 5.
 
 **Efter mergen,** i den ordningen: kollektionerna finns redan (skapade med
 ADMIN och index före mergen). Kör workflowen i läget `prov` med `max` 50 och
 läs svaret: noll spärrar, noll `fel_sprak` och `fel_valuta`, robots.txt
 hämtad och `sparrade` noll. Slå sedan på schemat med `pa`. Klart när hela
 katalogen är läst med under 2 % okänt.
+
+## VEVOR: steg 4, importen som osynliga utkast (2026-10-29)
+
+Leonards beslut 2026-10-28: alla VEVOR-produkter importeras på en gång, så fort
+Wix tar emot dem, som osynliga utkast. Läsarens avläsningar i lager blir utkast
+genom samma pipeline som Aosom: rått läge, noll AI-anrop, `visible:false`,
+leverantören `vevor` och id:t `vevor:<artikelnummer>`. Publiceringen väntar på
+steg 7.
+
+`lib/vevor/to-product.ts` (adaptern) → `bilder.ts` (sex bilder) →
+`granskning.ts` (GPSR, medicinteknik, bilder) → `pris.ts` (landad kostnad) →
+`import.ts` (körningen) → `import-lager.ts` (Wix). Cron
+`/api/cron/vevor-import` var femte minut när importen är påslagen, läget i
+`/api/admin/vevor-import`, workflowen **"VEVOR — importen"** (`status` ·
+`prov` · `pa` · `av`).
+
+**Priset:** landad kostnad = sidans pris i SEK inkl. moms ÷ 1,24 × (1 −
+PRO-rabatten) × 1,25, och sedan husets regel. Mätt mot en riktig faktura
+2026-10-29: sidans pris delat med 1,24 gav fakturans pris utan moms på öret,
+momsen var 0 % och frakten 0. ⚠️ Frakten är mätt på EN order; JSON-LD:ns 5 EUR
+gäller varje land och varje vara och är ingen riktig frakt. Kontrollera
+frakten på en billig vara före publicering.
+
+☠️ **Rabattnivån står bara i `FyndplatsAppConfig` (`vevorProRabatt`, procent
+som text).** Aldrig i kod, tester, loggar eller ett svar: statusen säger bara
+`satt`, `saknas` eller `ogiltig`, och testerna använder påhittade nivåer.
+Saknas den importeras ingenting, och `pa` vägras. Ändra den när kontot når en
+ny nivå och när medlemskapet förnyas, med en fältvis PATCH som inte läser
+tillbaka raden (den bär Aosoms hemliga flödesadress).
+
+**Bilderna (Leonards regel, 50 produkter 2026-10-28; 34 av 34 sparade sidor
+2026-10-29):** bara bilder ur produktens egen mapp, originalet. Vanliga
+mönstret (12 bilder, f1–f6 i mitten) ger VEVOR:s 9, 8, 1, 10, 11 och 12, och
+13 bilder räknas från slutet. Äldre mönstret (utan f-bilder) ger 1, 8–12 och
+bildgranskning. Allt annat ger de sex första och bildgranskning. Mönstret
+kräver namnen, inte bara antalet.
+
+Sju egenskaper som inte ska tas bort:
+
+1. ☠️ **En omkörning skapar 0 nya.** Dubblettspärren frågar mappningarna efter
+   tuggans id (`supplierProductId` och `importSparr`,
+   `Store.mappningarForLeverantorsId`), och en produkt som skapades utan
+   mappningsrad står i `foraldralosa` och spärrar artikeln.
+2. ☠️ **Wix tak, 50 000 produkter per butik**, prövas före första produkten och
+   räknas ned under körningen, med 1 000 platser kvar åt allt annat.
+3. ☠️ **Står läsaren fryst efter en spärr står importen också still.**
+4. ☠️ **Fem fel i följd stoppar körningen, och markören står kvar före felen.**
+   Ett avbrott hos Wix får inte hoppa över artiklar i ett helt varv. Ett
+   enstaka fel flyttar markören, och artikeln prövas igen i nästa varv. Tre
+   stopp i följd larmar.
+5. **Ett varv som gick igenom avläsningar utan att importera något vilar 20
+   timmar.** Ett varv som importerade något börjar om direkt, så att artiklar
+   läsaren hittat under tiden kommer med, och ett varv som inte hittade någon
+   avläsning alls vilar inte: läsaren har då inte hunnit läsa än.
+6. ☠️ **Importen frågar aldrig AliExpress.** Pipelinens kompletteringar av
+   färgbilder och beskrivning frågade DS-API:t om varje produkt utan
+   färgbilder, även Aosoms, med leverantörens artikelnummer som produkt-id
+   (`arAliExpressListningsId`, lib/aliexpress/product-id.ts).
+7. ☠️ **Svaret, loggraden och larmet bär bara antal och Wix-id.** Markören och
+   de föräldralösa raderna bär artikelnummer och bor bara i Wix.
+
+**Granskningen på raden** (`vevorGranskning`): GPSR-status (manualen inte
+läst, eller ingen manual), möjlig medicinteknik och bildmönstret. Fältet bär
+inga identifierare, och poleringens läsning skriver ut det. Medicinteknik
+avgörs på VEVOR:s kategori-id (patientlyftar, rullstolar, rollatorer med
+flera, ur menyn 2026-10-29) och på vårdord i kategori- och produktnamnet.
+Kön (/admin/queue) visar flaggorna, filtrerar på leverantör och visar högst
+300 kort åt gången (`?alla=1` visar alla).
+
+**Utkasten saknar "EU-lager"-märkningen.** Sidan säger bara att lagret är
+VEVOR:s EU-lager, inte vilket land. Mappningen bär `hasEuWarehouse: true`
+och en tom landlista. Märkningen avgörs vid publiceringen.
+
+**Vad det kostar:** en produkt tar 5–10 sekunder (sex bilder i följd och
+skapandet), så hela katalogen är ungefär ett och ett halvt dygn funktionstid.
+⚠️ Mappningarna blir ungefär 3,5 gånger fler. Varje jobb som läser alla
+(kön, flödena) läser då längre. Synkerna och läsarens prioritering läser bara
+sin egen leverantörs rader sedan steg 5, men butikens prislista läses hel; följ
+Aosom-synkens `stoppade på` efter importen. Fem svep över hela katalogen hade
+tak vid 20 000 eller 30 000 produkter, se *Katalogtaken* i steg 5.
+
+**Inte gjort, med flit:** ommappningen av VEVOR-varor som kom in via
+AliExpress (de bär ett AliExpress-id, och en automatisk matchning hade
+gissat; poleringen avgör, som för Aosom), sammanslagning av syskon, spärren
+mot publicering utan GPSR (steg 7) och läsning av manualerna. Synken kom i
+steg 5, se nästa avsnitt.
+gatelibs `ARTNR` behöver inte VEVOR:s form än: artikelnumret stod inte i
+titel, beskrivning eller specifikation på någon av 34 sidor.
+
+**Efter mergen,** i den ordningen, när läsaren har läst katalogen: `status`
+(rabatten `satt`, läsaren inte fryst, platser kvar under taket), `prov` torrt
+med `max` 5, `prov` skarpt med `max` 5, titta på utkasten i Wix (bilder, pris,
+text), sedan `pa`. Klart när `status` visar ett varv som vilar och
+leverantörsräkningen visar lika många VEVOR-rader som avläsningar i lager.
+
+## VEVOR: steg 5, synken (2026-10-29)
+
+Lager och pris på VEVOR-raderna i butiken, med samma motor som Aosom-synken och
+läsarens avläsningar som källa. Motorn är `korSynk` i `lib/aosom/sync.ts`.
+`runAosomSync` kör den med Aosoms feed och `lib/vevor/synk.ts` med VEVOR:s
+avläsningar (`vevorKalla`). Allt efter källan är gemensamt: avdraget för sålda
+enheter, rättelsen mot butikens saldo, prislåset, auktionslåset, taket på 40 %,
+att Wix skrivs före mappningen, stämpeln på den färska raden och restock-mejlen.
+
+Cron `/api/cron/vevor-synk` minut 50 varje timme, efter Aosom-synken (minut 20).
+Läget i `/api/admin/vevor-synk`, workflowen **"VEVOR — synken"** (`status` ·
+`torr` · `skarp` · `pa` · `av`).
+
+**Profilen** (`SYNKPROFILER` i `lib/sync/leverantorsrad.ts`):
+
+| | Aosom | VEVOR |
+|---|---|---|
+| raden saknas | slut | okänd: ingenting rörs |
+| konkurrentregeln | gäller | gäller inte (Leonard 2026-10-21) |
+| buffert | 0 | 0 (Leonard 2026-10-28) |
+| minsta antal rader | 2 000 | ingen, en saknad rad är redan okänd |
+| beställda enheter dras av | 12 timmar | 12 timmar |
+| nytt pris | direkt | när två avläsningar i rad ger samma regelpris |
+
+Aosoms tal är desamma som förut. `MIN_FEED_RADER`, `LAGER_BUFFERT` och
+`NYSS_BESTALLD_MS` läser Aosoms profil, och Aosom-synkens tester går igenom
+oförändrade, utom ett som gällde VEVOR:s buffert.
+
+Sju egenskaper som inte ska tas bort:
+
+1. ☠️ **Okänt rör aldrig lagret.** En avläsning som saknas, är äldre än tolv
+   timmar eller vars senaste försök misslyckades är okänd, och en fryst läsare
+   gör varje avläsning okänd (`vevorRad`). Planen sorteras bort före avdraget,
+   rättelsen mot butiken, skrivningen och stämpeln, och räknas i
+   `okantBesked`. Ett test har stämpeln 5, butiken 3 och en gammal avläsning:
+   ingenting skrivs, och samma avläsning en minut färskare skriver.
+2. ☠️ **Ett nytt pris kräver två avläsningar i rad med samma regelpris.** VEVOR
+   räknar om sina priser från euro, så ett pris kan hoppa fram och tillbaka.
+   Läsaren sparar föregående avläsnings pris (`forraPrisSek`, `medForraPris` i
+   `lib/vevor/lasare.ts`), och `vevorRad` räknar båda med importens prisregel
+   och rabatten. Skiljer regelpriserna sig åt väntar priset (`prisVantar`).
+   Spärren ligger före taket, så ett pris som väntar hamnar inte i
+   `varningar`. Avläsningarna före deployen saknar föregående pris, så inget
+   nytt pris skrivs förrän artikeln lästs två gånger efter deployen.
+3. ☠️ **Rabatten fäller inte lagret.** Saknas `vevorProRabatt` eller går den
+   inte att läsa bär raderna ingen kostnad: inga priser skrivs, skälet går ut i
+   `prislistaFel` och workflowen fäller, men lagret synkas. `pa` vägras utan
+   rabatt.
+4. ☠️ **Raden ska vara VEVOR:s.** En rad med prefixet `vevor:` vars
+   leverantörsfält säger något annat rörs inte och räknas i
+   `leverantorOense`. Workflowen fäller på den, även i torrläge.
+5. ☠️ **Bara skarpa schemalagda körningar flyttar markören** (`vevor` i
+   `sync_markor`, samma regel som Aosoms rotationer). En körning för hand bär
+   sin markör förseglad i svaret och rör inte schemats. Ett lås (`synklas`,
+   fem minuter) hindrar två körningar samtidigt, och en körning för hand som
+   möter schemat får `upptagen`.
+6. **Schemat gör ingenting förrän synken slagits på** och läser då inte ens
+   källan. En avstängd körning loggar ingenting.
+7. ☠️ **Svaret, loggraden, tillståndet och audit-raden bär bara antal och
+   Wix-id.** Motorns fel och varningar bär artikelnumret. Rutten tar bort det
+   (`utanArtikelnummer`) och förseglar markören.
+
+**Fönstret för beställda enheter är lika långt som en avläsning lever.** En
+order som markerats beställd dras av i tolv timmar. En avläsning från före
+beställningen är okänd tolv timmar efter att den gjordes, alltså innan avdraget
+upphör, så varje avläsning som används efter fönstret är gjord efter
+beställningen. Det förutsätter att VEVOR:s lager på sidan visar ordern direkt,
+och det är inte mätt. Ett test fäller om fönstret blir kortare än avläsningens
+livstid. En obeställd order dras alltid av.
+
+**Mappningarna läses per leverantör** (`listMappingsMedPrefix`: `$startsWith`
+på `supplierProductId` i Wix, `starts_with` i Postgres). Aosom-synken,
+VEVOR-synken och läsarens prioritering läser bara sitt eget prefix. Uppmätt
+2026-10-29: 4 827 av 7 398 rader bar `aosom:`, och filtret höll över
+markörsidorna. Efter importen är mappningarna ~22 000. En rad med blanksteg
+före prefixet kom med förut, eftersom urvalet trimmar, men inte nu. Ingen kod
+skriver ett sådant id (`aosomSupplierProductId`). Avläsningarna läses en gång
+per körning med bara synkens fält (`SYNKFALT`), och `fields` skickas på varje
+sida (uppmätt samma dag: fältvalet håller på sida två).
+
+**Stämpelfälten heter som förut.** VEVOR-raderna stämplas i `aosomSyncedQty`
+och `aosomSyncedAt`. Ett namnbyte hade krävt en migrering av ~4 800 Aosom-rader,
+och mellan deployen och migreringen hade synken sett varje stämpel som saknad.
+Fälten betyder "synkens stämpel", och namnet är arv. `aosomFreightShare` och
+`aosomBildFiler` gäller bara Aosom.
+
+### Katalogtaken
+
+Fem svep över hela katalogen hade egna sidtak på 200 eller 300 sidor, "långt
+över nuvarande katalog". VEVOR-importen tar katalogen från ~6 300 till ~22 000
+produkter. Prislistan som båda synkerna läser, svepet bakom Prisjakt-flödet
+(`listV3ProductsForFeed`) och städningen av val hade kastat vid 20 000.
+Ingenting hade skrivits fel, men priserna och flödet hade stannat ungefär ett
+dygn efter att importen slagits på.
+
+Taket är nu ett, `KATALOG_SIDTAK` i `lib/wix/limits.ts`: Wix tak på 50 000
+produkter per butik och tio sidor till. Ett svep som når det har en markör som
+aldrig tar slut, och kastar. `lib/wix/katalogtak.test.ts` låter varje svep läsa
+25 000 produkter. Verifierat genom att återinföra varje gammalt tak: rätt test
+fäller, och bara det.
+
+⚠️ **Två saker som taket inte löser:**
+
+- **Katalogsvepet för färgbilderna och raderingen av pensionerade utkast**
+  (`listCatalogProductMedia`) har 150–170 sekunders tidsbudget. Det tog under en
+  minut för ~6 000 produkter (2026-09-28). Med 22 000 kan det ta längre, och då
+  vägrar verktygen ett ofullständigt svep, som de ska. Mät efter importen.
+- **Butikens variantsvep till Google-flödet** (headless-site,
+  `fetchAllVariantsRaw`) har tak vid 30 000 varianter. Efter importen är de
+  ungefär 25 000.
+
+### Vad en körning läser
+
+Före första tuggan läser körningen alla VEVOR-avläsningar (sidor om 1 000),
+VEVOR:s mappningar (sidor om 500) och butikens hela prislista (sidor om 100,
+~220 efter importen). Allt räknas in i tidsbudgeten på 240 sekunder. Följ
+`stoppade på` och `kvar` i loggraden. En körning som stannar på tidsbudget med
+få granskade är ett fel, inte en lugn timme.
+
+**Inte gjort, med flit:**
+
+- **Prislistan läses hel, inte per tugga.** Det är ~220 anrop i följd varje
+  timme efter importen. Att läsa den per tugga hade ändrat Aosom-synkens prisdel
+  med hela katalogen som blast-radie. Mät körtiden efter importen först.
+- **Restock-mejl** går som för Aosom, men utkasten har inga bevakare.
+
+**Efter mergen,** när importen har skapat utkast och läsaren har läst dem:
+
+1. `status`: rabatten `satt`, läsaren inte fryst.
+2. `torr`. Utkasten läses en gång per dygn, så ungefär hälften har okänt besked.
+   `leverantorOense` ska vara 0 och `prislistaFel` tomt.
+3. Provet att okänt inte rör lagret: välj ett utkast vars avläsning är äldre än
+   tolv timmar (`okantBeskedProdukter`), och läs dess lager i Wix före och efter
+   nästa steg. Det ska vara oförändrat.
+4. `skarp`, och direkt efter `torr`. Den andra ska vilja skriva 0 lager och 0
+   priser. Läsaren skriver nya avläsningar var femte minut, så en handfull
+   skrivningar kan vara nya avläsningar.
+5. `pa`.
+
+Klart när torrkörningen efter den skarpa vill skriva 0 och provet visar orört
+lager.
 
 ## Prissättningen är marknadskalibrerad, inte påhittad (`FyndplatsPricingConfig`)
 

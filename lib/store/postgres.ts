@@ -115,6 +115,22 @@ export class PostgresStore implements Store {
     return rows.map((r) => rensa<ProductMappingRecord>(r as { data: unknown }));
   }
 
+  /** `starts_with` och inte `like`: prefixet ska inte kunna tolkas som ett mönster. */
+  async listMappingsMedPrefix(prefix: string): Promise<ProductMappingRecord[]> {
+    const q = sql();
+    const rows = await q`select data from mappings where starts_with(supplier_product_id, ${prefix})`;
+    return rows.map((r) => rensa<ProductMappingRecord>(r as { data: unknown }));
+  }
+
+  async mappningarForLeverantorsId(ids: string[]): Promise<ProductMappingRecord[]> {
+    const unika = [...new Set(ids.filter(Boolean))];
+    if (unika.length === 0) return [];
+    const q = sql();
+    const rows = await q`select data from mappings
+      where supplier_product_id = any(${unika}) or data->>'importSparr' = any(${unika})`;
+    return rows.map((r) => rensa<ProductMappingRecord>(r as { data: unknown }));
+  }
+
   // --- Fulfillment-tasks --------------------------------------------------
   async upsertTask(task: FulfillmentTask): Promise<void> {
     const q = sql();

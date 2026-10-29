@@ -30,6 +30,13 @@
 //               radens artikel finns inte bland varianterna). Då får ingen väg
 //               gissa: synken nollar lagret, beställningsfilen håller ordern.
 //
+// LEVERANTÖREN (steg 5, 2026-10-29). Synken är gemensam för Aosom och VEVOR
+// (lib/aosom/sync.ts, `korSynk`), och en VEVOR-rad bär sin artikel på samma
+// sätt med prefixet "vevor:". Funktionerna finns därför i två former: en som
+// tar prefixet (`artikelbild`, `artikelForTask` …), som synken använder, och
+// Aosom-formen (`aosomArtikelbild` …) som alla Aosom-vägar har använt hela
+// tiden. Aosom-formen är den andra med Aosoms prefix, inget annat.
+//
 // ☠️ ARTIKELNUMRET FÅR ALDRIG STÅ I ETT SKÄL. Skälen hamnar i svar som
 // workflowerna skriver till PUBLIKA Actions-loggar. De namnger varianter med
 // index, aldrig med nummer.
@@ -50,7 +57,7 @@ import { AOSOM_ID_PREFIX } from "../store/leverantorsprefix";
  */
 export const NIL_VARIANT_ID = "00000000-0000-0000-0000-000000000000";
 
-export interface AosomVariantArtikel {
+export interface VariantArtikel {
   /** Index i `m.variants`. */
   index: number;
   artikel: string;
@@ -59,17 +66,37 @@ export interface AosomVariantArtikel {
   choices: Record<string, string>;
 }
 
-export type AosomArtikelbild =
+export type AosomVariantArtikel = VariantArtikel;
+
+export type Artikelbild =
   | { typ: "en"; artikel: string }
-  | { typ: "flera"; artikel: string; varianter: AosomVariantArtikel[] }
+  | { typ: "flera"; artikel: string; varianter: VariantArtikel[] }
   | { typ: "tvetydig"; artikel: string; skal: string };
+
+export type AosomArtikelbild = Artikelbild;
 
 type Rad = Pick<ProductMappingRecord, "supplierProductId" | "variants">;
 
+/** Radens artikel utan prefixet, eller "" när raden inte bär det. */
+export function artikelUtanPrefix(m: Pick<ProductMappingRecord, "supplierProductId">, prefix: string): string {
+  const id = (m.supplierProductId ?? "").trim();
+  return id.startsWith(prefix) ? id.slice(prefix.length) : "";
+}
+
 /** Radens artikel utan prefix, eller "" när raden inte är en Aosom-rad. */
 export function radensArtikel(m: Pick<ProductMappingRecord, "supplierProductId">): string {
-  const id = (m.supplierProductId ?? "").trim();
-  return id.startsWith(AOSOM_ID_PREFIX) ? id.slice(AOSOM_ID_PREFIX.length) : "";
+  return artikelUtanPrefix(m, AOSOM_ID_PREFIX);
+}
+
+/**
+ * Raderna synken arbetar med för en leverantör: ett Wix-id och en artikel med
+ * leverantörens prefix på raden.
+ */
+export function arISynkensUrval(
+  m: Pick<ProductMappingRecord, "wixProductId" | "supplierProductId">,
+  prefix: string,
+): boolean {
+  return !!m.wixProductId && artikelUtanPrefix(m, prefix) !== "";
 }
 
 /**
@@ -78,11 +105,16 @@ export function radensArtikel(m: Pick<ProductMappingRecord, "supplierProductId">
  * att båda räknar exakt samma urval.
  */
 export function arIAosomSynkensUrval(m: Pick<ProductMappingRecord, "wixProductId" | "supplierProductId">): boolean {
-  return !!m.wixProductId && radensArtikel(m) !== "";
+  return arISynkensUrval(m, AOSOM_ID_PREFIX);
 }
 
-export function aosomArtikelbild(m: Rad): AosomArtikelbild {
-  const artikel = radensArtikel(m);
+export function aosomArtikelbild(m: Rad): Artikelbild {
+  return artikelbild(m, AOSOM_ID_PREFIX);
+}
+
+/** Radens artikelbild för leverantören med `prefix`. Se filhuvudet för de tre utfallen. */
+export function artikelbild(m: Rad, prefix: string): Artikelbild {
+  const artikel = artikelUtanPrefix(m, prefix);
   const varianter = m.variants ?? [];
   const artiklar = varianter.map((v) => (v.supplierVariantId ?? "").trim());
   const olika = new Set(artiklar.filter(Boolean));
@@ -133,9 +165,14 @@ export function aosomArtikelbild(m: Rad): AosomArtikelbild {
  * ligger ute.
  */
 export function aosomArtiklarPaRaden(m: Rad): string[] {
-  const artikel = radensArtikel(m);
+  return artiklarPaRaden(m, AOSOM_ID_PREFIX);
+}
+
+/** Varje artikel raden bär, för leverantören med `prefix`. Se `aosomArtiklarPaRaden`. */
+export function artiklarPaRaden(m: Rad, prefix: string): string[] {
+  const artikel = artikelUtanPrefix(m, prefix);
   if (!artikel) return [];
-  const bild = aosomArtikelbild(m);
+  const bild = artikelbild(m, prefix);
   if (bild.typ === "en") return [artikel];
   const ut = new Set([artikel]);
   for (const v of m.variants ?? []) {
@@ -177,7 +214,16 @@ export function aosomArtikelForTask(
   task: Pick<FulfillmentTask, "wixVariantId" | "sku" | "variantChoices">,
   m: Rad,
 ): ArtikelFörTask {
-  const bild = aosomArtikelbild(m);
+  return artikelForTask(task, m, AOSOM_ID_PREFIX);
+}
+
+/** Orderradens artikel för leverantören med `prefix`. Samma regler som `aosomArtikelForTask`. */
+export function artikelForTask(
+  task: Pick<FulfillmentTask, "wixVariantId" | "sku" | "variantChoices">,
+  m: Rad,
+  prefix: string,
+): ArtikelFörTask {
+  const bild = artikelbild(m, prefix);
   if (bild.typ === "tvetydig") return { skal: `mappningen är tvetydig: ${bild.skal}` };
 
   const vid = (task.wixVariantId ?? "").trim();

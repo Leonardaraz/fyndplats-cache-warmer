@@ -89,7 +89,35 @@ export interface Avlasning extends Omit<Sidinnehall, "egenskaper"> {
    * än `lastAt` är artikeln okänd (lib/vevor/rad.ts). En giltig läsning nollar den.
    */
   misslyckadAt: string | null;
+  /**
+   * Priset i SEK vid artikelns FÖREGÅENDE giltiga avläsning, eller null när det
+   * inte finns någon (den första avläsningen, eller äldre rader). Läsaren
+   * sätter det när den skriver en ny avläsning (`medForraPris` i
+   * lib/vevor/lasare.ts). Synken skriver ett nytt pris först när de två
+   * avläsningarna ger samma regelpris (steg 5, lib/vevor/synk.ts).
+   */
+  forraPrisSek?: number | null;
 }
+
+/**
+ * Fälten synken läser ur en avläsning. Bara de hämtas (`avlasningarForSynk`):
+ * en hel avläsning bär texten, specifikationen och galleriet, och synken läser
+ * alla avläsningar i varje körning.
+ */
+export const SYNKFALT = [
+  "sku",
+  "status",
+  "saldo",
+  "prisSek",
+  "forraPrisSek",
+  "lastAt",
+  "misslyckadAt",
+  "borta",
+  "levererasTillSe",
+  "flode",
+] as const satisfies readonly (keyof Avlasning)[];
+
+export type SynkAvlasning = Pick<Avlasning, (typeof SYNKFALT)[number]>;
 
 export interface Korningssummering {
   start: string;
@@ -189,6 +217,8 @@ export interface VevorLager {
   /** Sparar sidorna. Svarar med webb-id för dem Wix inte bekräftade. */
   sparaSidor(rader: Sidrad[]): Promise<string[]>;
   avlasningar(skus: string[]): Promise<Map<string, Avlasning>>;
+  /** Alla avläsningar, med bara synkens fält (`SYNKFALT`). */
+  avlasningarForSynk(): Promise<SynkAvlasning[]>;
   /** Sparar avläsningarna. Svarar med artikelnumren Wix inte bekräftade. */
   sparaAvlasningar(rader: Avlasning[]): Promise<string[]>;
   /**
@@ -202,6 +232,44 @@ export interface VevorLager {
 
 const TILLSTAND = "tillstand";
 const LAS = "las";
+
+/**
+ * Ett lås i läsarens kollektion: raden `id` med ägare och utgångstid. Sant om vi
+ * fick det, alltså om ingen annan håller ett som inte gått ut. Läsaren och
+ * importen har var sitt (lib/vevor/import-lager.ts).
+ */
+export async function tagLasRad(id: string, agare: string, nu: number, ttlMs: number): Promise<boolean> {
+  const utgar = new Date(nu + ttlMs).toISOString();
+  if ((await infoga(VEVOR_KOL.lasare, id, { agare, utgar })) === "skapad") return true;
+  const rad = await hamta<{ agare?: string; utgar?: string }>(VEVOR_KOL.lasare, id);
+  if (!rad) return (await infoga(VEVOR_KOL.lasare, id, { agare, utgar })) === "skapad";
+  if (rad.utgar && Date.parse(rad.utgar) > nu) return false;
+  // Låset har gått ut: ta över det, men bara om ingen annan hann före.
+  const villkor = rad.agare ? { agare: rad.agare } : { agare: { $exists: false } };
+  return (await patcha(VEVOR_KOL.lasare, id, [satt("agare", agare), satt("utgar", utgar)], villkor)) === "applied";
+}
+
+export async function slappLasRad(id: string, agare: string): Promise<void> {
+  await taBort(VEVOR_KOL.lasare, id, { agare });
+}
+
+/**
+ * Skriver bara de angivna fälten på raden `id`, och skapar den med `tom` som
+ * grund om den saknas. Läsarens och importens tillstånd skrivs så: aldrig hela
+ * raden, så att en strömbrytare som slås om medan en körning läser inte ångras.
+ */
+export async function uppdateraRad<T extends object>(id: string, tom: T, andring: Partial<T>): Promise<void> {
+  const falt = Object.entries(andring).filter(([, v]) => v !== undefined);
+  if (falt.length === 0) return;
+  const andringar = falt.map(([k, v]) => satt(k, v));
+  if ((await patcha(VEVOR_KOL.lasare, id, andringar)) === "applied") return;
+  // Raden finns inte än: skapa den. Hann någon annan före, ändra deras.
+  const ny = { ...tom, ...andring } as unknown as Record<string, unknown>;
+  if ((await infoga(VEVOR_KOL.lasare, id, ny)) === "skapad") return;
+  if ((await patcha(VEVOR_KOL.lasare, id, andringar)) !== "applied") {
+    throw new Error(`raden ${id} i läsarens kollektion gick inte att skriva`);
+  }
+}
 
 /** Var ett urval om `limit` börjar bland `antal` rader, för `slump` mellan 0 och 1. */
 export function startpunkt(antal: number, limit: number, slump: number): number {
@@ -222,31 +290,15 @@ export class WixVevorLager implements VevorLager {
   }
 
   async uppdateraTillstand(andring: Partial<Lasartillstand>): Promise<void> {
-    const falt = Object.entries(andring).filter(([, v]) => v !== undefined);
-    if (falt.length === 0) return;
-    const andringar = falt.map(([k, v]) => satt(k, v));
-    if ((await patcha(VEVOR_KOL.lasare, TILLSTAND, andringar)) === "applied") return;
-    // Raden finns inte än: skapa den. Hann någon annan före, ändra deras.
-    const ny = { ...TOMT_TILLSTAND, ...andring } as unknown as Record<string, unknown>;
-    if ((await infoga(VEVOR_KOL.lasare, TILLSTAND, ny)) === "skapad") return;
-    if ((await patcha(VEVOR_KOL.lasare, TILLSTAND, andringar)) !== "applied") {
-      throw new Error("läsarens tillstånd gick inte att skriva");
-    }
+    await uppdateraRad(TILLSTAND, TOMT_TILLSTAND, andring);
   }
 
   async tagLas(agare: string, nu: number, ttlMs: number): Promise<boolean> {
-    const utgar = new Date(nu + ttlMs).toISOString();
-    if ((await infoga(VEVOR_KOL.lasare, LAS, { agare, utgar })) === "skapad") return true;
-    const rad = await hamta<{ agare?: string; utgar?: string }>(VEVOR_KOL.lasare, LAS);
-    if (!rad) return (await infoga(VEVOR_KOL.lasare, LAS, { agare, utgar })) === "skapad";
-    if (rad.utgar && Date.parse(rad.utgar) > nu) return false;
-    // Låset har gått ut: ta över det, men bara om ingen annan hann före.
-    const villkor = rad.agare ? { agare: rad.agare } : { agare: { $exists: false } };
-    return (await patcha(VEVOR_KOL.lasare, LAS, [satt("agare", agare), satt("utgar", utgar)], villkor)) === "applied";
+    return tagLasRad(LAS, agare, nu, ttlMs);
   }
 
   async slappLas(agare: string): Promise<void> {
-    await taBort(VEVOR_KOL.lasare, LAS, { agare });
+    await slappLasRad(LAS, agare);
   }
 
   async forfallna(nuIso: string, max: number): Promise<Sidrad[]> {
@@ -307,6 +359,10 @@ export class WixVevorLager implements VevorLager {
       rader.map((r) => ({ id: r.sku, data: { ...r } as unknown as Record<string, unknown> })),
     );
     return u.fel.map((f) => f.id);
+  }
+
+  async avlasningarForSynk(): Promise<SynkAvlasning[]> {
+    return allaRader<SynkAvlasning>(VEVOR_KOL.avlasningar, { falt: SYNKFALT, sidstorlek: 1000 });
   }
 
   async kontrollkandidater(max: number, slump: number): Promise<Avlasning[]> {
@@ -414,6 +470,11 @@ export class MinnesVevorLager implements VevorLager {
       else this.avlasningsrader.set(r.sku, structuredClone(r));
     }
     return fel;
+  }
+  async avlasningarForSynk() {
+    return [...this.avlasningsrader.values()].map(
+      (r) => Object.fromEntries(SYNKFALT.map((f) => [f, structuredClone(r[f])])) as SynkAvlasning,
+    );
   }
   async kontrollkandidater(max: number, slump: number) {
     const alla = [...this.avlasningsrader.values()]

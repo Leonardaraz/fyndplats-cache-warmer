@@ -23,6 +23,7 @@
 // — bara att vara ärlig om.
 
 import { mediaNyckel, produktensMedianycklar, type ProduktMedia } from "./produkt-media";
+import { KATALOG_SIDTAK } from "./limits";
 
 const WIX_BASE = "https://www.wixapis.com";
 const DEFAULT_HEADLESS_SITE_ID = "e6d27e90-4749-4720-9afe-0bbe91c1b3d3";
@@ -180,7 +181,8 @@ export async function listCatalogProductMedia(
   const produkter: KatalogProdukt[] = [];
   let cursor: string | undefined;
 
-  for (let page = 0; page < 200; page++) {
+  // Wix eget tak, inte 200 sidor: VEVOR-importen tar katalogen förbi 20 000 (lib/wix/limits.ts).
+  for (let page = 0; page < KATALOG_SIDTAK; page++) {
     if (budgetExceeded(budget)) return { produkter, complete: false };
     if (page > 0) await new Promise((r) => setTimeout(r, SVEP_SIDPAUS_MS));
 

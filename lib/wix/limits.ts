@@ -43,3 +43,31 @@ export const WIX_MAX_CHOICES_PER_CUSTOMIZATION = 100;
  * `lib/polish/` läser den här, så ett nytt tal ändras på ETT ställe.
  */
 export const WIX_MAX_BILDER_PER_PRODUKT = 50;
+
+/**
+ * Produkter per butik (Wix Stores). VEVOR-importen prövar den före första
+ * produkten och lämnar plats åt allt annat (lib/vevor/import.ts).
+ */
+export const WIX_MAX_PRODUKTER = 50_000;
+
+/**
+ * Sidtak för ett svep över HELA katalogen, 100 produkter per sida: Wix tak och
+ * tio sidor till. Ett svep som når det har en markör som aldrig tar slut, inte
+ * en stor katalog, och ska kasta.
+ *
+ * ☠️ VARFÖR TAKET HÄNGER PÅ WIX TAK (2026-10-29). Fem svep hade egna tak på
+ * 200 eller 300 sidor, "långt över nuvarande katalog". VEVOR-importen tar
+ * katalogen från ~6 300 till ~22 000 produkter. Prislistan som Aosom- och
+ * VEVOR-synken läser och svepet bakom Prisjakt-flödet hade kastat vid 20 000,
+ * och städningen av val likaså. Inget av dem hade skrivit fel, men priserna och
+ * flödet hade stannat ungefär ett dygn efter att importen slagits på. Samma
+ * klass som `listVisibleV3ProductIds` 2026-09-14: en konstant som var rätt när
+ * den sattes och blev fel när volymen växte.
+ *
+ * ⚠️ Taket är inte tidsbudgeten. Katalogsvepet för färgbilderna och raderingen
+ * av pensionerade utkast (`listCatalogProductMedia`) har 150–170 sekunder, och
+ * det tog under en minut för ~6 000 produkter (2026-09-28). Med 22 000 kan det
+ * ta längre än budgeten. Då slutar svepet ofullständigt och verktygen vägrar,
+ * som de ska. Mät efter importen.
+ */
+export const KATALOG_SIDTAK = Math.ceil(WIX_MAX_PRODUKTER / 100) + 10;

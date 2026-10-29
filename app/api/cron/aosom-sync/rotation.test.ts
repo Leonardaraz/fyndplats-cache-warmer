@@ -23,7 +23,7 @@ vi.mock("@/lib/aosom/sync", () => ({
 }));
 
 import { POST } from "./route";
-import { getSyncMarkorLager, MinnesSyncMarkorLager, nastaMarkor } from "@/lib/aosom/sync-markor";
+import { arRotation, getSyncMarkorLager, MinnesSyncMarkorLager, nastaMarkor } from "@/lib/aosom/sync-markor";
 
 function req(fraga: string) {
   return {
@@ -51,6 +51,22 @@ beforeEach(() => {
   delete process.env.STORE_BACKEND;
   lager.markorer.clear();
   syncMock.mockReset();
+});
+
+describe("markörernas namn", () => {
+  it("☠️ VEVOR-synkens markör är ingen rotation Aosom-rutten tar emot", () => {
+    expect(arRotation("vevor")).toBe(false);
+    expect(arRotation("lager")).toBe(true);
+    expect(arRotation("pris")).toBe(true);
+  });
+
+  it("VEVOR:s markör och Aosoms rotationer sparas var för sig", async () => {
+    await lager.spara("vevor", FORSTA);
+    await lager.spara("lager", ANDRA);
+    expect(await lager.las("vevor")).toBe(FORSTA);
+    expect(await lager.las("lager")).toBe(ANDRA);
+    expect(await lager.las("pris")).toBeNull();
+  });
 });
 
 describe("nastaMarkor", () => {

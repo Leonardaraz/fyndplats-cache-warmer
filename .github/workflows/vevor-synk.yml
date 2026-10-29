@@ -1,0 +1,253 @@
+name: VEVOR — synken
+
+# VEVOR-synkens läge, strömbrytare och körningar för hand (lib/vevor/synk.ts).
+# Samma motor som Aosom-synken, med läsarens avläsningar som källa: lager och
+# pris på VEVOR-raderna i butiken.
+#
+#   status  läget: påslagen, senaste körningen, markören (bara satt), rabatten
+#           (bara satt/saknas/ogiltig) och läsaren
+#   torr    hela VEVOR-katalogen, varv för varv. Skriver ingenting.
+#   skarp   samma svep, men skriver. Går även när synken är avstängd.
+#   pa      schemat (minut 50 varje timme) börjar synka
+#   av      schemat slutar synka; lager och priser står kvar som de är
+#
+# Ordningen första gången: status, torr, skarp, torr igen (ska vilja skriva 0
+# lager och 0 priser utöver de som väntar på en andra avläsning), sedan pa.
+#
+# Ett okänt besked är inget fel här: en avläsning som är äldre än tolv timmar
+# är okänd, och utkasten läses en gång per dygn. Okänt rör aldrig lagret.
+#
+# Skriver bara antal, tider och Wix-id. Rutten tar bort artikelnumren ur fel och
+# varningar och förseglar markören, och repot är publikt.
+#
+# ⚠️ Rutterna finns bara där de är deployade. Kör från main när de ligger där.
+
+on:
+  workflow_dispatch:
+    inputs:
+      lage:
+        description: "status, torr, skarp, pa eller av"
+        required: true
+        default: status
+        type: choice
+        options: [status, torr, skarp, pa, av]
+      limit:
+        description: "Tak på antal produkter som skrivs per varv (torr och skarp)"
+        required: false
+        default: "1200"
+      max_varv:
+        description: "Högst så många varv (torr och skarp)"
+        required: false
+        default: "30"
+
+jobs:
+  kor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          LAGE: ${{ inputs.lage }}
+          LIMIT: ${{ inputs.limit }}
+          MAX_VARV: ${{ inputs.max_varv }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # Till STDERR: en ::error::-rad på stdout slukas av kommandosubstitutionen.
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          rot="${BASE%/api/cron/poll-tracking}"
+
+          # ☠️ SISTA SKYDDET MOT ETT ARTIKELNUMMER I LOGGEN. Rutten skriver aldrig
+          # ut `sku`, men en felkropp är fritext. Samma mönster som aosom-sync.yml.
+          redigera() {
+            perl -pe 's/\b(?:\d{2}[A-Z]|[A-Z]\d{2}|\d[A-Z]\d|\d{3})-\d{3}(?!\d)[A-Z0-9]*\b/‹REDIGERAT›/g; s/aosom:\S+/aosom:‹REDIGERAT›/g; s/\b(?=[A-Z0-9]*\d)(?=[A-Z0-9]*[A-Z])[A-Z0-9]{17,24}\b/‹REDIGERAT›/g; s/vevor:\S+/vevor:‹REDIGERAT›/g'
+          }
+
+          kontrollera() {
+            local body="$1"
+            if ! printf '%s' "$body" | jq -e 'type == "object"' >/dev/null 2>&1; then
+              echo "::error::Svaret var inte JSON. Är rutten deployad där workflowen kör?" >&2
+              return 1
+            fi
+            if [ "$(printf '%s' "$body" | jq -r '.ok')" != "true" ]; then
+              echo "::error::$(printf '%s' "$body" | jq -r '.error // "okänt fel"' | head -c 300 | redigera)" >&2
+              return 1
+            fi
+          }
+
+          case "$LAGE" in
+            status)
+              svar=$(curl -sS --max-time 90 -H "Authorization: Bearer ${CRON_SECRET}" "${rot}/api/admin/vevor-synk") || {
+                echo "::error::Anropet gick inte fram" >&2; exit 1; }
+              kontrollera "$svar"
+              echo "$svar" | jq '{aktiv, markor, rabatt, lasarenFryst, lasarenAktiv, senasteKorning}' || true
+              exit 0
+              ;;
+            pa|av)
+              svar=$(curl -sS --max-time 90 -X POST -H "Authorization: Bearer ${CRON_SECRET}" \
+                -H "Content-Type: application/json" -d "{\"atgard\":\"${LAGE}\"}" "${rot}/api/admin/vevor-synk") || {
+                echo "::error::Anropet gick inte fram" >&2; exit 1; }
+              kontrollera "$svar"
+              echo "$svar" | jq '{atgard, aktiv, senasteKorning}' || true
+              exit 0
+              ;;
+            torr) torr="true" ;;
+            skarp) torr="false" ;;
+            *) echo "::error::okänt läge" >&2; exit 1 ;;
+          esac
+
+          if ! [[ "$LIMIT" =~ ^[0-9]+$ ]] || [ "$LIMIT" -lt 1 ]; then
+            echo "::error::limit ska vara ett positivt heltal" >&2; exit 1
+          fi
+          if ! [[ "$MAX_VARV" =~ ^[0-9]+$ ]] || [ "$MAX_VARV" -lt 1 ]; then
+            echo "::error::max_varv ska vara ett positivt heltal" >&2; exit 1
+          fi
+
+          granskade=0; lager=0; priser=0; vantar=0; okant=0; oense=0; utan=0; utanrader=0
+          drift=0; salda=0; okanda=0; tvetydiga=0; misslyckade=0; varningar=0
+          after=""; varv=0; prisfel=""
+
+          while [ "$varv" -lt "$MAX_VARV" ]; do
+            varv=$(( varv + 1 ))
+            url="${rot}/api/cron/vevor-synk?manuell=1&dryRun=${torr}&limit=${LIMIT}"
+            if [ -n "$after" ]; then
+              url="${url}&after=$(printf '%s' "$after" | jq -sRr @uri)"
+            fi
+            # ☠️ URL:EN SKRIVS INTE UT. Den bär markören.
+            svar=$(curl -sS --max-time 320 -X POST -H "Authorization: Bearer ${CRON_SECRET}" "$url") || {
+              echo "::error::Anropet gick inte fram (varv ${varv})" >&2; exit 1; }
+            kontrollera "$svar"
+
+            utfall=$(printf '%s' "$svar" | jq -r '.utfall')
+            if [ "$utfall" = "upptagen" ]; then
+              echo "::error::En annan körning av synken pågår. Kör om när den är klar." >&2
+              exit 1
+            fi
+
+            g=$(printf '%s' "$svar" | jq -r '.granskade // 0')
+            l=$(printf '%s' "$svar" | jq -r '.lagerUppdaterade // 0')
+            p=$(printf '%s' "$svar" | jq -r '.prisUppdaterade // 0')
+            v=$(printf '%s' "$svar" | jq -r '.prisVantar // 0')
+            ob=$(printf '%s' "$svar" | jq -r '.okantBesked // 0')
+            oe=$(printf '%s' "$svar" | jq -r '.leverantorOense // 0')
+            u=$(printf '%s' "$svar" | jq -r '.utanWixPris // 0')
+            ul=$(printf '%s' "$svar" | jq -r '.utanLagerrader // 0')
+            dr=$(printf '%s' "$svar" | jq -r '.lagerDrift // 0')
+            sa=$(printf '%s' "$svar" | jq -r '.saldaAvdragna // 0')
+            ok=$(printf '%s' "$svar" | jq -r '.okandaVarianter // 0')
+            tv=$(printf '%s' "$svar" | jq -r '.tvetydiga // 0')
+            mi=$(printf '%s' "$svar" | jq -r '.misslyckade // 0')
+            va=$(printf '%s' "$svar" | jq -r '.varningar | length')
+            avl=$(printf '%s' "$svar" | jq -r '.feedRader // 0')
+            stopp=$(printf '%s' "$svar" | jq -r '.stoppedBy // "okänt"')
+            kvar=$(printf '%s' "$svar" | jq -r '.kvar // 0')
+
+            granskade=$(( granskade + g )); lager=$(( lager + l )); priser=$(( priser + p ))
+            vantar=$(( vantar + v )); okant=$(( okant + ob )); oense=$(( oense + oe ))
+            utan=$(( utan + u )); utanrader=$(( utanrader + ul )); drift=$(( drift + dr ))
+            salda=$(( salda + sa )); okanda=$(( okanda + ok )); tvetydiga=$(( tvetydiga + tv ))
+            misslyckade=$(( misslyckade + mi )); varningar=$(( varningar + va ))
+
+            pf=$(printf '%s' "$svar" | jq -r '.prislistaFel // ""')
+            if [ -n "$pf" ]; then
+              prisfel="$pf"
+              echo "::warning::Prisdelen föll: $(printf '%s' "$pf" | redigera)"
+            fi
+
+            echo "varv ${varv}: ${avl} avläsningar, ${g} granskade, ${l} lager, ${p} priser," \
+                 "${v} priser väntar på en andra avläsning, ${ob} med okänt besked (rördes inte)," \
+                 "${oe} med oense leverantör, ${u} utan butikspris, ${ul} utan lagerrader," \
+                 "${dr} lagerdrift, ${sa} sålda avdragna, ${ok} okända varianter, ${tv} tvetydiga," \
+                 "${mi} misslyckade, stoppade på ${stopp}, ${kvar} kvar"
+
+            # Varningar är blockerade prishopp. Bara Wix-id och belopp.
+            printf '%s' "$svar" | jq -r '.varningar[]? | "  ⚠️  \(.wixProductId // "okänd produkt"): \(.fran) → \(.till) kr (\(.andringPct) %)"' || true
+            printf '%s' "$svar" | jq -r '
+              (.errors // []) as $e
+              | if ($e | length) > 0 then
+                  "  ── \($e | length) fel, grupperade på orsak:",
+                  ( $e | group_by(.error) | sort_by(-length) | .[:8][]
+                    | "     \(length)×  \(.[0].error[:200])" ),
+                  "  ── exempel-produkter (Wix-id): \($e[:5] | map(.wixProductId // "okänd") | join(", "))"
+                else empty end' | redigera || true
+            printf '%s' "$svar" | jq -r '(.okantBeskedProdukter // []) as $p | if ($p | length) > 0 then "  ── okänt besked (Wix-id): \($p[:10] | join(", "))\(if ($p | length) > 10 then " … \($p | length) st" else "" end)" else empty end' || true
+
+            after=$(printf '%s' "$svar" | jq -r '.cursor // ""')
+            if [ -z "$after" ]; then
+              break
+            fi
+            # Rutten förseglar markören (m1.…). Kommer den ändå i klartext maskeras den.
+            case "$after" in m1.*) ;; *) echo "::add-mask::${after}" ;; esac
+          done
+
+          {
+            echo "### VEVOR-synk — läge \`${LAGE}\`"
+            echo ""
+            if [ "$LAGE" = "torr" ]; then
+              echo "**Torrkörning — ingenting skrevs.** Talen är vad en skarp körning skulle göra."
+              echo ""
+            fi
+            echo "| | |"
+            echo "|---|---:|"
+            echo "| Varv | ${varv} |"
+            echo "| Granskade | ${granskade} |"
+            echo "| Lagersaldon | **${lager}** |"
+            echo "| Priser | **${priser}** |"
+            echo "| Priser som väntar på en andra avläsning | ${vantar} |"
+            echo "| Okänt besked (rördes inte) | ${okant} |"
+            echo "| **Oense leverantör (rördes inte)** | **${oense}** |"
+            echo "| Utan butikspris | ${utan} |"
+            echo "| Utan lagerrader i Wix | ${utanrader} |"
+            echo "| Lagerdrift (butiken ≠ stämpeln när körningen kom) | ${drift} |"
+            echo "| Sålda enheter avdragna | ${salda} |"
+            echo "| **Okända varianter (lagret nollat)** | **${okanda}** |"
+            echo "| **Tvetydiga rader (lagret nollat)** | **${tvetydiga}** |"
+            echo "| Blockerade prishopp | ${varningar} |"
+            echo "| Misslyckade | ${misslyckade} |"
+            if [ -n "$prisfel" ]; then
+              echo ""
+              echo "🔴 **Prisdelen föll** — lagret synkades ändå, men inga priser skrevs där felet gällde."
+            fi
+            if [ -n "${after}" ]; then
+              echo ""
+              echo "⚠️ Katalogen tog inte slut inom ${MAX_VARV} varv. En ny körning härifrån börjar från början."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "OK: ${granskade} granskade, ${lager} lager, ${priser} priser, ${vantar} väntar," \
+               "${okant} okänt besked, ${misslyckade} misslyckade."
+
+          # ☠️ MASSFEL FÄLLER JOBBET, inte en enstaka miss. Samma regel som
+          # aosom-sync.yml: minst 10 misslyckade och minst 2 % av skrivningarna.
+          forsokta=$(( lager + priser + misslyckade ))
+          if [ "$misslyckade" -ge 10 ] && [ "$forsokta" -gt 0 ] \
+             && [ $(( misslyckade * 100 / forsokta )) -ge 2 ]; then
+            echo "::error::${misslyckade} av ${forsokta} skrivningar föll — det är ett massfel, inte brus." >&2
+            exit 1
+          fi
+          if [ "$misslyckade" -gt 0 ]; then
+            echo "::warning::${misslyckade} av ${forsokta} skrivningar föll. De skrivs om nästa gång en körning når produkterna."
+          fi
+
+          # ☠️ En oense leverantör synkas inte alls, och ingen körning lagar den
+          # av sig själv. Okända varianter och tvetydiga rader nollar lagret och
+          # betyder en trasig mappning. Talen ska vara 0, även i torrläge.
+          fall=0
+          if [ "$oense" -gt 0 ]; then
+            echo "::error::${oense} rader bär prefixet vevor: men supplier-fältet säger en annan leverantör — de synkades inte." >&2
+            fall=1
+          fi
+          if [ "$okanda" -gt 0 ] || [ "$tvetydiga" -gt 0 ]; then
+            echo "::error::${okanda} okända varianter och ${tvetydiga} tvetydiga rader — lagret är nollat, mappningen behöver lagas." >&2
+            fall=1
+          fi
+          if [ -n "$prisfel" ]; then
+            echo "::error::Prisdelen föll: $(printf '%s' "$prisfel" | redigera)" >&2
+            fall=1
+          fi
+          exit "$fall"

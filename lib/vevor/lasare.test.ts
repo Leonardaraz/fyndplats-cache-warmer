@@ -1,12 +1,12 @@
 import { gzipSync } from "node:zlib";
 import { beforeEach, describe, expect, it } from "vitest";
 import { ANVANDARAGENT, MIN_MELLANRUM_MS, type Hamtare } from "./hamtning";
-import { korVevorLasare, loggrad, NYA_KARTRADER_PER_KORNING, type LasarDeps } from "./lasare";
+import { korVevorLasare, loggrad, medForraPris, NYA_KARTRADER_PER_KORNING, type LasarDeps } from "./lasare";
 import { MinnesVevorLager, type Avlasning, type Sidrad } from "./lager";
 import { reglerFor, tolkaRobots } from "./robots";
 import type { Prioritetsunderlag } from "./prioritet";
 import { vevorRad } from "./rad";
-import { testsida, VEVOR_ROBOTS, type Testsida } from "./testsida";
+import { testAvlasning, testsida, VEVOR_ROBOTS, type Testsida } from "./testsida";
 
 const START = Date.parse("2026-10-29T12:00:00.000Z");
 const TIMME = 3_600_000;
@@ -71,6 +71,10 @@ function miljo(): Miljo {
     larma: async (amne) => {
       larm.push(amne);
     },
+    // Fast dragning: med Math.random valde var tionde körning av ett test en
+    // sida som testet gör trasig som kontrollsida, och körningen stoppades.
+    // Tester som prövar spridningen sätter en egen följd.
+    slump: () => 0.5,
   };
   return { lager, deps, anrop, larm, svar, karta, robots, underlag, nu: () => nu, flytta: (ms) => (nu += ms) };
 }
@@ -111,6 +115,47 @@ beforeEach(() => {
   // Kartan och robots.txt räknas som lästa, så att testerna bara läser kön.
   // Deras egna tester sätter null.
   m.lager.tillstand = { ...m.lager.tillstand, kartaAt: iso(START), prioriteradAt: iso(START), robots: sparadRobots() };
+});
+
+describe("föregående pris (steg 5)", () => {
+  // Synken skriver ett nytt pris först när två avläsningar i rad ger samma
+  // regelpris (lib/vevor/synk.ts). Den föregående följer med här.
+  it("en ny avläsning bär priset vid artikelns föregående avläsning", async () => {
+    laggIKon(1);
+    m.lager.avlasningsrader.set(skuFor(1), testAvlasning({ sku: skuFor(1), webbId: wid(1), prisSek: 1111 }));
+    await kor();
+    expect(m.lager.avlasningsrader.get(skuFor(1))?.forraPrisSek).toBe(1111);
+  });
+
+  it("en artikels första avläsning har inget föregående pris", async () => {
+    laggIKon(1);
+    await kor();
+    const a = m.lager.avlasningsrader.get(skuFor(1));
+    expect(a).toBeDefined();
+    expect(a?.forraPrisSek).toBeNull();
+  });
+
+  it("☠️ går de gamla raderna inte att läsa blir priset null, och ingenting annat påverkas", async () => {
+    const nya = new Map([[skuFor(1), testAvlasning({ sku: skuFor(1) })]]);
+    await medForraPris(
+      {
+        avlasningar: async () => {
+          throw new Error("Wix svarade inte");
+        },
+      },
+      nya,
+    );
+    expect(nya.get(skuFor(1))?.forraPrisSek).toBeNull();
+    expect(nya.get(skuFor(1))?.prisSek).toBe(testAvlasning().prisSek);
+  });
+
+  it("ett föregående pris som inte är ett positivt tal räknas inte", async () => {
+    const lager = new MinnesVevorLager();
+    lager.avlasningsrader.set(skuFor(1), testAvlasning({ sku: skuFor(1), prisSek: 0 }));
+    const nya = new Map([[skuFor(1), testAvlasning({ sku: skuFor(1) })]]);
+    await medForraPris(lager, nya);
+    expect(nya.get(skuFor(1))?.forraPrisSek).toBeNull();
+  });
 });
 
 describe("strömbrytaren, frysningen och låset", () => {

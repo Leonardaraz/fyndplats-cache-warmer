@@ -43,6 +43,14 @@ export interface AppConfig {
   fakturaFSkatt?: string;
   /** Dagar till förfallodagen, som text. Standard 30. */
   fakturaDagar?: string;
+  /**
+   * VEVOR PRO-rabatten i procent, som text (lib/vevor/pris.ts). Ändras när
+   * kontot når en ny nivå och när medlemskapet förnyas.
+   *
+   * ☠️ NIVÅN STÅR BARA HÄR. Den får aldrig stå i kod, tester, loggar eller ett
+   * svar från en rutt (Leonard 2026-10-28). Saknas den importeras ingenting.
+   */
+  vevorProRabatt?: string;
 }
 
 function headers(): Record<string, string> {
@@ -91,6 +99,7 @@ export async function getAppConfig(): Promise<AppConfig> {
     fakturaBetalaTill: clean(data.fakturaBetalaTill),
     fakturaFSkatt: clean(data.fakturaFSkatt),
     fakturaDagar: clean(data.fakturaDagar),
+    vevorProRabatt: clean(data.vevorProRabatt),
   };
 }
 

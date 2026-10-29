@@ -220,6 +220,37 @@ export function avlasningAv(s: Sidinnehall, r: Sidrad, nuIso: string): Avlasning
   };
 }
 
+/**
+ * Ger varje ny avläsning priset vid artikelns FÖREGÅENDE avläsning
+ * (`forraPrisSek`), ur raden som står i lagret innan den skrivs över.
+ *
+ * VARFÖR (steg 5, 2026-10-29). VEVOR räknar om sina priser från euro, och
+ * synken skriver ett nytt pris först när två avläsningar i rad ger samma
+ * regelpris (lib/vevor/synk.ts). Avläsningen är en rad per artikel som skrivs
+ * över, så den föregående måste följa med här.
+ *
+ * Går de gamla raderna inte att läsa blir priset null för alla, och då väntar
+ * ett nytt pris en avläsning till. Inget annat påverkas, och körningen stoppas
+ * inte: priset är det minst brådskande en avläsning bär. Loggraden bär bara
+ * antalet, aldrig felet, som kan citera frågan med artikelnumren.
+ */
+export async function medForraPris(
+  lager: Pick<VevorLager, "avlasningar">,
+  nya: Map<string, Avlasning>,
+): Promise<void> {
+  if (nya.size === 0) return;
+  let fore = new Map<string, Avlasning>();
+  try {
+    fore = await lager.avlasningar([...nya.keys()]);
+  } catch {
+    console.warn(`[vevor-lasare] föregående priser gick inte att läsa för ${nya.size} avläsningar, priset väntar en avläsning till`);
+  }
+  for (const [sku, a] of nya) {
+    const p = fore.get(sku)?.prisSek;
+    a.forraPrisSek = typeof p === "number" && Number.isFinite(p) && p > 0 ? p : null;
+  }
+}
+
 /** Artikeln vars sida inte gick att läsa, när sidan har en känd artikel. */
 const misslyckadFor = (r: Sidrad) => (r.sku ? { sku: r.sku, webbId: r.webbId } : undefined);
 
@@ -738,6 +769,7 @@ export async function korVevorLasare(deps: LasarDeps, val: Korval): Promise<Korn
     // ── 7. Skrivningen: avläsningarna först, sidorna sist ──
     const avlasningar = new Map<string, Avlasning>();
     for (const b of resultat.values()) if (b.avlasning) avlasningar.set(b.avlasning.sku, b.avlasning);
+    await medForraPris(lager, avlasningar);
     const felAvl = new Set(await lager.sparaAvlasningar([...avlasningar.values()]));
 
     // Borta och misslyckade märks bara på en avläsning som kom från just den sidan.

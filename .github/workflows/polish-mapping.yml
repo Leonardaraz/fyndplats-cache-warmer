@@ -147,7 +147,9 @@ jobs:
             # allowlist i /api/admin/mapping: ett NYTT kostnadsfalt ska inte
             # laka for att ingen kom ihag att lagga till det i en forbudslista.
             echo "=== Mappningsraden (kostnads- och leverantorsfalt utelamnade) ==="
-            echo "$svar" | jq '.mappning | {wixProductId, supplier, needsAiPolish, draftStatus, hasEuWarehouse, aosomSyncedQty, aosomSyncedAt, listingStatus, variants: [(.variants // [])[] | {wixVariantId, sku, grossSek}]}'
+            # `vevorGranskning` bär bara statusar (GPSR, möjlig medicinteknik,
+            # bildmönstret) och inga identifierare, se lib/vevor/granskning.ts.
+            echo "$svar" | jq '.mappning | {wixProductId, supplier, needsAiPolish, draftStatus, hasEuWarehouse, aosomSyncedQty, aosomSyncedAt, listingStatus, vevorGranskning, variants: [(.variants // [])[] | {wixVariantId, sku, grossSek}]}'
             echo
             echo "=== Steg 4: prisgrinden ==="
             if [ "$(echo "$svar" | jq -r '.prisgrind')" = "null" ]; then

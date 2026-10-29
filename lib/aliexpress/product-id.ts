@@ -39,3 +39,18 @@ export type AliExpressProductId = string & { readonly [aliExpressIdBrand]: true 
 export function aliExpressIdFromListing(id: string): AliExpressProductId {
   return id as AliExpressProductId;
 }
+
+/**
+ * Ser id:t ut som ett AliExpress-produkt-id? AliExpress id är bara siffror;
+ * Aosom och VEVOR bär prefix (`aosom:`, `vevor:`, lib/store/leverantorsprefix.ts).
+ *
+ * Importpipelinen frågar DS-API:t om produkten bara när svaret är ja. Fram till
+ * 2026-10-29 gjorde variantbildens och beskrivningens kompletteringar det för
+ * varje produkt utan färgbilder, och då gick varje Aosom-import ut till
+ * AliExpress med Aosoms artikelnummer som produkt-id: ett anrop som aldrig kan
+ * träffa, mot en annan leverantör än varans. VEVOR-importen hade gjort samma
+ * sak med VEVOR:s nummer.
+ */
+export function arAliExpressListningsId(id: unknown): boolean {
+  return /^\d{6,}$/.test(String(id ?? ""));
+}

@@ -9,7 +9,7 @@
 // vars option landar där — även en produkt med 1 val. Se lib/wix/customization-identity.ts.
 
 import { WIX_BASE, wixHeaders } from "./client";
-import { WIX_MAX_CHOICES_PER_CUSTOMIZATION } from "./limits";
+import { KATALOG_SIDTAK, WIX_MAX_CHOICES_PER_CUSTOMIZATION } from "./limits";
 import { customizationIdentityKey, type WixCustomizationRenderType } from "./customization-identity";
 
 /** Ett enskilt val i en customization (id behövs för att kunna ta bort det). */
@@ -199,7 +199,8 @@ export type ChoiceUsage = Map<string, Set<string>>;
 export async function queryProductChoiceUsage(): Promise<ChoiceUsage> {
   const usage: ChoiceUsage = new Map();
   let cursor: string | undefined;
-  const MAX_PAGES = 200; // 200 × 100 = 20 000 produkter — långt över nuvarande katalog.
+  // Wix eget tak. Det var 200 sidor, och VEVOR-importen tar katalogen förbi 20 000 (lib/wix/limits.ts).
+  const MAX_PAGES = KATALOG_SIDTAK;
   for (let page = 0; page < MAX_PAGES; page++) {
     const body = { query: { cursorPaging: { limit: 100, ...(cursor ? { cursor } : {}) } } };
     const res = await fetch(`${WIX_BASE}/stores/v3/products/query`, {

@@ -300,6 +300,20 @@ export interface ProductMappingRecord {
    * så fixen är omimport efter tabell-/AI-rättning, inte polering i efterhand.
    */
   unresolvedVariantValues?: string[];
+  /**
+   * VEVOR: det poleringen ska kontrollera före publicering
+   * (lib/vevor/granskning.ts): GPSR-status, möjlig medicinteknik och
+   * bildmönstret. Sätts av importen.
+   *
+   * ☠️ BÄR INGA IDENTIFIERARE. Poleringens läsning skriver ut fältet i en
+   * publik Actions-logg, så det får aldrig bära artikelnummer eller adresser.
+   */
+  vevorGranskning?: {
+    gpsr: "manual_ej_last" | "ingen_manual";
+    medicinteknik: boolean;
+    bildmonster: "ny" | "gammal" | "okant";
+    bildgranskning: boolean;
+  };
 }
 
 export interface AuditEntry {
@@ -339,6 +353,23 @@ export interface Store {
    */
   saveMappings(records: ProductMappingRecord[]): Promise<{ fel: { wixProductId: string; fel: string }[] }>;
   listMappings(): Promise<ProductMappingRecord[]>;
+  /**
+   * Raderna som bär något av id:na i `supplierProductId` eller `importSparr`.
+   *
+   * För en imports dubblettspärr: en fråga per tugga i stället för hela listan.
+   * VEVOR-importen tar ~15 600 artiklar, och att läsa alla mappningar i varje
+   * körning hade blivit 44 sidor om 500 rader var femte minut.
+   */
+  mappningarForLeverantorsId(ids: string[]): Promise<ProductMappingRecord[]>;
+  /**
+   * Raderna vars `supplierProductId` börjar med prefixet ("aosom:", "vevor:").
+   *
+   * För synkerna, som var och en arbetar med EN leverantörs rader. Att läsa
+   * hela katalogen och filtrera i koden hade efter VEVOR-importen betytt runt
+   * 22 000 rader per körning för Aosom-synkens ~5 000 (uppmätt 2026-10-29:
+   * 4 827 av 7 398 bar prefixet "aosom:").
+   */
+  listMappingsMedPrefix(prefix: string): Promise<ProductMappingRecord[]>;
 
   // --- Fulfillment-tasks ---
   upsertTask(task: FulfillmentTask): Promise<void>;

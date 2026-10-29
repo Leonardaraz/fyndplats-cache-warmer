@@ -3,6 +3,12 @@ import {
   aosomArtikelbild,
   aosomArtiklarPaRaden,
   aosomArtikelForTask,
+  arIAosomSynkensUrval,
+  arISynkensUrval,
+  artikelbild,
+  artikelForTask,
+  artiklarPaRaden,
+  artikelUtanPrefix,
   NIL_VARIANT_ID,
 } from "./artiklar";
 import type { ProductMappingRecord } from "../store";
@@ -192,5 +198,38 @@ describe("aosomArtikelForTask", () => {
   it("☠️ en tvetydig rad beställer ingenting", () => {
     const m = rad("A-1", [variant("A-1"), variant("B-2", { wixVariantId: undefined })]);
     expect(aosomArtikelForTask(task({ sku: "FP-A-1" }), m)).toHaveProperty("skal");
+  });
+});
+
+// Steg 5: samma regler för en VEVOR-rad, med prefixet "vevor:".
+describe("med leverantörens prefix", () => {
+  const vevorRad = (artikel: string, varianter: Variant[]) => ({ supplierProductId: `vevor:${artikel}`, variants: varianter });
+
+  it("en VEVOR-rad bär sin artikel med VEVOR:s prefix, och ingen med Aosoms", () => {
+    const m = vevorRad("TESTSKUART000001", [variant("TESTSKUART000001")]);
+    expect(artikelUtanPrefix(m, "vevor:")).toBe("TESTSKUART000001");
+    expect(artikelUtanPrefix(m, "aosom:")).toBe("");
+    expect(artikelbild(m, "vevor:")).toEqual({ typ: "en", artikel: "TESTSKUART000001" });
+    expect(artiklarPaRaden(m, "vevor:")).toEqual(["TESTSKUART000001"]);
+    expect(artikelForTask({ wixVariantId: NIL_VARIANT_ID, variantChoices: {} }, m, "vevor:")).toEqual({
+      artikel: "TESTSKUART000001",
+    });
+  });
+
+  it("☠️ en VEVOR-rad är aldrig i Aosom-synkens urval, och tvärtom", () => {
+    const vevor = { wixProductId: "w1", supplierProductId: "vevor:TESTSKUART000001" };
+    const aosom = { wixProductId: "w2", supplierProductId: "aosom:A-1" };
+    expect(arIAosomSynkensUrval(vevor)).toBe(false);
+    expect(arISynkensUrval(vevor, "vevor:")).toBe(true);
+    expect(arISynkensUrval(aosom, "vevor:")).toBe(false);
+    expect(arIAosomSynkensUrval(aosom)).toBe(true);
+  });
+
+  it("Aosom-formen är den allmänna med Aosoms prefix", () => {
+    const m = sammanslagen();
+    expect(aosomArtikelbild(m)).toEqual(artikelbild(m, "aosom:"));
+    expect(aosomArtiklarPaRaden(m)).toEqual(artiklarPaRaden(m, "aosom:"));
+    const task = { wixVariantId: "wixvar-B-2", variantChoices: {} };
+    expect(aosomArtikelForTask(task, m)).toEqual(artikelForTask(task, m, "aosom:"));
   });
 });

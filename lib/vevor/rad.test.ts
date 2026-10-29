@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { lagerbesked, PROFILER } from "@/lib/sync/leverantorsrad";
 import { MAX_ALDER_MS, vevorRad } from "./rad";
 import type { Avlasning } from "./lager";
+import { vevorLandadKostnadSek } from "./pris";
 
 const NU = Date.parse("2026-10-29T12:00:00.000Z");
 
@@ -102,5 +103,43 @@ describe("vevorRad", () => {
 
   it("priset rörs inte än: den landade kostnaden är null", () => {
     expect(vevorRad(avlasning(), NU, false)?.landadKostnadSek).toBeNull();
+  });
+});
+
+describe("vevorRad: kostnaden (steg 5)", () => {
+  // ☠️ Påhittad rabatt. Nivån står aldrig i repot.
+  const RABATT = 0.05;
+
+  it("landad kostnad räknas med importens regel, och föregående avläsnings på samma sätt", () => {
+    const r = vevorRad(avlasning({ prisSek: 999, forraPrisSek: 1099 }), NU, false, RABATT);
+    expect(r?.landadKostnadSek).toBe(vevorLandadKostnadSek(999, RABATT));
+    expect(r?.forraLandadKostnadSek).toBe(vevorLandadKostnadSek(1099, RABATT));
+  });
+
+  it("☠️ utan rabatt bär raden ingen kostnad, och då rörs priset inte", () => {
+    const r = vevorRad(avlasning({ forraPrisSek: 999 }), NU, false, null);
+    expect(r?.landadKostnadSek).toBeNull();
+    expect(r?.forraLandadKostnadSek).toBeNull();
+    expect(vevorRad(avlasning(), NU, false)?.landadKostnadSek).toBeNull();
+  });
+
+  it("ett pris som inte är ett positivt tal ger ingen kostnad, men saldot gäller", () => {
+    const r = vevorRad(avlasning({ prisSek: 0, saldo: 4 }), NU, false, RABATT);
+    expect(r).toMatchObject({ status: "i_lager", saldo: 4, landadKostnadSek: null });
+  });
+
+  it("ingen föregående avläsning: ingen föregående kostnad", () => {
+    expect(vevorRad(avlasning({ forraPrisSek: null }), NU, false, RABATT)?.forraLandadKostnadSek).toBeNull();
+    expect(vevorRad(avlasning(), NU, false, RABATT)?.forraLandadKostnadSek).toBeNull();
+  });
+
+  it("☠️ en okänd, borttagen eller ej levererbar rad bär aldrig en kostnad", () => {
+    const gammal = avlasning({ lastAt: new Date(NU - MAX_ALDER_MS - 60_000).toISOString(), forraPrisSek: 999 });
+    for (const a of [gammal, avlasning({ borta: true, status: "borta" }), avlasning({ levererasTillSe: false })]) {
+      const r = vevorRad(a, NU, false, RABATT);
+      expect(r?.landadKostnadSek).toBeNull();
+      expect(r?.forraLandadKostnadSek ?? null).toBeNull();
+    }
+    expect(vevorRad(avlasning(), NU, true, RABATT)?.landadKostnadSek).toBeNull();
   });
 });

@@ -45,6 +45,17 @@ export class MemoryStore implements Store {
     return [...this.mappings.values()];
   }
 
+  async listMappingsMedPrefix(prefix: string): Promise<ProductMappingRecord[]> {
+    return [...this.mappings.values()].filter((m) => (m.supplierProductId ?? "").startsWith(prefix));
+  }
+
+  async mappningarForLeverantorsId(ids: string[]): Promise<ProductMappingRecord[]> {
+    const sokta = new Set(ids);
+    return [...this.mappings.values()].filter(
+      (m) => sokta.has(m.supplierProductId) || (m.importSparr !== undefined && sokta.has(m.importSparr)),
+    );
+  }
+
   async upsertTask(task: FulfillmentTask): Promise<void> {
     this.tasks.set(task.taskId, task);
   }

@@ -100,6 +100,35 @@ export class WixDataStore implements Store {
     return allaRader<ProductMappingRecord>(COL.mappings, { sidstorlek: 500 });
   }
 
+  /**
+   * `$startsWith` i Wix, och samma prov i koden efteråt. Uppmätt 2026-10-29:
+   * filtret gav 4 827 rader, alla med Aosoms prefix, och höll över markörens
+   * sidor. Wix jämför utan hänsyn till skiftläge, så provet i koden gör svaret
+   * exakt samma som `listMappings()` filtrerat med `startsWith`.
+   */
+  async listMappingsMedPrefix(prefix: string): Promise<ProductMappingRecord[]> {
+    const rader = await allaRader<ProductMappingRecord>(COL.mappings, {
+      filter: { supplierProductId: { $startsWith: prefix } },
+      sidstorlek: 500,
+    });
+    return rader.filter((m) => (m.supplierProductId ?? "").startsWith(prefix));
+  }
+
+  /** Hundra id per fråga. Kollektionen har inget index på fälten, men 22 000 rader är en snabb genomsökning. */
+  async mappningarForLeverantorsId(ids: string[]): Promise<ProductMappingRecord[]> {
+    const unika = [...new Set(ids.filter(Boolean))];
+    const ut = new Map<string, ProductMappingRecord>();
+    for (let i = 0; i < unika.length; i += 100) {
+      const del = unika.slice(i, i + 100);
+      const rader = await allaRader<ProductMappingRecord>(COL.mappings, {
+        filter: { $or: [{ supplierProductId: { $in: del } }, { importSparr: { $in: del } }] },
+        sidstorlek: 500,
+      });
+      for (const r of rader) ut.set(r.wixProductId, r);
+    }
+    return [...ut.values()];
+  }
+
   async upsertTask(task: FulfillmentTask): Promise<void> {
     await spara(COL.tasks, task.taskId, { ...task } as Record<string, unknown>);
   }

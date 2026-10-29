@@ -6,6 +6,8 @@
 // beskrivningen, bildlistan och syskonlänkarna. Varje nummer, adress och pris
 // här är påhittat.
 
+import type { Avlasning } from "./lager";
+
 export interface Testsida {
   sku: string;
   webbId: string;
@@ -166,3 +168,54 @@ Disallow: /api/*
 Disallow: /wp/*
 Sitemap: https://eur.vevor.com/sitemap/sitemap-index.xml
 `;
+
+/** En påhittad bild i produktens egen mapp, i VEVOR:s form (snedstrecken kodade). */
+export function testbild(fil: string, mapp = TESTSKU): string {
+  return `https://img.example-cdn.test/us%2F${mapp}%2Foriginal_img-v1%2Ftest-produkt-${fil}?timestamp=1`;
+}
+
+/** Galleriet i VEVOR:s vanliga mönster: m100-1.2, f1–f6, m100-1.12, m100-9 till m100-12. */
+export function testgalleri(mapp = TESTSKU): { url: string; egen: boolean }[] {
+  const namn = ["m100-1.2.jpg", "f1.jpg", "f2.jpg", "f3.jpg", "f4.jpg", "f5.jpg", "f6.jpg", "m100-1.12.jpg"];
+  for (let i = 9; i <= 12; i++) namn.push(`m100-${i}.jpg`);
+  return namn.map((n) => ({ url: testbild(n, mapp), egen: true }));
+}
+
+/** En påhittad giltig avläsning i lager. Bara för tester. */
+export function testAvlasning(over: Partial<Avlasning> = {}): Avlasning {
+  const sku = over.sku ?? TESTSKU;
+  return {
+    sku,
+    spu: "12345",
+    namn: "VEVOR Testvagn, 90 kg lastkapacitet",
+    prisSek: 1240,
+    saldo: 12,
+    flode: "EU",
+    levererasTillSe: true,
+    fraktSe: { belopp: 5, valuta: "EUR" },
+    kategorier: [
+      { id: "100", namn: "Toppkategori" },
+      { id: "200", namn: "Underkategori" },
+    ],
+    egenskaper: [["Färg", "Svart"]],
+    spec: [
+      ["Artikelmodellnummer", "TEST-1"],
+      ["Maximal lastkapacitet", "90,7 kg"],
+    ],
+    punkter: ["Hållbar: ram i kolstål.", "Enkel montering & skötsel."],
+    beskrivning: "Prestanda\nDenna testvagn klarar terräng & <grus>.",
+    bilder: testgalleri(sku),
+    manualSokvag: "/pages/contact-us/TESTMANUAL01",
+    syskon: [],
+    webbId: TESTWEBBID,
+    sokvag: testSokvag(),
+    lastAt: "2026-10-29T10:00:00.000Z",
+    status: "i_lager",
+    toppkategoriId: "100",
+    toppkategori: "Toppkategori",
+    borta: false,
+    bortaAt: null,
+    misslyckadAt: null,
+    ...over,
+  };
+}

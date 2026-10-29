@@ -32,6 +32,14 @@ import type { AosomSyncSummary } from "./sync";
 export const ROTATIONER = ["lager", "pris"] as const;
 export type Rotation = (typeof ROTATIONER)[number];
 
+/**
+ * Markörerna som sparas här: Aosom-synkens två rotationer och VEVOR-synkens
+ * schema (lib/vevor/synk.ts, steg 5). "vevor" är inte en rotation Aosom-rutten
+ * tar emot: då hade en Aosom-körning kunnat spara ett Aosom-nummer som
+ * VEVOR-synkens markör.
+ */
+export type Markornamn = Rotation | "vevor";
+
 export function arRotation(v: string | null | undefined): v is Rotation {
   return !!v && (ROTATIONER as readonly string[]).includes(v);
 }
@@ -55,16 +63,16 @@ export function nastaMarkor(
 }
 
 export interface SyncMarkorLager {
-  las(rotation: Rotation): Promise<string | null>;
-  spara(rotation: Rotation, markor: string | null): Promise<void>;
+  las(rotation: Markornamn): Promise<string | null>;
+  spara(rotation: Markornamn, markor: string | null): Promise<void>;
 }
 
 export class MinnesSyncMarkorLager implements SyncMarkorLager {
-  markorer = new Map<Rotation, string | null>();
-  async las(rotation: Rotation): Promise<string | null> {
+  markorer = new Map<Markornamn, string | null>();
+  async las(rotation: Markornamn): Promise<string | null> {
     return this.markorer.get(rotation) ?? null;
   }
-  async spara(rotation: Rotation, markor: string | null): Promise<void> {
+  async spara(rotation: Markornamn, markor: string | null): Promise<void> {
     this.markorer.set(rotation, markor);
   }
 }
@@ -83,7 +91,7 @@ async function sakerstall(): Promise<void> {
 }
 
 class PostgresSyncMarkorLager implements SyncMarkorLager {
-  async las(rotation: Rotation): Promise<string | null> {
+  async las(rotation: Markornamn): Promise<string | null> {
     await sakerstall();
     const rows = (await sql().query(`select markor from sync_markor where namn = $1`, [rotation])) as {
       markor: string | null;
@@ -91,7 +99,7 @@ class PostgresSyncMarkorLager implements SyncMarkorLager {
     return rows[0]?.markor ?? null;
   }
 
-  async spara(rotation: Rotation, markor: string | null): Promise<void> {
+  async spara(rotation: Markornamn, markor: string | null): Promise<void> {
     await sakerstall();
     await sql().query(
       `insert into sync_markor (namn, markor, at) values ($1, $2, now())
@@ -104,12 +112,12 @@ class PostgresSyncMarkorLager implements SyncMarkorLager {
 /** En rad per rotation i Wix, `_id` = rotationens namn. Läsbar bara för admin
  *  (markören är ett artikelnummer, se filens huvud). */
 export class WixSyncMarkorLager implements SyncMarkorLager {
-  async las(rotation: Rotation): Promise<string | null> {
+  async las(rotation: Markornamn): Promise<string | null> {
     const rad = await hamta<{ markor?: string | null }>(NYA.syncMarkor, rotation);
     return rad?.markor ?? null;
   }
 
-  async spara(rotation: Rotation, markor: string | null): Promise<void> {
+  async spara(rotation: Markornamn, markor: string | null): Promise<void> {
     await spara(NYA.syncMarkor, rotation, { markor, at: new Date().toISOString() });
   }
 }

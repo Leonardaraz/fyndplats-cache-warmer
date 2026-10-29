@@ -331,6 +331,53 @@ describe("WixDataStore — claimTask/releaseTask/updateTask (PATCH CAS wire-form
   });
 });
 
+describe("WixDataStore — mappningarForLeverantorsId", () => {
+  beforeEach(() => {
+    vi.stubEnv("WIX_API_TOKEN", "test-wix-token");
+    vi.stubEnv("WIX_SITE_ID", "test-site-id");
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    global.fetch = ORIGINAL_FETCH;
+    vi.restoreAllMocks();
+  });
+
+  it("frågar på både supplierProductId och importSparr, hundra id åt gången", async () => {
+    const fn = mockFetch({
+      json: { dataItems: [{ data: { _id: "w1", wixProductId: "w1", supplierProductId: "vevor:A" } }] },
+    });
+    const ids = Array.from({ length: 150 }, (_, i) => `vevor:TEST${i}`);
+    const rader = await new WixDataStore().mappningarForLeverantorsId([...ids, ids[0]]);
+    expect(fn).toHaveBeenCalledTimes(2);
+    const kroppar = fn.mock.calls.map(([, init]) => JSON.parse((init as RequestInit).body as string));
+    expect(kroppar[0].dataCollectionId).toBe("FyndplatsMappings");
+    const villkor = kroppar.map((k) => k.query.filter.$or);
+    expect(villkor[0][0].supplierProductId.$in).toHaveLength(100);
+    expect(villkor[0][1].importSparr.$in).toEqual(villkor[0][0].supplierProductId.$in);
+    expect(villkor[1][0].supplierProductId.$in).toHaveLength(50);
+    // Samma rad i två svar blir en.
+    expect(rader).toHaveLength(1);
+  });
+
+  it("listMappingsMedPrefix frågar med $startsWith, och provar prefixet i koden efteråt", async () => {
+    const fn = mockFetch({
+      json: {
+        dataItems: [
+          { data: { _id: "w1", wixProductId: "w1", supplierProductId: "vevor:TESTA" } },
+          // Wix jämför utan hänsyn till skiftläge. Raden ska inte följa med.
+          { data: { _id: "w2", wixProductId: "w2", supplierProductId: "VEVOR:TESTB" } },
+        ],
+      },
+    });
+    const rader = await new WixDataStore().listMappingsMedPrefix("vevor:");
+    const kropp = JSON.parse((fn.mock.calls[0] as [string, RequestInit])[1].body as string);
+    expect(kropp.dataCollectionId).toBe("FyndplatsMappings");
+    expect(kropp.query.filter).toEqual({ supplierProductId: { $startsWith: "vevor:" } });
+    expect(rader.map((r) => r.wixProductId)).toEqual(["w1"]);
+  });
+});
+
 // Aosom-synkens stämplar läses om och sparas en tugga i taget (2026-10-29):
 // två anrop per tugga om 50 i stället för två per skriven produkt.
 describe("WixDataStore — mappningar i klump", () => {
