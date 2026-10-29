@@ -6791,28 +6791,54 @@ men i danska kronor med kursen `EUR_TO_DKK` (7,46 som standard). Konkurrentregel
 gäller inte, eftersom den jämför med en svensk butik.
 
 Klassningen av el och batterier (`lib/aosom/el-och-batteri.ts`) läser Aosoms
-tyska text och vårt svenska namn. Varje träff har en fast etikett, så att
-loggen kan räkna etiketter utan att skriva ut text.
+tyska text och vårt svenska namn, i två nivåer. Starka signaler stoppar sidan.
+Breda ord (den första versionens lista, ordagrant) stoppar inget, men en träff
+står i listan med ett utdrag ur texten, så att en människa kan se varför en
+sida släpptes. Varje träff har en fast etikett, så att loggen kan räkna
+etiketter utan att skriva ut text.
 
-Fem egenskaper som inte ska tas bort:
+**Första körningen (2026-10-22, en enda nivå med de breda orden):** 2 712 av
+4 241 Aosom-sidor kunde säljas, 1 340 stoppades av el eller batterier och 224
+saknades i feeden. Priset i Danmark var i median 0,96 av det svenska
+regelpriset (kvartiler 0,92 och 0,98) och lägre än i Sverige på 99,7 % av
+artiklarna. Bland sidorna som kunde säljas hittades ingen vara med el. Men
+ungefär 400 av de 1 301 sidor som bara stoppades av el saknade el: soffor med
+"Seitentaschen für Fernbedienungen", köksskåp med "Mikrowellenfach", textilier
+som tål "Waschmaschine", klätterleksaker för "motorische Fähigkeiten",
+skärmtak som dämpar "Geräusche" och kolgrillar som ska "aufheizen". Därav de
+två nivåerna.
+
+Sex egenskaper som inte ska tas bort:
 
 1. ☠️ **Klassningen lutar åt att stoppa.** En vara med el eller batterier som
    släpps igenom säljs i Danmark utan registrering för el och batterier. En
-   vara som stoppas i onödan säljs bara inte där än. Ett ord räcker, och varje
-   mönster som undviker en känd falsk träff ("Sonnenlicht", "wattiert",
-   "Motorik", "elektroverzinkt") har ett test.
-2. ☠️ **Listan bär priser och vårt urval, och lämnas bara ut krypterad.**
-   Workflowen skriver räknarna, etiketterna och kvoten mot Sverige, och
-   krypterar listan (gzip, AES och RSA, som `leverantorslankar.yml`). Listan
-   bär varken artikelnummer, inköpspris eller frakt, inte ens krypterad. Ett
-   test serialiserar svaret och letar.
-3. **En sammanslagen sida stoppas helt av en färg som inte går**, och varje
-   färg får sitt eget pris. Listan namnger färgen med Wix-variant-id.
-4. **Bara Aosom-sidor räknas.** De andra leverantörerna räknas per leverantör
-   och stannar i Sverige.
-5. **Bara Danmark.** Ett land i euro behöver en egen avrundning: charm99
-   snäpper 89 till 99, alltså tio euro på en vara för 139 euro. Rutten svarar
-   400 för andra länder.
+   vara som stoppas i onödan säljs bara inte där än. En stark signal räcker,
+   och varje mönster som undviker en känd falsk träff har ett test (de från
+   första körningen står under "kända falska träffar").
+2. ☠️ **Listan bär priser, vårt urval och utdrag ur Aosoms text, och lämnas
+   bara ut krypterad.** Workflowen skriver räknarna, etiketterna och kvoten mot
+   Sverige, och krypterar listan (gzip, AES och RSA, som
+   `leverantorslankar.yml`). Listan bär varken artikelnummer, inköpspris eller
+   frakt, inte ens krypterad: utdragen går genom `redigera`. Ett test
+   serialiserar svaret och letar.
+3. ☠️ **JavaScripts `\b` räknar inte å, ä, ö, ü och ß som bokstäver.** För den
+   var W:et i "5 Würfel" ett helt ord, så ett pokerset fick 5 watt. Mönstren
+   använder ordgränser med `\p{L}` (`‹` och `›` i `el-och-batteri.ts`).
+4. **Negationer tas bort före de starka mönstren** ("funktioniert ohne
+   Batterien", "ohne Strom", vårt "utan el"), men bara när de säger det om
+   varan själv. "Wird ohne Batterien geliefert" betyder att varan behöver
+   batterier, och stoppar.
+5. **En sammanslagen sida stoppas helt av en färg som inte går**, och varje
+   färg får sitt eget pris. Listan namnger färgen med Wix-variant-id. Ett brett
+   ord på en färg som är en stark signal på en annan räknas som starkt.
+6. **Bara Aosom-sidor räknas, och bara Danmark.** De andra leverantörerna
+   räknas per leverantör och stannar i Sverige. Ett land i euro behöver en egen
+   avrundning: charm99 snäpper 89 till 99, alltså tio euro på en vara för 139
+   euro. Rutten svarar 400 för andra länder.
+
+⚠️ **Granska utdragen efter varje ändring av mönstren:** de starka på sidor som
+stoppas, och de breda på sidor som kan säljas (`svaga.sidorSomKanSaljas` i
+loggen säger hur många).
 
 ### Vad som INTE är fixat
 

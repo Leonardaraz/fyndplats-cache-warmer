@@ -20,7 +20,8 @@ function rad(sku: string): AosomRow {
     size: "",
     packageSize: "",
     weightKg: null,
-    descriptionHtml: "",
+    // Ett brett ord ger ett utdrag, och utdraget står bredvid ett artikelnummer.
+    descriptionHtml: "<p>Platz für eine Lampe, wie bei 845-030CG.</p>",
     bulletsHtml: "",
     qty: 3,
     normalPriceEur: null,
@@ -107,9 +108,10 @@ describe("GET /api/admin/landsortiment", () => {
     expect(kropp.lista.map((r: { wixProductId: string }) => r.wixProductId)).toEqual(["wix-1"]);
   });
 
-  it("☠️ svaret bär varken artikelnummer eller inköpsled", async () => {
+  it("☠️ svaret bär varken artikelnummer eller inköpsled, inte ens i ett utdrag", async () => {
     const text = JSON.stringify(await (await GET(anrop("DK", "Bearer testhemlighet"))).json());
-    for (const h of ["TEST-0001", "aosom:", "1005000000000001", "123.45", "21.37", "17.89"]) {
+    expect(text).toContain("Platz für eine Lampe");
+    for (const h of ["TEST-0001", "aosom:", "1005000000000001", "123.45", "21.37", "17.89", "845-030CG"]) {
       expect(text).not.toContain(h);
     }
   });
