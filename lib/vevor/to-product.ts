@@ -3,9 +3,14 @@
 // nedströms är redan byggt och testat, och VEVOR-importen behöver bara tala
 // samma språk. Ren modul.
 //
-// EN ARTIKEL ÄR EN PRODUKT. VEVOR:s varianter går inte att bygga automatiskt
-// (sidans attrList är tom), så varje artikel blir ett eget utkast och syskonen
-// slås ihop vid poleringen, som för Aosom.
+// EN FAMILJ ÄR EN PRODUKT (steg 8, Leonard 2026-10-29). Syskonen i VEVOR:s
+// familj blir varianter på samma utkast, en artikel per variant, när deras
+// egenskaper räcker för det (lib/vevor/familj.ts). En artikel utan syskon, eller
+// en familj som inte går att slå ihop, blir ett eget utkast som förut.
+//
+// BETYGET STOPPAR IMPORTEN under 3,8 med minst fem recensioner (Leonard
+// 2026-10-29). VEVOR:s recensioner följer med som dolda rader (VEVOR har sagt
+// ja till att vi använder dem), och översätts i chatten som Aosoms.
 //
 // TEXTEN ÄR VEVOR:S EGEN, PÅ SVENSKA. Sidan läses med `?lang=sv&currency=SEK`,
 // så titel, beskrivning, punkter och specifikation är svenska redan vid
@@ -19,6 +24,7 @@
 // läggs inte dit.
 
 import type { AliExpressProduct } from "@/lib/import/types";
+import type { AERReview } from "@/lib/import/review-import";
 import type { ImportResult } from "@/lib/import/pipeline";
 import type { ProductMappingRecord } from "@/lib/store";
 import { VEVOR_ID_PREFIX } from "@/lib/store/leverantorsprefix";
@@ -32,7 +38,34 @@ import type { VevorGranskning } from "./granskning";
 /** Äldre avläsning än så importeras inte. Läsaren läser utkasten en gång per dygn. */
 export const MAX_ALDER_IMPORT_MS = 48 * 3_600_000;
 
-export type Hinder = "ej_i_lager" | "ej_levererbar" | "borta" | "misslyckad" | "gammal";
+/** Under det här snittet, med minst `BETYG_MIN_ANTAL` recensioner, importeras artikeln inte. */
+export const BETYG_GRANS = 3.8;
+export const BETYG_MIN_ANTAL = 5;
+
+export type Hinder =
+  | "ej_i_lager"
+  | "ej_levererbar"
+  | "borta"
+  | "misslyckad"
+  | "gammal"
+  /** Snittet under 3,8 med minst fem recensioner. */
+  | "lagt_betyg"
+  /** Avläsningen är från före steg 8 och bär inget betyg: väntar på nästa läsning. */
+  | "betyg_okant"
+  /** Familjen finns redan som en produkt, utan den här artikeln (lib/vevor/import.ts). */
+  | "syskon_finns";
+
+/**
+ * Betygets hinder, eller null. Saknas fältet lästes sidan före steg 8, och
+ * då väntar artikeln på nästa läsning i stället för att importeras på okänt
+ * betyg. Ett betyg som saknas på sidan (null) är inget hinder: en ny vara
+ * har inga recensioner.
+ */
+export function betygshinder(a: Pick<Avlasning, "betyg">): "lagt_betyg" | "betyg_okant" | null {
+  if (a.betyg === undefined) return "betyg_okant";
+  if (a.betyg && a.betyg.snitt < BETYG_GRANS && a.betyg.antal >= BETYG_MIN_ANTAL) return "lagt_betyg";
+  return null;
+}
 
 export function vevorSupplierProductId(sku: string): string {
   return `${VEVOR_ID_PREFIX}${sku}`;
@@ -53,7 +86,37 @@ export function importhinder(a: Avlasning, nu: number): Hinder | null {
   if (!Number.isFinite(alder) || alder > MAX_ALDER_IMPORT_MS || alder < -60_000) return "gammal";
   if (!a.levererasTillSe || a.flode !== VART_FLODE || a.status === "ej_levererbar") return "ej_levererbar";
   if (a.status !== "i_lager" || !(a.saldo > 0)) return "ej_i_lager";
-  return null;
+  return betygshinder(a);
+}
+
+/**
+ * Som `importhinder`, men för ett syskon som följer med en familj: en artikel
+ * som är slut följer med med saldo 0, så att den inte blir en egen produkt när
+ * den kommer tillbaka.
+ */
+export function medlemshinder(a: Avlasning, nu: number): Hinder | null {
+  const h = importhinder(a, nu);
+  return h === "ej_i_lager" ? betygshinder(a) : h;
+}
+
+/** Inköpet i dollar, som pipelinen räknar tillbaka till landad kostnad i kronor. */
+export function kostnadUsd(a: Pick<Avlasning, "prisSek">, pris: Prisunderlag): number {
+  const landadSek = vevorLandadKostnadSek(a.prisSek, pris.rabatt);
+  return Math.round((landadSek / pris.usdToSek) * 100) / 100;
+}
+
+/**
+ * Sidans recensioner i importens format. Namnet sparas som bevis och visas
+ * aldrig (lib/import/review-import.ts härleder initialer). Språket är okänt:
+ * sidan blandar spanska, tyska och engelska.
+ */
+export function vevorRecensioner(a: Pick<Avlasning, "recensioner">): AERReview[] {
+  return (a.recensioner ?? []).map((r) => ({
+    rating: r.betyg,
+    text: r.text,
+    ...(r.datum ? { date: r.datum } : {}),
+    ...(r.namn ? { customerName: r.namn } : {}),
+  }));
 }
 
 export interface Prisunderlag {
@@ -71,7 +134,6 @@ export interface Prisunderlag {
  * precis som för Aosom.
  */
 export function vevorProdukt(a: Avlasning, pris: Prisunderlag, bilder: Bildval): AliExpressProduct {
-  const landadSek = vevorLandadKostnadSek(a.prisSek, pris.rabatt);
   return {
     supplierProductId: vevorSupplierProductId(a.sku),
     sourceUrl: sidadress(a.sokvag),
@@ -83,7 +145,7 @@ export function vevorProdukt(a: Avlasning, pris: Prisunderlag, bilder: Bildval):
       {
         supplierVariantId: a.sku,
         options: {},
-        costUsd: Math.round((landadSek / pris.usdToSek) * 100) / 100,
+        costUsd: kostnadUsd(a, pris),
         // Bufferten är 0 (Leonard 2026-10-28): VEVOR:s saldo rakt av.
         stock: a.saldo,
         included: true,
@@ -127,6 +189,21 @@ export function textTillHtml(text: string): string {
 }
 
 /**
+ * Varje artikel produkten bär, med prefix: radens egen och varianternas. För
+ * dubblettspärren, som frågar efter fältet (Store.mappningarForLeverantorsId):
+ * en artikel som sitter som variant på en familj är lika upptagen som en som
+ * har en egen rad.
+ */
+export function vevorArtiklarFor(result: Pick<ImportResult, "supplierProductId" | "variantMappings">): string[] {
+  return [
+    ...new Set([
+      result.supplierProductId,
+      ...result.variantMappings.map((v) => vevorSupplierProductId(v.supplierVariantId)),
+    ]),
+  ];
+}
+
+/**
  * Mappningsraden. Som Aosoms, med tre skillnader:
  *
  *   supplier: "vevor"      håller raden utanför AE-synken och Aosom-synken
@@ -160,6 +237,7 @@ export function byggVevorMappning(
     warehouseClass: "EU",
     needsAiPolish: true,
     vevorGranskning: granskning,
+    vevorArtiklar: vevorArtiklarFor(result),
     ...(result.priceUnverified ? { priceUnverified: result.priceUnverified } : {}),
     ...(result.slugSuffix ? { slugSuffix: result.slugSuffix } : {}),
   };

@@ -46,7 +46,7 @@ const ARTNR =
   /\b\d{2}[A-Z]-\d{3}(?!\d)[A-Z0-9]*\b|\b[A-Z]\d{2}-\d{3}(?!\d)[A-Z0-9]*\b|\b\d{3}-\d{3}(?!\d)[A-Z0-9]{2,}\b|\b\d[A-Z]\d-\d{3}(?!\d)[A-Z0-9]*\b|\b(?=[A-Z0-9]*\d)(?=[A-Z0-9]*[A-Z])[A-Z0-9]{17,24}\b/g;
 
 /** jq-interpolation av ett fält som bär artikelnumret: `\(.sku)`, `map(.sku)`. */
-const ARTIKELFALT = /\\\((?:[^()]|\([^()]*\))*\.(?:sku|artikel|artikelnummer|supplierProductId|aosomSku)\b|map\(\s*\.sku\s*\)/g;
+const ARTIKELFALT = /\\\((?:[^()]|\([^()]*\))*\.(?:sku|artikel|artikelnummer|supplierProductId|aosomSku|vevorArtiklar)\b|map\(\s*\.sku\s*\)/g;
 
 /**
  * Inputs som bär ett artikelnummer. Varje sådan måste maskeras i ett EGET steg

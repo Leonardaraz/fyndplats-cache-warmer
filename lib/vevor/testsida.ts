@@ -27,6 +27,22 @@ export interface Testsida {
   manual: boolean;
   /** Utan produktdata, som VEVOR:s 404-sida. */
   utanProdukt: boolean;
+  /** JSON-LD:s `aggregateRating`, eller null för en sida utan betyg. */
+  betyg: Record<string, unknown> | null;
+  /** JSON-LD:s `review`. */
+  recensioner: Record<string, unknown>[];
+}
+
+/** En påhittad recension i JSON-LD:s form. */
+export function testrecension(over: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    "@type": "Review",
+    reviewRating: { "@type": "Rating", ratingValue: 5, bestRating: 5 },
+    author: { "@type": "Person", name: "Test P." },
+    datePublished: "2026-09-14T08:00:00+02:00",
+    reviewBody: "Stabil och lätt att montera, hjulen rullar fint i sanden. Rekommenderas.",
+    ...over,
+  };
 }
 
 export const TESTSKU = "TESTSKUABCDEFGH0001";
@@ -53,6 +69,8 @@ export function testsida(over: Partial<Testsida> = {}): string {
     flode: "EU",
     manual: true,
     utanProdukt: false,
+    betyg: { "@type": "AggregateRating", ratingValue: 4.5, reviewCount: 12 },
+    recensioner: [testrecension()],
     ...over,
   };
   const global = `<script>window.GLOBAL = window.GLOBAL || {};</script>
@@ -87,6 +105,8 @@ export function testsida(over: Partial<Testsida> = {}): string {
     sku: t.ldSku ?? t.sku,
     mpn: t.ldSku ?? t.sku,
     brand: { "@type": "Brand", name: "VEVOR" },
+    ...(t.betyg ? { aggregateRating: t.betyg } : {}),
+    ...(t.recensioner.length > 0 ? { review: t.recensioner } : {}),
     offers: [
       {
         "@type": "Offer",
@@ -216,6 +236,8 @@ export function testAvlasning(over: Partial<Avlasning> = {}): Avlasning {
     borta: false,
     bortaAt: null,
     misslyckadAt: null,
+    betyg: { snitt: 4.5, antal: 12 },
+    recensioner: [],
     ...over,
   };
 }

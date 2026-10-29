@@ -9,6 +9,7 @@ import {
   satt,
   spara,
   sparaManga,
+  taBort,
   taBortFalt,
   taBortMedFilter,
 } from "../db/wix-data-klient";
@@ -87,6 +88,10 @@ export class WixDataStore implements Store {
     return ut;
   }
 
+  async deleteMapping(wixProductId: string): Promise<void> {
+    await taBort(COL.mappings, wixProductId);
+  }
+
   async saveMappings(records: ProductMappingRecord[]): Promise<{ fel: { wixProductId: string; fel: string }[] }> {
     const utfall = await sparaManga(
       COL.mappings,
@@ -121,7 +126,11 @@ export class WixDataStore implements Store {
     for (let i = 0; i < unika.length; i += 100) {
       const del = unika.slice(i, i + 100);
       const rader = await allaRader<ProductMappingRecord>(COL.mappings, {
-        filter: { $or: [{ supplierProductId: { $in: del } }, { importSparr: { $in: del } }] },
+        // `$hasSome` på listan: uppmätt mot skarpa Wix 2026-10-29 (569 rader
+        // med "ES" i `shipsFromCountries`).
+        filter: {
+          $or: [{ supplierProductId: { $in: del } }, { importSparr: { $in: del } }, { vevorArtiklar: { $hasSome: del } }],
+        },
         sidstorlek: 500,
       });
       for (const r of rader) ut.set(r.wixProductId, r);

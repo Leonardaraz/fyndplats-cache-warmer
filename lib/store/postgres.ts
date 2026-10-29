@@ -122,12 +122,18 @@ export class PostgresStore implements Store {
     return rows.map((r) => rensa<ProductMappingRecord>(r as { data: unknown }));
   }
 
+  async deleteMapping(wixProductId: string): Promise<void> {
+    const q = sql();
+    await q`delete from mappings where wix_product_id = ${wixProductId}`;
+  }
+
   async mappningarForLeverantorsId(ids: string[]): Promise<ProductMappingRecord[]> {
     const unika = [...new Set(ids.filter(Boolean))];
     if (unika.length === 0) return [];
     const q = sql();
     const rows = await q`select data from mappings
-      where supplier_product_id = any(${unika}) or data->>'importSparr' = any(${unika})`;
+      where supplier_product_id = any(${unika}) or data->>'importSparr' = any(${unika})
+        or coalesce(data->'vevorArtiklar', '[]'::jsonb) ?| ${unika}::text[]`;
     return rows.map((r) => rensa<ProductMappingRecord>(r as { data: unknown }));
   }
 

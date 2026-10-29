@@ -66,6 +66,29 @@ export interface VevorSyskon {
   kanKopas: boolean;
 }
 
+/** VEVOR:s betyg för artikeln, ur JSON-LD:s `aggregateRating`. */
+export interface VevorBetyg {
+  /** Snittet, 1–5. */
+  snitt: number;
+  /** Antal recensioner betyget bygger på. */
+  antal: number;
+}
+
+/**
+ * En recension ur JSON-LD:s `review`. Sidan bär högst tio, i originalspråket
+ * (uppmätt 2026-10-29: spanska, tyska och engelska på samma sida).
+ *
+ * Namnet sparas som bevis och visas aldrig: butiken visar initialer
+ * (lib/import/review-import.ts).
+ */
+export interface VevorRecension {
+  betyg: number;
+  text: string;
+  /** ISO-datum, eller null. */
+  datum: string | null;
+  namn: string | null;
+}
+
 export interface Sidinnehall {
   sku: string;
   /** VEVOR:s produktfamilj, eller null. */
@@ -95,7 +118,16 @@ export interface Sidinnehall {
   /** Sökvägen till manualsidan, eller null när sidan inte länkar någon. */
   manualSokvag: string | null;
   syskon: VevorSyskon[];
+  /** Betyget, eller null när sidan inte har något (inga recensioner). */
+  betyg: VevorBetyg | null;
+  /** Recensionerna sidan själv visar, högst `MAX_RECENSIONER`. */
+  recensioner: VevorRecension[];
 }
+
+/** Så många recensioner sparas per artikel. JSON-LD bär högst tio. */
+export const MAX_RECENSIONER = 10;
+/** Längsta recensionstext vi sparar. */
+const MAX_RECENSIONSTEXT = 2_000;
 
 export type Tolkningsfel =
   | "ej_produktsida"
@@ -365,6 +397,42 @@ function syskonUr(lankar: unknown, sku: string): VevorSyskon[] {
   return ut;
 }
 
+/**
+ * Betyget ur `aggregateRating`, eller null. Ett betyg utanför 1–5 eller utan
+ * antal är inget betyg: hellre inget än ett som fäller en vara på fel grund.
+ */
+function betygUr(produkt: Record<string, unknown>): VevorBetyg | null {
+  const ar = produkt.aggregateRating;
+  if (!ar || typeof ar !== "object" || Array.isArray(ar)) return null;
+  const o = ar as Record<string, unknown>;
+  const snitt = tal(o.ratingValue);
+  const antal = tal(o.reviewCount) ?? tal(o.ratingCount);
+  if (snitt === null || antal === null || snitt < 1 || snitt > 5 || antal < 1 || !Number.isInteger(antal)) return null;
+  return { snitt, antal };
+}
+
+/** Recensionerna ur `review`, med text och ett betyg 1–5. Högst `MAX_RECENSIONER`. */
+function recensionerUr(produkt: Record<string, unknown>): VevorRecension[] {
+  const ut: VevorRecension[] = [];
+  for (const r of lista<Record<string, unknown>>(produkt.review)) {
+    if (ut.length >= MAX_RECENSIONER) break;
+    if (!r || typeof r !== "object") continue;
+    const text = strang(r.reviewBody);
+    const betyg = tal((r.reviewRating as Record<string, unknown> | undefined)?.ratingValue);
+    if (!text || betyg === null || betyg < 1 || betyg > 5) continue;
+    const forfattare = r.author as Record<string, unknown> | string | undefined;
+    const namn = typeof forfattare === "string" ? strang(forfattare) : strang(forfattare?.name);
+    const datum = strang(r.datePublished);
+    ut.push({
+      betyg,
+      text: rad(avkoda(text)).slice(0, MAX_RECENSIONSTEXT),
+      datum: datum && /^\d{4}-\d{2}-\d{2}/.test(datum) ? datum.slice(0, 10) : null,
+      namn: namn ? avkoda(namn).slice(0, 80) : null,
+    });
+  }
+  return ut;
+}
+
 function egenskaperUr(attr: unknown): Record<string, string> {
   const ut: Record<string, string> = {};
   if (!attr || typeof attr !== "object" || Array.isArray(attr)) return ut;
@@ -450,6 +518,8 @@ export function tolkaProduktsida(html: string): Tolkning {
       bilder: bilderUr(fonsterObjekt(html, "AGGIMAGEANDVIDEOLIST"), sku),
       manualSokvag: manualUr(html),
       syskon: syskonUr(fonsterObjekt(html, "DETAIL_ATTR_LINK"), sku),
+      betyg: betygUr(produkt),
+      recensioner: recensionerUr(produkt),
     },
   };
 }

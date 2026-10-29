@@ -31,20 +31,38 @@
 //    Ett enstaka fel flyttar markören: artikeln prövas igen i nästa varv.
 // 6. Torrläget skriver ingenting, inte ens markören.
 // 7. ☠️ Svaret, loggraden och larmet bär bara antal och Wix-id.
+//
+// Steg 8 (Leonard 2026-10-29): syskonen blir en produkt (lib/vevor/familj.ts),
+// betyget under 3,8 med minst fem recensioner stoppar artikeln
+// (lib/vevor/to-product.ts), och sidans recensioner sparas som dolda rader.
+//
+// 8. ☠️ En artikel vars familj redan finns som en produkt importeras inte
+//    (`syskon_finns`): den hade blivit samma familj på två sidor. Den läggs
+//    till på familjen för hand.
+// 9. Recensionerna är bara ett tillägg. Ett fel där fäller inte importen och
+//    räknas för sig.
 
 import { randomUUID } from "node:crypto";
 import type { AliExpressProduct } from "@/lib/import/types";
 import type { ImportResult } from "@/lib/import/pipeline";
+import type { AERReview } from "@/lib/import/review-import";
 import type { ProductMappingRecord } from "@/lib/store";
+import { VEVOR_ID_PREFIX } from "@/lib/store/leverantorsprefix";
+import { artiklarPaRaden } from "@/lib/aosom/artiklar";
 import { WIX_MAX_PRODUKTER } from "@/lib/wix/limits";
 import { RabattFel } from "./pris";
 import { valjVevorBilder } from "./bilder";
 import { vevorGranskning } from "./granskning";
+import type { Avlasning } from "./lager";
+import { FAMILJ_SKAL, byggFamilj, syskonSkus, vevorFamiljeProdukt, type Familj, type FamiljSkal } from "./familj";
 import {
   byggVevorMappning,
   importhinder,
+  vevorArtiklarFor,
   vevorProdukt,
+  vevorRecensioner,
   vevorSupplierProductId,
+  type Hinder,
   type Prisunderlag,
 } from "./to-product";
 import {
@@ -75,9 +93,16 @@ const MAX_FORALDRALOSA = 500;
 export interface ImportDeps {
   lager: VevorImportLager;
   /** Mappningsraderna som bär något av id:na (Store.mappningarForLeverantorsId). */
-  mappningarFor(ids: string[]): Promise<Pick<ProductMappingRecord, "supplierProductId" | "importSparr">[]>;
+  mappningarFor(
+    ids: string[],
+  ): Promise<Pick<ProductMappingRecord, "supplierProductId" | "importSparr" | "vevorArtiklar" | "variants">[]>;
   importera(p: AliExpressProduct): Promise<ImportResult>;
   sparaMappning(m: ProductMappingRecord): Promise<void>;
+  /**
+   * Sidans recensioner som dolda rader på produkten (källa "vevor"), genom
+   * husets filter. Svarar med antalet sparade.
+   */
+  sparaRecensioner(wixProductId: string, recensioner: AERReview[]): Promise<number>;
   /** Rabatten ur konfigurationen och dollarkursen. Kastar `RabattFel` när rabatten saknas. */
   prisunderlag(): Promise<Prisunderlag>;
   antalProdukter(): Promise<number>;
@@ -105,12 +130,27 @@ function tomSummering(start: number, dryRun: boolean): Importsummering {
     granskade: 0,
     importerade: 0,
     redanImporterade: 0,
-    hinder: { ej_i_lager: 0, ej_levererbar: 0, borta: 0, misslyckad: 0, gammal: 0 },
+    hinder: {
+      ej_i_lager: 0,
+      ej_levererbar: 0,
+      borta: 0,
+      misslyckad: 0,
+      gammal: 0,
+      lagt_betyg: 0,
+      betyg_okant: 0,
+      syskon_finns: 0,
+    } satisfies Record<Hinder, number>,
     fel: 0,
     foraldralosa: [],
     bilder: { ny: 0, gammal: 0, okant: 0, utanEgna: 0 },
     medicinteknik: 0,
     gpsr: { manualEjLast: 0, ingenManual: 0 },
+    familjer: {
+      sammanslagna: 0,
+      varianter: 0,
+      ejSammanslagna: Object.fromEntries(FAMILJ_SKAL.map((k) => [k, 0])) as Record<FamiljSkal, number>,
+    },
+    recensioner: { lasta: 0, sparade: 0, produkter: 0, fel: 0 },
     produkterIWix: null,
     varvKlart: false,
     stoppadAv: null,
@@ -126,6 +166,13 @@ export function importloggrad(s: Importsummering): string {
     `hinder ${Object.entries(s.hinder).map(([k, v]) => `${k} ${v}`).join(", ")}, ` +
     `bilder ny ${s.bilder.ny} gammal ${s.bilder.gammal} okänt ${s.bilder.okant} utan egna ${s.bilder.utanEgna}, ` +
     `medicinteknik ${s.medicinteknik}, ` +
+    (s.familjer
+      ? `familjer ${s.familjer.sammanslagna} (varianter ${s.familjer.varianter}), ej sammanslagna ` +
+        `${Object.entries(s.familjer.ejSammanslagna).map(([k, v]) => `${k} ${v}`).join(", ")}, `
+      : "") +
+    (s.recensioner
+      ? `recensioner lästa ${s.recensioner.lasta} sparade ${s.recensioner.sparade} på ${s.recensioner.produkter} produkter fel ${s.recensioner.fel}, `
+      : "") +
     `produkter i Wix ${s.produkterIWix ?? "-"}, stopp ${s.stoppadAv ?? "-"}${s.varvKlart ? ", varvet klart" : ""}`
   );
 }
@@ -169,6 +216,8 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
     }
 
     const sparrade = new Set(t.foraldralosa.map((f) => vevorSupplierProductId(f.sku)));
+    // Artiklar som sitter på en produkt med fler än en artikel (en familj).
+    const iFamilj = new Set<string>();
     const nyaForaldralosa: Foraldralos[] = [];
     let markor = t.markor;
     let varvImporterade = t.varvImporterade;
@@ -189,9 +238,25 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
         break;
       }
       const finns = new Set(sparrade);
-      for (const m of await deps.mappningarFor(kandidater.map((a) => vevorSupplierProductId(a.sku)))) {
-        if (m.supplierProductId) finns.add(m.supplierProductId);
+      // Kandidaternas och deras syskons id: ett syskon som sitter på en
+      // familj gör kandidaten till `syskon_finns`, och ett som sitter på en
+      // egen produkt följer inte med i familjen.
+      const fragade = new Set<string>();
+      for (const a of kandidater) {
+        fragade.add(vevorSupplierProductId(a.sku));
+        for (const sy of syskonSkus(a)) fragade.add(vevorSupplierProductId(sy));
+      }
+      for (const m of await deps.mappningarFor([...fragade])) {
         if (m.importSparr) finns.add(m.importSparr);
+        const artiklar = new Set(m.vevorArtiklar ?? []);
+        if (m.supplierProductId) artiklar.add(m.supplierProductId);
+        for (const a of artiklarPaRaden({ supplierProductId: m.supplierProductId, variants: m.variants ?? [] }, VEVOR_ID_PREFIX)) {
+          artiklar.add(vevorSupplierProductId(a));
+        }
+        for (const id of artiklar) {
+          finns.add(id);
+          if (artiklar.size > 1) iFamilj.add(id);
+        }
       }
 
       for (const a of kandidater) {
@@ -222,24 +287,51 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
           markor = a.sku;
           continue;
         }
+        if (syskonSkus(a).some((sy) => iFamilj.has(vevorSupplierProductId(sy)))) {
+          s.hinder.syskon_finns++;
+          markor = a.sku;
+          continue;
+        }
 
+        let familj: Familj = { typ: "ensam" };
+        let produkt: AliExpressProduct;
         const bilder = valjVevorBilder(a.bilder);
         const granskning = vevorGranskning(a, bilder);
-        let produkt: AliExpressProduct;
         try {
-          produkt = vevorProdukt(a, pris, bilder);
+          if (syskonSkus(a).length > 0) {
+            const lasta = await deps.lager.lasAvlasningar(syskonSkus(a));
+            familj = byggFamilj(a, lasta, nu(), (sku) => finns.has(vevorSupplierProductId(sku)));
+          }
+          produkt =
+            familj.typ === "familj"
+              ? vevorFamiljeProdukt(familj, pris, bilder, (m) => valjVevorBilder(m.bilder).urls[0] ?? null)
+              : vevorProdukt(a, pris, bilder);
         } catch (err) {
-          // Ett pris som inte går att räkna på. Felet säger aldrig vilket.
+          // Syskonen gick inte att läsa, eller ett pris som inte går att räkna
+          // på. Felet säger aldrig vilket.
           console.error("[vevor-import] produkten gick inte att bygga:", err instanceof Error ? err.message : String(err));
           s.fel++;
           markor = a.sku;
           continue;
         }
+        if (familj.typ === "vanta") {
+          s.hinder.betyg_okant++;
+          markor = a.sku;
+          continue;
+        }
+        if (familj.typ === "ej_sammanslagen") s.familjer!.ejSammanslagna[familj.skal]++;
+        const medlemmar: Avlasning[] = familj.typ === "familj" ? familj.medlemmar : [a];
+        const recensioner = medlemmar.flatMap(vevorRecensioner);
 
         if (val.dryRun) {
           raknaUtkast(s, bilder.monster, bilder.egna, granskning);
+          raknaFamilj(s, medlemmar.length, recensioner.length);
           s.importerade++;
           platser--;
+          for (const m of medlemmar) {
+            finns.add(vevorSupplierProductId(m.sku));
+            if (medlemmar.length > 1) iFamilj.add(vevorSupplierProductId(m.sku));
+          }
           markor = a.sku;
           continue;
         }
@@ -249,9 +341,15 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
           resultat = await deps.importera(produkt);
           await deps.sparaMappning(byggVevorMappning(a, resultat, granskning, new Date(nu()).toISOString()));
           raknaUtkast(s, bilder.monster, bilder.egna, granskning);
+          raknaFamilj(s, resultat.variantMappings.length, recensioner.length);
           s.importerade++;
           varvImporterade++;
           platser--;
+          const artiklar = vevorArtiklarFor(resultat);
+          for (const aid of artiklar) {
+            finns.add(aid);
+            if (artiklar.length > 1) iFamilj.add(aid);
+          }
           finns.add(id);
           felIFoljd = 0;
           markor = a.sku;
@@ -261,11 +359,14 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
           console.error("[vevor-import] importen föll:", err instanceof Error ? err.message : String(err));
           s.fel++;
           if (resultat) {
-            // ☠️ Produkten finns i Wix men saknar mappningsrad. Spärra artikeln,
-            // annars skapar nästa varv samma vara en gång till.
-            s.foraldralosa.push(resultat.wixProductId);
-            nyaForaldralosa.push({ sku: a.sku, wixProductId: resultat.wixProductId, at: new Date(nu()).toISOString() });
-            finns.add(id);
+            // ☠️ Produkten finns i Wix men saknar mappningsrad. Spärra varje
+            // artikel på den, annars skapar nästa varv samma vara en gång till.
+            const wixProductId = resultat.wixProductId;
+            s.foraldralosa.push(wixProductId);
+            for (const m of medlemmar) {
+              nyaForaldralosa.push({ sku: m.sku, wixProductId, at: new Date(nu()).toISOString() });
+              finns.add(vevorSupplierProductId(m.sku));
+            }
             platser--;
           }
           felIFoljd++;
@@ -274,6 +375,20 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
             s.stoppadAv = "fel_i_foljd";
             markor = markorForeFelen;
             break yttre;
+          }
+          continue;
+        }
+
+        // Recensionerna, när produkten och raden finns. Ett fel här fäller
+        // inte importen: produkten är skapad och raden skriven.
+        if (recensioner.length > 0) {
+          try {
+            const sparade = await deps.sparaRecensioner(resultat.wixProductId, recensioner);
+            s.recensioner!.sparade += sparade;
+            if (sparade > 0) s.recensioner!.produkter++;
+          } catch (err) {
+            console.error("[vevor-import] recensionerna gick inte att spara:", err instanceof Error ? err.message : String(err));
+            s.recensioner!.fel++;
           }
         }
       }
@@ -308,6 +423,15 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
   } finally {
     await deps.lager.slappLas(agare).catch(() => undefined);
   }
+}
+
+/** En familj och dess recensioner till räknarna. En ensam artikel är ingen familj. */
+function raknaFamilj(s: Importsummering, varianter: number, recensioner: number): void {
+  if (varianter > 1) {
+    s.familjer!.sammanslagna++;
+    s.familjer!.varianter += varianter;
+  }
+  s.recensioner!.lasta += recensioner;
 }
 
 /** Ett utkast till räknarna: bildmönster, medicinteknik och GPSR. */

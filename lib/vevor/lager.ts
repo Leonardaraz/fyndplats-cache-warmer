@@ -32,7 +32,7 @@ import {
 } from "@/lib/db/wix-data-klient";
 import { VEVOR_KOL } from "@/lib/db/wix-kollektioner";
 import type { Robotsregel } from "./robots";
-import type { Sidinnehall, Tolkningsfel } from "./sida";
+import type { Sidinnehall, Tolkningsfel, VevorBetyg, VevorRecension } from "./sida";
 
 /** Hur ofta en sida läses. `katalog` = aldrig läst, står först i kön. */
 export type Sidklass = "katalog" | "utkast" | "publicerad" | "het";
@@ -71,7 +71,7 @@ export interface Sidrad {
 /** Artikelns status som den lästes. Okänt finns inte här: en okänd läsning sparas aldrig. */
 export type Avlasningsstatus = "i_lager" | "slut" | "ej_levererbar" | "borta";
 
-export interface Avlasning extends Omit<Sidinnehall, "egenskaper"> {
+export interface Avlasning extends Omit<Sidinnehall, "egenskaper" | "betyg" | "recensioner"> {
   webbId: string;
   sokvag: string;
   /** När sidan lästes, ISO. Adaptern räknar åldern på den (lib/vevor/rad.ts). */
@@ -97,6 +97,14 @@ export interface Avlasning extends Omit<Sidinnehall, "egenskaper"> {
    * avläsningarna ger samma regelpris (steg 5, lib/vevor/synk.ts).
    */
   forraPrisSek?: number | null;
+  /**
+   * VEVOR:s betyg (steg 8). Saknas fältet lästes sidan före steg 8, och då är
+   * betyget okänt: importen väntar på nästa läsning (lib/vevor/to-product.ts).
+   * Null betyder att sidan inte har något betyg.
+   */
+  betyg?: VevorBetyg | null;
+  /** Recensionerna sidan visade, högst tio. Saknas på avläsningar före steg 8. */
+  recensioner?: VevorRecension[];
 }
 
 /**

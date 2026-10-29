@@ -6,9 +6,14 @@ import { vevorGranskning } from "./granskning";
 import { SIDFRAGA } from "./sida";
 import { TESTSKU, testAvlasning, testSokvag } from "./testsida";
 import {
+  BETYG_GRANS,
+  BETYG_MIN_ANTAL,
   MAX_ALDER_IMPORT_MS,
+  betygshinder,
   byggVevorMappning,
   importhinder,
+  medlemshinder,
+  vevorRecensioner,
   specifikation,
   textTillHtml,
   vevorProdukt,
@@ -114,5 +119,69 @@ describe("byggVevorMappning", () => {
     expect(m.vevorGranskning).toEqual(g);
     expect(m.slugSuffix).toBe("-2");
     expect(m.variants[0].wixVariantId).toBe("v1");
+  });
+
+  it("vevorArtiklar bär radens artikel och varianternas, med prefix, en gång var", () => {
+    expect(m.vevorArtiklar).toEqual([`vevor:${TESTSKU}`]);
+    const familj = byggVevorMappning(
+      a,
+      {
+        ...resultat,
+        variantMappings: [
+          { supplierVariantId: TESTSKU, sku: "FP-a", choices: { Typ: "A" }, costUsd: 1, wixVariantId: "v1" },
+          { supplierVariantId: "TESTSKUSYSKON000002", sku: "FP-b", choices: { Typ: "B" }, costUsd: 1, wixVariantId: "v2" },
+        ],
+      } as unknown as ImportResult,
+      g,
+      "2026-10-29T12:00:00.000Z",
+    );
+    expect(familj.vevorArtiklar).toEqual([`vevor:${TESTSKU}`, "vevor:TESTSKUSYSKON000002"]);
+  });
+});
+
+describe("betyget (steg 8)", () => {
+  it(`☠️ under ${BETYG_GRANS} med minst ${BETYG_MIN_ANTAL} recensioner stoppar importen`, () => {
+    expect(betygshinder({ betyg: { snitt: 3.79, antal: 5 } })).toBe("lagt_betyg");
+    expect(importhinder(testAvlasning({ betyg: { snitt: 2.81, antal: 16 } }), NU)).toBe("lagt_betyg");
+  });
+
+  it("färre recensioner, eller ett betyg på gränsen, stoppar inte", () => {
+    expect(betygshinder({ betyg: { snitt: 3.79, antal: 4 } })).toBeNull();
+    expect(betygshinder({ betyg: { snitt: 3.8, antal: 196 } })).toBeNull();
+    expect(betygshinder({ betyg: { snitt: 5, antal: 1 } })).toBeNull();
+  });
+
+  it("☠️ en avläsning från före steg 8 väntar, en sida utan betyg gör det inte", () => {
+    expect(betygshinder({ betyg: undefined })).toBe("betyg_okant");
+    expect(importhinder(testAvlasning({ betyg: undefined }), NU)).toBe("betyg_okant");
+    expect(betygshinder({ betyg: null })).toBeNull();
+  });
+
+  it("lagret och leveransen går före betyget", () => {
+    expect(importhinder(testAvlasning({ saldo: 0, betyg: { snitt: 1, antal: 50 } }), NU)).toBe("ej_i_lager");
+    expect(importhinder(testAvlasning({ borta: true, betyg: undefined }), NU)).toBe("borta");
+  });
+
+  it("ett syskon som är slut får följa med en familj, men inte med lågt betyg", () => {
+    expect(medlemshinder(testAvlasning({ status: "slut", saldo: 0 }), NU)).toBeNull();
+    expect(medlemshinder(testAvlasning({ status: "slut", saldo: 0, betyg: { snitt: 3, antal: 9 } }), NU)).toBe("lagt_betyg");
+    expect(medlemshinder(testAvlasning({ levererasTillSe: false }), NU)).toBe("ej_levererbar");
+  });
+});
+
+describe("vevorRecensioner", () => {
+  it("sidans recensioner i importens format, utan tomma fält", () => {
+    expect(
+      vevorRecensioner({
+        recensioner: [
+          { betyg: 5, text: "Stabil och bra.", datum: "2026-09-14", namn: "Test P." },
+          { betyg: 4, text: "Funkar.", datum: null, namn: null },
+        ],
+      }),
+    ).toEqual([
+      { rating: 5, text: "Stabil och bra.", date: "2026-09-14", customerName: "Test P." },
+      { rating: 4, text: "Funkar." },
+    ]);
+    expect(vevorRecensioner({})).toEqual([]);
   });
 });
