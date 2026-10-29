@@ -1,8 +1,9 @@
 // POST /api/cron/aliexpress-sync
 //
-// AliExpress-sync. Körs av Vercel Cron varannan timme (vercel.json) så att
-// katalogen rullar igenom snabbare — ordervakten (/api/cron/order-guard)
-// sammanfattar dygnets körningar i morgonmejlet.
+// AliExpress-sync. Gick varannan timme fram till 2026-09-15, då cronen togs
+// bort ur vercel.json (#633). Leonard 2026-10-29: den förblir avstängd. Rutten
+// går att köra för hand, och ordervakten (/api/cron/order-guard) sammanfattar
+// körningarna i morgonmejlet. Utan cron säger mejlet att synken är avstängd.
 //
 // Vad rutten gör:
 //   1. Loopar igenom alla FyndplatsMappings (upp till MAX_API_CALLS per körning)
@@ -32,10 +33,6 @@ import {
   DEFAULT_SYNC_TIME_BUDGET_MS,
 } from "@/lib/sync/aliexpress-sync";
 import { audit } from "@/lib/audit";
-import { getSyncStore } from "@/lib/sync/sync-log";
-import { getStore } from "@/lib/store/factory";
-import { AUDIT_RETENTION_DAYS, LLM_STATS_RETENTION_DAYS, SYNC_LOG_RETENTION_DAYS } from "@/lib/retention";
-import { LLM_COLLECTIONS, llmPruneOlderThan } from "@/lib/llm/storage";
 import { buildDailySummaryEmail, sendEmail } from "@/lib/email/resend";
 import { isPersistentBackend } from "@/lib/store/backend";
 
@@ -82,62 +79,8 @@ async function handle(req: NextRequest): Promise<NextResponse> {
     ).replace(/^https?:\/\//, "https://").replace(/\/$/, "");
     const opsEmailForAlerts = process.env.OPS_ALERT_EMAIL;
 
-    // ☠️ RETENTIONEN KÖRS FÖRST, OCH VARJE GÅNG. Båda delarna är lärdomar från
-    // 2026-08-31, då Wix Datas radtak var nått och `FyndplatsAliExpressSyncLog`
-    // inte kunde ta emot fler rader — samma tak avvisade nya order-tasks, så en
-    // betald order (10024) föll ur pipelinen.
-    //
-    // Låg FÖRE: en städning som ligger efter arbetet är beroende av att arbetet
-    // lyckas. Det höll den här gången (loopen fångar per-produkt-fel och rutten
-    // svarar 200), men under fan-out-haveriet 2026-08-28 dog lambdan mitt i och
-    // då hade städningen aldrig körts — precis när den behövdes som mest.
-    // Städning som bara går när allt annat fungerar är ingen städning.
-    //
-    // Låg BAKOM en `getUTCHours() < 4`-grind: nattgrinden fanns för att slippa
-    // raderingsjobb var fjärde timme. Priset var att ett fullt lager inte kunde
-    // städas förrän nästa natt — upp till ett dygn med tappade ordrar. Jobbet är
-    // asynkront hos Wix och no-op:ar när filtret inte matchar något, så en
-    // körning i timmen kostar ett anrop och inget mer.
-    //
-    // Fönstren är satta efter UPPMÄTT volym, inte efter magkänsla. Vid 5 470
-    // mappningar skriver synken ~600 loggrader/dygn: 21 dygn blev 12 278 rader,
-    // varav 8 306 äldre än en vecka. Ingenting läser så gammalt — morgonmejlet
-    // tittar på senaste dygnet (SYNC_DIGEST_WINDOW_MS), /admin på de 200
-    // senaste och produkthistoriken på de 50 senaste. Samma sak för auditen:
-    // 90 dygn var 4 723 rader när talet sattes och 22 977 när katalogen växt.
-    // Ändras katalogens storlek igen är det de här två talen som ska följa med.
-    const retentionDays = numberFromEnv("SYNC_LOG_RETENTION_DAYS", SYNC_LOG_RETENTION_DAYS);
-    try {
-      const jobId = await getSyncStore().pruneLogOlderThan(retentionDays);
-      console.log(`[sync] loggstädning startad (>${retentionDays} dygn), jobId=${jobId}`);
-    } catch (pruneErr) {
-      console.warn(
-        `[sync] loggstädning misslyckades: ${pruneErr instanceof Error ? pruneErr.message.slice(0, 200) : String(pruneErr)}`,
-      );
-    }
-
-    const auditRetentionDays = numberFromEnv("AUDIT_RETENTION_DAYS", AUDIT_RETENTION_DAYS);
-    try {
-      const res = await getStore().pruneAuditOlderThan(auditRetentionDays);
-      console.log(`[sync] auditstädning startad (>${auditRetentionDays} dygn), ${res}`);
-    } catch (pruneErr) {
-      console.warn(
-        `[sync] auditstädning misslyckades: ${pruneErr instanceof Error ? pruneErr.message.slice(0, 200) : String(pruneErr)}`,
-      );
-    }
-
-    // LLM-statistiken hade INGEN städning alls och växte med en rad per
-    // anrop. Den delar site-bred postgräns med mappningar och ordrar, så den
-    // åt utrymme från fulfillment-tasken för en betald order.
-    const llmRetentionDays = numberFromEnv("LLM_STATS_RETENTION_DAYS", LLM_STATS_RETENTION_DAYS);
-    try {
-      const res = await llmPruneOlderThan(LLM_COLLECTIONS.stats, llmRetentionDays);
-      console.log(`[sync] llm-statsstädning startad (>${llmRetentionDays} dygn), ${res}`);
-    } catch (pruneErr) {
-      console.warn(
-        `[sync] llm-statsstädning misslyckades: ${pruneErr instanceof Error ? pruneErr.message.slice(0, 200) : String(pruneErr)}`,
-      );
-    }
+    // Loggstädningen låg här fram till 2026-10-29 och har sedan dess en egen
+    // cron (/api/cron/retention). Den här cronen är avstängd sedan 2026-09-15.
 
     const summary = await runDailySync({
       pricing,

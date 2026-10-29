@@ -27,6 +27,8 @@ import { fetchOrders, isoDaysAgo } from "@/lib/wix/orders";
 import { getSyncStore } from "@/lib/sync/sync-log";
 import { queryAuctions } from "@/lib/auction/store";
 import {
+  AE_SYNK_RUTT,
+  arSchemalagd,
   buildGuardEmail,
   buildGuardFindings,
   buildSyncDigest,
@@ -39,6 +41,9 @@ import { searchProductSummaries } from "@/lib/wix/client";
 import { sendEmail } from "@/lib/email/resend";
 import { audit } from "@/lib/audit";
 import { isPersistentBackend } from "@/lib/store/backend";
+// Bakas in i samma bygge som cron-schemat, så vakten vet vilka jobb som ska
+// ha kört utan en egen flagga som kan glömmas när schemat ändras.
+import vercelKonfig from "@/vercel.json";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -96,6 +101,7 @@ export async function GET(req: NextRequest) {
       baseUrl: (
         process.env.NEXT_PUBLIC_APP_URL ?? "https://fyndplats-cache-warmer.vercel.app"
       ).replace(/\/$/, ""),
+      aeSynkSchemalagd: arSchemalagd(vercelKonfig.crons, AE_SYNK_RUTT),
     };
     try {
       extras.syncRollup = rollupSyncRuns(auditEntries, now);

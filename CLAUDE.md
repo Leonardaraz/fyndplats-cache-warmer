@@ -8382,6 +8382,9 @@ förturen ovan ligger två strikes nu ~2 h isär i stället för en hel rotation
 tiden till FÖRSTA observationen halveras (~20 h i stället för ~40 vid 980
 mappningar).
 
+⚠️ **Cronen är avstängd sedan 2026-09-15**, och Leonard bestämde 2026-10-29 att
+den ska förbli det. Se *AliExpress-synken är avstängd med flit* nedan.
+
 Priset är att bevisen ligger tätare: en AE-driftstörning som varar över två
 timmar kan nu hinna ge två strikes där den förut gav en. Utfallet är dock
 begränsat och självläkande — lagret nollas, sidan ligger kvar publicerad,
@@ -8458,6 +8461,55 @@ Två lagningar, och båda behövs:
 som skriker.** Och den nya, som är dyrare: **en obegränsad fan-out skalar med
 katalogen — den är en tidsinställd bomb, inte en bugg.** Leta efter
 `Promise.all` över något som växer.
+
+### AliExpress-synken är avstängd med flit (2026-09-15, Leonard 2026-10-29)
+
+Cronen `/api/cron/aliexpress-sync` togs bort ur vercel.json 2026-09-15 (#633).
+Neons CU-timmar höll på att ta slut, och Leonard hade pausat AliExpress till
+förmån för Aosom. Neon är ersatt av Wix sedan 2026-10-29, så det första skälet
+finns inte längre. Leonard bestämde samma dag att synken ändå ska förbli
+avstängd.
+
+Mätt 2026-10-29:
+
+| | |
+|---|--:|
+| AliExpress-mappningar | 912 |
+| i synkens urval (inte avvisade) | 767 |
+| publicerade | 749 |
+| köpbara (i lager eller delvis) | 622 |
+| ordrar sedan 2026-09-15 med en AliExpress-vara | 19 av 111 |
+| AliExpress-rader i de ordrarna som skickats | 22 av 22 |
+
+Ingenting kollar alltså om AliExpress-varorna finns kvar eller vad de kostar.
+En vara som tagits ner hos AliExpress står kvar som köpbar, och felet syns
+först när ordern ska läggas. Prishöjningar larmas inte. Bara synken skriver
+sync-larm, så de öppna larmen i `/admin/sync-alerts` är från före 2026-09-15.
+
+Det som fortfarande går: nyckeln förnyas av workflowen "Refresh AliExpress
+tokens" (den 2026-10-29 giltig till 2026-11-25), och spårningen för
+AliExpress-ordrar hämtas av workflowen "Poll AliExpress tracking" i GitHub
+Actions, inte av Vercel.
+
+Två saker hängde på cronen och har flyttat:
+
+1. **Morgonmejlet läser vercel.json** (`arSchemalagd` i `lib/orders/guard.ts`).
+   Utan cron-rad säger statusraden att synken är avstängd, utan ⛔. Står raden
+   i vercel.json men synken har inte kört larmar mejlet som förut. Sedan
+   2026-10-29 räknas dessutom varje ⛔ i ämnesraden: "⛔ SYNKEN HAR INTE KÖRT"
+   stod i mejlet varje dag i sex veckor, under ämnesraden "✅ allt rullar".
+2. **Loggstädningen har en egen cron**, `/api/cron/retention` kl 02:50 UTC
+   (`lib/retention-korning.ts`). Den låg i synkens rutt och har inte körts
+   sedan 2026-09-15. Den 2026-10-29 hade auditen 10 104 rader, varav 7 706
+   äldre än 14 dygn, och synkloggen 8 954, alla äldre än sju. Första körningen
+   raderar ungefär de raderna. En körning per dygn räcker med Wix Business
+   Elite; med taket på 4 000 rader (2026-08-31) behövdes den varje timme.
+
+Slå på synken igen: lägg tillbaka raden
+`{ "path": "/api/cron/aliexpress-sync", "schedule": "0 */2 * * *" }` i
+vercel.json. Inget annat behöver ändras, och morgonmejlet väntar sig då
+körningar igen. Med standardvärdet 100 AliExpress-anrop per körning
+(`SYNC_MAX_API_CALLS`) hinns urvalet med på ungefär 16 timmar.
 
 ## ☠️ Orderpipelinen hade EN väg in, och inget nät under (2026-08-31)
 

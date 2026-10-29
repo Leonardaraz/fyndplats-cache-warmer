@@ -5,7 +5,8 @@ import { AUDIT_RETENTION_DAYS, LLM_STATS_RETENTION_DAYS, SYNC_LOG_RETENTION_DAYS
 import { __resetLlmMemoryStore, llmGet, llmPruneOlderThan, llmSave } from "./llm/storage";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const ROUTE = "app/api/cron/aliexpress-sync/route.ts";
+const ROUTE = "app/api/cron/retention/route.ts";
+const KORNING = "lib/retention-korning.ts";
 
 describe("retention mot läsarna", () => {
   it("☠️ synk-loggen sparas längre än morgonmejlet läser", () => {
@@ -35,36 +36,57 @@ describe("retention mot läsarna", () => {
   });
 });
 
-describe("städningen i synk-cronen", () => {
-  const src = readFileSync(ROUTE, "utf-8");
+// ☠️ Städningen låg i AliExpress-synkens rutt fram till 2026-10-29. Den cronen
+// togs bort 2026-09-15, och sex veckor senare hade auditen 7 706 rader äldre
+// än sitt fönster. Städning som hänger på ett annat jobb slutar när jobbet
+// slutar. Sedan dess har den en egen cron (lib/retention-korning.ts).
+describe("städningen i en egen cron", () => {
+  const cronRad = () => {
+    const konfig = JSON.parse(readFileSync("vercel.json", "utf-8")) as {
+      crons?: { path: string; schedule: string }[];
+    };
+    return (konfig.crons ?? []).find((c) => c.path.split("?")[0] === "/api/cron/retention");
+  };
 
-  it("☠️ körs FÖRE synken — en städning efter arbetet kräver att arbetet lyckas", () => {
-    // Under fan-out-haveriet 2026-08-28 dog lambdan mitt i loopen. Låg
-    // städningen efter hade den aldrig körts, precis när den behövdes mest.
-    const pruneIdx = src.indexOf("pruneLogOlderThan");
-    const syncIdx = src.indexOf("await runDailySync(");
-    expect(pruneIdx).toBeGreaterThan(-1);
-    expect(syncIdx).toBeGreaterThan(-1);
-    expect(pruneIdx).toBeLessThan(syncIdx);
+  it("☠️ är schemalagd i vercel.json", () => {
+    expect(cronRad()).toBeDefined();
+  });
+
+  it("☠️ körs varje dygn", () => {
+    // Minut och timme får vara vad som helst, men dag, månad och veckodag ska
+    // vara `*`. Ett schema som bara går vissa dagar låter auditen växa
+    // emellan, och ett skrivfel där syns inte förrän tabellen är stor.
+    const [, , dag, manad, veckodag] = (cronRad()?.schedule ?? "").trim().split(/\s+/);
+    expect([dag, manad, veckodag]).toEqual(["*", "*", "*"]);
+  });
+
+  it("rutten städar alla tre loggarna med sina riktiga funktioner", () => {
+    // Typen kräver tre steg, men ett steg kunde vara en tom funktion.
+    const src = readFileSync(ROUTE, "utf-8");
+    expect(src).toContain("getSyncStore().pruneLogOlderThan(");
+    expect(src).toContain("getStore().pruneAuditOlderThan(");
+    expect(src).toContain("llmPruneOlderThan(LLM_COLLECTIONS.stats,");
   });
 
   it("☠️ är INTE gatad bakom en nattgrind", () => {
-    // Nattgrinden (`getUTCHours() < 4`) sparade raderingsjobb men gjorde att ett
-    // fullt lager inte kunde städas förrän nästa natt — upp till ett dygn med
-    // tappade ordrar.
+    // Nattgrinden (`getUTCHours() < 4`) i synkrutten sparade raderingsjobb men
+    // gjorde att ett fullt lager inte kunde städas förrän nästa natt — upp
+    // till ett dygn med tappade ordrar.
     //
-    // Matchar bara KOD: kommentaren ovanför städningen citerar den borttagna
-    // grinden med flit, och ett test som fäller på sin egen dokumentation
-    // lär bara läsaren att stryka förklaringen.
-    const utanKommentarer = src
-      .replace(/\/\*[\s\S]*?\*\//g, "")
-      .split("\n")
-      .filter((rad) => !rad.trim().startsWith("//"))
-      .join("\n");
-    // Inget `[^)]*` här: den klassen stoppar vid första parentesen och kan
-    // därför aldrig passera `new Date()` — en tidigare version av det här
-    // testet passerade med grinden återinförd av just det skälet.
-    expect(utanKommentarer).not.toContain("getUTCHours");
+    // Matchar bara KOD: en kommentar som citerar den borttagna grinden får
+    // stå kvar, och ett test som fäller på sin egen dokumentation lär bara
+    // läsaren att stryka förklaringen.
+    for (const fil of [ROUTE, KORNING]) {
+      const utanKommentarer = readFileSync(fil, "utf-8")
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .split("\n")
+        .filter((rad) => !rad.trim().startsWith("//"))
+        .join("\n");
+      // Inget `[^)]*` här: den klassen stoppar vid första parentesen och kan
+      // därför aldrig passera `new Date()` — en tidigare version av det här
+      // testet passerade med grinden återinförd av just det skälet.
+      expect(utanKommentarer).not.toContain("getUTCHours");
+    }
   });
 });
 
@@ -78,14 +100,6 @@ describe("LLM-statistikens retention", () => {
     expect(LLM_STATS_RETENTION_DAYS).toBeLessThanOrEqual(90);
   });
 
-  it("städas i samma cron-körning som de andra loggarna", () => {
-    const src = readFileSync(ROUTE, "utf-8");
-    const llmIdx = src.indexOf("llmPruneOlderThan");
-    const syncIdx = src.indexOf("await runDailySync(");
-    expect(llmIdx).toBeGreaterThan(-1);
-    // Samma invariant som de andra: städning FÖRE arbetet.
-    expect(llmIdx).toBeLessThan(syncIdx);
-  });
 });
 
 describe("llmPruneOlderThan", () => {

@@ -18,6 +18,10 @@
       "schedule": "45 4 * * *"
     },
     {
+      "path": "/api/cron/retention",
+      "schedule": "50 2 * * *"
+    },
+    {
       "path": "/api/cron/order-backfill",
       "schedule": "25 * * * *"
     },

@@ -327,9 +327,31 @@ export interface GuardExtras {
    * token-VÄRDE får någonsin nå ett mejl.
    */
   aliExpressTokenExpiresAt?: string;
+  /**
+   * Står AliExpress-synken i vercel.json? Routen läser det ur filen (se
+   * `arSchemalagd`). `false` betyder avstängd med flit: cronen togs bort
+   * 2026-09-15 (#633), och Leonard bestämde 2026-10-29 att den ska förbli
+   * avstängd. Då är noll körningar väntat, och mejlet säger det utan ⛔.
+   * Saknas fältet räknas synken som schemalagd: hellre ett larm för mycket.
+   */
+  aeSynkSchemalagd?: boolean;
   /** Datakällor som inte gick att läsa (vakten larmar hellre än döljer). */
   sectionErrors: string[];
   baseUrl: string;
+}
+
+/** Rutten AliExpress-synken körs på. */
+export const AE_SYNK_RUTT = "/api/cron/aliexpress-sync";
+
+/**
+ * Står rutten bland cron-raderna? Frågedelen räknas inte, eftersom en rad kan
+ * bära sina parametrar (`/api/cron/aosom-sync?dryRun=false&…`).
+ *
+ * Routen skickar vercel.json:s egna rader, så svaret följer schemat i samma
+ * bygge och kan inte glida isär från en separat flagga.
+ */
+export function arSchemalagd(crons: readonly { path: string }[] | undefined, rutt: string): boolean {
+  return (crons ?? []).some((c) => c.path.split("?")[0] === rutt);
 }
 
 function esc(s: string): string {
@@ -362,9 +384,8 @@ export function buildGuardEmail(
   const oosSuffix = (extras.syncDigest?.oos.length ?? 0) > 0
     ? ` · ${extras.syncDigest!.oos.length} slut hos leverantör`
     : "";
-  const subject = (issues === 0
-    ? "✅ Fyndplats morgonkoll: allt rullar"
-    : `⚠️ Fyndplats morgonkoll: ${issues} ${issues === 1 ? "sak" : "saker"} behöver dig`) + oosSuffix;
+  // ⛔-raderna i statusremsan räknas också i ämnesraden (se `kritiska` nedan),
+  // så ämnesraden byggs sist.
 
   const html: string[] = [];
   const text: string[] = [];
@@ -504,7 +525,19 @@ export function buildGuardEmail(
 
   // Statusrad — alltid med, som kvitto på att alla system rapporterar.
   const statusBits: string[] = [];
-  if (extras.syncRollup) {
+  // ☠️ ⛔ RÄKNAS I ÄMNESRADEN (2026-10-29). Raden "SYNKEN HAR INTE KÖRT" stod i
+  // morgonmejlet varje dag från 2026-09-17 till 2026-10-29, under ämnesraden
+  // "✅ allt rullar". Ett ⛔ som bara syns för den som öppnar mejlet är samma
+  // tysta fel som raden skrevs mot.
+  let kritiska = 0;
+  if (extras.syncRollup?.runs === 0 && extras.aeSynkSchemalagd === false) {
+    // Avstängd med flit. Varken ⛔ eller "0 körningar": raden ska säga vad
+    // som gäller, inte larma om ett beslut varje morgon. Kör någon synken för
+    // hand går körningen den vanliga vägen nedan.
+    statusBits.push(
+      "AliExpress-synken är avstängd (ingen cron i vercel.json): lager och priser på AliExpress-sidorna följs inte.",
+    );
+  } else if (extras.syncRollup) {
     const s = extras.syncRollup;
     statusBits.push(
       `Synken: ${s.runs} körningar, ${s.checked}${s.total ? `/${s.total}` : ""} produkter kollade` +
@@ -524,6 +557,7 @@ export function buildGuardEmail(
     // om den skulle ha skrivit. Samma tanke som torrkörningsraden från
     // 2026-08-24 — ett läge där butiken är oskyddad får inte se ut som statistik.
     if (s.runs === 0) {
+      kritiska++;
       statusBits.push(
         "⛔ SYNKEN HAR INTE KÖRT det senaste dygnet — inga lager- eller prisuppdateringar alls. "
           + "Slutsålda och nedtagna produkter förblir köpbara. Kolla /api/cron/aliexpress-sync i Vercels loggar.",
@@ -550,6 +584,7 @@ export function buildGuardEmail(
     if (!Number.isFinite(kvarMs)) {
       statusBits.push("⚠️ AliExpress-tokens utgångstid går inte att tolka — kontrollera /api/aliexpress/refresh.");
     } else if (kvarMs <= 0) {
+      kritiska++;
       statusBits.push(
         "⛔ AliExpress-token har GÅTT UT — varje anrop mot AliExpress failar "
           + "(IllegalAccessToken). Lager och priser uppdateras inte. Kör workflowen "
@@ -587,6 +622,11 @@ export function buildGuardEmail(
     `<p style="margin:18px 0 0;"><a href="${extras.baseUrl}/admin" style="display:inline-block;background:#F47A35;color:#fff;text-decoration:none;padding:10px 18px;border-radius:6px;font-weight:600;font-size:14px;">Öppna admin</a></p>`,
   );
   text.push("", `Admin: ${extras.baseUrl}/admin`);
+
+  const iAmnet = issues + kritiska;
+  const subject = (iAmnet === 0
+    ? "✅ Fyndplats morgonkoll: allt rullar"
+    : `⚠️ Fyndplats morgonkoll: ${iAmnet} ${iAmnet === 1 ? "sak" : "saker"} behöver dig`) + oosSuffix;
 
   return { subject, html: html.join("\n"), text: text.join("\n").trim() };
 }

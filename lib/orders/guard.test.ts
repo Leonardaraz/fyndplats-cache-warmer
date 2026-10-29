@@ -7,6 +7,8 @@ import {
   SYNC_DIGEST_MAX_ROWS,
   SYNC_DIGEST_WINDOW_MS,
   TASK_GRACE_MS,
+  AE_SYNK_RUTT,
+  arSchemalagd,
   buildGuardEmail,
   buildGuardFindings,
   buildSyncDigest,
@@ -469,5 +471,73 @@ describe("rollupSyncRuns + statusrad: torrkörning och nämnare", () => {
       syncRollup: { runs: 6, checked: 600, flaggedPrice: 0, flaggedContent: 0, hidden: 0, markedOos: 0, restored: 0, errors: 0, total: 876, skipped: 0, dryRuns: 2, throttled: 0 },
     }, NOW);
     expect(email.text).toContain("2 av 6 synk-körningar var torrkörningar");
+  });
+});
+
+// ── Synken avstängd med flit, och ⛔ i ämnesraden (2026-10-29) ───────────────
+//
+// AliExpress-cronen togs bort 2026-09-15, och Leonard bestämde 2026-10-29 att
+// den ska förbli borta. Morgonmejlet sa ändå "⛔ SYNKEN HAR INTE KÖRT" varje
+// dag i sex veckor, under ämnesraden "✅ allt rullar". Båda var fel: ett ⛔ om
+// ett beslut, och ett ✅ ovanför ett ⛔.
+
+describe("synken avstängd med flit, och ⛔ i ämnesraden", () => {
+  const noll = { runs: 0, checked: 0, flaggedPrice: 0, flaggedContent: 0, hidden: 0, markedOos: 0, restored: 0, errors: 0, total: 0, skipped: 0, dryRuns: 0, throttled: 0 };
+  const bas = { sectionErrors: [] as string[], baseUrl: "https://example.test" };
+
+  it("ingen cron och noll körningar → en lugn rad, varken ⛔ eller nollor, och ✅", () => {
+    const email = buildGuardEmail(findings({}), { ...bas, syncRollup: noll, aeSynkSchemalagd: false }, NOW);
+    expect(email.text).toContain("AliExpress-synken är avstängd");
+    expect(email.text).not.toContain("SYNKEN HAR INTE KÖRT");
+    expect(email.text).not.toContain("0 körningar");
+    expect(email.subject).toBe("✅ Fyndplats morgonkoll: allt rullar");
+  });
+
+  it("☠️ schemalagd men noll körningar → ⛔, och ämnesraden säger att något behöver dig", () => {
+    const email = buildGuardEmail(findings({}), { ...bas, syncRollup: noll, aeSynkSchemalagd: true }, NOW);
+    expect(email.text).toContain("SYNKEN HAR INTE KÖRT");
+    expect(email.text).not.toContain("AliExpress-synken är avstängd");
+    expect(email.subject).toBe("⚠️ Fyndplats morgonkoll: 1 sak behöver dig");
+  });
+
+  it("☠️ okänt schema räknas som schemalagt — hellre ett larm för mycket", () => {
+    const email = buildGuardEmail(findings({}), { ...bas, syncRollup: noll }, NOW);
+    expect(email.text).toContain("SYNKEN HAR INTE KÖRT");
+    expect(email.subject).not.toContain("allt rullar");
+  });
+
+  it("avstängd men körd för hand → vanliga siffror", () => {
+    const email = buildGuardEmail(findings({}), {
+      ...bas,
+      syncRollup: { ...noll, runs: 1, checked: 100, total: 767 },
+      aeSynkSchemalagd: false,
+    }, NOW);
+    expect(email.text).toContain("Synken: 1 körningar, 100/767 produkter kollade");
+    expect(email.text).not.toContain("AliExpress-synken är avstängd");
+  });
+
+  it("utgången token räknas också i ämnesraden", () => {
+    const email = buildGuardEmail(findings({}), {
+      ...bas,
+      syncRollup: noll,
+      aeSynkSchemalagd: false,
+      aliExpressTokenExpiresAt: new Date(NOW - HOUR).toISOString(),
+    }, NOW);
+    expect(email.text).toContain("AliExpress-token har GÅTT UT");
+    expect(email.subject).toBe("⚠️ Fyndplats morgonkoll: 1 sak behöver dig");
+  });
+
+  it("⛔ läggs till ordrarna i ämnesraden, inte i stycket om ordrarna", () => {
+    const email = buildGuardEmail(findings({}), { ...bas, syncRollup: noll, aeSynkSchemalagd: true }, NOW);
+    // Ordrarna är i ordning, och stycket ska säga det även när synken larmar.
+    expect(email.text).toContain("Inga fastnade ordrar");
+  });
+
+  it("arSchemalagd hittar rutten med och utan frågedel, och bara den", () => {
+    expect(arSchemalagd([{ path: AE_SYNK_RUTT }], AE_SYNK_RUTT)).toBe(true);
+    expect(arSchemalagd([{ path: `${AE_SYNK_RUTT}?dryRun=false` }], AE_SYNK_RUTT)).toBe(true);
+    expect(arSchemalagd([{ path: "/api/cron/aosom-sync?dryRun=false&rotation=lager" }], AE_SYNK_RUTT)).toBe(false);
+    expect(arSchemalagd([{ path: `${AE_SYNK_RUTT}-ny` }], AE_SYNK_RUTT)).toBe(false);
+    expect(arSchemalagd(undefined, AE_SYNK_RUTT)).toBe(false);
   });
 });

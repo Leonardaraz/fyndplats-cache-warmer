@@ -26,7 +26,11 @@ import {
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+// 300 sekunder, som de andra cron-rutterna. Med 60 föll jobbet 21 av 30 dagar
+// sedan 2026-09-30 (504 FUNCTION_INVOCATION_TIMEOUT): katalogsvepet tar ungefär
+// en sekund per sida om 100 produkter, och de lyckade körningarna tog 59–66
+// sekunder. Efter VEVOR-importen är katalogen ~220 sidor.
+export const maxDuration = 300;
 
 function isAuthorized(req: NextRequest): boolean {
   const expected = process.env.CRON_SECRET;
