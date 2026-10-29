@@ -18,6 +18,7 @@
 //                   "ej kopplat".
 
 import { sql } from "./db";
+import { anvanderWix, kundvagnar, nyhetsbrev, ordrar } from "./wix-lager";
 import { getProducts, type Product } from "./products";
 import { productCountLabel } from "./rating";
 
@@ -180,13 +181,19 @@ async function getOrdersSection(now: Date): Promise<OrdersSection> {
   // 2. Fallback: lokal spegel-tabell.
   try {
     const since = new Date(now.getTime() - 8 * 24 * 60 * 60 * 1000).toISOString();
-    const res = await sql/*sql*/`
-      SELECT total_minor, currency, items_json, created_at
-        FROM orders
-       WHERE created_at >= ${since}
-       ORDER BY created_at DESC
-    `;
-    const agg = aggregateOrders(res.rows as unknown as OrderRow[], now);
+    let rows: OrderRow[];
+    if (await anvanderWix()) {
+      rows = (await ordrar.sedan(since)) as unknown as OrderRow[];
+    } else {
+      const res = await sql/*sql*/`
+        SELECT total_minor, currency, items_json, created_at
+          FROM orders
+         WHERE created_at >= ${since}
+         ORDER BY created_at DESC
+      `;
+      rows = res.rows as unknown as OrderRow[];
+    }
+    const agg = aggregateOrders(rows, now);
     return {
       source: "local-mirror",
       ...agg,
@@ -287,6 +294,13 @@ async function getAbandonedSection(now: Date): Promise<AbandonedSection> {
     const since = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
     // "Inte återhämtade senaste 24h": kundvagnar som blev övergivna senaste dygnet
     // och INTE konverterat till order.
+    if (await anvanderWix()) {
+      return {
+        available: true,
+        notRecovered24h: await kundvagnar.raknaEjKonverteradeSedan(since),
+        pendingTotal: await kundvagnar.raknaVantande(),
+      };
+    }
     const r24 = await sql/*sql*/`
       SELECT COUNT(*)::int AS n FROM abandoned_carts
        WHERE abandoned_at >= ${since} AND status <> 'converted'
@@ -311,6 +325,9 @@ async function getAbandonedSection(now: Date): Promise<AbandonedSection> {
 async function getNewsletterSection(now: Date): Promise<NewsletterSection> {
   try {
     const since = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    if (await anvanderWix()) {
+      return { available: true, new7d: await nyhetsbrev.raknaNyaSedan(since), total: await nyhetsbrev.raknaPrenumeranter() };
+    }
     const r7 = await sql/*sql*/`
       SELECT COUNT(*)::int AS n FROM newsletter_subscribers
        WHERE subscribed_at >= ${since} AND status = 'subscribed'

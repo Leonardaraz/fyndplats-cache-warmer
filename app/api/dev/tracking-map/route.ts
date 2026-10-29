@@ -16,6 +16,7 @@
 import { NextResponse } from "next/server";
 import { timingSafeEqual } from "node:crypto";
 import { sql, runMigration } from "@/lib/db";
+import { anvanderWix, smsLogg, smsOmatchade, sparning } from "@/lib/wix-lager";
 import { parseSms } from "@/lib/sms-parser";
 
 export const runtime = "nodejs";
@@ -71,6 +72,17 @@ export async function POST(req: Request) {
         { status: 400 },
       );
     }
+    if (await anvanderWix()) {
+      await sparning.sparaHelt({
+        trackingNumber: body.tracking_number,
+        orderId: body.order_id ?? null,
+        customerEmail: body.customer_email,
+        customerName: body.customer_name ?? null,
+        customerPhone: body.customer_phone ?? null,
+        status: body.status ?? "pending",
+      });
+      return NextResponse.json({ ok: true, inserted: body.tracking_number });
+    }
     await sql/*sql*/`
       INSERT INTO tracking_mapping (
         tracking_number, order_id, customer_email, customer_name, customer_phone, status
@@ -113,6 +125,14 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
   if (!authorised(req)) {
     return NextResponse.json({ ok: false, error: "unauthorised" }, { status: 401 });
+  }
+  if (await anvanderWix()) {
+    return NextResponse.json({
+      ok: true,
+      mappings: await sparning.senaste(50),
+      recent_audit: await smsLogg.senaste(20),
+      unmatched: await smsOmatchade.senaste(20),
+    });
   }
   const mappings = await sql/*sql*/`
     SELECT tracking_number, order_id, customer_email, customer_name, status, updated_at

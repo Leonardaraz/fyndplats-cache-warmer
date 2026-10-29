@@ -17,6 +17,7 @@
 // ta över. Fail-open vid DB-fel: hellre ett (ev. dubbelt) mejl än ett tappat.
 
 import { sql } from "./db";
+import { anvanderWix, webhookMejl } from "./wix-lager";
 
 let ensured: Promise<void> | null = null;
 function ensureTable(): Promise<void> {
@@ -42,6 +43,7 @@ function ensureTable(): Promise<void> {
 export async function claimWebhookEmail(eventKey: string): Promise<boolean> {
   if (!eventKey) return true;
   try {
+    if (await anvanderWix()) return await webhookMejl.ansprak(eventKey);
     await ensureTable();
     const { rows } = await sql/*sql*/`
       INSERT INTO webhook_email_sent (event_key)
@@ -61,6 +63,10 @@ export async function claimWebhookEmail(eventKey: string): Promise<boolean> {
 export async function releaseWebhookEmail(eventKey: string): Promise<void> {
   if (!eventKey) return;
   try {
+    if (await anvanderWix()) {
+      await webhookMejl.slapp(eventKey);
+      return;
+    }
     await sql/*sql*/`DELETE FROM webhook_email_sent WHERE event_key = ${eventKey}`;
   } catch (err) {
     console.error("[webhook-email-dedup] release misslyckades", err instanceof Error ? err.message : err);

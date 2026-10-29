@@ -14,6 +14,7 @@
 // dubblett än ett tappat leveransmejl.
 
 import { sql } from "./db";
+import { anvanderWix, leveransnotiser } from "./wix-lager";
 
 let ensured: Promise<void> | null = null;
 function ensureTable(): Promise<void> {
@@ -77,14 +78,19 @@ export async function claimDeliveryNotification(
   // mot dubbletter när DB-claimen fail-open:ar under en DB-glitch).
   if (seenThisProcess.has(localKey)) return false;
   try {
-    await ensureTable();
-    const { rows } = await sql/*sql*/`
-      INSERT INTO delivery_notifications (tracking_number, status, channel, customer_email)
-      VALUES (${trackingNumber}, ${status}, ${channel}, ${customerEmail ?? null})
-      ON CONFLICT (tracking_number, status) DO NOTHING
-      RETURNING tracking_number
-    `;
-    const won = rows.length > 0;
+    let won: boolean;
+    if (await anvanderWix()) {
+      won = await leveransnotiser.ansprak(trackingNumber, status, channel, customerEmail ?? null);
+    } else {
+      await ensureTable();
+      const { rows } = await sql/*sql*/`
+        INSERT INTO delivery_notifications (tracking_number, status, channel, customer_email)
+        VALUES (${trackingNumber}, ${status}, ${channel}, ${customerEmail ?? null})
+        ON CONFLICT (tracking_number, status) DO NOTHING
+        RETURNING tracking_number
+      `;
+      won = rows.length > 0;
+    }
     if (won) rememberLocal(localKey);
     return won;
   } catch (err) {
@@ -102,6 +108,10 @@ export async function releaseDeliveryNotification(trackingNumber: string, status
   // Släpp även in-process-vakten så en retry (eller den andra kanalen) kan ta över.
   seenThisProcess.delete(`${trackingNumber}|${status}`);
   try {
+    if (await anvanderWix()) {
+      await leveransnotiser.slapp(trackingNumber, status);
+      return;
+    }
     await sql/*sql*/`
       DELETE FROM delivery_notifications WHERE tracking_number = ${trackingNumber} AND status = ${status}
     `;
@@ -117,6 +127,7 @@ export async function releaseDeliveryNotification(trackingNumber: string, status
 export async function redanSkickad(trackingNumber: string, status: string): Promise<boolean> {
   if (!trackingNumber || !status) return false;
   try {
+    if (await anvanderWix()) return await leveransnotiser.finns(trackingNumber, status);
     await ensureTable();
     const { rows } = await sql/*sql*/`
       SELECT 1 FROM delivery_notifications

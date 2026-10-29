@@ -27,6 +27,7 @@
 
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db";
+import { anvanderWix, sparning } from "@/lib/wix-lager";
 import { fetchAliExpressEvents } from "@/lib/ae-source";
 import { sendDeliveryNotification } from "@/lib/delivery-notify";
 import { ordrarAttSvepa } from "@/lib/delivery-order";
@@ -79,6 +80,13 @@ export async function GET(request: Request) {
   // också, av samma skäl: vi vet inte vem mejlet gäller.
   let rader: MappingRad[];
   try {
+    if (await anvanderWix()) {
+      rader = await sparning.forPoll(
+        [...POLL_STATUSAR],
+        new Date(Date.now() - POLL_MAX_ÅLDER_DAGAR * 24 * 60 * 60 * 1000).toISOString(),
+        POLL_MAX_PER_KÖRNING,
+      );
+    } else {
     // sql.query i stället för taggen: taggen tar bara primitiver, och
     // statuslistan ska vara EN array-parameter så urvalet följer POLL_STATUSAR
     // hur många status den än får — inte två inskrivna platshållare.
@@ -92,6 +100,7 @@ export async function GET(request: Request) {
       [[...POLL_STATUSAR], POLL_MAX_ÅLDER_DAGAR, POLL_MAX_PER_KÖRNING],
     );
     rader = r.rows;
+    }
   } catch (err) {
     console.error("[ae-delivery-poll] tracking_mapping-läsning misslyckades", err);
     return NextResponse.json({ ok: false, error: "db_read_failed" }, { status: 500 });
@@ -159,10 +168,14 @@ export async function GET(request: Request) {
     // fått mejlet — pollen ÄR återförsöket. Se lib/delivery-status.
     if (skaSkrivaStatus(utfall)) {
       try {
-        await sql/*sql*/`
-          UPDATE tracking_mapping SET status = ${status}, updated_at = NOW()
-           WHERE tracking_number = ${rad.tracking_number}
-        `;
+        if (await anvanderWix()) {
+          await sparning.sattStatus(rad.tracking_number, status);
+        } else {
+          await sql/*sql*/`
+            UPDATE tracking_mapping SET status = ${status}, updated_at = NOW()
+             WHERE tracking_number = ${rad.tracking_number}
+          `;
+        }
       } catch (err) {
         console.error(`[ae-delivery-poll] statusskrivning ${rad.tracking_number} misslyckades`, err);
       }

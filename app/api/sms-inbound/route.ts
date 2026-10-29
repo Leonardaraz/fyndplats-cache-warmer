@@ -23,6 +23,7 @@ import { timingSafeEqual } from "node:crypto";
 import { Resend } from "resend";
 import { render } from "@react-email/render";
 import { sql } from "@/lib/db";
+import { anvanderWix, smsLogg, smsOmatchade, sparning } from "@/lib/wix-lager";
 import { parseSms, type ParsedSms } from "@/lib/sms-parser";
 import { claimDeliveryNotification, releaseDeliveryNotification } from "@/lib/delivery-dedup";
 import { sendDeliveryNotification } from "@/lib/delivery-notify";
@@ -105,8 +106,24 @@ async function logAudit(
     // tracking number from tracking_mapping that wasn't in the SMS text.
     trackingNumberOverride?: string;
   } = {},
-): Promise<number | null> {
+): Promise<number | string | null> {
   try {
+    if (await anvanderWix()) {
+      return await smsLogg.logga({
+        rawFrom: parsed.raw_from,
+        rawText: parsed.raw_text,
+        carrier: parsed.carrier ?? null,
+        status: parsed.status ?? null,
+        pickupLocation: parsed.pickup_location ?? null,
+        pickupCode: parsed.pickup_code ?? null,
+        trackingNumber: opts.trackingNumberOverride ?? parsed.tracking_number ?? null,
+        matched,
+        emailSent: opts.emailSent ?? false,
+        resendId: opts.resendId ?? null,
+        error: opts.error ?? null,
+        matchStrategy: opts.matchStrategy ?? null,
+      });
+    }
     const r = await sql/*sql*/`
       INSERT INTO sms_audit (
         raw_from, raw_text, carrier, status, pickup_location, pickup_code,
@@ -128,8 +145,18 @@ async function logAudit(
   }
 }
 
-async function logUnmatched(parsed: ParsedSms, auditId: number | null, reason: string): Promise<void> {
+async function logUnmatched(parsed: ParsedSms, auditId: number | string | null, reason: string): Promise<void> {
   try {
+    if (await anvanderWix()) {
+      await smsOmatchade.logga({
+        auditId: auditId == null ? null : String(auditId),
+        rawFrom: parsed.raw_from,
+        rawText: parsed.raw_text,
+        trackingNumber: parsed.tracking_number ?? null,
+        reason,
+      });
+      return;
+    }
     await sql/*sql*/`
       INSERT INTO sms_unmatched (audit_id, raw_from, raw_text, tracking_number, reason)
       VALUES (${auditId}, ${parsed.raw_from}, ${parsed.raw_text}, ${parsed.tracking_number ?? null}, ${reason})
@@ -150,6 +177,10 @@ interface TrackingMappingRow {
 
 async function findMapping(trackingNumber: string): Promise<TrackingMappingRow | null> {
   try {
+    if (await anvanderWix()) {
+      const rad = await sparning.hamta(trackingNumber);
+      return rad && rad.status !== "ambiguous" ? rad : null;
+    }
     const r = await sql<TrackingMappingRow>/*sql*/`
       SELECT tracking_number, order_id, customer_email, customer_name, customer_phone, status
         FROM tracking_mapping
@@ -174,6 +205,10 @@ async function findMapping(trackingNumber: string): Promise<TrackingMappingRow |
 // count + recent-fallback-throttle.
 async function findFifoCandidate(): Promise<{ candidate: TrackingMappingRow | null; pendingCount: number }> {
   try {
+    if (await anvanderWix()) {
+      const rader = await sparning.fifo(new Date(Date.now() - FIFO_MAX_AGE_DAYS * 24 * 60 * 60 * 1000).toISOString());
+      return { candidate: rader[0] ?? null, pendingCount: rader.length };
+    }
     const r = await sql<TrackingMappingRow>/*sql*/`
       SELECT tracking_number, order_id, customer_email, customer_name, customer_phone, status
         FROM tracking_mapping
@@ -191,6 +226,7 @@ async function findFifoCandidate(): Promise<{ candidate: TrackingMappingRow | nu
 
 async function recentFifoCount(hours: number): Promise<number> {
   try {
+    if (await anvanderWix()) return await smsLogg.raknaFifoSedan(new Date(Date.now() - hours * 60 * 60 * 1000).toISOString());
     const r = await sql<{ n: number }>/*sql*/`
       SELECT COUNT(*)::int AS n
         FROM sms_audit

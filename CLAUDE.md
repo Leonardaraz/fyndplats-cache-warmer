@@ -503,6 +503,69 @@ local `node_modules` carries pnpm's `.modules.yaml`). When adding deps: run
 `package-lock.json` in sync. Don't `npm install` packages directly — it leaves
 `pnpm-lock.yaml` stale and the dep won't install on deploy.
 
+## Butikens tabeller flyttar från Neon till Wix CMS (2026-10-29)
+
+Leonard köpte Wix Elite 2026-10-28 (10 miljoner rader) och bad om att allt i
+Neon flyttar tillbaka till Wix. Butiken har en **egen** Neon-databas, så
+den flyttar för sig: motorns flytt står i motorns `CLAUDE.md` (grenen `main`).
+
+Femton tabeller: kundvagnarna och deras mejl, använda adresser, spårningen
+(`tracking_mapping`), sms-loggarna, leveransnotiserna, webhook-mejlen,
+nyhetsbrevet, orderspegeln, Trustpilot-inbjudningarna, prishistoriken,
+orderbekräftelserna, ångerärendena och fraktmejlskön.
+
+`lib/wix-lager.ts` är Wix-lagret: klienten, växeln och en del per tabell med
+samma läsningar och skrivningar som SQL-satserna. Varje modul frågar växeln
+först (`anvanderWix()`), och Postgres-vägen står kvar tills Neon stängs.
+
+| steg | vad | kräver bygge? |
+|---|---|:---:|
+| 1 | koden, med växeln på Postgres | **ja** (buntas med annat) |
+| 2 | kollektionerna i Wix, ADMIN, index, och växelns rad (`lager: postgres`) | nej |
+| 3 | `kopiera`, sedan `verifiera` (motorns workflow, läget butik) | nej |
+| 4 | växelns rad till `wix` | **nej** |
+| 5 | `delta` direkt efter, med `vaxling` = när raden skrevs | nej |
+| 6 | följ driften, ta bort Postgres-vägen och stäng Neon | ja |
+
+Åtta egenskaper som inte ska tas bort:
+
+1. ☠️ **Växeln är en rad i Wix** (`FyndplatsButikInstallningar/datalager`,
+   fältet `lager`), läst högst en gång i minuten per instans. Att byta lager
+   kostar inget bygge, och ett bygge tömmer ISR-cachen för hela katalogen.
+   Saknas raden gäller Postgres. Går den inte att läsa gäller senast kända
+   läge, och vid en kallstart Postgres: en sådan rad i Neon efter växlingen
+   plockas upp av delta-läget.
+2. ☠️ **Ett `_id` i Wix är högst 128 tecken, ASCII och skiljetecken**
+   (uppmätt 2026-10-29, `WDE0075`). E-post, händelsenycklar och
+   spårningsnummer går genom `wixNyckel`, som hashar det som inte får plats.
+   Lagret och kopian använder samma funktion; ett test låser att ett kopierat
+   id är detsamma som lagret skriver.
+3. ☠️ **`$exists: false` matchar inte null** (uppmätt samma dag). Inget fält
+   skrivs som null (`utanTomma`), och "släpp" i fraktmejlskön är
+   `REMOVE_FIELD`. En väntande rad med `sentAt: null` hade aldrig gått att ta.
+4. ☠️ **Anspråken är inserts som vägrar ett id som finns** (WDE0074), som
+   Postgres `ON CONFLICT DO NOTHING RETURNING`. Efter ett nätverksfel avgör
+   radens token vem som äger raden.
+5. ☠️ **Fraktmejlskön tas under ett lås per order** (`taLas`). Postgres tog
+   alla orderns nummer i en sats; utan låset hade två samtidiga webhooks kunnat
+   ta ett nummer var, och kunden fått två mejl. Ett lås äldre än en minut tas
+   över, villkorat.
+6. **Spårningen bär numret i versaler** (`trackingNumberUpper`), för
+   GLS-källan jämför skiftlägesokänsligt (`UPPER(tracking_number)`).
+7. **Leveranssvepet räknas i `svepKandidater`** (`lib/delivery-status.ts`,
+   ren och testad), med samma regler som SQL-frågan i
+   `lib/delivery-order.ts`.
+8. ☠️ **Kopians svar är publikt:** id bara som hash, fel bara som status och
+   WDE-kod, markören förseglad med `ADMIN_SECRET`. Butikens id bär e-post och
+   spårningsnummer.
+
+`lib/wix-lager-grind.test.ts` fäller varje fil som använder `sql` utan att
+fråga växeln. Kopieringen (`/api/admin/neon-till-wix`) är det enda undantaget.
+
+⚠️ **Spårningstabellerna rör Leonards regel om "Ditt paket är framme".**
+`tracking_mapping`, `delivery_notifications` och 17TRACK-webhooken byter
+lager med resten. Ingen logik ändras, men PR:en mergas först efter hans ja.
+
 ## Trustpilot: bara gratisdelen är på (2026-10-22)
 
 Leonard ville ha Trustpilot på omdömessidan. Kontot är på gratisplanen, och

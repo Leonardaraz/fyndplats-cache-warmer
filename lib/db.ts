@@ -3,12 +3,15 @@
 // touching call sites. Uses the connection-pool client (recommended for serverless).
 
 import { sql } from '@vercel/postgres';
+import { anvanderWix } from './wix-lager';
 
 export { sql };
 
 // Run the migration in-process. Idempotent: every CREATE is guarded with IF NOT EXISTS.
 // Inlined rather than file-read so this works in any Vercel runtime (edge or node).
 export async function runMigration(): Promise<{ ok: true }> {
+  // I Wix (lib/wix-lager.ts) finns inga tabeller att skapa: kollektionerna är skapade i förväg.
+  if (await anvanderWix()) return { ok: true };
   await sql/*sql*/`
     CREATE TABLE IF NOT EXISTS abandoned_carts (
       id                   TEXT PRIMARY KEY,
