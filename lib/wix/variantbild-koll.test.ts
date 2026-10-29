@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { WixAnrop } from "../polish/skrivplan";
-import { korVariantbildKoll, listaProdukterMedVal, MED_VAL_FILTER } from "./variantbild-koll";
+import { korVariantbildKoll, listaKatalogen, MED_VAL_FILTER } from "./variantbild-koll";
 
 type Obj = Record<string, unknown>;
 
@@ -95,10 +95,10 @@ function fejkWix(produkter: Obj[], enVariant: string[] = [], over: { andraPrisPa
 const vanta = async () => {};
 const langt = () => Date.now() + 60_000;
 
-describe("listaProdukterMedVal", () => {
+describe("listaKatalogen", () => {
   it("går igenom alla sidor med produkter som har val, utkast med", async () => {
     const w = fejkWix([produkt("a", true, false), produkt("b", false, true), produkt("c", true, true)], ["d"], { enVal: ["e"] });
-    const lista = await listaProdukterMedVal(w.wix, vanta);
+    const lista = await listaKatalogen(w.wix, vanta);
     // "d" har inga val och kommer aldrig med. "e" har ett val och en variant:
     // den följer med frågan, och urvalet på antalet varianter görs i kollen.
     expect(lista.map((p) => [p.id, p.visible, p.varianter])).toEqual([
@@ -108,7 +108,7 @@ describe("listaProdukterMedVal", () => {
 
   it("☠️ filtret går bara med på första sidan, markören bär det vidare", async () => {
     const w = fejkWix([produkt("a", true, false), produkt("b", false, true), produkt("c", true, true)], ["d"]);
-    await listaProdukterMedVal(w.wix, vanta);
+    await listaKatalogen(w.wix, vanta);
     const fragor = w.anrop.filter((a) => a.sokvag === "/stores/v3/products/query").map((a) => (a.kropp as Obj).query as Obj);
     expect(fragor).toHaveLength(2);
     expect(fragor[0]).toEqual({ filter: MED_VAL_FILTER, cursorPaging: { limit: 100 } });
@@ -125,7 +125,7 @@ describe("listaProdukterMedVal", () => {
       if (++n > 1) throw new Error("Wix 400: INVALID_CURSOR");
       return { products: [{ id: "a", variantSummary: { variantCount: 2 } }], pagingMetadata: { cursors: { next: "x" }, hasNext: true } };
     };
-    await expect(listaProdukterMedVal(wix, vanta)).rejects.toThrow(/sida 1/);
+    await expect(listaKatalogen(wix, vanta)).rejects.toThrow(/sida 1/);
   });
 });
 

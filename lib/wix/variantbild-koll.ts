@@ -60,8 +60,11 @@ const obj = (v: unknown): Obj => (v && typeof v === "object" && !Array.isArray(v
  * Alla produkter med val: id, synlighet och antal varianter. Utan
  * synlighetsvillkor, med flit — utkasten ska med. Kastar hellre än returnerar
  * en halv lista.
+ *
+ * Namnet är kvar från när svepet läste hela katalogen. Katalogtakets test
+ * (lib/wix/katalogtak.test.ts, VEVOR steg 5) anropar funktionen med det.
  */
-export async function listaProdukterMedVal(
+export async function listaKatalogen(
   wix: WixAnrop,
   vanta: (ms: number) => Promise<void>,
 ): Promise<KatalogRad[]> {
@@ -164,7 +167,7 @@ export async function korVariantbildKoll(wix: WixAnrop, opts: KollOpts): Promise
   if (opts.ids?.length) {
     lista = opts.ids.map((id) => ({ id, visible: true, varianter: 2 }));
   } else {
-    const alla = await listaProdukterMedVal(wix, vanta);
+    const alla = await listaKatalogen(wix, vanta);
     medVal = alla.length;
     lista = alla.filter((p) => p.varianter > 1);
   }
