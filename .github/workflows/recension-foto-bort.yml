@@ -1,0 +1,106 @@
+name: Recensioner — ta bort enskilda foton (och visa en dold recension igen)
+
+# Tar bort BARA fotot (eller fotona) från utpekade recensioner och lämnar texten,
+# betyget och datumet. Raden kan också visa en dold (rejected) recension igen.
+# Inget raderas ur Wix media. Se lib/reviews/foto-bort.ts för reglerna.
+#
+# Varje rad pekar ut recensionen (produkt-id + recensions-id) och de EXAKTA
+# bildadresser som ska bort; en adress som inte står på recensionen läggs aldrig
+# till. Hämta id:n och adresser ur motorns /api/reviews/<produkt-id>.
+#
+#   rader = [{"productId":"<wix-id>","reviewIdAE":"gen-…","bilder":["https://static.wixstatic.com/media/…"],"visaIgen":true}]
+#
+# Torrt som default: visar vad som SKULLE ändras. skarp = ja skriver, men bara när
+# listan är felfri, och säger därefter till butiken att förnya produktsidorna
+# (annars ligger den gamla sidan kvar tills sexttimmarscachen går ut).
+#
+# Listan bär produkt-id, recensions-id och bildadresser. ALDRIG namn, texter eller
+# artikelnummer: workflow-körningar och deras indata är synliga i en publik repo.
+# Loggen bär bara räknare, initialer och datum.
+#
+# Återanvänder befintliga repository secrets:
+#   POLL_TRACKING_URL — bas-URL:en härleds härifrån (byter path-suffix)
+#   CRON_SECRET — samma värde som CRON_SECRET i Vercel env vars
+
+on:
+  workflow_dispatch:
+    inputs:
+      rader:
+        description: 'JSON-lista, högst 200 rader: [{"productId":"…","reviewIdAE":"gen-…","bilder":["https://…"],"visaIgen":true}]'
+        required: true
+        type: string
+      skarp:
+        description: "ja = skriv. nej = torrkörning (visar vad som skulle ändras)."
+        required: false
+        default: "nej"
+        type: choice
+        options:
+          - "nej"
+          - "ja"
+
+jobs:
+  foto-bort:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ta bort fotona
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SKARP: ${{ inputs.skarp }}
+          RADER: ${{ inputs.rader }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          if ! printf '%s' "$RADER" | jq -e 'type == "array" and length > 0' > /dev/null 2>&1; then
+            echo "::error::rader ska vara en JSON-lista med minst en rad" >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/recension-foto-bort"
+          [ "${SKARP:-nej}" = "ja" ] && url="${url}?skarp=ja"
+
+          body="$(jq -n --argjson rader "$RADER" '{rader: $rader}')"
+
+          svar="$(curl -sS -w '\n%{http_code}' --max-time 150 -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" -H "Content-Type: application/json" \
+            --data "$body" "$url")"
+          kod="$(printf '%s' "$svar" | tail -n1)"
+          json="$(printf '%s' "$svar" | sed '$d')"
+          if [ "$kod" != "200" ]; then
+            echo "::error::HTTP ${kod}" >&2
+            printf '%s\n' "$json" | jq -c '{ok, error, fel}' >&2 || true
+            exit 1
+          fi
+
+          printf '%s' "$json" | jq -r '.rader[] | "\(.utfall)\t\(.initialer // "-")\t\(.datum // "-")\t\(.bilderFore)->\(.bilderEfter)\t\(.productId)/\(.reviewIdAE)"'
+
+          skrivna="$(printf '%s' "$json" | jq -r '.skrivna')"
+          misslyckade="$(printf '%s' "$json" | jq -r '.misslyckade')"
+          butiken="$(printf '%s' "$json" | jq -r '.butiken.utfall // "inte tillfrågad"')"
+          problem="$(printf '%s' "$json" | jq -r '[.rader[] | select(.utfall == "fel" or .utfall == "recension_saknas")] | length')"
+
+          {
+            echo "### Ta bort foton — $([ "${SKARP:-nej}" = "ja" ] && echo SKARP || echo TORRKÖRNING)"
+            echo ""
+            echo "| utfall | initialer | datum | bilder före → efter | status före → efter | saknade adresser | produkt/recension |"
+            echo "|---|---|---|---|---|---|---|"
+            printf '%s' "$json" | jq -r '.rader[] | "| \(.utfall) | \(.initialer // "–") | \(.datum // "–") | \(.bilderFore) → \(.bilderEfter) | \(.statusFore // "–") → \(.statusEfter // "–") | \(.saknade) | \(.productId)/\(.reviewIdAE) |"'
+            echo ""
+            echo "**Skrivna:** ${skrivna} · **Misslyckade:** ${misslyckade} · **Rader med problem:** ${problem} · **Butiken sagd att förnya sidorna:** ${butiken}"
+            felrader="$(printf '%s' "$json" | jq -r '.fel[]?' || true)"
+            if [ -n "$felrader" ]; then
+              echo ""
+              echo "**Fel i listan:**"
+              printf '%s\n' "$felrader" | sed 's/^/- /'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "${SKARP:-nej}" = "ja" ] && { [ "$misslyckade" != "0" ] || [ "$problem" != "0" ]; }; then
+            echo "::error::${misslyckade} misslyckade, ${problem} rader med problem: se sammanfattningen" >&2
+            exit 1
+          fi
+          echo "KLART: ${skrivna} skrivna, butiken: ${butiken}"

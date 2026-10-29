@@ -9202,6 +9202,44 @@ avbryta — per-nyckel-bevis, inte en radräkning. Ett test låser riktningen.
    körning för alltid. Snittet jämförs med 0,1 i tolerans (Postgres avrundar i
    SQL, Wix i JavaScript), antalet exakt.
 
+### Rätta en enskild recension: dölj, ta bort bara fotot, visa igen (2026-10-29)
+
+Tre små verktyg, alla torra som default (`skarp = ja` skriver), alla utan att något
+raderas för gott:
+
+- **`recension-dolj.yml`** döljer EN recension (status `rejected`) som letas upp på det
+  kunden ser: en bit text, initialer, datum, produkt-id. Återställs i `/admin/reviews`.
+- **`recension-foto-bort.yml`** tar bort BARA fotot (eller fotona) från utpekade
+  recensioner och lämnar texten, betyget och datumet. Listan bär produkt-id,
+  recensions-id och de exakta bildadresserna (hämtas ur `/api/reviews/<produkt-id>`),
+  högst 200 rader. Raden kan också ha `"visaIgen": true`, som flyttar en dold
+  recension tillbaka till `edited`; en väntande (`pending`) publiceras aldrig. Filen
+  ligger kvar i Wix media, men ingen sida pekar på den. Se `lib/reviews/foto-bort.ts`.
+  Skarp körning kräver en felfri lista (ett fel i listan = ingenting skrivs).
+- Efter varje skarp körning säger båda till butiken att produktens recensioner ändrats
+  (`uppdateraProduktsidor(..., { vad: "recensioner" })` mot butikens
+  `/api/admin/uppdatera-produkter`).
+
+☠️ **Utan det sista steget ligger en ändrad recension kvar på sidan i sex timmar.**
+Mätt 2026-10-29: en dold recension syntes fortfarande 80 minuter efter att den döljts.
+Butikens cron `/api/cron/uppdatera-andrade` frågar motorns `/api/review-andringar` var
+femte minut, men loggade `recensioner –` på varje rad (det som `andradeRecensioner` ger
+när svaret saknas, inte när det är tomt: `REVIEW_INGEST_SECRET` osatt i butiken, ett svar
+som inte är 200, eller 501 från motorn när recensionslagret inte är Postgres; orsaken är
+inte utredd). Därför sker inget förrän säkerhetsnätet (`revalidate = 21600`)
+går ut. Wix-vägen hjälper inte: den tömmer produktens post och sida, men inte
+recensionshämtningen, som har egen tagg (`recensioner-<id>`). Det som tömmer just den
+är `vad: "recensioner"`. Vercels `invalidate_by_tags` hittar inte butikens cache
+("CDN Cache Namespace not found") och `revalidateTag("reviews")` gör ~3 700 sidor
+inaktuella på en gång, så båda är fel verktyg för en enskild produkt.
+⚠️ Ändrar `vad` saknas i en post töms bara produktens egen post. `AndradProdukt.vad` i
+`lib/headless/produktsidor.ts` finns just för det här.
+
+⚠️ Verifiera en rättelse mot `/api/reviews/<produkt-id>` (visar ändringen inom en minut,
+CDN-cache med stale-while-revalidate), inte mot produktsidan förrän butiken sagts till
+eller sex timmar gått. `/api/review-aggregates` ligger också i en CDN-cache (en timme eller
+mer) och visar gamla antalet längre.
+
 ## Mediainventering: "utan katalogreferens" är inte "oanvänd"
 
 Mediabiblioteket på headless-sajten hade **30 231 bilder** 2026-08-27, mot 1 696

@@ -7,6 +7,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { isAuthorized } from "@/lib/auth";
 import { audit } from "@/lib/audit";
 import { getReviewStore } from "@/lib/store/reviews";
+import { uppdateraProduktsidor } from "@/lib/headless/produktsidor";
 import { planeraDolj, type DoljSokning } from "@/lib/reviews/dolj-enskild";
 
 export const runtime = "nodejs";
@@ -64,11 +65,23 @@ export async function POST(req: NextRequest) {
     await audit("reviews", "recension-dolj", `${dolda.length} dold(a): ${dolda.join(", ")}`);
   }
 
+  // Säg till butiken att recensionerna ändrats. Butikens egen cron frågar motorns
+  // /api/review-andringar var femte minut, men 2026-10-29 svarade den inte ("recensioner –"
+  // på varje rad i butikens cron-logg), och då låg en dold recension kvar på produktsidan
+  // tills sexttimmarscachen gick ut. Best-effort: ett fel här ändrar inte att recensionen
+  // är dold, och uppdateraProduktsidor kastar aldrig.
+  let butiken: { utfall: string; status?: number; produkter?: number } | undefined;
+  if (dolda.length > 0) {
+    const produkter = [...new Set(plan.attDolja.map((r) => r.productId))].map((id) => ({ id, vad: "recensioner" as const }));
+    butiken = await uppdateraProduktsidor(produkter, "recension-dolj").catch(() => ({ utfall: "misslyckades" }));
+  }
+
   return NextResponse.json({
     ok: true,
     skarp,
     granskade: rader.length,
     stopp: plan.stopp,
+    ...(butiken ? { butiken } : {}),
     // Bara det som redan syns på produktsidan (initialer, datum, text) plus id:n.
     // Kundens råa namn och land lämnar aldrig lagret.
     traffar: plan.traffar.map((r) => ({
