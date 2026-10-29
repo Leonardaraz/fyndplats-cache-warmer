@@ -8708,10 +8708,43 @@ Fakturan och kvittot anger valutakoden SEK (`VALUTA`, sedan 2026-10-14). En
 företagskunds inköpsorder krävde valutakod på fakturan, och "kr" räknas inte
 som en.
 
+### Spårningen hämtas av Vercels cron, inte av GitHub (2026-10-29)
+
+`/api/cron/poll-tracking` går varje timme från `vercel.json`. Fram till
+2026-10-29 väcktes den bara av GitHub Actions (`0 */3 * * *`), eftersom
+Hobby-planen bara tillät dagliga Vercel-cron. Motorn ligger på Pro nu, och där
+går Vercels cron på minuten.
+
+GitHub kör inte schemalagda workflows när de ska. Uppmätt 24–29 oktober, på de
+senaste 100 schemalagda körningarna (122 timmar):
+
+| workflow | schema | väntat | kört | mellan körningarna |
+|---|---|--:|--:|---|
+| Poll AliExpress tracking | var tredje timme | ~41 | 22 | 2,3–8,4 h |
+| Fyndauktion tick | var tionde minut | ~735 | 29 | 1,8–7,1 h |
+| Cache Warm Fyndplats | var 30:e minut | ~245 | 27 | |
+| Refresh AliExpress tokens | var tolfte timme | ~10 | 11 | 9,8–14,5 h |
+
+Spårningen var den enda av dem utan en annan klocka: auktionen har en timcron i
+`vercel.json`, butiken värmer sina sidor med egna cron, och tokenförnyelsen har
+ett fönster på 24 timmar. Ett paket som AliExpress skickat kunde alltså vänta
+upp till åtta timmar på kundens "paketet är skickat".
+
+Två egenskaper som inte ska tas bort:
+
+1. ☠️ **GitHub-schemat är borttaget, inte kvar som reserv.** Rutten har ingen
+   spärr mot två samtidiga körningar. Båda hade läst samma `ordered`-task och
+   försökt skapa en fulfillment, och det enda som stoppar den andra är att Wix
+   vägrar skicka samma rad två gånger. Workflowen finns kvar för en körning för
+   hand (`workflow_dispatch`).
+2. **Ett jobb som en kund väntar på schemaläggs i `vercel.json`.**
+   `app/api/cron/poll-tracking/schema.test.ts` fäller om spårningen försvinner
+   därifrån, går mer sällan än var tredje timme eller får tillbaka GitHub-schemat.
+
 ### Aosom-ordern har ingen automatik alls — den läggs OCH skeppas för hand
 
 AliExpress sköter sig självt: `place-order` lägger ordern, `poll-tracking` hämtar
-spårningen var 15:e minut, Wix-fulfillment skapas, kunden får sitt mejl. Aosom har
+spårningen varje timme, Wix-fulfillment skapas, kunden får sitt mejl. Aosom har
 inget API — `place-order.ts` **vägrar** en Aosom-mappning med flit
 (`isAliExpressMapping`) och ordern läggs på `aosom.de/bulkordering` eller i deras
 kassa.
