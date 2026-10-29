@@ -190,27 +190,19 @@ Fyra egenskaper som inte ska tas bort:
 3. **Totalantalet är det största någon sida svarade.** Krymper katalogen under
    hämtningen cachas den inte, hellre än att en produkt saknas.
 4. **Försäljningen och färgvalen startar först när en sida har svarat.**
-   Färgvalen cachar ett misslyckat svar som tomt i 30 minuter.
+   Färgvalen cachar ett misslyckat svar som tomt i 30 minuter, och katalogen
+   räknas inte som degraderad när de saknas, så sidorna instansen bygger
+   cachas utan färgfilter och färgbilder. Därför försöks en sida i färgfrågan
+   om efter 0,5 och 2 s vid 429, 5xx och nätfel (2026-10-29: åtta 503:or på
+   sex timmar, på sida 11–13 av 13, mot ungefär 100 lyckade hämtningar). En
+   annan 4xx kastar direkt, och ett fel som står kvar efter tre försök kastar
+   som förut. Loggraden `[wix] färgval hämtade` slutar på `, N omförsök` när
+   ett omförsök behövdes.
 
 Loggraden visar numera två tider, `— 51 sidor på … s, allt på … s`, där "allt"
 är sidorna plus försäljningen och färgvalen. Varje ny instans hämtar
 fortfarande hela katalogen, så den raden kommer lika ofta som förut, bara
 snabbare.
-
-### Färgfrågan försöker om en sida innan den ger upp (2026-10-29)
-
-Färgfrågan är nu 13 sidor (1 224 produkter med optioner). Produktionen loggade
-`färgfrågan svarade HTTP 503 på sida 11–13` åtta gånger på sex timmar, mot
-ungefär 100 lyckade hämtningar. Varje fel tömde färgfiltret och kortens
-färgbilder för hela instansen: katalogen hämtas en gång per instans och räknas
-inte som degraderad när färgerna saknas, så sidorna den byggde cachades utan
-dem.
-
-Nu försöks en sida om efter 0,5 och 2 s vid 429, 5xx och nätfel, samma steg som
-varianthämtningen till Google-flödet. En annan 4xx kastar direkt. Står felet
-kvar efter tre försök kastar hämtningen som förut, för hellre ingen facett än
-fel antal. Loggraden `[wix] färgval hämtade` slutar på `, N omförsök` när ett
-omförsök behövdes.
 
 ## Länkar som bara renderas vid hovring finns inte för Google (2026-09-24)
 
