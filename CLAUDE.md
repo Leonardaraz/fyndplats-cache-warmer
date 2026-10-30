@@ -8298,6 +8298,39 @@ själv) och `/api/reviews/customer` (kunden väljer själv). En avvisad recensio
 efterhand kan återinföra en dubblett, eftersom avvisade rader inte tar någon plats. Kör
 verktyget torrt igen efter en sådan omgodkännande: det hittar och rättar den.
 
+✅ **Körd i drift 2026-10-30** (Leonards ja 11:56). Planen vid den skarpa körningen var 596 rader
+på 549 produkter, inte de 570 som mättes en timme tidigare: Vevor 438 (412 vid mätningen), Aosom
+112, AliExpress-import 46, kund 0. Hela skillnaden ligger i Vevor-raderna, eftersom Vevor-importen
+fortsatte att lägga till rader (37 190 i lagret vid mätningen, 39 295 efter körningen). 54 av de
+nya paren (9,1 %) fick Å eller Ö. Ett oberoende Wix-svep gav exakt samma fem tal före körningen.
+Skarpt i EN körning (`hogst=2000`, `bekrafta=596`) på 3 minuter 8 sekunder, i linje med förra
+körningens 3,6 rader per sekund: 596 rader ändrade, 0 fel, 0 avvikelser vid återläsningen, 0
+ändrade under tiden, 0 sena återläsningar. Läsningen av lagret tog 14 sekunder (20, 14 och 12
+sekunder i de tre körningarna). Butiken sades till för 549 produkter i två anrop, inga
+misslyckade. Torrkörningen direkt efteråt: 0 kvar, 2 kundomdömen orörda.
+
+Kontrollerat efter körningen, mot butikens sidor och mot hela lagret:
+
+- Nio produktsidor hämtades före och efter (`displayName` ur sidans payload). Efteråt hade de
+  `age` 0 till 3 sekunder och visade de nya namnen. Överskjutande dubbletter bland de visade
+  namnen: 22 före, 0 efter. Antalet visade namn var oförändrat på alla nio, och kundomdömet på
+  kattlådan behöll sina initialer.
+- Hela lagret räknades om read-only: 39 295 rader på 7 622 produkter, 0 grupper som delar plats
+  och 0 förbjudna bokstäver. Två rader står i bokstavsordning, båda kundomdömen som rörs först med
+  `kundomdomen=ja` (de två "kundomdömen orörda" i räknaren). Status: väntande 26 081, redigerade
+  10 629, godkända 1 775, avvisade 810 (lika många avvisade som före körningen). Flest
+  recensioner på en produkt är 66, så ingen produkt kan få slut på par. Å eller Ö finns på 1 160
+  av 39 294 rader (3,0 %).
+- Lagret går att läsa med 16 delfrågor, `productId` `$startsWith` på första hextecknet, fyra åt
+  gången: 3,8 sekunder mot 8,5 sekunder sekventiellt. Summan av delarna ska vara lika med
+  `count` (den var det: 39 295), annars har en produkt-id med annat första tecken fallit bort.
+
+⚠️ Två saker att veta framöver. Sammanslagningen med `omdirigera=ja` kopierar givarens
+recensioner med deras egna initialer och kan återinföra en dubblett, på samma sätt som en avvisad
+recension som godkänns i efterhand: kör verktyget torrt efter en sådan sammanslagning. Och
+`bekrafta` ska vara planens tal från torrkörningen precis före den skarpa (rutten svarar annars
+med rätt tal), eftersom lagret växer medan Vevor-importen pågår.
+
 ## Recensionernas svenska ska låta som en kund, inte som en AI (2026-09-24)
 
 Leonard 2026-09-24: recensionerna var välskrivna men såg AI-skrivna ut —
