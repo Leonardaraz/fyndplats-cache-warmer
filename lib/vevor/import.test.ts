@@ -5,7 +5,7 @@ import { MemoryStore } from "@/lib/store/memory";
 import { RabattFel } from "./pris";
 import { MinnesVevorImportLager } from "./import-lager";
 import type { Sidrad } from "./lager";
-import { FEL_I_FOLJD, STOPP_FOR_LARM, TAK_MARGINAL, VILA_MS, WIX_MAX_PRODUKTER, korVevorImport, type ImportDeps } from "./import";
+import { FEL_I_FOLJD, STOPP_FOR_LARM, TAK_MARGINAL, VILA_MS, VILA_VANTAR_MS, WIX_MAX_PRODUKTER, korVevorImport, type ImportDeps } from "./import";
 import { testAvlasning, testgalleri } from "./testsida";
 
 // Påhittade artikelnummer, priser och rabatter.
@@ -138,6 +138,23 @@ describe("körningen", () => {
     expect(s).toMatchObject({ varvKlart: true, importerade: 0, granskade: 1 });
     expect(lager.tillstand.vilaTill).toBe(new Date(NU + VILA_MS).toISOString());
     expect(lager.tillstand.varvGranskade).toBe(0);
+  });
+
+  it("☠️ ett varv där avläsningar väntar på nästa läsning vilar en timme, inte tjugo", async () => {
+    lagg(1, { recensioner: [{ betyg: 5, text: "Från den gamla läsaren.", datum: null, namn: null }] });
+    lagg(2, { levererasTillSe: false });
+    const s = await korVevorImport(deps(), schema);
+    expect(s).toMatchObject({ varvKlart: true, importerade: 0 });
+    expect(s.hinder).toMatchObject({ recension_okand: 1 });
+    expect(lager.tillstand.vilaTill).toBe(new Date(NU + VILA_VANTAR_MS).toISOString());
+    expect(lager.tillstand.varvVantande).toBe(0);
+  });
+
+  it("väntande avläsningar räknas över körningar i samma varv", async () => {
+    lagg(1, { levererasTillSe: false });
+    lager.tillstand = { ...lager.tillstand, markor: "A", varvGranskade: 1, varvVantande: 1 };
+    await korVevorImport(deps(), schema);
+    expect(lager.tillstand.vilaTill).toBe(new Date(NU + VILA_VANTAR_MS).toISOString());
   });
 
   it("varvet räknas över körningar: den sista kan börja vid slutet av listan och ändå vila", async () => {

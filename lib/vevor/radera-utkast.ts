@@ -174,6 +174,7 @@ export async function raderaOpoleradeUtkast(
       markor: null,
       varvImporterade: 0,
       varvGranskade: 0,
+      varvVantande: 0,
       vilaTill: null,
       foraldralosa: [],
       senasteKorning: null,
