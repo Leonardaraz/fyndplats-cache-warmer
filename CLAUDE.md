@@ -6709,7 +6709,15 @@ variantbilden.
    VEVOR bytt bildadresser sedan importen hade samma foto laddats upp igen.
 3. ☠️ Faller en uppladdning rörs Wix inte, och första sidan som inte läser
    tillbaka som planen stoppar körningen.
-4. ☠️ Svaret bär bara Wix-id och antal.
+4. ☠️ Svaret bär bara Wix-id, antal och en felkod (`fel.orsak`), aldrig
+   felets text. Ett uppladdningsfel bär leverantörens bildadress, och i den
+   står artikelnumret. Första skarpa körningen 2026-10-30 skrev ut en sådan
+   adress i den publika loggen, och loggen raderades efter två minuter.
+5. Svarar Wix 429 på en uppladdning stannar varvet som `strypt`, och
+   workflowen väntar 90 sekunder och fortsätter, högst tre gånger i rad.
+   Importen laddar upp mot samma gräns, så uppladdningarna går med
+   `UPPLADDNING_PAUS_MS` (400) emellan. De filer som hann laddas upp innan en
+   sida föll ligger kvar oanvända i Media Manager.
 
 Ordningen: `plan`, `skriv` med planens antal, `plan` igen (att rätta ska
 vara 0).

@@ -12,6 +12,7 @@ import {
   altFor,
   bildaxelFor,
   korFamiljebilder,
+  UPPLADDNING_PAUS_MS,
   lasOchPlanera,
   normKalla,
   planeraFamilj,
@@ -317,8 +318,37 @@ describe("korFamiljebilder", () => {
     f.sabotage.sku = true;
     const s = await korFamiljebilder(f.deps, { dryRun: false, bekrafta: 1, budgetMs: 240_000 });
     expect(s.stoppadAv).toBe("fel");
+    expect(s.fel).toEqual({ id: PID, orsak: "avvikelse" });
     const text = JSON.stringify(s);
     for (const n of [1, 2, 3]) expect(text).not.toContain(sku(n));
     expect(text).not.toMatch(/https?:\/\//);
+  });
+
+  it("☠️ ett uppladdningsfel bär bildadressen, och den går aldrig ut i svaret", async () => {
+    const f = fejk();
+    const adress = `https://bilder.example.test/us%2F${sku(2)}%2Fbild.jpg?timestamp=1`;
+    for (const [status, orsak, stopp] of [[500, "uppladdning", "fel"], [429, "strypt", "strypt"]] as const) {
+      f.deps.laddaUpp = async () => {
+        throw new Error(`Wix media-import misslyckades för ${adress} — HTTP ${status}: <!DOCTYPE html>`);
+      };
+      const s = await korFamiljebilder(f.deps, { dryRun: false, bekrafta: 1, budgetMs: 240_000 });
+      expect(s.stoppadAv).toBe(stopp);
+      expect(s.fel).toEqual({ id: PID, orsak });
+      expect(s.kvar).toBe(1);
+      const text = JSON.stringify(s);
+      expect(text).not.toContain(sku(2));
+      expect(text).not.toMatch(/https?:\/\//);
+      expect(f.patchar).toEqual([]);
+    }
+  });
+
+  it("väntar mellan uppladdningarna", async () => {
+    const f = fejk();
+    const pauser: number[] = [];
+    f.deps.vanta = async (ms) => {
+      pauser.push(ms);
+    };
+    await korFamiljebilder(f.deps, { dryRun: false, bekrafta: 1, budgetMs: 240_000 });
+    expect(pauser.filter((ms) => ms === UPPLADDNING_PAUS_MS)).toHaveLength(9);
   });
 });

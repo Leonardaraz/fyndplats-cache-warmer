@@ -8,7 +8,9 @@ name: VEVOR — rätta familjernas bilder
 #          ingenting.
 #   skriv  rättar i varv om fyra minuter tills inget är kvar. Kräver
 #          `bekrafta` = planens antal sidor att rätta. Stannar vid första sida
-#          som inte läser tillbaka som planen.
+#          som inte läser tillbaka som planen. Svarar Wix 429 på en
+#          uppladdning väntar den 90 sekunder och fortsätter, högst tre gånger
+#          i rad.
 #
 # Ordningen: plan, skriv med planens antal, plan igen (att rätta ska vara 0).
 #
@@ -78,6 +80,7 @@ jobs:
             echo "::error::bekrafta ska vara planens antal sidor att rätta (ett heltal)" >&2; exit 1
           fi
           tak="$BEKRAFTA"
+          strypta=0
           for varv in $(seq 1 25); do
             svar=$(anropa "{\"dryRun\":false,\"bekrafta\":${tak},\"idn\":${idn}}")
             if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
@@ -87,11 +90,23 @@ jobs:
             visa "$svar"
             stopp=$(echo "$svar" | jq -r '.stoppadAv')
             if [ "$stopp" = "fel" ]; then
-              echo "::error::En sida läste inte tillbaka som planen. Läs fel ovan och Vercels logg innan nästa körning." >&2; exit 1
+              echo "::error::En sida stoppade körningen (fel.orsak ovan). Läs Vercels logg innan nästa körning." >&2; exit 1
             fi
             if [ "$stopp" = "klart" ]; then
               echo "Klart."
               exit 0
+            fi
+            # Wix spärr mot takten (429) på en uppladdning: inget skrevs på den
+            # sidan. Vänta och fortsätt, men inte i all evighet.
+            if [ "$stopp" = "strypt" ]; then
+              strypta=$((strypta + 1))
+              if [ "$strypta" -ge 4 ]; then
+                echo "::error::Wix svarade 429 fyra varv i rad. Kör igen om en stund." >&2; exit 1
+              fi
+              echo "Wix bromsar uppladdningarna. Väntar 90 sekunder."
+              sleep 90
+            else
+              strypta=0
             fi
             # Följande varv: det som återstår är taket. Planen får krympa, aldrig växa.
             tak=$(echo "$svar" | jq -r '.kvar')

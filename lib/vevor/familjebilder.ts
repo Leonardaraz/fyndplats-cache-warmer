@@ -274,12 +274,19 @@ export interface FamiljebildDeps {
   klocka?: () => number;
 }
 
+/** Varför en sida stoppade körningen. Bara koden går ut i svaret: felets text kan bära en bildadress. */
+export type FelOrsak = "las" | "hinder" | "uppladdning" | "strypt" | "skrivning" | "avvikelse";
+
 export interface SkrivUtfall {
   id: string;
   ok: boolean;
   steg: string[];
   fel?: string;
+  orsak?: FelOrsak;
 }
+
+/** Paus mellan två uppladdningar. Importen laddar upp samtidigt mot samma gräns. */
+export const UPPLADDNING_PAUS_MS = 400;
 
 /** Läser sidan och planerar den. null när sidan inte går att läsa. */
 export async function lasOchPlanera(
@@ -367,13 +374,13 @@ export async function skrivFamilj(rad: ProductMappingRecord, deps: FamiljebildDe
   const vanta = deps.vanta ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
   const steg: string[] = [];
   const id = rad.wixProductId;
-  const fall = (fel: string): SkrivUtfall => ({ id, ok: false, steg, fel });
+  const fall = (orsak: FelOrsak, fel: string): SkrivUtfall => ({ id, ok: false, steg, fel, orsak });
 
   // Planen räknas om ur färska läsningar: har sidan ändrats skrivs det nya läget.
   const last = await lasOchPlanera(deps, rad);
-  if (!last) return fall("sidan gick inte att läsa");
+  if (!last) return fall("las", "sidan gick inte att läsa");
   const { plan, produkt: fore } = last;
-  if (plan.hinder.length > 0) return fall(`hinder: ${plan.hinder.join(", ")}`);
+  if (plan.hinder.length > 0) return fall("hinder", `hinder: ${plan.hinder.join(", ")}`);
   if (!plan.andrar || !plan.axel) return { id, ok: true, steg: ["redan rätt"] };
   const axel = plan.axel;
 
@@ -385,13 +392,16 @@ export async function skrivFamilj(rad: ProductMappingRecord, deps: FamiljebildDe
       galleri.push({ id: b.id, alt: b.alt });
       continue;
     }
+    if (nr > 0) await vanta(UPPLADDNING_PAUS_MS);
     nr++;
     try {
       const upp = await deps.laddaUpp(b.kalla, `familj-${id.slice(0, 8)}-${nr}`);
-      if (!upp.id) return fall("en uppladdning gav inget fil-id — Wix rördes INTE");
+      if (!upp.id) return fall("uppladdning", "en uppladdning gav inget fil-id — Wix rördes INTE");
       galleri.push({ id: upp.id, alt: b.alt });
     } catch (e) {
-      return fall(`en uppladdning föll: ${felText(e)} — Wix rördes INTE`);
+      // ☠️ En 429 är Wix spärr mot takten, inget fel på sidan: körningen väntar och fortsätter.
+      const text = felText(e);
+      return fall(/HTTP 429\b/.test(text) ? "strypt" : "uppladdning", `en uppladdning föll: ${text} — Wix rördes INTE`);
     }
   }
   if (nr > 0) steg.push(`${nr} bilder uppladdade`);
@@ -407,7 +417,7 @@ export async function skrivFamilj(rad: ProductMappingRecord, deps: FamiljebildDe
     await skrivGalleri(deps.wix, id, fore.revision, [...galleri, ...kvarTills]);
     steg.push(`galleri ${fore.bilder.length} → ${galleri.length + kvarTills.length}`);
   } catch (e) {
-    return fall(`galleriet föll: ${felText(e)} — varje länkad bild sitter kvar`);
+    return fall("skrivning", `galleriet föll: ${felText(e)} — varje länkad bild sitter kvar`);
   }
 
   // ── 3: länkarna, med försök ──────────────────────────────────────────────
@@ -441,13 +451,13 @@ export async function skrivFamilj(rad: ProductMappingRecord, deps: FamiljebildDe
         });
       } catch (e) {
         sistaFel = felText(e);
-        if (!arOvergaende(e)) return fall(`länkningen föll: ${sistaFel} — varje länkad bild sitter kvar`);
+        if (!arOvergaende(e)) return fall("skrivning", `länkningen föll: ${sistaFel} — varje länkad bild sitter kvar`);
       }
       await vanta(KOPPLING_PAUS_MS);
       ({ p, avvikelser } = await lasEfter(mellan));
     }
     if (avvikelser.length > 0) {
-      return fall(`Wix stämmer inte med planen (${avvikelser.join("; ")})${sistaFel ? ` — sista fel: ${sistaFel}` : ""}`);
+      return fall("avvikelse", `Wix stämmer inte med planen (${avvikelser.join("; ")})${sistaFel ? ` — sista fel: ${sistaFel}` : ""}`);
     }
     steg.push(`länkar: ${plan.val.length} val (${forsok} försök)`);
 
@@ -465,10 +475,10 @@ export async function skrivFamilj(rad: ProductMappingRecord, deps: FamiljebildDe
       await vanta(KOPPLING_PAUS_MS);
       ({ p, avvikelser } = await lasEfter(galleri));
     }
-    if (avvikelser.length > 0) return fall(`återläsningen: ${avvikelser.join("; ")}`);
+    if (avvikelser.length > 0) return fall("avvikelse", `återläsningen: ${avvikelser.join("; ")}`);
     steg.push("återläst");
   } catch (e) {
-    return fall(`skrivningen föll: ${felText(e)} — varje länkad bild sitter kvar`);
+    return fall("skrivning", `skrivningen föll: ${felText(e)} — varje länkad bild sitter kvar`);
   }
 
   // ── 6: variantbilden ────────────────────────────────────────────────────────
@@ -476,7 +486,7 @@ export async function skrivFamilj(rad: ProductMappingRecord, deps: FamiljebildDe
     await (deps.variantbild ?? ((x: string) => refreshVariantMedia(deps.wix, x, { vanta })))(id),
   );
   steg.push(vb.rad);
-  if (vb.stopp) return fall(`${vb.rad} — galleriet och länkarna är skrivna, kontrollera sidan`);
+  if (vb.stopp) return fall("avvikelse", `${vb.rad} — galleriet och länkarna är skrivna, kontrollera sidan`);
   return { id, ok: true, steg };
 }
 
@@ -503,9 +513,14 @@ export interface FamiljebildSvar {
   utgar: number;
   skrivna: number;
   kvar: number;
-  stoppadAv: "klart" | "tidsbudget" | "fel" | null;
-  /** Sidan som stoppade körningen, med vad som hände. */
-  fel: SkrivUtfall | null;
+  /** `strypt`: Wix svarade 429 på en uppladdning. Inget är fel, körningen väntar och fortsätter. */
+  stoppadAv: "klart" | "tidsbudget" | "strypt" | "fel" | null;
+  /**
+   * ☠️ Sidan som stoppade körningen och varför, som en kod. Felets text står
+   * bara i Vercels logg: den kan bära leverantörens bildadress, och i den
+   * står artikelnumret. Svaret skrivs ut i en publik Actions-logg.
+   */
+  fel: { id: string; orsak: FelOrsak } | null;
   /** Upp till 50 Wix-id för sidor att rätta (torrt) eller rättade (skarpt). */
   idn: string[];
 }
@@ -596,8 +611,8 @@ export async function korFamiljebilder(deps: FamiljebildDeps, val: FamiljebildVa
     const u = await skrivFamilj(r, deps);
     if (!u.ok) {
       console.warn(`[vevor-familjebilder] ${u.id} stoppade körningen: ${u.fel} (${u.steg.join(", ")})`);
-      svar.fel = u;
-      svar.stoppadAv = "fel";
+      svar.fel = { id: u.id, orsak: u.orsak ?? "skrivning" };
+      svar.stoppadAv = u.orsak === "strypt" ? "strypt" : "fel";
       svar.kvar = att.length - i;
       return svar;
     }
