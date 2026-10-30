@@ -5,15 +5,19 @@
 // Spec (per fyndplats requirements):
 //   - percentOffRate: 5
 //   - usageLimit: 1                 (single use globally)
-//   - limitedToOnePerCustomer: true (defence-in-depth)
-//   - minimumSubtotal: 200          (SEK)
+//   - limitPerCustomer: 1           (defence-in-depth)
+//   - minimumSubtotal: 200          (SEK, whole cart; no scope, the two are ONE-OF)
 //   - expirationTime: now + 24h
 //   - active: true
 //   - code: human-friendly, per-cart, prefix FP5-
 //
-// Wix expects ISO 8601 timestamps. Amounts are in major units (SEK whole kronor).
+// The body is built in lib/rabattkupong.ts. Wix wants startTime and
+// expirationTime as milliseconds in a string, not ISO 8601: an ISO date gave
+// 400 "Not a numeric value" on every mint from 2026-05-30 to 2026-10-29.
+// Amounts are in major units (SEK whole kronor).
 
 import { wixFetch, WixApiError } from './wix-client';
+import { rabattkupong } from './rabattkupong';
 
 export interface MintCouponInput {
   cartId: string;
@@ -52,30 +56,13 @@ export function generateCartCouponCode(cartId: string): string {
 }
 
 export async function mintAbandonedCartCoupon(input: MintCouponInput): Promise<MintedCoupon> {
-  const now = new Date();
-  const expires = new Date(now.getTime() + 24 * 60 * 60 * 1000); // +24h
-
   const code = generateCartCouponCode(input.cartId);
-
-  const body = {
-    specification: {
-      name: `Abandoned cart 5% – ${input.cartId.slice(0, 8)}`,
-      code,
-      startTime: now.toISOString(),
-      expirationTime: expires.toISOString(),
-      active: true,
-      percentOffRate: 5,
-      minimumSubtotal: 200,
-      usageLimit: 1,
-      limitedToOnePerCustomer: true,
-      scope: { namespace: 'stores' }, // applies to all store items
-    },
-  };
+  const { specification, expiresAt } = rabattkupong(input.cartId, code, Date.now());
 
   const res = await wixFetch<CreateCouponResponse>({
     method: 'POST',
     path: '/stores/v2/coupons',
-    body,
+    body: { specification },
   });
 
   const wixCouponId = res.coupon?.id ?? res.id ?? '';
@@ -83,7 +70,7 @@ export async function mintAbandonedCartCoupon(input: MintCouponInput): Promise<M
     throw new Error(`Wix coupon create returned no id: ${JSON.stringify(res).slice(0, 200)}`);
   }
 
-  return { code, wixCouponId, expiresAt: expires.toISOString() };
+  return { code, wixCouponId, expiresAt };
 }
 
 export async function revokeCoupon(wixCouponId: string): Promise<void> {
