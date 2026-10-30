@@ -16,8 +16,9 @@ import { isAuthorized } from "@/lib/auth";
 import { getStore } from "@/lib/store/factory";
 import { VEVOR_ID_PREFIX } from "@/lib/store/leverantorsprefix";
 import { skapaWixAnrop } from "@/lib/polish/skrivplan-wix";
-import { getMediaSourceUrls, importMediaByUrl } from "@/lib/wix/media";
+import { getMediaHashes, getMediaSourceUrls, importMediaByUrl } from "@/lib/wix/media";
 import { WixVevorLager } from "@/lib/vevor/lager";
+import { innehallsnycklar } from "@/lib/vevor/bildinnehall";
 import { FamiljebildFel, korFamiljebilder } from "@/lib/vevor/familjebilder";
 
 export const runtime = "nodejs";
@@ -48,6 +49,8 @@ export async function POST(req: NextRequest) {
         mappningar: () => store.listMappingsMedPrefix(VEVOR_ID_PREFIX),
         avlasningar: (skus) => lager.avlasningar(skus),
         kallor: (filIdn) => getMediaSourceUrls(filIdn),
+        hashar: (filIdn) => getMediaHashes(filIdn),
+        bildnycklar: (urls) => innehallsnycklar(urls),
         laddaUpp: (url, namn) => importMediaByUrl(url, namn),
       },
       { dryRun, bekrafta, idn, budgetMs: BUDGET_MS },

@@ -103,6 +103,12 @@ export interface ImportDeps {
    * husets filter. Svarar med antalet sparade.
    */
   sparaRecensioner(wixProductId: string, recensioner: AERReview[]): Promise<number>;
+  /**
+   * Bildernas innehåll: adress → md5 (lib/vevor/bildinnehall.ts). En familjs
+   * storlekar bär samma foto under olika adresser, och utan nyckeln hade varje
+   * foto laddats upp en gång per storlek. En adress utan nyckel är ett eget foto.
+   */
+  bildnycklar(urls: string[]): Promise<Map<string, string>>;
   /** Rabatten ur konfigurationen och dollarkursen. Kastar `RabattFel` när rabatten saknas. */
   prisunderlag(): Promise<Prisunderlag>;
   antalProdukter(): Promise<number>;
@@ -149,6 +155,7 @@ function tomSummering(start: number, dryRun: boolean): Importsummering {
     familjer: {
       sammanslagna: 0,
       varianter: 0,
+      gemensammaBilder: 0,
       ejSammanslagna: Object.fromEntries(FAMILJ_SKAL.map((k) => [k, 0])) as Record<FamiljSkal, number>,
     },
     recensioner: { lasta: 0, sparade: 0, produkter: 0, fel: 0 },
@@ -168,7 +175,7 @@ export function importloggrad(s: Importsummering): string {
     `bilder ny ${s.bilder.ny} gammal ${s.bilder.gammal} okänt ${s.bilder.okant} utan egna ${s.bilder.utanEgna}, ` +
     `medicinteknik ${s.medicinteknik}, ` +
     (s.familjer
-      ? `familjer ${s.familjer.sammanslagna} (varianter ${s.familjer.varianter}), ej sammanslagna ` +
+      ? `familjer ${s.familjer.sammanslagna} (varianter ${s.familjer.varianter}, gemensamma bilder ${s.familjer.gemensammaBilder ?? 0}), ej sammanslagna ` +
         `${Object.entries(s.familjer.ejSammanslagna).map(([k, v]) => `${k} ${v}`).join(", ")}, `
       : "") +
     (s.recensioner
@@ -310,10 +317,17 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
             }
             familj = byggFamilj(a, lasta, nu(), (sku) => finns.has(vevorSupplierProductId(sku)), pavag);
           }
-          produkt =
-            familj.typ === "familj"
-              ? vevorFamiljeProdukt(familj, pris, bilder, (m) => valjVevorBilder(m.bilder))
-              : vevorProdukt(a, pris, bilder);
+          if (familj.typ === "familj") {
+            // Fotonas innehåll, så att samma foto i flera storlekar laddas upp en
+            // gång. Torrläget laddar inte upp något och hämtar därför inga bilder.
+            const nycklar =
+              familj.bildaxel && !val.dryRun
+                ? await deps.bildnycklar(familj.medlemmar.flatMap((m) => valjVevorBilder(m.bilder).urls))
+                : new Map<string, string>();
+            produkt = vevorFamiljeProdukt(familj, pris, bilder, (m) => valjVevorBilder(m.bilder), (u) => nycklar.get(u) ?? u);
+          } else {
+            produkt = vevorProdukt(a, pris, bilder);
+          }
         } catch (err) {
           // Syskonen gick inte att läsa, eller ett pris som inte går att räkna
           // på. Felet säger aldrig vilket.
@@ -354,6 +368,7 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
           await deps.sparaMappning(byggVevorMappning(a, resultat, granskning, new Date(nu()).toISOString()));
           raknaUtkast(s, bilder.monster, bilder.egna, granskning);
           raknaFamilj(s, resultat.variantMappings.length, recensioner.length);
+          s.familjer!.gemensammaBilder = (s.familjer!.gemensammaBilder ?? 0) + (produkt.gemensammaBilder?.length ?? 0);
           s.importerade++;
           varvImporterade++;
           platser--;

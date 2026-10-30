@@ -113,6 +113,48 @@ describe("importProduct — flera bilder per val (valBilder)", () => {
     expect(per("Grön")).toEqual([alts[2], alts[3]]);
   });
 
+  it("☠️ ett foto som båda färgerna har kopplas inte, och alt-texten nämner ingen färg", async () => {
+    // Butiken ger en bild med ett färgnamn i alt-texten till den färgen
+    // (headless-site lib/variant-bilder.ts). Ett gemensamt foto ska synas för alla.
+    await importProduct(
+      familj({
+        rawTitle: "Röd skydd för traktorskopa, 2 st kraftiga stålskydd",
+        imageUrls: [bild("rod-1"), bild("delad"), bild("gron-1")],
+        valBilder: { Färg: { Röd: [bild("rod-1")], Grön: [bild("gron-1")] } },
+        gemensammaBilder: [bild("delad")],
+      }),
+      RULES,
+      undefined,
+      { enableAI: false },
+    );
+    const alts = (skapad().mediaItems ?? []).map((m) => m.altText ?? "");
+    const titel = alts[0].replace(/ – Röd$/, "");
+    expect(alts).toEqual([`${titel} – Röd`, titel, `${titel} – Grön`]);
+    expect(lankar().map((l) => l.altText)).toEqual([alts[0], alts[2]]);
+  });
+
+  it("☠️ storlekar som bara har gemensamma foton får inga kopplingar alls", async () => {
+    await importProduct(
+      familj({
+        rawTitle: "Röd skydd för traktorskopa, 2 st kraftiga stålskydd",
+        variants: [
+          { supplierVariantId: "A1", options: { Färg: "Röd" }, costUsd: 30, stock: 5, included: true },
+          { supplierVariantId: "A2", options: { Färg: "Grön" }, costUsd: 31, stock: 4, included: true },
+        ],
+        imageUrls: [bild("delad-1"), bild("delad-2")],
+        valBilder: { Färg: {} },
+        gemensammaBilder: [bild("delad-1"), bild("delad-2")],
+      }),
+      RULES,
+      undefined,
+      { enableAI: false },
+    );
+    const alts = (skapad().mediaItems ?? []).map((m) => m.altText ?? "");
+    expect(alts[1]).toBe(`${alts[0]}, bild 2`);
+    // Namnet nämner Röd, men ingen bild kopplas till Röd för det.
+    expect(linkChoiceMedia.mock.calls.flatMap((c) => c[1] as unknown[])).toEqual([]);
+  });
+
   it("☠️ ingen bild laddas upp två gånger, och en swatch-bild för samma val följer inte med", async () => {
     // Förut fick varje färg en egen uppladdning av sin huvudbild, och den röda
     // huvudbilden låg två gånger i galleriet.

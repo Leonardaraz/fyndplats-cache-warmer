@@ -1076,6 +1076,15 @@ export async function importProduct(
       k.item.altText = nr === 1 ? `${seo.title} – ${k.varde}` : `${seo.title} – ${k.varde}, bild ${nr}`;
       valLinks.push({ optionName: k.axel, choiceName: k.varde, altText: k.item.altText });
     }
+    // Foton som flera val har kopplas inte, och alt-texten nämner inget val:
+    // butiken ger en bild med ett färgnamn i alt-texten till den färgen.
+    const gemensamma = new Set(product.gemensammaBilder ?? []);
+    let gnr = 0;
+    uploadedMedia.forEach((m, i) => {
+      if (!gemensamma.has(m.kalla ?? orderedImageUrls[i])) return;
+      gnr++;
+      mediaItems[i].altText = gnr === 1 ? seo.title : `${seo.title}, bild ${gnr}`;
+    });
   }
 
   // Lägg variant-/swatch-bilderna SIST i poolen (huvudbilden = galleriets första,
@@ -1109,7 +1118,12 @@ export async function importProduct(
   }
   const usedSwatchAlts = new Set<string>();
   const altLinks: ChoiceMediaLink[] = [];
+  // På en axel med valBilder har varje val redan fått sina bilder, eller inga:
+  // ett val utan egna foton visar de gemensamma, och ska inte få ett av dem
+  // för att produktnamnet råkar nämna dess färg.
+  const valBildAxlar = new Set(Object.keys(translatedValBilder ?? {}));
   for (const o of options) {
+    if (valBildAxlar.has(o.name)) continue;
     for (const c of o.choices) {
       if (linkedChoiceKeys.has(`${o.name} ${c.name}`)) continue;
       const match = mediaItems.find(

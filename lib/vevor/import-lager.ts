@@ -41,7 +41,13 @@ export interface Importsummering {
    * familjer som inte gick att slå ihop och därför blev egna produkter.
    * Saknas i körningar från före steg 8.
    */
-  familjer?: { sammanslagna: number; varianter: number; ejSammanslagna: Record<FamiljSkal, number> };
+  familjer?: {
+    sammanslagna: number;
+    varianter: number;
+    /** Foton som flera artiklar i en familj har, uppladdade en gång och okopplade. Saknas före 2026-10-30. */
+    gemensammaBilder?: number;
+    ejSammanslagna: Record<FamiljSkal, number>;
+  };
   /** VEVOR:s recensioner på de importerade produkterna, som dolda rader. Saknas före steg 8. */
   recensioner?: { lasta: number; sparade: number; produkter: number; fel: number };
   produkterIWix: number | null;

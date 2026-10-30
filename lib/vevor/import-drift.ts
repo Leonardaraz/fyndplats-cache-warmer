@@ -1,6 +1,7 @@
 // Importens beroenden i drift: Wix-lagret, mappningarna, pipelinen,
 // prisunderlaget och larmet. Allt annat i lib/vevor/import.ts är rent.
 
+import { innehallsnycklar } from "./bildinnehall";
 import type { FeatureFlags, PricingRules } from "@/lib/import/types";
 import { importProduct } from "@/lib/import/pipeline";
 import { importReviewsForProduct } from "@/lib/import/review-import";
@@ -40,6 +41,7 @@ export function liveImportDeps(): ImportDeps {
     // /admin/reviews, som Aosoms.
     sparaRecensioner: async (wixProductId, recensioner) =>
       (await importReviewsForProduct(wixProductId, recensioner, { source: "vevor" })).imported,
+    bildnycklar: (urls) => innehallsnycklar(urls),
     prisunderlag: async () => ({
       rabatt: tolkaRabatt((await getAppConfig()).vevorProRabatt),
       usdToSek: (await prisregler()).usdToSek,

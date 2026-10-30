@@ -6692,8 +6692,27 @@ Nu får varje artikel sina sex bilder i galleriet, ankaret först, och alla
 sex kopplas till artikelns värde på bildaxeln (`valBilder` på produkten,
 flera länkar per val i `linkChoiceMedia`). Alt-texten är "<namn> – <värde>",
 och ", bild N" från den andra. Wix tar 50 bilder, så över åtta artiklar får
-var och en färre, minst en. En adress som två artiklar delar tas med en gång
-och kopplas till den första.
+var och en färre, minst en.
+
+☠️ **Ett FOTO tas en gång, inte en adress** (`lib/vevor/bildinnehall.ts`).
+VEVOR lägger varje artikels bilder i en egen mapp med en egen `timestamp`, så
+storlekar av samma vara bär byte-identiska foton under olika adresser.
+Damstövlarna `34777269` fick 36 bilder där sex hade räckt. Filnamnet räcker
+inte heller: två färger av traktorskopskyddet heter båda `…-m100-9.jpg` men är
+olika foton. Importen hämtar därför de valda bilderna med vår egen
+användaragent och jämför md5, som är exakt Wix `hash` på en uppladdad fil
+(uppmätt 2026-10-30). Ett foto som bara ett värde har kopplas till värdet. Ett
+foto som flera värden har kopplas inte, och alt-texten nämner inget värde
+(`gemensammaBilder`): butiken ger varje bild EN ägare, och en bild med ett
+färgnamn i alt-texten hade hamnat på den färgen (headless-site
+`lib/variant-bilder.ts`). Storlekar som bara har gemensamma foton får alltså
+inga kopplingar alls, och alla storlekar visar samma sex bilder. En bild som
+inte går att hämta räknas som ett eget foto. `gemensamma bilder` står i
+importens loggrad.
+
+⚠️ **Kopplingen kan falla när Wix tar emot bilderna långsamt.** Damstövlarna
+loggade `kopplade 0/36 val (media ingest:ades långsamt)`. Rättningen nedan
+fångar en sådan familj.
 
 **De familjer som importerades före 2026-10-30** rättas med workflowen
 **"VEVOR — rätta familjernas bilder"** (`plan` · `skriv`) →
@@ -6704,9 +6723,12 @@ länkade bilderna kvar sist, länkarna, galleriet utan dem, återläsning,
 variantbilden.
 
 1. ☠️ Bara opolerade, dolda VEVOR-utkast med fler än en artikel.
-2. ☠️ Bilderna känns igen på sin källa (Wix `sourceUrl`). En bild vars källa
-   inte är någon av artiklarnas egna stoppar familjen (`okand_kalla`): har
-   VEVOR bytt bildadresser sedan importen hade samma foto laddats upp igen.
+2. ☠️ Bilderna känns igen på sitt innehåll: Wix `hash` för filerna och md5
+   för de adresser som inte redan finns som en fil. Utan känt innehåll gäller
+   källan (Wix `sourceUrl`). En fil med samma innehåll som en planerad bild
+   används i stället för en ny uppladdning, och en kopia av den går ut. En
+   bild vars källa inte är någon av artiklarnas egna, och vars innehåll inte
+   är planerat, stoppar familjen (`okand_kalla`).
 3. ☠️ Faller en uppladdning rörs Wix inte, och första sidan som inte läser
    tillbaka som planen stoppar körningen.
 4. ☠️ Svaret bär bara Wix-id, antal och en felkod (`fel.orsak`), aldrig

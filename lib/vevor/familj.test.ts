@@ -239,12 +239,44 @@ describe("familjensBilder", () => {
     expect(h.perVarde[varde(0)]).toHaveLength(1);
   });
 
-  it("en adress som två artiklar delar tas med en gång och kopplas till den första", () => {
+  it("en adress som två artiklar delar tas med en gång, kopplas inte och blir gemensam", () => {
     const a1 = medlem(1);
     const a2 = artikel(2, [["Färg", "F2"]], { bilder: testgalleri(sku(1)) });
     const g = familjensBilder([a1, a2], (a) => valjVevorBilder(a.bilder), varde);
     expect(g.imageUrls).toEqual(valjVevorBilder(a1.bilder).urls);
-    expect(g.perVarde).toEqual({ F1: valjVevorBilder(a1.bilder).urls });
+    expect(g.perVarde).toEqual({});
+    expect(g.gemensamma).toEqual(g.imageUrls);
+  });
+
+  // Fotots innehåll ur adressens filnamn: samma namn i olika artikelmappar är samma foto.
+  const innehall = (u: string) => u.replace(/us%2F[^%]+%2F/, "");
+
+  it("☠️ samma FOTO under olika adresser tas en gång: storlekar med samma bilder får inga kopplingar", () => {
+    const fem = [1, 2, 3, 4, 5].map((n) => artikel(n, [["Storlek", `S${n}`]]));
+    const g = familjensBilder(fem, (a) => valjVevorBilder(a.bilder), (i) => `S${i + 1}`, innehall);
+    expect(g.imageUrls).toEqual(valjVevorBilder(fem[0].bilder).urls);
+    expect(g.perVarde).toEqual({});
+    expect(g.gemensamma).toEqual(g.imageUrls);
+    // Utan innehållsnyckel hade varje storlek fått sina sex: 30 bilder.
+    expect(familjensBilder(fem, (a) => valjVevorBilder(a.bilder), (i) => `S${i + 1}`).imageUrls).toHaveLength(30);
+  });
+
+  it("☠️ delade foton blir gemensamma och en artikels egna kopplas till den", () => {
+    const egna = testgalleri(sku(9)).map((b) => ({ ...b, url: b.url.replace("test-produkt", "annan-vara") }));
+    const fyra = [1, 2, 3].map((n) => artikel(n, [["Storlek", `S${n}`]]));
+    const herr = artikel(4, [["Storlek", "H"]], { bilder: egna });
+    const g = familjensBilder([...fyra, herr], (a) => valjVevorBilder(a.bilder), (i) => (i === 3 ? "H" : `S${i + 1}`), innehall);
+    const delade = valjVevorBilder(fyra[0].bilder).urls;
+    const hans = valjVevorBilder(herr.bilder).urls;
+    expect(g.imageUrls).toEqual([...delade, ...hans]);
+    expect(g.gemensamma).toEqual(delade);
+    expect(g.perVarde).toEqual({ H: hans });
+  });
+
+  it("två färger med samma filnamn men olika foton behåller var sina bilder", () => {
+    const g = familjensBilder([medlem(1), artikel(2, [["Färg", "F2"]])], (a) => valjVevorBilder(a.bilder), varde, (u) => u);
+    expect(g.gemensamma).toEqual([]);
+    expect(Object.keys(g.perVarde)).toEqual(["F1", "F2"]);
   });
 
   it("en artikel utan egna bilder får inget värde i kartan", () => {
