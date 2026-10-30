@@ -144,6 +144,7 @@ function tomSummering(start: number, dryRun: boolean): Importsummering {
       gammal: 0,
       lagt_betyg: 0,
       betyg_okant: 0,
+      spec_okant: 0,
       syskon_finns: 0,
       syskon_vantar: 0,
     } satisfies Record<Hinder, number>,

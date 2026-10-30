@@ -330,6 +330,23 @@ describe("steg 8: betyget, syskonen och recensionerna", () => {
     expect(importera).toHaveBeenCalledTimes(1);
   });
 
+  it("☠️ en avläsning utan specifikation från före 2026-10-30 väntar, och syskonet följer ändå med", async () => {
+    lagg(1, { spec: [], punkter: [] });
+    lagg(2, { spec: [], punkter: [], specKalla: null });
+    lagg(3, { egenskaper: [["Typ", "A"]], syskon: syskon(4) });
+    lagg(4, { egenskaper: [["Typ", "B"]], syskon: syskon(3), spec: [], punkter: [] });
+    const s = await korVevorImport(deps(), schema);
+    // Artikel 1 väntar. Artikel 4 räknas också när den granskas för sig, men
+    // den har redan följt med familjen.
+    expect(s.hinder).toMatchObject({ spec_okant: 2 });
+    // Artikel 2 (den lagade läsaren, sidan utan specifikation) och familjen 3+4.
+    expect(importera).toHaveBeenCalledTimes(2);
+    expect(importera.mock.calls.map((c) => c[0].variants.map((v: { supplierVariantId: string }) => v.supplierVariantId))).toEqual([
+      [sku(2)],
+      [sku(3), sku(4)],
+    ]);
+  });
+
   it("syskonen blir EN produkt med en variant per artikel, och ett syskon som är slut följer med", async () => {
     lagg(1, { egenskaper: [["Typ", "A"]], syskon: syskon(2, 3) });
     lagg(2, { egenskaper: [["Typ", "B"]], syskon: syskon(1, 3) });

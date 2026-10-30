@@ -71,7 +71,7 @@ export interface Sidrad {
 /** Artikelns status som den lästes. Okänt finns inte här: en okänd läsning sparas aldrig. */
 export type Avlasningsstatus = "i_lager" | "slut" | "ej_levererbar" | "borta";
 
-export interface Avlasning extends Omit<Sidinnehall, "egenskaper" | "betyg" | "recensioner"> {
+export interface Avlasning extends Omit<Sidinnehall, "egenskaper" | "betyg" | "recensioner" | "specKalla"> {
   webbId: string;
   sokvag: string;
   /** När sidan lästes, ISO. Adaptern räknar åldern på den (lib/vevor/rad.ts). */
@@ -105,6 +105,12 @@ export interface Avlasning extends Omit<Sidinnehall, "egenskaper" | "betyg" | "r
   betyg?: VevorBetyg | null;
   /** Recensionerna sidan visade, högst tio. Saknas på avläsningar före steg 8. */
   recensioner?: VevorRecension[];
+  /**
+   * Var specifikationen lästes (lib/vevor/sida.ts, `specOchPunkter`). Saknas
+   * fältet lästes sidan före 2026-10-30, när läsaren bara kände den gamla
+   * sidmallen: en tom specifikation är då okänd, inte tom (`spec_okant`).
+   */
+  specKalla?: "tabell" | "data" | null;
 }
 
 /**

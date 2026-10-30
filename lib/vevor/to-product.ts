@@ -59,6 +59,12 @@ export type Hinder =
   | "lagt_betyg"
   /** Avläsningen är från före steg 8 och bär inget betyg: väntar på nästa läsning. */
   | "betyg_okant"
+  /**
+   * Avläsningen saknar både specifikation och punktlista och gjordes före
+   * 2026-10-30, när läsaren inte kände VEVOR:s nya sidmall: väntar på nästa
+   * läsning (`spechinder`).
+   */
+  | "spec_okant"
   /** Familjen finns redan som en produkt, utan den här artikeln (lib/vevor/import.ts). */
   | "syskon_finns"
   /** Ett syskon har inte lästs om med betyg, eller inte lästs alls men står i läsarens kö. */
@@ -95,7 +101,20 @@ export function importhinder(a: Avlasning, nu: number): Hinder | null {
   if (!Number.isFinite(alder) || alder > MAX_ALDER_IMPORT_MS || alder < -60_000) return "gammal";
   if (!a.levererasTillSe || a.flode !== VART_FLODE || a.status === "ej_levererbar") return "ej_levererbar";
   if (a.status !== "i_lager" || !(a.saldo > 0)) return "ej_i_lager";
-  return betygshinder(a);
+  return betygshinder(a) ?? spechinder(a);
+}
+
+/**
+ * Specifikationens hinder, eller null. VEVOR visar två sidmallar, och fram
+ * till 2026-10-30 läste läsaren bara den ena (lib/vevor/sida.ts,
+ * `specOchPunkter`): var femte avläsning saknade specifikation och punktlista,
+ * och utkasten blev utan. En sådan avläsning väntar på nästa läsning, som sker
+ * inom ett dygn. En avläsning från den lagade läsaren bär `specKalla`, och då
+ * är en tom specifikation sidans egen och inget hinder.
+ */
+export function spechinder(a: Pick<Avlasning, "spec" | "punkter" | "specKalla">): "spec_okant" | null {
+  if (a.specKalla !== undefined) return null;
+  return a.spec.length === 0 && a.punkter.length === 0 ? "spec_okant" : null;
 }
 
 /**
@@ -105,7 +124,9 @@ export function importhinder(a: Avlasning, nu: number): Hinder | null {
  */
 export function medlemshinder(a: Avlasning, nu: number): Hinder | null {
   const h = importhinder(a, nu);
-  return h === "ej_i_lager" ? betygshinder(a) : h;
+  // Familjen visar ankarets text och specifikation, aldrig syskonets, så ett
+  // syskon behöver ingen specifikation för att följa med.
+  return h === "ej_i_lager" || h === "spec_okant" ? betygshinder(a) : h;
 }
 
 /** Inköpet i dollar, som pipelinen räknar tillbaka till landad kostnad i kronor. */

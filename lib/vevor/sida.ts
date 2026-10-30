@@ -118,6 +118,11 @@ export interface Sidinnehall {
   spec: [string, string][];
   /** Punktlistan "Funktioner och detaljer". */
   punkter: string[];
+  /**
+   * Var specifikationen lästes: sidans tabell (`tabell`), sidans egen data
+   * (`data`, den nya sidmallen) eller ingenstans (null). Se `specOchPunkter`.
+   */
+  specKalla: "tabell" | "data" | null;
   /** Den långa beskrivningen som text. */
   beskrivning: string;
   bilder: VevorBild[];
@@ -351,6 +356,63 @@ function specUr(html: string): [string, string][] {
   return ut;
 }
 
+/**
+ * Specifikationen i den nya sidmallens data: `PRODUCT_DATA.goodsDescAttrList`,
+ * ett objekt med numrerade nycklar ({"8": {descAttrName, descAttrValue}, …}).
+ * Ordningen är nycklarnas, som är sidans.
+ */
+function specUrData(lista: unknown): [string, string][] {
+  if (!lista || typeof lista !== "object") return [];
+  const poster = Array.isArray(lista)
+    ? lista.map((v, i) => [i, v] as const)
+    : Object.entries(lista as Record<string, unknown>)
+        .map(([k, v]) => [Number(k), v] as const)
+        .filter(([k]) => Number.isFinite(k))
+        .sort((a, b) => a[0] - b[0]);
+  const ut: [string, string][] = [];
+  for (const [, v] of poster) {
+    if (!v || typeof v !== "object") continue;
+    const o = v as Record<string, unknown>;
+    const k = typeof o.descAttrName === "string" ? rad(o.descAttrName) : "";
+    const varde = typeof o.descAttrValue === "string" ? rad(o.descAttrValue) : "";
+    if (k && varde) ut.push([k, varde]);
+  }
+  return ut;
+}
+
+/** Punktlistan i den nya sidmallens data: `PRODUCT_DATA.sellingPoint`, en lista med texter. */
+function punkterUrData(lista: unknown): string[] {
+  if (!Array.isArray(lista)) return [];
+  return lista.filter((v): v is string => typeof v === "string").map(rad).filter(Boolean);
+}
+
+/**
+ * Specifikationen och punktlistan, ur den sidmall VEVOR råkade skicka.
+ *
+ * ☠️ VEVOR VISAR TVÅ SIDMALLAR AV SAMMA SIDA (uppmätt 2026-10-30). Den gamla
+ * (`detail_product5`) har specifikationen som en tabell och punktlistan som en
+ * lista i HTML:en. Den nya (`detail_product7`) har ingen av dem där, bara i
+ * `PRODUCT_DATA` (`goodsDescAttrList` och `sellingPoint`). Samma adress gav den
+ * nya mallen två gånger av sex i följd. Läsaren läste bara den gamla, så 3 035
+ * av 14 990 avläsningar (20 %, jämnt över dygnet) saknade båda, och de
+ * utkasten importerades utan specifikation och punktlista.
+ *
+ * Tabellen går först, eftersom den är den som är prövad. Saknas den används
+ * datan. Var specifikationen kom ifrån sparas (`specKalla`), så att importen
+ * kan skilja en sida utan specifikation från en avläsning gjord före den här
+ * lagningen (lib/vevor/to-product.ts, `spec_okant`).
+ */
+function specOchPunkter(html: string, pd: Record<string, unknown>): Pick<Sidinnehall, "spec" | "punkter" | "specKalla"> {
+  const tabell = specUr(html);
+  const data = tabell.length > 0 ? [] : specUrData(pd.goodsDescAttrList);
+  const lista = punkterUr(html);
+  return {
+    spec: tabell.length > 0 ? tabell : data,
+    punkter: lista.length > 0 ? lista : punkterUrData(pd.sellingPoint),
+    specKalla: tabell.length > 0 ? "tabell" : data.length > 0 ? "data" : null,
+  };
+}
+
 function punkterUr(html: string): string[] {
   const m = /<ul[^>]*class="[^"]*detailGuide_cont[^"]*"[^>]*>([\s\S]*?)<\/ul>/i.exec(html);
   if (!m) return [];
@@ -557,8 +619,7 @@ export function tolkaProduktsida(html: string): Tolkning {
       fraktSe: se.frakt,
       kategorier: kategorierUr(ld),
       egenskaper: egenskaperUr(pd.attr),
-      spec: specUr(html),
-      punkter: punkterUr(html),
+      ...specOchPunkter(html, pd),
       beskrivning: beskrivningUr(html),
       bilder: bilderUr(fonsterObjekt(html, "AGGIMAGEANDVIDEOLIST"), sku),
       manualSokvag: manualUr(html),
