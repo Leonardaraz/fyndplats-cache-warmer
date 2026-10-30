@@ -24,6 +24,9 @@
 // 7. När allt är raderat nollställs importens markör, så att nästa varv
 //    börjar från början. Importen slås inte på: det gör Leonard.
 //
+// Med ett urval (`urval`, familjeregeln 2026-10-30) raderas bara de utkasten,
+// med samma spärrar, och markören nollställs när urvalet är raderat.
+//
 // Bilderna ligger kvar i Media Manager (uppmätt för pensionerade utkast
 // 2026-09-28). Bildstädningen tar dem.
 //
@@ -55,6 +58,11 @@ export interface UtkastRaderingVal {
   /** Planens antal (första varvet) eller taket (följande). Krävs för en skarp körning. */
   bekrafta: number | null;
   budgetMs: number;
+  /**
+   * Bara dessa Wix-id (familjeregeln, lib/vevor/familjeregel-plan.ts). Utan
+   * urval raderas alla opolerade VEVOR-utkast, som i steg 8.
+   */
+  urval?: ReadonlySet<string> | null;
 }
 
 export interface UtkastRaderingSvar {
@@ -93,7 +101,9 @@ export async function raderaOpoleradeUtkast(
   const t = await deps.lasImport();
   if (t.aktiv) throw new RaderingsFel("importen är påslagen: stäng av den först (workflowen \"VEVOR — importen\", läget av)");
 
-  const utkast = (await deps.mappningar()).filter(arOpoleratVevorUtkast);
+  const utkast = (await deps.mappningar()).filter(
+    (m) => arOpoleratVevorUtkast(m) && (!val.urval || val.urval.has(m.wixProductId)),
+  );
   const iOrder = await deps.produkterIOrdrar();
   const raderbara = utkast.filter((m) => !iOrder.has(m.wixProductId));
   const svar: UtkastRaderingSvar = {

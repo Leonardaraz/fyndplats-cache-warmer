@@ -2,7 +2,21 @@ import { describe, expect, it } from "vitest";
 import { WIX_MAX_BILDER_PER_PRODUKT, WIX_MAX_OPTIONS_PER_PRODUCT, WIX_MAX_VALNAMN } from "@/lib/wix/limits";
 import { valjVevorBilder } from "./bilder";
 import type { Avlasning } from "./lager";
-import { arPaVag, byggFamilj, egenskaperFor, familjensBilder, familjensSpec, rensaVarde, syskonSkus, vevorFamiljeProdukt } from "./familj";
+import {
+  arPaVag,
+  byggFamilj,
+  byggSpuFamilj,
+  egenskaperFor,
+  familjeVarden,
+  familjensBilder,
+  familjensSpec,
+  regelFor,
+  rensaVarde,
+  specAxlar,
+  syskonSkus,
+  titlarnaForklaras,
+  vevorFamiljeProdukt,
+} from "./familj";
 import type { Sidrad } from "./lager";
 import { kostnadUsd } from "./to-product";
 import { testAvlasning, testgalleri } from "./testsida";
@@ -29,16 +43,16 @@ const lasta = (...a: Avlasning[]) => new Map(a.map((x) => [x.sku, x]));
 const ledig = () => false;
 
 describe("byggFamilj", () => {
-  const a1 = artikel(1, [["Typ", "Sektionell"], ["Kabellängd", "20 m"]]);
-  const a2 = artikel(2, [["Typ", "Sektionell"], ["Kabellängd", "30 m"]]);
-  const a3 = artikel(3, [["Typ", "Trumma"], ["Kabellängd", "20 m"]], { status: "slut", saldo: 0 });
+  const a1 = artikel(1, [["Färg", "Svart"], ["Kabellängd", "20 m"]]);
+  const a2 = artikel(2, [["Färg", "Svart"], ["Kabellängd", "30 m"]]);
+  const a3 = artikel(3, [["Färg", "Röd"], ["Kabellängd", "20 m"]], { status: "slut", saldo: 0 });
 
   it("syskonen med egna avläsningar blir en familj, ankaret först", () => {
     const f = byggFamilj(a1, lasta(a2, a3), NU, ledig);
     expect(f.typ).toBe("familj");
     if (f.typ !== "familj") return;
     expect(f.medlemmar.map((m) => m.sku)).toEqual([sku(1), sku(2), sku(3)]);
-    expect(f.axlar).toEqual(["Typ", "Kabellängd"]);
+    expect(f.axlar).toEqual(["Färg", "Kabellängd"]);
     // Ingen axel har ett eget värde för varje artikel här.
     expect(f.bildaxel).toBeNull();
   });
@@ -49,7 +63,7 @@ describe("byggFamilj", () => {
   });
 
   it("utan syskon, eller utan deras avläsningar, är artikeln ensam", () => {
-    expect(byggFamilj(artikel(1, [["Typ", "A"]], { syskon: [] }), new Map(), NU, ledig)).toEqual({ typ: "ensam" });
+    expect(byggFamilj(artikel(1, [["Färg", "Svart"]], { syskon: [] }), new Map(), NU, ledig)).toEqual({ typ: "ensam" });
     expect(byggFamilj(a1, new Map(), NU, ledig)).toEqual({ typ: "ensam" });
   });
 
@@ -105,11 +119,11 @@ describe("byggFamilj", () => {
 
   it("☠️ varianter som inte går att skilja åt blir egna produkter", () => {
     expect(byggFamilj(a1, lasta({ ...a2, egenskaper: [] }), NU, ledig)).toEqual({ typ: "ej_sammanslagen", skal: "utan_egenskaper" });
-    expect(byggFamilj(a1, lasta({ ...a2, egenskaper: [["Typ", "Trumma"]] }), NU, ledig)).toEqual({
+    expect(byggFamilj(a1, lasta({ ...a2, egenskaper: [["Färg", "Röd"]] }), NU, ledig)).toEqual({
       typ: "ej_sammanslagen",
       skal: "olika_axlar",
     });
-    expect(byggFamilj(a1, lasta({ ...a2, egenskaper: [["Typ", " sektionell "], ["Kabellängd", "20  m"]] }), NU, ledig)).toEqual({
+    expect(byggFamilj(a1, lasta({ ...a2, egenskaper: [["Färg", " svart "], ["Kabellängd", "20  m"]] }), NU, ledig)).toEqual({
       typ: "ej_sammanslagen",
       skal: "samma_kombination",
     });
@@ -122,8 +136,8 @@ describe("byggFamilj", () => {
   it("☠️ ett värde eller en axel över 50 tecken ger egna produkter (Wix avvisar hela produkten)", () => {
     const langt = "x".repeat(WIX_MAX_VALNAMN + 1);
     const precis = "y".repeat(WIX_MAX_VALNAMN);
-    const d1 = artikel(1, [["Storlek", precis]]);
-    expect(byggFamilj(d1, lasta(artikel(2, [["Storlek", langt]])), NU, ledig)).toEqual({
+    const d1 = artikel(1, [["Färg", precis]]);
+    expect(byggFamilj(d1, lasta(artikel(2, [["Färg", langt]])), NU, ledig)).toEqual({
       typ: "ej_sammanslagen",
       skal: "for_langt_namn",
     });
@@ -132,7 +146,23 @@ describe("byggFamilj", () => {
       skal: "for_langt_namn",
     });
     // Exakt 50 tecken går igenom.
-    expect(byggFamilj(d1, lasta(artikel(2, [["Storlek", "kort"]])), NU, ledig).typ).toBe("familj");
+    expect(byggFamilj(d1, lasta(artikel(2, [["Färg", "kort"]])), NU, ledig).typ).toBe("familj");
+  });
+
+  it("☠️ familjeregeln: en axel för funktion ger egna sidor, en oklar axel likaså (Leonard 2026-10-30)", () => {
+    const k1 = artikel(1, [["Kapacitet", "3 L"]]);
+    expect(byggFamilj(k1, lasta(artikel(2, [["Kapacitet", "6 L"]])), NU, ledig)).toEqual({ typ: "ej_sammanslagen", skal: "funktion" });
+    const m1 = artikel(1, [["Material", "Trä"]]);
+    expect(byggFamilj(m1, lasta(artikel(2, [["Material", "Bambu"]])), NU, ledig)).toEqual({ typ: "ej_sammanslagen", skal: "oklar_axel" });
+    // En förpackningsstorlek får dela sida.
+    expect(byggFamilj(artikel(1, [["Antal", "4 st"]]), lasta(artikel(2, [["Antal", "6 st"]])), NU, ledig).typ).toBe("familj");
+  });
+
+  it("en axel med samma värde för alla avgör inte regeln", () => {
+    const f = byggFamilj(artikel(1, [["Färg", "Svart"], ["Typ", "Hög"]]), lasta(artikel(2, [["Färg", "Vit"], ["Typ", "Hög"]])), NU, ledig);
+    expect(f.typ).toBe("familj");
+    expect(regelFor(["Färg", "Typ"], [{ Färg: "Svart", Typ: "Hög" }, { Färg: "Vit", Typ: "Hög" }])).toBeNull();
+    expect(regelFor(["Färg", "Typ"], [{ Färg: "Svart", Typ: "Hög" }, { Färg: "Vit", Typ: "Låg" }])).toBe("funktion");
   });
 
   it("bildaxeln är den första axeln med ett eget värde för varje artikel", () => {
@@ -164,13 +194,13 @@ describe("värdena", () => {
 });
 
 describe("vevorFamiljeProdukt", () => {
-  const a1 = artikel(1, [["Typ", "Sektionell"], ["Antal", "2"]], {
-    spec: [["Typ", "Sektionell"], ["Material", "Stål"]],
+  const a1 = artikel(1, [["Färg", "Svart"], ["Antal", "2"]], {
+    spec: [["Färg", "Svart"], ["Material", "Stål"]],
   });
-  const a2 = artikel(2, [["Typ", "Trumma"], ["Antal", "2"]], {
+  const a2 = artikel(2, [["Färg", "Röd"], ["Antal", "2"]], {
     status: "slut",
     saldo: 0,
-    spec: [["Typ", "Trumma"], ["Material", "Stål"]],
+    spec: [["Färg", "Röd"], ["Material", "Stål"]],
   });
   const f = byggFamilj(a1, lasta(a2), NU, ledig);
   if (f.typ !== "familj") throw new Error("ska bli en familj");
@@ -180,16 +210,16 @@ describe("vevorFamiljeProdukt", () => {
   it("en variant per artikel, med eget artikelnummer, saldo och inköp", () => {
     expect(p.supplierProductId).toBe(`vevor:${sku(1)}`);
     expect(p.variants).toEqual([
-      { supplierVariantId: sku(1), options: { Typ: "Sektionell", Antal: "2" }, costUsd: kostnadUsd(a1, PRIS), stock: 12, included: true },
-      { supplierVariantId: sku(2), options: { Typ: "Trumma", Antal: "2" }, costUsd: kostnadUsd(a2, PRIS), stock: 0, included: true },
+      { supplierVariantId: sku(1), options: { Färg: "Svart", Antal: "2" }, costUsd: kostnadUsd(a1, PRIS), stock: 12, included: true },
+      { supplierVariantId: sku(2), options: { Färg: "Röd", Antal: "2" }, costUsd: kostnadUsd(a2, PRIS), stock: 0, included: true },
     ]);
     expect(p.variants[0].costUsd).not.toBe(p.variants[1].costUsd);
     expect(p.inStock).toBe(true);
   });
 
   it("VEVOR:s egen svenska skickas som manuella namn, och axlarna står inte i specifikationen", () => {
-    expect(p.variantNameOverrides).toEqual({ Sektionell: "Sektionell", Trumma: "Trumma", "2": "2" });
-    expect(p.axisNameOverrides).toEqual({ Typ: "Typ", Antal: "Antal" });
+    expect(p.variantNameOverrides).toEqual({ Svart: "Svart", Röd: "Röd", "2": "2" });
+    expect(p.axisNameOverrides).toEqual({ Färg: "Färg", Antal: "Antal" });
     expect(p.specifications).toEqual({ Material: "Stål" });
   });
 
@@ -226,11 +256,11 @@ describe("vevorFamiljeProdukt", () => {
     // Förut: ankarets galleri och bara huvudbilden från varje syskon. Grön och
     // orange på traktorskopskyddet visade en bild var, och den röda huvudbilden
     // låg två gånger i galleriet.
-    expect(f.bildaxel).toBe("Typ");
+    expect(f.bildaxel).toBe("Färg");
     const egna1 = valjVevorBilder(a1.bilder).urls;
     const egna2 = valjVevorBilder(a2.bilder).urls;
     expect(egna1).toHaveLength(6);
-    expect(p.valBilder).toEqual({ Typ: { Sektionell: egna1, Trumma: egna2 } });
+    expect(p.valBilder).toEqual({ Färg: { Svart: egna1, Röd: egna2 } });
     // Galleriet: ankarets bilder först, så att dess första blir huvudbilden.
     expect(p.imageUrls).toEqual([...egna1, ...egna2]);
     expect(new Set(p.imageUrls).size).toBe(p.imageUrls.length);
@@ -238,10 +268,10 @@ describe("vevorFamiljeProdukt", () => {
   });
 
   it("utan en bildaxel får produkten ankarets bilder, okopplade", () => {
-    const b1 = artikel(1, [["Typ", "Sektionell"], ["Kabellängd", "20 m"]]);
-    const b2 = artikel(2, [["Typ", "Sektionell"], ["Kabellängd", "30 m"]]);
-    const b3 = artikel(3, [["Typ", "Trumma"], ["Kabellängd", "20 m"]]);
-    const b4 = artikel(4, [["Typ", "Trumma"], ["Kabellängd", "30 m"]]);
+    const b1 = artikel(1, [["Färg", "Svart"], ["Kabellängd", "20 m"]]);
+    const b2 = artikel(2, [["Färg", "Svart"], ["Kabellängd", "30 m"]]);
+    const b3 = artikel(3, [["Färg", "Röd"], ["Kabellängd", "20 m"]]);
+    const b4 = artikel(4, [["Färg", "Röd"], ["Kabellängd", "30 m"]]);
     const g = byggFamilj(b1, lasta(b2, b3, b4), NU, ledig);
     if (g.typ !== "familj") throw new Error("ska bli en familj");
     expect(g.bildaxel).toBeNull();
@@ -332,5 +362,99 @@ describe("familjensBilder", () => {
     const a2 = artikel(2, [["Färg", "F2"]], { bilder: [] });
     const g = familjensBilder([medlem(1), a2], (a) => valjVevorBilder(a.bilder), varde);
     expect(Object.keys(g.perVarde)).toEqual(["F1"]);
+  });
+});
+
+describe("SPU-grupper: syskon utan länkar (Leonard 2026-10-30)", () => {
+  const spu = (n: number, farg: string, over: Partial<Avlasning> = {}): Avlasning =>
+    testAvlasning({
+      sku: sku(n),
+      spu: "55555",
+      bilder: testgalleri(sku(n)),
+      namn: `VEVOR Testhink ${farg}`,
+      egenskaper: [],
+      syskon: [],
+      spec: [
+        ["Artikelmodellnummer", `TEST-${n}`],
+        ["Färg", farg],
+        ["Material", "Plast"],
+      ],
+      ...over,
+    });
+  const s1 = spu(1, "Svart");
+  const s2 = spu(2, "Vit");
+
+  it("samma SPU, samma betyg och en färg som skiljer blir en familj, med axeln ur specifikationen", () => {
+    const f = byggSpuFamilj(s1, [s2], NU, ledig);
+    expect(f.typ).toBe("familj");
+    if (f.typ !== "familj") return;
+    expect(f.medlemmar.map((m) => m.sku)).toEqual([sku(1), sku(2)]);
+    expect(f.axlar).toEqual(["Färg"]);
+    expect(f.bildaxel).toBe("Färg");
+  });
+
+  it("☠️ olika betyg, ett länkat syskon eller ingen annan i gruppen ger ingen grupp", () => {
+    expect(byggSpuFamilj(s1, [{ ...s2, betyg: { snitt: 4.1, antal: 12 } }], NU, ledig)).toEqual({ typ: "ensam" });
+    expect(byggSpuFamilj(s1, [{ ...s2, syskon: [{ sku: sku(1), webbId: "000000000001", kanKopas: true }] }], NU, ledig)).toEqual({ typ: "ensam" });
+    expect(byggSpuFamilj(s1, [], NU, ledig)).toEqual({ typ: "ensam" });
+    expect(byggSpuFamilj({ ...s1, spu: null }, [s2], NU, ledig)).toEqual({ typ: "ensam" });
+    // En annan SPU i listan räknas inte.
+    expect(byggSpuFamilj(s1, [{ ...s2, spu: "66666" }], NU, ledig)).toEqual({ typ: "ensam" });
+  });
+
+  it("☠️ en titel som inte förklaras av artikelns egna värden ger ingen grupp", () => {
+    expect(byggSpuFamilj(s1, [{ ...s2, namn: "VEVOR Testhink Vit med pump" }], NU, ledig)).toEqual({ typ: "ensam" });
+  });
+
+  it("☠️ en rad för funktion som skiljer ger egna sidor, också när den inte är axeln", () => {
+    const e1 = spu(1, "Svart", { spec: [["Färg", "Svart"], ["Effekt", "850 W"]], namn: "VEVOR Testhink Svart 850 W" });
+    const e2 = spu(2, "Vit", { spec: [["Färg", "Vit"], ["Effekt", "1800 W"]], namn: "VEVOR Testhink Vit 1800 W" });
+    expect(byggSpuFamilj(e1, [e2], NU, ledig)).toEqual({ typ: "ej_sammanslagen", skal: "funktion" });
+  });
+
+  it("☠️ en oklar axel ger egna sidor", () => {
+    const m1 = spu(1, "Svart", { spec: [["Färg", "Svart"], ["Material", "Plast"]], namn: "VEVOR Testhink Plast" });
+    const m2 = spu(2, "Svart", { spec: [["Färg", "Svart"], ["Material", "Stål"]], namn: "VEVOR Testhink Stål" });
+    expect(byggSpuFamilj(m1, [m2], NU, ledig)).toEqual({ typ: "ej_sammanslagen", skal: "oklar_axel" });
+  });
+
+  it("☠️ en medlem vars betyg, specifikation eller recensionsartikel är okänd gör att gruppen väntar", () => {
+    expect(byggSpuFamilj(s1, [{ ...s2, specKalla: undefined, spec: [], punkter: [] }], NU, ledig)).toEqual({ typ: "vanta" });
+    expect(byggSpuFamilj(s1, [{ ...s2, betyg: undefined }], NU, ledig)).toEqual({ typ: "vanta" });
+    // En upptagen medlem utan betyg väntar gruppen inte på.
+    expect(byggSpuFamilj(s1, [{ ...s2, betyg: undefined }], NU, (x) => x === sku(2))).toEqual({ typ: "ensam" });
+  });
+
+  it("ett medlem som redan sitter på en produkt följer inte med", () => {
+    expect(byggSpuFamilj(s1, [s2], NU, (x) => x === sku(2))).toEqual({ typ: "ensam" });
+  });
+
+  it("specAxlar: rader som skiljer, grupperade, utan vikt, förpackning och artikelnummer", () => {
+    const a = [
+      { spec: [["Färg", "Svart"], ["Färgnamn", "Nattsvart"], ["Vikt", "2 kg"], ["Artikelmodellnummer", "A"]] as [string, string][] },
+      { spec: [["Färg", "Vit"], ["Färgnamn", "Snövit"], ["Vikt", "3 kg"], ["Artikelmodellnummer", "B"]] as [string, string][] },
+    ];
+    expect(specAxlar(a)).toEqual({
+      axlar: ["Färg"],
+      rader: [["Färg", "Färgnamn"]],
+      skiljer: ["Färg", "Färgnamn", "Vikt", "Artikelmodellnummer"],
+    });
+    expect(specAxlar([{ spec: [["Vikt", "2 kg"]] }, { spec: [["Vikt", "3 kg"]] }])).toBe("ingen_axel");
+    expect(specAxlar([{ spec: [] }, { spec: [["Färg", "Vit"]] }])).toBe("ingen_axel");
+    const tre = (v: string[]): { spec: [string, string][] } => ({ spec: [["A", v[0]], ["B", v[1]], ["C", v[2]]] });
+    expect(specAxlar([tre(["1", "1", "1"]), tre(["2", "1", "1"]), tre(["1", "2", "1"]), tre(["1", "1", "2"])])).toBe("for_manga_axlar");
+  });
+
+  it("titlarnaForklaras: varje ord som inte är gemensamt ska stå i artikelns egna värden", () => {
+    const a = { namn: "VEVOR Hink Svart 10 L", spec: [["Färg", "Svart"]] as [string, string][] };
+    const b = { namn: "VEVOR Hink Vit 10 L", spec: [["Färg", "Vit"]] as [string, string][] };
+    expect(titlarnaForklaras([a, b], ["Färg"])).toBe(true);
+    expect(titlarnaForklaras([a, { ...b, namn: "VEVOR Hink Vit 20 L" }], ["Färg"])).toBe(false);
+  });
+
+  it("familjeVarden: egenskapen först, annars specifikationens rad med samma namn", () => {
+    expect(familjeVarden({ egenskaper: [["Färg", "Röd"]], spec: [["färg", "Vit"]] }, ["Färg"])).toEqual({ Färg: "Röd" });
+    expect(familjeVarden({ egenskaper: [], spec: [["färg ", " Vit "]] }, ["Färg"])).toEqual({ Färg: "Vit" });
+    expect(familjeVarden({ egenskaper: [], spec: [] }, ["Färg"])).toEqual({});
   });
 });

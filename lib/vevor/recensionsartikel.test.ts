@@ -4,6 +4,7 @@ import type { StoredReview } from "@/lib/store/reviews";
 import {
   artikelPerText,
   beslutFor,
+  koptPerArtikel,
   korRecensionsartikel,
   produktensArtiklar,
   type RecensionsartikelDeps,
@@ -126,6 +127,26 @@ describe("korRecensionsartikel", () => {
     expect(s).toMatchObject({ attVisa: 1, visade: 1 });
     expect(f.sparade).toEqual([rad(ANNAN, { status: "pending" })]);
     expect(f.sparade[0]).not.toHaveProperty("doldAv");
+  });
+
+  it("☠️ på en familj märks raderna om egna artiklar med varianten kunden köpte", async () => {
+    const familj = mappning([1, 2], {
+      variants: [
+        { supplierVariantId: sku(1), choices: { Färg: "Svart", Material: "Stål" } },
+        { supplierVariantId: sku(2), choices: { Färg: "Vit", Material: "Stål" } },
+      ],
+    } as unknown as Partial<ProductMappingRecord>);
+    expect([...koptPerArtikel(familj)]).toEqual([
+      [sku(1), "Svart"],
+      [sku(2), "Vit"],
+    ]);
+    const f = fejk({ mappningar: [familj], rader: [rad(EGEN), rad(ANNAN, { kopt: "Vit" }), rad(OKAND)] });
+    const s = await korRecensionsartikel(f.deps, { dryRun: false, fran: 0, budgetMs: 60_000 });
+    // EGEN gäller artikel 1 (Svart), ANNAN artikel 2 som redan är märkt.
+    expect(s).toMatchObject({ egna: 2, attMarka: 1, markta: 1, attDolja: 0 });
+    expect(f.sparade).toEqual([{ ...rad(EGEN), kopt: "Svart" }]);
+    // En produkt med en artikel märks inte.
+    expect(koptPerArtikel(mappning([1])).size).toBe(0);
   });
 
   it("☠️ en produkt vars avläsning är från före 2026-10-30 hoppas över", async () => {

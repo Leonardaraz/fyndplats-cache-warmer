@@ -128,6 +128,17 @@ describe("allaRader", () => {
     expect((kropp(0).query as Record<string, unknown>).fields).toBeUndefined();
   });
 
+  it("`forsta` slutar läsa när de första N raderna är hämtade", async () => {
+    fetchSpion
+      .mockResolvedValueOnce(sida(1000, 0, "c1"))
+      .mockResolvedValueOnce(sida(1000, 1000, "c2"))
+      .mockResolvedValueOnce(sida(1000, 2000, "c3"));
+    const rader = await allaRader<{ _id: string }>("C", { forsta: 1500 });
+    expect(rader).toHaveLength(1500);
+    expect(rader[1499]._id).toBe("r1499");
+    expect(fetchSpion).toHaveBeenCalledTimes(2);
+  });
+
   it("☠️ kastar hellre än kapar: över taket", async () => {
     fetchSpion.mockImplementation(async () => sida(1000, Math.random() * 1e9, `c${Math.random()}`));
     await expect(allaRader("C", { tak: 2500 })).rejects.toThrow(/passerade 2500 rader/);

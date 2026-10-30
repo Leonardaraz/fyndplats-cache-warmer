@@ -60,6 +60,8 @@ export interface AERReview {
   customerCountry?: string;
   /** ISO-datum om känt. */
   date?: string;
+  /** Varianten kunden köpte, på en sida med flera varianter (StoredReview.kopt). */
+  kopt?: string;
 }
 
 export const REVIEW_FILTER = {
@@ -541,6 +543,7 @@ export async function importReviewsForProduct(
       ...(deps.source ? { source: deps.source } : {}),
       customerCountry: r.customerCountry,
       date: r.date,
+      ...(r.kopt ? { kopt: r.kopt } : {}),
       ...bildfalt,
       // ALLTID pending — samma som butikens egna kundrecensioner. Fram till
       // 2026-08-19 auto-godkändes importerade AE-recensioner (spec 2026-06-02),

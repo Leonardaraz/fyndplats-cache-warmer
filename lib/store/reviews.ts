@@ -32,7 +32,7 @@ import { isExternalSupplierImage, ownImageUrlForReview } from "../wix/media-impo
 import { reviewsBackend } from "./backend";
 import { PostgresReviewStore } from "./reviews-postgres";
 import { reviewImageFields, reviewImages } from "../reviews/images";
-import { aggregera, allaRader, fraga, hamta, spara, type Sortering } from "../db/wix-data-klient";
+import { aggregera, allaRader, fraga, hamta, rakna as raknaRader, spara, type Sortering } from "../db/wix-data-klient";
 
 const COLLECTION_ID =
   process.env.WIX_DATA_COL_REVIEWS ?? "FyndplatsImportedReviews";
@@ -93,6 +93,12 @@ export interface StoredReview {
    * människa raden, och då rör inget verktyg den.
    */
   doldAv?: "annan_artikel";
+  /**
+   * Varianten kunden köpte, på en sida med flera varianter ("Svart / 50 liter",
+   * "6 st"). Butiken visar "Köpt: …" (Leonard 2026-10-30: "Följ
+   * rekommendationen"). Saknas fältet visas ingenting.
+   */
+  kopt?: string;
 }
 
 /** Komposit-id: unikt per produkt även om samma reviewIdAE förekommer globalt. */
@@ -224,6 +230,14 @@ export interface ReviewStoreLike {
   listByProduct(productId: string, limit?: number): Promise<StoredReview[]>;
   listAll(limit?: number): Promise<StoredReview[]>;
   listByStatus(status: ReviewStatus, limit?: number): Promise<StoredReview[]>;
+  /** Bara en källa ("customer", "aosom", "vevor"), filtrerat i lagret. */
+  listBySource(source: string, limit?: number): Promise<StoredReview[]>;
+  /**
+   * Antal rader i HELA lagret, med status och källa som valfria filter. För
+   * /admin/reviews: räknarna får aldrig räknas på ett utsnitt (2026-10-30, 5 av
+   * 13 egna kundomdömen syntes när lagret passerat 5 000 rader).
+   */
+  rakna(filter?: { status?: ReviewStatus; source?: string }): Promise<number>;
   setStatus(productId: string, reviewIdAE: string, status: ReviewStatus): Promise<void>;
   editText(productId: string, reviewIdAE: string, newSwedish: string): Promise<void>;
 }
@@ -291,6 +305,17 @@ export class ReviewStore implements ReviewStoreLike {
     return this.lista({ status }, limit);
   }
 
+  async listBySource(source: string, limit = MAX_LIST_ALL): Promise<StoredReview[]> {
+    return this.lista({ source }, limit);
+  }
+
+  async rakna(filter: { status?: ReviewStatus; source?: string } = {}): Promise<number> {
+    const f: Record<string, unknown> = {};
+    if (filter.status) f.status = filter.status;
+    if (filter.source) f.source = filter.source;
+    return raknaRader(COLLECTION_ID, f);
+  }
+
   private async get(productId: string, reviewIdAE: string): Promise<StoredReview | null> {
     return hamta<StoredReview>(COLLECTION_ID, reviewDocId(productId, reviewIdAE));
   }
@@ -321,7 +346,7 @@ export class ReviewStore implements ReviewStoreLike {
     const rader =
       limit <= 1000
         ? await fraga<StoredReview>(COLLECTION_ID, { filter, sort: NYAST_FORST, limit })
-        : (await allaRader<StoredReview>(COLLECTION_ID, { filter, sort: NYAST_FORST })).slice(0, limit);
+        : await allaRader<StoredReview>(COLLECTION_ID, { filter, sort: NYAST_FORST, forsta: limit });
     return rader.filter((d) => Boolean(d?.productId && d?.reviewIdAE));
   }
 }

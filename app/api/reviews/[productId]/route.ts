@@ -48,6 +48,8 @@ interface PublicReview {
    * `firstParty` räcker inte, för det säger bara "inte vår kund", inte vems.
    */
   source?: string;
+  /** Varianten kunden köpte, på en sida med flera varianter. Butiken visar "Köpt: …". */
+  kopt?: string;
   date?: string;
   hasImage: boolean;
   imageUrl?: string;
@@ -63,6 +65,7 @@ function toPublic(r: StoredReview): PublicReview {
     // Redigeras bort när paniklaget är på — se fältets kommentar.
     initials: reviewDisplayMode() === "verified_buyer" ? "" : r.initials,
     ...(r.source ? { source: r.source } : {}),
+    ...(r.kopt ? { kopt: r.kopt } : {}),
     date: r.date,
     hasImage: Boolean(r.hasImage),
     ...(r.hasImage && r.imageUrl ? { imageUrl: r.imageUrl } : {}),
