@@ -9,6 +9,7 @@ import {
   orderPostnummer,
   orderRader,
   orderSumma,
+  radensVal,
 } from "./wix-order-fields.ts";
 
 // Granskning 2026-08-19: /tack läste landet på
@@ -270,5 +271,23 @@ describe("orderSumma", () => {
 
   it("saknade belopp blir undefined, aldrig 0", () => {
     assert.deepEqual(orderSumma({}), { frakt: undefined, totalt: undefined, moms: undefined });
+  });
+});
+
+describe("radensVal", () => {
+  it("☠️ alla val på raden, inte bara det första (order- och fraktmejlen)", () => {
+    const li = {
+      descriptionLines: [
+        { name: { original: "Längd" }, plainText: { original: "36 tum" } },
+        { name: { original: "Antal" }, plainText: { original: "6 st" } },
+      ],
+    };
+    assert.equal(radensVal(li), "Längd: 36 tum · Antal: 6 st");
+  });
+
+  it("ett val utan namn står ensamt, och en rad utan val ger undefined", () => {
+    assert.equal(radensVal({ descriptionLines: [{ plainText: { original: "Svart" } }] }), "Svart");
+    assert.equal(radensVal({ descriptionLines: [] }), undefined);
+    assert.equal(radensVal({}), undefined);
   });
 });

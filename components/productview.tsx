@@ -7,9 +7,9 @@ import { RestockForm } from "./restock-form";
 import { trackAddToCart, trackViewItem } from "../lib/analytics";
 import { tightFillUrl } from "../lib/wix-image";
 import { findVariant, reconcileSelection, choiceStatus, andradeAxlar } from "../lib/variant-multi";
-import { forvalIndex, forvalKombination } from "../lib/pdp-forval";
+import { forvalIndex, forvalKombination, prisTal } from "../lib/pdp-forval";
 import { colorKeysOf } from "../lib/variant-color-image";
-import { flestaHarBild, variantLage, visaValnamn } from "../lib/variant-lage";
+import { flestaHarBild, variantLage, visaAxelnamn, visaValnamn } from "../lib/variant-lage";
 import { DeliveryEstimate } from "./delivery-estimate";
 import { PaymentMarks } from "./payment-marks";
 import { KlarnaOSM } from "./klarna-osm";
@@ -551,6 +551,9 @@ export function ProductView({
       : onSale
         ? originalPrice || ""
         : "";
+  // Det ordinarie priset visas i hela kronor, som priset bredvid. Strängen
+  // kommer från Wix eller variantdatan med två decimaler ("2 999,00 kr").
+  const ordinarie = prisTal(displayOriginal);
   // Numeriskt pris för den VALDA varianten/kombinationen → Klarna-delbeloppet
   // (pris/3) matchar exakt det pris kunden ser. Samma logik som onAdd:s itemPrice.
   const currentPriceNum = multiAxis
@@ -694,7 +697,7 @@ export function ProductView({
         return (
           <div className="pdp-axis" key={axis.name}>
             <div className="varhead">
-              <span className="varhead-key">{axis.name}</span>
+              <span className="varhead-key">{visaAxelnamn(axis.name)}</span>
               <strong className="varhead-val">{fmtDim(picked[axis.name] || "")}</strong>
               {axis.choices.length >= 3 && <span className="varcount">{axis.choices.length} val</span>}
             </div>
@@ -744,7 +747,7 @@ export function ProductView({
   const variantPicker = (hasImageVariants || hasTextVariants) ? (
     <div className="pdp-variants">
       <div className="varhead">
-        <span className="varhead-key">{hasImageVariants ? (options?.name || "Variant") : "Variant"}</span>
+        <span className="varhead-key">{hasImageVariants ? visaAxelnamn(options?.name || "Variant") : "Variant"}</span>
         <strong className="varhead-val">{fmtDim(variantLabel)}</strong>
         {singleCount >= 3 && <span className="varcount">{singleCount} val</span>}
       </div>
@@ -809,8 +812,8 @@ export function ProductView({
           )}
           <div className="pdp-price">
             {displayPrice}
-            {displayOriginal && <span className="pdp-price-old">{displayOriginal}</span>}
-            {displayOriginal && <span className="pdp-sale">Rea</span>}
+            {ordinarie > 0 && <span className="pdp-price-old">{formatPrice(ordinarie)}</span>}
+            {ordinarie > 0 && <span className="pdp-sale">Rea</span>}
           </div>
           <KlarnaOSM priceNum={currentPriceNum} />
           {/* Lagerstatus visas i leveransboxen ("✓ I lager · Beräknad leverans…")
