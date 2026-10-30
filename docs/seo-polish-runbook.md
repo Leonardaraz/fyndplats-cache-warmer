@@ -92,10 +92,10 @@ På en familj (flera varianter) visar varje rad i fliken som skiljer sig varje v
   försvinner poleringen.
 - **`vevorGranskning.medicinteknik: true` i mappningsraden** (läsningen i *2. Hämta
   källan*). Flagga utkastet till Leonard.
-- **Saldo 0 i `lager.tsv`.** Prisgrindens SLUTSALD bygger på synkens stämpel, och
-  VEVOR-synken är avstängd tills poleringen börjar *(Leonard 2026-10-30: "Vi kan sätta på
-  den när vi börjar polera")*. Slå på den med **"VEVOR — synken"** (`status`, sedan `pa`)
-  före första VEVOR-rundan, så att lager och pris följer VEVOR.
+- **Saldo 0 i `lager.tsv`.** Prisgrindens SLUTSALD bygger på synkens stämpel. VEVOR-synken
+  är påslagen sedan 2026-10-30 och går minut 50 varje timme, men en artikel vars avläsning är
+  äldre än tolv timmar rörs inte (utkasten läses en gång per dygn). Kontrollera med
+  **"VEVOR — synken"** (`status`) att `aktiv` är sann före en VEVOR-runda.
 
 **Märket.** Skrivsteget sätter märket VEVOR i Wix. Skriv det inte i namnet eller SEO-titeln
 *(Leonard 2026-10-28)*.

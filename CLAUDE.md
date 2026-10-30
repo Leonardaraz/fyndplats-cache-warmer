@@ -6897,9 +6897,13 @@ mellanslag), och rubrikerna (Nyckelfunktioner, Specifikationer, Paketets
 innehåll) står kvar. Avläsningen rörs inte. Utkasten som importerades före
 2026-10-30 ~01:30 UTC bär den gamla texten; poleringen skriver om den.
 
-**VEVOR-synken slås på när poleringen börjar** (Leonard 2026-10-30: "Vi kan
-sätta på den när vi börjar polera"). Fram till dess står utkastens lager och
-pris som vid importen.
+**VEVOR-synken är påslagen sedan 2026-10-30 19:22 UTC** (Leonard samma kväll:
+"Följ rekommendationen"; tidigare "Vi kan sätta på den när vi börjar polera").
+Ordningen var status, torr, skarp (408 lagersaldon, 0 fel), torr igen (3 lager
+och 0 priser att skriva) och sist `pa`. Körningen 22:50 UTC granskade 5 764
+rader, skrev 329 lagersaldon och 0 priser, med 0 fel. 5 216 hade okänt besked
+och rördes inte: utkasten läses en gång per dygn, och en avläsning äldre än
+tolv timmar är okänd.
 
 ### Varje färg får sina egna bilder (2026-10-30)
 
