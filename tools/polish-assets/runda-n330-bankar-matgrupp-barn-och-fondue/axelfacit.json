@@ -1,0 +1,61 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0fb77c48": {
+  "tyska": "41L x 28B x 26H cm",
+  "svenska": "41 x 28 x 26 cm",
+  "bokstaver": "LBH",
+  "hojd": 26,
+  "bredd": 41,
+  "djup": 28
+ },
+ "3d002c76": {
+  "tyska": "",
+  "svenska": "15,5 x 15,5 x 23 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 15,5L x 15,5B x 23H cm"
+ },
+ "60b8697c": {
+  "tyska": "22L x 10B x 8,5H cm",
+  "svenska": "15 x 15 x 4,5 cm",
+  "bokstaver": "LBH",
+  "hojd": 8.5,
+  "bredd": 22,
+  "djup": 10
+ },
+ "a54c7a05": {
+  "tyska": "98B x 50T x 39H cm",
+  "svenska": "98 x 50 x 39 cm",
+  "bokstaver": "BTH",
+  "djup": 50,
+  "hojd": 39,
+  "bredd": 98
+ },
+ "c83b62e9": {
+  "tyska": "41,5B x 36,5T x 149H cm",
+  "svenska": "41.5 x 36.5 x 149 cm",
+  "bokstaver": "BTH",
+  "djup": 36.5,
+  "hojd": 149,
+  "bredd": 41.5
+ },
+ "d653d0c7": {
+  "tyska": "30L x 30B x 12H cm",
+  "svenska": "30 x 30 x 12 cm",
+  "bokstaver": "LBH",
+  "hojd": 12,
+  "bredd": 30,
+  "djup": 30
+ },
+ "e7343b34": {
+  "tyska": "102B x 45T x 46H cm",
+  "svenska": "102L x 45B x 46H cm",
+  "bokstaver": "BTH",
+  "djup": 45,
+  "hojd": 46,
+  "bredd": 102
+ },
+ "ec363cf6": {
+  "tyska": "",
+  "svenska": "100 x 100 x 75 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischmaße: Ø100 x 75H cm | ✔ Sitzmaße des Stuhls: 45B x 40T x 46H cm | ✔ Maße der Stuhlrückenlehne: 40B x 38H cm"
+ }
+}

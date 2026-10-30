@@ -1,0 +1,46 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "29d6aa3f": {
+  "tyska": "200L x 150B x 1,5H cm",
+  "svenska": "200 x 150 x 1,5 cm",
+  "bokstaver": "LBH",
+  "hojd": 1.5,
+  "bredd": 200,
+  "djup": 150
+ },
+ "300a9113": {
+  "tyska": "45,5L x 36,5B x 51H cm",
+  "svenska": "45,5 × 36,5 × 51 cm (B×D×H)",
+  "bokstaver": "LBH",
+  "hojd": 51,
+  "bredd": 45.5,
+  "djup": 36.5
+ },
+ "84feab40": {
+  "tyska": "200L x 180B x 1,5H cm",
+  "svenska": "200 x 180 x 1,5 cm",
+  "bokstaver": "LBH",
+  "hojd": 1.5,
+  "bredd": 200,
+  "djup": 180
+ },
+ "ad485d42": {
+  "tyska": "67B x 82T x 79-89H cm",
+  "svenska": "67 x 82 x 89 cm",
+  "bokstaver": "BTH",
+  "djup": 82,
+  "hojd": [
+   79,
+   89
+  ],
+  "bredd": 67
+ },
+ "f8c671b3": {
+  "tyska": "70L x 70B x 61H cm (Sofa), 70L x 174B x 15H cm (Bett)",
+  "svenska": "70L x 70B x 61H cm",
+  "bokstaver": "LBHLBH",
+  "hojd": 61,
+  "bredd": 70,
+  "djup": 70
+ }
+}
