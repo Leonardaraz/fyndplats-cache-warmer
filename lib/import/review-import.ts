@@ -25,7 +25,14 @@ import { ownImageUrlForReview } from "../wix/media-import";
 import { MAX_REVIEW_IMAGES, reviewImageFields, reviewImages } from "../reviews/images";
 import { arForeDatumgransen } from "../reviews/datumgrans";
 import { arAliExpress } from "../reviews/ae-ko-rensning";
-import { rattaInitialer, slumpaAndra, slumpaInitialer } from "../reviews/initialer";
+import {
+  nyckelForInitialer,
+  rattaInitialer,
+  slumpaAndra,
+  slumpaInitialer,
+  slumpaUnika,
+  upptagnaPlatser,
+} from "../reviews/initialer";
 
 /** Rå recension som skrapan (extension/content.js) eller AE-API:t levererar. */
 export interface AERReview {
@@ -248,6 +255,11 @@ function rankaMedGolv(
 // bokstav efter den första — varenda recension utan namn fick A.B., B.C., … Z.A.
 // (Leonard 2026-10-30). Det gäller även initialer ur ett riktigt namn: "Wolfgang
 // Weber" blir inte "W.W." utan två slumpade bokstäver.
+//
+// Och inga två recensioner på samma produkt får samma initialer (Leonard 2026-10-30:
+// "är det möjligt att inte ha så många med samma initialer på samma produkt?").
+// `deriveInitials` vet inget om produkten; `deriveUniqueInitials` längre ner gör det,
+// och är den som skrivvägarna använder.
 
 function hashString(s: string): number {
   let h = 0;
@@ -293,6 +305,59 @@ export function deriveInitials(rawName: string | undefined, reviewIdAE: string):
     }
   }
   return slumpaInitialer(reviewIdAE);
+}
+
+/**
+ * Så många av en produkts rader läses för att se vilka initialer som redan är upptagna.
+ * Långt över den största produkten (76 recensioner 2026-10-30), och under butikens
+ * gräns för en enda fråga, så läsningen blir ett anrop.
+ */
+const UPPTAGNA_LASTAK = 1_000;
+
+/**
+ * Initialerna som en produkts recensioner redan upptar (avvisade räknas inte), som
+ * nycklar för `deriveUniqueInitials`.
+ *
+ * Best-effort: ett läsfel ger en tom mängd och importen går vidare utan unikhetskoll.
+ * Initialerna är visningsnamn, inte något importen får falla på, och
+ * `recensioner-initialer-slumpa` tar de dubbletter som slank igenom nästa gång den körs.
+ */
+export async function lasUpptagnaInitialer(
+  store: { listByProduct(productId: string, limit?: number): Promise<StoredReview[]> },
+  productId: string,
+): Promise<Set<string>> {
+  try {
+    return upptagnaPlatser(await store.listByProduct(productId, UPPTAGNA_LASTAK));
+  } catch (err) {
+    console.warn(
+      `[review-import] kunde inte läsa produktens initialer (${productId}), fortsätter utan unikhetskoll:`,
+      err instanceof Error ? err.message : err,
+    );
+    return new Set();
+  }
+}
+
+/**
+ * `deriveInitials`, men inga två recensioner på samma produkt får samma initialer
+ * (Leonard 2026-10-30). `upptagna` är platserna produkten redan har (`lasUpptagnaInitialer`)
+ * och UPPDATERAS med den plats som väljs, så nästa recension i samma körning ser den.
+ *
+ * Är de härledda initialerna redan upptagna dras två nya, slumpade bokstäver med
+ * `slumpaUnika`, med samma frö som bulkverktyget (`produkt#recension`). Bokstäverna ur
+ * ett maskerat namn är ändå påhittade, och rådatat ligger kvar i `customerNameRaw`.
+ */
+export function deriveUniqueInitials(
+  rawName: string | undefined,
+  reviewIdAE: string,
+  productId: string,
+  upptagna: Set<string>,
+): string {
+  const forsta = deriveInitials(rawName, reviewIdAE);
+  const ut = upptagna.has(nyckelForInitialer(forsta))
+    ? (slumpaUnika(`${productId}#${reviewIdAE}`, upptagna) ?? forsta)
+    : forsta;
+  upptagna.add(nyckelForInitialer(ut));
+  return ut;
 }
 
 /** Stabil reviewIdAE när skrapan inte gav någon (hash av normaliserad text). */
@@ -404,6 +469,9 @@ export async function importReviewsForProduct(
   // trasig Wix-media-väg syns i workflow-loggen i stället för att bli tyst.
   let bildmissar = 0;
   const reviews: StoredReview[] = [];
+  // Platserna produkten redan har, för unika initialer. Läses först när en NY rad
+  // ska skrivas, så en omkörning där allt redan finns kostar ingen extra läsning.
+  let upptagna: Set<string> | null = null;
   for (let i = 0; i < ranked.length; i++) {
     const r = ranked[i];
     const reviewIdAE = ensureReviewId(r);
@@ -455,6 +523,7 @@ export async function importReviewsForProduct(
       );
     }
     const bildfalt = reviewImageFields(egnaBilder);
+    if (!upptagna) upptagna = await lasUpptagnaInitialer(reviewStore, productId);
     const stored: StoredReview = {
       productId,
       reviewIdAE,
@@ -465,7 +534,7 @@ export async function importReviewsForProduct(
       textSwedish: r.text,
       sourceLanguage: r.language ? r.language.toUpperCase() : undefined,
       customerNameRaw: r.customerName,
-      initials: deriveInitials(r.customerName, reviewIdAE),
+      initials: deriveUniqueInitials(r.customerName, reviewIdAE, productId, upptagna),
       // Utelämnas när ingen källa angetts → oförändrad AE-rad (fältet saknas,
       // exakt som alla rader före 2026-08-29). Aldrig tomma strängen: den
       // hade sett ut som ett SATT ursprung utan att vara det.

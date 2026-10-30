@@ -1,12 +1,15 @@
 // POST /api/admin/recensioner-initialer-slumpa — slumpar om initialer som bryter
-// mot reglerna: bokstäverna Q, W, X, Y och Z, och två bokstäver i bokstavsordning
-// ("A.B.", "L.M."). Se lib/reviews/initialer.ts (reglerna) och
-// lib/reviews/slumpa-initialer.ts (vilka rader som ändras).
+// mot reglerna: bokstäverna Q, W, X, Y och Z, två bokstäver i bokstavsordning
+// ("A.B.", "L.M."), och initialer som en annan recension på SAMMA produkt också har
+// (Leonard 2026-10-30). Se lib/reviews/initialer.ts (reglerna) och
+// lib/reviews/slumpa-initialer.ts (vilka rader som ändras, och vem som får vara kvar).
 //
 //   (ingen parameter)   torrt: räknar och visar exempel, skriver ingenting
 //   ?skarp=ja&bekrafta=N  skriver, men bara om N är exakt det antal rader
 //                         planen skulle skriva (högst `hogst`)
-//   ?kundomdomen=ja     tar med kundomdömen (rörs inte som standard)
+//   ?kundomdomen=ja     tar med kundomdömen som bryter mot reglerna (rörs inte som
+//                       standard; ett kundomdöme ändras aldrig för att det är en
+//                       dubblett)
 //   ?hogst=N            högst så många rader per körning (standard 500)
 //
 // ☠️ En skarp körning SÄGER OCKSÅ TILL BUTIKEN (`butiken` i svaret). Butiken
@@ -27,7 +30,7 @@ import { planeraSlumpa, skrivSlumpa } from "@/lib/reviews/slumpa-initialer";
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
-/** Långt över lagrets storlek (≈15 000 rader i oktober 2026). */
+/** Långt över lagrets storlek (≈37 000 rader 2026-10-30). */
 const LASTAK = 100_000;
 const PRODUKTTAK = 5_000;
 const STANDARD_HOGST = 500;
@@ -69,6 +72,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "Lagret är större än rutten läser" }, { status: 500 });
   }
 
+  const lasMs = Date.now() - start;
   const plan = planeraSlumpa(rader, { medKundomdomen, hogst });
   const attSkriva = plan.attAndra.length;
   const exempel = plan.attAndra.slice(0, 10).map(({ r, nya }) => `${r.initials} → ${nya}`);
@@ -100,7 +104,7 @@ export async function POST(req: NextRequest) {
       await audit(
         "reviews",
         "initialer-slumpa",
-        `${skrivet.andrade} recensioner fick nya initialer (Q/W/X/Y/Z och bokstavsordning bytta), `
+        `${skrivet.andrade} recensioner fick nya initialer (Q/W/X/Y/Z, bokstavsordning och dubbletter på samma produkt bytta), `
           + `${skrivet.fel} fel, ${skrivet.andratUnderTiden} ändrade under tiden, ${skrivet.kvar} kvar; `
           + `butiken: ${butiken.uppdaterade}/${butiken.anrop} anrop ok, ${butiken.misslyckade} misslyckade, `
           + `${butiken.hoppade} produkter hoppade${butiken.utanNyckel ? ", ADMIN_SECRET saknas" : ""}`,
@@ -108,9 +112,11 @@ export async function POST(req: NextRequest) {
     }
   }
   console.log(
-    `[initialer-slumpa] ${skarp ? "skarp" : "torr"}: ${rader.length} rader, ${plan.totalt} att ändra `
-      + `(${plan.perOrsak.bokstavsordning} bokstavsordning, ${plan.perOrsak.barForbjuden} bara förbjuden bokstav), `
-      + `${plan.kundomdomenHoppade} kundomdömen hoppade, ${plan.annanForm} annan form, `
+    `[initialer-slumpa] ${skarp ? "skarp" : "torr"}: ${rader.length} rader (lästa på ${lasMs} ms), ${plan.totalt} att ändra `
+      + `(${plan.perOrsak.bokstavsordning} bokstavsordning, ${plan.perOrsak.barForbjuden} bara förbjuden bokstav, `
+      + `${plan.perOrsak.dubblett} dubbletter på samma produkt; ${plan.produkter} produkter), `
+      + `${plan.kundomdomenHoppade} kundomdömen hoppade, ${plan.kundDubbletter} kunddubbletter orörda, `
+      + `${plan.ejUnika} utan ledigt par, ${plan.annanForm} annan form, `
       + `${skrivet ? `${skrivet.andrade} ändrade, ${skrivet.fel} fel, ${skrivet.andratUnderTiden} ändrade under tiden` : "inget skrivet"}`
       + `${butiken ? `, butiken ${butiken.uppdaterade}/${butiken.anrop} ok` : ""}`,
   );
@@ -120,9 +126,13 @@ export async function POST(req: NextRequest) {
     skarp,
     stopp,
     granskade: rader.length,
+    lasMs,
     totalt: plan.totalt,
     attSkrivaDennaKorning: attSkriva,
+    produkter: plan.produkter,
     kundomdomenHoppade: plan.kundomdomenHoppade,
+    kundDubbletter: plan.kundDubbletter,
+    ejUnika: plan.ejUnika,
     annanForm: plan.annanForm,
     perBokstav: plan.perBokstav,
     perOrsak: plan.perOrsak,

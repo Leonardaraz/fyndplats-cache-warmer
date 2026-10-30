@@ -1,21 +1,28 @@
-name: Recensioner — slumpa om initialer (Q/W/X/Y/Z och bokstavsordning)
+name: Recensioner — slumpa om initialer (Q/W/X/Y/Z, bokstavsordning och dubbletter på en produkt)
 
 # Leonard 2026-10-29: recensioner vars initialer har bokstäverna Y, X, Z eller W
 # ska få andra, slumpmässiga bokstäver. Leonard 2026-10-30: initialer i
 # bokstavsordning ("A.B.", "L.M.", "G.H.") ser förfalskade ut och ska också få
 # slumpade bokstäver, Q ska bort precis som de andra, och Å och Ö får komma ibland.
+# Samma dag: inga två recensioner på SAMMA produkt ska ha samma initialer.
 #
 # Reglerna och slumpen: lib/reviews/initialer.ts. Vilka rader som ändras:
 # lib/reviews/slumpa-initialer.ts.
 #   - Bokstavsordning: båda bokstäverna slumpas om ("L.M." blir t.ex. "R.D.").
 #   - Annars byts bara den förbjudna bokstaven ("Z.K." blir t.ex. "R.K.").
+#   - Dubblett på en produkt: den äldsta synliga recensionen behåller sina
+#     initialer (kundomdömen först), de andra får nya som är lediga på produkten.
+#     Avvisade recensioner syns aldrig och upptar ingen plats.
 #   - Nya bokstäver kommer ur A–V utan Q, och ibland Å eller Ö.
-# Bokstäverna väljs deterministiskt ur recensionens id, så torrkörningen visar
-# exakt vad en skarp körning skriver, och en omkörning hittar ingenting mer.
+# Bokstäverna väljs deterministiskt ur recensionens id och vad som är upptaget på
+# produkten, så torrkörningen visar exakt vad en skarp körning skriver, och en
+# omkörning hittar ingenting mer. Importerna följer samma regel för nya recensioner
+# (lib/import/review-import.ts).
 # Text, betyg, datum och status rörs inte.
 #
 # Kundomdömen (förstahandsomdömen med kundens egna initialer) rörs inte, om inte
-# kundomdomen = ja.
+# kundomdomen = ja. Ett kundomdöme ändras aldrig för att det är en dubblett: kunden
+# har valt sina initialer själv, och paret räknas bara (kunddubbletter).
 #
 # Torrt som default: räknar och visar exempel. skarp = ja kräver dessutom
 # bekrafta = exakt det antal torrkörningen visade ("attSkrivaDennaKorning").
@@ -105,7 +112,9 @@ jobs:
           fi
 
           # Första raden bär räknarna (läses ur jobbloggen; steg-summeringen går inte att hämta via API).
-          printf '%s' "$json" | jq -r '"\(.totalt) rader att ändra (\(.attSkrivaDennaKorning) denna körning; \(.perOrsak.bokstavsordning) bokstavsordning, \(.perOrsak.barForbjuden) bara förbjuden bokstav; Aosom \(.perKalla.aosom), import \(.perKalla.import), kund \(.perKalla.kund)), \(.kundomdomenHoppade) kundomdömen orörda, \(.annanForm) i annan form, \(.nyaMedAringEllerOumlaut) får Å/Ö, skrivet: \(.skrivet // "inget"), butiken: \(.butiken // "inte sagd till")"'
+          # ☠️ Prefixet "<n> rader att ändra (<n> denna körning" läses av skripten som styr
+          # körningarna (de letar efter just den texten): ändra det inte.
+          printf '%s' "$json" | jq -r '"\(.totalt) rader att ändra (\(.attSkrivaDennaKorning) denna körning; \(.perOrsak.bokstavsordning) bokstavsordning, \(.perOrsak.barForbjuden) bara förbjuden bokstav, \(.perOrsak.dubblett) dubbletter på samma produkt; \(.produkter) produkter; Aosom \(.perKalla.aosom), Vevor \(.perKalla.vevor), import \(.perKalla.import), kund \(.perKalla.kund)), \(.kundomdomenHoppade) kundomdömen orörda, \(.kundDubbletter) kunddubbletter orörda, \(.ejUnika) utan ledigt par, \(.annanForm) i annan form, \(.nyaMedAringEllerOumlaut) får Å/Ö, lagret lästes på \(.lasMs) ms, skrivet: \(.skrivet // "inget"), butiken: \(.butiken // "inte sagd till")"'
           stopp="$(printf '%s' "$json" | jq -r '.stopp // ""')"
 
           {
@@ -116,12 +125,16 @@ jobs:
             echo "| rader i lagret | $(printf '%s' "$json" | jq -r '.granskade') |"
             echo "| att ändra, totalt | $(printf '%s' "$json" | jq -r '.totalt') |"
             echo "| **att skriva denna körning (bekrafta)** | **$(printf '%s' "$json" | jq -r '.attSkrivaDennaKorning')** |"
-            echo "| varav bokstavsordning / bara förbjuden bokstav | $(printf '%s' "$json" | jq -r '.perOrsak | "\(.bokstavsordning) / \(.barForbjuden)"') |"
-            echo "| varav Aosom / import / kund | $(printf '%s' "$json" | jq -r '.perKalla | "\(.aosom) / \(.import) / \(.kund)"') |"
+            echo "| varav bokstavsordning / bara förbjuden bokstav / dubblett på samma produkt | $(printf '%s' "$json" | jq -r '.perOrsak | "\(.bokstavsordning) / \(.barForbjuden) / \(.dubblett)"') |"
+            echo "| produkter med rader att ändra | $(printf '%s' "$json" | jq -r '.produkter') |"
+            echo "| varav Aosom / Vevor / import / kund | $(printf '%s' "$json" | jq -r '.perKalla | "\(.aosom) / \(.vevor) / \(.import) / \(.kund)"') |"
             echo "| med Q / W / X / Y / Z | $(printf '%s' "$json" | jq -r '.perBokstav | "\(.Q) / \(.W) / \(.X) / \(.Y) / \(.Z)"') |"
             echo "| nya initialer med Å eller Ö | $(printf '%s' "$json" | jq -r '.nyaMedAringEllerOumlaut') |"
             echo "| kundomdömen lämnade orörda | $(printf '%s' "$json" | jq -r '.kundomdomenHoppade') |"
+            echo "| kunddubbletter lämnade orörda | $(printf '%s' "$json" | jq -r '.kundDubbletter') |"
+            echo "| utan ledigt par (rörs inte) | $(printf '%s' "$json" | jq -r '.ejUnika') |"
             echo "| annan form (rörs inte) | $(printf '%s' "$json" | jq -r '.annanForm') |"
+            echo "| läsning av lagret (ms) | $(printf '%s' "$json" | jq -r '.lasMs') |"
             if [ "$(printf '%s' "$json" | jq -r '.skrivet != null')" = "true" ]; then
               echo "| ändrade och tillbakalästa | $(printf '%s' "$json" | jq -r '.skrivet.andrade') |"
               echo "| fel | $(printf '%s' "$json" | jq -r '.skrivet.fel') |"
@@ -138,6 +151,12 @@ jobs:
             echo "Exempel: $(printf '%s' "$json" | jq -r '.exempel | join(", ")')"
             [ -n "$stopp" ] && echo "" && echo "**Stopp:** ${stopp}"
           } >> "$GITHUB_STEP_SUMMARY"
+
+          # En produkt kan bara bära 510 olika par. Fler recensioner än så lämnas som de är.
+          ej="$(printf '%s' "$json" | jq -r '.ejUnika')"
+          if [ "$ej" != "0" ]; then
+            echo "::warning::${ej} rader fick inget ledigt par på sin produkt (fler än 510 recensioner) och lämnades som de var."
+          fi
 
           if [ "${SKARP:-nej}" = "ja" ]; then
             if [ -n "$stopp" ]; then

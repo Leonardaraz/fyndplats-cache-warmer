@@ -3,14 +3,21 @@ import {
   ANDEL_A_RING,
   ANDEL_O_UMLAUT,
   FORBJUDNA,
+  FORM_INITIALER,
+  GILTIGA_PAR,
   SLUMPBOKSTAVER,
   arForbjuden,
   bokstaverIInitialer,
   bristerIInitialer,
   iBokstavsordning,
+  nyckelForInitialer,
+  platsPaProdukt,
   rattaInitialer,
+  rattaInitialerUnika,
   slumpaAndra,
   slumpaInitialer,
+  slumpaUnika,
+  upptagnaPlatser,
 } from "./initialer";
 
 const ALLA = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ"];
@@ -212,3 +219,233 @@ describe("rattaInitialer", () => {
     }
   });
 });
+
+// --- Unika initialer per produkt (Leonard 2026-10-30) --------------------------
+
+describe("nyckelForInitialer", () => {
+  it("är bokstäverna i versaler med punkt efter varje, så skiftläge och punkter inte spelar roll", () => {
+    expect(nyckelForInitialer("S.K.")).toBe("S.K.");
+    expect(nyckelForInitialer("s.k.")).toBe("S.K.");
+    expect(nyckelForInitialer(" s. k ")).toBe("S.K.");
+    expect(nyckelForInitialer("SK")).toBe("S.K.");
+    expect(nyckelForInitialer("å.ö.")).toBe("Å.Ö.");
+    expect(nyckelForInitialer("S.")).toBe("S.");
+  });
+
+  it("är tom när det inte finns några bokstäver", () => {
+    expect(nyckelForInitialer("")).toBe("");
+    expect(nyckelForInitialer(undefined)).toBe("");
+    expect(nyckelForInitialer("..")).toBe("");
+  });
+
+  it("skiljer ett par från samma bokstäver i omvänd ordning", () => {
+    expect(nyckelForInitialer("S.K.")).not.toBe(nyckelForInitialer("K.S."));
+  });
+});
+
+describe("GILTIGA_PAR", () => {
+  it("är de ~510 par slumpen kan ge: 23 bokstäver i kvadrat minus de 19 i bokstavsordning", () => {
+    expect(DRAGBARA).toHaveLength(23);
+    expect(GILTIGA_PAR).toHaveLength(23 * 23 - 19);
+    expect(new Set(GILTIGA_PAR).size).toBe(GILTIGA_PAR.length);
+  });
+
+  it("består bara av par utan förbjuden bokstav och utan bokstavsordning, i nyckelform", () => {
+    for (const par of GILTIGA_PAR) {
+      expect(par).toMatch(GILTIG);
+      expect(bristerIInitialer(par), par).toBeNull();
+      expect(nyckelForInitialer(par)).toBe(par);
+    }
+  });
+
+  it("innehåller varje par slumpaInitialer kan ge", () => {
+    const par = new Set(GILTIGA_PAR);
+    for (const frö of fron(3000)) expect(par.has(slumpaInitialer(frö)), frö).toBe(true);
+  });
+
+  it("räknar samma bokstav två gånger ('A.A.') men inte 'A.B.'", () => {
+    expect(GILTIGA_PAR).toContain("A.A.");
+    expect(GILTIGA_PAR).toContain("B.A.");
+    expect(GILTIGA_PAR).not.toContain("A.B.");
+    expect(GILTIGA_PAR).not.toContain("U.V.");
+    expect(GILTIGA_PAR).toContain("V.U.");
+  });
+});
+
+describe("FORM_INITIALER", () => {
+  it("släpper igenom 'S.' och 'S.K.' men inte namn, etiketter eller längre rader", () => {
+    for (const i of ["S.", "S.K.", "å.ö.", "Z.K."]) expect(FORM_INITIALER.test(i), i).toBe(true);
+    for (const i of ["", "Zara", "A.B.C.", "Verifierad köpare", "S.K", "1.2.", " S.K."]) {
+      expect(FORM_INITIALER.test(i), i).toBe(false);
+    }
+  });
+});
+
+describe("platsPaProdukt", () => {
+  it("är nyckeln för en rad som syns eller väntar", () => {
+    expect(platsPaProdukt({ initials: "S.K.", status: "approved" })).toBe("S.K.");
+    expect(platsPaProdukt({ initials: "s.k.", status: "pending" })).toBe("S.K.");
+    expect(platsPaProdukt({ initials: "S.K.", status: "edited" })).toBe("S.K.");
+    expect(platsPaProdukt({ initials: "S.K." })).toBe("S.K.");
+  });
+
+  it("är null för en avvisad rad, som aldrig syns", () => {
+    expect(platsPaProdukt({ initials: "S.K.", status: "rejected" })).toBeNull();
+  });
+
+  it("är null för initialer i annan form än 'S.K.'", () => {
+    for (const initials of ["", undefined, "Zara", "Verifierad köpare", "A.B.C."]) {
+      expect(platsPaProdukt({ initials, status: "approved" }), String(initials)).toBeNull();
+    }
+  });
+});
+
+describe("upptagnaPlatser", () => {
+  it("samlar platserna och hoppar över avvisade och rader i annan form", () => {
+    const platser = upptagnaPlatser([
+      { initials: "S.K.", status: "approved" },
+      { initials: "s.k.", status: "pending" },
+      { initials: "A.R.", status: "edited" },
+      { initials: "M.L.", status: "rejected" },
+      { initials: "Zara", status: "approved" },
+    ]);
+    expect([...platser].sort()).toEqual(["A.R.", "S.K."]);
+  });
+
+  it("är tom för inga rader", () => {
+    expect(upptagnaPlatser([]).size).toBe(0);
+  });
+});
+
+describe("slumpaUnika", () => {
+  it("ger samma initialer som slumpaInitialer när platsen är ledig, så en rad utan krock inte ändras", () => {
+    for (const frö of fron(500)) expect(slumpaUnika(frö, new Set())).toBe(slumpaInitialer(frö));
+  });
+
+  it("undviker det som är upptaget", () => {
+    for (const frö of fron(500)) {
+      const forsta = slumpaInitialer(frö);
+      const ut = slumpaUnika(frö, new Set([forsta]))!;
+      expect(ut).not.toBe(forsta);
+      expect(ut).toMatch(GILTIG);
+      expect(bristerIInitialer(ut)).toBeNull();
+    }
+  });
+
+  it("är deterministisk för samma frö och samma upptagna", () => {
+    const upptagna = new Set(["S.K.", "A.R.", "M.L."]);
+    for (const frö of fron(100)) expect(slumpaUnika(frö, upptagna)).toBe(slumpaUnika(frö, upptagna));
+  });
+
+  it("hittar det enda lediga paret när alla andra är upptagna", () => {
+    for (let i = 0; i < GILTIGA_PAR.length; i += 37) {
+      const ledigt = GILTIGA_PAR[i];
+      const upptagna = new Set(GILTIGA_PAR.filter((p) => p !== ledigt));
+      expect(upptagna.size).toBe(GILTIGA_PAR.length - 1);
+      expect(slumpaUnika(`prod#${i}`, upptagna)).toBe(ledigt);
+    }
+  });
+
+  it("ger null när varje par är upptaget", () => {
+    expect(slumpaUnika("prod#1", new Set(GILTIGA_PAR))).toBeNull();
+  });
+
+  it("fyller en hel produkt utan en enda dubblett: 510 recensioner, 510 olika par", () => {
+    const upptagna = new Set<string>();
+    for (let i = 0; i < GILTIGA_PAR.length; i++) {
+      const ut = slumpaUnika(`prod#rad-${i}`, upptagna);
+      expect(ut, `rad ${i}`).not.toBeNull();
+      expect(upptagna.has(ut!), `rad ${i}: ${ut}`).toBe(false);
+      upptagna.add(ut!);
+    }
+    expect(upptagna.size).toBe(GILTIGA_PAR.length);
+    expect(slumpaUnika("prod#en-till", upptagna)).toBeNull();
+  });
+
+  it("ger aldrig en annan bokstavsföljd än reglerna tillåter, ens när nästan allt är upptaget", () => {
+    const upptagna = new Set(GILTIGA_PAR.slice(0, 480));
+    for (const frö of fron(200)) {
+      const ut = slumpaUnika(frö, upptagna)!;
+      expect(GILTIGA_PAR).toContain(ut);
+      expect(upptagna.has(ut)).toBe(false);
+    }
+  });
+
+  it("håller Å/Ö-andelen som slumpaInitialer också när det mesta är upptaget (nya dragningar, inte en jämn reservdragning)", () => {
+    // Reservvägen väljer jämnt bland ALLA lediga par, och där är Å och Ö nästan dubbelt så
+    // vanliga som i dragningen (mätt: 3,8 % och 3,5 % mot 2 %). Den ska bara ta över när 64
+    // nya dragningar i rad slagit i något upptaget. Två tredjedelar upptaget är långt över
+    // en verklig produkt (flest i lagret: 66 recensioner), men det är där en reservväg som
+    // tar över för tidigt syns i andelen. Leonard: Å och Ö får komma ibland, inte ofta.
+    const upptagna = new Set(GILTIGA_PAR.filter((_, i) => i % 3 !== 0));
+    expect(upptagna.size).toBe(340);
+    const N = 20_000;
+    let a = 0;
+    let o = 0;
+    let bokstaver = 0;
+    for (const f of fron(N)) {
+      for (const b of bokstaverIInitialer(slumpaUnika(f, upptagna)!)) {
+        bokstaver++;
+        if (b === "Å") a++;
+        else if (b === "Ö") o++;
+      }
+    }
+    expect(a / bokstaver).toBeGreaterThan(ANDEL_A_RING * 0.7);
+    expect(a / bokstaver).toBeLessThan(ANDEL_A_RING * 1.3);
+    expect(o / bokstaver).toBeGreaterThan(ANDEL_O_UMLAUT * 0.7);
+    expect(o / bokstaver).toBeLessThan(ANDEL_O_UMLAUT * 1.3);
+  });
+});
+
+describe("rattaInitialerUnika", () => {
+  it("är null när initialerna redan är i sin ordning, som rattaInitialer", () => {
+    for (const i of ["S.K.", "K.S.", "A.A.", "Å.Ö.", "S.", "Sara", ""]) {
+      expect(rattaInitialerUnika(i, "prod#1", new Set(["S.K."])), i).toBeNull();
+    }
+  });
+
+  it("ger samma rättning som rattaInitialer när platsen är ledig", () => {
+    for (const frö of fron(300)) {
+      for (const inn of ["Z.K.", "K.W.", "A.B.", "Q.", "X.Y."]) {
+        expect(rattaInitialerUnika(inn, frö, new Set())).toBe(rattaInitialer(inn, frö));
+      }
+    }
+  });
+
+  it("undviker det som är upptaget och behåller den bokstav som inte behövde bytas", () => {
+    for (const frö of fron(500)) {
+      const forsta = rattaInitialer("Z.K.", frö)!;
+      const ut = rattaInitialerUnika("Z.K.", frö, new Set([forsta]))!;
+      expect(ut).not.toBe(forsta);
+      expect(bristerIInitialer(ut)).toBeNull();
+      // Så länge det finns ett ledigt par med K kvar behålls K.
+      expect(ut).toMatch(/^[A-IK-PR-VÅÖ]\.K\.$/u);
+    }
+  });
+
+  it("slumpar två nya bokstäver när varje rättning med den bevarade bokstaven är upptagen", () => {
+    const upptagna = new Set(GILTIGA_PAR.filter((p) => p.endsWith(".K.")));
+    for (const frö of fron(200)) {
+      const ut = rattaInitialerUnika("Z.K.", frö, upptagna)!;
+      expect(upptagna.has(ut), ut).toBe(false);
+      expect(bristerIInitialer(ut)).toBeNull();
+      expect(GILTIGA_PAR).toContain(ut);
+    }
+  });
+
+  it("ger reglerna företräde framför unikheten när inget par alls är ledigt", () => {
+    const ut = rattaInitialerUnika("Z.K.", "prod#1", new Set(GILTIGA_PAR))!;
+    expect(bristerIInitialer(ut)).toBeNull();
+    expect(ut).toBe(rattaInitialer("Z.K.", "prod#1"));
+  });
+
+  it("rättar även bokstavsordning till en ledig plats", () => {
+    for (const frö of fron(300)) {
+      const forsta = rattaInitialer("L.M.", frö)!;
+      const ut = rattaInitialerUnika("L.M.", frö, new Set([forsta]))!;
+      expect(ut).not.toBe(forsta);
+      expect(bristerIInitialer(ut)).toBeNull();
+    }
+  });
+});
+

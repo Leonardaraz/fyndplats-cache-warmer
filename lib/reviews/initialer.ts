@@ -5,6 +5,9 @@
 //      Q lades till 2026-10-30.)
 //   2. Aldrig två bokstäver i bokstavsordning: "A.B.", "L.M.", "U.V.".
 //   3. Nya bokstäver slumpas ur A–V utan Q, och ibland Å eller Ö.
+//   4. Inga två recensioner på samma produkt med samma initialer. (Leonard
+//      2026-10-30: "är det möjligt att inte ha så många med samma initialer på
+//      samma produkt?") Se "Unika initialer per produkt" längst ner.
 //
 // ☠️ VARFÖR REGEL 2 FINNS. En recension utan läsbart namn (varenda Aosom-recension,
 // och AE-rader med ett namn utan bokstäver) fick sina två bokstäver ur
@@ -76,6 +79,12 @@ export function bristerIInitialer(initials: string | undefined): Brist | null {
   const bokstavsordning = b.length === 2 && iBokstavsordning(b[0], b[1]);
   return forbjudna.length > 0 || bokstavsordning ? { forbjudna, bokstavsordning } : null;
 }
+
+/**
+ * Initialer i den form butiken visar: "S." eller "S.K.". Allt annat ("Zara",
+ * "Verifierad köpare") är ett namn eller en etikett och rörs inte av verktygen.
+ */
+export const FORM_INITIALER = /^\p{L}\.(\p{L}\.)?$/u;
 
 // --- Slumpen ------------------------------------------------------------------
 
@@ -176,4 +185,119 @@ export function rattaInitialer(initials: string | undefined, seed: string): stri
     });
   }
   return ut.map((b) => `${b}.`).join("");
+}
+
+// --- Unika initialer per produkt ------------------------------------------------
+//
+// Leonard 2026-10-30: "är det möjligt att inte ha så många med samma initialer på
+// samma produkt?" Mätt samma dag (hela lagret, 37 190 rader): av de recensioner som
+// syns i butiken delade 93 av 3 663 produkter initialer med en annan recension på
+// samma produkt (107 rader); räknar man även de väntande var det 524 av 7 255
+// produkter (570 rader). Ungefär dubbelt så många som ren slump ger, eftersom
+// namnen i importen är ojämna ("A.R." fanns 96 gånger bland de synliga).
+//
+// Slumpen ger ungefär 510 olika par (23 bokstäver i kvadrat minus de 19 i
+// bokstavsordning). Den största produkten hade 76 recensioner, så ett ledigt par
+// finns alltid. En produkt med över 500 recensioner vore första gången det tog slut.
+//
+// En rads "plats" är NYCKELN `nyckelForInitialer`: bokstäverna i versaler med punkt
+// efter varje, så "s.k." och "S.K." är samma plats. Avvisade recensioner syns aldrig
+// och upptar ingen plats; väntande gör det, eftersom de blir synliga när de godkänns.
+
+/** Nyckeln en rads initialer upptar på sin produkt ("s.k." → "S.K."). Tom när det inte finns några bokstäver. */
+export function nyckelForInitialer(initials: string | undefined): string {
+  return bokstaverIInitialer(initials)
+    .map((b) => `${b}.`)
+    .join("");
+}
+
+/**
+ * Platsen en rad upptar på sin produkt, eller null när den inte upptar någon:
+ * avvisade recensioner syns aldrig, och initialer i annan form än "S.K." är inget
+ * som kan delas.
+ *
+ * ☠️ Planen (lib/reviews/slumpa-initialer.ts) och importen (lib/import/review-import.ts)
+ * räknar platserna med den här funktionen. Då kan de inte bli oense om vad som är
+ * upptaget, och en rad som importen släppt igenom är aldrig en dubblett i planen.
+ */
+export function platsPaProdukt(r: { initials?: string; status?: string }): string | null {
+  if (r.status === "rejected") return null;
+  const initialer = (r.initials ?? "").trim();
+  return FORM_INITIALER.test(initialer) ? nyckelForInitialer(initialer) : null;
+}
+
+/** Platserna som en produkts rader redan upptar. */
+export function upptagnaPlatser(rader: Iterable<{ initials?: string; status?: string }>): Set<string> {
+  const ut = new Set<string>();
+  for (const r of rader) {
+    const plats = platsPaProdukt(r);
+    if (plats) ut.add(plats);
+  }
+  return ut;
+}
+
+/** Bokstäverna ett nytt par dras ur: A–V utan Q, samt Å och Ö. */
+const DRAGBARA_BOKSTAVER = [...SLUMPBOKSTAVER, "Å", "Ö"];
+
+/**
+ * Alla par slumpen kan ge, som nycklar, i fast ordning. Samma mängd som
+ * `slumpaInitialer` drar ur: två dragbara bokstäver där den andra inte står direkt
+ * efter den första. "A.A." räknas (samma bokstav två gånger är inte bokstavsordning).
+ */
+export const GILTIGA_PAR: readonly string[] = (() => {
+  const ut: string[] = [];
+  for (const a of DRAGBARA_BOKSTAVER) {
+    for (const b of DRAGBARA_BOKSTAVER) {
+      if (!iBokstavsordning(a, b)) ut.push(`${a}.${b}.`);
+    }
+  }
+  return ut;
+})();
+
+/** Så många nya dragningar provas innan ett ledigt par väljs ur listan över lediga. */
+const UNIKA_FORSOK = 64;
+
+/**
+ * Två slumpade bokstäver ur fröet, som inte redan är upptagna på produkten.
+ * `upptagna` är nycklar ur `nyckelForInitialer`.
+ *
+ * Första försöket är exakt `slumpaInitialer(seed)`, så en rad utan krock får samma
+ * initialer som förut. Ger det en krock provas `seed:1`, `seed:2` … Efter 64 försök
+ * väljs ett par ur listan över de lediga (ett frö-styrt val), så funktionen hittar
+ * ett par så länge något finns. Null när alla ~510 par är upptagna.
+ *
+ * Resultatet följer alltid reglerna 1–3: det är ett av `GILTIGA_PAR`.
+ */
+export function slumpaUnika(seed: string, upptagna: ReadonlySet<string>): string | null {
+  for (let k = 0; k < UNIKA_FORSOK; k++) {
+    const kandidat = slumpaInitialer(k === 0 ? seed : `${seed}:${k}`);
+    if (!upptagna.has(kandidat)) return kandidat;
+  }
+  const lediga = GILTIGA_PAR.filter((par) => !upptagna.has(par));
+  if (lediga.length === 0) return null;
+  return lediga[Math.floor(generator(`${seed}:lediga`)() * lediga.length)];
+}
+
+/**
+ * `rattaInitialer`, men resultatet får inte vara upptaget på produkten. Null när
+ * initialerna redan är i sin ordning (som `rattaInitialer`).
+ *
+ * Är det rättade resultatet upptaget provas `seed:1`, `seed:2` … med samma metod
+ * (en bevarad bokstav behålls alltså); hjälper inte det dras två helt nya
+ * bokstäver. Finns inget ledigt par alls ges det första, regelrätta resultatet:
+ * reglerna 1–3 går före unikheten.
+ */
+export function rattaInitialerUnika(
+  initials: string | undefined,
+  seed: string,
+  upptagna: ReadonlySet<string>,
+): string | null {
+  const forsta = rattaInitialer(initials, seed);
+  if (forsta === null) return null;
+  if (!upptagna.has(nyckelForInitialer(forsta))) return forsta;
+  for (let k = 1; k < UNIKA_FORSOK; k++) {
+    const nya = rattaInitialer(initials, `${seed}:${k}`);
+    if (nya !== null && !upptagna.has(nyckelForInitialer(nya))) return nya;
+  }
+  return slumpaUnika(seed, upptagna) ?? forsta;
 }

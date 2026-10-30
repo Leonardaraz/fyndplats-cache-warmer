@@ -21,7 +21,13 @@
 // Inga credits: hämtningen är ett gratis-anrop mot AE:s feedback-endpoint och
 // översättningen sker i chatten.
 
-import { filterAndRankReviews, deriveInitials, ensureReviewId, type AERReview } from "../import/review-import";
+import {
+  filterAndRankReviews,
+  deriveUniqueInitials,
+  ensureReviewId,
+  lasUpptagnaInitialer,
+  type AERReview,
+} from "../import/review-import";
 import { foreignLocaleVerdict } from "../import/review-locale-filter";
 import { getReviewStore, type StoredReview } from "../store/reviews";
 import { reviewImageFields, reviewImages } from "./images";
@@ -91,6 +97,9 @@ export async function queueReviewsForProduct(
     let queued = 0;
     let skippedExisting = 0;
     let extraFiltered = 0;
+    // Platserna produkten redan har, för unika initialer (Leonard 2026-10-30). Läses
+    // först när en NY rad ska skrivas.
+    let upptagna: Set<string> | null = null;
 
     for (const r of ranked) {
       const reviewIdAE = ensureReviewId(r);
@@ -112,6 +121,7 @@ export async function queueReviewsForProduct(
         continue;
       }
 
+      if (!upptagna) upptagna = await lasUpptagnaInitialer(store, productId);
       const rad: StoredReview = {
         productId,
         reviewIdAE,
@@ -122,7 +132,7 @@ export async function queueReviewsForProduct(
         // kunna råka publiceras med engelsk text som "svensk".
         textSwedish: "",
         customerNameRaw: r.customerName,
-        initials: deriveInitials(r.customerName, reviewIdAE),
+        initials: deriveUniqueInitials(r.customerName, reviewIdAE, productId, upptagna),
         customerCountry: r.customerCountry,
         date: r.date,
         // Bilden hämtas hem först vid publicering (lib/wix/media-import.ts).
