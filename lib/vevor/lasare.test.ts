@@ -101,6 +101,13 @@ function laggIKon(...n: number[]) {
   for (const i of n) m.lager.sidrader.set(wid(i), rad(i));
 }
 
+/** Artikelns förra avläsning, med den status den hade då. */
+function forut(status: Avlasning["status"], ...n: number[]) {
+  for (const i of n) m.lager.avlasningsrader.set(skuFor(i), testAvlasning({ sku: skuFor(i), webbId: wid(i), status }));
+}
+
+const slutsald = (n: number) => sida(n, { lager: 0, tillganglighet: "https://schema.org/OutOfStock" });
+
 const sida = (n: number, over: Partial<Testsida> = {}) => () =>
   new Response(testsida({ sku: skuFor(n), webbId: wid(n), ...over }), { status: 200 });
 
@@ -301,13 +308,66 @@ describe("☠️ spärrarna i körningen skriver ingenting", () => {
     expect(m.lager.sidrader.get(wid(3))?.senastUtfall).toBe("tolkningsfel:fel_valuta");
   });
 
-  it("fler än 40 % slutsålda", async () => {
+  it("fler än 40 % slutsålda bland varor som var i lager förut", async () => {
     const n = Array.from({ length: 60 }, (_, i) => i + 1);
     laggIKon(...n);
-    for (const i of n.slice(0, 30)) m.svar.set(i, sida(i, { lager: 0, tillganglighet: "https://schema.org/OutOfStock" }));
+    forut("i_lager", ...n);
+    for (const i of n.slice(0, 30)) m.svar.set(i, slutsald(i));
     const s = await kor();
     expect(s.utfall).toBe("stoppad");
+    expect(s.skal).toBe("30 av 60 sidor som var i lager förut var slutsålda");
     expect(s.slutsalda).toBe(30);
+    expect(s).toMatchObject({ forutILager: 60, slutForutILager: 30 });
+    // Inget skrevs: de förra avläsningarna står kvar som de var.
+    expect([...m.lager.avlasningsrader.values()].every((a) => a.status === "i_lager")).toBe(true);
+  });
+
+  it("☠️ sidor som aldrig lästs räknas inte: kartans slutsålda slut skrivs (2026-10-30)", async () => {
+    // Uppmätt: ~2 200 aldrig lästa sidor i slutet av kartan, 77 % slutsålda.
+    // Spärren stoppade varje körning och läsaren skrev ingenting på en timme.
+    const n = Array.from({ length: 100 }, (_, i) => i + 1);
+    laggIKon(...n);
+    for (const i of n.slice(0, 77)) m.svar.set(i, slutsald(i));
+    const s = await kor();
+    expect(s.utfall).toBe("klar");
+    expect(s).toMatchObject({ giltiga: 100, slutsalda: 77, forutILager: 0, slutForutILager: 0 });
+    expect(m.lager.avlasningsrader.size).toBe(100);
+    expect(m.lager.avlasningsrader.get(skuFor(1))?.status).toBe("slut");
+  });
+
+  it("en vara som redan var slut räknas inte, en som var i lager gör det", async () => {
+    const n = Array.from({ length: 60 }, (_, i) => i + 1);
+    laggIKon(...n);
+    forut("slut", ...n.slice(0, 35));
+    forut("i_lager", ...n.slice(35));
+    // 35 som var slut är slut igen, och 5 av de 25 som var i lager har sålt slut.
+    for (const i of n.slice(0, 40)) m.svar.set(i, slutsald(i));
+    const s = await kor();
+    expect(s.utfall).toBe("klar");
+    expect(s).toMatchObject({ slutsalda: 40, forutILager: 25, slutForutILager: 5 });
+    expect(m.lager.avlasningsrader.get(skuFor(36))?.status).toBe("slut");
+  });
+
+  it("under 20 varor som var i lager förut säger andelen ingenting", async () => {
+    const n = Array.from({ length: 60 }, (_, i) => i + 1);
+    laggIKon(...n);
+    forut("i_lager", ...n.slice(0, 19));
+    for (const i of n.slice(0, 19)) m.svar.set(i, slutsald(i));
+    const s = await kor();
+    expect(s.utfall).toBe("klar");
+    expect(s).toMatchObject({ forutILager: 19, slutForutILager: 19 });
+  });
+
+  it("☠️ går de förra avläsningarna inte att läsa räknas alla giltiga sidor, som förut", async () => {
+    const n = Array.from({ length: 60 }, (_, i) => i + 1);
+    laggIKon(...n);
+    for (const i of n.slice(0, 30)) m.svar.set(i, slutsald(i));
+    m.lager.avlasningar = async () => {
+      throw new Error("Wix svarar inte");
+    };
+    const s = await kor();
+    expect(s.utfall).toBe("stoppad");
+    expect(s).toMatchObject({ forutILager: 60, slutForutILager: 30 });
     expect(m.lager.avlasningsrader.size).toBe(0);
   });
 
@@ -350,8 +410,9 @@ describe("☠️ spärrarna i körningen skriver ingenting", () => {
     // 100 sidor i köordning, de 40 första slutsålda: en klunga. Läsaren tar 60 per körning.
     const n = Array.from({ length: 100 }, (_, i) => i + 1);
     laggIKon(...n);
+    forut("i_lager", ...n);
     for (const i of n) m.lager.sidrader.get(wid(i))!.nastaLasning = iso(START - (200 - i) * 60_000);
-    for (const i of n.slice(0, 40)) m.svar.set(i, sida(i, { lager: 0, tillganglighet: "https://schema.org/OutOfStock" }));
+    for (const i of n.slice(0, 40)) m.svar.set(i, slutsald(i));
     let slump = 0;
     m.deps.slump = () => (slump = (slump + 0.37) % 1);
     const s = await kor({ maxSidor: 60 });
@@ -361,11 +422,13 @@ describe("☠️ spärrarna i körningen skriver ingenting", () => {
     expect(Math.min(...tider)).toBeGreaterThanOrEqual(5 * 60_000);
     expect(Math.max(...tider)).toBeLessThanOrEqual(2 * TIMME);
     expect(new Set(tider).size).toBeGreaterThan(1);
-    // Inga avläsningar, inga signaler: bara köns tid.
-    expect(m.lager.avlasningsrader.size).toBe(0);
+    // Inga nya avläsningar, inga signaler: bara köns tid.
+    expect([...m.lager.avlasningsrader.values()].every((a) => a.status === "i_lager")).toBe(true);
     expect(m.lager.sidrader.get(wid(1))).toMatchObject({ senastUtfall: null, sku: skuFor(1) });
 
     // Nästa körning läser de 40 som inte lästes, i stället för samma 60 igen.
+    // (Utan kontrollsidor: de förra avläsningarna gav läsaren kandidater.)
+    m.lager.tillstand.kontroller = [];
     m.anrop.length = 0;
     m.flytta(60_000);
     const s2 = await kor({ maxSidor: 60 });
@@ -737,6 +800,17 @@ describe("☠️ kontrollsidorna får inte låsa läsaren", () => {
     expect(s.utfall).toBe("stoppad");
     expect(s.kontroller.saknade).toBe(3);
     expect(m.lager.tillstand.kontroller).not.toEqual(expect.arrayContaining([wid(1)]));
+  });
+
+  it("☠️ tre slutsålda kontrollsidor i samma körning stoppar den", async () => {
+    laggIKon(1, 2, 3, 4, 5);
+    m.lager.tillstand.kontroller = [wid(1), wid(2), wid(3)];
+    for (const i of [1, 2, 3]) m.svar.set(i, slutsald(i));
+    const s = await kor();
+    expect(s.utfall).toBe("stoppad");
+    expect(s.skal).toBe("3 av 3 kontrollsidor var slutsålda");
+    expect(s.kontroller).toMatchObject({ slut: 3, ersatta: 3 });
+    expect(m.lager.avlasningsrader.size).toBe(0);
   });
 
   it("en kontrollsida som sålt slut eller svarat med ett tillfälligt fel byts ut men stoppar inget", async () => {

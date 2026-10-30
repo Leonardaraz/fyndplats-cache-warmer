@@ -137,6 +137,14 @@ export interface Korningssummering {
   giltiga: number;
   iLager: number;
   slutsalda: number;
+  /**
+   * Giltiga sidor vars artikel var i lager vid förra avläsningen, och hur många
+   * av dem som nu var slutsålda. Spärren mot slutsålda räknar bara de här: en
+   * sida som aldrig lästs, eller som redan var slut, säger ingenting om att
+   * VEVOR plötsligt visar allt som slutsålt.
+   */
+  forutILager: number;
+  slutForutILager: number;
   ejLevererbara: number;
   saknade: number;
   flyttade: number;
@@ -147,9 +155,10 @@ export interface Korningssummering {
   blockerad: string | null;
   /**
    * Kontrollsidorna: lästa, giltiga, otolkbara (stoppar körningen), saknade i
-   * den här körningen (tre stoppar den) och utbytta av alla skäl.
+   * den här körningen (tre stoppar den), slutsålda (tre stoppar den) och
+   * utbytta av alla skäl.
    */
-  kontroller: { lasta: number; ok: number; fel: number; saknade: number; ersatta: number };
+  kontroller: { lasta: number; ok: number; fel: number; saknade: number; slut: number; ersatta: number };
   /** robots.txt: hämtad i den här körningen eller läst ur förra dygnets, och antal regler som gäller oss. */
   robots: { hamtad: boolean; regler: number; crawlDelaySek: number | null } | null;
   karta: { lasta: number; nya: number; borta: number; tillbaka: number; kvar: number } | null;

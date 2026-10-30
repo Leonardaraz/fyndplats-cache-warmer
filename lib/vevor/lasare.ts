@@ -19,12 +19,23 @@
 // ☠️ SPÄRRARNA SKRIVER INGEN AVLÄSNING FRÅN KÖRNINGEN, inte bara den misstänkta:
 //   - en kontrollsida saknar pris, lager eller artikelnummer
 //   - mer än 10 % av sidorna gick inte att tolka
-//   - mer än 40 % av de giltiga sidorna är slutsålda (normalt ~23 %)
+//   - mer än 40 % av de giltiga sidorna är slutsålda (normalt ~23 %), räknat
+//     bara på sidor vars vara var i lager vid förra avläsningen
+//   - tre kontrollsidor är slutsålda
 //   - mer än 20 % av sidorna saknas (normalt ~6 % av kartans adresser)
-// De tre första är Leonards (2026-10-28), den fjärde skyddar samma sak: en
+// De tre första är Leonards (2026-10-28), de två sista skyddar samma sak: en
 // layoutändring eller en spärr som svarar 404 ser ut som tusen borttagna
 // varor. Ingen skada är skedd: avläsningarna åldras, och efter tolv timmar är
 // artikeln okänd (lib/vevor/rad.ts).
+//
+// ☠️ SPÄRREN MOT SLUTSÅLDA RÄKNAR BARA VAROR SOM VAR I LAGER (2026-10-30). Den
+// räknade först alla giltiga sidor. Slutet av VEVOR:s produktkarta är till
+// största delen slutsålt: ~2 200 sidor som aldrig lästs, och 77 % av dem
+// slutsålda. Läsaren stoppade sig själv i varje körning från 06:15 UTC och
+// skrev ingenting, inte heller omläsningarna av redan importerade varor.
+// Kontrollsidorna lästes rätt hela tiden. Det spärren finns för är att VEVOR
+// plötsligt visar allt som slutsålt, och det syns bara på en vara som var i
+// lager förut: på omläsningarna och på kontrollsidorna.
 //
 // ☠️ EN SPÄRR FÅR INTE LÅSA KÖN. Sidorna som lästes läggs tillbaka i kön,
 // utspridda över två timmar, så att samma sidor inte läses ihop igen. Annars
@@ -75,16 +86,25 @@ const DYGN = 24 * TIMME;
 export const KONTROLLER = 10;
 /** Fler otolkbara än så: skriv ingenting. Leonard 2026-10-28. */
 export const MAX_OTOLKBARA = 0.1;
-/** Fler slutsålda än så: skriv ingenting. Normalt ~23 % (prompten; 6 av 34 uppmätta). */
+/**
+ * Fler slutsålda än så, bland sidor vars vara var i lager vid förra
+ * avläsningen: skriv ingenting. Normalt ~23 % (prompten; 6 av 34 uppmätta).
+ */
 export const MAX_SLUTSALDA = 0.4;
 /** Fler saknade än så: skriv ingenting. Normalt ~6 % av kartans adresser (2 av 36 uppmätta). */
 export const MAX_SAKNADE = 0.2;
 /** Under så här många sidor säger en andel ingenting. */
 export const MIN_FOR_OTOLKBARA = 10;
-export const MIN_FOR_SLUTSALDA = 50;
+/** Sidor vars vara var i lager förut. Färre säger andelen ingenting om. */
+export const MIN_FOR_SLUTSALDA = 20;
 export const MIN_FOR_SAKNADE = 30;
 /** Så många kontrollsidor som saknas i en och samma körning är ingen tillfällighet. */
 export const MAX_SAKNADE_KONTROLLER = 3;
+/**
+ * Så många slutsålda kontrollsidor i en och samma körning är ingen
+ * tillfällighet. En kontrollsida var i lager förra körningen.
+ */
+export const MAX_SLUTSALDA_KONTROLLER = 3;
 /** Så många tillfälliga fel i följd: sluta läsa för den här körningen. */
 const MAX_TILLFALLIGA_I_FOLJD = 5;
 
@@ -157,6 +177,8 @@ function tomSummering(start: number): Korningssummering {
     giltiga: 0,
     iLager: 0,
     slutsalda: 0,
+    forutILager: 0,
+    slutForutILager: 0,
     ejLevererbara: 0,
     saknade: 0,
     flyttade: 0,
@@ -164,7 +186,7 @@ function tomSummering(start: number): Korningssummering {
     tolkningsfel: {},
     sparrade: 0,
     blockerad: null,
-    kontroller: { lasta: 0, ok: 0, fel: 0, saknade: 0, ersatta: 0 },
+    kontroller: { lasta: 0, ok: 0, fel: 0, saknade: 0, slut: 0, ersatta: 0 },
     robots: null,
     karta: null,
     prioritet: null,
@@ -237,17 +259,59 @@ export function avlasningAv(s: Sidinnehall, r: Sidrad, nuIso: string): Avlasning
 export async function medForraPris(
   lager: Pick<VevorLager, "avlasningar">,
   nya: Map<string, Avlasning>,
+  lasta: Map<string, Avlasning> | null = null,
 ): Promise<void> {
   if (nya.size === 0) return;
-  let fore = new Map<string, Avlasning>();
-  try {
-    fore = await lager.avlasningar([...nya.keys()]);
-  } catch {
-    console.warn(`[vevor-lasare] föregående priser gick inte att läsa för ${nya.size} avläsningar, priset väntar en avläsning till`);
+  let fore = lasta ?? new Map<string, Avlasning>();
+  if (!lasta) {
+    try {
+      fore = await lager.avlasningar([...nya.keys()]);
+    } catch {
+      console.warn(`[vevor-lasare] föregående priser gick inte att läsa för ${nya.size} avläsningar, priset väntar en avläsning till`);
+    }
   }
   for (const [sku, a] of nya) {
     const p = fore.get(sku)?.prisSek;
     a.forraPrisSek = typeof p === "number" && Number.isFinite(p) && p > 0 ? p : null;
+  }
+}
+
+/**
+ * Artiklarnas förra avläsning, för de giltiga sidorna i körningen. null när
+ * de inte gick att läsa: då räknar spärren mot slutsålda som förut, på alla
+ * giltiga sidor.
+ */
+export async function forraAvlasningar(
+  lager: Pick<VevorLager, "avlasningar">,
+  resultat: Iterable<Behandlad>,
+): Promise<Map<string, Avlasning> | null> {
+  const skus = [...resultat].flatMap((b) => (b.typ === "giltig" && b.avlasning ? [b.avlasning.sku] : []));
+  if (skus.length === 0) return new Map();
+  try {
+    return await lager.avlasningar(skus);
+  } catch {
+    console.warn(`[vevor-lasare] förra avläsningarna gick inte att läsa för ${skus.length} sidor, spärren räknar alla giltiga`);
+    return null;
+  }
+}
+
+/**
+ * Räknar de giltiga sidor vars vara var i lager vid förra avläsningen, och
+ * hur många av dem som nu var slutsålda. Utan förra avläsningarna räknas varje
+ * giltig sida, som spärren gjorde före 2026-10-30.
+ */
+export function raknaForutILager(
+  s: Korningssummering,
+  resultat: Iterable<Behandlad>,
+  forra: Map<string, Avlasning> | null,
+): void {
+  s.forutILager = 0;
+  s.slutForutILager = 0;
+  for (const b of resultat) {
+    if (b.typ !== "giltig" || !b.avlasning) continue;
+    if (forra && forra.get(b.avlasning.sku)?.status !== "i_lager") continue;
+    s.forutILager++;
+    if (b.avlasning.status === "slut") s.slutForutILager++;
   }
 }
 
@@ -396,8 +460,8 @@ export function sparr(s: Korningssummering): string | null {
   if (forsok >= MIN_FOR_OTOLKBARA && otolkbara / forsok > MAX_OTOLKBARA) {
     return `${otolkbara} av ${forsok} sidor gick inte att tolka`;
   }
-  if (s.giltiga >= MIN_FOR_SLUTSALDA && s.slutsalda / s.giltiga > MAX_SLUTSALDA) {
-    return `${s.slutsalda} av ${s.giltiga} giltiga sidor var slutsålda`;
+  if (s.forutILager >= MIN_FOR_SLUTSALDA && s.slutForutILager / s.forutILager > MAX_SLUTSALDA) {
+    return `${s.slutForutILager} av ${s.forutILager} sidor som var i lager förut var slutsålda`;
   }
   const medSaknade = forsok + s.saknade;
   if (medSaknade >= MIN_FOR_SAKNADE && s.saknade / medSaknade > MAX_SAKNADE) {
@@ -411,7 +475,8 @@ function larmtext(rubrik: string, s: Korningssummering, fryst: boolean): string 
   return [
     `${rubrik}.`,
     "",
-    `Körningen ${s.start}: ${s.lasta} sidor lästa, ${s.giltiga} giltiga, ${s.slutsalda} slutsålda, ` +
+    `Körningen ${s.start}: ${s.lasta} sidor lästa, ${s.giltiga} giltiga, ${s.slutsalda} slutsålda ` +
+      `(${s.slutForutILager} av ${s.forutILager} som var i lager förut), ` +
       `${s.saknade} saknade, ${antalTolkningsfel(s)} otolkbara, ${s.tillfalliga} tillfälliga fel, ` +
       `${s.sparrade} spärrade av robots.txt.`,
     `Kontrollsidor: ${s.kontroller.ok} av ${s.kontroller.lasta} gick att läsa.`,
@@ -713,6 +778,7 @@ export async function korVevorLasare(deps: LasarDeps, val: Korval): Promise<Korn
         // syns. En som sålt slut byts ut, men kan väljas igen.
         if (b.avlasning?.status === "i_lager") behallna.push(id);
         else s.kontroller.ersatta++;
+        if (b.avlasning?.status === "slut") s.kontroller.slut++;
       } else if (b.typ === "saknas" || b.typ === "flyttad") {
         s.kontroller.saknade++;
         s.kontroller.ersatta++;
@@ -733,6 +799,8 @@ export async function korVevorLasare(deps: LasarDeps, val: Korval): Promise<Korn
       stopp = `${s.kontroller.fel} av ${s.kontroller.lasta} kontrollsidor saknade pris, lager eller artikelnummer`;
     } else if (s.kontroller.saknade >= MAX_SAKNADE_KONTROLLER) {
       stopp = `${s.kontroller.saknade} kontrollsidor saknades`;
+    } else if (s.kontroller.slut >= MAX_SLUTSALDA_KONTROLLER) {
+      stopp = `${s.kontroller.slut} av ${s.kontroller.lasta} kontrollsidor var slutsålda`;
     }
     if (stopp) return await stoppa(stopp, "kontroll");
 
@@ -763,13 +831,15 @@ export async function korVevorLasare(deps: LasarDeps, val: Korval): Promise<Korn
       }
     }
     if (s.sparrade >= 10) await larma("robots", `VEVOR-läsaren: robots.txt spärrar ${s.sparrade} sidor i kön`);
+    const forra = await forraAvlasningar(lager, resultat.values());
+    raknaForutILager(s, resultat.values(), forra);
     stopp = sparr(s);
     if (stopp) return await stoppa(stopp, "sparr");
 
     // ── 7. Skrivningen: avläsningarna först, sidorna sist ──
     const avlasningar = new Map<string, Avlasning>();
     for (const b of resultat.values()) if (b.avlasning) avlasningar.set(b.avlasning.sku, b.avlasning);
-    await medForraPris(lager, avlasningar);
+    await medForraPris(lager, avlasningar, forra);
     const felAvl = new Set(await lager.sparaAvlasningar([...avlasningar.values()]));
 
     // Borta och misslyckade märks bara på en avläsning som kom från just den sidan.
@@ -833,7 +903,8 @@ export function loggrad(s: Korningssummering): string {
   const karta = s.karta ? ` Kartan: ${s.karta.lasta} adresser, ${s.karta.nya} nya, ${s.karta.kvar} kvar att lägga in.` : "";
   return (
     `[vevor-lasare] ${s.utfall}${s.skal ? ` (${s.skal})` : ""}: ${s.lasta} sidor lästa, ${s.giltiga} giltiga ` +
-    `(${s.iLager} i lager, ${s.slutsalda} slutsålda, ${s.ejLevererbara} ej levererbara), ${s.saknade} saknade, ` +
+    `(${s.iLager} i lager, ${s.slutsalda} slutsålda, ${s.ejLevererbara} ej levererbara; ` +
+    `${s.slutForutILager} av ${s.forutILager} som var i lager förut slutsålda), ${s.saknade} saknade, ` +
     `${t} otolkbara, ${s.tillfalliga} tillfälliga fel, ${s.sparrade} spärrade av robots.txt. ` +
     `Kontroller ${s.kontroller.ok}/${s.kontroller.lasta}. ` +
     `Skrivet: ${s.skrivna.avlasningar} avläsningar, ${s.skrivna.sidor} sidor, ${s.skrivna.borta} borta, ` +

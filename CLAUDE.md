@@ -6219,10 +6219,11 @@ Elva egenskaper som inte ska tas bort:
    och direkt när senaste försöket misslyckades (`misslyckadAt`: tidsgräns,
    tolkningsfel, en första 404, en spärr i robots.txt). En giltig läsning
    nollar det.
-5. ☠️ **Fyra spärrar skriver ingen avläsning från körningen:** en kontrollsida
+5. ☠️ **Fem spärrar skriver ingen avläsning från körningen:** en kontrollsida
    (tio kända produkter, varje körning) saknar pris, lager eller
-   artikelnummer; fler än 10 % otolkbara; fler än 40 % slutsålda; fler än 20 %
-   saknade.
+   artikelnummer; tre kontrollsidor är slutsålda; fler än 10 % otolkbara;
+   fler än 40 % slutsålda bland varor som var i lager vid förra avläsningen
+   (minst 20 sådana); fler än 20 % saknade.
 6. ☠️ **En spärr får inte låsa läsaren.** Sidorna som lästes läggs tillbaka i
    kön utspridda över fem minuter till två timmar, så att samma klunga inte
    läses ihop igen. En kontrollsida som inte går att tolka byts ut och väljs
@@ -6231,6 +6232,19 @@ Elva egenskaper som inte ska tas bort:
    (`stoppIFoljd`): ett verkligt fel stoppar varje körning, en slumpvis klunga
    gör det inte. Före rättningen 2026-10-29 hade en enda udda produkt bland
    kontrollsidorna stoppat varje körning för gott.
+
+   ☠️ **Spärren mot slutsålda räknar bara varor som var i lager förut
+   (2026-10-30).** Den räknade alla giltiga sidor, och slutet av VEVOR:s
+   produktkarta är till största delen slutsålt: ~2 200 sidor som aldrig
+   lästs, 77 % slutsålda. Klungan var ingen slump, och utspridningen hjälpte
+   inte: varje körning från 06:15 UTC stoppades ("75 av 108 giltiga sidor var
+   slutsålda"), och inte heller omläsningarna av redan importerade varor
+   skrevs. Kontrollsidorna lästes rätt, 10 av 10, hela tiden. Det spärren finns
+   för är att VEVOR plötsligt visar allt som slutsålt, och det syns bara på en
+   vara som var i lager förut: på omläsningarna och på kontrollsidorna. En
+   sida som aldrig lästs, eller som redan var slut, räknas inte. Går de förra
+   avläsningarna inte att läsa räknas alla giltiga sidor, som förut.
+   `forutILager` och `slutForutILager` står i körningens summering.
 7. ☠️ **Borta kräver två signaler med minst ett dygn emellan.** En 404, en
    flytt bort från produktsidan, eller en sida utan produktdata när adressen
    saknats i kartan i ett dygn. En sida som läses giltig är aldrig borta, vad

@@ -86,7 +86,7 @@ jobs:
           # Bara antal, tider och skäl. Kontrollsidornas id står aldrig i svaret.
           case "$LAGE" in
             prov)
-              echo "$svar" | jq '{utfall, skal, lasta, giltiga, iLager, slutsalda, ejLevererbara, saknade, flyttade, tillfalliga, tolkningsfel, sparrade, blockerad, robots, kontroller, karta, prioritet, aterlagda, skrivna}' || true
+              echo "$svar" | jq '{utfall, skal, lasta, giltiga, iLager, slutsalda, forutILager, slutForutILager, ejLevererbara, saknade, flyttade, tillfalliga, tolkningsfel, sparrade, blockerad, robots, kontroller, karta, prioritet, aterlagda, skrivna}' || true
               utfall=$(echo "$svar" | jq -r '.utfall')
               if [ "$(echo "$svar" | jq -r '.blockerad // ""')" != "" ]; then
                 echo "::error::VEVOR spärrade läsningen. Läsaren är fryst." >&2
