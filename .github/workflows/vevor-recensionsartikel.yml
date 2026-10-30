@@ -54,7 +54,7 @@ jobs:
               echo "::error::$(echo "$svar" | jq -r '.error // "okänt fel"')" >&2; exit 1
             fi
             echo "Varv ${varv}:"
-            echo "$svar" | jq -c '{granskade, produkter, vantar, rader, egna, attDolja, dolda, redanDolda, attVisa, visade, synligaAnnan, avvisadeAvManniska, okanda, fel, kvarFran}'
+            echo "$svar" | jq -c '{granskade, produkter, vantar, rader, egna, attDolja, dolda, attMarka, markta, redanDolda, attVisa, visade, synligaAnnan, avvisadeAvManniska, okanda, fel, kvarFran}'
             nasta=$(echo "$svar" | jq -r '.kvarFran')
             if [ "$nasta" = "null" ]; then
               echo "Klart."

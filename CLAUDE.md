@@ -6741,6 +6741,70 @@ Sju egenskaper som inte ska tas bort:
 7. ☠️ **Varje artikel får sina egna bilder, och varje bild finns en gång**
    (`familjensBilder`, sedan 2026-10-30). Se nästa avsnitt.
 
+### Familjeregeln: bara färg, storlek, längd och förpackning delar en sida (2026-10-30)
+
+Leonard 2026-10-30: *"Följ rekommendationen"*. En VEVOR-familj slås ihop
+till en sida bara när varorna är samma produkt i olika färg, mönster,
+storlek, längd eller förpackningsstorlek. Varor som fungerar olika (effekt,
+kapacitet, modell, ett annat antal lådor) får en egen sida var. Skälet är
+recensionerna: en recension av 1 800 W-sågen hör inte hemma på 850 W-sågens
+sida, och Googles flöde kräver att varianter är samma vara.
+
+`lib/vevor/axelklass.ts` klassar varje axel som `farg`, `storlek`, `langd`,
+`forpackning`, `funktion` eller `oklar`. Uppmätt 2026-10-30 på 923 länkade
+familjer: 473 olika axelnamn, vanligast Storlek (197), Färg (131), Kapacitet
+(54), Stil (46), Kvantitet (44) och Typ (43).
+
+Fem egenskaper som inte ska tas bort:
+
+1. ☠️ **En funktionsenhet som skiljer gör axeln till `funktion`**, vad den än
+   heter (W, kW, V, Ah, bar, psi, liter …). "Storlek: 3 L / 6 L" är
+   kapacitet. En enhet som är lika i alla värden avgör inte ("5 kW-Röd").
+2. ☠️ **En axel som inte går att avgöra är `oklar`** (Material, Stil, Form,
+   ett mått utan tal) och familjen slås inte ihop. Gränsfallen listas för
+   Leonard i stället för att gissas.
+3. **Ett sammansatt namn avgörs del för del** ("Färg-Size", "Antal och
+   färg"), och alla delar måste vara tillåtna.
+4. ☠️ **Förpackning är bara ett namn som är en förpackning** ("Antal",
+   "Kvantitet", "Antal stycken"). "Antal lådor" och andra antal av en del är
+   funktion.
+5. **Regeln prövas efter Wix gränser** i `byggFamilj`, så att
+   `for_manga_axlar`, `for_langt_namn` och `samma_kombination` säger det
+   verkliga skälet. En axel med samma värde för alla avgör inte. Utfallen
+   räknas i `familjer.ejSammanslagna` (`funktion`, `oklar_axel`).
+
+**Artiklar med samma SPU utan länkar** (`byggSpuFamilj`, `lasSpuGrupper`):
+VEVOR länkar inte alla varianter. Artiklar med samma SPU och samma betyg
+(snitt och antal) blir en familj när axlarna ur specifikationen (raderna som
+skiljer, högst två, utan vikt, förpackning och artikelnummer) klarar
+familjeregeln, titlarna förklaras av artikelns egna värden och ingen rad visar
+en funktion som skiljer. Uppmätt 2026-10-30: 637 sådana grupper med 2 271
+artiklar. ☠️ Bara artiklar utan länkar räknas till gruppen, så en ensam
+artikel i en länkad familjs SPU blir ingen grupp. Sammanslagna SPU-familjer
+räknas i `familjer.spu`. Specifikationsrättningen (`spec-ratta.ts`) tar en
+SPU-familjs axlar ur mappningens val och en länkad familjs ur egenskaperna,
+som importen.
+
+**Recensionerna på en familj bär varianten kunden köpte** (`kopt` på raden,
+"Svart / 50 liter", samma namn som familjens flik, `variantEtiketter`).
+Importen sätter fältet, `/api/reviews/<id>` skickar det, och butiken visar
+"Köpt: …". Recensionsverktyget ("VEVOR — recensioner om en annan artikel")
+märker raderna på familjer som redan finns (`attMarka`, `markta`), ur
+mappningens val. En produkt med en artikel får inget fält.
+
+**De utkast som fanns före regeln** rättas med workflowen **"VEVOR —
+familjeregeln på befintliga utkast"** (`plan` · `radera`) →
+`/api/admin/vevor-familjeregel` → `lib/vevor/familjeregel-plan.ts`. Planen
+säger vilka familjer som ska delas (`dela`, en axel för funktion), vilka
+ensamma utkast som ska slås ihop (`slaIhop`, samma SPU) och vilka gränsfall
+Leonard ska avgöra (`grans`, per axelnamn med Wix-id). `radera` raderar
+utkasten i `dela` och `slaIhop` med samma spärrar som steg 8 (bara opolerade
+och dolda, aldrig en produkt i en order, importen avstängd, `bekrafta` =
+planens antal, planen får krympa men aldrig växa) och nollställer importens
+markör, så att importen bygger om dem med regeln. ☠️ Gränsfallen raderas
+aldrig. Ordningen: `plan`, importen av, `radera`, `plan` igen (raderbara 0),
+importen på.
+
 ⚠️ **GPSR läses på radens artikel.** En familj har samma tillverkare, och
 standardraden gäller alla. ⚠️ **Leverantörslänken pekar på ankarets sida.**
 Den som beställer väljer varianten på VEVOR:s sida, som har samma väljare.

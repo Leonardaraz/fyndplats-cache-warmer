@@ -9,7 +9,7 @@
 // artikelnummer. Båda bor bara här, i en kollektion som bara motorns nyckel kan
 // läsa. Rutterna svarar med antal och Wix-id, aldrig med dem.
 
-import { fraga, hamta, rakna } from "@/lib/db/wix-data-klient";
+import { allaRader, fraga, hamta, rakna } from "@/lib/db/wix-data-klient";
 import { VEVOR_KOL } from "@/lib/db/wix-kollektioner";
 import { WixVevorLager, slappLasRad, tagLasRad, uppdateraRad, type Avlasning, type Lasartillstand, type Sidrad } from "./lager";
 import type { Bildmonster } from "./bilder";
@@ -46,6 +46,8 @@ export interface Importsummering {
     varianter: number;
     /** Foton som flera artiklar i en familj har, uppladdade en gång och okopplade. Saknas före 2026-10-30. */
     gemensammaBilder?: number;
+    /** Familjer av artiklar med samma SPU vars sidor inte länkar varandra. Saknas före 2026-10-30. */
+    spu?: number;
     ejSammanslagna: Record<FamiljSkal, number>;
   };
   /** VEVOR:s recensioner på de importerade produkterna, som dolda rader. Saknas före steg 8. */
@@ -119,6 +121,12 @@ export interface VevorImportLager {
   lasAvlasningar(skus: string[]): Promise<Map<string, Avlasning>>;
   /** Läsarens köer för sidorna, nycklade på webb-id. För syskon som inte lästs än. */
   lasSidor(webbIds: string[]): Promise<Map<string, Sidrad>>;
+  /**
+   * Avläsningarna med samma SPU, oavsett status, nycklade på SPU. För familjer
+   * vars sidor inte länkar varandra (byggSpuFamilj). Uppmätt 2026-10-30: 110–300
+   * ms för en tuggas SPU:er, utan index.
+   */
+  lasSpuGrupper(spus: string[]): Promise<Map<string, Avlasning[]>>;
 }
 
 const IMPORT = "import";
@@ -166,6 +174,16 @@ export class WixVevorImportLager implements VevorImportLager {
 
   async lasSidor(webbIds: string[]): Promise<Map<string, Sidrad>> {
     return new WixVevorLager().sidor(webbIds);
+  }
+
+  async lasSpuGrupper(spus: string[]): Promise<Map<string, Avlasning[]>> {
+    const ut = new Map<string, Avlasning[]>();
+    const unika = [...new Set(spus.filter(Boolean))];
+    for (let i = 0; i < unika.length; i += 50) {
+      const rader = await allaRader<Avlasning>(VEVOR_KOL.avlasningar, { filter: { spu: { $in: unika.slice(i, i + 50) } } });
+      for (const a of rader) if (a.spu) ut.set(a.spu, [...(ut.get(a.spu) ?? []), a]);
+    }
+    return ut;
   }
 }
 
@@ -218,6 +236,14 @@ export class MinnesVevorImportLager implements VevorImportLager {
     for (const id of webbIds) {
       const r = this.sidor.get(id);
       if (r) ut.set(id, structuredClone(r));
+    }
+    return ut;
+  }
+  async lasSpuGrupper(spus: string[]) {
+    const ut = new Map<string, Avlasning[]>();
+    const valda = new Set(spus);
+    for (const a of this.avlasningar.values()) {
+      if (a.spu && valda.has(a.spu)) ut.set(a.spu, [...(ut.get(a.spu) ?? []), structuredClone(a)]);
     }
     return ut;
   }

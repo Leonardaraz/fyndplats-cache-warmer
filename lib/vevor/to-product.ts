@@ -166,18 +166,27 @@ export function kostnadUsd(a: Pick<Avlasning, "prisSek">, pris: Prisunderlag): n
  * Avläsningens recensioner för importen. Med `artiklar` bara de som gäller en
  * av dem: VEVOR visar en familjs recensioner på varje artikel i familjen, och
  * en recension av en annan storlek eller vara hör inte hemma på produkten. En
- * recension vars artikel inte går att avgöra tas inte med.
+ * recension vars artikel inte går att avgöra tas inte med. Med `kopt` (artikel
+ * → variantens namn, på en familj) bär recensionen varianten kunden köpte.
  */
-export function vevorRecensioner(a: Pick<Avlasning, "recensioner">, artiklar?: ReadonlySet<string>): AERReview[] {
+export function vevorRecensioner(
+  a: Pick<Avlasning, "recensioner">,
+  artiklar?: ReadonlySet<string>,
+  kopt?: ReadonlyMap<string, string>,
+): AERReview[] {
   return (a.recensioner ?? [])
     .filter((r) => !artiklar || (typeof r.artikel === "string" && artiklar.has(r.artikel)))
-    .map((r) => ({
-    rating: r.betyg,
-    text: r.text,
-    ...(r.datum ? { date: r.datum } : {}),
-    ...(r.namn ? { customerName: r.namn } : {}),
-    ...(r.bilder && r.bilder.length > 0 ? { imageUrls: r.bilder, hasImage: true } : {}),
-  }));
+    .map((r) => {
+      const variant = typeof r.artikel === "string" ? kopt?.get(r.artikel) : undefined;
+      return {
+        rating: r.betyg,
+        text: r.text,
+        ...(r.datum ? { date: r.datum } : {}),
+        ...(r.namn ? { customerName: r.namn } : {}),
+        ...(r.bilder && r.bilder.length > 0 ? { imageUrls: r.bilder, hasImage: true } : {}),
+        ...(variant ? { kopt: variant } : {}),
+      };
+    });
 }
 
 export interface Prisunderlag {

@@ -34,6 +34,13 @@
 //    en egen produkt när det lästs. Ett syskon som inte står i kön, är borta,
 //    eller vars sida inte går att läsa väntar familjen inte på: då hade den
 //    väntat för alltid.
+// 7. ☠️ Familjeregeln (Leonard 2026-10-30, lib/vevor/axelklass.ts): bara färg,
+//    mönster, storlek, längd och förpackningsstorlek delar en sida. En axel för
+//    funktion (effekt, kapacitet, modell, antal lådor) ger egna sidor
+//    (`funktion`), och en axel som inte går att avgöra likaså (`oklar_axel`).
+//    En axel med samma värde för alla avgör inte. Regeln prövas efter Wix
+//    gränser, så att `for_manga_axlar` och `for_langt_namn` säger det verkliga
+//    skälet.
 //
 // ☠️ VARJE FÄRG FÅR SINA EGNA BILDER (Leonard 2026-10-30: "Ja gör det
 // noggrant"). Familjen fick först ankarets sex bilder och bara huvudbilden från
@@ -54,8 +61,18 @@ import type { AliExpressProduct } from "@/lib/import/types";
 import type { Avlasning, Sidrad } from "./lager";
 import { medlemshinder, specifikation, kostnadUsd, vevorProdukt, type Prisunderlag } from "./to-product";
 import { BILDER_PER_PRODUKT, type Bildval } from "./bilder";
+import { arFunktionsrad, familjensKlass } from "./axelklass";
 
-export type FamiljSkal = "utan_egenskaper" | "olika_axlar" | "samma_kombination" | "for_manga_axlar" | "for_langt_namn";
+export type FamiljSkal =
+  | "utan_egenskaper"
+  | "olika_axlar"
+  | "samma_kombination"
+  | "for_manga_axlar"
+  | "for_langt_namn"
+  /** En axel är en funktion (effekt, kapacitet, modell): egna sidor (lib/vevor/axelklass.ts). */
+  | "funktion"
+  /** En axel går inte att avgöra: egna sidor, och gränsfallet listas för Leonard. */
+  | "oklar_axel";
 
 export const FAMILJ_SKAL: readonly FamiljSkal[] = [
   "utan_egenskaper",
@@ -63,6 +80,8 @@ export const FAMILJ_SKAL: readonly FamiljSkal[] = [
   "samma_kombination",
   "for_manga_axlar",
   "for_langt_namn",
+  "funktion",
+  "oklar_axel",
 ];
 
 export type Familj =
@@ -123,6 +142,35 @@ export function egenskaperFor(a: Pick<Avlasning, "egenskaper">): Record<string, 
   return ut;
 }
 
+/** Axlarna som skiljer artiklarna åt, med sina värden. */
+export function skiljandeAxlar(axlar: readonly string[], varden: readonly Record<string, string>[]): { namn: string; varden: string[] }[] {
+  return axlar
+    .map((k) => ({ namn: k, varden: varden.map((v) => v[k] ?? "") }))
+    .filter((a) => new Set(a.varden.map((x) => x.toLowerCase())).size > 1);
+}
+
+/** Familjeregeln: null när axlarna får dela en sida, annars skälet. */
+export function regelFor(axlar: readonly string[], varden: readonly Record<string, string>[]): "funktion" | "oklar_axel" | null {
+  const klass = familjensKlass(skiljandeAxlar(axlar, varden));
+  return klass === "funktion" ? "funktion" : klass === "oklar" ? "oklar_axel" : null;
+}
+
+/**
+ * Artikelns värde på varje axel: egenskapen på sidan (en länkad familj), annars
+ * raden i specifikationen med samma namn (en familj med samma SPU, vars axlar
+ * kommer ur specifikationen).
+ */
+export function familjeVarden(m: Pick<Avlasning, "egenskaper" | "spec">, axlar: readonly string[]): Record<string, string> {
+  const e = egenskaperFor(m);
+  const spec = new Map((m.spec ?? []).map(([k, v]) => [k.replace(/\s+/g, " ").trim().toLowerCase(), (v ?? "").replace(/\s+/g, " ").trim()]));
+  const ut: Record<string, string> = {};
+  for (const k of axlar) {
+    const v = e[k] ?? spec.get(k.replace(/\s+/g, " ").trim().toLowerCase());
+    if (v) ut[k] = rensaVarde(k, v);
+  }
+  return ut;
+}
+
 /**
  * Familjen artikeln hör till.
  *
@@ -164,6 +212,11 @@ export function byggFamilj(
     return { typ: "ej_sammanslagen", skal: "for_langt_namn" };
   const kombination = (v: Record<string, string>) => axlar.map((k) => (v[k] ?? "").toLowerCase()).join("\u0001");
   if (new Set(varden.map(kombination)).size !== varden.length) return { typ: "ej_sammanslagen", skal: "samma_kombination" };
+  // ☠️ Familjeregeln (Leonard 2026-10-30): bara färg, mönster, storlek, längd
+  // och förpackning delar en sida. En axel med samma värde för alla skiljer
+  // inte varianterna åt och avgör inte.
+  const regel = regelFor(axlar, varden);
+  if (regel) return { typ: "ej_sammanslagen", skal: regel };
 
   const bildaxel =
     axlar.find((k) => new Set(varden.map((v) => (v[k] ?? "").toLowerCase())).size === varden.length) ?? null;
@@ -231,6 +284,21 @@ export function familjensBilder(
 }
 
 /**
+ * Varje varians namn: värdena på de axlar som skiljer, i axlarnas ordning
+ * ("Svart / 50 liter"). Samma namn står i familjens flik och i recensionernas
+ * "Köpt: …". En variant utan värde heter "variant N".
+ */
+export function variantEtiketter(
+  medlemmar: readonly Pick<Avlasning, "spec" | "egenskaper">[],
+  axlar: readonly string[],
+): string[] {
+  const lc = (s: string) => s.replace(/\s+/g, " ").trim().toLowerCase();
+  const varden = medlemmar.map((m) => familjeVarden(m, axlar));
+  const skiljer = axlar.filter((k) => new Set(varden.map((v) => lc(v[k] ?? ""))).size > 1);
+  return varden.map((v, i) => skiljer.map((k) => v[k] ?? "").filter(Boolean).join(" / ") || `variant ${i + 1}`);
+}
+
+/**
  * Familjens specifikation, utan axlarnas rader: värdena på axlarna står i
  * väljaren, och en axel med samma värde för alla lägger pipelinen till som en
  * rad (lib/import/constant-axes.ts).
@@ -257,9 +325,7 @@ export function familjensSpec(
     for (const [k, v] of Object.entries(specifikation({ spec: m.spec, egenskaper: [] }))) t.set(lc(k), v);
     return t;
   });
-  const varden = medlemmar.map(egenskaperFor);
-  const skiljer = axlar.filter((k) => new Set(varden.map((v) => lc(v[k] ?? ""))).size > 1);
-  const etiketter = varden.map((v, i) => skiljer.map((k) => v[k] ?? "").filter(Boolean).join(" / ") || `variant ${i + 1}`);
+  const etiketter = variantEtiketter(medlemmar, axlar);
 
   const nycklar: string[] = [];
   const sedda = new Set<string>();
@@ -315,7 +381,7 @@ export function vevorFamiljeProdukt(
   const bas = vevorProdukt(ankare, pris, bilder);
   const spec = familjensSpec(f.medlemmar, f.axlar);
   const varianter = f.medlemmar.map((m) => {
-    const v = egenskaperFor(m);
+    const v = familjeVarden(m, f.axlar);
     return {
       supplierVariantId: m.sku,
       options: Object.fromEntries(f.axlar.map((k) => [k, v[k]])),
@@ -345,3 +411,131 @@ export function vevorFamiljeProdukt(
       : {}),
   };
 }
+
+// ── Familjer med samma SPU (Leonard 2026-10-30) ────────────────────────────
+//
+// VEVOR länkar inte alla varianter. Artiklar med samma SPU (VEVOR:s
+// produktfamilj) och samma betyg delar recensioner och är ofta samma vara i
+// olika storlek, färg eller förpackning, utan länk mellan sidorna. Uppmätt
+// 2026-10-30: 637 sådana grupper med 2 271 artiklar.
+//
+// Axlarna kommer ur specifikationen: raderna som skiljer, där rader som delar
+// upp artiklarna likadant är samma axel. Sex villkor, alla måste hålla:
+//
+// 1. ☠️ Ingen artikel i gruppen länkar till en annan. Länkade familjer bygger
+//    byggFamilj. Importen räknar bara artiklar utan länkar till gruppen, så
+//    en ensam artikel i en länkad familjs SPU blir ingen grupp.
+// 2. ☠️ Samma betyg (snitt och antal) på varje artikel. Det visar att VEVOR
+//    räknar dem som samma familj.
+// 3. En eller två axlar, värden högst 50 tecken, varje kombination en gång.
+// 4. ☠️ Titlarna förklaras av axlarna: varje ord som skiljer en artikels titel
+//    från de andras finns i dess egna värden. "850W" i titeln utan en axel för
+//    effekt betyder att något annat skiljer.
+// 5. ☠️ Familjeregeln (lib/vevor/axelklass.ts) på axlarna, och ingen rad i en
+//    axel får visa en funktion som skiljer ("Effekt" som följer med storleken).
+// 6. Ett syskon som redan sitter på en produkt följer inte med, ett som väntar
+//    på läsaren får familjen att vänta, som i byggFamilj.
+
+/** Rader som följer storleken eller är artikelns egna och därför aldrig är en axel. */
+const INTE_AXEL = /vikt|förpack|forpack|paket|modell|artikel|varumärke|märke|ean|garanti|certifi/i;
+
+const ord = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/^vevor\s+/, "")
+    .split(/[^0-9a-zåäöüéß]+/)
+    .filter(Boolean);
+
+/** Specifikationens skiljande rader, grupperade i axlar. Ren. */
+export function specAxlar(
+  medlemmar: readonly Pick<Avlasning, "spec">[],
+): { axlar: string[]; rader: string[][]; skiljer: string[] } | "ingen_axel" | "for_manga_axlar" {
+  const lc = (s: string) => s.replace(/\s+/g, " ").trim().toLowerCase();
+  const kartor = medlemmar.map((m) => new Map((m.spec ?? []).map(([k, v]) => [k.replace(/\s+/g, " ").trim(), (v ?? "").replace(/\s+/g, " ").trim()])));
+  if (kartor.some((k) => k.size === 0)) return "ingen_axel";
+  const gemensamma = [...kartor[0].keys()].filter((k) => kartor.every((kk) => kk.has(k)));
+  const skiljer = gemensamma.filter((k) => new Set(kartor.map((kk) => lc(kk.get(k)!))).size > 1);
+  const dims = new Map<string, string[]>();
+  for (const k of skiljer) {
+    if (INTE_AXEL.test(k)) continue;
+    const forsta = new Map<string, number>();
+    const monster = kartor
+      .map((kk) => {
+        const v = lc(kk.get(k)!);
+        if (!forsta.has(v)) forsta.set(v, forsta.size);
+        return forsta.get(v);
+      })
+      .join(",");
+    dims.set(monster, [...(dims.get(monster) ?? []), k]);
+  }
+  if (dims.size === 0) return "ingen_axel";
+  if (dims.size > 2) return "for_manga_axlar";
+  const rader = [...dims.values()];
+  // Axeln är raden med de kortaste värdena: "Antal" före "Förpackningens innehåll".
+  const langst = (k: string) => Math.max(...kartor.map((kk) => kk.get(k)!.length));
+  const axlar = rader.map((r) => [...r].sort((a, b) => langst(a) - langst(b))[0]);
+  return { axlar, rader, skiljer };
+}
+
+/** Förklaras varje artikels titel av dess egna värden? Ren. */
+export function titlarnaForklaras(medlemmar: readonly Pick<Avlasning, "namn" | "spec">[], skiljer: readonly string[]): boolean {
+  const alla = medlemmar.map((m) => new Set(ord(m.namn ?? "")));
+  const gemensamma = new Set([...alla[0]].filter((w) => alla.every((a) => a.has(w))));
+  return medlemmar.every((m, i) => {
+    const spec = new Map((m.spec ?? []).map(([k, v]) => [k.replace(/\s+/g, " ").trim(), v ?? ""]));
+    const egna = new Set(skiljer.flatMap((k) => ord(spec.get(k) ?? "")));
+    return [...alla[i]].every((w) => gemensamma.has(w) || egna.has(w));
+  });
+}
+
+/**
+ * Familjen ur artiklarna med samma SPU som ankaret. `grupp` är de andra
+ * avläsningarna med samma SPU. Se villkoren ovan.
+ */
+export function byggSpuFamilj(
+  ankare: Avlasning,
+  grupp: readonly Avlasning[],
+  nu: number,
+  upptagen: (sku: string) => boolean,
+): Familj {
+  if (!ankare.spu) return { typ: "ensam" };
+  const andra = grupp
+    .filter((m) => m.sku !== ankare.sku && m.spu === ankare.spu && !m.borta)
+    .sort((a, b) => (a.sku < b.sku ? -1 : a.sku > b.sku ? 1 : 0));
+  if (andra.length === 0) return { typ: "ensam" };
+  const alla = [ankare, ...andra];
+  const skus = new Set(alla.map((m) => m.sku));
+  if (alla.some((m) => syskonSkus(m).some((s) => skus.has(s)))) return { typ: "ensam" };
+  // ☠️ Ett betyg som saknas på avläsningen (läst före steg 8) går inte att
+  // jämföra: gruppen väntar på nästa läsning i stället för att bli egna sidor.
+  if (andra.some((m) => !upptagen(m.sku) && m.betyg === undefined)) return { typ: "vanta" };
+  const b0 = ankare.betyg;
+  if (!b0 || alla.some((m) => !m.betyg || m.betyg.antal !== b0.antal || m.betyg.snitt !== b0.snitt)) return { typ: "ensam" };
+
+  const medlemmar: Avlasning[] = [ankare];
+  for (const m of andra) {
+    if (upptagen(m.sku)) continue;
+    const h = medlemshinder(m, nu);
+    if (h === "betyg_okant" || h === "spec_okant" || h === "recension_okand") return { typ: "vanta" };
+    if (h === null) medlemmar.push(m);
+  }
+  if (medlemmar.length < 2) return { typ: "ensam" };
+
+  const sa = specAxlar(medlemmar);
+  if (sa === "ingen_axel") return { typ: "ensam" };
+  if (sa === "for_manga_axlar") return { typ: "ej_sammanslagen", skal: "for_manga_axlar" };
+  const varden = medlemmar.map((m) => familjeVarden(m, sa.axlar));
+  if (sa.axlar.some((k) => k.length > WIX_MAX_VALNAMN) || varden.some((v) => Object.values(v).some((x) => x.length > WIX_MAX_VALNAMN)))
+    return { typ: "ej_sammanslagen", skal: "for_langt_namn" };
+  const kombination = (v: Record<string, string>) => sa.axlar.map((k) => (v[k] ?? "").toLowerCase()).join("\u0001");
+  if (new Set(varden.map(kombination)).size !== varden.length) return { typ: "ej_sammanslagen", skal: "samma_kombination" };
+  if (!titlarnaForklaras(medlemmar, sa.skiljer)) return { typ: "ensam" };
+  const regel = regelFor(sa.axlar, varden);
+  if (regel) return { typ: "ej_sammanslagen", skal: regel };
+  const specVarden = (k: string) => medlemmar.map((m) => familjeVarden(m, [k])[k] ?? "");
+  if (sa.rader.some((r) => r.some((k) => arFunktionsrad(k, specVarden(k))))) return { typ: "ej_sammanslagen", skal: "funktion" };
+
+  const bildaxel = sa.axlar.find((k) => new Set(varden.map((v) => (v[k] ?? "").toLowerCase())).size === varden.length) ?? null;
+  return { typ: "familj", medlemmar, axlar: sa.axlar, bildaxel };
+}
+

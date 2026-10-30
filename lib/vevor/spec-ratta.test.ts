@@ -21,8 +21,12 @@ const SPEC: [string, string][] = [
   ["Maximal lastkapacitet", "90,7 kg"],
 ];
 
+// Artikel 1 och 2 länkar till varandra, som en länkad familj.
+const lankar = (n: number) =>
+  [1, 2].filter((m) => m !== n).map((m) => ({ sku: sku(m), webbId: String(m).padStart(12, "0"), kanKopas: true }));
+
 function avl(n: number, over: Partial<Avlasning> = {}): Avlasning {
-  return testAvlasning({ sku: sku(n), spec: SPEC, specKalla: "data", egenskaper: [], ...over } as Partial<Avlasning>);
+  return testAvlasning({ sku: sku(n), spec: SPEC, specKalla: "data", egenskaper: [], syskon: lankar(n), ...over } as Partial<Avlasning>);
 }
 
 function enkel(n: number, over: Partial<ProductMappingRecord> = {}): ProductMappingRecord {
@@ -79,6 +83,16 @@ describe("specRader", () => {
       { label: "Material", value: "Kolstål" },
       { label: "Maximal lastkapacitet", value: "90,7 kg" },
       { label: "Typ", value: "Sektionell" },
+    ]);
+  });
+
+  it("en familj med samma SPU: axlarna är mappningens val, och deras rader står inte i fliken", () => {
+    const a1 = avl(1, { syskon: [], spec: [...SPEC, ["Längd", "10 m"], ["Vikt", "3 kg"]] });
+    const a2 = avl(2, { syskon: [], spec: [...SPEC, ["Längd", "20 m"], ["Vikt", "5 kg"]] });
+    expect(specRader(familj(), karta(a1, a2))).toEqual([
+      { label: "Material", value: "Kolstål" },
+      { label: "Maximal lastkapacitet", value: "90,7 kg" },
+      { label: "Vikt", value: "10 m: 3 kg · 20 m: 5 kg" },
     ]);
   });
 

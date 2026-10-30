@@ -55,7 +55,17 @@ import { RabattFel } from "./pris";
 import { valjVevorBilder } from "./bilder";
 import { vevorGranskning } from "./granskning";
 import type { Avlasning } from "./lager";
-import { FAMILJ_SKAL, arPaVag, byggFamilj, syskonSkus, vevorFamiljeProdukt, type Familj, type FamiljSkal } from "./familj";
+import {
+  FAMILJ_SKAL,
+  arPaVag,
+  byggFamilj,
+  byggSpuFamilj,
+  syskonSkus,
+  variantEtiketter,
+  vevorFamiljeProdukt,
+  type Familj,
+  type FamiljSkal,
+} from "./familj";
 import {
   byggVevorMappning,
   importhinder,
@@ -168,6 +178,7 @@ function tomSummering(start: number, dryRun: boolean): Importsummering {
       sammanslagna: 0,
       varianter: 0,
       gemensammaBilder: 0,
+      spu: 0,
       ejSammanslagna: Object.fromEntries(FAMILJ_SKAL.map((k) => [k, 0])) as Record<FamiljSkal, number>,
     },
     recensioner: { lasta: 0, sparade: 0, produkter: 0, fel: 0 },
@@ -187,7 +198,7 @@ export function importloggrad(s: Importsummering): string {
     `bilder ny ${s.bilder.ny} gammal ${s.bilder.gammal} okänt ${s.bilder.okant} utan egna ${s.bilder.utanEgna}, ` +
     `medicinteknik ${s.medicinteknik}, ` +
     (s.familjer
-      ? `familjer ${s.familjer.sammanslagna} (varianter ${s.familjer.varianter}, gemensamma bilder ${s.familjer.gemensammaBilder ?? 0}), ej sammanslagna ` +
+      ? `familjer ${s.familjer.sammanslagna} (varianter ${s.familjer.varianter}, gemensamma bilder ${s.familjer.gemensammaBilder ?? 0}, samma SPU ${s.familjer.spu ?? 0}), ej sammanslagna ` +
         `${Object.entries(s.familjer.ejSammanslagna).map(([k, v]) => `${k} ${v}`).join(", ")}, `
       : "") +
     (s.recensioner
@@ -259,6 +270,13 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
         break;
       }
       const finns = new Set(sparrade);
+      // Artiklar med samma SPU, för kandidater utan länkade syskon (byggSpuFamilj).
+      const utanLank = kandidater.filter((a) => syskonSkus(a).length === 0 && a.spu);
+      const spuGrupper = utanLank.length > 0 ? await deps.lager.lasSpuGrupper(utanLank.map((a) => a.spu!)) : new Map<string, Avlasning[]>();
+      const spuGrupp = (a: Avlasning): Avlasning[] =>
+        syskonSkus(a).length === 0 && a.spu
+          ? (spuGrupper.get(a.spu) ?? []).filter((m) => m.sku !== a.sku && !m.borta && syskonSkus(m).length === 0)
+          : [];
       // Kandidaternas och deras syskons id: ett syskon som sitter på en
       // familj gör kandidaten till `syskon_finns`, och ett som sitter på en
       // egen produkt följer inte med i familjen.
@@ -266,6 +284,7 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
       for (const a of kandidater) {
         fragade.add(vevorSupplierProductId(a.sku));
         for (const sy of syskonSkus(a)) fragade.add(vevorSupplierProductId(sy));
+        for (const m of spuGrupp(a)) fragade.add(vevorSupplierProductId(m.sku));
       }
       for (const m of await deps.mappningarFor([...fragade])) {
         if (m.importSparr) finns.add(m.importSparr);
@@ -309,7 +328,10 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
           markor = a.sku;
           continue;
         }
-        if (syskonSkus(a).some((sy) => iFamilj.has(vevorSupplierProductId(sy)))) {
+        if (
+          syskonSkus(a).some((sy) => iFamilj.has(vevorSupplierProductId(sy))) ||
+          spuGrupp(a).some((m) => iFamilj.has(vevorSupplierProductId(m.sku)))
+        ) {
           s.hinder.syskon_finns++;
           markor = a.sku;
           continue;
@@ -330,6 +352,8 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
               for (const sy of olasta) if (arPaVag(sidor.get(sy.webbId))) pavag.add(sy.sku);
             }
             familj = byggFamilj(a, lasta, nu(), (sku) => finns.has(vevorSupplierProductId(sku)), pavag);
+          } else if (spuGrupp(a).length > 0) {
+            familj = byggSpuFamilj(a, spuGrupp(a), nu(), (sku) => finns.has(vevorSupplierProductId(sku)));
           }
           if (familj.typ === "familj") {
             // Fotonas innehåll, så att samma foto i flera storlekar laddas upp en
@@ -364,11 +388,17 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
         const medlemmar: Avlasning[] = familj.typ === "familj" ? familj.medlemmar : [a];
         // ☠️ Bara recensioner om artiklar som finns på produkten (2026-10-30).
         const egna = new Set(medlemmar.map((m) => m.sku));
-        const recensioner = medlemmar.flatMap((m) => vevorRecensioner(m, egna));
+        // På en familj bär recensionen varianten kunden köpte ("Köpt: …").
+        const kopt =
+          familj.typ === "familj"
+            ? new Map(variantEtiketter(familj.medlemmar, familj.axlar).map((e, i) => [familj.medlemmar[i].sku, e]))
+            : undefined;
+        const recensioner = medlemmar.flatMap((m) => vevorRecensioner(m, egna, kopt));
 
         if (val.dryRun) {
           raknaUtkast(s, bilder.monster, bilder.egna, granskning);
           raknaFamilj(s, medlemmar.length, recensioner.length);
+          if (familj.typ === "familj" && syskonSkus(a).length === 0) s.familjer!.spu = (s.familjer!.spu ?? 0) + 1;
           s.importerade++;
           platser--;
           for (const m of medlemmar) {
@@ -385,6 +415,7 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
           await deps.sparaMappning(byggVevorMappning(a, resultat, granskning, new Date(nu()).toISOString()));
           raknaUtkast(s, bilder.monster, bilder.egna, granskning);
           raknaFamilj(s, resultat.variantMappings.length, recensioner.length);
+          if (familj.typ === "familj" && syskonSkus(a).length === 0) s.familjer!.spu = (s.familjer!.spu ?? 0) + 1;
           s.familjer!.gemensammaBilder = (s.familjer!.gemensammaBilder ?? 0) + (produkt.gemensammaBilder?.length ?? 0);
           s.importerade++;
           varvImporterade++;

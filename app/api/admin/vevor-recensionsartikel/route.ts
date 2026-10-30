@@ -52,7 +52,8 @@ export async function POST(req: NextRequest) {
     console.log(
       `[vevor-recensionsartikel] ${dryRun ? "torr" : "skarp"}: ${svar.granskade} av ${svar.produkter} produkter, ` +
         `${svar.vantar} väntar på omläsning, ${svar.rader} rader, ${svar.egna} egna, ${svar.attDolja} att dölja, ` +
-        `${svar.dolda} dolda, ${svar.redanDolda} redan dolda, ${svar.attVisa} att visa, ${svar.visade} visade, ` +
+        `${svar.dolda} dolda, ${svar.attMarka} att märka "Köpt", ${svar.markta} märkta, ` +
+        `${svar.redanDolda} redan dolda, ${svar.attVisa} att visa, ${svar.visade} visade, ` +
         `${svar.synligaAnnan} synliga om annan artikel, ${svar.avvisadeAvManniska} avvisade av människa, ` +
         `${svar.okanda} okända, ${svar.fel} fel, kvar från ${svar.kvarFran ?? "-"}`,
     );

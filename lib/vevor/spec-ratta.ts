@@ -50,7 +50,7 @@ import { mappingSupplier, vevorSkuOf } from "@/lib/store/supplier";
 import { appendTabSections, buildTabSections, descriptionHasSection } from "@/lib/import/tabs";
 import { mergeConstantAxisSpecs, splitConstantAxes } from "@/lib/import/constant-axes";
 import { felText, type WixAnrop } from "@/lib/polish/skrivplan";
-import { egenskaperFor, familjensSpec } from "./familj";
+import { egenskaperFor, familjeVarden, familjensSpec, syskonSkus } from "./familj";
 import type { Avlasning } from "./lager";
 import { specifikation } from "./to-product";
 
@@ -124,9 +124,14 @@ export function specRader(
   // ☠️ Varje artikel ska vara läst med den nya läsaren: en tom tabell på en
   // gammal avläsning hade annars sett ut som att raden saknas för den varianten.
   if ((medlemmar as Avlasning[]).some((m) => m.specKalla === undefined)) return "ej_omlast";
-  const axlar = Object.keys(egenskaperFor(ankare));
+  // Axlarna som importen valde dem. En länkad familj (byggFamilj): ankarets
+  // egenskaper, också de som är lika för alla. En familj med samma SPU
+  // (byggSpuFamilj): axlarna ur specifikationen, som mappningens val bär.
+  const skus = new Set((medlemmar as Avlasning[]).map((m) => m.sku));
+  const lankad = (medlemmar as Avlasning[]).some((m) => syskonSkus(m).some((x) => skus.has(x)));
+  const axlar = lankad ? Object.keys(egenskaperFor(ankare)) : Object.keys(rad.variants[0]?.choices ?? {});
   const varianter = (medlemmar as Avlasning[]).map((m) => {
-    const v = egenskaperFor(m);
+    const v = familjeVarden(m, axlar);
     return { options: Object.fromEntries(axlar.map((k) => [k, v[k]])) as Record<string, string> };
   });
   return mergeConstantAxisSpecs(tillRader(familjensSpec(medlemmar as Avlasning[], axlar)), splitConstantAxes(varianter).specs);

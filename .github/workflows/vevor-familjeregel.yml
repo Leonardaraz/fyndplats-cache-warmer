@@ -1,0 +1,128 @@
+name: VEVOR — familjeregeln på befintliga utkast
+
+# Familjeregeln (Leonard 2026-10-30, lib/vevor/familjeregel-plan.ts) på de
+# opolerade VEVOR-utkast som importerades före den:
+#
+#   plan    räknar: familjer att dela (en axel för funktion), ensamma utkast
+#           att slå ihop (samma SPU) och gränsfallen per axel. Raderar ingenting.
+#   radera  raderar utkasten i dela och slå ihop i varv om fyra minuter, och
+#           nollställer importens markör. Kräver `bekrafta` = planens antal
+#           raderbara. Gränsfallen raderas aldrig: Leonard avgör dem.
+#
+# Importen måste vara avstängd ("VEVOR — importen", läget av). Ordningen:
+# plan, importen av, radera med planens antal, plan igen (raderbara ska vara 0),
+# och importen på. Importen bygger då om utkasten med regeln.
+#
+# Skriver bara antal, Wix-id och axelnamn. Repot är publikt.
+
+on:
+  workflow_dispatch:
+    inputs:
+      lage:
+        description: "plan eller radera"
+        required: true
+        default: plan
+        type: choice
+        options: [plan, radera]
+      bekrafta:
+        description: "Läget radera: planens antal raderbara"
+        required: false
+        default: ""
+
+concurrency:
+  group: vevor-familjeregel
+  cancel-in-progress: false
+
+jobs:
+  kor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          LAGE: ${{ inputs.lage }}
+          BEKRAFTA: ${{ inputs.bekrafta }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # Till STDERR: en ::error::-rad på stdout slukas av kommandosubstitutionen.
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          rot="${BASE%/api/cron/poll-tracking}"
+
+          # Sista skyddet: inget artikelnummer når loggen, vad svaret än bär.
+          redigera() {
+            perl -pe 's/\b(?:\d{2}[A-Z]|[A-Z]\d{2}|\d[A-Z]\d|\d{3})-\d{3}(?!\d)[A-Z0-9]*\b/‹REDIGERAT›/g; s/aosom:\S+/aosom:‹REDIGERAT›/g; s/\b(?=[A-Z0-9]*\d)(?=[A-Z0-9]*[A-Z])[A-Z0-9]{17,24}\b/‹REDIGERAT›/g; s/(?<![A-Za-z0-9.+-])(?=[A-Z0-9.+-]*\d)(?=[A-Z0-9.+-]*[A-Z])[A-Z0-9][A-Z0-9.+-]{15,22}[A-Z0-9](?![A-Za-z0-9.+-])/‹REDIGERAT›/g; s/vevor:\S+/vevor:‹REDIGERAT›/g'
+          }
+
+          anropa() {
+            curl -sS --max-time 320 -X POST -H "Authorization: Bearer ${CRON_SECRET}" \
+              -H "Content-Type: application/json" -d "$1" "${rot}/api/admin/vevor-familjeregel" || {
+              echo "::error::Anropet gick inte fram" >&2; return 1; }
+          }
+
+          kontrollera() {
+            if ! printf '%s' "$1" | jq -e 'type == "object"' >/dev/null 2>&1; then
+              echo "::error::Svaret var inte JSON. Är rutten deployad där workflowen kör?" >&2
+              return 1
+            fi
+            if [ "$(printf '%s' "$1" | jq -r '.ok')" != "true" ]; then
+              echo "::error::$(printf '%s' "$1" | jq -r '.error // "okänt fel"' | head -c 300 | redigera)" >&2
+              return 1
+            fi
+          }
+
+          visa() {
+            printf '%s' "$1" | jq '{
+              planMs,
+              plan: (.plan | {utkast, familjer, dela: (.dela | length), slaIhop: (.slaIhop | length), slaIhopFamiljer, spuVantar, spuEnsamma}),
+              radering: (.radering | {dryRun, raderbara, hinder, raderade, fannsInte, obekraftade, fel, kvar, importNollstalld, stoppadAv, hoppade})
+            }' | redigera || true
+          }
+
+          visaPlan() {
+            echo "── Familjer att dela (Wix-id):"
+            printf '%s' "$1" | jq -r '.plan.dela[]' | redigera || true
+            echo "── Utkast att slå ihop (Wix-id):"
+            printf '%s' "$1" | jq -r '.plan.slaIhop[]' | redigera || true
+            echo "── Gränsfall per axel (Leonard avgör):"
+            printf '%s' "$1" | jq -r '.plan.grans[] | "\(.antal)\t\(.axel)\t\(.wixIds | join(", "))"' | redigera || true
+          }
+
+          if [ "$LAGE" = "plan" ]; then
+            svar=$(anropa '{"dryRun":true}')
+            kontrollera "$svar"
+            visa "$svar"
+            visaPlan "$svar"
+            {
+              echo "### VEVOR — familjeregeln (plan)"
+              printf '%s' "$svar" | jq -r '"| | |\n|---|--:|\n| Opolerade utkast | \(.plan.utkast) |\n| Familjer | \(.plan.familjer) |\n| Familjer att dela | \(.plan.dela | length) |\n| Utkast att slå ihop | \(.plan.slaIhop | length) (\(.plan.slaIhopFamiljer) familjer) |\n| Raderbara | **\(.radering.raderbara)** |\n| Gränsfall | \([.plan.grans[].antal] | add // 0) på \(.plan.grans | length) axlar |\n| SPU-grupper som väntar | \(.plan.spuVantar) |\n| SPU-grupper som blir egna sidor | \(.plan.spuEnsamma) |"' | redigera
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          if ! [[ "$BEKRAFTA" =~ ^[0-9]+$ ]]; then
+            echo "::error::bekrafta ska vara planens antal raderbara (ett heltal)" >&2; exit 1
+          fi
+          tak="$BEKRAFTA"
+          for varv in $(seq 1 30); do
+            svar=$(anropa "{\"dryRun\":false,\"bekrafta\":${tak}}")
+            kontrollera "$svar"
+            echo "Varv ${varv}:"
+            visa "$svar"
+            if [ "$(printf '%s' "$svar" | jq -r '.radering.obekraftade + .radering.fel')" != "0" ]; then
+              echo "::error::Obekräftade raderingar eller fel. Läs Vercels logg innan nästa körning." >&2; exit 1
+            fi
+            if [ "$(printf '%s' "$svar" | jq -r '.radering.stoppadAv')" = "klart" ]; then
+              echo "Klart. Importen nollställd: $(printf '%s' "$svar" | jq -r '.radering.importNollstalld')"
+              exit 0
+            fi
+            # Följande varv: det som återstår är taket. Planen får krympa, aldrig växa.
+            tak=$(printf '%s' "$svar" | jq -r '.radering.raderbara - .radering.raderade - .radering.fannsInte')
+          done
+          echo "::error::Inte klart efter 30 varv" >&2
+          exit 1

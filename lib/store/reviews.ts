@@ -93,6 +93,12 @@ export interface StoredReview {
    * människa raden, och då rör inget verktyg den.
    */
   doldAv?: "annan_artikel";
+  /**
+   * Varianten kunden köpte, på en sida med flera varianter ("Svart / 50 liter",
+   * "6 st"). Butiken visar "Köpt: …" (Leonard 2026-10-30: "Följ
+   * rekommendationen"). Saknas fältet visas ingenting.
+   */
+  kopt?: string;
 }
 
 /** Komposit-id: unikt per produkt även om samma reviewIdAE förekommer globalt. */

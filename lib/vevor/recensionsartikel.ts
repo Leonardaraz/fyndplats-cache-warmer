@@ -29,6 +29,10 @@
 //    `doldAv` ändras.
 // 6. ☠️ Svaret bär bara antal och Wix-id. Recensionernas text och artikelnummer
 //    går aldrig ut: loggen är publik.
+//
+// På en familj märks varje rad om en egen artikel med varianten kunden köpte
+// (`kopt`, "Svart / 50 liter"), som importen gör sedan 2026-10-30. Namnet
+// räknas ur mappningens val: värdena på de axlar som skiljer.
 
 import type { ProductMappingRecord } from "@/lib/store";
 import { VEVOR_ID_PREFIX } from "@/lib/store/leverantorsprefix";
@@ -65,6 +69,9 @@ export interface RecensionsartikelSvar {
   /** Väntande rader om en annan artikel: de som döljs. */
   attDolja: number;
   dolda: number;
+  /** Rader på en familj som får varianten kunden köpte ("Köpt: …"). */
+  attMarka: number;
+  markta: number;
   /** Rader verktyget dolt förut som redan är dolda. */
   redanDolda: number;
   /** Rader verktyget dolt förut vars artikel nu finns på produkten. */
@@ -107,6 +114,24 @@ export function artikelPerText(avlasningar: Iterable<Avlasning>): Map<string, st
   return ut;
 }
 
+/**
+ * Varje artikels variantnamn på en familj, ur mappningens val: värdena på de
+ * axlar som skiljer ("Svart / 50 liter"). Tom för en produkt med en artikel.
+ */
+export function koptPerArtikel(m: Pick<ProductMappingRecord, "variants">): Map<string, string> {
+  const ut = new Map<string, string>();
+  const varianter = m.variants.filter((v) => v.supplierVariantId);
+  if (varianter.length < 2) return ut;
+  const axlar = [...new Set(varianter.flatMap((v) => Object.keys(v.choices ?? {})))];
+  const lc = (x: string) => x.replace(/\s+/g, " ").trim().toLowerCase();
+  const skiljer = axlar.filter((k) => new Set(varianter.map((v) => lc(v.choices?.[k] ?? ""))).size > 1);
+  for (const v of varianter) {
+    const namn = skiljer.map((k) => (v.choices?.[k] ?? "").trim()).filter(Boolean).join(" / ");
+    if (namn) ut.set(v.supplierVariantId, namn);
+  }
+  return ut;
+}
+
 export type Radbeslut = "egen" | "dolj" | "redan_dold" | "visa" | "synlig_annan" | "okand" | "manniska";
 
 /** Vad som ska hända med en rad. Ren. */
@@ -134,6 +159,8 @@ export async function korRecensionsartikel(deps: RecensionsartikelDeps, val: Rec
     egna: 0,
     attDolja: 0,
     dolda: 0,
+    attMarka: 0,
+    markta: 0,
     redanDolda: 0,
     attVisa: 0,
     visade: 0,
@@ -159,12 +186,28 @@ export async function korRecensionsartikel(deps: RecensionsartikelDeps, val: Rec
         continue;
       }
       const perText = artikelPerText(avl.values());
+      const kopt = koptPerArtikel(m);
+      const koptFor = (rad: StoredReview) => {
+        const artikel = perText.get(recensionsnyckel(rad.textOriginal ?? ""));
+        return artikel ? kopt.get(artikel) : undefined;
+      };
       const sparade = (await deps.recensioner(m.wixProductId)).filter((r) => r.source === "vevor");
       let andrad = false;
       for (const rad of sparade) {
         svar.rader++;
         const beslut = beslutFor(rad, artiklar, perText);
-        if (beslut === "egen") svar.egna++;
+        if (beslut === "egen") {
+          svar.egna++;
+          const variant = koptFor(rad);
+          if (variant && rad.kopt !== variant) {
+            svar.attMarka++;
+            andrad = true;
+            if (!val.dryRun) {
+              await deps.spara({ ...rad, kopt: variant });
+              svar.markta++;
+            }
+          }
+        }
         else if (beslut === "redan_dold") svar.redanDolda++;
         else if (beslut === "synlig_annan") svar.synligaAnnan++;
         else if (beslut === "okand") svar.okanda++;
@@ -181,7 +224,8 @@ export async function korRecensionsartikel(deps: RecensionsartikelDeps, val: Rec
           andrad = true;
           if (!val.dryRun) {
             const { doldAv: _bort, ...utan } = rad;
-            await deps.spara({ ...utan, status: "pending" });
+            const variant = koptFor(rad);
+            await deps.spara({ ...utan, status: "pending", ...(variant ? { kopt: variant } : {}) });
             svar.visade++;
           }
         }

@@ -138,4 +138,15 @@ describe("raderingen av opolerade VEVOR-utkast", () => {
     const s = await raderaOpoleradeUtkast(d, { dryRun: false, bekrafta: 3, budgetMs: 100 });
     expect(s).toMatchObject({ raderade: 2, kvar: 1, stoppadAv: "tidsbudget", importNollstalld: false });
   });
+
+  it("☠️ med ett urval raderas bara de utkasten, och markören nollställs när de är raderade", async () => {
+    const urval = new Set(["wix-2"]);
+    const plan = await raderaOpoleradeUtkast(deps(), { dryRun: true, bekrafta: null, budgetMs: 1, urval });
+    expect(plan).toMatchObject({ utkast: 1, raderbara: 1 });
+    const s = await raderaOpoleradeUtkast(deps(), { ...skarp(1), urval });
+    expect(raderaProdukt.mock.calls.map((c) => c[0])).toEqual(["wix-2"]);
+    expect(mappningar.map((m) => m.wixProductId)).toEqual(["wix-1", "wix-3"]);
+    expect(s).toMatchObject({ raderade: 1, kvar: 0, importNollstalld: true });
+    expect(tillstand.markor).toBeNull();
+  });
 });
