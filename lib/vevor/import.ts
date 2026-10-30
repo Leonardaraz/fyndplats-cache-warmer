@@ -54,7 +54,7 @@ import { RabattFel } from "./pris";
 import { valjVevorBilder } from "./bilder";
 import { vevorGranskning } from "./granskning";
 import type { Avlasning } from "./lager";
-import { FAMILJ_SKAL, byggFamilj, syskonSkus, vevorFamiljeProdukt, type Familj, type FamiljSkal } from "./familj";
+import { FAMILJ_SKAL, arPaVag, byggFamilj, syskonSkus, vevorFamiljeProdukt, type Familj, type FamiljSkal } from "./familj";
 import {
   byggVevorMappning,
   importhinder,
@@ -139,6 +139,7 @@ function tomSummering(start: number, dryRun: boolean): Importsummering {
       lagt_betyg: 0,
       betyg_okant: 0,
       syskon_finns: 0,
+      syskon_vantar: 0,
     } satisfies Record<Hinder, number>,
     fel: 0,
     foraldralosa: [],
@@ -300,7 +301,14 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
         try {
           if (syskonSkus(a).length > 0) {
             const lasta = await deps.lager.lasAvlasningar(syskonSkus(a));
-            familj = byggFamilj(a, lasta, nu(), (sku) => finns.has(vevorSupplierProductId(sku)));
+            // Syskon som inte lästs alls: står sidan i läsarens kö väntar familjen.
+            const olasta = (a.syskon ?? []).filter((sy) => sy.sku && sy.sku !== a.sku && !lasta.has(sy.sku) && sy.webbId);
+            const pavag = new Set<string>();
+            if (olasta.length > 0) {
+              const sidor = await deps.lager.lasSidor(olasta.map((sy) => sy.webbId));
+              for (const sy of olasta) if (arPaVag(sidor.get(sy.webbId))) pavag.add(sy.sku);
+            }
+            familj = byggFamilj(a, lasta, nu(), (sku) => finns.has(vevorSupplierProductId(sku)), pavag);
           }
           produkt =
             familj.typ === "familj"
@@ -315,7 +323,7 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
           continue;
         }
         if (familj.typ === "vanta") {
-          s.hinder.betyg_okant++;
+          s.hinder.syskon_vantar++;
           markor = a.sku;
           continue;
         }

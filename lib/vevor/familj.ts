@@ -27,12 +27,18 @@
 // 5. ☠️ Ett syskon vars avläsning saknar betyg (läst före steg 8) gör att hela
 //    familjen väntar på nästa läsning. Annars hade det lämnats utanför
 //    familjen och sedan aldrig fått komma in.
+// 6. ☠️ Ett syskon som inte lästs alls men står i läsarens kö (`arPaVag`) gör
+//    också att familjen väntar (Leonard 2026-10-30: "Gör det som blir
+//    proffsigast"). Annars hade artikeln importerats ensam, och syskonet blivit
+//    en egen produkt när det lästs. Ett syskon som inte står i kön, är borta,
+//    eller vars sida inte går att läsa väntar familjen inte på: då hade den
+//    väntat för alltid.
 //
 // Ren modul.
 
 import { WIX_MAX_OPTIONS_PER_PRODUCT } from "@/lib/wix/limits";
 import type { AliExpressProduct } from "@/lib/import/types";
-import type { Avlasning } from "./lager";
+import type { Avlasning, Sidrad } from "./lager";
 import { medlemshinder, specifikation, kostnadUsd, vevorProdukt, type Prisunderlag } from "./to-product";
 import type { Bildval } from "./bilder";
 
@@ -43,7 +49,7 @@ export const FAMILJ_SKAL: readonly FamiljSkal[] = ["utan_egenskaper", "olika_axl
 export type Familj =
   /** Inga syskon att slå ihop med: artikeln blir en egen produkt. */
   | { typ: "ensam" }
-  /** Ett syskon saknar betyg (läst före steg 8): familjen väntar på nästa läsning. */
+  /** Ett syskon saknar betyg, eller är oläst men står i läsarens kö: familjen väntar. */
   | { typ: "vanta" }
   /** Syskonen går inte att skilja åt: artikeln blir en egen produkt. */
   | { typ: "ej_sammanslagen"; skal: FamiljSkal }
@@ -56,6 +62,18 @@ export type Familj =
       /** Axeln vars värden är olika för varje artikel, eller null. Den bär varianternas bilder. */
       bildaxel: string | null;
     };
+
+/**
+ * Ska familjen vänta på syskonets sida? Bara när sidan står i läsarens kö och
+ * inte har prövats, eller senast föll på ett övergående fel. En sida som
+ * lästs (då finns en avläsning, eller ett annat artikelnummer), är borta,
+ * saknas, har flyttat, är spärrad eller inte går att tolka väntar familjen inte
+ * på.
+ */
+export function arPaVag(r: Sidrad | undefined): boolean {
+  if (!r || r.borta) return false;
+  return r.senastUtfall === null || r.senastUtfall === "tillfalligt" || r.senastUtfall === "skrivfel";
+}
 
 /** Syskonens artikelnummer, utan artikeln själv, en gång var. */
 export function syskonSkus(a: Pick<Avlasning, "sku" | "syskon">): string[] {
@@ -90,18 +108,24 @@ export function egenskaperFor(a: Pick<Avlasning, "egenskaper">): Record<string, 
  * Familjen artikeln hör till.
  *
  * `lasta` är syskonens avläsningar. `upptagen` svarar sant för en artikel som
- * redan sitter på en produkt (id med prefix).
+ * redan sitter på en produkt (id med prefix). `pavag` är artikelnumren för
+ * syskon utan avläsning vars sida står i läsarens kö (`arPaVag`).
  */
 export function byggFamilj(
   ankare: Avlasning,
   lasta: ReadonlyMap<string, Avlasning>,
   nu: number,
   upptagen: (sku: string) => boolean,
+  pavag: ReadonlySet<string> = new Set(),
 ): Familj {
   const syskon: Avlasning[] = [];
   for (const sku of syskonSkus(ankare).sort()) {
+    if (upptagen(sku)) continue;
     const m = lasta.get(sku);
-    if (!m || m.sku !== sku || upptagen(sku)) continue;
+    if (!m || m.sku !== sku) {
+      if (pavag.has(sku)) return { typ: "vanta" };
+      continue;
+    }
     if (m.spu !== ankare.spu) continue;
     const h = medlemshinder(m, nu);
     if (h === "betyg_okant") return { typ: "vanta" };
