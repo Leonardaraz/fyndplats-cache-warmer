@@ -62,6 +62,8 @@ export interface AERReview {
   date?: string;
   /** Varianten kunden köpte, på en sida med flera varianter (StoredReview.kopt). */
   kopt?: string;
+  /** VEVOR-artikeln recensionen gäller (StoredReview.vevorArtikel). */
+  vevorArtikel?: string;
 }
 
 export const REVIEW_FILTER = {
@@ -544,6 +546,7 @@ export async function importReviewsForProduct(
       customerCountry: r.customerCountry,
       date: r.date,
       ...(r.kopt ? { kopt: r.kopt } : {}),
+      ...(r.vevorArtikel ? { vevorArtikel: r.vevorArtikel } : {}),
       ...bildfalt,
       // ALLTID pending — samma som butikens egna kundrecensioner. Fram till
       // 2026-08-19 auto-godkändes importerade AE-recensioner (spec 2026-06-02),

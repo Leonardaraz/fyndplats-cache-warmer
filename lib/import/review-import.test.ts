@@ -30,6 +30,7 @@ function review(o: Partial<AERReview>): AERReview {
     customerCountry: o.customerCountry,
     date: o.date,
     language: o.language,
+    ...(o.vevorArtikel ? { vevorArtikel: o.vevorArtikel } : {}),
   };
 }
 
@@ -236,6 +237,21 @@ describe("importReviewsForProduct", () => {
     );
     expect(res.imported).toBe(0);
     expect(res.skippedExisting).toBe(1);
+  });
+
+  it("en VEVOR-recension sparar sin artikel på raden (poleringen läser den)", async () => {
+    const store = new FakeReviewStore();
+    await importReviewsForProduct(
+      "prod1",
+      [
+        review({ reviewIdAE: "a", text: "Stabil och lätt att montera, vi är mycket nöjda med köpet.", vevorArtikel: "TESTSKUA0000001" }),
+        review({ reviewIdAE: "b", text: "Fungerar precis som beskrivet och kom fram i fint skick, tack." }),
+      ],
+      { now: NOW, reviewStore: store as never, source: "vevor" },
+    );
+    const perId = Object.fromEntries(store.saved.map((r) => [r.reviewIdAE, r]));
+    expect(perId.a.vevorArtikel).toBe("TESTSKUA0000001");
+    expect("vevorArtikel" in perId.b).toBe(false);
   });
 
   it("returnerar tomt utan recensioner som passerar filtret", async () => {

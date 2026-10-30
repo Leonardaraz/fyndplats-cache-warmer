@@ -112,7 +112,7 @@ export const RUNDA = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 // riktning: en vägrad plan skriver ingenting och skrivs om, ett läckt
 // artikelnummer går inte att ta tillbaka.
 export const ARTNR =
-  /\b\d{2}[A-Z]-\d{3}(?!\d)[A-Z0-9]*\b|\b[A-Z]\d{2}-\d{3}(?!\d)[A-Z0-9]*\b|\b\d{3}-\d{3}(?!\d)[A-Z0-9]{2,}\b/g;
+  /\b\d{2}[A-Z]-\d{3}(?!\d)[A-Z0-9]*\b|\b[A-Z]\d{2}-\d{3}(?!\d)[A-Z0-9]*\b|\b\d{3}-\d{3}(?!\d)[A-Z0-9]{2,}\b|\b(?=[A-Z0-9]*\d)(?=[A-Z0-9]*[A-Z])(?:[A-Z0-9]{22}|[A-Z0-9]{19})\b/g;
 const FORM = /\b[0-9A-Za-z]{3}-[0-9A-Za-z]{3,}\b/g;
 const TILLATEN_FORM = /^\d{2,4}-\d{2,4}(V|W|HZ|MM|CM)?$/i;
 

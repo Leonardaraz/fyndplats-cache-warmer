@@ -4,7 +4,9 @@
 > kontrollerad livesida. All skrivning till Wix går via workflowen **"Polering — skriv en
 > runda till Wix"**. Ingenting skrivs för hand.
 >
-> **Kön består av Aosom-utkast:** tyska feedrader som ligger som `visible: false`.
+> **Kön består av Aosom- och VEVOR-utkast** som ligger som `visible: false`. Aosoms är tyska
+> feedrader, VEVOR:s är svensk text från VEVOR:s produktsidor (se
+> [VEVOR-utkast](#vevor-utkast-det-som-skiljer)).
 > **AliExpress importeras inte längre** (2026-09-27). De AliExpress-sidor som redan ligger
 > i butiken finns kvar ett tag, men de poleras inte och får inget produktsäkerhetsavsnitt.
 > De spelar ändå roll här: en Aosom-vara kan redan säljas som AliExpress-sida, och då är
@@ -21,7 +23,9 @@
   V1-siten `8c62127f-…` används inte.
 - Allt kunden ser skrivs på **svenska**.
 - **Rör inte priset.** Prissättningen är Leonards beslut.
-- Butiken är headless Next.js på Vercel och uppdateras via ISR (300 s), utan ny deploy.
+- Butiken är headless Next.js på Vercel och uppdateras utan ny deploy. Produktsidan cachas i
+  sex timmar, men butikens cron `uppdatera-andrade` bygger om en ändrad sida inom fem minuter.
+  Räkna med en kvart.
   `seoData`-taggarna `title` och `meta description` blir sidans `<title>` och
   metabeskrivning. OpenGraph byggs ur samma taggar och JSON-LD ur produktfälten.
 - ☠️ **Aosoms artikelnummer får aldrig synas någonstans.** Inte i kundtext, spec-tabell,
@@ -32,7 +36,8 @@
   `Referens` och `Artikelnr` läcker lika mycket. Skrivplanen vägrar en plan som bär ett
   artikelnummer i vilken form som helst, men `gate.py` och CI:s läcktest ser bara versala
   koder. Redigera därför på formen, utan hänsyn till versaler och oavsett etikett.
-  ☠️ **Rutten läser formen bredare än grindarna:** tre tecken, bindestreck och minst tre
+  ☠️ **Rutten och `gate-form.py` (i bygget, steg 8) läser formen bredare än de andra
+  grindarna:** tre tecken, bindestreck och minst tre
   tecken till, med minst en siffra, i namn, slug, SKU, brödtext, SEO och alt-texter (utom
   mått som `18-36` och `12-24V`). Den fäller alltså vanliga ord: `MP3-format` (N151 fälldes
   på det, 2026-10-14), `12V-motor`, `HP4-design`, och i en slug `bmw-s1000rr` eller
@@ -67,6 +72,78 @@
   efter verktygen i stället för att fråga efter kopplingens status, för den kan säga
   `connected` även när inga verktyg är laddade.
 
+## VEVOR-utkast: det som skiljer
+
+VEVOR:s sortiment importeras sedan 2026-10-29 som osynliga utkast med leverantören `vevor`
+på mappningen. Rundan går som för Aosom, med de här skillnaderna.
+
+**Källan är svensk.** Utkastets text är VEVOR:s egen svenska från deras produktsida, utan
+reklamblocken (importen tar bort dem). Fliken *Tekniska specifikationer* kommer ur sidans
+specifikationstabell. Texten är maskinöversatt och har ofta fel ord och enheter. Läs den som
+källa och skriv om den helt, med samma regler för påståenden och siffror som för en Aosom-sida.
+På en familj (flera varianter) visar varje rad i fliken som skiljer sig varje varians värde.
+
+**Välj inte de här utkasten:**
+
+- **Utkast utan fliken *Tekniska specifikationer*.** Fliken läggs in av **"VEVOR —
+  specifikationen på utkast som saknar den"** när läsaren har läst om sidorna.
+- **Gränsfallen i familjeregelns plan** (**"VEVOR — familjeregeln på befintliga utkast"**,
+  läget `plan`), tills Leonard har avgjort dem. Ett gränsfall som delas senare raderas, och då
+  försvinner poleringen.
+- **`vevorGranskning.medicinteknik: true` i mappningsraden** (läsningen i *2. Hämta
+  källan*). Flagga utkastet till Leonard.
+- **Saldo 0 i `lager.tsv`.** Prisgrindens SLUTSALD bygger på synkens stämpel, och
+  VEVOR-synken är avstängd tills poleringen börjar *(Leonard 2026-10-30: "Vi kan sätta på
+  den när vi börjar polera")*. Slå på den med **"VEVOR — synken"** (`status`, sedan `pa`)
+  före första VEVOR-rundan, så att lager och pris följer VEVOR.
+
+**Märket.** Skrivsteget sätter märket VEVOR i Wix. Skriv det inte i namnet eller SEO-titeln
+*(Leonard 2026-10-28)*.
+
+**Artikelnumret.** VEVOR:s nummer har 19 eller 22 tecken, versaler och siffror i ett. Det får
+aldrig synas, av samma skäl som Aosoms. Sedan 2026-10-30 fäller `gatelib.ARTNR` och
+skrivplanen den formen. De nummer som bär bindestreck eller punkt fångas inte: leta efter dem
+med ögonen.
+
+**Bilderna.** Importen tog sex bilder enligt Leonards regel (`lib/vevor/bilder.ts`). Står
+`vevorGranskning.bildgranskning` på `true` var mönstret ovanligt, och då granskar du varje
+bild extra noga. Blir det färre än fem kvar efter strykningen beskär du enligt undantaget i
+*3. Bilderna före texten*. Räcker inte det flaggar du produkten i `FLAGGADE.md`: det finns
+inget verktyg som hämtar VEVOR:s övriga bilder. En familj som importerades före 2026-10-30
+kan ha syskonens bilder blandade: kör **"VEVOR — rätta familjernas bilder"** (`plan`) först.
+
+- VEVOR-loggan på varan får stå *(Leonard 2026-10-28)*.
+- Bilder med säljtext på engelska eller tyska stryks, som Aosoms tyska *(Leonard 2026-10-30)*.
+- Aosom-verktygen för bilder (bildkandidater, färgtillägg och miljöbild) läser Aosoms flöde
+  och fungerar inte för VEVOR.
+
+**Varianter.** En familj är en sida med en VEVOR-artikel per variant. Ge den en rad i
+`sammanslagna.tsv`, som en sammanslagen Aosom-sida (se *En sammanslagen sida skrivs om med
+`sammanslagna.tsv`* nedan). SKU-steget hoppas då över, och varje variant behåller sin SKU.
+
+**Leksaker.** Beslutet om EN 71 gäller bara Aosom. En VEVOR-leksak vars källa inte nämner
+någon standard flaggas.
+
+**Produktsäkerhet.** Tillverkaren och ansvarig i EU kommer från motorn (VEVOR:s standardrad,
+Leonards beslut 2026-10-29). Säkerhetsavsnittet skriver du som vanligt, ur källans text.
+VEVOR-varor har ingen förhandsöversättning, så utan ditt avsnitt har fliken ingen
+säkerhetsinformation.
+
+**Recensionerna.** Steg 7 tar bara med recensioner om produktens egna artiklar. De andra
+räknas och lämnas till VEVOR-verktyget.
+
+**Priset.** Prisgrinden gäller VEVOR-rader sedan 2026-10-30: importen satte regelpriset, och
+VEVOR-synken skriver det varje timme när den är påslagen. Säger grinden *PRISGRINDEN FALLER*
+är det drift, och då rör du inte priset.
+
+**EU-lager.** Utkasten saknar märkningen "EU-lager", eftersom VEVOR:s sida inte säger
+vilket land lagret ligger i. Märkningen avgörs vid publiceringen och är inte avgjord än:
+publicera utan den.
+
+**Frakt och retur** *(Leonard 2026-10-30)*. Frakten kontrolleras inte före publiceringen, och
+priset räknar med att VEVOR tar 0 kr i frakt. Butiken har ingen returadress för VEVOR, så en
+kund som returnerar får adressen per mejl.
+
 ## Rundan steg för steg
 
 Allt körs från rundans katalog, `tools/polish-assets/runda-<namn>/`. Grindarna och
@@ -75,31 +152,35 @@ byggskripten ligger i `tools/polish-gates/` och anropas därifrån
 
 | # | Steg | Filer som skrivs |
 |---|---|---|
-| 1 | [Välj åtta](#1-välj-åtta): kön, saldo, laglighet, dubbletter och sökord | `ids.tsv`, `lager.tsv` |
+| 1 | [Välj åtta](#1-välj-åtta): kön, saldo, laglighet, dubbletter och sökord | `ids.tsv`, `lager.tsv`, `djurbostad.tsv`, `sammanslagna.tsv` |
 | 2 | [Hämta källan](#2-hämta-källan) | `bilder.tsv`, `variant.tsv`, `kallor.json` |
 | 3 | [Bilderna före texten](#3-bilderna-före-texten) | `ark/`, `bilder-bort.tsv`, `foto-tal.txt`, `alt.tsv` |
 | 4 | [Verifiera påståendena](#4-verifiera-påståendena) | — |
 | 5 | [Skriv texten](#5-skriv-texten) | `<kort>.html`, `namn.tsv`, `slugs.txt`, `seo.tsv`, `sku.tsv`, `kategori.tsv` |
 | 6 | [Läs sidan som kund](#6-läs-sidan-som-kund) | — |
-| 7 | [Grindar och skrivplan](#7-grindar-och-skrivplan) | `axelfacit.json`, `vantat-hash.tsv`, `nyttolast-media.json`, `skrivplan.json` |
-| 8 | [Skriv till Wix](#8-skriv-till-wix) | — |
-| 9 | [Kontrollera live](#9-kontrollera-live) | `live/` |
-| 10 | [Dokumentera](#10-dokumentera) | rader i `FLAGGADE.md` |
+| 7 | [Recensionerna](#7-recensionerna) | `recensioner-kalla.json`, `recensioner.json` |
+| 8 | [Grindar och skrivplan](#8-grindar-och-skrivplan) | `axelfacit.json`, `vantat-hash.tsv`, `nyttolast-media.json`, `skrivplan.json`, `grind-undantag.txt`, `superlativ.txt`, `rad-tal.txt` |
+| 9 | [Skriv till Wix](#9-skriv-till-wix) | — |
+| 10 | [Kontrollera live](#10-kontrollera-live) | `live/` |
+| 11 | [Dokumentera](#11-dokumentera) | rader i `FLAGGADE.md` |
 
 `kort` är produkt-id:ts första åtta tecken. `ark/`, `orig/` och `live/` är hämtad data och
-committas inte.
+committas inte. Kommandon med `../../polish-gates/` körs från rundans katalog; de som skrivs
+`tools/polish-gates/…` körs från repots rot.
 
 -----
 
 ## 1. Välj åtta
 
 **Kön ljuger.** `needsAiPolish` nollställs inte alltid. Ta bara produkter som är
-`visible: false` och vars namn inte innehåller å; ett tyskt namn kan ha ä och ö
-(`Bücherregal`). Läs om varje produkt precis innan du börjar, eftersom en annan session kan
+`visible: false`. Ett Aosom-utkast har ett tyskt namn, så ett namn med å är redan polerat;
+ett tyskt namn kan ha ä, ö och ü (`Bücherregal`). Ett VEVOR-utkast har ett svenskt namn från
+början och känns i stället igen på leverantören `vevor` och `needsAiPolish: true` i
+mappningsraden. Läs om varje produkt precis innan du börjar, eftersom en annan session kan
 ha hunnit före. Läs `tools/polish-gates/FLAGGADE.md` först och välj ingen produkt som står
 där.
 
-**Välj i den ordning som säljer.** Först det som säljer de närmaste veckorna (i september jul
+**Välj i den ordning som säljer.** Först det som säljer de närmaste veckorna (på hösten jul
 och inomhus, inte trädgård), sedan familjer som fyller en sökordskategori. Jämför inte med
 dealproffsen eller någon annan butik (Leonard 2026-10-21). En arbetsdelning mellan sessioner,
 till exempel att var och en tar sin ände av kön, går före.
@@ -109,7 +190,8 @@ dem för kandidaterna innan du bestämmer dig.
 
 **Välj familj efter luckan, inte efter högen.** Räkna utkasten mot de publicerade sidorna
 av samma produkttyp: många publicerade sidor ger krockar och dubbletter, få ger lediga
-sökord. Hitta utkasten med en delsträng på det tyska ordet, eftersom ett ledande adjektiv
+sökord. Hitta Aosom-utkasten med en delsträng på det tyska ordet (VEVOR-utkasten på det
+svenska), eftersom ett ledande adjektiv
 (`Ergonomischer Kniestuhl`) annars gömmer halva familjen, och läs namnen, så att `Regal` inte
 räknas där ordet bara beskriver en egenskap. Räkna de publicerade sidorna på det svenska ord
 handeln använder (`studsmatta`, inte `Trampolin`); ett tyskt mönster mot svenska namn ger
@@ -117,8 +199,9 @@ alltid noll. Räkna distinkta produkter, så att färgsyskon och utkast med samm
 räknas en gång, och undvik en familj där en annan session nyss har publicerat.
 
 **Saldo.** Skriv varje produkts saldo i `lager.tsv` (summan av `quantity` ur
-`inventory-items/query`) och kör `gate-lager.py` redan här. Saldot i Wix är redan minskat med
-synkens buffert på tre, så 0 betyder slutsåld och 1–4 är tunt men köpbart. Grinden fäller 0
+`inventory-items/query`) och kör `gate-lager.py` redan här. Saldot i Wix är leverantörens
+saldo minus det vi sålt som inte syns hos leverantören än (synkens buffert är 0 sedan
+2026-10-06), så 0 betyder slutsåld och 1–4 är tunt men köpbart. Grinden fäller 0
 och varnar under 5.
 
 ### Laglighetsgrinden
@@ -450,9 +533,8 @@ ute med ett färgval som visade fel färg, tills Leonard såg dem i Wix. En flag
 
 1. **Leta efter ett foto i färgen.** För en AliExpress-sida läser du listningens SKU-bilder
    med workflowen **"AliExpress — färgbilder per SKU (krypterat)"** (`ae-skubilder.yml`).
-   Den startas av en push som ändrar `tools/ae-skubilder/kor.json` (`produkter`: högst tio
-   Wix-id, `kuvert`: din publika nyckel), och sedan mergen av PR #749 (2026-10-21) också med
-   `workflow_dispatch` från `main`. Svaret
+   Kör den med `workflow_dispatch` från `main` (`produkter`: högst tio Wix-id, `kuvert`: din
+   publika nyckel). Push-triggern gäller bara en gammal gren och gör ingenting på din. Svaret
    är krypterat, eftersom bildadresserna är leverantörens. En Aosom-sida har inga
    SKU-bilder, så där söker du i feedens positioner och i syskonutkasten. Av de sex sidor
    Leonard pekade ut 2026-10-21 hade bara tältet en bild per färg hos leverantören. De
@@ -463,8 +545,9 @@ ute med ett färgval som visade fel färg, tills Leonard såg dem i Wix. En flag
    till valet med en skrivning av `options` och `variantsInfo` ordagrant ur produktens egen
    GET (se *Färger som inte kom via verktyget* i `docs/polish/syskon.md`). Du bygger inget
    färgkort ur den *(Leonard 2026-10-27: inga Fyndplats-kort)*. Kör sedan `variantbild.yml`
-   (push som ändrar `tools/variantbild/kor.json` med produktens id) så att variantens bild
-   följer valet.
+   med `workflow_dispatch` från `main`, `ids` = produktens id och `lage` = `skarp`
+   (standard är `torr`), så att variantens bild följer valet. Push-triggern gäller bara en
+   gammal gren.
    Valet ska vara synligt, och varje variant ska ha sin egen bild: tältets sex varianter
    hade alla huvudbilden tills workflowen körts.
 3. **Finns inget rent foto, ta bort färgen.** Det är en publicerad sida, och en färg utan foto
@@ -480,12 +563,13 @@ ute med ett färgval som visade fel färg, tills Leonard såg dem i Wix. En flag
    ett eget anrop (längd, nya rader, borttagna ord) och live. Ska texten skrivas om i
    stället för strykas går den via skrivplanen som vanligt (*Skriv aldrig för hand i Wix*
    nedan). En dold sida lämnas orörd och flaggas.
-4. **Läs galleriet som butiken läser det.** Butiken ger varje bild till det FÖRSTA valet
-   som länkar den (`fetchV3ImageOwners`: "första vinnaren per bild behålls"), och
-   galleriet för ett val är valets egna bilder plus de bilder ingen äger. En färg utan
-   kopplade bilder lämnar därför sina bilder gemensamma, och de visas för alla färger:
-   hamsterburens naturträ visade den mörkgrå burens bilder. Koppla färgens alla bilder, och
-   låt en storlek som delar bilderna bara länka sina egna. Mät på den publicerade sidan med
+4. **Läs galleriet som butiken läser det** (sedan PR #770, 2026-10-24). En bild syns när den,
+   i varje option som länkar den, är länkad till det valda valet; inom en option räcker ett
+   av valen. En bild som ingen länkar syns för alla. En färg utan kopplade bilder lämnar
+   därför sina bilder gemensamma, och de visas för alla färger: hamsterburens naturträ visade
+   den mörkgrå burens bilder. Koppla färgens alla bilder. En bild av en viss färg i en viss
+   storlek länkas till färgen OCH storleken (ägarlistor i `bygg-agare.py`). Wix tar högst 15
+   länkade bilder per val, och en bild med två ägare räknas mot båda valen. Mät på den publicerade sidan med
    `node tools/polish-gates/live-galleri.mjs <slug> [galleri-id.json]` (Playwright): den
    klickar varje kombination i väljaren, både axlar och kort, och skriver galleriet per
    kombination. Väntar du inte ut butikens cache, som fylls på var femte minut efter en
@@ -494,10 +578,10 @@ ute med ett färgval som visade fel färg, tills Leonard såg dem i Wix. En flag
    vals första bild: 2026-10-22 hade foton hamnat under fel färg eller storlek på fyra av sju
    sammanslagna sidor. De länkas med `tools/polish-gates/bygg-lank.py` och `variantbild.yml`
    (FLAGGADE, lärdom 135).
-   Kort och måttbilder är gemensamma enligt butikens regel (`arKort`) och visas som andra bild under varje färg, även när de
-   föreställer en annan färg: 2026-10-22 visade hundbäddens måttbild på den blå bädden under Brun, och agilityhindrets
-   träbågar under Grå. Leonard har fått frågan om sådana bilder ska länkas till sin egen färg (FLAGGADE, lärdom 147). Tills
-   han svarat är gemensamma måttbilder standard. Skumklossarnas `d70e483e` måttbild är länkad till sin färg som prov.
+   Kort och måttbilder är gemensamma enligt butikens regel (`arKort`) och visas under varje färg. Leonard har avgjort
+   frågan (FLAGGADE, lärdom 147): en bild som stämmer för alla färger får delas (2026-10-23), en bild på en viss färgs vara
+   visas inte under en annan färg (samma dag), och leverantörens egen måttbild länkas till sin variant, färg OCH storlek
+   (2026-10-24, *Originalen tillbaka* i CLAUDE.md).
    På fåtöljen `41395340` (T91) fick båda färgerna i stället var sin måttbild: givarens måttbild angav samma tal som sidans
    text, så den togs med som sista bild och värdens egen länkades till värdens färg med `bygg-lank.py` (FLAGGADE, lärdom 149).
 5. **Kör katalogkontrollen.** `products/search` bär `options` med `linkedMedia` och
@@ -599,7 +683,17 @@ Skriv filerna:
 
 Skriv filerna ur verktygssvaret med ett skript och redigera artikelnumren redan i det
 steget. Skriv aldrig av en källtext eller ett id. Ett Aosom-utkast har en enda variant och
-inga variantval.
+inga variantval. En VEVOR-familj har en variant per artikel.
+
+**Läs mappningsraden** för varje produkt med **"Polering — läs och stämpla mappningsraden"**
+(`polish-mapping.yml`, `mode` = `las`, en produkt per körning). Svaret säger:
+
+- **prisgrinden:** STÄMMER, PRISGRINDEN FALLER (drift: rör inte priset, välj en annan
+  produkt eller flagga), SLUTSALD, LÅST PRIS eller EJ AVGÖRBAR,
+- för VEVOR **`vevorGranskning`**: `gpsr`, `medicinteknik` och `bildgranskning` (se
+  VEVOR-avsnittet).
+
+Det är den enda kontrollen av priset och av VEVOR-flaggorna, för skrivsteget gör ingen.
 
 ### Vad källan är värd
 
@@ -668,14 +762,14 @@ rekvisitan gick att läsa i full upplösning, till exempel "dorset cereals" på 
 vitrinen. Bilder som ströks bara av det skälet får läggas tillbaka.
 
 **Redigera aldrig en bild.** Den behålls eller stryks hel. Ingen beskärning, retuschering
-eller maskning av varan *(Leonard 2026-09-27)*.
+eller maskning av varan *(Leonard 2026-09-27)*, utom beskärningen i undantaget nedan.
 
 **Inga Fyndplats-kort** *(Leonard 2026-10-27)*. Vi bygger inga egna spec-, feature-, färg-
 eller storlekskort, inte heller som undantag. En bild som inte duger stryks, beskärs enligt
 undantaget nedan eller ersätts av en annan av leverantörens bilder, och finns inget
 användbart flaggar du det till Leonard i `FLAGGADE.md`. Hur korten byggdes står i
 [`arkiv/fyndplats-kort.md`](arkiv/fyndplats-kort.md). De kort som redan ligger på
-publicerade sidor ligger kvar tills Leonard bestämt om de ska bort.
+publicerade sidor ligger kvar *(Leonard 2026-10-27: "låt de som är gjort ligga kvar")*.
 
 **Undantag: sidor med färre än fem bilder** *(Leonard 2026-09-30 för två eller tre bilder, utvidgat
 2026-10-07 till varje sida som annars får färre än fem)*. Där får en leverantörsbild
@@ -706,8 +800,8 @@ bilden), så en liggande bild tappar sina kanter och en liggande måttritning si
 mått. Polerar du syskon samtidigt ska två sidor inte dela samma miljöfoto, så stryk det på
 den ena.
 
-Rundan bearbetar inga bilder, den väljer bland dem som finns. Behövs en bearbetad bild står
-metoderna i [`polish/bildmetoder.md`](polish/bildmetoder.md).
+Rundan bearbetar inga bilder utom beskärningen i undantaget ovan, den väljer bland dem som
+finns. Metoderna står i [`polish/bildmetoder.md`](polish/bildmetoder.md).
 
 **Minst fem bilder per produkt** *(Leonard 2026-10-07)*. Räcker de rena bilderna inte efter
 strykningen hämtar du fler enligt nästa stycke, och finns det text som går att skära bort beskär
@@ -715,16 +809,18 @@ du en bild enligt undantaget ovan. Utsnitt får positionerna 11 och uppåt, hela
 feedens position, och `granskning.tsv` i rundan skriver varje använt och förkastat kandidatskäl.
 Ett utsnitt som bara går att göra genom att skära i varan förkastas.
 
-**För få bilder kvar?** Importen hämtar bara feedens position 1, 2, 3, 8 och 9. Workflowen
-**"Bilder — hämta leverantörens övriga bilder för granskning"** laddar upp position 4–7 till
-Media Manager utan att röra produkten. Granska dem med samma strykregler som ovan och lägg de
+**För få bilder kvar?** (Aosom; för VEVOR, se VEVOR-avsnittet.) Importen hämtar bara feedens
+position 1, 2, 3, 8 och 9. Workflowen **"Bilder — hämta leverantörens övriga bilder för
+granskning"** laddar upp position 4–7 till Media Manager utan att röra produkten, men bara med
+`skarp` påslagen (standard är torrkörning) och position 4–7 om du inte anger andra. Granska dem med samma strykregler som ovan och lägg de
 rena i `bilder.tsv` med sina fil-id. Leverantörens rena bilder är det som används, och
 inget Fyndplats-kort byggs *(Leonard 2026-09-30, skärpt 2026-10-27)*. Det gäller också
 måttbilder: en variants egen måttbild lämnas kvar och länkas till färg OCH storlek. Saknar
 leverantören måttbilden för varianten flaggar du varianten till Leonard i `FLAGGADE.md`. Bär
 originalet en logotyp eller text som inte går att beskära bort utan att måtten försvinner
 stryker du bilden och flaggar varianten på samma sätt. Ett kort ersätter den inte.
-Bilder som ingen väljer städas bort nästa natt.
+Bilder som ingen väljer ligger kvar i Media Manager: bildstädningen är avstängd sedan
+2026-10-30.
 
 Börja med position 10 (`positioner` = `10`). Den är oftast ett miljöfoto utan grafik: den
 2026-09-30 var 24 av 45 bilder där rena, mot 1 av 184 på position 4–7, som nästan alltid är
@@ -1013,7 +1109,7 @@ en hopfälld flik **Produktsäkerhet** före *Kontakta oss*.
 | Del av fliken | Kommer från | Du gör |
 |---|---|---|
 | Varumärke (HOMCOM, Outsunny …) | Motorn (`lib/gpsr/aosom-data.json`) | Ingenting |
-| Tillverkare och ansvarig i EU (MH Handel GmbH, Hamburg) | Motorn, samma för alla Aosom-märken | Ingenting |
+| Tillverkare och ansvarig i EU (MH Handel GmbH, Hamburg) | Motorn, samma för alla Aosom-märken (VEVOR: standardraden i `FyndplatsVevorGpsr`) | Ingenting |
 | Produkt (namn + bild) | Sidan själv | Ingenting |
 | **Säkerhetsinformation** | **Ditt avsnitt i beskrivningen** | **Skriv det** |
 | *"Läs bruksanvisningen … och spara den."* | Butiken, på varje produkt | Ingenting |
@@ -1037,8 +1133,9 @@ Sist i rundans källfil `<kort>.html` (den som blir `plainDescription`), efter *
 
 #### Källan och vad som ska med
 
-Läs feed-radens tyska text (`kallor.json`) — **punktlistan, `Produktdetails`/`Technische Daten`
-och brödtexten** — och ta med **bara** det som står där:
+Läs källtexten (`kallor.json`): för Aosom feed-radens tyska text — **punktlistan,
+`Produktdetails`/`Technische Daten` och brödtexten**, för VEVOR utkastets svenska text och
+fliken *Tekniska specifikationer* — och ta med **bara** det som står där:
 
 | Typ | Tyskt i källan | Skriv så här |
 |---|---|---|
@@ -1157,7 +1254,101 @@ uppifrån som någon som funderar på att köpa:
 
 -----
 
-## 7. Grindar och skrivplan
+## 7. Recensionerna
+
+*(Leonard 2026-10-30)* Den som polerar en produkt tar också dess recensioner, i samma
+runda. Importen sparar leverantörens recensioner dolda (`pending`) på originalspråket, och
+de syns först när någon har översatt dem. Mätt 2026-10-30: de flesta produkter har 4–10
+väntande recensioner, högst 15 på en VEVOR-produkt och 30 på en Aosom-produkt.
+
+☠️ **Steget går inte att hoppa över.** Workflowen i steg 9 prövar recensionerna för varje
+produkt i planen innan den skriver något, och vägrar `skriv` om en produkt har väntande
+recensioner utan beslut. En saknad `recensioner.json` räknas som inga beslut. Efter
+produkterna skriver den recensionerna, läser tillbaka varje rad och säger till butiken, så
+att produktsidan visar dem direkt. Annars cachas de i sex timmar.
+
+1. **Läs.** Kör **"Polering — recensionerna till rundans produkter"**
+   (`polish-recensioner.yml`) med `ref` satt till poleringsgrenen, `runda` satt till
+   katalogens namn och läget `las`. Den läser produkterna ur `ids.tsv`, skriver
+   `recensioner-kalla.json` till rundans katalog och committar den. Per kort står de
+   väntande recensionerna: id, betyg, datum, språk, `kopt` (varianten kunden köpte, på en
+   VEVOR-familj), antal foton och originaltexten. Inga namn och inget land, och
+   artikelnummerformer är redigerade. Står recensentens namn eller en signatur i texten är
+   den bortredigerad (`‹NAMN›`) och raden märkt `namn: true`: den döljs, eftersom originalet
+   inte får översättas *(husets regel sedan 2026-09-30)*. Butikens egna kunders omdömen är
+   inte med. `ids.tsv` måste vara pushad innan du kör `las`, och kolumn 2 ska vara produktens
+   Wix-id. Hämta grenen efteråt (`git pull`), eftersom workflowen har committat filen.
+2. **Besluta varje recension** i `recensioner.json`:
+   ```json
+   { "<kort>": { "oversatt": { "<id>": "<svensk text>" }, "dolj": { "<id>": "<skäl>" } } }
+   ```
+   En översatt recension publiceras. En dold avvisas och går att visa igen i
+   `/admin/reviews`. En produkt utan väntande recensioner behöver ingen rad.
+3. **Pröva** med samma workflow i läget `torr`, efter att ha pushat `recensioner.json`.
+   Felen står per kort och recensions-id. Steg 9:s `torr` gör samma prövning.
+
+**Översättningen** har samma längd och ton som originalet, vardaglig svenska och korta
+meningar (CLAUDE.md, *Recensionernas svenska ska låta som en kund*). Innehållet ändras
+aldrig, och kritik står kvar.
+
+- Inga tankstreck, semikolon, citattecken eller `…`, och inga AI-fraser som *sammantaget*
+  eller *helt och hållet*.
+- Ta bort varumärken och marknadsplatser, budfirmor, priser, säljaren och kundtjänst,
+  leveranstider och namn. Blir meningen fel utan det, dölj recensionen i stället.
+
+**Dölj** med ett kort skäl, eftersom loggen är publik, när recensionen:
+
+- bara handlar om leveransen, returen eller kundtjänsten,
+- gäller en annan vara, färg eller storlek än sidans,
+- bär ett namn, en signatur eller hälsouppgifter (`namn: true` i läsningen),
+- säger emot sidans fakta, till exempel ett annat mått. Lista den då också i `FLAGGADE.md`
+  åt Leonard,
+- handlar om ett yngre barn än sidans åldersgräns, eller påstår något om tillverkningslandet,
+- handlar om en färg som sidan inte har, när färgen är poängen (på en sammanslagen sida är
+  alla sidans färger dess egna),
+- är reklam eller inte går att förstå.
+
+En recension som redan är publicerad rättas i `/admin/reviews`, inte med workflowen: den
+vägrar ett id som inte väntar.
+
+**Prövningen** fäller hela rundan och skriver ingenting när:
+
+- en produkt i rundan har en väntande recension utan beslut, eller en recension står både
+  som översatt och dold,
+- ett id inte finns på produkten eller är butikens eget kundomdöme (de godkänner Leonard
+  i `/admin/reviews`),
+- en översättning är oöversatt, för kort eller för lång jämfört med originalet, har
+  engelska kvar eller bryter mot stilen: tankstreck, semikolon, citattecken, tre punkter,
+  AI-fras, marknadsplats eller leverantör, budfirma, pris, säljare eller kundtjänst,
+  artikelnummer.
+
+**VEVOR.** VEVOR visar en familjs recensioner på varje artikel i familjen. På en
+VEVOR-produkt tar `las` därför bara med recensioner om produktens egna artiklar. De andra
+räknas som `annan artikel` och `okänd artikel`, får inget beslut och stoppar inte rundan.
+Prövningen fäller ett beslut om dem. Verktyget **"VEVOR — recensioner om en annan
+artikel"** döljer de förra; kör det före **"VEVOR — recensionernas foton"**, som hoppar över
+dolda rader. En okänd artikels recension avgörs om VEVOR-läsaren åter hittar dess text på
+sidan (utkast läses en gång per dygn, publicerade sidor var fjärde timme), och då hamnar den
+på restlistan nedan. En äldre rad vars text inte längre står på VEVOR:s sida förblir okänd
+och räknas bara. Recensioner som importeras efter att PR #839 driftsatts bär sin artikel och
+blir aldrig okända.
+
+En VEVOR-vara utan komplett GPSR skrivs men publiceras inte. Dess recensioner skrivs ändå
+och syns när varan publiceras.
+
+**Restlistan.** Recensioner kan bli väntande efter poleringen: en senare inläsning
+(Aosom-inläsningen tar publicerade produkter), recensioner som kopieras från en givare vid
+en sammanslagning, eller en VEVOR-rad vars artikel blivit känd. Kör läget `kvar` (ingen
+runda behövs) i början av varje poleringsdag. Det listar varje publicerad produkt med
+väntande recensioner att besluta, i `ids.tsv`-form. Ta dem som egna rundor om högst 20
+produkter (workflowens tak): `ids.tsv`, `las`, `recensioner.json`, `torr` och `skriv` i
+samma workflow.
+Mätt 2026-10-30, innan steget fanns: 263 publicerade produkter hade 1 451 sådana
+recensioner, alla från Aosom.
+
+-----
+
+## 8. Grindar och skrivplan
 
 Kör från rundans katalog. Lägg först familjens tyska huvudord i `gatelib.TYSKA_ORD` om de
 saknas; ord får bara läggas till, aldrig tas bort.
@@ -1176,6 +1367,7 @@ Bygget kör grindarna i tur och ordning och vägrar skriva planen vid ett enda f
 | `gate-alt.py` | samma mönster i `alt.tsv`, antalet bilder och att en struken position saknar rad |
 | `gate-seo.py` | `seo.tsv`, `namn.tsv` och `slugs.txt`: längder, suffix, tal mot källan, samma mönster, husmärke i sluggen |
 | `gate-sku.py` | längd, form, husmärke, dubbletter och att alla produkter har en rad |
+| `gate-form.py` | artikelnummerformen i alla fält, tecken för tecken som rutten (sedan 2026-10-15) |
 | `gate-lager.py` | slutsålt och tunt |
 | `gate-superlativ.py` | superlativ om sortimentet; `superlativ.txt` kvitterar bara en träff som inte rankar |
 | `bygg-axelfacit.py`, `gate-axel.py` | bredd, djup och höjd mot källans totalmått |
@@ -1187,7 +1379,7 @@ grinden körs och skrivs ut ändå. Varningar stoppar inte bygget, men gå igeno
 `UTSKRIVNA RÄKNEORD UTAN TÄCKNING` betyder att "tre fack" inte har något belägg. Ändrar du en
 fil efter `hasha.py` kör du båda kommandona igen.
 
-Workflowens torrkörning vägrar dessutom ord med formen tre tecken, bindestreck och tre till,
+`gate-form.py` och workflowen vägrar ord med formen tre tecken, bindestreck och tre till,
 som `360-graders`, `100-pack` och `E27-sockel`. Skriv `360 grader` och `100 st`.
 
 **Rundor där en värd får en färg ur ett utkast** har en grind till som inte ingår i bygget,
@@ -1204,24 +1396,26 @@ anrop och räknar vyn per val.
 
 -----
 
-## 8. Skriv till Wix
+## 9. Skriv till Wix
 
 1. Har rundan tagit flera timmar kör du om krock- och dubblettkontrollen först, eftersom en
    annan session kan ha publicerat under tiden. Committa sedan rundans filer och pusha
    grenen. Workflowen läser planen ur grenen.
 2. Kör **"Polering — skriv en runda till Wix"** med `ref` satt till poleringsgrenen,
    `runda` satt till katalogens namn, `plan_sha256` från bygget och läget `torr`.
-   Körningen prövar planen utan att skriva något.
-3. Kör samma sak med läget `skriv`. Workflowen skriver texten, som också publicerar
-   produkten, och därefter bilderna, kategorierna och SKU:n, i den ordningen. Faller en
+   Körningen prövar planen och recensionerna (steg 7) utan att skriva något.
+3. Kör samma sak med läget `skriv`. Workflowen prövar recensionerna först och skriver
+   ingenting om en produkt har väntande recensioner utan beslut. Sedan skriver den texten,
+   som också publicerar produkten, och därefter bilderna, kategorierna och SKU:n, i den
+   ordningen. Faller en
    produkt i ett steg stannar den efter det steget. Sedan väntar den 90 sekunder, läser tillbaka varje produkt separat och
    stämplar mappningsraden (`needsAiPolish: false`, `draftStatus: published`) för varje
-   produkt som är helt verifierad.
+   produkt som är helt verifierad. Sist skriver den recensionerna ur `recensioner.json`.
 
 **Stannar körningen** har den skrivit alla produkter i det steg som föll, och textsteget har
 redan publicerat dem, med importens bilder tills bildsteget körts. Rätta och kör `skriv`
-igen direkt; alla steg tål omkörning. Faller bara återläsningen eller stämpeln kör du läget
-`stampla`. Kontrollera att körningen slutade `success` och inte `cancelled`: workflowen har
+igen direkt; alla steg tål omkörning. Faller bara återläsningen, stämpeln eller
+recensionerna kör du läget `stampla`, som också skriver recensionerna. Kontrollera att körningen slutade `success` och inte `cancelled`: workflowen har
 en gemensam kö, och en väntande körning avbryts när en annan session startar sin.
 
 ☠️ `ref` är `main` om du inte anger något, och där finns inte planen, så körningen stoppar
@@ -1237,11 +1431,12 @@ något (variantens `visible`, alt-texter, SKU), och svaret ser ändå lyckat ut.
 **Pusha sällan.** Pushar som bara rör `tools/` och `docs/` bygger inte på Vercel
 (`ignoreCommand` i `vercel.json`), men en lång rad sådana pushar ger till slut ett bygge
 ändå, eftersom Vercels referenspunkt inte flyttas fram. Pusha när planen är klar och när
-rundan är dokumenterad, inte efter varje fil.
+rundan är dokumenterad, inte efter varje fil. Undantaget är steg 7: `ids.tsv` ska vara
+pushad före `las`, och `recensioner.json` före `torr`.
 
 -----
 
-## 9. Kontrollera live
+## 10. Kontrollera live
 
 ☠️ **Hämta aldrig en produktsida medan produkten är ett utkast.** Butiken cachar svaret,
 som då är en 404, och visar det en god stund efter publiceringen. Därför görs ingen
@@ -1263,20 +1458,24 @@ python3 ../../polish-gates/livekoll.py       # InStock, brödsmula, <title> och 
 - Hämta från `https://www.fyndplats.se`, inte från adressen utan www. Den svarar med 308,
   och utan `-L` får du en tom sida.
 - Sidhuvudet (`<title>` och meta) och brödtexten cachas var för sig och kan skilja sig åt i
-  samma svar. Har Wix rätt värde men sidan fel, vänta ut ISR och läs om sidan. Är `age`
-  över 300 sekunder och sidan fortfarande fel är det inte cachen; jämför med Wix.
+  samma svar. Har Wix rätt värde men sidan fel, vänta en kvart och läs om sidan: butikens
+  cron bygger om en ändrad sida inom fem minuter, men sidan cachas annars i sex timmar.
+  Är sidan fortfarande fel efter det, jämför med Wix.
 - Slår `livegrind.py` till på något som inte står i dina filer, jämför med en publicerad
   sida som rundan inte rört. Finns det där hör det till butikens ram.
 - På en sida med flera färger ritar butiken bara den förvalda färgens bilder som
   alt-attribut i HTML:en. De andra färgernas alt-texter ligger i sidans data, i en karta
   fil → alt. `livekoll.py` letar där också och skriver i summeringen hur många alt-texter
   som bara sågs där (T1: 46 av 84). En alt-text som saknas på båda ställena är ett fel.
+- Recensionerna: varje produkt ska visa de som steg 7 översatte. Saknas de, läs raden
+  `recensioner: butiken` i steg 9:s körning. Föll anropet till butiken syns de först när dess cache gått ut,
+  efter sex timmar.
 - Öppna till sist en av rundans sidor och läs den som kund. Var avsnitten och bilderna
   hamnar syns bara där.
 
 -----
 
-## 10. Dokumentera
+## 11. Dokumentera
 
 - **Ingen `LÄS-MIG.md`** i rundans katalog *(Leonard 2026-09-27)*. Vad som publicerades och
   vad som var oväntat står kort i commitmeddelandet.
@@ -1288,7 +1487,15 @@ python3 ../../polish-gates/livekoll.py       # InStock, brödsmula, <title> och 
 
 ## Klart-kriterium
 
-Grindarna och live-kontrollen täcker det mesta. Gå igenom listan innan du kör `skriv`.
+Grindarna och live-kontrollen täcker det mesta. Gå igenom listan före `skriv` i steg 9;
+punkterna under *Efter skriv* kontrollerar du efteråt.
+
+**Urval**
+
+- Varje produkt har saldo minst 1 (`lager.tsv`), har klarat laglighetsgrinden och
+  dubblettskärmen, och prisgrinden i mappningsraden säger inte FALLER, SLUTSALD eller LÅST
+  PRIS utan att du vet varför. För VEVOR: ingen möjlig medicinteknik.
+- Det som hoppades över står i `FLAGGADE.md`.
 
 **Text**
 
@@ -1309,16 +1516,29 @@ Grindarna och live-kontrollen täcker det mesta. Gå igenom listan innan du kör
 
 **Bilder**
 
+- Minst fem bilder, eller en rad i `FLAGGADE.md` om det inte gick.
 - Plats 1 visar hela varan tydligt. Ingen bild bär inbränd text på ett annat språk,
-  leverantörens logotyp eller fel färg. Text på rekvisitan i en miljöbild är okej.
-  Måttritningen ligger sist.
+  leverantörens logotyp eller fel färg. Text på rekvisitan i en miljöbild är okej, och
+  VEVOR-loggan på varan får stå. Måttritningen ligger sist.
 - Varje alt-text är på svenska, unik och beskriver det som syns.
+
+**Recensioner**
+
+- Varje väntande recension på rundans produkter har ett beslut i `recensioner.json`, och
+  `torr` i steg 7 gick igenom. På en VEVOR-produkt gäller det recensionerna om produktens
+  egna artiklar.
 
 **Data**
 
 - SKU:n börjar med `FP-`, har högst 40 tecken och är unik. Kategorin är kopplad med förälder,
   smalaste löv och sökordskategorin när en finns, utan att bryta dess text. Priset är orört.
   Saldot är minst 1.
+
+**Efter skriv**
+
+- Steg 9:s `skriv` slutade `success`, med alla produkter verifierade och stämplade, och med
+  0 fel och 0 avvikelser för recensionerna.
+- Live-kontrollen i steg 10 är ren, och de översatta recensionerna syns på sidorna.
 
 -----
 
@@ -1383,9 +1603,9 @@ som ser friskt ut men har fel innehåll, inte ett felmeddelande.
   `python3 ../../polish-gates/diffgrind.py` kör grindkedjan på `fore/` och på filerna och
   fäller bara på nya fynd och på fynd i målklasserna. Äldre avvikelser som flikrubriker eller
   fraktvikt stoppar alltså inte en städning som inte rör dem, och `grind-undantag.txt` räknar
-  upp dem. Två slags sidor går inte att skriva med workflowen: produkter med flera varianter,
-  och sidor vars oförändrade slug fälls av skrivplanens formkontroll (`212-manchester`,
-  `med-100`). Båda kräver en ändring i `lib/polish/skrivplan.ts`.
+  upp dem. Produkter med flera varianter skrivs med `sammanslagna.tsv` (sedan 2026-09-30).
+  Sidor vars oförändrade slug fälls av skrivplanens formkontroll (`212-manchester`,
+  `med-100`) går inte att skriva med workflowen: byt adress och lägg en omdirigering.
 - **Katalogsvep** (tomma alt-texter, löv utan förälder, leverantörskoder i publicerad text)
   är återkommande underhåll och ingår inte i rundan. Leverantörskoder städas med workflowen
   **"SEO — städa publicerad produkttext"**.

@@ -1,0 +1,200 @@
+name: Polering — recensionerna till rundans produkter
+
+# Recensionerna poleras med produkten de hör till (Leonard 2026-10-30), som ett
+# steg i rundan. Runbooken: docs/seo-polish-runbook.md, *Recensionerna*.
+#
+# Lägen:
+#   las    läser de väntande recensionerna för produkterna i rundans ids.tsv
+#          och committar dem till rundans katalog som recensioner-kalla.json
+#   torr   prövar rundans recensioner.json och skriver ingenting
+#   skriv  samma prövning, skriver (översatt = publiceras, dolj = döljs),
+#          läser tillbaka och säger till butiken
+#   kvar   restlistan: publicerade produkter med väntande recensioner som ingen
+#          beslutat om, i ids.tsv-form för en recensionsrunda (ingen runda behövs)
+#
+# "Polering — skriv en runda till Wix" kör torr före skrivningen och skriv
+# efter den. Den här workflowen behövs för las, kvar och en omkörning.
+#
+# recensioner.json:
+#   { "<kort>": { "oversatt": { "<id>": "<svensk text>" }, "dolj": { "<id>": "<skäl>" } } }
+#
+# Varje väntande recension på rundans produkter (alla i ids.tsv, inte bara de i
+# recensioner.json) ska ha ett beslut, och faller en enda kontroll skrivs
+# ingenting (lib/reviews/polering.ts). På en VEVOR-produkt gäller det bara
+# recensioner om produktens egna artiklar; de andra räknas och lämnas. En omkörning efter en avbruten skrivning
+# skriver bara det som återstår.
+#
+# ☠️ LOGGEN ÄR PUBLIK. Jobbet skriver kort, antal, recensions-id och skäl, aldrig
+# texterna. Originaltexterna i recensioner-kalla.json är redan publika hos
+# leverantören och bär varken namn eller land.
+#
+# ⚠️ Kör med `ref` satt till poleringsgrenen: där ligger rundans katalog.
+
+on:
+  workflow_dispatch:
+    inputs:
+      runda:
+        description: "Rundans katalog under tools/polish-assets, t.ex. runda-v1-vevor (behövs inte för kvar)"
+        required: false
+        default: ""
+        type: string
+      lage:
+        description: "las = hämta väntande recensioner · torr = pröva besluten · skriv = skriv dem · kvar = restlistan"
+        required: true
+        default: "las"
+        type: choice
+        options:
+          - las
+          - torr
+          - skriv
+          - kvar
+
+concurrency:
+  group: polish-recensioner
+  cancel-in-progress: false
+
+jobs:
+  kor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          RUNDA: ${{ inputs.runda }}
+          LAGE: ${{ inputs.lage }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          rot="${BASE%/api/cron/poll-tracking}"
+
+          if [ "$LAGE" = "kvar" ]; then
+            svar=$(curl -sS --max-time 300 -X POST -H "Authorization: Bearer ${CRON_SECRET}" \
+              -H "Content-Type: application/json" -d '{"lage":"kvar"}' "${rot}/api/admin/polish-recensioner") || {
+              echo "::error::Anropet gick inte fram" >&2; exit 1; }
+            if [ "$(printf '%s' "$svar" | jq -r '.ok // false' 2>/dev/null)" != "true" ]; then
+              echo "::error::Restlistan misslyckades: $(printf '%s' "$svar" | jq -r '.error // "okänt fel"' 2>/dev/null | head -c 300)" >&2
+              exit 1
+            fi
+            printf '%s' "$svar" | jq -r '.summa | "Produkter med väntande recensioner: \(.produkterMedVantande), varav publicerade: \(.publiceradeMedVantande). Att besluta: \(.recensionerAttBesluta) recensioner på \(.produkterAttBesluta) produkter. VEVOR om en annan artikel: \(.annanArtikel), okänd artikel: \(.okandArtikel)."'
+            echo "ids.tsv för en recensionsrunda (kort, produkt-id, antal att besluta):"
+            printf '%s' "$svar" | jq -r '.produkter[] | "\(.productId[0:8])\t\(.productId)\t\(.attBesluta)"'
+            printf '%s' "$svar" | jq -r '.summa | "### Restlistan\n\nAtt besluta: **\(.recensionerAttBesluta)** recensioner på **\(.produkterAttBesluta)** publicerade produkter."' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          if ! [[ "${RUNDA}" =~ ^runda-[a-z0-9-]+$ ]]; then
+            echo "::error::runda ska ha formen runda-<namn>" >&2
+            exit 1
+          fi
+          dir="tools/polish-assets/${RUNDA}"
+          if [ ! -f "${dir}/ids.tsv" ]; then
+            echo "::error::${dir}/ids.tsv finns inte på ${GITHUB_REF_NAME}. Kör med ref = poleringsgrenen." >&2
+            exit 1
+          fi
+          # kort → produkt-id ur ids.tsv (kort ⇥ produkt-id ⇥ …). Kolumn 2 ska vara
+          # ett Wix-id som börjar med kortet: 29 äldre rundor har priset där, och
+          # då hade "1669" skickats som produkt-id och gett noll recensioner.
+          felrader=$(awk -F'\t' 'NF >= 2 && $1 != "" && !($2 ~ /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/ && index($2, $1) == 1) { print NR }' "${dir}/ids.tsv" | head -5 | tr '\n' ' ')
+          if [ -n "${felrader}" ]; then
+            echo "::error::ids.tsv: kolumn 2 är inte produktens Wix-id (eller börjar inte med kortet) på rad ${felrader}" >&2
+            exit 1
+          fi
+          karta=$(awk -F'\t' 'NF >= 2 && $1 != "" && $2 != "" { printf "%s\t%s\n", $1, $2 }' "${dir}/ids.tsv" \
+            | jq -R -s -c 'split("\n") | map(select(length > 0) | split("\t") | {(.[0]): .[1]}) | add // {}')
+          if [ "$(printf '%s' "$karta" | jq 'length')" = "0" ]; then
+            echo "::error::ids.tsv har inga rader" >&2
+            exit 1
+          fi
+
+          anropa() {
+            curl -sS --max-time 300 -X POST -H "Authorization: Bearer ${CRON_SECRET}" \
+              -H "Content-Type: application/json" --data-binary @- "${rot}/api/admin/polish-recensioner" || {
+              echo "::error::Anropet gick inte fram" >&2; return 1; }
+          }
+
+          if [ "$LAGE" = "las" ]; then
+            svar=$(printf '%s' "$karta" | jq -c '{lage: "las", produkter: [.[]]}' | anropa)
+            if [ "$(printf '%s' "$svar" | jq -r '.ok // false' 2>/dev/null)" != "true" ]; then
+              echo "::error::Läsningen misslyckades: $(printf '%s' "$svar" | jq -r '.error // "okänt fel"' 2>/dev/null | head -c 300)" >&2
+              exit 1
+            fi
+            # Nycklat på kort, så att rundans filer talar samma språk.
+            printf '%s' "$svar" | jq --argjson karta "$karta" '
+              ($karta | to_entries | map({(.value): .key}) | add) as $kort
+              | [.produkter[] | {key: ($kort[.productId] // .productId), value: .}] | from_entries' \
+              > "${dir}/recensioner-kalla.json"
+            jq -r 'to_entries[] | "\(.key)\tatt besluta \(.value.attBesluta | length)\tsynliga \(.value.synliga)\tdolda \(.value.dolda)\tkundens väntar \(.value.kundVantar)\tannan artikel \(.value.annanArtikel)\tokänd artikel \(.value.okandArtikel)"' \
+              "${dir}/recensioner-kalla.json"
+            git config user.name "Claude"
+            git config user.email "noreply@anthropic.com"
+            git add "${dir}/recensioner-kalla.json"
+            if git diff --cached --quiet; then
+              echo "Oförändrat sedan förra läsningen."
+            else
+              git commit -m "Recensionerna att besluta i ${RUNDA}"
+              git push origin HEAD:"${GITHUB_REF_NAME}"
+            fi
+            exit 0
+          fi
+
+          # Saknas recensioner.json prövas rundan utan beslut: då säger svaret
+          # vilka produkter som har väntande recensioner.
+          rfil="${dir}/recensioner.json"
+          if [ -f "$rfil" ]; then
+            if ! jq -e 'type == "object"' "$rfil" >/dev/null; then
+              echo "::error::recensioner.json är inte ett objekt" >&2
+              exit 1
+            fi
+            saknade=$(jq -r --argjson karta "$karta" 'keys[] | select($karta[.] == null)' "$rfil")
+            if [ -n "$saknade" ]; then
+              echo "::error::Kort som inte står i ids.tsv: $(echo $saknade)" >&2
+              exit 1
+            fi
+          else
+            echo "::warning::${rfil} finns inte: rundan prövas utan beslut." >&2
+          fi
+          kropp=$( (if [ -f "$rfil" ]; then cat "$rfil"; else echo '{}'; fi) | jq -c --arg lage "$LAGE" --argjson karta "$karta" '
+            {lage: $lage, produkter: [$karta[]],
+             beslut: [to_entries[] | {productId: $karta[.key], oversatt: (.value.oversatt // {}), dolj: (.value.dolj // {})}]}')
+          svar=$(printf '%s' "$kropp" | anropa)
+          if ! printf '%s' "$svar" | jq -e 'type == "object"' >/dev/null 2>&1; then
+            echo "::error::Svaret var inte JSON. Ligger rutten i produktion?" >&2
+            exit 1
+          fi
+
+          # Felen bär produkt-id, recensions-id och skäl, aldrig texten.
+          printf '%s' "$svar" | jq -r --argjson karta "$karta" '
+            ($karta | to_entries | map({(.value): .key}) | add) as $kort
+            | (.fel // [])[] | . as $f | ($f | split("/")[0] | split(":")[0]) as $pid
+            | "FEL \($kort[$pid] // $pid)\t\($f | sub("^[^/:]+"; ""))"'
+          printf '%s' "$svar" | jq -r --argjson karta "$karta" '
+            ($karta | to_entries | map({(.value): .key}) | add) as $kort
+            | (.produkter // [])[]
+            | "\($kort[.productId] // "?")\töversatta \(.oversatta)\tdolda \(.dolda)\tredan gjorda \(.redan)\tavvikelser \(.avvikelser | length)"'
+          printf '%s' "$svar" | jq -r '(.produkter // [])[] | .avvikelser[] | "AVVIKELSE \(.)"'
+          if [ "$LAGE" = "skriv" ]; then
+            printf '%s' "$svar" | jq -r '.butiken // empty | "Butiken: \(.uppdaterade) anrop ok, \(.misslyckade) föll, utan nyckel \(.utanNyckel)"'
+          fi
+
+          {
+            echo "### Recensionerna i ${RUNDA} (${LAGE})"
+            echo ""
+            printf '%s' "$svar" | jq -r '"- Fel: **\((.fel // []) | length)**\n- Översatta: **\([(.produkter // [])[].oversatta] | add // 0)**\n- Dolda: **\([(.produkter // [])[].dolda] | add // 0)**\n- Avvikelser: **\([(.produkter // [])[].avvikelser | length] | add // 0)**"'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$(printf '%s' "$svar" | jq -r '.ok')" != "true" ]; then
+            echo "::error::Recensionerna skrevs inte (eller läste inte tillbaka). Se raderna ovan." >&2
+            exit 1
+          fi

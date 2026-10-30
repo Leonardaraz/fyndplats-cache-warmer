@@ -6150,9 +6150,9 @@ synken.
 - ✅ **Loggspärren fångar VEVOR:s artikelnummer sedan steg 2** (19 eller 22
   tecken, versaler och siffror i ett). `redigera()` i de sex workflows som har
   den tvättar formen, och `ARTNR` i `artikelnummer-i-logg.test.ts` fäller den i
-  en workflows källa. ⚠️ `gatelib.ARTNR` (poleringens grind på kundtexten, med
-  speglar i `gate-form.py` och `lib/polish/skrivplan.ts`) är inte utökad: den
-  hör till steg 4, när VEVOR-text börjar nå poleringen.
+  en workflows källa. ✅ `gatelib.ARTNR` (poleringens grind på kundtexten, med
+  speglar i `gate-form.py` och `lib/polish/skrivplan.ts`) fäller formen sedan
+  2026-10-30, när poleringen av VEVOR-utkast började. Se *VEVOR-poleringen*.
 - **AE-synken har ingen torrkörning per anrop.** Dess urval är samma uttryck som
   förut, nu som `arIAeSynkensUrval`, och räkningen visar dess storlek.
 
@@ -6401,8 +6401,9 @@ steg 7.
 PRO-rabatten) × 1,25, och sedan husets regel. Mätt mot en riktig faktura
 2026-10-29: sidans pris delat med 1,24 gav fakturans pris utan moms på öret,
 momsen var 0 % och frakten 0. ⚠️ Frakten är mätt på EN order; JSON-LD:ns 5 EUR
-gäller varje land och varje vara och är ingen riktig frakt. Kontrollera
-frakten på en billig vara före publicering.
+gäller varje land och varje vara och är ingen riktig frakt. Leonard
+2026-10-30: frakten kontrolleras inte före publiceringen ("nej" på frågan om
+en provbeställning av en billig vara först).
 
 ☠️ **Rabattnivån står bara i `FyndplatsAppConfig` (`vevorProRabatt`, procent
 som text).** Aldrig i kod, tester, loggar eller ett svar: statusen säger bara
@@ -6467,8 +6468,9 @@ AliExpress (de bär ett AliExpress-id, och en automatisk matchning hade
 gissat; poleringen avgör, som för Aosom), spärren mot publicering utan GPSR
 (steg 7) och läsning av manualerna. Syskonen slås ihop sedan steg 8. Synken kom i
 steg 5, se nästa avsnitt.
-gatelibs `ARTNR` behöver inte VEVOR:s form än: artikelnumret stod inte i
-titel, beskrivning eller specifikation på någon av 34 sidor.
+Artikelnumret stod inte i titel, beskrivning eller specifikation på någon av
+34 sidor. `gatelib.ARTNR` fäller ändå formen sedan 2026-10-30, se
+*VEVOR-poleringen*.
 
 **Efter mergen,** i den ordningen, när läsaren har läst katalogen: `status`
 (rabatten `satt`, läsaren inte fryst, platser kvar under taket), `prov` torrt
@@ -6805,6 +6807,15 @@ markör, så att importen bygger om dem med regeln. ☠️ Gränsfallen raderas
 aldrig. Ordningen: `plan`, importen av, `radera`, `plan` igen (raderbara 0),
 importen på.
 
+**Körd 2026-10-30** (Leonards ja efter planen). Planen 20:32 UTC: 5 411
+opolerade utkast, 292 familjer, 116 att dela, 4 utkast att slå ihop (1
+familj), 120 raderbara, 0 hinder och 59 gränsfall på 38 axlar. Importen av
+21:16:53, `radera` 21:17–21:19: 118 raderade och 2 obekräftade (Wix läsning
+släpade efter), och ett andra varv 21:22 fann dem borta (`fannsInte` 2) och
+nollställde markören. Planen 21:23 gav 0 raderbara och 5 291 utkast, och
+importen slogs på 21:24. Första körningen (21:33): 925 granskade, 30
+importerade, 0 fel och 0 föräldralösa. Gränsfallen är orörda.
+
 ⚠️ **GPSR läses på radens artikel.** En familj har samma tillverkare, och
 standardraden gäller alla. ⚠️ **Leverantörslänken pekar på ankarets sida.**
 Den som beställer väljer varianten på VEVOR:s sida, som har samma väljare.
@@ -6987,6 +6998,32 @@ med betyg (utkasten och katalogen läses en gång per dygn), och kör en torr
 `prov` i "VEVOR — importen" (`betyg_okant` ska vara nära noll och `familjer`
 över noll). Kör sedan `plan`, `radera` med planens antal, `plan` igen
 (raderbara ska vara 0), och sist importen `pa` med Leonards ja.
+
+## VEVOR-poleringen (2026-10-30)
+
+Leonard börjar SEO-polera VEVOR-utkasten 2026-10-31. Arbetsgången står i
+runbooken (`docs/seo-polish-runbook.md`, *VEVOR-utkast: det som skiljer*).
+Hans beslut samma kväll, svar på tre frågor:
+
+| fråga | beslut |
+|---|---|
+| Kontrollera frakten på en billig vara före publiceringen? | Nej. Priset räknar med 0 kr i frakt. |
+| Returadress för VEVOR i butiken? | Inte nu ("skiti"). En kund som returnerar en VEVOR-vara får adressen per mejl (`lib/returadress.ts` på headless-site ger ingen adress). |
+| Stryks bilder med engelsk säljtext, som de tyska? | Ja. VEVOR-loggan på varan får stå (2026-10-28). |
+
+Tre ändringar i koden samma dag:
+
+1. **Prisgrinden gäller VEVOR-rader** (`REGELN_GALLER.vevor`,
+   `lib/polish/mapping-access.ts`). Importen sätter regelpriset och VEVOR-synken
+   skriver det med kostnaden, så en avvikelse är drift och fäller jobbet, som
+   för Aosom. Förut svarade grinden "ej avgörbar, inte en Aosom-import".
+2. ☠️ **`gatelib.ARTNR` fäller VEVOR:s artikelnummer** (19 eller 22 tecken,
+   versaler och siffror i ett) i kundtexten, i rundans filer och i skrivplanen
+   (`lib/polish/skrivplan.ts`, tecken för tecken samma uttryck). Mätt före
+   ändringen: 17–24 tecken gav sex träffar i `tools/polish-assets` (längd 17
+   och 20, i kortens HTML), 19 och 22 gav noll. Nummer med bindestreck eller
+   punkt (2,1 % av VEVOR:s) fångas inte.
+3. **Workflowens texter** säger "hos leverantören" i stället för "hos Aosom".
 
 ## Prissättningen är marknadskalibrerad, inte påhittad (`FyndplatsPricingConfig`)
 
@@ -8501,6 +8538,71 @@ byter text på en synlig rad, och bara när: raden är `source: "aosom"`, raden 
 synlig, den lagrade texten fortfarande är exakt `fore` (en människas ändring
 skrivs aldrig över), och den nya texten klarar `validateTranslation`. En rad
 med `dolj: true` döljer en recension som visat sig handla om en annan produkt.
+
+## Recensionerna poleras med produkten (2026-10-30)
+
+Leonard: *"den som polerar produkterna fixar allt o sen fixar recensionerna till
+produkten som ett steg"*, och sedan *"recensionerna inte kmr missas"*. Poleringsrundan har
+steg 7, Recensionerna (`docs/seo-polish-runbook.md`). Workflowen **"Polering —
+recensionerna till rundans produkter"** (`polish-recensioner.yml`, `las` · `torr` ·
+`skriv` · `kvar`) → `/api/admin/polish-recensioner` → `lib/reviews/polering.ts`. `las`
+committar `recensioner-kalla.json` till rundans katalog, och rundan beslutar varje
+väntande recension i `recensioner.json` (översatt publiceras, dold avvisas).
+
+Mätt 2026-10-30 i `FyndplatsImportedReviews`: 5 504 VEVOR-produkter med 33 306 väntande
+recensioner (högst 15 per produkt) och 329 Aosom-produkter med 1 759 (högst 30). Av
+Aosom-produkterna var 263 publicerade, med 1 451 väntande recensioner som ingen beslutat
+om: ingen hade gått tillbaka till dem efter rundorna.
+
+Tre spärrar mot att recensionerna missas:
+
+1. ☠️ **"Polering — skriv en runda till Wix" prövar recensionerna för varje produkt i
+   planen** innan den skriver något, och `skriv` vägrar om en produkt har väntande
+   recensioner utan beslut. En saknad `recensioner.json` räknas som inga beslut. Efter
+   produkterna skriver den recensionerna (också i läget `stampla`).
+2. ☠️ **En VEVOR-recension bär sin artikel** (`vevorArtikel`, satt av importen sedan
+   2026-10-30). Utan den läses artikeln ur avläsningarna, som bara bär sidans senaste
+   recensioner, och en äldre rad blir okänd när VEVOR fått nya.
+3. **Restlistan** (`kvar`): publicerade produkter med väntande recensioner att besluta,
+   för en egen recensionsrunda. Den fångar recensioner som blir väntande efter poleringen.
+
+Sex egenskaper som inte ska tas bort:
+
+1. ☠️ **Varje väntande recension på rundans produkter får ett beslut.** Prövningen gäller
+   rundans alla produkter (`produkter` i anropet), inte bara dem i `recensioner.json`.
+   Annars hade en glömd produkt gått igenom.
+2. ☠️ **Allt eller inget.** Faller ett beslut i prövningen skrivs ingenting i hela anropet.
+3. ☠️ **Besluten gäller produktens egen rad.** Samma id kan finnas på flera produkter.
+4. ☠️ **Butikens egna kunders omdömen rörs inte.** Leonard godkänner dem i `/admin/reviews`.
+5. ☠️ **På en VEVOR-produkt beslutas bara recensioner om produktens egna artiklar.**
+   En produkt räknas som VEVOR när en av dess recensioner kommer från VEVOR. Artikeln är
+   radens egen, annars avläsningarnas (`artikelPerText`), som verktyget för recensioner
+   om en annan artikel läser. En rad om en annan artikel, eller vars artikel inte går att
+   avgöra, tas inte med och kan inte beslutas här. Skälet: en översättning publicerar
+   raden, och det verktyget rör aldrig en publicerad rad.
+6. **Svaret och loggen bär bara kort, id, antal och skäl.** Läsningen bär
+   originaltexterna, som redan är publika hos leverantören, utan namn och land och med
+   artikelnummerformer redigerade.
+7. ☠️ **Ett namn i originaltexten redigeras bort före commit** (`utanNamn`: recensentens
+   eget namn, eller ett namn efter en hälsning sist i texten), och raden kan bara döljas.
+   `recensioner-kalla.json` committas till det publika repot, och husets regel sedan
+   2026-09-30 är att en sådan recension stryks.
+
+Granskningen 2026-10-30 lade till två spärrar till: återläsningen fäller en publicerad
+recension vars foto ligger kvar hos leverantören (hemflytten föll), och workflowen vägrar en
+`ids.tsv` där kolumn 2 inte är produktens Wix-id (29 äldre rundor har priset där, och då
+hade läsningen tyst gett noll recensioner).
+
+Grinden för översättningen är `validateTranslation` (samma som `/admin/reviews`) och
+husets stil (`stilfel`): inga tankstreck, semikolon, citattecken, tre punkter eller
+AI-fraser, och inga marknadsplatser, leverantörer, budfirmor, priser, säljare eller
+artikelnummer. Skrivningen läser tillbaka varje rad och säger till butiken
+(`meddelaButikenOmRecensioner`), så att produktsidan visar recensionerna direkt.
+
+Restlistan läser de väntande per produkt i ett anrop (`vantandePerProdukt`, Wix
+aggregering sorterad på grupperingsfälten) och synligheten bara för de produkterna,
+hundra åt gången. ☠️ Den kastar om Wix svarar om en produkt utanför frågan: ett filter
+som inte bet hade gett en restlista som är tom av fel skäl.
 
 ## ☠️ Butikens kategorilista kapades vid 100 (2026-09-24)
 

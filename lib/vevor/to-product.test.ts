@@ -268,6 +268,12 @@ describe("vevorRecensioner", () => {
     expect(vevorRecensioner({ recensioner })).toHaveLength(4);
   });
 
+  it("recensionen bär sin artikel när avläsningen vet den (poleringen läser den)", () => {
+    const r = (text: string, artikel?: string | null) => ({ betyg: 5, text, datum: null, namn: null, artikel });
+    const ut = vevorRecensioner({ recensioner: [r("Egen.", "TESTSKUA0000001"), r("Okänd.", null)] });
+    expect(ut.map((x) => x.vevorArtikel)).toEqual(["TESTSKUA0000001", undefined]);
+  });
+
   it("kundens foton följer med recensionen", () => {
     const foto = "https://adsimg-custom.vevorstatic.com/upload/vevor/review/20261001/testfoto.jpeg?format=webp";
     expect(
