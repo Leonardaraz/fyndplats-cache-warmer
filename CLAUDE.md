@@ -6214,7 +6214,12 @@ Elva egenskaper som inte ska tas bort:
    kartan eller ur en omdirigering.
 4. ☠️ **Okänt rör aldrig lagret.** En sida som inte klarar varje kontroll
    (svenska, kronor på sidan och i erbjudandet, pris, lager, artikelnummer,
-   inga motsägelser) ger ett tolkningsfel och ingen avläsning. `vevorRad` gör
+   inga motsägelser) ger ett tolkningsfel och ingen avläsning. Ett
+   artikelnummer är bokstäver och siffror, med bindestreck och punkt inuti
+   (`SKU_RE`, 2,1 % av sidorna sedan 2026-10-30). ☠️ Ett plus släpps inte
+   in: avläsningen nycklas på numret, och Wix läser `+` i adressen som ett
+   mellanslag också kodat som `%2B` (uppmätt: läsning och borttagning per id
+   svarade 404). Loggspärren i workflowerna tar formen med skiljetecken. `vevorRad` gör
    artikeln okänd när avläsningen är äldre än 12 timmar, när läsaren är fryst,
    och direkt när senaste försöket misslyckades (`misslyckadAt`: tidsgräns,
    tolkningsfel, en första 404, en spärr i robots.txt). En giltig läsning
@@ -6327,8 +6332,31 @@ Tre egenskaper som inte ska tas bort:
    familjen visar ankarets text. Annars hade syskonet lämnats utanför, och
    sedan spärrats för alltid som `syskon_finns`.
 
-⚠️ **Utkast som redan importerats utan specifikation är inte lagade.** De står
-kvar utan specifikationsflik och punktlista tills de rättas eller poleras.
+**Utkast som redan importerats utan specifikation rättas med workflowen
+"VEVOR — specifikationen på utkast som saknar den"** (`plan` · `skriv`) →
+`/api/admin/vevor-spec` → `lib/vevor/spec-ratta.ts`. Den lägger fliken
+"Tekniska specifikationer" sist i beskrivningen, med importens egna funktioner
+(`specifikation`, `familjensSpec`, `appendTabSections`), och rör bara
+`plainDescription`. Mätt 2026-10-30 ~17 UTC: **991 av 5 411** opolerade
+VEVOR-utkast saknade fliken, varav 42 familjer. Punktlistan når inte
+beskrivningen i rått läge, så den saknas inte.
+
+Sex egenskaper som inte ska tas bort:
+
+1. ☠️ Bara opolerade, dolda VEVOR-utkast. En polerad eller publicerad sida rörs
+   aldrig.
+2. ☠️ Avläsningen ska vara gjord med den nya läsaren (`specKalla` satt), annars
+   räknas sidan som `ej_omlast`. Kör `skriv` först när `ej_omlast` är nära noll,
+   ungefär ett dygn efter mergen av #832 (utkasten läses en gång per dygn).
+   Planen räknas om i varje varv och får aldrig växa, så en körning medan
+   läsaren läser om stannar med "fler än bekrafta".
+3. ☠️ En sida som redan har fliken rörs inte. Har den fliken men saknar rader
+   räknas den som `flik_utan_rader` och lämnas.
+4. ☠️ Sidan läses färskt före skrivningen och planeras om. En 409 (synken skrev
+   samtidigt) ger en ny läsning, högst tre försök.
+5. ☠️ Återläsning tills revisionen gått fram: dold, fliken finns, varje rad
+   finns och den gamla texten står kvar. Första avvikelse stoppar körningen.
+6. ☠️ Svaret bär bara Wix-id och antal.
 
 ## VEVOR: steg 4, importen som osynliga utkast (2026-10-29)
 
@@ -6663,7 +6691,10 @@ Sju egenskaper som inte ska tas bort:
    Bara syskon med en egen avläsning följer med.
 2. ☠️ **Samma axlar och ingen kombination två gånger**, annars går
    varianterna inte att skilja åt. Då blir artikeln en egen produkt som förut
-   och räknas i `familjer.ejSammanslagna`.
+   och räknas i `familjer.ejSammanslagna`. Det gäller också ett axelnamn
+   eller ett värde över 50 tecken (`for_langt_namn`, `WIX_MAX_VALNAMN`):
+   Wix avvisar då hela produkten (`400 … choices[1].name has size 58,
+   expected 50 or less`, importen 2026-10-30).
 3. ☠️ **Ett syskon som redan sitter på en produkt följer inte med**, och en
    artikel vars familj redan finns som produkt importeras inte
    (`syskon_finns`). Den läggs till på familjen för hand. Dubblettspärren ser

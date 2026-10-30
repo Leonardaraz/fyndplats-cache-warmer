@@ -138,7 +138,7 @@ jobs:
           # fritext. Formerna är husets tre plus de två som uppmättes
           # 2026-09-27 att gatelibs mönster missar.
           redigera() {
-            perl -pe 's/\b(?:\d{2}[A-Z]|[A-Z]\d{2}|\d[A-Z]\d|\d{3})-\d{3}(?!\d)[A-Z0-9]*\b/‹REDIGERAT›/g; s/aosom:\S+/aosom:‹REDIGERAT›/g; s/\b(?=[A-Z0-9]*\d)(?=[A-Z0-9]*[A-Z])[A-Z0-9]{17,24}\b/‹REDIGERAT›/g; s/vevor:\S+/vevor:‹REDIGERAT›/g'
+            perl -pe 's/\b(?:\d{2}[A-Z]|[A-Z]\d{2}|\d[A-Z]\d|\d{3})-\d{3}(?!\d)[A-Z0-9]*\b/‹REDIGERAT›/g; s/aosom:\S+/aosom:‹REDIGERAT›/g; s/\b(?=[A-Z0-9]*\d)(?=[A-Z0-9]*[A-Z])[A-Z0-9]{17,24}\b/‹REDIGERAT›/g; s/(?<![A-Za-z0-9.+-])(?=[A-Z0-9.+-]*\d)(?=[A-Z0-9.+-]*[A-Z])[A-Z0-9][A-Z0-9.+-]{15,22}[A-Z0-9](?![A-Za-z0-9.+-])/‹REDIGERAT›/g; s/vevor:\S+/vevor:‹REDIGERAT›/g'
           }
 
           # Rutten förseglar markören (m1.…). Kommer den ändå i klartext — en

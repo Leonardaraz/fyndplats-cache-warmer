@@ -41,9 +41,21 @@ const WORKFLOWS = join(ROT, ".github", "workflows");
  * versaler och siffror i ett, 19 eller 22 tecken i de 34 uppmätta. Mönstret
  * tar 17–24 och kräver både en bokstav och en siffra, så att långa tal och
  * versalord går fria. Samma form tvättas bort av `redigera()` i workflowerna.
+ *
+ * ☠️ Och en form med skiljetecken sedan 2026-10-30: 335 VEVOR-sidor bar ett
+ * nummer på 19 tecken med `-`, `.` eller `+` inuti, och det gamla mönstret
+ * såg bara delarna, som är kortare än 17. Det nya tar hela sträckan av
+ * versaler, siffror och skiljetecken, och bara när den står ensam: en sträcka
+ * med gemener (ett Wix-id, en slug) eller längre än 24 tecken går fri.
  */
-const ARTNR =
-  /\b\d{2}[A-Z]-\d{3}(?!\d)[A-Z0-9]*\b|\b[A-Z]\d{2}-\d{3}(?!\d)[A-Z0-9]*\b|\b\d{3}-\d{3}(?!\d)[A-Z0-9]{2,}\b|\b\d[A-Z]\d-\d{3}(?!\d)[A-Z0-9]*\b|\b(?=[A-Z0-9]*\d)(?=[A-Z0-9]*[A-Z])[A-Z0-9]{17,24}\b/g;
+const VEVOR_MED_SKILJETECKEN =
+  /(?<![A-Za-z0-9.+-])(?=[A-Z0-9.+-]*\d)(?=[A-Z0-9.+-]*[A-Z])[A-Z0-9][A-Z0-9.+-]{15,22}[A-Z0-9](?![A-Za-z0-9.+-])/g;
+const ARTNR = new RegExp(
+  "\\b\\d{2}[A-Z]-\\d{3}(?!\\d)[A-Z0-9]*\\b|\\b[A-Z]\\d{2}-\\d{3}(?!\\d)[A-Z0-9]*\\b|\\b\\d{3}-\\d{3}(?!\\d)[A-Z0-9]{2,}\\b|" +
+    "\\b\\d[A-Z]\\d-\\d{3}(?!\\d)[A-Z0-9]*\\b|\\b(?=[A-Z0-9]*\\d)(?=[A-Z0-9]*[A-Z])[A-Z0-9]{17,24}\\b|" +
+    VEVOR_MED_SKILJETECKEN.source,
+  "g",
+);
 
 /** jq-interpolation av ett fält som bär artikelnumret: `\(.sku)`, `map(.sku)`. */
 const ARTIKELFALT = /\\\((?:[^()]|\([^()]*\))*\.(?:sku|artikel|artikelnummer|supplierProductId|aosomSku|vevorArtiklar)\b|map\(\s*\.sku\s*\)/g;
@@ -60,6 +72,52 @@ const MASKERADE_INPUTS: Record<string, string[]> = {
   "aosom-feed-search.yml": ["q"],
 };
 
+
+/**
+ * Ersättningarna i en workflows `perl -pe '…'` som körbara JS-mönster. Perls
+ * syntax här (`\b`, `\S`, lookbehind, `$1`) är densamma i JavaScript, så
+ * grinden kör workflowens EGNA mönster och inte en avskrift av dem.
+ */
+function perlErsattningar(perl: string): { re: RegExp; ers: string }[] {
+  const ut: { re: RegExp; ers: string }[] = [];
+  let i = 0;
+  const del = (d: string): string => {
+    let t = "";
+    while (i < perl.length && perl[i] !== d) {
+      if (perl[i] === "\\" && i + 1 < perl.length) {
+        t += perl[i] + perl[i + 1];
+        i += 2;
+        continue;
+      }
+      t += perl[i++];
+    }
+    i++;
+    return t;
+  };
+  while (i < perl.length) {
+    if (perl[i] !== "s" || (i > 0 && !/[\s;]/.test(perl[i - 1]))) {
+      i++;
+      continue;
+    }
+    const d = perl[i + 1];
+    if (d !== "/" && d !== "#") {
+      i++;
+      continue;
+    }
+    i += 2;
+    const monster = del(d);
+    const ers = del(d);
+    const flaggor = /^[a-z]*/.exec(perl.slice(i))![0];
+    i += flaggor.length;
+    ut.push({ re: new RegExp(monster, flaggor.includes("g") ? flaggor : `${flaggor}g`), ers });
+  }
+  return ut;
+}
+
+/** Redigeringen i en workflow, som den står: alla `perl -pe` som tvättar VEVOR:s nummer. */
+function vevorRedigeringar(text: string): string[] {
+  return [...text.matchAll(/perl -pe '([^']*vevor:[^']*)'/g)].map((m) => m[1]);
+}
 
 function workflowFiler(): string[] {
   return readdirSync(WORKFLOWS).filter((n) => n.endsWith(".yml") || n.endsWith(".yaml"));
@@ -160,6 +218,45 @@ describe("artikelnummer i Actions-loggen", () => {
       // det i dess eget env-block eller i dess utskrivna källa.
       expect(uttryck.test(maskerare ?? "")).toBe(false);
     });
+  });
+
+  it("☠️ varje redigering tvättar VEVOR:s nummer i alla uppmätta former och låter Wix-id, tider och felkoder vara", () => {
+    // Påhittade nummer i de uppmätta formerna: versaler och siffror i ett, och
+    // 19 tecken med bindestreck, punkt eller plus inuti (2026-10-30).
+    const nummer = [
+      "QZQZQZQZQZQ123456789",
+      "QZQZQZQZQZQZQ123456789Q",
+      "TESTQ12XYZ3-45678Q9",
+      "QQQ4.5QQ-678QQQQQQ9",
+      "12Q3.4-56Q7.8QQQQQ9",
+      "QQQ1234+QQQ-56789Q1",
+    ];
+    const skona = [
+      "2f3b1c4d-1111-4222-8333-944455556666",
+      "2F3B1C4D-1111-4222-8333-944455556666",
+      "2026-10-30T16:30:02.123Z",
+      "19011223344",
+      "SE-1141",
+      "WDE0073",
+      "HTTP-500",
+    ];
+    const fynd: string[] = [];
+    let granskade = 0;
+    for (const f of workflowFiler()) {
+      for (const perl of vevorRedigeringar(las(f))) {
+        granskade++;
+        const ersattningar = perlErsattningar(perl);
+        const tvatta = (t: string) => ersattningar.reduce((acc, { re, ers }) => acc.replace(re, ers), t);
+        for (const n of nummer) {
+          if (tvatta(`fel: ${n} föll`).includes(n)) fynd.push(`${f}: släppte ${n.replace(/[A-Z0-9]/g, "x")}`);
+        }
+        for (const t of skona) {
+          if (!tvatta(`rad ${t} slut`).includes(t)) fynd.push(`${f}: tog ${t}`);
+        }
+      }
+    }
+    expect(granskade).toBeGreaterThanOrEqual(7);
+    expect(fynd).toEqual([]);
   });
 
   it("en input som nämner artikelnummer i sin beskrivning måste stå i listan ovan", () => {

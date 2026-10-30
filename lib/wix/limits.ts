@@ -21,6 +21,14 @@ export const WIX_MAX_OPTIONS_PER_PRODUCT = 6;
 export const WIX_MAX_VARIANTS_PER_PRODUCT = 1000;
 
 /**
+ * Längsta namn på en option eller ett val (`name` och `key` på `ConnectedOption`
+ * och `ConnectedOptionChoice`). Schemat säger `maxLength: 50`, och runtime
+ * säger detsamma: VEVOR-importen 2026-10-30 fick `400 … choices[1].name has
+ * size 58, expected 50 or less`. Uppmätt, inte bara läst.
+ */
+export const WIX_MAX_VALNAMN = 50;
+
+/**
  * Butiks-global gräns: max antal val i EN delad customization (option matchad på
  * name + customizationRenderType) över hela butiken. Samma 100 som per produkt, men
  * en helt annan, ackumulerande gräns. Se customization-identity.ts.

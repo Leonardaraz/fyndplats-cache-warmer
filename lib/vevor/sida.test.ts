@@ -91,6 +91,20 @@ describe("tolkaProduktsida", () => {
     ).toEqual({ ok: false, fel: "okand_tillganglighet" });
   });
 
+  it("☠️ ett artikelnummer med bindestreck eller punkt inuti går att läsa, ett med plus gör det inte (2026-10-30)", () => {
+    // Påhittade nummer i de uppmätta formerna, 19 tecken.
+    for (const sku of ["TESTQ12XYZ3-45678Q9", "QQQ4.5QQ-678QQQQQQ9", "12Q3.4-56Q7.8QQQQQ9"]) {
+      const t = tolkaProduktsida(testsida({ sku }));
+      expect(t.ok && t.sida.sku, sku).toBe(sku);
+      // Bilderna i artikelns egen mapp känns igen också med skiljetecken i namnet.
+      expect(t.ok && t.sida.bilder.filter((b) => b.egen).length, sku).toBeGreaterThan(0);
+    }
+    // Wix läser ett plus i adressen som ett mellanslag, och avläsningen nycklas på numret.
+    for (const sku of ["QQQ1234+QQQ-56789Q1", "-TESTQ12XYZ345678Q9", "TESTQ12XYZ345678Q9.", "TEST Q12XYZ345678Q9"]) {
+      expect(tolkaProduktsida(testsida({ sku })), sku).toEqual({ ok: false, fel: "saknar_sku" });
+    }
+  });
+
   it("en slutsåld sida: lager 0 och OutOfStock, överens", () => {
     const t = tolkaProduktsida(testsida({ lager: 0, tillganglighet: "https://schema.org/OutOfStock" }));
     expect(t.ok && t.sida.saldo).toBe(0);
