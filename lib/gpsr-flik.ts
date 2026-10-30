@@ -32,10 +32,23 @@ export interface GpsrAnsvarig {
   epost: string;
 }
 
+/** En part som fliken och orderbekräftelsen visar: rollen, namnet, adressraderna och e-posten. */
+export interface GpsrPart {
+  roll: string;
+  namn: string;
+  rader: string[];
+  epost: string;
+}
+
 export interface GpsrData {
   marke: string | null;
-  ansvarig: GpsrAnsvarig;
+  /** Aosoms form: en part som är både tillverkare och ansvarig i EU. Null för VEVOR. */
+  ansvarig: GpsrAnsvarig | null;
+  /** Parterna som de visas, i ordning. Aosom har en, VEVOR två. */
+  parter: GpsrPart[];
   sakerhet: string[];
+  /** Raden om bruksanvisningen sist bland säkerhetsraderna. */
+  bruksanvisning: string;
 }
 
 export const GPSR_FLIK_TITEL = "Produktsäkerhet";
@@ -43,9 +56,16 @@ export const GPSR_FLIK_TITEL = "Produktsäkerhet";
 /** Rubriken poleringen skriver i beskrivningen (docs/seo-polish-runbook.md i motorn). */
 export const GPSR_FLIK_RE = /Produkts[äa]kerhet/;
 
-/** Gäller varje vara: alla levereras med bruksanvisning. */
+/** Aosoms varor levereras alla med bruksanvisning. */
 export const GPSR_BRUKSANVISNING =
   "Läs bruksanvisningen som följer med varan före montering och användning, och spara den.";
+
+/**
+ * VEVOR:s varor: alla har ingen bruksanvisning. Lagen kräver den bara när
+ * varan inte kan användas säkert utan (EU 2023/988, artikel 9.7).
+ */
+export const GPSR_BRUKSANVISNING_OM =
+  "Följer en bruksanvisning med varan: läs den före montering och användning, och spara den.";
 
 function esc(s: string): string {
   return s
@@ -66,6 +86,30 @@ function str(v: unknown): string {
 export function tolkaGpsr(body: unknown): GpsrData | null {
   if (!body || typeof body !== "object") return null;
   const b = body as Record<string, unknown>;
+  const sakerhetsrader = Array.isArray(b.sakerhet)
+    ? b.sakerhet.map(str).filter((s) => s.length > 0).slice(0, 12)
+    : [];
+  // VEVOR (motorns steg 7): tillverkaren och ansvarig i EU som två parter, var
+  // och en med namn, adress på en rad och e-post. Båda krävs.
+  if ("tillverkare" in b || "euAnsvarig" in b) {
+    const part = (v: unknown, roll: string): GpsrPart | null => {
+      const o = (v && typeof v === "object" ? v : {}) as Record<string, unknown>;
+      const namn = str(o.namn);
+      const adress = str(o.adress);
+      const epost = str(o.epost);
+      return namn && adress && epost ? { roll, namn, rader: [adress], epost } : null;
+    };
+    const tillverkare = part(b.tillverkare, "Tillverkare");
+    const eu = part(b.euAnsvarig, "Ansvarig i EU");
+    if (!tillverkare || !eu) return null;
+    return {
+      marke: str(b.marke) || null,
+      ansvarig: null,
+      parter: [tillverkare, eu],
+      sakerhet: sakerhetsrader,
+      bruksanvisning: GPSR_BRUKSANVISNING_OM,
+    };
+  }
   const a = (b.ansvarig && typeof b.ansvarig === "object" ? b.ansvarig : {}) as Record<string, unknown>;
   const ansvarig: GpsrAnsvarig = {
     namn: str(a.namn),
@@ -76,11 +120,15 @@ export function tolkaGpsr(body: unknown): GpsrData | null {
     epost: str(a.epost),
   };
   if (!ansvarig.namn || !ansvarig.gata || !ansvarig.ort || !ansvarig.epost) return null;
-  const sakerhet = Array.isArray(b.sakerhet)
-    ? b.sakerhet.map(str).filter((s) => s.length > 0).slice(0, 12)
-    : [];
   const marke = str(b.marke) || null;
-  return { marke, ansvarig, sakerhet };
+  const ort = [ansvarig.postnummer, ansvarig.ort].filter(Boolean).join(" ");
+  const parter: GpsrPart[] = [{
+    roll: "Tillverkare och ansvarig i EU",
+    namn: ansvarig.namn,
+    rader: [ansvarig.gata, [ort, ansvarig.land].filter(Boolean).join(", ")],
+    epost: ansvarig.epost,
+  }];
+  return { marke, ansvarig, parter, sakerhet: sakerhetsrader, bruksanvisning: GPSR_BRUKSANVISNING };
 }
 
 function textUr(html: string): string {
@@ -125,19 +173,17 @@ export function sakerhetUrBeskrivning(html: string | null | undefined): string[]
 
 /** Flikens HTML. Allt från motorn escapas. */
 export function gpsrFlikHtml(g: GpsrData, produktnamn: string): string {
-  const a = g.ansvarig;
-  const ort = [a.postnummer, a.ort].filter(Boolean).join(" ");
-  const adress = [a.namn, a.gata, [ort, a.land].filter(Boolean).join(", "), `E-post: ${a.epost}`]
-    .map(esc)
-    .join("<br />");
   const delar: string[] = [];
   // Ingen rad "Varumärke" (Leonard 2026-10-06): Aosoms märke på fliken sade
   // emot märket i strukturerad data och flöden (lib/varumarke.ts). GPSR kräver
   // tillverkarens namn ELLER varumärke, och namnet står på raden nedan.
-  delar.push(`<p><strong>Tillverkare och ansvarig i EU:</strong><br />${adress}</p>`);
+  for (const p of g.parter) {
+    const adress = [p.namn, ...p.rader, `E-post: ${p.epost}`].map(esc).join("<br />");
+    delar.push(`<p><strong>${esc(p.roll)}:</strong><br />${adress}</p>`);
+  }
   delar.push(`<p><strong>Produkt:</strong> ${esc(produktnamn)} (se bilderna ovan)</p>`);
   delar.push("<p><strong>Säkerhetsinformation</strong></p>");
-  const rader = [...g.sakerhet, GPSR_BRUKSANVISNING];
+  const rader = [...g.sakerhet, g.bruksanvisning];
   delar.push(`<ul>${rader.map((r) => `<li>${esc(r)}</li>`).join("")}</ul>`);
   return delar.join("");
 }

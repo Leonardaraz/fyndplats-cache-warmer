@@ -13,7 +13,6 @@ import {
 import { BRAND, EmailShell, block, formatSEK, text } from "./_layout";
 import { COMPLAINT_SHORT } from "../lib/retur-policy";
 import { delsummaInklMoms, momsetikett } from "../lib/vat";
-import { GPSR_BRUKSANVISNING } from "../lib/gpsr-flik";
 import type { OrderSakerhet } from "../lib/gpsr-order";
 
 export interface OrderLineItem {
@@ -302,7 +301,7 @@ export default function OrderConfirmationEmail({
               {v.marke ? (
                 <Text style={{ ...sakerhetText, margin: "1px 0 0 0" }}>Varumärke: {v.marke}</Text>
               ) : null}
-              {[...v.rader, GPSR_BRUKSANVISNING].map((r, j) => (
+              {[...v.rader, v.bruksanvisning].map((r, j) => (
                 <Text key={j} style={{ ...sakerhetText, margin: "2px 0 0 0", paddingLeft: "12px" }}>
                   • {r}
                 </Text>
@@ -311,8 +310,8 @@ export default function OrderConfirmationEmail({
           ))}
           {sakerhet.ansvariga.map((a, i) => (
             <Text key={i} style={{ ...sakerhetText, margin: "6px 0 0 0" }}>
-              <strong style={{ color: BRAND.ink }}>Tillverkare och ansvarig i EU:</strong>{" "}
-              {a.namn}, {a.gata}, {[a.postnummer, a.ort].filter(Boolean).join(" ")}, {a.land} · {a.epost}
+              <strong style={{ color: BRAND.ink }}>{a.roll}:</strong>{" "}
+              {[a.namn, ...a.rader].join(", ")} · {a.epost}
             </Text>
           ))}
         </Section>

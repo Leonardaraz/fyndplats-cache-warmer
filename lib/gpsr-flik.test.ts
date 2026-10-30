@@ -1,7 +1,7 @@
 // Run: node --test --experimental-strip-types 'lib/**/*.test.ts'
 import test from "node:test";
 import assert from "node:assert/strict";
-import { GPSR_BRUKSANVISNING, gpsrFlikHtml, sakerhetUrBeskrivning, tolkaGpsr } from "./gpsr-flik.ts";
+import { GPSR_BRUKSANVISNING, GPSR_BRUKSANVISNING_OM, gpsrFlikHtml, sakerhetUrBeskrivning, tolkaGpsr } from "./gpsr-flik.ts";
 
 const SVAR = {
   marke: "HOMCOM",
@@ -72,4 +72,25 @@ test("sakerhetUrBeskrivning ger null utan avsnitt eller med tomt avsnitt", () =>
   assert.equal(sakerhetUrBeskrivning("<p>Bara text.</p>"), null);
   assert.equal(sakerhetUrBeskrivning("<h2>Produktsäkerhet</h2><h2>Kontakta oss</h2>"), null);
   assert.equal(sakerhetUrBeskrivning(undefined), null);
+});
+
+const VEVOR = {
+  marke: "VEVOR",
+  tillverkare: { namn: "Fabrik Co., Ltd.", adress: "Väg 1, 200000 Stad, CN", epost: "a@example.com" },
+  euAnsvarig: { namn: "Ombud Limited", adress: "Gata 2, D18 X000 Dublin, Ireland", epost: "b@example.com" },
+  sakerhet: [],
+};
+
+test("VEVOR: tillverkaren och ansvarig i EU visas var för sig", () => {
+  const html = gpsrFlikHtml(tolkaGpsr(VEVOR)!, "Pump");
+  assert.match(html, /<strong>Tillverkare:<\/strong><br \/>Fabrik Co\., Ltd\.<br \/>Väg 1, 200000 Stad, CN<br \/>E-post: a@example\.com/);
+  assert.match(html, /<strong>Ansvarig i EU:<\/strong><br \/>Ombud Limited<br \/>Gata 2, D18 X000 Dublin, Ireland<br \/>E-post: b@example\.com/);
+  assert.doesNotMatch(html, /Tillverkare och ansvarig i EU/);
+  assert.ok(html.includes(GPSR_BRUKSANVISNING_OM));
+  assert.ok(!html.includes(GPSR_BRUKSANVISNING));
+});
+
+test("VEVOR: utan en av parterna visas ingen flik", () => {
+  assert.equal(tolkaGpsr({ ...VEVOR, euAnsvarig: null }), null);
+  assert.equal(tolkaGpsr({ ...VEVOR, tillverkare: { ...VEVOR.tillverkare, epost: "" } }), null);
 });

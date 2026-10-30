@@ -36,7 +36,7 @@ export async function arAosomVara(productId: string): Promise<boolean | null> {
     });
     if (res.status === 404) return false;
     if (!res.ok) return null;
-    return arAosomTillverkare(tolkaGpsr(await res.json())?.ansvarig.namn);
+    return arAosomTillverkare(tolkaGpsr(await res.json())?.ansvarig?.namn);
   } catch {
     return null;
   }
