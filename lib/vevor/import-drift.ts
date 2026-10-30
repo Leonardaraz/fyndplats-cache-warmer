@@ -2,6 +2,7 @@
 // prisunderlaget och larmet. Allt annat i lib/vevor/import.ts är rent.
 
 import { innehallsnycklar } from "./bildinnehall";
+import { vevorKundbild } from "./recensionsfoton";
 import type { FeatureFlags, PricingRules } from "@/lib/import/types";
 import { importProduct } from "@/lib/import/pipeline";
 import { importReviewsForProduct } from "@/lib/import/review-import";
@@ -39,8 +40,11 @@ export function liveImportDeps(): ImportDeps {
     // VEVOR har sagt ja till att vi använder recensionerna (Leonard
     // 2026-10-29). Raderna är dolda tills de översatts och godkänts i
     // /admin/reviews, som Aosoms.
+    // Kundernas foton följer med (Leonard 2026-10-30), och läggs i Wix Media
+    // med den bekräftade vägen i stället för Import File.
     sparaRecensioner: async (wixProductId, recensioner) =>
-      (await importReviewsForProduct(wixProductId, recensioner, { source: "vevor" })).imported,
+      (await importReviewsForProduct(wixProductId, recensioner, { source: "vevor", importImage: (u, id) => vevorKundbild(u, id) }))
+        .imported,
     bildnycklar: (urls) => innehallsnycklar(urls),
     prisunderlag: async () => ({
       rabatt: tolkaRabatt((await getAppConfig()).vevorProRabatt),

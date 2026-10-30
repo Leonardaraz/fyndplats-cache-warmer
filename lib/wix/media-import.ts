@@ -22,8 +22,11 @@ const WIX_BASE = "https://www.wixapis.com";
  * listan bara kände AliExpress. Samma läcka som 2026-08-17, samma bot —
  * repairImages i /api/cron/review-translate skriver om synliga rader, och
  * workflowen review-image-repair.yml kör den i varv tills inget är kvar.
+ *
+ * `vevorstatic.com` tillkom 2026-10-30 med VEVOR-recensionernas foton
+ * (`adsimg-custom.vevorstatic.com`).
  */
-const EXTERNA_VARDAR = ["aliexpress-media.com", "alicdn.com", "img.aosomcdn.com"];
+const EXTERNA_VARDAR = ["aliexpress-media.com", "alicdn.com", "img.aosomcdn.com", "vevorstatic.com"];
 
 export function isExternalSupplierImage(url: string | undefined): boolean {
   if (!url) return false;

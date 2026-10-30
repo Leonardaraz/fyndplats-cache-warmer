@@ -87,6 +87,12 @@ export interface VevorRecension {
   /** ISO-datum, eller null. */
   datum: string | null;
   namn: string | null;
+  /**
+   * Kundens foton, högst `MAX_RECENSIONSFOTON`, ur sidans egen recensionsdata
+   * (`REVIEWS_DATA`). JSON-LD bär inga foton. Saknas när recensionen inte har
+   * några, och på avläsningar före 2026-10-30.
+   */
+  bilder?: string[];
 }
 
 export interface Sidinnehall {
@@ -128,6 +134,10 @@ export interface Sidinnehall {
 export const MAX_RECENSIONER = 10;
 /** Längsta recensionstext vi sparar. */
 const MAX_RECENSIONSTEXT = 2_000;
+/** Så många foton per recension sparas. Butiken visar högst tre (lib/reviews/images.ts). */
+export const MAX_RECENSIONSFOTON = 3;
+/** VEVOR:s server för kundernas foton. Ingen annan adress sparas som recensionsfoto. */
+export const RECENSIONSFOTO_VARD = "adsimg-custom.vevorstatic.com";
 
 export type Tolkningsfel =
   | "ej_produktsida"
@@ -411,8 +421,41 @@ function betygUr(produkt: Record<string, unknown>): VevorBetyg | null {
   return { snitt, antal };
 }
 
+/** Texten för att para ihop två källor: JSON-LD slår ihop radbrytningar till mellanslag. */
+const parnyckel = (s: string) => avkoda(s).replace(/\s+/g, " ").trim().toLowerCase();
+
+/**
+ * Kundfotona per recensionstext ur sidans `REVIEWS_DATA.allReview` (2026-10-30).
+ * Uppmätt på 32 sparade sidor: samma recensioner som JSON-LD (304 mot 303),
+ * texten skiljer bara på radbrytningar, och 36 av dem hade foton. Bara
+ * `big_pic` på VEVOR:s fotoserver tas.
+ */
+function recensionsfotonUr(data: unknown): Map<string, string[]> {
+  const ut = new Map<string, string[]>();
+  const alla = lista<Record<string, unknown>>((data as Record<string, unknown> | undefined)?.allReview);
+  for (const r of alla) {
+    if (!r || typeof r !== "object") continue;
+    const text = strang(r.content);
+    if (!text) continue;
+    const foton = lista<Record<string, unknown>>(r.reviewPic)
+      .map((p) => strang(p?.big_pic))
+      .filter((u): u is string => {
+        if (!u) return false;
+        try {
+          const a = new URL(u);
+          return a.protocol === "https:" && a.hostname === RECENSIONSFOTO_VARD;
+        } catch {
+          return false;
+        }
+      })
+      .slice(0, MAX_RECENSIONSFOTON);
+    if (foton.length > 0 && !ut.has(parnyckel(text))) ut.set(parnyckel(text), foton);
+  }
+  return ut;
+}
+
 /** Recensionerna ur `review`, med text och ett betyg 1–5. Högst `MAX_RECENSIONER`. */
-function recensionerUr(produkt: Record<string, unknown>): VevorRecension[] {
+function recensionerUr(produkt: Record<string, unknown>, foton: Map<string, string[]> = new Map()): VevorRecension[] {
   const ut: VevorRecension[] = [];
   for (const r of lista<Record<string, unknown>>(produkt.review)) {
     if (ut.length >= MAX_RECENSIONER) break;
@@ -423,11 +466,13 @@ function recensionerUr(produkt: Record<string, unknown>): VevorRecension[] {
     const forfattare = r.author as Record<string, unknown> | string | undefined;
     const namn = typeof forfattare === "string" ? strang(forfattare) : strang(forfattare?.name);
     const datum = strang(r.datePublished);
+    const bilder = foton.get(parnyckel(text));
     ut.push({
       betyg,
       text: rad(avkoda(text)).slice(0, MAX_RECENSIONSTEXT),
       datum: datum && /^\d{4}-\d{2}-\d{2}/.test(datum) ? datum.slice(0, 10) : null,
       namn: namn ? avkoda(namn).slice(0, 80) : null,
+      ...(bilder ? { bilder } : {}),
     });
   }
   return ut;
@@ -519,7 +564,7 @@ export function tolkaProduktsida(html: string): Tolkning {
       manualSokvag: manualUr(html),
       syskon: syskonUr(fonsterObjekt(html, "DETAIL_ATTR_LINK"), sku),
       betyg: betygUr(produkt),
-      recensioner: recensionerUr(produkt),
+      recensioner: recensionerUr(produkt, recensionsfotonUr(fonsterObjekt(html, "REVIEWS_DATA"))),
     },
   };
 }
