@@ -48,15 +48,21 @@
 //
 // Ren modul.
 
-import { WIX_MAX_BILDER_PER_PRODUKT, WIX_MAX_OPTIONS_PER_PRODUCT } from "@/lib/wix/limits";
+import { WIX_MAX_BILDER_PER_PRODUKT, WIX_MAX_OPTIONS_PER_PRODUCT, WIX_MAX_VALNAMN } from "@/lib/wix/limits";
 import type { AliExpressProduct } from "@/lib/import/types";
 import type { Avlasning, Sidrad } from "./lager";
 import { medlemshinder, specifikation, kostnadUsd, vevorProdukt, type Prisunderlag } from "./to-product";
 import { BILDER_PER_PRODUKT, type Bildval } from "./bilder";
 
-export type FamiljSkal = "utan_egenskaper" | "olika_axlar" | "samma_kombination" | "for_manga_axlar";
+export type FamiljSkal = "utan_egenskaper" | "olika_axlar" | "samma_kombination" | "for_manga_axlar" | "for_langt_namn";
 
-export const FAMILJ_SKAL: readonly FamiljSkal[] = ["utan_egenskaper", "olika_axlar", "samma_kombination", "for_manga_axlar"];
+export const FAMILJ_SKAL: readonly FamiljSkal[] = [
+  "utan_egenskaper",
+  "olika_axlar",
+  "samma_kombination",
+  "for_manga_axlar",
+  "for_langt_namn",
+];
 
 export type Familj =
   /** Inga syskon att slå ihop med: artikeln blir en egen produkt. */
@@ -152,6 +158,9 @@ export function byggFamilj(
   const nyckel = (v: Record<string, string>) => Object.keys(v).sort().join("\u0001");
   if (varden.some((v) => nyckel(v) !== nyckel(varden[0]))) return { typ: "ej_sammanslagen", skal: "olika_axlar" };
   if (axlar.length > WIX_MAX_OPTIONS_PER_PRODUCT) return { typ: "ej_sammanslagen", skal: "for_manga_axlar" };
+  // Wix avvisar hela produkten när en axel eller ett värde är längre än 50 tecken.
+  if (varden.some((v) => Object.entries(v).some(([k, x]) => k.length > WIX_MAX_VALNAMN || x.length > WIX_MAX_VALNAMN)))
+    return { typ: "ej_sammanslagen", skal: "for_langt_namn" };
   const kombination = (v: Record<string, string>) => axlar.map((k) => (v[k] ?? "").toLowerCase()).join("\u0001");
   if (new Set(varden.map(kombination)).size !== varden.length) return { typ: "ej_sammanslagen", skal: "samma_kombination" };
 

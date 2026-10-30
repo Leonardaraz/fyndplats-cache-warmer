@@ -551,8 +551,26 @@ function egenskaperUr(attr: unknown): Record<string, string> {
   return ut;
 }
 
-/** Artikelnumrets form på VEVOR: bokstäver och siffror, 10–40 tecken. */
-const SKU_RE = /^[A-Za-z0-9]{10,40}$/;
+/**
+ * Artikelnumrets form på VEVOR: bokstäver och siffror, 10–40 tecken. Inuti
+ * numret får det stå bindestreck och punkt.
+ *
+ * ☠️ Uppmätt 2026-10-30: 335 sidor (2,1 %) föll på `saknar_sku`. Av 15
+ * hämtade bar alla ett nummer på 19 tecken med `-`, `.` eller `+` inuti,
+ * samma i sidans data och i JSON-LD, och alla 15 gick att tolka med
+ * bindestreck, punkt och plus tillåtna.
+ *
+ * ☠️ Plus släpps INTE in. Avläsningen nycklas på numret i Wix, och Wix läser
+ * ett `+` i adressen som ett mellanslag också när det är kodat som `%2B`
+ * (uppmätt samma dag: en rad sparad via kroppen gick att hitta med en fråga,
+ * men läsning och borttagning per id svarade 404 på ett id med mellanslag).
+ * Punkt och bindestreck klarade alla tre. En sida med plus i numret förblir
+ * `saknar_sku`, alltså okänd, och rör aldrig lagret.
+ *
+ * Loggspärren i workflowerna och `artikelnummer-i-logg.test.ts` känner formen
+ * med skiljetecken, också med plus.
+ */
+export const SKU_RE = /^[A-Za-z0-9](?:[A-Za-z0-9.-]{8,38})[A-Za-z0-9]$/;
 
 /**
  * Tolkar en produktsida. Svarar `ok: false` med skälet så fort en kontroll

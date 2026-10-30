@@ -6214,7 +6214,12 @@ Elva egenskaper som inte ska tas bort:
    kartan eller ur en omdirigering.
 4. ☠️ **Okänt rör aldrig lagret.** En sida som inte klarar varje kontroll
    (svenska, kronor på sidan och i erbjudandet, pris, lager, artikelnummer,
-   inga motsägelser) ger ett tolkningsfel och ingen avläsning. `vevorRad` gör
+   inga motsägelser) ger ett tolkningsfel och ingen avläsning. Ett
+   artikelnummer är bokstäver och siffror, med bindestreck och punkt inuti
+   (`SKU_RE`, 2,1 % av sidorna sedan 2026-10-30). ☠️ Ett plus släpps inte
+   in: avläsningen nycklas på numret, och Wix läser `+` i adressen som ett
+   mellanslag också kodat som `%2B` (uppmätt: läsning och borttagning per id
+   svarade 404). Loggspärren i workflowerna tar formen med skiljetecken. `vevorRad` gör
    artikeln okänd när avläsningen är äldre än 12 timmar, när läsaren är fryst,
    och direkt när senaste försöket misslyckades (`misslyckadAt`: tidsgräns,
    tolkningsfel, en första 404, en spärr i robots.txt). En giltig läsning
@@ -6663,7 +6668,10 @@ Sju egenskaper som inte ska tas bort:
    Bara syskon med en egen avläsning följer med.
 2. ☠️ **Samma axlar och ingen kombination två gånger**, annars går
    varianterna inte att skilja åt. Då blir artikeln en egen produkt som förut
-   och räknas i `familjer.ejSammanslagna`.
+   och räknas i `familjer.ejSammanslagna`. Det gäller också ett axelnamn
+   eller ett värde över 50 tecken (`for_langt_namn`, `WIX_MAX_VALNAMN`):
+   Wix avvisar då hela produkten (`400 … choices[1].name has size 58,
+   expected 50 or less`, importen 2026-10-30).
 3. ☠️ **Ett syskon som redan sitter på en produkt följer inte med**, och en
    artikel vars familj redan finns som produkt importeras inte
    (`syskon_finns`). Den läggs till på familjen för hand. Dubblettspärren ser

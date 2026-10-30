@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { WIX_MAX_BILDER_PER_PRODUKT, WIX_MAX_OPTIONS_PER_PRODUCT } from "@/lib/wix/limits";
+import { WIX_MAX_BILDER_PER_PRODUKT, WIX_MAX_OPTIONS_PER_PRODUCT, WIX_MAX_VALNAMN } from "@/lib/wix/limits";
 import { valjVevorBilder } from "./bilder";
 import type { Avlasning } from "./lager";
 import { arPaVag, byggFamilj, egenskaperFor, familjensBilder, rensaVarde, syskonSkus, vevorFamiljeProdukt } from "./familj";
@@ -117,6 +117,22 @@ describe("byggFamilj", () => {
     const b1 = artikel(1, sju);
     const b2 = artikel(2, sju.map(([k], i) => [k, i === 0 ? "y" : "x"]));
     expect(byggFamilj(b1, lasta(b2), NU, ledig)).toEqual({ typ: "ej_sammanslagen", skal: "for_manga_axlar" });
+  });
+
+  it("☠️ ett värde eller en axel över 50 tecken ger egna produkter (Wix avvisar hela produkten)", () => {
+    const langt = "x".repeat(WIX_MAX_VALNAMN + 1);
+    const precis = "y".repeat(WIX_MAX_VALNAMN);
+    const d1 = artikel(1, [["Storlek", precis]]);
+    expect(byggFamilj(d1, lasta(artikel(2, [["Storlek", langt]])), NU, ledig)).toEqual({
+      typ: "ej_sammanslagen",
+      skal: "for_langt_namn",
+    });
+    expect(byggFamilj(artikel(1, [[langt, "A"]]), lasta(artikel(2, [[langt, "B"]])), NU, ledig)).toEqual({
+      typ: "ej_sammanslagen",
+      skal: "for_langt_namn",
+    });
+    // Exakt 50 tecken går igenom.
+    expect(byggFamilj(d1, lasta(artikel(2, [["Storlek", "kort"]])), NU, ledig).typ).toBe("familj");
   });
 
   it("bildaxeln är den första axeln med ett eget värde för varje artikel", () => {
