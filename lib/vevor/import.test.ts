@@ -20,6 +20,7 @@ let sparaMappning: ReturnType<typeof vi.fn>;
 let larma: ReturnType<typeof vi.fn>;
 let prisunderlag: ReturnType<typeof vi.fn>;
 let antalProdukter: ReturnType<typeof vi.fn>;
+let sparaRecensioner: ReturnType<typeof vi.fn>;
 
 function lagg(n: number, over: Parameters<typeof testAvlasning>[0] = {}) {
   const a = testAvlasning({ sku: sku(n), bilder: testgalleri(sku(n)), lastAt: LASTAT, ...over });
@@ -33,9 +34,15 @@ function resultat(p: AliExpressProduct): ImportResult {
     slug: "testvagn",
     supplierProductId: p.supplierProductId,
     seo: { title: p.rawTitle, metaDescription: "", descriptionHtml: "", slug: "", suggestedCategory: "", imageAltTexts: [] },
-    variantMappings: [
-      { supplierVariantId: p.variants[0].supplierVariantId, sku: "FP-x", choices: {}, costUsd: 1, landedCostSek: 10, grossSek: 19 },
-    ],
+    variantMappings: p.variants.map((v, i) => ({
+      supplierVariantId: v.supplierVariantId,
+      sku: `FP-x-${i}`,
+      choices: v.options,
+      costUsd: v.costUsd,
+      landedCostSek: 10,
+      grossSek: 19,
+      wixVariantId: `wv-${i}`,
+    })),
     imageAnalysis: [],
     categorySuggestion: { collectionSlug: null, confidence: 0, reason: "", status: "uncategorized" },
     stockQuantity: 1,
@@ -53,6 +60,7 @@ function deps(): ImportDeps {
     mappningarFor: (ids) => store.mappningarForLeverantorsId(ids),
     importera,
     sparaMappning,
+    sparaRecensioner,
     prisunderlag,
     antalProdukter,
     larma,
@@ -72,6 +80,7 @@ beforeEach(() => {
   larma = vi.fn(async () => undefined);
   prisunderlag = vi.fn(async () => ({ rabatt: 0.0425, usdToSek: 10 }));
   antalProdukter = vi.fn(async () => 6_000);
+  sparaRecensioner = vi.fn(async (_id: string, r: unknown[]) => r.length);
 });
 
 describe("körningen", () => {
@@ -300,5 +309,133 @@ describe("☠️ svaret", () => {
     const text = JSON.stringify(s);
     expect(text).not.toMatch(/TESTSKUIMPORT/);
     expect(text).toContain("wix-000001");
+  });
+});
+
+describe("steg 8: betyget, syskonen och recensionerna", () => {
+  const syskon = (...n: number[]) => n.map((m) => ({ sku: sku(m), webbId: String(m).padStart(12, "0"), kanKopas: true }));
+  const rec = (text: string) => ({ betyg: 5, text, datum: "2026-09-01", namn: "Test P." });
+
+  it("☠️ lågt betyg med minst fem recensioner importeras inte, och en avläsning utan betyg väntar", async () => {
+    lagg(1, { betyg: { snitt: 3.5, antal: 196 } });
+    lagg(2, { betyg: undefined });
+    lagg(3, { betyg: { snitt: 3.5, antal: 4 } });
+    const s = await korVevorImport(deps(), schema);
+    expect(s.hinder).toMatchObject({ lagt_betyg: 1, betyg_okant: 1 });
+    expect(s.importerade).toBe(1);
+    expect(importera).toHaveBeenCalledTimes(1);
+  });
+
+  it("syskonen blir EN produkt med en variant per artikel, och ett syskon som är slut följer med", async () => {
+    lagg(1, { egenskaper: [["Typ", "A"]], syskon: syskon(2, 3) });
+    lagg(2, { egenskaper: [["Typ", "B"]], syskon: syskon(1, 3) });
+    lagg(3, { egenskaper: [["Typ", "C"]], syskon: syskon(1, 2), status: "slut", saldo: 0 });
+    const s = await korVevorImport(deps(), schema);
+    expect(importera).toHaveBeenCalledTimes(1);
+    const p = importera.mock.calls[0][0] as AliExpressProduct;
+    expect(p.variants.map((v) => [v.supplierVariantId, v.options.Typ, v.stock])).toEqual([
+      [sku(1), "A", 12],
+      [sku(2), "B", 12],
+      [sku(3), "C", 0],
+    ]);
+    expect(s).toMatchObject({ importerade: 1, redanImporterade: 1, familjer: { sammanslagna: 1, varianter: 3 } });
+    const [m] = await store.mappningarForLeverantorsId([`vevor:${sku(2)}`]);
+    expect(m.supplierProductId).toBe(`vevor:${sku(1)}`);
+    expect(m.vevorArtiklar).toEqual([`vevor:${sku(1)}`, `vevor:${sku(2)}`, `vevor:${sku(3)}`]);
+    // Synken läser raden som en artikel per variant.
+    const { artikelbild } = await import("@/lib/aosom/artiklar");
+    expect(artikelbild(m, "vevor:").typ).toBe("flera");
+
+    // ☠️ En omkörning skapar ingenting, inte heller när det slutsålda syskonet kommer tillbaka.
+    importera.mockClear();
+    lagg(3, { egenskaper: [["Typ", "C"]], syskon: syskon(1, 2) });
+    const igen = await korVevorImport(deps(), { ...schema, manuell: true });
+    expect(importera).not.toHaveBeenCalled();
+    expect(igen.redanImporterade).toBe(3);
+  });
+
+  it("☠️ en ny artikel i en familj som redan finns blir ingen egen produkt", async () => {
+    lagg(1, { egenskaper: [["Typ", "A"]], syskon: syskon(2) });
+    lagg(2, { egenskaper: [["Typ", "B"]], syskon: syskon(1) });
+    await korVevorImport(deps(), schema);
+    importera.mockClear();
+    lagg(4, { egenskaper: [["Typ", "D"]], syskon: syskon(1, 2) });
+    const s = await korVevorImport(deps(), { ...schema, manuell: true });
+    expect(importera).not.toHaveBeenCalled();
+    expect(s.hinder.syskon_finns).toBe(1);
+  });
+
+  it("☠️ ett syskon som redan har en egen produkt följer inte med", async () => {
+    await store.saveMapping({
+      supplierProductId: `vevor:${sku(2)}`,
+      supplier: "vevor",
+      wixProductId: "wix-befintlig",
+      variants: [{ supplierVariantId: sku(2), sku: "FP-b", choices: {}, costUsd: 1 }],
+      vevorArtiklar: [`vevor:${sku(2)}`],
+    } as never);
+    lagg(1, { egenskaper: [["Typ", "A"]], syskon: syskon(2) });
+    lagg(2, { egenskaper: [["Typ", "B"]], syskon: syskon(1) });
+    const s = await korVevorImport(deps(), schema);
+    expect(importera).toHaveBeenCalledTimes(1);
+    expect((importera.mock.calls[0][0] as AliExpressProduct).variants).toHaveLength(1);
+    expect(s).toMatchObject({ importerade: 1, redanImporterade: 1, familjer: { sammanslagna: 0 } });
+  });
+
+  it("syskon som inte går att skilja åt blir egna produkter, och räknas", async () => {
+    lagg(1, { egenskaper: [["Typ", "A"]], syskon: syskon(2) });
+    lagg(2, { egenskaper: [["Färg", "Svart"]], syskon: syskon(1) });
+    const s = await korVevorImport(deps(), schema);
+    expect(importera).toHaveBeenCalledTimes(2);
+    // Det andra syskonet ser att det första redan har en egen produkt, och är då ensamt.
+    expect(s.familjer?.ejSammanslagna.olika_axlar).toBe(1);
+  });
+
+  it("☠️ ett syskon utan betyg gör att familjen väntar", async () => {
+    lagg(1, { egenskaper: [["Typ", "A"]], syskon: syskon(2) });
+    lagg(2, { egenskaper: [["Typ", "B"]], syskon: syskon(1), status: "slut", saldo: 0, betyg: undefined });
+    const s = await korVevorImport(deps(), schema);
+    expect(importera).not.toHaveBeenCalled();
+    expect(s.hinder.betyg_okant).toBe(1);
+  });
+
+  it("recensionerna från hela familjen sparas på produkten, och ett fel där fäller inte importen", async () => {
+    lagg(1, { egenskaper: [["Typ", "A"]], syskon: syskon(2), recensioner: [rec("Stabil vagn, rullar fint i sanden.")] });
+    lagg(2, { egenskaper: [["Typ", "B"]], syskon: syskon(1), recensioner: [rec("Bra pris och snabb montering, nöjd.")] });
+    lagg(3, { recensioner: [rec("Fungerar som den ska efter en månad.")] });
+    sparaRecensioner.mockImplementationOnce(async (_id: string, r: unknown[]) => r.length).mockRejectedValueOnce(new Error("Wix svarade inte"));
+    const s = await korVevorImport(deps(), schema);
+    expect(sparaRecensioner).toHaveBeenCalledTimes(2);
+    expect(sparaRecensioner.mock.calls[0][1].map((r: { text: string }) => r.text)).toEqual([
+      "Stabil vagn, rullar fint i sanden.",
+      "Bra pris och snabb montering, nöjd.",
+    ]);
+    expect(s).toMatchObject({ importerade: 2, fel: 0, recensioner: { lasta: 3, sparade: 2, produkter: 1, fel: 1 } });
+  });
+
+  it("en produkt utan recensioner anropar inte recensionslagret", async () => {
+    lagg(1);
+    await korVevorImport(deps(), schema);
+    expect(sparaRecensioner).not.toHaveBeenCalled();
+  });
+
+  it("torrläget räknar familjen och skriver ingenting", async () => {
+    lagg(1, { egenskaper: [["Typ", "A"]], syskon: syskon(2) });
+    lagg(2, { egenskaper: [["Typ", "B"]], syskon: syskon(1) });
+    const s = await korVevorImport(deps(), { ...schema, dryRun: true });
+    expect(importera).not.toHaveBeenCalled();
+    expect(sparaMappning).not.toHaveBeenCalled();
+    expect(s).toMatchObject({ importerade: 1, redanImporterade: 1, familjer: { sammanslagna: 1, varianter: 2 } });
+  });
+
+  it("☠️ en familj utan mappningsrad spärrar varje artikel på den", async () => {
+    lagg(1, { egenskaper: [["Typ", "A"]], syskon: syskon(2) });
+    lagg(2, { egenskaper: [["Typ", "B"]], syskon: syskon(1) });
+    sparaMappning.mockRejectedValueOnce(new Error("Wix tog inte emot raden"));
+    const s = await korVevorImport(deps(), schema);
+    expect(s.foraldralosa).toHaveLength(1);
+    expect(lager.tillstand.foraldralosa.map((f) => f.sku)).toEqual([sku(1), sku(2)]);
+    importera.mockClear();
+    await korVevorImport(deps(), { ...schema, manuell: true });
+    expect(importera).not.toHaveBeenCalled();
   });
 });

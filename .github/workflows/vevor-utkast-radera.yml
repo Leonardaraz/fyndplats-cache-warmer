@@ -1,0 +1,93 @@
+name: VEVOR — radera opolerade utkast
+
+# Raderar de opolerade VEVOR-utkasten i Wix och deras mappningsrader, och
+# nollställer importens markör (steg 8, lib/vevor/radera-utkast.ts). Sedan
+# importerar importen om med syskon, betyg och recensioner när den slås på.
+#
+#   plan    räknar: utkast, raderbara och hinder. Raderar ingenting.
+#   radera  raderar i varv om fyra minuter tills inget är kvar. Kräver
+#           `bekrafta` = planens antal raderbara.
+#
+# Importen måste vara avstängd ("VEVOR — importen", läget av). Ordningen:
+# plan, radera med planens antal, plan igen (raderbara ska vara 0), och sist
+# importen på med Leonards ja.
+#
+# Skriver bara antal och Wix-id. Repot är publikt.
+
+on:
+  workflow_dispatch:
+    inputs:
+      lage:
+        description: "plan eller radera"
+        required: true
+        default: plan
+        type: choice
+        options: [plan, radera]
+      bekrafta:
+        description: "Läget radera: planens antal raderbara"
+        required: false
+        default: ""
+
+jobs:
+  kor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          LAGE: ${{ inputs.lage }}
+          BEKRAFTA: ${{ inputs.bekrafta }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # Till STDERR: en ::error::-rad på stdout slukas av kommandosubstitutionen.
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          rot="${BASE%/api/cron/poll-tracking}"
+
+          anropa() {
+            curl -sS --max-time 320 -X POST -H "Authorization: Bearer ${CRON_SECRET}" \
+              -H "Content-Type: application/json" -d "$1" "${rot}/api/admin/vevor-utkast-radera" || {
+              echo "::error::Anropet gick inte fram" >&2; return 1; }
+          }
+
+          visa() {
+            echo "$1" | jq '{dryRun, utkast, raderbara, hinder, raderade, fannsInte, obekraftade, fel, kvar, importNollstalld, stoppadAv, hoppade}' || true
+          }
+
+          if [ "$LAGE" = "plan" ]; then
+            svar=$(anropa '{"dryRun":true}')
+            if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+              echo "::error::$(echo "$svar" | jq -r '.error // "okänt fel"')" >&2; exit 1
+            fi
+            visa "$svar"
+            exit 0
+          fi
+
+          if ! [[ "$BEKRAFTA" =~ ^[0-9]+$ ]]; then
+            echo "::error::bekrafta ska vara planens antal raderbara (ett heltal)" >&2; exit 1
+          fi
+          tak="$BEKRAFTA"
+          for varv in $(seq 1 25); do
+            svar=$(anropa "{\"dryRun\":false,\"bekrafta\":${tak}}")
+            if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+              echo "::error::$(echo "$svar" | jq -r '.error // "okänt fel"')" >&2; exit 1
+            fi
+            echo "Varv ${varv}:"
+            visa "$svar"
+            if [ "$(echo "$svar" | jq -r '.obekraftade + .fel')" != "0" ]; then
+              echo "::error::Obekräftade raderingar eller fel. Läs Vercels logg innan nästa körning." >&2; exit 1
+            fi
+            if [ "$(echo "$svar" | jq -r '.stoppadAv')" = "klart" ]; then
+              echo "Klart. Importen nollställd: $(echo "$svar" | jq -r '.importNollstalld')"
+              exit 0
+            fi
+            # Följande varv: det som återstår är taket. Planen får krympa, aldrig växa.
+            tak=$(echo "$svar" | jq -r '.raderbara - .raderade - .fannsInte')
+          done
+          echo "::error::Inte klart efter 25 varv" >&2
+          exit 1

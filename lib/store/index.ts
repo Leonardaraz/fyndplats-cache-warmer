@@ -316,6 +316,16 @@ export interface ProductMappingRecord {
     bildmonster: "ny" | "gammal" | "okant";
     bildgranskning: boolean;
   };
+  /**
+   * VEVOR: varje artikel produkten bär, med prefix ("vevor:<artikel>"):
+   * radens egen och, på en familj, varje variants (steg 8). Dubblettspärren
+   * frågar efter fältet (`mappningarForLeverantorsId`), så en artikel som
+   * sitter som variant är lika upptagen som en med egen rad.
+   *
+   * ☠️ BÄR ARTIKELNUMMER. Skrivs aldrig ut i en publik logg: poleringens
+   * läsning (polish-mapping.yml) har en tillåtelselista som inte tar med det.
+   */
+  vevorArtiklar?: string[];
 }
 
 export interface AuditEntry {
@@ -356,7 +366,14 @@ export interface Store {
   saveMappings(records: ProductMappingRecord[]): Promise<{ fel: { wixProductId: string; fel: string }[] }>;
   listMappings(): Promise<ProductMappingRecord[]>;
   /**
-   * Raderna som bär något av id:na i `supplierProductId` eller `importSparr`.
+   * Tar bort raden. Bara för raderingen av opolerade VEVOR-utkast
+   * (lib/vevor/radera-utkast.ts), som först raderat produkten i Wix och sett
+   * en 404. En rad som redan var borta är inget fel.
+   */
+  deleteMapping(wixProductId: string): Promise<void>;
+  /**
+   * Raderna som bär något av id:na i `supplierProductId`, `importSparr` eller
+   * `vevorArtiklar`.
    *
    * För en imports dubblettspärr: en fråga per tugga i stället för hela listan.
    * VEVOR-importen tar ~15 600 artiklar, och att läsa alla mappningar i varje

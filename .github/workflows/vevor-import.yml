@@ -96,7 +96,7 @@ jobs:
           # Bara antal, tider, skäl och Wix-id. Markören och rabatten står aldrig i svaret.
           case "$LAGE" in
             prov)
-              echo "$svar" | jq '{utfall, skal, dryRun, granskade, importerade, redanImporterade, hinder, fel, foraldralosa, bilder, medicinteknik, gpsr, produkterIWix, varvKlart, stoppadAv}' || true
+              echo "$svar" | jq '{utfall, skal, dryRun, granskade, importerade, redanImporterade, hinder, fel, foraldralosa, bilder, medicinteknik, gpsr, familjer, recensioner, produkterIWix, varvKlart, stoppadAv}' || true
               utfall=$(echo "$svar" | jq -r '.utfall')
               if [ "$(echo "$svar" | jq -r '.foraldralosa | length')" != "0" ]; then
                 echo "::error::Produkter skapades utan mappningsrad. Wix-id står ovan." >&2

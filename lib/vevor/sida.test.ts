@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { fonsterObjekt, sidadress, sokvagUr, tolkaProduktsida, utanWebp, webbIdUr } from "./sida";
-import { TESTSKU, TESTWEBBID, testSokvag, testsida } from "./testsida";
+import { MAX_RECENSIONER, fonsterObjekt, sidadress, sokvagUr, tolkaProduktsida, utanWebp, webbIdUr } from "./sida";
+import { TESTSKU, TESTWEBBID, testSokvag, testrecension, testsida } from "./testsida";
 
 describe("tolkaProduktsida", () => {
   it("☠️ sajtens egen valuta måste också vara kronor", () => {
@@ -137,5 +137,59 @@ describe("små läsare", () => {
     expect(utanWebp("https://x.test/a.jpg?timestamp=1&format=webp&format=webp")).toBe("https://x.test/a.jpg?timestamp=1");
     expect(utanWebp("https://x.test/a.jpg?format=webp")).toBe("https://x.test/a.jpg");
     expect(utanWebp("https://x.test/a.jpg")).toBe("https://x.test/a.jpg");
+  });
+});
+
+describe("betyg och recensioner (steg 8)", () => {
+  const sida = (over: Parameters<typeof testsida>[0]) => {
+    const t = tolkaProduktsida(testsida(over));
+    if (!t.ok) throw new Error("ska gå att tolka");
+    return t.sida;
+  };
+
+  it("läser betyget ur aggregateRating", () => {
+    expect(sida({}).betyg).toEqual({ snitt: 4.5, antal: 12 });
+    expect(sida({ betyg: { ratingValue: "3.75", ratingCount: "5" } }).betyg).toEqual({ snitt: 3.75, antal: 5 });
+  });
+
+  it("☠️ ett betyg som inte går att lita på är inget betyg, och fäller inte sidan", () => {
+    expect(sida({ betyg: null }).betyg).toBeNull();
+    expect(sida({ betyg: { ratingValue: 0, reviewCount: 3 } }).betyg).toBeNull();
+    expect(sida({ betyg: { ratingValue: 6, reviewCount: 3 } }).betyg).toBeNull();
+    expect(sida({ betyg: { ratingValue: 4 } }).betyg).toBeNull();
+    expect(sida({ betyg: { ratingValue: 4, reviewCount: 2.5 } }).betyg).toBeNull();
+    expect(sida({ betyg: { ratingValue: "fyra", reviewCount: 3 } }).betyg).toBeNull();
+  });
+
+  it("läser recensionerna: betyg, text, datum och namn", () => {
+    expect(sida({}).recensioner).toEqual([
+      {
+        betyg: 5,
+        text: "Stabil och lätt att montera, hjulen rullar fint i sanden. Rekommenderas.",
+        datum: "2026-09-14",
+        namn: "Test P.",
+      },
+    ]);
+  });
+
+  it("☠️ en recension utan text eller med ett betyg utanför 1–5 tas inte med", () => {
+    const r = sida({
+      recensioner: [
+        testrecension({ reviewBody: "" }),
+        testrecension({ reviewRating: { ratingValue: 9 } }),
+        testrecension({ reviewRating: {} }),
+        testrecension({ reviewBody: "Bra &amp; prisvärd", author: "Anna", datePublished: "igår" }),
+      ],
+    }).recensioner;
+    expect(r).toEqual([{ betyg: 5, text: "Bra & prisvärd", datum: null, namn: "Anna" }]);
+  });
+
+  it("högst tio recensioner", () => {
+    const tolv = Array.from({ length: 12 }, (_, i) => testrecension({ reviewBody: `Recension nummer ${i} är bra.` }));
+    expect(sida({ recensioner: tolv }).recensioner).toHaveLength(MAX_RECENSIONER);
+  });
+
+  it("en sida utan recensioner ger en tom lista", () => {
+    expect(sida({ recensioner: [], betyg: null })).toMatchObject({ recensioner: [], betyg: null });
   });
 });

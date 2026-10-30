@@ -7,6 +7,7 @@ import { queryAuctions } from "@/lib/auction/store";
 import { getStore } from "@/lib/store/factory";
 import { vevorSkuOf } from "@/lib/store/supplier";
 import { VEVOR_ID_PREFIX } from "@/lib/store/leverantorsprefix";
+import { artiklarPaRaden } from "@/lib/aosom/artiklar";
 import { WixVevorLager } from "./lager";
 import type { LasarDeps } from "./lasare";
 import type { Prioritetsunderlag, VevorProdukt } from "./prioritet";
@@ -23,8 +24,12 @@ export async function lasPrioritetsunderlag(): Promise<Prioritetsunderlag> {
   // runt 22 000 rader, och prioriteringen går en gång i timmen inne i
   // läsarens körning, med läsarens tidsbudget.
   for (const m of await store.listMappingsMedPrefix(VEVOR_ID_PREFIX)) {
-    const sku = vevorSkuOf(m);
-    if (sku) produkter.push({ wixProductId: m.wixProductId, sku, publicerad: m.draftStatus === "published" });
+    if (!vevorSkuOf(m)) continue;
+    // Varje artikel på raden: på en familj (steg 8) har varje variant sin
+    // egen sida, och synken behöver en färsk avläsning av var och en.
+    for (const sku of artiklarPaRaden(m, VEVOR_ID_PREFIX)) {
+      produkter.push({ wixProductId: m.wixProductId, sku, publicerad: m.draftStatus === "published" });
+    }
   }
   if (produkter.length === 0) return { produkter, obestallda: new Set(), iAuktion: new Set() };
   const [tasks, live] = await Promise.all([store.listTasks("pending"), queryAuctions(["live"])]);

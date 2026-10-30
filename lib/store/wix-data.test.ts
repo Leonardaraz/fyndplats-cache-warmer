@@ -343,7 +343,7 @@ describe("WixDataStore — mappningarForLeverantorsId", () => {
     vi.restoreAllMocks();
   });
 
-  it("frågar på både supplierProductId och importSparr, hundra id åt gången", async () => {
+  it("frågar på supplierProductId, importSparr och vevorArtiklar, hundra id åt gången", async () => {
     const fn = mockFetch({
       json: { dataItems: [{ data: { _id: "w1", wixProductId: "w1", supplierProductId: "vevor:A" } }] },
     });
@@ -355,6 +355,8 @@ describe("WixDataStore — mappningarForLeverantorsId", () => {
     const villkor = kroppar.map((k) => k.query.filter.$or);
     expect(villkor[0][0].supplierProductId.$in).toHaveLength(100);
     expect(villkor[0][1].importSparr.$in).toEqual(villkor[0][0].supplierProductId.$in);
+    // En artikel som sitter som variant på en VEVOR-familj (steg 8).
+    expect(villkor[0][2].vevorArtiklar.$hasSome).toEqual(villkor[0][0].supplierProductId.$in);
     expect(villkor[1][0].supplierProductId.$in).toHaveLength(50);
     // Samma rad i två svar blir en.
     expect(rader).toHaveLength(1);

@@ -3,6 +3,7 @@
 
 import type { FeatureFlags, PricingRules } from "@/lib/import/types";
 import { importProduct } from "@/lib/import/pipeline";
+import { importReviewsForProduct } from "@/lib/import/review-import";
 import { getStore } from "@/lib/store/factory";
 import { getPricingRules } from "@/lib/store/pricing-config";
 import { getAppConfig } from "@/lib/store/app-config";
@@ -14,8 +15,9 @@ import type { ImportDeps } from "./import";
 
 /**
  * Rått läge, alltid: noll AI-anrop och `visible:false` ovillkorligt. Även
- * variantöversättningens AI är av: en VEVOR-artikel har inga varianter, och
- * en importkörning ska kosta noll i credits.
+ * variantöversättningens AI är av: en familjs värden är VEVOR:s egen svenska
+ * och skickas som manuella namn (lib/vevor/familj.ts), och en importkörning
+ * ska kosta noll i credits.
  */
 export const VEVOR_RAW_FLAGS: FeatureFlags = { qualityMode: "raw", enableAI: false, translateVariants: false };
 
@@ -33,6 +35,11 @@ export function liveImportDeps(): ImportDeps {
     mappningarFor: (ids) => store.mappningarForLeverantorsId(ids),
     importera: async (p) => importProduct(p, await prisregler(), undefined, VEVOR_RAW_FLAGS),
     sparaMappning: (m) => store.saveMapping(m),
+    // VEVOR har sagt ja till att vi använder recensionerna (Leonard
+    // 2026-10-29). Raderna är dolda tills de översatts och godkänts i
+    // /admin/reviews, som Aosoms.
+    sparaRecensioner: async (wixProductId, recensioner) =>
+      (await importReviewsForProduct(wixProductId, recensioner, { source: "vevor" })).imported,
     prisunderlag: async () => ({
       rabatt: tolkaRabatt((await getAppConfig()).vevorProRabatt),
       usdToSek: (await prisregler()).usdToSek,

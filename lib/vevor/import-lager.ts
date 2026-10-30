@@ -11,9 +11,10 @@
 
 import { fraga, hamta, rakna } from "@/lib/db/wix-data-klient";
 import { VEVOR_KOL } from "@/lib/db/wix-kollektioner";
-import { slappLasRad, tagLasRad, uppdateraRad, type Avlasning, type Lasartillstand } from "./lager";
+import { WixVevorLager, slappLasRad, tagLasRad, uppdateraRad, type Avlasning, type Lasartillstand } from "./lager";
 import type { Bildmonster } from "./bilder";
 import type { Hinder } from "./to-product";
+import type { FamiljSkal } from "./familj";
 
 export interface Importsummering {
   start: string;
@@ -35,6 +36,14 @@ export interface Importsummering {
   bilder: Record<Bildmonster, number> & { utanEgna: number };
   medicinteknik: number;
   gpsr: { manualEjLast: number; ingenManual: number };
+  /**
+   * Syskon som blev en produkt (steg 8): produkter, deras varianter, och
+   * familjer som inte gick att slå ihop och därför blev egna produkter.
+   * Saknas i körningar från före steg 8.
+   */
+  familjer?: { sammanslagna: number; varianter: number; ejSammanslagna: Record<FamiljSkal, number> };
+  /** VEVOR:s recensioner på de importerade produkterna, som dolda rader. Saknas före steg 8. */
+  recensioner?: { lasta: number; sparade: number; produkter: number; fel: number };
   produkterIWix: number | null;
   /** Gick körningen till slutet av avläsningarna? Då börjar nästa varv från början. */
   varvKlart: boolean;
@@ -93,6 +102,8 @@ export interface VevorImportLager {
   lasarensFrysning(): Promise<Lasartillstand["fryst"]>;
   /** Avläsningar i lager, för statusen. */
   raknaILager(): Promise<number>;
+  /** Avläsningarna för artikelnumren, oavsett status. För syskonen (lib/vevor/familj.ts). */
+  lasAvlasningar(skus: string[]): Promise<Map<string, Avlasning>>;
 }
 
 const IMPORT = "import";
@@ -133,6 +144,10 @@ export class WixVevorImportLager implements VevorImportLager {
   async raknaILager(): Promise<number> {
     return rakna(VEVOR_KOL.avlasningar, { status: "i_lager" });
   }
+
+  async lasAvlasningar(skus: string[]): Promise<Map<string, Avlasning>> {
+    return new WixVevorLager().avlasningar(skus);
+  }
 }
 
 /** Lagret i minnet, för tester. Samma regler som Wix där reglerna spelar roll. */
@@ -169,5 +184,13 @@ export class MinnesVevorImportLager implements VevorImportLager {
   }
   async raknaILager() {
     return [...this.avlasningar.values()].filter((a) => a.status === "i_lager").length;
+  }
+  async lasAvlasningar(skus: string[]) {
+    const ut = new Map<string, Avlasning>();
+    for (const s of skus) {
+      const a = this.avlasningar.get(s);
+      if (a) ut.set(s, structuredClone(a));
+    }
+    return ut;
   }
 }

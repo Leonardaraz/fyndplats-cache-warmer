@@ -45,6 +45,10 @@ export class MemoryStore implements Store {
     return [...this.mappings.values()];
   }
 
+  async deleteMapping(wixProductId: string): Promise<void> {
+    this.mappings.delete(wixProductId);
+  }
+
   async listMappingsMedPrefix(prefix: string): Promise<ProductMappingRecord[]> {
     return [...this.mappings.values()].filter((m) => (m.supplierProductId ?? "").startsWith(prefix));
   }
@@ -52,7 +56,10 @@ export class MemoryStore implements Store {
   async mappningarForLeverantorsId(ids: string[]): Promise<ProductMappingRecord[]> {
     const sokta = new Set(ids);
     return [...this.mappings.values()].filter(
-      (m) => sokta.has(m.supplierProductId) || (m.importSparr !== undefined && sokta.has(m.importSparr)),
+      (m) =>
+        sokta.has(m.supplierProductId) ||
+        (m.importSparr !== undefined && sokta.has(m.importSparr)) ||
+        (m.vevorArtiklar ?? []).some((a) => sokta.has(a)),
     );
   }
 

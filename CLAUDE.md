@@ -6359,8 +6359,8 @@ tak vid 20 000 eller 30 000 produkter, se *Katalogtaken* i steg 5.
 
 **Inte gjort, med flit:** ommappningen av VEVOR-varor som kom in via
 AliExpress (de bär ett AliExpress-id, och en automatisk matchning hade
-gissat; poleringen avgör, som för Aosom), sammanslagning av syskon, spärren
-mot publicering utan GPSR (steg 7) och läsning av manualerna. Synken kom i
+gissat; poleringen avgör, som för Aosom), spärren mot publicering utan GPSR
+(steg 7) och läsning av manualerna. Syskonen slås ihop sedan steg 8. Synken kom i
 steg 5, se nästa avsnitt.
 gatelibs `ARTNR` behöver inte VEVOR:s form än: artikelnumret stod inte i
 titel, beskrivning eller specifikation på någon av 34 sidor.
@@ -6576,6 +6576,96 @@ Fem egenskaper som inte ska tas bort:
 **Butiken** (`headless-site`, `lib/gpsr-flik.ts`) visar VEVOR:s två parter var
 för sig ("Tillverkare" och "Ansvarig i EU") och raden om bruksanvisningen
 villkorad. Aosoms flik är byte för byte som förut. Mergas före motorn.
+
+## VEVOR: steg 8, syskon, betyg och recensioner vid importen (2026-10-29)
+
+Leonards tre önskemål 2026-10-29, alla vid importen: syskonen slås ihop till
+en produkt, recensionerna följer med (VEVOR har sagt ja till att vi använder
+dem), och en artikel med under 3,8 i snitt och minst fem recensioner
+importeras inte.
+
+**Läsaren** (`lib/vevor/sida.ts`) sparar betyget (`aggregateRating`) och upp
+till tio recensioner (`review`) ur sidans JSON-LD: betyg, text, datum och
+namn. Uppmätt på 35 sparade sidor: 33 hade betyg, 2 av dem under 3,8 med
+minst fem recensioner. Texterna är på originalspråket (spanska, tyska,
+engelska). En avläsning från före steg 8 saknar fälten.
+
+**Betyget** (`betygshinder` i `lib/vevor/to-product.ts`): under `BETYG_GRANS`
+(3,8) med minst `BETYG_MIN_ANTAL` (5) recensioner är hindret `lagt_betyg`. En
+sida utan betyg är inget hinder. ☠️ En avläsning utan fältet (läst före
+steg 8) är `betyg_okant` och väntar på nästa läsning, i stället för att
+importeras på okänt betyg.
+
+**Syskonen** (`lib/vevor/familj.ts`): sidans syskonlänkar
+(`DETAIL_ATTR_LINK`) och syskonens egna avläsningar blir en produkt med en
+variant per artikel och en axel per egenskap (`PRODUCT_DATA.attr`). Varje
+variant bär sitt eget artikelnummer, saldo och inköp, och mappningen läses
+som en sammanslagen Aosom-sida (`artikelbild`, utfallet `flera`), så synken
+skriver lager och pris per variant. Uppmätt: 7 av 35 sidor hade syskon, 2–6
+artiklar per familj.
+
+Sju egenskaper som inte ska tas bort:
+
+1. ☠️ **Värdena kommer från syskonets egen sida**, aldrig från länklistan.
+   Bara syskon med en egen avläsning följer med.
+2. ☠️ **Samma axlar och ingen kombination två gånger**, annars går
+   varianterna inte att skilja åt. Då blir artikeln en egen produkt som förut
+   och räknas i `familjer.ejSammanslagna`.
+3. ☠️ **Ett syskon som redan sitter på en produkt följer inte med**, och en
+   artikel vars familj redan finns som produkt importeras inte
+   (`syskon_finns`). Den läggs till på familjen för hand. Dubblettspärren ser
+   varianternas artiklar genom `vevorArtiklar` på mappningen (`$hasSome`,
+   uppmätt mot skarpa Wix 2026-10-29).
+4. **Ett syskon som är slut följer med med saldo 0**, så att det inte blir en
+   egen produkt när det kommer tillbaka.
+5. ☠️ **Ett syskon utan betyg gör att hela familjen väntar.** Annars hade det
+   lämnats utanför och sedan blockerats av punkt 3.
+6. **VEVOR:s egen svenska skickas som manuella namn** (`variantNameOverrides`,
+   `axisNameOverrides`). Ett variantvärde går inte att döpa om i Wix efteråt,
+   så en känd felöversättning rättas före: "20 miljoner" på en längdaxel blir
+   "20 m" (`rensaVarde`).
+7. **Bilderna:** galleriet är ankarets, och varje artikels första bild kopplas
+   till dess värde på den första axel där varje artikel har ett eget värde.
+
+⚠️ **GPSR läses på radens artikel.** En familj har samma tillverkare, och
+standardraden gäller alla. ⚠️ **Leverantörslänken pekar på ankarets sida.**
+Den som beställer väljer varianten på VEVOR:s sida, som har samma väljare.
+
+**Recensionerna** sparas som dolda rader (`importReviewsForProduct`, källan
+`vevor`) med husets filter, och översätts och godkänns i /admin/reviews som
+Aosoms. En familj får alla syskonens recensioner. Ett fel där fäller inte
+importen och räknas i `recensioner.fel`. Butiken visar källan `vevor` som
+okänd, utan märkning.
+
+**Läsarens prioritering** läser varje artikel på en familj lika ofta som
+produkten (`lasPrioritetsunderlag`), eftersom synken behöver en färsk
+avläsning av varje variant.
+
+### Radera och börja om
+
+De 1 048 utkasten från steg 4 är en artikel per produkt. Leonard sa ja
+2026-10-29 till att radera dem och importera om. Workflowen **"VEVOR — radera
+opolerade utkast"** (`plan` · `radera`) → `/api/admin/vevor-utkast-radera` →
+`lib/vevor/radera-utkast.ts`.
+
+1. ☠️ Bara rader med leverantören vevor, `needsAiPolish` och inte publicerade.
+2. ☠️ Produkten läses färskt, och bara en dold produkt raderas.
+3. ☠️ En radering räknas först när en läsning svarar 404. Annars ligger raden
+   kvar, och tre i följd stoppar.
+4. ☠️ En produkt som en order pekar på rörs inte.
+5. ☠️ Importen måste vara avstängd.
+6. ☠️ `radera` kräver `bekrafta` = planens antal. Följande varv får ha färre,
+   aldrig fler.
+7. Mappningsraden tas bort (`Store.deleteMapping`), och när allt är raderat
+   nollställs importens markör. Importen slås inte på.
+
+Bilderna ligger kvar i Media Manager tills bildstädningen tar dem.
+
+**Ordningen efter mergen:** vänta ett dygn, så att läsaren har läst varje sida
+med betyg (utkasten och katalogen läses en gång per dygn), och kör en torr
+`prov` i "VEVOR — importen" (`betyg_okant` ska vara nära noll och `familjer`
+över noll). Kör sedan `plan`, `radera` med planens antal, `plan` igen
+(raderbara ska vara 0), och sist importen `pa` med Leonards ja.
 
 ## Prissättningen är marknadskalibrerad, inte påhittad (`FyndplatsPricingConfig`)
 
