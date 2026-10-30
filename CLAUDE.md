@@ -8136,6 +8136,8 @@ Reglerna bor i `lib/reviews/initialer.ts`:
    alfabetet (A–Z, Å, Ä, Ö). "B.A." och "A.A." är i sin ordning.
 3. Nya bokstäver slumpas ur A–V utan Q, och Å och Ö kommer med 2 % var per bokstav
    (ungefär 8 % av paren).
+4. Aldrig samma initialer på två recensioner på samma produkt (Leonard samma dag, se
+   *Inga två recensioner på samma produkt med samma initialer* nedan).
 
 ☠️ **Bokstavsordningen var en hashbugg, inte slump.** En recension utan läsbart namn
 (varenda Aosom-recension, eftersom Aosom-inläsningen inte bär några namn, och
@@ -8157,8 +8159,8 @@ Initialerna var alltså bytta i lagret, `/api/reviews/<id>` visade de nya inom e
 och produktsidan visade de gamla i timmar. Rapporten "klart" byggde på
 `/api/reviews/<id>`, inte på sidan.
 
-Verktyget är workflowen **"Recensioner — slumpa om initialer (Q/W/X/Y/Z och
-bokstavsordning)"** (`recensioner-initialer-slumpa.yml` → `/api/admin/recensioner-initialer-slumpa`,
+Verktyget är workflowen **"Recensioner — slumpa om initialer (Q/W/X/Y/Z, bokstavsordning och
+dubbletter på en produkt)"** (`recensioner-initialer-slumpa.yml` → `/api/admin/recensioner-initialer-slumpa`,
 logiken i `lib/reviews/slumpa-initialer.ts`). Torrt som default; `skarp=ja` kräver `bekrafta` =
 planens antal (`attSkrivaDennaKorning`); `hogst` standard 500, högst 2 000. Åtta
 egenskaper som inte ska tas bort:
@@ -8225,6 +8227,76 @@ tömma sidor för varje bulkändring, och det kräver ett eget beslut.
 ⚠️ Verifiera en rättelse av initialer mot **produktsidan** (butikens HTML), inte bara mot
 `/api/reviews/<produkt-id>`, och vänta tills butiken sagts till. `displayName` visas som det
 står, så Å och Ö kommer fram.
+
+### Inga två recensioner på samma produkt med samma initialer (2026-10-30)
+
+Leonards fråga 11:28, efter att han sett flera recensioner med samma initialer på
+massagefåtöljen: går det att inte ha så många med samma initialer på samma produkt? Svaret
+var ja, och han godkände (11:56) omfattningen *alla recensioner som inte är avvisade*. Det
+alternativ som erbjöds men inte valdes var bara de synliga (107 rader på 93 produkter).
+
+Regel 4 i `lib/reviews/initialer.ts`: på en produkt delar inga två recensioner som inte är
+avvisade samma **plats**. Platsen är bokstäverna med punkt, versaler ("S.K."):
+`nyckelForInitialer`. `platsPaProdukt(rad)` ger en rads plats (`null` för avvisade rader och för
+initialer i annan form, som "Verifierad köpare"), `upptagnaPlatser` samlar en produkts platser.
+`GILTIGA_PAR` är de 510 par en dragning kan ge (23 bokstäver ger 529 par, minus 19 i
+bokstavsordning), så en produkt rymmer högst 510 olika.
+
+Mätt read-only 2026-10-30 mot Wix Data (38 sidor, 8,5 sekunder), före körningen:
+
+| | |
+| :-- | --: |
+| rader i lagret / produkter | 37 190 / 7 269 |
+| ej avvisade rader / produkter | 36 380 / 7 255 |
+| produkter med minst en dubblett | 524 |
+| grupper som delar plats | 567 (564 par, 3 trillingar) |
+| **rader som får nya initialer** | **570** (Vevor 412, Aosom 112, AliExpress-import 46) |
+| flest recensioner på en produkt | 66 (76 med avvisade) |
+
+**Vem som behåller sina initialer** (`behallOrdning`): kundomdömen först, sedan synliga
+(`approved`/`edited`) före väntande, sedan den äldsta (`date`, annars `importedAt`, rader
+utan båda sist) och sist recensions-id, så att ordningen är total. Resten av gruppen får nya
+initialer, i samma ordning, och varje ny plats läggs i den upptagna mängden innan nästa rad
+dras. Två omslumpade rader får alltså aldrig samma par.
+
+Åtta egenskaper som inte ska tas bort:
+
+1. ☠️ **Planen är en ren funktion av raderna** (`planeraSlumpa`). Torrkörningen visar exakt
+   vad den skarpa skriver, en rad ändras högst en gång, en körning som kapas av `hogst` eller
+   tidsbudgeten kan köras om utan att något ändras två gånger, och en omkörning hittar
+   ingenting. Utdata sorteras på (produkt, recension) så att `hogst` alltid tar samma rader.
+2. ☠️ **Avvisade recensioner upptar ingen plats.** De syns aldrig, och en avvisad rad som
+   bryter mot Q/W/X/Y/Z eller bokstavsordningen rättas som förut utan att ta en plats.
+3. ☠️ **Ett kundomdöme ändras aldrig för att det är en dubblett.** Kundens initialer är
+   hens egna. Kundomdömen sorteras först och behåller sin plats, en annan recension flyttar.
+   Två kunder med samma initialer lämnas och räknas (`kundDubbletter`). Ett kundomdöme som
+   bryter mot reglerna ändras som förut bara med `kundomdomen=ja`, och tar annars sin plats.
+4. ☠️ **En rättad rad får aldrig en upptagen plats.** Reglerna rättas med
+   `rattaInitialerUnika`, dubbletter dras om med `slumpaUnika` (frö: produkt-id och
+   recensions-id). Båda provar upp till 64 nya dragningar och faller sedan tillbaka på ett
+   jämnt val bland de lediga paren.
+5. ☠️ **Reservvägen drar Å och Ö ungefär dubbelt så ofta som dragningen** (mätt: 3,5–4,2 %
+   mot 2 %). Därför kommer 64 nya dragningar först, och ett test låser andelen på en produkt
+   där två tredjedelar är upptaget. Leonard: Å och Ö får komma *ibland*.
+6. **En produkt med fler än 510 recensioner** kan inte få unika par. Rader utan ledigt par
+   lämnas som de är och räknas i `ejUnika`, och jobbet varnar. Flest i lagret just nu: 66.
+7. ☠️ **Importerna följer samma regel.** `importReviewsForProduct` (Aosom, Vevor, återfyllnad,
+   `/api/import`, `/api/reviews/import`) och `queueReviewsForProduct` (AliExpress-kön) läser
+   produktens platser en gång (`lasUpptagnaInitialer`, först när en NY rad ska skrivas, aldrig i
+   torrläge eller när allt redan finns) och lägger varje ny plats i mängden
+   (`deriveUniqueInitials`), så att två recensioner i samma körning inte krockar. Ett läsfel
+   stoppar inte importen: raden får sina vanliga initialer, en varning loggas, och nästa körning
+   av verktyget fångar dubbletten.
+8. ☠️ **Läsningen av hela lagret äter av skrivbudgeten.** Tidsbudgeten på 200 sekunder mäts från
+   ruttens start, och lagret är över 37 000 rader att läsa före första skrivningen. Svaret och
+   loggen bär `lasMs` så att en långsam läsning syns. Skrivtakten vid förra körningen var
+   ungefär 3,6 rader per sekund (omläsning, skrivning och återläsning).
+
+Verktyg som inte ändrats och därför inte kontrollerar dubbletter: `kundinitialer.ts` (kundomdömen
+utan namn, initialer ur ordern), `recension-initialer` (EN utpekad recension, Leonard väljer
+själv) och `/api/reviews/customer` (kunden väljer själv). En avvisad recension som godkänns i
+efterhand kan återinföra en dubblett, eftersom avvisade rader inte tar någon plats. Kör
+verktyget torrt igen efter en sådan omgodkännande: det hittar och rättar den.
 
 ## Recensionernas svenska ska låta som en kund, inte som en AI (2026-09-24)
 

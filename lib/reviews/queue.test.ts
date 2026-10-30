@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { queueReviewsForProduct, isAwaitingTranslation, isCustomerReview, groupAwaitingTranslation } from "./queue";
 import type { StoredReview } from "../store/reviews";
 import type { AERReview } from "../import/review-import";
+import { bristerIInitialer, nyckelForInitialer } from "./initialer";
 
 function rad(över: Partial<StoredReview> = {}): StoredReview {
   return {
@@ -18,15 +19,21 @@ function rad(över: Partial<StoredReview> = {}): StoredReview {
 }
 
 /** Minimal butik i minnet — samma yta som queue.ts använder. */
-function fakeStore() {
+function fakeStore(fanns: StoredReview[] = []) {
   const data = new Map<string, StoredReview>();
+  const lasningar = { antal: 0 };
   return {
     data,
+    lasningar,
     async exists(productId: string, reviewIdAE: string) {
       return data.has(`${productId}__${reviewIdAE}`);
     },
     async upsert(r: StoredReview) {
       data.set(`${r.productId}__${r.reviewIdAE}`, r);
+    },
+    async listByProduct(productId: string) {
+      lasningar.antal++;
+      return [...fanns, ...data.values()].filter((r) => r.productId === productId);
     },
   } as unknown as ReturnType<typeof import("../store/reviews").getReviewStore>;
 }
@@ -91,6 +98,76 @@ describe("queueReviewsForProduct", () => {
   it("tom indata ger tomt svar utan anrop", async () => {
     expect(await queueReviewsForProduct("p1", [])).toEqual({ queued: 0, skippedExisting: 0, filtered: 0 });
     expect(await queueReviewsForProduct("", [ae()])).toEqual({ queued: 0, skippedExisting: 0, filtered: 0 });
+  });
+});
+
+// Leonard 2026-10-30: inga två recensioner på samma produkt med samma initialer.
+describe("queueReviewsForProduct — unika initialer", () => {
+  const text = (n: number) => `Excellent quality number ${n}, assembled in twenty minutes and feels very sturdy overall.`;
+  const data = (store: unknown) => [...(store as { data: Map<string, StoredReview> }).data.values()];
+
+  it("ger köade recensioner med samma namn olika initialer", async () => {
+    const store = fakeStore();
+    const r = await queueReviewsForProduct(
+      "p1",
+      Array.from({ length: 8 }, (_, i) => ae({ reviewIdAE: `a${i}`, text: text(i), customerName: "Maria Karlsson" })),
+      { store },
+    );
+    expect(r.queued).toBe(8);
+    const initialer = data(store).map((x) => x.initials);
+    expect(new Set(initialer.map(nyckelForInitialer)).size).toBe(8);
+    for (const i of initialer) expect(bristerIInitialer(i), i).toBeNull();
+  });
+
+  it("☠️ undviker initialer som redan finns på produkten, men inte de på en avvisad rad", async () => {
+    const store = fakeStore([
+      rad({ productId: "p1", reviewIdAE: "fanns-1", initials: "M.K.", status: "approved" }),
+      rad({ productId: "p1", reviewIdAE: "fanns-2", initials: "S.L.", status: "rejected" }),
+      rad({ productId: "p2", reviewIdAE: "fanns-3", initials: "A.R.", status: "approved" }),
+    ]);
+    await queueReviewsForProduct(
+      "p1",
+      [
+        ae({ reviewIdAE: "a1", text: text(1), customerName: "Maria Karlsson" }),
+        ae({ reviewIdAE: "a2", text: text(2), customerName: "Sven Lund" }),
+        ae({ reviewIdAE: "a3", text: text(3), customerName: "Anna Rask" }),
+      ],
+      { store },
+    );
+    const per = Object.fromEntries(data(store).map((x) => [x.reviewIdAE, x.initials]));
+    expect(per.a1).not.toBe("M.K."); // upptagen av en godkänd rad
+    expect(per.a2).toBe("S.L."); // den avvisade upptar ingen plats
+    expect(per.a3).toBe("A.R."); // samma initialer på en annan produkt är ingen krock
+  });
+
+  it("läser produktens rader en gång, och inte alls i torrläge eller när allt redan finns", async () => {
+    const store = fakeStore();
+    await queueReviewsForProduct("p1", [ae({ reviewIdAE: "a1", text: text(1) }), ae({ reviewIdAE: "a2", text: text(2) })], { store });
+    expect((store as never as { lasningar: { antal: number } }).lasningar.antal).toBe(1);
+
+    const torr = fakeStore();
+    await queueReviewsForProduct("p1", [ae({ reviewIdAE: "a1", text: text(1) })], { store: torr, dryRun: true });
+    expect((torr as never as { lasningar: { antal: number } }).lasningar.antal).toBe(0);
+
+    const klar = fakeStore();
+    await klar.upsert(rad({ productId: "p1", reviewIdAE: "a1" }));
+    await queueReviewsForProduct("p1", [ae({ reviewIdAE: "a1", text: text(1) })], { store: klar });
+    expect((klar as never as { lasningar: { antal: number } }).lasningar.antal).toBe(0);
+  });
+
+  it("☠️ ett läsfel hos lagret stoppar inte kön: raden köas med vanliga initialer", async () => {
+    const store = fakeStore();
+    (store as never as { listByProduct: () => Promise<never> }).listByProduct = async () => {
+      throw new Error("Wix nere");
+    };
+    const varna = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const r = await queueReviewsForProduct("p1", [ae({ reviewIdAE: "a1", text: text(1), customerName: "Maria Karlsson" })], { store });
+      expect(r.queued).toBe(1);
+      expect(data(store)[0].initials).toBe("M.K.");
+    } finally {
+      varna.mockRestore();
+    }
   });
 });
 

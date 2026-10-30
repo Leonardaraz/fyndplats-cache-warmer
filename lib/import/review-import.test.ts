@@ -1,16 +1,18 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   dedupKey,
   deriveInitials,
+  deriveUniqueInitials,
   ensureReviewId,
   filterAndRankReviews,
   importReviewsForProduct,
   isSpam,
+  lasUpptagnaInitialer,
   scoreReview,
   type AERReview,
 } from "./review-import";
 import type { StoredReview } from "../store/reviews";
-import { bristerIInitialer } from "../reviews/initialer";
+import { GILTIGA_PAR, bristerIInitialer, nyckelForInitialer, slumpaUnika } from "../reviews/initialer";
 
 const NOW = new Date("2026-06-02T00:00:00Z");
 
@@ -166,12 +168,37 @@ describe("ensureReviewId", () => {
 class FakeReviewStore {
   saved: StoredReview[] = [];
   existing = new Set<string>();
+  /** Rader som redan låg i lagret före importen (för listByProduct). */
+  fanns: StoredReview[] = [];
+  /** Antal gånger en produkts rader lästes. */
+  lasningar = 0;
+  /** Sätts för att simulera ett läsfel. */
+  lasFel: Error | null = null;
   async exists(productId: string, reviewIdAE: string): Promise<boolean> {
     return this.existing.has(`${productId}__${reviewIdAE}`);
   }
   async upsert(r: StoredReview): Promise<void> {
     this.saved.push(r);
   }
+  async listByProduct(productId: string): Promise<StoredReview[]> {
+    this.lasningar++;
+    if (this.lasFel) throw this.lasFel;
+    return [...this.fanns, ...this.saved].filter((r) => r.productId === productId);
+  }
+}
+
+function lagrad(över: Partial<StoredReview>): StoredReview {
+  return {
+    productId: "prod1",
+    reviewIdAE: "fanns-1",
+    rating: 5,
+    textOriginal: "x",
+    textSwedish: "x",
+    initials: "M.K.",
+    hasImage: false,
+    status: "pending",
+    ...över,
+  };
 }
 
 describe("importReviewsForProduct", () => {
@@ -218,6 +245,167 @@ describe("importReviewsForProduct", () => {
     });
     expect(res.imported).toBe(0);
     expect(res.reviews).toHaveLength(0);
+  });
+});
+
+// ── Unika initialer per produkt (Leonard 2026-10-30) ──────────────────────
+describe("deriveUniqueInitials", () => {
+  it("ger samma initialer som deriveInitials när platsen är ledig, och upptar den", () => {
+    const upptagna = new Set<string>();
+    expect(deriveUniqueInitials("Maria Karlsson", "a", "prod1", upptagna)).toBe("M.K.");
+    expect(upptagna.has("M.K.")).toBe(true);
+    const slumpade = deriveUniqueInitials(undefined, "rev-abc", "prod1", new Set());
+    expect(slumpade).toBe(deriveInitials(undefined, "rev-abc"));
+  });
+
+  it("väljer andra bokstäver när platsen är upptagen, och upptar den nya", () => {
+    const upptagna = new Set(["M.K."]);
+    const ut = deriveUniqueInitials("Maria Karlsson", "a", "prod1", upptagna);
+    expect(ut).not.toBe("M.K.");
+    expect(bristerIInitialer(ut)).toBeNull();
+    expect(upptagna.has(nyckelForInitialer(ut))).toBe(true);
+    expect(upptagna.size).toBe(2);
+  });
+
+  it("dras med samma frö som bulkverktyget (produkt#recension), så de två är överens", () => {
+    const upptagna = new Set(["M.K."]);
+    const ut = deriveUniqueInitials("Maria Karlsson", "rev-7", "prod-9", new Set(upptagna));
+    expect(ut).toBe(slumpaUnika("prod-9#rev-7", upptagna));
+  });
+
+  it("tjugo recensioner med samma namn i rad får tjugo olika initialer", () => {
+    const upptagna = new Set<string>();
+    const ut = Array.from({ length: 20 }, (_, i) => deriveUniqueInitials("Maria Karlsson", `r${i}`, "prod1", upptagna));
+    expect(new Set(ut.map(nyckelForInitialer)).size).toBe(20);
+    expect(ut[0]).toBe("M.K.");
+    for (const i of ut) expect(bristerIInitialer(i), i).toBeNull();
+  });
+
+  it("fyller en hel produkt: 510 recensioner utan namn, 510 olika par", () => {
+    const upptagna = new Set<string>();
+    const ut = Array.from({ length: GILTIGA_PAR.length }, (_, i) => deriveUniqueInitials(undefined, `gen-${i}`, "prod1", upptagna));
+    expect(new Set(ut).size).toBe(GILTIGA_PAR.length);
+  });
+
+  it("ger reglerna företräde när varje par redan är upptaget", () => {
+    const upptagna = new Set(GILTIGA_PAR);
+    const ut = deriveUniqueInitials(undefined, "gen-1", "prod1", upptagna);
+    expect(ut).toBe(deriveInitials(undefined, "gen-1"));
+    expect(bristerIInitialer(ut)).toBeNull();
+  });
+});
+
+describe("lasUpptagnaInitialer", () => {
+  it("samlar platserna för väntande och synliga rader, men inte avvisade", async () => {
+    const store = new FakeReviewStore();
+    store.fanns = [
+      lagrad({ reviewIdAE: "1", initials: "M.K.", status: "pending" }),
+      lagrad({ reviewIdAE: "2", initials: "a.r.", status: "approved" }),
+      lagrad({ reviewIdAE: "3", initials: "S.L.", status: "edited" }),
+      lagrad({ reviewIdAE: "4", initials: "J.B.", status: "rejected" }),
+      lagrad({ productId: "annan", reviewIdAE: "5", initials: "O.G.", status: "approved" }),
+    ];
+    const platser = await lasUpptagnaInitialer(store, "prod1");
+    expect([...platser].sort()).toEqual(["A.R.", "M.K.", "S.L."]);
+  });
+
+  it("☠️ ett läsfel kastar inte: importen går vidare utan unikhetskoll", async () => {
+    const store = new FakeReviewStore();
+    store.lasFel = new Error("Wix nere");
+    const varna = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const platser = await lasUpptagnaInitialer(store, "prod1");
+      expect(platser.size).toBe(0);
+      expect(varna).toHaveBeenCalled();
+    } finally {
+      varna.mockRestore();
+    }
+  });
+});
+
+describe("importReviewsForProduct — unika initialer", () => {
+  const text = (n: number) => `Mycket nöjd med köp nummer ${n}, kvaliteten är gedigen och leveransen gick fort.`;
+  const importera = (store: FakeReviewStore, recensioner: AERReview[], produkt = "prod1") =>
+    importReviewsForProduct(produkt, recensioner, { now: NOW, reviewStore: store as never, source: "vevor" });
+
+  it("ger två recensioner med samma namn olika initialer på samma produkt", async () => {
+    const store = new FakeReviewStore();
+    await importera(store, [
+      review({ reviewIdAE: "a", text: text(1), customerName: "Maria Karlsson" }),
+      review({ reviewIdAE: "b", text: text(2), customerName: "Maria Karlsson" }),
+    ]);
+    const initialer = store.saved.map((r) => r.initials);
+    expect(initialer).toHaveLength(2);
+    expect(new Set(initialer.map(nyckelForInitialer)).size).toBe(2);
+    expect(initialer).toContain("M.K.");
+    for (const i of initialer) expect(bristerIInitialer(i), i).toBeNull();
+    // Namnet bevaras som bevis, oavsett vilka initialer raden fick.
+    expect(store.saved.every((r) => r.customerNameRaw === "Maria Karlsson")).toBe(true);
+  });
+
+  it("ger tolv recensioner med samma maskerade namn tolv olika initialer", async () => {
+    const store = new FakeReviewStore();
+    await importera(
+      store,
+      Array.from({ length: 12 }, (_, i) => review({ reviewIdAE: `r${i}`, text: text(i), customerName: "A***r" })),
+    );
+    expect(store.saved).toHaveLength(12);
+    expect(new Set(store.saved.map((r) => nyckelForInitialer(r.initials))).size).toBe(12);
+  });
+
+  it("☠️ undviker initialer som redan finns på produkten, också på väntande rader", async () => {
+    const store = new FakeReviewStore();
+    store.fanns = [lagrad({ reviewIdAE: "fanns-1", initials: "M.K.", status: "pending" })];
+    await importera(store, [review({ reviewIdAE: "a", text: text(1), customerName: "Maria Karlsson" })]);
+    expect(store.saved[0].initials).not.toBe("M.K.");
+    expect(bristerIInitialer(store.saved[0].initials)).toBeNull();
+  });
+
+  it("samma namn på en annan produkt är ingen krock, och en avvisad rad upptar ingen plats", async () => {
+    const store = new FakeReviewStore();
+    store.fanns = [
+      lagrad({ productId: "annan", initials: "M.K.", status: "approved" }),
+      lagrad({ reviewIdAE: "avvisad", initials: "M.K.", status: "rejected" }),
+    ];
+    await importera(store, [review({ reviewIdAE: "a", text: text(1), customerName: "Maria Karlsson" })]);
+    expect(store.saved[0].initials).toBe("M.K.");
+  });
+
+  it("☠️ ett läsfel hos lagret stoppar inte importen: raden sparas med vanliga initialer", async () => {
+    const store = new FakeReviewStore();
+    store.lasFel = new Error("Wix nere");
+    const varna = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const res = await importera(store, [review({ reviewIdAE: "a", text: text(1), customerName: "Maria Karlsson" })]);
+      expect(res.imported).toBe(1);
+      expect(store.saved[0].initials).toBe("M.K.");
+    } finally {
+      varna.mockRestore();
+    }
+  });
+
+  it("läser produktens rader en gång per import, och inte alls när allt redan finns", async () => {
+    const store = new FakeReviewStore();
+    await importera(store, [
+      review({ reviewIdAE: "a", text: text(1), customerName: "Maria Karlsson" }),
+      review({ reviewIdAE: "b", text: text(2), customerName: "Peter Svensson" }),
+      review({ reviewIdAE: "c", text: text(3) }),
+    ]);
+    expect(store.lasningar).toBe(1);
+
+    const allt = new FakeReviewStore();
+    allt.existing.add("prod1__a");
+    await importera(allt, [review({ reviewIdAE: "a", text: text(1), customerName: "Maria Karlsson" })]);
+    expect(allt.lasningar).toBe(0);
+  });
+
+  it("en andra import av samma produkt ser den förstas rader", async () => {
+    const store = new FakeReviewStore();
+    await importera(store, [review({ reviewIdAE: "a", text: text(1), customerName: "Maria Karlsson" })]);
+    await importera(store, [review({ reviewIdAE: "b", text: text(2), customerName: "Maria Karlsson" })]);
+    expect(store.saved).toHaveLength(2);
+    expect(store.saved[0].initials).toBe("M.K.");
+    expect(store.saved[1].initials).not.toBe("M.K.");
   });
 });
 

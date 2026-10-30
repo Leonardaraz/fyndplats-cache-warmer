@@ -16,7 +16,9 @@ const varld = vi.hoisted(() => ({
   audit: [] as string[][],
 }));
 
-vi.mock("@/lib/store/reviews", () => ({
+vi.mock("@/lib/store/reviews", async (importOriginal) => ({
+  // Resten av modulen (isVisibleStatus m.fl.) är den riktiga; bara lagret är låtsas.
+  ...(await importOriginal<typeof import("@/lib/store/reviews")>()),
   getReviewStore: () => ({
     listAll: async () => structuredClone(varld.rader),
     upsert: async (r: StoredReview) => {
@@ -202,5 +204,134 @@ describe("recensioner-initialer-slumpa", () => {
   it("svaret bär inga råa namn", async () => {
     const text = JSON.stringify(await (await POST(begaran("?skarp=ja&bekrafta=3"))).json());
     expect(text).not.toContain("Hemligt Namn");
+  });
+});
+
+// Leonard 2026-10-30: inga två recensioner på samma produkt med samma initialer.
+describe("recensioner-initialer-slumpa — dubbletter på samma produkt", () => {
+  /**
+   * prod-3: S.K. på tre rader (den äldsta synliga, d1, behåller dem) och en rad med andra
+   * initialer. prod-4: samma initialer som prod-3 men på en annan produkt, ingen krock.
+   * prod-5: en avvisad rad upptar ingen plats. prod-6: två kunder med samma initialer, som
+   * aldrig ändras. Inget här bryter mot Q/W/X/Y/Z eller bokstavsordningen.
+   */
+  function dubblettLager(): StoredReview[] {
+    return [
+      rad({ productId: "prod-3", reviewIdAE: "rev-d1", initials: "S.K.", date: "2026-01-01" }),
+      rad({ productId: "prod-3", reviewIdAE: "rev-d2", initials: "S.K.", date: "2026-02-01", status: "pending" }),
+      rad({ productId: "prod-3", reviewIdAE: "rev-d3", initials: "S.K.", date: "2026-03-01" }),
+      rad({ productId: "prod-3", reviewIdAE: "rev-d4", initials: "M.L.", date: "2026-03-02" }),
+      rad({ productId: "prod-4", reviewIdAE: "rev-d5", initials: "S.K." }),
+      rad({ productId: "prod-5", reviewIdAE: "rev-d6", initials: "S.K." }),
+      rad({ productId: "prod-5", reviewIdAE: "rev-d7", initials: "S.K.", status: "rejected" }),
+      rad({ productId: "prod-6", reviewIdAE: "rev-d8", initials: "S.K.", source: "customer" }),
+      rad({ productId: "prod-6", reviewIdAE: "rev-d9", initials: "S.K.", source: "customer" }),
+    ];
+  }
+  const pa = (id: string) => varld.rader.find((r) => r.reviewIdAE === id)!;
+
+  beforeEach(() => {
+    varld.rader = dubblettLager();
+  });
+
+  it("torrt: räknar bara raderna som delar initialer på en produkt, och lämnar resten orört", async () => {
+    const json = await (await POST(begaran())).json();
+    expect(json).toMatchObject({
+      ok: true,
+      skarp: false,
+      totalt: 2,
+      attSkrivaDennaKorning: 2,
+      produkter: 1,
+      kundDubbletter: 1,
+      kundomdomenHoppade: 0,
+      ejUnika: 0,
+      annanForm: 0,
+      perOrsak: { dubblett: 2, bokstavsordning: 0, barForbjuden: 0 },
+      perKalla: { import: 2, aosom: 0, vevor: 0, kund: 0 },
+      skrivet: null,
+      butiken: null,
+    });
+    expect(typeof json.lasMs).toBe("number");
+    expect(json.exempel).toHaveLength(2);
+    expect(json.exempel.every((e: string) => /^S\.K\. → .+\..+\.$/u.test(e))).toBe(true);
+    expect(varld.skrivna).toHaveLength(0);
+    expect(varld.butik).toHaveLength(0);
+    // Loggen är publik: varken produkt-id eller recensions-id lämnar rutten.
+    const text = JSON.stringify(json);
+    expect(text).not.toContain("prod-");
+    expect(text).not.toContain("rev-d");
+  });
+
+  it("skarpt: dubbletterna får egna initialer, den äldsta synliga behåller sina, och bara den berörda produkten sägs till butiken", async () => {
+    const stopp = await (await POST(begaran("?skarp=ja&bekrafta=3"))).json();
+    expect(stopp.stopp).toMatch(/bekrafta måste vara 2/);
+    expect(varld.skrivna).toHaveLength(0);
+
+    const json = await (await POST(begaran("?skarp=ja&bekrafta=2"))).json();
+    expect(json.skrivet).toMatchObject({ andrade: 2, fel: 0, kvar: 0, andratUnderTiden: 0 });
+
+    expect(pa("rev-d1").initials).toBe("S.K.");
+    expect(pa("rev-d4").initials).toBe("M.L.");
+    for (const id of ["rev-d2", "rev-d3"]) {
+      expect(pa(id).initials).not.toBe("S.K.");
+      expect(pa(id).initials).toMatch(/^[A-PR-VÅÖ]\.[A-PR-VÅÖ]\.$/u);
+      expect(bristerIInitialer(pa(id).initials)).toBeNull();
+    }
+    const prod3 = varld.rader.filter((r) => r.productId === "prod-3").map((r) => r.initials);
+    expect(new Set(prod3).size).toBe(4);
+
+    // Text, betyg och status rörs inte.
+    expect(pa("rev-d2")).toMatchObject({ status: "pending", textSwedish: "Bra produkt", rating: 5 });
+    expect(pa("rev-d3")).toMatchObject({ status: "approved", textSwedish: "Bra produkt", rating: 5 });
+    // Orörda: en annan produkt, en avvisad rad och ett kundpar.
+    for (const id of ["rev-d5", "rev-d6", "rev-d7", "rev-d8", "rev-d9"]) expect(pa(id).initials).toBe("S.K.");
+    expect(varld.skrivna.map((r) => r.reviewIdAE).sort()).toEqual(["rev-d2", "rev-d3"]);
+
+    expect(varld.butik).toHaveLength(1);
+    expect(varld.butik[0].produkter.map((p) => p.id)).toEqual(["prod-3"]);
+    expect(json.butiken).toMatchObject({ produkter: 1, anrop: 1, uppdaterade: 1, misslyckade: 0 });
+    expect(varld.audit[0][2]).toMatch(/2 recensioner fick nya initialer/);
+    expect(varld.audit[0][2]).toMatch(/dubbletter på samma produkt/);
+  });
+
+  it("en omkörning efter en skarp körning hittar inga dubbletter, och kundparet räknas fortfarande", async () => {
+    await POST(begaran("?skarp=ja&bekrafta=2"));
+    const json = await (await POST(begaran())).json();
+    expect(json).toMatchObject({ totalt: 0, produkter: 0, kundDubbletter: 1, ejUnika: 0, perOrsak: { dubblett: 0 } });
+  });
+
+  it("hogst=1 två gånger gör klart allt, och varje rad ändras en enda gång", async () => {
+    const forsta = await (await POST(begaran("?skarp=ja&hogst=1&bekrafta=1"))).json();
+    expect(forsta).toMatchObject({ totalt: 2, attSkrivaDennaKorning: 1 });
+    expect(forsta.skrivet).toMatchObject({ andrade: 1, kvar: 1 });
+    const andra = await (await POST(begaran("?skarp=ja&hogst=1&bekrafta=1"))).json();
+    expect(andra).toMatchObject({ totalt: 1, attSkrivaDennaKorning: 1 });
+    expect(andra.skrivet).toMatchObject({ andrade: 1, kvar: 0 });
+
+    expect(varld.skrivna.map((r) => r.reviewIdAE).sort()).toEqual(["rev-d2", "rev-d3"]);
+    const prod3 = varld.rader.filter((r) => r.productId === "prod-3").map((r) => r.initials);
+    expect(new Set(prod3).size).toBe(4);
+    expect((await (await POST(begaran())).json()).totalt).toBe(0);
+  });
+
+  it("kundomdomen=ja ändrar inte ett kundpar som bara delar initialer: de bryter inte mot reglerna", async () => {
+    const json = await (await POST(begaran("?kundomdomen=ja"))).json();
+    expect(json).toMatchObject({ totalt: 2, kundDubbletter: 1, perKalla: { kund: 0 } });
+  });
+
+  it("en dubblett som också bryter mot reglerna rättas en gång, till initialer som är fria på produkten", async () => {
+    varld.rader = [
+      rad({ productId: "prod-7", reviewIdAE: "rev-e1", initials: "A.B.", date: "2026-01-01" }),
+      rad({ productId: "prod-7", reviewIdAE: "rev-e2", initials: "A.B.", date: "2026-02-01" }),
+      rad({ productId: "prod-7", reviewIdAE: "rev-e3", initials: "Z.K.", date: "2026-03-01" }),
+    ];
+    const torr = await (await POST(begaran())).json();
+    expect(torr).toMatchObject({ totalt: 3, produkter: 1, perOrsak: { bokstavsordning: 2, barForbjuden: 1, dubblett: 0 } });
+    const json = await (await POST(begaran("?skarp=ja&bekrafta=3"))).json();
+    expect(json.skrivet).toMatchObject({ andrade: 3, fel: 0, kvar: 0 });
+    const klara = varld.rader.map((r) => r.initials);
+    expect(new Set(klara).size).toBe(3);
+    for (const i of klara) expect(bristerIInitialer(i)).toBeNull();
+    expect((await (await POST(begaran())).json()).totalt).toBe(0);
   });
 });
