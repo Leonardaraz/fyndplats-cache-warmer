@@ -34,13 +34,25 @@
 //    eller vars sida inte går att läsa väntar familjen inte på: då hade den
 //    väntat för alltid.
 //
+// ☠️ VARJE FÄRG FÅR SINA EGNA BILDER (Leonard 2026-10-30: "Ja gör det
+// noggrant"). Familjen fick först ankarets sex bilder och bara huvudbilden från
+// varje syskon. Traktorskopskyddet i tre färger visade då en bild för grön och
+// orange och sju för röd, och den röda huvudbilden låg två gånger i galleriet.
+// Nu ligger varje artikels egna bilder i galleriet, ankaret först, och kopplas
+// till artikelns värde på bildaxeln (`valBilder`, lib/import/types.ts). Varje
+// bild laddas upp en gång. Syskonens bilder ligger i egna mappar hos VEVOR,
+// så ingen adress delas mellan två artiklar (uppmätt på traktorskopskyddet, 3 × 12
+// egna bilder, 0 gemensamma). Skulle en adress ändå delas kopplas den till den
+// första artikeln som har den. Wix tar högst 50 bilder per produkt, så en familj
+// med fler än åtta artiklar får färre än sex bilder per artikel, minst en.
+//
 // Ren modul.
 
-import { WIX_MAX_OPTIONS_PER_PRODUCT } from "@/lib/wix/limits";
+import { WIX_MAX_BILDER_PER_PRODUKT, WIX_MAX_OPTIONS_PER_PRODUCT } from "@/lib/wix/limits";
 import type { AliExpressProduct } from "@/lib/import/types";
 import type { Avlasning, Sidrad } from "./lager";
 import { medlemshinder, specifikation, kostnadUsd, vevorProdukt, type Prisunderlag } from "./to-product";
-import type { Bildval } from "./bilder";
+import { BILDER_PER_PRODUKT, type Bildval } from "./bilder";
 
 export type FamiljSkal = "utan_egenskaper" | "olika_axlar" | "samma_kombination" | "for_manga_axlar";
 
@@ -149,19 +161,47 @@ export function byggFamilj(
 }
 
 /**
- * Familjen som pipelinens produkt: ankarets text, bilder och specifikation,
- * och en variant per artikel med dess egna värden, saldo och inköp.
+ * Familjens galleri och bilderna per värde: varje artikels egna bilder, i
+ * medlemmarnas ordning, så att ankarets första bild blir huvudbilden. Högst
+ * `WIX_MAX_BILDER_PER_PRODUKT` bilder, fördelade lika mellan artiklarna (minst
+ * en var så länge taket räcker). En adress tas bara med en gång.
+ */
+export function familjensBilder(
+  medlemmar: Avlasning[],
+  bildval: (a: Avlasning) => Bildval,
+  varde: (i: number) => string,
+): { imageUrls: string[]; perVarde: Record<string, string[]> } {
+  const perArtikel = Math.min(BILDER_PER_PRODUKT, Math.max(1, Math.floor(WIX_MAX_BILDER_PER_PRODUKT / medlemmar.length)));
+  const imageUrls: string[] = [];
+  const perVarde: Record<string, string[]> = {};
+  for (const [i, m] of medlemmar.entries()) {
+    const egna: string[] = [];
+    for (const url of bildval(m).urls) {
+      if (egna.length >= perArtikel || imageUrls.length >= WIX_MAX_BILDER_PER_PRODUKT) break;
+      if (imageUrls.includes(url)) continue;
+      imageUrls.push(url);
+      egna.push(url);
+    }
+    if (egna.length > 0) perVarde[varde(i)] = [...(perVarde[varde(i)] ?? []), ...egna];
+  }
+  return { imageUrls, perVarde };
+}
+
+/**
+ * Familjen som pipelinens produkt: ankarets text och specifikation, och en
+ * variant per artikel med dess egna värden, saldo och inköp.
  *
  * Värdena och axlarnas namn är VEVOR:s egen svenska och skickas som manuella
  * namn (`variantNameOverrides`, `axisNameOverrides`), så att pipelinen varken
- * översätter dem eller flaggar dem. Bilderna kopplas till valen på
- * `bildaxel`: varje artikels första bild till dess värde.
+ * översätter dem eller flaggar dem. Med en `bildaxel` får varje artikel sina
+ * egna bilder kopplade till sitt värde (`familjensBilder`). Utan en får
+ * produkten ankarets bilder, okopplade.
  */
 export function vevorFamiljeProdukt(
   f: Extract<Familj, { typ: "familj" }>,
   pris: Prisunderlag,
   bilder: Bildval,
-  huvudbild: (a: Avlasning) => string | null,
+  bildval: (a: Avlasning) => Bildval,
 ): AliExpressProduct {
   const [ankare] = f.medlemmar;
   const bas = vevorProdukt(ankare, pris, bilder);
@@ -182,13 +222,8 @@ export function vevorFamiljeProdukt(
   });
   const namn: Record<string, string> = {};
   for (const v of varianter) for (const varde of Object.values(v.options)) namn[varde] = varde;
-  const swatch: Record<string, string> = {};
-  if (f.bildaxel) {
-    for (const [i, m] of f.medlemmar.entries()) {
-      const url = huvudbild(m);
-      if (url) swatch[varianter[i].options[f.bildaxel]] = url;
-    }
-  }
+  const axel = f.bildaxel;
+  const galleri = axel ? familjensBilder(f.medlemmar, bildval, (i) => varianter[i].options[axel]) : null;
   return {
     ...bas,
     variants: varianter,
@@ -196,6 +231,8 @@ export function vevorFamiljeProdukt(
     specifications: spec,
     variantNameOverrides: namn,
     axisNameOverrides: Object.fromEntries(f.axlar.map((k) => [k, k])),
-    ...(f.bildaxel && Object.keys(swatch).length > 0 ? { swatchImages: { [f.bildaxel]: swatch } } : {}),
+    ...(axel && galleri && galleri.imageUrls.length > 0
+      ? { imageUrls: galleri.imageUrls, valBilder: { [axel]: galleri.perVarde } }
+      : {}),
   };
 }

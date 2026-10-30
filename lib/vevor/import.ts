@@ -297,7 +297,7 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
         let familj: Familj = { typ: "ensam" };
         let produkt: AliExpressProduct;
         const bilder = valjVevorBilder(a.bilder);
-        const granskning = vevorGranskning(a, bilder);
+        let granskning = vevorGranskning(a, bilder);
         try {
           if (syskonSkus(a).length > 0) {
             const lasta = await deps.lager.lasAvlasningar(syskonSkus(a));
@@ -312,7 +312,7 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
           }
           produkt =
             familj.typ === "familj"
-              ? vevorFamiljeProdukt(familj, pris, bilder, (m) => valjVevorBilder(m.bilder).urls[0] ?? null)
+              ? vevorFamiljeProdukt(familj, pris, bilder, (m) => valjVevorBilder(m.bilder))
               : vevorProdukt(a, pris, bilder);
         } catch (err) {
           // Syskonen gick inte att läsa, eller ett pris som inte går att räkna
@@ -328,6 +328,10 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
           continue;
         }
         if (familj.typ === "ej_sammanslagen") s.familjer!.ejSammanslagna[familj.skal]++;
+        // En familj visar varje artikels bilder, så bildgranskningen gäller dem alla.
+        if (familj.typ === "familj" && familj.medlemmar.some((m) => valjVevorBilder(m.bilder).granskas)) {
+          granskning = { ...granskning, bildgranskning: true };
+        }
         const medlemmar: Avlasning[] = familj.typ === "familj" ? familj.medlemmar : [a];
         const recensioner = medlemmar.flatMap(vevorRecensioner);
 

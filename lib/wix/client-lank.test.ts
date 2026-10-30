@@ -60,8 +60,10 @@ function startProdukt(): Obj {
   };
 }
 
-function lansWix(opts: { kostnadNekad?: boolean } = {}) {
+function lansWix(opts: { kostnadNekad?: boolean; media?: Obj[]; senBild?: { item: Obj; efterGet: number } } = {}) {
   const p = startProdukt();
+  if (opts.media) (p.media as Obj).itemsInfo = { items: opts.media };
+  let gets = 0;
   const anrop: { metod: string; url: string; kropp?: Obj }[] = [];
   vi.stubGlobal("fetch", (async (u: RequestInfo | URL, init?: RequestInit) => {
     const url = String(u);
@@ -73,6 +75,12 @@ function lansWix(opts: { kostnadNekad?: boolean } = {}) {
       const medKostnad = url.includes("MERCHANT_DATA");
       if (medKostnad && opts.kostnadNekad) {
         return new Response('{"message":"NO_PERMISSION_TO_READ_MERCHANT_DATA"}', { status: 403 });
+      }
+      gets++;
+      // En bild som Wix ännu inte hunnit ta in syns först efter några läsningar.
+      if (opts.senBild && gets > opts.senBild.efterGet) {
+        const items = ((p.media as Obj).itemsInfo as Obj).items as Obj[];
+        if (!items.includes(opts.senBild.item)) items.push(opts.senBild.item);
       }
       const k = structuredClone(p);
       if (!medKostnad) for (const v of ((k.variantsInfo as Obj).variants as Obj[])) delete v.revenueDetails;
@@ -118,5 +126,43 @@ describe("linkChoiceMedia", () => {
     const forsta403 = w.anrop.findIndex((a) => a.url.includes("MERCHANT_DATA"));
     expect(w.anrop.slice(forsta403 + 1).filter((a) => a.metod === "GET" && a.url.includes("MERCHANT_DATA"))).toHaveLength(0);
     expect(console.warn).toHaveBeenCalledWith(expect.stringContaining("MERCHANT_DATA nekas"));
+  });
+});
+
+describe("linkChoiceMedia — flera bilder per val (VEVOR-familjerna 2026-10-30)", () => {
+  const MEDIA = [
+    { id: "s1", altText: "Svart" },
+    { id: "s2", altText: "Svart, bild 2" },
+    { id: "b1", altText: "Blå" },
+  ];
+  const FLERA = [
+    { optionName: "Färg", choiceName: "Svart", altText: "Svart" },
+    { optionName: "Färg", choiceName: "Svart", altText: "Svart, bild 2" },
+    { optionName: "Färg", choiceName: "Blå", altText: "Blå" },
+    { optionName: "Färg", choiceName: "Blå", altText: "Blå, bild 2" },
+  ];
+  const valen = (p: Obj) => ((p.options as Obj[])[0].choicesSettings as Obj).choices as Obj[];
+
+  it("valet får alla sina bilder, i länkarnas ordning", async () => {
+    const w = lansWix({ media: [...MEDIA, { id: "b2", altText: "Blå, bild 2" }] });
+    expect(await linkChoiceMedia(ID, FLERA)).toBe(4);
+    expect(valen(w.p).map((c) => c.linkedMedia)).toEqual([
+      [{ id: "s1" }, { id: "s2" }],
+      [{ id: "b1" }, { id: "b2" }],
+    ]);
+  });
+
+  it("☠️ en bild som Wix inte hunnit ta in kopplas i nästa varv, kopplingen nöjer sig inte med en del", async () => {
+    vi.useFakeTimers();
+    try {
+      const w = lansWix({ media: MEDIA, senBild: { item: { id: "b2", altText: "Blå, bild 2" }, efterGet: 3 } });
+      const klar = linkChoiceMedia(ID, FLERA);
+      await vi.runAllTimersAsync();
+      expect(await klar).toBe(4);
+      expect(valen(w.p)[1].linkedMedia).toEqual([{ id: "b1" }, { id: "b2" }]);
+      expect(w.anrop.filter((a) => a.metod === "PATCH").length).toBeGreaterThan(1);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

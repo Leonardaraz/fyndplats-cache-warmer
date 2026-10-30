@@ -835,11 +835,13 @@ export interface ChoiceMediaLink {
  *      CREATE ger 404 PRODUCT_MEDIA_NOT_EXIST eftersom Wix ingest:ar asynkront.
  *   2. Vi matchar media-item → val på altText (id/URL byts vid Wix re-import och
  *      duger inte som nyckel) och läser id:t ur produkt-readbacken.
- *   3. PATCH:ar options.choicesSettings.choices[].linkedMedia = [{ id }] (+ skickar
+ *   3. PATCH:ar options.choicesSettings.choices[].linkedMedia (+ skickar
  *      variantsInfo verbatim, annars 428 MISSING_VARIANT_OPTION_CHOICE). Ingest:en
  *      är asynkron (~5 s) så PATCH:en kan "lyckas" (200) men tappa linkedMedia tills
  *      bilden är klar → vi verifierar via re-GET och försöker om med ny revision.
- * Fail-open: loggar och returnerar antal lyckade kopplingar (0 vid fel) — bild-
+ * Ett val kan ha flera länkar (VEVOR-familjernas valBilder, 2026-10-30): valet
+ * får alla sina bilder, i länkarnas ordning, och den första blir variantens bild.
+ * Fail-open: loggar och returnerar antal kopplade bilder (0 vid fel) — bild-
  * kopplingen får ALDRIG fälla en import.
  */
 export async function linkChoiceMedia(productId: string, links: ChoiceMediaLink[]): Promise<number> {
@@ -864,8 +866,12 @@ export async function linkChoiceMedia(productId: string, links: ChoiceMediaLink[
     const res = await fetch(url, { headers: wixHeaders() });
     return res.ok ? (await res.json()).product : null;
   };
+  // Länkarna per val, i den ordning valet ska visa bilderna.
+  const linksFor = (optionName: string, choiceName: string) =>
+    links.filter((l) => l.optionName === optionName && l.choiceName === choiceName);
   // Sätter linkedMedia på matchande val genom att slå upp media-item-id via altText.
-  // Returnerar [options, antal satta].
+  // En bild som ännu inte ingest:ats hoppas över; nästa varv tar den.
+  // Returnerar [options, antal satta bilder].
   const applyLinks = (product: any): [any[], number] => {
     const idByAlt = new Map<string, string>();
     for (const it of product?.media?.itemsInfo?.items ?? []) {
@@ -876,24 +882,28 @@ export async function linkChoiceMedia(productId: string, links: ChoiceMediaLink[
     let n = 0;
     for (const opt of options) {
       for (const ch of opt?.choicesSettings?.choices ?? []) {
-        const link = links.find((l) => l.optionName === opt.name && l.choiceName === ch.name);
-        if (!link) continue;
-        const id = idByAlt.get(link.altText);
-        if (!id) continue;
-        ch.linkedMedia = [{ id }];
-        n++;
+        const ids = [...new Set(
+          linksFor(opt.name, ch.name)
+            .map((l) => idByAlt.get(l.altText))
+            .filter((id): id is string => Boolean(id)),
+        )];
+        if (ids.length === 0) continue;
+        ch.linkedMedia = ids.map((id) => ({ id }));
+        n += ids.length;
       }
     }
     return [options, n];
   };
 
-  // Antalet val som matchar på NAMN (oberoende av om bilden hunnit ingest:as) —
-  // om 0 finns inget att vänta på och vi ger upp direkt.
-  const linkNames = new Set(links.map((l) => `${l.optionName} ${l.choiceName}`));
+  // Kopplade bilder på de val länkarna gäller, högst så många som valet har länkar.
   const countLinked = (p: any): number =>
     (p?.options ?? []).reduce(
       (sum: number, o: any) =>
-        sum + (o?.choicesSettings?.choices ?? []).filter((c: any) => (c.linkedMedia ?? []).length).length,
+        sum +
+        (o?.choicesSettings?.choices ?? []).reduce(
+          (s: number, c: any) => s + Math.min((c.linkedMedia ?? []).length, new Set(linksFor(o.name, c.name).map((l) => l.altText)).size),
+          0,
+        ),
       0,
     );
 
@@ -907,9 +917,15 @@ export async function linkChoiceMedia(productId: string, links: ChoiceMediaLink[
       if (!product) break;
 
       if (attempt === 0) {
+        // Antalet bilder på val som matchar på NAMN (oberoende av om bilden hunnit
+        // ingest:as) — om 0 finns inget att vänta på och vi ger upp direkt.
         target = (product.options ?? []).reduce(
           (sum: number, o: any) =>
-            sum + (o?.choicesSettings?.choices ?? []).filter((c: any) => linkNames.has(`${o.name} ${c.name}`)).length,
+            sum +
+            (o?.choicesSettings?.choices ?? []).reduce(
+              (s: number, c: any) => s + new Set(linksFor(o.name, c.name).map((l) => l.altText)).size,
+              0,
+            ),
           0,
         );
         if (target === 0) {
