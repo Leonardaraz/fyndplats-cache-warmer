@@ -6651,6 +6651,21 @@ okänd, utan märkning.
 produkten (`lasPrioritetsunderlag`), eftersom synken behöver en färsk
 avläsning av varje variant.
 
+**Beskrivningen städas vid importen** (`rensaBeskrivning` i
+`lib/vevor/to-product.ts`, Leonard 2026-10-30). Uppmätt på 1 200 avläsningar:
+475 hade rader två gånger eller fler, 57 bar VEVOR:s reklamblock ("Vevor är
+ett ledande varumärke …", "30-dagars gratis retur", "Snabb och säker
+leverans", "24/7 uppmärksam service") och 218 sloganen "Prestanda på
+proffsnivå utan kostnad". Löftena är VEVOR:s, inte våra, och ska inte kunna
+följa med genom poleringen. Bara exakta rader tas bort (gemener, rensade
+mellanslag), och rubrikerna (Nyckelfunktioner, Specifikationer, Paketets
+innehåll) står kvar. Avläsningen rörs inte. Utkasten som importerades före
+2026-10-30 ~01:30 UTC bär den gamla texten; poleringen skriver om den.
+
+**VEVOR-synken slås på när poleringen börjar** (Leonard 2026-10-30: "Vi kan
+sätta på den när vi börjar polera"). Fram till dess står utkastens lager och
+pris som vid importen.
+
 ### Radera och börja om
 
 De 1 048 utkasten från steg 4 är en artikel per produkt. Leonard sa ja
