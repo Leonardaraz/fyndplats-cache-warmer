@@ -151,15 +151,29 @@ export function arKandidat(rad: ProductMappingRecord): boolean {
   return mappingSupplier(rad) === "vevor" && rad.variants.length > 1;
 }
 
+/** Innehållet bakom bilderna: fil-id → Wix `hash`, och VEVOR-adress → md5 (lib/vevor/bildinnehall.ts). */
+export interface Innehall {
+  filer: ReadonlyMap<string, string>;
+  adresser: ReadonlyMap<string, string>;
+}
+
+const INGET_INNEHALL: Innehall = { filer: new Map(), adresser: new Map() };
+
 /**
  * Planen för en familj. `kallor` är galleribildernas källor (fil-id → adress),
- * `avlasningar` artiklarnas senaste avläsningar.
+ * `avlasningar` artiklarnas senaste avläsningar och `innehall` fotonas md5.
+ *
+ * ☠️ Ett foto känns igen på sitt innehåll när det är känt, annars på sin
+ * källa. VEVOR lägger samma foto under olika adresser för varje storlek, och
+ * en fil som redan har samma innehåll som en planerad bild används i stället
+ * för att ladda upp den igen.
  */
 export function planeraFamilj(
   rad: ProductMappingRecord,
   produkt: ProduktLast,
   kallor: ReadonlyMap<string, string>,
   avlasningar: ReadonlyMap<string, Avlasning>,
+  innehall: Innehall = INGET_INNEHALL,
 ): FamiljPlan {
   const hinder: FamiljHinder[] = [];
   const tom = (axel: string | null): FamiljPlan => ({
@@ -189,10 +203,30 @@ export function planeraFamilj(
     return tom(axel);
   }
 
-  const { imageUrls, perVarde } = familjensBilder(
+  // Varje fils nyckel: innehållet när Wix räknat det, annars källan.
+  const filNyckel = (b: Bild): string | null => {
+    const h = innehall.filer.get(b.id);
+    if (h) return `md5:${h}`;
+    const k = kallor.get(b.id);
+    return k ? `kalla:${normKalla(k)}` : null;
+  };
+  const nyckelForKalla = new Map<string, string>();
+  for (const b of produkt.bilder) {
+    const k = kallor.get(b.id);
+    const n = filNyckel(b);
+    if (k && n && !nyckelForKalla.has(normKalla(k))) nyckelForKalla.set(normKalla(k), n);
+  }
+  const nyckel = (u: string): string => {
+    const md5 = innehall.adresser.get(u);
+    if (md5) return `md5:${md5}`;
+    return nyckelForKalla.get(normKalla(u)) ?? `kalla:${normKalla(u)}`;
+  };
+
+  const { imageUrls, perVarde, gemensamma } = familjensBilder(
     medlemmar as Avlasning[],
     (m) => valjVevorBilder(m.bilder),
     (i) => ordning[i].choices[axel],
+    nyckel,
   );
   // Alla artiklarnas egna bilder, inte bara de valda: en sådan bild som inte
   // står i planen är en gammal kopia och får gå.
@@ -200,31 +234,35 @@ export function planeraFamilj(
     (medlemmar as Avlasning[]).flatMap((m) => m.bilder.filter((b) => b.egen).map((b) => normKalla(b.url))),
   );
 
-  // Befintliga bilder per källa, i galleriets ordning: den första behålls.
+  // Befintliga bilder per innehåll, i galleriets ordning: den första behålls.
   const befintlig = new Map<string, Bild>();
   for (const b of produkt.bilder) {
-    const k = kallor.get(b.id);
-    if (k && !befintlig.has(normKalla(k))) befintlig.set(normKalla(k), b);
+    const n = filNyckel(b);
+    if (n && !befintlig.has(n)) befintlig.set(n, b);
   }
 
-  const altPerKalla = new Map<string, string>();
+  const altPerNyckel = new Map<string, string>();
   for (const [varde, urls] of Object.entries(perVarde)) {
-    urls.forEach((u, i) => altPerKalla.set(normKalla(u), altFor(produkt.namn, varde, i + 1)));
+    urls.forEach((u, i) => altPerNyckel.set(nyckel(u), altFor(produkt.namn, varde, i + 1)));
   }
+  gemensamma.forEach((u, i) => altPerNyckel.set(nyckel(u), i === 0 ? produkt.namn : `${produkt.namn}, bild ${i + 1}`));
   const galleriEfter: PlaneradBild[] = imageUrls.map((u) => ({
-    id: befintlig.get(normKalla(u))?.id ?? null,
+    id: befintlig.get(nyckel(u))?.id ?? null,
     kalla: u,
-    alt: altPerKalla.get(normKalla(u)) ?? produkt.namn,
+    alt: altPerNyckel.get(nyckel(u)) ?? produkt.namn,
   }));
   const behallna = new Set(galleriEfter.map((b) => b.id).filter((id): id is string => !!id));
+  const planerade = new Set(imageUrls.map(nyckel));
   // ☠️ En bild utan känd källa, eller med en källa utanför familjen, stoppar
   // familjen. Det betyder oftast att VEVOR bytt bildadresser sedan importen,
-  // och då hade samma foto laddats upp en gång till bredvid det gamla.
+  // och då hade samma foto laddats upp en gång till bredvid det gamla. En fil
+  // med samma innehåll som en planerad bild är en kopia och går ut.
   const utgar: Bild[] = [];
   for (const b of produkt.bilder) {
     if (behallna.has(b.id)) continue;
     const k = kallor.get(b.id);
-    if (k && familjens.has(normKalla(k))) utgar.push(b);
+    const n = filNyckel(b);
+    if ((k && familjens.has(normKalla(k))) || (n && planerade.has(n))) utgar.push(b);
     else {
       hinder.push("okand_kalla");
       return tom(axel);
@@ -241,7 +279,7 @@ export function planeraFamilj(
     nya === 0 &&
     galleriEfter.length === produkt.bilder.length &&
     galleriEfter.every((b, i) => b.id === produkt.bilder[i].id && b.alt === produkt.bilder[i].alt);
-  const idForKalla = (u: string) => galleriEfter.find((b) => normKalla(b.kalla) === normKalla(u))?.id ?? null;
+  const idForKalla = (u: string) => galleriEfter.find((b) => nyckel(b.kalla) === nyckel(u))?.id ?? null;
   const lankarLika = val.every(
     (v) => v.lankadeFore.join("|") === v.kallorEfter.map(idForKalla).join("|"),
   );
@@ -267,6 +305,10 @@ export interface FamiljebildDeps {
   avlasningar(skus: string[]): Promise<Map<string, Avlasning>>;
   /** Galleribildernas källor: fil-id → adress (lib/wix/media.ts, getMediaSourceUrls). */
   kallor(filIdn: string[]): Promise<Map<string, string>>;
+  /** Galleribildernas innehåll: fil-id → Wix `hash` (lib/wix/media.ts, getMediaHashes). */
+  hashar(filIdn: string[]): Promise<Map<string, string>>;
+  /** VEVOR-bildernas innehåll: adress → md5 (lib/vevor/bildinnehall.ts). */
+  bildnycklar(urls: string[]): Promise<Map<string, string>>;
   /** Laddar upp en bild till Media Manager och svarar med fil-id:t. */
   laddaUpp(url: string, namn: string): Promise<{ id: string }>;
   variantbild?: (id: string) => Promise<VariantbildUtfall>;
@@ -290,14 +332,29 @@ export const UPPLADDNING_PAUS_MS = 400;
 
 /** Läser sidan och planerar den. null när sidan inte går att läsa. */
 export async function lasOchPlanera(
-  deps: Pick<FamiljebildDeps, "wix" | "avlasningar" | "kallor">,
+  deps: Pick<FamiljebildDeps, "wix" | "avlasningar" | "kallor" | "hashar" | "bildnycklar">,
   rad: ProductMappingRecord,
 ): Promise<{ plan: FamiljPlan; produkt: ProduktLast } | null> {
   const produkt = await lasProdukt(deps.wix, rad.wixProductId);
   if (!produkt) return null;
-  const kallor = produkt.bilder.length > 0 ? await deps.kallor(produkt.bilder.map((b) => b.id)) : new Map<string, string>();
+  const idn = produkt.bilder.map((b) => b.id);
+  const [kallor, filer] =
+    idn.length > 0 ? await Promise.all([deps.kallor(idn), deps.hashar(idn)]) : [new Map<string, string>(), new Map<string, string>()];
   const avlasningar = await deps.avlasningar(rad.variants.map((v) => v.supplierVariantId));
-  return { plan: planeraFamilj(rad, produkt, kallor, avlasningar), produkt };
+  // Adressernas innehåll hämtas bara för en sida som kan rättas, och bara för
+  // adresser som inte redan finns som en fil med känt innehåll.
+  let adresser = new Map<string, string>();
+  if (!produkt.synlig && rad.needsAiPolish === true) {
+    const kanda = new Set([...kallor].filter(([id]) => filer.has(id)).map(([, u]) => normKalla(u)));
+    const urls = rad.variants
+      .flatMap((v) => {
+        const a = avlasningar.get(v.supplierVariantId);
+        return a ? valjVevorBilder(a.bilder).urls : [];
+      })
+      .filter((u) => !kanda.has(normKalla(u)));
+    if (urls.length > 0) adresser = await deps.bildnycklar(urls);
+  }
+  return { plan: planeraFamilj(rad, produkt, kallor, avlasningar, { filer, adresser }), produkt };
 }
 
 /** Avvikelserna efter skrivningen. Tom lista = sidan är som planen. */
@@ -358,8 +415,10 @@ export function optionerMedLankar(p: ProduktLast, axel: string, lankar: Readonly
       choicesSettings: {
         ...cs,
         choices: ((cs.choices ?? []) as Obj[]).map((c) => {
+          // ☠️ Ett val i planen får exakt planens lista, också en tom: annars
+          // står en gammal koppling kvar på ett val som bara har gemensamma foton.
           const ids = lankar.get(String(c.choiceId ?? ""));
-          return ids && ids.length > 0 ? { ...c, linkedMedia: ids.map((id) => ({ id })) } : c;
+          return ids ? { ...c, linkedMedia: ids.map((id) => ({ id })) } : c;
         }),
       },
     };

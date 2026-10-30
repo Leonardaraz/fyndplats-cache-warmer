@@ -96,13 +96,23 @@ function gammalProdukt(): { produkt: Obj; kallor: Map<string, string> } {
 
 const UTKAST: VariantbildUtfall = { productId: PID, status: "utkast_hoppat", avvikande: [], okanda: [] } as unknown as VariantbildUtfall;
 
-function fejk(opts: { produkt?: Obj; kallor?: Map<string, string>; mappningar?: ProductMappingRecord[]; avlasningar?: Avlasning[] } = {}) {
+function fejk(
+  opts: {
+    produkt?: Obj;
+    kallor?: Map<string, string>;
+    mappningar?: ProductMappingRecord[];
+    avlasningar?: Avlasning[];
+    /** Fotots innehåll ur adressen. Utan det känns inget innehåll, som före 2026-10-30. */
+    innehall?: (url: string) => string;
+  } = {},
+) {
   const gammal = gammalProdukt();
   const p = opts.produkt ?? gammal.produkt;
   const kallor = opts.kallor ?? gammal.kallor;
   const patchar: string[][] = [];
   const sabotage: { sku?: boolean; uppladdningFaller?: boolean } = {};
   let filNr = 0;
+  const hamtade: string[] = [];
   const lankade = (x: Obj) =>
     ((x.options ?? []) as Obj[]).flatMap((o) =>
       ((((o.choicesSettings as Obj).choices ?? []) as Obj[]).flatMap((c) => ((c.linkedMedia ?? []) as Obj[]).map((m) => String(m.id)))));
@@ -137,6 +147,12 @@ function fejk(opts: { produkt?: Obj; kallor?: Map<string, string>; mappningar?: 
     mappningar: async () => opts.mappningar ?? [mappning()],
     avlasningar: async (skus) => new Map(avlasningar.filter((a) => skus.includes(a.sku)).map((a) => [a.sku, a])),
     kallor: async (idn) => new Map(idn.filter((id) => kallor.has(id)).map((id) => [id, kallor.get(id)!])),
+    hashar: async (idn) =>
+      opts.innehall ? new Map(idn.filter((id) => kallor.has(id)).map((id) => [id, opts.innehall!(kallor.get(id)!)])) : new Map(),
+    bildnycklar: async (urls) => {
+      hamtade.push(...urls);
+      return opts.innehall ? new Map(urls.map((u) => [u, opts.innehall!(u)])) : new Map();
+    },
     laddaUpp: async (url) => {
       if (sabotage.uppladdningFaller) throw new Error("Wix 500: uppladdningen föll");
       const id = `n${++filNr}`;
@@ -146,8 +162,11 @@ function fejk(opts: { produkt?: Obj; kallor?: Map<string, string>; mappningar?: 
     variantbild: async () => UTKAST,
     vanta: async () => {},
   };
-  return { p, kallor, deps, patchar, sabotage, galleri, lankade };
+  return { p, kallor, deps, patchar, sabotage, galleri, lankade, hamtade };
 }
+
+/** Samma filnamn i olika artikelmappar är samma foto: storlekar av samma vara. */
+const sammaFoto = (u: string) => u.replace(/us%2F[^%]+%2F/, "").replace(/\?.*$/, "");
 
 const valen = (p: Obj) => (((p.options as Obj[])[0].choicesSettings as Obj).choices as Obj[]).map((c) => ((c.linkedMedia ?? []) as Obj[]).map((m) => String(m.id)));
 
@@ -188,6 +207,53 @@ describe("planeraFamilj", () => {
       expect(svar.attRatta).toBe(0);
       expect(f.patchar).toEqual([]);
     }
+  });
+
+  it("☠️ storlekar med samma foton: inget laddas upp, kopiorna går ut och valen kopplas loss", async () => {
+    const f = fejk({ innehall: sammaFoto });
+    const plan = (await lasOchPlanera(f.deps, mappning()))!.plan;
+    expect(plan.hinder).toEqual([]);
+    expect(plan.nya).toBe(0);
+    expect(plan.galleriEfter.map((b) => b.id)).toEqual(["a1", "a2", "a3", "a4", "a5", "a6"]);
+    expect(plan.galleriEfter.map((b) => b.alt)).toEqual([NAMN, ...[2, 3, 4, 5, 6].map((n) => `${NAMN}, bild ${n}`)]);
+    expect(plan.utgar.map((b) => b.id)).toEqual(["s1", "s2", "s3"]);
+    expect(plan.val.map((v) => v.kallorEfter)).toEqual([[], [], []]);
+    // Adresserna som redan finns som en fil med känt innehåll hämtas inte.
+    expect(f.hamtade.every((u) => !valda(1).includes(u))).toBe(true);
+
+    const u = await skrivFamilj(mappning(), f.deps);
+    expect(u.ok).toBe(true);
+    expect(f.galleri(f.p)).toEqual(["a1", "a2", "a3", "a4", "a5", "a6"]);
+    expect(valen(f.p)).toEqual([[], [], []]);
+    expect((await skrivFamilj(mappning(), f.deps)).steg).toEqual(["redan rätt"]);
+  });
+
+  it("en kopia med samma innehåll men en adress VEVOR inte längre har går ut i stället för att stoppa", async () => {
+    const g = gammalProdukt();
+    ((g.produkt.media as Obj).itemsInfo as Obj as { items: Obj[] }).items.push({ id: "x", altText: "Kopia" });
+    const gammalAdress = valda(1)[0].replace("original_img-v1", "original_img-v0");
+    g.kallor.set("x", gammalAdress);
+    const innehall = (u: string) => (u === gammalAdress ? valda(1)[0] : u);
+    const f = fejk({ produkt: g.produkt, kallor: g.kallor, innehall });
+    const plan = (await lasOchPlanera(f.deps, mappning()))!.plan;
+    expect(plan.hinder).toEqual([]);
+    expect(plan.utgar.map((b) => b.id)).toContain("x");
+    // Utan innehåll är samma fil en okänd källa och stoppar familjen.
+    const utan = fejk({ produkt: gammalProdukt().produkt, kallor: new Map([...g.kallor]) });
+    ((utan.p.media as Obj).itemsInfo as Obj as { items: Obj[] }).items.push({ id: "x", altText: "Kopia" });
+    expect((await lasOchPlanera(utan.deps, mappning()))!.plan.hinder).toEqual(["okand_kalla"]);
+  });
+
+  it("☠️ en planerad bild vars innehåll redan finns som fil används i stället för att laddas upp", async () => {
+    // Grön och Orange delar sitt tredje foto med varandra men inte med Röd.
+    const innehall = (u: string) => (u.includes(sku(3)) && sammaFoto(u) === sammaFoto(valda(3)[2]) ? sammaFoto(valda(2)[2]) + sku(2) : u.includes(sku(2)) && sammaFoto(u) === sammaFoto(valda(2)[2]) ? sammaFoto(valda(2)[2]) + sku(2) : u);
+    const f = fejk({ innehall });
+    const plan = (await lasOchPlanera(f.deps, mappning()))!.plan;
+    const delad = plan.galleriEfter.filter((b) => b.alt.startsWith(`${NAMN}`) && !b.alt.includes(" – "));
+    expect(delad).toHaveLength(1);
+    expect(plan.val[1].kallorEfter).toHaveLength(5);
+    expect(plan.val[2].kallorEfter).toHaveLength(5);
+    expect(plan.val[2].kallorEfter.some((u) => plan.val[1].kallorEfter.includes(u))).toBe(false);
   });
 
   it("☠️ hinder: publicerad, polerad, saknad avläsning, ingen bildaxel och ett värde som inte finns", async () => {

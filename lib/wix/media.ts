@@ -175,6 +175,30 @@ export async function importMediaUrls(
 }
 
 /**
+ * Filernas innehåll i Media Manager: fil-id → `hash` (md5 av filens byte,
+ * uppmätt 2026-10-30 mot en VEVOR-bild). En fil som Wix inte bearbetat än
+ * saknar hash och saknas i svaret.
+ */
+export async function getMediaHashes(fileIds: string[], fetchImpl: typeof fetch = fetch): Promise<Map<string, string>> {
+  const ut = new Map<string, string>();
+  const ids = [...new Set(fileIds.filter(Boolean))];
+  for (let i = 0; i < ids.length; i += 100) {
+    const res = await fetchImpl(`${WIX_BASE}/site-media/v1/files/get-files`, {
+      method: "POST",
+      headers: mediaHeaders(),
+      body: JSON.stringify({ fileIds: ids.slice(i, i + 100) }),
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`Wix get-files misslyckades (${res.status}): ${text.slice(0, 200)}`);
+    }
+    const data = (await res.json().catch(() => ({}))) as { files?: { id?: string; hash?: string }[] };
+    for (const f of data.files ?? []) if (f.id && f.hash) ut.set(f.id, f.hash);
+  }
+  return ut;
+}
+
+/**
  * Slår upp filbeskrivningar i klump och returnerar var varje fil HÄMTADES FRÅN.
  *
  * ☠️ DEN HÄR FINNS FÖR ATT KUNNA LAGA GAMLA PRODUKTER.

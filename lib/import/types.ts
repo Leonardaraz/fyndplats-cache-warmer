@@ -72,6 +72,12 @@ export interface AliExpressProduct {
    */
   valBilder?: Record<string, Record<string, string[]>>;
   /**
+   * Foton i `imageUrls` som flera val har (VEVOR-familjerna, samma foto i flera
+   * storlekar). De kopplas inte och får en alt-text som inte nämner något val,
+   * så att butiken visar dem för alla val (headless-site lib/variant-bilder.ts).
+   */
+  gemensammaBilder?: string[];
+  /**
    * Manuella variantnamn från importverktyget: { [rått optionsvärde]: "Svenskt
    * namn" }, t.ex. { "Polar Night Black": "Polarsvart" }. Vinner över HELA
    * översättningskedjan (statisk tabell → cache → Haiku) och betros av

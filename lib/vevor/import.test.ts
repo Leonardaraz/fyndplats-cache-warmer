@@ -22,6 +22,7 @@ let larma: ReturnType<typeof vi.fn>;
 let prisunderlag: ReturnType<typeof vi.fn>;
 let antalProdukter: ReturnType<typeof vi.fn>;
 let sparaRecensioner: ReturnType<typeof vi.fn>;
+let bildnycklar: ReturnType<typeof vi.fn>;
 
 function lagg(n: number, over: Parameters<typeof testAvlasning>[0] = {}) {
   const a = testAvlasning({ sku: sku(n), bilder: testgalleri(sku(n)), lastAt: LASTAT, ...over });
@@ -62,6 +63,7 @@ function deps(): ImportDeps {
     importera,
     sparaMappning,
     sparaRecensioner,
+    bildnycklar,
     prisunderlag,
     antalProdukter,
     larma,
@@ -82,6 +84,7 @@ beforeEach(() => {
   prisunderlag = vi.fn(async () => ({ rabatt: 0.0425, usdToSek: 10 }));
   antalProdukter = vi.fn(async () => 6_000);
   sparaRecensioner = vi.fn(async (_id: string, r: unknown[]) => r.length);
+  bildnycklar = vi.fn(async () => new Map<string, string>());
 });
 
 describe("körningen", () => {
@@ -463,10 +466,30 @@ describe("steg 8: betyget, syskonen och recensionerna", () => {
     expect(sparaRecensioner).not.toHaveBeenCalled();
   });
 
+  it("☠️ samma foto under två artiklars adresser laddas upp en gång och blir gemensamt", async () => {
+    lagg(1, { egenskaper: [["Storlek", "S"]], syskon: syskon(2) });
+    lagg(2, { egenskaper: [["Storlek", "M"]], syskon: syskon(1) });
+    // Samma innehåll på varje plats i båda artiklarna: storlekarna har samma foton.
+    bildnycklar.mockImplementation(async (urls: string[]) => {
+      const ut = new Map<string, string>();
+      for (const u of urls) ut.set(u, `md5-${u.replace(/us%2F[^%]+%2F/, "")}`);
+      return ut;
+    });
+    const s = await korVevorImport(deps(), schema);
+    expect(bildnycklar).toHaveBeenCalledTimes(1);
+    const p = importera.mock.calls[0][0] as AliExpressProduct;
+    const enaArtikeln = p.imageUrls.filter((u) => u.includes(sku(1)));
+    expect(p.imageUrls).toEqual(enaArtikeln);
+    expect(p.gemensammaBilder).toEqual(p.imageUrls);
+    expect(p.valBilder).toEqual({ Storlek: {} });
+    expect(s.familjer?.gemensammaBilder).toBe(p.imageUrls.length);
+  });
+
   it("torrläget räknar familjen och skriver ingenting", async () => {
     lagg(1, { egenskaper: [["Typ", "A"]], syskon: syskon(2) });
     lagg(2, { egenskaper: [["Typ", "B"]], syskon: syskon(1) });
     const s = await korVevorImport(deps(), { ...schema, dryRun: true });
+    expect(bildnycklar).not.toHaveBeenCalled();
     expect(importera).not.toHaveBeenCalled();
     expect(sparaMappning).not.toHaveBeenCalled();
     expect(s).toMatchObject({ importerade: 1, redanImporterade: 1, familjer: { sammanslagna: 1, varianter: 2 } });
