@@ -13,8 +13,9 @@
 // i följd, för Wix svarar 429 när takten blir för hög (Aosom-svepet
 // 2026-08-27). Varje körning fortsätter där förra slutade (`markor`). När
 // avläsningarna tar slut börjar nästa varv från början, och ett varv som gick
-// igenom avläsningar utan att importera något vilar i 20 timmar. Ett varv som
-// inte hittade någon avläsning alls vilar inte: då har läsaren inte hunnit
+// igenom avläsningar utan att importera något vilar i 20 timmar, eller en
+// timme när avläsningar väntar på nästa läsning (`VILA_VANTAR_MS`). Ett varv
+// som inte hittade någon avläsning alls vilar inte: då har läsaren inte hunnit
 // läsa än, och importen ska börja så fort den har.
 //
 // Sju egenskaper som inte ska tas bort:
@@ -81,6 +82,15 @@ export const TAK_MARGINAL = 1_000;
 export const TUGGA = 100;
 /** Ett varv utan något nytt vilar så länge innan nästa börjar. */
 export const VILA_MS = 20 * 3_600_000;
+/**
+ * Ett varv utan något nytt där avläsningar väntar på nästa läsning vilar bara
+ * så länge: läsaren läser om dem inom ett dygn, och de ska inte vänta tjugo
+ * timmar till efter det.
+ */
+export const VILA_VANTAR_MS = 3_600_000;
+
+/** Hinder som försvinner av sig själva när läsaren läser sidan igen. */
+const VANTAR_PA_LASNING: ReadonlySet<Hinder> = new Set(["betyg_okant", "spec_okant", "recension_okand"]);
 /** Så många fel i följd stoppar körningen. */
 export const FEL_I_FOLJD = 5;
 /** Larmet går när så många körningar i följd stoppats av fel. */
@@ -145,6 +155,7 @@ function tomSummering(start: number, dryRun: boolean): Importsummering {
       lagt_betyg: 0,
       betyg_okant: 0,
       spec_okant: 0,
+      recension_okand: 0,
       syskon_finns: 0,
       syskon_vantar: 0,
     } satisfies Record<Hinder, number>,
@@ -231,6 +242,7 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
     let markor = t.markor;
     let varvImporterade = t.varvImporterade;
     let varvGranskade = t.varvGranskade;
+    let varvVantande = t.varvVantande ?? 0;
     let felIFoljd = 0;
     // Markören före en svit fel: dit går den tillbaka om sviten stoppar körningen.
     let markorForeFelen = markor;
@@ -288,6 +300,7 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
         const id = vevorSupplierProductId(a.sku);
         if (hinder) {
           s.hinder[hinder]++;
+          if (VANTAR_PA_LASNING.has(hinder)) varvVantande++;
           markor = a.sku;
           continue;
         }
@@ -339,6 +352,7 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
         }
         if (familj.typ === "vanta") {
           s.hinder.syskon_vantar++;
+          varvVantande++;
           markor = a.sku;
           continue;
         }
@@ -348,7 +362,9 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
           granskning = { ...granskning, bildgranskning: true };
         }
         const medlemmar: Avlasning[] = familj.typ === "familj" ? familj.medlemmar : [a];
-        const recensioner = medlemmar.flatMap(vevorRecensioner);
+        // ☠️ Bara recensioner om artiklar som finns på produkten (2026-10-30).
+        const egna = new Set(medlemmar.map((m) => m.sku));
+        const recensioner = medlemmar.flatMap((m) => vevorRecensioner(m, egna));
 
         if (val.dryRun) {
           raknaUtkast(s, bilder.monster, bilder.egna, granskning);
@@ -432,12 +448,14 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
       andring.markor = null;
       andring.varvImporterade = 0;
       andring.varvGranskade = 0;
+      andring.varvVantande = 0;
       const vila = varvGranskade > 0 && varvImporterade === 0;
-      andring.vilaTill = vila ? new Date(nu() + VILA_MS).toISOString() : null;
+      andring.vilaTill = vila ? new Date(nu() + (varvVantande > 0 ? VILA_VANTAR_MS : VILA_MS)).toISOString() : null;
     } else {
       andring.markor = markor;
       andring.varvImporterade = varvImporterade;
       andring.varvGranskade = varvGranskade;
+      andring.varvVantande = varvVantande;
     }
     if (s.stoppadAv === "fel_i_foljd") {
       avsluta("stoppad", `${FEL_I_FOLJD} fel i följd, markören står kvar före felen`);

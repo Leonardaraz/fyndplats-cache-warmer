@@ -62,7 +62,7 @@ jobs:
           }
 
           visa() {
-            echo "$1" | jq '{dryRun, utkast, attRatta, redanRatt, tomma, hinder, skrivna, kvar, stoppadAv, fel, idn}' || true
+            echo "$1" | jq '{dryRun, utkast, attRatta, attByta, redanRatt, tomma, hinder, skrivna, kvar, stoppadAv, fel, idn}' || true
           }
 
           if [ "$LAGE" = "plan" ]; then

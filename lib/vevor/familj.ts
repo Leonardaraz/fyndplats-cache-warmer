@@ -24,9 +24,10 @@
 //    blivit samma vara på två sidor.
 // 4. Ett syskon som är slut följer med med saldo 0. Annars hade det blivit en
 //    egen produkt när det kommer tillbaka.
-// 5. ☠️ Ett syskon vars avläsning saknar betyg (läst före steg 8) gör att hela
-//    familjen väntar på nästa läsning. Annars hade det lämnats utanför
-//    familjen och sedan aldrig fått komma in.
+// 5. ☠️ Ett syskon vars avläsning saknar betyg (läst före steg 8), specifikation
+//    eller recensionernas artikel (läst före 2026-10-30) gör att hela familjen
+//    väntar på nästa läsning. Annars hade det lämnats utanför familjen och
+//    sedan aldrig fått komma in, eller saknats i familjens flik.
 // 6. ☠️ Ett syskon som inte lästs alls men står i läsarens kö (`arPaVag`) gör
 //    också att familjen väntar (Leonard 2026-10-30: "Gör det som blir
 //    proffsigast"). Annars hade artikeln importerats ensam, och syskonet blivit
@@ -146,7 +147,7 @@ export function byggFamilj(
     }
     if (m.spu !== ankare.spu) continue;
     const h = medlemshinder(m, nu);
-    if (h === "betyg_okant") return { typ: "vanta" };
+    if (h === "betyg_okant" || h === "spec_okant" || h === "recension_okand") return { typ: "vanta" };
     if (h === null) syskon.push(m);
   }
   if (syskon.length === 0) return { typ: "ensam" };
@@ -230,15 +231,66 @@ export function familjensBilder(
 }
 
 /**
- * Familjens specifikation: ankarets tabell utan axlarnas rader. Värdena på
- * axlarna står i väljaren, och en axel med samma värde för alla lägger
- * pipelinen till som en rad (lib/import/constant-axes.ts).
+ * Familjens specifikation, utan axlarnas rader: värdena på axlarna står i
+ * väljaren, och en axel med samma värde för alla lägger pipelinen till som en
+ * rad (lib/import/constant-axes.ts).
+ *
+ * ☠️ En rad som skiljer mellan artiklarna visar varje varians värde
+ * ("24 tum: 610 mm · 36 tum: 914 mm"). Beskrivningen är densamma för alla
+ * varianter, och fram till 2026-10-30 stod ankarets värde där: i 107 av 143
+ * uppmätta familjer visade fliken fel mått, färg eller effekt för den som valt
+ * en annan variant. Varianter med samma värde delar det ("4 st, 6 st: …"). En
+ * rad som bara vissa artiklar har visas för dem.
+ *
+ * Raderna kommer i ankarets ordning, och sedan de rader bara andra artiklar
+ * har. Varianten namnges med sina värden på de axlar som skiljer.
  */
-export function familjensSpec(ankare: Pick<Avlasning, "spec">, axlar: readonly string[]): Record<string, string> {
-  const a = new Set(axlar.map((k) => k.toLowerCase()));
-  return Object.fromEntries(
-    Object.entries(specifikation({ spec: ankare.spec, egenskaper: [] })).filter(([k]) => !a.has(k.trim().toLowerCase())),
-  );
+export function familjensSpec(
+  medlemmar: readonly Pick<Avlasning, "spec" | "egenskaper">[],
+  axlar: readonly string[],
+): Record<string, string> {
+  if (medlemmar.length === 0) return {};
+  const lc = (s: string) => s.replace(/\s+/g, " ").trim().toLowerCase();
+  const a = new Set(axlar.map(lc));
+  const tabeller = medlemmar.map((m) => {
+    const t = new Map<string, string>();
+    for (const [k, v] of Object.entries(specifikation({ spec: m.spec, egenskaper: [] }))) t.set(lc(k), v);
+    return t;
+  });
+  const varden = medlemmar.map(egenskaperFor);
+  const skiljer = axlar.filter((k) => new Set(varden.map((v) => lc(v[k] ?? ""))).size > 1);
+  const etiketter = varden.map((v, i) => skiljer.map((k) => v[k] ?? "").filter(Boolean).join(" / ") || `variant ${i + 1}`);
+
+  const nycklar: string[] = [];
+  const sedda = new Set<string>();
+  for (const m of medlemmar) {
+    for (const k of Object.keys(specifikation({ spec: m.spec, egenskaper: [] }))) {
+      const n = lc(k);
+      if (a.has(n) || sedda.has(n)) continue;
+      sedda.add(n);
+      nycklar.push(k);
+    }
+  }
+
+  const ut: Record<string, string> = {};
+  for (const k of nycklar) {
+    const n = lc(k);
+    const per = tabeller.map((t) => t.get(n));
+    const finns = per.filter((v): v is string => v !== undefined);
+    if (finns.length === medlemmar.length && new Set(finns.map(lc)).size === 1) {
+      ut[k] = finns[0];
+      continue;
+    }
+    const grupper = new Map<string, { varde: string; vilka: string[] }>();
+    per.forEach((v, i) => {
+      if (v === undefined) return;
+      const g = grupper.get(lc(v)) ?? { varde: v, vilka: [] };
+      g.vilka.push(etiketter[i]);
+      grupper.set(lc(v), g);
+    });
+    ut[k] = [...grupper.values()].map((g) => `${g.vilka.join(", ")}: ${g.varde}`).join(" · ");
+  }
+  return ut;
 }
 
 /**
@@ -261,7 +313,7 @@ export function vevorFamiljeProdukt(
 ): AliExpressProduct {
   const [ankare] = f.medlemmar;
   const bas = vevorProdukt(ankare, pris, bilder);
-  const spec = familjensSpec(ankare, f.axlar);
+  const spec = familjensSpec(f.medlemmar, f.axlar);
   const varianter = f.medlemmar.map((m) => {
     const v = egenskaperFor(m);
     return {

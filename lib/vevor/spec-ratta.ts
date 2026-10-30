@@ -12,28 +12,36 @@
 // för en artikel som importeras i dag:
 //
 //   en artikel   `specifikation(a)`: tabellen och variantens egna värden
-//   en familj    `familjensSpec`: ankarets tabell utan axlarnas rader, och en
-//                axel med samma värde för alla som en rad (constant-axes.ts)
+//   en familj    `familjensSpec`: alla artiklars tabeller utan axlarnas rader,
+//                en rad som skiljer med varje varians värde, och en axel med
+//                samma värde för alla som en rad (constant-axes.ts)
 //
-// Skrivningen rör bara `plainDescription` (fältmask), och den gamla texten står
-// kvar: fliken läggs sist med `appendTabSections`, som importen.
+// Skrivningen rör bara `plainDescription` (fältmask). Saknas fliken läggs den
+// sist med `appendTabSections`, som importen, och den gamla texten står kvar.
+//
+// En familj vars flik visar fel (ankarets värde på en rad som skiljer mellan
+// varianterna, så som importen byggde fliken fram till 2026-10-30) får fliken
+// utbytt (`byt`): allt från rubriken till nästa rubrik ersätts, och texten
+// före och efter står kvar.
 //
 // Sju egenskaper som inte ska tas bort:
 //
 // 1. ☠️ Bara opolerade, dolda VEVOR-utkast. En polerad eller publicerad sida
 //    rörs aldrig: där har en människa skrivit texten.
-// 2. ☠️ En sida som redan har fliken rörs inte. Har den fliken men saknar
-//    någon rad (en familj vars ankare saknade specifikationen men hade en axel
-//    med samma värde för alla) räknas den och lämnas: fliken skrivs inte om.
-// 3. ☠️ Avläsningen ska vara gjord med den nya läsaren (`specKalla` satt).
-//    Annars kan en tom specifikation betyda att läsaren inte såg den.
-// 4. ☠️ Varje artikels avläsning måste finnas för en familj, så att en axel
-//    med samma värde för alla räknas på alla.
+// 2. ☠️ En enskild artikel som redan har fliken rörs inte. Saknar den någon rad
+//    räknas den och lämnas (`flik_utan_rader`). Bara en familj får fliken
+//    utbytt, och bara när sidan har exakt en sådan flik.
+// 3. ☠️ Avläsningen ska vara gjord med den nya läsaren (`specKalla` satt), för
+//    en familj på varje artikel. Annars kan en tom specifikation betyda att
+//    läsaren inte såg den.
+// 4. ☠️ Varje artikels avläsning måste finnas för en familj, så att varje
+//    varians värde och en axel med samma värde för alla räknas på alla.
 // 5. ☠️ Sidan läses färskt före skrivningen och planeras om. Har texten eller
 //    synligheten ändrats sedan planen skrivs ingenting på den.
 // 6. ☠️ Återläsning efter skrivningen, tills revisionen gått fram: sidan är
-//    fortfarande dold, fliken finns, varje rad finns och den gamla texten
-//    står kvar. Första avvikelse stoppar körningen.
+//    fortfarande dold, fliken finns och varje rad finns. En tillagd flik:
+//    den gamla texten står kvar. En utbytt flik: hela texten är planens.
+//    Första avvikelse stoppar körningen.
 // 7. ☠️ Svaret bär bara Wix-id och antal, aldrig artikelnummer eller text:
 //    loggen är publik.
 
@@ -85,7 +93,10 @@ export type SpecPlan =
   /** Avläsningen har ingen specifikation: det finns inget att lägga till. */
   | { typ: "tom" }
   | { typ: "redan_ratt" }
-  | { typ: "ratta"; rader: SpecRad[]; html: string };
+  /** Fliken saknas och läggs sist. */
+  | { typ: "ratta"; rader: SpecRad[]; html: string }
+  /** En familjs flik visar fel och byts ut. */
+  | { typ: "byt"; rader: SpecRad[]; html: string };
 
 /** Är raden ett VEVOR-utkast som kan rättas? Polerad och publicerad räknas som hinder, inte här. */
 export function arVevorRad(rad: ProductMappingRecord): boolean {
@@ -110,12 +121,15 @@ export function specRader(
 
   const medlemmar = rad.variants.map((v) => avlasningar.get(v.supplierVariantId));
   if (medlemmar.some((m) => !m)) return "avlasning_saknas";
+  // ☠️ Varje artikel ska vara läst med den nya läsaren: en tom tabell på en
+  // gammal avläsning hade annars sett ut som att raden saknas för den varianten.
+  if ((medlemmar as Avlasning[]).some((m) => m.specKalla === undefined)) return "ej_omlast";
   const axlar = Object.keys(egenskaperFor(ankare));
   const varianter = (medlemmar as Avlasning[]).map((m) => {
     const v = egenskaperFor(m);
     return { options: Object.fromEntries(axlar.map((k) => [k, v[k]])) as Record<string, string> };
   });
-  return mergeConstantAxisSpecs(tillRader(familjensSpec(ankare, axlar)), splitConstantAxes(varianter).specs);
+  return mergeConstantAxisSpecs(tillRader(familjensSpec(medlemmar as Avlasning[], axlar)), splitConstantAxes(varianter).specs);
 }
 
 /** Text utan taggar och entiteter, med mellanslagen rensade. Wix skriver om markupen när den sparas. */
@@ -138,6 +152,23 @@ export function saknadeRader(beskrivning: string, rader: readonly SpecRad[]): Sp
   return rader.filter((r) => !text.includes(`${normText(r.label)}: ${normText(r.value)}`));
 }
 
+/** Specifikationsflikens rubrik, med eller utan attribut. */
+const SPEC_RUBRIK = /<h2[^>]*>\s*Tekniska\s+specifikationer\s*<\/h2>/gi;
+
+/**
+ * Beskrivningen med specifikationsfliken utbytt: allt från rubriken till nästa
+ * `<h2` (eller slutet) ersätts. null när sidan inte har exakt en sådan flik.
+ */
+export function bytSpecFlik(beskrivning: string, flikHtml: string): string | null {
+  const traffar = [...beskrivning.matchAll(SPEC_RUBRIK)];
+  if (traffar.length !== 1) return null;
+  const start = traffar[0].index!;
+  const efterRubrik = start + traffar[0][0].length;
+  const nasta = beskrivning.slice(efterRubrik).search(/<h2[\s>]/i);
+  const slut = nasta < 0 ? beskrivning.length : efterRubrik + nasta;
+  return `${beskrivning.slice(0, start)}<h2>${SPEC_FLIK}</h2>${flikHtml}${beskrivning.slice(slut)}`;
+}
+
 /** Planen för en sida. Ren: läsningarna görs av anroparen. */
 export function planeraSpec(
   rad: ProductMappingRecord,
@@ -149,26 +180,35 @@ export function planeraSpec(
   const rader = specRader(rad, avlasningar);
   if (typeof rader === "string") return { typ: "hinder", hinder: rader };
   if (rader.length === 0) return { typ: "tom" };
+  const sektioner = buildTabSections({ specs: rader, packageContents: [], faq: [], careHtml: null });
   if (descriptionHasSection(produkt.beskrivning, SPEC_FLIK)) {
-    return saknadeRader(produkt.beskrivning, rader).length === 0
-      ? { typ: "redan_ratt" }
-      : { typ: "hinder", hinder: "flik_utan_rader" };
+    if (saknadeRader(produkt.beskrivning, rader).length === 0) return { typ: "redan_ratt" };
+    if (rad.variants.length <= 1) return { typ: "hinder", hinder: "flik_utan_rader" };
+    const html = bytSpecFlik(produkt.beskrivning, sektioner[0].html);
+    return html === null ? { typ: "hinder", hinder: "flik_utan_rader" } : { typ: "byt", rader, html };
   }
-  const { html } = appendTabSections(
-    produkt.beskrivning,
-    buildTabSections({ specs: rader, packageContents: [], faq: [], careHtml: null }),
-  );
+  const { html } = appendTabSections(produkt.beskrivning, sektioner);
   return { typ: "ratta", rader, html };
 }
 
 /** Avvikelserna efter skrivningen. Tom lista = sidan är som planen. */
-export function kontrolleraSpec(fore: SpecProdukt, efter: SpecProdukt, rader: readonly SpecRad[]): string[] {
+export function kontrolleraSpec(
+  fore: SpecProdukt,
+  efter: SpecProdukt,
+  plan: Extract<SpecPlan, { typ: "ratta" | "byt" }>,
+): string[] {
   const fel: string[] = [];
   if (efter.synlig !== fore.synlig) fel.push("synligheten ändrades");
   if (!descriptionHasSection(efter.beskrivning, SPEC_FLIK)) fel.push("fliken saknas");
-  const saknas = saknadeRader(efter.beskrivning, rader).length;
+  const saknas = saknadeRader(efter.beskrivning, plan.rader).length;
   if (saknas > 0) fel.push(`${saknas} rader saknas`);
-  if (!normText(efter.beskrivning).startsWith(normText(fore.beskrivning))) fel.push("den gamla texten ändrades");
+  if (plan.typ === "ratta") {
+    if (!normText(efter.beskrivning).startsWith(normText(fore.beskrivning))) fel.push("den gamla texten ändrades");
+  } else if (normText(efter.beskrivning) !== normText(plan.html)) {
+    // ☠️ En utbytt flik: hela texten ska vara planens, så att varken texten
+    // runt fliken eller en gammal rad står kvar eller försvinner.
+    fel.push("texten är inte planens");
+  }
   return fel;
 }
 
@@ -242,7 +282,10 @@ export interface SpecVal {
 export interface SpecSvar {
   dryRun: boolean;
   utkast: number;
+  /** Sidor att skriva: fliken saknas eller (en familj) visar fel. */
   attRatta: number;
+  /** Av dem: familjer vars flik byts ut. */
+  attByta: number;
   redanRatt: number;
   /** Avläsningen saknar specifikation också med den nya läsaren. */
   tomma: number;
@@ -269,14 +312,17 @@ async function skrivSida(deps: SpecDeps, rad: ProductMappingRecord, avlasningar:
   // En annan skrivning på sidan (synkens lager och pris) ger 409. Då läses sidan
   // om och planeras på nytt, högst tre gånger.
   let fore: SpecProdukt | null = null;
-  let plan: SpecPlan | null = null;
+  let plan: Extract<SpecPlan, { typ: "ratta" | "byt" }> | null = null;
   let skriven = Number.NaN;
   for (let forsok = 1; ; forsok++) {
     fore = await lasSida(deps.wix, rad.wixProductId);
     if (!fore) return ["sidan gick inte att läsa"];
-    plan = planeraSpec(rad, fore, avlasningar);
-    if (plan.typ === "redan_ratt") return [];
-    if (plan.typ !== "ratta") return [`planen ändrades: ${plan.typ === "hinder" ? plan.hinder : plan.typ}`];
+    const ny = planeraSpec(rad, fore, avlasningar);
+    if (ny.typ === "redan_ratt") return [];
+    if (ny.typ !== "ratta" && ny.typ !== "byt") {
+      return [`planen ändrades: ${ny.typ === "hinder" ? ny.hinder : ny.typ}`];
+    }
+    plan = ny;
     try {
       const svar = obj(
         await deps.wix("PATCH", `/stores/v3/products/${encodeURIComponent(rad.wixProductId)}`, {
@@ -300,7 +346,7 @@ async function skrivSida(deps: SpecDeps, rad: ProductMappingRecord, avlasningar:
   }
   if (!efter) return ["sidan gick inte att läsa efter skrivningen"];
   if (Number.isFinite(skriven) && Number(efter.revision) < skriven) return ["revisionen gick inte fram"];
-  return kontrolleraSpec(fore, efter, plan.rader);
+  return kontrolleraSpec(fore, efter, plan);
 }
 
 export async function korSpec(deps: SpecDeps, val: SpecVal): Promise<SpecSvar> {
@@ -317,6 +363,7 @@ export async function korSpec(deps: SpecDeps, val: SpecVal): Promise<SpecSvar> {
     dryRun: val.dryRun,
     utkast: rader.length,
     attRatta: 0,
+    attByta: 0,
     redanRatt: 0,
     tomma: 0,
     hinder: Object.fromEntries(SPEC_HINDER.map((h) => [h, 0])) as Record<SpecHinder, number>,
@@ -349,6 +396,7 @@ export async function korSpec(deps: SpecDeps, val: SpecVal): Promise<SpecSvar> {
     else if (plan.typ === "redan_ratt") svar.redanRatt++;
     else {
       svar.attRatta++;
+      if (plan.typ === "byt") svar.attByta++;
       att.push(r);
     }
   }

@@ -71,6 +71,12 @@ export interface Importtillstand {
   varvImporterade: number;
   /** Avläsningar i lager som det pågående varvet gått igenom. */
   varvGranskade: number;
+  /**
+   * Avläsningar i det pågående varvet som väntar på nästa läsning (betyg,
+   * specifikation eller recensionernas artikel saknas, eller ett syskon gör
+   * det). Ett varv med sådana vilar en timme, inte tjugo.
+   */
+  varvVantande: number;
   /** Ett varv utan något att importera: nästa börjar först efter den här tiden. */
   vilaTill: string | null;
   /**
@@ -89,6 +95,7 @@ export const TOMT_IMPORTTILLSTAND: Importtillstand = {
   markor: null,
   varvImporterade: 0,
   varvGranskade: 0,
+  varvVantande: 0,
   vilaTill: null,
   foraldralosa: [],
   stoppIFoljd: 0,
