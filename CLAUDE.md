@@ -6661,6 +6661,38 @@ Aosoms. En familj får alla syskonens recensioner. Ett fel där fäller inte
 importen och räknas i `recensioner.fel`. Butiken visar källan `vevor` som
 okänd, utan märkning.
 
+**Kundernas foton följer med recensionerna** (Leonard 2026-10-30: *"jag vill
+att alla bilder följer också med recensionerna så det inte blir
+dubbeljobb"*). JSON-LD bär inga foton, men sidans egen recensionsdata
+(`window.REVIEWS_DATA.allReview[].reviewPic[].big_pic`) gör det. Uppmätt på 32
+sparade sidor: samma recensioner som JSON-LD (304 mot 303), texten skiljer bara
+på radbrytningar, och 36 av dem hade foton, 52 totalt. Läsaren parar ihop dem
+på texten och sparar högst tre foton per recension (`bilder` på
+`VevorRecension`). Bara `adsimg-custom.vevorstatic.com` tas.
+
+Fem egenskaper som inte ska tas bort:
+
+1. ☠️ **Fotona hämtas av oss och läggs i Wix med den bekräftade vägen**
+   (`vevorKundbild` i `lib/vevor/recensionsfoton.ts` →
+   `lib/wix/bekraftad-bild.ts`), med vår egen användaragent. Import File svarar
+   direkt och hämtar senare, och var sjätte Aosom-bild blev en död adress så.
+2. ☠️ **Ett foto som inte gick att ladda upp behåller sin källadress** på den
+   dolda raden, som förut. `vevorstatic.com` står därför bland
+   leverantörsvärdarna i `lib/wix/media-import.ts`, så att raden flyttas hem
+   innan den visas.
+3. **Recensioner som importerades utan foton** får dem med workflowen
+   **"VEVOR — recensionernas foton"** (`plan` · `skriv`) →
+   `/api/admin/vevor-recensionsfoton`. Den parar ihop avläsningens recension
+   och raden på texten och skriver bara fotofälten. ⚠️ Fotona finns först när
+   läsaren läst om sidan efter 2026-10-30, ungefär ett dygn för hela katalogen.
+4. ☠️ **En rad som redan har foton rörs inte**, och en körning till skriver
+   ingenting.
+5. ☠️ **Svaret bär bara antal och Wix-id**, aldrig fotonas adresser eller
+   recensionernas text.
+
+VEVOR:s `big_pic` är en WebP (`?format=webp`, ~1,9 MB). Originalet utan frågan
+är en JPEG på ~4,6 MB. Webp används.
+
 **Läsarens prioritering** läser varje artikel på en familj lika ofta som
 produkten (`lasPrioritetsunderlag`), eftersom synken behöver en färsk
 avläsning av varje variant.

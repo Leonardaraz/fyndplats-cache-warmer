@@ -125,6 +125,7 @@ export function vevorRecensioner(a: Pick<Avlasning, "recensioner">): AERReview[]
     text: r.text,
     ...(r.datum ? { date: r.datum } : {}),
     ...(r.namn ? { customerName: r.namn } : {}),
+    ...(r.bilder && r.bilder.length > 0 ? { imageUrls: r.bilder, hasImage: true } : {}),
   }));
 }
 

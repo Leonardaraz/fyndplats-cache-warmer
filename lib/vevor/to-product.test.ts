@@ -216,4 +216,11 @@ describe("vevorRecensioner", () => {
     ]);
     expect(vevorRecensioner({})).toEqual([]);
   });
+
+  it("kundens foton följer med recensionen", () => {
+    const foto = "https://adsimg-custom.vevorstatic.com/upload/vevor/review/20261001/testfoto.jpeg?format=webp";
+    expect(
+      vevorRecensioner({ recensioner: [{ betyg: 5, text: "Med foto.", datum: null, namn: null, bilder: [foto] }] }),
+    ).toEqual([{ rating: 5, text: "Med foto.", imageUrls: [foto], hasImage: true }]);
+  });
 });

@@ -193,3 +193,49 @@ describe("betyg och recensioner (steg 8)", () => {
     expect(sida({ recensioner: [], betyg: null })).toMatchObject({ recensioner: [], betyg: null });
   });
 });
+
+describe("recensionernas foton (2026-10-30)", () => {
+  const FOTO = (n: number) => `https://adsimg-custom.vevorstatic.com/upload/vevor/review/20261001/testfoto${n}.jpeg?format=webp`;
+  const medRecensionsdata = (html: string, allReview: unknown[]) =>
+    `${html}<script>window.REVIEWS_DATA = ${JSON.stringify({ goodsInfo: {}, allReview })};</script>`;
+  const tolka = (allReview: unknown[], recensioner = [testrecension(), testrecension({ reviewBody: "Bra pris och snabb leverans hit." })]) => {
+    const t = tolkaProduktsida(medRecensionsdata(testsida({ recensioner }), allReview));
+    if (!t.ok) throw new Error(t.fel);
+    return t.sida.recensioner;
+  };
+
+  it("fotona paras ihop med recensionen på texten, också när radbrytningarna skiljer", () => {
+    const r = tolka([
+      {
+        content: "Stabil och lätt att montera,\nhjulen rullar fint i sanden.\n\nRekommenderas.",
+        reviewPic: [{ big_pic: FOTO(1), small_pic: FOTO(9) }, { big_pic: FOTO(2) }],
+      },
+      { content: "Bra pris och snabb leverans hit.", reviewPic: [] },
+    ]);
+    expect(r[0].bilder).toEqual([FOTO(1), FOTO(2)]);
+    expect(r[1]).not.toHaveProperty("bilder");
+  });
+
+  it("☠️ bara VEVOR:s fotoserver och https, högst tre foton", () => {
+    const r = tolka([
+      {
+        content: "Stabil och lätt att montera, hjulen rullar fint i sanden. Rekommenderas.",
+        reviewPic: [
+          { big_pic: "https://example.test/foto.jpg" },
+          { big_pic: FOTO(1).replace("https:", "http:") },
+          { big_pic: FOTO(1) },
+          { big_pic: FOTO(2) },
+          { big_pic: FOTO(3) },
+          { big_pic: FOTO(4) },
+        ],
+      },
+    ]);
+    expect(r[0].bilder).toEqual([FOTO(1), FOTO(2), FOTO(3)]);
+  });
+
+  it("en sida utan recensionsdata eller med trasig data ger recensioner utan foton", () => {
+    expect(tolka([]).every((r) => !("bilder" in r))).toBe(true);
+    const t = tolkaProduktsida(`${testsida({ recensioner: [testrecension()] })}<script>window.REVIEWS_DATA = {trasig</script>`);
+    expect(t.ok && t.sida.recensioner[0]).not.toHaveProperty("bilder");
+  });
+});

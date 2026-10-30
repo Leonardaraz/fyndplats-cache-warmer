@@ -34,12 +34,20 @@ const vardAv = (u: string): string => {
   }
 };
 
-/** md5 av bildens byte, eller null när den inte gick att hämta. */
-export async function hamtaNyckel(url: string, f: typeof fetch = fetch): Promise<string | null> {
-  if (!arVevorBildvard(vardAv(url))) return null;
+/**
+ * Bildens byte från en av VEVOR:s bildservrar, med vår egen användaragent.
+ * Null när värden inte är tillåten (också efter en omdirigering), svaret inte
+ * är 200 eller bilden är tom eller för stor.
+ */
+export async function hamtaVevorByte(
+  url: string,
+  tillaten: (vard: string) => boolean,
+  f: typeof fetch = fetch,
+): Promise<Uint8Array<ArrayBuffer> | null> {
+  if (!tillaten(vardAv(url))) return null;
   try {
     const res = await f(url, { headers: { "User-Agent": ANVANDARAGENT }, signal: AbortSignal.timeout(30_000) });
-    if (!res.ok || !arVevorBildvard(vardAv(res.url || url))) {
+    if (!res.ok || !tillaten(vardAv(res.url || url))) {
       await res.body?.cancel();
       return null;
     }
@@ -48,11 +56,16 @@ export async function hamtaNyckel(url: string, f: typeof fetch = fetch): Promise
       return null;
     }
     const b = new Uint8Array(await res.arrayBuffer());
-    if (b.byteLength === 0 || b.byteLength > MAX_BYTE) return null;
-    return createHash("md5").update(b).digest("hex");
+    return b.byteLength > 0 && b.byteLength <= MAX_BYTE ? b : null;
   } catch {
     return null;
   }
+}
+
+/** md5 av bildens byte, eller null när den inte gick att hämta. */
+export async function hamtaNyckel(url: string, f: typeof fetch = fetch): Promise<string | null> {
+  const b = await hamtaVevorByte(url, arVevorBildvard, f);
+  return b ? createHash("md5").update(b).digest("hex") : null;
 }
 
 /**

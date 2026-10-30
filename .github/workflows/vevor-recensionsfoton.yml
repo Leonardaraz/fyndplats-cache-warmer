@@ -1,0 +1,64 @@
+name: VEVOR — recensionernas foton
+
+# Ger VEVOR-recensioner som importerades utan foton de foton kunden lade upp
+# hos VEVOR (lib/vevor/recensionsfoton.ts). Fotona kommer ur artiklarnas
+# avläsningar, så en sida måste ha lästs om efter 2026-10-30. Läsaren läser
+# varje utkast ungefär en gång per dygn.
+#
+#   plan   räknar rader som får foton. Skriver ingenting.
+#   skriv  laddar upp fotona och skriver dem på raderna, i varv tills alla
+#          produkter är genomgångna. En rad som redan har foton rörs inte.
+#
+# Skriver bara antal och Wix-id. Repot är publikt.
+
+on:
+  workflow_dispatch:
+    inputs:
+      lage:
+        description: "plan eller skriv"
+        required: true
+        default: plan
+        type: choice
+        options: [plan, skriv]
+
+jobs:
+  kor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          LAGE: ${{ inputs.lage }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # Till STDERR: en ::error::-rad på stdout slukas av kommandosubstitutionen.
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          rot="${BASE%/api/cron/poll-tracking}"
+          torr=true
+          [ "$LAGE" = "skriv" ] && torr=false
+
+          fran=0
+          for varv in $(seq 1 40); do
+            svar=$(curl -sS --max-time 320 -X POST -H "Authorization: Bearer ${CRON_SECRET}" \
+              -H "Content-Type: application/json" -d "{\"dryRun\":${torr},\"fran\":${fran}}" \
+              "${rot}/api/admin/vevor-recensionsfoton") || { echo "::error::Anropet gick inte fram" >&2; exit 1; }
+            if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+              echo "::error::$(echo "$svar" | jq -r '.error // "okänt fel"')" >&2; exit 1
+            fi
+            echo "Varv ${varv}:"
+            echo "$svar" | jq -c '{granskade, produkter, medFoton, attRatta, redanMedFoton, utanRad, fotonAttHamta, rattade, fotonUppladdade, fotoMissar, fel, kvarFran}'
+            nasta=$(echo "$svar" | jq -r '.kvarFran')
+            if [ "$nasta" = "null" ]; then
+              echo "Klart."
+              exit 0
+            fi
+            fran="$nasta"
+          done
+          echo "::error::Inte klart efter 40 varv" >&2
+          exit 1
