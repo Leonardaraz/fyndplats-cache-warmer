@@ -29,6 +29,11 @@
 //   4. ☠️ KUNDENS EGNA OMDÖMEN RÖRS INTE. De är redan svenska och godkänns i
 //      /admin/reviews av Leonard.
 //   5. Svaret bär bara id, antal och skäl, aldrig texterna: loggen är publik.
+//   7. ☠️ EN RECENSION VARS ORIGINAL BÄR ETT NAMN KAN INTE ÖVERSÄTTAS. Namnet
+//      (recensentens eget, eller ett namn efter en hälsning som "Liebe Grüße")
+//      redigeras bort i läsningen, för recensioner-kalla.json committas till
+//      det publika repot. Husets regel sedan omgång 5 (2026-09-30): en sådan
+//      recension döljs.
 //   6. ☠️ EN VEVOR-RECENSION BESLUTAS BARA NÄR DEN GÄLLER PRODUKTENS EGEN
 //      ARTIKEL. VEVOR visar en familjs recensioner på varje artikel, och en
 //      översättning publicerar raden för gott: verktyget för recensioner om en
@@ -41,6 +46,7 @@ import { isCustomerReview } from "./queue";
 import { validateTranslation } from "./translate";
 import { artikelnummerformer, redigera } from "../polish/skrivplan";
 import { reviewImages } from "./images";
+import { isExternalSupplierImage } from "../wix/media-import";
 import { recensionsnyckel } from "../vevor/recensionsfoton";
 
 /** En runda är ungefär åtta produkter. Taket håller anropet inom ruttens tid. */
@@ -73,6 +79,52 @@ export function stilfel(sv: string): string[] {
   for (const [namn, re] of STIL) if (re.test(sv)) fel.push(namn);
   if (artikelnummerformer(sv) > 0) fel.push("artikelnummerform");
   return fel;
+}
+
+// --- Namn i originaltexten -------------------------------------------------------
+
+/**
+ * En signatur i slutet av texten: en hälsning, på leverantörernas språk, och
+ * ett eller två ord med versal ("Liebe Grüße, Klaus M."). Hälsningen läses
+ * utan hänsyn till skiftläge, namnet måste börja med versal och stå sist, så
+ * att en mening som börjar efter "Saludos." inte tas för ett namn.
+ */
+const SIGNATUR =
+  /(?<![\p{L}])(?:mit freundlichen gr(?:ü|ue)(?:ß|ss)en|freundliche gr(?:ü|ue)(?:ß|ss)e|liebe gr(?:ü|ue)(?:ß|ss)e|viele gr(?:ü|ue)(?:ß|ss)e|gr(?:ü|ue)(?:ß|ss)e|gru(?:ß|ss)|lg|mfg|best regards|kind regards|regards|saludos|un saludo|cordialement|cordiali saluti|saluti|met vriendelijke groet|groetjes|pozdrawiam|med vänlig hälsning|mvh|hälsningar)[\s,]+/giu;
+const SIGNATURNAMN = /^(\p{Lu}[\p{L}'-]*(?:\s+\p{Lu}[\p{L}'.-]*)?)[\s.!]*$/u;
+
+/** Delarna av recensentens namn som går att leta efter: minst tre bokstäver, inte maskerade. */
+function namndelar(namn: string | undefined): string[] {
+  return String(namn ?? "")
+    .split(/[^\p{L}*]+/u)
+    .filter((d) => d.length >= 3 && !d.includes("*"));
+}
+
+/**
+ * Originaltexten med namn bortredigerade, och om något namn fanns. Ren.
+ * Letar efter recensentens eget namn (hela ord, oavsett skiftläge) och efter
+ * ett namn direkt efter en hälsning.
+ */
+export function utanNamn(r: Pick<StoredReview, "textOriginal" | "customerNameRaw">): { text: string; namn: boolean } {
+  let text = String(r.textOriginal ?? "");
+  let namn = false;
+  for (const del of namndelar(r.customerNameRaw)) {
+    const re = new RegExp(`(?<![\\p{L}])${del.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\p{L}])`, "giu");
+    if (re.test(text)) {
+      namn = true;
+      text = text.replace(re, "‹NAMN›");
+    }
+  }
+  for (const m of text.matchAll(SIGNATUR)) {
+    const efter = text.slice((m.index ?? 0) + m[0].length);
+    const vem = SIGNATURNAMN.exec(efter);
+    if (vem) {
+      namn = true;
+      text = text.slice(0, (m.index ?? 0) + m[0].length) + "‹NAMN›";
+      break;
+    }
+  }
+  return { text, namn };
 }
 
 /** Raden väntar på ett beslut: dold för kunden, inte ett eget kundomdöme. */
@@ -132,7 +184,9 @@ export interface KallRad {
   sprak?: string;
   kopt?: string;
   foton: number;
-  /** Originaltexten, med artikelnummerformer redigerade. */
+  /** Originalet bär ett namn (bortredigerat). Recensionen ska döljas. */
+  namn?: true;
+  /** Originaltexten, med namn och artikelnummerformer redigerade. */
   text: string;
 }
 
@@ -179,7 +233,8 @@ export function kallaFor(productId: string, rader: ReadonlyArray<StoredReview>, 
       sprak: r.sourceLanguage || undefined,
       kopt: r.kopt || undefined,
       foton: reviewImages(r).length,
-      text: redigera(String(r.textOriginal ?? "")),
+      ...(utanNamn(r).namn ? { namn: true as const } : {}),
+      text: redigera(utanNamn(r).text),
     });
   }
   ut.attBesluta.sort((a, b) => b.betyg - a.betyg || String(b.datum ?? "").localeCompare(String(a.datum ?? "")));
@@ -275,6 +330,7 @@ export function provaBeslut(b: ProduktBeslut, rader: ReadonlyArray<StoredReview>
   for (const [id, sv] of Object.entries(b.oversatt)) {
     const r = egna.get(id);
     if (!r || !vantarIds.has(id)) continue;
+    if (utanNamn(r).namn) fel.push(`${b.productId}/${id}: originalet bär ett namn, dölj recensionen`);
     const dom = validateTranslation(r.textOriginal, sv);
     if (!dom.ok) fel.push(`${b.productId}/${id}: ${dom.reason ?? "underkänd"}`);
     for (const s of stilfel(sv)) fel.push(`${b.productId}/${id}: ${s}`);
@@ -387,6 +443,10 @@ export async function polera(beslut: ProduktBeslut[], dryRun: boolean, deps: Pol
       const r = efter.get(id);
       if (!r || !isVisibleStatus(r.status) || String(r.textSwedish ?? "").trim() !== sv) {
         utfall.avvikelser.push(`${id}: inte publicerad med texten`);
+      } else if (reviewImages(r).some(isExternalSupplierImage)) {
+        // Hemflytten sker när raden blir synlig (withOwnImage). Faller den
+        // står leverantörens adress kvar på en publicerad recension.
+        utfall.avvikelser.push(`${id}: fotot ligger kvar hos leverantören`);
       }
     }
     for (const id of Object.keys(b.dolj)) {

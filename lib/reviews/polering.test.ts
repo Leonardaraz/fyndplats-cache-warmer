@@ -8,6 +8,7 @@ import {
   provaBeslut,
   redanGjord,
   restKandidater,
+  utanNamn,
   stilfel,
   tolkaBeslut,
   type PoleringDeps,
@@ -92,6 +93,23 @@ describe("stilfel — husets stil och tvätten", () => {
   });
 });
 
+describe("utanNamn — namn i originalet", () => {
+  const f = (textOriginal: string, customerNameRaw?: string) => utanNamn({ textOriginal, customerNameRaw });
+
+  it("☠️ redigerar recensentens eget namn och en signatur sist i texten", () => {
+    expect(f("Klaus hat sie aufgebaut, super.", "Klaus Beispiel")).toEqual({ text: "‹NAMN› hat sie aufgebaut, super.", namn: true });
+    expect(f("Tolle Bank. Liebe Grüße, Klaus M.")).toEqual({ text: "Tolle Bank. Liebe Grüße, ‹NAMN›", namn: true });
+    expect(f("Sehr gut, LG Anna")).toEqual({ text: "Sehr gut, LG ‹NAMN›", namn: true });
+  });
+
+  it("tar inte en mening efter en hälsning, ett maskerat namn eller en hälsning utan namn för ett namn", () => {
+    expect(f("Muy buena. Saludos. Ahora la uso cada día.").namn).toBe(false);
+    expect(f("Funkar bra, rekommenderar", "M***a").namn).toBe(false);
+    expect(f("Super Qualität. mfg").namn).toBe(false);
+    expect(f("Stabil und schön.", "Kim").namn).toBe(false);
+  });
+});
+
 describe("kallaFor — läsningen till rundans katalog", () => {
   it("tar bara väntande rader som inte är kundens egna, och räknar resten", () => {
     const p = kallaFor(P1, [
@@ -112,6 +130,15 @@ describe("kallaFor — läsningen till rundans katalog", () => {
     expect(json).not.toContain("\"DE\"");
     expect(json).not.toContain("TESTVEVOR0123456789");
     expect(p.attBesluta[0].text).toContain("‹REDIGERAT›");
+  });
+
+  it("☠️ redigerar namnet i originalet och märker raden, och en översättning av den fälls", () => {
+    const r = rad({ textOriginal: "Klaus hat den Tisch in zehn Minuten aufgebaut, sehr stabil." });
+    const p = kallaFor(P1, [r], null);
+    expect(p.attBesluta[0]).toMatchObject({ namn: true, text: "‹NAMN› hat den Tisch in zehn Minuten aufgebaut, sehr stabil." });
+    const fel = provaBeslut(beslut({ oversatt: { r1: "Han satte ihop bordet på tio minuter, väldigt stabilt." } }), [r], null);
+    expect(fel.join("\n")).toMatch(/originalet bär ett namn/);
+    expect(provaBeslut(beslut({ oversatt: {}, dolj: { r1: "namn i texten" } }), [r], null)).toEqual([]);
   });
 });
 
@@ -303,6 +330,13 @@ describe("polera", () => {
     expect(svar.ok).toBe(true);
     expect(svar.produkter[0]).toMatchObject({ oversatta: 0, redan: 1 });
     expect(skrivna).toEqual([]);
+  });
+
+  it("☠️ ett foto som ligger kvar hos leverantören efter publiceringen är en avvikelse", async () => {
+    const { deps } = lager([rad({ imageUrl: "https://img.aosomcdn.com/test/foto.jpg", hasImage: true })]);
+    const svar = await polera([beslut()], false, deps);
+    expect(svar.ok).toBe(false);
+    expect(svar.produkter[0].avvikelser).toEqual(["r1: fotot ligger kvar hos leverantören"]);
   });
 
   it("☠️ en rad som inte läser tillbaka som planen är en avvikelse", async () => {

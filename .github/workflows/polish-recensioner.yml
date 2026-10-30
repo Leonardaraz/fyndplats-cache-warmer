@@ -103,7 +103,14 @@ jobs:
             echo "::error::${dir}/ids.tsv finns inte på ${GITHUB_REF_NAME}. Kör med ref = poleringsgrenen." >&2
             exit 1
           fi
-          # kort → produkt-id ur ids.tsv (kort ⇥ produkt-id ⇥ …)
+          # kort → produkt-id ur ids.tsv (kort ⇥ produkt-id ⇥ …). Kolumn 2 ska vara
+          # ett Wix-id som börjar med kortet: 29 äldre rundor har priset där, och
+          # då hade "1669" skickats som produkt-id och gett noll recensioner.
+          felrader=$(awk -F'\t' 'NF >= 2 && $1 != "" && !($2 ~ /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/ && index($2, $1) == 1) { print NR }' "${dir}/ids.tsv" | head -5 | tr '\n' ' ')
+          if [ -n "${felrader}" ]; then
+            echo "::error::ids.tsv: kolumn 2 är inte produktens Wix-id (eller börjar inte med kortet) på rad ${felrader}" >&2
+            exit 1
+          fi
           karta=$(awk -F'\t' 'NF >= 2 && $1 != "" && $2 != "" { printf "%s\t%s\n", $1, $2 }' "${dir}/ids.tsv" \
             | jq -R -s -c 'split("\n") | map(select(length > 0) | split("\t") | {(.[0]): .[1]}) | add // {}')
           if [ "$(printf '%s' "$karta" | jq 'length')" = "0" ]; then

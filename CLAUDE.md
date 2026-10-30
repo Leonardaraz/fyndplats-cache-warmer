@@ -8583,6 +8583,15 @@ Sex egenskaper som inte ska tas bort:
 6. **Svaret och loggen bär bara kort, id, antal och skäl.** Läsningen bär
    originaltexterna, som redan är publika hos leverantören, utan namn och land och med
    artikelnummerformer redigerade.
+7. ☠️ **Ett namn i originaltexten redigeras bort före commit** (`utanNamn`: recensentens
+   eget namn, eller ett namn efter en hälsning sist i texten), och raden kan bara döljas.
+   `recensioner-kalla.json` committas till det publika repot, och husets regel sedan
+   2026-09-30 är att en sådan recension stryks.
+
+Granskningen 2026-10-30 lade till två spärrar till: återläsningen fäller en publicerad
+recension vars foto ligger kvar hos leverantören (hemflytten föll), och workflowen vägrar en
+`ids.tsv` där kolumn 2 inte är produktens Wix-id (29 äldre rundor har priset där, och då
+hade läsningen tyst gett noll recensioner).
 
 Grinden för översättningen är `validateTranslation` (samma som `/admin/reviews`) och
 husets stil (`stilfel`): inga tankstreck, semikolon, citattecken, tre punkter eller

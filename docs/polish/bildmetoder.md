@@ -583,8 +583,9 @@ faktiskt behov och har inte krävts på ~40 produkter.
 > - **Behåll (eller återställ) leverantörens differentierade variant-/måttblad — ett per variant.**
 >   Original hämtas från `https://static.wixstatic.com/media/<mediaId>~mv2.jpg` **även efter** att de
 >   tagits ur galleriet (filen lever kvar i Media Manager tills orphan-svepen).
-> - Städa bara bort **VEVOR-loggan** (vit boxfyll `ImageDraw.rectangle` på vit bg, annars LaMa) och
->   ev. stor **engelsk marknads-/spec-panel** (beskär bort halva bilden). **Måtten (cm/tum/mm)
+> - **VEVOR-loggan på varan får stå** (Leonard 2026-10-28), och ingenting retuscheras. En stor
+>   **engelsk marknads-/spec-panel** beskärs bort bara enligt runbookens undantag för sidor med
+>   färre än fem bilder, annars stryks bilden. **Måtten (cm/tum/mm)
 >   BEHÅLLS — de är inte fula och behövs för att skilja varianterna.**
 > - Länka varje choice till sin egen bild: `linkedMedia:[hero, <variant-egen-bild>]` (Steg 11B).
 > - **Undantag där gemensam bild ÄR rätt:** varianten ändrar inte utseendet — ren **färgvariant utan
