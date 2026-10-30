@@ -33,6 +33,23 @@ text och visade ingenting felaktigt.
 - Varianternas id, SKU, pris (2 399 och 2 519 kr), synlighet och kostnad oförändrade.
   Varukorgens bild: Svart `c5410a`, Mörkgrå `91ecf4`.
 
+## Live
+
+Mätt 10:36 UTC med `live-galleri.mjs`, en färg i taget, efter att butikens cache byggts om
+(sidan `age` 20 s). Svart visar sina sex bilder (#1–#6) och Mörkgrå sina fem (#7–#11):
+packshot, vardagsrum, foten, måttskissen och den nya närbilden sist. Den tyska bilden syns
+inte i någon färg.
+
+☠️ **En omrendering gick fel i fem minuter.** Butiken byggde om sidan 10:30:53, sekunder
+efter skrivningen, och sidan fick då SDK-listans sex första bilder och inga Mörkgrå-bilder:
+`imageOwners` hade tre poster (Svart, ur alt-texten) och Mörkgrå visade Svarts bilder
+(mätt: båda färgerna `#1–#6` plus Mörkgråas variantbild). Wix var rätt hela tiden: GET,
+query och search gav elva bilder och rätt länkar när det mättes 10:31 och 10:33. Koden i
+`lib/products.ts` (headless-site) förklarar formen: faller V3-anropet i `fetchV3ProductRaw`
+behåller sidan SDK-galleriet och markeras kortlivad (`kortLivslangd`), och den byggdes om
+korrekt 10:35:53. Varför anropet föll är inte mätt. Mät därför om sidan efter fem minuter
+innan en färgsida kallas rätt eller fel, och titta på `imageOwners`, inte bara antalet bilder.
+
 ## Observation, inte ändrad
 
 Alt-texten på galleriets plats 9 (`a34aef`, foten med de två svarta knapparna) säger
