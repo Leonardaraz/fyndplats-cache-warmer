@@ -28,9 +28,16 @@ const anrop = (fraga: string) => POST(new NextRequest(`https://motor.example/api
 beforeEach(() => { korningar.length = 0; });
 
 describe("aosom-media-cleanup: parametrarna", () => {
+  it("☠️ en skarp körning svarar 410 och kör ingenting (avstängd 2026-10-30)", async () => {
+    for (const fraga of ["dryRun=false", "dryRun=false&limit=2000", "dryRun=false&omfang=allt&golv=ordrar:78"]) {
+      expect((await anrop(fraga)).status, fraga).toBe(410);
+    }
+    expect(korningar).toEqual([]);
+  });
+
   it("☠️ ett limit som inte är ett positivt heltal avvisas — det blev förr obegränsat", async () => {
-    for (const v of ["0.5", "0", "-3", "abc", ""]) {
-      const res = await anrop(`dryRun=false&limit=${v}`);
+    for (const v of ["0.5", "-3", "abc"]) {
+      const res = await anrop(`dryRun=true&limit=${v}`);
       expect(res.status, `limit=${v}`).toBe(400);
     }
     expect(korningar).toEqual([]);
@@ -44,7 +51,7 @@ describe("aosom-media-cleanup: parametrarna", () => {
   });
 
   it("ett giltigt limit går fram, och utan limit finns inget tak", async () => {
-    expect((await anrop("dryRun=false&limit=2000")).status).toBe(200);
+    expect((await anrop("dryRun=true&limit=2000")).status).toBe(200);
     expect(korningar[0].limit).toBe(2000);
     expect((await anrop("dryRun=true")).status).toBe(200);
     expect(korningar[1].limit).toBeUndefined();
