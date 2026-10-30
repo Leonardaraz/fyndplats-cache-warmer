@@ -6622,8 +6622,14 @@ Sju egenskaper som inte ska tas bort:
    uppmätt mot skarpa Wix 2026-10-29).
 4. **Ett syskon som är slut följer med med saldo 0**, så att det inte blir en
    egen produkt när det kommer tillbaka.
-5. ☠️ **Ett syskon utan betyg gör att hela familjen väntar.** Annars hade det
-   lämnats utanför och sedan blockerats av punkt 3.
+5. ☠️ **Ett syskon utan betyg gör att hela familjen väntar**, och så gör ett
+   syskon som inte lästs alls men står i läsarens kö (`arPaVag`, sedan
+   2026-10-30, Leonard: *"Gör det som blir proffsigast och effektivare"*).
+   Annars hade artikeln importerats ensam, och syskonet blivit en egen
+   produkt eller blockerats av punkt 3. Väntan räknas som `syskon_vantar`,
+   skilt från artikelns eget `betyg_okant`. Ett syskon som inte står i kön, är
+   borta, saknas, har flyttat, är spärrat eller inte går att tolka väntar
+   familjen inte på, för då hade den väntat för alltid.
 6. **VEVOR:s egen svenska skickas som manuella namn** (`variantNameOverrides`,
    `axisNameOverrides`). Ett variantvärde går inte att döpa om i Wix efteråt,
    så en känd felöversättning rättas före: "20 miljoner" på en längdaxel blir
@@ -6663,9 +6669,16 @@ opolerade utkast"** (`plan` · `radera`) → `/api/admin/vevor-utkast-radera` �
 7. Mappningsraden tas bort (`Store.deleteMapping`), och när allt är raderat
    nollställs importens markör. Importen slås inte på.
 
-Bilderna ligger kvar i Media Manager tills bildstädningen tar dem.
+Bilderna ligger kvar i Media Manager (bildstädningen är avstängd helt sedan
+2026-10-30).
 
-**Ordningen efter mergen:** vänta ett dygn, så att läsaren har läst varje sida
+**Körd 2026-10-30 00:10–00:23 UTC:** 1 043 utkast raderade och bekräftade,
+noll i order, noll synliga. Wix läsning släpade efter raderingen på några
+produkter, så de räknades som obekräftade och togs först i nästa körning
+(`fannsInte`). Fyra körningar, sedan nollställdes markören och importen slogs
+på 00:23. Leonard ville inte vänta ett dygn.
+
+**Ordningen som planerades:** vänta ett dygn, så att läsaren har läst varje sida
 med betyg (utkasten och katalogen läses en gång per dygn), och kör en torr
 `prov` i "VEVOR — importen" (`betyg_okant` ska vara nära noll och `familjer`
 över noll). Kör sedan `plan`, `radera` med planens antal, `plan` igen

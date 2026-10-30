@@ -11,7 +11,7 @@
 
 import { fraga, hamta, rakna } from "@/lib/db/wix-data-klient";
 import { VEVOR_KOL } from "@/lib/db/wix-kollektioner";
-import { WixVevorLager, slappLasRad, tagLasRad, uppdateraRad, type Avlasning, type Lasartillstand } from "./lager";
+import { WixVevorLager, slappLasRad, tagLasRad, uppdateraRad, type Avlasning, type Lasartillstand, type Sidrad } from "./lager";
 import type { Bildmonster } from "./bilder";
 import type { Hinder } from "./to-product";
 import type { FamiljSkal } from "./familj";
@@ -104,6 +104,8 @@ export interface VevorImportLager {
   raknaILager(): Promise<number>;
   /** Avläsningarna för artikelnumren, oavsett status. För syskonen (lib/vevor/familj.ts). */
   lasAvlasningar(skus: string[]): Promise<Map<string, Avlasning>>;
+  /** Läsarens köer för sidorna, nycklade på webb-id. För syskon som inte lästs än. */
+  lasSidor(webbIds: string[]): Promise<Map<string, Sidrad>>;
 }
 
 const IMPORT = "import";
@@ -148,12 +150,17 @@ export class WixVevorImportLager implements VevorImportLager {
   async lasAvlasningar(skus: string[]): Promise<Map<string, Avlasning>> {
     return new WixVevorLager().avlasningar(skus);
   }
+
+  async lasSidor(webbIds: string[]): Promise<Map<string, Sidrad>> {
+    return new WixVevorLager().sidor(webbIds);
+  }
 }
 
 /** Lagret i minnet, för tester. Samma regler som Wix där reglerna spelar roll. */
 export class MinnesVevorImportLager implements VevorImportLager {
   tillstand: Importtillstand = structuredClone(TOMT_IMPORTTILLSTAND);
   avlasningar = new Map<string, Avlasning>();
+  sidor = new Map<string, Sidrad>();
   fryst: Lasartillstand["fryst"] = null;
   las: { agare: string; utgar: number } | null = null;
 
@@ -190,6 +197,14 @@ export class MinnesVevorImportLager implements VevorImportLager {
     for (const s of skus) {
       const a = this.avlasningar.get(s);
       if (a) ut.set(s, structuredClone(a));
+    }
+    return ut;
+  }
+  async lasSidor(webbIds: string[]) {
+    const ut = new Map<string, Sidrad>();
+    for (const id of webbIds) {
+      const r = this.sidor.get(id);
+      if (r) ut.set(id, structuredClone(r));
     }
     return ut;
   }

@@ -4,6 +4,7 @@ import type { ImportResult } from "@/lib/import/pipeline";
 import { MemoryStore } from "@/lib/store/memory";
 import { RabattFel } from "./pris";
 import { MinnesVevorImportLager } from "./import-lager";
+import type { Sidrad } from "./lager";
 import { FEL_I_FOLJD, STOPP_FOR_LARM, TAK_MARGINAL, VILA_MS, WIX_MAX_PRODUKTER, korVevorImport, type ImportDeps } from "./import";
 import { testAvlasning, testgalleri } from "./testsida";
 
@@ -395,7 +396,51 @@ describe("steg 8: betyget, syskonen och recensionerna", () => {
     lagg(2, { egenskaper: [["Typ", "B"]], syskon: syskon(1), status: "slut", saldo: 0, betyg: undefined });
     const s = await korVevorImport(deps(), schema);
     expect(importera).not.toHaveBeenCalled();
-    expect(s.hinder.betyg_okant).toBe(1);
+    expect(s.hinder).toMatchObject({ syskon_vantar: 1, betyg_okant: 0 });
+  });
+
+  const sida = (n: number, over: Partial<Sidrad> = {}): Sidrad => ({
+    webbId: String(n).padStart(12, "0"),
+    sokvag: `/test-${n}`,
+    klass: "katalog",
+    nastaLasning: LASTAT,
+    sku: null,
+    senastForsokAt: null,
+    senastUtfall: null,
+    senastOkAt: null,
+    iKartan: true,
+    saknadIKartanSedan: null,
+    saknasForstaAt: null,
+    borta: false,
+    ...over,
+  });
+
+  it("☠️ ett syskon som inte lästs men står i läsarens kö gör att familjen väntar", async () => {
+    lagg(1, { egenskaper: [["Typ", "A"]], syskon: syskon(2) });
+    lager.sidor.set(sida(2).webbId, sida(2));
+    const s = await korVevorImport(deps(), schema);
+    expect(importera).not.toHaveBeenCalled();
+    expect(s.hinder.syskon_vantar).toBe(1);
+
+    // När syskonet lästs blir det en familj.
+    lagg(2, { egenskaper: [["Typ", "B"]], syskon: syskon(1) });
+    const sen = await korVevorImport(deps(), { ...schema, manuell: true });
+    expect(importera).toHaveBeenCalledTimes(1);
+    expect(sen.familjer).toMatchObject({ sammanslagna: 1, varianter: 2 });
+  });
+
+  it("☠️ ett oläst syskon som inte står i kön, är borta eller inte går att läsa väntar familjen inte på", async () => {
+    for (const rad of [undefined, sida(2, { borta: true }), sida(2, { senastUtfall: "saknas" }), sida(2, { senastUtfall: "tolkningsfel:ej_produktsida" })]) {
+      lager = new MinnesVevorImportLager();
+      lager.tillstand.aktiv = true;
+      store = new MemoryStore();
+      importera.mockClear();
+      lagg(1, { egenskaper: [["Typ", "A"]], syskon: syskon(2) });
+      if (rad) lager.sidor.set(rad.webbId, rad);
+      const s = await korVevorImport(deps(), schema);
+      expect(importera, JSON.stringify(rad ?? null)).toHaveBeenCalledTimes(1);
+      expect(s.hinder.syskon_vantar).toBe(0);
+    }
   });
 
   it("recensionerna från hela familjen sparas på produkten, och ett fel där fäller inte importen", async () => {

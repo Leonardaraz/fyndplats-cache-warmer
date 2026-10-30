@@ -53,7 +53,9 @@ export type Hinder =
   /** Avläsningen är från före steg 8 och bär inget betyg: väntar på nästa läsning. */
   | "betyg_okant"
   /** Familjen finns redan som en produkt, utan den här artikeln (lib/vevor/import.ts). */
-  | "syskon_finns";
+  | "syskon_finns"
+  /** Ett syskon har inte lästs om med betyg, eller inte lästs alls men står i läsarens kö. */
+  | "syskon_vantar";
 
 /**
  * Betygets hinder, eller null. Saknas fältet lästes sidan före steg 8, och

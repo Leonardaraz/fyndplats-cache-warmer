@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { WIX_MAX_OPTIONS_PER_PRODUCT } from "@/lib/wix/limits";
 import { valjVevorBilder } from "./bilder";
 import type { Avlasning } from "./lager";
-import { byggFamilj, egenskaperFor, rensaVarde, syskonSkus, vevorFamiljeProdukt } from "./familj";
+import { arPaVag, byggFamilj, egenskaperFor, rensaVarde, syskonSkus, vevorFamiljeProdukt } from "./familj";
+import type { Sidrad } from "./lager";
 import { kostnadUsd } from "./to-product";
 import { testAvlasning, testgalleri } from "./testsida";
 
@@ -67,6 +68,39 @@ describe("byggFamilj", () => {
 
   it("☠️ ett syskon som saknar betyg (läst före steg 8) gör att familjen väntar", () => {
     expect(byggFamilj(a1, lasta(a2, { ...a3, betyg: undefined }), NU, ledig)).toEqual({ typ: "vanta" });
+  });
+
+  it("☠️ ett oläst syskon som står i läsarens kö gör att familjen väntar, annars hoppas det över", () => {
+    expect(byggFamilj(a1, lasta(a3), NU, ledig, new Set([sku(2)]))).toEqual({ typ: "vanta" });
+    expect(byggFamilj(a1, lasta(a3), NU, ledig).typ).toBe("familj");
+    // Ett syskon som redan sitter på en produkt väntar familjen inte på.
+    expect(byggFamilj(a1, lasta(a3), NU, (s) => s === sku(2), new Set([sku(2)])).typ).toBe("familj");
+  });
+
+  it("arPaVag: bara en sida i kön som inte prövats, eller föll på ett övergående fel", () => {
+    const rad = (over: Partial<Sidrad>): Sidrad => ({
+      webbId: "000000000002",
+      sokvag: "/x",
+      klass: "katalog",
+      nastaLasning: "2026-10-30T00:00:00.000Z",
+      sku: null,
+      senastForsokAt: null,
+      senastUtfall: null,
+      senastOkAt: null,
+      iKartan: true,
+      saknadIKartanSedan: null,
+      saknasForstaAt: null,
+      borta: false,
+      ...over,
+    });
+    expect(arPaVag(undefined)).toBe(false);
+    expect(arPaVag(rad({}))).toBe(true);
+    expect(arPaVag(rad({ senastUtfall: "tillfalligt" }))).toBe(true);
+    expect(arPaVag(rad({ senastUtfall: "skrivfel" }))).toBe(true);
+    for (const u of ["ok", "saknas", "flyttad", "sparrad", "tolkningsfel:ej_produktsida"] as const) {
+      expect(arPaVag(rad({ senastUtfall: u as Sidrad["senastUtfall"] })), u).toBe(false);
+    }
+    expect(arPaVag(rad({ borta: true }))).toBe(false);
   });
 
   it("☠️ varianter som inte går att skilja åt blir egna produkter", () => {
