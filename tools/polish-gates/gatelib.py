@@ -58,9 +58,18 @@ MARKEN = r"HOMCOM|Outsunny|PawHut|Aiyaplay|Aosom|SportNow|Vinsetto|Kleankin|Zone
 # ser ut som en läcka av leverantörens artikelnummer lär mottagaren att sluta
 # läsa just den grinden. Mätt åt båda hållen — sex kända artikelnummer fångas
 # fortfarande, sju icke-nummer avvisas.
+#
+# ☠️ VEVOR:S ARTIKELNUMMER (2026-10-30). Poleringen av VEVOR-utkast börjar,
+# och deras nummer har en annan form: 19 eller 22 tecken, versaler och siffror
+# i ett (CLAUDE.md, VEVOR steg 2; samma form som loggspärren i workflowerna).
+# Bara de två längderna och bara versaler och siffror: mätt över alla filer i
+# tools/polish-assets gav 17–24 tecken sex träffar (längd 17 och 20, i kortens
+# HTML), 19 och 22 gav noll. Numren med bindestreck eller punkt (2,1 %)
+# fångas inte här.
 ARTNR = (r"\b\d{2}[A-Z]-\d{3}(?!\d)[A-Z0-9]*\b"      # DDL-DDDLDDLL, DDL-DDD
          r"|\b[A-Z]\d{2}-\d{3}(?!\d)[A-Z0-9]*\b"     # LDD-DDDLDDLL
-         r"|\b\d{3}-\d{3}(?!\d)[A-Z0-9]{2,}\b")      # DDD-DDDLDDLL, INTE 220-240V eller 850-1000W
+         r"|\b\d{3}-\d{3}(?!\d)[A-Z0-9]{2,}\b"       # DDD-DDDLDDLL, INTE 220-240V eller 850-1000W
+         r"|\b(?=[A-Z0-9]*\d)(?=[A-Z0-9]*[A-Z])(?:[A-Z0-9]{22}|[A-Z0-9]{19})\b")  # VEVOR
 LAND = (r"\b(Tyskland|Deutschland|tysk[at]?|Spanien|spansk|Polen|polsk|Kina|kines"
         r"|EU-lager|skickas fr[åa]n|lagerland)\b")
 # ☠️ AKTÖRS- OCH GARDERINGSORDEN ÄR FLER ÄN "LEVERANTÖREN" (2026-09-27).

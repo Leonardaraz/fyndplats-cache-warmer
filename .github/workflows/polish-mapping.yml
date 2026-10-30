@@ -174,7 +174,7 @@ jobs:
             slut=$(echo "$svar" | jq -r '.prisgrind.slutsald')
 
             if [ "$slut" = "true" ]; then
-              echo "  saldo: 0 — SLUTSALD hos Aosom"
+              echo "  saldo: 0 — SLUTSALD hos leverantoren"
             fi
 
             if [ "$stammer" = "true" ]; then
@@ -185,7 +185,7 @@ jobs:
                 # ar enligt Aosoms egen guide ett lagerbesked, inte en
                 # utgangen artikel, och sidan ska ligga kvar tills den kommer
                 # tillbaka (CLAUDE.md). Men det ar slosad polering just nu.
-                echo "::warning::SLUTSALD: saldo 0 hos Aosom. Priset stammer, sa det ar inget fel — men sidan saljer ingenting forran varan ar tillbaka. Polera den sist." >&2
+                echo "::warning::SLUTSALD: saldo 0 hos leverantoren. Priset stammer, sa det ar inget fel — men sidan saljer ingenting forran varan ar tillbaka. Polera den sist." >&2
               fi
             elif [ "$last" = "true" ]; then
               # ☠️ LAST PRIS AR ETT BESLUT, INTE DRIFT. Raden bar prisLast, alltsa
@@ -212,11 +212,12 @@ jobs:
               # avrundning som byttes 2026-09-03. Grinden sa anda "kostnaden
               # har andrats sedan importen". Ratt RAD, fel SKAL, och skalet
               # skickade felsokningen at fel hall.
-              echo "::error::SLUTSALD — saldo 0 hos Aosom. Polera INTE: ingen kan kopa varan. Prisavvikelsen nedan behover INTE betyda att kostnaden andrats — en artikel som fallit ur feeden far aldrig sitt pris omraknat, sa grinden kan inte bli gron har. ROR INTE PRISET. Valj en annan produkt." >&2
+              echo "::error::SLUTSALD — saldo 0 hos leverantoren. Polera INTE: ingen kan kopa varan. Prisavvikelsen nedan behover INTE betyda att kostnaden andrats — en artikel som fallit ur feeden far aldrig sitt pris omraknat, sa grinden kan inte bli gron har. ROR INTE PRISET. Valj en annan produkt." >&2
               exit 1
             elif [ "$galler" = "true" ]; then
-              # Aosom-rad: sortimentet importerades 2026-08-27, samma dag regeln
-              # sattes, sa den galler. Ett fall ar da verklig drift.
+              # Aosom- eller VEVOR-rad: Aosom-sortimentet importerades 2026-08-27,
+              # samma dag regeln sattes, och VEVOR-synken skriver regelpriset med
+              # kostnaden (2026-10-30). Ett fall ar da verklig drift.
               echo "::error::PRISGRINDEN FALLER — kostnaden har andrats sedan importen och priset i Wix ar gammalt. ROR INTE PRISET. Valj en annan produkt och flagga raden." >&2
               exit 1
             else
@@ -234,7 +235,7 @@ jobs:
               # mottagaren slutar lasa. Och da aker det AKTA larmet med, alltsa
               # "PRISGRINDEN FALLER" pa en Aosom-rad, som betyder publicera inte
               # det har priset. Skillnaden finns redan i svaret: regelGaller.
-              echo "::warning::EJ AVGORBAR: raden ar inte en Aosom-import, och prisregeln ovan galler bara importer efter 2026-08-27. Priset foljer sannolikt den aldre regeln. Detta bevisar INGEN drift — men ror anda inte priset utan att kontrollera for hand." >&2
+              echo "::warning::EJ AVGORBAR: raden ar varken en Aosom- eller VEVOR-import, och prisregeln ovan galler bara importer efter 2026-08-27. Priset foljer sannolikt den aldre regeln. Detta bevisar INGEN drift — men ror anda inte priset utan att kontrollera for hand." >&2
             fi
             fs=$(echo "$svar" | jq -r '.aosomFreightShare // "null"')
             echo "  aosomFreightShare: ${fs} (over 0,5 = frakten kostar mer an varan, polera sist)"

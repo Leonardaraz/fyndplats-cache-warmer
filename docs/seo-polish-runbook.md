@@ -4,7 +4,9 @@
 > kontrollerad livesida. All skrivning till Wix går via workflowen **"Polering — skriv en
 > runda till Wix"**. Ingenting skrivs för hand.
 >
-> **Kön består av Aosom-utkast:** tyska feedrader som ligger som `visible: false`.
+> **Kön består av Aosom- och VEVOR-utkast** som ligger som `visible: false`. Aosoms är tyska
+> feedrader, VEVOR:s är svensk text från VEVOR:s produktsidor (se
+> [VEVOR-utkast](#vevor-utkast-det-som-skiljer)).
 > **AliExpress importeras inte längre** (2026-09-27). De AliExpress-sidor som redan ligger
 > i butiken finns kvar ett tag, men de poleras inte och får inget produktsäkerhetsavsnitt.
 > De spelar ändå roll här: en Aosom-vara kan redan säljas som AliExpress-sida, och då är
@@ -66,6 +68,64 @@
   Wix-verktygen går ingen runda att köra, och då ber du Leonard slå på kopplingen. Sök
   efter verktygen i stället för att fråga efter kopplingens status, för den kan säga
   `connected` även när inga verktyg är laddade.
+
+## VEVOR-utkast: det som skiljer
+
+VEVOR:s sortiment importeras sedan 2026-10-29 som osynliga utkast med leverantören `vevor`
+på mappningen. Rundan går som för Aosom, med de här skillnaderna.
+
+**Källan är svensk.** Utkastets text är VEVOR:s egen svenska från deras produktsida, utan
+reklamblocken (importen tar bort dem). Fliken *Tekniska specifikationer* kommer ur sidans
+specifikationstabell. Texten är maskinöversatt och har ofta fel ord och enheter. Läs den som
+källa och skriv om den helt, med samma regler för påståenden och siffror som för en Aosom-sida.
+På en familj (flera varianter) visar varje rad i fliken som skiljer sig varje varians värde.
+
+**Välj inte de här utkasten:**
+
+- **Utkast utan fliken *Tekniska specifikationer*.** Fliken läggs in av **"VEVOR —
+  specifikationen på utkast som saknar den"** när läsaren har läst om sidorna.
+- **Gränsfallen i familjeregelns plan** (**"VEVOR — familjeregeln på befintliga utkast"**,
+  läget `plan`), tills Leonard har avgjort dem. Ett gränsfall som delas senare raderas, och då
+  försvinner poleringen.
+- **`vevorGranskning.medicinteknik: true` i Steg 3:s läsning.** Flagga utkastet till Leonard.
+- **Saldo 0.** Prisgrinden säger då SLUTSALD.
+
+**Märket.** Skrivsteget sätter märket VEVOR i Wix. Skriv det inte i namnet eller SEO-titeln
+*(Leonard 2026-10-28)*.
+
+**Artikelnumret.** VEVOR:s nummer har 19 eller 22 tecken, versaler och siffror i ett. Det får
+aldrig synas, av samma skäl som Aosoms. Sedan 2026-10-30 fäller `gatelib.ARTNR` och
+skrivplanen den formen. De nummer som bär bindestreck eller punkt fångas inte: leta efter dem
+med ögonen.
+
+**Bilderna.** Importen tog sex bilder enligt Leonards regel (`lib/vevor/bilder.ts`). Står
+`vevorGranskning.bildgranskning` på `true` var mönstret ovanligt, och då granskar du varje
+bild extra noga.
+
+- VEVOR-loggan på varan får stå *(Leonard 2026-10-28)*.
+- Bilder med säljtext på engelska eller tyska stryks, som Aosoms tyska *(Leonard 2026-10-30)*.
+- Aosom-verktygen för bilder (bildkandidater, färgtillägg och miljöbild) läser Aosoms flöde
+  och fungerar inte för VEVOR.
+
+**Varianter.** En familj är en sida med en VEVOR-artikel per variant. Ge den en rad i
+`sammanslagna.tsv`, som en sammanslagen Aosom-sida (se *En sammanslagen sida skrivs om med
+`sammanslagna.tsv`* nedan). SKU-steget hoppas då över, och varje variant behåller sin SKU.
+
+**Leksaker.** Beslutet om EN 71 gäller bara Aosom. En VEVOR-leksak vars källa inte nämner
+någon standard flaggas.
+
+**Produktsäkerhet.** Tillverkaren och ansvarig i EU kommer från motorn (VEVOR:s standardrad,
+Leonards beslut 2026-10-29). Säkerhetsavsnittet skriver du som vanligt, ur källans text.
+VEVOR-varor har ingen förhandsöversättning, så utan ditt avsnitt har fliken ingen
+säkerhetsinformation.
+
+**Priset.** Prisgrinden gäller VEVOR-rader sedan 2026-10-30: importen satte regelpriset och
+VEVOR-synken skriver det varje timme. Säger grinden *PRISGRINDEN FALLER* är det drift, och då
+rör du inte priset.
+
+**Frakt och retur** *(Leonard 2026-10-30)*. Frakten kontrolleras inte före publiceringen, och
+priset räknar med att VEVOR tar 0 kr i frakt. Butiken har ingen returadress för VEVOR, så en
+kund som returnerar får adressen per mejl.
 
 ## Rundan steg för steg
 

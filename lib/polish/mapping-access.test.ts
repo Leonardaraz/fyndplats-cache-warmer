@@ -197,9 +197,9 @@ describe("regelGäller — skiljer drift från en äldre prisregel", () => {
     expect(prisgrind(utan, cfg, 1.2)!.regelGäller).toBe(true);
   });
 
-  it("en VEVOR-rad: regeln gäller inte än (ingen synk skriver den förrän steg 5)", () => {
+  it("en VEVOR-rad: regeln gäller (importen sätter den, synken håller den)", () => {
     const vevor = rad({ supplier: "vevor", supplierProductId: "vevor:TEST-0001" });
-    expect(prisgrind(vevor, cfg, 1.2)!.regelGäller).toBe(false);
+    expect(prisgrind(vevor, cfg, 1.2)!.regelGäller).toBe(true);
   });
 
   it("☠️ en LÅST rad bär prisLast — skillnaden är vald, inte drift", () => {

@@ -221,8 +221,9 @@ export type Prisgrind = {
  *
  * - Aosom: ja. Synken räknar om priset ur kostnaden var sjätte timme.
  * - AliExpress: nej. Priser från före 2026-08-27 följer den gamla regeln.
- * - VEVOR: inte än. Husets regel gäller (Leonard 2026-10-21), men ingen synk
- *   skriver den förrän VEVOR-synken är byggd (steg 5). Då blir det ja.
+ * - VEVOR: ja, sedan 2026-10-30. Importen sätter regelpriset, och
+ *   VEVOR-synken (steg 5) skriver det med kostnaden varje timme. Ett pris som
+ *   inte stämmer mot kostnaden är alltså drift, inte en äldre regel.
  * - Okänd leverantör: nej.
  *
  * En `Record`, så att en ny leverantör måste få ett svar här.
@@ -230,7 +231,7 @@ export type Prisgrind = {
 const REGELN_GALLER: Record<Leverantor, boolean> = {
   aliexpress: false,
   aosom: true,
-  vevor: false,
+  vevor: true,
   okand: false,
 };
 

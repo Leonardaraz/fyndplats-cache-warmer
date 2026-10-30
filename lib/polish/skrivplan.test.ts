@@ -269,6 +269,22 @@ describe("ARTNR", () => {
   it("släpper spänning och effekt, som gatelib också gör", () => {
     expect(artikelnummerformer("220-240V, 850-1000W")).toBe(0);
   });
+
+  it("☠️ fäller VEVOR:s form: 19 eller 22 tecken, versaler och siffror i ett", () => {
+    // Syntetiska nummer i VEVOR:s två längder, aldrig riktiga.
+    for (const s of ["TESTVEVOR0123456789", "TESTVEVORSKU0123456789"]) {
+      expect(artikelnummerformer(`ref ${s} här`)).toBe(1);
+      expect(redigera(`ref ${s} här`)).toBe("ref ‹REDIGERAT› här");
+    }
+  });
+
+  it("släpper långa tal, ord utan siffra, gemener och andra längder", () => {
+    // Ett ordernummer från AliExpress är bara siffror, en Wix-fil har gemener,
+    // och kortens HTML bar koder på 17 och 20 tecken som inte är nummer.
+    for (const s of ["1234567890123456789", "VERSALERUTANSIFFROR", "testvevor0123456789", "TESTVEVOR01234567", "TESTVEVOR01234567890"]) {
+      expect(artikelnummerformer(`ref ${s} här`)).toBe(0);
+    }
+  });
 });
 
 describe("redigera", () => {

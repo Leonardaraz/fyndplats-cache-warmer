@@ -6150,9 +6150,9 @@ synken.
 - ✅ **Loggspärren fångar VEVOR:s artikelnummer sedan steg 2** (19 eller 22
   tecken, versaler och siffror i ett). `redigera()` i de sex workflows som har
   den tvättar formen, och `ARTNR` i `artikelnummer-i-logg.test.ts` fäller den i
-  en workflows källa. ⚠️ `gatelib.ARTNR` (poleringens grind på kundtexten, med
-  speglar i `gate-form.py` och `lib/polish/skrivplan.ts`) är inte utökad: den
-  hör till steg 4, när VEVOR-text börjar nå poleringen.
+  en workflows källa. ✅ `gatelib.ARTNR` (poleringens grind på kundtexten, med
+  speglar i `gate-form.py` och `lib/polish/skrivplan.ts`) fäller formen sedan
+  2026-10-30, när poleringen av VEVOR-utkast började. Se *VEVOR-poleringen*.
 - **AE-synken har ingen torrkörning per anrop.** Dess urval är samma uttryck som
   förut, nu som `arIAeSynkensUrval`, och räkningen visar dess storlek.
 
@@ -6401,8 +6401,9 @@ steg 7.
 PRO-rabatten) × 1,25, och sedan husets regel. Mätt mot en riktig faktura
 2026-10-29: sidans pris delat med 1,24 gav fakturans pris utan moms på öret,
 momsen var 0 % och frakten 0. ⚠️ Frakten är mätt på EN order; JSON-LD:ns 5 EUR
-gäller varje land och varje vara och är ingen riktig frakt. Kontrollera
-frakten på en billig vara före publicering.
+gäller varje land och varje vara och är ingen riktig frakt. Leonard
+2026-10-30: frakten kontrolleras inte före publiceringen ("nej" på frågan om
+en provbeställning av en billig vara först).
 
 ☠️ **Rabattnivån står bara i `FyndplatsAppConfig` (`vevorProRabatt`, procent
 som text).** Aldrig i kod, tester, loggar eller ett svar: statusen säger bara
@@ -6467,8 +6468,9 @@ AliExpress (de bär ett AliExpress-id, och en automatisk matchning hade
 gissat; poleringen avgör, som för Aosom), spärren mot publicering utan GPSR
 (steg 7) och läsning av manualerna. Syskonen slås ihop sedan steg 8. Synken kom i
 steg 5, se nästa avsnitt.
-gatelibs `ARTNR` behöver inte VEVOR:s form än: artikelnumret stod inte i
-titel, beskrivning eller specifikation på någon av 34 sidor.
+Artikelnumret stod inte i titel, beskrivning eller specifikation på någon av
+34 sidor. `gatelib.ARTNR` fäller ändå formen sedan 2026-10-30, se
+*VEVOR-poleringen*.
 
 **Efter mergen,** i den ordningen, när läsaren har läst katalogen: `status`
 (rabatten `satt`, läsaren inte fryst, platser kvar under taket), `prov` torrt
@@ -6805,6 +6807,15 @@ markör, så att importen bygger om dem med regeln. ☠️ Gränsfallen raderas
 aldrig. Ordningen: `plan`, importen av, `radera`, `plan` igen (raderbara 0),
 importen på.
 
+**Körd 2026-10-30** (Leonards ja efter planen). Planen 20:32 UTC: 5 411
+opolerade utkast, 292 familjer, 116 att dela, 4 utkast att slå ihop (1
+familj), 120 raderbara, 0 hinder och 59 gränsfall på 38 axlar. Importen av
+21:16:53, `radera` 21:17–21:19: 118 raderade och 2 obekräftade (Wix läsning
+släpade efter), och ett andra varv 21:22 fann dem borta (`fannsInte` 2) och
+nollställde markören. Planen 21:23 gav 0 raderbara och 5 291 utkast, och
+importen slogs på 21:24. Första körningen (21:33): 925 granskade, 30
+importerade, 0 fel och 0 föräldralösa. Gränsfallen är orörda.
+
 ⚠️ **GPSR läses på radens artikel.** En familj har samma tillverkare, och
 standardraden gäller alla. ⚠️ **Leverantörslänken pekar på ankarets sida.**
 Den som beställer väljer varianten på VEVOR:s sida, som har samma väljare.
@@ -6987,6 +6998,32 @@ med betyg (utkasten och katalogen läses en gång per dygn), och kör en torr
 `prov` i "VEVOR — importen" (`betyg_okant` ska vara nära noll och `familjer`
 över noll). Kör sedan `plan`, `radera` med planens antal, `plan` igen
 (raderbara ska vara 0), och sist importen `pa` med Leonards ja.
+
+## VEVOR-poleringen (2026-10-30)
+
+Leonard börjar SEO-polera VEVOR-utkasten 2026-10-31. Arbetsgången står i
+runbooken (`docs/seo-polish-runbook.md`, *VEVOR-utkast: det som skiljer*).
+Hans beslut samma kväll, svar på tre frågor:
+
+| fråga | beslut |
+|---|---|
+| Kontrollera frakten på en billig vara före publiceringen? | Nej. Priset räknar med 0 kr i frakt. |
+| Returadress för VEVOR i butiken? | Inte nu ("skiti"). En kund som returnerar en VEVOR-vara får adressen per mejl (`lib/returadress.ts` på headless-site ger ingen adress). |
+| Stryks bilder med engelsk säljtext, som de tyska? | Ja. VEVOR-loggan på varan får stå (2026-10-28). |
+
+Tre ändringar i koden samma dag:
+
+1. **Prisgrinden gäller VEVOR-rader** (`REGELN_GALLER.vevor`,
+   `lib/polish/mapping-access.ts`). Importen sätter regelpriset och VEVOR-synken
+   skriver det med kostnaden, så en avvikelse är drift och fäller jobbet, som
+   för Aosom. Förut svarade grinden "ej avgörbar, inte en Aosom-import".
+2. ☠️ **`gatelib.ARTNR` fäller VEVOR:s artikelnummer** (19 eller 22 tecken,
+   versaler och siffror i ett) i kundtexten, i rundans filer och i skrivplanen
+   (`lib/polish/skrivplan.ts`, tecken för tecken samma uttryck). Mätt före
+   ändringen: 17–24 tecken gav sex träffar i `tools/polish-assets` (längd 17
+   och 20, i kortens HTML), 19 och 22 gav noll. Nummer med bindestreck eller
+   punkt (2,1 % av VEVOR:s) fångas inte.
+3. **Workflowens texter** säger "hos leverantören" i stället för "hos Aosom".
 
 ## Prissättningen är marknadskalibrerad, inte påhittad (`FyndplatsPricingConfig`)
 
