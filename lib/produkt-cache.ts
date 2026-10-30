@@ -71,6 +71,10 @@ export interface AndradProdukt {
   gamlaSlugs?: string[];
   /** Vad som ändrats. Saknas det räknas det som produkten (pris, lager, text, bilder). */
   vad?: Andring;
+  /** Wix `visible`, när avsändaren vet det. En dold produkt töms men värms inte: sidan svarar 404. */
+  synlig?: boolean;
+  /** Wix `updatedDate` (ISO), när avsändaren vet det. Styr när sidan värms, se `varmningsplan`. */
+  uppdaterad?: string;
 }
 
 /** Högst så många gamla slugar per produkt. */
@@ -87,6 +91,8 @@ export interface Uppdateringsplan {
   slugs: string[];
   /** Id:n vi inte hittade någon slug för: bara taggarna töms. */
   utanSlug: string[];
+  /** Nuvarande slug per id, för de id som har en. */
+  slugPerId: Record<string, string>;
   /** Poster som föll bort som ogiltiga. */
   ogiltiga: number;
 }
@@ -138,17 +144,84 @@ export function planeraUppdatering(
   const sokvagar = new Set<string>();
   const slugs: string[] = [];
   const utanSlug: string[] = [];
+  const slugForId: Record<string, string> = {};
   for (const [id, rad] of perId) {
     const slug = rad.slug ?? slugPerId.get(id);
     if (slug && giltigSlug(slug)) {
       sokvagar.add(`/produkt/${slug}`);
       slugs.push(slug);
+      slugForId[id] = slug;
     } else {
       utanSlug.push(id);
     }
     for (const g of rad.gamla) sokvagar.add(`/produkt/${g}`);
   }
-  return { ids, taggar, sokvagar: [...sokvagar], slugs: [...new Set(slugs)], utanSlug, ogiltiga };
+  return { ids, taggar, sokvagar: [...sokvagar], slugs: [...new Set(slugs)], utanSlug, slugPerId: slugForId, ogiltiga };
+}
+
+// ─── Vilka tömda sidor som värms, och när ───────────────────────────────────
+//
+// ☠️ EN STOR ÄNDRING LÄMNADE HUNDRATALS SIDOR KALLA (2026-10-29). Cronen tömde
+// varje ändrad produkt men värmde bara de 120 nyaste. Kl. 12:46 UTC hade 998
+// produkter ändrats i fönstret: 878 sidor låg tömda tills en kund öppnade dem
+// och väntade på ombyggnaden (uppmätt samma kväll: 8 av 80 slumpade
+// produktsidor svarade REVALIDATED på 1,0–1,3 s, mot 0,3 s från cachen).
+//
+// Fönstret är elva minuter och cronen går var femte, så en ändring töms av två
+// eller tre körningar i följd (Wix läsning kan släpa, se uppdatera-andrade).
+// Att värma allt vid varje tömning hade byggt varje sida två eller tre gånger.
+// Därför:
+//   · SISTA GÅNGEN en ändring syns (nästa körnings fönster når inte bak till
+//     den) värms sidan alltid, hur många de än är. Då har Wix haft minst sex
+//     minuter på sig, och ingen senare körning tömmer sidan igen.
+//   · Vid de tidigare tömningarna värms de nyaste upp till `direkt` stycken,
+//     som förut, så att en enstaka ändring är varm inom fem minuter.
+//   · Köp och recensioner saknar tidsstämpel och värms varje gång (de är få).
+//   · En dold produkt värms aldrig: sidan svarar 404, och VEVOR-importens
+//     utkast (~70 per fönster) räknades förut som 70 misslyckade värmningar.
+
+export interface Varmningsplan {
+  /** Slugar att värma, de som måste först. */
+  slugs: string[];
+  /** Sidor som syns sista gången och därför måste värmas. */
+  sista: number;
+  /** Dolda produkter, som töms men inte värms. */
+  dolda: number;
+}
+
+export function varmningsplan(
+  poster: readonly AndradProdukt[],
+  slugPerId: Readonly<Record<string, string>>,
+  opts: { start: number; sistaSynMs: number; direkt: number },
+): Varmningsplan {
+  const perId = new Map<string, { dold: boolean; uppdaterad: number | null; utanTid: boolean }>();
+  for (const p of poster) {
+    if (!p || typeof p !== "object" || !giltigtId(p.id)) continue;
+    const id = p.id.trim().toLowerCase();
+    const rad = perId.get(id) ?? { dold: false, uppdaterad: null, utanTid: false };
+    if (p.synlig === false) rad.dold = true;
+    const t = typeof p.uppdaterad === "string" ? Date.parse(p.uppdaterad) : NaN;
+    if (Number.isFinite(t)) rad.uppdaterad = Math.max(rad.uppdaterad ?? t, t);
+    else rad.utanTid = true;
+    perId.set(id, rad);
+  }
+  const grans = opts.start - opts.sistaSynMs;
+  const sista: string[] = [];
+  const ovriga: { slug: string; t: number }[] = [];
+  let dolda = 0;
+  for (const [id, rad] of perId) {
+    const slug = slugPerId[id];
+    if (!slug) continue;
+    if (rad.dold) {
+      dolda++;
+      continue;
+    }
+    if (rad.uppdaterad !== null && rad.uppdaterad <= grans && !rad.utanTid) sista.push(slug);
+    else ovriga.push({ slug, t: rad.utanTid ? Infinity : (rad.uppdaterad ?? Infinity) });
+  }
+  ovriga.sort((a, b) => b.t - a.t);
+  const slugs = [...new Set([...sista, ...ovriga.slice(0, Math.max(0, opts.direkt)).map((o) => o.slug)])];
+  return { slugs, sista: sista.length, dolda };
 }
 
 /** Id:n som behöver slås upp i Wix innan planen kan göras komplett. */

@@ -85,7 +85,7 @@ async function wixPost<T>(url: string, kropp: unknown, namn: string): Promise<T>
   return (await res.json()) as T;
 }
 
-interface V3Produkt { id?: string; slug?: string }
+interface V3Produkt { id?: string; slug?: string; visible?: boolean; updatedDate?: string }
 interface V3Svar {
   products?: V3Produkt[];
   pagingMetadata?: { hasNext?: boolean; cursors?: { next?: string } };
@@ -123,7 +123,16 @@ export async function andradeIWix(sedan: string): Promise<{ produkter: AndradPro
     fields: [],
   });
   for (let sida = 1; ; sida++) {
-    for (const p of svar.products ?? []) if (p.id) produkter.push({ id: p.id, slug: p.slug, vad: "produkt" });
+    for (const p of svar.products ?? []) {
+      if (!p.id) continue;
+      produkter.push({
+        id: p.id,
+        slug: p.slug,
+        vad: "produkt",
+        ...(typeof p.visible === "boolean" ? { synlig: p.visible } : {}),
+        ...(p.updatedDate ? { uppdaterad: p.updatedDate } : {}),
+      });
+    }
     const nasta = svar.pagingMetadata?.cursors?.next;
     if (!svar.pagingMetadata?.hasNext || !nasta) return { produkter, trunkerad: false };
     if (sida >= MAX_SIDOR) {

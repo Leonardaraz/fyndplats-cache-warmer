@@ -17,6 +17,8 @@ import {
   planeraUppdatering,
   behoverSlug,
   giltigSlug,
+  varmningsplan,
+  type AndradProdukt,
 } from "./produkt-cache.ts";
 
 const las = (fil: string) => readFileSync(fil, "utf8");
@@ -164,4 +166,53 @@ test("planen: gamla slugar måste vara en lista, och högst tio per produkt", ()
 
 test("behoverSlug: bara de som saknar en giltig slug, en gång var", () => {
   assert.deepEqual(behoverSlug([{ id: A, slug: "finns" }, { id: B }, { id: B }, { id: "skräp" }]), [B]);
+});
+
+test("värmningen: alla synliga sista gången en ändring syns, de nyaste direkt, inga dolda", () => {
+  const start = Date.parse("2026-10-29T12:46:00.000Z");
+  const id = (n: number) => `00000000-0000-0000-0000-${String(n).padStart(12, "0")}`;
+  const vid = (minuter: number) => new Date(start - minuter * 60_000).toISOString();
+  const poster: AndradProdukt[] = [
+    // sista gången: äldre än sex minuter, värms alla oavsett antal
+    ...Array.from({ length: 300 }, (_, i) => ({ id: id(i), slug: `gammal-${i}`, synlig: true, uppdaterad: vid(8) })),
+    // första tömningen: bara de nyaste upp till `direkt`
+    { id: id(1000), slug: "ny-a", synlig: true, uppdaterad: vid(1) },
+    { id: id(1001), slug: "ny-b", synlig: true, uppdaterad: vid(2) },
+    { id: id(1002), slug: "ny-c", synlig: true, uppdaterad: vid(3) },
+    // en dold produkt (ett utkast) värms aldrig
+    { id: id(2000), slug: "utkast", synlig: false, uppdaterad: vid(8) },
+    // ett köp saknar tidsstämpel och värms direkt
+    { id: id(3000), slug: "kopt" },
+  ];
+  const slugPerId = Object.fromEntries(poster.map((p) => [p.id, p.slug as string]));
+  const plan = varmningsplan(poster, slugPerId, { start, sistaSynMs: 6 * 60_000, direkt: 2 });
+  assert.equal(plan.sista, 300);
+  assert.equal(plan.dolda, 1);
+  assert.equal(plan.slugs.length, 302);
+  assert.deepEqual(plan.slugs.slice(300), ["kopt", "ny-a"]);
+  assert.ok(!plan.slugs.includes("utkast"));
+  assert.ok(!plan.slugs.includes("ny-c"));
+});
+
+test("värmningen: en dold post för samma produkt vinner, och utan slug värms ingenting", () => {
+  const id = "00000000-0000-0000-0000-000000000001";
+  const start = Date.parse("2026-10-29T12:46:00.000Z");
+  const plan = varmningsplan(
+    [
+      { id, slug: "a", synlig: true, uppdaterad: "2026-10-29T12:30:00.000Z" },
+      { id, vad: "recensioner" },
+      { id, slug: "a", synlig: false, uppdaterad: "2026-10-29T12:31:00.000Z" },
+    ],
+    { [id]: "a" },
+    { start, sistaSynMs: 6 * 60_000, direkt: 120 },
+  );
+  assert.deepEqual(plan, { slugs: [], sista: 0, dolda: 1 });
+  const utan = varmningsplan([{ id, synlig: true, uppdaterad: "2026-10-29T12:30:00.000Z" }], {}, { start, sistaSynMs: 6 * 60_000, direkt: 120 });
+  assert.deepEqual(utan.slugs, []);
+});
+
+test("planen bär slug per id, för värmningen", () => {
+  const id = "00000000-0000-0000-0000-00000000000A";
+  const plan = planeraUppdatering([{ id, slug: "sida" }]);
+  assert.deepEqual(plan.slugPerId, { [id.toLowerCase()]: "sida" });
 });
