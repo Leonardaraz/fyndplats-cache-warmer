@@ -28,6 +28,13 @@ import type { Bildmonster } from "./bilder";
 export type VevorGranskning = NonNullable<ProductMappingRecord["vevorGranskning"]>;
 
 /**
+ * Det importen sätter. GPSR-statusen är bara de två som går att veta utan
+ * uppgifterna: om produktsidan länkar en manual. De andra tre sätts när
+ * uppgifterna förs in (lib/vevor/gpsr-satt.ts).
+ */
+export type ImportensGranskning = VevorGranskning & { gpsr: "manual_ej_last" | "ingen_manual" };
+
+/**
  * VEVOR:s kategorier som kan vara medicinteknik, ur menyn på eur.vevor.com
  * 2026-10-29: medical supplies, mobility aids, medical auxiliary supplies,
  * medical exam table, patient lift, furniture patient transport, wheelchairs,
@@ -94,7 +101,7 @@ export function kanVaraMedicinteknik(a: Pick<Avlasning, "kategorier" | "namn">):
 export function vevorGranskning(
   a: Pick<Avlasning, "kategorier" | "namn" | "manualSokvag">,
   bilder: { monster: Bildmonster; granskas: boolean },
-): VevorGranskning {
+): ImportensGranskning {
   return {
     gpsr: a.manualSokvag ? "manual_ej_last" : "ingen_manual",
     medicinteknik: kanVaraMedicinteknik(a),

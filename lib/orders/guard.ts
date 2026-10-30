@@ -335,6 +335,13 @@ export interface GuardExtras {
    * Saknas fältet räknas synken som schemalagd: hellre ett larm för mycket.
    */
   aeSynkSchemalagd?: boolean;
+  /**
+   * Wix-id för synliga VEVOR-varor utan komplett GPSR (lib/vevor/gpsr-vakt.ts).
+   * Motorns vägar publicerar inte en sådan vara (lib/publicering.ts), så en
+   * träff betyder att någon publicerat den för hand i Wix. Lagen kräver
+   * tillverkare och EU-ansvarig på sidan, och träffarna räknas i ämnesraden.
+   */
+  vevorUtanGpsr?: string[];
   /** Datakällor som inte gick att läsa (vakten larmar hellre än döljer). */
   sectionErrors: string[];
   baseUrl: string;
@@ -377,7 +384,10 @@ export function buildGuardEmail(
   extras: GuardExtras,
   nowMs: number,
 ): { subject: string; html: string; text: string } {
-  const issues = findings.actionCount + (extras.sectionErrors.length > 0 ? 1 : 0);
+  const vevorUtanGpsr = extras.vevorUtanGpsr ?? [];
+  const issues = findings.actionCount
+    + (extras.sectionErrors.length > 0 ? 1 : 0)
+    + (vevorUtanGpsr.length > 0 ? 1 : 0);
   // Slut-hos-leverantör i ämnesraden så dygnets viktigaste synk-nyhet syns
   // utan att mejlet behöver öppnas (räknas inte som "behöver dig" — sajten
   // skyddas automatiskt; beslutet byt/ta bort kan vänta till morgonkaffet).
@@ -457,6 +467,16 @@ export function buildGuardEmail(
       ),
       `SPÅRNINGSFEL SENASTE DYGNET (${findings.pollErrors.length}):`,
       findings.pollErrors.map((g) => `${g.ref}: ${g.count} fel`),
+    );
+  }
+  if (vevorUtanGpsr.length > 0) {
+    section(
+      `🚫 VEVOR-sidor publicerade utan komplett produktsäkerhet (${vevorUtanGpsr.length})`,
+      vevorUtanGpsr.map((id) =>
+        li(`${id} — dölj sidan i Wix tills tillverkare och EU-ansvarig är införda (workflowen "VEVOR — produktsäkerhet (GPSR)").`),
+      ),
+      `VEVOR-SIDOR UTAN KOMPLETT PRODUKTSÄKERHET (${vevorUtanGpsr.length}):`,
+      vevorUtanGpsr,
     );
   }
   if (extras.sectionErrors.length > 0) {

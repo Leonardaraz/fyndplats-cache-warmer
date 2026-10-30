@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { audit } from "@/lib/audit";
+import { hinderText, publiceringshinder } from "@/lib/publicering";
 import { getStore } from "@/lib/store/factory";
 import {
   addProductToCollection,
@@ -21,6 +22,15 @@ async function applyAction(
     try {
       const mapping = await store.getMappingByWixProductId(id);
       if (!mapping) continue;
+
+      // PUBLICERINGSSPÄRREN (lib/publicering.ts, steg 7). En VEVOR-vara
+      // publiceras genom poleringen, som prövar GPSR och sätter märket. Den
+      // går inte att tvinga förbi, till skillnad från prisspärren nedan.
+      const hinder = kind === "publish" ? publiceringshinder(mapping, null, "ko") : null;
+      if (hinder) {
+        await audit("review-publish-blockerad", id, hinderText(hinder));
+        continue;
+      }
 
       // PRISSPÄRREN GÄLLER ÄVEN HÄR. Utan det här blocket var kön det enda
       // stället där flaggan gick att kringgå: knappen "Publicera" satte

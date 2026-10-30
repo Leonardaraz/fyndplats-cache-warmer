@@ -113,7 +113,7 @@ jobs:
             echo "== $1 (HTTP ${http}): $(jq -r '.sammanfattning // .error // "?"' svar.json)"
             jq -r '.avbrutet // empty | "   AVBRUTET: \(.)"' svar.json
             jq -r '.fel[]? | "   plan: \(.)"' svar.json
-            jq -r '.rader[]? | "   \(.kort // "-")\(if .kat then " [\(.kat)]" else "" end) \(if .ok then "ok" else "FEL: \(.fel // "?")" end)"' svar.json
+            jq -r '.rader[]? | "   \(.kort // "-")\(if .kat then " [\(.kat)]" else "" end) \(if .ok then "ok" else "FEL: \(.fel // "?")" end)\(if .publicerad == false or .publiceras == false then " — INTE PUBLICERAD: \(.hinder // "?")" else "" end)"' svar.json
             [ "$(jq -r '.ok' svar.json)" = "true" ]
           }
 
@@ -127,8 +127,12 @@ jobs:
               steg verifiera true || true
             fi
             jq -c '[.rader[]? | select(.ok) | .kort]' svar.json > verifierade.json
-            jq -c --slurpfile ok verifierade.json \
-              '.produkter[] | select(.kort as $k | $ok[0] | index($k)) | {kort, pid, variantId, sku, varianter}' \
+            # En produkt som publiceringsspärren höll tillbaka (en VEVOR-vara utan
+            # komplett GPSR, lib/publicering.ts) är skriven men inte publicerad.
+            # Den stämplas som polerad men inte som publicerad.
+            jq -c '[.rader[]? | select(.ok and .publicerad == false) | .kort]' svar.json > hindrade.json
+            jq -c --slurpfile ok verifierade.json --slurpfile h hindrade.json \
+              '.produkter[] | select(.kort as $k | $ok[0] | index($k)) | {kort, pid, variantId, sku, varianter, hindrad: (.kort as $k | $h[0] | index($k) != null)}' \
               "${fil}" > att-stampla.jsonl
 
             stamplade=0; stampelfel=0
@@ -136,14 +140,18 @@ jobs:
               kort=$(echo "${rad}" | jq -r '.kort')
               # En sammanslagen sida (`varianter`) stämplas utan SKU:er — varje
               # färg har redan sin egen från sammanslagningen.
-              kropp=$(echo "${rad}" | jq -c '{wixProductId: .pid, patch: ({needsAiPolish: false, draftStatus: "published"} + (if .varianter then {} else {variantSkus: {(.variantId): .sku}} end))}')
+              kropp=$(echo "${rad}" | jq -c '{wixProductId: .pid, patch: ({needsAiPolish: false} + (if .hindrad then {} else {draftStatus: "published"} end) + (if .varianter then {} else {variantSkus: {(.variantId): .sku}} end))}')
               svar=$(curl -sS --max-time 60 -X POST \
                 -H "Authorization: Bearer ${CRON_SECRET}" \
                 -H "Content-Type: application/json" \
                 -d "${kropp}" "${rot}/api/admin/mapping") || svar='{"ok":false,"error":"curl misslyckades"}'
               if [ "$(echo "${svar}" | jq -r '.ok' 2>/dev/null || echo false)" = "true" ]; then
                 stamplade=$((stamplade + 1))
-                echo "   ${kort} stämplad"
+                if [ "$(echo "${rad}" | jq -r '.hindrad')" = "true" ]; then
+                  echo "   ${kort} stämplad som polerad, INTE publicerad (spärren, se raden ovan)"
+                else
+                  echo "   ${kort} stämplad"
+                fi
               else
                 stampelfel=$((stampelfel + 1))
                 echo "   ${kort} STÄMPEL FEL: $(echo "${svar}" | jq -r '.error // "?"' 2>/dev/null | cut -c1-200)" >&2

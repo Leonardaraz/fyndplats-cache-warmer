@@ -5,7 +5,10 @@
 import Link from "next/link";
 import { getStore } from "@/lib/store/factory";
 import { LEVERANTORER, type MappingSupplier, type ProductMappingRecord } from "@/lib/store/index";
-import { mappingSupplier } from "@/lib/store/supplier";
+import { mappingSupplier, vevorSkuOf } from "@/lib/store/supplier";
+import { gpsrStatus, gpsrStatusText, type GpsrStatus } from "@/lib/vevor/gpsr";
+import { wixGpsrLager } from "@/lib/vevor/gpsr-lager";
+import { lasEffektiva } from "@/lib/vevor/gpsr-standard";
 import { getSupplierStore, type SupplierRecord, type SupplierStatus } from "@/lib/import/supplier-tracking";
 import {
   acceptCategorySuggestion,
@@ -124,6 +127,23 @@ export default async function QueuePage({
   if (priceOnly) pending = pending.filter((m) => typeof m.priceUnverified === "string");
   if (lev) pending = pending.filter((m) => mappingSupplier(m) === lev);
   const visade = visaAlla ? pending : pending.slice(0, MAX_KORT);
+  // GPSR-status som spärren ser den: artikelns egen rad, annars standardraden.
+  // Mappningens fält är importens status och följer inte standardraden.
+  const gpsrEffektiv = new Map<string, GpsrStatus>();
+  const vevorVisade = visade.flatMap((m) => {
+    const sku = vevorSkuOf(m);
+    return sku ? [{ m, sku }] : [];
+  });
+  if (vevorVisade.length > 0) {
+    try {
+      const rader = await lasEffektiva(wixGpsrLager, vevorVisade.map((v) => v.sku));
+      for (const { m, sku } of vevorVisade) {
+        gpsrEffektiv.set(m.wixProductId, gpsrStatus(rader.get(sku) ?? null, m.vevorGranskning?.gpsr));
+      }
+    } catch {
+      /* Raderna gick inte att läsa: kortet visar importens status. Spärren läser själv. */
+    }
+  }
   const recent = all
     .filter((m) => m.draftStatus === "published" || m.draftStatus === "rejected")
     .sort(pendingFirst)
@@ -259,6 +279,7 @@ export default async function QueuePage({
                 key={p.wixProductId}
                 product={p}
                 supplier={p.supplierId ? supplierById.get(p.supplierId) : undefined}
+                gpsr={gpsrEffektiv.get(p.wixProductId)}
               />
             ))}
           </div>
@@ -318,9 +339,12 @@ export default async function QueuePage({
 function QueueCard({
   product: p,
   supplier,
+  gpsr,
 }: {
   product: ProductMappingRecord;
   supplier?: SupplierRecord;
+  /** GPSR-status som spärren ser den, när den gick att läsa. */
+  gpsr?: GpsrStatus;
 }) {
   const images = p.imageAnalysis ?? [];
   const okImages = images.filter((i) => i.verdict === "ok");
@@ -500,7 +524,7 @@ function QueueCard({
                   : ""}
               </span>
             ) : null}
-            {p.vevorGranskning ? <VevorBadges g={p.vevorGranskning} /> : null}
+            {p.vevorGranskning ? <VevorBadges g={{ ...p.vevorGranskning, gpsr: gpsr ?? p.vevorGranskning.gpsr }} /> : null}
           </div>
           <div style={{ fontSize: 12, color: "#666", marginTop: 2 }}>
             {p.variants.length} varianter · importerad{" "}
@@ -707,7 +731,8 @@ function CategoryRow({
 
 /**
  * Det poleringen ska kontrollera på ett VEVOR-utkast (lib/vevor/granskning.ts).
- * Inget av det får publiceras förrän GPSR-uppgifterna finns (steg 7).
+ * Varan publiceras inte förrän GPSR är komplett (lib/publicering.ts), och
+ * uppgifterna förs in med workflowen "VEVOR — produktsäkerhet (GPSR)".
  */
 function VevorBadges({ g }: { g: NonNullable<ProductMappingRecord["vevorGranskning"]> }) {
   const stil = (bg: string, color: string, border: string) => ({
@@ -724,10 +749,14 @@ function VevorBadges({ g }: { g: NonNullable<ProductMappingRecord["vevorGranskni
   return (
     <>
       <span
-        title="Tillverkare och EU-ansvarig ska stå på produktsidan (GPSR). Publicera inte förrän uppgifterna finns."
-        style={stil("#fef3c7", "#92400e", "#fcd34d")}
+        title={
+          g.gpsr === "komplett"
+            ? "Tillverkare och EU-ansvarig är införda. Varan publiceras av poleringen."
+            : "Tillverkare och EU-ansvarig ska stå på produktsidan (GPSR). Poleringen publicerar inte varan förrän båda är införda."
+        }
+        style={g.gpsr === "komplett" ? stil("#dcfce7", "#166534", "#86efac") : stil("#fef3c7", "#92400e", "#fcd34d")}
       >
-        📄 GPSR: {g.gpsr === "manual_ej_last" ? "manualen inte läst" : "ingen manual"}
+        📄 GPSR: {gpsrStatusText(g.gpsr)}
       </span>
       {g.medicinteknik ? (
         <span

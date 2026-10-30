@@ -541,3 +541,21 @@ describe("synken avstängd med flit, och ⛔ i ämnesraden", () => {
     expect(arSchemalagd(undefined, AE_SYNK_RUTT)).toBe(false);
   });
 });
+
+describe("buildGuardEmail — VEVOR-sidor utan komplett produktsäkerhet", () => {
+  const tomma = buildGuardFindings({ orders: [], tasks: [], auditEntries: [], nowMs: NOW });
+
+  it("listar sidorna med Wix-id och räknar dem i ämnesraden", () => {
+    const email = buildGuardEmail(tomma, { sectionErrors: [], baseUrl: "https://example.test", vevorUtanGpsr: ["p1", "p2"] }, NOW);
+    expect(email.subject).toMatch(/1 sak behöver dig/);
+    expect(email.text).toContain("VEVOR-SIDOR UTAN KOMPLETT PRODUKTSÄKERHET (2)");
+    expect(email.text).toContain("p1");
+    expect(email.html).toContain("p2");
+  });
+
+  it("en tom lista är inget larm", () => {
+    const email = buildGuardEmail(tomma, { sectionErrors: [], baseUrl: "https://example.test", vevorUtanGpsr: [] }, NOW);
+    expect(email.subject).toMatch(/allt rullar/);
+    expect(email.text).not.toContain("VEVOR");
+  });
+});

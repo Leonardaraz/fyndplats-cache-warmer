@@ -276,25 +276,63 @@ export function summera(rader: StegRad[], ord: string): StegUtfall {
   return { ok: ok === rader.length, rader, sammanfattning: `${ok} av ${rader.length} ${ord}` };
 }
 
+// ── publiceringen ───────────────────────────────────────────────────────────
+
+/**
+ * Det poleringens rutt avgör per produkt innan stegen körs
+ * (app/api/admin/polish-write, lib/publicering.ts). Nycklat på `pid`.
+ *
+ *   hinder      varför produkten inte får publiceras, i klartext. Textsteget
+ *               skriver texten men sätter produkten osynlig, och verifieringen
+ *               väntar sig det. En VEVOR-vara utan komplett GPSR hamnar här.
+ *   marke       märkets id i Wix. Textsteget sätter det i samma skrivning.
+ *   markesnamn  märket verifieringen jämför med.
+ *
+ * Utan plan publicerar textsteget som det alltid gjort.
+ */
+export interface Publiceringsplan {
+  hinder: ReadonlyMap<string, string>;
+  marke: ReadonlyMap<string, string>;
+  markesnamn: ReadonlyMap<string, string>;
+}
+
+export const INGEN_PUBLICERINGSPLAN: Publiceringsplan = { hinder: new Map(), marke: new Map(), markesnamn: new Map() };
+
 // ── stegen ──────────────────────────────────────────────────────────────────
 
-export async function stegText(plan: Skrivplan, wix: WixAnrop, torr: boolean): Promise<StegUtfall> {
+export async function stegText(
+  plan: Skrivplan,
+  wix: WixAnrop,
+  torr: boolean,
+  pub: Publiceringsplan = INGEN_PUBLICERINGSPLAN,
+): Promise<StegUtfall> {
   const rader: StegRad[] = [];
   for (const p of plan.produkter) {
+    const hinder = pub.hinder.get(p.pid) ?? null;
+    const markeId = pub.marke.get(p.pid) ?? null;
     try {
       // ⚠️ Revisionen läses färskt — en fältmask-PATCH utan aktuell revision avvisas.
       const fore = produktAv(await wix("GET", `/stores/v3/products/${p.pid}`));
       if (torr) {
-        rader.push({ kort: p.kort, ok: true, revision: fore.revision, synligFore: fore.visible === true });
+        rader.push({
+          kort: p.kort,
+          ok: true,
+          revision: fore.revision,
+          synligFore: fore.visible === true,
+          ...(hinder ? { publiceras: false, hinder } : {}),
+        });
         continue;
       }
+      // ☠️ En produkt med ett hinder skrivs men publiceras inte: `visible` blir
+      // false, uttryckligen. En VEVOR-vara utan komplett GPSR får inte synas,
+      // och utkastet är dolt redan.
       const kropp = {
         product: {
           revision: fore.revision,
           name: p.namn,
           slug: p.slug,
           plainDescription: p.html,
-          visible: true,
+          visible: hinder === null,
           seoData: {
             tags: [
               { type: "title", children: p.seoTitel },
@@ -302,11 +340,21 @@ export async function stegText(plan: Skrivplan, wix: WixAnrop, torr: boolean): P
             ],
             settings: { keywords: [] },
           },
+          ...(markeId ? { brand: { id: markeId } } : {}),
         },
-        fieldMask: { paths: ["name", "slug", "plainDescription", "visible", "seoData"] },
+        fieldMask: {
+          paths: ["name", "slug", "plainDescription", "visible", "seoData", ...(markeId ? ["brand"] : [])],
+        },
       };
       const efter = produktAv(await wix("PATCH", `/stores/v3/products/${p.pid}`, kropp));
-      rader.push({ kort: p.kort, ok: true, revisionFore: fore.revision, revisionEfter: efter.revision });
+      rader.push({
+        kort: p.kort,
+        ok: true,
+        revisionFore: fore.revision,
+        revisionEfter: efter.revision,
+        ...(hinder ? { publicerad: false, hinder } : {}),
+        ...(markeId ? { marke: true } : {}),
+      });
     } catch (e) {
       rader.push({ kort: p.kort, ok: false, fel: felText(e) });
     }
@@ -497,10 +545,18 @@ export async function stegSku(plan: Skrivplan, wix: WixAnrop, torr: boolean): Pr
   return summera(rader, torr ? "lästa (torrt)" : "skrivna");
 }
 
-export async function stegVerifiera(plan: Skrivplan, wix: WixAnrop): Promise<StegUtfall> {
+const normeraMarke = (v: unknown) => (typeof v === "string" ? v.replace(/\s+/g, " ").trim().toLowerCase() : "");
+
+export async function stegVerifiera(
+  plan: Skrivplan,
+  wix: WixAnrop,
+  pub: Publiceringsplan = INGEN_PUBLICERINGSPLAN,
+): Promise<StegUtfall> {
   const idn = await kategoriIdn(wix);
   const rader: StegRad[] = [];
   for (const p of plan.produkter) {
+    const hinder = pub.hinder.get(p.pid) ?? null;
+    const markesnamn = pub.markesnamn.get(p.pid) ?? null;
     try {
       const prod = produktAv(
         await wix(
@@ -537,7 +593,11 @@ export async function stegVerifiera(plan: Skrivplan, wix: WixAnrop): Promise<Ste
         text: fnv1a64(text) === p.textHash && text.length === p.textTecken,
         namn: prod.name === p.namn,
         slug: prod.slug === p.slug,
-        synlig: prod.visible === true,
+        // En produkt med ett hinder ska vara osynlig efter textsteget, alla andra synliga.
+        synlig: prod.visible === (hinder === null),
+        ...(markesnamn
+          ? { marke: normeraMarke((prod.brand as Obj | undefined)?.name) === normeraMarke(markesnamn) }
+          : {}),
         seo:
           tags.length === 2 && titel.length === 1 && titel[0].children === p.seoTitel
           && meta.length === 1 && (meta[0].props as Obj).content === p.seoBesk && nyckelord.length === 0,
@@ -571,6 +631,7 @@ export async function stegVerifiera(plan: Skrivplan, wix: WixAnrop): Promise<Ste
         ...(sammanslagen ? { varianter: varianter.length } : {}),
         pris: varianter.length === 1 ? ((varianter[0].price as Obj | undefined)?.actualPrice as Obj | undefined)?.amount ?? null : null,
         lager: (prod.inventory as Obj | undefined)?.availabilityStatus ?? null,
+        ...(hinder ? { publicerad: false, hinder } : {}),
       });
     } catch (e) {
       rader.push({ kort: p.kort, ok: false, fel: felText(e) });
@@ -579,10 +640,16 @@ export async function stegVerifiera(plan: Skrivplan, wix: WixAnrop): Promise<Ste
   return summera(rader, "helt verifierade");
 }
 
-export async function korSteg(steg: Steg, plan: Skrivplan, wix: WixAnrop, torr: boolean): Promise<StegUtfall> {
+export async function korSteg(
+  steg: Steg,
+  plan: Skrivplan,
+  wix: WixAnrop,
+  torr: boolean,
+  pub: Publiceringsplan = INGEN_PUBLICERINGSPLAN,
+): Promise<StegUtfall> {
   switch (steg) {
     case "text":
-      return stegText(plan, wix, torr);
+      return stegText(plan, wix, torr, pub);
     case "media":
       return stegMedia(plan, wix, torr);
     case "kategorier":
@@ -590,6 +657,6 @@ export async function korSteg(steg: Steg, plan: Skrivplan, wix: WixAnrop, torr: 
     case "sku":
       return stegSku(plan, wix, torr);
     case "verifiera":
-      return stegVerifiera(plan, wix);
+      return stegVerifiera(plan, wix, pub);
   }
 }
