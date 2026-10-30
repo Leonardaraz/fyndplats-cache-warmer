@@ -52,8 +52,8 @@ export const AOSOM_HEADERS: Record<string, string> = {
  * Samma lärdom som "AliExpress Shopper" i AE-kedjan: skickas platshållaren
  * vidare härleds initialer ur den, och då blir varenda rad "A.K." — en sida
  * där alla heter likadant ser förfalskad ut. Släpps namnet i stället som
- * `undefined` faller `deriveInitials` tillbaka på hash-bokstäver, som varierar
- * per recension.
+ * `undefined` faller `deriveInitials` tillbaka på två slumpade bokstäver ur
+ * recensions-id (lib/reviews/initialer.ts), som varierar per recension.
  */
 const GENERIC_AUTHORS = new Set([
   "aosom kunde",

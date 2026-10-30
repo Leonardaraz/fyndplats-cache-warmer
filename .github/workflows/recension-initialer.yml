@@ -8,6 +8,11 @@ name: Recensioner — ändra initialerna på en utpekad recension
 # men bara när träffarna är minst 1 och högst max (standard 1), och varje rad
 # läses tillbaka. Annars skrivs ingenting.
 #
+# ☠️ En skarp körning SÄGER OCKSÅ TILL BUTIKEN. Butiken cachar produktens recensioner
+# i sex timmar och dess egen bevakning svarar 501 så länge recensionerna ligger i Wix
+# Data, så utan det syntes de nya initialerna först när cachen gått ut. Jobbet blir
+# RÖTT om butiken inte blev sagd till.
+#
 # ☠️ LOGGEN BÄR BARA DET SOM REDAN SYNS PÅ PRODUKTSIDAN (initialer, datum, en
 # textbit) plus id:n. Kundens råa namn och land lämnar aldrig lagret.
 #
@@ -101,6 +106,8 @@ jobs:
           andrade="$(printf '%s' "$json" | jq -r '.andrade | length')"
           fel="$(printf '%s' "$json" | jq -r '.fel | length')"
           nya="$(printf '%s' "$json" | jq -r '.nya // ""')"
+          butik="$(printf '%s' "$json" | jq -r 'if .butiken == null then "ingen" else "\(.butiken.uppdaterade)/\(.butiken.anrop) anrop ok, \(.butiken.misslyckade) misslyckade, \(.butiken.hoppade) hoppade\(if .butiken.utanNyckel then ", ADMIN_SECRET saknas" else "" end)" end')"
+          butik_fel="$(printf '%s' "$json" | jq -r '.butiken as $b | if $b == null then "nej" elif ($b.utanNyckel or $b.misslyckade > 0 or $b.hoppade > 0) then "ja" else "nej" end')"
 
           {
             echo "### Ändra initialer — $([ "${SKARP:-nej}" = "ja" ] && echo SKARP || echo TORRKÖRNING)"
@@ -114,10 +121,16 @@ jobs:
             printf '%s' "$json" | jq -r '.traffar[] | "| \(.status) | \(.datum) | \(.initialer) | \(.productId)/\(.reviewIdAE) | \(.text | gsub("\\|"; "/")) |"'
             echo ""
             echo "**Ändrade och tillbakalästa:** ${andrade}, fel: ${fel}${stopp:+ — stopp: ${stopp}}"
+            echo ""
+            echo "**Butiken:** ${butik}"
           } >> "$GITHUB_STEP_SUMMARY"
 
           if [ "${SKARP:-nej}" = "ja" ] && { [ -n "$stopp" ] || [ "$fel" != "0" ]; }; then
             echo "::error::Inget ändrat eller fel: ${stopp:-${fel} rader gick inte att läsa tillbaka med de nya initialerna}" >&2
             exit 1
           fi
-          echo "KLART: ${andrade} ändrade${stopp:+ (stopp: ${stopp})}"
+          if [ "${SKARP:-nej}" = "ja" ] && [ "$butik_fel" = "ja" ]; then
+            echo "::error::Raden är ändrad men butiken blev inte sagd till (${butik}). Sidan visar de gamla initialerna i upp till sex timmar." >&2
+            exit 1
+          fi
+          echo "KLART: ${andrade} ändrade${stopp:+ (stopp: ${stopp})}, butiken: ${butik}"

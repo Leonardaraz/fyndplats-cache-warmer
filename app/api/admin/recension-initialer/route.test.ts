@@ -1,5 +1,6 @@
 // Admin-rutten för ändrade initialer: auth, torrt som default, att skarpt
-// skriver bara när planen tillåter det, och att statusen och texten följer med.
+// skriver bara när planen tillåter det, att statusen och texten följer med, och att
+// en skarp körning säger till butiken (som cachar recensionerna i sex timmar).
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
@@ -9,6 +10,8 @@ const varld = vi.hoisted(() => ({
   rader: [] as StoredReview[],
   skrivna: [] as StoredReview[],
   tappaSkrivning: false,
+  butik: [] as { produkter: { id: string; vad?: string }[]; orsak: string }[],
+  butikensUtfall: "uppdaterad" as "uppdaterad" | "misslyckades" | "ingen_nyckel",
 }));
 
 vi.mock("@/lib/store/reviews", () => ({
@@ -23,6 +26,12 @@ vi.mock("@/lib/store/reviews", () => ({
   }),
 }));
 vi.mock("@/lib/audit", () => ({ audit: async () => {} }));
+vi.mock("@/lib/headless/produktsidor", () => ({
+  uppdateraProduktsidor: async (produkter: { id: string; vad?: string }[], orsak: string) => {
+    varld.butik.push({ produkter, orsak });
+    return { utfall: varld.butikensUtfall };
+  },
+}));
 
 import { POST } from "./route";
 
@@ -57,6 +66,8 @@ beforeEach(() => {
   varld.rader = [rad()];
   varld.skrivna = [];
   varld.tappaSkrivning = false;
+  varld.butik = [];
+  varld.butikensUtfall = "uppdaterad";
 });
 
 describe("recension-initialer", () => {
@@ -99,6 +110,36 @@ describe("recension-initialer", () => {
     varld.tappaSkrivning = true;
     const json = await (await POST(begaran(SOK, true))).json();
     expect(json).toMatchObject({ andrade: [], fel: ["prod-1/r1"] });
+  });
+
+  it("skarpt säger till butiken om produktens recensioner", async () => {
+    const json = await (await POST(begaran(SOK, true))).json();
+    expect(varld.butik).toEqual([
+      { produkter: [{ id: "prod-1", vad: "recensioner" }], orsak: "recension-initialer" },
+    ]);
+    expect(json.butiken).toEqual({ produkter: 1, anrop: 1, uppdaterade: 1, misslyckade: 0, utanNyckel: false, hoppade: 0 });
+  });
+
+  it("torrt och stopp ringer inte butiken", async () => {
+    expect((await (await POST(begaran(SOK))).json()).butiken).toBeNull();
+    varld.rader = [rad(), rad({ reviewIdAE: "r2" })];
+    await POST(begaran(SOK, true));
+    await POST(begaran({ ...SOK, nya: "123" }, true));
+    expect(varld.butik).toHaveLength(0);
+  });
+
+  it("en skrivning som inte sitter räknas som fel, men butiken sägs ändå till", async () => {
+    varld.tappaSkrivning = true;
+    const json = await (await POST(begaran(SOK, true))).json();
+    expect(json.fel).toEqual(["prod-1/r1"]);
+    expect(varld.butik).toHaveLength(1);
+  });
+
+  it("en butik som inte svarar syns i svaret men fäller inte körningen", async () => {
+    varld.butikensUtfall = "ingen_nyckel";
+    const json = await (await POST(begaran(SOK, true))).json();
+    expect(json).toMatchObject({ ok: true, andrade: ["prod-1/r1"], fel: [] });
+    expect(json.butiken).toMatchObject({ utanNyckel: true, hoppade: 1, uppdaterade: 0 });
   });
 
   it("svaret bär varken råa namn eller land", async () => {

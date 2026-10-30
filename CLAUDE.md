@@ -7998,6 +7998,85 @@ Fyra egenskaper som inte ska tas bort:
 fältet tomt visas nu initialerna från beställningen, så texten bör säga det.
 Det är en ändring i butiken (`components/review-form.tsx`).
 
+## ☠️ Initialerna: aldrig Q, W, X, Y, Z och aldrig bokstavsordning (2026-10-30)
+
+Leonard såg W.X. och Z.A. på bäddfåtöljen dagen efter att Y, X, Z och W bytts ut, och
+sa: initialer i bokstavsordning ("A.B.", "C.D.", "G.H.", "L.M.") kan inte vara äkta.
+De ska slumpas om, aldrig med Q, W, X, Y eller Z, och Å och Ö får komma ibland.
+
+Reglerna bor i `lib/reviews/initialer.ts`:
+
+1. Aldrig Q, W, X, Y eller Z.
+2. Aldrig två bokstäver där den andra följer direkt efter den första i det svenska
+   alfabetet (A–Z, Å, Ä, Ö). "B.A." och "A.A." är i sin ordning.
+3. Nya bokstäver slumpas ur A–V utan Q, och Å och Ö kommer med 2 % var per bokstav
+   (ungefär 8 % av paren).
+
+☠️ **Bokstavsordningen var en hashbugg, inte slump.** En recension utan läsbart namn
+(varenda Aosom-recension, eftersom Aosom-inläsningen inte bär några namn, och
+AliExpress-rader med ett namn utan bokstäver) fick sina två bokstäver ur
+`hashLetter(id, 0)` och `hashLetter(id, 1)` i `review-import.ts`. Hashen är h·31 + tecken,
+och de två fröna (`id#0` och `id#1`) skiljer sig bara på sista tecknet, så hashen för
+salt 1 är exakt ett mer än för salt 0. Den andra bokstaven blev därför ALLTID nästa
+bokstav efter den första. Provat på 200 000 slumpade id: 100,000 % i bokstavsordning
+(`gen-xk39s2` gav "W.X."). Bokstäverna dras nu ur EN seedad generator (FNV-1a, murmur3:s
+slutsteg, mulberry32), en dragning per bokstav, och `deriveInitials` rättar också
+initialer ur riktiga namn ("Wolfgang Weber" blir inte "W.W.").
+
+☠️ **Dagen före bytte verktyget bara Y, X, Z och W, och sa aldrig till butiken.**
+Butiken cachar varje produkts recensioner i sex timmar (tagg `recensioner-<id>`), och
+dess egen bevakning frågar `/api/review-andringar`, som svarar **501** så länge
+recensionerna ligger i Wix Data (`DRIFTEN_I_WIX`). Det är orsaken till raden i
+avsnittet *Rätta en enskild recension* om att butikens cron loggade `recensioner –`.
+Initialerna var alltså bytta i lagret, `/api/reviews/<id>` visade de nya inom en minut,
+och produktsidan visade de gamla i timmar. Rapporten "klart" byggde på
+`/api/reviews/<id>`, inte på sidan.
+
+Verktyget är workflowen **"Recensioner — slumpa om initialer (Q/W/X/Y/Z och
+bokstavsordning)"** (`recensioner-initialer-slumpa.yml` → `/api/admin/recensioner-initialer-slumpa`,
+logiken i `lib/reviews/slumpa-initialer.ts`). Torrt som default; `skarp=ja` kräver `bekrafta` =
+planens antal (`attSkrivaDennaKorning`); `hogst` standard 500, högst 2 000. Åtta
+egenskaper som inte ska tas bort:
+
+1. ☠️ **Slumpen är deterministisk** (frö: produkt-id och recensions-id). Torrkörningen
+   visar exakt vad den skarpa skriver, och samma recension får alltid samma initialer.
+2. ☠️ **Resultatet bryter aldrig mot reglerna**, så en rättad rad rättas aldrig igen och en
+   omkörning hittar ingenting. En ny bokstav som står bredvid en bevarad bokstav dras om
+   om den skulle bilda bokstavsordning.
+3. **Bokstavsordning: båda bokstäverna slumpas om. Annars byts bara de förbjudna** ("Z.K."
+   blir "R.K.", den andra bokstaven behålls).
+4. ☠️ **Kundomdömen (`source: "customer"`) rörs inte** utan `kundomdomen=ja`: de bär kundens
+   riktiga initialer, och ett påhittat namn på ett förstahandsomdöme vore vilseledande.
+   Initialer i annan form ("Zara") och fallande ordning ("B.A.") rörs inte.
+5. ☠️ **Raden läses om precis före skrivningen och skrivs från den färska kopian.** `upsert`
+   skriver hela raden och planen kan vara flera minuter gammal. Har initialerna, statusen
+   eller texten ändrats (eller raden försvunnit) rörs den inte (`andratUnderTiden`) och
+   planeras om i nästa körning.
+6. ☠️ **En rad räknas som ändrad först när den läses tillbaka** med de nya initialerna och
+   oförändrad status och text, upp till fyra försök (lagret ligger efter en skrivning).
+7. ☠️ **Butiken sägs till efter skrivningen** (`lib/reviews/meddela-butiken.ts`: en post
+   `{ id, vad: "recensioner" }` per produkt, högst 500 per anrop, ett omförsök). Svaret bär
+   `butiken` med räknare, och jobbet blir RÖTT om butiken inte blev sagd till för alla
+   produkter, eftersom raderna då är ändrade men sidorna inte. Produkt-id:n lämnar aldrig
+   rutten i svaret.
+8. ☠️ **Loggen och svaret bär bara räknare och exempel på initialer** (de syns redan på
+   produktsidan), aldrig namn, land eller id:n.
+
+`recension-initialer.yml` (EN utpekad recension) säger också till butiken sedan 2026-10-30.
+Den kontrollerar inte bokstäverna Leonard väljer själv mot reglerna.
+
+⚠️ **Verktyg som ändrar recensioner utan att säga till butiken**, kvar efter 2026-10-30:
+`recensioner-datumrensning`, `recensioner-omskrivning`, `recensioner-ae-ko`,
+`kundomdome-initialer` och Aosom-inläsningen (`aosom-reviews-ingest`). Deras ändringar syns
+på produktsidan först när sexttimmarscachen gått ut. Den systemiska lagningen är att låta
+`/api/review-andringar` svara för Wix-lagret (Wix Data har `_updatedDate`), så att butikens
+femminuterscron fungerar för alla verktyg. Den är inte gjord: den skulle få butiken att
+tömma sidor för varje bulkändring, och det kräver ett eget beslut.
+
+⚠️ Verifiera en rättelse av initialer mot **produktsidan** (butikens HTML), inte bara mot
+`/api/reviews/<produkt-id>`, och vänta tills butiken sagts till. `displayName` visas som det
+står, så Å och Ö kommer fram.
+
 ## Recensionernas svenska ska låta som en kund, inte som en AI (2026-09-24)
 
 Leonard 2026-09-24: recensionerna var välskrivna men såg AI-skrivna ut —
@@ -9922,9 +10001,10 @@ raderas för gott:
 Mätt 2026-10-29: en dold recension syntes fortfarande 80 minuter efter att den döljts.
 Butikens cron `/api/cron/uppdatera-andrade` frågar motorns `/api/review-andringar` var
 femte minut, men loggade `recensioner –` på varje rad (det som `andradeRecensioner` ger
-när svaret saknas, inte när det är tomt: `REVIEW_INGEST_SECRET` osatt i butiken, ett svar
-som inte är 200, eller 501 från motorn när recensionslagret inte är Postgres; orsaken är
-inte utredd). Därför sker inget förrän säkerhetsnätet (`revalidate = 21600`)
+när svaret saknas, inte när det är tomt). Orsaken är utredd 2026-10-30: motorns
+`/api/review-andringar` svarar 501 så länge recensionerna ligger i Wix Data
+(`DRIFTEN_I_WIX`), se *Initialerna: aldrig Q, W, X, Y, Z och aldrig bokstavsordning*.
+Därför sker inget förrän säkerhetsnätet (`revalidate = 21600`)
 går ut. Wix-vägen hjälper inte: den tömmer produktens post och sida, men inte
 recensionshämtningen, som har egen tagg (`recensioner-<id>`). Det som tömmer just den
 är `vad: "recensioner"`. Vercels `invalidate_by_tags` hittar inte butikens cache
