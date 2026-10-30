@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   matchPhrase, matchPhraseForStage, AVI_FRAS, orderEventsNewestFirst, svCountry, svLocation, dedupeEvents,
-  landForHandelse, harOrt, svenskVaggklocka, tidForHandelse, rimligTid, rattaPlatser,
+  landForHandelse, harOrt, svenskVaggklocka, tidForHandelse, rimligTid, rattaPlatser, textUtanFras, loggtext,
 } from "./track-i18n.ts";
 
 test("svCountry – ISO-2 och engelskt namn → svenska; okänt passerar", () => {
@@ -423,6 +423,37 @@ test("matchPhraseForStage: övriga fraser rörs inte av stage", () => {
     assert.equal(matchPhraseForStage(text, "Delivered"), matchPhrase(text), text);
   }
   assert.equal(matchPhraseForStage("Mystery text", "OutForDelivery"), null);
+});
+
+test("textUtanFras – loggar originaltexten på en avvikande stage utan fras", () => {
+  assert.equal(
+    textUtanFras("Försändelsen har aviserats", null, "Exception", "Exception_Other"),
+    '[track] text utan fras (Exception, Exception_Other): "Försändelsen har aviserats"',
+  );
+  assert.equal(
+    textUtanFras("Something new", null, "DeliveryFailure"),
+    '[track] text utan fras (DeliveryFailure): "Something new"',
+  );
+  // Utan stage visar sidan transportörens egen text, och den loggas också.
+  assert.equal(textUtanFras("Unknown status", null, ""), '[track] text utan fras (ingen stage): "Unknown status"');
+});
+
+test("textUtanFras – ingen rad när en fras träffade eller stagen är en vanlig transportstage", () => {
+  assert.equal(textUtanFras("Out for delivery", "Paketet är ute för leverans.", "OutForDelivery"), null);
+  for (const stage of ["InfoReceived", "PickedUp", "Departure", "Arrival", "InTransit", "Delivered"]) {
+    assert.equal(textUtanFras("Mystery text", null, stage), null, stage);
+  }
+  assert.equal(textUtanFras("   ", null, "Exception"), null);
+});
+
+test("loggtext – en rad, högst 200 tecken, utan nummer och e-postadresser", () => {
+  assert.equal(loggtext("  Notification\n sent  to\trecipient "), "Notification sent to recipient");
+  assert.equal(loggtext("SMS sent to +46 70-123 45 67"), "SMS sent to #");
+  assert.equal(loggtext("Item CC000000001DE redirected"), "Item CC#DE redirected");
+  assert.equal(loggtext("Mail sent to kund@example.invalid"), "Mail sent to [e-post]");
+  // Kortare sifferföljder står kvar: en tid, en lucka, ett paket av två.
+  assert.equal(loggtext("Pickup before 18:00 at locker 12, parcel 1 of 2"), "Pickup before 18:00 at locker 12, parcel 1 of 2");
+  assert.equal(loggtext("x".repeat(250)).length, 200);
 });
 
 test("dedupeEvents – samma händelse från två transportörer, den ena med bara landet", () => {

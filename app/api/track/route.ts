@@ -24,7 +24,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import {
   matchPhrase, matchPhraseForStage, svLocation, svCountry, svenskVaggklocka, dedupeEvents, tidForHandelse,
-  rimligTid, rattaPlatser, orderEventsNewestFirst,
+  rimligTid, rattaPlatser, orderEventsNewestFirst, textUtanFras, loggtext,
 } from "@/lib/track-i18n";
 import { maskCarrier, transportorAvNummer, transportorForNummer } from "@/lib/carrier-mask";
 import { LEAKY_PATTERN } from "@/lib/ae-track";
@@ -139,13 +139,28 @@ const STAGE_SV: Record<string, string> = {
   Returned: "Paketet har returnerats.",
 };
 
-function toSwedish(description: string, stage?: string): string {
+// Varje loggrad skrivs en gång per instans, så att samma text från flera
+// paket och sidvisningar inte fyller loggen.
+const loggadeRader = new Set<string>();
+
+function loggaEnGang(rad: string | null): void {
+  if (!rad || loggadeRader.has(rad)) return;
+  if (loggadeRader.size >= 500) loggadeRader.clear();
+  loggadeRader.add(rad);
+  console.info(rad);
+}
+
+function toSwedish(description: string, stage?: string, subStatus?: string): string {
   const fras = matchPhraseForStage(description, stage);
   if (fras !== matchPhrase(description)) {
     // En leveransfras på en händelse som 17TRACK inte kallar levererad
     // (matchPhraseForStage). Originaltexten loggas, så att den kan få en egen
     // svensk fras om den varken är en avi eller täcks av stagens text.
-    console.info(`[track] leveransfras mot stage ${stage}: "${description.slice(0, 200)}" → ${fras ?? "stagens text"}`);
+    loggaEnGang(`[track] leveransfras mot stage ${stage}: "${loggtext(description)}" → ${fras ?? "stagens text"}`);
+  } else {
+    // Ingen fras på en avvikande stage (textUtanFras): sidan visar stagens
+    // allmänna text, som kan säga något annat än transportören.
+    loggaEnGang(textUtanFras(description, fras, stage, subStatus));
   }
   if (fras) return fras;
   if (stage && STAGE_SV[stage]) return STAGE_SV[stage];
@@ -213,7 +228,7 @@ function mapEvent(ev: Track17Event): {
   // Skrubba ev. ursprungs-ord ur beskrivning + blanka läckande plats (paritet
   // med Velo:s sanitizeEvents). Belt-and-suspenders: leaky events filtreras
   // redan bort av isHiddenLocation, men detta garanterar att inget slinker ut.
-  const description = toSwedish(ev.description || ev.sub_status || "", base)
+  const description = toSwedish(ev.description || ev.sub_status || "", base, ev.sub_status)
     .replace(LEAKY_PATTERN, "")
     .replace(/\s{2,}/g, " ")
     .trim() || label;
