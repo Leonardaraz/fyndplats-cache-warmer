@@ -79,7 +79,7 @@ jobs:
           fi
           rot="${BASE%/api/cron/poll-tracking}"
 
-          ids=$(printf '%s' "$WIX_IDS" | tr ',; ' '\n\n\n' | grep -v '^$' | jq -R . | jq -sc .)
+          ids=$(printf '%s' "$WIX_IDS" | tr ',; ' '\n\n\n' | { grep -v '^$' || true; } | jq -R . | jq -sc .)
           torr="true"
           if [ "$SKARP" = "ja" ]; then torr="false"; fi
 
