@@ -50,8 +50,23 @@ behåller sidan SDK-galleriet och markeras kortlivad (`kortLivslangd`), och den 
 korrekt 10:35:53. Varför anropet föll är inte mätt. Mät därför om sidan efter fem minuter
 innan en färgsida kallas rätt eller fel, och titta på `imageOwners`, inte bara antalet bilder.
 
-## Observation, inte ändrad
+## Alt-texten på plats 9 rättad (2026-10-30, Leonards *Fixa alt texten*)
 
-Alt-texten på galleriets plats 9 (`a34aef`, foten med de två svarta knapparna) säger
-*Närbild på sits och armstöd, med den korsformade träfoten under*. Bilden visar foten
-och kanten på sitsen, inget armstöd. Texten beskrev snarare den nya bilden.
+Alt-texten på galleriets plats 9 (`a34aef`) sa *Närbild på sits och armstöd, med den
+korsformade träfoten under*. Bilden visar ett ben på den korsformade foten med två svarta
+skruvar, och bara kanten på sitsen längst upp. Inget armstöd syns, så texten beskrev den
+nya bilden på plats 11 i stället. Alla Mörkgrås bilder lades bredvid sina alt-texter:
+
+| plats | bild | alt-text |
+| :-- | :-- | :-- |
+| 7 | packshot på vit botten | oförändrad (beskriver också sidans funktioner, inte bara bilden) |
+| 8 | i ett vardagsrum, fjärrkontrollen i fickan | stämmer, oförändrad |
+| 9 | ett ben på korsfoten, två svarta skruvar | **rättad:** *Närbild på ett ben på den korsformade foten i trä, med två svarta skruvar* |
+| 10 | måttskiss | **stavfel rättat:** *mörkgråa* → *mörkgrå* |
+| 11 | armstödet med sidofickan och fjärrkontrollen | stämmer, oförändrad |
+
+Rättningen är bildplanen `tools/polish-assets/runda-alt-massagefatolj/bildplan.json`
+(workflowen *Polering — skriv bara bilderna*, sha256 `b68b478b…`). Den bär hela galleriet i
+oförändrad ordning, med samma fil-id, och ändrar bara texten på plats 9 och 10. Ingen färg
+nämns i den nya texten på plats 9, så bildens ägare ändras inte av ordval (en olänkad bild
+som nämner en färg hör till den färgen), och bilden är dessutom länkad till Mörkgrå.
