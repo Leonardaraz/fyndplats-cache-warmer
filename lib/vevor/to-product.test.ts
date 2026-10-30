@@ -13,6 +13,7 @@ import {
   byggVevorMappning,
   importhinder,
   medlemshinder,
+  rensaBeskrivning,
   vevorRecensioner,
   specifikation,
   textTillHtml,
@@ -93,6 +94,37 @@ describe("specifikation och textTillHtml", () => {
 
   it("styckena escapas", () => {
     expect(textTillHtml("Rubrik\n\nTar <grus> & sand\n")).toBe("<p>Rubrik</p><p>Tar &lt;grus&gt; &amp; sand</p>");
+  });
+});
+
+describe("rensaBeskrivning", () => {
+  // Formen är uppmätt på VEVOR:s svenska sidor 2026-10-30; varutexten är påhittad.
+  const reklam = [
+    "Vevor är ett ledande varumärke som är specialiserat på utrustning och verktyg. Tillsammans med tusentals anställda.",
+    "Varför välja VeVor?",
+    "Premium tuff kvalitet",
+    "Otroligt låga priser",
+    "Snabb och säker leverans",
+    "30-dagars gratis retur",
+    "24/7 uppmärksam service",
+  ];
+  const vara = ["Nyckelfunktioner", "Testlampa i stål", "Lyser i åtta timmar", "Specifikationer", "Material: Stål", "Paketets innehåll", "1 x Testlampa"];
+
+  it("☠️ VEVOR:s reklam och upprepade rader försvinner, varan och rubrikerna står kvar", () => {
+    const text = [...vara.slice(0, 3), ...reklam, "Prestanda på proffsnivå utan kostnad", ...reklam, ...vara, ...vara].join("\n");
+    expect(rensaBeskrivning(text).split("\n")).toEqual(vara);
+  });
+
+  it("en rad som bara liknar reklamen, eller nämner returer, står kvar", () => {
+    const text = "Snabb och säker leverans av vatten till trädgården\nGratis retur gäller inte här\nVEVOR-lampan tål regn";
+    expect(rensaBeskrivning(text)).toBe(text);
+  });
+
+  it("jämförelsen tål versaler och extra mellanslag, och utkastets text byggs av den rensade", () => {
+    expect(rensaBeskrivning("Material:  Stål\nmaterial: stål\n  30-DAGARS gratis   retur ")).toBe("Material: Stål");
+    const p = vevorProdukt(testAvlasning({ beskrivning: ["Testlampa", ...reklam, "Testlampa"].join("\n") }), PRIS, valjVevorBilder([]));
+    expect(p.rawDescription).toBe("Testlampa");
+    expect(p.descriptionHtml).toBe("<p>Testlampa</p>");
   });
 });
 

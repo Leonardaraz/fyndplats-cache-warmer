@@ -18,6 +18,13 @@
 // här: utkastet syns inte för någon kund, och poleringen skriver titel, slug och
 // SKU på nytt ändå.
 //
+// BESKRIVNINGEN STÄDAS VID IMPORTEN (`rensaBeskrivning`, Leonard 2026-10-30).
+// VEVOR:s text upprepar stycken, och VEVOR:s egen reklam följer med: löften
+// som "30-dagars gratis retur" och "snabb och säker leverans" är VEVOR:s, inte
+// våra. Uppmätt på 1 200 avläsningar: 475 hade rader två gånger eller fler,
+// 57 bar reklamblocket och 218 sloganen. Bara exakta rader tas bort, och
+// rubrikerna står kvar. Poleringen skriver om texten ändå.
+//
 // ☠️ ARTIKELNUMRET BOR BARA I `supplierProductId` och variantens
 // `supplierVariantId`. Det står inte i titeln, beskrivningen eller
 // specifikationen på VEVOR:s sidor (mätt 2026-10-29: 0 av 34), och det här
@@ -140,8 +147,8 @@ export function vevorProdukt(a: Avlasning, pris: Prisunderlag, bilder: Bildval):
     supplierProductId: vevorSupplierProductId(a.sku),
     sourceUrl: sidadress(a.sokvag),
     rawTitle: a.namn,
-    rawDescription: a.beskrivning,
-    descriptionHtml: textTillHtml(a.beskrivning),
+    rawDescription: rensaBeskrivning(a.beskrivning),
+    descriptionHtml: textTillHtml(rensaBeskrivning(a.beskrivning)),
     imageUrls: bilder.urls,
     variants: [
       {
@@ -176,6 +183,43 @@ export function specifikation(a: Pick<Avlasning, "spec" | "egenskaper">): Record
     ut[nyckel] = varde;
   }
   return ut;
+}
+
+/**
+ * VEVOR:s egen reklam, rad för rad, som den står på de svenska sidorna (uppmätt
+ * 2026-10-30). Jämförs med hela raden i gemener och med mellanslagen rensade.
+ */
+const VEVOR_REKLAM: readonly string[] = [
+  "varför välja vevor?",
+  "premium tuff kvalitet",
+  "otroligt låga priser",
+  "snabb och säker leverans",
+  "30-dagars gratis retur",
+  "24/7 uppmärksam service",
+  "prestanda på proffsnivå utan kostnad",
+];
+/** Reklamstycket om VEVOR själva. Det börjar alltid så och handlar aldrig om varan. */
+const VEVOR_REKLAM_BORJAN = "vevor är ett ledande varumärke";
+
+const jamforbar = (rad: string) => rad.replace(/\s+/g, " ").trim().toLowerCase();
+
+/**
+ * Beskrivningen utan VEVOR:s reklam och utan rader som redan stått en gång.
+ * Bara hela rader tas bort; en rad som bara liknar reklamen står kvar.
+ */
+export function rensaBeskrivning(text: string): string {
+  const sedda = new Set<string>();
+  const ut: string[] = [];
+  for (const rad of text.split(/\n+/)) {
+    const r = rad.replace(/\s+/g, " ").trim();
+    if (!r) continue;
+    const j = jamforbar(r);
+    if (VEVOR_REKLAM.includes(j) || j.startsWith(VEVOR_REKLAM_BORJAN)) continue;
+    if (sedda.has(j)) continue;
+    sedda.add(j);
+    ut.push(r);
+  }
+  return ut.join("\n");
 }
 
 const HTML_ESCAPE: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" };
