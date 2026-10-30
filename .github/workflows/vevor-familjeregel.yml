@@ -9,7 +9,8 @@ name: VEVOR — familjeregeln på befintliga utkast
 #           nollställer importens markör. Kräver `bekrafta` = planens antal
 #           raderbara. Gränsfallen raderas aldrig: Leonard avgör dem.
 #
-# Importen måste vara avstängd ("VEVOR — importen", läget av). Ordningen:
+# Importen måste vara avstängd för radera ("VEVOR — importen", läget av).
+# Planen går att köra med importen på. Ordningen:
 # plan, importen av, radera med planens antal, plan igen (raderbara ska vara 0),
 # och importen på. Importen bygger då om utkasten med regeln.
 #
@@ -80,7 +81,7 @@ jobs:
             printf '%s' "$1" | jq '{
               planMs,
               plan: (.plan | {utkast, familjer, dela: (.dela | length), slaIhop: (.slaIhop | length), slaIhopFamiljer, spuVantar, spuEnsamma}),
-              radering: (.radering | {dryRun, raderbara, hinder, raderade, fannsInte, obekraftade, fel, kvar, importNollstalld, stoppadAv, hoppade})
+              radering: (.radering | {dryRun, importAktiv, raderbara, hinder, raderade, fannsInte, obekraftade, fel, kvar, importNollstalld, stoppadAv, hoppade})
             }' | redigera || true
           }
 
@@ -100,7 +101,7 @@ jobs:
             visaPlan "$svar"
             {
               echo "### VEVOR — familjeregeln (plan)"
-              printf '%s' "$svar" | jq -r '"| | |\n|---|--:|\n| Opolerade utkast | \(.plan.utkast) |\n| Familjer | \(.plan.familjer) |\n| Familjer att dela | \(.plan.dela | length) |\n| Utkast att slå ihop | \(.plan.slaIhop | length) (\(.plan.slaIhopFamiljer) familjer) |\n| Raderbara | **\(.radering.raderbara)** |\n| Gränsfall | \([.plan.grans[].antal] | add // 0) på \(.plan.grans | length) axlar |\n| SPU-grupper som väntar | \(.plan.spuVantar) |\n| SPU-grupper som blir egna sidor | \(.plan.spuEnsamma) |"' | redigera
+              printf '%s' "$svar" | jq -r '"| | |\n|---|--:|\n| Opolerade utkast | \(.plan.utkast) |\n| Familjer | \(.plan.familjer) |\n| Familjer att dela | \(.plan.dela | length) |\n| Utkast att slå ihop | \(.plan.slaIhop | length) (\(.plan.slaIhopFamiljer) familjer) |\n| Raderbara | **\(.radering.raderbara)** |\n| Importen påslagen | \(.radering.importAktiv) |\n| Gränsfall | \([.plan.grans[].antal] | add // 0) på \(.plan.grans | length) axlar |\n| SPU-grupper som väntar | \(.plan.spuVantar) |\n| SPU-grupper som blir egna sidor | \(.plan.spuEnsamma) |"' | redigera
             } >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
