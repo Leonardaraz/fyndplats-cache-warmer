@@ -2,20 +2,38 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { FARGVAL_FILTER, FARGVAL_SIDTAK, fargvalKropp, hamtaFargval, type FargvalSvar } from "./product-colors-paging.ts";
+import {
+  FARGVAL_FILTER,
+  FARGVAL_OMFORSOK_MS,
+  FARGVAL_SIDTAK,
+  fargvalKropp,
+  hamtaFargval,
+  type FargvalSvar,
+} from "./product-colors-paging.ts";
 
 // En kedja sidor som products/query svarar med. Varje produkt får ett id och
-// en option; `tolka` bestämmer om optionen bär en färg.
-function wix(storlekar: number[], fel?: { sida: number; status: number }) {
+// en option; `tolka` bestämmer om optionen bär en färg. Sidan avgörs av
+// markören, så ett nytt försök får samma sida. `fel` slår till de första
+// `ganger` gångerna sidan efterfrågas (varje gång utan `ganger`), med en
+// status eller ett nätfel.
+type Fel = { sida: number; status?: number; ganger?: number; natfel?: boolean };
+function wix(storlekar: number[], fel?: Fel) {
   const kroppar: unknown[] = [];
-  let n = 0;
+  const forsok = new Map<number, number>();
   const post = async (kropp: unknown): Promise<FargvalSvar> => {
     kroppar.push(kropp);
-    const sida = kroppar.length;
-    if (fel && fel.sida === sida) return { ok: false, status: fel.status, json: async () => ({}) };
+    const markor = (kropp as { query: { cursorPaging: { cursor?: string } } }).query.cursorPaging.cursor;
+    const sida = markor ? Number(markor.slice("markor-".length)) + 1 : 1;
+    const n = (forsok.get(sida) ?? 0) + 1;
+    forsok.set(sida, n);
+    if (fel && fel.sida === sida && n <= (fel.ganger ?? Infinity)) {
+      if (fel.natfel) throw new TypeError("fetch failed");
+      return { ok: false, status: fel.status ?? 500, json: async () => ({}) };
+    }
     const i = sida - 1;
-    const products = Array.from({ length: storlekar[i] ?? 0 }, () => {
-      const id = `p${n++}`;
+    const forst = storlekar.slice(0, i).reduce((a, b) => a + b, 0);
+    const products = Array.from({ length: storlekar[i] ?? 0 }, (_, k) => {
+      const id = `p${forst + k}`;
       return { id, options: [{ name: "Färg", choicesSettings: { choices: [{ name: id }] } }] };
     });
     const hasNext = i + 1 < storlekar.length;
@@ -26,6 +44,12 @@ function wix(storlekar: number[], fel?: { sida: number; status: number }) {
     };
   };
   return { post, kroppar };
+}
+
+// Pausen före ett nytt försök, utan att vänta på riktigt.
+function klocka() {
+  const pauser: number[] = [];
+  return { pauser, vanta: async (ms: number) => void pauser.push(ms) };
 }
 
 // Varannan produkt har ett färgord i valet, varannan inte.
@@ -61,10 +85,68 @@ test("alla sidor läses, och kartan bär bara produkter med ett färgord", async
   assert.equal(farger.has("p1"), false);
 });
 
-test("ett fel på en senare sida KASTAR i stället för att ge en halv karta", async () => {
+test("ett fel som står kvar efter omförsöken KASTAR i stället för att ge en halv karta", async () => {
   // En halv karta ger fel antal i facetten och ser frisk ut.
-  const { post } = wix([100, 100, 39], { sida: 2, status: 429 });
-  await assert.rejects(hamtaFargval(post, tolka), /HTTP 429 på sida 2 — visar hellre ingen facett/);
+  const { post, kroppar } = wix([100, 100, 39], { sida: 2, status: 429 });
+  const { pauser, vanta } = klocka();
+  await assert.rejects(
+    hamtaFargval(post, tolka, undefined, undefined, vanta),
+    /HTTP 429 på sida 2 — visar hellre ingen facett/,
+  );
+  // Sida ett en gång, sida två i tre försök, och sida tre aldrig.
+  assert.equal(kroppar.length, 4);
+  assert.deepEqual(pauser, FARGVAL_OMFORSOK_MS);
+});
+
+test("en tillfällig 503 försöks om på samma sida, och kartan blir hel", async () => {
+  // Produktionen 2026-10-29: "färgfrågan svarade HTTP 503 på sida 11" åtta
+  // gånger på sex timmar. Varje gång försvann färgfiltret för hela instansen.
+  const { post, kroppar } = wix([100, 100, 39], { sida: 2, status: 503, ganger: 1 });
+  const { pauser, vanta } = klocka();
+  const { farger, medOptioner, omforsok } = await hamtaFargval(post, tolka, undefined, undefined, vanta);
+  assert.equal(medOptioner, 239);
+  assert.equal(farger.size, 120);
+  assert.equal(omforsok, 1);
+  assert.deepEqual(pauser, [FARGVAL_OMFORSOK_MS[0]]);
+  // Omförsöket skickar samma markör som försöket före, inte filtret.
+  assert.equal(kroppar.length, 4);
+  assert.deepEqual(kroppar[1], kroppar[2]);
+  assert.deepEqual(kroppar[2], { query: { cursorPaging: { limit: 100, cursor: "markor-1" } } });
+});
+
+test("ett nätfel försöks om på samma sätt", async () => {
+  const { post } = wix([100, 100, 39], { sida: 3, natfel: true, ganger: 2 });
+  const { pauser, vanta } = klocka();
+  const { medOptioner, omforsok } = await hamtaFargval(post, tolka, undefined, undefined, vanta);
+  assert.equal(medOptioner, 239);
+  assert.equal(omforsok, 2);
+  assert.deepEqual(pauser, FARGVAL_OMFORSOK_MS);
+});
+
+test("ett nätfel som står kvar kastar med sidan i meddelandet", async () => {
+  const { post } = wix([100, 100, 39], { sida: 1, natfel: true });
+  const { vanta } = klocka();
+  await assert.rejects(
+    hamtaFargval(post, tolka, undefined, undefined, vanta),
+    /nätfel \(fetch failed\) på sida 1 — visar hellre ingen facett/,
+  );
+});
+
+test("en annan 4xx kastar direkt, utan omförsök", async () => {
+  // 400 INVALID_CURSOR blir inte bättre av att frågas igen.
+  const { post, kroppar } = wix([100, 100, 39], { sida: 2, status: 400 });
+  const { pauser, vanta } = klocka();
+  await assert.rejects(hamtaFargval(post, tolka, undefined, undefined, vanta), /HTTP 400 på sida 2/);
+  assert.equal(kroppar.length, 2);
+  assert.deepEqual(pauser, []);
+});
+
+test("utan fel blir det inga omförsök och ingen paus", async () => {
+  const { post } = wix([100, 39]);
+  const { pauser, vanta } = klocka();
+  const { omforsok } = await hamtaFargval(post, tolka, undefined, undefined, vanta);
+  assert.equal(omforsok, 0);
+  assert.deepEqual(pauser, []);
 });
 
 test("sidtaket kastar i stället för att kapa", async () => {

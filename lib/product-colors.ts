@@ -36,7 +36,7 @@ async function fetchProductColorsRaw(): Promise<Fargdata> {
   try {
     // `options` ingår i V3:s standardsvar — inget `fields` behövs. Valens
     // namn ger färgnycklarna och deras linkedMedia färgbilden på korten.
-    const { farger, medOptioner } = await hamtaFargval(
+    const { farger, medOptioner, omforsok } = await hamtaFargval(
       (kropp) =>
         fetch("https://www.wixapis.com/stores/v3/products/query", {
           method: "POST",
@@ -50,7 +50,10 @@ async function fetchProductColorsRaw(): Promise<Fargdata> {
         if (Object.keys(b).length) bilder.set(id, b);
       },
     );
-    console.log(`[wix] färgval hämtade: ${farger.size} produkter har minst en färg (av ${medOptioner} med optioner), ${bilder.size} med färgbild`);
+    console.log(
+      `[wix] färgval hämtade: ${farger.size} produkter har minst en färg (av ${medOptioner} med optioner), ${bilder.size} med färgbild`
+        + (omforsok ? `, ${omforsok} omförsök` : ""),
+    );
     return { farger, bilder };
   } catch (e) {
     console.error("[wix] fetchProductColors failed:", (e as Error).message);
