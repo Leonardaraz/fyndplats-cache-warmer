@@ -8080,6 +8080,30 @@ egenskaper som inte ska tas bort:
 `recension-initialer.yml` (EN utpekad recension) säger också till butiken sedan 2026-10-30.
 Den kontrollerar inte bokstäverna Leonard väljer själv mot reglerna.
 
+✅ **Körd i drift 2026-10-30** (Leonards ja till alla steg). Planen vid första skarpa körningen:
+11 654 rader (11 382 i bokstavsordning, 272 med bara en förbjuden bokstav; Aosom 10 060,
+import 1 594, kund 0), 2 kundomdömen orörda, 0 i annan form, och 928 av de nya paren (8,0 %) fick
+Å eller Ö. Skarpt i 17 körningar på drygt en timme: en prövning på 200 rader, sedan `hogst=2000`
+som tak så att skrivbudgeten på 200 sekunder avgör hur långt varje körning hinner (ungefär 730
+rader på 3,5 minuter, 3,6 rader per sekund: omläsning, skrivning och återläsning är tre Wix
+Data-anrop per rad). Resultat: 11 654 rader ändrade, 0 fel, 0 ändrade under tiden, fyra rader som
+lästes tillbaka först vid andra försöket. Butiken sades till efter varje körning (alla anrop ok, ingen
+produkt hoppad). Torrkörningarna efteråt: 0 kvar, 2 kundomdömen orörda.
+
+Kontrollerat mot produktsidan, inte bara motorn: bäddfåtöljen (41 recensioner, 39 i bokstavsordning
+före) har 0 i bokstavsordning och 0 med Q/W/X/Y/Z, 3 med Å eller Ö, och sidans 41 namn är exakt
+motorns 41. Stickprov på 220 slumpade produktsidor ur sitemapen (136 med recensioner, 449 visade
+namn): inga förbjudna bokstäver och ingen bokstavsordning utom ett kundomdöme (`kund-…`, G.H. på
+TV-bänken). Kontrollen hämtar sidans HTML med `cache: "no-store"` och läser `displayName` ur sidans
+payload.
+
+Två saker att veta vid en ny bulkkörning. En produkts rader ligger spridda över körningarna, så
+sidan visar en blandning tills den sista körningen som rör produkten sagt till butiken (varje körning
+säger till för alla produkter den rörde). Och `bekrafta` är 2000 tills färre än 2000 rader
+återstår; då är det antalet som `kvar` visade, och stämmer det inte svarar rutten med rätt tal.
+Hade körningen behövt gå snabbare är nästa steg att läsa om och återläsa en produkts rader i ett
+anrop i stället för ett per rad (ungefär hälften så många Wix-anrop), men det behövdes inte.
+
 ⚠️ **Verktyg som ändrar recensioner utan att säga till butiken**, kvar efter 2026-10-30:
 `recensioner-datumrensning`, `recensioner-omskrivning`, `recensioner-ae-ko`,
 `kundomdome-initialer` och Aosom-inläsningen (`aosom-reviews-ingest`). Deras ändringar syns
