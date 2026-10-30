@@ -119,6 +119,9 @@ Leonards beslut 2026-10-29). Säkerhetsavsnittet skriver du som vanligt, ur käl
 VEVOR-varor har ingen förhandsöversättning, så utan ditt avsnitt har fliken ingen
 säkerhetsinformation.
 
+**Recensionerna.** Steg 9 tar bara med recensioner om produktens egna artiklar. De andra
+räknas och lämnas till VEVOR-verktyget.
+
 **Priset.** Prisgrinden gäller VEVOR-rader sedan 2026-10-30: importen satte regelpriset och
 VEVOR-synken skriver det varje timme. Säger grinden *PRISGRINDEN FALLER* är det drift, och då
 rör du inte priset.
@@ -143,8 +146,9 @@ byggskripten ligger i `tools/polish-gates/` och anropas därifrån
 | 6 | [Läs sidan som kund](#6-läs-sidan-som-kund) | — |
 | 7 | [Grindar och skrivplan](#7-grindar-och-skrivplan) | `axelfacit.json`, `vantat-hash.tsv`, `nyttolast-media.json`, `skrivplan.json` |
 | 8 | [Skriv till Wix](#8-skriv-till-wix) | — |
-| 9 | [Kontrollera live](#9-kontrollera-live) | `live/` |
-| 10 | [Dokumentera](#10-dokumentera) | rader i `FLAGGADE.md` |
+| 9 | [Recensionerna](#9-recensionerna) | `recensioner-kalla.json`, `recensioner.json` |
+| 10 | [Kontrollera live](#10-kontrollera-live) | `live/` |
+| 11 | [Dokumentera](#11-dokumentera) | rader i `FLAGGADE.md` |
 
 `kort` är produkt-id:ts första åtta tecken. `ark/`, `orig/` och `live/` är hämtad data och
 committas inte.
@@ -1301,7 +1305,75 @@ rundan är dokumenterad, inte efter varje fil.
 
 -----
 
-## 9. Kontrollera live
+## 9. Recensionerna
+
+*(Leonard 2026-10-30)* Den som polerar en produkt tar också dess recensioner, i samma
+runda. Importen sparar leverantörens recensioner dolda (`pending`) på originalspråket, och
+de syns först när någon har översatt dem. Förut gjordes det i en egen kö i
+`/admin/reviews`, långt efter att sidan publicerats. Mätt 2026-10-30: de flesta produkter
+har 4–10 väntande recensioner, högst 15 på en VEVOR-produkt och 30 på en Aosom-produkt.
+
+Workflowen **"Polering — recensionerna till rundans produkter"** (`polish-recensioner.yml`
+→ `/api/admin/polish-recensioner` → `lib/reviews/polering.ts`). Kör den med `ref` satt
+till poleringsgrenen och `runda` satt till katalogens namn. Den läser produkterna ur
+`ids.tsv`.
+
+1. **`las`** går att köra så fort `ids.tsv` finns. Workflowen skriver
+   `recensioner-kalla.json` till rundans katalog och committar den. Per kort står de
+   väntande recensionerna: id, betyg, datum, språk, `kopt` (varianten kunden köpte, på en
+   VEVOR-familj), antal foton och originaltexten. Inga namn och inget land, och
+   artikelnummerformer är redigerade. Butikens egna kunders omdömen är inte med.
+2. **Besluta varje recension** i `recensioner.json`:
+   ```json
+   { "<kort>": { "oversatt": { "<id>": "<svensk text>" }, "dolj": { "<id>": "<skäl>" } } }
+   ```
+   En översatt recension publiceras. En dold avvisas och går att visa igen i
+   `/admin/reviews`. En produkt utan väntande recensioner behöver ingen rad.
+3. **`torr`** prövar besluten och skriver ingenting. Felen står per kort och recensions-id.
+4. **`skriv`**, efter steg 8, när produkten är publicerad. Workflowen skriver, läser
+   tillbaka varje rad och säger till butiken, så att produktsidan visar recensionerna
+   direkt. Annars cachas de i sex timmar.
+
+**Översättningen** har samma längd och ton som originalet, vardaglig svenska och korta
+meningar (CLAUDE.md, *Recensionernas svenska ska låta som en kund*). Innehållet ändras
+aldrig, och kritik står kvar.
+
+- Inga tankstreck, semikolon, citattecken eller `…`, och inga AI-fraser som *sammantaget*
+  eller *helt och hållet*.
+- Ta bort varumärken och marknadsplatser, budfirmor, priser, säljaren och kundtjänst,
+  leveranstider och namn. Blir meningen fel utan det, dölj recensionen i stället.
+
+**Dölj** med ett kort skäl, eftersom loggen är publik, när recensionen:
+
+- bara handlar om leveransen, returen eller kundtjänsten,
+- gäller en annan vara, färg eller storlek än sidans,
+- bär ett namn, en signatur eller hälsouppgifter,
+- säger emot sidans fakta, till exempel ett annat mått. Lista den då också i `FLAGGADE.md`
+  åt Leonard,
+- är reklam eller inte går att förstå.
+
+**Grinden** fäller hela anropet och skriver ingenting när:
+
+- en väntande recension saknar beslut, eller står både som översatt och dold,
+- ett id inte finns på produkten eller är butikens eget kundomdöme (de godkänner Leonard
+  i `/admin/reviews`),
+- en översättning är oöversatt, för kort eller för lång jämfört med originalet, har
+  engelska kvar eller bryter mot stilen: tankstreck, semikolon, citattecken, tre punkter,
+  AI-fras, marknadsplats eller leverantör, budfirma, pris, säljare eller kundtjänst,
+  artikelnummer.
+
+En omkörning efter en avbruten skrivning skriver bara det som återstår.
+
+**VEVOR.** VEVOR visar en familjs recensioner på varje artikel i familjen. På en
+VEVOR-produkt tar `las` därför bara med recensioner om produktens egna artiklar. De andra
+räknas som `annan artikel` och `okänd artikel` och får inget beslut. Grinden fäller ett
+beslut om dem. Verktyget **"VEVOR — recensioner om en annan artikel"** döljer de förra, och
+de senares artikel avgörs när VEVOR-läsaren har läst om sidan, en gång per dygn för utkast.
+Är många okända kör du `las` igen dagen efter.
+
+-----
+
+## 10. Kontrollera live
 
 ☠️ **Hämta aldrig en produktsida medan produkten är ett utkast.** Butiken cachar svaret,
 som då är en 404, och visar det en god stund efter publiceringen. Därför görs ingen
@@ -1331,12 +1403,15 @@ python3 ../../polish-gates/livekoll.py       # InStock, brödsmula, <title> och 
   alt-attribut i HTML:en. De andra färgernas alt-texter ligger i sidans data, i en karta
   fil → alt. `livekoll.py` letar där också och skriver i summeringen hur många alt-texter
   som bara sågs där (T1: 46 av 84). En alt-text som saknas på båda ställena är ett fel.
+- Recensionerna: varje produkt ska visa de som steg 9 översatte. Saknas de, läs raden
+  `Butiken:` i körningen. Föll anropet till butiken syns de först när dess cache gått ut,
+  efter sex timmar.
 - Öppna till sist en av rundans sidor och läs den som kund. Var avsnitten och bilderna
   hamnar syns bara där.
 
 -----
 
-## 10. Dokumentera
+## 11. Dokumentera
 
 - **Ingen `LÄS-MIG.md`** i rundans katalog *(Leonard 2026-09-27)*. Vad som publicerades och
   vad som var oväntat står kort i commitmeddelandet.
@@ -1373,6 +1448,12 @@ Grindarna och live-kontrollen täcker det mesta. Gå igenom listan innan du kör
   leverantörens logotyp eller fel färg. Text på rekvisitan i en miljöbild är okej.
   Måttritningen ligger sist.
 - Varje alt-text är på svenska, unik och beskriver det som syns.
+
+**Recensioner**
+
+- Varje väntande recension på rundans produkter är översatt eller dold, och `skriv` slutade
+  med 0 fel och 0 avvikelser. På en VEVOR-produkt gäller det recensionerna om produktens
+  egna artiklar.
 
 **Data**
 

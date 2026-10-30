@@ -8539,6 +8539,42 @@ synlig, den lagrade texten fortfarande är exakt `fore` (en människas ändring
 skrivs aldrig över), och den nya texten klarar `validateTranslation`. En rad
 med `dolj: true` döljer en recension som visat sig handla om en annan produkt.
 
+## Recensionerna poleras med produkten (2026-10-30)
+
+Leonard: *"den som polerar produkterna fixar allt o sen fixar recensionerna till
+produkten som ett steg"*. Poleringsrundan har ett steg 9, Recensionerna
+(`docs/seo-polish-runbook.md`). Workflowen **"Polering — recensionerna till rundans
+produkter"** (`polish-recensioner.yml`, `las` · `torr` · `skriv`) →
+`/api/admin/polish-recensioner` → `lib/reviews/polering.ts`. `las` committar
+`recensioner-kalla.json` till rundans katalog, och rundan beslutar varje väntande
+recension i `recensioner.json` (översatt publiceras, dold avvisas).
+
+Mätt 2026-10-30 i `FyndplatsImportedReviews`: 5 504 VEVOR-produkter med 33 306 väntande
+recensioner (högst 15 per produkt) och 329 Aosom-produkter med 1 759 (högst 30).
+
+Sex egenskaper som inte ska tas bort:
+
+1. ☠️ **Varje väntande recension får ett beslut.** Saknas ett beslut skrivs ingenting,
+   så att ingen recension blir liggande osynlig utan att någon valt det.
+2. ☠️ **Allt eller inget.** Faller ett beslut i kontrollen skrivs ingenting i hela anropet.
+3. ☠️ **Besluten gäller produktens egen rad.** Samma id kan finnas på flera produkter.
+4. ☠️ **Butikens egna kunders omdömen rörs inte.** Leonard godkänner dem i `/admin/reviews`.
+5. ☠️ **På en VEVOR-produkt beslutas bara recensioner om produktens egna artiklar.**
+   En produkt räknas som VEVOR när en av dess recensioner kommer från VEVOR, och
+   artikeln läses ur VEVOR-läsarens avläsningar, som verktyget för recensioner om en
+   annan artikel gör (`artikelPerText`). En rad om en annan artikel, eller vars artikel
+   inte går att avgöra, tas inte med och kan inte beslutas här. Skälet: en översättning
+   publicerar raden, och det verktyget rör aldrig en publicerad rad.
+6. **Svaret och loggen bär bara kort, id, antal och skäl.** Läsningen bär
+   originaltexterna, som redan är publika hos leverantören, utan namn och land och med
+   artikelnummerformer redigerade.
+
+Grinden för översättningen är `validateTranslation` (samma som `/admin/reviews`) och
+husets stil (`stilfel`): inga tankstreck, semikolon, citattecken, tre punkter eller
+AI-fraser, och inga marknadsplatser, leverantörer, budfirmor, priser, säljare eller
+artikelnummer. `skriv` läser tillbaka varje rad och säger till butiken
+(`meddelaButikenOmRecensioner`), så att produktsidan visar recensionerna direkt.
+
 ## ☠️ Butikens kategorilista kapades vid 100 (2026-09-24)
 
 Sökordsrundorna S4–S10 skapade drygt 40 kategorier på ett dygn, och
