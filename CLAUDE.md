@@ -6295,6 +6295,41 @@ läs svaret: noll spärrar, noll `fel_sprak` och `fel_valuta`, robots.txt
 hämtad och `sparrade` noll. Slå sedan på schemat med `pa`. Klart när hela
 katalogen är läst med under 2 % okänt.
 
+### ☠️ VEVOR visar två sidmallar, och läsaren kände bara den ena (2026-10-30)
+
+Upptäckt när staketstolpankarna skulle slås ihop: ett av fyra ankare hade ingen
+specifikation, fast sidan hade en. Samma adress hämtad sex gånger i följd gav två
+olika sidor:
+
+| mall | specifikation | punktlista |
+|---|---|---|
+| `detail_product5` (den gamla) | tabell i HTML:en | lista i HTML:en |
+| `detail_product7` (den nya) | bara `PRODUCT_DATA.goodsDescAttrList` | bara `PRODUCT_DATA.sellingPoint` |
+
+Läsaren läste bara tabellen och listan. **3 035 av 14 990 avläsningar (20 %,
+jämnt över dygnet) saknade båda**, och de utkasten importerades utan
+specifikation och punktlista.
+
+`specOchPunkter` (`lib/vevor/sida.ts`) läser tabellen först och datan när den
+saknas, och sparar var specifikationen kom ifrån i `specKalla` (`tabell`,
+`data` eller null). Provat på riktiga sidor av båda mallarna: samma åtta rader
+och fem punkter.
+
+Tre egenskaper som inte ska tas bort:
+
+1. ☠️ **En avläsning utan `specKalla` och utan både specifikation och
+   punktlista väntar** (hindret `spec_okant`, `spechinder` i
+   `lib/vevor/to-product.ts`). Den gjordes före lagningen, och nästa läsning
+   kommer inom ett dygn. Samma mönster som `betyg_okant`.
+2. **En sida som verkligen saknar specifikation är inget hinder.** Den lagade
+   läsaren sätter `specKalla: null`, och då importeras artikeln.
+3. **Ett syskon i en familj behöver ingen specifikation** (`medlemshinder`):
+   familjen visar ankarets text. Annars hade syskonet lämnats utanför, och
+   sedan spärrats för alltid som `syskon_finns`.
+
+⚠️ **Utkast som redan importerats utan specifikation är inte lagade.** De står
+kvar utan specifikationsflik och punktlista tills de rättas eller poleras.
+
 ## VEVOR: steg 4, importen som osynliga utkast (2026-10-29)
 
 Leonards beslut 2026-10-28: alla VEVOR-produkter importeras på en gång, så fort

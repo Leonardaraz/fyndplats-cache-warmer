@@ -14,6 +14,7 @@ import {
   importhinder,
   medlemshinder,
   rensaBeskrivning,
+  spechinder,
   vevorRecensioner,
   specifikation,
   textTillHtml,
@@ -198,6 +199,32 @@ describe("betyget (steg 8)", () => {
     expect(medlemshinder(testAvlasning({ status: "slut", saldo: 0 }), NU)).toBeNull();
     expect(medlemshinder(testAvlasning({ status: "slut", saldo: 0, betyg: { snitt: 3, antal: 9 } }), NU)).toBe("lagt_betyg");
     expect(medlemshinder(testAvlasning({ levererasTillSe: false }), NU)).toBe("ej_levererbar");
+  });
+});
+
+describe("☠️ specifikationen från den gamla läsaren (2026-10-30)", () => {
+  const utan = { spec: [] as [string, string][], punkter: [] as string[] };
+
+  it("en avläsning utan specifikation och punktlista från före lagningen väntar på nästa läsning", () => {
+    expect(spechinder({ ...utan, specKalla: undefined })).toBe("spec_okant");
+    expect(importhinder(testAvlasning({ ...utan, specKalla: undefined }), NU)).toBe("spec_okant");
+  });
+
+  it("den lagade läsaren säger var specifikationen kom ifrån, och då är en tom sida inget hinder", () => {
+    expect(spechinder({ ...utan, specKalla: null })).toBeNull();
+    expect(spechinder({ ...utan, specKalla: "data" })).toBeNull();
+  });
+
+  it("en gammal avläsning som har specifikationen eller punktlistan är redan hel", () => {
+    expect(spechinder({ spec: [["Antal", "4 st"]], punkter: [], specKalla: undefined })).toBeNull();
+    expect(spechinder({ spec: [], punkter: ["Stark."], specKalla: undefined })).toBeNull();
+  });
+
+  it("lagret och betyget går före, och ett syskon i en familj behöver ingen specifikation", () => {
+    expect(importhinder(testAvlasning({ ...utan, saldo: 0 }), NU)).toBe("ej_i_lager");
+    expect(importhinder(testAvlasning({ ...utan, betyg: undefined }), NU)).toBe("betyg_okant");
+    expect(medlemshinder(testAvlasning({ ...utan }), NU)).toBeNull();
+    expect(medlemshinder(testAvlasning({ ...utan, betyg: undefined }), NU)).toBe("betyg_okant");
   });
 });
 

@@ -31,6 +31,11 @@ export interface Testsida {
   betyg: Record<string, unknown> | null;
   /** JSON-LD:s `review`. */
   recensioner: Record<string, unknown>[];
+  /**
+   * Sidmallen. `gammal` har specifikationen och punktlistan i HTML:en, `ny`
+   * bara i `PRODUCT_DATA` (uppmätt 2026-10-30), `utan` har dem ingenstans.
+   */
+  mall: "gammal" | "ny" | "utan";
 }
 
 /** En påhittad recension i JSON-LD:s form. */
@@ -71,6 +76,7 @@ export function testsida(over: Partial<Testsida> = {}): string {
     utanProdukt: false,
     betyg: { "@type": "AggregateRating", ratingValue: 4.5, reviewCount: 12 },
     recensioner: [testrecension()],
+    mall: "gammal",
     ...over,
   };
   const global = `<script>window.GLOBAL = window.GLOBAL || {};</script>
@@ -85,6 +91,18 @@ export function testsida(over: Partial<Testsida> = {}): string {
     pipelineCode: t.flode,
     title: "Testprodukt från data",
     attr: { " Färg": "Svart", Storlek: "Stor" },
+    // Den nya sidmallens form: numrerade nycklar, inledande mellanslag och
+    // nycklarna i en annan ordning än sidans.
+    ...(t.mall === "ny"
+      ? {
+          sellingPoint: ["Hållbar: ram i <b>kolstål</b>.", " Enkel montering &amp; skötsel. ", ""],
+          goodsDescAttrList: {
+            "9": { descAttrName: " Maximal lastkapacitet", descAttrValue: " 90,7 kg" },
+            "8": { descAttrName: "Artikelmodellnummer", descAttrValue: " TEST-1" },
+            "10": { descAttrName: " Tom", descAttrValue: " " },
+          },
+        }
+      : {}),
   };
   const bild = (fil: string, mapp = t.sku) =>
     `https://img.example-cdn.test/us/${mapp}/original_img-v2/${fil}?timestamp=1&format=webp&format=webp`;
@@ -150,17 +168,20 @@ export function testsida(over: Partial<Testsida> = {}): string {
 <script>window.AGGIMAGEANDVIDEOLIST = ${JSON.stringify(bilder)};</script>
 <script>window.DETAIL_ATTR_LINK = ${JSON.stringify(syskon)};</script>
 </head><body>
-<section><ul class="detailGuide_cont js-toggleCont"> <li> Hållbar: ram i <b>kolstål</b>. </li> <li> Enkel montering &amp; skötsel. </li> </ul></section>
-<section><div class="DM_at-goodsDescAttrInner">
-<dl class="goodsDesc_item goodsDesc_item_even"> <dt>Artikelmodellnummer</dt> <dd> TEST-1</dd> </dl>
-<dl class="goodsDesc_item "> <dt> Maximal lastkapacitet</dt> <dd> 90,7 kg</dd> </dl>
-</div></section>
+${t.mall === "gammal" ? GAMMAL_MALL : ""}
 <div id="js-DM_at-goodDescRich"><html><head><style>.x { color: red; }</style></head><body><h3>Prestanda</h3><p>Denna testvagn klarar terräng.</p></body></html></div>
 ${t.manual ? '<a href="/pages/contact-us/TESTMANUAL01">Manual</a>' : ""}
 <a href="https://eur.vevor.com/pages/contact-us">Kontakt</a>
 ${"<!-- utfyllnad -->".repeat(200)}
 </body></html>`;
 }
+
+/** Specifikationen och punktlistan i HTML:en, som den gamla sidmallen har dem. */
+const GAMMAL_MALL = `<section><ul class="detailGuide_cont js-toggleCont"> <li> Hållbar: ram i <b>kolstål</b>. </li> <li> Enkel montering &amp; skötsel. </li> </ul></section>
+<section><div class="DM_at-goodsDescAttrInner">
+<dl class="goodsDesc_item goodsDesc_item_even"> <dt>Artikelmodellnummer</dt> <dd> TEST-1</dd> </dl>
+<dl class="goodsDesc_item "> <dt> Maximal lastkapacitet</dt> <dd> 90,7 kg</dd> </dl>
+</div></section>`;
 
 /** VEVOR:s robots.txt som den stod 2026-10-29. */
 export const VEVOR_ROBOTS = `User-agent: *

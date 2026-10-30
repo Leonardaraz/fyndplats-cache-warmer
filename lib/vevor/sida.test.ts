@@ -117,6 +117,51 @@ describe("tolkaProduktsida", () => {
   });
 });
 
+describe("☠️ två sidmallar (2026-10-30)", () => {
+  const SPEC = [
+    ["Artikelmodellnummer", "TEST-1"],
+    ["Maximal lastkapacitet", "90,7 kg"],
+  ];
+  const PUNKTER = ["Hållbar: ram i kolstål.", "Enkel montering & skötsel."];
+
+  it("den gamla mallen: tabellen och listan i HTML:en", () => {
+    const t = tolkaProduktsida(testsida({ mall: "gammal" }));
+    if (!t.ok) throw new Error("ska gå att tolka");
+    expect(t.sida.spec).toEqual(SPEC);
+    expect(t.sida.punkter).toEqual(PUNKTER);
+    expect(t.sida.specKalla).toBe("tabell");
+  });
+
+  it("☠️ den nya mallen: samma specifikation och punktlista ur PRODUCT_DATA, i nycklarnas ordning", () => {
+    const t = tolkaProduktsida(testsida({ mall: "ny" }));
+    if (!t.ok) throw new Error("ska gå att tolka");
+    expect(t.sida.spec).toEqual(SPEC);
+    expect(t.sida.punkter).toEqual(PUNKTER);
+    expect(t.sida.specKalla).toBe("data");
+  });
+
+  it("en sida utan specifikation någonstans säger det, i stället för att se ut som den gamla läsaren", () => {
+    const t = tolkaProduktsida(testsida({ mall: "utan" }));
+    if (!t.ok) throw new Error("ska gå att tolka");
+    expect(t.sida.spec).toEqual([]);
+    expect(t.sida.punkter).toEqual([]);
+    expect(t.sida.specKalla).toBeNull();
+  });
+
+  it("tabellen går före datan när båda finns", () => {
+    const sida = testsida({ mall: "ny" });
+    const slut = sida.lastIndexOf("</body></html>");
+    const html =
+      sida.slice(0, slut) +
+      `<section><div class="DM_at-goodsDescAttrInner"><dl class="goodsDesc_item"> <dt>Från tabellen</dt> <dd> ja</dd> </dl></div></section>` +
+      sida.slice(slut);
+    const t = tolkaProduktsida(html);
+    if (!t.ok) throw new Error("ska gå att tolka");
+    expect(t.sida.spec).toEqual([["Från tabellen", "ja"]]);
+    expect(t.sida.specKalla).toBe("tabell");
+  });
+});
+
 describe("små läsare", () => {
   it("fonsterObjekt hoppar över `window.X = window.X || {}` och tål klamrar i strängar", () => {
     const html = `<script>window.A = window.A || {};</script><script>window.A = {"b":"{inte}","c":[1,2]};</script>`;
