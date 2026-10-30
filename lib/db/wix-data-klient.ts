@@ -311,10 +311,21 @@ export const ALLA_RADER_TAK = 500_000;
  * tillsammans med markören och svarar med bara de fälten. Att markören bär
  * urvalet själv, som den bär filtret, är inte mätt, och Stores sökning gör
  * det inte (CLAUDE.md, "`fields` är TVÄRTOM").
+ *
+ * `forsta` är något annat än `tak`: anroparen vill ha de N första raderna i
+ * sorteringsordningen och slutar läsa där. Utan den läste en lista över de
+ * 5 000 nyaste recensionerna alla 47 000 och kastade resten (2026-10-30).
  */
 export async function allaRader<T = Record<string, unknown>>(
   kollektion: string,
-  q: { filter?: Record<string, unknown>; sort?: Sortering; sidstorlek?: number; tak?: number; falt?: readonly string[] } = {},
+  q: {
+    filter?: Record<string, unknown>;
+    sort?: Sortering;
+    sidstorlek?: number;
+    tak?: number;
+    falt?: readonly string[];
+    forsta?: number;
+  } = {},
   opts: { medSystemfalt?: boolean } & Klientval = {},
 ): Promise<T[]> {
   const sid = Math.min(Math.max(1, q.sidstorlek ?? 1000), 1000);
@@ -342,6 +353,7 @@ export async function allaRader<T = Record<string, unknown>>(
       }
       ut.push((opts.medSystemfalt ? d : utanSystemfalt(d)) as T);
     }
+    if (q.forsta !== undefined && ut.length >= q.forsta) return ut.slice(0, q.forsta);
     if (ut.length > tak) {
       throw new Error(`allaRader(${kollektion}) passerade ${tak} rader — en kapad lista är värre än ett fel.`);
     }

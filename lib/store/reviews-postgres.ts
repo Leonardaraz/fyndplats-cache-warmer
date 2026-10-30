@@ -164,6 +164,28 @@ export class PostgresReviewStore implements ReviewStoreLike {
     return rows.map((r) => rensa((r as { data: unknown }).data));
   }
 
+  /** Bara en källa, filtrerad i databasen. Kundomdömena är några få bland tiotusentals. */
+  async listBySource(source: string, limit = MAX_LIST_ALL): Promise<StoredReview[]> {
+    const q = sql();
+    const rows = await q`
+      select data from reviews
+       where data->>'source' = ${source}
+       order by date desc nulls last
+       limit ${limit}
+    `;
+    return rows.map((r) => rensa((r as { data: unknown }).data));
+  }
+
+  async rakna(filter: { status?: ReviewStatus; source?: string } = {}): Promise<number> {
+    const q = sql();
+    const rows = await q`
+      select count(*)::int as n from reviews
+       where (${filter.status ?? null}::text is null or status = ${filter.status ?? null})
+         and (${filter.source ?? null}::text is null or data->>'source' = ${filter.source ?? null})
+    `;
+    return (rows[0] as { n: number }).n;
+  }
+
   private async get(productId: string, reviewIdAE: string): Promise<StoredReview | null> {
     const q = sql();
     const rows = await q`select data from reviews where id = ${reviewDocId(productId, reviewIdAE)} limit 1`;

@@ -134,16 +134,56 @@ export default async function ReviewsAdminPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const sp = await searchParams;
+
+  // Filtret på status: default "väntar", eftersom det är det enda som kräver
+  // handpåläggning. "kund" är inte en status utan ett URSPRUNG — egen gren
+  // nedan. Butikens egna kunder är förstahandsdata och de enda rader som får
+  // räknas mot Google, så de ska gå att plocka fram oavsett var i modereringen
+  // de befinner sig.
+  const valdStatus = ((): ReviewStatus | "alla" | "kund" => {
+    const v = typeof sp.status === "string" ? sp.status : "pending";
+    return v === "alla" || v === "kund" || v === "pending" || v === "approved" || v === "edited" || v === "rejected"
+      ? (v as ReviewStatus | "alla" | "kund")
+      : "pending";
+  })();
+
+  // ☠️ RÄKNARNA OCH URVALET GÅR I LAGRET, INTE PÅ ETT UTSNITT (2026-10-30).
+  // Sidan räknade och filtrerade förut på `listAll()`, alltså de 5 000 nyaste
+  // raderna. Lagret har passerat 47 000, och äldre rader föll ur räkningen:
+  // 5 av 13 egna kundomdömen syntes. Nu räknas varje status och källa i hela
+  // lagret, och varje flik hämtar sina egna rader med filtret hos lagret.
   let reviews: StoredReview[] = [];
+  let väntande: StoredReview[] = [];
+  let counts: Record<ReviewStatus, number> = { pending: 0, approved: 0, edited: 0, rejected: 0 };
+  let egnaKunder = 0;
+  let totalt = 0;
   let loadError: string | null = null;
   const nameById = new Map<string, string>();
 
   try {
-    const [all, mappings] = await Promise.all([
-      getReviewStore().listAll(),
+    const lager = getReviewStore();
+    const [pending, approved, edited, rejected, kunder, alla, kö, flik, mappings] = await Promise.all([
+      lager.rakna({ status: "pending" }),
+      lager.rakna({ status: "approved" }),
+      lager.rakna({ status: "edited" }),
+      lager.rakna({ status: "rejected" }),
+      lager.rakna({ source: "customer" }),
+      lager.rakna(),
+      lager.listByStatus("pending"),
+      valdStatus === "pending"
+        ? Promise.resolve(null)
+        : valdStatus === "kund"
+          ? lager.listBySource("customer")
+          : valdStatus === "alla"
+            ? lager.listAll()
+            : lager.listByStatus(valdStatus),
       getStore().listMappings(),
     ]);
-    reviews = all;
+    counts = { pending, approved, edited, rejected };
+    egnaKunder = kunder;
+    totalt = alla;
+    väntande = kö;
+    reviews = flik ?? kö;
     for (const m of mappings) nameById.set(m.wixProductId, m.seoTitle ?? m.wixProductId);
   } catch (err) {
     loadError = err instanceof Error ? err.message : String(err);
@@ -151,37 +191,20 @@ export default async function ReviewsAdminPage({
 
   // Väntande först (kräver åtgärd), sedan resten.
   const order: Record<ReviewStatus, number> = { pending: 0, edited: 1, approved: 2, rejected: 3 };
-  reviews.sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9));
+  reviews = [...reviews].sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9));
 
-  const counts = reviews.reduce<Record<string, number>>((acc, r) => {
-    acc[r.status] = (acc[r.status] ?? 0) + 1;
-    return acc;
-  }, {});
-  const oversattaKvar = reviews.filter(isAwaitingTranslation).length;
-
-  // Filtret på status: default "väntar", eftersom det är det enda som kräver
-  // handpåläggning. Utan filter drunknar de nya raderna bland ~1900 godkända.
-  // "kund" är inte en status utan ett URSPRUNG — egen gren nedan. Butikens egna
-  // kunder är förstahandsdata och de enda rader som får räknas mot Google, så de
-  // ska gå att plocka fram oavsett var i modereringen de befinner sig.
-  const valdStatus = ((): ReviewStatus | "alla" | "kund" => {
-    const v = typeof sp.status === "string" ? sp.status : "pending";
-    return v === "alla" || v === "kund" || v === "pending" || v === "approved" || v === "edited" || v === "rejected"
-      ? (v as ReviewStatus | "alla" | "kund")
-      : "pending";
-  })();
-  const egnaKunder = reviews.filter(isCustomerReview).length;
-  const filtrerade =
-    valdStatus === "alla"
-      ? reviews
-      : valdStatus === "kund"
-        ? reviews.filter(isCustomerReview)
-        : reviews.filter((r) => r.status === valdStatus);
-  const visade = filtrerade.slice(0, MAX_RENDER);
+  // Hur många raderna i fliken är i hela lagret.
+  const flikTotalt =
+    valdStatus === "alla" ? totalt : valdStatus === "kund" ? egnaKunder : counts[valdStatus];
+  const visade = reviews.slice(0, MAX_RENDER);
 
   // Översättningskön: en OMGÅNG i taget, grupperad per produkt så chatten vet
-  // vad varan är. Prompten byggs här (server) — knappen kopierar bara.
-  const kö = reviews.filter(isAwaitingTranslation);
+  // vad varan är. Prompten byggs här (server) — knappen kopierar bara. Kön
+  // läses ur de väntande raderna; är de fler än vad som hämtades är antalet
+  // oöversatta ett golv.
+  const kö = väntande.filter(isAwaitingTranslation);
+  const oversattaKvar = kö.length;
+  const köKapad = väntande.length < counts.pending;
   const omgång = groupForTranslation(kö, (id) => nameById.get(id), TRANSLATE_BATCH);
   const omgångAntal = omgång.reduce((n, g) => n + g.rader.length, 0);
   const översättPrompt = omgångAntal > 0 ? buildTranslatePrompt(omgång) : "";
@@ -272,7 +295,7 @@ export default async function ReviewsAdminPage({
         >
           <b style={{ fontSize: 15 }}>Översätt kön i chatten</b>
           <p style={{ color: "#555", fontSize: 13, margin: "6px 0 0" }}>
-            <b>{oversattaKvar}</b> recensioner väntar på svensk text. Knappen kopierar en omgång
+            <b>{köKapad ? `minst ${oversattaKvar}` : oversattaKvar}</b> recensioner väntar på svensk text. Knappen kopierar en omgång
             om högst {TRANSLATE_BATCH} — grupperade per produkt, så chatten vet vad varan är.
             Klistra in svaret nedan så skrivs hela omgången in på en gång. Gratis, samma
             arbetssätt som SEO-poleringen.
@@ -317,13 +340,16 @@ export default async function ReviewsAdminPage({
       ) : null}
 
       <p style={{ fontSize: 14 }}>
-        Totalt: <b>{reviews.length}</b> · Väntar: <b>{counts.pending ?? 0}</b> · Godkända:{" "}
-        <b>{counts.approved ?? 0}</b> · Redigerade: <b>{counts.edited ?? 0}</b> · Avvisade:{" "}
-        <b>{counts.rejected ?? 0}</b>
+        Totalt: <b>{totalt}</b> · Väntar: <b>{counts.pending}</b> · Godkända:{" "}
+        <b>{counts.approved}</b> · Redigerade: <b>{counts.edited}</b> · Avvisade:{" "}
+        <b>{counts.rejected}</b>
         {oversattaKvar > 0 ? (
           <>
             {" "}
-            · <span style={{ color: "#b45309", fontWeight: 700 }}>{oversattaKvar} oöversatta</span>
+            ·{" "}
+            <span style={{ color: "#b45309", fontWeight: 700 }}>
+              {köKapad ? `minst ${oversattaKvar}` : oversattaKvar} oöversatta
+            </span>
           </>
         ) : null}
       </p>
@@ -331,12 +357,12 @@ export default async function ReviewsAdminPage({
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", margin: "10px 0" }}>
         {(
           [
-            ["pending", `Väntar (${counts.pending ?? 0})`],
-            ["edited", `Redigerade (${counts.edited ?? 0})`],
-            ["approved", `Godkända (${counts.approved ?? 0})`],
-            ["rejected", `Avvisade (${counts.rejected ?? 0})`],
+            ["pending", `Väntar (${counts.pending})`],
+            ["edited", `Redigerade (${counts.edited})`],
+            ["approved", `Godkända (${counts.approved})`],
+            ["rejected", `Avvisade (${counts.rejected})`],
             ["kund", `✓ Egna kunder (${egnaKunder})`],
-            ["alla", `Alla (${reviews.length})`],
+            ["alla", `Alla (${totalt})`],
           ] as const
         ).map(([v, label]) => (
           <a
@@ -357,9 +383,9 @@ export default async function ReviewsAdminPage({
         ))}
       </div>
 
-      {filtrerade.length > visade.length ? (
+      {flikTotalt > visade.length ? (
         <p style={{ fontSize: 12, color: "#6b7280" }}>
-          Visar <b>{visade.length}</b> av <b>{filtrerade.length}</b> — ta de här först, ladda om
+          Visar <b>{visade.length}</b> av <b>{flikTotalt}</b> — ta de här först, ladda om
           för nästa omgång.
         </p>
       ) : null}
@@ -481,10 +507,10 @@ export default async function ReviewsAdminPage({
         </tbody>
       </table>
 
-      {!loadError && reviews.length === 0 ? (
+      {!loadError && totalt === 0 ? (
         <p style={{ color: "#888" }}>Inga recensioner importerade än.</p>
       ) : null}
-      {!loadError && reviews.length > 0 && filtrerade.length === 0 ? (
+      {!loadError && totalt > 0 && reviews.length === 0 ? (
         <p style={{ color: "#888" }}>Inget med den statusen.</p>
       ) : null}
     </main>
