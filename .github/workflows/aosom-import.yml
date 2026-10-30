@@ -45,7 +45,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "torr = skriver inget · rökprov = 3 produkter · svep = hela sortimentet · bildfix = ladda om saknade bilder · bildstadning = radera oanvända bilder"
+        description: "torr = skriver inget · rökprov = 3 produkter · svep = hela sortimentet · bildfix = ladda om saknade bilder · bildstadning-torr = räknar oanvända bilder (radering avstängd 2026-10-30)"
         required: true
         default: "torr"
         type: choice
@@ -56,7 +56,6 @@ on:
           - bildfix
           - bildfix-torr
           - bildstadning-torr
-          - bildstadning
       limit:
         description: "Produkter per varv (svep/torr). 150 är lagom."
         required: false

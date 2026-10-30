@@ -1,4 +1,8 @@
-name: Bilder — radera oanvända bilder i hela mediabiblioteket
+name: Bilder — räkna oanvända bilder i hela mediabiblioteket (radering avstängd)
+
+# ☠️ AVSTÄNGD 2026-10-30 (Leonard: "Vi behöver inte bildstädningen längre då vi
+# har oändligt med minne så den kan sluta helt"). Läget radera är borttaget, och
+# rutten svarar 410 på en skarp körning. Torrläget raderar ingenting.
 
 # Leonard 2026-10-14: "Kolla alla bilder som vi har som inte används till
 # något, produkt blogg inlägg eller recensioner eller annat. Och radera dom".
@@ -47,13 +51,12 @@ on:
   workflow_dispatch:
     inputs:
       lage:
-        description: "torr = raderar inget, räknar · radera = raderar permanent"
+        description: "torr = raderar inget, räknar (radera är borttaget: städningen är avstängd sedan 2026-10-30)"
         required: true
         default: "torr"
         type: choice
         options:
           - torr
-          - radera
       hogst:
         description: "radera: högst så många filer i den här körningen (torrkörningens antal raderbara)"
         required: false

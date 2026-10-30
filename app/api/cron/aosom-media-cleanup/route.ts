@@ -2,6 +2,9 @@
 //
 // Raderar Aosom-bilder som ingen produkt använder.
 //
+// ☠️ AVSTÄNGD HELT sedan 2026-10-30: en skarp körning svarar 410. Se CLAUDE.md,
+// "Bildstädningen är avstängd helt".
+//
 // ☠️ VARFÖR DEN BEHÖVDES (2026-08-28)
 //
 // Wix-lagringen tog slut mitt under den fjärde bildfix-körningen. Orsaken är att
@@ -70,6 +73,15 @@ async function handle(req: NextRequest) {
   }
 
   const dryRun = req.nextUrl.searchParams.get("dryRun") !== "false";
+  // ☠️ Avstängd helt (Leonard 2026-10-30: "Vi behöver inte bildstädningen
+  // längre då vi har oändligt med minne så den kan sluta helt"). En skarp
+  // körning raderar ingenting och läser ingenting. Torrkörningen finns kvar.
+  if (!dryRun) {
+    return NextResponse.json(
+      { ok: false, error: "Bildstädningen är avstängd (Leonard 2026-10-30). Inga filer raderas." },
+      { status: 410 },
+    );
+  }
   // ☠️ Ett tak som inte går att läsa är INGET tak (granskningen 2026-10-14):
   // `limit=0.5` blev förr 0, alltså obegränsat. Saknas parametern finns inget
   // tak; finns den måste den vara ett positivt heltal. Undantaget är 0 (eller

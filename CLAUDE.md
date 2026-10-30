@@ -4798,32 +4798,36 @@ read-only i V3 och gav en extra omimport av huvudbilden. Tre tester i
 
 ### Städningen av det som blev kvar
 
-#### ☠️ Nattens bildstädning är avstängd (Leonard 2026-10-23)
+#### ☠️ Bildstädningen är avstängd helt (Leonard 2026-10-23 och 2026-10-30)
 
 Leonard 2026-10-23: *"Jag vill att du stänger av den automatiska bildstäden vi
 har, jag misstänker att den tar bort bilder vi använder ibland"*. Cronen
-`/api/cron/aosom-media-cleanup?dryRun=false&limit=2000` (`50 3 * * *`) är
-borttagen ur `vercel.json`. Rutten finns kvar, liksom `bildstadning.yml` och
-import-workflowens lägen `bildstadning` och `bildstadning-torr`, men de körs
-bara när någon startar dem. Kör inget skarpt läge utan Leonards ja.
+`/api/cron/aosom-media-cleanup?dryRun=false&limit=2000` (`50 3 * * *`) togs
+bort ur `vercel.json`.
 
-Samma dag svarade 334 kundfoton på 268 recensioner 403. Städningen raderade
-dem i september, när skyddslistan stannade vid 5 000 recensionsrader (#685),
-och de vars originalfoton saknades i rådatan har aldrig återställts.
+Leonard 2026-10-30: *"Vi behöver inte bildstädningen längre då vi har oändligt
+med minne så den kan sluta helt"*. Sedan dess raderar rutten ingenting: en
+skarp körning (`dryRun=false`) svarar 410 innan något läses. Läget `radera` i
+`bildstadning.yml` och läget `bildstadning` i import-workflowen är borttagna.
+Torrkörningen finns kvar och raderar ingenting.
+
+Samma dag som avstängningen 2026-10-23 svarade 334 kundfoton på 268
+recensioner 403. Städningen raderade dem i september, när skyddslistan
+stannade vid 5 000 recensionsrader (#685), och de vars originalfoton saknades
+i rådatan har aldrig återställts.
 
 Vad avstängningen betyder:
 
-- Ingenting raderas längre av sig självt. Oanvända filer blir kvar i Media
-  Manager, så lagringen växer: bildkandidater som ingen valde, gamla filer
-  efter en bildfix och utsnitt som inte användes.
-- Avsnitten om bildkandidater, miljöbilden och färgtilläggen säger att det
-  ingen väljer städas bort av nattens bildstädning (03:50 UTC) efter tre
-  dygns karens. Det gäller inte längre, och karenstabellen uppdateras bara när
-  någon kör städningen.
-- Vill man se vad städningen skulle ta, kör `bildstadning-torr` eller
-  `bildstadning.yml` i läget `torr`. De raderar ingenting.
-- Slå på den igen genom att lägga tillbaka cronen i `vercel.json`, först när
-  Leonards misstanke är utredd.
+- Ingenting raderas ur Media Manager, varken av sig självt eller för hand.
+  Bildkandidater som ingen valde, gamla filer efter en bildfix, utsnitt som
+  inte användes och bilderna från raderade utkast (pensionerade, VEVOR) blir
+  kvar. Lagringen räcker.
+- Avsnitten nedan och om bildkandidater, miljöbilden, färgtilläggen och
+  pensionerade utkast säger att det ingen väljer städas bort efter tre dygns
+  karens, eller att filerna tas av bildstädningen. Det gäller inte längre:
+  karenstiden är ingen tidsgräns, och filerna ligger kvar.
+- Koden för städningen, läsarna och karenstabellen ligger kvar som den är.
+  Att slå på den igen kräver att spärren i rutten tas bort, och Leonards ja.
 
 #### Bildfixen lämnade dessutom sina egna kopior
 
