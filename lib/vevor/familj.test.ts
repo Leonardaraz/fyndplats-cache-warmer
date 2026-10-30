@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { WIX_MAX_BILDER_PER_PRODUKT, WIX_MAX_OPTIONS_PER_PRODUCT, WIX_MAX_VALNAMN } from "@/lib/wix/limits";
 import { valjVevorBilder } from "./bilder";
 import type { Avlasning } from "./lager";
-import { arPaVag, byggFamilj, egenskaperFor, familjensBilder, rensaVarde, syskonSkus, vevorFamiljeProdukt } from "./familj";
+import { arPaVag, byggFamilj, egenskaperFor, familjensBilder, familjensSpec, rensaVarde, syskonSkus, vevorFamiljeProdukt } from "./familj";
 import type { Sidrad } from "./lager";
 import { kostnadUsd } from "./to-product";
 import { testAvlasning, testgalleri } from "./testsida";
@@ -167,7 +167,11 @@ describe("vevorFamiljeProdukt", () => {
   const a1 = artikel(1, [["Typ", "Sektionell"], ["Antal", "2"]], {
     spec: [["Typ", "Sektionell"], ["Material", "Stål"]],
   });
-  const a2 = artikel(2, [["Typ", "Trumma"], ["Antal", "2"]], { status: "slut", saldo: 0 });
+  const a2 = artikel(2, [["Typ", "Trumma"], ["Antal", "2"]], {
+    status: "slut",
+    saldo: 0,
+    spec: [["Typ", "Trumma"], ["Material", "Stål"]],
+  });
   const f = byggFamilj(a1, lasta(a2), NU, ledig);
   if (f.typ !== "familj") throw new Error("ska bli en familj");
   const bilder = valjVevorBilder(a1.bilder);
@@ -187,6 +191,35 @@ describe("vevorFamiljeProdukt", () => {
     expect(p.variantNameOverrides).toEqual({ Sektionell: "Sektionell", Trumma: "Trumma", "2": "2" });
     expect(p.axisNameOverrides).toEqual({ Typ: "Typ", Antal: "Antal" });
     expect(p.specifications).toEqual({ Material: "Stål" });
+  });
+
+  it("☠️ en rad som skiljer mellan artiklarna visar varje varians värde, inte ankarets (2026-10-30)", () => {
+    // Förut stod ankarets värde i fliken för alla varianter: den som valde 36 tum
+    // såg 24-tumsankarets höjd.
+    const k1 = artikel(1, [["Längd", "24 tum"], ["Antal", "4 st"]], {
+      spec: [["Totalhöjd", "610 mm"], ["Huvudmaterial", "Stål"], ["Nettovikt", "3 kg"], ["Antal", "4 st"]],
+    });
+    const k2 = artikel(2, [["Längd", "24 tum"], ["Antal", "6 st"]], {
+      spec: [["Totalhöjd", "610 mm"], ["Huvudmaterial", "stål"], ["Nettovikt", "4,5 kg"]],
+    });
+    const k3 = artikel(3, [["Längd", "36 tum"], ["Antal", "4 st"]], {
+      spec: [["Totalhöjd", "914 mm"], ["Huvudmaterial", "Stål"], ["Nettovikt", "5 kg"], ["Spiklängd", "762 mm"]],
+    });
+    expect(familjensSpec([k1, k2, k3], ["Längd", "Antal"])).toEqual({
+      // Samma värde för alla (oavsett skiftläge): en rad som förut.
+      Huvudmaterial: "Stål",
+      // Varianter med samma värde delar det.
+      Totalhöjd: "24 tum / 4 st, 24 tum / 6 st: 610 mm · 36 tum / 4 st: 914 mm",
+      Nettovikt: "24 tum / 4 st: 3 kg · 24 tum / 6 st: 4,5 kg · 36 tum / 4 st: 5 kg",
+      // En rad bara en artikel har visas för den.
+      Spiklängd: "36 tum / 4 st: 762 mm",
+    });
+  });
+
+  it("varianten namnges bara med de axlar som skiljer", () => {
+    const k1 = artikel(1, [["Färg", "Svart"], ["Antal", "2 st"]], { spec: [["Vikt", "1 kg"]] });
+    const k2 = artikel(2, [["Färg", "Vit"], ["Antal", "2 st"]], { spec: [["Vikt", "2 kg"]] });
+    expect(familjensSpec([k1, k2], ["Färg", "Antal"])).toEqual({ Vikt: "Svart: 1 kg · Vit: 2 kg" });
   });
 
   it("☠️ varje artikel får alla sina sex bilder, kopplade till dess värde (2026-10-30)", () => {

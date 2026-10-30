@@ -6,7 +6,7 @@ import type { ProductMappingRecord } from "@/lib/store";
 import type { WixAnrop } from "@/lib/polish/skrivplan";
 import { appendTabSections, buildTabSections } from "@/lib/import/tabs";
 import type { Avlasning } from "./lager";
-import { korSpec, kontrolleraSpec, planeraSpec, saknadeRader, specRader, SpecFel, type SpecProdukt } from "./spec-ratta";
+import { bytSpecFlik, korSpec, kontrolleraSpec, planeraSpec, saknadeRader, specRader, SpecFel, type SpecProdukt } from "./spec-ratta";
 import { testAvlasning } from "./testsida";
 
 type Obj = Record<string, unknown>;
@@ -90,6 +90,22 @@ describe("specRader", () => {
     expect(specRader(familj(), karta(avl(1)))).toBe("avlasning_saknas");
     expect(specRader(enkel(1), new Map())).toBe("avlasning_saknas");
   });
+
+  it("☠️ en familj väntar tills varje artikel är läst med den nya läsaren", () => {
+    const a1 = avl(1, { egenskaper: [["Längd", "10 m"]] });
+    const a2 = avl(2, { egenskaper: [["Längd", "20 m"]], specKalla: undefined });
+    expect(specRader(familj(), karta(a1, a2))).toBe("ej_omlast");
+  });
+
+  it("en familj: en rad som skiljer visar varje varians värde", () => {
+    const a1 = avl(1, { egenskaper: [["Längd", "10 m"]], spec: [...SPEC, ["Vikt", "3 kg"]] });
+    const a2 = avl(2, { egenskaper: [["Längd", "20 m"]], spec: [...SPEC, ["Vikt", "5 kg"]] });
+    expect(specRader(familj(), karta(a1, a2))).toEqual([
+      { label: "Material", value: "Kolstål" },
+      { label: "Maximal lastkapacitet", value: "90,7 kg" },
+      { label: "Vikt", value: "10 m: 3 kg · 20 m: 5 kg" },
+    ]);
+  });
 });
 
 describe("planeraSpec", () => {
@@ -125,6 +141,33 @@ describe("planeraSpec", () => {
     });
   });
 
+  it("☠️ en familj vars flik visar ankarets värde får fliken utbytt, och texten runt står kvar", () => {
+    const a1 = avl(1, { egenskaper: [["Längd", "10 m"]], spec: [...SPEC, ["Vikt", "3 kg"]] });
+    const a2 = avl(2, { egenskaper: [["Längd", "20 m"]], spec: [...SPEC, ["Vikt", "5 kg"]] });
+    // Så som importen byggde fliken fram till 2026-10-30: ankarets vikt för alla.
+    const gammal =
+      `${RAA}<h2>Tekniska specifikationer</h2><ul><li><strong>Material:</strong> Kolstål</li>` +
+      `<li><strong>Vikt:</strong> 3 kg</li></ul><h2>Vanliga frågor</h2><p>Fråga</p>`;
+    const p = planeraSpec(familj(), sida(1, { beskrivning: gammal }), karta(a1, a2));
+    expect(p.typ).toBe("byt");
+    if (p.typ !== "byt") return;
+    expect(p.html.startsWith(`${RAA}<h2>Tekniska specifikationer</h2><ul>`)).toBe(true);
+    expect(p.html.endsWith("<h2>Vanliga frågor</h2><p>Fråga</p>")).toBe(true);
+    expect(p.html).toContain("10 m: 3 kg · 20 m: 5 kg");
+    expect(p.html).not.toContain("<strong>Vikt:</strong> 3 kg</li>");
+    // En enskild artikel med en flik som saknar rader rörs fortfarande inte.
+    expect(planeraSpec(enkel(1), sida(1, { beskrivning: gammal }), karta(a1)).typ).toBe("hinder");
+  });
+
+  it("☠️ två specifikationsflikar på samma sida byts inte", () => {
+    const dubbel = `${RAA}<h2>Tekniska specifikationer</h2><ul></ul><h2 class="x">Tekniska specifikationer</h2><ul></ul>`;
+    expect(bytSpecFlik(dubbel, "<ul></ul>")).toBeNull();
+    expect(bytSpecFlik(RAA, "<ul></ul>")).toBeNull();
+    expect(bytSpecFlik(`${RAA}<h2>Tekniska specifikationer</h2><ul><li>x</li></ul>`, "<ul><li>y</li></ul>")).toBe(
+      `${RAA}<h2>Tekniska specifikationer</h2><ul><li>y</li></ul>`,
+    );
+  });
+
   it("en avläsning utan specifikation också med den nya läsaren ger inget att lägga till", () => {
     expect(planeraSpec(enkel(1), sida(1), karta(avl(1, { spec: [], specKalla: null })))).toEqual({ typ: "tom" });
   });
@@ -136,19 +179,32 @@ describe("kontrolleraSpec", () => {
 
   it("Wix omskrivna markup räknas som samma text", () => {
     const wixHtml = p.html.replace(/<strong>/g, '<span style="font-weight:bold">').replace(/<\/strong>/g, "</span>");
-    expect(kontrolleraSpec(sida(1), sida(1, { beskrivning: wixHtml }), p.rader)).toEqual([]);
+    expect(kontrolleraSpec(sida(1), sida(1, { beskrivning: wixHtml }), p)).toEqual([]);
   });
 
   it("☠️ fäller en saknad rad, en ändrad gammal text och en ändrad synlighet", () => {
     const utanRad = p.html.replace("Kolstål", "");
-    expect(kontrolleraSpec(sida(1), sida(1, { beskrivning: utanRad }), p.rader)).toEqual(["1 rader saknas"]);
-    expect(kontrolleraSpec(sida(1), sida(1, { beskrivning: p.html.replace("terräng", "väg") }), p.rader)).toEqual([
+    expect(kontrolleraSpec(sida(1), sida(1, { beskrivning: utanRad }), p)).toEqual(["1 rader saknas"]);
+    expect(kontrolleraSpec(sida(1), sida(1, { beskrivning: p.html.replace("terräng", "väg") }), p)).toEqual([
       "den gamla texten ändrades",
     ]);
-    expect(kontrolleraSpec(sida(1), sida(1, { beskrivning: p.html, synlig: true }), p.rader)).toEqual([
+    expect(kontrolleraSpec(sida(1), sida(1, { beskrivning: p.html, synlig: true }), p)).toEqual([
       "synligheten ändrades",
     ]);
     expect(saknadeRader(RAA, p.rader)).toHaveLength(2);
+  });
+
+  it("☠️ en utbytt flik ska ge exakt planens text: en kvarlämnad gammal rad fäller", () => {
+    const a1 = avl(1, { egenskaper: [["Längd", "10 m"]], spec: [...SPEC, ["Vikt", "3 kg"]] });
+    const a2 = avl(2, { egenskaper: [["Längd", "20 m"]], spec: [...SPEC, ["Vikt", "5 kg"]] });
+    const gammal = `${RAA}<h2>Tekniska specifikationer</h2><ul><li><strong>Vikt:</strong> 3 kg</li></ul>`;
+    const b = planeraSpec(familj(), sida(1, { beskrivning: gammal }), karta(a1, a2));
+    if (b.typ !== "byt") throw new Error("planen");
+    expect(kontrolleraSpec(sida(1, { beskrivning: gammal }), sida(1, { beskrivning: b.html }), b)).toEqual([]);
+    const kvar = b.html.replace("</ul>", "<li><strong>Vikt:</strong> 3 kg</li></ul>");
+    expect(kontrolleraSpec(sida(1, { beskrivning: gammal }), sida(1, { beskrivning: kvar }), b)).toEqual([
+      "texten är inte planens",
+    ]);
   });
 });
 
@@ -258,6 +314,28 @@ describe("korSpec", () => {
       { dryRun: true, bekrafta: null, budgetMs: 200_000 },
     );
     expect(igen).toMatchObject({ attRatta: 0, redanRatt: 2 });
+  });
+
+  it("☠️ skarpt: en familjs felaktiga flik byts ut och läses tillbaka; en omkörning har inget att göra", async () => {
+    const l = lage(1);
+    const gammal = `${RAA}<h2>Tekniska specifikationer</h2><ul><li><strong>Vikt:</strong> 3 kg</li></ul>`;
+    l.produkter.get(pid(1))!.plainDescription = gammal;
+    const avlasningar = async () =>
+      karta(
+        avl(1, { egenskaper: [["Längd", "10 m"]], spec: [...SPEC, ["Vikt", "3 kg"]] }),
+        avl(2, { egenskaper: [["Längd", "20 m"]], spec: [...SPEC, ["Vikt", "5 kg"]] }),
+      );
+    const deps = { wix: wixFor(l, 1), mappningar: async () => [familj()], avlasningar, vanta: ingenVantan };
+    const plan = await korSpec(deps, { dryRun: true, bekrafta: null, budgetMs: 200_000 });
+    expect(plan).toMatchObject({ attRatta: 1, attByta: 1 });
+    const svar = await korSpec(deps, { dryRun: false, bekrafta: 1, budgetMs: 200_000 });
+    expect(svar).toMatchObject({ skrivna: 1, stoppadAv: "klart", fel: null });
+    const p = l.produkter.get(pid(1))!;
+    expect(p.plainDescription.startsWith(RAA)).toBe(true);
+    expect(p.plainDescription).toContain("10 m: 3 kg · 20 m: 5 kg");
+    expect(p.plainDescription.match(/Tekniska specifikationer/g)).toHaveLength(1);
+    const igen = await korSpec({ ...deps, wix: wixFor(l) }, { dryRun: true, bekrafta: null, budgetMs: 200_000 });
+    expect(igen).toMatchObject({ attRatta: 0, redanRatt: 1 });
   });
 
   it("en annan skrivning på sidan (409) ger en ny läsning och ett nytt försök", async () => {
