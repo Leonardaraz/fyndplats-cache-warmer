@@ -168,6 +168,7 @@ export function kostnadUsd(a: Pick<Avlasning, "prisSek">, pris: Prisunderlag): n
  * en recension av en annan storlek eller vara hör inte hemma på produkten. En
  * recension vars artikel inte går att avgöra tas inte med. Med `kopt` (artikel
  * → variantens namn, på en familj) bär recensionen varianten kunden köpte.
+ * Recensionen bär alltid sin artikel när avläsningen vet den (`vevorArtikel`).
  */
 export function vevorRecensioner(
   a: Pick<Avlasning, "recensioner">,
@@ -185,6 +186,7 @@ export function vevorRecensioner(
         ...(r.namn ? { customerName: r.namn } : {}),
         ...(r.bilder && r.bilder.length > 0 ? { imageUrls: r.bilder, hasImage: true } : {}),
         ...(variant ? { kopt: variant } : {}),
+        ...(typeof r.artikel === "string" ? { vevorArtikel: r.artikel } : {}),
       };
     });
 }

@@ -32,6 +32,7 @@ import {
   type ReviewStatus,
   type ReviewStoreLike,
   type StoredReview,
+  type VantandePerProdukt,
 } from "./reviews";
 
 /** Wix-metafälten följer med i den kopierade JSON:en. De hör inte till posten. */
@@ -184,6 +185,19 @@ export class PostgresReviewStore implements ReviewStoreLike {
          and (${filter.source ?? null}::text is null or data->>'source' = ${filter.source ?? null})
     `;
     return (rows[0] as { n: number }).n;
+  }
+
+  async vantandePerProdukt(): Promise<VantandePerProdukt[]> {
+    const q = sql();
+    const rows = await q`
+      select product_id, data->>'source' as source, count(*)::int as antal
+        from reviews
+       where status = 'pending'
+       group by product_id, data->>'source'
+    `;
+    return (rows as { product_id: string; source: string | null; antal: number }[])
+      .filter((r) => r.product_id && Number(r.antal) > 0)
+      .map((r) => ({ productId: r.product_id, ...(r.source ? { source: r.source } : {}), antal: Number(r.antal) }));
   }
 
   private async get(productId: string, reviewIdAE: string): Promise<StoredReview | null> {

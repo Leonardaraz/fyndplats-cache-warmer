@@ -7,6 +7,7 @@ import {
   polera,
   provaBeslut,
   redanGjord,
+  restKandidater,
   stilfel,
   tolkaBeslut,
   type PoleringDeps,
@@ -165,6 +166,16 @@ describe("VEVOR: bara recensioner om produktens egen artikel", () => {
     expect(oklar.get("x")).toBe("okand");
   });
 
+  it("☠️ radens egen artikel går före avläsningen: en äldre rad blir inte okänd", () => {
+    const k = artikelkartaFor(
+      [rad({ reviewIdAE: "g1", textOriginal: "Text som inte längre står i avläsningen.", vevorArtikel: "ART-A" }),
+       rad({ reviewIdAE: "g2", textOriginal: EGEN, vevorArtikel: "ART-B" })],
+      new Set(["ART-A"]),
+      perText,
+    );
+    expect(Object.fromEntries(k)).toEqual({ g1: "egen", g2: "annan" });
+  });
+
   it("kallaFor tar bara med den egna artikeln och räknar resten", () => {
     const p = kallaFor(P1, rader, karta);
     expect(p.attBesluta.map((r) => r.id)).toEqual(["e1"]);
@@ -201,14 +212,56 @@ describe("VEVOR: bara recensioner om produktens egen artikel", () => {
 
 describe("tolkaBeslut", () => {
   it("tar emot översatt och dolj som id → text", () => {
-    const t = tolkaBeslut({ beslut: [{ productId: P1, oversatt: { r1: BRA }, dolj: { r2: "handlar om leveransen" } }] });
+    const t = tolkaBeslut({ produkter: [P1], beslut: [{ productId: P1, oversatt: { r1: BRA }, dolj: { r2: "handlar om leveransen" } }] });
     expect("beslut" in t && t.beslut[0]).toEqual({ productId: P1, oversatt: { r1: BRA }, dolj: { r2: "handlar om leveransen" } });
   });
 
-  it("vägrar tomt, dubbletter och tomma texter", () => {
+  it("☠️ ger varje produkt i rundan ett beslut, tomt när recensioner.json saknar den", () => {
+    const t = tolkaBeslut({ produkter: [P1, P2], beslut: [{ productId: P2, dolj: { r1: "handlar om leveransen" } }] });
+    expect("beslut" in t && t.beslut).toEqual([
+      { productId: P1, oversatt: {}, dolj: {} },
+      { productId: P2, oversatt: {}, dolj: { r1: "handlar om leveransen" } },
+    ]);
+    const utan = tolkaBeslut({ produkter: [P1] });
+    expect("beslut" in utan && utan.beslut).toEqual([{ productId: P1, oversatt: {}, dolj: {} }]);
+  });
+
+  it("vägrar utan produkter, dubbletter, tomma texter och ett beslut för en produkt utanför rundan", () => {
     expect("fel" in tolkaBeslut({})).toBe(true);
-    expect("fel" in tolkaBeslut({ beslut: [{ productId: P1 }, { productId: P1 }] })).toBe(true);
-    expect("fel" in tolkaBeslut({ beslut: [{ productId: P1, dolj: { r1: "" } }] })).toBe(true);
+    expect("fel" in tolkaBeslut({ beslut: [{ productId: P1 }] })).toBe(true);
+    expect("fel" in tolkaBeslut({ produkter: [P1, P1] })).toBe(true);
+    expect("fel" in tolkaBeslut({ produkter: [P1], beslut: [{ productId: P1 }, { productId: P1 }] })).toBe(true);
+    expect("fel" in tolkaBeslut({ produkter: [P1], beslut: [{ productId: P1, dolj: { r1: "" } }] })).toBe(true);
+    expect("fel" in tolkaBeslut({ produkter: [P1], beslut: [{ productId: P2 }] })).toBe(true);
+  });
+
+  it("☠️ en glömd produkt med väntande recensioner fäller hela anropet", async () => {
+    const { skrivna, deps } = lager([rad(), rad({ productId: P2 })]);
+    const t = tolkaBeslut({ produkter: [P1, P2], beslut: [{ productId: P1, oversatt: { r1: BRA } }] });
+    if (!("beslut" in t)) throw new Error("tolkningen föll");
+    const svar = await polera(t.beslut, false, deps);
+    expect(svar.ok).toBe(false);
+    expect(svar.fel.join("\n")).toMatch(new RegExp(`${P2}: 1 väntande utan beslut`));
+    expect(skrivna).toEqual([]);
+  });
+});
+
+describe("restKandidater — publicerade produkter med väntande recensioner", () => {
+  it("tar bara synliga produkter, räknar inte kundens egna och märker VEVOR", () => {
+    const k = restKandidater(
+      [
+        { productId: P1, source: "aosom", antal: 3 },
+        { productId: P1, source: "customer", antal: 2 },
+        { productId: P2, source: "vevor", antal: 5 },
+        { productId: "dold", source: "aosom", antal: 9 },
+        { productId: "bara-kund", source: "customer", antal: 1 },
+      ],
+      new Set([P1, P2, "bara-kund"]),
+    );
+    expect(k).toEqual([
+      { productId: P2, vantande: 5, vevor: true },
+      { productId: P1, vantande: 3, vevor: false },
+    ]);
   });
 });
 

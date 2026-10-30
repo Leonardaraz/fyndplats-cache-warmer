@@ -2,8 +2,9 @@
 //
 // Body (JSON):
 //   { "lage": "las",   "produkter": ["<wix-id>", …] }
-//   { "lage": "torr",  "beslut": [{ "productId": "…", "oversatt": { "<id>": "<svensk text>" }, "dolj": { "<id>": "<skäl>" } }] }
-//   { "lage": "skriv", "beslut": [ … samma … ] }
+//   { "lage": "torr",  "produkter": [rundans alla], "beslut": [{ "productId": "…", "oversatt": { "<id>": "<svensk text>" }, "dolj": { "<id>": "<skäl>" } }] }
+//   { "lage": "skriv", "produkter": [ … ], "beslut": [ … samma … ] }
+//   { "lage": "kvar" }   restlistan: publicerade produkter med väntande recensioner att besluta
 //
 // Leonard 2026-10-30: den som polerar en produkt tar också dess recensioner,
 // som ett steg i rundan. Logiken bor i lib/reviews/polering.ts, det här är IO
@@ -22,6 +23,8 @@ import { isAuthorized } from "@/lib/auth";
 import { audit } from "@/lib/audit";
 import { getReviewStore, type StoredReview } from "@/lib/store/reviews";
 import { getStore } from "@/lib/store/factory";
+import { searchProductSummaries } from "@/lib/wix/client";
+import { mapWithConcurrency } from "@/lib/concurrency";
 import { WixVevorLager } from "@/lib/vevor/lager";
 import { artikelPerText, produktensArtiklar } from "@/lib/vevor/recensionsartikel";
 import { meddelaButikenOmRecensioner } from "@/lib/reviews/meddela-butiken";
@@ -31,6 +34,7 @@ import {
   artikelkartaFor,
   kallaFor,
   polera,
+  restKandidater,
   tolkaBeslut,
   type Artikelkarta,
 } from "@/lib/reviews/polering";
@@ -93,12 +97,56 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, lage, produkter });
   }
 
+  if (lage === "kvar") {
+    try {
+      // Restlistan: recensioner som blivit väntande efter poleringen, eller en
+      // VEVOR-rad vars artikel blivit känd. Bara Wix-id och antal.
+      const vantande = await store.vantandePerProdukt();
+      const ids = [...new Set(vantande.filter((v) => v.source !== "customer").map((v) => v.productId))];
+      // Synligheten läses bara för produkter med väntande rader, hundra åt gången.
+      const sammanfattningar = await searchProductSummaries(ids);
+      const fragade = new Set(ids);
+      for (const id of sammanfattningar.keys()) {
+        // ☠️ Ett filter som inte bet hade gett katalogens första produkter, och då
+        // hade de väntande sett osynliga ut: en restlista som är tom av fel skäl.
+        if (!fragade.has(id)) throw new Error("Wix svarade om en produkt utanför frågan: filtret på id bet inte");
+      }
+      const synliga = new Set([...sammanfattningar.values()].filter((p) => p.visible !== false).map((p) => p.id));
+      const kandidater = restKandidater(vantande, synliga);
+      const produkter = await mapWithConcurrency(kandidater, 6, async (k) => {
+        if (!k.vevor) return { productId: k.productId, attBesluta: k.vantande, annanArtikel: 0, okandArtikel: 0 };
+        const rader = await store.listByProduct(k.productId, MAX_RADER_PER_PRODUKT);
+        const p = kallaFor(k.productId, rader, await artikelkarta(k.productId, rader));
+        return { productId: k.productId, attBesluta: p.attBesluta.length, annanArtikel: p.annanArtikel, okandArtikel: p.okandArtikel };
+      });
+      const attBesluta = produkter.filter((p) => p.attBesluta > 0);
+      const summa = {
+        produkterMedVantande: ids.length,
+        publiceradeMedVantande: kandidater.length,
+        produkterAttBesluta: attBesluta.length,
+        recensionerAttBesluta: attBesluta.reduce((n, p) => n + p.attBesluta, 0),
+        annanArtikel: produkter.reduce((n, p) => n + p.annanArtikel, 0),
+        okandArtikel: produkter.reduce((n, p) => n + p.okandArtikel, 0),
+      };
+      console.log(
+        `[polish-recensioner] kvar: ${summa.produkterAttBesluta} publicerade produkter med ${summa.recensionerAttBesluta} recensioner att besluta, `
+          + `${summa.annanArtikel} om en annan artikel, ${summa.okandArtikel} med okänd artikel, ${Date.now() - t0} ms`,
+      );
+      return NextResponse.json({ ok: true, lage, summa, produkter: attBesluta });
+    } catch (e) {
+      const fel = e instanceof Error ? e.message : String(e);
+      console.error(`[polish-recensioner] kvar föll: ${fel.slice(0, 300)}`);
+      return NextResponse.json({ ok: false, lage, error: fel.slice(0, 300) }, { status: 500 });
+    }
+  }
+
   if (lage !== "torr" && lage !== "skriv") {
-    return NextResponse.json({ ok: false, error: "lage ska vara las, torr eller skriv" }, { status: 400 });
+    return NextResponse.json({ ok: false, error: "lage ska vara las, torr, skriv eller kvar" }, { status: 400 });
   }
   const tolkat = tolkaBeslut(body);
   if ("fel" in tolkat) {
-    return NextResponse.json({ ok: false, error: tolkat.fel.slice(0, 20) }, { status: 400 });
+    // Samma form som en prövning som föll, så att workflowen skriver ut felen.
+    return NextResponse.json({ lage, ok: false, fel: tolkat.fel.slice(0, 20), produkter: [] }, { status: 400 });
   }
   const dryRun = lage === "torr";
   const svar = await polera(tolkat.beslut, dryRun, {

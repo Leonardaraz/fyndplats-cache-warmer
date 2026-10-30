@@ -99,6 +99,13 @@ export interface StoredReview {
    * rekommendationen"). Saknas fältet visas ingenting.
    */
   kopt?: string;
+  /**
+   * VEVOR-artikeln recensionen gäller, satt av importen sedan 2026-10-30.
+   * Poleringen läser den före avläsningarna: en avläsning bär bara sidans
+   * senaste recensioner, och en äldre rad hade annars blivit okänd när VEVOR
+   * fått nya (lib/reviews/polering.ts). Visas aldrig.
+   */
+  vevorArtikel?: string;
 }
 
 /** Komposit-id: unikt per produkt även om samma reviewIdAE förekommer globalt. */
@@ -213,6 +220,13 @@ export interface ProduktBetyg {
   snitt: number;
 }
 
+/** Väntande rader per produkt och källa. `source` saknas för AliExpress-rader. */
+export interface VantandePerProdukt {
+  productId: string;
+  source?: string;
+  antal: number;
+}
+
 export interface ReviewStoreLike {
   exists(productId: string, reviewIdAE: string): Promise<boolean>;
   /**
@@ -238,6 +252,12 @@ export interface ReviewStoreLike {
    * 13 egna kundomdömen syntes när lagret passerat 5 000 rader).
    */
   rakna(filter?: { status?: ReviewStatus; source?: string }): Promise<number>;
+  /**
+   * Väntande rader per produkt och källa, för HELA lagret i ett anrop.
+   * Poleringens restlista (lib/reviews/polering.ts) hittar med den publicerade
+   * produkter vars recensioner ingen har beslutat om.
+   */
+  vantandePerProdukt(): Promise<VantandePerProdukt[]>;
   setStatus(productId: string, reviewIdAE: string, status: ReviewStatus): Promise<void>;
   editText(productId: string, reviewIdAE: string, newSwedish: string): Promise<void>;
 }
@@ -314,6 +334,24 @@ export class ReviewStore implements ReviewStoreLike {
     if (filter.status) f.status = filter.status;
     if (filter.source) f.source = filter.source;
     return raknaRader(COLLECTION_ID, f);
+  }
+
+  async vantandePerProdukt(): Promise<VantandePerProdukt[]> {
+    // Sorterad på grupperingsfälten av `aggregera` själv: osorterade sidor överlappar.
+    const rader = await aggregera<{ productId?: string; source?: string | null; antal?: number }>(COLLECTION_ID, {
+      initialFilter: { status: { $eq: "pending" } },
+      aggregation: {
+        groupingFields: ["productId", "source"],
+        operations: [{ resultFieldName: "antal", itemCount: {} }],
+      },
+    });
+    return rader
+      .filter((r) => r.productId && Number(r.antal) > 0)
+      .map((r) => ({
+        productId: String(r.productId),
+        ...(r.source ? { source: String(r.source) } : {}),
+        antal: Number(r.antal),
+      }));
   }
 
   private async get(productId: string, reviewIdAE: string): Promise<StoredReview | null> {

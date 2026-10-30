@@ -89,8 +89,11 @@ export type Artikelstatus = "egen" | "annan" | "okand";
 export type Artikelkarta = ReadonlyMap<string, Artikelstatus> | null;
 
 /**
- * Artikelstatus per rad, ur produktens artiklar och avläsningarnas artikel per
- * recensionstext (`artikelPerText` i lib/vevor/recensionsartikel.ts). Ren.
+ * Artikelstatus per rad. Radens egen artikel (`vevorArtikel`, satt av importen
+ * sedan 2026-10-30) går först. Annars avläsningarnas artikel per
+ * recensionstext (`artikelPerText` i lib/vevor/recensionsartikel.ts): en
+ * avläsning bär bara sidans senaste recensioner, så en äldre rad kan saknas
+ * där och blir då okänd. Ren.
  */
 export function artikelkartaFor(
   rader: ReadonlyArray<StoredReview>,
@@ -99,7 +102,7 @@ export function artikelkartaFor(
 ): Map<string, Artikelstatus> {
   const ut = new Map<string, Artikelstatus>();
   for (const r of rader) {
-    const artikel = perText.get(recensionsnyckel(String(r.textOriginal ?? "")));
+    const artikel = r.vevorArtikel || perText.get(recensionsnyckel(String(r.textOriginal ?? "")));
     ut.set(r.reviewIdAE, artikel === undefined || artikel === null ? "okand" : artiklar.has(artikel) ? "egen" : "annan");
   }
   return ut;
@@ -193,20 +196,34 @@ export interface ProduktBeslut {
   dolj: Record<string, string>;
 }
 
+/**
+ * Läser en begäran om att pröva eller skriva besluten: `produkter` är rundans
+ * alla produkter och `beslut` besluten för dem. Svaret har ett beslut per
+ * produkt i `produkter`, i samma ordning; en produkt utan beslut får ett tomt.
+ *
+ * ☠️ PRODUKTERNA ÄR RUNDANS ALLA, INTE BARA DE SOM HAR BESLUT. En produkt som
+ * saknas i recensioner.json prövas ändå, och har den väntande recensioner
+ * fäller den anropet (punkt 1). Annars hade en glömd produkt gått igenom.
+ */
 export function tolkaBeslut(x: unknown): { beslut: ProduktBeslut[] } | { fel: string[] } {
-  const rå = x && typeof x === "object" ? (x as { beslut?: unknown }).beslut : undefined;
-  if (!Array.isArray(rå) || rå.length === 0) return { fel: ["`beslut` saknas eller är tom"] };
-  if (rå.length > MAX_PRODUKTER) return { fel: [`för många produkter (${rå.length} > ${MAX_PRODUKTER})`] };
+  const o0 = x && typeof x === "object" ? (x as { produkter?: unknown; beslut?: unknown }) : {};
+  const produkter = Array.isArray(o0.produkter)
+    ? o0.produkter.filter((p): p is string => typeof p === "string").map((p) => p.trim()).filter(Boolean)
+    : [];
+  if (produkter.length === 0) return { fel: ["`produkter` (rundans alla produkter) saknas eller är tom"] };
+  if (produkter.length > MAX_PRODUKTER) return { fel: [`för många produkter (${produkter.length} > ${MAX_PRODUKTER})`] };
+  if (new Set(produkter).size !== produkter.length) return { fel: ["`produkter` har samma produkt två gånger"] };
+  const rå = o0.beslut === undefined ? [] : o0.beslut;
+  if (!Array.isArray(rå)) return { fel: ["`beslut` ska vara en lista"] };
   const fel: string[] = [];
-  const beslut: ProduktBeslut[] = [];
-  const sedda = new Set<string>();
+  const perProdukt = new Map<string, ProduktBeslut>();
   rå.forEach((p, i) => {
     if (!p || typeof p !== "object") return void fel.push(`produkt ${i}: inte ett objekt`);
     const o = p as Record<string, unknown>;
     const productId = typeof o.productId === "string" ? o.productId.trim() : "";
     if (!productId) return void fel.push(`produkt ${i}: productId saknas`);
-    if (sedda.has(productId)) return void fel.push(`${productId}: står två gånger`);
-    sedda.add(productId);
+    if (!produkter.includes(productId)) return void fel.push(`${productId}: står inte bland rundans produkter`);
+    if (perProdukt.has(productId)) return void fel.push(`${productId}: står två gånger`);
     const oversatt: Record<string, string> = {};
     const dolj: Record<string, string> = {};
     for (const [falt, mal, max] of [["oversatt", oversatt, MAX_TEXT], ["dolj", dolj, MAX_SKAL]] as const) {
@@ -224,9 +241,10 @@ export function tolkaBeslut(x: unknown): { beslut: ProduktBeslut[] } | { fel: st
         mal[id.trim()] = text.trim();
       }
     }
-    beslut.push({ productId, oversatt, dolj });
+    perProdukt.set(productId, { productId, oversatt, dolj });
   });
-  return fel.length > 0 ? { fel } : { beslut };
+  if (fel.length > 0) return { fel };
+  return { beslut: produkter.map((id) => perProdukt.get(id) ?? { productId: id, oversatt: {}, dolj: {} }) };
 }
 
 /**
@@ -266,6 +284,38 @@ export function provaBeslut(b: ProduktBeslut, rader: ReadonlyArray<StoredReview>
     fel.push(`${b.productId}: ${obeslutade.length} väntande utan beslut (${obeslutade.map((r) => r.reviewIdAE).slice(0, 5).join(", ")})`);
   }
   return fel;
+}
+
+// --- Restlistan ----------------------------------------------------------------
+
+/** En publicerad produkt med väntande recensioner som någon ska besluta om. */
+export interface RestKandidat {
+  productId: string;
+  /** Väntande rader som inte är kundens egna. */
+  vantande: number;
+  /** Någon rad kommer från VEVOR: artikelstatus räknas per rad innan den listas. */
+  vevor: boolean;
+}
+
+/**
+ * Publicerade produkter med väntande recensioner från leverantören. Recensioner
+ * kan bli väntande efter poleringen (en senare inläsning, eller en VEVOR-rad
+ * vars artikel blivit känd), och då fångar restlistan dem. Butikens egna
+ * kunders omdömen räknas inte: dem godkänner Leonard. Ren.
+ */
+export function restKandidater(
+  vantande: ReadonlyArray<{ productId: string; source?: string; antal: number }>,
+  synliga: ReadonlySet<string>,
+): RestKandidat[] {
+  const per = new Map<string, RestKandidat>();
+  for (const v of vantande) {
+    if (!synliga.has(v.productId) || v.source === "customer" || !(v.antal > 0)) continue;
+    const k = per.get(v.productId) ?? { productId: v.productId, vantande: 0, vevor: false };
+    k.vantande += v.antal;
+    if (v.source === "vevor") k.vevor = true;
+    per.set(v.productId, k);
+  }
+  return [...per.values()].sort((a, b) => b.vantande - a.vantande || a.productId.localeCompare(b.productId));
 }
 
 // --- Skrivningen ---------------------------------------------------------------

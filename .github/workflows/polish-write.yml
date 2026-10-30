@@ -13,11 +13,19 @@ name: Polering — skriv en runda till Wix
 # workflow_dispatch kör mot den ref man anger, och default är main.
 #
 # Lägen:
-#   torr       prövar planen och alla fyra skrivstegen, skriver ingenting
-#   skriv      text → media → kategorier → sku, stoppar vid första fel;
-#              väntar, verifierar och stämplar de produkter som verifieras
+#   torr       prövar planen, alla fyra skrivstegen och recensionerna, skriver ingenting
+#   skriv      prövar recensionerna först; text → media → kategorier → sku, stoppar
+#              vid första fel; väntar, verifierar och stämplar de produkter som
+#              verifieras; skriver sist recensionerna
 #   verifiera  läser bara: jämför Wix mot planen
-#   stampla    verifierar och stämplar det som stämmer (efter en avbruten körning)
+#   stampla    verifierar och stämplar det som stämmer, och skriver recensionerna
+#              (efter en avbruten körning)
+#
+# ☠️ RECENSIONERNA KAN INTE GLÖMMAS (Leonard 2026-10-30). Varje produkt i planen
+# prövas mot rundans recensioner.json (runbookens steg 9). Har en produkt
+# väntande recensioner utan beslut stoppar `skriv` innan något skrivs, och en
+# saknad recensioner.json räknas som inga beslut. Logiken bor i
+# lib/reviews/polering.ts, via /api/admin/polish-recensioner.
 #
 # Alla steg tål omkörning: texten och bilderna skrivs likadant igen, en koppling
 # som redan finns svarar ALREADY_EXISTS och räknas som gjord, SKU:n blir densamma.
@@ -207,14 +215,63 @@ jobs:
             [ "${vb_avv}" = "0" ]
           }
 
+          # Recensionerna till planens produkter: torr prövar, skriv skriver.
+          # Besluten läses ur rundans recensioner.json (kort → produkt-id via
+          # planen); saknas filen prövas produkterna utan beslut. Skriver bara
+          # kort, recensions-id, skäl och antal, aldrig texterna.
+          recensioner() {
+            rfil="tools/polish-assets/${RUNDA}/recensioner.json"
+            if [ -f "${rfil}" ]; then
+              if ! jq -e 'type == "object"' "${rfil}" > /dev/null 2>&1; then
+                echo "== recensioner: recensioner.json är inte ett objekt" >&2
+                return 1
+              fi
+              beslut=$(jq -c --slurpfile p "${fil}" '
+                ($p[0].produkter | map({(.kort): .pid}) | add) as $k
+                | [to_entries[] | {productId: ($k[.key] // ("okänt kort " + .key)), oversatt: (.value.oversatt // {}), dolj: (.value.dolj // {})}]' "${rfil}")
+            else
+              beslut='[]'
+            fi
+            jq -c --arg l "$1" --argjson b "${beslut}" '{lage: $l, produkter: [.produkter[].pid], beslut: $b}' "${fil}" > rkropp.json
+            rhttp=$(curl -sS --max-time 310 -o rsvar.json -w '%{http_code}' -X POST \
+              -H "Authorization: Bearer ${CRON_SECRET}" \
+              -H "Content-Type: application/json" \
+              --data-binary @rkropp.json \
+              "${rot}/api/admin/polish-recensioner") || rhttp="000"
+            if ! jq -e 'type == "object"' rsvar.json > /dev/null 2>&1; then
+              echo "== recensioner ($1): HTTP ${rhttp}, svaret är inte JSON" >&2
+              return 1
+            fi
+            # Felen bär produkt-id först; skriv kortet i stället.
+            jq -r --slurpfile p "${fil}" '
+              ($p[0].produkter | map({(.pid): .kort}) | add) as $k
+              | (.fel // [])[] | . as $f | ($f | split("/")[0] | split(":")[0]) as $pid
+              | "   recensioner FEL \($k[$pid] // $pid)\($f | sub("^[^/:]+"; ""))"' rsvar.json
+            jq -r --slurpfile p "${fil}" '
+              ($p[0].produkter | map({(.pid): .kort}) | add) as $k
+              | (.produkter // [])[] | select(.oversatta + .dolda + .redan > 0 or (.avvikelser | length) > 0)
+              | "   recensioner \($k[.productId] // "?"): översatta \(.oversatta), dolda \(.dolda), redan gjorda \(.redan)\(if (.avvikelser | length) > 0 then ", AVVIKELSER: " + (.avvikelser | join("; ")) else "" end)"' rsvar.json
+            echo "== recensioner ($1, HTTP ${rhttp}): fel $(jq '(.fel // []) | length' rsvar.json), översatta $(jq '[(.produkter // [])[].oversatta] | add // 0' rsvar.json), dolda $(jq '[(.produkter // [])[].dolda] | add // 0' rsvar.json)"
+            if [ "$1" = "skriv" ]; then
+              jq -r '.butiken // empty | "   recensioner: butiken \(.uppdaterade) anrop ok, \(.misslyckade) föll, utan nyckel \(.utanNyckel)"' rsvar.json
+              echo "Recensioner: översatta **$(jq '[(.produkter // [])[].oversatta] | add // 0' rsvar.json)**, dolda **$(jq '[(.produkter // [])[].dolda] | add // 0' rsvar.json)**, fel **$(jq '(.fel // []) | length' rsvar.json)**." >> "${GITHUB_STEP_SUMMARY}"
+            fi
+            [ "$(jq -r '.ok' rsvar.json)" = "true" ]
+          }
+
           case "${LAGE}" in
             torr)
               # Alla fyra stegen körs även om ett faller, så varje problem syns på en gång.
               fel=0
               for s in text media kategorier sku; do steg "${s}" true || fel=1; done
+              recensioner torr || fel=1
               exit "${fel}"
               ;;
             skriv)
+              if ! recensioner torr; then
+                echo "::error::Recensionerna saknar beslut eller faller i prövningen — ingenting skrivet. Runbookens steg 9: kör \"Polering — recensionerna till rundans produkter\" i läget las och skriv recensioner.json." >&2
+                exit 1
+              fi
               for s in text media kategorier sku; do
                 if ! steg "${s}" false; then
                   echo "::error::Steget ${s} föll — stoppar här. Alla steg tål omkörning: rätta orsaken och kör läge skriv igen." >&2
@@ -225,12 +282,21 @@ jobs:
               sleep 90
               # Variantbilderna rättas FÖRE återläsningen, så att den ser slutläget.
               variantbilder
-              verifiera_och_stampla
+              utfall=0
+              verifiera_och_stampla || utfall=1
+              if ! recensioner skriv; then
+                echo "::error::Recensionerna skrevs inte (eller läste inte tillbaka). Produkterna är skrivna; kör läget stampla igen, eller \"Polering — recensionerna till rundans produkter\" i läget skriv." >&2
+                utfall=1
+              fi
+              exit "${utfall}"
               ;;
             verifiera)
               steg verifiera true
               ;;
             stampla)
-              verifiera_och_stampla
+              utfall=0
+              verifiera_och_stampla || utfall=1
+              recensioner skriv || utfall=1
+              exit "${utfall}"
               ;;
           esac

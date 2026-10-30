@@ -119,7 +119,7 @@ Leonards beslut 2026-10-29). Säkerhetsavsnittet skriver du som vanligt, ur käl
 VEVOR-varor har ingen förhandsöversättning, så utan ditt avsnitt har fliken ingen
 säkerhetsinformation.
 
-**Recensionerna.** Steg 9 tar bara med recensioner om produktens egna artiklar. De andra
+**Recensionerna.** Steg 7 tar bara med recensioner om produktens egna artiklar. De andra
 räknas och lämnas till VEVOR-verktyget.
 
 **Priset.** Prisgrinden gäller VEVOR-rader sedan 2026-10-30: importen satte regelpriset och
@@ -144,9 +144,9 @@ byggskripten ligger i `tools/polish-gates/` och anropas därifrån
 | 4 | [Verifiera påståendena](#4-verifiera-påståendena) | — |
 | 5 | [Skriv texten](#5-skriv-texten) | `<kort>.html`, `namn.tsv`, `slugs.txt`, `seo.tsv`, `sku.tsv`, `kategori.tsv` |
 | 6 | [Läs sidan som kund](#6-läs-sidan-som-kund) | — |
-| 7 | [Grindar och skrivplan](#7-grindar-och-skrivplan) | `axelfacit.json`, `vantat-hash.tsv`, `nyttolast-media.json`, `skrivplan.json` |
-| 8 | [Skriv till Wix](#8-skriv-till-wix) | — |
-| 9 | [Recensionerna](#9-recensionerna) | `recensioner-kalla.json`, `recensioner.json` |
+| 7 | [Recensionerna](#7-recensionerna) | `recensioner-kalla.json`, `recensioner.json` |
+| 8 | [Grindar och skrivplan](#8-grindar-och-skrivplan) | `axelfacit.json`, `vantat-hash.tsv`, `nyttolast-media.json`, `skrivplan.json` |
+| 9 | [Skriv till Wix](#9-skriv-till-wix) | — |
 | 10 | [Kontrollera live](#10-kontrollera-live) | `live/` |
 | 11 | [Dokumentera](#11-dokumentera) | rader i `FLAGGADE.md` |
 
@@ -1221,7 +1221,83 @@ uppifrån som någon som funderar på att köpa:
 
 -----
 
-## 7. Grindar och skrivplan
+## 7. Recensionerna
+
+*(Leonard 2026-10-30)* Den som polerar en produkt tar också dess recensioner, i samma
+runda. Importen sparar leverantörens recensioner dolda (`pending`) på originalspråket, och
+de syns först när någon har översatt dem. Mätt 2026-10-30: de flesta produkter har 4–10
+väntande recensioner, högst 15 på en VEVOR-produkt och 30 på en Aosom-produkt.
+
+☠️ **Steget går inte att hoppa över.** Workflowen i steg 9 prövar recensionerna för varje
+produkt i planen innan den skriver något, och vägrar `skriv` om en produkt har väntande
+recensioner utan beslut. En saknad `recensioner.json` räknas som inga beslut. Efter
+produkterna skriver den recensionerna, läser tillbaka varje rad och säger till butiken, så
+att produktsidan visar dem direkt. Annars cachas de i sex timmar.
+
+1. **Läs.** Kör **"Polering — recensionerna till rundans produkter"**
+   (`polish-recensioner.yml`) med `ref` satt till poleringsgrenen, `runda` satt till
+   katalogens namn och läget `las`. Den läser produkterna ur `ids.tsv`, skriver
+   `recensioner-kalla.json` till rundans katalog och committar den. Per kort står de
+   väntande recensionerna: id, betyg, datum, språk, `kopt` (varianten kunden köpte, på en
+   VEVOR-familj), antal foton och originaltexten. Inga namn och inget land, och
+   artikelnummerformer är redigerade. Butikens egna kunders omdömen är inte med. Hämta
+   grenen efteråt (`git pull`), eftersom workflowen har committat filen.
+2. **Besluta varje recension** i `recensioner.json`:
+   ```json
+   { "<kort>": { "oversatt": { "<id>": "<svensk text>" }, "dolj": { "<id>": "<skäl>" } } }
+   ```
+   En översatt recension publiceras. En dold avvisas och går att visa igen i
+   `/admin/reviews`. En produkt utan väntande recensioner behöver ingen rad.
+3. **Pröva** med samma workflow i läget `torr`. Felen står per kort och recensions-id.
+   Steg 9:s `torr` gör samma prövning.
+
+**Översättningen** har samma längd och ton som originalet, vardaglig svenska och korta
+meningar (CLAUDE.md, *Recensionernas svenska ska låta som en kund*). Innehållet ändras
+aldrig, och kritik står kvar.
+
+- Inga tankstreck, semikolon, citattecken eller `…`, och inga AI-fraser som *sammantaget*
+  eller *helt och hållet*.
+- Ta bort varumärken och marknadsplatser, budfirmor, priser, säljaren och kundtjänst,
+  leveranstider och namn. Blir meningen fel utan det, dölj recensionen i stället.
+
+**Dölj** med ett kort skäl, eftersom loggen är publik, när recensionen:
+
+- bara handlar om leveransen, returen eller kundtjänsten,
+- gäller en annan vara, färg eller storlek än sidans,
+- bär ett namn, en signatur eller hälsouppgifter,
+- säger emot sidans fakta, till exempel ett annat mått. Lista den då också i `FLAGGADE.md`
+  åt Leonard,
+- är reklam eller inte går att förstå.
+
+**Prövningen** fäller hela rundan och skriver ingenting när:
+
+- en produkt i rundan har en väntande recension utan beslut, eller en recension står både
+  som översatt och dold,
+- ett id inte finns på produkten eller är butikens eget kundomdöme (de godkänner Leonard
+  i `/admin/reviews`),
+- en översättning är oöversatt, för kort eller för lång jämfört med originalet, har
+  engelska kvar eller bryter mot stilen: tankstreck, semikolon, citattecken, tre punkter,
+  AI-fras, marknadsplats eller leverantör, budfirma, pris, säljare eller kundtjänst,
+  artikelnummer.
+
+**VEVOR.** VEVOR visar en familjs recensioner på varje artikel i familjen. På en
+VEVOR-produkt tar `las` därför bara med recensioner om produktens egna artiklar. De andra
+räknas som `annan artikel` och `okänd artikel`, får inget beslut och stoppar inte rundan.
+Prövningen fäller ett beslut om dem. Verktyget **"VEVOR — recensioner om en annan
+artikel"** döljer de förra. De senares artikel avgörs när VEVOR-läsaren har läst om sidan,
+en gång per dygn för utkast, och då hamnar de på restlistan nedan. Recensioner som
+importerats sedan 2026-10-30 bär sin artikel och blir aldrig okända.
+
+**Restlistan.** Recensioner kan bli väntande efter poleringen: en senare inläsning, eller en
+VEVOR-rad vars artikel blivit känd. Läget `kvar` (ingen runda behövs) listar varje
+publicerad produkt med väntande recensioner att besluta, i `ids.tsv`-form. Ta dem som en
+egen runda: `ids.tsv`, `las`, `recensioner.json`, `torr` och `skriv` i samma workflow.
+Mätt 2026-10-30, innan steget fanns: 263 publicerade produkter hade 1 451 sådana
+recensioner, alla från Aosom.
+
+-----
+
+## 8. Grindar och skrivplan
 
 Kör från rundans katalog. Lägg först familjens tyska huvudord i `gatelib.TYSKA_ORD` om de
 saknas; ord får bara läggas till, aldrig tas bort.
@@ -1268,24 +1344,26 @@ anrop och räknar vyn per val.
 
 -----
 
-## 8. Skriv till Wix
+## 9. Skriv till Wix
 
 1. Har rundan tagit flera timmar kör du om krock- och dubblettkontrollen först, eftersom en
    annan session kan ha publicerat under tiden. Committa sedan rundans filer och pusha
    grenen. Workflowen läser planen ur grenen.
 2. Kör **"Polering — skriv en runda till Wix"** med `ref` satt till poleringsgrenen,
    `runda` satt till katalogens namn, `plan_sha256` från bygget och läget `torr`.
-   Körningen prövar planen utan att skriva något.
-3. Kör samma sak med läget `skriv`. Workflowen skriver texten, som också publicerar
-   produkten, och därefter bilderna, kategorierna och SKU:n, i den ordningen. Faller en
+   Körningen prövar planen och recensionerna (steg 7) utan att skriva något.
+3. Kör samma sak med läget `skriv`. Workflowen prövar recensionerna först och skriver
+   ingenting om en produkt har väntande recensioner utan beslut. Sedan skriver den texten,
+   som också publicerar produkten, och därefter bilderna, kategorierna och SKU:n, i den
+   ordningen. Faller en
    produkt i ett steg stannar den efter det steget. Sedan väntar den 90 sekunder, läser tillbaka varje produkt separat och
    stämplar mappningsraden (`needsAiPolish: false`, `draftStatus: published`) för varje
-   produkt som är helt verifierad.
+   produkt som är helt verifierad. Sist skriver den recensionerna ur `recensioner.json`.
 
 **Stannar körningen** har den skrivit alla produkter i det steg som föll, och textsteget har
 redan publicerat dem, med importens bilder tills bildsteget körts. Rätta och kör `skriv`
-igen direkt; alla steg tål omkörning. Faller bara återläsningen eller stämpeln kör du läget
-`stampla`. Kontrollera att körningen slutade `success` och inte `cancelled`: workflowen har
+igen direkt; alla steg tål omkörning. Faller bara återläsningen, stämpeln eller
+recensionerna kör du läget `stampla`, som också skriver recensionerna. Kontrollera att körningen slutade `success` och inte `cancelled`: workflowen har
 en gemensam kö, och en väntande körning avbryts när en annan session startar sin.
 
 ☠️ `ref` är `main` om du inte anger något, och där finns inte planen, så körningen stoppar
@@ -1302,74 +1380,6 @@ något (variantens `visible`, alt-texter, SKU), och svaret ser ändå lyckat ut.
 (`ignoreCommand` i `vercel.json`), men en lång rad sådana pushar ger till slut ett bygge
 ändå, eftersom Vercels referenspunkt inte flyttas fram. Pusha när planen är klar och när
 rundan är dokumenterad, inte efter varje fil.
-
------
-
-## 9. Recensionerna
-
-*(Leonard 2026-10-30)* Den som polerar en produkt tar också dess recensioner, i samma
-runda. Importen sparar leverantörens recensioner dolda (`pending`) på originalspråket, och
-de syns först när någon har översatt dem. Förut gjordes det i en egen kö i
-`/admin/reviews`, långt efter att sidan publicerats. Mätt 2026-10-30: de flesta produkter
-har 4–10 väntande recensioner, högst 15 på en VEVOR-produkt och 30 på en Aosom-produkt.
-
-Workflowen **"Polering — recensionerna till rundans produkter"** (`polish-recensioner.yml`
-→ `/api/admin/polish-recensioner` → `lib/reviews/polering.ts`). Kör den med `ref` satt
-till poleringsgrenen och `runda` satt till katalogens namn. Den läser produkterna ur
-`ids.tsv`.
-
-1. **`las`** går att köra så fort `ids.tsv` finns. Workflowen skriver
-   `recensioner-kalla.json` till rundans katalog och committar den. Per kort står de
-   väntande recensionerna: id, betyg, datum, språk, `kopt` (varianten kunden köpte, på en
-   VEVOR-familj), antal foton och originaltexten. Inga namn och inget land, och
-   artikelnummerformer är redigerade. Butikens egna kunders omdömen är inte med.
-2. **Besluta varje recension** i `recensioner.json`:
-   ```json
-   { "<kort>": { "oversatt": { "<id>": "<svensk text>" }, "dolj": { "<id>": "<skäl>" } } }
-   ```
-   En översatt recension publiceras. En dold avvisas och går att visa igen i
-   `/admin/reviews`. En produkt utan väntande recensioner behöver ingen rad.
-3. **`torr`** prövar besluten och skriver ingenting. Felen står per kort och recensions-id.
-4. **`skriv`**, efter steg 8, när produkten är publicerad. Workflowen skriver, läser
-   tillbaka varje rad och säger till butiken, så att produktsidan visar recensionerna
-   direkt. Annars cachas de i sex timmar.
-
-**Översättningen** har samma längd och ton som originalet, vardaglig svenska och korta
-meningar (CLAUDE.md, *Recensionernas svenska ska låta som en kund*). Innehållet ändras
-aldrig, och kritik står kvar.
-
-- Inga tankstreck, semikolon, citattecken eller `…`, och inga AI-fraser som *sammantaget*
-  eller *helt och hållet*.
-- Ta bort varumärken och marknadsplatser, budfirmor, priser, säljaren och kundtjänst,
-  leveranstider och namn. Blir meningen fel utan det, dölj recensionen i stället.
-
-**Dölj** med ett kort skäl, eftersom loggen är publik, när recensionen:
-
-- bara handlar om leveransen, returen eller kundtjänsten,
-- gäller en annan vara, färg eller storlek än sidans,
-- bär ett namn, en signatur eller hälsouppgifter,
-- säger emot sidans fakta, till exempel ett annat mått. Lista den då också i `FLAGGADE.md`
-  åt Leonard,
-- är reklam eller inte går att förstå.
-
-**Grinden** fäller hela anropet och skriver ingenting när:
-
-- en väntande recension saknar beslut, eller står både som översatt och dold,
-- ett id inte finns på produkten eller är butikens eget kundomdöme (de godkänner Leonard
-  i `/admin/reviews`),
-- en översättning är oöversatt, för kort eller för lång jämfört med originalet, har
-  engelska kvar eller bryter mot stilen: tankstreck, semikolon, citattecken, tre punkter,
-  AI-fras, marknadsplats eller leverantör, budfirma, pris, säljare eller kundtjänst,
-  artikelnummer.
-
-En omkörning efter en avbruten skrivning skriver bara det som återstår.
-
-**VEVOR.** VEVOR visar en familjs recensioner på varje artikel i familjen. På en
-VEVOR-produkt tar `las` därför bara med recensioner om produktens egna artiklar. De andra
-räknas som `annan artikel` och `okänd artikel` och får inget beslut. Grinden fäller ett
-beslut om dem. Verktyget **"VEVOR — recensioner om en annan artikel"** döljer de förra, och
-de senares artikel avgörs när VEVOR-läsaren har läst om sidan, en gång per dygn för utkast.
-Är många okända kör du `las` igen dagen efter.
 
 -----
 
@@ -1403,8 +1413,8 @@ python3 ../../polish-gates/livekoll.py       # InStock, brödsmula, <title> och 
   alt-attribut i HTML:en. De andra färgernas alt-texter ligger i sidans data, i en karta
   fil → alt. `livekoll.py` letar där också och skriver i summeringen hur många alt-texter
   som bara sågs där (T1: 46 av 84). En alt-text som saknas på båda ställena är ett fel.
-- Recensionerna: varje produkt ska visa de som steg 9 översatte. Saknas de, läs raden
-  `Butiken:` i körningen. Föll anropet till butiken syns de först när dess cache gått ut,
+- Recensionerna: varje produkt ska visa de som steg 7 översatte. Saknas de, läs raden
+  `recensioner: butiken` i steg 9:s körning. Föll anropet till butiken syns de först när dess cache gått ut,
   efter sex timmar.
 - Öppna till sist en av rundans sidor och läs den som kund. Var avsnitten och bilderna
   hamnar syns bara där.
@@ -1451,9 +1461,9 @@ Grindarna och live-kontrollen täcker det mesta. Gå igenom listan innan du kör
 
 **Recensioner**
 
-- Varje väntande recension på rundans produkter är översatt eller dold, och `skriv` slutade
-  med 0 fel och 0 avvikelser. På en VEVOR-produkt gäller det recensionerna om produktens
-  egna artiklar.
+- Varje väntande recension på rundans produkter är översatt eller dold, och steg 9:s
+  `skriv` slutade med 0 fel och 0 avvikelser för recensionerna. På en VEVOR-produkt gäller
+  det recensionerna om produktens egna artiklar.
 
 **Data**
 
