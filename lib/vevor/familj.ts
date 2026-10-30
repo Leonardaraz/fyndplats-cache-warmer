@@ -24,9 +24,10 @@
 //    blivit samma vara på två sidor.
 // 4. Ett syskon som är slut följer med med saldo 0. Annars hade det blivit en
 //    egen produkt när det kommer tillbaka.
-// 5. ☠️ Ett syskon vars avläsning saknar betyg (läst före steg 8) gör att hela
-//    familjen väntar på nästa läsning. Annars hade det lämnats utanför
-//    familjen och sedan aldrig fått komma in.
+// 5. ☠️ Ett syskon vars avläsning saknar betyg (läst före steg 8), specifikation
+//    eller recensionernas artikel (läst före 2026-10-30) gör att hela familjen
+//    väntar på nästa läsning. Annars hade det lämnats utanför familjen och
+//    sedan aldrig fått komma in, eller saknats i familjens flik.
 // 6. ☠️ Ett syskon som inte lästs alls men står i läsarens kö (`arPaVag`) gör
 //    också att familjen väntar (Leonard 2026-10-30: "Gör det som blir
 //    proffsigast"). Annars hade artikeln importerats ensam, och syskonet blivit
@@ -146,7 +147,7 @@ export function byggFamilj(
     }
     if (m.spu !== ankare.spu) continue;
     const h = medlemshinder(m, nu);
-    if (h === "betyg_okant") return { typ: "vanta" };
+    if (h === "betyg_okant" || h === "spec_okant" || h === "recension_okand") return { typ: "vanta" };
     if (h === null) syskon.push(m);
   }
   if (syskon.length === 0) return { typ: "ensam" };

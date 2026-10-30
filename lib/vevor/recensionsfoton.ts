@@ -20,6 +20,8 @@
 //    sparade ordagrant ur avläsningen. Blanksteg och versaler räknas inte.
 // 4. ☠️ Svaret bär bara antal och Wix-id. Fotonas adresser och recensionernas
 //    text går aldrig ut: loggen är publik.
+// 5. En dold rad får inga foton (lib/vevor/recensionsartikel.ts döljer
+//    recensioner av en annan artikel).
 
 import type { ProductMappingRecord } from "@/lib/store";
 import type { StoredReview } from "@/lib/store/reviews";
@@ -136,6 +138,8 @@ export async function korRecensionsfoton(deps: RecensionsfotoDeps, val: Recensio
       const traffade = new Set<string>();
       let rattadeHar = false;
       for (const rad of sparade) {
+        // En dold rad (en annan artikels recension, eller avvisad) får inga foton.
+        if (rad.status === "rejected") continue;
         const k = recensionsnyckel(rad.textOriginal ?? "");
         const kallor = foton.get(k);
         if (!kallor) continue;

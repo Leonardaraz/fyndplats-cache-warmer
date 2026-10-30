@@ -145,6 +145,7 @@ function tomSummering(start: number, dryRun: boolean): Importsummering {
       lagt_betyg: 0,
       betyg_okant: 0,
       spec_okant: 0,
+      recension_okand: 0,
       syskon_finns: 0,
       syskon_vantar: 0,
     } satisfies Record<Hinder, number>,
@@ -348,7 +349,9 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
           granskning = { ...granskning, bildgranskning: true };
         }
         const medlemmar: Avlasning[] = familj.typ === "familj" ? familj.medlemmar : [a];
-        const recensioner = medlemmar.flatMap(vevorRecensioner);
+        // ☠️ Bara recensioner om artiklar som finns på produkten (2026-10-30).
+        const egna = new Set(medlemmar.map((m) => m.sku));
+        const recensioner = medlemmar.flatMap((m) => vevorRecensioner(m, egna));
 
         if (val.dryRun) {
           raknaUtkast(s, bilder.monster, bilder.egna, granskning);

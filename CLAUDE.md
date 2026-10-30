@@ -6328,9 +6328,11 @@ Tre egenskaper som inte ska tas bort:
    kommer inom ett dygn. Samma mönster som `betyg_okant`.
 2. **En sida som verkligen saknar specifikation är inget hinder.** Den lagade
    läsaren sätter `specKalla: null`, och då importeras artikeln.
-3. **Ett syskon i en familj behöver ingen specifikation** (`medlemshinder`):
-   familjen visar ankarets text. Annars hade syskonet lämnats utanför, och
-   sedan spärrats för alltid som `syskon_finns`.
+3. ☠️ **Ett syskon i en familj behöver sin specifikation** (`medlemshinder`,
+   sedan 2026-10-30): familjens flik visar varje varians värde (se *Familjens
+   specifikation per variant* nedan). Ett syskon med `spec_okant` får familjen
+   att vänta (`syskon_vantar`) i stället för att lämnas utanför, där det hade
+   spärrats för alltid som `syskon_finns`.
 
 **Utkast som redan importerats utan specifikation rättas med workflowen
 "VEVOR — specifikationen på utkast som saknar den"** (`plan` · `skriv`) →
@@ -6350,13 +6352,35 @@ Sex egenskaper som inte ska tas bort:
    ungefär ett dygn efter mergen av #832 (utkasten läses en gång per dygn).
    Planen räknas om i varje varv och får aldrig växa, så en körning medan
    läsaren läser om stannar med "fler än bekrafta".
-3. ☠️ En sida som redan har fliken rörs inte. Har den fliken men saknar rader
-   räknas den som `flik_utan_rader` och lämnas.
+3. ☠️ En enskild artikel som redan har fliken rörs inte. Saknar fliken rader
+   räknas den som `flik_utan_rader` och lämnas. En familj vars flik visar fel
+   får fliken utbytt (`attByta`, se nästa avsnitt), och bara när sidan har
+   exakt en sådan flik.
 4. ☠️ Sidan läses färskt före skrivningen och planeras om. En 409 (synken skrev
    samtidigt) ger en ny läsning, högst tre försök.
-5. ☠️ Återläsning tills revisionen gått fram: dold, fliken finns, varje rad
-   finns och den gamla texten står kvar. Första avvikelse stoppar körningen.
+5. ☠️ Återläsning tills revisionen gått fram: dold, fliken finns och varje rad
+   finns. En tillagd flik: den gamla texten står kvar. En utbytt flik: hela
+   texten är planens. Första avvikelse stoppar körningen.
 6. ☠️ Svaret bär bara Wix-id och antal.
+
+### Familjens specifikation per variant (2026-10-30)
+
+Beskrivningen är densamma för alla varianter, och familjens flik visade
+ankarets värde på varje rad. Mätt 2026-10-30: i **107 av 143** familjer där alla
+artiklar har specifikation skiljer sig en rad mellan varianterna (produktmått i
+44, färg i 13, material i 10, effekt i 8). Den som valde en annan storlek såg
+alltså fel mått.
+
+`familjensSpec` (`lib/vevor/familj.ts`) läser alla artiklars tabeller. En rad
+med samma värde för alla (oavsett skiftläge) står som förut. En rad som skiljer
+visar varje varians värde, med varianten namngiven efter sina värden på de
+axlar som skiljer: "24 tum / 4 st, 24 tum / 6 st: 610 mm · 36 tum / 4 st:
+914 mm". En rad bara vissa artiklar har visas för dem. Axlarnas egna rader
+står inte i fliken.
+
+Befintliga familjeutkast rättas av samma workflow som ovan: planen räknar dem i
+`attByta`, och fliken byts ut från rubriken till nästa rubrik. Varje artikel ska
+vara läst med den nya läsaren (`ej_omlast` annars).
 
 ## VEVOR: steg 4, importen som osynliga utkast (2026-10-29)
 
@@ -6723,9 +6747,33 @@ Den som beställer väljer varianten på VEVOR:s sida, som har samma väljare.
 
 **Recensionerna** sparas som dolda rader (`importReviewsForProduct`, källan
 `vevor`) med husets filter, och översätts och godkänns i /admin/reviews som
-Aosoms. En familj får alla syskonens recensioner. Ett fel där fäller inte
-importen och räknas i `recensioner.fel`. Butiken visar källan `vevor` som
-okänd, utan märkning.
+Aosoms. Ett fel där fäller inte importen och räknas i `recensioner.fel`.
+Butiken visar källan `vevor` som okänd, utan märkning.
+
+☠️ **Bara recensioner om produktens egna artiklar** (sedan 2026-10-30). VEVOR
+visar en familjs recensioner på varje artikel i familjen: på 44 sparade sidor
+gällde 129 av 424 recensioner sidans egen artikel och 295 en annan storlek,
+färg eller vara i samma familj. 4 044 av 5 182 VEVOR-utkast med recensioner
+delade minst en text med ett annat utkast, och en text låg på upp till 31.
+Läsaren sparar artikeln kunden köpte (`artikel` på `VevorRecension`, ur
+`REVIEWS_DATA.allReview[].goods_sku`, parad på texten), och importen tar bara
+recensioner vars artikel finns på produkten (en familj: alla dess artiklar).
+
+Fyra egenskaper som inte ska tas bort:
+
+1. ☠️ **En recension vars artikel inte går att avgöra tas inte med** (`null`:
+   saknas, fel form, eller två rader med samma text säger olika).
+2. ☠️ **En avläsning från före 2026-10-30 väntar** (`recension_okand`,
+   `recensionshinder`): utan artikeln hade produkten blivit utan sina
+   recensioner för gott. Ett sådant syskon får familjen att vänta.
+3. **Befintliga rader** rättas med workflowen **"VEVOR — recensioner om en
+   annan artikel"** (`plan` · `skriv`) → `/api/admin/vevor-recensionsartikel`
+   → `lib/vevor/recensionsartikel.ts`. En väntande rad om en annan artikel döljs
+   (`rejected`, `doldAv: "annan_artikel"`), och verktyget visar den igen om
+   artikeln senare blir en del av produkten. ☠️ Godkända rader och rader en
+   människa avvisat rörs aldrig. Kör den före fotoverktyget, som hoppar över
+   dolda rader.
+4. ☠️ **Svaret bär bara antal och Wix-id.**
 
 **Kundernas foton följer med recensionerna** (Leonard 2026-10-30: *"jag vill
 att alla bilder följer också med recensionerna så det inte blir

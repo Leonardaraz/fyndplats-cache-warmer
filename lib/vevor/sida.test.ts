@@ -227,6 +227,8 @@ describe("betyg och recensioner (steg 8)", () => {
         text: "Stabil och lätt att montera, hjulen rullar fint i sanden. Rekommenderas.",
         datum: "2026-09-14",
         namn: "Test P.",
+        // Sidan utan REVIEWS_DATA: artikeln går inte att avgöra.
+        artikel: null,
       },
     ]);
   });
@@ -240,7 +242,7 @@ describe("betyg och recensioner (steg 8)", () => {
         testrecension({ reviewBody: "Bra &amp; prisvärd", author: "Anna", datePublished: "igår" }),
       ],
     }).recensioner;
-    expect(r).toEqual([{ betyg: 5, text: "Bra & prisvärd", datum: null, namn: "Anna" }]);
+    expect(r).toEqual([{ betyg: 5, text: "Bra & prisvärd", datum: null, namn: "Anna", artikel: null }]);
   });
 
   it("högst tio recensioner", () => {
@@ -290,6 +292,34 @@ describe("recensionernas foton (2026-10-30)", () => {
       },
     ]);
     expect(r[0].bilder).toEqual([FOTO(1), FOTO(2), FOTO(3)]);
+  });
+
+  it("☠️ varje recension bär artikeln kunden köpte, ur sidans recensionsdata", () => {
+    // Påhittade artikelnummer. VEVOR visar familjens recensioner på varje artikel.
+    const r = tolka([
+      { content: "Stabil och lätt att montera, hjulen rullar fint i sanden. Rekommenderas.", goods_sku: "TESTSKUREC000001" },
+      { content: "Bra pris och snabb leverans hit.", goods_sku: "TESTSKUREC000002" },
+    ]);
+    expect(r.map((x) => x.artikel)).toEqual(["TESTSKUREC000001", "TESTSKUREC000002"]);
+  });
+
+  it("☠️ en artikel som inte går att avgöra är null: fel form, saknas, eller två rader som säger olika", () => {
+    const text = "Stabil och lätt att montera, hjulen rullar fint i sanden. Rekommenderas.";
+    expect(tolka([{ content: text, goods_sku: "TEST SKU+1" }])[0].artikel).toBeNull();
+    expect(tolka([{ content: text }])[0].artikel).toBeNull();
+    expect(
+      tolka([
+        { content: text, goods_sku: "TESTSKUREC000001" },
+        { content: text, goods_sku: "TESTSKUREC000002" },
+      ])[0].artikel,
+    ).toBeNull();
+    // Samma text med samma artikel två gånger är fortfarande entydig.
+    expect(
+      tolka([
+        { content: text, goods_sku: "TESTSKUREC000001" },
+        { content: text, goods_sku: "TESTSKUREC000001", reviewPic: [{ big_pic: FOTO(1) }] },
+      ])[0],
+    ).toMatchObject({ artikel: "TESTSKUREC000001", bilder: [FOTO(1)] });
   });
 
   it("en sida utan recensionsdata eller med trasig data ger recensioner utan foton", () => {

@@ -86,6 +86,13 @@ export interface StoredReview {
    */
   source?: string;
   importedAt?: string;
+  /**
+   * Varför ett verktyg dolde raden, så att samma verktyg kan visa den igen när
+   * skälet är borta. `annan_artikel`: en VEVOR-recension av en artikel som inte
+   * finns på produkten (lib/vevor/recensionsartikel.ts). Saknas fältet dolde en
+   * människa raden, och då rör inget verktyg den.
+   */
+  doldAv?: "annan_artikel";
 }
 
 /** Komposit-id: unikt per produkt även om samma reviewIdAE förekommer globalt. */

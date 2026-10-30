@@ -13,6 +13,7 @@ import {
   byggVevorMappning,
   importhinder,
   medlemshinder,
+  recensionshinder,
   rensaBeskrivning,
   spechinder,
   vevorRecensioner,
@@ -220,11 +221,26 @@ describe("☠️ specifikationen från den gamla läsaren (2026-10-30)", () => {
     expect(spechinder({ spec: [], punkter: ["Stark."], specKalla: undefined })).toBeNull();
   });
 
-  it("lagret och betyget går före, och ett syskon i en familj behöver ingen specifikation", () => {
+  it("lagret och betyget går före, och ☠️ ett syskon i en familj behöver sin specifikation (2026-10-30)", () => {
     expect(importhinder(testAvlasning({ ...utan, saldo: 0 }), NU)).toBe("ej_i_lager");
     expect(importhinder(testAvlasning({ ...utan, betyg: undefined }), NU)).toBe("betyg_okant");
-    expect(medlemshinder(testAvlasning({ ...utan }), NU)).toBeNull();
+    // Familjens flik visar varje varians värde, så ett syskon utan specifikation väntar.
+    expect(medlemshinder(testAvlasning({ ...utan }), NU)).toBe("spec_okant");
+    expect(medlemshinder(testAvlasning({ ...utan, saldo: 0, status: "slut" }), NU)).toBe("spec_okant");
     expect(medlemshinder(testAvlasning({ ...utan, betyg: undefined }), NU)).toBe("betyg_okant");
+    expect(medlemshinder(testAvlasning({ saldo: 0, status: "slut" }), NU)).toBeNull();
+  });
+});
+
+describe("recensionshinder (2026-10-30)", () => {
+  it("☠️ en avläsning från före 2026-10-30 säger inte vilken artikel recensionerna gäller och väntar", () => {
+    const gammal = { betyg: 5, text: "Gammal.", datum: null, namn: null };
+    expect(recensionshinder({ recensioner: [gammal] })).toBe("recension_okand");
+    expect(importhinder(testAvlasning({ recensioner: [gammal] }), NU)).toBe("recension_okand");
+    // En recension vars artikel inte gick att avgöra (null) är inget hinder: den tas bara inte med.
+    expect(recensionshinder({ recensioner: [{ ...gammal, artikel: null }] })).toBeNull();
+    expect(recensionshinder({ recensioner: [] })).toBeNull();
+    expect(recensionshinder({})).toBeNull();
   });
 });
 
@@ -242,6 +258,14 @@ describe("vevorRecensioner", () => {
       { rating: 4, text: "Funkar." },
     ]);
     expect(vevorRecensioner({})).toEqual([]);
+  });
+
+  it("☠️ med artiklar tas bara recensioner om dem med, aldrig en vars artikel är okänd", () => {
+    const r = (text: string, artikel?: string | null) => ({ betyg: 5, text, datum: null, namn: null, artikel });
+    const recensioner = [r("Egen.", "TESTSKUA0000001"), r("Annan.", "TESTSKUB0000001"), r("Okänd.", null), r("Gammal.")];
+    expect(vevorRecensioner({ recensioner }, new Set(["TESTSKUA0000001"])).map((x) => x.text)).toEqual(["Egen."]);
+    // Utan artiklar: alla, som förut.
+    expect(vevorRecensioner({ recensioner })).toHaveLength(4);
   });
 
   it("kundens foton följer med recensionen", () => {

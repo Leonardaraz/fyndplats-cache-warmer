@@ -53,6 +53,13 @@ describe("korRecensionsfoton", () => {
     expect(f.sparade).toEqual([]);
   });
 
+  it("en dold rad (en annan artikels recension) får inga foton", async () => {
+    const f = fejk({ rader: [rad({ status: "rejected", doldAv: "annan_artikel" })] });
+    const s = await korRecensionsfoton(f.deps, { dryRun: false, fran: 0, budgetMs: 60_000 });
+    expect(s).toMatchObject({ attRatta: 0, rattade: 0 });
+    expect(f.sparade).toEqual([]);
+  });
+
   it("skarpt: raden får fotona i Wix, och resten av raden är orörd", async () => {
     const f = fejk();
     const s = await korRecensionsfoton(f.deps, { dryRun: false, fran: 0, budgetMs: 60_000 });

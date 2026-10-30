@@ -318,7 +318,7 @@ describe("☠️ svaret", () => {
 
 describe("steg 8: betyget, syskonen och recensionerna", () => {
   const syskon = (...n: number[]) => n.map((m) => ({ sku: sku(m), webbId: String(m).padStart(12, "0"), kanKopas: true }));
-  const rec = (text: string) => ({ betyg: 5, text, datum: "2026-09-01", namn: "Test P." });
+  const rec = (text: string, artikel: string | null = null) => ({ betyg: 5, text, datum: "2026-09-01", namn: "Test P.", artikel });
 
   it("☠️ lågt betyg med minst fem recensioner importeras inte, och en avläsning utan betyg väntar", async () => {
     lagg(1, { betyg: { snitt: 3.5, antal: 196 } });
@@ -330,21 +330,18 @@ describe("steg 8: betyget, syskonen och recensionerna", () => {
     expect(importera).toHaveBeenCalledTimes(1);
   });
 
-  it("☠️ en avläsning utan specifikation från före 2026-10-30 väntar, och syskonet följer ändå med", async () => {
+  it("☠️ en avläsning utan specifikation från före 2026-10-30 väntar, och ett sådant syskon får familjen att vänta", async () => {
     lagg(1, { spec: [], punkter: [] });
     lagg(2, { spec: [], punkter: [], specKalla: null });
     lagg(3, { egenskaper: [["Typ", "A"]], syskon: syskon(4) });
     lagg(4, { egenskaper: [["Typ", "B"]], syskon: syskon(3), spec: [], punkter: [] });
     const s = await korVevorImport(deps(), schema);
-    // Artikel 1 väntar. Artikel 4 räknas också när den granskas för sig, men
-    // den har redan följt med familjen.
-    expect(s.hinder).toMatchObject({ spec_okant: 2 });
-    // Artikel 2 (den lagade läsaren, sidan utan specifikation) och familjen 3+4.
-    expect(importera).toHaveBeenCalledTimes(2);
-    expect(importera.mock.calls.map((c) => c[0].variants.map((v: { supplierVariantId: string }) => v.supplierVariantId))).toEqual([
-      [sku(2)],
-      [sku(3), sku(4)],
-    ]);
+    // Artikel 1 och 4 väntar på sin specifikation, och familjen 3+4 väntar på
+    // syskonet: familjens flik visar varje varians värde (2026-10-30).
+    expect(s.hinder).toMatchObject({ spec_okant: 2, syskon_vantar: 1 });
+    // Bara artikel 2 (den lagade läsaren, sidan utan specifikation).
+    expect(importera).toHaveBeenCalledTimes(1);
+    expect(importera.mock.calls[0][0].variants.map((v: { supplierVariantId: string }) => v.supplierVariantId)).toEqual([sku(2)]);
   });
 
   it("syskonen blir EN produkt med en variant per artikel, och ett syskon som är slut följer med", async () => {
@@ -464,9 +461,9 @@ describe("steg 8: betyget, syskonen och recensionerna", () => {
   });
 
   it("recensionerna från hela familjen sparas på produkten, och ett fel där fäller inte importen", async () => {
-    lagg(1, { egenskaper: [["Typ", "A"]], syskon: syskon(2), recensioner: [rec("Stabil vagn, rullar fint i sanden.")] });
-    lagg(2, { egenskaper: [["Typ", "B"]], syskon: syskon(1), recensioner: [rec("Bra pris och snabb montering, nöjd.")] });
-    lagg(3, { recensioner: [rec("Fungerar som den ska efter en månad.")] });
+    lagg(1, { egenskaper: [["Typ", "A"]], syskon: syskon(2), recensioner: [rec("Stabil vagn, rullar fint i sanden.", sku(1))] });
+    lagg(2, { egenskaper: [["Typ", "B"]], syskon: syskon(1), recensioner: [rec("Bra pris och snabb montering, nöjd.", sku(2))] });
+    lagg(3, { recensioner: [rec("Fungerar som den ska efter en månad.", sku(3))] });
     sparaRecensioner.mockImplementationOnce(async (_id: string, r: unknown[]) => r.length).mockRejectedValueOnce(new Error("Wix svarade inte"));
     const s = await korVevorImport(deps(), schema);
     expect(sparaRecensioner).toHaveBeenCalledTimes(2);
@@ -475,6 +472,29 @@ describe("steg 8: betyget, syskonen och recensionerna", () => {
       "Bra pris och snabb montering, nöjd.",
     ]);
     expect(s).toMatchObject({ importerade: 2, fel: 0, recensioner: { lasta: 3, sparade: 2, produkter: 1, fel: 1 } });
+  });
+
+  it("☠️ bara recensioner om produktens egna artiklar sparas (2026-10-30)", async () => {
+    // VEVOR visar familjens recensioner på varje artikel: här en recension av
+    // en annan artikel och en vars artikel inte går att avgöra.
+    lagg(1, {
+      recensioner: [
+        rec("Stabil vagn, rullar fint i sanden.", sku(1)),
+        rec("Den större modellen är bättre.", sku(9)),
+        rec("Vet inte vilken jag köpte.", null),
+      ],
+    });
+    const s = await korVevorImport(deps(), schema);
+    expect(sparaRecensioner.mock.calls[0][1].map((r: { text: string }) => r.text)).toEqual(["Stabil vagn, rullar fint i sanden."]);
+    expect(s.recensioner).toMatchObject({ lasta: 1, sparade: 1 });
+  });
+
+  it("☠️ en avläsning som inte säger vilken artikel recensionerna gäller väntar på nästa läsning", async () => {
+    lagg(1, { recensioner: [{ betyg: 5, text: "Från den gamla läsaren.", datum: null, namn: null }] });
+    lagg(2, { recensioner: [] });
+    const s = await korVevorImport(deps(), schema);
+    expect(s.hinder).toMatchObject({ recension_okand: 1 });
+    expect(importera).toHaveBeenCalledTimes(1);
   });
 
   it("en produkt utan recensioner anropar inte recensionslagret", async () => {

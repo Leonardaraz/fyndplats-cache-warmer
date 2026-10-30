@@ -1,0 +1,66 @@
+name: VEVOR — recensioner om en annan artikel
+
+# Döljer VEVOR-recensioner som gäller en annan artikel än produktens
+# (lib/vevor/recensionsartikel.ts). VEVOR visar en familjs recensioner på varje
+# artikel i familjen. Artikeln står i avläsningarna, så en sida måste ha lästs
+# om efter 2026-10-30. Läsaren läser varje utkast ungefär en gång per dygn.
+#
+#   plan   räknar rader att dölja och att visa igen. Skriver ingenting.
+#   skriv  döljer och visar, i varv tills alla produkter är genomgångna. Bara
+#          väntande rader döljs, och bara rader verktyget dolt visas igen.
+#
+# Kör den före "VEVOR — recensionernas foton", så att dolda rader inte får foton.
+#
+# Skriver bara antal och Wix-id. Repot är publikt.
+
+on:
+  workflow_dispatch:
+    inputs:
+      lage:
+        description: "plan eller skriv"
+        required: true
+        default: plan
+        type: choice
+        options: [plan, skriv]
+
+jobs:
+  kor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          LAGE: ${{ inputs.lage }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # Till STDERR: en ::error::-rad på stdout slukas av kommandosubstitutionen.
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          rot="${BASE%/api/cron/poll-tracking}"
+          torr=true
+          [ "$LAGE" = "skriv" ] && torr=false
+
+          fran=0
+          for varv in $(seq 1 60); do
+            svar=$(curl -sS --max-time 320 -X POST -H "Authorization: Bearer ${CRON_SECRET}" \
+              -H "Content-Type: application/json" -d "{\"dryRun\":${torr},\"fran\":${fran}}" \
+              "${rot}/api/admin/vevor-recensionsartikel") || { echo "::error::Anropet gick inte fram" >&2; exit 1; }
+            if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+              echo "::error::$(echo "$svar" | jq -r '.error // "okänt fel"')" >&2; exit 1
+            fi
+            echo "Varv ${varv}:"
+            echo "$svar" | jq -c '{granskade, produkter, vantar, rader, egna, attDolja, dolda, redanDolda, attVisa, visade, synligaAnnan, avvisadeAvManniska, okanda, fel, kvarFran}'
+            nasta=$(echo "$svar" | jq -r '.kvarFran')
+            if [ "$nasta" = "null" ]; then
+              echo "Klart."
+              exit 0
+            fi
+            fran="$nasta"
+          done
+          echo "::error::Inte klart efter 60 varv" >&2
+          exit 1

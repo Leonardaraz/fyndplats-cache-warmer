@@ -65,9 +65,17 @@ export type Hinder =
    * läsning (`spechinder`).
    */
   | "spec_okant"
+  /**
+   * Avläsningen gjordes före 2026-10-30 och säger inte vilken artikel varje
+   * recension gäller: väntar på nästa läsning (`recensionshinder`).
+   */
+  | "recension_okand"
   /** Familjen finns redan som en produkt, utan den här artikeln (lib/vevor/import.ts). */
   | "syskon_finns"
-  /** Ett syskon har inte lästs om med betyg, eller inte lästs alls men står i läsarens kö. */
+  /**
+   * Ett syskon har inte lästs om med betyg, specifikation eller recensionernas
+   * artikel, eller inte lästs alls men står i läsarens kö.
+   */
   | "syskon_vantar";
 
 /**
@@ -101,7 +109,18 @@ export function importhinder(a: Avlasning, nu: number): Hinder | null {
   if (!Number.isFinite(alder) || alder > MAX_ALDER_IMPORT_MS || alder < -60_000) return "gammal";
   if (!a.levererasTillSe || a.flode !== VART_FLODE || a.status === "ej_levererbar") return "ej_levererbar";
   if (a.status !== "i_lager" || !(a.saldo > 0)) return "ej_i_lager";
-  return betygshinder(a) ?? spechinder(a);
+  return betygshinder(a) ?? spechinder(a) ?? recensionshinder(a);
+}
+
+/**
+ * Recensionernas hinder, eller null. Läsaren sparar sedan 2026-10-30 vilken
+ * artikel varje recension gäller (`artikel`, lib/vevor/sida.ts), och importen
+ * tar bara recensioner om artiklar som finns på produkten. En avläsning från
+ * före saknar fältet och väntar på nästa läsning, som sker inom ett dygn:
+ * importerades den hade produkten blivit utan sina recensioner för gott.
+ */
+export function recensionshinder(a: Pick<Avlasning, "recensioner">): "recension_okand" | null {
+  return (a.recensioner ?? []).some((r) => r.artikel === undefined) ? "recension_okand" : null;
 }
 
 /**
@@ -121,12 +140,15 @@ export function spechinder(a: Pick<Avlasning, "spec" | "punkter" | "specKalla">)
  * Som `importhinder`, men för ett syskon som följer med en familj: en artikel
  * som är slut följer med med saldo 0, så att den inte blir en egen produkt när
  * den kommer tillbaka.
+ *
+ * ☠️ Ett syskon behöver sin specifikation (sedan 2026-10-30): familjens flik
+ * visar varje varians värde på en rad som skiljer (`familjensSpec`). Och det
+ * behöver recensionernas artikel, eftersom familjen tar recensioner om sina
+ * egna artiklar ur varje syskons avläsning.
  */
 export function medlemshinder(a: Avlasning, nu: number): Hinder | null {
   const h = importhinder(a, nu);
-  // Familjen visar ankarets text och specifikation, aldrig syskonets, så ett
-  // syskon behöver ingen specifikation för att följa med.
-  return h === "ej_i_lager" || h === "spec_okant" ? betygshinder(a) : h;
+  return h === "ej_i_lager" ? (betygshinder(a) ?? spechinder(a) ?? recensionshinder(a)) : h;
 }
 
 /** Inköpet i dollar, som pipelinen räknar tillbaka till landad kostnad i kronor. */
@@ -140,8 +162,16 @@ export function kostnadUsd(a: Pick<Avlasning, "prisSek">, pris: Prisunderlag): n
  * aldrig (lib/import/review-import.ts härleder initialer). Språket är okänt:
  * sidan blandar spanska, tyska och engelska.
  */
-export function vevorRecensioner(a: Pick<Avlasning, "recensioner">): AERReview[] {
-  return (a.recensioner ?? []).map((r) => ({
+/**
+ * Avläsningens recensioner för importen. Med `artiklar` bara de som gäller en
+ * av dem: VEVOR visar en familjs recensioner på varje artikel i familjen, och
+ * en recension av en annan storlek eller vara hör inte hemma på produkten. En
+ * recension vars artikel inte går att avgöra tas inte med.
+ */
+export function vevorRecensioner(a: Pick<Avlasning, "recensioner">, artiklar?: ReadonlySet<string>): AERReview[] {
+  return (a.recensioner ?? [])
+    .filter((r) => !artiklar || (typeof r.artikel === "string" && artiklar.has(r.artikel)))
+    .map((r) => ({
     rating: r.betyg,
     text: r.text,
     ...(r.datum ? { date: r.datum } : {}),
