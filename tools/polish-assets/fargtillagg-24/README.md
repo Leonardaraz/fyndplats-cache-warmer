@@ -70,3 +70,16 @@ Rättningen är bildplanen `tools/polish-assets/runda-alt-massagefatolj/bildplan
 oförändrad ordning, med samma fil-id, och ändrar bara texten på plats 9 och 10. Ingen färg
 nämns i den nya texten på plats 9, så bildens ägare ändras inte av ordval (en olänkad bild
 som nämner en färg hör till den färgen), och bilden är dessutom länkad till Mörkgrå.
+
+### Utfall
+
+- Torrkörning (run 41048474765): 1 av 1 sida läst, 11 bilder, ingen länkad bild tappas.
+- Skarpt (run 41048730550, 11:32 UTC, utanför Aosoms synkfönster): 1 av 1 skriven, `variantbilder:
+  1 rättad, 0 kvar, 0 avvikelser`, återläsningen ok med 11 bilder. Wix revision 35 → 37.
+- Egen läsning i Wix efteråt: galleriet har samma elva fil-id i samma ordning, bara alt-texten på
+  plats 9 och 10 skiljer från före. Valens länkar är oförändrade (Svart sex, Mörkgrå fem), båda
+  varianterna är synliga med sina SKU och priser (2 399 och 2 519 kr), varje variants bild är sin
+  färgs första (`c5410a` och `91ecf4`), produktens namn, adress och synlighet är orörda.
+- Live (butikens cache byggd om 11:36 UTC): sidans `images` har 11 bilder, `imageOwners` Svart sex
+  och Mörkgrå fem, och alla elva `imageAlts` är lika med Wix. I en webbläsare visar Svart #1–#6 och
+  Mörkgrå #7–#11, med priserna 2 399 och 2 519 kr.
