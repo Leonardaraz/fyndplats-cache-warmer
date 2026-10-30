@@ -402,6 +402,10 @@ STAV_ORD = [
     # Samma klass som runda G:s döda `gungstol(?=en\b)(?!)`.
     "[Kk]ippskydd", "[Kk]ippsäker", "[Kk]ippsäkert",
     "siddehøjde", "ryglæn", r"fod(?=en\b)",
+    # "ektopp" är inget svenskt ord: det står för en topp i ekoptik och gick
+    # igenom tre rundor (N110, N329) utan att någon grind såg det, eftersom
+    # det ser ut som en sammansättning. Skriv "topp i ekoptik" eller "ekfärgad topp".
+    "ektopp",
 ]
 STAV = r"\b(" + "|".join(STAV_ORD) + r")\b"
 
