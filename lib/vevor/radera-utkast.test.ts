@@ -119,10 +119,13 @@ describe("raderingen av opolerade VEVOR-utkast", () => {
     expect((await raderaOpoleradeUtkast(deps(), skarp(10))).raderade).toBe(3);
   });
 
-  it("☠️ importen måste vara avstängd", async () => {
+  it("☠️ importen måste vara avstängd för en skarp körning, men planen går att läsa med den på", async () => {
     tillstand.aktiv = true;
     await expect(raderaOpoleradeUtkast(deps(), skarp(3))).rejects.toThrow(/importen är påslagen/);
-    await expect(raderaOpoleradeUtkast(deps(), { dryRun: true, bekrafta: null, budgetMs: 1 })).rejects.toBeInstanceOf(RaderingsFel);
+    expect(raderaProdukt).not.toHaveBeenCalled();
+    const plan = await raderaOpoleradeUtkast(deps(), { dryRun: true, bekrafta: null, budgetMs: 1 });
+    expect(plan).toMatchObject({ dryRun: true, raderbara: 3, importAktiv: true, raderade: 0 });
+    expect(raderaProdukt).not.toHaveBeenCalled();
   });
 
   it("stannar på tidsbudgeten och säger hur många som är kvar", async () => {

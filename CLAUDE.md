@@ -6966,7 +6966,8 @@ opolerade utkast"** (`plan` · `radera`) → `/api/admin/vevor-utkast-radera` �
 3. ☠️ En radering räknas först när en läsning svarar 404. Annars ligger raden
    kvar, och tre i följd stoppar.
 4. ☠️ En produkt som en order pekar på rörs inte.
-5. ☠️ Importen måste vara avstängd.
+5. ☠️ Importen måste vara avstängd för en skarp körning. Planen (torrt) går att köra
+   med importen på och säger `importAktiv`.
 6. ☠️ `radera` kräver `bekrafta` = planens antal. Följande varv får ha färre,
    aldrig fler.
 7. Mappningsraden tas bort (`Store.deleteMapping`), och när allt är raderat

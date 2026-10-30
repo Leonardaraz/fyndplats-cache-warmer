@@ -56,7 +56,7 @@ jobs:
           }
 
           visa() {
-            echo "$1" | jq '{dryRun, utkast, raderbara, hinder, raderade, fannsInte, obekraftade, fel, kvar, importNollstalld, stoppadAv, hoppade}' || true
+            echo "$1" | jq '{dryRun, importAktiv, utkast, raderbara, hinder, raderade, fannsInte, obekraftade, fel, kvar, importNollstalld, stoppadAv, hoppade}' || true
           }
 
           if [ "$LAGE" = "plan" ]; then

@@ -17,8 +17,10 @@
 //    obekräftad radering tar inte bort mappningsraden, och tre i följd stoppar
 //    körningen.
 // 4. ☠️ En produkt som någon order pekar på rörs inte.
-// 5. ☠️ Importen måste vara avstängd. Annars kan den skapa nya utkast medan
-//    de gamla raderas.
+// 5. ☠️ Importen måste vara avstängd för en skarp körning. Annars kan den
+//    skapa nya utkast medan de gamla raderas. Planen (torrt) går att köra med
+//    importen på och säger då `importAktiv`, så att planen kan läsas innan
+//    importen stängs av.
 // 6. ☠️ Godkännandet är planens antal. Första varvet kräver `bekrafta` lika
 //    med antalet raderbara, och följande varv får ha färre men aldrig fler.
 // 7. När allt är raderat nollställs importens markör, så att nästa varv
@@ -80,6 +82,8 @@ export interface UtkastRaderingSvar {
   /** Raderbara som inte hanns med i körningen. */
   kvar: number;
   importNollstalld: boolean;
+  /** Importen var påslagen. En skarp körning vägras då. */
+  importAktiv: boolean;
   stoppadAv: "klart" | "tidsbudget" | "obekraftade" | null;
   /** Upp till tjugo Wix-id för produkter som hoppades över för att de är synliga eller har en order. */
   hoppade: string[];
@@ -99,7 +103,6 @@ export async function raderaOpoleradeUtkast(
   const nu = deps.nu ?? (() => Date.now());
   const start = nu();
   const t = await deps.lasImport();
-  if (t.aktiv) throw new RaderingsFel("importen är påslagen: stäng av den först (workflowen \"VEVOR — importen\", läget av)");
 
   const utkast = (await deps.mappningar()).filter(
     (m) => arOpoleratVevorUtkast(m) && (!val.urval || val.urval.has(m.wixProductId)),
@@ -117,10 +120,12 @@ export async function raderaOpoleradeUtkast(
     fel: 0,
     kvar: raderbara.length,
     importNollstalld: false,
+    importAktiv: t.aktiv,
     stoppadAv: null,
     hoppade: utkast.filter((m) => iOrder.has(m.wixProductId)).map((m) => m.wixProductId).slice(0, 20),
   };
   if (val.dryRun) return svar;
+  if (t.aktiv) throw new RaderingsFel("importen är påslagen: stäng av den först (workflowen \"VEVOR — importen\", läget av)");
   if (val.bekrafta === null || !Number.isInteger(val.bekrafta) || val.bekrafta < 0) {
     throw new RaderingsFel("en skarp körning kräver bekrafta: planens antal raderbara");
   }

@@ -13,7 +13,9 @@
 //      visades bara när texterna skilde sig, vilket de aldrig gör för en
 //      nyimporterad rad — så en engelsk recension såg identisk ut med en färdig.
 import { getReviewStore, type ReviewStatus, type StoredReview } from "@/lib/store/reviews";
-import { getStore } from "@/lib/store/factory";
+import { searchProductSummaries, type WixProductSummary } from "@/lib/wix/client";
+import { storeProductUrl } from "@/lib/admin-links";
+import { reviewImages } from "@/lib/reviews/images";
 import { reviewDisplayMode } from "@/lib/import/review-display";
 import { isAwaitingTranslation, isCustomerReview } from "@/lib/reviews/queue";
 import { buildTranslatePrompt, groupForTranslation, TRANSLATE_BATCH } from "@/lib/reviews/translate";
@@ -158,11 +160,10 @@ export default async function ReviewsAdminPage({
   let egnaKunder = 0;
   let totalt = 0;
   let loadError: string | null = null;
-  const nameById = new Map<string, string>();
 
   try {
     const lager = getReviewStore();
-    const [pending, approved, edited, rejected, kunder, alla, kö, flik, mappings] = await Promise.all([
+    const [pending, approved, edited, rejected, kunder, alla, kö, flik] = await Promise.all([
       lager.rakna({ status: "pending" }),
       lager.rakna({ status: "approved" }),
       lager.rakna({ status: "edited" }),
@@ -177,14 +178,12 @@ export default async function ReviewsAdminPage({
           : valdStatus === "alla"
             ? lager.listAll()
             : lager.listByStatus(valdStatus),
-      getStore().listMappings(),
     ]);
     counts = { pending, approved, edited, rejected };
     egnaKunder = kunder;
     totalt = alla;
     väntande = kö;
     reviews = flik ?? kö;
-    for (const m of mappings) nameById.set(m.wixProductId, m.seoTitle ?? m.wixProductId);
   } catch (err) {
     loadError = err instanceof Error ? err.message : String(err);
   }
@@ -205,7 +204,24 @@ export default async function ReviewsAdminPage({
   const kö = väntande.filter(isAwaitingTranslation);
   const oversattaKvar = kö.length;
   const köKapad = väntande.length < counts.pending;
-  const omgång = groupForTranslation(kö, (id) => nameById.get(id), TRANSLATE_BATCH);
+
+  // Produktens namn och adress som de står i BUTIKEN, inte importens titel
+  // (mappningens seoTitle är leverantörens text från importen, Leonard
+  // 2026-10-30). Bara för produkterna som syns här: högst MAX_RENDER rader och
+  // en översättningsomgång, alltså några få anrop om 100.
+  let produkter = new Map<string, WixProductSummary>();
+  let namnFel: string | null = null;
+  try {
+    produkter = await searchProductSummaries([
+      ...visade.map((r) => r.productId),
+      ...kö.slice(0, TRANSLATE_BATCH).map((r) => r.productId),
+    ]);
+  } catch (err) {
+    namnFel = err instanceof Error ? err.message : String(err);
+  }
+  const namnFor = (id: string) => produkter.get(id)?.name?.trim() || undefined;
+
+  const omgång = groupForTranslation(kö, namnFor, TRANSLATE_BATCH);
   const omgångAntal = omgång.reduce((n, g) => n + g.rader.length, 0);
   const översättPrompt = omgångAntal > 0 ? buildTranslatePrompt(omgång) : "";
 
@@ -230,6 +246,12 @@ export default async function ReviewsAdminPage({
           <br />
           (Kollektionen <code>FyndplatsImportedReviews</code> skapas via{" "}
           <code>node scripts/ensure-reviews-collection.mjs</code> — tom tills första importen.)
+        </p>
+      ) : null}
+
+      {namnFel ? (
+        <p style={{ background: "#fffbeb", color: "#92400e", padding: "8px 12px", borderRadius: 8, fontSize: 13 }}>
+          Kunde inte läsa produktnamnen ur butiken, så raderna visar produktens id. ({namnFel.slice(0, 160)})
         </p>
       ) : null}
 
@@ -393,16 +415,16 @@ export default async function ReviewsAdminPage({
       <table style={{ width: "100%", fontSize: 13, borderCollapse: "collapse", marginTop: 12 }}>
         <thead>
           <tr style={{ textAlign: "left", borderBottom: "2px solid #ddd" }}>
-            <th style={{ padding: "8px 4px" }}>Status</th>
-            <th style={{ padding: "8px 4px" }}>Produkt / källa</th>
-            <th style={{ padding: "8px 4px" }}>Recension</th>
-            <th style={{ padding: "8px 4px" }}>Åtgärd</th>
+            <th style={{ padding: "10px 8px", width: 96 }}>Status</th>
+            <th style={{ padding: "10px 8px", width: 260 }}>Produkt</th>
+            <th style={{ padding: "10px 8px" }}>Recension</th>
+            <th style={{ padding: "10px 8px", width: 150 }}>Åtgärd</th>
           </tr>
         </thead>
         <tbody>
           {visade.map((r) => (
-            <tr key={`${r.productId}__${r.reviewIdAE}`} style={{ borderBottom: "1px solid #f1f1f1", verticalAlign: "top" }}>
-              <td style={{ padding: "10px 4px" }}>
+            <tr key={`${r.productId}__${r.reviewIdAE}`} style={{ borderBottom: "1px solid #e5e7eb", verticalAlign: "top" }}>
+              <td style={{ padding: "14px 8px" }}>
                 <StatusPill status={r.status} />
                 {isAwaitingTranslation(r) ? (
                   <div
@@ -421,45 +443,17 @@ export default async function ReviewsAdminPage({
                   </div>
                 ) : null}
               </td>
-              <td style={{ padding: "10px 4px", maxWidth: 200 }}>
-                <div>
-                  {nameById.get(r.productId) ?? <code>{r.productId}</code>}
-                  {/* FÖRSTAHANDSDATA. Enda spåret av att raden kom från en av
-                      butikens egna kunder var tidigare prefixet "kund-" inne i
-                      dokument-id:t — man fick läsa id-strängen. De här raderna
-                      är dessutom de enda som någonsin får räknas in i
-                      aggregateRating mot Google, så de är värda mest. */}
-                  {isCustomerReview(r) ? (
-                    <span
-                      title="Skriven av en kund som handlat hos oss — verifierat köp"
-                      style={{
-                        marginLeft: 6, fontSize: 11, fontWeight: 700,
-                        color: "#166534", background: "#dcfce7",
-                        borderRadius: 4, padding: "1px 5px", whiteSpace: "nowrap",
-                      }}
-                    >
-                      ✓ Egen kund
-                    </span>
-                  ) : null}
-                </div>
-                <div style={{ color: "#9ca3af", fontSize: 11 }}>
-                  Wix Data: <code>FyndplatsImportedReviews/{r.productId}__{r.reviewIdAE}</code>
-                </div>
-                <div style={{ color: "#9ca3af", fontSize: 11 }}>
-                  {r.initials} · {"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}
-                  {r.date ? ` · ${r.date.slice(0, 10)}` : ""}
-                  {r.sourceLanguage ? ` · ${r.sourceLanguage}` : ""}
-                  {r.customerCountry ? ` · ${r.customerCountry}` : ""}
-                  {r.hasImage ? " · 📷" : ""}
-                </div>
+              <td style={{ padding: "14px 8px" }}>
+                <Produktcell r={r} produkt={produkter.get(r.productId)} />
               </td>
-              <td style={{ padding: "10px 4px", maxWidth: 380 }}>
-                <p style={{ margin: "0 0 4px" }}>{r.textSwedish}</p>
+              <td style={{ padding: "14px 8px", maxWidth: 440 }}>
+                <p style={{ margin: "0 0 6px", fontSize: 14, lineHeight: 1.5, color: "#111827" }}>{r.textSwedish}</p>
                 {r.textOriginal !== r.textSwedish ? (
-                  <p style={{ margin: 0, color: "#9ca3af", fontSize: 11, fontStyle: "italic" }}>
+                  <p style={{ margin: "0 0 6px", color: "#6b7280", fontSize: 12, fontStyle: "italic" }}>
                     Original: {r.textOriginal}
                   </p>
                 ) : null}
+                <Foton r={r} />
                 <details style={{ marginTop: 6 }}>
                   <summary style={{ fontSize: 11, color: "#6b7280", cursor: "pointer" }}>Redigera text</summary>
                   <form action={editReviewText} style={{ marginTop: 6 }}>
@@ -475,7 +469,7 @@ export default async function ReviewsAdminPage({
                   </form>
                 </details>
               </td>
-              <td style={{ padding: "10px 4px", whiteSpace: "nowrap" }}>
+              <td style={{ padding: "14px 8px", whiteSpace: "nowrap" }}>
                 {r.status !== "approved" ? (
                   <form action={setReviewStatus.bind(null, r.productId, r.reviewIdAE, "approved")} style={{ display: "inline" }}>
                     {/* Knappen finns kvar även för oöversatta rader — en del
@@ -514,6 +508,103 @@ export default async function ReviewsAdminPage({
         <p style={{ color: "#888" }}>Inget med den statusen.</p>
       ) : null}
     </main>
+  );
+}
+
+/** Källan i klartext. Butikens egna kunder är förstahandsdata och märks grönt. */
+function kallaFor(r: StoredReview): { text: string; bg: string; fg: string } {
+  if (isCustomerReview(r)) return { text: "✓ Egen kund", bg: "#dcfce7", fg: "#166534" };
+  const k = String(r.source ?? "").toLowerCase();
+  if (k === "aosom") return { text: "Aosom", bg: "#f3f4f6", fg: "#374151" };
+  if (k === "vevor") return { text: "VEVOR", bg: "#f3f4f6", fg: "#374151" };
+  if (k === "" || k === "aliexpress") return { text: "AliExpress", bg: "#f3f4f6", fg: "#374151" };
+  return { text: k, bg: "#f3f4f6", fg: "#374151" };
+}
+
+/**
+ * Produktens namn som det står i butiken, med länk till sidan när den är
+ * publicerad. Under: källan, stjärnorna, initialerna och datumet. Det tekniska
+ * id:t ligger i en hopfälld rad, eftersom det bara behövs vid felsökning.
+ */
+function Produktcell({ r, produkt }: { r: StoredReview; produkt?: WixProductSummary }) {
+  const namn = produkt?.name?.trim();
+  const url = produkt?.visible ? storeProductUrl(produkt.slug) : "";
+  const kalla = kallaFor(r);
+  const betyg = Math.max(0, Math.min(5, Math.round(r.rating || 0)));
+  return (
+    <div style={{ display: "grid", gap: 6 }}>
+      <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.35, color: "#111827" }}>
+        {namn ? (
+          url ? (
+            <a href={url} target="_blank" rel="noreferrer" style={{ color: "#111827" }}>
+              {namn}
+            </a>
+          ) : (
+            namn
+          )
+        ) : (
+          <span style={{ color: "#9ca3af", fontWeight: 400 }}>Produkten finns inte i butiken</span>
+        )}
+        {produkt && !produkt.visible ? (
+          <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 600, color: "#6b7280" }}>(dold)</span>
+        ) : null}
+      </div>
+      <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", fontSize: 13 }}>
+        <span
+          style={{
+            fontSize: 11, fontWeight: 700, color: kalla.fg, background: kalla.bg,
+            borderRadius: 4, padding: "2px 6px", whiteSpace: "nowrap",
+          }}
+        >
+          {kalla.text}
+        </span>
+        <span style={{ color: "#d97706", letterSpacing: 1 }} aria-label={`${betyg} av 5`}>
+          {"★".repeat(betyg)}
+          <span style={{ color: "#d1d5db" }}>{"★".repeat(5 - betyg)}</span>
+        </span>
+      </div>
+      <div style={{ fontSize: 12, color: "#4b5563" }}>
+        {r.initials}
+        {r.date ? ` · ${r.date.slice(0, 10)}` : ""}
+        {r.kopt ? ` · Köpt: ${r.kopt}` : ""}
+        {r.sourceLanguage ? ` · ${r.sourceLanguage}` : ""}
+      </div>
+      <details>
+        <summary style={{ fontSize: 11, color: "#9ca3af", cursor: "pointer" }}>Teknisk info</summary>
+        <div style={{ fontSize: 11, color: "#6b7280", wordBreak: "break-all", marginTop: 4 }}>
+          Produkt-id: <code>{r.productId}</code>
+          <br />
+          Rad: <code>{r.productId}__{r.reviewIdAE}</code>
+          {r.customerCountry ? (
+            <>
+              <br />
+              Land: {r.customerCountry}
+            </>
+          ) : null}
+        </div>
+      </details>
+    </div>
+  );
+}
+
+/** Kundens foton som små bilder, med länk till originalet. */
+function Foton({ r }: { r: StoredReview }) {
+  const bilder = reviewImages(r).slice(0, 6);
+  if (bilder.length === 0) return null;
+  return (
+    <div style={{ display: "flex", gap: 6, flexWrap: "wrap", margin: "2px 0 6px" }}>
+      {bilder.map((src) => (
+        <a key={src} href={src} target="_blank" rel="noreferrer">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={src}
+            alt=""
+            loading="lazy"
+            style={{ width: 64, height: 64, objectFit: "cover", borderRadius: 6, border: "1px solid #e5e7eb" }}
+          />
+        </a>
+      ))}
+    </div>
   );
 }
 
