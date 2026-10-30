@@ -28,6 +28,9 @@ function levererat(re: RegExp): RegExp {
   return new RegExp(`^(?![\\s\\S]*(?:${INTE_LEVERERAT.source}))[\\s\\S]*(?:${re.source})`, "i");
 }
 
+/** Ett mejl från transportören till mottagaren. Se NOTISFRASER. */
+export const MEJL_FRAS = "Du har fått ett mejl om paketet.";
+
 export const PHRASE_SV: Array<[RegExp, string]> = [
   // — Förberedelse / registrering —
   [/we have received a notification from your shipper.*preparing an item/i,
@@ -86,6 +89,13 @@ export const PHRASE_SV: Array<[RegExp, string]> = [
   [levererat(/delivered to[^.]*(mailbox|recipient|address)|recipient'?s mailbox|left (in|at)[^.]*mailbox|delivered to (the )?door/),
     "Paketet har levererats till mottagarens brevlåda."],
   [levererat(/delivered|delivery completed|delivery successful|successfully delivered/), "Paketet är levererat."],
+  // — Meddelanden till mottagaren —
+  // ☠️ MÅSTE ligga före avvikelserna. PostNord skrev "E-mail notification has
+  // been sent to the recipient" tre gånger om order 10111 (2026-10-28 och
+  // -29), 17TRACK kallade händelserna Exception_Delayed, och /sparning sa
+  // "Det har uppstått en avvikelse i leveransen." om ett mejl till kunden.
+  [/\be-?mail notification\b|notified by e-?mail|e-?mail (has been )?sent to the (recipient|receiver|consignee)/i,
+    MEJL_FRAS],
   // — Avvikelser / retur —
   [/delivery[^.]*(failed|unsuccessful|attempt)|failed delivery|unable to deliver|no.?one (was )?(home|available)/i,
     "Leveransförsök misslyckades – ny leverans planeras."],
@@ -416,6 +426,21 @@ const LEVERANSFRASER = new Set(["Paketet har levererats till mottagarens brevlå
 const AVI = /\b(?:notif(?:y|ied|ication)|notice|reminder)\b/i;
 
 export const AVI_FRAS = "Du har fått en avi om paketet.";
+
+/** Fraserna som säger att mottagaren fått ett meddelande om paketet. En sådan
+ *  händelse är ingen avvikelse, vad 17TRACK:s stage än säger. */
+export const NOTISFRASER: ReadonlySet<string> = new Set([AVI_FRAS, MEJL_FRAS]);
+
+/**
+ * Paketets status med ett meddelande till kunden räknat som det det är.
+ * ☠️ 17TRACK sätter Exception när den senaste händelsen är ett mejl eller en
+ * avi till kunden (order 10111, 2026-10-28), och /sparning sa då "Behöver
+ * kollas" om ett paket som rörde sig som det skulle. Är den senaste händelsen
+ * ett sådant meddelande är paketet på väg. Annars står statusen kvar.
+ */
+export function statusUtanNotis(status: string, senasteBeskrivning: string | undefined): string {
+  return status === "Exception" && NOTISFRASER.has(senasteBeskrivning ?? "") ? "InTransit" : status;
+}
 
 /**
  * matchPhrase, kontrollerad mot händelsens stage hos 17TRACK.
