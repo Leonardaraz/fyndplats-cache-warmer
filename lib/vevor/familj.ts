@@ -230,6 +230,18 @@ export function familjensBilder(
 }
 
 /**
+ * Familjens specifikation: ankarets tabell utan axlarnas rader. Värdena på
+ * axlarna står i väljaren, och en axel med samma värde för alla lägger
+ * pipelinen till som en rad (lib/import/constant-axes.ts).
+ */
+export function familjensSpec(ankare: Pick<Avlasning, "spec">, axlar: readonly string[]): Record<string, string> {
+  const a = new Set(axlar.map((k) => k.toLowerCase()));
+  return Object.fromEntries(
+    Object.entries(specifikation({ spec: ankare.spec, egenskaper: [] })).filter(([k]) => !a.has(k.trim().toLowerCase())),
+  );
+}
+
+/**
  * Familjen som pipelinens produkt: ankarets text och specifikation, och en
  * variant per artikel med dess egna värden, saldo och inköp.
  *
@@ -249,10 +261,7 @@ export function vevorFamiljeProdukt(
 ): AliExpressProduct {
   const [ankare] = f.medlemmar;
   const bas = vevorProdukt(ankare, pris, bilder);
-  const axlar = new Set(f.axlar.map((k) => k.toLowerCase()));
-  const spec = Object.fromEntries(
-    Object.entries(specifikation({ spec: ankare.spec, egenskaper: [] })).filter(([k]) => !axlar.has(k.trim().toLowerCase())),
-  );
+  const spec = familjensSpec(ankare, f.axlar);
   const varianter = f.medlemmar.map((m) => {
     const v = egenskaperFor(m);
     return {

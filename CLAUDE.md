@@ -6332,8 +6332,31 @@ Tre egenskaper som inte ska tas bort:
    familjen visar ankarets text. Annars hade syskonet lämnats utanför, och
    sedan spärrats för alltid som `syskon_finns`.
 
-⚠️ **Utkast som redan importerats utan specifikation är inte lagade.** De står
-kvar utan specifikationsflik och punktlista tills de rättas eller poleras.
+**Utkast som redan importerats utan specifikation rättas med workflowen
+"VEVOR — specifikationen på utkast som saknar den"** (`plan` · `skriv`) →
+`/api/admin/vevor-spec` → `lib/vevor/spec-ratta.ts`. Den lägger fliken
+"Tekniska specifikationer" sist i beskrivningen, med importens egna funktioner
+(`specifikation`, `familjensSpec`, `appendTabSections`), och rör bara
+`plainDescription`. Mätt 2026-10-30 ~17 UTC: **991 av 5 411** opolerade
+VEVOR-utkast saknade fliken, varav 42 familjer. Punktlistan når inte
+beskrivningen i rått läge, så den saknas inte.
+
+Sex egenskaper som inte ska tas bort:
+
+1. ☠️ Bara opolerade, dolda VEVOR-utkast. En polerad eller publicerad sida rörs
+   aldrig.
+2. ☠️ Avläsningen ska vara gjord med den nya läsaren (`specKalla` satt), annars
+   räknas sidan som `ej_omlast`. Kör `skriv` först när `ej_omlast` är nära noll,
+   ungefär ett dygn efter mergen av #832 (utkasten läses en gång per dygn).
+   Planen räknas om i varje varv och får aldrig växa, så en körning medan
+   läsaren läser om stannar med "fler än bekrafta".
+3. ☠️ En sida som redan har fliken rörs inte. Har den fliken men saknar rader
+   räknas den som `flik_utan_rader` och lämnas.
+4. ☠️ Sidan läses färskt före skrivningen och planeras om. En 409 (synken skrev
+   samtidigt) ger en ny läsning, högst tre försök.
+5. ☠️ Återläsning tills revisionen gått fram: dold, fliken finns, varje rad
+   finns och den gamla texten står kvar. Första avvikelse stoppar körningen.
+6. ☠️ Svaret bär bara Wix-id och antal.
 
 ## VEVOR: steg 4, importen som osynliga utkast (2026-10-29)
 
