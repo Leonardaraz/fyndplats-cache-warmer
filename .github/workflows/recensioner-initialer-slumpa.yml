@@ -1,18 +1,33 @@
-name: Recensioner — byt Y, X, Z och W i initialerna mot andra bokstäver
+name: Recensioner — slumpa om initialer (Q/W/X/Y/Z och bokstavsordning)
 
 # Leonard 2026-10-29: recensioner vars initialer har bokstäverna Y, X, Z eller W
-# ska få andra, slumpmässiga bokstäver. Bara den förbjudna bokstaven byts
-# ("Z.K." blir t.ex. "R.K."). Bokstaven väljs deterministiskt ur recensionens id,
-# så torrkörningen visar exakt vad en skarp körning skriver. Text, betyg, datum
-# och status rörs inte. Logiken: lib/reviews/slumpa-initialer.ts.
+# ska få andra, slumpmässiga bokstäver. Leonard 2026-10-30: initialer i
+# bokstavsordning ("A.B.", "L.M.", "G.H.") ser förfalskade ut och ska också få
+# slumpade bokstäver, Q ska bort precis som de andra, och Å och Ö får komma ibland.
+#
+# Reglerna och slumpen: lib/reviews/initialer.ts. Vilka rader som ändras:
+# lib/reviews/slumpa-initialer.ts.
+#   - Bokstavsordning: båda bokstäverna slumpas om ("L.M." blir t.ex. "R.D.").
+#   - Annars byts bara den förbjudna bokstaven ("Z.K." blir t.ex. "R.K.").
+#   - Nya bokstäver kommer ur A–V utan Q, och ibland Å eller Ö.
+# Bokstäverna väljs deterministiskt ur recensionens id, så torrkörningen visar
+# exakt vad en skarp körning skriver, och en omkörning hittar ingenting mer.
+# Text, betyg, datum och status rörs inte.
 #
 # Kundomdömen (förstahandsomdömen med kundens egna initialer) rörs inte, om inte
 # kundomdomen = ja.
 #
 # Torrt som default: räknar och visar exempel. skarp = ja kräver dessutom
 # bekrafta = exakt det antal torrkörningen visade ("attSkrivaDennaKorning").
-# Varje rad läses tillbaka. Blir det rader kvar (hogst eller tidsbudget): kör
-# torrt igen och sedan skarpt med det nya antalet.
+# Varje rad läses om precis före skrivningen (har någon annan ändrat den sedan
+# planen gjordes rörs den inte) och läses tillbaka efteråt. Blir det rader kvar
+# (hogst eller tidsbudget): kör torrt igen och sedan skarpt med det nya antalet.
+#
+# ☠️ EN SKARP KÖRNING SÄGER OCKSÅ TILL BUTIKEN. Butiken cachar varje produkts
+# recensioner i sex timmar, och dess egen bevakning (review-andringar) svarar 501
+# så länge recensionerna ligger i Wix Data. Förut byttes initialerna i lagret men
+# produktsidan visade de gamla i timmar. Jobbet blir RÖTT om butiken inte blev sagd
+# till för alla produkter, för då är raderna ändrade men sidorna inte.
 #
 # ☠️ LOGGEN BÄR BARA RÄKNARE OCH EXEMPEL PÅ INITIALER (de syns redan på
 # produktsidan). Inga namn, inga id:n.
@@ -55,7 +70,7 @@ jobs:
   slumpa:
     runs-on: ubuntu-latest
     steps:
-      - name: Byt bokstäver i initialerna
+      - name: Slumpa om initialerna
         env:
           BASE: ${{ secrets.POLL_TRACKING_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
@@ -79,7 +94,7 @@ jobs:
             url="${url}&skarp=ja&bekrafta=${BEKRAFTA:-}"
           fi
 
-          svar="$(curl -sS -w '\n%{http_code}' --max-time 290 -X POST \
+          svar="$(curl -sS -w '\n%{http_code}' --max-time 295 -X POST \
             -H "Authorization: Bearer ${CRON_SECRET}" "$url")"
           kod="$(printf '%s' "$svar" | tail -n1)"
           json="$(printf '%s' "$svar" | sed '$d')"
@@ -89,26 +104,35 @@ jobs:
             exit 1
           fi
 
-          printf '%s' "$json" | jq -r '"\(.totalt) rader att ändra (\(.attSkrivaDennaKorning) denna körning), \(.kundomdomenHoppade) kundomdömen orörda, \(.annanForm) i annan form, skrivet: \(.skrivet // "inget")"'
+          # Första raden bär räknarna (läses ur jobbloggen; steg-summeringen går inte att hämta via API).
+          printf '%s' "$json" | jq -r '"\(.totalt) rader att ändra (\(.attSkrivaDennaKorning) denna körning; \(.perOrsak.bokstavsordning) bokstavsordning, \(.perOrsak.barForbjuden) bara förbjuden bokstav; Aosom \(.perKalla.aosom), import \(.perKalla.import), kund \(.perKalla.kund)), \(.kundomdomenHoppade) kundomdömen orörda, \(.annanForm) i annan form, \(.nyaMedAringEllerOumlaut) får Å/Ö, skrivet: \(.skrivet // "inget"), butiken: \(.butiken // "inte sagd till")"'
           stopp="$(printf '%s' "$json" | jq -r '.stopp // ""')"
 
           {
-            echo "### Byt bokstäver i initialerna — $([ "${SKARP:-nej}" = "ja" ] && echo SKARP || echo TORRKÖRNING)"
+            echo "### Slumpa om initialerna — $([ "${SKARP:-nej}" = "ja" ] && echo SKARP || echo TORRKÖRNING)"
             echo ""
             echo "| | |"
             echo "|---|---:|"
             echo "| rader i lagret | $(printf '%s' "$json" | jq -r '.granskade') |"
             echo "| att ändra, totalt | $(printf '%s' "$json" | jq -r '.totalt') |"
             echo "| **att skriva denna körning (bekrafta)** | **$(printf '%s' "$json" | jq -r '.attSkrivaDennaKorning')** |"
+            echo "| varav bokstavsordning / bara förbjuden bokstav | $(printf '%s' "$json" | jq -r '.perOrsak | "\(.bokstavsordning) / \(.barForbjuden)"') |"
+            echo "| varav Aosom / import / kund | $(printf '%s' "$json" | jq -r '.perKalla | "\(.aosom) / \(.import) / \(.kund)"') |"
+            echo "| med Q / W / X / Y / Z | $(printf '%s' "$json" | jq -r '.perBokstav | "\(.Q) / \(.W) / \(.X) / \(.Y) / \(.Z)"') |"
+            echo "| nya initialer med Å eller Ö | $(printf '%s' "$json" | jq -r '.nyaMedAringEllerOumlaut') |"
             echo "| kundomdömen lämnade orörda | $(printf '%s' "$json" | jq -r '.kundomdomenHoppade') |"
             echo "| annan form (rörs inte) | $(printf '%s' "$json" | jq -r '.annanForm') |"
-            echo "| med Y / X / Z / W | $(printf '%s' "$json" | jq -r '.perBokstav | "\(.Y) / \(.X) / \(.Z) / \(.W)"') |"
             if [ "$(printf '%s' "$json" | jq -r '.skrivet != null')" = "true" ]; then
               echo "| ändrade och tillbakalästa | $(printf '%s' "$json" | jq -r '.skrivet.andrade') |"
               echo "| fel | $(printf '%s' "$json" | jq -r '.skrivet.fel') |"
+              echo "| ändrade av någon annan under tiden (rörda inte) | $(printf '%s' "$json" | jq -r '.skrivet.andratUnderTiden') |"
               echo "| lästes tillbaka först vid ett senare försök | $(printf '%s' "$json" | jq -r '.skrivet.sentOmLasta') |"
               echo "| avvikelser (saknas / initialer / status / text) | $(printf '%s' "$json" | jq -r '.skrivet.avvikelser | "\(.saknas) / \(.initialer) / \(.status) / \(.text)"') |"
               echo "| kvar | $(printf '%s' "$json" | jq -r '.skrivet.kvar') |"
+            fi
+            if [ "$(printf '%s' "$json" | jq -r '.butiken != null')" = "true" ]; then
+              echo "| butiken: produkter sagda till (anrop ok / misslyckade) | $(printf '%s' "$json" | jq -r '.butiken | "\(.produkter) (\(.uppdaterade) / \(.misslyckade))"') |"
+              echo "| butiken: hoppade produkter / saknar nyckel | $(printf '%s' "$json" | jq -r '.butiken | "\(.hoppade) / \(.utanNyckel)"') |"
             fi
             echo ""
             echo "Exempel: $(printf '%s' "$json" | jq -r '.exempel | join(", ")')"
@@ -123,5 +147,18 @@ jobs:
             if [ "$(printf '%s' "$json" | jq -r '.skrivet.fel')" != "0" ]; then
               echo "::error::$(printf '%s' "$json" | jq -r '.skrivet.fel') rader gick inte att läsa tillbaka med de nya initialerna" >&2
               exit 1
+            fi
+            # Raderna är ändrade, men sidorna visar gamla initialer tills butiken hämtat om dem.
+            if [ "$(printf '%s' "$json" | jq -r '.butiken.utanNyckel')" = "true" ]; then
+              echo "::error::Raderna är ändrade men butiken blev inte sagd till: ADMIN_SECRET saknas i motorn. Sidorna visar de gamla initialerna i upp till sex timmar." >&2
+              exit 1
+            fi
+            if [ "$(printf '%s' "$json" | jq -r '.butiken.misslyckade')" != "0" ] || [ "$(printf '%s' "$json" | jq -r '.butiken.hoppade')" != "0" ]; then
+              echo "::error::Raderna är ändrade men butiken blev inte sagd till för alla produkter ($(printf '%s' "$json" | jq -r '.butiken.misslyckade') anrop misslyckades, $(printf '%s' "$json" | jq -r '.butiken.hoppade') produkter hoppades). De berörda sidorna visar de gamla initialerna i upp till sex timmar." >&2
+              exit 1
+            fi
+            kvar="$(printf '%s' "$json" | jq -r '.skrivet.kvar')"
+            if [ "$kvar" != "0" ]; then
+              echo "::notice::${kvar} rader återstår. Kör torrt igen och sedan skarpt med det nya antalet."
             fi
           fi

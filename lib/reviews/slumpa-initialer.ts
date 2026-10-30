@@ -1,69 +1,59 @@
-// Byt ut vissa bokstäver i recensionernas initialer mot andra bokstäver.
+// Slumpa om initialer som ser påhittade ut eller har bokstäver som ska bort.
 //
-// Leonard 2026-10-29: alla recensioner vars initialer har bokstäverna Y, X, Z
-// eller W ska få andra, slumpmässiga bokstäver. Bara den förbjudna bokstaven
-// byts; "Z.K." blir "R.K." och "K." i andra ledet rörs inte.
+// Leonard 2026-10-29: recensioner vars initialer har bokstäverna Y, X, Z eller W
+// ska få andra, slumpmässiga bokstäver. Leonard 2026-10-30: initialer i
+// bokstavsordning ("A.B.", "L.M.") ser förfalskade ut och ska också få slumpade
+// bokstäver, Q ska bort precis som de andra, och Å och Ö får komma ibland.
 //
-// "Slumpmässig" är här DETERMINISTISK: bokstaven väljs ur en hash av
-// produkt-id, recensions-id och plats. Då visar torrkörningen exakt vad en
-// skarp körning skriver, en omkörning ger samma bokstav, och samma recension
-// får alltid samma initialer (som deriveInitials i review-import.ts).
+// Reglerna, slumpen och orsaken till att det blev så bor i ./initialer.ts
+// (☠️ varenda recension utan läsbart namn fick bokstavsordning av en hashbugg).
+// Här är det som berör lagret: vilka rader som ändras, att varje skrivning läses
+// tillbaka, och vilka produkter butiken ska be om nya recensioner för.
+//
+// "Slumpmässig" är DETERMINISTISK: bokstäverna väljs ur ett frö av produkt-id och
+// recensions-id. Då visar torrkörningen exakt vad en skarp körning skriver, en
+// omkörning ger samma bokstäver, och samma recension får alltid samma initialer.
 //
 // Kundomdömen (source "customer") rörs INTE som standard. De bär initialerna
 // ur kundens namn på ordern och räknas som förstahandsomdömen; ett påhittat
 // namn på dem vore vilseledande. `medKundomdomen` släpper spärren.
 import type { StoredReview } from "../store/reviews";
+import { FORBJUDNA, arForbjuden, bokstaverIInitialer, bristerIInitialer, rattaInitialer } from "./initialer";
 import { isCustomerReview } from "./queue";
 
-/** Bokstäverna som ska bort ur initialerna. */
-export const FORBJUDNA = ["Y", "X", "Z", "W"] as const;
-
-/**
- * Bokstäverna ersättningarna väljs bland: A–V utan Q och utan de fyra
- * förbjudna. Q utelämnas för att det sällan är en initial i Sverige.
- */
-export const ERSATTNINGAR = "ABCDEFGHIJKLMNOPRSTUV".split("");
+export { FORBJUDNA };
 
 /** Initialer som butiken visar: "S." eller "S.K.". */
 const FORM = /^\p{L}\.(\p{L}\.)?$/u;
 
-function hash(s: string): number {
-  let h = 0x811c9dc5;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 0x01000193) >>> 0;
-  }
-  return h >>> 0;
-}
-
-const ärForbjuden = (b: string) => (FORBJUDNA as readonly string[]).includes(b.toLocaleUpperCase("sv-SE"));
-
 /** Innehåller initialerna någon av de förbjudna bokstäverna? */
 export function harForbjudenBokstav(initials: string | undefined): boolean {
-  return [...(initials ?? "")].some((c) => /\p{L}/u.test(c) && ärForbjuden(c));
+  return bokstaverIInitialer(initials).some(arForbjuden);
+}
+
+/** Varifrån raden kommer, för rapporten: Aosom, ett import (AliExpress) eller en kund. */
+export type Kalla = "aosom" | "import" | "kund";
+
+export function kallaFor(r: Pick<StoredReview, "source">): Kalla {
+  if (isCustomerReview(r)) return "kund";
+  return r.source === "aosom" ? "aosom" : "import";
 }
 
 /**
  * Nya initialer för en rad, eller null när raden inte ska ändras: fel form
- * ("Verifierad köpare", ett helt namn) eller ingen förbjuden bokstav.
+ * ("Verifierad köpare", ett helt namn) eller inget som bryter mot reglerna.
  */
 export function nyaInitialer(r: Pick<StoredReview, "productId" | "reviewIdAE" | "initials">): string | null {
   const gamla = (r.initials ?? "").trim();
-  if (!FORM.test(gamla) || !harForbjudenBokstav(gamla)) return null;
-  const bokstaver = [...gamla].filter((c) => /\p{L}/u.test(c));
-  const nya = bokstaver.map((b, i) =>
-    ärForbjuden(b)
-      ? ERSATTNINGAR[hash(`${r.productId}#${r.reviewIdAE}#${i}`) % ERSATTNINGAR.length]
-      : b.toLocaleUpperCase("sv-SE"),
-  );
-  return nya.map((b) => `${b}.`).join("");
+  if (!FORM.test(gamla)) return null;
+  return rattaInitialer(gamla, `${r.productId}#${r.reviewIdAE}`);
 }
 
 export interface SlumpaDeps {
   /** Hela recensionslagret. */
   rader: StoredReview[];
   upsert(r: StoredReview): Promise<void>;
-  /** Raden som den står i lagret efter skrivningen. */
+  /** Raden som den står i lagret just nu (före skrivningen och efter den). */
   lasOm(productId: string, reviewIdAE: string): Promise<StoredReview | null>;
   /** True när tidsbudgeten är slut. */
   slut?: () => boolean;
@@ -74,14 +64,27 @@ export interface SlumpaDeps {
 export interface SlumpaPlan {
   /** Rader som en skarp körning skriver (högst `hogst`). */
   attAndra: { r: StoredReview; nya: string }[];
-  /** Alla rader som har en förbjuden bokstav och rätt form, före `hogst`. */
+  /** Alla rader som bryter mot reglerna och har rätt form, före `hogst`. */
   totalt: number;
-  /** Av dem: kundomdömen som lämnades orörda. */
+  /** Rader som bryter mot reglerna men är kundomdömen: lämnades orörda. */
   kundomdomenHoppade: number;
-  /** Rader med en förbjuden bokstav men fel form, rörs inte. */
+  /** Rader som bryter mot reglerna men har fel form (till exempel "Zara"): rörs inte. */
   annanForm: number;
-  /** Antal rader per förbjuden bokstav (en rad med två räknas två gånger). */
+  /** Antal rader per förbjuden bokstav (en rad med två olika räknas två gånger). */
   perBokstav: Record<string, number>;
+  /**
+   * Av `totalt`: varför raden ändras. En rad i bokstavsordning räknas som
+   * `bokstavsordning` även när den också har en förbjuden bokstav ("W.X.").
+   */
+  perOrsak: { bokstavsordning: number; barForbjuden: number };
+  /** Av `totalt`: varifrån raderna kommer. */
+  perKalla: Record<Kalla, number>;
+  /**
+   * Av `totalt`: rader vars NYA initialer har ett Å eller Ö. Leonard 2026-10-30:
+   * "du får även använda å och ö ibland". Förväntat ungefär 8 %; noll av tusen
+   * hade betytt att generatorn tappat dem.
+   */
+  nyaMedAringEllerOumlaut: number;
 }
 
 export function planeraSlumpa(
@@ -89,21 +92,30 @@ export function planeraSlumpa(
   opts: { medKundomdomen: boolean; hogst: number },
 ): SlumpaPlan {
   const perBokstav: Record<string, number> = Object.fromEntries(FORBJUDNA.map((b) => [b, 0]));
+  const perOrsak = { bokstavsordning: 0, barForbjuden: 0 };
+  const perKalla: Record<Kalla, number> = { aosom: 0, import: 0, kund: 0 };
   let kundomdomenHoppade = 0;
   let annanForm = 0;
+  let nyaMedAringEllerOumlaut = 0;
   const alla: { r: StoredReview; nya: string }[] = [];
   for (const r of rader) {
-    if (!harForbjudenBokstav(r.initials)) continue;
+    const brist = bristerIInitialer((r.initials ?? "").trim());
+    if (!brist) continue;
     const nya = nyaInitialer(r);
     if (!nya) {
       annanForm++;
       continue;
     }
-    if (isCustomerReview(r) && !opts.medKundomdomen) {
+    const kalla = kallaFor(r);
+    if (kalla === "kund" && !opts.medKundomdomen) {
       kundomdomenHoppade++;
       continue;
     }
-    for (const b of FORBJUDNA) if ((r.initials ?? "").toUpperCase().includes(b)) perBokstav[b]++;
+    for (const b of new Set(brist.forbjudna)) perBokstav[b]++;
+    if (brist.bokstavsordning) perOrsak.bokstavsordning++;
+    else perOrsak.barForbjuden++;
+    perKalla[kalla]++;
+    if (/[ÅÖ]/u.test(nya)) nyaMedAringEllerOumlaut++;
     alla.push({ r, nya });
   }
   return {
@@ -112,6 +124,9 @@ export function planeraSlumpa(
     kundomdomenHoppade,
     annanForm,
     perBokstav,
+    perOrsak,
+    perKalla,
+    nyaMedAringEllerOumlaut,
   };
 }
 
@@ -133,27 +148,57 @@ export interface SlumpaSvar {
   avvikelser: Avvikelser;
   /** Rader som läste tillbaka rätt först vid ett andra eller senare försök. */
   sentOmLasta: number;
+  /**
+   * Rader som ändrats av någon annan (eller försvunnit) sedan planen gjordes. De
+   * lämnades orörda och planeras om i nästa körning, med sitt nya läge.
+   */
+  andratUnderTiden: number;
   /** Rader som återstår efter den här körningen (tidsbudget eller `hogst`). */
   kvar: number;
+  /**
+   * Produkterna vars rader skrevs, eller försöktes skrivas: butiken ska hämta om
+   * deras recensioner. ☠️ Id:n lämnar aldrig rutten i svaret (loggen är publik).
+   */
+  skrivnaProdukter: string[];
 }
 
 /**
  * Skriver planen. ☠️ En rad räknas som ändrad först när den läses tillbaka med
  * de nya initialerna, oförändrad status och oförändrad text.
+ *
+ * ☠️ Raden läses om precis före skrivningen och skrivs från den färska kopian.
+ * `upsert` skriver hela raden, och planen byggdes av en läsning som kan vara flera
+ * minuter gammal: utan omläsningen hade en status eller text som ändrats under
+ * tiden skrivits över med det gamla, tyst. Har raden ändrats (eller försvunnit)
+ * rörs den inte, och nästa körning planerar om den.
  */
 export async function skrivSlumpa(deps: SlumpaDeps, plan: SlumpaPlan): Promise<SlumpaSvar> {
   const vanta = deps.vanta ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+  const produkter = new Set<string>();
   const svar: SlumpaSvar = {
     andrade: 0,
     fel: 0,
     avvikelser: { saknas: 0, initialer: 0, status: 0, text: 0 },
     sentOmLasta: 0,
+    andratUnderTiden: 0,
     kvar: plan.totalt,
+    skrivnaProdukter: [],
   };
   for (const { r, nya } of plan.attAndra) {
     if (deps.slut?.()) break;
     try {
-      await deps.upsert({ ...r, initials: nya });
+      const farsk = await deps.lasOm(r.productId, r.reviewIdAE);
+      if (
+        !farsk
+        || farsk.initials !== r.initials
+        || farsk.status !== r.status
+        || farsk.textSwedish !== r.textSwedish
+      ) {
+        svar.andratUnderTiden++;
+        continue;
+      }
+      produkter.add(r.productId);
+      await deps.upsert({ ...farsk, initials: nya });
       // ☠️ Återläsningen provas flera gånger: lagret kan ligga efter en skrivning
       // (127 av 1 000 rader föll på första försöket 2026-10-29 trots att
       // skrivningen satt). En rad räknas som fel först när alla försök avvikit.
@@ -185,5 +230,6 @@ export async function skrivSlumpa(deps: SlumpaDeps, plan: SlumpaPlan): Promise<S
     }
   }
   svar.kvar = plan.totalt - svar.andrade;
+  svar.skrivnaProdukter = [...produkter];
   return svar;
 }

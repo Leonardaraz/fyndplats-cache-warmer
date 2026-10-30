@@ -10,6 +10,7 @@ import {
   type AERReview,
 } from "./review-import";
 import type { StoredReview } from "../store/reviews";
+import { bristerIInitialer } from "../reviews/initialer";
 
 const NOW = new Date("2026-06-02T00:00:00Z");
 
@@ -100,14 +101,15 @@ describe("deriveInitials", () => {
   it("maskerat AE-namn (M***a) → första + sista bokstaven", () => {
     expect(deriveInitials("M***a", "x")).toBe("M.A.");
   });
-  it("en bokstav (u****6543) → bokstav + deterministisk andra", () => {
+  it("en bokstav (u****6543) → bokstav + slumpad andra som inte följer efter den", () => {
     const out = deriveInitials("u****6543", "rev1");
-    expect(out).toMatch(/^U\.[A-Z]\.$/);
+    expect(out).toMatch(/^U\.[A-PR-VÅÖ]\.$/u);
     expect(deriveInitials("u****6543", "rev1")).toBe(out); // deterministiskt
+    for (let i = 0; i < 500; i++) expect(deriveInitials("u****6543", `rev${i}`)).not.toBe("U.V.");
   });
-  it("inget namn → två deterministiska bokstäver ur reviewIdAE", () => {
+  it("inget namn → två slumpade bokstäver ur reviewIdAE", () => {
     const out = deriveInitials(undefined, "rev-abc");
-    expect(out).toMatch(/^[A-Z]\.[A-Z]\.$/);
+    expect(out).toMatch(/^[A-PR-VÅÖ]\.[A-PR-VÅÖ]\.$/u);
     expect(deriveInitials("", "rev-abc")).toBe(out);
     // Olika reviewIdAE → (oftast) olika initialer, men ALLTID stabilt per id.
     expect(deriveInitials(undefined, "rev-abc")).toBe(out);
@@ -115,6 +117,35 @@ describe("deriveInitials", () => {
   it("visar aldrig hela namnet eller siffror", () => {
     expect(deriveInitials("Maria Karlsson", "x")).not.toContain("aria");
     expect(deriveInitials("u****6543", "x")).not.toMatch(/\d/);
+  });
+
+  // ☠️ Felet som Leonard såg 2026-10-30: den andra bokstaven räknades fram som
+  // hashLetter(id, 1), som är exakt ett mer än hashLetter(id, 0). Varenda recension
+  // utan läsbart namn (alla Aosom-recensioner) fick därför A.B., B.C., … W.X., Z.A.
+  // Id:na i testet skiljer sig bara på sista tecknet, som de gör i drift.
+  it("inget läsbart namn ger ALDRIG bokstavsordning eller Q/W/X/Y/Z", () => {
+    for (let i = 0; i < 5000; i++) {
+      for (const namn of [undefined, "", "   ", "****", "12345"]) {
+        const out = deriveInitials(namn, `gen-${i.toString(36)}`);
+        expect(bristerIInitialer(out), `${JSON.stringify(namn)} ${out}`).toBeNull();
+      }
+    }
+  });
+  it("initialer med förbjudna bokstäver ur ett namn slumpas i stället", () => {
+    for (const namn of ["Wolfgang Weber", "W***n", "Xavier Zhang", "q****1", "Yvonne Z"]) {
+      expect(bristerIInitialer(deriveInitials(namn, "rev1")), namn).toBeNull();
+    }
+    // Bara den förbjudna bokstaven byts; den andra behålls.
+    expect(deriveInitials("Wolfgang Karlsson", "rev1")).toMatch(/^[A-PR-VÅÖ]\.K\.$/u);
+  });
+  it("ett namn som råkar ge bokstavsordning slumpas om", () => {
+    const out = deriveInitials("Klaus Lang", "rev1");
+    expect(out).not.toBe("K.L.");
+    expect(bristerIInitialer(out)).toBeNull();
+  });
+  it("vanliga namn rörs inte", () => {
+    expect(deriveInitials("Siegfried K.", "rev1")).toBe("S.K.");
+    expect(deriveInitials("Leonard Araz", "rev1")).toBe("L.A.");
   });
 });
 

@@ -6,6 +6,10 @@
 // räknas som ändrad först när den bär de nya initialerna med oförändrad status
 // och text. Körs från workflowen recension-initialer.yml.
 //
+// ☠️ En skarp körning SÄGER OCKSÅ TILL BUTIKEN (`butiken` i svaret): butiken cachar
+// produktens recensioner i sex timmar och dess egen bevakning svarar 501 så länge
+// recensionerna ligger i Wix Data. Se lib/reviews/meddela-butiken.ts.
+//
 // ☠️ Loggen är publik. Svaret bär bara det som redan syns på produktsidan
 // (initialer, datum, textbit) plus id:n; kundens råa namn och land lämnar aldrig
 // lagret.
@@ -15,6 +19,7 @@ import { audit } from "@/lib/audit";
 import { getReviewStore } from "@/lib/store/reviews";
 import type { DoljSokning } from "@/lib/reviews/dolj-enskild";
 import { planeraAndraInitialer } from "@/lib/reviews/andra-initialer";
+import { meddelaButikenOmRecensioner, type ButikSammanfattning } from "@/lib/reviews/meddela-butiken";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -66,6 +71,7 @@ export async function POST(req: NextRequest) {
   const plan = planeraAndraInitialer(rader, sokning, String(body.nya ?? ""), max);
   const andrade: string[] = [];
   const fel: string[] = [];
+  let butiken: ButikSammanfattning | null = null;
   if (skarp && !plan.stopp && plan.nya) {
     for (const r of plan.attAndra) {
       const id = `${r.productId}/${r.reviewIdAE}`;
@@ -86,7 +92,19 @@ export async function POST(req: NextRequest) {
         fel.push(id);
       }
     }
-    await audit("reviews", "recension-initialer", `${andrade.length} ändrade, ${fel.length} fel: ${andrade.join(", ")}`);
+    // Också en rad vars skrivning inte läste tillbaka: skrivningen kan ha tagit, och butiken
+    // ska hellre hämta om än visa en gammal kopia.
+    butiken = await meddelaButikenOmRecensioner(
+      plan.attAndra.map((r) => r.productId),
+      "recension-initialer",
+    );
+    await audit(
+      "reviews",
+      "recension-initialer",
+      `${andrade.length} ändrade, ${fel.length} fel: ${andrade.join(", ")}; `
+        + `butiken: ${butiken.uppdaterade}/${butiken.anrop} anrop ok, ${butiken.misslyckade} misslyckade`
+        + `${butiken.utanNyckel ? ", ADMIN_SECRET saknas" : ""}`,
+    );
   }
 
   return NextResponse.json({
@@ -106,5 +124,6 @@ export async function POST(req: NextRequest) {
     })),
     andrade,
     fel,
+    butiken,
   });
 }

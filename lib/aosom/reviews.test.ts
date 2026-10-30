@@ -268,7 +268,9 @@ describe("visningsnamn", () => {
     const visade = parseAosomProductReviews(html).reviews
       .map((r) => deriveInitials(r.customerName, ensureReviewId(r)));
     expect(visade.every((v) => /^[A-ZÅÄÖÜ]\.[A-ZÅÄÖÜ]\.$/.test(v))).toBe(true);
-    expect(visade[0]).not.toBe("A.K.");
+    // Det som felet var: samma initialer överallt. (Bokstäverna slumpas, så en enskild
+    // rad kan av en händelse få "A.K."; det som inte får hända är att alla får det.)
+    expect(visade.every((v) => v === "A.K.")).toBe(false);
     expect(new Set(visade).size).toBe(2);
   });
 });

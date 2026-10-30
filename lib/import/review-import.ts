@@ -25,6 +25,7 @@ import { ownImageUrlForReview } from "../wix/media-import";
 import { MAX_REVIEW_IMAGES, reviewImageFields, reviewImages } from "../reviews/images";
 import { arForeDatumgransen } from "../reviews/datumgrans";
 import { arAliExpress } from "../reviews/ae-ko-rensning";
+import { rattaInitialer, slumpaAndra, slumpaInitialer } from "../reviews/initialer";
 
 /** Rå recension som skrapan (extension/content.js) eller AE-API:t levererar. */
 export interface AERReview {
@@ -239,6 +240,14 @@ function rankaMedGolv(
 // härleds från AE-användarnamnet om det innehåller bokstäver (AE maskerar ofta
 // mitten men visar första+sista tecken, t.ex. "M***a" → "M.A."), annars
 // deterministiskt ur reviewIdAE så samma recension ALLTID får samma initialer.
+//
+// ☠️ Reglerna för vilka bokstäver som får finnas bor i lib/reviews/initialer.ts:
+// aldrig Q, W, X, Y eller Z, aldrig två bokstäver i bokstavsordning ("A.B."), och
+// nya bokstäver slumpas ur A–V med Å och Ö ibland. Förut drogs de två bokstäverna
+// ur hashLetter(id, 0) och hashLetter(id, 1), och den andra blev ALLTID nästa
+// bokstav efter den första — varenda recension utan namn fick A.B., B.C., … Z.A.
+// (Leonard 2026-10-30). Det gäller även initialer ur ett riktigt namn: "Wolfgang
+// Weber" blir inte "W.W." utan två slumpade bokstäver.
 
 function hashString(s: string): number {
   let h = 0;
@@ -246,20 +255,20 @@ function hashString(s: string): number {
   return h >>> 0;
 }
 
-/** Deterministisk versal A–Z ur en seed + salt. */
-function hashLetter(seed: string, salt: number): string {
-  const h = hashString(`${seed}#${salt}`);
-  return String.fromCharCode(65 + (h % 26));
-}
-
 const LETTER_RE = /[a-zA-ZÀ-ÿЀ-ӿ]/g;
+
+/** Initialerna enligt reglerna: de som redan stämmer lämnas, annars slumpas bokstäver om. */
+function enligtReglerna(initialer: string, reviewIdAE: string): string {
+  return rattaInitialer(initialer, reviewIdAE) ?? initialer;
+}
 
 /**
  * Härleder visningsinitialer "X.Y." för en recension.
  *   - Flera namn-tokens ("Maria K") → första bokstaven i första + sista token.
  *   - Ett token, maskerat ("M***a") → första + sista bokstaven i token.
- *   - En enda bokstav ("u****6543") → den + en deterministisk andra ur reviewIdAE.
- *   - Inga bokstäver → två deterministiska bokstäver ur reviewIdAE.
+ *   - En enda bokstav ("u****6543") → den + en slumpad andra ur reviewIdAE.
+ *   - Inga bokstäver → två slumpade bokstäver ur reviewIdAE.
+ * Alltid enligt reglerna i lib/reviews/initialer.ts.
  */
 export function deriveInitials(rawName: string | undefined, reviewIdAE: string): string {
   const name = (rawName ?? "").trim();
@@ -270,20 +279,20 @@ export function deriveInitials(rawName: string | undefined, reviewIdAE: string):
       const first = (tokens[0].match(LETTER_RE) ?? [])[0];
       const lastTok = tokens[tokens.length - 1].match(LETTER_RE) ?? [];
       const last = lastTok[0];
-      if (first && last) return `${first.toUpperCase()}.${last.toUpperCase()}.`;
+      if (first && last) return enligtReglerna(`${first.toUpperCase()}.${last.toUpperCase()}.`, reviewIdAE);
     }
     // Ett token — använd första + sista bokstaven (maskerade namn "M***a").
     const alphas = name.match(LETTER_RE) ?? [];
     const firstA = alphas[0];
     const lastA = alphas[alphas.length - 1];
     if (firstA && lastA && alphas.length >= 2) {
-      return `${firstA.toUpperCase()}.${lastA.toUpperCase()}.`;
+      return enligtReglerna(`${firstA.toUpperCase()}.${lastA.toUpperCase()}.`, reviewIdAE);
     }
     if (firstA && alphas.length === 1) {
-      return `${firstA.toUpperCase()}.${hashLetter(reviewIdAE, 1)}.`;
+      return enligtReglerna(slumpaAndra(firstA, reviewIdAE), reviewIdAE);
     }
   }
-  return `${hashLetter(reviewIdAE, 0)}.${hashLetter(reviewIdAE, 1)}.`;
+  return slumpaInitialer(reviewIdAE);
 }
 
 /** Stabil reviewIdAE när skrapan inte gav någon (hash av normaliserad text). */
