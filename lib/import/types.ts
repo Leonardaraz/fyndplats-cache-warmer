@@ -63,6 +63,15 @@ export interface AliExpressProduct {
    */
   swatchImages?: Record<string, Record<string, string>>;
   /**
+   * Flera bilder per val: { [axelnamn]: { [val]: [käll-URL, …] } }, i den
+   * ordning valet ska visa dem. Varje URL ska också stå i `imageUrls`: bilden
+   * laddas upp en gång, i galleriet, och kopplas sedan till sitt val med en egen
+   * alt-text. Ett val som står här får ingen swatch-bild ur `swatchImages`.
+   * VEVOR-familjer (lib/vevor/familj.ts) använder det, så att varje färg visar
+   * sin egen artikels bilder.
+   */
+  valBilder?: Record<string, Record<string, string[]>>;
+  /**
    * Manuella variantnamn från importverktyget: { [rått optionsvärde]: "Svenskt
    * namn" }, t.ex. { "Polar Night Black": "Polarsvart" }. Vinner över HELA
    * översättningskedjan (statisk tabell → cache → Haiku) och betros av

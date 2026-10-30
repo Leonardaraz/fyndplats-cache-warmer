@@ -1,0 +1,100 @@
+name: VEVOR — rätta familjernas bilder
+
+# Ger de VEVOR-familjer som importerades före 2026-10-30 samma bilder som
+# importen ger nu: varje artikels egna bilder kopplade till dess värde, och
+# varje bild en gång (lib/vevor/familjebilder.ts).
+#
+#   plan   räknar familjer, sidor att rätta, nya bilder och hinder. Skriver
+#          ingenting.
+#   skriv  rättar i varv om fyra minuter tills inget är kvar. Kräver
+#          `bekrafta` = planens antal sidor att rätta. Stannar vid första sida
+#          som inte läser tillbaka som planen.
+#
+# Ordningen: plan, skriv med planens antal, plan igen (att rätta ska vara 0).
+#
+# Skriver bara antal och Wix-id. Repot är publikt.
+
+on:
+  workflow_dispatch:
+    inputs:
+      lage:
+        description: "plan eller skriv"
+        required: true
+        default: plan
+        type: choice
+        options: [plan, skriv]
+      bekrafta:
+        description: "Läget skriv: planens antal sidor att rätta"
+        required: false
+        default: ""
+      idn:
+        description: "Bara de här sidorna (Wix-id, kommaseparerade). Tomt = alla familjer."
+        required: false
+        default: ""
+
+jobs:
+  kor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          LAGE: ${{ inputs.lage }}
+          BEKRAFTA: ${{ inputs.bekrafta }}
+          IDN: ${{ inputs.idn }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # Till STDERR: en ::error::-rad på stdout slukas av kommandosubstitutionen.
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          rot="${BASE%/api/cron/poll-tracking}"
+          idn=$(printf '%s' "$IDN" | tr ',; ' '\n\n\n' | { grep -v '^$' || true; } | jq -R . | jq -sc .)
+
+          anropa() {
+            curl -sS --max-time 320 -X POST -H "Authorization: Bearer ${CRON_SECRET}" \
+              -H "Content-Type: application/json" -d "$1" "${rot}/api/admin/vevor-familjebilder" || {
+              echo "::error::Anropet gick inte fram" >&2; return 1; }
+          }
+
+          visa() {
+            echo "$1" | jq '{dryRun, familjer, attRatta, redanRatt, hinder, nyaBilder, utgar, skrivna, kvar, stoppadAv, fel, idn}' || true
+          }
+
+          if [ "$LAGE" = "plan" ]; then
+            svar=$(anropa "{\"dryRun\":true,\"idn\":${idn}}")
+            if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+              echo "::error::$(echo "$svar" | jq -r '.error // "okänt fel"')" >&2; exit 1
+            fi
+            visa "$svar"
+            exit 0
+          fi
+
+          if ! [[ "$BEKRAFTA" =~ ^[0-9]+$ ]]; then
+            echo "::error::bekrafta ska vara planens antal sidor att rätta (ett heltal)" >&2; exit 1
+          fi
+          tak="$BEKRAFTA"
+          for varv in $(seq 1 25); do
+            svar=$(anropa "{\"dryRun\":false,\"bekrafta\":${tak},\"idn\":${idn}}")
+            if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+              echo "::error::$(echo "$svar" | jq -r '.error // "okänt fel"')" >&2; exit 1
+            fi
+            echo "Varv ${varv}:"
+            visa "$svar"
+            stopp=$(echo "$svar" | jq -r '.stoppadAv')
+            if [ "$stopp" = "fel" ]; then
+              echo "::error::En sida läste inte tillbaka som planen. Läs fel ovan och Vercels logg innan nästa körning." >&2; exit 1
+            fi
+            if [ "$stopp" = "klart" ]; then
+              echo "Klart."
+              exit 0
+            fi
+            # Följande varv: det som återstår är taket. Planen får krympa, aldrig växa.
+            tak=$(echo "$svar" | jq -r '.kvar')
+          done
+          echo "::error::Inte klart efter 25 varv" >&2
+          exit 1

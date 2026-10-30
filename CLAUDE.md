@@ -6648,8 +6648,8 @@ Sju egenskaper som inte ska tas bort:
    `axisNameOverrides`). Ett variantvärde går inte att döpa om i Wix efteråt,
    så en känd felöversättning rättas före: "20 miljoner" på en längdaxel blir
    "20 m" (`rensaVarde`).
-7. **Bilderna:** galleriet är ankarets, och varje artikels första bild kopplas
-   till dess värde på den första axel där varje artikel har ett eget värde.
+7. ☠️ **Varje artikel får sina egna bilder, och varje bild finns en gång**
+   (`familjensBilder`, sedan 2026-10-30). Se nästa avsnitt.
 
 ⚠️ **GPSR läses på radens artikel.** En familj har samma tillverkare, och
 standardraden gäller alla. ⚠️ **Leverantörslänken pekar på ankarets sida.**
@@ -6679,6 +6679,40 @@ innehåll) står kvar. Avläsningen rörs inte. Utkasten som importerades före
 **VEVOR-synken slås på när poleringen börjar** (Leonard 2026-10-30: "Vi kan
 sätta på den när vi börjar polera"). Fram till dess står utkastens lager och
 pris som vid importen.
+
+### Varje färg får sina egna bilder (2026-10-30)
+
+Leonards fråga om traktorskopskyddet: en grön variant, men galleriet visade
+syskonens bilder och bara en grön. Importen gav familjen ankarets sex bilder
+och bara huvudbilden från varje syskon, kopplad som färgbild. Ankarets
+huvudbild låg dessutom två gånger, en gång i galleriet och en gång som
+ankarets färgbild.
+
+Nu får varje artikel sina sex bilder i galleriet, ankaret först, och alla
+sex kopplas till artikelns värde på bildaxeln (`valBilder` på produkten,
+flera länkar per val i `linkChoiceMedia`). Alt-texten är "<namn> – <värde>",
+och ", bild N" från den andra. Wix tar 50 bilder, så över åtta artiklar får
+var och en färre, minst en. En adress som två artiklar delar tas med en gång
+och kopplas till den första.
+
+**De familjer som importerades före 2026-10-30** rättas med workflowen
+**"VEVOR — rätta familjernas bilder"** (`plan` · `skriv`) →
+`/api/admin/vevor-familjebilder` → `lib/vevor/familjebilder.ts`. Torrt som
+default, och `skriv` kräver `bekrafta` = planens antal sidor att rätta.
+Skrivningen går i steg som färgbilderna: uppladdning, galleriet med de gamla
+länkade bilderna kvar sist, länkarna, galleriet utan dem, återläsning,
+variantbilden.
+
+1. ☠️ Bara opolerade, dolda VEVOR-utkast med fler än en artikel.
+2. ☠️ Bilderna känns igen på sin källa (Wix `sourceUrl`). En bild vars källa
+   inte är någon av artiklarnas egna stoppar familjen (`okand_kalla`): har
+   VEVOR bytt bildadresser sedan importen hade samma foto laddats upp igen.
+3. ☠️ Faller en uppladdning rörs Wix inte, och första sidan som inte läser
+   tillbaka som planen stoppar körningen.
+4. ☠️ Svaret bär bara Wix-id och antal.
+
+Ordningen: `plan`, `skriv` med planens antal, `plan` igen (att rätta ska
+vara 0).
 
 ### Radera och börja om
 

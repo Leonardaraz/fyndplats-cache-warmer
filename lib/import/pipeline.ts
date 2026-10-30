@@ -611,6 +611,7 @@ export async function importProduct(
   const translatedSwatchImages = effectiveSwatchImages
     ? translator.axisKeyedMap(effectiveSwatchImages)
     : undefined;
+  const translatedValBilder = product.valBilder ? translator.axisKeyedMap(product.valBilder) : undefined;
 
   const included = variants.filter((v) => v.included);
 
@@ -940,11 +941,18 @@ export async function importProduct(
   const optionChoiceSet = new Set(
     options.flatMap((o) => o.choices.map((c) => `${o.name} ${c.name}`)),
   );
+  // Val med flera bilder (valBilder) kopplas till galleriets bilder nedan och
+  // får ingen swatch-bild: två bilder med samma alt-text hade gjort kopplingen tvetydig.
+  const valMedBilder = new Set(
+    Object.entries(translatedValBilder ?? {}).flatMap(([axis, varden]) =>
+      Object.keys(varden).map((value) => `${axis} ${value}`),
+    ),
+  );
   const swatchSources: { optionName: string; choiceName: string; sourceUrl: string; altText: string }[] = [];
   if (translatedSwatchImages) {
     for (const [axis, valueMap] of Object.entries(translatedSwatchImages)) {
       for (const [value, url] of Object.entries(valueMap)) {
-        if (url && optionChoiceSet.has(`${axis} ${value}`)) {
+        if (url && optionChoiceSet.has(`${axis} ${value}`) && !valMedBilder.has(`${axis} ${value}`)) {
           // altText är BÅDE vettig alt-text OCH den stabila matchningsnyckeln som
           // linkChoiceMedia använder (id/URL byts vid Wix re-import). Unik per val.
           swatchSources.push({
@@ -1033,11 +1041,42 @@ export async function importProduct(
   // bilden till en ny fil. Uppmätt 2026-08-28: 591 av 595 granskade
   // wixstatic-filer var sådana kopior, och Media Manager hade 58 160 filer där
   // hälften räckt. Se kommentaren på WixProductInput.mediaItems.
+  // Alt-texten slås upp på bildens källa: hoppar importMediaUrls över en miss
+  // stämmer index inte längre (lib/wix/media.ts, ImportedMedia.kalla).
   const mediaItems: { id?: string; url: string; altText: string }[] = uploadedMedia.map((m, i) => ({
     ...(m.id ? { id: m.id } : {}),
     url: m.url,
-    altText: altByOriginalUrl.get(orderedImageUrls[i]) ?? seo.title,
+    altText: altByOriginalUrl.get(m.kalla ?? orderedImageUrls[i]) ?? seo.title,
   }));
+
+  // Flera bilder per val (product.valBilder, VEVOR-familjerna 2026-10-30). Bilderna
+  // ligger redan i galleriet, så ingen laddas upp två gånger. Varje bild får en egen
+  // alt-text, som också är matchningsnyckeln i linkChoiceMedia, och kopplas till sitt
+  // val i valBilders ordning. En bild som står under två val kopplas till det första.
+  const valLinks: ChoiceMediaLink[] = [];
+  if (translatedValBilder) {
+    const valForKalla = new Map<string, { axel: string; varde: string; plats: number }>();
+    for (const [axel, varden] of Object.entries(translatedValBilder)) {
+      for (const [varde, urls] of Object.entries(varden)) {
+        if (!optionChoiceSet.has(`${axel} ${varde}`)) continue;
+        urls.forEach((u, plats) => {
+          if (!valForKalla.has(u)) valForKalla.set(u, { axel, varde, plats });
+        });
+      }
+    }
+    const kopplade: { item: (typeof mediaItems)[number]; axel: string; varde: string; plats: number }[] = [];
+    uploadedMedia.forEach((m, i) => {
+      const v = valForKalla.get(m.kalla ?? orderedImageUrls[i]);
+      if (v) kopplade.push({ item: mediaItems[i], ...v });
+    });
+    // Valets bilder i valBilders ordning, oavsett galleriets: den första blir variantens bild.
+    kopplade.sort((a, b) => a.plats - b.plats);
+    for (const k of kopplade) {
+      const nr = valLinks.filter((l) => l.optionName === k.axel && l.choiceName === k.varde).length + 1;
+      k.item.altText = nr === 1 ? `${seo.title} – ${k.varde}` : `${seo.title} – ${k.varde}, bild ${nr}`;
+      valLinks.push({ optionName: k.axel, choiceName: k.varde, altText: k.item.altText });
+    }
+  }
 
   // Lägg variant-/swatch-bilderna SIST i poolen (huvudbilden = galleriets första,
   // inte en swatch-thumbnail). Deduppa mot galleriet på media-id så samma foto inte
@@ -1059,7 +1098,7 @@ export async function importProduct(
   // se color-match.ts). Reuse:ar de per-färg-galleribilder som produkten redan har →
   // storefronten (läser linkedMedia med högsta prioritet) visar rätt bild per modell,
   // helt utan storefront-ändring. Explicit swatch vinner; detta fyller bara luckorna.
-  const linkedChoiceKeys = new Set(swatchLinks.map((l) => `${l.optionName} ${l.choiceName}`));
+  const linkedChoiceKeys = new Set([...swatchLinks, ...valLinks].map((l) => `${l.optionName} ${l.choiceName}`));
   // Per-färg alt-matchning är BARA säker när alt-texten är specifik för EN bild. I
   // rå-läge (AI_ENRICHMENT_ENABLED=false) får alla galleribilder samma alt (rå
   // titeln) → en delad alt-text skulle felaktigt koppla en färg till första bilden.
@@ -1086,7 +1125,7 @@ export async function importProduct(
       }
     }
   }
-  const choiceMediaLinks = swatchLinks.concat(altLinks);
+  const choiceMediaLinks = swatchLinks.concat(valLinks, altLinks);
 
   // Lagren vi FAKTISKT skeppar ur. `lager.warehouses` är de distinkta koderna
   // bland de BEHÅLLNA varianterna efter collapseShipFromAxis — och bara de hör
@@ -1167,7 +1206,7 @@ export async function importProduct(
       "import-variant-media",
       created.id,
       `${linkedCount}/${choiceMediaLinks.length} val kopplade till variantbild ` +
-        `(linkedMedia; ${swatchLinks.length} explicit swatch + ${altLinks.length} via alt-text-färgmatch)`,
+        `(linkedMedia; ${swatchLinks.length} explicit swatch + ${valLinks.length} valbilder + ${altLinks.length} via alt-text-färgmatch)`,
     );
   }
 
