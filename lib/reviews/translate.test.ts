@@ -111,6 +111,13 @@ describe("groupForTranslation + buildTranslatePrompt", () => {
     expect(p).toMatch(/Nämn ALDRIG var varan är köpt/);
   });
 
+  it("prompten säger att punkten som saknas, smilisen och en allmän leveransrad står kvar (Leonard 2026-10-31)", () => {
+    const p = buildTranslatePrompt(groupForTranslation(rader, namn));
+    expect(p).toMatch(/Saknar originalet\s+punkt sist/);
+    expect(p).toMatch(/Smilisar och emojis står kvar/);
+    expect(p).toMatch(/snabb leverans/);
+  });
+
   it("faller tillbaka på produkt-id när namnet saknas", () => {
     const p = buildTranslatePrompt(groupForTranslation([rad()], () => undefined));
     expect(p).toContain("p1");

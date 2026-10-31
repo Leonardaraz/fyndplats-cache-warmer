@@ -8745,7 +8745,14 @@ Aosom-texter hade tankstreck. Stilen från och med nu, för all översättning
   "Sammanfattningsvis", "helt och hållet", "förhållandet mellan pris och
   kvalitet", "kan varmt rekommenderas", "ett riktigt blickfång".
 - Samma längd och ton som originalet — ett slängigt original får bli lite
-  slängigt (gärna utan punkt sist). Inga påhittade stavfel: vardaglig, inte slarvig.
+  slängigt. Inga påhittade stavfel: vardaglig, inte slarvig.
+- Det ska låta som en människa skrev det (Leonard 2026-10-31). Saknar originalet
+  punkt sist saknar svenskan den också, och smilisar och emojis står kvar som de
+  är (`:)`, `;)`, `😊`). Stilgrinden (`stilfel` i `lib/reviews/polering.ts`)
+  släpper semikolonet i en smilis.
+- Handlar recensionen bara om leveransen döljs den. Handlar den om produkten och
+  säger också något allmänt om leveransen (snabb leverans, väl förpackat) står
+  den kvar med den raden (Leonard 2026-10-31). Budfirmans namn stryks.
 - Innehållet ändras aldrig, och tvätten gäller som förut (inga varumärken,
   butiker, budfirmor, namn, priser, leveranstider, kundtjänst, diagnoser).
 

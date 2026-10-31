@@ -1224,18 +1224,27 @@ att produktsidan visar dem direkt. Annars cachas de i sex timmar.
 3. **Pröva** med samma workflow i läget `torr`, efter att ha pushat `recensioner.json`.
    Felen står per kort och recensions-id. Steg 9:s `torr` gör samma prövning.
 
-**Översättningen** har samma längd och ton som originalet, vardaglig svenska och korta
-meningar (CLAUDE.md, *Recensionernas svenska ska låta som en kund*). Innehållet ändras
-aldrig, och kritik står kvar.
+**Översättningen** ska låta som en människa skrev den, inte som en översättning *(Leonard
+2026-10-31)*: samma längd och ton som originalet, vardaglig svenska och korta meningar
+(CLAUDE.md, *Recensionernas svenska ska låta som en kund*). Innehållet ändras aldrig, och
+kritik står kvar.
 
-- Inga tankstreck, semikolon, citattecken eller `…`, och inga AI-fraser som *sammantaget*
-  eller *helt och hållet*.
+- **Skriv som kunden skrev.** Saknar originalet punkt sist saknar svenskan den också.
+  Smilisar och emojis står kvar som de är (`:)`, `;)`, `:-)`, `😊`), och grinden släpper
+  semikolonet i en smilis *(Leonard 2026-10-31)*.
+- Inga tankstreck, semikolon mellan satser, citattecken eller `…`, och inga AI-fraser som
+  *sammantaget* eller *helt och hållet*.
 - Ta bort varumärken och marknadsplatser, budfirmor, priser, säljaren och kundtjänst,
-  leveranstider och namn. Blir meningen fel utan det, dölj recensionen i stället.
+  leveranstider som säljaren lovat och namn. Blir meningen fel utan det, dölj recensionen
+  i stället.
+- **En allmän rad om leveransen står kvar** när recensionen också handlar om produkten:
+  *snabb leverans*, *kom fort*, *väl förpackat* *(Leonard 2026-10-31)*. Bara budfirmans namn
+  stryks.
 
 **Dölj** med ett kort skäl, eftersom loggen är publik, när recensionen:
 
-- bara handlar om leveransen, returen eller kundtjänsten,
+- bara handlar om leveransen, returen eller kundtjänsten. Säger den också något om
+  produkten står den kvar, med leveransraden (se ovan),
 - gäller en annan vara, färg eller storlek än sidans,
 - bär ett namn, en signatur eller hälsouppgifter (`namn: true` i läsningen),
 - säger emot sidans fakta, till exempel ett annat mått. Lista den då också i `FLAGGADE.md`
