@@ -23,7 +23,7 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import {
-  matchPhrase, matchPhraseForStage, svLocation, svCountry, svenskVaggklocka, dedupeEvents, tidForHandelse,
+  matchPhrase, matchPhraseForStage, NOTISFRASER, statusUtanNotis, svLocation, svCountry, svenskVaggklocka, dedupeEvents, tidForHandelse,
   rimligTid, rattaPlatser, orderEventsNewestFirst, textUtanFras, loggtext,
 } from "@/lib/track-i18n";
 import { maskCarrier, transportorAvNummer, transportorForNummer } from "@/lib/carrier-mask";
@@ -185,6 +185,9 @@ const STAGE_LABEL_SV: Record<string, string> = {
   NotFound: "Ingen information",
 };
 
+/** Raden för ett meddelande till kunden som 17TRACK kallar en avvikelse. */
+const NOTIS_ETIKETT = "Avisering";
+
 // Carrier-maskering delas med 17TRACK-push-webhooken via lib/carrier-mask
 // (allowlist, fail-safe) så de två kanalerna aldrig divergerar i vad de visar.
 const cleanCarrier = maskCarrier;
@@ -236,7 +239,8 @@ function mapEvent(ev: Track17Event): {
     time: tidForHandelse(ev),
     description,
     location: LEAKY_PATTERN.test(loc) ? "" : loc,
-    status: label,
+    // Ett meddelande till kunden är ingen avvikelse (NOTISFRASER).
+    status: base === "Exception" && NOTISFRASER.has(description) ? NOTIS_ETIKETT : label,
   };
 }
 
@@ -370,7 +374,8 @@ function buildResponse(json: Track17Response, tn: string): { body: unknown; stat
   ));
 
   const rawStatus = ti.latest_status?.status;
-  const status = mapStatus(rawStatus);
+  // Ett mejl eller en avi till kunden är ingen avvikelse (statusUtanNotis).
+  const status = statusUtanNotis(mapStatus(rawStatus), orderEventsNewestFirst(visibleEvents)[0]?.description);
   const provider = ti.tracking?.providers?.[0]?.provider;
   const carrier = cleanCarrier(provider?.name || "");
   const eta = fmtEtaSv(

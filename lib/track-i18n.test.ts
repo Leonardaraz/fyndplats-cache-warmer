@@ -2,7 +2,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  matchPhrase, matchPhraseForStage, AVI_FRAS, orderEventsNewestFirst, svCountry, svLocation, dedupeEvents,
+  matchPhrase, matchPhraseForStage, AVI_FRAS, MEJL_FRAS, NOTISFRASER, statusUtanNotis, orderEventsNewestFirst, svCountry, svLocation, dedupeEvents,
   landForHandelse, harOrt, svenskVaggklocka, tidForHandelse, rimligTid, rattaPlatser, textUtanFras, loggtext,
 } from "./track-i18n.ts";
 
@@ -485,3 +485,27 @@ test("svLocation – en ort stavas likadant, och en transportör är ingen plats
   assert.equal(svLocation("Malmö, Sweden"), "Malmö, Sverige");
 });
 
+
+test("☠️ PostNords mejl till mottagaren är ingen avvikelse (order 10111, 2026-10-28)", () => {
+  const text = "E-mail notification has been sent to the recipient";
+  assert.equal(matchPhrase(text), MEJL_FRAS);
+  // 17TRACK kallade händelsen Exception_Delayed. Frasen står, och ingen loggrad.
+  assert.equal(matchPhraseForStage(text, "Exception"), MEJL_FRAS);
+  assert.equal(textUtanFras(text, matchPhraseForStage(text, "Exception"), "Exception", "Exception_Delayed"), null);
+  for (const t of ["Notified by e-mail", "An email notification was sent", "e-mail sent to the consignee"]) {
+    assert.equal(matchPhrase(t), MEJL_FRAS, t);
+  }
+  // En verklig försening är fortfarande en avvikelse.
+  assert.equal(matchPhrase("Shipment delayed"), "Det har uppstått en avvikelse i leveransen.");
+});
+
+test("statusUtanNotis – ett meddelande till kunden gör inte paketet till en avvikelse", () => {
+  assert.ok(NOTISFRASER.has(MEJL_FRAS) && NOTISFRASER.has(AVI_FRAS));
+  assert.equal(statusUtanNotis("Exception", MEJL_FRAS), "InTransit");
+  assert.equal(statusUtanNotis("Exception", AVI_FRAS), "InTransit");
+  // En verklig avvikelse, och andra statusar, står kvar.
+  assert.equal(statusUtanNotis("Exception", "Det har uppstått en avvikelse i leveransen."), "Exception");
+  assert.equal(statusUtanNotis("Exception", undefined), "Exception");
+  assert.equal(statusUtanNotis("Delivered", MEJL_FRAS), "Delivered");
+  assert.equal(statusUtanNotis("OutForDelivery", AVI_FRAS), "OutForDelivery");
+});
