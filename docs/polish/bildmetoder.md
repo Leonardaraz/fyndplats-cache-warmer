@@ -683,3 +683,17 @@ element som täcker både produkt och bakgrund → LaMa med produkt-skonande fä
 
 
 -----
+
+☠️ **En bildplan på en sida med val kan nollställa valens länkar** (2026-10-31, `runda-bilder-elementskydd`,
+FLAGGADE lärdom 273). Elementskyddet `675ba9bc` hade optionen *Specifikation* med en länkad måttskiss per
+bredd. Bildplanen bar båda bilderna, `polish-bilder.yml` svarade `ok` och återläsningen jämförde galleri och
+alt-texter, men nästa läsning visade `0 → 0` länkade bilder på båda valen. Läs
+`options[].choicesSettings.choices[].linkedMedia` efter varje bildplan på en sida med val, länka om med
+`bygg-lank.py` (en plan med hela listan per val) och kör `variantbild.yml` med `ids`. Orsaken är inte
+bevisad. Galleriordningen avgör länkordningen i `bygg-lank.py`, så lägg valets paketbild först i galleriet
+om den ska vara valets och varukorgens första bild.
+
+⚠️ **Uppladdningens bild paras på dHash, inte md5** när källan är en AliExpress-adress: Wix lagrar om filen
+(1,75 MB mot 0,97 MB lokalt för samma bild). Kräv att bästa avståndet på ett 16 × 16-hash är under 15 och
+nästa över 100, annars har filen hamnat på fel kandidat.
+
