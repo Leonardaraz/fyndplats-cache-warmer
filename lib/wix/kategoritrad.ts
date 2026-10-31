@@ -36,6 +36,10 @@ export interface KategoriNod {
   /** Förälderns id, null för en avdelning. */
   foralder: string | null;
   synlig: boolean;
+  /** Wix revision, som Update Category Visibility kräver. */
+  revision?: string;
+  /** När kategorin skapades (ISO). */
+  skapad?: string;
 }
 
 function data(svar: unknown): Obj {
@@ -58,7 +62,14 @@ export async function lasKategoritradet(wix: Anrop): Promise<KategoriNod[]> {
     for (const c of (d.categories ?? []) as Obj[]) {
       if (typeof c.id !== "string" || typeof c.name !== "string") continue;
       const f = (c.parentCategory as Obj | undefined)?.id;
-      ut.push({ id: c.id, namn: c.name, foralder: typeof f === "string" && f ? f : null, synlig: c.visible !== false });
+      ut.push({
+        id: c.id,
+        namn: c.name,
+        foralder: typeof f === "string" && f ? f : null,
+        synlig: c.visible !== false,
+        ...(typeof c.revision === "string" ? { revision: c.revision } : {}),
+        ...(typeof c.createdDate === "string" ? { skapad: c.createdDate } : {}),
+      });
     }
     const p = (d.pagingMetadata ?? {}) as Obj;
     const nasta = ((p.cursors ?? {}) as Obj).next;

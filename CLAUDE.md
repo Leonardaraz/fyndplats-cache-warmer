@@ -7044,10 +7044,37 @@ besluten:
    (`AVDELNINGSORDNING`, se butikens `CLAUDE.md`).
 
 **I Wix** skapades 3 avdelningar och 51 underkategorier dolda samma dag (134
-synliga kategorier orörda). Butiken visar bara kategorier med synliga
-produkter, så de syns först när varor publiceras. Visa en kategori när den har
-minst tio publicerade varor och en text, och visa avdelningen före
-underkategorin: en synlig underkategori under en dold avdelning är dold.
+synliga kategorier orörda). Butiken visar bara kategorier som är synliga i Wix
+och har köpbara produkter, så de syns först när varor publiceras.
+
+**De nya kategorierna blir synliga av sig själva vid tio publicerade produkter**
+(Leonard 2026-10-31). Cronen `/api/cron/kategorier-synlighet?dryRun=false`
+(minut 37 varje timme) → `lib/vevor/kategorier-synlighet.ts`; workflowen
+**"Kategorier — visa nya kategorier med minst tio produkter"** (`torr` · `skarp`)
+kör samma rutt för hand. Den räknar synliga produkter i varje dold kategori som
+reglerna lägger varor i (Wix Count Products med `allCategoriesInfo` och
+`visible`, så en avdelning räknar med sina underkategorier), visar de som når
+tio med Update Category Visibility (`PATCH /categories/v1/categories/visibility`;
+Update Category tar inte `visible`), läser tillbaka och ber sedan butiken bygga
+om `/sitemap.xml`, `/` och `/butik` (`tomOchBesok`, `ADMIN_SECRET` som kakan
+`fp_admin`). Butiken tar sedan med kategorin i menyn, på sin sida och i
+sitemapen (`lib/site-urls.ts` utelämnar bara tunna kategorier med 1–4
+produkter). Kategorisidan har en generell text när den saknar egen. Uppmätt
+2026-10-31 på två tillfälliga testkategorier som raderades direkt: Wix vägrar
+visa en underkategori under en dold avdelning (428 "Category can't be visible
+if at least one of the parent categories is hidden"), och att visa avdelningen
+visar inte dess underkategorier. Torrkörningen samma dag: 54 dolda nya
+kategorier, alla med 0 produkter, och 15 äldre dolda kategorier som jobbet
+aldrig rör.
+
+- ☠️ **Bara nya kategorier**: dolda, ett regelmål och skapade från och med
+  `NYA_FRAN` (2026-10-31). En äldre dold kategori (Elektronik & Tillbehör,
+  Mode & Accessoarer med flera) rörs aldrig. Ska en ny kategori förbli dold:
+  lägg namnet i `HALLS_DOLDA`.
+- ☠️ **Jobbet döljer aldrig något**, och avdelningen visas före underkategorin.
+  En underkategori under en dold avdelning väntar (`vantarPaAvdelning`).
+- ☠️ **Ett trädfel stoppar körningen**, och en visning räknas först när trädet
+  läses om. En tom körning loggar ingenting.
 
 **Reglerna** står i `lib/vevor/kategorier.ts`: VEVOR:s egen kategori (de tre
 första nivåerna i brödsmulan) och, där den blandar varor, produktnamnet ger
@@ -7080,8 +7107,27 @@ avdelning och underkategori. Första regel som passar vinner.
   stödhandtag, inkontinensunderlägg): namnen lät inte som vård, och flaggan
   sattes bara på VEVOR:s vårdkategorier och vårdord. `hjalpmedel.publicerade`
   ska vara 0.
-- **Publiceringsspärren** (`lib/publicering.ts`) vägrar ett märkt vapenskåp på
-  alla vägar, före GPSR, och kön visar "🔒 Vapenskåp, publiceras inte".
+- ☠️ **Spritapparaterna får ingen kategori och publiceras inte**
+  (`vevorGranskning.spritapparat`, Leonards fråga 2026-10-31). Alkohollagen
+  (2010:1622) 2 kap. 1 § andra stycket förbjuder att tillverka, överlåta eller
+  inneha en apparat "som uppenbarligen är ägnad för tillverkning av sprit" utan
+  rätt att tillverka sprit, och 11 kap. 2 § ger böter eller fängelse i högst ett
+  år. Två regler, före allt annat utom vapenskåpen: en destillator som säljs för
+  alkohol, var den än står (alkohol, whisky, brandy, moonshine, hembränt,
+  thumper, "Vinframställningsset"), och varje destillator i VEVOR:s
+  Bryggutrustning, också de som säljs för eteriska oljor eller vatten: en panna
+  på 12–70 liter med kylspiral är en sprit-panna vad texten än säger. Mätt
+  2026-10-31 på 15 246 avläsningar: 36 spärras (17 i lager). Elektriska
+  vattendestillatorer på bänken (4–6 liter, 10 st) och laboratoriesatser i glas
+  (6 st) spärras inte; alkohollampan i en labbsats och alkoholbrännaren under en
+  dryckesdispenser är värme. Märkningen görs som för vapenskåpen, på alla
+  VEVOR-rader och i samma steg, och en publicerad spritapparat räknas i
+  `spritapparat.publicerade`. Morgonmejlet listar synliga vapenskåp och
+  spritapparater för sig ("VEVOR-SIDOR SOM INTE FÅR SÄLJAS"). Bryggutrustning
+  utan destillator (jästankar, bryggsystem, kittlar) säljs som vanligt.
+- **Publiceringsspärren** (`lib/publicering.ts`) vägrar ett märkt vapenskåp och
+  en märkt spritapparat på alla vägar, före GPSR, och kön visar "🔒 Vapenskåp,
+  publiceras inte" och "🔒 Spritapparat, publiceras inte".
 - `lasKategoritradet` (`lib/wix/kategoritrad.ts`) läser trädet med dolda
   kategorier. Poleringens kategoristeg läser samma träd, så att den kan välja
   en dold underkategori.
@@ -7172,10 +7218,12 @@ kopplad produkt efter första varvet och läs butikens logg efter `[uppdatera]
 fler än`.
 
 **Natten då butikens meny-PR mergas**, i den ordningen och precis före mergen:
-byt namn på Verktyg & Fordon i Wix, flytta Bil & släp och Elbilsladdning &
-solenergi under Bil & Garage, och visa Bil & Garage. En synlig underkategori
-under en dold avdelning försvinner, så Bil & Garage visas i samma steg som
-flytten. Ta också bort de tre produkterna i Bil & släp ur Verktyg & Fordon.
+byt namn på Verktyg & Fordon i Wix, visa Bil & Garage, och flytta sedan Bil &
+släp och Elbilsladdning & solenergi under den. ☠️ Bil & Garage visas FÖRE
+flytten: Wix vägrar en synlig underkategori under en dold avdelning (428), och
+en flytt in under en dold avdelning kan dölja de två kategorierna med 49
+produkter. En tom avdelning visas inte i butiken, så att visa den först är
+ofarligt. Ta också bort de tre produkterna i Bil & släp ur Verktyg & Fordon.
 Namnbytet görs med Update Category (`PATCH /categories/v1/categories/{id}` med
 `revision`) och flytten med Move Category (`POST
 /categories/v1/categories/{id}/move`, `parentCategoryId` och `position`).

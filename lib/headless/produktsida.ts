@@ -106,3 +106,44 @@ export function diagnosUppfriskning(d: UppfriskningDetalj): string {
   }
   return `Butiken svarade ${d.status}.`;
 }
+
+/**
+ * Tömmer butikens cache för en sökväg och besöker den direkt efteråt, så att
+ * nästa besökare (eller Googlebot) får den nya versionen. Används när en
+ * kategori blivit synlig (lib/vevor/kategorier-synlighet.ts): sitemapen,
+ * startsidan och /butik visar då en ny kategori. Best-effort, kastar aldrig.
+ */
+export async function tomOchBesok(
+  sokvag: string,
+  fetchImpl: typeof fetch = fetch,
+): Promise<number | "ingen_nyckel" | "misslyckades"> {
+  const nyckel = process.env.ADMIN_SECRET;
+  if (!nyckel) return "ingen_nyckel";
+  const bas = butikensBas();
+  let status: number;
+  try {
+    const res = await fetchImpl(
+      `${bas}/api/admin/revalidate?token=${encodeURIComponent(nyckel)}&path=${encodeURIComponent(sokvag)}`,
+      {
+        method: "POST",
+        headers: { cookie: `fp_admin=${nyckel}`, "user-agent": "fyndplats-cache-warmer/kategorier" },
+        redirect: "manual",
+        signal: AbortSignal.timeout(TIMEOUT_MS),
+      },
+    );
+    status = res.status;
+    if (!res.ok) return status;
+  } catch {
+    return "misslyckades";
+  }
+  try {
+    await fetchImpl(`${bas}${sokvag}`, {
+      method: "GET",
+      headers: { "user-agent": "fyndplats-cache-warmer/kategorier" },
+      signal: AbortSignal.timeout(TIMEOUT_MS * 3),
+    });
+  } catch {
+    // Besöket är en bonus: cachen är tömd, och nästa besök bygger om sidan.
+  }
+  return status;
+}
