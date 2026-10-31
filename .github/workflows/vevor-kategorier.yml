@@ -7,9 +7,11 @@ name: VEVOR — kategorier till utkasten
 #
 #   plan   räknar utkast, produkter att koppla per kategori, vapenskåp och
 #          varor utan regel. Skriver ingenting. `tradFel` ska vara tom.
-#   skriv  kopplar i varv om fyra minuter tills inget är kvar. Kräver
+#   skriv  märker vapenskåpen (alla VEVOR-rader, också polerade) och kopplar
+#          sedan i varv om fyra minuter tills inget är kvar. Kräver
 #          `bekrafta` = planens antal produkter att koppla. Lägger bara till;
 #          tar aldrig bort en kategori och rör aldrig pris, text eller synlighet.
+#          Ett publicerat vapenskåp ger en varning: dölj det i Wix för hand.
 #
 # Ordningen: plan, skriv med planens antal, plan igen (att koppla ska vara 0).
 #
@@ -64,12 +66,21 @@ jobs:
             echo "$1" | jq '{dryRun, utkast, attKoppla, redanKopplade, utanRegel, avlasningSaknas, vapenskap, tradFel, kopplade, fel, felExempel, kvar, stoppadAv}' || true
           }
 
+          # Ett publicerat vapenskåp kan bara döljas i Wix för hand (SS 3492).
+          varna_publicerade() {
+            n=$(echo "$1" | jq -r '.vapenskap.publicerade // 0')
+            if [ "$n" != "0" ]; then
+              echo "::warning::${n} vapenskåp är redan publicerade (vapenskap.publiceradeIdn ovan). Dölj dem i Wix." >&2
+            fi
+          }
+
           if [ "$LAGE" = "plan" ]; then
             svar=$(anropa '{"dryRun":true}')
             if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
               echo "::error::$(echo "$svar" | jq -r '.error // "okänt fel"')" >&2; exit 1
             fi
             visa "$svar"
+            varna_publicerade "$svar"
             echo "Per kategori:"
             echo "$svar" | jq -r '.perKategori | to_entries | sort_by(-.value) | .[] | "\(.value)\t\(.key)"' || true
             if [ "$(echo "$svar" | jq -r '.tradFel | length')" != "0" ]; then
@@ -89,9 +100,13 @@ jobs:
             fi
             echo "Varv ${varv}:"
             visa "$svar"
+            varna_publicerade "$svar"
             stopp=$(echo "$svar" | jq -r '.stoppadAv')
             fel=$(echo "$svar" | jq -r '.fel')
             vfel=$(echo "$svar" | jq -r '.vapenskap.fel')
+            if [ "$stopp" = "trad" ]; then
+              echo "::error::Kategoriträdet i Wix saknar regelmål (tradFel ovan). Ingenting kopplades; vapenskåpen märktes." >&2; exit 1
+            fi
             if [ "$stopp" = "fel" ]; then
               echo "::error::Wix tog inte emot kopplingarna två tuggor i rad (felExempel ovan)." >&2; exit 1
             fi

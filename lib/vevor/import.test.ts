@@ -642,6 +642,18 @@ describe("kategorierna (Leonards ja 2026-10-31)", () => {
     expect(s.kategorier).toEqual({ kopplade: 0, omappade: 0, vapenskap: 1, fel: 0 });
   });
 
+  it("☠️ ett vapenskåp bland en familjs artiklar märker hela produkten och ger ingen kategori", async () => {
+    const svets = kat("Verktyg", "Svetsning och lödning", "Svetsmaskiner");
+    const syskon = (...n: number[]) => n.map((m) => ({ sku: sku(m), webbId: String(m).padStart(12, "0"), kanKopas: true }));
+    lagg(1, { kategorier: svets, namn: "Förvaringsskåp i stål", egenskaper: [["Färg", "Svart"]], syskon: syskon(2) });
+    lagg(2, { kategorier: svets, namn: "Vapenskåp för 5 gevär", egenskaper: [["Färg", "Vit"]], syskon: syskon(1) });
+    const s = await korVevorImport(deps(), schema);
+    expect(kopplaKategorier).not.toHaveBeenCalled();
+    const [m] = await store.mappningarForLeverantorsId([`vevor:${sku(1)}`]);
+    expect(m.vevorGranskning?.vapenskap).toBe(true);
+    expect(s.kategorier).toMatchObject({ kopplade: 0, vapenskap: 1 });
+  });
+
   it("en vara utan regel importeras utan kategori och räknas", async () => {
     lagg(1);
     const s = await korVevorImport(deps(), schema);

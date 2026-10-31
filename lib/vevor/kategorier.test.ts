@@ -189,6 +189,51 @@ describe("auditens fynd", () => {
   });
 });
 
+describe("kodgranskningen 2026-10-31", () => {
+  const mal = (vag: string[], namn: string) => {
+    const k = klassa(a(vag, namn));
+    return k.typ === "kategori" ? `${k.mal.avdelning}/${k.mal.kategori}` : k.typ;
+  };
+  const djur = (under: string) => ["Utomhus", "Djurtillbehör och djurliv", under];
+
+  it("☠️ ett vapenskåp utanför sökvägen Kassaskåp är ändå ett vapenskåp", () => {
+    expect(mal(["Sport och friluftsliv", "Jaktutrustning", "Jaktvagnar"], "Vapenskåp för 5 gevär med kodlås")).toBe(VAPENSKAP);
+    expect(mal(["Möbler", "Vardagsrumsmöbler", "Accentskåp"], "Bösskåp med elektroniskt lås")).toBe(VAPENSKAP);
+    expect(mal(["Möbler", "Vardagsrumsmöbler", "Accentskåp"], "Gevärskåp i stål med digital knappsats")).toBe(VAPENSKAP);
+    expect(mal(["Verktyg", "Säkerhet och trygghet", "Kassaskåp"], "42 Tall Wall Gun Safe with keypad")).toBe(VAPENSKAP);
+    // Ett skåp för annat är inget vapenskåp.
+    expect(mal(["Förvaring och organisering", "Förvaring i tvättstugan", "Tvättstugaskåp"], "Väggskåp för tvättstuga, 2 våningar")).not.toBe(VAPENSKAP);
+  });
+
+  it("produkttypen går före egenskaperna bland djurtillbehören", () => {
+    expect(mal(djur("Fågeltillbehör"), "Hönshus i trä med ramp och värpbox")).toBe("Husdjur/Hönshus & hönsgårdar");
+    expect(mal(djur("Smådjurstillbehör"), "Kaninbur i två våningar med ramp")).toBe("Husdjur/Kaninburar & marsvinsburar");
+    expect(mal(djur("Katttillbehör"), "Klösträd 150 cm med kattbädd")).toBe("Husdjur/Klösträd");
+    expect(mal(djur("Katttillbehör"), "Kattträd med flera plattformar")).toBe("Husdjur/Klösträd");
+    // En kycklingmatare är en matare, inget hönshus.
+    expect(mal(djur("Leveranser till lantbruksdjur"), "Automatisk kycklingmatare, 18 kg, regntät")).toBe("Husdjur/Mat & Vattenskålar");
+    // Det som står efter "för" är vad varan passar till.
+    expect(mal(djur("Smådjurstillbehör"), "Husdjursramp för hund och kanin")).toBe("Husdjur/Lek & Tillbehör för husdjur");
+  });
+
+  it("orm är ett ord, inte en del av plattform eller formad", () => {
+    expect(mal(djur("Hundtillbehör"), "Hundleksak formad som ben")).toBe("Husdjur/Lek & Tillbehör för husdjur");
+  });
+
+  it("en barnvagn för husdjur är en hundvagn", () => {
+    expect(mal(djur("Hundtillbehör"), "Barnvagn för husdjur, 4 hjul")).toBe("Husdjur/Hundvagnar");
+    expect(mal(djur("Hundtillbehör"), "Hundbarnvagn med 3 hjul")).toBe("Husdjur/Hundvagnar");
+  });
+
+  it("bröllop och kalas går före evenemangsregeln, tältkaminen före gnistskydden", () => {
+    expect(mal(["Utomhus", "Trädgårdscenter", "Utomhusdekor"], "Ballongbåge, backdrop för bröllop")).toBe("Jul & Högtider/Kalas & Fest");
+    expect(mal(["Uppvärmning, ventilation och kylning", "Eldstäder", "Fristående spisar"], "Tältkamin med gnistgaller")).toBe(
+      "Sport & Fritid/Camping & kylboxar",
+    );
+    expect(mal(["Verktyg", "Säkerhet och trygghet", "Hemsäkerhet"], "Barngrind för trappor")).toBe("Barn & Familj/Baby & Småbarn");
+  });
+});
+
 describe("uppslaget i Wix", () => {
   it("trädet efter natten har varje regelmål", () => {
     const u = byggUppslag(tradEfter());

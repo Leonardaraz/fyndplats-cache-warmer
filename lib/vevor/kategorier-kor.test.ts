@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { ProductMappingRecord } from "@/lib/store";
 import type { Anrop } from "@/lib/wix/kategoritrad";
-import { KategoriFel, korKategorier, type KategoriDeps } from "./kategorier-kor";
+import { korKategorier, type KategoriDeps } from "./kategorier-kor";
 import { TRADET } from "./kategorier";
 import type { Avlasning } from "./lager";
 import { testAvlasning } from "./testsida";
@@ -133,7 +133,9 @@ describe("planen", () => {
     tradetAndrat = (t) => t.splice(t.findIndex((k) => k.name === "Svetsning"), 1);
     const s = await korKategorier(deps(), torr);
     expect(s.tradFel).toEqual(["underkategorin Svetsning finns 0 gånger"]);
-    await expect(korKategorier(deps(), { ...torr, dryRun: false, bekrafta: 1 })).rejects.toThrow(KategoriFel);
+    const skarp = await korKategorier(deps(), { ...torr, dryRun: false, bekrafta: 1 });
+    expect(skarp.stoppadAv).toBe("trad");
+    expect(skarp.kopplade).toBe(0);
     expect(addAnrop).toEqual([]);
   });
 });
@@ -166,13 +168,44 @@ describe("skrivningen", () => {
     lagg(1, KASSASKAP, "Vapenskåp för 10 gevär");
     lagg(2, KASSASKAP, "Kassaskåp 30 liter");
     const plan = await korKategorier(deps(), torr);
-    expect(plan.vapenskap).toEqual({ totalt: 1, attMarka: 1, markta: 0, fel: 0 });
+    expect(plan.vapenskap).toEqual({ totalt: 1, attMarka: 1, markta: 0, fel: 0, publicerade: 0, publiceradeIdn: [] });
     expect(plan.perKategori).toEqual({ "Hem & Inredning/Kassaskåp": 1 });
     const s = await korKategorier(deps(), { ...torr, dryRun: false, bekrafta: 1 });
     expect(s.vapenskap).toMatchObject({ markta: 1, fel: 0 });
     expect(rader.get(pid(1))!.vevorGranskning?.vapenskap).toBe(true);
     expect(addAnrop.flatMap((a) => a.pids)).not.toContain(pid(1));
     expect((await korKategorier(deps(), torr)).vapenskap.attMarka).toBe(0);
+  });
+
+  it("☠️ vapenskåp märks också på polerade och publicerade rader, och de publicerade räknas", async () => {
+    lagg(1, KASSASKAP, "Vapenskåp för 10 gevär", { needsAiPolish: false });
+    lagg(2, KASSASKAP, "Vapenskåp för 4 gevär", { needsAiPolish: false, draftStatus: "published" } as Partial<ProductMappingRecord>);
+    const s = await korKategorier(deps(), { ...torr, dryRun: false, bekrafta: 0 });
+    expect(s.vapenskap).toMatchObject({ totalt: 2, attMarka: 2, markta: 2, publicerade: 1, publiceradeIdn: [pid(2)] });
+    expect(rader.get(pid(1))!.vevorGranskning?.vapenskap).toBe(true);
+    expect(rader.get(pid(2))!.vevorGranskning?.vapenskap).toBe(true);
+  });
+
+  it("☠️ ett vapenskåp bland en familjs artiklar märker hela produkten", async () => {
+    lagg(1, SVETS, "Svetsmaskin", { vevorArtiklar: [`vevor:${sku(1)}`, `vevor:${sku(9)}`] } as Partial<ProductMappingRecord>);
+    avl.set(sku(9), testAvlasning({ sku: sku(9), kategorier: KASSASKAP, namn: "Vapenskåp för 2 gevär" }));
+    const s = await korKategorier(deps(), { ...torr, dryRun: false, bekrafta: 0 });
+    expect(s.vapenskap).toMatchObject({ totalt: 1, markta: 1 });
+    expect(s.attKoppla).toBe(0);
+    expect(addAnrop).toEqual([]);
+  });
+
+  it("☠️ vapenskåpen märks även när kategoriträdet saknar ett mål eller bekrafta inte stämmer", async () => {
+    lagg(1, KASSASKAP, "Vapenskåp för 10 gevär");
+    lagg(2, SVETS, "Svetsmaskin");
+    tradetAndrat = (t) => t.splice(t.findIndex((k) => k.name === "Svetsning"), 1);
+    const s = await korKategorier(deps(), { ...torr, dryRun: false, bekrafta: 0 });
+    expect(s).toMatchObject({ stoppadAv: "trad", kopplade: 0 });
+    expect(s.vapenskap.markta).toBe(1);
+    rader.get(pid(1))!.vevorGranskning = undefined;
+    tradetAndrat = null;
+    await expect(korKategorier(deps(), { ...torr, dryRun: false, bekrafta: 0 })).rejects.toThrow(/fler än bekrafta/);
+    expect(rader.get(pid(1))!.vevorGranskning?.vapenskap).toBe(true);
   });
 
   it("ett fel räknas, felexemplet bär inga id, och planen efteråt har kvar det som föll", async () => {

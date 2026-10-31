@@ -129,10 +129,24 @@ export const FLYTTADE: Readonly<Record<string, readonly string[]>> = {
 
 export type Regel = readonly [sokvag: string, namn: RegExp | null, mal: string];
 
+/**
+ * Varans namn fram till första " för " eller kommatecken. VEVOR räknar upp vad
+ * varan passar till ("Husdjursramp för hund och kanin"), så en produkttyp som
+ * står först säger vad varan är, och en som står efter " för " gör det inte.
+ */
+function fore(ord: string): RegExp {
+  return new RegExp(`^(?:(?! för )[^,])*?(?:${ord})`, "i");
+}
+
 export const REGLER: readonly Regel[] = [
-  ["", /^[^,]*(?:barnvagn|bröstpump|amningsväska)/i, BF + "/Baby & Småbarn"],
+  // ☠️ Vapenskåp i alla sökvägar, före allt annat (Leonards beslut 3, SS 3492).
+  // Granskningen 2026-10-31 fann regeln bara i Kassaskåp; ett vapenskåp under
+  // Jakt eller med ett annat ord ("bösskåp") hade fått en kategori och kunnat
+  // publiceras. Hellre ett skåp för mycket som spärras än ett för lite.
+  ["", /^[^,]*(?:(?:vapen|gevärs?|pistol|jakt)(?:skåp|kassaskåp|säkerhetsskåp)|bös+skåp)|^[^,]*(?:skåp|kassaskåp)\b[^,]*\bför\b[^,]*(?:gevär|vapen|pistol|bössor)|gun ?(?:safe|cabinet)/i, VAPENSKAP],
+  ["", /^(?![^,]*(?:hund|katt|husdjur|djur))[^,]*(?:barnvagn|bröstpump|amningsväska)/i, BF + "/Baby & Småbarn"],
   ["", /köavspärr|kökontroll|folkmass|publikkontroll|avspärrning|sammetsrep|sammetslin|stolpar för kö|kö-?stolp/i, FP + "/Butik, evenemang & trafik"],
-  ["", /banner|reklamflagg|backdrop|step and repeat|displaybakgrund|öppna flaggor/i, FP + "/Butik, evenemang & trafik"],
+  ["", /^(?!.*(?:bröllop|kalas|\bfest|ballong|födelsedag)).*(?:banner|reklamflagg|backdrop|step and repeat|displaybakgrund|öppna flaggor)/i, FP + "/Butik, evenemang & trafik"],
   ["", /medicinsk vagn/i, FP + "/Vård & labb"],
   ["", /bimini/i, SF + "/Båt & vattensport"],
   // Utomhus
@@ -157,6 +171,16 @@ export const REGLER: readonly Regel[] = [
   ["Utomhus>Djurtillbehör", /barngrind|babygrind/i, BF + "/Baby & Småbarn"],
   ["Utomhus>Djurtillbehör", /flygbolag|rullande husdjursbur|kattbur med hjul/i, HD + "/Selar, Koppel & Transport"],
   ["Utomhus>Djurtillbehör", /^[^,]*(?:hamster|gnagare|chinchilla)/i, HD + "/Hamsterburar & gnagarburar"],
+  // Produkttypen före egenskaperna: "Hönshus med ramp", "Klösträd med kattbädd"
+  // och "Kaninbur med matskål" är hönshus, klösträd och kaninbur
+  // (granskningen 2026-10-31). Bara typen före " för " räknas (fore).
+  ["Utomhus>Djurtillbehör", fore("hönshus|hönsgård|hönsbur|kycklingbur|kycklinghus|kycklinggård|ankhus|fjäderfägård"), HD + "/Hönshus & hönsgårdar"],
+  ["Utomhus>Djurtillbehör", fore("kaninbur|kaninhus|kaninhage|kaningård|marsvinsbur|marsvinshus"), HD + "/Kaninburar & marsvinsburar"],
+  ["Utomhus>Djurtillbehör", fore("klösträd|klöspelare|kattträd|katträd"), HD + "/Klösträd"],
+  ["Utomhus>Djurtillbehör", fore("katthus|kattkoja|kattgård"), HD + "/Katthus"],
+  ["Utomhus>Djurtillbehör", fore("kattlåd|kattoalett"), HD + "/Kattlådor"],
+  ["Utomhus>Djurtillbehör", fore("hundkoja|hundhus"), HD + "/Hundkojor"],
+  ["Utomhus>Djurtillbehör", fore("hundvagn|husdjursvagn|djurvagn|barnvagn"), HD + "/Hundvagnar"],
   ["Utomhus>Djurtillbehör", /^[^,]*(?:fågelbur|rullstol|ramp|trappa)/i, HD + "/Lek & Tillbehör för husdjur"],
   ["Utomhus>Djurtillbehör", /hundhage|valphage|hundgård|kennel|lekhage|husdjurshage/i, HD + "/Valphagar & hundhagar"],
   ["Utomhus>Djurtillbehör", /hundbur|transportbur|husdjursbur/i, HD + "/Hundburar"],
@@ -171,7 +195,8 @@ export const REGLER: readonly Regel[] = [
   ["Utomhus>Djurtillbehör", /höns|kyckling|ankhus/i, HD + "/Hönshus & hönsgårdar"],
   ["Utomhus>Djurtillbehör", /kanin|marsvin/i, HD + "/Kaninburar & marsvinsburar"],
   ["Utomhus>Djurtillbehör", /hamster|gnagare|chinchilla/i, HD + "/Hamsterburar & gnagarburar"],
-  ["Utomhus>Djurtillbehör", /terrari|reptil|ödl|orm/i, HD + "/Terrarier"],
+  // \borm: "plattform" och "formad" är inga ormar.
+  ["Utomhus>Djurtillbehör", /terrari|reptil|ödl|\borm/i, HD + "/Terrarier"],
   ["Utomhus>Djurtillbehör", /trim|päls|grooming|klipp|bad för/i, HD + "/Pälsvård & Skötsel"],
   ["Utomhus>Djurtillbehör", /koppel|sele|transportväska/i, HD + "/Selar, Koppel & Transport"],
   ["Utomhus>Djurtillbehör och djurliv>Reptil", null, HD + "/Terrarier"],
@@ -195,7 +220,7 @@ export const REGLER: readonly Regel[] = [
   ["Verktyg>Säkerhet och trygghet>Kassaskåp", /pistol|vapen|gevär|hagel/i, VAPENSKAP],
   ["Verktyg>Säkerhet och trygghet>Kassaskåp", /hårt fodral|hårda fodral|torrfodral/i, VM + "/Verktygsvagnar & verktygslådor"],
   ["Verktyg>Säkerhet och trygghet>Kassaskåp", null, HI + "/Kassaskåp"],
-  ["Verktyg>Säkerhet och trygghet>Hemsäkerhet", /småbarn|spädbarn|baby|barnsäng/i, BF + "/Baby & Småbarn"],
+  ["Verktyg>Säkerhet och trygghet>Hemsäkerhet", /småbarn|spädbarn|baby|barnsäng|barngrind|trappgrind|sänggrind|lekhage|barnsäker/i, BF + "/Baby & Småbarn"],
   ["Verktyg>Säkerhet och trygghet", null, HI + "/Smart hem & säkerhet"],
   ["Verktyg>Svetsning", /\bdent|buckl/i, BG + "/Bilverktyg"],
   ["Verktyg>Svetsning", null, VM + "/Svetsning"],
@@ -411,6 +436,7 @@ export const REGLER: readonly Regel[] = [
   // VVS-värme
   ["Uppvärmning, ventilation och kylning>Värmare>Värmartillbehör", /golvlist|värmarskydd/i, HI + "/Elementskydd"],
   ["Uppvärmning, ventilation och kylning>Värmare", /härdning|färgtork|sprutbox|värmelampa|infraröd lampa/i, BG + "/Verkstadsutrustning"],
+  ["Uppvärmning, ventilation och kylning>Eldstäder", /^[^,]*(?:tält|camping)/i, SF + "/Camping & kylboxar"],
   ["Uppvärmning, ventilation och kylning>Eldstäder", /galler/i, HI + "/Gnistskydd"],
   ["Uppvärmning, ventilation och kylning>Eldstäder>Tillbehör", /skorsten|sotar/i, BR + "/Värme, ventilation & AC"],
   ["Uppvärmning, ventilation och kylning>Eldstäder>Tillbehör", null, HI + "/Gnistskydd"],

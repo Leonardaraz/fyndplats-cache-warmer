@@ -7059,9 +7059,19 @@ avdelning och underkategori. Första regel som passar vinner.
   det räknas i `kategorier.fel` i loggraden.
 - **Verktyget** för utkasten som redan fanns: workflowen **"VEVOR — kategorier
   till utkasten"** (`plan` · `skriv`) → `/api/admin/vevor-kategorier` →
-  `lib/vevor/kategorier-kor.ts`. Det lägger bara till, rör bara opolerade dolda
-  utkast, och `skriv` kräver `bekrafta` = planens antal. Saknas ett regelmål i
-  Wix kopplas ingenting.
+  `lib/vevor/kategorier-kor.ts`. Kategorier läggs bara till, och bara på
+  opolerade dolda utkast, och `skriv` kräver `bekrafta` = planens antal. Saknas
+  ett regelmål i Wix kopplas ingenting (`stoppadAv: "trad"`).
+- ☠️ **Vapenskåpen märks på alla VEVOR-rader**, också polerade och publicerade,
+  och på varje artikel i en familj, både i importen och i verktyget. Märkningen
+  görs före kontrollen av trädet och av `bekrafta`. Ett vapenskåp som redan är
+  publicerat räknas i `vapenskap.publicerade` (med Wix-id), och workflowen
+  varnar: dölj det i Wix för hand. Vapenregeln gäller alla sökvägar
+  (vapen-, gevärs-, pistol- och jaktskåp, bösskåp, "skåp för gevär", gun safe),
+  inte bara Kassaskåp. Hellre ett skåp för mycket som spärras än ett för lite.
+- ⚠️ **Kategorier läggs bara till, aldrig tas bort.** Rättas en regel efter
+  att verktyget eller importen kopplat en vara ligger den kvar i den gamla
+  kategorin också. Ta bort den gamla kopplingen för hand, eller i poleringen.
 - **Publiceringsspärren** (`lib/publicering.ts`) vägrar ett märkt vapenskåp på
   alla vägar, före GPSR, och kön visar "🔒 Vapenskåp, publiceras inte".
 - `lasKategoritradet` (`lib/wix/kategoritrad.ts`) läser trädet med dolda
@@ -7108,6 +7118,16 @@ fälls av rätt test. Det som rättades, i grova drag:
   och ismaskiner under Kyl & frys och Glass, bröllopsdekor och stolsöverdrag
   under Dekoration och Utemöbler, PCP-pumpar för luftgevär under Pumpar,
   skorstenssotning under Elkaminer och farthinder under Hemelektronik.
+
+**Kodgranskningen samma dag** (en oberoende granskare, sedan en jämförelse av
+gamla och nya regler mot de 1 005 avläsningar som rättelserna kan röra) gav
+reglerna för vapenskåp i alla sökvägar, produkttypen före egenskaperna bland
+djurtillbehören ("Hönshus med ramp" är ett hönshus, "Klösträd med kattbädd" ett
+klösträd), att bara typen före " för " räknas (`fore`), `\borm` (plattform och
+formad är inga ormar), barnvagnar för husdjur till Hundvagnar, bröllop före
+evenemangsregeln och tältkaminen före gnistskydden. På riktiga data ändrade det
+en enda vara: ett engelskt "Gun Safe" under Kassaskåp blev vapenskåp. Testerna
+under "kodgranskningen 2026-10-31" låser fallen.
 
 Kvar, med flit:
 

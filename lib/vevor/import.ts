@@ -406,8 +406,10 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
             : undefined;
         const recensioner = medlemmar.flatMap((m) => vevorRecensioner(m, egna, kopt));
         // Kategorin ur ankarets VEVOR-kategori och namn. Ett vapenskåp får ingen
-        // kategori och märks, så att publiceringsspärren håller det dolt.
-        const klass = klassa(a);
+        // kategori och märks, så att publiceringsspärren håller det dolt. ☠️ En
+        // familj prövas artikel för artikel: är en enda ett vapenskåp märks hela
+        // produkten (kodgranskningen 2026-10-31).
+        const klass = medlemmar.map((m) => klassa(m)).find((k) => k.typ === VAPENSKAP) ?? klassa(a);
         if (klass.typ === VAPENSKAP) granskning = { ...granskning, vapenskap: true };
 
         if (val.dryRun) {
