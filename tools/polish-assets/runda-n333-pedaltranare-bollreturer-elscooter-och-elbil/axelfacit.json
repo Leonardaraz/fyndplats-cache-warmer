@@ -1,0 +1,70 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0814ced6": {
+  "tyska": "90 x 54 x 93 cm (LxBxH)",
+  "svenska": "90cm x 54cm x 93 cm",
+  "bokstaver": "LBH",
+  "hojd": 93,
+  "bredd": 90,
+  "djup": 54
+ },
+ "28f40545": {
+  "tyska": "86L x 56B x 56H cm",
+  "svenska": "86 x 56 x 56 cm",
+  "bokstaver": "LBH",
+  "hojd": 56,
+  "bredd": 86,
+  "djup": 56
+ },
+ "42966c23": {
+  "tyska": "56L x 44-56B x 75-97H cm",
+  "svenska": "56L x 44-56B x 75-97H cm",
+  "bokstaver": "LBH",
+  "hojd": [
+   75,
+   97
+  ],
+  "bredd": 56,
+  "djup": [
+   44,
+   56
+  ]
+ },
+ "433a4f33": {
+  "tyska": "120B x 99,5T x 111,5H cm",
+  "svenska": "120L x 99,5B x 111,5H cm",
+  "bokstaver": "BTH",
+  "djup": 99.5,
+  "hojd": 111.5,
+  "bredd": 120
+ },
+ "6693fa79": {
+  "tyska": "35L x 20,5B x 26,5H cm, geeignet für 18–72 Monate",
+  "svenska": "35 x 20,5 x 26,5 cm",
+  "bokstaver": "LBH",
+  "hojd": 26.5,
+  "bredd": 35,
+  "djup": 20.5
+ },
+ "93fe9cb3": {
+  "tyska": "",
+  "svenska": "71L x 36,5B x 75-80H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Produktabmessungen: 71L x 36,5B x 75-80H cm | ✔ Klappte Abmessungen: 66L x 36,5B x 23H cm"
+ },
+ "c5f8b383": {
+  "tyska": "41L x 40B x 29H cm",
+  "svenska": "41L x 40B x 29H cm",
+  "bokstaver": "LBH",
+  "hojd": 29,
+  "bredd": 41,
+  "djup": 40
+ },
+ "ed88925f": {
+  "tyska": "75L x 75B x 64H cm",
+  "svenska": "75L x 75B x 64H cm",
+  "bokstaver": "LBH",
+  "hojd": 64,
+  "bredd": 75,
+  "djup": 75
+ }
+}
