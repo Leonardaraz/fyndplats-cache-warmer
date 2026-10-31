@@ -1,0 +1,17 @@
+# sida	källa	beslut	skäl
+7bf0bb41	paketbild (g1)	finns	redan huvudbild
+7bf0bb41	rum 1 (g2)	finns	redan bild 2
+7bf0bb41	rum 2 (d5)	vald	ren miljöbild, bok med titel på rekvisitan
+7bf0bb41	hylla (g5)	utsnitt	x1010 y300 990x990, rubriken utanför; bokrygg som rekvisita
+7bf0bb41	d1 d3 d4 d6 g4 g6	struken	spansk säljtext (Diseño antivuelco, Más rápido, Estante superior, Óptima ventilación)
+675ba9bc	rum 90 cm (d5)	vald	ren miljöbild
+675ba9bc	paketbild 90 cm (d6)	vald	ren paketbild
+675ba9bc	d2	struken	kundtjänstbild med tryckt text
+675ba9bc	g1	struken	11.11-kampanj
+675ba9bc	d3 d4 d7 g7	struken	spansk säljtext
+21344450	rum (d7)	vald	ren miljöbild
+21344450	d2 d3 d4 d6	struken	kundtjänstbild, spansk säljtext
+732cd951	hylla (d2)	utsnitt	x200 y500 1300x1300, rubrik och ikoner utanför
+732cd951	d1 d3 d4	struken	spansk säljtext, röda måttpilar och en anmärkning över bilden
+eedca823	g7 d2 d3 g5	struken	spansk säljtext, streckad linje över varan
+eedca823	alla	ingen ändring	korten låg redan sist
