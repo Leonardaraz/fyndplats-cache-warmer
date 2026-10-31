@@ -16,7 +16,8 @@
 //    skickar den dem till en /produkt/-sida som svarar 404.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { join } from "node:path";
 import nextConfig from "../next.config.ts";
 
 const regler = await nextConfig.redirects!();
@@ -72,4 +73,37 @@ test("nya regler ur Search Console 2026-10-08", () => {
   for (const s of ["hogtalare", "laddare", "iphoneskal", "armband", "halsband", "datorvaska", "mobil-surfplatta"]) {
     assert.equal(mal.has(`/kategori/${s}`), false, `/kategori/${s} ska svara 404`);
   }
+});
+
+// VEVOR-trädet 2026-10-31: Verktyg & Fordon heter Verktyg & Maskiner, och
+// butiken räknar adressen ur namnet. Den gamla adressen ska flytta permanent,
+// och ingenting annat i koden får leva kvar på den: en text, en Google-kategori
+// eller en menyrubrik under den gamla nyckeln hade tyst slutat gälla.
+const GAMLA_VERKTYG = "verktyg" + "-fordon";
+
+test("Verktyg & Fordon flyttar permanent till Verktyg & Maskiner", () => {
+  const r = regler.find((x) => x.source === `/kategori/${GAMLA_VERKTYG}`);
+  assert.ok(r, "saknar 301 för den gamla avdelningsadressen");
+  assert.equal(r.destination, "/kategori/verktyg-maskiner");
+  assert.equal(r.permanent, true);
+});
+
+test("inget annat i koden heter som den gamla avdelningen", () => {
+  const traffar: string[] = [];
+  const ga = (dir: string) => {
+    for (const namn of readdirSync(dir)) {
+      if (namn === "node_modules" || namn.startsWith(".")) continue;
+      const fil = join(dir, namn);
+      if (statSync(fil).isDirectory()) { ga(fil); continue; }
+      if (!/\.(ts|tsx|js|mjs|json|md)$/.test(namn)) continue;
+      if (readFileSync(fil, "utf8").includes(GAMLA_VERKTYG)) traffar.push(fil);
+    }
+  };
+  for (const dir of ["app", "components", "lib", "data", "content", "scripts"]) if (existsSync(dir)) ga(dir);
+  assert.deepEqual(traffar, []);
+  // next.config.ts får bara nämna den i 301:an.
+  const cfg = readFileSync("next.config.ts", "utf8").split("\n").filter((rad) => rad.includes(GAMLA_VERKTYG));
+  assert.deepEqual(cfg.map((rad) => rad.trim()), [
+    `{ source: "/kategori/${GAMLA_VERKTYG}", destination: "/kategori/verktyg-maskiner", permanent: true },`,
+  ]);
 });

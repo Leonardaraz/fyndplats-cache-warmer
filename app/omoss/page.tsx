@@ -14,8 +14,8 @@ import { getSocialProof } from "../../lib/social-proof-live";
 //
 // Varje siffra på sidan läses ur samma källa som resten av butiken, så den
 // kan inte glida isär:
-//   · kategorierna och antalen: getCategoryTree, samma som menyn (ordning efter
-//     storlek, samma tröskel, Trädgård med; /butik-listan saknar Trädgård)
+//   · kategorierna och antalen: getCategoryTree, samma som menyn (menyns
+//     ordning, samma tröskel, Trädgård med; /butik-listan saknar Trädgård)
 //   · produktantalet: forListings(getProducts()), avrundat NEDÅT till hundratal
 //   · Google-betyget: getSocialProof, samma som sidfoten
 //   · frakt, öppet köp, svarstider: samma ord som köpvillkoren och Vanliga frågor

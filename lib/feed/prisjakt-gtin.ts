@@ -105,7 +105,7 @@ export const PRISJAKT_GTIN_URVAL: Readonly<Record<string, string>> = {
   "32880ca6-6da2-4590-832f-8477db7b6ad2": "4255633576361", // Redskapstält med dragkedjedörr – mörkgrått, 160 × 218 × 172 cm
   "1b08e0a6-74d5-4cfa-a66f-9ce755ee496f": "4255826835404", // Trädgårdsskåp av trä med fyra hyllor och lutande tak – 80 × 49…
   "4ad974bc-4be2-4fed-ae1c-e143d229e350": "4255633583925", // Vedställ 0,6 m³ med vattentätt överdrag – 200 cm långt, bär 200…
-  // Verktyg & Fordon
+  // Verktyg & Maskiner och Bil & Garage (Verktyg & Fordon när kartan skrevs)
   "10ec5205-deba-41cf-9386-02694f471f7b": "4251774960991", // Bordsben i stål 2-pack, X-form 72 cm
   "6cc856f5-171b-4f9f-8f65-f50412be8197": "4255826872096", // Verktygsvagn med fem lådor och rostfri bänkskiva – centrallås
 };
@@ -951,7 +951,7 @@ export const PRISJAKT_GTIN_UTOKNING: Readonly<Record<string, string>> = {
   "8a91c5e3-1352-4e8a-a7fa-ba49b15a8e0a": "4251774931304", // Växthus 190 cm med åtta hyllplan och rullbar dragkedjedörr
   "bf01222f-5874-4f2e-804d-2f747dd9b585": "4251774933490", // Växthus med fyra hyllplan och rullbar dörr – 120 × 186 × 190 cm
   "92239f05-137a-45b4-85a2-0d57c6ebeaed": "4255826831017", // Växtställ 60 cm i svart metall med tråg och hylla
-  // Verktyg & Fordon
+  // Verktyg & Maskiner och Bil & Garage (Verktyg & Fordon när kartan skrevs)
   "90e86c8e-dd51-412c-b674-243627b9971a": "4251774973168", // Beslagsats för dubbla skjutdörrar i trä, svart kolstål, 200 cm…
   "49b5410b-1400-489c-a1f2-78da4f51efd1": "4255633527950", // Bordsben i stål 2-pack, ram 72 × 60 cm
   "53eb1cff-fd45-40fb-81c0-6604cf777253": "4255826876094", // Hopfällbar transportvagn för 200 kg – utdragbart flak och juste…

@@ -15,9 +15,51 @@
 // hamnar under "Mer" sist, så en ny kategori i Wix syns direkt. Länkarna måste
 // ligga i HTML:en för Googles skull (se lib/meganav-ssr.test.ts).
 //
+// En slug här som inte finns i menyn gör ingenting. Dolda kategorier kommer
+// inte med i Wix-frågan, och kategorier utan köpbara produkter sållas bort i
+// getCollections och buildCategoryTree. En grupp utan en enda synlig kategori
+// visas inte alls. Därför står VEVOR-trädets nya underkategorier (2026-10-31)
+// redan här, fast de flesta är dolda: de dyker upp under sin rubrik när de
+// visas i Wix, utan en ny deploy.
+//
 // Ren modul utan importer, så node --test kör den direkt.
 
 export type MenyGrupp = { rubrik: string; slugs: string[] };
+
+// ── Avdelningarnas ordning ──────────────────────────────────────────────────
+//
+// Menyn, mobilmenyn, kategorilistan på kategorisidorna och Om oss visar
+// avdelningarna i den här ordningen (Leonards ja på VEVOR-trädet 2026-10-31).
+// Förut sorterades de efter antal produkter, och då hade VEVOR:s verktyg och
+// maskiner hamnat först i menyn så fort de publicerades.
+// MAIN_GROUPS i lib/category-groups.ts (korten på /butik och startsidan) följer
+// samma ordning, och lib/meny-grupper.test.ts håller ihop dem.
+//
+// Namnen är Wix-namnen. En avdelning som saknas här hamnar sist, störst först.
+export const AVDELNINGSORDNING: readonly string[] = [
+  "Hem & Inredning",
+  "Möbler",
+  "Kök & Husgeråd",
+  "Trädgård & Utemöbler",
+  "Bygg & Renovering",
+  "Barn & Familj",
+  "Skönhet & Hälsa",
+  "Husdjur",
+  "Sport & Fritid",
+  "Jul & Högtider",
+  "Verktyg & Maskiner",
+  "Bil & Garage",
+  "Företag & Proffs",
+];
+
+/** Avdelningarna i menyns ordning. Okända sist, störst först. Ändrar inte listan. */
+export function ordnaAvdelningar<T extends { name: string; count: number }>(avdelningar: readonly T[]): T[] {
+  const plats = (namn: string) => {
+    const i = AVDELNINGSORDNING.indexOf(namn);
+    return i === -1 ? AVDELNINGSORDNING.length : i;
+  };
+  return [...avdelningar].sort((a, b) => plats(a.name) - plats(b.name) || b.count - a.count);
+}
 
 export const MENY_GRUPPER: Record<string, MenyGrupp[]> = {
   mobler: [
@@ -61,10 +103,27 @@ export const MENY_GRUPPER: Record<string, MenyGrupp[]> = {
     { rubrik: "Spel & bollsport", slugs: ["spel-bordsspel", "bollsport"] },
     { rubrik: "Fritid", slugs: ["friluftsliv-resa", "bil-cykel", "hobby-musik"] },
   ],
-  "verktyg-fordon": [
-    { rubrik: "Verktyg", slugs: ["verktygsvagnar-verktygslador", "verktyg-hemmafix"] },
-    { rubrik: "Fordon", slugs: ["bil-slap", "elbilsladdning-solenergi"] },
+  // VEVOR-trädet 2026-10-31. Avdelningen hette Verktyg & Fordon, och bilen,
+  // släpet och elbilsladdningen har flyttat till Bil & Garage.
+  "verktyg-maskiner": [
+    { rubrik: "Elverktyg & maskiner", slugs: ["elverktyg", "verkstadsmaskiner", "svetsning", "kompressorer-tryckluft", "hogtryckstvattar-rengoring", "verktygstillbehor"] },
+    { rubrik: "Handverktyg", slugs: ["handverktyg", "verktyg-hemmafix"] },
+    { rubrik: "Förvaring & lyft", slugs: ["verktygsvagnar-verktygslador", "lyft-transport", "stegar-stallningar"] },
+    { rubrik: "Arbetskläder", slugs: ["arbetsklader-skydd"] },
   ],
+  "bil-garage": [
+    { rubrik: "Verkstad", slugs: ["domkrafter-billyftar", "verkstadsutrustning", "bilverktyg", "garageinredning"] },
+    { rubrik: "Bil", slugs: ["bildelar", "biltillbehor", "takracken-lastbarare", "vinschar", "flakboxar-pickuptillbehor"] },
+    { rubrik: "Släp & husbil", slugs: ["bil-slap", "husbil-husvagn"] },
+    { rubrik: "Laddning & solenergi", slugs: ["elbilsladdning-solenergi"] },
+  ],
+  "bygg-renovering": [
+    { rubrik: "VVS & el", slugs: ["vvs-vatten", "pumpar", "el-installation", "varme-ventilation-ac", "badrumsrenovering"] },
+    { rubrik: "Golv, färg & dörrar", slugs: ["golv-golvverktyg", "farg-tapet", "dorrar-dorrbeslag", "beslag-jarnvaror"] },
+    { rubrik: "Bygg", slugs: ["byggmaterial-byggverktyg", "trall-racken"] },
+  ],
+  // Företag & Proffs har fyra underkategorier och inga rubriker: de visas i
+  // Wix ordning, som Skönhet & Hälsa.
 };
 
 /**
