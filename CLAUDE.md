@@ -405,12 +405,18 @@ namn och adresser. Hur motorn sorterar in varorna står i motorns
   gamla nyckeln dyker upp någon annanstans i koden.
 - **Google-flödet** har en kategori för varje ny slug, kontrollerad mot
   taxonomifilen (`lib/google-kategori.test.ts`).
-- ⚠️ **Sidhuvudet har inte plats för fler avdelningar.** Mätt i produktion
-  2026-10-31 med en elfte länk ("Bil") inlagd i sidan: mellan 901 och 1 130 px
-  breda fönster ligger kundvagnen redan utanför skärmen, också utan den. Med
-  den blir raden 33 px bredare, och vagnen hamnar utanför också mellan 1 131
-  och 1 179 px och vid 1 200 px. Från 1 220 px syns den, 12 px in i radens
-  högra marginal. Varje ny avdelning i menyn gör det värre.
+- ☠️ **Menyn ligger på en egen rad i sidhuvudet** (`.hnav`, från 901 px).
+  Mätt i produktion 2026-10-31: loggan, tio avdelningar, hjärtat och
+  kundvagnen var 1 131 px i en rad med 1 128 px, så kundvagnen och hjärtat låg
+  utanför skärmen mellan 901 och 1 180 px (iPad på tvären är 1 080–1 194). Nu
+  står loggan, sökrutan, hjärtat och kundvagnen på första raden och menyn på
+  den andra, med `justify-content: space-between`. Simulerat på den levande
+  sidan med alla tretton avdelningar: en menyrad från 901 till 1 440 px och
+  kundvagnen inom skärmen på varje bredd. Mellanrummen krymper under 1 180,
+  1 100, 1 000 och 960 px, och räcker de inte bryter menyn till en andra rad
+  (`flex-wrap`) i stället för att hamna utanför skärmen. Sidhuvudet blev
+  lägre (102 px mot 130). Under 900 px är allt som förut. Lägg aldrig tillbaka
+  menyn i första raden.
 
 
 - **Vercel Web Analytics** (`@vercel/analytics/next`) and **Speed Insights**
