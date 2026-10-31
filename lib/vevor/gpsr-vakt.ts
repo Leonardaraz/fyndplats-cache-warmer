@@ -1,5 +1,5 @@
 // Morgonmejlets vakt över publiceringsspärren: synliga VEVOR-varor utan
-// komplett GPSR (lib/publicering.ts).
+// komplett GPSR, och vapenskåp och spritapparater (lib/publicering.ts).
 //
 // Spärren sitter i motorns egna vägar. En vara som någon publicerar för hand i
 // Wix går förbi den, och den ser vi först här: varje morgon, med Wix-id.
@@ -24,10 +24,19 @@ export interface GpsrVaktDeps {
   lager: Pick<GpsrLager, "las">;
 }
 
-/** Wix-id för synliga VEVOR-varor som inte får vara publicerade, sorterade. */
-export async function vevorPubliceradeUtanGpsr(deps: GpsrVaktDeps): Promise<string[]> {
+/**
+ * Synliga VEVOR-varor som inte får vara publicerade, med Wix-id, sorterade.
+ * `sparrade` är vapenskåp och spritapparater (lib/vevor/kategorier.ts): de får
+ * aldrig säljas, vad GPSR än säger. `utanGpsr` är resten.
+ */
+export interface VevorVakt {
+  utanGpsr: string[];
+  sparrade: string[];
+}
+
+export async function vevorPubliceradeUtanGpsr(deps: GpsrVaktDeps): Promise<VevorVakt> {
   const vevor = (await deps.mappningar()).filter((m) => vevorSkuOf(m) !== null);
-  if (vevor.length === 0) return [];
+  if (vevor.length === 0) return { utanGpsr: [], sparrade: [] };
   const ids = new Set(vevor.map((m) => m.wixProductId));
   const synliga = await deps.synliga([...ids]);
   // ☠️ Ett id vi inte frågade efter betyder att filtret inte bet (Wix ignorerar
@@ -36,7 +45,14 @@ export async function vevorPubliceradeUtanGpsr(deps: GpsrVaktDeps): Promise<stri
   const okanda = [...synliga].filter((id) => !ids.has(id)).length;
   if (okanda > 0) throw new Error(`synligheten svarade om ${okanda} produkter vi inte frågade efter`);
   const publicerade = vevor.filter((m) => synliga.has(m.wixProductId));
-  if (publicerade.length === 0) return [];
+  if (publicerade.length === 0) return { utanGpsr: [], sparrade: [] };
   const hinder = await publiceringshinderFor(publicerade, "polering", deps.lager);
-  return [...hinder.keys()].sort();
+  const ut: VevorVakt = { utanGpsr: [], sparrade: [] };
+  for (const [id, h] of hinder) {
+    if (h.kod === "vapenskap" || h.kod === "spritapparat") ut.sparrade.push(id);
+    else ut.utanGpsr.push(id);
+  }
+  ut.utanGpsr.sort();
+  ut.sparrade.sort();
+  return ut;
 }

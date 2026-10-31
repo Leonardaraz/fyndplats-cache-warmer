@@ -14,6 +14,8 @@
 //                    märket VEVOR i Wix (till flödena).
 //   vapenskap        ett vapenskåp eller vapenfodral (Leonards beslut
 //                    2026-10-31, lib/vevor/kategorier.ts). Publiceras inte.
+//   spritapparat     en destillator uppenbarligen ägnad för sprit. Får inte
+//                    överlåtas (alkohollagen 2 kap. 1 §). Publiceras inte.
 //
 // ☠️ HINDRET GÅR INTE ATT TVINGA FÖRBI. Köns "publicera ändå" gäller prisspärren,
 // inte det här: uppgifterna krävs av lagen.
@@ -39,6 +41,8 @@ export type Publiceringshinder =
   | { kod: "via_poleringen" }
   /** Ett vapenskåp (`vevorGranskning.vapenskap`). Går före GPSR. */
   | { kod: "vapenskap" }
+  /** En spritapparat (`vevorGranskning.spritapparat`). Går före GPSR. */
+  | { kod: "spritapparat" }
   /** Märket VEVOR kunde inte sättas i Wix. Sätts av poleringens rutt, inte här. */
   | { kod: "marke"; fel: string };
 
@@ -54,6 +58,7 @@ export function publiceringshinder(m: Rad, gpsr: VevorGpsr | null, vag: Publicer
       return null;
     case "vevor": {
       if (m.vevorGranskning?.vapenskap === true) return { kod: "vapenskap" };
+      if (m.vevorGranskning?.spritapparat === true) return { kod: "spritapparat" };
       if (vag === "ko") return { kod: "via_poleringen" };
       const status = gpsrStatus(gpsr, m.vevorGranskning?.gpsr);
       return status === "komplett" ? null : { kod: "gpsr", status };
@@ -72,6 +77,8 @@ export function hinderText(h: Publiceringshinder): string {
       return "en VEVOR-vara publiceras genom poleringen, inte med köns knapp";
     case "vapenskap":
       return "vapenskåp publiceras inte (Leonards beslut 2026-10-31): skåpet är inte visat godkänt enligt SS 3492";
+    case "spritapparat":
+      return "spritapparater publiceras inte: alkohollagen 2 kap. 1 § förbjuder att överlåta en apparat som uppenbarligen är ägnad för tillverkning av sprit";
     case "marke":
       return `märket VEVOR gick inte att sätta i Wix: ${h.fel}`;
   }

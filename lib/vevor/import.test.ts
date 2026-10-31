@@ -630,7 +630,7 @@ describe("kategorierna (Leonards ja 2026-10-31)", () => {
     expect(kopplaKategorier.mock.calls[0][1]).toEqual({ avdelning: "Verktyg & Maskiner", kategori: "Svetsning" });
     // Raden fanns före kopplingen.
     expect(sparaMappning.mock.invocationCallOrder[0]).toBeLessThan(kopplaKategorier.mock.invocationCallOrder[0]);
-    expect(s.kategorier).toEqual({ kopplade: 1, omappade: 0, vapenskap: 0, fel: 0 });
+    expect(s.kategorier).toEqual({ kopplade: 1, omappade: 0, vapenskap: 0, spritapparat: 0, fel: 0 });
   });
 
   it("☠️ ett vapenskåp får ingen kategori och märks på raden, så att det inte kan publiceras", async () => {
@@ -639,7 +639,7 @@ describe("kategorierna (Leonards ja 2026-10-31)", () => {
     expect(kopplaKategorier).not.toHaveBeenCalled();
     const [m] = await store.mappningarForLeverantorsId([`vevor:${sku(1)}`]);
     expect(m.vevorGranskning?.vapenskap).toBe(true);
-    expect(s.kategorier).toEqual({ kopplade: 0, omappade: 0, vapenskap: 1, fel: 0 });
+    expect(s.kategorier).toEqual({ kopplade: 0, omappade: 0, vapenskap: 1, spritapparat: 0, fel: 0 });
   });
 
   it("☠️ ett vapenskåp bland en familjs artiklar märker hela produkten och ger ingen kategori", async () => {
@@ -665,6 +665,16 @@ describe("kategorierna (Leonards ja 2026-10-31)", () => {
     expect(kopplaKategorier.mock.calls.map((c) => c[1])).toContainEqual({ avdelning: "Skönhet & Hälsa", kategori: "Hjälpmedel" });
   });
 
+  it("☠️ en spritapparat får ingen kategori och märks på raden (alkohollagen 2 kap. 1 §)", async () => {
+    lagg(1, { kategorier: kat("Kök", "Bordsartiklar och bardisk", "Bryggutrustning"), namn: "Alkoholdestillator, 30 l" });
+    const s = await korVevorImport(deps(), schema);
+    expect(kopplaKategorier).not.toHaveBeenCalled();
+    const [m] = await store.mappningarForLeverantorsId([`vevor:${sku(1)}`]);
+    expect(m.vevorGranskning?.spritapparat).toBe(true);
+    expect(m.vevorGranskning?.vapenskap).toBeUndefined();
+    expect(s.kategorier).toEqual({ kopplade: 0, omappade: 0, vapenskap: 0, spritapparat: 1, fel: 0 });
+  });
+
   it("en vara utan regel importeras utan kategori och räknas", async () => {
     lagg(1);
     const s = await korVevorImport(deps(), schema);
@@ -688,6 +698,6 @@ describe("kategorierna (Leonards ja 2026-10-31)", () => {
     lagg(2, { kategorier: kat("Verktyg", "Säkerhet och trygghet", "Kassaskåp"), namn: "Pistolskåp" });
     const s = await korVevorImport(deps(), { ...schema, dryRun: true, manuell: true });
     expect(kopplaKategorier).not.toHaveBeenCalled();
-    expect(s.kategorier).toEqual({ kopplade: 1, omappade: 0, vapenskap: 1, fel: 0 });
+    expect(s.kategorier).toEqual({ kopplade: 1, omappade: 0, vapenskap: 1, spritapparat: 0, fel: 0 });
   });
 });

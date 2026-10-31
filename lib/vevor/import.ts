@@ -54,7 +54,7 @@ import { WIX_MAX_PRODUKTER } from "@/lib/wix/limits";
 import { RabattFel } from "./pris";
 import { valjVevorBilder } from "./bilder";
 import { vevorGranskning } from "./granskning";
-import { VAPENSKAP, arHjalpmedel, klassa, type Mal } from "./kategorier";
+import { SPRITAPPARAT, VAPENSKAP, arHjalpmedel, klassa, type Mal, type Sparr } from "./kategorier";
 import type { Avlasning } from "./lager";
 import {
   FAMILJ_SKAL,
@@ -189,7 +189,7 @@ function tomSummering(start: number, dryRun: boolean): Importsummering {
       ejSammanslagna: Object.fromEntries(FAMILJ_SKAL.map((k) => [k, 0])) as Record<FamiljSkal, number>,
     },
     recensioner: { lasta: 0, sparade: 0, produkter: 0, fel: 0 },
-    kategorier: { kopplade: 0, omappade: 0, vapenskap: 0, fel: 0 },
+    kategorier: { kopplade: 0, omappade: 0, vapenskap: 0, spritapparat: 0, fel: 0 },
     produkterIWix: null,
     varvKlart: false,
     stoppadAv: null,
@@ -213,7 +213,7 @@ export function importloggrad(s: Importsummering): string {
       ? `recensioner lästa ${s.recensioner.lasta} sparade ${s.recensioner.sparade} på ${s.recensioner.produkter} produkter fel ${s.recensioner.fel}, `
       : "") +
     (s.kategorier
-      ? `kategorier kopplade ${s.kategorier.kopplade} utan regel ${s.kategorier.omappade} vapenskåp ${s.kategorier.vapenskap} fel ${s.kategorier.fel}, `
+      ? `kategorier kopplade ${s.kategorier.kopplade} utan regel ${s.kategorier.omappade} vapenskåp ${s.kategorier.vapenskap} spritapparater ${s.kategorier.spritapparat} fel ${s.kategorier.fel}, `
       : "") +
     `produkter i Wix ${s.produkterIWix ?? "-"}, stopp ${s.stoppadAv ?? "-"}${s.varvKlart ? ", varvet klart" : ""}`
   );
@@ -405,13 +405,15 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
             ? new Map(variantEtiketter(familj.medlemmar, familj.axlar).map((e, i) => [familj.medlemmar[i].sku, e]))
             : undefined;
         const recensioner = medlemmar.flatMap((m) => vevorRecensioner(m, egna, kopt));
-        // Kategorin ur ankarets VEVOR-kategori och namn. Ett vapenskåp får ingen
-        // kategori och märks, så att publiceringsspärren håller det dolt. ☠️ En
-        // familj prövas artikel för artikel: är en enda ett vapenskåp märks hela
-        // produkten (kodgranskningen 2026-10-31).
+        // Kategorin ur ankarets VEVOR-kategori och namn. Ett vapenskåp eller en
+        // spritapparat får ingen kategori och märks, så att publiceringsspärren
+        // håller det dolt. ☠️ En familj prövas artikel för artikel: är en enda en
+        // spärr märks hela produkten (kodgranskningen 2026-10-31).
         const klasser = medlemmar.map((m) => klassa(m));
-        const klass = klasser.find((k) => k.typ === VAPENSKAP) ?? klassa(a);
+        const klass =
+          klasser.find((k) => k.typ === VAPENSKAP) ?? klasser.find((k) => k.typ === SPRITAPPARAT) ?? klassa(a);
         if (klass.typ === VAPENSKAP) granskning = { ...granskning, vapenskap: true };
+        else if (klass.typ === SPRITAPPARAT) granskning = { ...granskning, spritapparat: true };
         // ☠️ En vara i Hjälpmedel granskas av Leonard före publiceringen
         // (beslut 4, 2026-10-31), också när namnet inte låter som vård.
         else if (klasser.some(arHjalpmedel)) granskning = { ...granskning, medicinteknik: true };
@@ -547,12 +549,13 @@ function raknaFamilj(s: Importsummering, varianter: number, recensioner: number)
   s.recensioner!.lasta += recensioner;
 }
 
-/** En klassning som inte kopplas (torrläge, ingen regel eller vapenskåp) till räknarna. */
-function raknaKategori(s: Importsummering, typ: "kategori" | "omappad" | typeof VAPENSKAP): void {
+/** En klassning som inte kopplas (torrläge, ingen regel eller en spärr) till räknarna. */
+function raknaKategori(s: Importsummering, typ: "kategori" | "omappad" | Sparr): void {
   const k = s.kategorier!;
   if (typ === "kategori") k.kopplade++;
   else if (typ === "omappad") k.omappade++;
-  else k.vapenskap++;
+  else if (typ === VAPENSKAP) k.vapenskap++;
+  else k.spritapparat = (k.spritapparat ?? 0) + 1;
 }
 
 /** Ett utkast till räknarna: bildmönster, medicinteknik och GPSR. */

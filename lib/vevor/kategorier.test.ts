@@ -4,6 +4,7 @@ import {
   FLYTTADE,
   NAMNBYTEN,
   REGLER,
+  SPRITAPPARAT,
   TRADET,
   VAPENSKAP,
   allaMal,
@@ -46,10 +47,10 @@ describe("reglerna", () => {
     }
   });
 
-  it("varje mål går att tolka, och bara vapenskåpen saknar kategori", () => {
+  it("varje mål går att tolka, och bara vapenskåpen och spritapparaterna saknar kategori", () => {
     for (const [, , mal] of REGLER) {
       const m = tolkaMal(mal);
-      if (m === VAPENSKAP) expect(mal).toBe(VAPENSKAP);
+      if (typeof m === "string") expect([VAPENSKAP, SPRITAPPARAT]).toContain(mal);
       else expect(m.avdelning && m.kategori).toBeTruthy();
     }
     expect(() => tolkaMal("Bara avdelning")).toThrow();
@@ -263,5 +264,44 @@ describe("uppslaget i Wix", () => {
     expect("fel" in losMal(dubbel, { avdelning: "Bygg & Renovering", kategori: "Pumpar" })).toBe(true);
     const utan = tradEfter().filter((k) => k.namn !== "Företag & Proffs");
     expect(byggUppslag(utan).fel.some((f) => f.includes("Företag & Proffs"))).toBe(true);
+  });
+});
+
+describe("spritapparaterna (alkohollagen 2 kap. 1 §)", () => {
+  const mal = (vag: string[], namn: string) => {
+    const k = klassa(a(vag, namn));
+    return k.typ === "kategori" ? `${k.mal.avdelning}/${k.mal.kategori}` : k.typ;
+  };
+  const bryggning = ["Kök", "Bordsartiklar och bardisk", "Bryggutrustning"];
+  const vattenkokare = ["Vitvaror", "Små köksapparater", "Vattenkokare"];
+  const labb = ["Förvaring och organisering", "Kontorsmaterial", "Labdestillationsapparat"];
+
+  it("☠️ en destillator som säljs för alkohol spärras, var den än står", () => {
+    expect(mal(bryggning, "Alkoholdestillator, 30 l, rostfritt stål med kopparspiral")).toBe(SPRITAPPARAT);
+    expect(mal(bryggning, "Still Destiller 21 l, kopparrör, för DIY whisky, vin och brandy")).toBe(SPRITAPPARAT);
+    expect(mal(bryggning, "8,5 Gal Home Use Moonshine Still Brewing")).toBe(SPRITAPPARAT);
+    expect(mal(bryggning, "Hembränt stilldestilleri 21 l")).toBe(SPRITAPPARAT);
+    // En vattendestillator som säljs som vinframställningsset är en spritapparat.
+    expect(mal(vattenkokare, "Vattendestilleringsmaskin 750 W, 4 l, vinframställningsset, bryggsats")).toBe(SPRITAPPARAT);
+    expect(mal(["Bil", "Butiksutrustning", "Tillbehör"], "Destillator med thumper-fat och vattenpump")).toBe(SPRITAPPARAT);
+  });
+
+  it("☠️ en panna i Bryggutrustning spärras också när den säljs för eteriska oljor eller vatten", () => {
+    expect(mal(bryggning, "Destillationssats för eteriska oljor, 36,3 l, med vattenpump")).toBe(SPRITAPPARAT);
+    expect(mal(bryggning, "18 Gal Water Distiller, DIY Home Still")).toBe(SPRITAPPARAT);
+  });
+
+  it("vattendestillatorer på bänken och laboratoriesatser i glas spärras inte", () => {
+    expect(mal(vattenkokare, "Vattendestilleri 4 l, 1 l/h, 750 W")).toBe("Kök & Husgeråd/Köksmaskiner & Apparater");
+    // Alkohollampan värmer kolven, den är ingen sprit.
+    expect(mal(labb, "Destillationssats för eteriska oljor, 500 ml, glas, med alkohollampa")).toBe("Företag & Proffs/Vård & labb");
+  });
+
+  it("bryggutrustning utan destillator och barvaror för sprit spärras inte", () => {
+    expect(mal(bryggning, "Konisk jästank i rostfritt stål, 30 l")).not.toBe(SPRITAPPARAT);
+    expect(mal(bryggning, "Elektriskt bryggsystem 30 l med mäskkokningsenhet")).not.toBe(SPRITAPPARAT);
+    expect(mal(["Kök", "Bordsartiklar och bardisk", "Bartillbehör"], "Isbollspress för whisky och cocktail")).not.toBe(SPRITAPPARAT);
+    expect(mal(["Kök", "Bordsartiklar och bardisk", "Serveringskärl"], "Dryckesdispenser 12 l med alkoholbrännare")).not.toBe(SPRITAPPARAT);
+    expect(mal(["Kök", "Bordsartiklar och bardisk", "Bartillbehör"], "LED-belyst spritflaskdisplay, 3 nivåer")).not.toBe(SPRITAPPARAT);
   });
 });

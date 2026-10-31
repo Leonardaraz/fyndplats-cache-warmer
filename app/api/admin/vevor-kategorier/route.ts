@@ -1,7 +1,8 @@
 // POST /api/admin/vevor-kategorier {dryRun, bekrafta}
 //
 // Lägger opolerade VEVOR-utkast i sin avdelning och underkategori och märker
-// vapenskåpen (lib/vevor/kategorier-kor.ts, Leonards ja 2026-10-31). Anropas av
+// vapenskåpen och spritapparaterna (lib/vevor/kategorier-kor.ts, Leonards ja
+// 2026-10-31). Anropas av
 // workflowen "VEVOR — kategorier till utkasten" med CRON_SECRET.
 //
 // Torrt som default: utan `dryRun: false` skrivs ingenting. En skarp körning
@@ -52,10 +53,12 @@ export async function POST(req: NextRequest) {
     );
     const v = svar.vapenskap;
     const h = svar.hjalpmedel;
+    const sp = svar.spritapparat;
     console.log(
       `[vevor-kategorier] ${dryRun ? "torr" : "skarp"}: ${svar.utkast} utkast, ${svar.attKoppla} att koppla, ` +
         `${svar.redanKopplade} redan kopplade, ${svar.utanRegel} utan regel, ${svar.avlasningSaknas} utan avläsning, ` +
         `vapenskåp ${v.totalt} (att märka ${v.attMarka}, märkta ${v.markta}, fel ${v.fel}, publicerade ${v.publicerade}), ` +
+        `spritapparater ${sp.totalt} (att märka ${sp.attMarka}, märkta ${sp.markta}, fel ${sp.fel}, publicerade ${sp.publicerade}), ` +
         `hjälpmedel ${h.totalt} (att flagga ${h.attMarka}, flaggade ${h.markta}, fel ${h.fel}, publicerade ${h.publicerade}), ` +
         `${svar.kopplade} kopplade, ${svar.fel} fel, ${svar.kvar} kvar, stopp ${svar.stoppadAv}, trädfel ${svar.tradFel.length}`,
     );

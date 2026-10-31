@@ -24,6 +24,11 @@ const KASSASKAP = [
   { id: "2", namn: "Säkerhet och trygghet" },
   { id: "3", namn: "Kassaskåp" },
 ];
+const BRYGGNING = [
+  { id: "1", namn: "Kök" },
+  { id: "2", namn: "Bordsartiklar och bardisk" },
+  { id: "3", namn: "Bryggutrustning" },
+];
 
 type Kropp = Record<string, unknown>;
 
@@ -249,6 +254,31 @@ describe("skrivningen", () => {
     expect(s.vapenskap.markta).toBe(1);
     expect(s.hjalpmedel.totalt).toBe(0);
     expect(rader.get(pid(1))!.vevorGranskning?.vapenskap).toBe(true);
+  });
+
+  it("☠️ en spritapparat får ingen kategori, märks på alla rader och de publicerade räknas", async () => {
+    lagg(1, BRYGGNING, "Alkoholdestillator, 30 l, med kopparspiral");
+    lagg(2, BRYGGNING, "Destillationssats för eteriska oljor, 36 l", { needsAiPolish: false, draftStatus: "published" } as Partial<ProductMappingRecord>);
+    lagg(3, BRYGGNING, "Konisk jästank, 30 l");
+    const plan = await korKategorier(deps(), torr);
+    expect(plan.spritapparat).toEqual({ totalt: 2, attMarka: 2, markta: 0, fel: 0, publicerade: 1, publiceradeIdn: [pid(2)] });
+    expect(plan.perKategori).toEqual({ "Kök & Husgeråd/Köksredskap & Tillbehör": 1 });
+    const s = await korKategorier(deps(), { ...torr, dryRun: false, bekrafta: 1 });
+    expect(s.spritapparat).toMatchObject({ markta: 2, fel: 0 });
+    expect(rader.get(pid(1))!.vevorGranskning?.spritapparat).toBe(true);
+    expect(rader.get(pid(2))!.vevorGranskning?.spritapparat).toBe(true);
+    expect(rader.get(pid(3))!.vevorGranskning).toBeUndefined();
+    expect(addAnrop.flatMap((x) => x.pids)).toEqual([pid(3), pid(3)]);
+    expect((await korKategorier(deps(), torr)).spritapparat.attMarka).toBe(0);
+  });
+
+  it("☠️ en spritapparat bland en familjs artiklar märker hela produkten", async () => {
+    lagg(1, SVETS, "Svetsmaskin", { vevorArtiklar: [`vevor:${sku(1)}`, `vevor:${sku(9)}`] } as Partial<ProductMappingRecord>);
+    avl.set(sku(9), testAvlasning({ sku: sku(9), kategorier: BRYGGNING, namn: "Still Destiller 21 l för whisky" }));
+    const s = await korKategorier(deps(), { ...torr, dryRun: false, bekrafta: 0 });
+    expect(s.spritapparat).toMatchObject({ totalt: 1, markta: 1 });
+    expect(s.attKoppla).toBe(0);
+    expect(rader.get(pid(1))!.vevorGranskning?.spritapparat).toBe(true);
   });
 
   it("ett fel räknas, felexemplet bär inga id, och planen efteråt har kvar det som föll", async () => {

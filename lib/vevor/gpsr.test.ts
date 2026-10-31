@@ -3,7 +3,7 @@ import type { ProductMappingRecord } from "@/lib/store";
 import { gpsrStatus, publikGpsr, tvattaGpsr, tvattaPart, type GpsrPart } from "./gpsr";
 import { lasEffektiva, STANDARD_RAD } from "./gpsr-standard";
 import type { GpsrLager, VevorGpsrRad } from "./gpsr-lager";
-import { publiceringshinder, publiceringshinderFor } from "@/lib/publicering";
+import { hinderText, publiceringshinder, publiceringshinderFor } from "@/lib/publicering";
 import { vevorPubliceradeUtanGpsr } from "./gpsr-vakt";
 import { lasGpsr, raknaGpsr, sattGpsr, sattStandard, type GpsrSattDeps } from "./gpsr-satt";
 
@@ -128,6 +128,15 @@ describe("publiceringsspärren", () => {
     expect(publiceringshinder(vanlig, rad(SKU_A), "polering")).toBeNull();
   });
 
+  it("☠️ en spritapparat publiceras aldrig, inte ens med komplett GPSR (alkohollagen 2 kap. 1 §)", () => {
+    const sprit = mappning(SKU_A, "p1", {
+      vevorGranskning: { gpsr: "komplett", medicinteknik: false, bildmonster: "ny", bildgranskning: false, spritapparat: true },
+    });
+    expect(publiceringshinder(sprit, rad(SKU_A), "polering")).toEqual({ kod: "spritapparat" });
+    expect(publiceringshinder(sprit, rad(SKU_A), "ko")).toEqual({ kod: "spritapparat" });
+    expect(hinderText({ kod: "spritapparat" })).toContain("alkohollagen");
+  });
+
   it("poleringen publicerar bara med komplett GPSR", () => {
     expect(publiceringshinder(mappning(SKU_A, "p1"), rad(SKU_A), "polering")).toBeNull();
     expect(publiceringshinder(mappning(SKU_A, "p1"), rad(SKU_A, { euAnsvarig: null }), "polering"))
@@ -154,8 +163,21 @@ describe("morgonmejlets vakt", () => {
       },
       lager: minneslager([rad(SKU_B)]),
     });
-    expect(ut).toEqual(["p1"]);
+    expect(ut).toEqual({ utanGpsr: ["p1"], sparrade: [] });
     expect(ids).toEqual([["p1", "p2"]]);
+  });
+
+  it("☠️ ett synligt vapenskåp eller en synlig spritapparat listas för sig, också med komplett GPSR", async () => {
+    const g = { gpsr: "komplett" as const, medicinteknik: false, bildmonster: "ny" as const, bildgranskning: false };
+    const ut = await vevorPubliceradeUtanGpsr({
+      mappningar: async () => [
+        mappning(SKU_A, "p1", { vevorGranskning: { ...g, spritapparat: true } }),
+        mappning(SKU_B, "p2", { vevorGranskning: { ...g, vapenskap: true } }),
+      ],
+      synliga: async () => new Set(["p1", "p2"]),
+      lager: minneslager([rad(SKU_A), rad(SKU_B)]),
+    });
+    expect(ut).toEqual({ utanGpsr: [], sparrade: ["p1", "p2"] });
   });
 
   it("☠️ kastar när synligheten svarar om produkter vi inte frågade efter", async () => {
@@ -176,7 +198,7 @@ describe("morgonmejlets vakt", () => {
       },
       lager: minneslager(),
     });
-    expect(ut).toEqual([]);
+    expect(ut).toEqual({ utanGpsr: [], sparrade: [] });
     expect(fragat).toBe(false);
   });
 });

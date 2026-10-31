@@ -14,9 +14,9 @@
 //            passar "Badrumssäkerhet och …"). En sökväg som slutar med ">"
 //            kräver nivån exakt. Tom sökväg passar alla varor.
 //   namn     ett mönster på varans namn, eller null.
-//   mål      "Avdelning/Underkategori", eller VAPENSKAP.
+//   mål      "Avdelning/Underkategori", VAPENSKAP eller SPRITAPPARAT.
 //
-// Fem egenskaper som inte ska tas bort:
+// Sex egenskaper som inte ska tas bort:
 //
 // 1. ☠️ Vapenskåpen får ingen kategori och publiceras inte (Leonards beslut 3).
 //    Den som förvarar vapen behöver i regel ett skåp godkänt enligt SS 3492, och
@@ -41,11 +41,28 @@
 //    avspärrningarna. Namnregler som gäller alla sökvägar och kan träffas så
 //    tittar bara på huvudnamnet, före första kommatecknet (`^[^,]*`), eller på
 //    ord som bara avspärrningar bär.
+// 6. ☠️ Spritapparaterna får ingen kategori och publiceras inte. Alkohollagen
+//    (2010:1622) 2 kap. 1 § andra stycket förbjuder att överlåta en apparat
+//    "som uppenbarligen är ägnad för tillverkning av sprit" (11 kap. 2 §: böter
+//    eller fängelse). Spärren tar destillatorerna som VEVOR säljer för alkohol
+//    (whisky, brandy, moonshine, thumper, "Vinframställningsset") och alla
+//    pannor i VEVOR:s Bryggutrustning, också de som säljs för eteriska oljor
+//    och vatten: en panna på 12–70 liter med kylspiral är en sprit-panna vad
+//    texten än säger. Elektriska vattendestillatorer på bänken (4–6 liter) och
+//    laboratoriesatser i glas spärras inte. `klassa` svarar `spritapparat`, och
+//    importen och verktyget sätter `vevorGranskning.spritapparat`.
 
 import type { KategoriNod } from "@/lib/wix/kategoritrad";
 import type { Avlasning } from "./lager";
 
 export const VAPENSKAP = "vapenskap" as const;
+export const SPRITAPPARAT = "spritapparat" as const;
+/** En vara som aldrig får en kategori och aldrig publiceras. */
+export type Sparr = typeof VAPENSKAP | typeof SPRITAPPARAT;
+
+function arSparr(mal: string): mal is Sparr {
+  return mal === VAPENSKAP || mal === SPRITAPPARAT;
+}
 
 const VM = "Verktyg & Maskiner";
 const BG = "Bil & Garage";
@@ -144,6 +161,14 @@ export const REGLER: readonly Regel[] = [
   // Jakt eller med ett annat ord ("bösskåp") hade fått en kategori och kunnat
   // publiceras. Hellre ett skåp för mycket som spärras än ett för lite.
   ["", /^[^,]*(?:(?:vapen|gevärs?|pistol|jakt)(?:skåp|kassaskåp|säkerhetsskåp)|bös+skåp)|^[^,]*(?:skåp|kassaskåp)\b[^,]*\bför\b[^,]*(?:gevär|vapen|pistol|bössor)|gun ?(?:safe|cabinet)/i, VAPENSKAP],
+  // ☠️ Spritapparater (alkohollagen 2 kap. 1 §, egenskap 6), före allt annat
+  // utom vapenskåpen. Mätt 2026-10-31 på 15 246 avläsningar: en destillator som
+  // säljs för alkohol står i Bryggutrustning, utom en vattendestillator under
+  // Vattenkokare som säljs som "Vinframställningsset". Alkohollampan i en
+  // laboratoriesats och alkoholbrännaren under en dryckesdispenser är värme,
+  // inte sprit.
+  ["", /^(?=.*(?:destill|distill|\bstill\b))(?=.*(?:alkohol(?!lampa|brännare)|whisky|vodka|brandy|moonshine|hem(?:ma)?bränt|brännvin|\bsprit\b|vinframställ|thumper|grappa))/i, SPRITAPPARAT],
+  ["Kök>Bordsartiklar och bardisk>Bryggutrustning", /destill|distill|\bstill\b/i, SPRITAPPARAT],
   ["", /^(?![^,]*(?:hund|katt|husdjur|djur))[^,]*(?:barnvagn|bröstpump|amningsväska)/i, BF + "/Baby & Småbarn"],
   ["", /köavspärr|kökontroll|folkmass|publikkontroll|avspärrning|sammetsrep|sammetslin|stolpar för kö|kö-?stolp/i, FP + "/Butik, evenemang & trafik"],
   ["", /^(?!.*(?:bröllop|kalas|\bfest|ballong|födelsedag)).*(?:banner|reklamflagg|backdrop|step and repeat|displaybakgrund|öppna flaggor)/i, FP + "/Butik, evenemang & trafik"],
@@ -514,7 +539,7 @@ export interface Mal {
 
 export type Klass =
   | { typ: "kategori"; mal: Mal; regel: number }
-  | { typ: typeof VAPENSKAP; regel: number }
+  | { typ: Sparr; regel: number }
   | { typ: "omappad" };
 
 /**
@@ -530,9 +555,9 @@ export function arHjalpmedel(k: Klass): boolean {
   return k.typ === "kategori" && k.mal.avdelning === HJALPMEDEL.avdelning && k.mal.kategori === HJALPMEDEL.kategori;
 }
 
-/** Målet i en regel som avdelning och underkategori, eller VAPENSKAP. */
-export function tolkaMal(mal: string): Mal | typeof VAPENSKAP {
-  if (mal === VAPENSKAP) return VAPENSKAP;
+/** Målet i en regel som avdelning och underkategori, eller en spärr (VAPENSKAP, SPRITAPPARAT). */
+export function tolkaMal(mal: string): Mal | Sparr {
+  if (arSparr(mal)) return mal;
   const i = mal.indexOf("/");
   if (i <= 0 || i === mal.length - 1) throw new Error(`målet saknar avdelning eller underkategori: ${mal}`);
   return { avdelning: mal.slice(0, i), kategori: mal.slice(i + 1) };
@@ -569,7 +594,7 @@ export function klassa(a: Pick<Avlasning, "kategorier" | "namn">): Klass {
     if (!sokvagPassar(sokvag, vag)) continue;
     if (monster && !monster.test(namn)) continue;
     const m = tolkaMal(mal);
-    return m === VAPENSKAP ? { typ: VAPENSKAP, regel: i } : { typ: "kategori", mal: m, regel: i };
+    return typeof m === "string" ? { typ: m, regel: i } : { typ: "kategori", mal: m, regel: i };
   }
   return { typ: "omappad" };
 }
@@ -579,7 +604,7 @@ export function allaMal(): Mal[] {
   const sett = new Map<string, Mal>();
   for (const [, , mal] of REGLER) {
     const m = tolkaMal(mal);
-    if (m !== VAPENSKAP) sett.set(`${m.avdelning}/${m.kategori}`, m);
+    if (typeof m !== "string") sett.set(`${m.avdelning}/${m.kategori}`, m);
   }
   return [...sett.values()];
 }

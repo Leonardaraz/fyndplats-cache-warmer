@@ -766,6 +766,14 @@ function VevorBadges({ g }: { g: NonNullable<ProductMappingRecord["vevorGranskni
           🔒 Vapenskåp, publiceras inte
         </span>
       ) : null}
+      {g.spritapparat ? (
+        <span
+          title="Destillator som uppenbarligen är ägnad för sprit. Får inte säljas (alkohollagen 2 kap. 1 §)."
+          style={stil("#fee2e2", "#991b1b", "#fca5a5")}
+        >
+          🔒 Spritapparat, publiceras inte
+        </span>
+      ) : null}
       {g.medicinteknik ? (
         <span
           title="Kategorin kan vara medicinteknik. Kontrollera CE-märkning och dokument före publicering."

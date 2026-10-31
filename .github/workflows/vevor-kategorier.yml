@@ -2,19 +2,21 @@ name: VEVOR — kategorier till utkasten
 
 # Lägger opolerade VEVOR-utkast i sin avdelning och underkategori enligt
 # reglerna i lib/vevor/kategorier.ts (Leonards ja 2026-10-31). Märker
-# vapenskåpen så att de inte kan publiceras, och flaggar varorna i Hjälpmedel
+# vapenskåpen och spritapparaterna (alkohollagen 2 kap. 1 §) så att de inte kan
+# publiceras, och flaggar varorna i Hjälpmedel
 # för Leonards granskning (medicinteknik). Importen gör samma sak för nya
 # varor sedan 2026-10-31; det här är för det som redan låg i Wix.
 #
 #   plan   räknar utkast, produkter att koppla per kategori, vapenskåp,
-#          hjälpmedel och varor utan regel. Skriver ingenting. `tradFel` ska
+#          spritapparater, hjälpmedel och varor utan regel. Skriver ingenting. `tradFel` ska
 #          vara tom.
-#   skriv  märker vapenskåpen och hjälpmedlen (alla VEVOR-rader, också
+#   skriv  märker vapenskåpen, spritapparaterna och hjälpmedlen (alla VEVOR-rader, också
 #          polerade) och kopplar
 #          sedan i varv om fyra minuter tills inget är kvar. Kräver
 #          `bekrafta` = planens antal produkter att koppla. Lägger bara till;
 #          tar aldrig bort en kategori och rör aldrig pris, text eller synlighet.
-#          Ett publicerat vapenskåp ger en varning: dölj det i Wix för hand.
+#          Ett publicerat vapenskåp eller en publicerad spritapparat ger en
+#          varning: dölj den i Wix för hand.
 #          Ett publicerat hjälpmedel ger en varning: Leonard granskar det.
 #
 # Ordningen: plan, skriv med planens antal, plan igen (att koppla ska vara 0).
@@ -67,7 +69,7 @@ jobs:
           }
 
           visa() {
-            echo "$1" | jq '{dryRun, utkast, attKoppla, redanKopplade, utanRegel, avlasningSaknas, vapenskap, hjalpmedel, tradFel, kopplade, fel, felExempel, kvar, stoppadAv}' || true
+            echo "$1" | jq '{dryRun, utkast, attKoppla, redanKopplade, utanRegel, avlasningSaknas, vapenskap, spritapparat, hjalpmedel, tradFel, kopplade, fel, felExempel, kvar, stoppadAv}' || true
           }
 
           # Ett publicerat vapenskåp kan bara döljas i Wix för hand (SS 3492).
@@ -75,6 +77,10 @@ jobs:
             n=$(echo "$1" | jq -r '.vapenskap.publicerade // 0')
             if [ "$n" != "0" ]; then
               echo "::warning::${n} vapenskåp är redan publicerade (vapenskap.publiceradeIdn ovan). Dölj dem i Wix." >&2
+            fi
+            s=$(echo "$1" | jq -r '.spritapparat.publicerade // 0')
+            if [ "$s" != "0" ]; then
+              echo "::warning::${s} spritapparater är redan publicerade (spritapparat.publiceradeIdn ovan). Dölj dem i Wix: alkohollagen förbjuder försäljningen." >&2
             fi
             h=$(echo "$1" | jq -r '.hjalpmedel.publicerade // 0')
             if [ "$h" != "0" ]; then
@@ -112,16 +118,17 @@ jobs:
             stopp=$(echo "$svar" | jq -r '.stoppadAv')
             fel=$(echo "$svar" | jq -r '.fel')
             vfel=$(echo "$svar" | jq -r '.vapenskap.fel')
+            sfel=$(echo "$svar" | jq -r '.spritapparat.fel // 0')
             hfel=$(echo "$svar" | jq -r '.hjalpmedel.fel')
             if [ "$stopp" = "trad" ]; then
-              echo "::error::Kategoriträdet i Wix saknar regelmål (tradFel ovan). Ingenting kopplades; vapenskåpen och hjälpmedlen märktes." >&2; exit 1
+              echo "::error::Kategoriträdet i Wix saknar regelmål (tradFel ovan). Ingenting kopplades; vapenskåpen, spritapparaterna och hjälpmedlen märktes." >&2; exit 1
             fi
             if [ "$stopp" = "fel" ]; then
               echo "::error::Wix tog inte emot kopplingarna två tuggor i rad (felExempel ovan)." >&2; exit 1
             fi
             if [ "$stopp" = "klart" ]; then
-              if [ "$fel" != "0" ] || [ "$vfel" != "0" ] || [ "$hfel" != "0" ]; then
-                echo "::error::Klart, men ${fel} produkter, ${vfel} vapenskåp och ${hfel} hjälpmedel föll. Kör planen igen." >&2; exit 1
+              if [ "$fel" != "0" ] || [ "$vfel" != "0" ] || [ "$sfel" != "0" ] || [ "$hfel" != "0" ]; then
+                echo "::error::Klart, men ${fel} produkter, ${vfel} vapenskåp, ${sfel} spritapparater och ${hfel} hjälpmedel föll. Kör planen igen." >&2; exit 1
               fi
               echo "Klart."
               exit 0
