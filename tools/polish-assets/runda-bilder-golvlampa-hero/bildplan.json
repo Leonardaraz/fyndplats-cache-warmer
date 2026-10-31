@@ -1,0 +1,39 @@
+{
+  "runda": "runda-bilder-golvlampa-hero",
+  "produkter": [
+    {
+      "kort": "a4beec50",
+      "pid": "a4beec50-f159-488d-9f90-884f4f9c1a38",
+      "media": [
+        {
+          "id": "b379ce_c81abbb10d4844dfa77c8e71a283294d~mv2.jpg",
+          "altText": "Svart golvfluter med rund bordsskiva och läslampa mot vit bakgrund"
+        },
+        {
+          "id": "b379ce_8e8957296ff14b9784e44b85b2010b62~mv2.jpg",
+          "altText": "Svart golvfluter med bord och läslampa bredvid en soffa i ett varmt upplyst vardagsrum med ett runt soffbord"
+        },
+        {
+          "id": "b379ce_c1ad89f62a4f4b0390750a4812ba3bae~mv2.jpg",
+          "altText": "Golvfluterns mått på en ljus vägg: 175 cm hög, huvudlampa på 25 cm, läslampa på 11,6 cm och ett bord på 28 cm"
+        },
+        {
+          "id": "b379ce_daf0e768d4df488595e3659ee45bdf61~mv2.jpg",
+          "altText": "Golvfluterns runda bord med en anteckningsbok, en doftspridare och en liten skål mot vit bakgrund"
+        },
+        {
+          "id": "b379ce_39ecdde2b9154e858f4ee807025ab10c~mv2.jpg",
+          "altText": "Golvfluter med bord och läslampa vid en säng, med en väckarklocka och böcker på golvet bredvid"
+        },
+        {
+          "id": "b379ce_15277616753045a49d067ee599c9150f~mv2.jpg",
+          "altText": "Golvfluterns två lampor lyser i ett vardagsrum med en soffa, en TV-bänk av trä och en kruka med ett träd"
+        },
+        {
+          "id": "b379ce_4e135e17a82146ccb74492674b052c55~mv2.jpg",
+          "altText": "Golvlampan med bord bredvid ett sängbord i ett sovrum med mörka sängkläder och en inramad tavla"
+        }
+      ]
+    }
+  ]
+}

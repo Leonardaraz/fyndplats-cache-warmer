@@ -1,0 +1,9 @@
+pos	fil	beslut	skäl
+1	c81abb (ny)	VALD, huvudbild	Packshot mot vit botten, ingen text. Svart golvfluter med bord och läslampa, hela varan synlig (bbox 758–1317 × 38–1984 av 2000).
+2	8e8957 (finns)	kvar	Miljöbild, blir andra bilden.
+3	c1ad89 (finns)	kvar	Måttbild med bara siffror (175, 25, 11,6 och 28 cm), stämmer med sidans text.
+10	daf0e7 (ny)	VALD	Packshot mot vit botten med anteckningsbok, doftspridare och skål på bordet. Ingen läsbar text.
+12	(ej hämtad)	struken	Samma uppställning med böcker, ögonmask med "Zzz" och flaskor. Mer rörig, tvilling till pos 11.
+3	k03	finns redan	Måttbilden ligger på sidan (c1ad89).
+4–7	k04–k07	struken	Tyska rubriker och bildtexter (Licht, Lesen & Entspannen; Zwei Lichter in einer Lampe; Anpassbare Beleuchtung; Für den täglichen Komfort entwickelt).
+8, 9, 10	k08–k10	finns redan	Rena miljöfoton som redan ligger på sidan (4e135e, 39ecdd, 152776).
