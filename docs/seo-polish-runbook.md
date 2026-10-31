@@ -1264,9 +1264,9 @@ vägrar ett id som inte väntar.
 - ett id inte finns på produkten eller är butikens eget kundomdöme (de godkänner Leonard
   i `/admin/reviews`),
 - en översättning är oöversatt, för kort eller för lång jämfört med originalet, har
-  engelska kvar eller bryter mot stilen: tankstreck, semikolon, citattecken, tre punkter,
-  AI-fras, marknadsplats eller leverantör, budfirma, pris, säljare eller kundtjänst,
-  artikelnummer.
+  engelska kvar eller bryter mot stilen: tankstreck, semikolon mellan satser (en smilis som
+  `;)` går igenom), citattecken, tre punkter, AI-fras, marknadsplats eller leverantör,
+  budfirma, pris, säljare eller kundtjänst, artikelnummer.
 
 **VEVOR.** VEVOR visar en familjs recensioner på varje artikel i familjen. På en
 VEVOR-produkt tar `las` därför bara med recensioner om produktens egna artiklar. De andra

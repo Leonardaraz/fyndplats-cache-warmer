@@ -67,6 +67,7 @@ runbookens *3. Bilderna före texten*. Räcker inte det flaggar du produkten i
 `FLAGGADE-VEVOR.md`: det finns
 inget verktyg som hämtar VEVOR:s övriga bilder. En familj som importerades före 2026-10-30
 kan ha syskonens bilder blandade: kör **"VEVOR — rätta familjernas bilder"** (`plan`) först.
+Planen visade 0 att rätta 2026-10-31.
 
 - VEVOR-loggan på varan får stå *(Leonard 2026-10-28)*.
 - Bilder med säljtext på engelska eller tyska stryks, som Aosoms tyska *(Leonard 2026-10-30)*.
@@ -114,7 +115,10 @@ VEVOR-varor har ingen förhandsöversättning, så utan ditt avsnitt har fliken 
 säkerhetsinformation.
 
 **Recensionerna.** Steg 7 tar bara med recensioner om produktens egna artiklar. De andra
-räknas och lämnas till VEVOR-verktyget.
+räknas och kräver inget beslut. Recensionerna om en annan artikel är dolda och kundernas foton
+hemflyttade sedan 2026-10-31 (16 756 dolda rader, 1 438 foton på 1 011 recensioner). En
+recension vars artikel inte går att avgöra ligger kvar som väntande och syns inte (5 234 rader
+samma dag).
 
 **Priset.** Prisgrinden gäller VEVOR-rader sedan 2026-10-30: importen satte regelpriset, och
 VEVOR-synken skriver det varje timme när den är påslagen. Säger grinden *PRISGRINDEN FALLER*
