@@ -46,7 +46,7 @@ export function forvalKombination(
 }
 
 /** "2 999,00 kr" → 2999. 0 om strängen saknar ett pris. */
-function prisTal(s: string | undefined): number {
+export function prisTal(s: string | undefined): number {
   const t = (s || "").replace(/[^\d,.]/g, "").replace(/\.(?=\d{3}\b)/g, "").replace(",", ".");
   const n = parseFloat(t);
   return Number.isFinite(n) ? n : 0;

@@ -27,6 +27,8 @@ import { blogLinksForPage } from "../../../lib/seo/programmatic";
 import { NAV_EXCLUDED } from "../../../lib/category-groups";
 import { HANDLING_MIN_DAYS, HANDLING_MAX_DAYS, TRANSIT_MIN_DAYS, TRANSIT_MAX_DAYS, fraktKr } from "../../../lib/shipping";
 import { prisGiltigFran, prisGiltigTill } from "../../../lib/pris-giltig";
+import { jsonLdVarianter, variantBeskrivning, variantUrl, variesBy } from "../../../lib/variant-jsonld";
+import { visaValnamn } from "../../../lib/variant-lage";
 
 // ISR: produktsidan cachas i SEX TIMMAR, och det är ett säkerhetsnät — inte
 // färskheten. En ändring på produkten (pris, lager, synlighet, text, bilder,
@@ -159,11 +161,68 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   // En tidpunkt för båda prisdatumen, så de alltid hör till samma månad.
   const nu = new Date();
 
-  const jsonLd: Record<string, unknown> = {
-    "@context": "https://schema.org",
-    "@type": "Product",
+  const produktUrl = `https://www.fyndplats.se/produkt/${p.slug}`;
+  // Fraktvillkoren speglar kassan exakt: fri frakt från 500 kr, annars 19 kr,
+  // leverans 3–6 arbetsdagar (samma sanningskälla som resten av sajten).
+  // Leveranstiden delas i hanteringstid och transporttid, som tillsammans
+  // blir löftet (lib/shipping.ts).
+  const fraktFor = (pris: number) => ({
+    "@type": "OfferShippingDetails",
+    shippingRate: {
+      "@type": "MonetaryAmount",
+      value: fraktKr(pris),
+      currency: p.currency,
+    },
+    shippingDestination: { "@type": "DefinedRegion", addressCountry: "SE" },
+    deliveryTime: {
+      "@type": "ShippingDeliveryTime",
+      handlingTime: {
+        "@type": "QuantitativeValue",
+        minValue: HANDLING_MIN_DAYS,
+        maxValue: HANDLING_MAX_DAYS,
+        unitCode: "DAY",
+      },
+      transitTime: {
+        "@type": "QuantitativeValue",
+        minValue: TRANSIT_MIN_DAYS,
+        maxValue: TRANSIT_MAX_DAYS,
+        unitCode: "DAY",
+      },
+    },
+  });
+  const returvillkor = {
+    "@type": "MerchantReturnPolicy",
+    applicableCountry: "SE",
+    returnPolicyCountry: "SE",
+    returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+    merchantReturnDays: 30,
+    returnMethod: "https://schema.org/ReturnByMail",
+    // Kunden bokar och betalar returfrakten själv (köpvillkoren, /returer).
+    // ReturnShippingFees betyder att VI tar ut en avgift, och då kräver
+    // Google beloppet (Search Console 2026-10-22: 472 objekt).
+    returnFees: "https://schema.org/ReturnFeesCustomerResponsibility",
+  };
+  const erbjudande = (pris: number, iLager: boolean, url: string, frakt: unknown, retur: unknown) => ({
+    "@type": "Offer",
+    // Säljaren är alltid butiken, också när märket är någon annans.
+    seller: { "@type": "Organization", name: BUTIKENS_MARKE, url: "https://www.fyndplats.se" },
+    priceCurrency: p.currency,
+    price: pris,
+    // Merchant-listing-rekommenderade fält (Search Console varnar annars).
+    // Första dagen i månaden till sista dagen i nästa: samma värden hela
+    // månaden, så sidan blir inte "ny" för Vercel varje dygn (lib/pris-giltig.ts).
+    validFrom: prisGiltigFran(nu),
+    priceValidUntil: prisGiltigTill(nu),
+    availability: iLager ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+    itemCondition: "https://schema.org/NewCondition",
+    url,
+    shippingDetails: frakt,
+    hasMerchantReturnPolicy: retur,
+  });
+
+  // Gemensamt för produkten och, när den har varianter, för gruppen.
+  const gemensamt = {
     name: p.name,
-    sku: p.id,
     // Inkludera huvudbilden FÖRST + galleriet (galleriet utesluter numera hjälte-
     // fil-id:t, så Google får primärbilden här i stället för att den faller bort).
     image: Array.from(new Set([p.img, ...p.gallery].filter(Boolean))),
@@ -172,62 +231,54 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     description: p.seoDescription || p.blurb,
     // Riktiga märkesvaror sitt eget märke, Aosoms white label Fyndplats.
     brand: { "@type": "Brand", name: varumarke(marken.get(p.id)) },
-    offers: {
-      "@type": "Offer",
-      // Säljaren är alltid butiken, också när märket är någon annans.
-      seller: { "@type": "Organization", name: BUTIKENS_MARKE, url: "https://www.fyndplats.se" },
-      priceCurrency: p.currency,
-      price: erbjudandePris,
-      // Merchant-listing-rekommenderade fält (Search Console varnar annars).
-      // Första dagen i månaden till sista dagen i nästa: samma värden hela
-      // månaden, så sidan blir inte "ny" för Vercel varje dygn (lib/pris-giltig.ts).
-      validFrom: prisGiltigFran(nu),
-      priceValidUntil: prisGiltigTill(nu),
-      availability: erbjudandeILager ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-      itemCondition: "https://schema.org/NewCondition",
-      url: `https://www.fyndplats.se/produkt/${p.slug}`,
-      // Fraktvillkoren speglar kassan exakt: fri frakt från 500 kr, annars 19 kr,
-      // leverans 3–6 arbetsdagar (samma sanningskälla som resten av sajten).
-      // Leveranstiden delas i hanteringstid och transporttid, som tillsammans
-      // blir löftet (lib/shipping.ts).
-      shippingDetails: {
-        "@type": "OfferShippingDetails",
-        shippingRate: {
-          "@type": "MonetaryAmount",
-          value: fraktKr(erbjudandePris),
-          currency: p.currency,
-        },
-        shippingDestination: { "@type": "DefinedRegion", addressCountry: "SE" },
-        deliveryTime: {
-          "@type": "ShippingDeliveryTime",
-          handlingTime: {
-            "@type": "QuantitativeValue",
-            minValue: HANDLING_MIN_DAYS,
-            maxValue: HANDLING_MAX_DAYS,
-            unitCode: "DAY",
-          },
-          transitTime: {
-            "@type": "QuantitativeValue",
-            minValue: TRANSIT_MIN_DAYS,
-            maxValue: TRANSIT_MAX_DAYS,
-            unitCode: "DAY",
-          },
-        },
-      },
-      hasMerchantReturnPolicy: {
-        "@type": "MerchantReturnPolicy",
-        applicableCountry: "SE",
-        returnPolicyCountry: "SE",
-        returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
-        merchantReturnDays: 30,
-        returnMethod: "https://schema.org/ReturnByMail",
-        // Kunden bokar och betalar returfrakten själv (köpvillkoren, /returer).
-        // ReturnShippingFees betyder att VI tar ut en avgift, och då kräver
-        // Google beloppet (Search Console 2026-10-22: 472 objekt).
-        returnFees: "https://schema.org/ReturnFeesCustomerResponsibility",
-      },
-    },
   };
+
+  // En produkt med varianter beskrivs som en ProductGroup med en Product per
+  // variant, var och en med eget pris, lager och en adress som förväljer
+  // varianten (lib/variant-jsonld.ts). Frakt och returvillkor står en gång och
+  // pekas ut med @id, så att en produkt med många varianter inte upprepar dem.
+  const grupp = jsonLdVarianter(p);
+  const extraLd: Record<string, unknown>[] = [];
+  let jsonLd: Record<string, unknown>;
+  if (grupp) {
+    const fraktIdn = new Map<number, string>();
+    const fraktRef = (pris: number) => {
+      const kr = fraktKr(pris);
+      let id = fraktIdn.get(kr);
+      if (!id) {
+        id = `${produktUrl}#frakt-${kr}`;
+        fraktIdn.set(kr, id);
+        extraLd.push({ "@context": "https://schema.org", "@id": id, ...fraktFor(pris) });
+      }
+      return { "@id": id };
+    };
+    const returId = `${produktUrl}#retur`;
+    extraLd.push({ "@context": "https://schema.org", "@id": returId, ...returvillkor });
+    const vb = variesBy(grupp.axlar);
+    jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "ProductGroup",
+      ...gemensamt,
+      url: produktUrl,
+      productGroupID: p.id,
+      ...(vb.length ? { variesBy: vb } : {}),
+      hasVariant: grupp.varianter.map((v) => ({
+        "@type": "Product",
+        sku: v.variantId,
+        ...variantBeskrivning(p.name, v, visaValnamn),
+        image: v.image,
+        offers: erbjudande(v.priceNum, v.inStock, variantUrl(produktUrl, v.variantId), fraktRef(v.priceNum), { "@id": returId }),
+      })),
+    };
+  } else {
+    jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      ...gemensamt,
+      sku: p.id,
+      offers: erbjudande(erbjudandePris, erbjudandeILager, produktUrl, fraktFor(erbjudandePris), returvillkor),
+    };
+  }
 
   // AggregateRating + Review markup BARA när vi har riktiga recensioner OCH
   // switchen är på. Google straffar fejkade/hårdkodade betyg (review snippet
@@ -379,7 +430,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(extraLd.length ? [jsonLd, ...extraLd] : jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumbLd) }} />
       {faqLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(faqLd) }} />}
 

@@ -110,3 +110,13 @@ export function visaValnamn(etikett: string): string {
   const ratt = VALNAMN[s] ?? utanTum(s).replace(/\b(\d+)\s+Tire\b/g, "$1 hyllplan");
   return ratt.charAt(0).toLocaleUpperCase("sv-SE") + ratt.slice(1);
 }
+
+/**
+ * Axelns namn som kunden ska se. En axel som heter "Antal" (VEVOR: "4 st",
+ * "6 st") stod bredvid kvantitetsväljaren, som också heter Antal, och "Antal
+ * 6 st" och "Antal 2" går att läsa som tolv varor eller som två. Axeln heter
+ * Förpackning på sidan (2026-10-30). Kassan, som Wix äger, visar Wix-namnet.
+ */
+export function visaAxelnamn(namn: string): string {
+  return /^\s*(antal|kvantitet|quantity)\s*$/i.test(namn || "") ? "Förpackning" : namn;
+}

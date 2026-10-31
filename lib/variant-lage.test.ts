@@ -2,7 +2,7 @@
 // på ultraljudstvätten ritades som fem likadana miniatyrkort med avkapad text.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { arMattAxel, flestaHarBild, utanTum, variantLage, visaValnamn } from "./variant-lage.ts";
+import { arMattAxel, flestaHarBild, utanTum, variantLage, visaAxelnamn, visaValnamn } from "./variant-lage.ts";
 
 const kort = (l: string) => ({ label: l, image: `b379ce_${l}~mv2.png` });
 
@@ -87,4 +87,13 @@ test("visaValnamn: hyllplan, tum som cm och stor första bokstav", () => {
 
 test("vanliga namn lämnas orörda", () => {
   for (const l of ["Vit", "Svart", "205 cm", "2L", "85 tum", "Beige"]) assert.equal(visaValnamn(l), l);
+});
+
+test("visaAxelnamn: Antal heter Förpackning, så att den inte förväxlas med kvantiteten", () => {
+  assert.equal(visaAxelnamn("Antal"), "Förpackning");
+  assert.equal(visaAxelnamn(" antal "), "Förpackning");
+  assert.equal(visaAxelnamn("Quantity"), "Förpackning");
+  assert.equal(visaAxelnamn("Färg"), "Färg");
+  assert.equal(visaAxelnamn("Antal personer"), "Antal personer");
+  assert.equal(visaAxelnamn(""), "");
 });

@@ -56,6 +56,7 @@ import {
   type Utskick,
 } from "@/lib/fraktmejl-rader";
 import { resolveOrderId } from "@/lib/wix-order-lookup";
+import { radensVal } from "@/lib/wix-order-fields";
 import { maskCarrierOrUndefined, transportorText } from "@/lib/carrier-mask";
 import { sql } from "@/lib/db";
 import { anvanderWix, sparning } from "@/lib/wix-lager";
@@ -404,10 +405,8 @@ function extractItems(order: Record<string, unknown>): OrderLineItem[] {
       li.image as string | undefined,
       (li.productMedia as { url?: string } | undefined)?.url,
     );
-    const variant = firstStr(
-      ((li.descriptionLines as Array<{ plainText?: { original?: string } }> | undefined)?.[0]?.plainText?.original),
-      li.variantName as string | undefined,
-    );
+    // Alla val på raden, inte bara det första (radensVal).
+    const variant = firstStr(radensVal(li), li.variantName as string | undefined);
     return { name, qty, unitPrice, lineTotal, imageUrl, variant };
   });
 }

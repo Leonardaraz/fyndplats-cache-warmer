@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { bildNyckel, forvalIndex, forvalKombination, forvaltPris } from "./pdp-forval.ts";
+import { bildNyckel, forvalIndex, forvalKombination, forvaltPris, prisTal } from "./pdp-forval.ts";
 
 const W = (id: string) => `https://static.wixstatic.com/media/${id}/v1/fill/w_800,h_800/a.jpg`;
 
@@ -79,4 +79,12 @@ test("forvaltPris: två axlar läser raden för förvalets kombination", () => {
 
 test("forvaltPris: inga val → null", () => {
   assert.equal(forvaltPris({ img: W("a"), options: null }), null);
+});
+
+test("prisTal läser Wix och variantdatans prissträngar", () => {
+  assert.equal(prisTal("2 999,00 kr"), 2999);
+  assert.equal(prisTal("1 082,90 kr"), 1082.9);
+  assert.equal(prisTal("1 299 kr"), 1299);
+  assert.equal(prisTal(""), 0);
+  assert.equal(prisTal(undefined), 0);
 });

@@ -141,24 +141,33 @@ function text(v: unknown): string | undefined {
  * radens summa INKLUSIVE moms: Wix lägger `priceSummary.subtotal` exklusive moms
  * (uppmätt 2026-10-09: 615,20 kr på en order där kunden betalade 769 kr).
  */
+/**
+ * Radens val som text: "Färg: Svart · Storlek: L". Varje val på raden kommer
+ * med, inte bara det första: en produkt med två val (färg och storlek, längd
+ * och antal) hade annars fått bara det ena i order- och fraktmejlet.
+ */
+export function radensVal(li: Loose): string | undefined {
+  const val = Array.isArray(li?.descriptionLines)
+    ? li.descriptionLines
+        .map((d: unknown) => {
+          const namn = text(obj(d)?.name);
+          const varde = text(obj(d)?.plainText) ?? text(obj(d)?.plainTextValue);
+          return varde ? (namn ? `${namn}: ${varde}` : varde) : undefined;
+        })
+        .filter((s: string | undefined): s is string => Boolean(s))
+    : [];
+  return val.length > 0 ? val.join(" · ") : undefined;
+}
+
 export function orderRader(order: Loose): OrderRad[] {
   const rader = order?.lineItems ?? order?.items;
   if (!Array.isArray(rader)) return [];
   return rader.map((r) => {
     const li = obj(r) ?? {};
-    const val = Array.isArray(li.descriptionLines)
-      ? li.descriptionLines
-          .map((d) => {
-            const namn = text(obj(d)?.name);
-            const varde = text(obj(d)?.plainText) ?? text(obj(d)?.plainTextValue);
-            return varde ? (namn ? `${namn}: ${varde}` : varde) : undefined;
-          })
-          .filter((s): s is string => Boolean(s))
-      : [];
     const antal = Number(li.quantity ?? 1);
     return {
       namn: text(li.productName) ?? firstStr(li.name) ?? "Produkt",
-      variant: val.length > 0 ? val.join(" · ") : undefined,
+      variant: radensVal(li),
       antal: Number.isFinite(antal) && antal > 0 ? antal : 1,
       bild: firstStr(obj(li.image)?.url, li.image, obj(li.productMedia)?.url),
       belopp: belopp(li.totalPriceAfterTax) ?? belopp(li.totalPrice) ?? belopp(li.lineItemPrice),
