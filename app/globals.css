@@ -240,36 +240,50 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .meganav-sub-count{font-size:var(--text-xs);font-weight:600;color:var(--soft);background:rgba(0,0,0,.04);padding:2px 8px;border-radius:var(--r-pill);flex:0 0 auto}
 .meganav-sub:hover .meganav-sub-count{color:var(--brand);background:rgba(194,65,12,.09)}
 .meganav-empty{color:var(--soft);font-size:var(--text-base);padding:4px 2px}
-/* ── Headerraden får inte plats, och kunde aldrig ─────────────────────────────
-   Regeln här nedan gällde tidigare bara 901–1180px. Men .container är kapad
-   till 1180px på ALLA skärmar, så raden hade exakt lika lite plats vid 1920 som
-   vid 1280. Mätt 2026-08-26:
+/* ── Sidhuvudet: menyn på en egen rad (2026-10-31) ────────────────────────────
+   .container är kapad till 1180 px på ALLA skärmar (1128 px innehåll), så en
+   rad med logga, meny och ikoner har lika lite plats vid 1920 som vid 1280.
+   2026-08-26 flyttades sökrutan ut ur raden för att menyn skulle få plats.
+   Mätt 2026-10-31 i produktionen räckte inte heller det: loggan 159, menyn 861
+   (tio avdelningar), hjärtat och kundvagnen 76 och tre mellanrum på 20 är
+   1 131 px i 1 128. Kundvagnen och hjärtat låg därför utanför skärmen mellan
+   901 och 1 180 px (iPad på tvären är 1 080–1 194), och VEVOR-trädet lägger
+   till tre avdelningar till.
 
-     logga        153
-     sökruta      241
-     meganav      791   (622 text + 168 luft mellan 13 poster)
-     hjärta+vagn   76   (38 var)
-     radluft       80   (20 × 4)
-     ───────────────────
-                 1341   i en container på 1180 → 161px för lite
-
-   Vad som faktiskt hände: hjärtat och kundvagnen var de enda flexande posterna
-   kvar, så de klämdes från 38px till 20 — sina ikoners egen bredd — och resten
-   spillde ut ur containern. Vid 1280px hamnade kundvagnen 75px UTANFÖR
-   skärmkanten, och sidan fick vågrät scroll.
-
-   Ingen brytpunkt kunde laga det, eftersom containern aldrig växer. Så den
-   inline-sökrutan släpps nu på ALLA bredder och den dedikerade fullbredds-
-   sökraden (.hsearch-mobile) tar över — samma lösning som redan användes under
-   1180, bara utan taket. Kvar i raden: 153 + 791 + 76 + 80 = 1100, alltså 80px
-   luft över.
-
-   Sökrutan blir dessutom större och tydligare av flytten, inte mindre. */
-.hrow .searchwrap{display:none}
-.hsearch-mobile{display:block;padding-bottom:12px}
+   Nu ligger menyn på en egen rad under (.hnav) och sökrutan i första raden,
+   som hos de flesta stora butiker. Menyraden har hela bredden: med alla
+   tretton avdelningar är den ungefär 1 020 px vid 14 px mellanrum, och
+   mellanrummen krymper på smalare skärmar. Räcker inte heller det bryter
+   menyn hellre till en andra rad än hamnar utanför skärmen (flex-wrap).
+   Under 900 px är allt som förut: menyknappen, och sökrutan på en egen rad. */
+.hrow .searchwrap{max-width:640px}
+.hrow .wl-btn{margin-left:auto}
 .hsearch-mobile .searchwrap{max-width:none;width:100%}
+/* Sidomarginalen är .containerns 26 px, så att sidhuvudet linjerar med
+   toppremsan och sidan under. Radens egen padding nollade den förut, och under
+   1 232 px låg loggan och kundvagnen kant i kant med skärmen. Mobilen har
+   fortfarande ingen sidomarginal (se max-width:339px nedan). */
+.hrow{padding:12px 26px 8px}
+.hnav{display:flex;padding:0 26px 4px}
+.hnav .meganav{flex:1;margin-left:0;justify-content:space-between;flex-wrap:wrap;row-gap:0}
 @media(max-width:1180px){
   .meganav{gap:12px;font-size:var(--text-sm)}
+}
+@media(max-width:1100px){
+  .meganav{gap:10px}
+}
+@media(max-width:1000px){
+  .meganav{gap:8px;font-size:13px}
+}
+@media(max-width:960px){
+  .meganav{gap:6px}
+}
+@media(max-width:900px){
+  .hrow{padding:15px 0}
+  .hrow .searchwrap{display:none}
+  .hrow .wl-btn{margin-left:0}
+  .hsearch-mobile{display:block;padding-bottom:12px}
+  .hnav{display:none}
 }
 
 .hero{position:relative;overflow:hidden;background:linear-gradient(155deg,#FFF7F0 0%,#FCEADC 52%,#F8DAC4 100%)}

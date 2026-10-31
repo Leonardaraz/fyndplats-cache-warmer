@@ -659,7 +659,7 @@ export const KOMPLEMENT: Komplement[] = [
   { vara: HALLOWEEN_FIGUR, utom: /byggsats/iu, passar: [HALLOWEEN_HANGANDE, HALLOWEEN_UPPBLAST] },
   { vara: HALLOWEEN_HANGANDE, passar: [HALLOWEEN_FIGUR, HALLOWEEN_UPPBLAST], inteForslag: /byggsats/iu },
   { vara: HALLOWEEN_UPPBLAST, passar: [HALLOWEEN_FIGUR, HALLOWEEN_HANGANDE], inteForslag: /byggsats/iu },
-  // Verktyg & Fordon
+  // Verktyg & Maskiner och Bil & Garage
   { vara: ordborjan("verktygsvagn|verktygslåda|verktygsskåp|verkstadsvagn|verkstadsbänk|arbetsbänk"), passar: [ordborjan("verktygssats|verktygsset|hylsnyckel|bitsats"), ordborjan("arbetsbock")] },
   { vara: ordborjan("sågbock|arbetsbock|kapsågstativ"), passar: [ordborjan("verkstadsbänk|arbetsbänk")] },
   { vara: ordborjan("verkstadspall"), passar: [ordborjan("verkstadsbänk|arbetsbänk"), ordborjan("verktygsvagn")] },

@@ -73,8 +73,8 @@ export function categoryInMainNav(count: number): boolean {
  *  produkt i avdelningen bara för att den ligger i en underkategori, så en
  *  avdelning med produkter bara i underkategorierna fick noll: noindex och
  *  ingen plats i sitemapen, fast sidan visade hela avdelningen. Uppmätt på
- *  sajten 2026-10-11: Verktyg & Fordon. Navigationen hade redan samma lagning
- *  (medForaldrar, totalt/mainCount). */
+ *  sajten 2026-10-11: Verktyg & Fordon, som i dag heter Verktyg & Maskiner.
+ *  Navigationen hade redan samma lagning (medForaldrar, totalt/mainCount). */
 export function countPerCategoryPage(
   products: ReadonlyArray<{ collectionIds?: string[] }>,
   categories: ReadonlyArray<{ id: string; parentId: string | null }>,

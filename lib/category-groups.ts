@@ -8,7 +8,7 @@ import { cache } from "react";
 import { getProducts, getCollections, forListings } from "./products";
 import type { Product, Collection } from "./products";
 import { categoryInMainNav } from "./category-threshold";
-import { avdelningIHuvudmenyn } from "./meny-grupper";
+import { avdelningIHuvudmenyn, ordnaAvdelningar } from "./meny-grupper";
 
 export type MainGroup = {
   main: string;          // Wix-katalogens kategorinamn
@@ -27,8 +27,13 @@ export const MAIN_GROUPS: MainGroup[] = [
     main: "Hem & Inredning",
     tag: "Detaljer som lyfter ditt hem",
     // Kategoriflytten 2026-09-30: jul, halloween och fest har egen avdelning
-    // (Jul & Högtider), verktygen likaså (Verktyg & Fordon).
-    subs: ["Dekoration & Prydnad", "Konstväxter", "Speglar", "Belysning", "Golvlampor", "Förvaring & Organisering", "Badrumsskåp", "Badrumsspeglar", "Badrum & Hemtextil", "Tvättkorgar", "Tvätt & städ", "Elkaminer", "Värmefläktar", "Gnistskydd", "Elementskydd", "Smart hem & säkerhet", "Projektordukar", "Hushållsapparater"],
+    // (Jul & Högtider), verktygen likaså (Verktyg & Fordon, som heter Verktyg &
+    // Maskiner sedan VEVOR-trädet 2026-10-31).
+    //
+    // VEVOR-trädet lade till nya underkategorier här och i flera avdelningar
+    // nedan. De är dolda i Wix tills de har produkter, och buildGroupCards hoppar
+    // över en underkategori som saknas, så de dyker upp på /butik av sig själva.
+    subs: ["Dekoration & Prydnad", "Konstväxter", "Speglar", "Belysning", "Golvlampor", "Förvaring & Organisering", "Badrumsskåp", "Badrumsspeglar", "Badrum & Hemtextil", "Tvättkorgar", "Tvätt & städ", "Elkaminer", "Värmefläktar", "Gnistskydd", "Elementskydd", "Smart hem & säkerhet", "Projektordukar", "Hushållsapparater", "Hemelektronik & tillbehör", "Mattor", "Kassaskåp"],
     heroPicks: ["astronaut-stjarnprojektor"],
   },
   {
@@ -40,13 +45,13 @@ export const MAIN_GROUPS: MainGroup[] = [
     // Inredning också; Möbler är en ingång till, inte en flytt.
     main: "Möbler",
     tag: "Stolar, soffor och bord till hela hemmet",
-    subs: ["Kontorsstolar", "Knästolar", "Gamingstolar", "Fåtöljer", "Soffor & bäddsoffor", "Matbord & stolar", "Skrivbord", "Soffbord & småbord", "Sängar & sovrum", "Garderober & klädställ", "Rumsavdelare", "Bäddfåtöljer", "Uppresningsfåtöljer", "Massagestolar", "TV-bänkar", "Skoskåp & skobänkar", "Sidobord", "Nattduksbord", "Byråer", "Bokhyllor", "Pallar", "Sittpuffar & fotpallar", "Klädhängare & hallmöbler", "Sideboards & vitrinskåp", "Barbord", "Matgrupper", "Snurrfåtöljer", "Öronlappsfåtöljer", "Hörnskrivbord"],
+    subs: ["Kontorsstolar", "Knästolar", "Gamingstolar", "Fåtöljer", "Soffor & bäddsoffor", "Matbord & stolar", "Skrivbord", "Soffbord & småbord", "Sängar & sovrum", "Garderober & klädställ", "Rumsavdelare", "Bäddfåtöljer", "Uppresningsfåtöljer", "Massagestolar", "TV-bänkar", "Skoskåp & skobänkar", "Sidobord", "Nattduksbord", "Byråer", "Bokhyllor", "Pallar", "Sittpuffar & fotpallar", "Klädhängare & hallmöbler", "Sideboards & vitrinskåp", "Barbord", "Matgrupper", "Snurrfåtöljer", "Öronlappsfåtöljer", "Hörnskrivbord", "Kontorstillbehör"],
     heroPicks: [],
   },
   {
     main: "Kök & Husgeråd",
     tag: "Allt för matlagning och dukning",
-    subs: ["Köksmaskiner & Apparater", "Kyl & frys", "Köksredskap & Tillbehör", "Köksöar & köksvagnar", "Vattenkokare & brödrostar", "Vinställ & vinkylar", "Soptunnor", "Miniugnar & airfryers", "Serveringsvagnar & rullvagnar"],
+    subs: ["Köksmaskiner & Apparater", "Kyl & frys", "Köksredskap & Tillbehör", "Köksöar & köksvagnar", "Vattenkokare & brödrostar", "Vinställ & vinkylar", "Soptunnor", "Miniugnar & airfryers", "Serveringsvagnar & rullvagnar", "Glass-, is- & dessertmaskiner", "Matförvaring & köksorganisering", "Köttkvarnar & charkuteri"],
     heroPicks: ["magnetisk-knivhallare-akacia-vaggmonterad-knivlist", "4-pack-glas-ribbad-design"],
   },
   {
@@ -55,9 +60,12 @@ export const MAIN_GROUPS: MainGroup[] = [
     // det). Upptäckt i kontrollen efter kategoriflytten 2026-10-01.
     main: "Trädgård & Utemöbler",
     tag: "Utemöbler, växthus, grill och trädgård",
-    subs: ["Utemöbler", "Växthus & Odling", "Solskydd & Paviljonger", "Grill & Utekök", "Eldkorgar & eldstäder", "Terrassvärmare & Infravärmare", "Trädgårdsskötsel & Bevattning", "Trädgårdsdekor & Belysning", "Odlingslådor", "Blomställ & växthyllor", "Redskapsbodar & förråd", "Vedställ & vedbodar", "Garagetält", "Skärmtak & entrétak"],
+    subs: ["Utemöbler", "Växthus & Odling", "Solskydd & Paviljonger", "Grill & Utekök", "Eldkorgar & eldstäder", "Terrassvärmare & Infravärmare", "Trädgårdsskötsel & Bevattning", "Trädgårdsdekor & Belysning", "Odlingslådor", "Blomställ & växthyllor", "Redskapsbodar & förråd", "Vedställ & vedbodar", "Garagetält", "Skärmtak & entrétak", "Pool & spa", "Trädgårdsmaskiner", "Staket & grindar", "Trädgårdsanläggning & konstgräs"],
     heroPicks: [],
   },
+  // Bygg & Renovering (VEVOR-trädet 2026-10-31) står här i menyns ordning
+  // (AVDELNINGSORDNING i lib/meny-grupper.ts) när den har produkter och får
+  // sin tagline. Den är dold i Wix och har ingen text än.
   {
     main: "Barn & Familj",
     tag: "Genomtänkta favoriter för familjen",
@@ -69,7 +77,7 @@ export const MAIN_GROUPS: MainGroup[] = [
   {
     main: "Skönhet & Hälsa",
     tag: "Egentid för hud och välmående",
-    subs: ["Hudvård & Ansikte", "Massage & Återhämtning", "Kropp & Välbefinnande", "Hår & Rakning", "Massagebänkar"],
+    subs: ["Hudvård & Ansikte", "Massage & Återhämtning", "Kropp & Välbefinnande", "Hår & Rakning", "Massagebänkar", "Hjälpmedel"],
     heroPicks: ["gua-sha-massagesten-i-akta-jade", "ansiktsroller-massageverktyg-for-ansikte-och-ogon"],
   },
   {
@@ -81,7 +89,7 @@ export const MAIN_GROUPS: MainGroup[] = [
   {
     main: "Sport & Fritid",
     tag: "Smart utrustning för träning, resa och uteliv",
-    subs: ["Träning & Gym", "Hantlar & hantelset", "Träningsbänkar", "Motionscyklar", "Boxningssäckar", "Träningskläder", "Spel & bordsspel", "Bollsport", "Friluftsliv & Resa", "Bil & Cykel", "Hobby & musik"],
+    subs: ["Träning & Gym", "Hantlar & hantelset", "Träningsbänkar", "Motionscyklar", "Boxningssäckar", "Träningskläder", "Spel & bordsspel", "Bollsport", "Friluftsliv & Resa", "Bil & Cykel", "Hobby & musik", "Hantverk & sömnad", "Camping & kylboxar", "Båt & vattensport", "Jakt & fiske"],
     heroPicks: ["digital-bagagevag"],
   },
   {
@@ -95,12 +103,25 @@ export const MAIN_GROUPS: MainGroup[] = [
   {
     // Kategoriflytten 2026-09-30. Verktygen låg under Hem & Inredning och
     // bilprodukterna under Sport & Fritid; Aosom, Jula och Biltema har båda i
-    // en egen avdelning.
-    main: "Verktyg & Fordon",
-    tag: "Verktygsvagnar, verkstad, bil och släp",
-    subs: ["Verktygsvagnar & verktygslådor", "Verktyg & Hemmafix", "Bil & släp", "Elbilsladdning & solenergi"],
+    // en egen avdelning. Avdelningen hette Verktyg & Fordon fram till
+    // VEVOR-trädet 2026-10-31, då bilen, släpet och elbilsladdningen flyttade
+    // till Bil & Garage.
+    main: "Verktyg & Maskiner",
+    tag: "Verktygsvagnar, verkstad och hemmafix",
+    subs: ["Elverktyg", "Verkstadsmaskiner", "Svetsning", "Kompressorer & tryckluft", "Högtryckstvättar & rengöring", "Verktygstillbehör", "Handverktyg", "Verktyg & Hemmafix", "Verktygsvagnar & verktygslådor", "Lyft & transport", "Stegar & ställningar", "Arbetskläder & skydd"],
     heroPicks: [],
   },
+  {
+    // VEVOR-trädet 2026-10-31. Bil & släp och Elbilsladdning & solenergi
+    // flyttade hit från Verktyg & Maskiner. De andra underkategorierna är dolda
+    // i Wix tills de har produkter, så taggen nämner bara det som finns i dag.
+    main: "Bil & Garage",
+    tag: "Domkrafter, takräcken, vinschar och elbilsladdare",
+    subs: ["Domkrafter & billyftar", "Verkstadsutrustning", "Bilverktyg", "Garageinredning", "Bildelar", "Biltillbehör", "Takräcken & lastbärare", "Vinschar", "Flakboxar & pickuptillbehör", "Bil & släp", "Husbil & husvagn", "Elbilsladdning & solenergi"],
+    heroPicks: ["garagedomkraft-2-5-ton-lag-profil"],
+  },
+  // Företag & Proffs (VEVOR-trädet 2026-10-31) kommer sist, som i menyn, när den
+  // har produkter och får sin tagline. Den är dold i Wix och har ingen text än.
 ];
 
 // ── Kategori-hero-bilder (Unsplash) ───────────────────────────────────────
@@ -231,9 +252,11 @@ export const CATEGORY_HERO_IMAGES: Record<string, string> = {
   "Juldekoration": UNSPLASH("1767471662293-55cae5cbea6f"), // snöig trädgård med lysande snögubbar
   // De nya avdelningarna 2026-09-30 lånar sin mest typiska underkategoris bild,
   // granskad samma dag i UNSPLASH()-beskärningen: julgranen vid den öppna spisen
-  // och verktygsväggen. Alla andra avdelningar har en egen bild.
+  // och verktygsväggen. Verktyg & Maskiner hette Verktyg & Fordon och behåller
+  // verktygsväggen (svarade 200 2026-10-31). Bil & Garage har ingen egen bild
+  // här: sidan visar en vald produkt (KATEGORI_HERO_PRODUKT nedan).
   "Jul & Högtider": UNSPLASH("1642335911245-238e13dcabf2"), // pyntad gran och krans vid öppen spis
-  "Verktyg & Fordon": UNSPLASH("1426927308491-6380b6a9936f"), // organiserad verktygsvägg
+  "Verktyg & Maskiner": UNSPLASH("1426927308491-6380b6a9936f"), // organiserad verktygsvägg
 
   // Husdjur
   "Pälsvård & Skötsel": UNSPLASH("1675430426271-d74b542f21e4"), // hund som borstas
@@ -304,6 +327,10 @@ export const KATEGORI_HERO_PRODUKT: Record<string, string> = {
   "elbilsladdning-solenergi": "portabel-elbilsladdare-typ-2-schuko",
   // Runda S15 2026-10-03: den klassiska formen, sits och knädyna på medar.
   "knastolar": "gungande-knastol-gra",
+  // VEVOR-trädet 2026-10-31. Bil & Garage har ingen granskad Unsplash-bild.
+  // Garagedomkraften på vit botten, sedd i full storlek samma dag: texten på
+  // den gula etiketten sitter på själva varan.
+  "bil-garage": "garagedomkraft-2-5-ton-lag-profil",
 };
 
 // Returnerar curated Unsplash-hero för en huvudkategori, annars "" (→ sidan
@@ -359,7 +386,8 @@ export const NAV_EXCLUDED = new Set<string>(["Populära", "REA", "Sale", "All Pr
 // collectionIds (exakt det /kategori-sidan filtrerar på, så count = vad sidan visar).
 //   • roots  = parentlösa kategorier (de 8 huvudkategorierna), promo-urval bortfiltrerade
 //   • subs   = barn vars parentId pekar på huvudkategorin, sorterade på Wix-index
-//   • ordning: huvudkategorier efter antal (störst först), tom kategori utesluts
+//   • ordning: AVDELNINGSORDNING i lib/meny-grupper.ts (Leonards ja 2026-10-31),
+//     okända avdelningar sist efter antal; tom kategori utesluts
 export function buildCategoryTree(products: Product[], collections: Collection[]): CategoryNode[] {
   const counts = new Map<string, number>();
   for (const p of products) for (const cid of (p.collectionIds || [])) counts.set(cid, (counts.get(cid) || 0) + 1);
@@ -386,7 +414,7 @@ export function buildCategoryTree(products: Product[], collections: Collection[]
     return products.filter((p) => (p.collectionIds || []).some((cid) => ids.has(cid))).length;
   };
 
-  const roots = collections
+  const roots = ordnaAvdelningar(collections
     // > 0 räckte förr. Punkt 17: en huvudkategori med 1–4 produkter ska inte
     // stå i navigationen. Underkategorierna filtreras fortsatt bara på > 0; de
     // är inte huvudkategorier och kravet gäller uttryckligen huvudnavigationen.
@@ -403,8 +431,7 @@ export function buildCategoryTree(products: Product[], collections: Collection[]
       const ids = new Set([mainCol.id, ...children.map((c) => c.id)]);
       const count = products.filter((p) => (p.collectionIds || []).some((cid) => ids.has(cid))).length;
       return { id: mainCol.id, name: mainCol.name, slug: mainCol.slug, count, subs };
-    })
-    .sort((a, b) => b.count - a.count);
+    }));
 
   return roots;
 }
@@ -459,8 +486,8 @@ export function buildGroupCards(products: Product[], collections: Collection[]):
   for (const g of MAIN_GROUPS) {
     const mainCol = collByName.get(g.main);
     if (!mainCol) continue;
-    // De nya avdelningarna (Jul & Högtider, Verktyg & Fordon) har inga produkter
-    // direkt i huvudkategorin, bara i underkategorierna. Då väljs bilden bland dem.
+    // Jul & Högtider, Verktyg & Maskiner och Bil & Garage har inga produkter
+    // direkt i avdelningen, bara i underkategorierna. Då väljs bilden bland dem.
     let inCat = products.filter((p) => p.img && (p.collectionIds || []).includes(mainCol.id));
     if (inCat.length === 0) {
       const ids = new Set((childrenByParent.get(mainCol.id) || []).map((c) => c.id));

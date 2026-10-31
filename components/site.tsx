@@ -85,12 +85,14 @@ export async function SiteHeader() {
         </div>
       </div>
       <header className="sidhuvud">
+        {/* Datorn: loggan, sökrutan, hjärtat och kundvagnen på första raden, och
+            menyn på en egen rad under (.hnav). Mobilen: loggan, hjärtat,
+            kundvagnen och menyknappen, och sökrutan på en egen rad. Menyn låg
+            förr i samma rad som loggan och fick inte plats; se .hnav i
+            app/globals.css. */}
         <div className="container hrow">
           <HemLank className="brand"><Mark />Fyndplats</HemLank>
           <SearchBox />
-          {/* Trädet utan antal: siffrorna hämtas i webbläsaren, annars blir varje
-              sida "ny" så fort ett antal ändras (lib/meny-antal.ts). */}
-          <MegaNav tree={utanAntal(tree)} hasBlog={hasBlog} hasSale={hasSale} />
           <WishlistButton />
           <CartButton />
           <MobileNav tree={utanAntal(tree)} hasBlog={hasBlog} hasSale={hasSale} />
@@ -98,6 +100,11 @@ export async function SiteHeader() {
         {/* Egen sökrad på mobil — alltid synlig högt upp, utan att öppna menyn */}
         <div className="hsearch-mobile">
           <div className="container"><SearchBox /></div>
+        </div>
+        <div className="container hnav">
+          {/* Trädet utan antal: siffrorna hämtas i webbläsaren, annars blir varje
+              sida "ny" så fort ett antal ändras (lib/meny-antal.ts). */}
+          <MegaNav tree={utanAntal(tree)} hasBlog={hasBlog} hasSale={hasSale} />
         </div>
       </header>
     </>

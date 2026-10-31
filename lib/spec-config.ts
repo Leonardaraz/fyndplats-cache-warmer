@@ -197,7 +197,11 @@ const KATEGORIER: Record<string, Rad> = {
   "bollsport": ["b", "h", "m"],
   "hobby-musik": ["b", "h", "m"],
   "jul-hogtider": PYNT,
-  "verktyg-fordon": ["kg", "b", "h", "ml", "m"],
+  // VEVOR-trädet 2026-10-31: Verktyg & Fordon heter Verktyg & Maskiner, och
+  // Bil & släp och Elbilsladdning & solenergi ligger under Bil & Garage. Nya
+  // underkategorier utan egen rad ärver sin avdelning.
+  "verktyg-maskiner": ["kg", "b", "h", "ml", "m"],
+  "bil-garage": ["kg", "w", "b", "m"],
   "bil-slap": ["kg", "w", "b", "m"],
   "elbilsladdning-solenergi": ["w", "m"],
 

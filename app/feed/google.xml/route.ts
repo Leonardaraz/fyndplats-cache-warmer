@@ -254,7 +254,67 @@ const GOOGLE_CATEGORY_BY_SLUG: Record<string, number> = {
   "elbilsladdning-solenergi": 4714,  // Hardware > Power & Electrical Supplies > Solar Panels
   // Nya avdelningar. Underkategorierna har egna rader eller ärver härifrån.
   "jul-hogtider": 596,               // Home & Garden > Decor > Seasonal & Holiday Decorations
-  "verktyg-fordon": 632,             // Hardware
+  // VEVOR-trädet 2026-10-31: Verktyg & Fordon heter Verktyg & Maskiner, och tre
+  // avdelningar och 51 underkategorier är nya. Varje ID är kontrollerat mot
+  // taxonomy-with-ids.en-US.txt samma dag (lib/google-kategori.test.ts läser
+  // raderna). Samma regel som ovan: där en kategori blandar varor som en smal
+  // nod hade klassat fel får den närmaste nod som stämmer för alla. Innehållet
+  // är läst ur reglerna som sorterar VEVOR:s varor (motorns lib/vevor/kategorier.ts).
+  "verktyg-maskiner": 632,           // Hardware
+  elverktyg: 1167,                   // Hardware > Tools
+  verkstadsmaskiner: 1167,           // Hardware > Tools (svarvar, pelarborrar, bandsågar)
+  svetsning: 1167,                   // Hardware > Tools (svetsar, plasmaskärare och svetsbord)
+  "kompressorer-tryckluft": 1167,    // Hardware > Tools (kompressorer och tryckluftsverktyg)
+  "hogtryckstvattar-rengoring": 1226, // Home & Garden > Lawn & Garden > Outdoor Power Equipment > Pressure Washers
+  verktygstillbehor: 3650,           // Hardware > Tool Accessories
+  handverktyg: 1167,                 // Hardware > Tools
+  "lyft-transport": 6987,            // Business & Industrial > Material Handling
+  "stegar-stallningar": 130,         // Hardware > Tools > Ladders & Scaffolding
+  "arbetsklader-skydd": 2047,        // Business & Industrial > Work Safety Protective Gear
+  "bil-garage": 5613,                // Vehicles & Parts > Vehicle Parts & Accessories
+  "domkrafter-billyftar": 8236,      // … > Vehicle Maintenance, Care & Decor > Vehicle Repair & Specialty Tools
+  verkstadsutrustning: 8236,         // samma nod
+  bilverktyg: 8236,                  // samma nod
+  garageinredning: 536,              // Home & Garden (förvaring, golv och garageportar)
+  bildelar: 899,                     // Vehicles & Parts > Vehicle Parts & Accessories > Motor Vehicle Parts
+  biltillbehor: 5613,                // Vehicles & Parts > Vehicle Parts & Accessories
+  "takracken-lastbarare": 8237,      // Vehicles & Parts > Vehicle Parts & Accessories > Vehicle Storage & Cargo
+  vinschar: 503772,                  // Business & Industrial > Material Handling > Lifts & Hoists > Winches
+  "flakboxar-pickuptillbehor": 8237, // Vehicles & Parts > Vehicle Parts & Accessories > Vehicle Storage & Cargo
+  "husbil-husvagn": 5613,            // Vehicles & Parts > Vehicle Parts & Accessories
+  "bygg-renovering": 632,            // Hardware
+  "vvs-vatten": 133,                 // Hardware > Plumbing
+  pumpar: 500096,                    // Hardware > Hardware Pumps
+  "el-installation": 127,            // Hardware > Power & Electrical Supplies
+  "varme-ventilation-ac": 1626,      // Home & Garden > Household Appliances > Climate Control Appliances
+  badrumsrenovering: 1673,           // Hardware > Plumbing > Plumbing Fixtures
+  "golv-golvverktyg": 632,           // Hardware (golv och golvverktyg)
+  "farg-tapet": 2077,                // Hardware > Tools > Paint Tools
+  "dorrar-dorrbeslag": 115,          // Hardware > Building Materials
+  "beslag-jarnvaror": 2878,          // Hardware > Hardware Accessories
+  "byggmaterial-byggverktyg": 632,   // Hardware (material och verktyg)
+  "trall-racken": 115,               // Hardware > Building Materials
+  "foretag-proffs": 111,             // Business & Industrial
+  "storkok-restaurang": 135,         // Business & Industrial > Food Service
+  "butik-evenemang-trafik": 111,     // Business & Industrial
+  "vard-labb": 111,                  // Business & Industrial (Medical och Science & Laboratory)
+  "salong-spa": 7240,                // Business & Industrial > Hairdressing & Cosmetology
+  "pool-spa": 729,                   // Home & Garden > Pool & Spa
+  tradgardsmaskiner: 3798,           // Home & Garden > Lawn & Garden > Outdoor Power Equipment
+  "staket-grindar": 128,             // Hardware > Fencing & Barriers
+  "tradgardsanlaggning-konstgras": 689, // Home & Garden > Lawn & Garden
+  "hantverk-somnad": 16,             // Arts & Entertainment > Hobbies & Creative Arts > Arts & Crafts
+  "camping-kylboxar": 1013,          // Sporting Goods > Outdoor Recreation > Camping & Hiking
+  "bat-vattensport": 499811,         // Sporting Goods > Outdoor Recreation > Boating & Water Sports
+  "jakt-fiske": 1011,                // Sporting Goods > Outdoor Recreation
+  "glass-is-dessertmaskiner": 730,   // Home & Garden > Kitchen & Dining > Kitchen Appliances
+  "matforvaring-koksorganisering": 638, // Home & Garden > Kitchen & Dining
+  "kottkvarnar-charkuteri": 730,     // Home & Garden > Kitchen & Dining > Kitchen Appliances
+  "hemelektronik-tillbehor": 222,    // Electronics
+  mattor: 598,                       // Home & Garden > Decor > Rugs
+  kassaskap: 3819,                   // Home & Garden > Business & Home Security > Security Safes
+  kontorstillbehor: 922,             // Office Supplies
+  hjalpmedel: 519,                   // Health & Beauty > Health Care > Mobility & Accessibility
 };
 
 /** Produktens taxonomi för feeden: g:product_type = kategoristigen ("Husdjur >

@@ -356,8 +356,9 @@ Jula och Zooplus, och byggdes om efter det:
 
 - **Avdelningar:** Möbler, Hem & Inredning, Kök & Husgeråd, Trädgård &
   Utemöbler, Jul & Högtider, Barn & Familj, Husdjur, Sport & Fritid, Skönhet &
-  Hälsa, Verktyg & Fordon. Elektronik och Mode är dolda i Wix och har
-  301-omdirigeringar i `next.config.ts`.
+  Hälsa, Verktyg & Fordon (sedan 2026-10-31 Verktyg & Maskiner, se nästa
+  avsnitt). Elektronik och Mode är dolda i Wix och har 301-omdirigeringar i
+  `next.config.ts`.
 - **Jul & Högtider** står i menyn och på /butik bara september–januari
   (`avdelningIHuvudmenyn` i `lib/meny-grupper.ts`). Sidan finns kvar året runt.
 - **Rubrikerna i menyn** (Vardagsrum, Hund, Kontor & gaming …) ligger i
@@ -372,6 +373,50 @@ Jula och Zooplus, och byggdes om efter det:
 
 Flytten gjordes med namnregler över alla synliga produkter, med torrkörning
 först: 330 tillägg och 1 261 borttag. Ingen produkt blev utan underkategori.
+
+## VEVOR-trädet: tretton avdelningar i fast ordning (2026-10-31)
+
+Leonard godkände ett kategoriträd för VEVOR:s cirka 12 000 varor: tre nya
+avdelningar (Bygg & Renovering, Bil & Garage, Företag & Proffs) och 51 nya
+underkategorier. Verktyg & Fordon bytte namn till Verktyg & Maskiner, och Bil &
+släp och Elbilsladdning & solenergi flyttade till Bil & Garage med oförändrade
+namn och adresser. Hur motorn sorterar in varorna står i motorns
+`lib/vevor/kategorier.ts` (grenen `main`).
+
+- **Menyns ordning är fast:** `AVDELNINGSORDNING` i `lib/meny-grupper.ts`.
+  Menyn, mobilmenyn, kategorilistan på kategorisidorna och Om oss sorterade
+  förut avdelningarna efter antal produkter, och då hade VEVOR:s verktyg
+  hamnat först så fort de publicerades. `MAIN_GROUPS` (korten på /butik och
+  startsidan) följer samma ordning, och `lib/meny-grupper.test.ts` håller ihop
+  dem. `MAIN_ORDER` i `lib/products.ts` är något annat: den styr 404-sidans
+  sex kategorier och `mixByCategory`, och står kvar i storleksordning.
+- **Dolda kategorier syns inte, och det är meningen.** Wix-frågan tar inte med
+  dolda kategorier, och tomma sållas bort. En rubrik i `MENY_GRUPPER` utan en
+  enda synlig underkategori visas inte, och en avdelning utan produkter står
+  inte i menyn. De nya rubrikerna och namnen i `MAIN_GROUPS` ligger därför
+  redan i koden, och en underkategori dyker upp under sin rubrik när den visas
+  i Wix, utan en ny deploy.
+- **Texterna** finns bara för Verktyg & Maskiner och Bil & Garage, och de
+  beskriver de underkategorier som var synliga 2026-10-31. Skriv om dem, och
+  skriv texter, SEO och en tagline i `MAIN_GROUPS` för Bygg & Renovering och
+  Företag & Proffs, när underkategorierna får produkter.
+- **`/kategori/verktyg-fordon`** omdirigeras permanent till
+  `/kategori/verktyg-maskiner`. `lib/omdirigeringar.test.ts` fäller om den
+  gamla nyckeln dyker upp någon annanstans i koden.
+- **Google-flödet** har en kategori för varje ny slug, kontrollerad mot
+  taxonomifilen (`lib/google-kategori.test.ts`).
+- ☠️ **Menyn ligger på en egen rad i sidhuvudet** (`.hnav`, från 901 px).
+  Mätt i produktion 2026-10-31: loggan, tio avdelningar, hjärtat och
+  kundvagnen var 1 131 px i en rad med 1 128 px, så kundvagnen och hjärtat låg
+  utanför skärmen mellan 901 och 1 180 px (iPad på tvären är 1 080–1 194). Nu
+  står loggan, sökrutan, hjärtat och kundvagnen på första raden och menyn på
+  den andra, med `justify-content: space-between`. Simulerat på den levande
+  sidan med alla tretton avdelningar: en menyrad från 901 till 1 440 px och
+  kundvagnen inom skärmen på varje bredd. Mellanrummen krymper under 1 180,
+  1 100, 1 000 och 960 px, och räcker de inte bryter menyn till en andra rad
+  (`flex-wrap`) i stället för att hamna utanför skärmen. Sidhuvudet blev
+  lägre (102 px mot 130). Under 900 px är allt som förut. Lägg aldrig tillbaka
+  menyn i första raden.
 
 
 - **Vercel Web Analytics** (`@vercel/analytics/next`) and **Speed Insights**

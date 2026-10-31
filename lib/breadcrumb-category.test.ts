@@ -79,7 +79,8 @@ test("produktsidan, kategorisidan och sitemapen räknar på samma sätt", () => 
   // Brödsmulan får bara länka till en sida som indexeras, och det avgör
   // sitemapens räkning. Två egna räkneloopar hade kunnat glida isär.
   // Kategorisidans robots-tagg räknade själv, bara på produkter direkt i
-  // kategorin, och gav Verktyg & Fordon noindex (uppmätt 2026-10-11).
+  // kategorin, och gav Verktyg & Fordon (i dag Verktyg & Maskiner) noindex
+  // (uppmätt 2026-10-11).
   const sida = readFileSync("app/produkt/[slug]/page.tsx", "utf8");
   assert.match(sida, /valjBrodsmula\(ownCats, navCols, countPerCategoryPage\(forListings\(all\), cols\), categoryIndexable\)/);
   const karta = readFileSync("lib/site-urls.ts", "utf8");
