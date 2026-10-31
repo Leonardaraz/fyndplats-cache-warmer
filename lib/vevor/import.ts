@@ -54,6 +54,7 @@ import { WIX_MAX_PRODUKTER } from "@/lib/wix/limits";
 import { RabattFel } from "./pris";
 import { valjVevorBilder } from "./bilder";
 import { vevorGranskning } from "./granskning";
+import { SPRITAPPARAT, VAPENSKAP, arHjalpmedel, klassa, type Mal, type Sparr } from "./kategorier";
 import type { Avlasning } from "./lager";
 import {
   FAMILJ_SKAL,
@@ -129,6 +130,12 @@ export interface ImportDeps {
    * foto laddats upp en gång per storlek. En adress utan nyckel är ett eget foto.
    */
   bildnycklar(urls: string[]): Promise<Map<string, string>>;
+  /**
+   * Lägger produkten i avdelningen och underkategorin (lib/vevor/kategorier.ts).
+   * Svarar "ok" eller "redan", och kastar när kategorin inte går att slå upp
+   * eller Wix inte bekräftar kopplingen.
+   */
+  kopplaKategorier(wixProductId: string, mal: Mal): Promise<"ok" | "redan">;
   /** Rabatten ur konfigurationen och dollarkursen. Kastar `RabattFel` när rabatten saknas. */
   prisunderlag(): Promise<Prisunderlag>;
   antalProdukter(): Promise<number>;
@@ -182,6 +189,7 @@ function tomSummering(start: number, dryRun: boolean): Importsummering {
       ejSammanslagna: Object.fromEntries(FAMILJ_SKAL.map((k) => [k, 0])) as Record<FamiljSkal, number>,
     },
     recensioner: { lasta: 0, sparade: 0, produkter: 0, fel: 0 },
+    kategorier: { kopplade: 0, omappade: 0, vapenskap: 0, spritapparat: 0, fel: 0 },
     produkterIWix: null,
     varvKlart: false,
     stoppadAv: null,
@@ -203,6 +211,9 @@ export function importloggrad(s: Importsummering): string {
       : "") +
     (s.recensioner
       ? `recensioner lästa ${s.recensioner.lasta} sparade ${s.recensioner.sparade} på ${s.recensioner.produkter} produkter fel ${s.recensioner.fel}, `
+      : "") +
+    (s.kategorier
+      ? `kategorier kopplade ${s.kategorier.kopplade} utan regel ${s.kategorier.omappade} vapenskåp ${s.kategorier.vapenskap} spritapparater ${s.kategorier.spritapparat} fel ${s.kategorier.fel}, `
       : "") +
     `produkter i Wix ${s.produkterIWix ?? "-"}, stopp ${s.stoppadAv ?? "-"}${s.varvKlart ? ", varvet klart" : ""}`
   );
@@ -394,9 +405,22 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
             ? new Map(variantEtiketter(familj.medlemmar, familj.axlar).map((e, i) => [familj.medlemmar[i].sku, e]))
             : undefined;
         const recensioner = medlemmar.flatMap((m) => vevorRecensioner(m, egna, kopt));
+        // Kategorin ur ankarets VEVOR-kategori och namn. Ett vapenskåp eller en
+        // spritapparat får ingen kategori och märks, så att publiceringsspärren
+        // håller det dolt. ☠️ En familj prövas artikel för artikel: är en enda en
+        // spärr märks hela produkten (kodgranskningen 2026-10-31).
+        const klasser = medlemmar.map((m) => klassa(m));
+        const klass =
+          klasser.find((k) => k.typ === VAPENSKAP) ?? klasser.find((k) => k.typ === SPRITAPPARAT) ?? klassa(a);
+        if (klass.typ === VAPENSKAP) granskning = { ...granskning, vapenskap: true };
+        else if (klass.typ === SPRITAPPARAT) granskning = { ...granskning, spritapparat: true };
+        // ☠️ En vara i Hjälpmedel granskas av Leonard före publiceringen
+        // (beslut 4, 2026-10-31), också när namnet inte låter som vård.
+        else if (klasser.some(arHjalpmedel)) granskning = { ...granskning, medicinteknik: true };
 
         if (val.dryRun) {
           raknaUtkast(s, bilder.monster, bilder.egna, granskning);
+          raknaKategori(s, klass.typ);
           raknaFamilj(s, medlemmar.length, recensioner.length);
           if (familj.typ === "familj" && syskonSkus(a).length === 0) s.familjer!.spu = (s.familjer!.spu ?? 0) + 1;
           s.importerade++;
@@ -466,6 +490,20 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
             s.recensioner!.fel++;
           }
         }
+
+        // Kategorierna, när produkten och raden finns. Ett fel här fäller inte
+        // importen: verktyget "VEVOR — kategorier till utkasten" kopplar senare.
+        if (klass.typ === "kategori") {
+          try {
+            await deps.kopplaKategorier(resultat.wixProductId, klass.mal);
+            s.kategorier!.kopplade++;
+          } catch (err) {
+            console.error("[vevor-import] kategorierna gick inte att koppla:", err instanceof Error ? err.message : String(err));
+            s.kategorier!.fel++;
+          }
+        } else {
+          raknaKategori(s, klass.typ);
+        }
       }
     }
 
@@ -509,6 +547,15 @@ function raknaFamilj(s: Importsummering, varianter: number, recensioner: number)
     s.familjer!.varianter += varianter;
   }
   s.recensioner!.lasta += recensioner;
+}
+
+/** En klassning som inte kopplas (torrläge, ingen regel eller en spärr) till räknarna. */
+function raknaKategori(s: Importsummering, typ: "kategori" | "omappad" | Sparr): void {
+  const k = s.kategorier!;
+  if (typ === "kategori") k.kopplade++;
+  else if (typ === "omappad") k.omappade++;
+  else if (typ === VAPENSKAP) k.vapenskap++;
+  else k.spritapparat = (k.spritapparat ?? 0) + 1;
 }
 
 /** Ett utkast till räknarna: bildmönster, medicinteknik och GPSR. */

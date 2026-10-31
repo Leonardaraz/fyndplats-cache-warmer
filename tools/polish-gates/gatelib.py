@@ -478,7 +478,22 @@ def meningar(text):
 # `MARKEN` som den är: produktsidans säkerhetsflik ska visa märket.
 MARKEN_I = "(?i:" + MARKEN + ")"
 
-GRINDAR = [("HUSMÄRKE", MARKEN_I), ("ARTIKELNUMMER", ARTNR), ("FRAKTLAND", LAND),
+# ☠️ VEVOR:S MODELLNUMMER (Leonard 2026-10-31: "ta bort det från oss så man inte
+# kan söka upp"). VEVOR:s specifikation bär raden "Artikelmodellnummer" (12 539 av
+# 15 297 avläsningar), "Modell" (1 147) och "Artikelnummer" (605), och en sökning på
+# numret leder till VEVOR:s egen sida med deras pris. Numren har ingen gemensam form
+# (fem tecken, eller fjorton med bindestreck), så grinden fäller ETIKETTEN. Importen
+# tar bort raderna sedan samma dag (lib/vevor/to-product.ts, arIdentifierarRad).
+# Två undantag: vårt eget artikelnummer (FP-…) får stå efter "Artikelnummer", och
+# "Modell:" fälls bara när värdet är en kod med en siffra ("Modell: Premium" står).
+# Inget snedstreck i uttrycket: lib/polish/skrivplan.ts bär det tecken för tecken.
+# Mätt över tools/polish-assets samma dag: noll träffar.
+MODELLNR = (r"\b(?:[Aa]rtikelmodell(?:nummer)?|[Mm]odellnummer|[Mm]odellnr|[Pp]roduktmodell"
+            r"|[Aa]rtikelnr|[Il]tem modellnummer)\b"
+            r"|\bArtikelnummer\b(?!(?:[\s:]|<[^>]*>)*FP-)"
+            r"|\bModell\s*:(?:\s|<[^>]*>)*(?=[A-Z0-9.-]*\d)[A-Z0-9][A-Z0-9.-]{2,}\b")
+
+GRINDAR = [("HUSMÄRKE", MARKEN_I), ("ARTIKELNUMMER", ARTNR), ("MODELLNUMMER", MODELLNR), ("FRAKTLAND", LAND),
            ("LEVERANTÖR", LEV), ("TYSK REST", TYSKA), ("STAVNING", STAV),
            ("HOMOGLYF", HOMO), ("INTERNT ORD", INTERNT), ("SYMBOL", SYMBOL),
            ("OSYNLIGT TECKEN", OSYNLIG)]

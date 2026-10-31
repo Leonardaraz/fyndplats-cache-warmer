@@ -17,6 +17,7 @@ import {
   rensaBeskrivning,
   spechinder,
   vevorRecensioner,
+  arIdentifierarRad,
   specifikation,
   textTillHtml,
   vevorProdukt,
@@ -78,12 +79,55 @@ describe("vevorProdukt", () => {
     expect(p.imageUrls).toHaveLength(6);
     expect(p.rawTitle).toBe(a.namn);
     expect(p.features).toEqual(a.punkter);
-    expect(p.specifications).toEqual({ Artikelmodellnummer: "TEST-1", "Maximal lastkapacitet": "90,7 kg", Färg: "Svart" });
+    // ☠️ Artikelmodellnummer står på sidan men aldrig hos oss (Leonard 2026-10-31).
+    expect(p.specifications).toEqual({ "Maximal lastkapacitet": "90,7 kg", Färg: "Svart" });
   });
 
   it("☠️ artikelnumret står bara i id:na", () => {
     const utanId = JSON.stringify({ ...p, supplierProductId: "", variants: [], sourceUrl: "", imageUrls: [] });
     expect(utanId).not.toContain(TESTSKU);
+  });
+});
+
+describe("☠️ VEVOR:s modell- och artikelnummer når aldrig specifikationen (Leonard 2026-10-31)", () => {
+  it("raderna som bär ett nummer tas bort, i tabellen och bland egenskaperna", () => {
+    const spec: [string, string][] = [
+      ["Artikelmodellnummer", "TEST-1"],
+      ["Artikelnummer", "#TEST2"],
+      ["Artikelnummer Modell", "TEST3"],
+      ["Produktmodell", "TEST-4"],
+      ["Modellnummer", "TEST-5"],
+      ["Artikelmodell", "TEST-6"],
+      ["ltem modellnummer", "TEST--7"],
+      ["Modell", "TEST-8"],
+      ["Färg", "Svart"],
+    ];
+    expect(specifikation({ spec, egenskaper: [["Modellnummer:", "TEST-9"], ["Storlek", "Stor"]] })).toEqual({
+      Färg: "Svart",
+      Storlek: "Stor",
+    });
+  });
+
+  it("en modell med ord står kvar, och raderna om vad varan passar till står kvar", () => {
+    const spec: [string, string][] = [
+      ["Modell", "Premium"],
+      ["Kompatibel bilmodell", "Testbil 2015-2020"],
+      ["Fordonsmodell", "Testbil 2018"],
+      ["OE-nummer", "1234567"],
+    ];
+    expect(specifikation({ spec, egenskaper: [] })).toEqual({
+      Modell: "Premium",
+      "Kompatibel bilmodell": "Testbil 2015-2020",
+      Fordonsmodell: "Testbil 2018",
+      "OE-nummer": "1234567",
+    });
+  });
+
+  it("regeln är etikettens, inte formens", () => {
+    expect(arIdentifierarRad("ARTIKELMODELLNUMMER", "x")).toBe(true);
+    expect(arIdentifierarRad(" Artikel  nummer ", "x")).toBe(false);
+    expect(arIdentifierarRad("Modell", "TEST 123")).toBe(true);
+    expect(arIdentifierarRad("Modell", "Basmodell 2")).toBe(false);
   });
 });
 

@@ -18,9 +18,13 @@ import { useState } from "react";
  * bär artikelnumret, som aldrig får hamna i en fil, en logg eller en commit. Chatten
  * läser produkten ur Wix ändå.
  */
-export function buildPolishPrompt(wixProductId: string, title?: string): string {
+export function buildPolishPrompt(wixProductId: string, title?: string, leverantor?: string): string {
   return [
     "SEO-polera denna RÅ-importerade produkt.",
+    // VEVOR poleras i en egen chatt med ett eget startdokument (Leonard 2026-10-31).
+    leverantor === "vevor"
+      ? "Det är ett VEVOR-utkast: läs docs/polish/vevor.md först, i VEVOR-chatten."
+      : null,
     "FÖRST: läs HELA docs/seo-polish-runbook.md och följ ALLA steg i ordning, EXAKT —",
     "hoppa inte över något. Runbooken (inte den här texten) är sanningskällan; listan",
     "nedan är bara en påminnelse om de lätt-missade momenten:",
@@ -48,14 +52,17 @@ export function buildPolishPrompt(wixProductId: string, title?: string): string 
 export function PolishButton({
   wixProductId,
   title,
+  leverantor,
 }: {
   wixProductId: string;
   title?: string;
+  /** mappingSupplier: en VEVOR-vara pekar på VEVOR-chattens startdokument. */
+  leverantor?: string;
 }) {
   const [copied, setCopied] = useState(false);
   const [failed, setFailed] = useState(false);
 
-  const payload = buildPolishPrompt(wixProductId, title);
+  const payload = buildPolishPrompt(wixProductId, title, leverantor);
 
   async function onClick() {
     setFailed(false);

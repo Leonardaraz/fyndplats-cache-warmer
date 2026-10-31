@@ -342,6 +342,12 @@ export interface GuardExtras {
    * tillverkare och EU-ansvarig på sidan, och träffarna räknas i ämnesraden.
    */
   vevorUtanGpsr?: string[];
+  /**
+   * Wix-id för synliga vapenskåp och spritapparater (lib/vevor/gpsr-vakt.ts).
+   * De får aldrig säljas (SS 3492, alkohollagen 2 kap. 1 §), så en träff betyder
+   * att någon publicerat dem för hand i Wix. Räknas i ämnesraden.
+   */
+  vevorSparrade?: string[];
   /** Datakällor som inte gick att läsa (vakten larmar hellre än döljer). */
   sectionErrors: string[];
   baseUrl: string;
@@ -385,9 +391,11 @@ export function buildGuardEmail(
   nowMs: number,
 ): { subject: string; html: string; text: string } {
   const vevorUtanGpsr = extras.vevorUtanGpsr ?? [];
+  const vevorSparrade = extras.vevorSparrade ?? [];
   const issues = findings.actionCount
     + (extras.sectionErrors.length > 0 ? 1 : 0)
-    + (vevorUtanGpsr.length > 0 ? 1 : 0);
+    + (vevorUtanGpsr.length > 0 ? 1 : 0)
+    + (vevorSparrade.length > 0 ? 1 : 0);
   // Slut-hos-leverantör i ämnesraden så dygnets viktigaste synk-nyhet syns
   // utan att mejlet behöver öppnas (räknas inte som "behöver dig" — sajten
   // skyddas automatiskt; beslutet byt/ta bort kan vänta till morgonkaffet).
@@ -467,6 +475,16 @@ export function buildGuardEmail(
       ),
       `SPÅRNINGSFEL SENASTE DYGNET (${findings.pollErrors.length}):`,
       findings.pollErrors.map((g) => `${g.ref}: ${g.count} fel`),
+    );
+  }
+  if (vevorSparrade.length > 0) {
+    section(
+      `🚫 VEVOR-sidor som inte får säljas är publicerade (${vevorSparrade.length})`,
+      vevorSparrade.map((id) =>
+        li(`${id} — vapenskåp eller spritapparat. Dölj sidan i Wix nu (SS 3492, alkohollagen 2 kap. 1 §).`),
+      ),
+      `VEVOR-SIDOR SOM INTE FÅR SÄLJAS (${vevorSparrade.length}):`,
+      vevorSparrade,
     );
   }
   if (vevorUtanGpsr.length > 0) {
