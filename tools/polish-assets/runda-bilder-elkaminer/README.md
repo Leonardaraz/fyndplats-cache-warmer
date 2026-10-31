@@ -26,3 +26,16 @@ sammanslagna sidor med val (färg eller storlek). De andra 35 har en artikel var
 - De fem sammanslagna sidorna (val med länkade bilder) ligger utanför planen, eftersom en bildplan kan
   nollställa valens länkar (lärdom 273). De två som har ett kort (`45-cm-svart-2000-w`,
   `45-cm-oppningsbar-lucka`) hanteras separat med länkarna lästa före och efter.
+
+## Utfall (2026-10-31, skrivet 22:18–22:24 UTC, långt från Aosoms synkfönster)
+
+- Skrivet med "Polering — skriv bara bilderna", torrt först: 31 sidor (plan-sha `26c588c7…`, 128 s) och de två
+  sidorna med färgval (plan-sha `01d79a45…`, 110 s).
+- Läst tillbaka i en separat läsning: **35 av 35 enartikelsidor** har galleriordning och alt-texter lika med
+  planen (de fyra orörda oförändrade), alla publicerade. De två sidorna med färgval: kortet sist i galleriet,
+  valens länkar, variantbilder (`47677b`/`54ff52` och `5e33d2`/`c85859`), SKU, priser (879, 879, 1 019, 1 059 kr)
+  och synlighet **oförändrade**. Bildplanen nollställde alltså inte länkarna när den bara flyttade ett kort.
+- Live (butikens sidor): **37 av 37** visar galleriet i Wix ordning, med kortet sist. Bilder per sida efter
+  rundan: de flesta har fem eller fler rena bilder, `ultratunn-elkamin-termostat-veckoschema` har fyra.
+- OCR på de 30 nya bilderna: 22 helt rena, resten text på rekvisita (bokryggar, en skylt i bakgrunden, en
+  burketikett). Ingen tysk eller engelsk säljtext.
