@@ -112,10 +112,15 @@ aldrig synas, av samma skäl som Aosoms. Sedan 2026-10-30 fäller `gatelib.ARTNR
 skrivplanen den formen. De nummer som bär bindestreck eller punkt fångas inte: leta efter dem
 med ögonen.
 
-Raden *Artikelmodellnummer* i VEVOR:s specifikation är VEVOR:s modellnummer, inte
-artikelnumret, och grindarna fäller den inte.
-En sökning på den leder till VEVOR:s egen sida med deras pris. Ta inte med raden i den
-polerade fliken förrän Leonard har avgjort om den ska visas (frågad 2026-10-31).
+**Modellnumret syns aldrig hos oss** *(Leonard 2026-10-31)*. VEVOR:s specifikation bär
+raden *Artikelmodellnummer* (och ibland *Modell*, *Artikelnummer*, *Produktmodell* eller
+*Modellnummer*), och en sökning på numret leder till VEVOR:s egen sida med deras pris.
+Importen tar bort raderna sedan samma dag, och **"VEVOR — specifikationen på utkast som saknar
+den"** byter ut fliken på äldre utkast som har dem. Står raden ändå i källan skriver du inte
+in den i `kallor.json` (repot är publikt) och inte i texten. Grinden `MODELLNUMMER` i
+`gatelib.py` och skrivplanen fäller etiketten. Vårt eget artikelnummer (`FP-…`) och en
+modell med ord (*Modell: Premium*) får stå. Ett nummer i löpande text ser grinden inte: leta
+efter det med ögonen.
 
 **Bilderna.** Importen tog sex bilder enligt Leonards regel (`lib/vevor/bilder.ts`). Står
 `vevorGranskning.bildgranskning` på `true` var mönstret ovanligt, och då granskar du varje

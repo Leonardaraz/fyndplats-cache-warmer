@@ -115,6 +115,14 @@ export const RUNDA = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 export const ARTNR =
   /\b\d{2}[A-Z]-\d{3}(?!\d)[A-Z0-9]*\b|\b[A-Z]\d{2}-\d{3}(?!\d)[A-Z0-9]*\b|\b\d{3}-\d{3}(?!\d)[A-Z0-9]{2,}\b|\b(?=[A-Z0-9]*\d)(?=[A-Z0-9]*[A-Z])(?:[A-Z0-9]{22}|[A-Z0-9]{19})\b/g;
 const FORM = /\b[0-9A-Za-z]{3}-[0-9A-Za-z]{3,}\b/g;
+
+// MODELLNR  gatelibs etikettregel för VEVOR:s modellnummer, TECKEN FÖR TECKEN
+//           (Leonard 2026-10-31: "ta bort det från oss så man inte kan söka
+//           upp"). Numren har ingen gemensam form, så regeln fäller etiketten.
+//           Vårt eget FP-nummer efter "Artikelnummer" och "Modell: Premium"
+//           släpps. Testet jämför mot Python-originalet.
+export const MODELLNR =
+  /\b(?:[Aa]rtikelmodell(?:nummer)?|[Mm]odellnummer|[Mm]odellnr|[Pp]roduktmodell|[Aa]rtikelnr|[Il]tem modellnummer)\b|\bArtikelnummer\b(?!(?:[\s:]|<[^>]*>)*FP-)|\bModell\s*:(?:\s|<[^>]*>)*(?=[A-Z0-9.-]*\d)[A-Z0-9][A-Z0-9.-]{2,}\b/;
 const TILLATEN_FORM = /^\d{2,4}-\d{2,4}(V|W|HZ|MM|CM)?$/i;
 
 /** Träffarnas intervall i strängen, sammanslagna där de två formerna överlappar. */
@@ -219,6 +227,7 @@ export function valideraPlan(x: unknown): { plan: Skrivplan } | { fel: string[] 
     ];
     for (const [namn, v] of texter) {
       if (typeof v === "string" && artikelnummerformer(v) > 0) f(`${namn} har artikelnummerform`);
+      if (typeof v === "string" && MODELLNR.test(v)) f(`${namn} har ett modellnummer`);
     }
 
     for (const nyckel of ["kort", "pid", "slug", "sku"] as const) {

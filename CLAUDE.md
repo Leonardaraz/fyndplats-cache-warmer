@@ -7028,6 +7028,18 @@ Tre ändringar i koden samma dag:
    och 20, i kortens HTML), 19 och 22 gav noll. Nummer med bindestreck eller
    punkt (2,1 % av VEVOR:s) fångas inte.
 3. **Workflowens texter** säger "hos leverantören" i stället för "hos Aosom".
+4. ☠️ **VEVOR:s modellnummer syns aldrig hos oss** (Leonard 2026-10-31: "ta bort det från
+   oss så man inte kan söka upp"). En sökning på numret leder till VEVOR:s egen sida med
+   deras pris. Mätt samma dag på 15 297 avläsningar: raden *Artikelmodellnummer* på 12 539,
+   *Modell* på 1 147 och *Artikelnummer* på 605. Tre spärrar:
+   - Importen tar bort raderna ur specifikationen (`arIdentifierarRad` i
+     `lib/vevor/to-product.ts`), också i en familjs flik. *Modell* tas bara bort när värdet
+     är en kod. Rader om vad varan passar till (*Kompatibel bilmodell*, *OE-nummer*) står kvar.
+   - **"VEVOR — specifikationen på utkast som saknar den"** byter ut fliken på äldre utkast
+     som bär en sådan rad (`flikHarModellnummer`, också på en enskild artikel).
+   - Poleringens grind `MODELLNR` (`gatelib.py`, och tecken för tecken i
+     `lib/polish/skrivplan.ts`) fäller etiketten. Vårt eget `FP-…` efter *Artikelnummer* och
+     en modell med ord får stå. Numret i löpande text ser grinden inte.
 
 ## VEVOR: kategorierna (2026-10-31)
 

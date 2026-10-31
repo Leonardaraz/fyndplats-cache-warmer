@@ -6,7 +6,7 @@ import type { ProductMappingRecord } from "@/lib/store";
 import type { WixAnrop } from "@/lib/polish/skrivplan";
 import { appendTabSections, buildTabSections } from "@/lib/import/tabs";
 import type { Avlasning } from "./lager";
-import { bytSpecFlik, korSpec, kontrolleraSpec, planeraSpec, saknadeRader, specRader, SpecFel, type SpecProdukt } from "./spec-ratta";
+import { bytSpecFlik, flikHarModellnummer, korSpec, kontrolleraSpec, planeraSpec, saknadeRader, specRader, SpecFel, type SpecProdukt } from "./spec-ratta";
 import { testAvlasning } from "./testsida";
 
 type Obj = Record<string, unknown>;
@@ -153,6 +153,33 @@ describe("planeraSpec", () => {
       typ: "hinder",
       hinder: "flik_utan_rader",
     });
+  });
+
+  it("☠️ en flik med VEVOR:s modellnummer byts ut, också på en enskild artikel (Leonard 2026-10-31)", () => {
+    const a1 = avl(1, { spec: [["Artikelmodellnummer", "TEST-55"], ...SPEC] });
+    const rader = specRader(enkel(1), karta(a1));
+    if (typeof rader === "string") throw new Error(rader);
+    expect(rader.map((r) => r.label)).toEqual(["Material", "Maximal lastkapacitet"]);
+    const gammal = `${RAA}<h2>Tekniska specifikationer</h2><ul><li><p><span style="font-weight: 700">Artikelmodellnummer:</span> TEST-55</p></li>${rader
+      .map((r) => `<li><p><span style="font-weight: 700">${r.label}:</span> ${r.value}</p></li>`)
+      .join("")}</ul><h2>Vanliga frågor</h2><p>Svar.</p>`;
+    expect(flikHarModellnummer(gammal)).toBe(true);
+    const plan = planeraSpec(enkel(1), sida(1, { beskrivning: gammal }), karta(a1));
+    expect(plan.typ).toBe("byt");
+    if (plan.typ !== "byt") return;
+    expect(plan.html).not.toContain("TEST-55");
+    expect(plan.html).toContain("<h2>Vanliga frågor</h2><p>Svar.</p>");
+    expect(plan.html.startsWith(RAA)).toBe(true);
+    expect(flikHarModellnummer(plan.html)).toBe(false);
+    // Efter skrivningen är sidan rätt, och en omkörning har inget att göra.
+    expect(planeraSpec(enkel(1), sida(1, { beskrivning: plan.html }), karta(a1))).toEqual({ typ: "redan_ratt" });
+  });
+
+  it("vårt eget FP-nummer och en modell med ord i fliken räknas inte som VEVOR:s nummer", () => {
+    const html = `${RAA}<h2>Tekniska specifikationer</h2><ul><li><p>Artikelnummer: FP-test-1</p></li><li><p>Modell: Premium</p></li></ul>`;
+    expect(flikHarModellnummer(html)).toBe(false);
+    // Ett modellnummer i brödtexten utanför fliken rör inte verktyget: poleringen skriver om texten.
+    expect(flikHarModellnummer(`<p>Modell: TEST-9</p>${html}`)).toBe(false);
   });
 
   it("☠️ en familj vars flik visar ankarets värde får fliken utbytt, och texten runt står kvar", () => {
