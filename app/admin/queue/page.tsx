@@ -758,6 +758,14 @@ function VevorBadges({ g }: { g: NonNullable<ProductMappingRecord["vevorGranskni
       >
         📄 GPSR: {gpsrStatusText(g.gpsr)}
       </span>
+      {g.vapenskap ? (
+        <span
+          title="Vapenskåp eller vapenfodral. Publiceras inte (Leonards beslut 2026-10-31)."
+          style={stil("#fee2e2", "#991b1b", "#fca5a5")}
+        >
+          🔒 Vapenskåp, publiceras inte
+        </span>
+      ) : null}
       {g.medicinteknik ? (
         <span
           title="Kategorin kan vara medicinteknik. Kontrollera CE-märkning och dokument före publicering."

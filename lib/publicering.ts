@@ -12,6 +12,8 @@
 //   via_poleringen   köns knapp publicerar inte en VEVOR-vara. Den publiceras
 //                    genom poleringen, som tar bort märket ur titeln och sätter
 //                    märket VEVOR i Wix (till flödena).
+//   vapenskap        ett vapenskåp eller vapenfodral (Leonards beslut
+//                    2026-10-31, lib/vevor/kategorier.ts). Publiceras inte.
 //
 // ☠️ HINDRET GÅR INTE ATT TVINGA FÖRBI. Köns "publicera ändå" gäller prisspärren,
 // inte det här: uppgifterna krävs av lagen.
@@ -35,6 +37,8 @@ export type Publiceringsvag = "polering" | "ko";
 export type Publiceringshinder =
   | { kod: "gpsr"; status: Exclude<GpsrStatus, "komplett"> }
   | { kod: "via_poleringen" }
+  /** Ett vapenskåp (`vevorGranskning.vapenskap`). Går före GPSR. */
+  | { kod: "vapenskap" }
   /** Märket VEVOR kunde inte sättas i Wix. Sätts av poleringens rutt, inte här. */
   | { kod: "marke"; fel: string };
 
@@ -49,6 +53,7 @@ export function publiceringshinder(m: Rad, gpsr: VevorGpsr | null, vag: Publicer
     case "okand":
       return null;
     case "vevor": {
+      if (m.vevorGranskning?.vapenskap === true) return { kod: "vapenskap" };
       if (vag === "ko") return { kod: "via_poleringen" };
       const status = gpsrStatus(gpsr, m.vevorGranskning?.gpsr);
       return status === "komplett" ? null : { kod: "gpsr", status };
@@ -65,6 +70,8 @@ export function hinderText(h: Publiceringshinder): string {
       return `GPSR ej komplett (${gpsrStatusText(h.status)}): tillverkare och EU-ansvarig krävs, se /api/admin/vevor-gpsr`;
     case "via_poleringen":
       return "en VEVOR-vara publiceras genom poleringen, inte med köns knapp";
+    case "vapenskap":
+      return "vapenskåp publiceras inte (Leonards beslut 2026-10-31): skåpet är inte visat godkänt enligt SS 3492";
     case "marke":
       return `märket VEVOR gick inte att sätta i Wix: ${h.fel}`;
   }

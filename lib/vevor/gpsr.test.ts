@@ -116,6 +116,18 @@ describe("publiceringsspärren", () => {
     expect(publiceringshinder(mappning(SKU_A, "p1"), rad(SKU_A), "ko")).toEqual({ kod: "via_poleringen" });
   });
 
+  it("☠️ ett vapenskåp publiceras aldrig, inte ens med komplett GPSR (Leonards beslut 2026-10-31)", () => {
+    const vapen = mappning(SKU_A, "p1", {
+      vevorGranskning: { gpsr: "komplett", medicinteknik: false, bildmonster: "ny", bildgranskning: false, vapenskap: true },
+    });
+    expect(publiceringshinder(vapen, rad(SKU_A), "polering")).toEqual({ kod: "vapenskap" });
+    expect(publiceringshinder(vapen, rad(SKU_A), "ko")).toEqual({ kod: "vapenskap" });
+    const vanlig = mappning(SKU_A, "p1", {
+      vevorGranskning: { gpsr: "komplett", medicinteknik: false, bildmonster: "ny", bildgranskning: false, vapenskap: false },
+    });
+    expect(publiceringshinder(vanlig, rad(SKU_A), "polering")).toBeNull();
+  });
+
   it("poleringen publicerar bara med komplett GPSR", () => {
     expect(publiceringshinder(mappning(SKU_A, "p1"), rad(SKU_A), "polering")).toBeNull();
     expect(publiceringshinder(mappning(SKU_A, "p1"), rad(SKU_A, { euAnsvarig: null }), "polering"))

@@ -315,6 +315,12 @@ export interface ProductMappingRecord {
     medicinteknik: boolean;
     bildmonster: "ny" | "gammal" | "okant";
     bildgranskning: boolean;
+    /**
+     * Ett vapenskåp eller vapenfodral (lib/vevor/kategorier.ts). Publiceras inte
+     * (Leonards beslut 2026-10-31) och får ingen kategori. Saknas på rader från
+     * före 2026-10-31 och på allt som inte är vapenskåp.
+     */
+    vapenskap?: boolean;
   };
   /**
    * VEVOR: varje artikel produkten bär, med prefix ("vevor:<artikel>"):

@@ -27,6 +27,7 @@
 // PUBLIK Actions-logg. Planen innehåller inga sådana fält, valideringen vägrar
 // strängar med artikelnummerform, och felmeddelandena citerar aldrig träffen.
 
+import { idPerNamn, lasKategoritradet } from "@/lib/wix/kategoritrad";
 import { WIX_MAX_BILDER_PER_PRODUKT } from "../wix/limits";
 import { lasMedKostnad, variantMedKostnad } from "../wix/produkt-kostnad";
 
@@ -258,16 +259,13 @@ export function felText(e: unknown): string {
   return redigera(String((e as Error)?.message ?? e)).slice(0, 300);
 }
 
+/**
+ * Kategorinamn → id ur hela trädet, med de dolda kategorierna (lib/wix/kategoritrad.ts).
+ * Ett namn som finns två gånger saknas här och räknas som okänt.
+ */
 async function kategoriIdn(wix: WixAnrop): Promise<Map<string, string>> {
-  const svar = (await wix("POST", "/categories/v1/categories/query", {
-    query: { cursorPaging: { limit: 200 } },
-    treeReference: TRAD,
-  })) as Obj;
-  const lista = ((svar.data as Obj | undefined)?.categories ?? svar.categories ?? []) as Obj[];
   const ut = new Map<string, string>();
-  for (const c of lista) {
-    if (typeof c.name === "string" && typeof c.id === "string") ut.set(c.name, c.id);
-  }
+  for (const [namn, id] of idPerNamn(await lasKategoritradet(wix))) if (id) ut.set(namn, id);
   return ut;
 }
 

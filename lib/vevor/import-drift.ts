@@ -14,6 +14,9 @@ import { tolkaRabatt } from "./pris";
 import { larma } from "./drift";
 import { WixVevorImportLager } from "./import-lager";
 import type { ImportDeps } from "./import";
+import { skapaWixAnrop } from "@/lib/polish/skrivplan-wix";
+import { kopplaTillKategori, lasKategoritradet } from "@/lib/wix/kategoritrad";
+import { byggUppslag, malNyckel, type Mal, type MalIdn } from "./kategorier";
 
 /**
  * Rått läge, alltid: noll AI-anrop och `visible:false` ovillkorligt. Även
@@ -32,6 +35,34 @@ export function liveImportDeps(): ImportDeps {
   const sajt = headlessSiteId();
   let regler: Promise<PricingRules> | null = null;
   const prisregler = () => (regler ??= getPricingRules());
+  // Kategoriträdet läses en gång per körning, först när en produkt ska kopplas.
+  // ☠️ Saknas något regelmål i Wix kopplas ingenting (lib/vevor/kategorier.ts).
+  const wix = skapaWixAnrop();
+  let uppslag: Promise<Map<string, MalIdn>> | null = null;
+  const lasUppslag = () =>
+    (uppslag ??= lasKategoritradet(wix).then((trad) => {
+      const u = byggUppslag(trad);
+      if (u.fel.length > 0) throw new Error(`kategoriträdet saknar regelmål: ${u.fel.slice(0, 3).join("; ")}`);
+      return u.idn;
+    }));
+  const kopplaKategorier = async (wixProductId: string, mal: Mal): Promise<"ok" | "redan"> => {
+    let idn: Map<string, MalIdn>;
+    try {
+      idn = await lasUppslag();
+    } catch (e) {
+      uppslag = null; // nästa produkt försöker igen
+      throw e;
+    }
+    const ids = idn.get(malNyckel(mal));
+    if (!ids) throw new Error(`okänt kategorimål: ${malNyckel(mal)}`);
+    let allaRedan = true;
+    for (const kategoriId of [ids.avdelning, ids.kategori]) {
+      const u = (await kopplaTillKategori(wix, kategoriId, [wixProductId])).get(wixProductId);
+      if (!u || typeof u === "object") throw new Error(`kopplingen föll: ${u && typeof u === "object" ? u.fel : "inget svar"}`);
+      if (u === "ok") allaRedan = false;
+    }
+    return allaRedan ? "redan" : "ok";
+  };
   return {
     lager: new WixVevorImportLager(),
     mappningarFor: (ids) => store.mappningarForLeverantorsId(ids),
@@ -50,6 +81,7 @@ export function liveImportDeps(): ImportDeps {
       rabatt: tolkaRabatt((await getAppConfig()).vevorProRabatt),
       usdToSek: (await prisregler()).usdToSek,
     }),
+    kopplaKategorier,
     antalProdukter: () => countProducts(sajt),
     larma,
   };

@@ -1,0 +1,109 @@
+name: VEVOR — kategorier till utkasten
+
+# Lägger opolerade VEVOR-utkast i sin avdelning och underkategori enligt
+# reglerna i lib/vevor/kategorier.ts (Leonards ja 2026-10-31), och märker
+# vapenskåpen så att de inte kan publiceras. Importen gör samma sak för nya
+# varor sedan 2026-10-31; det här är för det som redan låg i Wix.
+#
+#   plan   räknar utkast, produkter att koppla per kategori, vapenskåp och
+#          varor utan regel. Skriver ingenting. `tradFel` ska vara tom.
+#   skriv  kopplar i varv om fyra minuter tills inget är kvar. Kräver
+#          `bekrafta` = planens antal produkter att koppla. Lägger bara till;
+#          tar aldrig bort en kategori och rör aldrig pris, text eller synlighet.
+#
+# Ordningen: plan, skriv med planens antal, plan igen (att koppla ska vara 0).
+#
+# Skriver bara antal, kategorinamn och Wix-id. Repot är publikt.
+
+on:
+  workflow_dispatch:
+    inputs:
+      lage:
+        description: "plan eller skriv"
+        required: true
+        default: plan
+        type: choice
+        options: [plan, skriv]
+      bekrafta:
+        description: "Läget skriv: planens antal produkter att koppla"
+        required: false
+        default: ""
+
+concurrency:
+  group: vevor-kategorier
+  cancel-in-progress: false
+
+jobs:
+  kor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          LAGE: ${{ inputs.lage }}
+          BEKRAFTA: ${{ inputs.bekrafta }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # Till STDERR: en ::error::-rad på stdout slukas av kommandosubstitutionen.
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          rot="${BASE%/api/cron/poll-tracking}"
+
+          anropa() {
+            curl -sS --max-time 320 -X POST -H "Authorization: Bearer ${CRON_SECRET}" \
+              -H "Content-Type: application/json" -d "$1" "${rot}/api/admin/vevor-kategorier" || {
+              echo "::error::Anropet gick inte fram" >&2; return 1; }
+          }
+
+          visa() {
+            echo "$1" | jq '{dryRun, utkast, attKoppla, redanKopplade, utanRegel, avlasningSaknas, vapenskap, tradFel, kopplade, fel, felExempel, kvar, stoppadAv}' || true
+          }
+
+          if [ "$LAGE" = "plan" ]; then
+            svar=$(anropa '{"dryRun":true}')
+            if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+              echo "::error::$(echo "$svar" | jq -r '.error // "okänt fel"')" >&2; exit 1
+            fi
+            visa "$svar"
+            echo "Per kategori:"
+            echo "$svar" | jq -r '.perKategori | to_entries | sort_by(-.value) | .[] | "\(.value)\t\(.key)"' || true
+            if [ "$(echo "$svar" | jq -r '.tradFel | length')" != "0" ]; then
+              echo "::error::Kategoriträdet i Wix saknar regelmål (tradFel ovan). Ingenting kan kopplas." >&2; exit 1
+            fi
+            exit 0
+          fi
+
+          if ! [[ "$BEKRAFTA" =~ ^[0-9]+$ ]]; then
+            echo "::error::bekrafta ska vara planens antal produkter att koppla (ett heltal)" >&2; exit 1
+          fi
+          tak="$BEKRAFTA"
+          for varv in $(seq 1 30); do
+            svar=$(anropa "{\"dryRun\":false,\"bekrafta\":${tak}}")
+            if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+              echo "::error::$(echo "$svar" | jq -r '.error // "okänt fel"')" >&2; exit 1
+            fi
+            echo "Varv ${varv}:"
+            visa "$svar"
+            stopp=$(echo "$svar" | jq -r '.stoppadAv')
+            fel=$(echo "$svar" | jq -r '.fel')
+            vfel=$(echo "$svar" | jq -r '.vapenskap.fel')
+            if [ "$stopp" = "fel" ]; then
+              echo "::error::Wix tog inte emot kopplingarna två tuggor i rad (felExempel ovan)." >&2; exit 1
+            fi
+            if [ "$stopp" = "klart" ]; then
+              if [ "$fel" != "0" ] || [ "$vfel" != "0" ]; then
+                echo "::error::Klart, men ${fel} produkter och ${vfel} vapenskåp föll. Kör planen igen." >&2; exit 1
+              fi
+              echo "Klart."
+              exit 0
+            fi
+            # Nästa varv: det som återstår, med det som föll, är taket. Planen får krympa, aldrig växa.
+            tak=$(echo "$svar" | jq -r '.attKoppla - .kopplade')
+          done
+          echo "::error::Inte klart efter 30 varv" >&2
+          exit 1

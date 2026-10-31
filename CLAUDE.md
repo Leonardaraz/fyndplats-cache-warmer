@@ -7029,6 +7029,101 @@ Tre ändringar i koden samma dag:
    punkt (2,1 % av VEVOR:s) fångas inte.
 3. **Workflowens texter** säger "hos leverantören" i stället för "hos Aosom".
 
+## VEVOR: kategorierna (2026-10-31)
+
+Leonard sa ja till förslaget "Kategoriträd för VEVOR" 2026-10-31, alla fem
+besluten:
+
+1. Verktyg & Fordon heter Verktyg & Maskiner, och Bil & släp och
+   Elbilsladdning & solenergi flyttar till nya Bil & Garage.
+2. Företag & Proffs blir en egen avdelning, sist i menyn.
+3. Vapenskåpen (61) får ingen kategori och publiceras inte (SS 3492).
+4. Hjälpmedel blir en underkategori, och varje vara publiceras först efter en
+   egen granskning. Det är poleringen: en VEVOR-vara publiceras bara genom den.
+5. Menyn har 13 avdelningar i Leonards ordning. Den bor i butiken
+   (`AVDELNINGSORDNING`, se butikens `CLAUDE.md`).
+
+**I Wix** skapades 3 avdelningar och 51 underkategorier dolda samma dag (134
+synliga kategorier orörda). Butiken visar bara kategorier med synliga
+produkter, så de syns först när varor publiceras. Visa en kategori när den har
+minst tio publicerade varor och en text, och visa avdelningen före
+underkategorin: en synlig underkategori under en dold avdelning är dold.
+
+**Reglerna** står i `lib/vevor/kategorier.ts`: VEVOR:s egen kategori (de tre
+första nivåerna i brödsmulan) och, där den blandar varor, produktnamnet ger
+avdelning och underkategori. Första regel som passar vinner.
+
+- **Importen** kopplar varje nytt utkast till avdelningen och underkategorin
+  (`kopplaKategorier`, `lib/vevor/import-drift.ts`) och märker vapenskåpen
+  (`vevorGranskning.vapenskap`). Ett fel i kopplingen fäller aldrig importen;
+  det räknas i `kategorier.fel` i loggraden.
+- **Verktyget** för utkasten som redan fanns: workflowen **"VEVOR — kategorier
+  till utkasten"** (`plan` · `skriv`) → `/api/admin/vevor-kategorier` →
+  `lib/vevor/kategorier-kor.ts`. Det lägger bara till, rör bara opolerade dolda
+  utkast, och `skriv` kräver `bekrafta` = planens antal. Saknas ett regelmål i
+  Wix kopplas ingenting.
+- **Publiceringsspärren** (`lib/publicering.ts`) vägrar ett märkt vapenskåp på
+  alla vägar, före GPSR, och kön visar "🔒 Vapenskåp, publiceras inte".
+- `lasKategoritradet` (`lib/wix/kategoritrad.ts`) läser trädet med dolda
+  kategorier. Poleringens kategoristeg läser samma träd, så att den kan välja
+  en dold underkategori.
+
+**Granskningen** 2026-10-31, mot alla VEVOR-artiklar i lager (12 000):
+
+| | |
+|---|--:|
+| utan kategori | 1 (VEVOR:s egen "Annan") |
+| vapenskåp och vapenfodral | 61 |
+| Bygg & Renovering | 1 752 |
+| Verktyg & Maskiner | 1 744 |
+| Sport & Fritid | 1 662 |
+| Trädgård & Utemöbler | 1 608 |
+| Bil & Garage | 1 583 |
+| Kök & Husgeråd | 751 |
+| Hem & Inredning | 711 |
+| Företag & Proffs | 622 |
+| Möbler | 564 |
+| Barn & Familj | 352 |
+| Husdjur | 304 |
+| Skönhet & Hälsa | 151 |
+| Jul & Högtider | 134 |
+
+Fem till sex slumpade namn per underkategori lästes, och en hel lista för
+Kassaskåp, Hemsäkerhet och namnreglerna utan sökväg. Det gav ett trettiotal
+rättade regler, och 617 artiklar bytte plats. Testerna under "auditens fynd" i
+`lib/vevor/kategorier.test.ts` låser rättelserna; varje rättelse återinförd
+fälls av rätt test. Det som rättades, i grova drag:
+
+- ☠️ **Ett ord långt in i namnet säger inte vad varan är.** VEVOR räknar upp
+  vad varan passar till: en bilramp "för rullstol och barnvagn" låg under Baby &
+  Småbarn och en husdomkraft ("stolpe för") under avspärrningarna. Namnregeln
+  för barnvagnar tittar nu bara på huvudnamnet, före första kommatecknet.
+- ☠️ "Kassaskåp med brandsäker väska" gick till verktygslådorna (regeln var
+  `fodral|väska`). Bara hårda fodral gör det nu, och vapenregeln tar också
+  gevär och hagel.
+- VEVOR:s kategori Hemsäkerhet är mest barnsäkerhet och avspärrningar:
+  barngrindar, lekhagar och sängskydd går till Baby & Småbarn, sammetsrep och
+  stolpar till Butik, evenemang & trafik.
+- Hundbadkar låg under Terrarier (VEVOR:s reptilkategori), kommersiella frysar
+  och ismaskiner under Kyl & frys och Glass, bröllopsdekor och stolsöverdrag
+  under Dekoration och Utemöbler, PCP-pumpar för luftgevär under Pumpar,
+  skorstenssotning under Elkaminer och farthinder under Hemelektronik.
+
+Kvar, med flit:
+
+- **Elbilar för barn får inga VEVOR-varor:** VEVOR har inga i lager. Tre
+  trehjulingar ligger under Utelek & Spel och Baby & Småbarn.
+- **Smart hem & säkerhet** får två (ett första hjälpen-skåp och ett cykellås)
+  och **Elkaminer** fyra spismantlar. Eldstadsverktyg och askhinkar ligger
+  under Gnistskydd, som närmaste kategori i trädet.
+
+**Natten då butikens meny-PR mergas**, i den ordningen och precis före mergen:
+byt namn på Verktyg & Fordon i Wix, flytta Bil & släp och Elbilsladdning &
+solenergi under Bil & Garage, och visa Bil & Garage. En synlig underkategori
+under en dold avdelning försvinner, så Bil & Garage visas i samma steg som
+flytten. `NAMNBYTEN` och `FLYTTADE` gör att importen och verktyget fungerar
+både före och efter.
+
 ## Prissättningen är marknadskalibrerad, inte påhittad (`FyndplatsPricingConfig`)
 
 Regeln är **`pris = 1,20 × landedCostSek`**, uppåt till närmaste 9 (`charm9`).
