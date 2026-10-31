@@ -14,6 +14,11 @@ const SVETS = [
   { id: "2", namn: "Svetsning och lödning" },
   { id: "3", namn: "Svetsmaskiner" },
 ];
+const BADSAKERHET = [
+  { id: "1", namn: "Bad" },
+  { id: "2", namn: "Badrumssäkerhet" },
+  { id: "3", namn: "Duschstolar" },
+];
 const KASSASKAP = [
   { id: "1", namn: "Verktyg" },
   { id: "2", namn: "Säkerhet och trygghet" },
@@ -205,6 +210,44 @@ describe("skrivningen", () => {
     rader.get(pid(1))!.vevorGranskning = undefined;
     tradetAndrat = null;
     await expect(korKategorier(deps(), { ...torr, dryRun: false, bekrafta: 0 })).rejects.toThrow(/fler än bekrafta/);
+    expect(rader.get(pid(1))!.vevorGranskning?.vapenskap).toBe(true);
+  });
+
+  it("☠️ en vara i Hjälpmedel flaggas för Leonards granskning, också polerad och publicerad, och får sin kategori", async () => {
+    const flaggad = { gpsr: "ingen_manual", medicinteknik: true, bildmonster: "vanligt", bildgranskning: false };
+    lagg(1, BADSAKERHET, "Duschstol med armstöd");
+    lagg(2, BADSAKERHET, "Toalettsits med förhöjd sits", { needsAiPolish: false, draftStatus: "published" } as Partial<ProductMappingRecord>);
+    lagg(3, BADSAKERHET, "Duschpall", { vevorGranskning: flaggad } as Partial<ProductMappingRecord>);
+    lagg(4, SVETS, "Svetsmaskin");
+    const plan = await korKategorier(deps(), torr);
+    expect(plan.hjalpmedel).toEqual({ totalt: 3, attMarka: 2, markta: 0, fel: 0, publicerade: 1, publiceradeIdn: [pid(2)] });
+    expect(plan.perKategori).toEqual({ "Skönhet & Hälsa/Hjälpmedel": 2, "Verktyg & Maskiner/Svetsning": 1 });
+    expect(rader.get(pid(1))!.vevorGranskning).toBeUndefined();
+    const s = await korKategorier(deps(), { ...torr, dryRun: false, bekrafta: 3 });
+    expect(s.hjalpmedel).toMatchObject({ markta: 2, fel: 0 });
+    expect(s.kopplade).toBe(3);
+    expect(rader.get(pid(1))!.vevorGranskning?.medicinteknik).toBe(true);
+    expect(rader.get(pid(2))!.vevorGranskning?.medicinteknik).toBe(true);
+    expect(rader.get(pid(3))!.vevorGranskning).toEqual(flaggad);
+    expect(rader.get(pid(4))!.vevorGranskning).toBeUndefined();
+    expect((await korKategorier(deps(), torr)).hjalpmedel.attMarka).toBe(0);
+  });
+
+  it("☠️ hjälpmedlen flaggas även när kategoriträdet saknar ett mål", async () => {
+    lagg(1, BADSAKERHET, "Duschstol med armstöd");
+    tradetAndrat = (t) => t.splice(t.findIndex((k) => k.name === "Hjälpmedel"), 1);
+    const s = await korKategorier(deps(), { ...torr, dryRun: false, bekrafta: 0 });
+    expect(s).toMatchObject({ stoppadAv: "trad", kopplade: 0 });
+    expect(s.hjalpmedel.markta).toBe(1);
+    expect(rader.get(pid(1))!.vevorGranskning?.medicinteknik).toBe(true);
+  });
+
+  it("☠️ ett vapenskåp och ett hjälpmedel i samma familj blir ett vapenskåp, utan medicintekniksflagga", async () => {
+    lagg(1, BADSAKERHET, "Duschstol", { vevorArtiklar: [`vevor:${sku(1)}`, `vevor:${sku(9)}`] } as Partial<ProductMappingRecord>);
+    avl.set(sku(9), testAvlasning({ sku: sku(9), kategorier: KASSASKAP, namn: "Vapenskåp för 2 gevär" }));
+    const s = await korKategorier(deps(), { ...torr, dryRun: false, bekrafta: 0 });
+    expect(s.vapenskap.markta).toBe(1);
+    expect(s.hjalpmedel.totalt).toBe(0);
     expect(rader.get(pid(1))!.vevorGranskning?.vapenskap).toBe(true);
   });
 

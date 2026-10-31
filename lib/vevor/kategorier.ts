@@ -517,6 +517,19 @@ export type Klass =
   | { typ: typeof VAPENSKAP; regel: number }
   | { typ: "omappad" };
 
+/**
+ * Underkategorin där Leonard granskar varje vara före publiceringen (beslut 4,
+ * 2026-10-31). En vara som hamnar här får `vevorGranskning.medicinteknik`, som
+ * poleringen stannar på och flaggar till Leonard. Granskningen 2026-10-31: 36 av
+ * 119 utkast hit saknade flaggan (duschstolar, toalettförhöjare,
+ * förflyttningsbänkar, stödhandtag, inkontinensunderlägg).
+ */
+export const HJALPMEDEL: Mal = { avdelning: SH, kategori: "Hjälpmedel" };
+
+export function arHjalpmedel(k: Klass): boolean {
+  return k.typ === "kategori" && k.mal.avdelning === HJALPMEDEL.avdelning && k.mal.kategori === HJALPMEDEL.kategori;
+}
+
 /** Målet i en regel som avdelning och underkategori, eller VAPENSKAP. */
 export function tolkaMal(mal: string): Mal | typeof VAPENSKAP {
   if (mal === VAPENSKAP) return VAPENSKAP;

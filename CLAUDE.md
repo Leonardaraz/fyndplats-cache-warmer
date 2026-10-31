@@ -7072,6 +7072,14 @@ avdelning och underkategori. Första regel som passar vinner.
 - ⚠️ **Kategorier läggs bara till, aldrig tas bort.** Rättas en regel efter
   att verktyget eller importen kopplat en vara ligger den kvar i den gamla
   kategorin också. Ta bort den gamla kopplingen för hand, eller i poleringen.
+- ☠️ **En vara i Hjälpmedel får `vevorGranskning.medicinteknik`** (`arHjalpmedel`,
+  i importen och i verktyget, på samma rader och i samma steg som vapenskåpen).
+  Poleringen stannar på flaggan och flaggar varan till Leonard, och det är så
+  beslut 4 hålls. Granskningen 2026-10-31 fann 36 av 119 utkast i Hjälpmedel
+  utan flaggan (duschstolar, toalettförhöjare, förflyttningsbänkar,
+  stödhandtag, inkontinensunderlägg): namnen lät inte som vård, och flaggan
+  sattes bara på VEVOR:s vårdkategorier och vårdord. `hjalpmedel.publicerade`
+  ska vara 0.
 - **Publiceringsspärren** (`lib/publicering.ts`) vägrar ett märkt vapenskåp på
   alla vägar, före GPSR, och kön visar "🔒 Vapenskåp, publiceras inte".
 - `lasKategoritradet` (`lib/wix/kategoritrad.ts`) läser trädet med dolda
@@ -7137,12 +7145,42 @@ Kvar, med flit:
   och **Elkaminer** fyra spismantlar. Eldstadsverktyg och askhinkar ligger
   under Gnistskydd, som närmaste kategori i trädet.
 
+**Läget 2026-10-31 före mergen** (läst i Wix, inget skrivet):
+
+- 9 468 VEVOR-rader, alla opolerade dolda utkast. Ingen är publicerad, och 40
+  utkast spridda över listan saknade kategori. De 51 nya kategorierna är tomma.
+- Trädet: alla 144 regelmål finns, 0 fel och inga dubbletter bland 203
+  kategorier.
+- Torrkörningen av reglerna mot utkasten: 9 416 får en kategori, 51 är
+  vapenskåp, 1 har ingen regel och 0 saknar avläsning. Avdelningarna: Verktyg &
+  Maskiner 1 463, Bygg & Renovering 1 442, Sport & Fritid 1 314, Bil & Garage
+  1 274, Trädgård & Utemöbler 1 181, Kök & Husgeråd 575, Hem & Inredning 535,
+  Möbler 477, Företag & Proffs 388, Barn & Familj 311, Husdjur 241, Skönhet &
+  Hälsa 125 och Jul & Högtider 90.
+- Bil & släp har 43 produkter och Elbilsladdning & solenergi 6, så Bil & Garage
+  syns efter flytten. Tre av dem (pallbockar och två takboxar) ligger också
+  direkt i Verktyg & Fordon och visas därför under båda avdelningarna tills den
+  kopplingen tas bort. Butiken räknar en avdelning som produkterna i den och i
+  dess underkategorier.
+
+⚠️ **Kör `skriv` på natten, utanför synkfönstren.** Om en kategorikoppling
+flyttar produktens `updatedDate` (inte mätt) ser butikens cron
+`uppdatera-andrade` tusentals ändrade produkter, och över 3 000 på elva minuter
+kapar den fönstret: de äldsta ändringarna, också prisändringar på synliga
+sidor, väntar då på säkerhetsnätet (sex timmar). Mät `updatedDate` på en
+kopplad produkt efter första varvet och läs butikens logg efter `[uppdatera]
+fler än`.
+
 **Natten då butikens meny-PR mergas**, i den ordningen och precis före mergen:
 byt namn på Verktyg & Fordon i Wix, flytta Bil & släp och Elbilsladdning &
 solenergi under Bil & Garage, och visa Bil & Garage. En synlig underkategori
 under en dold avdelning försvinner, så Bil & Garage visas i samma steg som
-flytten. `NAMNBYTEN` och `FLYTTADE` gör att importen och verktyget fungerar
-både före och efter.
+flytten. Ta också bort de tre produkterna i Bil & släp ur Verktyg & Fordon.
+Namnbytet görs med Update Category (`PATCH /categories/v1/categories/{id}` med
+`revision`) och flytten med Move Category (`POST
+/categories/v1/categories/{id}/move`, `parentCategoryId` och `position`).
+`NAMNBYTEN` och `FLYTTADE` gör att importen och verktyget fungerar både före
+och efter.
 
 ## Prissättningen är marknadskalibrerad, inte påhittad (`FyndplatsPricingConfig`)
 

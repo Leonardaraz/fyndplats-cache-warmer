@@ -54,7 +54,7 @@ import { WIX_MAX_PRODUKTER } from "@/lib/wix/limits";
 import { RabattFel } from "./pris";
 import { valjVevorBilder } from "./bilder";
 import { vevorGranskning } from "./granskning";
-import { VAPENSKAP, klassa, type Mal } from "./kategorier";
+import { VAPENSKAP, arHjalpmedel, klassa, type Mal } from "./kategorier";
 import type { Avlasning } from "./lager";
 import {
   FAMILJ_SKAL,
@@ -409,8 +409,12 @@ export async function korVevorImport(deps: ImportDeps, val: Importval): Promise<
         // kategori och märks, så att publiceringsspärren håller det dolt. ☠️ En
         // familj prövas artikel för artikel: är en enda ett vapenskåp märks hela
         // produkten (kodgranskningen 2026-10-31).
-        const klass = medlemmar.map((m) => klassa(m)).find((k) => k.typ === VAPENSKAP) ?? klassa(a);
+        const klasser = medlemmar.map((m) => klassa(m));
+        const klass = klasser.find((k) => k.typ === VAPENSKAP) ?? klassa(a);
         if (klass.typ === VAPENSKAP) granskning = { ...granskning, vapenskap: true };
+        // ☠️ En vara i Hjälpmedel granskas av Leonard före publiceringen
+        // (beslut 4, 2026-10-31), också när namnet inte låter som vård.
+        else if (klasser.some(arHjalpmedel)) granskning = { ...granskning, medicinteknik: true };
 
         if (val.dryRun) {
           raknaUtkast(s, bilder.monster, bilder.egna, granskning);

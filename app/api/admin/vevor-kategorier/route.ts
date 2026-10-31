@@ -51,10 +51,12 @@ export async function POST(req: NextRequest) {
       { dryRun, bekrafta, budgetMs: BUDGET_MS },
     );
     const v = svar.vapenskap;
+    const h = svar.hjalpmedel;
     console.log(
       `[vevor-kategorier] ${dryRun ? "torr" : "skarp"}: ${svar.utkast} utkast, ${svar.attKoppla} att koppla, ` +
         `${svar.redanKopplade} redan kopplade, ${svar.utanRegel} utan regel, ${svar.avlasningSaknas} utan avläsning, ` +
         `vapenskåp ${v.totalt} (att märka ${v.attMarka}, märkta ${v.markta}, fel ${v.fel}, publicerade ${v.publicerade}), ` +
+        `hjälpmedel ${h.totalt} (att flagga ${h.attMarka}, flaggade ${h.markta}, fel ${h.fel}, publicerade ${h.publicerade}), ` +
         `${svar.kopplade} kopplade, ${svar.fel} fel, ${svar.kvar} kvar, stopp ${svar.stoppadAv}, trädfel ${svar.tradFel.length}`,
     );
     return NextResponse.json({ ok: true, ...svar });

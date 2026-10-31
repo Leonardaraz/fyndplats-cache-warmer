@@ -654,6 +654,17 @@ describe("kategorierna (Leonards ja 2026-10-31)", () => {
     expect(s.kategorier).toMatchObject({ kopplade: 0, vapenskap: 1 });
   });
 
+  it("☠️ en vara i Hjälpmedel flaggas för Leonards granskning, också när namnet inte låter som vård", async () => {
+    lagg(1, { kategorier: kat("Bad", "Badrumssäkerhet", "Duschstolar"), namn: "Hopfällbar duschstol i teak" });
+    lagg(2, { kategorier: kat("Verktyg", "Svetsning och lödning", "Svetsmaskiner"), namn: "Svetsmaskin" });
+    await korVevorImport(deps(), schema);
+    const [hjalp] = await store.mappningarForLeverantorsId([`vevor:${sku(1)}`]);
+    const [svets] = await store.mappningarForLeverantorsId([`vevor:${sku(2)}`]);
+    expect(hjalp.vevorGranskning?.medicinteknik).toBe(true);
+    expect(svets.vevorGranskning?.medicinteknik).toBe(false);
+    expect(kopplaKategorier.mock.calls.map((c) => c[1])).toContainEqual({ avdelning: "Skönhet & Hälsa", kategori: "Hjälpmedel" });
+  });
+
   it("en vara utan regel importeras utan kategori och räknas", async () => {
     lagg(1);
     const s = await korVevorImport(deps(), schema);

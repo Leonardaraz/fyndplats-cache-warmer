@@ -5,7 +5,7 @@
 // Importen kopplar kategorierna själv sedan 2026-10-31. Verktyget är för det
 // som redan låg i Wix, och för en import där kopplingen föll.
 //
-// Åtta egenskaper som inte ska tas bort:
+// Nio egenskaper som inte ska tas bort:
 //
 // 1. ☠️ Kategorier kopplas bara på opolerade, dolda VEVOR-utkast. En polerad
 //    sida har kategorier som en människa valt (kategori.tsv), och dem rör
@@ -29,6 +29,12 @@
 //    och av `bekrafta`, för den hänger inte på något av dem
 //    (kodgranskningen 2026-10-31). Ett vapenskåp som redan är publicerat räknas
 //    i `vapenskap.publicerade`; dölj det i Wix.
+// 9. ☠️ En vara vars artikel hamnar i Hjälpmedel får
+//    `vevorGranskning.medicinteknik` på samma sätt och i samma steg: Leonard
+//    granskar varje sådan vara före publiceringen (beslut 4, 2026-10-31), och
+//    poleringen stannar på flaggan. Granskningen 2026-10-31 fann 36 av 119
+//    utkast i Hjälpmedel utan den. Ett vapenskåp får inte flaggan, för det
+//    publiceras aldrig.
 
 import type { ProductMappingRecord } from "@/lib/store";
 import { mappingSupplier, vevorSkuOf } from "@/lib/store/supplier";
@@ -39,7 +45,7 @@ import {
   produkterIKategori,
   type Anrop,
 } from "@/lib/wix/kategoritrad";
-import { VAPENSKAP, byggUppslag, klassa, malNyckel, type Mal, type MalIdn } from "./kategorier";
+import { VAPENSKAP, arHjalpmedel, byggUppslag, klassa, malNyckel, type Mal, type MalIdn } from "./kategorier";
 import type { Avlasning } from "./lager";
 
 export interface KategoriDeps {
@@ -60,16 +66,19 @@ export interface KategoriVal {
   budgetMs: number;
 }
 
-export interface Vapenskap {
+/** En märkning på mappningsraden: vapenskåp eller hjälpmedel. */
+export interface Markning {
   totalt: number;
   attMarka: number;
   markta: number;
   fel: number;
-  /** Vapenskåp som redan är publicerade. Ska vara 0; dölj dem i Wix. */
+  /** Märkta varor som redan är publicerade. Ska vara 0. */
   publicerade: number;
   /** Upp till 50 Wix-id för de publicerade. */
   publiceradeIdn: string[];
 }
+
+export type Vapenskap = Markning;
 
 export interface KategoriSvar {
   dryRun: boolean;
@@ -83,7 +92,9 @@ export interface KategoriSvar {
   /** Ingen regel passar varans VEVOR-kategori och namn. */
   utanRegel: number;
   avlasningSaknas: number;
-  vapenskap: Vapenskap;
+  vapenskap: Markning;
+  /** Varor i Hjälpmedel: flaggas för Leonards granskning (egenskap 9). */
+  hjalpmedel: Markning;
   /** Regelmål som saknas i Wix-trädet. Ska vara tom. */
   tradFel: string[];
   kopplade: number;
@@ -117,7 +128,7 @@ export function arKategoriUtkast(r: ProductMappingRecord): boolean {
   );
 }
 
-/** En VEVOR-rad som finns i Wix, polerad eller inte: den får vapenmärkningen. */
+/** En VEVOR-rad som finns i Wix, polerad eller inte: den får märkningarna. */
 export function arVapenKandidat(r: ProductMappingRecord): boolean {
   return mappingSupplier(r) === "vevor" && !r.wixRaderad && !!r.wixProductId;
 }
@@ -133,6 +144,22 @@ function felUtanId(text: string): string {
   // Wix felkroppar kan bära produkt- och kategori-id. De är våra egna id, men
   // ett svar i en publik logg ska bara säga vad som hände.
   return text.replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "<id>").slice(0, 160);
+}
+
+function tomMarkning(): Markning {
+  return { totalt: 0, attMarka: 0, markta: 0, fel: 0, publicerade: 0, publiceradeIdn: [] };
+}
+
+/** Räknar raden i märkningen. Svarar sant när flaggan saknas och ska sättas. */
+function raknaMarkning(m: Markning, r: ProductMappingRecord, redan: boolean): boolean {
+  m.totalt++;
+  if (r.draftStatus === "published") {
+    m.publicerade++;
+    if (m.publiceradeIdn.length < 50) m.publiceradeIdn.push(r.wixProductId);
+  }
+  if (redan) return false;
+  m.attMarka++;
+  return true;
 }
 
 interface Planrad {
@@ -160,7 +187,8 @@ export async function korKategorier(deps: KategoriDeps, val: KategoriVal): Promi
     perKategori: {},
     utanRegel: 0,
     avlasningSaknas: 0,
-    vapenskap: { totalt: 0, attMarka: 0, markta: 0, fel: 0, publicerade: 0, publiceradeIdn: [] },
+    vapenskap: tomMarkning(),
+    hjalpmedel: tomMarkning(),
     tradFel: [],
     kopplade: 0,
     fel: 0,
@@ -173,39 +201,49 @@ export async function korKategorier(deps: KategoriDeps, val: KategoriVal): Promi
   const skus = [...new Set(kandidater.flatMap(artiklarFor))];
   const avl = await deps.avlasningar(skus);
 
-  // ☠️ Vapenskåpen först, på alla VEVOR-rader och varje artikel i en familj
-  // (egenskap 8). Ett vapenskåp får aldrig en kategori.
+  // ☠️ Märkningarna först, på alla VEVOR-rader och varje artikel i en familj
+  // (egenskap 8 och 9). Ett vapenskåp får aldrig en kategori, och en vara i
+  // Hjälpmedel granskas av Leonard före publiceringen.
   const vapenIdn = new Set<string>();
-  const vapen: ProductMappingRecord[] = [];
+  const attMarka = new Map<string, { vapen: boolean; hjalp: boolean }>();
   for (const r of kandidater) {
-    const arVapen = artiklarFor(r).some((sku) => {
-      const a = avl.get(sku);
-      return a !== undefined && klassa(a).typ === VAPENSKAP;
-    });
-    if (!arVapen) continue;
-    vapenIdn.add(r.wixProductId);
-    svar.vapenskap.totalt++;
-    if (r.draftStatus === "published") {
-      svar.vapenskap.publicerade++;
-      if (svar.vapenskap.publiceradeIdn.length < 50) svar.vapenskap.publiceradeIdn.push(r.wixProductId);
-    }
-    if (r.vevorGranskning?.vapenskap !== true) vapen.push(r);
+    const klasser = artiklarFor(r)
+      .map((sku) => avl.get(sku))
+      .filter((a): a is Avlasning => a !== undefined)
+      .map((a) => klassa(a));
+    const arVapen = klasser.some((k) => k.typ === VAPENSKAP);
+    const arHjalp = !arVapen && klasser.some(arHjalpmedel);
+    const g = r.vevorGranskning;
+    const vapen = arVapen && raknaMarkning(svar.vapenskap, r, g?.vapenskap === true);
+    const hjalp = arHjalp && raknaMarkning(svar.hjalpmedel, r, g?.medicinteknik === true);
+    if (arVapen) vapenIdn.add(r.wixProductId);
+    if (vapen || hjalp) attMarka.set(r.wixProductId, { vapen, hjalp });
   }
-  svar.vapenskap.attMarka = vapen.length;
-  if (!val.dryRun && vapen.length > 0) {
-    const farska = await deps.lasMappningar(vapen.map((r) => r.wixProductId));
+  if (!val.dryRun && attMarka.size > 0) {
+    const farska = await deps.lasMappningar([...attMarka.keys()]);
     const nya: ProductMappingRecord[] = [];
-    for (const r of vapen) {
-      const f = farska.get(r.wixProductId);
+    for (const [id, m] of attMarka) {
+      const f = farska.get(id);
       if (!f || !arVapenKandidat(f)) continue;
       const g = f.vevorGranskning ?? { gpsr: "ingen_manual" as const, medicinteknik: false, bildmonster: "okant" as const, bildgranskning: true };
-      nya.push({ ...f, vevorGranskning: { ...g, vapenskap: true } });
+      nya.push({
+        ...f,
+        vevorGranskning: { ...g, ...(m.vapen ? { vapenskap: true } : {}), ...(m.hjalp ? { medicinteknik: true } : {}) },
+      });
     }
     const sparat = await deps.sparaMappningar(nya);
     const efter = await deps.lasMappningar(nya.map((r) => r.wixProductId));
     for (const r of nya) {
-      if (efter.get(r.wixProductId)?.vevorGranskning?.vapenskap === true) svar.vapenskap.markta++;
-      else svar.vapenskap.fel++;
+      const m = attMarka.get(r.wixProductId)!;
+      const g = efter.get(r.wixProductId)?.vevorGranskning;
+      if (m.vapen) {
+        if (g?.vapenskap === true) svar.vapenskap.markta++;
+        else svar.vapenskap.fel++;
+      }
+      if (m.hjalp) {
+        if (g?.medicinteknik === true) svar.hjalpmedel.markta++;
+        else svar.hjalpmedel.fel++;
+      }
     }
     for (const f of sparat.fel.slice(0, 3)) svar.felExempel.push(felUtanId(f.fel));
   }
