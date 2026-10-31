@@ -9685,6 +9685,30 @@ Fakturan och kvittot anger valutakoden SEK (`VALUTA`, sedan 2026-10-14). En
 företagskunds inköpsorder krävde valutakod på fakturan, och "kr" räknas inte
 som en.
 
+### Den gamla GitHub-värmaren är borttagen (2026-10-31)
+
+Leonard 2026-10-31, efter en audit av butikens uppvärmning: *"Kör båda"*.
+`.github/workflows/cache-warm.yml` och `ping_sitemap.py` pingade startsidan,
+`/butik`, `/alla-produkter`, kategorisidorna och 20 produkter i bokstavsordning.
+Schemat var var 30:e minut, men GitHub körde den var fjärde till sjätte timme.
+
+Butiken värmer allt det själv, och oftare:
+
+| | vad | när |
+|---|---|---|
+| `/api/cron/varm-katalogen` | hela katalogen i led efter en deploy, och listorna | var 15:e minut |
+| `/api/cron/uppdatera-andrade` | varje ändrad, synlig produkt | var 5:e minut |
+| `/api/cron/warm-and-ping` | nya produkter, och IndexNow | varje timme |
+
+Startsidan och kategorisidorna byggs vid varje deploy. Mätt samma kväll: 112
+slumpade sidor (80 produkter, 20 kategorier, 12 andra) svarade alla 200 ur
+cachen, med 0,2–0,3 s till första byte i median och högst 0,58 s. Varje körning
+av den gamla värmaren fick dessutom ~150 sidor att byggas om i onödan, och dess
+kommentarer beskrev en butik som inte finns längre (Wix-sitemap, Fastly).
+
+Lägg inte tillbaka en värmare i GitHub Actions: schemat går inte att lita på
+(tabellen i nästa avsnitt).
+
 ### Spårningen hämtas av Vercels cron, inte av GitHub (2026-10-29)
 
 `/api/cron/poll-tracking` går varje timme från `vercel.json`. Fram till
