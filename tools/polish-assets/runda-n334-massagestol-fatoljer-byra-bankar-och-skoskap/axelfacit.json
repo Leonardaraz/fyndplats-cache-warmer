@@ -1,0 +1,72 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "3562a84b": {
+  "tyska": "",
+  "svenska": "85 x 96 x 106 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Gesamtmaße (aufrecht): 85B x 96T x 106H cm | ✔ Gesamtmaße (in Liegeposition): 85B x 165T x 80H cm | ✔ Gesamtmaße (angehoben): 85B x 87T x 133H cm | ✔ Sitzmaße: 52B x 54T x 48H cm | ✔ Rückenlehnenmaße: 80B x 68H cm | ✔ Armlehnenmaße: 20B x 66T cm | ✔ Maße der Seitentasche: 31L x 26B cm"
+ },
+ "3d9f18de": {
+  "tyska": "",
+  "svenska": "84L x 92B x 100H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Gesamtabmessung (aufrecht): 84B x 92T x 100H cm | ✔ Gesamtmaße (liegend): 84B x 163T x 78H cm | ✔ Maße des Sitzes: 52B x 54T x 46H cm | ✔ Maße der Rückenlehne: 86B x 23T x 60H cm | ✔ Maße der Armlehne: 16B x 75T cm"
+ },
+ "4c0d324a": {
+  "tyska": "95B x 38T x 44H cm",
+  "svenska": "95 x 38 x 44 cm",
+  "bokstaver": "BTH",
+  "djup": 38,
+  "hojd": 44,
+  "bredd": 95
+ },
+ "515136c2": {
+  "tyska": "38B x 35T x 57H cm",
+  "svenska": "38 x 35 x 57 cm",
+  "bokstaver": "BTH",
+  "djup": 35,
+  "hojd": 57,
+  "bredd": 38
+ },
+ "cbc95cc3": {
+  "tyska": "74B x 35T x 97H cm",
+  "svenska": "74 x 35 x 97 cm",
+  "bokstaver": "BTH",
+  "djup": 35,
+  "hojd": 97,
+  "bredd": 74
+ },
+ "cbe62ea1": {
+  "tyska": "118B x 45T x 44H cm",
+  "svenska": "118 x 45 x 44 cm",
+  "bokstaver": "BTH",
+  "djup": 45,
+  "hojd": 44,
+  "bredd": 118
+ },
+ "cf03b7d6": {
+  "tyska": "75B x 94T x 106H cm",
+  "svenska": "75 x 94 x 106 cm",
+  "bokstaver": "BTH",
+  "djup": 94,
+  "hojd": 106,
+  "bredd": 75
+ },
+ "d2376de9": {
+  "tyska": "75B x 80T x 109-127H cm",
+  "svenska": "75 x 80 x 127 cm",
+  "bokstaver": "BTH",
+  "djup": 80,
+  "hojd": [
+   109,
+   127
+  ],
+  "bredd": 75
+ },
+ "f3e8f9e7": {
+  "tyska": "55B x 24T x 100H cm",
+  "svenska": "55 x 24 x 100 cm",
+  "bokstaver": "BTH",
+  "djup": 24,
+  "hojd": 100,
+  "bredd": 55
+ }
+}
