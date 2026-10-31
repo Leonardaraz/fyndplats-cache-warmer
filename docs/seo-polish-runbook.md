@@ -85,13 +85,20 @@ På en familj (flera varianter) visar varje rad i fliken som skiljer sig varje v
 
 **Välj inte de här utkasten:**
 
-- **Utkast utan fliken *Tekniska specifikationer*.** Fliken läggs in av **"VEVOR —
-  specifikationen på utkast som saknar den"** när läsaren har läst om sidorna.
-- **Gränsfallen i familjeregelns plan** (**"VEVOR — familjeregeln på befintliga utkast"**,
-  läget `plan`), tills Leonard har avgjort dem. Ett gränsfall som delas senare raderas, och då
-  försvinner poleringen.
+- **Utkast utan fliken *Tekniska specifikationer*.** Verktyget **"VEVOR — specifikationen
+  på utkast som saknar den"** lade in fliken på 1 119 utkast 2026-10-31. Ett utkast som
+  saknar den efter det har ingen specifikation hos VEVOR (2 st den dagen), och då finns
+  ingen källa för måtten.
+- **Utkast i familjeregelns plan** (**"VEVOR — familjeregeln på befintliga utkast"**, läget
+  `plan`): gränsfallen tills Leonard har avgjort dem, och de raderbara (`dela` och `slaIhop`)
+  tills planen visar 0 raderbara. Ett utkast som raderas och byggs om av importen tappar
+  poleringen, och ett polerat utkast raderas inte alls utan blir en egen sida bredvid familjen.
 - **`vevorGranskning.medicinteknik: true` i mappningsraden** (läsningen i *2. Hämta
-  källan*). Flagga utkastet till Leonard.
+  källan*). Flagga utkastet till Leonard. Sedan 2026-10-31 får varje vara i kategorin
+  Hjälpmedel flaggan, också när namnet inte låter som vård.
+- **`vevorGranskning.vapenskap` eller `vevorGranskning.spritapparat`.** Vapenskåp
+  (SS 3492) och spritapparater (alkohollagen 2 kap. 1 §) publiceras aldrig, och
+  publiceringsspärren vägrar dem på alla vägar. En polering av dem är bortkastad.
 - **Saldo 0 i `lager.tsv`.** Prisgrindens SLUTSALD bygger på synkens stämpel. VEVOR-synken
   är påslagen sedan 2026-10-30 och går minut 50 varje timme, men en artikel vars avläsning är
   äldre än tolv timmar rörs inte (utkasten läses en gång per dygn). Kontrollera med
@@ -105,6 +112,11 @@ aldrig synas, av samma skäl som Aosoms. Sedan 2026-10-30 fäller `gatelib.ARTNR
 skrivplanen den formen. De nummer som bär bindestreck eller punkt fångas inte: leta efter dem
 med ögonen.
 
+Raden *Artikelmodellnummer* i VEVOR:s specifikation är VEVOR:s modellnummer, inte
+artikelnumret, och grindarna fäller den inte.
+En sökning på den leder till VEVOR:s egen sida med deras pris. Ta inte med raden i den
+polerade fliken förrän Leonard har avgjort om den ska visas (frågad 2026-10-31).
+
 **Bilderna.** Importen tog sex bilder enligt Leonards regel (`lib/vevor/bilder.ts`). Står
 `vevorGranskning.bildgranskning` på `true` var mönstret ovanligt, och då granskar du varje
 bild extra noga. Blir det färre än fem kvar efter strykningen beskär du enligt undantaget i
@@ -116,10 +128,38 @@ kan ha syskonens bilder blandade: kör **"VEVOR — rätta familjernas bilder"**
 - Bilder med säljtext på engelska eller tyska stryks, som Aosoms tyska *(Leonard 2026-10-30)*.
 - Aosom-verktygen för bilder (bildkandidater, färgtillägg och miljöbild) läser Aosoms flöde
   och fungerar inte för VEVOR.
+- Ge måttskissen en alt-text som börjar på *Måttbild*. Finns ingen sådan alt-text i
+  produkten lägger `bygg-media.py` plats 3 sist, efter Aosoms gamla regel. På ett
+  VEVOR-utkast är plats 3 VEVOR:s första bild och ingen måttskiss, så läs ordningen i
+  utskriften.
+
+**Kategorierna.** Importen och verktyget **"VEVOR — kategorier till utkasten"** kopplar varje
+utkast till en avdelning och en underkategori enligt reglerna i `lib/vevor/kategorier.ts`.
+Läs kopplingen i utkastet (`directCategoriesInfo`), skriv samma namn i `kategori.tsv` och
+lägg till en sökordskategori bara när den passar varan. Workflowen lägger till kategorier men
+tar aldrig bort någon. Har regeln valt fel kategori flaggar du utkastet i `FLAGGADE.md`.
+
+- De nya kategorierna från 2026-10-31 är dolda i Wix tills de har tio publicerade
+  produkter. Cronen `kategorier-synlighet` (minut 37 varje timme) visar dem då av sig själv.
+  Polera därför minst tio utkast ur samma nya underkategori innan du går vidare till nästa.
+- Butiken bygger brödsmulan av de synliga kategorierna. En vara som bara ligger i dolda
+  kategorier får *Hem / Butik / produkt*, och livegrind fäller den som `KATEGORI SAKNAS`
+  tills kategorin visats. Kör livegrind igen efter nästa körning av cronen. En vara i en dold
+  underkategori under en synlig avdelning (Verktyg & Maskiner, Bil & Garage) får avdelningen
+  i brödsmulan och fälls inte.
+- Kategoristeget kan skriva till en dold kategori först när PR #841 ligger på `main`
+  (planerat till natten mot 2026-11-01). Före det fäller torrkörningen namnet som okänt, och
+  då skrivs ingenting.
 
 **Varianter.** En familj är en sida med en VEVOR-artikel per variant. Ge den en rad i
 `sammanslagna.tsv`, som en sammanslagen Aosom-sida (se *En sammanslagen sida skrivs om med
 `sammanslagna.tsv`* nedan). SKU-steget hoppas då över, och varje variant behåller sin SKU.
+Sammanslagningsverktyget i *Syskon blir val på sidan* tar bara Aosom-artiklar
+(`utkast_ej_aosom`). Hittar du ett VEVOR-syskon som importen inte slog ihop, flaggar du det.
+
+**Det här i runbooken gäller bara Aosom:** *Vad källan är värd* (den tyska feedtexten),
+*Syskon blir val på sidan*, Aosom-verktygen för bilder och EN 71-beslutet. Resten gäller
+båda leverantörerna, också laglighetsgrinden, dubblettskärmen och recensionerna.
 
 **Leksaker.** Beslutet om EN 71 gäller bara Aosom. En VEVOR-leksak vars källa inte nämner
 någon standard flaggas.
@@ -1223,8 +1263,10 @@ eller `AE-`-SKU:er på andra produkter.
 
 Skriv `kort ⇥ Förälder + Löv + Sökordskategori` (ett till sex namn), med kategorinamnen
 exakt som i Wix. Läs trädet varje runda (`POST /categories/v1/categories/query` med
-`treeReference: {"appNamespace": "@wix/stores"}` och `cursorPaging: {"limit": 200}`, som
-workflowen; trädet har över hundra kategorier) och gissa aldrig ur minnet. Koppla
+`treeReference: {"appNamespace": "@wix/stores"}`, `returnNonVisibleCategories: true` och
+`cursorPaging: {"limit": 100}`, med markören tills den tar slut, som
+`lib/wix/kategoritrad.ts`). Trädet har drygt 200 kategorier, och utan flaggan saknas de dolda.
+Gissa aldrig ur minnet. Koppla
 föräldern, det smalaste lövet som passar och den sökordskategori som finns för
 produkttypen. Finns inget löv räcker föräldern. Välj aldrig `All Products`, eftersom Wix
 lägger till den själv. Workflowen slår upp namnen, och torrkörningen fäller ett namn som
