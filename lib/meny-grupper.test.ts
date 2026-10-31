@@ -109,6 +109,24 @@ test("Bil & Garage och Verktyg & Maskiner med alla underkategorier synliga", () 
   }
 });
 
+test("VEVOR:s nya underkategorier i de gamla avdelningarna hamnar under en rubrik, inte under Mer", () => {
+  const nya: Record<string, string[]> = {
+    "tradgard-utemobler": ["pool-spa", "tradgardsmaskiner", "staket-grindar", "tradgardsanlaggning-konstgras"],
+    "sport-fritid": ["hantverk-somnad", "camping-kylboxar", "bat-vattensport", "jakt-fiske"],
+    "kok-husgerad": ["glass-is-dessertmaskiner", "matforvaring-koksorganisering", "kottkvarnar-charkuteri"],
+    "hem-inredning": ["hemelektronik-tillbehor", "mattor", "kassaskap"],
+    mobler: ["kontorstillbehor"],
+  };
+  for (const [avd, slugs] of Object.entries(nya)) {
+    const g = grupperaUnderkategorier(avd, slugs.map(sub));
+    assert.ok(!g.some((x) => x.rubrik === "Mer"), `${avd}: ${g.find((x) => x.rubrik === "Mer")?.subs.map((s) => s.slug)}`);
+    assert.equal(g.flatMap((x) => x.subs).length, slugs.length, avd);
+  }
+  // Så länge de nya är dolda ser dagens meny ut som förut: Fritid behåller sina tre.
+  assert.deepEqual(grupperaUnderkategorier("sport-fritid", ["friluftsliv-resa", "bil-cykel", "hobby-musik"].map(sub)),
+    [{ rubrik: "Fritid", subs: ["friluftsliv-resa", "bil-cykel", "hobby-musik"].map(sub) }]);
+});
+
 test("natten efter VEVOR-trädet: bara de synliga underkategorierna, inga tomma rubriker", () => {
   // Wix svarar inte med dolda kategorier, och getCollections sållar bort tomma.
   // Ikväll är två underkategorier synliga i var och en av de två avdelningarna.

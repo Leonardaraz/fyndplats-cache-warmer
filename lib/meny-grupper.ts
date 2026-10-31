@@ -18,9 +18,10 @@
 // En slug här som inte finns i menyn gör ingenting. Dolda kategorier kommer
 // inte med i Wix-frågan, och kategorier utan köpbara produkter sållas bort i
 // getCollections och buildCategoryTree. En grupp utan en enda synlig kategori
-// visas inte alls. Därför står VEVOR-trädets nya underkategorier (2026-10-31)
-// redan här, fast de flesta är dolda: de dyker upp under sin rubrik när de
-// visas i Wix, utan en ny deploy.
+// visas inte alls. Därför står alla VEVOR-trädets nya underkategorier
+// (2026-10-31) redan här, också de i de gamla avdelningarna, fast de flesta är
+// dolda: de dyker upp under sin rubrik när de visas i Wix, utan en ny deploy.
+// Företag & Proffs, Skönhet & Hälsa och Jul & Högtider har inga rubriker.
 //
 // Ren modul utan importer, så node --test kör den direkt.
 
@@ -67,23 +68,24 @@ export const MENY_GRUPPER: Record<string, MenyGrupp[]> = {
     { rubrik: "Matplats", slugs: ["matbord-stolar", "matgrupper", "barbord", "pallar"] },
     { rubrik: "Sovrum", slugs: ["sangar-sovrum", "nattduksbord", "byraer", "garderober-kladstall"] },
     { rubrik: "Hall", slugs: ["skoskap-skobankar", "kladhangare-hallmobler"] },
-    { rubrik: "Kontor & gaming", slugs: ["kontorsstolar", "knastolar", "gamingstolar", "skrivbord", "hornskrivbord"] },
+    { rubrik: "Kontor & gaming", slugs: ["kontorsstolar", "knastolar", "gamingstolar", "skrivbord", "hornskrivbord", "kontorstillbehor"] },
   ],
   "hem-inredning": [
-    { rubrik: "Inredning", slugs: ["dekoration-prydnad", "konstvaxter", "speglar"] },
+    { rubrik: "Inredning", slugs: ["dekoration-prydnad", "konstvaxter", "speglar", "mattor"] },
     { rubrik: "Belysning", slugs: ["belysning", "golvlampor"] },
-    { rubrik: "Förvaring", slugs: ["forvaring-organisering"] },
+    { rubrik: "Förvaring", slugs: ["forvaring-organisering", "kassaskap"] },
     { rubrik: "Badrum & tvätt", slugs: ["badrumsskap", "badrumsspeglar", "badrum-hemtextil", "tvattkorgar", "tvatt-stad"] },
     { rubrik: "Värme", slugs: ["elkaminer", "varmeflaktar", "gnistskydd", "elementskydd"] },
-    { rubrik: "Teknik i hemmet", slugs: ["smart-hem-sakerhet", "projektordukar", "hushallsapparater"] },
+    { rubrik: "Teknik i hemmet", slugs: ["smart-hem-sakerhet", "hemelektronik-tillbehor", "projektordukar", "hushallsapparater"] },
   ],
   "kok-husgerad": [
-    { rubrik: "Apparater", slugs: ["koksmaskiner-apparater", "vattenkokare-brodrostar", "miniugnar-airfryers", "kyl-frys"] },
-    { rubrik: "Kök & servering", slugs: ["koksredskap-tillbehor", "koksoar-koksvagnar", "serveringsvagnar-rullvagnar", "vinstall-vinkylar", "soptunnor"] },
+    { rubrik: "Apparater", slugs: ["koksmaskiner-apparater", "vattenkokare-brodrostar", "miniugnar-airfryers", "kyl-frys", "glass-is-dessertmaskiner", "kottkvarnar-charkuteri"] },
+    { rubrik: "Kök & servering", slugs: ["koksredskap-tillbehor", "koksoar-koksvagnar", "serveringsvagnar-rullvagnar", "vinstall-vinkylar", "matforvaring-koksorganisering", "soptunnor"] },
   ],
   "tradgard-utemobler": [
-    { rubrik: "Uteplats", slugs: ["utemobler", "solskydd-paviljonger", "grill-utekok", "eldkorgar-eldstader", "terrassvarmare-infravarmare", "skarmtak-entretak"] },
+    { rubrik: "Uteplats", slugs: ["utemobler", "solskydd-paviljonger", "grill-utekok", "eldkorgar-eldstader", "terrassvarmare-infravarmare", "skarmtak-entretak", "pool-spa"] },
     { rubrik: "Odling", slugs: ["vaxthus-odling", "odlingslador", "blomstall-vaxthyllor", "tradgardsskotsel-bevattning"] },
+    { rubrik: "Trädgårdsarbete", slugs: ["tradgardsmaskiner", "staket-grindar", "tradgardsanlaggning-konstgras"] },
     { rubrik: "Förråd", slugs: ["redskapsbodar-forrad", "garagetalt", "vedstall-vedbodar"] },
     { rubrik: "Dekor", slugs: ["tradgardsdekor-belysning"] },
   ],
@@ -101,7 +103,7 @@ export const MENY_GRUPPER: Record<string, MenyGrupp[]> = {
   "sport-fritid": [
     { rubrik: "Träning", slugs: ["traning-gym", "hantlar-hantelset", "traningsbankar", "motionscyklar", "boxningssackar", "traningsklader"] },
     { rubrik: "Spel & bollsport", slugs: ["spel-bordsspel", "bollsport"] },
-    { rubrik: "Fritid", slugs: ["friluftsliv-resa", "bil-cykel", "hobby-musik"] },
+    { rubrik: "Fritid", slugs: ["friluftsliv-resa", "camping-kylboxar", "bat-vattensport", "jakt-fiske", "bil-cykel", "hobby-musik", "hantverk-somnad"] },
   ],
   // VEVOR-trädet 2026-10-31. Avdelningen hette Verktyg & Fordon, och bilen,
   // släpet och elbilsladdningen har flyttat till Bil & Garage.
