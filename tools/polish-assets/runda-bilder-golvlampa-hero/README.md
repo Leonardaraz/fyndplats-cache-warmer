@@ -13,3 +13,11 @@ artikelnummer. Lampan har en variant och inga val, så inga länkar kan nollas a
   lika med källbilderna), och filnamnen bär inget artikelnummer.
 
 Galleriet: 5 → 7 bilder, alla rena. Kontrolleras live efter skrivningen.
+
+## Utfall (2026-10-31, skrivet 16:01–16:03 UTC, utanför Aosoms synkfönster)
+
+- Skrivet med "Polering — skriv bara bilderna" (plan-sha `b3e27cee…`, torrt först). Läst tillbaka ur Wix i en
+  separat läsning: galleriet, ordningen och alla sju alt-texter lika med planen, produkten publicerad, SKU
+  `FP-golvfluter-bord-laslampa-175`, pris 999 kr och lager 200 oförändrade.
+- Live (butikens sida, `age` 57 s, HIT): första bilden är den vita packshoten, därefter miljöfotot, måttbilden och
+  bordsbilden i planens ordning.
