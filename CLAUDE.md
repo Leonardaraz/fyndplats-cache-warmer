@@ -7006,7 +7006,8 @@ med betyg (utkasten och katalogen läses en gång per dygn), och kör en torr
 ## VEVOR-poleringen (2026-10-30)
 
 Leonard börjar SEO-polera VEVOR-utkasten 2026-10-31. Arbetsgången står i
-runbooken (`docs/seo-polish-runbook.md`, *VEVOR-utkast: det som skiljer*).
+runbooken (`docs/seo-polish-runbook.md`) och VEVOR-chattens startdokument
+(`docs/polish/vevor.md`, egen chatt för VEVOR och för Aosom sedan Leonards beslut 2026-10-31).
 Hans beslut samma kväll, svar på tre frågor:
 
 | fråga | beslut |

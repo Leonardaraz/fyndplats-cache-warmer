@@ -547,6 +547,7 @@ function QueueCard({
         <PolishButton
           wixProductId={p.wixProductId}
           title={p.seoTitle}
+          leverantor={mappingSupplier(p)}
         />
       ) : null}
 
