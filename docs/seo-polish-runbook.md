@@ -740,6 +740,16 @@ N-rundorna), så arket räcker för den. Granska 2–5 i full upplösning i `ori
 ritning och hur varan är byggd läser du också i `orig/`, aldrig på arket (600 px per bild):
 en etikett lästes en gång som 36 cm på arket men var 35.
 
+⚠️ **Hero-bilden saknas på nya Aosom-varor (2026-10-30 och 2026-10-31).** Aosom lägger ett paketfoto på vit botten som första bild
+på aosom.de för sina nya varor, men feeden har det inte: position 1 är då en miljörendering, och position 5–9 är säljgrafik eller
+samma miljöbilder (mätt på skåpet `e08e34c4` och golvflutern `a4beec50`). Leonards metod *(2026-10-31: "ta fram aosom artikeln, sök upp
+den och hämta dens originalbilder")*: (1) läs artikeln och källadressen ur mappningen **privat**, med `GET wix-data/v2/items/<wix-id>?dataCollectionId=FyndplatsMappings`
+i en läsning som aldrig skriver ut den i en logg eller en fil i repot, (2) sök upp varan och hämta originalbilderna på en vanlig, öppen väg.
+☠️ **Aosom-sajterna svarar 403 på servrar** (`aosom.de`, `aosom.eu` och `aosom.co.uk`, både curl och WebFetch), och en headless-webbläsare
+som försöker ta sig förbi det är en bot-kringgång som vi inte gör. WebSearch är US-only och hittar inte nya artiklar, och dealproffsen
+hade inte golvflutern (`sok?s=<artikel>` gav inga träffar). Det som går är Leonards Chrome: Cowork-chatten listar galleriets bildadresser
+(som i Cowork-rundorna) eller Leonard klistrar in bilden. Lägg den sedan först i galleriet med bildplanen `runda-bilder-skap-packshot`.
+
 **Stryk** en bild genom att skriva en rad i `bilder-bort.tsv` (`kort ⇥ position ⇥ skäl`)
 när den bär:
 
