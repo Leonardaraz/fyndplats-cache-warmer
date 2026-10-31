@@ -47,7 +47,7 @@ for k in ids:
         except Exception:
             continue
         for x in (o if isinstance(o, list) else [o]):
-            if x.get('@type') == 'Product':
+            if x.get('@type') in ('Product', 'ProductGroup'):
                 prod = x
             if x.get('@type') == 'BreadcrumbList':
                 crumb = x
@@ -60,9 +60,19 @@ for k in ids:
         offers = prod.get('offers') or {}
         if isinstance(offers, list):
             offers = offers[0] if offers else {}
+        # En sida med flera färger har en ProductGroup (butiken lägger den i en lista) med ett erbjudande per variant.
+        # Varje variant ska gå att köpa, och priset kontrolleras mot den första varianten (ett pris per färg kan skilja).
+        varianter = [v.get('offers') or {} for v in (prod.get('hasVariant') or [])]
+        varianter = [(o[0] if isinstance(o, list) and o else o) for o in varianter]
+        if varianter:
+            for o in varianter:
+                av = str(o.get('availability', ''))
+                if not av.endswith('InStock'):
+                    rad.append(f'availability {av!r} på en variant')
+            offers = varianter[0]
         av = str(offers.get('availability', ''))
         pr = str(offers.get('price', ''))
-        if not av.endswith('InStock'):
+        if not varianter and not av.endswith('InStock'):
             rad.append(f'availability {av!r}')
         if PRIS and pr not in (PRIS, PRIS + '.00', PRIS + '.0'):
             rad.append(f'pris {pr!r}')
