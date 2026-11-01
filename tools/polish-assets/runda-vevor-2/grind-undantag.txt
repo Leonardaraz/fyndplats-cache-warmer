@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py VEVOR-källan anger Artikelmått som tre tal i mm utan axelbokstäver (ingen B, T eller H), så det finns ingen totalmåttrad med axelmärkning att bygga ett facit ur. Mått-raden skriver bredd × djup × höjd enligt fotot (växterna är högre än de är breda) och texten namnger bara höjd och bredd
