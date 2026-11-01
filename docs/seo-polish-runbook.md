@@ -663,9 +663,10 @@ Google ser. En text som är rätt skriven för en produkt i fel kategori hamnar 
    utkasten"** lägger bara till och tar aldrig bort. Skriv en rad *Kategori att ta bort* i
    `FLAGGADE.md` / `FLAGGADE-VEVOR.md` med produktens kort och den felaktiga kategorins
    namn, så att kopplingen tas bort i en egen åtgärd. Det finns inget verktyg för det än,
-   och en handbyggd skrivning i Wix är förbjuden. En Aosom-vara publiceras av textsteget och
-   visas i den felaktiga kategorin tills kopplingen är borta, så rätta planen före `skriv`.
-   En VEVOR-vara hålls osynlig och påverkas inte.
+   och en handbyggd skrivning i Wix är förbjuden. Textsteget publicerar varan, en
+   VEVOR-vara också (standardraden gör GPSR komplett), så den visas i den felaktiga
+   kategorin tills kopplingen är borta. Skriv därför raden direkt och nämn den i
+   rundans slutrapport till Leonard.
 
 Kategorin kontrolleras alltså två gånger med olika uppgift. Här avgörs *var* varan hör
 hemma, utan att texten är skriven. I steg 5 prövas den mot sökordskategorins påståenden.
