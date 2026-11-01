@@ -63,7 +63,10 @@ efter det med ögonen.
 **Bilderna.** Importen tog sex bilder enligt Leonards regel (`lib/vevor/bilder.ts`). Står
 `vevorGranskning.bildgranskning` på `true` var mönstret ovanligt, och då granskar du varje
 bild extra noga. Blir det färre än fem kvar efter strykningen beskär du enligt undantaget i
-runbookens *3. Bilderna före texten*. Räcker inte det flaggar du produkten i
+runbookens *3. Bilderna före texten*. Kör `gate-bilddubblett.py` före strykningen: VEVOR lägger
+ofta samma helbild två gånger med olika skala eller en hängetikett på den ena (olivträdet,
+eukalyptusträdet, guldrörspalmen och betelnötspalmen i runda-vevor-2), och dubbletten stryks
+även om sidan då får färre än fem bilder *(Leonard 2026-11-01)*. Räcker inte det flaggar du produkten i
 `FLAGGADE-VEVOR.md`: det finns
 inget verktyg som hämtar VEVOR:s övriga bilder. En familj som importerades före 2026-10-30
 kan ha syskonens bilder blandade: kör **"VEVOR — rätta familjernas bilder"** (`plan`) först.

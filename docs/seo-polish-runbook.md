@@ -694,7 +694,14 @@ när den bär:
   logotyp på ljus vägg eller himmel kör du `bygg-ghost.py`, som gör den synlig.
 - en annan färgvariant, modell, storlek eller konfiguration än den som säljs
 - samma scen från samma vinkel som en annan bild i galleriet, eller en miljöscen som ett
-  publicerat syskon redan bär
+  publicerat syskon redan bär. ☠️ **Det gäller också när skalan, beskärningen eller en
+  hängetikett skiljer** *(Leonard 2026-11-01, om olivträdets position 3 och 4, som
+  leverantören lagt in två gånger)*. Leverantörerna gör det ofta, och ögat missar det på ett
+  kontaktark. Kör därför `gate-bilddubblett.py` i rundans katalog innan du bygger planen: den
+  mäter varje par och fäller under 0,02. Stryk den ena, aldrig den som blir huvudbild, och
+  helst den med hängetikett eller sämre beskärning. Ser du med ögonen att vinkeln skiljer
+  kvitterar du paret i `bilddubblett-ok.txt` (`kort pos1 pos2 skäl`). En dubblett fyller aldrig
+  upp till fem bilder.
 
 **Behåll** text som sitter fysiskt på varan (knappar, märket på godset), en måttritning som
 bara har siffror och enheter, och text och märken på rekvisitan i en miljöbild: förpackningar,
@@ -747,6 +754,11 @@ den ena.
 
 Rundan bearbetar inga bilder utom beskärningen i undantaget ovan, den väljer bland dem som
 finns. Metoderna står i [`polish/bildmetoder.md`](polish/bildmetoder.md).
+
+**En miljöbild med en annan kruka eller ett annat föremål än det som säljs** stryks, utom när
+sidan annars hamnar under fem bilder. Då får den stå kvar *(Leonard 2026-11-01, om ficusens
+grå kruka)*, med en rad i vanliga frågor eller beskrivningen som säger att krukan i bilden
+inte ingår. Alt-texten beskriver det bilden visar, alltså den grå krukan.
 
 **Minst fem bilder per produkt** *(Leonard 2026-10-07)*. Räcker de rena bilderna inte efter
 strykningen hämtar du fler enligt nästa stycke, och finns det text som går att skära bort beskär
@@ -1328,6 +1340,7 @@ Bygget kör grindarna i tur och ordning och vägrar skriva planen vid ett enda f
 | `gate-superlativ.py` | superlativ om sortimentet; `superlativ.txt` kvitterar bara en träff som inte rankar |
 | `bygg-axelfacit.py`, `gate-axel.py` | bredd, djup och höjd mot källans totalmått |
 | `bygg-media.py` | bygger `nyttolast-media.json` på nytt ur `bilder.tsv`, `bilder-bort.tsv` och `alt.tsv` |
+| `gate-bilddubblett.py` | samma foto från samma vinkel två gånger på en sida (körs för sig, inte i bygget; kräver numpy och Pillow och hämtar bilderna från wixstatic till `orig/fid-*.jpg`) |
 
 Rätta fynden i filerna, aldrig i grinden. Går ett fynd inte att laga i filerna, till exempel
 när källan saknar totalmått, kvitterar du det i `grind-undantag.txt` (`<skript> <skäl>`);
