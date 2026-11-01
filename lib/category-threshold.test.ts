@@ -138,9 +138,9 @@ test("tröskeln gäller all huvudnavigation, inte bara mega-menyn", () => {
 });
 
 test("en avdelning räknar sina underkategoriers produkter, varje produkt en gång", () => {
-  // Verktyg & Fordon (uppmätt på sajten 2026-10-11) har produkter bara i sina
-  // underkategorier. Räknades bara avdelningens egna blev det noll, och sidan
-  // fick noindex fast den visade hela avdelningen.
+  // Verktyg & Fordon (i dag Verktyg & Maskiner, uppmätt på sajten 2026-10-11)
+  // har produkter bara i sina underkategorier. Räknades bara avdelningens egna
+  // blev det noll, och sidan fick noindex fast den visade hela avdelningen.
   const kategorier = [
     { id: "jul", parentId: null },
     { id: "julgranar", parentId: "jul" },

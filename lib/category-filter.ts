@@ -41,9 +41,10 @@ export function keepCategory(categoryId: string, used: ReadonlySet<string>): boo
  * `used` plus varje förälder till en använd kategori.
  *
  * Wix lägger inte en produkt i föräldern bara för att den ligger i en
- * underkategori. Jul & Högtider och Verktyg & Fordon (2026-10-01) har bara
- * underkategorier och inga egna produkter, så de sållades bort: menyn saknade
- * båda avdelningarna och /kategori/jul-hogtider gick till /butik, fast
+ * underkategori. Jul & Högtider och Verktyg & Fordon (2026-10-01, i dag
+ * Verktyg & Maskiner) har bara underkategorier och inga egna produkter, så de
+ * sållades bort: menyn saknade båda avdelningarna och /kategori/jul-hogtider
+ * gick till /butik, fast
  * avdelningssidan själv räknar med underkategoriernas produkter.
  */
 export function medForaldrar(

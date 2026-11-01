@@ -232,6 +232,12 @@ const nextConfig: NextConfig = {
       { source: "/kategori/leksaker-aktivering", destination: "/kategori/leksaker-spel", permanent: true },
       { source: "/kategori/mode", destination: "/kategori/friluftsliv-resa", permanent: true },
 
+      // VEVOR-trädet 2026-10-31: Verktyg & Fordon heter Verktyg & Maskiner i Wix.
+      // Butiken räknar adressen ur namnet (lib/category-slug.ts), så den gamla
+      // adressen hade svarat 404 efter namnbytet. Bil & släp och Elbilsladdning &
+      // solenergi flyttade till Bil & Garage men har kvar sina adresser.
+      { source: "/kategori/verktyg-fordon", destination: "/kategori/verktyg-maskiner", permanent: true },
+
       // Gamla Wix-sajtens rot-adresser (ihopskrivna slugs, ofta med åäö).
       { source: "/barn-och-familj", destination: "/kategori/barn-familj", permanent: true },
       { source: "/hem-elektronik", destination: "/kategori/smart-hem-sakerhet", permanent: true },

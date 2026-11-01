@@ -1476,9 +1476,16 @@ export type Collection = { id: string; name: string; slug: string; parentId: str
 // Top-level (parentless) categories shown first; everything else follows. The
 // Wix V3 restructure (2026-05-31) made the 8 mains exactly the parentless
 // categories, ordered here by catalog size (largest first).
+//
+// Inte menyns ordning: menyn ordnas med AVDELNINGSORDNING i lib/meny-grupper.ts.
+// Den här ordningen avgör 404-sidans "Populära kategorier" (de sex första) och
+// i vilken ordning mixByCategory blandar kategorierna. VEVOR-trädet 2026-10-31
+// döpte om Verktyg & Fordon till Verktyg & Maskiner och lade till tre
+// avdelningar sist, så att de räknas som avdelningar före underkategorierna.
 const MAIN_ORDER = [
   "Möbler", "Hem & Inredning", "Kök & Husgeråd", "Trädgård & Utemöbler", "Jul & Högtider",
-  "Barn & Familj", "Husdjur", "Sport & Fritid", "Skönhet & Hälsa", "Verktyg & Fordon",
+  "Barn & Familj", "Husdjur", "Sport & Fritid", "Skönhet & Hälsa", "Verktyg & Maskiner",
+  "Bygg & Renovering", "Bil & Garage", "Företag & Proffs",
 ];
 
 let collectionsPromise: Promise<Collection[]> | null = null;
@@ -1539,8 +1546,9 @@ async function fetchCollections(): Promise<Collection[]> {
       parentId: (c.parentCategory && c.parentCategory._id) || null,
       index: (c.parentCategory && typeof c.parentCategory.index === "number") ? c.parentCategory.index : 0,
     }));
-    // En avdelning med bara underkategorier (Jul & Högtider, Verktyg & Fordon)
-    // har inga egna produkter i Wix. Den räknas som använd när en underkategori är det.
+    // En avdelning med bara underkategorier (Jul & Högtider, Verktyg & Maskiner,
+    // Bil & Garage) har inga egna produkter i Wix. Den räknas som använd när en
+    // underkategori är det.
     const anvanda = medForaldrar(used, raa);
     const list: Collection[] = raa
       .filter((c: { id: string; name: string }) =>

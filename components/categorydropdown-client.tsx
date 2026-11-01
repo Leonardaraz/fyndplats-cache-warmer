@@ -1,6 +1,7 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { CategoryNode } from "../lib/category-groups";
+import { aktivGruppId, scrollTillAktiv } from "../lib/kategori-scroll";
 import { tusental } from "../lib/rating";
 
 // Premium "Kategorier ▾"-dropdown:
@@ -9,6 +10,8 @@ import { tusental } from "../lib/rating";
 //     subkategorier indragna med count-badges. Aktiv kategori markeras i orange.
 //   • Mobil: panel slår om till en bottom-sheet (full-bredd, slide-up + backdrop).
 //   • Stänger på Escape, klick utanför eller efter navigering.
+//   • Öppnas vid den aktiva kategorins grupp, så att dess underkategorier syns
+//     direkt (lib/kategori-scroll.ts).
 //
 // Länkar går till /kategori/[slug] (eller /alla-produkter för "Alla") – samma URL-
 // struktur som tidigare CatNav, så SEO och bakåt-länkar bevaras.
@@ -19,6 +22,8 @@ export function CategoryDropdownClient({ tree, totalProducts, activeSlug }: {
 }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const gruppId = aktivGruppId(tree, activeSlug);
 
   // Hitta vad knappen ska visa när stängd
   let activeLabel = "Alla kategorier";
@@ -53,6 +58,28 @@ export function CategoryDropdownClient({ tree, totalProducts, activeSlug }: {
     };
   }, [open]);
 
+  // Lägg den aktiva kategorins grupp överst i listan när den öppnas. Före
+  // målningen, så att listan aldrig syns överst först. Panelen monteras vid
+  // varje öppning, så scrollTop är 0 här.
+  useLayoutEffect(() => {
+    if (!open || !gruppId) return;
+    const kropp = bodyRef.current;
+    const grupp = kropp?.querySelector<HTMLElement>('[data-aktiv-grupp="ja"]');
+    const aktiv = grupp?.querySelector<HTMLElement>("a.active") ?? grupp;
+    if (!kropp || !grupp || !aktiv) return;
+    const k = kropp.getBoundingClientRect();
+    const g = grupp.getBoundingClientRect();
+    const a = aktiv.getBoundingClientRect();
+    kropp.scrollTop = scrollTillAktiv({
+      scrollTop: kropp.scrollTop,
+      kroppTopp: k.top,
+      hojd: kropp.clientHeight,
+      gruppTopp: g.top,
+      aktivTopp: a.top,
+      aktivBotten: a.bottom,
+    });
+  }, [open, gruppId]);
+
   const isActive = (slug?: string) => !!slug && slug === activeSlug;
 
   return (
@@ -81,7 +108,7 @@ export function CategoryDropdownClient({ tree, totalProducts, activeSlug }: {
               <span>Alla kategorier</span>
               <button type="button" className="catdrop-close" aria-label="Stäng kategorier" onClick={() => setOpen(false)}>✕</button>
             </div>
-            <div className="catdrop-panel-body">
+            <div className="catdrop-panel-body" ref={bodyRef}>
               <a
                 className={`catdrop-all ${!activeSlug ? "active" : ""}`}
                 href="/alla-produkter"
@@ -93,7 +120,11 @@ export function CategoryDropdownClient({ tree, totalProducts, activeSlug }: {
 
               <div className="catdrop-tree">
                 {tree.map((root) => (
-                  <div className="catdrop-group" key={root.id}>
+                  <div
+                    className="catdrop-group"
+                    key={root.id}
+                    data-aktiv-grupp={root.id === gruppId ? "ja" : undefined}
+                  >
                     <a
                       className={`catdrop-main ${isActive(root.slug) ? "active" : ""}`}
                       href={`/kategori/${root.slug}`}

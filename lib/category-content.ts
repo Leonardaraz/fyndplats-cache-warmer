@@ -151,7 +151,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   "sport-fritid": {
     intro: [
-      "Sport & Fritid samlar det du tränar med hemma och det du tar med dig ut. I menyn är avdelningen delad i tre grupper: Träning, Spel & bollsport och Fritid. Bilprodukterna som tidigare låg här har flyttat till avdelningen Verktyg & Fordon.",
+      "Sport & Fritid samlar det du tränar med hemma och det du tar med dig ut. I menyn är avdelningen delad i tre grupper: Träning, Spel & bollsport och Fritid. Bilprodukterna som tidigare låg här har flyttat till avdelningen Bil & Garage.",
       "Under Träning finns Träning & Gym med gymstationer, spinningcyklar och stepbrädor, Hantlar & hantelset med hexhantlar, skivstänger och hantelställ, och Träningsbänkar som fälls ihop eller ställs i flera ryggvinklar. Motionscyklar har också pedaltränare för armar och ben, Boxningssäckar har boxställ och punchingbollar, och den nya underkategorin Träningskläder har yogabyxor, sport-bh och sömlösa träningsset i många färger.",
       "Gruppen Spel & bollsport har två nya underkategorier: Spel & bordsspel har pingisbord, biljardbord, pokerset och elektroniska darttavlor, och Bollsport har basketkorgar för väggen, basketställ, fotbollsmål och volleybollnät. Under Fritid finns Friluftsliv & Resa med tält, campingstolar och resväskor, Bil & Cykel med cykelkärror, cykelställ, cykellås och cykelväskor, och nya Hobby & musik med staffli, teleskop, metalldetektorer, tungtrummor och handpan.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
@@ -159,7 +159,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     faq: [
       {
         q: "Var hittar jag biltillbehören?",
-        a: "De har flyttat till avdelningen Verktyg & Fordon. Där ligger takräcken, takkorgar, domkrafter, dieselvärmare och vinschar under Bil & släp, och laddare för elbil under Elbilsladdning & solenergi. Under Bil & Cykel här finns i huvudsak cykeltillbehör.",
+        a: "De har flyttat till avdelningen Bil & Garage. Där ligger takräcken, takkorgar, domkrafter, dieselvärmare och vinschar under Bil & släp, och laddare för elbil under Elbilsladdning & solenergi. Under Bil & Cykel här finns i huvudsak cykeltillbehör.",
       },
       {
         q: "Hur väljer jag träningsbänk och hantlar?",
@@ -3053,25 +3053,53 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       },
     ],
   },
-  "verktyg-fordon": {
+  // VEVOR-trädet 2026-10-31. Avdelningen hette Verktyg & Fordon, och bilen,
+  // släpet och elbilsladdningen flyttade till Bil & Garage. Texten beskriver
+  // bara underkategorierna som är synliga den kvällen, avstämda mot sajten.
+  // De nya underkategorierna är dolda tills de har produkter, och då skrivs
+  // texten om.
+  "verktyg-maskiner": {
     intro: [
-      "Verktyg & Fordon samlar det som behövs i verkstaden och garaget och det som hör bilen, släpet och den egna elen till. Avdelningen har två delar i menyn: Verktyg, med Verktygsvagnar & verktygslådor och Verktyg & Hemmafix, och Fordon, med Bil & släp och Elbilsladdning & solenergi.",
-      "Under Verktygsvagnar & verktygslådor finns vagnar och skåp på hjul med låsbara lådor, verkstadsvagnar med öppna plan, verktygslådor att bära och väggskåp i stål. Verktyg & Hemmafix har sågbockar och verkstadsbänkar, väggfräsar och svets, skjutdörrsbeslag, säckkärror, stegar och verktyg för el och rör.",
-      "Bil & släp samlar domkrafter och bilramper, takräcke, takkorg och takväska, handvinschar för båt och trailer, lyftar och stöd för motorcykeln, dieselvärmare, spännband och starthjälp. Under Elbilsladdning & solenergi finns portabla elbilsladdare för vanligt vägguttag, en laddkabel till laddboxen, solpaneler för husbil, båt och fritidshus och en hybridväxelriktare för ett eget elsystem.",
+      "Verktyg & Maskiner samlar det som behövs i verkstaden, i garaget och när du bygger eller lagar något hemma. Här finns Verktygsvagnar & verktygslådor och Verktyg & Hemmafix. Det som hör bilen, släpet och elbilsladdningen till finns i avdelningen Bil & Garage.",
+      "Under Verktygsvagnar & verktygslådor finns vagnar med låsbara lådor, verkstadsvagnar med öppna plan, verktygsskåp på hjul och för väggen och verktygslådor att bära. Vagnarna är av pulverlackerat stål och har upp till 16 lådor. På de flesta går två av hjulen att låsa, så att vagnen står still när du arbetar.",
+      "Verktyg & Hemmafix har sågbockar, arbetsbockar och verkstadsbänkar, kapsågsstativ och rullstöd, väggfräsar som fräser spår i betong och tegel, en MIG-svets och en CNC-fräs. Där finns också skjutdörrsbeslag för dörrar och möbler, säckkärror och transportvagnar, en trappstege och en arbetsplattform, slangvindor för tryckluft och en högtryckstvätt.",
+      "Läs bärförmågan innan du väljer. Den står per bock, per låda och per plan, och måtten och materialet står i varje produktbeskrivning.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
-        q: "Var hittar jag verktygslådor och förvaring för verktyg?",
-        a: "Under Verktygsvagnar & verktygslådor. Där finns både vagnar med lådor och nyckellås, öppna verkstadsvagnar och bärbara lådor. Väggskåp och garagehyllor i stål finns också under Verktyg & Hemmafix.",
+        q: "Var hittar jag det som hör bilen till?",
+        a: "I avdelningen Bil & Garage. Där ligger domkrafter, takräcken, takkorgar, dieselvärmare och handvinschar under Bil & släp, och laddare för elbil och solpaneler under Elbilsladdning & solenergi. Handvinscharna för båt och trailer finns också kvar under Verktyg & Hemmafix.",
       },
       {
-        q: "Var ligger handvinscharna?",
-        a: "Handvinscharna för båt och trailer finns under Bil & släp och även under Verktyg & Hemmafix. Välj efter vikten på båten och trailern, med marginal för rampens lutning.",
+        q: "Var hittar jag verktygslådor och förvaring för verktyg?",
+        a: "Under Verktygsvagnar & verktygslådor. Där finns vagnar med lådor och lås, öppna verkstadsvagnar, verktygsskåp och lådor att bära. Garagehyllor i stål och en verktygsvägg med hålplåt finns under Verktyg & Hemmafix.",
       },
+    ],
+  },
+  // VEVOR-trädet 2026-10-31. Bil & släp och Elbilsladdning & solenergi
+  // flyttade hit från Verktyg & Maskiner. Texten beskriver bara de två, som var
+  // avdelningens enda synliga underkategorier den kvällen, avstämda mot sajten.
+  "bil-garage": {
+    intro: [
+      "Bil & Garage samlar det som hör bilen, släpet, husvagnen och motorcykeln till, och det som laddar elbilen. Här finns Bil & släp och Elbilsladdning & solenergi.",
+      "Under Bil & släp finns garagedomkrafter, en luftdomkraft och bilramper för service hemma, och pallbockar att ställa bilen på. För lasten på taket finns takräcke, takkorgar och takväska, och med handvinscharna drar du upp båten på trailern. För motorcykeln finns lyftar och stöd för fram- och bakhjulet. Där finns också dieselvärmare som värmer kupén utan att motorn går, spännband, lastramper, starthjälp och stödben och överdrag till husvagnen.",
+      "Elbilsladdning & solenergi har portabla laddare som ansluts till ett jordat vägguttag och en laddkabel med Typ 2 i båda ändar för laddbox och laddstolpe. Där finns också en stel solpanel för 12V-batterier i husbil, båt och fritidshus, en hopfällbar solpanel som laddar mobilen via USB och en hybridväxelriktare för ett eget elsystem.",
+      "Kontrollera vad bilen och taket tål innan du lastar, och ställ alltid bilen på pallbockar eller ramper innan du lägger dig under den. Maxlast, mått och effekt står i varje produktbeskrivning.",
+      "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
+    ],
+    faq: [
       {
         q: "Kan jag ladda elbilen utan laddbox?",
         a: "Ja, de portabla elbilsladdarna under Elbilsladdning & solenergi ansluts till ett vanligt jordat vägguttag. Laddkabeln med samma kontakt i båda ändar behöver däremot en laddbox eller en laddstolpe.",
+      },
+      {
+        q: "Var ligger handvinscharna?",
+        a: "Handvinscharna för båt och trailer finns under Bil & släp och även under Verktyg & Hemmafix i avdelningen Verktyg & Maskiner. Välj efter vikten på båten och trailern, med marginal för rampens lutning.",
+      },
+      {
+        q: "Var hittar jag cykeltillbehör?",
+        a: "Cykelkärror, cykelställ, cykellås och cykelväskor ligger under Bil & Cykel i avdelningen Sport & Fritid.",
       },
     ],
   },

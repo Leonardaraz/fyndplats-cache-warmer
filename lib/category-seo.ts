@@ -690,10 +690,19 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
     description:
       "Kompakta torktumlare för 2,5 till 5 kg, torkställ och torktorn, städvagnar och mopphinkar med press, ångstation, klädångare och en fönsterputsrobot.",
   },
-  "verktyg-fordon": {
-    title: "Verkstad & fordon – maskiner, bil och solel",
+  // VEVOR-trädet 2026-10-31. Verktyg & Fordon heter Verktyg & Maskiner, och
+  // bilen och elbilsladdningen har en egen avdelning, Bil & Garage. Titlarna
+  // undviker underkategoriernas ord (verktygsvagn, domkraft, elbilsladd), så
+  // att avdelningen inte konkurrerar med sina egna sidor.
+  "verktyg-maskiner": {
+    title: "Verktyg & maskiner till verkstaden och garaget",
     description:
-      "Verktygslådor och verktygsskåp, sågbockar och fräsar, domkrafter och takräcken, handvinschar, elbilsladdare och solpaneler samlade under en avdelning.",
+      "Verktygsvagnar och verktygslådor med lås, sågbockar och verkstadsbänkar, väggfräsar, MIG-svets, skjutdörrsbeslag, säckkärror och slangvindor för tryckluft.",
+  },
+  "bil-garage": {
+    title: "Bilutrustning för bilen, släpet och husvagnen",
+    description:
+      "Domkrafter och bilramper, takräcken och takkorgar, handvinschar, dieselvärmare, mc-lyftar, portabla elbilsladdare och solpaneler för husbil och båt.",
   },
 };
 
