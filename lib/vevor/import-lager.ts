@@ -52,6 +52,12 @@ export interface Importsummering {
   };
   /** VEVOR:s recensioner på de importerade produkterna, som dolda rader. Saknas före steg 8. */
   recensioner?: { lasta: number; sparade: number; produkter: number; fel: number };
+  /**
+   * Kategorierna (lib/vevor/kategorier.ts): produkter kopplade till avdelning och
+   * underkategori, utan regel, vapenskåp och spritapparater (ingen kategori) och
+   * fel. Saknas före 2026-10-31.
+   */
+  kategorier?: { kopplade: number; omappade: number; vapenskap: number; spritapparat?: number; fel: number };
   produkterIWix: number | null;
   /** Gick körningen till slutet av avläsningarna? Då börjar nästa varv från början. */
   varvKlart: boolean;

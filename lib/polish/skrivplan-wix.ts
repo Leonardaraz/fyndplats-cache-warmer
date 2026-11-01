@@ -2,7 +2,7 @@
 //
 // Återförsök bara på läsningar och bara på det övergående: 429, 5xx och
 // nätverksfel, 1 s och 3 s. En läsning är en GET eller en POST som frågar eller
-// söker (`/query`, `/search`, `/query-variants`): den ändrar ingenting, så ett
+// söker (`/query`, `/search`, `/query-variants`, `/list-items`): den ändrar ingenting, så ett
 // andra försök kan inte ge en dubbel skrivning. En skrivning försöks aldrig om.
 // En PATCH bär revisionen, och ett andra försök efter en skrivning som faktiskt
 // tog hade bara gett ett revisionsfel som ser ut som ett misslyckande. En
@@ -18,7 +18,7 @@ const WIX_BASE = "https://www.wixapis.com";
  * en skrivning som har `/query` mitt i adressen eller i frågesträngen räknas
  * inte. Ett nytt läsande slutled läggs till här och i testet.
  */
-const LASANDE_POST = /\/(?:query|search|query-variants)$/;
+const LASANDE_POST = /\/(?:query|search|query-variants|list-items)$/;
 
 /** Går anropet att göra om utan risk: en GET, eller en POST som bara frågar eller söker. */
 export function arLasning(metod: string, sokvag: string): boolean {

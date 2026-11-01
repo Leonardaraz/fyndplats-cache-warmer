@@ -547,6 +547,7 @@ function QueueCard({
         <PolishButton
           wixProductId={p.wixProductId}
           title={p.seoTitle}
+          leverantor={mappingSupplier(p)}
         />
       ) : null}
 
@@ -758,6 +759,22 @@ function VevorBadges({ g }: { g: NonNullable<ProductMappingRecord["vevorGranskni
       >
         📄 GPSR: {gpsrStatusText(g.gpsr)}
       </span>
+      {g.vapenskap ? (
+        <span
+          title="Vapenskåp eller vapenfodral. Publiceras inte (Leonards beslut 2026-10-31)."
+          style={stil("#fee2e2", "#991b1b", "#fca5a5")}
+        >
+          🔒 Vapenskåp, publiceras inte
+        </span>
+      ) : null}
+      {g.spritapparat ? (
+        <span
+          title="Destillator som uppenbarligen är ägnad för sprit. Får inte säljas (alkohollagen 2 kap. 1 §)."
+          style={stil("#fee2e2", "#991b1b", "#fca5a5")}
+        >
+          🔒 Spritapparat, publiceras inte
+        </span>
+      ) : null}
       {g.medicinteknik ? (
         <span
           title="Kategorin kan vara medicinteknik. Kontrollera CE-märkning och dokument före publicering."

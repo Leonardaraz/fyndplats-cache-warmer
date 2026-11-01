@@ -41,6 +41,7 @@ import { sidadress } from "./sida";
 import { vevorLandadKostnadSek } from "./pris";
 import type { Bildval } from "./bilder";
 import type { VevorGranskning } from "./granskning";
+import { radHarModellnummer } from "@/lib/polish/modellnummer";
 
 /** Äldre avläsning än så importeras inte. Läsaren läser utkasten en gång per dygn. */
 export const MAX_ALDER_IMPORT_MS = 48 * 3_600_000;
@@ -234,14 +235,64 @@ export function vevorProdukt(a: Avlasning, pris: Prisunderlag, bilder: Bildval):
   };
 }
 
+/**
+ * Raderna som bär VEVOR:s modell- eller artikelnummer (Leonard 2026-10-31: "ta
+ * bort det från oss så man inte kan söka upp"). En sökning på numret leder till
+ * VEVOR:s egen sida med deras pris. Uppmätt samma dag på 15 297 avläsningar:
+ * "Artikelmodellnummer" på 12 539, "Modell" på 1 147, "Artikelnummer" på 605,
+ * och "Produktmodell", "Modellnummer", "Artikelmodell", "Artikelnummer Modell"
+ * och "ltem modellnummer" (VEVOR:s stavning) på färre.
+ *
+ * "Modell" tas bara bort när värdet är en kod (en siffra och inga ord med
+ * gemener): "Modell: Premium" säger något om varan, "Modell: DT806" gör det
+ * inte. Rader om vilket fordon eller vilken modell varan passar till står kvar
+ * ("Kompatibel bilmodell", "OE-nummer"): kunden behöver dem.
+ */
+const IDENTIFIERARE = new Set([
+  "artikelmodellnummer",
+  "artikelmodell",
+  "artikelnummer",
+  "artikelnummer modell",
+  "artikelnr",
+  "modellnummer",
+  "modellnr",
+  "produktmodell",
+  "item modellnummer",
+  "ltem modellnummer",
+  "sku",
+  "mpn",
+  "ean",
+  "gtin",
+  "upc",
+]);
+
+export function arIdentifierarRad(etikett: string, varde: string): boolean {
+  const k = etikett.replace(/\s+/g, " ").trim().toLowerCase().replace(/[:.]+$/, "");
+  if (IDENTIFIERARE.has(k)) return true;
+  if (k === "modell" && /\d/.test(varde) && !/[a-zåäöü]{3,}/.test(varde)) return true;
+  // ☠️ Allt poleringens grind fäller tas också bort (lib/polish/modellnummer.ts):
+  // "Modell: <kod> <ord>" och VEVOR:s dubblerade "Artikelmodell
+  // Artikelmodellnummer". Annars stod raden kvar, och specifikationsverktyget
+  // skrev om fliken varje körning utan att den blev rätt (21 sidor 2026-11-01).
+  return radHarModellnummer(etikett, varde);
+}
+
+/**
+ * VEVOR:s nya sidmall lägger ibland nästa rads etikett sist i värdet
+ * ("Nettovikt: <vikt> Artikelmodellnummer", uppmätt 2026-11-01). Etiketten tas
+ * bort, och värdet står kvar.
+ */
+const IDENTIFIERAR_SVANS = /\s+(?:artikelmodellnummer|artikelmodell|artikelnummer|artikelnr|modellnummer|modellnr|produktmodell)[\s:]*$/i;
+
 /** Specifikationstabellen, sedan variantens egna värden som inte redan står där. */
 export function specifikation(a: Pick<Avlasning, "spec" | "egenskaper">): Record<string, string> {
   const ut: Record<string, string> = {};
   const sedda = new Set<string>();
   for (const [k, v] of [...a.spec, ...a.egenskaper]) {
     const nyckel = k.trim();
-    const varde = v.trim();
+    const varde = v.trim().replace(IDENTIFIERAR_SVANS, "").trim();
     if (!nyckel || !varde || sedda.has(nyckel.toLowerCase())) continue;
+    if (arIdentifierarRad(nyckel, varde)) continue;
     sedda.add(nyckel.toLowerCase());
     ut[nyckel] = varde;
   }

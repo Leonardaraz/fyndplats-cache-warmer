@@ -89,7 +89,22 @@ RIBBON_UNDANTAG = {"EU-lager"}
 # avsnittet Produktsakerhet.
 GPSR_FLIK = re.compile(
     r'<details class="pdp-flik"><summary>Produkts(?:ä|a|&#228;|&auml;)kerhet</summary>(.*?)</details>', re.S)
+# Butikens egna rader om bruksanvisningen (headless-site lib/gpsr-flik.ts), en
+# per leverantor. De star inte i kallfilen och klipps bort fore orddiffen.
+# ☠️ VEVOR har en egen, villkorad rad (2026-10-29). Kandes den inte blev den en
+# extra rad i orddiffen pa varje VEVOR-sida (2026-10-31).
 GPSR_BRUKSANVISNING = "Läs bruksanvisningen som följer med varan före montering och användning, och spara den."
+GPSR_BRUKSANVISNING_OM = "Följer en bruksanvisning med varan: läs den före montering och användning, och spara den."
+GPSR_BUTIKENS_RADER = {GPSR_BRUKSANVISNING, GPSR_BRUKSANVISNING_OM}
+
+
+def gpsr_har_tillverkare(kropp):
+    """Aosoms flik har EN part, "Tillverkare och ansvarig i EU". VEVOR:s har tva,
+    "Tillverkare" och "Ansvarig i EU" var for sig (motorns steg 7). Bada formerna
+    ar tillverkaren; att bara kanna den forsta fallde varje VEVOR-sida."""
+    t = html.unescape(kropp)
+    return "Tillverkare och ansvarig i EU" in t or (
+        re.search(r"\bTillverkare\b", t) is not None and "Ansvarig i EU" in t)
 
 
 def gpsr_utklipp(live):
@@ -103,10 +118,41 @@ def gpsr_utklipp(live):
     kropp = m.group(1)
     rader = [" ".join(html.unescape(re.sub(r"<[^>]+>", " ", x)).split())
              for x in re.findall(r"<li[^>]*>(.*?)</li>", kropp, re.S)]
-    rader = [r for r in rader if r and r != GPSR_BRUKSANVISNING]
-    tillverkare = "Tillverkare och ansvarig i EU" in html.unescape(kropp)
+    rader = [r for r in rader if r and r not in GPSR_BUTIKENS_RADER]
+    tillverkare = gpsr_har_tillverkare(kropp)
     ersatt = "<h2>Produktsäkerhet</h2><ul>" + "".join(f"<li>{html.escape(r)}</li>" for r in rader) + "</ul>"
     return live[:m.start()] + ersatt + live[m.end():], rader, True, tillverkare
+
+
+def _prov():
+    """Sjalvprov: python3 livegrind.py --prov. Kor utan rundans filer."""
+    def flik(inre):
+        return f'<p>x</p><details class="pdp-flik"><summary>Produktsäkerhet</summary>{inre}</details><p>y</p>'
+    aosom = flik("<p><strong>Tillverkare och ansvarig i EU</strong></p><ul><li>Maxbelastning: 120 kg.</li>"
+                 f"<li>{GPSR_BRUKSANVISNING}</li></ul>")
+    vevor = flik("<p><strong>Tillverkare</strong></p><p>A</p><p><strong>Ansvarig i EU</strong></p><p>B</p>"
+                 f"<ul><li>Maxbelastning: 120 kg.</li><li>{GPSR_BRUKSANVISNING_OM}</li></ul>")
+    utan = flik("<ul><li>Maxbelastning: 120 kg.</li></ul>")
+    halv = flik("<p><strong>Tillverkare</strong></p><ul><li>Maxbelastning: 120 kg.</li></ul>")
+    fel = []
+    for namn, sida, vantat in (("aosom", aosom, True), ("vevor", vevor, True), ("utan", utan, False),
+                               ("bara tillverkare", halv, False)):
+        _, rader, fanns, tv = gpsr_utklipp(sida)
+        if not fanns:
+            fel.append(f"{namn}: fliken hittades inte")
+        if tv != vantat:
+            fel.append(f"{namn}: tillverkaren {'saknas' if vantat else 'hittades'}")
+        if rader != ["Maxbelastning: 120 kg."]:
+            fel.append(f"{namn}: raderna blev {rader!r}")
+    if fel:
+        print("PROV FALLER:\n  " + "\n  ".join(fel))
+        sys.exit(1)
+    print("PROV OK: Aosoms och VEVOR:s flik")
+    sys.exit(0)
+
+
+if len(sys.argv) > 1 and sys.argv[1] == "--prov":
+    _prov()
 
 LIVE_GRINDAR = [("HUSMARKE", MARKEN), ("ARTIKELNUMMER", ARTNR), ("LAND", LAND),
                 ("LEVERANTOR", LEV), ("TYSKT", TYSKA), ("HOMOGLYF", HOMO)]
@@ -246,7 +292,11 @@ for rad in open("slugs.txt", encoding="utf-8"):
     if len(_led) < 2:
         problem.append("KATEGORI: ingen brödsmula på sidan")
     elif _led[1] == "Butik":
-        problem.append("KATEGORI SAKNAS: brödsmulan går Hem / Butik / produkt")
+        # En produkt vars alla kategorier ar dolda i Wix far ocksa den har brodsmulan:
+        # butiken bygger den ur de synliga. De nya VEVOR-kategorierna ar dolda tills
+        # de har tio publicerade produkter (lib/vevor/kategorier-synlighet.ts).
+        problem.append("KATEGORI SAKNAS: brödsmulan går Hem / Butik / produkt"
+                       " (eller är alla produktens kategorier dolda i Wix)")
 
     # --- 3e. KOPBARHETEN (#148) ---
     #

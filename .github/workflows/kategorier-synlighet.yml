@@ -1,0 +1,59 @@
+name: Kategorier — visa nya kategorier med minst tio produkter
+
+# Samma körning som cronen (varje timme, minut 37): nya dolda kategorier som
+# reglerna i lib/vevor/kategorier.ts lägger varor i blir synliga när de har
+# minst tio publicerade produkter (Leonard 2026-10-31). Avdelningen före
+# underkategorin. Ingenting döljs. Logiken står i
+# lib/vevor/kategorier-synlighet.ts.
+#
+#   torr   räknar och säger vad som skulle visas. Skriver ingenting.
+#   skarp  visar kategorierna och ber butiken bygga om sitemapen, startsidan
+#          och /butik.
+#
+# Skriver bara kategorinamn, id och antal. Repot är publikt.
+
+on:
+  workflow_dispatch:
+    inputs:
+      lage:
+        description: "torr eller skarp"
+        required: true
+        default: torr
+        type: choice
+        options: [torr, skarp]
+
+concurrency:
+  group: kategorier-synlighet
+  cancel-in-progress: false
+
+jobs:
+  kor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          LAGE: ${{ inputs.lage }}
+        run: |
+          set -euo pipefail
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          rot="${BASE%/api/cron/poll-tracking}"
+          torr="true"
+          if [ "$LAGE" = "skarp" ]; then torr="false"; fi
+          svar=$(curl -sS --max-time 150 -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${rot}/api/cron/kategorier-synlighet?dryRun=${torr}") || {
+            echo "::error::Anropet gick inte fram" >&2; exit 1; }
+          echo "$svar" | jq '{ok, dryRun, kandidater, visade, vantarPaAvdelning, fel, tradFel, butiken}' || true
+          echo "Under gränsen (namn, synliga produkter):"
+          echo "$svar" | jq -r '.underGransen // [] | sort_by(-.produkter) | .[] | "\(.produkter)\t\(.namn)"' || true
+          if [ "$(echo "$svar" | jq -r '.tradFel | length')" != "0" ]; then
+            echo "::error::Kategoriträdet i Wix saknar regelmål (tradFel ovan). Ingenting visades." >&2; exit 1
+          fi
+          if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+            echo "::error::$(echo "$svar" | jq -r '.error // (.fel | join("; "))')" >&2; exit 1
+          fi

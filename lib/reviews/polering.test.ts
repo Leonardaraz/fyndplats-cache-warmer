@@ -75,6 +75,10 @@ describe("stilfel — husets stil och tvätten", () => {
     expect(stilfel("Bra – men tung")).toContain("tankstreck");
     expect(stilfel("Bra - men tung")).toContain("tankstreck");
     expect(stilfel("Bra; men tung")).toContain("semikolon");
+    // En smilis och en saknad punkt står kvar som kunden skrev (Leonard 2026-10-31).
+    expect(stilfel("Funkar fint ;) rekommenderar")).toEqual([]);
+    expect(stilfel("Snabb leverans och bra kvalitet :-) 😊")).toEqual([]);
+    expect(stilfel("Bra;men tung ;-)")).toContain("semikolon");
     expect(stilfel("Den är \"bra\"")).toContain("citattecken");
     expect(stilfel("Bra…")).toContain("tre punkter");
     expect(stilfel("Sammantaget en bra köp")).toContain("AI-fras");

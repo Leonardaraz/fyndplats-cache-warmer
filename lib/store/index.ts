@@ -315,6 +315,19 @@ export interface ProductMappingRecord {
     medicinteknik: boolean;
     bildmonster: "ny" | "gammal" | "okant";
     bildgranskning: boolean;
+    /**
+     * Ett vapenskåp eller vapenfodral (lib/vevor/kategorier.ts). Publiceras inte
+     * (Leonards beslut 2026-10-31) och får ingen kategori. Saknas på rader från
+     * före 2026-10-31 och på allt som inte är vapenskåp.
+     */
+    vapenskap?: boolean;
+    /**
+     * En destillator som uppenbarligen är ägnad för tillverkning av sprit
+     * (alkohollagen 2 kap. 1 §, lib/vevor/kategorier.ts). Får inte överlåtas,
+     * publiceras alltså inte och får ingen kategori. Saknas på rader från före
+     * 2026-10-31 och på allt annat.
+     */
+    spritapparat?: boolean;
   };
   /**
    * VEVOR: varje artikel produkten bär, med prefix ("vevor:<artikel>"):

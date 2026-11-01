@@ -13,6 +13,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   ARTNR,
+  MODELLNR,
   artikelnummerformer,
   fnv1a64,
   type Publiceringsplan,
@@ -152,6 +153,14 @@ describe("valideraPlan", () => {
     }
   });
 
+  it("☠️ vägrar VEVOR:s modellnummerrad i texten, utan att citera numret (Leonard 2026-10-31)", () => {
+    const v = valideraPlan(plan([produkt({ html: `<p>Text.</p><ul><li><p>Artikelmodellnummer: TEST-77</p></li></ul>` })]));
+    expect("fel" in v).toBe(true);
+    const fel = "fel" in v ? v.fel.join("\n") : "";
+    expect(fel).toMatch(/html har ett modellnummer/);
+    expect(fel).not.toContain("TEST-77");
+  });
+
   it("släpper mått och spänningar som bara ser ut som artikelnummer", () => {
     expect(artikelnummerformer("höjd 150-190 cm, 230-240V, 12-24V och USB-C")).toBe(0);
     expect(artikelnummerformer("ref 999-000Z00ZZ")).toBe(1);
@@ -283,6 +292,33 @@ describe("ARTNR", () => {
     // och kortens HTML bar koder på 17 och 20 tecken som inte är nummer.
     for (const s of ["1234567890123456789", "VERSALERUTANSIFFROR", "testvevor0123456789", "TESTVEVOR01234567", "TESTVEVOR01234567890"]) {
       expect(artikelnummerformer(`ref ${s} här`)).toBe(0);
+    }
+  });
+});
+
+describe("MODELLNR", () => {
+  const GRINDAR = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "tools", "polish-gates");
+
+  it("☠️ är gatelibs MODELLNR tecken för tecken", () => {
+    const python = execFileSync(
+      "python3",
+      ["-c", `import sys; sys.path.insert(0, ${JSON.stringify(GRINDAR)}); from gatelib import MODELLNR; sys.stdout.write(MODELLNR)`],
+      { encoding: "utf-8" },
+    );
+    expect(MODELLNR.source).toBe(python);
+  });
+
+  it("fäller VEVOR:s modellnummerrader och släpper vårt FP-nummer och en modell med ord", () => {
+    for (const s of [
+      '<li><p><span style="font-weight: 700">Artikelmodellnummer:</span> TEST-1</p></li>',
+      "<li><p>Modell: TEST-2</p></li>",
+      "<li><p>Artikelnummer: 12345</p></li>",
+      "<li><p>Produktmodell: TEST-3</p></li>",
+    ]) {
+      expect(MODELLNR.test(s)).toBe(true);
+    }
+    for (const s of ["<li><p>Artikelnummer: FP-test-1</p></li>", "<li><p>Modell: Premium</p></li>", "Kompatibel bilmodell: Testbil"]) {
+      expect(MODELLNR.test(s)).toBe(false);
     }
   });
 });

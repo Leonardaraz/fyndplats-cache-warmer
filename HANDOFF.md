@@ -111,8 +111,6 @@ migration/                     # v1 -> v3 katalog-migration (skilt från ovan)
     ricos.ts                   # HTML -> Ricos via /ricos/v1
     orchestrator.ts            # main: kör alla steg, resumable, dry-run
 
-ping_sitemap.py                # ORIGINAL cache-warmer (rör inte)
-.github/workflows/cache-warm.yml
 ```
 
 ---
@@ -377,8 +375,6 @@ pnpm migrate:run      # SKARP migration (kräver MIGRATION_CONFIRM=1)
 
 ## Att inte göra
 
-- **Rör inte cache-warmern** (`ping_sitemap.py`, `.github/workflows/cache-warm.yml`)
-  — den är produktion och separat.
 - **Pusha aldrig direkt till `main`** — fortsätt på `claude/hej-Lyf8v`
   eller skapa en ny branch.
 - **Kör inte `pnpm migrate:run` utan `MIGRATION_CONFIRM=1`** — och

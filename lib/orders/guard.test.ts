@@ -553,8 +553,16 @@ describe("buildGuardEmail — VEVOR-sidor utan komplett produktsäkerhet", () =>
     expect(email.html).toContain("p2");
   });
 
+  it("☠️ ett publicerat vapenskåp eller en publicerad spritapparat larmar för sig och räknas i ämnesraden", () => {
+    const email = buildGuardEmail(tomma, { sectionErrors: [], baseUrl: "https://example.test", vevorSparrade: ["p9"] }, NOW);
+    expect(email.subject).toMatch(/1 sak behöver dig/);
+    expect(email.text).toContain("VEVOR-SIDOR SOM INTE FÅR SÄLJAS (1)");
+    expect(email.text).toContain("p9");
+    expect(email.html).toContain("alkohollagen");
+  });
+
   it("en tom lista är inget larm", () => {
-    const email = buildGuardEmail(tomma, { sectionErrors: [], baseUrl: "https://example.test", vevorUtanGpsr: [] }, NOW);
+    const email = buildGuardEmail(tomma, { sectionErrors: [], baseUrl: "https://example.test", vevorUtanGpsr: [], vevorSparrade: [] }, NOW);
     expect(email.subject).toMatch(/allt rullar/);
     expect(email.text).not.toContain("VEVOR");
   });

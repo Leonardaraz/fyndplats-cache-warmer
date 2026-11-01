@@ -6,11 +6,19 @@ name: VEVOR — specifikationen på utkast som saknar den
 #
 #   plan   räknar utkast, sidor att rätta och hinder. Skriver ingenting.
 #          `ej_omlast` är sidor som läsaren inte läst om än: vänta ett dygn.
-#   skriv  rättar i varv om fyra minuter tills inget är kvar. Kräver
-#          `bekrafta` = planens antal sidor att rätta. Stannar vid första sida
-#          som inte läser tillbaka som planen.
+#   skriv  läser planen EN gång och skriver sedan dess sidor i tuggor om 150,
+#          så att varje varv bara läser sina egna sidor (planen över hela
+#          katalogen tog 87 sekunder 2026-11-01). Kräver `bekrafta` = planens
+#          antal sidor att rätta. Bara sidor ur planen skrivs: en sida som blir
+#          att rätta under körningen väntar på nästa.
+#
+# Skriv stannar vid första sida som inte läser tillbaka som planen. När Wix
+# stryper takten (429, en sida som är orörd) väntar den 90 sekunder och
+# fortsätter. Inne i Aosoms synkfönster (:12–:29 UTC var tredje timme) skriver
+# den inte: den väntar ut fönstret.
 #
 # Ordningen: plan, skriv med planens antal, plan igen (att rätta ska vara 0).
+# Hinner skriv inte klart på 330 minuter: plan igen och skriv med det nya antalet.
 #
 # Skriver bara antal och Wix-id. Repot är publikt.
 
@@ -35,7 +43,7 @@ on:
 jobs:
   kor:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 345
     steps:
       - name: Kör
         env:
@@ -65,6 +73,17 @@ jobs:
             echo "$1" | jq '{dryRun, utkast, attRatta, attByta, redanRatt, tomma, hinder, skrivna, kvar, stoppadAv, fel, idn}' || true
           }
 
+          # Aosoms synk skriver lager och priser runt :12–:29 UTC var tredje timme (00, 03, 06 …).
+          # Rutten vägrar skarpt där och strax före, så jobbet väntar ut hela fönstret i stället.
+          vanta_synk() {
+            local h m s
+            h="$(date -u +%-H)"; m="$(date -u +%-M)"; s="$(date -u +%-S)"
+            if [ $((h % 3)) -eq 0 ] && [ "${m}" -ge 10 ] && [ "${m}" -lt 30 ]; then
+              echo "Synkfönstret ($(date -u +%H:%M) UTC): väntar till :30."
+              sleep $(( (30 - m) * 60 - s + 10 ))
+            fi
+          }
+
           if [ "$LAGE" = "plan" ]; then
             svar=$(anropa "{\"dryRun\":true,\"idn\":${idn}}")
             if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
@@ -77,24 +96,84 @@ jobs:
           if ! [[ "$BEKRAFTA" =~ ^[0-9]+$ ]]; then
             echo "::error::bekrafta ska vara planens antal sidor att rätta (ett heltal)" >&2; exit 1
           fi
-          tak="$BEKRAFTA"
-          for varv in $(seq 1 30); do
-            svar=$(anropa "{\"dryRun\":false,\"bekrafta\":${tak},\"idn\":${idn}}")
-            if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
-              echo "::error::$(echo "$svar" | jq -r '.error // "okänt fel"')" >&2; exit 1
-            fi
-            echo "Varv ${varv}:"
-            visa "$svar"
-            stopp=$(echo "$svar" | jq -r '.stoppadAv')
-            if [ "$stopp" = "fel" ]; then
-              echo "::error::En sida stoppade körningen (fel.avvikelser ovan). Läs sidan i Wix innan nästa körning." >&2; exit 1
-            fi
-            if [ "$stopp" = "klart" ]; then
-              echo "Klart."
-              exit 0
-            fi
-            # Följande varv: det som återstår är taket. Planen får krympa, aldrig växa.
-            tak=$(echo "$svar" | jq -r '.kvar')
+
+          # Planen en gång, med alla id. Planen får krympa, aldrig växa.
+          svar=$(anropa "{\"dryRun\":true,\"allaIdn\":true,\"idn\":${idn}}")
+          if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+            echo "::error::$(echo "$svar" | jq -r '.error // "okänt fel"')" >&2; exit 1
+          fi
+          echo "Planen:"
+          echo "$svar" | jq '{utkast, attRatta, attByta, redanRatt, tomma, hinder}'
+          antal=$(echo "$svar" | jq -r '.attRatta')
+          if [ "$antal" -gt "$BEKRAFTA" ]; then
+            echo "::error::Planen har ${antal} sidor att rätta, fler än bekrafta (${BEKRAFTA}). Kör planen igen." >&2; exit 1
+          fi
+          echo "$svar" | jq -c '.idn' > plan-idn.json
+          n=$(jq 'length' plan-idn.json)
+          if [ "$n" -ne "$antal" ]; then
+            echo "::error::Planen gav ${n} id för ${antal} sidor att rätta" >&2; exit 1
+          fi
+
+          TUGGA=150
+          i=0; varv=0; skrivna=0; stilla=0; vantningar=0
+          while [ "$i" -lt "$n" ]; do
+            tugga=$(jq -c ".[${i}:$((i + TUGGA))]" plan-idn.json)
+            storlek=$(echo "$tugga" | jq 'length')
+            # En tugga körs tills den är klar. Ett varv som stannar (tidsbudget, strypt) körs om
+            # med samma tugga: skrivna sidor är då redan rätt och hoppas över.
+            # ☠️ Taket är tuggans storlek, aldrig det som var kvar. En sida i tuggan som redan
+            # skrivits kan vara att rätta igen när varvet körs om, och med `kvar` som tak stoppade
+            # det hela jobbet efter 3 403 sidor (2026-11-01 06:30: 48 att rätta, tak 47; sidans
+            # nya flik fälldes fortfarande av modellnummerkontrollen, lagat i samma PR).
+            # Taket släpper ändå aldrig igenom en sida utanför planen: urvalet är tuggans id.
+            tak="$storlek"
+            while :; do
+              if [ "$SECONDS" -gt 19800 ]; then
+                echo "::error::330 minuter har gått: ${skrivna} sidor skrivna, $((n - i)) kvar i planen. Kör planen igen och skriv med det nya antalet." >&2
+                exit 1
+              fi
+              vanta_synk
+              varv=$((varv + 1))
+              svar=$(anropa "{\"dryRun\":false,\"bekrafta\":${tak},\"idn\":${tugga}}")
+              if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+                fel=$(echo "$svar" | jq -r '.error // "okänt fel"')
+                if [[ "$fel" == synkfonster* ]]; then
+                  vantningar=$((vantningar + 1))
+                  if [ "$vantningar" -gt 40 ]; then
+                    echo "::error::Rutten vägrar för synkfönstret trots 40 väntningar" >&2; exit 1
+                  fi
+                  echo "Rutten säger synkfönster: väntar 120 sekunder."
+                  varv=$((varv - 1))
+                  sleep 120
+                  continue
+                fi
+                echo "::error::${fel}" >&2; exit 1
+              fi
+              s=$(echo "$svar" | jq -r '.skrivna')
+              stopp=$(echo "$svar" | jq -r '.stoppadAv')
+              kvar=$(echo "$svar" | jq -r '.kvar')
+              skrivna=$((skrivna + s))
+              echo "Varv ${varv}, sida $((i + 1))–$((i + storlek)) av ${n}: ${s} skrivna, stopp ${stopp}, kvar ${kvar}. Totalt ${skrivna}."
+              if [ "$stopp" = "klart" ]; then
+                stilla=0
+                break
+              fi
+              if [ "$stopp" = "fel" ]; then
+                echo "$svar" | jq '{fel}'
+                echo "::error::En sida stoppade körningen (fel.avvikelser ovan). Läs sidan i Wix innan nästa körning." >&2; exit 1
+              fi
+              if [ "$s" -eq 0 ]; then stilla=$((stilla + 1)); else stilla=0; fi
+              if [ "$stilla" -ge 3 ]; then
+                echo "::error::Tre varv i rad utan en skriven sida (senast: ${stopp}). Kör igen om en stund." >&2; exit 1
+              fi
+              if [ "$stopp" = "strypt" ]; then
+                # Wix spärr mot takten (429) innan sidan skrevs: sidan är orörd.
+                echo "Wix bromsar skrivningarna (429). Väntar 90 sekunder."
+                sleep 90
+              elif [ "$stopp" != "tidsbudget" ]; then
+                echo "::error::Okänt stopp: ${stopp}" >&2; exit 1
+              fi
+            done
+            i=$((i + TUGGA))
           done
-          echo "::error::Inte klart efter 30 varv" >&2
-          exit 1
+          echo "Klart: ${skrivna} sidor skrivna av ${n} i planen."

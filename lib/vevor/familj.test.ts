@@ -246,6 +246,17 @@ describe("vevorFamiljeProdukt", () => {
     });
   });
 
+  it("☠️ en rad fälls som den står i fliken: en variant som heter 850 mm efter Modell (2026-11-01)", () => {
+    // Bara den ena artikeln har raden, så fliken visar "Modell: 850 mm: Modell", och
+    // poleringens regel läser 850 som en kod. Importen tar bort raden.
+    const k1 = artikel(1, [["Storlek", "625 mm"]], { spec: [["Material", "Stål"]] });
+    const k2 = artikel(2, [["Storlek", "850 mm"]], { spec: [["Material", "Stål"], ["Modell", "Modell"]] });
+    expect(familjensSpec([k1, k2], ["Storlek"])).toEqual({ Material: "Stål" });
+    // En rad som inte fälls står kvar som förut.
+    const k3 = artikel(3, [["Storlek", "850 mm"]], { spec: [["Material", "Stål"], ["Fotstöd", "Halkfri gummi"]] });
+    expect(familjensSpec([k1, k3], ["Storlek"])).toEqual({ Material: "Stål", Fotstöd: "850 mm: Halkfri gummi" });
+  });
+
   it("varianten namnges bara med de axlar som skiljer", () => {
     const k1 = artikel(1, [["Färg", "Svart"], ["Antal", "2 st"]], { spec: [["Vikt", "1 kg"]] });
     const k2 = artikel(2, [["Färg", "Vit"], ["Antal", "2 st"]], { spec: [["Vikt", "2 kg"]] });

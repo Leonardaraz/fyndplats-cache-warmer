@@ -27,8 +27,10 @@
 // PUBLIK Actions-logg. Planen innehåller inga sådana fält, valideringen vägrar
 // strängar med artikelnummerform, och felmeddelandena citerar aldrig träffen.
 
+import { idPerNamn, lasKategoritradet } from "@/lib/wix/kategoritrad";
 import { WIX_MAX_BILDER_PER_PRODUKT } from "../wix/limits";
 import { lasMedKostnad, variantMedKostnad } from "../wix/produkt-kostnad";
+import { MODELLNR } from "./modellnummer";
 
 export const MAX_PRODUKTER = 20;
 export const WIX_STORES_APP_ID = "215238eb-22a5-4c36-9e7b-e7c08025e04e";
@@ -114,6 +116,11 @@ export const RUNDA = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 export const ARTNR =
   /\b\d{2}[A-Z]-\d{3}(?!\d)[A-Z0-9]*\b|\b[A-Z]\d{2}-\d{3}(?!\d)[A-Z0-9]*\b|\b\d{3}-\d{3}(?!\d)[A-Z0-9]{2,}\b|\b(?=[A-Z0-9]*\d)(?=[A-Z0-9]*[A-Z])(?:[A-Z0-9]{22}|[A-Z0-9]{19})\b/g;
 const FORM = /\b[0-9A-Za-z]{3}-[0-9A-Za-z]{3,}\b/g;
+
+// MODELLNR  gatelibs etikettregel för VEVOR:s modellnummer, TECKEN FÖR TECKEN.
+//           Bor i lib/polish/modellnummer.ts, så att importen och
+//           specifikationsverktyget använder samma regel som grinden.
+export { MODELLNR };
 const TILLATEN_FORM = /^\d{2,4}-\d{2,4}(V|W|HZ|MM|CM)?$/i;
 
 /** Träffarnas intervall i strängen, sammanslagna där de två formerna överlappar. */
@@ -218,6 +225,7 @@ export function valideraPlan(x: unknown): { plan: Skrivplan } | { fel: string[] 
     ];
     for (const [namn, v] of texter) {
       if (typeof v === "string" && artikelnummerformer(v) > 0) f(`${namn} har artikelnummerform`);
+      if (typeof v === "string" && MODELLNR.test(v)) f(`${namn} har ett modellnummer`);
     }
 
     for (const nyckel of ["kort", "pid", "slug", "sku"] as const) {
@@ -258,16 +266,13 @@ export function felText(e: unknown): string {
   return redigera(String((e as Error)?.message ?? e)).slice(0, 300);
 }
 
+/**
+ * Kategorinamn → id ur hela trädet, med de dolda kategorierna (lib/wix/kategoritrad.ts).
+ * Ett namn som finns två gånger saknas här och räknas som okänt.
+ */
 async function kategoriIdn(wix: WixAnrop): Promise<Map<string, string>> {
-  const svar = (await wix("POST", "/categories/v1/categories/query", {
-    query: { cursorPaging: { limit: 200 } },
-    treeReference: TRAD,
-  })) as Obj;
-  const lista = ((svar.data as Obj | undefined)?.categories ?? svar.categories ?? []) as Obj[];
   const ut = new Map<string, string>();
-  for (const c of lista) {
-    if (typeof c.name === "string" && typeof c.id === "string") ut.set(c.name, c.id);
-  }
+  for (const [namn, id] of idPerNamn(await lasKategoritradet(wix))) if (id) ut.set(namn, id);
   return ut;
 }
 

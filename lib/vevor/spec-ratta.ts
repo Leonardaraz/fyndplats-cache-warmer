@@ -30,7 +30,11 @@
 //    rörs aldrig: där har en människa skrivit texten.
 // 2. ☠️ En enskild artikel som redan har fliken rörs inte. Saknar den någon rad
 //    räknas den och lämnas (`flik_utan_rader`). Bara en familj får fliken
-//    utbytt, och bara när sidan har exakt en sådan flik.
+//    utbytt, och bara när sidan har exakt en sådan flik. Undantaget är en flik
+//    med VEVOR:s modellnummer (`flikHarModellnummer`, Leonard 2026-10-31): den
+//    byts ut också på en enskild artikel. Raderna byggs utan det regeln fäller,
+//    och en ny flik som ändå fälls skrivs inte (`modellnummer_kvar`): med två
+//    olika regler skrevs 21 sidor om varje körning utan att bli rätta (2026-11-01).
 // 3. ☠️ Avläsningen ska vara gjord med den nya läsaren (`specKalla` satt), för
 //    en familj på varje artikel. Annars kan en tom specifikation betyda att
 //    läsaren inte såg den.
@@ -39,9 +43,9 @@
 // 5. ☠️ Sidan läses färskt före skrivningen och planeras om. Har texten eller
 //    synligheten ändrats sedan planen skrivs ingenting på den.
 // 6. ☠️ Återläsning efter skrivningen, tills revisionen gått fram: sidan är
-//    fortfarande dold, fliken finns och varje rad finns. En tillagd flik:
-//    den gamla texten står kvar. En utbytt flik: hela texten är planens.
-//    Första avvikelse stoppar körningen.
+//    fortfarande dold, fliken finns, varje rad finns och inget modellnummer
+//    står kvar. En tillagd flik: den gamla texten står kvar. En utbytt flik:
+//    hela texten är planens. Första avvikelse stoppar körningen.
 // 7. ☠️ Svaret bär bara Wix-id och antal, aldrig artikelnummer eller text:
 //    loggen är publik.
 
@@ -50,6 +54,7 @@ import { mappingSupplier, vevorSkuOf } from "@/lib/store/supplier";
 import { appendTabSections, buildTabSections, descriptionHasSection } from "@/lib/import/tabs";
 import { mergeConstantAxisSpecs, splitConstantAxes } from "@/lib/import/constant-axes";
 import { felText, type WixAnrop } from "@/lib/polish/skrivplan";
+import { MODELLNR, radHarModellnummer } from "@/lib/polish/modellnummer";
 import { egenskaperFor, familjeVarden, familjensSpec, syskonSkus } from "./familj";
 import type { Avlasning } from "./lager";
 import { specifikation } from "./to-product";
@@ -64,6 +69,7 @@ export type SpecHinder =
   | "avlasning_saknas"
   | "ej_omlast"
   | "flik_utan_rader"
+  | "modellnummer_kvar"
   | "las_fel";
 
 export const SPEC_HINDER: readonly SpecHinder[] = [
@@ -72,6 +78,7 @@ export const SPEC_HINDER: readonly SpecHinder[] = [
   "avlasning_saknas",
   "ej_omlast",
   "flik_utan_rader",
+  "modellnummer_kvar",
   "las_fel",
 ];
 
@@ -117,7 +124,10 @@ export function specRader(
   if (!ankare) return "avlasning_saknas";
   if (ankare.specKalla === undefined) return "ej_omlast";
   const tillRader = (r: Record<string, string>) => Object.entries(r).map(([label, value]) => ({ label, value }));
-  if (rad.variants.length <= 1) return tillRader(specifikation(ankare));
+  // ☠️ Ingen rad som poleringens regel fäller, också en axel med samma värde för alla
+  // ("Modell: <kod>"), som läggs till efter familjens rader.
+  const utanModellnummer = (rader: SpecRad[]) => rader.filter((r) => !radHarModellnummer(r.label, r.value));
+  if (rad.variants.length <= 1) return utanModellnummer(tillRader(specifikation(ankare)));
 
   const medlemmar = rad.variants.map((v) => avlasningar.get(v.supplierVariantId));
   if (medlemmar.some((m) => !m)) return "avlasning_saknas";
@@ -134,7 +144,9 @@ export function specRader(
     const v = familjeVarden(m, axlar);
     return { options: Object.fromEntries(axlar.map((k) => [k, v[k]])) as Record<string, string> };
   });
-  return mergeConstantAxisSpecs(tillRader(familjensSpec(medlemmar as Avlasning[], axlar)), splitConstantAxes(varianter).specs);
+  return utanModellnummer(
+    mergeConstantAxisSpecs(tillRader(familjensSpec(medlemmar as Avlasning[], axlar)), splitConstantAxes(varianter).specs),
+  );
 }
 
 /** Text utan taggar och entiteter, med mellanslagen rensade. Wix skriver om markupen när den sparas. */
@@ -155,6 +167,22 @@ export function normText(html: string): string {
 export function saknadeRader(beskrivning: string, rader: readonly SpecRad[]): SpecRad[] {
   const text = normText(beskrivning);
   return rader.filter((r) => !text.includes(`${normText(r.label)}: ${normText(r.value)}`));
+}
+
+/**
+ * Bär specifikationsfliken en rad med VEVOR:s modell- eller artikelnummer?
+ * Importen lade raden i fliken fram till 2026-10-31 (lib/vevor/to-product.ts,
+ * arIdentifierarRad). Regeln är poleringens (MODELLNR i lib/polish/modellnummer.ts),
+ * så verktyget och grinden fäller samma rader, och samma regel tar bort raderna
+ * när fliken byggs (`radHarModellnummer`).
+ */
+export function flikHarModellnummer(beskrivning: string): boolean {
+  const traffar = [...beskrivning.matchAll(SPEC_RUBRIK)];
+  return traffar.some((t) => {
+    const efter = t.index! + t[0].length;
+    const nasta = beskrivning.slice(efter).search(/<h2[\s>]/i);
+    return MODELLNR.test(beskrivning.slice(efter, nasta < 0 ? undefined : efter + nasta));
+  });
 }
 
 /** Specifikationsflikens rubrik, med eller utan attribut. */
@@ -187,12 +215,21 @@ export function planeraSpec(
   if (rader.length === 0) return { typ: "tom" };
   const sektioner = buildTabSections({ specs: rader, packageContents: [], faq: [], careHtml: null });
   if (descriptionHasSection(produkt.beskrivning, SPEC_FLIK)) {
-    if (saknadeRader(produkt.beskrivning, rader).length === 0) return { typ: "redan_ratt" };
-    if (rad.variants.length <= 1) return { typ: "hinder", hinder: "flik_utan_rader" };
+    // ☠️ En flik med VEVOR:s modellnummer byts ut, också på en enskild artikel
+    // (Leonard 2026-10-31). Raderna ovan har inte numret (specifikation).
+    const modellnummer = flikHarModellnummer(produkt.beskrivning);
+    if (!modellnummer && saknadeRader(produkt.beskrivning, rader).length === 0) return { typ: "redan_ratt" };
+    if (!modellnummer && rad.variants.length <= 1) return { typ: "hinder", hinder: "flik_utan_rader" };
     const html = bytSpecFlik(produkt.beskrivning, sektioner[0].html);
-    return html === null ? { typ: "hinder", hinder: "flik_utan_rader" } : { typ: "byt", rader, html };
+    if (html === null) return { typ: "hinder", hinder: "flik_utan_rader" };
+    // ☠️ En ny flik som fortfarande fälls hade skrivits om vid varje körning utan att
+    // bli rätt: 21 sidor 2026-11-01, när raderna och regeln var två. Den räknas och
+    // lämnas i stället.
+    if (flikHarModellnummer(html)) return { typ: "hinder", hinder: "modellnummer_kvar" };
+    return { typ: "byt", rader, html };
   }
   const { html } = appendTabSections(produkt.beskrivning, sektioner);
+  if (flikHarModellnummer(html)) return { typ: "hinder", hinder: "modellnummer_kvar" };
   return { typ: "ratta", rader, html };
 }
 
@@ -205,6 +242,8 @@ export function kontrolleraSpec(
   const fel: string[] = [];
   if (efter.synlig !== fore.synlig) fel.push("synligheten ändrades");
   if (!descriptionHasSection(efter.beskrivning, SPEC_FLIK)) fel.push("fliken saknas");
+  // ☠️ Jobbets syfte: ingen flik med VEVOR:s modellnummer efter skrivningen.
+  if (flikHarModellnummer(efter.beskrivning)) fel.push("fliken har kvar ett modellnummer");
   const saknas = saknadeRader(efter.beskrivning, plan.rader).length;
   if (saknas > 0) fel.push(`${saknas} rader saknas`);
   if (plan.typ === "ratta") {
@@ -281,6 +320,11 @@ export interface SpecVal {
   bekrafta: number | null;
   /** Bara de här sidorna (Wix-id), när det finns några. */
   idn?: string[];
+  /**
+   * Torrt: svara med ALLA Wix-id att rätta, inte bara de 50 första. Workflowen läser planen en
+   * gång och skriver sedan i tuggor ur den, så att varje varv bara läser sina egna sidor.
+   */
+  allaIdn?: boolean;
   budgetMs: number;
 }
 
@@ -297,10 +341,11 @@ export interface SpecSvar {
   hinder: Record<SpecHinder, number>;
   skrivna: number;
   kvar: number;
-  stoppadAv: "klart" | "tidsbudget" | "fel" | null;
+  /** `strypt`: Wix svarade 429 innan sidan skrevs. Sidan är orörd; workflowen väntar och fortsätter. */
+  stoppadAv: "klart" | "tidsbudget" | "strypt" | "fel" | null;
   /** Sidan som stoppade körningen och avvikelsen, som korta koder. */
   fel: { id: string; avvikelser: string[] } | null;
-  /** Upp till 50 Wix-id för sidor att rätta (torrt) eller rättade (skarpt). */
+  /** Upp till 50 Wix-id för sidor att rätta (torrt, alla med `allaIdn`) eller rättade (skarpt). */
   idn: string[];
 }
 
@@ -310,10 +355,23 @@ const MARGINAL_MS = 30_000;
 const OMLASNINGAR = 6;
 const OMLASNING_PAUS_MS = 1_500;
 const SKRIV_FORSOK = 3;
+/**
+ * Paus mellan sidorna. Wix stryper skrivningarna med en HTML-429 från sin edge
+ * efter ungefär 150 i följd: mätt 2026-11-01 utan paus, 186 och 127 sidor
+ * (~1,3 skrivningar i sekunden). Samma medicin som lagersynkens
+ * AOSOM_WRITE_DELAY_MS: att inte springa.
+ */
+export const SKRIV_PAUS_MS = 500;
+/** Wix svar när takten är för hög. Ett 429 avvisas innan något skrivs. */
+const STRYPT = /Wix 429\b/;
+
+function vantaFor(deps: SpecDeps): (ms: number) => Promise<void> {
+  return deps.vanta ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+}
 
 /** Skriver fliken på en sida och läser tillbaka. Tom lista = rätt. */
 async function skrivSida(deps: SpecDeps, rad: ProductMappingRecord, avlasningar: ReadonlyMap<string, Avlasning>): Promise<string[]> {
-  const vanta = deps.vanta ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+  const vanta = vantaFor(deps);
   // En annan skrivning på sidan (synkens lager och pris) ger 409. Då läses sidan
   // om och planeras på nytt, högst tre gånger.
   let fore: SpecProdukt | null = null;
@@ -345,7 +403,16 @@ async function skrivSida(deps: SpecDeps, rad: ProductMappingRecord, avlasningar:
   // Wix läsning släpar efter skrivningen: läs om tills revisionen gått fram.
   let efter: SpecProdukt | null = null;
   for (let i = 0; i < OMLASNINGAR; i++) {
-    efter = await lasSida(deps.wix, rad.wixProductId);
+    try {
+      efter = await lasSida(deps.wix, rad.wixProductId);
+    } catch (e) {
+      // ☠️ Sidan är redan skriven. En 429 här får aldrig nå korSpec, där den hade
+      // räknats som en strypning före skrivningen och sidan som orörd. Läs om efter
+      // en paus; går det inte stoppar körningen som en sida som inte gick att läsa.
+      if (!STRYPT.test(felText(e))) throw e;
+      await vanta(OMLASNING_PAUS_MS);
+      continue;
+    }
     if (efter && Number.isFinite(skriven) && Number(efter.revision) >= skriven) break;
     await vanta(OMLASNING_PAUS_MS);
   }
@@ -356,6 +423,7 @@ async function skrivSida(deps: SpecDeps, rad: ProductMappingRecord, avlasningar:
 
 export async function korSpec(deps: SpecDeps, val: SpecVal): Promise<SpecSvar> {
   const klocka = deps.klocka ?? Date.now;
+  const vanta = vantaFor(deps);
   const start = klocka();
   if (!val.dryRun && (val.bekrafta === null || !Number.isInteger(val.bekrafta) || val.bekrafta < 0)) {
     throw new SpecFel("en skarp körning kräver bekrafta = planens antal sidor att rätta");
@@ -409,7 +477,7 @@ export async function korSpec(deps: SpecDeps, val: SpecVal): Promise<SpecSvar> {
   if (val.dryRun) {
     svar.kvar = att.length;
     svar.stoppadAv = "klart";
-    svar.idn = att.slice(0, 50).map((r) => r.wixProductId);
+    svar.idn = (val.allaIdn ? att : att.slice(0, 50)).map((r) => r.wixProductId);
     return svar;
   }
   if (att.length > (val.bekrafta ?? 0)) {
@@ -417,6 +485,8 @@ export async function korSpec(deps: SpecDeps, val: SpecVal): Promise<SpecSvar> {
   }
 
   for (const [i, r] of att.entries()) {
+    // Paus mellan sidorna, så att Wix inte stryper skrivningarna (SKRIV_PAUS_MS).
+    if (i > 0) await vanta(SKRIV_PAUS_MS);
     if (klocka() - start > val.budgetMs - MARGINAL_MS) {
       svar.stoppadAv = "tidsbudget";
       svar.kvar = att.length - i;
@@ -426,7 +496,19 @@ export async function korSpec(deps: SpecDeps, val: SpecVal): Promise<SpecSvar> {
     try {
       avvikelser = await skrivSida(deps, r, avlasningar);
     } catch (e) {
-      console.warn("[vevor-spec] skrivningen föll:", r.wixProductId, felText(e).slice(0, 200));
+      const text = felText(e);
+      // ☠️ En 429 når hit bara från läsningen före skrivningen eller från själva
+      // skrivningen (efter den läser skrivSida om), och Wix avvisar ett 429 innan
+      // något skrivs. Sidan är alltså orörd: varvet stannar, och workflowen väntar
+      // och fortsätter. Nästa varv planerar om från en färsk läsning.
+      if (STRYPT.test(text)) {
+        console.warn(`[vevor-spec] Wix stryper (429) på ${r.wixProductId}: varvet stannar, sidan är orörd`);
+        svar.fel = { id: r.wixProductId, avvikelser: ["strypt"] };
+        svar.stoppadAv = "strypt";
+        svar.kvar = att.length - i;
+        return svar;
+      }
+      console.warn("[vevor-spec] skrivningen föll:", r.wixProductId, text.slice(0, 200));
       avvikelser = ["skrivningen föll"];
     }
     if (avvikelser.length > 0) {

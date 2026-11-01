@@ -5,8 +5,9 @@
 > runda till Wix"**. Ingenting skrivs för hand.
 >
 > **Kön består av Aosom- och VEVOR-utkast** som ligger som `visible: false`. Aosoms är tyska
-> feedrader, VEVOR:s är svensk text från VEVOR:s produktsidor (se
-> [VEVOR-utkast](#vevor-utkast-det-som-skiljer)).
+> feedrader, VEVOR:s är svensk text från VEVOR:s produktsidor. **VEVOR-utkast poleras i en
+> egen chatt** med [`polish/vevor.md`](polish/vevor.md) som startdokument, och Aosoms i en
+> annan *(Leonard 2026-10-31)*. Runbooken är gemensam för båda.
 > **AliExpress importeras inte längre** (2026-09-27). De AliExpress-sidor som redan ligger
 > i butiken finns kvar ett tag, men de poleras inte och får inget produktsäkerhetsavsnitt.
 > De spelar ändå roll här: en Aosom-vara kan redan säljas som AliExpress-sida, och då är
@@ -74,75 +75,9 @@
 
 ## VEVOR-utkast: det som skiljer
 
-VEVOR:s sortiment importeras sedan 2026-10-29 som osynliga utkast med leverantören `vevor`
-på mappningen. Rundan går som för Aosom, med de här skillnaderna.
-
-**Källan är svensk.** Utkastets text är VEVOR:s egen svenska från deras produktsida, utan
-reklamblocken (importen tar bort dem). Fliken *Tekniska specifikationer* kommer ur sidans
-specifikationstabell. Texten är maskinöversatt och har ofta fel ord och enheter. Läs den som
-källa och skriv om den helt, med samma regler för påståenden och siffror som för en Aosom-sida.
-På en familj (flera varianter) visar varje rad i fliken som skiljer sig varje varians värde.
-
-**Välj inte de här utkasten:**
-
-- **Utkast utan fliken *Tekniska specifikationer*.** Fliken läggs in av **"VEVOR —
-  specifikationen på utkast som saknar den"** när läsaren har läst om sidorna.
-- **Gränsfallen i familjeregelns plan** (**"VEVOR — familjeregeln på befintliga utkast"**,
-  läget `plan`), tills Leonard har avgjort dem. Ett gränsfall som delas senare raderas, och då
-  försvinner poleringen.
-- **`vevorGranskning.medicinteknik: true` i mappningsraden** (läsningen i *2. Hämta
-  källan*). Flagga utkastet till Leonard.
-- **Saldo 0 i `lager.tsv`.** Prisgrindens SLUTSALD bygger på synkens stämpel. VEVOR-synken
-  är påslagen sedan 2026-10-30 och går minut 50 varje timme, men en artikel vars avläsning är
-  äldre än tolv timmar rörs inte (utkasten läses en gång per dygn). Kontrollera med
-  **"VEVOR — synken"** (`status`) att `aktiv` är sann före en VEVOR-runda.
-
-**Märket.** Skrivsteget sätter märket VEVOR i Wix. Skriv det inte i namnet eller SEO-titeln
-*(Leonard 2026-10-28)*.
-
-**Artikelnumret.** VEVOR:s nummer har 19 eller 22 tecken, versaler och siffror i ett. Det får
-aldrig synas, av samma skäl som Aosoms. Sedan 2026-10-30 fäller `gatelib.ARTNR` och
-skrivplanen den formen. De nummer som bär bindestreck eller punkt fångas inte: leta efter dem
-med ögonen.
-
-**Bilderna.** Importen tog sex bilder enligt Leonards regel (`lib/vevor/bilder.ts`). Står
-`vevorGranskning.bildgranskning` på `true` var mönstret ovanligt, och då granskar du varje
-bild extra noga. Blir det färre än fem kvar efter strykningen beskär du enligt undantaget i
-*3. Bilderna före texten*. Räcker inte det flaggar du produkten i `FLAGGADE.md`: det finns
-inget verktyg som hämtar VEVOR:s övriga bilder. En familj som importerades före 2026-10-30
-kan ha syskonens bilder blandade: kör **"VEVOR — rätta familjernas bilder"** (`plan`) först.
-
-- VEVOR-loggan på varan får stå *(Leonard 2026-10-28)*.
-- Bilder med säljtext på engelska eller tyska stryks, som Aosoms tyska *(Leonard 2026-10-30)*.
-- Aosom-verktygen för bilder (bildkandidater, färgtillägg och miljöbild) läser Aosoms flöde
-  och fungerar inte för VEVOR.
-
-**Varianter.** En familj är en sida med en VEVOR-artikel per variant. Ge den en rad i
-`sammanslagna.tsv`, som en sammanslagen Aosom-sida (se *En sammanslagen sida skrivs om med
-`sammanslagna.tsv`* nedan). SKU-steget hoppas då över, och varje variant behåller sin SKU.
-
-**Leksaker.** Beslutet om EN 71 gäller bara Aosom. En VEVOR-leksak vars källa inte nämner
-någon standard flaggas.
-
-**Produktsäkerhet.** Tillverkaren och ansvarig i EU kommer från motorn (VEVOR:s standardrad,
-Leonards beslut 2026-10-29). Säkerhetsavsnittet skriver du som vanligt, ur källans text.
-VEVOR-varor har ingen förhandsöversättning, så utan ditt avsnitt har fliken ingen
-säkerhetsinformation.
-
-**Recensionerna.** Steg 7 tar bara med recensioner om produktens egna artiklar. De andra
-räknas och lämnas till VEVOR-verktyget.
-
-**Priset.** Prisgrinden gäller VEVOR-rader sedan 2026-10-30: importen satte regelpriset, och
-VEVOR-synken skriver det varje timme när den är påslagen. Säger grinden *PRISGRINDEN FALLER*
-är det drift, och då rör du inte priset.
-
-**EU-lager.** Utkasten saknar märkningen "EU-lager", eftersom VEVOR:s sida inte säger
-vilket land lagret ligger i. Märkningen avgörs vid publiceringen och är inte avgjord än:
-publicera utan den.
-
-**Frakt och retur** *(Leonard 2026-10-30)*. Frakten kontrolleras inte före publiceringen, och
-priset räknar med att VEVOR tar 0 kr i frakt. Butiken har ingen returadress för VEVOR, så en
-kund som returnerar får adressen per mejl.
+Står i [`polish/vevor.md`](polish/vevor.md), VEVOR-chattens startdokument. Läs det före
+rundan när utkasten är VEVOR:s. Resten av runbooken gäller båda leverantörerna, utom de
+avsnitt som `polish/vevor.md` räknar upp som Aosoms.
 
 ## Rundan steg för steg
 
@@ -1233,8 +1168,10 @@ eller `AE-`-SKU:er på andra produkter.
 
 Skriv `kort ⇥ Förälder + Löv + Sökordskategori` (ett till sex namn), med kategorinamnen
 exakt som i Wix. Läs trädet varje runda (`POST /categories/v1/categories/query` med
-`treeReference: {"appNamespace": "@wix/stores"}` och `cursorPaging: {"limit": 200}`, som
-workflowen; trädet har över hundra kategorier) och gissa aldrig ur minnet. Koppla
+`treeReference: {"appNamespace": "@wix/stores"}`, `returnNonVisibleCategories: true` och
+`cursorPaging: {"limit": 100}`, med markören tills den tar slut, som
+`lib/wix/kategoritrad.ts`). Trädet har drygt 200 kategorier, och utan flaggan saknas de dolda.
+Gissa aldrig ur minnet. Koppla
 föräldern, det smalaste lövet som passar och den sökordskategori som finns för
 produkttypen. Finns inget löv räcker föräldern. Välj aldrig `All Products`, eftersom Wix
 lägger till den själv. Workflowen slår upp namnen, och torrkörningen fäller ett namn som
@@ -1297,18 +1234,27 @@ att produktsidan visar dem direkt. Annars cachas de i sex timmar.
 3. **Pröva** med samma workflow i läget `torr`, efter att ha pushat `recensioner.json`.
    Felen står per kort och recensions-id. Steg 9:s `torr` gör samma prövning.
 
-**Översättningen** har samma längd och ton som originalet, vardaglig svenska och korta
-meningar (CLAUDE.md, *Recensionernas svenska ska låta som en kund*). Innehållet ändras
-aldrig, och kritik står kvar.
+**Översättningen** ska låta som en människa skrev den, inte som en översättning *(Leonard
+2026-10-31)*: samma längd och ton som originalet, vardaglig svenska och korta meningar
+(CLAUDE.md, *Recensionernas svenska ska låta som en kund*). Innehållet ändras aldrig, och
+kritik står kvar.
 
-- Inga tankstreck, semikolon, citattecken eller `…`, och inga AI-fraser som *sammantaget*
-  eller *helt och hållet*.
+- **Skriv som kunden skrev.** Saknar originalet punkt sist saknar svenskan den också.
+  Smilisar och emojis står kvar som de är (`:)`, `;)`, `:-)`, `😊`), och grinden släpper
+  semikolonet i en smilis *(Leonard 2026-10-31)*.
+- Inga tankstreck, semikolon mellan satser, citattecken eller `…`, och inga AI-fraser som
+  *sammantaget* eller *helt och hållet*.
 - Ta bort varumärken och marknadsplatser, budfirmor, priser, säljaren och kundtjänst,
-  leveranstider och namn. Blir meningen fel utan det, dölj recensionen i stället.
+  leveranstider som säljaren lovat och namn. Blir meningen fel utan det, dölj recensionen
+  i stället.
+- **En allmän rad om leveransen står kvar** när recensionen också handlar om produkten:
+  *snabb leverans*, *kom fort*, *väl förpackat* *(Leonard 2026-10-31)*. Bara budfirmans namn
+  stryks.
 
 **Dölj** med ett kort skäl, eftersom loggen är publik, när recensionen:
 
-- bara handlar om leveransen, returen eller kundtjänsten,
+- bara handlar om leveransen, returen eller kundtjänsten. Säger den också något om
+  produkten står den kvar, med leveransraden (se ovan),
 - gäller en annan vara, färg eller storlek än sidans,
 - bär ett namn, en signatur eller hälsouppgifter (`namn: true` i läsningen),
 - säger emot sidans fakta, till exempel ett annat mått. Lista den då också i `FLAGGADE.md`
@@ -1328,9 +1274,9 @@ vägrar ett id som inte väntar.
 - ett id inte finns på produkten eller är butikens eget kundomdöme (de godkänner Leonard
   i `/admin/reviews`),
 - en översättning är oöversatt, för kort eller för lång jämfört med originalet, har
-  engelska kvar eller bryter mot stilen: tankstreck, semikolon, citattecken, tre punkter,
-  AI-fras, marknadsplats eller leverantör, budfirma, pris, säljare eller kundtjänst,
-  artikelnummer.
+  engelska kvar eller bryter mot stilen: tankstreck, semikolon mellan satser (en smilis som
+  `;)` går igenom), citattecken, tre punkter, AI-fras, marknadsplats eller leverantör,
+  budfirma, pris, säljare eller kundtjänst, artikelnummer.
 
 **VEVOR.** VEVOR visar en familjs recensioner på varje artikel i familjen. På en
 VEVOR-produkt tar `las` därför bara med recensioner om produktens egna artiklar. De andra

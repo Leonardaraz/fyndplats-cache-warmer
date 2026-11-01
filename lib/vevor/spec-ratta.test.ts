@@ -6,7 +6,19 @@ import type { ProductMappingRecord } from "@/lib/store";
 import type { WixAnrop } from "@/lib/polish/skrivplan";
 import { appendTabSections, buildTabSections } from "@/lib/import/tabs";
 import type { Avlasning } from "./lager";
-import { bytSpecFlik, korSpec, kontrolleraSpec, planeraSpec, saknadeRader, specRader, SpecFel, type SpecProdukt } from "./spec-ratta";
+import {
+  bytSpecFlik,
+  flikHarModellnummer,
+  korSpec,
+  kontrolleraSpec,
+  normText,
+  planeraSpec,
+  saknadeRader,
+  SKRIV_PAUS_MS,
+  specRader,
+  SpecFel,
+  type SpecProdukt,
+} from "./spec-ratta";
 import { testAvlasning } from "./testsida";
 
 type Obj = Record<string, unknown>;
@@ -155,6 +167,103 @@ describe("planeraSpec", () => {
     });
   });
 
+  it("☠️ en flik med VEVOR:s modellnummer byts ut, också på en enskild artikel (Leonard 2026-10-31)", () => {
+    const a1 = avl(1, { spec: [["Artikelmodellnummer", "TEST-55"], ...SPEC] });
+    const rader = specRader(enkel(1), karta(a1));
+    if (typeof rader === "string") throw new Error(rader);
+    expect(rader.map((r) => r.label)).toEqual(["Material", "Maximal lastkapacitet"]);
+    const gammal = `${RAA}<h2>Tekniska specifikationer</h2><ul><li><p><span style="font-weight: 700">Artikelmodellnummer:</span> TEST-55</p></li>${rader
+      .map((r) => `<li><p><span style="font-weight: 700">${r.label}:</span> ${r.value}</p></li>`)
+      .join("")}</ul><h2>Vanliga frågor</h2><p>Svar.</p>`;
+    expect(flikHarModellnummer(gammal)).toBe(true);
+    const plan = planeraSpec(enkel(1), sida(1, { beskrivning: gammal }), karta(a1));
+    expect(plan.typ).toBe("byt");
+    if (plan.typ !== "byt") return;
+    expect(plan.html).not.toContain("TEST-55");
+    expect(plan.html).toContain("<h2>Vanliga frågor</h2><p>Svar.</p>");
+    expect(plan.html.startsWith(RAA)).toBe(true);
+    expect(flikHarModellnummer(plan.html)).toBe(false);
+    // Efter skrivningen är sidan rätt, och en omkörning har inget att göra.
+    expect(planeraSpec(enkel(1), sida(1, { beskrivning: plan.html }), karta(a1))).toEqual({ typ: "redan_ratt" });
+  });
+
+  it("☠️ en skriven flik är rätt vid nästa plan, också med formerna som fastnade 2026-11-01", () => {
+    // Med två regler (radfiltret och modellnummerkontrollen) stod de här raderna kvar
+    // efter skrivningen, och planen bytte fliken igen vid varje körning: 21 sidor.
+    // Koderna är påhittade.
+    const fall: [string, string][] = [
+      ["Modell", "TEST999A-9 Hydraulisk styrsats"],
+      ["Modell", "TEST-25 Manuell"],
+      ["Artikelmodell Artikelmodellnummer", "TE-ST-004"],
+      ["Modell", "0000-000mm-svart"],
+      ["Modell", "9999S V-huvud"],
+      ["Modell", "30-gallons bränsledunk"],
+      ["Modell", "999ZZ+ Numeriskt styrd skärare"],
+      ["Nettovikt", "11,45 kg Artikelmodellnummer"],
+    ];
+    for (const rad of fall) {
+      const namn = rad.join(": ");
+      const a1 = avl(1, { spec: [rad, ...SPEC] });
+      const gammal = `${RAA}<h2>Tekniska specifikationer</h2><ul><li><p><span style="font-weight: 700">${rad[0]}:</span> ${rad[1]}</p></li></ul>`;
+      expect(flikHarModellnummer(gammal), namn).toBe(true);
+      const plan = planeraSpec(enkel(1), sida(1, { beskrivning: gammal }), karta(a1));
+      expect(plan.typ, namn).toBe("byt");
+      if (plan.typ !== "byt") continue;
+      expect(flikHarModellnummer(plan.html), namn).toBe(false);
+      expect(planeraSpec(enkel(1), sida(1, { beskrivning: plan.html }), karta(a1)), namn).toEqual({ typ: "redan_ratt" });
+    }
+    // Vikten står kvar utan VEVOR:s etikett.
+    const vikt = planeraSpec(
+      enkel(1),
+      sida(1, { beskrivning: `${RAA}<h2>Tekniska specifikationer</h2><ul><li>Nettovikt: 11,45 kg Artikelmodellnummer</li></ul>` }),
+      karta(avl(1, { spec: [["Nettovikt", "11,45 kg Artikelmodellnummer"]] })),
+    );
+    expect(vikt.typ === "byt" && normText(vikt.html)).toContain("Nettovikt: 11,45 kg");
+  });
+
+  it("☠️ i en familj fälls raden som den står i fliken: en variant som heter 850 mm efter Modell (2026-11-01)", () => {
+    const lank = (n: number) => [{ sku: sku(3 - n), webbId: String(3 - n).padStart(12, "0"), kanKopas: true }];
+    const a1 = avl(1, { egenskaper: [["Storlek", "625 mm"]], syskon: lank(1) });
+    const a2 = avl(2, { egenskaper: [["Storlek", "850 mm"]], syskon: lank(2), spec: [...SPEC, ["Modell", "Modell"]] });
+    const f = familj({
+      variants: [1, 2].map((n) => ({
+        supplierVariantId: sku(n),
+        sku: `FP-test-${n}`,
+        wixVariantId: `v${n}`,
+        choices: { Storlek: n === 1 ? "625 mm" : "850 mm" },
+        costUsd: 30,
+        landedCostSek: 300,
+        grossSek: 399,
+      })),
+    } as Partial<ProductMappingRecord>);
+    const rader = specRader(f, karta(a1, a2));
+    if (typeof rader === "string") throw new Error(rader);
+    expect(rader.map((r) => r.label)).not.toContain("Modell");
+    const gammal = `${RAA}<h2>Tekniska specifikationer</h2><ul><li>Material: Kolstål</li><li>Modell: 850 mm: Modell</li></ul>`;
+    expect(flikHarModellnummer(gammal)).toBe(true);
+    const plan = planeraSpec(f, sida(1, { beskrivning: gammal }), karta(a1, a2));
+    expect(plan.typ).toBe("byt");
+    if (plan.typ !== "byt") return;
+    expect(planeraSpec(f, sida(1, { beskrivning: plan.html }), karta(a1, a2))).toEqual({ typ: "redan_ratt" });
+  });
+
+  it("☠️ en axel med samma värde för alla som är en modellkod blir ingen rad", () => {
+    // En axel med samma värde läggs till som en rad efter familjens rader
+    // (constant-axes.ts), och då gäller samma regel för den.
+    const a1 = avl(1, { egenskaper: [["Modell", "TEST999A-9"], ["Längd", "10 m"]] });
+    const a2 = avl(2, { egenskaper: [["Modell", "TEST999A-9"], ["Längd", "20 m"]] });
+    const rader = specRader(familj(), karta(a1, a2));
+    if (typeof rader === "string") throw new Error(rader);
+    expect(rader.map((r) => r.label)).toEqual(["Material", "Maximal lastkapacitet"]);
+  });
+
+  it("vårt eget FP-nummer och en modell med ord i fliken räknas inte som VEVOR:s nummer", () => {
+    const html = `${RAA}<h2>Tekniska specifikationer</h2><ul><li><p>Artikelnummer: FP-test-1</p></li><li><p>Modell: Premium</p></li></ul>`;
+    expect(flikHarModellnummer(html)).toBe(false);
+    // Ett modellnummer i brödtexten utanför fliken rör inte verktyget: poleringen skriver om texten.
+    expect(flikHarModellnummer(`<p>Modell: TEST-9</p>${html}`)).toBe(false);
+  });
+
   it("☠️ en familj vars flik visar ankarets värde får fliken utbytt, och texten runt står kvar", () => {
     const a1 = avl(1, { egenskaper: [["Längd", "10 m"]], spec: [...SPEC, ["Vikt", "3 kg"]] });
     const a2 = avl(2, { egenskaper: [["Längd", "20 m"]], spec: [...SPEC, ["Vikt", "5 kg"]] });
@@ -219,6 +328,13 @@ describe("kontrolleraSpec", () => {
     expect(kontrolleraSpec(sida(1, { beskrivning: gammal }), sida(1, { beskrivning: kvar }), b)).toEqual([
       "texten är inte planens",
     ]);
+  });
+
+  it("☠️ en skriven flik med ett modellnummer kvar är en avvikelse, inte en rätt sida", () => {
+    // Jobbets syfte. Utan kontrollen skrevs 21 sidor om varje körning utan att någon
+    // såg att numret stod kvar (2026-11-01).
+    const med = p.html.replace("</ul>", "<li><strong>Modell:</strong> TEST999A-9 Hydraulisk styrsats</li></ul>");
+    expect(kontrolleraSpec(sida(1), sida(1, { beskrivning: med }), p)).toContain("fliken har kvar ett modellnummer");
   });
 });
 
@@ -371,6 +487,192 @@ describe("korSpec", () => {
     );
     expect(svar).toMatchObject({ skrivna: 1, stoppadAv: "klart" });
     expect(l.patchar).toHaveLength(2);
+  });
+
+  // Wix edge-spärr mot takten, som den såg ut 2026-11-01: en HTML-sida, inte JSON.
+  const STRYPT_SVAR = "Wix 429: <!DOCTYPE html><html><head><title>429 Too Many Requests</title>";
+
+  it("☠️ Wix stryper skrivningen (429): varvet stannar som strypt, sidan är orörd, och nästa varv skriver resten", async () => {
+    const l = lage(1, 2, 3);
+    const wix = wixFor(l);
+    let patchar = 0;
+    const deps = {
+      wix: (async (metod, sokvag, kropp) => {
+        // Wix avvisar ett 429 innan något skrivs: anropet når aldrig låtsas-Wix.
+        if (metod === "PATCH" && ++patchar === 2) throw new Error(STRYPT_SVAR);
+        return wix(metod, sokvag, kropp);
+      }) as WixAnrop,
+      mappningar: async () => [enkel(1), enkel(2), enkel(3)],
+      avlasningar: async () => karta(avl(1), avl(2), avl(3)),
+      vanta: ingenVantan,
+    };
+    const svar = await korSpec(deps, { dryRun: false, bekrafta: 3, budgetMs: 200_000 });
+    expect(svar).toMatchObject({ skrivna: 1, kvar: 2, stoppadAv: "strypt", fel: { id: pid(2), avvikelser: ["strypt"] } });
+    // Wix felkropp följer aldrig med i svaret.
+    expect(JSON.stringify(svar)).not.toContain("DOCTYPE");
+    expect(l.produkter.get(pid(2))).toMatchObject({ revision: 3, plainDescription: RAA });
+    expect(l.produkter.get(pid(3))).toMatchObject({ revision: 3, plainDescription: RAA });
+    // Nästa varv: det som återstod är taket, och resten skrivs.
+    const igen = await korSpec(deps, { dryRun: false, bekrafta: svar.kvar, budgetMs: 200_000 });
+    expect(igen).toMatchObject({ skrivna: 2, stoppadAv: "klart", fel: null });
+    for (const n of [1, 2, 3]) {
+      expect(l.produkter.get(pid(n))!.plainDescription).toContain("<h2>Tekniska specifikationer</h2>");
+    }
+  });
+
+  it("☠️ en 429 på läsningen före skrivningen ger strypt utan en enda skrivning", async () => {
+    const l = lage(1);
+    const wix = wixFor(l);
+    let lasningar = 0;
+    const svar = await korSpec(
+      {
+        wix: async (metod, sokvag, kropp) => {
+          if (metod === "GET" && ++lasningar === 1) throw new Error(STRYPT_SVAR);
+          return wix(metod, sokvag, kropp);
+        },
+        mappningar: async () => [enkel(1)],
+        avlasningar: async () => karta(avl(1)),
+        vanta: ingenVantan,
+      },
+      { dryRun: false, bekrafta: 1, budgetMs: 200_000 },
+    );
+    expect(svar).toMatchObject({ skrivna: 0, kvar: 1, stoppadAv: "strypt", fel: { id: pid(1), avvikelser: ["strypt"] } });
+    expect(l.patchar).toHaveLength(0);
+  });
+
+  it("☠️ en 429 på läsningen EFTER skrivningen räknas aldrig som strypt: sidan är skriven, så den läses om", async () => {
+    const l = lage(1, 2);
+    const wix = wixFor(l);
+    let skrivet = false;
+    let stryptEfter = false;
+    const svar = await korSpec(
+      {
+        wix: async (metod, sokvag, kropp) => {
+          if (metod === "PATCH") skrivet = true;
+          if (metod === "GET" && skrivet && !stryptEfter) {
+            stryptEfter = true;
+            throw new Error(STRYPT_SVAR);
+          }
+          return wix(metod, sokvag, kropp);
+        },
+        mappningar: async () => [enkel(1), enkel(2)],
+        avlasningar: async () => karta(avl(1), avl(2)),
+        vanta: ingenVantan,
+      },
+      { dryRun: false, bekrafta: 2, budgetMs: 200_000 },
+    );
+    expect(stryptEfter).toBe(true);
+    expect(svar).toMatchObject({ skrivna: 2, stoppadAv: "klart", fel: null });
+    expect(l.patchar).toHaveLength(2);
+  });
+
+  it("☠️ en sida som aldrig går att läsa efter skrivningen stoppar som fel, aldrig som strypt", async () => {
+    const l = lage(1, 2);
+    const wix = wixFor(l);
+    let skrivet = false;
+    const svar = await korSpec(
+      {
+        wix: async (metod, sokvag, kropp) => {
+          if (metod === "PATCH") skrivet = true;
+          if (metod === "GET" && skrivet) throw new Error(STRYPT_SVAR);
+          return wix(metod, sokvag, kropp);
+        },
+        mappningar: async () => [enkel(1), enkel(2)],
+        avlasningar: async () => karta(avl(1), avl(2)),
+        vanta: ingenVantan,
+      },
+      { dryRun: false, bekrafta: 2, budgetMs: 200_000 },
+    );
+    expect(svar).toMatchObject({
+      skrivna: 0,
+      kvar: 2,
+      stoppadAv: "fel",
+      fel: { id: pid(1), avvikelser: ["sidan gick inte att läsa efter skrivningen"] },
+    });
+    // Sidan ÄR skriven: därför fel (en människa läser sidan), inte strypt (orörd).
+    expect(l.patchar).toHaveLength(1);
+  });
+
+  it("☠️ ett annat fel på skrivningen (500) stoppar som fel, aldrig som strypt: sidan kan vara skriven", async () => {
+    const l = lage(1, 2);
+    const wix = wixFor(l);
+    const svar = await korSpec(
+      {
+        wix: async (metod, sokvag, kropp) => {
+          if (metod === "PATCH") throw new Error("Wix 500: internt fel");
+          return wix(metod, sokvag, kropp);
+        },
+        mappningar: async () => [enkel(1), enkel(2)],
+        avlasningar: async () => karta(avl(1), avl(2)),
+        vanta: ingenVantan,
+      },
+      { dryRun: false, bekrafta: 2, budgetMs: 200_000 },
+    );
+    expect(svar).toMatchObject({ skrivna: 0, kvar: 2, stoppadAv: "fel", fel: { id: pid(1), avvikelser: ["skrivningen föll"] } });
+  });
+
+  it("pausar SKRIV_PAUS_MS mellan sidorna, inte före den första", async () => {
+    const l = lage(1, 2, 3);
+    const wix = wixFor(l);
+    const logg: string[] = [];
+    const svar = await korSpec(
+      {
+        wix: async (metod, sokvag, kropp) => {
+          logg.push(metod);
+          return wix(metod, sokvag, kropp);
+        },
+        mappningar: async () => [enkel(1), enkel(2), enkel(3)],
+        avlasningar: async () => karta(avl(1), avl(2), avl(3)),
+        vanta: async (ms) => {
+          logg.push(`paus ${ms}`);
+        },
+      },
+      { dryRun: false, bekrafta: 3, budgetMs: 200_000 },
+    );
+    expect(svar).toMatchObject({ skrivna: 3, stoppadAv: "klart" });
+    const sida = ["GET", "PATCH", "GET"];
+    const paus = `paus ${SKRIV_PAUS_MS}`;
+    expect(logg).toEqual(["POST", ...sida, paus, ...sida, paus, ...sida]);
+    expect(SKRIV_PAUS_MS).toBeGreaterThanOrEqual(500);
+  });
+
+  it("torrt med allaIdn: alla sidor att rätta, inte bara de 50 första", async () => {
+    const n = Array.from({ length: 60 }, (_, i) => i + 1);
+    const l = lage(...n);
+    const deps = {
+      wix: wixFor(l),
+      mappningar: async () => n.map((i) => enkel(i)),
+      avlasningar: async () => karta(...n.map((i) => avl(i))),
+      vanta: ingenVantan,
+    };
+    const vanlig = await korSpec(deps, { dryRun: true, bekrafta: null, budgetMs: 200_000 });
+    expect(vanlig.idn).toHaveLength(50);
+    const alla = await korSpec(deps, { dryRun: true, bekrafta: null, allaIdn: true, budgetMs: 200_000 });
+    expect(alla).toMatchObject({ attRatta: 60, kvar: 60, stoppadAv: "klart" });
+    expect([...alla.idn].sort()).toEqual(n.map(pid).sort());
+    expect(l.patchar).toHaveLength(0);
+  });
+
+  it("☠️ skarpt med ett urval (en tugga) läses och skrivs bara urvalets sidor", async () => {
+    const l = lage(1, 2, 3);
+    const wix = wixFor(l);
+    const lasta: string[] = [];
+    const svar = await korSpec(
+      {
+        wix: async (metod, sokvag, kropp) => {
+          if (metod === "POST") lasta.push(...(kropp as { search: { filter: { id: { $in: string[] } } } }).search.filter.id.$in);
+          return wix(metod, sokvag, kropp);
+        },
+        mappningar: async () => [enkel(1), enkel(2), enkel(3)],
+        avlasningar: async () => karta(avl(1), avl(2), avl(3)),
+        vanta: ingenVantan,
+      },
+      { dryRun: false, bekrafta: 1, idn: [pid(2)], budgetMs: 200_000 },
+    );
+    expect(svar).toMatchObject({ utkast: 1, skrivna: 1, stoppadAv: "klart" });
+    expect(lasta).toEqual([pid(2)]);
+    expect(l.produkter.get(pid(1))!.plainDescription).toBe(RAA);
+    expect(l.produkter.get(pid(3))!.plainDescription).toBe(RAA);
   });
 
   it("☠️ en skarp körning kräver bekrafta, och en plan som växt skriver ingenting", async () => {
