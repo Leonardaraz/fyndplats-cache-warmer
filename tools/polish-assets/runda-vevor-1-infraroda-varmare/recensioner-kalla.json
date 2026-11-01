@@ -1,0 +1,64 @@
+{
+  "9bb0043a": {
+    "productId": "9bb0043a-0f6d-4e83-9166-b20a695fb3c9",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "43943aac": {
+    "productId": "43943aac-4b14-4618-b1d5-9006dae5fd7b",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "b46eb759": {
+    "productId": "b46eb759-4ffc-445a-8cc0-860c31e313ed",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-3eyxyg",
+        "betyg": 5,
+        "datum": "2026-09-30",
+        "foton": 0,
+        "text": "excellent heater, works perfectly. Really quick to heat up and worked well even in slightly windy conditions"
+      }
+    ]
+  },
+  "f79f7c66": {
+    "productId": "f79f7c66-a96f-4697-80c9-010e5d34811f",
+    "synliga": 0,
+    "dolda": 3,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": []
+  },
+  "52528dd1": {
+    "productId": "52528dd1-2661-4949-b27d-73782caaaa1b",
+    "synliga": 0,
+    "dolda": 3,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": []
+  },
+  "552380c0": {
+    "productId": "552380c0-b925-4b5b-9b5a-e65494204a86",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  }
+}
