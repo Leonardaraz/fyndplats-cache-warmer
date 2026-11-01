@@ -234,6 +234,43 @@ export function vevorProdukt(a: Avlasning, pris: Prisunderlag, bilder: Bildval):
   };
 }
 
+/**
+ * Raderna som bär VEVOR:s modell- eller artikelnummer (Leonard 2026-10-31: "ta
+ * bort det från oss så man inte kan söka upp"). En sökning på numret leder till
+ * VEVOR:s egen sida med deras pris. Uppmätt samma dag på 15 297 avläsningar:
+ * "Artikelmodellnummer" på 12 539, "Modell" på 1 147, "Artikelnummer" på 605,
+ * och "Produktmodell", "Modellnummer", "Artikelmodell", "Artikelnummer Modell"
+ * och "ltem modellnummer" (VEVOR:s stavning) på färre.
+ *
+ * "Modell" tas bara bort när värdet är en kod (en siffra och inga ord med
+ * gemener): "Modell: Premium" säger något om varan, "Modell: DT806" gör det
+ * inte. Rader om vilket fordon eller vilken modell varan passar till står kvar
+ * ("Kompatibel bilmodell", "OE-nummer"): kunden behöver dem.
+ */
+const IDENTIFIERARE = new Set([
+  "artikelmodellnummer",
+  "artikelmodell",
+  "artikelnummer",
+  "artikelnummer modell",
+  "artikelnr",
+  "modellnummer",
+  "modellnr",
+  "produktmodell",
+  "item modellnummer",
+  "ltem modellnummer",
+  "sku",
+  "mpn",
+  "ean",
+  "gtin",
+  "upc",
+]);
+
+export function arIdentifierarRad(etikett: string, varde: string): boolean {
+  const k = etikett.replace(/\s+/g, " ").trim().toLowerCase().replace(/[:.]+$/, "");
+  if (IDENTIFIERARE.has(k)) return true;
+  return k === "modell" && /\d/.test(varde) && !/[a-zåäöü]{3,}/.test(varde);
+}
+
 /** Specifikationstabellen, sedan variantens egna värden som inte redan står där. */
 export function specifikation(a: Pick<Avlasning, "spec" | "egenskaper">): Record<string, string> {
   const ut: Record<string, string> = {};
@@ -242,6 +279,7 @@ export function specifikation(a: Pick<Avlasning, "spec" | "egenskaper">): Record
     const nyckel = k.trim();
     const varde = v.trim();
     if (!nyckel || !varde || sedda.has(nyckel.toLowerCase())) continue;
+    if (arIdentifierarRad(nyckel, varde)) continue;
     sedda.add(nyckel.toLowerCase());
     ut[nyckel] = varde;
   }

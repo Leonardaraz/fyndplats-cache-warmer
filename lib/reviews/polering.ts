@@ -63,7 +63,9 @@ const MAX_SKAL = 200;
  */
 const STIL: ReadonlyArray<[string, RegExp]> = [
   ["tankstreck", /[–—]| - /],
-  ["semikolon", /;/],
+  // En blinkande smilis (";)", ";-)", ";D") står kvar som kunden skrev den
+  // (Leonard 2026-10-31). Ett semikolon mellan två satser gör det inte.
+  ["semikolon", /;(?!-?[)(DPp])/],
   ["citattecken", /["“”„«»]/],
   ["tre punkter", /…|\.\.\./],
   ["AI-fras", /\b(sammantaget|sammanfattningsvis|helt och hållet|förhållandet mellan pris och kvalitet|kan varmt rekommenderas|ett riktigt blickfång)\b/i],

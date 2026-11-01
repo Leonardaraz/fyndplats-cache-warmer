@@ -23,6 +23,7 @@ let prisunderlag: ReturnType<typeof vi.fn>;
 let antalProdukter: ReturnType<typeof vi.fn>;
 let sparaRecensioner: ReturnType<typeof vi.fn>;
 let bildnycklar: ReturnType<typeof vi.fn>;
+let kopplaKategorier: ReturnType<typeof vi.fn>;
 
 function lagg(n: number, over: Parameters<typeof testAvlasning>[0] = {}) {
   const a = testAvlasning({ sku: sku(n), bilder: testgalleri(sku(n)), lastAt: LASTAT, ...over });
@@ -64,6 +65,7 @@ function deps(): ImportDeps {
     sparaMappning,
     sparaRecensioner,
     bildnycklar,
+    kopplaKategorier,
     prisunderlag,
     antalProdukter,
     larma,
@@ -85,6 +87,7 @@ beforeEach(() => {
   antalProdukter = vi.fn(async () => 6_000);
   sparaRecensioner = vi.fn(async (_id: string, r: unknown[]) => r.length);
   bildnycklar = vi.fn(async () => new Map<string, string>());
+  kopplaKategorier = vi.fn(async () => "ok");
 });
 
 describe("körningen", () => {
@@ -610,5 +613,91 @@ describe("steg 8: betyget, syskonen och recensionerna", () => {
     importera.mockClear();
     await korVevorImport(deps(), { ...schema, manuell: true });
     expect(importera).not.toHaveBeenCalled();
+  });
+});
+
+describe("kategorierna (Leonards ja 2026-10-31)", () => {
+  const kat = (l1: string, l2: string, l3: string) => [
+    { id: "1", namn: l1 },
+    { id: "2", namn: l2 },
+    { id: "3", namn: l3 },
+  ];
+
+  it("en vara med en regel kopplas till avdelning och underkategori efter att raden skrivits", async () => {
+    lagg(1, { kategorier: kat("Verktyg", "Svetsning och lödning", "Svetsmaskiner"), namn: "Svetsmaskin 200 A" });
+    const s = await korVevorImport(deps(), schema);
+    expect(kopplaKategorier).toHaveBeenCalledTimes(1);
+    expect(kopplaKategorier.mock.calls[0][1]).toEqual({ avdelning: "Verktyg & Maskiner", kategori: "Svetsning" });
+    // Raden fanns före kopplingen.
+    expect(sparaMappning.mock.invocationCallOrder[0]).toBeLessThan(kopplaKategorier.mock.invocationCallOrder[0]);
+    expect(s.kategorier).toEqual({ kopplade: 1, omappade: 0, vapenskap: 0, spritapparat: 0, fel: 0 });
+  });
+
+  it("☠️ ett vapenskåp får ingen kategori och märks på raden, så att det inte kan publiceras", async () => {
+    lagg(1, { kategorier: kat("Verktyg", "Säkerhet och trygghet", "Kassaskåp"), namn: "Vapenskåp för 5 gevär" });
+    const s = await korVevorImport(deps(), schema);
+    expect(kopplaKategorier).not.toHaveBeenCalled();
+    const [m] = await store.mappningarForLeverantorsId([`vevor:${sku(1)}`]);
+    expect(m.vevorGranskning?.vapenskap).toBe(true);
+    expect(s.kategorier).toEqual({ kopplade: 0, omappade: 0, vapenskap: 1, spritapparat: 0, fel: 0 });
+  });
+
+  it("☠️ ett vapenskåp bland en familjs artiklar märker hela produkten och ger ingen kategori", async () => {
+    const svets = kat("Verktyg", "Svetsning och lödning", "Svetsmaskiner");
+    const syskon = (...n: number[]) => n.map((m) => ({ sku: sku(m), webbId: String(m).padStart(12, "0"), kanKopas: true }));
+    lagg(1, { kategorier: svets, namn: "Förvaringsskåp i stål", egenskaper: [["Färg", "Svart"]], syskon: syskon(2) });
+    lagg(2, { kategorier: svets, namn: "Vapenskåp för 5 gevär", egenskaper: [["Färg", "Vit"]], syskon: syskon(1) });
+    const s = await korVevorImport(deps(), schema);
+    expect(kopplaKategorier).not.toHaveBeenCalled();
+    const [m] = await store.mappningarForLeverantorsId([`vevor:${sku(1)}`]);
+    expect(m.vevorGranskning?.vapenskap).toBe(true);
+    expect(s.kategorier).toMatchObject({ kopplade: 0, vapenskap: 1 });
+  });
+
+  it("☠️ en vara i Hjälpmedel flaggas för Leonards granskning, också när namnet inte låter som vård", async () => {
+    lagg(1, { kategorier: kat("Bad", "Badrumssäkerhet", "Duschstolar"), namn: "Hopfällbar duschstol i teak" });
+    lagg(2, { kategorier: kat("Verktyg", "Svetsning och lödning", "Svetsmaskiner"), namn: "Svetsmaskin" });
+    await korVevorImport(deps(), schema);
+    const [hjalp] = await store.mappningarForLeverantorsId([`vevor:${sku(1)}`]);
+    const [svets] = await store.mappningarForLeverantorsId([`vevor:${sku(2)}`]);
+    expect(hjalp.vevorGranskning?.medicinteknik).toBe(true);
+    expect(svets.vevorGranskning?.medicinteknik).toBe(false);
+    expect(kopplaKategorier.mock.calls.map((c) => c[1])).toContainEqual({ avdelning: "Skönhet & Hälsa", kategori: "Hjälpmedel" });
+  });
+
+  it("☠️ en spritapparat får ingen kategori och märks på raden (alkohollagen 2 kap. 1 §)", async () => {
+    lagg(1, { kategorier: kat("Kök", "Bordsartiklar och bardisk", "Bryggutrustning"), namn: "Alkoholdestillator, 30 l" });
+    const s = await korVevorImport(deps(), schema);
+    expect(kopplaKategorier).not.toHaveBeenCalled();
+    const [m] = await store.mappningarForLeverantorsId([`vevor:${sku(1)}`]);
+    expect(m.vevorGranskning?.spritapparat).toBe(true);
+    expect(m.vevorGranskning?.vapenskap).toBeUndefined();
+    expect(s.kategorier).toEqual({ kopplade: 0, omappade: 0, vapenskap: 0, spritapparat: 1, fel: 0 });
+  });
+
+  it("en vara utan regel importeras utan kategori och räknas", async () => {
+    lagg(1);
+    const s = await korVevorImport(deps(), schema);
+    expect(kopplaKategorier).not.toHaveBeenCalled();
+    const [m] = await store.mappningarForLeverantorsId([`vevor:${sku(1)}`]);
+    expect(m.vevorGranskning?.vapenskap).toBeUndefined();
+    expect(s.kategorier).toMatchObject({ kopplade: 0, omappade: 1 });
+  });
+
+  it("☠️ ett fel i kopplingen fäller inte importen: produkten och raden finns, felet räknas", async () => {
+    kopplaKategorier.mockRejectedValueOnce(new Error("Wix 500"));
+    lagg(1, { kategorier: kat("Verktyg", "Svetsning och lödning", "Svetsmaskiner"), namn: "Svetsmaskin" });
+    lagg(2, { kategorier: kat("Verktyg", "Svetsning och lödning", "Svetsmaskiner"), namn: "Svetsmaskin" });
+    const s = await korVevorImport(deps(), schema);
+    expect(s).toMatchObject({ importerade: 2, fel: 0 });
+    expect(s.kategorier).toMatchObject({ kopplade: 1, fel: 1 });
+  });
+
+  it("torrläget kopplar ingenting men räknar vad som hade kopplats", async () => {
+    lagg(1, { kategorier: kat("Verktyg", "Svetsning och lödning", "Svetsmaskiner"), namn: "Svetsmaskin" });
+    lagg(2, { kategorier: kat("Verktyg", "Säkerhet och trygghet", "Kassaskåp"), namn: "Pistolskåp" });
+    const s = await korVevorImport(deps(), { ...schema, dryRun: true, manuell: true });
+    expect(kopplaKategorier).not.toHaveBeenCalled();
+    expect(s.kategorier).toEqual({ kopplade: 1, omappade: 0, vapenskap: 1, spritapparat: 0, fel: 0 });
   });
 });

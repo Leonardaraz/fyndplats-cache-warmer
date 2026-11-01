@@ -31,6 +31,13 @@ describe("buildPolishPrompt — hålls i synk med seo-polish-runbook", () => {
     expect(prompt).not.toMatch(/Steg\s*3[bc]/i);
   });
 
+  it("ett VEVOR-utkast pekar på VEVOR-chattens startdokument, en Aosom-vara gör det inte", () => {
+    expect(buildPolishPrompt("WID-1", "x", "vevor")).toContain("docs/polish/vevor.md");
+    expect(buildPolishPrompt("WID-1", "x", "vevor")).toContain("docs/seo-polish-runbook.md");
+    expect(buildPolishPrompt("WID-1", "x", "aosom")).not.toContain("docs/polish/vevor.md");
+    expect(buildPolishPrompt("WID-1", "x")).not.toContain("docs/polish/vevor.md");
+  });
+
   it("tar med produkt-id/titel och utelämnar tomma fält", () => {
     expect(prompt).toContain("Wix-produkt-ID: WID-123");
     expect(prompt).toContain("Titel (rå): Rå titel");

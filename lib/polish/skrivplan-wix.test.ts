@@ -46,6 +46,7 @@ const LASANDE = [
   "/stores/v3/products/query-variants",
   "/stores/v3/inventory-items/query",
   "/categories/v1/categories/query",
+  "/categories/v1/categories/0e2f5c1a-0000-4000-8000-000000000000/list-items",
 ];
 const SKRIVANDE = [
   "/categories/v1/bulk/categories/0e2f5c1a-0000-4000-8000-000000000000/add-items",

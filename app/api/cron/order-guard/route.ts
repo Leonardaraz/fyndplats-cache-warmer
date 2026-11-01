@@ -176,7 +176,10 @@ export async function GET(req: NextRequest) {
     }
 
     const vevor = await vevorKoll;
-    if (vevor.ok) extras.vevorUtanGpsr = vevor.ids;
+    if (vevor.ok) {
+      extras.vevorUtanGpsr = vevor.ids.utanGpsr;
+      extras.vevorSparrade = vevor.ids.sparrade;
+    }
     else sectionErrors.push(`VEVOR-sidornas produktsäkerhet gick inte att kontrollera: ${vevor.fel}`);
 
     const findings = buildGuardFindings({ orders, tasks, auditEntries, nowMs: now });
@@ -206,6 +209,7 @@ export async function GET(req: NextRequest) {
       heldForReview: findings.heldForReview.length,
       pollErrorTasks: findings.pollErrors.length,
       vevorUtanGpsr: extras.vevorUtanGpsr?.length ?? null,
+      vevorSparrade: extras.vevorSparrade?.length ?? null,
       sectionErrors: sectionErrors.length,
       email: emailResult.id ? "sent" : emailResult.skipped ?? "unknown",
     };

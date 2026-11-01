@@ -30,7 +30,9 @@
 //    rörs aldrig: där har en människa skrivit texten.
 // 2. ☠️ En enskild artikel som redan har fliken rörs inte. Saknar den någon rad
 //    räknas den och lämnas (`flik_utan_rader`). Bara en familj får fliken
-//    utbytt, och bara när sidan har exakt en sådan flik.
+//    utbytt, och bara när sidan har exakt en sådan flik. Undantaget är en flik
+//    med VEVOR:s modellnummer (`flikHarModellnummer`, Leonard 2026-10-31): den
+//    byts ut också på en enskild artikel.
 // 3. ☠️ Avläsningen ska vara gjord med den nya läsaren (`specKalla` satt), för
 //    en familj på varje artikel. Annars kan en tom specifikation betyda att
 //    läsaren inte såg den.
@@ -49,7 +51,7 @@ import type { ProductMappingRecord } from "@/lib/store";
 import { mappingSupplier, vevorSkuOf } from "@/lib/store/supplier";
 import { appendTabSections, buildTabSections, descriptionHasSection } from "@/lib/import/tabs";
 import { mergeConstantAxisSpecs, splitConstantAxes } from "@/lib/import/constant-axes";
-import { felText, type WixAnrop } from "@/lib/polish/skrivplan";
+import { felText, MODELLNR, type WixAnrop } from "@/lib/polish/skrivplan";
 import { egenskaperFor, familjeVarden, familjensSpec, syskonSkus } from "./familj";
 import type { Avlasning } from "./lager";
 import { specifikation } from "./to-product";
@@ -157,6 +159,21 @@ export function saknadeRader(beskrivning: string, rader: readonly SpecRad[]): Sp
   return rader.filter((r) => !text.includes(`${normText(r.label)}: ${normText(r.value)}`));
 }
 
+/**
+ * Bär specifikationsfliken en rad med VEVOR:s modell- eller artikelnummer?
+ * Importen lade raden i fliken fram till 2026-10-31 (lib/vevor/to-product.ts,
+ * arIdentifierarRad). Regeln är poleringens (MODELLNR i lib/polish/skrivplan.ts),
+ * så verktyget och grinden fäller samma rader.
+ */
+export function flikHarModellnummer(beskrivning: string): boolean {
+  const traffar = [...beskrivning.matchAll(SPEC_RUBRIK)];
+  return traffar.some((t) => {
+    const efter = t.index! + t[0].length;
+    const nasta = beskrivning.slice(efter).search(/<h2[\s>]/i);
+    return MODELLNR.test(beskrivning.slice(efter, nasta < 0 ? undefined : efter + nasta));
+  });
+}
+
 /** Specifikationsflikens rubrik, med eller utan attribut. */
 const SPEC_RUBRIK = /<h2[^>]*>\s*Tekniska\s+specifikationer\s*<\/h2>/gi;
 
@@ -187,8 +204,11 @@ export function planeraSpec(
   if (rader.length === 0) return { typ: "tom" };
   const sektioner = buildTabSections({ specs: rader, packageContents: [], faq: [], careHtml: null });
   if (descriptionHasSection(produkt.beskrivning, SPEC_FLIK)) {
-    if (saknadeRader(produkt.beskrivning, rader).length === 0) return { typ: "redan_ratt" };
-    if (rad.variants.length <= 1) return { typ: "hinder", hinder: "flik_utan_rader" };
+    // ☠️ En flik med VEVOR:s modellnummer byts ut, också på en enskild artikel
+    // (Leonard 2026-10-31). Raderna ovan har inte numret (specifikation).
+    const modellnummer = flikHarModellnummer(produkt.beskrivning);
+    if (!modellnummer && saknadeRader(produkt.beskrivning, rader).length === 0) return { typ: "redan_ratt" };
+    if (!modellnummer && rad.variants.length <= 1) return { typ: "hinder", hinder: "flik_utan_rader" };
     const html = bytSpecFlik(produkt.beskrivning, sektioner[0].html);
     return html === null ? { typ: "hinder", hinder: "flik_utan_rader" } : { typ: "byt", rader, html };
   }
