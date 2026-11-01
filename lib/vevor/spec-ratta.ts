@@ -32,7 +32,9 @@
 //    räknas den och lämnas (`flik_utan_rader`). Bara en familj får fliken
 //    utbytt, och bara när sidan har exakt en sådan flik. Undantaget är en flik
 //    med VEVOR:s modellnummer (`flikHarModellnummer`, Leonard 2026-10-31): den
-//    byts ut också på en enskild artikel.
+//    byts ut också på en enskild artikel. Raderna byggs utan det regeln fäller,
+//    och en ny flik som ändå fälls skrivs inte (`modellnummer_kvar`): med två
+//    olika regler skrevs 21 sidor om varje körning utan att bli rätta (2026-11-01).
 // 3. ☠️ Avläsningen ska vara gjord med den nya läsaren (`specKalla` satt), för
 //    en familj på varje artikel. Annars kan en tom specifikation betyda att
 //    läsaren inte såg den.
@@ -41,9 +43,9 @@
 // 5. ☠️ Sidan läses färskt före skrivningen och planeras om. Har texten eller
 //    synligheten ändrats sedan planen skrivs ingenting på den.
 // 6. ☠️ Återläsning efter skrivningen, tills revisionen gått fram: sidan är
-//    fortfarande dold, fliken finns och varje rad finns. En tillagd flik:
-//    den gamla texten står kvar. En utbytt flik: hela texten är planens.
-//    Första avvikelse stoppar körningen.
+//    fortfarande dold, fliken finns, varje rad finns och inget modellnummer
+//    står kvar. En tillagd flik: den gamla texten står kvar. En utbytt flik:
+//    hela texten är planens. Första avvikelse stoppar körningen.
 // 7. ☠️ Svaret bär bara Wix-id och antal, aldrig artikelnummer eller text:
 //    loggen är publik.
 
@@ -51,7 +53,8 @@ import type { ProductMappingRecord } from "@/lib/store";
 import { mappingSupplier, vevorSkuOf } from "@/lib/store/supplier";
 import { appendTabSections, buildTabSections, descriptionHasSection } from "@/lib/import/tabs";
 import { mergeConstantAxisSpecs, splitConstantAxes } from "@/lib/import/constant-axes";
-import { felText, MODELLNR, type WixAnrop } from "@/lib/polish/skrivplan";
+import { felText, type WixAnrop } from "@/lib/polish/skrivplan";
+import { MODELLNR, radHarModellnummer } from "@/lib/polish/modellnummer";
 import { egenskaperFor, familjeVarden, familjensSpec, syskonSkus } from "./familj";
 import type { Avlasning } from "./lager";
 import { specifikation } from "./to-product";
@@ -66,6 +69,7 @@ export type SpecHinder =
   | "avlasning_saknas"
   | "ej_omlast"
   | "flik_utan_rader"
+  | "modellnummer_kvar"
   | "las_fel";
 
 export const SPEC_HINDER: readonly SpecHinder[] = [
@@ -74,6 +78,7 @@ export const SPEC_HINDER: readonly SpecHinder[] = [
   "avlasning_saknas",
   "ej_omlast",
   "flik_utan_rader",
+  "modellnummer_kvar",
   "las_fel",
 ];
 
@@ -119,7 +124,10 @@ export function specRader(
   if (!ankare) return "avlasning_saknas";
   if (ankare.specKalla === undefined) return "ej_omlast";
   const tillRader = (r: Record<string, string>) => Object.entries(r).map(([label, value]) => ({ label, value }));
-  if (rad.variants.length <= 1) return tillRader(specifikation(ankare));
+  // ☠️ Ingen rad som poleringens regel fäller, också en axel med samma värde för alla
+  // ("Modell: <kod>"), som läggs till efter familjens rader.
+  const utanModellnummer = (rader: SpecRad[]) => rader.filter((r) => !radHarModellnummer(r.label, r.value));
+  if (rad.variants.length <= 1) return utanModellnummer(tillRader(specifikation(ankare)));
 
   const medlemmar = rad.variants.map((v) => avlasningar.get(v.supplierVariantId));
   if (medlemmar.some((m) => !m)) return "avlasning_saknas";
@@ -136,7 +144,9 @@ export function specRader(
     const v = familjeVarden(m, axlar);
     return { options: Object.fromEntries(axlar.map((k) => [k, v[k]])) as Record<string, string> };
   });
-  return mergeConstantAxisSpecs(tillRader(familjensSpec(medlemmar as Avlasning[], axlar)), splitConstantAxes(varianter).specs);
+  return utanModellnummer(
+    mergeConstantAxisSpecs(tillRader(familjensSpec(medlemmar as Avlasning[], axlar)), splitConstantAxes(varianter).specs),
+  );
 }
 
 /** Text utan taggar och entiteter, med mellanslagen rensade. Wix skriver om markupen när den sparas. */
@@ -162,8 +172,9 @@ export function saknadeRader(beskrivning: string, rader: readonly SpecRad[]): Sp
 /**
  * Bär specifikationsfliken en rad med VEVOR:s modell- eller artikelnummer?
  * Importen lade raden i fliken fram till 2026-10-31 (lib/vevor/to-product.ts,
- * arIdentifierarRad). Regeln är poleringens (MODELLNR i lib/polish/skrivplan.ts),
- * så verktyget och grinden fäller samma rader.
+ * arIdentifierarRad). Regeln är poleringens (MODELLNR i lib/polish/modellnummer.ts),
+ * så verktyget och grinden fäller samma rader, och samma regel tar bort raderna
+ * när fliken byggs (`radHarModellnummer`).
  */
 export function flikHarModellnummer(beskrivning: string): boolean {
   const traffar = [...beskrivning.matchAll(SPEC_RUBRIK)];
@@ -210,9 +221,15 @@ export function planeraSpec(
     if (!modellnummer && saknadeRader(produkt.beskrivning, rader).length === 0) return { typ: "redan_ratt" };
     if (!modellnummer && rad.variants.length <= 1) return { typ: "hinder", hinder: "flik_utan_rader" };
     const html = bytSpecFlik(produkt.beskrivning, sektioner[0].html);
-    return html === null ? { typ: "hinder", hinder: "flik_utan_rader" } : { typ: "byt", rader, html };
+    if (html === null) return { typ: "hinder", hinder: "flik_utan_rader" };
+    // ☠️ En ny flik som fortfarande fälls hade skrivits om vid varje körning utan att
+    // bli rätt: 21 sidor 2026-11-01, när raderna och regeln var två. Den räknas och
+    // lämnas i stället.
+    if (flikHarModellnummer(html)) return { typ: "hinder", hinder: "modellnummer_kvar" };
+    return { typ: "byt", rader, html };
   }
   const { html } = appendTabSections(produkt.beskrivning, sektioner);
+  if (flikHarModellnummer(html)) return { typ: "hinder", hinder: "modellnummer_kvar" };
   return { typ: "ratta", rader, html };
 }
 
@@ -225,6 +242,8 @@ export function kontrolleraSpec(
   const fel: string[] = [];
   if (efter.synlig !== fore.synlig) fel.push("synligheten ändrades");
   if (!descriptionHasSection(efter.beskrivning, SPEC_FLIK)) fel.push("fliken saknas");
+  // ☠️ Jobbets syfte: ingen flik med VEVOR:s modellnummer efter skrivningen.
+  if (flikHarModellnummer(efter.beskrivning)) fel.push("fliken har kvar ett modellnummer");
   const saknas = saknadeRader(efter.beskrivning, plan.rader).length;
   if (saknas > 0) fel.push(`${saknas} rader saknas`);
   if (plan.typ === "ratta") {

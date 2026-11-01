@@ -19,17 +19,8 @@
 // innan vi vet artikelnumret, och en artikel ska bara ha EN avläsning även om
 // VEVOR skulle visa den under två adresser.
 
-import {
-  allaRader,
-  fraga,
-  hamta,
-  infoga,
-  patcha,
-  rakna,
-  satt,
-  sparaManga,
-  taBort,
-} from "@/lib/db/wix-data-klient";
+import { allaRader, fraga, hamta, rakna, sparaManga } from "@/lib/db/wix-data-klient";
+import { slappLasIKollektion, tagLasIKollektion, uppdateraRadIKollektion } from "@/lib/db/kontrollrader";
 import { VEVOR_KOL } from "@/lib/db/wix-kollektioner";
 import type { Robotsregel } from "./robots";
 import type { Sidinnehall, Tolkningsfel, VevorBetyg, VevorRecension } from "./sida";
@@ -259,21 +250,15 @@ const LAS = "las";
 /**
  * Ett lås i läsarens kollektion: raden `id` med ägare och utgångstid. Sant om vi
  * fick det, alltså om ingen annan håller ett som inte gått ut. Läsaren och
- * importen har var sitt (lib/vevor/import-lager.ts).
+ * importen har var sitt (lib/vevor/import-lager.ts). Reglerna bor i
+ * lib/db/kontrollrader.ts, som rea-jobbet också läser.
  */
 export async function tagLasRad(id: string, agare: string, nu: number, ttlMs: number): Promise<boolean> {
-  const utgar = new Date(nu + ttlMs).toISOString();
-  if ((await infoga(VEVOR_KOL.lasare, id, { agare, utgar })) === "skapad") return true;
-  const rad = await hamta<{ agare?: string; utgar?: string }>(VEVOR_KOL.lasare, id);
-  if (!rad) return (await infoga(VEVOR_KOL.lasare, id, { agare, utgar })) === "skapad";
-  if (rad.utgar && Date.parse(rad.utgar) > nu) return false;
-  // Låset har gått ut: ta över det, men bara om ingen annan hann före.
-  const villkor = rad.agare ? { agare: rad.agare } : { agare: { $exists: false } };
-  return (await patcha(VEVOR_KOL.lasare, id, [satt("agare", agare), satt("utgar", utgar)], villkor)) === "applied";
+  return tagLasIKollektion(VEVOR_KOL.lasare, id, agare, nu, ttlMs);
 }
 
 export async function slappLasRad(id: string, agare: string): Promise<void> {
-  await taBort(VEVOR_KOL.lasare, id, { agare });
+  await slappLasIKollektion(VEVOR_KOL.lasare, id, agare);
 }
 
 /**
@@ -282,16 +267,7 @@ export async function slappLasRad(id: string, agare: string): Promise<void> {
  * raden, så att en strömbrytare som slås om medan en körning läser inte ångras.
  */
 export async function uppdateraRad<T extends object>(id: string, tom: T, andring: Partial<T>): Promise<void> {
-  const falt = Object.entries(andring).filter(([, v]) => v !== undefined);
-  if (falt.length === 0) return;
-  const andringar = falt.map(([k, v]) => satt(k, v));
-  if ((await patcha(VEVOR_KOL.lasare, id, andringar)) === "applied") return;
-  // Raden finns inte än: skapa den. Hann någon annan före, ändra deras.
-  const ny = { ...tom, ...andring } as unknown as Record<string, unknown>;
-  if ((await infoga(VEVOR_KOL.lasare, id, ny)) === "skapad") return;
-  if ((await patcha(VEVOR_KOL.lasare, id, andringar)) !== "applied") {
-    throw new Error(`raden ${id} i läsarens kollektion gick inte att skriva`);
-  }
+  await uppdateraRadIKollektion(VEVOR_KOL.lasare, id, tom, andring);
 }
 
 /** Var ett urval om `limit` börjar bland `antal` rader, för `slump` mellan 0 och 1. */

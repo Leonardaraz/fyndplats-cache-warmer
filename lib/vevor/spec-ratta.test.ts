@@ -11,6 +11,7 @@ import {
   flikHarModellnummer,
   korSpec,
   kontrolleraSpec,
+  normText,
   planeraSpec,
   saknadeRader,
   SKRIV_PAUS_MS,
@@ -186,6 +187,76 @@ describe("planeraSpec", () => {
     expect(planeraSpec(enkel(1), sida(1, { beskrivning: plan.html }), karta(a1))).toEqual({ typ: "redan_ratt" });
   });
 
+  it("☠️ en skriven flik är rätt vid nästa plan, också med formerna som fastnade 2026-11-01", () => {
+    // Med två regler (radfiltret och modellnummerkontrollen) stod de här raderna kvar
+    // efter skrivningen, och planen bytte fliken igen vid varje körning: 21 sidor.
+    // Koderna är påhittade.
+    const fall: [string, string][] = [
+      ["Modell", "TEST999A-9 Hydraulisk styrsats"],
+      ["Modell", "TEST-25 Manuell"],
+      ["Artikelmodell Artikelmodellnummer", "TE-ST-004"],
+      ["Modell", "0000-000mm-svart"],
+      ["Modell", "9999S V-huvud"],
+      ["Modell", "30-gallons bränsledunk"],
+      ["Modell", "999ZZ+ Numeriskt styrd skärare"],
+      ["Nettovikt", "11,45 kg Artikelmodellnummer"],
+    ];
+    for (const rad of fall) {
+      const namn = rad.join(": ");
+      const a1 = avl(1, { spec: [rad, ...SPEC] });
+      const gammal = `${RAA}<h2>Tekniska specifikationer</h2><ul><li><p><span style="font-weight: 700">${rad[0]}:</span> ${rad[1]}</p></li></ul>`;
+      expect(flikHarModellnummer(gammal), namn).toBe(true);
+      const plan = planeraSpec(enkel(1), sida(1, { beskrivning: gammal }), karta(a1));
+      expect(plan.typ, namn).toBe("byt");
+      if (plan.typ !== "byt") continue;
+      expect(flikHarModellnummer(plan.html), namn).toBe(false);
+      expect(planeraSpec(enkel(1), sida(1, { beskrivning: plan.html }), karta(a1)), namn).toEqual({ typ: "redan_ratt" });
+    }
+    // Vikten står kvar utan VEVOR:s etikett.
+    const vikt = planeraSpec(
+      enkel(1),
+      sida(1, { beskrivning: `${RAA}<h2>Tekniska specifikationer</h2><ul><li>Nettovikt: 11,45 kg Artikelmodellnummer</li></ul>` }),
+      karta(avl(1, { spec: [["Nettovikt", "11,45 kg Artikelmodellnummer"]] })),
+    );
+    expect(vikt.typ === "byt" && normText(vikt.html)).toContain("Nettovikt: 11,45 kg");
+  });
+
+  it("☠️ i en familj fälls raden som den står i fliken: en variant som heter 850 mm efter Modell (2026-11-01)", () => {
+    const lank = (n: number) => [{ sku: sku(3 - n), webbId: String(3 - n).padStart(12, "0"), kanKopas: true }];
+    const a1 = avl(1, { egenskaper: [["Storlek", "625 mm"]], syskon: lank(1) });
+    const a2 = avl(2, { egenskaper: [["Storlek", "850 mm"]], syskon: lank(2), spec: [...SPEC, ["Modell", "Modell"]] });
+    const f = familj({
+      variants: [1, 2].map((n) => ({
+        supplierVariantId: sku(n),
+        sku: `FP-test-${n}`,
+        wixVariantId: `v${n}`,
+        choices: { Storlek: n === 1 ? "625 mm" : "850 mm" },
+        costUsd: 30,
+        landedCostSek: 300,
+        grossSek: 399,
+      })),
+    } as Partial<ProductMappingRecord>);
+    const rader = specRader(f, karta(a1, a2));
+    if (typeof rader === "string") throw new Error(rader);
+    expect(rader.map((r) => r.label)).not.toContain("Modell");
+    const gammal = `${RAA}<h2>Tekniska specifikationer</h2><ul><li>Material: Kolstål</li><li>Modell: 850 mm: Modell</li></ul>`;
+    expect(flikHarModellnummer(gammal)).toBe(true);
+    const plan = planeraSpec(f, sida(1, { beskrivning: gammal }), karta(a1, a2));
+    expect(plan.typ).toBe("byt");
+    if (plan.typ !== "byt") return;
+    expect(planeraSpec(f, sida(1, { beskrivning: plan.html }), karta(a1, a2))).toEqual({ typ: "redan_ratt" });
+  });
+
+  it("☠️ en axel med samma värde för alla som är en modellkod blir ingen rad", () => {
+    // En axel med samma värde läggs till som en rad efter familjens rader
+    // (constant-axes.ts), och då gäller samma regel för den.
+    const a1 = avl(1, { egenskaper: [["Modell", "TEST999A-9"], ["Längd", "10 m"]] });
+    const a2 = avl(2, { egenskaper: [["Modell", "TEST999A-9"], ["Längd", "20 m"]] });
+    const rader = specRader(familj(), karta(a1, a2));
+    if (typeof rader === "string") throw new Error(rader);
+    expect(rader.map((r) => r.label)).toEqual(["Material", "Maximal lastkapacitet"]);
+  });
+
   it("vårt eget FP-nummer och en modell med ord i fliken räknas inte som VEVOR:s nummer", () => {
     const html = `${RAA}<h2>Tekniska specifikationer</h2><ul><li><p>Artikelnummer: FP-test-1</p></li><li><p>Modell: Premium</p></li></ul>`;
     expect(flikHarModellnummer(html)).toBe(false);
@@ -257,6 +328,13 @@ describe("kontrolleraSpec", () => {
     expect(kontrolleraSpec(sida(1, { beskrivning: gammal }), sida(1, { beskrivning: kvar }), b)).toEqual([
       "texten är inte planens",
     ]);
+  });
+
+  it("☠️ en skriven flik med ett modellnummer kvar är en avvikelse, inte en rätt sida", () => {
+    // Jobbets syfte. Utan kontrollen skrevs 21 sidor om varje körning utan att någon
+    // såg att numret stod kvar (2026-11-01).
+    const med = p.html.replace("</ul>", "<li><strong>Modell:</strong> TEST999A-9 Hydraulisk styrsats</li></ul>");
+    expect(kontrolleraSpec(sida(1), sida(1, { beskrivning: med }), p)).toContain("fliken har kvar ett modellnummer");
   });
 });
 

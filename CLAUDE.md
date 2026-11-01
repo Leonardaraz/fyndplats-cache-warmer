@@ -6346,21 +6346,31 @@ beskrivningen i rått läge, så den saknas inte.
 `skriv` läser planen en gång (`allaIdn`) och skriver sedan dess sidor i tuggor om
 150 (`idn`), så att varje varv bara läser sina egna sidor och mappningar. Planen
 över hela katalogen tog 87 sekunder (2026-11-01, 10 603 utkast), och när varje
-varv läste om den gick mer än en tredjedel av tiden åt till läsningen. En sida
-tar ungefär 1,3 sekunder med pausen, så 9 500 sidor är ungefär tre och en halv
-timme plus synkfönstren. Jobbet stannar efter 330 minuter och säger hur många
-som är kvar: kör då planen igen och skriv med det nya antalet.
+varv läste om den gick mer än en tredjedel av tiden åt till läsningen. Mätt
+2026-11-01: en tugga om 150 sidor tog 2 minuter och 40 sekunder med pausen
+(1,07 sekunder per sida), och ingen av de första 3 403 sidorna stoppades av en
+429. 9 500 sidor är alltså ungefär två timmar och 50 minuter plus synkfönstren.
+Jobbet stannar efter 330 minuter och säger hur många som är kvar: kör då planen
+igen och skriv med det nya antalet.
 
-Åtta egenskaper som inte ska tas bort:
+Nio egenskaper som inte ska tas bort:
 
 1. ☠️ Bara opolerade, dolda VEVOR-utkast. En polerad eller publicerad sida rörs
    aldrig.
 2. ☠️ Avläsningen ska vara gjord med den nya läsaren (`specKalla` satt), annars
    räknas sidan som `ej_omlast`. Kör `skriv` först när `ej_omlast` är nära noll,
    ungefär ett dygn efter mergen av #832 (utkasten läses en gång per dygn).
-   Bara sidor ur planen skrivs: en sida som blir att rätta under körningen (när
-   läsaren läser om) väntar på nästa körning. Planen får krympa men aldrig växa,
-   så en körning vars plan växt stannar med "fler än bekrafta".
+   Bara sidor ur planen skrivs: en sida utanför planen som blir att rätta under
+   körningen (när läsaren läser om) väntar på nästa körning. Planen räknas en gång
+   när jobbet startar och får inte ha fler sidor än `bekrafta`.
+   ☠️ **Varje varv har sin tuggas storlek som tak, aldrig det som var kvar efter
+   förra varvet.** En sida som redan skrivits i tuggan kan vara att rätta igen
+   när varvet körs om. Med det som var kvar som tak stoppades jobbet efter 3 403
+   sidor (2026-11-01 06:30 UTC): tuggan stannade på tidsbudget med 47 kvar före
+   synkfönstret och hade 48 att rätta efter det, för en av de skrivna sidorna
+   fälldes fortfarande av modellnummerkontrollen (punkt 9). Taket släpper ändå
+   aldrig igenom en sida utanför planen, eftersom varvet bara får tuggans id. En
+   sida som skrivs två gånger räknas två gånger i "Klart".
 3. ☠️ En enskild artikel som redan har fliken rörs inte. Saknar fliken rader
    räknas den som `flik_utan_rader` och lämnas. En familj vars flik visar fel
    får fliken utbytt (`attByta`, se nästa avsnitt), och bara när sidan har
@@ -6385,6 +6395,21 @@ som är kvar: kör då planen igen och skriv med det nya antalet.
    Rutten vägrar skarpt där och strax före (409 `synkfonster`) och kortar
    budgeten så att varvet slutar 30 sekunder före nästa fönster. Workflowen
    väntar ut fönstret. Hela körningen tar timmar och korsar fönstren.
+9. ☠️ **Raderna byggs med samma regel som kontrollen** (`radHarModellnummer` i
+   `lib/polish/modellnummer.ts`, poleringens `MODELLNR` tecken för tecken).
+   Importen och verktyget tog bort raderna efter etikett (`arIdentifierarRad`),
+   medan planen letade efter ett modellnummer var som helst i fliken. Rader som
+   "Modell: <kod> <ord>", VEVOR:s dubblerade etikett "Artikelmodell
+   Artikelmodellnummer: <kod>" och en familjs "Modell: <storlek>: …" stod kvar,
+   och sidan planerades och skrevs om vid varje körning. Mätt 2026-11-01: planen
+   05:07 UTC hade 9 495 sidor att byta, två körningar skrev 3 403 + 6 102 sidor
+   (05:09–08:31 UTC), och planen 08:35 hade 21 kvar av 10 603 utkast, alla
+   skrivna och fortfarande fällda. 10 av dem hade skrivits två gånger. Nu tas
+   varje rad regeln fäller bort, i importen (`arIdentifierarRad`,
+   `familjensSpec`) och i verktyget (`specRader`), och en etikett som VEVOR lagt
+   sist i värdet ("Nettovikt: <vikt> Artikelmodellnummer") skärs bort. En ny flik
+   som ändå fälls skrivs inte (hindret `modellnummer_kvar`), och återläsningen
+   fäller en skriven flik som bär ett modellnummer.
 
 ### Familjens specifikation per variant (2026-10-30)
 
@@ -7058,12 +7083,17 @@ Tre ändringar i koden samma dag:
    *Modell* på 1 147 och *Artikelnummer* på 605. Tre spärrar:
    - Importen tar bort raderna ur specifikationen (`arIdentifierarRad` i
      `lib/vevor/to-product.ts`), också i en familjs flik. *Modell* tas bara bort när värdet
-     är en kod. Rader om vad varan passar till (*Kompatibel bilmodell*, *OE-nummer*) står kvar.
+     är en kod. Sedan 2026-11-01 tas varje rad som grinden nedan fäller bort
+     (`radHarModellnummer`), och en etikett som VEVOR lagt sist i värdet skärs bort. Rader om
+     vad varan passar till (*Kompatibel bilmodell*, *OE-nummer*) står kvar så länge grinden
+     inte fäller dem.
    - **"VEVOR — specifikationen på utkast som saknar den"** byter ut fliken på äldre utkast
-     som bär en sådan rad (`flikHarModellnummer`, också på en enskild artikel).
+     som bär en sådan rad (`flikHarModellnummer`, också på en enskild artikel), med samma
+     regel för raderna.
    - Poleringens grind `MODELLNR` (`gatelib.py`, och tecken för tecken i
-     `lib/polish/skrivplan.ts`) fäller etiketten. Vårt eget `FP-…` efter *Artikelnummer* och
-     en modell med ord får stå. Numret i löpande text ser grinden inte.
+     `lib/polish/modellnummer.ts`, som importen, verktyget och skrivplanen läser) fäller
+     etiketten. Vårt eget `FP-…` efter *Artikelnummer* och en modell med ord får stå. Numret
+     i löpande text ser grinden inte.
 
 ## VEVOR: kategorierna (2026-10-31)
 
@@ -7744,6 +7774,86 @@ tre sidor genom butiken (549, 1 749 och 4 899 kr), inte bara i API-svaret.
 `x-vercel-cache: STALE`, `age: 42 781` och det GAMLA priset; nästa hämtning gav
 `HIT`, `age: 20` och det nya. Ett API-svar är inget kvitto, och en enstaka
 sidhämtning är det inte heller.
+
+## Automatisk rea: jämförpriset följer lagen (`lib/pricing/rea.ts`, 2026-11-01)
+
+Leonards fråga: får en produkt en reaskylt när synken sänker priset? Nej. Synken
+skriver bara `actualPrice`, och butikens "Rea", sidan /rea och Google-flödets
+`sale_price` kommer från Wix `compareAtPrice`. Samma dag fanns 50 reaskyltar
+utanför fyndauktionen, och 49 av dem visade ett överstruket pris som inte var det
+lägsta de senaste 30 dagarna. De 49 jämförpriserna togs bort i Wix 2026-11-01,
+lästes tillbaka och mättes på de publicerade sidorna. Leonard sa sedan "Fixa" till
+förslaget: en reaskylt av sig själv när priset verkligen har sänkts, med rätt
+överstruket pris, i högst 30 dagar, och bara för sänkningar på minst 10 %.
+
+**Lagen** (7 a § prisinformationslagen): det tidigare priset ska vara det lägsta
+som tillämpats de 30 dagarna före sänkningen, och vid en gradvis sänkning priset
+före den första sänkningen. Regeln, och varje försiktigt val, står i
+`lib/pricing/rea.ts`.
+
+Timjobbet `/api/cron/rea?dryRun=false` (minut 40, utanför Aosoms synkfönster och
+före VEVOR-synken) → `lib/pricing/rea-kor.ts`:
+
+1. Läser varje variants pris och jämförpris ur Read-Only Variants API
+   (`lib/wix/jamforpris.ts`, svepet i `lib/wix/variant-svep.ts`, som
+   kostnadsverktyget delar).
+2. För prisförloppet per variant i `FyndplatsPrisforlopp` (`lib/pricing/rea-lager.ts`,
+   en rad per produkt, bara produkter som någon gång gått att köpa).
+3. Bestämmer varje variants jämförpris och skriver ändringarna produkt för produkt
+   (`skrivJamforpriser`), med läsning tillbaka och uppföljning av variantbilden.
+
+Workflowen **"Rea — automatisk reaskylt vid verklig prissänkning"** (`rea.yml`):
+`status` · `torr` · `skarp` · `seed-torr` · `seed` · `pa` · `av`.
+
+**Jobbet äger jämförpriset utanför auktionen.** Ett jämförpris som inte följer av
+historiken tas bort, också ett som satts för hand. En produkt i en levande auktion
+(`live`, också en schemalagd) rörs inte alls.
+
+Tre spärrar innan ett jämförpris skrivs, och alla tre ska stå kvar:
+
+1. ☠️ **`seedKlar`**: historiken är fylld bakåt ur butikens dagliga prisavläsning.
+2. ☠️ **`skriv`** (strömbrytaren, `pa`/`av`): av som standard. Historiken förs ändå.
+3. ☠️ **Historiken för körningen sparades.** Föll den rörs inga priser, och
+   `senast` står kvar så att nästa körning ser luckan.
+
+Tio egenskaper som inte ska tas bort:
+
+1. ☠️ **Jämförpriset blir aldrig högre än lagens, i den strängaste läsningen.** En
+   prisändring syns upp till ett dygn sent (timavläsningen, och dygnsavläsningen
+   bakåt), så fönstret räknas ett dygn längre (`MARGINAL_MS`), en sänkning räknas
+   till en gradvis följd bara när den säkert låg inom 30 dagar, och det lägsta
+   priset tas från den tidigaste sänkning lagen kan räkna. Ett egenskapstest kör
+   20 000 slumpade förlopp mot facit på det verkliga förloppet.
+2. ☠️ **En ny produkt har ingen rea.** Historiken måste täcka hela fönstret, och
+   varianten måste ha gått att köpa när det började.
+3. ☠️ **En tid då varianten inte gick att köpa är inget pris.** Ett utkasts pris
+   hade annars gett en sänkning som ingen kund sett.
+4. ☠️ **En lucka (mer än tre timmar mellan två körningar) i fönstret ger ingen rea.**
+5. ☠️ **En auktion i fönstret ger ingen automatisk rea**: auktionens lägsta pris är
+   ett tillämpat pris som historiken inte ser. Auktionens seed köar inte en produkt
+   med jämförpris, så en vara med rea går inte till auktionen förrän skylten är borta.
+6. ☠️ **Ett jämförpris sätts bara på det pris beslutet gällde.** Har synken skrivit
+   ett nytt pris under tiden väntar varianten till nästa körning.
+7. ☠️ **Ett nytt pris tar bort jämförpriset** (`updateV3VariantPrices`). Annars hade
+   en höjning stått som "Rea" tills jobbet hann räkna om.
+8. ☠️ **Bakåtfyllningen gäller bara produkter med en variant.** Butikens avläsning
+   sparar det lägsta priset bland produktens varianter, och när en billigare färg
+   slogs ihop med sidan hade den nya färgens historik visat en sänkning som aldrig
+   hänt. Flervariantsprodukter får rea först efter 30 dagar egen timhistorik.
+9. ☠️ **Masspärren** (`MAX_NYA` = 200 nya reaskyltar per körning). Fler än så skrivs
+   inte, bara borttagningarna. Läs planen (`torr`) och kör `skarp` med `max_nya`
+   om den stämmer.
+10. ☠️ **Svaret och loggen bär bara antal och Wix-id, aldrig priser.**
+
+⚠️ **Vad historiken inte ser:** det som fyllts bakåt ur butikens avläsning (02:30
+UTC varje dag, sedan 2026-09-17) ser ett pris om dagen. En sänkning som kom och gick
+mellan två avläsningar syns inte där. Det gäller bara de första 30 dagarna efter
+starten; från första körningen läses priset varje timme.
+
+**Efter mergen,** i den ordningen: timjobbet för historiken från första körningen
+(strömbrytaren är av). Kör `seed-torr` och läs talen, sedan `seed`, sedan `torr`
+och läs planen (nya, byten, borttagningar och `medRea`). Titta på några produkter i
+planen. Slå sedan på med `pa`, och mät sidorna live efter nästa körning.
 
 ## Dealproffsen: vi jämför inte med dem (Leonard 2026-10-21)
 

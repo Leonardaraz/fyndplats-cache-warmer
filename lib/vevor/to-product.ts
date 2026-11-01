@@ -41,6 +41,7 @@ import { sidadress } from "./sida";
 import { vevorLandadKostnadSek } from "./pris";
 import type { Bildval } from "./bilder";
 import type { VevorGranskning } from "./granskning";
+import { radHarModellnummer } from "@/lib/polish/modellnummer";
 
 /** Äldre avläsning än så importeras inte. Läsaren läser utkasten en gång per dygn. */
 export const MAX_ALDER_IMPORT_MS = 48 * 3_600_000;
@@ -268,8 +269,20 @@ const IDENTIFIERARE = new Set([
 export function arIdentifierarRad(etikett: string, varde: string): boolean {
   const k = etikett.replace(/\s+/g, " ").trim().toLowerCase().replace(/[:.]+$/, "");
   if (IDENTIFIERARE.has(k)) return true;
-  return k === "modell" && /\d/.test(varde) && !/[a-zåäöü]{3,}/.test(varde);
+  if (k === "modell" && /\d/.test(varde) && !/[a-zåäöü]{3,}/.test(varde)) return true;
+  // ☠️ Allt poleringens grind fäller tas också bort (lib/polish/modellnummer.ts):
+  // "Modell: <kod> <ord>" och VEVOR:s dubblerade "Artikelmodell
+  // Artikelmodellnummer". Annars stod raden kvar, och specifikationsverktyget
+  // skrev om fliken varje körning utan att den blev rätt (21 sidor 2026-11-01).
+  return radHarModellnummer(etikett, varde);
 }
+
+/**
+ * VEVOR:s nya sidmall lägger ibland nästa rads etikett sist i värdet
+ * ("Nettovikt: <vikt> Artikelmodellnummer", uppmätt 2026-11-01). Etiketten tas
+ * bort, och värdet står kvar.
+ */
+const IDENTIFIERAR_SVANS = /\s+(?:artikelmodellnummer|artikelmodell|artikelnummer|artikelnr|modellnummer|modellnr|produktmodell)[\s:]*$/i;
 
 /** Specifikationstabellen, sedan variantens egna värden som inte redan står där. */
 export function specifikation(a: Pick<Avlasning, "spec" | "egenskaper">): Record<string, string> {
@@ -277,7 +290,7 @@ export function specifikation(a: Pick<Avlasning, "spec" | "egenskaper">): Record
   const sedda = new Set<string>();
   for (const [k, v] of [...a.spec, ...a.egenskaper]) {
     const nyckel = k.trim();
-    const varde = v.trim();
+    const varde = v.trim().replace(IDENTIFIERAR_SVANS, "").trim();
     if (!nyckel || !varde || sedda.has(nyckel.toLowerCase())) continue;
     if (arIdentifierarRad(nyckel, varde)) continue;
     sedda.add(nyckel.toLowerCase());

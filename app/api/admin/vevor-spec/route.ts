@@ -101,7 +101,8 @@ export async function POST(req: NextRequest) {
         `${svar.utkast} utkast, ${svar.attRatta} att rätta, ` +
         `${svar.redanRatt} redan rätt, ${svar.tomma} utan specifikation, ${svar.skrivna} skrivna, ${svar.kvar} kvar, ` +
         `stopp ${svar.stoppadAv}, hinder publicerad ${h.publicerad} polerad ${h.polerad} ` +
-        `avlasning_saknas ${h.avlasning_saknas} ej_omlast ${h.ej_omlast} flik_utan_rader ${h.flik_utan_rader} las_fel ${h.las_fel}`,
+        `avlasning_saknas ${h.avlasning_saknas} ej_omlast ${h.ej_omlast} flik_utan_rader ${h.flik_utan_rader} ` +
+        `modellnummer_kvar ${h.modellnummer_kvar} las_fel ${h.las_fel}`,
     );
     return NextResponse.json({ ok: true, ...svar });
   } catch (err) {

@@ -55,6 +55,15 @@ export const VEVOR_KOL = {
   gpsr: "FyndplatsVevorGpsr",
 } as const;
 
+/**
+ * Rea-jobbets kollektion (lib/pricing/rea-lager.ts, 2026-11-01): prisförloppet
+ * per produkt och variant, och jobbets lås och tillstånd. Läses i sin helhet
+ * varje körning, utan filter och sortering, så den behöver inget index.
+ */
+export const PRIS_KOL = {
+  forlopp: "FyndplatsPrisforlopp",
+} as const;
+
 export const KOLLEKTIONER: KollektionSpec[] = [
   { id: col("WIX_DATA_COL_MAPPINGS", "FyndplatsMappings"), index: [] },
   {
@@ -124,4 +133,5 @@ export const KOLLEKTIONER: KollektionSpec[] = [
   { id: VEVOR_KOL.avlasningar, index: [{ namn: "status", falt: [asc("status")] }] },
   { id: VEVOR_KOL.lasare, index: [] },
   { id: VEVOR_KOL.gpsr, index: [] },
+  { id: PRIS_KOL.forlopp, index: [] },
 ];

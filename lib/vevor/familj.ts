@@ -62,6 +62,7 @@ import type { Avlasning, Sidrad } from "./lager";
 import { medlemshinder, specifikation, kostnadUsd, vevorProdukt, type Prisunderlag } from "./to-product";
 import { BILDER_PER_PRODUKT, type Bildval } from "./bilder";
 import { arFunktionsrad, familjensKlass } from "./axelklass";
+import { radHarModellnummer } from "@/lib/polish/modellnummer";
 
 export type FamiljSkal =
   | "utan_egenskaper"
@@ -343,18 +344,24 @@ export function familjensSpec(
     const n = lc(k);
     const per = tabeller.map((t) => t.get(n));
     const finns = per.filter((v): v is string => v !== undefined);
+    let rad: string;
     if (finns.length === medlemmar.length && new Set(finns.map(lc)).size === 1) {
-      ut[k] = finns[0];
-      continue;
+      rad = finns[0];
+    } else {
+      const grupper = new Map<string, { varde: string; vilka: string[] }>();
+      per.forEach((v, i) => {
+        if (v === undefined) return;
+        const g = grupper.get(lc(v)) ?? { varde: v, vilka: [] };
+        g.vilka.push(etiketter[i]);
+        grupper.set(lc(v), g);
+      });
+      rad = [...grupper.values()].map((g) => `${g.vilka.join(", ")}: ${g.varde}`).join(" · ");
     }
-    const grupper = new Map<string, { varde: string; vilka: string[] }>();
-    per.forEach((v, i) => {
-      if (v === undefined) return;
-      const g = grupper.get(lc(v)) ?? { varde: v, vilka: [] };
-      g.vilka.push(etiketter[i]);
-      grupper.set(lc(v), g);
-    });
-    ut[k] = [...grupper.values()].map((g) => `${g.vilka.join(", ")}: ${g.varde}`).join(" · ");
+    // ☠️ Raden som den står i fliken: varianternas namn kommer efter etiketten, och en
+    // variant som heter "850 mm" gör "Modell: 850 mm: …" till en kod enligt
+    // poleringens regel (lib/polish/modellnummer.ts, uppmätt 2026-11-01).
+    if (radHarModellnummer(k, rad)) continue;
+    ut[k] = rad;
   }
   return ut;
 }
