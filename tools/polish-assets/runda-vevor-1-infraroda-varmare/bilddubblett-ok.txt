@@ -1,0 +1,2 @@
+# kort pos1 pos2 skäl (kvitterar ett par som gate-bilddubblett.py flaggar som misstänkt men som visar något olika)
+52528dd1 3 6 position 3 visar värmaren påslagen med glödande värmerör sedd framifrån, position 6 samma värmare släckt och sedd bakifrån med dragkedjan hängande; olika information, olika vinkel (0,029, över gränsen 0,02)
