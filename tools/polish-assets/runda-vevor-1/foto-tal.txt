@@ -1,0 +1,26 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, eller omräknade ur källans mått i mm till cm.
+# Form: <kort> <tal> <vad som lästes av, räknades eller räknades om>
+c4e44d56 275 2750 mm i källan = 275 cm
+c4e44d56 10 100 mm i källan = 10 cm (artikelmåttets andra tal)
+c4e44d56 8 80 mm i källan = 8 cm (artikelmåttets tredje tal)
+058f99c8 201 2011 mm i källan = 201,1 cm, avrundat till 201
+058f99c8 10 100 mm i källan = 10 cm
+058f99c8 8 80 mm i källan = 8 cm
+48239434 275 2750 mm i källan = 275 cm
+48239434 27 270 mm i källan = 27 cm
+48239434 10 100 mm i källan = 10 cm
+605e12f2 183 1828 mm i källan = 182,8 cm, avrundat till 183
+605e12f2 27 270 mm i källan = 27 cm
+605e12f2 10 100 mm i källan = 10 cm
+1dfe3dd5 152 1524 mm i källan = 152,4 cm, avrundat till 152
+1dfe3dd5 27 270 mm i källan = 27 cm
+1dfe3dd5 10 100 mm i källan = 10 cm
+196540b1 275 2750 mm i källan = 275 cm
+196540b1 28 280 mm i källan = 28 cm
+196540b1 15 150 mm i källan = 15 cm
+ac24128f 24 240 mm i källan = 24 cm
+ac24128f 10,5 105 mm i källan = 10,5 cm
+ac24128f 3 tre AAA-batterier räknade i batterifacket på bild 4
+5d70b5ce 12,8 128 mm i källan = 12,8 cm
+5d70b5ce 6,5 65 mm i källan = 6,5 cm
+5d70b5ce 3 tre LR44-celler räknade i batterifacket på bild 4 (märkt 3xAG13 LR44)
