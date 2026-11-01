@@ -20,6 +20,7 @@ import type { LiveAuctionView } from "../lib/auction-view";
 import { AuctionOdometer } from "./auction-odometer";
 import { fmtLeft } from "../lib/auction-day";
 import { useAuctionClock } from "./use-auction-clock";
+import { TidigarePris } from "./tidigare-pris";
 
 export function AuctionHeroCard({ a }: { a: LiveAuctionView }) {
   // phase är aldrig null: före mount kommer den från serverns klocka, så
@@ -65,7 +66,7 @@ export function AuctionHeroCard({ a }: { a: LiveAuctionView }) {
         <div className="a-hc-name">{a.name}</div>
         <div className="a-hc-price-row">
           <AuctionOdometer value={a.priceNum} className="a-hc-price" />
-          {dropped && <span className="a-hc-old">{a.listPrice.toLocaleString("sv-SE")} kr</span>}
+          {dropped && <TidigarePris kort belopp={`${a.listPrice.toLocaleString("sv-SE")} kr`} className="a-hc-old" />}
           {dropped && saved > 0 && <span className="a-hc-save">Du sparar {saved.toLocaleString("sv-SE")} kr</span>}
         </div>
         {phase === "pre" ? (

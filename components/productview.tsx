@@ -13,6 +13,7 @@ import { flestaHarBild, variantLage, visaAxelnamn, visaValnamn } from "../lib/va
 import { DeliveryEstimate } from "./delivery-estimate";
 import { PaymentMarks } from "./payment-marks";
 import { KlarnaOSM } from "./klarna-osm";
+import { TidigarePris } from "./tidigare-pris";
 import { formatPrice } from "../lib/price-range";
 import { ratingSummary } from "../lib/rating";
 import { Stars } from "./stars";
@@ -812,9 +813,12 @@ export function ProductView({
           )}
           <div className="pdp-price">
             {displayPrice}
-            {ordinarie > 0 && <span className="pdp-price-old">{formatPrice(ordinarie)}</span>}
             {ordinarie > 0 && <span className="pdp-sale">Rea</span>}
           </div>
+          {/* Det tidigare priset med Konsumentverkets uttryck direkt framför
+              (7 a § prisinformationslagen). Talet är Wix jämförpris, som motorn
+              räknar som det lägsta priset de 30 dagarna före sänkningen. */}
+          {ordinarie > 0 && <TidigarePris belopp={formatPrice(ordinarie)} className="pdp-price-old" />}
           <KlarnaOSM priceNum={currentPriceNum} />
           {/* Lagerstatus visas i leveransboxen ("✓ I lager · Beräknad leverans…")
               — en fristående pill här såg övergiven ut. Slut-i-lager-läget bärs

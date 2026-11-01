@@ -12,6 +12,7 @@ import { getBlurDataURLs, SHIMMER_BLUR } from "../lib/lqip";
 import { Newsletter } from "../components/newsletter";
 import { getHiddenFromFeatured, PROBLEM_MAX_SCORE } from "../lib/image-scores";
 import { formatPrice } from "../lib/price-range";
+import { TidigarePris } from "../components/tidigare-pris";
 import { getLiveAuctions } from "../lib/auction-view";
 import { AuctionBannerText } from "../components/auction-banner-text";
 import { tightFillUrl } from "../lib/wix-image";
@@ -350,9 +351,11 @@ export default async function Home() {
                           ? `Från ${formatPrice(p.priceFromNum)}`
                           : p.priceNum ? formatPrice(p.priceNum) : p.price}
                         {p.onSale && (p.originalPriceNum || p.originalPrice) && (
-                          <span className="htag-old">
-                            {p.originalPriceNum ? formatPrice(p.originalPriceNum) : p.originalPrice}
-                          </span>
+                          <TidigarePris
+                            kort
+                            belopp={p.originalPriceNum ? formatPrice(p.originalPriceNum) : p.originalPrice || ""}
+                            className="htag-old"
+                          />
                         )}
                       </span>
                     )}
@@ -377,9 +380,11 @@ export default async function Home() {
                           ? `Från ${formatPrice(p.priceFromNum)}`
                           : p.priceNum ? formatPrice(p.priceNum) : p.price}
                         {p.onSale && (p.originalPriceNum || p.originalPrice) && (
-                          <span className="htag-old">
-                            {p.originalPriceNum ? formatPrice(p.originalPriceNum) : p.originalPrice}
-                          </span>
+                          <TidigarePris
+                            kort
+                            belopp={p.originalPriceNum ? formatPrice(p.originalPriceNum) : p.originalPrice || ""}
+                            className="htag-old"
+                          />
                         )}
                       </span>
                     )}
