@@ -41,3 +41,7 @@ Ett utkast anges med sitt Wix-id.
 (h) **En parallell läsning av mappningsloggen gav samma körning sex gånger** (fem av sex filer visade samma wix-id). Läs en i taget och kontrollera `wixProductId` i svaret.
 
 (i) **Recensionerna är få.** Mätt med `polish-recensioner.yml` `las`: en av sex sidor (b46eb759) hade en väntande recension att besluta, och den översattes. f79f7c66 och 52528dd1 har tre dolda var och en rad vars artikel inte går att avgöra, och de övriga tre har inga alls.
+
+(j) **Utfall runda vevor-1, mätt 2026-11-01 18:06 UTC** (ISR-medveten hämtning, `livegrind.py`, `livekoll.py`): 6 av 6 sidor svarar 200 och är OK, orddiffen mot rundans filer är 0 på alla sex (306–361 ord), och alt-texterna är 34 av 34. Skrivningen återlästes separat 6 av 6 LIKA före live-kontrollen. Brödsmulan visar bara `Trädgård & Utemöbler`: underkategorin Värme, ventilation & AC är dold tills tio varor är publicerade, och rundan har sex. Fyra till i samma kategori gör den synlig (kandidater: växthusvärmare, takfläktar, termostat).
+
+(k) **En docs-bara push byggde inget** (2026-11-01 17:5x–18:03 UTC): `cc42aea9` gav `Ignored` i båda Vercel-projekten. Rundans kod- och teständringar (`gatelib.py`, `grindluckor.test.ts`) låg i en tidigare push som byggde motorn, så filtrets referenspunkt var redan flyttad.
