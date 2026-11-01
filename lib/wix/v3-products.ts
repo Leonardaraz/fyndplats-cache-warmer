@@ -825,6 +825,8 @@ export interface VariantPriceWriteResult {
    * Saknas på en produkt med en variant, där ingenting nollställs.
    */
   variantbild?: VariantbildStatus;
+  /** Varianter vars jämförpris togs bort för att priset ändrades. Saknas när inget togs bort. */
+  jamforprisBorttagna?: number;
 }
 
 export interface VariantPriceWriteOpts {
@@ -932,6 +934,7 @@ export async function updateV3VariantPrices(
 
   const missing: string[] = [];
   let updated = 0;
+  let jamforprisBorttagna = 0;
   for (const w of writes) {
     const träff =
       (w.wixVariantId ? byId.get(String(w.wixVariantId)) : undefined) ??
@@ -942,9 +945,20 @@ export async function updateV3VariantPrices(
     }
     // Beloppen är strängar i V3 ("589"), inte tal — skickas de som number
     // accepteras de ibland och avrundas tyst. Håll formatet.
+    //
+    // ☠️ ETT NYTT PRIS TAR BORT JÄMFÖRPRISET (2026-11-01). Ett jämförpris är priset
+    // före en sänkning (7 a § prisinformationslagen), och det gällde priset som
+    // stod. Höjs priset står "Rea" annars kvar mot ett pris som inte längre är en
+    // sänkning, tills rea-jobbet (lib/pricing/rea-kor.ts) hinner räkna om. Sänks
+    // det sätter jobbet ett nytt inom en timme. Ett oförändrat pris rör inte
+    // jämförpriset.
+    const forePris = Number(träff.price?.actualPrice?.amount);
+    const nyttPris = !(Number.isFinite(forePris) && forePris === Number(w.actualPrice));
+    if (nyttPris && träff.price?.compareAtPrice) jamforprisBorttagna++;
     träff.price = {
       ...(träff.price ?? {}),
       actualPrice: { amount: String(w.actualPrice) },
+      ...(nyttPris && träff.price?.compareAtPrice ? { compareAtPrice: null } : {}),
     };
     if (typeof w.costAmount === "number" && w.costAmount > 0) {
       träff.revenueDetails = { cost: { amount: String(w.costAmount) } };
@@ -1052,7 +1066,12 @@ export async function updateV3VariantPrices(
     );
   }
   /* eslint-enable @typescript-eslint/no-explicit-any */
-  return { updated, missing, ...(variantbild ? { variantbild } : {}) };
+  return {
+    updated,
+    missing,
+    ...(jamforprisBorttagna > 0 ? { jamforprisBorttagna } : {}),
+    ...(variantbild ? { variantbild } : {}),
+  };
 }
 
 /** Hämtar fullständig variant-data för en produkt (för variantmappning).

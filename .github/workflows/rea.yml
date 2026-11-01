@@ -1,0 +1,118 @@
+name: Rea — automatisk reaskylt vid verklig prissänkning
+
+# Rea-jobbet för hand (lib/pricing/rea-kor.ts, regeln i lib/pricing/rea.ts).
+# Cronen kör det skarpt varje timme, minut 40. Ett jämförpris sätts bara när
+# priset sänkts med minst 10 % mot det lägsta priset de 30 dagarna före
+# sänkningen (7 a § prisinformationslagen), och tas bort efter 30 dagar.
+#
+#   status     strömbrytaren, bakåtfyllningen, senaste körningen och luckorna
+#   torr       läser och räknar: vad som skulle sättas och tas bort. Sparar ingenting.
+#   skarp      samma körning som cronen: historiken sparas och jämförpriserna skrivs
+#              (bara när bakåtfyllningen är gjord och strömbrytaren är på)
+#   seed-torr  vad bakåtfyllningen ur butikens dagliga avläsning skulle göra
+#   seed       fyller historiken bakåt, en gång
+#   pa         strömbrytaren på: jobbet börjar skriva jämförpriser
+#   av         strömbrytaren av: historiken förs, inga jämförpriser skrivs
+#
+# Ordningen första gången: seed-torr, seed, torr (läs planen), pa, skarp.
+#
+# Skriver bara antal och Wix-id, aldrig priser. Repot är publikt.
+#
+# ⚠️ Rutten finns bara där den är deployad. Kör från main när den ligger där.
+
+on:
+  workflow_dispatch:
+    inputs:
+      lage:
+        description: "status, torr, skarp, seed-torr, seed, pa eller av"
+        required: true
+        default: status
+        type: choice
+        options: [status, torr, skarp, seed-torr, seed, pa, av]
+      max_nya:
+        description: "Masspärren: högst så många nya reaskyltar (torr och skarp). Tomt = 200."
+        required: false
+        default: ""
+      ids:
+        description: "Bara de här produkterna får jämförpriset skrivet (Wix-id, kommaseparerade). Tomt = alla."
+        required: false
+        default: ""
+
+concurrency:
+  group: rea
+  cancel-in-progress: false
+
+jobs:
+  kor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          LAGE: ${{ inputs.lage }}
+          MAX_NYA: ${{ inputs.max_nya }}
+          IDS: ${{ inputs.ids }}
+        run: |
+          set -euo pipefail
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # Till STDERR: en ::error::-rad på stdout slukas av kommandosubstitutionen.
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          rot="${BASE%/api/cron/poll-tracking}"
+
+          case "$LAGE" in
+            status)    fraga="lage=status" ;;
+            torr)      fraga="lage=kor&dryRun=true" ;;
+            skarp)     fraga="lage=kor&dryRun=false" ;;
+            seed-torr) fraga="lage=seed&dryRun=true" ;;
+            seed)      fraga="lage=seed&dryRun=false" ;;
+            pa)        fraga="lage=pa" ;;
+            av)        fraga="lage=av" ;;
+            *) echo "::error::okänt läge $LAGE" >&2; exit 1 ;;
+          esac
+          if [ -n "${MAX_NYA:-}" ]; then
+            if ! printf '%s' "$MAX_NYA" | grep -Eq '^[0-9]+$'; then
+              echo "::error::max_nya är ett heltal" >&2; exit 1
+            fi
+            fraga="${fraga}&maxNya=${MAX_NYA}"
+          fi
+          if [ -n "${IDS:-}" ]; then
+            if ! printf '%s' "$IDS" | grep -Eq '^[0-9a-f-]+(,[0-9a-f-]+)*$'; then
+              echo "::error::ids är Wix-id åtskilda med komma" >&2; exit 1
+            fi
+            fraga="${fraga}&ids=${IDS}"
+          fi
+
+          svar=$(curl -sS --max-time 320 -H "Authorization: Bearer ${CRON_SECRET}" "${rot}/api/cron/rea?${fraga}") || {
+            echo "::error::Anropet gick inte fram" >&2; exit 1; }
+          if ! printf '%s' "$svar" | jq -e 'type == "object"' >/dev/null 2>&1; then
+            echo "::error::Svaret var inte JSON. Är rutten deployad där workflowen kör?" >&2
+            exit 1
+          fi
+
+          case "$LAGE" in
+            status|pa|av)
+              printf '%s' "$svar" | jq '{ok, lage, skriv, seedKlar, seedAt, senast, luckor, senasteLucka}' ;;
+            seed-torr|seed)
+              printf '%s' "$svar" | jq 'del(.ok)' ;;
+            *)
+              printf '%s' "$svar" | jq '{ok, torr, skriv, seedKlar, varianter, erbjudna, historik, beslut, plan, skrivet, skrevInte, stoppad, stoppadAv, ejNadda, medRea: (.medRea | length)}'
+              echo "Produkter med rea efter körningen (Wix-id, högst 100):"
+              printf '%s' "$svar" | jq -r '.medRea // [] | .[]'
+              if [ "$(printf '%s' "$svar" | jq -r '.produkter | length')" != "0" ]; then
+                echo "Det som inte gick rent:"
+                printf '%s' "$svar" | jq -c '.produkter[]'
+              fi
+              if [ "$(printf '%s' "$svar" | jq -r '.plan.nyaSparrade')" = "true" ]; then
+                echo "::warning::Masspärren slog till: fler nya reaskyltar än taket. Läs planen och kör skarp med max_nya om den stämmer."
+              fi
+              ;;
+          esac
+
+          if [ "$(printf '%s' "$svar" | jq -r '.ok')" != "true" ]; then
+            echo "::error::$(printf '%s' "$svar" | jq -r '.error // .stoppadAv // "körningen gick inte rent"' | head -c 300)" >&2
+            exit 1
+          fi

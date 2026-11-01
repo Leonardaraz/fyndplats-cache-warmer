@@ -354,3 +354,49 @@ describe("updateV3VariantPrices — variantbilden rättas direkt efter skrivning
     }
   });
 });
+
+describe("updateV3VariantPrices — ett nytt pris tar bort jämförpriset", () => {
+  const medJamfor = {
+    id: "p1",
+    revision: "1",
+    visible: true,
+    variantsInfo: {
+      variants: [
+        { id: "v1", sku: "SKU-1", price: { actualPrice: { amount: "800.00" }, compareAtPrice: { amount: "1000.00" } } },
+        { id: "v2", sku: "SKU-2", price: { actualPrice: { amount: "900.00" }, compareAtPrice: { amount: "1000.00" } } },
+      ],
+    },
+  };
+  const variant = (patchar: { body: Record<string, unknown> }[], id: string) =>
+    ((patchar[0].body.product as { variantsInfo: { variants: { id: string; price: Record<string, unknown> }[] } })
+      .variantsInfo.variants.find((v) => v.id === id))!;
+
+  it("☠️ en höjning tar bort jämförpriset på varianten, så att Rea inte står kvar mot ett pris som inte är en sänkning", async () => {
+    const patchar = stubba(medJamfor);
+    const r = await updateV3VariantPrices("p1", [{ wixVariantId: "v1", actualPrice: 950 }], { foljUppVariantbild: false });
+    expect(variant(patchar, "v1").price).toEqual({ actualPrice: { amount: "950" }, compareAtPrice: null });
+    expect(r.jamforprisBorttagna).toBe(1);
+  });
+
+  it("varianten som inte skrevs behåller sitt jämförpris", async () => {
+    const patchar = stubba(medJamfor);
+    await updateV3VariantPrices("p1", [{ wixVariantId: "v1", actualPrice: 950 }], { foljUppVariantbild: false });
+    expect(variant(patchar, "v2").price).toEqual({ actualPrice: { amount: "900.00" }, compareAtPrice: { amount: "1000.00" } });
+  });
+
+  it("samma pris skrivet igen ('800' mot '800.00') rör inte jämförpriset", async () => {
+    const patchar = stubba(medJamfor);
+    const r = await updateV3VariantPrices("p1", [{ wixVariantId: "v1", actualPrice: 800 }], { foljUppVariantbild: false });
+    expect(variant(patchar, "v1").price).toEqual({ actualPrice: { amount: "800" }, compareAtPrice: { amount: "1000.00" } });
+    expect(r.jamforprisBorttagna).toBeUndefined();
+  });
+
+  it("en variant utan jämförpris får inget compareAtPrice-fält", async () => {
+    const patchar = stubba(produkt(true));
+    const r = await updateV3VariantPrices("p1", [{ wixVariantId: "v1", actualPrice: 150 }], { foljUppVariantbild: false });
+    const p = (patchar[0].body.product as { variantsInfo: { variants: { price: Record<string, unknown> }[] } }).variantsInfo.variants[0].price;
+    expect(p).toEqual({ actualPrice: { amount: "150" } });
+    expect("compareAtPrice" in p).toBe(false);
+    expect(r.jamforprisBorttagna).toBeUndefined();
+  });
+});

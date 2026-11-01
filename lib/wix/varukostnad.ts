@@ -49,6 +49,7 @@ import type { WixAnrop } from "../polish/skrivplan";
 import type { ProductMappingRecord } from "../store";
 import { isAosomMapping } from "../store/supplier";
 import { kostnadAv, likaKostnad, variantsInfoMedKostnad } from "./produkt-kostnad";
+import { redigeraFeltext, svepaVarianter } from "./variant-svep";
 import {
   VARIANTBILD_FALT,
   jamforForeEfter,
@@ -67,18 +68,9 @@ const obj = (v: unknown): Obj => (v && typeof v === "object" && !Array.isArray(v
 const str = (v: unknown): string => (typeof v === "string" ? v : "");
 const paus = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
-/**
- * Wix felkropp (`Wix 400: …`) är fritext, och en validering kan eka värdet som skickades: kostnaden är vårt
- * inköpsled och loggen är publik. Decimaltal och Aosoms artikelnummer byts därför innan texten lämnar modulen.
- * Formerna för artikelnumret är husets (samma som `redigera()` i workflowerna). Det här är det första skyddet:
- * rutten och workflowen redigerar på nytt.
- */
-export function redigeraFeltext(text: string): string {
-  return text
-    .replace(/\b(?:\d{2}[A-Z]|[A-Z]\d{2}|\d[A-Z]\d|\d{3})-\d{3}(?!\d)[A-Z0-9]*\b/g, "‹REDIGERAT›")
-    .replace(/aosom:\S+/g, "aosom:‹REDIGERAT›")
-    .replace(/\b\d+[.,]\d+\b/g, "‹tal›");
-}
+// `redigeraFeltext` bor i variant-svep.ts (svepet behöver den), och exporteras här
+// som förut: rutten och testerna läser den härifrån.
+export { redigeraFeltext };
 
 // ── Katalogens kostnadsläge ──────────────────────────────────────────────
 
@@ -93,11 +85,6 @@ export interface KatalogVariant {
   kostnad: string | null;
 }
 
-const VARIANTER_PER_SIDA = 1000;
-/** 40 sidor är 40 000 varianter. Katalogen har ungefär 8 700. Ett tak ska kasta, aldrig kapa. */
-const MAX_SIDOR = 40;
-const SIDPAUS_MS = 250;
-const SVEP_PAUS_MS = [1_000, 3_000, 8_000];
 /**
  * Golv: färre varianter än så är en halvläst katalog, inte en liten. Planen läser kostnaden ur den,
  * och en variant som saknas i svepet ser ut som "ingen kostnad" eller "inte i Wix" åt fel håll.
@@ -108,61 +95,24 @@ export const MIN_KATALOGVARIANTER = 4000;
  * Varje variant i butiken med sin kostnad, ur Read-Only Variants API (`query-variants`, `MERCHANT_DATA`).
  * Uppmätt 2026-10-24 och 2026-10-28: 1 000 per sida, nio sidor på ungefär femton sekunder, en variant
  * utan kostnad saknar `revenueDetails` helt, och en med den bär `{ cost: { amount }, profit, profitMargin }`.
- * Sida två och framåt skickar `fields` på nytt tillsammans med markören (annars saknas fältet tyst,
- * som `products/search`). Kastar hellre än returnerar en halv katalog.
+ * Svepet, taket och omförsöken är `svepaVarianter` (variant-svep.ts). Kastar hellre än returnerar en
+ * halv katalog.
  */
 export async function lasKatalogVarianter(
   wix: WixAnrop,
   vanta: (ms: number) => Promise<void> = paus,
 ): Promise<KatalogVariant[]> {
-  const ut = new Map<string, KatalogVariant>();
-  let cursor: string | undefined;
-  for (let sida = 0; sida < MAX_SIDOR; sida++) {
-    if (sida > 0) await vanta(SIDPAUS_MS);
-    const body = {
-      fields: ["MERCHANT_DATA"],
-      query: { cursorPaging: cursor ? { limit: VARIANTER_PER_SIDA, cursor } : { limit: VARIANTER_PER_SIDA } },
+  const rader = await svepaVarianter(wix, { falt: ["MERCHANT_DATA"], golv: MIN_KATALOGVARIANTER, vanta });
+  return rader.map((v) => {
+    const produkt = obj(v.productData);
+    return {
+      id: str(v.id),
+      sku: str(v.sku),
+      productId: str(produkt.productId),
+      synlig: produkt.visible !== false,
+      kostnad: kostnadAv(v),
     };
-    let svar: Obj | null = null;
-    let sistaFel = "";
-    for (let forsok = 0; forsok <= SVEP_PAUS_MS.length; forsok++) {
-      try {
-        svar = obj(await wix("POST", "/stores/v3/products/query-variants", body));
-        break;
-      } catch (e) {
-        const rått = String((e as Error)?.message ?? e).slice(0, 200);
-        const overgaende = /Wix (429|5\d\d)|nätverksfel/.test(rått);
-        sistaFel = redigeraFeltext(rått);
-        if (!overgaende || forsok === SVEP_PAUS_MS.length) break;
-        await vanta(SVEP_PAUS_MS[forsok]);
-      }
-    }
-    if (!svar) throw new Error(`katalogsvepet föll på sida ${sida}: ${sistaFel}`);
-    const rader = Array.isArray(svar.variants) ? (svar.variants as Obj[]) : [];
-    for (const v of rader) {
-      const id = str(v.id);
-      const produkt = obj(v.productData);
-      const productId = str(produkt.productId);
-      if (!id || !productId) continue;
-      ut.set(id, {
-        id,
-        sku: str(v.sku),
-        productId,
-        synlig: produkt.visible !== false,
-        kostnad: kostnadAv(v),
-      });
-    }
-    const meta = obj(svar.pagingMetadata);
-    cursor = str(obj(meta.cursors).next) || undefined;
-    if (meta.hasNext === false || rader.length === 0) break;
-    // ☠️ "Det finns mer" utan markör är ett trasigt svar, inte slutet.
-    if (!cursor) throw new Error("query-variants svarade hasNext utan markör");
-    if (sida === MAX_SIDOR - 1) throw new Error(`katalogsvepet nådde sidtaket (${MAX_SIDOR} sidor) med markören kvar`);
-  }
-  if (ut.size < MIN_KATALOGVARIANTER) {
-    throw new Error(`bara ${ut.size} varianter lästes, golvet är ${MIN_KATALOGVARIANTER}: svepet är halvt`);
-  }
-  return [...ut.values()];
+  });
 }
 
 // ── Planen ──────────────────────────────────────────────────────────────
