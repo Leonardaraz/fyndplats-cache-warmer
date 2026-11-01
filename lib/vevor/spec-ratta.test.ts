@@ -6,7 +6,18 @@ import type { ProductMappingRecord } from "@/lib/store";
 import type { WixAnrop } from "@/lib/polish/skrivplan";
 import { appendTabSections, buildTabSections } from "@/lib/import/tabs";
 import type { Avlasning } from "./lager";
-import { bytSpecFlik, flikHarModellnummer, korSpec, kontrolleraSpec, planeraSpec, saknadeRader, specRader, SpecFel, type SpecProdukt } from "./spec-ratta";
+import {
+  bytSpecFlik,
+  flikHarModellnummer,
+  korSpec,
+  kontrolleraSpec,
+  planeraSpec,
+  saknadeRader,
+  SKRIV_PAUS_MS,
+  specRader,
+  SpecFel,
+  type SpecProdukt,
+} from "./spec-ratta";
 import { testAvlasning } from "./testsida";
 
 type Obj = Record<string, unknown>;
@@ -398,6 +409,192 @@ describe("korSpec", () => {
     );
     expect(svar).toMatchObject({ skrivna: 1, stoppadAv: "klart" });
     expect(l.patchar).toHaveLength(2);
+  });
+
+  // Wix edge-spärr mot takten, som den såg ut 2026-11-01: en HTML-sida, inte JSON.
+  const STRYPT_SVAR = "Wix 429: <!DOCTYPE html><html><head><title>429 Too Many Requests</title>";
+
+  it("☠️ Wix stryper skrivningen (429): varvet stannar som strypt, sidan är orörd, och nästa varv skriver resten", async () => {
+    const l = lage(1, 2, 3);
+    const wix = wixFor(l);
+    let patchar = 0;
+    const deps = {
+      wix: (async (metod, sokvag, kropp) => {
+        // Wix avvisar ett 429 innan något skrivs: anropet når aldrig låtsas-Wix.
+        if (metod === "PATCH" && ++patchar === 2) throw new Error(STRYPT_SVAR);
+        return wix(metod, sokvag, kropp);
+      }) as WixAnrop,
+      mappningar: async () => [enkel(1), enkel(2), enkel(3)],
+      avlasningar: async () => karta(avl(1), avl(2), avl(3)),
+      vanta: ingenVantan,
+    };
+    const svar = await korSpec(deps, { dryRun: false, bekrafta: 3, budgetMs: 200_000 });
+    expect(svar).toMatchObject({ skrivna: 1, kvar: 2, stoppadAv: "strypt", fel: { id: pid(2), avvikelser: ["strypt"] } });
+    // Wix felkropp följer aldrig med i svaret.
+    expect(JSON.stringify(svar)).not.toContain("DOCTYPE");
+    expect(l.produkter.get(pid(2))).toMatchObject({ revision: 3, plainDescription: RAA });
+    expect(l.produkter.get(pid(3))).toMatchObject({ revision: 3, plainDescription: RAA });
+    // Nästa varv: det som återstod är taket, och resten skrivs.
+    const igen = await korSpec(deps, { dryRun: false, bekrafta: svar.kvar, budgetMs: 200_000 });
+    expect(igen).toMatchObject({ skrivna: 2, stoppadAv: "klart", fel: null });
+    for (const n of [1, 2, 3]) {
+      expect(l.produkter.get(pid(n))!.plainDescription).toContain("<h2>Tekniska specifikationer</h2>");
+    }
+  });
+
+  it("☠️ en 429 på läsningen före skrivningen ger strypt utan en enda skrivning", async () => {
+    const l = lage(1);
+    const wix = wixFor(l);
+    let lasningar = 0;
+    const svar = await korSpec(
+      {
+        wix: async (metod, sokvag, kropp) => {
+          if (metod === "GET" && ++lasningar === 1) throw new Error(STRYPT_SVAR);
+          return wix(metod, sokvag, kropp);
+        },
+        mappningar: async () => [enkel(1)],
+        avlasningar: async () => karta(avl(1)),
+        vanta: ingenVantan,
+      },
+      { dryRun: false, bekrafta: 1, budgetMs: 200_000 },
+    );
+    expect(svar).toMatchObject({ skrivna: 0, kvar: 1, stoppadAv: "strypt", fel: { id: pid(1), avvikelser: ["strypt"] } });
+    expect(l.patchar).toHaveLength(0);
+  });
+
+  it("☠️ en 429 på läsningen EFTER skrivningen räknas aldrig som strypt: sidan är skriven, så den läses om", async () => {
+    const l = lage(1, 2);
+    const wix = wixFor(l);
+    let skrivet = false;
+    let stryptEfter = false;
+    const svar = await korSpec(
+      {
+        wix: async (metod, sokvag, kropp) => {
+          if (metod === "PATCH") skrivet = true;
+          if (metod === "GET" && skrivet && !stryptEfter) {
+            stryptEfter = true;
+            throw new Error(STRYPT_SVAR);
+          }
+          return wix(metod, sokvag, kropp);
+        },
+        mappningar: async () => [enkel(1), enkel(2)],
+        avlasningar: async () => karta(avl(1), avl(2)),
+        vanta: ingenVantan,
+      },
+      { dryRun: false, bekrafta: 2, budgetMs: 200_000 },
+    );
+    expect(stryptEfter).toBe(true);
+    expect(svar).toMatchObject({ skrivna: 2, stoppadAv: "klart", fel: null });
+    expect(l.patchar).toHaveLength(2);
+  });
+
+  it("☠️ en sida som aldrig går att läsa efter skrivningen stoppar som fel, aldrig som strypt", async () => {
+    const l = lage(1, 2);
+    const wix = wixFor(l);
+    let skrivet = false;
+    const svar = await korSpec(
+      {
+        wix: async (metod, sokvag, kropp) => {
+          if (metod === "PATCH") skrivet = true;
+          if (metod === "GET" && skrivet) throw new Error(STRYPT_SVAR);
+          return wix(metod, sokvag, kropp);
+        },
+        mappningar: async () => [enkel(1), enkel(2)],
+        avlasningar: async () => karta(avl(1), avl(2)),
+        vanta: ingenVantan,
+      },
+      { dryRun: false, bekrafta: 2, budgetMs: 200_000 },
+    );
+    expect(svar).toMatchObject({
+      skrivna: 0,
+      kvar: 2,
+      stoppadAv: "fel",
+      fel: { id: pid(1), avvikelser: ["sidan gick inte att läsa efter skrivningen"] },
+    });
+    // Sidan ÄR skriven: därför fel (en människa läser sidan), inte strypt (orörd).
+    expect(l.patchar).toHaveLength(1);
+  });
+
+  it("☠️ ett annat fel på skrivningen (500) stoppar som fel, aldrig som strypt: sidan kan vara skriven", async () => {
+    const l = lage(1, 2);
+    const wix = wixFor(l);
+    const svar = await korSpec(
+      {
+        wix: async (metod, sokvag, kropp) => {
+          if (metod === "PATCH") throw new Error("Wix 500: internt fel");
+          return wix(metod, sokvag, kropp);
+        },
+        mappningar: async () => [enkel(1), enkel(2)],
+        avlasningar: async () => karta(avl(1), avl(2)),
+        vanta: ingenVantan,
+      },
+      { dryRun: false, bekrafta: 2, budgetMs: 200_000 },
+    );
+    expect(svar).toMatchObject({ skrivna: 0, kvar: 2, stoppadAv: "fel", fel: { id: pid(1), avvikelser: ["skrivningen föll"] } });
+  });
+
+  it("pausar SKRIV_PAUS_MS mellan sidorna, inte före den första", async () => {
+    const l = lage(1, 2, 3);
+    const wix = wixFor(l);
+    const logg: string[] = [];
+    const svar = await korSpec(
+      {
+        wix: async (metod, sokvag, kropp) => {
+          logg.push(metod);
+          return wix(metod, sokvag, kropp);
+        },
+        mappningar: async () => [enkel(1), enkel(2), enkel(3)],
+        avlasningar: async () => karta(avl(1), avl(2), avl(3)),
+        vanta: async (ms) => {
+          logg.push(`paus ${ms}`);
+        },
+      },
+      { dryRun: false, bekrafta: 3, budgetMs: 200_000 },
+    );
+    expect(svar).toMatchObject({ skrivna: 3, stoppadAv: "klart" });
+    const sida = ["GET", "PATCH", "GET"];
+    const paus = `paus ${SKRIV_PAUS_MS}`;
+    expect(logg).toEqual(["POST", ...sida, paus, ...sida, paus, ...sida]);
+    expect(SKRIV_PAUS_MS).toBeGreaterThanOrEqual(500);
+  });
+
+  it("torrt med allaIdn: alla sidor att rätta, inte bara de 50 första", async () => {
+    const n = Array.from({ length: 60 }, (_, i) => i + 1);
+    const l = lage(...n);
+    const deps = {
+      wix: wixFor(l),
+      mappningar: async () => n.map((i) => enkel(i)),
+      avlasningar: async () => karta(...n.map((i) => avl(i))),
+      vanta: ingenVantan,
+    };
+    const vanlig = await korSpec(deps, { dryRun: true, bekrafta: null, budgetMs: 200_000 });
+    expect(vanlig.idn).toHaveLength(50);
+    const alla = await korSpec(deps, { dryRun: true, bekrafta: null, allaIdn: true, budgetMs: 200_000 });
+    expect(alla).toMatchObject({ attRatta: 60, kvar: 60, stoppadAv: "klart" });
+    expect([...alla.idn].sort()).toEqual(n.map(pid).sort());
+    expect(l.patchar).toHaveLength(0);
+  });
+
+  it("☠️ skarpt med ett urval (en tugga) läses och skrivs bara urvalets sidor", async () => {
+    const l = lage(1, 2, 3);
+    const wix = wixFor(l);
+    const lasta: string[] = [];
+    const svar = await korSpec(
+      {
+        wix: async (metod, sokvag, kropp) => {
+          if (metod === "POST") lasta.push(...(kropp as { search: { filter: { id: { $in: string[] } } } }).search.filter.id.$in);
+          return wix(metod, sokvag, kropp);
+        },
+        mappningar: async () => [enkel(1), enkel(2), enkel(3)],
+        avlasningar: async () => karta(avl(1), avl(2), avl(3)),
+        vanta: ingenVantan,
+      },
+      { dryRun: false, bekrafta: 1, idn: [pid(2)], budgetMs: 200_000 },
+    );
+    expect(svar).toMatchObject({ utkast: 1, skrivna: 1, stoppadAv: "klart" });
+    expect(lasta).toEqual([pid(2)]);
+    expect(l.produkter.get(pid(1))!.plainDescription).toBe(RAA);
+    expect(l.produkter.get(pid(3))!.plainDescription).toBe(RAA);
   });
 
   it("☠️ en skarp körning kräver bekrafta, och en plan som växt skriver ingenting", async () => {

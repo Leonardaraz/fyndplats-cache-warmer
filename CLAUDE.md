@@ -6343,15 +6343,24 @@ Tre egenskaper som inte ska tas bort:
 VEVOR-utkast saknade fliken, varav 42 familjer. Punktlistan når inte
 beskrivningen i rått läge, så den saknas inte.
 
-Sex egenskaper som inte ska tas bort:
+`skriv` läser planen en gång (`allaIdn`) och skriver sedan dess sidor i tuggor om
+150 (`idn`), så att varje varv bara läser sina egna sidor och mappningar. Planen
+över hela katalogen tog 87 sekunder (2026-11-01, 10 603 utkast), och när varje
+varv läste om den gick mer än en tredjedel av tiden åt till läsningen. En sida
+tar ungefär 1,3 sekunder med pausen, så 9 500 sidor är ungefär tre och en halv
+timme plus synkfönstren. Jobbet stannar efter 330 minuter och säger hur många
+som är kvar: kör då planen igen och skriv med det nya antalet.
+
+Åtta egenskaper som inte ska tas bort:
 
 1. ☠️ Bara opolerade, dolda VEVOR-utkast. En polerad eller publicerad sida rörs
    aldrig.
 2. ☠️ Avläsningen ska vara gjord med den nya läsaren (`specKalla` satt), annars
    räknas sidan som `ej_omlast`. Kör `skriv` först när `ej_omlast` är nära noll,
    ungefär ett dygn efter mergen av #832 (utkasten läses en gång per dygn).
-   Planen räknas om i varje varv och får aldrig växa, så en körning medan
-   läsaren läser om stannar med "fler än bekrafta".
+   Bara sidor ur planen skrivs: en sida som blir att rätta under körningen (när
+   läsaren läser om) väntar på nästa körning. Planen får krympa men aldrig växa,
+   så en körning vars plan växt stannar med "fler än bekrafta".
 3. ☠️ En enskild artikel som redan har fliken rörs inte. Saknar fliken rader
    räknas den som `flik_utan_rader` och lämnas. En familj vars flik visar fel
    får fliken utbytt (`attByta`, se nästa avsnitt), och bara när sidan har
@@ -6362,6 +6371,20 @@ Sex egenskaper som inte ska tas bort:
    finns. En tillagd flik: den gamla texten står kvar. En utbytt flik: hela
    texten är planens. Första avvikelse stoppar körningen.
 6. ☠️ Svaret bär bara Wix-id och antal.
+7. ☠️ **Wix stryper takten, och en strypt sida är orörd.** Utan paus stoppade
+   Wix edge-spärr (en HTML-429) skrivningen efter 186 och 127 sidor
+   (2026-11-01, ungefär 1,3 sidor i sekunden): 313 av 9 808 hann skrivas. Därför
+   `SKRIV_PAUS_MS` (500 ms) mellan sidorna. En 429 på läsningen före skrivningen
+   eller på skrivningen själv betyder att ingenting skrevs: varvet stannar som
+   `strypt`, och workflowen väntar 90 sekunder och fortsätter. En 429 på
+   läsningen EFTER skrivningen räknas aldrig som `strypt`, för då är sidan
+   skriven: den läses om, och går den inte att läsa stannar körningen som `fel`.
+   Ett annat fel på skrivningen (5xx) är också `fel`. Tre varv i rad utan en
+   skriven sida stoppar jobbet.
+8. ☠️ **Inga skrivningar i Aosoms synkfönster** (`lib/wix/synkfonster.ts`).
+   Rutten vägrar skarpt där och strax före (409 `synkfonster`) och kortar
+   budgeten så att varvet slutar 30 sekunder före nästa fönster. Workflowen
+   väntar ut fönstret. Hela körningen tar timmar och korsar fönstren.
 
 ### Familjens specifikation per variant (2026-10-30)
 

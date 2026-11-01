@@ -301,6 +301,11 @@ export interface SpecVal {
   bekrafta: number | null;
   /** Bara de här sidorna (Wix-id), när det finns några. */
   idn?: string[];
+  /**
+   * Torrt: svara med ALLA Wix-id att rätta, inte bara de 50 första. Workflowen läser planen en
+   * gång och skriver sedan i tuggor ur den, så att varje varv bara läser sina egna sidor.
+   */
+  allaIdn?: boolean;
   budgetMs: number;
 }
 
@@ -317,10 +322,11 @@ export interface SpecSvar {
   hinder: Record<SpecHinder, number>;
   skrivna: number;
   kvar: number;
-  stoppadAv: "klart" | "tidsbudget" | "fel" | null;
+  /** `strypt`: Wix svarade 429 innan sidan skrevs. Sidan är orörd; workflowen väntar och fortsätter. */
+  stoppadAv: "klart" | "tidsbudget" | "strypt" | "fel" | null;
   /** Sidan som stoppade körningen och avvikelsen, som korta koder. */
   fel: { id: string; avvikelser: string[] } | null;
-  /** Upp till 50 Wix-id för sidor att rätta (torrt) eller rättade (skarpt). */
+  /** Upp till 50 Wix-id för sidor att rätta (torrt, alla med `allaIdn`) eller rättade (skarpt). */
   idn: string[];
 }
 
@@ -330,10 +336,23 @@ const MARGINAL_MS = 30_000;
 const OMLASNINGAR = 6;
 const OMLASNING_PAUS_MS = 1_500;
 const SKRIV_FORSOK = 3;
+/**
+ * Paus mellan sidorna. Wix stryper skrivningarna med en HTML-429 från sin edge
+ * efter ungefär 150 i följd: mätt 2026-11-01 utan paus, 186 och 127 sidor
+ * (~1,3 skrivningar i sekunden). Samma medicin som lagersynkens
+ * AOSOM_WRITE_DELAY_MS: att inte springa.
+ */
+export const SKRIV_PAUS_MS = 500;
+/** Wix svar när takten är för hög. Ett 429 avvisas innan något skrivs. */
+const STRYPT = /Wix 429\b/;
+
+function vantaFor(deps: SpecDeps): (ms: number) => Promise<void> {
+  return deps.vanta ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+}
 
 /** Skriver fliken på en sida och läser tillbaka. Tom lista = rätt. */
 async function skrivSida(deps: SpecDeps, rad: ProductMappingRecord, avlasningar: ReadonlyMap<string, Avlasning>): Promise<string[]> {
-  const vanta = deps.vanta ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+  const vanta = vantaFor(deps);
   // En annan skrivning på sidan (synkens lager och pris) ger 409. Då läses sidan
   // om och planeras på nytt, högst tre gånger.
   let fore: SpecProdukt | null = null;
@@ -365,7 +384,16 @@ async function skrivSida(deps: SpecDeps, rad: ProductMappingRecord, avlasningar:
   // Wix läsning släpar efter skrivningen: läs om tills revisionen gått fram.
   let efter: SpecProdukt | null = null;
   for (let i = 0; i < OMLASNINGAR; i++) {
-    efter = await lasSida(deps.wix, rad.wixProductId);
+    try {
+      efter = await lasSida(deps.wix, rad.wixProductId);
+    } catch (e) {
+      // ☠️ Sidan är redan skriven. En 429 här får aldrig nå korSpec, där den hade
+      // räknats som en strypning före skrivningen och sidan som orörd. Läs om efter
+      // en paus; går det inte stoppar körningen som en sida som inte gick att läsa.
+      if (!STRYPT.test(felText(e))) throw e;
+      await vanta(OMLASNING_PAUS_MS);
+      continue;
+    }
     if (efter && Number.isFinite(skriven) && Number(efter.revision) >= skriven) break;
     await vanta(OMLASNING_PAUS_MS);
   }
@@ -376,6 +404,7 @@ async function skrivSida(deps: SpecDeps, rad: ProductMappingRecord, avlasningar:
 
 export async function korSpec(deps: SpecDeps, val: SpecVal): Promise<SpecSvar> {
   const klocka = deps.klocka ?? Date.now;
+  const vanta = vantaFor(deps);
   const start = klocka();
   if (!val.dryRun && (val.bekrafta === null || !Number.isInteger(val.bekrafta) || val.bekrafta < 0)) {
     throw new SpecFel("en skarp körning kräver bekrafta = planens antal sidor att rätta");
@@ -429,7 +458,7 @@ export async function korSpec(deps: SpecDeps, val: SpecVal): Promise<SpecSvar> {
   if (val.dryRun) {
     svar.kvar = att.length;
     svar.stoppadAv = "klart";
-    svar.idn = att.slice(0, 50).map((r) => r.wixProductId);
+    svar.idn = (val.allaIdn ? att : att.slice(0, 50)).map((r) => r.wixProductId);
     return svar;
   }
   if (att.length > (val.bekrafta ?? 0)) {
@@ -437,6 +466,8 @@ export async function korSpec(deps: SpecDeps, val: SpecVal): Promise<SpecSvar> {
   }
 
   for (const [i, r] of att.entries()) {
+    // Paus mellan sidorna, så att Wix inte stryper skrivningarna (SKRIV_PAUS_MS).
+    if (i > 0) await vanta(SKRIV_PAUS_MS);
     if (klocka() - start > val.budgetMs - MARGINAL_MS) {
       svar.stoppadAv = "tidsbudget";
       svar.kvar = att.length - i;
@@ -446,7 +477,19 @@ export async function korSpec(deps: SpecDeps, val: SpecVal): Promise<SpecSvar> {
     try {
       avvikelser = await skrivSida(deps, r, avlasningar);
     } catch (e) {
-      console.warn("[vevor-spec] skrivningen föll:", r.wixProductId, felText(e).slice(0, 200));
+      const text = felText(e);
+      // ☠️ En 429 når hit bara från läsningen före skrivningen eller från själva
+      // skrivningen (efter den läser skrivSida om), och Wix avvisar ett 429 innan
+      // något skrivs. Sidan är alltså orörd: varvet stannar, och workflowen väntar
+      // och fortsätter. Nästa varv planerar om från en färsk läsning.
+      if (STRYPT.test(text)) {
+        console.warn(`[vevor-spec] Wix stryper (429) på ${r.wixProductId}: varvet stannar, sidan är orörd`);
+        svar.fel = { id: r.wixProductId, avvikelser: ["strypt"] };
+        svar.stoppadAv = "strypt";
+        svar.kvar = att.length - i;
+        return svar;
+      }
+      console.warn("[vevor-spec] skrivningen föll:", r.wixProductId, text.slice(0, 200));
       avvikelser = ["skrivningen föll"];
     }
     if (avvikelser.length > 0) {
