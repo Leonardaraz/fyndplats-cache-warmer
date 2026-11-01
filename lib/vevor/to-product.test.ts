@@ -5,6 +5,7 @@ import { valjVevorBilder } from "./bilder";
 import { vevorGranskning } from "./granskning";
 import { SIDFRAGA } from "./sida";
 import { TESTSKU, testAvlasning, testSokvag } from "./testsida";
+import { radHarModellnummer } from "@/lib/polish/modellnummer";
 import {
   BETYG_GRANS,
   BETYG_MIN_ANTAL,
@@ -128,6 +129,58 @@ describe("☠️ VEVOR:s modell- och artikelnummer når aldrig specifikationen (
     expect(arIdentifierarRad(" Artikel  nummer ", "x")).toBe(false);
     expect(arIdentifierarRad("Modell", "TEST 123")).toBe(true);
     expect(arIdentifierarRad("Modell", "Basmodell 2")).toBe(false);
+  });
+
+  it("☠️ det poleringens regel fäller tas också bort: en kod med ord efter, och VEVOR:s dubblerade etikett (2026-11-01)", () => {
+    // Raderna stod kvar efter specifikationsverktyget, som ändå räknade sidan som att
+    // byta: 21 sidor skrevs om varje körning utan att bli rätta. Koderna är påhittade.
+    const spec: [string, string][] = [
+      ["Modell", "TEST999A-9 Hydraulisk styrsats"],
+      ["Artikelmodell Artikelmodellnummer", "TE-ST-004"],
+      ["Modell", "9999S V-huvud"],
+      // En beskrivning som börjar med ett tal fälls också: det är grindens regel.
+      ["Modell", "30-gallons bränsledunk"],
+      ["Färg", "Svart"],
+    ];
+    expect(specifikation({ spec, egenskaper: [] })).toEqual({ Färg: "Svart" });
+  });
+
+  it("nästa rads etikett sist i ett värde tas bort, och värdet står kvar", () => {
+    // VEVOR:s nya sidmall, uppmätt 2026-11-01. Utan rensningen hade raden fällts helt.
+    expect(specifikation({ spec: [["Nettovikt", "11,45 kg Artikelmodellnummer"]], egenskaper: [] })).toEqual({
+      Nettovikt: "11,45 kg",
+    });
+    expect(specifikation({ spec: [["Höjd", "90 cm modellnummer:"]], egenskaper: [] })).toEqual({ Höjd: "90 cm" });
+    // Bara sist i värdet, och bara som eget ord.
+    expect(specifikation({ spec: [["Typ", "Modellnummer saknas"]], egenskaper: [] })).toEqual({});
+    expect(specifikation({ spec: [["Typ", "Basmodellnummer"]], egenskaper: [] })).toEqual({ Typ: "Basmodellnummer" });
+  });
+
+  it("☠️ ingen rad som specifikationen behåller fälls av poleringens regel", () => {
+    const former: [string, string][] = [
+      ["Modell", "TEST999A-9 Hydraulisk styrsats"],
+      ["Modell", "TEST-25 Manuell"],
+      ["Modell", "0000-000mm-svart"],
+      ["Modell", "999ZZ+ Numeriskt styrd skärare"],
+      ["Modell", "Premium"],
+      ["Modell", "A1"],
+      ["Modellnummer:", "TEST-9"],
+      ["Artikelmodell Artikelmodellnummer", "TE-ST-004"],
+      ["Kompatibelt modellnummer", "Testbil 2018"],
+      ["Item modellnummer", "TEST-7"],
+      ["Artikelnummer", "FP-test-1"],
+      ["Nettovikt", "11,45 kg Artikelmodellnummer"],
+      ["Kompatibel bilmodell", "Testbil 2015-2020"],
+      ["Material", "Stål"],
+    ];
+    for (const rad of former) {
+      for (const [k, v] of Object.entries(specifikation({ spec: [rad], egenskaper: [] }))) {
+        expect(radHarModellnummer(k, v), `${rad[0]}: ${rad[1]}`).toBe(false);
+      }
+      for (const [k, v] of Object.entries(specifikation({ spec: [], egenskaper: [rad] }))) {
+        expect(radHarModellnummer(k, v), `egenskap ${rad[0]}: ${rad[1]}`).toBe(false);
+      }
+    }
   });
 });
 

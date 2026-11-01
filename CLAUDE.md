@@ -6346,21 +6346,31 @@ beskrivningen i rått läge, så den saknas inte.
 `skriv` läser planen en gång (`allaIdn`) och skriver sedan dess sidor i tuggor om
 150 (`idn`), så att varje varv bara läser sina egna sidor och mappningar. Planen
 över hela katalogen tog 87 sekunder (2026-11-01, 10 603 utkast), och när varje
-varv läste om den gick mer än en tredjedel av tiden åt till läsningen. En sida
-tar ungefär 1,3 sekunder med pausen, så 9 500 sidor är ungefär tre och en halv
-timme plus synkfönstren. Jobbet stannar efter 330 minuter och säger hur många
-som är kvar: kör då planen igen och skriv med det nya antalet.
+varv läste om den gick mer än en tredjedel av tiden åt till läsningen. Mätt
+2026-11-01: en tugga om 150 sidor tog 2 minuter och 40 sekunder med pausen
+(1,07 sekunder per sida), och ingen av de första 3 403 sidorna stoppades av en
+429. 9 500 sidor är alltså ungefär två timmar och 50 minuter plus synkfönstren.
+Jobbet stannar efter 330 minuter och säger hur många som är kvar: kör då planen
+igen och skriv med det nya antalet.
 
-Åtta egenskaper som inte ska tas bort:
+Nio egenskaper som inte ska tas bort:
 
 1. ☠️ Bara opolerade, dolda VEVOR-utkast. En polerad eller publicerad sida rörs
    aldrig.
 2. ☠️ Avläsningen ska vara gjord med den nya läsaren (`specKalla` satt), annars
    räknas sidan som `ej_omlast`. Kör `skriv` först när `ej_omlast` är nära noll,
    ungefär ett dygn efter mergen av #832 (utkasten läses en gång per dygn).
-   Bara sidor ur planen skrivs: en sida som blir att rätta under körningen (när
-   läsaren läser om) väntar på nästa körning. Planen får krympa men aldrig växa,
-   så en körning vars plan växt stannar med "fler än bekrafta".
+   Bara sidor ur planen skrivs: en sida utanför planen som blir att rätta under
+   körningen (när läsaren läser om) väntar på nästa körning. Planen räknas en gång
+   när jobbet startar och får inte ha fler sidor än `bekrafta`.
+   ☠️ **Varje varv har sin tuggas storlek som tak, aldrig det som var kvar efter
+   förra varvet.** En sida som redan skrivits i tuggan kan vara att rätta igen
+   när varvet körs om. Med det som var kvar som tak stoppades jobbet efter 3 403
+   sidor (2026-11-01 06:30 UTC): tuggan stannade på tidsbudget med 47 kvar före
+   synkfönstret och hade 48 att rätta efter det, för en av de skrivna sidorna
+   fälldes fortfarande av modellnummerkontrollen (punkt 9). Taket släpper ändå
+   aldrig igenom en sida utanför planen, eftersom varvet bara får tuggans id. En
+   sida som skrivs två gånger räknas två gånger i "Klart".
 3. ☠️ En enskild artikel som redan har fliken rörs inte. Saknar fliken rader
    räknas den som `flik_utan_rader` och lämnas. En familj vars flik visar fel
    får fliken utbytt (`attByta`, se nästa avsnitt), och bara när sidan har
@@ -6385,6 +6395,21 @@ som är kvar: kör då planen igen och skriv med det nya antalet.
    Rutten vägrar skarpt där och strax före (409 `synkfonster`) och kortar
    budgeten så att varvet slutar 30 sekunder före nästa fönster. Workflowen
    väntar ut fönstret. Hela körningen tar timmar och korsar fönstren.
+9. ☠️ **Raderna byggs med samma regel som kontrollen** (`radHarModellnummer` i
+   `lib/polish/modellnummer.ts`, poleringens `MODELLNR` tecken för tecken).
+   Importen och verktyget tog bort raderna efter etikett (`arIdentifierarRad`),
+   medan planen letade efter ett modellnummer var som helst i fliken. Rader som
+   "Modell: <kod> <ord>", VEVOR:s dubblerade etikett "Artikelmodell
+   Artikelmodellnummer: <kod>" och en familjs "Modell: <storlek>: …" stod kvar,
+   och sidan planerades och skrevs om vid varje körning. Mätt 2026-11-01: planen
+   05:07 UTC hade 9 495 sidor att byta, två körningar skrev 3 403 + 6 102 sidor
+   (05:09–08:31 UTC), och planen 08:35 hade 21 kvar av 10 603 utkast, alla
+   skrivna och fortfarande fällda. 10 av dem hade skrivits två gånger. Nu tas
+   varje rad regeln fäller bort, i importen (`arIdentifierarRad`,
+   `familjensSpec`) och i verktyget (`specRader`), och en etikett som VEVOR lagt
+   sist i värdet ("Nettovikt: <vikt> Artikelmodellnummer") skärs bort. En ny flik
+   som ändå fälls skrivs inte (hindret `modellnummer_kvar`), och återläsningen
+   fäller en skriven flik som bär ett modellnummer.
 
 ### Familjens specifikation per variant (2026-10-30)
 
@@ -7058,12 +7083,17 @@ Tre ändringar i koden samma dag:
    *Modell* på 1 147 och *Artikelnummer* på 605. Tre spärrar:
    - Importen tar bort raderna ur specifikationen (`arIdentifierarRad` i
      `lib/vevor/to-product.ts`), också i en familjs flik. *Modell* tas bara bort när värdet
-     är en kod. Rader om vad varan passar till (*Kompatibel bilmodell*, *OE-nummer*) står kvar.
+     är en kod. Sedan 2026-11-01 tas varje rad som grinden nedan fäller bort
+     (`radHarModellnummer`), och en etikett som VEVOR lagt sist i värdet skärs bort. Rader om
+     vad varan passar till (*Kompatibel bilmodell*, *OE-nummer*) står kvar så länge grinden
+     inte fäller dem.
    - **"VEVOR — specifikationen på utkast som saknar den"** byter ut fliken på äldre utkast
-     som bär en sådan rad (`flikHarModellnummer`, också på en enskild artikel).
+     som bär en sådan rad (`flikHarModellnummer`, också på en enskild artikel), med samma
+     regel för raderna.
    - Poleringens grind `MODELLNR` (`gatelib.py`, och tecken för tecken i
-     `lib/polish/skrivplan.ts`) fäller etiketten. Vårt eget `FP-…` efter *Artikelnummer* och
-     en modell med ord får stå. Numret i löpande text ser grinden inte.
+     `lib/polish/modellnummer.ts`, som importen, verktyget och skrivplanen läser) fäller
+     etiketten. Vårt eget `FP-…` efter *Artikelnummer* och en modell med ord får stå. Numret
+     i löpande text ser grinden inte.
 
 ## VEVOR: kategorierna (2026-10-31)
 

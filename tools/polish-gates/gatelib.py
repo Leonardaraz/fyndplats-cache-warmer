@@ -483,10 +483,12 @@ MARKEN_I = "(?i:" + MARKEN + ")"
 # 15 297 avläsningar), "Modell" (1 147) och "Artikelnummer" (605), och en sökning på
 # numret leder till VEVOR:s egen sida med deras pris. Numren har ingen gemensam form
 # (fem tecken, eller fjorton med bindestreck), så grinden fäller ETIKETTEN. Importen
-# tar bort raderna sedan samma dag (lib/vevor/to-product.ts, arIdentifierarRad).
+# tar bort raderna sedan samma dag (lib/vevor/to-product.ts, arIdentifierarRad), och
+# sedan 2026-11-01 varje rad som den här regeln fäller (radHarModellnummer).
 # Två undantag: vårt eget artikelnummer (FP-…) får stå efter "Artikelnummer", och
 # "Modell:" fälls bara när värdet är en kod med en siffra ("Modell: Premium" står).
-# Inget snedstreck i uttrycket: lib/polish/skrivplan.ts bär det tecken för tecken.
+# Inget snedstreck i uttrycket: lib/polish/modellnummer.ts bär det tecken för tecken,
+# och importen, specifikationsverktyget och skrivplanen läser det därifrån.
 # Mätt över tools/polish-assets samma dag: noll träffar.
 MODELLNR = (r"\b(?:[Aa]rtikelmodell(?:nummer)?|[Mm]odellnummer|[Mm]odellnr|[Pp]roduktmodell"
             r"|[Aa]rtikelnr|[Il]tem modellnummer)\b"

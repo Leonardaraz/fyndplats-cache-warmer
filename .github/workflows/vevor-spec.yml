@@ -119,9 +119,14 @@ jobs:
           while [ "$i" -lt "$n" ]; do
             tugga=$(jq -c ".[${i}:$((i + TUGGA))]" plan-idn.json)
             storlek=$(echo "$tugga" | jq 'length')
-            tak="$storlek"
             # En tugga körs tills den är klar. Ett varv som stannar (tidsbudget, strypt) körs om
-            # med det som återstod som tak: skrivna sidor är då redan rätt och hoppas över.
+            # med samma tugga: skrivna sidor är då redan rätt och hoppas över.
+            # ☠️ Taket är tuggans storlek, aldrig det som var kvar. En sida i tuggan som redan
+            # skrivits kan vara att rätta igen när varvet körs om, och med `kvar` som tak stoppade
+            # det hela jobbet efter 3 403 sidor (2026-11-01 06:30: 48 att rätta, tak 47; sidans
+            # nya flik fälldes fortfarande av modellnummerkontrollen, lagat i samma PR).
+            # Taket släpper ändå aldrig igenom en sida utanför planen: urvalet är tuggans id.
+            tak="$storlek"
             while :; do
               if [ "$SECONDS" -gt 19800 ]; then
                 echo "::error::330 minuter har gått: ${skrivna} sidor skrivna, $((n - i)) kvar i planen. Kör planen igen och skriv med det nya antalet." >&2
@@ -168,7 +173,6 @@ jobs:
               elif [ "$stopp" != "tidsbudget" ]; then
                 echo "::error::Okänt stopp: ${stopp}" >&2; exit 1
               fi
-              tak="$kvar"
             done
             i=$((i + TUGGA))
           done
