@@ -810,7 +810,15 @@ def fraktvikt_fel(html, kalltext):
 
     Returnerar en lista med beskrivningar; tom lista när allt stämmer, när
     källan saknar importens viktrad eller när den tyska texten anger samma
-    tal som produktens egen vikt."""
+    tal som produktens egen vikt.
+
+    ☠️ En VEVOR-källa (raden `=== vevor-källa`, som `tools/polish-kedja/vevor_kalla.py`
+    lägger i kallor.json) är undantagen: där är `Vikt` i specifikationen varans egen
+    vikt, och importen lägger ingen fraktvikt bredvid. Utan undantaget fällde grinden
+    varje VEVOR-sida (runda-vevor-1), eftersom den tog specifikationens `Vikt` för
+    Aosoms viktrad med förpackning och inte hittade någon tysk `Gewicht`."""
+    if "=== vevor-källa" in (kalltext or ""):
+        return []
     m = _IMPORTVIKT.search(kalltext or "")
     if not m:
         return []
