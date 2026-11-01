@@ -1,0 +1,1 @@
+bygg-axelfacit.py e387b0fa: generatorn tolkar inte svensk VEVOR-specifikation med tum. Ingen axel hävdas i löptext. Utfällda mått omräknade med 2,54 och stämmer med importerad alt-text; proportioner kontrollerade mot originalfoton. Ingen måttskiss finns, flaggat i FLAGGADE-VEVOR.md. Inget handskrivet axelfacit.
