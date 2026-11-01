@@ -22,6 +22,7 @@
 
 import { reviewImages } from "./review-images";
 import { härkomst, normaliseraSource } from "./review-source";
+import { koptEtikett } from "./review-kopt";
 import { PRODUKTSIDA_SEKUNDER, recensionsTagg } from "./produkt-cache";
 import { kortLivslangd } from "./kort-livslangd";
 
@@ -51,6 +52,8 @@ export interface ProductReview {
   imageUrl?: string;
   /** Alla bilder recensenten postade, i visningsordning. */
   imageUrls: string[];
+  /** Varianten recensenten köpte ("Svart / 50 liter"), bara på sidor med flera varianter. */
+  kopt?: string;
 }
 
 export interface ProductReviews {
@@ -83,6 +86,7 @@ interface ApiReview {
   hasImage?: boolean;
   imageUrl?: string;
   imageUrls?: unknown;
+  kopt?: unknown;
 }
 
 const EMPTY: ProductReviews = {
@@ -141,6 +145,7 @@ export async function getProductReviews(productId: string): Promise<ProductRevie
           hasImage: Boolean(r.hasImage),
           imageUrl: r.hasImage && r.imageUrl ? String(r.imageUrl) : undefined,
           imageUrls: r.hasImage ? reviewImages(r) : [],
+          kopt: koptEtikett(r.kopt),
         };
       });
 

@@ -904,13 +904,25 @@ Fem egenskaper som inte ska tas bort:
    `discountedPrice`). Butiken räknar det inte. Motorns rea-jobb
    (`lib/pricing/rea.ts` på main) håller det till 30-dagarspriset och tar bort
    ett jämförpris som inte följer av prishistoriken, när jobbet är påslaget.
-4. ⚠️ **Auktionens överstrukna pris är auktionens listpris**, priset när varan
-   köades. Det är 30-dagarspriset bara när varans pris inte varit lägre de 30
-   dagarna före. En spärr i motorn för det väntar på Leonards beslut
-   (2026-11-01).
+4. ⚠️ **Auktionens överstrukna pris är auktionens listpris**, det pris
+   auktionen räknar ned från. Det är 30-dagarspriset bara när varans pris inte
+   varit lägre de 30 dagarna före. Den 1 november gällde det inte tre av fem
+   levande auktioner, eftersom priserna höjdes den 14 oktober. Leonards beslut
+   samma dag: varorna som höjdes i oktober är ett undantag och får vara som de
+   är, och motorn har ingen spärr. Från omkring den 14 november ligger höjningen
+   utanför 30-dagarsfönstret.
 5. **Fältraden visar 30-dagarspriset under priset.** På samma rad kapades
    nedräkningen till "falle…" i 390 px. Under 381 px döljs det helt, som förut,
    och då visas inget överstruket pris alls.
+
+## Recensionerna säger vilken variant kunden köpte (2026-11-01)
+
+På en sida med flera varianter skickar motorn med vilken variant en recension
+gäller (fältet `kopt` i `/api/reviews/<id>`, samma namn som sidans val). Listan
+visar det som "Köpt: Svart / 50 liter" under namnet (`lib/review-kopt.ts`,
+`components/ProductReviews.tsx`). Fältet saknas på sidor med en variant, och då
+visas ingenting. Raden säger vad som köptes, aldrig vem som skrev, så regeln om
+att ingen rad märks (`lib/review-radmarkning.test.ts`) gäller som förut.
 
 ## Säsongstema: Halloween (Leonard 2026-10-28)
 

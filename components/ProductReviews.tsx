@@ -91,6 +91,9 @@ export function ProductReviews({
                       lib/review-source.ts, som fortfarande håller den regeln. */}
                   {r.date ? <span className="rev-date">{r.date.slice(0, 10)}</span> : null}
                 </div>
+                {/* Varianten recensenten köpte, på sidor med flera varianter
+                    (lib/review-kopt.ts). Ingen märkning av vem som skrev. */}
+                {r.kopt ? <div className="rev-kopt">Köpt: {r.kopt}</div> : null}
                 <RecensionsText
                   text={r.text}
                   utfalld={utfalld}
