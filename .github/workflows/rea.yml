@@ -2,7 +2,7 @@ name: Rea — automatisk reaskylt vid verklig prissänkning
 
 # Rea-jobbet för hand (lib/pricing/rea-kor.ts, regeln i lib/pricing/rea.ts).
 # Cronen kör det skarpt varje timme, minut 40. Ett jämförpris sätts bara när
-# priset sänkts med minst 10 % mot det lägsta priset de 30 dagarna före
+# priset sänkts med minst 5 % mot det lägsta priset de 30 dagarna före
 # sänkningen (7 a § prisinformationslagen), och tas bort efter 30 dagar.
 #
 #   status     strömbrytaren, bakåtfyllningen, senaste körningen och luckorna

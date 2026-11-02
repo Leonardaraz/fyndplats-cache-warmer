@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   DAG_MS,
   MARGINAL_MS,
+  MIN_SANKNING_PROCENT,
   SPAR_MS,
   auktionIFonstret,
   fonsterStartFor,
@@ -44,9 +45,12 @@ describe("reaFor — sänkningen", () => {
     expect(r).toMatchObject({ rea: false, skal: "under_grans" });
   });
 
-  it("under 10 % ger ingen rea, 10 % precis gör det", () => {
-    expect(reaFor([pt(50, 100_000), pt(5, 91_000)], 91_000, NU)).toMatchObject({ rea: false, skal: "under_grans" });
-    expect(reaFor([pt(50, 100_000), pt(5, 90_000)], 90_000, NU)).toMatchObject({ rea: true, tidigareOre: 100_000 });
+  it("under 5 % ger ingen rea, 5 % precis gör det (Leonard 2026-11-02)", () => {
+    expect(MIN_SANKNING_PROCENT).toBe(5);
+    expect(reaFor([pt(50, 100_000), pt(5, 95_100)], 95_100, NU)).toMatchObject({ rea: false, skal: "under_grans" });
+    expect(reaFor([pt(50, 100_000), pt(5, 95_000)], 95_000, NU)).toMatchObject({ rea: true, tidigareOre: 100_000 });
+    // 9 %, under den gamla gränsen på 10 %, ger rea nu.
+    expect(reaFor([pt(50, 100_000), pt(5, 91_000)], 91_000, NU)).toMatchObject({ rea: true, tidigareOre: 100_000 });
   });
 
   it("☠️ skylten försvinner 30 dagar efter den första sänkningen", () => {
