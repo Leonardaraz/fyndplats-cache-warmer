@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan är VEVOR:s svenska utkast med Produktmått, Produktstorlek eller Mått utan axelord (eller med axelbokstäver i etiketten), och ingen tysk totalmåttrad att bygga ett facit ur; måtten står som i källan, och där löptexten nämner en axel (total höjd 89 cm på odlingsbädden, H × B × D på elskåpet, L × B × H på sybordet) är axelordet källans eget
