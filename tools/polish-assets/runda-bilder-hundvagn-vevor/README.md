@@ -29,8 +29,8 @@ med workflowen "Polering — skriv bara bilderna" (`torr`, `skriv`, `verifiera`)
 
 - Galleriet skrevs med bildplanen (plan-sha `eac0496f…b86f`). `verifiera` gav OK 16:31 UTC, och direkt i
   Wix och på livesidan ligger de nio bilderna i ordningen ovan med oförändrat pris (2 249 kr).
-- Ommappningen är gjord: sidans mappningsrad bär nu VEVOR-artikeln och `prisLast`, så VEVOR-synken lämnar
-  kundpriset i fred, och utkastet `045bb40c` är pensionerat (dolt, inte raderat). Märket VEVOR är satt på
+- Ommappningen är gjord: sidans mappningsrad bär nu VEVOR-artikeln och `prisLast`, så VEVOR-synken lämnade
+  kundpriset i fred tills Leonard bad om att låsa upp det (17:14 UTC), och utkastet `045bb40c` är pensionerat (dolt, inte raderat). Märket VEVOR är satt på
   produkten. Hur och varför står i `tools/polish-gates/FLAGGADE-VEVOR.md` (cz–dd).
 - Öppet: sidans text säger att bärkorgen kan spännas fast i bilen, men VEVOR:s sida nämner bara att den
   hopfällda vagnen får plats i bagageutrymmet. Texten är inte ändrad i den här rundan.
