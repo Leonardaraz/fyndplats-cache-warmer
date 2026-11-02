@@ -21,4 +21,6 @@ Ett utkast anges med sitt Wix-id.
 
 ## Lärdomar
 
+- Runda vevor-3, f6c7ff3a-7373-4803-b76f-d7940172a78d: källan säger 147 och 160 kg total last. Det lägre värdet 147 kg används enligt steg 4; delgränserna är 45,4 kg per hyllplan och 15 kg i lådan. Sex rena originalbilder, ingen måttskiss. Totalmått i millimeter återges exakt utan axelpåståenden; generatorns språkbegränsning kvitteras i rundan.
+
 - Runda vevor-2, b7719a10-08fd-48d7-ad59-9d1d1834a861: sex rena originalbilder men ingen måttskiss. Totalmått återges i källans millimeter utan axelpåståenden; proportioner granskade mot fotona. Svensk etikett stöds inte av bygg-axelfacit.py, vilket kvitteras öppet i rundan. Specifikationens 181,4 kg gäller framför säljtextens avrundade 180 kg, samma värde i specifikation och säkerhetsflik.
