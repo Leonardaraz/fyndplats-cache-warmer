@@ -1,0 +1,33 @@
+{
+  "f6c7ff3a": {
+    "productId": "f6c7ff3a-7373-4803-b76f-d7940172a78d",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-7024oi",
+        "betyg": 5,
+        "datum": "2026-09-23",
+        "foton": 0,
+        "text": "Pues para el precio que tiene esta. Muy bien, un poco blanducha pero aceptable. Recomendable."
+      },
+      {
+        "id": "gen-1o7fjcp",
+        "betyg": 5,
+        "datum": "2026-09-19",
+        "foton": 0,
+        "text": "I am using mine to house the LiFePO4 batteries and 8Kw inverter to build an emergency power supply. Takes a while to put together as it is solid as a rock. I like the drawer for smaller parts like fuses, connectors. Great value!"
+      },
+      {
+        "id": "gen-xfqg8d",
+        "betyg": 5,
+        "datum": "2026-09-04",
+        "foton": 0,
+        "text": "Il est sûr qu'avec un tiroir en plus ce serait mieux, mais vu la différence de prix, je me contente d'un seul tiroir. Qualité tout à fait au rdv, ce n'est pas simplement des plaques de tôle bruyante, c'est un niveau au-dessus."
+      }
+    ]
+  }
+}
