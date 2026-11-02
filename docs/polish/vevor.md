@@ -70,6 +70,13 @@ kan ha syskonens bilder blandade: kör **"VEVOR — rätta familjernas bilder"**
 Planen visade 0 att rätta 2026-10-31.
 
 - VEVOR-loggan på varan får stå *(Leonard 2026-10-28)*.
+- **Etiketter och typskyltar på själva varan får stå kvar i fotona, också när de visar
+  modellbeteckning och serienummer** *(Leonard 2026-11-02, "Ja" på frågan efter att fyra
+  dieselvärmare lyfts ur runda 17 av just det skälet)*. Det gäller bilden av varan: modellnumret
+  får fortfarande inte stå i texten, tabellen, namnet eller alt-texten (se ovan). Läs ändå
+  nätadapterns kontakt och spänning på varje packbild och på etiketter: en amerikansk
+  kontakt eller 100–120 V är en annan variant än sidans 230 V (lärdom *by* i
+  `FLAGGADE-VEVOR.md`), och en sådan bild stryks eller varan flaggas.
 - Bilder med säljtext på engelska eller tyska stryks, som Aosoms tyska *(Leonard 2026-10-30)*.
 - Aosom-verktygen för bilder (bildkandidater, färgtillägg och miljöbild) läser Aosoms flöde
   och fungerar inte för VEVOR.
@@ -87,10 +94,12 @@ kategori och produktnamnet och har haft fel. Passar kopplingen skriver du samma 
 lämpliga (förälder, smalaste löv, och en sökordskategori bara när den passar varan) i
 `kategori.tsv` i stället för att bara flagga den *(Leonard 2026-11-01)*. Workflowen lägger
 till kategorier men tar aldrig bort någon: den felaktiga kopplingen skriver du som en rad
-*Kategori att ta bort* i `FLAGGADE-VEVOR.md` (kort och kategorinamn), och den tas bort med
-workflowen **"Kategori — ta bort felaktiga kategorilänkar"** (runbookens *Ta bort en
-felaktig kategorilänk*) när Leonard har bett om det. Passar ingen kategori i trädet flaggar
-du utkastet med ett förslag på en ny.
+*Kategori att ta bort* i `FLAGGADE-VEVOR.md` (kort och kategorinamn), och den tas bort i
+samma runda med workflowen **"Kategori — ta bort felaktiga kategorilänkar"** (runbookens
+*Ta bort en felaktig kategorilänk*, som också beskriver engångsskriptet när verktyget inte
+ligger på `main`). Det behöver inte längre Leonards begäran *(Leonard 2026-11-02, "Ja" på
+frågan om importens felaktiga länkar får tas bort direkt i kommande rundor)*. Passar ingen
+kategori i trädet flaggar du utkastet med ett förslag på en ny.
 
 - De nya kategorierna från 2026-10-31 är dolda i Wix tills de har tio publicerade
   produkter. Cronen `kategorier-synlighet` (minut 37 varje timme) visar dem då av sig själv.

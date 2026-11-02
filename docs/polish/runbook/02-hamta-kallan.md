@@ -70,9 +70,11 @@ Google ser. En text som är rätt skriven för en produkt i fel kategori hamnar 
    felaktiga kategorilänkar"** (se [Ta bort en felaktig kategorilänk](#ta-bort-en-felaktig-kategorilänk)
    nedan); en handbyggd skrivning i Wix är förbjuden. Textsteget publicerar varan, en
    VEVOR-vara också (standardraden gör GPSR komplett), så den visas i den felaktiga
-   kategorin tills kopplingen är borta. Skriv därför raden direkt, nämn den i rundans
-   slutrapport till Leonard, och ta bort länken med verktyget när han har bett om det
-   (de fem första 2026-11-02: "Fixa punkt 2").
+   kategorin tills kopplingen är borta. Skriv därför raden direkt och **ta bort länken i
+   samma runda, efter skrivningen och livekontrollen** *(Leonard 2026-11-02, "Ja" på frågan
+   om importens felaktiga länkar får tas bort direkt i kommande rundor; de fem första
+   2026-11-02: "Fixa punkt 2")*. Nämn borttagningen i rundans slutrapport. Det gäller
+   importens felaktiga länkar, inte en kategori Leonard själv har valt.
 
 Kategorin kontrolleras alltså två gånger med olika uppgift. Här avgörs *var* varan hör
 hemma, utan att texten är skriven. I steg 5 prövas den mot sökordskategorins påståenden.
@@ -105,6 +107,16 @@ vad som ska finnas kvar; alla villkor prövas för alla varor före första skri
 kategorierna är sökvägar och en tvetydig sökväg avbryter; skarpt läge kräver antalet;
 `verifiera` läser tillbaka. Rutten körs från `main`, så en ändrad regel finns för
 workflowen först när den är mergad: `ref` styr bara vilken planfil som läses.
+
+**Ligger verktyget inte på `main` än** (PR #850) kör du ett engångsskript med ExecuteWixAPI
+som gör samma sak, som runda 16 och 17 *(Leonard 2026-11-02)*: planfilen skrivs som vanligt,
+en torrkörning (bara läsning) löser varje sökväg mot trädet (`POST /categories/v1/categories/query`
+med `returnNonVisibleCategories`) och prövar vakterna, och skrivningen anropar `remove-items`
+en gång per kategori med alla varorna och kräver att `totalSuccesses` är lika med antalet
+och `undetailedFailures` är 0. ☠️ **Läs tillbaka i ett separat anrop ungefär 20 sekunder
+senare.** En återläsning i samma anrop visade 2026-11-02 fortfarande länkarna på tre av fyra
+varor trots 4 av 4 lyckade, och 20 sekunder senare var de borta. Planfilen ligger kvar som
+bevis, och körningen skrivs i `FLAGGADE-VEVOR.md`.
 
 Tre saker från den första borttagningen (`tools/kategorifix/README.md`, 2026-09-08) gäller
 fortfarande:
