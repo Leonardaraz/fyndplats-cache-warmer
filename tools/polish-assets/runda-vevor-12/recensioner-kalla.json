@@ -157,44 +157,6 @@
       }
     ]
   },
-  "950e19ac": {
-    "productId": "950e19ac-436d-4e2a-bec9-9662e19b3d90",
-    "synliga": 0,
-    "dolda": 6,
-    "kundVantar": 0,
-    "annanArtikel": 0,
-    "okandArtikel": 0,
-    "attBesluta": [
-      {
-        "id": "gen-1398pdj",
-        "betyg": 5,
-        "datum": "2026-08-20",
-        "foton": 0,
-        "text": "Works as advertised. Saves time and isn't nearly as messy as trying to pour up used oil into a gallon or quarter container."
-      },
-      {
-        "id": "gen-rylb3o",
-        "betyg": 5,
-        "datum": "2026-04-21",
-        "foton": 0,
-        "text": "Worked as it should have no complaints if ever need another one or someone needs one I will refer vevor"
-      },
-      {
-        "id": "gen-1m5stgg",
-        "betyg": 4,
-        "datum": "2026-10-29",
-        "foton": 3,
-        "text": "L emballage reste à désiré pompe lousse dans le bac grillage bossée pour le reste bonne qualité bac bossée shaft de roue croche"
-      },
-      {
-        "id": "gen-1j242sg",
-        "betyg": 4,
-        "datum": "2026-09-15",
-        "foton": 0,
-        "text": "Works great but dose have a dint in it have it get the picture of it when I get back home"
-      }
-    ]
-  },
   "5805850d": {
     "productId": "5805850d-aaba-4b06-93ad-918538f4c018",
     "synliga": 0,
@@ -254,15 +216,6 @@
       }
     ]
   },
-  "0dbde6c8": {
-    "productId": "0dbde6c8-23bc-460e-b06c-17e326b0ce66",
-    "synliga": 0,
-    "dolda": 4,
-    "kundVantar": 0,
-    "annanArtikel": 0,
-    "okandArtikel": 4,
-    "attBesluta": []
-  },
   "d502d01a": {
     "productId": "d502d01a-4164-4f8d-a1ae-0eecd5b6680d",
     "synliga": 0,
@@ -305,6 +258,61 @@
         "datum": "2025-01-25",
         "foton": 2,
         "text": "The doors are made from robust stainless. Own construction is supported by a very robust frame. I highly appreciate the quality of welding at the edges this is really top quality without visible deviations. I suggest this door for interior as well as exterior use because it looks really cool."
+      }
+    ]
+  },
+  "5b8c97d0": {
+    "productId": "5b8c97d0-422e-4b77-a5f9-4d8a0fbd59d6",
+    "synliga": 0,
+    "dolda": 3,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-ee373z",
+        "betyg": 4,
+        "datum": "2026-07-27",
+        "foton": 0,
+        "text": "carrello robusto, ben fatto, prezzo conveniente. però 2 ruote sono FISSE e non tutte piroettanti come in descrizione."
+      }
+    ]
+  },
+  "23cdf8d2": {
+    "productId": "23cdf8d2-ed59-46fa-8266-dda30a3e5a53",
+    "synliga": 0,
+    "dolda": 1,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-ysltl3",
+        "betyg": 5,
+        "datum": "2026-10-14",
+        "foton": 0,
+        "text": "Imadlo dziala prawidlowo.Uzywam go przewaznie do mocowania wirnikow przy wymianie lozysk i do drobnych prac slusarskich."
+      },
+      {
+        "id": "gen-1ugaexp",
+        "betyg": 5,
+        "datum": "2026-10-12",
+        "foton": 1,
+        "text": "La morsa é molto buona. Raggiunge le mie aspettative e arrivo in tempo. Grazie"
+      },
+      {
+        "id": "gen-ezbyhh",
+        "betyg": 5,
+        "datum": "2026-10-01",
+        "foton": 0,
+        "text": "a very substantial vise. I like the clamping power. Well packed and arrived in good order. Better vise that what Harbor Freight offered at a great price."
+      },
+      {
+        "id": "gen-15m1xnu",
+        "betyg": 4,
+        "datum": "2026-10-21",
+        "foton": 0,
+        "text": "No issues works well magnets came out of the blue plastic clamps but no big deal"
       }
     ]
   }
