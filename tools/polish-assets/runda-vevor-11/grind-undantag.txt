@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan är VEVOR:s svenska utkast med Produktmått, Artikelmått eller Produktstorlek utan axelord, och ingen tysk totalmåttrad att bygga ett facit ur; måtten står som i källan och löptexten nämner dem utan axelord
