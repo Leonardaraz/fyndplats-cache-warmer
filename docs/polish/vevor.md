@@ -110,6 +110,59 @@ du utkastet med ett förslag på en ny.
 Sammanslagningsverktyget i *Syskon blir val på sidan* tar bara Aosom-artiklar
 (`utkast_ej_aosom`). Hittar du ett VEVOR-syskon som importen inte slog ihop, flaggar du det i `FLAGGADE-VEVOR.md`.
 
+**Paketstorlekar som importen inte slog ihop** *(Leonard 2026-11-02, bordsdukarna: "ja slå ihop
+proffsigt", via Wix API)*. VEVOR säljer samma vara som ett 3-, 6- och 10-pack, men varje paket
+är en egen artikel utan länkar till de andra, och bara SPU:n är gemensam. Familjeregelns plan
+kan inte bygga en familj av dem (de skiljer sig bara på förpackning och vikt), och Aosoms
+sammanslagningsverktyg tar bara Aosom-artiklar och axlarna Färg och Storlek. Det finns alltså
+inget verktyg för det här, och sammanslagningen gjordes en gång för hand, på Leonards uttryckliga
+begäran. Gör inte om den utan en ny sådan begäran, och bygg ett verktyg efter
+`lib/aosom/sammanslagning.ts` om fler paketstorlekar ska slås ihop. Metoden, som den kördes:
+
+1. **Spara en ögonblicksbild utanför repot** av de tre produkterna (GET med `MERCHANT_DATA`),
+   lagret och de tre mappningsraderna (de bär artikelnummer). Varje skrivning har en flagga som
+   bara läser och visar nyttolasten, och den avbryter om ett pris, en variant, en synlighet
+   eller en mappningsrad inte är som i ögonblicksbilden. Läs saldot färskt: synken ändrar det
+   (tio-packets saldo gick från 3 i rundans underlag 13:43 till 1 i ögonblicksbilden 17:10).
+2. **Värdsidan**, den publicerade med längst historia: bildlistan med `PATCH /stores/v3/products`
+   (fältmask `media`, bara `{ id, altText }` med id:n som redan ligger i Media Manager, så att
+   ingen bild importeras om), sedan **ett** anrop till `products-with-inventory` med optionen
+   och alla varianterna. Optionen heter **Förpackning** (`lib/vevor/axelklass.ts` klassar den
+   som `forpackning`, som får dela sida; *Antal dukar* hade blivit `funktion`) med val som
+   *3-pack*, *6-pack* och *10-pack*, med siffra i varje. Värdens variant behåller sitt id, pris,
+   kostnad och saldo. Varje ny variant får givarens pris, `revenueDetails.cost` och saldo, och
+   en egen SKU (`FP-…-svart-3-pack`) som skiljer sig från givarnas, så att ingen SKU står på två
+   sidor. Därefter länkas varje val till sin pakets bild (`PATCH /stores/v3/products`, fältmask
+   `options`, `variantsInfo` och `visible`, `variantsInfo` ordagrant ur en läsning med
+   `MERCHANT_DATA` och `revenueDetails` reducerat till `cost`), och Wix läses tillbaka: val,
+   varianter, priser, kostnader, saldon och länkar. Faller variantskrivningen återställs
+   bildlistan.
+3. **Mappningen**: värdens rad får en variant per artikel med `choices: { Förpackning: "…" }`,
+   Wix-variantens id och SKU, `aosomSyncedQty` per variant (radens är summan) och `vevorArtiklar`
+   med alla tre. `artikelbild` (`lib/aosom/artiklar.ts`) ska ge `flera`: olika artiklar, olika
+   Wix-id, och radens artikel bland dem. Kontrollera det innan du skriver. **Skriv raden direkt
+   efter Wix (här inom en minut) och aldrig runt minut 50**, när VEVOR-synken går: en variant
+   som Wix har men mappningen inte känner till får sitt lager nollat (`okandaVarianter`).
+   Wix-skrivningarna gjordes 17:15–17:17 UTC, utanför både minut 50 och Aosoms synkfönster
+   (:12–:29 var tredje timme).
+4. **Givarna**: den publicerade avpubliceras (smal PATCH, bara `visible: false`, läs tillbaka),
+   båda raderna pensioneras som Aosoms dubbletter (`pensioneraDubblett`: `supplierProductId: ""`,
+   `draftStatus: "rejected"`, `needsAiPolish: false`, `vevorArtiklar` kvar), och en 301 skrivs
+   till `FyndplatsRedirects` **efter** avpubliceringen, eftersom omdirigeringsgrinden vägrar en
+   källa som är en synlig produkt och ett mål som inte är det. En dold givare som aldrig varit
+   publicerad behöver ingen 301. Givarnas recensioner följer inte med, eftersom recensionerna
+   ligger i Postgres och inget VEVOR-verktyg flyttar dem; kontrollera att inga synliga
+   recensioner finns på givarna först.
+5. **Texten** skrivs som en sammanslagen sida i en egen mini-runda: `sammanslagna.tsv` med
+   `kort`, tab och antal varianter, och **tomma** `sku.tsv` och `variant.tsv` (`gate-sku.py`
+   avbryter annars). Källan i `kallor.json` är de tre artiklarnas källor efter varandra. Lägg
+   paketets stora bild på källposition 3 i `bilder.tsv`, eftersom `bygg-media.py` lägger plats 3
+   sist (måttskissregeln). Namn, adress, titel och text får inte bära ett enskilt paket.
+   Skrivworkflowen rättar variantbilderna själv före återläsningen.
+6. **Adresserna**: byter värden adress i textsteget skrivs en 301 från värdens gamla och från
+   givarens adress till den nya, när värden bär den. Den som skrevs före textsteget pekade på
+   värdens gamla adress, eftersom ett mål som inte är en synlig produkt bara hade lett till en 404.
+
 **Det här i runbooken gäller bara Aosom:** *Vad källan är värd* (den tyska feedtexten),
 *Syskon blir val på sidan*, Aosom-verktygen för bilder och EN 71-beslutet. Resten gäller
 båda leverantörerna, också laglighetsgrinden, dubblettskärmen och recensionerna.
