@@ -1,0 +1,5 @@
+# <kort> <tal> <vad som räknades på bilden>
+820dc703 8 åtta påsar syns på packbilden, position 3 (bilden är struken för taggen 8 Packs)
+e6fdbe60 2 två ugnsfack med var sin lucka syns på bilderna 1 och 4
+42c18d65 12000 säker arbetslast i lb enligt etiketten på bandet, position 4
+42c18d65 5443 12000 lb omräknat till kg (12000 × 0,4536)
