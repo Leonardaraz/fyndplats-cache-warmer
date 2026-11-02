@@ -80,9 +80,15 @@ Planen visade 0 att rätta 2026-10-31.
 
 **Kategorierna.** Importen och verktyget **"VEVOR — kategorier till utkasten"** kopplar varje
 utkast till en avdelning och en underkategori enligt reglerna i `lib/vevor/kategorier.ts`.
-Läs kopplingen i utkastet (`directCategoriesInfo`), skriv samma namn i `kategori.tsv` och
-lägg till en sökordskategori bara när den passar varan. Workflowen lägger till kategorier men
-tar aldrig bort någon. Har regeln valt fel kategori flaggar du utkastet i `FLAGGADE-VEVOR.md`.
+Läs kopplingen i utkastet (`directCategoriesInfo`) **tidigt, i steg 2** (runbookens
+*Kontrollera kategorin*), och bedöm den mot varan, inte mot regeln: regeln gissar på VEVOR:s
+kategori och produktnamnet och har haft fel. Passar kopplingen skriver du samma namn i
+`kategori.tsv`. Passar den inte, eller saknar utkastet kategori, lägger du varan i den
+lämpliga (förälder, smalaste löv, och en sökordskategori bara när den passar varan) i
+`kategori.tsv` i stället för att bara flagga den *(Leonard 2026-11-01)*. Workflowen lägger
+till kategorier men tar aldrig bort någon: den felaktiga kopplingen skriver du som en rad
+*Kategori att ta bort* i `FLAGGADE-VEVOR.md` (kort och kategorinamn), och passar ingen
+kategori i trädet flaggar du utkastet med ett förslag på en ny.
 
 - De nya kategorierna från 2026-10-31 är dolda i Wix tills de har tio publicerade
   produkter. Cronen `kategorier-synlighet` (minut 37 varje timme) visar dem då av sig själv.

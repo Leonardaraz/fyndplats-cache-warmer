@@ -7,7 +7,7 @@ SP = '/tmp/claude-0/-home-user-fyndplats-cache-warmer/fb0002bf-5601-54fa-ae29-3d
 sys.path.insert(0, SP)
 import v1_@@P@@
 from @@P@@lib import ROT, RUNDA, GATES
-NAMN = os.environ.get('GIVARRUNDA', '@@GIVARRUNDA@@')
+NAMN = os.environ.get('GIVARRUNDA') or '@@GIVARRUNDA@@'   # ☠️ en tom variabel (GIVARRUNDA=) får inte ge rotkatalogen: 2026-11-01 skrevs givarfilerna då rakt i tools/polish-assets
 mal = f'{ROT}/{NAMN}'
 os.makedirs(mal, exist_ok=True)
 U = v1_@@P@@.bygg({})

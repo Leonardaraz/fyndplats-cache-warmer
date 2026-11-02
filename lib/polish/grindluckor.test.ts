@@ -76,6 +76,19 @@ describe("fraktvikten i gate.py", () => {
     expect(ut).not.toMatch(/FRAKTVIKT/);
   });
 
+  // ☠️ VEVOR:s `Vikt` är varans egen. Utan raden `=== vevor-källa` i källan fällde grinden
+  // varje VEVOR-sida, för den tog specifikationens vikt för Aosoms viktrad med förpackning.
+  it("är REN för en VEVOR-källa, där Vikt är varans egen vikt", () => {
+    const vevor = `=== vevor-källa: Vikt i specifikationen är varans egen ===\n${KALLA}`;
+    const { ut } = kor("gate.py", filer(TEXT("Vikt", "Skåpet väger 40 kg."), vevor));
+    expect(ut).not.toMatch(/FRAKTVIKT/);
+  });
+
+  it("fäller fortfarande samma text när källan inte är märkt som VEVOR", () => {
+    const { ut } = kor("gate.py", filer(TEXT("Vikt", "Skåpet väger 40 kg."), KALLA));
+    expect(ut).toMatch(/\[FRAKTVIKT\]/);
+  });
+
   it("räknar inte användarvikten som varans vikt", () => {
     const { ut } = kor("gate.py", filer(TEXT("Vikt", "Skåpet."), `${KALLA}<p>Benutzergewicht: 40 kg</p>`));
     expect(ut).toMatch(/\[FRAKTVIKT\]/);

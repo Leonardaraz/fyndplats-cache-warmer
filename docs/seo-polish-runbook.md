@@ -88,7 +88,7 @@ byggskripten ligger i `tools/polish-gates/` och anropas därifrån
 | # | Steg | Filer som skrivs |
 |---|---|---|
 | 1 | [Välj åtta](#1-välj-åtta): kön, saldo, laglighet, dubbletter och sökord | `ids.tsv`, `lager.tsv`, `djurbostad.tsv`, `sammanslagna.tsv` |
-| 2 | [Hämta källan](#2-hämta-källan) | `bilder.tsv`, `variant.tsv`, `kallor.json` |
+| 2 | [Hämta källan](#2-hämta-källan) och [kontrollera kategorin](#kontrollera-kategorin-tidigt) | `bilder.tsv`, `variant.tsv`, `kallor.json`, `kategori.tsv` (första raden) |
 | 3 | [Bilderna före texten](#3-bilderna-före-texten) | `ark/`, `bilder-bort.tsv`, `foto-tal.txt`, `alt.tsv` |
 | 4 | [Verifiera påståendena](#4-verifiera-påståendena) | — |
 | 5 | [Skriv texten](#5-skriv-texten) | `<kort>.html`, `namn.tsv`, `slugs.txt`, `seo.tsv`, `sku.tsv`, `kategori.tsv` |
@@ -121,7 +121,10 @@ dealproffsen eller någon annan butik (Leonard 2026-10-21). En arbetsdelning mel
 till exempel att var och en tar sin ände av kön, går före.
 
 Steg 1–3 går omlott: laglighets- och dubblettskärmen behöver källtexten och bilderna, så hämta
-dem för kandidaterna innan du bestämmer dig.
+dem för kandidaterna innan du bestämmer dig. Kategorikontrollen i steg 2
+([Kontrollera kategorin](#kontrollera-kategorin-tidigt)) hör till samma omlott: en produkt som
+ligger i fel kategori ger fel familjeräkning och fel krockkontroll, så läs kandidaternas
+kategorier också.
 
 **Välj familj efter luckan, inte efter högen.** Räkna utkasten mot de publicerade sidorna
 av samma produkttyp: många publicerade sidor ger krockar och dubbletter, få ger lediga
@@ -629,6 +632,44 @@ inga variantval. En VEVOR-familj har en variant per artikel.
   VEVOR-avsnittet).
 
 Det är den enda kontrollen av priset och av VEVOR-flaggorna, för skrivsteget gör ingen.
+
+### Kontrollera kategorin (tidigt)
+
+*Leonard 2026-11-01.* Kontrollera att produkten ligger i en lämplig kategori **direkt när du
+har läst den**, före bilderna och texten, och lägg den i en lämplig kategori om den inte gör
+det. GET:en ovan bär redan `directCategoriesInfo`. Kategorin avgör vilket sökord produkten
+tävlar om, vilka syskon den krockar med, vilka filter den hamnar i och vilken brödsmula
+Google ser. En text som är rätt skriven för en produkt i fel kategori hamnar ändå fel.
+
+1. **Läs kopplingen och trädet.** Slå produktens kategori-id mot trädet, med de dolda
+   kategorierna, en gång per runda (se [Kategori](#kategori-kategoritsv) i steg 5).
+2. **Bedöm den mot produkttypen**, som bilderna och `Lieferumfang` eller specifikationen
+   avgör, aldrig mot titelns kategoriord. Importen gissar: VEVOR:s regel
+   (`lib/vevor/kategorier.ts`) har lagt en bilramp under Baby & Småbarn och ett kassaskåp
+   med väska bland verktygslådorna, så läs dess val som ett förslag och inte som facit.
+   Frågorna är: sitter varan i den avdelning och det löv där en kund som söker just den
+   varan skulle leta? Är lövet det smalaste som passar? Finns en sökordskategori för
+   typen? Saknar produkten kategori helt, eller ligger den bara i en dold kategori
+   (brödsmulan blir då *Hem / Butik / produkt*)?
+3. **Passar kopplingen**: skriv den som första raden i `kategori.tsv` redan nu. Steg 5
+   prövar den då mot den färdiga texten (sökordskategorins facit) i stället för att välja
+   den från början.
+4. **Passar den inte, eller saknas den**: lägg produkten i den lämpliga kategorin. Skriv
+   förälder, smalaste löv och sökordskategori i `kategori.tsv` med namnen exakt som i Wix,
+   så kopplar skrivsteget dem. Finns ingen lämplig kategori i trädet skapar du ingen själv:
+   skriv föräldern, och flagga produkten med ett förslag på ny kategori i `FLAGGADE.md`
+   (`FLAGGADE-VEVOR.md` för VEVOR). Välj aldrig ett löv bara för att det finns.
+5. ☠️ **Den felaktiga kopplingen sitter kvar.** Skrivsteget och **"VEVOR — kategorier till
+   utkasten"** lägger bara till och tar aldrig bort. Skriv en rad *Kategori att ta bort* i
+   `FLAGGADE.md` / `FLAGGADE-VEVOR.md` med produktens kort och den felaktiga kategorins
+   namn, så att kopplingen tas bort i en egen åtgärd. Det finns inget verktyg för det än,
+   och en handbyggd skrivning i Wix är förbjuden. Textsteget publicerar varan, en
+   VEVOR-vara också (standardraden gör GPSR komplett), så den visas i den felaktiga
+   kategorin tills kopplingen är borta. Skriv därför raden direkt och nämn den i
+   rundans slutrapport till Leonard.
+
+Kategorin kontrolleras alltså två gånger med olika uppgift. Här avgörs *var* varan hör
+hemma, utan att texten är skriven. I steg 5 prövas den mot sökordskategorins påståenden.
 
 ### Vad källan är värd
 
@@ -1166,6 +1207,11 @@ eller `AE-`-SKU:er på andra produkter.
 
 ### Kategori (`kategori.tsv`)
 
+Första raden skrevs redan i steg 2 ([Kontrollera kategorin](#kontrollera-kategorin-tidigt)),
+där det avgjordes *var* varan hör hemma. Här är texten klar, och du prövar raden mot den:
+passar sökordskategorin fortfarande, och finns det ett smalare löv nu när du har läst
+varan noga? Ändra raden om svaret är ja.
+
 Skriv `kort ⇥ Förälder + Löv + Sökordskategori` (ett till sex namn), med kategorinamnen
 exakt som i Wix. Läs trädet varje runda (`POST /categories/v1/categories/query` med
 `treeReference: {"appNamespace": "@wix/stores"}`, `returnNonVisibleCategories: true` och
@@ -1381,7 +1427,8 @@ och commit, inte på var den står i listan.
 Ska något rättas efteråt: sök felet i alla rundans filer (`<kort>.html`, `namn.tsv`,
 `seo.tsv`, `alt.tsv`) och i syskonens texter, rätta, bygg om planen och kör workflowen
 igen. En omkörning lägger till kategorier men tar aldrig bort en felkopplad; det är en
-egen åtgärd. Skriv aldrig för hand i Wix. En handbyggd PATCH tappar fält utan att säga
+egen åtgärd (se [Kontrollera kategorin](#kontrollera-kategorin-tidigt), punkt 5). Skriv
+aldrig för hand i Wix. En handbyggd PATCH tappar fält utan att säga
 något (variantens `visible`, alt-texter, SKU), och svaret ser ändå lyckat ut.
 
 **Pusha sällan.** Pushar som bara rör `tools/` och `docs/` bygger inte på Vercel
@@ -1452,6 +1499,9 @@ punkterna under *Efter skriv* kontrollerar du efteråt.
   dubblettskärmen, och prisgrinden i mappningsraden säger inte FALLER, SLUTSALD eller LÅST
   PRIS utan att du vet varför. För VEVOR: ingen möjlig medicinteknik.
 - Det som hoppades över står i `FLAGGADE.md`.
+- Varje produkts kategori är kontrollerad i steg 2: den ligger i en lämplig avdelning och
+  ett lämpligt löv, eller så är den lagd i den lämpliga i `kategori.tsv`. En felkopplad
+  kategori som sitter kvar och en produkt som saknar lämplig kategori står i `FLAGGADE.md`.
 
 **Text**
 

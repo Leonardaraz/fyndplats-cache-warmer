@@ -63,9 +63,13 @@ def logg(rid):
     h = subprocess.run(['curl', '-sS', '-o', '/dev/null', '-D', '-', f'https://api.github.com/repos/{REPO}/actions/jobs/{jid}/logs'],
                        capture_output=True, text=True).stdout
     m = re.search(r'^location:\s*(\S+)', h, re.M | re.I)
-    if not m:
+    if m:
+        r = subprocess.run(['curl', '-sS', m.group(1)], capture_output=True, text=True)
+    elif re.search(r'^HTTP/\S+ 200 OK', h, re.M):
+        # 2026-11-01: proxyn svarar direkt med loggen (200) i stället för en 302 till blob-värden.
+        r = subprocess.run(['curl', '-sS', f'https://api.github.com/repos/{REPO}/actions/jobs/{jid}/logs'], capture_output=True, text=True)
+    else:
         raise RuntimeError('loggen gav ingen omdirigering')
-    r = subprocess.run(['curl', '-sS', m.group(1)], capture_output=True, text=True)
     if r.returncode != 0 or not r.stdout:
         raise RuntimeError('loggnedladdningen föll')
     return r.stdout
