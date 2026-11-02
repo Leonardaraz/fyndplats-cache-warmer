@@ -71,10 +71,14 @@ Google ser. En text som är rätt skriven för en produkt i fel kategori hamnar 
    nedan); en handbyggd skrivning i Wix är förbjuden. Textsteget publicerar varan, en
    VEVOR-vara också (standardraden gör GPSR komplett), så den visas i den felaktiga
    kategorin tills kopplingen är borta. Skriv därför raden direkt och **ta bort länken i
-   samma runda, efter skrivningen och livekontrollen** *(Leonard 2026-11-02, "Ja" på frågan
-   om importens felaktiga länkar får tas bort direkt i kommande rundor; de fem första
-   2026-11-02: "Fixa punkt 2")*. Nämn borttagningen i rundans slutrapport. Det gäller
-   importens felaktiga länkar, inte en kategori Leonard själv har valt.
+   samma runda, direkt efter skrivningen, under väntan på ISR-fönstret** *(Leonard
+   2026-11-02, "Ja" på frågan om importens felaktiga länkar får tas bort direkt i kommande
+   rundor; de fem första 2026-11-02: "Fixa punkt 2")*. Då mäter livekontrollen slutläget,
+   brödsmulan inklusive, och `livekoll.py` fäller den inte för importens kategori (efter
+   runda 17, där borttagningen kom efter livekontrollen, föll brödsmulan på alla fyra
+   sidorna). Läs tillbaka länkarna ungefär 20 sekunder efter borttagningen, se nedan.
+   Nämn borttagningen i rundans slutrapport. Det gäller importens felaktiga länkar, inte
+   en kategori Leonard själv har valt.
 
 Kategorin kontrolleras alltså två gånger med olika uppgift. Här avgörs *var* varan hör
 hemma, utan att texten är skriven. I steg 5 prövas den mot sökordskategorins påståenden.
