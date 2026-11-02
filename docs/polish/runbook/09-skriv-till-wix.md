@@ -27,7 +27,8 @@ och commit, inte på var den står i listan.
 Ska något rättas efteråt: sök felet i alla rundans filer (`<kort>.html`, `namn.tsv`,
 `seo.tsv`, `alt.tsv`) och i syskonens texter, rätta, bygg om planen och kör workflowen
 igen. En omkörning lägger till kategorier men tar aldrig bort en felkopplad; det är en
-egen åtgärd (se [Kontrollera kategorin](02-hamta-kallan.md#kontrollera-kategorin-tidigt), punkt 5). Skriv
+egen åtgärd med eget verktyg (se [Kontrollera kategorin](02-hamta-kallan.md#kontrollera-kategorin-tidigt),
+punkt 5, och [Ta bort en felaktig kategorilänk](02-hamta-kallan.md#ta-bort-en-felaktig-kategorilänk)). Skriv
 aldrig för hand i Wix. En handbyggd PATCH tappar fält utan att säga
 något (variantens `visible`, alt-texter, SKU), och svaret ser ändå lyckat ut.
 

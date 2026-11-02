@@ -66,14 +66,56 @@ Google ser. En text som är rätt skriven för en produkt i fel kategori hamnar 
 5. ☠️ **Den felaktiga kopplingen sitter kvar.** Skrivsteget och **"VEVOR — kategorier till
    utkasten"** lägger bara till och tar aldrig bort. Skriv en rad *Kategori att ta bort* i
    `FLAGGADE.md` / `FLAGGADE-VEVOR.md` med produktens kort och den felaktiga kategorins
-   namn, så att kopplingen tas bort i en egen åtgärd. Det finns inget verktyg för det än,
-   och en handbyggd skrivning i Wix är förbjuden. Textsteget publicerar varan, en
+   namn. Kopplingen tas bort i en egen åtgärd, med workflowen **"Kategori — ta bort
+   felaktiga kategorilänkar"** (se [Ta bort en felaktig kategorilänk](#ta-bort-en-felaktig-kategorilänk)
+   nedan); en handbyggd skrivning i Wix är förbjuden. Textsteget publicerar varan, en
    VEVOR-vara också (standardraden gör GPSR komplett), så den visas i den felaktiga
-   kategorin tills kopplingen är borta. Skriv därför raden direkt och nämn den i
-   rundans slutrapport till Leonard.
+   kategorin tills kopplingen är borta. Skriv därför raden direkt, nämn den i rundans
+   slutrapport till Leonard, och ta bort länken med verktyget när han har bett om det
+   (de fem första 2026-11-02: "Fixa punkt 2").
 
 Kategorin kontrolleras alltså två gånger med olika uppgift. Här avgörs *var* varan hör
 hemma, utan att texten är skriven. I steg 5 prövas den mot sökordskategorins påståenden.
+
+### Ta bort en felaktig kategorilänk
+
+*Leonard 2026-11-02.* Workflowen **"Kategori — ta bort felaktiga kategorilänkar"**
+(`kategori-bort.yml`) tar bort de länkar som skrivsteget aldrig tar bort. Den rör bara
+kategorilänkar (Categories-tjänstens `remove-items`): ingen produkt-PATCH, så ingenting
+annat på varan kan tappas.
+
+1. **Skriv planen** i `tools/polish-assets/kategori-bort/<plan>.json`, en fil per omgång
+   (`vevor-1.json` är den första). Per vara: `kort`, `pid`, `bort` (kategorierna som ska
+   bort) och `behall` (kategorierna varan ska ligga kvar i). Kategorierna står som
+   **sökvägar**, `Kök & Husgeråd > Köksmaskiner & Apparater`, eftersom samma lövnamn finns
+   under flera avdelningar. Läs varans länkar live först (GET med
+   `fields=DIRECT_CATEGORIES_INFO`): importen lägger både avdelningen och lövet, och båda
+   ska bort om varan inte hör dit. En vara som ska ligga kvar i en dold kategori behöver
+   minst en synlig kategori bland sina `behall`.
+2. **Kör `torr`** med `ref` satt till grenen som bär planen, `plan` (filens namn utan
+   `.json`) och `plan_sha256` (`sha256sum` på filen). Körningen skriver ingenting och
+   räknar länkarna som tas bort (`attTaBort`).
+3. **Kör `skriv`** med samma `plan` och `plan_sha256` och `bekrafta` satt till torrens
+   `attTaBort`. Stämmer inte antalet, eller faller något villkor för någon vara, skrivs
+   ingenting. Workflowen väntar och läser tillbaka (`verifiera`) och fäller varje vara där
+   en länk finns kvar eller en `behall` saknas. Kör `verifiera` ensamt om du vill läsa om.
+
+☠️ Fem egenskaper som inte ska tas bort (`lib/polish/kategori-bort.ts`): planen säger också
+vad som ska finnas kvar; alla villkor prövas för alla varor före första skrivningen;
+kategorierna är sökvägar och en tvetydig sökväg avbryter; skarpt läge kräver antalet;
+`verifiera` läser tillbaka. Rutten körs från `main`, så en ändrad regel finns för
+workflowen först när den är mergad: `ref` styr bara vilken planfil som läses.
+
+Tre saker från den första borttagningen (`tools/kategorifix/README.md`, 2026-09-08) gäller
+fortfarande:
+
+- **Det är en navigationsändring.** En toppkategorisida rullar inte upp sina löv, så att
+  ta bort en direkt topplänk tar varan bort från den kategorins listning. Ta bara bort en
+  topplänk när varan inte hör hemma där, som en soppvärmare under Bygg & Renovering.
+- **Läsningen släpar efter skrivningen.** Bulk-svaret är facit, och en snabb återläsning
+  kan visa länken kvar. Workflowen väntar 45 s och läser om en gång efter 60 s.
+- **Planfilen är ångerposten.** Listan `bort` är det som togs bort. Ångra genom att lägga
+  tillbaka de kategorierna med kategoristeget.
 
 ### Vad källan är värd
 

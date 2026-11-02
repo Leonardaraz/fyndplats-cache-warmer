@@ -87,8 +87,10 @@ kategori och produktnamnet och har haft fel. Passar kopplingen skriver du samma 
 lämpliga (förälder, smalaste löv, och en sökordskategori bara när den passar varan) i
 `kategori.tsv` i stället för att bara flagga den *(Leonard 2026-11-01)*. Workflowen lägger
 till kategorier men tar aldrig bort någon: den felaktiga kopplingen skriver du som en rad
-*Kategori att ta bort* i `FLAGGADE-VEVOR.md` (kort och kategorinamn), och passar ingen
-kategori i trädet flaggar du utkastet med ett förslag på en ny.
+*Kategori att ta bort* i `FLAGGADE-VEVOR.md` (kort och kategorinamn), och den tas bort med
+workflowen **"Kategori — ta bort felaktiga kategorilänkar"** (runbookens *Ta bort en
+felaktig kategorilänk*) när Leonard har bett om det. Passar ingen kategori i trädet flaggar
+du utkastet med ett förslag på en ny.
 
 - De nya kategorierna från 2026-10-31 är dolda i Wix tills de har tio publicerade
   produkter. Cronen `kategorier-synlighet` (minut 37 varje timme) visar dem då av sig själv.
