@@ -5,6 +5,7 @@ import { CardGallery } from "./card-gallery";
 import { Stars } from "./stars";
 import { reviewCountLabel } from "../lib/rating";
 import { formatPrice } from "../lib/price-range";
+import { TidigarePris } from "./tidigare-pris";
 
 /** `priority` = kortet ligger sannolikt ovanför vikningen. Sätter eager +
  *  fetchPriority=high + preload på huvudbilden. Listsidorna sätter den på de
@@ -104,9 +105,11 @@ export function ProductCard({ p, priority = false, href, tvaKolumner = false }: 
                   : p.price}
             </span>
             {p.onSale && (p.originalPriceNum || p.originalPrice) && (
-              <span className="pprice-old">
-                {p.originalPriceNum ? formatPrice(p.originalPriceNum) : p.originalPrice}
-              </span>
+              <TidigarePris
+                kort
+                belopp={p.originalPriceNum ? formatPrice(p.originalPriceNum) : p.originalPrice || ""}
+                className="pprice-old"
+              />
             )}
           </span>
           {/* Etiketten säger vad knappen GÖR. Hela kortet är en länk till

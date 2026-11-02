@@ -15,6 +15,7 @@ import { useEffect, useRef, useState } from "react";
 import type { LiveAuctionView } from "../lib/auction-view";
 import { PRESTART_WINDOW_MS, fmtLeft } from "../lib/auction-day";
 import { useAuctionClock } from "./use-auction-clock";
+import { TidigarePris } from "./tidigare-pris";
 
 export function AuctionLiveBar({ a }: { a: LiveAuctionView }) {
   const { phase, msLeft, mounted } = useAuctionClock(a);
@@ -62,8 +63,13 @@ export function AuctionLiveBar({ a }: { a: LiveAuctionView }) {
     <a ref={ref} className={`a-live-bar${scrolled ? " show" : ""}`} href={`/produkt/${a.slug}`} aria-hidden={!scrolled} tabIndex={scrolled ? undefined : -1}>
       <span className="a-lb-progress" style={{ width: `${progress}%` }} aria-hidden="true" />
       <span className="a-lb-flame" aria-hidden="true">🔥</span>
-      <span className="a-lb-price">{Math.round(a.priceNum).toLocaleString("sv-SE")} kr</span>
-      {dropped && <span className="a-lb-old">{a.listPrice.toLocaleString("sv-SE")} kr</span>}
+      {/* 30-dagarspriset står UNDER priset, inte bredvid: på en rad åt det
+          nedräkningens plats, och "faller om 24 min" kapades till "falle…"
+          i 390 px. */}
+      <span className="a-lb-pris">
+        <span className="a-lb-price">{Math.round(a.priceNum).toLocaleString("sv-SE")} kr</span>
+        {dropped && <TidigarePris kort belopp={`${a.listPrice.toLocaleString("sv-SE")} kr`} className="a-lb-old" />}
+      </span>
       <span className="a-lb-timer" suppressHydrationWarning>
         {preStart && msLeft !== null
           ? `startar om ${fmtLeft(msLeft)}`

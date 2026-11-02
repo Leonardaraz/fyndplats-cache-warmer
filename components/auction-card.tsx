@@ -19,6 +19,7 @@ import type { LiveAuctionView } from "../lib/auction-view";
 import { AuctionOdometer } from "./auction-odometer";
 import { fmtLeft } from "../lib/auction-day";
 import { useAuctionClock } from "./use-auction-clock";
+import { TidigarePris } from "./tidigare-pris";
 
 export function AuctionCard({ a }: { a: LiveAuctionView }) {
   // phase är aldrig null: före mount kommer den från serverns klocka, så SSR
@@ -63,7 +64,7 @@ export function AuctionCard({ a }: { a: LiveAuctionView }) {
         <div className="pname">{a.name}</div>
         <div className="auction-price-row">
           <AuctionOdometer value={a.priceNum} className="auction-price" />
-          {dropped && <span className="auction-old">{a.listPrice.toLocaleString("sv-SE")} kr</span>}
+          {dropped && <TidigarePris kort belopp={`${a.listPrice.toLocaleString("sv-SE")} kr`} className="auction-old" />}
         </div>
         {/* Samma "Du sparar"-rad som hjältekortet — kronor säljer bättre än
             procent, och utan den såg småkorten tommare ut än flaggskeppet. */}

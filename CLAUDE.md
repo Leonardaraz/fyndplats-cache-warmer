@@ -872,6 +872,58 @@ Betygen (`aggregateRating`, `review`) skickas bara för omdömen från våra egn
 kunder (`lib/review-schema.ts`). Att Search Console saknar dem på nästan alla
 objekt är rätt: de flesta produkter har inga egna omdömen än.
 
+## Det överstrukna priset bär alltid Konsumentverkets ord (2026-11-01)
+
+Leonards fråga: måste produktsidan visa lägsta pris de senaste 30 dagarna? Ja,
+när priset är sänkt. 7 a § prisinformationslagen kräver att det tidigare priset
+anges vid varje tillkännagivande av en prissänkning, och att det är det lägsta
+pris vi tagit de 30 dagarna före sänkningen. Konsumentverket kräver att det står
+i omedelbar närhet till priset, så en flik längst ned i beskrivningen räcker inte.
+
+| yta | vad som står |
+| :-- | :-- |
+| produktsidan, under priset | Lägsta pris de senaste 30 dagarna: ~~1 299 kr~~ |
+| produktkort, startsidans brickor, auktionens kort och hjältekort | 30-dagarspris ~~1 299 kr~~ |
+| auktionens fältrad (mobil) | 30-dagarspris ~~1 299 kr~~, under priset |
+
+Orden kommer ur Konsumentverkets förslag till föreskrifter om prisinformation
+(remiss 2026-06-09, dnr 2026/816, 11 §). Det räknar upp fem uttryck, och ett
+överstruket pris får bara visas med ett av dem i direkt anslutning. Listan är
+sluten: "Ordinarie pris" eller "Lägsta pris 30 dagar" duger inte. Om förslaget
+är beslutat är inte kontrollerat. Orden uppfyller både lagen och förslaget.
+
+Fem egenskaper som inte ska tas bort:
+
+1. ☠️ **Varje överstruket pris går genom `components/tidigare-pris.tsx`.**
+   `lib/tidigare-pris.test.ts` fäller `<s>`, `<del>`, `<strike>` och
+   `line-through` utanför komponenten, en gammal prisklass (`pdp-price-old`,
+   `pprice-old`, `htag-old`, `auction-old`, `a-hc-old`, `a-lb-old`) på ett eget
+   element, och ett uttryck som inte står i Konsumentverkets lista.
+2. ☠️ **Bara beloppet stryks, aldrig orden.**
+3. **Talet är Wix jämförpris** (`compareAtPrice`, i V1 `price.price` mot
+   `discountedPrice`). Butiken räknar det inte. Motorns rea-jobb
+   (`lib/pricing/rea.ts` på main) håller det till 30-dagarspriset och tar bort
+   ett jämförpris som inte följer av prishistoriken, när jobbet är påslaget.
+4. ⚠️ **Auktionens överstrukna pris är auktionens listpris**, det pris
+   auktionen räknar ned från. Det är 30-dagarspriset bara när varans pris inte
+   varit lägre de 30 dagarna före. Den 1 november gällde det inte tre av fem
+   levande auktioner, eftersom priserna höjdes den 14 oktober. Leonards beslut
+   samma dag: varorna som höjdes i oktober är ett undantag och får vara som de
+   är, och motorn har ingen spärr. Från omkring den 14 november ligger höjningen
+   utanför 30-dagarsfönstret.
+5. **Fältraden visar 30-dagarspriset under priset.** På samma rad kapades
+   nedräkningen till "falle…" i 390 px. Under 381 px döljs det helt, som förut,
+   och då visas inget överstruket pris alls.
+
+## Recensionerna säger vilken variant kunden köpte (2026-11-01)
+
+På en sida med flera varianter skickar motorn med vilken variant en recension
+gäller (fältet `kopt` i `/api/reviews/<id>`, samma namn som sidans val). Listan
+visar det som "Köpt: Svart / 50 liter" under namnet (`lib/review-kopt.ts`,
+`components/ProductReviews.tsx`). Fältet saknas på sidor med en variant, och då
+visas ingenting. Raden säger vad som köptes, aldrig vem som skrev, så regeln om
+att ingen rad märks (`lib/review-radmarkning.test.ts`) gäller som förut.
+
 ## Säsongstema: Halloween (Leonard 2026-10-28)
 
 *"ge hemsidan halloween look nu under halloween som ändå ser proffsigt ut o
