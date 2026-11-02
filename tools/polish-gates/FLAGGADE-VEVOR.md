@@ -20,3 +20,5 @@ Ett utkast anges med sitt Wix-id.
 | e387b0fa-1f37-4390-bf69-f0c6d1e2270b | Måttskiss saknas bland sex rena originalbilder. Recension gen-yfac3f påstår belastning över angiven gräns och döljs enligt runbooken. | runda-vevor-1-verktygsvagn | Mått verifierade genom omräkning av källans tum och originalfotonas proportioner. Recensionsavvikelsen lämnas till Leonard. |
 
 ## Lärdomar
+
+- Runda vevor-2, b7719a10-08fd-48d7-ad59-9d1d1834a861: sex rena originalbilder men ingen måttskiss. Totalmått återges i källans millimeter utan axelpåståenden; proportioner granskade mot fotona. Svensk etikett stöds inte av bygg-axelfacit.py, vilket kvitteras öppet i rundan. Specifikationens 181,4 kg gäller framför säljtextens avrundade 180 kg, samma värde i specifikation och säkerhetsflik.
