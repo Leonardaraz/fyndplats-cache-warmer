@@ -40,8 +40,9 @@
 // variant (`seedPunkter`).
 //
 // HUSETS REGLER (Leonard 2026-11-01):
-//   - Bara en sänkning på minst 10 % ger rea. Synkens små justeringar på 10–20
-//     kr ska inte bli en reaskylt.
+//   - Bara en sänkning på minst 5 % ger rea (Leonard 2026-11-02, "Ändra så
+//     gränsen är 5%"; från början 10 %). Synkens minsta justeringar ska inte
+//     bli en reaskylt.
 //   - Skylten visas högst 30 dagar från den första sänkningen, sedan försvinner
 //     den av sig själv. Annars hade en följd små sänkningar kunnat hålla en
 //     rabatt uppe för alltid.
@@ -57,8 +58,8 @@ export const DAG_MS = 86_400_000;
 export const FONSTER_MS = 30 * DAG_MS;
 /** Husets regel: skylten visas högst så länge från den första sänkningen. */
 export const REA_LANGD_MS = 30 * DAG_MS;
-/** Husets regel: minsta sänkning som ger rea, i procent av jämförpriset. */
-export const MIN_SANKNING_PROCENT = 10;
+/** Husets regel: minsta sänkning som ger rea, i procent av jämförpriset (Leonard 2026-11-02). */
+export const MIN_SANKNING_PROCENT = 5;
 /**
  * Fönstret räknas ett dygn längre bakåt än lagen kräver. Historiken ser en
  * prisändring först när den läses (varje timme, och en gång per dygn i det som
@@ -91,7 +92,7 @@ export type ReaSkal =
   | "ofullstandig" // historiken täcker inte fönstret före den första sänkningen
   | "ny" // varianten gick inte att köpa när fönstret började
   | "inget_pris_i_fonstret" // varianten gick inte att köpa någon gång i fönstret
-  | "under_grans" // mindre än 10 %
+  | "under_grans" // mindre än MIN_SANKNING_PROCENT
   | "auktion" // en auktion i fönstret (avgörs av körningen)
   | "lucka"; // en tid utan avläsning i fönstret (avgörs av körningen)
 

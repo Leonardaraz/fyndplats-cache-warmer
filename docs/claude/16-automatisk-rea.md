@@ -9,6 +9,11 @@ lästes tillbaka och mättes på de publicerade sidorna. Leonard sa sedan "Fixa"
 förslaget: en reaskylt av sig själv när priset verkligen har sänkts, med rätt
 överstruket pris, i högst 30 dagar, och bara för sänkningar på minst 10 %.
 
+**Gränsen är 5 % sedan 2026-11-02** (Leonard: "Ändra så gränsen är 5%"). Den var
+10 % den första natten: körningen 02:40 UTC tog då bort vitrinskåpets skylt,
+som var sänkt 7 %. Talet står bara i `MIN_SANKNING_PROCENT` i
+`lib/pricing/rea.ts`, och gränstestet i `rea.test.ts` håller det.
+
 **Lagen** (7 a § prisinformationslagen): det tidigare priset ska vara det lägsta
 som tillämpats de 30 dagarna före sänkningen, och vid en gradvis sänkning priset
 före den första sänkningen. Regeln, och varje försiktigt val, står i
