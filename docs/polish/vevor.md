@@ -223,6 +223,17 @@ VEVOR-varor är EU-varor och ska bära märkningen, och hundvagnen `c21cf56b` be
 alla 40 provade av 197 publicerade VEVOR-sidor märket. Tills det är åtgärdat ska ingen sida
 publiceras med ett annat besked än Leonards.
 
+**Samma vara som en publicerad AliExpress-sida** *(Leonard 2026-11-03, parkeringsvärmaren `22fb6792` och
+`5e964d36`)*. Är VEVOR-dubbletten ett osynligt utkast mappar du om den publicerade AliExpress-sidan, som på hundvagnen
+(`FLAGGADE-VEVOR.md` cz–dg). Är **båda sidorna publicerade** behålls den polerade VEVOR-sidan med sina recensioner, eftersom
+ingenting flyttar recensionerna (lärdom df): skriv en 301 från AliExpress-sidans adress till VEVOR-sidans med
+**"Lägg till 301-redirect"** (en rad i `batch`, `force=true` eftersom källan fortfarande är synlig), dölj sedan AliExpress-sidan
+med den smala `visible`-PATCH:en (`{ product: { revision, visible: false }, fieldMask: { paths: ["visible"] } }`), läs tillbaka
+och räkna med en kvart innan adressen svarar 308. Sök hela `FyndplatsRedirects` efter rader som rör någon av adresserna först,
+eftersom workflowens lista bara visar de 200 senaste. AliExpress-sidans mappningsrad rörs inte: den håller dubblettspärren mot en
+ny import av samma vara. Bevis för att varan är samma är specifikationen rad för rad och VEVOR-loggan på AliExpress-sidans foton
+(se (fs)).
+
 **Frakt och retur** *(Leonard 2026-10-30)*. Frakten kontrolleras inte före publiceringen, och
 priset räknar med att VEVOR tar 0 kr i frakt. Butiken har ingen returadress för VEVOR, så en
 kund som returnerar får adressen per mejl.
