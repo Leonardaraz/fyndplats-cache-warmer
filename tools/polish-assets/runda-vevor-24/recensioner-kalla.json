@@ -45,48 +45,6 @@
       }
     ]
   },
-  "7a470424": {
-    "productId": "7a470424-a169-4862-9394-78e649c35b16",
-    "synliga": 0,
-    "dolda": 6,
-    "kundVantar": 0,
-    "annanArtikel": 0,
-    "okandArtikel": 0,
-    "attBesluta": [
-      {
-        "id": "gen-1i7aiku",
-        "betyg": 5,
-        "datum": "2026-07-18",
-        "foton": 0,
-        "text": "Fast delivery, great product for great price, easy instalation. I hoped that bag will be made of thicker material but still....its waterproof andfor that plrice its very good. I see people are very happy with this product but still complaining about \"VEVOR\" sticker on it. I dont get it. If you buy, lets say, Jeep and you like it, why dont you then remove emblem \"Jeep\" from it? I dont have problem with that. Im happy with what i bought and it should be name on it. Fit great on my Suzuki SX4 Keep up with great stuff Vevor crew!!!!"
-      },
-      {
-        "id": "gen-1ppaps5",
-        "betyg": 4,
-        "datum": "2026-10-01",
-        "foton": 0,
-        "text": "Arata intersant dar este destul de slab, nu este pentru carat greutati."
-      }
-    ]
-  },
-  "a5ff9583": {
-    "productId": "a5ff9583-a121-417a-adc7-5fd5d748764d",
-    "synliga": 0,
-    "dolda": 4,
-    "kundVantar": 0,
-    "annanArtikel": 0,
-    "okandArtikel": 1,
-    "attBesluta": []
-  },
-  "0db03087": {
-    "productId": "0db03087-701a-4915-b66a-a5235f8b6b08",
-    "synliga": 0,
-    "dolda": 4,
-    "kundVantar": 0,
-    "annanArtikel": 0,
-    "okandArtikel": 0,
-    "attBesluta": []
-  },
   "f2fd94ba": {
     "productId": "f2fd94ba-76cb-479c-87ee-ba547822383f",
     "synliga": 0,
@@ -130,5 +88,99 @@
     "annanArtikel": 0,
     "okandArtikel": 1,
     "attBesluta": []
+  },
+  "c1a5148e": {
+    "productId": "c1a5148e-7007-428a-8435-50b982136a2b",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-15tgaxp",
+        "betyg": 5,
+        "datum": "2026-09-25",
+        "foton": 0,
+        "text": "Dalle de bonne qualité, la pose est très simple. Elles sont en mousse recouverte d’une couche de caoutchouc"
+      },
+      {
+        "id": "gen-4c7ilr",
+        "betyg": 4,
+        "datum": "2026-07-14",
+        "foton": 0,
+        "namn": true,
+        "text": "erg ‹NAMN› over deze vloerbeschermingsmat. Gebruik deze in mijn thuis-fitnesskamer. Ik maak veel gebruik van kettlebells en deze vloer leent zich daar goed voor."
+      }
+    ]
+  },
+  "495489aa": {
+    "productId": "495489aa-b690-4542-9f98-ca2bbd01b4cb",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-wpkwqj",
+        "betyg": 4,
+        "datum": "2026-09-06",
+        "foton": 0,
+        "text": "These were very thick, but some pieces in my packet were different shades and lacked uniformity."
+      }
+    ]
+  },
+  "a48b63c9": {
+    "productId": "a48b63c9-9f89-4fa8-87d9-cb2d58cc017b",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 3,
+    "attBesluta": [
+      {
+        "id": "gen-1y66max",
+        "betyg": 5,
+        "datum": "2026-05-29",
+        "foton": 0,
+        "text": "My husband always wants the “commercial kitchen version” of everything. This was the perfect upgrade to our farmhouse sink. We both love it!"
+      },
+      {
+        "id": "gen-1v11jm5",
+        "betyg": 5,
+        "datum": "2026-03-26",
+        "foton": 0,
+        "text": "High quality faucet. I bought for my kitchen sink but decided the highly commercial look and features would suit my basement utility sink so I used it there. This is better than anything I've ever bought from the box stores and it really doesn't cost any more than ones that have less features and a whole lot less water pressure. It looks fantastic in a utility setting and I would have been fine with it in my kitchen until I found a similar unit that looked more residential. So I bought both and kept them both and have no complaints. Game changer, it fills sinks probably 3xs as fast as my old faucet and the sprayer is similar to a shower head."
+      },
+      {
+        "id": "gen-1sssua5",
+        "betyg": 5,
+        "datum": "2026-03-17",
+        "foton": 0,
+        "text": "Nog niet opengedaan, maar de stukken zijn echt van goede kwaliteit."
+      },
+      {
+        "id": "gen-bdjsck",
+        "betyg": 5,
+        "datum": "2026-03-11",
+        "foton": 0,
+        "text": "Well built and great for the price. Make sure to wrap the fittings you put together 8X!!!, or you will get leaks."
+      },
+      {
+        "id": "gen-iie3p6",
+        "betyg": 5,
+        "datum": "2025-09-22",
+        "foton": 0,
+        "text": "Easy to install. Works fine. I only wish the sprayer hose was longer."
+      },
+      {
+        "id": "gen-neyzuq",
+        "betyg": 4,
+        "datum": "2026-09-18",
+        "foton": 0,
+        "text": "It's alright, easy to install, don't forget to get some hose, they don't come with it. One thing I don't like is the handle setup. Kinda wish there was one to close both water (hot and cold) and one to differ water to spay. But there only the one for the spay, so need to set up/open both cold and warm water each time. Not to bad I guest... Still recommend, it work well."
+      }
+    ]
   }
 }
