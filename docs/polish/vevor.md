@@ -117,6 +117,14 @@ Planen visade 0 att rätta 2026-10-31.
   argumentet) och läs dem före texten.
 - **Bilden vinner över källans material.** *Massivt trä* i titeln och punkterna fick stå bort
   när ett foto visade plywoodskikt (`FLAGGADE-VEVOR.md` (hd)).
+- **Måtten och vad setet innehåller ligger i VEVOR:s sista funktionsbild (`f6`)** när källan
+  saknar mått *(Leonard 2026-11-03: "kika på deras bilder")*. Avläsningen listar tolv bilder per
+  vara, men importen tar bara de sex rena (`m100`). `f1`–`f6` är funktionsbilder med engelsk text,
+  och `f6` är en måttritning med tabell (mått, material, vikt, maxlast, *Set Includes*, ibland
+  ålder). Ritningens pilar avgör axlarna. Bilden kommer inte in i galleriet, men siffrorna
+  läses och läggs som ett eget block med bara siffror och etiketter i `kallor.json`, och i
+  `foto-tal.txt`. Adresserna bär artikelnumret och skrivs därför aldrig i en fil: läs dem med
+  ExecuteWixAPI, hämta bilderna med `curl` till scratchpad under egna namn (`FLAGGADE-VEVOR.md` (hi)).
 
 **Kategorierna.** Importen och verktyget **"VEVOR — kategorier till utkasten"** kopplar varje
 utkast till en avdelning och en underkategori enligt reglerna i `lib/vevor/kategorier.ts`.
@@ -209,11 +217,16 @@ begäran. Gör inte om den utan en ny sådan begäran, och bygg ett verktyg efte
 *Syskon blir val på sidan*, Aosom-verktygen för bilder och EN 71-beslutet. Resten gäller
 båda leverantörerna, också laglighetsgrinden, dubblettskärmen och recensionerna.
 
-**Leksaker.** Beslutet om EN 71 gäller bara Aosom. En VEVOR-leksak vars källa inte nämner
-någon standard flaggas. Regeln läses som en *namngiven* standard (CE, CPC, EN 71, CPSIA, ASTM, CPAI-84 eller CPSC;
-`FLAGGADE-VEVOR.md` (ge)). Mätt 2026-11-03 namngav 11 av 252 leksaksutkast en norm, och de som bara namnger amerikanska
-normer väntar på Leonards svar (`FLAGGADE-VEVOR.md` (ha), runda vevor-leksak-1). Produktsäkerhetsraden skrivs *Certifierad
-enligt CE och CPC.* när källan namnger de två, och bara det källan säger.
+**Leksaker.** Beslutet om EN 71 gäller bara Aosom. Leonard lättade leksaksregeln för VEVOR 2026-11-03
+(`FLAGGADE-VEVOR.md` (hj)): en VEVOR-leksak poleras och publiceras också när källan bara namnger
+amerikanska normer (CPC, CPSIA, ASTM) eller ingen norm alls. Texten säger då bara det källan säger:
+åldersgräns, last, material och de normer som faktiskt står där. Skriv aldrig *Uppfyller EN 71*
+eller någon annan norm utan stöd i källan. Barnmöbler och leksakslådor som bara bär CPC och CPSIA
+poleras som vanliga varor. En norm räknas som namngiven när den står i klartext (CE, CPC, EN 71,
+CPSIA, ASTM, CPAI-84, CPSC; `FLAGGADE-VEVOR.md` (ge); mätt 2026-11-03 namngav 11 av 252 leksaksutkast
+en norm, (ha)). Produktsäkerhetsraden skrivs *Certifierad enligt CE och CPC.* när källan namnger de
+två, och bara det källan säger. Åldersgränsen står i texten och som *Rekommenderad ålder: …* i
+Produktsäkerhet, månader förblir månader. Saknar källan mått läser du dem ur `f6`, se *Bilderna* ovan.
 
 **Produktsäkerhet.** Tillverkaren och ansvarig i EU kommer från motorn (VEVOR:s standardrad,
 Leonards beslut 2026-10-29). Säkerhetsavsnittet skriver du som vanligt, ur källans text.
