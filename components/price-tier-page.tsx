@@ -14,6 +14,7 @@ import { pageMeta } from "../lib/seo";
 import { getValidPriceTierParams, resolvePriceTier } from "../lib/seo/programmatic";
 import { ProductCard } from "./productcard";
 import { attachRatings } from "../lib/review-aggregates";
+import { kategoriIMening } from "../lib/kategori-i-mening";
 import { ProgSchemas, ProgHero, ProgCrossLinks } from "./programmatic";
 
 export async function priceTierStaticParams(price: number): Promise<{ category: string }[]> {
@@ -63,14 +64,32 @@ export async function PriceTierPage({ price, category }: { price: number; catego
           { label: `Under ${price} kr` },
         ]}
         h1={view.h1}
-        intro={view.intro}
       />
 
-      <section className="sec" style={{ paddingTop: 36 }}>
+      <section className="sec" style={{ paddingTop: 28 }}>
         <div className="container">
           <div className="prodgrid">
             {produkter.map((p) => (
               <ProductCard p={p} key={p.slug} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Brödtexten står under rutnätet, inte i hjälten. Ovanför produkterna tog
+          den en hel mobilskärm innan första kortet (Leonard 2026-11-03, samma sak
+          som /rea 2026-10-07). Google läser den lika väl här: den finns i HTML:en
+          från servern, syns för besökaren och räknas fortfarande in i 250-ords-
+          garden i lib/seo/programmatic.ts. Samma block som kategorisidornas
+          "Om …"-text. Mallen säger "ovan", aldrig "nedan" (lib/seo/pris-niva-text.test.ts). */}
+      <section className="sec kat-editorial">
+        <div className="container">
+          <div className="kat-intro">
+            <h2>
+              Om {kategoriIMening(view.categoryName)} under {price} kr
+            </h2>
+            {view.intro.map((para, i) => (
+              <p key={i}>{para}</p>
             ))}
           </div>
         </div>

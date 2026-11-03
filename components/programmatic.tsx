@@ -31,7 +31,8 @@ export function ProgHero({
   eyebrow: string;
   crumbs: { href?: string; label: string }[];
   h1: string;
-  intro: string[];
+  /** Brödtext under rubriken. Utelämnas där texten står under produkterna (price-tier-page.tsx). */
+  intro?: string[];
 }) {
   return (
     <section className="kat-hero prog-hero">
@@ -46,11 +47,13 @@ export function ProgHero({
         </nav>
         <div className="eyebrow">{eyebrow}</div>
         <h1 className="prog-h1">{h1}</h1>
-        <div className="prog-intro">
-          {intro.map((para, i) => (
-            <p key={i}>{para}</p>
-          ))}
-        </div>
+        {intro && intro.length > 0 && (
+          <div className="prog-intro">
+            {intro.map((para, i) => (
+              <p key={i}>{para}</p>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

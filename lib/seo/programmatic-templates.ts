@@ -388,17 +388,17 @@ export function priceTierIntro(p: {
   const mid = [
     `Den här sidan samlar ${count} produkter inom ${categoryName.toLowerCase()} som alla kostar under ${price} kr, med priser från ${minPrice}.`,
     `Vi har plockat fram ${count} fynd inom ${categoryName.toLowerCase()} för under ${price} kr — prisspannet börjar på ${minPrice}.`,
-    `Nedan hittar du ${count} noga utvalda produkter inom ${categoryName.toLowerCase()}, samtliga under ${price} kr (från ${minPrice}).`,
+    `Här hittar du ${count} noga utvalda produkter inom ${categoryName.toLowerCase()}, samtliga under ${price} kr (från ${minPrice}).`,
     `Här listar vi ${count} fynd inom ${categoryName.toLowerCase()} som alla håller sig under ${price} kr, billigast från ${minPrice}.`,
     `Vårt urval rymmer ${count} produkter inom ${categoryName.toLowerCase()} med prislapp under ${price} kr — start på ${minPrice}.`,
-    `Totalt ${count} produkter inom ${categoryName.toLowerCase()} under ${price} kr väntar nedan, med priser som börjar vid ${minPrice}.`,
+    `Totalt ${count} produkter inom ${categoryName.toLowerCase()} under ${price} kr finns på sidan, med priser som börjar vid ${minPrice}.`,
   ];
   const close = [
-    `Allt är handplockat ur vårt sortiment, och vid köp över 499 kr är frakten dessutom fri. Hitta ditt nästa fynd nedan.`,
+    `Allt är handplockat ur vårt sortiment, och vid köp över 499 kr är frakten dessutom fri. Hitta ditt nästa fynd i listan ovan.`,
     `Som alltid gäller fri frakt över 499 kr och 30 dagars öppet köp. Bläddra bland fynden och fyll varukorgen.`,
     `Du får samma snabba leverans och trygga köp som på resten av Fyndplats — bara till ett snällare pris.`,
-    `Varje produkt är utvald för hand, och handlar du för över 499 kr bjuder vi på frakten. Dyk ner i fynden nedan.`,
-    `Med fri frakt över 499 kr och 30 dagars öppet köp är det tryggt att klicka hem. Botanisera vidare nedan.`,
+    `Varje produkt är utvald för hand, och handlar du för över 499 kr bjuder vi på frakten. Alla fynden står i listan ovan.`,
+    `Med fri frakt över 499 kr och 30 dagars öppet köp är det tryggt att klicka hem. Botanisera bland fynden ovan.`,
     `Samma kvalitetskoll och snabba leverans som vanligt — fast till en vänligare prislapp. Bläddra och fynda.`,
   ];
   // Andra stycket: lyfter varför prisvärt inte betyder sämre + hur urvalet görs.
@@ -407,9 +407,9 @@ export function priceTierIntro(p: {
   const why = [
     `Att en produkt kostar mindre betyder inte att den är sämre. Vi väljer ut prisvärda fynd inom ${categoryName.toLowerCase()} med samma omsorg som resten av sortimentet — funktion, hållbarhet och hur väl de gör nytta i vardagen väger alltid tyngst.`,
     `Vi tror på att bra ${categoryName.toLowerCase()} ska finnas för alla plånböcker. Därför letar vi ständigt efter smarta köp som ger mer än de kostar, och plockar bort sådant som inte håller måttet.`,
-    `Det smarta köpet handlar om att få mest värde per krona. Varje produkt i listan nedan är vald för att leverera just det — utan onödiga prislappar och utan att tumma på kvaliteten.`,
+    `Det smarta köpet handlar om att få mest värde per krona. Varje produkt i listan ovan är vald för att leverera just det — utan onödiga prislappar och utan att tumma på kvaliteten.`,
     `Lågt pris och hög kvalitet utesluter inte varandra. Vi jagar ${categoryName.toLowerCase()} där prislappen är liten men nyttan stor, och rensar konsekvent bort resten innan något hamnar i listan.`,
-    `För oss är ett fynd något som överträffar sitt pris. Allt nedan är utvalt för att kännas dyrare än det är — funktionen och hållbarheten har vi aldrig tummat på för att pressa kronorna.`,
+    `För oss är ett fynd något som överträffar sitt pris. Allt i listan ovan är utvalt för att kännas dyrare än det är — funktionen och hållbarheten har vi aldrig tummat på för att pressa kronorna.`,
     `Billigt ska aldrig betyda dåligt. Därför nagelfar vi varje produkt inom ${categoryName.toLowerCase()} på funktion och hållbarhet innan den får en plats här, oavsett hur låg prislappen är.`,
   ];
   const reassure = [
