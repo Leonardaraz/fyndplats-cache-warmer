@@ -1,0 +1,17 @@
+{
+ "namn": "vevor-10",
+ "rader": [
+  {
+   "kort": "9e22c93d",
+   "pid": "9e22c93d-9dd7-4776-8995-bb05c4039281",
+   "bort": [
+    "Bil & Garage",
+    "Bil & Garage > Biltillbehör"
+   ],
+   "behall": [
+    "Verktyg & Maskiner",
+    "Verktyg & Maskiner > Lyft & transport"
+   ]
+  }
+ ]
+}
