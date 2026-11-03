@@ -1,0 +1,8 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "d380f99f": {
+  "tyska": "18.1 in / 460 mm wide, 17.9 in / 455 mm deep, 10 in / 255 mm high; Tunnel Dimensions: 23.6 in / 600 mm wide, 17.9 in / 455 mm deep, 18.1 in / 460 mm high; Thin Pad Dimensions (x2): 24.2 in / 615 mm, 18.1 in / 460 mm, 1.5 in / 38 mm thick; Ramp Dimensions: 18.1 in / 460 mm wide, 17.7 in / 450 mm deep, 10 in / 254 mm high",
+  "svenska": "",
+  "axelkalla": "engelska raden 'Step Dimensions' (källan är engelsk och etiketten bar ett bestämningsord)"
+ }
+}
