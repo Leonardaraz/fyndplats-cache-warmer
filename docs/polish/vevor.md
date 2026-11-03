@@ -227,6 +227,11 @@ CPSIA, ASTM, CPAI-84, CPSC; `FLAGGADE-VEVOR.md` (ge); mätt 2026-11-03 namngav 1
 en norm, (ha)). Produktsäkerhetsraden skrivs *Certifierad enligt CE och CPC.* när källan namnger de
 två, och bara det källan säger. Åldersgränsen står i texten och som *Rekommenderad ålder: …* i
 Produktsäkerhet, månader förblir månader. Saknar källan mått läser du dem ur `f6`, se *Bilderna* ovan.
+Leonards besked 2026-11-03 för leksaker (`FLAGGADE-VEVOR.md` (hu), (hv), (hx), (ie)): ett barn i bild,
+också under åldersgränsen, är inget skäl att stryka bilden; riktiga förpackningar i bilderna får
+stå kvar när texten säger att de inte ingår; en recension daterad efter dagens datum döljs; och en
+last som källan bara anger i pund skrivs om till kilo, *181 kg (400 lb)*, i varje fält inklusive
+metabeskrivningen (runbookens steg 5, regel 2).
 
 **Produktsäkerhet.** Tillverkaren och ansvarig i EU kommer från motorn (VEVOR:s standardrad,
 Leonards beslut 2026-10-29). Säkerhetsavsnittet skriver du som vanligt, ur källans text.

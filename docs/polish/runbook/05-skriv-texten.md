@@ -271,7 +271,12 @@ leverantörsnamn. **Finns ingen säkerhetsinformation i källan: skriv inget avs
    `foto-tal.txt` med en rad `<kort> <kg> <omräkningen>`, till exempel
    `2e775ecd 181 400 lb × 0,4536 = 181,4 kg, avrundat nedåt`. Står både pund och kilo i källan
    skrivs kilovärdet ur källan, och gäller två källor olika värden gäller det lägre. Samma
-   undantag gäller inte tum eller andra enheter: fråga Leonard först.
+   undantag gäller inte tum eller andra enheter: fråga Leonard först. Kilon står först och
+   pund inom parentes (*181 kg (400 lb)*, aldrig *400 lb (pund)*), och värdet byts överallt
+   där det förekommer: löpande text, punkter, spec-tabell, frågor, *Produktsäkerhet* och
+   metabeskrivningen i `seo.tsv`. Sök rundans alla filer efter `lb` och `pund` innan planen
+   byggs, inte bara HTML-filen (2e775ecd: första rättelsebygget lämnade *Bär 400 lb (pund)*
+   i metabeskrivningen, som är det Google visar).
 3. ☠️ **Samma värde i spec-tabellen och i avsnittet.** Aosoms text säger ofta emot
    sig själv: produktdatan säger `max. Belastbarkeit: 98 kg`, punktlistan
    `Bis max. 100 kg`. Uppmätt 2026-09-27: 38 produkter i feeden anger mer än ett
