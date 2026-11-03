@@ -210,7 +210,8 @@
         "betyg": 5,
         "datum": "2026-10-01",
         "foton": 0,
-        "text": "Varmeren fungerer bra, men jeg har problemer med å omstille fra farenhait til celsius. Er e mulig å få en skriftlig veiledning helst på norsk. Mvh Ove Høegh Wevle"
+        "text": "Varmeren fungerer bra, men jeg har problemer med å omstille fra farenhait til celsius. Er e mulig å få en skriftlig veiledning helst på norsk. Mvh ‹NAMN›",
+        "namn": true
       }
     ]
   },
