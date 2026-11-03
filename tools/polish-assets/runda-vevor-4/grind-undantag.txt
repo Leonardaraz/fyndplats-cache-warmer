@@ -1,0 +1,1 @@
+bygg-axelfacit.py Svensk VEVOR-källa anger Produktmått 880 × 410 × 990 mm. Generatorn hittar inte den svenska millimeterraden. Ingen måttskiss finns bland originalbilderna; totalmåtten återges exakt utan axelpåståenden. Bildproportionerna har granskats mot måtten. Inget manuellt axelfacit skapas.
