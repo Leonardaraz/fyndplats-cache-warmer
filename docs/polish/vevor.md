@@ -105,7 +105,18 @@ Planen visade 0 att rätta 2026-10-31.
 - Ge måttskissen en alt-text som börjar på *Måttbild*. Finns ingen sådan alt-text i
   produkten lägger `bygg-media.py` plats 3 sist, efter Aosoms gamla regel. På ett
   VEVOR-utkast är plats 3 VEVOR:s första bild och ingen måttskiss, så läs ordningen i
-  utskriften.
+  utskriften. Vill du behålla VEVOR:s egen ordning lägger du VEVOR:s sista bild på etikett 3
+  och flyttar de andra upp ett steg (`byt_filer`, hjälpfunktionen `galleri()` i runda
+  vevor-leksak-1): slutposition i får etikett 1, 2, 4, 5, 6 och den sista etikett 3.
+  `bilddubblett-ok.txt` använder etiketterna efter flytten, inte VEVOR:s positioner
+  (`FLAGGADE-VEVOR.md` (he)).
+- **VEVOR:s säljpunkter (`punkter`) bär fakta som beskrivningen saknar** (installationsguide,
+  rengöring, material och målgrupp). De ligger i avläsningen (`FyndplatsVevorAvlasningar`,
+  nyckel artikeln) och går att läsa privat i ett ExecuteWixAPI-anrop utan att skriva ut
+  numret: `FLAGGADE-VEVOR.md` (hb). Lägg dem i `kallor.json` med `vevor_kalla.py` (tredje
+  argumentet) och läs dem före texten.
+- **Bilden vinner över källans material.** *Massivt trä* i titeln och punkterna fick stå bort
+  när ett foto visade plywoodskikt (`FLAGGADE-VEVOR.md` (hd)).
 
 **Kategorierna.** Importen och verktyget **"VEVOR — kategorier till utkasten"** kopplar varje
 utkast till en avdelning och en underkategori enligt reglerna i `lib/vevor/kategorier.ts`.
@@ -199,7 +210,10 @@ begäran. Gör inte om den utan en ny sådan begäran, och bygg ett verktyg efte
 båda leverantörerna, också laglighetsgrinden, dubblettskärmen och recensionerna.
 
 **Leksaker.** Beslutet om EN 71 gäller bara Aosom. En VEVOR-leksak vars källa inte nämner
-någon standard flaggas.
+någon standard flaggas. Regeln läses som en *namngiven* standard (CE, CPC, EN 71, CPSIA, ASTM, CPAI-84 eller CPSC;
+`FLAGGADE-VEVOR.md` (ge)). Mätt 2026-11-03 namngav 11 av 252 leksaksutkast en norm, och de som bara namnger amerikanska
+normer väntar på Leonards svar (`FLAGGADE-VEVOR.md` (ha), runda vevor-leksak-1). Produktsäkerhetsraden skrivs *Certifierad
+enligt CE och CPC.* när källan namnger de två, och bara det källan säger.
 
 **Produktsäkerhet.** Tillverkaren och ansvarig i EU kommer från motorn (VEVOR:s standardrad,
 Leonards beslut 2026-10-29). Säkerhetsavsnittet skriver du som vanligt, ur källans text.
