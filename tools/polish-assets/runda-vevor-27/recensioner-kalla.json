@@ -54,15 +54,6 @@
       }
     ]
   },
-  "6b38d9d2": {
-    "productId": "6b38d9d2-c873-484f-be33-44454508b8b0",
-    "synliga": 0,
-    "dolda": 5,
-    "kundVantar": 0,
-    "annanArtikel": 0,
-    "okandArtikel": 0,
-    "attBesluta": []
-  },
   "c737917d": {
     "productId": "c737917d-848a-4fec-88a4-2981bb084dd4",
     "synliga": 0,
@@ -166,5 +157,14 @@
         "text": "Bought these both about 1 month ago and haven't even opened the boxes because our growing season is over for this year so i never opened them."
       }
     ]
+  },
+  "f1caa827": {
+    "productId": "f1caa827-a838-4d5f-9588-4143fe8c6042",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 3,
+    "attBesluta": []
   }
 }
