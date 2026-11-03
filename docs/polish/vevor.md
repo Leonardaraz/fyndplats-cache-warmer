@@ -77,6 +77,12 @@ Planen visade 0 att rätta 2026-10-31.
   nätadapterns kontakt och spänning på varje packbild och på etiketter: en amerikansk
   kontakt eller 100–120 V är en annan variant än sidans 230 V (lärdom *by* i
   `FLAGGADE-VEVOR.md`), och en sådan bild stryks eller varan flaggas.
+- **Zooma på packbildens nätadapter och på husets tryckta märkning** *(runda 19)*. Kontakten
+  och adapterns spänningsetikett syns bara i originalet, och kontakten ligger ofta bakom
+  kabeln (a099f9b4: amerikansk kontakt, 100–120 V och en display i °F, så packbilden ströks).
+  En etikett på varan som går att läsa i full storlek är en källa: märkström, startström,
+  överhettningsskydd och varningstext får stå i texten, med talen i `foto-tal.txt`. Är
+  etiketten snedställd eller för liten skriver du ingenting ur den.
 - Bilder med säljtext på engelska eller tyska stryks, som Aosoms tyska *(Leonard 2026-10-30)*.
 - Aosom-verktygen för bilder (bildkandidater, färgtillägg och miljöbild) läser Aosoms flöde
   och fungerar inte för VEVOR.
