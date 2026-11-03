@@ -229,10 +229,10 @@ publiceras med ett annat besked än Leonards.
 ingenting flyttar recensionerna (lärdom df): skriv en 301 från AliExpress-sidans adress till VEVOR-sidans med
 **"Lägg till 301-redirect"** (en rad i `batch`, `force=true` eftersom källan fortfarande är synlig), dölj sedan AliExpress-sidan
 med den smala `visible`-PATCH:en (`{ product: { revision, visible: false }, fieldMask: { paths: ["visible"] } }`), läs tillbaka
-och räkna med en kvart innan adressen svarar 308 (mätt 12–13 minuter på parkeringsvärmaren; cachade karuseller som listar den dolda sidan visar den kvar i upp till sex timmar, och klicket leder vidare). Sök hela `FyndplatsRedirects` efter rader som rör någon av adresserna först,
+och räkna med 12–25 minuter innan adressen svarar 308 (mätt 12 minuter på parkeringsvärmaren och 22 på husbilsvärmaren; cachade karuseller som listar den dolda sidan visar den kvar i upp till sex timmar, och klicket leder vidare). Sök hela `FyndplatsRedirects` efter rader som rör någon av adresserna först,
 eftersom workflowens lista bara visar de 200 senaste. AliExpress-sidans mappningsrad rörs inte: den håller dubblettspärren mot en
 ny import av samma vara. Bevis för att varan är samma är specifikationen rad för rad och VEVOR-loggan på AliExpress-sidans foton
-(se (fs)).
+(se (fs) och (ft)).
 
 **Frakt och retur** *(Leonard 2026-10-30)*. Frakten kontrolleras inte före publiceringen, och
 priset räknar med att VEVOR tar 0 kr i frakt. Butiken har ingen returadress för VEVOR, så en
