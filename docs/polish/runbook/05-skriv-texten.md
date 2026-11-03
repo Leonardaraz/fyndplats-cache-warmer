@@ -264,6 +264,14 @@ leverantörsnamn. **Finns ingen säkerhetsinformation i källan: skriv inget avs
 2. ☠️ **Varje siffra ska stå i källan**, med decimalkomma. Månader förblir månader
    (*36 månader*, inte *3 år*). `gate.py` kontrollerar det redan mot källtexten,
    liksom varje EN-norm — ett fynd där är ett riktigt fel, inte ett falsklarm.
+   **Undantag: pund till kilo** *(Leonard 2026-11-03, "Ja")*. En vikt eller last som källan bara
+   anger i pund (`lb`) skrivs om till kilo i stället för att stå kvar som *400 lb (pund)*,
+   eftersom svenska kunder tänker i kilo. Räkna `lb × 0,4536`: en maxlast avrundas nedåt till
+   hela kilo (400 lb blir 181 kg) och en vikt till en decimal. Kvittera omräkningen i
+   `foto-tal.txt` med en rad `<kort> <kg> <omräkningen>`, till exempel
+   `2e775ecd 181 400 lb × 0,4536 = 181,4 kg, avrundat nedåt`. Står både pund och kilo i källan
+   skrivs kilovärdet ur källan, och gäller två källor olika värden gäller det lägre. Samma
+   undantag gäller inte tum eller andra enheter: fråga Leonard först.
 3. ☠️ **Samma värde i spec-tabellen och i avsnittet.** Aosoms text säger ofta emot
    sig själv: produktdatan säger `max. Belastbarkeit: 98 kg`, punktlistan
    `Bis max. 100 kg`. Uppmätt 2026-09-27: 38 produkter i feeden anger mer än ett

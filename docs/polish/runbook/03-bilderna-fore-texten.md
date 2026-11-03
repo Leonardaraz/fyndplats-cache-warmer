@@ -40,7 +40,9 @@ när den bär:
 **Behåll** text som sitter fysiskt på varan (knappar, märket på godset), en måttritning som
 bara har siffror och enheter, och text och märken på rekvisitan i en miljöbild: förpackningar,
 burkar, böcker och liknande i eller runt varan. Stryk bara det listan ovan tar upp: så många
-användbara bilder som möjligt *(Leonard 2026-07-10)*.
+användbara bilder som möjligt *(Leonard 2026-07-10)*. Ett barn i bilden som är yngre än sidans
+åldersgräns är inget skäl att stryka den *(Leonard 2026-11-03: "Nej dom ska behållas", om en
+grillbild med ett barn på ungefär två år och åldersgränsen tre år)*.
 
 ⚠️ **Text på rekvisitan är okej sedan 2026-09-30** *(Leonard, om köksskåpet `fbcf5899`: "text
 som är på produkter på det viset är okej")*. Fram till dess ströks en miljöbild när text på

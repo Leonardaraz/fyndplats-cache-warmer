@@ -59,6 +59,10 @@ kritik står kvar.
 - handlar om ett yngre barn än sidans åldersgräns, eller påstår något om tillverkningslandet,
 - handlar om en färg som sidan inte har, när färgen är poängen (på en sammanslagen sida är
   alla sidans färger dess egna),
+- är daterade efter dagens datum. VEVOR:s egen sida visar sådana (fyra på glassvagnen `ef5ff19d`,
+  daterade 28 november till 22 december 2026), och datumet står så i leverantörens sidodata
+  (`datePublished`), inte från oss: importen ändrar inget datum. En riktig recension kan inte
+  vara skriven i framtiden *(Leonards fråga 2026-11-03)*. Skäl: *daterad efter dagens datum*.
 - är reklam eller inte går att förstå.
 
 En recension som redan är publicerad rättas i `/admin/reviews`, inte med workflowen: den
