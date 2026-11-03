@@ -217,8 +217,11 @@ VEVOR-synken skriver det varje timme när den är påslagen. Säger grinden *PRI
 är det drift, och då rör du inte priset.
 
 **EU-lager.** Utkasten saknar märkningen "EU-lager", eftersom VEVOR:s sida inte säger
-vilket land lagret ligger i. Märkningen avgörs vid publiceringen och är inte avgjord än:
-publicera utan den.
+vilket land lagret ligger i. ✅ **Avgjort 2026-11-03** *(Leonard: "Vevors produkter är också eu vara")*:
+VEVOR-varor är EU-varor och ska bära märkningen, och hundvagnen `c21cf56b` behåller den den ärvde.
+⚠️ Importen (`lib/vevor/to-product.ts`) och poleringens skrivsteg sätter den inte: mätt 2026-11-03 saknade
+alla 40 provade av 197 publicerade VEVOR-sidor märket. Tills det är åtgärdat ska ingen sida
+publiceras med ett annat besked än Leonards.
 
 **Frakt och retur** *(Leonard 2026-10-30)*. Frakten kontrolleras inte före publiceringen, och
 priset räknar med att VEVOR tar 0 kr i frakt. Butiken har ingen returadress för VEVOR, så en
