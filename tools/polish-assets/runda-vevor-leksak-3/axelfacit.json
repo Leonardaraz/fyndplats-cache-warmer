@@ -1,0 +1,23 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "47b7522c": {
+  "tyska": "39.37 x 39.37 x 7.87 in / 1000 x 1000 x 200 mm (= 100 x 100 x 20 cm)",
+  "svenska": "",
+  "axelkalla": "engelska raden 'Product Dimensions' (källan är engelsk och etiketten bar ett bestämningsord)"
+ },
+ "8f98902f": {
+  "tyska": "40.94 x 22.83 x 12.60 inch / 1040 x 580 x 320 mm (= 104 x 58 x 32 cm, soffan utfälld som bädd enligt ritningen)",
+  "svenska": "",
+  "axelkalla": "engelska raden 'Product Dimensions' (källan är engelsk och etiketten bar ett bestämningsord)"
+ },
+ "b81bffa1": {
+  "tyska": "32.68 in / 830 mm wide, 17.91 in / 455 mm deep, 24.02 in / 609 mm high (= 83 x 45,5 x 60,9 cm, bredd x djup x höjd efter ritningens pilar)",
+  "svenska": "",
+  "axelkalla": "engelska raden 'Product Dimensions' (källan är engelsk och etiketten bar ett bestämningsord)"
+ },
+ "cb764ecb": {
+  "tyska": "23.62 x 16.54 x 20.47 in / 600 x 420 x 520 mm (= 60 x 42 x 52 cm, bredd x djup x höjd efter ritningens pilar)",
+  "svenska": "",
+  "axelkalla": "engelska raden 'Product Dimensions' (källan är engelsk och etiketten bar ett bestämningsord)"
+ }
+}
