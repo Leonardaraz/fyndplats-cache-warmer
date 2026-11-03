@@ -297,6 +297,12 @@ Ett utkast anges med sitt Wix-id.
 
 ## Lärdomar
 
+Verktygsvagnarna #854 och #856 (mergade till `main` 2026-11-02 av en annan session; deras kataloger hette `runda-vevor-2` och `runda-vevor-3`, och den senare krockade med grenens runda 3, så den ligger här som `runda-vevor-3-verktygsvagn`):
+
+- Runda vevor-3 (verktygsvagnen, kataloger `runda-vevor-3-verktygsvagn`), f6c7ff3a-7373-4803-b76f-d7940172a78d: källan säger 147 och 160 kg total last. Det lägre värdet 147 kg används enligt steg 4; delgränserna är 45,4 kg per hyllplan och 15 kg i lådan. Sex rena originalbilder, ingen måttskiss. Totalmått i millimeter återges exakt utan axelpåståenden; generatorns språkbegränsning kvitteras i rundan.
+
+- Runda vevor-2 (verktygsvagnen, katalog `runda-vevor-2`), b7719a10-08fd-48d7-ad59-9d1d1834a861: sex rena originalbilder men ingen måttskiss. Totalmått återges i källans millimeter utan axelpåståenden; proportioner granskade mot fotona. Svensk etikett stöds inte av bygg-axelfacit.py, vilket kvitteras öppet i rundan. Specifikationens 181,4 kg gäller framför säljtextens avrundade 180 kg, samma värde i specifikation och säkerhetsflik.
+
 **Runda vevor-1 (2026-11-01): sex infraröda värmare.**
 
 (a) ☠️ **`gate.py` fällde varje VEVOR-sida på FRAKTVIKT.** Grinden tog specifikationens `Vikt` för Aosoms viktrad med förpackning. Hos VEVOR är raden varans egen vikt. Lagat i `gatelib.fraktvikt_fel` (tidig retur på markören `=== vevor-källa`), och `tools/polish-kedja/vevor_kalla.py` lägger markören i rundans `kallor.json`. Två tester i `lib/polish/grindluckor.test.ts`: REN med markören och FÄLLER utan den.

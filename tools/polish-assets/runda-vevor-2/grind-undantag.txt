@@ -1,0 +1,1 @@
+bygg-axelfacit.py b7719a10: generatorn stöder inte den svenska VEVOR-etiketten Produktens totala storlek eller millimetermåtten. Totalmått 785 × 450 × 945 mm återges oförändrade från specifikationen. Inga axlar påstås i löptext. Proportioner jämförda med samtliga originalbilder; måttskiss saknas och flaggas. Inget handskrivet axelfacit.

@@ -1,0 +1,26 @@
+{
+  "b7719a10": {
+    "productId": "b7719a10-08fd-48d7-ad59-9d1d1834a861",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1lj58u3",
+        "betyg": 5,
+        "datum": "2026-10-20",
+        "foton": 0,
+        "text": "This is a well built cart. It's very nice to roll most of the tools you will need when working on a vehicle. No more walking back and forth to the tool box."
+      },
+      {
+        "id": "gen-1bwnmwh",
+        "betyg": 5,
+        "datum": "2026-10-13",
+        "foton": 0,
+        "text": "Bought this to use in a small shed. Very heavy package on delivery. Takes a while to construct as there are many parts to it. It all went together well and is well put together and useful item."
+      }
+    ]
+  }
+}
