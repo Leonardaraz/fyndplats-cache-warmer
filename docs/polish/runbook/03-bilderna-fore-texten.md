@@ -114,6 +114,14 @@ tysk säljgrafik. Förut föll position 10 oftast på text på rekvisitan, allts
 burkar och flaskor i kök och badrum. Sedan 2026-09-30 får den texten stå kvar (se *Behåll*
 ovan), så position 10 är nästan alltid användbar.
 
+⚠️ **Position 10 är inte alltid en ny bild (N337, 2026-11-03).** På barbordet `653f8098` var position 5, 9 och 10 samma bistrobild
+från samma vinkel, och på barbordet `9a7ec41a` var position 10 samma packshot som position 1 i en annan rendering. Lägg bara till
+position 10 när den visar något som inte redan ligger i galleriet, och kör `gate-bilddubblett.py` före pushen (den jämför bara
+bilder på vit botten, så miljöbilder ser du med ögonen). Räcker de rena bilderna ändå inte till fem är nästa steg ett utsnitt enligt
+undantaget ovan: på `653f8098` bar position 4 och 8 (samma detaljbild), 6 (rubriker och en pil under y 1474) och 7 (storleksguide) tysk
+text, och ett utsnitt ur position 6 (`x_267,y_0,w_1465,h_1465`, ovanför pilen) blev position 11 (`UploadImageToWixSite` med
+`imageUrls`, md5 mot Wix beskärningsadress, se `bildmetoder.md`).
+
 Är sidan redan polerad skrivs bara bildlistan: `bygg-bildplan.py` i stället för
 `bygg-skrivplan.py`, och workflowen **"Polering — skriv bara bilderna"**. `bilder.tsv` listar
 då varje bild sidan ska ha efteråt, både de som sitter kvar och de nya, eftersom listan
