@@ -83,6 +83,22 @@ Planen visade 0 att rätta 2026-10-31.
   En etikett på varan som går att läsa i full storlek är en källa: märkström, startström,
   överhettningsskydd och varningstext får stå i texten, med talen i `foto-tal.txt`. Är
   etiketten snedställd eller för liten skriver du ingenting ur den.
+- **Packbildens nätkontakt syns bara när kabeln förstoras** *(runda 20)*. På 5b5ae34d är
+  adaptern en liten svart kloss på kontaktarket, och den amerikanska kontakten (två platta
+  stift) syns först vid sju gångers förstoring. Förstora nätkabelns ände på varje packbild
+  med en adapter. En amerikansk kontakt stryker bilden, och texten nämner då varken adapter,
+  eluttag eller nätspänning, fastän källan gör det (frågan till Leonard om vilken adapter
+  VEVOR levererar till Sverige är öppen, `FLAGGADE-VEVOR.md` lärdom *fa*).
+- **Värmaren inne i fordonets kupé bredvid en människa stryks** *(runda 20)*, som värmaren i
+  ett tält bredvid en sovande (lärdom *ep* och *fb*): avgaserna ska ut. Tältbilder där
+  värmaren står utanför tältet behålls.
+- **Nivåskalan på husets sida avgör tankstorleken** när källan säger 5 liter och 1,3 liter
+  *(runda 20)*: skalan är tryckt med liter och procent (5 L vid 100 %), och *1,3* är
+  gallonen. Läs skalan innan en tankstorlek utelämnas (lärdom *fc*).
+- **Läs `recensioner-kalla.json` efter namn före commit** *(runda 20)*. Läsningens
+  namnregel tar bara signaturer på högst två ord, så en signatur med tre ord (*Mvh* och ett
+  fullständigt namn) kom med i det publika repot. Redigera bort namnet för hand, märk raden
+  `namn: true` och dölj recensionen (lärdom *fd*).
 - Bilder med säljtext på engelska eller tyska stryks, som Aosoms tyska *(Leonard 2026-10-30)*.
 - Aosom-verktygen för bilder (bildkandidater, färgtillägg och miljöbild) läser Aosoms flöde
   och fungerar inte för VEVOR.
