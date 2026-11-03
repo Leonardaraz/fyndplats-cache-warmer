@@ -130,21 +130,13 @@
       }
     ]
   },
-  "08593ca6": {
-    "productId": "08593ca6-f106-4b36-a63b-1e05c1452517",
+  "3de94d52": {
+    "productId": "3de94d52-d52b-4b0c-b9c0-30697eed4f14",
     "synliga": 0,
-    "dolda": 5,
+    "dolda": 0,
     "kundVantar": 0,
     "annanArtikel": 0,
     "okandArtikel": 0,
-    "attBesluta": [
-      {
-        "id": "gen-14uf7dk",
-        "betyg": 4,
-        "datum": "2026-02-14",
-        "foton": 0,
-        "text": "Give yourself time to put it together. Directions were not very helpful."
-      }
-    ]
+    "attBesluta": []
   }
 }
