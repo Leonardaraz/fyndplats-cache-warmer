@@ -86,7 +86,11 @@ delningsbild. Produktsidans
 galleri visar varje bild som en kvadrat beskuren från mitten (bara förstoringen visar hela
 bilden), så en liggande bild tappar sina kanter och en liggande måttritning sina yttersta
 mått. Polerar du syskon samtidigt ska två sidor inte dela samma miljöfoto, så stryk det på
-den ena.
+den ena. `gate-bilddubblett.py` mäter det sedan runda 31 (2026-11-04): grinden jämför hel bild
+mot varje bild på de andra sidorna i rundan, miljöbilder ingår, och under 0,02 är samma foto.
+Det behövdes, för två ledningssatser bar samma foto av två händer vid en utomhusenhet (mått
+0,000) och grinden såg tidigare bara inom en sida. Är bilderna olika kvitterar du paret i
+`bilddubblett-ok.txt` som `kort1:pos1 kort2:pos2 skäl`.
 
 Rundan bearbetar inga bilder utom beskärningen i undantaget ovan, den väljer bland dem som
 finns. Metoderna står i [`polish/bildmetoder.md`](../bildmetoder.md).
@@ -118,8 +122,8 @@ ovan), så position 10 är nästan alltid användbar.
 
 ⚠️ **Position 10 är inte alltid en ny bild (N337, 2026-11-03).** På barbordet `653f8098` var position 5, 9 och 10 samma bistrobild
 från samma vinkel, och på barbordet `9a7ec41a` var position 10 samma packshot som position 1 i en annan rendering. Lägg bara till
-position 10 när den visar något som inte redan ligger i galleriet, och kör `gate-bilddubblett.py` före pushen (den jämför bara
-bilder på vit botten, så miljöbilder ser du med ögonen). Räcker de rena bilderna ändå inte till fem är nästa steg ett utsnitt enligt
+position 10 när den visar något som inte redan ligger i galleriet, och kör `gate-bilddubblett.py` före pushen (inom en sida jämför den bara
+bilder på vit botten, så miljöbilder ser du med ögonen; mellan sidor i rundan ingår de). Räcker de rena bilderna ändå inte till fem är nästa steg ett utsnitt enligt
 undantaget ovan: på `653f8098` bar position 4 och 8 (samma detaljbild), 6 (rubriker och en pil under y 1474) och 7 (storleksguide) tysk
 text, och ett utsnitt ur position 6 (`x_267,y_0,w_1465,h_1465`, ovanför pilen) blev position 11 (`UploadImageToWixSite` med
 `imageUrls`, md5 mot Wix beskärningsadress, se `bildmetoder.md`).

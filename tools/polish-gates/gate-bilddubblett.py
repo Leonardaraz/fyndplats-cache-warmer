@@ -20,6 +20,13 @@ ligga nära gränsen. Ser du med ögonen att vinkeln skiljer kvitterar du paret 
 ☠️ Stryk den ena bilden i `bilder-bort.tsv`, aldrig den som blir huvudbild. Blir sidan under fem bilder av strykningen
 gäller runbookens *Minst fem bilder*: hämta fler, beskär, eller flagga i `FLAGGADE.md`. En dubblett fyller inte upp till fem.
 
+Mellan sidor (runda-vevor-31, 2026-11-04): grinden jämför också varje kvarvarande bild med varje bild på de ANDRA
+sidorna i rundan, hel bild i 96 × 96 gråskala (miljöbilder ingår här). Under 0,02 är samma foto på två sidor. Runbooken
+säger att två syskonsidor inte får dela miljöfoto (steg 3, *Galleriet*), men grinden såg bara inom en sida, och på
+runda 31 bar två ledningssatser samma foto av två händer vid en utomhusenhet (mått 0,000). Stryk den ena bilden i
+`bilder-bort.tsv`. Ser du att bilderna är olika kvitterar du paret i `bilddubblett-ok.txt` med två `kort:position`:
+`kort1:pos1 kort2:pos2 skäl`.
+
 Kör från rundans katalog:  python3 ../../polish-gates/gate-bilddubblett.py
 Slutkod 1 vid fynd.
 """
@@ -72,13 +79,23 @@ def drag(fn):
     return np.asarray(im.convert("L").resize((96, 96))).astype(float) / 255
 
 
+def hel(fn):
+    """Hela bilden som 96 × 96 gråskala, för jämförelsen mellan sidor (miljöbilder ingår)."""
+    return np.asarray(Image.open(fn).convert("L").resize((96, 96))).astype(float) / 255
+
+
 def main():
     bort = {(r[0], r[1]) for r in las_tsv("bilder-bort.tsv") if len(r) >= 2}
     ok = set()
+    ok_mellan = set()
     if os.path.exists("bilddubblett-ok.txt"):
         for rad in open("bilddubblett-ok.txt", encoding="utf-8"):
             d = rad.split()
-            if len(d) >= 4 and not rad.startswith("#"):
+            if rad.startswith("#"):
+                continue
+            if len(d) >= 3 and ":" in d[0] and ":" in d[1]:
+                ok_mellan.add(frozenset((d[0], d[1])))
+            elif len(d) >= 4:
                 ok.add((d[0], frozenset((d[1], d[2]))))
     per = {}
     for r in las_tsv("bilder.tsv"):
@@ -99,14 +116,31 @@ def main():
                 fynd.append((kort, a, b, d))
             elif d < MISSTANKT:
                 misstankta.append((kort, a, b, d))
+    # Mellan sidor: samma foto på två olika sidor i rundan (runbook steg 3: syskonsidor delar inte miljöfoto).
+    helbild = {}
+    for kort, bilder in per.items():
+        for pos, fid in bilder:
+            helbild[(kort, pos)] = hel(hamta(fid))
+    mellan = []
+    for (k1, p1), (k2, p2) in itertools.combinations(sorted(helbild), 2):
+        if k1 == k2 or frozenset((f"{k1}:{p1}", f"{k2}:{p2}")) in ok_mellan:
+            continue
+        d = float(np.abs(helbild[(k1, p1)] - helbild[(k2, p2)]).mean())
+        if d < SAMMA:
+            mellan.append((k1, p1, k2, p2, d))
     for kort, a, b, d in misstankta:
         print(f"  misstänkt {kort}: position {a} och {b} liknar varandra ({d:.3f}), se med ögonen")
+    for k1, p1, k2, p2, d in mellan:
+        print(f"  FYND mellan sidor: {k1} position {p1} och {k2} position {p2} är samma foto ({d:.3f}). "
+              f"Två sidor i rundan delar inte bild: stryk den ena i bilder-bort.tsv, eller kvittera paret i "
+              f"bilddubblett-ok.txt (`{k1}:{p1} {k2}:{p2} skäl`) om bilderna är olika")
     for kort, a, b, d in fynd:
         print(f"  FYND {kort}: position {a} och {b} är samma bild från samma vinkel ({d:.3f}). "
               f"Stryk en i bilder-bort.tsv, eller kvittera paret i bilddubblett-ok.txt om vinkeln skiljer")
     antal = sum(len(v) for v in per.values())
-    print(f"GRIND: {len(fynd)} fynd, {len(misstankta)} misstänkta i {len(per)} produkter ({antal} bilder)")
-    sys.exit(1 if fynd else 0)
+    print(f"GRIND: {len(fynd)} fynd, {len(misstankta)} misstänkta i {len(per)} produkter ({antal} bilder), "
+          f"{len(mellan)} fynd mellan sidor")
+    sys.exit(1 if (fynd or mellan) else 0)
 
 
 main()
