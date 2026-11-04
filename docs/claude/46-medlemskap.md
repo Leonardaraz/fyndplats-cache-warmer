@@ -111,13 +111,36 @@ motorn behöver veta:
 - Återbetalningarnas varuvärde per rad finns bara i Order Transactions
   (`summary.breakdown.lineItems`), inte på ordern.
 
+## E2: golvet ur motorn (`/api/medlem/golv`)
+
+Butikens prismotor (headless-site `lib/medlem/pris.ts`) ger aldrig ett radpris
+under golvet G = C × 1,10 × 1,25 [P6]. Kostnaden C finns bara i motorns
+mappningar, så butiken frågar motorn (`POST /api/medlem/golv`, logiken i
+`lib/medlem/golv.ts`).
+
+- ☠️ **Svaret bär kostnaden**, för prisbeslutsloggen. Bara
+  `Authorization: Bearer REVIEW_INGEST_SECRET`, `Cache-Control: no-store`, och
+  loggraden bär bara antal.
+- **G avrundas uppåt till hela kronor**, så att ett medlemspris som stannar på
+  golvet inte visar C på öret. Formeln står i ett publikt repo.
+- **Inget golv, och därmed inget medlemspris, för:**
+  - AliExpress, där kostnaden fryser vid importen;
+  - en levande fyndauktion, som äger priset;
+  - en produkt med `ejMedlemspris: true` i mappningen;
+  - en variant utan känd kostnad.
+- **Matchar inte varianten** används den högsta kostnaden bland produktens
+  varianter, och bara om alla har en kostnad.
+- **Kan auktionerna eller mappningarna inte läsas** svarar rutten 503, och
+  butiken visar listpriset.
+- Företagen (E3) får det högsta av nivån och ordertrappan, aldrig båda
+  (Leonards ja 2026-11-04). Det räknas i butiken; golvet är detsamma.
+
 ## Kvar till E2
 
 - Leonards svar på P4–P8 (aktuellt pris, kupong, golv, fri frakt-skydd,
   visning av listpriset).
 - J1, frågan till Konsumentverket, och beslut om tvåfaktor för admin.
-- Produktflaggorna (inget medlemspris för fyndauktionens varor och
-  AliExpress-varor, vars kostnad fryser vid importen) och golvpriset per
-  variant från en hemlig motorrutt.
+- Flaggan "ej medlemspris" i admin. Fältet `ejMedlemspris` läses redan av
+  golvrutten.
 - Integritetstexten (J4) ska vara publicerad innan läget `pa`. Utkastet står i
   butikens `docs/medlemskap-integritetstext-utkast.md`.
