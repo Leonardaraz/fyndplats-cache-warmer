@@ -35,6 +35,7 @@ export const revalidate = 3600;
 
 import { KAMPANJ_2026_09 } from "../../../lib/kampanj-2026-09";
 import { varumarke } from "../../../lib/varumarke";
+import { auktionensProdukter } from "@/lib/flode-auktion";
 
 const SITE = "https://www.fyndplats.se";
 // Märket: Wix fält "brand" när det är satt, annars Fyndplats. Aosoms märken
@@ -515,6 +516,9 @@ export async function GET() {
   //   fetchVariantImageMaps() → valens bilder för produkter med optioner (~3 anrop)
   let products: Product[] = [];
   try { products = await getProducts(); } catch { products = []; }
+  // Fyndauktionens varor står inte i flödet (lib/flode-auktion.ts, 2026-11-04).
+  const auktion = await auktionensProdukter();
+  products = products.filter((p) => !auktion.has(p.id));
   const byId = new Map(products.map((p) => [p.id, p]));
   // Kollektioner → g:product_type + g:google_product_category. Best-effort:
   // utan kollektioner skickas items som förut (bara utan taxonomi-fälten).

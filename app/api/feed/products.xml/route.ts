@@ -16,6 +16,7 @@ import { getProducts, forListings, fetchVarumarken } from "../../../../lib/produ
 import { varumarke } from "../../../../lib/varumarke";
 import type { Product } from "../../../../lib/products";
 import { fraktKr } from "../../../../lib/shipping";
+import { auktionensProdukter } from "../../../../lib/flode-auktion";
 
 const SITE_BASE = "https://www.fyndplats.se";
 
@@ -124,8 +125,9 @@ export const dynamic = "force-dynamic";
 export const revalidate = 3600; // 1 tim cache — flödet läses högst 1×/dag av prisjakt
 
 export async function GET(): Promise<Response> {
-  const [all, marken] = await Promise.all([getProducts(), fetchVarumarken()]);
-  const listable = forListings(all);
+  const [all, marken, auktion] = await Promise.all([getProducts(), fetchVarumarken(), auktionensProdukter()]);
+  // Fyndauktionens varor står inte i flödet (lib/flode-auktion.ts, 2026-11-04).
+  const listable = forListings(all).filter((p) => !auktion.has(p.id));
   const items = listable
     .map((p) => buildItem(p, varumarke(marken.get(p.id))))
     .filter((s) => s.length > 0)

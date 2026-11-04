@@ -15,6 +15,8 @@ import { formatPrice } from "../lib/price-range";
 import { TidigarePris } from "../components/tidigare-pris";
 import { getLiveAuctions } from "../lib/auction-view";
 import { AuctionBannerText } from "../components/auction-banner-text";
+import { AuktionsLank } from "../components/auktions-lank";
+import { AuctionDot } from "../components/auction-dot";
 import { tightFillUrl } from "../lib/wix-image";
 import { getSocialProof } from "../lib/social-proof-live";
 import { PrefetchLink } from "../components/prefetch-link";
@@ -289,13 +291,32 @@ export default async function Home() {
               <p>Handplockade fynd inom möbler, hem, kök och trädgård – noga utvalda för svenska hem.</p>
               {/* EN primärknapp. Två lika tunga knappar bredvid varandra tvingar
                   fram ett val innan man vet något; kategorierna får i stället en
-                  tyst textlänk för den som hellre bläddrar. */}
+                  tyst textlänk för den som hellre bläddrar.
+
+                  FYNDAUKTIONEN BREDVID HANDLA NU (ChatGPT:s audit, punkt 5,
+                  2026-11-04). Sekundär knapp (btn-ghost), så primärknappen är
+                  fortfarande en. Den visas bara när motorn har fynd, och då står
+                  kategorilänken i kategorirutan direkt efter USP-remsan i stället.
+                  Raden under är ett flex-led med full bredd: hjälten får inget
+                  sjätte barn (entréanimationen räknar barn 2–5), och .hero p:s
+                  ingresstypografi slår inte till. Texten är Leonards val, samma
+                  som auktionssidans rubrik. */}
               <div className="btns">
                 {/* Pilen bor på den tysta länken, inte här. Två pilar bredvid
                     varandra läste som två likvärdiga vägar — den fyllda knappen
                     behöver ingen, den syns ändå. */}
                 <a className="btn btn-primary" href="/alla-produkter">Handla nu</a>
-                <a className="btn-quiet" href="/butik">Se alla kategorier</a>
+                {liveAuctions.length > 0 ? (
+                  <>
+                    <AuktionsLank kalla="startknapp" className="btn btn-ghost hero-auktion-knapp">
+                      Se dagens fyndauktion
+                      <AuctionDot />
+                    </AuktionsLank>
+                    <span className="hero-auktion-rad">Priset sjunker varje timme tills någon köper.</span>
+                  </>
+                ) : (
+                  <a className="btn-quiet" href="/butik">Se alla kategorier</a>
+                )}
               </div>
               {/* TVÅ löften, inte fem. De tre som ströks — kundtjänst, öppet köp
                   och spårbar leverans — står redan både i USP-remsan och som
@@ -462,7 +483,7 @@ export default async function Home() {
       {liveAuctions.length > 0 && (
         <section className="sec" style={{ paddingTop: 0 }}>
           <div className="container">
-            <a className="auction-banner" href="/fyndauktion">
+            <AuktionsLank kalla="banner" className="auction-banner">
               <AuctionBannerText
                 // Bara fälten bannern läser — hela vyn (bild-URL:er, namn,
                 // priser) hamnade annars i flight-payloaden på startsidans
@@ -476,7 +497,7 @@ export default async function Home() {
                 }))}
               />
               <span className="auction-banner-cta">Till auktionen →</span>
-            </a>
+            </AuktionsLank>
           </div>
         </section>
       )}

@@ -96,6 +96,24 @@ type Kategori = {
 /** Ett led i kedjan: en underkategori och dess färdiga ordning. */
 export type Avsnitt<T> = { namn: string; slug: string; produkter: T[] };
 
+/**
+ * Var en produkt hör hemma: brödsmulans avdelning och underkategori (id).
+ *
+ * BLÄDDRINGSRADEN FÖLJER BRÖDSMULAN (2026-11-04). Förut valde raden avdelning
+ * och avsnitt med en egen regel: första föräldralösa kategorin, och första
+ * underkategorin i menyordning som produkten låg i. ChatGPT:s audit hittade
+ * en uppresningsfåtölj med brödsmulan Skönhet & Hälsa / Massage & Återhämtning
+ * och bläddringsraden "4 av 244 i Fåtöljer". Uppmätt samma natt: 40 av 41
+ * uppresningsfåtöljer visade en annan kategori i raden än i brödsmulan.
+ *
+ * Med `hemvistFor` (produktsidan skickar brödsmulans val, lib/breadcrumb-
+ * category.ts) ligger varje produkt i brödsmulans avdelning och i avsnittet
+ * för brödsmulans underkategori. Partitionen är fortfarande global och
+ * entydig, en produkt i exakt en kedja, eftersom varje produkt har exakt en
+ * brödsmula. Inom ett avsnitt är ordningen kategorisidans.
+ */
+export type Hemvist = { avdelning: string | null; avsnitt: string | null };
+
 export type Grannar<T> = {
   forra: T | null;
   nasta: T | null;
@@ -297,15 +315,17 @@ export function avdelningsKedja<T extends Bladdringsbar>(
   alla: T[],
   slug: string,
   efterbehandla?: (lista: T[]) => T[],
+  /** Brödsmulans val per produkt (se `Hemvist`). Utan den gäller menyordningen. */
+  hemvistFor?: (p: T) => Hemvist,
 ): Avsnitt<T>[] {
   // EN PRODUKT HÖR HEMMA I EXAKT EN AVDELNING — hemvist() avgör vilken, och
   // bara de produkterna kommer med. Se HEMVIST-kommentaren ovan: utan det här
   // ledet kunde en produkt i två avdelningar ligga i BÅDA kedjorna, och då
   // gick bläddringen i ring.
   const katMap = new Map(kategorier.map((c) => [c.id, c]));
-  const kopbara = utanSlutsalda(alla, slug).filter(
-    (p) => hemvist(katMap, kategorier, p)?.id === avdelning.id,
-  );
+  const avdelningAv = (p: T): string | null =>
+    hemvistFor ? hemvistFor(p).avdelning : (hemvist(katMap, kategorier, p)?.id ?? null);
+  const kopbara = utanSlutsalda(alla, slug).filter((p) => avdelningAv(p) === avdelning.id);
   // Promo-kollektionerna (REA, Populära, All Products) är föräldralösa och kan
   // aldrig råka bli underkategorier här.
   const under = kategorier
@@ -321,7 +341,9 @@ export function avdelningsKedja<T extends Bladdringsbar>(
         // Underkategorin OCH dess egna barn, precis som kategorisidan.
         new Set([c.id, ...kategorier.filter((x) => x.parentId === c.id).map((x) => x.id)]),
         efterbehandla,
-      ),
+        // Med brödsmulans val står produkten bara i SITT avsnitt. Ordningen är
+        // fortfarande kategorisidans: filtret tar bort, det flyttar inget.
+      ).filter((p) => !hemvistFor || hemvistFor(p).avsnitt === c.id),
     }))
     // Tomma avsnitt bär ingenting — en underkategori vars enda produkter är
     // slutsålda ska inte kunna bli etiketten "Nästa i …" för ett hopp som i
@@ -380,11 +402,19 @@ export function produktGrannar(
   alla: Product[],
   slug: string,
   efterbehandla?: (lista: Product[]) => Product[],
+  /** Brödsmulans val per produkt (se `Hemvist`). Produktsidan skickar den. */
+  hemvistFor?: (p: Product) => Hemvist,
 ): Grannar<Product> {
-  const avdelning = avdelningFor(kategorier, egnaKategorier);
+  // Produktens egen avdelning är brödsmulans, så att raden och brödsmulan
+  // aldrig pekar åt olika håll. Utan brödsmula: den gamla regeln.
+  const egen = hemvistFor ? alla.find((p) => p.slug === slug) : undefined;
+  const egenAvdelning = egen ? hemvistFor!(egen).avdelning : null;
+  const avdelning =
+    (egenAvdelning ? kategorier.find((c) => c.id === egenAvdelning) : undefined) ??
+    avdelningFor(kategorier, egnaKategorier);
   if (!avdelning) return TOMMA;
   const g = grannarIKedja(
-    avdelningsKedja(kategorier, avdelning, alla, slug, efterbehandla),
+    avdelningsKedja(kategorier, avdelning, alla, slug, efterbehandla, hemvistFor),
     slug,
   );
   // Står man på en SLUTSÅLD produkt är den med i kedjan bara tack vare

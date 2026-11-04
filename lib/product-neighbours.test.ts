@@ -469,3 +469,58 @@ describe("räknaren på en slutsåld produkt", () => {
     assert.equal(g.antal, 3);
   });
 });
+
+describe("bläddringsraden följer brödsmulan (2026-11-04)", () => {
+  // Uppresningsfåtöljen från ChatGPT:s audit: kopplad till Fåtöljer OCH
+  // Uppresningsfåtöljer. Menyordningen satte den i Fåtöljer ("4 av 244 i
+  // Fåtöljer") medan brödsmulan sa en annan kategori.
+  type K = { id: string; slug: string; name: string; parentId: string | null; index: number };
+  const MOBLER: K = { id: "m", slug: "mobler", name: "Möbler", parentId: null, index: 0 };
+  const FATOLJER: K = { id: "f", slug: "fatoljer", name: "Fåtöljer", parentId: "m", index: 1 };
+  const UPPRES: K = { id: "u", slug: "uppresningsfatoljer", name: "Uppresningsfåtöljer", parentId: "m", index: 5 };
+  const SKONHET: K = { id: "s", slug: "skonhet-halsa", name: "Skönhet & Hälsa", parentId: null, index: 2 };
+  const KATS = [MOBLER, FATOLJER, UPPRES, SKONHET];
+  const prod = (slug: string, kat: string[]): P => ({
+    id: `id-${slug}`, slug, name: slug, imageScore: 60, collectionIds: kat, inStock: true,
+  });
+  const alla = [
+    prod("gungfatolj", ["m", "f"]),
+    prod("lift-1", ["m", "f", "u"]),
+    prod("lift-2", ["m", "f", "u"]),
+    prod("snurrfatolj", ["m", "f"]),
+    prod("dubbel", ["s", "m", "u"]), // Skönhet först i Wix, men brödsmulan säger Möbler
+  ];
+  // Brödsmulans val: de som ligger i Uppresningsfåtöljer får den (smalast).
+  const hemvistFor = (p: P) => ({
+    avdelning: "m",
+    avsnitt: (p.collectionIds ?? []).includes("u") ? "u" : "f",
+  });
+
+  it("räknaren och avsnittet är brödsmulans underkategori", () => {
+    const g = produktGrannar(KATS, [MOBLER, FATOLJER, UPPRES], alla as never, "lift-1", undefined, hemvistFor as never);
+    assert.equal(g.avsnitt?.slug, "uppresningsfatoljer");
+    assert.equal(g.antal, 3, "lift-1, lift-2 och dubbel");
+    assert.equal(g.position, 1);
+  });
+
+  it("utan brödsmulans val gäller menyordningen som förut", () => {
+    const g = produktGrannar(KATS, [MOBLER, FATOLJER, UPPRES], alla as never, "lift-1");
+    assert.equal(g.avsnitt?.slug, "fatoljer");
+  });
+
+  it("varje produkt ligger i exakt ett avsnitt, i kategorisidans ordning", () => {
+    const kedja = avdelningsKedja(KATS, MOBLER, alla, "lift-1", undefined, hemvistFor);
+    const platt = kedja.flatMap((a) => a.produkter.map((p) => p.slug));
+    assert.deepEqual(new Set(platt).size, platt.length, "ingen produkt två gånger");
+    assert.deepEqual(kedja.map((a) => a.slug), ["fatoljer", "uppresningsfatoljer"]);
+    assert.deepEqual(kedja[0].produkter.map((p) => p.slug), ["gungfatolj", "snurrfatolj"]);
+    assert.deepEqual(kedja[1].produkter.map((p) => p.slug), ["lift-1", "lift-2", "dubbel"]);
+  });
+
+  it("en produkt i två avdelningar går i brödsmulans, inte i Wix första", () => {
+    const g = produktGrannar(KATS, [SKONHET, MOBLER, UPPRES], alla as never, "dubbel", undefined, hemvistFor as never);
+    assert.equal(g.avsnitt?.slug, "uppresningsfatoljer");
+    const skonhet = avdelningsKedja(KATS, SKONHET, alla, "lift-1", undefined, hemvistFor);
+    assert.equal(skonhet.flatMap((a) => a.produkter).length, 0, "ingen kedja i Skönhet & Hälsa");
+  });
+});

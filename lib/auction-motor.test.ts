@@ -45,6 +45,13 @@ test("auktionssidan: egen adress och egen tagg, så att den kan tömmas utan sta
   assert.notEqual(AUKTIONSSIDANS_TAGG, "auctions");
 });
 
+test("produktflödena: egen adress och en timmes cache, så att flödets ISR inte sjunker till 15 s", async () => {
+  const { f, anrop } = falskFetch(() => json({ ok: true, rader: [{ slug: "a", slot: 1, productId: "p1" }] }));
+  await hämtaAuktionsrader("live", { fetchImpl: f, hemlighet: "h", bas: BAS }, { sida: "flode" });
+  assert.equal(anrop[0].url, `${BAS}/rader?status=live&sida=flode`);
+  assert.deepEqual(anrop[0].init.next, { revalidate: 3600, tags: ["auctions"] });
+});
+
 test("auktionssidan töms bara för motorns auktionsorsak", () => {
   assert.equal(auktionssidanSkaTommas("auktion"), true);
   for (const orsak of ["okänd", "recensioner", "Auktion", "auktion ", ""]) {

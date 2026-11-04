@@ -15,6 +15,7 @@
 
 import { getProducts, getCollections, fetchFeedGalleries, fetchVarumarken, imgKey, type Product, type Collection } from "@/lib/products";
 import { varumarke } from "@/lib/varumarke";
+import { auktionensProdukter } from "@/lib/flode-auktion";
 
 export const runtime = "nodejs";
 export const revalidate = 3600;
@@ -120,6 +121,9 @@ export async function GET() {
   } catch {
     products = [];
   }
+  // Fyndauktionens varor står inte i flödet (lib/flode-auktion.ts, 2026-11-04).
+  const auktion = await auktionensProdukter();
+  products = products.filter((p) => !auktion.has(p.id));
 
   // id → Collection, för att härleda product_type (föredrar huvudkategorin =
   // parentlös; faller annars tillbaka på första matchande kategorinamn).

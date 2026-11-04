@@ -68,6 +68,33 @@ test("en underkategori vars förälder inte är en avdelning hoppas över", () =
   assert.deepEqual(b, { avdelning: mobler });
 });
 
+test("produktens egen avdelning går först (ChatGPT:s audit 2026-11-03)", () => {
+  // Uppresningsfåtöljen låg i Möbler, Fåtöljer och Massage & Återhämtning, men
+  // inte i avdelningen Skönhet & Hälsa. Massage & Återhämtning (74) är smalare
+  // än Fåtöljer (264), så den gamla regeln gav Skönhet & Hälsa / Massage.
+  const skonhet = kat("skonhet-halsa");
+  const massage = kat("massage-aterhamtning", "skonhet-halsa");
+  const uppres = kat("uppresningsfatoljer", "mobler");
+  const trad = [...alla, skonhet, massage, uppres];
+  const n = new Map([...antal, ["skonhet-halsa", 900], ["massage-aterhamtning", 74], ["uppresningsfatoljer", 34]]);
+  const v = (egna: BrodsmuleKategori[]) => valjBrodsmula(egna, trad, n, categoryIndexable);
+
+  const fore = v([mobler, fatoljer, massage]);
+  assert.equal(fore.avdelning?.slug, "mobler");
+  assert.equal(fore.underkategori?.slug, "fatoljer");
+
+  // Med Uppresningsfåtöljer kopplad (2026-11-04) är den den smalaste i Möbler.
+  const efter = v([mobler, fatoljer, massage, uppres]);
+  assert.equal(efter.avdelning?.slug, "mobler");
+  assert.equal(efter.underkategori?.slug, "uppresningsfatoljer");
+
+  // Ligger produkten i båda avdelningarna vinner den smalaste av dem.
+  assert.equal(v([mobler, fatoljer, skonhet, massage]).underkategori?.slug, "massage-aterhamtning");
+
+  // Utan någon egen avdelning gäller regeln från 2026-09-24.
+  assert.equal(v([fatoljer, massage]).underkategori?.slug, "massage-aterhamtning");
+});
+
 test("countPerCategoryPage räknar varje produkt en gång per kategori", () => {
   const n = countPerCategoryPage([{ collectionIds: ["a", "b"] }, { collectionIds: ["a"] }, {}], []);
   assert.equal(n.get("a"), 2);
@@ -82,7 +109,11 @@ test("produktsidan, kategorisidan och sitemapen räknar på samma sätt", () => 
   // kategorin, och gav Verktyg & Fordon (i dag Verktyg & Maskiner) noindex
   // (uppmätt 2026-10-11).
   const sida = readFileSync("app/produkt/[slug]/page.tsx", "utf8");
-  assert.match(sida, /valjBrodsmula\(ownCats, navCols, countPerCategoryPage\(forListings\(all\), cols\), categoryIndexable\)/);
+  assert.match(sida, /const antalPerSida = countPerCategoryPage\(forListings\(all\), cols\);/);
+  assert.match(sida, /valjBrodsmula\(ownCats, navCols, antalPerSida, categoryIndexable\)/);
+  // Bläddringsraden räknar med samma antal och samma regel (2026-11-04).
+  assert.match(sida, /valjBrodsmula\(egna, navCols, antalPerSida, categoryIndexable\)/);
+  assert.match(sida, /produktGrannar\(navCols, ownCats, all, p\.slug, dedupeProducts, hemvistFor\)/);
   const karta = readFileSync("lib/site-urls.ts", "utf8");
   assert.match(karta, /countPerCategoryPage\(forListings\(await getProducts\(\)\), collections\)/);
   assert.doesNotMatch(karta, /catCounts\.set\(/, "sitemapen ska inte räkna i en egen loop");

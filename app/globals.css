@@ -312,6 +312,14 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .btn-primary:hover{background:#A8380A;transform:translateY(-2px)}
 .btn-ghost{background:#fff;color:var(--ink);border:1.5px solid var(--line)}
 .btn-ghost:hover{background:var(--warm);border-color:var(--ink)}
+/* Startsidans auktionsknapp (2026-11-04): sekundär, bredvid Handla nu, med
+   menyns pulserande prick 07–19. Raden under är ett eget flex-led med full
+   bredd. På mobil (mätt i 390 px) krymper knapparnas marginal och text lite,
+   så att båda ryms på en rad i stället för att staplas till en vägg och skjuta
+   ned produktrutorna. Under ~380 px bryts raden, och det är godtaget. */
+.hero-auktion-knapp{gap:6px}
+.hero-auktion-rad{flex-basis:100%;font-size:var(--text-sm);color:#5c544c;line-height:1.4;margin-top:-2px}
+@media(max-width:420px){.btns .btn{padding:14px 14px;font-size:15px}}
 /* Tryck-feedback: knappen pressas ner vid klick (GPU-only, täcks av reduced-motion). */
 .btn-primary:active,.btn-ghost:active{transform:translateY(1px) scale(.985)}
 /* 2×2-rutnät i stället för flex-wrap: kolumn 2 ("Svensk kundtjänst" /

@@ -717,6 +717,51 @@ Nu:
 med ett gammalt pris visar den det högre priset med nedräkning. Nya besökare
 får rätt pris inom 30 s, men en öppen flik frågar först efter fem minuter.
 
+## Fyndauktionen på startsidan, tio fynd om dagen och flödena (2026-11-04)
+
+ChatGPT:s audit, punkt 5. Leonards beslut 2026-11-04: tio fynd om dagen (motorns
+`lib/auction/antal.ts`), och hjältens rad "Priset sjunker varje timme tills någon köper."
+
+- **Knappen.** "Se dagens fyndauktion" står bredvid Handla nu i hjälten (`app/page.tsx`).
+  Den är sekundär (`btn-ghost`), så primärknappen är fortfarande en, och den visas bara när
+  `liveAuctions` inte är tom. Annars står den tysta länken till kategorierna kvar.
+  - Raden under är ett flex-led med full bredd i `.btns`, inte ett sjätte barn i hjälten
+    (entréanimationen räknar barn 2–5), och den är ingen `<p>` (`.hero p` är ingresstypografi).
+  - Mätt i 390 px: båda knapparna på en rad, och rutorna 29 px längre ned.
+- **Mätningen** (`lib/analytics.ts`), utan lagring på besökarens enhet:
+  - **GA4:** `select_promotion` på knappen och bannern (`components/auktions-lank.tsx`), och
+    `select_item` med `item_list_id: "fyndauktion"` på korten. GA4 knyter själv `add_to_cart`
+    och köpet till listan.
+  - **Vercel `track()`:** `auktion_startknapp`, `auktion_banner`, `auktion_kort` och
+    `auktion_varukorg`. Varukorgshändelsen skickas när `document.referrer` är /fyndauktion
+    (`lib/fran-fyndauktionen.ts`). Vercels egna händelser kräver Pro; annars försvinner de tyst.
+- **Inga "fem fynd".** Texterna säger inget antal (`lib/fyndauktion-antal-text.test.ts`).
+  Bannern visar antalet som finns. "Över 60 %" i bloggen står kvar (Leonard: rabatten kan höjas).
+- **`getFreshPrices`** hämtar fyra åt gången i stället för alla samtidigt. Wix V1-fråga med en
+  lista slugs svarar 501 på en V3-katalog (mätt 2026-11-04).
+- ☠️ **Flödena utesluter fyndauktionens varor** (`lib/flode-auktion.ts`). Gäller Google, Meta och
+  PriceRunner, och Prisjakt via Google-flödet.
+  - Varför: efter 19 står sidan på ordinarie pris medan ett flöde hämtat under dagen visar
+    auktionspriset, alltså ett högre pris på sidan än i annonsen.
+  - Raderna hämtas med egen adress (`&sida=flode`) och en timmes cache, så att flödets ISR inte
+    sjunker till hämtningens 15 s.
+
+## Brödsmulan och bläddringsraden pekar på samma kategori (2026-11-04)
+
+ChatGPT:s audit, punkt 3: en uppresningsfåtölj hade brödsmulan Skönhet & Hälsa / Massage &
+Återhämtning och bläddringsraden "4 av 244 i Fåtöljer". Uppmätt samma natt: 40 av 41
+uppresningsfåtöljer visade olika kategori i de två. Tre stolar saknade dessutom kopplingen
+till Uppresningsfåtöljer i Wix (kopplade 2026-11-04).
+
+- **Brödsmulan** (`lib/breadcrumb-category.ts`) tar den smalaste indexerbara underkategorin
+  bland produktens EGNA avdelningar först, och annars som förut.
+- **Bläddringsraden** (`lib/product-neighbours.ts`, `Hemvist`) lägger varje produkt i
+  brödsmulans avdelning och i avsnittet för brödsmulans underkategori. Produktsidan skickar
+  valet (`hemvistFor`), räknat med samma `antalPerSida`. En produkt ligger fortfarande i exakt
+  en kedja.
+- **Motorns kategorikoll** räknar samma regel över hela katalogen. Kör den före en ändring av
+  regeln, och ändra kopian där (motorns `lib/kategorikoll/brodsmula.ts`).
+
 ## Googles ?srsltid= tas bort ur adressfältet (2026-09-30)
 
 Merchant Centers automatiska taggning lägger `?srsltid=…` på varje länk från
