@@ -103,3 +103,12 @@ test("högst en omgång per steg", async () => {
   const u = await skotOfferter(NU, d.b);
   assert.equal(u.mejlade, OFFERTER_PER_KORNING);
 });
+
+test("också när steg 1 inte når offerten (fler än en omgång väntar) märks ett köp i sista stund som betalt", async () => {
+  const d = lager([{ id: "o_a", status: "accepterad", giltigTill: "2026-11-18T19:00:00.000Z", floden: ["pf-1"] }], { ordrar: ["pf-1"] });
+  // Steg 1 ser inga offerter i kassan, som när omgången redan är full.
+  d.b.iKassan = async () => [];
+  const u = await skotOfferter(NU, d.b);
+  assert.equal(d.m.get("o_a")!.status, "betald");
+  assert.deepEqual([u.betalda, u.utgangna], [1, 0]);
+});
