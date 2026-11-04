@@ -4,8 +4,22 @@
 // nivåbyten och logg), och gör manuella ändringar med orsakskod (E1-11).
 // Överst: växeln (av, tyst, på) och nattens avstämning.
 
-import { ORSAKSKODER, NIVAER, LAGEN, liggarraderForEpost, loggFor, maskeradEpost, medlemsId, nivabyten, oversikt, sokMedlem, type Rad } from "@/lib/medlem/admin";
-import { lageAction, manuellNivaAction, sparrAction, taBortAction } from "./actions";
+import {
+  ORSAKSKODER,
+  NIVAER,
+  LAGEN,
+  foretagFor,
+  foretagsko,
+  liggarraderForEpost,
+  loggFor,
+  maskeradEpost,
+  medlemsId,
+  nivabyten,
+  oversikt,
+  sokMedlem,
+  type Rad,
+} from "@/lib/medlem/admin";
+import { foretagAction, lageAction, manuellNivaAction, sparrAction, taBortAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +47,56 @@ function Orsaksfalt() {
       </select>{" "}
       <input name="orsakText" placeholder="Orsak (syns i loggen)" required minLength={5} maxLength={500} style={{ width: 280 }} />
     </>
+  );
+}
+
+const adress = (a: unknown) => {
+  const r = (a ?? {}) as Record<string, unknown>;
+  const p = typeof r.postnr === "string" && /^\d{5}$/.test(r.postnr) ? `${r.postnr.slice(0, 3)} ${r.postnr.slice(3)}` : text(r.postnr);
+  return r.gata ? `${text(r.gata)}, ${p} ${text(r.ort)}` : "–";
+};
+
+/** Ett företags uppgifter och beslutsknapparna (E3). Hela numret syns bara här i admin. */
+function Foretaget({ profil, q, epost }: { profil: Rad; q: string; epost?: string }) {
+  const status = text(profil.status);
+  const id = text(profil.medlemsId);
+  return (
+    <div style={{ borderTop: "1px solid #eee", padding: "10px 0" }}>
+      <p style={{ margin: "0 0 6px" }}>
+        <b>{text(profil.namn)}</b> · {text(profil.orgnr)} ({profil.form === "enskild" ? "enskild firma, numret är ett personnummer" : "juridisk person"}) ·
+        status <b>{status}</b> · ansökt {dag(profil.ansokt)}
+        {profil.beslutad ? ` · beslut ${dag(profil.beslutad)}` : ""} · villkor v{text(profil.villkorVersion)}
+        {epost ? (
+          <>
+            {" "}
+            · konto <a href={`/admin/medlemmar?q=${encodeURIComponent(epost)}`}>{epost}</a>
+          </>
+        ) : null}
+      </p>
+      <p style={{ margin: "0 0 6px", fontSize: 13, color: "#555" }}>
+        Faktura: {adress(profil.faktura)}
+        {profil.leverans ? ` · Leverans: ${adress(profil.leverans)}` : " · Leverans till fakturaadressen"}
+      </p>
+      <p style={{ margin: "0 0 6px", fontSize: 13, color: "#555" }}>
+        Kontrollera hos Bolagsverket att numret hör till namnet och att bolaget är aktivt (enskilda firmor finns inte alltid där).
+      </p>
+      {status !== "aktiv" ? (
+        <form action={foretagAction} style={{ display: "inline-block", marginRight: 12 }}>
+          <input type="hidden" name="id" value={id} />
+          <input type="hidden" name="q" value={q} />
+          <input type="hidden" name="beslut" value="aktiv" />
+          <Orsaksfalt /> <button type="submit">Godkänn</button>
+        </form>
+      ) : null}
+      {status !== "nekad" ? (
+        <form action={foretagAction} style={{ display: "inline-block", marginTop: 6 }}>
+          <input type="hidden" name="id" value={id} />
+          <input type="hidden" name="q" value={q} />
+          <input type="hidden" name="beslut" value="nekad" />
+          <Orsaksfalt /> <button type="submit">{status === "aktiv" ? "Återkalla" : "Neka"}</button>
+        </form>
+      ) : null}
+    </div>
   );
 }
 
@@ -73,13 +137,18 @@ export default async function Medlemmar({ searchParams }: { searchParams: Promis
   const sp = await searchParams;
   const q = (sp.q ?? "").trim();
   const meddelande = sp.m ?? "";
-  const o = await oversikt();
+  const [o, ko] = await Promise.all([oversikt(), foretagsko()]);
   const sok = q ? await sokMedlem(q) : null;
   const medlem = sok?.medlem ?? null;
   const id = medlem ? String(medlem._id) : sok?.epost ? medlemsId(sok.epost) : "";
-  const [rader, byten, logg] = sok?.epost
-    ? await Promise.all([liggarraderForEpost(sok.epost), medlem ? nivabyten(id) : Promise.resolve([]), loggFor({ medlemsId: id }, 30)])
-    : [[], [], []];
+  const [rader, byten, logg, foretag] = sok?.epost
+    ? await Promise.all([
+        liggarraderForEpost(sok.epost),
+        medlem ? nivabyten(id) : Promise.resolve([]),
+        loggFor({ medlemsId: id }, 30),
+        medlem ? foretagFor(id) : Promise.resolve(null),
+      ])
+    : [[], [], [], null];
 
   return (
     <main style={{ padding: 24, maxWidth: 1100, fontFamily: "system-ui, sans-serif" }}>
@@ -116,11 +185,20 @@ export default async function Medlemmar({ searchParams }: { searchParams: Promis
         <Logg rader={o.avvikelser} />
       </section>
 
+      <section style={KORT} id="foretag">
+        <h2 style={{ marginTop: 0 }}>Företag att granska ({ko.length})</h2>
+        {ko.length ? (
+          ko.map(({ profil, epost }) => <Foretaget key={String(profil._id)} profil={profil} q={q} epost={epost} />)
+        ) : (
+          <p style={{ color: "#666" }}>Inga företag väntar. Butiken mejlar info@ när en ansökan kommer in.</p>
+        )}
+      </section>
+
       <form method="get" style={{ margin: "16px 0" }}>
-        <input name="q" defaultValue={q} placeholder="E-post eller ordernummer" style={{ width: 320 }} /> <button type="submit">Sök</button>
+        <input name="q" defaultValue={q} placeholder="E-post, ordernummer eller organisationsnummer" style={{ width: 360 }} /> <button type="submit">Sök</button>
       </form>
 
-      {q && !sok?.epost ? <p>Ingen träff. Sök på hela e-postadressen eller ett ordernummer.</p> : null}
+      {q && !sok?.epost ? <p>Ingen träff. Sök på hela e-postadressen, ett ordernummer eller ett organisationsnummer.</p> : null}
 
       {sok?.epost ? (
         <section style={KORT}>
@@ -153,6 +231,8 @@ export default async function Medlemmar({ searchParams }: { searchParams: Promis
                 <input name="till" placeholder="Till och med ÅÅÅÅ-MM-DD (valfritt)" style={{ width: 230 }} /> <Orsaksfalt />{" "}
                 <button type="submit">Spara</button>
               </form>
+              <h3>Företag</h3>
+              {foretag && foretag.typ === "foretag" ? <Foretaget profil={foretag} q={q} /> : <p style={{ color: "#666" }}>Inget företag på kontot.</p>}
               <h3>Spärra eller ta bort</h3>
               <form action={sparrAction} style={{ marginBottom: 8 }}>
                 <input type="hidden" name="id" value={id} />

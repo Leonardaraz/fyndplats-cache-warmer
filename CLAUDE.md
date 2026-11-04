@@ -295,6 +295,7 @@ underrubrik.
   - Admin: /admin/medlemmar (motorn)
   - Wix-gränser som styr formen
   - E2: golvet ur motorn (`/api/medlem/golv`)
+  - E3: företagen i kön (motorn)
   - Kvar till E2
 - `44-mediainventering.md`: Mediainventering: "utan katalogreferens" är inte "oanvänd"
 - `45-fyndauktionens-antal-och-sparr.md`: Fyndauktionen: tio fynd om dagen och 30-dagarsspärren (2026-11-04)

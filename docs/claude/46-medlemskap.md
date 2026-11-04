@@ -89,7 +89,7 @@ motorn behöver veta:
   text, och skrivs till `FyndplatsMedlemslogg` med före- och efterläge
   (E1-11). En manuell nivå gäller i stället för den räknade, till och med sitt
   slutdatum om ett sådant anges.
-- Borttagning tar bort kontot, profilen, nivåbytena och inloggningsförsöken
+- Borttagning tar bort kontot, profilerna, nivåbytena och inloggningsförsöken
   (adressen i klartext). Orderliggaren och prisbesluten står kvar, eftersom de
   bär ordrarna och priserna och inget konto, och loggen får bara den maskerade
   adressen. Nivåbytena och inloggningarna tas bort först: faller det står
@@ -134,6 +134,28 @@ mappningar, så butiken frågar motorn (`POST /api/medlem/golv`, logiken i
   butiken visar listpriset.
 - Företagen (E3) får det högsta av nivån och ordertrappan, aldrig båda
   (Leonards ja 2026-11-04). Det räknas i butiken; golvet är detsamma.
+
+## E3: företagen i kön (motorn)
+
+- Kön "Företag att granska" står överst på `/admin/medlemmar` (ankaret
+  `#foretag`, som butikens mejl till info@ länkar till). Den läser
+  `FyndplatsMedlemsprofiler` med `typ: "foretag"` och `status: "granskas"`,
+  äldst först (index `typ-status-ansokt`).
+- Butiken skriver ansökan (`<medlemsId>__foretag`); motorn skriver bara
+  beslutet: `aktiv` (godkänt), `nekad`, eller återkallat (aktiv → nekad). Varje
+  beslut kräver orsakskod och text (orsakskoden `bolagsverket` finns för
+  godkännandet) och skrivs med villkoret att läget är detsamma som när sidan
+  lästes, så att två admins inte skriver över varandra.
+- Bolagsverkets uppslag är inte byggt: det kräver ett API-konto. Tills dess
+  kontrolleras numret och namnet för hand. En enskild firma finns inte alltid
+  hos Bolagsverket.
+- ☠️ En enskild firmas organisationsnummer är ett personnummer. Hela numret
+  syns bara på admin-sidan; loggen får namnet och formen, aldrig numret.
+- Mejlet "Ditt företagskonto är godkänt" skickas av butikens timjobb
+  (`/api/cron/medlemskorgar`, kl :41), inom en timme. Motorn har varken
+  butikens mejlnyckel eller någon hemlig rutt i butiken.
+- Sök fungerar också på organisationsnummer (tio eller tolv siffror, med
+  eller utan bindestreck). Kontots borttagning tar också företagsprofilen.
 
 ## Kvar till E2
 

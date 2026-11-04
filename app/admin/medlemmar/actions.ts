@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
   LAGEN,
+  beslutaForetag,
   lasManuellNiva,
   lasOrsak,
   sattLage,
@@ -66,4 +67,23 @@ export async function lageAction(f: FormData): Promise<void> {
   await sattLage(lage, orsak);
   revalidatePath("/admin/medlemmar");
   tillbaka("", `Medlemskapet är nu i läget ${lage}. Butiken läser växeln inom en minut.`);
+}
+
+/** E3: godkänn eller neka ett företag, eller återkalla ett godkännande. */
+export async function foretagAction(f: FormData): Promise<void> {
+  const q = falt(f, "q");
+  const beslut = falt(f, "beslut");
+  if (beslut !== "aktiv" && beslut !== "nekad") tillbaka(q, "Okänt beslut.");
+  const orsak = lasOrsak(falt(f, "orsakKod"), falt(f, "orsakText"));
+  if (typeof orsak === "string") tillbaka(q, orsak);
+  const u = await beslutaForetag(falt(f, "id"), beslut, orsak);
+  revalidatePath("/admin/medlemmar");
+  tillbaka(
+    q,
+    u === "ok"
+      ? beslut === "aktiv"
+        ? "Företaget är godkänt. Kunden får ett mejl inom en timme (butikens timjobb kl :41)."
+        : "Företaget är nekat. Kontot prissätts som privatperson."
+      : u,
+  );
 }

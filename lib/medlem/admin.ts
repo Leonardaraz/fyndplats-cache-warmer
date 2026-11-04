@@ -31,6 +31,7 @@ export const VAXEL_ID = "medlemskap";
 export const LIGGARE_ID = "medlemsliggare";
 
 export const ORSAKSKODER = {
+  bolagsverket: "Företaget kontrollerat hos Bolagsverket",
   kompensation: "Kompensation (reklamation eller försening)",
   felrakning: "Fel i orderliggaren eller nivån",
   kundtjanst: "Kundtjänstbeslut",
@@ -91,10 +92,25 @@ export function lasManuellNiva(niva: unknown, till: unknown, idag: string): { ni
 
 export type Rad = Record<string, unknown>;
 
-/** Medlemmen för en e-post eller ett ordernummer, och e-posten som söktes. */
+/** "NNNNNN-NNNN" ur tio eller tolv siffror, med eller utan bindestreck; annars null. */
+export function orgnrForSok(q: string): string | null {
+  const rent = q.replace(/[\s-]/g, "");
+  if (!/^(\d{10}|\d{12})$/.test(rent)) return null;
+  const tio = rent.length === 12 ? rent.slice(2) : rent;
+  return `${tio.slice(0, 6)}-${tio.slice(6)}`;
+}
+
+/** Medlemmen för en e-post, ett ordernummer eller ett organisationsnummer (E3), och e-posten som söktes. */
 export async function sokMedlem(q: string): Promise<{ epost: string | null; medlem: Rad | null }> {
   const epost = normaliseraEpost(q);
   if (epost) return { epost, medlem: await hamta(MEDLEM_KOL.medlemmar, medlemsId(epost)) };
+  const orgnr = orgnrForSok(q);
+  if (orgnr) {
+    const [profil] = await fraga<Rad>(MEDLEM_KOL.profiler, { filter: { typ: "foretag", orgnr }, limit: 1 });
+    const medlem = typeof profil?.medlemsId === "string" ? await hamta<Rad>(MEDLEM_KOL.medlemmar, profil.medlemsId) : null;
+    const e = typeof medlem?.epost === "string" && medlem.epost ? medlem.epost : null;
+    return { epost: e, medlem };
+  }
   const nummer = q.trim().replace(/^#/, "");
   if (!/^\d{3,10}$/.test(nummer)) return { epost: null, medlem: null };
   const [rad] = await fraga<Rad>(MEDLEM_KOL.orderliggare, { filter: { ordernummer: nummer }, limit: 1 });
@@ -124,6 +140,63 @@ export async function oversikt(): Promise<{ lage: Lage; liggare: Rad | null; med
   ]);
   const v = vaxel?.lage;
   return { lage: v === "pa" || v === "tyst" ? v : "av", liggare, medlemmar, avvikelser };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Företagen (E3): kön och beslutet
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Butikens id för kontots företagsprofil (lib/medlem/foretag.ts i butiken). */
+export const foretagsprofilId = (medlem: string) => `${medlem}__foretag`;
+
+export type Foretagsbeslut = "aktiv" | "nekad";
+
+/** Företag som väntar på granskning, äldst först, med kontots e-post. */
+export async function foretagsko(antal = 50): Promise<{ profil: Rad; epost: string }[]> {
+  const profiler = await fraga<Rad>(MEDLEM_KOL.profiler, {
+    filter: { $and: [{ typ: "foretag" }, { status: "granskas" }] },
+    sort: [{ fieldName: "ansokt", order: "ASC" }],
+    limit: antal,
+  });
+  return Promise.all(
+    profiler.map(async (profil) => {
+      const m = typeof profil.medlemsId === "string" ? await hamta<Rad>(MEDLEM_KOL.medlemmar, profil.medlemsId) : null;
+      return { profil, epost: typeof m?.epost === "string" ? m.epost : "" };
+    }),
+  );
+}
+
+export function foretagFor(medlem: string): Promise<Rad | null> {
+  return hamta<Rad>(MEDLEM_KOL.profiler, foretagsprofilId(medlem));
+}
+
+/**
+ * Godkänner eller nekar ett företag, eller återkallar ett godkännande (aktiv →
+ * nekad). Beslutet skrivs bara om profilen fortfarande har läget som lästes
+ * (villkoret), så att två admins inte skriver över varandra. Butikens timjobb
+ * mejlar kunden om ett godkännande inom en timme.
+ *
+ * ☠️ Loggen får namnet och formen, aldrig numret: för en enskild firma är det
+ * ett personnummer.
+ */
+export async function beslutaForetag(medlem: string, beslut: Foretagsbeslut, orsak: Orsak): Promise<string> {
+  const fore = await foretagFor(medlem);
+  if (!fore || fore.typ !== "foretag") return "Kontot har inget företag.";
+  const forut = String(fore.status ?? "");
+  if (forut === beslut) return beslut === "aktiv" ? "Företaget är redan godkänt." : "Företaget är redan nekat.";
+  const tid = new Date().toISOString();
+  const u = await patcha(MEDLEM_KOL.profiler, foretagsprofilId(medlem), [satt("status", beslut), satt("beslutad", tid)], { status: forut });
+  if (u !== "applied") return "Någon annan ändrade företaget samtidigt. Ladda om sidan.";
+  await logga({
+    omrade: "foretag",
+    typ: beslut === "aktiv" ? "foretag-godkant" : forut === "aktiv" ? "foretag-aterkallat" : "foretag-nekat",
+    medlemsId: medlem,
+    fore: { status: forut, namn: String(fore.namn ?? ""), form: String(fore.form ?? "") },
+    efter: { status: beslut },
+    orsakKod: orsak.kod,
+    orsakText: orsak.text,
+  });
+  return "ok";
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -173,7 +246,8 @@ export async function sattSparr(id: string, sparrad: boolean, orsak: Orsak): Pro
 }
 
 /**
- * Tar bort kontot på kundens begäran: medlemmen, profilen, nivåbytena (id och
+ * Tar bort kontot på kundens begäran: medlemmen, profilerna (privat och
+ * företag), nivåbytena (id och
  * belopp per dag) och inloggningsförsöken (adressen i klartext). Orderliggaren
  * och prisbesluten står kvar: de bär ordrarna och priserna, som bokföringslagen
  * kräver, och inget konto. Loggen får bara den maskerade adressen.
@@ -194,6 +268,8 @@ export async function taBortKonto(id: string, orsak: Orsak): Promise<string> {
   const i = await taBortManga(MEDLEM_KOL.inloggningar, inloggningar.map((r) => String(r._id)));
   if (b.fel.length || i.fel.length) return `Nivåbytena eller inloggningarna gick inte att ta bort (${b.fel.length + i.fel.length} fel). Kontot står kvar; försök igen.`;
   await taBort(MEDLEM_KOL.profiler, `${id}__privat`);
+  // E3: företagsprofilen bär en enskild firmas personnummer och går med kontot.
+  await taBort(MEDLEM_KOL.profiler, foretagsprofilId(id));
   await taBort(MEDLEM_KOL.medlemmar, id);
   await logga({
     omrade: "admin",
