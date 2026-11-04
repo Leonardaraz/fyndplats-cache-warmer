@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (2640 x 930 x 710 mm) har inga axelord, men VEVOR:s måttritning (i kallor.json) ritar måtten med pilar: texten skriver längd, bredd och höjd, med axlarna och längden 254 cm (ritningen) och bredden 93 cm och höjden 71 cm (tabellen: det lägre per sträcka) ur ritningen
