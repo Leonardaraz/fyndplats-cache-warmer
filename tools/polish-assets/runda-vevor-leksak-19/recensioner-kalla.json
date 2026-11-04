@@ -82,5 +82,22 @@
     "annanArtikel": 0,
     "okandArtikel": 0,
     "attBesluta": []
+  },
+  "4ebd9d39": {
+    "productId": "4ebd9d39-6070-44a6-8566-6570def332b0",
+    "synliga": 0,
+    "dolda": 8,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-n2wlt2",
+        "betyg": 5,
+        "datum": "2026-04-27",
+        "foton": 0,
+        "text": "Všechno perfektní a bez chyby. S Vevor jsem velmi spokojený."
+      }
+    ]
   }
 }
