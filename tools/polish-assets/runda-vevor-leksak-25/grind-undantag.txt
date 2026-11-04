@@ -1,0 +1,14 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad "Produktmått" har inga axelord, men VEVOR:s måttritning (position 7, i kallor.json) ritar längden, bredden och höjden med pilar: texten skriver längd, bredd och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad "Produktmått" har inga axelord, men VEVOR:s måttritning (position 7, i kallor.json) ritar längden, bredden och höjden med pilar: texten skriver längd, bredd och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad "Produktmått" har inga axelord, men VEVOR:s måttritning (position 7, i kallor.json) ritar längden, bredden och höjden med pilar: texten skriver längd, bredd och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad "Mått (LxBxH)" har axelbokstäver men inga ord; VEVOR:s måttritning (position 7, i kallor.json) ritar längden, bredden och höjden med pilar: texten skriver längd, bredd och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad "Mått (LxBxH)" har axelbokstäver men inga ord; VEVOR:s måttritning (position 7, i kallor.json) ritar längden, bredden och höjden med pilar: texten skriver längd, bredd och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad "Produktmått" har inga axelord, men VEVOR:s måttritning (position 7, i kallor.json) ritar höjden, längden och bredden med pilar: texten skriver längd, bredd och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad "Produktmått" har inga axelord, men VEVOR:s måttritning (position 7, i kallor.json) ritar höjden, längden och bredden med pilar: texten skriver längd, bredd och höjd ur ritningen
