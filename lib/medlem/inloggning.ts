@@ -41,7 +41,7 @@ export function medlemsId(epost: string): string {
 }
 
 /** En delnyckel per syfte, så att en läckt delnyckel inte öppnar något annat. */
-export function delnyckel(hemlighet: string, syfte: "session" | "kod" | "ip" | "strypning"): Buffer {
+export function delnyckel(hemlighet: string, syfte: "session" | "kod" | "ip" | "strypning" | "avregistrering"): Buffer {
   return createHmac("sha256", hemlighet).update(`fyndplats-medlem-${syfte}-v1`).digest();
 }
 
@@ -194,4 +194,32 @@ export function maskeradEpost(epost: string): string {
 export function sakertMal(v: unknown): string {
   if (typeof v !== "string" || v.length > 200) return "/konto";
   return /^\/(?![/\\])[\x21-\x7e]*$/.test(v) ? v : "/konto";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Avregistrering från mejlen om nivån
+// ─────────────────────────────────────────────────────────────────────────────
+
+const MEDLEMS_ID = /^m_[0-9a-f]{40}$/;
+
+/**
+ * Token i länken "avregistrera dig" i mejlen om nivån. Den beror bara på
+ * medlemmens id och hemligheten, så länken i ett gammalt mejl fungerar
+ * fortfarande, och den öppnar ingenting annat än avregistreringen.
+ */
+export function avregistreringsToken(medlemsIdText: string, hemlighet: string): string {
+  return createHmac("sha256", delnyckel(hemlighet, "avregistrering")).update(medlemsIdText).digest("base64url").slice(0, 32);
+}
+
+export function arGiltigAvregistrering(medlemsIdText: unknown, token: unknown, hemlighet: string): boolean {
+  if (typeof medlemsIdText !== "string" || !MEDLEMS_ID.test(medlemsIdText)) return false;
+  if (typeof token !== "string" || token.length !== 32) return false;
+  const vantad = Buffer.from(avregistreringsToken(medlemsIdText, hemlighet));
+  const fatt = Buffer.from(token);
+  return fatt.length === vantad.length && timingSafeEqual(fatt, vantad);
+}
+
+/** Frågedelen i länkarna: `?m=…&t=…`. */
+export function avregistreringsFraga(medlemsIdText: string, hemlighet: string): string {
+  return `?m=${encodeURIComponent(medlemsIdText)}&t=${avregistreringsToken(medlemsIdText, hemlighet)}`;
 }

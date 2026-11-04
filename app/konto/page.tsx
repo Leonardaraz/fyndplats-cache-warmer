@@ -6,7 +6,7 @@
 
 import type { Metadata } from "next";
 import { inloggad } from "@/lib/medlem/inloggad";
-import { medlemsHemlighet, medlemsLage } from "@/lib/medlem/lager";
+import { hamtaMedlem, medlemsHemlighet, medlemsLage } from "@/lib/medlem/lager";
 import { minaSidor } from "@/lib/medlem/konto";
 import { orderGuid, sakertMal } from "@/lib/medlem/inloggning";
 import { getProducts } from "@/lib/products";
@@ -91,6 +91,29 @@ export default async function Konto({ searchParams }: { searchParams: Promise<So
         </div>
       </section>
     );
+  }
+  // Inloggad men spärrad: säg det direkt, i stället för inloggningen som ändå
+  // hade nekat med samma besked först efter en ny kod.
+  if (session && !data) {
+    const medlem = await hamtaMedlem(session.sub).catch(() => null);
+    if (medlem?.status === "sparrad") {
+      return (
+        <section className="sec">
+          <div className="container-narrow">
+            <h1 className={`${s.rubrik} ${s.display}`}>Mina sidor</h1>
+            <p className={s.ingress}>
+              Ditt konto är spärrat. Mejla <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> så hjälper vi dig. Dina
+              ordrar och köp finns kvar.
+            </p>
+            <form action="/api/konto/ut" method="post">
+              <button type="submit" className={s.utknapp}>
+                Logga ut
+              </button>
+            </form>
+          </div>
+        </section>
+      );
+    }
   }
   if (session && data) {
     const idn = new Set(data.ordrar.flatMap((o) => o.varor.map((v) => v.produktId).filter((x): x is string => Boolean(x))));

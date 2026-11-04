@@ -1106,3 +1106,26 @@
     text-align: left;
   }
 }
+
+/* Mejlen om nivån, av eller på (Mina sidor). */
+.installning {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  flex-wrap: wrap;
+  margin: 28px 0 0;
+  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+}
+.installningText {
+  margin: 0;
+  flex: 1 1 260px;
+  font-size: var(--text-sm);
+  color: var(--soft);
+}
+.installningText strong {
+  color: var(--ink);
+}

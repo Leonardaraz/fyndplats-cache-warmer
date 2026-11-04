@@ -135,6 +135,8 @@ export interface Medlem {
   /** Satt för hand i motorns admin, med orsak i loggen. */
   manuellNiva?: string;
   manuellTill?: string;
+  /** false: medlemmen har avregistrerat sig från mejlen om nivån. Saknas: mejlen går. */
+  nivamejl?: false;
 }
 
 function medlemUrRad(d: Rad): Medlem {
@@ -153,6 +155,7 @@ function medlemUrRad(d: Rad): Medlem {
     beraknad: text(d.beraknad),
     manuellNiva: text(d.manuellNiva),
     manuellTill: text(d.manuellTill),
+    nivamejl: d.nivamejl === false ? false : undefined,
   };
 }
 
@@ -180,6 +183,15 @@ export async function skapaMedlem(epost: string, meddeladNiva: string): Promise<
 
 export async function uppdateraMedlem(id: string, falt: Rad): Promise<void> {
   await patcha(MK.medlemmar, id, andringar(falt));
+}
+
+/**
+ * Mejlen om nivån av eller på. Av sparas som `nivamejl: false`; på tar bort
+ * fältet, så att en medlem utan fältet får mejlen. "saknas": ingen sådan medlem.
+ */
+export async function sattNivamejl(id: string, pa: boolean): Promise<"klar" | "saknas"> {
+  const r = await patcha(MK.medlemmar, id, andringar({ nivamejl: pa ? undefined : false }));
+  return r.utfall === "not-found" ? "saknas" : "klar";
 }
 
 export async function allaMedlemmar(): Promise<Medlem[]> {
