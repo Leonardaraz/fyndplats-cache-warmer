@@ -41,6 +41,8 @@ test("medlemmens id är stabilt, unikt per e-post och visar inte adressen", () =
   assert.notEqual(a, medlemsId("kund2@example.se"));
   assert.match(a, /^m_[0-9a-f]{40}$/);
   assert.ok(!a.includes("kund"));
+  // ☠️ Motorns admin (lib/medlem/admin.ts) räknar samma id och låser samma vektor.
+  assert.equal(a, "m_c588e83376d516775bbe57a903163f283673325e");
 });
 
 test("koden är sex siffror, och varken koden eller token sparas i klartext", () => {
