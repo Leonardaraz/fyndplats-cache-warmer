@@ -352,23 +352,27 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   badrumsspeglar: {
     intro: [
-      "Här hittar du badrumsspeglar med och utan belysning: rektangulära och bågformade LED-speglar, runda LED-speglar, en spegel med inbyggd förstoringsspegel, enkla speglar med hylla och spegelskåp, ett av dem med LED-belysning och antiimma.",
-      "LED-speglarna har antiimma som håller en del av glaset fritt från imma efter duschen. Ljuset dimras och ställs i tre färgtemperaturer, 3 000, 4 500 och 6 500 K, och fyra av speglarna har också Bluetooth och klocka.",
-      "Storlekarna går upp till 100 × 80 cm, och de flesta LED-speglarna har IP44, som tål vattenstänk. Placera ändå spegeln så att duschen inte sprutar direkt på den.",
+      "En badrumsspegel ska ge dig en tydlig spegelbild vid tandborstning, rakning och sminkning, och den påverkar också hur badrummet känns. Här samlar vi badrumsspeglar med och utan belysning, spegelskåp med förvaring bakom spegeldörrarna och speglar med hylla, i former som rund, rektangulär och bågformad.",
+      "LED-speglar ger ett jämnt ljus som lyser upp ansiktet utan skuggor. Ljusets färg anges i kelvin: runt 3 000 K ger ett varmt och mjukt sken, medan runt 6 000 K liknar dagsljus och visar färgerna tydligare. En dimbar spegel låter dig välja ljusstyrka efter tid på dygnet, och antiimma är en värmefolie bakom glaset som håller spegelytan varmare än luften, så att imman inte fastnar efter duschen.",
+      "Kontrollera i beskrivningen hur spegeln ansluts. Fast anslutning till elnätet ska göras av en behörig elektriker, och en spegel med el ska ha en IP-klass som passar badrummet: IP44 tål vattenstänk. Placera ändå spegeln så att duschen inte sprutar direkt på den, och mät handfatet eller skåpet så att spegeln blir lika bred eller något smalare.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
-        q: "Vad är antiimma?",
-        a: "En platta eller folie bakom glaset som håller en del av spegeln fri från imma när badrummet är fullt av ånga. Storleken står i beskrivningen, till exempel 50 × 40 cm, och på den runda spegeln på 60 cm stänger den av sig själv.",
+        q: "Vad är antiimma på en badrumsspegel?",
+        a: "En värmefolie eller värmeplatta bakom glaset som blir lätt varm och håller den yta den täcker fri från imma när badrummet är fullt av ånga. Kontrollera i produktbeskrivningen hur stor yta den täcker och om den stänger av sig själv efter en stund.",
       },
       {
         q: "Vilken färgtemperatur ska jag välja?",
-        a: "LED-speglarna ställs om mellan 3 000 K, som är varmt och mjukt, 4 500 K och 6 500 K, som liknar dagsljus. Det kallare ljuset visar färgerna tydligare vid sminkning och rakning.",
+        a: "Ett varmt ljus på runt 3 000 K är mjukt och trivsamt, ett neutralt ljus på runt 4 000 K passar vardagen och ett kallare ljus på runt 6 000 K liknar dagsljus och visar färger tydligare vid sminkning och rakning. Har spegeln valbara ljusfärger byter du med en touchknapp eller en knapp på spegeln.",
       },
       {
-        q: "Har speglarna högtalare?",
-        a: "Fyra av LED-speglarna har Bluetooth och klocka, och flera anger en högtalare på 6 W. Det står i beskrivningen vilka.",
+        q: "Hur ansluts en badrumsspegel med belysning?",
+        a: "Det varierar: antingen fast anslutning till elnätet eller en sladd med stickpropp. Kontrollera i beskrivningen vilket som gäller. Fast anslutning ska göras av en behörig elektriker. Välj en spegel med en IP-klass som passar badrummet, och montera den med skruv och plugg som passar väggen så att den hänger stadigt.",
+      },
+      {
+        q: "Spegel med hylla eller spegelskåp?",
+        a: "En spegel med hylla ger en liten avställningsyta för tandborstar och burkar. Ett spegelskåp har förvaring bakom spegeldörrarna och passar när du vill dölja flaskor och tuber. Mät djupet så att skåpdörrarna kan öppnas fritt.",
       },
     ],
   },
@@ -816,23 +820,27 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   "gunghastar-gungdjur": {
     intro: [
-      "En gunghäst tränar balansen utan att barnet tänker på det. Här samlar vi våra gunghästar och gungdjur: klassiska gunghästar i trä, mjuka hästar i plysch på medar och gungdjur formade som svan, giraff, ren, elefant, dinosaurie och nallebjörn – för barn från 12 månader upp till sex år. Här finns också två åkhästar i plysch, en på hjul och en elektrisk med fotpedal.",
-      "För de minsta är ryggstöd och bälte viktigast. En klassisk gunghäst kräver att barnet kan hålla balansen sittande själv, medan gungdjur med ryggstöd och bälte passar redan från 18 månader. Många av plyschdjuren har ljud, som gnäggande eller melodier, och maxvikten går från 25 upp till 60 kg.",
-      "Låt alltid en vuxen ha uppsikt när barnet gungar. På hästarna med ljud drivs ljudet av batterier, och den elektriska åkhästen har en plyschklädsel som går att ta av och tvätta i maskin.",
+      "En gunghäst tränar balansen utan att barnet tänker på det. Här samlar vi bland annat klassiska gunghästar i trä, mjuka hästar i plysch på medar, gungdjur i form av olika djur och åkhästar på hjul.",
+      "Kontrollera rekommenderad ålder och maxvikt i specifikationen på produktsidan, och följ dem. En klassisk gunghäst utan ryggstöd kräver att barnet kan sitta och hålla balansen själv, medan gungdjur med ryggstöd och säkerhetsbälte är gjorda för yngre barn.",
+      "Trä är lätt att torka av med en fuktad trasa, medan plysch är mjukare och kan ha ljud eller melodier som drivs av batterier. En elektrisk åkhäst drivs av ett batteri som laddas enligt beskrivningen. Ställ gungdjuret på ett plant, fast underlag bort från trappor och kanter, och låt alltid en vuxen ha uppsikt när barnet gungar.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Från vilken ålder passar en gunghäst?",
-        a: "Gungdjur med ryggstöd och bälte passar från 18 månader, och flera gungdjur redan från 12 månader. En klassisk gunghäst utan ryggstöd kräver att barnet kan hålla balansen själv, och flera är gjorda för barn från två eller tre år.",
+        a: "Det beror på modellen. Ett gungdjur med ryggstöd och säkerhetsbälte är gjort för yngre barn, medan en klassisk gunghäst utan ryggstöd kräver att barnet kan hålla balansen själv. Kontrollera rekommenderad ålder i specifikationen på produktsidan och följ den.",
       },
       {
         q: "Trä eller plysch?",
-        a: "En gunghäst i trä är lätt att torka av med en fuktad trasa. En plyschhäst är mjukare och har ofta ljud eller melodier, och på den elektriska åkhästen går klädseln att ta av och tvätta i maskin.",
+        a: "En gunghäst i trä är lätt att torka av med en fuktad trasa och tål mycket lek. En plyschhäst är mjukare och kan ha ljud eller melodier. Kontrollera i beskrivningen om klädseln går att ta av och tvätta.",
       },
       {
         q: "Hur mycket får barnet väga?",
-        a: "Maxvikten varierar mellan 25 och 60 kg på de modeller som anger den. Kontrollera den i beskrivningen innan du köper.",
+        a: "Maxvikten skiljer sig mellan modellerna, så kontrollera den i specifikationen på produktsidan innan du köper.",
+      },
+      {
+        q: "Behövs det batterier?",
+        a: "Ett djur med ljud eller melodier drivs av batterier, och en elektrisk åkhäst har ett batteri som laddas. Kontrollera i beskrivningen vilka batterier som behövs och om de ingår.",
       },
     ],
   },
@@ -1400,23 +1408,23 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   konstvaxter: {
     intro: [
-      "Konstväxter ger grönska där riktiga växter har det svårt, som i ett mörkt hörn eller vid en entré där ingen hinner vattna. Här samlar vi konstgjorda växter för inne och ute, från buxbomsklot, cypresser och lavendelträd till olivträd, monstera, bambu och palmer, de högsta 180 cm, och häck på rulle.",
-      "Många står färdiga i en kruka med cementfylld botten som håller dem stadiga, och några står på jordspett för rabatten. Växterna behöver varken vattnas eller beskäras, och de klarar sig där det är mörkt.",
-      "Ska växten stå ute, välj en som är UV-beständig, så att färgen inte bleks i solen. Många av växterna passar både inne och ute, men några är gjorda för inomhusbruk, så kontrollera i produktbeskrivningen.",
+      "Konstväxter ger grönska där riktiga växter har det svårt, som i ett mörkt hörn eller vid en entré där ingen hinner vattna. Här samlar vi konstgjorda växter och träd i kruka, bland annat buxbom, cypresser, olivträd, monstera, bambu och palmer, samt kransar, rosor och häck på rulle som klär in ett staket eller en vägg.",
+      "Växterna behöver varken vattnas, beskäras eller gödslas, och de klarar sig där det är mörkt. Det som håller en stor växt stadig är krukans vikt, så kontrollera i beskrivningen om krukan är fylld med cement eller om växten sätts på ett jordspett i marken.",
+      "Ska växten stå ute, välj en som är UV-beständig, så att färgen inte bleks i solen, och läs i produktbeskrivningen att den är gjord för utomhusbruk. En växt för inomhusbruk kan blekna och bli spröd av sol, regn och kyla.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Kan konstväxterna stå ute?",
-        a: "Många kan det, och de UV-beständiga tappar inte färgen i solen. Några är gjorda för inomhusbruk, så kontrollera i produktbeskrivningen innan du ställer växten ute.",
+        a: "Det beror på växten. De som är UV-beständiga tappar inte färgen i solen och är gjorda för att stå ute, medan en växt för inomhusbruk kan blekna. Kontrollera i produktbeskrivningen vilket som gäller innan du ställer växten ute.",
       },
       {
         q: "Hur gör jag rent en konstväxt?",
-        a: "Damma av bladen då och då med en mjuk borste eller en lätt fuktad trasa. Vissa kan också sköljas försiktigt med ljummet vatten – låt dem torka efteråt.",
+        a: "Damma av bladen då och då med en mjuk borste eller en lätt fuktad trasa. En växt som tål det kan sköljas försiktigt med ljummet vatten – låt den torka efteråt.",
       },
       {
         q: "Välter växten om det blåser?",
-        a: "Många står i en kruka med cementfylld botten som håller dem stadiga, och några står på jordspett som sätts ner i marken.",
+        a: "En kruka med cementfylld botten håller växten stadig, och en växt på jordspett sätts ner i marken. Står växten ute på en blåsig plats kan du ställa krukan skyddat, till exempel intill en vägg.",
       },
     ],
   },
@@ -1818,23 +1826,27 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   "redskapsbodar-forrad": {
     intro: [
-      "En redskapsbod ger gräsklipparen, cyklarna och trädgårdsredskapen ett eget tak. Här samlar vi våra redskapsbodar, förråd och trädgårdsskåp: bodar i galvad plåt och plast från 1,1 upp till 12,4 m², ett förrådstält på 13,4 m², cykelförråd och cykeltält och trädgårdsskåp i trä för spadar, krattor och annat trädgårdsredskap.",
-      "Börja med yta och höjd. Vill du kunna gå in, titta på nockhöjden: bodarna på 4,1 m² har 2,28 meter i nock och de på 12,4 m² har två meter, och skjutdörrar behöver ingen plats framför boden. Plåtbodarna levereras oftast utan golv och ska stå på ett plant, bärande underlag, till exempel en gjuten platta eller en ram i tryckimpregnerat virke, medan de flesta plastbodarna har golv eller bottenplatta – läs i beskrivningen vad som ingår.",
-      "Välj material efter hur mycket underhåll du vill ha. Galvaniserad plåt har ett zinkskikt som skyddar stålet, plastbodarna är genomfärgade och ska inte målas, och trä behöver målas eller laseras innan det tas i bruk.",
+      "En redskapsbod ger gräsklipparen, cyklarna och trädgårdsredskapen ett eget tak. Här samlar vi bland annat redskapsbodar och skjul i plåt, plast och trä, trädgårdsskåp för spadar, krattor och annat redskap, och cykeltält när du behöver skydda cyklar.",
+      "Börja med yta och höjd. Mät platsen där boden ska stå och lämna utrymme för dörrarna: skjutdörrar behöver ingen plats framför boden, medan dörrar som slår ut behöver fri yta. Vill du kunna gå in, titta på nockhöjden och dörröppningens höjd i beskrivningen. Kontrollera också om golv ingår: en bod utan golv ska stå på ett plant, bärande underlag, till exempel en gjuten platta eller en ram i tryckimpregnerat virke.",
+      "Välj material efter hur mycket underhåll du vill ha. Galvaniserat stål har ett zinkskikt som skyddar mot rost, plast rostar inte och behöver inte målas, och obehandlat trä behöver ett lager träskydd, så läs i beskrivningen om virket redan är ytbehandlat. Förankra boden i underlaget så att den inte blåser iväg, och kontrollera taklutning och snölast om du bor där det snöar mycket.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Behöver jag bygglov för en redskapsbod?",
-        a: "Mindre bodar kan ofta byggas som friggebod utan bygglov. Enligt Boverket får en friggebod vara högst 15 kvadratmeter och 3 meter hög, och den får inte stå närmare tomtgränsen än 4,5 meter utan grannens medgivande. Kommunen kan ha egna regler, så kontrollera alltid med din kommun innan du beställer.",
+        a: "Mindre bodar kan ofta byggas som friggebod utan bygglov, men storlek, höjd och avstånd till tomtgränsen styrs av plan- och bygglagen och Boverkets regler, och kommunen kan ha egna bestämmelser. Kontrollera alltid med din kommun innan du beställer.",
       },
       {
         q: "Ingår golv i redskapsboden?",
-        a: "Det beror på modellen. Plåtbodarna levereras oftast utan golv och ska stå på ett plant, bärande underlag, till exempel en gjuten platta eller en ram i tryckimpregnerat virke. Plastbodarna har golv eller bottenplatta, utom boden på 1,1 m² som finns både med och utan golv, och två av metallbodarna levereras med golvfundament. Läs i beskrivningen vad som ingår.",
+        a: "Det beror på modellen. En bod utan golv ska stå på ett plant, bärande underlag, till exempel en gjuten platta eller en ram i tryckimpregnerat virke. Läs i beskrivningen om golv eller golvfundament ingår.",
       },
       {
-        q: "Redskapsbod, förrådstält eller trädgårdsskåp?",
-        a: "En redskapsbod är ett litet hus som du går in i. Förrådstältet täcker 13,4 m² och har 255 cm i nock, så du går upprätt över hela golvet. Ett trädgårdsskåp tar minst plats och har hyllor och fack för redskap – bra när ytan är liten.",
+        q: "Redskapsbod, cykeltält eller trädgårdsskåp?",
+        a: "En redskapsbod är ett litet hus som du kan gå in i. Ett cykeltält har en duk över en stomme och skyddar cyklar mot regn och damm. Ett trädgårdsskåp är smalt och har hyllor och fack för redskap, vilket passar när ytan är liten.",
+      },
+      {
+        q: "Hur förankrar jag en bod?",
+        a: "Skruva fast boden i plattan eller ramen enligt monteringsanvisningen, så att den inte blåser iväg i storm. Förankringssatser och fundament ingår inte alltid, så läs i beskrivningen vad som medföljer.",
       },
     ],
   },
@@ -2118,23 +2130,27 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
 
   speglar: {
     intro: [
-      "Här hittar du speglar till hela hemmet: helkroppsspeglar och golvspeglar, väggspeglar med ram i svart metall, guld eller furufaner, fönsterspeglar med spröjs och badrumsspeglar med LED-belysning.",
-      "Helkroppsspeglarna och golvspeglarna är 120 till 180 cm höga. Fyra av dem har ett stöd som fälls ut, så att spegeln står på golvet, och två har dimbar LED-belysning.",
-      "Väggspeglarna finns i flera storlekar och former, och flera hängs stående eller liggande. Till badrummet finns speglar med LED-belysning och antiimma, samlade på sidan Badrumsspeglar.",
+      "En spegel gör små rum ljusare, hjälper dig se hur kläderna sitter och är samtidigt en dekoration. Här hittar du speglar till hela hemmet: helkroppsspeglar och golvspeglar som står eller lutas mot väggen, väggspeglar i olika former och ramar, fönsterspeglar med spröjs, sminkspeglar med belysning och LED-speglar.",
+      "En helkroppsspegel ska vara tillräckligt hög för att du ska se dig själv från huvud till fot, och en golvspegel behöver ett stöd eller ett stativ som håller den stadigt. En väggspegel hänger du upp med skruv och plugg som passar både väggen och spegelns vikt, som du kontrollerar i beskrivningen. Placera spegeln där ljuset kommer in från sidan eller framifrån, så får du en klar spegelbild.",
+      "Ramens material och färg, till exempel svart metall, guld eller trä, avgör hur spegeln passar in i rummet. Ska spegeln hänga i badrummet finns speglar med LED-belysning och antiimma samlade på sidan Badrumsspeglar.",
       "Du handlar tryggt med Klarna, får fri frakt över 499 kr och har 30 dagars öppet köp.",
     ],
     faq: [
       {
         q: "Hur stor spegel behöver jag för att se hela mig?",
-        a: "En plan spegel behöver vara ungefär hälften så hög som du för att du ska se hela kroppen, om den sitter på rätt höjd. Helkropps- och golvspeglarna här är 120 till 180 cm höga.",
+        a: "En plan spegel behöver vara ungefär hälften så hög som du för att du ska se hela kroppen, om den sitter på rätt höjd. Jämför spegelns höjd i beskrivningen med din egen längd, och välj gärna en högre spegel för mer marginal.",
       },
       {
         q: "Hur hänger jag upp en tung spegel?",
-        a: "Med skruv och plugg som passar väggen, och skruvarna ska sitta i väggmaterialet, inte bara i gipsskivan. Flera väggspeglar väger runt 10 kg, och vikten står i beskrivningen.",
+        a: "Med skruv och plugg som passar väggen, och skruvarna ska sitta i väggmaterialet, inte bara i gipsskivan. Kontrollera spegelns vikt i beskrivningen och välj fästen som tål mer än vikten. Be någon hålla spegeln medan du markerar hålen.",
       },
       {
-        q: "Kan spegeln hänga liggande?",
-        a: "Flera väggspeglar kan hängas både stående och liggande. Spegeln med nio fält har fyra krokar på baksidan för just det.",
+        q: "Kan spegeln hängas både stående och liggande?",
+        a: "Det beror på modellen. Står det att spegeln hängs stående eller liggande har den fästen för båda lägena. Annars hänger du den så som fästena på baksidan är gjorda för.",
+      },
+      {
+        q: "Går det att ha en spegel i badrummet?",
+        a: "Ja. En spegel med el ska ha en IP-klass som passar badrummet, till exempel IP44 som tål vattenstänk. Speglar med LED och antiimma för badrum finns på sidan Badrumsspeglar.",
       },
     ],
   },
