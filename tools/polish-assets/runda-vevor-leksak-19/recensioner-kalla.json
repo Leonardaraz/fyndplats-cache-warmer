@@ -1,0 +1,86 @@
+{
+  "27e19c1d": {
+    "productId": "27e19c1d-a374-4296-a065-654a5ba1b18c",
+    "synliga": 0,
+    "dolda": 7,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": []
+  },
+  "34c9dd28": {
+    "productId": "34c9dd28-b002-4f9a-983a-73071375350d",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-dknm3r",
+        "betyg": 5,
+        "datum": "2025-10-28",
+        "foton": 0,
+        "text": "Precies wat ik zocht. Niet te diep en te hoog maar ruim genoeg voor veel boekjes! En de prijs is ook echt top."
+      },
+      {
+        "id": "gen-xmpdj7",
+        "betyg": 4,
+        "datum": "2026-05-21",
+        "foton": 0,
+        "text": "Love this bookshelf for my daughter! It looks super cute in her room and it holds a good few books. The only reason I give it a four it’s because it wasn’t that easy to build 😅 but once done it looks good!"
+      }
+    ]
+  },
+  "c39f87ed": {
+    "productId": "c39f87ed-0190-4bd5-8006-71895cefa072",
+    "synliga": 0,
+    "dolda": 6,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": []
+  },
+  "3dfb8fd0": {
+    "productId": "3dfb8fd0-54e7-44b7-b5ec-4e38c090b343",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": [
+      {
+        "id": "gen-12nh3gy",
+        "betyg": 5,
+        "datum": "2026-03-19",
+        "foton": 0,
+        "text": "Very fun to set up, quality is good, looks great and is sturdy. The most fun part was stringing the rope through! Great for organizing need one more to hold all stuffies though! Size is perfect"
+      },
+      {
+        "id": "gen-1th9g0o",
+        "betyg": 5,
+        "datum": "2026-03-04",
+        "foton": 0,
+        "text": "I love this!! It holds alot more than you would think"
+      }
+    ]
+  },
+  "d80ad446": {
+    "productId": "d80ad446-939c-4f54-a29c-ab8a0b83f40c",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "cb6c3d94": {
+    "productId": "cb6c3d94-115e-4a91-9962-f708b698079f",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  }
+}
