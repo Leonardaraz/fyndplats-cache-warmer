@@ -1,0 +1,52 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+18417985 94 bredden 940 mm i källans Produktmått och på måttritningen = 94 cm
+18417985 119 djupet 1190 mm i källans Produktmått och på måttritningen = 119 cm
+18417985 125,5 höjden 1255 mm i källans Produktmått och på måttritningen = 125,5 cm
+18417985 12,2 nettovikten 12,2 kg i källans tabell och på specifikationsbilden (26.9 lbs / 12.2 kg)
+18417985 2 åldern från 2 år i källans titel och tabell (2+) och på specifikationsbilden (Recommended Age 2+)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+cbf8b972 140,3 bredden 1403 mm i källans Produktstorlek och på måttritningen = 140,3 cm
+cbf8b972 126 djupet 1260 mm i källans Produktstorlek och på måttritningen = 126 cm
+cbf8b972 166 höjden 1660 mm i källans Produktstorlek och på måttritningen = 166 cm
+cbf8b972 3 åldern: namnet säger 2–10 år, punkten och tabellen 2–8 år och specifikationsbilden 3–10 år, och den snävaste åldern som alla källor tillåter, 3–8 år, skrivs; tre hängare för stekspadar på VEVOR:s bild (3 spatula hangers)
+cbf8b972 8 åldern 3–8 år: tabellen och punkten säger högst 8 år, och det lägre skrivs
+cbf8b972 2 två fönster och två blomlådor i källans punkt, och två spisplattor och två stekpannor på VEVOR:s bild (2 induction cookers, 2 frying pans)
+cbf8b972 1 en dörr i källans punkt (1 dörr)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+18d00f98 232 längden 2320 mm i källans Produktstorlek och på måttritningen = 232 cm
+18d00f98 310 bredden 3100 mm i källans Produktstorlek och på måttritningen = 310 cm
+18d00f98 269 höjden 2690 mm i källans Produktstorlek och (105,91 tum) på måttritningen = 269 cm; ritningens mm-tal 2090 stämmer inte med dess egna tum-tal och skrivs inte
+18d00f98 2 åldern 2–8 år: namnet säger 2–8 år och punkten, tabellen och specifikationsbilden säger 2–10 år, och den snävare åldern skrivs
+18d00f98 8 åldern högst 8 år i källans namn: det lägre skrivs
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+1d7abb31 187 bredden 1870 mm i källans Produktmått och på måttritningen = 187 cm
+1d7abb31 151 djupet 1510 mm i källans Produktmått och på måttritningen = 151 cm
+1d7abb31 110,5 höjden 1105 mm i källans Produktmått och på måttritningen = 110,5 cm
+1d7abb31 22,3 nettovikten 22,3 kg i källans tabell och på specifikationsbilden (49.2 lbs / 22.3 kg)
+1d7abb31 1 åldern från 1 år i källans titel och tabell (1+) och på VEVOR:s bild (Ages 1+)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+2a0d3898 147 bredden 1470 mm i källans Produktmått och på måttritningen = 147 cm
+2a0d3898 120 djupet 1200 mm i källans Produktmått och på måttritningen = 120 cm
+2a0d3898 143 höjden 1430 mm i källans Produktmått och på måttritningen = 143 cm; huvudramens 1410 mm skrivs inte
+2a0d3898 140 rutschkanans längd 140 cm i källans punkt och på VEVOR:s bilder (55.12 in / 1400 mm)
+2a0d3898 30 nettovikten 30 kg: specifikationsbildens 66.14 lbs = 30,00 kg, medan källans tabell säger 30,50 kg, och det lägre skrivs
+2a0d3898 113 viktkapaciteten 113 kg i källans tabell och punkt och på specifikationsbilden (250 lbs / 113 kg)
+2a0d3898 250 viktkapaciteten 250 lb på specifikationsbilden (250 lbs / 113 kg)
+2a0d3898 2 två gungor: trägunga i sittstil och trägunga med enkel skiva i källans punkt och på VEVOR:s bild
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+34dcc3f3 147 bredden 1470 mm på måttritningen och specifikationsbilden, och 147 cm i källans namn = 147 cm
+34dcc3f3 120 djupet 1200 mm på måttritningen och specifikationsbilden, och 120 cm i källans namn = 120 cm
+34dcc3f3 142 höjden 142 cm i källans namn; måttritningen och specifikationsbilden säger 1440 mm (56,7 tum), och det lägre skrivs
+34dcc3f3 28,6 nettovikten 28,6 kg (63 lbs) med alla tillbehör på specifikationsbilden
+34dcc3f3 63 nettovikten 63 lb på specifikationsbilden (63 lbs / 28.6 kg)
+34dcc3f3 136 maxlasten på huvudramen 136 kg i källans punkt och tabell och på specifikationsbilden (300 lbs / 136 kg)
+34dcc3f3 300 maxlasten 300 lb på specifikationsbilden och på bilden Let Three Kids Play Safely
+34dcc3f3 2 åldern 2–6 år på specifikationsbilden (Applicable Age 2-6 years old children)
+34dcc3f3 6 åldern 2–6 år på specifikationsbilden: högst 6 år
+34dcc3f3 7 sju delar: källans titel och punkt (7-i-1) och VEVOR:s bild (7-in-1 Jungle Gym Playground), räknade: trästege, repstege, nätstege, gunga, monkey bars, rutschkana och klättervägg
