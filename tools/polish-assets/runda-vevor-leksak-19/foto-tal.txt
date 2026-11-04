@@ -48,3 +48,16 @@ cb6c3d94 34 djupet 340 mm i källans Produktmått och på måttritningen = 34 cm
 cb6c3d94 69 höjden 690 mm i källans Produktmått och på måttritningen = 69 cm
 cb6c3d94 40,7 bordsskivans höjd 407 mm i källans tabell (Bordhöjd från marken) och på måttritningen (16 in / 407 mm) = 40,7 cm
 cb6c3d94 62 sextiotvå delar: källans titel och tabell (Antal tillbehör 62 stycken) och VEVOR:s bild (62 pieces)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+4ebd9d39 190,5 längden 1905 mm på måttritningen (75.00 in) och i källans tabell = 190,5 cm
+4ebd9d39 79 bredden 790 mm på måttritningen (31.10 in) och i källans tabell = 79 cm
+4ebd9d39 66 höjden 660 mm på måttritningen (25.98 in) och i källans tabell = 66 cm
+4ebd9d39 23,5 sitsens 9.25 in / 235 mm på bilden = 23,5 cm
+4ebd9d39 20 sitsens 7.87 in / 200 mm på bilden = 20 cm
+4ebd9d39 10 sitsens 3.94 in / 100 mm på bilden = 10 cm
+4ebd9d39 100 bärförmågan 100 lbs per sits på specifikationsbilden = 45,4 kg i källans specifikation
+4ebd9d39 4 fyra stift: källans tabell (4-stifts stödben) och VEVOR:s bild (4-prong Support Legs)
+4ebd9d39 2 två sitsar: källans tabell (Antal platser 2) och två insexnycklar och två nylonhylsor i måttbildens lista
+4ebd9d39 6 sex monteringssteg räknade på VEVOR:s monteringsbild (Step 1 till Step 6)
+4ebd9d39 5,8 nettovikten 5,8 kg i källans tabell och på specifikationsbilden (12.8 lbs / 5.8 kg)

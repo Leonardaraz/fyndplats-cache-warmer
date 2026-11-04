@@ -10,3 +10,5 @@ bygg-axelfacit.py källans rad Produktmått (justerbar fotplatta ingår) (846 x 
 bygg-axelfacit.py källans rad Produktmått (66,93 x 15,75 x 31,50 tum/1700 x 400 x 800 mm) har inga axelord, men VEVOR:s måttritning (i kallor.json) ritar måtten med pilar: texten skriver bredd, djup och höjd ur ritningen
 # <skript> <skäl> — se bygg-skrivplan.py
 bygg-axelfacit.py källans rad Produktmått (15,7 x 13,4 x 27,2 tum / 398 x 340 x 690 mm) har inga axelord, men VEVOR:s måttritning (i kallor.json) ritar måtten med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (75,00 x 31,10 x 25,98 tum / 1905 x 790 x 660 mm) har inga axelord, men VEVOR:s måttritning (i kallor.json) ritar måtten med pilar: texten skriver längd, bredd och höjd ur ritningen
