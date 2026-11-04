@@ -74,7 +74,7 @@ test("den låsta korgen följer E0: öppen åtkomst, Sverige, webben, låst kupo
   const korg = lasWixVarukorg({ lineItems: [wixRad("a", "p1", "v1", 2, "499.90"), wixRad("c", "pk", null, 1, "500", "annan-app")] })!;
   const golv = new Map<string, Golvsvar>([[golvnyckel("p1", "v1"), { golvOre: 30_000, kostnadOre: 20_000 }]]);
   const beslut = prissatt(prisrader(korg, golv), { typ: "privat", niva: "Guld", nivaProcent: 2 });
-  const kropp = laastVarukorgKropp(beslut, korg, "kund@example.se") as any;
+  const kropp = laastVarukorgKropp(beslut, korg, "kund@example.se") as { cart: unknown; catalogItems: unknown[] };
   assert.deepEqual(kropp.cart, {
     customerInfo: { openAccess: true, email: "kund@example.se" },
     settings: { lockCouponCode: true, lockGiftCard: true },

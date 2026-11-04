@@ -7,10 +7,13 @@
 // tecknet `fp_medlem_inne` säger att det finns en session att fråga om.
 //
 // [P8] Listpriset stryks inte över. Rutan säger "Ditt medlemspris" med nivå
-// och procent (E2-3), eller att varan inte omfattas (E2-4).
+// och procent (E2-3), eller att varan inte omfattas (E2-4). Rutan har nivåns
+// färg, samma metall som medlemskortet: guld för guld, silver för silver
+// (Leonard 2026-11-04).
 
 import { useEffect, useState } from "react";
-import { formatPrice } from "../lib/price-range";
+import { kronorText } from "../lib/medlem/kronor";
+import { nivaNyckel } from "../lib/medlem/niva-nyckel";
 
 type Variant = {
   variantId: string;
@@ -27,8 +30,6 @@ export function harMedlemstecken(): boolean {
   if (typeof document === "undefined") return false;
   return document.cookie.split(";").some((c) => c.trim() === "fp_medlem_inne=1");
 }
-
-const kronor = (ore: number) => formatPrice(ore / 100);
 
 export function Medlemspris({ produktId, variantId }: { produktId: string; variantId?: string | null }) {
   const [svar, setSvar] = useState<Svar | null>(null);
@@ -52,7 +53,7 @@ export function Medlemspris({ produktId, variantId }: { produktId: string; varia
 
   if (v.begransning === "ej-berattigad" || (v.begransning === "golv" && v.pOre >= v.aOre)) {
     return (
-      <p className="medlemspris medlemspris-utan" role="status">
+      <p className="medlemspris-utan" role="status">
         Den här varan omfattas inte av medlemspriset.
       </p>
     );
@@ -60,9 +61,10 @@ export function Medlemspris({ produktId, variantId }: { produktId: string; varia
   if (v.pOre >= v.aOre) return null;
 
   return (
-    <div className="medlemspris" role="status">
+    <div className="medlemspris" data-niva={nivaNyckel(svar.niva)} role="status">
       <span className="medlemspris-etikett">Ditt medlemspris</span>
-      <span className="medlemspris-belopp">{kronor(v.pOre)}</span>
+      {/* Med ören: samma tal som kassan (specen, avrundning). */}
+      <span className="medlemspris-belopp">{kronorText(v.pOre)}</span>
       <span className="medlemspris-niva">
         {svar.niva} · {v.begransning === "golv" && v.hogstaProcent !== undefined ? `högst ${v.hogstaProcent} %` : `${v.procent} %`}
       </span>

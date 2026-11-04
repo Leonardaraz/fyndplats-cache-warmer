@@ -8,9 +8,9 @@ import { GOLV_CACHE_MS, golvnyckel, hamtaGolv, tomGolvcache } from "./golv-klien
 beforeEach(() => tomGolvcache());
 
 function motor(rader: unknown[], status = 200) {
-  const anrop: { url: string; kropp: any; headers: any; cache?: string }[] = [];
-  const fetchImpl = (async (url: string, init: any) => {
-    anrop.push({ url, kropp: JSON.parse(init.body), headers: init.headers, cache: init.cache });
+  const anrop: { url: string; kropp: { rader: unknown[] }; headers: Record<string, string>; cache?: string }[] = [];
+  const fetchImpl = (async (url: string, init: RequestInit) => {
+    anrop.push({ url, kropp: JSON.parse(String(init.body)), headers: init.headers as Record<string, string>, cache: init.cache });
     return new Response(JSON.stringify({ ok: true, rader }), { status });
   }) as unknown as typeof fetch;
   return { anrop, fetchImpl };

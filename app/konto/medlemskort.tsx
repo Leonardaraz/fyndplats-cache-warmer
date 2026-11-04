@@ -3,20 +3,10 @@
 // inloggningen. Färgerna bor i konto.module.css under [data-niva].
 
 import s from "./konto.module.css";
+import { nivaNyckel } from "../../lib/medlem/niva-nyckel";
 
-/** Nivåns nyckel för färgerna. En okänd nivå (nya regler) får bronsens färg. */
-const NYCKLAR: Record<string, string> = {
-  Brons: "brons",
-  Silver: "silver",
-  Guld: "guld",
-  Platina: "platina",
-  Diamant: "diamant",
-  VIP: "vip",
-};
-
-export function nivaNyckel(namn: string): string {
-  return NYCKLAR[namn] ?? "brons";
-}
+/** Nivåns nyckel för färgerna, densamma som rutan med medlemspriset använder. */
+export { nivaNyckel };
 
 /** Fyndplats-kuben, samma former som public/logo.svg. */
 function Kub({ id }: { id: string }) {
