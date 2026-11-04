@@ -19,3 +19,29 @@ konkurrent redan rankar med samma sidtyp. Urvalsregeln och mätningen står i
 ⚠️ **Omätningen 2026-10-30 är provet.** Om S14-sidorna inte rör sig medan
 dealproffsen ligger på plats 1–5 med samma upplägg, är det domänens styrka som
 bromsar. Då är nästa steg externa länkar, inte fler sidor.
+
+### Brödsmulan: produktens egen avdelning först (2026-11-04)
+
+ChatGPT:s audit 2026-11-03 hittade en uppresningsfåtölj med brödsmulan Skönhet & Hälsa →
+Massage & Återhämtning, medan bläddringsraden sa "4 av 244 i Fåtöljer". Det var två fel:
+
+- **Data:** tre stolar var aldrig kopplade till Uppresningsfåtöljer (runda n328 m.fl.).
+  Kopplade 2026-11-04.
+- **Regeln:** butiken tog den smalaste underkategorin oavsett avdelning, och bläddringsraden
+  valde med en annan regel.
+
+Butiken (headless-site `lib/breadcrumb-category.ts`) väljer nu den smalaste underkategorin
+bland produktens EGNA avdelningar först, och bläddringsraden följer brödsmulan.
+Långsvansregeln ovan står kvar inom avdelningen. Kategoristeget i polerrundan stoppar
+dessutom en plan där namnets huvudfras pekar ut en kategori som saknas
+(`lib/polish/typkategori.ts`).
+
+**Kategorikollen** (workflow "Kategorikoll", `app/api/admin/kategorikoll`) räknar över hela
+katalogen. Den bara läser, och loggen bär antal, kategorinamn och Wix-id. Den räknar:
+
+- brödsmulan före och efter regeln, grupperad från → till;
+- produkterna vars namn pekar ut en kategori de inte ligger i.
+
+Regeln i `lib/kategorikoll/brodsmula.ts` är en kopia av butikens och används bara till
+mätningen. Testfallen är butikens, så att en skillnad syns.
+
