@@ -1,0 +1,39 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+f07622cb 80 ihopfälld höjd 800 mm (31,5 in) på måttritningen och i specifikationen = 80 cm; punkten säger 89 cm och utkastet 84 cm: det lägre skrivs (Leonards regel)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+459658e6 221,5 längden 2215 mm (87 in) på VEVOR:s måttritning och i källans rad = 221,5 cm
+459658e6 112 bredden 1120 mm (44 in) på måttritningen och i källans rad = 112 cm
+459658e6 83 höjden 830 mm (33 in) på måttritningen och i källans rad = 83 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+1586dc36 203,5 längden 2035 mm (80 in) på VEVOR:s måttritning och i källans rad = 203,5 cm
+1586dc36 109,5 bredden 1095 mm (43 in) på måttritningen och i källans rad = 109,5 cm
+1586dc36 81,2 höjden 812 mm (32 in) på måttritningen och i källans rad = 81,2 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+3e3e39f3 150 bredden 1500 mm (59 in) på VEVOR:s måttritning och i källans rad = 150 cm
+3e3e39f3 106 höjden 1060 mm (41,7 in) på måttritningen och i källans rad = 106 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+54739ea3 200 innermåttet 2000 mm (78,7 in) i källans rad = 200 cm
+54739ea3 178 innermåttet 1780 mm (70,1 in) i källans rad = 178 cm
+54739ea3 207 yttermåttet 2070 mm (81,5 in) i källans rad = 207 cm
+54739ea3 185 yttermåttet 1850 mm (72,83 in) i källans rad = 185 cm
+54739ea3 69,5 yttermåttet 695 mm (27,36 in) i källans rad och på måttritningen = 69,5 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+76e9d982 200 innermåttet 2000 mm (78,7 in) i källans rad = 200 cm
+76e9d982 178,5 innermåttet 1785 mm (70,3 in) i källans rad = 178,5 cm
+76e9d982 206 yttermåttet 2060 mm (81,1 in) i källans rad = 206 cm
+76e9d982 184 yttermåttet 1840 mm (72,44 in) i källans rad = 184 cm
+76e9d982 65 yttermåttet 650 mm (25,59 in) i källans rad och på måttritningen = 65 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+9356b835 60 längden 600 mm (23,62 in) på VEVOR:s måttritning; källans rad säger 660 mm: det lägre skrivs (Leonards regel)
+9356b835 40,5 bredden 405 mm (15,94 in) i källans rad och på måttritningen = 40,5 cm
+9356b835 55 höjden 550 mm (21,65 in) i källans rad och på måttritningen = 55 cm
+9356b835 34 pallens längd 340 mm (13,39 in) på måttritningen = 34 cm
+9356b835 19,5 pallens bredd 195 mm (7,68 in) på måttritningen = 19,5 cm
+9356b835 24 pallens höjd 240 mm (9,45 in) på måttritningen = 24 cm
