@@ -16,6 +16,7 @@ import { skapaKassalankMinne, type Kassalank } from "../lib/kassalank";
 import { medlemskassa, useMedlemskorg } from "./medlemspris";
 import { kronorText } from "../lib/medlem/kronor";
 import { exklMoms } from "../lib/medlem/pris";
+import { OffertForfragan } from "./offert-forfragan";
 import { nivaNyckel } from "../lib/medlem/niva-nyckel";
 import { normaliseraKundvagn, vagnenArBorta, valdaAlternativ } from "../lib/cart-shape";
 import { visaValnamn } from "../lib/variant-lage";
@@ -746,6 +747,7 @@ export function CartDrawer() {
                       </p>
                     )}
                     <p className="drawer-moms">Kassan visar priserna inklusive moms.</p>
+                    {f.offert && cart?._id ? <OffertForfragan cartId={cart._id} /> : null}
                   </>
                 );
               })()

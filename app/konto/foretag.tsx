@@ -14,6 +14,15 @@ import { orgnrFeltext, provaOrgnr } from "@/lib/medlem/orgnr";
 import { VILLKOR_FORETAG_VERSION, postnrText, provaForetagsansokan, type Faltfel } from "@/lib/medlem/foretag";
 import s from "./konto.module.css";
 
+/** En offert på Mina sidor: aldrig priser, bara läget och länken. */
+export interface OffertPaMinaSidor {
+  id: string;
+  datum: string;
+  status: string;
+  /** Länken visas när offerten är prissatt, öppnad eller betald. */
+  visa: boolean;
+}
+
 export interface ForetagVy {
   status: "granskas" | "aktiv" | "nekad";
   namn: string;
@@ -262,7 +271,38 @@ function Profilval({ namn, aktiv }: { namn: string; aktiv: "privat" | "foretag" 
   );
 }
 
-export function Foretagskonto({ foretag, aktivProfil }: { foretag: ForetagVy | null; aktivProfil: "privat" | "foretag" }) {
+function Offerter({ offerter }: { offerter: OffertPaMinaSidor[] }) {
+  if (offerter.length === 0) {
+    return <p className={s.liten}>Offert begär du i varukorgen när den har minst 6 exemplar av samma vara eller 20 000 kr exkl. moms.</p>;
+  }
+  return (
+    <>
+      <p className={s.etikett} style={{ marginTop: 18 }}>
+        Offerter
+      </p>
+      <ul className={s.offertLista}>
+        {offerter.map((o) => (
+          <li key={o.id}>
+            <span>
+              {o.datum} · {o.status}
+            </span>
+            {o.visa ? <a href={`/offert/${o.id}`}>Se offerten</a> : null}
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+
+export function Foretagskonto({
+  foretag,
+  aktivProfil,
+  offerter = [],
+}: {
+  foretag: ForetagVy | null;
+  aktivProfil: "privat" | "foretag";
+  offerter?: OffertPaMinaSidor[];
+}) {
   const [oppen, setOppen] = useState(false);
   const [skickad, setSkickad] = useState(false);
   const ladda = () => window.location.reload();
@@ -323,6 +363,7 @@ export function Foretagskonto({ foretag, aktivProfil }: { foretag: ForetagVy | n
           </p>
           {foretag.status === "aktiv" && !foretag.villkorAktuellt && <Villkor efter={ladda} />}
           {foretag.status === "aktiv" && foretag.villkorAktuellt && <Profilval namn={foretag.namn} aktiv={aktivProfil} />}
+          {foretag.status === "aktiv" && foretag.villkorAktuellt && <Offerter offerter={offerter} />}
           {foretag.status === "nekad" && (
             <button type="button" className={s.utknapp} onClick={() => setOppen(true)}>
               Skicka en ny ansökan

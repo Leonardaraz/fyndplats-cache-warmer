@@ -179,6 +179,66 @@ export function laastVarukorgKropp(beslut: Prisbeslut, rader: readonly Varukorgs
   };
 }
 
+/** En rad med sitt låsta styckpris inkl. moms (E3: offertens rader). */
+export interface Lastrad {
+  produktId: string;
+  variantId: string | null;
+  appId: string;
+  antal: number;
+  pOre: number;
+}
+
+/**
+ * Kroppen till `POST /ecom/v2/carts` för rader med givna styckpriser, med samma
+ * regler som medlemskorgen (E0): ägarlös, Sverige, WEB, låst kupong och
+ * presentkort, samma pris i salePrice och fullPrice. Bara rader från Wix
+ * Stores; en offert innehåller inga andra.
+ */
+export function lastKorgKropp(rader: readonly Lastrad[], epost: string): Record<string, unknown> {
+  if (rader.length === 0) throw new Error("korgen saknar rader");
+  const catalogItems = rader.map((r, i) => {
+    if (r.appId !== STORES_APP_ID) throw new Error(`rad ${i} är inte från Wix Stores`);
+    if (!Number.isSafeInteger(r.antal) || r.antal < 1) throw new Error(`rad ${i} har fel antal`);
+    const pris = beloppAvOre(r.pOre);
+    return {
+      catalogReference: {
+        catalogItemId: r.produktId,
+        appId: r.appId,
+        ...(r.variantId ? { options: { variantId: r.variantId } } : {}),
+      },
+      quantity: r.antal,
+      catalogOverrideFields: { salePrice: pris, fullPrice: pris },
+    };
+  });
+  return {
+    cart: {
+      customerInfo: { openAccess: true, email: epost },
+      settings: { lockCouponCode: true, lockGiftCard: true },
+      deliveryInfo: { address: { country: "SE" } },
+      source: { channelType: "WEB" },
+    },
+    catalogItems,
+  };
+}
+
+/** Bär den skapade korgen exakt raderna och deras priser? Ordningen spelar ingen roll. */
+export function korgenBarRaderna(rader: readonly Lastrad[], skapad: unknown): boolean {
+  const lasta = lasWixVarukorg(skapad);
+  if (!lasta || lasta.length !== rader.length) return false;
+  const vantat = new Map<string, number[]>();
+  for (const r of rader) {
+    const k = `${golvnyckel(r.produktId, r.variantId)}|${r.antal}|${r.appId}`;
+    vantat.set(k, [...(vantat.get(k) ?? []), r.pOre]);
+  }
+  for (const r of lasta) {
+    const priser = vantat.get(`${golvnyckel(r.produktId, r.variantId)}|${r.antal}|${r.appId}`);
+    const i = priser ? priser.indexOf(r.aOre) : -1;
+    if (!priser || i < 0) return false;
+    priser.splice(i, 1);
+  }
+  return true;
+}
+
 /**
  * Kontroll efter att Wix skapat korgen: varje rad ska bära vårt pris. Wix
  * har tidigare tyst ignorerat fält; utan kontrollen hade en korg utan

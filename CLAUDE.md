@@ -1729,5 +1729,24 @@ Ett företag läggs till på ett befintligt konto, högst ett per konto i E3.
   `VILLKOR_FORETAG_VERSION`, och varje företag godkänner den nya versionen på
   Mina sidor innan kontot prissätts som företag igen.
 
+- **Offerten** (`lib/medlem/offert.ts`, `FyndplatsOfferter`, ADMIN):
+  "Begär offert" visas i varukorgen för ett godkänt företag när prismotorn
+  säger `offert` (6 exemplar av samma vara eller 20 000 kr exkl. moms, F7).
+  Förfrågan sparar raderna med listpris (bara Wix Stores), högst tre
+  obesvarade per konto, och mejlar info@. Admin sätter styckpriserna i
+  motorn: aldrig under golvet, aldrig över listpriset. Offerten gäller i 14
+  dygn från prissättningen.
+- **`/offert/<id>`** kräver inloggning med kontot som begärde den (annars
+  404) och visar raderna exkl. moms. "Till kassan" (`/api/medlem/offert/kassa`)
+  bygger en låst korg med offertens priser (`lastKorgKropp`, samma regler som
+  medlemskorgen) bara inom giltighetstiden och när kontot handlar som
+  företaget, och sparar prisbeslutet med `kalla: "offert"` och `offertId`.
+- ☠️ **Timjobbet sköter offerternas läge** (`lib/medlem/offertjobb.ts`):
+  betald när en av offertens kassor blev en order (kollas före utgången, så
+  att ett köp i sista stund inte märks som utgånget), utgången efter sista
+  dagen, och mejlet "Offerten är klar" exakt en gång. Den låsta korgen tas
+  bort efter ett dygn som alla medlemskorgar, och övergivna kassor hoppar
+  över den.
+
 Före `pa` för företag: juristgranskning och Leonards ja till villkoren,
 luckorna i dem ifyllda, och vårt kvitto med företagets namn (villkoren 5.2).

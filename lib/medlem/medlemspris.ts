@@ -11,6 +11,7 @@
 // orderliggaren, motorns golv) får kunden listpriset och den vanliga kassan,
 // aldrig ett medlemspris som inte går att förklara.
 
+import { randomBytes } from "node:crypto";
 import { createClient, OAuthStrategy } from "@wix/sdk";
 import { redirects } from "@wix/redirects";
 import { wixFetch, WixApiError } from "@/lib/wix-client";
@@ -20,6 +21,11 @@ import {
   aktuellaRegler,
   hamtaForetagsprofil,
   hamtaMedlem,
+  hamtaOffert,
+  loggaTyst,
+  obesvaradeOfferter,
+  offertIKassan,
+  skapaOffert,
   liggarraderForEpost,
   orderMedKopflode,
   prisbeslutUtanUtfall,
@@ -44,15 +50,21 @@ import {
   type Profil,
 } from "./pris";
 import { kanHandlaSomForetag } from "./foretag";
+import { MAX_OBESVARADE, kanBetalas, offertId, offertSummor, type Offert } from "./offert";
+import { skickaOffertForfragan } from "./mejl";
 import type { Golvsvar, Varukorgsrad } from "./varukorg";
 import {
+  STORES_APP_ID,
   golvnyckel,
   kassaAdress,
   korgenBarPriserna,
+  korgenBarRaderna,
   laastVarukorgKropp,
+  lastKorgKropp,
   lasWixVarukorg,
   prisrader,
   variantpriserUrV3,
+  type Lastrad,
 } from "./varukorg";
 
 /** Butikens publika headless-klient, samma som varukorgen (components/cart.tsx). */
@@ -285,6 +297,21 @@ export async function medlemsprisForKorg(besokarensKorg: string, mp: Medlemsprof
   return pris;
 }
 
+/** Wix-kassans adress för en låst korg, via butikens publika headless-klient (E0). */
+async function kassansAdress(cartId: string, bas: string): Promise<string | null> {
+  try {
+    const klient = createClient({ modules: { redirects }, auth: OAuthStrategy({ clientId: HEADLESS_CLIENT_ID }) });
+    const s = await klient.redirects.createRedirectSession({
+      ecomCheckout: { checkoutId: cartId },
+      callbacks: { thankYouPageUrl: `${bas}/tack`, postFlowUrl: bas, cartPageUrl: `${bas}/butik` },
+    });
+    return kassaAdress(s?.redirectSession?.fullUrl, HEADLESS_CLIENT_ID);
+  } catch {
+    console.error("[medlemskassa] redirect-sessionen föll");
+    return null;
+  }
+}
+
 export type Kassasvar =
   | { ok: true; adress: string; beslut: Pick<Prisbeslut, "procent" | "niva" | "summaPOre" | "rabattOre" | "friFraktSkydd"> }
   | { ok: false; skal: "tom" | "oläslig" | "ingen-rabatt" | "wix" | "kontroll" | "session" | "logg" };
@@ -323,17 +350,7 @@ export async function medlemskassa(
     return { ok: false, skal: "kontroll" };
   }
 
-  let adress: string | null = null;
-  try {
-    const klient = createClient({ modules: { redirects }, auth: OAuthStrategy({ clientId: HEADLESS_CLIENT_ID }) });
-    const s = await klient.redirects.createRedirectSession({
-      ecomCheckout: { checkoutId: cartId },
-      callbacks: { thankYouPageUrl: `${bas}/tack`, postFlowUrl: bas, cartPageUrl: `${bas}/butik` },
-    });
-    adress = kassaAdress(s?.redirectSession?.fullUrl, HEADLESS_CLIENT_ID);
-  } catch {
-    console.error("[medlemskassa] redirect-sessionen föll");
-  }
+  const adress = await kassansAdress(cartId, bas);
   if (!adress) {
     await wixFetch({ method: "DELETE", path: `/ecom/v2/carts/${cartId}` }).catch(() => {});
     return { ok: false, skal: "session" };
@@ -385,6 +402,138 @@ export async function medlemskassa(
     adress,
     beslut: { procent: beslut.procent, niva: beslut.niva, summaPOre: beslut.summaPOre, rabattOre: beslut.rabattOre, friFraktSkydd: beslut.friFraktSkydd },
   };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Offerten (E3-9, E3-10)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type Forfragningssvar =
+  | { ok: true; id: string }
+  | { ok: false; skal: "inte-foretag" | "for-manga" | "tom" | "oläslig" | "under-gransen" };
+
+/**
+ * En offertförfrågan ur besökarens varukorg. Bara ett godkänt företag, bara
+ * när prismotorn säger att korgen når gränsen (F7), och bara rader från Wix
+ * Stores. Listpriset per rad sparas; admin sätter styckpriserna i motorn.
+ */
+export async function offertForfragan(besokarensKorg: string, mp: Medlemsprofil, meddelande: string): Promise<Forfragningssvar> {
+  if (mp.profil.typ !== "foretag" || !mp.foretag) return { ok: false, skal: "inte-foretag" };
+  if ((await obesvaradeOfferter(mp.medlem.id)) >= MAX_OBESVARADE) return { ok: false, skal: "for-manga" };
+  const korgen = await prissattKorg(besokarensKorg, mp);
+  if ("skal" in korgen) return { ok: false, skal: korgen.skal };
+  if (!korgen.beslut.offert) return { ok: false, skal: "under-gransen" };
+  const rader = korgen.rader
+    .filter((r) => r.appId === STORES_APP_ID)
+    .map((r) => ({ produktId: r.produktId, ...(r.variantId ? { variantId: r.variantId } : {}), appId: r.appId, namn: r.namn || "Vara", antal: r.antal, aOre: r.aOre }));
+  if (rader.length === 0) return { ok: false, skal: "tom" };
+  const o: Offert = {
+    id: offertId(randomBytes(8).toString("hex")),
+    medlemsId: mp.medlem.id,
+    foretagNamn: mp.foretag.namn,
+    status: "skickad",
+    rader,
+    ...(meddelande ? { meddelande } : {}),
+    skapad: new Date().toISOString(),
+  };
+  await skapaOffert(o);
+  await loggaTyst({ omrade: "offert", typ: "forfragan", medlemsId: mp.medlem.id, aktor: "kund", efter: { offertId: o.id, rader: rader.length } });
+  await skickaOffertForfragan({
+    foretagNamn: o.foretagNamn,
+    antalRader: rader.length,
+    antalVaror: rader.reduce((n, r) => n + r.antal, 0),
+    listaOre: offertSummor(o).listaOre,
+    ...(meddelande ? { meddelande } : {}),
+  });
+  return { ok: true, id: o.id };
+}
+
+export type Offertkassasvar =
+  | { ok: true; adress: string }
+  | { ok: false; skal: "saknas" | "inte-giltig" | "inte-foretag" | "wix" | "kontroll" | "session" | "logg" };
+
+/**
+ * Kassan för en prissatt offert: en låst Cart V2 med offertens styckpriser,
+ * samma regler som medlemskorgen. Bara kontots eget godkända företag, och bara
+ * inom giltighetstiden (E3-10, E3-12). Prisbeslutet sparas med kalla "offert"
+ * och offertens id innan kunden får adressen.
+ */
+export async function offertKassa(id: string, mp: Medlemsprofil, bas: string): Promise<Offertkassasvar> {
+  const o = await hamtaOffert(id);
+  if (!o || o.medlemsId !== mp.medlem.id) return { ok: false, skal: "saknas" };
+  if (!kanBetalas(o, Date.now())) return { ok: false, skal: "inte-giltig" };
+  if (mp.profil.typ !== "foretag" || !mp.foretag) return { ok: false, skal: "inte-foretag" };
+  const rader: Lastrad[] = o.rader.map((r) => ({
+    produktId: r.produktId,
+    variantId: r.variantId ?? null,
+    appId: r.appId,
+    antal: r.antal,
+    pOre: r.offertOre as number,
+  }));
+
+  let skapad: { id?: unknown; purchaseFlowId?: unknown; lineItems?: unknown } | undefined;
+  try {
+    skapad = (await wixFetch<{ cart?: { id?: unknown; purchaseFlowId?: unknown; lineItems?: unknown } }>({
+      method: "POST",
+      path: "/ecom/v2/carts",
+      body: lastKorgKropp(rader, mp.medlem.epost),
+    }))?.cart;
+  } catch (e) {
+    console.error(`[offertkassa] Wix skapade ingen korg (${e instanceof WixApiError ? e.status : "nät"})`);
+    return { ok: false, skal: "wix" };
+  }
+  const cartId = typeof skapad?.id === "string" ? skapad.id : "";
+  if (!cartId || !korgenBarRaderna(rader, skapad)) {
+    if (cartId) await wixFetch({ method: "DELETE", path: `/ecom/v2/carts/${cartId}` }).catch(() => {});
+    console.error("[offertkassa] korgen bar inte offertens priser");
+    return { ok: false, skal: "kontroll" };
+  }
+  const adress = await kassansAdress(cartId, bas);
+  if (!adress) {
+    await wixFetch({ method: "DELETE", path: `/ecom/v2/carts/${cartId}` }).catch(() => {});
+    return { ok: false, skal: "session" };
+  }
+
+  const purchaseFlowId = typeof skapad?.purchaseFlowId === "string" ? skapad.purchaseFlowId : "";
+  const summor = offertSummor(o);
+  const summaPOre = summor.offertOre ?? 0;
+  const sparat = await sparaPrisbeslut({
+    cartId,
+    purchaseFlowId,
+    medlemsId: mp.medlem.id,
+    profil: "foretag",
+    foretagNamn: mp.foretag.namn,
+    offertId: o.id,
+    niva: mp.profil.niva,
+    procent: 0,
+    kalla: "offert",
+    basOreExMoms: exklMoms(summor.listaOre, MOMS_PROCENT),
+    summaAOre: summor.listaOre,
+    summaPOre,
+    rabattOre: summor.listaOre - summaPOre,
+    friFraktSkydd: false,
+    rader: o.rader.map((r) => ({
+      produktId: r.produktId,
+      variantId: r.variantId,
+      antal: r.antal,
+      aOre: r.aOre,
+      procent: 0,
+      pOre: r.offertOre as number,
+      begransning: "offert",
+    })),
+    skapad: new Date().toISOString(),
+  }).then(
+    () => true,
+    () => false,
+  );
+  if (!sparat) {
+    await wixFetch({ method: "DELETE", path: `/ecom/v2/carts/${cartId}` }).catch(() => {});
+    return { ok: false, skal: "logg" };
+  }
+  await offertIKassan(o.id, cartId, purchaseFlowId).catch(() => {
+    console.error("[offertkassa] offerten gick inte att märka som öppnad");
+  });
+  return { ok: true, adress };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

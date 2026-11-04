@@ -7,7 +7,8 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { inloggad } from "@/lib/medlem/inloggad";
-import { hamtaForetagsprofil, hamtaMedlem, medlemsHemlighet, medlemsLage, prisLage, prisOppet } from "@/lib/medlem/lager";
+import { hamtaForetagsprofil, hamtaMedlem, medlemsHemlighet, medlemsLage, offerterFor, prisLage, prisOppet } from "@/lib/medlem/lager";
+import { aktuellStatus, offertStatusText } from "@/lib/medlem/offert";
 import { foretagsstatusText, kanHandlaSomForetag, VILLKOR_FORETAG_VERSION, type Foretagsprofil } from "@/lib/medlem/foretag";
 import { minaSidor } from "@/lib/medlem/konto";
 import { orderGuid, sakertMal } from "@/lib/medlem/inloggning";
@@ -16,7 +17,7 @@ import { KontoInloggning } from "./konto-inloggning";
 import { MinaSidorVy, type Produktbilder } from "./mina-sidor";
 import { Formaner, Kortfacka } from "./formaner";
 import { FornyaSession } from "./fornya";
-import { Foretagskonto, type ForetagVy } from "./foretag";
+import { Foretagskonto, type ForetagVy, type OffertPaMinaSidor } from "./foretag";
 import s from "./konto.module.css";
 
 export const dynamic = "force-dynamic";
@@ -48,6 +49,8 @@ async function produktbilder(idn: Set<string>): Promise<Produktbilder> {
   return ut;
 }
 
+const DATUM = new Intl.DateTimeFormat("sv-SE", { day: "numeric", month: "short", timeZone: "Europe/Stockholm" });
+
 /** Det Mina sidor får veta om företaget. ☠️ Aldrig hela numret för en enskild firma. */
 function foretagVy(p: Foretagsprofil): ForetagVy {
   return {
@@ -71,8 +74,20 @@ async function foretagsdel(
     const [fp, lage] = await Promise.all([hamtaForetagsprofil(medlem.id), prisLage()]);
     if (!fp && !prisOppet(lage, medlem)) return { ruta: null, handlarSom: null };
     const aktiv = sessionProfil === "foretag" && kanHandlaSomForetag(fp) ? "foretag" : "privat";
+    const nu = Date.now();
+    const offerter: OffertPaMinaSidor[] = kanHandlaSomForetag(fp)
+      ? (await offerterFor(medlem.id, 10).catch(() => [])).map((o) => {
+          const st = aktuellStatus(o, nu);
+          return {
+            id: o.id,
+            datum: o.skapad ? DATUM.format(new Date(o.skapad)) : "–",
+            status: offertStatusText(o, nu),
+            visa: st === "prissatt" || st === "accepterad" || st === "betald",
+          };
+        })
+      : [];
     return {
-      ruta: <Foretagskonto foretag={fp ? foretagVy(fp) : null} aktivProfil={aktiv} />,
+      ruta: <Foretagskonto foretag={fp ? foretagVy(fp) : null} aktivProfil={aktiv} offerter={offerter} />,
       handlarSom: aktiv === "foretag" && fp ? fp.namn : null,
     };
   } catch (e) {

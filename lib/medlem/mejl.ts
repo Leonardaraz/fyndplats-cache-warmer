@@ -17,6 +17,7 @@ import MedlemValkommenEmail, { medlemValkommenAmne } from "@/emails/medlem-valko
 import MedlemNyNivaEmail, { medlemNyNivaAmne } from "@/emails/medlem-ny-niva";
 import MedlemNivaSjunkerEmail, { medlemNivaSjunkerAmne } from "@/emails/medlem-niva-sjunker";
 import ForetagGodkantEmail, { ForetagAttGranskaEmail, foretagAttGranskaAmne, foretagGodkantAmne } from "@/emails/medlem-foretag";
+import OffertKlarEmail, { OffertForfraganEmail, offertForfraganAmne, offertKlarAmne } from "@/emails/medlem-offert";
 import { dagSomText, kronor, type Nivalage } from "./niva";
 
 const FROM = "Fyndplats <orders@fyndplats.se>";
@@ -123,4 +124,30 @@ export function skickaForetagGodkant(till: string, namn: string): Promise<boolea
 /** Till butiken: en ansökan väntar. Bara det maskerade numret (F4). */
 export function skickaForetagAttGranska(a: { namn: string; orgnrVisas: string; form: "juridisk" | "enskild" }): Promise<boolean> {
   return skicka(REPLY_TO, foretagAttGranskaAmne(a.namn), ForetagAttGranskaEmail({ ...a, adminLank: ADMIN_MEDLEMMAR }), "foretag-att-granska");
+}
+
+/** Motorns admin, där offerterna prissätts. */
+export const ADMIN_OFFERTER = "https://fyndplats-cache-warmer.vercel.app/admin/medlemmar#offerter";
+
+const SISTA_DAG = new Intl.DateTimeFormat("sv-SE", { day: "numeric", month: "long", timeZone: "Europe/Stockholm" });
+
+/** Till kunden: offerten är prissatt. `giltigTill` är det första ögonblick den inte gäller. */
+export function skickaOffertKlar(till: string, o: { id: string; foretagNamn: string; giltigTill?: string }): Promise<boolean> {
+  const sista = o.giltigTill && !Number.isNaN(Date.parse(o.giltigTill)) ? SISTA_DAG.format(new Date(Date.parse(o.giltigTill) - 1)) : null;
+  return skicka(
+    till,
+    offertKlarAmne,
+    OffertKlarEmail({ foretagNamn: o.foretagNamn, lank: `${sajt()}/offert/${o.id}`, sistaDag: sista }),
+    "offert-klar",
+  );
+}
+
+/** Till butiken: en förfrågan väntar på priser. */
+export function skickaOffertForfragan(a: { foretagNamn: string; antalRader: number; antalVaror: number; listaOre: number; meddelande?: string }): Promise<boolean> {
+  return skicka(
+    REPLY_TO,
+    offertForfraganAmne(a.foretagNamn),
+    OffertForfraganEmail({ ...a, lista: kronor(a.listaOre), adminLank: ADMIN_OFFERTER }),
+    "offert-forfragan",
+  );
 }

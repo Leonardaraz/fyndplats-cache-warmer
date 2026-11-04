@@ -7,7 +7,8 @@
 // prisbeslutet (lib/medlem/korgstadning.ts).
 //
 // E3: samma körning mejlar kunder vars företag har godkänts i motorns admin
-// sedan förra timmen (lib/medlem/foretagsmejl.ts).
+// sedan förra timmen (lib/medlem/foretagsmejl.ts), och sköter offerterna:
+// betald, utgången och mejlet "Offerten är klar" (lib/medlem/offertjobb.ts).
 //
 // Svaret bär bara antal. Auth: "Authorization: Bearer $CRON_SECRET", samma
 // mönster som övriga cron-rutter.
@@ -15,18 +16,50 @@
 import { NextResponse } from "next/server";
 import { stadaMedlemskorgar } from "@/lib/medlem/medlemspris";
 import { mejlaGodkandaForetag } from "@/lib/medlem/foretagsmejl";
-import { avmarkeraGodkandMejlad, foretagAttMejla, hamtaMedlem, markeraGodkandMejlad } from "@/lib/medlem/lager";
-import { skickaForetagGodkant } from "@/lib/medlem/mejl";
+import { skotOfferter } from "@/lib/medlem/offertjobb";
+import {
+  avmarkeraGodkandMejlad,
+  avmarkeraOffertMeddelad,
+  bytOffertstatus,
+  foretagAttMejla,
+  hamtaMedlem,
+  kopflodenForOffert,
+  markeraGodkandMejlad,
+  markeraOffertMeddelad,
+  offerterAttLoptaUt,
+  offerterAttMejla,
+  offerterIKassan,
+  orderMedKopflode,
+} from "@/lib/medlem/lager";
+import { skickaForetagGodkant, skickaOffertKlar } from "@/lib/medlem/mejl";
+
+async function aktivEpost(id: string): Promise<string | null> {
+  const m = await hamtaMedlem(id);
+  return m && m.status === "aktiv" ? m.epost : null;
+}
+
+function skotOfferterNu(nuMs: number) {
+  return skotOfferter(nuMs, {
+    iKassan: async (limit) => (await offerterIKassan(limit)).map((o) => ({ id: o.id })),
+    kopfloden: kopflodenForOffert,
+    orderFinns: orderMedKopflode,
+    attLoptaUt: async (nuIso, limit) => (await offerterAttLoptaUt(nuIso, limit)).map((o) => ({ id: o.id, status: o.status })),
+    byt: bytOffertstatus,
+    attMejla: async (limit) =>
+      (await offerterAttMejla(limit)).map((o) => ({ id: o.id, medlemsId: o.medlemsId, foretagNamn: o.foretagNamn, giltigTill: o.giltigTill })),
+    marka: markeraOffertMeddelad,
+    avmarka: avmarkeraOffertMeddelad,
+    epost: aktivEpost,
+    skicka: skickaOffertKlar,
+  });
+}
 
 function mejlaForetag() {
   return mejlaGodkandaForetag({
     attMejla: async (limit) => (await foretagAttMejla(limit)).map((p) => ({ medlemsId: p.medlemsId, namn: p.namn })),
     marka: markeraGodkandMejlad,
     avmarka: avmarkeraGodkandMejlad,
-    epost: async (id) => {
-      const m = await hamtaMedlem(id);
-      return m && m.status === "aktiv" ? m.epost : null;
-    },
+    epost: aktivEpost,
     skicka: skickaForetagGodkant,
   });
 }
@@ -47,12 +80,14 @@ export async function GET(req: Request) {
   try {
     const utfall = await stadaMedlemskorgar(start);
     const foretag = await mejlaForetag().catch(() => ({ provade: 0, skickade: 0, fel: 1 }));
-    const fel = utfall.fel + foretag.fel;
+    const offerter = await skotOfferterNu(start).catch(() => ({ betalda: 0, utgangna: 0, mejlade: 0, fel: 1 }));
+    const fel = utfall.fel + foretag.fel + offerter.fel;
+    const nagot = utfall.provade + foretag.provade + offerter.betalda + offerter.utgangna + offerter.mejlade;
     // En tom tugga är tyst (docs/claude/03-tom-cron-tugga-tyst.md i motorn).
-    if (utfall.provade > 0 || foretag.provade > 0 || fel > 0) {
-      console.log("[medlemskorgar]", JSON.stringify({ ...utfall, foretag, ms: Date.now() - start }));
+    if (nagot > 0 || fel > 0) {
+      console.log("[medlemskorgar]", JSON.stringify({ ...utfall, foretag, offerter, ms: Date.now() - start }));
     }
-    return NextResponse.json({ ok: fel === 0, ...utfall, foretag, ms: Date.now() - start }, { status: fel === 0 ? 200 : 500 });
+    return NextResponse.json({ ok: fel === 0, ...utfall, foretag, offerter, ms: Date.now() - start }, { status: fel === 0 ? 200 : 500 });
   } catch (e) {
     const fel = e instanceof Error ? e.message.slice(0, 160) : String(e);
     console.error("[medlemskorgar] fel:", fel);

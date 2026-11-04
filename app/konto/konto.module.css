@@ -1272,3 +1272,75 @@
   cursor: progress;
   opacity: 0.7;
 }
+
+/* ── Offerten (E3) ── */
+
+.offertTabell {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+.offertTabell th {
+  text-align: left;
+  font-weight: 700;
+  color: var(--soft);
+  padding: 0 8px 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+.offertTabell td {
+  padding: 10px 8px 10px 0;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+.offertTabell td:nth-child(n + 2),
+.offertTabell th:nth-child(n + 2) {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 560px) {
+  .offertTabell th:nth-child(3),
+  .offertTabell td:nth-child(3) {
+    display: none;
+  }
+}
+.offertSumma {
+  margin: 14px 0 6px;
+  display: grid;
+  gap: 6px;
+  max-width: 360px;
+  margin-left: auto;
+}
+.offertSumma div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+.offertSumma dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.offertLista {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.offertLista li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px 16px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  font-size: var(--text-sm);
+}
+.offertLista a {
+  font-weight: 700;
+  color: var(--brand);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

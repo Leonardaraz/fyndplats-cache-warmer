@@ -35,6 +35,7 @@ import { liggarradArKop } from "../order-raknas";
 import { REGLER_V1, reglerFel, type Regler, type Varning } from "./niva";
 import { medlemsId, taForsok } from "./inloggning";
 import { VILLKOR_FORETAG_VERSION, foretagsprofilId, foretagsprofilUrRad, type Foretagsansokan, type Foretagsprofil } from "./foretag";
+import { offertUrRad, type Offert } from "./offert";
 
 export const MK = {
   medlemmar: "FyndplatsMedlemmar",
@@ -46,6 +47,8 @@ export const MK = {
   logg: "FyndplatsMedlemslogg",
   /** E2: ett beslut per låst varukorg, sparat i sju år [D1]. */
   prisbeslut: "FyndplatsPrisbeslut",
+  /** E3: företagens offerter. */
+  offerter: "FyndplatsOfferter",
 } as const;
 
 const nu = () => new Date().toISOString();
@@ -547,6 +550,8 @@ export interface Prisbeslutspost {
   profil: string;
   /** E3: företagets namn när korgen prissattes som företag (till kvittot). */
   foretagNamn?: string;
+  /** E3: offerten som korgen byggdes ur; kalla är då "offert". */
+  offertId?: string;
   niva: string;
   procent: number;
   kalla: string;
@@ -609,4 +614,80 @@ export async function orderMedKopflode(purchaseFlowId: string): Promise<boolean>
 /** Utfallet för en låst korg; skrivs bara en gång (villkoret: inget utfall än). */
 export async function sattKorgutfall(cartId: string, utfall: "kopt" | "borttagen" | "saknades"): Promise<void> {
   await patcha(MK.prisbeslut, cartId, [satt("utfall", utfall), satt("utfallTid", nu())], { utfall: { $exists: false } });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Offerterna (E3)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export async function skapaOffert(o: Offert): Promise<void> {
+  const { id, ...rest } = o;
+  const rader = rest.rader.map((r) => Object.fromEntries(Object.entries(r).filter(([, v]) => v !== undefined)));
+  if ((await infoga(MK.offerter, id, { ...rest, rader } as unknown as Rad)) !== "skapad") throw new Error("offertens id fanns redan");
+}
+
+export async function hamtaOffert(id: string): Promise<Offert | null> {
+  return offertUrRad(await hamta(MK.offerter, id));
+}
+
+/** Kontots offerter, nyast först (Mina sidor). */
+export async function offerterFor(medlemsId: string, limit = 20): Promise<Offert[]> {
+  const rader = await fraga(MK.offerter, { filter: { medlemsId }, sort: [{ fieldName: "skapad", order: "DESC" }], limit });
+  return rader.map(offertUrRad).filter((o): o is Offert => o !== null);
+}
+
+/** Förfrågningar som ännu inte besvarats, för gränsen per konto. */
+export function obesvaradeOfferter(medlemsId: string): Promise<number> {
+  return rakna(MK.offerter, { $and: [{ medlemsId }, { status: "skickad" }] });
+}
+
+/**
+ * Kassan öppnad: korgen sparas på offerten, och en prissatt offert blir
+ * accepterad (villkoret: fortfarande prissatt).
+ */
+export async function offertIKassan(id: string, cartId: string, purchaseFlowId: string): Promise<void> {
+  const tid = nu();
+  await patcha(MK.offerter, id, [satt("cartId", cartId), satt("purchaseFlowId", purchaseFlowId)]);
+  await patcha(MK.offerter, id, [satt("status", "accepterad"), satt("accepterad", tid)], { status: "prissatt" });
+}
+
+async function offerterMed(filter: Rad, limit: number): Promise<Offert[]> {
+  const rader = await fraga(MK.offerter, { filter, sort: [{ fieldName: "skapad", order: "ASC" }], limit });
+  return rader.map(offertUrRad).filter((o): o is Offert => o !== null);
+}
+
+/** Prissatta offerter vars kund inte har fått mejlet än. */
+export function offerterAttMejla(limit: number): Promise<Offert[]> {
+  return offerterMed({ $and: [{ status: "prissatt" }, { meddelad: { $exists: false } }] }, limit);
+}
+
+export async function markeraOffertMeddelad(id: string): Promise<boolean> {
+  return (await patcha(MK.offerter, id, [satt("meddelad", nu())], { meddelad: { $exists: false } })).utfall === "applied";
+}
+
+export async function avmarkeraOffertMeddelad(id: string): Promise<void> {
+  await patcha(MK.offerter, id, [taBortFalt("meddelad")]);
+}
+
+/** Offerter vars kassa har öppnats, för att se om de blev betalda. */
+export function offerterIKassan(limit: number): Promise<Offert[]> {
+  return offerterMed({ status: "accepterad" }, limit);
+}
+
+/** Prissatta eller accepterade offerter vars sista dag har passerat. */
+export function offerterAttLoptaUt(nuIso: string, limit: number): Promise<Offert[]> {
+  return offerterMed({ $and: [{ status: { $in: ["prissatt", "accepterad"] } }, { giltigTill: { $lte: nuIso } }] }, limit);
+}
+
+/** Byter läge, bara om offerten fortfarande har läget `fran`. */
+export async function bytOffertstatus(id: string, fran: Offert["status"], till: Offert["status"]): Promise<boolean> {
+  const tid = nu();
+  const falt = till === "betald" ? [satt("status", till), satt("betald", tid)] : [satt("status", till)];
+  return (await patcha(MK.offerter, id, falt, { status: fran })).utfall === "applied";
+}
+
+/** Köpflödena som offertens kassor fick: en offert kan ha öppnats i kassan flera gånger. */
+export async function kopflodenForOffert(offertId: string): Promise<string[]> {
+  const rader = await fraga(MK.prisbeslut, { filter: { offertId }, limit: 50 });
+  return rader.map((r) => text(r.purchaseFlowId) ?? "").filter(Boolean);
 }
