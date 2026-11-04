@@ -1,2 +1,3 @@
 # Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
 # Form: <kort> <tal> <vad som lästes av eller räknades>
+d6275621 2 bakhjul: två bakhjul och ett framhjul räknade på fotot (bild 3 och 4 visar tre hjul)
