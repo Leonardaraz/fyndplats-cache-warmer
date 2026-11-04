@@ -1,0 +1,69 @@
+[
+ {
+  "host": "d6275621",
+  "donor": "11c92815",
+  "behall": "d6275621-f7ba-4df8-a374-a2bb5f77890c",
+  "utkast": "11c92815-adef-433c-ad96-fbae4788de68",
+  "bilder": "1,2,3,4,5",
+  "kallpositioner": [
+   "1",
+   "2",
+   "8",
+   "9",
+   "10"
+  ],
+  "farg_utkast": "Grön",
+  "farg_behall": "Röd",
+  "omdirigera": "nej"
+ },
+ {
+  "host": "df9475dc",
+  "donor": "3c9ca555",
+  "behall": "df9475dc-42e5-43ae-89d6-dc34451b76a9",
+  "utkast": "3c9ca555-cd14-471a-8db8-286c46a7fb24",
+  "bilder": "1,2,3,4,5",
+  "kallpositioner": [
+   "1",
+   "2",
+   "9",
+   "8",
+   "10"
+  ],
+  "farg_utkast": "Röd",
+  "omdirigera": "nej"
+ },
+ {
+  "host": "4bc344de",
+  "donor": "dc4dee5d",
+  "behall": "4bc344de-c3bd-4f42-9450-f1d0a96f9dd9",
+  "utkast": "dc4dee5d-ef18-4aad-9704-3b32cd9c05df",
+  "bilder": "1,2,3,4,5,6",
+  "kallpositioner": [
+   "1",
+   "2",
+   "10",
+   "8",
+   "9",
+   "3"
+  ],
+  "storlek_utkast": "2 × 10 kg",
+  "sku": "FP-hexagonhantlar-gummi-par-tio-kg",
+  "omdirigera": "nej"
+ },
+ {
+  "host": "6a2451c4",
+  "donor": "d7f16f65",
+  "behall": "6a2451c4-1a78-4861-9aa1-68c2096ac828",
+  "utkast": "d7f16f65-8bc5-42c0-8e48-3e6012b8524b",
+  "bilder": "1,2,3,4",
+  "kallpositioner": [
+   "1",
+   "2",
+   "8",
+   "9"
+  ],
+  "farg_utkast": "Rosa",
+  "farg_behall": "Blå",
+  "omdirigera": "nej"
+ }
+]

@@ -358,6 +358,11 @@ TYSKA_ORD = [
     "Geschenkesack", "Geschenksack", "Geschenkbox", "Handglocke", "Glöckchen", "Nikolaus",
     "Musikfigur", "Stützbeine", "Berührungssensoren", "Geräuschsensor", "Weihnachtslieder",
     "Weihnachtsmusik", "Goldbestickter", "Samthaptik",
+    # runda N339 (gungdjur, fyrhjuling, LED-speglar, gamingbord, rosenträd, trädgårdsskåp)
+    "Schaukeltier", "Schaukelpferd", "Pinguin", "Kinderquad", "Badspiegel", "Kunstbaum",
+    "Kunstpflanze", "Zementtopf", "Gartenschrank", "Pflanztisch", "Geräteschuppen",
+    "Edelstahlplatte", "Antibeschlag", "Stoffschubladen", "Monitorständer", "Lichtstreifen",
+    "Rückenhaken", "Zuggriff", "Schaukelstopper",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med
