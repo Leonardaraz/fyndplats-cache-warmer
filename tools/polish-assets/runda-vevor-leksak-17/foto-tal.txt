@@ -1,0 +1,37 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+ad716229 15,45 nettovikten 15,45 kg (34 lb) på VEVOR:s specifikationsbild; källans tabell säger 15,75 kg: det lägre skrivs
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+b04d27f4 32 tillbehören 1+1+6+1+8+12+1+2 räknade ur källans lista; VEVOR:s bild säger 32 PCS
+b04d27f4 46 ramens bredd 460 mm på måttritningen = 46 cm
+b04d27f4 38 tavlans bredd 380 mm på måttritningen = 38 cm
+b04d27f4 32 tavlans höjd 320 mm på måttritningen = 32 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+e8dc2be0 89 bredden 890 mm på måttritningen = 89 cm
+e8dc2be0 40 djupet 400 mm på måttritningen = 40 cm
+e8dc2be0 76 höjden 760 mm på måttritningen = 76 cm
+e8dc2be0 3 tre övre fack räknade på produktfotot (fem fack i källans tabell)
+e8dc2be0 2 två nedre fack räknade på produktfotot (fem fack i källans tabell)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+5f82d0ba 14 delarna 2+2+4+2+2+2 räknade ur källans punkt och på VEVOR:s bild (två av varje utom fyra halvcirklar)
+5f82d0ba 4 fyra halvcirkelformade delar räknade på VEVOR:s bild och i källans punkt (C-formade delar)
+5f82d0ba 2 två av varje av de andra fem delarna räknade på VEVOR:s bild och i källans punkt
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+88304c50 153,5 längden 1535 mm i källans Produktmått 1535 x 490 x 645 mm = 153,5 cm; måttritningen säger 1545 mm: det lägre skrivs
+88304c50 40,5 bredden 405 mm på måttritningen = 40,5 cm; källans tabell säger 490 mm: det lägre skrivs
+88304c50 64,5 höjden 645 mm i källans tabell och på måttritningen = 64,5 cm
+88304c50 3 tre sitsar: källans tabell (Antal platser 3) och tre sitsar räknade på produktfotot; utkastets titel säger 2 platser
+88304c50 2 de två yttre sitsarna har ryggstöd, räknade på produktfotot
+88304c50 200 bärförmågan 200 lbs per sits på bilden = 90,7 kg i källans specifikation
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+76b2d376 10 tio leksaksmynt: Play Coins 10 pcs på VEVOR:s tillbehörsbild
+76b2d376 2 två hyllor: Two-Tier Shelf på VEVOR:s bild och två hyllor räknade på produktfotot
