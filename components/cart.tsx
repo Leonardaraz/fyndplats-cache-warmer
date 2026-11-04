@@ -13,7 +13,9 @@ import { tightFillUrl } from "../lib/wix-image";
 import { DELIVERY_MAX_DAYS, DELIVERY_MIN_DAYS, DELIVERY_TIME, EU_STOCK_NOTE_SHORT, FREE_SHIPPING_FROM_KR, fraktKr } from "../lib/shipping";
 import { leveransIntervall } from "../lib/leveransdatum";
 import { skapaKassalankMinne, type Kassalank } from "../lib/kassalank";
-import { medlemskassa } from "./medlemspris";
+import { medlemskassa, useMedlemskorg } from "./medlemspris";
+import { kronorText } from "../lib/medlem/kronor";
+import { nivaNyckel } from "../lib/medlem/niva-nyckel";
 import { normaliseraKundvagn, vagnenArBorta, valdaAlternativ } from "../lib/cart-shape";
 import { visaValnamn } from "../lib/variant-lage";
 import { usePanelFokus } from "./use-panel-fokus";
@@ -582,6 +584,12 @@ export function CartDrawer() {
   // anges i kassan och dras där. Samma valutaförbehåll som mätaren ovan.
   const frakt = fraktKr(subNum);
   const totalt = subNum + frakt;
+  // Medlemspriset (E2): summorna räknade på servern med samma funktion som
+  // kassan, bara när Wix har alla rader. Listpriset står aldrig bredvid [P8];
+  // summorna byts, och nivån står under totalen. Frakten följer listpriset,
+  // och fraktskyddet håller medlemmen över gränsen när listpriset är det.
+  const radnyckel = items.map((li) => `${li._id ?? li.id ?? ""}:${li.quantity ?? 0}`).join("|");
+  const medlem = useMedlemskorg(cart?._id || "", radnyckel, open && items.length > 0 && vantande.length === 0);
   return (
     <>
       <div className={`drawer-ov ${open ? "show" : ""}`} onClick={() => setOpen(false)} />
@@ -703,10 +711,16 @@ export function CartDrawer() {
                 den skiljer sig från totalen. */}
             <dl className="drawer-sum">
               {frakt > 0 && (
-                <div><dt>Delsumma</dt><dd>{vantande.length || !subtotal ? formatPrice(subNum) : subtotal}</dd></div>
+                <div><dt>Delsumma</dt><dd>{medlem ? kronorText(medlem.summaPOre) : vantande.length || !subtotal ? formatPrice(subNum) : subtotal}</dd></div>
               )}
               <div><dt>Frakt</dt><dd className={frakt === 0 ? "fri" : undefined}>{frakt === 0 ? "Fri frakt" : formatPrice(frakt)}</dd></div>
-              <div className="tot"><dt>Totalt <small>inkl. moms</small></dt><dd>{formatPrice(totalt)}</dd></div>
+              <div className="tot"><dt>Totalt <small>inkl. moms</small></dt><dd>{medlem ? kronorText(medlem.summaPOre + Math.round(frakt * 100)) : formatPrice(totalt)}</dd></div>
+              {medlem && (
+                <div className="drawer-medlem">
+                  <dt>Ditt medlemspris</dt>
+                  <dd><span className="medlemspris-chip" data-niva={nivaNyckel(medlem.niva)}>{medlem.niva} · {medlem.procent} %</span></dd>
+                </div>
+              )}
             </dl>
             <button className="buy" disabled={busy || tillKassan} aria-busy={tillKassan} onClick={checkout}>{tillKassan ? "Öppnar kassan …" : busy ? "…" : "Till kassan →"}</button>
             <ul className="drawer-trygg">

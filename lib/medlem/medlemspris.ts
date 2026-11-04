@@ -30,6 +30,7 @@ import {
 import { stadaLastaKorgar, type Stadutfall } from "./korgstadning";
 import { hamtaGolv } from "./golv-klient";
 import { hogstaProcent, prissatt, radpris, type Begransning, type Prisbeslut, type Profil } from "./pris";
+import type { Golvsvar, Varukorgsrad } from "./varukorg";
 import {
   golvnyckel,
   kassaAdress,
@@ -125,6 +126,45 @@ export async function medlemsprisForProdukt(
 // Kassan
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Besökarens varukorg prissatt för medlemmen, utan att något låses. Kassan
+ * och förhandsvisningen i varukorgen räknar med samma funktion, så att de
+ * aldrig visar olika priser.
+ */
+async function prissattKorg(
+  besokarensKorg: string,
+  mp: Medlemsprofil,
+): Promise<{ rader: Varukorgsrad[]; golv: Map<string, Golvsvar>; beslut: Prisbeslut } | { skal: "tom" | "oläslig" }> {
+  let korg: unknown;
+  try {
+    korg = (await wixFetch<{ cart?: unknown }>({ path: `/ecom/v2/carts/${encodeURIComponent(besokarensKorg)}` }))?.cart;
+  } catch (e) {
+    console.warn(`[medlemskassa] besökarens korg gick inte att läsa (${e instanceof WixApiError ? e.status : "nät"})`);
+    return { skal: "oläslig" };
+  }
+  const rader = lasWixVarukorg(korg);
+  if (!rader) return { skal: "tom" };
+  const golv = await hamtaGolv(rader.map((r) => ({ produktId: r.produktId, variantId: r.variantId })));
+  return { rader, golv, beslut: prissatt(prisrader(rader, golv), mp.profil) };
+}
+
+/** Förhandsvisningen i varukorgen: summorna med medlemspris, inget låses. */
+export interface Korgpris {
+  niva: string;
+  procent: number;
+  summaAOre: number;
+  summaPOre: number;
+  rabattOre: number;
+  friFraktSkydd: boolean;
+}
+
+export async function medlemsprisForKorg(besokarensKorg: string, mp: Medlemsprofil): Promise<Korgpris | null> {
+  const r = await prissattKorg(besokarensKorg, mp);
+  if ("skal" in r) return null;
+  const b = r.beslut;
+  return { niva: b.niva, procent: b.procent, summaAOre: b.summaAOre, summaPOre: b.summaPOre, rabattOre: b.rabattOre, friFraktSkydd: b.friFraktSkydd };
+}
+
 export type Kassasvar =
   | { ok: true; adress: string; beslut: Pick<Prisbeslut, "procent" | "niva" | "summaPOre" | "rabattOre" | "friFraktSkydd"> }
   | { ok: false; skal: "tom" | "oläslig" | "ingen-rabatt" | "wix" | "kontroll" | "session" | "logg" };
@@ -139,18 +179,9 @@ export async function medlemskassa(
   mp: Medlemsprofil,
   bas: string,
 ): Promise<Kassasvar> {
-  let korg: unknown;
-  try {
-    korg = (await wixFetch<{ cart?: unknown }>({ path: `/ecom/v2/carts/${encodeURIComponent(besokarensKorg)}` }))?.cart;
-  } catch (e) {
-    console.warn(`[medlemskassa] besökarens korg gick inte att läsa (${e instanceof WixApiError ? e.status : "nät"})`);
-    return { ok: false, skal: "oläslig" };
-  }
-  const rader = lasWixVarukorg(korg);
-  if (!rader) return { ok: false, skal: "tom" };
-
-  const golv = await hamtaGolv(rader.map((r) => ({ produktId: r.produktId, variantId: r.variantId })));
-  const beslut = prissatt(prisrader(rader, golv), mp.profil);
+  const korgen = await prissattKorg(besokarensKorg, mp);
+  if ("skal" in korgen) return { ok: false, skal: korgen.skal };
+  const { rader, golv, beslut } = korgen;
   if (beslut.rabattOre === 0) return { ok: false, skal: "ingen-rabatt" };
 
   let skapad: { id?: unknown; purchaseFlowId?: unknown; lineItems?: unknown } | undefined;

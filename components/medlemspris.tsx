@@ -95,3 +95,35 @@ export async function medlemskassa(cartId: string): Promise<string | null> {
     return null;
   }
 }
+
+/** Varukorgens summor med medlemspris (/api/medlem/korg). */
+export type Korgpris = {
+  niva: string;
+  procent: number;
+  summaAOre: number;
+  summaPOre: number;
+  rabattOre: number;
+  friFraktSkydd: boolean;
+};
+
+/**
+ * Medlemspriset för varukorgen, till lådans summor. `nyckel` beskriver raderna
+ * och antalen: ändras den hämtas summorna igen, och ett svar för en äldre
+ * nyckel visas aldrig. Utan inloggning, eller när lådan är stängd, görs inget
+ * anrop och lådan visar listpriset som förut.
+ */
+export function useMedlemskorg(cartId: string, nyckel: string, aktiv: boolean): Korgpris | null {
+  const [svar, setSvar] = useState<{ nyckel: string; pris: Korgpris } | null>(null);
+  useEffect(() => {
+    if (!aktiv || !cartId || !harMedlemstecken()) return;
+    const avbryt = new AbortController();
+    fetch(`/api/medlem/korg?c=${encodeURIComponent(cartId)}`, { credentials: "same-origin", signal: avbryt.signal })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((s: ({ medlemspris: true } & Korgpris) | { medlemspris: false } | null) => {
+        setSvar(s && s.medlemspris ? { nyckel, pris: s } : null);
+      })
+      .catch(() => {});
+    return () => avbryt.abort();
+  }, [cartId, nyckel, aktiv]);
+  return aktiv && svar && svar.nyckel === nyckel ? svar.pris : null;
+}
