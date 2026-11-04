@@ -22,6 +22,17 @@ omdirigering, så en ändrad slug på en publicerad sida ger en 404. Måste en p
 (manuell trigger)"** efter skrivningen, mot den nya sidan eller mot kategorin, aldrig mot
 startsidan. Rutten vägrar så länge den gamla sluggen fortfarande är synlig.
 
+Så byter du slugen på en publicerad sida (T113, rosenträdet, 2026-11-04): gör en liten runda
+med bara den sidan. Kopiera rundans filer för kortet, ändra raden i `slugs.txt` och kör
+`bygg-skrivplan.py`, och skriv den med `polish-write` (torr först, sedan skriv) som vilken runda
+som helst. Skriv den gamla adressens 301 FÖRE skrivningen, med `force`, så att det aldrig finns
+ett ögonblick med en 404 utan omdirigering. Flytta efter skrivningen varje redan skriven
+omdirigering som pekar på den gamla adressen (en givares adress, till exempel) till den nya, i
+normalt läge, annars blir det en kedja av två 308:or. Läs hela `FyndplatsRedirects` ur Wix Data
+(`wix-data/v2/items/query`, limit 1000): listläget i workflowen tar bara de 200 senast ändrade
+raderna av över 500. Mediasteget och variantbilderna i `polish-write` rör inte färg- och
+storlekslänkarna på en sammanslagen sida (mätt: länkarna oförändrade efteråt).
+
 ### Beskrivningen (`<kort>.html`)
 
 ```html
