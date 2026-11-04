@@ -1026,6 +1026,21 @@ Nu:
 med ett gammalt pris visar den det högre priset med nedräkning. Nya besökare
 får rätt pris inom 30 s, men en öppen flik frågar först efter fem minuter.
 
+## Fyndauktionen: en klocka för hela sidan (Black Week, 2026-11-04)
+
+Med 50 och 100 fynd om dagen (Black Week 23–29/11) fick `/fyndauktion` en timer per kort:
+mätt lokalt med 100 kort var det 52 timers i sekundtakt och 50 i 20-sekunderstakt. Nu delar
+alla kort `lib/delad-klocka.ts` via `useClientNow` (`useSyncExternalStore`). Samma mätning
+gav en timer per takt och en omritning i sekunden.
+
+- ☠️ **Tiden är gemensam för alla takter.** Ett kort byter takt vid fasbytet (1 s → 20 s).
+  Med en egen tid per takt kunde den nya takten ligga efter, kortet såg den gamla fasen och
+  pendlade.
+- Klockan stannar aldrig medan fliken syns, och vid återkomst läses tiden om direkt.
+- Utan lyssnare är tiden `null`, så ett kort som monteras senare börjar med serverns tid.
+- Kort, luntan och "Sista timmen" får ingen egen `setInterval`
+  (`lib/delad-klocka.test.ts`).
+
 ## Googles ?srsltid= tas bort ur adressfältet (2026-09-30)
 
 Merchant Centers automatiska taggning lägger `?srsltid=…` på varje länk från
