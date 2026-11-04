@@ -24,6 +24,8 @@ export async function GET(req: Request) {
   if ("utan" in mp) return NextResponse.json({ medlemspris: false, skal: mp.utan }, { headers: PRIVAT });
   const k = await medlemsprisForKorg(cartId, mp);
   if (!k) return NextResponse.json({ medlemspris: false, skal: "fel" }, { headers: PRIVAT });
-  if (k.rabattOre === 0) return NextResponse.json({ medlemspris: false, skal: "ingen-rabatt" }, { headers: PRIVAT });
+  // Ett företag ser sina priser exkl. moms och nästa steg i trappan också
+  // när korgen ännu inte ger någon rabatt (E3-7).
+  if (k.rabattOre === 0 && !k.foretag) return NextResponse.json({ medlemspris: false, skal: "ingen-rabatt" }, { headers: PRIVAT });
   return NextResponse.json({ medlemspris: true, ...k }, { headers: PRIVAT });
 }

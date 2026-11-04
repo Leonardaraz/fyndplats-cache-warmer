@@ -34,7 +34,7 @@ inte. Det öppna köp som står i punkt 7 gäller ändå, som en förmån från 
 
 1.4 Vid köp gäller de villkor som var gällande när beställningen lades. Ändrar
 vi villkoren meddelar vi det på kontot innan ändringen gäller, och nästa köp
-kräver att den nya versionen godkänns.
+som företag kräver att den nya versionen godkänns.
 
 ### 2. Kontot och uppgifterna
 
@@ -50,13 +50,14 @@ hålls uppdaterade.
 
 ### 3. Priser
 
-3.1 På företagskontot visas priser exklusive moms, märkta med "exkl. moms".
+3.1 När kontot handlar som företaget visas priserna exklusive moms, märkta med
+"exkl. moms".
 I kassan visas priserna inklusive moms (25 %), och det är det beloppet som
 betalas.
 
 3.2 Köparen får den högsta av två rabatter, aldrig båda:
-- medlemsnivåns procent, som för privatpersoner, räknad på vad företaget har
-  handlat för de senaste 365 dagarna; eller
+- medlemsnivåns procent, som för privatpersoner, räknad på vad som handlats med
+  kontots e-postadress de senaste 365 dagarna; eller
 - ordertrappan, räknad på orderns rabattgrundande varuvärde exklusive moms:
 
 | Varuvärde exkl. moms | Rabatt |
@@ -151,3 +152,8 @@ första instans.
    betalning" eller liknande. Det ställs in i Wix, inte i koden.
 4. **Bolagsnamn, organisationsnummer, ort för tvister** och datum fylls i.
 5. **Juristgranskning** innan publicering.
+6. **Sidan finns redan som utkast** på `/villkor/foretag` (indexeras inte, länkas
+   bara från formuläret på Mina sidor). Texten där och här ska vara densamma;
+   ändras den i sak höjs `VILLKOR_FORETAG_VERSION` i `lib/medlem/foretag.ts`.
+7. **Punkt 5.2** lovar kvitto och faktura med företagets namn och nummer. Det
+   kräver att vårt eget kvitto läser företaget ur prisbeslutet; det är inte byggt.

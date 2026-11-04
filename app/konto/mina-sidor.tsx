@@ -8,6 +8,7 @@
 // som räknas var förut två listor med samma ordrar; nu bär varje order sitt
 // bidrag till nivån.
 
+import type { ReactNode } from "react";
 import Image from "next/image";
 import { dagSomText, kronor, stockholmsDag, type Nivalage } from "@/lib/medlem/niva";
 import { maskeradEpost } from "@/lib/medlem/inloggning";
@@ -50,7 +51,19 @@ function Paket() {
   );
 }
 
-export function MinaSidorVy({ data, bilder: produkter = {} }: { data: MinaSidor; bilder?: Produktbilder }) {
+export function MinaSidorVy({
+  data,
+  bilder: produkter = {},
+  foretag,
+  handlarSom,
+}: {
+  data: MinaSidor;
+  bilder?: Produktbilder;
+  /** E3: företagskontots ruta, när prisväxeln släpper fram den. */
+  foretag?: ReactNode;
+  /** E3: företagets namn när kontot handlar som företaget. */
+  handlarSom?: string | null;
+}) {
   const { lage, regler, ordrar, medlem } = data;
   const raknas = new Map(lage.raknade.map((r) => [r.orderId, r]));
   const sedan = medlem.skapad && !Number.isNaN(Date.parse(medlem.skapad)) ? MANAD_AR.format(new Date(medlem.skapad)) : null;
@@ -66,6 +79,11 @@ export function MinaSidorVy({ data, bilder: produkter = {} }: { data: MinaSidor;
           <p className={s.ogonbryn}>Mina sidor</p>
           <h1 className={s.rubrik}>Välkommen tillbaka</h1>
           <p className={s.vem}>Inloggad som {maskeradEpost(medlem.epost)}</p>
+          {handlarSom ? (
+            <p className={s.handlarSom}>
+              Du handlar som <a href="#foretag">{handlarSom}</a>
+            </p>
+          ) : null}
         </div>
         <form action="/api/konto/ut" method="post">
           <button type="submit" className={s.utknapp}>
@@ -253,6 +271,8 @@ export function MinaSidorVy({ data, bilder: produkter = {} }: { data: MinaSidor;
           <p className={s.tom}>Ordrar du lägger med {maskeradEpost(medlem.epost)} visas här, med spårning och vad de räknas för.</p>
         </div>
       )}
+
+      {foretag}
 
       {/* Mejlen om nivån går att stänga av (marknadsföringslagen); länken i
           mejlen leder hit eller till /konto/avregistrera. */}

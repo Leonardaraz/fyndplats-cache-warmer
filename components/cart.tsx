@@ -15,6 +15,7 @@ import { leveransIntervall } from "../lib/leveransdatum";
 import { skapaKassalankMinne, type Kassalank } from "../lib/kassalank";
 import { medlemskassa, useMedlemskorg } from "./medlemspris";
 import { kronorText } from "../lib/medlem/kronor";
+import { exklMoms } from "../lib/medlem/pris";
 import { nivaNyckel } from "../lib/medlem/niva-nyckel";
 import { normaliseraKundvagn, vagnenArBorta, valdaAlternativ } from "../lib/cart-shape";
 import { visaValnamn } from "../lib/variant-lage";
@@ -663,7 +664,13 @@ export function CartDrawer() {
                       const val = valdaAlternativ(li).map((v) => visaValnamn(v.varde)).filter(Boolean);
                       return val.length ? <div className="li-val">{val.join(" · ")}</div> : null;
                     })()}
-                    <div className="li-meta">{li.price?.formattedAmount || ""}</div>
+                    <div className="li-meta">
+                      {(() => {
+                        // E3: företaget ser radens styckpris exkl. moms, märkt (E3-4).
+                        const r = medlem?.foretag?.rader.find((x) => x.id === li._id);
+                        return r ? `${kronorText(r.pOreExMoms)} exkl. moms` : li.price?.formattedAmount || "";
+                      })()}
+                    </div>
                     <div className="li-qty">
                       <button className="qbtn" onClick={() => updateQty(li._id, li.quantity - 1)} disabled={busy || tillKassan} aria-label="Minska antal">−</button>
                       <span className="qnum">{li.quantity}</span>
@@ -709,6 +716,40 @@ export function CartDrawer() {
             {/* Som premiumbutikernas kassor (granskningen 2026-10-09): frakten och
                 det kunden betalar står före knappen. Delsumman visas bara när
                 den skiljer sig från totalen. */}
+            {medlem?.foretag ? (
+              (() => {
+                // E3: företagets summor exkl. moms, momsen och totalen som
+                // kassan visar; ordertrappan och nästa steg (E3-7).
+                const f = medlem.foretag;
+                const fraktOre = Math.round(frakt * 100);
+                const fraktEx = exklMoms(fraktOre, 25);
+                const moms = medlem.summaPOre + fraktOre - (f.summaPOreExMoms + fraktEx);
+                return (
+                  <>
+                    <dl className="drawer-sum">
+                      <div><dt>Varor <small>exkl. moms</small></dt><dd>{kronorText(f.summaPOreExMoms)}</dd></div>
+                      <div><dt>Frakt {frakt > 0 && <small>exkl. moms</small>}</dt><dd className={frakt === 0 ? "fri" : undefined}>{frakt === 0 ? "Fri frakt" : kronorText(fraktEx)}</dd></div>
+                      <div><dt>Moms 25 %</dt><dd>{kronorText(moms)}</dd></div>
+                      <div className="tot"><dt>Totalt <small>inkl. moms</small></dt><dd>{kronorText(medlem.summaPOre + fraktOre)}</dd></div>
+                      <div className="drawer-medlem">
+                        <dt>{f.namn}</dt>
+                        <dd>
+                          <span className="medlemspris-chip" data-niva={nivaNyckel(medlem.niva)}>
+                            {f.kalla === "trappa" ? `Ordertrappan · ${medlem.procent} %` : f.kalla === "niva" ? `${medlem.niva} · ${medlem.procent} %` : "Företag"}
+                          </span>
+                        </dd>
+                      </div>
+                    </dl>
+                    {f.nastaSteg && (
+                      <p className="drawer-trappa">
+                        Lägg till <b>{kronorText(f.nastaSteg.kvarOreExMoms)}</b> exkl. moms för {f.nastaSteg.procent} % på hela ordern.
+                      </p>
+                    )}
+                    <p className="drawer-moms">Kassan visar priserna inklusive moms.</p>
+                  </>
+                );
+              })()
+            ) : (
             <dl className="drawer-sum">
               {frakt > 0 && (
                 <div><dt>Delsumma</dt><dd>{medlem ? kronorText(medlem.summaPOre) : vantande.length || !subtotal ? formatPrice(subNum) : subtotal}</dd></div>
@@ -722,6 +763,7 @@ export function CartDrawer() {
                 </div>
               )}
             </dl>
+            )}
             <button className="buy" disabled={busy || tillKassan} aria-busy={tillKassan} onClick={checkout}>{tillKassan ? "Öppnar kassan …" : busy ? "…" : "Till kassan →"}</button>
             <ul className="drawer-trygg">
               <li>

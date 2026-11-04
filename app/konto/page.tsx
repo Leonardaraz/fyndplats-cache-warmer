@@ -5,8 +5,10 @@
 // i läget "tyst" fungerar den för den som har adressen.
 
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { inloggad } from "@/lib/medlem/inloggad";
-import { hamtaMedlem, medlemsHemlighet, medlemsLage } from "@/lib/medlem/lager";
+import { hamtaForetagsprofil, hamtaMedlem, medlemsHemlighet, medlemsLage, prisLage, prisOppet } from "@/lib/medlem/lager";
+import { foretagsstatusText, kanHandlaSomForetag, VILLKOR_FORETAG_VERSION, type Foretagsprofil } from "@/lib/medlem/foretag";
 import { minaSidor } from "@/lib/medlem/konto";
 import { orderGuid, sakertMal } from "@/lib/medlem/inloggning";
 import { getProducts } from "@/lib/products";
@@ -14,6 +16,7 @@ import { KontoInloggning } from "./konto-inloggning";
 import { MinaSidorVy, type Produktbilder } from "./mina-sidor";
 import { Formaner, Kortfacka } from "./formaner";
 import { FornyaSession } from "./fornya";
+import { Foretagskonto, type ForetagVy } from "./foretag";
 import s from "./konto.module.css";
 
 export const dynamic = "force-dynamic";
@@ -43,6 +46,39 @@ async function produktbilder(idn: Set<string>): Promise<Produktbilder> {
     // Bilderna är en bonus: utan dem visas ordrarna med en paketikon.
   }
   return ut;
+}
+
+/** Det Mina sidor får veta om företaget. ☠️ Aldrig hela numret för en enskild firma. */
+function foretagVy(p: Foretagsprofil): ForetagVy {
+  return {
+    status: p.status,
+    namn: p.namn,
+    orgnrVisas: p.orgnrVisas,
+    form: p.form,
+    faktura: p.faktura,
+    ...(p.leverans ? { leverans: p.leverans } : {}),
+    villkorAktuellt: p.villkorVersion === VILLKOR_FORETAG_VERSION,
+    statustext: foretagsstatusText(p),
+  };
+}
+
+/** Företagets ruta och namnet i sidhuvudet. Felar läsningen visas Mina sidor utan rutan. */
+async function foretagsdel(
+  medlem: { id: string; testare?: boolean },
+  sessionProfil: "foretag" | undefined,
+): Promise<{ ruta: ReactNode; handlarSom: string | null }> {
+  try {
+    const [fp, lage] = await Promise.all([hamtaForetagsprofil(medlem.id), prisLage()]);
+    if (!fp && !prisOppet(lage, medlem)) return { ruta: null, handlarSom: null };
+    const aktiv = sessionProfil === "foretag" && kanHandlaSomForetag(fp) ? "foretag" : "privat";
+    return {
+      ruta: <Foretagskonto foretag={fp ? foretagVy(fp) : null} aktivProfil={aktiv} />,
+      handlarSom: aktiv === "foretag" && fp ? fp.namn : null,
+    };
+  } catch (e) {
+    console.error("[konto] företaget gick inte att läsa:", e instanceof Error ? e.message.slice(0, 120) : e);
+    return { ruta: null, handlarSom: null };
+  }
 }
 
 export default async function Konto({ searchParams }: { searchParams: Promise<Sok> }) {
@@ -117,11 +153,11 @@ export default async function Konto({ searchParams }: { searchParams: Promise<So
   }
   if (session && data) {
     const idn = new Set(data.ordrar.flatMap((o) => o.varor.map((v) => v.produktId).filter((x): x is string => Boolean(x))));
-    const bilder = await produktbilder(idn);
+    const [bilder, ft] = await Promise.all([produktbilder(idn), foretagsdel(data.medlem, session.profil)]);
     return (
       <section className="sec">
         <div className={`container ${s.ram}`}>
-          <MinaSidorVy data={data} bilder={bilder} />
+          <MinaSidorVy data={data} bilder={bilder} foretag={ft.ruta} handlarSom={ft.handlarSom} />
         </div>
         <FornyaSession />
       </section>

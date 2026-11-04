@@ -11,6 +11,7 @@
 import { NextResponse } from "next/server";
 import { PRIVAT } from "@/lib/medlem/inloggad";
 import { medlemsprisForProdukt, medlemsprofil } from "@/lib/medlem/medlemspris";
+import { ORDERTRAPPA } from "@/lib/medlem/pris";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,11 @@ export async function GET(req: Request) {
       medlemspris: true,
       niva: mp.profil.niva,
       procent: mp.profil.nivaProcent,
+      // E3: företaget, priserna exkl. moms och ordertrappan till tabellen.
+      profil: mp.profil.typ,
+      ...(mp.foretag
+        ? { foretag: mp.foretag.namn, trappa: ORDERTRAPPA.filter((s) => s.procent > 0).map((s) => ({ franOreExMoms: s.franOreExMoms, procent: s.procent })) }
+        : {}),
       varianter: varianter.map((v) => ({
         variantId: v.variantId,
         aOre: v.aOre,
@@ -39,6 +45,7 @@ export async function GET(req: Request) {
         // Det belagda tidigare priset och om procenten får stå (lib/medlem/jamforelse.ts).
         ...(v.tidigareOre !== undefined ? { tidigareOre: v.tidigareOre } : {}),
         ...(v.visaProcent !== undefined ? { visaProcent: v.visaProcent } : {}),
+        ...(v.aOreExMoms !== undefined && v.pOreExMoms !== undefined ? { aOreExMoms: v.aOreExMoms, pOreExMoms: v.pOreExMoms } : {}),
       })),
     },
     { headers: PRIVAT },

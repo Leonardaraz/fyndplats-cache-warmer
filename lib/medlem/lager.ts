@@ -26,6 +26,7 @@ import {
   satt,
   spara,
   sparaManga,
+  taBortFalt,
   taBortManga,
   type Rad,
 } from "@/lib/wix-lager";
@@ -33,6 +34,7 @@ import { liggarradUrWix, type Liggarrad } from "./orderliggare";
 import { liggarradArKop } from "../order-raknas";
 import { REGLER_V1, reglerFel, type Regler, type Varning } from "./niva";
 import { medlemsId, taForsok } from "./inloggning";
+import { VILLKOR_FORETAG_VERSION, foretagsprofilId, foretagsprofilUrRad, type Foretagsansokan, type Foretagsprofil } from "./foretag";
 
 export const MK = {
   medlemmar: "FyndplatsMedlemmar",
@@ -96,6 +98,11 @@ export async function medlemsLage(nuMs = Date.now()): Promise<Lage> {
  */
 export type Prislage = "av" | "test" | "pa";
 let prisCache: { lage: Prislage; at: number } | null = null;
+
+/** Medlemspris och företagskonto: för alla i läget `pa`, bara för testare i läget `test`. */
+export function prisOppet(lage: Prislage, medlem: { testare?: boolean }): boolean {
+  return lage === "pa" || (lage === "test" && medlem.testare === true);
+}
 
 export async function prisLage(nuMs = Date.now()): Promise<Prislage> {
   if (prisCache && nuMs - prisCache.at < 60_000) return prisCache.lage;
@@ -234,6 +241,67 @@ export async function sattNivamejl(id: string, pa: boolean): Promise<"klar" | "s
 
 export async function allaMedlemmar(): Promise<Medlem[]> {
   return (await allaRader(MK.medlemmar)).map(medlemUrRad);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Företagsprofilen (E3)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Kontots företagsprofil (`<medlemsId>__foretag`), eller null. */
+export async function hamtaForetagsprofil(id: string): Promise<Foretagsprofil | null> {
+  return foretagsprofilUrRad(await hamta(MK.profiler, foretagsprofilId(id)));
+}
+
+/**
+ * Sparar en ansökan med status "granskas". En nekad ansökan får skickas igen
+ * och skrivs då över (villkoret: fortfarande nekad). En profil som granskas
+ * eller är godkänd ändras inte här: svaret är "finns".
+ *
+ * ☠️ Numret loggas aldrig: för en enskild firma är det ett personnummer.
+ */
+export async function sparaForetagsansokan(id: string, a: Foretagsansokan): Promise<"skapad" | "finns"> {
+  const pid = foretagsprofilId(id);
+  const tid = nu();
+  const rad: Rad = { medlemsId: id, typ: "foretag", status: "granskas", aktiv: false, ...a, villkorGodkant: tid, ansokt: tid, skapad: tid };
+  let utfall: "skapad" | "finns" = (await infoga(MK.profiler, pid, rad)) === "skapad" ? "skapad" : "finns";
+  if (utfall === "finns") {
+    const ny = { ...rad, leverans: a.leverans ?? null, beslutad: null, godkandMejlad: null };
+    const p = await patcha(MK.profiler, pid, andringar(ny), { status: "nekad" });
+    if (p.utfall === "applied") utfall = "skapad";
+  }
+  if (utfall === "skapad") await logga({ omrade: "foretag", typ: "ansokan", medlemsId: id, aktor: "kund", efter: { form: a.form } });
+  return utfall;
+}
+
+/** Den gällande villkorsversionen godkänd på en godkänd profil (E3-12). */
+export async function godkannForetagsvillkor(id: string): Promise<boolean> {
+  const tid = nu();
+  const p = await patcha(MK.profiler, foretagsprofilId(id), [satt("villkorVersion", VILLKOR_FORETAG_VERSION), satt("villkorGodkant", tid)], {
+    status: "aktiv",
+  });
+  if (p.utfall !== "applied") return false;
+  await logga({ omrade: "foretag", typ: "villkor", medlemsId: id, aktor: "kund", efter: { version: VILLKOR_FORETAG_VERSION } });
+  return true;
+}
+
+/** Godkända företag vars kund inte har fått mejlet om det än (timjobbet). */
+export async function foretagAttMejla(limit: number): Promise<Foretagsprofil[]> {
+  const rader = await fraga(MK.profiler, {
+    filter: { $and: [{ typ: "foretag" }, { status: "aktiv" }, { godkandMejlad: { $exists: false } }] },
+    limit,
+  });
+  return rader.map(foretagsprofilUrRad).filter((p): p is Foretagsprofil => p !== null);
+}
+
+/** Mejlet om godkännandet är skickat; skrivs bara en gång. */
+export async function markeraGodkandMejlad(id: string): Promise<boolean> {
+  const p = await patcha(MK.profiler, foretagsprofilId(id), [satt("godkandMejlad", nu())], { godkandMejlad: { $exists: false } });
+  return p.utfall === "applied";
+}
+
+/** Märket bort efter ett mejl som inte gick iväg, så att nästa körning försöker igen. */
+export async function avmarkeraGodkandMejlad(id: string): Promise<void> {
+  await patcha(MK.profiler, foretagsprofilId(id), [taBortFalt("godkandMejlad")]);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -434,7 +502,7 @@ export async function sparaNivabyte(v: { medlemsId: string; datum: string; fran:
 }
 
 export interface Logghandelse {
-  omrade: "konto" | "niva" | "avstamning" | "admin" | "mejl";
+  omrade: "konto" | "niva" | "avstamning" | "admin" | "mejl" | "foretag" | "offert";
   typ: string;
   aktor: "kund" | "system" | "admin";
   medlemsId?: string;
@@ -477,6 +545,8 @@ export interface Prisbeslutspost {
   purchaseFlowId: string;
   medlemsId: string;
   profil: string;
+  /** E3: företagets namn när korgen prissattes som företag (till kvittot). */
+  foretagNamn?: string;
   niva: string;
   procent: number;
   kalla: string;

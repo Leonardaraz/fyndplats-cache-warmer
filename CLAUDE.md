@@ -1695,3 +1695,39 @@ förhandslänk fram till Wix-kassan. Leonard lägger ingen provorder (2026-11-05
 betalningen visade provordern 10167 i E0. Ingen tvåfaktor för admin (Leonard
 2026-11-05). J1 skickas inte: jämförelsen följer kedjorna (ovan). Aldrig under
 Black Week 23–29/11.
+
+## Medlemskapet, etapp E3: företagskontot (2026-11-04)
+
+Bakom samma växel som E2 (`pris`: `test` bara för testare, `pa` för alla).
+Ett företag läggs till på ett befintligt konto, högst ett per konto i E3.
+
+- **Ansökan** på Mina sidor (`app/konto/foretag.tsx`, `/api/konto/foretag`):
+  namn, organisationsnummer (Luhn medan kunden skriver, `orgnr.ts`),
+  fakturaadress, valfri leveransadress, kryss för näringsverksamhet och
+  villkoren. Servern prövar allt igen (`lib/medlem/foretag.ts`). Raden heter
+  `<medlemsId>__foretag` i `FyndplatsMedlemsprofiler` (index
+  `typ-status-ansokt`) och får status `granskas`; butiken mejlar info@.
+- **Granskningen** görs i motorns `/admin/medlemmar` (kön överst). Bolagsverkets
+  uppslag är inte byggt; det kräver ett API-konto. Godkänt företag mejlas av
+  timjobbet `/api/cron/medlemskorgar` inom en timme
+  (`lib/medlem/foretagsmejl.ts`, märkt exakt en gång).
+- ☠️ **En enskild firmas organisationsnummer är ett personnummer** (F4). Kunden
+  ser det maskerat (`orgnrVisas`), mejlet till info@ likaså, och det loggas
+  aldrig; hela numret syns bara i motorns admin.
+- **Profilen "Du handlar som"** bärs i sessionen (`profil: "foretag"`) och i
+  tecknet `fp_medlem_inne=f`, satt av `/api/konto/profil`. ☠️ Tecknet ger
+  ingen rätt: `medlemsprofil()` läser företagsprofilen vid varje prissättning
+  och prissätter som privatperson om företaget inte är godkänt eller dess
+  villkor är gamla (E3-12, `VILLKOR_FORETAG_VERSION`).
+- **Priserna**: produktsidans ruta visar företagspriset exkl. moms, märkt, och
+  ordertrappan som tabell med "högst x %" när golvet stoppar trappan (E3-8).
+  Varukorgen visar varor och frakt exkl. moms, momsen, totalen inkl. moms,
+  "Lägg till x kr exkl. moms för y %" och att kassan visar priserna inkl. moms.
+  Beloppen exkl. moms räknas på servern (`exklMoms`, half up).
+- **Villkoren** står som utkast på `/villkor/foretag` (noindex), samma text som
+  `docs/medlemskap-foretagsvillkor-utkast.md`. ☠️ Ändras texten i sak höjs
+  `VILLKOR_FORETAG_VERSION`, och varje företag godkänner den nya versionen på
+  Mina sidor innan kontot prissätts som företag igen.
+
+Före `pa` för företag: juristgranskning och Leonards ja till villkoren,
+luckorna i dem ifyllda, och vårt kvitto med företagets namn (villkoren 5.2).

@@ -18,6 +18,7 @@ import { inloggad } from "./inloggad";
 import { lageFor } from "./konto";
 import {
   aktuellaRegler,
+  hamtaForetagsprofil,
   hamtaMedlem,
   liggarraderForEpost,
   orderMedKopflode,
@@ -31,7 +32,18 @@ import { stadaLastaKorgar, type Stadutfall } from "./korgstadning";
 import { hamtaGolv } from "./golv-klient";
 import { ettPris, jamforelseForMedlem } from "./jamforelse";
 import { jamforprisFor } from "@/lib/price-snapshot";
-import { hogstaProcent, prissatt, radpris, type Begransning, type Prisbeslut, type Profil } from "./pris";
+import {
+  ORDERTRAPPA,
+  exklMoms,
+  hogstaProcent,
+  prissatt,
+  radpris,
+  type Begransning,
+  type NastaSteg,
+  type Prisbeslut,
+  type Profil,
+} from "./pris";
+import { kanHandlaSomForetag } from "./foretag";
 import type { Golvsvar, Varukorgsrad } from "./varukorg";
 import {
   golvnyckel,
@@ -47,7 +59,12 @@ import {
 const HEADLESS_CLIENT_ID = "3d8fdd09-3b3c-475f-aac2-b6bfa9e05153";
 
 export type Utan = "av" | "utloggad" | "sparrad" | "inte-testare" | "fel";
-export type Medlemsprofil = { medlem: Medlem; profil: Profil };
+/** `foretag`: kontot handlar som sitt godkända företag (E3); priset räknas då
+ *  med företagsprofilen och visas exkl. moms. */
+export type Medlemsprofil = { medlem: Medlem; profil: Profil; foretag?: { namn: string } };
+
+/** Momsen på hela sortimentet i dag (samma som prisrader() i varukorg.ts). */
+export const MOMS_PROCENT = 25;
 
 /** Medlemmens nivå räknas om högst var femte minut per instans. */
 const PROFIL_CACHE_MS = 5 * 60_000;
@@ -59,7 +76,10 @@ export async function medlemsprofil(): Promise<Medlemsprofil | { utan: Utan }> {
   if (lage === "av") return { utan: "av" };
   const session = await inloggad();
   if (!session) return { utan: "utloggad" };
-  const c = profiler.get(session.sub);
+  // E3-11: profilvalet ingår i nyckeln, så att ett byte räknar om direkt.
+  const villForetag = session.profil === "foretag";
+  const nyckel = `${session.sub}|${villForetag ? "f" : "p"}`;
+  const c = profiler.get(nyckel);
   if (c && Date.now() - c.at < PROFIL_CACHE_MS) {
     if (lage === "test" && !c.v.medlem.testare) return { utan: "inte-testare" };
     return c.v;
@@ -68,10 +88,20 @@ export async function medlemsprofil(): Promise<Medlemsprofil | { utan: Utan }> {
     const medlem = await hamtaMedlem(session.sub);
     if (!medlem || medlem.status !== "aktiv") return { utan: "sparrad" };
     if (lage === "test" && !medlem.testare) return { utan: "inte-testare" };
-    const [regler, rader] = await Promise.all([aktuellaRegler(), liggarraderForEpost(medlem.epost)]);
+    const [regler, rader, fp] = await Promise.all([
+      aktuellaRegler(),
+      liggarraderForEpost(medlem.epost),
+      villForetag ? hamtaForetagsprofil(medlem.id) : Promise.resolve(null),
+    ]);
     const l = lageFor(medlem, rader, regler);
-    const v: Medlemsprofil = { medlem, profil: { typ: "privat", niva: l.niva.namn, nivaProcent: l.niva.rabattProcent } };
-    profiler.set(session.sub, { v, at: Date.now() });
+    const niva = { niva: l.niva.namn, nivaProcent: l.niva.rabattProcent };
+    // Ett företag som inte längre är godkänt, eller vars villkor är gamla
+    // (E3-12), prissätts som privatperson tills det är rättat.
+    const v: Medlemsprofil =
+      villForetag && kanHandlaSomForetag(fp)
+        ? { medlem, profil: { typ: "foretag", ...niva }, foretag: { namn: fp.namn } }
+        : { medlem, profil: { typ: "privat", ...niva } };
+    profiler.set(nyckel, { v, at: Date.now() });
     return v;
   } catch (e) {
     console.error("[medlemspris] profilen gick inte att läsa:", e instanceof Error ? e.message.slice(0, 120) : "okänt");
@@ -89,7 +119,8 @@ export interface Variantmedlemspris {
   pOre: number;
   procent: number;
   begransning: Begransning;
-  /** Golvet begränsar: den högsta procent varan kan få. */
+  /** Golvet begränsar: den högsta procent varan kan få. För företag också när
+   *  golvet stoppar ordertrappan under 5 % (E3-8). */
   hogstaProcent?: number;
   /** Varför varianten inte får medlemspris, när det är något kunden ska få veta. */
   orsak?: "rea";
@@ -97,6 +128,9 @@ export interface Variantmedlemspris {
   tidigareOre?: number;
   /** Får nivåns procent stå i rutan? Bara när det tidigare priset är listpriset. */
   visaProcent?: boolean;
+  /** Företag: samma belopp exkl. moms (E3-4). */
+  aOreExMoms?: number;
+  pOreExMoms?: number;
 }
 
 /** Jämförpriset för ett medlemspris, sparat en kort stund per produkt och pris. */
@@ -130,15 +164,31 @@ export async function medlemsprisForProdukt(
   const varianter = variantpriserUrV3(produkt);
   if (varianter.length === 0) return null;
   const golv = await hamtaGolv(varianter.map((v) => ({ produktId, variantId: v.variantId })));
+  const foretag = profil.typ === "foretag";
+  const trappansTak = ORDERTRAPPA[ORDERTRAPPA.length - 1].procent;
+  const exMoms = (aOre: number, pOre: number) =>
+    foretag ? { aOreExMoms: exklMoms(aOre, MOMS_PROCENT), pOreExMoms: exklMoms(pOre, MOMS_PROCENT) } : {};
   const rader: Variantmedlemspris[] = varianter.map((v) => {
     // 2.1: en reavara får reapriset, aldrig ett medlemspris ovanpå.
     if (v.rea) {
-      return { variantId: v.variantId, aOre: v.aOre, pOre: v.aOre, procent: 0, begransning: "ej-berattigad", orsak: "rea" };
+      return {
+        variantId: v.variantId,
+        aOre: v.aOre,
+        pOre: v.aOre,
+        procent: 0,
+        begransning: "ej-berattigad",
+        orsak: "rea",
+        ...exMoms(v.aOre, v.aOre),
+      };
     }
     const g = golv.get(golvnyckel(produktId, v.variantId));
     const golvOre = g?.golvOre ?? null;
     const { pOre, begransning } = radpris(v.aOre, golvOre, profil.nivaProcent);
-    const hogsta = begransning === "golv" && golvOre !== null ? hogstaProcent(v.aOre, golvOre) : undefined;
+    let hogsta = begransning === "golv" && golvOre !== null ? hogstaProcent(v.aOre, golvOre) : undefined;
+    if (foretag && hogsta === undefined && golvOre !== null) {
+      const tak = hogstaProcent(v.aOre, golvOre);
+      if (tak < trappansTak) hogsta = tak;
+    }
     return {
       variantId: v.variantId,
       aOre: v.aOre,
@@ -146,11 +196,14 @@ export async function medlemsprisForProdukt(
       procent: golvOre === null ? 0 : profil.nivaProcent,
       begransning,
       ...(hogsta !== undefined ? { hogstaProcent: hogsta } : {}),
+      ...exMoms(v.aOre, pOre),
     };
   });
   // Jämförelsen med det tidigare priset, som kedjorna visar (jamforelse.ts).
   // Bara när varianterna har ett och samma pris: prishistoriken är produktens.
-  if (!ettPris(rader.map((r) => r.aOre))) return rader;
+  // Inte för företag: deras pris visas exkl. moms, prishistoriken är inkl.
+  // moms, och prisinformationslagen gäller köp av konsumenter.
+  if (foretag || !ettPris(rader.map((r) => r.aOre))) return rader;
   for (const r of rader) {
     if (r.orsak || r.pOre >= r.aOre) continue;
     const j = jamforelseForMedlem(r.aOre, r.pOre, await tidigarePris(produktId, r.pOre));
@@ -194,13 +247,42 @@ export interface Korgpris {
   summaPOre: number;
   rabattOre: number;
   friFraktSkydd: boolean;
+  /** E3: företagets vy, när kontot handlar som företaget. */
+  foretag?: Foretagskorg;
+}
+
+export interface Foretagskorg {
+  namn: string;
+  /** Var procenten kommer ifrån: nivån eller ordertrappan (aldrig båda). */
+  kalla: Prisbeslut["kalla"];
+  trappaProcent: number;
+  basOreExMoms: number;
+  summaPOreExMoms: number;
+  nastaSteg: NastaSteg | null;
+  /** "Begär offert" visas (F7). */
+  offert: boolean;
+  /** Varje rad med sitt styckpris, inkl. och exkl. moms, på radens id i Wix. */
+  rader: { id: string; pOre: number; pOreExMoms: number; procent: number; begransning: Begransning }[];
 }
 
 export async function medlemsprisForKorg(besokarensKorg: string, mp: Medlemsprofil): Promise<Korgpris | null> {
   const r = await prissattKorg(besokarensKorg, mp);
   if ("skal" in r) return null;
   const b = r.beslut;
-  return { niva: b.niva, procent: b.procent, summaAOre: b.summaAOre, summaPOre: b.summaPOre, rabattOre: b.rabattOre, friFraktSkydd: b.friFraktSkydd };
+  const pris: Korgpris = { niva: b.niva, procent: b.procent, summaAOre: b.summaAOre, summaPOre: b.summaPOre, rabattOre: b.rabattOre, friFraktSkydd: b.friFraktSkydd };
+  if (b.profil === "foretag" && mp.foretag) {
+    pris.foretag = {
+      namn: mp.foretag.namn,
+      kalla: b.kalla,
+      trappaProcent: b.trappaProcent ?? 0,
+      basOreExMoms: b.basOreExMoms,
+      summaPOreExMoms: exklMoms(b.summaPOre, MOMS_PROCENT),
+      nastaSteg: b.nastaSteg,
+      offert: b.offert,
+      rader: b.rader.map((x) => ({ id: x.id, pOre: x.pOre, pOreExMoms: exklMoms(x.pOre, MOMS_PROCENT), procent: x.procent, begransning: x.begransning })),
+    };
+  }
+  return pris;
 }
 
 export type Kassasvar =
@@ -266,6 +348,7 @@ export async function medlemskassa(
     purchaseFlowId: typeof skapad?.purchaseFlowId === "string" ? skapad.purchaseFlowId : "",
     medlemsId: mp.medlem.id,
     profil: beslut.profil,
+    ...(mp.foretag && beslut.profil === "foretag" ? { foretagNamn: mp.foretag.namn } : {}),
     niva: beslut.niva,
     procent: beslut.procent,
     kalla: beslut.kalla,

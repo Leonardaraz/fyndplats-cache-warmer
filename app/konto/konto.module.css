@@ -1129,3 +1129,146 @@
 .installningText strong {
   color: var(--ink);
 }
+
+/* ── Företagskontot (E3) ── */
+
+.handlarSom {
+  margin: 4px 0 0;
+  font-size: var(--text-sm);
+  color: var(--ink);
+}
+.handlarSom a {
+  font-weight: 700;
+  color: var(--brand);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.foretag {
+  margin-top: 28px;
+}
+.foretag .underrubrik {
+  margin-top: 0;
+}
+
+.foretagForm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 520px;
+  margin-top: 12px;
+}
+
+.adress {
+  border: 0;
+  margin: 6px 0 0;
+  padding: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.adress legend {
+  padding: 0;
+  margin-bottom: 8px;
+}
+.postrad {
+  display: grid;
+  grid-template-columns: minmax(0, 9em) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.kryss {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  margin-top: 6px;
+  cursor: pointer;
+}
+.kryss input {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  accent-color: var(--brand);
+}
+.kryss a {
+  color: var(--brand);
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.faltFel,
+.faltOk,
+.faltHjalp {
+  font-size: var(--text-sm);
+  line-height: 1.4;
+}
+.faltFel {
+  color: #8a1c10;
+}
+.faltOk {
+  color: #1d6b3a;
+}
+.faltHjalp {
+  color: var(--soft);
+}
+
+.foretagFakta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px 22px;
+  margin: 0 0 12px;
+}
+.foretagFakta dt {
+  font-size: var(--text-sm);
+  color: var(--soft);
+}
+.foretagFakta dd {
+  margin: 2px 0 0;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.profilval {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+}
+.profilknapp {
+  font: inherit;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 16px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-md);
+  background: #fff;
+  color: var(--ink);
+  font-weight: 700;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.profilknapp small {
+  font-weight: 500;
+  font-size: var(--text-sm);
+  color: var(--soft);
+}
+.profilknapp[aria-checked="true"] {
+  border-color: var(--brand);
+  box-shadow: var(--e-ring);
+}
+.profilknapp:focus-visible {
+  outline: none;
+  box-shadow: var(--e-ring);
+}
+.profilknapp:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}

@@ -21,12 +21,13 @@ import { TidigarePris } from "./tidigare-pris";
 import { kronorText } from "../lib/medlem/kronor";
 import { nivaNyckel } from "../lib/medlem/niva-nyckel";
 
+type Begransning = "ingen" | "golv" | "ej-berattigad" | "fri-frakt" | "ingen-rabatt";
 type Variant = {
   variantId: string;
   aOre: number;
   pOre: number;
   procent: number;
-  begransning: "ingen" | "golv" | "ej-berattigad" | "fri-frakt" | "ingen-rabatt";
+  begransning: Begransning;
   hogstaProcent?: number;
   /** Varför varianten inte får medlemspris, när kunden ska få veta det. */
   orsak?: "rea";
@@ -34,13 +35,62 @@ type Variant = {
   tidigareOre?: number;
   /** Får nivåns procent stå? Bara när det tidigare priset är listpriset. */
   visaProcent?: boolean;
+  /** E3: företagets belopp exkl. moms. */
+  aOreExMoms?: number;
+  pOreExMoms?: number;
 };
-type Svar = { medlemspris: true; niva: string; procent: number; varianter: Variant[] } | { medlemspris: false };
+type Trappsteg = { franOreExMoms: number; procent: number };
+type Svar =
+  | {
+      medlemspris: true;
+      niva: string;
+      procent: number;
+      profil?: "privat" | "foretag";
+      foretag?: string;
+      trappa?: Trappsteg[];
+      varianter: Variant[];
+    }
+  | { medlemspris: false };
+
+/** Tecknets värde: "1" privat, "f" företag (lib/medlem/session.ts). */
+function tecken(): string | null {
+  if (typeof document === "undefined") return null;
+  for (const c of document.cookie.split(";")) {
+    const [k, v] = c.trim().split("=");
+    if (k === "fp_medlem_inne") return v ?? "";
+  }
+  return null;
+}
 
 /** Finns en inloggning att fråga om? Sessionen själv är httpOnly. */
 export function harMedlemstecken(): boolean {
-  if (typeof document === "undefined") return false;
-  return document.cookie.split(";").some((c) => c.trim() === "fp_medlem_inne=1");
+  const t = tecken();
+  return t === "1" || t === "f";
+}
+
+/** Handlar kontot som sitt företag (E3)? Bara en ledtråd till sidan; priset kommer från servern. */
+export function foretagstecken(): boolean {
+  return tecken() === "f";
+}
+
+/** Ordertrappan som en liten tabell (specen, "Företagsportal"). */
+export function Ordertrappa({ trappa, hogsta }: { trappa: Trappsteg[]; hogsta?: number }) {
+  return (
+    <details className="foretagstrappa">
+      <summary>Ordertrappan på hela ordern{hogsta !== undefined ? ` · högst ${hogsta} % på den här varan` : ""}</summary>
+      <table>
+        <tbody>
+          {trappa.map((t) => (
+            <tr key={t.procent}>
+              <td>från {kronorText(t.franOreExMoms)} exkl. moms</td>
+              <td>{t.procent} %</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p>Du får den högsta av din medlemsnivå och ordertrappan, aldrig båda. Kassan visar priserna inkl. moms.</p>
+    </details>
+  );
 }
 
 export function Medlemspris({ produktId, variantId }: { produktId: string; variantId?: string | null }) {
@@ -63,13 +113,42 @@ export function Medlemspris({ produktId, variantId }: { produktId: string; varia
     svar.varianter.find((x) => x.variantId === variantId) ?? (svar.varianter.length === 1 ? svar.varianter[0] : null);
   if (!v) return null;
 
+  // 2.1: rean först, för både privatpersoner och företag.
   if (v.orsak === "rea") {
     return (
       <p className="medlemspris-utan" role="status">
-        Varan är redan på rea. Medlemspriset läggs inte ovanpå reapriset.
+        {svar.profil === "foretag"
+          ? "Varan är redan på rea. Företagsrabatten läggs inte ovanpå reapriset."
+          : "Varan är redan på rea. Medlemspriset läggs inte ovanpå reapriset."}
       </p>
     );
   }
+
+  // E3: företaget ser priset exkl. moms, märkt vid priset (E3-4), och trappan.
+  if (svar.profil === "foretag" && v.aOreExMoms !== undefined && v.pOreExMoms !== undefined) {
+    const utan = v.begransning === "ej-berattigad" || (v.begransning === "golv" && v.pOre >= v.aOre);
+    const rabatt = !utan && v.pOre < v.aOre;
+    return (
+      <div className="medlemspris-foretag">
+        <div className="medlemspris" data-niva={nivaNyckel(svar.niva)} role="status">
+          <span className="medlemspris-etikett">{rabatt ? "Ditt företagspris" : "Pris för företaget"}</span>
+          <span className="medlemspris-belopp">
+            {kronorText(rabatt ? v.pOreExMoms : v.aOreExMoms)} <small>exkl. moms</small>
+          </span>
+          <span className="medlemspris-niva">
+            {rabatt ? `${svar.niva} · ${v.begransning === "golv" && v.hogstaProcent !== undefined ? `högst ${v.hogstaProcent}` : v.procent} %` : "Företag"}
+          </span>
+        </div>
+        {utan ? (
+          <p className="medlemspris-utan">Den här varan omfattas inte av företagsrabatterna.</p>
+        ) : svar.trappa?.length ? (
+          <Ordertrappa trappa={svar.trappa} hogsta={v.hogstaProcent} />
+        ) : null}
+        {svar.foretag ? <p className="medlemspris-som">Du handlar som {svar.foretag}.</p> : null}
+      </div>
+    );
+  }
+
   if (v.begransning === "ej-berattigad" || (v.begransning === "golv" && v.pOre >= v.aOre)) {
     return (
       <p className="medlemspris-utan" role="status">
@@ -129,6 +208,17 @@ export type Korgpris = {
   summaPOre: number;
   rabattOre: number;
   friFraktSkydd: boolean;
+  /** E3: när kontot handlar som företaget. */
+  foretag?: {
+    namn: string;
+    kalla: "niva" | "trappa" | "ingen";
+    trappaProcent: number;
+    basOreExMoms: number;
+    summaPOreExMoms: number;
+    nastaSteg: { procent: number; kvarOreExMoms: number; kvarOreInklMoms: number } | null;
+    offert: boolean;
+    rader: { id: string; pOre: number; pOreExMoms: number; procent: number; begransning: Begransning }[];
+  };
 };
 
 /**
