@@ -1,0 +1,58 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+961c2a55 89 bredden 890 mm på måttritningen = 89 cm (källans Kubstorlek 890×400×800 mm)
+961c2a55 40 djupet 400 mm på måttritningen = 40 cm
+961c2a55 80 höjden 800 mm på måttritningen = 80 cm
+961c2a55 20 översta öppna facket 200 mm på måttritningen = 20 cm
+961c2a55 28,3 mellersta öppna facket 283 mm på måttritningen = 28,3 cm
+961c2a55 37 nedersta öppna facket 370 mm på måttritningen = 37 cm
+961c2a55 51,9 nedersta fackets bredd 519 mm på måttritningen = 51,9 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+fca938bc 30 lastförmågan Holds up to 66 LBS på VEVOR:s bild = 29,9 kg, avrundat till 30 kg
+fca938bc 66 lastförmågan 66 lbs på VEVOR:s bild
+fca938bc 2,6 ramens 2.6 mm Carbon Steel Frame på VEVOR:s bild
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+e14934c2 10 viktkapaciteten 22.05 till 110 lbs på VEVOR:s bild = 10 till 50 kg i källans specifikation
+e14934c2 50 viktkapaciteten 50 kg i källans specifikation och 110 lbs på VEVOR:s bild
+e14934c2 2 två AA-batterier till ljudfunktionen enligt noten Music functions require two AA batteries (not included) på VEVOR:s bild
+e14934c2 71 första måttet 710 mm i källans Produktmått 710 x 280 x 760 mm = 71 cm
+e14934c2 28 andra måttet 280 mm = 28 cm
+e14934c2 76 tredje måttet 760 mm = 76 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+8c8d2856 10 viktkapaciteten 22.05 till 110 lbs på VEVOR:s bild = 10 till 50 kg i källans specifikation
+8c8d2856 50 viktkapaciteten 50 kg i källans specifikation och 110 lbs på VEVOR:s bild
+8c8d2856 2 två AA-batterier till ljudfunktionen enligt noten Music functions require two AA batteries (not included) på VEVOR:s bild
+8c8d2856 71 första måttet 710 mm i källans Produktmått 710 x 280 x 800 mm = 71 cm
+8c8d2856 28 andra måttet 280 mm = 28 cm
+8c8d2856 80 tredje måttet 800 mm = 80 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+e664e61a 99 bredden 990 mm på måttritningen = 99 cm (källans Produktmått 990 x 395 x 480 mm)
+e664e61a 39,5 djupet 395 mm på måttritningen = 39,5 cm
+e664e61a 48 höjden 480 mm på måttritningen = 48 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+1000d244 59,7 bredden 597 mm på måttritningen = 59,7 cm (källans Produktmått 597 x 368 x 545 mm)
+1000d244 36,8 djupet 368 mm på måttritningen = 36,8 cm
+1000d244 54,5 höjden 545 mm i källans tabell och titel = 54,5 cm; måttritningen säger 530 mm: tabellen skrivs
+1000d244 20 locket 20 kg i källans tabell och 44 lbs på VEVOR:s bild; punkten säger 96 kg men den är kopierad från syskonbänken: det lägre skrivs
+1000d244 15 botten 15 kg i källans tabell och 33 lbs på VEVOR:s bild; punkten säger 40 kg men den är kopierad från syskonbänken: det lägre skrivs
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+da211d96 94 lägsta korgen 940 mm på måttbilden (37 in) = 94 cm; punkten säger 91,5 cm men specifikationen och måttbilden 940 mm: specifikationen skrivs
+da211d96 107 andra korgen 1070 mm på måttbilden (42,1 in) = 107 cm; punkten säger 102,5 cm: specifikationen skrivs
+da211d96 123 tredje korgen 1230 mm på måttbilden (48,4 in) = 123 cm; punkten säger 112,5 cm: specifikationen skrivs
+da211d96 140 översta korgen 1400 mm på måttbilden (55,1 in) = 140 cm; punkten säger 147,5 cm: specifikationen skrivs
+da211d96 83 basens sida 830 mm på måttbilden (32,7 in) = 83 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+96c99006 45,4 bärförmågan 100 lbs / 45.4 kg per sits på specifikationsbilden; titeln och punkten säger 49,9 kg (110 lb): det lägre skrivs
+96c99006 100 bärförmågan 100 lbs per sits på specifikationsbilden
+96c99006 23,5 sitsens 9.25 in / 235 mm på bilden = 23,5 cm
+96c99006 20 sitsens 7.87 in / 200 mm på bilden = 20 cm
+96c99006 10 sitsens 3.94 in / 100 mm på bilden = 10 cm
+96c99006 190 måttritningens 74.80 in / 1900 mm i båda riktningarna = 190 cm
+96c99006 66 måttritningens höjd 25.98 in / 660 mm = 66 cm
