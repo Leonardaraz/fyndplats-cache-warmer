@@ -1,0 +1,16 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (56 x 33 x 121,5 cm), Klädskåp (enkel) och Övre skåp har inga axelord och VEVOR:s bilder har ingen måttritning i galleriet: texten skriver talen i källans ordning utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (92 x 31,7 x 90,6 cm), Klädskåp (enkel) och Liten fack (enkel) har inga axelord och VEVOR:s bilder har ingen måttritning i galleriet: texten skriver talen i källans ordning utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (137 x 35,5 x 118,7 cm), Klädskåp (enkel) och Liten fack (enkel) har inga axelord och VEVOR:s bilder har ingen måttritning i galleriet: texten skriver talen i källans ordning utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (1140 x 300 x 610 mm) har inga axelord och VEVOR:s bilder har ingen måttritning i galleriet: texten skriver talen i källans ordning utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (800 x 300 x 750 mm) har inga axelord och VEVOR:s bilder har ingen måttritning i galleriet: texten skriver talen i källans ordning utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Mått (installerad) (920x805 mm) och Mått hopfälld (685x345x80 mm) har inga axelord och VEVOR:s bilder har ingen måttritning i galleriet: texten skriver talen i källans ordning utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad med axelord i specifikationen (höjdintervallet 1110–1370 mm står i en punkt) och VEVOR:s bilder har ingen måttritning i galleriet: texten skriver höjden och tavlans mått ur måttbilden, som ligger utanför galleriet
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad med axelord (bara handtagets justerbara höjd, 455–490 mm) och VEVOR:s bilder har ingen måttritning i galleriet: texten skriver bara handtagets höjdintervall
