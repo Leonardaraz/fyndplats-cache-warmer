@@ -4,15 +4,17 @@
 name: auction-seed
 
 #
-# SCHEMA (2026-09-28): varje natt 03:17 UTC (05:17 sommartid, 04:17 vintertid),
-# med apply. Kön och morgondagens fem (främjade kl 19, start 07) får då
+# SCHEMA (2026-09-28): varje natt med apply, sedan 2026-11-04 03:47 UTC
+# (05:47 sommartid, 04:47 vintertid). 03:17 låg inne i Aosoms synkfönster
+# (xx:12–xx:29 var tredje timme), och seeden läser nu också prishistoriken för
+# 30-dagarsspärren (lib/auction/trettio-dagar.ts). Kön och morgondagens fem (främjade kl 19, start 07) får då
 # butikens aktuella pris. Utan schemat gick poolen en månad utan körning:
 # fyra av dagens fem låg ~10 % under butikens pris, och katalogens nya
 # produkter kom aldrig med. Actions-cron kan landa upp till en timme sent,
 # därför långt före 07.
 on:
   schedule:
-    - cron: "17 3 * * *"
+    - cron: "47 3 * * *"
   workflow_dispatch:
     inputs:
       apply:
@@ -23,6 +25,11 @@ on:
         description: "Skriv även om många köade fynd tas bort (skyddsräcket)"
         type: boolean
         default: false
+      sparr:
+        description: "30-dagarsspärren: slå på (pa) eller av (av). Tomt = rör inte läget, kör seeden."
+        type: choice
+        options: ["", "pa", "av"]
+        default: ""
 
 jobs:
   seed:
@@ -32,8 +39,10 @@ jobs:
       - name: Anropa seed-endpointen
         run: |
           APPLY=""
-          if [ "${{ inputs.apply }}" = "true" ] || [ "${{ github.event_name }}" = "schedule" ]; then APPLY="?apply=1"; fi
-          if [ -n "$APPLY" ] && [ "${{ inputs.force }}" = "true" ]; then APPLY="${APPLY}&force=1"; fi
+          # Strömbrytaren först, och då bara den: svaret är läget, ingen seed körs.
+          if [ -n "${{ inputs.sparr }}" ]; then APPLY="?sparr=${{ inputs.sparr }}"; fi
+          if [ -z "$APPLY" ] && { [ "${{ inputs.apply }}" = "true" ] || [ "${{ github.event_name }}" = "schedule" ]; }; then APPLY="?apply=1"; fi
+          if [ "$APPLY" = "?apply=1" ] && [ "${{ inputs.force }}" = "true" ]; then APPLY="${APPLY}&force=1"; fi
           curl --fail-with-body --max-time 300 -sS \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             "https://fyndplats-cache-warmer.vercel.app/api/cron/auction-seed${APPLY}" | tee seed-report.json

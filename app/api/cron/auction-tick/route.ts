@@ -15,9 +15,11 @@
 //   3. PRISSTEG: för live-auktioner räknas målpriset ur den timindexerade
 //      stegen (ren funktion, lib/auction/engine) och Wix-priset PATCH:as när
 //      målsteget ändrats. Ett framtida startAt ger listpris ⇒ ingen PATCH.
-//   4. PÅFYLLNING: färre än 5 live ⇒ främja kö-produkter (lägst queueOrder)
+//   4. PÅFYLLNING: färre levande än nästa dags antal (lib/auction/antal.ts,
+//      tio om dagen sedan 2026-11-04) ⇒ främja kö-produkter (lägst queueOrder)
 //      med startAt = NÄSTA 07:00 svensk tid. Sinar kön återvinns avslutade
-//      auktioner (äldst endedAt först) — hjulet snurrar för evigt.
+//      auktioner (äldst endedAt först), men aldrig en som slutade inom
+//      30-dagarsfönstret (lib/auction/trettio-dagar.ts).
 //   5. SJÄLVLÄKNING: en auktion vars produkt RADERATS ur katalogen (pris-
 //      PATCH:en 404:ar) tas bort och sloten frigörs samma tick. Utan detta
 //      fastnar raden som evig live-zombie — varken expire eller prissteg kan
@@ -38,6 +40,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { isAuthorized } from "@/lib/auth";
 import { fetchOrders, aggregateOrders } from "@/lib/wix/orders";
 import { isExpired, nextStartAt, priceAt, stepIndexAt, variantPricesAt, type AuctionDoc } from "@/lib/auction/engine";
+import { attFramja, auktionerFor, ledigaSlots } from "@/lib/auction/antal";
+import { forstaSankning, slutadeInomFonstret } from "@/lib/auction/trettio-dagar";
 import {
   isProductGone,
   patchProductPrice,
@@ -52,8 +56,6 @@ import { uppdateraProduktsidor, type AndradProdukt } from "@/lib/headless/produk
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
-
-const SLOTS = 5;
 
 function isCronAuthorized(req: NextRequest): boolean {
   if (isAuthorized(req)) return true;
@@ -189,22 +191,30 @@ export async function GET(req: NextRequest) {
     }
     live = live.filter((a) => a.status === "live");
 
-    // 4) Påfyllning: främja kö tills 5 platser är fyllda, start nästa 07:00.
-    //    Sinar kön återvinns avslutade auktioner (äldst avslutad först) —
-    //    varje produkt har exakt ETT dokument (_id = auction-<productId>),
-    //    så en återvinning är samma dokument som flippas tillbaka till live.
+    // 4) Påfyllning: främja kö tills alla levande (startade + schemalagda) är
+    //    lika många som nästa dags antal, start nästa 07:00. Sinar kön
+    //    återvinns avslutade auktioner (äldst avslutad först) — varje produkt
+    //    har exakt ETT dokument (_id = auction-<productId>), så en återvinning
+    //    är samma dokument som flippas tillbaka till live.
+    const nastaStart = nextStartAt(now);
+    const mal = auktionerFor(nastaStart);
+    report.mal = mal;
     const usedSlots = new Set(live.map((a) => a.slot));
-    const freeSlots = [1, 2, 3, 4, 5].filter((s) => !usedSlots.has(s)).slice(0, Math.max(0, SLOTS - live.length));
+    const freeSlots = ledigaSlots(usedSlots, attFramja(live.length, mal));
     let pool: AuctionDoc[] = [...queued];
     if (pool.length < freeSlots.length) {
       const ended = await queryAuctions(["sold", "expired"]);
+      // 30-dagarsspärren: en vara vars förra auktion slutade inom fönstret får
+      // inte gå igen, eftersom dess lägsta pris då var auktionens.
+      const tSankning = forstaSankning(nastaStart);
       const recyclable = ended
         .filter((e) => e.floorPrice < e.listPrice) // hoppa produkter utan rabattutrymme
+        .filter((e) => !slutadeInomFonstret(e, tSankning))
         .sort((x, y) => Date.parse(x.endedAt ?? "1970-01-01") - Date.parse(y.endedAt ?? "1970-01-01"));
       pool = pool.concat(recyclable);
       if (recyclable.length > 0) report.recycled = recyclable.slice(0, freeSlots.length - queued.length).map((r) => r.slug);
     }
-    const startAt = freeSlots.length > 0 ? nextStartAt(now) : undefined;
+    const startAt = freeSlots.length > 0 ? nastaStart : undefined;
     let qi = 0;
     for (const slot of freeSlots) {
       // Kandidater vars produkt raderats ur katalogen hoppar vi över (och
