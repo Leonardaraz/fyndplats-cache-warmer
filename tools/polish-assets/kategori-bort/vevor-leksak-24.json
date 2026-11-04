@@ -1,0 +1,27 @@
+{
+ "namn": "vevor-leksak-24",
+ "rader": [
+  {
+   "kort": "841b09c5",
+   "pid": "841b09c5-6dd7-429b-b730-7296c8a707bd",
+   "bort": [
+    "Barn & Familj > Utelek & Spel"
+   ],
+   "behall": [
+    "Barn & Familj",
+    "Barn & Familj > Leksaker & Spel"
+   ]
+  },
+  {
+   "kort": "5c141a8f",
+   "pid": "5c141a8f-ba87-49c1-b61a-72dfce04cd46",
+   "bort": [
+    "Barn & Familj > Utelek & Spel"
+   ],
+   "behall": [
+    "Barn & Familj",
+    "Barn & Familj > Leksaker & Spel"
+   ]
+  }
+ ]
+}
