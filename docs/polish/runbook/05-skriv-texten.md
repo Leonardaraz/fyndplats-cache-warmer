@@ -323,7 +323,21 @@ produkttypen. Finns inget löv räcker föräldern. Välj aldrig `All Products`,
 lägger till den själv. Workflowen slår upp namnen, och torrkörningen fäller ett namn som
 inte finns.
 
-Sökordskategorin är den sida som rankar på huvudordet, och dess text påstår saker om alla
-sina produkter. Läs dess facit (`tools/polish-assets/runda-s*/<slug>-text.json`, fältet
-`facit`) och pröva varje *alla*, *varje* och *ingen* mot den nya produkten. Bryter produkten
-ett påstående skriver du en rad i `FLAGGADE.md` i stället för att koppla den.
+Sökordskategorin är den sida som rankar på huvudordet. **Dess text beskriver varutypen och
+aldrig sortimentet** *(Leonard 2026-11-04: "Fixa kategoribeskrivningarna och skriv så det
+inte kan bli fel igen")*: inga antal ("fyra av speglarna"), inga tak eller spann ("upp till
+100 × 80 cm", "120 till 180 cm"), inga *alla*, *ingen*, *flera* eller *de flesta* om
+produkterna, ingen enskild produkt med mått och inget "står i produktnamnet". Sortimentet
+ändras vid varje runda och sidan cachas i sex timmar, så en räknad uppgift är fel någon gång
+under dagen den publiceras. Fem sökordskategorier hann bli det den 2026-11-04. Spärren är
+`lib/category-evergreen.test.ts` i butiken, som läser alla kategoritexter, och
+`gate-kategori.py` i rundan, som har samma mönster (ändra bara båda tillsammans). Kategorier
+som ännu bär sådana uppgifter står i `lib/category-evergreen-baseline.ts`, som bara kan
+krympa, och rättas en i taget. Skriv aldrig en kategoritext ur minnet: avstäm exempel och
+typer mot `/api/lista?k=kategori/<slug>`, och skriv "kontrollera åldern i beskrivningen"
+hellre än "åldern står i beskrivningen".
+
+En kategori som står i baslinjen påstår ännu saker om sina produkter. Läs dess facit
+(`tools/polish-assets/runda-s*/<slug>-text.json`, fältet `facit`) och pröva varje *alla*,
+*varje* och *ingen* mot den nya produkten. Bryter produkten ett påstående skriver du en rad i
+`FLAGGADE.md` i stället för att koppla den.
