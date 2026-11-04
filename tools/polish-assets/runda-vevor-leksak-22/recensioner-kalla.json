@@ -1,0 +1,130 @@
+{
+  "11350d4b": {
+    "productId": "11350d4b-8c6c-4dd8-bb2a-c3181dc39d8d",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "a2618d26": {
+    "productId": "a2618d26-efd8-45d2-a3d2-6b772c7a7363",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "10f17f3e": {
+    "productId": "10f17f3e-368b-4b0b-86f3-caaee22d1628",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1k7x6q6",
+        "betyg": 5,
+        "datum": "2026-10-16",
+        "foton": 0,
+        "text": "Je l'ai acheté pour ma fille de 7ans afin qu'elle me suive dans prospection petit détecteur pas très cher mais qui fonctionne bien étonné pour le prix"
+      }
+    ]
+  },
+  "ea4d297c": {
+    "productId": "ea4d297c-8aff-411c-a94f-39bdaeddb50c",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1igc9a2",
+        "betyg": 5,
+        "datum": "2026-05-24",
+        "foton": 0,
+        "text": "Awesome crash pad, perfect size, my very active 2.5 yr old uses this all day. I find myself laying down on it too. Easy to wipe and clean, very comfortable. Side handles make it easier to move around."
+      }
+    ]
+  },
+  "6753275a": {
+    "productId": "6753275a-5392-40db-8fab-a24af8dfd1ed",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-9i22ym",
+        "betyg": 5,
+        "datum": "2026-09-29",
+        "foton": 0,
+        "text": "Espetacular, super confortável. Corresponde às imagens."
+      },
+      {
+        "id": "gen-qaomef",
+        "betyg": 5,
+        "datum": "2026-08-26",
+        "foton": 0,
+        "text": "Phenomenal purchase for our toddler boy. We put it in the middle of our wrap around couch and it fits perfectly. Absoulutely recommend for anyone with rambunctious young children."
+      },
+      {
+        "id": "gen-1lglj8n",
+        "betyg": 5,
+        "datum": "2026-03-06",
+        "foton": 0,
+        "text": "Die Kinder lieben es! Es ist wirklich riesig und es macht Spaß sich einfach reinzuwerfen:) auch den Erwachsenen;) würde es jederzeit wieder kaufen!"
+      },
+      {
+        "id": "gen-1dsugqb",
+        "betyg": 5,
+        "datum": "2026-01-17",
+        "foton": 0,
+        "text": "The blue color is beautiful, the velvet feels comfortable, and it provides good shock protection!"
+      },
+      {
+        "id": "gen-kyjn25",
+        "betyg": 5,
+        "datum": "2026-01-08",
+        "foton": 0,
+        "text": "The anti-collision pad has a moderate firmness, a refreshing blue color, and provides good protection."
+      },
+      {
+        "id": "gen-1fk5wef",
+        "betyg": 4,
+        "datum": "2026-04-12",
+        "foton": 0,
+        "text": "This is huge. Definitely bigger than I thought it was"
+      }
+    ]
+  },
+  "4dfca151": {
+    "productId": "4dfca151-be35-4788-bf8f-0378754b01af",
+    "synliga": 0,
+    "dolda": 3,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-jbdpw6",
+        "betyg": 5,
+        "datum": "2026-05-06",
+        "foton": 0,
+        "text": "Wonderful toy! My son spends hours playing with it and it has helped develop his fine motor skills. I highly recommend it!"
+      },
+      {
+        "id": "gen-9897h3",
+        "betyg": 5,
+        "datum": "2026-03-18",
+        "foton": 0,
+        "text": "Pour les enfants qui adorent retourner les porteur classique et qui essaient de les démonter. Parfait jouet réaliste, fidèle à la photo. Le son est un peu fort mais les enfants adorent. Il y a même une viceuse déviseuse inclue."
+      }
+    ]
+  }
+}
