@@ -34,6 +34,20 @@ värdens.
 - Varje färgs variantbild är dess första bild: plats 1, 5, 9 och 14.
 - Priserna (1 179, 1 019, 1 369 och 1 399 kr), synligheten och lagret är oförändrade (revision 30 → 33).
 
+## Live (18:49 UTC, `live-bilder.mjs`, sex minuter efter skrivningen)
+
+Mätt 18:43, direkt efter skrivningen, var den gamla vyn kvar i butikens cache (Rosa 3 bilder, 16 unika). 18:49 är den
+nya på plats:
+
+| Färg | Bilder i vyn | Pris | Första bilden |
+|---|---|---|---|
+| Svart | 5 (fyra egna och måttbilden) | 1 179 kr | `96d89c7a` |
+| Röd | 5 | 1 019 kr | `63c46c2b` |
+| Vit | 6 | 1 369 kr | `6061b14f` |
+| **Rosa** | **7 (sex egna och måttbilden)** | 1 399 kr | `cb871edd` |
+
+Sidan har 20 unika bilder, och Rosas ordning är studiofotot, gräsmattan, parken, häcken, ratten, hjulet och måttbilden.
+
 ## Att veta
 
 - **Alt-texterna** passerar repots mönstergrindar (11 mönster, 0 fynd) och följer formuleringarna på Vits motsvarande
