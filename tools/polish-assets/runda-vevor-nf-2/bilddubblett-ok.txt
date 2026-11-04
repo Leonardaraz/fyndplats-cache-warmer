@@ -1,0 +1,2 @@
+# kort pos1 pos2 skäl (kvitterar ett par som gate-bilddubblett.py flaggar som misstänkt men som visar något olika)
+9e1e3be6 3 4 position 3 visar grillen framifrån med eld, orange pil och tillbehör, position 4 visar den snett från sidan utan eld
