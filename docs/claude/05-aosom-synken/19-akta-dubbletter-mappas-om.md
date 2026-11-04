@@ -81,8 +81,22 @@ inte att mappa om** (`skun_upptagen`). Bekräftat 2026-11-04 på AliExpress-sida
 `e6134e61`, som motorn nekade mot både den röda och den svarta Mercedes-artikeln. Sidan är
 en dubblett av en färg som värden redan säljer, ofta dyrare (AliExpress-eltraktorn
 `e6615ddd` kostar 3 099 kr mot 2 299 kr för värdens gröna), och löses genom att den
-pensioneras med 301 till värdens färg, inte genom ommappning. Det är ett beslut för Leonard,
-eftersom sidan är publicerad. Två rader i feeden med identisk titel (eltraktorernas 12 V-rader)
+pensioneras med 301 till värdens färg, inte genom ommappning. Leonard sa ja till det samma dag
+(2026-11-04), och de tre sidorna `e6615ddd`, `065eb3e8` och `e6134e61` pensionerades så här:
+`redirect-add.yml` med `batch` och `force=true` FÖRST (källan är fortfarande synlig, och en rad
+som skrivs efter avpubliceringen ger en lucka med 404), med målet `/produkt/<värdens slug>?variant=<
+värdens variant-id för färgen>` så att den som kommer via en gammal länk ser rätt färg; sedan
+`PATCH /stores/v3/products/<id>` med `{ product: { revision, visible: false }, fieldMask: { paths:
+["visible"] } }` och återläsning. Före det: läs hela omdirigeringslistan (`redirect-add.yml` utan
+indata) och sök efter sidans adress, så att ingen äldre 301 pekar på den, och sök igenom
+ordrarna efter produkt-id:t. Mappningsraden rörs inte och sidan märks inte `rejected`, för
+`pensionerade-radera` raderar bara Aosom-rader och en AliExpress-rad ska inte hamna i den kön.
+☠️ **Recensionerna följer INTE med.** Motorns sammanslagning är det enda som kopierar
+omdömen, och den vägrar en AliExpress-givare (`utkast_ej_aosom`). De tre sidorna hade 13, 4 och
+cirka 4 omdömen, som nu ligger kvar oanvända på de dolda sidorna (inget raderades). Ett verktyg
+som kopierar dem till värden saknas och kräver en kodändring i motorn. Butikens cache svarar
+fortfarande 200 på de gamla adresserna i upp till en timme, så mät 308 efteråt.
+Två rader i feeden med identisk titel (eltraktorernas 12 V-rader)
 går inte att skilja med `feed_sok`, och artikelnumret får inte in som workflow-input.
 En vara som Aosom inte har i den färgen, som den svarta trehjuliga Hondan `816e745c`
 (feeden har bara grön och röd), går inte att mappa om alls och ligger kvar som AliExpress-sida.
