@@ -288,3 +288,9 @@ underrubrik.
   - Historik: så såg ordningen ut
   - Rätta en enskild recension: dölj, ta bort bara fotot, visa igen (2026-10-29)
 - `44-mediainventering.md`: Mediainventering: "utan katalogreferens" är inte "oanvänd"
+- `46-medlemskap.md`: Medlemskapet: portalen för privatpersoner och företag (2026-11-04)
+  - E0: Wix-kassan bär vårt pris (provordern 2026-11-04)
+  - E1: konto, orderliggare och Mina sidor (butiken)
+  - Admin: /admin/medlemmar (motorn)
+  - Wix-gränser som styr formen
+  - Kvar till E2
