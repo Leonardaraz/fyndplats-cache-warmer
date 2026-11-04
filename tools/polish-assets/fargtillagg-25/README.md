@@ -5,7 +5,7 @@ Leonard: *"Svarta eltraktorn: hämta de andra rena bilderna och koppla dem"*.
 ## Vad Svart visade
 
 Svart (`f4f0198e`) hade en länkad bild, packshoten (galleriets plats 17). Resten av
-leverantörens bilder för den svarta artikeln hade ströks vid poleringen: position 2 är en
+leverantörens bilder för den svarta artikeln ströks vid poleringen: position 2 är en
 varningsetikett med en sko i bild, position 3 bär inbränd tysk text och position 8 är ett
 amatörfoto ur ett lager. Position 10 finns inte. Feeden har åtta bilder.
 
