@@ -37,7 +37,6 @@ ed814663 2 antalet dragringar på specifikationskortet (2 x Pull Rings)
 8c59959b 94 handtagets höjd 94–122 cm i källans punkt (40,9–48,8 in / 1040–1240 mm på bild 4): det lägre skrivs
 8c59959b 122 handtagets höjd 94–122 cm i källans punkt (40,9–48,8 in / 1040–1240 mm på bild 4): det lägre skrivs
 8c59959b 97,2 mattans diameter 38 in / 972 mm på bild 3 = 97,2 cm
-8c59959b 10 monteringstiden 10 minuter i källans punkt och på bild 7
 # Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
 # Form: <kort> <tal> <vad som lästes av eller räknades>
 34441c95 45 korgens storlek 18 tum = 45 cm i källans namn och punkt
