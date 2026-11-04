@@ -20,6 +20,7 @@
 
 import { wixFetch } from './wix-client';
 import { enqueueAbandonedCart, type CartItem, type EnqueueResult } from './abandoned-cart';
+import { korgslag } from './medlem/overgiven';
 
 interface WixMoney {
   amount?: string;
@@ -27,6 +28,8 @@ interface WixMoney {
 }
 interface WixAbandonedCheckout {
   id?: string;
+  /** Varukorgen kassan byggdes på. En medlemskorg har ett prisbeslut med samma id. */
+  cartId?: string;
   createdDate?: string;
   status?: string; // ABANDONED | RECOVERED | ...
   currency?: string;
@@ -120,6 +123,14 @@ export async function pollAbandonedCheckouts(opts: PollOptions = {}): Promise<Po
     if (rec.status !== 'ABANDONED' || !cartId || !email || !createdAt) continue;
     if (createdAt < cutoff) continue;
     result.considered++;
+
+    // Medlemmarnas låsta korgar får inget mejl (lib/medlem/overgiven.ts).
+    const slag = await korgslag(rec.cartId);
+    if (slag !== 'vanlig') {
+      result.skipped++;
+      result.details.push({ cartId, email, outcome: 'skipped', reason: slag === 'medlem' ? 'medlemskorg' : 'medlemskollen-felade' });
+      continue;
+    }
 
     const items = mapItems(rec);
     // Fallback: query-projektionen saknar ofta subtotal/total → summera radpriserna

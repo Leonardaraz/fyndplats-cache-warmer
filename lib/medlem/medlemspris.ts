@@ -16,7 +16,18 @@ import { redirects } from "@wix/redirects";
 import { wixFetch, WixApiError } from "@/lib/wix-client";
 import { inloggad } from "./inloggad";
 import { lageFor } from "./konto";
-import { aktuellaRegler, hamtaMedlem, liggarraderForEpost, prisLage, sparaPrisbeslut, type Medlem } from "./lager";
+import {
+  aktuellaRegler,
+  hamtaMedlem,
+  liggarraderForEpost,
+  orderMedKopflode,
+  prisbeslutUtanUtfall,
+  prisLage,
+  sattKorgutfall,
+  sparaPrisbeslut,
+  type Medlem,
+} from "./lager";
+import { stadaLastaKorgar, type Stadutfall } from "./korgstadning";
 import { hamtaGolv } from "./golv-klient";
 import { hogstaProcent, prissatt, radpris, type Begransning, type Prisbeslut, type Profil } from "./pris";
 import {
@@ -222,4 +233,29 @@ export async function medlemskassa(
     adress,
     beslut: { procent: beslut.procent, niva: beslut.niva, summaPOre: beslut.summaPOre, rabattOre: beslut.rabattOre, friFraktSkydd: beslut.friFraktSkydd },
   };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Låsta korgar äldre än ett dygn (lib/medlem/korgstadning.ts)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Tar bort en låst korg i Wix. 404: den fanns inte längre. */
+export async function taBortLastKorg(cartId: string): Promise<"borttagen" | "saknades"> {
+  try {
+    await wixFetch({ method: "DELETE", path: `/ecom/v2/carts/${encodeURIComponent(cartId)}` });
+    return "borttagen";
+  } catch (e) {
+    if (e instanceof WixApiError && e.status === 404) return "saknades";
+    throw e;
+  }
+}
+
+/** Timjobbet /api/cron/medlemskorgar. */
+export function stadaMedlemskorgar(nuMs = Date.now()): Promise<Stadutfall> {
+  return stadaLastaKorgar(nuMs, {
+    utanUtfall: prisbeslutUtanUtfall,
+    orderFinns: orderMedKopflode,
+    taBortKorg: taBortLastKorg,
+    sattUtfall: sattKorgutfall,
+  });
 }

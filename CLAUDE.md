@@ -1623,3 +1623,42 @@ hemligheten i `STRIPE_WEBHOOK_SECRET`); domänen för Apple Pay; egna
 påminnelser om övergivna kassor; Stripe-inställningarna (kortutdragets text
 "FYNDPLATS", Stripes egna kvitton av, Radar-regler); snabbkassan (Apple Pay
 och Google Pay överst).
+
+## Medlemskapet, etapp E2: medlemspriset och kassan med låsta priser (2026-11-04)
+
+Byggt men avstängt. Växeln är fältet `pris` i raden
+`FyndplatsButikInstallningar/medlemskap`: `av` (eller inget fält), `test` (bara
+medlemmar med `testare: true`) eller `pa`. Den är skild från `lage`.
+
+- **Prismotorn** (`lib/medlem/pris.ts`): radpriset är max(A·(1−d) avrundat,
+  G) och aldrig över A. Golvet G = C × 1,10 × 1,25 kommer från motorns
+  `/api/medlem/golv` (`golv-klient.ts`, hemligheten `REVIEW_INGEST_SECRET`).
+  ☠️ Kostnaden och golvet lämnar aldrig servern; webbläsaren får radpriset,
+  procenten och skälet till en begränsning.
+- ☠️ **Styckpriset avrundas till hela ören, och samma pris går till Wix.**
+  Rutan på produktsidan visar örena (`lib/medlem/kronor.ts`); avrundat till
+  kronor hade den sagt något annat än kassan.
+- **Fraktskyddet** räknas mot 500,00 kr (E0-5). Ett företag får den högsta av
+  nivån och ordertrappan, aldrig båda.
+- **Produktsidan**: `/api/medlem/priser` (privat, ingen cache) och rutan
+  `components/medlemspris.tsx` i nivåns metall, samma nyckel som medlemskortet
+  (`lib/medlem/niva-nyckel.ts`). Utan tecknet `fp_medlem_inne` görs inget
+  anrop.
+- **Kassan** (`/api/medlem/kassa`, `lib/medlem/medlemspris.ts`) bygger en Cart
+  V2 med E0:s regler: `openAccess`, landet SE, kanalen WEB, låst kupong och
+  presentkort, och samma pris i `salePrice` och `fullPrice` på varje rad från
+  Wix Stores. Den kontrollerar att Wix bär priserna och sparar prisbeslutet i
+  `FyndplatsPrisbeslut` (ADMIN, index på `purchaseFlowId` och
+  `medlemsId`+`skapad`) innan kunden får adressen. Går något fel används den
+  vanliga kassan.
+- ☠️ **Låsta korgar äldre än ett dygn tas bort** varje timme kl :41
+  (`/api/cron/medlemskorgar`, `lib/medlem/korgstadning.ts`). Varukorgens id är
+  kassans id, så den gamla länken slutar fungera och nästa köp räknas om.
+  Utfallet står på beslutet: `kopt`, `borttagen` eller `saknades`.
+- ☠️ **Mejlen om övergiven kassa hoppar över medlemskorgar** (en korg med
+  prisbeslut, `lib/medlem/overgiven.ts`), både i webhooken och i pollaren. Kan
+  det inte avgöras väntar kassan till nästa kvart.
+
+Före `test`: Leonards medlemsrad med `testare: true` och en provorder på en
+förhandslänk. Före `pa`: Leonards svar på P4–P8 och J1, beslut om tvåfaktor
+för admin, och aldrig under Black Week 23–29/11.

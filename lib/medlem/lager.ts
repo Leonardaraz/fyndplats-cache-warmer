@@ -505,3 +505,38 @@ export async function sparaPrisbeslut(post: Prisbeslutspost): Promise<void> {
   const rader = post.rader.map((r) => Object.fromEntries(Object.entries(r).filter(([, v]) => v !== undefined && v !== null)));
   await spara(MK.prisbeslut, post.cartId, { ...post, rader } as unknown as Rad);
 }
+
+/**
+ * Är varukorgen en medlemskorg med låsta priser? Bara en sådan har ett
+ * prisbeslut. Mejlen om övergiven kassa hoppar över den: länken pekar på en
+ * kassa som tas bort efter ett dygn, och kupongen är låst i den.
+ */
+export async function harPrisbeslut(cartId: string): Promise<boolean> {
+  if (!cartId) return false;
+  return (await hamta(MK.prisbeslut, cartId)) !== null;
+}
+
+/** Beslut vars låsta korg ännu saknar utfall, skapade mellan `efter` och `fore` (ISO), äldst först. */
+export async function prisbeslutUtanUtfall(
+  efter: string,
+  fore: string,
+  limit: number,
+): Promise<{ cartId: string; purchaseFlowId: string }[]> {
+  const rader = await fraga(MK.prisbeslut, {
+    filter: { $and: [{ skapad: { $gte: efter } }, { skapad: { $lte: fore } }, { utfall: { $exists: false } }] },
+    sort: [{ fieldName: "skapad", order: "ASC" }],
+    limit,
+  });
+  return rader.map((r) => ({ cartId: text(r.cartId) ?? "", purchaseFlowId: text(r.purchaseFlowId) ?? "" }));
+}
+
+/** Finns en order med köpflödets id i orderliggaren? */
+export async function orderMedKopflode(purchaseFlowId: string): Promise<boolean> {
+  if (!purchaseFlowId) return false;
+  return (await fraga(MK.orderliggare, { filter: { purchaseFlowId }, limit: 1 })).length > 0;
+}
+
+/** Utfallet för en låst korg; skrivs bara en gång (villkoret: inget utfall än). */
+export async function sattKorgutfall(cartId: string, utfall: "kopt" | "borttagen" | "saknades"): Promise<void> {
+  await patcha(MK.prisbeslut, cartId, [satt("utfall", utfall), satt("utfallTid", nu())], { utfall: { $exists: false } });
+}
