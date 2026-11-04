@@ -1,0 +1,50 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+91b2957a 60 längden 23,62 in / 600 mm på VEVOR:s måttritning = 60 cm
+91b2957a 44 bredden 17,32 in / 440 mm på måttritningen = 44 cm
+91b2957a 6 höjden 2,36 in / 60 mm på måttritningen = 6 cm
+91b2957a 2,75 nettovikten 6,1 lbs / 2,75 kg på specifikationskortet
+91b2957a 1200 väskans tyg 1200D Oxford på bild 6 och i källans punkt
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+e0930e24 87 längden 34,25 in / 870 mm på VEVOR:s måttritning = 87 cm
+e0930e24 51,5 bredden 20,28 in / 515 mm på måttritningen = 51,5 cm
+e0930e24 9,5 höjden 3,74 in / 95 mm på måttritningen = 9,5 cm
+e0930e24 8,35 nettovikten 18,41 lbs / 8,35 kg på specifikationskortet
+e0930e24 30 stativets höjd 30–90 cm i källans punkt (320–950 mm i raden och på kortet): det lägre skrivs
+e0930e24 90 stativets höjd 30–90 cm i källans punkt (320–950 mm i raden och på kortet): det lägre skrivs
+e0930e24 1200 väskans tyg 1200D Oxford på bild 6 och i källans punkt
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+7193484a 95,8 längden 37,72 in / 958 mm på VEVOR:s måttritning = 95,8 cm
+7193484a 59,5 bredden 23,43 in / 595 mm på måttritningen = 59,5 cm
+7193484a 8,5 höjden 3,35 in / 85 mm på måttritningen = 8,5 cm
+7193484a 8,7 nettovikten 19,18 lbs / 8,7 kg på specifikationskortet
+7193484a 30 stativets höjd 30–90 cm i källans punkt (320–950 mm i raden och på kortet): det lägre skrivs
+7193484a 90 stativets höjd 30–90 cm i källans punkt (320–950 mm i raden och på kortet): det lägre skrivs
+7193484a 1200 väskans tyg 1200D Oxford på bild 6 och i källans punkt
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+ed814663 127 yttermåttet 50 in / 1270 mm på VEVOR:s måttritning och i källans rad = 127 cm
+ed814663 69,5 höjden 27,36 in / 695 mm på måttritningen och i källans rad = 69,5 cm
+ed814663 120 innermåttet 47,2 in / 1200 mm på bild 2 och i källans rad = 120 cm
+ed814663 16 antalet stolpar på specifikationskortet (16 x Upright Tubes)
+ed814663 8 antalet nedre rör, övre rör och överdrag på specifikationskortet (8 x av varje)
+ed814663 2 antalet dragringar på specifikationskortet (2 x Pull Rings)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+8c59959b 180 maxlasten 180 kg i källans punkt (205 kg i namn och rad, 450 lbs på bild 2): den lägsta, 180 kg, skrivs
+8c59959b 94 handtagets höjd 94–122 cm i källans punkt (40,9–48,8 in / 1040–1240 mm på bild 4): det lägre skrivs
+8c59959b 122 handtagets höjd 94–122 cm i källans punkt (40,9–48,8 in / 1040–1240 mm på bild 4): det lägre skrivs
+8c59959b 97,2 mattans diameter 38 in / 972 mm på bild 3 = 97,2 cm
+8c59959b 10 monteringstiden 10 minuter i källans punkt och på bild 7
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+34441c95 45 korgens storlek 18 tum = 45 cm i källans namn och punkt
+34441c95 59,5 måttet 23,43 in / 595 mm på måttritningen och i källans rad = 59,5 cm
+34441c95 48,5 måttet 19,09 in / 485 mm på måttritningen och i källans rad = 48,5 cm
+34441c95 12 måttet 4,72 in / 120 mm på måttritningen och i källans rad = 12 cm
+34441c95 80 expansionsbultarnas längd M8 × 80 mm på specifikationskortet (2 x)
+34441c95 150 bultarnas längd M8 × 150 mm på specifikationskortet (2 x)
+34441c95 2 antalet expansionsbultar, långa bultar och fjädrar på specifikationskortet (2 x av varje)
+34441c95 4 antalet korta bultar på specifikationskortet (4 x M8 × 45 mm) och antalet steg i monteringen
