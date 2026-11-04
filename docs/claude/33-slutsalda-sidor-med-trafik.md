@@ -52,7 +52,7 @@ Så görs det, och tre saker att inte missa:
   byggdes om med gammal produktdata och väntade ändå på cronen. Mätt
   2026-11-04 tog det längre: en Aosom-givares gamla adress svarade 200 ur
   cachen 23 minuter efter att sidan doldes (omdirigeringen låg redan i
-  `FyndplatsRedirects`) och pekade vidare efter 24–25, och tre
-  AliExpress-adresser svarade 200 två minuter efter och var 308 vid
+  `FyndplatsRedirects`) och var 308 vid mätningen två minuter senare, och
+  tre AliExpress-adresser svarade 200 två minuter efter och var 308 vid
   mätningen efter 33. Räkna med en halvtimme, och mät 308 först efter en
   timme.
