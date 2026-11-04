@@ -127,6 +127,10 @@ Planen visade 0 att rätta 2026-10-31.
   läses och läggs som ett eget block med bara siffror och etiketter i `kallor.json`, och i
   `foto-tal.txt`. Adresserna bär artikelnumret och skrivs därför aldrig i en fil: läs dem med
   ExecuteWixAPI, hämta bilderna med `curl` till scratchpad under egna namn (`FLAGGADE-VEVOR.md` (hi)).
+  Lägg blocket med `tools/polish-kedja/lagg_mattbild.py <rundkatalog> <block.json>`
+  (`{id8: [rad, ...]}`): det ersätter bara sitt eget block, så `vevor_kalla.py`s block
+  försvinner inte, och det nekar en rad med modellnumrets etikett (`FLAGGADE-VEVOR.md` (jb)).
+  Säger bilden och källtexten emot varandra gäller reglerna i (ja).
 
 **Kategorierna.** Importen och verktyget **"VEVOR — kategorier till utkasten"** kopplar varje
 utkast till en avdelning och en underkategori enligt reglerna i `lib/vevor/kategorier.ts`.
