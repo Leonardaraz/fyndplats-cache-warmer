@@ -13,11 +13,12 @@
 // som är inloggad i admin; det är allt.
 
 import { createHash, randomUUID } from "node:crypto";
-import { allaRader, fraga, hamta, infoga, patcha, satt, spara, taBort, taBortFalt } from "@/lib/db/wix-data-klient";
+import { allaRader, fraga, hamta, infoga, patcha, satt, spara, taBort, taBortFalt, taBortManga } from "@/lib/db/wix-data-klient";
 
 export const MEDLEM_KOL = {
   medlemmar: "FyndplatsMedlemmar",
   profiler: "FyndplatsMedlemsprofiler",
+  inloggningar: "FyndplatsInloggningar",
   orderliggare: "FyndplatsOrderliggare",
   nivaer: "FyndplatsMedlemsnivaer",
   regler: "FyndplatsMedlemsregler",
@@ -172,21 +173,34 @@ export async function sattSparr(id: string, sparrad: boolean, orsak: Orsak): Pro
 }
 
 /**
- * Tar bort kontot på kundens begäran. Orderliggaren står kvar: den bär
- * ordrarna, som bokföringslagen kräver, och inget konto. Loggen får bara den
- * maskerade adressen.
+ * Tar bort kontot på kundens begäran: medlemmen, profilen, nivåbytena (id och
+ * belopp per dag) och inloggningsförsöken (adressen i klartext). Orderliggaren
+ * och prisbesluten står kvar: de bär ordrarna och priserna, som bokföringslagen
+ * kräver, och inget konto. Loggen får bara den maskerade adressen.
+ *
+ * Nivåbytena och inloggningarna tas bort först. Faller det står kontot kvar,
+ * så att ett nytt försök hittar allt; annars hade raderna blivit kvar utan
+ * konto att ta bort dem från.
  */
 export async function taBortKonto(id: string, orsak: Orsak): Promise<string> {
   const fore = await hamta<Rad>(MEDLEM_KOL.medlemmar, id);
   if (!fore) return "Medlemmen finns inte.";
+  const epost = String(fore.epost ?? "");
+  const [byten, inloggningar] = await Promise.all([
+    allaRader<Rad>(MEDLEM_KOL.nivaer, { filter: { medlemsId: id } }),
+    epost ? allaRader<Rad>(MEDLEM_KOL.inloggningar, { filter: { epost } }) : Promise.resolve([] as Rad[]),
+  ]);
+  const b = await taBortManga(MEDLEM_KOL.nivaer, byten.map((r) => String(r._id)));
+  const i = await taBortManga(MEDLEM_KOL.inloggningar, inloggningar.map((r) => String(r._id)));
+  if (b.fel.length || i.fel.length) return `Nivåbytena eller inloggningarna gick inte att ta bort (${b.fel.length + i.fel.length} fel). Kontot står kvar; försök igen.`;
   await taBort(MEDLEM_KOL.profiler, `${id}__privat`);
   await taBort(MEDLEM_KOL.medlemmar, id);
   await logga({
     omrade: "admin",
     typ: "konto-borttaget",
     medlemsId: id,
-    fore: { epost: maskeradEpost(String(fore.epost ?? "")), niva: fore.niva ?? "" },
-    efter: {},
+    fore: { epost: maskeradEpost(epost), niva: fore.niva ?? "" },
+    efter: { nivabyten: b.borttagna, inloggningar: i.borttagna },
     orsakKod: orsak.kod,
     orsakText: orsak.text,
   });
