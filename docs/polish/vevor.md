@@ -65,7 +65,9 @@ efter det med ögonen.
 bild extra noga. Blir det färre än fem kvar efter strykningen beskär du enligt undantaget i
 runbookens *3. Bilderna före texten*. Räcker inte det flaggar du produkten i
 `FLAGGADE-VEVOR.md`: det finns
-inget verktyg som hämtar VEVOR:s övriga bilder. En familj som importerades före 2026-10-30
+inget verktyg som hämtar VEVOR:s övriga bilder. Utkastets sex bilder är VEVOR:s position 9, 8, 1, 10, 11 och 12
+(utkastets position 1–6), och VEVOR:s position 2–7 (funktionsbilder med engelsk text och en måttbild) ligger
+aldrig i galleriet. Dubbletterna sitter nästan alltid mellan utkastets position 1, 3 och 6 (`FLAGGADE-VEVOR.md` (iv)). En familj som importerades före 2026-10-30
 kan ha syskonens bilder blandade: kör **"VEVOR — rätta familjernas bilder"** (`plan`) först.
 Planen visade 0 att rätta 2026-10-31.
 
