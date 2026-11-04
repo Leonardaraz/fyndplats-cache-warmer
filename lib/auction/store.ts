@@ -75,6 +75,37 @@ export async function saveAuctionsBulk(docs: AuctionDoc[]): Promise<string[]> {
   return wixSaveAuctionsBulk(docs);
 }
 
+/**
+ * Bulk-save med felen per dokument-id (tom lista = allt sparat).
+ *
+ * Ticken behöver veta VILKA rader som inte sparades: en såld eller avslutad
+ * auktion som står kvar som live i lagret får inte räknas som en ledig plats,
+ * och en främjning som inte sparades är ingen främjning.
+ */
+export async function sparaAuktioner(docs: AuctionDoc[]): Promise<{ id: string; fel: string }[]> {
+  const fel: { id: string; fel: string }[] = docs
+    .filter((d) => !d._id)
+    .map((d) => ({ id: `auction-${d.productId}`, fel: "dokumentet saknar _id" }));
+  const med = docs.filter((d) => d._id);
+  if (med.length === 0) return fel;
+  if (iPostgres()) {
+    // Postgres-vägen tas bort med Neon; en rad i taget räcker tills dess.
+    for (const d of med) {
+      try {
+        await pgSaveAuction(d);
+      } catch (e) {
+        fel.push({ id: d._id as string, fel: (e as Error).message.slice(0, 200) });
+      }
+    }
+    return fel;
+  }
+  const u = await sparaManga(
+    AUCTION_COLLECTION,
+    med.map((d) => ({ id: d._id as string, data: { ...d } as unknown as Record<string, unknown> })),
+  );
+  return fel.concat(u.fel);
+}
+
 export async function removeAuctionsBulk(ids: string[]): Promise<string[]> {
   return wixRemoveAuctionsBulk(ids);
 }
@@ -198,11 +229,96 @@ interface RawVariant {
 type VariantTarget = { price: number; compareAt: number | null };
 
 /**
- * Delad GET→map→PATCH mot Stores V3. `resolve` returnerar nytt pris per variant
- * (eller null = lämna variantens pris orört). Följer runbookens hårda regler:
- * färsk revision, options + variantsInfo skickas ihop (428), visible:true.
+ * Hur en prisskrivning får bete sig. Ticken skickar sin tidsgräns och sin
+ * räknare; butikens direktavslut skickar ingenting och får standardvärdena.
+ */
+export interface Skrivlage {
+  /** Inget nytt försök vars väntan skulle sluta efter den här tidpunkten (ms). */
+  slutMs?: number;
+  /** Räknar Wix strypningar: 429, och edge-spärrens HTML-sida. */
+  stat?: { wix429: number };
+  /** Väntan mellan försöken. Testerna byter ut den. */
+  sov?: (ms: number) => Promise<void>;
+  /** Klockan som `slutMs` jämförs med. Testerna byter ut den. */
+  nu?: () => number;
+}
+
+/**
+ * Väntan före försök 2, 3 och 4. Samma trappa som prissynkens sidläsning
+ * (lib/wix/v3-products.ts): tre försök till räcker för API-strypningen, och
+ * edge-spärren går inte att vänta ut inom en tick (05-aosom-synken/39).
+ */
+export const PRIS_PAUS_MS = [1_000, 3_000, 8_000] as const;
+/** `Retry-After` följs, men aldrig längre än så här. */
+const MAX_PAUS_MS = 15_000;
+
+/** Ett svar från Wix som inte var 2xx, med det som avgör om det är värt ett nytt försök. */
+class WixSvarFel extends Error {
+  readonly strypt: boolean;
+  readonly overgaende: boolean;
+  constructor(
+    steg: "GET" | "PATCH",
+    readonly status: number,
+    text: string,
+    readonly pausMs: number | undefined,
+  ) {
+    super(`patch ${steg} ${status}: ${text.slice(0, steg === "GET" ? 200 : 300)}`);
+    // Edge-spärren svarar med en HTML-sida, inte JSON (05-aosom-synken/39).
+    const html = text.trimStart().startsWith("<");
+    this.strypt = status === 429 || html;
+    // 409 = revisionen hann ändras (någon annan skrev produkten); ett nytt
+    // försök läser en färsk revision. En 5xx på PATCH kan ha gått igenom, och
+    // då skriver det nya försöket samma pris en gång till.
+    this.overgaende = this.strypt || status === 408 || status === 409 || status >= 500;
+  }
+}
+
+function retryAfterMs(res: Response): number | undefined {
+  const s = Number(res.headers?.get?.("retry-after"));
+  return Number.isFinite(s) && s > 0 ? s * 1000 : undefined;
+}
+
+const sovPaRiktigt = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
+/**
+ * Delad GET→map→PATCH mot Stores V3, med nya försök. `resolve` returnerar nytt
+ * pris per variant (eller null = lämna variantens pris orört). Följer
+ * runbookens hårda regler: färsk revision, options + variantsInfo skickas ihop
+ * (428), visible:true.
+ *
+ * ☠️ NYA FÖRSÖK PÅ STRYPNING (Black Week, planens del C2). Med 50–100 fynd om
+ * dagen skriver ticken 100–200 produkter i timmen, och Wix stryper täta
+ * Stores-anrop (spec-skrivaren stoppades efter 186 och 127 sidor i rad,
+ * 2026-11-01). Ett 429, 408, 409 eller 5xx gör om HELA läsningen och
+ * skrivningen, så att varje försök har en färsk revision. Andra fel (404 =
+ * produkten raderad, 400, 403, 428) kastas direkt. Ingen väntan får sluta
+ * efter `lage.slutMs`: då kastas felet, och nästa tick tar produkten.
  */
 async function applyVariantPatch(
+  productId: string,
+  resolve: (v: RawVariant) => VariantTarget | null,
+  precheck?: (variants: RawVariant[]) => void,
+  lage: Skrivlage = {},
+): Promise<void> {
+  const sov = lage.sov ?? sovPaRiktigt;
+  const nu = lage.nu ?? Date.now;
+  for (let forsok = 0; ; forsok++) {
+    try {
+      await enVariantPatch(productId, resolve, precheck);
+      return;
+    } catch (e) {
+      if (!(e instanceof WixSvarFel) || !e.overgaende) throw e;
+      if (e.strypt && lage.stat) lage.stat.wix429++;
+      if (forsok >= PRIS_PAUS_MS.length) throw e;
+      const paus = Math.min(e.pausMs ?? PRIS_PAUS_MS[forsok], MAX_PAUS_MS);
+      if (lage.slutMs !== undefined && nu() + paus > lage.slutMs) throw e;
+      await sov(paus);
+    }
+  }
+}
+
+/** Ett försök: färsk läsning, sedan skrivningen. Svar som inte är 2xx kastas som WixSvarFel. */
+async function enVariantPatch(
   productId: string,
   resolve: (v: RawVariant) => VariantTarget | null,
   precheck?: (variants: RawVariant[]) => void,
@@ -222,7 +338,7 @@ async function applyVariantPatch(
   }
   if (!getRes.ok) {
     const text = await getRes.text();
-    throw new Error(`patch GET ${getRes.status}: ${text.slice(0, 200)}`);
+    throw new WixSvarFel("GET", getRes.status, text, retryAfterMs(getRes));
   }
   const data = (await getRes.json()) as {
     product?: { revision?: string; options?: unknown[]; variantsInfo?: { variants?: RawVariant[] } };
@@ -264,7 +380,7 @@ async function applyVariantPatch(
   });
   if (!patchRes.ok) {
     const text = await patchRes.text();
-    throw new Error(`patch PATCH ${patchRes.status}: ${text.slice(0, 300)}`);
+    throw new WixSvarFel("PATCH", patchRes.status, text, retryAfterMs(patchRes));
   }
 }
 
@@ -282,6 +398,7 @@ export async function patchProductPrice(
   newPrice: number,
   compareAt: number | null,
   requireUniform = false,
+  lage: Skrivlage = {},
 ): Promise<void> {
   const precheck = requireUniform
     ? (variants: RawVariant[]) => {
@@ -293,7 +410,7 @@ export async function patchProductPrice(
         }
       }
     : undefined;
-  await applyVariantPatch(productId, () => ({ price: newPrice, compareAt }), precheck);
+  await applyVariantPatch(productId, () => ({ price: newPrice, compareAt }), precheck, lage);
 }
 
 /**
@@ -304,8 +421,9 @@ export async function patchProductPrice(
 export async function patchProductVariants(
   productId: string,
   byVariantId: Map<string, VariantTarget>,
+  lage: Skrivlage = {},
 ): Promise<void> {
-  await applyVariantPatch(productId, (v) => byVariantId.get(v.id) ?? null).catch((e) => {
+  await applyVariantPatch(productId, (v) => byVariantId.get(v.id) ?? null, undefined, lage).catch((e) => {
     throw new Error(`patchProductVariants ${(e as Error).message}`);
   });
 }
@@ -317,11 +435,11 @@ export async function patchProductVariants(
  * Butiken hade tidigare en egen port av samma PATCH; två kopior av en
  * prisåterställning är två ställen där ett auktionspris kan bli kvar.
  */
-export async function restoreListPrice(a: AuctionDoc): Promise<void> {
+export async function restoreListPrice(a: AuctionDoc, lage: Skrivlage = {}): Promise<void> {
   if (a.variantPrices?.length) {
     const byVariant = new Map(a.variantPrices.map((t) => [t.wixVariantId, { price: t.listPrice, compareAt: null }]));
-    await patchProductVariants(a.productId, byVariant);
+    await patchProductVariants(a.productId, byVariant, lage);
   } else {
-    await patchProductPrice(a.productId, a.listPrice, null);
+    await patchProductPrice(a.productId, a.listPrice, null, false, lage);
   }
 }

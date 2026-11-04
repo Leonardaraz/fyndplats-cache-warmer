@@ -312,5 +312,6 @@ underrubrik.
 - `44-mediainventering.md`: Mediainventering: "utan katalogreferens" är inte "oanvänd"
 - `45-fyndauktionens-antal-och-sparr.md`: Fyndauktionen: tio fynd om dagen och 30-dagarsspärren (2026-11-04)
   - Antalet per dag (`lib/auction/antal.ts`)
+  - Ticken klarar 50 och 100 om dagen (`lib/auction/tick.ts`, planens del C2)
   - 30-dagarsspärren (`lib/auction/trettio-dagar.ts`)
   - Strömbrytaren och första påslaget

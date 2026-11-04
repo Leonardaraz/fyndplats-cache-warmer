@@ -26,16 +26,57 @@ främjar tills ALLA levande (startade och schemalagda) är lika många som NÄST
 - **`/api/auctions/rader`** läser upp till 200 levande rader. Startade och schemalagda kan
   samsas dagen före en större dag. "Senast sålda" har kvar sina 50.
 
-☠️ **Black Week läggs in i `DAGAR` först när motorn klarar 50 och 100 om dagen.** Följande
-måste vara på plats först:
+**Black Week står i `DAGAR`**, med Leonards datum: 50 om dagen 23–29 november, 100 fredag
+27 november, och 10 igen från 30 november. Ticken fyller en större dag redan dagen före:
+söndag 22/11 kl 08 schemaläggs 40 till måndagen, och torsdag 26/11 fylls fredagen till 100 i
+två omgångar (kl 08 och kl 19). `antal.test.ts` låser varje datum och övergångarna 22→23,
+26→27→28 och 29→30, och `tick-blackweek.test.ts` kör hela veckan genom ticken var tionde minut.
 
-- prisstegen med begränsad parallellism och samlade sparningar;
-- butikens `getFreshPrices` i klump;
-- en gemensam klocka för korten;
-- orderläsningen till slutet.
+☠️ **Grindarna före söndag 22 november**, när ticken börjar schemalägga måndagens 50:
 
-Leonards datum: 50 om dagen 23–29 november, 100 fredag 27 november, och 10 igen från 30
-november.
+- butikens gemensamma klocka för korten är mergad (planens del C2, butiken);
+- generalrepetitionen med 50 fynd en vardag är gjord, med Leonards ja;
+- kön räcker: veckan tar 400 olika produkter (6 × 50 + 100), och 30-dagarsspärren släpper
+  aldrig samma vara två gånger.
+
+### Ticken klarar 50 och 100 om dagen (`lib/auction/tick.ts`, planens del C2)
+
+Ticken skrev förut en produkt i taget och sparade varje rad för sig. Med 100 fynd hade
+timslaget blivit 100 läsningar, 100 skrivningar och 100 sparningar i rad, och kl 19 lika många
+till plus främjandena. Rutten (`app/api/cron/auction-tick`) är nu bara kopplingen till Wix, och
+logiken bor i `korTick` med beroendena utifrån, så att den går att pröva med 100 fynd.
+
+Åtta egenskaper som inte ska tas bort:
+
+1. **Högst fyra Wix-anrop samtidigt** (`SAMTIDIGA`). Wix stryper täta Stores-anrop:
+   spec-skrivaren stoppades efter 186 och 127 sidor i rad (2026-11-01).
+2. **Prisskrivningen gör om ett strypt försök** (`lib/auction/store.ts`, `PRIS_PAUS_MS`
+   1, 3 och 8 s, och `Retry-After` upp till 15 s). Det gäller 429, edge-spärrens HTML-sida,
+   408, 409 och 5xx. Varje nytt försök läser en färsk revision. En 404 (produkten är raderad)
+   görs aldrig om, och ingen väntan får sluta efter tickens tidsgräns.
+3. **Sparningarna samlas** i ett massanrop per steg (`sparaAuktioner`, felen per rad). ☠️ Går
+   en såld eller avslutad rad inte att spara väntar främjandena: lagret säger då fortfarande
+   live, och platsen hade fyllts två gånger.
+4. **Tidsbudgeten är 240 s** av ruttens 300. Ingen ny skrivning startar efter den. Det som inte
+   hann göras står i `kvar`, och nästa tick tar det. Varje steg tål att göras om.
+5. ☠️ **Främjanden startar aldrig i Aosoms synkfönster**, och inte heller den sista minuten före
+   det. Synken läser auktionerna en gång per körning (`05-aosom-synken/09-levande-fyndauktion.md`),
+   och en rad som blev live mitt i en körning hade den inte sett. **Återställningen kl 19 väntar
+   däremot aldrig**: ett auktionspris får inte stå kvar efter dagens slut.
+6. ☠️ **En såld eller avslutad auktion stegas aldrig**, inte heller när återställningen föll.
+   Förut sänktes en avslutad auktion vars återställning föll till golvet efter kl 19.
+7. **Ordrarna läses till slutet**, med `strict`. Förut lästes tre sidor, och ett 403 gav tyst
+   inga ordrar alls. Ett fel att läsa dem står nu i `errors`, och resten av ticket går ändå.
+8. ☠️ **Klockan är Vercels cron var tionde minut** (`vercel.json`, låst i `schema.test.ts`).
+   GitHub-schemat körde 29 gånger på 122 timmar i stället för ~735 (`39-orderpipelinen.md`),
+   så ticket som skulle ta resten hade kunnat dröja en timme. Workflowen finns kvar för en
+   körning för hand och som larm: de körningar GitHub ändå gör blir röda på `ok:false`.
+
+Varje tick skriver en rad i Vercels logg, med bara antal:
+`[auction-tick] mal=… sald=… slut=… steg=… framjad=… fel=… kvar=…/…/…/… wix429=… tid=…ms`.
+
+**Mäts under generalrepetitionen:** `tid` och `wix429` på timslagen och kl 19, butikens
+ombyggnadstid, sidvikten på mobil och korten i 390 px.
 
 ### 30-dagarsspärren (`lib/auction/trettio-dagar.ts`)
 

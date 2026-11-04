@@ -1,34 +1,14 @@
 // GET /api/cron/auction-tick
 //
-// Fyndauktionens hjärtslag. Pingas varje timme av GitHub Actions
-// (.github/workflows/auction-tick.yml) med Bearer CRON_SECRET — samma
-// mönster som poll-tracking. Auktionen är DAGLIG: start på ordinarie pris
-// kl 07:00 svensk tid, en prissänkning i timmen, golv (max −7 % marginal)
-// kl 18:00, dagens slut kl 19:00. Varje tick:
+// Fyndauktionens hjärtslag. Vercels cron (vercel.json) väcker den var tionde
+// minut med Bearer CRON_SECRET. GitHub Actions (.github/workflows/auction-tick.yml)
+// pingar den också, men oregelbundet (29 körningar på 122 timmar, uppmätt
+// 24–29 oktober), och blir röd när ticket rapporterar ok:false.
 //
-//   1. SÅLD-detektering: ordrar sedan äldsta live-start skannas
-//      (fetchOrders/aggregateOrders, exkluderar INITIATED/CANCELED). En order
-//      på en live-auktions produkt ⇒ status=sold, priset återställs till
-//      listpris (compareAtPrice rensas), platsen fylls på (start nästa 07:00).
-//   2. DAGSLUT: kl 19:00 (start + 12 h) ⇒ expired, pris återställs, platsen
-//      roteras till nästa produkt.
-//   3. PRISSTEG: för live-auktioner räknas målpriset ur den timindexerade
-//      stegen (ren funktion, lib/auction/engine) och Wix-priset PATCH:as när
-//      målsteget ändrats. Ett framtida startAt ger listpris ⇒ ingen PATCH.
-//   4. PÅFYLLNING: färre levande än nästa dags antal (lib/auction/antal.ts,
-//      tio om dagen sedan 2026-11-04) ⇒ främja kö-produkter (lägst queueOrder)
-//      med startAt = NÄSTA 07:00 svensk tid. Sinar kön återvinns avslutade
-//      auktioner (äldst endedAt först), men aldrig en som slutade inom
-//      30-dagarsfönstret (lib/auction/trettio-dagar.ts).
-//   5. SJÄLVLÄKNING: en auktion vars produkt RADERATS ur katalogen (pris-
-//      PATCH:en 404:ar) tas bort och sloten frigörs samma tick. Utan detta
-//      fastnar raden som evig live-zombie — varken expire eller prissteg kan
-//      genomföras — och dagens lineup krymper (så /fyndauktion hamnade på 2
-//      produkter i aug 2026: tre raderade produkter höll slot 1, 2 och 5).
-//   6. BUTIKEN: produkter vars pris ändrades i ticket (steg, såld, dagslut)
-//      skickas till butikens /api/admin/uppdatera-produkter, som tömmer och
-//      värmer deras sidor (butiken cachar produktsidor i sex timmar sedan
-//      2026-10-01). Best-effort: butikens femminuterscron tar det annars.
+// Auktionen är DAGLIG: start på ordinarie pris kl 07:00 svensk tid, en
+// prissänkning i timmen, golv (max −7 % marginal) kl 18:00, dagens slut kl
+// 19:00. Vad ett tick gör, och varför det tål 50 och 100 fynd om dagen, står i
+// lib/auction/tick.ts. Här bor bara kopplingen till Wix.
 //
 // Designval: butiken (headless) visar WIX-priset som källa till sanning och
 // använder stegen bara för "nästa sänkning om…"-nedräkningen. Failar en tick
@@ -38,24 +18,30 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import { isAuthorized } from "@/lib/auth";
-import { fetchOrders, aggregateOrders } from "@/lib/wix/orders";
-import { isExpired, nextStartAt, priceAt, stepIndexAt, variantPricesAt, type AuctionDoc } from "@/lib/auction/engine";
-import { attFramja, auktionerFor, ledigaSlots } from "@/lib/auction/antal";
-import { forstaSankning, slutadeInomFonstret } from "@/lib/auction/trettio-dagar";
+import { fetchOrders } from "@/lib/wix/orders";
+import { priceAt, variantPricesAt, type AuctionDoc } from "@/lib/auction/engine";
+import { korTick, type TickRapport } from "@/lib/auction/tick";
 import {
-  isProductGone,
   patchProductPrice,
   patchProductVariants,
   productExists,
   queryAuctions,
   removeAuction,
   restoreListPrice,
-  saveAuction,
+  sparaAuktioner,
+  type Skrivlage,
 } from "@/lib/auction/store";
-import { uppdateraProduktsidor, type AndradProdukt } from "@/lib/headless/produktsidor";
+import { uppdateraProduktsidor } from "@/lib/headless/produktsidor";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
+
+/**
+ * Ordrarna sedan äldsta live-start läses till slutet. 50 sidor om 100 är mer
+ * än butiken haft på ett år; förut lästes tre sidor, och ett 403 gav tyst inga
+ * ordrar alls (`strict` kastar i stället, och ticket rapporterar felet).
+ */
+const ORDERSIDOR = 50;
 
 function isCronAuthorized(req: NextRequest): boolean {
   if (isAuthorized(req)) return true;
@@ -65,7 +51,7 @@ function isCronAuthorized(req: NextRequest): boolean {
 }
 
 /** Sätt aktuellt auktionspris (per variant om trackar finns). */
-async function applyStepPrice(a: AuctionDoc, nowMs: number): Promise<void> {
+async function applyStepPrice(a: AuctionDoc, nowMs: number, lage: Skrivlage): Promise<void> {
   if (a.variantPrices?.length) {
     const byVariant = new Map(
       variantPricesAt(a, nowMs).map((v) => [
@@ -73,187 +59,54 @@ async function applyStepPrice(a: AuctionDoc, nowMs: number): Promise<void> {
         { price: v.price, compareAt: v.price < v.listPrice ? v.listPrice : null },
       ]),
     );
-    await patchProductVariants(a.productId, byVariant);
+    await patchProductVariants(a.productId, byVariant, lage);
   } else {
     const target = priceAt(a, nowMs);
     // requireUniform: enkel-pris-läget får aldrig platta ett prisspann.
-    await patchProductPrice(a.productId, target, target < a.listPrice ? a.listPrice : null, true);
+    await patchProductPrice(a.productId, target, target < a.listPrice ? a.listPrice : null, true, lage);
   }
+}
+
+/** En rad i Vercels logg per tick: bara antal, så att Black Week går att följa i efterhand. */
+function loggrad(r: TickRapport): string {
+  const k = r.kvar;
+  return [
+    `mal=${r.mal ?? "-"}`,
+    `sald=${r.sold.length}`,
+    `slut=${r.expired.length}`,
+    `steg=${r.priced.length}`,
+    `framjad=${r.promoted.length}`,
+    `dod=${r.removedDead.length}`,
+    `fel=${r.errors.length}`,
+    `kvar=${k.salda}/${k.dagslut}/${k.prissteg}/${k.framjanden}`,
+    ...(r.framjandenVantar ? [`vantar=${r.framjandenVantar}`] : []),
+    `wix429=${r.wix429}`,
+    `tid=${r.tidMs}ms`,
+    ...(r.errors.length ? [`forsta=${r.errors[0].slice(0, 160)}`] : []),
+  ].join(" ");
 }
 
 export async function GET(req: NextRequest) {
   if (!isCronAuthorized(req)) {
     return NextResponse.json({ error: "Otillåten" }, { status: 401 });
   }
-
-  const report: Record<string, unknown> = { sold: [], expired: [], priced: [], promoted: [], removedDead: [], errors: [] };
-  const push = (k: string, v: unknown) => (report[k] as unknown[]).push(v);
-  // Produkter vars Wix-pris ändrades i det här ticket. Butiken töms för dem
-  // i slutet (lib/headless/produktsidor.ts), så att produktsidans pris stämmer
-  // med kassan från första besöket — butikens egen femminuterscron tar det
-  // annars, men då kan ett gammalt pris stå kvar i upp till fem minuter.
-  const prisAndrade: AndradProdukt[] = [];
-  const noteraPris = (a: AuctionDoc) => prisAndrade.push({ id: a.productId, ...(a.slug ? { slug: a.slug } : {}) });
-
-  /**
-   * Produkten är raderad ur katalogen → auktionsdokumentet är meningslöst och
-   * FARLIGT: en live-rad vars pris-PATCH alltid 404:ar kan varken stega,
-   * säljas eller avslutas — den blir en evig zombie som blockerar sin slot.
-   * Släng dokumentet och markera raden avslutad i minnet så sloten frigörs
-   * redan i detta tick (påfyllningen i steg 4 ser den som ledig).
-   */
-  const retireDead = async (a: AuctionDoc) => {
-    try {
-      await removeAuction(a._id ?? `auction-${a.productId}`);
-      push("removedDead", a.slug);
-      a.status = "expired";
-    } catch (e) {
-      push("errors", `removeDead ${a.slug}: ${(e as Error).message}`);
-    }
-  };
-
   try {
-    const now = Date.now();
-    // Kön läses från toppen: påfyllningen främjar högst fem, och en produkt
-    // som raderats ur katalogen hoppas över. 200 räcker med god marginal, och
-    // med hela kön i Postgres hade varje tick läst ~2,4 MB för att använda fem.
-    const all = await queryAuctions(["live", "queued"], { köHuvud: 200 });
-    let live = all.filter((a) => a.status === "live");
-    const queued = all.filter((a) => a.status === "queued").sort((a, b) => a.queueOrder - b.queueOrder);
-
-    // 1) Såld-detektering — en sökning för alla live-auktioner.
-    if (live.length > 0) {
-      const oldestStart = live
-        .map((a) => (a.startAt ? Date.parse(a.startAt) : now))
-        .reduce((m, t) => Math.min(m, t), now);
-      const orders = await fetchOrders(new Date(oldestStart).toISOString(), { maxPages: 3 });
-      const agg = aggregateOrders(orders);
-      for (const a of live) {
-        const hit = agg.byProductId[a.productId];
-        const soldAfterStart = hit?.lastSoldAt && a.startAt && Date.parse(hit.lastSoldAt) >= Date.parse(a.startAt);
-        if (soldAfterStart) {
-          try {
-            try {
-              await restoreListPrice(a); // återställ till ordinariepris
-            } catch (e) {
-              // Produkt raderad efter köpet ⇒ inget pris att återställa, men
-              // affären är verklig — spara sold-historiken ändå.
-              if (!isProductGone(e)) throw e;
-            }
-            await saveAuction({ ...a, status: "sold", endedAt: new Date(now).toISOString(), soldPrice: a.lastPatchedPrice ?? a.listPrice });
-            push("sold", { slug: a.slug, soldPrice: a.lastPatchedPrice ?? a.listPrice });
-            noteraPris(a);
-            a.status = "sold";
-          } catch (e) {
-            push("errors", `sold ${a.slug}: ${(e as Error).message}`);
-          }
-        }
-      }
-      live = live.filter((a) => a.status === "live");
-    }
-
-    // 2) Dagslut: 19:00 (start + 12 h) → återställ + rotera.
-    for (const a of live) {
-      if (isExpired(a, now)) {
-        try {
-          await restoreListPrice(a);
-          await saveAuction({ ...a, status: "expired", endedAt: new Date(now).toISOString() });
-          push("expired", a.slug);
-          noteraPris(a);
-          a.status = "expired";
-        } catch (e) {
-          if (isProductGone(e)) await retireDead(a);
-          else push("errors", `expire ${a.slug}: ${(e as Error).message}`);
-        }
-      }
-    }
-    live = live.filter((a) => a.status === "live");
-
-    // 3) Prissteg för kvarvarande live. Gate: per-variant på stegindex (så alla
-    //    trackar följer med även om visningsstegen står stilla en timme),
-    //    enkel-pris på visningspriset (bakåtkompat). Framtida startAt ⇒ idx=0
-    //    och priset är redan ordinarie, så ingen PATCH sker före 07:00.
-    for (const a of live) {
-      const idx = stepIndexAt(a, now);
-      const displayTarget = priceAt(a, now);
-      const needPatch = a.variantPrices?.length ? idx !== (a.lastPatchedStep ?? -1) : displayTarget !== a.lastPatchedPrice;
-      if (needPatch) {
-        try {
-          await applyStepPrice(a, now);
-          await saveAuction({ ...a, lastPatchedStep: idx, lastPatchedPrice: displayTarget });
-          push("priced", { slug: a.slug, price: displayTarget });
-          noteraPris(a);
-        } catch (e) {
-          if (isProductGone(e)) await retireDead(a);
-          else push("errors", `price ${a.slug}: ${(e as Error).message}`);
-        }
-      }
-    }
-    live = live.filter((a) => a.status === "live");
-
-    // 4) Påfyllning: främja kö tills alla levande (startade + schemalagda) är
-    //    lika många som nästa dags antal, start nästa 07:00. Sinar kön
-    //    återvinns avslutade auktioner (äldst avslutad först) — varje produkt
-    //    har exakt ETT dokument (_id = auction-<productId>), så en återvinning
-    //    är samma dokument som flippas tillbaka till live.
-    const nastaStart = nextStartAt(now);
-    const mal = auktionerFor(nastaStart);
-    report.mal = mal;
-    const usedSlots = new Set(live.map((a) => a.slot));
-    const freeSlots = ledigaSlots(usedSlots, attFramja(live.length, mal));
-    let pool: AuctionDoc[] = [...queued];
-    if (pool.length < freeSlots.length) {
-      const ended = await queryAuctions(["sold", "expired"]);
-      // 30-dagarsspärren: en vara vars förra auktion slutade inom fönstret får
-      // inte gå igen, eftersom dess lägsta pris då var auktionens.
-      const tSankning = forstaSankning(nastaStart);
-      const recyclable = ended
-        .filter((e) => e.floorPrice < e.listPrice) // hoppa produkter utan rabattutrymme
-        .filter((e) => !slutadeInomFonstret(e, tSankning))
-        .sort((x, y) => Date.parse(x.endedAt ?? "1970-01-01") - Date.parse(y.endedAt ?? "1970-01-01"));
-      pool = pool.concat(recyclable);
-      if (recyclable.length > 0) report.recycled = recyclable.slice(0, freeSlots.length - queued.length).map((r) => r.slug);
-    }
-    const startAt = freeSlots.length > 0 ? nastaStart : undefined;
-    let qi = 0;
-    for (const slot of freeSlots) {
-      // Kandidater vars produkt raderats ur katalogen hoppar vi över (och
-      // slänger dokumentet) — en blind främjning ger annars en död auktion
-      // som bränner sloten en hel dag innan retireDead städar den.
-      let next: AuctionDoc | undefined;
-      while ((next = pool[qi++]) !== undefined) {
-        if (await productExists(next.productId)) break;
-        await retireDead(next);
-      }
-      if (!next) break;
-      try {
-        const promoted: AuctionDoc = {
-          ...next,
-          status: "live",
-          slot,
-          startAt,
-          lastPatchedPrice: next.listPrice, // start = listpris, ingen PATCH behövs
-          lastPatchedStep: 0,
-          endedAt: undefined,
-          soldPrice: undefined,
-        };
-        await saveAuction(promoted);
-        push("promoted", { slug: next.slug, slot, startAt });
-      } catch (e) {
-        push("errors", `promote ${next.slug}: ${(e as Error).message}`);
-      }
-    }
-
-    // 5) Butiken: töm och värm sidorna vars pris ändrades. Best-effort — ett
-    //    nej här fäller inte ticket (butikens cron tar det inom fem minuter).
-    if (prisAndrade.length > 0) {
-      report.butiken = await uppdateraProduktsidor(prisAndrade, "auktion");
-    }
-
-    report.ok = (report.errors as unknown[]).length === 0;
-    report.liveCount = live.length + (report.promoted as unknown[]).length;
+    const report = await korTick({
+      nu: Date.now,
+      lasAuktioner: (statusar, val) => queryAuctions(statusar, val),
+      hamtaOrdrar: (sedanIso) => fetchOrders(sedanIso, { strict: true, maxPages: ORDERSIDOR }),
+      aterstall: (a, lage) => restoreListPrice(a, lage),
+      stega: applyStepPrice,
+      produktFinns: productExists,
+      taBort: removeAuction,
+      spara: sparaAuktioner,
+      uppdateraButiken: (produkter) => uppdateraProduktsidor(produkter, "auktion"),
+    });
+    console.log(`[auction-tick] ${loggrad(report)}`);
     return NextResponse.json(report);
   } catch (e) {
-    return NextResponse.json({ ok: false, error: (e as Error).message, report }, { status: 500 });
+    const msg = (e as Error).message;
+    console.error(`[auction-tick] föll: ${msg.slice(0, 300)}`);
+    return NextResponse.json({ ok: false, error: msg }, { status: 500 });
   }
 }
