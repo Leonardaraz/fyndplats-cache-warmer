@@ -62,6 +62,8 @@ export interface OrderPaMinaSidor {
   status: "betald" | "delvis-aterbetald" | "aterbetald" | "avbruten" | "obetald";
   /** Spårningsnummer som /sparning känner till. */
   sparning: string[];
+  /** Orderns varor ur orderliggaren, i orderns ordning (högst sex). */
+  varor: { namn: string; produktId?: string; antal: number }[];
 }
 
 export interface MinaSidor {
@@ -111,6 +113,10 @@ export async function minaSidor(medlemsId: string): Promise<MinaSidor | null> {
       totaltOre: r.totaltOre,
       status: orderstatus(r),
       sparning: perOrder.get(r.ordernummer) ?? [],
+      varor: (r.rader ?? [])
+        .filter((v) => v.namn && v.antal > 0)
+        .slice(0, 6)
+        .map((v) => ({ namn: v.namn, antal: v.antal, ...(v.produktId ? { produktId: v.produktId } : {}) })),
     }))
     .sort((a, b) => b.bestalld.localeCompare(a.bestalld));
   return { medlem, regler, lage, ordrar };

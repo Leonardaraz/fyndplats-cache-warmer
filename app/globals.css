@@ -2224,8 +2224,8 @@ body:has(.drawer.show) .cookiebar{visibility:hidden}
 .tack-help a{color:var(--brand);font-weight:600;text-decoration:none}
 .tack-help a:hover{text-decoration:underline}
 /* "Skapa konto – köpet räknas" (medlemskapet E1, app/tack/tack-konto.tsx) */
-.tack-konto{max-width:680px;margin:28px auto 0;padding:22px 24px;background:var(--warm);border:1px solid var(--line);border-radius:var(--r-lg);text-align:center}
-.tack-konto-rubrik{margin:0 0 6px;font-size:var(--text-lg);font-weight:800}
+.tack-konto{max-width:680px;margin:28px auto 0;padding:24px 26px;background:linear-gradient(135deg,#fff 0%,var(--warm) 100%);border:1px solid #f3d9c6;border-radius:var(--r-lg);text-align:center;box-shadow:var(--e2)}
+.tack-konto-rubrik{margin:0 0 6px;font-family:var(--font-display),Georgia,serif;font-size:var(--text-xl);font-weight:600;letter-spacing:-.01em}
 .tack-konto-text{margin:0 auto 16px;max-width:520px;color:var(--soft);font-size:var(--text-sm);line-height:1.55}
 @media(max-width:600px){
   .tack-sec{padding:40px 0 60px}

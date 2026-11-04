@@ -3,6 +3,7 @@
 
 import { Section, Text, Link } from "@react-email/components";
 import { BRAND, EmailShell, block, text } from "./_layout";
+import { MedlemskortMejl } from "./_medlemskort";
 
 export interface MedlemNyNivaProps {
   niva: string;
@@ -16,9 +17,8 @@ export default function MedlemNyNivaEmail({ niva, belopp, nasta }: MedlemNyNivaP
   return (
     <EmailShell preview={`Grattis! Din nivå är nu ${niva}.`}>
       <Text style={text.h1}>Grattis, du har nått {niva}!</Text>
-      <Text style={text.body}>
-        Du har handlat för {belopp} de senaste 365 dagarna, och din nivå är nu <strong>{niva}</strong>.
-      </Text>
+      <MedlemskortMejl niva={niva} rad={`${belopp} de senaste 365 dagarna`} />
+      <Text style={text.body}>Tack för att du handlar hos oss. Din nivå syns på Mina sidor.</Text>
       {nasta ? (
         <Section style={block.card}>
           <Text style={{ ...text.body, margin: 0 }}>

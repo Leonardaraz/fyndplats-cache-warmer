@@ -1046,6 +1046,19 @@ Tio egenskaper som inte ska tas bort:
 10. ☠️ **Loggar och svar bär aldrig e-post, belopp eller ordernummer**, bara
     antal och typ. Repot och Vercels loggar läses av fler än Leonard.
 
+**Premiumutseendet (Leonard 2026-11-04).** Mina sidor visar ett medlemskort i
+nivåns egen färg, stapeln mot nästa nivå, nyckeltal, nivåstegen och ordrarna
+med varor och produktbilder ur katalogen. Inloggningen visar korten i solfjäder
+och förmånerna, och den loggar in av sig själv vid sex siffror. Två saker att
+veta:
+
+- ☠️ **Nivåfärgerna står på två ställen**: `app/konto/konto.module.css` för
+  sidan och `emails/_medlemskort.tsx` för mejlen, som inte kan läsa en
+  CSS-modul. Ändras en nivå eller en färg, ändra båda.
+- **Ordrarnas bilder väntar högst 1,5 s på katalogen** (`BILDER_VANTAR_MS` i
+  `app/konto/page.tsx`). En kall instans laddar hela katalogen; då visas
+  ordrarna med en paketikon hellre än sent.
+
 Före läget `pa`: integritetstexten (J4) ska vara godkänd och publicerad,
 utkastet står i `docs/medlemskap-integritetstext-utkast.md`. E1-grinden är
 specens E1-1 till E1-11 och en vecka med avstämning utan avvikelser; svaret

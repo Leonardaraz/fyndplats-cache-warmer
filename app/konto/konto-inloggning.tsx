@@ -5,6 +5,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { feltext } from "./fel";
+import { mejltjanst } from "@/lib/medlem/mejltjanst";
 import s from "./konto.module.css";
 
 type Steg = "epost" | "kod";
@@ -18,6 +19,8 @@ export function KontoInloggning({ order, mal, fel }: { order?: string; mal?: str
   const [vantaTill, setVantaTill] = useState(0);
   const [nu, setNu] = useState(() => Date.now());
   const kodFalt = useRef<HTMLInputElement>(null);
+  // Den kod som senast skickades av sig själv: samma sex siffror skickas inte två gånger.
+  const autoSkickad = useRef("");
 
   useEffect(() => {
     if (vantaTill <= Date.now()) return;
@@ -43,6 +46,7 @@ export function KontoInloggning({ order, mal, fel }: { order?: string; mal?: str
       if (j.ok) {
         setSteg("kod");
         setKod("");
+        autoSkickad.current = "";
         setVantaTill(Date.now() + 30_000);
         setNu(Date.now());
       } else setMeddelande(feltext(j.fel ?? "tillfalligt"));
@@ -53,15 +57,15 @@ export function KontoInloggning({ order, mal, fel }: { order?: string; mal?: str
     }
   }
 
-  async function loggaIn(e: React.FormEvent) {
-    e.preventDefault();
+  async function loggaIn(e?: React.FormEvent, kodNu?: string) {
+    e?.preventDefault();
     setUpptagen(true);
     setMeddelande(null);
     try {
       const r = await fetch("/api/konto/in", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ epost, kod }),
+        body: JSON.stringify({ epost, kod: kodNu ?? kod }),
       });
       const j = (await r.json().catch(() => ({}))) as { ok?: boolean; fel?: string; mal?: string };
       if (j.ok) {
@@ -76,6 +80,17 @@ export function KontoInloggning({ order, mal, fel }: { order?: string; mal?: str
   }
 
   const kvar = Math.max(0, Math.ceil((vantaTill - nu) / 1000));
+  const tjanst = mejltjanst(epost);
+
+  /** Sex siffror är en hel kod: logga in direkt, utan att kunden trycker. */
+  function nyKod(v: string) {
+    setKod(v);
+    const siffror = v.replace(/\D/g, "");
+    if (siffror.length === 6 && !upptagen && autoSkickad.current !== siffror) {
+      autoSkickad.current = siffror;
+      void loggaIn(undefined, siffror);
+    }
+  }
 
   return (
     <div className={s.inloggning}>
@@ -103,8 +118,13 @@ export function KontoInloggning({ order, mal, fel }: { order?: string; mal?: str
         <form onSubmit={loggaIn} className={s.formular}>
           <p className={s.info}>
             Vi har mejlat en kod till <strong>{epost}</strong>. Skriv in den här, eller tryck på länken i mejlet. Koden
-            gäller i 15 minuter.
+            gäller i 15 minuter. Hittar du inte mejlet, titta i skräpposten.
           </p>
+          {tjanst ? (
+            <a className={s.mejltjanst} href={tjanst.url} target="_blank" rel="noopener noreferrer">
+              Öppna {tjanst.namn}
+            </a>
+          ) : null}
           <label htmlFor="konto-kod" className={s.etikett}>
             Kod
           </label>
@@ -118,7 +138,7 @@ export function KontoInloggning({ order, mal, fel }: { order?: string; mal?: str
             maxLength={7}
             required
             value={kod}
-            onChange={(e) => setKod(e.target.value)}
+            onChange={(e) => nyKod(e.target.value)}
             className={`${s.falt} ${s.kodfalt}`}
             placeholder="123456"
           />

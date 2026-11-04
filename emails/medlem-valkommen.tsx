@@ -3,6 +3,7 @@
 
 import { Section, Text, Link } from "@react-email/components";
 import { BRAND, EmailShell, block, text } from "./_layout";
+import { MedlemskortMejl } from "./_medlemskort";
 
 export interface MedlemValkommenProps {
   niva: string;
@@ -21,15 +22,11 @@ export default function MedlemValkommenEmail({ niva, belopp, nasta }: MedlemValk
       <Text style={text.body}>
         Ditt konto är klart. På Mina sidor ser du din nivå, dina köp och dina ordrar.
       </Text>
-      <Section style={block.card}>
-        <Text style={{ ...text.body, margin: "0 0 6px 0" }}>
-          Din nivå just nu: <strong>{niva}</strong>
-        </Text>
-        <Text style={{ ...text.muted, margin: 0 }}>
-          Du har handlat för {belopp} de senaste 365 dagarna.
-          {nasta ? ` ${nasta.kvar} kvar till ${nasta.niva}.` : ""}
-        </Text>
-      </Section>
+      <MedlemskortMejl niva={niva} rad={`${belopp} de senaste 365 dagarna`} />
+      <Text style={text.body}>
+        Din nivå just nu är <strong>{niva}</strong>.
+        {nasta ? ` ${nasta.kvar} kvar till ${nasta.niva}.` : " Det är den högsta nivån."}
+      </Text>
       <Text style={text.body}>
         Nivån räknas på betalda varor de senaste 365 dagarna, minus det som returnerats. Frakt räknas inte. Varje köp
         räknas i ett år från dagen du betalade.

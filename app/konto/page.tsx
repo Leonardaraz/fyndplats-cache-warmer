@@ -9,8 +9,10 @@ import { inloggad } from "@/lib/medlem/inloggad";
 import { medlemsHemlighet, medlemsLage } from "@/lib/medlem/lager";
 import { minaSidor } from "@/lib/medlem/konto";
 import { orderGuid, sakertMal } from "@/lib/medlem/inloggning";
+import { getProducts } from "@/lib/products";
 import { KontoInloggning } from "./konto-inloggning";
-import { MinaSidorVy } from "./mina-sidor";
+import { MinaSidorVy, type Produktbilder } from "./mina-sidor";
+import { Formaner, Kortfacka } from "./formaner";
 import { FornyaSession } from "./fornya";
 import s from "./konto.module.css";
 
@@ -26,6 +28,23 @@ export const metadata: Metadata = {
 type Sok = Record<string, string | string[] | undefined>;
 const ett = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
 
+/** Så länge väntar Mina sidor på katalogen för ordrarnas bilder. En kall instans
+ *  laddar hela katalogen; då visas ordrarna utan bilder hellre än sent. */
+const BILDER_VANTAR_MS = 1500;
+
+async function produktbilder(idn: Set<string>): Promise<Produktbilder> {
+  const ut: Produktbilder = {};
+  if (idn.size === 0) return ut;
+  try {
+    const alla = await Promise.race([getProducts(), new Promise<null>((r) => setTimeout(() => r(null), BILDER_VANTAR_MS))]);
+    if (!alla) return ut;
+    for (const p of alla) if (idn.has(p.id)) ut[p.id] = { img: p.img, slug: p.slug };
+  } catch {
+    // Bilderna är en bonus: utan dem visas ordrarna med en paketikon.
+  }
+  return ut;
+}
+
 export default async function Konto({ searchParams }: { searchParams: Promise<Sok> }) {
   const sp = await searchParams;
   const oppen = Boolean(medlemsHemlighet()) && (await medlemsLage()) !== "av";
@@ -33,9 +52,20 @@ export default async function Konto({ searchParams }: { searchParams: Promise<So
   if (!oppen) {
     return (
       <section className="sec">
-        <div className="container-narrow">
-          <h1 className={s.rubrik}>Mina sidor</h1>
-          <p className={s.ingress}>Medlemskontot öppnar snart. Frågor om en order besvarar kundtjänst som vanligt.</p>
+        <div className={`container ${s.ram}`}>
+          <div className={s.inloggYta}>
+            <div>
+              <p className={s.ogonbryn}>Fyndplats medlem</p>
+              <h1 className={`${s.rubrik} ${s.display}`}>Mina sidor</h1>
+              <p className={s.ingress}>
+                Medlemskontot öppnar snart. Då ser du din nivå, dina köp och dina paket på ett ställe. Frågor om en order
+                besvarar kundtjänst som vanligt på <a href="mailto:info@fyndplats.com">info@fyndplats.com</a>.
+              </p>
+            </div>
+            <aside className={s.formaner}>
+              <Kortfacka />
+            </aside>
+          </div>
         </div>
       </section>
     );
@@ -56,17 +86,19 @@ export default async function Konto({ searchParams }: { searchParams: Promise<So
     return (
       <section className="sec">
         <div className="container-narrow">
-          <h1 className={s.rubrik}>Mina sidor</h1>
+          <h1 className={`${s.rubrik} ${s.display}`}>Mina sidor</h1>
           <p className={s.ingress}>Mina sidor gick inte att läsa just nu. Försök igen om en stund.</p>
         </div>
       </section>
     );
   }
   if (session && data) {
+    const idn = new Set(data.ordrar.flatMap((o) => o.varor.map((v) => v.produktId).filter((x): x is string => Boolean(x))));
+    const bilder = await produktbilder(idn);
     return (
       <section className="sec">
-        <div className="container-narrow">
-          <MinaSidorVy data={data} />
+        <div className={`container ${s.ram}`}>
+          <MinaSidorVy data={data} bilder={bilder} />
         </div>
         <FornyaSession />
       </section>
@@ -77,17 +109,28 @@ export default async function Konto({ searchParams }: { searchParams: Promise<So
   const mal = sakertMal(ett(sp.mal));
   return (
     <section className="sec">
-      <div className="container-narrow">
-        <h1 className={s.rubrik}>{ett(sp.fran) === "tack" ? "Skapa konto – köpet räknas" : "Logga in eller skapa konto"}</h1>
-        <p className={s.ingress}>
-          Som medlem ser du din nivå, dina köp och dina ordrar på ett ställe. Du loggar in med en kod som vi mejlar, utan
-          lösenord. Köp du gjort med samma e-post det senaste året räknas direkt.
-        </p>
-        <KontoInloggning order={order} mal={mal === "/konto" ? undefined : mal} fel={ett(sp.fel) ?? null} />
-        <p className={s.liten}>
-          När du skapar ett konto sparar vi din e-postadress och räknar ihop dina köp för medlemsnivån. Läs mer i vår{" "}
-          <a href="/sekretesspolicy">sekretesspolicy</a>.
-        </p>
+      <div className={`container ${s.ram}`}>
+        <div className={s.inloggYta}>
+          <div>
+            <p className={s.ogonbryn}>Fyndplats medlem</p>
+            <h1 className={`${s.rubrik} ${s.display}`}>
+              {ett(sp.fran) === "tack" ? "Skapa konto – köpet räknas" : "Logga in eller skapa konto"}
+            </h1>
+            <p className={s.ingress}>
+              Du loggar in med en kod som vi mejlar, utan lösenord. Köp du gjort med samma e-post det senaste året räknas
+              direkt.
+            </p>
+            <KontoInloggning order={order} mal={mal === "/konto" ? undefined : mal} fel={ett(sp.fel) ?? null} />
+            <p className={s.liten}>
+              När du skapar ett konto sparar vi din e-postadress och räknar ihop dina köp för medlemsnivån. Läs mer i vår{" "}
+              <a href="/sekretesspolicy">sekretesspolicy</a>.
+            </p>
+          </div>
+          <aside className={s.formaner} aria-label="Det här får du som medlem">
+            <Kortfacka />
+            <Formaner />
+          </aside>
+        </div>
       </div>
       {session ? <FornyaSession /> : null}
     </section>
