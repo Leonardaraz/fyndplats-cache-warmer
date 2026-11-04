@@ -1,0 +1,5 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+c737abea 137,2 längden 1372 mm (54 in) på VEVOR:s måttritning och i källans rad = 137,2 cm
+c737abea 73,7 bredden 737 mm (29 in) i källans rad; måttritningen säger 745 mm (29,3 in): det lägre skrivs (Leonards regel)
+c737abea 87,8 höjden 878 mm (34,6 in) på måttritningen och i källans rad = 87,8 cm
