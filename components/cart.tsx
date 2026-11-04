@@ -13,6 +13,7 @@ import { tightFillUrl } from "../lib/wix-image";
 import { DELIVERY_MAX_DAYS, DELIVERY_MIN_DAYS, DELIVERY_TIME, EU_STOCK_NOTE_SHORT, FREE_SHIPPING_FROM_KR, fraktKr } from "../lib/shipping";
 import { leveransIntervall } from "../lib/leveransdatum";
 import { skapaKassalankMinne, type Kassalank } from "../lib/kassalank";
+import { medlemskassa } from "./medlemspris";
 import { normaliseraKundvagn, vagnenArBorta, valdaAlternativ } from "../lib/cart-shape";
 import { visaValnamn } from "../lib/variant-lage";
 import { usePanelFokus } from "./use-panel-fokus";
@@ -415,6 +416,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       // Adressen förbereds när lådan öppnas (lib/kassalank.ts). Finns en för
       // just den här vagnen används den, annars byggs den nu, som förut.
       const kassaId: string = cart?._id || "";
+      // Medlemmar: servern bygger en korg med låsta medlemspriser (E2). Ger
+      // den ingen adress, för att medlemspris inte gäller eller något föll,
+      // används den vanliga kassan nedan.
+      const medlem = kassaId ? await medlemskassa(kassaId) : null;
+      if (medlem) {
+        console.info("[kassa] adress via medlemskassan");
+        window.location.href = medlem;
+        return;
+      }
       const forberedd = kassaId ? kassalankMinne.hamta(kassaId) : null;
       let lank: Kassalank | null = forberedd ? await forberedd.catch(() => null) : null;
       if (lank) {

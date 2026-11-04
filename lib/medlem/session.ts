@@ -83,3 +83,15 @@ export function behoverFornyas(s: Session, nuMs: number): boolean {
 export function kakaAttribut(maxAgeS: number, https = true) {
   return { httpOnly: true, secure: https, sameSite: "lax" as const, path: "/", maxAge: maxAgeS };
 }
+
+/**
+ * Ett tecken som sidans skript får läsa: "här finns en inloggning". Sessionen
+ * själv är httpOnly. Utan tecknet hade varje produktsida behövt fråga servern
+ * om medlemspriset, också för alla som aldrig loggat in. Tecknet bär ingenting
+ * hemligt och ger ingen behörighet; servern läser alltid sessionen.
+ */
+export const TECKEN_KAKA = "fp_medlem_inne";
+
+export function teckenAttribut(maxAgeS: number, https = true) {
+  return { httpOnly: false, secure: https, sameSite: "lax" as const, path: "/", maxAge: maxAgeS };
+}

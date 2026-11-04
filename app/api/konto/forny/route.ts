@@ -6,7 +6,7 @@
 
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { SESSION_KAKA, behoverFornyas, kakaAttribut, lasSession, nySession } from "@/lib/medlem/session";
+import { SESSION_KAKA, TECKEN_KAKA, behoverFornyas, kakaAttribut, lasSession, nySession, teckenAttribut } from "@/lib/medlem/session";
 import { hamtaMedlem, medlemsHemlighet } from "@/lib/medlem/lager";
 import { PRIVAT } from "@/lib/medlem/inloggad";
 
@@ -22,6 +22,7 @@ export async function POST(req: Request) {
   const rensa = () => {
     const res = NextResponse.json({ ok: false }, { headers: PRIVAT });
     if (token) res.cookies.set(SESSION_KAKA, "", kakaAttribut(0, https));
+    res.cookies.set(TECKEN_KAKA, "", teckenAttribut(0, https));
     return res;
   };
   if (!s || !hemlighet) return rensa();
@@ -36,5 +37,6 @@ export async function POST(req: Request) {
   const ny = nySession(s.sub, s.email, nuMs, hemlighet);
   const res = NextResponse.json({ ok: true, fornyad: true }, { headers: PRIVAT });
   res.cookies.set(SESSION_KAKA, ny.token, kakaAttribut(ny.maxAgeS, https));
+  res.cookies.set(TECKEN_KAKA, "1", teckenAttribut(ny.maxAgeS, https));
   return res;
 }

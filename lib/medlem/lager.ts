@@ -42,6 +42,8 @@ export const MK = {
   nivaer: "FyndplatsMedlemsnivaer",
   regler: "FyndplatsMedlemsregler",
   logg: "FyndplatsMedlemslogg",
+  /** E2: ett beslut per låst varukorg, sparat i sju år [D1]. */
+  prisbeslut: "FyndplatsPrisbeslut",
 } as const;
 
 const nu = () => new Date().toISOString();
@@ -75,6 +77,38 @@ export async function medlemsLage(nuMs = Date.now()): Promise<Lage> {
     console.error("[medlem] kunde inte läsa växeln:", e instanceof Error ? e.message.slice(0, 120) : e);
     const forra = lageCache?.lage ?? "av";
     lageCache = { lage: forra, at: nuMs - 50_000 };
+    return forra;
+  }
+}
+
+/**
+ * Medlemspriset (E2) har en egen växel i samma rad, fältet `pris`:
+ *
+ * av:   ingen får medlemspris. Förvalt, och läget när fältet saknas.
+ * test: bara medlemmar med `testare: true` på sin rad, för prov i produktion.
+ * pa:   alla inloggade medlemmar.
+ *
+ * Skild från `lage`, så att Mina sidor kan vara öppna utan medlemspris, och
+ * medlemspriset kan stängas av utan att någon loggas ut. Aldrig `pa` under
+ * Black Week 23–29/11 (planen).
+ *
+ * Kan raden inte läsas gäller förra läget en kort stund, och sedan `av`.
+ */
+export type Prislage = "av" | "test" | "pa";
+let prisCache: { lage: Prislage; at: number } | null = null;
+
+export async function prisLage(nuMs = Date.now()): Promise<Prislage> {
+  if (prisCache && nuMs - prisCache.at < 60_000) return prisCache.lage;
+  try {
+    const rad = await hamta(K.installningar, LAGE_ID);
+    const v = rad?.pris;
+    const lage: Prislage = v === "pa" || v === "test" ? v : "av";
+    prisCache = { lage, at: nuMs };
+    return lage;
+  } catch (e) {
+    console.error("[medlem] kunde inte läsa prisväxeln:", e instanceof Error ? e.message.slice(0, 120) : e);
+    const forra = prisCache && nuMs - prisCache.at < 10 * 60_000 ? prisCache.lage : "av";
+    prisCache = { lage: forra, at: nuMs - 50_000 };
     return forra;
   }
 }
@@ -138,6 +172,8 @@ export interface Medlem {
   manuellTill?: string;
   /** false: medlemmen har avregistrerat sig från mejlen om nivån. Saknas: mejlen går. */
   nivamejl?: false;
+  /** Får medlemspris redan i prisväxelns läge `test`. */
+  testare?: boolean;
 }
 
 function medlemUrRad(d: Rad): Medlem {
@@ -157,6 +193,7 @@ function medlemUrRad(d: Rad): Medlem {
     manuellNiva: text(d.manuellNiva),
     manuellTill: text(d.manuellTill),
     nivamejl: d.nivamejl === false ? false : undefined,
+    ...(d.testare === true ? { testare: true } : {}),
   };
 }
 
@@ -422,4 +459,49 @@ export async function loggaTyst(h: Logghandelse): Promise<void> {
   } catch (e) {
     console.error(`[medlem] loggen kunde inte skrivas (${h.omrade}/${h.typ}):`, e instanceof Error ? e.message.slice(0, 120) : e);
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Prisbeslutsloggen (E2-9)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Ett prisbeslut per låst varukorg, nycklat på korgens id. `purchaseFlowId`
+ * paras med ordern när webhooken kommer, så att beslutet kan slås upp på
+ * ordernummer i admin. Sparas i sju år [D1]: det är underlag för priset kunden
+ * betalade. ☠️ Raden bär kostnaden; kollektionen har behörigheten ADMIN och
+ * läses bara av butikens och motorns server.
+ */
+export interface Prisbeslutspost {
+  cartId: string;
+  purchaseFlowId: string;
+  medlemsId: string;
+  profil: string;
+  niva: string;
+  procent: number;
+  kalla: string;
+  basOreExMoms: number;
+  summaAOre: number;
+  summaPOre: number;
+  rabattOre: number;
+  friFraktSkydd: boolean;
+  rader: {
+    produktId: string;
+    variantId?: string;
+    antal: number;
+    aOre: number;
+    kostnadOre?: number;
+    golvOre?: number;
+    procent: number;
+    pOre: number;
+    begransning: string;
+    undantag?: string;
+  }[];
+  skapad: string;
+}
+
+export async function sparaPrisbeslut(post: Prisbeslutspost): Promise<void> {
+  // Inga null-fält i Wix: valfria fält utelämnas i stället.
+  const rader = post.rader.map((r) => Object.fromEntries(Object.entries(r).filter(([, v]) => v !== undefined && v !== null)));
+  await spara(MK.prisbeslut, post.cartId, { ...post, rader } as unknown as Rad);
 }
