@@ -1,0 +1,38 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+f567f526 40,5 bredden 405 mm (15,94 in) på VEVOR:s måttritning och i källans rad = 40,5 cm
+f567f526 54,5 djupet 545 mm (21,46 in) på måttritningen och i källans rad = 54,5 cm
+f567f526 90 höjden 900 mm (35,43 in) på måttritningen och i källans rad = 90 cm
+f567f526 145 prisluckan 5,91 × 5,71 in / 150 × 145 mm på måttritningen och funktionsbilden
+f567f526 13 antalet skruvar på specifikationskortet (13 x Screws)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+c90ace0a 200 innermåttet 2000 mm (78,7 in) i källans rad = 200 cm
+c90ace0a 149 innermåttet 1490 mm (58,7 in) i källans rad = 149 cm
+c90ace0a 206 yttermåttet 2060 mm (81,1 in) i källans rad = 206 cm
+c90ace0a 154,5 yttermåttet 1545 mm (60,83 in) i källans rad = 154,5 cm
+c90ace0a 65 yttermåttet 650 mm (25,59 in) i källans rad och på måttritningen = 65 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+fac4087d 44 längden 440 mm (17,32 in) på VEVOR:s måttritning och i specifikationskortet = 44 cm
+fac4087d 26 bredden 260 mm (10,24 in) på måttritningen och i specifikationskortet = 26 cm
+fac4087d 3,5 höjden 35 mm (1,38 in) på måttritningen och i specifikationskortet = 3,5 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+0e9eb766 57 längden 22,44 in på måttritningen (VEVOR anger samma ritning som 570 mm på 30-tonersmodellens rad); raden säger 605 mm: det lägre skrivs
+0e9eb766 32,5 bredden 12,8 in på måttritningen (325 mm på 30-tonersmodellens rad); raden säger 356 mm: det lägre skrivs
+0e9eb766 5 höjden 2 in på måttritningen (50 mm på 30-tonersmodellens rad); raden säger 55 mm: det lägre skrivs
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+08d0c336 60,5 klockspelets längd 605 mm (23,8 in) i källans rad och på måttritningen = 60,5 cm
+08d0c336 35,6 klockspelets bredd 356 mm (14 in) i källans rad och på måttritningen = 35,6 cm
+08d0c336 5,5 klockspelets höjd 55 mm (2,2 in) i källans rad och på måttritningen = 5,5 cm
+08d0c336 75 stativets bredd 750 mm (29,5 in) i källans rad och på måttritningen = 75 cm
+08d0c336 68 stativets djup 680 mm (26,8 in) i källans rad och på måttritningen = 68 cm
+08d0c336 91 stativets höjd 910 mm (35,8 in) i källans rad och på måttritningen = 91 cm
+08d0c336 203 övningsplattans storlek 203 mm / 8 tum i VEVOR:s produkttitel
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+6d568414 57 längden 570 mm (22,44 in) i källans rad och på måttritningen = 57 cm
+6d568414 32,5 bredden 325 mm (12,8 in) i källans rad och på måttritningen = 32,5 cm
+6d568414 5 höjden 50 mm (2 in) i källans rad och på måttritningen = 5 cm
