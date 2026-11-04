@@ -261,6 +261,14 @@ VEVOR-varor är EU-varor och ska bära märkningen, och hundvagnen `c21cf56b` be
 alla 40 provade av 197 publicerade VEVOR-sidor märket. Tills det är åtgärdat ska ingen sida
 publiceras med ett annat besked än Leonards.
 
+**AliExpress-tvillingskärm före varje urval** *(2026-11-04, `FLAGGADE-VEVOR.md` (je) och (jf))*. SucceBuy är VEVOR:s
+egen AliExpress-butik, så varje utkast kan redan finnas som en publicerad AliExpress-sida, också när fotona är olika
+(`dHash` hittade bara tre av sju par). Hämta registret ur `FyndplatsMappings` (`supplierName` innehåller *SucceBuy*:
+176 rader, 144 publicerade 2026-11-04; skriv aldrig ut `supplierProductId`, `supplierId` eller `sourceUrl`), matcha
+kandidaterna mot de engelska titlarna i `seoTitle` och lägg bilderna bredvid varandra. Ett utkast med en
+AliExpress-tvilling polerar du inte som en egen sida: ommappa AliExpress-sidan (nästa stycke) eller, när båda är
+publicerade, gör som på värmarna. Båda är liveändringar som Leonard svarar ja på först.
+
 **Samma vara som en publicerad AliExpress-sida** *(Leonard 2026-11-03, parkeringsvärmaren `22fb6792` och
 `5e964d36`)*. Är VEVOR-dubbletten ett osynligt utkast mappar du om den publicerade AliExpress-sidan, som på hundvagnen
 (`FLAGGADE-VEVOR.md` cz–dg). Är **båda sidorna publicerade** behålls den polerade VEVOR-sidan med sina recensioner, eftersom
