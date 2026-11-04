@@ -267,7 +267,7 @@ egen AliExpress-butik, så varje utkast kan redan finnas som en publicerad AliEx
 176 rader, 144 publicerade 2026-11-04; skriv aldrig ut `supplierProductId`, `supplierId` eller `sourceUrl`), matcha
 kandidaterna mot de engelska titlarna i `seoTitle` och lägg bilderna bredvid varandra. Ett utkast med en
 AliExpress-tvilling polerar du inte som en egen sida: ommappa AliExpress-sidan (nästa stycke) eller, när båda är
-publicerade, gör som på värmarna. Båda är liveändringar som Leonard svarar ja på först. ☠️ Kör skärmen före `ghw.py write`: den startar `skriv` direkt när `torr` är klar (49 s), och att döda `ghw` avbryter inte en körning som redan startat (runda leksak-12, `FLAGGADE-VEVOR.md` (jk)).
+publicerade, gör som på värmarna. Båda är liveändringar som Leonard svarar ja på först. ☠️ Kör skärmen före `ghw.py write`: den startar `skriv` direkt när `torr` är klar (49 s), och att döda `ghw` avbryter inte en körning som redan startat (runda leksak-12, `FLAGGADE-VEVOR.md` (jk)). Sök på tyska, engelska och svenska titelord (*Spieltisch*, *Laufstall*, *table tennis*) och inte på korta ord som träffar mitt i andra (*Ping* träffar *Camping*): i runda leksak-26 låg en publicerad 3-i-1-bordssida utanför den första listan och hittades först efter skrivningen (`FLAGGADE-VEVOR.md` (kb), fälla 10).
 
 **Samma vara som en publicerad AliExpress-sida** *(Leonard 2026-11-03, parkeringsvärmaren `22fb6792` och
 `5e964d36`)*. Är VEVOR-dubbletten ett osynligt utkast mappar du om den publicerade AliExpress-sidan, som på hundvagnen
