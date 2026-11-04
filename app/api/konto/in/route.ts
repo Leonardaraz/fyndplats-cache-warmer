@@ -25,8 +25,8 @@ import {
   markeraAnvand,
   medlemsHemlighet,
   medlemsLage,
-  raknaUppForsok,
   senasteInloggning,
+  taForsokPaInloggning,
   type Inloggning,
 } from "@/lib/medlem/lager";
 import { fraga } from "@/lib/wix-lager";
@@ -40,11 +40,15 @@ export const maxDuration = 30;
 
 type Fel = Exclude<Prov, "ok"> | "stangd" | "epost" | "sparrad" | "tillfalligt";
 
-/** Felaktiga koder på e-posten det senaste dygnet, summerat över alla koder. */
+/**
+ * Felaktiga koder på e-posten det senaste dygnet, summerat över alla koder.
+ * Varje försök räknas när det tas i anspråk, också det som lyckas; en använd
+ * inloggning räknas därför med ett försök mindre.
+ */
 async function felSenasteDygnet(epost: string): Promise<number> {
   const sedan = new Date(Date.now() - 86_400_000).toISOString();
   const rader = await fraga(MK.inloggningar, { filter: { epost, skapad: { $gt: sedan } }, limit: 100 });
-  return rader.reduce((s, r) => s + (Number(r.forsok) || 0), 0);
+  return rader.reduce((s, r) => s + Math.max(0, (Number(r.forsok) || 0) - (r.anvand ? 1 : 0)), 0);
 }
 
 export async function POST(req: Request) {
@@ -83,8 +87,10 @@ export async function POST(req: Request) {
       if (!rad) prov = "utgangen";
       else if ((await felSenasteDygnet(epost)) >= MAX_FEL_PER_DYGN) prov = "for-manga-forsok";
       else {
-        prov = provaKod(rad, kod, nuMs, hemlighet);
-        if (prov === "fel-kod") await raknaUppForsok(rad.id, rad.forsok);
+        // Försöket tas i anspråk före prövningen: så prövas högst fem koder
+        // per inloggning, också när gissningarna kommer samtidigt.
+        const tagen = await taForsokPaInloggning(rad.id);
+        prov = tagen === "ok" ? provaKod(rad, kod, nuMs, hemlighet) : tagen === "slut" ? "for-manga-forsok" : "utgangen";
       }
     }
     if (prov !== "ok" || !rad) return misslyckat(prov === "ok" ? "utgangen" : prov, prov === "fel-kod" ? 401 : 400);

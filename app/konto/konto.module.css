@@ -274,6 +274,29 @@
   }
 }
 
+/* De minsta skärmarna (320 px): solfjädern sköt ut i högerkanten
+   (granskningen 2026-11-04). Mindre kort och tätare vinklar. */
+@media (max-width: 360px) {
+  .kortfacka {
+    height: 160px;
+  }
+  .fackaKort {
+    width: 160px;
+  }
+  .fackaKort:nth-child(1) {
+    transform: translate(-80%, -56%) rotate(-9deg);
+  }
+  .fackaKort:nth-child(3) {
+    transform: translate(-20%, -42%) rotate(6deg);
+  }
+  .fackaKort .kortNiva {
+    font-size: 21px;
+  }
+  .fackaKort .kortMarke {
+    font-size: 13px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .fackaKort {
     transition: none;
@@ -375,10 +398,15 @@
 
 /* ── Medlemskortet ── */
 
+/* Skrimet: en mörk ton nerifrån bakom kortets nedre rad. Utan det hade den
+   lilla texten bara kontrasten 1,3–2,3 mot de ljusa ändarna på brons, guld,
+   platina och diamant (granskningen 2026-11-04); med det minst 4,5. Silver har
+   mörk text och VIP mörk botten, så där är skrimet genomskinligt. */
 .medlemskort {
   --kort-bg: linear-gradient(135deg, #5c2f18 0%, #9a5a35 48%, #cf9466 100%);
+  --kort-skrim: rgba(28, 10, 2, 0.5);
   --kort-ink: #fff8f2;
-  --kort-dim: rgba(255, 248, 242, 0.78);
+  --kort-dim: rgba(255, 248, 242, 0.92);
   position: relative;
   isolation: isolate;
   width: 100%;
@@ -387,7 +415,7 @@
   padding: 22px 24px;
   box-sizing: border-box;
   color: var(--kort-ink);
-  background: var(--kort-bg);
+  background: linear-gradient(to top, var(--kort-skrim) 0%, transparent 48%), var(--kort-bg);
   box-shadow: 0 2px 4px rgba(28, 28, 28, 0.08), 0 22px 44px -18px rgba(28, 28, 28, 0.55);
   overflow: hidden;
   display: flex;
@@ -418,26 +446,31 @@
 }
 .medlemskort[data-niva="silver"] {
   --kort-bg: linear-gradient(135deg, #e7ebee 0%, #c3cad1 46%, #f4f6f8 70%, #aab3bc 100%);
+  --kort-skrim: transparent;
   --kort-ink: #18222b;
   --kort-dim: rgba(24, 34, 43, 0.72);
 }
 .medlemskort[data-niva="guld"] {
-  --kort-bg: linear-gradient(135deg, #5a3d07 0%, #a87a1f 42%, #e2bb5c 78%, #f5dc95 100%);
+  --kort-bg: linear-gradient(135deg, #5a3d07 0%, #a87a1f 42%, #e2bb5c 72%, #c3953a 100%);
+  --kort-skrim: rgba(40, 24, 0, 0.6);
   --kort-ink: #fffaf0;
-  --kort-dim: rgba(255, 250, 240, 0.8);
+  --kort-dim: rgba(255, 250, 240, 0.94);
 }
 .medlemskort[data-niva="platina"] {
   --kort-bg: linear-gradient(135deg, #2b333b 0%, #59646f 48%, #9aa6b1 100%);
+  --kort-skrim: rgba(8, 12, 16, 0.5);
   --kort-ink: #f7fafc;
-  --kort-dim: rgba(247, 250, 252, 0.78);
+  --kort-dim: rgba(247, 250, 252, 0.92);
 }
 .medlemskort[data-niva="diamant"] {
   --kort-bg: linear-gradient(135deg, #0b2440 0%, #1c5288 50%, #6fb7e6 100%);
+  --kort-skrim: rgba(2, 14, 30, 0.5);
   --kort-ink: #f4fbff;
-  --kort-dim: rgba(244, 251, 255, 0.8);
+  --kort-dim: rgba(244, 251, 255, 0.92);
 }
 .medlemskort[data-niva="vip"] {
   --kort-bg: linear-gradient(135deg, #070708 0%, #18161a 55%, #2e2618 100%);
+  --kort-skrim: transparent;
   --kort-ink: #f1d384;
   --kort-dim: rgba(241, 211, 132, 0.72);
 }
@@ -474,18 +507,29 @@
   line-height: 1;
   letter-spacing: 0.01em;
 }
+/* Får inte båda delarna plats bryts "Medlem sedan …" till en egen rad till
+   höger, i stället för att tryckas ihop till fyra rader (en lång adress i
+   320 px, granskningen 2026-11-04). */
 .kortBotten {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: flex-end;
-  gap: 12px;
+  column-gap: 12px;
+  row-gap: 2px;
   font-size: 12.5px;
   font-weight: 600;
   color: var(--kort-dim);
   letter-spacing: 0.02em;
 }
+.kortBotten span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 .kortBotten span:last-child {
+  margin-left: auto;
   text-align: right;
+  white-space: nowrap;
 }
 .medlemskortLiten {
   max-width: 300px;
@@ -840,11 +884,17 @@
   margin: 8px 0 0;
   font-size: var(--text-sm);
   line-height: 1.45;
+}
+.orderVaraNamn {
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+}
+.orderVaraFler {
+  display: block;
+  color: var(--soft);
 }
 .orderVaror a {
   color: inherit;
@@ -999,6 +1049,7 @@
     margin: 0;
     font-size: var(--text-base);
     text-align: right;
+    white-space: nowrap;
   }
   .stege {
     grid-template-columns: minmax(0, 1fr);
@@ -1029,5 +1080,19 @@
   .sparknapp,
   .forklaring summary::after {
     transition: none;
+  }
+}
+
+/* Faktarutorna i 320–380 px: etiketten ovanför värdet, så att "11 november
+   2026" står på en rad i stället för tre (granskningen 2026-11-04). Står
+   sist i filen, efter 520-px-blocket, som annars hade vunnit. */
+@media (max-width: 380px) {
+  .faktum {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .faktum dd {
+    text-align: left;
   }
 }

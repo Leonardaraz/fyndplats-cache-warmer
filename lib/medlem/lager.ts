@@ -31,7 +31,7 @@ import {
 } from "@/lib/wix-lager";
 import { liggarradUrWix, type Liggarrad } from "./orderliggare";
 import { REGLER_V1, reglerFel, type Regler, type Varning } from "./niva";
-import { medlemsId } from "./inloggning";
+import { medlemsId, taForsok } from "./inloggning";
 
 export const MK = {
   medlemmar: "FyndplatsMedlemmar",
@@ -255,15 +255,26 @@ export async function markeraAnvand(id: string): Promise<boolean> {
   return r.utfall === "applied";
 }
 
-/** Räknar upp ett felaktigt försök. Villkorat, så att två samtidiga fel räknas båda. */
-export async function raknaUppForsok(id: string, fore: number): Promise<void> {
-  for (let i = 0; i < 3; i++) {
-    const r = await patcha(MK.inloggningar, id, [satt("forsok", fore + 1)], { forsok: fore });
-    if (r.utfall !== "condition-failed") return;
-    const rad = await hamtaInloggning(id);
-    if (!rad) return;
-    fore = rad.forsok;
-  }
+/**
+ * Tar ett kodförsök i anspråk innan koden prövas (lib/medlem/inloggning.ts,
+ * `taForsok`). Villkorad skrivning på räknarens värde: av samtidiga anrop
+ * vinner bara ett per steg, så högst fem koder prövas per inloggning.
+ */
+export function taForsokPaInloggning(id: string): Promise<"ok" | "slut" | "saknas"> {
+  return taForsok(
+    async () => (await hamtaInloggning(id))?.forsok ?? null,
+    async (fore) => (await patcha(MK.inloggningar, id, [satt("forsok", fore + 1)], { forsok: fore })).utfall === "applied",
+  );
+}
+
+/**
+ * Strypningen per e-post: en rad per trettiosekundersfönster, skapad med en
+ * insert som vägrar ett id som finns. Falskt om fönstret redan är taget.
+ * Raden bär ingen e-post (räknarna filtrerar på `epost`) och gallras med
+ * inloggningarna efter 30 dagar.
+ */
+export async function taStrypning(id: string, nuIso: string): Promise<boolean> {
+  return (await infoga(MK.inloggningar, id, { typ: "strypning", skapad: nuIso })) === "skapad";
 }
 
 /** Gallringen: inloggningsförsök äldre än `fore` tas bort (integritetstexten, 30 dagar). */

@@ -1059,6 +1059,30 @@ veta:
   `app/konto/page.tsx`). En kall instans laddar hela katalogen; då visas
   ordrarna med en paketikon hellre än sent.
 
+**Granskningen 2026-11-04 (kväll).** Fyra säkerhets- och räknefel rättade, med
+prov som fäller dem:
+
+- ☠️ **Ett kodförsök tas i anspråk INNAN koden prövas** (`taForsok` i
+  `lib/medlem/inloggning.ts`, `taForsokPaInloggning` i `lager.ts`). Räknaren
+  steg förut efter prövningen, och hundra samtidiga gissningar prövades alla.
+  Nu flyttar en villkorad skrivning räknaren ett steg i taget, så högst fem
+  koder prövas per inloggning.
+- ☠️ **Ett mejl per adress och halvminut**, med en strypningsrad som skapas med
+  en insert (`strypId`, `taStrypning`). Räknarna i `/api/konto/kod` läses före
+  skrivningen och släppte igenom en skur samtidiga anrop.
+- ☠️ **Målet efter inloggningen är strikt** (`sakertMal`): snedstreck följt av
+  synliga ASCII-tecken. Webbläsaren tar bort tabb och radbrytning, så
+  "/\t/ond.se" blev "//ond.se".
+- **Saknade transaktioner är ett fel, inte "inga återbetalningar"**
+  (`hamtaTransaktioner` ger null vid 404). En återbetald order fäller då raden
+  i stället för att räknas hel; avstämningen försöker igen.
+- **Texterna** har egna regler i `lib/medlem/visning.ts`: "högsta nivån" bara
+  på VIP, "äldre än ett år" bara efter ett år, "spårning kommer" bara de
+  första 30 dagarna och "Handla för X före Y" bara de sista 60 dagarna.
+- **Kortens nedre rad har ett mörkt skrim** (`--kort-skrim`). Utan det hade
+  den lilla texten kontrasten 1,3–2,3 på brons, guld, platina och diamant; med
+  det minst 4,5. Ändras en färg, räkna om kontrasten.
+
 Före läget `pa`: integritetstexten (J4) ska vara godkänd och publicerad,
 utkastet står i `docs/medlemskap-integritetstext-utkast.md`. E1-grinden är
 specens E1-1 till E1-11 och en vecka med avstämning utan avvikelser; svaret

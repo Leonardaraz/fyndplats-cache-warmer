@@ -41,7 +41,7 @@ export function medlemsId(epost: string): string {
 }
 
 /** En delnyckel per syfte, så att en läckt delnyckel inte öppnar något annat. */
-export function delnyckel(hemlighet: string, syfte: "session" | "kod" | "ip"): Buffer {
+export function delnyckel(hemlighet: string, syfte: "session" | "kod" | "ip" | "strypning"): Buffer {
   return createHmac("sha256", hemlighet).update(`fyndplats-medlem-${syfte}-v1`).digest();
 }
 
@@ -55,6 +55,18 @@ export function hashaKod(kod: string, epost: string, skapad: string, hemlighet: 
 
 export function ipNyckel(ip: string, hemlighet: string): string {
   return createHmac("sha256", delnyckel(hemlighet, "ip")).update(ip).digest("hex").slice(0, 32);
+}
+
+/**
+ * Id för e-postens strypning i ett trettiosekundersfönster. Raden skapas med
+ * en insert som vägrar ett id som finns, så två samtidiga förfrågningar på
+ * samma adress kan inte båda skicka ett mejl (granskningen 2026-11-04: räknaren
+ * lästes före skrivningen, och en skur samtidiga anrop kom alla förbi den).
+ * E-posten går inte att läsa ur id:t.
+ */
+export function strypId(epost: string, nuMs: number, hemlighet: string): string {
+  const h = createHmac("sha256", delnyckel(hemlighet, "strypning")).update(epost).digest("hex").slice(0, 32);
+  return `s_${h}_${Math.floor(nuMs / MIN_MELLANRUM_MS)}`;
 }
 
 export interface NyInloggning {
@@ -111,6 +123,32 @@ export function provaKod(rad: Inloggningsrad, kod: string, nuMs: number, hemligh
   return vantad.length === given.length && timingSafeEqual(vantad, given) ? "ok" : "fel-kod";
 }
 
+/**
+ * Tar ett försök i anspråk INNAN koden prövas. `las` ger radens räknare (null
+ * om raden saknas), `cas` flyttar den från `fore` till `fore + 1` bara om
+ * ingen annan hann före. Så prövas högst `max` koder per inloggning, hur många
+ * anrop som än kommer samtidigt.
+ *
+ * ☠️ Granskningen 2026-11-04: räknaren steg först EFTER prövningen. Hundra
+ * samtidiga gissningar läste då alla räknaren 0 och prövades alla.
+ */
+export async function taForsok(
+  las: () => Promise<number | null>,
+  cas: (fore: number) => Promise<boolean>,
+  max = MAX_KODFORSOK,
+): Promise<"ok" | "slut" | "saknas"> {
+  // Varje förlorad cas betyder att någon annan tog ett försök, så slingan
+  // tar slut efter högst `max` varv; marginalen är för en rad som ändrats av
+  // annat skäl samtidigt.
+  for (let varv = 0; varv < max + 3; varv++) {
+    const fore = await las();
+    if (fore === null) return "saknas";
+    if (fore >= max) return "slut";
+    if (await cas(fore)) return "ok";
+  }
+  return "slut";
+}
+
 /** Länkens token: samma prövning utan kod. */
 export function provaLank(rad: Inloggningsrad, nuMs: number): Prov {
   if (rad.anvand) return "anvand";
@@ -146,9 +184,14 @@ export function maskeradEpost(epost: string): string {
   return `${namn.slice(0, 1)}•••@${doman}`;
 }
 
-/** Bara en sökväg på vår egen sajt får bli målet efter inloggningen. */
+/**
+ * Bara en sökväg på vår egen sajt får bli målet efter inloggningen: ett
+ * snedstreck följt av synliga ASCII-tecken, aldrig "//" eller "/\\" i början.
+ *
+ * ☠️ Granskningen 2026-11-04: webbläsaren och URL-tolken tar bort tabb och
+ * radbrytning, så "/\t/ond.se" blev "//ond.se", en adress på en annan sajt.
+ */
 export function sakertMal(v: unknown): string {
-  if (typeof v !== "string") return "/konto";
-  if (!v.startsWith("/") || v.startsWith("//") || v.includes("\\") || v.length > 200) return "/konto";
-  return v;
+  if (typeof v !== "string" || v.length > 200) return "/konto";
+  return /^\/(?![/\\])[\x21-\x7e]*$/.test(v) ? v : "/konto";
 }

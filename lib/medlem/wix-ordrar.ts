@@ -51,9 +51,15 @@ export async function hamtaOrder(orderId: string): Promise<WixOrder | null> {
   return json?.order ?? null;
 }
 
-export async function hamtaTransaktioner(orderId: string): Promise<WixTransaktioner> {
+/**
+ * Orderns transaktioner, eller null om Wix inte har några. Null och inte en
+ * tom lista: för en återbetald order fäller liggarradUrOrder då raden, i
+ * stället för att räkna hela ordern som om inget betalats tillbaka
+ * (granskningen 2026-11-04). Nattens avstämning försöker igen.
+ */
+export async function hamtaTransaktioner(orderId: string): Promise<WixTransaktioner | null> {
   const { json } = await anropa<WixTransaktioner>("GET", `/payments/orders/${encodeURIComponent(orderId)}`);
-  return json ?? { orderTransactions: { orderId, payments: [], refunds: [] } };
+  return json;
 }
 
 export interface Ordersida {

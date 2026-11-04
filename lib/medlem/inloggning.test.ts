@@ -16,6 +16,8 @@ import {
   provaLank,
   sakertMal,
   stadaKod,
+  strypId,
+  taForsok,
   type Inloggningsrad,
 } from "./inloggning.ts";
 
@@ -105,4 +107,61 @@ test("token, order-id och den maskerade adressen", async () => {
   assert.equal(orderGuid("1DE22A36-70DE-41F1-9CA7-3395759AAFBE"), "1de22a36-70de-41f1-9ca7-3395759aafbe");
   assert.equal(orderGuid("20001"), null);
   assert.equal(maskeradEpost("kund@example.se"), "k•••@example.se");
+});
+
+test("☠️ målet efter inloggningen: tabb, radbrytning och mellanslag kan inte leda bort från sajten", () => {
+  // Webbläsaren tar bort tabb och radbrytning: "/\t/ond.se" blir "//ond.se".
+  for (const ond of ["/\t/evil.example", "/\n/evil.example", "/\r\n/evil.example", "/ /evil.example", "/\\evil.example", "\t//evil.example", "//evil.example", "/\u00a0/evil.example"]) {
+    assert.equal(sakertMal(ond), "/konto", JSON.stringify(ond));
+  }
+  for (const bra of ["/konto", "/produkt/fatolj-chenille", "/konto?fran=tack&order=abc", "/butik#topp"]) {
+    assert.equal(sakertMal(bra), bra);
+  }
+  assert.equal(sakertMal(`/${"a".repeat(250)}`), "/konto");
+});
+
+test("☠️ strypningen: ett id per e-post och halvminut, och e-posten syns inte i det", () => {
+  const h = "x".repeat(40);
+  const t = Date.parse("2026-11-04T12:00:05Z");
+  assert.equal(strypId("kund@example.se", t, h), strypId("kund@example.se", t + 20_000, h));
+  assert.notEqual(strypId("kund@example.se", t, h), strypId("kund@example.se", t + 30_000, h));
+  assert.notEqual(strypId("kund@example.se", t, h), strypId("annan@example.se", t, h));
+  assert.notEqual(strypId("kund@example.se", t, h), strypId("kund@example.se", t, "y".repeat(40)));
+  assert.ok(!strypId("kund@example.se", t, h).includes("kund"));
+  assert.match(strypId("kund@example.se", t, h), /^s_[0-9a-f]{32}_\d+$/);
+});
+
+/** En rad i minnet med en villkorad skrivning, som Wix patch med villkor. */
+function minnesrad(start: number | null) {
+  let forsok = start;
+  return {
+    las: async () => {
+      await new Promise((r) => setTimeout(r, Math.random() * 3));
+      return forsok;
+    },
+    cas: async (fore: number) => {
+      await new Promise((r) => setTimeout(r, Math.random() * 3));
+      if (forsok !== fore) return false;
+      forsok = fore + 1;
+      return true;
+    },
+    varde: () => forsok,
+  };
+}
+
+test("☠️ hundra samtidiga gissningar prövar högst fem koder", async () => {
+  const rad = minnesrad(0);
+  const utfall = await Promise.all(Array.from({ length: 100 }, () => taForsok(rad.las, rad.cas)));
+  assert.equal(utfall.filter((u) => u === "ok").length, MAX_KODFORSOK);
+  assert.equal(utfall.filter((u) => u === "slut").length, 100 - MAX_KODFORSOK);
+  assert.equal(rad.varde(), MAX_KODFORSOK);
+});
+
+test("ett försök tas bara när raden finns och räknaren inte är slut", async () => {
+  assert.equal(await taForsok(minnesrad(null).las, minnesrad(null).cas), "saknas");
+  const full = minnesrad(MAX_KODFORSOK);
+  assert.equal(await taForsok(full.las, full.cas), "slut");
+  const fyra = minnesrad(MAX_KODFORSOK - 1);
+  assert.equal(await taForsok(fyra.las, fyra.cas), "ok");
+  assert.equal(await taForsok(fyra.las, fyra.cas), "slut");
 });

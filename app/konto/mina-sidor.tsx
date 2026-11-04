@@ -12,6 +12,7 @@ import Image from "next/image";
 import { dagSomText, kronor, stockholmsDag, type Nivalage } from "@/lib/medlem/niva";
 import { maskeradEpost } from "@/lib/medlem/inloggning";
 import type { MinaSidor, OrderPaMinaSidor } from "@/lib/medlem/konto";
+import { arHogstaNivan, inteRaknadText, visaSparningVantas, visaUppmaning } from "@/lib/medlem/visning";
 import { Medlemskort, nivaNyckel } from "./medlemskort";
 import s from "./konto.module.css";
 
@@ -47,13 +48,6 @@ function Paket() {
       />
     </svg>
   );
-}
-
-function intePaNivan(o: OrderPaMinaSidor): string {
-  if (o.status === "avbruten") return "Räknas inte, ordern är avbruten.";
-  if (o.status === "obetald") return "Räknas från dagen du betalar.";
-  if (o.status === "aterbetald") return "Räknas inte, hela beloppet är återbetalt.";
-  return "Räknas inte längre, köpet är äldre än ett år.";
 }
 
 export function MinaSidorVy({ data, bilder: produkter = {} }: { data: MinaSidor; bilder?: Produktbilder }) {
@@ -114,9 +108,9 @@ export function MinaSidorVy({ data, bilder: produkter = {} }: { data: MinaSidor;
                 <strong>{kronor(lage.nasta.kvarOre)}</strong> kvar till {lage.nasta.niva.namn}
               </p>
             </>
-          ) : (
+          ) : arHogstaNivan(lage, regler) ? (
             <p className={s.kvarStor}>Du har den högsta nivån. Tack för att du handlar hos oss.</p>
-          )}
+          ) : null}
           {lage.manuell ? (
             <p className={s.not}>
               Din nivå är satt av kundtjänst
@@ -145,7 +139,7 @@ export function MinaSidorVy({ data, bilder: produkter = {} }: { data: MinaSidor;
         </div>
       </dl>
 
-      {lage.sankning ? (
+      {lage.sankning && visaUppmaning(lage.sankning.dag, lage.dag) ? (
         <p className={s.uppmaning}>
           Handla för <strong>{kronor(behalla)}</strong> före {dagSomText(lage.sankning.dag)} så behåller du {lage.niva.namn}.
           Annars blir din nivå {lage.sankning.niva.namn} den dagen. <a href="/butik">Till butiken</a>
@@ -191,6 +185,7 @@ export function MinaSidorVy({ data, bilder: produkter = {} }: { data: MinaSidor;
             const forsta = o.varor[0];
             const fler = o.varor.length - 1;
             const lank = forsta?.produktId ? produkter[forsta.produktId]?.slug : undefined;
+            const alder = lage.dag - stockholmsDag(o.bestalld);
             return (
               <li key={o.orderId} className={s.order}>
                 <div className={s.orderBilder} data-antal={bilder.length || 1}>
@@ -215,9 +210,16 @@ export function MinaSidorVy({ data, bilder: produkter = {} }: { data: MinaSidor;
                   </div>
                   {forsta ? (
                     <p className={s.orderVaror}>
-                      {lank ? <a href={`/produkt/${lank}`}>{forsta.namn}</a> : forsta.namn}
-                      {forsta.antal > 1 ? ` × ${forsta.antal}` : ""}
-                      {fler > 0 ? ` och ${fler} ${fler === 1 ? "vara" : "varor"} till` : ""}
+                      {/* Namnet kortas efter två rader; antalet och "och N varor till" står
+                          på egen rad, så att de syns också efter ett långt namn. */}
+                      <span className={s.orderVaraNamn}>{lank ? <a href={`/produkt/${lank}`}>{forsta.namn}</a> : forsta.namn}</span>
+                      {forsta.antal > 1 || fler > 0 ? (
+                        <span className={s.orderVaraFler}>
+                          {[forsta.antal > 1 ? `${forsta.antal} st` : "", fler > 0 ? `och ${fler} ${fler === 1 ? "vara" : "varor"} till` : ""]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </span>
+                      ) : null}
                     </p>
                   ) : null}
                   <p className={s.orderRaknas} data-raknas={r ? "ja" : "nej"}>
@@ -226,7 +228,7 @@ export function MinaSidorVy({ data, bilder: produkter = {} }: { data: MinaSidor;
                         Räknas med <strong>{kronor(r.bidragOre)}</strong> till och med {dagSomText(r.fallerUrDag - 1)}
                       </>
                     ) : (
-                      intePaNivan(o)
+                      inteRaknadText(o.status, alder)
                     )}
                   </p>
                   {o.sparning.length ? (
@@ -237,7 +239,7 @@ export function MinaSidorVy({ data, bilder: produkter = {} }: { data: MinaSidor;
                         </a>
                       ))}
                     </div>
-                  ) : o.status === "betald" || o.status === "delvis-aterbetald" ? (
+                  ) : visaSparningVantas(o.status, alder) ? (
                     <p className={s.orderNot}>Spårning kommer när paketet har skickats.</p>
                   ) : null}
                 </div>

@@ -1,13 +1,17 @@
 // Medlemskortet i mejlen: samma nivåfärger som på Mina sidor
 // (app/konto/konto.module.css), byggt för mejlklienter. Outlook visar inte
 // gradienter, så varje nivå har också en enfärgad bakgrund som reserv.
+//
+// Kontrasten är räknad för radens lilla text (13 px) mot både gradienten och
+// reserven: minst 4,5 (granskningen 2026-11-04). Guldet är mörkare här än på
+// Mina sidor, för mejlkortet saknar sidans mörka ton bakom texten.
 
 import { Section, Text } from "@react-email/components";
 
 const KORT: Record<string, { bg: string; grad: string; ink: string; dim: string }> = {
-  Brons: { bg: "#9a5a35", grad: "linear-gradient(135deg,#5c2f18 0%,#9a5a35 48%,#cf9466 100%)", ink: "#fff8f2", dim: "#f3dccb" },
+  Brons: { bg: "#8f5230", grad: "linear-gradient(135deg,#5c2f18 0%,#8f5230 55%,#c98d5f 100%)", ink: "#fff8f2", dim: "#fff1e6" },
   Silver: { bg: "#c3cad1", grad: "linear-gradient(135deg,#e7ebee 0%,#c3cad1 46%,#f4f6f8 70%,#aab3bc 100%)", ink: "#18222b", dim: "#3d4a55" },
-  Guld: { bg: "#a87a1f", grad: "linear-gradient(135deg,#5a3d07 0%,#a87a1f 42%,#e2bb5c 78%,#f5dc95 100%)", ink: "#fffaf0", dim: "#fbeccb" },
+  Guld: { bg: "#8a6418", grad: "linear-gradient(135deg,#4a3206 0%,#8a6418 55%,#c99a3b 100%)", ink: "#fffaf0", dim: "#fff6e0" },
   Platina: { bg: "#59646f", grad: "linear-gradient(135deg,#2b333b 0%,#59646f 48%,#9aa6b1 100%)", ink: "#f7fafc", dim: "#dfe5ea" },
   Diamant: { bg: "#1c5288", grad: "linear-gradient(135deg,#0b2440 0%,#1c5288 50%,#6fb7e6 100%)", ink: "#f4fbff", dim: "#cfe8f8" },
   VIP: { bg: "#18161a", grad: "linear-gradient(135deg,#070708 0%,#18161a 55%,#2e2618 100%)", ink: "#f1d384", dim: "#c9b071" },

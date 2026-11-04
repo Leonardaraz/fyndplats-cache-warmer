@@ -13,8 +13,9 @@ import {
   nyInloggning,
   orderGuid,
   sakertMal,
+  strypId,
 } from "@/lib/medlem/inloggning";
-import { forfragningarSedan, medlemsHemlighet, medlemsLage, senastSkapad, sparaInloggning } from "@/lib/medlem/lager";
+import { forfragningarSedan, medlemsHemlighet, medlemsLage, senastSkapad, sparaInloggning, taStrypning } from "@/lib/medlem/lager";
 import { skickaInloggning } from "@/lib/medlem/mejl";
 import { PRIVAT, webbplats } from "@/lib/medlem/inloggad";
 
@@ -48,6 +49,11 @@ export async function POST(req: Request) {
     ]);
     const beslut = farSkicka({ senasteTimmenEpost: perEpost, senasteTimmenIp: perIp, senasteSkapad: senaste }, nuMs);
     if (beslut !== "ok") return svar({ ok: false, fel: beslut }, 429);
+    // Räknarna ovan läses före skrivningen; strypningen är det som håller när
+    // många anrop kommer samtidigt: ett mejl per adress och halvminut.
+    if (!(await taStrypning(strypId(epost, nuMs, hemlighet), new Date(nuMs).toISOString()))) {
+      return svar({ ok: false, fel: "for-tatt" }, 429);
+    }
 
     const ny = nyInloggning(epost, nuMs, hemlighet);
     const order = orderGuid(body.order);
