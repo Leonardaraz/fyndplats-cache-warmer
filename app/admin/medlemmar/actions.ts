@@ -17,6 +17,7 @@ import {
   taBortKonto,
   type Lage,
 } from "@/lib/medlem/admin";
+import { avbojOffert, prissattOffert } from "@/lib/medlem/offert-admin";
 
 function tillbaka(q: string, meddelande: string): never {
   const sok = new URLSearchParams();
@@ -84,6 +85,28 @@ export async function foretagAction(f: FormData): Promise<void> {
       ? beslut === "aktiv"
         ? "Företaget är godkänt. Kunden får ett mejl inom en timme (butikens timjobb kl :41)."
         : "Företaget är nekat. Kontot prissätts som privatperson."
+      : u,
+  );
+}
+
+/** E3: offertens styckpriser, eller avböj. Priserna prövas mot golvet och listpriset. */
+export async function offertAction(f: FormData): Promise<void> {
+  const q = falt(f, "q");
+  const orsak = lasOrsak(falt(f, "orsakKod"), falt(f, "orsakText"));
+  if (typeof orsak === "string") tillbaka(q, orsak);
+  const id = falt(f, "id");
+  const beslut = falt(f, "beslut");
+  const u =
+    beslut === "avboj"
+      ? await avbojOffert(id, orsak)
+      : await prissattOffert(id, Object.fromEntries([...f.entries()].filter(([k]) => k.startsWith("pris_")).map(([k, v]) => [k, String(v)])), orsak);
+  revalidatePath("/admin/medlemmar");
+  tillbaka(
+    q,
+    u === "ok"
+      ? beslut === "avboj"
+        ? "Offerten är avböjd. Kunden ser det på Mina sidor."
+        : "Offerten är prissatt och gäller i 14 dagar. Kunden får mejlet inom en timme (butikens timjobb kl :41)."
       : u,
   );
 }

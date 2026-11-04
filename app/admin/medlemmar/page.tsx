@@ -19,7 +19,8 @@ import {
   sokMedlem,
   type Rad,
 } from "@/lib/medlem/admin";
-import { foretagAction, lageAction, manuellNivaAction, sparrAction, taBortAction } from "./actions";
+import { offertko, senasteOfferter, type OffertIKon } from "@/lib/medlem/offert-admin";
+import { foretagAction, lageAction, manuellNivaAction, offertAction, sparrAction, taBortAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -100,6 +101,65 @@ function Foretaget({ profil, q, epost }: { profil: Rad; q: string; epost?: strin
   );
 }
 
+const krTal = (ore: number) => (ore / 100).toLocaleString("sv-SE", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+
+/** En förfrågan med listpris och golv per rad, och prisfälten (E3-10). */
+function Offerten({ o, q }: { o: OffertIKon; q: string }) {
+  const lista = o.rader.reduce((s, r) => s + r.aOre * r.antal, 0);
+  return (
+    <div style={{ borderTop: "1px solid #eee", padding: "10px 0" }}>
+      <p style={{ margin: "0 0 6px" }}>
+        <b>{o.foretagNamn || "Företag"}</b> · begärd {dag(o.skapad)} · listpris {kr(lista)} inkl. moms
+        {o.epost ? (
+          <>
+            {" "}
+            · konto <a href={`/admin/medlemmar?q=${encodeURIComponent(o.epost)}`}>{o.epost}</a>
+          </>
+        ) : null}
+      </p>
+      {o.meddelande ? <p style={{ margin: "0 0 6px", fontStyle: "italic" }}>”{o.meddelande}”</p> : null}
+      <form action={offertAction}>
+        <input type="hidden" name="id" value={o.id} />
+        <input type="hidden" name="q" value={q} />
+        <input type="hidden" name="beslut" value="prissatt" />
+        <table style={TABELL}>
+          <thead>
+            <tr>
+              <th style={CELL}>Vara</th>
+              <th style={CELL}>Antal</th>
+              <th style={CELL}>Listpris/st</th>
+              <th style={CELL}>Golv/st</th>
+              <th style={CELL}>Offertpris/st inkl. moms (kr)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {o.rader.map((r, i) => (
+              <tr key={`${r.produktId}-${i}`}>
+                <td style={CELL}>{r.namn}</td>
+                <td style={CELL}>{r.antal}</td>
+                <td style={CELL}>{kr(r.aOre)}</td>
+                <td style={CELL}>{r.golvOre === null ? "saknas (bara listpris)" : kr(r.golvOre)}</td>
+                <td style={CELL}>
+                  <input name={`pris_${i}`} defaultValue={krTal(r.aOre)} required style={{ width: 110 }} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p style={{ margin: "8px 0" }}>
+          <Orsaksfalt /> <button type="submit">Skicka offerten (gäller 14 dagar)</button>
+        </p>
+      </form>
+      <form action={offertAction}>
+        <input type="hidden" name="id" value={o.id} />
+        <input type="hidden" name="q" value={q} />
+        <input type="hidden" name="beslut" value="avboj" />
+        <Orsaksfalt /> <button type="submit">Avböj</button>
+      </form>
+    </div>
+  );
+}
+
 function Logg({ rader }: { rader: Rad[] }) {
   if (!rader.length) return <p style={{ color: "#666" }}>Ingenting loggat.</p>;
   return (
@@ -137,7 +197,12 @@ export default async function Medlemmar({ searchParams }: { searchParams: Promis
   const sp = await searchParams;
   const q = (sp.q ?? "").trim();
   const meddelande = sp.m ?? "";
-  const [o, ko] = await Promise.all([oversikt(), foretagsko()]);
+  const [o, ko, offerter, senaste] = await Promise.all([
+    oversikt(),
+    foretagsko(),
+    offertko().catch(() => [] as OffertIKon[]),
+    senasteOfferter().catch(() => [] as Rad[]),
+  ]);
   const sok = q ? await sokMedlem(q) : null;
   const medlem = sok?.medlem ?? null;
   const id = medlem ? String(medlem._id) : sok?.epost ? medlemsId(sok.epost) : "";
@@ -192,6 +257,40 @@ export default async function Medlemmar({ searchParams }: { searchParams: Promis
         ) : (
           <p style={{ color: "#666" }}>Inga företag väntar. Butiken mejlar info@ när en ansökan kommer in.</p>
         )}
+      </section>
+
+      <section style={KORT} id="offerter">
+        <h2 style={{ marginTop: 0 }}>Offerter att prissätta ({offerter.length})</h2>
+        <p style={{ color: "#555", fontSize: 13 }}>
+          Priset skrivs per styck inkl. moms. Aldrig under golvet och aldrig över listpriset; en vara utan golv får bara
+          listpriset. Offerten gäller i 14 dagar, och kunden får ett mejl inom en timme.
+        </p>
+        {offerter.length ? offerter.map((x) => <Offerten key={x.id} o={x} q={q} />) : <p style={{ color: "#666" }}>Inga förfrågningar väntar.</p>}
+        {senaste.length ? (
+          <>
+            <h3>Senaste offerterna</h3>
+            <table style={TABELL}>
+              <thead>
+                <tr>
+                  <th style={CELL}>Begärd</th>
+                  <th style={CELL}>Företag</th>
+                  <th style={CELL}>Status</th>
+                  <th style={CELL}>Gäller till</th>
+                </tr>
+              </thead>
+              <tbody>
+                {senaste.map((x) => (
+                  <tr key={String(x._id)}>
+                    <td style={CELL}>{dag(x.skapad)}</td>
+                    <td style={CELL}>{text(x.foretagNamn)}</td>
+                    <td style={CELL}>{text(x.status)}</td>
+                    <td style={CELL}>{dag(x.giltigTill)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
+        ) : null}
       </section>
 
       <form method="get" style={{ margin: "16px 0" }}>

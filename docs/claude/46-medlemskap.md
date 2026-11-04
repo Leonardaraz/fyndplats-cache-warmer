@@ -156,6 +156,15 @@ mappningar, så butiken frågar motorn (`POST /api/medlem/golv`, logiken i
   butikens mejlnyckel eller någon hemlig rutt i butiken.
 - Sök fungerar också på organisationsnummer (tio eller tolv siffror, med
   eller utan bindestreck). Kontots borttagning tar också företagsprofilen.
+- **Offerterna** (`#offerter`, `lib/medlem/offert-admin.ts`): butiken skriver
+  förfrågan i `FyndplatsOfferter` (ADMIN) från varukorgen när korgen har 6
+  exemplar av samma vara eller 20 000 kr exkl. moms (F7). Admin sätter
+  styckpriset inkl. moms per rad. ☠️ Golvet räknas om vid sparandet med samma
+  räkning som `/api/medlem/golv`: aldrig under golvet, aldrig över
+  listpriset, och en vara utan golv får bara listpriset
+  (`lib/medlem/offertpriser.ts`). Offerten gäller i 14 dygn. Butikens
+  timjobb mejlar kunden, märker den betald när kassan blev en order och
+  utgången efter sista dagen. Loggen får antal rader, aldrig priser.
 
 ## Kvar till E2
 
