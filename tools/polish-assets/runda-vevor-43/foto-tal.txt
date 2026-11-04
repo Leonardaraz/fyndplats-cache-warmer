@@ -1,0 +1,55 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+fdc07e95 149,7 viktkapaciteten 330 lbs = 149,7 kg på bilden Sturdy Metal Frame och på måttbilden; samma tal i specifikationen
+fdc07e95 2,9 nettovikten 6,4 lbs = 2,9 kg på måttbilden; samma tal i specifikationen
+fdc07e95 465 bredden 18,3 in / 465 mm på måttbilden; samma tal i specifikationen
+fdc07e95 930 längden nedfälld 36,7 in / 930 mm på måttbilden; samma tal i specifikationen
+fdc07e95 80 tjockleken nedfälld 3,2 in / 80 mm på måttbilden; samma tal i specifikationen
+fdc07e95 530 djupet med ryggstödet upprätt 20,9 in / 530 mm på måttbilden; samma tal i specifikationen
+fdc07e95 520 höjden med ryggstödet upprätt 20,5 in / 520 mm på måttbilden; samma tal i specifikationen
+fdc07e95 90 vinkeln 90° för måtten med ryggstödet upprätt i specifikationen och på måttbilden
+fdc07e95 180 vinkeln 180° för måtten nedfälld i specifikationen och på måttbilden
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+ed6b09c3 620 utrymmets bredd under skåpet 24,41 in / 620 mm på måttbilden; samma tal i specifikationen (Benmått 900 x 620 mm)
+ed6b09c3 900 utrymmets höjd under skåpet 35,43 in / 900 mm på måttbilden; samma tal i specifikationen (Benmått 900 x 620 mm)
+ed6b09c3 200 den öppna hyllans höjd 7,87 in / 200 mm på måttbilden
+ed6b09c3 12 materialtjockleken 0,47 in (12 mm) på bilden Sturdy and Stable Build
+ed6b09c3 3 antal nivåer 3 i specifikationen och på bilden Neat & Sorted Storage (3-Tier Shelf)
+ed6b09c3 19,6 nettovikten 19,6 kg i specifikationen
+ed6b09c3 28 lasten 28 kg i beskrivningen; punkt 4, specifikationen och bilden (66 lbs) säger 30 kg, bilden anger 10, 20 och 20 kg per nivå, och det lägsta totalen skrivs
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+fdc5e5af 145 lasten 145 kg i titeln; specifikationen, punkt 1 och bilderna (330 lbs) säger 150 kg, och det lägsta skrivs
+fdc5e5af 5,7 nettovikten 12,57 lbs = 5,7 kg på måttbilden; samma tal i specifikationen
+fdc5e5af 800 ringens bredd 31,5 in / 800 mm på måttbilden; samma tal i specifikationen (Produktmått 800 x 625 x 800 mm)
+fdc5e5af 625 sitsens djup 24,6 in / 625 mm på måttbilden; samma tal i specifikationen
+fdc5e5af 1200 höjden från upphängningspunkten 47,24 in / 1200 mm på måttbilden
+fdc5e5af 1480 dynans längd 1480 mm (680 plus 800 mm på måttbilden) i specifikationen
+fdc5e5af 1100 dynans bredd 43,3 in / 1100 mm på måttbilden; samma tal i specifikationen
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+b98c25ae 924 bredden 36,4 in / 924 mm på måttbilden; samma tal i specifikationen (Produktmått 924 x 445 x 818 mm)
+b98c25ae 445 djupet 17,5 in / 445 mm på måttbilden; samma tal i specifikationen
+b98c25ae 818 höjden 818 mm i specifikationen; måttbilden säger 32,2 in / 820 mm, och det lägre skrivs
+b98c25ae 825 bordsskivans bredd 32,4 in / 825 mm på måttbilden
+b98c25ae 417 skåpets invändiga höjd 16,4 in / 417 mm på måttbilden
+b98c25ae 740 den öppna hyllans bredd 29,1 in / 740 mm på måttbilden
+b98c25ae 170 den öppna hyllans höjd 6,7 in / 170 mm på måttbilden
+b98c25ae 40 bordsskivans last 40 kg i punkt 1 och specifikationen och 88,2 lb på måttbilden
+b98c25ae 17,5 nettovikten 17,5 kg i specifikationen
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+cafe24c5 711,2 bredden och djupet 28 in / 711,2 mm på måttbilden; samma tal i specifikationen
+cafe24c5 299 lasten 299 kg i titeln; punkt 1 säger 299,4 kg och bilden Max Load Capacity 660 lbs / 299,4 kg, och det lägre avrundade talet skrivs
+cafe24c5 16 nettovikten 35,3 lbs = 16 kg på måttbilden; samma tal i specifikationen
+cafe24c5 32 32 skruvar och 32 muttrar på bilden Quick and Easy Assembly och på måttbilden
+cafe24c5 6 skruvarnas storlek M6 (12 mm) på bilden Quick and Easy Assembly och på måttbilden
+cafe24c5 10 muttrarnas storlek M10 på bilden Quick and Easy Assembly och på måttbilden
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+1773a44f 500 bordsskivans och korgens mått 19,69 in / 500 mm på måttbilden; samma tal i specifikationen
+1773a44f 430 höjden 16,93 in / 430 mm på måttbilden; samma tal i specifikationen
+1773a44f 90 bordsskivans last 90 kg i punkt 1 och specifikationen och på bilden 90kg Load Bearing; titeln säger 198 lbs
+1773a44f 15 korgens last 15 kg på måttbilden; specifikationen och bilden Large Capacity Storage Drawer säger 40 kg, och det lägsta skrivs
+1773a44f 9 vikten 9 kg på måttbilden och i specifikationen
