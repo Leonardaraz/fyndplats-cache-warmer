@@ -1,0 +1,85 @@
+// lib/medlem/session.ts
+//
+// Medlemmens session: kakan `fp_medlem` med en HS256-JWT. Samma regler som
+// lib/auth-token.ts (node:crypto, aldrig `alg: none`, jämförelse i konstant
+// tid), men med en egen hemlighet, MEDLEM_JWT_SECRET, och en egen delnyckel.
+//
+// Kunden förblir inloggad i 90 dagar, och tiden förlängs vid besök (Leonards
+// beslut 2026-11-04): en token äldre än ett dygn skrivs om vid nästa besök på
+// Mina sidor. Kakan är httpOnly, så skript på sidan kan inte läsa den.
+//
+// Ren modul utan lokala imports: den prövas med
+// `node --test --experimental-strip-types` (session.test.ts).
+
+import { createHmac, timingSafeEqual } from "node:crypto";
+
+export const SESSION_KAKA = "fp_medlem";
+export const SESSION_DAGAR = 90;
+export const FORNYA_EFTER_S = 24 * 60 * 60;
+
+export interface Session {
+  /** Medlemmens id (`m_…`). */
+  sub: string;
+  email: string;
+  typ: "medlem";
+  iat: number;
+  exp: number;
+}
+
+function nyckel(hemlighet: string): Buffer {
+  // Samma härledning som inloggning.ts `delnyckel(…, "session")`.
+  return createHmac("sha256", hemlighet).update("fyndplats-medlem-session-v1").digest();
+}
+
+const b64 = (o: unknown) => Buffer.from(JSON.stringify(o), "utf8").toString("base64url");
+
+export function signera(s: Session, hemlighet: string): string {
+  const huvud = b64({ alg: "HS256", typ: "JWT" });
+  const last = b64(s);
+  const sig = createHmac("sha256", nyckel(hemlighet)).update(`${huvud}.${last}`).digest("base64url");
+  return `${huvud}.${last}.${sig}`;
+}
+
+export function nySession(medlemsId: string, epost: string, nuMs: number, hemlighet: string): { token: string; maxAgeS: number } {
+  const iat = Math.floor(nuMs / 1000);
+  const maxAgeS = SESSION_DAGAR * 24 * 60 * 60;
+  return { token: signera({ sub: medlemsId, email: epost, typ: "medlem", iat, exp: iat + maxAgeS }, hemlighet), maxAgeS };
+}
+
+function json(del: string): Record<string, unknown> | null {
+  try {
+    const v = JSON.parse(Buffer.from(del, "base64url").toString("utf8"));
+    return v && typeof v === "object" ? (v as Record<string, unknown>) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Sessionen, eller null om token är ogiltig, utgången eller hemligheten saknas. */
+export function lasSession(token: string | null | undefined, hemlighet: string | null | undefined, nuMs: number): Session | null {
+  if (!token || !hemlighet) return null;
+  const delar = token.split(".");
+  if (delar.length !== 3) return null;
+  const [huvud, last, sig] = delar;
+  const h = json(huvud);
+  if (!h || h.alg !== "HS256") return null;
+  const vantad = Buffer.from(createHmac("sha256", nyckel(hemlighet)).update(`${huvud}.${last}`).digest("base64url"));
+  const given = Buffer.from(sig);
+  if (vantad.length !== given.length || !timingSafeEqual(vantad, given)) return null;
+  const p = json(last);
+  if (!p || p.typ !== "medlem") return null;
+  if (typeof p.sub !== "string" || !p.sub.startsWith("m_")) return null;
+  if (typeof p.email !== "string" || !p.email) return null;
+  if (typeof p.iat !== "number" || typeof p.exp !== "number") return null;
+  if (p.exp * 1000 <= nuMs) return null;
+  return { sub: p.sub, email: p.email, typ: "medlem", iat: p.iat, exp: p.exp };
+}
+
+export function behoverFornyas(s: Session, nuMs: number): boolean {
+  return nuMs / 1000 - s.iat >= FORNYA_EFTER_S;
+}
+
+/** Kakans attribut. `secure` bara över https, så att den lokala servern fungerar. */
+export function kakaAttribut(maxAgeS: number, https = true) {
+  return { httpOnly: true, secure: https, sameSite: "lax" as const, path: "/", maxAge: maxAgeS };
+}

@@ -10,6 +10,7 @@ import { TackOrder } from "../../components/tack-order";
 import { leveransIntervallForDag } from "../../lib/leveransdatum";
 import { idagISO } from "../../lib/price-history";
 import { DELIVERY_MAX_DAYS, DELIVERY_MIN_DAYS } from "../../lib/shipping";
+import { TackKonto } from "./tack-konto";
 
 export const metadata: Metadata = {
   title: "Tack för din beställning",
@@ -85,6 +86,7 @@ export default async function Tack({
             <TackOrder rader={info.rader} frakt={info.frakt} totalt={info.totalt} leverans={leverans} />
           </ThankYou>
         </Suspense>
+        <TackKonto orderId={orderId} />
       </div>
       <GoogleCustomerReviewsOptIn config={gcr} />
     </section>
