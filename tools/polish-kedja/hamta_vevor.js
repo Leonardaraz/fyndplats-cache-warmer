@@ -1,7 +1,13 @@
 // hamta_vevor.js: mall för ett ExecuteWixAPI-anrop som hämtar VEVOR-utkast och deras avläsning till en ny runda (steg 2).
 //
 // Byt PIDS mot utkastens fulla Wix-id (högst sex per anrop: svaret sparas av verktyget i en fil och blir avkortat vid
-// cirka 100 000 tecken, och datadelen måste ligga före `pad`). Skicka koden som `code`, med `hasMutations: false`.
+// cirka 100 000 tecken, och datadelen måste ligga före `pad`). Har du bara de åtta första tecknen i id:t: lämna PIDS tom
+// och lägg dem i ID8, så slår koden upp de fulla id:na i `FyndplatsMappings` (`wixProductId $startsWith`). Skicka koden som
+// `code`, med `hasMutations: false`.
+//
+// Kandidatlistan över alla väntande VEVOR-utkast (1 200 rader 2026-11-04) hämtas med ett annat anrop: `FyndplatsMappings` med
+// `supplier $eq vevor` och `draftStatus $eq pending_review` (fältet heter `supplier`, inte `supplierName`; `seoTitle` bär namnet;
+// sidor om 100 med `paging: { limit, offset }`). Skriv bara ut de åtta första tecknen och en kort titel.
 // Svaret `{ data, ut, fel, pad }` läses av en `ingest`-fil (jfr `ingest9.py` i en poleringssession): `data` är utkasten
 // (fullid, name, slug, visible, revision, html, items [{id, alt}], variants [{sku, id, pris, vis, lager}], options, katNamn,
 // lager) och `ut` är VEVOR-avläsningen per utkast: namn, punkter, spec, bilder [{url, egen}], status, saldo, borta,
@@ -12,10 +18,19 @@
 // scratchpad under egna namn. Modellrader (`Modell`, `Artikel…`) tas bort av `ingest`.
 // Svaret paddas med 101 000 tecken så att verktyget sparar det i en fil i stället för att visa det.
 async function () {
-  const PIDS = [
+  let PIDS = [
     "<fullt-wix-id-1>",
     "<fullt-wix-id-2>"
   ];
+  const ID8 = [];   // alternativt: ["043939a9", "fdc73e50"] med PIDS = []
+  if (!PIDS.length || PIDS[0].indexOf("<") === 0) {
+    PIDS = [];
+    for (const k8 of ID8) {
+      const q = await wix.request({ method: "POST", url: "https://www.wixapis.com/wix-data/v2/items/query", body: { dataCollectionId: "FyndplatsMappings", query: { filter: { wixProductId: { $startsWith: k8 } }, paging: { limit: 2 } } } });
+      const rr = (q.data || q).dataItems || [];
+      if (rr.length) PIDS.push(String((rr[0].data || {}).wixProductId));
+    }
+  }
   const data = [];
   const ut = {};
   const fel = [];
