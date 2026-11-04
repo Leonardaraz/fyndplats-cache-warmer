@@ -1,0 +1,59 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+b6cc6bf6 91 hjulets diameter 36 in / 910 mm på måttritningen och parameterkortet = 91 cm
+b6cc6bf6 181 totala höjden 71,26 in / 1810 mm på måttritningen = 181 cm
+b6cc6bf6 39,5 fotens mått 15,55 in / 395 mm på måttritningen = 39,5 cm
+b6cc6bf6 34,5 fotens mått 13,58 in / 345 mm på måttritningen = 34,5 cm
+b6cc6bf6 22 lagrets diameter 8,7 in / 220 mm på parameterkortet = 22 cm
+b6cc6bf6 8,64 vikten 8,64 kg / 19,07 lbs på parameterkortet
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+4425023f 61 hjulets diameter 24 in / 610 mm på måttritningen och specifikationskortet = 61 cm
+4425023f 130 stativets höjd 51–61 in / 1300–1550 mm på måttritningen och kortet = 130–155 cm
+4425023f 155 stativets höjd 51–61 in / 1300–1550 mm på måttritningen och kortet = 130–155 cm
+4425023f 45 stativets yta (17,72–23,62) in / (450–600) mm på måttritningen = 45–60 cm
+4425023f 60 stativets yta (17,72–23,62) in / (450–600) mm på måttritningen = 45–60 cm
+4425023f 10 lagrets diameter 3,94 in / 100 mm på specifikationskortet = 10 cm
+4425023f 3 vikten 6,61 lbs / 3,0 kg på specifikationskortet
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+6bc31f82 61 hjulets diameter 24 in / 610 mm på specifikationskortet = 61 cm
+6bc31f82 76 bordshöjden 30 in / 760 mm på måttritningen och kortet (762 mm i källans punkt: det lägre skrivs) = 76 cm
+6bc31f82 151 golvhöjden 60 in / 1510 mm på måttritningen och kortet = 151 cm
+6bc31f82 30 basens mått 11,81 in / 300 mm på måttritningen och kortet = 30 cm
+6bc31f82 34 basens mått 13,39 in / 340 mm på måttritningen och kortet = 34 cm
+6bc31f82 60,5 produktstorlekens bredd 23,82 in / 605 mm på kortet = 60,5 cm
+6bc31f82 14 lagrets diameter 5,5 in / 140 mm på specifikationskortet = 14 cm
+6bc31f82 5,44 vikten 11,99 lbs / 5,44 kg på specifikationskortet
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+7de941d1 60 hjulets diameter 24 in / 601 mm på måttritningen och i källans rad = 60 cm (61 cm i källans namn: det lägre skrivs)
+7de941d1 112,5 stativets höjd 44,29–60,24 in / 1125–1530 mm på måttritningen och i källans rad (46–61 in på bild 4: det lägre skrivs) = 112,5–153 cm
+7de941d1 153 stativets höjd 44,29–60,24 in / 1125–1530 mm på måttritningen och i källans rad = 112,5–153 cm
+7de941d1 45 stativets yta 17,72–23,62 in / 450–600 mm på måttritningen = 45–60 cm
+7de941d1 14 lagrets diameter 5,5 in / 140 mm i källans rad = 14 cm
+7de941d1 3,18 vikten 3,18 kg / 7 lbs i källans rad
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+1db948f8 5000 kapaciteten cirka 5000 lotter / 200 lotterikulor i källans punkt och på bild 2
+1db948f8 410 trummans mått 16,1 in / 410 mm på måttkortet
+1db948f8 302 trummans diameter 11,9 in / 302 mm och basens bredd på måttkortet
+1db948f8 450 basens mått 17,7 in / 450 mm på måttkortet
+1db948f8 138 dörrens mått 5,4 in / 138 mm på måttkortet
+1db948f8 120 dörrens mått 4,7 in / 120 mm på måttkortet
+1db948f8 460 produktmåttet 18,1 in / 460 mm på måttkortet
+1db948f8 396 produktmåttet 15,6 in / 396 mm på måttkortet
+1db948f8 2,73 nettovikten 6,02 lbs / 2,73 kg på måttkortet
+1db948f8 0,5 tjockleken 0,02 in / 0,5 mm på måttkortet
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+12ecde34 2500 kapaciteten cirka 2500 lotter / 100 lotterikulor i källans punkt och på bild 2
+12ecde34 295 trummans mått 11,6 in / 295 mm på måttkortet
+12ecde34 167 trummans diameter 6,6 in / 167 mm på måttkortet
+12ecde34 340 basens mått 13,4 in / 340 mm på måttkortet
+12ecde34 177 basens mått 7 in / 177 mm på måttkortet
+12ecde34 138 dörrens mått 5,4 in / 138 mm på måttkortet
+12ecde34 115 dörrens mått 4,5 in / 115 mm på måttkortet
+12ecde34 230 produktmåttet 9,1 in / 230 mm på måttkortet
+12ecde34 1,39 nettovikten 3,06 lbs / 1,39 kg på måttkortet
+12ecde34 0,5 tjockleken 0,02 in / 0,5 mm på måttkortet
