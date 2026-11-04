@@ -1,0 +1,50 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+27e19c1d 88 bredden 880 mm i källans Produktmått och på måttritningen = 88 cm
+27e19c1d 32,6 djupet 326 mm i källans Produktmått och på måttritningen = 32,6 cm
+27e19c1d 90 höjden 900 mm i källans Produktmått och på måttritningen = 90 cm
+27e19c1d 52 bänkhöjden 520 mm i källans punkt = 52 cm
+27e19c1d 6,5 nettovikten 6,5 kg i källans tabell; måttbildens kort säger 14.33 lbs (6,5 kg) men dess kg-tal säger 6,75: 6,5 kg skrivs
+27e19c1d 95 barnets längd 95 cm på VEVOR:s bild (3 ft 4 in)
+27e19c1d 125 barnets längd 125 cm på VEVOR:s bild (4 ft 1 in)
+27e19c1d 3 tre kastruller (3 x Pots), tre planteringsspadar och tre planteringskoppar räknade i måttbildens lista
+27e19c1d 1 ett lock enligt måttbildens lista (1 x Pot Lid)
+27e19c1d 2 två träspatlar (2 x Wooden Spatulas) i måttbildens lista och två hjul i källans punkt (2 universalhjul)
+27e19c1d 4 fyra spisplattor: källans tabell (Gasspis 4) och VEVOR:s bild (4-Burner Stove)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+34c9dd28 75 bredden 750 mm i källans Produktmått och på måttritningen = 75 cm
+34c9dd28 27 djupet 270 mm i källans Produktmått och på måttritningen = 27 cm
+34c9dd28 70 höjden 700 mm i källans Produktmått och på måttritningen = 70 cm
+34c9dd28 3 tre nivåer: källans punkt (3 fack) och titeln (3-våningars), räknade på produktfotot
+34c9dd28 2 två krokar: VEVOR:s bild 4 säger Dual Side Hooks och bilderna visar en krok på varje sida
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+c39f87ed 85 bredden 850 mm i källans Produktmått och på måttritningen = 85 cm
+c39f87ed 30 djupet 300 mm i källans Produktmått och på måttritningen = 30 cm
+c39f87ed 75,5 höjden 755 mm i källans Produktmått och på måttritningen = 75,5 cm
+c39f87ed 3 tre nivåer: källans titel (3-vånings)
+c39f87ed 6,1 nettovikten 6,10 kg i källans tabell = 6,1 kg
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+3dfb8fd0 84,6 bredden 846 mm i källans Produktmått och på måttritningen = 84,6 cm
+3dfb8fd0 30 djupet 300 mm i källans Produktmått och på måttritningen = 30 cm
+3dfb8fd0 82 höjden 820 mm i källans Produktmått och på måttritningen = 82 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+d80ad446 170 bredden 1700 mm i källans Produktmått och på måttritningen = 170 cm
+d80ad446 40 djupet 400 mm i källans Produktmått och på måttritningen = 40 cm
+d80ad446 80 höjden 800 mm i källans Produktmått och på måttritningen = 80 cm
+d80ad446 158,76 bärförmågan 158,76 kg i källans tabell (Statisk lastbärande) och på VEVOR:s bild (350 lbs/158.76 kg); källans punkt säger 165 kg: det lägre skrivs
+d80ad446 350 bärförmågan 350 lb på VEVOR:s bilder (350 lbs/158.76 kg)
+d80ad446 30 dynans tjocklek 30 mm i källans punkt och på VEVOR:s bild (1.2 in/30 mm Thick Linen Sponge Cushion)
+d80ad446 6 sex fack i källans punkt (6 fack)
+d80ad446 3 tre nivåer: bokhyllan med 3 nivåer i källans punkt och på VEVOR:s bild (Three-Tier Bookshelf), och den vänstra hyllans tre nivåer i källans punkt
+d80ad446 1 en låda i källans punkt (1 låda) och en bruksanvisning och en tillbehörssats i måttbildens lista (1 x User Manual / 1 x Accessory Kit)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+cb6c3d94 39,8 bredden 398 mm i källans Produktmått och på måttritningen = 39,8 cm
+cb6c3d94 34 djupet 340 mm i källans Produktmått och på måttritningen = 34 cm
+cb6c3d94 69 höjden 690 mm i källans Produktmått och på måttritningen = 69 cm
+cb6c3d94 40,7 bordsskivans höjd 407 mm i källans tabell (Bordhöjd från marken) och på måttritningen (16 in / 407 mm) = 40,7 cm
+cb6c3d94 62 sextiotvå delar: källans titel och tabell (Antal tillbehör 62 stycken) och VEVOR:s bild (62 pieces)
