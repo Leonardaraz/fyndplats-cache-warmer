@@ -5,10 +5,17 @@
 // kan visa varför en rad fick det pris den fick (E2-9).
 //
 // Reglerna, ur specifikationen och Leonards beslut 2026-11-04:
-//   - Radpris P = max(round(A · (1 − d)), G), avrundat half up till hela ören,
-//     och aldrig över A. A är aktuellt pris inkl. moms (kampanjpriset om ett
-//     sådant gäller [P4]); G är golvpriset per styck inkl. moms. Motorn räknar
-//     G ur den landade kostnaden, så kostnaden når aldrig butiken.
+//   - Radpris P = round(A · (1 − d)), avrundat half up till hela ören. A är
+//     aktuellt pris inkl. moms (kampanjpriset om ett sådant gäller [P4]); G är
+//     golvpriset per styck inkl. moms. Motorn räknar G ur den landade
+//     kostnaden, så kostnaden når aldrig butiken.
+//   - Hamnar P under G ges den högsta HELA procent som golvet tillåter, inte
+//     golvet själv (Leonards ja 2026-11-04). Då stämmer priset med texten
+//     "högst x %": A = 1 000 kr med golvet 985,50 kr och 3 % blir 990 kr
+//     ("högst 1 %"), inte 985,50 kr (1,45 %). Tillåter golvet inte ens 1 %
+//     blir det ingen rabatt alls (P = A), och kunden ser att varan inte
+//     omfattas. Specens P6 sa max(round(A · (1 − d)), G); avvikelsen är
+//     Leonards beslut.
 //   - En rad utan känt golv, eller med ett undantag (flaggad i admin,
 //     presentkort, tjänst, fyndauktion), är inte rabattberättigad: P = A.
 //   - Privat: d är nivåns procent.
@@ -67,7 +74,7 @@ export type Profil =
 export type Begransning =
   /** Hela procenten gavs. */
   | "ingen"
-  /** Golvet höll radpriset uppe (eller över A: ingen rabatt alls). */
+  /** Golvet begränsade rabatten till hela procent under d (eller till 0: ingen rabatt). */
   | "golv"
   /** Raden saknar golv eller har ett undantag. */
   | "ej-berattigad"
@@ -160,8 +167,9 @@ export function trappaProcent(basOreExMoms: number): number {
 }
 
 /**
- * Ett radpris för en procent: P = max(round(A · (1 − d)), G), aldrig över A.
- * Det produktsidan behöver för rutan "Ditt medlemspris".
+ * Ett radpris för en procent: P = round(A · (1 − d)) om det når golvet, annars
+ * A minus den högsta hela procent som golvet tillåter. Aldrig under G och
+ * aldrig över A. Det produktsidan behöver för rutan "Ditt medlemspris".
  */
 export function radpris(
   aOre: number,
@@ -174,7 +182,9 @@ export function radpris(
   if (procent === 0) return { pOre: aOre, begransning: "ingen-rabatt" };
   const fritt = procentAv(aOre, procent);
   if (fritt >= golvOre) return { pOre: fritt, begransning: "ingen" };
-  return { pOre: Math.min(aOre, golvOre), begransning: "golv" };
+  // Golvet begränsar: hela procent, så att priset och "högst x %" stämmer.
+  // hogstaProcent ger 0 när G ligger på eller över A, och då blir P = A.
+  return { pOre: procentAv(aOre, hogstaProcent(aOre, golvOre)), begransning: "golv" };
 }
 
 /**

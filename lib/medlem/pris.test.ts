@@ -102,9 +102,29 @@ test("fri frakt-skyddet: proportionellt, öret på den dyraste raden, aldrig und
 
 test("E2-6: kampanjvara räknas på aktuellt pris (P4), och golvet gäller", () => {
   assert.equal(prissatt([rad(400)], privat("Silver")).rader[0].pOre, 39_600);
+  // Golvet 398 kr tillåter inte ens 1 % på 400 kr: ingen rabatt alls, inte 398 kr
+  // med texten "högst 0 %" (Leonards ja 2026-11-04).
   const golv = prissatt([rad(400, { golvOre: 39_800 })], privat("Silver")).rader[0];
-  assert.equal(golv.pOre, 39_800);
+  assert.equal(golv.pOre, 40_000);
   assert.equal(golv.begransning, "golv");
+  assert.equal(hogstaProcent(40_000, 39_800), 0);
+});
+
+test("golvet ger den högsta hela procenten, inte golvet självt, så att priset och 'högst x %' stämmer", () => {
+  // 1 000 kr med golvet 985,50 kr: 3 % hade gett 970 kr. Golvet tillåter 1,45 %,
+  // och kunden får 1 % = 990 kr, med texten "högst 1 %".
+  const r = radpris(100_000, 98_550, 3);
+  assert.deepEqual(r, { pOre: 99_000, begransning: "golv" });
+  assert.equal(hogstaProcent(100_000, 98_550), 1);
+  assert.equal(r.pOre, procentAv(100_000, hogstaProcent(100_000, 98_550)));
+  // Samma i varukorgen, för en Platina-medlem och för ett företag.
+  for (const profil of [privat("Platina"), foretag("Platina")]) {
+    const x = prissatt([rad(1000, { golvOre: 98_550 })], profil).rader[0];
+    assert.equal(x.pOre, 99_000);
+    assert.equal(x.begransning, "golv");
+  }
+  // Ett golv som är exakt en hel procent ger just den procenten.
+  assert.deepEqual(radpris(100_000, 98_000, 3), { pOre: 98_000, begransning: "golv" });
 });
 
 test("E2-8: köpet som pågår ingår inte i sin egen nivå", () => {
@@ -300,6 +320,13 @@ test("egenskaper i 20 000 slumpade korgar: G ≤ P ≤ A, aldrig mer än procent
       }
       assert.ok(x.pOre >= Math.min(in_.aOre, in_.golvOre), "aldrig under G (eller A om G > A)");
       assert.ok(x.pOre >= procentAv(in_.aOre, b.procent), "aldrig mer än procenten");
+      if (x.begransning === "golv") {
+        // Hela procent: den högsta som golvet tillåter, och ingen högre.
+        const h = hogstaProcent(in_.aOre, in_.golvOre);
+        assert.equal(x.pOre, procentAv(in_.aOre, h), "golvbegränsad rad i hela procent");
+        assert.ok(h < b.procent, "golvet begränsar bara under korgens procent");
+        assert.ok(procentAv(in_.aOre, h + 1) < in_.golvOre, "en procent till hade gått under G");
+      }
     }
     if (b.summaAOre >= FRI_FRAKT_ORE) assert.ok(b.summaPOre >= FRI_FRAKT_ORE, "fri frakt behålls");
     if (b.friFraktSkydd) {

@@ -1630,9 +1630,14 @@ Byggt men avstängt. Växeln är fältet `pris` i raden
 `FyndplatsButikInstallningar/medlemskap`: `av` (eller inget fält), `test` (bara
 medlemmar med `testare: true`) eller `pa`. Den är skild från `lage`.
 
-- **Prismotorn** (`lib/medlem/pris.ts`): radpriset är max(A·(1−d) avrundat,
-  G) och aldrig över A. Golvet G = C × 1,10 × 1,25 kommer från motorns
-  `/api/medlem/golv` (`golv-klient.ts`, hemligheten `REVIEW_INGEST_SECRET`).
+- **Prismotorn** (`lib/medlem/pris.ts`): radpriset är A·(1−d) avrundat till
+  öre. Stoppar golvet G det, blir rabatten den högsta HELA procent som golvet
+  tillåter, inte golvet självt (Leonards ja 2026-11-04). Annars hade rutan
+  sagt "högst 1 %" om 1,4 %, eller "högst 0 %" med ett lägre pris. Tillåter
+  golvet inte ens 1 % blir det ingen rabatt, och kunden ser att varan inte
+  omfattas. Aldrig under G och aldrig över A. Golvet G = C × 1,10 × 1,25
+  kommer från motorns `/api/medlem/golv` (`golv-klient.ts`, hemligheten
+  `REVIEW_INGEST_SECRET`).
   ☠️ Kostnaden och golvet lämnar aldrig servern; webbläsaren får radpriset,
   procenten och skälet till en begränsning.
 - ☠️ **Styckpriset avrundas till hela ören, och samma pris går till Wix.**
