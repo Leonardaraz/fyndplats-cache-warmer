@@ -1080,8 +1080,15 @@ prov som fäller dem:
   på VIP, "äldre än ett år" bara efter ett år, "spårning kommer" bara de
   första 30 dagarna och "Handla för X före Y" bara de sista 60 dagarna.
 - **Kortens nedre rad har ett mörkt skrim** (`--kort-skrim`). Utan det hade
-  den lilla texten kontrasten 1,3–2,3 på brons, guld, platina och diamant; med
-  det minst 4,5. Ändras en färg, räkna om kontrasten.
+  den lilla texten kontrasten 1,3–2,3 på brons, guld, platina och diamant.
+- ☠️ **Kontrasten mäts i webbläsaren, inte i en räkning** (samma kväll).
+  Räkningen ovan såg bara nedre raden och utan skenet; mätt fick "Medlem" på
+  guldkortet 1,9. Mätningen: dölj texten och loggan, fotografera sidan och
+  jämför varje textrads färg med varje pixel bakom den. Nu är guld, silver och
+  platina ljusa metaller med mörk text, brons, diamant och VIP mörka med ljus,
+  och skenet (`--kort-sken`) är svagare på de mörka. Lägst 4,7 på korten och
+  5,0 i mejlen. Platina är jade, som den gröna nivån i spelens ranking
+  (Leonard). Ändras en färg, mät om.
 
 Före läget `pa`: integritetstexten (J4) ska vara godkänd och publicerad,
 utkastet står i `docs/medlemskap-integritetstext-utkast.md`. E1-grinden är

@@ -398,15 +398,18 @@
 
 /* ── Medlemskortet ── */
 
-/* Skrimet: en mörk ton nerifrån bakom kortets nedre rad. Utan det hade den
-   lilla texten bara kontrasten 1,3–2,3 mot de ljusa ändarna på brons, guld,
-   platina och diamant (granskningen 2026-11-04); med det minst 4,5. Silver har
-   mörk text och VIP mörk botten, så där är skrimet genomskinligt. */
+/* Skrimet: en mörk ton nerifrån bakom kortets nedre rad, på kort med ljus
+   text. Utan det hade den lilla texten kontrasten 1,3–2,3 (granskningen
+   2026-11-04). Kontrasten är sedan samma kväll mätt i webbläsaren mot varje
+   pixel bakom texten, med skenet ovanpå: lägst 4,7. Silver, guld och platina
+   är ljusa metaller med mörk text och VIP har mörk botten, så där är skrimet
+   genomskinligt. */
 .medlemskort {
-  --kort-bg: linear-gradient(135deg, #5c2f18 0%, #9a5a35 48%, #cf9466 100%);
+  --kort-bg: linear-gradient(135deg, #5c2f18 0%, #874c2a 48%, #a8693f 100%);
   --kort-skrim: rgba(28, 10, 2, 0.5);
   --kort-ink: #fff8f2;
-  --kort-dim: rgba(255, 248, 242, 0.92);
+  --kort-dim: #fff8f2;
+  --kort-sken: rgba(255, 255, 255, 0.1);
   position: relative;
   isolation: isolate;
   width: 100%;
@@ -427,7 +430,7 @@
   content: "";
   position: absolute;
   inset: -60% -40%;
-  background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, 0.22) 47%, rgba(255, 255, 255, 0.05) 53%, transparent 60%);
+  background: linear-gradient(115deg, transparent 38%, var(--kort-sken) 47%, rgba(255, 255, 255, 0.04) 53%, transparent 60%);
   z-index: -1;
   pointer-events: none;
 }
@@ -449,30 +452,37 @@
   --kort-skrim: transparent;
   --kort-ink: #18222b;
   --kort-dim: rgba(24, 34, 43, 0.72);
+  --kort-sken: rgba(255, 255, 255, 0.22);
 }
+/* Guld är en ljus metall med mörk text, som rutan med medlemspriset: med ljus
+   text låg "Medlem" uppe till höger på 1,9 mot den ljusa änden (mätt 2026-11-04). */
 .medlemskort[data-niva="guld"] {
-  --kort-bg: linear-gradient(135deg, #5a3d07 0%, #a87a1f 42%, #e2bb5c 72%, #c3953a 100%);
-  --kort-skrim: rgba(40, 24, 0, 0.6);
-  --kort-ink: #fffaf0;
-  --kort-dim: rgba(255, 250, 240, 0.94);
+  --kort-bg: linear-gradient(135deg, #f8e8b4 0%, #eccb6e 38%, #dcb04a 62%, #f4d98c 100%);
+  --kort-skrim: transparent;
+  --kort-ink: #2b1d02;
+  --kort-dim: #4a3507;
+  --kort-sken: rgba(255, 255, 255, 0.3);
 }
+/* Platina är jade, som den gröna nivån i spelens ranking (Leonard 2026-11-04
+   kväll), och som silver en ljus metall med mörk text. */
 .medlemskort[data-niva="platina"] {
-  --kort-bg: linear-gradient(135deg, #2b333b 0%, #59646f 48%, #9aa6b1 100%);
-  --kort-skrim: rgba(8, 12, 16, 0.5);
-  --kort-ink: #f7fafc;
-  --kort-dim: rgba(247, 250, 252, 0.92);
+  --kort-bg: linear-gradient(135deg, #bff5ea 0%, #5ddcc3 38%, #25bd9e 64%, #8eead6 100%);
+  --kort-skrim: transparent;
+  --kort-ink: #02261e;
+  --kort-dim: #0b3d32;
+  --kort-sken: rgba(255, 255, 255, 0.3);
 }
 .medlemskort[data-niva="diamant"] {
-  --kort-bg: linear-gradient(135deg, #0b2440 0%, #1c5288 50%, #6fb7e6 100%);
+  --kort-bg: linear-gradient(135deg, #0b2440 0%, #1c5288 50%, #3f8fcc 100%);
   --kort-skrim: rgba(2, 14, 30, 0.5);
   --kort-ink: #f4fbff;
-  --kort-dim: rgba(244, 251, 255, 0.92);
+  --kort-dim: #f4fbff;
 }
 .medlemskort[data-niva="vip"] {
   --kort-bg: linear-gradient(135deg, #070708 0%, #18161a 55%, #2e2618 100%);
   --kort-skrim: transparent;
   --kort-ink: #f1d384;
-  --kort-dim: rgba(241, 211, 132, 0.72);
+  --kort-dim: rgba(241, 211, 132, 0.9);
 }
 
 .kortTopp {
@@ -705,7 +715,7 @@
   --medalj: linear-gradient(135deg, #a87a1f, #f1d27c);
 }
 .steg[data-niva="platina"] {
-  --medalj: linear-gradient(135deg, #4a5560, #b4bec8);
+  --medalj: linear-gradient(135deg, #12a386, #8ff0dc);
 }
 .steg[data-niva="diamant"] {
   --medalj: linear-gradient(135deg, #1c5288, #8fd0f2);
