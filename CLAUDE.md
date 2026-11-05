@@ -753,8 +753,12 @@ ChatGPT:s audit, punkt 3: en uppresningsfåtölj hade brödsmulan Skönhet & Hä
 uppresningsfåtöljer visade olika kategori i de två. Tre stolar saknade dessutom kopplingen
 till Uppresningsfåtöljer i Wix (kopplade 2026-11-04).
 
-- **Brödsmulan** (`lib/breadcrumb-category.ts`) tar den smalaste indexerbara underkategorin
-  bland produktens EGNA avdelningar först, och annars som förut.
+- **Brödsmulan** (`lib/breadcrumb-category.ts`) tar först produktens typkategori: den egna,
+  indexerbara underkategori som ett ord i namnets huvudfras pekar ut ("Skoskåp …" → Skoskåp &
+  skobänkar). Sedan den smalaste i produktens EGNA avdelningar, och annars som förut.
+  ☠️ Utan typkategorin hade 150 möbler och köksvaror fått Hem & Inredning / Förvaring &
+  Organisering, eftersom de är kopplade direkt till den avdelningen men inte till Möbler
+  (kategorikollen 2026-11-05, Leonard: rätta regeln). Motorns kopia har samma fall.
 - **Bläddringsraden** (`lib/product-neighbours.ts`, `Hemvist`) lägger varje produkt i
   brödsmulans avdelning och i avsnittet för brödsmulans underkategori. Produktsidan skickar
   valet (`hemvistFor`), räknat med samma `antalPerSida`. En produkt ligger fortfarande i exakt

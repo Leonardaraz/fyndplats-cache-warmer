@@ -115,7 +115,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   // modulcachad, så att hämta den redan här kostar inget extra anrop.
   const all = await getProducts();
   const antalPerSida = countPerCategoryPage(forListings(all), cols);
-  const brodsmula = valjBrodsmula(ownCats, navCols, antalPerSida, categoryIndexable);
+  const brodsmula = valjBrodsmula(ownCats, navCols, antalPerSida, categoryIndexable, p.name);
   const primaryCol = brodsmula.avdelning;
   const subCol = brodsmula.underkategori;
 
@@ -387,7 +387,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     const egna = (q.collectionIds || [])
       .map((id) => colPer.get(id))
       .filter((c): c is (typeof cols)[number] => c !== undefined && !NAV_EXCLUDED.has(c.name));
-    const b = valjBrodsmula(egna, navCols, antalPerSida, categoryIndexable);
+    const b = valjBrodsmula(egna, navCols, antalPerSida, categoryIndexable, q.name);
     const h: Hemvist = { avdelning: b.avdelning?.id ?? null, avsnitt: b.underkategori?.id ?? null };
     hemvistCache.set(q.id, h);
     return h;
