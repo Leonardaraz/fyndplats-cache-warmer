@@ -241,4 +241,9 @@ mappningar, så butiken frågar motorn (`POST /api/medlem/golv`, logiken i
 - Flaggan "ej medlemspris" i admin. Fältet `ejMedlemspris` läses redan av
   golvrutten.
 - Integritetstexten (J4) ska vara publicerad innan läget `pa`. Utkastet står i
-  butikens `docs/medlemskap-integritetstext-utkast.md`.
+  butikens `docs/medlemskap-integritetstext-utkast.md`. Tillägget för E2 och
+  E3 (prisbeslut, företag, offerter, sparade varukorgar och kakan
+  `fp_medlem_inne`) står i `docs/medlemskap-integritetstext-e2-e3-utkast.md`
+  och ska stå på sidan när E2 mergas.
+- Prisbesluten sparas i sju år (D1). Ett jobb som tar bort äldre beslut är
+  inte byggt; första raden att ta bort är från 2033.
