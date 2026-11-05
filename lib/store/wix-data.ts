@@ -15,8 +15,8 @@ import {
 } from "../db/wix-data-klient";
 
 // WixDataStore: persisterar mappningar, tasks, webhook-event och audit-rader
-// i Wix Data-collections (CMS). Använd via STORE_BACKEND=wix-data i env, eller
-// `DRIFTEN_I_WIX` i lib/store/backend.ts.
+// i Wix Data-collections (CMS). Används när STORE_BACKEND är wix-data, eller
+// postgres (värdet som står kvar i Vercel, se lib/store/backend.ts).
 // API: https://dev.wix.com/docs/api-reference/business-solutions/cms/data-items
 //
 // ☠️ ALLT GÅR VIA lib/db/wix-data-klient.ts sedan 2026-10-29. Den här filen

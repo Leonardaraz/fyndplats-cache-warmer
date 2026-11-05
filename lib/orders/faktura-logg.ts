@@ -5,27 +5,14 @@
 // mellanrum, uppmätt på order 10079). Den som får in raden skickar, den andra
 // hoppar. Faller utskicket släpps raden igen, så nästa körning försöker på nytt.
 //
-// I Postgres skapas tabellen vid första användningen, som färgbildstabellen
-// (lib/db/schema.ts). I Wix är det kollektionen FyndplatsFakturaUtskick.
+// Raderna bor i Wix, kollektionen FyndplatsFakturaUtskick. De bodde i Postgres
+// till 2026-10-29; den vägen togs bort 2026-11-05.
 
-import { sql } from "@/lib/db/client";
 import { hamta, infoga, patcha, satt, taBort, taBortFalt } from "@/lib/db/wix-data-klient";
 import { NYA } from "@/lib/db/wix-kollektioner";
 import { storeBackend } from "@/lib/store/backend";
 
 export type Utskickstyp = "faktura" | "kvitto";
-
-export const FAKTURA_DDL: string[] = [
-  `create table if not exists faktura_utskick (
-     order_id    text not null,
-     typ         text not null,
-     ordernummer text not null,
-     tagen_at    timestamptz not null default now(),
-     skickad_at  timestamptz,
-     resend_id   text,
-     primary key (order_id, typ)
-   )`,
-];
 
 export interface Utskickslogg {
   /** Sant om raden togs nu. Falskt om någon redan har den. */
@@ -40,49 +27,7 @@ export interface Utskickslogg {
   skickad(orderId: string, typ: Utskickstyp): Promise<Date | null>;
 }
 
-let skapad = false;
-
-async function q() {
-  const s = sql();
-  if (!skapad) {
-    for (const ddl of FAKTURA_DDL) await s.query(ddl);
-    skapad = true;
-  }
-  return s;
-}
-
-export const postgresUtskickslogg: Utskickslogg = {
-  async ta(orderId, typ, ordernummer) {
-    const s = await q();
-    const rader = await s`insert into faktura_utskick (order_id, typ, ordernummer)
-      values (${orderId}, ${typ}, ${ordernummer})
-      on conflict (order_id, typ) do nothing
-      returning order_id`;
-    return rader.length > 0;
-  },
-  async bekrafta(orderId, typ, resendId) {
-    const s = await q();
-    await s`update faktura_utskick set skickad_at = now(), resend_id = ${resendId ?? null}
-      where order_id = ${orderId} and typ = ${typ}`;
-  },
-  async slapp(orderId, typ) {
-    const s = await q();
-    await s`delete from faktura_utskick where order_id = ${orderId} and typ = ${typ} and skickad_at is null`;
-  },
-  async finns(orderId, typ) {
-    const s = await q();
-    const rader = await s`select 1 from faktura_utskick where order_id = ${orderId} and typ = ${typ} limit 1`;
-    return rader.length > 0;
-  },
-  async skickad(orderId, typ) {
-    const s = await q();
-    const rader = (await s`select skickad_at from faktura_utskick
-      where order_id = ${orderId} and typ = ${typ} and skickad_at is not null limit 1`) as { skickad_at: string | Date }[];
-    return rader.length ? new Date(rader[0].skickad_at) : null;
-  },
-};
-
-/** Radens id i Wix: en per order och typ, samma nyckel som Postgres primärnyckel. */
+/** Radens id i Wix: en per order och typ. */
 export function utskicksId(orderId: string, typ: Utskickstyp): string {
   return `${orderId}__${typ}`;
 }
@@ -111,7 +56,7 @@ export const wixUtskickslogg: Utskickslogg = {
     ]);
   },
   async slapp(orderId, typ) {
-    // Bara en rad som INTE är skickad släpps — samma villkor som Postgres.
+    // Bara en rad som INTE är skickad släpps.
     await taBort(NYA.fakturaUtskick, utskicksId(orderId, typ), { skickadAt: { $exists: false } });
   },
   async finns(orderId, typ) {
@@ -125,15 +70,13 @@ export const wixUtskickslogg: Utskickslogg = {
 
 let minneslogg: ReturnType<typeof minnesUtskickslogg> | null = null;
 
-/** Loggen i drift: Wix eller Postgres (lib/store/backend.ts), minnet när STORE_BACKEND=memory. */
+/** Loggen i drift: Wix, eller minnet när STORE_BACKEND=memory (lib/store/backend.ts). */
 export function getUtskickslogg(): Utskickslogg {
   switch (storeBackend()) {
     case "memory":
       return (minneslogg ??= minnesUtskickslogg());
     case "wix-data":
       return wixUtskickslogg;
-    case "postgres":
-      return postgresUtskickslogg;
   }
 }
 

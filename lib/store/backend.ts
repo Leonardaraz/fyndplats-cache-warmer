@@ -21,33 +21,23 @@
 // misslyckande som ingen kan se är värre än ett som skriker.
 
 /** Lagren vi stödjer. Okända värden är ett typo-fel och ska kasta, inte gissa. */
-export const STORE_BACKENDS = ["memory", "wix-data", "postgres"] as const;
+export const STORE_BACKENDS = ["memory", "wix-data"] as const;
 export type StoreBackend = (typeof STORE_BACKENDS)[number];
 
 /**
- * ☠️ FLYTTEN TILLBAKA TILL WIX AVGÖRS HÄR, I KODEN (2026-10-29).
+ * ☠️ "postgres" I MILJÖN BETYDER WIX, och ska göra det tills Leonard rättat variablerna.
  *
- * Drift-datan flyttade till Neon 2026-08-31 för att Wix tog 4 000 rader. Sajten
- * står sedan 2026-10-28 på Elite (10 miljoner rader), och Neon kostar pengar
- * varje timme, så datan flyttar tillbaka (Leonards beslut 2026-10-28).
+ * Drift-datan bodde i Neon 2026-08-31 till 2026-10-29 och flyttade sedan
+ * tillbaka till Wix (Elite, 10 miljoner rader). Postgres-vägarna togs bort
+ * 2026-11-05 och Neon sägs upp. Vercel nekar oss att läsa och ändra
+ * miljövariablerna (403), och `STORE_BACKEND` och `REVIEWS_BACKEND` står på
+ * "postgres" i produktion. Värdet pekar alltså på ett lager som inte finns
+ * längre, och läses som Wix — där datan faktiskt bor.
  *
- * Vercel nekar oss att ändra miljövariablerna (403 på både läsning och
- * skapande), och `STORE_BACKEND`, `REVIEWS_BACKEND` står på "postgres" i
- * produktion. Växeln ligger därför här, samma väg som auktionernas växling
- * 2026-09-30. När den är sann betyder "postgres" i en variabel Wix: värdet
- * pekar på ett lager som inte längre är i drift.
- *
- * Ordningen, och varför den är en egen deploy:
- *   1. koden med Wix-versionerna och kopieringen deployas, växeln FALSK — inget händer
- *   2. kopiera Neon → Wix, verifiera rad för rad
- *   3. växeln SANN, deploy                       ← här byter produktionen lager
- *   4. deltakopiering av det som skrevs till Neon mellan 2 och 3, verifiera
- *   5. följ driften några dygn, sedan stängs Neon
- *
- * Vägen tillbaka är växeln falsk igen — men bara med en omvänd deltakopiering,
- * annars tappas allt som skrivits till Wix efter steg 3.
+ * Ta inte bort tolkningen förrän variablerna står på "wix-data" i Vercel:
+ * ett okänt värde kastar, och då stannar hela motorn.
  */
-export const DRIFTEN_I_WIX = true;
+const GAMMALT_POSTGRES = "postgres";
 
 /**
  * Läser `STORE_BACKEND`. Default `"memory"` (dev/test), som förut.
@@ -62,7 +52,7 @@ export function storeBackend(): StoreBackend {
   // gissning än att göra det osatta valet. En riktig felstavning ("postgress")
   // är fortfarande icke-tom och fälls nedan.
   const raw = (process.env.STORE_BACKEND ?? "").trim() || "memory";
-  if (raw === "postgres" && DRIFTEN_I_WIX) return "wix-data";
+  if (raw === GAMMALT_POSTGRES) return "wix-data";
   if ((STORE_BACKENDS as readonly string[]).includes(raw)) return raw as StoreBackend;
   throw new Error(
     `Okänt STORE_BACKEND="${raw}". Tillåtna värden: ${STORE_BACKENDS.join(", ")}.`,
@@ -74,10 +64,9 @@ export function storeBackend(): StoreBackend {
  *
  * Det här är frågan de flesta anropare FAKTISKT ställer: "finns det en
  * persistent lagring att lita på?" Cron-rutterna hoppar över sig själva utan
- * en, och modulerna som ligger kvar i Wix Data (watchlist, bulk-import) väljer
- * sin Wix-implementation på den — inte på att värdet råkar vara `"wix-data"`.
- * Skillnaden är hela poängen: de bryr sig inte om vilken drift-databas Store
- * använder, och ska därför inte gå sönder när den byts.
+ * en, och modulerna väljer sin Wix-implementation på den — inte på att värdet
+ * råkar vara `"wix-data"`. Skillnaden är hela poängen: "postgres" i miljön är
+ * också ett persistent lager (Wix), se `GAMMALT_POSTGRES`.
  */
 export function isPersistentBackend(): boolean {
   return storeBackend() !== "memory";
@@ -86,79 +75,24 @@ export function isPersistentBackend(): boolean {
 /**
  * Var RECENSIONERNA bor. Egen switch, `REVIEWS_BACKEND`, default `"wix-data"`.
  *
- * ☠️ VARFÖR DEN INTE FÖLJER `STORE_BACKEND`. Produktionen står redan på
- * `postgres` sedan drift-datan flyttade 2026-08-31. Hade recensionslagret läst
- * den variabeln hade `getReviewStore()` bytt lager i samma sekund koden
- * deployades — alltså börjat skriva till en TOM tabell, medan
- * `/admin/reviews` slutade se de 2 514 befintliga och butiken fortsatte läsa
- * Wix. Det hade inte kastat någonstans. Det hade bara varit tomt.
+ * ☠️ VARFÖR DEN INTE FÖLJER `STORE_BACKEND`. Default:en är Wix även när
+ * variabeln saknas, eftersom recensionerna ALDRIG får hamna i minnet i
+ * produktion: `/admin/reviews` och butiken hade då sett en tom lista utan att
+ * något kastade. Samma familj som `/api/tracking-events` 2026-09-01: en läsare
+ * som blir TOM syns varken i en kodaudit eller i en felräknare.
  *
- * Samma familj som `/api/tracking-events` 2026-09-01: en läsare som blir TOM
- * syns varken i en kodaudit eller i en felräknare, för ett tomt svar från rätt
- * API mot rätt tabell ser i källkoden ut precis som ett friskt anrop.
- *
- * Recensionerna ligger alltså ETT STEG EFTER drift-datan i sin egen migrering,
- * och växlingen är en medveten handling efter att kopian verifierats — precis
- * som `STORE_BACKEND` flippades först då. Ordningen:
- *
- *   1. tabell + lager finns (den här koden)      ← default wix-data, inget händer
- *   2. kopiera 2 514 rader, verifiera kanoniskt
- *   3. REVIEWS_BACKEND=postgres                  ← växlingen
- *   4. butiksrepot läser via API i stället för Wix Data direkt
- *   5. radera Wix-raderna                        ← FÖRST här frigörs taket
+ * Historik: recensionerna flyttade till Postgres 2026-09 (REVIEWS_BACKEND=postgres)
+ * och tillbaka till Wix med resten 2026-10-29. Postgres-vägen togs bort 2026-11-05.
  *
  * Ligger i den HÄR filen, inte i reviews.ts, av samma skäl som resten:
  * `backend.test.ts` fäller om någon annan fil läser en backend-variabel.
  */
 export function reviewsBackend(): StoreBackend {
   const raw = (process.env.REVIEWS_BACKEND ?? "").trim();
-  // Osatt = kvar i Wix. Default:en pekar åt det håll som INTE tappar data.
-  if (!raw) return "wix-data";
-  if (raw === "postgres" && DRIFTEN_I_WIX) return "wix-data";
+  // Osatt = Wix. Default:en pekar åt det håll som INTE tappar data.
+  if (!raw || raw === GAMMALT_POSTGRES) return "wix-data";
   if ((STORE_BACKENDS as readonly string[]).includes(raw)) return raw as StoreBackend;
   throw new Error(
     `Okänt REVIEWS_BACKEND="${raw}". Tillåtna värden: ${STORE_BACKENDS.join(", ")}.`,
-  );
-}
-
-/** Lagren auktionerna kan bo i. Inget minneslager: motorn har aldrig haft ett,
- *  och en tick mot en tom minneskö hade sett ut som "inget att främja". */
-export const AUCTION_BACKENDS = ["wix-data", "postgres"] as const;
-export type AuctionBackend = (typeof AUCTION_BACKENDS)[number];
-
-/**
- * Var FYNDAUKTIONEN bor. Egen switch, `AUCTIONS_BACKEND`, default `"postgres"`
- * sedan växlingen 2026-09-30.
- *
- * Samma skäl som `reviewsBackend` ovan, och samma ordning:
- *
- *   1. tabell + lager + rutter för butiken finns (default wix-data, inget händer)
- *   2. butiken läser och avslutar via motorns rutter, inte Wix Data direkt
- *   3. kopiera raderna, verifiera strikt (wix = pg, avvikande 0)
- *   4. växlingen: default postgres                 ← den här raden
- *   5. radera Wix-raderna                          ← FÖRST här frigörs taket
- *
- * ☠️ Växlingen gjordes i KODEN, inte i Vercel. Att skapa AUCTIONS_BACKEND för
- * produktion avvisades med 403 ("Additional permissions are required"), och
- * en env-variabel binds ändå först vid bygget. Defaulten följer därför med
- * samma produktionsbygge som hade burit variabeln. `AUCTIONS_BACKEND=wix-data`
- * är vägen tillbaka, men bara så länge Wix-raderna finns: efter steg 5 hade den
- * pekat på en tom kollektion, och då är ingen väg tillbaka bättre än den.
- *
- * ☠️ Kön är en rad per produkt i katalogen (3 561 rader 2026-09-29, 89 % av
- * Wix-taket på 4 000). Den växer med katalogen, så taket slår i igen för varje
- * import så länge raderna bor i Wix.
- *
- * ☠️ Butiken går via motorn och växlar därför SAMTIDIGT som motorn. Läste den
- * Wix direkt hade den efter växlingen visat gårdagens fynd, och webhooken hade
- * avslutat auktioner i ett lager ingen läser.
- */
-export function auctionsBackend(): AuctionBackend {
-  const raw = (process.env.AUCTIONS_BACKEND ?? "").trim();
-  if (DRIFTEN_I_WIX && (!raw || raw === "postgres")) return "wix-data";
-  if (!raw) return "postgres";
-  if ((AUCTION_BACKENDS as readonly string[]).includes(raw)) return raw as AuctionBackend;
-  throw new Error(
-    `Okänt AUCTIONS_BACKEND="${raw}". Tillåtna värden: ${AUCTION_BACKENDS.join(", ")}.`,
   );
 }

@@ -18,20 +18,22 @@ Postgres.
 | 3 | `kopiera`, sedan `verifiera` rad för rad | nej |
 | 4 | `DRIFTEN_I_WIX = true` i en egen PR → deploy (gjort 2026-10-29) | **ja** |
 | 5 | `delta` direkt efter, sedan `verifiera` | nej |
-| 6 | följ driften några dygn, sedan stängs Neon | — |
+| 6 | följ driften en vecka, sista `delta`, Postgres-vägarna bort (2026-11-05), sedan sägs Neon upp | — |
 
-Workflowen är **"Migrering — flytta drift-datan tillbaka till Wix"**
+Workflowen var **"Migrering — flytta drift-datan tillbaka till Wix"**
 (`neon-till-wix.yml`) → `/api/admin/neon-till-wix` →
 `lib/migration/neon-till-wix.ts` (regler) och `neon-till-wix-kallor.ts`
-(Neon-tabellerna i Wix form). All Wix-trafik går via
-`lib/db/wix-data-klient.ts`.
+(Neon-tabellerna i Wix form). Allt det är borttaget sedan 2026-11-05, se
+avslutet nedan. All Wix-trafik går via `lib/db/wix-data-klient.ts`.
 
 Tolv egenskaper som inte ska tas bort:
 
-1. ☠️ **Växeln ligger i koden** (`DRIFTEN_I_WIX`, `lib/store/backend.ts`).
-   Vercel nekar oss att läsa och ändra miljövariablerna (403), och
-   `STORE_BACKEND`, `REVIEWS_BACKEND` står på `postgres`. När växeln är sann
-   betyder det värdet Wix. Ett test låser att den är sann sedan växlingen 2026-10-29.
+1. ☠️ **"postgres" i miljön betyder Wix** (`GAMMALT_POSTGRES`,
+   `lib/store/backend.ts`). Vercel nekar oss att läsa och ändra
+   miljövariablerna (403), och `STORE_BACKEND`, `REVIEWS_BACKEND` står på
+   `postgres`. Växeln `DRIFTEN_I_WIX` var sann från 2026-10-29 och togs bort med
+   Postgres-vägen 2026-11-05; tolkningen står kvar tills variablerna står på
+   `wix-data`. Ett okänt värde kastar, och då stannar motorn.
 2. ☠️ **Klienten läser med markör till slutet och kastar i stället för att
    kapa.** Den gamla Wix-vägen läste auktionskön, importkostnaderna och
    recensionernas betyg med EN sida om 1 000 — alla tre var större än så när
@@ -117,3 +119,38 @@ mellan kopian och växlingen kvar där.
 
 Neon ligger kvar som reserv till 2026-11-05 (Leonards ja). Sedan tas
 Postgres-vägarna bort i båda repona, och Neon kan sägas upp.
+
+### Avslutet 2026-11-05: sista delta och Postgres-vägarna borta
+
+Neon låg kvar en vecka som reserv (Leonards ja 2026-10-29). Sista `delta`
+kördes 2026-11-05 för båda systemen, med samma `vaxling` och `kopierad_sedan`
+som vid flytten:
+
+| system | `vaxling` | `kopierad_sedan` | utfall |
+|---|---|---|---|
+| motor | 2026-10-29T00:01:39Z | 2026-10-28T23:37:00Z | DELTA_MOTOR |
+| butik | 2026-10-29T03:33:27Z | 2026-10-29T03:05:38Z | DELTA_BUTIK |
+
+Borttaget i motorn samma dag:
+
+- Postgres-lagren: `lib/store/postgres.ts`, `reviews-postgres.ts`,
+  `lib/auction/store-postgres.ts` och Postgres-klasserna i färgbilderna,
+  karensen, synkmarkören, fakturaloggen, synkloggen, LLM-lagret,
+  importkostnaderna och produkthasharna.
+- `lib/db/client.ts`, `schema.ts`, `tabeller.ts`, `wix-filter.ts` (Wix-filter
+  till SQL) och beroendet `@neondatabase/serverless`.
+- Migreringen åt båda hållen: `lib/migration/*`, rutterna
+  `copy-to-postgres`, `neon-till-wix`, `butik-neon-till-wix`, `radera-wix` och
+  `review-backend-diff`, och workflowerna `copy-to-postgres.yml`,
+  `neon-till-wix.yml` och `radera-wix.yml`.
+- Växlarna `DRIFTEN_I_WIX` och `AUCTIONS_BACKEND`. Auktionerna bor alltid i Wix.
+
+`/api/review-andringar` svarar 501 som sedan 2026-10-29: ändringstiderna fanns
+bara i Postgres. Vägen tillbaka är en fråga på Wix `_updatedDate`
+(`24-initialerna.md`).
+
+När båda repona är ute kan Neon sägas upp, och `DATABASE_URL` tas bort i
+Vercel i båda projekten. `STORE_BACKEND` och `REVIEWS_BACKEND` får INTE tas
+bort: osatt `STORE_BACKEND` betyder minnet. Sätt dem till `wix-data` eller
+låt dem stå på `postgres`.
+
