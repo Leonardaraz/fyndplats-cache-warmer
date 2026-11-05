@@ -1,0 +1,2 @@
+# kort pos1 pos2 skäl (kvitterar ett par som gate-bilddubblett.py flaggar som misstänkt men som visar något olika; etiketterna är de i bilder.tsv)
+c5e6c97d 4 6 etikett 4 (VEVOR:s bild 9) visar ställningen med den ena vingen nedfälld, medan etikett 6 (VEVOR:s bild 11) visar den helt uppfälld sedd från andra hållet (0,038)
