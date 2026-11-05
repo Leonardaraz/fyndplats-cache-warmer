@@ -128,8 +128,14 @@ som vid flytten:
 
 | system | `vaxling` | `kopierad_sedan` | utfall |
 |---|---|---|---|
-| motor | 2026-10-29T00:01:39Z | 2026-10-28T23:37:00Z | DELTA_MOTOR |
-| butik | 2026-10-29T03:33:27Z | 2026-10-29T03:05:38Z | DELTA_BUTIK |
+| motor | 2026-10-29T00:01:39Z | 2026-10-28T23:37:00Z | 09:30–09:31 UTC: alla 20 tabeller 0 saknas, 0 olika, 0 skrivna; nycklarna lika. Ingen instans skrev till Neon efter växlingen |
+| butik | 2026-10-29T03:33:27Z | 2026-10-29T03:05:38Z | 09:32–09:37 UTC: alla 15 tabeller 0 saknas, 0 olika, 0 skrivna. Ingen instans skrev till Neon efter växlingen |
+
+Skillnaderna som deltan räknade (`wixNyare`, `nyaIWix`, `borttagenIWix`) är
+driften i Wix efter växlingen: nya och ändrade rader, och det som
+loggstädningen och prisgallringen tagit bort. Butikens SMS-rutt hade en
+Postgres-väg kvar som aldrig frågade växeln, men inget SMS kom in under
+veckan (se butikens `CLAUDE.md`).
 
 Borttaget i motorn samma dag:
 
@@ -149,8 +155,12 @@ Borttaget i motorn samma dag:
 bara i Postgres. Vägen tillbaka är en fråga på Wix `_updatedDate`
 (`24-initialerna.md`).
 
-När båda repona är ute kan Neon sägas upp, och `DATABASE_URL` tas bort i
-Vercel i båda projekten. `STORE_BACKEND` och `REVIEWS_BACKEND` får INTE tas
-bort: osatt `STORE_BACKEND` betyder minnet. Sätt dem till `wix-data` eller
-låt dem stå på `postgres`.
+När båda repona är ute kan Neon sägas upp, och databasvariablerna tas bort
+i Vercel: i motorn `DATABASE_URL`, i butiken `POSTGRES_URL` (som
+`@vercel/postgres` läste) och det Neon-integrationen lade in med den
+(`POSTGRES_*`, `PG*`, `DATABASE_URL*`, `NEON_*`). Listan går inte att läsa
+härifrån (403 på miljövariablerna), så namnen kontrolleras i Vercel.
+`STORE_BACKEND` och `REVIEWS_BACKEND` får INTE tas bort: osatt
+`STORE_BACKEND` betyder minnet. Sätt dem till `wix-data` eller låt dem stå
+på `postgres`.
 
