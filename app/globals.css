@@ -2754,9 +2754,17 @@ body:has(.drawer.show) .cookiebar{visibility:hidden}
 .auction-how b{color:var(--brand);margin-right:6px}
 .auction-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}
 .auction-card .pbody{display:flex;flex-direction:column;gap:6px}
-.auction-price-row{display:flex;align-items:baseline;gap:10px}
-.auction-price{font-size:var(--text-xl);font-weight:800;color:var(--brand)}
-.auction-old{font-size:var(--text-sm);color:var(--soft);white-space:nowrap}
+/* Priset är ett räkneverk med overflow:hidden, och en sådan flexdel får krympa
+   under sitt innehåll: när "30-dagarspris …" kom före det överstrukna priset
+   (#849) tog det platsen och siffrorna klipptes på mobilen (Leonard
+   2026-11-04). Priset krymper därför aldrig, och det tidigare priset bryts
+   till en egen rad när platsen inte räcker. */
+.auction-price-row{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 10px}
+.auction-price{font-size:var(--text-xl);font-weight:800;color:var(--brand);flex:none}
+/* Uttrycket och beloppet hålls ihop var för sig; på de smalaste korten (129 px
+   i 320 px) bryts raden mellan dem i stället för att sticka ut ur kortet. */
+.auction-old{font-size:var(--text-sm);color:var(--soft)}
+.auction-old .tidigare-pris-uttryck,.auction-old s{white-space:nowrap}
 /* "Du sparar X kr" — samma gröna kvitto-känsla som hjältekortets .a-hc-save. */
 .auction-save{font-size:var(--text-xs);font-weight:800;color:#1B7A3D;background:rgba(27,122,61,.1);border:1px solid rgba(27,122,61,.28);
   border-radius:var(--r-pill);padding:3px 9px;width:fit-content}
