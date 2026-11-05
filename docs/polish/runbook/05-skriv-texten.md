@@ -334,6 +334,17 @@ produkttypen. Finns inget löv räcker föräldern. Välj aldrig `All Products`,
 lägger till den själv. Workflowen slår upp namnen, och torrkörningen fäller ett namn som
 inte finns.
 
+☠️ **Produkttypens kategori får inte saknas (2026-11-04).** Runda n328 kopplade en
+uppresningsfåtölj till Möbler, Fåtöljer och Massage & Återhämtning men inte till
+Uppresningsfåtöljer. Butikens brödsmula hamnade då under Skönhet & Hälsa, och ChatGPT:s audit
+hittade det. Kategoristeget stoppar nu hela planen, redan i torrkörningen, när ett ord i
+namnets huvudfras (texten före första *med*, *för*, *i*, *på*, *till*, *och* eller tankstreck)
+är exakt namnet på en synlig underkategori i singular eller plural och kategorin saknas i
+raden. "Uppresningsfåtölj" kräver Uppresningsfåtöljer; "fåtöljskydd" och "med pall" kräver
+ingenting (`lib/polish/typkategori.ts`). Ska produkten medvetet inte ligga där skriver du
+`kort ⇥ kategori ⇥ skäl` i `kategori-undantag.tsv`, och `bygg-skrivplan.py` lägger det i
+planens `katUndantag`. Skälet står kvar i rundans katalog.
+
 Sökordskategorin är den sida som rankar på huvudordet. **Dess text beskriver varutypen och
 aldrig sortimentet** *(Leonard 2026-11-04: "Fixa kategoribeskrivningarna och skriv så det
 inte kan bli fel igen")*: inga antal ("fyra av speglarna"), inga tak eller spann ("upp till

@@ -51,6 +51,14 @@ export interface AppConfig {
    * svar från en rutt (Leonard 2026-10-28). Saknas den importeras ingenting.
    */
   vevorProRabatt?: string;
+  /**
+   * Fyndauktionens 30-dagarsspärr (lib/auction/trettio-dagar.ts): "pa" stoppar
+   * fynd vars överstrukna ordinarie pris inte är det lägsta de senaste 30
+   * dagarna. Allt annat är torrläge: seeden räknar och rapporterar men tar inte
+   * bort något. Slås på med auction-seed-workflowen (`sparr`), inte för hand,
+   * eftersom raden bär hemliga nycklar som aldrig ska läsas ut.
+   */
+  auktionTrettioDagar?: string;
 }
 
 function headers(): Record<string, string> {
@@ -100,6 +108,7 @@ export async function getAppConfig(): Promise<AppConfig> {
     fakturaFSkatt: clean(data.fakturaFSkatt),
     fakturaDagar: clean(data.fakturaDagar),
     vevorProRabatt: clean(data.vevorProRabatt),
+    auktionTrettioDagar: clean(data.auktionTrettioDagar),
   };
 }
 
