@@ -165,7 +165,7 @@ export function huvudLayout(
 
 export async function fakturaPdf(f: Faktura, val: PdfVal): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
-  const titel = val.typ === "kvitto" ? `Kvitto faktura ${f.nummer}` : `Faktura ${f.nummer}`;
+  const titel = val.typ === "kvitto" ? `Kvitto faktura ${f.nummer}` : `${f.forskott ? "Förskottsfaktura" : "Faktura"} ${f.nummer}`;
   doc.setTitle(titel);
   doc.setAuthor(SALJARE.namn);
   doc.setCreator(SALJARE.namn);
@@ -209,7 +209,7 @@ export async function fakturaPdf(f: Faktura, val: PdfVal): Promise<Uint8Array> {
   } else {
     skriv(sida, SALJARE.namn, MARG, A4.h - 46, { font: fet, storlek: 22, farg: rgb(1, 1, 1) });
   }
-  skriv(sida, val.typ === "kvitto" ? "KVITTO" : "FAKTURA", A4.w - MARG, A4.h - 46, {
+  skriv(sida, val.typ === "kvitto" ? "KVITTO" : f.forskott ? "FÖRSKOTTSFAKTURA" : "FAKTURA", A4.w - MARG, A4.h - 46, {
     font: fet,
     storlek: 20,
     farg: rgb(1, 1, 1),

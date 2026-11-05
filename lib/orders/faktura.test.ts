@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
   arFakturaorder,
+  arForskottsorder,
   byggFaktura,
   fakturaMejl,
+  FORSKOTT_DAGAR,
   kronor,
   kvittoMejl,
   lasNotering,
+  vantarPaForskottsbetalning,
   type Betalningsuppgifter,
   type FakturaOrder,
 } from "./faktura";
@@ -368,5 +371,134 @@ describe("korFakturor", () => {
     const text = JSON.stringify(s);
     expect(text).not.toContain("@");
     expect(text).not.toContain("Andersson");
+  });
+});
+
+describe("förskottsfakturan (medlemskapet E3, svar 3.3)", () => {
+  const FORSKOTT = "Förskottsfaktura. Org.nr: 556000-0000. Referens: Anna Andersson.";
+
+  it("känns igen på markören först i noteringen, bara på en handlagd order", () => {
+    expect(arForskottsorder(order({ buyerNote: FORSKOTT }))).toBe(true);
+    expect(arForskottsorder(order({ buyerNote: "  förskottsfaktura." }))).toBe(true);
+    expect(arForskottsorder(order())).toBe(false);
+    expect(arForskottsorder(order({ buyerNote: FORSKOTT, channelInfo: { type: "WEB" } }))).toBe(false);
+    expect(arForskottsorder(order({ buyerNote: "Faktura, inte förskottsfaktura" }))).toBe(false);
+  });
+
+  it("☠️ webhooken håller inne leverantörsuppgifterna tills ordern är betald", () => {
+    expect(vantarPaForskottsbetalning(order({ buyerNote: FORSKOTT }))).toBe(true);
+    expect(vantarPaForskottsbetalning(order({ buyerNote: FORSKOTT, paymentStatus: "PAID" }))).toBe(false);
+    // En vanlig fakturaorder skickas före betalningen, som förut.
+    expect(vantarPaForskottsbetalning(order())).toBe(false);
+  });
+
+  it("förfaller efter högst tio dagar, och läser org.nr och referens ur noteringen", () => {
+    const f = byggFaktura(order({ buyerNote: FORSKOTT }), NU, BETALNING);
+    if (!f.ok) throw new Error(f.fel);
+    expect(FORSKOTT_DAGAR).toBe(10);
+    expect(f.faktura.forskott).toBe(true);
+    expect(f.faktura.fakturadatum).toBe("2026-10-09");
+    expect(f.faktura.forfallodatum).toBe("2026-10-19");
+    expect(f.faktura.kund.orgnr).toBe("556000-0000");
+    expect(f.faktura.kund.referens).toBe("Anna Andersson");
+    // Kortare villkor i konfigurationen gäller också för förskott.
+    const kort = byggFaktura(order({ buyerNote: FORSKOTT }), NU, { ...BETALNING, dagar: 5 });
+    if (!kort.ok) throw new Error(kort.fel);
+    expect(kort.faktura.forfallodatum).toBe("2026-10-14");
+    // En vanlig faktura har kvar sina 30 dagar.
+    const vanlig = byggFaktura(order(), NU, BETALNING);
+    if (!vanlig.ok) throw new Error(vanlig.fel);
+    expect(vanlig.faktura.forskott).toBe(false);
+    expect(vanlig.faktura.forfallodatum).toBe("2026-11-08");
+  });
+
+  it("mejlen säger att varorna skickas när betalningen har kommit in", () => {
+    const f = byggFaktura(order({ buyerNote: FORSKOTT }), NU, BETALNING);
+    if (!f.ok) throw new Error(f.fel);
+    const m = fakturaMejl(f.faktura);
+    expect(m.subject).toBe("Förskottsfaktura 10079 från Fyndplats");
+    expect(m.html).toContain("Förskottsfaktura 10079");
+    expect(m.text).toContain("vi skickar varorna när betalningen har kommit in");
+    expect(m.html).not.toContain("Varan skickas inom kort");
+    const k = kvittoMejl(f.faktura, "2026-10-12");
+    expect(k.text).toContain("förskottsfaktura 10079");
+    expect(k.html).toContain("Nu skickar vi varorna");
+    // Den vanliga fakturan är orörd.
+    const v = byggFaktura(order(), NU, BETALNING);
+    if (!v.ok) throw new Error(v.fel);
+    expect(fakturaMejl(v.faktura).subject).toBe("Faktura 10079 från Fyndplats");
+    expect(fakturaMejl(v.faktura).html).toContain("Varan skickas inom kort");
+    expect(kvittoMejl(v.faktura, "2026-10-12").html).not.toContain("Nu skickar vi varorna");
+  });
+
+  it("PDF:en heter Förskottsfaktura", async () => {
+    const f = byggFaktura(order({ buyerNote: FORSKOTT }), NU, BETALNING);
+    if (!f.ok) throw new Error(f.fel);
+    const pdf = await PDFDocument.load(await fakturaPdf(f.faktura, { typ: "faktura" }));
+    expect(pdf.getTitle()).toBe("Förskottsfaktura 10079");
+  });
+
+  it("kvittot på en betald förskottsorder skapar leverantörsuppgifterna, en gång", async () => {
+    const o = order({ buyerNote: FORSKOTT });
+    const bestallda: string[] = [];
+    const logg = minnesUtskickslogg(() => NU);
+    const d: FakturaKorDeps = {
+      listaOrdrar: async () => [o],
+      logg,
+      betalning: async () => BETALNING,
+      logo: async () => undefined,
+      skicka: async () => ({ id: "ok" }),
+      efterBetalning: async (x) => {
+        bestallda.push(x.number ?? "");
+      },
+    };
+    await korFakturor({ nu: NU }, d);
+    expect(bestallda).toEqual([]);
+    o.paymentStatus = "PAID";
+    const a = await korFakturor({ nu: NU }, d);
+    const b = await korFakturor({ nu: NU }, d);
+    expect(a.kvitton).toEqual(["10079"]);
+    expect(a.forskottBestallda).toEqual(["10079"]);
+    expect(b.forskottBestallda).toEqual([]);
+    expect(bestallda).toEqual(["10079"]);
+  });
+
+  it("en vanlig fakturaorder rörs inte av förskottsvägen", async () => {
+    const o = order();
+    let anrop = 0;
+    const d: FakturaKorDeps = {
+      listaOrdrar: async () => [o],
+      logg: minnesUtskickslogg(() => NU),
+      betalning: async () => BETALNING,
+      logo: async () => undefined,
+      skicka: async () => ({ id: "ok" }),
+      efterBetalning: async () => {
+        anrop++;
+      },
+    };
+    await korFakturor({ nu: NU }, d);
+    o.paymentStatus = "PAID";
+    const s = await korFakturor({ nu: NU }, d);
+    expect(s.kvitton).toEqual(["10079"]);
+    expect(anrop).toBe(0);
+  });
+
+  it("ett fel när uppgifterna skapas syns i svaret, och kvittot räknas som skickat", async () => {
+    const o = order({ buyerNote: FORSKOTT, paymentStatus: "NOT_PAID" });
+    const d: FakturaKorDeps = {
+      listaOrdrar: async () => [o],
+      logg: minnesUtskickslogg(() => NU),
+      betalning: async () => BETALNING,
+      logo: async () => undefined,
+      skicka: async () => ({ id: "ok" }),
+      efterBetalning: async () => {
+        throw new Error("Wix 503");
+      },
+    };
+    await korFakturor({ nu: NU }, d);
+    o.paymentStatus = "PAID";
+    const s = await korFakturor({ nu: NU }, d);
+    expect(s.kvitton).toEqual(["10079"]);
+    expect(s.fel).toEqual([{ order: "10079", typ: "uppgifter", fel: "Wix 503" }]);
   });
 });

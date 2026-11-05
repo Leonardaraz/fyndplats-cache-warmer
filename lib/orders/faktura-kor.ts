@@ -24,6 +24,7 @@
 
 import {
   arFakturaorder,
+  arForskottsorder,
   byggFaktura,
   fakturaMejl,
   kvittoMejl,
@@ -67,6 +68,12 @@ export interface FakturaKorDeps {
   /** Loggan som PNG. Saknas den ritas namnet i stället. */
   logo: () => Promise<Uint8Array | undefined>;
   skicka: (input: { till: string; mejl: KundMejl; pdf: Uint8Array; filnamn: string }) => Promise<Skickat>;
+  /**
+   * En förskottsorder är betald och kvittot skickat: skapa leverantörs-
+   * uppgifterna som webhooken höll inne (lib/orders/faktura.ts). Idempotent.
+   * Saknas den skapas inga uppgifter härifrån, bara av återhämtningen.
+   */
+  efterBetalning?: (o: FakturaOrder) => Promise<void>;
 }
 
 export interface FakturaKorSvar {
@@ -82,7 +89,9 @@ export interface FakturaKorSvar {
   vantarPaBetalningsuppgifter: string[];
   /** Obetalda med skickad faktura. Väntar på att markeras betalda i Wix. */
   vantarPaBetalning: string[];
-  fel: { order: string; typ: "faktura" | "kvitto"; fel: string }[];
+  /** Betalda förskottsordrar vars leverantörsuppgifter skapades i körningen. */
+  forskottBestallda: string[];
+  fel: { order: string; typ: "faktura" | "kvitto" | "uppgifter"; fel: string }[];
 }
 
 function tillBase64(b: Uint8Array): string {
@@ -104,6 +113,7 @@ export async function korFakturor(val: FakturaKorVal, deps: FakturaKorDeps): Pro
     skulleKvitton: [],
     vantarPaBetalningsuppgifter: [],
     vantarPaBetalning: [],
+    forskottBestallda: [],
     fel: [],
   };
 
@@ -202,6 +212,17 @@ export async function korFakturor(val: FakturaKorVal, deps: FakturaKorDeps): Pro
     } catch (e) {
       if (!prov) await deps.logg.slapp(o.id, "kvitto");
       svar.fel.push({ order: nummer, typ: "kvitto", fel: e instanceof Error ? e.message : String(e) });
+      continue;
+    }
+    // Förskott: nu får varorna beställas. Ett fel här syns i svaret och i
+    // återhämtningens mejl; kvittot står kvar som skickat.
+    if (!prov && arForskottsorder(o) && deps.efterBetalning) {
+      try {
+        await deps.efterBetalning(o);
+        svar.forskottBestallda.push(nummer);
+      } catch (e) {
+        svar.fel.push({ order: nummer, typ: "uppgifter", fel: e instanceof Error ? e.message : String(e) });
+      }
     }
   }
 

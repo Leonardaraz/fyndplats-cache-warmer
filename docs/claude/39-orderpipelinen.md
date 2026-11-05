@@ -119,6 +119,12 @@ Motorn skickar i stället (`lib/orders/faktura.ts`, `faktura-pdf.ts`,
 | en handlagd order (`BACKOFFICE_MERCHANT`) godkänns obetald | fakturan, mejl i kundomslaget med PDF |
 | ordern markeras betald i Wix | kvittot, mejl med PDF, inom en timme |
 
+En order med `Förskottsfaktura.` först i noteringen är en förskottsorder från
+butikens företagskonto: fakturan förfaller efter högst 10 dagar, och
+leverantörsuppgifterna skapas först när den är betald (ämnesfil 46,
+"Förskottsfakturan"). En vanlig fakturaorder skickas som förut innan den är
+betald.
+
 Webhooken skickar fakturan direkt. Timcronen `/api/cron/faktura` (`10 * * * *`)
 tar det webhooken missade och kvittot, eftersom Wix inte skickar någon
 betalningshändelse till motorn. Workflowen **"Faktura — skicka, prova och

@@ -146,9 +146,9 @@ mappningar, så butiken frågar motorn (`POST /api/medlem/golv`, logiken i
   beslut kräver orsakskod och text (orsakskoden `bolagsverket` finns för
   godkännandet) och skrivs med villkoret att läget är detsamma som när sidan
   lästes, så att två admins inte skriver över varandra.
-- Bolagsverkets uppslag är inte byggt: det kräver ett API-konto. Tills dess
-  kontrolleras numret och namnet för hand. En enskild firma finns inte alltid
-  hos Bolagsverket.
+- Bolagsverkets uppslag är inte byggt: nycklarna kommer via Bolagsverkets
+  kundanmälan, som Leonard gör (svar 3.1). Tills dess kontrolleras numret och
+  namnet för hand. En enskild firma finns inte alltid hos Bolagsverket.
 - ☠️ En enskild firmas organisationsnummer är ett personnummer. Hela numret
   syns bara på admin-sidan; loggen får namnet och formen, aldrig numret.
 - Mejlet "Ditt företagskonto är godkänt" skickas av butikens timjobb
@@ -165,6 +165,23 @@ mappningar, så butiken frågar motorn (`POST /api/medlem/golv`, logiken i
   (`lib/medlem/offertpriser.ts`). Offerten gäller i 14 dygn. Butikens
   timjobb mejlar kunden, märker den betald när kassan blev en order och
   utgången efter sista dagen. Loggen får antal rader, aldrig priser.
+
+- **Förskottsfakturan** (villkoren 5.1, Leonards svar 3.3 2026-11-05): inget
+  Wix-API slår på ett betalsätt, och manuell betalning i panelen syns för alla
+  kunder. Butiken skapar därför en obetald handlagd order åt ett godkänt
+  företag (`POST /ecom/v1/orders`, `BACKOFFICE_MERCHANT`, `NOT_PAID`) med
+  `Förskottsfaktura.` först i ordernoteringen. Motorn känner igen den
+  (`arForskottsorder`, `lib/orders/faktura.ts`):
+  - fakturan går ut som för andra fakturaordrar, men förfaller efter högst
+    10 dagar (`FORSKOTT_DAGAR`), heter Förskottsfaktura och säger att
+    varorna skickas när betalningen har kommit in;
+  - ☠️ webhooken skapar inga leverantörsuppgifter medan ordern är obetald
+    (`vantarPaForskottsbetalning`, samma betalstatusar som vakten);
+  - när Leonard markerar ordern betald i Wix skickar timcronen kvittot och
+    skapar uppgifterna i samma steg (`efterBetalning` i faktura-kor, samma
+    `deriveTasks` som återhämtningen). Ett fel där syns som `typ: "uppgifter"`
+    i svaret. Återhämtningens egna 14 dygn är nätet under, och fakturakörningen
+    ser 120 dygn bakåt, så en sent markerad betalning hittas ändå.
 
 ## Kvar till E2
 

@@ -3,7 +3,10 @@
 // alla tre skickar på samma sätt.
 
 import { getAppConfig } from "@/lib/store/app-config";
+import { getStore } from "@/lib/store/factory";
 import { fetchOrders } from "@/lib/wix/orders";
+import { runOrderBackfill } from "./backfill";
+import type { WixOrder } from "./types";
 import { sendEmail } from "@/lib/email/resend";
 import { KUND_BRAND } from "@/lib/email/kundmejl";
 import type { FakturaOrder } from "./faktura";
@@ -31,5 +34,24 @@ export function fakturaDeps(): FakturaKorDeps {
         forhandstext: mejl.forhandstext,
         bilagor: [pdfBilaga(filnamn, pdf)],
       }),
+    // En betald förskottsorder får sina leverantörsuppgifter genom samma väg
+    // som återhämtningen (deriveTasks, createTaskIfAbsent), med just den här
+    // ordern. Ordern kommer ur samma Orders-läsning som återhämtningens, så den
+    // bär adresser och val. Återhämtningens egna 14 dygn hade missat en
+    // betalning som markeras sent; fakturakörningen ser 120 dygn bakåt.
+    efterBetalning: async (o) => {
+      if (!o.number) throw new Error("ordern saknar nummer");
+      const store = getStore();
+      const s = await runOrderBackfill(
+        { onlyOrderNumbers: [o.number] },
+        {
+          listOrders: async () => [o as unknown as WixOrder],
+          listTasks: () => store.listTasks(),
+          createTaskIfAbsent: (task) => store.createTaskIfAbsent(task),
+        },
+      );
+      // Redan skapade uppgifter (återhämtningen hann först) räknas inte som saknade.
+      if (s.failed > 0) throw new Error(s.errors[0]?.error ?? "uppgifterna kunde inte skapas");
+    },
   };
 }
