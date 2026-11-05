@@ -377,6 +377,31 @@ export function forskottskund(
   };
 }
 
+/**
+ * Företaget på prisbeslutet, till motorns kvitto för ett köp i kassan
+ * (villkoren för företagskonto 5.2: "Kvitto och faktura med köparens namn och
+ * adress, och för ett bolag organisationsnumret, skickas med e-post"). Motorn
+ * läser fälten med samma namn (`foretagUrBeslut` i lib/orders/faktura.ts) och
+ * skickar kvittot när ordern är betald.
+ *
+ * ☠️ En enskild firmas organisationsnummer är ägarens personnummer och följer
+ * aldrig med (F4), samma regel som förskottsordern (`forskottskund`).
+ */
+export interface ForetagPaBeslut {
+  foretagNamn: string;
+  /** Bara för ett bolag. */
+  foretagOrgnr?: string;
+  foretagFaktura: Postadress;
+}
+
+export function foretagPaBeslut(fp: Pick<Foretagsprofil, "namn" | "orgnr" | "form" | "faktura">): ForetagPaBeslut {
+  return {
+    foretagNamn: fp.namn,
+    ...(fp.form === "juridisk" ? { foretagOrgnr: fp.orgnr } : {}),
+    foretagFaktura: { gata: fp.faktura.gata, postnr: fp.faktura.postnr, ort: fp.faktura.ort },
+  };
+}
+
 /** Noteringen som motorn läser: markören och, för ett bolag, organisationsnumret. */
 export function forskottsnotering(k: Pick<Forskottskund, "orgnr">): string {
   return k.orgnr ? `${FORSKOTT_MARKOR}. Org.nr: ${k.orgnr}.` : `${FORSKOTT_MARKOR}.`;

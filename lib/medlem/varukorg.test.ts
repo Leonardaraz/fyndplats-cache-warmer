@@ -5,6 +5,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   beloppAvOre,
+  foretagPaBeslut,
   forskottskund,
   forskottsnotering,
   forskottsorderKropp,
@@ -353,4 +354,22 @@ test("kontrollen av den skapade förskottsordern: obetald, handlagd och våra be
     false,
   );
   assert.equal(kontrolleraForskottsorder(summor, rader, null).ok, false);
+});
+
+test("☠️ prisbeslutet bär företaget till kvittot, men aldrig en enskild firmas personnummer", () => {
+  const bolag = { namn: "Exempel AB", orgnr: "556000-0000", form: "juridisk" as const, faktura: { gata: "Företagsvägen 3", postnr: "15244", ort: "Södertälje" } };
+  // Fälten heter som motorn läser dem (foretagUrBeslut i motorns lib/orders/faktura.ts).
+  assert.deepEqual(foretagPaBeslut(bolag), {
+    foretagNamn: "Exempel AB",
+    foretagOrgnr: "556000-0000",
+    foretagFaktura: { gata: "Företagsvägen 3", postnr: "15244", ort: "Södertälje" },
+  });
+  const firma = { ...bolag, namn: "Anna Andersson Snickeri", orgnr: "800101-1234", form: "enskild" as const };
+  const ut = foretagPaBeslut(firma);
+  assert.equal(ut.foretagOrgnr, undefined);
+  assert.equal(ut.foretagNamn, "Anna Andersson Snickeri");
+  assert.doesNotMatch(JSON.stringify(ut), /\d{6}-?\d{4}/);
+  // Bara adressens tre fält följer med, inget annat ur profilen.
+  const medMer = foretagPaBeslut({ ...bolag, faktura: { ...bolag.faktura, extra: "x" } as typeof bolag.faktura });
+  assert.deepEqual(Object.keys(medMer.foretagFaktura).sort(), ["gata", "ort", "postnr"]);
 });

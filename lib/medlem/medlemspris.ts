@@ -56,9 +56,10 @@ import {
 import { kanHandlaSomForetag } from "./foretag";
 import { MAX_OBESVARADE, kanBetalas, offertId, offertSummor, type Offert } from "./offert";
 import { skickaOffertForfragan } from "./mejl";
-import type { Golvsvar, Varukorgsrad } from "./varukorg";
+import type { ForetagPaBeslut, Golvsvar, Varukorgsrad } from "./varukorg";
 import {
   STORES_APP_ID,
+  foretagPaBeslut,
   forskottskund,
   forskottsorderKropp,
   golvnyckel,
@@ -81,7 +82,13 @@ const HEADLESS_CLIENT_ID = "3d8fdd09-3b3c-475f-aac2-b6bfa9e05153";
 export type Utan = "av" | "utloggad" | "sparrad" | "inte-testare" | "fel";
 /** `foretag`: kontot handlar som sitt godkända företag (E3); priset räknas då
  *  med företagsprofilen och visas exkl. moms. */
-export type Medlemsprofil = { medlem: Medlem; profil: Profil; foretag?: { namn: string } };
+export type Medlemsprofil = {
+  medlem: Medlem;
+  profil: Profil;
+  /** `kvitto`: det som sparas på prisbeslutet till motorns kvitto (villkoren
+   *  5.2). Bara servern läser det; webbläsaren får namnet. */
+  foretag?: { namn: string; kvitto: ForetagPaBeslut };
+};
 
 /** Momsen på hela sortimentet i dag (samma som prisrader() i varukorg.ts). */
 export const MOMS_PROCENT = 25;
@@ -119,7 +126,7 @@ export async function medlemsprofil(): Promise<Medlemsprofil | { utan: Utan }> {
     // (E3-12), prissätts som privatperson tills det är rättat.
     const v: Medlemsprofil =
       villForetag && kanHandlaSomForetag(fp)
-        ? { medlem, profil: { typ: "foretag", ...niva }, foretag: { namn: fp.namn } }
+        ? { medlem, profil: { typ: "foretag", ...niva }, foretag: { namn: fp.namn, kvitto: foretagPaBeslut(fp) } }
         : { medlem, profil: { typ: "privat", ...niva } };
     profiler.set(nyckel, { v, at: Date.now() });
     return v;
@@ -483,7 +490,7 @@ export async function offertKassa(id: string, mp: Medlemsprofil, bas: string): P
     purchaseFlowId,
     medlemsId: mp.medlem.id,
     profil: "foretag",
-    foretagNamn: mp.foretag.namn,
+    ...mp.foretag.kvitto,
     offertId: o.id,
     niva: mp.profil.niva,
     procent: 0,
@@ -532,7 +539,7 @@ function beslutspost(
     purchaseFlowId,
     medlemsId: mp.medlem.id,
     profil: beslut.profil,
-    ...(mp.foretag && beslut.profil === "foretag" ? { foretagNamn: mp.foretag.namn } : {}),
+    ...(mp.foretag && beslut.profil === "foretag" ? mp.foretag.kvitto : {}),
     niva: beslut.niva,
     procent: beslut.procent,
     kalla: beslut.kalla,

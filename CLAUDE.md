@@ -1776,7 +1776,19 @@ Ett företag läggs till på ett befintligt konto, högst ett per konto i E3.
   - Create Order tål 5 anrop i timmen för en opublicerad app. Ett 429 ger
     kunden "försök igen om en stund, eller betala i kassan".
 
-☠️ Före `pa` för företag: vårt kvitto med företagets namn för köp med kort och
-Klarna (villkoren 5.2). Villkoren lovar det, så prisväxeln släpper inte fram
-företagskontot förrän det finns. Förskottsorderns faktura och kvitto bär
-redan namnet.
+- **Kvittot med företagets namn för kort och Klarna** (villkoren 5.2, byggt
+  2026-11-05). Kassan sparar företaget på prisbeslutet när kunden går till
+  kassan (`foretagPaBeslut` i `lib/medlem/varukorg.ts`): `foretagNamn`,
+  `foretagFaktura` och för ett bolag `foretagOrgnr`. Motorns timkörning
+  `/api/cron/faktura` (:10) hittar den betalda ordern på `purchaseFlowId` och
+  mejlar sitt kvitto som PDF med företaget som köpare, inom en timme
+  (motorns ämnesfil 46). Förskottsorderns faktura och kvitto bär namnet ur
+  ordern.
+  - ☠️ En enskild firmas nummer är ett personnummer och läggs aldrig på
+    beslutet; motorn skriver dessutom bara ut ett bolags nummer (siffra tre
+    och fyra minst 20).
+  - ☠️ Fälten läses i motorn med samma namn (`foretagUrBeslut`). Byt aldrig
+    namn på dem i bara det ena repot.
+  - ☠️ Butikens och motorns E3 mergas samma natt. Utan motorns del får ett
+    företag som betalar med kort eller Klarna inget kvitto, och villkoren
+    lovar ett.

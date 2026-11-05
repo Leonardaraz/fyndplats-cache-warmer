@@ -551,6 +551,14 @@ export interface Prisbeslutspost {
   profil: string;
   /** E3: företagets namn när korgen prissattes som företag (till kvittot). */
   foretagNamn?: string;
+  /**
+   * E3: ett bolags organisationsnummer och fakturaadressen, som de var när
+   * kunden gick till kassan (`foretagPaBeslut`). Motorn skriver dem på kvittot
+   * för ett köp med kort eller Klarna (villkoren 5.2). ☠️ Aldrig en enskild
+   * firmas nummer: det är ett personnummer.
+   */
+  foretagOrgnr?: string;
+  foretagFaktura?: { gata: string; postnr: string; ort: string };
   /** E3: offerten som korgen byggdes ur; kalla är då "offert". */
   offertId?: string;
   /** E3: köpet gick mot förskottsfaktura (villkoren 5.1); ordern skapades av butiken. */
