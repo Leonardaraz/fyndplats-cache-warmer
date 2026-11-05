@@ -141,6 +141,11 @@ const BOKNING = "Leveransen bokas";
 const GLS_SV: Regel[] = [
   [/data was entered|not yet (been )?handed over/i,
     () => ["Fraktinformation mottagen – paketet är registrerat hos GLS.", "Registrerad"]],
+  // Steget mellan registreringen och upphämtningen (uppmätt 2026-11-05): GLS
+  // har inte paketet än. /sparning visade texten på engelska, eftersom ingen
+  // regel kände igen den.
+  [/provided by the (sender|shipper) for (collection|pick-? ?up)/i,
+    () => ["Paketet är klart hos avsändaren och väntar på att GLS hämtar det.", "Väntar på upphämtning"]],
   [/return(ed)? to (the )?(sender|shipper)|being returned|on its way back/i,
     () => ["Paketet skickas tillbaka till avsändaren.", "Returneras"]],
   [/(delivered|handed over) (at|to) the parcel ?shop/i,

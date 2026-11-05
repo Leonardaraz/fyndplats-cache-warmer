@@ -90,6 +90,24 @@ test("☠️ registreringen läses inte som en upphämtning", () => {
   assert.deepEqual(t, { text: "Fraktinformation mottagen – paketet är registrerat hos GLS.", etikett: "Registrerad" });
 });
 
+test("☠️ 'provided by the sender for collection' står på svenska och är ingen upphämtning", () => {
+  // Ordagrant GLS text 2026-11-05. /sparning visade den på engelska under
+  // rubriken "På väg", fast GLS ännu inte hade paketet.
+  const t = oversattGls("The parcel was provided by the sender for collection by GLS.");
+  assert.deepEqual(t, { text: "Paketet är klart hos avsändaren och väntar på att GLS hämtar det.", etikett: "Väntar på upphämtning" });
+  const s = tolkaGlsSvar({
+    tuStatus: [{
+      history: [
+        { date: "2026-11-05", time: "18:27:00", address: { city: "Hamburg", countryCode: "DE" }, evtDscr: "The parcel was provided by the sender for collection by GLS." },
+        { date: "2026-11-05", time: "12:50:00", address: { city: "Hamburg", countryCode: "DE" }, evtDscr: "The parcel data was entered into the GLS IT system; the parcel was not yet handed over to GLS." },
+      ],
+    }],
+  });
+  assert.ok(s);
+  for (const h of s.handelser) assert.ok(h.beskrivning, `"${h.original}" saknar svensk text`);
+  assert.deepEqual(s.handelser.map((h) => h.etikett), ["Väntar på upphämtning", "Registrerad"]);
+});
+
 test("☠️ ombud och 'väntas levereras' är inte levererat", () => {
   assert.equal(oversattGls("The parcel has been delivered at the ParcelShop (see ParcelShop information).")?.etikett, "Finns för upphämtning");
   assert.equal(oversattGls("The parcel is expected to be delivered during the day.")?.etikett, "Ute för leverans");
