@@ -17,6 +17,7 @@ import { medlemskassa, useMedlemskorg } from "./medlemspris";
 import { kronorText } from "../lib/medlem/kronor";
 import { exklMoms } from "../lib/medlem/pris";
 import { OffertForfragan } from "./offert-forfragan";
+import { ForskottKnapp, type ForskottLagd } from "./forskott-knapp";
 import { nivaNyckel } from "../lib/medlem/niva-nyckel";
 import { normaliseraKundvagn, vagnenArBorta, valdaAlternativ } from "../lib/cart-shape";
 import { visaValnamn } from "../lib/variant-lage";
@@ -146,6 +147,9 @@ type Ctx = {
   busy: boolean;
   /** Kassan håller på att öppnas (trycket är gjort, sidan inte bytt än). */
   tillKassan: boolean;
+  /** E3: förskottsordern som just lades; lådan visar kvittensen. */
+  forskottLagd: ForskottLagd | null;
+  forskottKlar: (lagd: ForskottLagd) => void;
 };
 const CartCtx = createContext<Ctx | null>(null);
 export const useCart = () => {
@@ -274,6 +278,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [busy, setBusy] = useState(false);
   const [vantande, setVantande] = useState<Vantande[]>([]);
   const [fel, setFel] = useState<string | null>(null);
+  // Förskottsordern (E3): ordern är lagd och varukorgen borttagen. Lådan visar
+  // kvittensen i stället för "tom" tills nästa vara läggs i.
+  const [forskottLagd, setForskottLagd] = useState<ForskottLagd | null>(null);
   // Sant från trycket på "Till kassan" tills kassan har tagit över sidan.
   // Wix kassa tar 2–9 s innan den syns, och under den tiden ska knappen säga
   // att den är på väg, inte bli "Till kassan" igen.
@@ -312,6 +319,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     else Cookies.remove("fp_cart");
   }, []);
 
+  // Förskottsordern (E3): servern har lagt ordern och tagit bort varukorgen.
+  // Lådan visar kvittensen tills nästa vara läggs i (`add` nollar den).
+  const forskottKlar = useCallback((lagd: ForskottLagd) => {
+    setForskottLagd(lagd);
+    visaVagn(null);
+  }, [visaVagn]);
+
   useEffect(() => {
     // Returvisitor med befintlig kundvagn → ladda SDK och hämta cart.
     // Nya besökare betalar 0 SDK-bytes tills de klickar "Lägg i kundvagn".
@@ -337,6 +351,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const nyckel = Date.now() + Math.random();
     setBusy(true);
     setFel(null);
+    setForskottLagd(null);
     // Lådan öppnas i samma bild som trycket, med varan som väntande rad.
     // Wix svar ersätter raden i samma rendering (React batchar setCart och
     // borttagningen nedan), så den blinkar inte.
@@ -479,7 +494,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   // Ett fel står kvar tills lådan stängs, inte till nästa gång den öppnas.
   const oppna = useCallback((b: boolean) => { setOpen(b); if (!b) setFel(null); }, []);
 
-  return <CartCtx.Provider value={{ cart, count, open, setOpen: oppna, add, vantande, fel, remove, updateQty, checkout, busy, tillKassan }}>{children}</CartCtx.Provider>;
+  return <CartCtx.Provider value={{ cart, count, open, setOpen: oppna, add, vantande, fel, remove, updateQty, checkout, busy, tillKassan, forskottLagd, forskottKlar }}>{children}</CartCtx.Provider>;
 }
 
 export function CartButton() {
@@ -526,7 +541,7 @@ function hamtaForslag(nyckel: string): Promise<Forslagssvar> {
 }
 
 export function CartDrawer() {
-  const { cart, open, setOpen, remove, updateQty, checkout, busy, count, vantande, fel, tillKassan } = useCart();
+  const { cart, open, setOpen, remove, updateQty, checkout, busy, count, vantande, fel, tillKassan, forskottLagd, forskottKlar } = useCart();
   const panelRef = useRef<HTMLElement>(null);
   // En ny vara läggs sist. Rulla dit, så att kunden ser den hamna i lådan.
   const kroppRef = useRef<HTMLDivElement>(null);
@@ -621,8 +636,20 @@ export function CartDrawer() {
                   <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
                 </svg>
               </span>
-              <p className="cart-empty-title">Din varukorg är tom</p>
-              <p className="cart-empty-sub">Här samlar du dina favoritfynd.</p>
+              {forskottLagd && !harRader ? (
+                <>
+                  <p className="cart-empty-title">Tack! Order {forskottLagd.nummer} är lagd</p>
+                  <p className="cart-empty-sub" role="status">
+                    Förskottsfakturan på {kronorText(forskottLagd.totalOre)} kommer med e-post inom några minuter. Vi
+                    skickar varorna när betalningen har kommit in.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="cart-empty-title">Din varukorg är tom</p>
+                  <p className="cart-empty-sub">Här samlar du dina favoritfynd.</p>
+                </>
+              )}
               <a className="cart-empty-cta" href="/butik" onClick={() => setOpen(false)}>Utforska butiken →</a>
             </div>
           ) : (
@@ -748,6 +775,9 @@ export function CartDrawer() {
                     )}
                     <p className="drawer-moms">Kassan visar priserna inklusive moms.</p>
                     {f.offert && cart?._id ? <OffertForfragan cartId={cart._id} /> : null}
+                    {cart?._id ? (
+                      <ForskottKnapp cartId={cart._id} onLagd={forskottKlar} />
+                    ) : null}
                   </>
                 );
               })()

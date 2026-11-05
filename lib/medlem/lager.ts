@@ -26,6 +26,7 @@ import {
   satt,
   spara,
   sparaManga,
+  taBort,
   taBortFalt,
   taBortManga,
   type Rad,
@@ -552,6 +553,12 @@ export interface Prisbeslutspost {
   foretagNamn?: string;
   /** E3: offerten som korgen byggdes ur; kalla är då "offert". */
   offertId?: string;
+  /** E3: köpet gick mot förskottsfaktura (villkoren 5.1); ordern skapades av butiken. */
+  betalsatt?: "forskott";
+  orderId?: string;
+  orderNummer?: string;
+  /** Satt från början på en förskottsrad: timjobbet ska aldrig ta bort en korg för den. */
+  utfall?: string;
   niva: string;
   procent: number;
   kalla: string;
@@ -579,6 +586,27 @@ export async function sparaPrisbeslut(post: Prisbeslutspost): Promise<void> {
   // Inga null-fält i Wix: valfria fält utelämnas i stället.
   const rader = post.rader.map((r) => Object.fromEntries(Object.entries(r).filter(([, v]) => v !== undefined && v !== null)));
   await spara(MK.prisbeslut, post.cartId, { ...post, rader } as unknown as Rad);
+}
+
+/**
+ * Förskottsordern (E3): beslutet sparas före ordern, med en insert som vägrar
+ * ett id som finns. Nyckeln är besökarens korg, så två tryck på knappen eller
+ * två flikar ger aldrig två ordrar. "fanns": korgen är redan tagen.
+ */
+export async function taForskottsbeslut(post: Prisbeslutspost): Promise<"tagen" | "fanns"> {
+  const rader = post.rader.map((r) => Object.fromEntries(Object.entries(r).filter(([, v]) => v !== undefined && v !== null)));
+  const rad = Object.fromEntries(Object.entries({ ...post, rader }).filter(([, v]) => v !== undefined && v !== null));
+  return (await infoga(MK.prisbeslut, post.cartId, rad as Rad)) === "skapad" ? "tagen" : "fanns";
+}
+
+/** Ordern som förskottsbeslutet blev. */
+export async function sattForskottsorder(cartId: string, orderId: string, orderNummer: string): Promise<void> {
+  await patcha(MK.prisbeslut, cartId, [satt("orderId", orderId), satt("orderNummer", orderNummer)]);
+}
+
+/** Släpper spärren när Wix tydligt inte skapade någon order, så att kunden kan försöka igen. */
+export async function slappForskottsbeslut(cartId: string): Promise<void> {
+  await taBort(MK.prisbeslut, cartId, { utfall: "forskott", orderId: { $exists: false } });
 }
 
 /**

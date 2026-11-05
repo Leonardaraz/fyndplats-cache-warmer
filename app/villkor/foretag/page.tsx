@@ -15,6 +15,7 @@ import { ContentPage } from "../../../components/content";
 import { VILLKOR_FORETAG_VERSION } from "@/lib/medlem/foretag";
 import { AVGIFT_PROCENT, POSTA_INOM_DAGAR } from "@/lib/retur-policy";
 import { PAKET_MAX_KG, PAKET_MAX_SIDA_CM, SKRYMMANDE_SPANN } from "@/lib/retur-frakt";
+import { FORSKOTT_DAGAR } from "@/lib/medlem/varukorg";
 
 export const metadata: Metadata = {
   title: "Villkor för företagskonto",
@@ -103,9 +104,12 @@ export default function ForetagsVillkor() {
       <h2>5. Betalning</h2>
       <p>
         5.1 Köparen betalar med kort, med Klarna på Klarnas villkor, eller mot förskottsfaktura. En förskottsfaktura betalas
-        innan varorna skickas; ordern skickas när betalningen har kommit in.
+        inom {FORSKOTT_DAGAR} dagar och innan varorna skickas; ordern skickas när betalningen har kommit in. Är den inte
+        betald i tid får vi avbryta ordern.
       </p>
-      <p>5.2 Kvitto och faktura med köparens namn, organisationsnummer och adress skickas med e-post.</p>
+      <p>
+        5.2 Kvitto och faktura med köparens namn och adress, och för ett bolag organisationsnumret, skickas med e-post.
+      </p>
 
       <h2>6. Leverans</h2>
       <p>6.1 Leveranstid och frakt följer det som gäller för alla kunder på fyndplats.se och visas innan köpet.</p>

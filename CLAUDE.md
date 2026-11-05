@@ -1753,7 +1753,30 @@ Ett företag läggs till på ett befintligt konto, högst ett per konto i E3.
   bort efter ett dygn som alla medlemskorgar, och övergivna kassor hoppar
   över den.
 
-☠️ Före `pa` för företag: förskottsfakturan (villkoren 5.1, byggs via Create
-Order och motorns faktura, svar 3.3) och vårt kvitto med företagets namn
-(villkoren 5.2). Villkoren lovar båda, så prisväxeln släpper inte fram
-företagskontot förrän de finns.
+- **Förskottsfakturan** (villkoren 5.1, Leonards svar 3.3 2026-11-05): ett
+  godkänt företag får knappen "Betala mot förskottsfaktura" i varukorgen
+  (`components/forskott-knapp.tsx`, `/api/medlem/forskott`). Servern
+  prissätter korgen som företag och skapar ordern själv med
+  `POST /ecom/v1/orders` (`forskottsorderKropp` i `lib/medlem/varukorg.ts`):
+  obetald, handlagd (`BACKOFFICE_MERCHANT`), `Förskottsfaktura.` först i
+  noteringen och frakten enligt `lib/shipping.ts`. Beloppen fylls i som Wix
+  själv gör (provordern 10167 är facit i provet). Motorn skickar fakturan
+  med förfallodag efter högst 10 dagar och beställer varorna först när
+  ordern är betald; butikens orderbekräftelse säger detsamma
+  (`lib/order-betalning.ts`).
+  - ☠️ Beslutet sparas före ordern med en insert på besökarens korg
+    (`forskott_<korg>`): två tryck eller två flikar ger aldrig två ordrar.
+    Ett tydligt nej från Wix (4xx) släpper spärren; tystnad eller 5xx gör det
+    inte, eftersom ordern då ändå kan finnas.
+  - ☠️ En order som inte är obetald, handlagd och med våra belopp
+    (`kontrolleraForskottsorder`) avbryts direkt, med varorna tillbaka i
+    lager och utan mejl.
+  - ☠️ En enskild firmas nummer är ett personnummer och skrivs aldrig i
+    ordern; fakturan får bara namnet (villkoren 5.2 säger "för ett bolag").
+  - Create Order tål 5 anrop i timmen för en opublicerad app. Ett 429 ger
+    kunden "försök igen om en stund, eller betala i kassan".
+
+☠️ Före `pa` för företag: vårt kvitto med företagets namn för köp med kort och
+Klarna (villkoren 5.2). Villkoren lovar det, så prisväxeln släpper inte fram
+företagskontot förrän det finns. Förskottsorderns faktura och kvitto bär
+redan namnet.

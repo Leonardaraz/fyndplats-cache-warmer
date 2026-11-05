@@ -100,11 +100,12 @@ varorna finns i lager.
 ### 5. Betalning
 
 5.1 Köparen betalar med kort, med Klarna på Klarnas villkor, eller mot
-förskottsfaktura. En förskottsfaktura betalas innan varorna skickas;
-ordern skickas när betalningen har kommit in.
+förskottsfaktura. En förskottsfaktura betalas inom 10 dagar och innan
+varorna skickas; ordern skickas när betalningen har kommit in. Är den inte
+betald i tid får vi avbryta ordern.
 
-5.2 Kvitto och faktura med köparens namn, organisationsnummer och adress
-skickas med e-post.
+5.2 Kvitto och faktura med köparens namn och adress, och för ett bolag
+organisationsnumret, skickas med e-post.
 
 ### 6. Leverans
 
@@ -207,12 +208,16 @@ tingsrätt som första instans.
    sparar vilken version företaget godkänt och när (`villkorVersion`,
    `villkorGodkant` och en rad i `FyndplatsMedlemslogg`), och varje version
    av texten finns kvar i den här filens historik.
-6. **Förskottsfaktura** (punkt 5.1): inget Wix-API slår på ett betalsätt, och
-   manuell betalning i panelen syns för alla kunder. Den byggs därför som en
-   obetald order via Create Order och motorns befintliga faktura (svar 3.3).
-   ☠️ Prisväxeln släpper inte fram företagskontot förrän den finns.
-7. **Kvitto med företagets namn** (punkt 5.2): motorns kvitto och faktura ska
-   läsa företaget ur prisbeslutet. ☠️ Samma spärr: inte före prisväxeln.
+6. **Förskottsfaktura** (punkt 5.1, byggd 2026-11-05): inget Wix-API slår på
+   ett betalsätt, och manuell betalning i panelen syns för alla kunder.
+   Butiken skapar därför en obetald handlagd order via Create Order, och
+   motorns faktura går ut med förfallodag efter högst 10 dagar (svar 3.3).
+   Varorna beställs först när ordern är betald.
+7. **Kvitto med företagets namn** (punkt 5.2): på en förskottsorder står
+   företaget och, för ett bolag, organisationsnumret på motorns faktura och
+   kvitto. ☠️ En enskild firmas nummer är ett personnummer och skrivs aldrig
+   i ordern; punkt 5.2 säger därför "för ett bolag". Kvittot för kort och
+   Klarna är inte byggt: inte före prisväxeln.
 
 ### Lagrummen, kontrollerade 2026-11-05
 

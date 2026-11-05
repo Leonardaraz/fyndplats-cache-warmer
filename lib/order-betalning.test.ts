@@ -7,7 +7,14 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { BETALNING_BEKRAFTAD, BETALNING_MOT_FAKTURA, betalningstext } from "./order-betalning.ts";
+import {
+  BETALNING_BEKRAFTAD,
+  BETALNING_MOT_FAKTURA,
+  BETALNING_MOT_FORSKOTT,
+  FORSKOTT_MARKOR,
+  betalningstext,
+} from "./order-betalning.ts";
+import { FORSKOTT_MARKOR as VARUKORGENS_MARKOR } from "./medlem/varukorg.ts";
 
 const fakturaorder = { channelInfo: { type: "BACKOFFICE_MERCHANT" }, paymentStatus: "NOT_PAID" };
 
@@ -33,4 +40,15 @@ test("en webborder visar Wix betalsätt som förut", () => {
 test("en webborder utan betalsätt får samma text som förut", () => {
   assert.equal(betalningstext({ channelInfo: { type: "WEB" }, paymentStatus: "NOT_PAID" }), BETALNING_BEKRAFTAD);
   assert.equal(betalningstext({}), BETALNING_BEKRAFTAD);
+});
+
+test("förskottsordern från företagskontot säger att varorna skickas när fakturan är betald", () => {
+  const forskott = { ...fakturaorder, buyerNote: "Förskottsfaktura. Org.nr: 556000-0000." };
+  assert.equal(betalningstext(forskott), BETALNING_MOT_FORSKOTT);
+  // Betald är den betald, som andra handlagda ordrar.
+  assert.equal(betalningstext({ ...forskott, paymentStatus: "PAID" }), BETALNING_BEKRAFTAD);
+  // En vanlig fakturaorder har kvar sin text.
+  assert.equal(betalningstext({ ...fakturaorder, buyerNote: "Faktura till Exempel AB" }), BETALNING_MOT_FAKTURA);
+  // Markören är densamma som butiken skriver i ordern (lib/medlem/varukorg.ts).
+  assert.equal(FORSKOTT_MARKOR, VARUKORGENS_MARKOR);
 });

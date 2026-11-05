@@ -30,9 +30,13 @@ import {
   orderMedKopflode,
   prisbeslutUtanUtfall,
   prisLage,
+  sattForskottsorder,
   sattKorgutfall,
+  slappForskottsbeslut,
   sparaPrisbeslut,
+  taForskottsbeslut,
   type Medlem,
+  type Prisbeslutspost,
 } from "./lager";
 import { stadaLastaKorgar, type Stadutfall } from "./korgstadning";
 import { hamtaGolv } from "./golv-klient";
@@ -55,8 +59,11 @@ import { skickaOffertForfragan } from "./mejl";
 import type { Golvsvar, Varukorgsrad } from "./varukorg";
 import {
   STORES_APP_ID,
+  forskottskund,
+  forskottsorderKropp,
   golvnyckel,
   kassaAdress,
+  kontrolleraForskottsorder,
   korgenBarPriserna,
   korgenBarRaderna,
   laastVarukorgKropp,
@@ -66,6 +73,7 @@ import {
   variantpriserUrV3,
   type Lastrad,
 } from "./varukorg";
+import { fraktKr } from "@/lib/shipping";
 
 /** Butikens publika headless-klient, samma som varukorgen (components/cart.tsx). */
 const HEADLESS_CLIENT_ID = "3d8fdd09-3b3c-475f-aac2-b6bfa9e05153";
@@ -358,36 +366,9 @@ export async function medlemskassa(
 
   // Loggen före svaret: ett köp utan beslut går inte att förklara (E2-9).
   // Går den inte att spara tas korgen bort, och kunden får den vanliga kassan.
-  const kostnad = (produktId: string, variantId: string | undefined) =>
-    golv.get(golvnyckel(produktId, variantId ?? null))?.kostnadOre ?? undefined;
-  const sparat = await sparaPrisbeslut({
-    cartId,
-    purchaseFlowId: typeof skapad?.purchaseFlowId === "string" ? skapad.purchaseFlowId : "",
-    medlemsId: mp.medlem.id,
-    profil: beslut.profil,
-    ...(mp.foretag && beslut.profil === "foretag" ? { foretagNamn: mp.foretag.namn } : {}),
-    niva: beslut.niva,
-    procent: beslut.procent,
-    kalla: beslut.kalla,
-    basOreExMoms: beslut.basOreExMoms,
-    summaAOre: beslut.summaAOre,
-    summaPOre: beslut.summaPOre,
-    rabattOre: beslut.rabattOre,
-    friFraktSkydd: beslut.friFraktSkydd,
-    rader: beslut.rader.map((r) => ({
-      produktId: r.produktId,
-      variantId: r.variantId,
-      antal: r.antal,
-      aOre: r.aOre,
-      kostnadOre: kostnad(r.produktId, r.variantId),
-      golvOre: r.golvOre ?? undefined,
-      procent: r.procent,
-      pOre: r.pOre,
-      begransning: r.begransning,
-      undantag: r.undantag,
-    })),
-    skapad: new Date().toISOString(),
-  }).then(
+  const sparat = await sparaPrisbeslut(
+    beslutspost(cartId, typeof skapad?.purchaseFlowId === "string" ? skapad.purchaseFlowId : "", mp, beslut, golv),
+  ).then(
     () => true,
     () => false,
   );
@@ -534,6 +515,136 @@ export async function offertKassa(id: string, mp: Medlemsprofil, bas: string): P
     console.error("[offertkassa] offerten gick inte att märka som öppnad");
   });
   return { ok: true, adress };
+}
+
+/** Prisbeslutet som det sparas (E2-9), för medlemskassan och förskottsordern. */
+function beslutspost(
+  cartId: string,
+  purchaseFlowId: string,
+  mp: Medlemsprofil,
+  beslut: Prisbeslut,
+  golv: Map<string, Golvsvar>,
+): Prisbeslutspost {
+  const kostnad = (produktId: string, variantId: string | undefined) =>
+    golv.get(golvnyckel(produktId, variantId ?? null))?.kostnadOre ?? undefined;
+  return {
+    cartId,
+    purchaseFlowId,
+    medlemsId: mp.medlem.id,
+    profil: beslut.profil,
+    ...(mp.foretag && beslut.profil === "foretag" ? { foretagNamn: mp.foretag.namn } : {}),
+    niva: beslut.niva,
+    procent: beslut.procent,
+    kalla: beslut.kalla,
+    basOreExMoms: beslut.basOreExMoms,
+    summaAOre: beslut.summaAOre,
+    summaPOre: beslut.summaPOre,
+    rabattOre: beslut.rabattOre,
+    friFraktSkydd: beslut.friFraktSkydd,
+    rader: beslut.rader.map((r) => ({
+      produktId: r.produktId,
+      variantId: r.variantId,
+      antal: r.antal,
+      aOre: r.aOre,
+      kostnadOre: kostnad(r.produktId, r.variantId),
+      golvOre: r.golvOre ?? undefined,
+      procent: r.procent,
+      pOre: r.pOre,
+      begransning: r.begransning,
+      undantag: r.undantag,
+    })),
+    skapad: new Date().toISOString(),
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Förskottsfakturan (E3, villkoren 5.1, Leonards svar 3.3)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type Forskottssvar =
+  | { ok: true; nummer: string; totalOre: number }
+  | {
+      ok: false;
+      skal: "inte-foretag" | "tom" | "oläslig" | "ej-forskott" | "pagar" | "upptaget" | "wix" | "kontroll" | "logg";
+    };
+
+/**
+ * Ett godkänt företag köper varukorgen mot förskottsfaktura. Butiken skapar
+ * ordern obetald och handlagd med företagets priser (varukorg.ts,
+ * "Förskottsordern"); motorn skickar fakturan och håller inne
+ * leverantörsuppgifterna tills ordern är betald. Besökarens varukorg tas bort
+ * när ordern finns.
+ */
+export async function forskottsorder(besokarensKorg: string, mp: Medlemsprofil): Promise<Forskottssvar> {
+  if (mp.profil.typ !== "foretag" || !mp.foretag) return { ok: false, skal: "inte-foretag" };
+  // Profilen läses färsk: adressen och numret ska vara de som gäller nu, och
+  // samma prövning som prissättningen gäller (E3-12).
+  const fp = await hamtaForetagsprofil(mp.medlem.id).catch(() => null);
+  if (!fp || !kanHandlaSomForetag(fp)) return { ok: false, skal: "inte-foretag" };
+
+  const korgen = await prissattKorg(besokarensKorg, mp);
+  if ("skal" in korgen) return { ok: false, skal: korgen.skal };
+  const { rader, golv, beslut } = korgen;
+  if (beslut.profil !== "foretag") return { ok: false, skal: "inte-foretag" };
+  if (rader.some((r) => r.appId !== STORES_APP_ID)) return { ok: false, skal: "ej-forskott" };
+
+  const fraktOre = Math.round(fraktKr(beslut.summaPOre / 100) * 100);
+  // ☠️ En enskild firmas nummer är ett personnummer och skrivs aldrig i ordern (forskottskund).
+  const { kropp, summor } = forskottsorderKropp(beslut, rader, forskottskund(fp, mp.medlem.epost), fraktOre, exklMoms);
+
+  // Beslutet före ordern (E2-9), och som spärr mot två ordrar ur samma korg.
+  const nyckel = `forskott_${besokarensKorg}`;
+  let tagen: "tagen" | "fanns";
+  try {
+    tagen = await taForskottsbeslut({ ...beslutspost(nyckel, "", mp, beslut, golv), betalsatt: "forskott", utfall: "forskott" });
+  } catch (e) {
+    console.error("[forskott] beslutet gick inte att spara:", e instanceof Error ? e.message.slice(0, 120) : "okänt");
+    return { ok: false, skal: "logg" };
+  }
+  if (tagen === "fanns") return { ok: false, skal: "pagar" };
+
+  let skapad: unknown;
+  try {
+    skapad = (await wixFetch<{ order?: unknown }>({ method: "POST", path: "/ecom/v1/orders", body: kropp }))?.order;
+  } catch (e) {
+    const status = e instanceof WixApiError ? e.status : 0;
+    console.error(`[forskott] Wix skapade ingen order (${status || "nät"})`);
+    // Ett tydligt nej (4xx) betyder att ingen order finns: spärren släpps så att
+    // kunden kan försöka igen. Vid tystnad eller 5xx kan ordern ändå finnas,
+    // och då står spärren kvar hellre än att en andra order skapas.
+    if (status >= 400 && status < 500) await slappForskottsbeslut(nyckel).catch(() => {});
+    return { ok: false, skal: status === 429 ? "upptaget" : "wix" };
+  }
+
+  const k = kontrolleraForskottsorder(summor, beslut.rader, skapad);
+  if (!k.ok) {
+    // En order som inte bär förskottets villkor får aldrig stå kvar: den
+    // avbryts, varorna läggs tillbaka i lager och kunden får inget mejl.
+    console.error(`[forskott] ordern bar inte förskottets villkor (${k.fel}); den avbryts`);
+    const id = (skapad as { id?: unknown } | null)?.id;
+    if (typeof id === "string") {
+      await wixFetch({
+        method: "POST",
+        path: `/ecom/v1/orders/${encodeURIComponent(id)}/cancel`,
+        body: { sendOrderCanceledEmail: false, restockAllItems: true },
+      }).catch(() => console.error("[forskott] ordern gick inte att avbryta; avbryt den för hand"));
+    }
+    return { ok: false, skal: "kontroll" };
+  }
+
+  await sattForskottsorder(nyckel, k.orderId, k.nummer).catch(() =>
+    console.error(`[forskott] order ${k.nummer} skapad, men beslutet saknar ordern`),
+  );
+  // Besökarens varukorg är köpt: den tas bort, så att samma varor inte köps igen.
+  await wixFetch({ method: "DELETE", path: `/ecom/v2/carts/${encodeURIComponent(besokarensKorg)}` }).catch(() => {});
+  await loggaTyst({
+    omrade: "foretag",
+    typ: "forskott",
+    medlemsId: mp.medlem.id,
+    aktor: "kund",
+    efter: { order: k.nummer, rader: rader.length },
+  });
+  return { ok: true, nummer: k.nummer, totalOre: summor.totalOre };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

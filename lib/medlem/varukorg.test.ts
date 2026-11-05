@@ -5,6 +5,12 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   beloppAvOre,
+  forskottskund,
+  forskottsnotering,
+  forskottsorderKropp,
+  FORSKOTT_MARKOR,
+  kontrolleraForskottsorder,
+  postnummer,
   golvnyckel,
   korgenBarPriserna,
   laastVarukorgKropp,
@@ -16,7 +22,7 @@ import {
   kassaAdress,
   variantpriserUrV3,
 } from "./varukorg.ts";
-import { prissatt } from "./pris.ts";
+import { exklMoms, prissatt } from "./pris.ts";
 import { golvnyckel as klientensNyckel } from "./golv-klient.ts";
 
 function wixRad(id: string, produkt: string, variant: string | null, antal: number, pris: string, appId = STORES_APP_ID) {
@@ -188,4 +194,163 @@ test("☠️ 2.1: en reavara får aldrig medlemspris ovanpå, varken i korgen el
     },
   });
   assert.deepEqual(v.map((x) => [x.variantId, x.rea === true]), [["a", true], ["b", false], ["c", false]]);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Förskottsordern (E3, villkoren 5.1, svar 3.3)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const FORETAG = {
+  epost: "inkop@exempel.se",
+  foretag: "Exempel AB",
+  orgnr: "556000-0000",
+  faktura: { gata: "Testgatan 1", postnr: "15244", ort: "Södertälje" },
+};
+
+type Ordern = {
+  order: {
+    buyerNote: string;
+    channelInfo: { type: string };
+    status: string;
+    paymentStatus: string;
+    taxIncludedInPrices: boolean;
+    lineItems: Record<string, unknown>[];
+    priceSummary: Record<string, { amount: string }>;
+    billingInfo: { address: Record<string, string>; contactDetails: Record<string, string> };
+    shippingInfo: { title: string; logistics: { shippingDestination: { address: Record<string, string> } }; cost: Record<string, unknown> };
+  };
+};
+
+test("förskottsordern har samma belopp som Wix satte på provordern 10167", () => {
+  // 10167: en rad för 94,90 kr inkl. moms och 19 kr frakt. Wix skrev delsumman
+  // 75,92 och frakten 15,20 exkl. moms, momsen 22,78 och totalen 113,90.
+  const korg = lasWixVarukorg({ lineItems: [wixRad("a", "p1", "v1", 1, "94.90")] })!;
+  const beslut = prissatt(prisrader(korg, new Map()), { typ: "foretag", niva: "Brons", nivaProcent: 0 });
+  const { kropp, summor } = forskottsorderKropp(beslut, korg, FORETAG, 1_900, exklMoms);
+  const o = (kropp as Ordern).order;
+  assert.deepEqual(o.priceSummary, {
+    subtotal: { amount: "75.92" },
+    shipping: { amount: "15.20" },
+    tax: { amount: "22.78" },
+    discount: { amount: "0.00" },
+    total: { amount: "113.90" },
+  });
+  assert.deepEqual(o.lineItems[0], {
+    productName: { original: "Vara p1" },
+    catalogReference: { catalogItemId: "p1", appId: STORES_APP_ID, options: { variantId: "v1" } },
+    quantity: 1,
+    itemType: { preset: "PHYSICAL" },
+    physicalProperties: { shippable: true },
+    price: { amount: "94.90" },
+    totalPriceBeforeTax: { amount: "75.92" },
+    totalPriceAfterTax: { amount: "94.90" },
+    taxDetails: { taxRate: "0.25", totalTax: { amount: "18.98" } },
+    paymentOption: "FULL_PAYMENT_OFFLINE",
+  });
+  assert.deepEqual(o.shippingInfo.cost, {
+    price: { amount: "19.00" },
+    totalPriceBeforeTax: { amount: "15.20" },
+    totalPriceAfterTax: { amount: "19.00" },
+    taxDetails: { taxRate: "0.25", totalTax: { amount: "3.80" } },
+  });
+  assert.deepEqual(summor, { varorOre: 9_490, fraktOre: 1_900, momsOre: 2_278, totalOre: 11_390 });
+});
+
+test("☠️ förskottsordern är obetald och handlagd, med markören först i noteringen", () => {
+  const korg = lasWixVarukorg({ lineItems: [wixRad("a", "p1", null, 3, "1831.62"), wixRad("b", "p2", "v2", 1, "249")] })!;
+  const beslut = prissatt(prisrader(korg, new Map()), { typ: "foretag", niva: "Brons", nivaProcent: 0 });
+  const { kropp, summor } = forskottsorderKropp(beslut, korg, FORETAG, 0, exklMoms);
+  const o = (kropp as Ordern).order;
+  assert.equal(o.channelInfo.type, "BACKOFFICE_MERCHANT");
+  assert.equal(o.status, "APPROVED");
+  assert.equal(o.paymentStatus, "NOT_PAID");
+  assert.equal(o.taxIncludedInPrices, true);
+  assert.ok(o.buyerNote.startsWith(FORSKOTT_MARKOR));
+  assert.equal(o.buyerNote, "Förskottsfaktura. Org.nr: 556000-0000.");
+  assert.deepEqual(o.billingInfo, {
+    address: { country: "SE", city: "Södertälje", postalCode: "152 44", addressLine: "Testgatan 1" },
+    contactDetails: { company: "Exempel AB" },
+  });
+  // Utan egen leveransadress levereras varorna till fakturaadressen.
+  assert.deepEqual(o.shippingInfo.logistics.shippingDestination.address, o.billingInfo.address);
+  // Summorna går ihop: varorna plus frakten är totalen, momsen är en femtedel av den.
+  const varor = 3 * 183_162 + 24_900;
+  assert.equal(summor.totalOre, varor);
+  assert.equal(oreAvBelopp(o.priceSummary.total.amount), varor);
+  assert.equal(
+    oreAvBelopp(o.priceSummary.subtotal.amount)! + oreAvBelopp(o.priceSummary.tax.amount)!,
+    varor,
+    "delsumman exkl. moms plus momsen är totalen",
+  );
+});
+
+test("☠️ en enskild firmas personnummer skrivs aldrig i ordern", () => {
+  const korg = lasWixVarukorg({ lineItems: [wixRad("a", "p1", null, 1, "100")] })!;
+  const beslut = prissatt(prisrader(korg, new Map()), { typ: "foretag", niva: "Brons", nivaProcent: 0 });
+  // Profilen bär numret för granskningen; kunden till ordern gör det inte.
+  const profil = {
+    namn: "Anna Andersson Snickeri",
+    orgnr: "800101-1234",
+    form: "enskild" as const,
+    faktura: FORETAG.faktura,
+  };
+  const enskild = forskottskund(profil, FORETAG.epost);
+  assert.equal(enskild.orgnr, undefined);
+  assert.equal(forskottskund({ ...profil, form: "juridisk", orgnr: "556000-0000" }, FORETAG.epost).orgnr, "556000-0000");
+  const { kropp } = forskottsorderKropp(beslut, korg, enskild, 1_900, exklMoms);
+  assert.equal((kropp as Ordern).order.buyerNote, "Förskottsfaktura.");
+  assert.equal(forskottsnotering({}), "Förskottsfaktura.");
+  assert.doesNotMatch(JSON.stringify(kropp), /\d{6}-?\d{4}/);
+});
+
+test("förskottsordern: egen leveransadress, och bara varor ur Wix Stores", () => {
+  const korg = lasWixVarukorg({ lineItems: [wixRad("a", "p1", null, 1, "100")] })!;
+  const beslut = prissatt(prisrader(korg, new Map()), { typ: "foretag", niva: "Brons", nivaProcent: 0 });
+  const lev = { ...FORETAG, leverans: { gata: "Lagervägen 2", postnr: "123 45", ort: "Farsta" } };
+  const o = (forskottsorderKropp(beslut, korg, lev, 0, exklMoms).kropp as Ordern).order;
+  assert.deepEqual(o.shippingInfo.logistics.shippingDestination.address, {
+    country: "SE",
+    city: "Farsta",
+    postalCode: "123 45",
+    addressLine: "Lagervägen 2",
+  });
+  assert.equal(postnummer("15244"), "152 44");
+  assert.equal(postnummer("152 44"), "152 44");
+
+  // Ett presentkort eller en tjänst går inte att förskottsfakturera härifrån.
+  const blandad = lasWixVarukorg({ lineItems: [wixRad("a", "p1", null, 1, "100"), wixRad("c", "pk", null, 1, "500", "annan-app")] })!;
+  const b2 = prissatt(prisrader(blandad, new Map()), { typ: "foretag", niva: "Brons", nivaProcent: 0 });
+  assert.throws(() => forskottsorderKropp(b2, blandad, FORETAG, 0, exklMoms), /Wix Stores/);
+  assert.throws(() => forskottsorderKropp(beslut, [{ ...korg[0], antal: 2 }], FORETAG, 0, exklMoms), /stämmer inte/);
+  assert.throws(() => forskottsorderKropp(beslut, korg, FORETAG, -1, exklMoms), /frakt/);
+});
+
+test("kontrollen av den skapade förskottsordern: obetald, handlagd och våra belopp", () => {
+  const korg = lasWixVarukorg({ lineItems: [wixRad("a", "p1", null, 2, "100"), wixRad("b", "p2", "v2", 1, "249")] })!;
+  const beslut = prissatt(prisrader(korg, new Map()), { typ: "foretag", niva: "Brons", nivaProcent: 0 });
+  const { summor } = forskottsorderKropp(beslut, korg, FORETAG, 1_900, exklMoms);
+  const rader = beslut.rader.map((r) => ({ produktId: r.produktId, antal: r.antal, pOre: r.pOre }));
+  const skapad = {
+    id: "o-1",
+    number: 10201,
+    paymentStatus: "NOT_PAID",
+    channelInfo: { type: "BACKOFFICE_MERCHANT" },
+    priceSummary: { total: { amount: "468.00" } },
+    // Wix lovar inte ordningen.
+    lineItems: [
+      { quantity: 1, price: { amount: "249.00" }, catalogReference: { catalogItemId: "p2" } },
+      { quantity: 2, price: { amount: "100.00" }, catalogReference: { catalogItemId: "p1" } },
+    ],
+  };
+  assert.deepEqual(kontrolleraForskottsorder(summor, rader, skapad), { ok: true, orderId: "o-1", nummer: "10201" });
+  const fel = (over: Record<string, unknown>) => kontrolleraForskottsorder(summor, rader, { ...skapad, ...over });
+  assert.equal(fel({ paymentStatus: "PAID" }).ok, false);
+  assert.equal(fel({ channelInfo: { type: "WEB" } }).ok, false);
+  assert.equal(fel({ priceSummary: { total: { amount: "469.00" } } }).ok, false);
+  assert.equal(fel({ lineItems: [skapad.lineItems[0]] }).ok, false);
+  assert.equal(
+    fel({ lineItems: [skapad.lineItems[0], { ...skapad.lineItems[1], price: { amount: "99.00" } }] }).ok,
+    false,
+  );
+  assert.equal(kontrolleraForskottsorder(summor, rader, null).ok, false);
 });

@@ -1054,6 +1054,11 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 .drawer-offert-fel{margin:0;font-size:var(--text-sm);color:#8a1c10}
 .drawer-offert-klar{margin:0 0 10px;padding:8px 12px;border-radius:var(--r-md);background:#ecfdf3;font-size:var(--text-sm);color:#14532d}
 .drawer-offert-klar a{color:inherit;font-weight:700;text-decoration:underline}
+/* Förskottsfakturan för företag (components/forskott-knapp.tsx): villkoret före knappen. */
+.drawer-forskott-villkor{margin:0;font-size:var(--text-sm);line-height:1.5;color:#4a443d}
+.drawer-forskott-villkor a{color:inherit;font-weight:700;text-decoration:underline}
+.drawer-forskott-avbryt{justify-self:center;margin:-4px 0 4px;padding:6px 10px;font:inherit;font-size:var(--text-sm);color:#4a443d;background:none;border:0;text-decoration:underline;cursor:pointer}
+.drawer-forskott-avbryt:focus-visible{outline:none;box-shadow:var(--e-ring);border-radius:var(--r-sm)}
 .pdp-sale{display:inline-block;vertical-align:middle;margin-left:10px;background:var(--sale-fill);color:#fff;font-size:var(--text-xs);font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:3px 9px;border-radius:var(--r-xs)}
 /* Klarna-delbetalningsrad under priset (components/klarna-message.tsx). Klarnas
    rosa märke i ett litet chip + diskret text — säljpunch utan att skrika. */
