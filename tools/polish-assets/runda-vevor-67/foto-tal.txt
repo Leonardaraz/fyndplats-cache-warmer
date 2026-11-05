@@ -1,0 +1,30 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+50ffdfe3 1040 insidans längd 1040 mm (40,9 in) i källans rubrik och på VEVOR-bild 7
+50ffdfe3 430 insidans bredd 430 mm (16,9 in) i källans rubrik och på VEVOR-bild 7
+50ffdfe3 130 insidans djup 130 mm (5,1 in) i källans rubrik och på VEVOR-bild 7
+50ffdfe3 49 keyboards med 49 tangenter ritas på VEVOR-bild 2 och nämns i källans punkt
+50ffdfe3 1100 ytterlängden 1100 mm (43,3 in) på VEVOR-bild 7
+50ffdfe3 440 ytterbredden 440 mm (17,3 in) på VEVOR-bild 7
+50ffdfe3 180 ytterdjupet 180 mm (7,1 in) på VEVOR-bild 7
+50ffdfe3 2,9 nettovikten 2,9 kg (6,39 lbs) på VEVOR-bild 7
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+4c67e1fa 3 tre höjdlägen: 3 nivåer i källans punkt och 3-Level Height Adjustment på VEVOR-bild 3
+4c67e1fa 2 två stänger: ställningen består av två separata stänger på VEVOR-bild 1, 3, 5 och 7
+4c67e1fa 762 det lägsta höjdläget 762 mm (30 in) i källans punkt och på VEVOR-bild 3
+4c67e1fa 990 det högsta höjdläget 990 mm (39 in) på VEVOR-bild 3, medan källans punkt säger 991 mm
+4c67e1fa 1022 höjden 1022 mm (40,23 in) på VEVOR-bild 7
+4c67e1fa 655 basens längd 655 mm (25,8 in) på VEVOR-bild 7
+4c67e1fa 479 basens bredd 479 mm (18,85 in) på VEVOR-bild 7
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+27bf04b4 36 produktvikten 36,0 kg (79 lbs) i källans specifikation och på VEVOR-bild 7
+27bf04b4 180 sitsens viktkapacitet 180 kg i källans punkt, medan VEVOR-bild 2 visar 450 lbs för ramen: det lägsta skrivs
+27bf04b4 100 högsta skivvikten 100 kg (220 lbs) per sida i noten på VEVOR-bild 3 och 220 lbs på VEVOR-bild 2
+27bf04b4 25 skivhålet på 1 tum (25 mm) på VEVOR-bild 3 och i källans punkt
+27bf04b4 50 skivhålet på 2 tum (50 mm) på VEVOR-bild 3 och i källans punkt, och sitshöjdens övre gräns 50 cm på VEVOR-bild 4
+27bf04b4 6 sex lägen i svängarmen på VEVOR-bild 4
+27bf04b4 5 sittkudden 5 cm (2 tum) tjock i källans punkt och på VEVOR-bild 5
+27bf04b4 1,5 rörens väggtjocklek 1,5 mm i källans punkt och på VEVOR-bild 5
+27bf04b4 2 rörens mått 2 × 2 tum i källans punkt
