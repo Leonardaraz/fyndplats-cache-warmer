@@ -1109,8 +1109,11 @@ för att avregistrera sig och rubrikerna List-Unsubscribe med ett klick (RFC
 - **En inloggad men spärrad medlem** ser beskedet direkt på `/konto`, inte
   inloggningen.
 
-Före läget `pa`: integritetstexten (J4) ska vara godkänd och publicerad,
-utkastet står i `docs/medlemskap-integritetstext-utkast.md`. E1-grinden är
+Integritetstexten (J4) är godkänd av Leonard 2026-11-05 och står i
+`/sekretesspolicy` under rubriken Medlemskonto (`#medlemskonto`). Den beskriver
+bara E1; medlemspriser (E2) och företag (E3) kräver ett tillägg innan de slås
+på. Ändras vad kontot sparar, hur länge eller vilka mejl och kakor det har,
+ändras texten i samma PR. E1-grinden är
 specens E1-1 till E1-11 och en vecka med avstämning utan avvikelser; svaret
 från `/api/cron/medlemsnivaer` och `FyndplatsMedlemslogg` (område
 `avstamning`) visar dem.

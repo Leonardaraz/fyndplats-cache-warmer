@@ -34,6 +34,33 @@ export default function Sekretesspolicy() {
       <p><strong>Förbättra och utveckla webbutiken.</strong> I huvudsak på aggregerad eller pseudonymiserad nivå. Laglig grund: berättigat intresse samt samtycke för analyscookies.</p>
       <p><strong>Uppfylla rättsliga skyldigheter</strong> (t.ex. bokföringslagen – upp till sju år) och <strong>förebygga missbruk och bedrägeri.</strong></p>
 
+      <h2 id="medlemskonto">Medlemskonto</h2>
+      <p>Du kan skapa ett konto hos oss för att se din medlemsnivå, dina köp och dina ordrar. Du loggar in med en kod eller länk som vi mejlar till dig; vi har inga lösenord.</p>
+      <h3>Vad vi sparar</h3>
+      <ul>
+        <li>Din e-postadress, när kontot skapades och när du senast loggade in.</li>
+        <li>Dina köp hos oss: ordernummer, datum, vad du betalade för varorna och vad du har fått tillbaka. Vi räknar köp med samma e-postadress, också köp du gjorde innan du skapade kontot.</li>
+        <li>Din medlemsnivå och när den har ändrats.</li>
+        <li>För inloggningen: när du bad om en kod, och en kontrollsumma av koden och av din IP-adress. Koden och IP-adressen sparas inte i klartext.</li>
+      </ul>
+      <h3>Varför</h3>
+      <ul>
+        <li>För att ge dig kontot och räkna din medlemsnivå. Det är en del av avtalet om medlemskapet (GDPR artikel 6.1 b).</li>
+        <li>För att skydda kontot mot intrång och missbruk, till exempel att någon försöker gissa koder. Det är vårt berättigade intresse (artikel 6.1 f).</li>
+      </ul>
+      <h3>Mejl</h3>
+      <p>Vi mejlar dig när kontot skapas, när du når en ny nivå och två veckor innan din nivå sjunker. Mejlen om nivån kan du sluta få när du vill, med länken i mejlet eller på Mina sidor. Mejlet med inloggningskoden och välkomstmejlet hör till kontot.</p>
+      <h3>Kakor</h3>
+      <p>När du är inloggad sparar vi kakan <code>fp_medlem</code> i din webbläsare i högst 90 dagar. Den behövs för att du ska förbli inloggad och kräver inget samtycke. Kakan <code>fp_medlem_lank</code> finns i högst 15 minuter, medan du loggar in med länken.</p>
+      <h3>Hur länge</h3>
+      <ul>
+        <li>Kontot sparas tills du ber oss ta bort det.</li>
+        <li>Köpen räknas i nivån i 365 dagar. Uppgifterna om köpen sparas så länge bokföringslagen kräver för ordern.</li>
+        <li>Inloggningsförsök sparas i 30 dagar.</li>
+      </ul>
+      <h3>Ta bort kontot</h3>
+      <p>Mejla <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> så tar vi bort kontot. Dina ordrar finns kvar, som bokföringslagen kräver.</p>
+
       <h2>Vem delar vi uppgifter med?</h2>
       <ul>
         <li><strong>Betalleverantör:</strong> Klarna hanterar betalningar.</li>
