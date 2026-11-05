@@ -57,6 +57,8 @@ function fyll() {
   minne.kol(MEDLEM_KOL.inloggningar).set("i1", { _id: "i1", epost: EPOST });
   minne.kol(MEDLEM_KOL.inloggningar).set("i2", { _id: "i2", epost: "annan@exempel.se" });
   minne.kol(MEDLEM_KOL.orderliggare).set("o1", { _id: "o1", epost: EPOST });
+  minne.kol(MEDLEM_KOL.sparade).set("sk_0000000000000001", { _id: "sk_0000000000000001", medlemsId: ID, namn: "Kontoret" });
+  minne.kol(MEDLEM_KOL.sparade).set("sk_0000000000000002", { _id: "sk_0000000000000002", medlemsId: "annan", namn: "Hemma" });
 }
 
 beforeEach(() => {
@@ -65,7 +67,7 @@ beforeEach(() => {
 });
 
 describe("taBortKonto", () => {
-  it("tar bort medlemmen, profilen, nivåbytena och inloggningarna, men lämnar orderliggaren och andra medlemmar", async () => {
+  it("tar bort medlemmen, profilen, nivåbytena, inloggningarna och de sparade korgarna, men lämnar orderliggaren och andra medlemmar", async () => {
     fyll();
     expect(await taBortKonto(ID, ORSAK)).toBe("ok");
     expect(minne.kol(MEDLEM_KOL.medlemmar).size).toBe(0);
@@ -73,9 +75,10 @@ describe("taBortKonto", () => {
     expect([...minne.kol(MEDLEM_KOL.nivaer).keys()]).toEqual(["annan__2026-11-04"]);
     expect([...minne.kol(MEDLEM_KOL.inloggningar).keys()]).toEqual(["i2"]);
     expect(minne.kol(MEDLEM_KOL.orderliggare).size).toBe(1);
+    expect([...minne.kol(MEDLEM_KOL.sparade).keys()]).toEqual(["sk_0000000000000002"]);
     const logg = [...minne.kol(MEDLEM_KOL.logg).values()];
     expect(logg).toHaveLength(1);
-    expect(logg[0]).toMatchObject({ typ: "konto-borttaget", medlemsId: ID, efter: { nivabyten: 2, inloggningar: 1 } });
+    expect(logg[0]).toMatchObject({ typ: "konto-borttaget", medlemsId: ID, efter: { nivabyten: 2, inloggningar: 1, sparadeKorgar: 1 } });
     expect(JSON.stringify(logg[0])).not.toContain(EPOST);
   });
 

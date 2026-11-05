@@ -89,11 +89,13 @@ motorn behöver veta:
   text, och skrivs till `FyndplatsMedlemslogg` med före- och efterläge
   (E1-11). En manuell nivå gäller i stället för den räknade, till och med sitt
   slutdatum om ett sådant anges.
-- Borttagning tar bort kontot, profilerna, nivåbytena och inloggningsförsöken
-  (adressen i klartext). Orderliggaren och prisbesluten står kvar, eftersom de
-  bär ordrarna och priserna och inget konto, och loggen får bara den maskerade
-  adressen. Nivåbytena och inloggningarna tas bort först: faller det står
-  kontot kvar, så att ett nytt försök hittar allt (2026-11-04).
+- Borttagning tar bort kontot, profilerna, nivåbytena, inloggningsförsöken
+  (adressen i klartext) och de sparade varukorgarna. Orderliggaren och
+  prisbesluten står kvar, eftersom de bär ordrarna och priserna och inget
+  konto, och loggen får bara den maskerade adressen. Nivåbytena,
+  inloggningarna och de sparade varukorgarna tas bort först: faller det står
+  kontot kvar, så att ett nytt försök hittar allt (2026-11-04, korgarna
+  2026-11-05).
 - Skyddet är det som gäller för hela `/admin` (Basic Auth och Vercels
   skydd). Tvåfaktor krävs av specen före E2.
 
@@ -221,6 +223,15 @@ mappningar, så butiken frågar motorn (`POST /api/medlem/golv`, logiken i
     datum (409 `inget-kvitto` annars).
   Svaret har `Cache-Control: no-store`, och ingen loggrad bär e-post eller
   ordernummer.
+
+- **Sparade varukorgar** (byggt 2026-11-05 i butiken, `lib/medlem/sparade.ts`):
+  medlemmen sparar varukorgen under ett namn på Mina sidor och lägger den i
+  varukorgen igen med ett tryck. Kollektionen `FyndplatsSparadeKorgar` (ADMIN,
+  indexet `medlem-skapad`: `medlemsId` stigande, `skapad` fallande) har
+  `medlemsId`, `namn`, `rader` (produkt, variant, antal och namn, aldrig pris)
+  och `skapad`. Butiken skriver och läser den; motorn rör den bara när ett
+  konto tas bort (`taBortKonto`, `MEDLEM_KOL.sparade`). Att spara följer
+  växeln för E2/E3, eftersom integritetstexten för E1 inte nämner korgarna.
 
 ## Kvar till E2
 
