@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Artikelstorlek 620 x 310 x 220 mm utan axelord, men källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar plattan som 12,20 in / 310 mm på båda sidorna: texten skriver plattans sidor som 310 × 310 mm och inte artikelstorleken
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 69,3 x 17,7 x 27,6 tum / 176 x 45 x 70 cm utan axelord, men källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar 69,3 in / 1760 mm som bredd, 17,7 in / 450 mm som djup och 27,6 in / 700 mm som höjd med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (inklusive justerbara fötter) 660 x 235 x 1190 mm utan axelord, men källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar 26 in / 660 mm som bredd, 9,3 in / 235 mm som djup och 46,9 in / 1190 mm som höjd med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 40,2 x 11,8 x 34,1 tum / 1020 x 300 x 865 mm utan axelord, men källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar 40,2 in / 1020 mm som bredd, 11,8 in / 300 mm som djup och 34,1 in / 865 mm som höjd med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Mått (installerad) 1435x970x(965-1285) mm och Mått hopfälld 910x550x95 mm utan axelord, men källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar 56,5 in / 1435 mm som längd, 38,2 in / 970 mm som bredd och 38 till 50,6 in / 965 till 1285 mm som höjd med pilar: texten skriver längd, bredd och höjd ur ritningen, och de hopfällda måtten i källans ordning utan axelord
