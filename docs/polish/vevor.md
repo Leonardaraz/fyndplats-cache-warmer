@@ -42,6 +42,25 @@ På en familj (flera varianter) visar varje rad i fliken som skiljer sig varje v
   äldre än tolv timmar rörs inte (utkasten läses en gång per dygn). Kontrollera med
   **"VEVOR — synken"** (`status`) att `aktiv` är sann före en VEVOR-runda.
 
+**Så hittar du kandidater** *(2026-11-05, `FLAGGADE-VEVOR.md` (lh))*. Läs hela VEVOR-registret
+i ett enda `ExecuteWixAPI`-anrop: `FyndplatsMappings` med `supplier: vevor`, hundra rader per
+sida och `fields: ["wixProductId", "seoTitle", "variants", "vevorArtiklar",
+"supplierProductId", "draftStatus", "vevorGranskning", "needsAiPolish"]` i frågan. Utan
+`fields` tar hundra rader omkring nio sekunder och bara 300 rader ryms i en körning, med
+`fields` tar de 0,3 sekunder och alla 10 845 rader ryms på 16 sekunder. Behåll
+`needsAiPolish: true`, `draftStatus: pending_review`, en variant, högst en artikel,
+`supplierProductId` som börjar med `vevor:` och ingen av granskningsflaggorna ovan. Räkna
+titelstammarna över alla rader (första ordet på minst fyra bokstäver som inte är *elektrisk*,
+*kraftig*, *bärbar* och liknande) och behåll bara de som har högst två rader: en stam som
+många delar är en familj, ett syskon eller en tvilling. Läs sedan avläsningen i
+`FyndplatsVevorAvlasningar` (`_id` är artikeln utan `vevor:`, och `fields` går också där):
+`status: i_lager`, `saldo` minst 8, `levererasTillSe` inte falskt, `prisSek` minst 450, minst
+åtta bilder och tre specifikationsrader. Sålla bort varje id8 som redan står i
+`FLAGGADE-VEVOR.md` (polerade och hållna), och sök på varje kvarvarande kandidats enskilda
+substantiv i hela registret (tvillingskärmen nedan) innan du väljer. ☠️ Sökningen på VEVOR-rader
+hör till urvalet, inte bara sökningen på de andra feedarna: popcornmaskinen i runda 49 hade ett
+svart syskonutkast med samma titel, och det såg jag först efter skrivningen.
+
 **Märket.** Skrivsteget sätter märket VEVOR i Wix. Skriv det inte i namnet eller SEO-titeln
 *(Leonard 2026-10-28)*.
 
