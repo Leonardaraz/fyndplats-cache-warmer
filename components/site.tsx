@@ -1,4 +1,5 @@
 import { CartButton } from "./cart";
+import { KontoLank } from "./konto-lank";
 import { HemLank } from "./hem-lank";
 import { WishlistButton } from "./wishlist";
 import { SearchBox } from "./searchbox";
@@ -93,6 +94,7 @@ export async function SiteHeader() {
         <div className="container hrow">
           <HemLank className="brand"><Mark />Fyndplats</HemLank>
           <SearchBox />
+          <KontoLank />
           <WishlistButton />
           <CartButton />
           <MobileNav tree={utanAntal(tree)} hasBlog={hasBlog} hasSale={hasSale} />
