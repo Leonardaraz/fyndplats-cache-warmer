@@ -32,7 +32,17 @@ Massage & Återhämtning, medan bläddringsraden sa "4 av 244 i Fåtöljer". Det
 
 Butiken (headless-site `lib/breadcrumb-category.ts`) väljer nu den smalaste underkategorin
 bland produktens EGNA avdelningar först, och bläddringsraden följer brödsmulan.
-Långsvansregeln ovan står kvar inom avdelningen. Kategoristeget i polerrundan stoppar
+Långsvansregeln ovan står kvar inom avdelningen.
+
+☠️ **Men typkategorin går före avdelningen (Leonard 2026-11-05).** Kategorikollens första
+mätning av "egen avdelning först" gav 204 byten av 5 887. 150 av dem gick från typkategorin
+(Skoskåp & skobänkar 27, Bokhyllor 23, Byråer 16, TV-bänkar 13 …) till Hem & Inredning >
+Förvaring & Organisering, eftersom varorna är kopplade direkt till den avdelningen men inte
+till Möbler. Två julgranar hamnade under Dekoration & Prydnad. Regeln är nu: först den egna,
+indexerbara underkategori som ett ord i namnets huvudfras pekar ut (kategorinamnets led i
+plural eller singular), sedan egen avdelning, sedan den smalaste av alla. #860 väntade på
+rättelsen. Ordformerna skiljer sig med flit från polerspärrens: där räknas inte namn med
+flera ord. Kategoristeget i polerrundan stoppar
 dessutom en plan där namnets huvudfras pekar ut en kategori som saknas
 (`lib/polish/typkategori.ts`).
 
