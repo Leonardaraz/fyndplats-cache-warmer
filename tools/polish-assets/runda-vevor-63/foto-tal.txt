@@ -1,0 +1,19 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+23fd158e 72 antalet burkar i källans titel och punkt 2
+23fd158e 110 burkens volym 110 g i källans punkt 2
+23fd158e 4 burkens storlek 4 oz på bilden "Equipped with 4oz Glass Bottles" (inte skriven i texten)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+6cd618a3 20 utvidgningsveckan ger 20 % mer utrymme på bilden "Expandable Design"
+6cd618a3 230 innerfodret 230D på bilden "Weatherproof Oxford Fabric" och i källans punkt 2
+6cd618a3 1020 höjden 1020 mm med handtaget uppdraget på måttbilden
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+a3d988d0 200 krokarna på 200 mm i källans punkt 4
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+af022e60 1800 tyget 1800D i källans specifikation
+af022e60 600 källans punkt 4 jämför 1800D med vanligt 600D-tyg

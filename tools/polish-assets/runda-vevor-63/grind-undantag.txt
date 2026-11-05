@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek 23,3 x 4,65 x 16,02 tum / 591 x 118 x 407 mm utan axelord, men källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar 23,3 in / 591 mm som bredd, 4,65 in / 118 mm som djup och 16,02 in / 407 mm som höjd med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (L x B x H) 505 x 340 x 820 mm, men måttbilden (position 7 i källgalleriet, inte bland sidans sex bilder) ritar höjden som 780 mm (30,71 tum) och 1020 mm med handtaget uppdraget: texten skriver bara bredden 505 mm och djupet 340 mm som båda källorna ger och ingen höjd
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 13,39 x 14,76 x 20,08 tum / 340 x 375 x 510 mm utan axelord, men källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar 340 mm som diameter vid locket, 375 mm som bredd över handtag och kran och 510 mm som höjd med pilar: texten skriver diameter, bredd över handtag och kran, och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 9,3 x 6,7 x 13 tum / 237 x 171 x 330 mm utan axelord, men källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar 9,3 in / 237 mm som bredd, 6,7 in / 171 mm som djup och 13 in / 330 mm som höjd med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 520x450x1420 mm utan axelord, men källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar 20,5 in / 520 mm och 18 in / 450 mm som sidorna på basen och 56 in / 1420 mm som höjd med pilar: texten skriver höjden 1420 mm vid namn och basens sidor 520 × 450 mm utan axelord
