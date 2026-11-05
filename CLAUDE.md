@@ -1792,3 +1792,15 @@ Ett företag läggs till på ett befintligt konto, högst ett per konto i E3.
   - ☠️ Butikens och motorns E3 mergas samma natt. Utan motorns del får ett
     företag som betalar med kort eller Klarna inget kvitto, och villkoren
     lovar ett.
+
+- **"Köp igen"** på varje order på Mina sidor med en fysisk vara (specen:
+  "sparade varukorgar och Köp igen"; byggt 2026-11-05). `/api/konto/kop-igen`
+  läser ordern ur orderliggaren på kontots e-post, och numret väljer bara
+  bland medlemmens egna ordrar. Katalogen avgör vad som går att köpa nu
+  (`lib/medlem/kop-igen.ts`): en vara som är slut eller inte längre säljs, eller
+  vars variant är borta, läggs inte i, och beskedet under knappen säger hur
+  många. Resten läggs i varukorgen i ETT anrop (`addMany` i
+  `components/cart.tsx`), med orderns antal (högst 99) och dagens pris.
+  Variant-id skickas bara för en produkt med flera varianter, som på
+  produktsidan. Gäller alla medlemmar, inte bara företag. Sparade varukorgar
+  är inte byggda.

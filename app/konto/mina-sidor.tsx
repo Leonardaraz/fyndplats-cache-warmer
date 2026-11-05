@@ -15,6 +15,7 @@ import { maskeradEpost } from "@/lib/medlem/inloggning";
 import type { MinaSidor, OrderPaMinaSidor } from "@/lib/medlem/konto";
 import { arHogstaNivan, inteRaknadText, visaSparningVantas, visaUppmaning } from "@/lib/medlem/visning";
 import { Medlemskort, nivaNyckel } from "./medlemskort";
+import { KopIgen } from "./kop-igen";
 import s from "./konto.module.css";
 
 const STATUS: Record<OrderPaMinaSidor["status"], { text: string; ton: "ok" | "varning" | "neutral" }> = {
@@ -249,16 +250,18 @@ export function MinaSidorVy({
                       inteRaknadText(o.status, alder)
                     )}
                   </p>
-                  {o.sparning.length ? (
+                  {!o.sparning.length && visaSparningVantas(o.status, alder) ? (
+                    <p className={s.orderNot}>Spårning kommer när paketet har skickats.</p>
+                  ) : null}
+                  {o.sparning.length || o.kopIgen ? (
                     <div className={s.orderKnappar}>
                       {o.sparning.map((tn, i) => (
                         <a key={tn} className={s.sparknapp} href={`/sparning?tn=${encodeURIComponent(tn)}`}>
                           Spåra paketet{o.sparning.length > 1 ? ` ${i + 1}` : ""}
                         </a>
                       ))}
+                      {o.kopIgen ? <KopIgen ordernummer={o.ordernummer} /> : null}
                     </div>
-                  ) : visaSparningVantas(o.status, alder) ? (
-                    <p className={s.orderNot}>Spårning kommer när paketet har skickats.</p>
                   ) : null}
                 </div>
               </li>

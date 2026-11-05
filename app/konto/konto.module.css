@@ -958,6 +958,41 @@
   font-size: var(--text-sm);
   color: var(--soft);
 }
+/* "Köp igen": samma form som spårningsknappen men ljus, så att spårningen är
+   det första ögat ser på en order som är på väg. */
+.kopIgen {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6.5px 14px;
+  border: 1.5px solid var(--ink);
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.kopIgen:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--e2);
+}
+.kopIgen:focus-visible {
+  outline: none;
+  box-shadow: var(--e-ring);
+}
+.kopIgen:disabled {
+  opacity: 0.65;
+  cursor: progress;
+}
+.kopIgenBesked {
+  flex-basis: 100%;
+  margin: 2px 0 0;
+  font-size: var(--text-sm);
+  color: var(--soft);
+}
 
 .tomt {
   text-align: center;
@@ -1088,6 +1123,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .sparknapp,
+  .kopIgen,
   .forklaring summary::after {
     transition: none;
   }

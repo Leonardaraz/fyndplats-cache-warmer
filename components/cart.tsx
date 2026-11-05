@@ -139,6 +139,9 @@ type Ctx = {
   /** true när Wix tagit emot varan. Med `forhand` öppnas lådan direkt, med
    *  raden som väntande, i stället för när Wix svarat. */
   add: (id: string, variantId?: string, quantity?: number, forhand?: Forhandsrad) => Promise<boolean>;
+  /** Flera varor i ett anrop ("Köp igen" på Mina sidor). true när Wix tagit
+   *  emot dem; lådan öppnas då med varorna. */
+  addMany: (rader: { id: string; variantId?: string; antal: number }[]) => Promise<boolean>;
   vantande: Vantande[];
   fel: string | null;
   remove: (lineId: string) => Promise<void>;
@@ -379,6 +382,34 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [visaVagn]);
 
+  // "Köp igen" (Mina sidor): orderns varor i ETT anrop, så att varukorgen
+  // aldrig får hälften om nätet går mitt i. Felet står i lådan som för add().
+  const addMany = useCallback(async (rader: { id: string; variantId?: string; antal: number }[]) => {
+    if (rader.length === 0) return false;
+    setBusy(true);
+    setFel(null);
+    setForskottLagd(null);
+    try {
+      const { client } = await getClient();
+      await sakraBesokare(client);
+      const res: any = await client.currentCart.addLineItemsToCurrentCart({
+        catalogItems: rader.map((r) => {
+          const ref: any = { appId: STORES_APP_ID, catalogItemId: r.id };
+          if (r.variantId) ref.options = { variantId: r.variantId };
+          return { catalogReference: ref, quantity: Math.max(1, Math.floor(r.antal)) };
+        }),
+      });
+      visaVagn(res); persistTokens(client); setOpen(true);
+      return true;
+    } catch {
+      setFel("Varorna kunde inte läggas i varukorgen. Försök igen.");
+      setOpen(true);
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  }, [visaVagn]);
+
   // Ett fel står i lådan, som när en vara inte gick att lägga i. Förut
   // försvann det i konsolen och knappen såg ut att inte göra någonting.
   const remove = useCallback(async (lineId: string) => {
@@ -494,7 +525,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   // Ett fel står kvar tills lådan stängs, inte till nästa gång den öppnas.
   const oppna = useCallback((b: boolean) => { setOpen(b); if (!b) setFel(null); }, []);
 
-  return <CartCtx.Provider value={{ cart, count, open, setOpen: oppna, add, vantande, fel, remove, updateQty, checkout, busy, tillKassan, forskottLagd, forskottKlar }}>{children}</CartCtx.Provider>;
+  return <CartCtx.Provider value={{ cart, count, open, setOpen: oppna, add, addMany, vantande, fel, remove, updateQty, checkout, busy, tillKassan, forskottLagd, forskottKlar }}>{children}</CartCtx.Provider>;
 }
 
 export function CartButton() {
