@@ -118,12 +118,15 @@ Motorn skickar i stället (`lib/orders/faktura.ts`, `faktura-pdf.ts`,
 |---|---|
 | en handlagd order (`BACKOFFICE_MERCHANT`) godkänns obetald | fakturan, mejl i kundomslaget med PDF |
 | ordern markeras betald i Wix | kvittot, mejl med PDF, inom en timme |
+| ett företag betalar i kassan med kort eller Klarna (prisbeslut med företag) | kvittot med företagets namn, mejl med PDF, inom en timme |
 
 En order med `Förskottsfaktura.` först i noteringen är en förskottsorder från
 butikens företagskonto: fakturan förfaller efter högst 10 dagar, och
 leverantörsuppgifterna skapas först när den är betald (ämnesfil 46,
 "Förskottsfakturan"). En vanlig fakturaorder skickas som förut innan den är
-betald.
+betald. Ett köp i kassan som gjorts av ett godkänt företag får kvittot med
+företagets namn och, för ett bolag, organisationsnumret (ämnesfil 46, "Kvittot
+med företagets namn"); andra köp i kassan får inget härifrån.
 
 Webhooken skickar fakturan direkt. Timcronen `/api/cron/faktura` (`10 * * * *`)
 tar det webhooken missade och kvittot, eftersom Wix inte skickar någon

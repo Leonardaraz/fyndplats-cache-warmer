@@ -15,6 +15,12 @@
 //      En order som betalats utan att vi skickat fakturan får inget kvitto
 //      härifrån, för då vet vi inte vilken faktura kvittot gäller.
 //
+// Och ett köp i kassan som företag (medlemskapet E3, villkoren 5.2) får
+// kvittot med företagets namn: en betald order ur kassan (`arKassakop`) vars
+// köpflöde har ett prisbeslut med ett företag (`foretagskop`). Bara timcronen
+// skickar det, inom en timme från köpet; webhooken rör bara fakturaordrar. Samma
+// logg som kvittot ovan (typen "kvitto"), så det går ut en gång.
+//
 // ☠️ UTAN BETALNINGSUPPGIFTER SKICKAS INGEN FAKTURA. En faktura utan uppgift om
 // vart pengarna ska är inget kunden kan betala. Ordern räknas i
 // `vantarPaBetalningsuppgifter`, och nästa körning skickar när uppgiften finns.
@@ -25,13 +31,16 @@
 import {
   arFakturaorder,
   arForskottsorder,
+  arKassakop,
   byggFaktura,
+  byggKassakvitto,
   fakturaMejl,
   kvittoMejl,
   svensktDatum,
   STANDARD_DAGAR,
   type Betalningsuppgifter,
   type FakturaOrder,
+  type Foretagsuppgifter,
   type KundMejl,
 } from "./faktura";
 import { fakturaPdf } from "./faktura-pdf";
@@ -74,6 +83,12 @@ export interface FakturaKorDeps {
    * Saknas den skapas inga uppgifter härifrån, bara av återhämtningen.
    */
   efterBetalning?: (o: FakturaOrder) => Promise<void>;
+  /**
+   * Företagen bakom köp i kassan (medlemskapet E3): köpflödets id → företaget,
+   * ur prisbesluten. Bara köpflöden som prissattes som företag finns med i
+   * svaret. Saknas den skickas inga kvitton för köp i kassan.
+   */
+  foretagskop?: (purchaseFlowIds: string[]) => Promise<Map<string, Foretagsuppgifter>>;
 }
 
 export interface FakturaKorSvar {
@@ -91,7 +106,10 @@ export interface FakturaKorSvar {
   vantarPaBetalning: string[];
   /** Betalda förskottsordrar vars leverantörsuppgifter skapades i körningen. */
   forskottBestallda: string[];
-  fel: { order: string; typ: "faktura" | "kvitto" | "uppgifter"; fel: string }[];
+  /** Köp i kassan som företag vars kvitto skickades i körningen (villkoren 5.2). */
+  kassakvitton: string[];
+  skulleKassakvitton: string[];
+  fel: { order: string; typ: "faktura" | "kvitto" | "kassakvitto" | "uppgifter"; fel: string }[];
 }
 
 function tillBase64(b: Uint8Array): string {
@@ -114,6 +132,8 @@ export async function korFakturor(val: FakturaKorVal, deps: FakturaKorDeps): Pro
     vantarPaBetalningsuppgifter: [],
     vantarPaBetalning: [],
     forskottBestallda: [],
+    kassakvitton: [],
+    skulleKassakvitton: [],
     fel: [],
   };
 
@@ -222,6 +242,54 @@ export async function korFakturor(val: FakturaKorVal, deps: FakturaKorDeps): Pro
         svar.forskottBestallda.push(nummer);
       } catch (e) {
         svar.fel.push({ order: nummer, typ: "uppgifter", fel: e instanceof Error ? e.message : String(e) });
+      }
+    }
+  }
+
+  // --- Kvittot för ett köp i kassan som företag (villkoren 5.2) -------------
+  // Efter fakturaordrarna, så att ett läsfel här aldrig stoppar en faktura.
+  const kandidater = deps.foretagskop ? ordrar.filter((o) => arKassakop(o)) : [];
+  if (deps.foretagskop && kandidater.length) {
+    let foretag = new Map<string, Foretagsuppgifter>();
+    try {
+      foretag = await deps.foretagskop([...new Set(kandidater.map((o) => o.purchaseFlowId as string))]);
+    } catch (e) {
+      svar.fel.push({ order: "prisbeslut", typ: "kassakvitto", fel: e instanceof Error ? e.message : String(e) });
+      return svar;
+    }
+    const uppgifter = betalning ?? { betalaTill: "", fSkatt: false, dagar: STANDARD_DAGAR };
+    for (const o of kandidater) {
+      const fu = foretag.get(o.purchaseFlowId as string);
+      if (!fu) continue;
+      const nummer = o.number ?? o.id;
+      if (!prov && (await deps.logg.finns(o.id, "kvitto"))) continue;
+      const byggd = byggKassakvitto(o, fu, nu, uppgifter);
+      if (!byggd.ok) {
+        svar.fel.push({ order: nummer, typ: "kassakvitto", fel: byggd.fel });
+        continue;
+      }
+      if (dryRun) {
+        svar.skulleKassakvitton.push(nummer);
+        continue;
+      }
+      if (!prov && !(await deps.logg.ta(o.id, "kvitto", nummer))) continue;
+      try {
+        // Ett köp i kassan betalas när ordern läggs: kvittot bär köpets dag.
+        const betald = byggd.faktura.orderdatum;
+        const pdf = await fakturaPdf(byggd.faktura, { typ: "kvitto", betaldDatum: betald, logoPng: await hamtaLogo() });
+        const mejl = kvittoMejl(byggd.faktura, betald);
+        const res = await deps.skicka({
+          till: val.provTill ?? byggd.faktura.kund.epost,
+          mejl: prov ? { ...mejl, subject: `[Prov] ${mejl.subject}` } : mejl,
+          pdf,
+          filnamn: `Kvitto-${byggd.faktura.nummer}.pdf`,
+        });
+        if (!res.id) throw new Error(`mejlet gick inte iväg (${res.skipped ?? "inget id"})`);
+        if (!prov) await deps.logg.bekrafta(o.id, "kvitto", res.id);
+        svar.kassakvitton.push(nummer);
+      } catch (e) {
+        if (!prov) await deps.logg.slapp(o.id, "kvitto");
+        svar.fel.push({ order: nummer, typ: "kassakvitto", fel: e instanceof Error ? e.message : String(e) });
       }
     }
   }

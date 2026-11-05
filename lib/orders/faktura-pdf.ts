@@ -49,6 +49,22 @@ export function rentTecken(text: string, font: PDFFont): string {
  * fakturan och kvittot (`VALUTA` i faktura.ts).
  */
 export function metaRader(f: Faktura, val: Pick<PdfVal, "typ" | "betaldDatum">): [string, string][] {
+  const kunden: [string, string][] = [
+    ...(f.kund.orgnr ? ([["Ert org.nr", f.kund.orgnr]] as [string, string][]) : []),
+    ...(f.kund.referens ? ([["Er referens", f.kund.referens]] as [string, string][]) : []),
+    ["Vår referens", SALJARE.namn],
+  ];
+  // Ett köp i kassan har ingen faktura: ordern betalades när den lades, och
+  // kvittot bär ordernumret och dagen för köpet.
+  if (f.kassakop) {
+    return [
+      ["Ordernummer", f.nummer],
+      ["Kvittodatum", f.fakturadatum],
+      ["Betalningsdatum", val.betaldDatum ?? f.orderdatum],
+      ["Valuta", VALUTA],
+      ...kunden,
+    ];
+  }
   return [
     ["Fakturanummer", f.nummer],
     ["Fakturadatum", f.fakturadatum],
@@ -57,9 +73,7 @@ export function metaRader(f: Faktura, val: Pick<PdfVal, "typ" | "betaldDatum">):
       : ([["Förfallodatum", f.forfallodatum], ["Betalningsvillkor", `${f.betalning.dagar} dagar netto`]] as [string, string][])),
     ["Valuta", VALUTA],
     ["Orderdatum", f.orderdatum],
-    ...(f.kund.orgnr ? ([["Ert org.nr", f.kund.orgnr]] as [string, string][]) : []),
-    ...(f.kund.referens ? ([["Er referens", f.kund.referens]] as [string, string][]) : []),
-    ["Vår referens", SALJARE.namn],
+    ...kunden,
   ];
 }
 
@@ -165,7 +179,10 @@ export function huvudLayout(
 
 export async function fakturaPdf(f: Faktura, val: PdfVal): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
-  const titel = val.typ === "kvitto" ? `Kvitto faktura ${f.nummer}` : `${f.forskott ? "Förskottsfaktura" : "Faktura"} ${f.nummer}`;
+  const titel =
+    val.typ === "kvitto"
+      ? `Kvitto ${f.kassakop ? "order" : "faktura"} ${f.nummer}`
+      : `${f.forskott ? "Förskottsfaktura" : "Faktura"} ${f.nummer}`;
   doc.setTitle(titel);
   doc.setAuthor(SALJARE.namn);
   doc.setCreator(SALJARE.namn);
@@ -341,7 +358,15 @@ export async function fakturaPdf(f: Faktura, val: PdfVal): Promise<Uint8Array> {
   });
   if (val.typ === "kvitto") {
     skriv(sida, `Betald ${val.betaldDatum ?? ""}. Tack!`, MARG + 6, y - 4, { font: fet, storlek: 12 });
-    skriv(sida, `Fakturan ${f.nummer} är betald i sin helhet.`, MARG + 6, y - 24, { storlek: 10 });
+    skriv(
+      sida,
+      f.kassakop
+        ? `Order ${f.nummer} är betald i sin helhet i kassan på ${SALJARE.webb}.`
+        : `Fakturan ${f.nummer} är betald i sin helhet.`,
+      MARG + 6,
+      y - 24,
+      { storlek: 10 },
+    );
   } else {
     skriv(sida, `Betala till: ${f.betalning.betalaTill}`, MARG + 6, y - 4, { font: fet, storlek: 12 });
     skriv(

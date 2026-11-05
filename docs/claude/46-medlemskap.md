@@ -183,6 +183,30 @@ mappningar, så butiken frågar motorn (`POST /api/medlem/golv`, logiken i
     i svaret. Återhämtningens egna 14 dygn är nätet under, och fakturakörningen
     ser 120 dygn bakåt, så en sent markerad betalning hittas ändå.
 
+- **Kvittot med företagets namn för kort och Klarna** (villkoren 5.2: "Kvitto
+  och faktura med köparens namn och adress, och för ett bolag
+  organisationsnumret, skickas med e-post"; byggt 2026-11-05). Butikens kassa
+  sparar företaget på prisbeslutet i `FyndplatsPrisbeslut` när kunden går
+  till kassan: `foretagNamn`, `foretagFaktura` (gata, postnr, ort) och för
+  ett bolag `foretagOrgnr` (butikens `foretagPaBeslut`). Timcronen
+  `/api/cron/faktura` tar varje betald order ur kassan från och med
+  `KASSAKVITTO_FRAN` (`arKassakop`), slår upp köpflödena 50 åt gången på
+  indexet `purchaseFlowId` och mejlar kvittot för de köp som har ett företag
+  (`byggKassakvitto`): samma PDF som fakturaordrarnas kvitto, med ordernumret,
+  köpets dag och företaget som köpare. Inom en timme från köpet; webhooken rör
+  bara fakturaordrar.
+  - ☠️ Organisationsnumret kommer bara ur beslutet, och bara ett bolags
+    (`arJuridisktOrgnr`: siffra tre och fyra minst 20). Ett nummer i kundens
+    ordernotering läses aldrig för ett köp i kassan, och en enskild firmas
+    personnummer skrivs aldrig ut, även om det skulle stå på beslutet.
+  - Samma utskickslogg som kvittot (typen `kvitto`), så kvittot går ut en
+    gång. Ett läsfel i prisbesluten ger `typ: "kassakvitto"` i svaret och
+    stoppar inte fakturorna.
+  - ☠️ Fälten heter likadant i båda repona (`foretagUrBeslut` här,
+    `foretagPaBeslut` i butiken). Byt aldrig namn på ett av dem i bara det ena.
+  - Provet: `{ lage: "prov", order: "<nummer>" }` i `/api/admin/faktura`
+    skickar kvittot till den interna larmadressen med [Prov].
+
 ## Kvar till E2
 
 - Leonards svar på P4–P8 (aktuellt pris, kupong, golv, fri frakt-skydd,

@@ -24,6 +24,8 @@ export const MEDLEM_KOL = {
   regler: "FyndplatsMedlemsregler",
   logg: "FyndplatsMedlemslogg",
   installningar: "FyndplatsButikInstallningar",
+  /** Butikens prisbeslut per låst varukorg; motorn läser företaget till kvittot (faktura-deps.ts). */
+  prisbeslut: "FyndplatsPrisbeslut",
 } as const;
 
 /** Raderna i butikens inställningar: växeln och orderliggarens tillstånd. */

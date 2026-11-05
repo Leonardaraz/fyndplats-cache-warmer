@@ -9,7 +9,9 @@ import { runOrderBackfill } from "./backfill";
 import type { WixOrder } from "./types";
 import { sendEmail } from "@/lib/email/resend";
 import { KUND_BRAND } from "@/lib/email/kundmejl";
-import type { FakturaOrder } from "./faktura";
+import { fraga } from "@/lib/db/wix-data-klient";
+import { MEDLEM_KOL } from "@/lib/medlem/admin";
+import { foretagUrBeslut, type FakturaOrder, type Foretagsuppgifter } from "./faktura";
 import { getUtskickslogg } from "./faktura-logg";
 import { betalningUrKonfig, pdfBilaga, type FakturaKorDeps } from "./faktura-kor";
 
@@ -52,6 +54,23 @@ export function fakturaDeps(): FakturaKorDeps {
       );
       // Redan skapade uppgifter (återhämtningen hann först) räknas inte som saknade.
       if (s.failed > 0) throw new Error(s.errors[0]?.error ?? "uppgifterna kunde inte skapas");
+    },
+    // Köp i kassan som företag (villkoren 5.2): prisbesluten för köpflödena,
+    // 50 åt gången på indexet `purchaseFlowId`. Ett läsfel kastar, så att
+    // körningen säger det i stället för att tyst skicka noll kvitton.
+    foretagskop: async (floden) => {
+      const ut = new Map<string, Foretagsuppgifter>();
+      for (let i = 0; i < floden.length; i += 50) {
+        const rader = await fraga<Record<string, unknown>>(MEDLEM_KOL.prisbeslut, {
+          filter: { purchaseFlowId: { $in: floden.slice(i, i + 50) } },
+          limit: 1000,
+        });
+        for (const rad of rader) {
+          const fu = foretagUrBeslut(rad);
+          if (fu && typeof rad.purchaseFlowId === "string" && rad.purchaseFlowId) ut.set(rad.purchaseFlowId, fu);
+        }
+      }
+      return ut;
     },
   };
 }
