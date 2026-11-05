@@ -168,6 +168,12 @@
     "Möbler",
     "Kontorstillbehör"
    ],
+   "katUndantag": [
+    {
+     "kat": "Skrivbord",
+     "skal": "tangentbordshållaren monteras under ett skrivbord och är ett tillbehör, inte ett skrivbord"
+    }
+   ],
    "sku": "FP-tangentbordshallare-vridbar",
    "variantId": "51c2e8d5-6332-4e8a-a6f6-198668447d97",
    "textHash": "a539f7e8f3508fec",
