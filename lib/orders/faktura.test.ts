@@ -11,6 +11,7 @@ import {
   FORSKOTT_DAGAR,
   KASSAKVITTO_FRAN,
   kronor,
+  kvittoForArkiv,
   kvittoMejl,
   lasNotering,
   vantarPaForskottsbetalning,
@@ -738,5 +739,82 @@ describe("kvittot för ett köp i kassan som företag (medlemskapet E3, villkore
     expect(s.kassakvitton).toEqual(["10180"]);
     expect(p.skickade[0]).toMatchObject({ till: "prov@exempel.se", subject: "[Prov] Kvitto för order 10180 från Fyndplats" });
     expect(await p.logg.finns("order-k", "kvitto")).toBe(false);
+  });
+});
+
+describe("kvittot på Mina sidor (kvittoForArkiv)", () => {
+  const NU2 = new Date("2026-11-20T09:00:00Z");
+  const INGET = { faktura: null, kvitto: null };
+  const webb = (over: Partial<FakturaOrder> = {}) =>
+    order({
+      id: "order-w",
+      number: "10190",
+      createdDate: "2026-11-08T10:00:00.000Z",
+      channelInfo: { type: "WEB" },
+      paymentStatus: "PAID",
+      purchaseFlowId: "flode-w",
+      buyerInfo: { email: "Kund@Exempel.se" },
+      buyerNote: "Org.nr: 556000-0000",
+      billingInfo: {
+        address: { country: "SE", city: "Hemorten", postalCode: "111 22", addressLine: "Privatgatan 2" },
+        contactDetails: { firstName: "Bo", lastName: "Berg" },
+      },
+      ...over,
+    });
+
+  it("☠️ bara köparens egen order, oavsett skiftläge", () => {
+    expect(kvittoForArkiv(webb(), "annan@exempel.se", null, INGET, NU2, BETALNING)).toEqual({ ok: false, skal: "inte-din" });
+    expect(kvittoForArkiv(webb({ buyerInfo: {} }), "kund@exempel.se", null, INGET, NU2, BETALNING)).toEqual({ ok: false, skal: "inte-din" });
+    expect(kvittoForArkiv(webb(), " kund@exempel.se ", null, INGET, NU2, BETALNING).ok).toBe(true);
+  });
+
+  it("ingen PDF för en avbruten eller obetald order", () => {
+    expect(kvittoForArkiv(webb({ status: "CANCELED" }), "kund@exempel.se", null, INGET, NU2, BETALNING)).toEqual({ ok: false, skal: "avbruten" });
+    for (const paymentStatus of ["NOT_PAID", "PENDING", "PARTIALLY_PAID", "FULLY_REFUNDED"]) {
+      expect(kvittoForArkiv(webb({ paymentStatus }), "kund@exempel.se", null, INGET, NU2, BETALNING)).toEqual({ ok: false, skal: "obetald" });
+    }
+    expect(kvittoForArkiv(webb({ paymentStatus: "PARTIALLY_REFUNDED" }), "kund@exempel.se", null, INGET, NU2, BETALNING).ok).toBe(true);
+  });
+
+  it("ett privat köp i kassan: kassans uppgifter, köpets dag och inget nummer ur noteringen", () => {
+    const r = kvittoForArkiv(webb(), "kund@exempel.se", null, INGET, NU2, BETALNING);
+    if (!r.ok) throw new Error(r.skal);
+    expect(r.betaldDatum).toBe("2026-11-08");
+    expect(r.faktura.kassakop).toBe(true);
+    expect(r.faktura.fakturadatum).toBe("2026-11-20");
+    expect(r.faktura.kund.orgnr).toBeUndefined();
+    expect(r.faktura.kund.adressrader).toEqual(["Privatgatan 2", "111 22 Hemorten"]);
+    expect(metaRader(r.faktura, { typ: "kvitto", betaldDatum: r.betaldDatum })[0]).toEqual(["Ordernummer", "10190"]);
+  });
+
+  it("ett köp som företag: företaget ur beslutet", () => {
+    const fu: Foretagsuppgifter = { namn: "Exempel AB", orgnr: "556000-0000", adress: { gata: "Företagsvägen 3", postnr: "15244", ort: "Södertälje" } };
+    const r = kvittoForArkiv(webb(), "kund@exempel.se", fu, INGET, NU2, BETALNING);
+    if (!r.ok) throw new Error(r.skal);
+    expect(r.faktura.kund).toMatchObject({ foretag: "Exempel AB", orgnr: "556000-0000", adressrader: ["Företagsvägen 3", "152 44 Södertälje"] });
+  });
+
+  it("en fakturaorder: bara när kvittot redan har skickats, med mejlets datum", () => {
+    const betald = order({ paymentStatus: "PAID", buyerInfo: { email: "kund@exempel.se" } });
+    expect(kvittoForArkiv(betald, "kund@exempel.se", null, INGET, NU2, BETALNING)).toEqual({ ok: false, skal: "inget-kvitto" });
+    const r = kvittoForArkiv(
+      betald,
+      "kund@exempel.se",
+      null,
+      { faktura: new Date("2026-10-09T12:00:00Z"), kvitto: new Date("2026-10-20T08:10:00Z") },
+      NU2,
+      BETALNING,
+    );
+    if (!r.ok) throw new Error(r.skal);
+    expect(r.betaldDatum).toBe("2026-10-20");
+    expect(r.faktura.kassakop).toBeFalsy();
+    expect(r.faktura.fakturadatum).toBe("2026-10-09");
+    // Fakturaordern läser org.nr ur noteringen som förut: den skrivs av oss.
+    expect(r.faktura.kund.orgnr).toBe("556000-0000");
+  });
+
+  it("en order som inte går ihop ger fel, ingen PDF", () => {
+    const trasig = webb({ priceSummary: { ...webb().priceSummary, total: { amount: "1.00" } } });
+    expect(kvittoForArkiv(trasig, "kund@exempel.se", null, INGET, NU2, BETALNING)).toMatchObject({ ok: false, skal: "fel" });
   });
 });

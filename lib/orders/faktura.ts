@@ -471,24 +471,25 @@ function postnummer(p: string): string {
 }
 
 /**
- * Kvittot för ett köp i kassan som företag. Beloppen, raderna och leveransen
- * kommer ur ordern som för en fakturaorder (`byggFaktura`, avstämda mot Wix);
- * köparen är företaget ur prisbeslutet. Organisationsnumret sätts alltid
- * härifrån, även när det saknas, så att ett nummer i kundens ordernotering
- * aldrig följer med.
+ * Kvittot för ett köp i kassan. Beloppen, raderna och leveransen kommer ur
+ * ordern som för en fakturaorder (`byggFaktura`, avstämda mot Wix). Köpt som
+ * företag är köparen företaget ur prisbeslutet; annars (`null`, kvittot på
+ * Mina sidor för en privatperson) är det kassans fakturauppgifter.
+ * Organisationsnumret sätts alltid härifrån, även när det saknas, så att ett
+ * nummer i kundens ordernotering aldrig följer med.
  */
 export function byggKassakvitto(
   o: FakturaOrder,
-  foretag: Foretagsuppgifter,
+  foretag: Foretagsuppgifter | null,
   nu: Date,
   betalning: Betalningsuppgifter,
 ): FakturaUtfall {
-  const namn = foretag.namn.trim();
-  if (!namn) return { ok: false, fel: "beslutet saknar företagets namn" };
+  const namn = foretag ? foretag.namn.trim() : "";
+  if (foretag && !namn) return { ok: false, fel: "beslutet saknar företagets namn" };
   const byggd = byggFaktura(o, nu, betalning);
   if (!byggd.ok) return byggd;
   const f = byggd.faktura;
-  const a = foretag.adress;
+  const a = foretag?.adress;
   const adressrader = a ? [a.gata, `${postnummer(a.postnr)} ${a.ort}`.trim()] : f.kund.adressrader;
   return {
     ok: true,
@@ -498,12 +499,55 @@ export function byggKassakvitto(
       kassakop: true,
       kund: {
         ...f.kund,
-        foretag: namn,
-        orgnr: foretag.orgnr && arJuridisktOrgnr(foretag.orgnr) ? foretag.orgnr : undefined,
+        foretag: foretag ? namn : f.kund.foretag,
+        orgnr: foretag?.orgnr && arJuridisktOrgnr(foretag.orgnr) ? foretag.orgnr : undefined,
         adressrader,
       },
     },
   };
+}
+
+/** Betalstatusar där ordern har betalats och ett kvitto gäller. */
+export const KVITTO_BETALD = KASSAKVITTO_BETALD;
+
+export type ArkivUtfall =
+  | { ok: true; faktura: Faktura; betaldDatum: string }
+  | { ok: false; skal: "inte-din" | "avbruten" | "obetald" | "inget-kvitto" | "fel"; fel?: string };
+
+/**
+ * Kvittot för en order på Mina sidor (butikens /konto, `/api/medlem/kvitto`).
+ * Samma PDF som mejlen, ritad på nytt ur ordern:
+ *   - ☠️ bara när ordern är köparens: e-posten på ordern ska vara kontots;
+ *   - bara för en betald order som inte är avbruten;
+ *   - ett köp i kassan får kvittot med köpets dag, som företag om prisbeslutet
+ *     säger det (`foretag`), annars med kassans fakturauppgifter;
+ *   - en fakturaorder får kvittot bara om det redan har skickats härifrån,
+ *     med samma datum som i mejlet. Annars vet vi inte vilken faktura det
+ *     gäller eller när den betalades.
+ */
+export function kvittoForArkiv(
+  o: FakturaOrder,
+  epost: string,
+  foretag: Foretagsuppgifter | null,
+  skickad: { faktura: Date | null; kvitto: Date | null },
+  nu: Date,
+  betalning: Betalningsuppgifter,
+): ArkivUtfall {
+  const kopare = o.buyerInfo?.email?.trim().toLowerCase();
+  if (!kopare || kopare !== epost.trim().toLowerCase()) return { ok: false, skal: "inte-din" };
+  if (o.status === "CANCELED" || o.status === "INITIATED") return { ok: false, skal: "avbruten" };
+  if (!KVITTO_BETALD.has(o.paymentStatus ?? "")) return { ok: false, skal: "obetald" };
+  if (o.channelInfo?.type === "BACKOFFICE_MERCHANT") {
+    if (!skickad.kvitto) return { ok: false, skal: "inget-kvitto" };
+    const byggd = byggFaktura(o, skickad.faktura ?? skickad.kvitto, betalning);
+    return byggd.ok
+      ? { ok: true, faktura: byggd.faktura, betaldDatum: svensktDatum(skickad.kvitto) }
+      : { ok: false, skal: "fel", fel: byggd.fel };
+  }
+  const byggd = byggKassakvitto(o, foretag, nu, betalning);
+  return byggd.ok
+    ? { ok: true, faktura: byggd.faktura, betaldDatum: byggd.faktura.orderdatum }
+    : { ok: false, skal: "fel", fel: byggd.fel };
 }
 
 export interface KundMejl {

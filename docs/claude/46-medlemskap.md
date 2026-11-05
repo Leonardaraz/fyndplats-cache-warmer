@@ -207,6 +207,21 @@ mappningar, så butiken frågar motorn (`POST /api/medlem/golv`, logiken i
   - Provet: `{ lage: "prov", order: "<nummer>" }` i `/api/admin/faktura`
     skickar kvittot till den interna larmadressen med [Prov].
 
+- **Kvittot på Mina sidor** (`POST /api/medlem/kvitto { ordernummer, epost }`,
+  byggt 2026-11-05): butikens "Kvitto (PDF)" hämtar PDF:en härifrån, med
+  butikens hemlighet (`REVIEW_INGEST_SECRET`, samma kontroll som golvet).
+  `kvittoForArkiv` avgör:
+  - ☠️ bara köparens egen order: e-posten på ordern ska vara den butiken
+    skickar, annars 404 `inte-din` utan PDF;
+  - bara en betald order som inte är avbruten (409 `obetald` eller
+    `avbruten`);
+  - ett köp i kassan får kvittot med köpets dag, som företag när prisbeslutet
+    säger det (uppslaget görs bara för köparens egen betalda order);
+  - en fakturaorder får kvittot bara när det redan har mejlats, med samma
+    datum (409 `inget-kvitto` annars).
+  Svaret har `Cache-Control: no-store`, och ingen loggrad bär e-post eller
+  ordernummer.
+
 ## Kvar till E2
 
 - Leonards svar på P4–P8 (aktuellt pris, kupong, golv, fri frakt-skydd,
