@@ -1,0 +1,4 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+816c4e48 8 rekommenderad kattvikt 1–8 kg, avläst i leverantörens infografik (bild 3, struken som bild)
+816c4e48 1,5 katter under 1,5 kg ska använda manuellt läge, avläst i leverantörens infografik (bild 3, struken som bild)

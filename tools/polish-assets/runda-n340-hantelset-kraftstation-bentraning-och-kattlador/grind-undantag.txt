@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py hantelsetet har inga totalmått i källan (ingen Gesamtmaße-rad), bara mått för skivor och stång; texten binder därför inget axeltal
