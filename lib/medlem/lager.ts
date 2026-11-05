@@ -37,6 +37,7 @@ import { REGLER_V1, reglerFel, type Regler, type Varning } from "./niva";
 import { medlemsId, taForsok } from "./inloggning";
 import { VILLKOR_FORETAG_VERSION, foretagsprofilId, foretagsprofilUrRad, type Foretagsansokan, type Foretagsprofil } from "./foretag";
 import { offertUrRad, type Offert } from "./offert";
+import { MAX_KORGAR, sparadKorgUrRad, type SparadKorg } from "./sparade";
 
 export const MK = {
   medlemmar: "FyndplatsMedlemmar",
@@ -50,6 +51,8 @@ export const MK = {
   prisbeslut: "FyndplatsPrisbeslut",
   /** E3: företagens offerter. */
   offerter: "FyndplatsOfferter",
+  /** E3: medlemmarnas sparade varukorgar (ADMIN, index medlemsId + skapad). */
+  sparade: "FyndplatsSparadeKorgar",
 } as const;
 
 const nu = () => new Date().toISOString();
@@ -726,4 +729,31 @@ export async function bytOffertstatus(id: string, fran: Offert["status"], till: 
 export async function kopflodenForOffert(offertId: string): Promise<string[]> {
   const rader = await fraga(MK.prisbeslut, { filter: { offertId }, limit: 50 });
   return rader.map((r) => text(r.purchaseFlowId) ?? "").filter(Boolean);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sparade varukorgar (E3, lib/medlem/sparade.ts)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Kontots sparade varukorgar, nyast först. */
+export async function sparadeKorgarFor(medlemsId: string): Promise<SparadKorg[]> {
+  const rader = await fraga(MK.sparade, { filter: { medlemsId }, sort: [{ fieldName: "skapad", order: "DESC" }], limit: MAX_KORGAR + 5 });
+  return rader.map(sparadKorgUrRad).filter((k): k is SparadKorg => k !== null);
+}
+
+export async function hamtaSparadKorg(id: string): Promise<SparadKorg | null> {
+  const r = await hamta(MK.sparade, id);
+  return r ? sparadKorgUrRad(r) : null;
+}
+
+/** En ny sparad varukorg. Id:t är slumpat, så en krock betyder ett fel. */
+export async function sparaNyKorg(k: SparadKorg): Promise<void> {
+  const rader = k.rader.map((r) => Object.fromEntries(Object.entries(r).filter(([, v]) => v !== undefined && v !== null)));
+  const utfall = await infoga(MK.sparade, k.id, { medlemsId: k.medlemsId, namn: k.namn, rader, skapad: k.skapad } as unknown as Rad);
+  if (utfall !== "skapad") throw new Error("den sparade varukorgens id fanns redan");
+}
+
+/** Tar bort korgen bara om den är kontots (villkoret i Wix). */
+export async function taBortSparadKorg(id: string, medlemsId: string): Promise<boolean> {
+  return (await taBort(MK.sparade, id, { medlemsId })) === "borttagen";
 }

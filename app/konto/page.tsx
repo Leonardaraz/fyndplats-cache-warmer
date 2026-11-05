@@ -7,14 +7,15 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { inloggad } from "@/lib/medlem/inloggad";
-import { hamtaForetagsprofil, hamtaMedlem, medlemsHemlighet, medlemsLage, offerterFor, prisLage, prisOppet } from "@/lib/medlem/lager";
+import { hamtaForetagsprofil, hamtaMedlem, medlemsHemlighet, medlemsLage, offerterFor, prisLage, prisOppet, sparadeKorgarFor } from "@/lib/medlem/lager";
+import { sparadKorgVy, sparadeSektion } from "@/lib/medlem/sparade";
 import { aktuellStatus, offertStatusText } from "@/lib/medlem/offert";
 import { foretagsstatusText, kanHandlaSomForetag, VILLKOR_FORETAG_VERSION, type Foretagsprofil } from "@/lib/medlem/foretag";
 import { minaSidor } from "@/lib/medlem/konto";
 import { orderGuid, sakertMal } from "@/lib/medlem/inloggning";
 import { getProducts } from "@/lib/products";
 import { KontoInloggning } from "./konto-inloggning";
-import { MinaSidorVy, type Produktbilder } from "./mina-sidor";
+import { MinaSidorVy, type Produktbilder, type SparadeKorgarVy } from "./mina-sidor";
 import { Formaner, Kortfacka } from "./formaner";
 import { FornyaSession } from "./fornya";
 import { Foretagskonto, type ForetagVy, type OffertPaMinaSidor } from "./foretag";
@@ -50,6 +51,22 @@ async function produktbilder(idn: Set<string>): Promise<Produktbilder> {
 }
 
 const DATUM = new Intl.DateTimeFormat("sv-SE", { day: "numeric", month: "short", timeZone: "Europe/Stockholm" });
+
+/**
+ * Kontots sparade varukorgar, och om nya får sparas (växeln för E2/E3,
+ * `sparadeSektion`). Går de inte att läsa visas inte sektionen, hellre än en
+ * trasig.
+ */
+async function sparade(medlem: { id: string; testare?: boolean }): Promise<SparadeKorgarVy | undefined> {
+  try {
+    const [korgar, lage] = await Promise.all([sparadeKorgarFor(medlem.id), prisLage()]);
+    const { visas, kanSpara } = sparadeSektion(korgar.length, prisOppet(lage, medlem));
+    return visas ? { korgar: korgar.map(sparadKorgVy), kanSpara } : undefined;
+  } catch (e) {
+    console.error("[konto] sparade varukorgar gick inte att läsa:", e instanceof Error ? e.message.slice(0, 120) : e);
+    return undefined;
+  }
+}
 
 /** Det Mina sidor får veta om företaget. ☠️ Aldrig hela numret för en enskild firma. */
 function foretagVy(p: Foretagsprofil): ForetagVy {
@@ -168,11 +185,11 @@ export default async function Konto({ searchParams }: { searchParams: Promise<So
   }
   if (session && data) {
     const idn = new Set(data.ordrar.flatMap((o) => o.varor.map((v) => v.produktId).filter((x): x is string => Boolean(x))));
-    const [bilder, ft] = await Promise.all([produktbilder(idn), foretagsdel(data.medlem, session.profil)]);
+    const [bilder, ft, korgar] = await Promise.all([produktbilder(idn), foretagsdel(data.medlem, session.profil), sparade(data.medlem)]);
     return (
       <section className="sec">
         <div className={`container ${s.ram}`}>
-          <MinaSidorVy data={data} bilder={bilder} foretag={ft.ruta} handlarSom={ft.handlarSom} />
+          <MinaSidorVy data={data} bilder={bilder} foretag={ft.ruta} handlarSom={ft.handlarSom} sparade={korgar} />
         </div>
         <FornyaSession />
       </section>

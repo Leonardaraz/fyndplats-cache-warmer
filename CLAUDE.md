@@ -1802,8 +1802,26 @@ Ett företag läggs till på ett befintligt konto, högst ett per konto i E3.
   många. Resten läggs i varukorgen i ETT anrop (`addMany` i
   `components/cart.tsx`), med orderns antal (högst 99) och dagens pris.
   Variant-id skickas bara för en produkt med flera varianter, som på
-  produktsidan. Gäller alla medlemmar, inte bara företag. Sparade varukorgar
-  är inte byggda.
+  produktsidan. Gäller alla medlemmar, inte bara företag.
+
+- **Sparade varukorgar** på Mina sidor (byggt 2026-11-05, `lib/medlem/sparade.ts`,
+  kollektionen `FyndplatsSparadeKorgar`: ADMIN, indexet `medlem-skapad`).
+  Medlemmen sparar varukorgen som den är under ett namn och lägger den i
+  varukorgen igen med ett tryck. `POST /api/konto/sparade { cartId, namn }`
+  läser besökarens Wix-korg på servern (`lasWixVarukorg`), så det som sparas
+  är Wix egna rader och aldrig vad webbläsaren påstår. Bara varor ur Wix
+  Stores, samma vara blir en rad, högst 100 rader, antal 1–99, högst 20 korgar
+  per konto. Inget pris sparas: `POST /api/konto/sparade/kop { id }` prövar
+  korgen mot katalogen som "Köp igen" (`somOrderrader` → `kopIgen`), och resten
+  läggs i med `addMany` och dagens pris. Ett tomt namn blir "Varukorg <dag>".
+  - ☠️ Att SPARA följer växeln för E2/E3 (`prisOppet`, `sparadeSektion`):
+    korgarna är uppgifter om kontot som integritetstexten för E1 inte nämner.
+    Korgar som redan finns syns alltid, så att de går att lägga i varukorgen
+    och ta bort.
+  - ☠️ `DELETE /api/konto/sparade?id=sk_…` tar bara bort kontots egen korg
+    (villkoret `medlemsId` i Wix), och köp-rutten svarar 404 på en annans.
+  - Motorns borttagning av ett konto tar också dess sparade varukorgar
+    (motorns ämnesfil 46).
 
 - **"Kvitto (PDF)"** på varje betald order på Mina sidor (`visaKvitto`, byggt
   2026-11-05): `/api/konto/kvitto/<nummer>` prövar att ordern finns i

@@ -16,6 +16,8 @@ import type { MinaSidor, OrderPaMinaSidor } from "@/lib/medlem/konto";
 import { arHogstaNivan, inteRaknadText, visaKvitto, visaSparningVantas, visaUppmaning } from "@/lib/medlem/visning";
 import { Medlemskort, nivaNyckel } from "./medlemskort";
 import { KopIgen } from "./kop-igen";
+import { SparadeKorgar } from "./sparade-korgar";
+import type { SparadKorgVy } from "@/lib/medlem/sparade";
 import s from "./konto.module.css";
 
 const STATUS: Record<OrderPaMinaSidor["status"], { text: string; ton: "ok" | "varning" | "neutral" }> = {
@@ -31,6 +33,9 @@ export const RABATT_INTE_AN = "Medlemsrabatten gäller ännu inte i kassan.";
 
 /** Produktens bild och adress ur katalogen, per Wix-produkt-id. */
 export type Produktbilder = Record<string, { img?: string; slug?: string }>;
+
+/** E3: kontots sparade varukorgar, och om nya får sparas (växeln för E2/E3). */
+export type SparadeKorgarVy = { korgar: SparadKorgVy[]; kanSpara: boolean };
 
 const MANAD_AR = new Intl.DateTimeFormat("sv-SE", { month: "long", year: "numeric", timeZone: "Europe/Stockholm" });
 
@@ -57,6 +62,7 @@ export function MinaSidorVy({
   bilder: produkter = {},
   foretag,
   handlarSom,
+  sparade,
 }: {
   data: MinaSidor;
   bilder?: Produktbilder;
@@ -64,6 +70,8 @@ export function MinaSidorVy({
   foretag?: ReactNode;
   /** E3: företagets namn när kontot handlar som företaget. */
   handlarSom?: string | null;
+  /** E3: sparade varukorgar; saknas när växeln är av och kontot inte har några, eller när de inte gick att läsa. */
+  sparade?: SparadeKorgarVy;
 }) {
   const { lage, regler, ordrar, medlem } = data;
   const raknas = new Map(lage.raknade.map((r) => [r.orderId, r]));
@@ -285,6 +293,8 @@ export function MinaSidorVy({
           <p className={s.tom}>Ordrar du lägger med {maskeradEpost(medlem.epost)} visas här, med spårning och vad de räknas för.</p>
         </div>
       )}
+
+      {sparade ? <SparadeKorgar korgar={sparade.korgar} kanSpara={sparade.kanSpara} /> : null}
 
       {foretag}
 

@@ -86,4 +86,8 @@ test("beskedet säger vad som inte kom med, i ental och flertal", () => {
   assert.equal(kopIgenBesked(0, 0, 1), "Varorna i ordern säljs inte längre.");
   assert.equal(kopIgenBesked(0, 1, 1), "Varorna i ordern är slut eller säljs inte längre.");
   assert.equal(kopIgenBesked(0, 0, 0), "Ordern har inga varor som går att köpa igen här.");
+  // En sparad varukorg får samma besked om korgen.
+  assert.equal(kopIgenBesked(0, 1, 1, "korgen"), "Varorna i korgen är slut eller säljs inte längre.");
+  assert.equal(kopIgenBesked(0, 0, 0, "korgen"), "Korgen har inga varor som går att köpa igen här.");
+  assert.equal(kopIgenBesked(1, 1, 0, "korgen"), "1 vara är slut just nu. Resten ligger i varukorgen.");
 });

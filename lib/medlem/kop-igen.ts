@@ -89,14 +89,16 @@ const varor = (n: number) => (n === 1 ? "1 vara" : `${n} varor`);
 
 /**
  * Beskedet under knappen, eller null när allt kom med (lådan som öppnas är
- * beskedet då). `lagda` är antalet rader som lades i varukorgen.
+ * beskedet då). `lagda` är antalet rader som lades i varukorgen; `vad` är
+ * "ordern" (Köp igen) eller "korgen" (en sparad varukorg, lib/medlem/sparade.ts).
  */
-export function kopIgenBesked(lagda: number, slut: number, borta: number): string | null {
-  if (slut === 0 && borta === 0) return lagda > 0 ? null : "Ordern har inga varor som går att köpa igen här.";
+export function kopIgenBesked(lagda: number, slut: number, borta: number, vad: "ordern" | "korgen" = "ordern"): string | null {
+  const Vad = vad === "ordern" ? "Ordern" : "Korgen";
+  if (slut === 0 && borta === 0) return lagda > 0 ? null : `${Vad} har inga varor som går att köpa igen här.`;
   if (lagda === 0) {
-    if (borta === 0) return "Varorna i ordern är slut just nu.";
-    if (slut === 0) return "Varorna i ordern säljs inte längre.";
-    return "Varorna i ordern är slut eller säljs inte längre.";
+    if (borta === 0) return `Varorna i ${vad} är slut just nu.`;
+    if (slut === 0) return `Varorna i ${vad} säljs inte längre.`;
+    return `Varorna i ${vad} är slut eller säljs inte längre.`;
   }
   const delar = [
     slut > 0 ? `${varor(slut)} är slut just nu` : "",
