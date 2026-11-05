@@ -1,0 +1,103 @@
+{
+  "24c65492": {
+    "productId": "24c65492-91de-43f7-a299-94c7d2d10b1b",
+    "synliga": 0,
+    "dolda": 6,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": []
+  },
+  "a9cada6d": {
+    "productId": "a9cada6d-8c46-43bd-94de-3120f7fa993b",
+    "synliga": 0,
+    "dolda": 7,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": []
+  },
+  "216833b2": {
+    "productId": "216833b2-335f-4828-b6df-d5c63fa3a4ab",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-4tj4t1",
+        "betyg": 5,
+        "datum": "2026-05-20",
+        "foton": 0,
+        "text": "Great shelf. Took me a little while o build but instructions were good."
+      },
+      {
+        "id": "gen-qa30xt",
+        "betyg": 5,
+        "datum": "2026-03-19",
+        "foton": 0,
+        "text": "Needed more storage in a small apartment. This worked out well. Wish I had bought it when we first moved in a couple years ago."
+      },
+      {
+        "id": "gen-segvyw",
+        "betyg": 5,
+        "datum": "2026-01-13",
+        "foton": 0,
+        "text": "top Lieferservice. Ware war einwandfrei. Alle Schrauben separat verpackt und super Anleitung."
+      },
+      {
+        "id": "gen-4qwnf9",
+        "betyg": 5,
+        "datum": "2026-01-10",
+        "foton": 0,
+        "text": "Prodotto impacchettato benissimo, che nonostante i gli sforzi del corriere che ha provato in tutti i modi a danneggiarlo, è arrivato intatto. Certo non ci si può aspettare legno massello, ma il prodotto si presenta di buona fattura e qualità, soprattutto se si considera il prezzo. Altra cosa positiva, non puzza come invece tanti altri prodotti in questa fascia di prezzo. Ma quì bisogna dire che Vevor non tradisce mai: prodotti sempre di buona qualità e senza brutte sorprese!"
+      },
+      {
+        "id": "gen-uu642h",
+        "betyg": 4,
+        "datum": "2026-03-16",
+        "foton": 0,
+        "text": "Took about three hours to put this together but it looks great! Yes, you will need two people for assembly, and someone has to have real tools; a strew driver alone is not going to do it sis. The instructions are comprehensive and straightforward but common sense is required. I gave this item 4 stars instead of 5 because there’s a slight gap in the bottom doors when they’re closed. Overall great value for your money, well constructed, spacious and the dimensions are true to the description. Buy it, you won’t regret unless you try to build it alone."
+      },
+      {
+        "id": "gen-11g6g99",
+        "betyg": 4,
+        "datum": "2024-08-11",
+        "foton": 0,
+        "text": "Nice piece of furniture and provides the storage needed. It's slightly flimsy but with the right tools can be made sturdier. Very happy with the purchase."
+      },
+      {
+        "id": "gen-24m5f1",
+        "betyg": 3,
+        "datum": "2026-04-05",
+        "foton": 0,
+        "text": "It broke easily during assembly the bracket snapped off"
+      }
+    ]
+  },
+  "964d6ebe": {
+    "productId": "964d6ebe-5203-4abf-a09f-5a9f04386e8a",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-11j3wts",
+        "betyg": 5,
+        "datum": "2026-06-09",
+        "foton": 0,
+        "text": "This is a very useful unit, well built, good capacity. The 2 tubes are very handy to collect 14-15 tennis balls in each. I recommend it to any tennis coach/parents."
+      },
+      {
+        "id": "gen-15x4he6",
+        "betyg": 5,
+        "datum": "2026-05-26",
+        "foton": 0,
+        "text": "I LOVE this set. The ball carrier easily zips closed and it is a snap to put it on and off of the base. The material is high quality. The ball tube works amazingly and both tubes fit into the carrier case making it easy to carry everything-- including my own backpack. The base is sturdy and expands almost automatically when I open it. There is a clip and strap to close the base for carrying--super easy to open and close! The ball carrier has a pouch that fits my paddle. The wheels are sturdy and move effortlessly. I am super happy with my purchase!!!"
+      }
+    ]
+  }
+}
