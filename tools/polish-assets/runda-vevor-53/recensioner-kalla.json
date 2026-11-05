@@ -1,0 +1,120 @@
+{
+  "95fd3e72": {
+    "productId": "95fd3e72-114e-4c7b-9d93-7bc2a892db2e",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "3bca8bd4": {
+    "productId": "3bca8bd4-f77b-4f5d-890b-df56f61bbcc8",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": []
+  },
+  "86dadcad": {
+    "productId": "86dadcad-c781-427e-a384-6a77252c014c",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-ioy4jh",
+        "betyg": 5,
+        "datum": "2026-09-03",
+        "foton": 0,
+        "text": "Just adorable!! Well made and provides good shade. Love it for my outside birds cage."
+      },
+      {
+        "id": "gen-vyvjxk",
+        "betyg": 5,
+        "datum": "2026-02-10",
+        "foton": 1,
+        "text": "Solid buy all the way around. Surprisingly excellent quality. You will not be disappointed."
+      }
+    ]
+  },
+  "c5e6c97d": {
+    "productId": "c5e6c97d-c59a-4c44-8f88-725b2751f4ff",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1nmj2fb",
+        "betyg": 5,
+        "datum": "2026-01-07",
+        "foton": 0,
+        "text": "Séchoir à linge facile d’utilisation Robuste et fonctionnel Se range facilement en peu de place et rapidement Fait la longueur et la hauteur du radiateur devant lequel nous mettons le linge sécher en hiver"
+      },
+      {
+        "id": "gen-ifhftl",
+        "betyg": 4,
+        "datum": "2025-06-18",
+        "foton": 0,
+        "text": "Good and effective distribution possible for quick drying."
+      }
+    ]
+  },
+  "3bf39f35": {
+    "productId": "3bf39f35-01ca-4f43-8562-9f972f044d1f",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-xomfah",
+        "betyg": 5,
+        "datum": "2026-10-04",
+        "foton": 0,
+        "text": "Sin ser experto en disc golf, cumple sobradamente con la tarea. Un pack completo, con discos de muchas características distintas y de buena calidad."
+      },
+      {
+        "id": "gen-2csmet",
+        "betyg": 5,
+        "datum": "2026-04-24",
+        "foton": 0,
+        "text": "Could be easily convinced this set came out of the innova factory. Fly great great as a full starter set for the family or just to get out there playing."
+      },
+      {
+        "id": "gen-ldtkr",
+        "betyg": 5,
+        "datum": "2026-04-04",
+        "foton": 0,
+        "text": "Good quality discs nice assortment. Played with them several times and I thought they played well. Definitely worth the price."
+      },
+      {
+        "id": "gen-1behroc",
+        "betyg": 5,
+        "datum": "2025-12-23",
+        "foton": 0,
+        "text": "Similar to champion plastic. Good variety of discs and colors. Flight numbers are pretty spot on. You’re not going to find a value like these anywhere else."
+      },
+      {
+        "id": "gen-1eoddex",
+        "betyg": 5,
+        "datum": "2025-11-21",
+        "foton": 0,
+        "text": "I bought these for my son and the quality was so good I bought another set for myself."
+      },
+      {
+        "id": "gen-jl4x8e",
+        "betyg": 4,
+        "datum": "2026-07-29",
+        "foton": 0,
+        "text": "Great deal. Should stay online for future purchases. I do question the legitimately of the PDGA approvement. Curious to hear more."
+      }
+    ]
+  }
+}
