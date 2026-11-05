@@ -49,7 +49,9 @@ export const OFFERT_EXEMPLAR = 6;
 /** ... eller från så stor rabattberättigad bas, exkl. moms i öre (F7). */
 export const OFFERT_BAS_ORE_EX_MOMS = 2_000_000;
 
-export type Undantag = "flaggad" | "presentkort" | "tjanst" | "auktion";
+/** Varför en rad inte får medlemspris. `rea`: varan har redan ett reapris, och
+ *  medlemspriset läggs aldrig ovanpå (Leonard 2026-11-05, 2.1). */
+export type Undantag = "flaggad" | "presentkort" | "tjanst" | "auktion" | "rea";
 
 export interface Prisrad {
   /** Radens id i varukorgen. */

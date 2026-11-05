@@ -29,6 +29,8 @@ import {
 } from "./lager";
 import { stadaLastaKorgar, type Stadutfall } from "./korgstadning";
 import { hamtaGolv } from "./golv-klient";
+import { ettPris, jamforelseForMedlem } from "./jamforelse";
+import { jamforprisFor } from "@/lib/price-snapshot";
 import { hogstaProcent, prissatt, radpris, type Begransning, type Prisbeslut, type Profil } from "./pris";
 import type { Golvsvar, Varukorgsrad } from "./varukorg";
 import {
@@ -89,6 +91,28 @@ export interface Variantmedlemspris {
   begransning: Begransning;
   /** Golvet begränsar: den högsta procent varan kan få. */
   hogstaProcent?: number;
+  /** Varför varianten inte får medlemspris, när det är något kunden ska få veta. */
+  orsak?: "rea";
+  /** Det belagda tidigare priset (lägsta de senaste 30 dagarna), lib/medlem/jamforelse.ts. */
+  tidigareOre?: number;
+  /** Får nivåns procent stå i rutan? Bara när det tidigare priset är listpriset. */
+  visaProcent?: boolean;
+}
+
+/** Jämförpriset för ett medlemspris, sparat en kort stund per produkt och pris. */
+const JAMFOR_CACHE_MS = 10 * 60_000;
+const jamforCache = new Map<string, { ore: number | null; at: number }>();
+
+async function tidigarePris(produktId: string, pOre: number): Promise<number | null> {
+  const nyckel = `${produktId}|${pOre}`;
+  const c = jamforCache.get(nyckel);
+  if (c && Date.now() - c.at < JAMFOR_CACHE_MS) return c.ore;
+  // jamforprisFor sväljer sina egna fel och ger då null: ingen jämförelse
+  // hellre än en som inte går att belägga.
+  const jf = await jamforprisFor(produktId, pOre / 100);
+  const ore = jf ? jf.prisMinor : null;
+  jamforCache.set(nyckel, { ore, at: Date.now() });
+  return ore;
 }
 
 /** Medlemspriset för varje variant av en produkt, räknat på Wix färska pris. */
@@ -106,7 +130,11 @@ export async function medlemsprisForProdukt(
   const varianter = variantpriserUrV3(produkt);
   if (varianter.length === 0) return null;
   const golv = await hamtaGolv(varianter.map((v) => ({ produktId, variantId: v.variantId })));
-  return varianter.map((v) => {
+  const rader: Variantmedlemspris[] = varianter.map((v) => {
+    // 2.1: en reavara får reapriset, aldrig ett medlemspris ovanpå.
+    if (v.rea) {
+      return { variantId: v.variantId, aOre: v.aOre, pOre: v.aOre, procent: 0, begransning: "ej-berattigad", orsak: "rea" };
+    }
     const g = golv.get(golvnyckel(produktId, v.variantId));
     const golvOre = g?.golvOre ?? null;
     const { pOre, begransning } = radpris(v.aOre, golvOre, profil.nivaProcent);
@@ -120,6 +148,16 @@ export async function medlemsprisForProdukt(
       ...(hogsta !== undefined ? { hogstaProcent: hogsta } : {}),
     };
   });
+  // Jämförelsen med det tidigare priset, som kedjorna visar (jamforelse.ts).
+  // Bara när varianterna har ett och samma pris: prishistoriken är produktens.
+  if (!ettPris(rader.map((r) => r.aOre))) return rader;
+  for (const r of rader) {
+    if (r.orsak || r.pOre >= r.aOre) continue;
+    const j = jamforelseForMedlem(r.aOre, r.pOre, await tidigarePris(produktId, r.pOre));
+    if (j.tidigareOre !== undefined) r.tidigareOre = j.tidigareOre;
+    r.visaProcent = j.visaProcent;
+  }
+  return rader;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

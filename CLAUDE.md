@@ -1649,6 +1649,31 @@ medlemmar med `testare: true`) eller `pa`. Den är skild från `lage`.
   `components/medlemspris.tsx` i nivåns metall, samma nyckel som medlemskortet
   (`lib/medlem/niva-nyckel.ts`). Utan tecknet `fp_medlem_inne` görs inget
   anrop.
+- **Jämförelsen som kedjorna gör den** (Leonard 2026-11-05: "kolla hur andra
+  stora sidor gör och härma", i stället för att fråga Konsumentverket).
+  Elgiganten visar klubbpriset med priset för den som inte är medlem och
+  "Lägsta pris senaste 30 dagar" vid en sänkning. Hos oss
+  (`lib/medlem/jamforelse.ts`):
+  - Under medlemspriset står det belagda tidigare priset, överstruket och med
+    Konsumentverkets uttryck framför, genom `components/tidigare-pris.tsx`
+    (samma som rean). Det är `jamforprisFor` ur prishistoriken, alltså det
+    lägsta priset de senaste 30 dagarna, och det visas bara när medlemspriset
+    ligger under det.
+  - ☠️ **Nivåns procent står bara när det tidigare priset är listpriset.** En
+    procent ska räknas mot det belagda priset; nivåns procent räknas mot
+    listpriset.
+  - ☠️ **Prishistoriken är produktens lägsta variantpris** (price-snapshot).
+    Har varianterna olika pris visas ingen jämförelse och ingen procent, bara
+    "Ditt medlemspris".
+  - Jämförpriset sparas i tio minuter per produkt och pris och instans; ett fel
+    ger ingen jämförelse, aldrig en gissad.
+- ☠️ **Medlemspriset läggs aldrig ovanpå en rea** (Leonard 2026-11-05, 2.1:
+  "det ska inte kunna kombineras med rabattkoder eller fyndauktionsrabatterna";
+  rean är en rabatt av samma slag). En rad är rea när Wix `fullPrice` ligger
+  över priset (varukorgen) eller `compareAtPrice` över priset (V3,
+  produktsidan). Undantaget heter `rea` i prismotorn, och rutan säger "Varan är
+  redan på rea". Rabattkoderna är låsta i medlemskassan (E0-3), och
+  fyndauktionens varor har undantaget `auktion` från motorns golv.
 - **Kassan** (`/api/medlem/kassa`, `lib/medlem/medlemspris.ts`) bygger en Cart
   V2 med E0:s regler: `openAccess`, landet SE, kanalen WEB, låst kupong och
   presentkort, och samma pris i `salePrice` och `fullPrice` på varje rad från
@@ -1664,6 +1689,9 @@ medlemmar med `testare: true`) eller `pa`. Den är skild från `lage`.
   prisbeslut, `lib/medlem/overgiven.ts`), både i webhooken och i pollaren. Kan
   det inte avgöras väntar kassan till nästa kvart.
 
-Före `test`: Leonards medlemsrad med `testare: true` och en provorder på en
-förhandslänk. Före `pa`: Leonards svar på P4–P8 och J1, beslut om tvåfaktor
-för admin, och aldrig under Black Week 23–29/11.
+Före `test`: Leonards medlemsrad med `testare: true` och ett prov på en
+förhandslänk fram till Wix-kassan. Leonard lägger ingen provorder (2026-11-05:
+"Du får testa så det funkar på annat sätt"); att Wix behåller vårt pris genom
+betalningen visade provordern 10167 i E0. Ingen tvåfaktor för admin (Leonard
+2026-11-05). J1 skickas inte: jämförelsen följer kedjorna (ovan). Aldrig under
+Black Week 23–29/11.

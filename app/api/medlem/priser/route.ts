@@ -35,6 +35,10 @@ export async function GET(req: Request) {
         procent: v.procent,
         begransning: v.begransning,
         ...(v.hogstaProcent !== undefined ? { hogstaProcent: v.hogstaProcent } : {}),
+        ...(v.orsak ? { orsak: v.orsak } : {}),
+        // Det belagda tidigare priset och om procenten får stå (lib/medlem/jamforelse.ts).
+        ...(v.tidigareOre !== undefined ? { tidigareOre: v.tidigareOre } : {}),
+        ...(v.visaProcent !== undefined ? { visaProcent: v.visaProcent } : {}),
       })),
     },
     { headers: PRIVAT },

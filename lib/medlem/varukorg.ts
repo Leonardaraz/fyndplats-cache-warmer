@@ -36,6 +36,9 @@ export interface Varukorgsrad {
   /** Katalogens pris per styck inkl. moms, i öre. */
   aOre: number;
   namn: string;
+  /** Raden har ett reapris: Wix `fullPrice` ligger över priset. Medlemspriset
+   *  läggs aldrig ovanpå en rea (Leonard 2026-11-05, 2.1). */
+  rea?: true;
 }
 
 const text = (v: unknown) => (typeof v === "string" ? v : "");
@@ -46,6 +49,8 @@ type WixRad = {
   catalogReference?: { catalogItemId?: unknown; appId?: unknown; options?: { variantId?: unknown } };
   quantity?: unknown;
   price?: { amount?: unknown };
+  /** Priset före katalogens rea; samma som `price` när varan inte är på rea. */
+  fullPrice?: { amount?: unknown };
   productName?: { original?: unknown; translated?: unknown };
 };
 
@@ -53,7 +58,7 @@ type WixRad = {
 type WixVariant = {
   id?: unknown;
   visible?: unknown;
-  price?: { actualPrice?: { amount?: unknown } };
+  price?: { actualPrice?: { amount?: unknown }; compareAtPrice?: { amount?: unknown } };
   inventoryStatus?: { inStock?: unknown };
 };
 
@@ -89,6 +94,7 @@ export function lasWixVarukorg(cart: unknown): Varukorgsrad[] | null {
     const aOre = oreAvBelopp(r.price?.amount);
     if (!produktId || !appId || !Number.isSafeInteger(antal) || antal < 1 || aOre === null) return null;
     const variantId = text(ref.options?.variantId) || null;
+    const fore = oreAvBelopp(r.fullPrice?.amount);
     ut.push({
       radId: text(r.id) || `${produktId}:${variantId ?? ""}`,
       produktId,
@@ -97,6 +103,7 @@ export function lasWixVarukorg(cart: unknown): Varukorgsrad[] | null {
       antal,
       aOre,
       namn: text(r.productName?.translated) || text(r.productName?.original),
+      ...(fore !== null && fore > aOre ? { rea: true as const } : {}),
     });
   }
   return ut;
@@ -116,7 +123,15 @@ export function prisrader(rader: readonly Varukorgsrad[], golv: ReadonlyMap<stri
   return rader.map((r) => {
     const g = golv.get(golvnyckel(r.produktId, r.variantId));
     const undantag: Undantag | undefined =
-      r.appId !== STORES_APP_ID ? "tjanst" : g?.utan === "auktion" ? "auktion" : g?.utan === "flaggad" ? "flaggad" : undefined;
+      r.appId !== STORES_APP_ID
+        ? "tjanst"
+        : g?.utan === "auktion"
+          ? "auktion"
+          : g?.utan === "flaggad"
+            ? "flaggad"
+            : r.rea
+              ? "rea"
+              : undefined;
     return {
       id: r.radId,
       produktId: r.produktId,
@@ -202,6 +217,8 @@ export interface Variantpris {
   /** Aktuellt pris per styck inkl. moms, i öre. */
   aOre: number;
   iLager: boolean;
+  /** Varianten har ett jämförpris över priset, alltså en rea (2.1). */
+  rea?: true;
 }
 
 /**
@@ -219,7 +236,13 @@ export function variantpriserUrV3(product: unknown): Variantpris[] {
     const variantId = text(r.id);
     const aOre = oreAvBelopp(r.price?.actualPrice?.amount);
     if (!variantId || aOre === null || aOre === 0) continue;
-    ut.push({ variantId, aOre, iLager: r.inventoryStatus?.inStock !== false });
+    const jamfor = oreAvBelopp(r.price?.compareAtPrice?.amount);
+    ut.push({
+      variantId,
+      aOre,
+      iLager: r.inventoryStatus?.inStock !== false,
+      ...(jamfor !== null && jamfor > aOre ? { rea: true as const } : {}),
+    });
   }
   return ut;
 }

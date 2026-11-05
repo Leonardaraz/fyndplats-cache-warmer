@@ -149,3 +149,43 @@ test("kassans adress: den inre länken, utan inloggningsrad, med butikens klient
   assert.equal(kassaAdress("inte en adress", "k"), null);
   assert.equal(kassaAdress(undefined, "k"), null);
 });
+
+test("☠️ 2.1: en reavara får aldrig medlemspris ovanpå, varken i korgen eller på produktsidan", () => {
+  // Korgen: Wix fullPrice över priset är en rea. Samma pris i båda är ingen.
+  const rea = { ...wixRad("r1", "p1", "v1", 1, "449.00"), fullPrice: { amount: "499.00" } };
+  const vanlig = { ...wixRad("r2", "p2", "v2", 1, "499.00"), fullPrice: { amount: "499.00" } };
+  const utanFullPrice = wixRad("r3", "p3", "v3", 1, "299.00");
+  const rader = lasWixVarukorg({ lineItems: [rea, vanlig, utanFullPrice] });
+  assert.ok(rader);
+  assert.deepEqual(rader.map((r) => r.rea === true), [true, false, false]);
+
+  const golv = new Map<string, Golvsvar>([
+    [golvnyckel("p1", "v1"), { golvOre: 30_000, kostnadOre: 20_000 }],
+    [golvnyckel("p2", "v2"), { golvOre: 30_000, kostnadOre: 20_000 }],
+    [golvnyckel("p3", "v3"), { golvOre: 20_000, kostnadOre: 15_000 }],
+  ]);
+  const pr = prisrader(rader, golv);
+  assert.equal(pr[0].undantag, "rea");
+  assert.equal(pr[1].undantag, undefined);
+  // Prismotorn ger reaveran listpriset (= reapriset), de andra rabatten.
+  const beslut = prissatt(pr, { typ: "privat", niva: "Guld", nivaProcent: 2 });
+  assert.equal(beslut.rader[0].pOre, 44_900);
+  assert.equal(beslut.rader[0].begransning, "ej-berattigad");
+  assert.ok(beslut.rader[1].pOre < 49_900);
+
+  // Auktionen och flaggan vinner över rean, så att orsaken blir den starkaste.
+  const auktion = prisrader([rader[0]], new Map([[golvnyckel("p1", "v1"), { golvOre: null, kostnadOre: null, utan: "auktion" }]]));
+  assert.equal(auktion[0].undantag, "auktion");
+
+  // Produktsidan: V3 compareAtPrice över priset är en rea.
+  const v = variantpriserUrV3({
+    variantsInfo: {
+      variants: [
+        { id: "a", price: { actualPrice: { amount: "449" }, compareAtPrice: { amount: "499" } } },
+        { id: "b", price: { actualPrice: { amount: "499" }, compareAtPrice: { amount: "499" } } },
+        { id: "c", price: { actualPrice: { amount: "499" } } },
+      ],
+    },
+  });
+  assert.deepEqual(v.map((x) => [x.variantId, x.rea === true]), [["a", true], ["b", false], ["c", false]]);
+});

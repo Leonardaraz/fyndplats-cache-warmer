@@ -6,12 +6,18 @@
 // /api/medlem/priser (privat, ingen cache). Utan inloggning görs inget anrop:
 // tecknet `fp_medlem_inne` säger att det finns en session att fråga om.
 //
-// [P8] Listpriset stryks inte över. Rutan säger "Ditt medlemspris" med nivå
-// och procent (E2-3), eller att varan inte omfattas (E2-4). Rutan har nivåns
-// färg, samma metall som medlemskortet: guld för guld, silver för silver
-// (Leonard 2026-11-04).
+// Rutan säger "Ditt medlemspris" med nivå (E2-3), eller att varan inte
+// omfattas (E2-4). Rutan har nivåns färg, samma metall som medlemskortet:
+// guld för guld, silver för silver (Leonard 2026-11-04).
+//
+// [P8] Som de stora kedjorna (Leonard 2026-11-05: "härma"): när det tidigare
+// priset går att belägga står det under medlemspriset, överstruket och med
+// Konsumentverkets uttryck framför, samma komponent som rean. Procenten står
+// bara när det tidigare priset är listpriset (lib/medlem/jamforelse.ts). En
+// reavara får inget medlemspris ovanpå (2.1), och rutan säger varför.
 
 import { useEffect, useState } from "react";
+import { TidigarePris } from "./tidigare-pris";
 import { kronorText } from "../lib/medlem/kronor";
 import { nivaNyckel } from "../lib/medlem/niva-nyckel";
 
@@ -22,6 +28,12 @@ type Variant = {
   procent: number;
   begransning: "ingen" | "golv" | "ej-berattigad" | "fri-frakt" | "ingen-rabatt";
   hogstaProcent?: number;
+  /** Varför varianten inte får medlemspris, när kunden ska få veta det. */
+  orsak?: "rea";
+  /** Det belagda tidigare priset i öre (lägsta de senaste 30 dagarna). */
+  tidigareOre?: number;
+  /** Får nivåns procent stå? Bara när det tidigare priset är listpriset. */
+  visaProcent?: boolean;
 };
 type Svar = { medlemspris: true; niva: string; procent: number; varianter: Variant[] } | { medlemspris: false };
 
@@ -51,6 +63,13 @@ export function Medlemspris({ produktId, variantId }: { produktId: string; varia
     svar.varianter.find((x) => x.variantId === variantId) ?? (svar.varianter.length === 1 ? svar.varianter[0] : null);
   if (!v) return null;
 
+  if (v.orsak === "rea") {
+    return (
+      <p className="medlemspris-utan" role="status">
+        Varan är redan på rea. Medlemspriset läggs inte ovanpå reapriset.
+      </p>
+    );
+  }
   if (v.begransning === "ej-berattigad" || (v.begransning === "golv" && v.pOre >= v.aOre)) {
     return (
       <p className="medlemspris-utan" role="status">
@@ -66,8 +85,14 @@ export function Medlemspris({ produktId, variantId }: { produktId: string; varia
       {/* Med ören: samma tal som kassan (specen, avrundning). */}
       <span className="medlemspris-belopp">{kronorText(v.pOre)}</span>
       <span className="medlemspris-niva">
-        {svar.niva} · {v.begransning === "golv" && v.hogstaProcent !== undefined ? `högst ${v.hogstaProcent} %` : `${v.procent} %`}
+        {svar.niva}
+        {v.visaProcent
+          ? ` · ${v.begransning === "golv" && v.hogstaProcent !== undefined ? `högst ${v.hogstaProcent} %` : `${v.procent} %`}`
+          : ""}
       </span>
+      {v.tidigareOre !== undefined ? (
+        <TidigarePris belopp={kronorText(v.tidigareOre)} className="medlemspris-tidigare" />
+      ) : null}
     </div>
   );
 }

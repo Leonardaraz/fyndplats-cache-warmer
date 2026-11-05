@@ -1008,11 +1008,15 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
    (lib/medlem/niva-nyckel.ts). Läsordningen är etikett, belopp, nivå;
    rutnätet lägger nivån uppe till höger. */
 .medlemspris,.medlemspris-chip{--mp-bg:linear-gradient(135deg,#5c2f18 0%,#74401f 55%,#86502f 100%);--mp-ink:#fff8f2;--mp-dim:#fff1e6;--mp-sken:rgba(255,255,255,.08);--mp-bricka:rgba(0,0,0,.22);--mp-kant:rgba(255,255,255,.14)}
-.medlemspris{position:relative;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:1fr auto;grid-template-areas:"etikett niva" "belopp belopp";align-items:center;gap:2px 12px;margin:-2px 0 14px;padding:11px 16px 12px;border-radius:var(--r-md);background:var(--mp-bg);color:var(--mp-ink);box-shadow:inset 0 1px 0 var(--mp-kant),var(--e2)}
+.medlemspris{position:relative;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:1fr auto;grid-template-areas:"etikett niva" "belopp belopp" "tidigare tidigare";align-items:center;gap:2px 12px;margin:-2px 0 14px;padding:11px 16px 12px;border-radius:var(--r-md);background:var(--mp-bg);color:var(--mp-ink);box-shadow:inset 0 1px 0 var(--mp-kant),var(--e2)}
 .medlemspris::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(115deg,transparent 30%,var(--mp-sken) 46%,transparent 62%)}
 .medlemspris-etikett{grid-area:etikett;font-size:var(--text-xs);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--mp-dim)}
 .medlemspris-belopp{grid-area:belopp;font-size:var(--text-xl);font-weight:800;line-height:1.15;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
 .medlemspris-niva{grid-area:niva;justify-self:end;font-size:var(--text-xs);font-weight:800;letter-spacing:.03em;white-space:nowrap;padding:3px 10px;border-radius:var(--r-pill);background:var(--mp-bricka)}
+/* Det belagda tidigare priset under medlemspriset (lib/medlem/jamforelse.ts),
+   samma uttryck och överstrykning som rean. Samma dämpade färg som etiketten,
+   vars kontrast är mätt ovan. */
+.medlemspris-tidigare{grid-area:tidigare;font-size:var(--text-xs);font-weight:600;color:var(--mp-dim)}
 .medlemspris[data-niva="silver"],.medlemspris-chip[data-niva="silver"]{--mp-bg:linear-gradient(135deg,#f4f6f8 0%,#d9dfe4 40%,#c6cdd4 62%,#eef1f3 100%);--mp-ink:#18222b;--mp-dim:#36434e;--mp-sken:rgba(255,255,255,.5);--mp-bricka:rgba(255,255,255,.55);--mp-kant:rgba(255,255,255,.7)}
 .medlemspris[data-niva="guld"],.medlemspris-chip[data-niva="guld"]{--mp-bg:linear-gradient(135deg,#f8e8b4 0%,#eccb6e 38%,#dcb04a 62%,#f4d98c 100%);--mp-ink:#2b1d02;--mp-dim:#4a3507;--mp-sken:rgba(255,255,255,.45);--mp-bricka:rgba(255,255,255,.5);--mp-kant:rgba(255,255,255,.6)}
 .medlemspris[data-niva="platina"],.medlemspris-chip[data-niva="platina"]{--mp-bg:linear-gradient(135deg,#b8f3e6 0%,#56dcc1 36%,#22b99a 62%,#7fe8d2 100%);--mp-ink:#02261e;--mp-dim:#05372c;--mp-sken:rgba(255,255,255,.45);--mp-bricka:rgba(255,255,255,.5);--mp-kant:rgba(255,255,255,.6)}
