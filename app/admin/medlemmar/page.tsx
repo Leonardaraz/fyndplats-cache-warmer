@@ -20,7 +20,8 @@ import {
   type Rad,
 } from "@/lib/medlem/admin";
 import { offertko, senasteOfferter, type OffertIKon } from "@/lib/medlem/offert-admin";
-import { foretagAction, lageAction, manuellNivaAction, offertAction, sparrAction, taBortAction } from "./actions";
+import { varorUtanMedlemspris, type FlaggadVara } from "@/lib/medlem/ej-medlemspris";
+import { ejMedlemsprisAction, foretagAction, lageAction, manuellNivaAction, offertAction, sparrAction, taBortAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -197,11 +198,12 @@ export default async function Medlemmar({ searchParams }: { searchParams: Promis
   const sp = await searchParams;
   const q = (sp.q ?? "").trim();
   const meddelande = sp.m ?? "";
-  const [o, ko, offerter, senaste] = await Promise.all([
+  const [o, ko, offerter, senaste, flaggade] = await Promise.all([
     oversikt(),
     foretagsko(),
     offertko().catch(() => [] as OffertIKon[]),
     senasteOfferter().catch(() => [] as Rad[]),
+    varorUtanMedlemspris().catch(() => null as FlaggadVara[] | null),
   ]);
   const sok = q ? await sokMedlem(q) : null;
   const medlem = sok?.medlem ?? null;
@@ -291,6 +293,56 @@ export default async function Medlemmar({ searchParams }: { searchParams: Promis
             </table>
           </>
         ) : null}
+      </section>
+
+      <section style={KORT} id="ej-medlemspris">
+        <h2 style={{ marginTop: 0 }}>Varor utan medlemspris ({flaggade ? flaggade.length : "?"})</h2>
+        <p style={{ color: "#555", fontSize: 13 }}>
+          En flaggad vara får aldrig medlemspris: golvrutten ger den inget golv, och butiken visar listpriset. AliExpress-varor,
+          levande fynd, reavaror och varor utan känd kostnad är redan undantagna och behöver ingen flagga.
+        </p>
+        {flaggade === null ? (
+          <p style={{ color: "#b91c1c" }}>Listan gick inte att läsa just nu.</p>
+        ) : flaggade.length ? (
+          <table style={TABELL}>
+            <thead>
+              <tr>
+                <th style={CELL}>Vara</th>
+                <th style={CELL}>Leverantör</th>
+                <th style={CELL}>Ta bort flaggan</th>
+              </tr>
+            </thead>
+            <tbody>
+              {flaggade.map((v) => (
+                <tr key={v.wixProductId}>
+                  <td style={CELL}>
+                    {v.namn || "(ej polerad)"}
+                    <br />
+                    <code style={{ fontSize: 12 }}>{v.wixProductId}</code>
+                  </td>
+                  <td style={CELL}>{text(v.leverantor)}</td>
+                  <td style={CELL}>
+                    <form action={ejMedlemsprisAction}>
+                      <input type="hidden" name="q" value={q} />
+                      <input type="hidden" name="produkt" value={v.wixProductId} />
+                      <input type="hidden" name="ej" value="0" />
+                      <Orsaksfalt /> <button type="submit">Ge medlemspris igen</button>
+                    </form>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p style={{ color: "#666" }}>Ingen vara är flaggad.</p>
+        )}
+        <h3>Flagga en vara</h3>
+        <form action={ejMedlemsprisAction}>
+          <input type="hidden" name="q" value={q} />
+          <input type="hidden" name="ej" value="1" />
+          <input name="produkt" placeholder="Produktens id i Wix, eller adressen i Wix-panelen" required style={{ width: 360 }} /> <Orsaksfalt />{" "}
+          <button type="submit">Flagga</button>
+        </form>
       </section>
 
       <form method="get" style={{ margin: "16px 0" }}>

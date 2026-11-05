@@ -44,6 +44,7 @@ export const ORSAKSKODER = {
   missbruk: "Missbruk av villkoren",
   radering: "Kundens begäran om radering",
   lansering: "Lansering eller avstängning",
+  prissattning: "Prissättning (marginal eller avtal med leverantören)",
   ovrigt: "Övrigt",
 } as const;
 export type Orsakskod = keyof typeof ORSAKSKODER;
@@ -209,7 +210,8 @@ export async function beslutaForetag(medlem: string, beslut: Foretagsbeslut, ors
 // Manuella ändringar (E1-11)
 // ─────────────────────────────────────────────────────────────────────────────
 
-async function logga(h: Rad): Promise<void> {
+/** En rad i FyndplatsMedlemslogg från admin (E1-11). */
+export async function logga(h: Rad): Promise<void> {
   const tid = new Date().toISOString();
   await infoga(MEDLEM_KOL.logg, `l_${tid.replace(/[^0-9]/g, "")}_${randomUUID().slice(0, 8)}`, { ...h, aktor: "admin", tid });
 }

@@ -33,6 +33,9 @@ const COL = {
   tokens: process.env.WIX_DATA_COL_TOKENS ?? "FyndplatsAliExpressTokens",
 };
 
+/** Mappningarnas kollektion, för den som ändrar ett enda fält utan att skriva hela raden (lib/medlem/ej-medlemspris.ts). */
+export const MAPPNINGAR_KOL = COL.mappings;
+
 // Singleton-id för AliExpress-token-raden. En enda rad per Wix-site eftersom
 // vi bara har en AliExpress-app per Fyndplats-konto.
 export const ALIEXPRESS_TOKEN_ID = "aliexpress-main";

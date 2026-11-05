@@ -128,7 +128,10 @@ mappningar, så butiken frågar motorn (`POST /api/medlem/golv`, logiken i
 - **Inget golv, och därmed inget medlemspris, för:**
   - AliExpress, där kostnaden fryser vid importen;
   - en levande fyndauktion, som äger priset;
-  - en produkt med `ejMedlemspris: true` i mappningen;
+  - en produkt med `ejMedlemspris: true` i mappningen. Flaggan sätts och tas
+    bort på `/admin/medlemmar` (`#ej-medlemspris`, `lib/medlem/ej-medlemspris.ts`)
+    med orsakskod, och bara fältet ändras (`patcha`), aldrig hela raden, så
+    att synkens fält inte skrivs över. En saknad mappning skapas aldrig;
   - en variant utan känd kostnad.
 - **Matchar inte varianten** används den högsta kostnaden bland produktens
   varianter, och bara om alla har en kostnad.
@@ -238,8 +241,6 @@ mappningar, så butiken frågar motorn (`POST /api/medlem/golv`, logiken i
 - Leonards svar på P4–P8 (aktuellt pris, kupong, golv, fri frakt-skydd,
   visning av listpriset).
 - J1, frågan till Konsumentverket, och beslut om tvåfaktor för admin.
-- Flaggan "ej medlemspris" i admin. Fältet `ejMedlemspris` läses redan av
-  golvrutten.
 - Integritetstexten (J4) ska vara publicerad innan läget `pa`. Utkastet står i
   butikens `docs/medlemskap-integritetstext-utkast.md`. Tillägget för E2 och
   E3 (prisbeslut, företag, offerter, sparade varukorgar och kakan

@@ -18,6 +18,7 @@ import {
   type Lage,
 } from "@/lib/medlem/admin";
 import { avbojOffert, prissattOffert } from "@/lib/medlem/offert-admin";
+import { lasProduktId, sattEjMedlemspris } from "@/lib/medlem/ej-medlemspris";
 
 function tillbaka(q: string, meddelande: string): never {
   const sok = new URLSearchParams();
@@ -109,4 +110,17 @@ export async function offertAction(f: FormData): Promise<void> {
         : "Offerten är prissatt och gäller i 14 dagar. Kunden får mejlet inom en timme (butikens timjobb kl :41)."
       : u,
   );
+}
+
+/** E2: flaggan "ej medlemspris" på en produkt (lib/medlem/ej-medlemspris.ts). */
+export async function ejMedlemsprisAction(f: FormData): Promise<void> {
+  const q = falt(f, "q");
+  const id = lasProduktId(falt(f, "produkt"));
+  if (!id) tillbaka(q, "Klistra in produktens id från Wix (36 tecken med bindestreck), eller adressen till produkten i Wix-panelen.");
+  const orsak = lasOrsak(falt(f, "orsakKod"), falt(f, "orsakText"));
+  if (typeof orsak === "string") tillbaka(q, orsak);
+  const ej = falt(f, "ej") === "1";
+  const u = await sattEjMedlemspris(id, ej, orsak);
+  revalidatePath("/admin/medlemmar");
+  tillbaka(q, u === "ok" ? (ej ? "Produkten får inte medlemspris längre." : "Produkten kan få medlemspris igen.") : u);
 }
