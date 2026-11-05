@@ -110,7 +110,8 @@ export type ReaBeslut =
     }
   | { rea: false; skal: ReaSkal; forstaSankning?: string; fonsterFran?: string };
 
-interface Segment {
+/** Ett pris som gäller från `start` (ms) till nästa segments start. `p` null = gick inte att köpa. */
+export interface Segment {
   start: number;
   p: number | null;
 }
@@ -119,8 +120,12 @@ function giltigtPris(p: unknown): p is number {
   return typeof p === "number" && Number.isInteger(p) && p > 0;
 }
 
-/** Punkterna som en trappa: en tidpunkt ett pris, och samma pris i följd ett segment. */
-function trappa(punkter: readonly Prispunkt[], nuMs: number): Segment[] {
+/**
+ * Punkterna som en trappa: en tidpunkt ett pris, och samma pris i följd ett segment.
+ * Exporteras för fyndauktionens 30-dagarsspärr (lib/auction/trettio-dagar.ts), så
+ * att historiken läses på ett enda sätt.
+ */
+export function trappa(punkter: readonly Prispunkt[], nuMs: number): Segment[] {
   const rader: Segment[] = [];
   for (const x of punkter) {
     const start = Date.parse(x.t);

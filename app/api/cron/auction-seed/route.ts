@@ -19,12 +19,30 @@
 // Live per-variant-priser hämtas med en GET per FLER-variant-produkt (≈90 st,
 // väl under maxDuration); enkel-variant-produkter använder katalogens min-pris
 // direkt (ingen extra GET). Idempotent och omkörningsbar via GitHub Actions.
+//
+// 30-DAGARSSPÄRREN (Leonard 2026-11-04, lib/auction/trettio-dagar.ts). Varje
+// kandidat som inte redan startat prövas mot prishistoriken och sin förra
+// auktion: en köad mot nästa start, en schemalagd mot sin egen. Seeden körs
+// före 07 och är därmed sista grinden före starten.
+//
+//   ?sparr=pa|av   slår spärren på eller av (FyndplatsAppConfig) och svarar
+//                  bara med läget. Av = torrläge: avslagen räknas och står i
+//                  rapporten, men ingenting tas bort.
+//
+// ☠️ Påslaget tar bort många köade på en gång, och skyddsräcket nedan skriver
+// då INGENTING (inte heller morgonens prisuppdatering). Första körningen med
+// spärren på körs därför för hand med apply + force, när torrlägets tal är lästa.
 
 import { NextResponse, type NextRequest } from "next/server";
 import { isAuthorized } from "@/lib/auth";
 import { getStore } from "@/lib/store/factory";
 import { getImportCostStore } from "@/lib/store/import-costs";
 import { queryAuctions, removeAuctionsBulk, saveAuctionsBulk } from "@/lib/auction/store";
+import { nextStartAt } from "@/lib/auction/engine";
+import { forstaSankning, trettioDagar, type Historikdetalj } from "@/lib/auction/trettio-dagar";
+import { WixReaLager, type Prisforlopp } from "@/lib/pricing/rea-lager";
+import type { Lucka } from "@/lib/pricing/rea";
+import { getAppConfig, saveAppConfig } from "@/lib/store/app-config";
 import {
   assignQueueOrder,
   evaluateCandidate,
@@ -144,6 +162,15 @@ async function fetchProductVariants(productId: string): Promise<Array<{ id: stri
     .filter((v) => v.id && Number.isFinite(v.price) && v.price > 0);
 }
 
+/** Spärrens läge. Ett läsfel ger torrläge och syns som ok:false i rapporten. */
+async function lasSparren(): Promise<{ pa: boolean; fel?: string }> {
+  try {
+    return { pa: (await getAppConfig()).auktionTrettioDagar === "pa" };
+  } catch (e) {
+    return { pa: false, fel: `konfigurationen gick inte att läsa: ${(e as Error).message.slice(0, 120)}` };
+  }
+}
+
 /** Kör `fn` över alla items med begränsad parallellism; samlar fel. */
 async function pool<T>(items: T[], limit: number, fn: (t: T) => Promise<void>): Promise<string[]> {
   const errors: string[] = [];
@@ -167,6 +194,20 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Otillåten" }, { status: 401 });
   }
   const apply = req.nextUrl.searchParams.get("apply") === "1";
+
+  // Strömbrytaren. Svarar bara med läget: raden bär hemliga nycklar.
+  const sparrIn = req.nextUrl.searchParams.get("sparr");
+  if (sparrIn !== null) {
+    if (sparrIn !== "pa" && sparrIn !== "av") {
+      return NextResponse.json({ ok: false, error: 'sparr måste vara "pa" eller "av"' }, { status: 400 });
+    }
+    try {
+      const c = await saveAppConfig({ auktionTrettioDagar: sparrIn });
+      return NextResponse.json({ ok: true, trettioDagar: c.auktionTrettioDagar === "pa" ? "pa" : "av" });
+    } catch (e) {
+      return NextResponse.json({ ok: false, error: (e as Error).message.slice(0, 200) }, { status: 500 });
+    }
+  }
 
   try {
     const [catalog, mappings, overrides, existing] = await Promise.all([
@@ -261,20 +302,70 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const order = assignQueueOrder(included);
-    const { toSave, toRemove, skippedLive, refreshedLive, liveNotRefreshed } = planSeed(
-      included,
-      existing,
-      order,
-      Date.now(),
-    );
+    // 30-dagarsspärren. En startad auktion rörs aldrig (planSeed hoppar över
+    // den), så den prövas inte heller.
+    const nuMs = Date.now();
+    const sparr = await lasSparren();
+    let historik: { forlopp: Map<string, Prisforlopp>; luckor: Lucka[] } | null = null;
+    let historikFel: string | undefined;
+    try {
+      const lager = new WixReaLager();
+      const [forlopp, tillstand] = await Promise.all([lager.allaForlopp(), lager.lasTillstand()]);
+      historik = { forlopp: new Map(forlopp.map((f) => [f.productId, f])), luckor: tillstand.luckor };
+    } catch (e) {
+      historikFel = `prishistoriken gick inte att läsa: ${(e as Error).message.slice(0, 120)}`;
+    }
+    const radPer = new Map(existing.map((e) => [e.productId, e]));
+    const nastaStart = nextStartAt(nuMs);
+    const stoppade = { prishistorik: 0, nyssAuktionerad: 0 };
+    const detaljer: Partial<Record<Historikdetalj, number>> = {};
+    const prov: { prishistorik: string[]; nyssAuktionerad: string[] } = { prishistorik: [], nyssAuktionerad: [] };
+    const urval: SeedCandidate[] = [];
+    for (const c of included) {
+      const forra = radPer.get(c.productId);
+      const startad = forra?.status === "live" && (!forra.startAt || Date.parse(forra.startAt) <= nuMs);
+      if (startad || !historik) {
+        urval.push(c);
+        continue;
+      }
+      const start = forra?.status === "live" && forra.startAt ? forra.startAt : nastaStart;
+      const utfall = trettioDagar({
+        varianter: c.variantPrices.map((t) => ({ id: t.wixVariantId, listOre: Math.round(t.listPrice * 100) })),
+        forlopp: historik.forlopp.get(c.productId),
+        luckor: historik.luckor,
+        forra,
+        tSankning: forstaSankning(start, c.stepMinutes),
+        nuMs,
+      });
+      if (utfall.ok) {
+        urval.push(c);
+        continue;
+      }
+      stoppade[utfall.skal]++;
+      if (utfall.skal === "prishistorik") detaljer[utfall.detalj] = (detaljer[utfall.detalj] ?? 0) + 1;
+      if (prov[utfall.skal].length < 10) prov[utfall.skal].push(c.slug);
+      // Torrläge: avslaget räknas men kandidaten står kvar.
+      if (!sparr.pa) urval.push(c);
+    }
+
+    const order = assignQueueOrder(urval);
+    const { toSave, toRemove, skippedLive, refreshedLive, liveNotRefreshed } = planSeed(urval, existing, order, nuMs);
 
     const report: Record<string, unknown> = {
       apply,
       catalogTotal: catalog.length,
       multiVariantProducts: multiRows.length,
       fetchErrors: fetchErrors.slice(0, 5),
-      included: included.length,
+      included: urval.length,
+      trettioDagar: {
+        lage: sparr.pa ? "pa" : "torr",
+        provade: included.length,
+        stoppade,
+        detaljer,
+        prov,
+        luckor: historik?.luckor.length ?? null,
+        ...(sparr.fel || historikFel ? { fel: [sparr.fel, historikFel].filter(Boolean) } : {}),
+      },
       excluded,
       excludedSamples,
       skippedLive,
@@ -291,6 +382,16 @@ export async function GET(req: NextRequest) {
           bestDiscount: `-${Math.round(headlineDiscount(d) * 100)}%`,
         })),
     };
+
+    // Spärren på men historiken oläsbar: då går det inte att pröva något, och
+    // ingenting skrivs (ett fynd utan prövning får inte starta).
+    if (sparr.fel || historikFel) {
+      if (apply && sparr.pa && historikFel) {
+        report.ok = false;
+        report.error = `${historikFel}; spärren är på, så inget skrevs.`;
+        return NextResponse.json(report);
+      }
+    }
 
     // Skyddsräcke för den schemalagda körningen: försvinner en stor del av kön
     // på en gång är det nästan alltid katalogläsningen som brustit, inte
@@ -312,9 +413,9 @@ export async function GET(req: NextRequest) {
       report.saved = toSave.length - saveErrors.length;
       report.removed = toRemove.length - removeErrors.length;
       report.errors = [...saveErrors, ...removeErrors].slice(0, 10);
-      report.ok = saveErrors.length === 0 && removeErrors.length === 0;
+      report.ok = saveErrors.length === 0 && removeErrors.length === 0 && !sparr.fel && !historikFel;
     } else {
-      report.ok = true;
+      report.ok = !sparr.fel && !historikFel;
       report.note = "Torrkörning — lägg till ?apply=1 för att skriva.";
     }
 

@@ -10,17 +10,22 @@
 // varianttrackarna lämnar aldrig motorn. `lager` säger vilket lager som
 // FAKTISKT svarade — en växling ska gå att se, inte antas.
 //
-//   status=live   alla live-rader (högst 50)
+//   status=live   alla live-rader (högst TAK: startade + schemalagda kan vara
+//                 dubbelt så många som den största dagens antal)
 //   status=sold   de senast sålda, nyast först (limit, högst 50)
 
 import { type NextRequest, NextResponse } from "next/server";
 import { auktionslager, queryAuctions, senastSalda } from "@/lib/auction/store";
 import { butikAuktoriserad, butiksrad } from "@/lib/auction/butiksvy";
+import { MAX_ANTAL } from "@/lib/auction/antal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const TAK = 50;
+/** Startade och schemalagda samsas under en dag före en större dag (lib/auction/antal.ts). */
+const TAK = Math.max(200, 2 * MAX_ANTAL);
+/** "Senast sålda" visar en handfull; gränsen är oförändrad sedan butiken läste Wix själv. */
+const SALDA_TAK = 50;
 
 export async function GET(req: NextRequest) {
   const auth = butikAuktoriserad(req.headers.get("authorization"));
@@ -35,7 +40,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'status måste vara "live" eller "sold"' }, { status: 400 });
   }
   const begärt = Number(p.get("limit"));
-  const limit = Number.isFinite(begärt) && begärt >= 1 ? Math.min(Math.floor(begärt), TAK) : TAK;
+  const limit = Number.isFinite(begärt) && begärt >= 1 ? Math.min(Math.floor(begärt), SALDA_TAK) : SALDA_TAK;
 
   try {
     const docs = status === "live" ? (await queryAuctions(["live"])).slice(0, TAK) : await senastSalda(limit);
