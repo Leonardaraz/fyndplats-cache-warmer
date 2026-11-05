@@ -1,0 +1,15 @@
+# kort pos1 pos2 skäl (samma sida), eller kort:pos kort:pos skäl (olika sidor)
+441581dd 3 4 olika vinklar: handtaget lutar åt höger i den ena bilden och står rakt upp i den andra
+441581dd 3 5 olika riktning: handtaget lutar åt höger i den ena bilden och åt vänster i den andra, med ramen sedd från olika håll
+441581dd:3 58349bdd:3 olika varor: en gräsmattautjämnare och ett flugspö, båda tunna linjer på nästan helt vit bakgrund
+441581dd:3 58349bdd:4 olika varor: en gräsmattautjämnare och ett flugspö, båda tunna linjer på nästan helt vit bakgrund
+441581dd:3 58349bdd:5 olika varor: en gräsmattautjämnare och ett flugspö, båda tunna linjer på nästan helt vit bakgrund
+441581dd:3 58349bdd:6 olika varor: en gräsmattautjämnare och ett flugspö, båda tunna linjer på nästan helt vit bakgrund
+441581dd:5 58349bdd:3 olika varor: en gräsmattautjämnare och ett flugspö, båda tunna linjer på nästan helt vit bakgrund
+441581dd:5 58349bdd:4 olika varor: en gräsmattautjämnare och ett flugspö, båda tunna linjer på nästan helt vit bakgrund
+441581dd:5 58349bdd:5 olika varor: en gräsmattautjämnare och ett flugspö, båda tunna linjer på nästan helt vit bakgrund
+441581dd:5 58349bdd:6 olika varor: en gräsmattautjämnare och ett flugspö, båda tunna linjer på nästan helt vit bakgrund
+441581dd:6 58349bdd:3 olika varor: en gräsmattautjämnare och ett flugspö, båda tunna linjer på nästan helt vit bakgrund
+441581dd:6 58349bdd:4 olika varor: en gräsmattautjämnare och ett flugspö, båda tunna linjer på nästan helt vit bakgrund
+441581dd:6 58349bdd:5 olika varor: en gräsmattautjämnare och ett flugspö, båda tunna linjer på nästan helt vit bakgrund
+441581dd:6 58349bdd:6 olika varor: en gräsmattautjämnare och ett flugspö, båda tunna linjer på nästan helt vit bakgrund

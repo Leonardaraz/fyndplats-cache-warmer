@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek 1320x565x1065 mm / 51,96×22,24×41,92 tum utan axelord, men måttbilden (bild 7) ritar 51,96 in / 1320 mm som längd, 22,24 in / 565 mm som bredd och 41,92 in / 1065 mm som höjd med pilar: texten skriver längd, bredd och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 108,27 x 4,53 x 1,97 tum / 2750 x 115 x 50 mm utan axelord och utan att säga vilken del av setet den avser: texten skriver varken den raden eller några andra tre mått, bara spöets längd 2,74 m ur raden Stånglängd
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 762 x 355 x 2190 mm utan axelord, men måttbilden (bild 7) ritar 30 in / 762 mm och 14 in / 355 mm som bottenplattans sidor och 86,2 in / 2190 mm som höjd med pilar: texten skriver längd, bredd och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 880 x 890 x 1310 mm utan axelord, men raden Bredd från armstöd till armstöd 880 mm ger bredden och punkt 3 ger rygghöjden och sittdjupet: texten skriver bredd, djup och höjd i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 810×480×690/770 mm utan axelord, men måttbilden (bild 7) ritar 31,89 in / 810 mm som längd, 18,9 in / 480 mm som bredd och 27,17 till 30,31 in / 690 till 770 mm som höjd med pilar: texten skriver längd, bredd och höjd ur ritningen

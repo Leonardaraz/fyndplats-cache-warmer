@@ -1,0 +1,20 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+8e2c34f2 167 övre lagrets volym 167 liter i punkt 1; titeln skriver 400 L, vilket inte stämmer med lagrens sammanlagda 304 liter, och punktens delvolymer skrivs
+8e2c34f2 137 nedre lagrets volym 137 liter i punkt 1; se 167
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+441581dd 235 stålkvaliteten Q235 i punkt 2
+441581dd 2 bottenplattans tjocklek 2 mm i punkt 2
+441581dd 180 handtagets vridning 180 grader i punkt 3
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+9a2b8e58 145 bärförmågan 145 kg i produktnamnet; specifikationen skriver 150 kg och punkt 2 147 kg, och det lägsta talet skrivs
+9a2b8e58 0,6 kapellets stödrörs väggtjocklek 0,6 mm i punkt 1
+9a2b8e58 520 rygghöjden 520 mm i punkt 3
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+fad102e6 180 bärförmågan 180 kg i punkt 3; specifikationen och titeln skriver 181 kg, och det lägre talet skrivs
+fad102e6 25 hjulens diameter 25 cm i punkt 1 (10 tum i texten)
