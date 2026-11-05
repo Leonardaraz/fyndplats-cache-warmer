@@ -1,0 +1,56 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "00def435": {
+  "tyska": "",
+  "svenska": "191H x 236L x 171B cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 236L x 171B x 191H cm | ✔ Innenmaße: 224L x 154B x 157H cm | ✔ Türgröße: 79L x 150H cm | ✔ Fenstergröße: 22L x 7B cm"
+ },
+ "0ca18bdd": {
+  "tyska": "80L x 48B x 63H cm",
+  "svenska": "80L x 48B x 63H cm",
+  "bokstaver": "LBH",
+  "hojd": 63,
+  "bredd": 80,
+  "djup": 48
+ },
+ "317a954e": {
+  "tyska": "90B x 40T x 77,4H cm",
+  "svenska": "90L x 40B x 77,4H cm",
+  "bokstaver": "BTH",
+  "djup": 40,
+  "hojd": 77.4,
+  "bredd": 90
+ },
+ "a20dc9ae": {
+  "tyska": "42,8L x 35,5B x 62H cm",
+  "svenska": "42,8 x 35,5 x 62 cm",
+  "bokstaver": "LBH",
+  "hojd": 62,
+  "bredd": 42.8,
+  "djup": 35.5
+ },
+ "bacd417d": {
+  "tyska": "",
+  "svenska": "96L x 65,5B x 7H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Erweiterte Abmessungen: 96L x 65,5B x 7H cm | ✔ Faltmaße: 49L x 65,5B x 7H cm | ✔ Dartscheibenabmessungen: 37,5L x 37,5B cm | ✔ Abmessungen einer Tür: 65,5L x 24B cm"
+ },
+ "eb7c19cc": {
+  "tyska": "107,5B x 91T x 185/162H cm",
+  "svenska": "107,5 x 91 x 185 cm",
+  "bokstaver": "BTH",
+  "djup": 91,
+  "hojd": [
+   185,
+   162
+  ],
+  "bredd": 107.5
+ },
+ "fa94ad77": {
+  "tyska": "250L x 38B x 38H cm",
+  "svenska": "250 x 38 x 38 cm",
+  "bokstaver": "LBH",
+  "hojd": 38,
+  "bredd": 250,
+  "djup": 38
+ }
+}
