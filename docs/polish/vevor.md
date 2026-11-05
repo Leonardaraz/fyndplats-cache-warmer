@@ -59,7 +59,11 @@ många delar är en familj, ett syskon eller en tvilling. Läs sedan avläsninge
 `FLAGGADE-VEVOR.md` (polerade och hållna), och sök på varje kvarvarande kandidats enskilda
 substantiv i hela registret (tvillingskärmen nedan) innan du väljer. ☠️ Sökningen på VEVOR-rader
 hör till urvalet, inte bara sökningen på de andra feedarna: popcornmaskinen i runda 49 hade ett
-svart syskonutkast med samma titel, och det såg jag först efter skrivningen.
+svart syskonutkast med samma titel, och det såg jag först efter skrivningen. Vill du ha
+konsumentvaror först sorterar du kandidaterna på `saldo` och stryker rader vars kategori börjar
+på *Bil*, *Elektrisk*, *VVS*, *Byggnadsmaterial* eller *Vitvaror* och vars titel har elektriska
+ord (volt eller watt, *batteri*, *pump*, *LED*, *värme*, *kyl*, *digital*, *kommersiell*): 14:09
+den 2026-11-05 gav det 417 av 1 290 kandidater i lager (`FLAGGADE-VEVOR.md` (li)).
 
 **Märket.** Skrivsteget sätter märket VEVOR i Wix. Skriv det inte i namnet eller SEO-titeln
 *(Leonard 2026-10-28)*.
