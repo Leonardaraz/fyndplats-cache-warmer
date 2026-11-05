@@ -288,6 +288,12 @@ underrubrik.
   - Den spärr som faktiskt skyddade raderingen
   - Historik: så såg ordningen ut
   - Rätta en enskild recension: dölj, ta bort bara fotot, visa igen (2026-10-29)
+- `46-medlemskap.md`: Medlemskapet: portalen för privatpersoner och företag (2026-11-04)
+  - E0: Wix-kassan bär vårt pris (provordern 2026-11-04)
+  - E1: konto, orderliggare och Mina sidor (butiken)
+  - Admin: /admin/medlemmar (motorn)
+  - Wix-gränser som styr formen
+  - Kvar till E2
 - `44-mediainventering.md`: Mediainventering: "utan katalogreferens" är inte "oanvänd"
 - `45-fyndauktionens-antal-och-sparr.md`: Fyndauktionen: tio fynd om dagen och 30-dagarsspärren (2026-11-04)
   - Antalet per dag (`lib/auction/antal.ts`)

@@ -298,6 +298,7 @@ export default async function AdminPage() {
         <li><a href="/admin/bulk-import"><b>Bulk-import (CSV)</b></a> — importera många AliExpress-produkter på en gång (alla landar i kön som visible:false)</li>
         <li><a href="/admin/sync-alerts"><b>Sync-alerts</b></a> — daglig AliExpress-sync flaggar prishöjningar och innehållsändringar att granska</li>
         <li><a href="/admin/restock-list"><b>Restock-bevakare</b></a> — kunder som väntar på "tillbaka i lager"-mejl per slutsåld produkt</li>
+        <li><a href="/admin/medlemmar"><b>Medlemmar</b></a> — sök på e-post eller ordernummer, se nivå och orderliggare, sätt nivå för hand med orsakskod, och växeln för medlemskapet</li>
         <li><a href="/admin/reviews"><b>Recensioner</b></a> — moderera (visa/dölj) importerade AliExpress-recensioner översatta till svenska</li>
         <li><a href="/admin/mappings"><b>AliExpress-mappning</b></a> — länka existerande Wix-produkter till AliExpress-källor (krävs för auto-pipelinen)</li>
         <li><a href="/admin/source-lookup"><b>Hitta leverantörskällan</b></a> — klistra in Wix-produkt-id, slug eller produkt-URL → få leverantör, <b>artikelnummer</b> och länk (AliExpress eller Aosom). Det är här du hämtar Aosoms artikelnummer inför en handlagd order.</li>
