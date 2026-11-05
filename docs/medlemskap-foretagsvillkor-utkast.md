@@ -1,8 +1,15 @@
-# Utkast: villkor för företagskonto (J3)
+# Villkor för företagskonto (J3)
 
-Ett utkast för Leonards godkännande. ☠️ Det ska granskas av en jurist innan
-det publiceras: villkor mellan näringsidkare följer köplagen och avtalsrätten,
-inte konsumentlagarna, och det här är inte juridisk rådgivning.
+✅ **Ifyllt 2026-11-05 efter Leonards svar 3.2:** "vi gör det utan jurist. Vi
+får söka upp i lagboken om vi är osäkra." Luckorna är ifyllda, och varje
+lagrum som villkoren nämner är kontrollerat mot lagtexten (listan sist).
+Villkor mellan näringsidkare följer köplagen och avtalsrätten, inte
+konsumentlagarna. Köplagen är dispositiv mellan näringsidkare (3 §), så det
+som står här gäller före lagens regler där de skiljer sig.
+
+Versionen är fortfarande 1: utkastet har aldrig varit ute för ett företag, så
+ingen har godkänt en annan text. Från och med att prisväxeln släpper fram
+företagskontot höjs versionen vid varje ändring i sak.
 
 Utkastet bygger på Leonards svar 2026-11-04: företag får samma nivåer som
 privatpersoner och dessutom ordertrappan, den högsta av de två (F2);
@@ -10,18 +17,20 @@ enskilda firmor får vara med (F4); kort, Klarna och förskottsfaktura (F5);
 samma returregler som för privatpersoner (F6); offert från 6 exemplar av samma
 vara eller 20 000 kr exkl. moms (F7); samma frakt som i dag (F9).
 
-Det som Leonard ska ta ställning till står sist. Hakparenteser är luckor.
+Det som var öppet och hur det avgjordes står sist.
 
 ---
 
 ## Villkor för företagskonto hos Fyndplats
 
-Version 1, gäller från [datum].
+Version 1, november 2026. Gäller för köp med ett företagskonto på
+fyndplats.se.
 
 ### 1. Parter och tillämpning
 
-1.1 Villkoren gäller när ett företag (köparen) handlar hos Fyndplats,
-[bolagsnamn], org.nr [nummer] (vi), med ett företagskonto på fyndplats.se.
+1.1 Villkoren gäller när ett företag (köparen) handlar hos Fyndplats, org.nr
+950914-4037, momsreg.nr SE950914403701, Bergviksgatan 10, 152 44 Södertälje
+(vi), med ett företagskonto på fyndplats.se.
 
 1.2 Ett företagskonto kan öppnas av ett svenskt aktiebolag, handelsbolag,
 kommanditbolag, ekonomisk förening eller en enskild näringsidkare. Den som
@@ -30,7 +39,7 @@ företräda köparen.
 
 1.3 Köp med företagskontot görs i näringsverksamhet. Konsumentköplagen och
 lagen om distansavtal gäller därför inte, och ångerrätt enligt lag finns
-inte. Det öppna köp som står i punkt 7 gäller ändå, som en förmån från oss.
+inte. Returrätten i punkt 7 gäller ändå, som en förmån från oss.
 
 1.4 Vid köp gäller de villkor som var gällande när beställningen lades. Ändrar
 vi villkoren meddelar vi det på kontot innan ändringen gäller, och nästa köp
@@ -102,21 +111,50 @@ skickas med e-post.
 6.1 Leveranstid och frakt följer det som gäller för alla kunder på
 fyndplats.se och visas innan köpet.
 
-6.2 Köparen ska undersöka varorna vid mottagandet och anmäla transportskador
-till oss inom [7] dagar.
+6.2 Köparen ska undersöka varorna så snart det går efter att de kommit fram
+(köplagen 31 §). En transportskada som syns vid mottagandet ska anmälas till
+oss inom 7 dagar, med foton på varan och förpackningen. Andra fel anmäls
+enligt punkt 8.
 
-### 7. Öppet köp och retur
+### 7. Retur
 
-7.1 Köparen har samma öppna köp som privatpersoner: [30] dagar från
-mottagandet, enligt villkoren på fyndplats.se.
+7.1 Köparen får returnera varor i 30 dagar från mottagandet, på samma villkor
+som en privatperson på fyndplats.se. Det är anmälan som ska komma in inom
+fristen, skriftligt med ordernummer, via ångerfunktionen (/angra-kop) eller
+på info@fyndplats.com. Rätten följer av de här villkoren, inte av lag.
 
-7.2 Vid retur av en del av en order återbetalas det pris som betalades för de
+7.2 När köparen anmäler returen inom 14 dagar återbetalar vi varans pris och,
+när hela ordern returneras, vad köparen betalat för vår billigaste
+standardleverans. Köparen får undersöka varan som i en butik; har den
+hanterats mer än så gör vi ett skäligt avdrag för värdeminskningen. Varan ska
+skickas inom 14 dagar från anmälan, och vi står för risken under returen om
+köparen kan visa att paketet lämnats in.
+
+7.3 När köparen anmäler returen dag 15–30 ska varan vara oanvänd, komplett och
+i säljbart skick. Den skickas spårbart inom 7 dagar från att köparen fått
+returadressen, och köparen står för risken tills paketet är framme. Vi
+återbetalar varans pris med avdrag för en bearbetningsavgift på 10 % av vad
+köparen betalat för varan. Vi återbetalar inte frakten till köparen.
+
+7.4 Returfrakten betalas av köparen. Returer går till vår leverantörs
+returlager inom EU, för de flesta varor i Tyskland. Returadressen kommer från
+oss, och ingenting ska skickas innan köparen har den. En vara som är längre
+än 120 cm eller väger mer än 20 kg kan inte skickas som vanligt postpaket;
+transporten till returlagret i Tyskland kostar då ungefär 500–5 000 kr
+inklusive moms.
+
+7.5 En vara som är skadad eller felaktig är ingen retur utan ett fel enligt
+punkt 6.2 eller 8. Då står vi för returkostnaden, och köparen väntar med att
+skicka tills vi hört av oss.
+
+7.6 Vid retur av en del av en order återbetalas det pris som betalades för de
 returnerade varorna. Ordertrappan räknas inte om.
 
 ### 8. Fel i vara
 
-8.1 Fel ska anmälas inom skälig tid efter att det upptäcktes, och senast
-[två år] efter leveransen (köplagen 32 §).
+8.1 Fel ska anmälas inom skälig tid efter att köparen märkt eller borde ha
+märkt felet, och senast två år efter att köparen tog emot varan (köplagen
+32 §).
 
 8.2 Vid fel avhjälper vi felet, levererar en ny vara eller ger prisavdrag
 eller återbetalning.
@@ -136,24 +174,58 @@ om innehavaren, enligt vår integritetspolicy på fyndplats.se.
 
 ### 11. Tvist
 
-Svensk lag gäller. En tvist avgörs av allmän domstol, med [ort] tingsrätt som
-första instans.
+Svensk lag gäller. En tvist avgörs av allmän domstol, med Södertörns
+tingsrätt som första instans.
 
 ---
 
-## Att ta ställning till
+## Så avgjordes det som var öppet
 
-1. **Öppet köp för företag** (punkt 7): Leonards svar F6 var samma regler som
-   för privatpersoner. Utkastet ger därför öppet köp som en förmån, trots att
-   lagen inte kräver det. Antalet dagar ska vara detsamma som för privat.
-2. **Fel i vara** (punkt 8): köplagen ger högst två år för företag, mot tre
-   för konsumenter. Vill du ge företag samma tre år som privatpersoner?
-3. **Förskottsfaktura** (punkt 5): Wix-kassan behöver betalsättet "manuell
-   betalning" eller liknande. Det ställs in i Wix, inte i koden.
-4. **Bolagsnamn, organisationsnummer, ort för tvister** och datum fylls i.
-5. **Juristgranskning** innan publicering.
-6. **Sidan finns redan som utkast** på `/villkor/foretag` (indexeras inte, länkas
-   bara från formuläret på Mina sidor). Texten där och här ska vara densamma;
-   ändras den i sak höjs `VILLKOR_FORETAG_VERSION` i `lib/medlem/foretag.ts`.
-7. **Punkt 5.2** lovar kvitto och faktura med företagets namn och nummer. Det
-   kräver att vårt eget kvitto läser företaget ur prisbeslutet; det är inte byggt.
+1. **Retur för företag** (punkt 7): Leonards svar F6, samma regler som för
+   privatpersoner. Företag har ingen ångerrätt enligt lag, så punkt 7 ger
+   samma 30 dagar som avtal: dag 1–14 som ångerrätten, dag 15–30 som det öppna
+   köpet med bearbetningsavgiften. Villkoren står utskrivna i punkt 7 i stället
+   för som en länk till /returer, eftersom ett villkor som bara står på en
+   annan sida inte är ett villkor i avtalet. Sidan tar talen (avgiften, de 7
+   dagarna, 120 cm, 20 kg och spannet) ur `lib/retur-policy.ts` och
+   `lib/retur-frakt.ts`; ändras de där ändras de i avtalet, och då höjs
+   versionen.
+2. **Fel i vara** (punkt 8): två år, som köplagen 32 § (svar 3.2). Konsumenter
+   har tre år enligt konsumentköplagen; företag får lagens två.
+3. **Transportskador** (punkt 6.2): 7 dagar för skador som syns vid
+   mottagandet. Köplagen 31 § kräver att köparen undersöker varan "så snart
+   omständigheterna medger", och 32 § kräver reklamation inom skälig tid;
+   7 dagar är en avtalad tidsgräns för just synliga transportskador, som
+   köplagen tillåter mellan näringsidkare (3 §). Dolda fel följer punkt 8.
+4. **Säljaren** (punkt 1.1): Fyndplats med samma org.nr och adress som
+   sekretesspolicyn och köpvillkoren, plus momsregistreringsnumret, som ett
+   företag behöver på fakturan.
+5. **Tvist** (punkt 11): Södertörns tingsrätt, som har Södertälje i sin
+   domkrets. Punkten är ett forumavtal (rättegångsbalken 10 kap. 16 §), så
+   den gäller också när vi är den som stämmer; utan den hade köparens
+   hemort avgjort (10 kap. 1 §). Lagen kräver ett skriftligt avtal: kontot
+   sparar vilken version företaget godkänt och när (`villkorVersion`,
+   `villkorGodkant` och en rad i `FyndplatsMedlemslogg`), och varje version
+   av texten finns kvar i den här filens historik.
+6. **Förskottsfaktura** (punkt 5.1): inget Wix-API slår på ett betalsätt, och
+   manuell betalning i panelen syns för alla kunder. Den byggs därför som en
+   obetald order via Create Order och motorns befintliga faktura (svar 3.3).
+   ☠️ Prisväxeln släpper inte fram företagskontot förrän den finns.
+7. **Kvitto med företagets namn** (punkt 5.2): motorns kvitto och faktura ska
+   läsa företaget ur prisbeslutet. ☠️ Samma spärr: inte före prisväxeln.
+
+### Lagrummen, kontrollerade 2026-11-05
+
+- Köplagen (1990:931) 3 §: lagen är dispositiv; avtalet gäller före den.
+- Köplagen 31 §: köparen ska undersöka varan så snart omständigheterna medger.
+- Köplagen 32 §: reklamation inom skälig tid, och senast två år efter att
+  köparen tog emot varan.
+- Distansavtalslagen (2005:59) 1 kap. 1–2 §§: konsumentskydd, och konsument
+  är en fysisk person som handlar huvudsakligen utanför näringsverksamhet.
+- Konsumentköplagen (2022:260) 1 kap. 3 §: lagen gäller köp av en vara som
+  en näringsidkare säljer till en konsument.
+- Rättegångsbalken 10 kap. 1 §: laga domstol är rätten där svaranden har sitt
+  hemvist. 10 kap. 16 §: ett skriftligt avtal kan bestämma domstolen för en
+  framtida tvist, vilket punkt 11 gör.
+
+Lagtexten är läst på riksdagen.se 2026-11-05.

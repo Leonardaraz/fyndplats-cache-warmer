@@ -1,8 +1,8 @@
 // /villkor/foretag — villkoren för företagskonto (E3-12, J3).
 //
-// ☠️ UTKAST. Texten är docs/medlemskap-foretagsvillkor-utkast.md och ska
-// granskas av en jurist och godkännas av Leonard innan företagskontot öppnas
-// för alla (prisväxeln `pa`). Hakparenteserna är luckor som Leonard fyller i.
+// Texten är docs/medlemskap-foretagsvillkor-utkast.md, ifylld 2026-11-05 efter
+// Leonards svar 3.2: utan jurist, och lagboken där vi är osäkra. Varje
+// lagrum som nämns är kontrollerat mot lagtexten (dokumentet listar dem).
 // Sidan indexeras inte och länkas bara från formuläret på Mina sidor, som
 // syns först när prisväxeln släpper fram kontot.
 //
@@ -13,6 +13,8 @@
 import type { Metadata } from "next";
 import { ContentPage } from "../../../components/content";
 import { VILLKOR_FORETAG_VERSION } from "@/lib/medlem/foretag";
+import { AVGIFT_PROCENT, POSTA_INOM_DAGAR } from "@/lib/retur-policy";
+import { PAKET_MAX_KG, PAKET_MAX_SIDA_CM, SKRYMMANDE_SPANN } from "@/lib/retur-frakt";
 
 export const metadata: Metadata = {
   title: "Villkor för företagskonto",
@@ -26,10 +28,13 @@ export default function ForetagsVillkor() {
     <ContentPage
       eyebrow="Företagskonto"
       title="Villkor för företagskonto"
-      lead={`Version ${VILLKOR_FORETAG_VERSION}, utkast. Gäller från [datum].`}
+      lead={`Version ${VILLKOR_FORETAG_VERSION}, november 2026. Gäller för köp med ett företagskonto på fyndplats.se.`}
     >
       <h2>1. Parter och tillämpning</h2>
-      <p>1.1 Villkoren gäller när ett företag (köparen) handlar hos Fyndplats, [bolagsnamn], org.nr [nummer] (vi), med ett företagskonto på fyndplats.se.</p>
+      <p>
+        1.1 Villkoren gäller när ett företag (köparen) handlar hos Fyndplats, org.nr 950914-4037, momsreg.nr
+        SE950914403701, Bergviksgatan 10, 152 44 Södertälje (vi), med ett företagskonto på fyndplats.se.
+      </p>
       <p>
         1.2 Ett företagskonto kan öppnas av ett svenskt aktiebolag, handelsbolag, kommanditbolag, ekonomisk förening eller
         en enskild näringsidkare. Den som öppnar kontot försäkrar att köpen görs i näringsverksamhet och att hen får företräda
@@ -37,7 +42,7 @@ export default function ForetagsVillkor() {
       </p>
       <p>
         1.3 Köp med företagskontot görs i näringsverksamhet. Konsumentköplagen och lagen om distansavtal gäller därför inte,
-        och ångerrätt enligt lag finns inte. Det öppna köp som står i punkt 7 gäller ändå, som en förmån från oss.
+        och ångerrätt enligt lag finns inte. Returrätten i punkt 7 gäller ändå, som en förmån från oss.
       </p>
       <p>
         1.4 Vid köp gäller de villkor som var gällande när beställningen lades. Ändrar vi villkoren meddelar vi det på kontot
@@ -104,14 +109,52 @@ export default function ForetagsVillkor() {
 
       <h2>6. Leverans</h2>
       <p>6.1 Leveranstid och frakt följer det som gäller för alla kunder på fyndplats.se och visas innan köpet.</p>
-      <p>6.2 Köparen ska undersöka varorna vid mottagandet och anmäla transportskador till oss inom [7] dagar.</p>
+      <p>
+        6.2 Köparen ska undersöka varorna så snart det går efter att de kommit fram (köplagen 31 §). En transportskada
+        som syns vid mottagandet ska anmälas till oss inom 7 dagar, med foton på varan och förpackningen. Andra fel anmäls
+        enligt punkt 8.
+      </p>
 
-      <h2>7. Öppet köp och retur</h2>
-      <p>7.1 Köparen har samma öppna köp som privatpersoner: [30] dagar från mottagandet, enligt villkoren på fyndplats.se.</p>
-      <p>7.2 Vid retur av en del av en order återbetalas det pris som betalades för de returnerade varorna. Ordertrappan räknas inte om.</p>
+      <h2>7. Retur</h2>
+      {/* Avtalstexten säger villkoren själv i stället för att peka vidare till
+          /returer: ett villkor som bara står på en annan sida är inte ett
+          villkor i avtalet (lib/retur-policy-global.test.ts). Talen kommer
+          från samma konstanter som konsumentvillkoren. */}
+      <p>
+        7.1 Köparen får returnera varor i 30 dagar från mottagandet, på samma villkor som en privatperson på
+        fyndplats.se. Det är anmälan som ska komma in inom fristen, skriftligt med ordernummer, via{" "}
+        <a href="/angra-kop">ångerfunktionen</a> eller på <a href="mailto:info@fyndplats.com">info@fyndplats.com</a>. Rätten
+        följer av de här villkoren, inte av lag.
+      </p>
+      <p>
+        7.2 När köparen anmäler returen inom 14 dagar återbetalar vi varans pris och, när hela ordern returneras, vad
+        köparen betalat för vår billigaste standardleverans. Köparen får undersöka varan som i en butik; har den hanterats
+        mer än så gör vi ett skäligt avdrag för värdeminskningen. Varan ska skickas inom 14 dagar från anmälan, och vi står
+        för risken under returen om köparen kan visa att paketet lämnats in.
+      </p>
+      <p>
+        7.3 När köparen anmäler returen dag 15–30 ska varan vara oanvänd, komplett och i säljbart skick. Den skickas
+        spårbart inom {POSTA_INOM_DAGAR} dagar från att köparen fått returadressen, och köparen står för risken tills
+        paketet är framme. Vi återbetalar varans pris med avdrag för en bearbetningsavgift på {AVGIFT_PROCENT} % av vad
+        köparen betalat för varan. Vi återbetalar inte frakten till köparen.
+      </p>
+      <p>
+        7.4 Returfrakten betalas av köparen. Returer går till vår leverantörs returlager inom EU, för de flesta varor i
+        Tyskland. Returadressen kommer från oss, och ingenting ska skickas innan köparen har den. En vara som är längre än{" "}
+        {PAKET_MAX_SIDA_CM} cm eller väger mer än {PAKET_MAX_KG} kg kan inte skickas som vanligt postpaket; transporten
+        till returlagret i Tyskland kostar då ungefär {SKRYMMANDE_SPANN} inklusive moms.
+      </p>
+      <p>
+        7.5 En vara som är skadad eller felaktig är ingen retur utan ett fel enligt punkt 6.2 eller 8. Då står vi för
+        returkostnaden, och köparen väntar med att skicka tills vi hört av oss.
+      </p>
+      <p>7.6 Vid retur av en del av en order återbetalas det pris som betalades för de returnerade varorna. Ordertrappan räknas inte om.</p>
 
       <h2>8. Fel i vara</h2>
-      <p>8.1 Fel ska anmälas inom skälig tid efter att det upptäcktes, och senast [två år] efter leveransen (köplagen 32 §).</p>
+      <p>
+        8.1 Fel ska anmälas inom skälig tid efter att köparen märkt eller borde ha märkt felet, och senast två år efter
+        att köparen tog emot varan (köplagen 32 §).
+      </p>
       <p>8.2 Vid fel avhjälper vi felet, levererar en ny vara eller ger prisavdrag eller återbetalning.</p>
 
       <h2>9. Ansvar</h2>
@@ -125,7 +168,7 @@ export default function ForetagsVillkor() {
       </p>
 
       <h2>11. Tvist</h2>
-      <p>Svensk lag gäller. En tvist avgörs av allmän domstol, med [ort] tingsrätt som första instans.</p>
+      <p>Svensk lag gäller. En tvist avgörs av allmän domstol, med Södertörns tingsrätt som första instans.</p>
     </ContentPage>
   );
 }

@@ -6,10 +6,11 @@
 // högst ett företag. Fler användare per företag kommer i E5.
 //
 // Verifieringen (E3-1, E3-3): numret prövas med Luhn medan kunden skriver
-// (orgnr.ts) och igen på servern. Bolagsverkets uppslag kräver ett API-konto
-// som vi inte har än. Tills det finns går varje ansökan till kön i motorns
-// admin (/admin/medlemmar), där numret kontrolleras för hand. Ett godkännande
-// där aktiverar profilen, och butikens timjobb mejlar kunden.
+// (orgnr.ts) och igen på servern. Bolagsverkets uppslag kräver nycklar från
+// Bolagsverkets kundanmälan, som Leonard gör (svar 3.1). Tills de finns går
+// varje ansökan till kön i motorns admin (/admin/medlemmar), där numret
+// kontrolleras för hand. Ett godkännande där aktiverar profilen, och butikens
+// timjobb mejlar kunden.
 //
 // Enskilda firmor får vara med (F4, Leonard 2026-11-04). Numret är då ägarens
 // personnummer: det sparas för granskningen, visas maskerat för kunden och

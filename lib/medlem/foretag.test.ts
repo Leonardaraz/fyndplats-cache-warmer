@@ -13,6 +13,9 @@ import {
   type Foretagsprofil,
 } from "./foretag.ts";
 import { orgnrFeltext, provaOrgnr } from "./orgnr.ts";
+import { readFileSync } from "node:fs";
+import { AVGIFT_PROCENT, POSTA_INOM_DAGAR } from "../retur-policy.ts";
+import { PAKET_MAX_KG, PAKET_MAX_SIDA_CM, SKRYMMANDE_SPANN } from "../retur-frakt.ts";
 
 const ORG = { prova: provaOrgnr, feltext: orgnrFeltext };
 
@@ -146,4 +149,28 @@ test("postnumret skrivs med mellanslag, och statustexten följer läget", () => 
   assert.match(foretagsstatusText(profil({ status: "nekad" })), /kunde inte godkänna/);
   assert.match(foretagsstatusText(profil({ villkorVersion: "0" })), /ändrats/);
   assert.match(foretagsstatusText(profil()), /Godkänt/);
+});
+
+test("☠️ företagsvillkoren: talen i returpunkten hör till versionen", () => {
+  // /villkor/foretag tar avgiften, postningsfristen och skrymmandegränserna ur
+  // samma konstanter som konsumentvillkoren. Ändras en av dem ändras avtalet,
+  // och då ska VILLKOR_FORETAG_VERSION höjas, så att varje företag godkänner
+  // den nya texten innan kontot prissätts som företag igen. Höj versionen och
+  // skriv in de nya talen här i samma ändring.
+  assert.equal(VILLKOR_FORETAG_VERSION, "1");
+  assert.deepEqual(
+    { AVGIFT_PROCENT, POSTA_INOM_DAGAR, PAKET_MAX_SIDA_CM, PAKET_MAX_KG, SKRYMMANDE_SPANN },
+    { AVGIFT_PROCENT: 10, POSTA_INOM_DAGAR: 7, PAKET_MAX_SIDA_CM: 120, PAKET_MAX_KG: 20, SKRYMMANDE_SPANN: "500–5 000 kr" },
+  );
+});
+
+test("företagsvillkoren har inga luckor kvar", () => {
+  // Utkastet hade hakparenteser där Leonard skulle fylla i (svar 3.2,
+  // 2026-11-05). En lucka som står kvar är ett villkor utan innehåll.
+  const sida = readFileSync(new URL("../../app/villkor/foretag/page.tsx", import.meta.url), "utf8");
+  const dok = readFileSync(new URL("../../docs/medlemskap-foretagsvillkor-utkast.md", import.meta.url), "utf8");
+  const lucka = /\[(datum|ort|bolagsnamn|nummer|\d+|två år)\]/i;
+  assert.doesNotMatch(sida, lucka);
+  assert.doesNotMatch(dok, lucka);
+  assert.doesNotMatch(sida, /utkast\. Gäller från/i);
 });

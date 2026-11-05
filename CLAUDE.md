@@ -1708,7 +1708,9 @@ Ett företag läggs till på ett befintligt konto, högst ett per konto i E3.
   `<medlemsId>__foretag` i `FyndplatsMedlemsprofiler` (index
   `typ-status-ansokt`) och får status `granskas`; butiken mejlar info@.
 - **Granskningen** görs i motorns `/admin/medlemmar` (kön överst). Bolagsverkets
-  uppslag är inte byggt; det kräver ett API-konto. Godkänt företag mejlas av
+  uppslag är inte byggt; nycklarna kommer via Bolagsverkets kundanmälan, som
+  Leonard gör (svar 3.1), och läggs in som `BOLAGSVERKET_CLIENT_ID` och
+  `BOLAGSVERKET_CLIENT_SECRET`. Godkänt företag mejlas av
   timjobbet `/api/cron/medlemskorgar` inom en timme
   (`lib/medlem/foretagsmejl.ts`, märkt exakt en gång).
 - ☠️ **En enskild firmas organisationsnummer är ett personnummer** (F4). Kunden
@@ -1724,10 +1726,13 @@ Ett företag läggs till på ett befintligt konto, högst ett per konto i E3.
   Varukorgen visar varor och frakt exkl. moms, momsen, totalen inkl. moms,
   "Lägg till x kr exkl. moms för y %" och att kassan visar priserna inkl. moms.
   Beloppen exkl. moms räknas på servern (`exklMoms`, half up).
-- **Villkoren** står som utkast på `/villkor/foretag` (noindex), samma text som
-  `docs/medlemskap-foretagsvillkor-utkast.md`. ☠️ Ändras texten i sak höjs
-  `VILLKOR_FORETAG_VERSION`, och varje företag godkänner den nya versionen på
-  Mina sidor innan kontot prissätts som företag igen.
+- **Villkoren** står på `/villkor/foretag` (noindex), samma text som
+  `docs/medlemskap-foretagsvillkor-utkast.md`. Ifyllda 2026-11-05 utan jurist
+  (Leonards svar 3.2: "Vi får söka upp i lagboken om vi är osäkra"); varje
+  lagrum de nämner är läst på riksdagen.se, och listan står sist i
+  dokumentet. Versionen är 1, för ingen har godkänt utkastet. ☠️ Ändras
+  texten i sak höjs `VILLKOR_FORETAG_VERSION`, och varje företag godkänner den
+  nya versionen på Mina sidor innan kontot prissätts som företag igen.
 
 - **Offerten** (`lib/medlem/offert.ts`, `FyndplatsOfferter`, ADMIN):
   "Begär offert" visas i varukorgen för ett godkänt företag när prismotorn
@@ -1748,5 +1753,7 @@ Ett företag läggs till på ett befintligt konto, högst ett per konto i E3.
   bort efter ett dygn som alla medlemskorgar, och övergivna kassor hoppar
   över den.
 
-Före `pa` för företag: juristgranskning och Leonards ja till villkoren,
-luckorna i dem ifyllda, och vårt kvitto med företagets namn (villkoren 5.2).
+☠️ Före `pa` för företag: förskottsfakturan (villkoren 5.1, byggs via Create
+Order och motorns faktura, svar 3.3) och vårt kvitto med företagets namn
+(villkoren 5.2). Villkoren lovar båda, så prisväxeln släpper inte fram
+företagskontot förrän de finns.
