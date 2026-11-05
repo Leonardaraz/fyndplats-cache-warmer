@@ -143,7 +143,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   badrumsspeglar: {
     title: "Badrumsspegel med belysning – LED och antiimma",
     description:
-      "Badrumsspeglar med LED-belysning, antiimma och tre ljusfärger, flera med Bluetooth och klocka, och enkla speglar med hylla och spegelskåp. Upp till 100 × 80 cm.",
+      "Badrumsspegel med LED-belysning, antiimma och dimbart ljus, samt spegelskåp och speglar med hylla. Välj efter plats, ljus och förvaring i badrummet.",
   },
   barbord: {
     title: "Barbord med pallar, bardisk & höj- och sänkbart",
@@ -243,7 +243,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   "gunghastar-gungdjur": {
     title: "Gunghäst för barn – i trä och plysch med ljud",
     description:
-      "Gunghästar och gungdjur för barn från 12 månader – klassiska i trä och mjuka i plysch med ljud, bälte och ryggstöd, som häst, svan, giraff och dinosaurie.",
+      "Gunghästar och gungdjur för barn – klassiska i trä och mjuka i plysch med ljud, bälte och ryggstöd. Kontrollera ålder och maxvikt innan du väljer modell.",
   },
   halloweendekoration: {
     title: "Halloweendekoration utomhus – spöken och skelett",
@@ -368,7 +368,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   konstvaxter: {
     title: "Konstgjorda växter – buxbom, olivträd, monstera",
     description:
-      "Konstväxter för inne och ute: buxbom och cypresser på jordspett, olivträd upp till 180 cm, monstera och bambu i kruka med cementfylld botten – utan vattning.",
+      "Konstväxter som ger grönska utan vattning och skötsel: buxbom, cypresser, olivträd, monstera och bambu i kruka. Läs i beskrivningen om växten tål att stå ute.",
   },
   "kropp-valbefinnande": {
     title: "Rollator & duschpall – duschstol och ljusterapi",
@@ -456,9 +456,9 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
       "Projektordukar på 84 till 120 tum: motoriserade med fjärrkontroll, manuella med autolås för vägg eller tak och dukar på stativ som ställs upp inne eller ute.",
   },
   "redskapsbodar-forrad": {
-    title: "Redskapsbod, förrådstält & trädgårdsskåp",
+    title: "Redskapsbod, plåtbod & trädgårdsskåp",
     description:
-      "Redskapsbodar i galvad plåt och plast från 1,1 till 12,4 m², ett förrådstält på 13,4 m² och trädgårdsskåp i trä för verktyg och trädgårdsredskap.",
+      "Redskapsbodar och skjul i plåt, plast och trä, trädgårdsskåp och cykeltält för redskap, cyklar och trädgårdsprylar. Välj efter yta, höjd, material och golv.",
   },
   sandlador: {
     title: "Sandlåda med tak – sandlådor i trä för barn",
@@ -523,7 +523,7 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
   speglar: {
     title: "Spegel – helkroppsspegel, väggspegel, golvspegel",
     description:
-      "Speglar till hall, sovrum och badrum: helkroppsspeglar och golvspeglar på 120 till 180 cm, väggspeglar med svart eller guldfärgad ram och LED-speglar.",
+      "Speglar till hall, sovrum och badrum: helkroppsspeglar och golvspeglar, väggspeglar med olika ramar, fönsterspeglar med spröjs och LED-speglar.",
   },
   terrarier: {
     title: "Terrarium i glas – för ödla, orm och spindel",
