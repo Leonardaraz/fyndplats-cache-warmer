@@ -1,0 +1,22 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+66a93bed 8 glasets tjocklek 8 mm i punkt 2 och på bild 4
+66a93bed 4 järnrörets profil 4 × 2 cm i punkt 3
+66a93bed 2 se 4
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+91b8c4d1 11 antalet kopplingsplattor 11 i punkt 5 och på bild 7
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+ac3b986f 50 luftningsdjupet 50 mm (2 tum) på bild 7
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+8a6a1e89 12 antalet S-krokar 12 på bild 3
+8a6a1e89 3 krokens bärförmåga 3 kg (6,6 pund) på bild 3
+8a6a1e89 136 mellanhyllans bärförmåga 136 kg (299,8 pund) på bild 4
+8a6a1e89 15 skohyllornas bärförmåga 15 kg (33,1 pund) på bild 4
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+819711b7 100 bredden 100 cm i punkt 1 och på bild 3
+819711b7 30 djupet 30 cm i punkt 1 och på bild 3
+819711b7 81 höjden 81 cm i punkt 1 och på bild 3
