@@ -16,7 +16,7 @@
 // Felhantering: Resend-fel returnerar 500 så Wix retry:ar. Okänd event-typ
 // returnerar 200 (ack — vi vill inte att Wix ska spamma retries).
 
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, after, type NextRequest } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
 import crypto from "node:crypto";
 import { render } from "@react-email/render";
@@ -40,6 +40,7 @@ import { fanoutToCacheWarmer, shouldFanoutToCacheWarmer } from "@/lib/webhook-fa
 import { handleAbandonedCheckoutCreated } from "@/lib/handlers/abandoned-checkout-handler";
 import { onWixOrderCreatedForAbandonedCart } from "@/lib/handlers/order-conversion-hook";
 import { recordOrder } from "@/lib/order-record";
+import { uppdateraOrderliggareTyst } from "@/lib/medlem/liggare";
 import { betalningstext } from "@/lib/order-betalning";
 import { landnamn } from "@/lib/landnamn";
 import { claimOrderConfirmation, releaseOrderConfirmation } from "@/lib/order-confirmation-dedup";
@@ -1359,6 +1360,15 @@ export async function POST(req: NextRequest) {
       `[wix-webhook] Okänd event-typ fqdn=${entityFqdn ?? "—"} slug=${slug ?? "—"} eventType="${eventType}" (verified=${verified}) — ack:ar`,
     );
     return NextResponse.json({ received: true, handled: false }, { status: 200 });
+  }
+
+  // Medlemskapets orderliggare (E1-2): en godkänd, avbruten eller återbetald
+  // order läses om från Wix och skrivs efter svaret (after = waitUntil), så
+  // att webhooken svarar lika snabbt som förut. Best effort, som recordOrder:
+  // ett fel loggas och tas av nattens avstämning (lib/medlem/liggare.ts).
+  if (kind === "order_created" || kind === "order_cancelled" || kind === "refund") {
+    const liggarOrder = orderIdForVerification(kind, entity, entityId);
+    after(() => uppdateraOrderliggareTyst(liggarOrder, "webhook"));
   }
 
   // resend null när RESEND_API_KEY saknas — varje emails.send-anrop nedan är

@@ -967,3 +967,131 @@ För att se temat utanför datumen: Playwrights `page.clock.setFixedTime` med et
 datum inom temat. Nästa år byts datumen i `SASONGSTEMAN` och i testet, som
 räknar om dem till svensk tid. Sverige går över till vintertid sista söndagen
 i oktober, så 03:00 den 2 november är 02:00 UTC.
+
+## Medlemskapet, etapp E1: konto, orderliggare och Mina sidor (2026-11-04)
+
+Leonards uppdrag 2026-11-04: en medlemsportal för privatpersoner och företag,
+efter specifikationen "Fyndplats medlemskap – audit och specifikation".
+Portalen är vår egen; Wix behåller katalog, kassa, betalning och ordrar. E0
+(provordern i E0) visade att Wix-kassan bär ett pris som vår server satt, så
+kassan står kvar. Fynden står i motorns `docs/claude/46-medlemskap.md`.
+
+E1 ändrar inga priser. Kunden kan skapa konto, se sin nivå, sina köp och sina
+ordrar, och få mejl om ny nivå och om en kommande sänkning.
+
+**Leonards beslut 2026-11-04:** Wix CMS i stället för Postgres (A4).
+Inloggning med länk eller sexsiffrig kod, utan lösenord, och kunden förblir
+inloggad i 90 dagar (A2). Ett köp räknas från betalningen (P1), fönstret
+rullar 365 dagar med mejl 14 dagar före en sänkning (P2), och köp på samma
+e-post ett år bakåt räknas vid första inloggningen (P3). Admin finns i motorn
+(A3).
+
+| var | vad |
+|---|---|
+| `lib/medlem/niva.ts` | K, nivån, när den sänks, mejlbesluten (ren, prövad) |
+| `lib/medlem/orderliggare.ts` | Wix-order → liggarrad (ren, prövad) |
+| `lib/medlem/inloggning.ts`, `session.ts` | kod, länk, spärrar och kakan (rena, prövade) |
+| `lib/medlem/lager.ts` | de sju kollektionerna, växeln och reglerna |
+| `lib/medlem/liggare.ts` | webhooken, avstämningen och bakåtläsningen |
+| `lib/medlem/nattjobb.ts` | `/api/cron/medlemsnivaer`, 04:40 UTC; gallrar inloggningsförsök efter 30 dagar |
+| `app/konto/`, `app/api/konto/*` | inloggningen och Mina sidor |
+
+**Växeln är en rad i Wix:** `FyndplatsButikInstallningar/medlemskap`, fältet
+`lage`. `av` (eller ingen rad): ingen kan logga in, men orderliggaren fylls.
+`tyst`: /konto fungerar för den som har adressen, ingen länk dit. `pa`:
+tacksidan erbjuder dessutom konto. Utan `MEDLEM_JWT_SECRET` (minst 32 tecken)
+i miljön är inloggningen stängd oavsett läge.
+
+**Kollektionerna** skapades 2026-11-04 med behörigheten ADMIN och 13 index:
+`FyndplatsMedlemmar`, `FyndplatsMedlemsprofiler`, `FyndplatsInloggningar`,
+`FyndplatsOrderliggare`, `FyndplatsMedlemsnivaer`, `FyndplatsMedlemsregler` och
+`FyndplatsMedlemslogg` (bara tillägg). Saknas en regelrad gäller specens tabell
+i koden (`REGLER_V1`).
+
+Tio egenskaper som inte ska tas bort:
+
+1. ☠️ **Orderliggaren bär alla ordrar, inte bara medlemmarnas.** Ett nytt
+   konto ser då sina köp direkt [P3], utan ett eget uppslag i Wix. Den fylls
+   från tre håll: webhooken (godkänd, avbruten, återbetald; efter svaret med
+   `after`), avstämningen varje natt (ordrar ändrade senaste 48 timmarna) och
+   bakåtläsningen 400 dagar bakåt, en gång.
+2. ☠️ **Raden räknas alltid om ur den aktuella ordern**, aldrig ur händelsens
+   payload. Betaltiden är orderns första `ORDER_PAID`-händelse, så en
+   fakturaorder räknas från betalningen. Varuvärdet är radernas
+   `totalPriceAfterTax`: `priceSummary.subtotal` och `.shipping` är UTAN moms
+   (uppmätt på provordern).
+3. ☠️ **Återbetalningar läses ur Order Transactions**, en per återbetalning med
+   sitt datum: `summary.breakdown.lineItems` ger varuvärdet per rad, och frakt
+   räknas aldrig (E1-6). En order med återbetalning utan transaktioner skrivs
+   inte alls, hellre än som hel.
+4. ☠️ **K räknas i svensk tid:** ett köp betalt dag D räknas till och med dag
+   D + 364. Testet låser specens tal (E1-4 till E1-7).
+5. ☠️ **Nattjobbet räknar inga nivåer förrän bakåtläsningen är klar.** En halv
+   liggare hade sänkt nivåer som inte ska sänkas och skickat varningar i
+   onödan.
+6. ☠️ **Länken i mejlet loggar inte in.** `/api/konto/lank` lägger token i en
+   kort httpOnly-kaka och skickar till `/konto/logga-in`, där kunden trycker
+   på knappen. Mejlfilter som öppnar länkar (Safe Links) gör bara GET, och en
+   token i sidans adress hade följt med till analysskripten.
+7. ☠️ **Varken token eller kod sparas i klartext.** Inloggningsradens id är
+   tokenens sha256, koden en HMAC med en delnyckel ur `MEDLEM_JWT_SECRET`.
+   Fem koder i timmen per e-post, tjugo per adress, fem försök per kod och tio
+   felaktiga försök per e-post och dygn.
+8. **Ett konto per e-post:** medlemmens id är en hash av adressen
+   (`medlemsId`), och kontot skapas med en insert som vägrar ett id som finns.
+   Välkomstmejlet går bara till den som skapade raden.
+9. **Mina sidor räknas direkt ur liggaren vid varje besök**, så en
+   återbetalning syns samma dag och ett köp som faller ur syns på dagen.
+   Sidan är dynamisk och privat, aldrig ISR.
+10. ☠️ **Loggar och svar bär aldrig e-post, belopp eller ordernummer**, bara
+    antal och typ. Repot och Vercels loggar läses av fler än Leonard.
+
+**Premiumutseendet (Leonard 2026-11-04).** Mina sidor visar ett medlemskort i
+nivåns egen färg, stapeln mot nästa nivå, nyckeltal, nivåstegen och ordrarna
+med varor och produktbilder ur katalogen. Inloggningen visar korten i solfjäder
+och förmånerna, och den loggar in av sig själv vid sex siffror. Två saker att
+veta:
+
+- ☠️ **Nivåfärgerna står på två ställen**: `app/konto/konto.module.css` för
+  sidan och `emails/_medlemskort.tsx` för mejlen, som inte kan läsa en
+  CSS-modul. Ändras en nivå eller en färg, ändra båda.
+- **Ordrarnas bilder väntar högst 1,5 s på katalogen** (`BILDER_VANTAR_MS` i
+  `app/konto/page.tsx`). En kall instans laddar hela katalogen; då visas
+  ordrarna med en paketikon hellre än sent.
+
+**Granskningen 2026-11-04 (kväll).** Fyra säkerhets- och räknefel rättade, med
+prov som fäller dem:
+
+- ☠️ **Ett kodförsök tas i anspråk INNAN koden prövas** (`taForsok` i
+  `lib/medlem/inloggning.ts`, `taForsokPaInloggning` i `lager.ts`). Räknaren
+  steg förut efter prövningen, och hundra samtidiga gissningar prövades alla.
+  Nu flyttar en villkorad skrivning räknaren ett steg i taget, så högst fem
+  koder prövas per inloggning.
+- ☠️ **Ett mejl per adress och halvminut**, med en strypningsrad som skapas med
+  en insert (`strypId`, `taStrypning`). Räknarna i `/api/konto/kod` läses före
+  skrivningen och släppte igenom en skur samtidiga anrop.
+- ☠️ **Målet efter inloggningen är strikt** (`sakertMal`): snedstreck följt av
+  synliga ASCII-tecken. Webbläsaren tar bort tabb och radbrytning, så
+  "/\t/ond.se" blev "//ond.se".
+- **Saknade transaktioner är ett fel, inte "inga återbetalningar"**
+  (`hamtaTransaktioner` ger null vid 404). En återbetald order fäller då raden
+  i stället för att räknas hel; avstämningen försöker igen.
+- **Texterna** har egna regler i `lib/medlem/visning.ts`: "högsta nivån" bara
+  på VIP, "äldre än ett år" bara efter ett år, "spårning kommer" bara de
+  första 30 dagarna och "Handla för X före Y" bara de sista 60 dagarna.
+- **Kortens nedre rad har ett mörkt skrim** (`--kort-skrim`). Utan det hade
+  den lilla texten kontrasten 1,3–2,3 på brons, guld, platina och diamant.
+- ☠️ **Kontrasten mäts i webbläsaren, inte i en räkning** (samma kväll).
+  Räkningen ovan såg bara nedre raden och utan skenet; mätt fick "Medlem" på
+  guldkortet 1,9. Mätningen: dölj texten och loggan, fotografera sidan och
+  jämför varje textrads färg med varje pixel bakom den. Nu är guld, silver och
+  platina ljusa metaller med mörk text, brons, diamant och VIP mörka med ljus,
+  och skenet (`--kort-sken`) är svagare på de mörka. Lägst 4,7 på korten och
+  5,0 i mejlen. Platina är jade, som den gröna nivån i spelens ranking
+  (Leonard). Ändras en färg, mät om.
+
+Före läget `pa`: integritetstexten (J4) ska vara godkänd och publicerad,
+utkastet står i `docs/medlemskap-integritetstext-utkast.md`. E1-grinden är
+specens E1-1 till E1-11 och en vecka med avstämning utan avvikelser; svaret
+från `/api/cron/medlemsnivaer` och `FyndplatsMedlemslogg` (område
+`avstamning`) visar dem.

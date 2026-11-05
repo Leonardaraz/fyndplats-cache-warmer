@@ -51,6 +51,10 @@
     {
       "path": "/api/cron/pris-snapshot",
       "schedule": "30 2 * * *"
+    },
+    {
+      "path": "/api/cron/medlemsnivaer",
+      "schedule": "40 4 * * *"
     }
   ],
   "ignoreCommand": "[ \"$VERCEL_PROJECT_ID\" = \"prj_cFHNB471xiC8yH1XTJBNMBRpkZfe\" ] && exit 0 || exit 1"
