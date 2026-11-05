@@ -28,6 +28,8 @@ export const MEDLEM_KOL = {
   prisbeslut: "FyndplatsPrisbeslut",
   /** Butikens sparade varukorgar (E3); de går med kontot. */
   sparade: "FyndplatsSparadeKorgar",
+  /** Offerterna (E3, offert-admin.ts). De som aldrig blev betalda går med kontot. */
+  offerter: "FyndplatsOfferter",
 } as const;
 
 /** Raderna i butikens inställningar: växeln och orderliggarens tillstånd. */
@@ -257,7 +259,7 @@ export async function sattSparr(id: string, sparrad: boolean, orsak: Orsak): Pro
  * och prisbesluten står kvar: de bär ordrarna och priserna, som bokföringslagen
  * kräver, och inget konto. Loggen får bara den maskerade adressen.
  *
- * Nivåbytena, inloggningarna och korgarna tas bort först. Faller det står kontot kvar,
+ * Nivåbytena, inloggningarna, korgarna och de obetalda offerterna tas bort först. Faller det står kontot kvar,
  * så att ett nytt försök hittar allt; annars hade raderna blivit kvar utan
  * konto att ta bort dem från.
  */
@@ -265,16 +267,21 @@ export async function taBortKonto(id: string, orsak: Orsak): Promise<string> {
   const fore = await hamta<Rad>(MEDLEM_KOL.medlemmar, id);
   if (!fore) return "Medlemmen finns inte.";
   const epost = String(fore.epost ?? "");
-  const [byten, inloggningar, korgar] = await Promise.all([
+  const [byten, inloggningar, korgar, offerter] = await Promise.all([
     allaRader<Rad>(MEDLEM_KOL.nivaer, { filter: { medlemsId: id } }),
     epost ? allaRader<Rad>(MEDLEM_KOL.inloggningar, { filter: { epost } }) : Promise.resolve([] as Rad[]),
     allaRader<Rad>(MEDLEM_KOL.sparade, { filter: { medlemsId: id } }),
+    allaRader<Rad>(MEDLEM_KOL.offerter, { filter: { medlemsId: id } }),
   ]);
+  // En betald offert är underlag för en order och står kvar med den
+  // (bokföringslagen), som orderliggaren och prisbeslutet. Resten går.
+  const obetalda = offerter.filter((r) => r.status !== "betald");
   const b = await taBortManga(MEDLEM_KOL.nivaer, byten.map((r) => String(r._id)));
   const i = await taBortManga(MEDLEM_KOL.inloggningar, inloggningar.map((r) => String(r._id)));
   const k = await taBortManga(MEDLEM_KOL.sparade, korgar.map((r) => String(r._id)));
-  const fel = b.fel.length + i.fel.length + k.fel.length;
-  if (fel) return `Nivåbytena, inloggningarna eller de sparade varukorgarna gick inte att ta bort (${fel} fel). Kontot står kvar; försök igen.`;
+  const o = await taBortManga(MEDLEM_KOL.offerter, obetalda.map((r) => String(r._id)));
+  const fel = b.fel.length + i.fel.length + k.fel.length + o.fel.length;
+  if (fel) return `Nivåbytena, inloggningarna, de sparade varukorgarna eller offerterna gick inte att ta bort (${fel} fel). Kontot står kvar; försök igen.`;
   await taBort(MEDLEM_KOL.profiler, `${id}__privat`);
   // E3: företagsprofilen bär en enskild firmas personnummer och går med kontot.
   await taBort(MEDLEM_KOL.profiler, foretagsprofilId(id));
@@ -284,7 +291,7 @@ export async function taBortKonto(id: string, orsak: Orsak): Promise<string> {
     typ: "konto-borttaget",
     medlemsId: id,
     fore: { epost: maskeradEpost(epost), niva: fore.niva ?? "" },
-    efter: { nivabyten: b.borttagna, inloggningar: i.borttagna, sparadeKorgar: k.borttagna },
+    efter: { nivabyten: b.borttagna, inloggningar: i.borttagna, sparadeKorgar: k.borttagna, offerter: o.borttagna, betaldaOfferterKvar: offerter.length - obetalda.length },
     orsakKod: orsak.kod,
     orsakText: orsak.text,
   });

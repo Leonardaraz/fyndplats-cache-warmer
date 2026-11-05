@@ -17,7 +17,7 @@ import { golvFor } from "@/lib/medlem/golv";
 import { MEDLEM_KOL, type Orsak, type Rad } from "@/lib/medlem/admin";
 import { offertGiltigTill, provaOffertpriser, type Offertradspris } from "@/lib/medlem/offertpriser";
 
-export const OFFERT_KOL = "FyndplatsOfferter";
+export const OFFERT_KOL = MEDLEM_KOL.offerter;
 
 export interface Offertrad extends Offertradspris {
   produktId: string;

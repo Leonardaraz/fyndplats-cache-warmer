@@ -90,12 +90,12 @@ motorn behöver veta:
   (E1-11). En manuell nivå gäller i stället för den räknade, till och med sitt
   slutdatum om ett sådant anges.
 - Borttagning tar bort kontot, profilerna, nivåbytena, inloggningsförsöken
-  (adressen i klartext) och de sparade varukorgarna. Orderliggaren och
-  prisbesluten står kvar, eftersom de bär ordrarna och priserna och inget
-  konto, och loggen får bara den maskerade adressen. Nivåbytena,
-  inloggningarna och de sparade varukorgarna tas bort först: faller det står
-  kontot kvar, så att ett nytt försök hittar allt (2026-11-04, korgarna
-  2026-11-05).
+  (adressen i klartext), de sparade varukorgarna och offerterna som aldrig
+  blev betalda. Orderliggaren, prisbesluten och en betald offert står kvar,
+  eftersom de är underlag för ordrar (bokföringslagen), och loggen får bara
+  den maskerade adressen. Allt utom kontot och profilerna tas bort först:
+  faller det står kontot kvar, så att ett nytt försök hittar allt
+  (2026-11-04, korgarna och offerterna 2026-11-05).
 - Skyddet är det som gäller för hela `/admin` (Basic Auth och Vercels
   skydd). Tvåfaktor krävs av specen före E2.
 
