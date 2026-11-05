@@ -22,6 +22,17 @@ omdirigering, så en ändrad slug på en publicerad sida ger en 404. Måste en p
 (manuell trigger)"** efter skrivningen, mot den nya sidan eller mot kategorin, aldrig mot
 startsidan. Rutten vägrar så länge den gamla sluggen fortfarande är synlig.
 
+Så byter du slugen på en publicerad sida (T113, rosenträdet, 2026-11-04): gör en liten runda
+med bara den sidan. Kopiera rundans filer för kortet, ändra raden i `slugs.txt` och kör
+`bygg-skrivplan.py`, och skriv den med `polish-write` (torr först, sedan skriv) som vilken runda
+som helst. Skriv den gamla adressens 301 FÖRE skrivningen, med `force`, så att det aldrig finns
+ett ögonblick med en 404 utan omdirigering. Flytta efter skrivningen varje redan skriven
+omdirigering som pekar på den gamla adressen (en givares adress, till exempel) till den nya, i
+normalt läge, annars blir det en kedja av två 308:or. Läs hela `FyndplatsRedirects` ur Wix Data
+(`wix-data/v2/items/query`, limit 1000): listläget i workflowen tar bara de 200 senast ändrade
+raderna av över 500. Mediasteget och variantbilderna i `polish-write` rör inte färg- och
+storlekslänkarna på en sammanslagen sida (mätt: länkarna oförändrade efteråt).
+
 ### Beskrivningen (`<kort>.html`)
 
 ```html
@@ -341,7 +352,32 @@ produkttypen. Finns inget löv räcker föräldern. Välj aldrig `All Products`,
 lägger till den själv. Workflowen slår upp namnen, och torrkörningen fäller ett namn som
 inte finns.
 
-Sökordskategorin är den sida som rankar på huvudordet, och dess text påstår saker om alla
-sina produkter. Läs dess facit (`tools/polish-assets/runda-s*/<slug>-text.json`, fältet
-`facit`) och pröva varje *alla*, *varje* och *ingen* mot den nya produkten. Bryter produkten
-ett påstående skriver du en rad i `FLAGGADE.md` i stället för att koppla den.
+☠️ **Produkttypens kategori får inte saknas (2026-11-04).** Runda n328 kopplade en
+uppresningsfåtölj till Möbler, Fåtöljer och Massage & Återhämtning men inte till
+Uppresningsfåtöljer. Butikens brödsmula hamnade då under Skönhet & Hälsa, och ChatGPT:s audit
+hittade det. Kategoristeget stoppar nu hela planen, redan i torrkörningen, när ett ord i
+namnets huvudfras (texten före första *med*, *för*, *i*, *på*, *till*, *och* eller tankstreck)
+är exakt namnet på en synlig underkategori i singular eller plural och kategorin saknas i
+raden. "Uppresningsfåtölj" kräver Uppresningsfåtöljer; "fåtöljskydd" och "med pall" kräver
+ingenting (`lib/polish/typkategori.ts`). Ska produkten medvetet inte ligga där skriver du
+`kort ⇥ kategori ⇥ skäl` i `kategori-undantag.tsv`, och `bygg-skrivplan.py` lägger det i
+planens `katUndantag`. Skälet står kvar i rundans katalog.
+
+Sökordskategorin är den sida som rankar på huvudordet. **Dess text beskriver varutypen och
+aldrig sortimentet** *(Leonard 2026-11-04: "Fixa kategoribeskrivningarna och skriv så det
+inte kan bli fel igen")*: inga antal ("fyra av speglarna"), inga tak eller spann ("upp till
+100 × 80 cm", "120 till 180 cm"), inga *alla*, *ingen*, *flera* eller *de flesta* om
+produkterna, ingen enskild produkt med mått och inget "står i produktnamnet". Sortimentet
+ändras vid varje runda och sidan cachas i sex timmar, så en räknad uppgift är fel någon gång
+under dagen den publiceras. Fem sökordskategorier hann bli det den 2026-11-04. Spärren är
+`lib/category-evergreen.test.ts` i butiken, som läser alla kategoritexter, och
+`gate-kategori.py` i rundan, som har samma mönster (ändra bara båda tillsammans). Kategorier
+som ännu bär sådana uppgifter står i `lib/category-evergreen-baseline.ts`, som bara kan
+krympa, och rättas en i taget. Skriv aldrig en kategoritext ur minnet: avstäm exempel och
+typer mot `/api/lista?k=kategori/<slug>`, och skriv "kontrollera åldern i beskrivningen"
+hellre än "åldern står i beskrivningen".
+
+En kategori som står i baslinjen påstår ännu saker om sina produkter. Läs dess facit
+(`tools/polish-assets/runda-s*/<slug>-text.json`, fältet `facit`) och pröva varje *alla*,
+*varje* och *ingen* mot den nya produkten. Bryter produkten ett påstående skriver du en rad i
+`FLAGGADE.md` i stället för att koppla den.

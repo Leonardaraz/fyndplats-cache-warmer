@@ -1,0 +1,93 @@
+[
+ {
+  "host": "91d28d6f",
+  "donor": "111f8e2c",
+  "behall": "91d28d6f-dec4-4996-af93-61193befd0fa",
+  "utkast": "111f8e2c-fe28-433a-b529-45ed231e6082",
+  "farg_utkast": "Svart",
+  "farg_behall": "",
+  "storlek_utkast": "",
+  "sku": "",
+  "omdirigera": "nej",
+  "bilder": "1",
+  "kallpositioner": [
+   "1"
+  ]
+ },
+ {
+  "host": "91d28d6f",
+  "donor": "9acb5824",
+  "behall": "91d28d6f-dec4-4996-af93-61193befd0fa",
+  "utkast": "9acb5824-26cc-40b0-b118-7769be0fff2b",
+  "farg_utkast": "Rosa",
+  "farg_behall": "",
+  "storlek_utkast": "",
+  "sku": "",
+  "omdirigera": "nej",
+  "bilder": "1,2,3,4,5",
+  "kallpositioner": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "10"
+  ]
+ },
+ {
+  "host": "88140d98",
+  "donor": "cd2409e4",
+  "behall": "88140d98-7f60-4167-b8c1-7db12d2b3ae0",
+  "utkast": "cd2409e4-b0d7-4039-b96a-7e1c137cb2ca",
+  "farg_utkast": "Vit",
+  "farg_behall": "",
+  "storlek_utkast": "",
+  "sku": "",
+  "omdirigera": "nej",
+  "bilder": "1,2,3,4,5",
+  "kallpositioner": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "10"
+  ]
+ },
+ {
+  "host": "087a83ae",
+  "donor": "4fd14b1f",
+  "behall": "087a83ae-6995-4818-8a29-2e725947c80a",
+  "utkast": "4fd14b1f-c311-4d16-80c7-8457d7b7d6d2",
+  "farg_utkast": "Grå",
+  "farg_behall": "",
+  "storlek_utkast": "",
+  "sku": "",
+  "omdirigera": "nej",
+  "bilder": "1,2,3,4,5",
+  "kallpositioner": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "10"
+  ]
+ },
+ {
+  "host": "087a83ae",
+  "donor": "47d5115e",
+  "behall": "087a83ae-6995-4818-8a29-2e725947c80a",
+  "utkast": "47d5115e-a1c4-48b2-b7f8-aa70e0fe4d7e",
+  "farg_utkast": "Naturträ med vit ram",
+  "farg_behall": "",
+  "storlek_utkast": "",
+  "sku": "FP-klaffbord-hjul-130cm-naturtra-vit",
+  "omdirigera": "nej",
+  "bilder": "1,2,3,4,5",
+  "kallpositioner": [
+   "1",
+   "2",
+   "4",
+   "5",
+   "10"
+  ]
+ }
+]

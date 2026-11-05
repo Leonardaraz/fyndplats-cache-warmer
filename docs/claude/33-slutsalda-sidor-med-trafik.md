@@ -49,4 +49,10 @@ Så görs det, och tre saker att inte missa:
   minut) bygger om sidor vars `updatedDate` flyttats. Tio av tolv adresser
   pekade rätt inom fem minuter och de sista två efter fjorton. Att tömma
   sidan för hand (restock-provets läge `sidan`) behövs inte: två sidor
-  byggdes om med gammal produktdata och väntade ändå på cronen.
+  byggdes om med gammal produktdata och väntade ändå på cronen. Mätt
+  2026-11-04 tog det längre: en Aosom-givares gamla adress svarade 200 ur
+  cachen 23 minuter efter att sidan doldes (omdirigeringen låg redan i
+  `FyndplatsRedirects`) och var 308 vid mätningen två minuter senare, och
+  tre AliExpress-adresser svarade 200 två minuter efter och var 308 vid
+  mätningen efter 33. Räkna med en halvtimme, och mät 308 först efter en
+  timme.

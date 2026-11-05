@@ -63,3 +63,40 @@ och `needsAiPolish: false`. En radering går inte att ångra om matchningen visa
 sig vara fel, så utkastet ligger kvar i minst fjorton dygn. Därefter raderas det
 med ett eget verktyg, se *Pensionerade utkast raderas efter fjorton dygn*. Det
 osynliga utkastet syns inte för någon kund, men dess bilder tar plats i Wix.
+
+**Leonards beslut 2026-11-04: AliExpress-sidor vars vara finns hos Aosom mappas om, och blir
+regelpriset efter ommappningen mer än 40 % lägre än butikspriset sänks priset så att
+prissynken tar raden.** Annars stoppar `MAX_PRISANDRING_PCT = 40` (`lib/aosom/sync.ts`) den,
+och den ligger i `varningar` varje varv utan att något skrivs. Sänk priset för hand, eller
+godkänn hoppet med `godkann_pris` (Wix-id) i en riktad `aosom-sync` utanför synkfönstret.
+Ta regelpriset ur `roundPrice(1,2 × landad kostnad, "charm99")` i en privat läsning av
+mappningsraden och skriv aldrig kostnaden i en logg. Mätt samma dag på Mercedes-sidan
+`973743f8`, som ommappades till Aosom: regelpriset 1 369 kr mot butikens 1 399 kr (−2 %),
+alltså inget hopp, och nästa pris-varv tar den av sig själv. `polish-mapping.yml` (`las`)
+säger ändå *PRISGRINDEN FALLER* efter en ommappning, eftersom priset i Wix ännu inte följer
+regeln: det är ingen varning om att något är fel, bara att synken inte hunnit.
+
+☠️ **En AliExpress-sida vars Aosom-artikel redan sitter som färg på en sammanslagen sida går
+inte att mappa om** (`skun_upptagen`). Bekräftat 2026-11-04 på AliExpress-sidan
+`e6134e61`, som motorn nekade mot både den röda och den svarta Mercedes-artikeln. Sidan är
+en dubblett av en färg som värden redan säljer, ofta dyrare (AliExpress-eltraktorn
+`e6615ddd` kostar 3 099 kr mot 2 299 kr för värdens gröna), och löses genom att den
+pensioneras med 301 till värdens färg, inte genom ommappning. Leonard sa ja till det samma dag
+(2026-11-04), och de tre sidorna `e6615ddd`, `065eb3e8` och `e6134e61` pensionerades så här:
+`redirect-add.yml` med `batch` och `force=true` FÖRST (källan är fortfarande synlig, och en rad
+som skrivs efter avpubliceringen ger en lucka med 404), med målet `/produkt/<värdens slug>?variant=<
+värdens variant-id för färgen>` så att den som kommer via en gammal länk ser rätt färg; sedan
+`PATCH /stores/v3/products/<id>` med `{ product: { revision, visible: false }, fieldMask: { paths:
+["visible"] } }` och återläsning. Före det: läs hela omdirigeringslistan (`redirect-add.yml` utan
+indata) och sök efter sidans adress, så att ingen äldre 301 pekar på den, och sök igenom
+ordrarna efter produkt-id:t. Mappningsraden rörs inte och sidan märks inte `rejected`, för
+`pensionerade-radera` raderar bara Aosom-rader och en AliExpress-rad ska inte hamna i den kön.
+☠️ **Recensionerna följer INTE med.** Motorns sammanslagning är det enda som kopierar
+omdömen, och den vägrar en AliExpress-givare (`utkast_ej_aosom`). De tre sidorna hade 13, 4 och
+cirka 4 omdömen, som nu ligger kvar oanvända på de dolda sidorna (inget raderades). Ett verktyg
+som kopierar dem till värden saknas och kräver en kodändring i motorn. Butikens cache svarar
+fortfarande 200 på de gamla adresserna i upp till en timme, så mät 308 efteråt.
+Två rader i feeden med identisk titel (eltraktorernas 12 V-rader)
+går inte att skilja med `feed_sok`, och artikelnumret får inte in som workflow-input.
+En vara som Aosom inte har i den färgen, som den svarta trehjuliga Hondan `816e745c`
+(feeden har bara grön och röd), går inte att mappa om alls och ligger kvar som AliExpress-sida.

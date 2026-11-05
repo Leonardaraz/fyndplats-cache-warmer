@@ -1,0 +1,29 @@
+[
+ {
+  "behall": "d6275621-f7ba-4df8-a374-a2bb5f77890c",
+  "utkast": "11c92815-adef-433c-ad96-fbae4788de68",
+  "farg_utkast": "Grön",
+  "farg_behall": "Röd",
+  "bilder": "1,2,3,4,5"
+ },
+ {
+  "behall": "df9475dc-42e5-43ae-89d6-dc34451b76a9",
+  "utkast": "3c9ca555-cd14-471a-8db8-286c46a7fb24",
+  "farg_utkast": "Röd",
+  "bilder": "1,2,3,4,5"
+ },
+ {
+  "behall": "4bc344de-c3bd-4f42-9450-f1d0a96f9dd9",
+  "utkast": "dc4dee5d-ef18-4aad-9704-3b32cd9c05df",
+  "storlek_utkast": "2 × 10 kg",
+  "bilder": "1,2,3,4,5,6",
+  "sku": "FP-hexagonhantlar-gummi-par-tio-kg"
+ },
+ {
+  "behall": "6a2451c4-1a78-4861-9aa1-68c2096ac828",
+  "utkast": "d7f16f65-8bc5-42c0-8e48-3e6012b8524b",
+  "farg_utkast": "Rosa",
+  "farg_behall": "Blå",
+  "bilder": "1,2,3,4"
+ }
+]

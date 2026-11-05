@@ -1,0 +1,33 @@
+name: Kategorikoll — brödsmulan och produkttypens kategori i hela katalogen
+
+# Bara läsning (planen A4/A5, 2026-11-04). Räknar butikens brödsmula före och
+# efter regeln "avdelningen produkten är kopplad till går först", och vilka
+# produkter som saknar kategorin deras namn pekar ut. Loggen är publik: svaret
+# bär antal, kategorinamn och Wix-id, aldrig produktnamn eller priser.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  koll:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Kör kategorikollen
+        run: |
+          curl --fail-with-body --max-time 300 -sS \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "https://fyndplats-cache-warmer.vercel.app/api/admin/kategorikoll" | tee kategorikoll.json
+          if grep -q '"ok":false' kategorikoll.json; then
+            echo "::error::Kategorikollen rapporterade ok:false — se svaret ovan"
+            exit 1
+          fi
+      - name: Spara svaret
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kategorikoll
+          path: kategorikoll.json

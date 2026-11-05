@@ -62,7 +62,7 @@ export interface AuctionDoc {
   variantPrices?: AuctionVariantTrack[];
   /** Minuter mellan prissteg (60 = en sänkning i timmen). */
   stepMinutes: number;
-  /** 1–5 för live-auktioner, 0 för kö. */
+  /** 1–N för live-auktioner (N = dagens antal, lib/auction/antal.ts), 0 för kö. */
   slot: number;
   status: AuctionStatus;
   /** Kösortering (lägst främjas först). */

@@ -237,6 +237,7 @@ underrubrik.
 - `29-sidovagnarna-1200-nyaste.md`: ☠️ Butikens sidovagnar läste bara de 1 200 nyaste produkterna (2026-09-24)
 - `30-menyns-underkategorier.md`: ☠️ Menyns underkategorier syntes inte för Google (2026-09-24)
 - `31-langsvansen.md`: Långsvansen bärs av smala kategorier, inte av produktsidor (2026-09-24)
+  - Brödsmulan: produktens egen avdelning först (2026-11-04)
 - `32-domanens-lankar.md`: ☠️ Domänen saknar riktiga länkar — det är bromsen nu (2026-09-24)
 - `33-slutsalda-sidor-med-trafik.md`: Slutsålda sidor med trafik: omdirigera bara det som är borta för gott (2026-10-18)
 - `34-restock-bevakarna.md`: Restock-bevakarna (`/admin/restock-list`, 2026-09-30)
@@ -287,4 +288,14 @@ underrubrik.
   - Den spärr som faktiskt skyddade raderingen
   - Historik: så såg ordningen ut
   - Rätta en enskild recension: dölj, ta bort bara fotot, visa igen (2026-10-29)
+- `46-medlemskap.md`: Medlemskapet: portalen för privatpersoner och företag (2026-11-04)
+  - E0: Wix-kassan bär vårt pris (provordern 2026-11-04)
+  - E1: konto, orderliggare och Mina sidor (butiken)
+  - Admin: /admin/medlemmar (motorn)
+  - Wix-gränser som styr formen
+  - Kvar till E2
 - `44-mediainventering.md`: Mediainventering: "utan katalogreferens" är inte "oanvänd"
+- `45-fyndauktionens-antal-och-sparr.md`: Fyndauktionen: tio fynd om dagen och 30-dagarsspärren (2026-11-04)
+  - Antalet per dag (`lib/auction/antal.ts`)
+  - 30-dagarsspärren (`lib/auction/trettio-dagar.ts`)
+  - Strömbrytaren och första påslaget

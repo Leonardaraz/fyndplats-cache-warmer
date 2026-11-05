@@ -167,8 +167,26 @@ def main():
     slug = {r.split()[0]: r.split()[1] for r in io.open("slugs.txt", encoding="utf-8") if r.strip()}
     media = json.load(io.open("nyttolast-media.json", encoding="utf-8"))
     samman = tsv("sammanslagna.tsv", 2) if os.path.exists("sammanslagna.tsv") else {}
+    # Typkategorier som medvetet inte kopplas (kort ⇥ kategori ⇥ skäl). Kategoristeget
+    # stoppar annars planen när namnets huvudfras pekar ut en underkategori som saknas
+    # i kategori.tsv (lib/polish/typkategori.ts, 2026-11-04).
+    kat_undantag = {}
+    if os.path.exists("kategori-undantag.tsv"):
+        for rad in io.open("kategori-undantag.tsv", encoding="utf-8"):
+            if not rad.strip() or rad.startswith("#"):
+                continue
+            delar = [d.strip() for d in rad.rstrip("\n").split("\t")]
+            if len(delar) != 3 or not delar[1] or len(delar[2]) < 10:
+                kat_undantag.setdefault("__fel__", []).append(delar[0][:8])
+                continue
+            kat_undantag.setdefault(delar[0], []).append({"kat": delar[1], "skal": delar[2]})
 
     fel = []
+    for k in kat_undantag.get("__fel__", []):
+        fel.append(f"{k}: kategori-undantag.tsv ska ha kort ⇥ kategori ⇥ skäl (minst 10 tecken)")
+    for k in kat_undantag:
+        if k != "__fel__" and k not in ids:
+            fel.append(f"{k}: står i kategori-undantag.tsv men inte i ids.tsv")
     for k, (antal,) in samman.items():
         if k not in ids:
             fel.append(f"{k}: står i sammanslagna.tsv men inte i ids.tsv")
@@ -208,6 +226,7 @@ def main():
             "seoBesk": seo[k][1],
             "media": [{"id": m["id"], "altText": m["altText"]} for m in media[k]],
             "kat": [x.strip() for x in kat[k][0].split(" + ")],
+            **({"katUndantag": kat_undantag[k]} if k in kat_undantag else {}),
             **({"varianter": int(samman[k][0])} if k in samman
                else {"sku": sku[k][0], "variantId": var[k][0]}),
             "textHash": vh[k][0],

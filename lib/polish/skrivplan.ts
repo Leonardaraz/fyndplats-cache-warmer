@@ -27,7 +27,8 @@
 // PUBLIK Actions-logg. Planen innehåller inga sådana fält, valideringen vägrar
 // strängar med artikelnummerform, och felmeddelandena citerar aldrig träffen.
 
-import { idPerNamn, lasKategoritradet } from "@/lib/wix/kategoritrad";
+import { idPerNamn, lasKategoritradet, type KategoriNod } from "@/lib/wix/kategoritrad";
+import { saknadeTypkategorier } from "@/lib/polish/typkategori";
 import { WIX_MAX_BILDER_PER_PRODUKT } from "../wix/limits";
 import { lasMedKostnad, variantMedKostnad } from "../wix/produkt-kostnad";
 import { MODELLNR } from "./modellnummer";
@@ -55,6 +56,12 @@ export interface SkrivProdukt {
   seoBesk: string;
   media: SkrivMedia[];
   kat: string[];
+  /**
+   * Typkategorier produkten medvetet INTE kopplas till, med skäl (2026-11-04,
+   * lib/polish/typkategori.ts). Kategoristeget stoppar annars planen när ett
+   * ord i namnets huvudfras är en underkategoris namn och kategorin saknas.
+   */
+  katUndantag?: Array<{ kat: string; skal: string }>;
   /** Variantens nya SKU. Saknas på en sammanslagen sida (`varianter`). */
   sku?: string;
   /** Variantens id. Saknas på en sammanslagen sida. */
@@ -213,6 +220,16 @@ export function valideraPlan(x: unknown): { plan: Skrivplan } | { fel: string[] 
     if (!Array.isArray(d.kat) || d.kat.length === 0 || d.kat.length > 6 || !d.kat.every((k) => strang(k, 60))) {
       f("kat ska vara 1–6 kategorinamn");
     }
+    if (d.katUndantag !== undefined) {
+      const ok =
+        Array.isArray(d.katUndantag) &&
+        d.katUndantag.length <= 6 &&
+        d.katUndantag.every((u: unknown) => {
+          const uu = (typeof u === "object" && u !== null ? u : {}) as Record<string, unknown>;
+          return strang(uu.kat, 60) && strang(uu.skal, 200) && (uu.skal as string).trim().length >= 10;
+        });
+      if (!ok) f("katUndantag ska vara högst 6 { kat, skal } med ett skäl på minst 10 tecken");
+    }
 
     // ☠️ Artikelnummerform i något fält som når kunden fäller hela planen.
     // Felet namnger fältet, aldrig träffen — svaret går till en publik logg.
@@ -222,6 +239,9 @@ export function valideraPlan(x: unknown): { plan: Skrivplan } | { fel: string[] 
       ...(Array.isArray(d.media) ? d.media.map((m: unknown, j: number): [string, unknown] =>
         [`bild ${j + 1} altText`, (m as Record<string, unknown>)?.altText]) : []),
       ...(Array.isArray(d.kat) ? d.kat.map((k: unknown, j: number): [string, unknown] => [`kat ${j + 1}`, k]) : []),
+      ...(Array.isArray(d.katUndantag)
+        ? d.katUndantag.map((u: unknown, j: number): [string, unknown] => [`katUndantag ${j + 1}`, (u as Record<string, unknown>)?.skal])
+        : []),
     ];
     for (const [namn, v] of texter) {
       if (typeof v === "string" && artikelnummerformer(v) > 0) f(`${namn} har artikelnummerform`);
@@ -270,10 +290,14 @@ export function felText(e: unknown): string {
  * Kategorinamn → id ur hela trädet, med de dolda kategorierna (lib/wix/kategoritrad.ts).
  * Ett namn som finns två gånger saknas här och räknas som okänt.
  */
-async function kategoriIdn(wix: WixAnrop): Promise<Map<string, string>> {
+function kategoriIdnUr(trad: readonly KategoriNod[]): Map<string, string> {
   const ut = new Map<string, string>();
-  for (const [namn, id] of idPerNamn(await lasKategoritradet(wix))) if (id) ut.set(namn, id);
+  for (const [namn, id] of idPerNamn(trad)) if (id) ut.set(namn, id);
   return ut;
+}
+
+async function kategoriIdn(wix: WixAnrop): Promise<Map<string, string>> {
+  return kategoriIdnUr(await lasKategoritradet(wix));
 }
 
 export function summera(rader: StegRad[], ord: string): StegUtfall {
@@ -429,7 +453,22 @@ export async function stegMedia(
 }
 
 export async function stegKategorier(plan: Skrivplan, wix: WixAnrop, torr: boolean): Promise<StegUtfall> {
-  const idn = await kategoriIdn(wix);
+  const trad = await lasKategoritradet(wix);
+  const idn = kategoriIdnUr(trad);
+  // ☠️ Produkttypens kategori får inte saknas (lib/polish/typkategori.ts):
+  // runda n328 missade Uppresningsfåtöljer, och brödsmulan hamnade under
+  // Skönhet & Hälsa. Felet namnger produktens kort-id och kategorin, inget mer.
+  const typfel = plan.produkter.flatMap((p) =>
+    saknadeTypkategorier(p, trad).map((k) => `${p.kort}: ${k.kategori} ("${k.ord}" i namnet)`),
+  );
+  if (typfel.length) {
+    return {
+      ok: false,
+      rader: [],
+      avbrutet: `produkttypens kategori saknas: ${typfel.join("; ")} — lägg till den i kat, eller undanta den med skäl i katUndantag. Ingenting skrivet`,
+      sammanfattning: "0 skrivna",
+    };
+  }
   const saknas = [...new Set(plan.produkter.flatMap((p) => p.kat).filter((n) => !idn.has(n)))];
   if (saknas.length) {
     // ☠️ Ett okänt namn skriver INGENTING — inte ens för de andra produkterna.

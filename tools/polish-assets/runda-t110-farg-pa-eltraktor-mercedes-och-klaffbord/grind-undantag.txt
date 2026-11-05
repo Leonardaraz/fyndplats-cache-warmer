@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+gate.py EN 71 antas uppfyllt (Leonards beslut 2026-10-08), källtexten nämner ingen standard
