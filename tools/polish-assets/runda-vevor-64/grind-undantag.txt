@@ -1,0 +1,8 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 900 × 1200 × 20 mm utan axelord, men källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar 47,2 in / 1200 mm som bredd och 35,4 in / 900 mm som höjd med pilar: texten skriver bredd, höjd och tjocklek ur ritningen, och ytornas 860 × 580 mm står utan axelord som i specifikationen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Produktmått (bord + sidoskåp) 40,3 x 22,8 x 25,2 tum / 102,5 x 58 x 64 cm, Stolens mått 26,5 x 26,5 x 50 cm, Bordets mått 79,5 x 55,5 x 54 cm och Skåpets mått 9 x 23 x 25,2 tum / 22,9 x 58 x 64 cm utan axelord, men källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar bordet som 79,5 cm bredd, 55,5 cm djup och 54 cm höjd, stolen som 26,5 cm bred, 26,5 cm djup och 50 cm hög, skåpet som 22,9 cm bredd, 58 cm djup och 64 cm höjd och bord och skåp tillsammans som 102,5 cm bredd, 58 cm djup och 64 cm höjd med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har inga måttrader, men källans måttbild (position 2 i källgalleriet, inte bland sidans sex bilder) ritar 30 in / 76,2 cm som bredd, 16 in / 40,6 cm som djup och 72 in / 183 cm som höjd med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har inga måttrader och texten skriver inga mått med axelord: sidan anger bara bollkapaciteten, hjulens antal och materialen

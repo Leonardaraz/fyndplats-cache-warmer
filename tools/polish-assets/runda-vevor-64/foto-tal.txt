@@ -1,0 +1,12 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+216833b2 76,2 bredden 30 tum / 76,2 cm på måttbilden
+216833b2 40,6 djupet 16 tum / 40,6 cm på måttbilden
+216833b2 183 höjden 72 tum / 183 cm på måttbilden, omräknad från titelns 72 tum
+216833b2 30 hyllhöjden justeras i steg om 30 mm i källans punkt 3
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
