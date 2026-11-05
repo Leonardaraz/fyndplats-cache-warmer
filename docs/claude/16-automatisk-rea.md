@@ -10,9 +10,10 @@ förslaget: en reaskylt av sig själv när priset verkligen har sänkts, med rä
 överstruket pris, i högst 30 dagar, och bara för sänkningar på minst 10 %.
 
 **Gränsen är 5 % sedan 2026-11-02** (Leonard: "Ändra så gränsen är 5%"). Den var
-10 % den första natten: körningen 02:40 UTC tog då bort vitrinskåpets skylt,
-som var sänkt 7 %. Talet står bara i `MIN_SANKNING_PROCENT` i
-`lib/pricing/rea.ts`, och gränstestet i `rea.test.ts` håller det.
+10 % den första natten. Körningen 09:40 UTC efter ändringen satte 4 skyltar till,
+på produkter sänkta 7–10 %, och tog inte bort någon. Talet står bara i
+`MIN_SANKNING_PROCENT` i `lib/pricing/rea.ts`, och gränstestet i `rea.test.ts`
+håller det.
 
 **Lagen** (7 a § prisinformationslagen): det tidigare priset ska vara det lägsta
 som tillämpats de 30 dagarna före sänkningen, och vid en gradvis sänkning priset
@@ -77,6 +78,15 @@ Tio egenskaper som inte ska tas bort:
 UTC varje dag, sedan 2026-09-17) ser ett pris om dagen. En sänkning som kom och gick
 mellan två avläsningar syns inte där. Det gäller bara de första 30 dagarna efter
 starten; från första körningen läses priset varje timme.
+
+☠️ **En sänkning före 2026-10-18 ger aldrig rea.** Historiken börjar med butikens
+första avläsning 2026-09-17 02:30 UTC, och en sänkning behöver 31 dygn historik
+före sig (fönstret och marginalen). Utan det blir beslutet `ofullstandig`, vilken
+gräns som än gäller. Vitrinskåpet för vägg är exemplet. Priset sänktes 7–8 oktober,
+och skylten som stod kvar efter 2026-11-01 togs bort av den första körningen. Med
+5 % kom den inte heller tillbaka. Svaret på "varför har X ingen rea?" står i
+varans rad i `FyndplatsPrisforlopp`, där den första punkten visar var historiken
+börjar. Mätt 2026-11-02.
 
 **Efter mergen,** i den ordningen: timjobbet för historiken från första körningen
 (strömbrytaren är av). Kör `seed-torr` och läs talen, sedan `seed`, sedan `torr`
