@@ -1804,3 +1804,14 @@ Ett företag läggs till på ett befintligt konto, högst ett per konto i E3.
   Variant-id skickas bara för en produkt med flera varianter, som på
   produktsidan. Gäller alla medlemmar, inte bara företag. Sparade varukorgar
   är inte byggda.
+
+- **"Kvitto (PDF)"** på varje betald order på Mina sidor (`visaKvitto`, byggt
+  2026-11-05): `/api/konto/kvitto/<nummer>` prövar att ordern finns i
+  orderliggaren på kontots e-post och hämtar PDF:en från motorns
+  `/api/medlem/kvitto` (hemligheten `REVIEW_INGEST_SECRET`, adressen
+  `CACHE_WARMER_KVITTO_URL` eller motorns produktion). Motorn ritar kvittot
+  med mejlens mall, prövar e-posten på ordern en gång till och svarar bara för
+  en betald order: ett köp som företag får företaget ur prisbeslutet, en
+  fakturaorder bara kvittot som redan har mejlats. Svaret är privat och
+  cachas aldrig; utan PDF visas en kort sida på svenska med länk tillbaka
+  (`kvittoFelText`).

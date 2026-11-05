@@ -13,7 +13,7 @@ import Image from "next/image";
 import { dagSomText, kronor, stockholmsDag, type Nivalage } from "@/lib/medlem/niva";
 import { maskeradEpost } from "@/lib/medlem/inloggning";
 import type { MinaSidor, OrderPaMinaSidor } from "@/lib/medlem/konto";
-import { arHogstaNivan, inteRaknadText, visaSparningVantas, visaUppmaning } from "@/lib/medlem/visning";
+import { arHogstaNivan, inteRaknadText, visaKvitto, visaSparningVantas, visaUppmaning } from "@/lib/medlem/visning";
 import { Medlemskort, nivaNyckel } from "./medlemskort";
 import { KopIgen } from "./kop-igen";
 import s from "./konto.module.css";
@@ -253,7 +253,7 @@ export function MinaSidorVy({
                   {!o.sparning.length && visaSparningVantas(o.status, alder) ? (
                     <p className={s.orderNot}>Spårning kommer när paketet har skickats.</p>
                   ) : null}
-                  {o.sparning.length || o.kopIgen ? (
+                  {o.sparning.length || o.kopIgen || visaKvitto(o.status) ? (
                     <div className={s.orderKnappar}>
                       {o.sparning.map((tn, i) => (
                         <a key={tn} className={s.sparknapp} href={`/sparning?tn=${encodeURIComponent(tn)}`}>
@@ -261,6 +261,17 @@ export function MinaSidorVy({
                         </a>
                       ))}
                       {o.kopIgen ? <KopIgen ordernummer={o.ordernummer} /> : null}
+                      {visaKvitto(o.status) ? (
+                        <a
+                          className={s.kopIgen}
+                          href={`/api/konto/kvitto/${encodeURIComponent(o.ordernummer)}`}
+                          target="_blank"
+                          rel="noopener"
+                          aria-label={`Kvitto för order ${o.ordernummer} som PDF`}
+                        >
+                          Kvitto (PDF)
+                        </a>
+                      ) : null}
                     </div>
                   ) : null}
                 </div>

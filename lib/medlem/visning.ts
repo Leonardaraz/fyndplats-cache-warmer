@@ -50,3 +50,31 @@ export const UPPMANING_DAGAR = 60;
 export function visaUppmaning(sankningDag: number | null | undefined, idag: number): boolean {
   return sankningDag != null && sankningDag - idag <= UPPMANING_DAGAR;
 }
+
+/**
+ * Länken "Kvitto (PDF)" på en order (motorns /api/medlem/kvitto via butikens
+ * /api/konto/kvitto/<nummer>). Bara för en order som har betalats och inte är
+ * helt återbetald; motorn prövar samma sak igen.
+ */
+export function visaKvitto(status: Orderstatus): boolean {
+  return status === "betald" || status === "delvis-aterbetald";
+}
+
+/** Beskedet när kvittot inte går att hämta, per skäl från motorn. */
+export function kvittoFelText(skal: string | undefined): string {
+  switch (skal) {
+    case "obetald":
+      return "Ordern är inte betald än. Kvittot finns här när betalningen har kommit in.";
+    case "avbruten":
+      return "Ordern är avbruten, så det finns inget kvitto.";
+    case "inget-kvitto":
+      return "Kvittot för den här ordern går inte att hämta här. Svara på orderbekräftelsen, så skickar vi det.";
+    case "inte-din":
+    case "saknas":
+      return "Ordern finns inte på ditt konto.";
+    case "utloggad":
+      return "Logga in på Mina sidor för att hämta kvittot.";
+    default:
+      return "Kvittot går inte att hämta just nu. Försök igen om en stund.";
+  }
+}

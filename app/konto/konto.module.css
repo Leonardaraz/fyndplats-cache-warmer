@@ -958,8 +958,8 @@
   font-size: var(--text-sm);
   color: var(--soft);
 }
-/* "Köp igen": samma form som spårningsknappen men ljus, så att spårningen är
-   det första ögat ser på en order som är på väg. */
+/* "Köp igen" och "Kvitto (PDF)": samma form som spårningsknappen men ljusa,
+   så att spårningen är det första ögat ser på en order som är på väg. */
 .kopIgen {
   display: inline-flex;
   align-items: center;
@@ -972,6 +972,7 @@
   font: inherit;
   font-size: var(--text-sm);
   font-weight: 700;
+  text-decoration: none;
   cursor: pointer;
   transition: transform 0.15s, box-shadow 0.15s;
 }

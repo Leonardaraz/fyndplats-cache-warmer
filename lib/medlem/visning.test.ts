@@ -4,7 +4,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { REGLER_V1, medManuellNiva, nivalage, type KPost } from "./niva.ts";
-import { arHogstaNivan, inteRaknadText, visaSparningVantas, visaUppmaning } from "./visning.ts";
+import { arHogstaNivan, inteRaknadText, kvittoFelText, visaKvitto, visaSparningVantas, visaUppmaning } from "./visning.ts";
 
 const DAG = 20_400; // ett dagnummer i november 2025
 const iso = (dag: number) => new Date(dag * 86_400_000 + 12 * 3_600_000).toISOString();
@@ -55,4 +55,14 @@ test("uppmaningen att handla för att behålla nivån visas bara de sista 60 dag
   assert.equal(visaUppmaning(DAG + 60, DAG), true);
   assert.equal(visaUppmaning(DAG + 14, DAG), true);
   assert.equal(visaUppmaning(DAG + 1, DAG), true);
+});
+
+test("kvittolänken bara på en betald order, och varje skäl har en egen text", () => {
+  assert.equal(visaKvitto("betald"), true);
+  assert.equal(visaKvitto("delvis-aterbetald"), true);
+  for (const s of ["aterbetald", "avbruten", "obetald"] as const) assert.equal(visaKvitto(s), false);
+  const texter = ["obetald", "avbruten", "inget-kvitto", "inte-din", "utloggad", undefined].map(kvittoFelText);
+  assert.equal(new Set(texter).size, texter.length);
+  assert.equal(kvittoFelText("saknas"), kvittoFelText("inte-din"));
+  assert.match(kvittoFelText("tillfalligt"), /just nu/);
 });
