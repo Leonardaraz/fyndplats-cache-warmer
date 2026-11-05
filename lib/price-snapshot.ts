@@ -2,7 +2,7 @@
 //
 // Skrivningen och läsningen av prishistoriken. Uträkningen bor i
 // lib/price-history.ts, som är beroendefri och därför beteendetestad; den här
-// filen rör Postgres och Wix och kan inte laddas i node-testköraren.
+// filen rör Wix och kan inte laddas i node-testköraren.
 //
 // VARFÖR DEN FINNS. 7 a § prisinformationslagen kräver att ett överstruket pris
 // är det lägsta vi tillämpat de senaste 30 dagarna. Wix kan inte svara på det —
@@ -23,14 +23,12 @@
 // lösning vore en rad per variant. Det är medvetet inte byggt nu: det
 // fyrdubblar radantalet och ingen yta visar variantvis rea idag.
 
-import { sql } from "./db";
-import { anvanderWix, prishistorik } from "./wix-lager";
+import { prishistorik } from "./wix-lager";
 import { getProducts } from "./products";
 import {
   jamforpris,
   idagISO,
   tillMinor,
-  byggUpsert,
   FONSTER_DAGAR,
   type Observation,
   type Jamforpris,
@@ -56,30 +54,21 @@ export type SnapshotResultat = {
   fel?: string;
 };
 
-/** YYYY-MM-DD `dagar` dagar före `datum`: samma som Postgres `datum::date - dagar`. */
+/** YYYY-MM-DD `dagar` dagar före `datum`. */
 function datumMinus(datum: string, dagar: number): string {
   return new Date(Date.parse(`${datum}T00:00:00.000Z`) - dagar * 86_400_000).toISOString().slice(0, 10);
 }
-
-/** Rader per INSERT. 500 × 4 parametrar = 2 000, väl under Postgres tak på
- *  65 535, och få nog att felsöka när en sats gör fel. */
-const SATS = 500;
 
 /**
  * Skriv dagens pris för hela katalogen. Idempotent: körs cronet två gånger
  * samma dag skrivs samma rad igen, inte en till.
  *
- * SKRIVNINGEN ÄR BATCHAD, och det är inte en optimering utan en rättelse.
- * Första versionen gjorde en INSERT per produkt. Mätt skarpt mot previewen
- * 2026-09-11: 2 584 rader på 265 sekunder, mot maxDuration 300. Katalogen växer,
- * och nästa gång den gör det slår cronet i taket. Ett snapshot som inte hinner
- * klart blir en lucka i historiken — och en lucka i fönstrets början gör att
- * ingen rea får visas alls i 30 dagar. Det var alltså en latent produktionsbugg
- * som bara syntes för att körningen mättes i stället för antogs.
- *
- * sql.query i stället för taggen: taggen tar bara primitiver, och en
- * flerradig INSERT behöver genererade platshållare. Samma väg som
- * app/api/cron/ae-delivery-poll använder.
+ * SKRIVNINGEN ÄR BATCHAD (`prishistorik.sparaDag`), och det är inte en
+ * optimering utan en rättelse. Första versionen gjorde en INSERT per produkt.
+ * Mätt skarpt mot previewen 2026-09-11: 2 584 rader på 265 sekunder, mot
+ * maxDuration 300. Ett snapshot som inte hinner klart blir en lucka i
+ * historiken — och en lucka i fönstrets början gör att ingen rea får visas alls
+ * i 30 dagar.
  */
 export async function skrivDagensPriser(nu: Date = new Date()): Promise<SnapshotResultat> {
   const datum = idagISO(nu);
@@ -98,28 +87,11 @@ export async function skrivDagensPriser(nu: Date = new Date()): Promise<Snapshot
       rader.push({ produktId: p.id, prisMinor: minor, valuta: p.currency || "SEK" });
     }
 
-    if (await anvanderWix()) {
-      const u = await prishistorik.sparaDag(datum, rader);
-      skrivna = u.sparade;
-      if (u.fel.length) throw new Error(`${u.fel.length} rader skrevs inte, första: ${u.fel[0].fel}`);
-      const gallrade = await prishistorik.gallra(datumMinus(datum, SPAR_DAGAR));
-      return { ok: true, datum, skrivna, hoppade, gallrade };
-    }
-
-    for (let i = 0; i < rader.length; i += SATS) {
-      const sats = rader.slice(i, i + SATS);
-      const upsert = byggUpsert(sats);
-      if (!upsert) continue;
-      upsert.varden[0] = datum;
-      await sql.query(upsert.text, upsert.varden);
-      skrivna += sats.length;
-    }
-
-    const gallring = await sql/*sql*/`
-      DELETE FROM price_history
-      WHERE observed_on < (${datum}::date - ${SPAR_DAGAR}::int);
-    `;
-    return { ok: true, datum, skrivna, hoppade, gallrade: gallring.rowCount ?? 0 };
+    const u = await prishistorik.sparaDag(datum, rader);
+    skrivna = u.sparade;
+    if (u.fel.length) throw new Error(`${u.fel.length} rader skrevs inte, första: ${u.fel[0].fel}`);
+    const gallrade = await prishistorik.gallra(datumMinus(datum, SPAR_DAGAR));
+    return { ok: true, datum, skrivna, hoppade, gallrade };
   } catch (e) {
     return {
       ok: false,
@@ -135,7 +107,7 @@ export async function skrivDagensPriser(nu: Date = new Date()): Promise<Snapshot
 /**
  * Jämförpriset för en produkt, eller null när ingen sänkning får påstås.
  *
- * Fel mot databasen sväljs med flit och ger null: en trasig uppslagning ska
+ * Fel mot Wix sväljs med flit och ger null: en trasig uppslagning ska
  * göra att rean INTE visas, aldrig att den visas på fel grund.
  */
 export async function jamforprisFor(
@@ -147,21 +119,7 @@ export async function jamforprisFor(
   if (!produktId || aktuellt === null) return null;
   const datum = idagISO(nu);
   try {
-    if (await anvanderWix()) {
-      const observationer: Observation[] = await prishistorik.forProdukt(produktId, datumMinus(datum, SPAR_DAGAR));
-      return jamforpris(observationer, datum, aktuellt);
-    }
-    const rader = await sql/*sql*/`
-      SELECT to_char(observed_on, 'YYYY-MM-DD') AS datum, price_minor
-      FROM price_history
-      WHERE product_id = ${produktId}
-        AND observed_on >= (${datum}::date - ${SPAR_DAGAR}::int)
-      ORDER BY observed_on ASC;
-    `;
-    const observationer: Observation[] = rader.rows.map((r) => ({
-      datum: String(r.datum),
-      prisMinor: Number(r.price_minor),
-    }));
+    const observationer: Observation[] = await prishistorik.forProdukt(produktId, datumMinus(datum, SPAR_DAGAR));
     return jamforpris(observationer, datum, aktuellt);
   } catch {
     return null;

@@ -3,7 +3,6 @@
 // Lets us validate the 3-email flow inline (without waiting 1h / 24h / 72h).
 //
 // Modes (?action=...):
-//   migrate              — run the DB migration
 //   simulate             — enqueue a fake cart and run all 3 steps immediately
 //   simulate_no_code     — enqueue a fake cart whose address hash is pre-seeded into
 //                           used_addresses so step 3 falls through to the no-code variant
@@ -16,8 +15,7 @@
 // send via Resend, which is what you'd run against a sandbox inbox.
 
 import { NextResponse } from 'next/server';
-import { sql, runMigration } from '@/lib/db';
-import { anvanderWix, anvandaAdresser, kundvagnMejl, kundvagnar } from '@/lib/wix-lager';
+import { anvandaAdresser, kundvagnMejl, kundvagnar } from '@/lib/wix-lager';
 import {
   enqueueAbandonedCart,
   fetchDueCarts,
@@ -59,11 +57,9 @@ const sampleCart = (overrides: Partial<{ id: string; email: string; phone: strin
   delaysMsOverride: { 1: 1_000, 2: 2_000, 3: 3_000 } as Record<1 | 2 | 3, number>,
 });
 
-// Vagnen i det lager butiken använder (lib/wix-lager.ts), i CartRow-form.
+// Vagnen ur Wix (lib/wix-lager.ts), i CartRow-form.
 async function lasVagn(cartId: string) {
-  if (await anvanderWix()) return kundvagnar.hamta(cartId);
-  const r = await sql/*sql*/`SELECT id, email, phone, shipping_addr_hash, items_json, subtotal_minor, currency, recover_url, next_step, next_step_at, status, discount_code, discount_code_wix_id FROM abandoned_carts WHERE id = ${cartId}`;
-  return r.rows[0] ?? null;
+  return kundvagnar.hamta(cartId);
 }
 
 // Run every due step until the cart is done or skipped. Used by the simulator.
@@ -85,11 +81,6 @@ export async function POST(request: Request) {
   const url = new URL(request.url);
   const action = url.searchParams.get('action') ?? 'simulate';
 
-  if (action === 'migrate') {
-    await runMigration();
-    return NextResponse.json({ ok: true, migrated: true });
-  }
-
   // Run the Wix abandoned-checkout poller on demand (same code the cron runs).
   if (action === 'poll') {
     const hours = Number(url.searchParams.get('hours') ?? '24');
@@ -106,13 +97,10 @@ export async function POST(request: Request) {
   }
 
   if (action === 'simulate_no_code') {
-    // Pre-seed used_addresses with the shipping hash so step 3 falls to no-code variant.
+    // Pre-seed the used addresses with the shipping hash so step 3 falls to no-code variant.
     const cart = sampleCart({ id: `test-nc-${Date.now()}` });
     const hash = hashAddress(cart.shippingAddress);
-    if (hash) {
-      if (await anvanderWix()) await anvandaAdresser.registrera(hash, null, null);
-      else await sql/*sql*/`INSERT INTO used_addresses (hash) VALUES (${hash}) ON CONFLICT DO NOTHING`;
-    }
+    if (hash) await anvandaAdresser.registrera(hash, null, null);
     const enq = await enqueueAbandonedCart(cart);
     const results = await runUntilDone(cart.cartId);
     return NextResponse.json({ ok: true, cartId: cart.cartId, enq, results, seededHash: hash });
@@ -157,16 +145,5 @@ export async function POST(request: Request) {
 // so we can verify the live flow end-to-end without a Resend dashboard.
 export async function GET(request: Request) {
   if (!authorised(request)) return NextResponse.json({ ok: false, error: 'unauthorised' }, { status: 401 });
-  if (await anvanderWix()) {
-    return NextResponse.json({ ok: true, carts: await kundvagnar.senaste(20), sentEmails: await kundvagnMejl.senaste(20) });
-  }
-  const carts = await sql/*sql*/`
-    SELECT id, email, status, next_step, next_step_at, abandoned_at, discount_code
-      FROM abandoned_carts ORDER BY created_at DESC LIMIT 20
-  `;
-  const sent = await sql/*sql*/`
-    SELECT cart_id, step, resend_id, email, sent_at, discount_code
-      FROM sent_emails ORDER BY sent_at DESC LIMIT 20
-  `;
-  return NextResponse.json({ ok: true, carts: carts.rows, sentEmails: sent.rows });
+  return NextResponse.json({ ok: true, carts: await kundvagnar.senaste(20), sentEmails: await kundvagnMejl.senaste(20) });
 }

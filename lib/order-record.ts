@@ -1,6 +1,6 @@
 // lib/order-record.ts
-// Speglar en inkommen Wix order_created-händelse till vår lokala `orders`-tabell
-// så att morgon-dashboarden (app/admin/dashboard) kan visa orderantal, omsättning,
+// Speglar en inkommen Wix order_created-händelse till orderspegeln i Wix CMS
+// (lib/wix-lager.ts, `ordrar`) så att morgon-dashboarden (app/admin/dashboard) kan visa orderantal, omsättning,
 // AOV och topprodukter.
 //
 // Roll: SKYDDSNÄT, inte primärkälla. Wix Orders-API:t svarar 200 (nyckeln HAR
@@ -13,10 +13,9 @@
 //
 // Best-effort: anropas i wix-webhook-routen. Ett fel här får ALDRIG blockera
 // mejlet eller webhook-ack:en — vi loggar och sväljer. Idempotent på order-id
-// (ON CONFLICT DO NOTHING) så Wix-retries och sync-cron inte dubbelräknar.
+// (en befintlig rad skrivs inte om) så Wix-retries och sync-cron inte dubbelräknar.
 
-import { sql } from "./db";
-import { anvanderWix, ordrar } from "./wix-lager";
+import { ordrar } from "./wix-lager";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -95,32 +94,21 @@ export async function recordOrder(
     new Date().toISOString();
 
   try {
-    if (await anvanderWix()) {
-      const { inserted } = await ordrar.spegla({
-        id,
-        orderNumber: orderNumber ?? null,
-        email: email ?? null,
-        totalMinor,
-        currency,
-        itemCount,
-        items,
-        createdAt: createdIso,
-      });
-      return { recorded: true, inserted };
-    }
-    const res = await sql/*sql*/`
-      INSERT INTO orders (id, order_number, email, total_minor, currency, item_count, items_json, created_at)
-      VALUES (
-        ${id}, ${orderNumber ?? null}, ${email ?? null}, ${totalMinor}, ${currency},
-        ${itemCount}, ${JSON.stringify(items)}::jsonb, ${createdIso}
-      )
-      ON CONFLICT (id) DO NOTHING
-    `;
-    // rowCount = 1 vid ny rad, 0 när ordern redan fanns (ON CONFLICT). Sync-cronet
-    // använder detta för att skilja faktiskt ifyllda missade ordrar från no-ops.
-    return { recorded: true, inserted: (res.rowCount ?? 0) > 0 };
+    // `inserted` är falskt när ordern redan fanns. Sync-cronet använder det för
+    // att skilja faktiskt ifyllda missade ordrar från no-ops.
+    const { inserted } = await ordrar.spegla({
+      id,
+      orderNumber: orderNumber ?? null,
+      email: email ?? null,
+      totalMinor,
+      currency,
+      itemCount,
+      items,
+      createdAt: createdIso,
+    });
+    return { recorded: true, inserted };
   } catch (err) {
-    // Tabellen kanske inte är migrerad än, eller DB nere — logga och svälj.
+    // Wix svarar inte — logga och svälj.
     console.error("[order-record] kunde inte spegla order", id, err instanceof Error ? err.message : err);
     return { recorded: false };
   }

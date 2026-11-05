@@ -14,7 +14,6 @@ import {
   jamforpris,
   idagISO,
   tillMinor,
-  byggUpsert,
   FONSTER_DAGAR,
   type Observation,
 } from "./price-history.ts";
@@ -190,30 +189,3 @@ test("tillMinor avrundar till hela ören och avvisar icke-priser", () => {
   assert.equal(tillMinor(Infinity), null);
 });
 
-test("byggUpsert numrerar platshållarna så rätt värde hamnar i rätt kolumn", () => {
-  // En förskjutning här skulle skriva priser på fel produkter. Provet läser
-  // numreringen bokstavligt i stället för att lita på att den ser rätt ut.
-  const r = byggUpsert([
-    { produktId: "p1", prisMinor: 149900, valuta: "SEK" },
-    { produktId: "p2", prisMinor: 29900, valuta: "SEK" },
-  ]);
-  assert.ok(r);
-  // $1 är datumet i båda raderna; varje rad lägger till tre parametrar.
-  assert.match(r.text, /VALUES \(\$2, \$1::date, \$3, \$4\), \(\$5, \$1::date, \$6, \$7\)/);
-  // Plats 1 är reserverad och fylls av anroparen.
-  assert.equal(r.varden.length, 7);
-  assert.equal(r.varden[0], null);
-  assert.deepEqual(r.varden.slice(1), ["p1", 149900, "SEK", "p2", 29900, "SEK"]);
-});
-
-test("byggUpsert är idempotent på dubblett", () => {
-  const r = byggUpsert([{ produktId: "p1", prisMinor: 1, valuta: "SEK" }]);
-  assert.ok(r);
-  assert.match(r.text, /ON CONFLICT \(product_id, observed_on\)/);
-  assert.match(r.text, /DO UPDATE SET price_minor = EXCLUDED\.price_minor/);
-});
-
-test("byggUpsert på tom lista ger null, inte trasig SQL", () => {
-  // Utan den här spärren skulle "VALUES " utan rader nå Postgres.
-  assert.equal(byggUpsert([]), null);
-});

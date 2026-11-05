@@ -17,8 +17,7 @@
 //   • Meta Ads    → om META_ADS_ACCESS_TOKEN + META_ADS_ACCOUNT_ID finns, annars
 //                   "ej kopplat".
 
-import { sql } from "./db";
-import { anvanderWix, kundvagnar, nyhetsbrev, ordrar } from "./wix-lager";
+import { kundvagnar, nyhetsbrev, ordrar } from "./wix-lager";
 import { getProducts, type Product } from "./products";
 import { morgonVarningar } from "./morgon-varningar";
 
@@ -181,18 +180,7 @@ async function getOrdersSection(now: Date): Promise<OrdersSection> {
   // 2. Fallback: lokal spegel-tabell.
   try {
     const since = new Date(now.getTime() - 8 * 24 * 60 * 60 * 1000).toISOString();
-    let rows: OrderRow[];
-    if (await anvanderWix()) {
-      rows = (await ordrar.sedan(since)) as unknown as OrderRow[];
-    } else {
-      const res = await sql/*sql*/`
-        SELECT total_minor, currency, items_json, created_at
-          FROM orders
-         WHERE created_at >= ${since}
-         ORDER BY created_at DESC
-      `;
-      rows = res.rows as unknown as OrderRow[];
-    }
+    const rows = (await ordrar.sedan(since)) as unknown as OrderRow[];
     const agg = aggregateOrders(rows, now);
     return {
       source: "local-mirror",
@@ -294,24 +282,10 @@ async function getAbandonedSection(now: Date): Promise<AbandonedSection> {
     const since = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
     // "Inte återhämtade senaste 24h": kundvagnar som blev övergivna senaste dygnet
     // och INTE konverterat till order.
-    if (await anvanderWix()) {
-      return {
-        available: true,
-        notRecovered24h: await kundvagnar.raknaEjKonverteradeSedan(since),
-        pendingTotal: await kundvagnar.raknaVantande(),
-      };
-    }
-    const r24 = await sql/*sql*/`
-      SELECT COUNT(*)::int AS n FROM abandoned_carts
-       WHERE abandoned_at >= ${since} AND status <> 'converted'
-    `;
-    const rPending = await sql/*sql*/`
-      SELECT COUNT(*)::int AS n FROM abandoned_carts WHERE status = 'pending'
-    `;
     return {
       available: true,
-      notRecovered24h: (r24.rows[0]?.n as number) ?? 0,
-      pendingTotal: (rPending.rows[0]?.n as number) ?? 0,
+      notRecovered24h: await kundvagnar.raknaEjKonverteradeSedan(since),
+      pendingTotal: await kundvagnar.raknaVantande(),
     };
   } catch (e) {
     return { available: false, notRecovered24h: 0, pendingTotal: 0, note: (e as Error).message };
@@ -325,17 +299,7 @@ async function getAbandonedSection(now: Date): Promise<AbandonedSection> {
 async function getNewsletterSection(now: Date): Promise<NewsletterSection> {
   try {
     const since = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
-    if (await anvanderWix()) {
-      return { available: true, new7d: await nyhetsbrev.raknaNyaSedan(since), total: await nyhetsbrev.raknaPrenumeranter() };
-    }
-    const r7 = await sql/*sql*/`
-      SELECT COUNT(*)::int AS n FROM newsletter_subscribers
-       WHERE subscribed_at >= ${since} AND status = 'subscribed'
-    `;
-    const rTotal = await sql/*sql*/`
-      SELECT COUNT(*)::int AS n FROM newsletter_subscribers WHERE status = 'subscribed'
-    `;
-    return { available: true, new7d: (r7.rows[0]?.n as number) ?? 0, total: (rTotal.rows[0]?.n as number) ?? 0 };
+    return { available: true, new7d: await nyhetsbrev.raknaNyaSedan(since), total: await nyhetsbrev.raknaPrenumeranter() };
   } catch (e) {
     return { available: false, new7d: 0, total: 0, note: (e as Error).message };
   }

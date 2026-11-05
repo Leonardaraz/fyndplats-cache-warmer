@@ -4,13 +4,8 @@
 // efter köpet av Wix Elite (10 miljoner rader): Neon kostade 30–40 dollar i
 // månaden, och 4 000-taket som drev ut datan 2026-08-31 gäller inte längre.
 //
-// VÄXELN är en rad i Wix (`FyndplatsButikInstallningar/datalager`), inte en
-// konstant: att byta lager kostar då inget eget bygge, och ett butiksbygge
-// tömmer ISR-cachen för hela katalogen (CLAUDE.md, "bunta ihop deploys").
-// Raden läses högst en gång i minuten per instans. Saknas den, eller svarar
-// Wix inte vid en kallstart, gäller Postgres. Efter växlingen betyder det att
-// en instans som inte når Wix skriver till Neon; delta-läget i kopieringen
-// plockar upp sådana rader, och Postgres-vägen tas bort när Neon stängs.
+// Wix är det enda lagret sedan 2026-11-05. Växeln (`datalager`) och
+// Postgres-vägarna är borttagna; butikens CLAUDE.md har flyttens utfall.
 //
 // ☠️ Två mätningar mot Wix (2026-10-29) styr formen på raderna:
 //   - ett `_id` får vara högst 128 tecken, ASCII-bokstäver, siffror och
@@ -518,7 +513,7 @@ const SAKER_NYCKEL = /^[A-Za-z0-9._@:+\-]{1,128}$/;
  * Radens `_id` för en nyckel. ☠️ Wix tar högst 128 tecken, ASCII och
  * skiljetecken (WDE0075, uppmätt 2026-10-29); mellanslag och å, ä, ö avvisas.
  * En nyckel utanför den snäva mängden ovan blir `h:` + sha256, alltid samma
- * för samma nyckel. Kopian och lagret använder samma funktion.
+ * för samma nyckel.
  */
 export function wixNyckel(nyckel: string): string {
   if (SAKER_NYCKEL.test(nyckel) && !nyckel.startsWith("h:")) return nyckel;
@@ -543,63 +538,6 @@ const num = (v: unknown, standard = 0): number => {
   return Number.isFinite(n) ? n : standard;
 };
 const nu = () => new Date().toISOString();
-
-/** JSONB kan komma som sträng från Postgres-drivrutinen. */
-function jsonVarde<T>(v: unknown, standard: T): T {
-  if (v == null) return standard;
-  if (typeof v === "string") {
-    try {
-      return JSON.parse(v) as T;
-    } catch {
-      return standard;
-    }
-  }
-  return v as T;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Växeln
-// ─────────────────────────────────────────────────────────────────────────────
-
-export type Datalager = "postgres" | "wix";
-export const VAXEL_ID = "datalager";
-const VAXEL_CACHE_MS = 60_000;
-/** Efter ett läsfel: försök igen tidigast om tio sekunder. */
-const VAXEL_FEL_PAUS_MS = 10_000;
-
-let vaxelCache: { lager: Datalager; at: number; giltigMs: number } | null = null;
-let vaxelForTester: Datalager | null = null;
-
-/** Endast för tester. null = läs växeln som vanligt. */
-export function __sattDatalagerForTester(l: Datalager | null): void {
-  vaxelForTester = l;
-  vaxelCache = null;
-}
-
-/**
- * Vilket lager butikens tabeller bor i. Läses ur Wix högst en gång i minuten.
- * Saknas raden: Postgres. Går den inte att läsa: senast kända, annars Postgres.
- */
-export async function datalager(nuMs = Date.now()): Promise<Datalager> {
-  if (vaxelForTester) return vaxelForTester;
-  if (vaxelCache && nuMs - vaxelCache.at < vaxelCache.giltigMs) return vaxelCache.lager;
-  try {
-    const rad = await hamta(K.installningar, VAXEL_ID);
-    const lager: Datalager = rad?.lager === "wix" ? "wix" : "postgres";
-    if (vaxelCache && vaxelCache.lager !== lager) console.log(`[wix-lager] datalagret bytt: ${vaxelCache.lager} → ${lager}`);
-    vaxelCache = { lager, at: nuMs, giltigMs: VAXEL_CACHE_MS };
-    return lager;
-  } catch (e) {
-    const forra = vaxelCache?.lager ?? "postgres";
-    console.error(`[wix-lager] kunde inte läsa växeln, använder ${forra}:`, e instanceof Error ? e.message : e);
-    vaxelCache = { lager: forra, at: nuMs, giltigMs: VAXEL_FEL_PAUS_MS };
-    return forra;
-  }
-}
-
-export async function anvanderWix(): Promise<boolean> {
-  return (await datalager()) === "wix";
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Ett lås (för fraktmejlskön)
@@ -632,8 +570,8 @@ export async function slappLas(namn: string, token: string): Promise<void> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Tabellerna. Varje del har sin form i Wix, sin översättning från Postgres
-// (för kopian) och de läsningar och skrivningar modulerna behöver.
+// Tabellerna. Varje del har sin form i Wix och de läsningar och skrivningar
+// modulerna behöver. Rubrikerna bär Postgres-tabellens namn, för spårbarhet.
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ── abandoned_carts → FyndplatsKundvagnar ────────────────────────────────────
@@ -674,32 +612,6 @@ function kundvagnFranWix(d: Rad): KundvagnRad {
 }
 
 export const kundvagnar = {
-  franPostgres(r: Rad): WixRad {
-    const email = String(r.email ?? "");
-    return {
-      id: wixNyckel(String(r.id)),
-      data: utanTomma({
-        cartId: String(r.id),
-        email,
-        emailLower: email.toLowerCase(),
-        phone: str(r.phone),
-        shippingAddrHash: str(r.shipping_addr_hash),
-        items: jsonVarde<unknown[]>(r.items_json, []),
-        subtotalMinor: num(r.subtotal_minor),
-        currency: String(r.currency ?? "SEK"),
-        recoverUrl: str(r.recover_url),
-        abandonedAt: iso(r.abandoned_at),
-        nextStep: num(r.next_step, 1),
-        nextStepAt: iso(r.next_step_at),
-        status: String(r.status ?? "pending"),
-        discountCode: str(r.discount_code),
-        discountCodeWixId: str(r.discount_code_wix_id),
-        createdAt: iso(r.created_at),
-        updatedAt: iso(r.updated_at),
-      }),
-    };
-  },
-
   /** Ny vagn. false när den redan fanns (`ON CONFLICT DO NOTHING`). */
   async skapa(v: {
     id: string;
@@ -794,22 +706,6 @@ export const kundvagnar = {
 // ── sent_emails → FyndplatsKundvagnMejl ──────────────────────────────────────
 
 export const kundvagnMejl = {
-  franPostgres(r: Rad): WixRad {
-    const email = String(r.email ?? "");
-    return {
-      id: sammansatt(String(r.cart_id), num(r.step)),
-      data: utanTomma({
-        cartId: String(r.cart_id),
-        step: num(r.step),
-        resendId: str(r.resend_id),
-        sentAt: iso(r.sent_at),
-        email,
-        emailLower: email.toLowerCase(),
-        discountCode: str(r.discount_code),
-      }),
-    };
-  },
-
   /** `ON CONFLICT (cart_id, step) DO NOTHING`. */
   async logga(v: { cartId: string; step: number; resendId: string | null; email: string; discountCode?: string | null }): Promise<void> {
     await infoga(K.kundvagnMejl, sammansatt(v.cartId, v.step), {
@@ -839,13 +735,6 @@ export const kundvagnMejl = {
 // ── used_addresses → FyndplatsAnvandaAdresser ────────────────────────────────
 
 export const anvandaAdresser = {
-  franPostgres(r: Rad): WixRad {
-    return {
-      id: wixNyckel(String(r.hash)),
-      data: utanTomma({ hash: String(r.hash), email: str(r.email), phone: str(r.phone), firstSeen: iso(r.first_seen) }),
-    };
-  },
-
   /** `ON CONFLICT (hash) DO NOTHING`. */
   async registrera(hash: string, email: string | null, phone: string | null): Promise<void> {
     await infoga(K.anvandaAdresser, wixNyckel(hash), { hash, email, phone, firstSeen: nu() });
@@ -888,24 +777,6 @@ function sparningFranWix(d: Rad): SparningRad {
 }
 
 export const sparning = {
-  franPostgres(r: Rad): WixRad {
-    return {
-      id: wixNyckel(String(r.tracking_number)),
-      data: utanTomma({
-        trackingNumber: String(r.tracking_number),
-        trackingNumberUpper: String(r.tracking_number).toUpperCase(),
-        orderId: str(r.order_id),
-        customerEmail: String(r.customer_email ?? ""),
-        customerName: str(r.customer_name),
-        customerPhone: str(r.customer_phone),
-        status: String(r.status ?? "pending"),
-        createdAt: iso(r.created_at),
-        updatedAt: iso(r.updated_at),
-        levereradAt: iso(r.levererad_at),
-      }),
-    };
-  },
-
   /** Ny sändning. false när numret redan fanns (`ON CONFLICT DO NOTHING RETURNING`). */
   async skapa(v: {
     trackingNumber: string;
@@ -1030,31 +901,10 @@ export const sparning = {
 
 // ── sms_audit och sms_unmatched → FyndplatsSmsLogg, FyndplatsSmsOmatchade ─────
 
-/** Nya rader får ett id som sorterar efter tid. Kopierade behåller Postgres-id:t. */
+/** Nya rader får ett id som sorterar efter tid. Rader kopierade ur Neon behöll Postgres-id:t. */
 const nyttLoggId = (prefix: string) => `${prefix}-${Date.now().toString(36)}-${randomUUID().slice(0, 8)}`;
 
 export const smsLogg = {
-  franPostgres(r: Rad): WixRad {
-    return {
-      id: wixNyckel(String(r.id)),
-      data: utanTomma({
-        receivedAt: iso(r.received_at),
-        rawFrom: String(r.raw_from ?? ""),
-        rawText: String(r.raw_text ?? ""),
-        carrier: str(r.carrier),
-        status: str(r.status),
-        pickupLocation: str(r.pickup_location),
-        pickupCode: str(r.pickup_code),
-        trackingNumber: str(r.tracking_number),
-        matched: Boolean(r.matched),
-        emailSent: Boolean(r.email_sent),
-        resendId: str(r.resend_id),
-        error: str(r.error),
-        matchStrategy: str(r.match_strategy),
-      }),
-    };
-  },
-
   async logga(v: {
     rawFrom: string;
     rawText: string;
@@ -1084,20 +934,6 @@ export const smsLogg = {
 };
 
 export const smsOmatchade = {
-  franPostgres(r: Rad): WixRad {
-    return {
-      id: wixNyckel(String(r.id)),
-      data: utanTomma({
-        auditId: str(r.audit_id),
-        receivedAt: iso(r.received_at),
-        rawFrom: String(r.raw_from ?? ""),
-        rawText: String(r.raw_text ?? ""),
-        trackingNumber: str(r.tracking_number),
-        reason: String(r.reason ?? ""),
-      }),
-    };
-  },
-
   async logga(v: { auditId: string | null; rawFrom: string; rawText: string; trackingNumber: string | null; reason: string }): Promise<void> {
     await infoga(K.smsOmatchade, nyttLoggId("omatchad"), { ...v, receivedAt: nu() });
   },
@@ -1110,19 +946,6 @@ export const smsOmatchade = {
 // ── delivery_notifications → FyndplatsLeveransnotiser ────────────────────────
 
 export const leveransnotiser = {
-  franPostgres(r: Rad): WixRad {
-    return {
-      id: sammansatt(String(r.tracking_number), String(r.status)),
-      data: utanTomma({
-        trackingNumber: String(r.tracking_number),
-        status: String(r.status),
-        channel: str(r.channel),
-        customerEmail: str(r.customer_email),
-        sentAt: iso(r.sent_at),
-      }),
-    };
-  },
-
   /** Atomiskt anspråk på (nummer, status): true = vi skickar. */
   async ansprak(trackingNumber: string, status: string, channel: string, customerEmail: string | null): Promise<boolean> {
     return (
@@ -1164,9 +987,6 @@ export const leveransnotiser = {
 // ── webhook_email_sent → FyndplatsWebhookMejl ────────────────────────────────
 
 export const webhookMejl = {
-  franPostgres(r: Rad): WixRad {
-    return { id: wixNyckel(String(r.event_key)), data: utanTomma({ eventKey: String(r.event_key), sentAt: iso(r.sent_at) }) };
-  },
   async ansprak(eventKey: string): Promise<boolean> {
     return (await infoga(K.webhookMejl, wixNyckel(eventKey), { eventKey, sentAt: nu() })) === "skapad";
   },
@@ -1178,12 +998,6 @@ export const webhookMejl = {
 // ── order_confirmation_sent → FyndplatsOrderbekraftelser ─────────────────────
 
 export const orderbekraftelser = {
-  franPostgres(r: Rad): WixRad {
-    return {
-      id: wixNyckel(String(r.order_id)),
-      data: utanTomma({ orderId: String(r.order_id), orderNumber: str(r.order_number), sentAt: iso(r.sent_at) }),
-    };
-  },
   async ansprak(orderId: string, orderNumber: string | null): Promise<boolean> {
     return (await infoga(K.orderbekraftelser, wixNyckel(orderId), { orderId, orderNumber, sentAt: nu() })) === "skapad";
   },
@@ -1195,21 +1009,6 @@ export const orderbekraftelser = {
 // ── newsletter_subscribers → FyndplatsNyhetsbrev ─────────────────────────────
 
 export const nyhetsbrev = {
-  franPostgres(r: Rad): WixRad {
-    const email = String(r.email ?? "").toLowerCase();
-    return {
-      id: wixNyckel(email),
-      data: utanTomma({
-        email,
-        subscribedAt: iso(r.subscribed_at),
-        source: str(r.source),
-        status: String(r.status ?? "subscribed"),
-        consent: Boolean(r.consent),
-        updatedAt: iso(r.updated_at),
-      }),
-    };
-  },
-
   /**
    * `INSERT … ON CONFLICT (email) DO UPDATE SET status='subscribed', consent,
    *  source = COALESCE(gammal, ny)`. already = adressen fanns redan.
@@ -1278,25 +1077,6 @@ export interface OrderSpegelRad {
 }
 
 export const ordrar = {
-  franPostgres(r: Rad): WixRad {
-    const email = str(r.email);
-    return {
-      id: wixNyckel(String(r.id)),
-      data: utanTomma({
-        orderId: String(r.id),
-        orderNumber: str(r.order_number),
-        email,
-        emailLower: email ? email.toLowerCase() : null,
-        totalMinor: num(r.total_minor),
-        currency: String(r.currency ?? "SEK"),
-        itemCount: num(r.item_count),
-        items: jsonVarde<unknown[]>(r.items_json, []),
-        createdAt: iso(r.created_at),
-        recordedAt: iso(r.recorded_at),
-      }),
-    };
-  },
-
   /** `ON CONFLICT (id) DO NOTHING`: inserted = raden var ny. */
   async spegla(v: {
     id: string;
@@ -1347,18 +1127,6 @@ export const ordrar = {
 // ── trustpilot_invites → FyndplatsTrustpilotInbjudningar ─────────────────────
 
 export const trustpilot = {
-  franPostgres(r: Rad): WixRad {
-    return {
-      id: wixNyckel(String(r.order_id)),
-      data: utanTomma({
-        orderId: String(r.order_id),
-        email: String(r.email ?? ""),
-        channel: String(r.channel ?? ""),
-        resendId: str(r.resend_id),
-        sentAt: iso(r.sent_at),
-      }),
-    };
-  },
   async finns(orderId: string): Promise<boolean> {
     return (await hamta(K.trustpilot, wixNyckel(orderId))) !== null;
   },
@@ -1369,32 +1137,7 @@ export const trustpilot = {
 
 // ── price_history → FyndplatsPrishistorik ────────────────────────────────────
 
-/** YYYY-MM-DD ur ett Postgres-datum eller en sträng. */
-export function datumStrang(v: unknown): string {
-  if (v instanceof Date) {
-    const y = v.getFullYear();
-    const m = String(v.getMonth() + 1).padStart(2, "0");
-    const d = String(v.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
-  }
-  return String(v ?? "").slice(0, 10);
-}
-
 export const prishistorik = {
-  franPostgres(r: Rad): WixRad {
-    const datum = datumStrang(r.observed_on);
-    return {
-      id: sammansatt(String(r.product_id), datum),
-      data: utanTomma({
-        productId: String(r.product_id),
-        observedOn: datum,
-        priceMinor: num(r.price_minor),
-        currency: String(r.currency ?? "SEK"),
-        recordedAt: iso(r.recorded_at),
-      }),
-    };
-  },
-
   /** Dagens pris för många produkter. Samma (produkt, dag) skrivs om, inte till. */
   async sparaDag(datum: string, rader: { produktId: string; prisMinor: number; valuta: string }[]): Promise<Massutfall> {
     const tid = nu();
@@ -1428,20 +1171,6 @@ export const prishistorik = {
 // ── withdrawal_requests → FyndplatsAngerarenden ──────────────────────────────
 
 export const angerarenden = {
-  franPostgres(r: Rad): WixRad {
-    return {
-      id: wixNyckel(String(r.id)),
-      data: utanTomma({
-        caseId: String(r.id),
-        orderNumber: str(r.order_number),
-        email: String(r.email ?? ""),
-        items: jsonVarde<unknown[]>(r.items_json, []),
-        reason: str(r.reason),
-        matchedOrder: Boolean(r.matched_order),
-        createdAt: iso(r.created_at),
-      }),
-    };
-  },
   async logga(v: { caseId: string; orderNumber: string | null; email: string; items: unknown[]; reason: string | null; matchedOrder: boolean }): Promise<void> {
     await infoga(K.angerarenden, wixNyckel(v.caseId), { ...v, createdAt: nu() });
   },
@@ -1459,20 +1188,6 @@ export interface KoadRad {
 const KO_LAS_VANTA_MS = [500, 1_000, 1_500, 2_000];
 
 export const fraktmejlKo = {
-  franPostgres(r: Rad): WixRad {
-    return {
-      id: wixNyckel(String(r.tracking_number)),
-      data: utanTomma({
-        trackingNumber: String(r.tracking_number),
-        orderGuid: String(r.order_guid),
-        carrier: str(r.carrier),
-        lineItems: jsonVarde<unknown[]>(r.line_items, []),
-        queuedAt: iso(r.queued_at),
-        sentAt: iso(r.sent_at),
-      }),
-    };
-  },
-
   /** `ON CONFLICT (tracking_number) DO NOTHING`. */
   async koa(orderGuid: string, s: { trackingNumber: string; carrier: string | null; lineItems: unknown[] }): Promise<void> {
     await infoga(K.fraktmejlKo, wixNyckel(s.trackingNumber), {
@@ -1537,48 +1252,3 @@ export const fraktmejlKo = {
     return ut;
   },
 };
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Kopian: varje Postgres-tabell, dess kollektion och dess översättning
-// ─────────────────────────────────────────────────────────────────────────────
-
-export interface Tabell {
-  /** Tabellen i Neon. */
-  tabell: string;
-  kollektion: string;
-  /** SQL-uttrycken raderna läses i ordning efter (primärnyckeln). */
-  ordning: string[];
-  /** Kolumnerna som läses, om inte alla. */
-  kolumner?: string;
-  franPostgres(r: Rad): WixRad;
-  /** När raden senast ändrades i Neon, för delta-läget. */
-  andrad(r: Rad): number | undefined;
-}
-
-const ms = (v: unknown) => {
-  const s = iso(v);
-  return s ? Date.parse(s) : undefined;
-};
-const senast = (...v: unknown[]) => {
-  const t = v.map(ms).filter((x): x is number => x !== undefined);
-  return t.length ? Math.max(...t) : undefined;
-};
-
-export const TABELLER: Tabell[] = [
-  { tabell: "abandoned_carts", kollektion: K.kundvagnar, ordning: ["id"], franPostgres: kundvagnar.franPostgres, andrad: (r) => senast(r.updated_at, r.created_at) },
-  { tabell: "sent_emails", kollektion: K.kundvagnMejl, ordning: ["id"], franPostgres: kundvagnMejl.franPostgres, andrad: (r) => ms(r.sent_at) },
-  { tabell: "used_addresses", kollektion: K.anvandaAdresser, ordning: ["hash"], franPostgres: anvandaAdresser.franPostgres, andrad: (r) => ms(r.first_seen) },
-  { tabell: "tracking_mapping", kollektion: K.sparning, ordning: ["tracking_number"], franPostgres: sparning.franPostgres, andrad: (r) => senast(r.updated_at, r.created_at, r.levererad_at) },
-  { tabell: "sms_audit", kollektion: K.smsLogg, ordning: ["id"], franPostgres: smsLogg.franPostgres, andrad: (r) => ms(r.received_at) },
-  { tabell: "sms_unmatched", kollektion: K.smsOmatchade, ordning: ["id"], franPostgres: smsOmatchade.franPostgres, andrad: (r) => ms(r.received_at) },
-  { tabell: "delivery_notifications", kollektion: K.leveransnotiser, ordning: ["tracking_number", "status"], franPostgres: leveransnotiser.franPostgres, andrad: (r) => ms(r.sent_at) },
-  { tabell: "webhook_email_sent", kollektion: K.webhookMejl, ordning: ["event_key"], franPostgres: webhookMejl.franPostgres, andrad: (r) => ms(r.sent_at) },
-  { tabell: "newsletter_subscribers", kollektion: K.nyhetsbrev, ordning: ["email"], franPostgres: nyhetsbrev.franPostgres, andrad: (r) => senast(r.updated_at, r.subscribed_at) },
-  { tabell: "orders", kollektion: K.ordrar, ordning: ["id"], franPostgres: ordrar.franPostgres, andrad: (r) => senast(r.recorded_at, r.created_at) },
-  { tabell: "trustpilot_invites", kollektion: K.trustpilot, ordning: ["order_id"], franPostgres: trustpilot.franPostgres, andrad: (r) => ms(r.sent_at) },
-  // Datumet som text: drivrutinen gör annars en Date av det i serverns tidszon.
-  { tabell: "price_history", kollektion: K.prishistorik, ordning: ["product_id", "observed_on::text"], kolumner: "product_id, observed_on::text AS observed_on, price_minor, currency, recorded_at", franPostgres: prishistorik.franPostgres, andrad: (r) => ms(r.recorded_at) },
-  { tabell: "order_confirmation_sent", kollektion: K.orderbekraftelser, ordning: ["order_id"], franPostgres: orderbekraftelser.franPostgres, andrad: (r) => ms(r.sent_at) },
-  { tabell: "withdrawal_requests", kollektion: K.angerarenden, ordning: ["id"], franPostgres: angerarenden.franPostgres, andrad: (r) => ms(r.created_at) },
-  { tabell: "shipping_email_queue", kollektion: K.fraktmejlKo, ordning: ["tracking_number"], franPostgres: fraktmejlKo.franPostgres, andrad: (r) => senast(r.sent_at, r.queued_at) },
-];

@@ -575,68 +575,97 @@ local `node_modules` carries pnpm's `.modules.yaml`). When adding deps: run
 `package-lock.json` in sync. Don't `npm install` packages directly — it leaves
 `pnpm-lock.yaml` stale and the dep won't install on deploy.
 
-## Butikens tabeller flyttar från Neon till Wix CMS (2026-10-29)
+## Butikens tabeller bor i Wix CMS (flyttade 2026-10-29, Postgres borta 2026-11-05)
 
 Leonard köpte Wix Elite 2026-10-28 (10 miljoner rader) och bad om att allt i
-Neon flyttar tillbaka till Wix. Butiken har en **egen** Neon-databas, så
-den flyttar för sig: motorns flytt står i motorns `CLAUDE.md` (grenen `main`).
+Neon flyttar tillbaka till Wix. Butiken hade en **egen** Neon-databas, så
+den flyttade för sig: motorns flytt står i motorns
+`docs/claude/40-flytten-tillbaka-till-wix.md` (grenen `main`).
 
 Femton tabeller: kundvagnarna och deras mejl, använda adresser, spårningen
 (`tracking_mapping`), sms-loggarna, leveransnotiserna, webhook-mejlen,
 nyhetsbrevet, orderspegeln, Trustpilot-inbjudningarna, prishistoriken,
 orderbekräftelserna, ångerärendena och fraktmejlskön.
 
-`lib/wix-lager.ts` är Wix-lagret: klienten, växeln och en del per tabell med
-samma läsningar och skrivningar som SQL-satserna. Varje modul frågar växeln
-först (`anvanderWix()`), och Postgres-vägen står kvar tills Neon stängs.
+`lib/wix-lager.ts` är Wix-lagret: klienten och en del per tabell med samma
+läsningar och skrivningar som SQL-satserna hade. Rubrikerna i filen bär
+Postgres-tabellens namn, och loggraderna använder dem fortfarande.
 
-| steg | vad | kräver bygge? |
-|---|---|:---:|
-| 1 | koden, med växeln på Postgres | **ja** (buntas med annat) |
-| 2 | kollektionerna i Wix, ADMIN, index, och växelns rad (`lager: postgres`) | nej |
-| 3 | `kopiera`, sedan `verifiera` (motorns workflow, läget butik) | nej |
-| 4 | växelns rad till `wix` | **nej** |
-| 5 | `delta` direkt efter, med `vaxling` = när raden skrevs | nej |
-| 6 | följ driften, ta bort Postgres-vägen och stäng Neon | ja |
+**Flytten 2026-10-29** (motorns workflow, läget `butik`). Växeln var en rad i
+Wix (`FyndplatsButikInstallningar/datalager`), så omslaget krävde inget bygge:
 
-Åtta egenskaper som inte ska tas bort:
+| steg | när (UTC) | utfall |
+|---|---|---|
+| kopiera | 03:05–03:21 | 181 174 rader i 15 tabeller, varav prishistoriken 180 309, noll fel |
+| verifiera | 03:24–03:32 | alla 15 tabeller lika rad för rad, inget extra i Wix |
+| index | 03:24 | 18 egna index på 10 kollektioner, alla ACTIVE |
+| växeln till `wix` | 03:33:27 | raden läst tillbaka |
+| `delta` två gånger | 03:36–03:45, 03:55–04:03 | alla tabeller lika, ingenting att skriva eller ta bort |
+| driften | 03:37–04:01 | ett GLS-paket spårades ur Wix, ordersynken hittade 54 av 54 ordrar, inga körfel |
 
-1. ☠️ **Växeln är en rad i Wix** (`FyndplatsButikInstallningar/datalager`,
-   fältet `lager`), läst högst en gång i minuten per instans. Att byta lager
-   kostar inget bygge, och ett bygge tömmer ISR-cachen för hela katalogen.
-   Saknas raden gäller Postgres. Går den inte att läsa gäller senast kända
-   läge, och vid en kallstart Postgres: en sådan rad i Neon efter växlingen
-   plockas upp av delta-läget.
-2. ☠️ **Ett `_id` i Wix är högst 128 tecken, ASCII och skiljetecken**
+**Steg 6, 2026-11-05.** Neon låg kvar en vecka som reserv (Leonards ja
+2026-10-29). Sista `delta` kördes med `vaxling` 2026-10-29T03:33:27Z och
+`kopierad_sedan` 2026-10-29T03:05:38Z. Utfall 09:32–09:37 UTC: alla 15
+tabeller 0 saknas, 0 olika, 0 skrivna. Ingen instans skrev alltså till Neon
+efter växlingen. Det som skilde var driften i Wix: 56 spårningsrader ändrade
+efter växlingen, nya rader i nio tabeller och 17 262 prisrader som
+gallringen tagit bort.
+
+☠️ **SMS-rutten hade en Postgres-väg kvar efter växlingen.**
+`updateMappingStatus` i `app/api/sms-inbound/route.ts` frågade aldrig
+växeln: flytten (#793) gjorde om läsningarna och loggarna i filen men
+missade statusskrivningen. Grinden såg det inte, för den krävde bara att
+FILEN frågade växeln någonstans. Vägen hann aldrig användas: senaste SMS:et i
+`FyndplatsSmsLogg` kom 2026-06-27, och deltan skrev ingenting. Med Neon
+uppsagt hade nästa SMS-status försvunnit utan ett fel.
+
+Borttaget samma dag:
+
+- växeln (`datalager`, `anvanderWix`) och varje `sql`-gren i 22 filer.
+  Raden `FyndplatsButikInstallningar/datalager` står kvar i Wix men läses
+  inte längre;
+- `lib/db.ts`, `migrations/` och beroendet `@vercel/postgres` (med
+  `@neondatabase/serverless`, `pg-*` och `ws`);
+- kopian: `/api/admin/neon-till-wix`, `lib/neon-till-wix.ts`, `TABELLER` och
+  varje `franPostgres`;
+- migreringarna: jobbet `migrate` i `/api/admin/run-job`, `?action=migrate`
+  i de två dev-rutterna och `runMigration()` före prisögonblicksbilden.
+
+När både den här ändringen och motorns är ute kan Neon sägas upp. I butikens
+Vercel-projekt kan då `POSTGRES_URL` och det Neon-integrationen lade in med
+den (`POSTGRES_*`, `PG*`, `DATABASE_URL*`, `NEON_*`) tas bort.
+
+Sex egenskaper som inte ska tas bort:
+
+1. ☠️ **Ett `_id` i Wix är högst 128 tecken, ASCII och skiljetecken**
    (uppmätt 2026-10-29, `WDE0075`). E-post, händelsenycklar och
    spårningsnummer går genom `wixNyckel`, som hashar det som inte får plats.
-   Lagret och kopian använder samma funktion; ett test låser att ett kopierat
-   id är detsamma som lagret skriver.
-3. ☠️ **`$exists: false` matchar inte null** (uppmätt samma dag). Inget fält
+   De kopierade raderna fick samma id som lagret skriver.
+2. ☠️ **`$exists: false` matchar inte null** (uppmätt samma dag). Inget fält
    skrivs som null (`utanTomma`), och "släpp" i fraktmejlskön är
    `REMOVE_FIELD`. En väntande rad med `sentAt: null` hade aldrig gått att ta.
-4. ☠️ **Anspråken är inserts som vägrar ett id som finns** (WDE0074), som
+3. ☠️ **Anspråken är inserts som vägrar ett id som finns** (WDE0074), som
    Postgres `ON CONFLICT DO NOTHING RETURNING`. Efter ett nätverksfel avgör
    radens token vem som äger raden.
-5. ☠️ **Fraktmejlskön tas under ett lås per order** (`taLas`). Postgres tog
+4. ☠️ **Fraktmejlskön tas under ett lås per order** (`taLas`). Postgres tog
    alla orderns nummer i en sats; utan låset hade två samtidiga webhooks kunnat
    ta ett nummer var, och kunden fått två mejl. Ett lås äldre än en minut tas
    över, villkorat.
-6. **Spårningen bär numret i versaler** (`trackingNumberUpper`), för
+5. **Spårningen bär numret i versaler** (`trackingNumberUpper`), för
    GLS-källan jämför skiftlägesokänsligt (`UPPER(tracking_number)`).
-7. **Leveranssvepet räknas i `svepKandidater`** (`lib/delivery-status.ts`,
-   ren och testad), med samma regler som SQL-frågan i
-   `lib/delivery-order.ts`.
-8. ☠️ **Kopians svar är publikt:** id bara som hash, fel bara som status och
-   WDE-kod, markören förseglad med `ADMIN_SECRET`. Butikens id bär e-post och
-   spårningsnummer.
+6. **Leveranssvepet räknas i `svepKandidater`** (`lib/delivery-status.ts`,
+   ren och testad), med samma regler som SQL-frågan hade.
 
-`lib/wix-lager-grind.test.ts` fäller varje fil som använder `sql` utan att
-fråga växeln. Kopieringen (`/api/admin/neon-till-wix`) är det enda undantaget.
+`lib/wix-lager-grind.test.ts` fäller på varje spår av Postgres i `app/`,
+`lib/` och `components/`: en import av `@vercel/postgres` eller `lib/db`, en
+`sql`-tagg, `sql.query` och `anvanderWix(`. Den fäller också om `lib/db.ts`
+eller beroendet kommer tillbaka. Neon sägs upp, så en Postgres-väg som kommer
+tillbaka skriver mot en databas som inte finns.
 
-⚠️ **Spårningstabellerna rör Leonards regel om "Ditt paket är framme".**
-`tracking_mapping`, `delivery_notifications` och 17TRACK-webhooken byter
-lager med resten. Ingen logik ändras, men PR:en mergas först efter hans ja.
+⚠️ **Spårningen rör Leonards regel om "Ditt paket är framme".** Ingen logik
+ändrades 2026-11-05, men SMS-vägens statusskrivning hamnar i Wix igen, som
+före växlingen: ett paket som SMS:et sagt är framme lämnar AliExpress-pollens
+och FIFO-gissningens urval.
 
 ## Trustpilot: bara gratisdelen är på (2026-10-22)
 
@@ -672,21 +701,23 @@ betald widget slås på står i `docs/trustpilot-setup.md`.
 
 ## Fyndauktionen läses och avslutas via motorn (2026-09-29)
 
-Wix CMS har ett globalt tak på 4 000 rader, och auktionskön (`FyndplatsAuctions`)
-var 3 561 av dem. Raderna flyttar till Postgres i motorn (`AUCTIONS_BACKEND`, se
-motorns `CLAUDE.md`). Butiken läser inte längre Wix Data för auktionerna:
+Wix CMS hade ett globalt tak på 4 000 rader, och auktionskön (`FyndplatsAuctions`)
+var 3 561 av dem. Raderna bodde i motorns Postgres 2026-09-30 till 2026-10-29
+och bor i Wix igen sedan Elite; motorns `AUCTIONS_BACKEND` togs bort
+2026-11-05. Butiken läser ändå inte Wix Data för auktionerna, för motorn äger
+prisstegen, återställningen och avslutet:
 
 - `/fyndauktion` och startsidans banner läser `GET /api/auctions/rader` hos motorn.
 - Webhookens direktavslut (`order_created`) postar till `POST /api/auctions/avsluta`.
   Motorn återställer priset först och sparar sedan sold.
 
 Båda går genom `lib/auction-motor.ts`, med `REVIEW_INGEST_SECRET` som
-hemlighet (samma värde i båda projekten). Motorn svarar ur det lager växeln
-pekar på, så butiken byter lager samtidigt med motorn och behöver ingen egen
-deploy vid växlingen.
+hemlighet (samma värde i båda projekten).
 
-☠️ **Läs aldrig auktionerna ur Wix Data igen.** Efter raderingen är kollektionen
-tom, och en läsning därifrån ger en tom `/fyndauktion` utan ett enda fel.
+☠️ **Läs aldrig auktionerna ur Wix Data direkt.** Under Postgres-månaden var
+kollektionen tom, och en läsning därifrån gav en tom `/fyndauktion` utan ett
+enda fel. Lagret kan byta igen utan att butiken märker det, så länge vägen går
+via motorn.
 `lib/auction-store-access.test.ts` fäller om en fil nämner kollektionen
 tillsammans med ett Wix Data-anrop.
 
@@ -820,7 +851,7 @@ Google-, PriceRunner- och det öppna Prisjakt-flödet byggs utan numren.
   numren.
 - **Numren och märkena** hämtas från motorns `/api/prisjakt-artiklar` (grenen
   main) när flödet byggs, med `REVIEW_INGEST_SECRET`. Mappningarna bor i
-  motorns Postgres och aldrig i en fil här (repot är publikt).
+  motorns Wix-lager och aldrig i en fil här (repot är publikt).
   `lib/feed/prisjakt-motor.ts` hämtar dem utan cache och kastar på fel status,
   fel form eller färre än 1 000 poster. Då svarar adressen 503 och CDN:en
   serverar förra flödet (`stale-if-error`), i stället för ett flöde där numren

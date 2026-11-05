@@ -18,7 +18,6 @@
 // CRON_SECRET i miljön släpper vi igenom (samma mönster som övriga cron-routes).
 
 import { NextResponse } from "next/server";
-import { runMigration } from "@/lib/db";
 import { skrivDagensPriser } from "@/lib/price-snapshot";
 
 export const runtime = "nodejs";
@@ -34,16 +33,6 @@ function isAuthorised(request: Request): boolean {
 export async function GET(request: Request) {
   if (!isAuthorised(request)) {
     return NextResponse.json({ ok: false, error: "unauthorised" }, { status: 401 });
-  }
-
-  // Säkerställ tabellen (idempotent migration) — samma mönster som
-  // trustpilot-invite. Utan den här raden hade cronet krävt att någon manuellt
-  // körde /api/admin/run-job först, och ett snapshot som inte kör är en lucka
-  // som kostar 30 dagar att laga.
-  try {
-    await runMigration();
-  } catch (e) {
-    console.error("[pris-snapshot] migration failed", (e as Error).message);
   }
 
   const resultat = await skrivDagensPriser();

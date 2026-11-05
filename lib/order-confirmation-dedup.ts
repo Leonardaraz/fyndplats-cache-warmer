@@ -6,34 +6,14 @@
 // Utan vakt skickade webhooken en orderbekräftelse per fyrning → kunden fick
 // dubbla mejl. (Leverans-mejlet har redan motsvarande vakt via tracking_mapping.)
 //
-// Design: atomiskt anspråk på orderns GUID via INSERT ... ON CONFLICT DO NOTHING
-// RETURNING. Vinner vi raden (RETURNING gav en rad) → vi är först → skicka.
-// Förlorar vi (rad fanns redan) → någon har redan skickat → hoppa. Misslyckas
+// Design: atomiskt anspråk på orderns GUID i Wix (lib/wix-lager.ts): raden
+// infogas, och Wix vägrar ett id som redan finns. Vinner vi raden → vi är först
+// → skicka. Förlorar vi (raden fanns redan) → någon har redan skickat → hoppa. Misslyckas
 // själva mejlet SLÄPPER anroparen anspråket (releaseOrderConfirmation) så att en
 // Wix-retry kan ta över och skicka — ingen bekräftelse går förlorad. Fail-open
 // vid DB-fel: hellre ett (eventuellt dubbelt) mejl än ett tappat.
 
-import { sql } from "./db";
-import { anvanderWix, orderbekraftelser } from "./wix-lager";
-
-let ensured: Promise<void> | null = null;
-function ensureTable(): Promise<void> {
-  if (!ensured) {
-    ensured = (async () => {
-      await sql/*sql*/`
-        CREATE TABLE IF NOT EXISTS order_confirmation_sent (
-          order_id     TEXT PRIMARY KEY,
-          order_number TEXT,
-          sent_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
-        );
-      `;
-    })().catch((e) => {
-      ensured = null; // tillåt retry vid nästa anrop
-      throw e;
-    });
-  }
-  return ensured;
-}
+import { orderbekraftelser } from "./wix-lager";
 
 /** Atomiskt anspråk på att skicka orderbekräftelsen för `orderId`.
  *  true  = vi vann anspråket → SKICKA mejlet.
@@ -42,15 +22,7 @@ function ensureTable(): Promise<void> {
 export async function claimOrderConfirmation(orderId: string, orderNumber?: string): Promise<boolean> {
   if (!orderId) return true;
   try {
-    if (await anvanderWix()) return await orderbekraftelser.ansprak(orderId, orderNumber ?? null);
-    await ensureTable();
-    const { rows } = await sql/*sql*/`
-      INSERT INTO order_confirmation_sent (order_id, order_number)
-      VALUES (${orderId}, ${orderNumber ?? null})
-      ON CONFLICT (order_id) DO NOTHING
-      RETURNING order_id
-    `;
-    return rows.length > 0;
+    return await orderbekraftelser.ansprak(orderId, orderNumber ?? null);
   } catch (err) {
     console.error("[order-dedup] claim misslyckades (fail-open → skickar)", err instanceof Error ? err.message : err);
     return true;
@@ -62,11 +34,7 @@ export async function claimOrderConfirmation(orderId: string, orderNumber?: stri
 export async function releaseOrderConfirmation(orderId: string): Promise<void> {
   if (!orderId) return;
   try {
-    if (await anvanderWix()) {
-      await orderbekraftelser.slapp(orderId);
-      return;
-    }
-    await sql/*sql*/`DELETE FROM order_confirmation_sent WHERE order_id = ${orderId}`;
+    await orderbekraftelser.slapp(orderId);
   } catch (err) {
     console.error("[order-dedup] release misslyckades", err instanceof Error ? err.message : err);
   }

@@ -22,8 +22,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { timingSafeEqual } from "node:crypto";
 import { Resend } from "resend";
 import { render } from "@react-email/render";
-import { sql } from "@/lib/db";
-import { anvanderWix, smsLogg, smsOmatchade, sparning } from "@/lib/wix-lager";
+import { smsLogg, smsOmatchade, sparning } from "@/lib/wix-lager";
 import { parseSms, type ParsedSms } from "@/lib/sms-parser";
 import { claimDeliveryNotification, releaseDeliveryNotification } from "@/lib/delivery-dedup";
 import { sendDeliveryNotification } from "@/lib/delivery-notify";
@@ -108,37 +107,20 @@ async function logAudit(
   } = {},
 ): Promise<number | string | null> {
   try {
-    if (await anvanderWix()) {
-      return await smsLogg.logga({
-        rawFrom: parsed.raw_from,
-        rawText: parsed.raw_text,
-        carrier: parsed.carrier ?? null,
-        status: parsed.status ?? null,
-        pickupLocation: parsed.pickup_location ?? null,
-        pickupCode: parsed.pickup_code ?? null,
-        trackingNumber: opts.trackingNumberOverride ?? parsed.tracking_number ?? null,
-        matched,
-        emailSent: opts.emailSent ?? false,
-        resendId: opts.resendId ?? null,
-        error: opts.error ?? null,
-        matchStrategy: opts.matchStrategy ?? null,
-      });
-    }
-    const r = await sql/*sql*/`
-      INSERT INTO sms_audit (
-        raw_from, raw_text, carrier, status, pickup_location, pickup_code,
-        tracking_number, matched, email_sent, resend_id, error, match_strategy
-      ) VALUES (
-        ${parsed.raw_from}, ${parsed.raw_text}, ${parsed.carrier}, ${parsed.status},
-        ${parsed.pickup_location ?? null}, ${parsed.pickup_code ?? null},
-        ${opts.trackingNumberOverride ?? parsed.tracking_number ?? null},
-        ${matched}, ${opts.emailSent ?? false},
-        ${opts.resendId ?? null}, ${opts.error ?? null},
-        ${opts.matchStrategy ?? null}
-      )
-      RETURNING id
-    `;
-    return (r.rows[0]?.id as number) ?? null;
+    return await smsLogg.logga({
+      rawFrom: parsed.raw_from,
+      rawText: parsed.raw_text,
+      carrier: parsed.carrier ?? null,
+      status: parsed.status ?? null,
+      pickupLocation: parsed.pickup_location ?? null,
+      pickupCode: parsed.pickup_code ?? null,
+      trackingNumber: opts.trackingNumberOverride ?? parsed.tracking_number ?? null,
+      matched,
+      emailSent: opts.emailSent ?? false,
+      resendId: opts.resendId ?? null,
+      error: opts.error ?? null,
+      matchStrategy: opts.matchStrategy ?? null,
+    });
   } catch (err) {
     console.error("[sms-inbound] sms_audit insert failed", err);
     return null;
@@ -147,20 +129,13 @@ async function logAudit(
 
 async function logUnmatched(parsed: ParsedSms, auditId: number | string | null, reason: string): Promise<void> {
   try {
-    if (await anvanderWix()) {
-      await smsOmatchade.logga({
-        auditId: auditId == null ? null : String(auditId),
-        rawFrom: parsed.raw_from,
-        rawText: parsed.raw_text,
-        trackingNumber: parsed.tracking_number ?? null,
-        reason,
-      });
-      return;
-    }
-    await sql/*sql*/`
-      INSERT INTO sms_unmatched (audit_id, raw_from, raw_text, tracking_number, reason)
-      VALUES (${auditId}, ${parsed.raw_from}, ${parsed.raw_text}, ${parsed.tracking_number ?? null}, ${reason})
-    `;
+    await smsOmatchade.logga({
+      auditId: auditId == null ? null : String(auditId),
+      rawFrom: parsed.raw_from,
+      rawText: parsed.raw_text,
+      trackingNumber: parsed.tracking_number ?? null,
+      reason,
+    });
   } catch (err) {
     console.error("[sms-inbound] sms_unmatched insert failed", err);
   }
@@ -177,18 +152,8 @@ interface TrackingMappingRow {
 
 async function findMapping(trackingNumber: string): Promise<TrackingMappingRow | null> {
   try {
-    if (await anvanderWix()) {
-      const rad = await sparning.hamta(trackingNumber);
-      return rad && rad.status !== "ambiguous" ? rad : null;
-    }
-    const r = await sql<TrackingMappingRow>/*sql*/`
-      SELECT tracking_number, order_id, customer_email, customer_name, customer_phone, status
-        FROM tracking_mapping
-       WHERE tracking_number = ${trackingNumber}
-         AND status <> 'ambiguous'
-       LIMIT 1
-    `;
-    return r.rows[0] ?? null;
+    const rad = await sparning.hamta(trackingNumber);
+    return rad && rad.status !== "ambiguous" ? rad : null;
   } catch (err) {
     console.error("[sms-inbound] tracking_mapping lookup failed", err);
     return null;
@@ -205,19 +170,8 @@ async function findMapping(trackingNumber: string): Promise<TrackingMappingRow |
 // count + recent-fallback-throttle.
 async function findFifoCandidate(): Promise<{ candidate: TrackingMappingRow | null; pendingCount: number }> {
   try {
-    if (await anvanderWix()) {
-      const rader = await sparning.fifo(new Date(Date.now() - FIFO_MAX_AGE_DAYS * 24 * 60 * 60 * 1000).toISOString());
-      return { candidate: rader[0] ?? null, pendingCount: rader.length };
-    }
-    const r = await sql<TrackingMappingRow>/*sql*/`
-      SELECT tracking_number, order_id, customer_email, customer_name, customer_phone, status
-        FROM tracking_mapping
-       WHERE status = 'in_transit'
-         AND created_at >= NOW() - (${FIFO_MAX_AGE_DAYS} || ' days')::interval
-       ORDER BY created_at ASC
-       LIMIT 5
-    `;
-    return { candidate: r.rows[0] ?? null, pendingCount: r.rows.length };
+    const rader = await sparning.fifo(new Date(Date.now() - FIFO_MAX_AGE_DAYS * 24 * 60 * 60 * 1000).toISOString());
+    return { candidate: rader[0] ?? null, pendingCount: rader.length };
   } catch (err) {
     console.error("[sms-inbound] FIFO candidate lookup failed", err);
     return { candidate: null, pendingCount: 0 };
@@ -226,14 +180,7 @@ async function findFifoCandidate(): Promise<{ candidate: TrackingMappingRow | nu
 
 async function recentFifoCount(hours: number): Promise<number> {
   try {
-    if (await anvanderWix()) return await smsLogg.raknaFifoSedan(new Date(Date.now() - hours * 60 * 60 * 1000).toISOString());
-    const r = await sql<{ n: number }>/*sql*/`
-      SELECT COUNT(*)::int AS n
-        FROM sms_audit
-       WHERE match_strategy = 'fifo'
-         AND received_at >= NOW() - (${hours} || ' hours')::interval
-    `;
-    return r.rows[0]?.n ?? 0;
+    return await smsLogg.raknaFifoSedan(new Date(Date.now() - hours * 60 * 60 * 1000).toISOString());
   } catch (err) {
     console.error("[sms-inbound] recentFifoCount failed", err);
     // On DB failure: be conservative — assume the safety budget is spent so we
@@ -283,11 +230,7 @@ async function sendOpsAlertEmail(
 
 async function updateMappingStatus(trackingNumber: string, status: string): Promise<void> {
   try {
-    await sql/*sql*/`
-      UPDATE tracking_mapping
-         SET status = ${status}, updated_at = NOW()
-       WHERE tracking_number = ${trackingNumber}
-    `;
+    await sparning.sattStatus(trackingNumber, status);
   } catch (err) {
     console.error("[sms-inbound] tracking_mapping status update failed", err);
   }

@@ -6,46 +6,14 @@
 //   2. Vidarebefordrat carrier-SMS (app/api/sms-inbound) — pickup-kod m.m.
 // Utan en GEMENSAM vakt kunde kunden få två "levererat"-mejl (ett per kanal).
 //
-// Design speglar lib/order-confirmation-dedup: atomiskt anspråk via
-// INSERT ... ON CONFLICT DO NOTHING RETURNING. Nyckel = (tracking_number,
-// status). Vinner vi raden → vi är först → SKICKA. Förlorar vi → redan skickat
+// Design speglar lib/order-confirmation-dedup: atomiskt anspråk i Wix
+// (lib/wix-lager.ts): raden infogas, och Wix vägrar ett id som finns. Nyckel =
+// (tracking_number, status). Vinner vi raden → vi är först → SKICKA. Förlorar vi → redan skickat
 // → HOPPA. Misslyckas själva mejlet släpper anroparen anspråket (release) så
 // nästa fyrning/retry kan ta över. Fail-open vid DB-fel: hellre en (möjlig)
 // dubblett än ett tappat leveransmejl.
 
-import { sql } from "./db";
-import { anvanderWix, leveransnotiser } from "./wix-lager";
-
-let ensured: Promise<void> | null = null;
-function ensureTable(): Promise<void> {
-  if (!ensured) {
-    ensured = (async () => {
-      try {
-        await sql/*sql*/`
-          CREATE TABLE IF NOT EXISTS delivery_notifications (
-            tracking_number TEXT NOT NULL,
-            status          TEXT NOT NULL,
-            channel         TEXT,
-            customer_email  TEXT,
-            sent_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-            PRIMARY KEY (tracking_number, status)
-          );
-        `;
-      } catch (e) {
-        // Samtidiga cold starts kan racea CREATE TABLE (Postgres 23505/42P07
-        // "duplicate"). Tabellen finns ändå efteråt → svälj race-felet i stället
-        // för att kasta det vidare (annars fail-open:ar claim och kan mejla
-        // dubbletter). Tabellen pre-skapas dessutom i lib/db.ts runMigration.
-        const code = (e as { code?: string })?.code;
-        if (code !== "23505" && code !== "42P07") {
-          ensured = null; // okänt fel → tillåt retry vid nästa anrop
-          throw e;
-        }
-      }
-    })();
-  }
-  return ensured;
-}
+import { leveransnotiser } from "./wix-lager";
 
 // In-process-vakt: dedupar (tracking_number, status) inom EN varm instans även
 // om DB-claimen skulle fail-open:a under en DB-glitch (17TRACK re-pushar samma
@@ -78,19 +46,7 @@ export async function claimDeliveryNotification(
   // mot dubbletter när DB-claimen fail-open:ar under en DB-glitch).
   if (seenThisProcess.has(localKey)) return false;
   try {
-    let won: boolean;
-    if (await anvanderWix()) {
-      won = await leveransnotiser.ansprak(trackingNumber, status, channel, customerEmail ?? null);
-    } else {
-      await ensureTable();
-      const { rows } = await sql/*sql*/`
-        INSERT INTO delivery_notifications (tracking_number, status, channel, customer_email)
-        VALUES (${trackingNumber}, ${status}, ${channel}, ${customerEmail ?? null})
-        ON CONFLICT (tracking_number, status) DO NOTHING
-        RETURNING tracking_number
-      `;
-      won = rows.length > 0;
-    }
+    const won = await leveransnotiser.ansprak(trackingNumber, status, channel, customerEmail ?? null);
     if (won) rememberLocal(localKey);
     return won;
   } catch (err) {
@@ -108,13 +64,7 @@ export async function releaseDeliveryNotification(trackingNumber: string, status
   // Släpp även in-process-vakten så en retry (eller den andra kanalen) kan ta över.
   seenThisProcess.delete(`${trackingNumber}|${status}`);
   try {
-    if (await anvanderWix()) {
-      await leveransnotiser.slapp(trackingNumber, status);
-      return;
-    }
-    await sql/*sql*/`
-      DELETE FROM delivery_notifications WHERE tracking_number = ${trackingNumber} AND status = ${status}
-    `;
+    await leveransnotiser.slapp(trackingNumber, status);
   } catch (err) {
     console.error("[delivery-dedup] release misslyckades", err instanceof Error ? err.message : err);
   }
@@ -127,14 +77,7 @@ export async function releaseDeliveryNotification(trackingNumber: string, status
 export async function redanSkickad(trackingNumber: string, status: string): Promise<boolean> {
   if (!trackingNumber || !status) return false;
   try {
-    if (await anvanderWix()) return await leveransnotiser.finns(trackingNumber, status);
-    await ensureTable();
-    const { rows } = await sql/*sql*/`
-      SELECT 1 FROM delivery_notifications
-       WHERE tracking_number = ${trackingNumber} AND status = ${status}
-       LIMIT 1
-    `;
-    return rows.length > 0;
+    return await leveransnotiser.finns(trackingNumber, status);
   } catch (err) {
     console.error("[delivery-dedup] redanSkickad misslyckades", err instanceof Error ? err.message : err);
     return false;
