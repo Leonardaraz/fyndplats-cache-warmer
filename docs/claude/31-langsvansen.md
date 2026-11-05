@@ -45,3 +45,9 @@ katalogen. Den bara läser, och loggen bär antal, kategorinamn och Wix-id. Den 
 Regeln i `lib/kategorikoll/brodsmula.ts` är en kopia av butikens och används bara till
 mätningen. Testfallen är butikens, så att en skillnad syns.
 
+☠️ **Kollens första körning (2026-11-05) dog på sida två med Wix 400 INVALID_CURSOR.**
+Frågan skickade filtret `visible: true` också tillsammans med markören, och markören bär
+redan filtret. Nu skickas filtret bara på första sidan och `fields` på varje sida
+(`lib/kategorikoll/produkter.ts`, som katalogsvepet i `lib/wix/variantbild-koll.ts`).
+Testet har en falsk Wix som svarar INVALID_CURSOR på samma sätt.
+
