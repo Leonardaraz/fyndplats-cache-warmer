@@ -64,6 +64,12 @@ konsumentvaror först sorterar du kandidaterna på `saldo` och stryker rader var
 på *Bil*, *Elektrisk*, *VVS*, *Byggnadsmaterial* eller *Vitvaror* och vars titel har elektriska
 ord (volt eller watt, *batteri*, *pump*, *LED*, *värme*, *kyl*, *digital*, *kommersiell*): 14:09
 den 2026-11-05 gav det 417 av 1 290 kandidater i lager (`FLAGGADE-VEVOR.md` (li)).
+Stryk därtill kategorier som bär *Kontors*, *Verktyg>*, *Bad>Duschar*, *Möbeltillbehör*,
+*Utomhusvärme*, *Utomhusutrustning för kraft* eller *Hyllor*, och titlar med *laser*,
+*nivå*, *kamera*, *sågverk*, *klätter*, *bindning*, *etikett*, *mynt*, *podium*, *backdrop*,
+*banner*, *spegel*, *skruvstäd*, *fräsmaskin*, *sänglyft*, *prishjul*, *vedvagn*, *slusslåda*,
+*spridare*, *ryggspruta*, *blomvägg* eller *tippvagn*: det lämnade omkring 286 kandidater
+15:19 samma dag, och det var ur dem runda 56 och 57 valdes (`FLAGGADE-VEVOR.md` (lm)).
 
 **Märket.** Skrivsteget sätter märket VEVOR i Wix. Skriv det inte i namnet eller SEO-titeln
 *(Leonard 2026-10-28)*.
