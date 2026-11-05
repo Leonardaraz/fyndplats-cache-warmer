@@ -1,0 +1,75 @@
+{
+  "e0e4f50c": {
+    "productId": "e0e4f50c-d62c-45a6-82a1-06452ccea297",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "4f83cded": {
+    "productId": "4f83cded-2a42-4ea1-9366-637e2fd25405",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "6a05475d": {
+    "productId": "6a05475d-cae5-49b8-8450-085cd5eca893",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-181dffr",
+        "betyg": 5,
+        "datum": "2026-06-01",
+        "foton": 0,
+        "text": "Ik gebruik deze op markten, makkelijk te monteren/demonteren en is van degelijke kwaliteit. Een echte meerwaarde voor mijn shop 👌🏼"
+      },
+      {
+        "id": "gen-1bt8val",
+        "betyg": 5,
+        "datum": "2026-02-11",
+        "foton": 0,
+        "text": "Pretty easy to put together and love the fact that I can roll it around in my Boutique where I want it"
+      }
+    ]
+  },
+  "9044ec53": {
+    "productId": "9044ec53-3e8c-47e5-90a5-190a2b42e082",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-2yjeu4",
+        "betyg": 5,
+        "datum": "2026-07-25",
+        "foton": 0,
+        "text": "play golf every week, and after using this golf bag for a while, I've had a great experience. The 14-compartment top compartment, along with the full-length independent compartment, keeps my clubs neatly organized. The lightweight fabric prevents fatigue even after long periods of carrying. It comes with a support frame, shoulder straps, and plenty of organized storage bags. A rain cover is also included to handle outdoor rainy weather. It's suitable for both male and female golfers."
+      },
+      {
+        "id": "gen-hs08r7",
+        "betyg": 5,
+        "datum": "2026-07-16",
+        "foton": 0,
+        "text": "This VEVOR golf bag is a perfect gift for your partner, combining style and practicality. Made of lightweight polyester with a smooth feel, it features 14 compartments to neatly hold a full set of clubs, a floor support to prevent tipping, easy-to-remove shoulder straps, multiple side pockets for ample storage, and a complimentary rain cover for convenient storage. It's suitable for both men and women."
+      },
+      {
+        "id": "gen-dnhq9u",
+        "betyg": 5,
+        "datum": "2026-07-05",
+        "foton": 0,
+        "text": "frequently drive to different golf courses, and this golf cart bag has excellent weight control. The 14-compartment top compartment plus the full-length compartment separates clubs of different lengths, creating a clear and organized structure. Multiple external storage pockets can hold accessories and drinking water. The shoulder straps distribute weight evenly, and the built-in support provides stability. A finely crafted rain cover is included, making it suitable for both male and female golfers."
+      }
+    ]
+  }
+}
