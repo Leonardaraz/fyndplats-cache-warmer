@@ -1,5 +1,10 @@
 # Utkast: integritetstextens tillägg för E2 och E3
 
+✅ **Publicerat på /sekretesspolicy 2026-11-06** i samma PR som E2 och E3
+(Leonards ok till de tre punkterna sist: "kör allt nu"). Bolagsverket står nu
+under "Vem delar vi uppgifter med?", eftersom uppslaget är byggt
+(`lib/medlem/bolagsverket.ts`). Städningen efter sju år byggs före 2033.
+
 Avsnittet Medlemskonto på /sekretesspolicy (godkänt 2026-11-05) beskriver bara
 E1. CLAUDE.md säger att medlemspriser (E2) och företag (E3) kräver ett tillägg
 innan de slås på. Det här är tillägget, för Leonards godkännande. Varje mening

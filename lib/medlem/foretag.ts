@@ -6,10 +6,11 @@
 // högst ett företag. Fler användare per företag kommer i E5.
 //
 // Verifieringen (E3-1, E3-3): numret prövas med Luhn medan kunden skriver
-// (orgnr.ts) och igen på servern. Bolagsverkets uppslag kräver nycklar från
-// Bolagsverkets kundanmälan, som Leonard gör (svar 3.1). Tills de finns går
-// varje ansökan till kön i motorns admin (/admin/medlemmar), där numret
-// kontrolleras för hand. Ett godkännande där aktiverar profilen, och butikens
+// (orgnr.ts) och igen på servern, och slås sedan upp hos Bolagsverket
+// (bolagsverket.ts, nycklarna sedan 2026-11-06). Ett företag som Bolagsverket
+// visar som aktivt godkänns direkt med det registrerade namnet. Allt annat går
+// till kön i motorns admin (/admin/medlemmar) med Bolagsverkets orsak, och
+// kontrolleras där för hand. Ett godkännande aktiverar profilen, och butikens
 // timjobb mejlar kunden.
 //
 // Enskilda firmor får vara med (F4, Leonard 2026-11-04). Numret är då ägarens
@@ -189,7 +190,7 @@ export function postnrText(p: string): string {
 
 /** En kort rad om var ansökan står, för Mina sidor. */
 export function foretagsstatusText(p: Foretagsprofil): string {
-  if (p.status === "granskas") return "Vi kontrollerar uppgifterna mot Bolagsverket. Du får ett mejl när det är klart, oftast inom en arbetsdag.";
+  if (p.status === "granskas") return "Vi kontrollerar uppgifterna för hand. Du får ett mejl när det är klart, oftast inom en arbetsdag.";
   if (p.status === "nekad") return "Vi kunde inte godkänna företaget. Mejla info@fyndplats.com om du tror att det är fel.";
   if (p.villkorVersion !== VILLKOR_FORETAG_VERSION) return "Villkoren för företagskonto har ändrats. Godkänn den nya versionen för att handla som företaget.";
   return "Godkänt. Du väljer själv om du handlar privat eller som företaget.";

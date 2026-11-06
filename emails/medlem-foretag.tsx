@@ -40,21 +40,52 @@ export interface ForetagAttGranskaProps {
   orgnrVisas: string;
   form: "juridisk" | "enskild";
   adminLank: string;
+  /** Varför Bolagsverkets uppslag inte godkände direkt. */
+  orsaker?: string[];
 }
 
 export const foretagAttGranskaAmne = (namn: string) => `Företag att granska: ${namn}`;
 
-export function ForetagAttGranskaEmail({ namn, orgnrVisas, form, adminLank }: ForetagAttGranskaProps) {
+export function ForetagAttGranskaEmail({ namn, orgnrVisas, form, adminLank, orsaker }: ForetagAttGranskaProps) {
   return (
     <EmailShell preview={`${namn} vill handla som företag. Granska i admin.`}>
       <Text style={text.h1}>Ett företag väntar på granskning</Text>
       <Text style={text.body}>
         <strong>{namn}</strong> ({form === "enskild" ? "enskild firma" : "juridisk person"}, {orgnrVisas}) har ansökt om
-        ett företagskonto. Kontrollera numret och namnet hos Bolagsverket och godkänn eller neka i admin.
+        ett företagskonto. Bolagsverkets uppslag kunde inte godkänna det direkt. Kontrollera uppgifterna och godkänn eller
+        neka i admin.
       </Text>
+      {orsaker && orsaker.length > 0 ? <Text style={text.body}>Bolagsverket: {orsaker.join(", ")}.</Text> : null}
       <Section style={{ textAlign: "center", margin: "24px 0 8px" }}>
         <Link href={adminLank} style={block.ctaButton}>
           Öppna kön i admin
+        </Link>
+      </Section>
+    </EmailShell>
+  );
+}
+
+export interface ForetagGodkantDirektProps {
+  namn: string;
+  orgnrVisas: string;
+  form: "juridisk" | "enskild";
+  adminLank: string;
+}
+
+export const foretagGodkantDirektAmne = (namn: string) => `Nytt företagskonto: ${namn}`;
+
+/** Till butiken: Bolagsverket visade företaget som aktivt, och kontot godkändes direkt. */
+export function ForetagGodkantDirektEmail({ namn, orgnrVisas, form, adminLank }: ForetagGodkantDirektProps) {
+  return (
+    <EmailShell preview={`${namn} godkändes direkt efter Bolagsverkets uppslag.`}>
+      <Text style={text.h1}>Ett nytt företagskonto</Text>
+      <Text style={text.body}>
+        <strong>{namn}</strong> ({form === "enskild" ? "enskild firma" : "juridisk person"}, {orgnrVisas}) är aktivt hos
+        Bolagsverket och godkändes direkt. Namnet är det registrerade. Du kan återkalla kontot i admin.
+      </Text>
+      <Section style={{ textAlign: "center", margin: "24px 0 8px" }}>
+        <Link href={adminLank} style={block.ctaButton}>
+          Öppna företagen i admin
         </Link>
       </Section>
     </EmailShell>

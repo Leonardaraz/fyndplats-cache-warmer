@@ -16,7 +16,13 @@ import MedlemInloggningEmail, { medlemInloggningAmne } from "@/emails/medlem-inl
 import MedlemValkommenEmail, { medlemValkommenAmne } from "@/emails/medlem-valkommen";
 import MedlemNyNivaEmail, { medlemNyNivaAmne } from "@/emails/medlem-ny-niva";
 import MedlemNivaSjunkerEmail, { medlemNivaSjunkerAmne } from "@/emails/medlem-niva-sjunker";
-import ForetagGodkantEmail, { ForetagAttGranskaEmail, foretagAttGranskaAmne, foretagGodkantAmne } from "@/emails/medlem-foretag";
+import ForetagGodkantEmail, {
+  ForetagAttGranskaEmail,
+  ForetagGodkantDirektEmail,
+  foretagAttGranskaAmne,
+  foretagGodkantAmne,
+  foretagGodkantDirektAmne,
+} from "@/emails/medlem-foretag";
 import OffertKlarEmail, { OffertForfraganEmail, offertForfraganAmne, offertKlarAmne } from "@/emails/medlem-offert";
 import { dagSomText, kronor, type Nivalage } from "./niva";
 
@@ -122,8 +128,13 @@ export function skickaForetagGodkant(till: string, namn: string): Promise<boolea
 }
 
 /** Till butiken: en ansökan väntar. Bara det maskerade numret (F4). */
-export function skickaForetagAttGranska(a: { namn: string; orgnrVisas: string; form: "juridisk" | "enskild" }): Promise<boolean> {
+export function skickaForetagAttGranska(a: { namn: string; orgnrVisas: string; form: "juridisk" | "enskild"; orsaker?: string[] }): Promise<boolean> {
   return skicka(REPLY_TO, foretagAttGranskaAmne(a.namn), ForetagAttGranskaEmail({ ...a, adminLank: ADMIN_MEDLEMMAR }), "foretag-att-granska");
+}
+
+/** Till butiken: ett företag godkändes direkt efter Bolagsverkets uppslag. */
+export function skickaForetagGodkantDirekt(a: { namn: string; orgnrVisas: string; form: "juridisk" | "enskild" }): Promise<boolean> {
+  return skicka(REPLY_TO, foretagGodkantDirektAmne(a.namn), ForetagGodkantDirektEmail({ ...a, adminLank: ADMIN_MEDLEMMAR }), "foretag-godkant-direkt");
 }
 
 /** Motorns admin, där offerterna prissätts. */

@@ -1707,10 +1707,26 @@ Ett företag läggs till på ett befintligt konto, högst ett per konto i E3.
   villkoren. Servern prövar allt igen (`lib/medlem/foretag.ts`). Raden heter
   `<medlemsId>__foretag` i `FyndplatsMedlemsprofiler` (index
   `typ-status-ansokt`) och får status `granskas`; butiken mejlar info@.
-- **Granskningen** görs i motorns `/admin/medlemmar` (kön överst). Bolagsverkets
-  uppslag är inte byggt; nycklarna kommer via Bolagsverkets kundanmälan, som
-  Leonard gör (svar 3.1), och läggs in som `BOLAGSVERKET_CLIENT_ID` och
-  `BOLAGSVERKET_CLIENT_SECRET`. Godkänt företag mejlas av
+- **Bolagsverkets uppslag** (`lib/medlem/bolagsverket.ts`, 2026-11-06): API:t
+  Värdefulla datamängder v1 (gratis, öppen data). Token med client credentials
+  på `portal.api.bolagsverket.se/oauth2/token`, scope
+  `vardefulla-datamangder:read`; `POST /organisationer` på
+  `gw.api.bolagsverket.se/vardefulla-datamangder/v1` med
+  `identitetsbeteckning` (en enskild firma: personnumret med sekel). Nycklarna
+  `BOLAGSVERKET_CLIENT_ID` och `BOLAGSVERKET_CLIENT_SECRET` ligger i
+  Production och Preview (Leonard 2026-11-06). Beskrivningen (OpenAPI) är
+  öppen i utvecklarportalen: `/api/am/devportal/v3/apis/<id>/swagger`.
+  - **Leonards regel:** ett företag som Bolagsverket visar som aktivt
+    (inte avregistrerat, inget förfarande, inte "ej verksam", alla källor
+    svarade) godkänns direkt med det **registrerade** namnet (`beslutAv:
+    "bolagsverket"`, kundens namn i `namnAngivet`). Allt annat får `granskas`
+    med orsaken i fältet `bolagsverket`, och butiken mejlas orsaken.
+  - Formuläret slår upp namnet medan kunden skriver (`steg: "sla-upp"`), bara
+    för juridiska personer och högst 15 gånger per konto och tio minuter.
+  - ☠️ Saknas nycklarna, eller svarar Bolagsverket fel, går ansökan till kön som
+    före uppslaget. Uppslaget kastar aldrig, och numret loggas aldrig.
+- **Granskningen** görs i motorns `/admin/medlemmar` (kön överst), som visar
+  Bolagsverkets besked. Godkänt företag mejlas av
   timjobbet `/api/cron/medlemskorgar` inom en timme
   (`lib/medlem/foretagsmejl.ts`, märkt exakt en gång).
 - ☠️ **En enskild firmas organisationsnummer är ett personnummer** (F4). Kunden

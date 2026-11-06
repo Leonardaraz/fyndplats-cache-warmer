@@ -36,6 +36,7 @@ import { liggarradArKop } from "../order-raknas";
 import { REGLER_V1, reglerFel, type Regler, type Varning } from "./niva";
 import { medlemsId, taForsok } from "./inloggning";
 import { VILLKOR_FORETAG_VERSION, foretagsprofilId, foretagsprofilUrRad, type Foretagsansokan, type Foretagsprofil } from "./foretag";
+import type { Bolagsverkskontroll } from "./bolagsverket";
 import { offertUrRad, type Offert } from "./offert";
 import { MAX_KORGAR, sparadKorgUrRad, type SparadKorg } from "./sparade";
 
@@ -259,24 +260,79 @@ export async function hamtaForetagsprofil(id: string): Promise<Foretagsprofil | 
   return foretagsprofilUrRad(await hamta(MK.profiler, foretagsprofilId(id)));
 }
 
+/** Bolagsverkets besked om ansökan (lib/medlem/bolagsverket.ts). */
+export interface Ansokningsbeslut {
+  status: "aktiv" | "granskas";
+  bolagsverket?: Bolagsverkskontroll;
+  /** Namnet kunden skrev, när profilen fick Bolagsverkets namn i stället. */
+  namnAngivet?: string;
+}
+
 /**
- * Sparar en ansökan med status "granskas". En nekad ansökan får skickas igen
- * och skrivs då över (villkoret: fortfarande nekad). En profil som granskas
- * eller är godkänd ändras inte här: svaret är "finns".
+ * Sparar en ansökan. Godkänd av Bolagsverkets uppslag blir profilen aktiv
+ * direkt, med beslutet stämplat (`beslutAv: "bolagsverket"`); annars får den
+ * status "granskas" och väntar i motorns kö som förut. En nekad ansökan får
+ * skickas igen och skrivs då över (villkoret: fortfarande nekad). En profil som
+ * granskas eller är godkänd ändras inte här: svaret är "finns".
  *
  * ☠️ Numret loggas aldrig: för en enskild firma är det ett personnummer.
  */
-export async function sparaForetagsansokan(id: string, a: Foretagsansokan): Promise<"skapad" | "finns"> {
+export async function sparaForetagsansokan(
+  id: string,
+  a: Foretagsansokan,
+  b: Ansokningsbeslut = { status: "granskas" },
+): Promise<"skapad" | "finns"> {
   const pid = foretagsprofilId(id);
   const tid = nu();
-  const rad: Rad = { medlemsId: id, typ: "foretag", status: "granskas", aktiv: false, ...a, villkorGodkant: tid, ansokt: tid, skapad: tid };
+  const godkand = b.status === "aktiv";
+  const namnAngivet = b.namnAngivet && b.namnAngivet !== a.namn ? b.namnAngivet : undefined;
+  const kontroll = b.bolagsverket ? (b.bolagsverket as unknown as Rad) : undefined;
+  const rad: Rad = {
+    medlemsId: id,
+    typ: "foretag",
+    status: b.status,
+    aktiv: false,
+    ...a,
+    villkorGodkant: tid,
+    ansokt: tid,
+    skapad: tid,
+    ...(godkand ? { beslutad: tid, beslutAv: "bolagsverket" } : {}),
+    ...(kontroll ? { bolagsverket: kontroll } : {}),
+    ...(namnAngivet ? { namnAngivet } : {}),
+  };
   let utfall: "skapad" | "finns" = (await infoga(MK.profiler, pid, rad)) === "skapad" ? "skapad" : "finns";
   if (utfall === "finns") {
-    const ny = { ...rad, leverans: a.leverans ?? null, beslutad: null, godkandMejlad: null };
+    const ny = {
+      ...rad,
+      leverans: a.leverans ?? null,
+      beslutad: godkand ? tid : null,
+      beslutAv: godkand ? "bolagsverket" : null,
+      bolagsverket: kontroll ?? null,
+      namnAngivet: namnAngivet ?? null,
+      godkandMejlad: null,
+    };
     const p = await patcha(MK.profiler, pid, andringar(ny), { status: "nekad" });
     if (p.utfall === "applied") utfall = "skapad";
   }
-  if (utfall === "skapad") await logga({ omrade: "foretag", typ: "ansokan", medlemsId: id, aktor: "kund", efter: { form: a.form } });
+  if (utfall === "skapad") {
+    await logga({
+      omrade: "foretag",
+      typ: "ansokan",
+      medlemsId: id,
+      aktor: "kund",
+      efter: { form: a.form, status: b.status, ...(b.bolagsverket ? { bolagsverket: b.bolagsverket.utfall } : {}) },
+    });
+    if (godkand) {
+      await loggaTyst({
+        omrade: "foretag",
+        typ: "foretag-godkant",
+        medlemsId: id,
+        aktor: "system",
+        orsakKod: "bolagsverket",
+        orsakText: "Aktivt hos Bolagsverket; godkänt direkt.",
+      });
+    }
+  }
   return utfall;
 }
 

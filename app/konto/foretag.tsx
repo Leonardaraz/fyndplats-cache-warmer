@@ -9,7 +9,7 @@
 // ☠️ Komponenten får aldrig hela numret för en enskild firma: servern skickar
 // bara det maskerade (`orgnrVisas`).
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { orgnrFeltext, provaOrgnr } from "@/lib/medlem/orgnr";
 import { VILLKOR_FORETAG_VERSION, postnrText, provaForetagsansokan, type Faltfel } from "@/lib/medlem/foretag";
 import s from "./konto.module.css";
@@ -71,13 +71,82 @@ function numretNu(text: string): { ton: "ok" | "fel" | "tyst"; text: string } {
     : { ton: "ok", text: `Organisationsnumret ${p.nummer} stämmer.` };
 }
 
+/** Bolagsverkets svar medan kunden skriver ett organisationsnummer (bara juridiska personer). */
+type Uppslagslage =
+  | { lage: "tyst" }
+  | { lage: "letar" }
+  | { lage: "hittad"; namn: string; aktiv: boolean }
+  | { lage: "saknas" }
+  | { lage: "fel" };
+
+function uppslagstext(u: Uppslagslage): { ton: "ok" | "tyst"; text: string } | null {
+  switch (u.lage) {
+    case "letar":
+      return { ton: "tyst", text: "Söker hos Bolagsverket …" };
+    case "hittad":
+      return u.aktiv
+        ? { ton: "ok", text: "Namnet är hämtat från Bolagsverket." }
+        : { ton: "tyst", text: "Bolagsverket visar inte företaget som aktivt. Du kan ändå ansöka, så granskar vi det." };
+    case "saknas":
+      return { ton: "tyst", text: "Numret finns inte hos Bolagsverket. Du kan ändå ansöka, så granskar vi det." };
+    default:
+      return null;
+  }
+}
+
 function Ansokan({ efter }: { efter: () => void }) {
   const [orgnr, setOrgnr] = useState("");
+  const [namn, setNamn] = useState("");
+  // Kunden har skrivit ett eget namn: Bolagsverkets skriver då inte över det.
+  const namnRort = useRef(false);
+  const [uppslag, setUppslag] = useState<Uppslagslage>({ lage: "tyst" });
   const [annan, setAnnan] = useState(false);
   const [fel, setFel] = useState<Faltfel>({});
   const [skal, setSkal] = useState<string | null>(null);
   const [upptagen, setUpptagen] = useState(false);
   const nu = numretNu(orgnr);
+
+  // Namnet från Bolagsverket när numret är ett giltigt organisationsnummer. En
+  // enskild firmas nummer är ett personnummer och slås upp först vid ansökan.
+  useEffect(() => {
+    const p = provaOrgnr(orgnr);
+    if (!p.ok || p.form !== "juridisk") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- läget följer numret; inget anrop att vänta på
+      setUppslag({ lage: "tyst" });
+      return;
+    }
+    const avbryt = new AbortController();
+    const t = setTimeout(async () => {
+      setUppslag({ lage: "letar" });
+      try {
+        const r = await fetch("/api/konto/foretag", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ steg: "sla-upp", orgnr: p.nummer }),
+          signal: avbryt.signal,
+        });
+        const d = (await r.json().catch(() => null)) as { ok?: boolean; utfall?: string; namn?: string; aktiv?: boolean } | null;
+        if (avbryt.signal.aborted) return;
+        if (d?.ok && d.utfall === "hittad" && typeof d.namn === "string" && d.namn) {
+          const hittat = d.namn;
+          setUppslag({ lage: "hittad", namn: hittat, aktiv: d.aktiv === true });
+          if (!namnRort.current) setNamn(hittat);
+        } else if (d?.ok && d.utfall === "saknas") {
+          setUppslag({ lage: "saknas" });
+        } else {
+          setUppslag({ lage: "fel" });
+        }
+      } catch {
+        if (!avbryt.signal.aborted) setUppslag({ lage: "fel" });
+      }
+    }, 350);
+    return () => {
+      clearTimeout(t);
+      avbryt.abort();
+    };
+  }, [orgnr]);
+  const bvText = uppslagstext(uppslag);
 
   async function sand(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -105,12 +174,6 @@ function Ansokan({ efter }: { efter: () => void }) {
 
   return (
     <form className={s.foretagForm} onSubmit={sand} noValidate>
-      <label className={s.etikett} htmlFor="ft-namn">
-        Företagets namn
-      </label>
-      <input id="ft-namn" name="namn" className={s.falt} autoComplete="organization" maxLength={100} aria-describedby={fel.namn ? "fel-namn" : undefined} />
-      {faltfel("namn")}
-
       <label className={s.etikett} htmlFor="ft-orgnr">
         Organisationsnummer
       </label>
@@ -131,6 +194,31 @@ function Ansokan({ efter }: { efter: () => void }) {
       <span id="ft-orgnr-nu" className={fel.orgnr ? s.faltFel : nu.ton === "ok" ? s.faltOk : nu.ton === "fel" ? s.faltFel : s.faltHjalp} aria-live="polite">
         {fel.orgnr ?? nu.text}
       </span>
+
+      <label className={s.etikett} htmlFor="ft-namn">
+        Företagets namn
+      </label>
+      <input
+        id="ft-namn"
+        name="namn"
+        className={s.falt}
+        autoComplete="organization"
+        maxLength={100}
+        value={namn}
+        onChange={(e) => {
+          setNamn(e.target.value);
+          namnRort.current = e.target.value.trim() !== "";
+          if (fel.namn) setFel({ ...fel, namn: undefined });
+        }}
+        aria-describedby={fel.namn ? "fel-namn" : bvText ? "ft-namn-bv" : undefined}
+      />
+      {fel.namn ? (
+        faltfel("namn")
+      ) : bvText ? (
+        <span id="ft-namn-bv" className={bvText.ton === "ok" ? s.faltOk : s.faltHjalp} aria-live="polite">
+          {bvText.text}
+        </span>
+      ) : null}
 
       <fieldset className={s.adress}>
         <legend className={s.etikett}>Fakturaadress</legend>
