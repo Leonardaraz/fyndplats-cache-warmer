@@ -85,7 +85,8 @@ describe("offerterna i admin", () => {
   it("kön visar förfrågan med listpris och golv per rad, och kontots e-post", async () => {
     const [o] = await offertko();
     expect(o.epost).toBe("inkop@exempel.se");
-    expect(o.rader.map((r) => r.golvOre)).toEqual([137_500, null]);
+    // 1 000 kr landat inkl. moms: G = 1 100 kr.
+    expect(o.rader.map((r) => r.golvOre)).toEqual([110_000, null]);
   });
 
   it("E3-10: priserna sparas, offerten blir prissatt i 14 dygn, och loggen får inga priser", async () => {
@@ -100,7 +101,7 @@ describe("offerterna i admin", () => {
   });
 
   it("P6: ett pris under golvet sparas aldrig, och offerten väntar kvar", async () => {
-    expect(await prissattOffert("o_0123456789ab", { pris_0: "1374", pris_1: "500" }, ORSAK)).toBe("Pallställ: offertpriset är under golvet.");
+    expect(await prissattOffert("o_0123456789ab", { pris_0: "1099", pris_1: "500" }, ORSAK)).toBe("Pallställ: offertpriset är under golvet.");
     expect(minne.kol(OFFERT_KOL).get("o_0123456789ab")!.status).toBe("skickad");
   });
 
