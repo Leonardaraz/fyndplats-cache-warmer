@@ -1370,6 +1370,15 @@ Det som inte får ändras:
   samma för alla Stripe-konton) och domänen `www.fyndplats.se` registrerad i
   Stripe (Inställningar → Betalmetodsdomäner). `Permissions-Policy` får aldrig
   stänga `payment` (`next.config.ts`).
+- **Klarna visas bara för köpare i Sverige:** Stripe läser köparens land ur
+  IP-adressen ("Supported countries: SE" för `sek`). En provwebbläsare i molnet
+  (USA) ser bara kort; skälet står i Stripes svar på `elements/sessions` under
+  `developer_tool_context.payment_method_filtering` (mätt på förhandsbygget med
+  Leonards testnycklar 2026-11-06: kort, Apple Pay och Google Pay giltiga, Link
+  av). Klarna prövas därför från en svensk uppkoppling, till exempel en telefon.
+- **Stripe Tax används inte:** Wix räknar momsen på ordern (priserna är
+  inklusive 25 %), och den står på kvitton och fakturor. Stripe tar bara betalt
+  för Wix total. Stripe Tax skulle räkna momsen en gång till och kostar per köp.
 - Stripe-anropen görs med `fetch` och formulärkodning (`lib/kassa/stripe.ts`,
   API-version `2025-03-31.basil`), utan Stripes Node-SDK. Webhooken prövar
   `Stripe-Signature` (HMAC-SHA256 över `t.kropp`, 300 s) på den RÅA kroppen.
