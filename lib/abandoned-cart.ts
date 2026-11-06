@@ -24,6 +24,7 @@ import { renderAbandonedCart3 } from '../emails/abandoned-cart-3';
 import { renderAbandonedCart3NoCode } from '../emails/abandoned-cart-3-no-code';
 import { unsubscribeUrl, isSuppressed } from './newsletter';
 import { firePush } from './push-send';
+import { medKod } from './kassa/aterta';
 
 const ONE_HOUR_MS = 60 * 60 * 1000;
 const STEP_DELAYS_MS: Record<1 | 2 | 3, number> = {
@@ -414,7 +415,8 @@ async function sendStep3(cart: CartRow): Promise<ProcessResult> {
   const subject = '5% extra för att slutföra';
   const { html, text } = await renderAbandonedCart3({
     items: cart.items_json,
-    recoverUrl: cart.recover_url ?? 'https://www.fyndplats.se',
+    // Vår kassa lägger på koden själv (lib/kassa/aterta.ts); Wix länk tar ingen kod.
+    recoverUrl: medKod(cart.recover_url ?? 'https://www.fyndplats.se', minted.code),
     subtotalMinor: cart.subtotal_minor,
     currency: cart.currency,
     discountCode: minted.code,

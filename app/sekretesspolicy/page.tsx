@@ -31,6 +31,7 @@ export default function Sekretesspolicy() {
       <p><strong>Hantera din beställning och fullgöra köpet.</strong> Laglig grund: fullgörande av avtal. Sparas så länge det behövs och därefter enligt bokföringslagen.</p>
       <p><strong>Hantera kundtjänstärenden.</strong> Laglig grund: berättigat intresse av att ge god service.</p>
       <p><strong>Skicka nyhetsbrev och erbjudanden.</strong> Laglig grund: ditt samtycke eller berättigat intresse gentemot befintliga kunder. Du kan när som helst tacka nej via länken i varje utskick.</p>
+      <p><strong>Påminna dig om en varukorg du inte slutförde.</strong> Skriver du din e-postadress i kassan men slutför inte köpet kan vi mejla dig om varukorgen: högst tre mejl under tre dagar, och högst en sådan påminnelse per 30 dagar. Mejlen slutar när du handlar. Laglig grund: berättigat intresse. Du kan när som helst tacka nej via länken i mejlet.</p>
       <p><strong>Förbättra och utveckla webbutiken.</strong> I huvudsak på aggregerad eller pseudonymiserad nivå. Laglig grund: berättigat intresse samt samtycke för analyscookies.</p>
       <p><strong>Uppfylla rättsliga skyldigheter</strong> (t.ex. bokföringslagen – upp till sju år) och <strong>förebygga missbruk och bedrägeri.</strong></p>
 

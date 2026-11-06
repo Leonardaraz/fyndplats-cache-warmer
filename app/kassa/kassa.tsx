@@ -43,7 +43,7 @@ import { tightFillUrl } from "../../lib/wix-image";
 import { valdaAlternativ } from "../../lib/cart-shape";
 import { DELIVERY_MAX_DAYS, DELIVERY_MIN_DAYS, DELIVERY_TIME, FREE_SHIPPING_FROM_KR, fraktKr } from "../../lib/shipping";
 import { leveransIntervall } from "../../lib/leveransdatum";
-import { ADRESS_FALT, LAN, adressFranStripe, faltGiltigt, forstaFel, kundFranPlanbok, lanFranPostnr, provaKassa, normalPostnr, snyggtTelefon, type Falt } from "../../lib/kassa/formular";
+import { ADRESS_FALT, LAN, adressFranStripe, faltGiltigt, forstaFel, kundFranPlanbok, lanFranPostnr, provaKassa, normalPostnr, normalTelefon, snyggtTelefon, type Falt } from "../../lib/kassa/formular";
 import { visaTomKorg } from "../../lib/kassa/vy";
 import { epostForslag } from "../../lib/kassa/epost-forslag";
 import {
@@ -304,6 +304,38 @@ export function Kassa({
     }
   }, []);
 
+  // Påminnelsen om varukorgen (lib/kassa/aterta.ts): e-posten och numret till
+  // Wix-korgen när kunden lämnat fältet, så att Wix skapar en övergiven kassa
+  // om köpet inte blir av. En gång per korg och uppgifter. Medlemskorgen har
+  // redan kontots e-post och får inga påminnelser (lib/medlem/overgiven.ts).
+  const kontaktSkickad = useRef("");
+  const skickaKontakt = useCallback(
+    (v: { epost?: string; telefon?: string }) => {
+      if (last || !cartId) return;
+      const epost = (v.epost ?? "").trim();
+      if (!faltGiltigt("epost", epost)) return;
+      const telefon = normalTelefon(v.telefon ?? "");
+      const nyckel = `${cartId}|${epost.toLowerCase()}|${telefon ?? ""}`;
+      if (kontaktSkickad.current === nyckel) return;
+      kontaktSkickad.current = nyckel;
+      void fetch("/api/kassa/kontakt", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ cartId, epost, ...(telefon ? { telefon } : {}) }),
+        keepalive: true,
+      })
+        .then((r) => {
+          if (!r.ok) kontaktSkickad.current = "";
+        })
+        .catch(() => {
+          kontaktSkickad.current = "";
+        });
+    },
+    [cartId, last],
+  );
+  // Sparade uppgifter fyller e-posten utan att kunden lämnar fältet: de skickas när korgen är känd.
+  const forifyllt = useRef<Partial<Varden> | null>(null);
+
   // Sparade uppgifter från förra gången (bara i den här webbläsaren).
   useEffect(() => {
     const sparat = lasJson<Partial<Varden>>("local", ADRESS_NYCKEL);
@@ -311,9 +343,34 @@ export function Kassa({
     const giltigt = Object.fromEntries(Object.entries(sparat).filter(([k, x]) => k in TOMT && typeof x === "string")) as Partial<Varden>;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- uppgifterna finns bara i webbläsaren; servern och första renderingen måste vara lika
     setVarden((v) => ({ ...v, ...giltigt }));
+    forifyllt.current = giltigt;
     // Kunden valde att spara förra gången: valet står kvar tills hen tar bort det.
     setKomIhag(true);
     if (giltigt.co) setCoOppen(true);
+  }, []);
+
+  useEffect(() => {
+    const f = forifyllt.current;
+    if (!f || !cartId) return;
+    forifyllt.current = null;
+    skickaKontakt(f);
+  }, [cartId, skickaKontakt]);
+
+  // Rabattkoden från påminnelsemejlet (/kassa/aterta → /kassa?kod=…) läggs på
+  // när korgen är känd, en gång, och tas sedan bort ur adressen.
+  const mejlKod = useRef<string | null>(null);
+  useEffect(() => {
+    try {
+      const q = new URLSearchParams(window.location.search);
+      const kod = (q.get("kod") ?? "").replace(/\s/g, "").slice(0, 40);
+      if (!kod) return;
+      mejlKod.current = kod;
+      q.delete("kod");
+      const rest = q.toString();
+      window.history.replaceState(window.history.state, "", `${window.location.pathname}${rest ? `?${rest}` : ""}`);
+    } catch {
+      /* utan koden fungerar kassan som vanligt */
+    }
   }, []);
 
   // Tillbaka från Wix betalsida? Är ordern betald går kunden till tacksidan.
@@ -441,8 +498,18 @@ export function Kassa({
   // Korgens innehåll (rader och antal): ändras det i varukorgslådan räknas summan om.
   const korgSignatur = rader.map((li) => `${li._id}:${li.quantity ?? 1}`).join("|");
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- Wix räkning hämtas när korgen blir känd i webbläsaren
-    if (cartId) rakna();
+    if (!cartId) return;
+    // Rabattkoden från påminnelsemejlet läggs på i samma räkning, så att två
+    // räkningar inte tävlar om summeringen. Medlemskorgen har låst kupong.
+    const kod = last ? null : mejlKod.current;
+    if (kod) {
+      mejlKod.current = null;
+      setKupong(kod);
+      void rakna({ kupong: kod }).then((j) => setKupongOppen(!(j?.kupong && !j.kupongFel)));
+      return;
+    }
+    // Wix räkning hämtas när korgen blir känd i webbläsaren.
+    rakna();
     // Bara när korgen eller dess innehåll byts; postnumret räknas vid blur.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cartId, korgSignatur]);
@@ -484,6 +551,7 @@ export function Kassa({
     if (f === "telefon") setVarden((x) => ({ ...x, telefon: snyggtTelefon(x.telefon.trim()) }));
     if (f === "epost") setVarden((x) => ({ ...x, epost: x.epost.trim() }));
     if (f === "postnr") postnrKlart();
+    if (f === "epost" || f === "telefon") skickaKontakt(varden);
   };
 
   /** Uppgifterna sparas bara om kunden valt det; annars tas det som sparats förut bort. */
@@ -1060,7 +1128,13 @@ export function Kassa({
   const epostHjalp = epostTips ? (
     <span className={s.forslag}>
       Menade du{" "}
-      <button type="button" onClick={() => setVarden((x) => ({ ...x, epost: epostTips }))}>
+      <button
+        type="button"
+        onClick={() => {
+          setVarden((x) => ({ ...x, epost: epostTips }));
+          skickaKontakt({ ...varden, epost: epostTips });
+        }}
+      >
         {epostTips}
       </button>
       ?
