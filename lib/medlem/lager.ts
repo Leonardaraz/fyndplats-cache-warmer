@@ -30,6 +30,7 @@ import {
   type Rad,
 } from "@/lib/wix-lager";
 import { liggarradUrWix, type Liggarrad } from "./orderliggare";
+import { liggarradArKop } from "../order-raknas";
 import { REGLER_V1, reglerFel, type Regler, type Varning } from "./niva";
 import { medlemsId, taForsok } from "./inloggning";
 
@@ -342,8 +343,13 @@ export async function liggarraderFor(orderIdn: string[]): Promise<Map<string, Li
   return ut;
 }
 
+/**
+ * E-postens rader som är köp. Obetalda och avbrutna försök ur vår kassa
+ * (lib/order-raknas.ts) visas aldrig på Mina sidor, inte heller de som skrevs
+ * innan liggaren började hoppa över dem (2026-11-06).
+ */
 export async function liggarraderForEpost(epost: string): Promise<Liggarrad[]> {
-  return (await allaRader(MK.orderliggare, { filter: { epost } })).map(liggarradUrWix);
+  return (await allaRader(MK.orderliggare, { filter: { epost } })).map(liggarradUrWix).filter(liggarradArKop);
 }
 
 /** Alla rader betalda efter `sedanIso`: underlaget för nattens nivåer. */

@@ -12,10 +12,17 @@
 //
 // Raden räknas alltid om ur den aktuella ordern, aldrig ur händelsens
 // payload: den är auktoritativ och bär betalhändelserna.
+//
+// ☠️ BARA KÖP HÖR HEMMA I LIGGAREN (`arKop`, lib/order-raknas.ts). Vår kassa
+// skapar ordern innan kunden betalar, och ett övergivet försök blir en obetald,
+// avbruten order med nummer 0. Webhooken hör aldrig om dem, så avstämningen
+// kallade varje sådant försök en avvikelse (natten mot 2026-11-06: 12 av 12
+// var provordrar ur kassan), och Mina sidor visade det som en avbruten order.
 
 import { behoverTransaktioner, liggarradUrOrder, skillnader, type Liggarrad, type WixOrder } from "./orderliggare";
 import { hamtaOrder, hamtaTransaktioner, sokOrdrar } from "./wix-ordrar";
 import { hamtaLiggarrad, liggarraderFor, loggaTyst, sparaLiggarrad, sparaLiggarrader, type Kalla } from "./lager";
+import { arKop } from "../order-raknas";
 
 const felText = (e: unknown) => (e instanceof Error ? e.message : String(e)).slice(0, 160);
 
@@ -25,12 +32,13 @@ async function radFor(order: WixOrder): Promise<Liggarrad> {
   return liggarradUrOrder(order, tx);
 }
 
-export type Uppdatering = { utfall: "ny" | "andrad" | "oforandrad" | "saknas"; falt: string[]; rad: Liggarrad | null };
+export type Uppdatering = { utfall: "ny" | "andrad" | "oforandrad" | "saknas" | "inget-kop"; falt: string[]; rad: Liggarrad | null };
 
 /** Läser om en order och skriver raden om den är ny eller har ändrats. */
 export async function uppdateraOrderliggare(orderId: string, kalla: Kalla): Promise<Uppdatering> {
   const order = await hamtaOrder(orderId);
   if (!order) return { utfall: "saknas", falt: [], rad: null };
+  if (!arKop(order)) return { utfall: "inget-kop", falt: [], rad: null };
   const rad = await radFor(order);
   const forra = await hamtaLiggarrad(rad.orderId);
   const falt = forra ? skillnader(forra, rad) : [];
@@ -93,6 +101,7 @@ async function genomga(opts: {
       const id = String(order.id ?? order._id ?? "");
       const tid = String(order[opts.falt] ?? "");
       if (tid) g.position = tid;
+      if (!arKop(order)) continue;
       const forra = befintliga.get(id);
       if (forra && !opts.stam) continue;
       let rad: Liggarrad;
