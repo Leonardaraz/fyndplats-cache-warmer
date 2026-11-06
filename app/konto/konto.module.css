@@ -624,6 +624,11 @@
   background: var(--brand);
   box-shadow: 0 0 0 4px rgba(194, 65, 12, 0.14);
 }
+/* Medlemspriset gäller: grön prick, samma gröna som sidans övriga bekräftelser. */
+.snart[data-pa] .snartPrick {
+  background: #1f6b3a;
+  box-shadow: 0 0 0 4px rgba(31, 107, 58, 0.14);
+}
 
 .not {
   margin: 12px 0 0;

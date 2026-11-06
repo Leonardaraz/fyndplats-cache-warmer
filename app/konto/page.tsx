@@ -185,11 +185,23 @@ export default async function Konto({ searchParams }: { searchParams: Promise<So
   }
   if (session && data) {
     const idn = new Set(data.ordrar.flatMap((o) => o.varor.map((v) => v.produktId).filter((x): x is string => Boolean(x))));
-    const [bilder, ft, korgar] = await Promise.all([produktbilder(idn), foretagsdel(data.medlem, session.profil), sparade(data.medlem)]);
+    const [bilder, ft, korgar, pl] = await Promise.all([
+      produktbilder(idn),
+      foretagsdel(data.medlem, session.profil),
+      sparade(data.medlem),
+      prisLage(),
+    ]);
     return (
       <section className="sec">
         <div className={`container ${s.ram}`}>
-          <MinaSidorVy data={data} bilder={bilder} foretag={ft.ruta} handlarSom={ft.handlarSom} sparade={korgar} />
+          <MinaSidorVy
+            data={data}
+            bilder={bilder}
+            foretag={ft.ruta}
+            handlarSom={ft.handlarSom}
+            sparade={korgar}
+            prisOppet={prisOppet(pl, data.medlem)}
+          />
         </div>
         <FornyaSession />
       </section>
@@ -219,7 +231,7 @@ export default async function Konto({ searchParams }: { searchParams: Promise<So
           </div>
           <aside className={s.formaner} aria-label="Det här får du som medlem">
             <Kortfacka />
-            <Formaner />
+            <Formaner prisPa={(await prisLage()) === "pa"} />
           </aside>
         </div>
       </div>

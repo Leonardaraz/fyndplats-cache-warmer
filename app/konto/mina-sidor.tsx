@@ -28,8 +28,13 @@ const STATUS: Record<OrderPaMinaSidor["status"], { text: string; ton: "ok" | "va
   obetald: { text: "Inte betald", ton: "varning" },
 };
 
-/** Texten tills medlemspriset finns i kassan (E2). */
+/** Texten tills medlemspriset gäller för medlemmen (prisväxeln, E2). */
 export const RABATT_INTE_AN = "Medlemsrabatten gäller ännu inte i kassan.";
+
+/** När medlemspriset gäller: var det syns och vad det inte gäller (Leonard 2026-11-05, 2.1). */
+export const PRIS_GALLER = "Ditt medlemspris visas på varorna, i varukorgen och i kassan.";
+export const RABATT_UNDANTAG =
+  "Medlemsrabatten gäller det mesta i sortimentet, men inte reavaror eller Fyndauktionen, och går inte att kombinera med rabattkoder.";
 
 /** Produktens bild och adress ur katalogen, per Wix-produkt-id. */
 export type Produktbilder = Record<string, { img?: string; slug?: string }>;
@@ -63,6 +68,7 @@ export function MinaSidorVy({
   foretag,
   handlarSom,
   sparade,
+  prisOppet = false,
 }: {
   data: MinaSidor;
   bilder?: Produktbilder;
@@ -72,6 +78,8 @@ export function MinaSidorVy({
   handlarSom?: string | null;
   /** E3: sparade varukorgar; saknas när växeln är av och kontot inte har några, eller när de inte gick att läsa. */
   sparade?: SparadeKorgarVy;
+  /** Medlemspriset gäller för medlemmen (`prisOppet`): då lovar sidan inget som redan finns. */
+  prisOppet?: boolean;
 }) {
   const { lage, regler, ordrar, medlem } = data;
   const raknas = new Map(lage.raknade.map((r) => [r.orderId, r]));
@@ -144,10 +152,17 @@ export function MinaSidorVy({
               {lage.manuell.tillDag !== null ? ` till och med ${dagSomText(lage.manuell.tillDag)}` : ""}.
             </p>
           ) : null}
-          <p className={s.snart}>
-            <span className={s.snartPrick} aria-hidden="true" />
-            Medlemspriser i kassan kommer snart. Din nivå räknas redan nu.
-          </p>
+          {prisOppet ? (
+            <p className={s.snart} data-pa="">
+              <span className={s.snartPrick} aria-hidden="true" />
+              {PRIS_GALLER}
+            </p>
+          ) : (
+            <p className={s.snart}>
+              <span className={s.snartPrick} aria-hidden="true" />
+              Medlemspriser i kassan kommer snart. Din nivå räknas redan nu.
+            </p>
+          )}
         </section>
       </div>
 
@@ -197,7 +212,7 @@ export function MinaSidorVy({
           </li>
         ))}
       </ol>
-      <p className={s.not}>{RABATT_INTE_AN} Rabatterna gäller från att medlemspriserna startar.</p>
+      <p className={s.not}>{prisOppet ? RABATT_UNDANTAG : `${RABATT_INTE_AN} Rabatterna gäller från att medlemspriserna startar.`}</p>
 
       <h2 className={s.underrubrik}>Dina ordrar</h2>
       {ordrar.length ? (
