@@ -7,13 +7,15 @@
 //
 // Flödet på sidan (servern: lib/kassa/flode.ts):
 //   1. Betalfältet (Stripe Payment Element) visas direkt, utan PaymentIntent.
-//   2. "Betala": elements.submit() FÖRST, i själva trycket (Apple Pay öppnar
-//      sitt blad bara i ett tryck), sedan /api/kassa/stripe/forbered, som
-//      också ger faktureringsuppgifterna (faktureringAv i flode.ts).
-//   3. stripe.confirmPayment med dem. Kort, Apple Pay och Google Pay stannar
-//      på sidan; Klarna går till Klarna och kommer tillbaka via
-//      /api/kassa/stripe/retur.
+//   2. "Betala": elements.submit() FÖRST, i själva trycket (Stripe prövar
+//      fälten innan betalningen skapas, och ett plånboksblad öppnas bara i ett
+//      tryck), sedan /api/kassa/stripe/forbered, som också ger
+//      faktureringsuppgifterna (faktureringAv i flode.ts).
+//   3. stripe.confirmPayment med dem. Kortet stannar på sidan; Klarna går
+//      till Klarna och kommer tillbaka via /api/kassa/stripe/retur.
 //   4. /api/kassa/stripe/klar gör ordern (vantaPaOrder), och kunden går till /tack.
+// Apple Pay och Google Pay har en egen väg överst på sidan: snabbkassan
+// (lib/kassa/snabbkassa.ts), med samma steg 2–4.
 
 import type { Appearance, StripeAddressElementOptions, StripeElementsOptionsMode, StripePaymentElementOptions } from "@stripe/stripe-js";
 
@@ -111,12 +113,17 @@ export function elementsInstallningar(totalOre: number): StripeElementsOptionsMo
  * "betala om 30 dagar" och delbetalning. Ett brott räknas som otillbörlig
  * marknadsföring (KO). Fältet fäller ut det första valet (defaultCollapsed
  * false), alltså kortet; Klarna väljs aktivt. Ordningen låses i proven.
+ *
+ * Apple Pay och Google Pay står INTE här utan överst på sidan, i snabbkassan
+ * (lib/kassa/snabbkassa.ts; Leonard 2026-11-06: "Jag vill att vi har apple pay
+ * o google pay överst"). Där ger plånboken namn och adress, så kunden slipper
+ * formuläret; här hade de stått en gång till.
  */
 export const BETALFALT: StripePaymentElementOptions = {
   layout: { type: "accordion", defaultCollapsed: false, radios: true, spacedAccordionItems: true },
-  paymentMethodOrder: ["card", "apple_pay", "google_pay", "klarna"],
+  paymentMethodOrder: ["card", "klarna"],
   fields: { billingDetails: "never" },
-  wallets: { applePay: "auto", googlePay: "auto", link: "never" },
+  wallets: { applePay: "never", googlePay: "never", link: "never" },
   business: { name: "Fyndplats" },
 };
 

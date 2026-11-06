@@ -378,3 +378,68 @@ export function adressFranStripe(v: StripeAdressVarde): { fornamn: string; efter
 
 /** Fälten som står i Stripes adressfält när kassan använder det (resten är kassans egna). */
 export const ADRESS_FALT: readonly Falt[] = ["fornamn", "efternamn", "gata", "rad2", "co", "postnr", "ort"];
+
+// ── Plånboken (snabbkassan) ────────────────────────────────────────────────
+
+/**
+ * Det kassan läser ur Apple Pay och Google Pay (Stripes Express Checkout
+ * Element, händelsen "confirm"): e-post och telefon i `billingDetails`, namn
+ * och adress i `shippingAddress`.
+ */
+export interface PlanbokVarde {
+  billingDetails?: { name?: string | null; email?: string | null; phone?: string | null } | null;
+  shippingAddress?: {
+    name?: string | null;
+    address?: {
+      line1?: string | null;
+      line2?: string | null;
+      city?: string | null;
+      state?: string | null;
+      postal_code?: string | null;
+      country?: string | null;
+    } | null;
+  } | null;
+}
+
+/**
+ * Ett namn på en rad ("Anna Maria Svensson") som kassans två fält: efternamnet
+ * är sista ordet och förnamnet resten, eftersom dubbla förnamn är vanligare än
+ * dubbla efternamn. Apple Pay har för- och efternamn var för sig, men Stripe
+ * skickar dem som en rad, och Google Pay har bara raden. Hela namnet står
+ * ändå kvar i samma ordning på ordern och paketet.
+ */
+export function delaNamn(namn: unknown): { fornamn: string; efternamn: string } {
+  const ord = text(namn).split(" ").filter(Boolean);
+  if (ord.length < 2) return { fornamn: ord[0] ?? "", efternamn: "" };
+  return { fornamn: ord.slice(0, -1).join(" "), efternamn: ord[ord.length - 1] };
+}
+
+/**
+ * Plånbokens uppgifter som kassans formulär. provaKassa prövar dem sedan som
+ * om kunden skrivit dem själv. Namnet kommer från leveransadressen; saknar den
+ * efternamn används kortets namn om det har både för- och efternamn. Länet
+ * kommer ur plånbokens region ("Hallands län"), annars ur postnumret.
+ * `epost` ersätter plånbokens e-post när kassan redan vet vem kunden är
+ * (medlemmens korg): köpet ska räknas på kontot.
+ */
+export function kundFranPlanbok(p: PlanbokVarde, o: { kupong?: string; epost?: string | null } = {}): KassaIn {
+  const lev = p.shippingAddress ?? {};
+  const a = lev.address ?? {};
+  const kandidater = [text(lev.name), text(p.billingDetails?.name)].filter(Boolean);
+  const namn = kandidater.find((n) => n.includes(" ")) ?? kandidater[0] ?? "";
+  const { fornamn, efternamn } = delaNamn(namn);
+  const pn = text(a.postal_code);
+  return {
+    epost: text(o.epost) || text(p.billingDetails?.email),
+    telefon: text(p.billingDetails?.phone),
+    fornamn,
+    efternamn,
+    gata: text(a.line1),
+    rad2: text(a.line2),
+    co: "",
+    postnr: pn,
+    ort: text(a.city),
+    lan: lanFranText(a.state) ?? lanFranPostnr(pn) ?? "",
+    kupong: o.kupong ?? "",
+  };
+}
