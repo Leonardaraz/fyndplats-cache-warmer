@@ -1028,3 +1028,293 @@ export async function slutforStripe(deps: StripeKassaDeps, avsiktId: string, nu:
   await deps.sparaLas(a.id, { ...las, steg: "klar" }).catch(() => {});
   return { ok: true, orderId: orderId! };
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Återbetalningar för Stripe-kassans ordrar (2026-11-06)
+//
+// Leonard återbetalar i Wix som för alla andra ordrar: där väljs raderna och
+// frakten, och medlemskapets orderliggare läser uppdelningen per rad.
+// Stripe-betalningen står på ordern som en betalning Wix inte själv kan betala
+// tillbaka (registreraBetalning, `refundDisabled: false`): Wix bokför
+// återbetalningen som manuell, men pengarna ligger i Stripe. Butiken speglar
+// den: summan av Wix lyckade återbetalningar på betalningen jämförs med vad
+// Stripe redan betalat tillbaka på laddningen, och skillnaden betalas tillbaka
+// i Stripe. Wix-webhooken (refund) gör det direkt; nätet
+// (/api/cron/kassa-stripe) tar det som blev liggande och larmar.
+//
+// ☠️ BARA AUKTORITATIV DATA. Wix-webhooken bär ett order-id och kan vara
+// lookup-verifierad, inte signerad: beloppen läses alltid ur orderns
+// transaktioner i Wix och laddningen i Stripe, aldrig ur meddelandet. Ett
+// påhittat meddelande kan bara få butiken att göra det Wix redan säger.
+//
+// ☠️ EN GÅNG. Idempotensnyckeln är laddningen och det Stripe redan betalat
+// tillbaka (fp-ater-<laddning>-<öre i Stripe>), inte Wix summa. Två
+// speglingar som läst samma läge i Stripe (webhooken och nätet, eller två
+// återbetalningar i Wix tätt efter varandra) får samma nyckel, och Stripe gör
+// bara en av dem: samma belopp ger samma svar igen, ett annat belopp nekas, och
+// den nekade läser om båda sidor och försöker igen. Efter en återbetalning är
+// Stripes summa en annan, och nästa nyckel också. Med Wix summa i nyckeln
+// skulle två speglingar som läst olika Wix-summor men samma Stripe-summa båda
+// gå igenom, och kunden få tillbaka för mycket. Skillnaden räknas alltid mot
+// Stripes egen summa, så en spegling som redan är gjord gör ingenting.
+//
+// ☠️ STRIPE FÖRE WIX LARMAR, rättas inte. Det som betalats tillbaka i Stripes
+// panel har ingen uppdelning per rad att bokföra; det görs i Wix av en
+// människa. Därför: återbetala bara i Wix.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** En betalning på ordern (List Transactions For Single Order): fälten speglingen läser. */
+export interface WixOrderBetalning {
+  id?: string;
+  amount?: Pengar;
+  regularPaymentDetails?: { providerTransactionId?: string; offlinePayment?: boolean };
+}
+
+/** En återbetalning på ordern, med en transaktion per betalning den gäller. */
+export interface WixOrderAterbetalning {
+  id?: string;
+  transactions?: { paymentId?: string; amount?: Pengar; refundStatus?: string }[];
+}
+
+export interface OrderTransaktioner {
+  payments: WixOrderBetalning[];
+  refunds: WixOrderAterbetalning[];
+}
+
+/** Stripes laddning med betalningens metadata (lib/kassa/stripe.ts, hamtaLaddning). */
+export interface Laddning {
+  id: string;
+  /** Dragna öre. */
+  dragetOre: number;
+  /** Återbetalda öre, också de som pågår. */
+  aterbetaltOre: number;
+  valuta: string;
+  /** Kunden har bestridit betalningen: Stripe tar inga återbetalningar då. */
+  tvist: boolean;
+  /** Betalningens metadata: kalla, cartId och (efter ordern) wixOrderId. */
+  metadata: Record<string, string>;
+  /** Unix-sekunder för den senaste återbetalningen i Stripe, eller null. */
+  senastAterbetaldSek: number | null;
+}
+
+/** En Stripe-betalning på ordern och vad Wix säger är återbetalt på den. */
+export interface WixStripeBetalning {
+  betalningId: string;
+  /** Stripes id som kassan sparade på ordern (laddningen, annars betalningen). */
+  transaktion: string;
+  beloppOre: number | null;
+  /** Summan av Wix lyckade återbetalningar på betalningen. */
+  aterbetaltOre: number;
+  /** En återbetalning i Wix väntar på sitt utfall. */
+  pagar: boolean;
+  /** En återbetalning har ett belopp som inte går att läsa. */
+  okant: boolean;
+}
+
+export type AterLarmskal = "inte_kassans" | "annan_order" | "okant_belopp" | "olika_belopp" | "over_beloppet" | "tvist" | "stripe_fore_wix" | "fel";
+
+export type Speglingsbeslut =
+  | { gor: "inget"; skal: "lika" | "inte_var" }
+  | { gor: "vanta" }
+  | { gor: "larm"; skal: Exclude<AterLarmskal, "fel"> }
+  | { gor: "aterbetala"; ore: number; nyckel: string };
+
+/** Står i återbetalningens metadata.kalla i Stripe: speglad från Wix. */
+export const STRIPE_ATER_KALLA = "fp-kassa-ater";
+
+const WIX_ATER_PAGAR = new Set(["PENDING", "STARTED", "SCHEDULED"]);
+
+/** Stripes id för en laddning (ch_, py_) eller en betalning (pi_), som kassan sparar på ordern. */
+export function arStripeTransaktion(id: string | undefined): id is string {
+  return typeof id === "string" && /^(ch|py|pi)_[A-Za-z0-9]+$/.test(id);
+}
+
+/**
+ * Orderns betalningar med Stripes id, med det Wix säger är återbetalt på var
+ * och en. Wix egna betalningar (Wix Payments, Klarna via Wix) bär Wix och
+ * leverantörens id och hoppas över; en med ett Stripe-likt id som inte är vår
+ * hittas inte i vårt Stripe-konto (speglingsbeslut "inte_var").
+ */
+export function wixStripeBetalningar(t: OrderTransaktioner): WixStripeBetalning[] {
+  const ut: WixStripeBetalning[] = [];
+  for (const p of t.payments) {
+    const transaktion = p.regularPaymentDetails?.providerTransactionId;
+    if (!p.id || p.regularPaymentDetails?.offlinePayment || !arStripeTransaktion(transaktion)) continue;
+    let aterbetaltOre = 0;
+    let pagar = false;
+    let okant = false;
+    for (const r of t.refunds) {
+      for (const tx of r.transactions ?? []) {
+        if (tx.paymentId !== p.id) continue;
+        if (tx.refundStatus === "SUCCEEDED") {
+          const ore = oreAv(tx.amount);
+          if (ore === null || ore < 0) okant = true;
+          else aterbetaltOre += ore;
+        } else if (WIX_ATER_PAGAR.has(tx.refundStatus ?? "")) pagar = true;
+      }
+    }
+    ut.push({ betalningId: p.id, transaktion, beloppOre: oreAv(p.amount), aterbetaltOre, pagar, okant });
+  }
+  return ut;
+}
+
+/**
+ * Vad som ska göras med en Stripe-betalning på ordern, ur Wix och Stripes
+ * egna siffror. Allt som inte stämmer larmar i stället för att flytta pengar.
+ */
+export function speglingsbeslut(orderId: string, b: WixStripeBetalning, l: Laddning | null): Speglingsbeslut {
+  if (!l) return { gor: "inget", skal: "inte_var" };
+  if (l.metadata.kalla !== STRIPE_KALLA) return { gor: "larm", skal: "inte_kassans" };
+  if (l.metadata.wixOrderId && l.metadata.wixOrderId !== orderId) return { gor: "larm", skal: "annan_order" };
+  if (b.okant || b.beloppOre === null) return { gor: "larm", skal: "okant_belopp" };
+  if (b.beloppOre !== l.dragetOre || l.valuta !== "sek") return { gor: "larm", skal: "olika_belopp" };
+  if (b.aterbetaltOre > l.dragetOre) return { gor: "larm", skal: "over_beloppet" };
+  if (l.aterbetaltOre > b.aterbetaltOre) return { gor: "larm", skal: "stripe_fore_wix" };
+  if (l.aterbetaltOre === b.aterbetaltOre) return b.pagar ? { gor: "vanta" } : { gor: "inget", skal: "lika" };
+  if (l.tvist) return { gor: "larm", skal: "tvist" };
+  return { gor: "aterbetala", ore: b.aterbetaltOre - l.aterbetaltOre, nyckel: `fp-ater-${l.id}-${l.aterbetaltOre}` };
+}
+
+export interface AterbetalningDeps {
+  orderTransaktioner(orderId: string): Promise<OrderTransaktioner>;
+  /** Null när laddningen inte finns i vårt Stripe-konto. */
+  hamtaLaddning(id: string): Promise<Laddning | null>;
+  /** En del av laddningen tillbaka; Stripes svar (status: pending, succeeded, failed …). */
+  aterbetalaDel(laddning: string, ore: number, nyckel: string, metadata: Record<string, string>): Promise<{ id: string; status: string }>;
+  logg?(rad: string): void;
+  /** Paus före ett omtag efter en krock (proven skickar en som inte väntar). */
+  vila?(ms: number): Promise<void>;
+}
+
+/** Stripes fel (lib/kassa/stripe.ts, StripeFel) känns igen på namnet: flode.ts importerar inget. */
+function stripeFelet(e: unknown): { status: number; typ: string | null; kod: string | null } | null {
+  if (!(e instanceof Error) || e.name !== "StripeFel") return null;
+  const f = e as Error & { status?: unknown; typ?: unknown; kod?: unknown };
+  return { status: typeof f.status === "number" ? f.status : 0, typ: typeof f.typ === "string" ? f.typ : null, kod: typeof f.kod === "string" ? f.kod : null };
+}
+
+/** En annan spegling hann före med samma nyckel (samma läge i Stripe): läs om och försök igen. */
+function arKrock(e: unknown): boolean {
+  const f = stripeFelet(e);
+  return !!f && (f.typ === "idempotency_error" || f.kod === "idempotency_key_in_use" || f.status === 409);
+}
+
+export interface Speglingslarm {
+  skal: AterLarmskal;
+  /** Stripes id, för att hitta laddningen i panelen. */
+  laddning: string;
+  wixOre: number;
+  stripeOre: number;
+  /** Stripes senaste återbetalning (unix-sekunder): ett larm om Stripe före Wix väntar på den. */
+  senastAterbetaldSek: number | null;
+  /** Vid fel: Stripes felkod eller återbetalningens status. */
+  kod?: string;
+}
+
+export interface Speglingsutfall {
+  /** Antal återbetalningar som gjordes i Stripe nu. */
+  aterbetalda: number;
+  /** En återbetalning i Wix väntar på sitt utfall: fråga igen senare. */
+  vantar: boolean;
+  larm: Speglingslarm[];
+}
+
+/** Omtag efter en krock med en samtidig spegling, innan nätet får ta det. */
+const SPEGLING_RUNDOR = 3;
+
+/**
+ * Orderns återbetalningar i Wix → Stripe. Idempotent och säker att köra
+ * samtidigt och hur ofta som helst (se ☠️ ovan). Kastar bara när Wix eller
+ * Stripe inte går att läsa; ett nekat återbetalningsanrop blir ett larm, och en
+ * krock med en samtidig spegling ett omtag med båda sidor lästa på nytt.
+ */
+export async function speglaAterbetalningar(deps: AterbetalningDeps, orderId: string): Promise<Speglingsutfall> {
+  const vila = deps.vila ?? ((ms: number) => new Promise<void>((klar) => setTimeout(klar, ms)));
+  let aterbetalda = 0;
+  for (let runda = 1; ; runda++) {
+    const r = await speglaEnRunda(deps, orderId);
+    aterbetalda += r.aterbetalda;
+    if (!r.krock || runda >= SPEGLING_RUNDOR) return { aterbetalda, vantar: r.vantar || r.krock, larm: r.larm };
+    await vila(300 * runda);
+  }
+}
+
+async function speglaEnRunda(deps: AterbetalningDeps, orderId: string): Promise<Speglingsutfall & { krock: boolean }> {
+  const logg = deps.logg ?? (() => {});
+  const utfall = { aterbetalda: 0, vantar: false, larm: [] as Speglingslarm[], krock: false };
+  for (const b of wixStripeBetalningar(await deps.orderTransaktioner(orderId))) {
+    const l = await deps.hamtaLaddning(b.transaktion);
+    const beslut = speglingsbeslut(orderId, b, l);
+    const larm = (skal: AterLarmskal, kod?: string) =>
+      utfall.larm.push({
+        skal,
+        laddning: l?.id ?? b.transaktion,
+        wixOre: b.aterbetaltOre,
+        stripeOre: l?.aterbetaltOre ?? 0,
+        senastAterbetaldSek: l?.senastAterbetaldSek ?? null,
+        ...(kod ? { kod } : {}),
+      });
+    if (beslut.gor === "vanta") utfall.vantar = true;
+    else if (beslut.gor === "larm") {
+      larm(beslut.skal);
+      // Stripe före Wix är oftast en människa mitt i ett steg (pengarna tillbaka i
+      // Stripe, Wix inte bokfört än): varning, inte fel. Nätet larmar om det står kvar.
+      logg(`[kassa-ater] ${beslut.skal === "stripe_fore_wix" ? "" : "☠️ "}${beslut.skal}: ingen återbetalning gjord`);
+    } else if (beslut.gor === "aterbetala") {
+      try {
+        const r = await deps.aterbetalaDel(l!.id, beslut.ore, beslut.nyckel, { kalla: STRIPE_ATER_KALLA, wixOrderId: orderId });
+        if (r.status === "failed" || r.status === "canceled") {
+          larm("fel", r.status);
+          logg(`[kassa-ater] ☠️ återbetalningen i Stripe blev ${r.status}`);
+        } else {
+          utfall.aterbetalda++;
+          logg(`[kassa-ater] återbetalningen från Wix gjord i Stripe (${r.status})`);
+        }
+      } catch (e) {
+        const f = stripeFelet(e);
+        if (arKrock(e)) {
+          utfall.krock = true;
+          logg("[kassa-ater] en annan spegling hann före: läser om");
+        } else if (!f) {
+          // Inget svar (nätet, tidsgränsen): återbetalningen kan ha gått igenom.
+          // Nästa spegling läser Stripes summa och ser vilket.
+          utfall.vantar = true;
+          logg(`[kassa-ater] ☠️ inget svar från Stripe på återbetalningen (läses om): ${e instanceof Error ? e.message.slice(0, 200) : e}`);
+        } else {
+          larm("fel", f.kod ?? f.typ ?? String(f.status));
+          logg(`[kassa-ater] ☠️ Stripe nekade återbetalningen: ${f.kod ?? f.typ ?? f.status}`);
+        }
+      }
+    }
+  }
+  return utfall;
+}
+
+/**
+ * Ska larmet mejlas nu? Stripe före Wix väntar NAT_LARM_SEK efter Stripes
+ * senaste återbetalning (Leonard bokför den kanske i Wix just nu); allt annat
+ * direkt. Nätet mejlar varje läge en gång (larmnyckel).
+ */
+export function larmNu(l: Speglingslarm, nuSek: number): boolean {
+  if (l.skal !== "stripe_fore_wix") return true;
+  return l.senastAterbetaldSek !== null && nuSek - l.senastAterbetaldSek >= NAT_LARM_SEK;
+}
+
+/** Samma läge ger samma nyckel: ett nytt belopp i Wix eller Stripe är ett nytt läge och ett nytt mejl. */
+export function larmnyckel(orderId: string, l: Speglingslarm): string {
+  return `kassa-ater:${orderId}:${l.laddning}:${l.skal}:${l.wixOre}:${l.stripeOre}`;
+}
+
+/**
+ * Ordrarna bakom Stripes återbetalningar (nätet läser dem för att se det som
+ * gjorts i Stripes panel och inte i Wix): bara kassans betalningar med en
+ * order, varje order en gång.
+ */
+export function ordrarMedStripeAterbetalning(rader: { metadata: Record<string, string> | null }[]): string[] {
+  const ut = new Set<string>();
+  for (const r of rader) {
+    const m = r.metadata;
+    if (m?.kalla === STRIPE_KALLA && m.wixOrderId) ut.add(m.wixOrderId);
+  }
+  return [...ut];
+}

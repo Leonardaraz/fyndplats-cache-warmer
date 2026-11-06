@@ -17,6 +17,7 @@
 // returnerar 200 (ack — vi vill inte att Wix ska spamma retries).
 
 import { avslutaKorg } from "@/lib/kassa/wix-kassa";
+import { speglaEfterWebhook } from "@/lib/kassa/stripe-kassa";
 import { NextResponse, after, type NextRequest } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
 import crypto from "node:crypto";
@@ -1336,6 +1337,15 @@ export async function POST(req: NextRequest) {
   if (kind === "order_created" || kind === "order_cancelled" || kind === "refund") {
     const liggarOrder = orderIdForVerification(kind, entity, entityId);
     after(() => uppdateraOrderliggareTyst(liggarOrder, "webhook"));
+  }
+
+  // Stripe-kassans ordrar: en återbetalning i Wix görs också i Stripe, där
+  // pengarna ligger (speglaAterbetalningar i lib/kassa/flode.ts). Bara
+  // order-id:t tas ur meddelandet; beloppen läses ur Wix och Stripe. Efter
+  // svaret, som orderliggaren; nätet (/api/cron/kassa-stripe) tar det som faller.
+  if (kind === "refund") {
+    const aterOrder = orderIdForVerification(kind, entity, entityId);
+    if (aterOrder) after(() => speglaEfterWebhook(aterOrder));
   }
 
   // resend null när RESEND_API_KEY saknas — varje emails.send-anrop nedan är

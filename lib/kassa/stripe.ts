@@ -15,7 +15,7 @@
 // vid varje anrop och skrivs aldrig i en logg eller ett svar.
 
 import { createHmac, timingSafeEqual } from "node:crypto";
-import type { Avsikt, AvsiktParametrar } from "./flode";
+import type { Avsikt, AvsiktParametrar, Laddning } from "./flode";
 
 /** API-versionen anropen är skrivna mot. Byts bara efter att svaren lästs igen. */
 export const STRIPE_VERSION = "2025-03-31.basil";
@@ -216,24 +216,116 @@ export async function markeraAvsikt(id: string, orderId: string): Promise<void> 
   await stripeAnrop("POST", `/payment_intents/${encodeURIComponent(id)}`, { metadata: { wixOrderId: orderId } });
 }
 
-/**
- * Kontots betalningar skapade efter `sedanSek`, nyaste först (List
- * PaymentIntents, inte Search: listan är alltid aktuell, sökningen kan ligga
- * en minut efter). Högst `maxSidor` × 100, för nätet (/api/cron/kassa-stripe).
- */
-export async function listaAvsikter(sedanSek: number, maxSidor = 5): Promise<Avsikt[]> {
-  const ut: Avsikt[] = [];
+/** En lista i Stripe sida för sida (List, inte Search: listan är alltid aktuell, sökningen kan ligga en minut efter). */
+async function listaAlla<T extends { id: string }>(sokvag: string, params: Record<string, Varde>, maxSidor: number): Promise<T[]> {
+  const ut: T[] = [];
   let efter: string | null = null;
   for (let sida = 0; sida < maxSidor; sida++) {
-    const svar: { data?: Avsikt[]; has_more?: boolean } = await stripeAnrop("GET", "/payment_intents", {
-      limit: 100,
-      created: { gte: sedanSek },
-      ...(efter ? { starting_after: efter } : {}),
-    });
+    const svar: { data?: T[]; has_more?: boolean } = await stripeAnrop("GET", sokvag, { limit: 100, ...params, ...(efter ? { starting_after: efter } : {}) });
     const data = svar?.data ?? [];
     ut.push(...data);
     if (!svar?.has_more || data.length === 0) break;
     efter = data[data.length - 1].id;
   }
   return ut;
+}
+
+/**
+ * Kontots betalningar skapade efter `sedanSek`, nyaste först. Högst
+ * `maxSidor` × 100, för nätet (/api/cron/kassa-stripe).
+ */
+export async function listaAvsikter(sedanSek: number, maxSidor = 5): Promise<Avsikt[]> {
+  return listaAlla<Avsikt>("/payment_intents", { created: { gte: sedanSek } }, maxSidor);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Återbetalningar och tvister (speglaAterbetalningar i lib/kassa/flode.ts, och
+// nätet). Belopp i öre, som Stripe skriver dem.
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface StripeLaddning {
+  id: string;
+  amount_captured: number;
+  amount_refunded: number;
+  currency: string;
+  disputed: boolean;
+  payment_intent: string | { id: string; metadata?: Record<string, string> } | null;
+  /** Utbyggd: de senaste återbetalningarna, nyaste först. */
+  refunds?: { data?: { created?: number }[] } | null;
+}
+
+function laddningAv(c: StripeLaddning, metadata: Record<string, string> | undefined): Laddning {
+  return {
+    id: c.id,
+    dragetOre: c.amount_captured,
+    aterbetaltOre: c.amount_refunded,
+    valuta: c.currency,
+    tvist: c.disputed,
+    metadata: metadata ?? {},
+    senastAterbetaldSek: c.refunds?.data?.[0]?.created ?? null,
+  };
+}
+
+/**
+ * Laddningen bakom id:t som kassan sparade på Wix-ordern (laddningens ch_/py_,
+ * eller betalningens pi_ om laddningen saknades), med betalningens metadata.
+ * Null när den inte finns i vårt konto: Wix Payments egna betalningar kan bära
+ * Stripe-lika id:n från Wix eget konto.
+ */
+export async function hamtaLaddning(id: string): Promise<Laddning | null> {
+  try {
+    if (/^pi_[A-Za-z0-9]+$/.test(id)) {
+      const a = await stripeAnrop<{ metadata?: Record<string, string>; latest_charge: StripeLaddning | string | null }>("GET", `/payment_intents/${id}`, {
+        expand: ["latest_charge", "latest_charge.refunds"],
+      });
+      return typeof a.latest_charge === "object" && a.latest_charge ? laddningAv(a.latest_charge, a.metadata) : null;
+    }
+    if (/^(ch|py)_[A-Za-z0-9]+$/.test(id)) {
+      const c = await stripeAnrop<StripeLaddning>("GET", `/charges/${id}`, { expand: ["payment_intent", "refunds"] });
+      return laddningAv(c, typeof c.payment_intent === "object" && c.payment_intent ? c.payment_intent.metadata : undefined);
+    }
+    return null;
+  } catch (e) {
+    if (e instanceof StripeFel && e.status === 404) return null;
+    throw e;
+  }
+}
+
+/**
+ * En del av laddningen tillbaka. Nyckeln bär Wix totala summa
+ * (speglingsbeslut), så att två samtidiga speglingar blir en återbetalning.
+ */
+export async function aterbetalaDel(laddning: string, ore: number, nyckel: string, metadata: Record<string, string>): Promise<{ id: string; status: string }> {
+  return stripeAnrop<{ id: string; status: string }>("POST", "/refunds", { charge: laddning, amount: ore, reason: "requested_by_customer", metadata }, nyckel);
+}
+
+/** Kontots återbetalningar skapade efter `sedanSek`, med betalningens metadata (vilken order). */
+export async function listaAterbetalningar(sedanSek: number, maxSidor = 2): Promise<{ id: string; metadata: Record<string, string> | null }[]> {
+  const rader = await listaAlla<{ id: string; payment_intent: string | { metadata?: Record<string, string> } | null }>(
+    "/refunds",
+    { created: { gte: sedanSek }, expand: ["data.payment_intent"] },
+    maxSidor,
+  );
+  return rader.map((r) => ({ id: r.id, metadata: typeof r.payment_intent === "object" && r.payment_intent ? (r.payment_intent.metadata ?? null) : null }));
+}
+
+/** En tvist: kunden har bestridit betalningen hos sin bank eller hos Klarna. */
+export interface Tvist {
+  id: string;
+  amount: number;
+  currency: string;
+  reason: string;
+  status: string;
+  /** Unix-sekunder: sista dagen att svara i Stripe. */
+  svaraSenastSek: number | null;
+}
+
+/** Kontots tvister skapade efter `sedanSek` (nätet larmar om dem som väntar på svar). */
+export async function listaTvister(sedanSek: number): Promise<Tvist[]> {
+  const rader = await listaAlla<{ id: string; amount: number; currency: string; reason: string; status: string; evidence_details?: { due_by?: number | null } | null }>(
+    "/disputes",
+    { created: { gte: sedanSek } },
+    1,
+  );
+  return rader.map((t) => ({ id: t.id, amount: t.amount, currency: t.currency, reason: t.reason, status: t.status, svaraSenastSek: t.evidence_details?.due_by ?? null }));
 }

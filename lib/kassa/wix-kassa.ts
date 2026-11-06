@@ -6,7 +6,7 @@
 // Wix 2026-11-05/06 med två testordrar, båda avbrutna utan betalning.
 
 import { wixFetch, WixApiError } from "@/lib/wix-client";
-import type { Forsok, KassaDeps, Korg, Kund, Rakning, Tidigare } from "./flode";
+import type { Forsok, KassaDeps, Korg, Kund, OrderTransaktioner, Rakning, Tidigare } from "./flode";
 import { arKorgensBetalning, KASSA_MARKOR, medOmforsok } from "./flode";
 
 const korgSokvag = (id: string) => `/ecom/v2/carts/${encodeURIComponent(id)}`;
@@ -120,7 +120,9 @@ export async function laggOrder(cartId: string, prisbevis: string | null): Promi
 /**
  * Stripes betalning som godkänd betalning på ordern (Add Payments). Inga pengar
  * rör sig här; ordern räknar om sin betalstatus asynkront och blir betald.
- * Återbetalning sker i Stripe, så Wix ska inte erbjuda det: refundDisabled.
+ * Återbetalningen görs i Wix som för andra ordrar, och därför refundDisabled
+ * false: Wix bokför den som manuell (betalningen gick inte genom Wix), och
+ * butiken gör den i Stripe (speglaAterbetalningar i lib/kassa/flode.ts).
  */
 export async function registreraBetalning(orderId: string, b: { belopp: string; transaktion: string; namn: string; tid: string }): Promise<void> {
   await forsokIgen(() =>
@@ -133,7 +135,7 @@ export async function registreraBetalning(orderId: string, b: { belopp: string; 
             createdDate: b.tid,
             amount: { amount: b.belopp },
             status: "APPROVED",
-            refundDisabled: true,
+            refundDisabled: false,
             regularPaymentDetails: {
               providerTransactionId: b.transaktion.slice(0, 100),
               offlinePayment: false,
@@ -147,18 +149,48 @@ export async function registreraBetalning(orderId: string, b: { belopp: string; 
 }
 
 /**
- * Betalningarna som står på ordern (List Transactions For Single Order; en
- * order utan betalningar ger en tom lista, inget fel). Add Payments nekar hela
- * anropet om transaktionen redan finns, så ett omtag läser ordern först. En
- * betalning utan leverantörens id (presentkort) räknas med sitt eget id.
+ * Orderns betalningar och återbetalningar (List Transactions For Single
+ * Order). En order utan transaktioner ger tomma listor, inget fel.
+ */
+export async function orderTransaktioner(orderId: string): Promise<OrderTransaktioner> {
+  const svar = await forsokIgen(() =>
+    wixFetch<{ orderTransactions?: Partial<OrderTransaktioner> }>({ path: `/ecom/v1/payments/orders/${encodeURIComponent(orderId)}` }),
+  );
+  return { payments: svar?.orderTransactions?.payments ?? [], refunds: svar?.orderTransactions?.refunds ?? [] };
+}
+
+/**
+ * Betalningarna som står på ordern, som transaktions-id. Add Payments nekar
+ * hela anropet om transaktionen redan finns, så ett omtag läser ordern först.
+ * En betalning utan leverantörens id (presentkort) räknas med sitt eget id.
  */
 export async function orderBetalningar(orderId: string): Promise<string[]> {
+  return (await orderTransaktioner(orderId)).payments.map((p) => p.regularPaymentDetails?.providerTransactionId || p.id || "okand");
+}
+
+/**
+ * Ordrar med en återbetalning som ändrats sedan `sedanIso`, senast ändrade
+ * först, högst `max` (nätet under speglingen av återbetalningar). Uppmätt
+ * 2026-11-06: Search Orders filtrerar på paymentStatus med $in och på
+ * updatedDate. `fler` när det fanns fler än `max`: nätet säger det i loggen
+ * i stället för att tyst hoppa över dem.
+ */
+export async function aterbetaldaOrdrar(sedanIso: string, max: number): Promise<{ ids: string[]; fler: boolean }> {
   const svar = await forsokIgen(() =>
-    wixFetch<{ orderTransactions?: { payments?: { id?: string; regularPaymentDetails?: { providerTransactionId?: string } }[] } }>({
-      path: `/ecom/v1/payments/orders/${encodeURIComponent(orderId)}`,
+    wixFetch<{ orders?: { id?: string }[]; metadata?: { hasNext?: boolean } }>({
+      method: "POST",
+      path: "/ecom/v1/orders/search",
+      body: {
+        search: {
+          filter: { $and: [{ paymentStatus: { $in: ["PARTIALLY_REFUNDED", "FULLY_REFUNDED"] } }, { updatedDate: { $gte: sedanIso } }] },
+          sort: [{ fieldName: "updatedDate", order: "DESC" }],
+          cursorPaging: { limit: max },
+        },
+      },
     }),
   );
-  return (svar?.orderTransactions?.payments ?? []).map((p) => p.regularPaymentDetails?.providerTransactionId || p.id || "okand");
+  const ids = (svar?.orders ?? []).map((o) => o.id).filter((id): id is string => typeof id === "string" && id.length > 0);
+  return { ids, fler: Boolean(svar?.metadata?.hasNext) };
 }
 
 /** En order som aldrig blev betald: avbruten med återlagring och utan mejl (Stripe-kassan och slappOrder nedan). */
