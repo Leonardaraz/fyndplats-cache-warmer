@@ -2188,6 +2188,7 @@ body:has(.drawer.show) .cookiebar{visibility:hidden}
 .tack-orderno{display:inline-flex;flex-direction:column;gap:3px;background:var(--warm);padding:12px 24px;border-radius:var(--r-md);margin-bottom:26px;border:1px solid var(--line)}
 .tack-orderno-label{font-size:var(--text-xs);text-transform:uppercase;letter-spacing:.1em;color:var(--soft);font-weight:700}
 .tack-orderno-val{font-size:var(--text-lg);font-weight:800;letter-spacing:.04em;color:var(--ink)}
+.tack-orderno-text{font-size:var(--text-sm);color:var(--ink);max-width:30ch}
 .tack-lede{font-size:var(--text-base);line-height:1.6;color:#5c544c;margin-bottom:40px;max-width:520px;margin-left:auto;margin-right:auto}
 /* Tacksidans "Din beställning" (components/tack-order.tsx): samma gröna toner som varukorgens fri frakt och leveransrad */
 .tack-order{max-width:520px;margin:-14px auto 34px;text-align:left;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:18px 20px}
@@ -3284,3 +3285,15 @@ a.om-fakta-kort:hover b,a.om-fakta-kort:focus-visible b{color:var(--brand)}
 .sidbyte[data-pa]{opacity:1;animation:sidbyte 6s cubic-bezier(.1,.7,.2,1) forwards}
 @keyframes sidbyte{0%{transform:scaleX(0)}12%{transform:scaleX(.55)}40%{transform:scaleX(.8)}100%{transform:scaleX(.95)}}
 @media(prefers-reduced-motion:reduce){.sidbyte[data-pa]{animation:none;transform:scaleX(.6)}}
+
+/* Kassan (/kassa och /kassa/klar, app/kassa/kassa-ram.tsx) har eget sidhuvud
+   och egen sidfot. Butikens kampanjremsa, meny med sökruta, sidfot och
+   tillbaka-upp-knapp leder bort från köpet och döljs där. :has() i stället för
+   en klass som ett skript sätter på <body>: inget blinkar fram innan sidan
+   tagit över. En webbläsare utan :has() (äldre än 2022) visar butikens delar
+   som förut, och kassan fungerar ändå. */
+body:has([data-kassa-sida])>.promo,
+body:has([data-kassa-sida])>.sidhuvud,
+body:has([data-kassa-sida])>footer,
+body:has([data-kassa-sida])>.backtotop{display:none}
+body:has([data-kassa-sida]){background:var(--surface-1)}

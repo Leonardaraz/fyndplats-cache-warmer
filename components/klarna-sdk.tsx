@@ -11,18 +11,24 @@
 // NEXT_PUBLIC_KLARNA_CLIENT_ID i Vercel. Tom → SDK:t laddas inte, OSM-
 // komponenten trippar sin fallback (KlarnaMessage) och sajten fungerar
 // oförändrat.
+//
+// Med Stripe-kassan på för alla visar produktsidan inte Klarnas egen ruta
+// (lib/use-klarna-ruta.ts), och då laddas inte heller SDK:t: 0,8 MB som
+// ingen använder.
 
 import { useEffect } from "react";
 import { useMarketingConsent } from "../lib/use-marketing-consent";
+import { useKlarnaRuta } from "../lib/use-klarna-ruta";
 
 const SCRIPT_ID = "klarna-osm-sdk";
 const SDK_URL = "https://js.klarna.com/web-sdk/v1/klarna.js";
 
 export function KlarnaSDK({ clientId }: { clientId: string }) {
   const consent = useMarketingConsent();
+  const ruta = useKlarnaRuta();
 
   useEffect(() => {
-    if (!consent) return;
+    if (!consent || ruta !== "osm") return;
     if (!clientId) return;
     if (document.getElementById(SCRIPT_ID)) return;
     const s = document.createElement("script");
@@ -32,7 +38,7 @@ export function KlarnaSDK({ clientId }: { clientId: string }) {
     s.setAttribute("data-environment", "production");
     s.setAttribute("data-client-id", clientId);
     document.head.appendChild(s);
-  }, [consent, clientId]);
+  }, [consent, clientId, ruta]);
 
   return null;
 }

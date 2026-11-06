@@ -1187,8 +1187,10 @@ i `flode.ts`), `app/kassa/`, `app/api/kassa/*` och städjobbet
 - **Ordern skapas med Checkout V1 `create-order` på korgens id** (i Cart V2 är
   korgens id kassans id). Den blir som Wix kassas egna: checkoutId, cartId,
   purchaseFlowId, moms och leveranstid. Uppmätt med två avbrutna testordrar
-  2026-11-05/06. Cart V2 `place-order` går inte: den kräver en
-  betalnings-token från Wix Cashier-klienten, som inte finns för externa sajter.
+  2026-11-05/06. ⚠️ Rättat 2026-11-06: Cart V2 `place-order` GÅR på en förberedd
+  korg utan betalning (obetald order, ingen debitering), och det är
+  Stripe-kassans väg; se nästa avsnitt. Checkout V1 `create-order` tas bort
+  2027-02-01, så Wix-betalsidans väg måste bort före dess.
 - ☠️ **Ordern reserverar lagret från det att den skapas.** En kund som lämnar
   betalsidan håller varan. Nästa försök från samma korg släpper den förra
   ordern (betalningen makuleras först, sedan avbryts ordern med återlagring),
@@ -1272,3 +1274,451 @@ i `flode.ts`), `app/kassa/`, `app/api/kassa/*` och städjobbet
   samma korg. Räkningen på `/kassa` visar därför ingen lagerbrist när korgen har
   en obetald betalning (`stoppandeOvertradelser(..., { utanLager: true })`).
   Betalningen gör den vanliga kontrollen efter att den förra ordern släppts.
+
+## Stripe-kassan: Klarna, kort, Apple Pay och Google Pay på /kassa (2026-11-06)
+
+Leonards val 2026-11-06 ("Ja, börja nu"), efter auditen: Klarna är två av tre
+köp (113 av 171 betalda ordrar 2026-06–11), och Wix betalsida tvingade
+Klarna-kunden att skriva e-post, namn och adress en gång till. Nu står
+betalfältet (Stripe Payment Element) i steg 3 på `/kassa`, och kundens
+uppgifter ur formuläret följer med till Klarna. Wix räknar korgen och äger
+ordern som förut; Stripe tar betalt.
+
+**Påslag:** `/kassa` använder Stripe när BÅDA nycklarna finns när sidan byggs
+(`app/kassa/page.tsx`): `STRIPE_SECRET_KEY` och
+`NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (`pk_test_…`/`pk_live_…`). Saknas någon
+gäller Wix betalsida som i avsnittet ovan. Växeln (`FyndplatsButikInstallningar/kassa`)
+avgör som förut vem som kommer till `/kassa` alls. Webhooken kräver
+`STRIPE_WEBHOOK_SECRET`.
+
+**Flödet** (`lib/kassa/flode.ts` `forberedStripe`/`slutforStripe`, sidan i
+`lib/kassa/stripe-klient.ts` och `app/kassa/use-stripe-betalning.ts`):
+1. Betalfältet visas direkt, utan PaymentIntent (Elements i `mode: "payment"`,
+   beloppet = summeringen, så att Apple Pay visar rätt belopp).
+2. "Betala": `elements.submit()` FÖRST, i själva trycket (Stripe prövar fälten
+   innan betalningen skapas, och ett plånboksblad öppnas bara i ett tryck),
+   sedan `/api/kassa/stripe/forbered`:
+   formuläret till Wix-korgen, Wix räknar, en PaymentIntent på Wix total med
+   `capture_method: manual` (pengarna reserveras, dras inte).
+3. `stripe.confirmPayment` med `redirect: "if_required"`. Kort, Apple Pay och
+   Google Pay stannar på sidan; Klarna går till Klarna.
+4. `/api/kassa/stripe/klar` (och webhooken `/api/stripe/webhook`, samma steg):
+   Wix räknar igen och totalen måste vara den reserverade → Cart V2
+   `place-order` med Wix prisbevis → dra beloppet → Add Payments (godkänd
+   betalning med Stripes laddnings-id och betalsättet på kundens språk) →
+   `/tack?orderId=…`. Går ordern inte att skapa släpps reservationen (eller
+   betalas en redan dragen betalning tillbaka): ingen kund betalar utan order.
+
+Det som inte får ändras:
+- ☠️ **Ett lås per betalning** (Wix CMS `FyndplatsKassaBetalningar`, ADMIN,
+  raden = betalningens id). Kundens retur och webhooken kommer ofta samtidigt;
+  bara den som tar låset skapar ordern, den andra svarar `pagar` (202) och
+  sidan frågar igen. Låset bär steget (`pagar` → `order` → `registrera` →
+  `klar`/`fel`), så ett avbrott efter ordern fortsätter med dragningen i stället
+  för att skapa en order till. Ett lås äldre än 120 s tas över.
+- ☠️ **Create Order (`ecom/v1/orders`) används inte:** Wix tillåter fem anrop i
+  timmen för opublicerade appar. `place-order` är vägen.
+- ☠️ **Faktureringsuppgifterna kommer från servern** (`faktureringAv` i
+  `flode.ts`, i svaret från `forbered`) och skickas med i bekräftelsen.
+  Betalfältet frågar aldrig efter dem (`fields.billingDetails: "never"`), och
+  då kräver Stripe VARJE fält, också `state` och `line2` som tomma strängar:
+  ett saknat fält stoppar betalningen. Adressen formas på ett ställe
+  (`stripeAdress`). Provat lokalt 2026-11-06 mot riktiga Stripe.js.
+- ☠️ **Servern sätter ALDRIG `shipping` på betalningen** (`avsiktParametrar`,
+  varken när den skapas eller uppdateras). Adressfältet (läget "shipping")
+  ligger i samma Elements som betalfältet, och `stripe.confirmPayment` skickar
+  dess adress som leverans. Har servern satt `shipping` med den hemliga
+  nyckeln nekar Stripe bekräftelsen: 400 `payment_intent_invalid_parameter`,
+  "The shipping information on this PaymentIntent was last set with a secret
+  key and therefore cannot be changed with a publishable key". Mätt på
+  förhandslänken 2026-11-06 16:06 UTC: sedan adressfältet kom in (2b241635)
+  stoppades varje betalning så, och kunden fick "Betalningen kunde inte
+  genomföras just nu". Provet i `stripe-klient.test.ts` låser regeln.
+- ☠️ **Kort först, Klarna sist och aldrig förvalt** (`BETALFALT`), fast två av
+  tre köp är Klarna. Lagen (2010:751) om betaltjänster (prop. 2019/20:79,
+  sedan 2020-07-01): finns ett betalsätt utan kredit ska det visas först, och
+  ett med kredit får inte vara förvalt. "Kredit" ska förstås brett, och
+  Klarnas val rymmer "betala om 30 dagar" och delbetalning. Brott räknas som
+  otillbörlig marknadsföring (KO). Fältet fäller ut det första valet, kortet;
+  Klarna väljs aktivt. Provet låser regeln, inte bara ordningen. Den nya
+  konsumentkreditlagen (CCD2, i kraft 2026-11-20) räknar också räntefri
+  faktura som kredit; en butik som får ersättning från kreditgivaren kan bli
+  kreditförmedlare (Fyndplats får ingen).
+- ☠️ **Betalfältet och PaymentIntenten måste ha samma valuta och dragning**
+  (`sek`, `manual`), annars nekar Stripe bekräftelsen. Provet i
+  `stripe-klient.test.ts` jämför med `avsiktParametrar`.
+- ☠️ **Ingen idempotensnyckel ur korgens innehåll:** Stripe svarar på en känd
+  nyckel med det sparade svaret i ett dygn, också när betalningen sedan
+  släppts. Ett nytt försök efter "kunde inte skapas" hade fått den släppta
+  betalningen tillbaka. En ny betalning får en unik nyckel; kundens försök
+  återanvänds via `avsiktId` (localStorage `fp_kassa_stripe`, 24 h, bara samma
+  korg), och dubbeltrycket stoppas i sidan (`pagar`-refen).
+- ☠️ **Klarnas retur går via `/api/kassa/stripe/retur`**, som lägger
+  betalningens id i kakan `fp_kassa_avsikt` (sökväg `/kassa/klar`, 15
+  minuter, ingen annan sida ser den) och skickar till `/kassa/klar` utan
+  något i adressen. Stripe lägger `client_secret` i return_url, och sidorna
+  laddar GA4 och Meta, som sparar hela adressen; inte ens betalningens id ska
+  stå där. `/kassa/klar` läser och tar bort kakan. Blev det ingen order går
+  kunden till `/kassa?stripe=<kod>` (`avbruten`, `pris_andrat`, `slut`, `fel`),
+  som säger varför och tar bort koden ur adressen.
+- **Ändrad total stoppar före betalningen:** räknar Wix fram en annan total än
+  den kunden ser (fältets belopp) visas den nya, och kunden trycker igen.
+- **"Betalningen är godkänd" efter en minut:** en väntan för båda sidorna
+  (`vantaPaOrder` i `stripe-klient.ts`: frågar `klar` med växande vila, högst
+  3 s, också genom nätfel och 5xx; ett nej är ett nej direkt). Svarar servern
+  fortfarande `pagar` efter 60 s säger sidan att orderbekräftelsen kommer via
+  e-post, och knappen låses (webhooken slutför). Kunden ska aldrig uppmanas
+  att betala igen när pengarna kan vara reserverade.
+- **Inga typsnitt från Google i Stripes ram:** butiken lägger sina typsnitt på
+  egen server, och betalfältet använder systemets typsnitt (`UTSEENDE`).
+- **Loggraderna:** inga kunduppgifter. Rader med ☠️ (pengar som inte står där
+  de ska) går till `console.error` och syns bland Vercels körfel; resten är
+  varningar (`lib/kassa/stripe-kassa.ts`).
+- **Apple Pay kräver domänen:** filen
+  `public/.well-known/apple-developer-merchantid-domain-association` (Stripes,
+  samma för alla Stripe-konton) och domänen `www.fyndplats.se` registrerad i
+  Stripe (Inställningar → Betalmetodsdomäner). `Permissions-Policy` får aldrig
+  stänga `payment` (`next.config.ts`).
+- **Klarna visas bara för köpare i Sverige:** Stripe läser köparens land ur
+  IP-adressen ("Supported countries: SE" för `sek`). En provwebbläsare i molnet
+  (USA) ser bara kort; skälet står i Stripes svar på `elements/sessions` under
+  `developer_tool_context.payment_method_filtering` (mätt på förhandsbygget med
+  Leonards testnycklar 2026-11-06: kort, Apple Pay och Google Pay giltiga, Link
+  av). Klarna prövas därför från en svensk uppkoppling, till exempel en telefon.
+- **Stripe Tax används inte:** Wix räknar momsen på ordern (priserna är
+  inklusive 25 %), och den står på kvitton och fakturor. Stripe tar bara betalt
+  för Wix total. Stripe Tax skulle räkna momsen en gång till och kostar per köp.
+- Stripe-anropen görs med `fetch` och formulärkodning (`lib/kassa/stripe.ts`,
+  API-version `2025-03-31.basil`), utan Stripes Node-SDK. Webhooken prövar
+  `Stripe-Signature` (HMAC-SHA256 över `t.kropp`, 300 s) på den RÅA kroppen.
+  Webbläsaren använder `@stripe/stripe-js` 7.x, samma release (basil).
+- **"Betala med Klarna", aldrig "Fortsätt till Klarna":** ordern skapas utan
+  fler klick hos oss efter Klarna, så vår knapp är beställningsknappen och ska
+  säga att det kostar (distansavtalslagen 2 kap. 9 §).
+
+### Självläkningen (auditen 2026-11-06)
+
+Kunden får alltid ett svar på sekunder, men allt som inte blev klart tas om
+tills det är klart, och Leonard får ett mejl om det inte går:
+- ☠️ **Webhookens svar styr omförsöken** (`webhookStatus`, `arKlart`): 200 bara
+  när inget finns kvar att göra. `ofullstandig` (pengarna dragna, men
+  betalningen står inte på ordern) och `ostadad` (ingen order, men
+  reservationen släpptes inte eller betalningen gick inte tillbaka) svarar 500,
+  `pagar` och `behandlas` 503: Stripe försöker igen i upp till tre dygn. Förut
+  svarade allt 200 och en misslyckad registrering togs aldrig om.
+- ☠️ **Nätet `/api/cron/kassa-stripe`** (kvart 7, 22, 37, 52): kassans
+  betalningar de senaste tre dygnen (List, inte Search) som är godkända eller
+  dragna men saknar `wixOrderId` och är äldre än fem minuter, äldst först,
+  högst åtta per körning, samma steg som klar och webhooken. Är en betalning
+  inte klar 30 minuter efter att den skapades mejlas `OPS_ALERT_EMAIL` (annars
+  info@fyndplats.com), en gång per betalning, med bara betalningarnas id.
+- ☠️ **En dragning vars svar försvann läses om** innan ordern avbryts: drog
+  Stripe ändå behålls ordern och betalningen registreras. Går läget inte att
+  läsa avbryts och släpps ingenting; låset står kvar och nästa försök avgör
+  (dragningen har en idempotensnyckel).
+- ☠️ **Place Order utan svar:** ett 4xx (också 429 efter omförsöken) betyder att
+  ingen order skapades. Annars läses korgen: Cart V2 sätter `orderPlaced` och
+  `orderId`, och den ordern används i stället för att reservationen släpps (då
+  hade kunden fått en låst korg och en order utan betalning). Samma sak vid
+  omtag av ett lås som stod på `pagar`. En order som redan har en betalning
+  (korgen betaldes i Wix kassa i en annan flik) tas inte: vår reservation släpps.
+- **Omtag läser orderns betalningar** (List Transactions) före Add Payments:
+  Wix nekar en dubblett av `providerTransactionId` och hela anropet felar.
+- **Ett klart lås märker betalningen** med `wixOrderId` om markeringen föll,
+  annars tar nätet den om var femtonde minut och larmar i onödan. **Ett
+  fel-lås städar igen:** står pengarna kvar släpps de (eller betalas
+  tillbaka); kunden fick höra att inget drogs. `charge_already_refunded` och
+  en redan släppt reservation är inga fel.
+
+### Återbetalningar och tvister (2026-11-06)
+
+☠️ **Återbetala bara i Wix, aldrig i Stripes panel.** Leonard återbetalar som
+för alla ordrar: raderna och frakten väljs i Wix, och medlemskapets
+orderliggare läser uppdelningen per rad. Kassans betalning står på ordern som
+en **offlinebetalning** med Stripes id (`offlinePayment: true`,
+`registreraBetalning`), så Wix bokför återbetalningen som manuell (Wix kan
+inte själv nå Stripe), och butiken gör den i Stripe (`speglaAterbetalningar` i
+`flode.ts`): summan av Wix lyckade återbetalningar på betalningen mot Stripes
+summa på laddningen, och skillnaden tillbaka. Wix-webhooken (`refund`) speglar
+efter svaret; nätet tar det som faller.
+- ☠️ **Bara auktoritativ data:** webhooken bidrar bara med order-id:t (den kan
+  vara lookup-verifierad); beloppen läses ur orderns transaktioner (List
+  Transactions) och laddningen i Stripe. Betalningen ska bära kassans
+  `kalla`, och `wixOrderId` (när den finns) ska vara ordern; beloppen ska vara
+  lika och i SEK. Annars larm, inga pengar.
+- ☠️ **Idempotensnyckeln är laddningen och STRIPES summa före återbetalningen**
+  (`fp-ater-<laddning>-<öre>`), aldrig Wix summa: två speglingar som läst
+  olika Wix-summor men samma Stripe-summa hade annars båda gått igenom (två
+  delåterbetalningar tätt efter varandra). Nu får de samma nyckel; Stripe gör
+  den ena, nekar den andra (samma nyckel, annat belopp), och den nekade läser
+  om och försöker igen, högst tre rundor. Proven kör en slumpad simulering
+  med samtidiga speglingar mot en låtsas-Stripe med Stripes idempotens.
+- **Stripe före Wix larmar, rättas inte:** följer Leonard Wix råd för manuella
+  betalningar och betalar tillbaka i Stripe först, blir det lika när han sedan
+  bokför i Wix, och inget görs dubbelt. Står Stripe över Wix i 30 minuter
+  mejlas det. Inget svar från Stripe (nätet) är inget larm: nästa spegling
+  läser Stripes summa och ser vad som hände.
+- **Nätet** (`/api/cron/kassa-stripe`, tre delar som felar var för sig):
+  Wix-ordrar med en återbetalning ändrad de senaste två dygnen (Search Orders
+  på `paymentStatus` och `updatedDate`, uppmätt 2026-11-06), plus ordrarna
+  bakom Stripes återbetalningar de senaste tre dygnen; avvikelser mejlas en
+  gång per läge (`larmnyckel`, anspråk i `FyndplatsWebhookMejl`). Tvister som
+  väntar på svar mejlas en gång per tvist, med sista svarsdag.
+- Wix egna betalningar (Wix Payments, Klarna via Wix) bär Wix och
+  leverantörens id och rörs aldrig; ett Stripe-likt id som inte finns i vårt
+  konto (404) hoppas över tyst.
+- Används en begränsad nyckel i Stripe behöver den: PaymentIntents (skriva),
+  Charges (läsa), Refunds (skriva) och Disputes (läsa).
+
+### Klarna-rutan på produktsidan (2026-11-06)
+
+Klarnas egen ruta (OSM, `components/klarna-osm.tsx`) visar villkoren i
+Leonards Klarna-avtal, som gäller i Wix kassa: "Betala inom 30 eller 60 dagar"
+och delbetalning i 3–24 månader. I Stripe-kassan gäller Stripes Klarna (30
+dagar och Stripes delbetalning). När Stripe-kassan är på för alla (växeln
+`pa` och Stripes hemliga nyckel) visar sidan därför vår egen rad ("Betala
+senare – räntefritt med Klarna", sann i båda), och Klarnas skript (0,8 MB)
+laddas inte (`klarnaRuta`, `/api/kassa/klarna`, `lib/use-klarna-ruta.ts`).
+Svaret är detsamma för alla och cachas fem minuter i kanten; utan Stripes
+publika nyckel i bygget frågar sidan ingenting och allt är som förut. Vill
+Leonard visa Stripes egen Klarna-ruta (Payment Method Messaging, villkoren och
+räntan i en ruta från Stripe) kan den läggas in när kontot finns och kan
+provas; den kräver samtycke för kakor, som Klarnas.
+
+### Premiumkassan (Leonard 2026-11-06: "gör allt visuellt premium, och funktioner premium")
+
+- **Egen ram:** `/kassa` och `/kassa/klar` har eget sidhuvud (loggan, stegen
+  Varukorg › Uppgifter och betalning › Bekräftelse, "Säker kassa") och en tunn
+  sidfot (`app/kassa/kassa-ram.tsx`). Butikens kampanjremsa, meny med sökruta,
+  sidfot och tillbaka-upp-knapp döljs med `body:has([data-kassa-sida])` i
+  `app/globals.css`, utan skript och utan att något blinkar fram. Sidhuvudet är
+  inte fast mot skärmen (iPhones tangentbord flyttar fasta rader). Villkor och
+  hjälp öppnas i ny flik: det kunden skrivit sparas inte förrän hen betalar.
+- **Fälten:** flytande etiketter, 56 px, som Stripes fält (`labels: "floating"`
+  och utfyllnaden i `UTSEENDE`; mätt i webbläsaren: båda 56 px). En bock när ett
+  lämnat fält är rätt (`faltGiltigt`, samma regler som `provaKassa`), svenska
+  mobilnummer skrivs "070 123 45 67" (`snyggtTelefon`), c/o bakom en länk, och
+  `autocomplete` med `shipping`. Ett rättat fel lämnar sin rad kvar (tom) till
+  nästa tryck, så att inget flyttar medan kunden skriver.
+- **"Menade du …@gmail.com?"** (`lib/kassa/epost-forslag.ts`): stavfel i namnet
+  på en känd tjänst, felskriven toppdomän, saknad punkt och domäner som inte
+  finns (gmail.se). En riktig adress hos en annan tjänst (hotmail.dk, ett
+  företag) får aldrig förslag, och två lika troliga ger inget. Förslaget står på
+  hjälptextens rad.
+- **Spara mina uppgifter:** kundens eget val, aldrig förvalt. Utan det sparas
+  ingenting i webbläsaren, och det som sparats förut tas bort vid nästa köp.
+  Förut sparades adressen alltid (ingen kaka, men lagring på kundens enhet utan
+  val).
+- **Summeringen:** varianten per rad ("Färg: Natur"), antal varor, "Ändra"
+  (öppnar varukorgen), fri frakt-mätaren, och under den öppet köp, leveransen,
+  betalningen och Google-betyget (`getSocialProof`, samma cache som sidfoten).
+- **Rabattkoden:** Enter i fältet lägger till koden (förut skickade Enter hela
+  formuläret, alltså betalningen); en kod som gått in blir en bricka med
+  "Ta bort" (en tom kod till `/api/kassa/rakna`); en ogiltig kod syns vid koden
+  (förut syntes `fel.kupong` ingenstans).
+- **Rättat i granskningen:** fokus går till det första felet uppifrån
+  (`forstaFel`; förut hoppade det förbi ett tomt mobilnummer), ingen `<main>` i
+  `<main>` (layouten har redan en), stegen i sidhuvudet heter `data-steg` (inte
+  `data-lage`, som är betalfältets läge), och tacksidan visar aldrig GUID:t
+  eller "0" som ordernummer.
+- **Visuell audit 2026-11-06** (320, 390 och 1280 px, scratchpad
+  `audit/j-kassa.cjs`):
+  - Ett tryck på "Betala" visar alla fel på en gång: när kassans egna fält
+    stoppar trycket får Stripes fält (adressen och kortet) också visa sina,
+    med `elements.submit()`. Ingen betalning skapas, och fokus går till
+    kassans första fel. Förut kom Stripes fel först i nästa tryck.
+  - Stripes felrader har kassans stil (`.Error` i `UTSEENDE`: 12 px och
+    halvfet, som `.felText`).
+  - Länkarna i steg 3 ("Betala med Apple Pay …" och "Har du en rabattkod?")
+    står på var sin rad med samma stil (`.tillSnabb`, `.kupongLank`). På
+    datorn stod de förut ihop på en rad.
+  - Summeringsraden bryts aldrig. I 320 px bröts "Visa beställningen
+    (1 vara)" i fyra bitar. Antalet visas bara när raden är minst 400 px
+    (containerfråga på `.mobilSummering`), beloppet krymper aldrig och
+    etiketten kortas med "…" bara som sista utväg.
+- **Snabbkassan** (Apple Pay och Google Pay överst) är byggd: se avsnittet
+  nedan.
+
+### Slutprovet (Leonards ja, 2026-11-06 12:30–12:37 UTC)
+
+På förhandslänken med Leonards testnycklar (nya kontot Fyndplats, SE/SEK),
+växeln på `prov` och den dolda testvaran synlig i 2 min 37 s. En provorder
+med en provadress som köpare, avbruten efteråt.
+- **Tre kort:** 4000 0000 0000 0002 gav "Ditt kort nekades." på 3,5 s och
+  ingen order. 3D Secure-kortet 4000 0027 6000 3184 med misslyckad
+  verifiering gav den allmänna texten "försök igen om en stund" (rättat:
+  `TEXT_VERIFIERING` för `payment_intent_authentication_failure`). Samma kort
+  med godkänd verifiering: verifieringssidan efter 4,5 s, `/tack` med
+  ordernumret efter 14 s; `klar` tog 4,4 s på servern och `forbered`
+  1,5–1,8 s. 0 sidfel.
+- **Ordern i Wix:** APPROVED och PAID, kanal WEB, `purchaseFlowId`, varan och
+  frakten rätt, saldo 0. Vårt bekräftelsemejl gick 7 s efter ordern (Resend), Wix
+  `order.approved` nådde butiken och motorn (motorn: inga fel, ingen
+  leverantörsuppgift för testvaran).
+- ☠️ **Återbetalningen nekades:** som onlinebetalning (`offlinePayment:
+  false`, som förut) svarade Get Order Refundability `nonRefundable
+  TRANSACTION_NOT_FOUND` och Refund Payments 428 `PAYMENT_NOT_REFUNDABLE`,
+  också med `externalRefund: true`. Leonard hade inte kunnat återbetala en
+  enda Stripe-order i Wix. Prov på samma order med en offlinebetalning på
+  0,01 kr: `manuallyRefundable OFFLINE`, den manuella återbetalningen gick
+  igenom (SCHEDULED, SUCCEEDED inom en minut, `refund_completed` till
+  webhooken), och Wix behöll `providerTransactionId` på offlinebetalningen.
+  Därför registreras kassans betalning nu som offline; ett källprov låser det
+  (`aterbetalning.test.ts`).
+- **Place Order lägger en egen väntande betalning** på hela beloppet (Wix
+  Payments-order, inget leverantörs-id). Ordern blir ändå betald av vår, men
+  panelen visar en väntande betalning. Den markeras nu avbruten efter vår
+  registrering (`platshallarbetalningar`, `avbrytPlatshallare`, Update
+  Payment Status CANCELED, provat på provordern). Faller det står den kvar, och
+  inget annat påverkas.
+- **Speglingen till Stripe är inte provad mot Stripe** än: provorderns
+  betalning var registrerad online och gick inte att återbetala i Wix. Nätet
+  på förhandslänken gick utan larm (`aterbetalningar: ordrar 2, 0 larm`).
+  Den provas i nästa provköp med offlinebetalningen.
+- Stripes testbetalning står kvar som dragen i testläget (inga riktiga
+  pengar).
+
+### Andra provköpet: Klarna från Leonards telefon (2026-11-06 13:15–13:30 UTC)
+
+På samma förhandslänk, växeln på `prov` och testvaran synlig cirka 35
+minuter. Klarna syntes i telefonen (svensk IP-adress) och Klarnas testmiljö
+öppnades (playground: "Prefill NIN" och ett låtsat BankID; inget riktigt
+BankID ska användas).
+- **Ordern:** APPROVED och PAID, saldo 0, länet satt (Wix fyllde i
+  `subdivision` själv ur adressen). Place Orders platshållare CANCELED, vår
+  betalning APPROVED som offlinebetalning med Stripes id och betalsättet
+  "Klarna".
+- **Återbetalningen:** manuell återbetalning i Wix (`externalRefund`, utan
+  kundmejl): `manuallyRefundable OFFLINE`, SCHEDULED och SUCCEEDED inom en
+  minut, ordern FULLY_REFUNDED. Nätet på förhandslänken speglade den till
+  Stripe (`aterbetalda: 1`; Klarnas återbetalning står först som `pending`).
+  Andra körningen gav `aterbetalda: 0` och inga larm: ingenting
+  återbetalades två gånger. Ordern avbröts sedan utan mejl och med
+  återlagring.
+- Stripe-kopplingen i Claude är inloggad på en annan sandlåda
+  ("Fyndplats-sandlåda") än kontot vars testnycklar ligger i Vercel, så
+  betalningarna syns inte där. Kontrollen gick via nätet.
+
+### Adressfältet och länet (Leonard 2026-11-06: "kommer automatiskt adresser upp som det gjorde i Wix kassa", "stad och län")
+
+- **Stripes adressfält** (Address Element, `adressfaltInstallningar` i
+  `lib/kassa/stripe-klient.ts`) står i steg 2 när Stripe är på, i samma
+  Elements som betalfältet (`use-stripe-betalning.ts`). Då är Googles
+  adressförslag gratis (Stripes egen nyckel); Wix har inget öppet API för
+  sina förslag. Fältet sätter betalningens leveransadress vid bekräftelsen,
+  och därför gör servern det aldrig (se ☠️ under betalningen ovan). Fältet börjar ihopfällt (förnamn, efternamn, adress) och
+  fäller ut sig när kunden väljer ett förslag eller "Ange adress manuellt".
+  Uppmätt lokalt: förslaget fyller gata, postnummer och postort, och lägger
+  länet i `state` ("Hallands län") fast det svenska formuläret inte visar
+  något länsfält. Etiketterna är Stripes ("Postort"). Värdena går in i
+  kassans fält vid varje ändring (`adressFranStripe` i `formular.ts`), så att
+  servern prövar och skickar samma sak som förut. Adressrad 2 skickas som
+  kunden skrev den (`rad2`, "lgh 1201"); kassans egna fält har kvar c/o.
+- **Länet** är ett eget val under adressen med de 21 länen (ISO 3166-2,
+  `LAN`). Det fylls i av sig självt ur Googles förslag, annars ur postnumret
+  (`lanFranPostnr`, motorns tabell med blandzonerna, t.ex. Kungsbacka 434 i
+  Halland), och kunden kan ändra det tills postnumret byts. Servern tar
+  kundens giltiga val och annars postnumrets (`provaKassa`), och Wix-korgen
+  får det som `subdivision` (`wixAdress` i `flode.ts`). Motorn gör om det
+  till leverantörens provinsfält (`deriveProvince`; Aosoms klumporder har
+  kolumnen "Province"), så Aosom och VEVOR får stad och län som förut, nu
+  från kunden i stället för Wix gissning.
+- **Platshållaren har fältets höjd** (uppmätt per bredd 2026-11-06): tre
+  rader (193 px) under 442 px ytbredd, två rader (125 px, förnamn och
+  efternamn bredvid varandra) från 442 px. Containerfrågan på `.adressYta`
+  gör samma byte.
+- ☠️ **Stripes ram börjar i mobilhöjd** (201 px) och glider efter `ready` till
+  fältets höjd på ungefär 300 ms. Kassan sätter `adressLage` till `redo`
+  först när ramen står still (`ramenStilla` i `stripe-klient.ts`,
+  `narRamenStilla` i kroken, högst `RAM_VANTA_MS`), och tills dess ligger
+  ramen utanför flödet under platshållaren (`data-adress="laddar"`). Förut
+  hoppade formuläret 68 px på datorn när fältet ritades.
+- **Utan Stripe** (Wix betalsida) står kassans egna fält kvar; "Ort" heter
+  "Stad", och länsvalet finns där också.
+- **Tom korg efter köpet** (`visaTomKorg`, `lib/kassa/vy.ts`): Wix ger
+  besökaren en ny, tom korg med eget id efter köpet. Kassan ritade då hela
+  formuläret med "Fri frakt" (en tom korg har ingen frakt; Leonards
+  skärmbild 14:21). Nu visas "Varukorgen är tom" när korgen saknar varor,
+  utom medan korgen hämtas eller en betalning pågår.
+- **Leveranskortet** har mörk ram som stegens siffror i stället för orange;
+  orange är knapparnas och länkarnas färg.
+- ☠️ **Prov i webbläsaren: rulla fram före klick.** Chromium ritar inte
+  Stripes ramar utanför bilden, och när de rullas in ändrar de höjd. Ett
+  Playwright-klick direkt på en knapp under betalfältet kan då landa i ramen
+  (provet `prov-premium2` rullar och väntar 0,9 s). En helsidesbild visar
+  betalfältet tomt av samma skäl, fast det är ritat.
+
+### Snabbkassan: Apple Pay och Google Pay överst (Leonard 2026-11-06: "Jag vill att vi har apple pay o google pay överst")
+
+- **Överst på `/kassa`**, före steg 1: Stripes Express Checkout Element
+  (`snabbknappar` i `lib/kassa/snabbkassa.ts`), sedan "eller fyll i dina
+  uppgifter". Plånboken ger namn, e-post, telefon och leveransadress, så
+  kunden fyller inte i något. Betalfältet i steg 3 visar då bara kort och
+  Klarna (`BETALFALT`), och en länk där leder upp till knapparna.
+- **En egen Elements-grupp** med samma belopp som betalfältet
+  (`use-stripe-betalning.ts`): `elements.submit()` prövar varje fält i sin
+  grupp, och adressfältet och betalfältet är tomma när kunden betalar med
+  plånboken. Beloppet följer summeringen i båda grupperna.
+- **Trycket** (`klickSvar`) svarar inom en sekund med raderna och fraktvalet,
+  utan nätverksanrop. ☠️ **Beloppet i bladet är Elements-beloppet** (Wix total
+  med frakt); raderna och fraktvalet är bara visning men summerar alltid till
+  totalen (`snabbRader`: varje vara för sig när de går jämnt upp med Wix
+  delsumma, annars en rad; rabatten negativ). Provat med 20 000 slumpade korgar.
+- **Godkännandet** (`snabbBekrafta`): plånbokens uppgifter blir kassans
+  formulär (`kundFranPlanbok` i `formular.ts`: efternamnet är sista ordet,
+  länet ur regionen eller postnumret, medlemmens e-post går före plånbokens)
+  och prövas med `provaKassa`. Sedan samma `/api/kassa/stripe/forbered` och
+  samma slutförande som betalfältet. Fel före bekräftelsen går till bladet med
+  `paymentFailed` (`invalid_shipping_address` för namn och adress,
+  `address_unserviceable` för ett postnummer utan leverans), så att kunden
+  rättar där. Betalningens id sparas före bekräftelsen, och en ny total från
+  Wix stoppar betalningen som i betalfältet. `confirmPayment` får ingen
+  fakturering från oss: plånboken har den.
+- **Bara Apple Pay och Google Pay** i knapparna: Link, PayPal, Amazon Pay och
+  Klarna `never`. ☠️ Klarna står aldrig överst (betaltjänstlagen, se
+  `BETALFALT`).
+- ☠️ **`layout.overflow: "never"` bara med `maxRows: 0`.** Annars kastar Stripe
+  IntegrationError och inga knappar ritas (lokalt prov 2026-11-06). Knapparna
+  monteras därför sist och i `try`: ett fel i snabbkassan får aldrig stoppa
+  formuläret och betalfältet.
+- **Platsen hålls från första renderingen** (också på servern) med en
+  platshållare i knappens höjd, men bara där Apple Pay finns
+  (`ApplePaySession`, som Safari på iPhone och Mac har). Rutan som dök upp
+  efter hydreringen knuffade ner formuläret 256 px. Där svarar Stripe snabbt
+  och visar nästan alltid knappen; saknas plånbok tas platsen bort när Stripe
+  svarar, eller efter 12 s. ☠️ **Inte för Google Pay:** Stripes kontroll av
+  Google Pay tog 13 s på förhandsbygget (huvudlös Chromium, testnycklarna,
+  2026-11-06), och 0 av 171 köp är Google Pay (23 Apple Pay). I Chrome visas
+  rutan därför först när Stripe hittat en plånbok. Utan plånbok står rutan
+  utanför sidan (`data-visas="nej"`), eftersom knapparna måste vara monterade
+  för att Stripe ska kunna svara.
+- **Före hydreringen avgör `PLANBOK_SKRIPT`** (`lib/kassa/snabbkassa.ts`, körs
+  först i `app/layout.tsx`): det sätter `data-applepay="ja"|"nej"` på `<html>`,
+  och CSS:en flyttar ut rutan medan Stripe svarar (`data-snabb="laddar"`) i en
+  webbläsare utan Apple Pay. Annars stod platsen kvar tills React tagit över
+  och försvann sedan. Skriptet ligger i layouten och inte på kassasidan,
+  eftersom kunden oftast kommer till `/kassa` med ett mjukt sidbyte från
+  varukorgen, och då körs inga skript i sidans HTML.
+- ☠️ **Stripes ram har −4 px marginal** (plats för fokusringen). Utan egen
+  formateringskontext kollapsade den genom ytan runt fältet, och allt under
+  flyttade 4 px när Stripe monterade. `.snabbYta` och `.betalfalt` har därför
+  `display: flow-root`.
+- **Mätt med webbläsarens egen CLS** (`PerformanceObserver` för
+  `layout-shift`, scratchpad `snabb/g-cls.cjs`, 2026-11-06): formuläret
+  flyttar inte alls när Stripes fält kommer, varken i 390 eller 1280 px. Det
+  som är kvar på datorn (0,013) är summeringen när korgens rader kommer.
+- **Kräver domänen:** Apple Pay och Google Pay syns bara när
+  `www.fyndplats.se` är registrerad i Stripe (Inställningar →
+  Betalmetodsdomäner), i testläget och i live var för sig, och bara över
+  HTTPS. Lokalt och på en skyddad förhandslänk syns inga knappar (Stripe
+  varnar i konsolen); flödet provades därför lokalt med en spelad Stripe.js
+  (scratchpad `snabb/b-spelad.cjs`): tryck, nej i bladet, ny total, `/tack`.
+
+**Kvar före riktiga kunder:** live-nycklarna i Production (en begränsad
+nyckel med PaymentIntents skriva, Charges läsa, Refunds skriva och Disputes
+läsa); webhooken (`payment_intent.amount_capturable_updated` och
+`payment_intent.succeeded` till `https://www.fyndplats.se/api/stripe/webhook`,
+hemligheten i `STRIPE_WEBHOOK_SECRET`); domänen för Apple Pay och Google Pay
+(snabbkassan syns först då); egna påminnelser om övergivna kassor;
+Stripe-inställningarna (kortutdragets text "FYNDPLATS", Stripes egna kvitton
+av, Radar-regler); ett köp med Apple Pay från Leonards telefon.
