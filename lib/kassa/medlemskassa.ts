@@ -24,7 +24,7 @@ import { hamtaPrisbeslut, taRensning } from "@/lib/medlem/lager";
 import { egenKassa, kassaLage, PROV_KAKA } from "./lage";
 import { harStripe } from "./stripe";
 import { hamtaKorg, hamtaOrder } from "./wix-kassa";
-import { LAST_KORG_KAKA, lastKorgAnvandbar, lastKorgId, medSdkId, raderAttTaBort, beslutetsRensning, rensningsplan } from "./lastkorg";
+import { LAST_KORG_KAKA, korgensEpost, lastKorgAnvandbar, lastKorgId, medSdkId, raderAttTaBort, beslutetsRensning, rensningsplan } from "./lastkorg";
 
 /** Vår kassa med Stripe gäller för den här besökaren (läget och provkakan). */
 export async function egenKassaMedStripe(): Promise<boolean> {
@@ -58,11 +58,10 @@ export async function lastKorgForKassan(): Promise<LastKorg | null> {
     if (!lastKorgAnvandbar(korg)) return null;
     const vagn = normaliseraKundvagn(medSdkId(korg));
     if (!vagn || vagn.lineItems.length === 0) return null;
-    const epost = (korg as { buyerInfo?: { email?: unknown } } | null)?.buyerInfo?.email;
     return {
       id,
       rader: vagn.lineItems,
-      epost: typeof epost === "string" && epost ? epost : null,
+      epost: korgensEpost(korg),
       besokarensKorg: typeof beslut.besokarensKorg === "string" && beslut.besokarensKorg ? beslut.besokarensKorg : null,
     };
   } catch (e) {

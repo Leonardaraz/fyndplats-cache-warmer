@@ -60,6 +60,18 @@ export function medSdkId(korg: unknown): unknown {
   return { ...k, ...(str(k.id) && !str(k._id) ? { _id: k.id } : {}), lineItems: rader };
 }
 
+/**
+ * Medlemmens e-post på den låsta korgen, till kassans fält. Cart V2 bär den i
+ * `customerInfo.email` (korgen skapas så, lib/medlem/varukorg.ts); `buyerInfo`
+ * är ordrarnas och de äldre korgarnas fält. Uppmätt på förhandslänken
+ * 2026-11-06: med bara `buyerInfo` stod fältet tomt.
+ */
+export function korgensEpost(korg: unknown): string | null {
+  const k = obj(korg);
+  const e = str(obj(k?.customerInfo)?.email) ?? str(obj(k?.buyerInfo)?.email);
+  return e && e.includes("@") ? e : null;
+}
+
 /** Får kassan använda den låsta korgen? Den finns, har rader och har inte blivit en order. */
 export function lastKorgAnvandbar(korg: unknown): boolean {
   const k = obj(korg);

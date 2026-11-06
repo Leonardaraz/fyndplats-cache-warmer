@@ -9,6 +9,7 @@ import {
   LAST_KORG_SEK,
   beslutetsRensning,
   innehall,
+  korgensEpost,
   lastKorgAnvandbar,
   lastKorgId,
   lastKorgKaka,
@@ -49,6 +50,16 @@ test("en låst korg som blivit en order, eller saknar rader, används inte", () 
   assert.equal(lastKorgAnvandbar({ id: ID, lineItems: [{ id: "r1" }], orderId: "o1" }), false);
   assert.equal(lastKorgAnvandbar({ id: ID, lineItems: [] }), false);
   assert.equal(lastKorgAnvandbar(null), false);
+});
+
+test("korgens e-post: Cart V2 bär den i customerInfo, äldre former i buyerInfo", () => {
+  // Uppmätt på förhandslänken 2026-11-06: korgen som skapas med customerInfo.email har ingen buyerInfo.
+  assert.equal(korgensEpost({ id: ID, customerInfo: { openAccess: true, email: "medlem@exempel.se" } }), "medlem@exempel.se");
+  assert.equal(korgensEpost({ id: ID, buyerInfo: { email: "kopare@exempel.se" } }), "kopare@exempel.se");
+  assert.equal(korgensEpost({ id: ID, customerInfo: { email: "a@exempel.se" }, buyerInfo: { email: "b@exempel.se" } }), "a@exempel.se");
+  assert.equal(korgensEpost({ id: ID, customerInfo: { openAccess: true } }), null);
+  assert.equal(korgensEpost({ customerInfo: { email: "inte-en-adress" } }), null);
+  assert.equal(korgensEpost(null), null);
 });
 
 test("radens vara: Cart V2 (source) och äldre form, med och utan variant", () => {
