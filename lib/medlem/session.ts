@@ -22,9 +22,14 @@ export interface Session {
   sub: string;
   email: string;
   typ: "medlem";
+  /** E3: kontot handlar som sitt företag. Saknas: privat. Servern prövar
+   *  ändå företagsprofilen vid varje prissättning; tecknet ger ingen rätt. */
+  profil?: "foretag";
   iat: number;
   exp: number;
 }
+
+export type Profilval = "privat" | "foretag";
 
 function nyckel(hemlighet: string): Buffer {
   // Samma härledning som inloggning.ts `delnyckel(…, "session")`.
@@ -40,10 +45,17 @@ export function signera(s: Session, hemlighet: string): string {
   return `${huvud}.${last}.${sig}`;
 }
 
-export function nySession(medlemsId: string, epost: string, nuMs: number, hemlighet: string): { token: string; maxAgeS: number } {
+export function nySession(
+  medlemsId: string,
+  epost: string,
+  nuMs: number,
+  hemlighet: string,
+  profil: Profilval = "privat",
+): { token: string; maxAgeS: number } {
   const iat = Math.floor(nuMs / 1000);
   const maxAgeS = SESSION_DAGAR * 24 * 60 * 60;
-  return { token: signera({ sub: medlemsId, email: epost, typ: "medlem", iat, exp: iat + maxAgeS }, hemlighet), maxAgeS };
+  const s: Session = { sub: medlemsId, email: epost, typ: "medlem", ...(profil === "foretag" ? { profil } : {}), iat, exp: iat + maxAgeS };
+  return { token: signera(s, hemlighet), maxAgeS };
 }
 
 function json(del: string): Record<string, unknown> | null {
@@ -72,7 +84,7 @@ export function lasSession(token: string | null | undefined, hemlighet: string |
   if (typeof p.email !== "string" || !p.email) return null;
   if (typeof p.iat !== "number" || typeof p.exp !== "number") return null;
   if (p.exp * 1000 <= nuMs) return null;
-  return { sub: p.sub, email: p.email, typ: "medlem", iat: p.iat, exp: p.exp };
+  return { sub: p.sub, email: p.email, typ: "medlem", ...(p.profil === "foretag" ? { profil: "foretag" as const } : {}), iat: p.iat, exp: p.exp };
 }
 
 export function behoverFornyas(s: Session, nuMs: number): boolean {
@@ -82,4 +94,22 @@ export function behoverFornyas(s: Session, nuMs: number): boolean {
 /** Kakans attribut. `secure` bara över https, så att den lokala servern fungerar. */
 export function kakaAttribut(maxAgeS: number, https = true) {
   return { httpOnly: true, secure: https, sameSite: "lax" as const, path: "/", maxAge: maxAgeS };
+}
+
+/**
+ * Ett tecken som sidans skript får läsa: "här finns en inloggning". Sessionen
+ * själv är httpOnly. Utan tecknet hade varje produktsida behövt fråga servern
+ * om medlemspriset, också för alla som aldrig loggat in. Tecknet bär ingenting
+ * hemligt och ger ingen behörighet; servern läser alltid sessionen.
+ */
+export const TECKEN_KAKA = "fp_medlem_inne";
+
+/** Tecknets värde: "1" privat, "f" företag (E3). Sidans skript visar då
+ *  priser exkl. moms medan servern svarar; priset kommer alltid från servern. */
+export function teckenVarde(profil: Profilval | undefined): "1" | "f" {
+  return profil === "foretag" ? "f" : "1";
+}
+
+export function teckenAttribut(maxAgeS: number, https = true) {
+  return { httpOnly: false, secure: https, sameSite: "lax" as const, path: "/", maxAge: maxAgeS };
 }

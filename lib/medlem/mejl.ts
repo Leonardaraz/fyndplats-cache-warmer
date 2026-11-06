@@ -16,6 +16,14 @@ import MedlemInloggningEmail, { medlemInloggningAmne } from "@/emails/medlem-inl
 import MedlemValkommenEmail, { medlemValkommenAmne } from "@/emails/medlem-valkommen";
 import MedlemNyNivaEmail, { medlemNyNivaAmne } from "@/emails/medlem-ny-niva";
 import MedlemNivaSjunkerEmail, { medlemNivaSjunkerAmne } from "@/emails/medlem-niva-sjunker";
+import ForetagGodkantEmail, {
+  ForetagAttGranskaEmail,
+  ForetagGodkantDirektEmail,
+  foretagAttGranskaAmne,
+  foretagGodkantAmne,
+  foretagGodkantDirektAmne,
+} from "@/emails/medlem-foretag";
+import OffertKlarEmail, { OffertForfraganEmail, offertForfraganAmne, offertKlarAmne } from "@/emails/medlem-offert";
 import { dagSomText, kronor, type Nivalage } from "./niva";
 
 const FROM = "Fyndplats <orders@fyndplats.se>";
@@ -105,5 +113,52 @@ export function skickaNivaSjunker(till: string, l: Nivalage, a: Avregistrering):
     }),
     "niva-sjunker",
     headers,
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Företagskontot (E3)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Motorns admin, där företagen granskas (Leonards beslut A3). */
+export const ADMIN_MEDLEMMAR = "https://fyndplats-cache-warmer.vercel.app/admin/medlemmar#foretag";
+
+export function skickaForetagGodkant(till: string, namn: string): Promise<boolean> {
+  return skicka(till, foretagGodkantAmne, ForetagGodkantEmail({ namn }), "foretag-godkant");
+}
+
+/** Till butiken: en ansökan väntar. Bara det maskerade numret (F4). */
+export function skickaForetagAttGranska(a: { namn: string; orgnrVisas: string; form: "juridisk" | "enskild"; orsaker?: string[] }): Promise<boolean> {
+  return skicka(REPLY_TO, foretagAttGranskaAmne(a.namn), ForetagAttGranskaEmail({ ...a, adminLank: ADMIN_MEDLEMMAR }), "foretag-att-granska");
+}
+
+/** Till butiken: ett företag godkändes direkt efter Bolagsverkets uppslag. */
+export function skickaForetagGodkantDirekt(a: { namn: string; orgnrVisas: string; form: "juridisk" | "enskild" }): Promise<boolean> {
+  return skicka(REPLY_TO, foretagGodkantDirektAmne(a.namn), ForetagGodkantDirektEmail({ ...a, adminLank: ADMIN_MEDLEMMAR }), "foretag-godkant-direkt");
+}
+
+/** Motorns admin, där offerterna prissätts. */
+export const ADMIN_OFFERTER = "https://fyndplats-cache-warmer.vercel.app/admin/medlemmar#offerter";
+
+const SISTA_DAG = new Intl.DateTimeFormat("sv-SE", { day: "numeric", month: "long", timeZone: "Europe/Stockholm" });
+
+/** Till kunden: offerten är prissatt. `giltigTill` är det första ögonblick den inte gäller. */
+export function skickaOffertKlar(till: string, o: { id: string; foretagNamn: string; giltigTill?: string }): Promise<boolean> {
+  const sista = o.giltigTill && !Number.isNaN(Date.parse(o.giltigTill)) ? SISTA_DAG.format(new Date(Date.parse(o.giltigTill) - 1)) : null;
+  return skicka(
+    till,
+    offertKlarAmne,
+    OffertKlarEmail({ foretagNamn: o.foretagNamn, lank: `${sajt()}/offert/${o.id}`, sistaDag: sista }),
+    "offert-klar",
+  );
+}
+
+/** Till butiken: en förfrågan väntar på priser. */
+export function skickaOffertForfragan(a: { foretagNamn: string; antalRader: number; antalVaror: number; listaOre: number; meddelande?: string }): Promise<boolean> {
+  return skicka(
+    REPLY_TO,
+    offertForfraganAmne(a.foretagNamn),
+    OffertForfraganEmail({ ...a, lista: kronor(a.listaOre), adminLank: ADMIN_OFFERTER }),
+    "offert-forfragan",
   );
 }

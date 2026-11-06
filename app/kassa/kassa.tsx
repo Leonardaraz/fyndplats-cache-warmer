@@ -36,6 +36,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { preconnect, prefetchDNS } from "react-dom";
 import { useCart, liImageUrl } from "../../components/cart";
+import { lastKorgStammer } from "../../lib/kassa/lastkorg";
 import { PaymentMarks } from "../../components/payment-marks";
 import { GoogleG } from "../../components/google-g";
 import { tightFillUrl } from "../../lib/wix-image";
@@ -173,7 +174,16 @@ type FormFalt = keyof Varden;
  * Kassan. `betyg` är butikens Google-betyg ("4,9", lib/social-proof-live.ts),
  * som page.tsx läser på servern; null visar ingen betygsrad.
  */
-export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: string | null; betyg?: string | null }) {
+export function Kassa({
+  stripeNyckel = null,
+  betyg = null,
+  last: lastFranServern = null,
+}: {
+  stripeNyckel?: string | null;
+  betyg?: string | null;
+  /** Medlemskorgen med låsta priser (lib/kassa/medlemskassa.ts), eller null. */
+  last?: { id: string; rader: KorgRadVy[]; epost: string | null; besokarensKorg: string | null } | null;
+}) {
   if (stripeNyckel) {
     // Stripe.js och betalfältet hämtas direkt när sidan visas.
     preconnect("https://js.stripe.com");
@@ -187,8 +197,12 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
   }
 
   const { cart, setOpen: oppnaVarukorgen } = useCart();
-  const cartId: string = cart?._id || "";
-  const rader: KorgRadVy[] = useMemo(() => cart?.lineItems ?? [], [cart]);
+  // Medlemskorgen med låsta priser går före besökarens vanliga korg: den är en
+  // kopia med medlemmens priser och låst kupong (lib/kassa/lastkorg.ts).
+  const [last, setLast] = useState(lastFranServern);
+  const [lastSlappt, setLastSlappt] = useState(false);
+  const cartId: string = last?.id || cart?._id || "";
+  const rader: KorgRadVy[] = useMemo(() => (last ? last.rader : (cart?.lineItems ?? [])), [cart, last]);
   const [varden, setVarden] = useState<Varden>(TOMT);
   const [fel, setFel] = useState<Partial<Record<Falt, string>>>({});
   const [meddelanden, setMeddelanden] = useState<string[]>([]);
@@ -245,6 +259,39 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
     // eslint-disable-next-line react-hooks/set-state-in-effect -- webbläsarens förmågor finns inte på servern
     setPlanbokMojlig(planbokTrolig({ applePaySession: "ApplePaySession" in window }));
   }, []);
+
+  /**
+   * "Ändra" öppnar varukorgen. Med medlemskorgen släpps den först (kakan bort),
+   * eftersom en ändrad varukorg ska prissättas igen: varukorgens "Till kassan"
+   * gör en ny medlemskorg.
+   */
+  const andraVarukorgen = () => {
+    if (last) {
+      void fetch("/api/kassa/lastkorg", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ steg: "slapp" }), keepalive: true }).catch(() => {});
+      setLast(null);
+      setLastSlappt(true);
+    }
+    oppnaVarukorgen(true);
+  };
+
+  // En låst korg som inte längre stämmer med varukorgen (ändrad efteråt, eller en
+  // gammal kaka) släpps: kunden går till kassan från varukorgen igen.
+  useEffect(() => {
+    if (!last || !cart) return;
+    if (lastKorgStammer(last, { id: cart._id, rader: cart.lineItems ?? [] })) return;
+    void fetch("/api/kassa/lastkorg", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ steg: "slapp" }), keepalive: true }).catch(() => {});
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- varukorgen kommer från Wix efter första renderingen
+    setLast(null);
+    setLastSlappt(true);
+  }, [cart, last]);
+
+  // Medlemmens e-post på den låsta korgen fyller fältet, så att köpet räknas på kontot.
+  useEffect(() => {
+    const epost = lastFranServern?.epost;
+    if (!epost) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- en gång, från serverns korg
+    setVarden((v) => (v.epost ? v : { ...v, epost }));
+  }, [lastFranServern]);
 
   // Provläget: /kassa?prova=1 sätter kakan som låter den här besökaren använda kassan.
   useEffect(() => {
@@ -568,6 +615,10 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
   /** Ordern finns: det sparade försöket är förbrukat, och kunden går till tacksidan. */
   const tillTack = (orderId: string) => {
     skrivJson("local", STRIPE_NYCKEL, null);
+    if (last) {
+      // Medlemskorgen var en kopia: de köpta varorna tas bort ur besökarens korg.
+      void fetch("/api/kassa/lastkorg", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ steg: "kopt", orderId }), keepalive: true }).catch(() => {});
+    }
     window.location.replace(`/tack?orderId=${encodeURIComponent(orderId)}`);
   };
 
@@ -796,7 +847,8 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
     const u = await snabbBekrafta(
       {
         submit: () => grupp.submit(),
-        prova: (p) => provaKassa(kundFranPlanbok(p, { kupong: kod })),
+        // Medlemmens korg: kontots e-post går före plånbokens, så att köpet räknas på kontot.
+        prova: (p) => provaKassa(kundFranPlanbok(p, { kupong: kod, epost: last?.epost })),
         forbered: async (kund) => {
           try {
             const r = await fetch("/api/kassa/stripe/forbered", {
@@ -1139,13 +1191,17 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
       </div>
       <div id="kassa-kupong-text" className={kupongFel ? s.felText : s.hjalpText} aria-live="polite">{kupongFel ?? ""}</div>
     </div>
+  ) : last ? (
+    <p className={s.medlemsrad}>Ditt medlemspris är med. Det går inte att kombinera med rabattkoder.</p>
+  ) : lastSlappt ? (
+    <p className={s.medlemsrad}>Gå till kassan från varukorgen igen, så räknas ditt medlemspris.</p>
   ) : (
     <button type="button" className={`${s.lankLiten} ${s.kupongLank}`} onClick={() => setKupongOppen(true)}>Har du en rabattkod?</button>
   );
 
   return (
     <div className={s.sida} data-kassa-sida="">
-      <KassaHuvud tillVarukorgen={() => oppnaVarukorgen(true)} />
+      <KassaHuvud tillVarukorgen={andraVarukorgen} />
       <div className={s.innehall}>
         <h1 className="sr-only">Kassa</h1>
 
@@ -1169,7 +1225,7 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
           {sammanfattningOppen ? (
             <div id="kassa-summering-mobil" className={s.mobilSummeringInnehall}>
               {sammanfattning}
-              <button type="button" className={s.andraMobil} onClick={() => oppnaVarukorgen(true)}>Ändra varukorgen</button>
+              <button type="button" className={s.andraMobil} onClick={andraVarukorgen}>Ändra varukorgen</button>
             </div>
           ) : null}
         </div>
@@ -1223,6 +1279,9 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
                 <p className={s.snabbKod}>
                   {summa?.kupong ? (
                     <>Rabattkoden <strong>{summa.kupong}</strong> är med i beloppet.</>
+                  ) : last ? (
+                    // Medlemspriset går inte att kombinera med rabattkoder (kupongen är låst i korgen).
+                    <>Ditt medlemspris är med i beloppet.</>
                   ) : (
                     <button type="button" className={s.lankLiten} onClick={tillRabattkoden}>Har du en rabattkod?</button>
                   )}
@@ -1401,7 +1460,7 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
                 Din beställning
                 {antalVaror > 0 ? <span className={s.sidRubrikAntal}>{antalVaror} {antalVaror === 1 ? "vara" : "varor"}</span> : null}
               </h2>
-              <button type="button" className={s.andra} onClick={() => oppnaVarukorgen(true)}>Ändra</button>
+              <button type="button" className={s.andra} onClick={andraVarukorgen}>Ändra</button>
             </div>
             {sammanfattning}
             {fortroende}

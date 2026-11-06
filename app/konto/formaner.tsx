@@ -21,7 +21,8 @@ export function Kortfacka() {
   );
 }
 
-export function Formaner() {
+/** `prisPa`: medlemspriset gäller för alla (prisväxeln `pa`); annars "kommer snart". */
+export function Formaner({ prisPa = false }: { prisPa?: boolean }) {
   return (
     <ul className={s.formanLista}>
       <li>
@@ -34,7 +35,8 @@ export function Formaner() {
         <strong>Köp från det senaste året räknas</strong> direkt när du skapar kontot.
       </li>
       <li>
-        <strong>Medlemspriser i kassan</strong> kommer snart, och de högre nivåerna får mer.
+        <strong>Medlemspriser i kassan</strong>
+        {prisPa ? " på det mesta i sortimentet" : " kommer snart"}, och de högre nivåerna får mer.
       </li>
     </ul>
   );

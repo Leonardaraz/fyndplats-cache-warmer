@@ -624,6 +624,11 @@
   background: var(--brand);
   box-shadow: 0 0 0 4px rgba(194, 65, 12, 0.14);
 }
+/* Medlemspriset gäller: grön prick, samma gröna som sidans övriga bekräftelser. */
+.snart[data-pa] .snartPrick {
+  background: #1f6b3a;
+  box-shadow: 0 0 0 4px rgba(31, 107, 58, 0.14);
+}
 
 .not {
   margin: 12px 0 0;
@@ -958,6 +963,122 @@
   font-size: var(--text-sm);
   color: var(--soft);
 }
+/* "Köp igen" och "Kvitto (PDF)": samma form som spårningsknappen men ljusa,
+   så att spårningen är det första ögat ser på en order som är på väg. */
+.kopIgen {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6.5px 14px;
+  border: 1.5px solid var(--ink);
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.kopIgen:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--e2);
+}
+.kopIgen:focus-visible {
+  outline: none;
+  box-shadow: var(--e-ring);
+}
+.kopIgen:disabled {
+  opacity: 0.65;
+  cursor: progress;
+}
+.kopIgenBesked {
+  flex-basis: 100%;
+  margin: 2px 0 0;
+  font-size: var(--text-sm);
+  color: var(--soft);
+}
+/* En mörk knapp utan pil: "Lägg i varukorgen" och "Spara" på de sparade
+   varukorgarna. Spårningens pil hör till länkar som leder vidare. */
+.knappMork {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--ink);
+  color: #fff;
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.knappMork:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--e2);
+}
+.knappMork:focus-visible {
+  outline: none;
+  box-shadow: var(--e-ring);
+}
+.knappMork:disabled {
+  opacity: 0.65;
+  cursor: progress;
+}
+
+/* Sparade varukorgar (lib/medlem/sparade.ts) */
+.sparade {
+  margin-top: 28px;
+}
+.sparadKorg {
+  padding: 16px 18px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--e1);
+}
+.sparadInfo {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.sparadNamn {
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+.sparadRad {
+  font-size: var(--text-sm);
+  color: var(--soft);
+}
+.sparadVaror {
+  font-size: var(--text-sm);
+  color: var(--soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sparaForm {
+  margin-top: 16px;
+  display: grid;
+  gap: 8px;
+}
+.sparaEtikett {
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+.sparaRad {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.sparaRad .falt {
+  flex: 1 1 auto;
+  min-width: 0;
+}
 
 .tomt {
   text-align: center;
@@ -1088,6 +1209,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .sparknapp,
+  .kopIgen,
+  .knappMork,
   .forklaring summary::after {
     transition: none;
   }
@@ -1128,4 +1251,219 @@
 }
 .installningText strong {
   color: var(--ink);
+}
+
+/* ── Företagskontot (E3) ── */
+
+.handlarSom {
+  margin: 4px 0 0;
+  font-size: var(--text-sm);
+  color: var(--ink);
+}
+.handlarSom a {
+  font-weight: 700;
+  color: var(--brand);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.foretag {
+  margin-top: 28px;
+}
+.foretag .underrubrik {
+  margin-top: 0;
+}
+
+.foretagForm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 520px;
+  margin-top: 12px;
+}
+
+.adress {
+  border: 0;
+  margin: 6px 0 0;
+  padding: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.adress legend {
+  padding: 0;
+  margin-bottom: 8px;
+}
+.postrad {
+  display: grid;
+  grid-template-columns: minmax(0, 9em) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.kryss {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  margin-top: 6px;
+  cursor: pointer;
+}
+.kryss input {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  accent-color: var(--brand);
+}
+.kryss a {
+  color: var(--brand);
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.faltFel,
+.faltOk,
+.faltHjalp {
+  font-size: var(--text-sm);
+  line-height: 1.4;
+}
+.faltFel {
+  color: #8a1c10;
+}
+.faltOk {
+  color: #1d6b3a;
+}
+.faltHjalp {
+  color: var(--soft);
+}
+
+.foretagFakta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px 22px;
+  margin: 0 0 12px;
+}
+.foretagFakta dt {
+  font-size: var(--text-sm);
+  color: var(--soft);
+}
+.foretagFakta dd {
+  margin: 2px 0 0;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.profilval {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+}
+.profilknapp {
+  font: inherit;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 16px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-md);
+  background: #fff;
+  color: var(--ink);
+  font-weight: 700;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.profilknapp small {
+  font-weight: 500;
+  font-size: var(--text-sm);
+  color: var(--soft);
+}
+.profilknapp[aria-checked="true"] {
+  border-color: var(--brand);
+  box-shadow: var(--e-ring);
+}
+.profilknapp:focus-visible {
+  outline: none;
+  box-shadow: var(--e-ring);
+}
+.profilknapp:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+/* ── Offerten (E3) ── */
+
+.offertTabell {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+.offertTabell th {
+  text-align: left;
+  font-weight: 700;
+  color: var(--soft);
+  padding: 0 8px 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+.offertTabell td {
+  padding: 10px 8px 10px 0;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+.offertTabell td:nth-child(n + 2),
+.offertTabell th:nth-child(n + 2) {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 560px) {
+  .offertTabell th:nth-child(3),
+  .offertTabell td:nth-child(3) {
+    display: none;
+  }
+}
+.offertSumma {
+  margin: 14px 0 6px;
+  display: grid;
+  gap: 6px;
+  max-width: 360px;
+  margin-left: auto;
+}
+.offertSumma div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+.offertSumma dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.offertLista {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.offertLista li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px 16px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  font-size: var(--text-sm);
+}
+.offertLista a {
+  font-weight: 700;
+  color: var(--brand);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }

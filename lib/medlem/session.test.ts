@@ -4,7 +4,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
-import { SESSION_DAGAR, behoverFornyas, kakaAttribut, lasSession, nySession, signera } from "./session.ts";
+import { SESSION_DAGAR, behoverFornyas, kakaAttribut, lasSession, nySession, signera, teckenVarde } from "./session.ts";
 import { delnyckel } from "./inloggning.ts";
 
 const H = "test-hemlighet-som-bara-finns-i-provet";
@@ -61,4 +61,17 @@ test("förnyas efter ett dygn, inte före", () => {
 test("kakan är httpOnly, Lax och gäller hela sajten", () => {
   assert.deepEqual(kakaAttribut(60), { httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: 60 });
   assert.equal(kakaAttribut(60, false).secure, false);
+});
+
+test("E3: profilvalet företag följer med i token, och allt annat än \"foretag\" läses som privat", () => {
+  const f = lasSession(nySession(ID, "kund@example.se", NU, H, "foretag").token, H, NU);
+  assert.equal(f?.profil, "foretag");
+  const p = lasSession(nySession(ID, "kund@example.se", NU, H).token, H, NU);
+  assert.ok(p);
+  assert.equal("profil" in p, false, "en privat session bär inget profilfält");
+  const konstig = signera({ sub: ID, email: "kund@example.se", typ: "medlem", profil: "admin" as unknown as "foretag", iat: NU / 1000, exp: NU / 1000 + 60 }, H);
+  assert.equal(lasSession(konstig, H, NU)?.profil, undefined);
+  assert.equal(teckenVarde("foretag"), "f");
+  assert.equal(teckenVarde("privat"), "1");
+  assert.equal(teckenVarde(undefined), "1");
 });

@@ -13,6 +13,12 @@ import { tightFillUrl } from "../lib/wix-image";
 import { DELIVERY_MAX_DAYS, DELIVERY_MIN_DAYS, DELIVERY_TIME, EU_STOCK_NOTE_SHORT, FREE_SHIPPING_FROM_KR, fraktKr } from "../lib/shipping";
 import { leveransIntervall } from "../lib/leveransdatum";
 import { skapaKassalankMinne, type Kassalank } from "../lib/kassalank";
+import { medlemskassa, useMedlemskorg } from "./medlemspris";
+import { kronorText } from "../lib/medlem/kronor";
+import { exklMoms } from "../lib/medlem/pris";
+import { OffertForfragan } from "./offert-forfragan";
+import { ForskottKnapp, type ForskottLagd } from "./forskott-knapp";
+import { nivaNyckel } from "../lib/medlem/niva-nyckel";
 import { normaliseraKundvagn, vagnenArBorta, valdaAlternativ } from "../lib/cart-shape";
 import { visaValnamn } from "../lib/variant-lage";
 import { usePanelFokus } from "./use-panel-fokus";
@@ -133,6 +139,9 @@ type Ctx = {
   /** true när Wix tagit emot varan. Med `forhand` öppnas lådan direkt, med
    *  raden som väntande, i stället för när Wix svarat. */
   add: (id: string, variantId?: string, quantity?: number, forhand?: Forhandsrad) => Promise<boolean>;
+  /** Flera varor i ett anrop ("Köp igen" på Mina sidor). true när Wix tagit
+   *  emot dem; lådan öppnas då med varorna. */
+  addMany: (rader: { id: string; variantId?: string; antal: number }[]) => Promise<boolean>;
   vantande: Vantande[];
   fel: string | null;
   remove: (lineId: string) => Promise<void>;
@@ -141,6 +150,9 @@ type Ctx = {
   busy: boolean;
   /** Kassan håller på att öppnas (trycket är gjort, sidan inte bytt än). */
   tillKassan: boolean;
+  /** E3: förskottsordern som just lades; lådan visar kvittensen. */
+  forskottLagd: ForskottLagd | null;
+  forskottKlar: (lagd: ForskottLagd) => void;
 };
 const CartCtx = createContext<Ctx | null>(null);
 export const useCart = () => {
@@ -269,6 +281,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [busy, setBusy] = useState(false);
   const [vantande, setVantande] = useState<Vantande[]>([]);
   const [fel, setFel] = useState<string | null>(null);
+  // Förskottsordern (E3): ordern är lagd och varukorgen borttagen. Lådan visar
+  // kvittensen i stället för "tom" tills nästa vara läggs i.
+  const [forskottLagd, setForskottLagd] = useState<ForskottLagd | null>(null);
   // Sant från trycket på "Till kassan" tills kassan har tagit över sidan.
   // Wix kassa tar 2–9 s innan den syns, och under den tiden ska knappen säga
   // att den är på väg, inte bli "Till kassan" igen.
@@ -307,6 +322,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     else Cookies.remove("fp_cart");
   }, []);
 
+  // Förskottsordern (E3): servern har lagt ordern och tagit bort varukorgen.
+  // Lådan visar kvittensen tills nästa vara läggs i (`add` nollar den).
+  const forskottKlar = useCallback((lagd: ForskottLagd) => {
+    setForskottLagd(lagd);
+    visaVagn(null);
+  }, [visaVagn]);
+
   useEffect(() => {
     // Returvisitor med befintlig kundvagn → ladda SDK och hämta cart.
     // Nya besökare betalar 0 SDK-bytes tills de klickar "Lägg i kundvagn".
@@ -332,6 +354,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const nyckel = Date.now() + Math.random();
     setBusy(true);
     setFel(null);
+    setForskottLagd(null);
     // Lådan öppnas i samma bild som trycket, med varan som väntande rad.
     // Wix svar ersätter raden i samma rendering (React batchar setCart och
     // borttagningen nedan), så den blinkar inte.
@@ -355,6 +378,34 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       return false;
     } finally {
       setVantande((v) => v.filter((x) => x.nyckel !== nyckel));
+      setBusy(false);
+    }
+  }, [visaVagn]);
+
+  // "Köp igen" (Mina sidor): orderns varor i ETT anrop, så att varukorgen
+  // aldrig får hälften om nätet går mitt i. Felet står i lådan som för add().
+  const addMany = useCallback(async (rader: { id: string; variantId?: string; antal: number }[]) => {
+    if (rader.length === 0) return false;
+    setBusy(true);
+    setFel(null);
+    setForskottLagd(null);
+    try {
+      const { client } = await getClient();
+      await sakraBesokare(client);
+      const res: any = await client.currentCart.addLineItemsToCurrentCart({
+        catalogItems: rader.map((r) => {
+          const ref: any = { appId: STORES_APP_ID, catalogItemId: r.id };
+          if (r.variantId) ref.options = { variantId: r.variantId };
+          return { catalogReference: ref, quantity: Math.max(1, Math.floor(r.antal)) };
+        }),
+      });
+      visaVagn(res); persistTokens(client); setOpen(true);
+      return true;
+    } catch {
+      setFel("Varorna kunde inte läggas i varukorgen. Försök igen.");
+      setOpen(true);
+      return false;
+    } finally {
       setBusy(false);
     }
   }, [visaVagn]);
@@ -401,6 +452,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       // routar tillbaka till /tack utan items — purchase-eventet behöver det.
       trackBeginCheckout(cart);
       stashPurchaseSnapshot(cart);
+      const kassaId: string = cart?._id || "";
+      // ☠️ Medlemmar FÖRST, före valet av kassa: servern bygger en korg med
+      // låsta medlemspriser (E2) och svarar med kassans adress, "/kassa" med
+      // kakan fp_kassa_korg när vår kassa gäller (lib/kassa/lastkorg.ts).
+      // Gick vår kassa först betalade en medlem fullt pris i den. Utan
+      // medlemstecknet görs inget anrop. Ger servern ingen adress (medlemspris
+      // gäller inte, eller något föll) används den vanliga kassan nedan.
+      // Hel sidladdning: /kassa läser kakan på servern.
+      const medlem = kassaId ? await medlemskassa(kassaId) : null;
+      if (medlem) {
+        console.info("[kassa] adress via medlemskassan");
+        window.location.href = medlem;
+        return;
+      }
       // Vår egen kassa (/kassa) när växeln säger det (lib/kassa/lage.ts).
       // Svaret hämtas när lådan öppnas; finns det inte än frågas det nu, och
       // ett fel ger Wix kassa som förut.
@@ -414,7 +479,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
       // Adressen förbereds när lådan öppnas (lib/kassalank.ts). Finns en för
       // just den här vagnen används den, annars byggs den nu, som förut.
-      const kassaId: string = cart?._id || "";
       const forberedd = kassaId ? kassalankMinne.hamta(kassaId) : null;
       let lank: Kassalank | null = forberedd ? await forberedd.catch(() => null) : null;
       if (lank) {
@@ -465,7 +529,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   // Ett fel står kvar tills lådan stängs, inte till nästa gång den öppnas.
   const oppna = useCallback((b: boolean) => { setOpen(b); if (!b) setFel(null); }, []);
 
-  return <CartCtx.Provider value={{ cart, count, open, setOpen: oppna, add, vantande, fel, remove, updateQty, checkout, busy, tillKassan }}>{children}</CartCtx.Provider>;
+  return <CartCtx.Provider value={{ cart, count, open, setOpen: oppna, add, addMany, vantande, fel, remove, updateQty, checkout, busy, tillKassan, forskottLagd, forskottKlar }}>{children}</CartCtx.Provider>;
 }
 
 export function CartButton() {
@@ -512,7 +576,7 @@ function hamtaForslag(nyckel: string): Promise<Forslagssvar> {
 }
 
 export function CartDrawer() {
-  const { cart, open, setOpen, remove, updateQty, checkout, busy, count, vantande, fel, tillKassan } = useCart();
+  const { cart, open, setOpen, remove, updateQty, checkout, busy, count, vantande, fel, tillKassan, forskottLagd, forskottKlar } = useCart();
   const panelRef = useRef<HTMLElement>(null);
   // En ny vara läggs sist. Rulla dit, så att kunden ser den hamna i lådan.
   const kroppRef = useRef<HTMLDivElement>(null);
@@ -572,6 +636,12 @@ export function CartDrawer() {
   // anges i kassan och dras där. Samma valutaförbehåll som mätaren ovan.
   const frakt = fraktKr(subNum);
   const totalt = subNum + frakt;
+  // Medlemspriset (E2): summorna räknade på servern med samma funktion som
+  // kassan, bara när Wix har alla rader. Listpriset står aldrig bredvid [P8];
+  // summorna byts, och nivån står under totalen. Frakten följer listpriset,
+  // och fraktskyddet håller medlemmen över gränsen när listpriset är det.
+  const radnyckel = items.map((li) => `${li._id ?? li.id ?? ""}:${li.quantity ?? 0}`).join("|");
+  const medlem = useMedlemskorg(cart?._id || "", radnyckel, open && items.length > 0 && vantande.length === 0);
   return (
     <>
       <div className={`drawer-ov ${open ? "show" : ""}`} onClick={() => setOpen(false)} />
@@ -601,8 +671,20 @@ export function CartDrawer() {
                   <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
                 </svg>
               </span>
-              <p className="cart-empty-title">Din varukorg är tom</p>
-              <p className="cart-empty-sub">Här samlar du dina favoritfynd.</p>
+              {forskottLagd && !harRader ? (
+                <>
+                  <p className="cart-empty-title">Tack! Order {forskottLagd.nummer} är lagd</p>
+                  <p className="cart-empty-sub" role="status">
+                    Förskottsfakturan på {kronorText(forskottLagd.totalOre)} kommer med e-post inom några minuter. Vi
+                    skickar varorna när betalningen har kommit in.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="cart-empty-title">Din varukorg är tom</p>
+                  <p className="cart-empty-sub">Här samlar du dina favoritfynd.</p>
+                </>
+              )}
               <a className="cart-empty-cta" href="/butik" onClick={() => setOpen(false)}>Utforska butiken →</a>
             </div>
           ) : (
@@ -645,7 +727,13 @@ export function CartDrawer() {
                       const val = valdaAlternativ(li).map((v) => visaValnamn(v.varde)).filter(Boolean);
                       return val.length ? <div className="li-val">{val.join(" · ")}</div> : null;
                     })()}
-                    <div className="li-meta">{li.price?.formattedAmount || ""}</div>
+                    <div className="li-meta">
+                      {(() => {
+                        // E3: företaget ser radens styckpris exkl. moms, märkt (E3-4).
+                        const r = medlem?.foretag?.rader.find((x) => x.id === li._id);
+                        return r ? `${kronorText(r.pOreExMoms)} exkl. moms` : li.price?.formattedAmount || "";
+                      })()}
+                    </div>
                     <div className="li-qty">
                       <button className="qbtn" onClick={() => updateQty(li._id, li.quantity - 1)} disabled={busy || tillKassan} aria-label="Minska antal">−</button>
                       <span className="qnum">{li.quantity}</span>
@@ -691,13 +779,58 @@ export function CartDrawer() {
             {/* Som premiumbutikernas kassor (granskningen 2026-10-09): frakten och
                 det kunden betalar står före knappen. Delsumman visas bara när
                 den skiljer sig från totalen. */}
+            {medlem?.foretag ? (
+              (() => {
+                // E3: företagets summor exkl. moms, momsen och totalen som
+                // kassan visar; ordertrappan och nästa steg (E3-7).
+                const f = medlem.foretag;
+                const fraktOre = Math.round(frakt * 100);
+                const fraktEx = exklMoms(fraktOre, 25);
+                const moms = medlem.summaPOre + fraktOre - (f.summaPOreExMoms + fraktEx);
+                return (
+                  <>
+                    <dl className="drawer-sum">
+                      <div><dt>Varor <small>exkl. moms</small></dt><dd>{kronorText(f.summaPOreExMoms)}</dd></div>
+                      <div><dt>Frakt {frakt > 0 && <small>exkl. moms</small>}</dt><dd className={frakt === 0 ? "fri" : undefined}>{frakt === 0 ? "Fri frakt" : kronorText(fraktEx)}</dd></div>
+                      <div><dt>Moms 25 %</dt><dd>{kronorText(moms)}</dd></div>
+                      <div className="tot"><dt>Totalt <small>inkl. moms</small></dt><dd>{kronorText(medlem.summaPOre + fraktOre)}</dd></div>
+                      <div className="drawer-medlem">
+                        <dt>{f.namn}</dt>
+                        <dd>
+                          <span className="medlemspris-chip" data-niva={nivaNyckel(medlem.niva)}>
+                            {f.kalla === "trappa" ? `Ordertrappan · ${medlem.procent} %` : f.kalla === "niva" ? `${medlem.niva} · ${medlem.procent} %` : "Företag"}
+                          </span>
+                        </dd>
+                      </div>
+                    </dl>
+                    {f.nastaSteg && (
+                      <p className="drawer-trappa">
+                        Lägg till <b>{kronorText(f.nastaSteg.kvarOreExMoms)}</b> exkl. moms för {f.nastaSteg.procent} % på hela ordern.
+                      </p>
+                    )}
+                    <p className="drawer-moms">Kassan visar priserna inklusive moms.</p>
+                    {f.offert && cart?._id ? <OffertForfragan cartId={cart._id} /> : null}
+                    {cart?._id ? (
+                      <ForskottKnapp cartId={cart._id} onLagd={forskottKlar} />
+                    ) : null}
+                  </>
+                );
+              })()
+            ) : (
             <dl className="drawer-sum">
               {frakt > 0 && (
-                <div><dt>Delsumma</dt><dd>{vantande.length || !subtotal ? formatPrice(subNum) : subtotal}</dd></div>
+                <div><dt>Delsumma</dt><dd>{medlem ? kronorText(medlem.summaPOre) : vantande.length || !subtotal ? formatPrice(subNum) : subtotal}</dd></div>
               )}
               <div><dt>Frakt</dt><dd className={frakt === 0 ? "fri" : undefined}>{frakt === 0 ? "Fri frakt" : formatPrice(frakt)}</dd></div>
-              <div className="tot"><dt>Totalt <small>inkl. moms</small></dt><dd>{formatPrice(totalt)}</dd></div>
+              <div className="tot"><dt>Totalt <small>inkl. moms</small></dt><dd>{medlem ? kronorText(medlem.summaPOre + Math.round(frakt * 100)) : formatPrice(totalt)}</dd></div>
+              {medlem && (
+                <div className="drawer-medlem">
+                  <dt>Ditt medlemspris</dt>
+                  <dd><span className="medlemspris-chip" data-niva={nivaNyckel(medlem.niva)}>{medlem.niva} · {medlem.procent} %</span></dd>
+                </div>
+              )}
             </dl>
+            )}
             <button className="buy" disabled={busy || tillKassan} aria-busy={tillKassan} onClick={checkout}>{tillKassan ? "Öppnar kassan …" : busy ? "…" : "Till kassan →"}</button>
             <ul className="drawer-trygg">
               <li>

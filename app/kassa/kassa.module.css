@@ -1699,3 +1699,11 @@
   height: 56px;
   margin-bottom: 12px;
 }
+
+/* Medlemskorgen: priset är låst, och rabattkoder går inte att lägga till. */
+.medlemsrad {
+  margin: 8px 0 0;
+  font-size: var(--text-sm);
+  color: #157a3a;
+  font-weight: 600;
+}

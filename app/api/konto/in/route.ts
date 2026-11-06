@@ -31,7 +31,7 @@ import {
 } from "@/lib/medlem/lager";
 import { fraga } from "@/lib/wix-lager";
 import { loggaIn } from "@/lib/medlem/konto";
-import { SESSION_KAKA, kakaAttribut, nySession } from "@/lib/medlem/session";
+import { SESSION_KAKA, TECKEN_KAKA, kakaAttribut, nySession, teckenAttribut } from "@/lib/medlem/session";
 import { PRIVAT } from "@/lib/medlem/inloggad";
 
 export const runtime = "nodejs";
@@ -105,6 +105,7 @@ export async function POST(req: Request) {
       ? NextResponse.redirect(new URL(mal, req.url), { status: 303, headers: PRIVAT })
       : NextResponse.json({ ok: true, ny: utfall.ny, mal }, { headers: PRIVAT });
     res.cookies.set(SESSION_KAKA, token, kakaAttribut(maxAgeS, https));
+    res.cookies.set(TECKEN_KAKA, "1", teckenAttribut(maxAgeS, https));
     res.cookies.set(LANK_KAKA, "", kakaAttribut(0, https));
     return res;
   } catch (e) {

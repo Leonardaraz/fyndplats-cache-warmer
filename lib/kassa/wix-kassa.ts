@@ -8,6 +8,7 @@
 import { wixFetch, WixApiError } from "@/lib/wix-client";
 import type { Forsok, KassaDeps, Korg, Kund, OrderTransaktioner, Rakning, Tidigare } from "./flode";
 import { arKorgensBetalning, KASSA_MARKOR, medOmforsok, platshallarbetalningar, wixAdress } from "./flode";
+import { orderBetald } from "./lastkorg";
 
 const korgSokvag = (id: string) => `/ecom/v2/carts/${encodeURIComponent(id)}`;
 
@@ -312,8 +313,8 @@ export async function hamtaOrder(id: string): Promise<OrderKort | null> {
   }
 }
 
-export const arBetald = (o: OrderKort | null | undefined): boolean =>
-  !!o && (o.paymentStatus === "PAID" || o.paymentStatus === "PARTIALLY_REFUNDED" || o.paymentStatus === "FULLY_REFUNDED" || o.status === "APPROVED");
+/** Samma regel som efter ett medlemsköp (lib/kassa/lastkorg.ts), så att de aldrig glider isär. */
+export const arBetald = (o: OrderKort | null | undefined): boolean => orderBetald(o);
 
 /**
  * Släpper en obetald order från vår kassa: betalningen makuleras först (så att

@@ -1722,3 +1722,267 @@ hemligheten i `STRIPE_WEBHOOK_SECRET`); domänen för Apple Pay och Google Pay
 (snabbkassan syns först då); egna påminnelser om övergivna kassor;
 Stripe-inställningarna (kortutdragets text "FYNDPLATS", Stripes egna kvitton
 av, Radar-regler); ett köp med Apple Pay från Leonards telefon.
+
+## Medlemskapet, etapp E2: medlemspriset och kassan med låsta priser (2026-11-04)
+
+Byggt men avstängt. Växeln är fältet `pris` i raden
+`FyndplatsButikInstallningar/medlemskap`: `av` (eller inget fält), `test` (bara
+medlemmar med `testare: true`) eller `pa`. Den är skild från `lage`.
+
+- **Prismotorn** (`lib/medlem/pris.ts`): radpriset är A·(1−d) avrundat till
+  öre. Stoppar golvet G det, blir rabatten den högsta HELA procent som golvet
+  tillåter, inte golvet självt (Leonards ja 2026-11-04). Annars hade rutan
+  sagt "högst 1 %" om 1,4 %, eller "högst 0 %" med ett lägre pris. Tillåter
+  golvet inte ens 1 % blir det ingen rabatt, och kunden ser att varan inte
+  omfattas. Aldrig under G och aldrig över A. Golvet G = C × 1,10 × 1,25
+  kommer från motorns `/api/medlem/golv` (`golv-klient.ts`, hemligheten
+  `REVIEW_INGEST_SECRET`).
+  ☠️ Kostnaden och golvet lämnar aldrig servern; webbläsaren får radpriset,
+  procenten och skälet till en begränsning.
+- ☠️ **Styckpriset avrundas till hela ören, och samma pris går till Wix.**
+  Rutan på produktsidan visar örena (`lib/medlem/kronor.ts`); avrundat till
+  kronor hade den sagt något annat än kassan.
+- **Fraktskyddet** räknas mot 500,00 kr (E0-5). Ett företag får den högsta av
+  nivån och ordertrappan, aldrig båda.
+- **Produktsidan**: `/api/medlem/priser` (privat, ingen cache) och rutan
+  `components/medlemspris.tsx` i nivåns metall, samma nyckel som medlemskortet
+  (`lib/medlem/niva-nyckel.ts`). Utan tecknet `fp_medlem_inne` görs inget
+  anrop.
+- **Jämförelsen som kedjorna gör den** (Leonard 2026-11-05: "kolla hur andra
+  stora sidor gör och härma", i stället för att fråga Konsumentverket).
+  Elgiganten visar klubbpriset med priset för den som inte är medlem och
+  "Lägsta pris senaste 30 dagar" vid en sänkning. Hos oss
+  (`lib/medlem/jamforelse.ts`):
+  - Under medlemspriset står det belagda tidigare priset, överstruket och med
+    Konsumentverkets uttryck framför, genom `components/tidigare-pris.tsx`
+    (samma som rean). Det är `jamforprisFor` ur prishistoriken, alltså det
+    lägsta priset de senaste 30 dagarna, och det visas bara när medlemspriset
+    ligger under det.
+  - ☠️ **Nivåns procent står bara när det tidigare priset är listpriset.** En
+    procent ska räknas mot det belagda priset; nivåns procent räknas mot
+    listpriset.
+  - ☠️ **Prishistoriken är produktens lägsta variantpris** (price-snapshot).
+    Har varianterna olika pris visas ingen jämförelse och ingen procent, bara
+    "Ditt medlemspris".
+  - Jämförpriset sparas i tio minuter per produkt och pris och instans; ett fel
+    ger ingen jämförelse, aldrig en gissad.
+- ☠️ **Medlemspriset läggs aldrig ovanpå en rea** (Leonard 2026-11-05, 2.1:
+  "det ska inte kunna kombineras med rabattkoder eller fyndauktionsrabatterna";
+  rean är en rabatt av samma slag). En rad är rea när Wix `fullPrice` ligger
+  över priset (varukorgen) eller `compareAtPrice` över priset (V3,
+  produktsidan). Undantaget heter `rea` i prismotorn, och rutan säger "Varan är
+  redan på rea". Rabattkoderna är låsta i medlemskassan (E0-3), och
+  fyndauktionens varor har undantaget `auktion` från motorns golv.
+- **Kassan** (`/api/medlem/kassa`, `lib/medlem/medlemspris.ts`) bygger en Cart
+  V2 med E0:s regler: `openAccess`, landet SE, kanalen WEB, låst kupong och
+  presentkort, och samma pris i `salePrice` och `fullPrice` på varje rad från
+  Wix Stores. Den kontrollerar att Wix bär priserna och sparar prisbeslutet i
+  `FyndplatsPrisbeslut` (ADMIN, index på `purchaseFlowId` och
+  `medlemsId`+`skapad`) innan kunden får adressen. Går något fel används den
+  vanliga kassan.
+- ☠️ **Låsta korgar äldre än ett dygn tas bort** varje timme kl :41
+  (`/api/cron/medlemskorgar`, `lib/medlem/korgstadning.ts`). Varukorgens id är
+  kassans id, så den gamla länken slutar fungera och nästa köp räknas om.
+  Utfallet står på beslutet: `kopt`, `borttagen` eller `saknades`.
+- ☠️ **Mejlen om övergiven kassa hoppar över medlemskorgar** (en korg med
+  prisbeslut, `lib/medlem/overgiven.ts`), både i webhooken och i pollaren. Kan
+  det inte avgöras väntar kassan till nästa kvart.
+- **Medlemskorgen betalas i vår kassa** (Leonard 2026-11-06: medlemmar och
+  företag betalar i samma kassa som alla andra). Gäller vår kassa med Stripe
+  för besökaren (`egenKassaMedStripe`, läget och provkakan) svarar
+  `/api/medlem/kassa` och `/api/medlem/offert/kassa` med `/kassa` och sätter
+  kakan `fp_kassa_korg` på den låsta korgen (httpOnly, ett dygn). Annars Wix
+  kassa som förut. `lib/kassa/lastkorg.ts` har reglerna, `lib/kassa/medlemskassa.ts`
+  serverns del.
+  - ☠️ **Korgens id står aldrig i adressen** (GA4 och Meta läser den). Sidans
+    server läser kakan och använder korgen bara om prisbeslutet hör till den
+    inloggade medlemmen, saknar utfall och korgen inte blivit en order.
+  - Snabbkassan (Apple Pay, Google Pay överst) betalar den låsta korgen på
+    samma sätt. Medlemmens e-post på korgen går före plånbokens
+    (`kundFranPlanbok`, `epost`), så att köpet räknas på kontot, och rutan
+    säger "Ditt medlemspris är med i beloppet" i stället för att erbjuda en
+    rabattkod.
+  - Kassan döljer rabattkoden ("Ditt medlemspris är med …"). "Ändra" släpper
+    den låsta korgen (`/api/kassa/lastkorg` `slapp`), och varukorgens "Till
+    kassan" räknar en ny. Stämmer varukorgen inte längre med den låsta (andra
+    varor eller antal, eller en annan varukorg) släpps den också.
+    ☠️ En offert jämförs aldrig: dess rader är offertens, inte varukorgens.
+  - ☠️ **Efter köpet tas det köpta bort ur besökarens korg, en gång per
+    beslut.** Den låsta korgen var en kopia. Webhooken gör det för varje
+    godkänd order, också Wix kassas (förut blev varorna kvar där), och kassans
+    sida ber om det direkt efter köpet (`kopt`, med kakan). Bara en betald
+    order ur just den låsta korgen, och `taRensning` (compare-and-set på
+    `besokarensKorgRensad`) gör att de två aldrig båda tar bort. En offert
+    rör inte besökarens korg.
+  - ☠️ **Servern läser korgen i Cart V2-formen** (`GET /ecom/v2/carts/{id}`:
+    `source.catalogReference`, `quantityInfo.confirmedQuantity`,
+    `pricing.unitPrice` och `pricing.breakdown.fullPrice`). `lasWixVarukorg`
+    kände bara V1-formen, så varje riktig korg blev "tom": varukorgen visade
+    listpriset, "Till kassan" gick till vanliga kassan med fullt pris,
+    kontrollen av den skapade korgen (`korgenBarPriserna`,
+    `korgenBarRaderna`) godkände aldrig någon, och "Spara varukorgen" sparade
+    ingenting. Proven använde V1-formen, och provköpet 10175 byggde den låsta
+    korgen för hand. Hittat i den visuella auditen 2026-11-06 på
+    förhandsbygget. Rean ligger i `breakdown.fullPrice` (mätt: 1 519 mot
+    styckpriset 1 029), så en reavara får fortfarande inget medlemspris.
+
+Före `test`: Leonards medlemsrad med `testare: true` och ett prov på en
+förhandslänk fram till Wix-kassan. Leonard lägger ingen provorder (2026-11-05:
+"Du får testa så det funkar på annat sätt"); att Wix behåller vårt pris genom
+betalningen visade provordern 10167 i E0. Ingen tvåfaktor för admin (Leonard
+2026-11-05). J1 skickas inte: jämförelsen följer kedjorna (ovan). Aldrig under
+Black Week 23–29/11.
+
+## Medlemskapet, etapp E3: företagskontot (2026-11-04)
+
+Bakom samma växel som E2 (`pris`: `test` bara för testare, `pa` för alla).
+Ett företag läggs till på ett befintligt konto, högst ett per konto i E3.
+
+- **Ansökan** på Mina sidor (`app/konto/foretag.tsx`, `/api/konto/foretag`):
+  namn, organisationsnummer (Luhn medan kunden skriver, `orgnr.ts`),
+  fakturaadress, valfri leveransadress, kryss för näringsverksamhet och
+  villkoren. Servern prövar allt igen (`lib/medlem/foretag.ts`). Raden heter
+  `<medlemsId>__foretag` i `FyndplatsMedlemsprofiler` (index
+  `typ-status-ansokt`) och får status `granskas`; butiken mejlar info@.
+- **Bolagsverkets uppslag** (`lib/medlem/bolagsverket.ts`, 2026-11-06): API:t
+  Värdefulla datamängder v1 (gratis, öppen data). Token med client credentials
+  på `portal.api.bolagsverket.se/oauth2/token`, scope
+  `vardefulla-datamangder:read`; `POST /organisationer` på
+  `gw.api.bolagsverket.se/vardefulla-datamangder/v1` med
+  `identitetsbeteckning` (en enskild firma: personnumret med sekel). Nycklarna
+  `BOLAGSVERKET_CLIENT_ID` och `BOLAGSVERKET_CLIENT_SECRET` ligger i
+  Production och Preview (Leonard 2026-11-06). Beskrivningen (OpenAPI) är
+  öppen i utvecklarportalen: `/api/am/devportal/v3/apis/<id>/swagger`.
+  - **Leonards regel:** ett företag som Bolagsverket visar som aktivt
+    (inte avregistrerat, inget förfarande, inte "ej verksam", alla källor
+    svarade) godkänns direkt med det **registrerade** namnet (`beslutAv:
+    "bolagsverket"`, kundens namn i `namnAngivet`). Allt annat får `granskas`
+    med orsaken i fältet `bolagsverket`, och butiken mejlas orsaken.
+  - Formuläret slår upp namnet medan kunden skriver (`steg: "sla-upp"`), bara
+    för juridiska personer och högst 15 gånger per konto och tio minuter.
+  - ☠️ Saknas nycklarna, eller svarar Bolagsverket fel, går ansökan till kön som
+    före uppslaget. Uppslaget kastar aldrig, och numret loggas aldrig.
+- **Granskningen** görs i motorns `/admin/medlemmar` (kön överst), som visar
+  Bolagsverkets besked. Godkänt företag mejlas av
+  timjobbet `/api/cron/medlemskorgar` inom en timme
+  (`lib/medlem/foretagsmejl.ts`, märkt exakt en gång).
+- ☠️ **En enskild firmas organisationsnummer är ett personnummer** (F4). Kunden
+  ser det maskerat (`orgnrVisas`), mejlet till info@ likaså, och det loggas
+  aldrig; hela numret syns bara i motorns admin.
+- **Profilen "Du handlar som"** bärs i sessionen (`profil: "foretag"`) och i
+  tecknet `fp_medlem_inne=f`, satt av `/api/konto/profil`. ☠️ Tecknet ger
+  ingen rätt: `medlemsprofil()` läser företagsprofilen vid varje prissättning
+  och prissätter som privatperson om företaget inte är godkänt eller dess
+  villkor är gamla (E3-12, `VILLKOR_FORETAG_VERSION`).
+- **Priserna**: produktsidans ruta visar företagspriset exkl. moms, märkt, och
+  ordertrappan som tabell med "högst x %" när golvet stoppar trappan (E3-8).
+  Varukorgen visar varor och frakt exkl. moms, momsen, totalen inkl. moms,
+  "Lägg till x kr exkl. moms för y %" och att kassan visar priserna inkl. moms.
+  Beloppen exkl. moms räknas på servern (`exklMoms`, half up).
+- **Villkoren** står på `/villkor/foretag` (noindex), samma text som
+  `docs/medlemskap-foretagsvillkor-utkast.md`. Ifyllda 2026-11-05 utan jurist
+  (Leonards svar 3.2: "Vi får söka upp i lagboken om vi är osäkra"); varje
+  lagrum de nämner är läst på riksdagen.se, och listan står sist i
+  dokumentet. Versionen är 1, för ingen har godkänt utkastet. ☠️ Ändras
+  texten i sak höjs `VILLKOR_FORETAG_VERSION`, och varje företag godkänner den
+  nya versionen på Mina sidor innan kontot prissätts som företag igen.
+
+- **Offerten** (`lib/medlem/offert.ts`, `FyndplatsOfferter`, ADMIN):
+  "Begär offert" visas i varukorgen för ett godkänt företag när prismotorn
+  säger `offert` (6 exemplar av samma vara eller 20 000 kr exkl. moms, F7).
+  Förfrågan sparar raderna med listpris (bara Wix Stores), högst tre
+  obesvarade per konto, och mejlar info@. Admin sätter styckpriserna i
+  motorn: aldrig under golvet, aldrig över listpriset. Offerten gäller i 14
+  dygn från prissättningen.
+- **`/offert/<id>`** kräver inloggning med kontot som begärde den (annars
+  404) och visar raderna exkl. moms. "Till kassan" (`/api/medlem/offert/kassa`)
+  bygger en låst korg med offertens priser (`lastKorgKropp`, samma regler som
+  medlemskorgen) bara inom giltighetstiden och när kontot handlar som
+  företaget, och sparar prisbeslutet med `kalla: "offert"` och `offertId`.
+- ☠️ **Timjobbet sköter offerternas läge** (`lib/medlem/offertjobb.ts`):
+  betald när en av offertens kassor blev en order (kollas före utgången, så
+  att ett köp i sista stund inte märks som utgånget), utgången efter sista
+  dagen, och mejlet "Offerten är klar" exakt en gång. Den låsta korgen tas
+  bort efter ett dygn som alla medlemskorgar, och övergivna kassor hoppar
+  över den.
+
+- **Förskottsfakturan** (villkoren 5.1, Leonards svar 3.3 2026-11-05): ett
+  godkänt företag får knappen "Betala mot förskottsfaktura" i varukorgen
+  (`components/forskott-knapp.tsx`, `/api/medlem/forskott`). Servern
+  prissätter korgen som företag och skapar ordern själv med
+  `POST /ecom/v1/orders` (`forskottsorderKropp` i `lib/medlem/varukorg.ts`):
+  obetald, handlagd (`BACKOFFICE_MERCHANT`), `Förskottsfaktura.` först i
+  noteringen och frakten enligt `lib/shipping.ts`. Beloppen fylls i som Wix
+  själv gör (provordern 10167 är facit i provet). Motorn skickar fakturan
+  med förfallodag efter högst 10 dagar och beställer varorna först när
+  ordern är betald; butikens orderbekräftelse säger detsamma
+  (`lib/order-betalning.ts`).
+  - ☠️ Beslutet sparas före ordern med en insert på besökarens korg
+    (`forskott_<korg>`): två tryck eller två flikar ger aldrig två ordrar.
+    Ett tydligt nej från Wix (4xx) släpper spärren; tystnad eller 5xx gör det
+    inte, eftersom ordern då ändå kan finnas.
+  - ☠️ En order som inte är obetald, handlagd och med våra belopp
+    (`kontrolleraForskottsorder`) avbryts direkt, med varorna tillbaka i
+    lager och utan mejl.
+  - ☠️ En enskild firmas nummer är ett personnummer och skrivs aldrig i
+    ordern; fakturan får bara namnet (villkoren 5.2 säger "för ett bolag").
+  - Create Order tål 5 anrop i timmen för en opublicerad app. Ett 429 ger
+    kunden "försök igen om en stund, eller betala i kassan".
+
+- **Kvittot med företagets namn för kort och Klarna** (villkoren 5.2, byggt
+  2026-11-05). Kassan sparar företaget på prisbeslutet när kunden går till
+  kassan (`foretagPaBeslut` i `lib/medlem/varukorg.ts`): `foretagNamn`,
+  `foretagFaktura` och för ett bolag `foretagOrgnr`. Motorns timkörning
+  `/api/cron/faktura` (:10) hittar den betalda ordern på `purchaseFlowId` och
+  mejlar sitt kvitto som PDF med företaget som köpare, inom en timme
+  (motorns ämnesfil 46). Förskottsorderns faktura och kvitto bär namnet ur
+  ordern.
+  - ☠️ En enskild firmas nummer är ett personnummer och läggs aldrig på
+    beslutet; motorn skriver dessutom bara ut ett bolags nummer (siffra tre
+    och fyra minst 20).
+  - ☠️ Fälten läses i motorn med samma namn (`foretagUrBeslut`). Byt aldrig
+    namn på dem i bara det ena repot.
+  - ☠️ Butikens och motorns E3 mergas samma natt. Utan motorns del får ett
+    företag som betalar med kort eller Klarna inget kvitto, och villkoren
+    lovar ett.
+
+- **"Köp igen"** på varje order på Mina sidor med en fysisk vara (specen:
+  "sparade varukorgar och Köp igen"; byggt 2026-11-05). `/api/konto/kop-igen`
+  läser ordern ur orderliggaren på kontots e-post, och numret väljer bara
+  bland medlemmens egna ordrar. Katalogen avgör vad som går att köpa nu
+  (`lib/medlem/kop-igen.ts`): en vara som är slut eller inte längre säljs, eller
+  vars variant är borta, läggs inte i, och beskedet under knappen säger hur
+  många. Resten läggs i varukorgen i ETT anrop (`addMany` i
+  `components/cart.tsx`), med orderns antal (högst 99) och dagens pris.
+  Variant-id skickas bara för en produkt med flera varianter, som på
+  produktsidan. Gäller alla medlemmar, inte bara företag.
+
+- **Sparade varukorgar** på Mina sidor (byggt 2026-11-05, `lib/medlem/sparade.ts`,
+  kollektionen `FyndplatsSparadeKorgar`: ADMIN, indexet `medlem-skapad`).
+  Medlemmen sparar varukorgen som den är under ett namn och lägger den i
+  varukorgen igen med ett tryck. `POST /api/konto/sparade { cartId, namn }`
+  läser besökarens Wix-korg på servern (`lasWixVarukorg`), så det som sparas
+  är Wix egna rader och aldrig vad webbläsaren påstår. Bara varor ur Wix
+  Stores, samma vara blir en rad, högst 100 rader, antal 1–99, högst 20 korgar
+  per konto. Inget pris sparas: `POST /api/konto/sparade/kop { id }` prövar
+  korgen mot katalogen som "Köp igen" (`somOrderrader` → `kopIgen`), och resten
+  läggs i med `addMany` och dagens pris. Ett tomt namn blir "Varukorg <dag>".
+  - ☠️ Att SPARA följer växeln för E2/E3 (`prisOppet`, `sparadeSektion`):
+    korgarna är uppgifter om kontot som integritetstexten för E1 inte nämner.
+    Korgar som redan finns syns alltid, så att de går att lägga i varukorgen
+    och ta bort.
+  - ☠️ `DELETE /api/konto/sparade?id=sk_…` tar bara bort kontots egen korg
+    (villkoret `medlemsId` i Wix), och köp-rutten svarar 404 på en annans.
+  - Motorns borttagning av ett konto tar också dess sparade varukorgar
+    (motorns ämnesfil 46).
+
+- **"Kvitto (PDF)"** på varje betald order på Mina sidor (`visaKvitto`, byggt
+  2026-11-05): `/api/konto/kvitto/<nummer>` prövar att ordern finns i
+  orderliggaren på kontots e-post och hämtar PDF:en från motorns
+  `/api/medlem/kvitto` (hemligheten `REVIEW_INGEST_SECRET`, adressen
+  `CACHE_WARMER_KVITTO_URL` eller motorns produktion). Motorn ritar kvittot
+  med mejlens mall, prövar e-posten på ordern en gång till och svarar bara för
+  en betald order: ett köp som företag får företaget ur prisbeslutet, en
+  fakturaorder bara kvittot som redan har mejlats. Svaret är privat och
+  cachas aldrig; utan PDF visas en kort sida på svenska med länk tillbaka
+  (`kvittoFelText`).

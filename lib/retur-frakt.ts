@@ -100,6 +100,9 @@ export function arSkrymmande(matt: {
   return matt.langstaSidaCm > PAKET_MAX_SIDA_CM || matt.viktKg > PAKET_MAX_KG;
 }
 
+/** Ungefär vad en skrymmande retur till returlagret i Tyskland kostar, inkl. moms (källorna ovan). */
+export const SKRYMMANDE_SPANN = "500–5 000 kr";
+
 /** Regeln, utskriven för kunden. */
 export const SKRYMMANDE_REGEL =
   `En vara räknas som skrymmande när den är längre än ${PAKET_MAX_SIDA_CM} cm eller väger mer än ${PAKET_MAX_KG} kg. Då kan den inte skickas som ett vanligt postpaket, utan får gå med ett fraktbolag, som större paket eller som styckegods.`;
@@ -113,8 +116,8 @@ export const SKRYMMANDE_REGEL =
  * oändligt mycket bättre än tystnad.
  */
 export const SKRYMMANDE_RETURKOSTNAD =
-  `${SKRYMMANDE_REGEL} Returen bokar och betalar du själv hos valfri transportör som tar emot varans storlek och vikt. Till returlagret i Tyskland, dit de flesta returer går, kostar det ungefär 500–5 000 kr inklusive moms. Ett långt men lätt paket kostar några hundra kronor, och en tung vara som måste gå på pall, med hämtning och bakgavellyft, närmare 5 000 kr.`;
+  `${SKRYMMANDE_REGEL} Returen bokar och betalar du själv hos valfri transportör som tar emot varans storlek och vikt. Till returlagret i Tyskland, dit de flesta returer går, kostar det ungefär ${SKRYMMANDE_SPANN} inklusive moms. Ett långt men lätt paket kostar några hundra kronor, och en tung vara som måste gå på pall, med hämtning och bakgavellyft, närmare 5 000 kr.`;
 
 /** Kort variant för produktsidan och mejl, där en hel förklaring inte får plats. */
 export const SKRYMMANDE_RETURKOSTNAD_KORT =
-  `Är varan längre än ${PAKET_MAX_SIDA_CM} cm eller tyngre än ${PAKET_MAX_KG} kg kan den inte returneras som vanligt postpaket. Du bokar och betalar då transporten själv, ungefär 500–5 000 kr inklusive moms till Tyskland beroende på storlek och vikt.`;
+  `Är varan längre än ${PAKET_MAX_SIDA_CM} cm eller tyngre än ${PAKET_MAX_KG} kg kan den inte returneras som vanligt postpaket. Du bokar och betalar då transporten själv, ungefär ${SKRYMMANDE_SPANN} inklusive moms till Tyskland beroende på storlek och vikt.`;

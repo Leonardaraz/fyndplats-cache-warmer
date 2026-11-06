@@ -17,6 +17,7 @@
 // returnerar 200 (ack — vi vill inte att Wix ska spamma retries).
 
 import { avslutaKorg } from "@/lib/kassa/wix-kassa";
+import { efterMedlemskopTyst } from "@/lib/kassa/medlemskassa";
 import { speglaEfterWebhook } from "@/lib/kassa/stripe-kassa";
 import { NextResponse, after, type NextRequest } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
@@ -1379,6 +1380,10 @@ export async function POST(req: NextRequest) {
         const korgId = typeof o.cartId === "string" ? o.cartId : typeof o.checkoutId === "string" ? o.checkoutId : "";
         const orderId = typeof o.id === "string" ? o.id : typeof o._id === "string" ? o._id : "";
         if (korgId && orderId) after(() => avslutaKorg(korgId, orderId).then(() => undefined));
+        // Medlemskorgen (E2/E3) var en kopia av besökarens varukorg: det som
+        // köptes tas bort ur den, en gång per prisbeslut. Alla andra ordrar
+        // stannar vid en läsning av beslutet (lib/kassa/medlemskassa.ts).
+        if (korgId && orderId) after(() => efterMedlemskopTyst(korgId, orderId));
       }
       // ISR on-demand revalidation: PDPs cachas i sex timmar sedan 2026-10-01
       // (lib/produkt-cache.ts). När ett köp sker måste vi PUSHA en ny version

@@ -42,24 +42,36 @@ export default function Sekretesspolicy() {
         <li>Dina köp hos oss: ordernummer, datum, vad du betalade för varorna och vad du har fått tillbaka. Vi räknar köp med samma e-postadress, också köp du gjorde innan du skapade kontot.</li>
         <li>Din medlemsnivå och när den har ändrats.</li>
         <li>För inloggningen: när du bad om en kod, och en kontrollsumma av koden och av din IP-adress. Koden och IP-adressen sparas inte i klartext.</li>
+        <li>När du handlar med medlemspris: ett prisbeslut för varukorgen, med din nivå och rabatt, varje varas pris och vad du sparade. Det är underlaget för priset du betalade.</li>
+        <li>Har du ett företagskonto: företagets namn, organisationsnummer och form, faktura- och leveransadress, Bolagsverkets svar när vi kontrollerade företaget, vilken version av företagsvillkoren du godkände och när, och när ansökan beslutades.</li>
+        <li>Begär du en offert: vilka varor och hur många, ditt meddelande, offertens priser och hur länge den gäller.</li>
+        <li>Sparar du en varukorg: namnet du gav den, vilka varor och hur många, och när den sparades. Vi sparar inte priset; när du lägger korgen i varukorgen gäller dagens pris.</li>
       </ul>
+      <h3>Företagskonto</h3>
+      <p>När du ansöker om ett företagskonto slår vi upp organisationsnumret hos Bolagsverket, för att kontrollera att företaget finns och är aktivt och för att få dess registrerade namn. För en enskild firma är organisationsnumret ditt personnummer. Det visas maskerat på Mina sidor och skrivs aldrig ut på kvitton eller fakturor. Kvitton och fakturor för köp som företag får företagets namn och adress, och för ett aktiebolag eller en annan juridisk person organisationsnumret.</p>
+      <p>Vi mejlar dig när ansökan är beslutad och när en offert du begärt är klar.</p>
       <h3>Varför</h3>
       <ul>
         <li>För att ge dig kontot och räkna din medlemsnivå. Det är en del av avtalet om medlemskapet (GDPR artikel 6.1 b).</li>
         <li>För att skydda kontot mot intrång och missbruk, till exempel att någon försöker gissa koder. Det är vårt berättigade intresse (artikel 6.1 f).</li>
+        <li>Medlemspriset, företagskontot, kontrollen hos Bolagsverket, offerterna och de sparade varukorgarna är en del av avtalet om medlemskapet och om köpen (artikel 6.1 b).</li>
+        <li>Prisbeslutet och en offert som blev ett köp är underlag för bokföringen. Det är en rättslig förpliktelse (artikel 6.1 c, bokföringslagen).</li>
       </ul>
       <h3>Mejl</h3>
       <p>Vi mejlar dig när kontot skapas, när du når en ny nivå och två veckor innan din nivå sjunker. Mejlen om nivån kan du sluta få när du vill, med länken i mejlet eller på Mina sidor. Mejlet med inloggningskoden och välkomstmejlet hör till kontot.</p>
       <h3>Kakor</h3>
-      <p>När du är inloggad sparar vi kakan <code>fp_medlem</code> i din webbläsare i högst 90 dagar. Den behövs för att du ska förbli inloggad och kräver inget samtycke. Kakan <code>fp_medlem_lank</code> finns i högst 15 minuter, medan du loggar in med länken.</p>
+      <p>När du är inloggad sparar vi kakan <code>fp_medlem</code> i din webbläsare i högst 90 dagar. Den behövs för att du ska förbli inloggad och kräver inget samtycke. Kakan <code>fp_medlem_lank</code> finns i högst 15 minuter, medan du loggar in med länken. Kakan <code>fp_medlem_inne</code> finns lika länge som inloggningen; den säger bara att du är inloggad och om du handlar som privatperson eller som företag, så att sidan kan visa rätt pris. Den ger ingen behörighet och kräver inget samtycke.</p>
       <h3>Hur länge</h3>
       <ul>
         <li>Kontot sparas tills du ber oss ta bort det.</li>
         <li>Köpen räknas i nivån i 365 dagar. Uppgifterna om köpen sparas så länge bokföringslagen kräver för ordern.</li>
         <li>Inloggningsförsök sparas i 30 dagar.</li>
+        <li>Prisbeslut sparas i sju år, som annat underlag för bokföringen.</li>
+        <li>Företagsuppgifterna, offerterna och de sparade varukorgarna sparas tills du tar bort kontot. En sparad varukorg kan du också ta bort själv på Mina sidor.</li>
+        <li>En offert som blev ett köp sparas lika länge som ordern.</li>
       </ul>
       <h3>Ta bort kontot</h3>
-      <p>Mejla <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> så tar vi bort kontot. Dina ordrar finns kvar, som bokföringslagen kräver.</p>
+      <p>Mejla <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> så tar vi bort kontot. Dina ordrar finns kvar, som bokföringslagen kräver. Företagsuppgifterna, de sparade varukorgarna och offerterna som inte blev köp tas bort med kontot. Prisbeslut och offerter som blev köp hör till dina ordrar och finns kvar lika länge som de.</p>
 
       <h2>Vem delar vi uppgifter med?</h2>
       <ul>
@@ -69,6 +81,7 @@ export default function Sekretesspolicy() {
         <li><strong>Marknadsförings- och analysverktyg</strong> (Meta, TikTok, Google) – aktiveras endast vid samtycke.</li>
         <li><strong>Google Customer Reviews</strong> – om du samtyckt till marknadsföringscookies delar vi efter ditt köp din <strong>e-postadress</strong>, <strong>ordernummer</strong>, <strong>leveransland</strong> och <strong>beräknat leveransdatum</strong> med Google. Google visar då en egen ruta där du själv väljer om du vill få en enkät om ditt köp. Tackar du nej skickas ingen enkät. Har du valt bara nödvändiga cookies delas ingenting alls.</li>
         <li><strong>Trustpilot</strong> – om du samtyckt till marknadsföringscookies visar omdömessidan Trustpilots egen knapp för att lämna ett omdöme. Knappen hämtas från Trustpilot, som då får teknisk information om ditt besök, till exempel IP-adress och webbläsare. Har du valt bara nödvändiga cookies är knappen en vanlig länk, och ingenting hämtas från Trustpilot förrän du klickar på den.</li>
+        <li><strong>Bolagsverket</strong> – när du ansöker om ett företagskonto skickar vi organisationsnumret till Bolagsverket för att kontrollera företaget. För en enskild firma är det ditt personnummer.</li>
         <li><strong>Myndigheter</strong> när vi enligt lag är skyldiga att lämna ut uppgifter.</li>
       </ul>
       <p>Leverantörer som behandlar uppgifter för vår räkning är personuppgiftsbiträden, med biträdesavtal som säkerställer säker behandling enligt våra instruktioner.</p>

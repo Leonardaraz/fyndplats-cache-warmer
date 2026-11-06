@@ -26,6 +26,8 @@ import {
   satt,
   spara,
   sparaManga,
+  taBort,
+  taBortFalt,
   taBortManga,
   type Rad,
 } from "@/lib/wix-lager";
@@ -33,6 +35,10 @@ import { liggarradUrWix, type Liggarrad } from "./orderliggare";
 import { liggarradArKop } from "../order-raknas";
 import { REGLER_V1, reglerFel, type Regler, type Varning } from "./niva";
 import { medlemsId, taForsok } from "./inloggning";
+import { VILLKOR_FORETAG_VERSION, foretagsprofilId, foretagsprofilUrRad, type Foretagsansokan, type Foretagsprofil } from "./foretag";
+import type { Bolagsverkskontroll } from "./bolagsverket";
+import { offertUrRad, type Offert } from "./offert";
+import { MAX_KORGAR, sparadKorgUrRad, type SparadKorg } from "./sparade";
 
 export const MK = {
   medlemmar: "FyndplatsMedlemmar",
@@ -42,6 +48,12 @@ export const MK = {
   nivaer: "FyndplatsMedlemsnivaer",
   regler: "FyndplatsMedlemsregler",
   logg: "FyndplatsMedlemslogg",
+  /** E2: ett beslut per låst varukorg, sparat i sju år [D1]. */
+  prisbeslut: "FyndplatsPrisbeslut",
+  /** E3: företagens offerter. */
+  offerter: "FyndplatsOfferter",
+  /** E3: medlemmarnas sparade varukorgar (ADMIN, index medlemsId + skapad). */
+  sparade: "FyndplatsSparadeKorgar",
 } as const;
 
 const nu = () => new Date().toISOString();
@@ -75,6 +87,43 @@ export async function medlemsLage(nuMs = Date.now()): Promise<Lage> {
     console.error("[medlem] kunde inte läsa växeln:", e instanceof Error ? e.message.slice(0, 120) : e);
     const forra = lageCache?.lage ?? "av";
     lageCache = { lage: forra, at: nuMs - 50_000 };
+    return forra;
+  }
+}
+
+/**
+ * Medlemspriset (E2) har en egen växel i samma rad, fältet `pris`:
+ *
+ * av:   ingen får medlemspris. Förvalt, och läget när fältet saknas.
+ * test: bara medlemmar med `testare: true` på sin rad, för prov i produktion.
+ * pa:   alla inloggade medlemmar.
+ *
+ * Skild från `lage`, så att Mina sidor kan vara öppna utan medlemspris, och
+ * medlemspriset kan stängas av utan att någon loggas ut. Aldrig `pa` under
+ * Black Week 23–29/11 (planen).
+ *
+ * Kan raden inte läsas gäller förra läget en kort stund, och sedan `av`.
+ */
+export type Prislage = "av" | "test" | "pa";
+let prisCache: { lage: Prislage; at: number } | null = null;
+
+/** Medlemspris och företagskonto: för alla i läget `pa`, bara för testare i läget `test`. */
+export function prisOppet(lage: Prislage, medlem: { testare?: boolean }): boolean {
+  return lage === "pa" || (lage === "test" && medlem.testare === true);
+}
+
+export async function prisLage(nuMs = Date.now()): Promise<Prislage> {
+  if (prisCache && nuMs - prisCache.at < 60_000) return prisCache.lage;
+  try {
+    const rad = await hamta(K.installningar, LAGE_ID);
+    const v = rad?.pris;
+    const lage: Prislage = v === "pa" || v === "test" ? v : "av";
+    prisCache = { lage, at: nuMs };
+    return lage;
+  } catch (e) {
+    console.error("[medlem] kunde inte läsa prisväxeln:", e instanceof Error ? e.message.slice(0, 120) : e);
+    const forra = prisCache && nuMs - prisCache.at < 10 * 60_000 ? prisCache.lage : "av";
+    prisCache = { lage: forra, at: nuMs - 50_000 };
     return forra;
   }
 }
@@ -138,6 +187,8 @@ export interface Medlem {
   manuellTill?: string;
   /** false: medlemmen har avregistrerat sig från mejlen om nivån. Saknas: mejlen går. */
   nivamejl?: false;
+  /** Får medlemspris redan i prisväxelns läge `test`. */
+  testare?: boolean;
 }
 
 function medlemUrRad(d: Rad): Medlem {
@@ -157,6 +208,7 @@ function medlemUrRad(d: Rad): Medlem {
     manuellNiva: text(d.manuellNiva),
     manuellTill: text(d.manuellTill),
     nivamejl: d.nivamejl === false ? false : undefined,
+    ...(d.testare === true ? { testare: true } : {}),
   };
 }
 
@@ -197,6 +249,122 @@ export async function sattNivamejl(id: string, pa: boolean): Promise<"klar" | "s
 
 export async function allaMedlemmar(): Promise<Medlem[]> {
   return (await allaRader(MK.medlemmar)).map(medlemUrRad);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Företagsprofilen (E3)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Kontots företagsprofil (`<medlemsId>__foretag`), eller null. */
+export async function hamtaForetagsprofil(id: string): Promise<Foretagsprofil | null> {
+  return foretagsprofilUrRad(await hamta(MK.profiler, foretagsprofilId(id)));
+}
+
+/** Bolagsverkets besked om ansökan (lib/medlem/bolagsverket.ts). */
+export interface Ansokningsbeslut {
+  status: "aktiv" | "granskas";
+  bolagsverket?: Bolagsverkskontroll;
+  /** Namnet kunden skrev, när profilen fick Bolagsverkets namn i stället. */
+  namnAngivet?: string;
+}
+
+/**
+ * Sparar en ansökan. Godkänd av Bolagsverkets uppslag blir profilen aktiv
+ * direkt, med beslutet stämplat (`beslutAv: "bolagsverket"`); annars får den
+ * status "granskas" och väntar i motorns kö som förut. En nekad ansökan får
+ * skickas igen och skrivs då över (villkoret: fortfarande nekad). En profil som
+ * granskas eller är godkänd ändras inte här: svaret är "finns".
+ *
+ * ☠️ Numret loggas aldrig: för en enskild firma är det ett personnummer.
+ */
+export async function sparaForetagsansokan(
+  id: string,
+  a: Foretagsansokan,
+  b: Ansokningsbeslut = { status: "granskas" },
+): Promise<"skapad" | "finns"> {
+  const pid = foretagsprofilId(id);
+  const tid = nu();
+  const godkand = b.status === "aktiv";
+  const namnAngivet = b.namnAngivet && b.namnAngivet !== a.namn ? b.namnAngivet : undefined;
+  const kontroll = b.bolagsverket ? (b.bolagsverket as unknown as Rad) : undefined;
+  const rad: Rad = {
+    medlemsId: id,
+    typ: "foretag",
+    status: b.status,
+    aktiv: false,
+    ...a,
+    villkorGodkant: tid,
+    ansokt: tid,
+    skapad: tid,
+    ...(godkand ? { beslutad: tid, beslutAv: "bolagsverket" } : {}),
+    ...(kontroll ? { bolagsverket: kontroll } : {}),
+    ...(namnAngivet ? { namnAngivet } : {}),
+  };
+  let utfall: "skapad" | "finns" = (await infoga(MK.profiler, pid, rad)) === "skapad" ? "skapad" : "finns";
+  if (utfall === "finns") {
+    const ny = {
+      ...rad,
+      leverans: a.leverans ?? null,
+      beslutad: godkand ? tid : null,
+      beslutAv: godkand ? "bolagsverket" : null,
+      bolagsverket: kontroll ?? null,
+      namnAngivet: namnAngivet ?? null,
+      godkandMejlad: null,
+    };
+    const p = await patcha(MK.profiler, pid, andringar(ny), { status: "nekad" });
+    if (p.utfall === "applied") utfall = "skapad";
+  }
+  if (utfall === "skapad") {
+    await logga({
+      omrade: "foretag",
+      typ: "ansokan",
+      medlemsId: id,
+      aktor: "kund",
+      efter: { form: a.form, status: b.status, ...(b.bolagsverket ? { bolagsverket: b.bolagsverket.utfall } : {}) },
+    });
+    if (godkand) {
+      await loggaTyst({
+        omrade: "foretag",
+        typ: "foretag-godkant",
+        medlemsId: id,
+        aktor: "system",
+        orsakKod: "bolagsverket",
+        orsakText: "Aktivt hos Bolagsverket; godkänt direkt.",
+      });
+    }
+  }
+  return utfall;
+}
+
+/** Den gällande villkorsversionen godkänd på en godkänd profil (E3-12). */
+export async function godkannForetagsvillkor(id: string): Promise<boolean> {
+  const tid = nu();
+  const p = await patcha(MK.profiler, foretagsprofilId(id), [satt("villkorVersion", VILLKOR_FORETAG_VERSION), satt("villkorGodkant", tid)], {
+    status: "aktiv",
+  });
+  if (p.utfall !== "applied") return false;
+  await logga({ omrade: "foretag", typ: "villkor", medlemsId: id, aktor: "kund", efter: { version: VILLKOR_FORETAG_VERSION } });
+  return true;
+}
+
+/** Godkända företag vars kund inte har fått mejlet om det än (timjobbet). */
+export async function foretagAttMejla(limit: number): Promise<Foretagsprofil[]> {
+  const rader = await fraga(MK.profiler, {
+    filter: { $and: [{ typ: "foretag" }, { status: "aktiv" }, { godkandMejlad: { $exists: false } }] },
+    limit,
+  });
+  return rader.map(foretagsprofilUrRad).filter((p): p is Foretagsprofil => p !== null);
+}
+
+/** Mejlet om godkännandet är skickat; skrivs bara en gång. */
+export async function markeraGodkandMejlad(id: string): Promise<boolean> {
+  const p = await patcha(MK.profiler, foretagsprofilId(id), [satt("godkandMejlad", nu())], { godkandMejlad: { $exists: false } });
+  return p.utfall === "applied";
+}
+
+/** Märket bort efter ett mejl som inte gick iväg, så att nästa körning försöker igen. */
+export async function avmarkeraGodkandMejlad(id: string): Promise<void> {
+  await patcha(MK.profiler, foretagsprofilId(id), [taBortFalt("godkandMejlad")]);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -397,7 +565,7 @@ export async function sparaNivabyte(v: { medlemsId: string; datum: string; fran:
 }
 
 export interface Logghandelse {
-  omrade: "konto" | "niva" | "avstamning" | "admin" | "mejl";
+  omrade: "konto" | "niva" | "avstamning" | "admin" | "mejl" | "foretag" | "offert";
   typ: string;
   aktor: "kund" | "system" | "admin";
   medlemsId?: string;
@@ -422,4 +590,249 @@ export async function loggaTyst(h: Logghandelse): Promise<void> {
   } catch (e) {
     console.error(`[medlem] loggen kunde inte skrivas (${h.omrade}/${h.typ}):`, e instanceof Error ? e.message.slice(0, 120) : e);
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Prisbeslutsloggen (E2-9)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Ett prisbeslut per låst varukorg, nycklat på korgens id. `purchaseFlowId`
+ * paras med ordern när webhooken kommer, så att beslutet kan slås upp på
+ * ordernummer i admin. Sparas i sju år [D1]: det är underlag för priset kunden
+ * betalade. ☠️ Raden bär kostnaden; kollektionen har behörigheten ADMIN och
+ * läses bara av butikens och motorns server.
+ */
+export interface Prisbeslutspost {
+  cartId: string;
+  purchaseFlowId: string;
+  medlemsId: string;
+  /**
+   * Besökarens vanliga korg, som den låsta korgen kopierades från. Efter köpet i
+   * vår kassa tas de köpta varorna bort ur den (lib/kassa/lastkorg.ts).
+   */
+  besokarensKorg?: string;
+  /** Ordern vars köp togs bort ur besökarens korg (en gång per beslut, `taRensning`). */
+  besokarensKorgRensad?: string;
+  profil: string;
+  /** E3: företagets namn när korgen prissattes som företag (till kvittot). */
+  foretagNamn?: string;
+  /**
+   * E3: ett bolags organisationsnummer och fakturaadressen, som de var när
+   * kunden gick till kassan (`foretagPaBeslut`). Motorn skriver dem på kvittot
+   * för ett köp med kort eller Klarna (villkoren 5.2). ☠️ Aldrig en enskild
+   * firmas nummer: det är ett personnummer.
+   */
+  foretagOrgnr?: string;
+  foretagFaktura?: { gata: string; postnr: string; ort: string };
+  /** E3: offerten som korgen byggdes ur; kalla är då "offert". */
+  offertId?: string;
+  /** E3: köpet gick mot förskottsfaktura (villkoren 5.1); ordern skapades av butiken. */
+  betalsatt?: "forskott";
+  orderId?: string;
+  orderNummer?: string;
+  /** Satt från början på en förskottsrad: timjobbet ska aldrig ta bort en korg för den. */
+  utfall?: string;
+  niva: string;
+  procent: number;
+  kalla: string;
+  basOreExMoms: number;
+  summaAOre: number;
+  summaPOre: number;
+  rabattOre: number;
+  friFraktSkydd: boolean;
+  rader: {
+    produktId: string;
+    variantId?: string;
+    antal: number;
+    aOre: number;
+    kostnadOre?: number;
+    golvOre?: number;
+    procent: number;
+    pOre: number;
+    begransning: string;
+    undantag?: string;
+  }[];
+  skapad: string;
+}
+
+export async function sparaPrisbeslut(post: Prisbeslutspost): Promise<void> {
+  // Inga null-fält i Wix: valfria fält utelämnas i stället.
+  const rader = post.rader.map((r) => Object.fromEntries(Object.entries(r).filter(([, v]) => v !== undefined && v !== null)));
+  await spara(MK.prisbeslut, post.cartId, { ...post, rader } as unknown as Rad);
+}
+
+/**
+ * Förskottsordern (E3): beslutet sparas före ordern, med en insert som vägrar
+ * ett id som finns. Nyckeln är besökarens korg, så två tryck på knappen eller
+ * två flikar ger aldrig två ordrar. "fanns": korgen är redan tagen.
+ */
+export async function taForskottsbeslut(post: Prisbeslutspost): Promise<"tagen" | "fanns"> {
+  const rader = post.rader.map((r) => Object.fromEntries(Object.entries(r).filter(([, v]) => v !== undefined && v !== null)));
+  const rad = Object.fromEntries(Object.entries({ ...post, rader }).filter(([, v]) => v !== undefined && v !== null));
+  return (await infoga(MK.prisbeslut, post.cartId, rad as Rad)) === "skapad" ? "tagen" : "fanns";
+}
+
+/** Ordern som förskottsbeslutet blev. */
+export async function sattForskottsorder(cartId: string, orderId: string, orderNummer: string): Promise<void> {
+  await patcha(MK.prisbeslut, cartId, [satt("orderId", orderId), satt("orderNummer", orderNummer)]);
+}
+
+/** Släpper spärren när Wix tydligt inte skapade någon order, så att kunden kan försöka igen. */
+export async function slappForskottsbeslut(cartId: string): Promise<void> {
+  await taBort(MK.prisbeslut, cartId, { utfall: "forskott", orderId: { $exists: false } });
+}
+
+/** Prisbeslutet för en låst korg, eller null. */
+export async function hamtaPrisbeslut(cartId: string): Promise<Rad | null> {
+  if (!cartId) return null;
+  return hamta(MK.prisbeslut, cartId);
+}
+
+/**
+ * Tar rensningen av besökarens korg efter köpet (lib/kassa/lastkorg.ts): en
+ * compare-and-set på beslutet, så att webhooken och kassans sida aldrig båda
+ * tar bort varor. Sant bara för den som tog den.
+ */
+export async function taRensning(cartId: string, orderId: string): Promise<boolean> {
+  const p = await patcha(MK.prisbeslut, cartId, [satt("besokarensKorgRensad", orderId)], { besokarensKorgRensad: { $exists: false } });
+  return p.utfall === "applied";
+}
+
+/**
+ * Är varukorgen en medlemskorg med låsta priser? Bara en sådan har ett
+ * prisbeslut. Mejlen om övergiven kassa hoppar över den: länken pekar på en
+ * kassa som tas bort efter ett dygn, och kupongen är låst i den.
+ */
+export async function harPrisbeslut(cartId: string): Promise<boolean> {
+  if (!cartId) return false;
+  return (await hamta(MK.prisbeslut, cartId)) !== null;
+}
+
+/** Beslut vars låsta korg ännu saknar utfall, skapade mellan `efter` och `fore` (ISO), äldst först. */
+export async function prisbeslutUtanUtfall(
+  efter: string,
+  fore: string,
+  limit: number,
+): Promise<{ cartId: string; purchaseFlowId: string }[]> {
+  const rader = await fraga(MK.prisbeslut, {
+    filter: { $and: [{ skapad: { $gte: efter } }, { skapad: { $lte: fore } }, { utfall: { $exists: false } }] },
+    sort: [{ fieldName: "skapad", order: "ASC" }],
+    limit,
+  });
+  return rader.map((r) => ({ cartId: text(r.cartId) ?? "", purchaseFlowId: text(r.purchaseFlowId) ?? "" }));
+}
+
+/** Finns en order med köpflödets id i orderliggaren? */
+export async function orderMedKopflode(purchaseFlowId: string): Promise<boolean> {
+  if (!purchaseFlowId) return false;
+  return (await fraga(MK.orderliggare, { filter: { purchaseFlowId }, limit: 1 })).length > 0;
+}
+
+/** Utfallet för en låst korg; skrivs bara en gång (villkoret: inget utfall än). */
+export async function sattKorgutfall(cartId: string, utfall: "kopt" | "borttagen" | "saknades"): Promise<void> {
+  await patcha(MK.prisbeslut, cartId, [satt("utfall", utfall), satt("utfallTid", nu())], { utfall: { $exists: false } });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Offerterna (E3)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export async function skapaOffert(o: Offert): Promise<void> {
+  const { id, ...rest } = o;
+  const rader = rest.rader.map((r) => Object.fromEntries(Object.entries(r).filter(([, v]) => v !== undefined)));
+  if ((await infoga(MK.offerter, id, { ...rest, rader } as unknown as Rad)) !== "skapad") throw new Error("offertens id fanns redan");
+}
+
+export async function hamtaOffert(id: string): Promise<Offert | null> {
+  return offertUrRad(await hamta(MK.offerter, id));
+}
+
+/** Kontots offerter, nyast först (Mina sidor). */
+export async function offerterFor(medlemsId: string, limit = 20): Promise<Offert[]> {
+  const rader = await fraga(MK.offerter, { filter: { medlemsId }, sort: [{ fieldName: "skapad", order: "DESC" }], limit });
+  return rader.map(offertUrRad).filter((o): o is Offert => o !== null);
+}
+
+/** Förfrågningar som ännu inte besvarats, för gränsen per konto. */
+export function obesvaradeOfferter(medlemsId: string): Promise<number> {
+  return rakna(MK.offerter, { $and: [{ medlemsId }, { status: "skickad" }] });
+}
+
+/**
+ * Kassan öppnad: korgen sparas på offerten, och en prissatt offert blir
+ * accepterad (villkoret: fortfarande prissatt).
+ */
+export async function offertIKassan(id: string, cartId: string, purchaseFlowId: string): Promise<void> {
+  const tid = nu();
+  await patcha(MK.offerter, id, [satt("cartId", cartId), satt("purchaseFlowId", purchaseFlowId)]);
+  await patcha(MK.offerter, id, [satt("status", "accepterad"), satt("accepterad", tid)], { status: "prissatt" });
+}
+
+async function offerterMed(filter: Rad, limit: number): Promise<Offert[]> {
+  const rader = await fraga(MK.offerter, { filter, sort: [{ fieldName: "skapad", order: "ASC" }], limit });
+  return rader.map(offertUrRad).filter((o): o is Offert => o !== null);
+}
+
+/** Prissatta offerter vars kund inte har fått mejlet än. */
+export function offerterAttMejla(limit: number): Promise<Offert[]> {
+  return offerterMed({ $and: [{ status: "prissatt" }, { meddelad: { $exists: false } }] }, limit);
+}
+
+export async function markeraOffertMeddelad(id: string): Promise<boolean> {
+  return (await patcha(MK.offerter, id, [satt("meddelad", nu())], { meddelad: { $exists: false } })).utfall === "applied";
+}
+
+export async function avmarkeraOffertMeddelad(id: string): Promise<void> {
+  await patcha(MK.offerter, id, [taBortFalt("meddelad")]);
+}
+
+/** Offerter vars kassa har öppnats, för att se om de blev betalda. */
+export function offerterIKassan(limit: number): Promise<Offert[]> {
+  return offerterMed({ status: "accepterad" }, limit);
+}
+
+/** Prissatta eller accepterade offerter vars sista dag har passerat. */
+export function offerterAttLoptaUt(nuIso: string, limit: number): Promise<Offert[]> {
+  return offerterMed({ $and: [{ status: { $in: ["prissatt", "accepterad"] } }, { giltigTill: { $lte: nuIso } }] }, limit);
+}
+
+/** Byter läge, bara om offerten fortfarande har läget `fran`. */
+export async function bytOffertstatus(id: string, fran: Offert["status"], till: Offert["status"]): Promise<boolean> {
+  const tid = nu();
+  const falt = till === "betald" ? [satt("status", till), satt("betald", tid)] : [satt("status", till)];
+  return (await patcha(MK.offerter, id, falt, { status: fran })).utfall === "applied";
+}
+
+/** Köpflödena som offertens kassor fick: en offert kan ha öppnats i kassan flera gånger. */
+export async function kopflodenForOffert(offertId: string): Promise<string[]> {
+  const rader = await fraga(MK.prisbeslut, { filter: { offertId }, limit: 50 });
+  return rader.map((r) => text(r.purchaseFlowId) ?? "").filter(Boolean);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sparade varukorgar (E3, lib/medlem/sparade.ts)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Kontots sparade varukorgar, nyast först. */
+export async function sparadeKorgarFor(medlemsId: string): Promise<SparadKorg[]> {
+  const rader = await fraga(MK.sparade, { filter: { medlemsId }, sort: [{ fieldName: "skapad", order: "DESC" }], limit: MAX_KORGAR + 5 });
+  return rader.map(sparadKorgUrRad).filter((k): k is SparadKorg => k !== null);
+}
+
+export async function hamtaSparadKorg(id: string): Promise<SparadKorg | null> {
+  const r = await hamta(MK.sparade, id);
+  return r ? sparadKorgUrRad(r) : null;
+}
+
+/** En ny sparad varukorg. Id:t är slumpat, så en krock betyder ett fel. */
+export async function sparaNyKorg(k: SparadKorg): Promise<void> {
+  const rader = k.rader.map((r) => Object.fromEntries(Object.entries(r).filter(([, v]) => v !== undefined && v !== null)));
+  const utfall = await infoga(MK.sparade, k.id, { medlemsId: k.medlemsId, namn: k.namn, rader, skapad: k.skapad } as unknown as Rad);
+  if (utfall !== "skapad") throw new Error("den sparade varukorgens id fanns redan");
+}
+
+/** Tar bort korgen bara om den är kontots (villkoret i Wix). */
+export async function taBortSparadKorg(id: string, medlemsId: string): Promise<boolean> {
+  return (await taBort(MK.sparade, id, { medlemsId })) === "borttagen";
 }

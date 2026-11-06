@@ -1,4 +1,5 @@
 import { CartButton } from "./cart";
+import { ProfilRemsa } from "./profil-remsa";
 import { HemLank } from "./hem-lank";
 import { WishlistButton } from "./wishlist";
 import { SearchBox } from "./searchbox";
@@ -57,7 +58,9 @@ export async function SiteHeader() {
       <script dangerouslySetInnerHTML={{ __html: INTRO_EN_GANG }} />
       <div className="promo">
         <div className="container promorow">
-          <span className="promotext"><span className="promo-ikon" aria-hidden="true">🚚 </span>Fri frakt över <b>499 kr</b> · Betala smidigt med <b className="klarna-mark">Klarna</b></span>
+          <ProfilRemsa>
+            <span className="promotext"><span className="promo-ikon" aria-hidden="true">🚚 </span>Fri frakt över <b>499 kr</b> · Betala smidigt med <b className="klarna-mark">Klarna</b></span>
+          </ProfilRemsa>
           <Social className="promo-social" />
         </div>
       </div>
