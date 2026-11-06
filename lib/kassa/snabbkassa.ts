@@ -154,12 +154,18 @@ export function planbokNamn(p: readonly Planbok[]): string {
 
 /**
  * Ska platsen för knapparna hållas medan Stripe tar reda på om kunden har en
- * plånbok? Bara i webbläsare som kan ha en (Safari har ApplePaySession,
- * Chrome, Edge och Safari har PaymentRequest). Annars hade en tom ruta stått
- * överst och sedan försvunnit, och formuläret hoppat upp under kunden.
+ * plånbok? Bara där Apple Pay finns (Safari och alla webbläsare på iPhone har
+ * ApplePaySession). Där svarar Stripe snabbt och visar nästan alltid knappen,
+ * så platsen fylls i stället för att försvinna.
+ *
+ * Inte för Google Pay: Stripes kontroll av Google Pay tog 13 s på
+ * förhandsbygget (huvudlös Chromium, 2026-11-06), och 0 av 171 köp har
+ * betalats med Google Pay (23 med Apple Pay). En hållen plats i Chrome hade
+ * oftast försvunnit efter en stund och knuffat upp formuläret under kunden. Där
+ * visas rutan i stället först när Stripe har hittat en plånbok.
  */
-export function planbokTrolig(f: { applePaySession: boolean; paymentRequest: boolean }): boolean {
-  return f.applePaySession || f.paymentRequest;
+export function planbokTrolig(f: { applePaySession: boolean }): boolean {
+  return f.applePaySession;
 }
 
 type Orsak = NonNullable<Parameters<StripeExpressCheckoutElementConfirmEvent["paymentFailed"]>[0]>["reason"];
