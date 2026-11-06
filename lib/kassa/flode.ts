@@ -58,6 +58,8 @@ export interface KorgRad {
   quantityInfo?: { confirmedQuantity?: number; requestedQuantity?: number; availableQuantity?: number };
   status?: string;
   source?: { catalogReference?: { catalogItemId?: string; options?: unknown } };
+  /** Produktbilden som Wix sparar på raden (Cart V2): mediets id i sajtens Media Manager. */
+  attributes?: { image?: { id?: string; altText?: string } };
 }
 
 export interface Korg {
@@ -119,6 +121,8 @@ export interface KassaDeps {
     beskrivning: string;
     utgar: string;
     externtId: string;
+    /** Första varans bild, som Wix visar på betalsidan. */
+    bild?: { id: string; altText?: string } | null;
   }): Promise<{ id: string; url: string }>;
   /** Makulerar den förra betalningen och avbryter dess order med återlagring, om båda hör till korgen och inte är betalda. */
   slappTidigare(cartId: string, t: Tidigare): Promise<"slappt" | "ej_var" | "betald">;
@@ -283,6 +287,20 @@ export function stoppandeOvertradelser(r: Rakning, opts: { utanLager?: boolean }
   return { meddelanden: ut, ...(falt ? { falt } : {}) };
 }
 
+/**
+ * Bilden på Wix betalsida: första varans bild ur korgen (ett id i sajtens
+ * Media Manager, högst 200 tecken som Wix kräver). Null utan bild.
+ */
+export function betalBild(rader: KorgRad[]): { id: string; altText?: string } | null {
+  for (const r of rader) {
+    const id = (r.attributes?.image?.id ?? "").trim();
+    if (!id || id.length > 200 || /^https?:/i.test(id)) continue;
+    const alt = (r.attributes?.image?.altText || r.name?.translated || r.name?.original || "").trim().slice(0, 200);
+    return alt ? { id, altText: alt } : { id };
+  }
+  return null;
+}
+
 /** Texten på Wix betalsida: varorna i korthet. Högst 300 tecken, Wix gräns. */
 export function betalBeskrivning(rader: KorgRad[]): string {
   const namn = rader
@@ -401,6 +419,7 @@ export async function betala(
     beskrivning: betalBeskrivning(rakning.cart?.lineItems ?? korg.lineItems ?? []),
     utgar,
     externtId: kassaExterntId(cartId, inn.forsokId, avtryck),
+    bild: betalBild(rakning.cart?.lineItems ?? korg.lineItems ?? []),
   });
   return { ok: true, url: betalning.url, orderId, betalningId: betalning.id, totalOre, utgar };
 }

@@ -5,6 +5,7 @@ import assert from "node:assert/strict";
 import {
   betala,
   betalBeskrivning,
+  betalBild,
   oreAv,
   stoppandeOvertradelser,
   BETALNING_MINUTER,
@@ -484,4 +485,33 @@ test("omförsöken: nekade anrop görs om med paus, andra fel kastas direkt", as
   n = 0;
   await assert.rejects(() => medOmforsok(async () => { n++; throw new Error("500"); }, (e) => e === nekat, [10, 20], sov), /500/);
   assert.equal(n, 1, "ett annat fel görs aldrig om (ordern kan ha skapats)");
+});
+
+test("betalsidans bild: första varan med bild, med alt-text eller varans namn", () => {
+  assert.equal(betalBild([]), null);
+  assert.equal(betalBild([{ name: { original: "Utan bild" } }]), null);
+  assert.deepEqual(
+    betalBild([
+      { name: { original: "Utan bild" } },
+      { name: { original: "Pedalhink" }, attributes: { image: { id: "b379ce_abc~mv2.jpg" } } },
+    ]),
+    { id: "b379ce_abc~mv2.jpg", altText: "Pedalhink" },
+  );
+  assert.deepEqual(betalBild([{ attributes: { image: { id: "b379ce_abc~mv2.jpg", altText: "Mattsvart hink" } } }]), { id: "b379ce_abc~mv2.jpg", altText: "Mattsvart hink" });
+  assert.equal(betalBild([{ attributes: { image: { id: "https://static.wixstatic.com/media/x.jpg" } } }]), null, "en adress är inget media-id");
+  assert.equal(betalBild([{ attributes: { image: { id: "x".repeat(201) } } }]), null, "Wix tar högst 200 tecken");
+});
+
+test("betalningen får första varans bild till Wix betalsida", async () => {
+  const bilder: unknown[] = [];
+  const k = korg({ lineItems: [{ id: "r1", name: { original: "Pedalhink 50 liter" }, quantityInfo: { confirmedQuantity: 1, requestedQuantity: 1 }, status: "IN_STOCK", attributes: { image: { id: "b379ce_hink~mv2.jpg", altText: "Pedalhink" } } }] });
+  const { deps } = lattsasWix({ korg: k, rakningar: [rakning({ valt: SATT.code, rader: k.lineItems })] });
+  const skapa = deps.skapaBetalning;
+  deps.skapaBetalning = async (b) => {
+    bilder.push(b.bild);
+    return skapa(b);
+  };
+  const r = await betala(deps, inn(), NU);
+  assert.equal(r.ok, true);
+  assert.deepEqual(bilder, [{ id: "b379ce_hink~mv2.jpg", altText: "Pedalhink" }]);
 });

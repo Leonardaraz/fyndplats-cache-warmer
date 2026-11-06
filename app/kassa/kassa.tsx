@@ -21,7 +21,8 @@ import { preconnect, prefetchDNS } from "react-dom";
 import { useCart, liImageUrl } from "../../components/cart";
 import { PaymentMarks } from "../../components/payment-marks";
 import { tightFillUrl } from "../../lib/wix-image";
-import { DELIVERY_TIME, fraktKr } from "../../lib/shipping";
+import { DELIVERY_MAX_DAYS, DELIVERY_MIN_DAYS, DELIVERY_TIME, FREE_SHIPPING_FROM_KR, fraktKr } from "../../lib/shipping";
+import { leveransIntervall } from "../../lib/leveransdatum";
 import { provaKassa, normalPostnr, type Falt } from "../../lib/kassa/formular";
 import s from "./kassa.module.css";
 
@@ -43,7 +44,7 @@ interface KorgRadVy {
   _id?: string;
   productName?: { original?: string } | string;
   image?: unknown;
-  price?: { formattedAmount?: string };
+  price?: { amount?: string; formattedAmount?: string };
   quantity?: number;
 }
 
@@ -80,6 +81,13 @@ function kr(ore: number | null | undefined): string {
   const oren = Math.abs(ore) % 100;
   const grupp = String(hela).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
   return `${ore < 0 ? "−" : ""}${grupp}${oren ? `,${String(oren).padStart(2, "0")}` : ""} kr`;
+}
+
+/** Radens summa (styckpris × antal); butikens egen text när beloppet saknas. */
+function radSumma(li: KorgRadVy): string {
+  const antal = li.quantity ?? 1;
+  const st = parseFloat(li.price?.amount ?? "");
+  return Number.isFinite(st) ? kr(Math.round(st * 100) * antal) : li.price?.formattedAmount || "";
 }
 
 const lasJson = <T,>(lagring: "local" | "session", nyckel: string): T | null => {
@@ -126,6 +134,12 @@ export function Kassa() {
   // Varukorgen hämtas i webbläsaren när kakan fp_cart finns (components/cart.tsx).
   // Tills den kommit visas kassan med platshållare, inte "Varukorgen är tom".
   const [korgVantas, setKorgVantas] = useState(true);
+  // "ons 11 – mån 16 november": räknas i webbläsaren (lib/leveransdatum.ts), som i varukorgen.
+  const [levDatum, setLevDatum] = useState<string | null>(null);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- datumet beror på kundens klocka, inte serverns
+    setLevDatum(leveransIntervall(new Date(), DELIVERY_MIN_DAYS, DELIVERY_MAX_DAYS));
+  }, []);
   const [kollar, setKollar] = useState(true);
   const [sammanfattningOppen, setSammanfattningOppen] = useState(false);
   const [senastPostnr, setSenastPostnr] = useState<string | null>(null);
@@ -264,12 +278,14 @@ export function Kassa() {
     [cartId, varden.postnr],
   );
 
+  // Korgens innehåll (rader och antal): ändras det i varukorgslådan räknas summan om.
+  const korgSignatur = rader.map((li) => `${li._id}:${li.quantity ?? 1}`).join("|");
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- Wix räkning hämtas när korgen blir känd i webbläsaren
     if (cartId) rakna();
-    // Bara när korgen byts; postnumret räknas vid blur.
+    // Bara när korgen eller dess innehåll byts; postnumret räknas vid blur.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cartId, rader.length]);
+  }, [cartId, korgSignatur]);
 
   const andra = (f: keyof Varden) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value;
@@ -293,6 +309,7 @@ export function Kassa() {
   const totalOre = summa?.totalOre ?? delsummaOre + fraktOre;
   const momsOre = summa?.momsOre ?? Math.round(totalOre / 5);
   const harKorg = Boolean(cartId);
+  const kvarTillFri = FREE_SHIPPING_FROM_KR * 100 - (delsummaOre - (summa?.rabattOre ?? 0));
 
   const skicka = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -403,7 +420,7 @@ export function Kassa() {
                 {(li.quantity ?? 1) > 1 ? <span className={s.antal}>{li.quantity}</span> : null}
               </span>
               <span className={s.radNamn}>{namn}</span>
-              <span className={s.radPris}>{li.price?.formattedAmount || ""}</span>
+              <span className={s.radPris}>{radSumma(li)}</span>
             </li>
           );
         })}
@@ -412,6 +429,9 @@ export function Kassa() {
         <div><dt>Delsumma</dt><dd>{belopp(delsummaOre)}</dd></div>
         {summa && summa.rabattOre > 0 ? <div className={s.rabatt}><dt>Rabatt{summa.kupong ? ` (${summa.kupong})` : ""}</dt><dd>−{kr(summa.rabattOre)}</dd></div> : null}
         <div><dt>Frakt</dt><dd>{harKorg ? (fraktOre === 0 ? "Fri frakt" : kr(fraktOre)) : belopp(null)}</dd></div>
+        {harKorg && fraktOre > 0 && kvarTillFri > 0 ? (
+          <div className={s.friFrakt}><dt>Handla för {kr(kvarTillFri)} till så blir frakten gratis</dt><dd /></div>
+        ) : null}
         <div className={s.total}><dt>Att betala</dt><dd>{belopp(totalOre)}</dd></div>
       </dl>
       <p className={s.moms}>{harKorg ? <>Varav moms {kr(momsOre)}{raknar ? " · räknar …" : ""}</> : " "}</p>
@@ -473,18 +493,22 @@ export function Kassa() {
               {falt("ort", "Ort", { autoComplete: "address-level2", enterKeyHint: "done" })}
             </div>
             <div className={s.frakt}>
-              <span className={s.fraktPrick} aria-hidden="true" />
+              <span className={s.fraktIkon} aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M3 6.5h11v9H3zM14 9.5h3.6l3.4 3.4v2.6h-7M6.5 18.5a1.75 1.75 0 1 0 0-.01M17.5 18.5a1.75 1.75 0 1 0 0-.01" /></svg>
+              </span>
               <span>
                 <strong>{summa?.fraktnamn || "Spårbar standardleverans"}</strong>
-                <span className={s.fraktTid}>{DELIVERY_TIME} · skickas från EU-lager</span>
+                <span className={s.fraktTid}>{levDatum ? `Beräknad leverans ${levDatum}` : DELIVERY_TIME}</span>
+                <span className={s.fraktTid}>Från EU-lager · spårningslänk via e-post när paketet skickas</span>
               </span>
-              <span className={s.fraktPris}>{fraktOre === 0 ? "Fri frakt" : kr(fraktOre)}</span>
+              <span className={s.fraktPris}>{harKorg ? (fraktOre === 0 ? "Fri frakt" : kr(fraktOre)) : belopp(null)}</span>
             </div>
           </section>
 
           <section className={s.kort} aria-labelledby="kassa-betalning">
             <h2 id="kassa-betalning" className={s.steg}><span className={s.nr}>3</span> Betalning</h2>
             <p className={s.betalText}>Du väljer kort, Klarna eller Apple Pay på nästa sida, i Wix säkra betalning.</p>
+            <p className={s.betalNot}>Med Klarna bekräftar du köpet hos Klarna, som kan be om din adress en gång till.</p>
             <PaymentMarks />
             {kupongOppen ? (
               <div className={s.kupong}>

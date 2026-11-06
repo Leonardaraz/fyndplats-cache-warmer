@@ -99,23 +99,34 @@ export async function skapaOrder(cartId: string): Promise<{ orderId: string }> {
 }
 
 export async function skapaBetalning(b: Parameters<KassaDeps["skapaBetalning"]>[0]): Promise<{ id: string; url: string }> {
-  const svar = await forsokIgen(() =>
-    wixFetch<{ orderPaymentRequest?: { id?: string }; orderPaymentRequestUrl?: string }>({
-      method: "POST",
-      path: "/ecom/v1/order-payment-requests",
-      body: {
-        orderPaymentRequest: {
-          orderId: b.orderId,
-          amount: { amount: b.belopp },
-          title: b.titel,
-          description: b.beskrivning,
-          expirationDate: b.utgar,
-          source: { externalId: b.externtId },
-          blockedPaymentMethods: ["MANUAL"],
+  const skapa = (medBild: boolean) =>
+    forsokIgen(() =>
+      wixFetch<{ orderPaymentRequest?: { id?: string }; orderPaymentRequestUrl?: string }>({
+        method: "POST",
+        path: "/ecom/v1/order-payment-requests",
+        body: {
+          orderPaymentRequest: {
+            orderId: b.orderId,
+            amount: { amount: b.belopp },
+            title: b.titel,
+            description: b.beskrivning,
+            expirationDate: b.utgar,
+            source: { externalId: b.externtId },
+            blockedPaymentMethods: ["MANUAL"],
+            ...(medBild && b.bild ? { image: b.bild } : {}),
+          },
         },
-      },
-    }),
-  );
+      }),
+    );
+  let svar: Awaited<ReturnType<typeof skapa>>;
+  try {
+    svar = await skapa(true);
+  } catch (e) {
+    // Bilden är bara utseende: nekar Wix den (400) skapas betalningen utan.
+    // Ett nekat anrop har inte skapat något, så det går att göra om.
+    if (!(b.bild && e instanceof WixApiError && e.status === 400)) throw e;
+    svar = await skapa(false);
+  }
   const id = svar?.orderPaymentRequest?.id;
   const url = svar?.orderPaymentRequestUrl;
   if (!id || !url) throw new Error("Wix gav ingen betalsida");

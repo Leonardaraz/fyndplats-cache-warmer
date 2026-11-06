@@ -1170,6 +1170,13 @@ i `flode.ts`), `app/kassa/`, `app/api/kassa/*` och städjobbet
   (`medOmforsok`, 0,7 s och 1,5 s). Andra fel görs aldrig om: en order som
   kanske skapades ska inte skapas två gånger. Når 429 ändå kunden säger kassan
   "vänta en minut".
+- **Betalsidan visar första varans bild** (`betalBild`: mediets id ur korgens
+  `attributes.image`, alt-text eller varans namn). Nekar Wix bilden (400)
+  skapas betalningen utan, eftersom bilden bara är utseende.
+- ⚠️ **Klarna på Wix betalsida frågar efter adressen igen** (Leonards iPhone
+  2026-11-06), fast ordern bär leverans- och fakturaadress. Betalningsbegäran
+  har inget fält för köparen, så det går inte att fylla i från oss. Kassan
+  säger det därför före betalningen.
 - **Kundens egen väntande order håller varorna**, så Wix räknar dem som slut för
   samma korg. Räkningen på `/kassa` visar därför ingen lagerbrist när korgen har
   en obetald betalning (`stoppandeOvertradelser(..., { utanLager: true })`).

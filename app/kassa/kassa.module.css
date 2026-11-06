@@ -153,12 +153,15 @@
   font-size: var(--text-sm);
 }
 
-.fraktPrick {
-  width: 18px;
-  height: 18px;
+.fraktIkon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  border: 5px solid var(--brand);
   background: #fff;
+  color: var(--brand);
+  box-shadow: inset 0 0 0 1.5px var(--brand);
 }
 
 .fraktTid {
@@ -175,7 +178,20 @@
 .betalText {
   font-size: var(--text-sm);
   color: var(--soft);
+  margin: 0 0 6px;
+}
+
+.betalNot {
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--soft);
   margin: 0 0 12px;
+}
+
+.summor .friFrakt {
+  font-size: var(--text-xs);
+  color: #157a3a;
+  font-weight: 600;
 }
 
 .kupong {
