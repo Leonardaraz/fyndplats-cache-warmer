@@ -151,9 +151,13 @@ mappningar, så butiken frågar motorn (`POST /api/medlem/golv`, logiken i
   beslut kräver orsakskod och text (orsakskoden `bolagsverket` finns för
   godkännandet) och skrivs med villkoret att läget är detsamma som när sidan
   lästes, så att två admins inte skriver över varandra.
-- Bolagsverkets uppslag är inte byggt: nycklarna kommer via Bolagsverkets
-  kundanmälan, som Leonard gör (svar 3.1). Tills dess kontrolleras numret och
-  namnet för hand. En enskild firma finns inte alltid hos Bolagsverket.
+- **Bolagsverkets uppslag görs i butiken** när ansökan skickas (butikens
+  `lib/medlem/bolagsverket.ts`, 2026-11-06). Ett företag som Bolagsverket visar
+  som aktivt godkänns direkt med det registrerade namnet (`beslutAv:
+  "bolagsverket"`); kön visar då "Godkänt direkt" och kan återkalla. Allt annat
+  kommer hit med Bolagsverkets besked i fältet `bolagsverket` (hittat men
+  avregistrerat, förfarande, finns inte, uppslaget föll), och kontrolleras för
+  hand. Profiler från före uppslaget saknar fältet.
 - ☠️ En enskild firmas organisationsnummer är ett personnummer. Hela numret
   syns bara på admin-sidan; loggen får namnet och formen, aldrig numret.
 - Mejlet "Ditt företagskonto är godkänt" skickas av butikens timjobb

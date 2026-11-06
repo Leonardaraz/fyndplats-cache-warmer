@@ -58,6 +58,41 @@ const adress = (a: unknown) => {
   return r.gata ? `${text(r.gata)}, ${p} ${text(r.ort)}` : "–";
 };
 
+/**
+ * Bolagsverkets besked från butikens uppslag (butikens lib/medlem/bolagsverket.ts,
+ * sedan 2026-11-06): ett aktivt företag godkändes direkt (`beslutAv`), annars
+ * står orsaken här. Profiler från före uppslaget saknar fältet.
+ */
+function Bolagsverket({ profil }: { profil: Rad }) {
+  const k = (profil.bolagsverket ?? null) as Record<string, unknown> | null;
+  const stil = { margin: "0 0 6px", fontSize: 13, color: "#555" } as const;
+  if (!k) {
+    return (
+      <p style={stil}>
+        Kontrollera hos Bolagsverket att numret hör till namnet och att bolaget är aktivt (enskilda firmor finns inte alltid där).
+      </p>
+    );
+  }
+  const orsaker = Array.isArray(k.orsaker) ? k.orsaker.filter((o): o is string => typeof o === "string") : [];
+  const angivet = typeof profil.namnAngivet === "string" && profil.namnAngivet ? ` · kunden skrev "${profil.namnAngivet}"` : "";
+  if (profil.beslutAv === "bolagsverket") {
+    return (
+      <p style={stil}>
+        ✅ Godkänt direkt: aktivt hos Bolagsverket{typeof k.form === "string" ? ` (${k.form})` : ""}, registrerat namn{angivet}. Kontrollerat {dag(k.kontrollerad)}.
+      </p>
+    );
+  }
+  const utfall = k.utfall === "hittad" ? "hittat" : k.utfall === "saknas" ? "finns inte" : "uppslaget föll";
+  return (
+    <p style={stil}>
+      ⚠️ Bolagsverket: {utfall}
+      {typeof k.namn === "string" ? ` som "${k.namn}"` : ""}
+      {orsaker.length ? ` · ${orsaker.join(", ")}` : ""}
+      {angivet} · kontrollerat {dag(k.kontrollerad)}. Granska för hand.
+    </p>
+  );
+}
+
 /** Ett företags uppgifter och beslutsknapparna (E3). Hela numret syns bara här i admin. */
 function Foretaget({ profil, q, epost }: { profil: Rad; q: string; epost?: string }) {
   const status = text(profil.status);
@@ -79,9 +114,7 @@ function Foretaget({ profil, q, epost }: { profil: Rad; q: string; epost?: strin
         Faktura: {adress(profil.faktura)}
         {profil.leverans ? ` · Leverans: ${adress(profil.leverans)}` : " · Leverans till fakturaadressen"}
       </p>
-      <p style={{ margin: "0 0 6px", fontSize: 13, color: "#555" }}>
-        Kontrollera hos Bolagsverket att numret hör till namnet och att bolaget är aktivt (enskilda firmor finns inte alltid där).
-      </p>
+      <Bolagsverket profil={profil} />
       {status !== "aktiv" ? (
         <form action={foretagAction} style={{ display: "inline-block", marginRight: 12 }}>
           <input type="hidden" name="id" value={id} />
