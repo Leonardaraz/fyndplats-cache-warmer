@@ -1788,6 +1788,16 @@ med vår kassa (`lib/kassa/aterta.ts`):
    steg (`aterVunnenIWix`): RECOVERED → vagnen blir `converted`, en utdelad kod
    återkallas och inget mejl går. 404 → mejlet går som förut; andra fel → vagnen
    prövas nästa kvart.
+4. **Mejlet gick ut efter köpet när köpet gjordes i en annan korg.** Kunden
+   lämnar en korg med sin e-post (till exempel när Klarna öppnar en annan
+   webbläsare) och köper i en ny korg. Den första korgen blir övergiven en timme
+   senare, alltså efter köpet: konverteringen vid ordern hittade ingen vagn, och
+   Wix markerar den inte RECOVERED, eftersom just den korgen aldrig blev en order
+   (första riktiga Klarna-köpet i nya kassan, 2026-11-06). Nu läser
+   `processDueCart` före varje steg orderspegeln (`ordrar.kopSedan`): en order
+   med samma e-post från tre timmar före den övergivna kassans tid
+   (`kopSparrSedan`) → vagnen blir `converted`, en utdelad kod återkallas och
+   inget mejl går (`skipped_bought`).
 
 ☠️ Länkens HMAC använder `NEWSLETTER_SECRET` eller `CRON_SECRET` (minst 16
 tecken) med eget prefix. Saknas båda får mejlen Wix länk, och pollaren varnar i

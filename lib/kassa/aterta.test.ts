@@ -2,7 +2,7 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { ATERTA_SOKVAG, BUTIK, aterHemlighet, aterLank, aterNyckel, aterVunnenIWix, lasAterNyckel, medKod, valjAterLank } from "./aterta.ts";
+import { ATERTA_SOKVAG, BUTIK, aterHemlighet, aterLank, aterNyckel, aterVunnenIWix, kopSparrSedan, lasAterNyckel, medKod, valjAterLank } from "./aterta.ts";
 
 const H = "en-hemlighet-som-ar-lang-nog-1234";
 const KORG = "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee";
@@ -76,4 +76,14 @@ test("påminnelsen stoppas bara när Wix säger att kassan är återvunnen", () 
   assert.equal(aterVunnenIWix({ abandonedCheckout: {} }), false);
   assert.equal(aterVunnenIWix({}), false);
   assert.equal(aterVunnenIWix(null), false);
+});
+
+test("ett köp från tre timmar före den övergivna kassan stoppar påminnelsen", () => {
+  const kassan = "2026-01-15T12:00:00.000Z";
+  assert.equal(kopSparrSedan(kassan), "2026-01-15T09:00:00.000Z");
+  // Köpet strax efter att kunden lämnade korgen, före Wix övergivna kassa: stoppar.
+  assert.ok("2026-01-15T11:05:00.000Z" >= kopSparrSedan(kassan)!);
+  // Ett köp dagen före stoppar inte en ny påminnelse.
+  assert.ok("2026-01-14T11:05:00.000Z" < kopSparrSedan(kassan)!);
+  for (const t of [undefined, null, "", "inte ett datum"]) assert.equal(kopSparrSedan(t), null, String(t));
 });

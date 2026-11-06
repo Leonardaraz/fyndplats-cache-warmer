@@ -102,3 +102,30 @@ export function medKod(url: string, kod: string | null | undefined, bas = BUTIK)
 export function aterVunnenIWix(svar: unknown): boolean {
   return (svar as { abandonedCheckout?: { status?: unknown } } | null)?.abandonedCheckout?.status === "RECOVERED";
 }
+
+/**
+ * Hur långt före den övergivna kassans tid ett köp med samma e-post stoppar
+ * påminnelsen. Wix skapar den övergivna kassan ungefär en timme efter korgens
+ * sista ändring, så ett köp strax efter att kunden lämnade korgen ligger före
+ * den tiden. Tre timmar ger marginal för att Wix ibland är senare.
+ */
+export const KOP_FORE_KASSAN_MS = 3 * 60 * 60 * 1000;
+
+/**
+ * Från när ett köp med samma e-post stoppar påminnelsen om en vagn som Wix
+ * gjorde övergiven vid `abandonedAt` (ISO). Null när tiden saknas eller inte
+ * går att läsa: då görs ingen kontroll, och mejlet går som förut.
+ *
+ * Fallet som kräver det (2026-11-06): kunden lämnar en korg med sin e-post,
+ * till exempel när Klarna öppnar en annan webbläsare, och köper i en ny korg.
+ * Den första korgen blir övergiven en timme senare, alltså efter köpet, så
+ * konverteringen vid ordern (onOrderConverted) hittar ingen vagn att stoppa,
+ * och Wix markerar den inte RECOVERED eftersom just den korgen aldrig blev en
+ * order.
+ */
+export function kopSparrSedan(abandonedAt: string | null | undefined): string | null {
+  if (typeof abandonedAt !== "string" || !abandonedAt) return null;
+  const t = Date.parse(abandonedAt);
+  if (!Number.isFinite(t)) return null;
+  return new Date(t - KOP_FORE_KASSAN_MS).toISOString();
+}

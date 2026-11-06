@@ -593,6 +593,8 @@ export interface KundvagnRad {
   status: string;
   discount_code: string | null;
   discount_code_wix_id: string | null;
+  /** När Wix gjorde kassan övergiven (ISO), tom för rader utan fältet. */
+  abandoned_at: string;
 }
 
 function kundvagnFranWix(d: Rad): KundvagnRad {
@@ -610,6 +612,7 @@ function kundvagnFranWix(d: Rad): KundvagnRad {
     status: String(d.status ?? "pending"),
     discount_code: str(d.discountCode),
     discount_code_wix_id: str(d.discountCodeWixId),
+    abandoned_at: String(d.abandonedAt ?? ""),
   };
 }
 
@@ -1116,6 +1119,15 @@ export const ordrar = {
       items_json: Array.isArray(d.items) ? d.items : [],
       created_at: String(d.createdAt ?? ""),
     }));
+  },
+
+  /**
+   * Har adressen lagt en order sedan `sedanIso`? Påminnelsen om en övergiven
+   * vagn stoppas då (lib/abandoned-cart.ts, processDueCart). Läser orderspegeln,
+   * som webhooken fyller inom en minut och nattens avstämning kompletterar.
+   */
+  async kopSedan(emailLower: string, sedanIso: string): Promise<boolean> {
+    return (await fraga(K.ordrar, { filter: { emailLower, createdAt: { $gte: sedanIso } }, limit: 1 })).length > 0;
   },
 
   /** Orderns rader, matchat på ordernummer och e-post (`lower(email)`). */
