@@ -1144,7 +1144,9 @@ i `flode.ts`), `app/kassa/`, `app/api/kassa/*` och städjobbet
   Wix gör det inte själv för en order som skapats före betalningen, och annars
   står varorna kvar i kundens varukorg.
 - ⚠️ **Betalsidan har ingen väg tillbaka till oss**, och dess logga leder till
-  en tom Wix-sida. Den väntande ordern ligger i sessionStorage; kommer kunden
+  Wix tomma startsida (`checkout.fyndplats.se/__ecom`). `/kassa/klar` är
+  vägen tillbaka: betald → `/tack`, väntande → `/kassa`, annars startsidan.
+  Wix startsida pekas dit med en egen kod i Wix (bara på `/__ecom` och roten). Den väntande ordern ligger i sessionStorage; kommer kunden
   tillbaka till `/kassa` frågar sidan `/api/kassa/status` och går till `/tack`
   om ordern är betald. Vad betalsidan visar efter betalningen är inte uppmätt
   (kräver en riktig betalning).
