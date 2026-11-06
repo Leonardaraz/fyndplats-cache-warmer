@@ -2,10 +2,12 @@
 
 // Vår egen kassa: kontakt, leverans, betalning och summering på
 // www.fyndplats.se. Två sätt att betala, valda av page.tsx:
-//   • Stripe (när nycklarna finns, Leonards val 2026-11-06): betalfältet står i
-//     steg 3 på sidan, med kort, Apple Pay, Google Pay och Klarna (i den
-//     ordningen: betaltjänstlagen, se BETALFALT). Kunden skriver sina
-//     uppgifter EN gång; de följer med till Klarna.
+//   • Stripe (när nycklarna finns, Leonards val 2026-11-06): överst
+//     snabbkassan med Apple Pay och Google Pay, där plånboken ger namn, e-post,
+//     telefon och adress (lib/kassa/snabbkassa.ts). Annars formuläret och
+//     betalfältet i steg 3, med kort och Klarna (i den ordningen:
+//     betaltjänstlagen, se BETALFALT). Kunden skriver sina uppgifter EN gång;
+//     de följer med till Klarna.
 //     Flödet: lib/kassa/stripe-klient.ts och lib/kassa/flode.ts.
 //   • Annars Wix betalsida (Order Payment Request), som beskrivs nedan.
 // Skälet till kassan är att Wix
@@ -40,7 +42,7 @@ import { tightFillUrl } from "../../lib/wix-image";
 import { valdaAlternativ } from "../../lib/cart-shape";
 import { DELIVERY_MAX_DAYS, DELIVERY_MIN_DAYS, DELIVERY_TIME, FREE_SHIPPING_FROM_KR, fraktKr } from "../../lib/shipping";
 import { leveransIntervall } from "../../lib/leveransdatum";
-import { ADRESS_FALT, LAN, adressFranStripe, faltGiltigt, forstaFel, lanFranPostnr, provaKassa, normalPostnr, snyggtTelefon, type Falt } from "../../lib/kassa/formular";
+import { ADRESS_FALT, LAN, adressFranStripe, faltGiltigt, forstaFel, kundFranPlanbok, lanFranPostnr, provaKassa, normalPostnr, snyggtTelefon, type Falt } from "../../lib/kassa/formular";
 import { visaTomKorg } from "../../lib/kassa/vy";
 import { epostForslag } from "../../lib/kassa/epost-forslag";
 import {
@@ -53,7 +55,8 @@ import {
   stripeMeddelande,
   vantaPaOrder,
 } from "../../lib/kassa/stripe-klient";
-import type { StripeAddressElementChangeEvent } from "@stripe/stripe-js";
+import { klickSvar, planbokNamn, planbokTrolig, snabbBekrafta, type Sammandrag } from "../../lib/kassa/snabbkassa";
+import type { StripeAddressElementChangeEvent, StripeExpressCheckoutElementClickEvent, StripeExpressCheckoutElementConfirmEvent } from "@stripe/stripe-js";
 import { useStripeBetalning } from "./use-stripe-betalning";
 import { KassaFot, KassaHuvud, Las } from "./kassa-ram";
 import s from "./kassa.module.css";
@@ -228,6 +231,19 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
   // Stripes adressfält (steg 2 med Stripe): är adressen komplett, och kassans rad under fältet.
   const adressKomplett = useRef(false);
   const [adressFel, setAdressFel] = useState<string | null>(null);
+  // Snabbkassan (Apple Pay, Google Pay överst): felet under knapparna, och att
+  // betalningen pågår därifrån (väntans text gäller då inte betalfältets val).
+  const [snabbFel, setSnabbFel] = useState<string | null>(null);
+  const [snabbPagar, setSnabbPagar] = useState(false);
+  // Kan webbläsaren ha en plånbok? Då hålls knapparnas plats medan Stripe svarar.
+  // Sant från början (också på servern): de flesta kunder är på iPhone eller
+  // Android, och rutan som dök upp efter hydreringen knuffade ner formuläret
+  // 256 px (lokalt prov 2026-11-06). Firefox, som saknar båda, tar bort den direkt.
+  const [planbokMojlig, setPlanbokMojlig] = useState(true);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- webbläsarens förmågor finns inte på servern
+    setPlanbokMojlig(planbokTrolig({ applePaySession: "ApplePaySession" in window, paymentRequest: "PaymentRequest" in window }));
+  }, []);
 
   // Provläget: /kassa?prova=1 sätter kakan som låter den här besökaren använda kassan.
   useEffect(() => {
@@ -490,6 +506,29 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
     });
     setAdressFel(null);
   };
+  // Snabbkassans blad visar det summeringen visar: raderna, rabatten, frakten och totalen.
+  const sammandrag: Sammandrag = {
+    rader: rader.map((li) => {
+      const antal = li.quantity ?? 1;
+      const st = parseFloat(li.price?.amount ?? "");
+      return {
+        namn: (typeof li.productName === "string" ? li.productName : li.productName?.original) || "Vara",
+        antal,
+        radOre: Number.isFinite(st) ? Math.round(st * 100) * antal : null,
+      };
+    }),
+    delsummaOre,
+    rabattOre: summa?.rabattOre ?? 0,
+    kupong: summa?.kupong ?? null,
+    fraktOre,
+    fraktnamn: summa?.fraktnamn ?? null,
+    totalOre,
+    dagar: { min: DELIVERY_MIN_DAYS, max: DELIVERY_MAX_DAYS },
+  };
+  const sammandragRef = useRef(sammandrag);
+  useEffect(() => {
+    sammandragRef.current = sammandrag;
+  });
   const {
     plats: betalPlats,
     lage: betalLage,
@@ -500,8 +539,23 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
     adressPlats,
     adressLage,
     adressfalt: adressfaltRef,
-  } = useStripeBetalning(stripeNyckel, harKorg && totalOre > 0 ? totalOre : null, { start: adressStart, andrad: adressAndrad });
-  const steglista: readonly string[] = stripeNyckel ? stripeSteg(betalValt) : STEG;
+    snabbPlats,
+    snabbLage,
+    snabbPlanbocker,
+    snabbElements: snabbElementsRef,
+    snabbVisat: snabbVisatRef,
+  } = useStripeBetalning(
+    stripeNyckel,
+    harKorg && totalOre > 0 ? totalOre : null,
+    { start: adressStart, andrad: adressAndrad },
+    {
+      start: () => (harKorg ? sammandragRef.current : null),
+      // Händelserna kommer från Stripe efter renderingen; funktionerna står längre ned.
+      klick: (h) => snabbKlick(h),
+      bekrafta: (h) => void snabbBekraftaHandelse(h),
+    },
+  );
+  const steglista: readonly string[] = stripeNyckel ? stripeSteg(snabbPagar ? null : betalValt) : STEG;
 
   /** Väntan på ett bestämt steg, utan Wix-vägens klocka. */
   const stegTill = (n: number) => {
@@ -522,12 +576,12 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
    * bekräftelsen kommer via e-post (webhooken och nätet slutför), och kunden
    * kan inte betala igen.
    */
-  const slutforStripe = async (avsiktId: string) => {
+  const slutforStripe = async (avsiktId: string): Promise<string[]> => {
     stegTill(2);
     const b = await vantaPaOrder(avsiktId);
     if (b.gor === "tack") {
       tillTack(b.orderId);
-      return;
+      return [];
     }
     if (b.gor === "fel") {
       // Ingen order: reservationen är släppt. Kunden kan försöka igen med en ny betalning.
@@ -536,10 +590,11 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
       doljVantan();
       pagar.current = false;
       rakna();
-      return;
+      return b.meddelanden;
     }
     setKlarVantar(true);
     doljVantan();
+    return [];
   };
 
   // Tillbaka från Klarna utan order (/kassa?stripe=<kod>): säg varför, och ta bort koden ur adressen.
@@ -607,8 +662,9 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
       return;
     }
     pagar.current = true;
-    // ☠️ FÖRST, i själva trycket: Apple Pay och Google Pay öppnar sitt blad bara
-    // i ett tryck, och efter ett nätverksanrop räknas det inte längre som ett.
+    // ☠️ FÖRST, i själva trycket: Stripe prövar fälten innan betalningen skapas,
+    // och ett plånboksblad öppnas bara i ett tryck (efter ett nätverksanrop
+    // räknas det inte längre som ett).
     let inskickat: Awaited<ReturnType<typeof elements.submit>>;
     try {
       inskickat = await elements.submit();
@@ -700,6 +756,105 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
       doljVantan();
       pagar.current = false;
     }
+  };
+
+  // ── Snabbkassan (Apple Pay, Google Pay) ─────────────────────────────────
+  /** Trycket på en knapp: bladet öppnas med det summeringen visar, inom en sekund. */
+  const snabbKlick = (h: StripeExpressCheckoutElementClickEvent) => {
+    if (pagar.current || klarVantar || !harKorg) {
+      h.reject();
+      return;
+    }
+    setSnabbFel(null);
+    h.resolve(klickSvar(sammandragRef.current));
+  };
+
+  /**
+   * Kunden godkände i Apple Pay eller Google Pay: samma väg som betalfältet
+   * (snabbBekrafta), med plånbokens uppgifter i stället för formulärets.
+   */
+  const snabbBekraftaHandelse = async (h: StripeExpressCheckoutElementConfirmEvent) => {
+    const stripe = stripeRef.current;
+    const grupp = snabbElementsRef.current;
+    if (pagar.current || klarVantar || !stripe || !grupp || !cartId) {
+      h.paymentFailed({ reason: "fail" });
+      return;
+    }
+    pagar.current = true;
+    setSnabbPagar(true);
+    setMeddelanden([]);
+    setBetalFel(null);
+    setSnabbFel(null);
+    // Rabattkoden som står i summeringen; beloppet i bladet är räknat med den.
+    const kod = summa?.kupong ?? "";
+    const u = await snabbBekrafta(
+      {
+        submit: () => grupp.submit(),
+        prova: (p) => provaKassa(kundFranPlanbok(p, { kupong: kod })),
+        forbered: async (kund) => {
+          try {
+            const r = await fetch("/api/kassa/stripe/forbered", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ cartId, ...kund, avsiktId: sparadAvsikt(lasJson("local", STRIPE_NYCKEL), cartId, Date.now()) }),
+            });
+            return { status: r.status, j: await r.json().catch(() => null) };
+          } catch {
+            return { status: 0, j: null };
+          }
+        },
+        spara: (avsiktId) => skrivJson("local", STRIPE_NYCKEL, { avsiktId, cartId, at: Date.now() }),
+        visat: () => snabbVisatRef.current,
+        bekrafta: async (clientSecret) => {
+          // Plånboken ger fakturering och leveransadress; servern sätter ingen (avsiktParametrar).
+          const r = await stripe.confirmPayment({
+            elements: grupp,
+            clientSecret,
+            confirmParams: { return_url: `${window.location.origin}${RETUR_SOKVAG}` },
+            redirect: "if_required",
+          });
+          return { error: r.error, status: r.paymentIntent?.status };
+        },
+        felText: betalfelText,
+        steg: (n) => stegTill(n),
+      },
+      h,
+    );
+    if (u.gor === "slutfor") {
+      // Blev det ingen order står texten också vid knapparna, där kunden är.
+      const fel = await slutforStripe(u.avsiktId);
+      if (fel.length > 0) setSnabbFel(fel.join(" "));
+      setSnabbPagar(false);
+      return;
+    }
+    doljVantan();
+    pagar.current = false;
+    setSnabbPagar(false);
+    setSnabbFel(u.text);
+    if (u.gor === "belopp") {
+      // Wix räknade fram en annan total: knapparna visar den, och kunden trycker igen.
+      grupp.update({ amount: u.totalOre });
+      snabbVisatRef.current = u.totalOre;
+      rakna();
+    } else if (u.falt === "kupong") {
+      setKupongOppen(true);
+      setKupongFel(u.text);
+    }
+  };
+
+  /** "Betala med Apple Pay i stället": tillbaka upp till knapparna. */
+  const tillSnabbkassan = () => {
+    document.getElementById("kassa-snabb")?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
+  /** "Har du en rabattkod?" vid knapparna: koden står i steg 3, och fältet öppnas där. */
+  const tillRabattkoden = () => {
+    setKupongOppen(true);
+    window.requestAnimationFrame(() => {
+      const f = document.getElementById("kassa-kupong");
+      f?.scrollIntoView({ behavior: "smooth", block: "center" });
+      f?.focus({ preventScroll: true });
+    });
   };
 
   const skicka = async (e: React.FormEvent) => {
@@ -796,6 +951,11 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
 
   /** Beloppet, eller en platshållare med samma höjd medan korgen hämtas. */
   const belopp = (ore: number | null) => (harKorg ? kr(ore) : <span className={s.skelett} aria-label="Hämtar" />);
+  // Snabbkassan syns när kunden har en plånbok. Medan Stripe svarar hålls
+  // platsen bara i webbläsare som kan ha en; annars står rutan utanför sidan
+  // tills knapparna finns, så att formuläret inte hoppar.
+  const snabbVisas = Boolean(stripeNyckel) && (snabbLage === "redo" || (snabbLage === "laddar" && planbokMojlig));
+  const planbokText = snabbLage === "redo" ? planbokNamn(snabbPlanbocker) : "Apple Pay eller Google Pay";
   const antalVaror = rader.reduce((n, li) => n + (li.quantity ?? 1), 0);
   // "Menade du …?" när kunden lämnat fältet. Står på hjälptextens rad, så att inget flyttar.
   const epostTips = rorda.has("epost") && !fel.epost ? epostForslag(varden.epost) : null;
@@ -1037,6 +1197,37 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
 
         <div className={s.layout}>
           <form className={s.formular} onSubmit={skicka} noValidate>
+            {stripeNyckel ? (
+              <section
+                id="kassa-snabb"
+                className={`${s.kort} ${s.snabb}`}
+                data-visas={snabbVisas ? "ja" : "nej"}
+                aria-labelledby="kassa-snabb-rubrik"
+                aria-hidden={snabbVisas ? undefined : true}
+              >
+                <h2 id="kassa-snabb-rubrik" className={s.snabbRubrik}>Snabbkassa</h2>
+                <p className={s.snabbUnder}>Namn, adress och e-post hämtas från {planbokText}. Du fyller inte i något.</p>
+                <div className={s.snabbYta}>
+                  {/* Stripes knappar (use-stripe-betalning.ts). Platshållaren har knappens höjd, så att inget hoppar. */}
+                  <div ref={snabbPlats} />
+                  {snabbLage === "laddar" ? <div className={s.snabbSkelett} aria-hidden="true" /> : null}
+                </div>
+                {snabbFel ? <p className={s.betalFel} role="alert">{snabbFel}</p> : null}
+                <p className={s.snabbKod}>
+                  {summa?.kupong ? (
+                    <>Rabattkoden <strong>{summa.kupong}</strong> är med i beloppet.</>
+                  ) : (
+                    <button type="button" className={s.lankLiten} onClick={tillRabattkoden}>Har du en rabattkod?</button>
+                  )}
+                </p>
+              </section>
+            ) : null}
+            {snabbVisas ? (
+              <p className={s.eller} role="separator">
+                <span>eller fyll i dina uppgifter</span>
+              </p>
+            ) : null}
+
             <section className={s.kort} aria-labelledby="kassa-kontakt">
               <h2 id="kassa-kontakt" className={s.steg}><span className={s.nr}>1</span> Kontakt</h2>
               {falt("epost", "E-postadress", { type: "email", autoComplete: "email", inputMode: "email", autoCapitalize: "none", spellCheck: false, enterKeyHint: "next" }, epostHjalp)}
@@ -1146,6 +1337,12 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
                   </div>
                   {betalLage === "fel" ? <p className={s.felText} role="alert">Betalsätten kunde inte laddas. Ladda om sidan och försök igen.</p> : null}
                   {betalFel ? <p className={s.betalFel} role="alert">{betalFel}</p> : null}
+                  {snabbLage === "redo" ? (
+                    <button type="button" className={`${s.lankLiten} ${s.tillSnabb}`} onClick={tillSnabbkassan}>
+                      Betala med {planbokText} i stället
+                      <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" d="M12 19V5m-6 6 6-6 6 6" /></svg>
+                    </button>
+                  ) : null}
                 </>
               ) : (
                 <>

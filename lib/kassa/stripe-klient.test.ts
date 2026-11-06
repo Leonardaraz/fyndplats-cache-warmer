@@ -58,8 +58,13 @@ test("betalfältet och PaymentIntenten har samma valuta och dragning (annars nek
 
 test("betalfältet frågar aldrig efter namn, e-post, telefon eller adress", () => {
   assert.equal(BETALFALT.fields?.billingDetails, "never");
-  assert.equal(BETALFALT.wallets?.applePay, "auto");
-  assert.equal(BETALFALT.wallets?.googlePay, "auto");
+});
+
+test("Apple Pay och Google Pay står överst i snabbkassan, inte en gång till i betalfältet (Leonard 2026-11-06)", () => {
+  assert.equal(BETALFALT.wallets?.applePay, "never");
+  assert.equal(BETALFALT.wallets?.googlePay, "never");
+  assert.equal(BETALFALT.wallets?.link, "never");
+  assert.deepEqual(BETALFALT.paymentMethodOrder, ["card", "klarna"]);
 });
 
 test("betaltjänstlagen: ett betalsätt utan kredit står först och fälls ut, Klarna (kredit) står sist och är aldrig förvalt", () => {

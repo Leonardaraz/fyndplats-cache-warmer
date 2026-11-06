@@ -1295,8 +1295,9 @@ avgör som förut vem som kommer till `/kassa` alls. Webhooken kräver
 `lib/kassa/stripe-klient.ts` och `app/kassa/use-stripe-betalning.ts`):
 1. Betalfältet visas direkt, utan PaymentIntent (Elements i `mode: "payment"`,
    beloppet = summeringen, så att Apple Pay visar rätt belopp).
-2. "Betala": `elements.submit()` FÖRST, i själva trycket (Apple Pay och Google
-   Pay öppnar sitt blad bara i ett tryck), sedan `/api/kassa/stripe/forbered`:
+2. "Betala": `elements.submit()` FÖRST, i själva trycket (Stripe prövar fälten
+   innan betalningen skapas, och ett plånboksblad öppnas bara i ett tryck),
+   sedan `/api/kassa/stripe/forbered`:
    formuläret till Wix-korgen, Wix räknar, en PaymentIntent på Wix total med
    `capture_method: manual` (pengarna reserveras, dras inte).
 3. `stripe.confirmPayment` med `redirect: "if_required"`. Kort, Apple Pay och
@@ -1624,11 +1625,58 @@ BankID ska användas).
   (provet `prov-premium2` rullar och väntar 0,9 s). En helsidesbild visar
   betalfältet tomt av samma skäl, fast det är ritat.
 
+### Snabbkassan: Apple Pay och Google Pay överst (Leonard 2026-11-06: "Jag vill att vi har apple pay o google pay överst")
+
+- **Överst på `/kassa`**, före steg 1: Stripes Express Checkout Element
+  (`snabbknappar` i `lib/kassa/snabbkassa.ts`), sedan "eller fyll i dina
+  uppgifter". Plånboken ger namn, e-post, telefon och leveransadress, så
+  kunden fyller inte i något. Betalfältet i steg 3 visar då bara kort och
+  Klarna (`BETALFALT`), och en länk där leder upp till knapparna.
+- **En egen Elements-grupp** med samma belopp som betalfältet
+  (`use-stripe-betalning.ts`): `elements.submit()` prövar varje fält i sin
+  grupp, och adressfältet och betalfältet är tomma när kunden betalar med
+  plånboken. Beloppet följer summeringen i båda grupperna.
+- **Trycket** (`klickSvar`) svarar inom en sekund med raderna och fraktvalet,
+  utan nätverksanrop. ☠️ **Beloppet i bladet är Elements-beloppet** (Wix total
+  med frakt); raderna och fraktvalet är bara visning men summerar alltid till
+  totalen (`snabbRader`: varje vara för sig när de går jämnt upp med Wix
+  delsumma, annars en rad; rabatten negativ). Provat med 20 000 slumpade korgar.
+- **Godkännandet** (`snabbBekrafta`): plånbokens uppgifter blir kassans
+  formulär (`kundFranPlanbok` i `formular.ts`: efternamnet är sista ordet,
+  länet ur regionen eller postnumret, medlemmens e-post går före plånbokens)
+  och prövas med `provaKassa`. Sedan samma `/api/kassa/stripe/forbered` och
+  samma slutförande som betalfältet. Fel före bekräftelsen går till bladet med
+  `paymentFailed` (`invalid_shipping_address` för namn och adress,
+  `address_unserviceable` för ett postnummer utan leverans), så att kunden
+  rättar där. Betalningens id sparas före bekräftelsen, och en ny total från
+  Wix stoppar betalningen som i betalfältet. `confirmPayment` får ingen
+  fakturering från oss: plånboken har den.
+- **Bara Apple Pay och Google Pay** i knapparna: Link, PayPal, Amazon Pay och
+  Klarna `never`. ☠️ Klarna står aldrig överst (betaltjänstlagen, se
+  `BETALFALT`).
+- ☠️ **`layout.overflow: "never"` bara med `maxRows: 0`.** Annars kastar Stripe
+  IntegrationError och inga knappar ritas (lokalt prov 2026-11-06). Knapparna
+  monteras därför sist och i `try`: ett fel i snabbkassan får aldrig stoppa
+  formuläret och betalfältet.
+- **Platsen hålls från första renderingen** (också på servern) med en
+  platshållare i knappens höjd: rutan som dök upp efter hydreringen knuffade
+  ner formuläret 256 px. Saknar webbläsaren både `ApplePaySession` och
+  `PaymentRequest` (Firefox) tas den bort direkt; annars när Stripe säger att
+  ingen plånbok finns, eller efter 12 s. Utan plånbok står rutan utanför
+  sidan (`data-visas="nej"`), eftersom knapparna måste vara monterade för att
+  Stripe ska kunna svara.
+- **Kräver domänen:** Apple Pay och Google Pay syns bara när
+  `www.fyndplats.se` är registrerad i Stripe (Inställningar →
+  Betalmetodsdomäner), i testläget och i live var för sig, och bara över
+  HTTPS. Lokalt och på en skyddad förhandslänk syns inga knappar (Stripe
+  varnar i konsolen); flödet provades därför lokalt med en spelad Stripe.js
+  (scratchpad `snabb/b-spelad.cjs`): tryck, nej i bladet, ny total, `/tack`.
+
 **Kvar före riktiga kunder:** live-nycklarna i Production (en begränsad
 nyckel med PaymentIntents skriva, Charges läsa, Refunds skriva och Disputes
 läsa); webhooken (`payment_intent.amount_capturable_updated` och
 `payment_intent.succeeded` till `https://www.fyndplats.se/api/stripe/webhook`,
-hemligheten i `STRIPE_WEBHOOK_SECRET`); domänen för Apple Pay; egna
-påminnelser om övergivna kassor; Stripe-inställningarna (kortutdragets text
-"FYNDPLATS", Stripes egna kvitton av, Radar-regler); snabbkassan (Apple Pay
-och Google Pay överst).
+hemligheten i `STRIPE_WEBHOOK_SECRET`); domänen för Apple Pay och Google Pay
+(snabbkassan syns först då); egna påminnelser om övergivna kassor;
+Stripe-inställningarna (kortutdragets text "FYNDPLATS", Stripes egna kvitton
+av, Radar-regler); ett köp med Apple Pay från Leonards telefon.
