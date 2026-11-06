@@ -154,9 +154,9 @@ export function planbokNamn(p: readonly Planbok[]): string {
 
 /**
  * Ska platsen för knapparna hållas medan Stripe tar reda på om kunden har en
- * plånbok? Bara där Apple Pay finns (Safari och alla webbläsare på iPhone har
- * ApplePaySession). Där svarar Stripe snabbt och visar nästan alltid knappen,
- * så platsen fylls i stället för att försvinna.
+ * plånbok? Bara där Apple Pay finns (webbläsaren har ApplePaySession, som
+ * Safari på iPhone och Mac). Där svarar Stripe snabbt och visar nästan alltid
+ * knappen, så platsen fylls i stället för att försvinna.
  *
  * Inte för Google Pay: Stripes kontroll av Google Pay tog 13 s på
  * förhandsbygget (huvudlös Chromium, 2026-11-06), och 0 av 171 köp har
@@ -167,6 +167,17 @@ export function planbokNamn(p: readonly Planbok[]): string {
 export function planbokTrolig(f: { applePaySession: boolean }): boolean {
   return f.applePaySession;
 }
+
+/**
+ * Samma regel före första ritningen: app/layout.tsx kör skriptet innan något
+ * syns, och det sätter data-applepay="ja" eller "nej" på <html>. Kassans CSS
+ * håller då ingen plats i en webbläsare utan Apple Pay, varken innan React tagit
+ * över eller vid ett mjukt sidbyte från varukorgen (då körs effekten med
+ * planbokTrolig först efter att sidan ritats). Utan skriptet syntes platsen
+ * tills React tog över, och sedan hoppade formuläret upp.
+ */
+export const PLANBOK_SKRIPT =
+  "try{document.documentElement.setAttribute('data-applepay','ApplePaySession' in window?'ja':'nej')}catch(e){}";
 
 type Orsak = NonNullable<Parameters<StripeExpressCheckoutElementConfirmEvent["paymentFailed"]>[0]>["reason"];
 

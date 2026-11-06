@@ -238,7 +238,8 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
   // Finns Apple Pay i webbläsaren? Då hålls knapparnas plats medan Stripe svarar
   // (planbokTrolig). Sant från början, också på servern: de flesta kunder är på
   // iPhone, och rutan som dök upp efter hydreringen knuffade ner formuläret
-  // 256 px (lokalt prov 2026-11-06). Andra webbläsare tar bort platsen direkt.
+  // 256 px (lokalt prov 2026-11-06). I andra webbläsare håller CSS:en ingen plats
+  // redan före hydreringen (PLANBOK_SKRIPT sätter data-applepay på <html>).
   const [planbokMojlig, setPlanbokMojlig] = useState(true);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- webbläsarens förmågor finns inte på servern
@@ -1202,6 +1203,7 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
                 id="kassa-snabb"
                 className={`${s.kort} ${s.snabb}`}
                 data-visas={snabbVisas ? "ja" : "nej"}
+                data-snabb={snabbLage}
                 aria-labelledby="kassa-snabb-rubrik"
                 aria-hidden={snabbVisas ? undefined : true}
               >
@@ -1223,7 +1225,7 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
               </section>
             ) : null}
             {snabbVisas ? (
-              <p className={s.eller} role="separator">
+              <p className={s.eller} role="separator" data-snabb={snabbLage}>
                 <span>eller fyll i dina uppgifter</span>
               </p>
             ) : null}
@@ -1239,7 +1241,7 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
               {stripeNyckel ? (
                 // Stripes adressfält med Googles adressförslag (use-stripe-betalning.ts).
                 // Platshållaren ligger i samma ruta tills fältet ritats, så att inget hoppar.
-                <div className={s.adressYta}>
+                <div className={s.adressYta} data-adress={adressLage}>
                   <div ref={adressPlats} className={s.adressfalt} />
                   {adressLage === "laddar" ? (
                     <div className={s.adressSkelett} aria-hidden="true">

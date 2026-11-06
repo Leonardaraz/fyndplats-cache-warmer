@@ -3,12 +3,14 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   adressfaltInstallningar,
   AVSIKT_KAKA,
   AVSIKT_KAKA_SOKVAG,
   BETALFALT,
   KLAR_VANTA_MS,
+  RAM_VANTA_MS,
   RETUR_SOKVAG,
   SPARAD_MS,
   STRIPE_MEDDELANDE,
@@ -18,6 +20,7 @@ import {
   elementsInstallningar,
   klarBeslut,
   klarnaRuta,
+  ramenStilla,
   returMal,
   sparadAvsikt,
   stripeMeddelande,
@@ -280,3 +283,41 @@ test("adressfältet börjar med kundens sparade uppgifter", () => {
   });
 });
 
+test("adressfältets ram står still när den är lika hög som fältet (uppmätt: 201 → 133 px på datorn)", () => {
+  assert.equal(ramenStilla(201, 133), false);
+  assert.equal(ramenStilla(160, 133), false);
+  assert.equal(ramenStilla(133, 133), true);
+  assert.equal(ramenStilla(133.5, 133), true); // avrundning
+  assert.equal(ramenStilla(201, 201), true); // mobilen: redan stilla
+  // Okänd struktur väntar aldrig.
+  assert.equal(ramenStilla(null, 133), true);
+  assert.equal(ramenStilla(201, null), true);
+  // Väntan har ett tak, så att platshållaren aldrig står kvar.
+  assert.ok(RAM_VANTA_MS > 0 && RAM_VANTA_MS <= 1000);
+});
+
+test("kassan står still när Stripes fält ritas (uppmätt med webbläsarens CLS 2026-11-06)", () => {
+  const css = readFileSync(new URL("../../app/kassa/kassa.module.css", import.meta.url), "utf8");
+  const kassa = readFileSync(new URL("../../app/kassa/kassa.tsx", import.meta.url), "utf8");
+  const krok = readFileSync(new URL("../../app/kassa/use-stripe-betalning.ts", import.meta.url), "utf8");
+  const regel = (valjare: string) => {
+    const i = css.indexOf(`${valjare} {`);
+    assert.ok(i >= 0, `${valjare} saknas`);
+    return css.slice(i, css.indexOf("}", i));
+  };
+  // Stripes ram har −4 px marginal: utan egen formateringskontext kollapsade den
+  // ut ur ytan, och allt under flyttade 4 px när fältet monterades.
+  assert.match(regel(".snabbYta"), /display: flow-root;/);
+  assert.match(regel(".betalfalt"), /display: flow-root;/);
+  // Adressfältets platshållare: två rader från 442 px, som Stripes eget fält.
+  const fran442 = css.slice(css.indexOf("@container (min-width: 442px)"));
+  assert.ok(css.includes("@container (min-width: 442px)"), "containerfrågan saknas");
+  assert.match(fran442, /\.adressSkelett \{\s*grid-template-columns: 1fr 1fr;/);
+  assert.match(fran442, /\.adressSkelett span:last-child \{\s*grid-column: 1 \/ -1;/);
+  assert.match(regel(".adressYta"), /container-type: inline-size;/);
+  assert.match(regel(".adressYta"), /position: relative;/);
+  // Ramen ligger utanför flödet tills den står still, och "redo" väntar på den.
+  assert.match(regel('.adressYta[data-adress="laddar"] > :not(.adressSkelett)'), /position: absolute;/);
+  assert.match(kassa, /className=\{s\.adressYta\} data-adress=\{adressLage\}/);
+  assert.match(krok, /adr\.on\("ready", \(\) => \{\s*slutaVanta = narRamenStilla\(adressPlats\.current/);
+});

@@ -3,6 +3,7 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   FRAKT_ID,
   PLANBOK_TEXT,
@@ -16,6 +17,7 @@ import {
   planbokFel,
   planbokNamn,
   planbokTrolig,
+  PLANBOK_SKRIPT,
   snabbBekrafta,
   snabbknappar,
   snabbRader,
@@ -225,6 +227,35 @@ test("plånböckerna: rutan syns bara när Stripe hittar Apple Pay eller Google 
 test("platsen hålls bara där Apple Pay finns: Google Pays kontroll är för långsam för en hållen plats", () => {
   assert.equal(planbokTrolig({ applePaySession: true }), true);
   assert.equal(planbokTrolig({ applePaySession: false }), false);
+});
+
+test("skriptet före första ritningen ger <html> samma svar som planbokTrolig", () => {
+  for (const apple of [true, false]) {
+    const satt: Record<string, string> = {};
+    const fonster: Record<string, unknown> = apple ? { ApplePaySession: function ApplePaySession() {} } : {};
+    const dokument = { documentElement: { setAttribute: (k: string, v: string) => void (satt[k] = v) } };
+    new Function("document", "window", PLANBOK_SKRIPT)(dokument, fonster);
+    assert.deepEqual(satt, { "data-applepay": planbokTrolig({ applePaySession: apple }) ? "ja" : "nej" });
+  }
+  // Ett fel i skriptet får aldrig stoppa sidan.
+  assert.doesNotThrow(() => new Function("document", "window", PLANBOK_SKRIPT)({}, {}));
+});
+
+test("utan Apple Pay hålls ingen plats före hydreringen: layouten kör skriptet och CSS:en flyttar ut rutan", () => {
+  const layout = readFileSync(new URL("../../app/layout.tsx", import.meta.url), "utf8");
+  const css = readFileSync(new URL("../../app/kassa/kassa.module.css", import.meta.url), "utf8");
+  const kassa = readFileSync(new URL("../../app/kassa/kassa.tsx", import.meta.url), "utf8");
+  assert.match(layout, /<script dangerouslySetInnerHTML=\{\{ __html: PLANBOK_SKRIPT \}\} \/>/);
+  // Rutan flyttas ut på samma sätt som utan plånbok, men bara medan Stripe svarar:
+  // knapparna måste vara monterade (inte display: none) för att Stripe ska kunna svara.
+  const regel = /\.snabb\[data-visas="nej"\],\s*:global\(html\[data-applepay="nej"\]\) \.snabb\[data-snabb="laddar"\]\s*\{([^}]*)\}/.exec(css);
+  assert.ok(regel, "regeln för rutan saknas");
+  assert.match(regel[1], /left: -10000px/);
+  assert.match(regel[1], /visibility: hidden/);
+  assert.doesNotMatch(regel[1], /display: none/);
+  assert.match(css, /:global\(html\[data-applepay="nej"\]\) \.eller\[data-snabb="laddar"\]\s*\{\s*display: none;/);
+  // Rutan och skiljeraden bär Stripes läge, så att regeln släpper när knapparna finns.
+  assert.equal(kassa.match(/data-snabb=\{snabbLage\}/g)?.length, 2);
 });
 
 // ── Plånbokens uppgifter som kassans formulär ──────────────────────────────

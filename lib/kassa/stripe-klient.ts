@@ -170,6 +170,21 @@ export function adressfaltInstallningar(start: AdressStart = {}): StripeAddressE
 }
 
 /**
+ * Står Stripes ram runt adressfältet still? Ramen börjar i mobilhöjd (201 px)
+ * och glider efter "ready" till fältets höjd (133 px på datorn, där förnamn och
+ * efternamn står bredvid varandra; uppmätt 2026-11-06, ungefär 300 ms). Den är
+ * stilla när den är lika hög som fältets iframe. Okänd struktur (ingen ram
+ * eller ingen iframe) räknas som stilla, så att kassan aldrig väntar på den.
+ */
+export function ramenStilla(ramHojd: number | null, iframeHojd: number | null): boolean {
+  if (ramHojd === null || iframeHojd === null) return true;
+  return Math.abs(ramHojd - iframeHojd) <= 1;
+}
+
+/** Så länge väntar platshållaren högst på att ramen ska stå still. */
+export const RAM_VANTA_MS = 1000;
+
+/**
  * Klarna-rutan på produktsidan. Klarnas egen ruta (OSM, components/klarna-osm.tsx)
  * visar villkoren i Leonards Klarna-avtal, som gäller i Wix kassa: "Betala
  * inom 30 eller 60 dagar" och delbetalning i 3–24 månader. I Stripe-kassan
