@@ -7,7 +7,7 @@
 
 import { wixFetch, WixApiError } from "@/lib/wix-client";
 import type { Forsok, KassaDeps, Korg, Kund, OrderTransaktioner, Rakning, Tidigare } from "./flode";
-import { arKorgensBetalning, KASSA_MARKOR, medOmforsok, platshallarbetalningar } from "./flode";
+import { arKorgensBetalning, KASSA_MARKOR, medOmforsok, platshallarbetalningar, wixAdress } from "./flode";
 
 const korgSokvag = (id: string) => `/ecom/v2/carts/${encodeURIComponent(id)}`;
 
@@ -15,15 +15,8 @@ const korgSokvag = (id: string) => `/ecom/v2/carts/${encodeURIComponent(id)}`;
 const nekadAvWix = (e: unknown) => e instanceof WixApiError && e.status === 429;
 const forsokIgen = <T,>(anrop: () => Promise<T>) => medOmforsok(anrop, nekadAvWix);
 
-function adress(k: Kund) {
-  return {
-    country: "SE",
-    city: k.ort,
-    postalCode: k.postnr,
-    addressLine: k.gata,
-    ...(k.co ? { addressLine2: `c/o ${k.co.replace(/^c\/o\s*/i, "")}` } : {}),
-  };
-}
+/** Leverans- och fakturaadressen på korgen, med länet (wixAdress i flode.ts). */
+const adress = (k: Kund) => wixAdress(k);
 
 export async function hamtaKorg(cartId: string): Promise<Korg | null> {
   try {

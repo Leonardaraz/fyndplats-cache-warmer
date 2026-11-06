@@ -4,6 +4,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  adressfaltInstallningar,
   AVSIKT_KAKA,
   AVSIKT_KAKA_SOKVAG,
   BETALFALT,
@@ -34,9 +35,11 @@ const KUND: KassaVarden = {
   efternamn: "Provsson",
   telefon: "+46701740605",
   gata: "Provgatan 1",
+  rad2: "",
   co: "",
   postnr: "111 22",
   ort: "Stockholm",
+  lan: "SE-AB",
   kupong: "",
 };
 
@@ -240,3 +243,24 @@ test("betalfel: bankens verifiering som inte godkändes säger det, inte \"förs
   assert.doesNotMatch(TEXT_VERIFIERING, /om en stund/);
   assert.equal(betalfelText({ type: "card_error", code: "card_declined", message: "Ditt kort nekades." }), "Ditt kort nekades.");
 });
+
+test("adressfältet: Sverige, förnamn och efternamn var för sig, Googles förslag, inget telefonfält", () => {
+  const a = adressfaltInstallningar();
+  assert.equal(a.mode, "shipping");
+  assert.deepEqual(a.allowedCountries, ["SE"]);
+  assert.deepEqual(a.display, { name: "split" });
+  assert.deepEqual(a.autocomplete, { mode: "automatic" });
+  assert.deepEqual(a.fields, { phone: "never" });
+  assert.equal(a.defaultValues?.address?.country, "SE");
+  assert.equal(a.defaultValues?.firstName, undefined, "tomma fält skickas inte som tomma strängar");
+});
+
+test("adressfältet börjar med kundens sparade uppgifter", () => {
+  const a = adressfaltInstallningar({ fornamn: " Anna ", efternamn: "Andersson", gata: "Storgatan 1", rad2: "", postnr: "152 44", ort: "Södertälje" });
+  assert.deepEqual(a.defaultValues, {
+    firstName: "Anna",
+    lastName: "Andersson",
+    address: { line1: "Storgatan 1", line2: undefined, city: "Södertälje", postal_code: "152 44", country: "SE" },
+  });
+});
+

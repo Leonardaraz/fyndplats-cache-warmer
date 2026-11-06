@@ -19,6 +19,10 @@ import {
   avtryckAv,
   medOmforsok,
   ATERBRUK_MIN_KVAR_MINUTER,
+  andraRaden,
+  avsiktParametrar,
+  faktureringAv,
+  wixAdress,
   type Forsok,
   type KassaDeps,
   type Korg,
@@ -455,8 +459,8 @@ test("avtrycket: samma köp ger samma avtryck oavsett radordning, och varje del 
   assert.equal(korgAvtryck(a, { ...kund, epost: kund.epost.toUpperCase() }), x, "e-postens versaler spelar ingen roll");
   assert.notEqual(korgAvtryck(korg({ lineItems: [rad("p1", 2, { variantId: "v1" }), rad("p2", 2, { b: 1, a: 2 })] }), kund), x, "antalet");
   assert.notEqual(korgAvtryck(korg({ lineItems: [rad("p1", 1, { variantId: "v2" }), rad("p2", 2, { b: 1, a: 2 })] }), kund), x, "varianten");
-  for (const f of ["fornamn", "efternamn", "telefon", "gata", "co", "postnr", "ort", "kupong"] as const) {
-    assert.notEqual(korgAvtryck(a, { ...kund, [f]: `${kund[f]}x` }), x, f);
+  for (const f of ["fornamn", "efternamn", "telefon", "gata", "co", "postnr", "ort", "kupong", "rad2", "lan"] as const) {
+    assert.notEqual(korgAvtryck(a, { ...kund, [f]: `${kund[f] ?? ""}x` }), x, f);
   }
 });
 
@@ -515,3 +519,31 @@ test("betalningen får första varans bild till Wix betalsida", async () => {
   assert.equal(r.ok, true);
   assert.deepEqual(bilder, [{ id: "b379ce_hink~mv2.jpg", altText: "Pedalhink" }]);
 });
+
+test("Wix-adressen bär länet som subdivision, så att ordern och leverantörerna får det", () => {
+  // Provordern i andra provköpet 2026-11-06 fick länet av Wix själv; nu skickar kassan det.
+  assert.deepEqual(wixAdress({ ...kund, lan: "SE-AB" }), {
+    country: "SE",
+    subdivision: "SE-AB",
+    city: "Södertälje",
+    postalCode: "152 44",
+    addressLine: "Storgatan 1",
+  });
+  assert.equal("subdivision" in wixAdress({ ...kund, lan: "" }), false, "utan län gissar Wix ur staden");
+  assert.equal("subdivision" in wixAdress({ ...kund, lan: "Stockholm" }), false, "bara ISO-koder");
+  assert.equal("subdivision" in wixAdress(kund), false);
+});
+
+test("adressrad 2: c/o från kassans fält, Stripes rad som den skrevs", () => {
+  assert.equal(andraRaden({ co: "Berg", rad2: "" }), "c/o Berg");
+  assert.equal(andraRaden({ co: "c/o Berg" }), "c/o Berg");
+  assert.equal(andraRaden({ co: "", rad2: "lgh 1201" }), "lgh 1201", "en lägenhet blir inte c/o");
+  assert.equal(andraRaden({ co: "" }), "");
+  assert.equal(wixAdress({ ...kund, rad2: "lgh 1201" }).addressLine2, "lgh 1201");
+  assert.equal(wixAdress({ ...kund, co: "Berg" }).addressLine2, "c/o Berg");
+  // Stripe: faktureringen och leveransen på betalningen har samma andra rad (Klarna jämför).
+  assert.equal(faktureringAv({ ...kund, rad2: "lgh 1201" }).address.line2, "lgh 1201");
+  assert.equal(avsiktParametrar("korg-1", { ...kund, rad2: "lgh 1201" }, 10000, []).shipping.address.line2, "lgh 1201");
+  assert.equal("line2" in avsiktParametrar("korg-1", kund, 10000, []).shipping.address, false);
+});
+

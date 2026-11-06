@@ -97,10 +97,37 @@ export interface Kund {
   efternamn: string;
   telefon: string;
   gata: string;
+  /** Adressrad 2 som kunden skrev den (Stripes adressfält), utan "c/o". */
+  rad2?: string;
   co: string;
   postnr: string;
   ort: string;
+  /** Länet som ISO 3166-2 ("SE-N"); tomt när det inte gick att avgöra. */
+  lan?: string;
   kupong: string;
+}
+
+/** Adressrad 2: c/o från kassans egna fält, annars raden ur Stripes adressfält som den skrevs. */
+export function andraRaden(k: Pick<Kund, "co" | "rad2">): string {
+  if (k.co) return `c/o ${k.co.replace(/^c\/o\s*/i, "")}`;
+  return k.rad2 ?? "";
+}
+
+/**
+ * Adressen på Wix-korgen (leverans och fakturering). Länet följer med som
+ * `subdivision`: ordern bär det, och motorn fyller leverantörens provinsfält
+ * med det (Aosoms klumporder, AliExpress). Utan län gissar Wix ur staden.
+ */
+export function wixAdress(k: Kund) {
+  const rad2 = andraRaden(k);
+  return {
+    country: "SE",
+    ...(k.lan && /^SE-[A-Z]{1,2}$/.test(k.lan) ? { subdivision: k.lan } : {}),
+    city: k.ort,
+    postalCode: k.postnr,
+    addressLine: k.gata,
+    ...(rad2 ? { addressLine2: rad2 } : {}),
+  };
 }
 
 /** En tidigare betalning från samma korg, som kunden lämnade utan att betala. */
@@ -204,7 +231,7 @@ export function korgAvtryck(korg: Korg, kund: Kund): string {
       return `${ref?.catalogItemId ?? r.id ?? ""}|${stabilJson(ref?.options ?? null)}|${antal}`;
     })
     .sort();
-  const uppgifter = [kund.epost.toLowerCase(), kund.fornamn, kund.efternamn, kund.telefon, kund.gata, kund.co, kund.postnr, kund.ort, kund.kupong.toLowerCase()];
+  const uppgifter = [kund.epost.toLowerCase(), kund.fornamn, kund.efternamn, kund.telefon, kund.gata, kund.co, kund.postnr, kund.ort, kund.kupong.toLowerCase(), kund.rad2 ?? "", kund.lan ?? ""];
   const text = `${rader.join(";")}#${uppgifter.join("\u0001")}`;
   const hex = (n: number) => n.toString(16).padStart(8, "0");
   return hex(fnv1a(text, 0x811c9dc5)) + hex(fnv1a(text, 0x01000193 ^ 0x9e3779b9));
@@ -658,10 +685,10 @@ export function kronorAv(ore: number): string {
  * betalningen (avsiktParametrar) och faktureringen i bekräftelsen
  * (faktureringAv) ska vara samma adress skriven på samma sätt (Klarna jämför).
  */
-function stripeAdress(k: Pick<Kund, "gata" | "co" | "postnr" | "ort">) {
+function stripeAdress(k: Pick<Kund, "gata" | "co" | "rad2" | "postnr" | "ort">) {
   return {
     line1: k.gata,
-    line2: k.co ? `c/o ${k.co.replace(/^c\/o\s*/i, "")}` : "",
+    line2: andraRaden(k),
     city: k.ort,
     postal_code: k.postnr.replace(/\s/g, ""),
     country: "SE" as const,

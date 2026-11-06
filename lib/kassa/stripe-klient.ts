@@ -15,7 +15,7 @@
 //      /api/kassa/stripe/retur.
 //   4. /api/kassa/stripe/klar gör ordern (vantaPaOrder), och kunden går till /tack.
 
-import type { Appearance, StripeElementsOptionsMode, StripePaymentElementOptions } from "@stripe/stripe-js";
+import type { Appearance, StripeAddressElementOptions, StripeElementsOptionsMode, StripePaymentElementOptions } from "@stripe/stripe-js";
 
 /** Måste vara samma som PaymentIntenten servern skapar (avsiktParametrar). Provat i stripe-klient.test.ts. */
 export const STRIPE_VALUTA = "sek";
@@ -119,6 +119,48 @@ export const BETALFALT: StripePaymentElementOptions = {
   wallets: { applePay: "auto", googlePay: "auto", link: "never" },
   business: { name: "Fyndplats" },
 };
+
+/** Det kassan redan vet om kunden (sparade uppgifter): adressfältet börjar med dem. */
+export interface AdressStart {
+  fornamn?: string;
+  efternamn?: string;
+  gata?: string;
+  rad2?: string;
+  postnr?: string;
+  ort?: string;
+}
+
+/**
+ * Adressfältet i steg 2 (Stripe Address Element; Leonard 2026-11-06: "när man
+ * fyller i adress kommer automatiskt adresser upp som det gjorde i Wix kassa").
+ * Googles adressförslag är gratis när fältet står i samma Elements som
+ * betalfältet (Stripes egen Google-nyckel; uppmätt lokalt: förslaget fyller
+ * gata, postnummer, postort och länet i `state`). Bara Sverige, förnamn och
+ * efternamn var för sig som i kassans egna fält, inget telefonfält (kassan
+ * frågar efter numret i steg 1). Etiketterna är Stripes ("Postort"), och
+ * utseendet är betalfältets (UTSEENDE).
+ */
+export function adressfaltInstallningar(start: AdressStart = {}): StripeAddressElementOptions {
+  const t = (v: string | undefined) => (v && v.trim() ? v.trim() : undefined);
+  return {
+    mode: "shipping",
+    allowedCountries: ["SE"],
+    display: { name: "split" },
+    autocomplete: { mode: "automatic" },
+    fields: { phone: "never" },
+    defaultValues: {
+      firstName: t(start.fornamn),
+      lastName: t(start.efternamn),
+      address: {
+        line1: t(start.gata),
+        line2: t(start.rad2),
+        city: t(start.ort),
+        postal_code: t(start.postnr),
+        country: "SE",
+      },
+    },
+  };
+}
 
 /**
  * Klarna-rutan på produktsidan. Klarnas egen ruta (OSM, components/klarna-osm.tsx)

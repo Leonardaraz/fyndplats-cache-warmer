@@ -1556,13 +1556,70 @@ med en provadress som köpare, avbruten efteråt.
 - Stripes testbetalning står kvar som dragen i testläget (inga riktiga
   pengar).
 
-**Kvar före riktiga kunder:** ett andra provköp på förhandslänken med
-offlinebetalningen: återbetala i Wix och se den speglas i Stripe, och se att
-platshållaren avbryts; Klarna från en svensk uppkoppling (Leonards telefon);
-live-nycklarna i Production (en begränsad nyckel med PaymentIntents skriva,
-Charges läsa, Refunds skriva och Disputes läsa); webhooken
-(`payment_intent.amount_capturable_updated` och `payment_intent.succeeded`
-till `https://www.fyndplats.se/api/stripe/webhook`, hemligheten i
-`STRIPE_WEBHOOK_SECRET`); domänen för Apple Pay; egna påminnelser om övergivna
-kassor; Stripe-inställningarna (kortutdragets text "FYNDPLATS", Stripes egna
-kvitton av, Radar-regler).
+### Andra provköpet: Klarna från Leonards telefon (2026-11-06 13:15–13:30 UTC)
+
+På samma förhandslänk, växeln på `prov` och testvaran synlig cirka 35
+minuter. Klarna syntes i telefonen (svensk IP-adress) och Klarnas testmiljö
+öppnades (playground: "Prefill NIN" och ett låtsat BankID; inget riktigt
+BankID ska användas).
+- **Ordern:** APPROVED och PAID, saldo 0, länet satt (Wix fyllde i
+  `subdivision` själv ur adressen). Place Orders platshållare CANCELED, vår
+  betalning APPROVED som offlinebetalning med Stripes id och betalsättet
+  "Klarna".
+- **Återbetalningen:** manuell återbetalning i Wix (`externalRefund`, utan
+  kundmejl): `manuallyRefundable OFFLINE`, SCHEDULED och SUCCEEDED inom en
+  minut, ordern FULLY_REFUNDED. Nätet på förhandslänken speglade den till
+  Stripe (`aterbetalda: 1`; Klarnas återbetalning står först som `pending`).
+  Andra körningen gav `aterbetalda: 0` och inga larm: ingenting
+  återbetalades två gånger. Ordern avbröts sedan utan mejl och med
+  återlagring.
+- Stripe-kopplingen i Claude är inloggad på en annan sandlåda
+  ("Fyndplats-sandlåda") än kontot vars testnycklar ligger i Vercel, så
+  betalningarna syns inte där. Kontrollen gick via nätet.
+
+### Adressfältet och länet (Leonard 2026-11-06: "kommer automatiskt adresser upp som det gjorde i Wix kassa", "stad och län")
+
+- **Stripes adressfält** (Address Element, `adressfaltInstallningar` i
+  `lib/kassa/stripe-klient.ts`) står i steg 2 när Stripe är på, i samma
+  Elements som betalfältet (`use-stripe-betalning.ts`). Då är Googles
+  adressförslag gratis (Stripes egen nyckel); Wix har inget öppet API för
+  sina förslag. Fältet börjar ihopfällt (förnamn, efternamn, adress) och
+  fäller ut sig när kunden väljer ett förslag eller "Ange adress manuellt".
+  Uppmätt lokalt: förslaget fyller gata, postnummer och postort, och lägger
+  länet i `state` ("Hallands län") fast det svenska formuläret inte visar
+  något länsfält. Etiketterna är Stripes ("Postort"). Värdena går in i
+  kassans fält vid varje ändring (`adressFranStripe` i `formular.ts`), så att
+  servern prövar och skickar samma sak som förut. Adressrad 2 skickas som
+  kunden skrev den (`rad2`, "lgh 1201"); kassans egna fält har kvar c/o.
+- **Länet** är ett eget val under adressen med de 21 länen (ISO 3166-2,
+  `LAN`). Det fylls i av sig självt ur Googles förslag, annars ur postnumret
+  (`lanFranPostnr`, motorns tabell med blandzonerna, t.ex. Kungsbacka 434 i
+  Halland), och kunden kan ändra det tills postnumret byts. Servern tar
+  kundens giltiga val och annars postnumrets (`provaKassa`), och Wix-korgen
+  får det som `subdivision` (`wixAdress` i `flode.ts`). Motorn gör om det
+  till leverantörens provinsfält (`deriveProvince`; Aosoms klumporder har
+  kolumnen "Province"), så Aosom och VEVOR får stad och län som förut, nu
+  från kunden i stället för Wix gissning.
+- **Utan Stripe** (Wix betalsida) står kassans egna fält kvar; "Ort" heter
+  "Stad", och länsvalet finns där också.
+- **Tom korg efter köpet** (`visaTomKorg`, `lib/kassa/vy.ts`): Wix ger
+  besökaren en ny, tom korg med eget id efter köpet. Kassan ritade då hela
+  formuläret med "Fri frakt" (en tom korg har ingen frakt; Leonards
+  skärmbild 14:21). Nu visas "Varukorgen är tom" när korgen saknar varor,
+  utom medan korgen hämtas eller en betalning pågår.
+- **Leveranskortet** har mörk ram som stegens siffror i stället för orange;
+  orange är knapparnas och länkarnas färg.
+- ☠️ **Prov i webbläsaren: rulla fram före klick.** Chromium ritar inte
+  Stripes ramar utanför bilden, och när de rullas in ändrar de höjd. Ett
+  Playwright-klick direkt på en knapp under betalfältet kan då landa i ramen
+  (provet `prov-premium2` rullar och väntar 0,9 s). En helsidesbild visar
+  betalfältet tomt av samma skäl, fast det är ritat.
+
+**Kvar före riktiga kunder:** live-nycklarna i Production (en begränsad
+nyckel med PaymentIntents skriva, Charges läsa, Refunds skriva och Disputes
+läsa); webhooken (`payment_intent.amount_capturable_updated` och
+`payment_intent.succeeded` till `https://www.fyndplats.se/api/stripe/webhook`,
+hemligheten i `STRIPE_WEBHOOK_SECRET`); domänen för Apple Pay; egna
+påminnelser om övergivna kassor; Stripe-inställningarna (kortutdragets text
+"FYNDPLATS", Stripes egna kvitton av, Radar-regler); snabbkassan (Apple Pay
+och Google Pay överst).

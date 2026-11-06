@@ -40,7 +40,8 @@ import { tightFillUrl } from "../../lib/wix-image";
 import { valdaAlternativ } from "../../lib/cart-shape";
 import { DELIVERY_MAX_DAYS, DELIVERY_MIN_DAYS, DELIVERY_TIME, FREE_SHIPPING_FROM_KR, fraktKr } from "../../lib/shipping";
 import { leveransIntervall } from "../../lib/leveransdatum";
-import { faltGiltigt, forstaFel, provaKassa, normalPostnr, snyggtTelefon, type Falt } from "../../lib/kassa/formular";
+import { ADRESS_FALT, LAN, adressFranStripe, faltGiltigt, forstaFel, lanFranPostnr, provaKassa, normalPostnr, snyggtTelefon, type Falt } from "../../lib/kassa/formular";
+import { visaTomKorg } from "../../lib/kassa/vy";
 import { epostForslag } from "../../lib/kassa/epost-forslag";
 import {
   RETUR_SOKVAG,
@@ -52,12 +53,13 @@ import {
   stripeMeddelande,
   vantaPaOrder,
 } from "../../lib/kassa/stripe-klient";
+import type { StripeAddressElementChangeEvent } from "@stripe/stripe-js";
 import { useStripeBetalning } from "./use-stripe-betalning";
 import { KassaFot, KassaHuvud, Las } from "./kassa-ram";
 import s from "./kassa.module.css";
 
-type Varden = Record<"epost" | "fornamn" | "efternamn" | "telefon" | "gata" | "co" | "postnr" | "ort", string>;
-const TOMT: Varden = { epost: "", fornamn: "", efternamn: "", telefon: "", gata: "", co: "", postnr: "", ort: "" };
+type Varden = Record<"epost" | "fornamn" | "efternamn" | "telefon" | "gata" | "rad2" | "co" | "postnr" | "ort" | "lan", string>;
+const TOMT: Varden = { epost: "", fornamn: "", efternamn: "", telefon: "", gata: "", rad2: "", co: "", postnr: "", ort: "", lan: "" };
 
 interface Summa {
   delsummaOre: number | null;
@@ -155,6 +157,12 @@ const IKON_BOCK = (
   </svg>
 );
 
+const IKON_PIL = (
+  <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+    <path fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" d="m6 9 6 6 6-6" />
+  </svg>
+);
+
 /** Fält vars fel kunden ser under fältet (rabattkoden har en egen rad). */
 type FormFalt = keyof Varden;
 
@@ -215,6 +223,11 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
   // "Spara mina uppgifter": kundens eget val och aldrig förvalt. Utan det sparas
   // ingenting i webbläsaren, och det som sparats förut tas bort vid nästa köp.
   const [komIhag, setKomIhag] = useState(false);
+  // Länet fylls i av sig självt (Googles förslag eller postnumret) tills kunden väljer själv.
+  const lanSjalv = useRef(false);
+  // Stripes adressfält (steg 2 med Stripe): är adressen komplett, och kassans rad under fältet.
+  const adressKomplett = useRef(false);
+  const [adressFel, setAdressFel] = useState<string | null>(null);
 
   // Provläget: /kassa?prova=1 sätter kakan som låter den här besökaren använda kassan.
   useEffect(() => {
@@ -370,9 +383,32 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cartId, korgSignatur]);
 
+  // Stripes adressfält: ett nytt, giltigt postnummer räknas om. Kassans egna
+  // fält räknar när kunden lämnar fältet (postnrKlart).
+  const giltigtPostnr = normalPostnr(varden.postnr);
+  useEffect(() => {
+    if (!stripeNyckel || !giltigtPostnr || giltigtPostnr === senastPostnr) return;
+    const t = window.setTimeout(() => {
+      setSenastPostnr(giltigtPostnr);
+      rakna();
+    }, 350);
+    return () => window.clearTimeout(t);
+    // Bara när postnumret byts.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [giltigtPostnr]);
+
   const andra = (f: FormFalt) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value;
-    setVarden((x) => ({ ...x, [f]: v }));
+    setVarden((x) => {
+      const ny = { ...x, [f]: v };
+      // Ett nytt, giltigt postnummer tar länet med sig, också efter kundens eget val (ny adress).
+      const lan = f === "postnr" && v !== x.postnr ? lanFranPostnr(v) : null;
+      if (lan) {
+        ny.lan = lan;
+        lanSjalv.current = false;
+      }
+      return ny;
+    });
     // Felet släcks men raden står kvar (tom) till nästa tryck: annars flyttar
     // allt under fältet upp medan kunden skriver.
     if (fel[f]) setFel((x) => ({ ...x, [f]: "" }));
@@ -408,7 +444,11 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
     }
     const forsta = forstaFel(nya);
     if (forsta === "co") setCoOppen(true);
-    if (forsta) window.requestAnimationFrame(() => document.getElementById(`kassa-${forsta}`)?.focus());
+    if (forsta && stripeNyckel && ADRESS_FALT.includes(forsta)) {
+      // Adressen står i Stripes fält: kassans rad under det, och fokus dit.
+      setAdressFel(nya[forsta] || "Kontrollera adressen.");
+      adressfaltRef.current?.focus();
+    } else if (forsta) window.requestAnimationFrame(() => document.getElementById(`kassa-${forsta}`)?.focus());
   };
 
   const postnrKlart = () => {
@@ -431,6 +471,25 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
 
   // ── Stripe ──────────────────────────────────────────────────────────────
   // Uppdelat: lage och valt är tillstånd som ritas, resten är refs som bara läses i trycket.
+  // Adressfältet börjar med kundens sparade uppgifter; en sparad c/o blir adressrad 2.
+  const vardenRef = useRef(varden);
+  useEffect(() => {
+    vardenRef.current = varden;
+  });
+  const adressStart = () => {
+    const v = vardenRef.current;
+    return { fornamn: v.fornamn, efternamn: v.efternamn, gata: v.gata, rad2: v.rad2 || (v.co ? `c/o ${v.co.replace(/^c\/o\s*/i, "")}` : ""), postnr: v.postnr, ort: v.ort };
+  };
+  /** Stripes adressfält ändrades: kassans fält följer med, och länet så länge kunden inte valt själv. */
+  const adressAndrad = (h: StripeAddressElementChangeEvent) => {
+    adressKomplett.current = h.complete;
+    const a = adressFranStripe(h.value);
+    setVarden((x) => {
+      if (normalPostnr(a.postnr) !== normalPostnr(x.postnr)) lanSjalv.current = false;
+      return { ...x, fornamn: a.fornamn, efternamn: a.efternamn, gata: a.gata, rad2: a.rad2, co: "", postnr: a.postnr, ort: a.ort, lan: lanSjalv.current ? x.lan : a.lan };
+    });
+    setAdressFel(null);
+  };
   const {
     plats: betalPlats,
     lage: betalLage,
@@ -438,7 +497,10 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
     stripe: stripeRef,
     elements: elementsRef,
     visat: visatRef,
-  } = useStripeBetalning(stripeNyckel, harKorg && totalOre > 0 ? totalOre : null);
+    adressPlats,
+    adressLage,
+    adressfalt: adressfaltRef,
+  } = useStripeBetalning(stripeNyckel, harKorg && totalOre > 0 ? totalOre : null, { start: adressStart, andrad: adressAndrad });
   const steglista: readonly string[] = stripeNyckel ? stripeSteg(betalValt) : STEG;
 
   /** Väntan på ett bestämt steg, utan Wix-vägens klocka. */
@@ -528,11 +590,16 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
     setMeddelanden([]);
     setBetalFel(null);
     const prov = provaKassa({ ...varden, kupong: kupongOppen ? kupong : summa?.kupong ?? "" });
-    if (!prov.ok) {
-      visaFel(prov.fel);
+    // Adressen står i Stripes fält: det visar själv vad som saknas när
+    // elements.submit() prövar det nedan. Kassans egna fält prövas här.
+    const egnaFel = prov.ok ? {} : Object.fromEntries(Object.entries(prov.fel).filter(([f]) => !ADRESS_FALT.includes(f as Falt)));
+    if (Object.keys(egnaFel).length > 0 || (!prov.ok && adressKomplett.current)) {
+      // Komplett hos Stripe men inte hos kassan (en för lång rad): kassans text, och inget blad öppnas.
+      visaFel(Object.keys(egnaFel).length > 0 ? egnaFel : prov.ok ? {} : prov.fel);
       return;
     }
     setFel({});
+    setAdressFel(null);
     const stripe = stripeRef.current;
     const elements = elementsRef.current;
     if (!stripe || !elements || betalLage !== "redo") {
@@ -550,9 +617,14 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
       setBetalFel(betalfelText(null));
       return;
     }
-    if (inskickat.error) {
+    if (inskickat.error || !prov.ok) {
       pagar.current = false;
-      setBetalFel(betalfelText(inskickat.error));
+      if (!adressKomplett.current || !prov.ok) {
+        setAdressFel("Fyll i leveransadressen ovan.");
+        adressfaltRef.current?.focus();
+      } else {
+        setBetalFel(betalfelText(inskickat.error));
+      }
       return;
     }
     stegTill(0);
@@ -570,7 +642,7 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
           setKupongOppen(true);
           setKupongFel(j.meddelanden?.[0] ?? "Rabattkoden gäller inte.");
         } else if (j?.falt === "postnr") {
-          setFel((x) => ({ ...x, postnr: j.meddelanden?.[0] ?? "Kontrollera postnumret." }));
+          setAdressFel(j.meddelanden?.[0] ?? "Kontrollera postnumret.");
         }
         setMeddelanden(Array.isArray(j?.meddelanden) && j.meddelanden.length ? j.meddelanden : j?.fel ? [] : ["Något gick fel. Försök igen om en stund."]);
         doljVantan();
@@ -703,7 +775,7 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
     setKupongOppen(false);
   };
 
-  if (!cartId && !kollar && !korgVantas && rader.length === 0) {
+  if (visaTomKorg({ rader: rader.length, korgVantas, kollar, skickar, klarVantar })) {
     return (
       <div className={s.sida} data-kassa-sida="">
         <KassaHuvud />
@@ -778,6 +850,13 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
   ) : (
     "Orderbekräftelsen och spårningen kommer hit."
   );
+
+  /** Kunden väljer länet själv: valet står kvar tills postnumret byts. */
+  const valjLan = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const v = e.target.value;
+    lanSjalv.current = true;
+    setVarden((x) => ({ ...x, lan: v }));
+  };
 
   const oppnaCo = () => {
     setCoOppen(true);
@@ -966,19 +1045,66 @@ export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: st
 
             <section className={s.kort} aria-labelledby="kassa-leverans">
               <h2 id="kassa-leverans" className={s.steg}><span className={s.nr}>2</span> Leverans</h2>
-              <div className={s.tva}>
-                {falt("fornamn", "Förnamn", { autoComplete: "shipping given-name", autoCapitalize: "words", enterKeyHint: "next" })}
-                {falt("efternamn", "Efternamn", { autoComplete: "shipping family-name", autoCapitalize: "words", enterKeyHint: "next" })}
-              </div>
-              {falt("gata", "Gatuadress", { autoComplete: "shipping address-line1", autoCapitalize: "words", enterKeyHint: "next" })}
-              {coOppen || varden.co || fel.co !== undefined ? (
-                falt("co", "c/o (frivilligt)", { autoComplete: "shipping address-line2", autoCapitalize: "words", enterKeyHint: "next" })
+              {stripeNyckel ? (
+                // Stripes adressfält med Googles adressförslag (use-stripe-betalning.ts).
+                // Platshållaren ligger i samma ruta tills fältet ritats, så att inget hoppar.
+                <div className={s.adressYta}>
+                  <div ref={adressPlats} className={s.adressfalt} />
+                  {adressLage === "laddar" ? (
+                    <div className={s.adressSkelett} aria-hidden="true">
+                      <span />
+                      <span />
+                      <span />
+                    </div>
+                  ) : null}
+                </div>
               ) : (
-                <button type="button" className={s.lankLiten} onClick={oppnaCo}>+ Lägg till c/o-adress</button>
+                <>
+                  <div className={s.tva}>
+                    {falt("fornamn", "Förnamn", { autoComplete: "shipping given-name", autoCapitalize: "words", enterKeyHint: "next" })}
+                    {falt("efternamn", "Efternamn", { autoComplete: "shipping family-name", autoCapitalize: "words", enterKeyHint: "next" })}
+                  </div>
+                  {falt("gata", "Gatuadress", { autoComplete: "shipping address-line1", autoCapitalize: "words", enterKeyHint: "next" })}
+                  {coOppen || varden.co || fel.co !== undefined ? (
+                    falt("co", "c/o (frivilligt)", { autoComplete: "shipping address-line2", autoCapitalize: "words", enterKeyHint: "next" })
+                  ) : (
+                    <button type="button" className={s.lankLiten} onClick={oppnaCo}>+ Lägg till c/o-adress</button>
+                  )}
+                  <div className={s.postrad}>
+                    {falt("postnr", "Postnummer", { autoComplete: "shipping postal-code", inputMode: "numeric", maxLength: 6, enterKeyHint: "next" })}
+                    {falt("ort", "Stad", { autoComplete: "shipping address-level2", autoCapitalize: "words", enterKeyHint: "done" })}
+                  </div>
+                </>
               )}
-              <div className={s.postrad}>
-                {falt("postnr", "Postnummer", { autoComplete: "shipping postal-code", inputMode: "numeric", maxLength: 6, enterKeyHint: "next" })}
-                {falt("ort", "Ort", { autoComplete: "shipping address-level2", autoCapitalize: "words", enterKeyHint: "done" })}
+              {adressFel || (stripeNyckel && adressLage === "fel") ? (
+                <div className={s.felText} role="alert">
+                  {adressFel ?? "Adressfältet kunde inte laddas. Ladda om sidan och försök igen."}
+                </div>
+              ) : null}
+              <div className={s.falt}>
+                <div className={s.faltRam}>
+                  <select
+                    id="kassa-lan"
+                    name="lan"
+                    className={`${s.input} ${s.val} ${varden.lan ? s.valIfyllt : ""}`}
+                    value={varden.lan}
+                    onChange={valjLan}
+                    autoComplete="shipping address-level1"
+                    aria-describedby="kassa-lan-text"
+                  >
+                    <option value="" disabled hidden />
+                    {LAN.map((l) => (
+                      <option key={l.kod} value={l.kod}>
+                        {l.namn}
+                      </option>
+                    ))}
+                  </select>
+                  <label className={s.etikett} htmlFor="kassa-lan">Län</label>
+                  <span className={s.valPil} aria-hidden="true">{IKON_PIL}</span>
+                </div>
+                <div id="kassa-lan-text" className={s.hjalpText}>
+                  {varden.lan ? "Ifyllt automatiskt från adressen." : "Fylls i automatiskt från postnumret."}
+                </div>
               </div>
               <div className={s.frakt}>
                 <span className={s.fraktIkon} aria-hidden="true">

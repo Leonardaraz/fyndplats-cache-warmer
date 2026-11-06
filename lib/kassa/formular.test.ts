@@ -1,7 +1,7 @@
 // lib/kassa/formular.test.ts — kassans formulär (lib/kassa/formular.ts).
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { normalPostnr, normalTelefon, provaKassa, KASSA_TEXT, FALT_ORDNING, forstaFel, faltGiltigt, snyggtTelefon, type Falt } from "./formular.ts";
+import { normalPostnr, normalTelefon, provaKassa, KASSA_TEXT, FALT_ORDNING, forstaFel, faltGiltigt, snyggtTelefon, adressFranStripe, ADRESS_FALT, type Falt } from "./formular.ts";
 
 const fullt = {
   epost: " anna@exempel.se ",
@@ -103,7 +103,7 @@ test("fokus går till det första felet uppifrån, i sidans ordning", () => {
   assert.equal(forstaFel({ epost: "" }), null);
   assert.equal(forstaFel({}), null);
   // Varje fält i formuläret står i ordningen, en gång.
-  const alla: Falt[] = ["epost", "fornamn", "efternamn", "telefon", "gata", "co", "postnr", "ort", "kupong"];
+  const alla: Falt[] = ["epost", "fornamn", "efternamn", "telefon", "gata", "rad2", "co", "postnr", "ort", "lan", "kupong"];
   assert.deepEqual([...FALT_ORDNING].sort(), [...alla].sort());
 });
 
@@ -142,3 +142,53 @@ test("svenska mobilnummer skrivs som kunden känner igen dem, allt annat lämnas
   // Det snygga numret blir samma nummer hos Wix.
   assert.equal(normalTelefon(snyggtTelefon("0701234567")), normalTelefon("0701234567"));
 });
+
+test("länet: kundens giltiga val står kvar, annars kommer det ur postnumret", () => {
+  const ur = (over: Record<string, unknown>) => {
+    const r = provaKassa({ ...fullt, ...over });
+    assert.equal(r.ok, true);
+    return r.ok ? r.varden.lan : "";
+  };
+  assert.equal(ur({}), "SE-AB", "Södertälje 152 44 ligger i Stockholms län");
+  assert.equal(ur({ postnr: "434 41", ort: "Kungsbacka" }), "SE-N");
+  assert.equal(ur({ lan: "SE-O", postnr: "434 41" }), "SE-O", "kundens val vinner");
+  assert.equal(ur({ lan: "se-m" }), "SE-M", "versaler spelar ingen roll");
+  assert.equal(ur({ lan: "SE-Q" }), "SE-AB", "ett påhittat län ersätts av postnumrets");
+  assert.equal(ur({ lan: 7 }), "SE-AB");
+  assert.equal(ur({ postnr: "322 00" }), "", "okänt prefix: inget län, och formuläret fälls inte");
+});
+
+test("adressrad 2 är frivillig, högst 60 tecken, och skickas som den skrevs", () => {
+  const r = provaKassa({ ...fullt, rad2: " lgh 1201 " });
+  assert.equal(r.ok, true);
+  if (r.ok) assert.equal(r.varden.rad2, "lgh 1201");
+  const lang = provaKassa({ ...fullt, rad2: "x".repeat(61) });
+  assert.equal(lang.ok, false);
+  if (!lang.ok) assert.equal(lang.fel.rad2, KASSA_TEXT.rad2.fel);
+  assert.equal(faltGiltigt("lan", "SE-N"), true);
+  assert.equal(faltGiltigt("lan", "SE-Q"), false);
+});
+
+test("Stripes adressfält blir kassans fält, med länet ur Googles förslag eller postnumret", () => {
+  // Uppmätt lokalt 2026-11-06: förslaget fyller gata, postnummer, postort och state.
+  const fran = adressFranStripe({
+    firstName: " Anna ",
+    lastName: "Andersson",
+    address: { line1: "Storgatan 1", line2: null, city: "Kungsbacka", state: "Hallands län", postal_code: "434 41" },
+  });
+  assert.deepEqual(fran, { fornamn: "Anna", efternamn: "Andersson", gata: "Storgatan 1", rad2: "", postnr: "434 41", ort: "Kungsbacka", lan: "SE-N" });
+  // Inskrivet för hand: inget state, länet ur postnumret, postnumret skrivs "111 48".
+  assert.equal(adressFranStripe({ address: { postal_code: "11148" } }).lan, "SE-AB");
+  assert.equal(adressFranStripe({ address: { postal_code: "11148" } }).postnr, "111 48");
+  // Ofullständigt postnummer står kvar som kunden skrev det, utan län.
+  assert.deepEqual(adressFranStripe({ address: { postal_code: "434" } }), { fornamn: "", efternamn: "", gata: "", rad2: "", postnr: "434", ort: "", lan: "" });
+  assert.equal(adressFranStripe({}).lan, "");
+  // Googles state går före postnumret (länsgränser som tabellen inte känner).
+  assert.equal(adressFranStripe({ address: { state: "Skåne län", postal_code: "111 48" } }).lan, "SE-M");
+});
+
+test("adressens fält i Stripes fält: kontakten och rabattkoden är kassans egna", () => {
+  for (const f of ["fornamn", "efternamn", "gata", "rad2", "co", "postnr", "ort"] as const) assert.ok(ADRESS_FALT.includes(f), f);
+  for (const f of ["epost", "telefon", "kupong", "lan"] as const) assert.ok(!ADRESS_FALT.includes(f), f);
+});
+
