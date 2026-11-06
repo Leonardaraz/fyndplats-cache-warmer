@@ -7,6 +7,7 @@ import type { CategoryNode } from "../lib/category-groups";
 import { grupperaUnderkategorier } from "../lib/meny-grupper";
 import { useMenyAntal } from "./use-meny-antal";
 import { usePanelFokus } from "./use-panel-fokus";
+import { useKontolank } from "./konto-lank";
 
 // Kategorierna ligger högt upp (direkt efter "Butik"), före info-sidorna —
 // det är produktnavigeringen folk vill åt först i en butik.
@@ -25,6 +26,8 @@ export function MobileNav({ tree = [], hasBlog = false, hasSale = false }: { tre
   // Vilka huvudkategorier som är utfällda (accordion). Set → flera kan vara
   // öppna samtidigt; tapp på namnet navigerar, tapp på chevron fäller ut.
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  // "Mitt konto" först bland länkarna när kontot är öppet för alla (läget pa).
+  const kontoSynlig = useKontolank();
   // Antalen hämtas i webbläsaren; trädet kommer utan siffror (lib/meny-antal.ts).
   const antal = useMenyAntal();
 
@@ -113,6 +116,7 @@ export function MobileNav({ tree = [], hasBlog = false, hasSale = false }: { tre
             </div>
           )}
           <nav className="mm-links">
+            {kontoSynlig && <a href="/konto" onClick={closeMenu}>Mitt konto</a>}
             {hasBlog && <a href="/blogg" onClick={closeMenu}>Blogg</a>}
             {infoLinks.map((l) => (
               <a key={l.href} href={l.href} onClick={closeMenu}>{l.label}</a>

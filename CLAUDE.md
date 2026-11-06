@@ -1042,8 +1042,12 @@ e-post ett år bakåt räknas vid första inloggningen (P3). Admin finns i motor
 **Växeln är en rad i Wix:** `FyndplatsButikInstallningar/medlemskap`, fältet
 `lage`. `av` (eller ingen rad): ingen kan logga in, men orderliggaren fylls.
 `tyst`: /konto fungerar för den som har adressen, ingen länk dit. `pa`:
-tacksidan erbjuder dessutom konto. Utan `MEDLEM_JWT_SECRET` (minst 32 tecken)
-i miljön är inloggningen stängd oavsett läge.
+tacksidan erbjuder dessutom konto, och menyn får "Mitt konto"
+(`components/konto-lank.tsx`): en ikon före hjärtat på datorn och en länk i
+mobilmenyn, inte i mobilens sidhuvud, som inte rymmer en ikon till under
+339 px. Länken frågar `/api/konto/lage`, som kanten cachar i fem minuter, så
+växeln syns i menyn utan ett bygge. Utan `MEDLEM_JWT_SECRET` (minst 32 tecken)
+i miljön är inloggningen stängd oavsett läge, och ingen länk visas.
 
 **Kollektionerna** skapades 2026-11-04 med behörigheten ADMIN och 13 index:
 `FyndplatsMedlemmar`, `FyndplatsMedlemsprofiler`, `FyndplatsInloggningar`,

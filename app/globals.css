@@ -258,6 +258,15 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
    Under 900 px är allt som förut: menyknappen, och sökrutan på en egen rad. */
 .hrow .searchwrap{max-width:640px}
 .hrow .wl-btn{margin-left:auto}
+/* "Mitt konto" (components/konto-lank.tsx) står före hjärtat när kontot är
+   öppet för alla, och tar då över marginalen som skjuter ikonerna till höger.
+   På mobilen ligger länken i menyn i stället (se kommentaren i komponenten). */
+.hrow .konto-btn{margin-left:auto}
+.hrow .konto-btn + .wl-btn{margin-left:0}
+.konto-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:38px;height:38px;border-radius:50%;color:var(--ink);transition:background .15s,color .15s}
+.konto-btn::after{content:"";position:absolute;inset:-3px}
+.konto-btn:hover{background:var(--warm);color:var(--brand)}
+.konto-btn:focus-visible{outline:none;box-shadow:var(--e-ring)}
 .hsearch-mobile .searchwrap{max-width:none;width:100%}
 /* Sidomarginalen är .containerns 26 px, så att sidhuvudet linjerar med
    toppremsan och sidan under. Radens egen padding nollade den förut, och under
@@ -282,6 +291,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
   .hrow{padding:15px 0}
   .hrow .searchwrap{display:none}
   .hrow .wl-btn{margin-left:0}
+  .hrow .konto-btn{display:none}
   .hsearch-mobile{display:block;padding-bottom:12px}
   .hnav{display:none}
 }
