@@ -125,6 +125,29 @@ export function faltGiltigt(f: Falt, v: unknown): boolean {
   }
 }
 
+const KORG_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Det kassan skickar till korgen när kunden lämnat e-postfältet (/api/kassa/kontakt). */
+export interface Kontakt {
+  cartId: string;
+  epost: string;
+  /** E.164, eller null när kunden inte skrivit ett giltigt nummer. */
+  telefon: string | null;
+}
+
+/**
+ * Kroppen till /api/kassa/kontakt, prövad: korgens id, en giltig e-post och
+ * numret om det är giltigt. Annars null, och ingenting skickas till Wix.
+ * Påminnelsemejlen bygger på e-posten (lib/kassa/aterta.ts).
+ */
+export function kontaktUrKropp(b: unknown): Kontakt | null {
+  const k = (b ?? {}) as Record<string, unknown>;
+  const cartId = typeof k.cartId === "string" ? k.cartId : "";
+  const epost = text(k.epost);
+  if (!KORG_ID.test(cartId) || !faltGiltigt("epost", epost)) return null;
+  return { cartId, epost, telefon: normalTelefon(k.telefon) };
+}
+
 /**
  * Ett svenskt mobilnummer som kunden känner igen det: "0701234567",
  * "+46 70 123 45 67" och "070-123 45 67" blir "070 123 45 67". Allt annat

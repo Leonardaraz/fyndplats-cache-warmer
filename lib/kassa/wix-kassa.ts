@@ -46,6 +46,22 @@ export async function uppdateraKorg(cartId: string, k: Kund): Promise<void> {
   });
 }
 
+/**
+ * Bara köparens e-post (och nummer) på korgen, när kunden lämnat e-postfältet.
+ * Då skapar Wix en övergiven kassa om köpet inte blir av, och påminnelsemejlen
+ * går som från Wix kassa (lib/kassa/aterta.ts). Namn och adress kommer med
+ * uppdateraKorg när kunden betalar.
+ */
+export async function sattKontakt(cartId: string, epost: string, telefon: string | null): Promise<void> {
+  await forsokIgen(() =>
+    wixFetch({
+      method: "PATCH",
+      path: korgSokvag(cartId),
+      body: { cart: { id: cartId, customerInfo: { email: epost, ...(telefon ? { phone: telefon } : {}) } } },
+    }),
+  );
+}
+
 /** Bara landet (och postnumret när det finns), för räkningen innan kunden skrivit adressen. Utan land räknar Wix med serverns land. */
 export async function sattLand(cartId: string, postnr: string | null): Promise<void> {
   await wixFetch({

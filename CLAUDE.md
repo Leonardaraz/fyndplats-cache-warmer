@@ -1723,6 +1723,57 @@ hemligheten i `STRIPE_WEBHOOK_SECRET`); domänen för Apple Pay och Google Pay
 Stripe-inställningarna (kortutdragets text "FYNDPLATS", Stripes egna kvitton
 av, Radar-regler); ett köp med Apple Pay från Leonards telefon.
 
+**Live för alla sedan 2026-11-06 21:33:57 UTC** (Leonards "Nu"). Före påslaget:
+live-nycklarna, webhooken och domänen var inlagda; Leonards köp med Apple Pay
+blev betalt och godkänt; återbetalningen i Wix speglades till
+Stripe på tre sekunder. Korgar som betalats i kassan fick ingen övergiven kassa
+i Wix (två provköp mätta efter 5 och 8 timmar), så den som handlar får inget
+påminnelsemejl.
+
+### Påminnelsen om en övergiven varukorg (Leonard 2026-11-06: "Ska du inte fixa övergiven kundvagn mail för vår nya kassa?")
+
+Mejlen (mejl 1–3, `lib/abandoned-cart.ts`) köas ur Wix övergivna kassor
+(`lib/abandoned-checkout-poll.ts`, var femtonde minut). Två saker fungerade inte
+med vår kassa (`lib/kassa/aterta.ts`):
+
+1. **Wix skapar en övergiven kassa bara när korgen har köparens e-post.** Wix
+   egen kassa fick den när kunden gick vidare från kontaktsteget; vår kassa satte
+   den först vid Betala (`forbered`). Den som skrev sin e-post och gick fick inget
+   mejl. Nu skickar kassan e-posten (och numret, om det är giltigt) till korgen
+   när kunden lämnar fältet, väljer e-postförslaget eller har sparade uppgifter:
+   `POST /api/kassa/kontakt` → `sattKontakt` (bara `customerInfo`). En gång per
+   korg och uppgifter. Medlemskorgen hoppas över: den har kontots e-post och får
+   inga påminnelser (`lib/medlem/overgiven.ts`).
+2. **Mejlets knapp ledde till Wix kassa** (`checkoutUrl`). När `kassa.lage` är
+   `pa` får mejlet i stället `/kassa/aterta?k=<korgens id>.<HMAC>`
+   (`valjAterLank`). Sidan frågar `/api/kassa/aterta`, som läser korgen och prövar
+   varorna mot katalogen som "Köp igen". Det som saknas i besökarens varukorg
+   läggs i (`attLaggaI`, så att en andra öppning inte ger dubbletter), och kunden
+   går till `/kassa`. Rabattkoden i mejl 3 följer med som `?kod=` (`medKod`) och
+   läggs på i kassans första räkning. Är kassan avstängd öppnas varukorgen i
+   stället; är en vara slut eller borta står det på sidan, med en knapp vidare.
+
+3. **Mejlet gick ut efter köpet när köpet gjordes med en annan e-post.**
+   Kö-raden bär den övergivna kassans id, inte korgens, så konverteringen
+   (`onOrderConverted`) hittar den bara på e-post. Wix markerar däremot den
+   övergivna kassan RECOVERED när korgen blir en order, också i vår kassa (mätt
+   2026-11-06: fyra sekunder efter ordern; köpet hade en annan e-post och ett
+   mejl stod på tur en kvart senare). Nu frågar `processDueCart` Wix före varje
+   steg (`aterVunnenIWix`): RECOVERED → vagnen blir `converted`, en utdelad kod
+   återkallas och inget mejl går. 404 → mejlet går som förut; andra fel → vagnen
+   prövas nästa kvart.
+
+☠️ Länkens HMAC använder `NEWSLETTER_SECRET` eller `CRON_SECRET` (minst 16
+tecken) med eget prefix. Saknas båda får mejlen Wix länk, och pollaren varnar i
+loggen. Utan HMAC hade ett id som läckt räckt för att se en annan kunds varor.
+
+☠️ Mejl som köades före ändringen har kvar Wix länk; de fungerar, men leder till
+Wix kassa.
+
+Integritetstexten säger att vi kan påminna om en varukorg du inte slutförde
+(berättigat intresse, högst tre mejl på tre dagar och en påminnelse per 30
+dagar, avregistrering i mejlet).
+
 ## Medlemskapet, etapp E2: medlemspriset och kassan med låsta priser (2026-11-04)
 
 Byggt men avstängt. Växeln är fältet `pris` i raden

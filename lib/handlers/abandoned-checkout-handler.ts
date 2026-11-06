@@ -6,6 +6,8 @@
 import { enqueueAbandonedCart, type CartItem } from '../abandoned-cart';
 import type { NormalisableAddress } from '../address-hash';
 import { korgslag } from '../medlem/overgiven';
+import { kassaLage } from '../kassa/lage';
+import { aterHemlighet, valjAterLank } from '../kassa/aterta';
 
 export interface AbandonedCheckoutCreatedEvent {
   entityFqdn?: string;
@@ -145,7 +147,13 @@ export async function handleAbandonedCheckoutCreated(
   const fallbackCurrency = payload.currency || 'SEK';
   const currency = (payload.totals && payload.totals.currency) || fallbackCurrency;
   const phone = (payload.buyerInfo && payload.buyerInfo.phone) || null;
-  const recoverUrl = payload.recoverUrl || payload.checkoutUrl || null;
+  // Mejlets länk: vår kassa när den är på för alla (lib/kassa/aterta.ts), annars Wix.
+  const recoverUrl = valjAterLank({
+    egen: (await kassaLage()) === 'pa',
+    hemlighet: aterHemlighet(),
+    cartId: payload.cartId,
+    wixUrl: payload.recoverUrl || payload.checkoutUrl || null,
+  });
   const shippingAddress = pickAddress(payload);
   const abandonedAt = payload.abandonTime ? new Date(payload.abandonTime) : new Date();
 

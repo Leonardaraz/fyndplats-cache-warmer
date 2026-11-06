@@ -21,6 +21,8 @@
 import { wixFetch } from './wix-client';
 import { enqueueAbandonedCart, type CartItem, type EnqueueResult } from './abandoned-cart';
 import { korgslag } from './medlem/overgiven';
+import { kassaLage } from './kassa/lage';
+import { aterHemlighet, valjAterLank } from './kassa/aterta';
 
 interface WixMoney {
   amount?: string;
@@ -74,12 +76,11 @@ function mapItems(rec: WixAbandonedCheckout): CartItem[] {
   }));
 }
 
-// Wix's recover link (302s the buyer back into their hosted checkout). Upgrade the
-// http:// the API hands back to https:// so email clients don't flag it.
-function recoverUrl(rec: WixAbandonedCheckout): string {
-  const u = rec.checkoutUrl;
-  if (u && u.startsWith('http')) return u.replace(/^http:\/\//, 'https://');
-  return 'https://www.fyndplats.se';
+// Mejlets länk (lib/kassa/aterta.ts): vår kassa när den är på för alla, med
+// korgens varor tillbaka i varukorgen. Annars Wix länk, som 302:ar kunden in i
+// Wix egen kassa (med https, så att mejlprogrammen inte varnar).
+function recoverUrl(rec: WixAbandonedCheckout, egen: boolean, hemlighet: string | null): string {
+  return valjAterLank({ egen, hemlighet, cartId: rec.cartId, wixUrl: rec.checkoutUrl });
 }
 
 export interface PollResult {
@@ -113,6 +114,10 @@ export async function pollAbandonedCheckouts(opts: PollOptions = {}): Promise<Po
 
   const all = resp.results ?? [];
   const result: PollResult = { scanned: all.length, considered: 0, enqueued: 0, skipped: 0, details: [] };
+  // Vilken kassa länken ska leda till. Läget cachas en minut (lib/kassa/lage.ts).
+  const egen = (await kassaLage()) === 'pa';
+  const hemlighet = aterHemlighet();
+  if (egen && !hemlighet) console.warn('[abandoned-poll] vår kassa är på men länkarnas hemlighet saknas: mejlen får Wix länk');
 
   for (const rec of all) {
     const cartId = rec.id || '';
@@ -149,7 +154,7 @@ export async function pollAbandonedCheckouts(opts: PollOptions = {}): Promise<Po
         items,
         subtotalMinor,
         currency: rec.currency || 'SEK',
-        recoverUrl: recoverUrl(rec),
+        recoverUrl: recoverUrl(rec, egen, hemlighet),
         abandonedAt: createdAt,
       });
     } catch (err) {
