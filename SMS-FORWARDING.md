@@ -47,10 +47,12 @@ Fyndplats-branded delivery email to the real customer instead.
 - `lib/sms-parser.test.ts` — 14 unit tests against real carrier SMS bodies.
 - `emails/delivery-notification.tsx` — React Email template that produces
   the branded "your package is at ICA Maxi" email.
-- `migrations/002_sms_forwarding.sql` — schema for `tracking_mapping`,
-  `sms_audit`, `sms_unmatched`. Also inlined in `lib/db.ts#runMigration`.
-- `app/api/dev/tracking-map/route.ts` — dev endpoint for migrating the
-  schema, inserting mappings manually, and inspecting recent audit rows.
+- `lib/wix-lager.ts` — storage in Wix CMS: `FyndplatsSparning` (was
+  `tracking_mapping`), `FyndplatsSmsLogg` (`sms_audit`) and
+  `FyndplatsSmsOmatchade` (`sms_unmatched`). The tables moved from Postgres
+  on 2026-10-29, and the Postgres path was removed on 2026-11-05.
+- `app/api/dev/tracking-map/route.ts` — dev endpoint for inserting mappings
+  manually and inspecting recent audit rows.
 - `outputs/IOS-SHORTCUT-SETUP.md` — Swedish step-by-step for the iPhone
   side. Leonard sets the shortcut up by hand from this guide.
 
@@ -60,20 +62,8 @@ Fyndplats-branded delivery email to the real customer instead.
 | --------------------- | ---------------------------------------------------- |
 | `SMS_INBOUND_SECRET`  | Shared secret. Generate with `openssl rand -hex 32`. Required. Mark **Sensitive**. |
 | `RESEND_API_KEY`      | Already set — reused.                                |
-| `POSTGRES_URL` etc.   | Already set by the Vercel Postgres integration.      |
+| `WIX_API_KEY`, `WIX_SITE_ID` | Already set — the rows live in Wix CMS.     |
 | `DEV_ENDPOINT_SECRET` | Already set — gates `/api/dev/*`.                    |
-
-## Running the migration
-
-After deploy, apply the new tables:
-
-```bash
-curl -X POST \
-  -H "X-Dev-Secret: $DEV_ENDPOINT_SECRET" \
-  https://www.fyndplats.se/api/dev/tracking-map?action=migrate
-```
-
-The migration is idempotent (every CREATE is `IF NOT EXISTS`).
 
 ## Manual end-to-end test
 

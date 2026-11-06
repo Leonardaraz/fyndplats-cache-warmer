@@ -5,6 +5,7 @@
 
 import { enqueueAbandonedCart, type CartItem } from '../abandoned-cart';
 import type { NormalisableAddress } from '../address-hash';
+import { korgslag } from '../medlem/overgiven';
 
 export interface AbandonedCheckoutCreatedEvent {
   entityFqdn?: string;
@@ -18,6 +19,8 @@ export interface AbandonedCheckoutCreatedEvent {
 interface AbandonedCheckoutPayload {
   _id?: string;
   id?: string;
+  /** Varukorgen kassan byggdes på. En medlemskorg har ett prisbeslut med samma id. */
+  cartId?: string;
   abandonTime?: string;
   recoverUrl?: string;
   checkoutUrl?: string;
@@ -114,6 +117,12 @@ export async function handleAbandonedCheckoutCreated(
     payload.buyerEmail ||
     '';
   if (!cartId || !email) return { ok: false, reason: 'missing cartId or email' };
+
+  // Medlemmarnas låsta korgar får inget mejl (lib/medlem/overgiven.ts). Kan det
+  // inte avgöras tar pollaren kassan inom en kvart.
+  const slag = await korgslag(payload.cartId);
+  if (slag === 'medlem') return { ok: true, reason: 'medlemskorg', cartId };
+  if (slag === 'okant') return { ok: false, reason: 'medlemskollen-felade', cartId };
 
   const items = pickItems(payload);
 

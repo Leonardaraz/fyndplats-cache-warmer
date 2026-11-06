@@ -3,17 +3,20 @@
 
 import { Section, Text, Link } from "@react-email/components";
 import { BRAND, EmailShell, block, text } from "./_layout";
+import { AvregistreraNivamejl } from "./_avregistrera";
 import { MedlemskortMejl } from "./_medlemskort";
 
 export interface MedlemNyNivaProps {
   niva: string;
   belopp: string;
   nasta: { niva: string; kvar: string } | null;
+  /** Sidan för att avregistrera sig från mejlen om nivån. */
+  avregistrera?: string;
 }
 
 export const medlemNyNivaAmne = (niva: string) => `Du har nått ${niva}`;
 
-export default function MedlemNyNivaEmail({ niva, belopp, nasta }: MedlemNyNivaProps) {
+export default function MedlemNyNivaEmail({ niva, belopp, nasta, avregistrera }: MedlemNyNivaProps) {
   return (
     <EmailShell preview={`Grattis! Din nivå är nu ${niva}.`}>
       <Text style={text.h1}>Grattis, du har nått {niva}!</Text>
@@ -31,6 +34,7 @@ export default function MedlemNyNivaEmail({ niva, belopp, nasta }: MedlemNyNivaP
           Se din nivå
         </Link>
       </Section>
+      <AvregistreraNivamejl href={avregistrera} />
     </EmailShell>
   );
 }

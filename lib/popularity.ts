@@ -21,11 +21,14 @@ type WixOrderLike = {
 };
 
 /** REN aggregering (enhetstestbar): ordrar → catalogItemId → sålda enheter.
- *  Annullerade ordrar räknas inte; rader utan katalogkoppling hoppas över. */
+ *  Annullerade och obetalda ordrar räknas inte; rader utan katalogkoppling hoppas över. */
 export function aggregateSoldUnits(orders: ReadonlyArray<WixOrderLike>): Map<string, number> {
   const out = new Map<string, number>();
   for (const o of orders) {
-    if ((o.status ?? "").toUpperCase() === "CANCELED") continue;
+    // Avbrutna räknas inte, och inte heller en order som väntar på betalning i
+    // vår egen kassa (INITIALIZED, se lib/order-raknas.ts).
+    const status = (o.status ?? "").toUpperCase();
+    if (status === "CANCELED" || status === "INITIALIZED") continue;
     for (const li of o.lineItems ?? []) {
       const id = li.catalogReference?.catalogItemId;
       if (!id) continue;

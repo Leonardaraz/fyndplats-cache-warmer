@@ -16,6 +16,9 @@
 // Felhantering: Resend-fel returnerar 500 så Wix retry:ar. Okänd event-typ
 // returnerar 200 (ack — vi vill inte att Wix ska spamma retries).
 
+import { avslutaKorg } from "@/lib/kassa/wix-kassa";
+import { efterMedlemskopTyst } from "@/lib/kassa/medlemskassa";
+import { speglaEfterWebhook } from "@/lib/kassa/stripe-kassa";
 import { NextResponse, after, type NextRequest } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
 import crypto from "node:crypto";
@@ -59,8 +62,7 @@ import {
 import { resolveOrderId } from "@/lib/wix-order-lookup";
 import { radensVal } from "@/lib/wix-order-fields";
 import { maskCarrierOrUndefined, transportorText } from "@/lib/carrier-mask";
-import { sql } from "@/lib/db";
-import { anvanderWix, sparning } from "@/lib/wix-lager";
+import { sparning } from "@/lib/wix-lager";
 import { metaCapiConfigured, sendMetaCapiEvent } from "@/lib/meta-capi";
 import { firePush } from "@/lib/push-send";
 import { getProducts } from "@/lib/products";
@@ -667,8 +669,8 @@ function buildRefundProps(payload: Record<string, unknown>): { props: RefundConf
 }
 
 // Persist (tracking_number → customer) for the SMS-forwarding flow. The
-// /api/sms-inbound handler reads from this table to map an incoming carrier
-// SMS back to the real customer's email. Idempotent via ON CONFLICT — Wix
+// /api/sms-inbound handler reads these rows to map an incoming carrier
+// SMS back to the real customer's email. Idempotent via the insert claim — Wix
 // can fire fulfillments_updated multiple times for the same shipment.
 async function upsertTrackingMapping(opts: {
   trackingNumber: string;
@@ -680,36 +682,17 @@ async function upsertTrackingMapping(opts: {
   registrera?: boolean;
 }): Promise<"new" | "duplicate" | "error" | "collision"> {
   try {
-    // RETURNING ger en rad ENBART när en NY rad faktiskt skrevs (inte vid
-    // ON CONFLICT). Det är vår dedup-signal: "new" = första gången vi ser den
-    // här sändningen (= mejla), "duplicate" = Wix-omfyrning (= hoppa mejl).
-    // I Wix (lib/wix-lager.ts) är samma anspråk en insert som vägrar ett nummer som finns.
-    const wix = await anvanderWix();
-    const ny = wix
-      ? await sparning.skapa({
-          trackingNumber: opts.trackingNumber,
-          orderId: opts.orderId,
-          customerEmail: opts.customerEmail,
-          customerName: opts.customerName,
-          customerPhone: opts.customerPhone,
-          status: "in_transit",
-        })
-      : (
-          await sql/*sql*/`
-            INSERT INTO tracking_mapping (
-              tracking_number, order_id, customer_email, customer_name, customer_phone, status
-            ) VALUES (
-              ${opts.trackingNumber},
-              ${opts.orderId},
-              ${opts.customerEmail},
-              ${opts.customerName},
-              ${opts.customerPhone},
-              'in_transit'
-            )
-            ON CONFLICT (tracking_number) DO NOTHING
-            RETURNING tracking_number
-          `
-        ).rows.length > 0;
+    // Anspråket är en insert som vägrar ett nummer som finns (lib/wix-lager.ts).
+    // Det är vår dedup-signal: "new" = första gången vi ser den här sändningen
+    // (= mejla), "duplicate" = Wix-omfyrning (= hoppa mejl).
+    const ny = await sparning.skapa({
+      trackingNumber: opts.trackingNumber,
+      orderId: opts.orderId,
+      customerEmail: opts.customerEmail,
+      customerName: opts.customerName,
+      customerPhone: opts.customerPhone,
+      status: "in_transit",
+    });
     if (ny) {
       // NY sändning: registrera spårnumret hos 17TRACK (sv + dest SE) så
       // push-webhooken (app/api/track17-webhook) fyrar PROAKTIVT vid Delivered/
@@ -724,14 +707,7 @@ async function upsertTrackingMapping(opts: {
     // vi inte avgöra vem en framtida push/SMS gäller → KARANTÄN: markera raden
     // 'ambiguous' så varken push eller SMS auto-notifierar (inkl. hämtkod) fel
     // kund. findMapping i båda flödena exkluderar 'ambiguous'. Hanteras manuellt.
-    const row = wix
-      ? await sparning.hamta(opts.trackingNumber)
-      : (
-          await sql<{ customer_email: string; status: string }>/*sql*/`
-            SELECT customer_email, status FROM tracking_mapping
-             WHERE tracking_number = ${opts.trackingNumber} LIMIT 1
-          `
-        ).rows[0];
+    const row = await sparning.hamta(opts.trackingNumber);
     if (
       row &&
       row.status !== "ambiguous" &&
@@ -739,14 +715,7 @@ async function upsertTrackingMapping(opts: {
       opts.customerEmail &&
       row.customer_email.trim().toLowerCase() !== opts.customerEmail.trim().toLowerCase()
     ) {
-      if (wix) {
-        await sparning.sattStatus(opts.trackingNumber, "ambiguous");
-      } else {
-        await sql/*sql*/`
-          UPDATE tracking_mapping SET status = 'ambiguous', updated_at = NOW()
-           WHERE tracking_number = ${opts.trackingNumber}
-        `;
-      }
+      await sparning.sattStatus(opts.trackingNumber, "ambiguous");
       console.error(
         `[wix-webhook] tracking_number-KOLLISION ${opts.trackingNumber}: ${row.customer_email} vs ${opts.customerEmail} → karantän (auto-notiser stoppade, hantera manuellt)`,
       );
@@ -1371,6 +1340,15 @@ export async function POST(req: NextRequest) {
     after(() => uppdateraOrderliggareTyst(liggarOrder, "webhook"));
   }
 
+  // Stripe-kassans ordrar: en återbetalning i Wix görs också i Stripe, där
+  // pengarna ligger (speglaAterbetalningar i lib/kassa/flode.ts). Bara
+  // order-id:t tas ur meddelandet; beloppen läses ur Wix och Stripe. Efter
+  // svaret, som orderliggaren; nätet (/api/cron/kassa-stripe) tar det som faller.
+  if (kind === "refund") {
+    const aterOrder = orderIdForVerification(kind, entity, entityId);
+    if (aterOrder) after(() => speglaEfterWebhook(aterOrder));
+  }
+
   // resend null när RESEND_API_KEY saknas — varje emails.send-anrop nedan är
   // nullsafe så vi loggar "SKIPPED" och fortsätter med fanout/push/recordOrder
   // istället för att 500:a hela webhooken.
@@ -1391,6 +1369,21 @@ export async function POST(req: NextRequest) {
         await recordOrder(entity as Record<string, unknown>);
       } catch (err) {
         console.error("[wix-webhook] recordOrder fel (ignorerar)", err);
+      }
+      // Vår egen kassa (lib/kassa/flode.ts) skapar ordern ur besökarens korg
+      // före betalningen, och Wix markerar inte korgen som beställd förrän
+      // någon säger till. Görs det inte står varorna kvar i kundens varukorg
+      // efter köpet. För Wix kassas ordrar är korgen redan markerad: felet
+      // sväljs (avslutaKorg), och det kostar ett anrop per order.
+      {
+        const o = entity as { cartId?: unknown; checkoutId?: unknown; id?: unknown; _id?: unknown };
+        const korgId = typeof o.cartId === "string" ? o.cartId : typeof o.checkoutId === "string" ? o.checkoutId : "";
+        const orderId = typeof o.id === "string" ? o.id : typeof o._id === "string" ? o._id : "";
+        if (korgId && orderId) after(() => avslutaKorg(korgId, orderId).then(() => undefined));
+        // Medlemskorgen (E2/E3) var en kopia av besökarens varukorg: det som
+        // köptes tas bort ur den, en gång per prisbeslut. Alla andra ordrar
+        // stannar vid en läsning av beslutet (lib/kassa/medlemskassa.ts).
+        if (korgId && orderId) after(() => efterMedlemskopTyst(korgId, orderId));
       }
       // ISR on-demand revalidation: PDPs cachas i sex timmar sedan 2026-10-01
       // (lib/produkt-cache.ts). När ett köp sker måste vi PUSHA en ny version
@@ -1670,8 +1663,7 @@ export async function POST(req: NextRequest) {
           // återskapas på retry (upsert → "new" igen, 17TRACK-register idempotent).
           for (const tn of nyaRader) {
             try {
-              if (await anvanderWix()) await sparning.taBort(tn);
-              else await sql/*sql*/`DELETE FROM tracking_mapping WHERE tracking_number = ${tn}`;
+              await sparning.taBort(tn);
             } catch (e) {
               console.error("[wix-webhook] kunde inte släppa tracking_mapping vid send-fel", e);
             }

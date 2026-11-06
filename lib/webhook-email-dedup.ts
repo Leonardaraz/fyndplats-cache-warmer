@@ -11,31 +11,12 @@
 //                    flera legitima delvis-refunds; varje refund har eget id).
 //   - cancellation:  `cancel:<orderId>`   (en order avbokas en gång).
 //
-// Design: atomiskt anspråk via INSERT ... ON CONFLICT DO NOTHING RETURNING.
-// Vinner vi raden → först → SKICKA. Förlorar vi → redan skickat → HOPPA.
+// Design: atomiskt anspråk i Wix (lib/wix-lager.ts): raden infogas, och Wix
+// vägrar ett id som redan finns. Vinner vi raden → först → SKICKA. Förlorar vi → redan skickat → HOPPA.
 // Misslyckas mejlet släpper anroparen anspråket (release) så en Wix-retry kan
 // ta över. Fail-open vid DB-fel: hellre ett (ev. dubbelt) mejl än ett tappat.
 
-import { sql } from "./db";
-import { anvanderWix, webhookMejl } from "./wix-lager";
-
-let ensured: Promise<void> | null = null;
-function ensureTable(): Promise<void> {
-  if (!ensured) {
-    ensured = (async () => {
-      await sql/*sql*/`
-        CREATE TABLE IF NOT EXISTS webhook_email_sent (
-          event_key TEXT PRIMARY KEY,
-          sent_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
-        );
-      `;
-    })().catch((e) => {
-      ensured = null; // tillåt retry vid nästa anrop
-      throw e;
-    });
-  }
-  return ensured;
-}
+import { webhookMejl } from "./wix-lager";
 
 /** Atomiskt anspråk på att skicka mejlet för `eventKey`.
  *  true  = vi vann → SKICKA.  false = redan skickat (dubblett) → HOPPA.
@@ -43,15 +24,7 @@ function ensureTable(): Promise<void> {
 export async function claimWebhookEmail(eventKey: string): Promise<boolean> {
   if (!eventKey) return true;
   try {
-    if (await anvanderWix()) return await webhookMejl.ansprak(eventKey);
-    await ensureTable();
-    const { rows } = await sql/*sql*/`
-      INSERT INTO webhook_email_sent (event_key)
-      VALUES (${eventKey})
-      ON CONFLICT (event_key) DO NOTHING
-      RETURNING event_key
-    `;
-    return rows.length > 0;
+    return await webhookMejl.ansprak(eventKey);
   } catch (err) {
     console.error("[webhook-email-dedup] claim misslyckades (fail-open → skickar)", err instanceof Error ? err.message : err);
     return true;
@@ -63,11 +36,7 @@ export async function claimWebhookEmail(eventKey: string): Promise<boolean> {
 export async function releaseWebhookEmail(eventKey: string): Promise<void> {
   if (!eventKey) return;
   try {
-    if (await anvanderWix()) {
-      await webhookMejl.slapp(eventKey);
-      return;
-    }
-    await sql/*sql*/`DELETE FROM webhook_email_sent WHERE event_key = ${eventKey}`;
+    await webhookMejl.slapp(eventKey);
   } catch (err) {
     console.error("[webhook-email-dedup] release misslyckades", err instanceof Error ? err.message : err);
   }

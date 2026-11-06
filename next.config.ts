@@ -102,8 +102,11 @@ const nextConfig: NextConfig = {
   },
   // Säkerhetsheaders på alla svar. Förut skickades bara HSTS (extern audit
   // 2026-10-07). Ingen Content-Security-Policy ännu: den måste provas mot
-  // Klarna, Wix bilder, GA4, Meta och Vercels skript innan den slås på.
+  // Klarna, Wix bilder, GA4, Meta, Stripe (js.stripe.com och dess ramar) och
+  // Vercels skript innan den slås på.
   // Ingen sida ramar in butiken, så inramning tillåts bara från samma källa.
+  // ☠️ Permissions-Policy får aldrig stänga `payment`: Apple Pay och Google Pay i
+  // kassan körs i Stripes ram och behöver den (app/kassa, lib/kassa/stripe-klient.ts).
   async headers() {
     return [
       {

@@ -17,6 +17,7 @@ import {
   liggarlage,
   liggarraderBetaldaSedan,
   loggaTyst,
+  medlemsHemlighet,
   medlemsLage,
   sparaLiggarlage,
   sparaNivabyte,
@@ -26,6 +27,7 @@ import { dagTillDatum, medlemsbeslut, stockholmsDag } from "./niva";
 import type { Liggarrad } from "./orderliggare";
 import { lageFor } from "./konto";
 import { skickaNivaSjunker, skickaNyNiva } from "./mejl";
+import { avregistreringsFraga } from "./inloggning";
 
 export const BAKAT_DAGAR = 400;
 export const AVSTAMNING_TIMMAR = 48;
@@ -77,21 +79,29 @@ export async function korNattjobb(slutMs: number): Promise<Nattutfall> {
     const alla = await allaMedlemmar();
     medlemmar = { antal: alla.length, andrade: 0, nyNiva: 0, varningar: 0, mejlFel: 0, fel: 0 };
     const idag = dagTillDatum(stockholmsDag(nuMs));
+    // Länken för att avregistrera sig kräver hemligheten; utan den går inga mejl om nivån.
+    const hemlighet = medlemsHemlighet();
     for (const m of alla) {
       if (m.status !== "aktiv") continue;
       if (Date.now() > slutMs) break;
       try {
         const l = lageFor(m, perEpost.get(m.epost) ?? [], regler, nuMs);
         const { falt, nyNiva, varning } = medlemsbeslut(m, l, regler, nuIso);
+        // Avregistrerad från mejlen om nivån: beslutet räknas som meddelat, så
+        // att inget gammalt mejl går om medlemmen slår på mejlen igen.
+        const tyst = m.nivamejl === false;
+        const avreg = hemlighet ? { fraga: avregistreringsFraga(m.id, hemlighet) } : null;
         if (nyNiva) {
-          if (await skickaNyNiva(m.epost, l)) {
+          if (tyst) falt.meddeladNiva = l.niva.namn;
+          else if (avreg && (await skickaNyNiva(m.epost, l, avreg))) {
             falt.meddeladNiva = l.niva.namn;
             medlemmar.nyNiva++;
             await loggaTyst({ omrade: "mejl", typ: "ny-niva", medlemsId: m.id, efter: { niva: l.niva.namn }, aktor: "system" });
           } else medlemmar.mejlFel++;
         }
         if (varning) {
-          if (await skickaNivaSjunker(m.epost, l)) {
+          if (tyst) falt.varnadFor = varning;
+          else if (avreg && (await skickaNivaSjunker(m.epost, l, avreg))) {
             falt.varnadFor = varning;
             medlemmar.varningar++;
             await loggaTyst({ omrade: "mejl", typ: "niva-sjunker", medlemsId: m.id, efter: { ...varning }, aktor: "system" });

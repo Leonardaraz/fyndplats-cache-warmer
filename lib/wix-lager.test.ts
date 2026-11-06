@@ -8,10 +8,8 @@ import test, { beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import {
   K,
-  __sattDatalagerForTester,
   __sattVantaForTester,
   andringar,
-  datalager,
   fraktmejlKo,
   kundvagnMejl,
   kundvagnar,
@@ -23,7 +21,6 @@ import {
   taLas,
   utanTomma,
   wixNyckel,
-  TABELLER,
 } from "./wix-lager.ts";
 
 type Rad = Record<string, unknown>;
@@ -170,7 +167,6 @@ beforeEach(() => {
   process.env.WIX_SITE_ID = "sajt";
   globalThis.fetch = fejkFetch as typeof fetch;
   __sattVantaForTester(async () => {});
-  __sattDatalagerForTester(null);
 });
 
 // ── Nycklar och fält ────────────────────────────────────────────────────────
@@ -193,24 +189,6 @@ test("☠️ utanTomma och andringar skriver aldrig null — `$exists: false` ma
     { action: "SET_FIELD", fieldPath: "status", setFieldOptions: { value: "x" } },
     { action: "REMOVE_FIELD", fieldPath: "sentAt" },
   ]);
-});
-
-// ── Växeln ──────────────────────────────────────────────────────────────────
-
-test("växeln: utan rad Postgres, med rad Wix, och läses högst en gång i minuten", async () => {
-  assert.equal(await datalager(1_000_000), "postgres");
-  kol(K.installningar).set("datalager", { _id: "datalager", lager: "wix" });
-  assert.equal(await datalager(1_000_000 + 30_000), "postgres", "cachad i en minut");
-  assert.equal(await datalager(1_000_000 + 61_000), "wix");
-});
-
-test("☠️ växeln: ett läsfel ger senast kända lager, och vid en kallstart Postgres", async () => {
-  kol(K.installningar).set("datalager", { _id: "datalager", lager: "wix" });
-  assert.equal(await datalager(5_000_000), "wix");
-  fel = { sokvag: /items\/datalager/, status: 500, text: "{}", ganger: 99 };
-  assert.equal(await datalager(5_000_000 + 61_000), "wix");
-  __sattDatalagerForTester(null); // kallstart: ingen cache
-  assert.equal(await datalager(6_000_000), "postgres");
 });
 
 // ── Kundvagnar ──────────────────────────────────────────────────────────────
@@ -416,74 +394,4 @@ test("prishistorik: samma produkt och dag skrivs om, läses i datumordning och g
   ]);
   assert.equal(await prishistorik.gallra("2026-09-14"), 1);
   assert.equal(kol(K.prishistorik).size, 2);
-});
-
-// ── Kopian ──────────────────────────────────────────────────────────────────
-
-test("kopian: varje tabell har en egen kollektion och en ordning", () => {
-  assert.equal(new Set(TABELLER.map((t) => t.kollektion)).size, TABELLER.length);
-  assert.equal(new Set(TABELLER.map((t) => t.tabell)).size, 15);
-});
-
-test("☠️ kopian: null-kolumner skrivs inte, e-post blir gemener, JSON som text tolkas", () => {
-  const kv = TABELLER.find((t) => t.tabell === "abandoned_carts")!.franPostgres({
-    id: "c1",
-    email: "Kund@Exempel.se",
-    phone: null,
-    shipping_addr_hash: null,
-    items_json: '[{"name":"Stol"}]',
-    subtotal_minor: 49900,
-    currency: "SEK",
-    recover_url: null,
-    abandoned_at: new Date("2026-10-29T09:00:00Z"),
-    next_step: 2,
-    next_step_at: new Date("2026-10-30T09:00:00Z"),
-    status: "pending",
-    discount_code: null,
-    discount_code_wix_id: null,
-    created_at: new Date("2026-10-29T09:00:00Z"),
-    updated_at: new Date("2026-10-29T10:00:00Z"),
-  });
-  assert.equal(kv.id, "c1");
-  assert.equal("phone" in kv.data, false);
-  assert.equal(kv.data.emailLower, "kund@exempel.se");
-  assert.deepEqual(kv.data.items, [{ name: "Stol" }]);
-  assert.equal(kv.data.nextStepAt, "2026-10-30T09:00:00.000Z");
-
-  const ko = TABELLER.find((t) => t.tabell === "shipping_email_queue")!.franPostgres({
-    tracking_number: "A1",
-    order_guid: "o1",
-    carrier: null,
-    line_items: [],
-    queued_at: new Date("2026-10-29T09:00:00Z"),
-    sent_at: null,
-  });
-  // ☠️ En väntande rad får INGET sentAt — annars hittar `$exists: false` den aldrig.
-  assert.equal("sentAt" in ko.data, false);
-});
-
-test("kopian: ett kopierat kundvagnsmejl har samma id som lagret skriver", async () => {
-  const fran = TABELLER.find((t) => t.tabell === "sent_emails")!.franPostgres({
-    id: 7,
-    cart_id: "c1",
-    step: 1,
-    resend_id: "r1",
-    sent_at: new Date("2026-10-29T09:00:00Z"),
-    email: "kund@exempel.se",
-    discount_code: null,
-  });
-  await kundvagnMejl.logga({ cartId: "c1", step: 1, resendId: "r1", email: "kund@exempel.se" });
-  assert.deepEqual([...kol(K.kundvagnMejl).keys()], [fran.id]);
-});
-
-test("kopian: prishistorikens id är detsamma som lagrets för samma produkt och dag", async () => {
-  const fran = TABELLER.find((t) => t.tabell === "price_history")!.franPostgres({
-    product_id: "p1",
-    observed_on: "2026-10-28",
-    price_minor: 49900,
-    currency: "SEK",
-    recorded_at: new Date("2026-10-28T03:00:00Z"),
-  });
-  await prishistorik.sparaDag("2026-10-28", [{ produktId: "p1", prisMinor: 49900, valuta: "SEK" }]);
-  assert.deepEqual([...kol(K.prishistorik).keys()], [fran.id]);
 });

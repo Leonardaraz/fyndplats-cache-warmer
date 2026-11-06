@@ -1,0 +1,1709 @@
+/* Vår egen kassa (app/kassa/kassa.tsx) med eget sidhuvud och egen sidfot
+   (kassa-ram.tsx). Mobil först. Inget ovanför fälten ändrar höjd medan kunden
+   skriver, och ett fel som rättas lämnar sin rad kvar, så att fälten står
+   still (Wix mobilkassa hoppade, 2026-11-05). Sidans bakgrund är krämvit
+   (app/globals.css) och korten vita. */
+
+.sida {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  color: var(--ink);
+}
+
+.innehall {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 14px 16px 36px;
+  flex: 1 0 auto;
+}
+
+/* ── Sidhuvudet ─────────────────────────────────────────────────────────
+   Inte fast mot skärmen (butikens header är det): på iPhone flyttar en fast
+   rad sig när tangentbordet öppnas. */
+.huvud {
+  position: static;
+  background: #fff;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-bottom: 1px solid var(--line);
+}
+
+.huvudRad {
+  max-width: 1100px;
+  margin: 0 auto;
+  min-height: 60px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.logga {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 19px;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.stegRad {
+  display: none;
+  list-style: none;
+  margin: 0 auto;
+  padding: 0;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-sm);
+  color: var(--soft);
+}
+
+.stegRad li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stegRad li + li::before {
+  content: "";
+  width: 28px;
+  height: 1px;
+  background: #d9cfc4;
+  margin-right: 2px;
+}
+
+.stegRad button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 2px;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.stegRad button:hover {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.stegRadPrick {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid #d9cfc4;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--soft);
+  background: #fff;
+}
+
+.stegRad li[data-steg="klar"] .stegRadPrick {
+  border-color: #157a3a;
+  background: #157a3a;
+  color: #fff;
+}
+
+.stegRad li[data-steg="nu"] {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.stegRad li[data-steg="nu"] .stegRadPrick {
+  border-color: var(--char);
+  background: var(--char);
+  color: #fff;
+}
+
+.huvudSaker {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: #157a3a;
+  white-space: nowrap;
+}
+
+/* ── Sidfoten ───────────────────────────────────────────────────────────
+   Butikens sidfot är mörk och stor (footer i app/globals.css); kassans är
+   en tunn rad med villkoren och kontakten. */
+.fot {
+  margin: 0;
+  padding: 20px 16px calc(24px + env(safe-area-inset-bottom));
+  background: transparent;
+  color: var(--soft);
+  border-top: 1px solid var(--line);
+  text-align: center;
+  font-size: var(--text-xs);
+  line-height: 1.6;
+}
+
+.fotLankar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 18px;
+  margin-bottom: 6px;
+}
+
+.fot a {
+  color: var(--soft);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.fot a:hover {
+  color: var(--ink);
+}
+
+.fotKontakt,
+.fotRatt {
+  margin: 2px 0 0;
+}
+
+/* Sidan efter Klarna (klar/tillbaka.tsx): ett kort mitt på sidan. */
+.klarYta {
+  flex: 1 0 auto;
+  display: grid;
+  place-items: center;
+  padding: 40px 16px;
+  min-height: 60vh;
+  text-align: center;
+}
+
+.klarKort {
+  padding: 32px 24px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--e2);
+}
+
+/* ── Formuläret ───────────────────────────────────────────────────────── */
+.rubrik {
+  font-size: var(--text-xl);
+  line-height: 1.2;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+}
+
+.formular {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.kort {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--e1);
+  padding: 18px 16px 8px;
+}
+
+.steg {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--text-lg);
+  line-height: 1.3;
+  margin: 0 0 14px;
+  letter-spacing: -0.01em;
+}
+
+.nr {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--char);
+  color: #fff;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  flex: none;
+}
+
+.falt {
+  min-width: 0;
+  margin: 0 0 12px;
+}
+
+/* Flytande etikett: står i fältet som en ledtext och flyttar upp när kunden
+   skriver, som i betalfältet (stripe-klient.ts, labels: "floating"). */
+.faltRam {
+  position: relative;
+  min-width: 0;
+}
+
+.input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 56px;
+  padding: 23px 40px 7px 14px;
+  font: inherit;
+  font-size: 16px; /* under 16 px zoomar iPhone in när fältet får fokus */
+  line-height: 1.25;
+  color: var(--ink);
+  background: #fff;
+  border: 1.5px solid #d9cfc4;
+  border-radius: var(--r-sm);
+  outline: none;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.input::placeholder {
+  color: transparent;
+}
+
+.input:hover {
+  border-color: #c9bcae;
+}
+
+.input:focus {
+  border-color: var(--brand);
+  box-shadow: var(--e-ring);
+}
+
+.etikett {
+  position: absolute;
+  left: 15px;
+  top: 17px;
+  max-width: calc(100% - 28px);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 16px;
+  line-height: 1.35;
+  color: var(--soft);
+  pointer-events: none;
+  transform-origin: left top;
+  transition: transform 0.14s ease, color 0.14s ease;
+}
+
+.input:focus + .etikett,
+.input:not(:placeholder-shown) + .etikett {
+  transform: translateY(-9px) scale(0.75);
+  font-weight: 600;
+}
+
+.input:focus + .etikett {
+  color: var(--brand);
+}
+
+/* Webbläsarens autofyll ritar värdet innan sidan ser det: etiketten flyttar upp ändå.
+   Egen regel, så att en webbläsare utan selektorn inte tappar raden ovan. */
+.input:-webkit-autofill + .etikett {
+  transform: translateY(-9px) scale(0.75);
+  font-weight: 600;
+}
+
+/* Webbläsarens autofyll målar fältet blått; kassans fält förblir vita. */
+.input:-webkit-autofill {
+  box-shadow: 0 0 0 1000px #fff inset;
+  -webkit-text-fill-color: var(--ink);
+}
+
+.input:-webkit-autofill:focus {
+  box-shadow: 0 0 0 1000px #fff inset, var(--e-ring);
+}
+
+.faltRamFel .input {
+  border-color: var(--sale-fill);
+}
+
+.faltRamFel .etikett {
+  color: var(--sale-fill);
+}
+
+.faltOk {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  margin-top: -10px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #157a3a;
+  color: #fff;
+  animation: bockIn 0.18s ease-out both;
+}
+
+@keyframes bockIn {
+  from {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+}
+
+.hjalpText,
+.felText {
+  min-height: 17px; /* ett rättat fel lämnar raden kvar: fälten under flyttar inte */
+  margin: 5px 2px 0;
+  font-size: var(--text-xs);
+  line-height: 1.45;
+}
+
+.hjalpText {
+  color: var(--soft);
+}
+
+.felText {
+  color: var(--sale-fill);
+  font-weight: 600;
+}
+
+.forslag {
+  color: var(--ink);
+}
+
+.forslag button {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 700;
+  color: var(--brand);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  word-break: break-all;
+}
+
+.tva {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0 12px;
+}
+
+/* Lika breda på mobil: "Postnummer" får plats utan att kapas. */
+.postrad {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0 12px;
+}
+
+/* Stripes adressfält (steg 2): platshållaren ligger i samma ruta, ovanpå,
+   tills fältet är ritat. Fältet börjar ihopfällt (förnamn, efternamn, adress)
+   och fäller ut sig när kunden väljer ett förslag. */
+.adressYta {
+  position: relative;
+  display: grid;
+  margin: 0 0 12px;
+  container-type: inline-size;
+}
+
+.adressYta > * {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
+/* Stripes ram börjar i mobilhöjd och glider sedan till fältets höjd
+   (narRamenStilla i use-stripe-betalning.ts). Tills den står still ligger den
+   utanför flödet under platshållaren, och platshållaren bestämmer höjden. */
+.adressYta[data-adress="laddar"] > :not(.adressSkelett) {
+  position: absolute;
+  inset: 0 0 auto;
+}
+
+.adressSkelett {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  background: #fff;
+}
+
+.adressSkelett span {
+  display: block;
+  height: 56px;
+  border: 1.5px solid #efe7de;
+  border-radius: var(--r-sm);
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.025) 25%, rgba(0, 0, 0, 0.06) 50%, rgba(0, 0, 0, 0.025) 75%);
+  background-size: 200% 100%;
+  animation: skimmer 1.2s linear infinite;
+}
+
+/* Från 442 px bredd lägger Stripe förnamn och efternamn bredvid varandra, och
+   fältet blir 125 px högt i stället för 193 (uppmätt i webbläsaren 2026-11-06,
+   441 px tre rader, 442 px två). Platshållaren gör likadant, annars hoppade
+   formuläret 68 px när fältet ritades på datorn. */
+@container (min-width: 442px) {
+  .adressSkelett {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .adressSkelett span:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Länet: ett val med fältens ram och flytande etikett. Ett val visar aldrig
+   någon ledtext, så etiketten styrs av om ett län är valt. */
+.val {
+  padding-right: 40px;
+  background: #fff;
+  cursor: pointer;
+  text-overflow: ellipsis;
+}
+
+.val:not(.valIfyllt) + .etikett {
+  transform: none;
+  font-weight: 400;
+}
+
+.valIfyllt + .etikett {
+  transform: translateY(-9px) scale(0.75);
+  font-weight: 600;
+}
+
+.valPil {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  margin-top: -7px;
+  display: grid;
+  color: var(--soft);
+  pointer-events: none;
+}
+
+.lankLiten {
+  display: inline-block;
+  margin: -2px 0 14px;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--brand);
+  cursor: pointer;
+}
+
+.lankLiten:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.lankLiten:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.frakt {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  margin: 2px 0 14px;
+  /* Det valda leveranssättet: mörk ram som stegens siffror. Orange är knapparnas och länkarnas färg. */
+  border: 1.5px solid var(--char);
+  border-radius: var(--r-md);
+  background: #fff;
+  font-size: var(--text-sm);
+}
+
+.fraktIkon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--warm);
+  color: var(--char);
+}
+
+.fraktTid {
+  display: block;
+  color: var(--soft);
+  margin-top: 2px;
+}
+
+.fraktTopp {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.fraktPris {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.gratis {
+  color: #157a3a;
+  font-weight: 700;
+}
+
+/* "Spara mina uppgifter": en egen ruta, eftersom webbläsarens är för liten att träffa på mobil. */
+.komIhag {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 0 12px;
+  padding: 4px 0;
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.komIhag input {
+  position: absolute;
+  opacity: 0;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.komIhagRuta {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1.5px solid #c9bcae;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  color: transparent;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.komIhag input:checked + .komIhagRuta {
+  background: var(--char);
+  border-color: var(--char);
+  color: #fff;
+}
+
+.komIhag input:focus-visible + .komIhagRuta {
+  box-shadow: var(--e-ring);
+  border-color: var(--brand);
+}
+
+.betalUnder {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: -6px 0 14px;
+  font-size: var(--text-xs);
+  color: var(--soft);
+}
+
+.betalText {
+  font-size: var(--text-sm);
+  color: var(--soft);
+  margin: 0 0 6px;
+}
+
+.betalNot {
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--soft);
+  margin: 0 0 12px;
+}
+
+.kupong {
+  margin-top: 14px;
+}
+
+.kupongRad {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+}
+
+.kupongRad .knappSekundar {
+  height: 56px;
+}
+
+.kupongTillagd {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 12px;
+  font-size: var(--text-sm);
+}
+
+.kupongBricka {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #f1faf4;
+  border: 1px solid #b9dfc6;
+  color: #157a3a;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.kupongBelopp {
+  color: #157a3a;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.kupongTillagd .lankLiten {
+  margin: 0 0 0 auto;
+}
+
+.meddelanden {
+  border: 1.5px solid var(--sale-fill);
+  background: #fff5f5;
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  font-size: var(--text-sm);
+  color: #8a1414;
+}
+
+.meddelanden p {
+  margin: 0;
+}
+
+.meddelanden p + p {
+  margin-top: 6px;
+}
+
+.vantar {
+  margin: 0 0 14px;
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+  border-radius: var(--r-md);
+  background: var(--warm);
+  border: 1.5px solid var(--brand);
+  font-size: var(--text-sm);
+  line-height: 1.45;
+}
+
+.vantarText {
+  display: grid;
+  gap: 2px;
+}
+
+.vantarText strong {
+  font-size: var(--text-base);
+}
+
+.vantarKnapp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: var(--r-sm);
+  background: var(--brand);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.vantarKnapp:hover {
+  background: #a9380a;
+}
+
+/* Platshållare för ett belopp medan varukorgen hämtas: samma höjd som texten. */
+.skelett {
+  display: inline-block;
+  width: 64px;
+  height: 0.9em;
+  vertical-align: -0.08em;
+  border-radius: 4px;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.07) 25%, rgba(0, 0, 0, 0.13) 50%, rgba(0, 0, 0, 0.07) 75%);
+  background-size: 200% 100%;
+  animation: skimmer 1.2s linear infinite;
+}
+
+.knapp .skelett {
+  background: rgba(255, 255, 255, 0.35);
+  animation: none;
+}
+
+@keyframes skimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* Väntan på Wix betalsida (servern 1–4 s, sedan Wix sida). Hela skärmen, så
+   att ingen trycker två gånger och kunden ser vad som händer. */
+.vantan {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px calc(24px + env(safe-area-inset-bottom));
+  background: rgba(255, 251, 247, 0.96);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  animation: tonaIn 0.18s ease-out both;
+}
+
+.vantanKort {
+  width: min(340px, 100%);
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.vantanRing {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  margin-bottom: 10px;
+  display: grid;
+  place-items: center;
+  color: var(--brand);
+}
+
+.vantanRing::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid rgba(0, 0, 0, 0.08);
+  border-top-color: var(--brand);
+  animation: snurra 0.9s linear infinite;
+}
+
+.vantanRubrik {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.vantanBelopp {
+  margin: 2px 0 4px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid var(--line);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.vantanUnder {
+  margin: 0 0 14px;
+  font-size: var(--text-sm);
+  color: var(--soft);
+}
+
+.vantanSteg {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  width: 100%;
+  display: grid;
+  gap: 10px;
+  text-align: left;
+}
+
+.vantanSteg li {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  font-size: var(--text-sm);
+  color: var(--soft);
+  transition: color 0.2s ease;
+}
+
+.vantanSteg li[data-lage="nu"] {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.vantanSteg li[data-lage="klar"] {
+  color: var(--ink);
+}
+
+.stegPrick {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #d9cfc4;
+  display: grid;
+  place-items: center;
+  color: #fff;
+}
+
+[data-lage="nu"] > .stegPrick {
+  border-color: var(--brand);
+  border-right-color: transparent;
+  animation: snurra 0.8s linear infinite;
+}
+
+[data-lage="klar"] > .stegPrick {
+  border-color: #157a3a;
+  background: #157a3a;
+}
+
+.vantanBar {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.vantanBar span {
+  display: block;
+  height: 100%;
+  background: var(--brand);
+  transform-origin: left;
+  transform: scaleX(0.4);
+  transition: transform 1.4s cubic-bezier(0.2, 0.7, 0.3, 1);
+  animation: barStart 1.1s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+.vantanBar span[data-steg="1"] {
+  transform: scaleX(0.7);
+  transition-duration: 3s;
+}
+
+.vantanBar span[data-steg="2"] {
+  transform: scaleX(0.95);
+  transition-duration: 6s;
+}
+
+.vantanFot {
+  margin: 12px 0 0;
+  font-size: var(--text-xs);
+  color: var(--soft);
+}
+
+@keyframes snurra {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes tonaIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes barStart {
+  from {
+    transform: scaleX(0.04);
+  }
+}
+
+/* ── Snabbkassan: Apple Pay och Google Pay överst (lib/kassa/snabbkassa.ts) ── */
+.snabb {
+  padding-bottom: 12px;
+}
+
+/* Utan plånbok (eller medan Stripe svarar i en webbläsare utan Apple Pay)
+   står rutan utanför sidan: knapparna måste vara monterade för att Stripe ska
+   kunna säga om de finns, men formuläret ska inte flytta. Den andra raden
+   gäller från första ritningen, innan React tagit över: PLANBOK_SKRIPT
+   (lib/kassa/snabbkassa.ts, körs i app/layout.tsx) sätter data-applepay på
+   <html>. */
+.snabb[data-visas="nej"],
+:global(html[data-applepay="nej"]) .snabb[data-snabb="laddar"] {
+  position: absolute;
+  top: 0;
+  left: -10000px;
+  width: 360px;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.snabbRubrik {
+  font-size: var(--text-lg);
+  line-height: 1.3;
+  margin: 0 0 4px;
+  letter-spacing: -0.01em;
+}
+
+.snabbUnder {
+  margin: 0 0 14px;
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  color: var(--soft);
+}
+
+/* flow-root: Stripes ram har −4 px marginal (plats för fokusringen). Utan egen
+   formateringskontext kollapsade den genom ytan in i avståndet ovanför, och
+   rutan krympte 4 px när knapparna monterades (uppmätt 2026-11-06). */
+.snabbYta {
+  position: relative;
+  display: flow-root;
+  min-height: 52px; /* knappens höjd (SNABB_HOJD) */
+}
+
+.snabbSkelett {
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.06) 25%, rgba(0, 0, 0, 0.11) 50%, rgba(0, 0, 0, 0.06) 75%);
+  background-size: 200% 100%;
+  animation: skimmer 1.2s linear infinite;
+}
+
+.snabbKod {
+  margin: 10px 0 0;
+  font-size: var(--text-sm);
+  color: var(--soft);
+}
+
+.snabbKod .lankLiten {
+  margin: 0;
+}
+
+.eller {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--soft);
+}
+
+:global(html[data-applepay="nej"]) .eller[data-snabb="laddar"] {
+  display: none;
+}
+
+.eller::before,
+.eller::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+/* På egen rad, också på datorn: inline stod den ihop med rabattkodslänken
+   ("i stället ↑Har du en rabattkod?", visuell audit 2026-11-06). */
+.tillSnabb {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0 2px;
+}
+
+.kupongLank {
+  display: block;
+  margin: 10px 0 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vantan,
+  .vantanRing::before,
+  .vantanBar span,
+  .skelett,
+  .snabbSkelett,
+  .faltOk,
+  .knappSnurr,
+  .etikett,
+  .chevron,
+  [data-lage="nu"] > .stegPrick {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* Knappen står sist i formuläret, aldrig fast mot skärmen: en fast knapp
+   flyttar sig när iPhones tangentbord öppnas och stängs, och det var hoppen
+   i Wix mobilkassa som var skälet till den här kassan. */
+.betala {
+  padding: 2px 0 calc(8px + env(safe-area-inset-bottom));
+}
+
+.knapp {
+  width: 100%;
+  min-height: 58px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 0;
+  border-radius: var(--r-md);
+  background: linear-gradient(180deg, #cf4a12 0%, var(--brand) 100%);
+  color: #fff;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.18) inset, var(--e2);
+  transition: transform 0.08s ease, filter 0.12s ease, box-shadow 0.12s ease;
+}
+
+.knapp:hover {
+  filter: brightness(0.94);
+}
+
+.knapp:active {
+  transform: translateY(1px);
+}
+
+.knapp:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--brand);
+}
+
+.knapp:disabled {
+  opacity: 0.75;
+  cursor: progress;
+  filter: none;
+}
+
+.knapp svg {
+  flex: none;
+  opacity: 0.9;
+}
+
+.knappBelopp {
+  font-variant-numeric: tabular-nums;
+  padding-left: 10px;
+  border-left: 1px solid rgba(255, 255, 255, 0.45);
+}
+
+.knappSnurr {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  animation: snurra 0.8s linear infinite;
+}
+
+.knappSekundar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  padding: 0 18px;
+  border-radius: var(--r-sm);
+  border: 1.5px solid var(--char);
+  background: #fff;
+  color: var(--char);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.knappSekundar:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.villkor {
+  margin: 10px 0 0;
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--soft);
+  text-align: center;
+}
+
+.villkor a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.betalMarken :global(.paymarks) {
+  justify-content: center;
+  gap: 5px;
+  margin-top: 12px;
+}
+
+.betalMarken :global(.pay:not(.pay-klarna)) {
+  width: 40px;
+  height: 28px;
+}
+
+/* ── Förtroende: öppet köp, leveransen, betalningen och betyget ──────── */
+.fortroende {
+  margin-top: 16px;
+}
+
+.fortroendeLista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.fortroendeLista li {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  font-size: var(--text-xs);
+  line-height: 1.45;
+  color: var(--soft);
+}
+
+.fortroendeLista strong {
+  display: block;
+  font-size: var(--text-sm);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.fortroendeIkon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--warm);
+  color: var(--brand);
+}
+
+.betyg {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: var(--text-sm);
+  color: var(--soft);
+}
+
+.betyg strong {
+  color: var(--ink);
+}
+
+.betygStjarnor {
+  margin-left: auto;
+  color: #f5a623;
+  letter-spacing: 1px;
+}
+
+.fortroendeMobil {
+  margin-top: 18px;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+}
+
+.fortroendeMobil .fortroende {
+  margin-top: 0;
+}
+
+/* ── Summeringen ──────────────────────────────────────────────────────── */
+.mobilSummering {
+  container-type: inline-size;
+  margin: 0 0 14px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--e1);
+  overflow: hidden;
+}
+
+.visaSummering {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  min-height: 54px;
+  padding: 0 16px;
+  border: 0;
+  background: #fff;
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--brand);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Ingen radbrytning: i 320 px bröts "Visa beställningen (1 vara)" i fyra
+   bitar (visuell audit 2026-11-06). Antalet visas bara när raden har plats
+   för det (containerfrågan nedan; det står också i summeringen), och
+   etiketten kortas med "…" bara som sista utväg. */
+.visaSummeringText {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.visaSummeringText > svg {
+  flex: none;
+}
+
+.visaSummeringEtikett {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.visaSummeringAntal {
+  color: var(--soft);
+  font-weight: 500;
+}
+
+/* Uppmätt: "Visa beställningen" 124 px, "(4 varor)" och ett fyrsiffrigt
+   belopp fick inte plats i 360–390 px. Under 400 px rad står bara etiketten och
+   beloppet, och i de smalaste fönstren (320 px) minskar luften något. */
+@container (max-width: 399px) {
+  .visaSummeringAntal {
+    display: none;
+  }
+}
+
+@container (max-width: 300px) {
+  .visaSummering {
+    gap: 8px;
+    padding: 0 12px;
+  }
+}
+
+.chevron {
+  transition: transform 0.18s ease;
+}
+
+.chevron[data-oppen] {
+  transform: rotate(180deg);
+}
+
+.visaSummering strong {
+  flex: none;
+  white-space: nowrap;
+  color: var(--ink);
+  font-size: var(--text-lg);
+  font-variant-numeric: tabular-nums;
+}
+
+.mobilSummeringInnehall {
+  padding: 14px 16px 12px;
+  border-top: 1px solid var(--line);
+  background: var(--surface-1);
+}
+
+.andraMobil {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px 0 2px;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: none;
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--brand);
+  cursor: pointer;
+}
+
+.sida2 {
+  display: none;
+}
+
+.sidRubrikRad {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 16px;
+}
+
+.sidRubrik {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: var(--text-lg);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.sidRubrikAntal {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--soft);
+}
+
+.andra {
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--brand);
+  cursor: pointer;
+}
+
+.andra:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.rader {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.rad {
+  display: grid;
+  grid-template-columns: 60px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  font-size: var(--text-sm);
+}
+
+.bild {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  border-radius: var(--r-sm);
+  background: #fff;
+  border: 1px solid var(--line);
+}
+
+.bild img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: inherit;
+}
+
+.antal {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 11px;
+  background: var(--char);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+.radText {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.radNamn {
+  min-width: 0;
+  line-height: 1.35;
+  font-weight: 500;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.radVariant {
+  font-size: var(--text-xs);
+  color: var(--soft);
+}
+
+.radPris {
+  font-weight: 600;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.summor {
+  margin: 0;
+  display: grid;
+  gap: 9px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: var(--text-sm);
+}
+
+.summor div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.summor dt,
+.summor dd {
+  margin: 0;
+}
+
+.summor dd {
+  font-variant-numeric: tabular-nums;
+}
+
+.summor .friFrakt {
+  flex-direction: column;
+  gap: 6px;
+  font-size: var(--text-xs);
+  color: #157a3a;
+  font-weight: 600;
+}
+
+.friFraktMatare {
+  height: 6px;
+  border-radius: 3px;
+  background: #e3efe7;
+  overflow: hidden;
+}
+
+.friFraktMatare span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #157a3a;
+  transition: width 0.3s ease;
+}
+
+.rabatt dd {
+  color: #157a3a;
+  font-weight: 600;
+}
+
+.total {
+  padding-top: 12px;
+  margin-top: 2px;
+  border-top: 1px solid var(--line);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  align-items: baseline;
+}
+
+.total dd {
+  font-size: 22px;
+  letter-spacing: -0.01em;
+}
+
+.moms {
+  margin: 4px 0 0;
+  font-size: var(--text-xs);
+  color: var(--soft);
+  text-align: right;
+}
+
+.tom {
+  max-width: 520px;
+  margin: 48px auto;
+  padding: 32px 20px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  text-align: center;
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+}
+
+.tom p {
+  margin: 0;
+  color: var(--soft);
+}
+
+.tomIkon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--warm);
+  color: var(--brand);
+}
+
+@media (min-width: 560px) {
+  .tva {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .postrad {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  }
+}
+
+@media (min-width: 760px) {
+  .stegRad {
+    display: flex;
+  }
+}
+
+@media (min-width: 960px) {
+  .innehall {
+    padding: 28px 24px 56px;
+  }
+
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 400px;
+    gap: 28px;
+    align-items: start;
+  }
+
+  .mobilSummering,
+  .fortroendeMobil {
+    display: none;
+  }
+
+  .sida2 {
+    display: block;
+    position: sticky;
+    top: 24px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    box-shadow: var(--e2);
+    padding: 22px;
+  }
+
+  .kort {
+    padding: 22px 22px 10px;
+  }
+
+  .betala {
+    padding: 0;
+  }
+}
+
+/* Stripe: betalfältet (Payment Element) i steg 3. Platsen hålls medan Stripe.js
+   laddas, så att knappen inte hoppar när fältet kommer. */
+.betalfalt {
+  position: relative;
+  display: flow-root; /* Stripes −4 px marginal stannar i fältet (se .snabbYta) */
+  min-height: 196px;
+  margin: 2px 0 4px;
+}
+
+.betalfalt[data-lage="redo"],
+.betalfalt[data-lage="fel"] {
+  min-height: 0;
+}
+
+.betalfaltLaddar {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.betalfaltLaddar span {
+  display: block;
+  height: 56px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-sm);
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.035) 25%, rgba(0, 0, 0, 0.075) 50%, rgba(0, 0, 0, 0.035) 75%);
+  background-size: 200% 100%;
+  animation: skimmer 1.2s linear infinite;
+}
+
+.betalFel {
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  background: #fff5f5;
+  border: 1.5px solid var(--sale-fill);
+  color: #8a1414;
+  font-size: var(--text-sm);
+  line-height: 1.45;
+}
+
+.betalSaker {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 12px 0 14px;
+  font-size: var(--text-xs);
+  line-height: 1.45;
+  color: var(--soft);
+}
+
+.betalSaker svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+/* Betalningen är godkänd men ordern inte klar efter en minut: webhooken slutför. */
+.klarVantar {
+  margin: 0 0 14px;
+  padding: 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border-radius: var(--r-md);
+  background: #f1faf4;
+  border: 1.5px solid #157a3a;
+  font-size: var(--text-sm);
+  line-height: 1.45;
+}
+
+.klarBock {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #157a3a;
+  color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .betalfaltLaddar span {
+    animation: none;
+  }
+}
+
+.klarBockStor {
+  width: 56px;
+  height: 56px;
+  margin-bottom: 12px;
+}
+
+/* Medlemskorgen: priset är låst, och rabattkoder går inte att lägga till. */
+.medlemsrad {
+  margin: 8px 0 0;
+  font-size: var(--text-sm);
+  color: #157a3a;
+  font-weight: 600;
+}

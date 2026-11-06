@@ -89,11 +89,32 @@ export function fastProv(slugs: readonly string[]): string[] {
 // svarar 202 direkt och värmer efter svaret. Hinner inte heller det klart
 // startar det nästa led, högst MAX_LED.
 
-/** Så många led en värmning får ha efter kronans körning. Ett led hinner
- *  omkring 1 500–1 800 kalla sidor, så åtta led räcker till en katalog på
- *  minst 12 000. Taket finns för att en kedja aldrig ska kunna gå vidare i
- *  oändlighet. */
-export const MAX_LED = 8;
+/** Så många led en värmning får ha efter kronans körning.
+ *
+ *  ☠️ TRE, INTE ÅTTA (2026-11-06). Efter båda nattens deployer värmde led 1–3
+ *  som vanligt, men led 4 fick nej på varje sida direkt: "värmde 0/3736 (fel
+ *  3736)" och "0/2328 (fel 2328)", tusentals hämtningar på tolv sekunder, och
+ *  sedan sa det "katalogen klar". Varje led startas inifrån det förra, så led 4
+ *  ligger fem anrop djupt i butiken själv, och där nekas anropen (troligen
+ *  Vercels skydd mot anrop i slinga). Det djup som fungerade är taket; ett led
+ *  får i stället längre tid (maxDuration 800 i rutten). Taket finns också för
+ *  att en kedja aldrig ska kunna gå vidare i oändlighet. */
+export const MAX_LED = 3;
+
+/** Ett pass där allt nekades: ingenting värmdes och varje hämtning föll. Då är
+ *  katalogen inte klar, och listorna nekas likadant. */
+export function allaNekade(pass: { ok: number; fel: number }): boolean {
+  return pass.ok === 0 && pass.fel > 0;
+}
+
+/** Felkoderna i ett pass för loggen, vanligast först: "508×2328, 0×3".
+ *  0 betyder nätfel eller timeout. */
+export function felkoder(koder: Readonly<Record<string, number>>): string {
+  return Object.entries(koder)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([kod, antal]) => `${kod}×${antal}`)
+    .join(", ");
+}
 
 /** Högsta antal sidor ett led tar emot. Katalogen var 5 092 den 2026-10-23. */
 export const MAX_KVAR = 50_000;

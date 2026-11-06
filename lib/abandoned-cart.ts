@@ -15,8 +15,7 @@
 //   * Convert event cancels pending sends and revokes any minted code
 
 import { Resend } from 'resend';
-import { sql } from './db';
-import { anvanderWix, anvandaAdresser, kundvagnMejl, kundvagnar } from './wix-lager';
+import { anvandaAdresser, kundvagnMejl, kundvagnar } from './wix-lager';
 import { hashAddress, normalisePhone, type NormalisableAddress } from './address-hash';
 import { mintAbandonedCartCoupon, revokeCoupon } from './discount-codes';
 import { renderAbandonedCart1 } from '../emails/abandoned-cart-1';
@@ -82,65 +81,28 @@ function unsubHeaders(email: string): Record<string, string> {
 }
 
 // ---------------------------------------------------------------------------
-// Tabellerna. Varje läsning och skrivning går genom de här, och de väljer
-// lager: Postgres eller Wix CMS (lib/wix-lager.ts, flytten 2026-10-29).
+// Tabellerna. Varje läsning och skrivning går genom de här, mot Wix CMS
+// (lib/wix-lager.ts). Postgres-vägen togs bort 2026-11-05.
 // ---------------------------------------------------------------------------
 
 /** Har adressen fått ett kundvagnsmejl sedan `cutoff` (från en annan vagn än `utomCartId`)? */
 async function mejladNyligen(emailLower: string, cutoff: Date, utomCartId?: string): Promise<boolean> {
-  if (await anvanderWix()) return kundvagnMejl.nyligen(emailLower, cutoff.toISOString(), utomCartId);
-  const recent = utomCartId
-    ? await sql/*sql*/`
-        SELECT 1 FROM sent_emails
-        WHERE LOWER(email) = ${emailLower}
-          AND sent_at >= ${cutoff.toISOString()}
-          AND cart_id <> ${utomCartId}
-        LIMIT 1
-      `
-    : await sql/*sql*/`
-        SELECT 1 FROM sent_emails
-        WHERE LOWER(email) = ${emailLower}
-          AND sent_at >= ${cutoff.toISOString()}
-        LIMIT 1
-      `;
-  return (recent.rowCount ?? 0) > 0;
+  return kundvagnMejl.nyligen(emailLower, cutoff.toISOString(), utomCartId);
 }
 
-/** `INSERT INTO sent_emails … ON CONFLICT (cart_id, step) DO NOTHING`. */
+/** Loggar mejlet, en rad per (vagn, steg); en befintlig rad skrivs inte om. */
 async function loggaMejl(cart: CartRow, step: 1 | 2 | 3, resendId: string | null, discountCode: string | null = null): Promise<void> {
-  if (await anvanderWix()) {
-    await kundvagnMejl.logga({ cartId: cart.id, step, resendId, email: cart.email, discountCode });
-    return;
-  }
-  await sql/*sql*/`
-    INSERT INTO sent_emails (cart_id, step, resend_id, email, discount_code)
-    VALUES (${cart.id}, ${step}, ${resendId}, ${cart.email}, ${discountCode})
-    ON CONFLICT (cart_id, step) DO NOTHING
-  `;
+  await kundvagnMejl.logga({ cartId: cart.id, step, resendId, email: cart.email, discountCode });
 }
 
 /** Sätter vagnens status (och updated_at). */
 async function sattStatus(cartId: string, status: string): Promise<void> {
-  if (await anvanderWix()) {
-    await kundvagnar.uppdatera(cartId, { status });
-    return;
-  }
-  await sql/*sql*/`
-    UPDATE abandoned_carts SET status=${status}, updated_at=NOW() WHERE id=${cartId}
-  `;
+  await kundvagnar.uppdatera(cartId, { status });
 }
 
 /** Flyttar vagnen till nästa steg. */
 async function sattNastaSteg(cartId: string, nextStep: number, nextStepAt: string): Promise<void> {
-  if (await anvanderWix()) {
-    await kundvagnar.uppdatera(cartId, { nextStep, nextStepAt });
-    return;
-  }
-  await sql/*sql*/`
-    UPDATE abandoned_carts
-       SET next_step = ${nextStep}, next_step_at = ${nextStepAt}, updated_at = NOW()
-     WHERE id = ${cartId}
-  `;
+  await kundvagnar.uppdatera(cartId, { nextStep, nextStepAt });
 }
 
 // ---------------------------------------------------------------------------
@@ -166,43 +128,22 @@ export async function enqueueAbandonedCart(input: AbandonedCartInput): Promise<E
 
   const nextStepAt = new Date(input.abandonedAt.getTime() + delays[1]);
 
-  if (await anvanderWix()) {
-    const ny = await kundvagnar.skapa({
-      id: input.cartId,
-      email,
-      phone,
-      shippingAddrHash: addrHash,
-      items: input.items,
-      subtotalMinor: input.subtotalMinor,
-      currency: input.currency ?? 'SEK',
-      recoverUrl: input.recoverUrl ?? null,
-      abandonedAt: input.abandonedAt.toISOString(),
-      nextStepAt: nextStepAt.toISOString(),
-    });
-    return ny
-      ? { enqueued: true, cartId: input.cartId }
-      : { enqueued: false, reason: 'already_exists', cartId: input.cartId };
-  }
-
-  // Idempotent upsert keyed on cartId.
-  const ins = await sql/*sql*/`
-    INSERT INTO abandoned_carts (
-      id, email, phone, shipping_addr_hash, items_json, subtotal_minor,
-      currency, recover_url, abandoned_at, next_step, next_step_at, status
-    ) VALUES (
-      ${input.cartId}, ${email}, ${phone}, ${addrHash},
-      ${JSON.stringify(input.items)}::jsonb, ${input.subtotalMinor},
-      ${input.currency ?? 'SEK'}, ${input.recoverUrl ?? null},
-      ${input.abandonedAt.toISOString()}, 1, ${nextStepAt.toISOString()}, 'pending'
-    )
-    ON CONFLICT (id) DO NOTHING
-    RETURNING id
-  `;
-
-  if (ins.rowCount === 0) {
-    return { enqueued: false, reason: 'already_exists', cartId: input.cartId };
-  }
-  return { enqueued: true, cartId: input.cartId };
+  // Idempotent på cartId: en vagn som redan finns skapas inte igen.
+  const ny = await kundvagnar.skapa({
+    id: input.cartId,
+    email,
+    phone,
+    shippingAddrHash: addrHash,
+    items: input.items,
+    subtotalMinor: input.subtotalMinor,
+    currency: input.currency ?? 'SEK',
+    recoverUrl: input.recoverUrl ?? null,
+    abandonedAt: input.abandonedAt.toISOString(),
+    nextStepAt: nextStepAt.toISOString(),
+  });
+  return ny
+    ? { enqueued: true, cartId: input.cartId }
+    : { enqueued: false, reason: 'already_exists', cartId: input.cartId };
 }
 
 // ---------------------------------------------------------------------------
@@ -231,27 +172,12 @@ export async function onOrderConverted(input: OrderConversionInput): Promise<{
   let revokedCode = false;
   let recordedAddress = false;
 
-  if (input.cartId && (await anvanderWix())) {
+  if (input.cartId) {
     const k = await kundvagnar.konvertera(input.cartId);
     if (k.konverterad) {
       cancelledCart = true;
       if (k.rabattWixId) {
         await revokeCoupon(k.rabattWixId);
-        revokedCode = true;
-      }
-    }
-  } else if (input.cartId) {
-    const rows = await sql/*sql*/`
-      UPDATE abandoned_carts
-         SET status = 'converted', updated_at = NOW()
-       WHERE id = ${input.cartId} AND status = 'pending'
-       RETURNING discount_code_wix_id
-    `;
-    if (rows.rowCount && rows.rowCount > 0) {
-      cancelledCart = true;
-      const wixId = rows.rows[0]?.discount_code_wix_id as string | null;
-      if (wixId) {
-        await revokeCoupon(wixId);
         revokedCode = true;
       }
     }
@@ -263,29 +189,12 @@ export async function onOrderConverted(input: OrderConversionInput): Promise<{
   // E-post är den enda gemensamma nyckeln mellan vagnen och ordern. Avbryt alla
   // kundens pending-vagnar och återkalla ev. kuponger.
   const convEmail = input.email?.toLowerCase().trim() ?? null;
-  if (convEmail && (await anvanderWix())) {
+  if (convEmail) {
     const k = await kundvagnar.konverteraForEpost(convEmail);
     if (k.antal > 0) cancelledCart = true;
     for (const wixId of k.rabattWixIdn) {
       await revokeCoupon(wixId);
       revokedCode = true;
-    }
-  } else if (convEmail) {
-    const rows = await sql/*sql*/`
-      UPDATE abandoned_carts
-         SET status = 'converted', updated_at = NOW()
-       WHERE LOWER(email) = ${convEmail} AND status = 'pending'
-       RETURNING discount_code_wix_id
-    `;
-    if (rows.rowCount && rows.rowCount > 0) {
-      cancelledCart = true;
-      for (const r of rows.rows) {
-        const wixId = r.discount_code_wix_id as string | null;
-        if (wixId) {
-          await revokeCoupon(wixId);
-          revokedCode = true;
-        }
-      }
     }
   }
 
@@ -293,15 +202,7 @@ export async function onOrderConverted(input: OrderConversionInput): Promise<{
   const phone = normalisePhone(input.phone);
   const email = input.email?.toLowerCase().trim() ?? null;
   if (addrHash) {
-    if (await anvanderWix()) {
-      await anvandaAdresser.registrera(addrHash, email, phone);
-    } else {
-      await sql/*sql*/`
-        INSERT INTO used_addresses (hash, email, phone)
-        VALUES (${addrHash}, ${email}, ${phone})
-        ON CONFLICT (hash) DO NOTHING
-      `;
-    }
+    await anvandaAdresser.registrera(addrHash, email, phone);
     recordedAddress = true;
   }
 
@@ -330,17 +231,7 @@ interface CartRow {
 
 export async function fetchDueCarts(limit = 25, nowOverride?: Date): Promise<CartRow[]> {
   const now = (nowOverride ?? new Date()).toISOString();
-  if (await anvanderWix()) return (await kundvagnar.forfallna(now, limit)) as unknown as CartRow[];
-  const result = await sql/*sql*/`
-    SELECT id, email, phone, shipping_addr_hash, items_json, subtotal_minor,
-           currency, recover_url, next_step, next_step_at, status,
-           discount_code, discount_code_wix_id
-      FROM abandoned_carts
-     WHERE status = 'pending' AND next_step_at <= ${now}
-     ORDER BY next_step_at ASC
-     LIMIT ${limit}
-  `;
-  return result.rows as unknown as CartRow[];
+  return (await kundvagnar.forfallna(now, limit)) as unknown as CartRow[];
 }
 
 export interface ProcessResult {
@@ -490,27 +381,13 @@ async function sendStep3(cart: CartRow): Promise<ProcessResult> {
 
   let addressKnown = false;
   if (cart.shipping_addr_hash) {
-    if (await anvanderWix()) {
-      addressKnown = await anvandaAdresser.finnsHash(cart.shipping_addr_hash);
-    } else {
-      const r = await sql/*sql*/`
-        SELECT 1 FROM used_addresses WHERE hash = ${cart.shipping_addr_hash} LIMIT 1
-      `;
-      addressKnown = (r.rowCount ?? 0) > 0;
-    }
+    addressKnown = await anvandaAdresser.finnsHash(cart.shipping_addr_hash);
   }
 
   let phoneKnown = false;
   const phoneNorm = normalisePhone(cart.phone);
   if (phoneNorm) {
-    if (await anvanderWix()) {
-      phoneKnown = await anvandaAdresser.finnsTelefon(phoneNorm);
-    } else {
-      const r = await sql/*sql*/`
-        SELECT 1 FROM used_addresses WHERE phone = ${phoneNorm} LIMIT 1
-      `;
-      phoneKnown = (r.rowCount ?? 0) > 0;
-    }
+    phoneKnown = await anvandaAdresser.finnsTelefon(phoneNorm);
   }
 
   const shouldSendNoCode = belowMin || addressKnown || phoneKnown;
@@ -532,17 +409,7 @@ async function sendStep3(cart: CartRow): Promise<ProcessResult> {
     return sendStep3NoCode(cart);
   }
 
-  if (await anvanderWix()) {
-    await kundvagnar.uppdatera(cart.id, { discountCode: minted.code, discountCodeWixId: minted.wixCouponId });
-  } else {
-    await sql/*sql*/`
-      UPDATE abandoned_carts
-         SET discount_code = ${minted.code},
-             discount_code_wix_id = ${minted.wixCouponId},
-             updated_at = NOW()
-       WHERE id = ${cart.id}
-    `;
-  }
+  await kundvagnar.uppdatera(cart.id, { discountCode: minted.code, discountCodeWixId: minted.wixCouponId });
 
   const subject = '5% extra för att slutföra';
   const { html, text } = await renderAbandonedCart3({

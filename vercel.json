@@ -55,6 +55,18 @@
     {
       "path": "/api/cron/medlemsnivaer",
       "schedule": "40 4 * * *"
+    },
+    {
+      "path": "/api/cron/kassa-stadning",
+      "schedule": "23 * * * *"
+    },
+    {
+      "path": "/api/cron/kassa-stripe",
+      "schedule": "7,22,37,52 * * * *"
+    },
+    {
+      "path": "/api/cron/medlemskorgar",
+      "schedule": "41 * * * *"
     }
   ],
   "ignoreCommand": "[ \"$VERCEL_PROJECT_ID\" = \"prj_cFHNB471xiC8yH1XTJBNMBRpkZfe\" ] && exit 0 || exit 1"

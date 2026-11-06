@@ -1,0 +1,194 @@
+// lib/kassa/formular.test.ts — kassans formulär (lib/kassa/formular.ts).
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { normalPostnr, normalTelefon, provaKassa, KASSA_TEXT, FALT_ORDNING, forstaFel, faltGiltigt, snyggtTelefon, adressFranStripe, ADRESS_FALT, type Falt } from "./formular.ts";
+
+const fullt = {
+  epost: " anna@exempel.se ",
+  fornamn: "Anna",
+  efternamn: "Andersson",
+  telefon: "070-123 45 67",
+  gata: "Storgatan 1",
+  co: "",
+  postnr: "15244",
+  ort: "Södertälje",
+  kupong: "",
+};
+
+test("ett ifyllt formulär normaliseras", () => {
+  const r = provaKassa(fullt);
+  assert.equal(r.ok, true);
+  if (!r.ok) return;
+  assert.equal(r.varden.epost, "anna@exempel.se");
+  assert.equal(r.varden.telefon, "+46701234567");
+  assert.equal(r.varden.postnr, "152 44");
+  assert.equal(r.varden.co, "");
+  assert.equal(r.varden.kupong, "");
+});
+
+test("alla saknade fält visas på en gång, med vad som ska stå där", () => {
+  const r = provaKassa({});
+  assert.equal(r.ok, false);
+  if (r.ok) return;
+  assert.deepEqual(Object.keys(r.fel).sort(), ["efternamn", "epost", "fornamn", "gata", "ort", "postnr", "telefon"]);
+  assert.equal(r.fel.telefon, KASSA_TEXT.telefon.saknas);
+  assert.equal(r.fel.postnr, KASSA_TEXT.postnr.saknas);
+});
+
+test("fel form ger formtexten, inte saknas-texten", () => {
+  const r = provaKassa({ ...fullt, epost: "anna@exempel", telefon: "12", postnr: "0123" });
+  assert.equal(r.ok, false);
+  if (r.ok) return;
+  assert.equal(r.fel.epost, KASSA_TEXT.epost.fel);
+  assert.equal(r.fel.telefon, KASSA_TEXT.telefon.fel);
+  assert.equal(r.fel.postnr, KASSA_TEXT.postnr.fel);
+});
+
+test("postnummer: fem siffror, aldrig nolla först", () => {
+  assert.equal(normalPostnr("152 44"), "152 44");
+  assert.equal(normalPostnr(" 152-44 "), "152 44");
+  assert.equal(normalPostnr("98499"), "984 99");
+  assert.equal(normalPostnr("01234"), null);
+  assert.equal(normalPostnr("1524"), null);
+  assert.equal(normalPostnr("152445"), null);
+  assert.equal(normalPostnr(undefined), null);
+});
+
+test("telefon: svenska och utländska nummer blir E.164", () => {
+  assert.equal(normalTelefon("0701234567"), "+46701234567");
+  assert.equal(normalTelefon("+46 70 123 45 67"), "+46701234567");
+  assert.equal(normalTelefon("0046701234567"), "+46701234567");
+  assert.equal(normalTelefon("+46 070 123 45 67"), "+46701234567");
+  assert.equal(normalTelefon("08-123 456 78"), "+46812345678");
+  assert.equal(normalTelefon("+358 40 123 4567"), "+358401234567");
+  assert.equal(normalTelefon("070"), null);
+  assert.equal(normalTelefon("+46 70 123 45 67 89 01"), null);
+  assert.equal(normalTelefon("abc"), null);
+});
+
+test("c/o och rabattkod är frivilliga men prövas när de finns", () => {
+  const ok = provaKassa({ ...fullt, co: "Berg", kupong: " SPARA5 " });
+  assert.equal(ok.ok, true);
+  if (ok.ok) {
+    assert.equal(ok.varden.co, "Berg");
+    assert.equal(ok.varden.kupong, "SPARA5");
+  }
+  const fel = provaKassa({ ...fullt, co: "x".repeat(61), kupong: "SPARA<5>" });
+  assert.equal(fel.ok, false);
+  if (!fel.ok) {
+    assert.ok(fel.fel.co);
+    assert.equal(fel.fel.kupong, KASSA_TEXT.kupong.fel);
+  }
+});
+
+test("blanksteg och radbrytningar i namn och adress slås ihop", () => {
+  const r = provaKassa({ ...fullt, fornamn: "  Anna \n Maria ", gata: "Storgatan\t1 " });
+  assert.equal(r.ok, true);
+  if (r.ok) {
+    assert.equal(r.varden.fornamn, "Anna Maria");
+    assert.equal(r.varden.gata, "Storgatan 1");
+  }
+});
+
+test("fokus går till det första felet uppifrån, i sidans ordning", () => {
+  // provaKassa lägger telefonens fel efter adressens: utan ordningen hoppade
+  // fokus förbi det tomma mobilnumret till förnamnet.
+  const r = provaKassa({ epost: "anna@exempel.se" });
+  assert.equal(r.ok, false);
+  if (r.ok) return;
+  assert.equal(Object.keys(r.fel)[0], "fornamn");
+  assert.equal(forstaFel(r.fel), "telefon");
+  assert.equal(forstaFel({ ort: "x", postnr: "y" }), "postnr");
+  assert.equal(forstaFel({ kupong: "x" }), "kupong");
+  assert.equal(forstaFel({ epost: "" }), null);
+  assert.equal(forstaFel({}), null);
+  // Varje fält i formuläret står i ordningen, en gång.
+  const alla: Falt[] = ["epost", "fornamn", "efternamn", "telefon", "gata", "rad2", "co", "postnr", "ort", "lan", "kupong"];
+  assert.deepEqual([...FALT_ORDNING].sort(), [...alla].sort());
+});
+
+test("bocken per fält följer samma regler som hela formuläret", () => {
+  const varden: Record<string, string[]> = {
+    epost: ["anna@exempel.se", "anna@exempel", "", " anna@exempel.se ", "a b@c.se", `${"x".repeat(250)}@e.se`],
+    telefon: ["070-123 45 67", "+46701234567", "0046 70 123 45 67", "123", "", "070123456789012"],
+    postnr: ["15244", "152 44", "05244", "1524", ""],
+    fornamn: ["Anna", "", "  ", "x".repeat(61)],
+    efternamn: ["Andersson", ""],
+    gata: ["Storgatan 1", "", "x".repeat(101)],
+    ort: ["Södertälje", ""],
+  };
+  for (const [f, lista] of Object.entries(varden)) {
+    for (const v of lista) {
+      const hela = provaKassa({ ...fullt, [f]: v });
+      const giltigtIHela = hela.ok || !(f in hela.fel);
+      assert.equal(faltGiltigt(f as Falt, v), giltigtIHela, `${f}: ${JSON.stringify(v)}`);
+    }
+  }
+  // Frivilliga fält: tomma får ingen bock, men fäller inte heller formuläret.
+  assert.equal(faltGiltigt("co", ""), false);
+  assert.equal(faltGiltigt("co", "Berg"), true);
+  assert.equal(faltGiltigt("co", "x".repeat(61)), false);
+  assert.equal(faltGiltigt("kupong", "SPARA5"), false);
+});
+
+test("svenska mobilnummer skrivs som kunden känner igen dem, allt annat lämnas", () => {
+  assert.equal(snyggtTelefon("0701234567"), "070 123 45 67");
+  assert.equal(snyggtTelefon("070-123 45 67"), "070 123 45 67");
+  assert.equal(snyggtTelefon("+46 70 123 45 67"), "070 123 45 67");
+  assert.equal(snyggtTelefon("0046701234567"), "070 123 45 67");
+  assert.equal(snyggtTelefon("+460701234567"), "070 123 45 67");
+  // Fast nummer, utländskt, ofullständigt och tomt: som kunden skrev.
+  for (const v of ["08-123 456 78", "+47 912 34 567", "070123", "", "  "]) assert.equal(snyggtTelefon(v), v);
+  // Det snygga numret blir samma nummer hos Wix.
+  assert.equal(normalTelefon(snyggtTelefon("0701234567")), normalTelefon("0701234567"));
+});
+
+test("länet: kundens giltiga val står kvar, annars kommer det ur postnumret", () => {
+  const ur = (over: Record<string, unknown>) => {
+    const r = provaKassa({ ...fullt, ...over });
+    assert.equal(r.ok, true);
+    return r.ok ? r.varden.lan : "";
+  };
+  assert.equal(ur({}), "SE-AB", "Södertälje 152 44 ligger i Stockholms län");
+  assert.equal(ur({ postnr: "434 41", ort: "Kungsbacka" }), "SE-N");
+  assert.equal(ur({ lan: "SE-O", postnr: "434 41" }), "SE-O", "kundens val vinner");
+  assert.equal(ur({ lan: "se-m" }), "SE-M", "versaler spelar ingen roll");
+  assert.equal(ur({ lan: "SE-Q" }), "SE-AB", "ett påhittat län ersätts av postnumrets");
+  assert.equal(ur({ lan: 7 }), "SE-AB");
+  assert.equal(ur({ postnr: "322 00" }), "", "okänt prefix: inget län, och formuläret fälls inte");
+});
+
+test("adressrad 2 är frivillig, högst 60 tecken, och skickas som den skrevs", () => {
+  const r = provaKassa({ ...fullt, rad2: " lgh 1201 " });
+  assert.equal(r.ok, true);
+  if (r.ok) assert.equal(r.varden.rad2, "lgh 1201");
+  const lang = provaKassa({ ...fullt, rad2: "x".repeat(61) });
+  assert.equal(lang.ok, false);
+  if (!lang.ok) assert.equal(lang.fel.rad2, KASSA_TEXT.rad2.fel);
+  assert.equal(faltGiltigt("lan", "SE-N"), true);
+  assert.equal(faltGiltigt("lan", "SE-Q"), false);
+});
+
+test("Stripes adressfält blir kassans fält, med länet ur Googles förslag eller postnumret", () => {
+  // Uppmätt lokalt 2026-11-06: förslaget fyller gata, postnummer, postort och state.
+  const fran = adressFranStripe({
+    firstName: " Anna ",
+    lastName: "Andersson",
+    address: { line1: "Storgatan 1", line2: null, city: "Kungsbacka", state: "Hallands län", postal_code: "434 41" },
+  });
+  assert.deepEqual(fran, { fornamn: "Anna", efternamn: "Andersson", gata: "Storgatan 1", rad2: "", postnr: "434 41", ort: "Kungsbacka", lan: "SE-N" });
+  // Inskrivet för hand: inget state, länet ur postnumret, postnumret skrivs "111 48".
+  assert.equal(adressFranStripe({ address: { postal_code: "11148" } }).lan, "SE-AB");
+  assert.equal(adressFranStripe({ address: { postal_code: "11148" } }).postnr, "111 48");
+  // Ofullständigt postnummer står kvar som kunden skrev det, utan län.
+  assert.deepEqual(adressFranStripe({ address: { postal_code: "434" } }), { fornamn: "", efternamn: "", gata: "", rad2: "", postnr: "434", ort: "", lan: "" });
+  assert.equal(adressFranStripe({}).lan, "");
+  // Googles state går före postnumret (länsgränser som tabellen inte känner).
+  assert.equal(adressFranStripe({ address: { state: "Skåne län", postal_code: "111 48" } }).lan, "SE-M");
+});
+
+test("adressens fält i Stripes fält: kontakten och rabattkoden är kassans egna", () => {
+  for (const f of ["fornamn", "efternamn", "gata", "rad2", "co", "postnr", "ort"] as const) assert.ok(ADRESS_FALT.includes(f), f);
+  for (const f of ["epost", "telefon", "kupong", "lan"] as const) assert.ok(!ADRESS_FALT.includes(f), f);
+});
+

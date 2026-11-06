@@ -7,7 +7,7 @@
 //
 // Vad den gör: hämtar ordrar som fulfillades för 7 dagar sedan (≈ levererade och
 // kunden har hunnit använda produkten) och ber om ett Trustpilot-omdöme. Två
-// vägar, idempotent per order via `trustpilot_invites`:
+// vägar, idempotent per order via `trustpilot` i lib/wix-lager.ts:
 //   • TRUSTPILOT_API_KEY satt → Trustpilot AFS-inbjudan (Trustpilot mejlar).
 //   • Annars → branded Resend-mejl med en evaluate-länk (gratis-vägen).
 //
@@ -26,8 +26,7 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { render } from "@react-email/render";
-import { sql, runMigration } from "@/lib/db";
-import { anvanderWix, trustpilot } from "@/lib/wix-lager";
+import { trustpilot } from "@/lib/wix-lager";
 import { cronClock, isSwedishHour } from "@/lib/cron-time";
 import {
   isTrustpilotConfigured,
@@ -59,18 +58,11 @@ function isAuthorised(request: Request): boolean {
 }
 
 async function alreadyInvited(orderId: string): Promise<boolean> {
-  if (await anvanderWix()) return trustpilot.finns(orderId);
-  const { rows } = await sql/*sql*/`SELECT 1 FROM trustpilot_invites WHERE order_id = ${orderId} LIMIT 1`;
-  return rows.length > 0;
+  return trustpilot.finns(orderId);
 }
 
 async function recordInvite(orderId: string, email: string, channel: string, resendId?: string): Promise<void> {
-  if (await anvanderWix()) return trustpilot.registrera(orderId, email, channel, resendId ?? null);
-  await sql/*sql*/`
-    INSERT INTO trustpilot_invites (order_id, email, channel, resend_id)
-    VALUES (${orderId}, ${email}, ${channel}, ${resendId ?? null})
-    ON CONFLICT (order_id) DO NOTHING
-  `;
+  return trustpilot.registrera(orderId, email, channel, resendId ?? null);
 }
 
 export async function GET(request: Request) {
@@ -96,13 +88,6 @@ export async function GET(request: Request) {
   const daysParam = url.searchParams.get("days");
   const offset = daysParam != null ? Math.max(0, Math.min(60, Number(daysParam))) : DELIVERY_OFFSET_DAYS;
   const targetDay = new Date(Date.now() - offset * 24 * 60 * 60 * 1000);
-
-  // Säkerställ idempotens-tabellen (idempotent migration).
-  try {
-    await runMigration();
-  } catch (e) {
-    console.error("[trustpilot-invite] migration failed", (e as Error).message);
-  }
 
   const found = await fetchOrdersFulfilledOn(targetDay, { lookbackDays: offset + 14 });
   if (!found.ok) {

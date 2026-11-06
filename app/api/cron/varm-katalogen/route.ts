@@ -29,6 +29,12 @@
 // och hinner det inte heller klart startar det nästa, högst MAX_LED. Listorna
 // värms av det led som gör katalogen klar. Se lib/warm-urval.ts.
 //
+// ☠️ LED 4 NEKADES (2026-11-06): ett led längre in än tre fick nej på varje
+// sida, och kedjan sa ändå "katalogen klar", så 2 300–3 700 produktsidor och
+// alla listor förblev kalla. Nu är taket tre led med 700 s vardera i stället
+// för åtta med 200, felens statuskoder står i loggen, och ett pass där allt
+// nekades kallas aldrig klart.
+//
 // AUTH: samma konvention som grannarna — Vercel Cron skickar
 // "Authorization: Bearer $CRON_SECRET". Är secreten osatt kör rutten ändå men
 // loggar en varning; exponeringen är att någon renderar VÅRA EGNA sidor, vilket
@@ -41,18 +47,23 @@ import { getCollections, getProductSitemapEntries } from "../../../../lib/produc
 import { hamtaKundvagnsUnderlag } from "../../../../lib/kundvagn-underlag";
 import { bearerVarde, sammaHemlighet } from "../../../../lib/hemlig-jamforelse";
 import {
-  arSakerSlug, katalogenArKall, kvarEfterPass, roterad, startaLed, tolkaLed, varmAlla, varmBildkartan, varmListor,
+  allaNekade, arSakerSlug, felkoder, katalogenArKall, kvarEfterPass, roterad, startaLed, tolkaLed, varmAlla, varmBildkartan,
+  varmListor, type Pass,
 } from "../../../../lib/warm";
 import type { ListNyckel } from "../../../../lib/list-key";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 300;
+export const maxDuration = 800;
 
 /** Värmningen slutar påbörja nya omgångar efter så här lång tid. En omgång kan
  *  ta upp till 60 s (varmSida), och att starta nästa led upp till ~32 s, så
- *  200 s håller båda inom maxDuration 300. */
-const VARMNING_MS = 200_000;
+ *  700 s håller båda inom maxDuration 800. Ett led hann 250–700 kalla sidor på
+ *  200 s natten mot 2026-11-06; med 700 s räcker tre led till hela katalogen. */
+const VARMNING_MS = 700_000;
+
+/** "(fel 12: 508×10, 0×2)" för loggraden, tomt utan fel. */
+const felText = (pass: Pass) => (pass.fel ? ` (fel ${pass.fel}: ${felkoder(pass.koder)})` : "");
 
 type AuthUtfall = "ok" | "fel-token" | "oskyddad";
 
@@ -126,9 +137,14 @@ export async function GET(request: Request) {
   const ordning = roterad(slugs);
   const varmning = await varmAlla(ordning, deadline);
   const rad = `[varm-katalogen] prov ${prov.missar}/${prov.av} MISS → kall. `
-    + `Värmde ${varmning.ok}/${slugs.length}${varmning.fel ? ` (fel ${varmning.fel})` : ""}. `
+    + `Värmde ${varmning.ok}/${slugs.length}${felText(varmning)}. `
     + `Bildkartan: ${bildkartan ? "ok" : "misslyckades"}. `
     + `Varukorgens underlag: ${kundvagnsUnderlag === null ? "misslyckades" : `${kundvagnsUnderlag} varor`}. `;
+
+  if (allaNekade(varmning)) {
+    console.error(`${rad}Varje hämtning nekades: ingen kedja och inga listor, nästa körning försöker igen.`);
+    return NextResponse.json({ ok: false, katalog: slugs.length, prov, varmning, kedja: null, bildkartan, kundvagnsUnderlag, listor: null });
+  }
 
   if (varmning.avbruten) {
     // Resten tas av kedjan. Listorna värms av det led som gör katalogen klar,
@@ -175,11 +191,20 @@ export async function POST(request: Request) {
   after(async () => {
     const deadline = start + VARMNING_MS;
     const pass = await varmAlla(kvar, deadline);
+    if (allaNekade(pass)) {
+      // Ett led där varje sida nekades är ingen klar katalog (2026-11-06: led 4
+      // sa "katalogen klar" efter 0 av 3 736). Inga fler led och inga listor.
+      console.error(
+        `[varm-katalogen] led ${led}: varje hämtning nekades${felText(pass)}. `
+          + `Kedjan stannar: ${kvar.length} sidor förblir kalla tills de besöks.`,
+      );
+      return;
+    }
     if (pass.avbruten) {
       const rest = kvarEfterPass(kvar, pass);
       const nasta = await startaLed(rest, led + 1);
       console.log(
-        `[varm-katalogen] led ${led}: värmde ${pass.ok}/${kvar.length}${pass.fel ? ` (fel ${pass.fel})` : ""}, `
+        `[varm-katalogen] led ${led}: värmde ${pass.ok}/${kvar.length}${felText(pass)}, `
           + `${rest.length} kvar → led ${led + 1}: ${nasta}`,
       );
       if (nasta !== "startat") {
@@ -190,8 +215,8 @@ export async function POST(request: Request) {
     const { alla } = listnycklar(await getCollections());
     const listor = await varmListor(alla, deadline);
     console.log(
-      `[varm-katalogen] led ${led}: värmde ${pass.ok}/${kvar.length}${pass.fel ? ` (fel ${pass.fel})` : ""} — katalogen klar. `
-        + `Listor: ${listor.ok}/${alla.length}${listor.avbruten ? " (avbruten på deadline)" : ""}`,
+      `[varm-katalogen] led ${led}: värmde ${pass.ok}/${kvar.length}${felText(pass)} — katalogen klar. `
+        + `Listor: ${listor.ok}/${alla.length}${felText(listor)}${listor.avbruten ? " (avbruten på deadline)" : ""}`,
     );
   });
 

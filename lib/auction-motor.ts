@@ -13,8 +13,10 @@
 // ser det. Samma lärdom som spårningssidan 2026-09-01 och recensionerna
 // 2026-09-02, och därför skrivs butiken om FÖRE raderingen.
 //
-// Motorn (cache-warmer, grenen main) svarar ur det lager AUCTIONS_BACKEND
-// pekar på, så butiken följer med i växlingen utan en egen deploy.
+// Raderna bodde i motorns Postgres 2026-09-30 till 2026-10-29 och bor i Wix
+// igen sedan dess; motorns AUCTIONS_BACKEND och Postgres-vägen togs bort
+// 2026-11-05. Butiken går ändå bara via motorn (cache-warmer, grenen main):
+// motorn äger prisstegen, återställningen och avslutet.
 //
 // LÖVMODUL med flit: inga sido-importer, så `node --test` kan ladda den.
 //

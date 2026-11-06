@@ -8,12 +8,16 @@
 // som räknas var förut två listor med samma ordrar; nu bär varje order sitt
 // bidrag till nivån.
 
+import type { ReactNode } from "react";
 import Image from "next/image";
 import { dagSomText, kronor, stockholmsDag, type Nivalage } from "@/lib/medlem/niva";
 import { maskeradEpost } from "@/lib/medlem/inloggning";
 import type { MinaSidor, OrderPaMinaSidor } from "@/lib/medlem/konto";
-import { arHogstaNivan, inteRaknadText, visaSparningVantas, visaUppmaning } from "@/lib/medlem/visning";
+import { arHogstaNivan, inteRaknadText, visaKvitto, visaSparningVantas, visaUppmaning } from "@/lib/medlem/visning";
 import { Medlemskort, nivaNyckel } from "./medlemskort";
+import { KopIgen } from "./kop-igen";
+import { SparadeKorgar } from "./sparade-korgar";
+import type { SparadKorgVy } from "@/lib/medlem/sparade";
 import s from "./konto.module.css";
 
 const STATUS: Record<OrderPaMinaSidor["status"], { text: string; ton: "ok" | "varning" | "neutral" }> = {
@@ -24,11 +28,19 @@ const STATUS: Record<OrderPaMinaSidor["status"], { text: string; ton: "ok" | "va
   obetald: { text: "Inte betald", ton: "varning" },
 };
 
-/** Texten tills medlemspriset finns i kassan (E2). */
+/** Texten tills medlemspriset gäller för medlemmen (prisväxeln, E2). */
 export const RABATT_INTE_AN = "Medlemsrabatten gäller ännu inte i kassan.";
+
+/** När medlemspriset gäller: var det syns och vad det inte gäller (Leonard 2026-11-05, 2.1). */
+export const PRIS_GALLER = "Ditt medlemspris visas på varorna, i varukorgen och i kassan.";
+export const RABATT_UNDANTAG =
+  "Medlemsrabatten gäller det mesta i sortimentet, men inte reavaror eller Fyndauktionen, och går inte att kombinera med rabattkoder.";
 
 /** Produktens bild och adress ur katalogen, per Wix-produkt-id. */
 export type Produktbilder = Record<string, { img?: string; slug?: string }>;
+
+/** E3: kontots sparade varukorgar, och om nya får sparas (växeln för E2/E3). */
+export type SparadeKorgarVy = { korgar: SparadKorgVy[]; kanSpara: boolean };
 
 const MANAD_AR = new Intl.DateTimeFormat("sv-SE", { month: "long", year: "numeric", timeZone: "Europe/Stockholm" });
 
@@ -50,7 +62,25 @@ function Paket() {
   );
 }
 
-export function MinaSidorVy({ data, bilder: produkter = {} }: { data: MinaSidor; bilder?: Produktbilder }) {
+export function MinaSidorVy({
+  data,
+  bilder: produkter = {},
+  foretag,
+  handlarSom,
+  sparade,
+  prisOppet = false,
+}: {
+  data: MinaSidor;
+  bilder?: Produktbilder;
+  /** E3: företagskontots ruta, när prisväxeln släpper fram den. */
+  foretag?: ReactNode;
+  /** E3: företagets namn när kontot handlar som företaget. */
+  handlarSom?: string | null;
+  /** E3: sparade varukorgar; saknas när växeln är av och kontot inte har några, eller när de inte gick att läsa. */
+  sparade?: SparadeKorgarVy;
+  /** Medlemspriset gäller för medlemmen (`prisOppet`): då lovar sidan inget som redan finns. */
+  prisOppet?: boolean;
+}) {
   const { lage, regler, ordrar, medlem } = data;
   const raknas = new Map(lage.raknade.map((r) => [r.orderId, r]));
   const sedan = medlem.skapad && !Number.isNaN(Date.parse(medlem.skapad)) ? MANAD_AR.format(new Date(medlem.skapad)) : null;
@@ -66,6 +96,11 @@ export function MinaSidorVy({ data, bilder: produkter = {} }: { data: MinaSidor;
           <p className={s.ogonbryn}>Mina sidor</p>
           <h1 className={s.rubrik}>Välkommen tillbaka</h1>
           <p className={s.vem}>Inloggad som {maskeradEpost(medlem.epost)}</p>
+          {handlarSom ? (
+            <p className={s.handlarSom}>
+              Du handlar som <a href="#foretag">{handlarSom}</a>
+            </p>
+          ) : null}
         </div>
         <form action="/api/konto/ut" method="post">
           <button type="submit" className={s.utknapp}>
@@ -117,10 +152,17 @@ export function MinaSidorVy({ data, bilder: produkter = {} }: { data: MinaSidor;
               {lage.manuell.tillDag !== null ? ` till och med ${dagSomText(lage.manuell.tillDag)}` : ""}.
             </p>
           ) : null}
-          <p className={s.snart}>
-            <span className={s.snartPrick} aria-hidden="true" />
-            Medlemspriser i kassan kommer snart. Din nivå räknas redan nu.
-          </p>
+          {prisOppet ? (
+            <p className={s.snart} data-pa="">
+              <span className={s.snartPrick} aria-hidden="true" />
+              {PRIS_GALLER}
+            </p>
+          ) : (
+            <p className={s.snart}>
+              <span className={s.snartPrick} aria-hidden="true" />
+              Medlemspriser i kassan kommer snart. Din nivå räknas redan nu.
+            </p>
+          )}
         </section>
       </div>
 
@@ -170,7 +212,7 @@ export function MinaSidorVy({ data, bilder: produkter = {} }: { data: MinaSidor;
           </li>
         ))}
       </ol>
-      <p className={s.not}>{RABATT_INTE_AN} Rabatterna gäller från att medlemspriserna startar.</p>
+      <p className={s.not}>{prisOppet ? RABATT_UNDANTAG : `${RABATT_INTE_AN} Rabatterna gäller från att medlemspriserna startar.`}</p>
 
       <h2 className={s.underrubrik}>Dina ordrar</h2>
       {ordrar.length ? (
@@ -231,16 +273,29 @@ export function MinaSidorVy({ data, bilder: produkter = {} }: { data: MinaSidor;
                       inteRaknadText(o.status, alder)
                     )}
                   </p>
-                  {o.sparning.length ? (
+                  {!o.sparning.length && visaSparningVantas(o.status, alder) ? (
+                    <p className={s.orderNot}>Spårning kommer när paketet har skickats.</p>
+                  ) : null}
+                  {o.sparning.length || o.kopIgen || visaKvitto(o.status) ? (
                     <div className={s.orderKnappar}>
                       {o.sparning.map((tn, i) => (
                         <a key={tn} className={s.sparknapp} href={`/sparning?tn=${encodeURIComponent(tn)}`}>
                           Spåra paketet{o.sparning.length > 1 ? ` ${i + 1}` : ""}
                         </a>
                       ))}
+                      {o.kopIgen ? <KopIgen ordernummer={o.ordernummer} /> : null}
+                      {visaKvitto(o.status) ? (
+                        <a
+                          className={s.kopIgen}
+                          href={`/api/konto/kvitto/${encodeURIComponent(o.ordernummer)}`}
+                          target="_blank"
+                          rel="noopener"
+                          aria-label={`Kvitto för order ${o.ordernummer} som PDF`}
+                        >
+                          Kvitto (PDF)
+                        </a>
+                      ) : null}
                     </div>
-                  ) : visaSparningVantas(o.status, alder) ? (
-                    <p className={s.orderNot}>Spårning kommer när paketet har skickats.</p>
                   ) : null}
                 </div>
               </li>
@@ -253,6 +308,25 @@ export function MinaSidorVy({ data, bilder: produkter = {} }: { data: MinaSidor;
           <p className={s.tom}>Ordrar du lägger med {maskeradEpost(medlem.epost)} visas här, med spårning och vad de räknas för.</p>
         </div>
       )}
+
+      {sparade ? <SparadeKorgar korgar={sparade.korgar} kanSpara={sparade.kanSpara} /> : null}
+
+      {foretag}
+
+      {/* Mejlen om nivån går att stänga av (marknadsföringslagen); länken i
+          mejlen leder hit eller till /konto/avregistrera. */}
+      <div className={s.installning} id="mejl">
+        <p className={s.installningText}>
+          <strong>Mejl om din nivå: {medlem.nivamejl === false ? "av" : "på"}.</strong> Vi mejlar när du når en ny nivå och två
+          veckor innan din nivå sjunker.
+        </p>
+        <form action="/api/konto/nivamejl" method="post">
+          <input type="hidden" name="pa" value={medlem.nivamejl === false ? "1" : "0"} />
+          <button type="submit" className={s.utknapp}>
+            {medlem.nivamejl === false ? "Slå på" : "Stäng av"}
+          </button>
+        </form>
+      </div>
 
       <details className={s.forklaring}>
         <summary>Så räknas din nivå</summary>

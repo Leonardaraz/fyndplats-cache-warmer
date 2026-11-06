@@ -59,9 +59,18 @@
 //
 // app/layout.tsx preconnectar dessutom till js.klarna.com, vilket kapar
 // TLS-handskakningen ovan (~430 ms av kedjan).
+//
+// ── Stripe-kassan (2026-11-06) ───────────────────────────────────────────────
+// Widgeten visar villkoren i Leonards Klarna-avtal, som gäller i Wix kassa. När
+// Stripe-kassan är på för alla betalar kunden med Stripes Klarna, och då står
+// bara vår statiska rad här (useKlarnaRuta, skälen vid klarnaRuta i
+// lib/kassa/stripe-klient.ts). Medan svaret väntar hålls raden osynlig som i
+// läget "vantar": blir svaret OSM tar widgeten över utan byte, blir det den
+// statiska raden dyker den upp.
 
 import { useEffect, useRef, useState } from "react";
 import { useMarketingConsent } from "../lib/use-marketing-consent";
+import { useKlarnaRuta } from "../lib/use-klarna-ruta";
 import { toMinorUnits } from "../lib/klarna-price";
 import { KlarnaMessage } from "./klarna-message";
 
@@ -134,6 +143,8 @@ type Lage =
 
 export function KlarnaOSM({ priceNum }: { priceNum: number }) {
   const consent = useMarketingConsent();
+  const ruta = useKlarnaRuta();
+  const osm = consent && ruta === "osm";
   // En flagga i state, inte ett läge: samtycket är redan känt vid render, så
   // att spegla in det hade bara gett en extra rendering (och en
   // react-hooks/set-state-in-effect-varning på köpet). Läget HÄRLEDS av de två.
@@ -150,7 +161,7 @@ export function KlarnaOSM({ priceNum }: { priceNum: number }) {
         : "vantar";
 
   useEffect(() => {
-    if (!consent) return;
+    if (!osm) return;
 
     // Klarna OSM hydrerar automatiskt när SDK:t hittar <klarna-placement>.
     // Vi kickstartar refresh() om SDK:t redan var laddat vid montering (t.ex.
@@ -189,14 +200,24 @@ export function KlarnaOSM({ priceNum }: { priceNum: number }) {
       }
     }, POLL_MS);
     return () => window.clearInterval(int);
-  }, [consent, priceNum]);
+  }, [osm, priceNum]);
 
   if (!priceNum || priceNum <= 0) return null;
 
-  // Utan samtycke: bara den statiska raden. Den är komplianssäker på egen hand
-  // (enbart "Betala inom 30 dagar — räntefritt" om månadsfakturan, aldrig ett
-  // månadsbelopp eller delbetalning).
-  if (!consent) return <KlarnaMessage priceNum={priceNum} />;
+  // Utan samtycke, och med Stripe-kassan: bara den statiska raden. Den är
+  // komplianssäker på egen hand (enbart "Betala senare – räntefritt" om
+  // fakturan, aldrig ett månadsbelopp eller delbetalning) och stämmer i båda
+  // kassorna.
+  if (!consent || ruta === "statisk") return <KlarnaMessage priceNum={priceNum} />;
+
+  // Svaret om kassan väntar: raden håller höjden osynligt, som i "vantar".
+  if (ruta === null) {
+    return (
+      <div className="klarna-osm-wrap" data-osm="vantar">
+        <KlarnaMessage priceNum={priceNum} />
+      </div>
+    );
+  }
 
   return (
     <div className="klarna-osm-wrap" data-osm={lage}>

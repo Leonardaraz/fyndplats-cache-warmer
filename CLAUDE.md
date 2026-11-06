@@ -68,9 +68,21 @@ fort någon tittade (kund, sökmotor, länkförladdning).
   stickprovssidor fortfarande kalla (1,1 s mot 0,4). Ett pass som stoppas på
   sin deadline lämnar nu resten till ett led: ett POST till samma rutt med
   listan i kroppen och `CRON_SECRET`, som svarar 202 och värmer efter svaret.
-  Högst åtta led (`MAX_LED` i `lib/warm-urval.ts`), och listorna värms av det
+  Högst tre led (`MAX_LED` i `lib/warm-urval.ts`), och listorna värms av det
   led som gör katalogen klar. Läs `[varm-katalogen] led N`-raderna i loggen
   efter en deploy: den sista ska säga `katalogen klar`.
+- ☠️ **Led 4 nekades, och kedjan sa ändå "katalogen klar" (2026-11-06).**
+  Efter båda nattens deployer värmde led 1–3 som vanligt (248–704 sidor
+  vardera på 200 s), men led 4 fick nej på varje sida direkt: "värmde 0/3736
+  (fel 3736) — katalogen klar. Listor: 0/139", tusentals hämtningar på tolv
+  sekunder. Varje led startas inifrån det förra, och fem anrop djupt nekas
+  anropen (troligen Vercels skydd mot anrop i slinga). 2 300–3 700
+  produktsidor och alla listor förblev kalla, och provet (de tolv fasta
+  sidorna) såg varmt ut, så ingen körning tog vid. Leonard bad om manuell
+  uppvärmning samma morgon. Nu: högst tre led, 700 s per körning
+  (`maxDuration` 800), felens statuskoder i loggraden (`fel 2328: 508×2328`),
+  och ett pass där varje hämtning nekades (`allaNekade`) kallas aldrig klart
+  och startar ingen kedja.
 - Menyns siffror hämtas från `/api/meny-antal` och varukorgens förslag från
   `/api/kundvagn-forslag`, i webbläsaren. Länkarna ligger kvar i HTML:en.
 - `validFrom` är första dagen i månaden och `priceValidUntil` sista dagen i
@@ -575,68 +587,97 @@ local `node_modules` carries pnpm's `.modules.yaml`). When adding deps: run
 `package-lock.json` in sync. Don't `npm install` packages directly — it leaves
 `pnpm-lock.yaml` stale and the dep won't install on deploy.
 
-## Butikens tabeller flyttar från Neon till Wix CMS (2026-10-29)
+## Butikens tabeller bor i Wix CMS (flyttade 2026-10-29, Postgres borta 2026-11-05)
 
 Leonard köpte Wix Elite 2026-10-28 (10 miljoner rader) och bad om att allt i
-Neon flyttar tillbaka till Wix. Butiken har en **egen** Neon-databas, så
-den flyttar för sig: motorns flytt står i motorns `CLAUDE.md` (grenen `main`).
+Neon flyttar tillbaka till Wix. Butiken hade en **egen** Neon-databas, så
+den flyttade för sig: motorns flytt står i motorns
+`docs/claude/40-flytten-tillbaka-till-wix.md` (grenen `main`).
 
 Femton tabeller: kundvagnarna och deras mejl, använda adresser, spårningen
 (`tracking_mapping`), sms-loggarna, leveransnotiserna, webhook-mejlen,
 nyhetsbrevet, orderspegeln, Trustpilot-inbjudningarna, prishistoriken,
 orderbekräftelserna, ångerärendena och fraktmejlskön.
 
-`lib/wix-lager.ts` är Wix-lagret: klienten, växeln och en del per tabell med
-samma läsningar och skrivningar som SQL-satserna. Varje modul frågar växeln
-först (`anvanderWix()`), och Postgres-vägen står kvar tills Neon stängs.
+`lib/wix-lager.ts` är Wix-lagret: klienten och en del per tabell med samma
+läsningar och skrivningar som SQL-satserna hade. Rubrikerna i filen bär
+Postgres-tabellens namn, och loggraderna använder dem fortfarande.
 
-| steg | vad | kräver bygge? |
-|---|---|:---:|
-| 1 | koden, med växeln på Postgres | **ja** (buntas med annat) |
-| 2 | kollektionerna i Wix, ADMIN, index, och växelns rad (`lager: postgres`) | nej |
-| 3 | `kopiera`, sedan `verifiera` (motorns workflow, läget butik) | nej |
-| 4 | växelns rad till `wix` | **nej** |
-| 5 | `delta` direkt efter, med `vaxling` = när raden skrevs | nej |
-| 6 | följ driften, ta bort Postgres-vägen och stäng Neon | ja |
+**Flytten 2026-10-29** (motorns workflow, läget `butik`). Växeln var en rad i
+Wix (`FyndplatsButikInstallningar/datalager`), så omslaget krävde inget bygge:
 
-Åtta egenskaper som inte ska tas bort:
+| steg | när (UTC) | utfall |
+|---|---|---|
+| kopiera | 03:05–03:21 | 181 174 rader i 15 tabeller, varav prishistoriken 180 309, noll fel |
+| verifiera | 03:24–03:32 | alla 15 tabeller lika rad för rad, inget extra i Wix |
+| index | 03:24 | 18 egna index på 10 kollektioner, alla ACTIVE |
+| växeln till `wix` | 03:33:27 | raden läst tillbaka |
+| `delta` två gånger | 03:36–03:45, 03:55–04:03 | alla tabeller lika, ingenting att skriva eller ta bort |
+| driften | 03:37–04:01 | ett GLS-paket spårades ur Wix, ordersynken hittade 54 av 54 ordrar, inga körfel |
 
-1. ☠️ **Växeln är en rad i Wix** (`FyndplatsButikInstallningar/datalager`,
-   fältet `lager`), läst högst en gång i minuten per instans. Att byta lager
-   kostar inget bygge, och ett bygge tömmer ISR-cachen för hela katalogen.
-   Saknas raden gäller Postgres. Går den inte att läsa gäller senast kända
-   läge, och vid en kallstart Postgres: en sådan rad i Neon efter växlingen
-   plockas upp av delta-läget.
-2. ☠️ **Ett `_id` i Wix är högst 128 tecken, ASCII och skiljetecken**
+**Steg 6, 2026-11-05.** Neon låg kvar en vecka som reserv (Leonards ja
+2026-10-29). Sista `delta` kördes med `vaxling` 2026-10-29T03:33:27Z och
+`kopierad_sedan` 2026-10-29T03:05:38Z. Utfall 09:32–09:37 UTC: alla 15
+tabeller 0 saknas, 0 olika, 0 skrivna. Ingen instans skrev alltså till Neon
+efter växlingen. Det som skilde var driften i Wix: 56 spårningsrader ändrade
+efter växlingen, nya rader i nio tabeller och 17 262 prisrader som
+gallringen tagit bort.
+
+☠️ **SMS-rutten hade en Postgres-väg kvar efter växlingen.**
+`updateMappingStatus` i `app/api/sms-inbound/route.ts` frågade aldrig
+växeln: flytten (#793) gjorde om läsningarna och loggarna i filen men
+missade statusskrivningen. Grinden såg det inte, för den krävde bara att
+FILEN frågade växeln någonstans. Vägen hann aldrig användas: senaste SMS:et i
+`FyndplatsSmsLogg` kom 2026-06-27, och deltan skrev ingenting. Med Neon
+uppsagt hade nästa SMS-status försvunnit utan ett fel.
+
+Borttaget samma dag:
+
+- växeln (`datalager`, `anvanderWix`) och varje `sql`-gren i 22 filer.
+  Raden `FyndplatsButikInstallningar/datalager` står kvar i Wix men läses
+  inte längre;
+- `lib/db.ts`, `migrations/` och beroendet `@vercel/postgres` (med
+  `@neondatabase/serverless`, `pg-*` och `ws`);
+- kopian: `/api/admin/neon-till-wix`, `lib/neon-till-wix.ts`, `TABELLER` och
+  varje `franPostgres`;
+- migreringarna: jobbet `migrate` i `/api/admin/run-job`, `?action=migrate`
+  i de två dev-rutterna och `runMigration()` före prisögonblicksbilden.
+
+När både den här ändringen och motorns är ute kan Neon sägas upp. I butikens
+Vercel-projekt kan då `POSTGRES_URL` och det Neon-integrationen lade in med
+den (`POSTGRES_*`, `PG*`, `DATABASE_URL*`, `NEON_*`) tas bort.
+
+Sex egenskaper som inte ska tas bort:
+
+1. ☠️ **Ett `_id` i Wix är högst 128 tecken, ASCII och skiljetecken**
    (uppmätt 2026-10-29, `WDE0075`). E-post, händelsenycklar och
    spårningsnummer går genom `wixNyckel`, som hashar det som inte får plats.
-   Lagret och kopian använder samma funktion; ett test låser att ett kopierat
-   id är detsamma som lagret skriver.
-3. ☠️ **`$exists: false` matchar inte null** (uppmätt samma dag). Inget fält
+   De kopierade raderna fick samma id som lagret skriver.
+2. ☠️ **`$exists: false` matchar inte null** (uppmätt samma dag). Inget fält
    skrivs som null (`utanTomma`), och "släpp" i fraktmejlskön är
    `REMOVE_FIELD`. En väntande rad med `sentAt: null` hade aldrig gått att ta.
-4. ☠️ **Anspråken är inserts som vägrar ett id som finns** (WDE0074), som
+3. ☠️ **Anspråken är inserts som vägrar ett id som finns** (WDE0074), som
    Postgres `ON CONFLICT DO NOTHING RETURNING`. Efter ett nätverksfel avgör
    radens token vem som äger raden.
-5. ☠️ **Fraktmejlskön tas under ett lås per order** (`taLas`). Postgres tog
+4. ☠️ **Fraktmejlskön tas under ett lås per order** (`taLas`). Postgres tog
    alla orderns nummer i en sats; utan låset hade två samtidiga webhooks kunnat
    ta ett nummer var, och kunden fått två mejl. Ett lås äldre än en minut tas
    över, villkorat.
-6. **Spårningen bär numret i versaler** (`trackingNumberUpper`), för
+5. **Spårningen bär numret i versaler** (`trackingNumberUpper`), för
    GLS-källan jämför skiftlägesokänsligt (`UPPER(tracking_number)`).
-7. **Leveranssvepet räknas i `svepKandidater`** (`lib/delivery-status.ts`,
-   ren och testad), med samma regler som SQL-frågan i
-   `lib/delivery-order.ts`.
-8. ☠️ **Kopians svar är publikt:** id bara som hash, fel bara som status och
-   WDE-kod, markören förseglad med `ADMIN_SECRET`. Butikens id bär e-post och
-   spårningsnummer.
+6. **Leveranssvepet räknas i `svepKandidater`** (`lib/delivery-status.ts`,
+   ren och testad), med samma regler som SQL-frågan hade.
 
-`lib/wix-lager-grind.test.ts` fäller varje fil som använder `sql` utan att
-fråga växeln. Kopieringen (`/api/admin/neon-till-wix`) är det enda undantaget.
+`lib/wix-lager-grind.test.ts` fäller på varje spår av Postgres i `app/`,
+`lib/` och `components/`: en import av `@vercel/postgres` eller `lib/db`, en
+`sql`-tagg, `sql.query` och `anvanderWix(`. Den fäller också om `lib/db.ts`
+eller beroendet kommer tillbaka. Neon sägs upp, så en Postgres-väg som kommer
+tillbaka skriver mot en databas som inte finns.
 
-⚠️ **Spårningstabellerna rör Leonards regel om "Ditt paket är framme".**
-`tracking_mapping`, `delivery_notifications` och 17TRACK-webhooken byter
-lager med resten. Ingen logik ändras, men PR:en mergas först efter hans ja.
+⚠️ **Spårningen rör Leonards regel om "Ditt paket är framme".** Ingen logik
+ändrades 2026-11-05, men SMS-vägens statusskrivning hamnar i Wix igen, som
+före växlingen: ett paket som SMS:et sagt är framme lämnar AliExpress-pollens
+och FIFO-gissningens urval.
 
 ## Trustpilot: bara gratisdelen är på (2026-10-22)
 
@@ -672,21 +713,23 @@ betald widget slås på står i `docs/trustpilot-setup.md`.
 
 ## Fyndauktionen läses och avslutas via motorn (2026-09-29)
 
-Wix CMS har ett globalt tak på 4 000 rader, och auktionskön (`FyndplatsAuctions`)
-var 3 561 av dem. Raderna flyttar till Postgres i motorn (`AUCTIONS_BACKEND`, se
-motorns `CLAUDE.md`). Butiken läser inte längre Wix Data för auktionerna:
+Wix CMS hade ett globalt tak på 4 000 rader, och auktionskön (`FyndplatsAuctions`)
+var 3 561 av dem. Raderna bodde i motorns Postgres 2026-09-30 till 2026-10-29
+och bor i Wix igen sedan Elite; motorns `AUCTIONS_BACKEND` togs bort
+2026-11-05. Butiken läser ändå inte Wix Data för auktionerna, för motorn äger
+prisstegen, återställningen och avslutet:
 
 - `/fyndauktion` och startsidans banner läser `GET /api/auctions/rader` hos motorn.
 - Webhookens direktavslut (`order_created`) postar till `POST /api/auctions/avsluta`.
   Motorn återställer priset först och sparar sedan sold.
 
 Båda går genom `lib/auction-motor.ts`, med `REVIEW_INGEST_SECRET` som
-hemlighet (samma värde i båda projekten). Motorn svarar ur det lager växeln
-pekar på, så butiken byter lager samtidigt med motorn och behöver ingen egen
-deploy vid växlingen.
+hemlighet (samma värde i båda projekten).
 
-☠️ **Läs aldrig auktionerna ur Wix Data igen.** Efter raderingen är kollektionen
-tom, och en läsning därifrån ger en tom `/fyndauktion` utan ett enda fel.
+☠️ **Läs aldrig auktionerna ur Wix Data direkt.** Under Postgres-månaden var
+kollektionen tom, och en läsning därifrån gav en tom `/fyndauktion` utan ett
+enda fel. Lagret kan byta igen utan att butiken märker det, så länge vägen går
+via motorn.
 `lib/auction-store-access.test.ts` fäller om en fil nämner kollektionen
 tillsammans med ett Wix Data-anrop.
 
@@ -820,7 +863,7 @@ Google-, PriceRunner- och det öppna Prisjakt-flödet byggs utan numren.
   numren.
 - **Numren och märkena** hämtas från motorns `/api/prisjakt-artiklar` (grenen
   main) när flödet byggs, med `REVIEW_INGEST_SECRET`. Mappningarna bor i
-  motorns Postgres och aldrig i en fil här (repot är publikt).
+  motorns Wix-lager och aldrig i en fil här (repot är publikt).
   `lib/feed/prisjakt-motor.ts` hämtar dem utan cache och kastar på fel status,
   fel form eller färre än 1 000 poster. Då svarar adressen 503 och CDN:en
   serverar förra flödet (`stale-if-error`), i stället för ett flöde där numren
@@ -1014,11 +1057,18 @@ i koden (`REGLER_V1`).
 
 Tio egenskaper som inte ska tas bort:
 
-1. ☠️ **Orderliggaren bär alla ordrar, inte bara medlemmarnas.** Ett nytt
+1. ☠️ **Orderliggaren bär alla köp, inte bara medlemmarnas.** Ett nytt
    konto ser då sina köp direkt [P3], utan ett eget uppslag i Wix. Den fylls
    från tre håll: webhooken (godkänd, avbruten, återbetald; efter svaret med
    `after`), avstämningen varje natt (ordrar ändrade senaste 48 timmarna) och
    bakåtläsningen 400 dagar bakåt, en gång.
+   ☠️ **Bara köp (`arKop`, `lib/order-raknas.ts`)**, sedan 2026-11-06. Vår
+   kassa skapar ordern före betalningen, och ett övergivet försök blir en
+   obetald, avbruten order med nummer 0 som webhooken aldrig hör om. Natten mot
+   2026-11-06 kallade avstämningen därför tolv provordrar ur kassan för
+   avvikelser, och Mina sidor visade dem som avbrutna ordrar. Nu hoppar
+   liggaren över dem, och `liggarraderForEpost` filtrerar bort de rader som
+   redan skrevs (`liggarradArKop`).
 2. ☠️ **Raden räknas alltid om ur den aktuella ordern**, aldrig ur händelsens
    payload. Betaltiden är orderns första `ORDER_PAID`-händelse, så en
    fakturaorder räknas från betalningen. Varuvärdet är radernas
@@ -1094,8 +1144,849 @@ prov som fäller dem:
   5,0 i mejlen. Platina är jade, som den gröna nivån i spelens ranking
   (Leonard). Ändras en färg, mät om.
 
-Före läget `pa`: integritetstexten (J4) ska vara godkänd och publicerad,
-utkastet står i `docs/medlemskap-integritetstext-utkast.md`. E1-grinden är
+**Mejlen om nivån går att stänga av** (2026-11-04, före läget `pa`).
+Mejlen "ny nivå" och "nivån sjunker" uppmanar till köp och har därför en länk
+för att avregistrera sig och rubrikerna List-Unsubscribe med ett klick (RFC
+8058). Inloggningskoden och välkomstmejlet hör till kontot och har ingen.
+
+- ☠️ **Ett GET avregistrerar aldrig.** Länken leder till
+  `/konto/avregistrera`, där kunden trycker på en knapp; mejlfilter som
+  öppnar länkar ändrar därför ingenting. Mejlklientens ett-klick är ett POST
+  till `/api/konto/avregistrera` med kroppen `List-Unsubscribe=One-Click`.
+- Token är en HMAC av medlemmens id med en egen delnyckel
+  (`avregistreringsToken` i `lib/medlem/inloggning.ts`), så länken i ett
+  gammalt mejl fungerar och öppnar inget annat.
+- Avregistrerad är `nivamejl: false` på medlemmen; på igen tar bort fältet.
+  Mina sidor har knappen åt båda hållen. Nattjobbet räknar ett beslut som
+  meddelat även när mejlet inte går, så att inget gammalt mejl skickas om
+  medlemmen slår på mejlen igen.
+- **En inloggad men spärrad medlem** ser beskedet direkt på `/konto`, inte
+  inloggningen.
+
+Integritetstexten (J4) är godkänd av Leonard 2026-11-05 och står i
+`/sekretesspolicy` under rubriken Medlemskonto (`#medlemskonto`). Den beskriver
+bara E1; medlemspriser (E2) och företag (E3) kräver ett tillägg innan de slås
+på. Ändras vad kontot sparar, hur länge eller vilka mejl och kakor det har,
+ändras texten i samma PR. E1-grinden är
 specens E1-1 till E1-11 och en vecka med avstämning utan avvikelser; svaret
 från `/api/cron/medlemsnivaer` och `FyndplatsMedlemslogg` (område
 `avstamning`) visar dem.
+
+## Vår egen kassa: formuläret hos oss, betalningen på Wix betalsida (2026-11-06)
+
+Leonards val 2026-11-05, efter att Wix mobilkassa lämnade tomrum under
+"Leveransinformation" på iPhone och hoppade när kunden skrev. Formuläret och
+summeringen ligger på `/kassa`; Wix räknar, skapar ordern och tar betalt på sin
+betalsida (`checkout.fyndplats.se/__ecom/payment-request-page/<id>`) med samma
+betalsätt och samma Wix Payments-konto. Koden: `lib/kassa/` (flödet och skälen
+i `flode.ts`), `app/kassa/`, `app/api/kassa/*` och städjobbet
+`/api/cron/kassa-stadning`.
+
+- **Växeln** är raden `FyndplatsButikInstallningar/kassa`, fältet `lage`: `av`
+  (saknas raden: Wix kassa som förut), `prov` (bara den som öppnat
+  `/kassa?prova=1`, kakan `fp_kassa_prov`) eller `pa`. Varukorgen frågar
+  `/api/kassa/lage` när lådan öppnas.
+- ☠️ **Priset kommer bara från Wix.** Kunden skickar formuläret och korgens id.
+  Beloppet på betalningsbegäran är Wix total för ordern som just skapades.
+- **Ordern skapas med Checkout V1 `create-order` på korgens id** (i Cart V2 är
+  korgens id kassans id). Den blir som Wix kassas egna: checkoutId, cartId,
+  purchaseFlowId, moms och leveranstid. Uppmätt med två avbrutna testordrar
+  2026-11-05/06. ⚠️ Rättat 2026-11-06: Cart V2 `place-order` GÅR på en förberedd
+  korg utan betalning (obetald order, ingen debitering), och det är
+  Stripe-kassans väg; se nästa avsnitt. Checkout V1 `create-order` tas bort
+  2027-02-01, så Wix-betalsidans väg måste bort före dess.
+- ☠️ **Ordern reserverar lagret från det att den skapas.** En kund som lämnar
+  betalsidan håller varan. Nästa försök från samma korg släpper den förra
+  ordern (betalningen makuleras först, sedan avbryts ordern med återlagring),
+  och städjobbet varje timme släpper ordrar vars betalningslänk löpt ut
+  (`BETALNING_MINUTER`, 120). Bara betalningar med markören `fp-kassa:` rörs.
+  Faller avbrottet efter makuleringen står ordern kvar med en makulerad
+  betalning: städjobbet prövar därför makulerade betalningar ett dygn
+  (`MAKULERAD_PROVAS_TIMMAR`), efter de obetalda.
+- **Servern hittar själv korgens förra försök** (`fp-kassa:<korg>:<försök>` i
+  betalningens `source.externalId`), så att en kund som bytt flik eller enhet
+  inte lämnar en reserverad order efter sig. En **betald** betalning från samma
+  korg stoppar ett nytt försök (webhooken kan ligga efter och korgen se obeställd
+  ut: ett nytt försök vore ett dubbelköp). Fler än `MAX_FORSOK_PER_TIMME` (8)
+  försök från samma korg på en timme stoppas, eftersom varje försök reserverar
+  lager.
+- ☠️ **En order från vår kassa finns innan den är betald.** Den står som
+  `INITIALIZED` tills betalningen kommer, och en övergiven blir `CANCELED` utan
+  att ha betalats. `lib/order-raknas.ts` (`arKop`) avgör vad som är ett köp:
+  morgonrapporten, populariteten och orderspegeln (`order-sync`) räknar bara
+  köp. Motorns ordernät rör bara betalda (`ACTIONABLE_PAYMENT`), och Trustpilot
+  bara skickade. En ny läsare av Wix-ordrar ska fråga `arKop` först.
+- **Wix räknar korgen med motorns kassavalidering**, så postnummerspärren för
+  Aosom-varor (`spiViolations`) stoppar också vår kassa, med motorns text.
+- **Korgen markeras som beställd i webhooken** när ordern godkänts (betald):
+  Wix gör det inte själv för en order som skapats före betalningen, och annars
+  står varorna kvar i kundens varukorg.
+- ⚠️ **Betalsidan har ingen väg tillbaka till oss**, och dess logga leder till
+  Wix tomma startsida (`checkout.fyndplats.se/__ecom`). `/kassa/klar` är
+  vägen tillbaka: betald → `/tack`, väntande → `/kassa`, annars startsidan.
+  Wix startsida pekas dit med en egen kod i Wix: Custom Embed
+  `d8adeb6d-9666-4967-b0f6-628050399a82` (2026-11-06, ESSENTIAL, i `<head>`,
+  på varje sida). Den skickar `/__ecom` och roten till `/kassa/klar` och fångar
+  klick på länkar dit (betalsidans logga) på alla Wix-sidor på
+  checkout.fyndplats.se; Wix kassa och betalsidan rörs inte (provat med en
+  vanlig kund och en makulerad betalsida). ⚠️ Wix cachar startsidans HTML i
+  timmar: ett direkt besök på `/__ecom` kan visa den tomma sidan tills cachen
+  byts, men klicket på loggan fungerar direkt. Tas bort i Wix (Inställningar →
+  Anpassad kod) eller med DELETE på embeden. Den väntande ordern ligger i sessionStorage; kommer kunden
+  tillbaka till `/kassa` frågar sidan `/api/kassa/status` och går till `/tack`
+  om ordern är betald. Vad betalsidan visar efter betalningen är inte uppmätt
+  (kräver en riktig betalning).
+- ☠️ **En makulerad länk** visar Wix text "Den här länken är längre
+  tillgänglig" (stavfel hos Wix: "inte" saknas). Kunden får därför aldrig en
+  sparad länk: rutan "Din betalning väntar" visas bara när `/api/kassa/status`
+  säger `betalbar` (betalningen hör till ordern, bär `fp-kassa:`, är obetald och
+  har minst två minuter kvar), med en länk som servern just hämtat från Wix (Get
+  URL). Leonards iPhone 2026-11-06: bakåt från betalsidan och "Till
+  betalningen" gav den döda sidan.
+- ☠️ **Samma köp får samma betalsida** (Leonards prov 2026-11-06). Tidigare
+  släppte varje tryck den förra ordern och skapade en ny; när Wix sedan nekade
+  ordern (429) stod kunden utan betalning. Nu bär betalningen ett avtryck av
+  korgen, kunden och rabattkoden (`korgAvtryck`, fjärde ledet i
+  `source.externalId`). Är avtrycket och Wix total oförändrade och länken har
+  minst `ATERBRUK_MIN_KVAR_MINUTER` (15) kvar, återanvänds ordern och
+  betalningen: ingen ny order, inget nytt lager reserveras och taket räknas
+  inte. Ändrad adress, e-post, antal, rabattkod eller pris (en fyndauktion som
+  sjunkit) ger en ny order som förut.
+- ☠️ **Wix 429 på ordern gäller e-postadressen, inte sajten**: ungefär fem
+  ordrar på en halvtimme per e-post, sedan nekas nya (429 RATE_LIMITED).
+  Mätt 2026-11-06 på alla nattens ordrar: varje nekad order var den sjätte på
+  en halvtimme för samma adress, nekade anrop räknas inte, och andra adresser
+  gick igenom samtidigt. Ett nekat anrop har inte gjort något och görs om två
+  gånger (`medOmforsok`, 0,7 s och 1,5 s), vilket bara hjälper mot korta toppar.
+  Andra fel görs aldrig om: en order som kanske skapades ska inte skapas två
+  gånger. Når 429 kunden säger kassan att Wix inte tar emot fler beställningar
+  med adressen på en stund och att försöka igen om en halvtimme.
+  ☠️ **Prov använder aldrig info@fyndplats.com**, som Leonard själv provar med:
+  2026-11-06 06:54 svensk tid nekades Leonards order för att mina fem prov
+  05:30–05:51 UTC hade tagit adressens halvtimme. Ett prov använder en egen
+  adress (`info+prov-<tid>@fyndplats.com`).
+- **Betalsidan visar första varans bild** (`betalBild`: mediets id ur korgens
+  `attributes.image`, alt-text eller varans namn). Nekar Wix bilden (400)
+  skapas betalningen utan, eftersom bilden bara är utseende.
+- ⚠️ **Klarna på Wix betalsida frågar efter adressen igen** (Leonards iPhone
+  2026-11-06, mätt samma natt): väljer kunden Klarna visar Wix betalsida ett
+  eget tomt formulär (e-post, förnamn, efternamn, adress, ort, land) innan
+  Klarna, fast ordern bär leverans- och fakturaadress. Betalningsbegäran har
+  inget fält för köparen, så det går inte att fylla i från oss. Kassan säger
+  det före betalningen; kort och Apple Pay frågar inte.
+- **Kundens egen väntande order håller varorna**, så Wix räknar dem som slut för
+  samma korg. Räkningen på `/kassa` visar därför ingen lagerbrist när korgen har
+  en obetald betalning (`stoppandeOvertradelser(..., { utanLager: true })`).
+  Betalningen gör den vanliga kontrollen efter att den förra ordern släppts.
+
+## Stripe-kassan: Klarna, kort, Apple Pay och Google Pay på /kassa (2026-11-06)
+
+Leonards val 2026-11-06 ("Ja, börja nu"), efter auditen: Klarna är två av tre
+köp (113 av 171 betalda ordrar 2026-06–11), och Wix betalsida tvingade
+Klarna-kunden att skriva e-post, namn och adress en gång till. Nu står
+betalfältet (Stripe Payment Element) i steg 3 på `/kassa`, och kundens
+uppgifter ur formuläret följer med till Klarna. Wix räknar korgen och äger
+ordern som förut; Stripe tar betalt.
+
+**Påslag:** `/kassa` använder Stripe när BÅDA nycklarna finns när sidan byggs
+(`app/kassa/page.tsx`): `STRIPE_SECRET_KEY` och
+`NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (`pk_test_…`/`pk_live_…`). Saknas någon
+gäller Wix betalsida som i avsnittet ovan. Växeln (`FyndplatsButikInstallningar/kassa`)
+avgör som förut vem som kommer till `/kassa` alls. Webhooken kräver
+`STRIPE_WEBHOOK_SECRET`.
+
+**Flödet** (`lib/kassa/flode.ts` `forberedStripe`/`slutforStripe`, sidan i
+`lib/kassa/stripe-klient.ts` och `app/kassa/use-stripe-betalning.ts`):
+1. Betalfältet visas direkt, utan PaymentIntent (Elements i `mode: "payment"`,
+   beloppet = summeringen, så att Apple Pay visar rätt belopp).
+2. "Betala": `elements.submit()` FÖRST, i själva trycket (Stripe prövar fälten
+   innan betalningen skapas, och ett plånboksblad öppnas bara i ett tryck),
+   sedan `/api/kassa/stripe/forbered`:
+   formuläret till Wix-korgen, Wix räknar, en PaymentIntent på Wix total med
+   `capture_method: manual` (pengarna reserveras, dras inte).
+3. `stripe.confirmPayment` med `redirect: "if_required"`. Kort, Apple Pay och
+   Google Pay stannar på sidan; Klarna går till Klarna.
+4. `/api/kassa/stripe/klar` (och webhooken `/api/stripe/webhook`, samma steg):
+   Wix räknar igen och totalen måste vara den reserverade → Cart V2
+   `place-order` med Wix prisbevis → dra beloppet → Add Payments (godkänd
+   betalning med Stripes laddnings-id och betalsättet på kundens språk) →
+   `/tack?orderId=…`. Går ordern inte att skapa släpps reservationen (eller
+   betalas en redan dragen betalning tillbaka): ingen kund betalar utan order.
+
+Det som inte får ändras:
+- ☠️ **Ett lås per betalning** (Wix CMS `FyndplatsKassaBetalningar`, ADMIN,
+  raden = betalningens id). Kundens retur och webhooken kommer ofta samtidigt;
+  bara den som tar låset skapar ordern, den andra svarar `pagar` (202) och
+  sidan frågar igen. Låset bär steget (`pagar` → `order` → `registrera` →
+  `klar`/`fel`), så ett avbrott efter ordern fortsätter med dragningen i stället
+  för att skapa en order till. Ett lås äldre än 120 s tas över.
+- ☠️ **Create Order (`ecom/v1/orders`) används inte:** Wix tillåter fem anrop i
+  timmen för opublicerade appar. `place-order` är vägen.
+- ☠️ **Faktureringsuppgifterna kommer från servern** (`faktureringAv` i
+  `flode.ts`, i svaret från `forbered`) och skickas med i bekräftelsen.
+  Betalfältet frågar aldrig efter dem (`fields.billingDetails: "never"`), och
+  då kräver Stripe VARJE fält, också `state` och `line2` som tomma strängar:
+  ett saknat fält stoppar betalningen. Adressen formas på ett ställe
+  (`stripeAdress`). Provat lokalt 2026-11-06 mot riktiga Stripe.js.
+- ☠️ **Servern sätter ALDRIG `shipping` på betalningen** (`avsiktParametrar`,
+  varken när den skapas eller uppdateras). Adressfältet (läget "shipping")
+  ligger i samma Elements som betalfältet, och `stripe.confirmPayment` skickar
+  dess adress som leverans. Har servern satt `shipping` med den hemliga
+  nyckeln nekar Stripe bekräftelsen: 400 `payment_intent_invalid_parameter`,
+  "The shipping information on this PaymentIntent was last set with a secret
+  key and therefore cannot be changed with a publishable key". Mätt på
+  förhandslänken 2026-11-06 16:06 UTC: sedan adressfältet kom in (2b241635)
+  stoppades varje betalning så, och kunden fick "Betalningen kunde inte
+  genomföras just nu". Provet i `stripe-klient.test.ts` låser regeln.
+- ☠️ **Kort först, Klarna sist och aldrig förvalt** (`BETALFALT`), fast två av
+  tre köp är Klarna. Lagen (2010:751) om betaltjänster (prop. 2019/20:79,
+  sedan 2020-07-01): finns ett betalsätt utan kredit ska det visas först, och
+  ett med kredit får inte vara förvalt. "Kredit" ska förstås brett, och
+  Klarnas val rymmer "betala om 30 dagar" och delbetalning. Brott räknas som
+  otillbörlig marknadsföring (KO). Fältet fäller ut det första valet, kortet;
+  Klarna väljs aktivt. Provet låser regeln, inte bara ordningen. Den nya
+  konsumentkreditlagen (CCD2, i kraft 2026-11-20) räknar också räntefri
+  faktura som kredit; en butik som får ersättning från kreditgivaren kan bli
+  kreditförmedlare (Fyndplats får ingen).
+- ☠️ **Betalfältet och PaymentIntenten måste ha samma valuta och dragning**
+  (`sek`, `manual`), annars nekar Stripe bekräftelsen. Provet i
+  `stripe-klient.test.ts` jämför med `avsiktParametrar`.
+- ☠️ **Ingen idempotensnyckel ur korgens innehåll:** Stripe svarar på en känd
+  nyckel med det sparade svaret i ett dygn, också när betalningen sedan
+  släppts. Ett nytt försök efter "kunde inte skapas" hade fått den släppta
+  betalningen tillbaka. En ny betalning får en unik nyckel; kundens försök
+  återanvänds via `avsiktId` (localStorage `fp_kassa_stripe`, 24 h, bara samma
+  korg), och dubbeltrycket stoppas i sidan (`pagar`-refen).
+- ☠️ **Klarnas retur går via `/api/kassa/stripe/retur`**, som lägger
+  betalningens id i kakan `fp_kassa_avsikt` (sökväg `/kassa/klar`, 15
+  minuter, ingen annan sida ser den) och skickar till `/kassa/klar` utan
+  något i adressen. Stripe lägger `client_secret` i return_url, och sidorna
+  laddar GA4 och Meta, som sparar hela adressen; inte ens betalningens id ska
+  stå där. `/kassa/klar` läser och tar bort kakan. Blev det ingen order går
+  kunden till `/kassa?stripe=<kod>` (`avbruten`, `pris_andrat`, `slut`, `fel`),
+  som säger varför och tar bort koden ur adressen.
+- **Ändrad total stoppar före betalningen:** räknar Wix fram en annan total än
+  den kunden ser (fältets belopp) visas den nya, och kunden trycker igen.
+- **"Betalningen är godkänd" efter en minut:** en väntan för båda sidorna
+  (`vantaPaOrder` i `stripe-klient.ts`: frågar `klar` med växande vila, högst
+  3 s, också genom nätfel och 5xx; ett nej är ett nej direkt). Svarar servern
+  fortfarande `pagar` efter 60 s säger sidan att orderbekräftelsen kommer via
+  e-post, och knappen låses (webhooken slutför). Kunden ska aldrig uppmanas
+  att betala igen när pengarna kan vara reserverade.
+- **Inga typsnitt från Google i Stripes ram:** butiken lägger sina typsnitt på
+  egen server, och betalfältet använder systemets typsnitt (`UTSEENDE`).
+- **Loggraderna:** inga kunduppgifter. Rader med ☠️ (pengar som inte står där
+  de ska) går till `console.error` och syns bland Vercels körfel; resten är
+  varningar (`lib/kassa/stripe-kassa.ts`).
+- **Apple Pay kräver domänen:** filen
+  `public/.well-known/apple-developer-merchantid-domain-association` (Stripes,
+  samma för alla Stripe-konton) och domänen `www.fyndplats.se` registrerad i
+  Stripe (Inställningar → Betalmetodsdomäner). `Permissions-Policy` får aldrig
+  stänga `payment` (`next.config.ts`).
+- **Klarna visas bara för köpare i Sverige:** Stripe läser köparens land ur
+  IP-adressen ("Supported countries: SE" för `sek`). En provwebbläsare i molnet
+  (USA) ser bara kort; skälet står i Stripes svar på `elements/sessions` under
+  `developer_tool_context.payment_method_filtering` (mätt på förhandsbygget med
+  Leonards testnycklar 2026-11-06: kort, Apple Pay och Google Pay giltiga, Link
+  av). Klarna prövas därför från en svensk uppkoppling, till exempel en telefon.
+- **Stripe Tax används inte:** Wix räknar momsen på ordern (priserna är
+  inklusive 25 %), och den står på kvitton och fakturor. Stripe tar bara betalt
+  för Wix total. Stripe Tax skulle räkna momsen en gång till och kostar per köp.
+- Stripe-anropen görs med `fetch` och formulärkodning (`lib/kassa/stripe.ts`,
+  API-version `2025-03-31.basil`), utan Stripes Node-SDK. Webhooken prövar
+  `Stripe-Signature` (HMAC-SHA256 över `t.kropp`, 300 s) på den RÅA kroppen.
+  Webbläsaren använder `@stripe/stripe-js` 7.x, samma release (basil).
+- **"Betala med Klarna", aldrig "Fortsätt till Klarna":** ordern skapas utan
+  fler klick hos oss efter Klarna, så vår knapp är beställningsknappen och ska
+  säga att det kostar (distansavtalslagen 2 kap. 9 §).
+
+### Självläkningen (auditen 2026-11-06)
+
+Kunden får alltid ett svar på sekunder, men allt som inte blev klart tas om
+tills det är klart, och Leonard får ett mejl om det inte går:
+- ☠️ **Webhookens svar styr omförsöken** (`webhookStatus`, `arKlart`): 200 bara
+  när inget finns kvar att göra. `ofullstandig` (pengarna dragna, men
+  betalningen står inte på ordern) och `ostadad` (ingen order, men
+  reservationen släpptes inte eller betalningen gick inte tillbaka) svarar 500,
+  `pagar` och `behandlas` 503: Stripe försöker igen i upp till tre dygn. Förut
+  svarade allt 200 och en misslyckad registrering togs aldrig om.
+- ☠️ **Nätet `/api/cron/kassa-stripe`** (kvart 7, 22, 37, 52): kassans
+  betalningar de senaste tre dygnen (List, inte Search) som är godkända eller
+  dragna men saknar `wixOrderId` och är äldre än fem minuter, äldst först,
+  högst åtta per körning, samma steg som klar och webhooken. Är en betalning
+  inte klar 30 minuter efter att den skapades mejlas `OPS_ALERT_EMAIL` (annars
+  info@fyndplats.com), en gång per betalning, med bara betalningarnas id.
+- ☠️ **En dragning vars svar försvann läses om** innan ordern avbryts: drog
+  Stripe ändå behålls ordern och betalningen registreras. Går läget inte att
+  läsa avbryts och släpps ingenting; låset står kvar och nästa försök avgör
+  (dragningen har en idempotensnyckel).
+- ☠️ **Place Order utan svar:** ett 4xx (också 429 efter omförsöken) betyder att
+  ingen order skapades. Annars läses korgen: Cart V2 sätter `orderPlaced` och
+  `orderId`, och den ordern används i stället för att reservationen släpps (då
+  hade kunden fått en låst korg och en order utan betalning). Samma sak vid
+  omtag av ett lås som stod på `pagar`. En order som redan har en betalning
+  (korgen betaldes i Wix kassa i en annan flik) tas inte: vår reservation släpps.
+- **Omtag läser orderns betalningar** (List Transactions) före Add Payments:
+  Wix nekar en dubblett av `providerTransactionId` och hela anropet felar.
+- **Ett klart lås märker betalningen** med `wixOrderId` om markeringen föll,
+  annars tar nätet den om var femtonde minut och larmar i onödan. **Ett
+  fel-lås städar igen:** står pengarna kvar släpps de (eller betalas
+  tillbaka); kunden fick höra att inget drogs. `charge_already_refunded` och
+  en redan släppt reservation är inga fel.
+
+### Återbetalningar och tvister (2026-11-06)
+
+☠️ **Återbetala bara i Wix, aldrig i Stripes panel.** Leonard återbetalar som
+för alla ordrar: raderna och frakten väljs i Wix, och medlemskapets
+orderliggare läser uppdelningen per rad. Kassans betalning står på ordern som
+en **offlinebetalning** med Stripes id (`offlinePayment: true`,
+`registreraBetalning`), så Wix bokför återbetalningen som manuell (Wix kan
+inte själv nå Stripe), och butiken gör den i Stripe (`speglaAterbetalningar` i
+`flode.ts`): summan av Wix lyckade återbetalningar på betalningen mot Stripes
+summa på laddningen, och skillnaden tillbaka. Wix-webhooken (`refund`) speglar
+efter svaret; nätet tar det som faller.
+- ☠️ **Bara auktoritativ data:** webhooken bidrar bara med order-id:t (den kan
+  vara lookup-verifierad); beloppen läses ur orderns transaktioner (List
+  Transactions) och laddningen i Stripe. Betalningen ska bära kassans
+  `kalla`, och `wixOrderId` (när den finns) ska vara ordern; beloppen ska vara
+  lika och i SEK. Annars larm, inga pengar.
+- ☠️ **Idempotensnyckeln är laddningen och STRIPES summa före återbetalningen**
+  (`fp-ater-<laddning>-<öre>`), aldrig Wix summa: två speglingar som läst
+  olika Wix-summor men samma Stripe-summa hade annars båda gått igenom (två
+  delåterbetalningar tätt efter varandra). Nu får de samma nyckel; Stripe gör
+  den ena, nekar den andra (samma nyckel, annat belopp), och den nekade läser
+  om och försöker igen, högst tre rundor. Proven kör en slumpad simulering
+  med samtidiga speglingar mot en låtsas-Stripe med Stripes idempotens.
+- **Stripe före Wix larmar, rättas inte:** följer Leonard Wix råd för manuella
+  betalningar och betalar tillbaka i Stripe först, blir det lika när han sedan
+  bokför i Wix, och inget görs dubbelt. Står Stripe över Wix i 30 minuter
+  mejlas det. Inget svar från Stripe (nätet) är inget larm: nästa spegling
+  läser Stripes summa och ser vad som hände.
+- **Nätet** (`/api/cron/kassa-stripe`, tre delar som felar var för sig):
+  Wix-ordrar med en återbetalning ändrad de senaste två dygnen (Search Orders
+  på `paymentStatus` och `updatedDate`, uppmätt 2026-11-06), plus ordrarna
+  bakom Stripes återbetalningar de senaste tre dygnen; avvikelser mejlas en
+  gång per läge (`larmnyckel`, anspråk i `FyndplatsWebhookMejl`). Tvister som
+  väntar på svar mejlas en gång per tvist, med sista svarsdag.
+- Wix egna betalningar (Wix Payments, Klarna via Wix) bär Wix och
+  leverantörens id och rörs aldrig; ett Stripe-likt id som inte finns i vårt
+  konto (404) hoppas över tyst.
+- Används en begränsad nyckel i Stripe behöver den: PaymentIntents (skriva),
+  Charges (läsa), Refunds (skriva) och Disputes (läsa).
+
+### Klarna-rutan på produktsidan (2026-11-06)
+
+Klarnas egen ruta (OSM, `components/klarna-osm.tsx`) visar villkoren i
+Leonards Klarna-avtal, som gäller i Wix kassa: "Betala inom 30 eller 60 dagar"
+och delbetalning i 3–24 månader. I Stripe-kassan gäller Stripes Klarna (30
+dagar och Stripes delbetalning). När Stripe-kassan är på för alla (växeln
+`pa` och Stripes hemliga nyckel) visar sidan därför vår egen rad ("Betala
+senare – räntefritt med Klarna", sann i båda), och Klarnas skript (0,8 MB)
+laddas inte (`klarnaRuta`, `/api/kassa/klarna`, `lib/use-klarna-ruta.ts`).
+Svaret är detsamma för alla och cachas fem minuter i kanten; utan Stripes
+publika nyckel i bygget frågar sidan ingenting och allt är som förut. Vill
+Leonard visa Stripes egen Klarna-ruta (Payment Method Messaging, villkoren och
+räntan i en ruta från Stripe) kan den läggas in när kontot finns och kan
+provas; den kräver samtycke för kakor, som Klarnas.
+
+### Premiumkassan (Leonard 2026-11-06: "gör allt visuellt premium, och funktioner premium")
+
+- **Egen ram:** `/kassa` och `/kassa/klar` har eget sidhuvud (loggan, stegen
+  Varukorg › Uppgifter och betalning › Bekräftelse, "Säker kassa") och en tunn
+  sidfot (`app/kassa/kassa-ram.tsx`). Butikens kampanjremsa, meny med sökruta,
+  sidfot och tillbaka-upp-knapp döljs med `body:has([data-kassa-sida])` i
+  `app/globals.css`, utan skript och utan att något blinkar fram. Sidhuvudet är
+  inte fast mot skärmen (iPhones tangentbord flyttar fasta rader). Villkor och
+  hjälp öppnas i ny flik: det kunden skrivit sparas inte förrän hen betalar.
+- **Fälten:** flytande etiketter, 56 px, som Stripes fält (`labels: "floating"`
+  och utfyllnaden i `UTSEENDE`; mätt i webbläsaren: båda 56 px). En bock när ett
+  lämnat fält är rätt (`faltGiltigt`, samma regler som `provaKassa`), svenska
+  mobilnummer skrivs "070 123 45 67" (`snyggtTelefon`), c/o bakom en länk, och
+  `autocomplete` med `shipping`. Ett rättat fel lämnar sin rad kvar (tom) till
+  nästa tryck, så att inget flyttar medan kunden skriver.
+- **"Menade du …@gmail.com?"** (`lib/kassa/epost-forslag.ts`): stavfel i namnet
+  på en känd tjänst, felskriven toppdomän, saknad punkt och domäner som inte
+  finns (gmail.se). En riktig adress hos en annan tjänst (hotmail.dk, ett
+  företag) får aldrig förslag, och två lika troliga ger inget. Förslaget står på
+  hjälptextens rad.
+- **Spara mina uppgifter:** kundens eget val, aldrig förvalt. Utan det sparas
+  ingenting i webbläsaren, och det som sparats förut tas bort vid nästa köp.
+  Förut sparades adressen alltid (ingen kaka, men lagring på kundens enhet utan
+  val).
+- **Summeringen:** varianten per rad ("Färg: Natur"), antal varor, "Ändra"
+  (öppnar varukorgen), fri frakt-mätaren, och under den öppet köp, leveransen,
+  betalningen och Google-betyget (`getSocialProof`, samma cache som sidfoten).
+- **Rabattkoden:** Enter i fältet lägger till koden (förut skickade Enter hela
+  formuläret, alltså betalningen); en kod som gått in blir en bricka med
+  "Ta bort" (en tom kod till `/api/kassa/rakna`); en ogiltig kod syns vid koden
+  (förut syntes `fel.kupong` ingenstans).
+- **Rättat i granskningen:** fokus går till det första felet uppifrån
+  (`forstaFel`; förut hoppade det förbi ett tomt mobilnummer), ingen `<main>` i
+  `<main>` (layouten har redan en), stegen i sidhuvudet heter `data-steg` (inte
+  `data-lage`, som är betalfältets läge), och tacksidan visar aldrig GUID:t
+  eller "0" som ordernummer.
+- **Visuell audit 2026-11-06** (320, 390 och 1280 px, scratchpad
+  `audit/j-kassa.cjs`):
+  - Ett tryck på "Betala" visar alla fel på en gång: när kassans egna fält
+    stoppar trycket får Stripes fält (adressen och kortet) också visa sina,
+    med `elements.submit()`. Ingen betalning skapas, och fokus går till
+    kassans första fel. Förut kom Stripes fel först i nästa tryck.
+  - Stripes felrader har kassans stil (`.Error` i `UTSEENDE`: 12 px och
+    halvfet, som `.felText`).
+  - Länkarna i steg 3 ("Betala med Apple Pay …" och "Har du en rabattkod?")
+    står på var sin rad med samma stil (`.tillSnabb`, `.kupongLank`). På
+    datorn stod de förut ihop på en rad.
+  - Summeringsraden bryts aldrig. I 320 px bröts "Visa beställningen
+    (1 vara)" i fyra bitar. Antalet visas bara när raden är minst 400 px
+    (containerfråga på `.mobilSummering`), beloppet krymper aldrig och
+    etiketten kortas med "…" bara som sista utväg.
+- **Snabbkassan** (Apple Pay och Google Pay överst) är byggd: se avsnittet
+  nedan.
+
+### Slutprovet (Leonards ja, 2026-11-06 12:30–12:37 UTC)
+
+På förhandslänken med Leonards testnycklar (nya kontot Fyndplats, SE/SEK),
+växeln på `prov` och den dolda testvaran synlig i 2 min 37 s. En provorder
+med en provadress som köpare, avbruten efteråt.
+- **Tre kort:** 4000 0000 0000 0002 gav "Ditt kort nekades." på 3,5 s och
+  ingen order. 3D Secure-kortet 4000 0027 6000 3184 med misslyckad
+  verifiering gav den allmänna texten "försök igen om en stund" (rättat:
+  `TEXT_VERIFIERING` för `payment_intent_authentication_failure`). Samma kort
+  med godkänd verifiering: verifieringssidan efter 4,5 s, `/tack` med
+  ordernumret efter 14 s; `klar` tog 4,4 s på servern och `forbered`
+  1,5–1,8 s. 0 sidfel.
+- **Ordern i Wix:** APPROVED och PAID, kanal WEB, `purchaseFlowId`, varan och
+  frakten rätt, saldo 0. Vårt bekräftelsemejl gick 7 s efter ordern (Resend), Wix
+  `order.approved` nådde butiken och motorn (motorn: inga fel, ingen
+  leverantörsuppgift för testvaran).
+- ☠️ **Återbetalningen nekades:** som onlinebetalning (`offlinePayment:
+  false`, som förut) svarade Get Order Refundability `nonRefundable
+  TRANSACTION_NOT_FOUND` och Refund Payments 428 `PAYMENT_NOT_REFUNDABLE`,
+  också med `externalRefund: true`. Leonard hade inte kunnat återbetala en
+  enda Stripe-order i Wix. Prov på samma order med en offlinebetalning på
+  0,01 kr: `manuallyRefundable OFFLINE`, den manuella återbetalningen gick
+  igenom (SCHEDULED, SUCCEEDED inom en minut, `refund_completed` till
+  webhooken), och Wix behöll `providerTransactionId` på offlinebetalningen.
+  Därför registreras kassans betalning nu som offline; ett källprov låser det
+  (`aterbetalning.test.ts`).
+- **Place Order lägger en egen väntande betalning** på hela beloppet (Wix
+  Payments-order, inget leverantörs-id). Ordern blir ändå betald av vår, men
+  panelen visar en väntande betalning. Den markeras nu avbruten efter vår
+  registrering (`platshallarbetalningar`, `avbrytPlatshallare`, Update
+  Payment Status CANCELED, provat på provordern). Faller det står den kvar, och
+  inget annat påverkas.
+- **Speglingen till Stripe är inte provad mot Stripe** än: provorderns
+  betalning var registrerad online och gick inte att återbetala i Wix. Nätet
+  på förhandslänken gick utan larm (`aterbetalningar: ordrar 2, 0 larm`).
+  Den provas i nästa provköp med offlinebetalningen.
+- Stripes testbetalning står kvar som dragen i testläget (inga riktiga
+  pengar).
+
+### Andra provköpet: Klarna från Leonards telefon (2026-11-06 13:15–13:30 UTC)
+
+På samma förhandslänk, växeln på `prov` och testvaran synlig cirka 35
+minuter. Klarna syntes i telefonen (svensk IP-adress) och Klarnas testmiljö
+öppnades (playground: "Prefill NIN" och ett låtsat BankID; inget riktigt
+BankID ska användas).
+- **Ordern:** APPROVED och PAID, saldo 0, länet satt (Wix fyllde i
+  `subdivision` själv ur adressen). Place Orders platshållare CANCELED, vår
+  betalning APPROVED som offlinebetalning med Stripes id och betalsättet
+  "Klarna".
+- **Återbetalningen:** manuell återbetalning i Wix (`externalRefund`, utan
+  kundmejl): `manuallyRefundable OFFLINE`, SCHEDULED och SUCCEEDED inom en
+  minut, ordern FULLY_REFUNDED. Nätet på förhandslänken speglade den till
+  Stripe (`aterbetalda: 1`; Klarnas återbetalning står först som `pending`).
+  Andra körningen gav `aterbetalda: 0` och inga larm: ingenting
+  återbetalades två gånger. Ordern avbröts sedan utan mejl och med
+  återlagring.
+- Stripe-kopplingen i Claude är inloggad på en annan sandlåda
+  ("Fyndplats-sandlåda") än kontot vars testnycklar ligger i Vercel, så
+  betalningarna syns inte där. Kontrollen gick via nätet.
+
+### Adressfältet och länet (Leonard 2026-11-06: "kommer automatiskt adresser upp som det gjorde i Wix kassa", "stad och län")
+
+- **Stripes adressfält** (Address Element, `adressfaltInstallningar` i
+  `lib/kassa/stripe-klient.ts`) står i steg 2 när Stripe är på, i samma
+  Elements som betalfältet (`use-stripe-betalning.ts`). Då är Googles
+  adressförslag gratis (Stripes egen nyckel); Wix har inget öppet API för
+  sina förslag. Fältet sätter betalningens leveransadress vid bekräftelsen,
+  och därför gör servern det aldrig (se ☠️ under betalningen ovan). Fältet börjar ihopfällt (förnamn, efternamn, adress) och
+  fäller ut sig när kunden väljer ett förslag eller "Ange adress manuellt".
+  Uppmätt lokalt: förslaget fyller gata, postnummer och postort, och lägger
+  länet i `state` ("Hallands län") fast det svenska formuläret inte visar
+  något länsfält. Etiketterna är Stripes ("Postort"). Värdena går in i
+  kassans fält vid varje ändring (`adressFranStripe` i `formular.ts`), så att
+  servern prövar och skickar samma sak som förut. Adressrad 2 skickas som
+  kunden skrev den (`rad2`, "lgh 1201"); kassans egna fält har kvar c/o.
+- **Länet** är ett eget val under adressen med de 21 länen (ISO 3166-2,
+  `LAN`). Det fylls i av sig självt ur Googles förslag, annars ur postnumret
+  (`lanFranPostnr`, motorns tabell med blandzonerna, t.ex. Kungsbacka 434 i
+  Halland), och kunden kan ändra det tills postnumret byts. Servern tar
+  kundens giltiga val och annars postnumrets (`provaKassa`), och Wix-korgen
+  får det som `subdivision` (`wixAdress` i `flode.ts`). Motorn gör om det
+  till leverantörens provinsfält (`deriveProvince`; Aosoms klumporder har
+  kolumnen "Province"), så Aosom och VEVOR får stad och län som förut, nu
+  från kunden i stället för Wix gissning.
+- **Platshållaren har fältets höjd** (uppmätt per bredd 2026-11-06): tre
+  rader (193 px) under 442 px ytbredd, två rader (125 px, förnamn och
+  efternamn bredvid varandra) från 442 px. Containerfrågan på `.adressYta`
+  gör samma byte.
+- ☠️ **Stripes ram börjar i mobilhöjd** (201 px) och glider efter `ready` till
+  fältets höjd på ungefär 300 ms. Kassan sätter `adressLage` till `redo`
+  först när ramen står still (`ramenStilla` i `stripe-klient.ts`,
+  `narRamenStilla` i kroken, högst `RAM_VANTA_MS`), och tills dess ligger
+  ramen utanför flödet under platshållaren (`data-adress="laddar"`). Förut
+  hoppade formuläret 68 px på datorn när fältet ritades.
+- **Utan Stripe** (Wix betalsida) står kassans egna fält kvar; "Ort" heter
+  "Stad", och länsvalet finns där också.
+- **Tom korg efter köpet** (`visaTomKorg`, `lib/kassa/vy.ts`): Wix ger
+  besökaren en ny, tom korg med eget id efter köpet. Kassan ritade då hela
+  formuläret med "Fri frakt" (en tom korg har ingen frakt; Leonards
+  skärmbild 14:21). Nu visas "Varukorgen är tom" när korgen saknar varor,
+  utom medan korgen hämtas eller en betalning pågår.
+- **Leveranskortet** har mörk ram som stegens siffror i stället för orange;
+  orange är knapparnas och länkarnas färg.
+- ☠️ **Prov i webbläsaren: rulla fram före klick.** Chromium ritar inte
+  Stripes ramar utanför bilden, och när de rullas in ändrar de höjd. Ett
+  Playwright-klick direkt på en knapp under betalfältet kan då landa i ramen
+  (provet `prov-premium2` rullar och väntar 0,9 s). En helsidesbild visar
+  betalfältet tomt av samma skäl, fast det är ritat.
+
+### Snabbkassan: Apple Pay och Google Pay överst (Leonard 2026-11-06: "Jag vill att vi har apple pay o google pay överst")
+
+- **Överst på `/kassa`**, före steg 1: Stripes Express Checkout Element
+  (`snabbknappar` i `lib/kassa/snabbkassa.ts`), sedan "eller fyll i dina
+  uppgifter". Plånboken ger namn, e-post, telefon och leveransadress, så
+  kunden fyller inte i något. Betalfältet i steg 3 visar då bara kort och
+  Klarna (`BETALFALT`), och en länk där leder upp till knapparna.
+- **En egen Elements-grupp** med samma belopp som betalfältet
+  (`use-stripe-betalning.ts`): `elements.submit()` prövar varje fält i sin
+  grupp, och adressfältet och betalfältet är tomma när kunden betalar med
+  plånboken. Beloppet följer summeringen i båda grupperna.
+- **Trycket** (`klickSvar`) svarar inom en sekund med raderna och fraktvalet,
+  utan nätverksanrop. ☠️ **Beloppet i bladet är Elements-beloppet** (Wix total
+  med frakt); raderna och fraktvalet är bara visning men summerar alltid till
+  totalen (`snabbRader`: varje vara för sig när de går jämnt upp med Wix
+  delsumma, annars en rad; rabatten negativ). Provat med 20 000 slumpade korgar.
+- **Godkännandet** (`snabbBekrafta`): plånbokens uppgifter blir kassans
+  formulär (`kundFranPlanbok` i `formular.ts`: efternamnet är sista ordet,
+  länet ur regionen eller postnumret, medlemmens e-post går före plånbokens)
+  och prövas med `provaKassa`. Sedan samma `/api/kassa/stripe/forbered` och
+  samma slutförande som betalfältet. Fel före bekräftelsen går till bladet med
+  `paymentFailed` (`invalid_shipping_address` för namn och adress,
+  `address_unserviceable` för ett postnummer utan leverans), så att kunden
+  rättar där. Betalningens id sparas före bekräftelsen, och en ny total från
+  Wix stoppar betalningen som i betalfältet. `confirmPayment` får ingen
+  fakturering från oss: plånboken har den.
+- **Bara Apple Pay och Google Pay** i knapparna: Link, PayPal, Amazon Pay och
+  Klarna `never`. ☠️ Klarna står aldrig överst (betaltjänstlagen, se
+  `BETALFALT`).
+- ☠️ **`layout.overflow: "never"` bara med `maxRows: 0`.** Annars kastar Stripe
+  IntegrationError och inga knappar ritas (lokalt prov 2026-11-06). Knapparna
+  monteras därför sist och i `try`: ett fel i snabbkassan får aldrig stoppa
+  formuläret och betalfältet.
+- **Platsen hålls från första renderingen** (också på servern) med en
+  platshållare i knappens höjd, men bara där Apple Pay finns
+  (`ApplePaySession`, som Safari på iPhone och Mac har). Rutan som dök upp
+  efter hydreringen knuffade ner formuläret 256 px. Där svarar Stripe snabbt
+  och visar nästan alltid knappen; saknas plånbok tas platsen bort när Stripe
+  svarar, eller efter 12 s. ☠️ **Inte för Google Pay:** Stripes kontroll av
+  Google Pay tog 13 s på förhandsbygget (huvudlös Chromium, testnycklarna,
+  2026-11-06), och 0 av 171 köp är Google Pay (23 Apple Pay). I Chrome visas
+  rutan därför först när Stripe hittat en plånbok. Utan plånbok står rutan
+  utanför sidan (`data-visas="nej"`), eftersom knapparna måste vara monterade
+  för att Stripe ska kunna svara.
+- **Före hydreringen avgör `PLANBOK_SKRIPT`** (`lib/kassa/snabbkassa.ts`, körs
+  först i `app/layout.tsx`): det sätter `data-applepay="ja"|"nej"` på `<html>`,
+  och CSS:en flyttar ut rutan medan Stripe svarar (`data-snabb="laddar"`) i en
+  webbläsare utan Apple Pay. Annars stod platsen kvar tills React tagit över
+  och försvann sedan. Skriptet ligger i layouten och inte på kassasidan,
+  eftersom kunden oftast kommer till `/kassa` med ett mjukt sidbyte från
+  varukorgen, och då körs inga skript i sidans HTML.
+- ☠️ **Stripes ram har −4 px marginal** (plats för fokusringen). Utan egen
+  formateringskontext kollapsade den genom ytan runt fältet, och allt under
+  flyttade 4 px när Stripe monterade. `.snabbYta` och `.betalfalt` har därför
+  `display: flow-root`.
+- **Mätt med webbläsarens egen CLS** (`PerformanceObserver` för
+  `layout-shift`, scratchpad `snabb/g-cls.cjs`, 2026-11-06): formuläret
+  flyttar inte alls när Stripes fält kommer, varken i 390 eller 1280 px. Det
+  som är kvar på datorn (0,013) är summeringen när korgens rader kommer.
+- **Kräver domänen:** Apple Pay och Google Pay syns bara när
+  `www.fyndplats.se` är registrerad i Stripe (Inställningar →
+  Betalmetodsdomäner), i testläget och i live var för sig, och bara över
+  HTTPS. Lokalt och på en skyddad förhandslänk syns inga knappar (Stripe
+  varnar i konsolen); flödet provades därför lokalt med en spelad Stripe.js
+  (scratchpad `snabb/b-spelad.cjs`): tryck, nej i bladet, ny total, `/tack`.
+
+**Kvar före riktiga kunder:** live-nycklarna i Production (en begränsad
+nyckel med PaymentIntents skriva, Charges läsa, Refunds skriva och Disputes
+läsa); webhooken (`payment_intent.amount_capturable_updated` och
+`payment_intent.succeeded` till `https://www.fyndplats.se/api/stripe/webhook`,
+hemligheten i `STRIPE_WEBHOOK_SECRET`); domänen för Apple Pay och Google Pay
+(snabbkassan syns först då); egna påminnelser om övergivna kassor;
+Stripe-inställningarna (kortutdragets text "FYNDPLATS", Stripes egna kvitton
+av, Radar-regler); ett köp med Apple Pay från Leonards telefon.
+
+## Medlemskapet, etapp E2: medlemspriset och kassan med låsta priser (2026-11-04)
+
+Byggt men avstängt. Växeln är fältet `pris` i raden
+`FyndplatsButikInstallningar/medlemskap`: `av` (eller inget fält), `test` (bara
+medlemmar med `testare: true`) eller `pa`. Den är skild från `lage`.
+
+- **Prismotorn** (`lib/medlem/pris.ts`): radpriset är A·(1−d) avrundat till
+  öre. Stoppar golvet G det, blir rabatten den högsta HELA procent som golvet
+  tillåter, inte golvet självt (Leonards ja 2026-11-04). Annars hade rutan
+  sagt "högst 1 %" om 1,4 %, eller "högst 0 %" med ett lägre pris. Tillåter
+  golvet inte ens 1 % blir det ingen rabatt, och kunden ser att varan inte
+  omfattas. Aldrig under G och aldrig över A. Golvet G = C × 1,10 × 1,25
+  kommer från motorns `/api/medlem/golv` (`golv-klient.ts`, hemligheten
+  `REVIEW_INGEST_SECRET`).
+  ☠️ Kostnaden och golvet lämnar aldrig servern; webbläsaren får radpriset,
+  procenten och skälet till en begränsning.
+- ☠️ **Styckpriset avrundas till hela ören, och samma pris går till Wix.**
+  Rutan på produktsidan visar örena (`lib/medlem/kronor.ts`); avrundat till
+  kronor hade den sagt något annat än kassan.
+- **Fraktskyddet** räknas mot 500,00 kr (E0-5). Ett företag får den högsta av
+  nivån och ordertrappan, aldrig båda.
+- **Produktsidan**: `/api/medlem/priser` (privat, ingen cache) och rutan
+  `components/medlemspris.tsx` i nivåns metall, samma nyckel som medlemskortet
+  (`lib/medlem/niva-nyckel.ts`). Utan tecknet `fp_medlem_inne` görs inget
+  anrop.
+- **Jämförelsen som kedjorna gör den** (Leonard 2026-11-05: "kolla hur andra
+  stora sidor gör och härma", i stället för att fråga Konsumentverket).
+  Elgiganten visar klubbpriset med priset för den som inte är medlem och
+  "Lägsta pris senaste 30 dagar" vid en sänkning. Hos oss
+  (`lib/medlem/jamforelse.ts`):
+  - Under medlemspriset står det belagda tidigare priset, överstruket och med
+    Konsumentverkets uttryck framför, genom `components/tidigare-pris.tsx`
+    (samma som rean). Det är `jamforprisFor` ur prishistoriken, alltså det
+    lägsta priset de senaste 30 dagarna, och det visas bara när medlemspriset
+    ligger under det.
+  - ☠️ **Nivåns procent står bara när det tidigare priset är listpriset.** En
+    procent ska räknas mot det belagda priset; nivåns procent räknas mot
+    listpriset.
+  - ☠️ **Prishistoriken är produktens lägsta variantpris** (price-snapshot).
+    Har varianterna olika pris visas ingen jämförelse och ingen procent, bara
+    "Ditt medlemspris".
+  - Jämförpriset sparas i tio minuter per produkt och pris och instans; ett fel
+    ger ingen jämförelse, aldrig en gissad.
+- ☠️ **Medlemspriset läggs aldrig ovanpå en rea** (Leonard 2026-11-05, 2.1:
+  "det ska inte kunna kombineras med rabattkoder eller fyndauktionsrabatterna";
+  rean är en rabatt av samma slag). En rad är rea när Wix `fullPrice` ligger
+  över priset (varukorgen) eller `compareAtPrice` över priset (V3,
+  produktsidan). Undantaget heter `rea` i prismotorn, och rutan säger "Varan är
+  redan på rea". Rabattkoderna är låsta i medlemskassan (E0-3), och
+  fyndauktionens varor har undantaget `auktion` från motorns golv.
+- **Kassan** (`/api/medlem/kassa`, `lib/medlem/medlemspris.ts`) bygger en Cart
+  V2 med E0:s regler: `openAccess`, landet SE, kanalen WEB, låst kupong och
+  presentkort, och samma pris i `salePrice` och `fullPrice` på varje rad från
+  Wix Stores. Den kontrollerar att Wix bär priserna och sparar prisbeslutet i
+  `FyndplatsPrisbeslut` (ADMIN, index på `purchaseFlowId` och
+  `medlemsId`+`skapad`) innan kunden får adressen. Går något fel används den
+  vanliga kassan.
+- ☠️ **Låsta korgar äldre än ett dygn tas bort** varje timme kl :41
+  (`/api/cron/medlemskorgar`, `lib/medlem/korgstadning.ts`). Varukorgens id är
+  kassans id, så den gamla länken slutar fungera och nästa köp räknas om.
+  Utfallet står på beslutet: `kopt`, `borttagen` eller `saknades`.
+- ☠️ **Mejlen om övergiven kassa hoppar över medlemskorgar** (en korg med
+  prisbeslut, `lib/medlem/overgiven.ts`), både i webhooken och i pollaren. Kan
+  det inte avgöras väntar kassan till nästa kvart.
+- **Medlemskorgen betalas i vår kassa** (Leonard 2026-11-06: medlemmar och
+  företag betalar i samma kassa som alla andra). Gäller vår kassa med Stripe
+  för besökaren (`egenKassaMedStripe`, läget och provkakan) svarar
+  `/api/medlem/kassa` och `/api/medlem/offert/kassa` med `/kassa` och sätter
+  kakan `fp_kassa_korg` på den låsta korgen (httpOnly, ett dygn). Annars Wix
+  kassa som förut. `lib/kassa/lastkorg.ts` har reglerna, `lib/kassa/medlemskassa.ts`
+  serverns del.
+  - ☠️ **Korgens id står aldrig i adressen** (GA4 och Meta läser den). Sidans
+    server läser kakan och använder korgen bara om prisbeslutet hör till den
+    inloggade medlemmen, saknar utfall och korgen inte blivit en order.
+  - Snabbkassan (Apple Pay, Google Pay överst) betalar den låsta korgen på
+    samma sätt. Medlemmens e-post på korgen går före plånbokens
+    (`kundFranPlanbok`, `epost`), så att köpet räknas på kontot, och rutan
+    säger "Ditt medlemspris är med i beloppet" i stället för att erbjuda en
+    rabattkod.
+  - Kassan döljer rabattkoden ("Ditt medlemspris är med …"). "Ändra" släpper
+    den låsta korgen (`/api/kassa/lastkorg` `slapp`), och varukorgens "Till
+    kassan" räknar en ny. Stämmer varukorgen inte längre med den låsta (andra
+    varor eller antal, eller en annan varukorg) släpps den också.
+    ☠️ En offert jämförs aldrig: dess rader är offertens, inte varukorgens.
+  - ☠️ **Efter köpet tas det köpta bort ur besökarens korg, en gång per
+    beslut.** Den låsta korgen var en kopia. Webhooken gör det för varje
+    godkänd order, också Wix kassas (förut blev varorna kvar där), och kassans
+    sida ber om det direkt efter köpet (`kopt`, med kakan). Bara en betald
+    order ur just den låsta korgen, och `taRensning` (compare-and-set på
+    `besokarensKorgRensad`) gör att de två aldrig båda tar bort. En offert
+    rör inte besökarens korg.
+  - ☠️ **Servern läser korgen i Cart V2-formen** (`GET /ecom/v2/carts/{id}`:
+    `source.catalogReference`, `quantityInfo.confirmedQuantity`,
+    `pricing.unitPrice` och `pricing.breakdown.fullPrice`). `lasWixVarukorg`
+    kände bara V1-formen, så varje riktig korg blev "tom": varukorgen visade
+    listpriset, "Till kassan" gick till vanliga kassan med fullt pris,
+    kontrollen av den skapade korgen (`korgenBarPriserna`,
+    `korgenBarRaderna`) godkände aldrig någon, och "Spara varukorgen" sparade
+    ingenting. Proven använde V1-formen, och provköpet 10175 byggde den låsta
+    korgen för hand. Hittat i den visuella auditen 2026-11-06 på
+    förhandsbygget. Rean ligger i `breakdown.fullPrice` (mätt: 1 519 mot
+    styckpriset 1 029), så en reavara får fortfarande inget medlemspris.
+
+Före `test`: Leonards medlemsrad med `testare: true` och ett prov på en
+förhandslänk fram till Wix-kassan. Leonard lägger ingen provorder (2026-11-05:
+"Du får testa så det funkar på annat sätt"); att Wix behåller vårt pris genom
+betalningen visade provordern 10167 i E0. Ingen tvåfaktor för admin (Leonard
+2026-11-05). J1 skickas inte: jämförelsen följer kedjorna (ovan). Aldrig under
+Black Week 23–29/11.
+
+## Medlemskapet, etapp E3: företagskontot (2026-11-04)
+
+Bakom samma växel som E2 (`pris`: `test` bara för testare, `pa` för alla).
+Ett företag läggs till på ett befintligt konto, högst ett per konto i E3.
+
+- **Ansökan** på Mina sidor (`app/konto/foretag.tsx`, `/api/konto/foretag`):
+  namn, organisationsnummer (Luhn medan kunden skriver, `orgnr.ts`),
+  fakturaadress, valfri leveransadress, kryss för näringsverksamhet och
+  villkoren. Servern prövar allt igen (`lib/medlem/foretag.ts`). Raden heter
+  `<medlemsId>__foretag` i `FyndplatsMedlemsprofiler` (index
+  `typ-status-ansokt`) och får status `granskas`; butiken mejlar info@.
+- **Bolagsverkets uppslag** (`lib/medlem/bolagsverket.ts`, 2026-11-06): API:t
+  Värdefulla datamängder v1 (gratis, öppen data). Token med client credentials
+  på `portal.api.bolagsverket.se/oauth2/token`, scope
+  `vardefulla-datamangder:read`; `POST /organisationer` på
+  `gw.api.bolagsverket.se/vardefulla-datamangder/v1` med
+  `identitetsbeteckning` (en enskild firma: personnumret med sekel). Nycklarna
+  `BOLAGSVERKET_CLIENT_ID` och `BOLAGSVERKET_CLIENT_SECRET` ligger i
+  Production och Preview (Leonard 2026-11-06). Beskrivningen (OpenAPI) är
+  öppen i utvecklarportalen: `/api/am/devportal/v3/apis/<id>/swagger`.
+  - **Leonards regel:** ett företag som Bolagsverket visar som aktivt
+    (inte avregistrerat, inget förfarande, inte "ej verksam", alla källor
+    svarade) godkänns direkt med det **registrerade** namnet (`beslutAv:
+    "bolagsverket"`, kundens namn i `namnAngivet`). Allt annat får `granskas`
+    med orsaken i fältet `bolagsverket`, och butiken mejlas orsaken.
+  - Formuläret slår upp namnet medan kunden skriver (`steg: "sla-upp"`), bara
+    för juridiska personer och högst 15 gånger per konto och tio minuter.
+  - ☠️ Saknas nycklarna, eller svarar Bolagsverket fel, går ansökan till kön som
+    före uppslaget. Uppslaget kastar aldrig, och numret loggas aldrig.
+- **Granskningen** görs i motorns `/admin/medlemmar` (kön överst), som visar
+  Bolagsverkets besked. Godkänt företag mejlas av
+  timjobbet `/api/cron/medlemskorgar` inom en timme
+  (`lib/medlem/foretagsmejl.ts`, märkt exakt en gång).
+- ☠️ **En enskild firmas organisationsnummer är ett personnummer** (F4). Kunden
+  ser det maskerat (`orgnrVisas`), mejlet till info@ likaså, och det loggas
+  aldrig; hela numret syns bara i motorns admin.
+- **Profilen "Du handlar som"** bärs i sessionen (`profil: "foretag"`) och i
+  tecknet `fp_medlem_inne=f`, satt av `/api/konto/profil`. ☠️ Tecknet ger
+  ingen rätt: `medlemsprofil()` läser företagsprofilen vid varje prissättning
+  och prissätter som privatperson om företaget inte är godkänt eller dess
+  villkor är gamla (E3-12, `VILLKOR_FORETAG_VERSION`).
+- **Priserna**: produktsidans ruta visar företagspriset exkl. moms, märkt, och
+  ordertrappan som tabell med "högst x %" när golvet stoppar trappan (E3-8).
+  Varukorgen visar varor och frakt exkl. moms, momsen, totalen inkl. moms,
+  "Lägg till x kr exkl. moms för y %" och att kassan visar priserna inkl. moms.
+  Beloppen exkl. moms räknas på servern (`exklMoms`, half up).
+- **Villkoren** står på `/villkor/foretag` (noindex), samma text som
+  `docs/medlemskap-foretagsvillkor-utkast.md`. Ifyllda 2026-11-05 utan jurist
+  (Leonards svar 3.2: "Vi får söka upp i lagboken om vi är osäkra"); varje
+  lagrum de nämner är läst på riksdagen.se, och listan står sist i
+  dokumentet. Versionen är 1, för ingen har godkänt utkastet. ☠️ Ändras
+  texten i sak höjs `VILLKOR_FORETAG_VERSION`, och varje företag godkänner den
+  nya versionen på Mina sidor innan kontot prissätts som företag igen.
+
+- **Offerten** (`lib/medlem/offert.ts`, `FyndplatsOfferter`, ADMIN):
+  "Begär offert" visas i varukorgen för ett godkänt företag när prismotorn
+  säger `offert` (6 exemplar av samma vara eller 20 000 kr exkl. moms, F7).
+  Förfrågan sparar raderna med listpris (bara Wix Stores), högst tre
+  obesvarade per konto, och mejlar info@. Admin sätter styckpriserna i
+  motorn: aldrig under golvet, aldrig över listpriset. Offerten gäller i 14
+  dygn från prissättningen.
+- **`/offert/<id>`** kräver inloggning med kontot som begärde den (annars
+  404) och visar raderna exkl. moms. "Till kassan" (`/api/medlem/offert/kassa`)
+  bygger en låst korg med offertens priser (`lastKorgKropp`, samma regler som
+  medlemskorgen) bara inom giltighetstiden och när kontot handlar som
+  företaget, och sparar prisbeslutet med `kalla: "offert"` och `offertId`.
+- ☠️ **Timjobbet sköter offerternas läge** (`lib/medlem/offertjobb.ts`):
+  betald när en av offertens kassor blev en order (kollas före utgången, så
+  att ett köp i sista stund inte märks som utgånget), utgången efter sista
+  dagen, och mejlet "Offerten är klar" exakt en gång. Den låsta korgen tas
+  bort efter ett dygn som alla medlemskorgar, och övergivna kassor hoppar
+  över den.
+
+- **Förskottsfakturan** (villkoren 5.1, Leonards svar 3.3 2026-11-05): ett
+  godkänt företag får knappen "Betala mot förskottsfaktura" i varukorgen
+  (`components/forskott-knapp.tsx`, `/api/medlem/forskott`). Servern
+  prissätter korgen som företag och skapar ordern själv med
+  `POST /ecom/v1/orders` (`forskottsorderKropp` i `lib/medlem/varukorg.ts`):
+  obetald, handlagd (`BACKOFFICE_MERCHANT`), `Förskottsfaktura.` först i
+  noteringen och frakten enligt `lib/shipping.ts`. Beloppen fylls i som Wix
+  själv gör (provordern 10167 är facit i provet). Motorn skickar fakturan
+  med förfallodag efter högst 10 dagar och beställer varorna först när
+  ordern är betald; butikens orderbekräftelse säger detsamma
+  (`lib/order-betalning.ts`).
+  - ☠️ Beslutet sparas före ordern med en insert på besökarens korg
+    (`forskott_<korg>`): två tryck eller två flikar ger aldrig två ordrar.
+    Ett tydligt nej från Wix (4xx) släpper spärren; tystnad eller 5xx gör det
+    inte, eftersom ordern då ändå kan finnas.
+  - ☠️ En order som inte är obetald, handlagd och med våra belopp
+    (`kontrolleraForskottsorder`) avbryts direkt, med varorna tillbaka i
+    lager och utan mejl.
+  - ☠️ En enskild firmas nummer är ett personnummer och skrivs aldrig i
+    ordern; fakturan får bara namnet (villkoren 5.2 säger "för ett bolag").
+  - Create Order tål 5 anrop i timmen för en opublicerad app. Ett 429 ger
+    kunden "försök igen om en stund, eller betala i kassan".
+
+- **Kvittot med företagets namn för kort och Klarna** (villkoren 5.2, byggt
+  2026-11-05). Kassan sparar företaget på prisbeslutet när kunden går till
+  kassan (`foretagPaBeslut` i `lib/medlem/varukorg.ts`): `foretagNamn`,
+  `foretagFaktura` och för ett bolag `foretagOrgnr`. Motorns timkörning
+  `/api/cron/faktura` (:10) hittar den betalda ordern på `purchaseFlowId` och
+  mejlar sitt kvitto som PDF med företaget som köpare, inom en timme
+  (motorns ämnesfil 46). Förskottsorderns faktura och kvitto bär namnet ur
+  ordern.
+  - ☠️ En enskild firmas nummer är ett personnummer och läggs aldrig på
+    beslutet; motorn skriver dessutom bara ut ett bolags nummer (siffra tre
+    och fyra minst 20).
+  - ☠️ Fälten läses i motorn med samma namn (`foretagUrBeslut`). Byt aldrig
+    namn på dem i bara det ena repot.
+  - ☠️ Butikens och motorns E3 mergas samma natt. Utan motorns del får ett
+    företag som betalar med kort eller Klarna inget kvitto, och villkoren
+    lovar ett.
+
+- **"Köp igen"** på varje order på Mina sidor med en fysisk vara (specen:
+  "sparade varukorgar och Köp igen"; byggt 2026-11-05). `/api/konto/kop-igen`
+  läser ordern ur orderliggaren på kontots e-post, och numret väljer bara
+  bland medlemmens egna ordrar. Katalogen avgör vad som går att köpa nu
+  (`lib/medlem/kop-igen.ts`): en vara som är slut eller inte längre säljs, eller
+  vars variant är borta, läggs inte i, och beskedet under knappen säger hur
+  många. Resten läggs i varukorgen i ETT anrop (`addMany` i
+  `components/cart.tsx`), med orderns antal (högst 99) och dagens pris.
+  Variant-id skickas bara för en produkt med flera varianter, som på
+  produktsidan. Gäller alla medlemmar, inte bara företag.
+
+- **Sparade varukorgar** på Mina sidor (byggt 2026-11-05, `lib/medlem/sparade.ts`,
+  kollektionen `FyndplatsSparadeKorgar`: ADMIN, indexet `medlem-skapad`).
+  Medlemmen sparar varukorgen som den är under ett namn och lägger den i
+  varukorgen igen med ett tryck. `POST /api/konto/sparade { cartId, namn }`
+  läser besökarens Wix-korg på servern (`lasWixVarukorg`), så det som sparas
+  är Wix egna rader och aldrig vad webbläsaren påstår. Bara varor ur Wix
+  Stores, samma vara blir en rad, högst 100 rader, antal 1–99, högst 20 korgar
+  per konto. Inget pris sparas: `POST /api/konto/sparade/kop { id }` prövar
+  korgen mot katalogen som "Köp igen" (`somOrderrader` → `kopIgen`), och resten
+  läggs i med `addMany` och dagens pris. Ett tomt namn blir "Varukorg <dag>".
+  - ☠️ Att SPARA följer växeln för E2/E3 (`prisOppet`, `sparadeSektion`):
+    korgarna är uppgifter om kontot som integritetstexten för E1 inte nämner.
+    Korgar som redan finns syns alltid, så att de går att lägga i varukorgen
+    och ta bort.
+  - ☠️ `DELETE /api/konto/sparade?id=sk_…` tar bara bort kontots egen korg
+    (villkoret `medlemsId` i Wix), och köp-rutten svarar 404 på en annans.
+  - Motorns borttagning av ett konto tar också dess sparade varukorgar
+    (motorns ämnesfil 46).
+
+- **"Kvitto (PDF)"** på varje betald order på Mina sidor (`visaKvitto`, byggt
+  2026-11-05): `/api/konto/kvitto/<nummer>` prövar att ordern finns i
+  orderliggaren på kontots e-post och hämtar PDF:en från motorns
+  `/api/medlem/kvitto` (hemligheten `REVIEW_INGEST_SECRET`, adressen
+  `CACHE_WARMER_KVITTO_URL` eller motorns produktion). Motorn ritar kvittot
+  med mejlens mall, prövar e-posten på ordern en gång till och svarar bara för
+  en betald order: ett köp som företag får företaget ur prisbeslutet, en
+  fakturaorder bara kvittot som redan har mejlats. Svaret är privat och
+  cachas aldrig; utan PDF visas en kort sida på svenska med länk tillbaka
+  (`kvittoFelText`).
