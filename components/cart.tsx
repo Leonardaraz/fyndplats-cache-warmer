@@ -452,6 +452,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       // routar tillbaka till /tack utan items — purchase-eventet behöver det.
       trackBeginCheckout(cart);
       stashPurchaseSnapshot(cart);
+      const kassaId: string = cart?._id || "";
+      // ☠️ Medlemmar FÖRST, före valet av kassa: servern bygger en korg med
+      // låsta medlemspriser (E2) och svarar med kassans adress, "/kassa" med
+      // kakan fp_kassa_korg när vår kassa gäller (lib/kassa/lastkorg.ts).
+      // Gick vår kassa först betalade en medlem fullt pris i den. Utan
+      // medlemstecknet görs inget anrop. Ger servern ingen adress (medlemspris
+      // gäller inte, eller något föll) används den vanliga kassan nedan.
+      // Hel sidladdning: /kassa läser kakan på servern.
+      const medlem = kassaId ? await medlemskassa(kassaId) : null;
+      if (medlem) {
+        console.info("[kassa] adress via medlemskassan");
+        window.location.href = medlem;
+        return;
+      }
       // Vår egen kassa (/kassa) när växeln säger det (lib/kassa/lage.ts).
       // Svaret hämtas när lådan öppnas; finns det inte än frågas det nu, och
       // ett fel ger Wix kassa som förut.
@@ -465,16 +479,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
       // Adressen förbereds när lådan öppnas (lib/kassalank.ts). Finns en för
       // just den här vagnen används den, annars byggs den nu, som förut.
-      const kassaId: string = cart?._id || "";
-      // Medlemmar: servern bygger en korg med låsta medlemspriser (E2). Ger
-      // den ingen adress, för att medlemspris inte gäller eller något föll,
-      // används den vanliga kassan nedan.
-      const medlem = kassaId ? await medlemskassa(kassaId) : null;
-      if (medlem) {
-        console.info("[kassa] adress via medlemskassan");
-        window.location.href = medlem;
-        return;
-      }
       const forberedd = kassaId ? kassalankMinne.hamta(kassaId) : null;
       let lank: Kassalank | null = forberedd ? await forberedd.catch(() => null) : null;
       if (lank) {
