@@ -94,19 +94,43 @@ export function elementsInstallningar(totalOre: number): StripeElementsOptionsMo
 }
 
 /**
- * Betalfältet: betalsätten som en lista med val, Klarna först (två av tre köp,
- * 2026-06–11). Namn, e-post, telefon och adress frågas ALDRIG i fältet: kunden
- * har redan skrivit dem i formuläret, och servern skickar med dem till
- * bekräftelsen (faktureringAv i lib/kassa/flode.ts). Det var Wix betalsidas
- * fel: Klarna-kunden fick skriva allt en gång till.
+ * Betalfältet: betalsätten som en lista med val. Namn, e-post, telefon och
+ * adress frågas ALDRIG i fältet: kunden har redan skrivit dem i formuläret, och
+ * servern skickar med dem till bekräftelsen (faktureringAv i
+ * lib/kassa/flode.ts). Det var Wix betalsidas fel: Klarna-kunden fick skriva
+ * allt en gång till.
+ *
+ * ☠️ KLARNA SIST OCH ALDRIG FÖRVALT, fast två av tre köp är Klarna. Lagen
+ * (2010:751) om betaltjänster (prop. 2019/20:79, i kraft 2020-07-01): finns ett
+ * betalsätt utan kredit ska det visas först, och ett betalsätt med kredit får
+ * inte vara förvalt. "Kredit" ska förstås brett, och Klarnas val rymmer
+ * "betala om 30 dagar" och delbetalning. Ett brott räknas som otillbörlig
+ * marknadsföring (KO). Fältet fäller ut det första valet (defaultCollapsed
+ * false), alltså kortet; Klarna väljs aktivt. Ordningen låses i proven.
  */
 export const BETALFALT: StripePaymentElementOptions = {
   layout: { type: "accordion", defaultCollapsed: false, radios: true, spacedAccordionItems: true },
-  paymentMethodOrder: ["klarna", "apple_pay", "google_pay", "card"],
+  paymentMethodOrder: ["card", "apple_pay", "google_pay", "klarna"],
   fields: { billingDetails: "never" },
   wallets: { applePay: "auto", googlePay: "auto", link: "never" },
   business: { name: "Fyndplats" },
 };
+
+/**
+ * Klarna-rutan på produktsidan. Klarnas egen ruta (OSM, components/klarna-osm.tsx)
+ * visar villkoren i Leonards Klarna-avtal, som gäller i Wix kassa: "Betala
+ * inom 30 eller 60 dagar" och delbetalning i 3–24 månader. I Stripe-kassan
+ * betalar kunden med Stripes Klarna, som har andra villkor (30 dagar och
+ * Stripes delbetalning). När Stripe-kassan är på för alla visar sidan därför
+ * vår egen rad (components/klarna-message.tsx: "Betala senare – räntefritt"),
+ * som stämmer i båda, och Klarnas skript laddas inte. Provläget ändrar inget
+ * för vanliga kunder, så där står OSM kvar.
+ */
+export type KlarnaRuta = "osm" | "statisk";
+
+export function klarnaRuta(lage: "av" | "prov" | "pa", harStripe: boolean): KlarnaRuta {
+  return lage === "pa" && harStripe ? "statisk" : "osm";
+}
 
 export interface SparadAvsikt {
   avsiktId: string;

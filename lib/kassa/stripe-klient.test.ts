@@ -15,6 +15,7 @@ import {
   betalfelText,
   elementsInstallningar,
   klarBeslut,
+  klarnaRuta,
   returMal,
   sparadAvsikt,
   stripeMeddelande,
@@ -51,11 +52,26 @@ test("betalfältet och PaymentIntenten har samma valuta och dragning (annars nek
   assert.doesNotMatch(JSON.stringify(e), /googleapis|gstatic/);
 });
 
-test("betalfältet frågar aldrig efter namn, e-post, telefon eller adress, och Klarna står först", () => {
+test("betalfältet frågar aldrig efter namn, e-post, telefon eller adress", () => {
   assert.equal(BETALFALT.fields?.billingDetails, "never");
-  assert.equal(BETALFALT.paymentMethodOrder?.[0], "klarna");
   assert.equal(BETALFALT.wallets?.applePay, "auto");
   assert.equal(BETALFALT.wallets?.googlePay, "auto");
+});
+
+test("betaltjänstlagen: ett betalsätt utan kredit står först och fälls ut, Klarna (kredit) står sist och är aldrig förvalt", () => {
+  const ordning = BETALFALT.paymentMethodOrder ?? [];
+  // Betalsätt där kunden kan få kredit (betala senare, delbetala).
+  const KREDIT = new Set(["klarna", "affirm", "afterpay_clearpay", "zip"]);
+  assert.ok(ordning.length > 1 && !KREDIT.has(ordning[0]), `först står ${ordning[0]}`);
+  assert.equal(ordning[0], "card");
+  assert.equal(ordning.at(-1), "klarna");
+  // Alla utan kredit före alla med kredit.
+  const forstaKredit = ordning.findIndex((t) => KREDIT.has(t));
+  assert.ok(ordning.slice(forstaKredit).every((t) => KREDIT.has(t)), ordning.join(", "));
+  // Utfällt första val = förvalt: det får bara vara ett utan kredit.
+  const layout = BETALFALT.layout as { type?: string; defaultCollapsed?: boolean };
+  assert.equal(layout.type, "accordion");
+  if (layout.defaultCollapsed !== true) assert.ok(!KREDIT.has(ordning[0]));
 });
 
 test("faktureringen (från servern) har varje fält Stripe kräver, och adressen är leveransadressen", () => {
@@ -196,6 +212,16 @@ test("tillbaka till kassan: varje kod har en text, och okända blir fel", () => 
   assert.equal(stripeMeddelande("avbruten"), STRIPE_MEDDELANDE.avbruten);
   assert.equal(stripeMeddelande("toString"), STRIPE_MEDDELANDE.fel);
   assert.equal(stripeMeddelande(null), null);
+});
+
+test("Klarna-rutan på produktsidan: Klarnas egen bara när kunden får Wix kassa", () => {
+  // Stripe-kassan på för alla: Stripes Klarna har andra villkor än Leonards avtal.
+  assert.equal(klarnaRuta("pa", true), "statisk");
+  // Provläget gäller bara den med provkakan; vanliga kunder får Wix kassa.
+  assert.equal(klarnaRuta("prov", true), "osm");
+  assert.equal(klarnaRuta("av", true), "osm");
+  // Utan Stripes hemliga nyckel skickar "pa" kunden till Wix betalsida, där Leonards avtal gäller.
+  assert.equal(klarnaRuta("pa", false), "osm");
 });
 
 test("betalfel: Stripes egen text för kort- och formulärfel, annars vår", () => {

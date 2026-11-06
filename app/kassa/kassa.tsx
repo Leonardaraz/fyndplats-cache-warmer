@@ -3,8 +3,9 @@
 // Vår egen kassa: kontakt, leverans, betalning och summering på
 // www.fyndplats.se. Två sätt att betala, valda av page.tsx:
 //   • Stripe (när nycklarna finns, Leonards val 2026-11-06): betalfältet står i
-//     steg 3 på sidan, med Klarna, kort, Apple Pay och Google Pay. Kunden
-//     skriver sina uppgifter EN gång; de följer med till Klarna.
+//     steg 3 på sidan, med kort, Apple Pay, Google Pay och Klarna (i den
+//     ordningen: betaltjänstlagen, se BETALFALT). Kunden skriver sina
+//     uppgifter EN gång; de följer med till Klarna.
 //     Flödet: lib/kassa/stripe-klient.ts och lib/kassa/flode.ts.
 //   • Annars Wix betalsida (Order Payment Request), som beskrivs nedan.
 // Skälet till kassan är att Wix
@@ -858,7 +859,7 @@ export function Kassa({ stripeNyckel = null }: { stripeNyckel?: string | null })
               ))}
             </ol>
             <div className={s.vantanBar} aria-hidden="true"><span data-steg={steg} /></div>
-            <p className={s.vantanFot}>{stripeNyckel ? "Klarna, kort, Apple Pay och Google Pay · krypterad betalning via Stripe" : "Kort, Klarna och Apple Pay · krypterad betalning hos Wix"}</p>
+            <p className={s.vantanFot}>{stripeNyckel ? "Kort, Apple Pay, Google Pay och Klarna · krypterad betalning via Stripe" : "Kort, Klarna och Apple Pay · krypterad betalning hos Wix"}</p>
           </div>
         </div>
       ) : null}
