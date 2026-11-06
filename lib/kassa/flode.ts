@@ -84,6 +84,8 @@ export interface Rakning {
     priceSummary?: { subtotal?: Pengar; discount?: Pengar; delivery?: Pengar; tax?: Pengar; total?: Pengar };
     violations?: Overtradelse[];
     spiViolations?: Overtradelse[];
+    /** Wix bevis på att priserna inte ändrats; Place Order nekar om de gjort det (uppmätt 2026-11-06). */
+    priceVerificationToken?: string;
   };
 }
 
@@ -511,4 +513,332 @@ export function attSlappa(
     else if (b.status === "VOIDED" && utgang > makuleradGrans) makulerade.push({ betalningId: b.id, orderId: b.orderId });
   }
   return [...ut, ...makulerade];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Stripe-kassan (Leonards val 2026-11-06, efter auditen: Klarna är två av tre
+// köp, och Wix betalsida lät Klarna-kunden skriva allt två gånger). Kort,
+// Klarna, Apple Pay och Google Pay tas på vår sida med Stripe; Wix behåller
+// pris, lager, order, mejl och motorns flöde.
+//
+// Ordningen, uppmätt mot Wix 2026-11-06 (Place Order på en förberedd korg gav
+// en obetald order utan debitering, avbruten med återlagring direkt):
+//   1. forberedStripe: korgen får kundens uppgifter och fraktsätt, Wix räknar,
+//      och en PaymentIntent med Wix total och MANUELL dragning skapas eller
+//      uppdateras. Kunden betalar i Stripes fält: beloppet reserveras.
+//   2. slutforStripe (webhooken och kundens retur, vilken som kommer först):
+//      Wix räknar igen; totalen måste vara den reserverade. Place Order med
+//      Wix prisbevis skapar ordern ur korgen. Först då dras pengarna, och
+//      betalningen registreras på ordern (Add Payments), som då blir betald.
+//   3. Går ordern inte att skapa släpps reservationen: ingen kund betalar utan
+//      order, och ingen obetald order blir liggande (Wix betalsidas problem).
+//
+// ☠️ CREATE ORDER (ecom/v1/orders) ANVÄNDS INTE: Wix tillåter fem anrop i
+// timmen för appar som inte är publicerade. Place Order är kassans väg och
+// ersätter Checkout V1 create-order, som tas bort 2027-02-01.
+//
+// ☠️ ETT LÅS PER BETALNING. Webhooken och kundens retur kommer ofta samtidigt.
+// Låset (en Wix Data-rad med betalningens id) gör att bara en av dem skapar
+// ordern; den andra svarar "pagar" och frågar igen. Låset bär steget, så att
+// ett avbrott efter ordern fortsätter med dragningen i stället för att skapa
+// en order till.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Står i PaymentIntentens metadata.kalla: bara kassans egna betalningar slutförs. */
+export const STRIPE_KALLA = "fp-kassa-stripe";
+
+/** Ett lås som inte blivit klart på så här lång tid tas över (avbruten körning). */
+export const STRIPE_LAS_MS = 120_000;
+
+/** PaymentIntent: bara fälten kassan läser (Stripe API 2025-03-31.basil). */
+export interface Avsikt {
+  id: string;
+  amount: number;
+  amount_capturable: number;
+  amount_received: number;
+  currency: string;
+  status: "requires_payment_method" | "requires_confirmation" | "requires_action" | "processing" | "requires_capture" | "canceled" | "succeeded";
+  capture_method: "automatic" | "automatic_async" | "manual";
+  client_secret: string | null;
+  metadata: Record<string, string>;
+  latest_charge: string | { id: string; payment_method_details?: { type?: string; card?: { wallet?: { type?: string } | null } | null } } | null;
+  payment_method_types?: string[];
+}
+
+export interface AvsiktParametrar {
+  amount: number;
+  currency: "sek";
+  capture_method: "manual";
+  automatic_payment_methods: { enabled: true };
+  description: string;
+  metadata: { kalla: string; cartId: string; avtryck: string };
+  shipping: {
+    name: string;
+    phone: string;
+    address: { line1: string; line2?: string; postal_code: string; city: string; country: "SE" };
+  };
+}
+
+/** Låsets rad: steget och ordern, så att en ny körning fortsätter där den förra slutade. */
+export interface StripeLas {
+  cartId: string;
+  /** pagar: ingen order än. order: ordern finns, pengarna inte dragna. registrera: dragna, betalningen inte registrerad. klar. fel. */
+  steg: "pagar" | "order" | "registrera" | "klar" | "fel";
+  orderId?: string;
+  at: number;
+}
+
+export interface StripeKassaDeps {
+  hamtaKorg(cartId: string): Promise<Korg | null>;
+  uppdateraKorg(cartId: string, kund: Kund): Promise<void>;
+  laggTillKupong(cartId: string, kod: string): Promise<"ok" | "ogiltig">;
+  taBortKupong(cartId: string, kupongId: string): Promise<void>;
+  rakna(cartId: string): Promise<Rakning>;
+  sattLeverans(cartId: string, satt: { code: string; appId: string }): Promise<void>;
+  /** Cart V2 Place Order med Wix prisbevis: ordern ur korgen, obetald. */
+  laggOrder(cartId: string, prisbevis: string | null): Promise<{ orderId: string }>;
+  /** Add Payments: Stripes betalning som godkänd betalning på ordern. */
+  registreraBetalning(orderId: string, b: { belopp: string; transaktion: string; namn: string; tid: string }): Promise<void>;
+  /** Avbryter en order som aldrig blev betald, med återlagring och utan mejl. */
+  avbrytOrder(orderId: string): Promise<void>;
+  skapaAvsikt(p: AvsiktParametrar, idempotens: string): Promise<Avsikt>;
+  uppdateraAvsikt(id: string, p: Omit<AvsiktParametrar, "currency" | "capture_method" | "automatic_payment_methods">): Promise<Avsikt>;
+  /** Med latest_charge utbyggd, så att betalsättet syns. */
+  hamtaAvsikt(id: string): Promise<Avsikt | null>;
+  dra(id: string, ore: number): Promise<Avsikt>;
+  slappAvsikt(id: string): Promise<void>;
+  aterbetala(id: string): Promise<void>;
+  markeraAvsikt(id: string, orderId: string): Promise<void>;
+  /** "tagen" när låset skapades nu, annars raden som redan fanns. */
+  tagLas(avsiktId: string, las: StripeLas): Promise<"tagen" | StripeLas>;
+  sparaLas(avsiktId: string, las: StripeLas): Promise<void>;
+  logg?(rad: string): void;
+}
+
+/** Hur betalningen gjordes, med kundens ord (Wix visar det på ordern och i panelen). */
+export function betalsattsnamn(a: Pick<Avsikt, "latest_charge" | "payment_method_types">): string {
+  const laddning = typeof a.latest_charge === "object" && a.latest_charge ? a.latest_charge : null;
+  const typ = laddning?.payment_method_details?.type ?? (a.payment_method_types?.length === 1 ? a.payment_method_types[0] : undefined);
+  const planbok = laddning?.payment_method_details?.card?.wallet?.type;
+  if (typ === "klarna") return "Klarna";
+  if (typ === "swish") return "Swish";
+  if (typ === "card" && planbok === "apple_pay") return "Apple Pay";
+  if (typ === "card" && planbok === "google_pay") return "Google Pay";
+  if (typ === "card") return "Kort";
+  return "Stripe";
+}
+
+/** Laddningens id (Stripes transaktion, som Wix sparar på ordern), eller null. */
+export function laddningsId(a: Pick<Avsikt, "latest_charge">): string | null {
+  if (!a.latest_charge) return null;
+  return typeof a.latest_charge === "string" ? a.latest_charge : a.latest_charge.id;
+}
+
+/** Öre → "659.00", som Wix skriver belopp. */
+export function kronorAv(ore: number): string {
+  const tecken = ore < 0 ? "-" : "";
+  const a = Math.abs(Math.round(ore));
+  return `${tecken}${Math.floor(a / 100)}.${String(a % 100).padStart(2, "0")}`;
+}
+
+/** PaymentIntentens innehåll: Wix total, korgen och leveransadressen (för Klarna och Stripes panel). */
+export function avsiktParametrar(cartId: string, kund: Kund, totalOre: number, avtryck: string, rader: KorgRad[]): AvsiktParametrar {
+  return {
+    amount: totalOre,
+    currency: "sek",
+    capture_method: "manual",
+    automatic_payment_methods: { enabled: true },
+    description: betalBeskrivning(rader).slice(0, 300),
+    metadata: { kalla: STRIPE_KALLA, cartId, avtryck },
+    shipping: {
+      name: `${kund.fornamn} ${kund.efternamn}`.trim(),
+      phone: kund.telefon,
+      address: {
+        line1: kund.gata,
+        ...(kund.co ? { line2: `c/o ${kund.co.replace(/^c\/o\s*/i, "")}` } : {}),
+        postal_code: kund.postnr.replace(/\s/g, ""),
+        city: kund.ort,
+        country: "SE",
+      },
+    },
+  };
+}
+
+export type ForberedUtfall =
+  | { ok: true; avsiktId: string; clientSecret: string; totalOre: number }
+  | { ok: true; avsiktId: string; redanBetald: true }
+  | { ok: false; kod: string; meddelanden: string[]; falt?: "kupong" | "postnr" };
+
+/** En PaymentIntent som går att uppdatera: kunden har inte betalat ännu. */
+const OBETALD = new Set<Avsikt["status"]>(["requires_payment_method", "requires_confirmation", "requires_action"]);
+
+/**
+ * Formuläret → Wix räkning → en PaymentIntent på Wix total. Samma korg och
+ * samma kund får samma PaymentIntent (uppdaterad om totalen ändrats); är den
+ * redan betald säger svaret det, så att kunden slutför i stället för att
+ * betala igen. Kastar bara när Wix eller Stripe felar på ett sätt som inte är
+ * kundens.
+ */
+export async function forberedStripe(
+  deps: StripeKassaDeps,
+  inn: { cartId: string; kund: Kund; avsiktId?: string | null },
+): Promise<ForberedUtfall> {
+  const { cartId, kund } = inn;
+  const [korg, forra] = await Promise.all([
+    deps.hamtaKorg(cartId),
+    inn.avsiktId ? deps.hamtaAvsikt(inn.avsiktId).catch(() => null) : Promise.resolve(null),
+  ]);
+  if (!korg) return { ok: false, kod: "korg_saknas", meddelanden: ["Varukorgen finns inte längre. Gå tillbaka till butiken och lägg i varorna igen."] };
+  if (korg.orderPlaced) return { ok: false, kod: "korg_bestalld", meddelanden: ["Den här varukorgen är redan beställd. Kolla din e-post för orderbekräftelsen."] };
+  if ((korg.lineItems ?? []).length === 0) return { ok: false, kod: "korg_tom", meddelanden: ["Varukorgen är tom."] };
+
+  const egen = forra && forra.metadata?.kalla === STRIPE_KALLA && forra.metadata?.cartId === cartId ? forra : null;
+  if (egen && (egen.status === "requires_capture" || egen.status === "succeeded" || egen.status === "processing")) {
+    return { ok: true, avsiktId: egen.id, redanBetald: true };
+  }
+
+  await deps.uppdateraKorg(cartId, kund);
+  const forraKod = (korg.coupons ?? [])[0];
+  const nuvarande = forraKod?.code ?? "";
+  const byts = nuvarande.toLowerCase() !== kund.kupong.toLowerCase();
+  if (nuvarande && byts && forraKod?.id) await deps.taBortKupong(cartId, forraKod.id);
+  if (kund.kupong && byts && (await deps.laggTillKupong(cartId, kund.kupong)) === "ogiltig") {
+    return { ok: false, kod: "kupong", meddelanden: ["Rabattkoden finns inte eller gäller inte för de här varorna."], falt: "kupong" };
+  }
+
+  let rakning = await deps.rakna(cartId);
+  const satt = rakning.summary?.deliverySummary?.method;
+  if (!satt?.code || !satt.appId) {
+    return { ok: false, kod: "ingen_leverans", meddelanden: ["Vi kan inte leverera till den adressen. Kontrollera postnumret."], falt: "postnr" };
+  }
+  if (rakning.cart?.deliveryInfo?.method?.code !== satt.code) {
+    await deps.sattLeverans(cartId, { code: satt.code, appId: satt.appId });
+    rakning = await deps.rakna(cartId);
+  }
+  const stopp = stoppandeOvertradelser(rakning);
+  if (stopp.meddelanden.length > 0) return { ok: false, kod: "overtradelse", ...stopp };
+  const totalOre = oreAv(rakning.summary?.priceSummary?.total);
+  if (totalOre === null || totalOre <= 0) {
+    return { ok: false, kod: "total", meddelanden: ["Ordern kunde inte räknas. Försök igen, eller kontakta oss om det inte går."] };
+  }
+
+  const avtryck = korgAvtryck(rakning.cart ?? korg, kund);
+  const p = avsiktParametrar(cartId, kund, totalOre, avtryck, rakning.cart?.lineItems ?? korg.lineItems ?? []);
+  if (egen && OBETALD.has(egen.status)) {
+    const { currency: _c, capture_method: _m, automatic_payment_methods: _a, ...andring } = p;
+    const a = await deps.uppdateraAvsikt(egen.id, andring);
+    if (a.client_secret) return { ok: true, avsiktId: a.id, clientSecret: a.client_secret, totalOre };
+  }
+  // Samma korg, kund och total ger samma nyckel: ett dubbeltryck skapar en betalning, inte två.
+  const a = await deps.skapaAvsikt(p, `fp-kassa-${cartId}-${avtryck}-${totalOre}`);
+  if (!a.client_secret) throw new Error("Stripe gav ingen client_secret");
+  return { ok: true, avsiktId: a.id, clientSecret: a.client_secret, totalOre };
+}
+
+export type SlutforUtfall =
+  | { ok: true; orderId: string }
+  | { ok: false; kod: "okand" | "ej_betald" | "behandlas" | "pagar" | "pris_andrat" | "slut" | "fel"; meddelanden: string[] };
+
+const TEXT_PAGAR = "Vi slutför din beställning. Ett ögonblick.";
+const TEXT_EJ_DRAGEN = "Ingen betalning drogs. Försök igen, eller kontakta oss om det inte går.";
+
+/**
+ * Den reserverade betalningen → en betald order i Wix. Idempotent: webhooken
+ * och kundens retur kan anropa samtidigt och hur många gånger som helst.
+ * Kastar aldrig efter att pengarna dragits; ett fel därefter loggas och tas om
+ * av nästa anrop (låset står då på "registrera").
+ */
+export async function slutforStripe(deps: StripeKassaDeps, avsiktId: string, nu: Date): Promise<SlutforUtfall> {
+  const logg = deps.logg ?? (() => {});
+  const a = await deps.hamtaAvsikt(avsiktId);
+  const cartId = a?.metadata?.cartId;
+  if (!a || !cartId || a.metadata?.kalla !== STRIPE_KALLA) return { ok: false, kod: "okand", meddelanden: ["Betalningen hittades inte."] };
+  if (a.metadata.wixOrderId) return { ok: true, orderId: a.metadata.wixOrderId };
+  if (a.status === "processing") return { ok: false, kod: "behandlas", meddelanden: ["Betalningen behandlas. Ett ögonblick."] };
+  if (a.status !== "requires_capture" && a.status !== "succeeded") {
+    return { ok: false, kod: "ej_betald", meddelanden: ["Betalningen är inte genomförd. Välj ett betalsätt och försök igen."] };
+  }
+  const dragenFran = a.status === "succeeded";
+  const nuMs = nu.getTime();
+
+  let las: StripeLas = { cartId, steg: "pagar", at: nuMs };
+  const tagen = await deps.tagLas(a.id, las);
+  if (tagen !== "tagen") {
+    if (tagen.steg === "klar" && tagen.orderId) return { ok: true, orderId: tagen.orderId };
+    if (tagen.steg === "fel") return { ok: false, kod: "fel", meddelanden: [TEXT_EJ_DRAGEN] };
+    if (nuMs - tagen.at < STRIPE_LAS_MS) return { ok: false, kod: "pagar", meddelanden: [TEXT_PAGAR] };
+    las = { ...tagen, at: nuMs };
+    await deps.sparaLas(a.id, las);
+    logg(`[kassa] tar över ett lås i steget ${tagen.steg}`);
+  }
+
+  // Tillbaka till kunden utan order: reservationen släpps, eller en redan
+  // dragen betalning (betalsätt utan manuell dragning) betalas tillbaka.
+  const backa = async (kod: "pris_andrat" | "slut" | "fel", meddelanden: string[]): Promise<SlutforUtfall> => {
+    try {
+      if (dragenFran) await deps.aterbetala(a.id);
+      else await deps.slappAvsikt(a.id);
+    } catch (e) {
+      logg(`[kassa] kunde inte ${dragenFran ? "betala tillbaka" : "släppa"} betalningen: ${e instanceof Error ? e.message.slice(0, 200) : e}`);
+    }
+    await deps.sparaLas(a.id, { ...las, steg: "fel" }).catch(() => {});
+    return { ok: false, kod, meddelanden };
+  };
+
+  let orderId = las.orderId;
+  let reserverat = dragenFran ? a.amount_received : a.amount_capturable;
+  if (!orderId) {
+    const rakning = await deps.rakna(cartId);
+    const totalOre = oreAv(rakning.summary?.priceSummary?.total);
+    if (totalOre === null || totalOre !== reserverat) {
+      logg(`[kassa] totalen ${totalOre} öre skiljer sig från det reserverade ${reserverat} öre`);
+      return backa("pris_andrat", [`Priset ändrades medan du betalade. ${TEXT_EJ_DRAGEN}`]);
+    }
+    const stopp = stoppandeOvertradelser(rakning);
+    if (stopp.meddelanden.length > 0) return backa("slut", [...stopp.meddelanden, TEXT_EJ_DRAGEN]);
+    try {
+      orderId = (await deps.laggOrder(cartId, rakning.summary?.priceVerificationToken ?? null)).orderId;
+    } catch (e) {
+      logg(`[kassa] Place Order föll: ${e instanceof Error ? e.message.slice(0, 300) : e}`);
+      return backa("fel", [`Beställningen kunde inte skapas. ${TEXT_EJ_DRAGEN}`]);
+    }
+    las = { ...las, steg: "order", orderId };
+    await deps.sparaLas(a.id, las);
+  }
+
+  let dragen: Avsikt = a;
+  if (las.steg === "order" || las.steg === "pagar") {
+    if (!dragenFran) {
+      try {
+        dragen = await deps.dra(a.id, reserverat);
+      } catch (e) {
+        logg(`[kassa] dragningen föll: ${e instanceof Error ? e.message.slice(0, 300) : e}`);
+        try {
+          await deps.avbrytOrder(orderId!);
+        } catch (e2) {
+          logg(`[kassa] ordern kunde inte avbrytas efter misslyckad dragning: ${e2 instanceof Error ? e2.message.slice(0, 200) : e2}`);
+        }
+        return backa("fel", [`Betalningen kunde inte genomföras. ${TEXT_EJ_DRAGEN}`]);
+      }
+      reserverat = dragen.amount_received || reserverat;
+    }
+    las = { ...las, steg: "registrera" };
+    await deps.sparaLas(a.id, las);
+  }
+
+  // Pengarna är dragna och ordern finns: härifrån svarar vi alltid ok.
+  try {
+    await deps.registreraBetalning(orderId!, {
+      belopp: kronorAv(reserverat),
+      transaktion: laddningsId(dragen) ?? a.id,
+      namn: betalsattsnamn(dragen),
+      tid: nu.toISOString(),
+    });
+  } catch (e) {
+    logg(`[kassa] ☠️ betalningen registrerades inte på ordern (tas om): ${e instanceof Error ? e.message.slice(0, 300) : e}`);
+    return { ok: true, orderId: orderId! };
+  }
+  await deps.markeraAvsikt(a.id, orderId!).catch((e) => logg(`[kassa] metadata på betalningen: ${e instanceof Error ? e.message.slice(0, 120) : e}`));
+  await deps.sparaLas(a.id, { ...las, steg: "klar" }).catch(() => {});
+  return { ok: true, orderId: orderId! };
 }

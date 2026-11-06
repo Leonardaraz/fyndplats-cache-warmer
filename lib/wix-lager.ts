@@ -43,6 +43,8 @@ export const K = {
   orderbekraftelser: "FyndplatsOrderbekraftelser",
   angerarenden: "FyndplatsAngerarenden",
   fraktmejlKo: "FyndplatsFraktmejlKo",
+  /** Stripe-kassans lås, en rad per PaymentIntent (lib/kassa/stripe-las.ts). */
+  kassaBetalningar: "FyndplatsKassaBetalningar",
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────────
