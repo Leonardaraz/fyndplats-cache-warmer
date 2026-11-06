@@ -21,8 +21,6 @@
 // ☠️ BARA SKARPA KÖRNINGAR FLYTTAR MARKÖREN. En torrkörning för hand får inte
 // få nattens körning att hoppa över det torrkörningen bara tittade på.
 
-import { sql } from "@/lib/db/client";
-import { SYNC_MARKOR_DDL } from "@/lib/db/schema";
 import { storeBackend } from "@/lib/store/backend";
 import { hamta, spara } from "@/lib/db/wix-data-klient";
 import { NYA } from "@/lib/db/wix-kollektioner";
@@ -77,38 +75,6 @@ export class MinnesSyncMarkorLager implements SyncMarkorLager {
   }
 }
 
-let tabellenFinns: Promise<void> | null = null;
-
-async function sakerstall(): Promise<void> {
-  tabellenFinns ??= (async () => {
-    const q = sql();
-    for (const ddl of SYNC_MARKOR_DDL) await q.query(ddl);
-  })().catch((e) => {
-    tabellenFinns = null;
-    throw e;
-  });
-  return tabellenFinns;
-}
-
-class PostgresSyncMarkorLager implements SyncMarkorLager {
-  async las(rotation: Markornamn): Promise<string | null> {
-    await sakerstall();
-    const rows = (await sql().query(`select markor from sync_markor where namn = $1`, [rotation])) as {
-      markor: string | null;
-    }[];
-    return rows[0]?.markor ?? null;
-  }
-
-  async spara(rotation: Markornamn, markor: string | null): Promise<void> {
-    await sakerstall();
-    await sql().query(
-      `insert into sync_markor (namn, markor, at) values ($1, $2, now())
-       on conflict (namn) do update set markor = excluded.markor, at = excluded.at`,
-      [rotation, markor],
-    );
-  }
-}
-
 /** En rad per rotation i Wix, `_id` = rotationens namn. Läsbar bara för admin
  *  (markören är ett artikelnummer, se filens huvud). */
 export class WixSyncMarkorLager implements SyncMarkorLager {
@@ -130,7 +96,5 @@ export function getSyncMarkorLager(): SyncMarkorLager {
       return (minne ??= new MinnesSyncMarkorLager());
     case "wix-data":
       return new WixSyncMarkorLager();
-    case "postgres":
-      return new PostgresSyncMarkorLager();
   }
 }

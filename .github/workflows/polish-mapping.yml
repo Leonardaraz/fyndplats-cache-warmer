@@ -12,7 +12,7 @@ name: Polering — läs och stämpla mappningsraden
 #   stampla  nollställer poleringsflaggan och skriver SKU:er (Steg 8, 13)
 #
 # Samma nyckel-lösa upplägg som prisreparationen: produktionen har
-# Wix-nycklarna och DATABASE_URL, Actions har CRON_SECRET. Ingen hemlighet
+# Wix-nycklarna, Actions har CRON_SECRET. Ingen hemlighet
 # passerar chatten.
 #
 # 'stampla' skriver bara de tre fält poleringen äger — allt annat avvisas av

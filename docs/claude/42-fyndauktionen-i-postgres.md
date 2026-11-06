@@ -1,4 +1,9 @@
-## Fyndauktionen flyttar till Postgres (`AUCTIONS_BACKEND`, 2026-09-29)
+## Fyndauktionen bodde i Postgres 2026-09-30 till 2026-10-29 (historik)
+
+**Historik.** Auktionerna flyttade tillbaka till Wix med resten av drift-datan
+2026-10-29, och Postgres-vägen och växeln `AUCTIONS_BACKEND` togs bort
+2026-11-05 (`40-flytten-tillbaka-till-wix.md`). Lagret är `FyndplatsAuctions`
+i Wix, via `lib/auction/store.ts`.
 
 Wix CMS var fullt igen: **4 020 rader mot taket 4 000**, och
 `FyndplatsAuctions` var **3 561** av dem (3 308 i kön, 5 live, 248

@@ -116,7 +116,7 @@ describe("WixFargbildLager", () => {
     expect(await l.lasForProdukt("P")).toEqual([]);
   });
 
-  it("vägrar samma fil två gånger på samma val, som Postgres-vägen", async () => {
+  it("vägrar samma fil två gånger på samma val", async () => {
     await expect(new WixFargbildLager().ersattForProdukt("P", [rad({}), rad({})])).rejects.toThrow(/samma fil två gånger/);
   });
 });

@@ -12,7 +12,7 @@ const sparade: AuctionDoc[] = [];
 let restoreFel: Error | null = null;
 
 vi.mock("@/lib/auction/store", () => ({
-  auktionslager: () => "postgres",
+  auktionslager: () => "wix-data",
   queryAuctions: async (statuses: string[]) => {
     expect(statuses).toEqual(["live"]);
     return live.map((a) => ({ ...a }));
@@ -90,7 +90,7 @@ describe("avslutet", () => {
     const res = await POST(begäran({ productIds: ["p1", "annan"] }));
     const body = await res.json();
     expect(res.status).toBe(200);
-    expect(body).toMatchObject({ ok: true, lager: "postgres", avslutade: ["slug-p1"], fel: [] });
+    expect(body).toMatchObject({ ok: true, lager: "wix-data", avslutade: ["slug-p1"], fel: [] });
     expect(ordning).toEqual(["restore:p1", "save:p1"]);
     expect(sparade[0]).toMatchObject({ status: "sold", soldPrice: 879, _id: "auction-p1" });
     expect(Date.parse(sparade[0].endedAt!)).not.toBeNaN();

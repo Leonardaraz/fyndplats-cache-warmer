@@ -6,7 +6,7 @@
 // recensioner i sex timmar (tagg `recensioner-<id>`). Dess egen bevakning
 // (/api/cron/uppdatera-andrade, var femte minut) frågar motorns
 // /api/review-andringar, men den rutten svarar 501 så länge recensionerna ligger i
-// Wix Data (DRIFTEN_I_WIX), och då väntar butiken in sexttimmarscachen. Ett
+// Wix Data (sedan 2026-10-29), och då väntar butiken in sexttimmarscachen. Ett
 // verktyg som ändrar recensioner utan att säga till syns alltså inte för kunden på
 // ~6 timmar, medan verktygets egen kontroll mot /api/reviews/<id> (CDN 60 s) ser
 // den nya raden direkt. Så gick det 2026-10-29: initialerna var bytta i lagret men

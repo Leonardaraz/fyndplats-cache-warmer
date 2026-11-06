@@ -7,8 +7,8 @@ name: Dubbletter — hitta färg- och storlekssyskon
 # relaterade-varor-klunga), mappningarna och katalogen, och grupperar hela
 # sortimentet i familjer. Logiken står i lib/aosom/familjer.ts.
 #
-# Samma nyckel-lösa upplägg som sammanslagningen: produktionen har feeden,
-# Wix-nycklarna och DATABASE_URL, Actions har CRON_SECRET, och de möts här.
+# Samma nyckel-lösa upplägg som sammanslagningen: produktionen har feeden
+# och Wix-nycklarna, Actions har CRON_SECRET, och de möts här.
 #
 # ☠️ SVEPET SKRIVER INGENTING. Listan är ett underlag för en människa, och varje
 #    familj ska ses med bilderna innan något slås ihop. Sammanslagningen är sin

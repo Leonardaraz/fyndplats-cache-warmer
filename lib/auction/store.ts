@@ -3,11 +3,9 @@
 // Fyndauktionens persistens och pris-PATCH mot Stores V3. Ren logik ligger i
 // ./engine — här bor I/O.
 //
-// ☠️ TVÅ LAGER, EN VÄLJARE. Raderna bor i Wix Data (FyndplatsAuctions) eller i
-// Postgres (./store-postgres), och `auctionsBackend()` i lib/store/backend.ts
-// avgör vilket — aldrig anroparen. Default är Wix: att deploya koden får inte
-// byta lager. Butiken läser och avslutar via motorns rutter (/api/auctions/*),
-// så den följer med i samma växling.
+// Raderna bor i Wix Data (FyndplatsAuctions). De bodde i Postgres 2026-09-30
+// till 2026-10-29; den vägen togs bort 2026-11-05. Butiken läser och avslutar
+// via motorns rutter (/api/auctions/*), aldrig Wix Data direkt.
 //
 // Wix Data går via lib/db/wix-data-klient.ts sedan 2026-10-29: markör till
 // slutet, massanrop i omgångar och återförsök på kvotstopp (WDE0014).
@@ -19,17 +17,8 @@
 
 import { WIX_BASE, wixHeaders } from "@/lib/wix/client";
 import { KOSTNAD_EJ_LASBAR, KOSTNADSFALT, arKostnadNekadSvar, variantMedKostnad } from "@/lib/wix/produkt-kostnad";
-import { auctionsBackend } from "@/lib/store/backend";
 import { allaRader, fraga, sparaManga, spara, taBort, taBortManga } from "@/lib/db/wix-data-klient";
 import type { AuctionDoc } from "./engine";
-import {
-  pgQueryAuctions,
-  pgRemoveAuction,
-  pgRemoveAuctionsBulk,
-  pgSaveAuction,
-  pgSaveAuctionsBulk,
-  pgSenastSalda,
-} from "./store-postgres";
 
 export const AUCTION_COLLECTION = "FyndplatsAuctions";
 
@@ -37,25 +26,22 @@ function headers(): Record<string, string> {
   return wixHeaders();
 }
 
-/** Vilket lager som servar just nu. Står i rutternas svar, så en växling går
- *  att se utifrån i stället för att antas ur en env-panel. */
-export function auktionslager(): "wix-data" | "postgres" {
-  return auctionsBackend();
+/** Vilket lager som servar. Står i rutternas svar sedan växlingarna 2026; i dag
+ *  finns bara Wix, men butiken och loggarna läser fältet. */
+export function auktionslager(): "wix-data" {
+  return "wix-data";
 }
-
-const iPostgres = () => auctionsBackend() === "postgres";
 
 /**
  * Alla auktioner med status i `statuses` (kö-ordning stigande).
  *
- * `köHuvud`: läs bara de första N köade (Postgres). Wix-vägen tar redan
- * högst 1 000 rader totalt och bryr sig inte om gränsen.
+ * `köHuvud`: läs bara de första N köade, se `wixQueryAuctions`.
  */
 export async function queryAuctions(
   statuses: string[],
   opts: { köHuvud?: number } = {},
 ): Promise<AuctionDoc[]> {
-  return iPostgres() ? pgQueryAuctions(statuses, opts.köHuvud) : wixQueryAuctions(statuses, opts.köHuvud);
+  return wixQueryAuctions(statuses, opts.köHuvud);
 }
 
 /**
@@ -63,7 +49,6 @@ export async function queryAuctions(
  * Wix: sorterad fråga med en sida på högst 50 (samma som butiken gjorde själv).
  */
 export async function senastSalda(limit: number): Promise<AuctionDoc[]> {
-  if (iPostgres()) return pgSenastSalda(limit);
   const rader = await fraga<AuctionDoc & { _id?: string }>(AUCTION_COLLECTION, {
     filter: { status: "sold" },
     sort: [{ fieldName: "endedAt", order: "DESC" }],
@@ -83,20 +68,20 @@ function tillDok(d: AuctionDoc & { _id?: string }): AuctionDoc {
 }
 
 export async function saveAuction(doc: AuctionDoc): Promise<void> {
-  return iPostgres() ? pgSaveAuction(doc) : wixSaveAuction(doc);
+  return wixSaveAuction(doc);
 }
 
 export async function saveAuctionsBulk(docs: AuctionDoc[]): Promise<string[]> {
-  return iPostgres() ? pgSaveAuctionsBulk(docs) : wixSaveAuctionsBulk(docs);
+  return wixSaveAuctionsBulk(docs);
 }
 
 export async function removeAuctionsBulk(ids: string[]): Promise<string[]> {
-  return iPostgres() ? pgRemoveAuctionsBulk(ids) : wixRemoveAuctionsBulk(ids);
+  return wixRemoveAuctionsBulk(ids);
 }
 
 /** Tar bort ett auktionsdokument (används när en köad produkt diskvalificeras). */
 export async function removeAuction(id: string): Promise<void> {
-  return iPostgres() ? pgRemoveAuction(id) : wixRemoveAuction(id);
+  return wixRemoveAuction(id);
 }
 
 /**
@@ -106,7 +91,7 @@ export async function removeAuction(id: string): Promise<void> {
  * datan flyttade tillbaka till Wix (2026-10-29): seeden, pensioneringens
  * spärr och morgonmejlet hade sett en fjärdedel av den, utan ett ord.
  *
- * `köHuvud` som i Postgres: bara kön begränsas, till de första N i
+ * `köHuvud`: bara kön begränsas, till de första N i
  * köordning. Ticken går var tionde minut och främjar högst fem; att läsa hela
  * kön varje gång hade ätit läskvoten för ingenting.
  */

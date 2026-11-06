@@ -1,9 +1,9 @@
 // ☠️ RECENSIONERNA HAR EN EGEN BACKEND-SWITCH, OCH DET ÄR INTE KOSMETIK.
 //
-// Produktionen står på `STORE_BACKEND=postgres` sedan drift-datan flyttade
-// 2026-08-31. Ett första utkast av recensionsmigreringen lät
-// `getReviewStore()` läsa den variabeln — vilket hade bytt lager i samma
-// sekund koden deployades, in i en TOM tabell:
+// Historik: produktionen stod på `STORE_BACKEND=postgres` från 2026-08-31. Ett
+// första utkast av recensionsmigreringen lät `getReviewStore()` läsa den
+// variabeln — vilket hade bytt lager i samma sekund koden deployades, in i en
+// TOM tabell:
 //
 //   - /admin/reviews hade slutat se de 2 514 befintliga raderna
 //   - nya recensioner hade skrivits dit ingen läser
@@ -14,7 +14,8 @@
 // syns varken i en kodaudit eller i en felräknare, för ett tomt svar från rätt
 // API mot rätt tabell ser i källkoden ut precis som ett friskt anrop.
 //
-// Testet låser att default:en pekar åt det håll som INTE tappar data.
+// Testet låser att default:en pekar åt det håll som INTE tappar data, och att
+// "postgres" (kvar i Vercel efter Neon, borttaget 2026-11-05) betyder Wix.
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { reviewsBackend, storeBackend } from "./backend";
@@ -32,7 +33,7 @@ afterEach(() => {
 describe("☠️ reviewsBackend är FRIKOPPLAD från storeBackend", () => {
   it("osatt → wix-data, även när drift-datan står på postgres", () => {
     process.env.STORE_BACKEND = "postgres";
-    // Sedan flytten tillbaka (2026-10-29) betyder postgres Wix (DRIFTEN_I_WIX).
+    // "postgres" betyder Wix sedan flytten tillbaka (2026-10-29).
     expect(storeBackend()).toBe("wix-data");
     expect(reviewsBackend()).toBe("wix-data");
   });
@@ -44,7 +45,7 @@ describe("☠️ reviewsBackend är FRIKOPPLAD från storeBackend", () => {
 
   it("☠️ postgres betyder Wix sedan flytten tillbaka 2026-10-29", () => {
     // Vercel låter oss inte ändra REVIEWS_BACKEND (403), så den står kvar på
-    // postgres. Växeln DRIFTEN_I_WIX gör att värdet betyder Wix.
+    // postgres. Postgres-vägen är borta (2026-11-05); värdet betyder Wix.
     process.env.REVIEWS_BACKEND = "postgres";
     expect(reviewsBackend()).toBe("wix-data");
   });
