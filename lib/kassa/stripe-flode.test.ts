@@ -8,6 +8,7 @@ import {
   slutforStripe,
   kronorAv,
   avsiktParametrar,
+  faktureringAv,
   arKlart,
   attSlutfora,
   utfallLage,
@@ -67,7 +68,7 @@ function avsikt(over: Partial<Avsikt> = {}): Avsikt {
     status: "requires_capture",
     capture_method: "manual",
     client_secret: "pi_1_secret_x",
-    metadata: { kalla: STRIPE_KALLA, cartId: "korg-1", avtryck: "a" },
+    metadata: { kalla: STRIPE_KALLA, cartId: "korg-1" },
     latest_charge: { id: "ch_1", payment_method_details: { type: "klarna" } },
     ...over,
   };
@@ -211,14 +212,14 @@ function fejk(o: {
 test("forbered: en ny betalning på Wix total, manuell dragning och korgen i metadata", async () => {
   const f = fejk({ avsikt: null });
   const r = await forberedStripe(f.deps, { cartId: "korg-1", kund: KUND });
-  assert.deepEqual(r, { ok: true, avsiktId: "pi_ny", clientSecret: "pi_ny_secret", totalOre: 65900 });
+  assert.deepEqual(r, { ok: true, avsiktId: "pi_ny", clientSecret: "pi_ny_secret", totalOre: 65900, fakturering: faktureringAv(KUND) });
   const p = f.skapade[0].p;
   assert.equal(p.amount, 65900);
   assert.equal(p.currency, "sek");
   assert.equal(p.capture_method, "manual");
   assert.equal(p.metadata.kalla, STRIPE_KALLA);
   assert.equal(p.metadata.cartId, "korg-1");
-  assert.match(p.metadata.avtryck, /^[0-9a-f]{16}$/);
+  assert.deepEqual(Object.keys(p.metadata).sort(), ["cartId", "kalla"], "bara det flödet läser");
   assert.deepEqual(p.shipping.address, { line1: "Provgatan 1", postal_code: "11122", city: "Stockholm", country: "SE" });
   assert.ok(f.anrop.indexOf("uppdateraKorg:korg-1") < f.anrop.indexOf("skapaAvsikt:65900"), "korgen får uppgifterna före betalningen");
 });
@@ -237,7 +238,7 @@ test("forbered: varje ny betalning får en egen idempotensnyckel, också med sam
 test("forbered: en släppt betalning från samma korg ger en ny, den släppta används inte igen", async () => {
   const f = fejk({ avsikt: avsikt({ status: "canceled" }) });
   const r = await forberedStripe(f.deps, { cartId: "korg-1", kund: KUND, avsiktId: "pi_1" });
-  assert.deepEqual(r, { ok: true, avsiktId: "pi_ny", clientSecret: "pi_ny_secret", totalOre: 65900 });
+  assert.deepEqual(r, { ok: true, avsiktId: "pi_ny", clientSecret: "pi_ny_secret", totalOre: 65900, fakturering: faktureringAv(KUND) });
   assert.equal(f.skapade.length, 1);
   assert.ok(!f.anrop.some((x) => x.startsWith("uppdateraAvsikt")));
 });
@@ -258,7 +259,7 @@ test("forbered: en redan reserverad betalning slutförs, den betalas inte igen",
 });
 
 test("forbered: en betalning från en annan korg rörs inte", async () => {
-  const f = fejk({ avsikt: avsikt({ status: "requires_payment_method", metadata: { kalla: STRIPE_KALLA, cartId: "annan", avtryck: "a" } }) });
+  const f = fejk({ avsikt: avsikt({ status: "requires_payment_method", metadata: { kalla: STRIPE_KALLA, cartId: "annan" } }) });
   const r = await forberedStripe(f.deps, { cartId: "korg-1", kund: KUND, avsiktId: "pi_1" });
   assert.equal(r.ok, true);
   assert.ok(!f.anrop.some((x) => x.startsWith("uppdateraAvsikt")));
@@ -316,7 +317,7 @@ test("slutför: ordern skapas före dragningen, och betalningen registreras efte
 });
 
 test("slutför: en betalning som redan blev en order svarar med ordern utan att röra något", async () => {
-  const f = fejk({ avsikt: avsikt({ status: "succeeded", metadata: { kalla: STRIPE_KALLA, cartId: "korg-1", avtryck: "a", wixOrderId: "order-9" } }) });
+  const f = fejk({ avsikt: avsikt({ status: "succeeded", metadata: { kalla: STRIPE_KALLA, cartId: "korg-1", wixOrderId: "order-9" } }) });
   assert.deepEqual(await slutforStripe(f.deps, "pi_1", NU), { ok: true, orderId: "order-9" });
   assert.deepEqual(f.anrop, ["hamtaAvsikt:pi_1"]);
 });
@@ -533,7 +534,7 @@ test("kronorAv skriver belopp som Wix", () => {
 });
 
 test("avsiktParametrar: c/o på andra raden och postnumret utan mellanslag", () => {
-  const p = avsiktParametrar("korg-1", { ...KUND, co: "c/o Svensson" }, 100, "abc", KORG.lineItems ?? []);
+  const p = avsiktParametrar("korg-1", { ...KUND, co: "c/o Svensson" }, 100, KORG.lineItems ?? []);
   assert.equal(p.shipping.address.line2, "c/o Svensson");
   assert.equal(p.shipping.address.postal_code, "11122");
   assert.equal(p.description, "Pedalhink 20 l.");

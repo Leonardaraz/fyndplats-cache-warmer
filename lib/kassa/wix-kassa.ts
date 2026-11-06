@@ -161,7 +161,7 @@ export async function orderBetalningar(orderId: string): Promise<string[]> {
   return (svar?.orderTransactions?.payments ?? []).map((p) => p.regularPaymentDetails?.providerTransactionId || p.id || "okand");
 }
 
-/** En order som aldrig blev betald: avbruten med återlagring och utan mejl (som slappOrder nedan). */
+/** En order som aldrig blev betald: avbruten med återlagring och utan mejl (Stripe-kassan och slappOrder nedan). */
 export async function avbrytOrder(orderId: string): Promise<void> {
   await forsokIgen(() =>
     wixFetch({
@@ -282,13 +282,7 @@ export async function slappOrder(orderId: string, betalningId: string | null, ca
     }
   }
   if (order.status === "INITIALIZED") {
-    await forsokIgen(() =>
-      wixFetch({
-        method: "POST",
-        path: `/ecom/v1/orders/${encodeURIComponent(orderId)}/cancel`,
-        body: { sendOrderCanceledEmail: false, restockAllItems: true },
-      }),
-    );
+    await avbrytOrder(orderId);
     return "slappt";
   }
   return "ej_var";

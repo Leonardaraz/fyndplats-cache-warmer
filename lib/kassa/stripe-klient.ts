@@ -1,22 +1,21 @@
 // lib/kassa/stripe-klient.ts
 //
-// Kassasidans Stripe-del utan webbläsare: betalfältets inställningar,
-// faktureringsuppgifterna ur formuläret, kundens sparade försök och vad sidan
-// gör med serverns svar. Används av app/kassa/kassa.tsx och
-// app/kassa/klar/tillbaka.tsx. Ren modul (bara typer importeras), så att
-// node --test kan köra den.
+// Kassasidans Stripe-del utan webbläsare: betalfältets inställningar, kundens
+// sparade försök, väntan på ordern och vad sidan gör med serverns svar.
+// Används av app/kassa/kassa.tsx och app/kassa/klar/tillbaka.tsx. Ren modul
+// (bara typer importeras), så att node --test kan köra den.
 //
 // Flödet på sidan (servern: lib/kassa/flode.ts):
 //   1. Betalfältet (Stripe Payment Element) visas direkt, utan PaymentIntent.
 //   2. "Betala": elements.submit() FÖRST, i själva trycket (Apple Pay öppnar
-//      sitt blad bara i ett tryck), sedan /api/kassa/stripe/forbered.
-//   3. stripe.confirmPayment med kundens uppgifter ur formuläret. Kort, Apple
-//      Pay och Google Pay stannar på sidan; Klarna går till Klarna och kommer
-//      tillbaka via /api/kassa/stripe/retur.
-//   4. /api/kassa/stripe/klar gör ordern, och kunden går till /tack.
+//      sitt blad bara i ett tryck), sedan /api/kassa/stripe/forbered, som
+//      också ger faktureringsuppgifterna (faktureringAv i flode.ts).
+//   3. stripe.confirmPayment med dem. Kort, Apple Pay och Google Pay stannar
+//      på sidan; Klarna går till Klarna och kommer tillbaka via
+//      /api/kassa/stripe/retur.
+//   4. /api/kassa/stripe/klar gör ordern (vantaPaOrder), och kunden går till /tack.
 
 import type { Appearance, StripeElementsOptionsMode, StripePaymentElementOptions } from "@stripe/stripe-js";
-import type { KassaVarden } from "./formular";
 
 /** Måste vara samma som PaymentIntenten servern skapar (avsiktParametrar). Provat i stripe-klient.test.ts. */
 export const STRIPE_VALUTA = "sek";
@@ -29,12 +28,21 @@ export const STRIPE_NYCKEL = "fp_kassa_stripe";
 export const SPARAD_MS = 24 * 60 * 60 * 1000;
 
 /**
- * Dit Stripe skickar kunden efter Klarna. Stripe lägger betalningens
- * client_secret i adressen, och sidorna laddar GA4 och Meta som sparar hela
- * adressen. Därför går kunden först till en rutt utan spårning, som skickar
- * vidare med bara betalningens id (returMal).
+ * Dit Stripe skickar kunden efter Klarna. Stripe lägger betalningens id och
+ * client_secret i adressen, och sidorna laddar GA4 och Meta, som sparar hela
+ * adressen. Därför går kunden först till en rutt utan spårning, som lägger
+ * betalningens id i en kort kaka (AVSIKT_KAKA) och skickar vidare till
+ * /kassa/klar utan något i adressen (returMal).
  */
 export const RETUR_SOKVAG = "/api/kassa/stripe/retur";
+
+/** Kakan med betalningens id från returen till /kassa/klar: bara den sökvägen, en kvart. */
+export const AVSIKT_KAKA = "fp_kassa_avsikt";
+export const AVSIKT_KAKA_SOKVAG = "/kassa/klar";
+export const AVSIKT_KAKA_SEK = 15 * 60;
+
+/** Så länge sidan frågar efter ordern innan den säger att bekräftelsen kommer via e-post. */
+export const KLAR_VANTA_MS = 60_000;
 
 const AVSIKT_ID = /^pi_[A-Za-z0-9]+$/;
 
@@ -52,7 +60,7 @@ export const UTSEENDE: Appearance = {
     colorTextPlaceholder: "#8a8076",
     colorDanger: "#D02020",
     colorBackground: "#ffffff",
-    fontFamily: 'Geist, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
     // 16 px: iPhone zoomar annars in när ett fält får fokus.
     fontSizeBase: "16px",
     borderRadius: "10px",
@@ -68,7 +76,12 @@ export const UTSEENDE: Appearance = {
   },
 };
 
-/** Elements utan PaymentIntent (den skapas först i trycket). Beloppet visas i Apple Pay och styr Klarna. */
+/**
+ * Elements utan PaymentIntent (den skapas först i trycket). Beloppet visas i
+ * Apple Pay och styr Klarna. Inga typsnitt hämtas till Stripes ram: butiken
+ * hämtar inga typsnitt från Google (next/font lägger dem på vår egen server),
+ * så fältet ritas med systemets typsnitt, som Stripe gör som standard.
+ */
 export function elementsInstallningar(totalOre: number): StripeElementsOptionsMode {
   return {
     mode: "payment",
@@ -77,16 +90,15 @@ export function elementsInstallningar(totalOre: number): StripeElementsOptionsMo
     captureMethod: STRIPE_DRAGNING,
     locale: "sv",
     appearance: UTSEENDE,
-    fonts: [{ cssSrc: "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" }],
   };
 }
 
 /**
  * Betalfältet: betalsätten som en lista med val, Klarna först (två av tre köp,
  * 2026-06–11). Namn, e-post, telefon och adress frågas ALDRIG i fältet: kunden
- * har redan skrivit dem i formuläret, och de skickas med i bekräftelsen
- * (faktureringsuppgifter). Det var Wix betalsidas fel: Klarna-kunden fick
- * skriva allt en gång till.
+ * har redan skrivit dem i formuläret, och servern skickar med dem till
+ * bekräftelsen (faktureringAv i lib/kassa/flode.ts). Det var Wix betalsidas
+ * fel: Klarna-kunden fick skriva allt en gång till.
  */
 export const BETALFALT: StripePaymentElementOptions = {
   layout: { type: "accordion", defaultCollapsed: false, radios: true, spacedAccordionItems: true },
@@ -95,35 +107,6 @@ export const BETALFALT: StripePaymentElementOptions = {
   wallets: { applePay: "auto", googlePay: "auto", link: "never" },
   business: { name: "Fyndplats" },
 };
-
-export interface Fakturering {
-  name: string;
-  email: string;
-  phone: string;
-  address: { line1: string; line2: string; city: string; state: string; postal_code: string; country: string };
-}
-
-/**
- * Faktureringsuppgifterna till stripe.confirmPayment. Med `billingDetails:
- * "never"` kräver Stripe VARJE fält, också de som inte används i Sverige
- * (state, och line2 utan c/o): ett saknat fält stoppar betalningen. Adressen är
- * densamma som leveransadressen på PaymentIntenten (avsiktParametrar).
- */
-export function faktureringsuppgifter(v: KassaVarden): Fakturering {
-  return {
-    name: `${v.fornamn} ${v.efternamn}`.trim(),
-    email: v.epost,
-    phone: v.telefon,
-    address: {
-      line1: v.gata,
-      line2: v.co ? `c/o ${v.co.replace(/^c\/o\s*/i, "")}` : "",
-      city: v.ort,
-      state: "",
-      postal_code: v.postnr.replace(/\s/g, ""),
-      country: "SE",
-    },
-  };
-}
 
 export interface SparadAvsikt {
   avsiktId: string;
@@ -160,10 +143,72 @@ export function klarBeslut(status: number, j: unknown): KlarBeslut {
   return { gor: "fel", kod: typeof s.kod === "string" ? s.kod : "fel", meddelanden: meddelanden.length ? meddelanden : [TEXT_FEL] };
 }
 
-/** Från Stripes return_url till /kassa/klar, utan client_secret. */
-export function returMal(sok: URLSearchParams): string {
+/** Ett svar från /api/kassa/stripe/klar: status 0 när nätet felade. */
+export interface KlarSvar {
+  status: number;
+  j: unknown;
+}
+
+/** Frågar servern en gång om betalningen blivit en order. Kastar aldrig. */
+export async function fragaKlar(avsiktId: string): Promise<KlarSvar> {
+  try {
+    const r = await fetch("/api/kassa/stripe/klar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ avsiktId }),
+      cache: "no-store",
+    });
+    return { status: r.status, j: await r.json().catch(() => null) };
+  } catch {
+    return { status: 0, j: null };
+  }
+}
+
+/** Det väntan behöver från omvärlden; proven byter ut dem. */
+export interface Vantan {
+  fraga(avsiktId: string): Promise<KlarSvar>;
+  vila(ms: number): Promise<void>;
+  nu(): number;
+}
+
+export const WEBBLASARVANTAN: Vantan = {
+  fraga: fragaKlar,
+  vila: (ms) => new Promise((klar) => setTimeout(klar, ms)),
+  nu: () => Date.now(),
+};
+
+/**
+ * Frågar servern tills ordern finns ("tack"), det är klart att den inte blir
+ * någon ("fel"), eller KLAR_VANTA_MS gått ("tid": webhooken och nätet
+ * slutför, och kunden får beskedet att bekräftelsen kommer via e-post).
+ * Väntan mellan frågorna växer från 1 s till 3 s.
+ */
+export async function vantaPaOrder(avsiktId: string, v: Vantan = WEBBLASARVANTAN, maxMs = KLAR_VANTA_MS): Promise<Exclude<KlarBeslut, { gor: "vanta" }> | { gor: "tid" }> {
+  const start = v.nu();
+  for (let forsok = 0; ; forsok++) {
+    const { status, j } = await v.fraga(avsiktId);
+    const b = klarBeslut(status, j);
+    if (b.gor !== "vanta") return b;
+    if (v.nu() - start > maxMs) return { gor: "tid" };
+    await v.vila(Math.min(1000 + forsok * 500, 3000));
+  }
+}
+
+/** Från Stripes return_url: vart kunden ska och betalningens id till kakan (aldrig i adressen). */
+export function returMal(sok: URLSearchParams): { mal: string; avsikt: string | null } {
   const pi = sok.get("payment_intent") ?? "";
-  return AVSIKT_ID.test(pi) ? `/kassa/klar?avsikt=${pi}` : "/kassa?stripe=fel";
+  return AVSIKT_ID.test(pi) ? { mal: AVSIKT_KAKA_SOKVAG, avsikt: pi } : { mal: "/kassa?stripe=fel", avsikt: null };
+}
+
+/** Betalningens id ur kakorna (document.cookie), om det är ett giltigt id. */
+export function avsiktUrKakor(kakor: string): string | null {
+  for (const del of kakor.split(";")) {
+    const i = del.indexOf("=");
+    if (i < 0 || del.slice(0, i).trim() !== AVSIKT_KAKA) continue;
+    const v = del.slice(i + 1).trim();
+    return AVSIKT_ID.test(v) ? v : null;
+  }
+  return null;
 }
 
 /** Texterna för /kassa?stripe=<kod>, när kunden skickas tillbaka till kassan. */

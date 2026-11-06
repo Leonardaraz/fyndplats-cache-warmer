@@ -30,5 +30,7 @@ export const stripeKassa: StripeKassaDeps = {
   tagLas,
   sparaLas,
   // Ingen kunddata i raderna: bara steg, belopp i öre och Stripes/Wix felkoder.
-  logg: (rad) => console.error(rad),
+  // ☠️-rader (pengar som inte står där de ska) är fel och syns bland Vercels
+  // körfel; resten är avvikelser som flödet själv tog hand om, och varningar.
+  logg: (rad) => (rad.includes("☠️") ? console.error(rad) : console.warn(rad)),
 };

@@ -4,20 +4,25 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  AVSIKT_KAKA,
+  AVSIKT_KAKA_SOKVAG,
   BETALFALT,
+  KLAR_VANTA_MS,
   RETUR_SOKVAG,
   SPARAD_MS,
   STRIPE_MEDDELANDE,
+  avsiktUrKakor,
   betalfelText,
   elementsInstallningar,
-  faktureringsuppgifter,
   klarBeslut,
   returMal,
   sparadAvsikt,
   stripeMeddelande,
   tillbakaKod,
+  vantaPaOrder,
+  type KlarSvar,
 } from "./stripe-klient.ts";
-import { avsiktParametrar } from "./flode.ts";
+import { avsiktParametrar, faktureringAv } from "./flode.ts";
 import type { KassaVarden } from "./formular.ts";
 
 // Telefonnumret ur PTS serie för fiktiva nummer (070-174 06 05 – 070-174 06 99).
@@ -35,12 +40,15 @@ const KUND: KassaVarden = {
 
 test("betalfältet och PaymentIntenten har samma valuta och dragning (annars nekar Stripe bekräftelsen)", () => {
   const e = elementsInstallningar(65900);
-  const p = avsiktParametrar("korg-1", KUND, 65900, "a", []);
+  const p = avsiktParametrar("korg-1", { ...KUND }, 65900, []);
   assert.equal(e.mode, "payment");
   assert.equal(e.amount, 65900);
   assert.equal(e.currency, p.currency);
   assert.equal(e.captureMethod, p.capture_method);
   assert.equal(e.locale, "sv");
+  // Inga typsnitt från Google i Stripes ram (butiken lägger sina på egen server).
+  assert.equal("fonts" in e, false);
+  assert.doesNotMatch(JSON.stringify(e), /googleapis|gstatic/);
 });
 
 test("betalfältet frågar aldrig efter namn, e-post, telefon eller adress, och Klarna står först", () => {
@@ -50,29 +58,27 @@ test("betalfältet frågar aldrig efter namn, e-post, telefon eller adress, och 
   assert.equal(BETALFALT.wallets?.googlePay, "auto");
 });
 
-test("faktureringsuppgifterna har varje fält Stripe kräver, och adressen är leveransadressen", () => {
-  const f = faktureringsuppgifter(KUND);
+test("faktureringen (från servern) har varje fält Stripe kräver, och adressen är leveransadressen", () => {
+  const f = faktureringAv(KUND);
   assert.equal(f.name, "Prov Provsson");
   assert.equal(f.email, "kund@exempel.se");
   assert.equal(f.phone, "+46701740605");
   // Med billingDetails "never" stoppar Stripe betalningen om ett adressfält saknas.
   assert.deepEqual(Object.keys(f.address).sort(), ["city", "country", "line1", "line2", "postal_code", "state"]);
   for (const v of Object.values(f.address)) assert.equal(typeof v, "string");
-  const leverans = avsiktParametrar("korg-1", KUND, 65900, "a", []).shipping.address;
-  assert.equal(f.address.line1, leverans.line1);
-  assert.equal(f.address.postal_code, leverans.postal_code);
-  assert.equal(f.address.city, leverans.city);
-  assert.equal(f.address.country, leverans.country);
+  const leverans = avsiktParametrar("korg-1", KUND, 65900, []).shipping.address;
+  assert.deepEqual({ ...f.address, line2: undefined, state: undefined }, { ...leverans, line2: undefined, state: undefined });
   assert.equal(f.address.line2, "");
   assert.equal(f.address.state, "");
+  assert.equal("line2" in leverans, false, "utan c/o skickas ingen andra rad till Stripe");
 });
 
-test("faktureringsuppgifterna: c/o på andra raden, som på leveransen", () => {
+test("faktureringen: c/o på andra raden, som på leveransen", () => {
   const kund = { ...KUND, co: "c/o Andersson" };
-  const f = faktureringsuppgifter(kund);
+  const f = faktureringAv(kund);
   assert.equal(f.address.line2, "c/o Andersson");
-  assert.equal(f.address.line2, avsiktParametrar("korg-1", kund, 100, "a", []).shipping.address.line2);
-  assert.equal(faktureringsuppgifter({ ...KUND, co: "Andersson" }).address.line2, "c/o Andersson");
+  assert.equal(f.address.line2, avsiktParametrar("korg-1", kund, 100, []).shipping.address.line2);
+  assert.equal(faktureringAv({ ...KUND, co: "Andersson" }).address.line2, "c/o Andersson");
 });
 
 test("sparat försök: bara för samma korg, inte för gammalt och bara ett riktigt id", () => {
@@ -116,14 +122,65 @@ test("klar: en betalning som inte blev en order säger varför, med serverns tex
   assert.equal(klarBeslut(400, { ok: false, kod: "okand" }).gor, "fel");
 });
 
-test("returen från Klarna: bara betalningens id går vidare, aldrig client_secret", () => {
+test("returen från Klarna: betalningens id går till kakan, adressen bär ingenting", () => {
   const sok = new URLSearchParams({ payment_intent: "pi_3Abc", payment_intent_client_secret: "pi_3Abc_secret_hemlig", redirect_status: "succeeded" });
-  const mal = returMal(sok);
-  assert.equal(mal, "/kassa/klar?avsikt=pi_3Abc");
-  assert.ok(!mal.includes("secret"));
-  assert.equal(returMal(new URLSearchParams({ payment_intent: "pi_3Abc&x=1" })), "/kassa?stripe=fel");
-  assert.equal(returMal(new URLSearchParams()), "/kassa?stripe=fel");
+  assert.deepEqual(returMal(sok), { mal: "/kassa/klar", avsikt: "pi_3Abc" });
+  assert.equal(AVSIKT_KAKA_SOKVAG, "/kassa/klar");
+  assert.deepEqual(returMal(new URLSearchParams({ payment_intent: "pi_3Abc&x=1" })), { mal: "/kassa?stripe=fel", avsikt: null });
+  assert.deepEqual(returMal(new URLSearchParams()), { mal: "/kassa?stripe=fel", avsikt: null });
   assert.equal(RETUR_SOKVAG, "/api/kassa/stripe/retur");
+});
+
+test("kakan från returen: bara ett riktigt betalnings-id, bland andra kakor", () => {
+  assert.equal(avsiktUrKakor(`fp_samtycke=all; ${AVSIKT_KAKA}=pi_3Abc; _ga=GA1.1`), "pi_3Abc");
+  assert.equal(avsiktUrKakor(`${AVSIKT_KAKA}=pi_3Abc`), "pi_3Abc");
+  assert.equal(avsiktUrKakor(`${AVSIKT_KAKA}=pi_3Abc_secret_x`), null);
+  assert.equal(avsiktUrKakor(`x${AVSIKT_KAKA}=pi_3Abc`), null);
+  assert.equal(avsiktUrKakor(`${AVSIKT_KAKA}=`), null);
+  assert.equal(avsiktUrKakor(""), null);
+});
+
+/** Ett låtsas-nät för vantaPaOrder: svaren i tur och ordning, och en klocka som går med vilan. */
+function natet(svar: KlarSvar[]) {
+  let t = 0;
+  const vilor: number[] = [];
+  let fragor = 0;
+  return {
+    vilor,
+    fragor: () => fragor,
+    v: {
+      fraga: async () => {
+        fragor++;
+        return svar.length > 1 ? svar.shift()! : svar[0];
+      },
+      vila: async (ms: number) => {
+        vilor.push(ms);
+        t += ms;
+      },
+      nu: () => t,
+    },
+  };
+}
+
+test("väntan på ordern: frågar tills ordern finns, också genom nätfel och serverfel", async () => {
+  const n = natet([{ status: 202, j: { ok: false, kod: "pagar" } }, { status: 0, j: null }, { status: 502, j: null }, { status: 200, j: { ok: true, orderId: "order-1" } }]);
+  assert.deepEqual(await vantaPaOrder("pi_1", n.v), { gor: "tack", orderId: "order-1" });
+  assert.equal(n.fragor(), 4);
+  assert.deepEqual(n.vilor, [1000, 1500, 2000], "vilan växer mellan frågorna");
+});
+
+test("väntan på ordern: ett nej är ett nej, direkt", async () => {
+  const n = natet([{ status: 409, j: { ok: false, kod: "pris_andrat", meddelanden: ["Priset ändrades."] } }]);
+  assert.deepEqual(await vantaPaOrder("pi_1", n.v), { gor: "fel", kod: "pris_andrat", meddelanden: ["Priset ändrades."] });
+  assert.equal(n.fragor(), 1);
+});
+
+test("väntan på ordern: efter en minut ger sidan upp väntan (webhooken och nätet slutför), och vilan stannar på 3 s", async () => {
+  const n = natet([{ status: 202, j: { ok: false, kod: "pagar" } }]);
+  assert.deepEqual(await vantaPaOrder("pi_1", n.v), { gor: "tid" });
+  assert.ok(n.vilor.reduce((a, b) => a + b, 0) > KLAR_VANTA_MS);
+  assert.ok(n.vilor.every((ms) => ms <= 3000));
+  assert.ok(n.fragor() < 40, "ingen tät frågeslinga");
 });
 
 test("tillbaka till kassan: varje kod har en text, och okända blir fel", () => {

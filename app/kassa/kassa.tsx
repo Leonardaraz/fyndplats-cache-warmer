@@ -34,10 +34,11 @@ import {
   RETUR_SOKVAG,
   STRIPE_NYCKEL,
   betalfelText,
-  faktureringsuppgifter,
+  fragaKlar,
   klarBeslut,
   sparadAvsikt,
   stripeMeddelande,
+  vantaPaOrder,
 } from "../../lib/kassa/stripe-klient";
 import { useStripeBetalning } from "./use-stripe-betalning";
 import s from "./kassa.module.css";
@@ -87,9 +88,6 @@ const STEG = ["Kontrollerar pris och lager", "Reserverar dina varor", "Öppnar s
 /** Stegen med Stripe: korgen och betalningen förbereds, kunden godkänner, ordern skapas. */
 const stripeSteg = (valt: string | null) =>
   ["Kontrollerar pris och lager", valt === "klarna" ? "Öppnar Klarna" : "Godkänner betalningen", "Skapar din order"] as const;
-
-/** Så länge sidan frågar om ordern efter betalningen, innan den säger att mejlet kommer. */
-const KLAR_VANTA_MS = 60_000;
 
 /** "14:05" i svensk tid. */
 const klockslag = (iso: string | null): string | null => {
@@ -368,52 +366,36 @@ export function Kassa({ stripeNyckel = null }: { stripeNyckel?: string | null })
     setSkickar(true);
   };
 
+  /** Ordern finns: det sparade försöket är förbrukat, och kunden går till tacksidan. */
+  const tillTack = (orderId: string) => {
+    skrivJson("local", STRIPE_NYCKEL, null);
+    window.location.replace(`/tack?orderId=${encodeURIComponent(orderId)}`);
+  };
+
   /**
-   * Betalningen är godkänd (eller var det redan): servern gör ordern. Svarar
-   * den "pågår" frågar sidan igen; efter en minut säger sidan att
-   * bekräftelsen kommer via e-post (webhooken slutför), och kunden kan inte
-   * betala igen.
+   * Betalningen är godkänd (eller var det redan): servern gör ordern
+   * (vantaPaOrder frågar tills den finns). Efter en minut säger sidan att
+   * bekräftelsen kommer via e-post (webhooken och nätet slutför), och kunden
+   * kan inte betala igen.
    */
   const slutforStripe = async (avsiktId: string) => {
     stegTill(2);
-    const start = Date.now();
-    for (let forsok = 0; ; forsok++) {
-      let status = 0;
-      let j: unknown = null;
-      try {
-        const r = await fetch("/api/kassa/stripe/klar", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ avsiktId }),
-          cache: "no-store",
-        });
-        status = r.status;
-        j = await r.json().catch(() => null);
-      } catch {
-        /* nätet: frågar igen */
-      }
-      const b = klarBeslut(status, j);
-      if (b.gor === "tack") {
-        skrivJson("local", STRIPE_NYCKEL, null);
-        window.location.replace(`/tack?orderId=${encodeURIComponent(b.orderId)}`);
-        return;
-      }
-      if (b.gor === "fel") {
-        // Ingen order: reservationen är släppt. Kunden kan försöka igen med en ny betalning.
-        skrivJson("local", STRIPE_NYCKEL, null);
-        setMeddelanden(b.meddelanden);
-        doljVantan();
-        pagar.current = false;
-        rakna();
-        return;
-      }
-      if (Date.now() - start > KLAR_VANTA_MS) {
-        setKlarVantar(true);
-        doljVantan();
-        return;
-      }
-      await new Promise((klar) => window.setTimeout(klar, Math.min(1000 + forsok * 500, 3000)));
+    const b = await vantaPaOrder(avsiktId);
+    if (b.gor === "tack") {
+      tillTack(b.orderId);
+      return;
     }
+    if (b.gor === "fel") {
+      // Ingen order: reservationen är släppt. Kunden kan försöka igen med en ny betalning.
+      skrivJson("local", STRIPE_NYCKEL, null);
+      setMeddelanden(b.meddelanden);
+      doljVantan();
+      pagar.current = false;
+      rakna();
+      return;
+    }
+    setKlarVantar(true);
+    doljVantan();
   };
 
   // Tillbaka från Klarna utan order (/kassa?stripe=<kod>): säg varför, och ta bort koden ur adressen.
@@ -441,28 +423,17 @@ export function Kassa({ stripeNyckel = null }: { stripeNyckel?: string | null })
     const id = sparadAvsikt(lasJson("local", STRIPE_NYCKEL), cartId, Date.now());
     if (!id) return;
     let avbruten = false;
-    (async () => {
-      try {
-        const r = await fetch("/api/kassa/stripe/klar", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ avsiktId: id }),
-          cache: "no-store",
-        });
-        const j = await r.json().catch(() => null);
-        if (avbruten || pagar.current) return;
-        const b = klarBeslut(r.status, j);
-        if (b.gor === "tack") {
-          skrivJson("local", STRIPE_NYCKEL, null);
-          window.location.replace(`/tack?orderId=${encodeURIComponent(b.orderId)}`);
-        } else if (r.status === 202) {
-          pagar.current = true;
-          await slutforStripe(id);
-        }
-      } catch {
-        /* inget att visa: kunden betalar som vanligt */
+    void fragaKlar(id).then(async ({ status, j }) => {
+      if (avbruten || pagar.current) return;
+      const b = klarBeslut(status, j);
+      if (b.gor === "tack") tillTack(b.orderId);
+      else if (status === 202) {
+        // Betald och på väg att bli en order (webhooken håller på): vänta på den.
+        pagar.current = true;
+        await slutforStripe(id);
       }
-    })();
+      // Annars: obetald eller släppt. Kunden betalar som vanligt.
+    });
     return () => {
       avbruten = true;
     };
@@ -534,8 +505,9 @@ export function Kassa({ stripeNyckel = null }: { stripeNyckel?: string | null })
       }
       // Wix räknade fram en annan total än den kunden ser: ingen betalning på
       // ett belopp kunden inte sett. Summan visas, och kunden trycker igen.
-      if (typeof j.totalOre !== "number" || typeof j.clientSecret !== "string" || j.totalOre !== visatRef.current) {
-        if (typeof j.totalOre === "number" && typeof j.clientSecret === "string") {
+      const komplett = typeof j.totalOre === "number" && typeof j.clientSecret === "string" && Boolean(j.fakturering && typeof j.fakturering === "object");
+      if (!komplett || j.totalOre !== visatRef.current) {
+        if (komplett) {
           elements.update({ amount: j.totalOre });
           visatRef.current = j.totalOre;
           setMeddelanden([`Att betala är nu ${kr(j.totalOre)}. Kontrollera beställningen och tryck på knappen igen.`]);
@@ -553,7 +525,8 @@ export function Kassa({ stripeNyckel = null }: { stripeNyckel?: string | null })
         clientSecret: j.clientSecret,
         confirmParams: {
           return_url: `${window.location.origin}${RETUR_SOKVAG}`,
-          payment_method_data: { billing_details: faktureringsuppgifter(prov.varden) },
+          // Faktureringen ur serverns svar (faktureringAv): betalfältet frågar aldrig efter den.
+          payment_method_data: { billing_details: j.fakturering },
         },
         redirect: "if_required",
       });

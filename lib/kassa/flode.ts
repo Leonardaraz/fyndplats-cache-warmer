@@ -575,7 +575,7 @@ export interface AvsiktParametrar {
   capture_method: "manual";
   automatic_payment_methods: { enabled: true };
   description: string;
-  metadata: { kalla: string; cartId: string; avtryck: string };
+  metadata: { kalla: string; cartId: string };
   shipping: {
     name: string;
     phone: string;
@@ -651,31 +651,66 @@ export function kronorAv(ore: number): string {
   return `${tecken}${Math.floor(a / 100)}.${String(a % 100).padStart(2, "0")}`;
 }
 
+/**
+ * Kundens adress som Stripe vill ha den, på ett ställe: leveransen på
+ * betalningen (avsiktParametrar) och faktureringen i bekräftelsen
+ * (faktureringAv) ska vara samma adress skriven på samma sätt (Klarna jämför).
+ */
+function stripeAdress(k: Pick<Kund, "gata" | "co" | "postnr" | "ort">) {
+  return {
+    line1: k.gata,
+    line2: k.co ? `c/o ${k.co.replace(/^c\/o\s*/i, "")}` : "",
+    city: k.ort,
+    postal_code: k.postnr.replace(/\s/g, ""),
+    country: "SE" as const,
+  };
+}
+
+/** Faktureringsuppgifterna som kassasidan skickar med stripe.confirmPayment. */
+export interface Fakturering {
+  name: string;
+  email: string;
+  phone: string;
+  address: { line1: string; line2: string; city: string; state: string; postal_code: string; country: "SE" };
+}
+
+/**
+ * Betalfältet frågar aldrig efter namn och adress (`billingDetails: "never"`,
+ * lib/kassa/stripe-klient.ts): kunden har redan skrivit dem. Då kräver Stripe
+ * VARJE fält i bekräftelsen, också de som inte används i Sverige (state, och
+ * line2 utan c/o): ett saknat fält stoppar betalningen. Servern bygger dem, så
+ * att adressen bara formas här.
+ */
+export function faktureringAv(k: Kund): Fakturering {
+  return {
+    name: `${k.fornamn} ${k.efternamn}`.trim(),
+    email: k.epost,
+    phone: k.telefon,
+    address: { ...stripeAdress(k), state: "" },
+  };
+}
+
 /** PaymentIntentens innehåll: Wix total, korgen och leveransadressen (för Klarna och Stripes panel). */
-export function avsiktParametrar(cartId: string, kund: Kund, totalOre: number, avtryck: string, rader: KorgRad[]): AvsiktParametrar {
+export function avsiktParametrar(cartId: string, kund: Kund, totalOre: number, rader: KorgRad[]): AvsiktParametrar {
+  // Utan c/o skickas ingen andra rad alls (en tom sträng skulle tömma fältet hos Stripe).
+  const { line2, ...adress } = stripeAdress(kund);
   return {
     amount: totalOre,
     currency: "sek",
     capture_method: "manual",
     automatic_payment_methods: { enabled: true },
     description: betalBeskrivning(rader).slice(0, 300),
-    metadata: { kalla: STRIPE_KALLA, cartId, avtryck },
+    metadata: { kalla: STRIPE_KALLA, cartId },
     shipping: {
       name: `${kund.fornamn} ${kund.efternamn}`.trim(),
       phone: kund.telefon,
-      address: {
-        line1: kund.gata,
-        ...(kund.co ? { line2: `c/o ${kund.co.replace(/^c\/o\s*/i, "")}` } : {}),
-        postal_code: kund.postnr.replace(/\s/g, ""),
-        city: kund.ort,
-        country: "SE",
-      },
+      address: line2 ? { ...adress, line2 } : adress,
     },
   };
 }
 
 export type ForberedUtfall =
-  | { ok: true; avsiktId: string; clientSecret: string; totalOre: number }
+  | { ok: true; avsiktId: string; clientSecret: string; totalOre: number; fakturering: Fakturering }
   | { ok: true; avsiktId: string; redanBetald: true }
   | { ok: false; kod: string; meddelanden: string[]; falt?: "kupong" | "postnr" };
 
@@ -732,12 +767,11 @@ export async function forberedStripe(
     return { ok: false, kod: "total", meddelanden: ["Ordern kunde inte räknas. Försök igen, eller kontakta oss om det inte går."] };
   }
 
-  const avtryck = korgAvtryck(rakning.cart ?? korg, kund);
-  const p = avsiktParametrar(cartId, kund, totalOre, avtryck, rakning.cart?.lineItems ?? korg.lineItems ?? []);
+  const p = avsiktParametrar(cartId, kund, totalOre, rakning.cart?.lineItems ?? korg.lineItems ?? []);
   if (egen && OBETALD.has(egen.status)) {
     // Valuta, dragning och betalsätt går inte att ändra på en befintlig betalning.
     const a = await deps.uppdateraAvsikt(egen.id, { amount: p.amount, description: p.description, metadata: p.metadata, shipping: p.shipping });
-    if (a.client_secret) return { ok: true, avsiktId: a.id, clientSecret: a.client_secret, totalOre };
+    if (a.client_secret) return { ok: true, avsiktId: a.id, clientSecret: a.client_secret, totalOre, fakturering: faktureringAv(kund) };
   }
   // En ny betalning får en egen nyckel. ☠️ INTE en nyckel ur korgens innehåll:
   // Stripe svarar på en känd nyckel med det SPARADE svaret i ett dygn, också när
@@ -747,7 +781,7 @@ export async function forberedStripe(
   // och kundens försök återanvänds via avsiktId (uppdateras ovan).
   const a = await deps.skapaAvsikt(p, `fp-kassa-${cartId}-${crypto.randomUUID()}`);
   if (!a.client_secret) throw new Error("Stripe gav ingen client_secret");
-  return { ok: true, avsiktId: a.id, clientSecret: a.client_secret, totalOre };
+  return { ok: true, avsiktId: a.id, clientSecret: a.client_secret, totalOre, fakturering: faktureringAv(kund) };
 }
 
 export type SlutforUtfall =
@@ -875,7 +909,7 @@ export async function slutforStripe(deps: StripeKassaDeps, avsiktId: string, nu:
       else await deps.slappAvsikt(a.id);
     } catch (e) {
       ostadad = true;
-      logg(`[kassa] kunde inte ${dragenFran ? "betala tillbaka" : "släppa"} betalningen (tas om): ${e instanceof Error ? e.message.slice(0, 200) : e}`);
+      logg(`[kassa] ☠️ kunde inte ${dragenFran ? "betala tillbaka" : "släppa"} betalningen (tas om): ${e instanceof Error ? e.message.slice(0, 200) : e}`);
     }
     await deps.sparaLas(a.id, { ...las, steg: "fel" }).catch(() => {});
     return ostadad ? { ok: false, kod, meddelanden, ostadad: true } : { ok: false, kod, meddelanden };

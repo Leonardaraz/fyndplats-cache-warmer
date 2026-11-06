@@ -2,10 +2,11 @@
 
 // Kunden kommer tillbaka till oss efter betalningen.
 //
-//   • Från Klarna via Stripe (/api/kassa/stripe/retur skickar hit med
-//     ?avsikt=pi_…): servern gör ordern (/api/kassa/stripe/klar), och kunden
-//     går till tacksidan. Blev det ingen order går kunden till kassan, som
-//     säger varför (?stripe=<kod>).
+//   • Från Klarna via Stripe: /api/kassa/stripe/retur lägger betalningens id i
+//     en kort kaka (aldrig i adressen, som GA4 och Meta sparar) och skickar
+//     hit. Servern gör ordern (/api/kassa/stripe/klar), och kunden går till
+//     tacksidan. Blev det ingen order går kunden till kassan, som säger varför
+//     (?stripe=<kod>).
 //   • Från Wix (betalsidan eller dess logga): den väntande betalningen ligger i
 //     sessionStorage (app/kassa/kassa.tsx). Är den betald går kunden till
 //     tacksidan, väntar den till kassan (som visar "Din betalning väntar"). Utan
@@ -14,13 +15,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { STRIPE_NYCKEL, klarBeslut, tillbakaKod } from "../../../lib/kassa/stripe-klient";
+import { AVSIKT_KAKA, AVSIKT_KAKA_SOKVAG, STRIPE_NYCKEL, avsiktUrKakor, tillbakaKod, vantaPaOrder } from "../../../lib/kassa/stripe-klient";
 import s from "../kassa.module.css";
 
 const VANTAR_NYCKEL = "fp_kassa_vantar";
-const AVSIKT = /^pi_[A-Za-z0-9]+$/;
-/** Så länge sidan frågar efter ordern innan den säger att mejlet kommer. */
-const VANTA_MS = 60_000;
 
 const glom = (nyckel: string, lagring: "local" | "session") => {
   try {
@@ -30,39 +28,14 @@ const glom = (nyckel: string, lagring: "local" | "session") => {
   }
 };
 
-/** Klarnas retur: frågar servern tills ordern finns, eller tills det är klart att den inte blir någon. */
-async function slutforStripe(avsiktId: string, nar: (lage: "vantar_mejl") => void) {
-  const start = Date.now();
-  for (let forsok = 0; ; forsok++) {
-    let status = 0;
-    let j: unknown = null;
-    try {
-      const r = await fetch("/api/kassa/stripe/klar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ avsiktId }),
-        cache: "no-store",
-      });
-      status = r.status;
-      j = await r.json().catch(() => null);
-    } catch {
-      /* nätet: frågar igen */
-    }
-    const b = klarBeslut(status, j);
-    if (b.gor === "tack") {
-      glom(STRIPE_NYCKEL, "local");
-      window.location.replace(`/tack?orderId=${encodeURIComponent(b.orderId)}`);
-      return;
-    }
-    if (b.gor === "fel") {
-      window.location.replace(`/kassa?stripe=${tillbakaKod(b.kod)}`);
-      return;
-    }
-    if (Date.now() - start > VANTA_MS) {
-      nar("vantar_mejl");
-      return;
-    }
-    await new Promise((klar) => window.setTimeout(klar, Math.min(1000 + forsok * 500, 3000)));
+/** Betalningens id ur kakan från returen. Kakan tas bort direkt: den gäller en retur. */
+function tagAvsikt(): string | null {
+  try {
+    const avsikt = avsiktUrKakor(document.cookie);
+    document.cookie = `${AVSIKT_KAKA}=; Path=${AVSIKT_KAKA_SOKVAG}; Max-Age=0; SameSite=Lax`;
+    return avsikt;
+  } catch {
+    return null;
   }
 }
 
@@ -70,16 +43,20 @@ export function Tillbaka() {
   const [stripeLage, setStripeLage] = useState<"nej" | "slutfor" | "vantar_mejl">("nej");
 
   useEffect(() => {
-    let avsikt: string | null = null;
-    try {
-      avsikt = new URLSearchParams(window.location.search).get("avsikt");
-    } catch {
-      avsikt = null;
-    }
-    if (avsikt && AVSIKT.test(avsikt)) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- betalningens id finns bara i adressen
+    const avsikt = tagAvsikt();
+    if (avsikt) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- betalningens id finns bara i webbläsarens kaka
       setStripeLage("slutfor");
-      void slutforStripe(avsikt, setStripeLage);
+      void vantaPaOrder(avsikt).then((b) => {
+        if (b.gor === "tack") {
+          glom(STRIPE_NYCKEL, "local");
+          window.location.replace(`/tack?orderId=${encodeURIComponent(b.orderId)}`);
+        } else if (b.gor === "fel") {
+          window.location.replace(`/kassa?stripe=${tillbakaKod(b.kod)}`);
+        } else {
+          setStripeLage("vantar_mejl");
+        }
+      });
       return;
     }
 
