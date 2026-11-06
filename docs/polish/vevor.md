@@ -54,8 +54,10 @@ titelstammarna över alla rader (första ordet på minst fyra bokstäver som int
 *kraftig*, *bärbar* och liknande) och behåll bara de som har högst två rader: en stam som
 många delar är en familj, ett syskon eller en tvilling. Läs sedan avläsningen i
 `FyndplatsVevorAvlasningar` (`_id` är artikeln utan `vevor:`, och `fields` går också där):
-`status: i_lager`, `saldo` minst 8, `levererasTillSe` inte falskt, `prisSek` minst 450, minst
-åtta bilder och tre specifikationsrader. Sålla bort varje id8 som redan står i
+`status: i_lager`, `saldo` minst 8, `levererasTillSe` inte falskt, minst åtta bilder och tre
+specifikationsrader. **Det finns ingen prisgräns** *(Leonard 2026-11-06: alla produkter ska
+poleras, så priset spelar ingen roll; filtret `prisSek` minst 450 är borttaget, och sänkningen
+till 300 kr i runda 70–72 gäller inte längre)*. Sålla bort varje id8 som redan står i
 `FLAGGADE-VEVOR.md` (polerade och hållna), och sök på varje kvarvarande kandidats enskilda
 substantiv i hela registret (tvillingskärmen nedan) innan du väljer. ☠️ Sökningen på VEVOR-rader
 hör till urvalet, inte bara sökningen på de andra feedarna: popcornmaskinen i runda 49 hade ett
