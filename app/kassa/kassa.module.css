@@ -409,13 +409,23 @@
    tills fältet är ritat. Fältet börjar ihopfällt (förnamn, efternamn, adress)
    och fäller ut sig när kunden väljer ett förslag. */
 .adressYta {
+  position: relative;
   display: grid;
   margin: 0 0 12px;
+  container-type: inline-size;
 }
 
 .adressYta > * {
   grid-area: 1 / 1;
   min-width: 0;
+}
+
+/* Stripes ram börjar i mobilhöjd och glider sedan till fältets höjd
+   (narRamenStilla i use-stripe-betalning.ts). Tills den står still ligger den
+   utanför flödet under platshållaren, och platshållaren bestämmer höjden. */
+.adressYta[data-adress="laddar"] > :not(.adressSkelett) {
+  position: absolute;
+  inset: 0 0 auto;
 }
 
 .adressSkelett {
@@ -435,6 +445,20 @@
   background: linear-gradient(90deg, rgba(0, 0, 0, 0.025) 25%, rgba(0, 0, 0, 0.06) 50%, rgba(0, 0, 0, 0.025) 75%);
   background-size: 200% 100%;
   animation: skimmer 1.2s linear infinite;
+}
+
+/* Från 442 px bredd lägger Stripe förnamn och efternamn bredvid varandra, och
+   fältet blir 125 px högt i stället för 193 (uppmätt i webbläsaren 2026-11-06,
+   441 px tre rader, 442 px två). Platshållaren gör likadant, annars hoppade
+   formuläret 68 px när fältet ritades på datorn. */
+@container (min-width: 442px) {
+  .adressSkelett {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .adressSkelett span:last-child {
+    grid-column: 1 / -1;
+  }
 }
 
 /* Länet: ett val med fältens ram och flytande etikett. Ett val visar aldrig
@@ -921,10 +945,14 @@
   padding-bottom: 12px;
 }
 
-/* Utan plånbok (eller medan Stripe svarar i en webbläsare som inte kan ha en)
+/* Utan plånbok (eller medan Stripe svarar i en webbläsare utan Apple Pay)
    står rutan utanför sidan: knapparna måste vara monterade för att Stripe ska
-   kunna säga om de finns, men formuläret ska inte flytta. */
-.snabb[data-visas="nej"] {
+   kunna säga om de finns, men formuläret ska inte flytta. Den andra raden
+   gäller från första ritningen, innan React tagit över: PLANBOK_SKRIPT
+   (lib/kassa/snabbkassa.ts, körs i app/layout.tsx) sätter data-applepay på
+   <html>. */
+.snabb[data-visas="nej"],
+:global(html[data-applepay="nej"]) .snabb[data-snabb="laddar"] {
   position: absolute;
   top: 0;
   left: -10000px;
@@ -947,8 +975,12 @@
   color: var(--soft);
 }
 
+/* flow-root: Stripes ram har −4 px marginal (plats för fokusringen). Utan egen
+   formateringskontext kollapsade den genom ytan in i avståndet ovanför, och
+   rutan krympte 4 px när knapparna monterades (uppmätt 2026-11-06). */
 .snabbYta {
   position: relative;
+  display: flow-root;
   min-height: 52px; /* knappens höjd (SNABB_HOJD) */
 }
 
@@ -978,6 +1010,10 @@
   margin: 0;
   font-size: var(--text-sm);
   color: var(--soft);
+}
+
+:global(html[data-applepay="nej"]) .eller[data-snabb="laddar"] {
+  display: none;
 }
 
 .eller::before,
@@ -1545,6 +1581,7 @@
    laddas, så att knappen inte hoppar när fältet kommer. */
 .betalfalt {
   position: relative;
+  display: flow-root; /* Stripes −4 px marginal stannar i fältet (se .snabbYta) */
   min-height: 196px;
   margin: 2px 0 4px;
 }

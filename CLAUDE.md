@@ -1610,6 +1610,16 @@ BankID ska användas).
   till leverantörens provinsfält (`deriveProvince`; Aosoms klumporder har
   kolumnen "Province"), så Aosom och VEVOR får stad och län som förut, nu
   från kunden i stället för Wix gissning.
+- **Platshållaren har fältets höjd** (uppmätt per bredd 2026-11-06): tre
+  rader (193 px) under 442 px ytbredd, två rader (125 px, förnamn och
+  efternamn bredvid varandra) från 442 px. Containerfrågan på `.adressYta`
+  gör samma byte.
+- ☠️ **Stripes ram börjar i mobilhöjd** (201 px) och glider efter `ready` till
+  fältets höjd på ungefär 300 ms. Kassan sätter `adressLage` till `redo`
+  först när ramen står still (`ramenStilla` i `stripe-klient.ts`,
+  `narRamenStilla` i kroken, högst `RAM_VANTA_MS`), och tills dess ligger
+  ramen utanför flödet under platshållaren (`data-adress="laddar"`). Förut
+  hoppade formuläret 68 px på datorn när fältet ritades.
 - **Utan Stripe** (Wix betalsida) står kassans egna fält kvar; "Ort" heter
   "Stad", och länsvalet finns där också.
 - **Tom korg efter köpet** (`visaTomKorg`, `lib/kassa/vy.ts`): Wix ger
@@ -1660,15 +1670,30 @@ BankID ska användas).
   formuläret och betalfältet.
 - **Platsen hålls från första renderingen** (också på servern) med en
   platshållare i knappens höjd, men bara där Apple Pay finns
-  (`ApplePaySession`: Safari och alla webbläsare på iPhone). Rutan som dök
-  upp efter hydreringen knuffade ner formuläret 256 px. Där svarar Stripe
-  snabbt och visar nästan alltid knappen; saknas plånbok tas platsen bort när
-  Stripe svarar, eller efter 12 s. ☠️ **Inte för Google Pay:** Stripes kontroll
-  av Google Pay tog 13 s på förhandsbygget (huvudlös Chromium, testnycklarna,
+  (`ApplePaySession`, som Safari på iPhone och Mac har). Rutan som dök upp
+  efter hydreringen knuffade ner formuläret 256 px. Där svarar Stripe snabbt
+  och visar nästan alltid knappen; saknas plånbok tas platsen bort när Stripe
+  svarar, eller efter 12 s. ☠️ **Inte för Google Pay:** Stripes kontroll av
+  Google Pay tog 13 s på förhandsbygget (huvudlös Chromium, testnycklarna,
   2026-11-06), och 0 av 171 köp är Google Pay (23 Apple Pay). I Chrome visas
   rutan därför först när Stripe hittat en plånbok. Utan plånbok står rutan
   utanför sidan (`data-visas="nej"`), eftersom knapparna måste vara monterade
   för att Stripe ska kunna svara.
+- **Före hydreringen avgör `PLANBOK_SKRIPT`** (`lib/kassa/snabbkassa.ts`, körs
+  först i `app/layout.tsx`): det sätter `data-applepay="ja"|"nej"` på `<html>`,
+  och CSS:en flyttar ut rutan medan Stripe svarar (`data-snabb="laddar"`) i en
+  webbläsare utan Apple Pay. Annars stod platsen kvar tills React tagit över
+  och försvann sedan. Skriptet ligger i layouten och inte på kassasidan,
+  eftersom kunden oftast kommer till `/kassa` med ett mjukt sidbyte från
+  varukorgen, och då körs inga skript i sidans HTML.
+- ☠️ **Stripes ram har −4 px marginal** (plats för fokusringen). Utan egen
+  formateringskontext kollapsade den genom ytan runt fältet, och allt under
+  flyttade 4 px när Stripe monterade. `.snabbYta` och `.betalfalt` har därför
+  `display: flow-root`.
+- **Mätt med webbläsarens egen CLS** (`PerformanceObserver` för
+  `layout-shift`, scratchpad `snabb/g-cls.cjs`, 2026-11-06): formuläret
+  flyttar inte alls när Stripes fält kommer, varken i 390 eller 1280 px. Det
+  som är kvar på datorn (0,013) är summeringen när korgens rader kommer.
 - **Kräver domänen:** Apple Pay och Google Pay syns bara när
   `www.fyndplats.se` är registrerad i Stripe (Inställningar →
   Betalmetodsdomäner), i testläget och i live var för sig, och bara över

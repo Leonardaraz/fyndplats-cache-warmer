@@ -26,7 +26,7 @@ import type {
   StripeExpressCheckoutElementConfirmEvent,
   StripePaymentElement,
 } from "@stripe/stripe-js";
-import { BETALFALT, adressfaltInstallningar, elementsInstallningar, type AdressStart } from "../../lib/kassa/stripe-klient";
+import { BETALFALT, RAM_VANTA_MS, adressfaltInstallningar, elementsInstallningar, ramenStilla, type AdressStart } from "../../lib/kassa/stripe-klient";
 import { planbocker, snabbknappar, type Planbok, type Sammandrag } from "../../lib/kassa/snabbkassa";
 
 export type BetalfaltLage = "av" | "laddar" | "redo" | "fel";
@@ -78,6 +78,37 @@ export interface Snabbkoppling {
   bekrafta: (h: StripeExpressCheckoutElementConfirmEvent) => void;
 }
 
+/**
+ * Kör klar() när Stripes ram i el står still (ramenStilla), eller efter
+ * RAM_VANTA_MS. Adressfältets ram glider från mobilhöjd till fältets höjd efter
+ * "ready"; platshållaren står kvar så länge, så att formuläret inte hoppar.
+ * Ger en funktion som stänger av väntan.
+ */
+function narRamenStilla(el: HTMLElement | null, klar: () => void): () => void {
+  const ram = el?.querySelector<HTMLElement>(".__PrivateStripeElement") ?? null;
+  const hojd = (x: Element | null | undefined) => (x ? x.getBoundingClientRect().height : null);
+  const stilla = () => ramenStilla(hojd(ram), hojd(ram?.querySelector("iframe")));
+  if (!ram || typeof ResizeObserver === "undefined" || stilla()) {
+    klar();
+    return () => {};
+  }
+  let gjort = false;
+  let tid = 0;
+  const ro = new ResizeObserver(() => {
+    if (stilla()) avsluta(true);
+  });
+  const avsluta = (kor: boolean) => {
+    if (gjort) return;
+    gjort = true;
+    ro.disconnect();
+    window.clearTimeout(tid);
+    if (kor) klar();
+  };
+  tid = window.setTimeout(() => avsluta(true), RAM_VANTA_MS);
+  ro.observe(ram);
+  return () => avsluta(false);
+}
+
 export function useStripeBetalning(nyckel: string | null, beloppOre: number | null, adress: Adresskoppling, snabb: Snabbkoppling): StripeBetalning {
   const plats = useRef<HTMLDivElement | null>(null);
   const adressPlats = useRef<HTMLDivElement | null>(null);
@@ -109,6 +140,7 @@ export function useStripeBetalning(nyckel: string | null, beloppOre: number | nu
     let falt: StripePaymentElement | null = null;
     let adr: StripeAddressElement | null = null;
     let knappar: StripeExpressCheckoutElement | null = null;
+    let slutaVanta = () => {};
     loadStripe(nyckel)
       .then((s) => {
         if (avbruten) return;
@@ -124,7 +156,12 @@ export function useStripeBetalning(nyckel: string | null, beloppOre: number | nu
         visat.current = beloppOre;
         if (adressPlats.current) {
           adr = e.create("address", adressfaltInstallningar(koppling.current.start()));
-          adr.on("ready", () => setAdressLage("redo"));
+          // "redo" först när Stripes ram glidit till fältets höjd (narRamenStilla).
+          adr.on("ready", () => {
+            slutaVanta = narRamenStilla(adressPlats.current, () => {
+              if (!avbruten) setAdressLage("redo");
+            });
+          });
           adr.on("loaderror", () => setAdressLage("fel"));
           adr.on("change", (h) => koppling.current.andrad(h));
           adr.mount(adressPlats.current);
@@ -171,6 +208,7 @@ export function useStripeBetalning(nyckel: string | null, beloppOre: number | nu
       });
     return () => {
       avbruten = true;
+      slutaVanta();
       falt?.destroy();
       adr?.destroy();
       knappar?.destroy();

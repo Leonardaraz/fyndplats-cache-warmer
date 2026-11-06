@@ -26,6 +26,7 @@ import { consentBootstrapScript } from "../lib/consent";
 import { TIDIGA_KLICK_SKRIPT } from "../lib/tidiga-klick";
 import { TRUSTPILOT_PROFIL_URL } from "../lib/trustpilot-profil";
 import { TEMA_SKRIPT } from "../lib/sasongstema";
+import { PLANBOK_SKRIPT } from "../lib/kassa/snabbkassa";
 
 const GA_MEASUREMENT_ID = "G-W6NZ87CX2Q";
 
@@ -231,9 +232,10 @@ export default async function RootLayout({
   // sidbyte. Med vår mjuka scroll gled produktsidan upp från listans position
   // efter ett tryck på ett kort (CLS 0,33, 2026-10-01). Med attributet byter
   // Next direkt, och mjuk scroll gäller fortfarande inom sidan.
-  // suppressHydrationWarning: TEMA_SKRIPT sätter data-tema på <html> innan
-  // React tar över, och attributet finns inte i serverns HTML. Gäller bara
-  // <html>-elementets egna attribut, inte något under det.
+  // suppressHydrationWarning: TEMA_SKRIPT sätter data-tema och PLANBOK_SKRIPT
+  // data-applepay på <html> innan React tar över, och attributen finns inte i
+  // serverns HTML. Gäller bara <html>-elementets egna attribut, inte något
+  // under det.
   return (
     <html lang="sv" data-scroll-behavior="smooth" className={`${geist.variable} ${fraunces.variable}`} suppressHydrationWarning>
       <head>
@@ -264,6 +266,11 @@ export default async function RootLayout({
             Datumet läses i webbläsaren, så temat försvinner av sig självt
             efter sista dagen, även på sidor som ligger cachade. */}
         <script dangerouslySetInnerHTML={{ __html: TEMA_SKRIPT }} />
+        {/* Apple Pay i webbläsaren? Kassan håller bara då plats för
+            snabbkassans knappar, redan från första ritningen, också när
+            kunden kommer till /kassa med ett mjukt sidbyte
+            (lib/kassa/snabbkassa.ts, PLANBOK_SKRIPT). */}
+        <script dangerouslySetInnerHTML={{ __html: PLANBOK_SKRIPT }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(orgJsonLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(websiteJsonLd) }} />
         {/* Laddningslinjen överst vid sidbyte. Ett tryck på en länk lät den
