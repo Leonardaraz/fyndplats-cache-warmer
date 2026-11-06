@@ -224,7 +224,8 @@ export function Kassa() {
     }
     setFel({});
     setSkickar(true);
-    skrivJson("local", ADRESS_NYCKEL, { ...prov.varden, kupong: undefined });
+    // Numret sparas som kunden skrev det ("070 …"), inte som Wix får det (+46…).
+    skrivJson("local", ADRESS_NYCKEL, { ...prov.varden, telefon: varden.telefon.trim(), kupong: undefined });
     try {
       const r = await fetch("/api/kassa/betala", {
         method: "POST",

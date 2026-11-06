@@ -302,6 +302,37 @@ export async function betala(
   return { ok: true, url: betalning.url, orderId, betalningId: betalning.id, totalOre };
 }
 
+/**
+ * Samma beroenden, men varje anrop tar tid: `tider[namn]` får en rad per anrop
+ * (ms). Rutten loggar dem, så att det syns var kundens väntan går. Fel går
+ * vidare som förut.
+ */
+export function medTider<T extends object>(deps: T, tider: Record<string, number[]>, klocka: () => number = Date.now): T {
+  const ut: Record<string, unknown> = {};
+  for (const [namn, f] of Object.entries(deps)) {
+    if (typeof f !== "function") {
+      ut[namn] = f;
+      continue;
+    }
+    ut[namn] = async (...a: unknown[]) => {
+      const t0 = klocka();
+      try {
+        return await (f as (...x: unknown[]) => Promise<unknown>)(...a);
+      } finally {
+        (tider[namn] ??= []).push(klocka() - t0);
+      }
+    };
+  }
+  return ut as T;
+}
+
+/** "rakna 1200+900, skapaOrder 1500": tiderna i anropsordning för loggen. */
+export function tidrad(tider: Record<string, number[]>): string {
+  return Object.entries(tider)
+    .map(([namn, ms]) => `${namn} ${ms.join("+")}`)
+    .join(", ");
+}
+
 /** Marginal efter utgången, så att en kund som trycker "Betala" i sista stund hinner. */
 export const STADNING_MARGINAL_MINUTER = 15;
 

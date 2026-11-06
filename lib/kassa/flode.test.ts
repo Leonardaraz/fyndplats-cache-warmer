@@ -12,6 +12,8 @@ import {
   MAX_FORSOK_PER_TIMME,
   arKorgensBetalning,
   kassaExterntId,
+  medTider,
+  tidrad,
   type KassaDeps,
   type Korg,
   type Kund,
@@ -310,4 +312,25 @@ test("betalningens externa id bär korgen, och korgen känner bara igen sina egn
   assert.equal(arKorgensBetalning(kassaExterntId("korg-10", "1"), "korg-1"), false);
   assert.equal(arKorgensBetalning("faktura-123", korgId), false);
   assert.equal(arKorgensBetalning(undefined, korgId), false);
+});
+
+test("tidtagningen ger samma svar, en rad per anrop, och släpper igenom fel", async () => {
+  let t = 1000;
+  const klocka = () => t;
+  const tider: Record<string, number[]> = {};
+  const deps = medTider(
+    {
+      async a(x: number) { t += 120; return x * 2; },
+      async b() { t += 30; throw new Error("wix 500"); },
+      konstant: 7,
+    },
+    tider,
+    klocka,
+  );
+  assert.equal(await deps.a(2), 4);
+  assert.equal(await deps.a(3), 6);
+  await assert.rejects(() => deps.b(), /wix 500/);
+  assert.equal(deps.konstant, 7);
+  assert.deepEqual(tider, { a: [120, 120], b: [30] });
+  assert.equal(tidrad(tider), "a 120+120, b 30");
 });
