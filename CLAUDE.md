@@ -1322,9 +1322,17 @@ Det som inte får ändras:
   Betalfältet frågar aldrig efter dem (`fields.billingDetails: "never"`), och
   då kräver Stripe VARJE fält, också `state` och `line2` som tomma strängar:
   ett saknat fält stoppar betalningen. Adressen formas på ett ställe
-  (`stripeAdress`), så att leveransen på betalningen och faktureringen är
-  samma adress skriven på samma sätt (Klarna jämför). Provat lokalt
-  2026-11-06 mot riktiga Stripe.js.
+  (`stripeAdress`). Provat lokalt 2026-11-06 mot riktiga Stripe.js.
+- ☠️ **Servern sätter ALDRIG `shipping` på betalningen** (`avsiktParametrar`,
+  varken när den skapas eller uppdateras). Adressfältet (läget "shipping")
+  ligger i samma Elements som betalfältet, och `stripe.confirmPayment` skickar
+  dess adress som leverans. Har servern satt `shipping` med den hemliga
+  nyckeln nekar Stripe bekräftelsen: 400 `payment_intent_invalid_parameter`,
+  "The shipping information on this PaymentIntent was last set with a secret
+  key and therefore cannot be changed with a publishable key". Mätt på
+  förhandslänken 2026-11-06 16:06 UTC: sedan adressfältet kom in (2b241635)
+  stoppades varje betalning så, och kunden fick "Betalningen kunde inte
+  genomföras just nu". Provet i `stripe-klient.test.ts` låser regeln.
 - ☠️ **Kort först, Klarna sist och aldrig förvalt** (`BETALFALT`), fast två av
   tre köp är Klarna. Lagen (2010:751) om betaltjänster (prop. 2019/20:79,
   sedan 2020-07-01): finns ett betalsätt utan kredit ska det visas först, och
@@ -1583,7 +1591,8 @@ BankID ska användas).
   `lib/kassa/stripe-klient.ts`) står i steg 2 när Stripe är på, i samma
   Elements som betalfältet (`use-stripe-betalning.ts`). Då är Googles
   adressförslag gratis (Stripes egen nyckel); Wix har inget öppet API för
-  sina förslag. Fältet börjar ihopfällt (förnamn, efternamn, adress) och
+  sina förslag. Fältet sätter betalningens leveransadress vid bekräftelsen,
+  och därför gör servern det aldrig (se ☠️ under betalningen ovan). Fältet börjar ihopfällt (förnamn, efternamn, adress) och
   fäller ut sig när kunden väljer ett förslag eller "Ange adress manuellt".
   Uppmätt lokalt: förslaget fyller gata, postnummer och postort, och lägger
   länet i `state` ("Hallands län") fast det svenska formuläret inte visar

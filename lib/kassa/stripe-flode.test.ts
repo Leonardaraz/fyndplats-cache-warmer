@@ -163,6 +163,7 @@ function fejk(o: {
     },
     async uppdateraAvsikt(id, p) {
       anrop.push(`uppdateraAvsikt:${id}:${p.amount}`);
+      anrop.push(`uppdateraAvsiktFalt:${Object.keys(p).sort().join(",")}`);
       nuvarande = { ...(nuvarande as Avsikt), amount: p.amount, metadata: { ...p.metadata } };
       return nuvarande;
     },
@@ -229,7 +230,7 @@ test("forbered: en ny betalning på Wix total, manuell dragning och korgen i met
   assert.equal(p.metadata.kalla, STRIPE_KALLA);
   assert.equal(p.metadata.cartId, "korg-1");
   assert.deepEqual(Object.keys(p.metadata).sort(), ["cartId", "kalla"], "bara det flödet läser");
-  assert.deepEqual(p.shipping.address, { line1: "Provgatan 1", postal_code: "11122", city: "Stockholm", country: "SE" });
+  assert.equal("shipping" in p, false, "leveransen sätter adressfältet vid bekräftelsen, aldrig servern");
   assert.ok(f.anrop.indexOf("uppdateraKorg:korg-1") < f.anrop.indexOf("skapaAvsikt:65900"), "korgen får uppgifterna före betalningen");
 });
 
@@ -257,6 +258,8 @@ test("forbered: en obetald betalning från samma korg uppdateras i stället för
   const r = await forberedStripe(f.deps, { cartId: "korg-1", kund: KUND, avsiktId: "pi_1" });
   assert.equal(r.ok, true);
   assert.ok(f.anrop.includes("uppdateraAvsikt:pi_1:65900"));
+  // ☠️ Ingen leverans i uppdateringen heller: adressfältet sätter den vid bekräftelsen (avsiktParametrar).
+  assert.ok(f.anrop.includes("uppdateraAvsiktFalt:amount,description,metadata"), f.anrop.join(" "));
   assert.equal(f.skapade.length, 0);
 });
 
@@ -568,11 +571,12 @@ test("kronorAv skriver belopp som Wix", () => {
   assert.equal(kronorAv(119905), "1199.05");
 });
 
-test("avsiktParametrar: c/o på andra raden och postnumret utan mellanslag", () => {
-  const p = avsiktParametrar("korg-1", { ...KUND, co: "c/o Svensson" }, 100, KORG.lineItems ?? []);
-  assert.equal(p.shipping.address.line2, "c/o Svensson");
-  assert.equal(p.shipping.address.postal_code, "11122");
+test("avsiktParametrar: korgen i beskrivningen; faktureringen: c/o på andra raden och postnumret utan mellanslag", () => {
+  const p = avsiktParametrar("korg-1", 100, KORG.lineItems ?? []);
   assert.equal(p.description, "Pedalhink 20 l.");
+  const f = faktureringAv({ ...KUND, co: "c/o Svensson" });
+  assert.equal(f.address.line2, "c/o Svensson");
+  assert.equal(f.address.postal_code, "11122");
 });
 
 // ─── webhooken och nätet ────────────────────────────────────────────────────

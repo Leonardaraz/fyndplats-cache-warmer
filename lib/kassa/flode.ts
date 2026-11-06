@@ -603,11 +603,7 @@ export interface AvsiktParametrar {
   automatic_payment_methods: { enabled: true };
   description: string;
   metadata: { kalla: string; cartId: string };
-  shipping: {
-    name: string;
-    phone: string;
-    address: { line1: string; line2?: string; postal_code: string; city: string; country: "SE" };
-  };
+  // ☠️ Ingen `shipping` här: se avsiktParametrar.
 }
 
 /** Låsets rad: steget och ordern, så att en ny körning fortsätter där den förra slutade. */
@@ -681,9 +677,9 @@ export function kronorAv(ore: number): string {
 }
 
 /**
- * Kundens adress som Stripe vill ha den, på ett ställe: leveransen på
- * betalningen (avsiktParametrar) och faktureringen i bekräftelsen
- * (faktureringAv) ska vara samma adress skriven på samma sätt (Klarna jämför).
+ * Kundens adress som Stripe vill ha den i faktureringen (faktureringAv).
+ * Leveransen på betalningen sätter adressfältet i webbläsaren vid
+ * bekräftelsen (se avsiktParametrar).
  */
 function stripeAdress(k: Pick<Kund, "gata" | "co" | "rad2" | "postnr" | "ort">) {
   return {
@@ -719,10 +715,21 @@ export function faktureringAv(k: Kund): Fakturering {
   };
 }
 
-/** PaymentIntentens innehåll: Wix total, korgen och leveransadressen (för Klarna och Stripes panel). */
-export function avsiktParametrar(cartId: string, kund: Kund, totalOre: number, rader: KorgRad[]): AvsiktParametrar {
-  // Utan c/o skickas ingen andra rad alls (en tom sträng skulle tömma fältet hos Stripe).
-  const { line2, ...adress } = stripeAdress(kund);
+/**
+ * PaymentIntentens innehåll: Wix total, dragningen och korgen.
+ *
+ * ☠️ ALDRIG `shipping` från servern. Adressfältet (Address Element, läget
+ * "shipping") ligger i samma Elements som betalfältet, och stripe.confirmPayment
+ * skickar dess adress som betalningens leverans. Har servern satt `shipping`
+ * med den hemliga nyckeln nekar Stripe bekräftelsen med 400
+ * `payment_intent_invalid_parameter` ("The shipping information on this
+ * PaymentIntent was last set with a secret key and therefore cannot be changed
+ * with a publishable key"), och ingen betalning går igenom. Mätt på
+ * förhandslänken 2026-11-06 16:06 UTC: varje betalning stoppades så sedan
+ * adressfältet kom in (2b241635). Adressfältet måste ligga i samma Elements som
+ * betalfältet för att Googles förslag ska vara gratis.
+ */
+export function avsiktParametrar(cartId: string, totalOre: number, rader: KorgRad[]): AvsiktParametrar {
   return {
     amount: totalOre,
     currency: "sek",
@@ -730,11 +737,6 @@ export function avsiktParametrar(cartId: string, kund: Kund, totalOre: number, r
     automatic_payment_methods: { enabled: true },
     description: betalBeskrivning(rader).slice(0, 300),
     metadata: { kalla: STRIPE_KALLA, cartId },
-    shipping: {
-      name: `${kund.fornamn} ${kund.efternamn}`.trim(),
-      phone: kund.telefon,
-      address: line2 ? { ...adress, line2 } : adress,
-    },
   };
 }
 
@@ -796,10 +798,10 @@ export async function forberedStripe(
     return { ok: false, kod: "total", meddelanden: ["Ordern kunde inte räknas. Försök igen, eller kontakta oss om det inte går."] };
   }
 
-  const p = avsiktParametrar(cartId, kund, totalOre, rakning.cart?.lineItems ?? korg.lineItems ?? []);
+  const p = avsiktParametrar(cartId, totalOre, rakning.cart?.lineItems ?? korg.lineItems ?? []);
   if (egen && OBETALD.has(egen.status)) {
     // Valuta, dragning och betalsätt går inte att ändra på en befintlig betalning.
-    const a = await deps.uppdateraAvsikt(egen.id, { amount: p.amount, description: p.description, metadata: p.metadata, shipping: p.shipping });
+    const a = await deps.uppdateraAvsikt(egen.id, { amount: p.amount, description: p.description, metadata: p.metadata });
     if (a.client_secret) return { ok: true, avsiktId: a.id, clientSecret: a.client_secret, totalOre, fakturering: faktureringAv(kund) };
   }
   // En ny betalning får en egen nyckel. ☠️ INTE en nyckel ur korgens innehåll:

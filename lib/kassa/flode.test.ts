@@ -541,9 +541,8 @@ test("adressrad 2: c/o från kassans fält, Stripes rad som den skrevs", () => {
   assert.equal(andraRaden({ co: "" }), "");
   assert.equal(wixAdress({ ...kund, rad2: "lgh 1201" }).addressLine2, "lgh 1201");
   assert.equal(wixAdress({ ...kund, co: "Berg" }).addressLine2, "c/o Berg");
-  // Stripe: faktureringen och leveransen på betalningen har samma andra rad (Klarna jämför).
+  // Stripe: faktureringen har kundens andra rad. Leveransen på betalningen sätter adressfältet.
   assert.equal(faktureringAv({ ...kund, rad2: "lgh 1201" }).address.line2, "lgh 1201");
-  assert.equal(avsiktParametrar("korg-1", { ...kund, rad2: "lgh 1201" }, 10000, []).shipping.address.line2, "lgh 1201");
-  assert.equal("line2" in avsiktParametrar("korg-1", kund, 10000, []).shipping.address, false);
+  assert.equal("shipping" in avsiktParametrar("korg-1", 10000, []), false);
 });
 
