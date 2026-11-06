@@ -476,6 +476,8 @@ function optionsForProduct(slug: string, sdkItem: any): Product["options"] {
 }
 
 let productsPromise: Promise<Product[]> | null = null;
+// Katalogen som den här instansen senast fick färdig (katalogenLaddad).
+let laddadKatalog: Product[] | null = null;
 
 // Nödkatalogen products.json är en minimal, GAMMAL snapshot (3 produkter i ett
 // äldre schema utan id/createdAt/collectionIds/imageScore). Den släpptes förr in
@@ -519,6 +521,13 @@ const DEGRADERADE = new WeakSet<Product[]>([FALLBACK_PRODUCTS]);
  *  inget underlag byggt på en sådan katalog (lib/kundvagn-underlag.ts). */
 export function katalogenArDegraderad(lista: Product[]): boolean {
   return DEGRADERADE.has(lista);
+}
+
+/** Har den här instansen redan hela katalogen i minnet? Då bygger sidhuvudet
+ *  menyn ur den; annars läser det den färdiga menyn ur datacachen och väntar
+ *  inte in de cirka 20 sekunderna (lib/sidhuvud-data.ts). */
+export function katalogenLaddad(): boolean {
+  return laddadKatalog !== null && !DEGRADERADE.has(laddadKatalog);
 }
 
 async function fetchProducts(): Promise<Product[]> {
@@ -659,6 +668,7 @@ async function fetchProducts(): Promise<Product[]> {
 export const getProducts = cache(async (): Promise<Product[]> => {
   if (!productsPromise) productsPromise = fetchProducts();
   const lista = await productsPromise;
+  laddadKatalog = lista;
   if (DEGRADERADE.has(lista)) await kortLivslangd();
   return lista;
 });
