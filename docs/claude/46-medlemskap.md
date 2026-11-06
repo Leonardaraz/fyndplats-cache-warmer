@@ -89,9 +89,11 @@ motorn behöver veta:
   text, och skrivs till `FyndplatsMedlemslogg` med före- och efterläge
   (E1-11). En manuell nivå gäller i stället för den räknade, till och med sitt
   slutdatum om ett sådant anges.
-- Borttagning tar bort kontot och profilen. Orderliggaren står kvar, eftersom
-  den bär ordrarna och inget konto, och loggen får bara den maskerade
-  adressen.
+- Borttagning tar bort kontot, profilen, nivåbytena och inloggningsförsöken
+  (adressen i klartext). Orderliggaren och prisbesluten står kvar, eftersom de
+  bär ordrarna och priserna och inget konto, och loggen får bara den maskerade
+  adressen. Nivåbytena och inloggningarna tas bort först: faller det står
+  kontot kvar, så att ett nytt försök hittar allt (2026-11-04).
 - Skyddet är det som gäller för hela `/admin` (Basic Auth och Vercels
   skydd). Tvåfaktor krävs av specen före E2.
 
