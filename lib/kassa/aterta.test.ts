@@ -2,7 +2,7 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { ATERTA_SOKVAG, BUTIK, aterHemlighet, aterLank, aterNyckel, lasAterNyckel, medKod, valjAterLank } from "./aterta.ts";
+import { ATERTA_SOKVAG, BUTIK, aterHemlighet, aterLank, aterNyckel, aterVunnenIWix, lasAterNyckel, medKod, valjAterLank } from "./aterta.ts";
 
 const H = "en-hemlighet-som-ar-lang-nog-1234";
 const KORG = "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee";
@@ -68,4 +68,12 @@ test("rabattkoden följer bara med vår länk", () => {
   const wix = "https://www.fyndplats.se/__ecom/checkout?checkoutId=abc";
   assert.equal(medKod(wix, "FP-AB12"), wix);
   assert.equal(medKod(BUTIK, "FP-AB12"), BUTIK);
+});
+
+test("påminnelsen stoppas bara när Wix säger att kassan är återvunnen", () => {
+  assert.equal(aterVunnenIWix({ abandonedCheckout: { status: "RECOVERED" } }), true);
+  assert.equal(aterVunnenIWix({ abandonedCheckout: { status: "ABANDONED" } }), false);
+  assert.equal(aterVunnenIWix({ abandonedCheckout: {} }), false);
+  assert.equal(aterVunnenIWix({}), false);
+  assert.equal(aterVunnenIWix(null), false);
 });

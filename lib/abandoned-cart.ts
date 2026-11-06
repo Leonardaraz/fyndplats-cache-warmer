@@ -24,7 +24,8 @@ import { renderAbandonedCart3 } from '../emails/abandoned-cart-3';
 import { renderAbandonedCart3NoCode } from '../emails/abandoned-cart-3-no-code';
 import { unsubscribeUrl, isSuppressed } from './newsletter';
 import { firePush } from './push-send';
-import { medKod } from './kassa/aterta';
+import { aterVunnenIWix, medKod } from './kassa/aterta';
+import { WixApiError, wixFetch } from './wix-client';
 
 const ONE_HOUR_MS = 60 * 60 * 1000;
 const STEP_DELAYS_MS: Record<1 | 2 | 3, number> = {
@@ -238,7 +239,7 @@ export async function fetchDueCarts(limit = 25, nowOverride?: Date): Promise<Car
 export interface ProcessResult {
   cartId: string;
   step: number;
-  action: 'sent' | 'sent_no_code' | 'skipped_cooldown' | 'skipped_unsubscribed' | 'skipped_below_min' | 'completed' | 'error';
+  action: 'sent' | 'sent_no_code' | 'skipped_cooldown' | 'skipped_unsubscribed' | 'skipped_recovered' | 'skipped_below_min' | 'completed' | 'error';
   resendId?: string;
   discountCode?: string;
   error?: string;
@@ -264,6 +265,16 @@ export async function processDueCart(
     if (await isSuppressed(cart.email)) {
       await sattStatus(cart.id, 'unsubscribed');
       return { cartId: cart.id, step, action: 'skipped_unsubscribed' };
+    }
+
+    // Wix vet när korgen blivit en order: den övergivna kassan blir RECOVERED,
+    // också när köpet gjordes i vår kassa eller med en annan e-post än den här
+    // (då missar konverteringen på e-post vagnen). Då går inget mejl, och en
+    // redan utdelad kod återkallas (lib/kassa/aterta.ts, 2026-11-06).
+    if (await kassanAterVunnen(cart.id)) {
+      const k = await kundvagnar.konvertera(cart.id);
+      if (k.rabattWixId) await revokeCoupon(k.rabattWixId);
+      return { cartId: cart.id, step, action: 'skipped_recovered' };
     }
 
     if (step === 1) {
@@ -293,6 +304,21 @@ export async function processDueCart(
     // Don't kill the cron — log and leave the cart status as-is so we retry next tick.
     console.error('[abandoned-cart] processDueCart error', cart.id, step, msg);
     return { cartId: cart.id, step, action: 'error', error: msg };
+  }
+}
+
+/**
+ * Har Wix markerat vagnens övergivna kassa som återvunnen? 404 betyder att Wix
+ * inte har den (till exempel en provrad): mejlet går som förut. Andra fel
+ * kastas, så att vagnen står kvar och prövas nästa kvart; ett mejl för sent är
+ * bättre än ett mejl om ett köp som redan är gjort.
+ */
+async function kassanAterVunnen(id: string): Promise<boolean> {
+  try {
+    return aterVunnenIWix(await wixFetch({ path: `/ecom/v1/abandoned-checkout/${encodeURIComponent(id)}` }));
+  } catch (e) {
+    if (e instanceof WixApiError && (e.status === 404 || e.status === 400)) return false;
+    throw e;
   }
 }
 

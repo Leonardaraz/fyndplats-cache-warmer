@@ -1753,6 +1753,16 @@ med vår kassa (`lib/kassa/aterta.ts`):
    läggs på i kassans första räkning. Är kassan avstängd öppnas varukorgen i
    stället; är en vara slut eller borta står det på sidan, med en knapp vidare.
 
+3. **Mejlet gick ut efter köpet när köpet gjordes med en annan e-post.**
+   Kö-raden bär den övergivna kassans id, inte korgens, så konverteringen
+   (`onOrderConverted`) hittar den bara på e-post. Wix markerar däremot den
+   övergivna kassan RECOVERED när korgen blir en order, också i vår kassa (mätt
+   2026-11-06: fyra sekunder efter ordern; köpet hade en annan e-post och ett
+   mejl stod på tur en kvart senare). Nu frågar `processDueCart` Wix före varje
+   steg (`aterVunnenIWix`): RECOVERED → vagnen blir `converted`, en utdelad kod
+   återkallas och inget mejl går. 404 → mejlet går som förut; andra fel → vagnen
+   prövas nästa kvart.
+
 ☠️ Länkens HMAC använder `NEWSLETTER_SECRET` eller `CRON_SECRET` (minst 16
 tecken) med eget prefix. Saknas båda får mejlen Wix länk, och pollaren varnar i
 loggen. Utan HMAC hade ett id som läckt räckt för att se en annan kunds varor.

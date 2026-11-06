@@ -92,3 +92,13 @@ export function medKod(url: string, kod: string | null | undefined, bas = BUTIK)
   if (!k || !url.startsWith(`${bas}${ATERTA_SOKVAG}?`)) return url;
   return `${url}&kod=${encodeURIComponent(k)}`;
 }
+
+/**
+ * Har Wix markerat den övergivna kassan som återvunnen? Det gör Wix när
+ * korgen blir en order, också i vår kassa och också när köpet görs med en
+ * annan e-post än den i den övergivna kassan (mätt 2026-11-06: RECOVERED fyra
+ * sekunder efter ordern). Då ska påminnelsen inte gå (lib/abandoned-cart.ts).
+ */
+export function aterVunnenIWix(svar: unknown): boolean {
+  return (svar as { abandonedCheckout?: { status?: unknown } } | null)?.abandonedCheckout?.status === "RECOVERED";
+}
