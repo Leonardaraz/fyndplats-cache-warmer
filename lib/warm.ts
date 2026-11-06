@@ -30,13 +30,14 @@ import { listaUrl, type ListNyckel } from "./list-key";
 // den här modulen drar in site-urls, som testköraren inte kan ladda.
 import { fastProv, MAX_LED, MISS_FOR_KALL, PARALLELLT } from "./warm-urval";
 export {
-  arSakerSlug, fastProv, kvarEfterPass, MAX_LED, MISS_FOR_KALL, PARALLELLT, PROV_STORLEK, roterad, tolkaLed,
+  allaNekade, arSakerSlug, fastProv, felkoder, kvarEfterPass, MAX_LED, MISS_FOR_KALL, PARALLELLT, PROV_STORLEK, roterad, tolkaLed,
 } from "./warm-urval";
 
 
 
-/** Rendera en sida en gång så den ligger i ISR-cachen. Kastar aldrig. */
-export async function varmSida(path: string): Promise<boolean> {
+/** Rendera en sida en gång så den ligger i ISR-cachen. Svarar med
+ *  statuskoden, 0 vid nätfel eller timeout. Kastar aldrig. */
+export async function varmSidaKod(path: string): Promise<number> {
   try {
     const res = await fetch(`${SITE}${path}`, {
       // Cache-busting vore fel här: vi VILL att Vercel skapar och behåller
@@ -47,10 +48,32 @@ export async function varmSida(path: string): Promise<boolean> {
       // 60 s rymmer den längsta uppmätta kallstarten (bildkartan, 35,4 s).
       signal: AbortSignal.timeout(60_000),
     });
-    return res.ok;
+    return res.status;
   } catch {
-    return false;
+    return 0;
   }
+}
+
+export async function varmSida(path: string): Promise<boolean> {
+  const kod = await varmSidaKod(path);
+  return kod >= 200 && kod < 300;
+}
+
+/** Ett pass: värmda, fel, felens statuskoder (för loggen) och om deadline kom först. */
+export type Pass = { ok: number; fel: number; koder: Record<string, number>; avbruten: boolean };
+
+async function passOver(sokvagar: readonly string[], deadline: number): Promise<Pass> {
+  let ok = 0, fel = 0;
+  const koder: Record<string, number> = {};
+  for (let i = 0; i < sokvagar.length; i += PARALLELLT) {
+    if (Date.now() > deadline) return { ok, fel, koder, avbruten: true };
+    const svar = await Promise.all(sokvagar.slice(i, i + PARALLELLT).map(varmSidaKod));
+    for (const kod of svar) {
+      if (kod >= 200 && kod < 300) ok++;
+      else { fel++; koder[kod] = (koder[kod] ?? 0) + 1; }
+    }
+  }
+  return { ok, fel, koder, avbruten: false };
 }
 
 export const varmProdukt = (slug: string) => varmSida(`/produkt/${slug}`);
@@ -65,30 +88,12 @@ export const varmBildkartan = () => varmSida("/api/kort-bilder");
  * tryckt "Visa fler" eller valt ett filter. Parallellt i små omgångar: de
  * flesta svaren är CDN-träffar som inte kostar något.
  */
-export async function varmListor(
-  nycklar: readonly ListNyckel[],
-  deadline = Infinity,
-): Promise<{ ok: number; fel: number; avbruten: boolean }> {
-  let ok = 0, fel = 0;
-  for (let i = 0; i < nycklar.length; i += PARALLELLT) {
-    if (Date.now() > deadline) return { ok, fel, avbruten: true };
-    const res = await Promise.all(nycklar.slice(i, i + PARALLELLT).map((k) => varmSida(listaUrl(k))));
-    for (const r of res) { if (r) ok++; else fel++; }
-  }
-  return { ok, fel, avbruten: false };
+export async function varmListor(nycklar: readonly ListNyckel[], deadline = Infinity): Promise<Pass> {
+  return passOver(nycklar.map(listaUrl), deadline);
 }
 
-export async function varmAlla(
-  slugs: readonly string[],
-  deadline = Infinity,
-): Promise<{ ok: number; fel: number; avbruten: boolean }> {
-  let ok = 0, fel = 0;
-  for (let i = 0; i < slugs.length; i += PARALLELLT) {
-    if (Date.now() > deadline) return { ok, fel, avbruten: true };
-    const resultat = await Promise.all(slugs.slice(i, i + PARALLELLT).map(varmProdukt));
-    for (const r of resultat) { if (r) ok++; else fel++; }
-  }
-  return { ok, fel, avbruten: false };
+export async function varmAlla(slugs: readonly string[], deadline = Infinity): Promise<Pass> {
+  return passOver(slugs.map((s) => `/produkt/${s}`), deadline);
 }
 
 
