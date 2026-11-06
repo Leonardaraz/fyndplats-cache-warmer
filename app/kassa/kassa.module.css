@@ -153,12 +153,15 @@
   font-size: var(--text-sm);
 }
 
-.fraktPrick {
-  width: 18px;
-  height: 18px;
+.fraktIkon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  border: 5px solid var(--brand);
   background: #fff;
+  color: var(--brand);
+  box-shadow: inset 0 0 0 1.5px var(--brand);
 }
 
 .fraktTid {
@@ -175,7 +178,20 @@
 .betalText {
   font-size: var(--text-sm);
   color: var(--soft);
+  margin: 0 0 6px;
+}
+
+.betalNot {
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--soft);
   margin: 0 0 12px;
+}
+
+.summor .friFrakt {
+  font-size: var(--text-xs);
+  color: #157a3a;
+  font-weight: 600;
 }
 
 .kupong {
@@ -223,18 +239,236 @@
 
 .vantar {
   margin: 0 0 14px;
-  padding: 12px 14px;
+  padding: 14px;
+  display: grid;
+  gap: 12px;
   border-radius: var(--r-md);
   background: var(--warm);
-  border: 1px solid var(--peach);
+  border: 1.5px solid var(--brand);
   font-size: var(--text-sm);
+  line-height: 1.45;
 }
 
-.vantarLank {
-  display: inline-block;
-  margin-left: 8px;
-  color: var(--brand);
+.vantarText {
+  display: grid;
+  gap: 2px;
+}
+
+.vantarText strong {
+  font-size: var(--text-base);
+}
+
+.vantarKnapp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: var(--r-sm);
+  background: var(--brand);
+  color: #fff;
   font-weight: 700;
+  text-decoration: none;
+}
+
+.vantarKnapp:hover {
+  background: #a9380a;
+}
+
+/* Platshållare för ett belopp medan varukorgen hämtas: samma höjd som texten. */
+.skelett {
+  display: inline-block;
+  width: 64px;
+  height: 0.9em;
+  vertical-align: -0.08em;
+  border-radius: 4px;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.07) 25%, rgba(0, 0, 0, 0.13) 50%, rgba(0, 0, 0, 0.07) 75%);
+  background-size: 200% 100%;
+  animation: skimmer 1.2s linear infinite;
+}
+
+.knapp .skelett {
+  background: rgba(255, 255, 255, 0.35);
+  animation: none;
+}
+
+@keyframes skimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* Väntan på Wix betalsida (servern 1–4 s, sedan Wix sida). Hela skärmen, så
+   att ingen trycker två gånger och kunden ser vad som händer. */
+.vantan {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px calc(24px + env(safe-area-inset-bottom));
+  background: rgba(255, 251, 247, 0.96);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  animation: tonaIn 0.18s ease-out both;
+}
+
+.vantanKort {
+  width: min(340px, 100%);
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.vantanRing {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  margin-bottom: 10px;
+  display: grid;
+  place-items: center;
+  color: var(--brand);
+}
+
+.vantanRing::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid rgba(0, 0, 0, 0.08);
+  border-top-color: var(--brand);
+  animation: snurra 0.9s linear infinite;
+}
+
+.vantanRubrik {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.vantanUnder {
+  margin: 0 0 14px;
+  font-size: var(--text-sm);
+  color: var(--soft);
+}
+
+.vantanSteg {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  width: 100%;
+  display: grid;
+  gap: 10px;
+  text-align: left;
+}
+
+.vantanSteg li {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  font-size: var(--text-sm);
+  color: var(--soft);
+  transition: color 0.2s ease;
+}
+
+.vantanSteg li[data-lage="nu"] {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.vantanSteg li[data-lage="klar"] {
+  color: var(--ink);
+}
+
+.stegPrick {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #d9cfc4;
+  display: grid;
+  place-items: center;
+  color: #fff;
+}
+
+[data-lage="nu"] > .stegPrick {
+  border-color: var(--brand);
+  border-right-color: transparent;
+  animation: snurra 0.8s linear infinite;
+}
+
+[data-lage="klar"] > .stegPrick {
+  border-color: #157a3a;
+  background: #157a3a;
+}
+
+.vantanBar {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.vantanBar span {
+  display: block;
+  height: 100%;
+  background: var(--brand);
+  transform-origin: left;
+  transform: scaleX(0.4);
+  transition: transform 1.4s cubic-bezier(0.2, 0.7, 0.3, 1);
+  animation: barStart 1.1s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+.vantanBar span[data-steg="1"] {
+  transform: scaleX(0.7);
+  transition-duration: 3s;
+}
+
+.vantanBar span[data-steg="2"] {
+  transform: scaleX(0.95);
+  transition-duration: 6s;
+}
+
+.vantanFot {
+  margin: 12px 0 0;
+  font-size: var(--text-xs);
+  color: var(--soft);
+}
+
+@keyframes snurra {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes tonaIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes barStart {
+  from {
+    transform: scaleX(0.04);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vantan,
+  .vantanRing::before,
+  .vantanBar span,
+  .skelett,
+  [data-lage="nu"] > .stegPrick {
+    animation: none;
+    transition: none;
+  }
 }
 
 /* Knappen står sist i formuläret, aldrig fast mot skärmen: en fast knapp

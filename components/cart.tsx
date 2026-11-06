@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
 import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
 import {
   stashPurchaseSnapshot,
   trackBeginCheckout,
@@ -262,6 +263,7 @@ async function fragaEgenKassa(): Promise<boolean> {
 }
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const [cart, setCart] = useState<any>(null);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -404,7 +406,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       // ett fel ger Wix kassa som förut.
       const egen = egenKassaRef.current ?? (await fragaEgenKassa());
       if (egen) {
-        window.location.href = "/kassa";
+        // Utan omladdning: varukorgen finns redan här och syns direkt i kassan.
+        setOpen(false);
+        setTillKassan(false);
+        router.push("/kassa");
         return;
       }
       // Adressen förbereds när lådan öppnas (lib/kassalank.ts). Finns en för
@@ -431,7 +436,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       setFel("Kassan kunde inte öppnas. Försök igen om en stund.");
       setTillKassan(false);
     }
-  }, [cart, tillKassan]);
+  }, [cart, tillKassan, router]);
 
   // Förbered kassans adress så fort lådan visar en vagn med varor. Faller
   // det bygger trycket själv, så ett fel här märks aldrig av kunden.
@@ -439,8 +444,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const harVaror = (cart?.lineItems?.length ?? 0) > 0;
   useEffect(() => {
     if (!open || !harVaror || egenKassaRef.current !== null) return;
-    fragaEgenKassa().then((v) => { egenKassaRef.current = v; }).catch(() => {});
-  }, [open, harVaror]);
+    fragaEgenKassa()
+      .then((v) => {
+        egenKassaRef.current = v;
+        if (v) router.prefetch("/kassa");
+      })
+      .catch(() => {});
+  }, [open, harVaror, router]);
   useEffect(() => {
     if (!open || !kassaId || !harVaror) return;
     kassalankMinne

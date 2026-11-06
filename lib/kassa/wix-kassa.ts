@@ -6,10 +6,14 @@
 // Wix 2026-11-05/06 med två testordrar, båda avbrutna utan betalning.
 
 import { wixFetch, WixApiError } from "@/lib/wix-client";
-import type { KassaDeps, Korg, Kund, Rakning, Tidigare } from "./flode";
-import { arKorgensBetalning, KASSA_MARKOR } from "./flode";
+import type { Forsok, KassaDeps, Korg, Kund, Rakning, Tidigare } from "./flode";
+import { arKorgensBetalning, KASSA_MARKOR, medOmforsok } from "./flode";
 
 const korgSokvag = (id: string) => `/ecom/v2/carts/${encodeURIComponent(id)}`;
+
+/** Wix nekade anropet för många anrop på kort tid (429): det har inte gjort något och kan göras om. */
+const nekadAvWix = (e: unknown) => e instanceof WixApiError && e.status === 429;
+const forsokIgen = <T,>(anrop: () => Promise<T>) => medOmforsok(anrop, nekadAvWix);
 
 function adress(k: Kund) {
   return {
@@ -83,31 +87,46 @@ export async function sattLeverans(cartId: string, satt: { code: string; appId: 
 
 /** Checkout V1 `create-order` på korgens id: i Cart V2 är korgens id kassans id. */
 export async function skapaOrder(cartId: string): Promise<{ orderId: string }> {
-  const svar = await wixFetch<{ orderId?: string }>({
-    method: "POST",
-    path: `/ecom/v1/checkouts/${encodeURIComponent(cartId)}/create-order`,
-    body: {},
-  });
+  const svar = await forsokIgen(() =>
+    wixFetch<{ orderId?: string }>({
+      method: "POST",
+      path: `/ecom/v1/checkouts/${encodeURIComponent(cartId)}/create-order`,
+      body: {},
+    }),
+  );
   if (!svar?.orderId) throw new Error("Wix skapade ingen order ur korgen");
   return { orderId: svar.orderId };
 }
 
 export async function skapaBetalning(b: Parameters<KassaDeps["skapaBetalning"]>[0]): Promise<{ id: string; url: string }> {
-  const svar = await wixFetch<{ orderPaymentRequest?: { id?: string }; orderPaymentRequestUrl?: string }>({
-    method: "POST",
-    path: "/ecom/v1/order-payment-requests",
-    body: {
-      orderPaymentRequest: {
-        orderId: b.orderId,
-        amount: { amount: b.belopp },
-        title: b.titel,
-        description: b.beskrivning,
-        expirationDate: b.utgar,
-        source: { externalId: b.externtId },
-        blockedPaymentMethods: ["MANUAL"],
-      },
-    },
-  });
+  const skapa = (medBild: boolean) =>
+    forsokIgen(() =>
+      wixFetch<{ orderPaymentRequest?: { id?: string }; orderPaymentRequestUrl?: string }>({
+        method: "POST",
+        path: "/ecom/v1/order-payment-requests",
+        body: {
+          orderPaymentRequest: {
+            orderId: b.orderId,
+            amount: { amount: b.belopp },
+            title: b.titel,
+            description: b.beskrivning,
+            expirationDate: b.utgar,
+            source: { externalId: b.externtId },
+            blockedPaymentMethods: ["MANUAL"],
+            ...(medBild && b.bild ? { image: b.bild } : {}),
+          },
+        },
+      }),
+    );
+  let svar: Awaited<ReturnType<typeof skapa>>;
+  try {
+    svar = await skapa(true);
+  } catch (e) {
+    // Bilden är bara utseende: nekar Wix den (400) skapas betalningen utan.
+    // Ett nekat anrop har inte skapat något, så det går att göra om.
+    if (!(b.bild && e instanceof WixApiError && e.status === 400)) throw e;
+    svar = await skapa(false);
+  }
   const id = svar?.orderPaymentRequest?.id;
   const url = svar?.orderPaymentRequestUrl;
   if (!id || !url) throw new Error("Wix gav ingen betalsida");
@@ -120,7 +139,21 @@ interface Betalningsbegaran {
   orderId?: string;
   createdDate?: string;
   expirationDate?: string;
+  amount?: { amount?: string };
   source?: { externalId?: string };
+}
+
+/** Betalsidans adress för en befintlig betalning (Wix ger den bara vid skapandet annars). */
+export async function betalsidansAdress(betalningId: string): Promise<string> {
+  const svar = await forsokIgen(() =>
+    wixFetch<{ orderPaymentRequestUrl?: string }>({
+      method: "POST",
+      path: "/ecom/v1/order-payment-requests/url",
+      body: { orderPaymentRequestId: betalningId },
+    }),
+  );
+  if (!svar?.orderPaymentRequestUrl) throw new Error("Wix gav ingen adress till betalsidan");
+  return svar.orderPaymentRequestUrl;
 }
 
 interface OrderKort {
@@ -171,15 +204,17 @@ export async function slappOrder(orderId: string, betalningId: string | null, ca
     if (b && !(b.source?.externalId ?? "").startsWith(`${KASSA_MARKOR}:`)) return "ej_var";
     if (b?.status === "PAID") return "betald";
     if (b?.status === "UNPAID") {
-      await wixFetch({ method: "POST", path: "/ecom/v1/order-payment-requests/void", body: { orderPaymentRequestId: betalningId } });
+      await forsokIgen(() => wixFetch({ method: "POST", path: "/ecom/v1/order-payment-requests/void", body: { orderPaymentRequestId: betalningId } }));
     }
   }
   if (order.status === "INITIALIZED") {
-    await wixFetch({
-      method: "POST",
-      path: `/ecom/v1/orders/${encodeURIComponent(orderId)}/cancel`,
-      body: { sendOrderCanceledEmail: false, restockAllItems: true },
-    });
+    await forsokIgen(() =>
+      wixFetch({
+        method: "POST",
+        path: `/ecom/v1/orders/${encodeURIComponent(orderId)}/cancel`,
+        body: { sendOrderCanceledEmail: false, restockAllItems: true },
+      }),
+    );
     return "slappt";
   }
   return "ej_var";
@@ -210,11 +245,18 @@ export async function avslutaKorg(cartId: string, orderId: string): Promise<bool
 }
 
 /** Kassans betalningar för en korg sedan en tidpunkt (för nästa försök och spärren). */
-export async function korgensForsok(cartId: string, sedan: Date): Promise<{ id: string; orderId: string; status: string }[]> {
+export async function korgensForsok(cartId: string, sedan: Date): Promise<Forsok[]> {
   const grans = sedan.getTime();
   return (await senasteKassaBetalningar(100))
     .filter((b) => arKorgensBetalning(b.source?.externalId, cartId) && Date.parse(b.createdDate ?? "") >= grans && b.id && b.orderId)
-    .map((b) => ({ id: b.id!, orderId: b.orderId!, status: b.status ?? "" }));
+    .map((b) => ({
+      id: b.id!,
+      orderId: b.orderId!,
+      status: b.status ?? "",
+      utgar: b.expirationDate,
+      externtId: b.source?.externalId,
+      belopp: b.amount?.amount,
+    }));
 }
 
 export const wixKassa: KassaDeps = {
@@ -228,4 +270,5 @@ export const wixKassa: KassaDeps = {
   skapaBetalning,
   slappTidigare,
   korgensForsok,
+  betalsidansAdress,
 };

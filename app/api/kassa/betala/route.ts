@@ -10,6 +10,7 @@ import { egenKassa, kassaLage, PROV_KAKA } from "@/lib/kassa/lage";
 import { provaKassa } from "@/lib/kassa/formular";
 import { betala, medTider, tidrad } from "@/lib/kassa/flode";
 import { wixKassa } from "@/lib/kassa/wix-kassa";
+import { WixApiError } from "@/lib/wix-client";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -53,12 +54,17 @@ export async function POST(req: Request) {
       { cartId, kund: prov.varden, tidigare: tidigare(body.tidigare), forsokId: Date.now().toString(36) },
       new Date(),
     );
-    if (utfall.ok) console.info(`[kassa] betalsida skapad på ${Date.now() - start} ms: ${tidrad(tider)}`);
+    if (utfall.ok) console.info(`[kassa] betalsida ${utfall.aterbrukad ? "återanvänd" : "skapad"} på ${Date.now() - start} ms: ${tidrad(tider)}`);
     else console.info(`[kassa] stopp: ${utfall.kod} efter ${Date.now() - start} ms: ${tidrad(tider)}`);
     return svar(utfall, utfall.ok ? 200 : 409);
   } catch (e) {
     // Bara Wix fel hamnar här. Ingen kunddata i loggen: Actions- och Vercel-loggar läses av fler.
     console.error(`[kassa] betalningen föll efter ${Date.now() - start} ms (${tidrad(tider)}):`, e instanceof Error ? e.message.slice(0, 300) : e);
+    // Wix nekar fler ordrar för samma köpare en stund efter många försök (429):
+    // det går över av sig själv, så kunden får veta att vänta.
+    if (e instanceof WixApiError && e.status === 429) {
+      return svar({ ok: false, kod: "upptagen", meddelanden: ["Betalningen öppnades inte: för många försök på kort tid. Vänta en minut och tryck igen."] }, 429);
+    }
     return svar({ ok: false, kod: "wix", meddelanden: ["Vi kunde inte öppna betalningen just nu. Försök igen om en stund."] }, 502);
   }
 }
