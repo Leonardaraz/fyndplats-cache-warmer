@@ -674,20 +674,6 @@
   margin: 0 0 0 auto;
 }
 
-.lank {
-  display: inline-block;
-  margin: 14px 0 12px;
-  padding: 0;
-  border: 0;
-  background: none;
-  font: inherit;
-  font-size: var(--text-sm);
-  color: var(--brand);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  cursor: pointer;
-}
-
 .meddelanden {
   border: 1.5px solid var(--sale-fill);
   background: #fff5f5;
@@ -1024,11 +1010,19 @@
   background: var(--line);
 }
 
+/* På egen rad, också på datorn: inline stod den ihop med rabattkodslänken
+   ("i stället ↑Har du en rabattkod?", visuell audit 2026-11-06). */
 .tillSnabb {
-  display: inline-flex;
+  display: flex;
+  width: fit-content;
   align-items: center;
   gap: 6px;
   margin: 10px 0 2px;
+}
+
+.kupongLank {
+  display: block;
+  margin: 10px 0 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1233,6 +1227,7 @@
 
 /* ── Summeringen ──────────────────────────────────────────────────────── */
 .mobilSummering {
+  container-type: inline-size;
   margin: 0 0 14px;
   background: #fff;
   border: 1px solid var(--line);
@@ -1258,16 +1253,47 @@
   cursor: pointer;
 }
 
+/* Ingen radbrytning: i 320 px bröts "Visa beställningen (1 vara)" i fyra
+   bitar (visuell audit 2026-11-06). Antalet visas bara när raden har plats
+   för det (containerfrågan nedan; det står också i summeringen), och
+   etiketten kortas med "…" bara som sista utväg. */
 .visaSummeringText {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   min-width: 0;
+  white-space: nowrap;
+}
+
+.visaSummeringText > svg {
+  flex: none;
+}
+
+.visaSummeringEtikett {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .visaSummeringAntal {
   color: var(--soft);
   font-weight: 500;
+}
+
+/* Uppmätt: "Visa beställningen" 124 px, "(4 varor)" och ett fyrsiffrigt
+   belopp fick inte plats i 360–390 px. Under 400 px rad står bara etiketten och
+   beloppet, och i de smalaste fönstren (320 px) minskar luften något. */
+@container (max-width: 399px) {
+  .visaSummeringAntal {
+    display: none;
+  }
+}
+
+@container (max-width: 300px) {
+  .visaSummering {
+    gap: 8px;
+    padding: 0 12px;
+  }
 }
 
 .chevron {
@@ -1279,6 +1305,8 @@
 }
 
 .visaSummering strong {
+  flex: none;
+  white-space: nowrap;
   color: var(--ink);
   font-size: var(--text-lg);
   font-variant-numeric: tabular-nums;

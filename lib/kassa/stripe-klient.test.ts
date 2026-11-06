@@ -25,6 +25,7 @@ import {
   sparadAvsikt,
   stripeMeddelande,
   tillbakaKod,
+  UTSEENDE,
   vantaPaOrder,
   type KlarSvar,
 } from "./stripe-klient.ts";
@@ -320,4 +321,29 @@ test("kassan står still när Stripes fält ritas (uppmätt med webbläsarens CL
   assert.match(regel('.adressYta[data-adress="laddar"] > :not(.adressSkelett)'), /position: absolute;/);
   assert.match(kassa, /className=\{s\.adressYta\} data-adress=\{adressLage\}/);
   assert.match(krok, /adr\.on\("ready", \(\) => \{\s*slutaVanta = narRamenStilla\(adressPlats\.current/);
+});
+
+test("visuell audit 2026-11-06: alla fel på en gång, samma felstil, länkar på egen rad och summeringen i 320 px", () => {
+  const css = readFileSync(new URL("../../app/kassa/kassa.module.css", import.meta.url), "utf8");
+  const kassa = readFileSync(new URL("../../app/kassa/kassa.tsx", import.meta.url), "utf8");
+  const regel = (valjare: string) => {
+    const i = css.indexOf(`${valjare} {`);
+    assert.ok(i >= 0, `${valjare} saknas`);
+    return css.slice(i, css.indexOf("}", i));
+  };
+  // Stripes felrader i kassans stil (.felText: 12 px, halvfet).
+  assert.deepEqual(UTSEENDE.rules?.[".Error"], { fontSize: "12px", fontWeight: "600", lineHeight: "1.45" });
+  // Kassans egna fel stoppar trycket, men Stripes fält visar sina fel i samma tryck.
+  assert.match(kassa, /if \(el && betalLage === "redo"\) await el\.submit\(\)\.catch\(\(\) => null\);\s*\/\/[^\n]*\n\s*visaFel\(/);
+  // Länkarna i steg 3 står på var sin rad, med samma stil.
+  assert.match(regel(".tillSnabb"), /display: flex;/);
+  assert.match(regel(".kupongLank"), /display: block;/);
+  assert.match(kassa, /className=\{`\$\{s\.lankLiten\} \$\{s\.kupongLank\}`\}/);
+  assert.doesNotMatch(kassa, /className=\{s\.lank\}/);
+  // Summeringsraden bryts aldrig: antalet döljs under 400 px, beloppet krymper aldrig.
+  assert.match(regel(".mobilSummering"), /container-type: inline-size;/);
+  assert.match(regel(".visaSummeringText"), /white-space: nowrap;/);
+  assert.match(regel(".visaSummering strong"), /flex: none;/);
+  assert.match(css, /@container \(max-width: 399px\) \{\s*\.visaSummeringAntal \{\s*display: none;/);
+  assert.match(kassa, /<span className=\{s\.visaSummeringEtikett\}>/);
 });

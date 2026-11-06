@@ -79,6 +79,9 @@ export const UTSEENDE: Appearance = {
     ".AccordionItem--selected": { border: "1.5px solid #C2410C", boxShadow: "0 0 0 3px rgba(194, 65, 12, 0.08)" },
     ".Label": { fontWeight: "500" },
     ".Label--floating": { fontWeight: "600" },
+    // Stripes felrader som kassans egna (.felText: 12 px, halvfet): när alla fel
+    // visas på en gång stod Stripes i 14 px normal vikt bredvid (audit 2026-11-06).
+    ".Error": { fontSize: "12px", fontWeight: "600", lineHeight: "1.45" },
   },
 };
 
