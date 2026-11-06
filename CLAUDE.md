@@ -1688,6 +1688,28 @@ medlemmar med `testare: true`) eller `pa`. Den är skild från `lage`.
 - ☠️ **Mejlen om övergiven kassa hoppar över medlemskorgar** (en korg med
   prisbeslut, `lib/medlem/overgiven.ts`), både i webhooken och i pollaren. Kan
   det inte avgöras väntar kassan till nästa kvart.
+- **Medlemskorgen betalas i vår kassa** (Leonard 2026-11-06: medlemmar och
+  företag betalar i samma kassa som alla andra). Gäller vår kassa med Stripe
+  för besökaren (`egenKassaMedStripe`, läget och provkakan) svarar
+  `/api/medlem/kassa` och `/api/medlem/offert/kassa` med `/kassa` och sätter
+  kakan `fp_kassa_korg` på den låsta korgen (httpOnly, ett dygn). Annars Wix
+  kassa som förut. `lib/kassa/lastkorg.ts` har reglerna, `lib/kassa/medlemskassa.ts`
+  serverns del.
+  - ☠️ **Korgens id står aldrig i adressen** (GA4 och Meta läser den). Sidans
+    server läser kakan och använder korgen bara om prisbeslutet hör till den
+    inloggade medlemmen, saknar utfall och korgen inte blivit en order.
+  - Kassan döljer rabattkoden ("Ditt medlemspris är med …"). "Ändra" släpper
+    den låsta korgen (`/api/kassa/lastkorg` `slapp`), och varukorgens "Till
+    kassan" räknar en ny. Stämmer varukorgen inte längre med den låsta (andra
+    varor eller antal, eller en annan varukorg) släpps den också.
+    ☠️ En offert jämförs aldrig: dess rader är offertens, inte varukorgens.
+  - ☠️ **Efter köpet tas det köpta bort ur besökarens korg, en gång per
+    beslut.** Den låsta korgen var en kopia. Webhooken gör det för varje
+    godkänd order, också Wix kassas (förut blev varorna kvar där), och kassans
+    sida ber om det direkt efter köpet (`kopt`, med kakan). Bara en betald
+    order ur just den låsta korgen, och `taRensning` (compare-and-set på
+    `besokarensKorgRensad`) gör att de två aldrig båda tar bort. En offert
+    rör inte besökarens korg.
 
 Före `test`: Leonards medlemsrad med `testare: true` och ett prov på en
 förhandslänk fram till Wix-kassan. Leonard lägger ingen provorder (2026-11-05:

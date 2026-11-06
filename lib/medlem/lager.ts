@@ -607,6 +607,13 @@ export interface Prisbeslutspost {
   cartId: string;
   purchaseFlowId: string;
   medlemsId: string;
+  /**
+   * Besökarens vanliga korg, som den låsta korgen kopierades från. Efter köpet i
+   * vår kassa tas de köpta varorna bort ur den (lib/kassa/lastkorg.ts).
+   */
+  besokarensKorg?: string;
+  /** Ordern vars köp togs bort ur besökarens korg (en gång per beslut, `taRensning`). */
+  besokarensKorgRensad?: string;
   profil: string;
   /** E3: företagets namn när korgen prissattes som företag (till kvittot). */
   foretagNamn?: string;
@@ -674,6 +681,22 @@ export async function sattForskottsorder(cartId: string, orderId: string, orderN
 /** Släpper spärren när Wix tydligt inte skapade någon order, så att kunden kan försöka igen. */
 export async function slappForskottsbeslut(cartId: string): Promise<void> {
   await taBort(MK.prisbeslut, cartId, { utfall: "forskott", orderId: { $exists: false } });
+}
+
+/** Prisbeslutet för en låst korg, eller null. */
+export async function hamtaPrisbeslut(cartId: string): Promise<Rad | null> {
+  if (!cartId) return null;
+  return hamta(MK.prisbeslut, cartId);
+}
+
+/**
+ * Tar rensningen av besökarens korg efter köpet (lib/kassa/lastkorg.ts): en
+ * compare-and-set på beslutet, så att webhooken och kassans sida aldrig båda
+ * tar bort varor. Sant bara för den som tog den.
+ */
+export async function taRensning(cartId: string, orderId: string): Promise<boolean> {
+  const p = await patcha(MK.prisbeslut, cartId, [satt("besokarensKorgRensad", orderId)], { besokarensKorgRensad: { $exists: false } });
+  return p.utfall === "applied";
 }
 
 /**

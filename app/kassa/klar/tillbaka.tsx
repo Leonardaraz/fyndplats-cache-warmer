@@ -51,6 +51,14 @@ export function Tillbaka() {
       void vantaPaOrder(avsikt).then((b) => {
         if (b.gor === "tack") {
           glom(STRIPE_NYCKEL, "local");
+          // Var det en medlemskorg tas de köpta varorna bort ur besökarens korg
+          // (kakan är httpOnly; utan den gör rutten ingenting).
+          void fetch("/api/kassa/lastkorg", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ steg: "kopt", orderId: b.orderId }),
+            keepalive: true,
+          }).catch(() => {});
           window.location.replace(`/tack?orderId=${encodeURIComponent(b.orderId)}`);
         } else if (b.gor === "fel") {
           window.location.replace(`/kassa?stripe=${tillbakaKod(b.kod)}`);

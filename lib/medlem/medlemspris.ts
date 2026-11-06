@@ -327,8 +327,24 @@ async function kassansAdress(cartId: string, bas: string): Promise<string | null
   }
 }
 
+/**
+ * Vart kassan går. `egen`: vår kassa med Stripe gäller för besökaren
+ * (lib/kassa/lage.ts och harStripe()); den låsta korgen betalas då på /kassa,
+ * utpekad av kakan fp_kassa_korg (lib/kassa/lastkorg.ts). Annars Wix kassa som
+ * förut.
+ */
+export interface Kassaval {
+  egen?: boolean;
+}
+
 export type Kassasvar =
-  | { ok: true; adress: string; beslut: Pick<Prisbeslut, "procent" | "niva" | "summaPOre" | "rabattOre" | "friFraktSkydd"> }
+  | {
+      ok: true;
+      adress: string;
+      beslut: Pick<Prisbeslut, "procent" | "niva" | "summaPOre" | "rabattOre" | "friFraktSkydd">;
+      /** Den låsta korgen, när kassan är vår: rutten sätter kakan. */
+      korg?: string;
+    }
   | { ok: false; skal: "tom" | "oläslig" | "ingen-rabatt" | "wix" | "kontroll" | "session" | "logg" };
 
 /**
@@ -340,6 +356,7 @@ export async function medlemskassa(
   besokarensKorg: string,
   mp: Medlemsprofil,
   bas: string,
+  val: Kassaval = {},
 ): Promise<Kassasvar> {
   const korgen = await prissattKorg(besokarensKorg, mp);
   if ("skal" in korgen) return { ok: false, skal: korgen.skal };
@@ -365,7 +382,7 @@ export async function medlemskassa(
     return { ok: false, skal: "kontroll" };
   }
 
-  const adress = await kassansAdress(cartId, bas);
+  const adress = val.egen ? "/kassa" : await kassansAdress(cartId, bas);
   if (!adress) {
     await wixFetch({ method: "DELETE", path: `/ecom/v2/carts/${cartId}` }).catch(() => {});
     return { ok: false, skal: "session" };
@@ -374,7 +391,7 @@ export async function medlemskassa(
   // Loggen före svaret: ett köp utan beslut går inte att förklara (E2-9).
   // Går den inte att spara tas korgen bort, och kunden får den vanliga kassan.
   const sparat = await sparaPrisbeslut(
-    beslutspost(cartId, typeof skapad?.purchaseFlowId === "string" ? skapad.purchaseFlowId : "", mp, beslut, golv),
+    beslutspost(cartId, typeof skapad?.purchaseFlowId === "string" ? skapad.purchaseFlowId : "", mp, beslut, golv, besokarensKorg),
   ).then(
     () => true,
     () => false,
@@ -389,6 +406,7 @@ export async function medlemskassa(
     ok: true,
     adress,
     beslut: { procent: beslut.procent, niva: beslut.niva, summaPOre: beslut.summaPOre, rabattOre: beslut.rabattOre, friFraktSkydd: beslut.friFraktSkydd },
+    ...(val.egen ? { korg: cartId } : {}),
   };
 }
 
@@ -437,7 +455,7 @@ export async function offertForfragan(besokarensKorg: string, mp: Medlemsprofil,
 }
 
 export type Offertkassasvar =
-  | { ok: true; adress: string }
+  | { ok: true; adress: string; korg?: string }
   | { ok: false; skal: "saknas" | "inte-giltig" | "inte-foretag" | "wix" | "kontroll" | "session" | "logg" };
 
 /**
@@ -446,7 +464,7 @@ export type Offertkassasvar =
  * inom giltighetstiden (E3-10, E3-12). Prisbeslutet sparas med kalla "offert"
  * och offertens id innan kunden får adressen.
  */
-export async function offertKassa(id: string, mp: Medlemsprofil, bas: string): Promise<Offertkassasvar> {
+export async function offertKassa(id: string, mp: Medlemsprofil, bas: string, val: Kassaval = {}): Promise<Offertkassasvar> {
   const o = await hamtaOffert(id);
   if (!o || o.medlemsId !== mp.medlem.id) return { ok: false, skal: "saknas" };
   if (!kanBetalas(o, Date.now())) return { ok: false, skal: "inte-giltig" };
@@ -476,7 +494,7 @@ export async function offertKassa(id: string, mp: Medlemsprofil, bas: string): P
     console.error("[offertkassa] korgen bar inte offertens priser");
     return { ok: false, skal: "kontroll" };
   }
-  const adress = await kassansAdress(cartId, bas);
+  const adress = val.egen ? "/kassa" : await kassansAdress(cartId, bas);
   if (!adress) {
     await wixFetch({ method: "DELETE", path: `/ecom/v2/carts/${cartId}` }).catch(() => {});
     return { ok: false, skal: "session" };
@@ -521,7 +539,7 @@ export async function offertKassa(id: string, mp: Medlemsprofil, bas: string): P
   await offertIKassan(o.id, cartId, purchaseFlowId).catch(() => {
     console.error("[offertkassa] offerten gick inte att märka som öppnad");
   });
-  return { ok: true, adress };
+  return { ok: true, adress, ...(val.egen ? { korg: cartId } : {}) };
 }
 
 /** Prisbeslutet som det sparas (E2-9), för medlemskassan och förskottsordern. */
@@ -531,6 +549,7 @@ function beslutspost(
   mp: Medlemsprofil,
   beslut: Prisbeslut,
   golv: Map<string, Golvsvar>,
+  besokarensKorg?: string,
 ): Prisbeslutspost {
   const kostnad = (produktId: string, variantId: string | undefined) =>
     golv.get(golvnyckel(produktId, variantId ?? null))?.kostnadOre ?? undefined;
@@ -538,6 +557,7 @@ function beslutspost(
     cartId,
     purchaseFlowId,
     medlemsId: mp.medlem.id,
+    ...(besokarensKorg ? { besokarensKorg } : {}),
     profil: beslut.profil,
     ...(mp.foretag && beslut.profil === "foretag" ? mp.foretag.kvitto : {}),
     niva: beslut.niva,

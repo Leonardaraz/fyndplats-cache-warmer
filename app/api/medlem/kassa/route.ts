@@ -7,10 +7,17 @@
 // Svarar `ok: false` med skälet när medlemspris inte gäller eller något
 // fallerar. Varukorgen går då till den vanliga kassan som förut: den här
 // rutten får aldrig stoppa ett köp.
+//
+// Gäller vår kassa med Stripe för besökaren är adressen "/kassa", och kakan
+// fp_kassa_korg pekar ut den låsta korgen (lib/kassa/lastkorg.ts). Annars Wix
+// kassa som förut.
 
 import { NextResponse } from "next/server";
 import { PRIVAT, webbplats } from "@/lib/medlem/inloggad";
 import { medlemskassa, medlemsprofil } from "@/lib/medlem/medlemspris";
+import { egenKassaMedStripe } from "@/lib/kassa/medlemskassa";
+import { LAST_KORG_BORT, LAST_KORG_KAKA, lastKorgKaka } from "@/lib/kassa/lastkorg";
+import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 20;
@@ -30,6 +37,15 @@ export async function POST(req: Request) {
   const mp = await medlemsprofil();
   if ("utan" in mp) return NextResponse.json({ ok: false, skal: mp.utan }, { headers: PRIVAT });
 
-  const svar = await medlemskassa(cartId, mp, webbplats(req));
-  return NextResponse.json(svar, { headers: PRIVAT });
+  const svar = await medlemskassa(cartId, mp, webbplats(req), { egen: await egenKassaMedStripe() });
+  if (svar.ok && svar.korg) {
+    const { korg, ...utan } = svar;
+    const res = NextResponse.json(utan, { headers: PRIVAT });
+    res.cookies.set(lastKorgKaka(korg));
+    return res;
+  }
+  // Ingen ny låst korg: en gammal kaka får inte peka kassan på den förra.
+  const res = NextResponse.json(svar, { headers: PRIVAT });
+  if ((await cookies()).get(LAST_KORG_KAKA)) res.cookies.set(LAST_KORG_BORT);
+  return res;
 }
