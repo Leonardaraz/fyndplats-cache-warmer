@@ -161,6 +161,19 @@ test("motorns egen regel (postnummerspärren) stoppar med sin egen text", async 
   assert.equal(!r.ok && r.falt, "postnr");
 });
 
+test("motorns regel som CUSTOM_VALIDATION bland Wix överträdelser stoppar också med sin egen text", () => {
+  // Så kommer postnummerspärren från Cart V2:s räkning (mätt 2026-11-06).
+  const text = "Vi kan tyvärr inte leverera Varan till postnummer 621 52. Ta bort varan ur kundvagnen eller välj en annan leveransadress.";
+  const r = rakning({});
+  r.summary = { ...r.summary, violations: [{ severity: "ERROR", code: "CUSTOM_VALIDATION", description: text }] };
+  assert.deepEqual(stoppandeOvertradelser(r), { meddelanden: [text], falt: "postnr" });
+  r.summary = { ...r.summary, violations: [{ severity: "ERROR", code: "CUSTOM_VALIDATION" }] };
+  assert.deepEqual(stoppandeOvertradelser(r), { meddelanden: ["En vara i varukorgen kan inte levereras till den adressen."], falt: "postnr" });
+  // En varning stoppar inte.
+  r.summary = { ...r.summary, violations: [{ severity: "WARNING", code: "CUSTOM_VALIDATION", description: text }] };
+  assert.deepEqual(stoppandeOvertradelser(r), { meddelanden: [] });
+});
+
 test("en vara som tagit slut nämns vid namn", () => {
   const r = stoppandeOvertradelser(rakning({ rader: [
     { name: { original: "Skohylla" }, status: "OUT_OF_STOCK" },
