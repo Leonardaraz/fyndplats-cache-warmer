@@ -258,14 +258,18 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
    Under 900 px är allt som förut: menyknappen, och sökrutan på en egen rad. */
 .hrow .searchwrap{max-width:640px}
 .hrow .wl-btn{margin-left:auto}
-/* "Mitt konto" (components/konto-lank.tsx) står före hjärtat när kontot är
-   öppet för alla, och tar då över marginalen som skjuter ikonerna till höger.
-   På mobilen ligger länken i menyn i stället (se kommentaren i komponenten). */
+/* "Bli medlem" / "Mitt konto" (components/konto-lank.tsx) står före hjärtat
+   när kontot är öppet för alla, och tar då över marginalen som skjuter ikonerna
+   till höger. Datorn: en mörk knapp med ikon och text för den som inte är
+   inloggad, en ljus med kant för den som är det. Mobilen: bara ikonen, se
+   max-width:900px nedan. */
 .hrow .konto-btn{margin-left:auto}
 .hrow .konto-btn + .wl-btn{margin-left:0}
-.konto-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:38px;height:38px;border-radius:50%;color:var(--ink);transition:background .15s,color .15s}
+.konto-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:8px;flex:0 0 auto;height:38px;padding:0 16px 0 12px;border-radius:999px;font-size:var(--text-sm);font-weight:700;letter-spacing:.01em;white-space:nowrap;color:#fff;background:var(--char);transition:background .15s,color .15s,box-shadow .15s}
+.konto-btn[data-inne]{color:var(--ink);background:none;box-shadow:inset 0 0 0 1px var(--line)}
 .konto-btn::after{content:"";position:absolute;inset:-3px}
-.konto-btn:hover{background:var(--warm);color:var(--brand)}
+.konto-btn:hover{background:var(--brand);color:#fff}
+.konto-btn[data-inne]:hover{background:var(--warm);color:var(--brand);box-shadow:inset 0 0 0 1px var(--peach)}
 .konto-btn:focus-visible{outline:none;box-shadow:var(--e-ring)}
 .hsearch-mobile .searchwrap{max-width:none;width:100%}
 /* Sidomarginalen är .containerns 26 px, så att sidhuvudet linjerar med
@@ -291,7 +295,14 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
   .hrow{padding:15px 0}
   .hrow .searchwrap{display:none}
   .hrow .wl-btn{margin-left:0}
-  .hrow .konto-btn{display:none}
+  /* Medlemsikonen först bland ikonerna till höger, utan text: raden rymmer
+     loggan, medlem, hjärtat, kundvagnen och menyknappen. Avstånden krymper
+     bara när knappen finns (:has), så sidhuvudet i läget tyst är som förut. */
+  .hrow .konto-btn,.hrow .konto-btn[data-inne]{margin-left:auto;width:38px;padding:0;gap:0;border-radius:50%;color:var(--ink);background:none;box-shadow:none}
+  .hrow .konto-btn:hover{background:var(--warm);color:var(--brand)}
+  .hrow .konto-btn .konto-btn-text{display:none}
+  .hrow:has(.konto-btn) .cartbtn{margin-left:0}
+  .hrow:has(.konto-btn){gap:12px}
   .hsearch-mobile{display:block;padding-bottom:12px}
   .hnav{display:none}
 }
@@ -642,6 +653,14 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 .mm-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;font-size:var(--text-base)}
 .mm-head button{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;background:none;border:none;font-size:var(--text-lg);cursor:pointer;color:var(--soft)}
 .mobilemenu .searchwrap{max-width:none;width:100%;margin-bottom:12px;flex:0 0 auto}
+/* "Bli medlem" / "Mitt konto" överst i mobilmenyn (components/mobilenav.tsx). */
+.mm-konto{display:flex;align-items:center;gap:12px;margin:2px 0 14px;padding:12px 14px;border-radius:var(--r-md,14px);background:linear-gradient(135deg,#2a2622 0%,#1c1a17 60%,#3a2f22 100%);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+.mm-konto:hover{filter:brightness(1.08)}
+.mm-konto-ikon{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.1);color:#f5d7a8}
+.mm-konto-text{display:flex;flex-direction:column;min-width:0;flex:1}
+.mm-konto-titel{font-weight:800;font-size:var(--text-base);letter-spacing:.01em}
+.mm-konto-under{font-size:var(--text-xs);color:rgba(255,255,255,.78);line-height:1.35;margin-top:2px}
+.mm-konto-pil{font-size:24px;line-height:1;color:#f5d7a8}
 .mm-links{display:flex;flex-direction:column}
 .mm-links a{padding:13px 4px;font-size:var(--text-base);font-weight:600;border-bottom:1px solid var(--line);color:var(--ink)}
 .mm-social{display:flex;gap:10px;margin-top:20px;color:var(--ink)}
@@ -755,6 +774,14 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
   .hrow{gap:8px}
   .hrow .brand{gap:8px;font-size:20px}
   .hrow .brand .mark{width:28px;height:28px}
+  /* Med medlemsikonen: loggan 132, fyra knappar 158 och fyra mellanrum på 6
+     ger 314 px. */
+  .hrow:has(.konto-btn){gap:6px}
+}
+/* 340–374 px (till exempel 360 px Android): loggan 159, knapparna 158 och fyra
+   mellanrum på 8 ger 349 px. */
+@media(min-width:340px) and (max-width:374px){
+  .hrow:has(.konto-btn){gap:8px}
 }
 
 @media(max-width:900px){

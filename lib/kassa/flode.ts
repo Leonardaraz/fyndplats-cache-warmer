@@ -295,6 +295,14 @@ export function stoppandeOvertradelser(r: Rakning, opts: { utanLager?: boolean }
       case "MEMBERS_ONLY_ITEM":
         lagg("En vara i varukorgen kan bara köpas av medlemmar.");
         break;
+      case "CUSTOM_VALIDATION":
+        // Motorns kassavalidering (Ecom Validations, till exempel postnummer dit
+        // Aosom inte levererar) kommer hit, inte i spiViolations: mätt
+        // 2026-11-06 på en Aosom-vara till 621 52. Texten är redan svensk och
+        // nämner varan; utan den visades "Varukorgen kunde inte räknas".
+        lagg((v.description ?? "").trim() || "En vara i varukorgen kan inte levereras till den adressen.");
+        falt = falt ?? "postnr";
+        break;
       default:
         lagg("Varukorgen kunde inte räknas. Försök igen, eller kontakta oss om det inte går.");
     }

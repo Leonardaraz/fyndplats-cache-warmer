@@ -1,16 +1,19 @@
 "use client";
-// "Mitt konto" i sidhuvudet och i mobilmenyn (lib/medlem/kontolank.ts).
+// "Bli medlem" / "Mitt konto" i sidhuvudet, överst i mobilmenyn och i
+// sidfoten (lib/medlem/kontolank.ts).
 //
 // Syns först när /api/konto/lage säger att kontot är öppet för alla (läget
-// `pa`). Frågan görs en gång per sidladdning och delas av sidhuvudet och
-// menyn. Svarar den inte syns ingen länk: hellre ingen länk än en till en
+// `pa`). Frågan görs en gång per sidladdning och delas av sidhuvudet, menyn och
+// sidfoten. Svarar den inte syns ingen länk: hellre ingen länk än en till en
 // stängd dörr.
 //
-// På mobilen ligger länken i menyn, inte i sidhuvudet: raden rymmer loggan,
-// hjärtat, kundvagnen och menyknappen ned till 339 px, och en ikon till hade
-// skjutit menyknappen utanför skärmen (se .hrow i app/globals.css).
+// Texten följer tecknet `fp_medlem_inne` (kontolankText): utan tecken "Bli
+// medlem", med tecken "Mitt konto". Datorn visar ikonen och texten; mobilen
+// visar ikonen i sidhuvudet (raden rymmer den ned till 320 px, se .hrow i
+// app/globals.css) och texten överst i menyn.
 
 import { useEffect, useState } from "react";
+import { kontolankText } from "../lib/medlem/kontolank";
 
 let fragan: Promise<boolean> | null = null;
 
@@ -22,29 +25,58 @@ function kontoOppet(): Promise<boolean> {
   return fragan;
 }
 
-export function useKontolank(): boolean {
-  const [synlig, setSynlig] = useState(false);
+/** Tecknet `fp_medlem_inne`: "1" privat, "f" företag, annars ingen inloggning. */
+function tecken(): string | null {
+  if (typeof document === "undefined") return null;
+  for (const c of document.cookie.split(";")) {
+    const [k, v] = c.trim().split("=");
+    if (k === "fp_medlem_inne") return v ?? "";
+  }
+  return null;
+}
+
+export type Kontolank = { synlig: boolean; text: "Bli medlem" | "Mitt konto"; inne: boolean };
+
+export function useKontolank(): Kontolank {
+  const [l, setL] = useState<Kontolank>({ synlig: false, text: "Bli medlem", inne: false });
   useEffect(() => {
     let aktiv = true;
     kontoOppet().then((v) => {
-      if (aktiv) setSynlig(v);
+      if (!aktiv) return;
+      const text = kontolankText(tecken());
+      setL({ synlig: v, text, inne: text === "Mitt konto" });
     });
     return () => {
       aktiv = false;
     };
   }, []);
-  return synlig;
+  return l;
 }
 
+export function PersonIkon({ storlek = 20 }: { storlek?: number }) {
+  return (
+    <svg viewBox="0 0 24 24" width={storlek} height={storlek} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  );
+}
+
+/** Sidhuvudet: en mörk knapp "Bli medlem", eller en ljus "Mitt konto" för den inloggade. */
 export function KontoLank() {
-  const synlig = useKontolank();
+  const { synlig, text, inne } = useKontolank();
   if (!synlig) return null;
   return (
-    <a className="konto-btn" href="/konto" aria-label="Mitt konto" title="Mitt konto">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-        <circle cx="12" cy="7" r="4" />
-      </svg>
+    <a className="konto-btn" href="/konto" aria-label={text} title={text} data-inne={inne ? "" : undefined}>
+      <PersonIkon />
+      <span className="konto-btn-text">{text}</span>
     </a>
   );
+}
+
+/** Sidfoten, kolumnen Handla. */
+export function KontoFotLank() {
+  const { synlig, text } = useKontolank();
+  if (!synlig) return null;
+  return <a href="/konto">{text}</a>;
 }

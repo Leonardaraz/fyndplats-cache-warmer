@@ -7,7 +7,7 @@ import type { CategoryNode } from "../lib/category-groups";
 import { grupperaUnderkategorier } from "../lib/meny-grupper";
 import { useMenyAntal } from "./use-meny-antal";
 import { usePanelFokus } from "./use-panel-fokus";
-import { useKontolank } from "./konto-lank";
+import { PersonIkon, useKontolank } from "./konto-lank";
 
 // Kategorierna ligger högt upp (direkt efter "Butik"), före info-sidorna —
 // det är produktnavigeringen folk vill åt först i en butik.
@@ -26,8 +26,8 @@ export function MobileNav({ tree = [], hasBlog = false, hasSale = false }: { tre
   // Vilka huvudkategorier som är utfällda (accordion). Set → flera kan vara
   // öppna samtidigt; tapp på namnet navigerar, tapp på chevron fäller ut.
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  // "Mitt konto" först bland länkarna när kontot är öppet för alla (läget pa).
-  const kontoSynlig = useKontolank();
+  // "Bli medlem" / "Mitt konto" överst i menyn när kontot är öppet för alla (läget pa).
+  const konto = useKontolank();
   // Antalen hämtas i webbläsaren; trädet kommer utan siffror (lib/meny-antal.ts).
   const antal = useMenyAntal();
 
@@ -62,6 +62,18 @@ export function MobileNav({ tree = [], hasBlog = false, hasSale = false }: { tre
         </div>
         <SearchBox onNavigate={closeMenu} />
         <div className="mm-scroll">
+          {konto.synlig && (
+            <a className="mm-konto" href="/konto" onClick={closeMenu}>
+              <span className="mm-konto-ikon"><PersonIkon storlek={22} /></span>
+              <span className="mm-konto-text">
+                <span className="mm-konto-titel">{konto.text}</span>
+                <span className="mm-konto-under">
+                  {konto.inne ? "Dina köp, paket och kvitton" : "Gratis · dina köp, paket och nivå på ett ställe"}
+                </span>
+              </span>
+              <span className="mm-konto-pil" aria-hidden="true">›</span>
+            </a>
+          )}
           <nav className="mm-links">
             <a href={shopLink.href} onClick={closeMenu}>{shopLink.label}</a>
             <a className="mm-auktion" href="/fyndauktion" onClick={closeMenu}>Fyndauktionen<AuctionDot /></a>
@@ -116,7 +128,6 @@ export function MobileNav({ tree = [], hasBlog = false, hasSale = false }: { tre
             </div>
           )}
           <nav className="mm-links">
-            {kontoSynlig && <a href="/konto" onClick={closeMenu}>Mitt konto</a>}
             {hasBlog && <a href="/blogg" onClick={closeMenu}>Blogg</a>}
             {infoLinks.map((l) => (
               <a key={l.href} href={l.href} onClick={closeMenu}>{l.label}</a>

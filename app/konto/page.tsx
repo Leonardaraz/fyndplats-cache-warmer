@@ -217,7 +217,7 @@ export default async function Konto({ searchParams }: { searchParams: Promise<So
           <div>
             <p className={s.ogonbryn}>Fyndplats medlem</p>
             <h1 className={`${s.rubrik} ${s.display}`}>
-              {ett(sp.fran) === "tack" ? "Skapa konto – köpet räknas" : "Logga in eller skapa konto"}
+              {ett(sp.fran) === "tack" ? "Skapa konto – köpet räknas" : "Bli medlem eller logga in"}
             </h1>
             <p className={s.ingress}>
               Du loggar in med en kod som vi mejlar, utan lösenord. Köp du gjort med samma e-post det senaste året räknas
