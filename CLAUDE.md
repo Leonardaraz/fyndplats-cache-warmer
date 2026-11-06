@@ -1121,8 +1121,30 @@ prov som fäller dem:
   5,0 i mejlen. Platina är jade, som den gröna nivån i spelens ranking
   (Leonard). Ändras en färg, mät om.
 
-Före läget `pa`: integritetstexten (J4) ska vara godkänd och publicerad,
-utkastet står i `docs/medlemskap-integritetstext-utkast.md`. E1-grinden är
+**Mejlen om nivån går att stänga av** (2026-11-04, före läget `pa`).
+Mejlen "ny nivå" och "nivån sjunker" uppmanar till köp och har därför en länk
+för att avregistrera sig och rubrikerna List-Unsubscribe med ett klick (RFC
+8058). Inloggningskoden och välkomstmejlet hör till kontot och har ingen.
+
+- ☠️ **Ett GET avregistrerar aldrig.** Länken leder till
+  `/konto/avregistrera`, där kunden trycker på en knapp; mejlfilter som
+  öppnar länkar ändrar därför ingenting. Mejlklientens ett-klick är ett POST
+  till `/api/konto/avregistrera` med kroppen `List-Unsubscribe=One-Click`.
+- Token är en HMAC av medlemmens id med en egen delnyckel
+  (`avregistreringsToken` i `lib/medlem/inloggning.ts`), så länken i ett
+  gammalt mejl fungerar och öppnar inget annat.
+- Avregistrerad är `nivamejl: false` på medlemmen; på igen tar bort fältet.
+  Mina sidor har knappen åt båda hållen. Nattjobbet räknar ett beslut som
+  meddelat även när mejlet inte går, så att inget gammalt mejl skickas om
+  medlemmen slår på mejlen igen.
+- **En inloggad men spärrad medlem** ser beskedet direkt på `/konto`, inte
+  inloggningen.
+
+Integritetstexten (J4) är godkänd av Leonard 2026-11-05 och står i
+`/sekretesspolicy` under rubriken Medlemskonto (`#medlemskonto`). Den beskriver
+bara E1; medlemspriser (E2) och företag (E3) kräver ett tillägg innan de slås
+på. Ändras vad kontot sparar, hur länge eller vilka mejl och kakor det har,
+ändras texten i samma PR. E1-grinden är
 specens E1-1 till E1-11 och en vecka med avstämning utan avvikelser; svaret
 från `/api/cron/medlemsnivaer` och `FyndplatsMedlemslogg` (område
 `avstamning`) visar dem.

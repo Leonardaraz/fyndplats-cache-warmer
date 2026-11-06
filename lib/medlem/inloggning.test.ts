@@ -165,3 +165,22 @@ test("ett försök tas bara när raden finns och räknaren inte är slut", async
   assert.equal(await taForsok(fyra.las, fyra.cas), "ok");
   assert.equal(await taForsok(fyra.las, fyra.cas), "slut");
 });
+
+test("avregistreringens token: bara rätt medlem med rätt hemlighet, och den öppnar inget annat", async () => {
+  const { arGiltigAvregistrering, avregistreringsFraga, avregistreringsToken, medlemsId, delnyckel } = await import("./inloggning.ts");
+  const H = "h".repeat(40);
+  const a = medlemsId("a@exempel.se");
+  const b = medlemsId("b@exempel.se");
+  const t = avregistreringsToken(a, H);
+  assert.equal(t.length, 32);
+  assert.equal(avregistreringsToken(a, H), t, "samma länk varje gång");
+  assert.equal(arGiltigAvregistrering(a, t, H), true);
+  assert.equal(arGiltigAvregistrering(b, t, H), false, "en annan medlem");
+  assert.equal(arGiltigAvregistrering(a, t, "x".repeat(40)), false, "en annan hemlighet");
+  assert.equal(arGiltigAvregistrering(a, t.slice(0, 31) + (t[31] === "A" ? "B" : "A"), H), false);
+  assert.equal(arGiltigAvregistrering(a, t.slice(0, 31), H), false);
+  for (const fel of ["", "m_x", a.toUpperCase(), `${a}0`, null, 5]) assert.equal(arGiltigAvregistrering(fel, t, H), false, String(fel));
+  // Delnyckeln är en egen: sessionens nyckel ger inte samma token.
+  assert.notDeepEqual(delnyckel(H, "avregistrering"), delnyckel(H, "session"));
+  assert.equal(avregistreringsFraga(a, H), `?m=${a}&t=${t}`);
+});

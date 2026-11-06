@@ -1,5 +1,16 @@
 # Utkast: integritetstext för medlemskontot (J4)
 
+✅ **Godkänd av Leonard 2026-11-05 och publicerad** i `app/sekretesspolicy/page.tsx`
+under rubriken Medlemskonto. Sidan är det som gäller; den här filen är
+utkastet som godkändes. Två ändringar gjordes vid publiceringen för att texten
+ska stämma med koden:
+
+- "en krypterad kontrollsumma" blev "en kontrollsumma": koden och IP-adressen
+  sparas som HMAC, som inte är kryptering.
+- "De mejlen hör till kontot och är inte marknadsföring" blev att mejlen om
+  nivån går att sluta få, med länken i mejlet eller på Mina sidor. De uppmanar
+  till köp och har därför avregistrering (List-Unsubscribe).
+
 Ett utkast till ett nytt avsnitt i /sekretesspolicy, för Leonards godkännande.
 Det ska vara publicerat innan medlemskapet slås på för alla (läget `pa`).
 Texten beskriver bara det som E1 gör; medlemspriser (E2) och företag (E3)

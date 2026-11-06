@@ -4,6 +4,7 @@
 
 import { Section, Text, Link } from "@react-email/components";
 import { BRAND, EmailShell, block, text } from "./_layout";
+import { AvregistreraNivamejl } from "./_avregistrera";
 
 export interface MedlemNivaSjunkerProps {
   niva: string;
@@ -12,11 +13,13 @@ export interface MedlemNivaSjunkerProps {
   datum: string;
   /** Vad som behöver handlas före datumet för att behålla nivån. */
   behovs: string;
+  /** Sidan för att avregistrera sig från mejlen om nivån. */
+  avregistrera?: string;
 }
 
 export const medlemNivaSjunkerAmne = (datum: string) => `Din nivå ändras den ${datum}`;
 
-export default function MedlemNivaSjunkerEmail({ niva, nyNiva, datum, behovs }: MedlemNivaSjunkerProps) {
+export default function MedlemNivaSjunkerEmail({ niva, nyNiva, datum, behovs, avregistrera }: MedlemNivaSjunkerProps) {
   return (
     <EmailShell preview={`Den ${datum} blir din nivå ${nyNiva} i stället för ${niva}.`}>
       <Text style={text.h1}>Din nivå ändras snart</Text>
@@ -35,6 +38,7 @@ export default function MedlemNivaSjunkerEmail({ niva, nyNiva, datum, behovs }: 
         </Link>
       </Section>
       <Text style={text.muted}>Vi skickar det här mejlet en gång, två veckor före ändringen.</Text>
+      <AvregistreraNivamejl href={avregistrera} />
     </EmailShell>
   );
 }

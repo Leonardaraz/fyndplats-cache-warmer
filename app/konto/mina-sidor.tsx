@@ -254,6 +254,21 @@ export function MinaSidorVy({ data, bilder: produkter = {} }: { data: MinaSidor;
         </div>
       )}
 
+      {/* Mejlen om nivån går att stänga av (marknadsföringslagen); länken i
+          mejlen leder hit eller till /konto/avregistrera. */}
+      <div className={s.installning} id="mejl">
+        <p className={s.installningText}>
+          <strong>Mejl om din nivå: {medlem.nivamejl === false ? "av" : "på"}.</strong> Vi mejlar när du når en ny nivå och två
+          veckor innan din nivå sjunker.
+        </p>
+        <form action="/api/konto/nivamejl" method="post">
+          <input type="hidden" name="pa" value={medlem.nivamejl === false ? "1" : "0"} />
+          <button type="submit" className={s.utknapp}>
+            {medlem.nivamejl === false ? "Slå på" : "Stäng av"}
+          </button>
+        </form>
+      </div>
+
       <details className={s.forklaring}>
         <summary>Så räknas din nivå</summary>
         <p>

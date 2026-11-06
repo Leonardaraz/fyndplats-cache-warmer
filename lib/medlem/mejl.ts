@@ -3,6 +3,11 @@
 // Medlemsmejlen: inloggning, välkommen, ny nivå och "nivån sjunker". Samma
 // avsändare som butikens övriga mejl. Ett mejl som inte går iväg loggas med
 // typ och felnamn, aldrig med adressen.
+//
+// Mejlen om nivån uppmanar till köp och får därför en länk för att
+// avregistrera sig, och rubrikerna List-Unsubscribe med ett klick (RFC 8058),
+// som Gmail och Outlook visar som "Avsluta prenumeration". Inloggningen och
+// välkomstmejlet hör till kontot och har ingen sådan länk.
 
 import type { ReactElement } from "react";
 import { Resend } from "resend";
@@ -16,7 +21,13 @@ import { dagSomText, kronor, type Nivalage } from "./niva";
 const FROM = "Fyndplats <orders@fyndplats.se>";
 const REPLY_TO = "info@fyndplats.com";
 
-async function skicka(till: string, amne: string, mejl: ReactElement, typ: string): Promise<boolean> {
+async function skicka(
+  till: string,
+  amne: string,
+  mejl: ReactElement,
+  typ: string,
+  headers?: Record<string, string>,
+): Promise<boolean> {
   const key = process.env.RESEND_API_KEY;
   if (!key) {
     console.warn(`[medlem] RESEND_API_KEY saknas — mejlet ${typ} skickas inte`);
@@ -24,7 +35,7 @@ async function skicka(till: string, amne: string, mejl: ReactElement, typ: strin
   }
   try {
     const html = await render(mejl);
-    const r = await new Resend(key).emails.send({ from: FROM, to: till, replyTo: REPLY_TO, subject: amne, html });
+    const r = await new Resend(key).emails.send({ from: FROM, to: till, replyTo: REPLY_TO, subject: amne, html, ...(headers ? { headers } : {}) });
     if (r.error) {
       console.error(`[medlem] mejlet ${typ} gick inte iväg: ${r.error.name}`);
       return false;
@@ -46,12 +57,41 @@ export function skickaValkommen(till: string, l: Nivalage): Promise<boolean> {
   return skicka(till, medlemValkommenAmne, MedlemValkommenEmail({ niva: l.niva.namn, belopp: kronor(l.kOre), nasta: nasta(l) }), "valkommen");
 }
 
-export function skickaNyNiva(till: string, l: Nivalage): Promise<boolean> {
-  return skicka(till, medlemNyNivaAmne(l.niva.namn), MedlemNyNivaEmail({ niva: l.niva.namn, belopp: kronor(l.kOre), nasta: nasta(l) }), "ny-niva");
+/** Butikens adress i mejlen: produktionens, eller förhandsbyggets egen. */
+export function sajt(): string {
+  if (process.env.VERCEL_ENV === "production" || !process.env.VERCEL_URL) return "https://www.fyndplats.se";
+  return `https://${process.env.VERCEL_URL}`;
 }
 
-export function skickaNivaSjunker(till: string, l: Nivalage): Promise<boolean> {
+/** Länkarna för att avregistrera sig: sidan i mejlet, och ett klick i mejlklienten. */
+export interface Avregistrering {
+  /** `?m=…&t=…` (lib/medlem/inloggning.ts `avregistreringsFraga`). */
+  fraga: string;
+}
+
+function avregistreringsdelar(a: Avregistrering) {
+  const sida = `${sajt()}/konto/avregistrera${a.fraga}`;
+  const direkt = `${sajt()}/api/konto/avregistrera${a.fraga}`;
+  return {
+    sida,
+    headers: { "List-Unsubscribe": `<${direkt}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" },
+  };
+}
+
+export function skickaNyNiva(till: string, l: Nivalage, a: Avregistrering): Promise<boolean> {
+  const { sida, headers } = avregistreringsdelar(a);
+  return skicka(
+    till,
+    medlemNyNivaAmne(l.niva.namn),
+    MedlemNyNivaEmail({ niva: l.niva.namn, belopp: kronor(l.kOre), nasta: nasta(l), avregistrera: sida }),
+    "ny-niva",
+    headers,
+  );
+}
+
+export function skickaNivaSjunker(till: string, l: Nivalage, a: Avregistrering): Promise<boolean> {
   if (!l.sankning) return Promise.resolve(false);
+  const { sida, headers } = avregistreringsdelar(a);
   const datum = dagSomText(l.sankning.dag);
   return skicka(
     till,
@@ -61,7 +101,9 @@ export function skickaNivaSjunker(till: string, l: Nivalage): Promise<boolean> {
       nyNiva: l.sankning.niva.namn,
       datum,
       behovs: kronor(Math.max(0, l.niva.franOre - l.sankning.kOre)),
+      avregistrera: sida,
     }),
     "niva-sjunker",
+    headers,
   );
 }
