@@ -1145,5 +1145,29 @@ i `flode.ts`), `app/kassa/`, `app/api/kassa/*` och städjobbet
   tillbaka till `/kassa` frågar sidan `/api/kassa/status` och går till `/tack`
   om ordern är betald. Vad betalsidan visar efter betalningen är inte uppmätt
   (kräver en riktig betalning).
-- **En makulerad länk** visar Wix text "Den här länken är längre tillgänglig"
-  (stavfel hos Wix: "inte" saknas). Kassan skapar därför alltid en ny begäran.
+- ☠️ **En makulerad länk** visar Wix text "Den här länken är längre
+  tillgänglig" (stavfel hos Wix: "inte" saknas). Kunden får därför aldrig en
+  sparad länk: rutan "Din betalning väntar" visas bara när `/api/kassa/status`
+  säger `betalbar` (betalningen hör till ordern, bär `fp-kassa:`, är obetald och
+  har minst två minuter kvar), med en länk som servern just hämtat från Wix (Get
+  URL). Leonards iPhone 2026-11-06: bakåt från betalsidan och "Till
+  betalningen" gav den döda sidan.
+- ☠️ **Samma köp får samma betalsida** (Leonards prov 2026-11-06). Tidigare
+  släppte varje tryck den förra ordern och skapade en ny; när Wix sedan nekade
+  ordern (429) stod kunden utan betalning. Nu bär betalningen ett avtryck av
+  korgen, kunden och rabattkoden (`korgAvtryck`, fjärde ledet i
+  `source.externalId`). Är avtrycket och Wix total oförändrade och länken har
+  minst `ATERBRUK_MIN_KVAR_MINUTER` (15) kvar, återanvänds ordern och
+  betalningen: ingen ny order, inget nytt lager reserveras och taket räknas
+  inte. Ändrad adress, e-post, antal, rabattkod eller pris (en fyndauktion som
+  sjunkit) ger en ny order som förut.
+- **Wix 429 på ordern gäller köparen, inte sajten**: mätt 2026-11-06 nekades
+  den sjätte ordern på en halvtimme för samma e-post, medan en annan e-post gick
+  igenom. Ett nekat anrop har inte gjort något och görs om två gånger
+  (`medOmforsok`, 0,7 s och 1,5 s). Andra fel görs aldrig om: en order som
+  kanske skapades ska inte skapas två gånger. Når 429 ändå kunden säger kassan
+  "vänta en minut".
+- **Kundens egen väntande order håller varorna**, så Wix räknar dem som slut för
+  samma korg. Räkningen på `/kassa` visar därför ingen lagerbrist när korgen har
+  en obetald betalning (`stoppandeOvertradelser(..., { utanLager: true })`).
+  Betalningen gör den vanliga kontrollen efter att den förra ordern släppts.

@@ -14,6 +14,11 @@ import {
   kassaExterntId,
   medTider,
   tidrad,
+  korgAvtryck,
+  avtryckAv,
+  medOmforsok,
+  ATERBRUK_MIN_KVAR_MINUTER,
+  type Forsok,
   type KassaDeps,
   type Korg,
   type Kund,
@@ -63,7 +68,7 @@ function lattsasWix(o: {
   rakningar?: Rakning[];
   kupong?: "ok" | "ogiltig";
   tidigare?: "slappt" | "ej_var" | "betald";
-  forsok?: { id: string; orderId: string; status: string }[];
+  forsok?: Forsok[];
 } = {}) {
   const logg: string[] = [];
   const rakningar = o.rakningar ?? [rakning(), rakning({ valt: SATT.code })];
@@ -79,6 +84,7 @@ function lattsasWix(o: {
     async skapaBetalning(b) { logg.push(`betalning ${b.orderId} ${b.belopp} ${b.utgar} ${b.externtId}`); return { id: "bet-1", url: "https://checkout.fyndplats.se/__ecom/payment-request-page/bet-1" }; },
     async slappTidigare(id, t) { logg.push(`slapp ${t.orderId}/${t.betalningId}`); return o.tidigare ?? "slappt"; },
     async korgensForsok(id, sedan) { logg.push(`forsok ${id} ${sedan.toISOString()}`); return o.forsok ?? []; },
+    async betalsidansAdress(id) { logg.push(`adress ${id}`); return `https://checkout.fyndplats.se/__ecom/payment-request-page/${id}`; },
   };
   return { deps, logg };
 }
@@ -89,8 +95,8 @@ const TIMME_SEDAN = new Date(NU.getTime() - 3_600_000).toISOString();
 test("hela vägen: adress, leveranssätt, räkning, order och betalning i den ordningen", async () => {
   const { deps, logg } = lattsasWix();
   const r = await betala(deps, inn(), NU);
-  assert.deepEqual(r, { ok: true, url: "https://checkout.fyndplats.se/__ecom/payment-request-page/bet-1", orderId: "order-1", betalningId: "bet-1", totalOre: 115900 });
   const utgar = new Date(NU.getTime() + BETALNING_MINUTER * 60_000).toISOString();
+  assert.deepEqual(r, { ok: true, url: "https://checkout.fyndplats.se/__ecom/payment-request-page/bet-1", orderId: "order-1", betalningId: "bet-1", totalOre: 115900, utgar });
   assert.deepEqual(logg, [
     "hamta korg-1",
     `forsok korg-1 ${TIMME_SEDAN}`,
@@ -99,7 +105,7 @@ test("hela vägen: adress, leveranssätt, räkning, order och betalning i den or
     `leverans ${SATT.code}/${SATT.appId}`,
     "rakna",
     "order korg-1",
-    `betalning order-1 1159.00 ${utgar} ${KASSA_MARKOR}:korg-1:1`,
+    `betalning order-1 1159.00 ${utgar} ${KASSA_MARKOR}:korg-1:1:${korgAvtryck(korg(), kund)}`,
   ]);
 });
 
@@ -157,6 +163,20 @@ test("en vara som tagit slut nämns vid namn", () => {
     { name: { original: "Bokhylla" }, status: "IN_STOCK" },
   ] }));
   assert.deepEqual(r.meddelanden, ["Skohylla finns inte i lager längre. Ta bort den ur varukorgen.", "Pedalhink: bara 2 kvar i lager. Minska antalet."]);
+});
+
+test("kundens egen väntande order håller varorna: ingen lagerbrist, men andra stopp står kvar", () => {
+  const r = rakning({ rader: [
+    { name: { original: "Skohylla" }, status: "OUT_OF_STOCK" },
+    { name: { original: "Pedalhink" }, status: "PARTIALLY_IN_STOCK", quantityInfo: { availableQuantity: 0 } },
+  ] });
+  r.summary = { ...r.summary, violations: [
+    { severity: "ERROR", code: "LINE_ITEMS_OUT_OF_STOCK" },
+    { severity: "ERROR", code: "INVALID_POSTAL_CODE" },
+  ] };
+  assert.deepEqual(stoppandeOvertradelser(r, { utanLager: true }), { meddelanden: ["Postnumret finns inte."], falt: "postnr" });
+  const utan = stoppandeOvertradelser(r);
+  assert.equal(utan.meddelanden.length, 4, "utan väntande order syns bristen");
 });
 
 test("utan leveranssätt för adressen blir det ingen order", async () => {
@@ -333,4 +353,133 @@ test("tidtagningen ger samma svar, en rad per anrop, och släpper igenom fel", a
   assert.equal(deps.konstant, 7);
   assert.deepEqual(tider, { a: [120, 120], b: [30] });
   assert.equal(tidrad(tider), "a 120+120, b 30");
+});
+
+// ---- Samma köp ger samma betalsida (Leonards prov 2026-11-06) ----
+
+const OM_EN_TIMME = new Date(NU.getTime() + 60 * 60_000).toISOString();
+const vantande = (over: Partial<Forsok> = {}): Forsok => ({
+  id: "bet-0",
+  orderId: "order-0",
+  status: "UNPAID",
+  utgar: OM_EN_TIMME,
+  externtId: `${KASSA_MARKOR}:korg-1:x:${korgAvtryck(korg(), kund)}`,
+  belopp: "1159.00",
+  ...over,
+});
+
+test("tillbaka från betalsidan utan ändringar: samma betalsida, ingen ny order och inget släpps", async () => {
+  const { deps, logg } = lattsasWix({ forsok: [vantande()], rakningar: [rakning({ valt: SATT.code })] });
+  const r = await betala(deps, inn({ tidigare: { orderId: "order-0", betalningId: "bet-0" } }), NU);
+  assert.deepEqual(r, {
+    ok: true,
+    url: "https://checkout.fyndplats.se/__ecom/payment-request-page/bet-0",
+    orderId: "order-0",
+    betalningId: "bet-0",
+    totalOre: 115900,
+    utgar: OM_EN_TIMME,
+    aterbrukad: true,
+  });
+  assert.equal(logg.some((l) => l.startsWith("order") || l.startsWith("betalning") || l.startsWith("slapp") || l.startsWith("uppdatera")), false);
+  assert.ok(logg.includes("adress bet-0"));
+});
+
+test("har kundens förra försök hunnit betalas ges ingen betalsida alls", async () => {
+  const { deps, logg } = lattsasWix({ forsok: [vantande()], rakningar: [rakning({ valt: SATT.code })], tidigare: "betald" });
+  const r = await betala(deps, inn({ tidigare: { orderId: "order-9", betalningId: "bet-9" } }), NU);
+  assert.equal(!r.ok && r.kod, "redan_betald");
+  assert.equal(logg.some((l) => l.startsWith("adress") || l.startsWith("order")), false);
+});
+
+test("återanvändningen släpper andra väntande försök från korgen, men aldrig det återanvända", async () => {
+  const { deps, logg } = lattsasWix({
+    forsok: [vantande(), vantande({ id: "bet-gl", orderId: "order-gl", externtId: `${KASSA_MARKOR}:korg-1:y` })],
+    rakningar: [rakning({ valt: SATT.code })],
+  });
+  const r = await betala(deps, inn({ tidigare: { orderId: "order-annan", betalningId: "bet-annan" } }), NU);
+  assert.equal(r.ok && r.aterbrukad, true);
+  assert.deepEqual(logg.filter((l) => l.startsWith("slapp")), ["slapp order-gl/bet-gl", "slapp order-annan/bet-annan"]);
+});
+
+test("ändrad adress, antal eller rabattkod ger en ny order i stället för den väntande", async () => {
+  for (const andrad of [{ ...kund, gata: "Annan väg 2" }, { ...kund, kupong: "SPARA5" }, { ...kund, epost: "annan@exempel.se" }]) {
+    const { deps, logg } = lattsasWix({ forsok: [vantande()] });
+    const r = await betala(deps, inn({ kund: andrad }), NU);
+    assert.equal(r.ok && r.aterbrukad, undefined, JSON.stringify(andrad));
+    assert.ok(logg.includes("slapp order-0/bet-0"), "den gamla släpps");
+    assert.ok(logg.some((l) => l.startsWith("order ")), "en ny skapas");
+  }
+  // Ett annat antal i korgen.
+  const tva = korg({ lineItems: [{ id: "r1", name: { original: "Pedalhink 50 liter" }, quantityInfo: { requestedQuantity: 2 }, status: "IN_STOCK" }] });
+  const { deps, logg } = lattsasWix({ korg: tva, forsok: [vantande()] });
+  await betala(deps, inn(), NU);
+  assert.ok(logg.some((l) => l.startsWith("order ")));
+});
+
+test("ett sänkt pris (fyndauktionen) betalas aldrig med det gamla beloppet", async () => {
+  const { deps, logg } = lattsasWix({
+    forsok: [vantande({ belopp: "1159.00" })],
+    rakningar: [rakning({ valt: SATT.code, total: "999.00" })],
+  });
+  const r = await betala(deps, inn(), NU);
+  assert.equal(r.ok && r.aterbrukad, undefined);
+  assert.equal(r.ok && r.totalOre, 99900);
+  assert.ok(logg.includes("slapp order-0/bet-0"));
+});
+
+test("en länk som snart går ut återanvänds inte", async () => {
+  const snart = new Date(NU.getTime() + (ATERBRUK_MIN_KVAR_MINUTER - 1) * 60_000).toISOString();
+  const { deps, logg } = lattsasWix({ forsok: [vantande({ utgar: snart })] });
+  const r = await betala(deps, inn(), NU);
+  assert.equal(r.ok && r.aterbrukad, undefined);
+  assert.ok(logg.some((l) => l.startsWith("order ")));
+});
+
+test("spärren mot många försök gäller nya ordrar, inte att gå tillbaka till samma betalsida", async () => {
+  const forsok = [vantande(), ...Array.from({ length: MAX_FORSOK_PER_TIMME }, (_, i) => ({ id: `v${i}`, orderId: `ov${i}`, status: "VOIDED" }))];
+  const { deps } = lattsasWix({ forsok, rakningar: [rakning({ valt: SATT.code })] });
+  const r = await betala(deps, inn(), NU);
+  assert.equal(r.ok && r.aterbrukad, true);
+});
+
+test("avtrycket: samma köp ger samma avtryck oavsett radordning, och varje del räknas", () => {
+  const rad = (id: string, antal: number, options: unknown) => ({ id, quantityInfo: { requestedQuantity: antal }, source: { catalogReference: { catalogItemId: id, options } } });
+  const a = korg({ lineItems: [rad("p1", 1, { variantId: "v1" }), rad("p2", 2, { b: 1, a: 2 })] });
+  const b = korg({ lineItems: [rad("p2", 2, { a: 2, b: 1 }), rad("p1", 1, { variantId: "v1" })] });
+  const x = korgAvtryck(a, kund);
+  assert.match(x, /^[0-9a-f]{16}$/);
+  assert.equal(korgAvtryck(b, kund), x, "ordning och nyckelordning spelar ingen roll");
+  assert.equal(korgAvtryck(a, { ...kund, epost: kund.epost.toUpperCase() }), x, "e-postens versaler spelar ingen roll");
+  assert.notEqual(korgAvtryck(korg({ lineItems: [rad("p1", 2, { variantId: "v1" }), rad("p2", 2, { b: 1, a: 2 })] }), kund), x, "antalet");
+  assert.notEqual(korgAvtryck(korg({ lineItems: [rad("p1", 1, { variantId: "v2" }), rad("p2", 2, { b: 1, a: 2 })] }), kund), x, "varianten");
+  for (const f of ["fornamn", "efternamn", "telefon", "gata", "co", "postnr", "ort", "kupong"] as const) {
+    assert.notEqual(korgAvtryck(a, { ...kund, [f]: `${kund[f]}x` }), x, f);
+  }
+});
+
+test("avtrycket står sist i externalId och läses tillbaka; äldre betalningar utan avtryck ger null", () => {
+  const korgId = "1b0a3f2e-9c4d-4e5f-8a7b-6c5d4e3f2a1b";
+  const av = korgAvtryck(korg(), kund);
+  const id = kassaExterntId(korgId, "m3x9k2", av);
+  assert.ok(id.length <= 100);
+  assert.equal(avtryckAv(id), av);
+  assert.equal(arKorgensBetalning(id, korgId), true);
+  assert.equal(avtryckAv(kassaExterntId(korgId, "m3x9k2")), null);
+  assert.equal(avtryckAv("faktura-1:2:3:0123456789abcdef"), null);
+  assert.equal(avtryckAv(undefined), null);
+});
+
+test("omförsöken: nekade anrop görs om med paus, andra fel kastas direkt", async () => {
+  const pauser: number[] = [];
+  const sov = async (ms: number) => { pauser.push(ms); };
+  const nekat = new Error("429");
+  let n = 0;
+  assert.equal(await medOmforsok(async () => { if (++n < 3) throw nekat; return "ok"; }, (e) => e === nekat, [10, 20], sov), "ok");
+  assert.deepEqual(pauser, [10, 20]);
+  n = 0;
+  await assert.rejects(() => medOmforsok(async () => { n++; throw nekat; }, (e) => e === nekat, [10, 20], sov), /429/);
+  assert.equal(n, 3, "högst två omförsök");
+  n = 0;
+  await assert.rejects(() => medOmforsok(async () => { n++; throw new Error("500"); }, (e) => e === nekat, [10, 20], sov), /500/);
+  assert.equal(n, 1, "ett annat fel görs aldrig om (ordern kan ha skapats)");
 });

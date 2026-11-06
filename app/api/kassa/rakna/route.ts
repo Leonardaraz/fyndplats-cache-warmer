@@ -10,8 +10,8 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { egenKassa, kassaLage, PROV_KAKA } from "@/lib/kassa/lage";
 import { normalPostnr } from "@/lib/kassa/formular";
-import { oreAv, stoppandeOvertradelser } from "@/lib/kassa/flode";
-import { hamtaKorg, laggTillKupong, rakna, sattLand, sattLeverans, taBortKupong } from "@/lib/kassa/wix-kassa";
+import { oreAv, stoppandeOvertradelser, type Forsok } from "@/lib/kassa/flode";
+import { hamtaKorg, korgensForsok, laggTillKupong, rakna, sattLand, sattLeverans, taBortKupong } from "@/lib/kassa/wix-kassa";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,8 +33,10 @@ export async function POST(req: Request) {
   const kupong = typeof body.kupong === "string" ? body.kupong.replace(/\s/g, "").slice(0, 40) : null;
 
   try {
-    const korg = await hamtaKorg(cartId);
+    // Korgen och om kunden redan har en väntande betalning, samtidigt.
+    const [korg, forsok] = await Promise.all([hamtaKorg(cartId), korgensForsok(cartId, new Date(Date.now() - 3 * 3_600_000)).catch((): Forsok[] => [])]);
     if (!korg || korg.orderPlaced) return svar({ ok: false, kod: "korg_saknas" }, 404);
+    const vantarBetalning = forsok.some((f) => f.status === "UNPAID");
     await sattLand(cartId, normalPostnr(body.postnr));
 
     let kupongFel: string | null = null;
@@ -54,13 +56,20 @@ export async function POST(req: Request) {
       r = await rakna(cartId);
     }
     const p = r.summary?.priceSummary;
-    const stopp = stoppandeOvertradelser(r);
+    const totalOre = oreAv(p?.total);
+    // Wix räknar momsen när den är inställd (ordrarna bär den, 25 %). Annars är
+    // den en femtedel av ett pris med 25 % moms.
+    const skattOre = oreAv(p?.tax);
+    // Kundens egen väntande order håller varorna, så Wix räknar dem som slut:
+    // det är ingen brist för den här kunden.
+    const stopp = stoppandeOvertradelser(r, { utanLager: vantarBetalning });
     return svar({
       ok: true,
       delsummaOre: oreAv(p?.subtotal),
       rabattOre: oreAv(p?.discount) ?? 0,
       fraktOre: oreAv(p?.delivery),
-      totalOre: oreAv(p?.total),
+      totalOre,
+      momsOre: skattOre && skattOre > 0 ? skattOre : totalOre === null ? null : Math.round(totalOre / 5),
       fraktnamn: r.summary?.deliverySummary?.method?.title?.original ?? null,
       kupong: (r.cart?.coupons ?? [])[0]?.code ?? null,
       kupongFel,

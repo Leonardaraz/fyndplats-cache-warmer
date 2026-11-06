@@ -23,6 +23,14 @@
 // varan tills ordern avbryts med återlagring. Därför avbryter nästa försök från
 // samma korg den förra ordern, och städjobbet avbryter de som löpt ut.
 //
+// ☠️ SAMMA KORG, SAMMA UPPGIFTER OCH SAMMA TOTAL GER SAMMA BETALSIDA. En kund
+// som går tillbaka från betalsidan och trycker igen får sin väntande betalning,
+// inte en ny order (Leonards prov 2026-11-06: varje nytt försök makulerade den
+// förra länken, och Wix svarade 429 på den fjärde ordern på en halvtimme för
+// samma köpare). Avtrycket av korgen och uppgifterna står sist i betalningens
+// externalId; totalen jämförs med Wix räkning, så att ett sjunkande
+// auktionspris aldrig betalas med det gamla, högre beloppet.
+//
 // ☠️ PRISET KOMMER BARA FRÅN WIX. Kunden skickar formuläret och korgens id,
 // aldrig ett belopp. Beloppet på betalningsbegäran är Wix egen total för
 // ordern som just skapades.
@@ -49,6 +57,7 @@ export interface KorgRad {
   name?: { original?: string; translated?: string };
   quantityInfo?: { confirmedQuantity?: number; requestedQuantity?: number; availableQuantity?: number };
   status?: string;
+  source?: { catalogReference?: { catalogItemId?: string; options?: unknown } };
 }
 
 export interface Korg {
@@ -70,7 +79,7 @@ export interface Rakning {
   cart?: Korg;
   summary?: {
     deliverySummary?: { method?: Leveranssatt; price?: Pengar };
-    priceSummary?: { subtotal?: Pengar; discount?: Pengar; delivery?: Pengar; total?: Pengar };
+    priceSummary?: { subtotal?: Pengar; discount?: Pengar; delivery?: Pengar; tax?: Pengar; total?: Pengar };
     violations?: Overtradelse[];
     spiViolations?: Overtradelse[];
   };
@@ -114,19 +123,83 @@ export interface KassaDeps {
   /** Makulerar den förra betalningen och avbryter dess order med återlagring, om båda hör till korgen och inte är betalda. */
   slappTidigare(cartId: string, t: Tidigare): Promise<"slappt" | "ej_var" | "betald">;
   /** Kassans betalningar för korgen den senaste timmen (alla lägen), nyaste först. */
-  korgensForsok(cartId: string, sedan: Date): Promise<{ id: string; orderId: string; status: string }[]>;
+  korgensForsok(cartId: string, sedan: Date): Promise<Forsok[]>;
+  /** Betalsidans adress för en befintlig betalning (Wix Get Order Payment Request URL). */
+  betalsidansAdress(betalningId: string): Promise<string>;
 }
+
+/** En betalning från vår kassa, som nästa försök ser den. */
+export interface Forsok {
+  id: string;
+  orderId: string;
+  status: string;
+  /** ISO-tid då länken slutar gälla. */
+  utgar?: string;
+  externtId?: string;
+  /** Beloppet på betalningen, som Wix skriver det ("1159.00"). */
+  belopp?: string;
+}
+
+/** En väntande betalning återanvänds bara om länken gäller minst så här länge till. */
+export const ATERBRUK_MIN_KVAR_MINUTER = 15;
 
 /** Fler försök än så från samma korg på en timme stoppas: varje försök reserverar lager. */
 export const MAX_FORSOK_PER_TIMME = 8;
 
 export type KassaUtfall =
-  | { ok: true; url: string; orderId: string; betalningId: string; totalOre: number }
+  | { ok: true; url: string; orderId: string; betalningId: string; totalOre: number; utgar?: string; aterbrukad?: boolean }
   | { ok: false; kod: string; meddelanden: string[]; falt?: "kupong" | "postnr" };
 
-/** Betalningens source.externalId: markören, korgen och försöket. Städjobbet och nästa försök känner igen den. */
-export function kassaExterntId(cartId: string, forsok: string): string {
-  return `${KASSA_MARKOR}:${cartId}:${forsok}`.slice(0, 100);
+/** Betalningens source.externalId: markören, korgen, försöket och avtrycket. Städjobbet och nästa försök känner igen den. */
+export function kassaExterntId(cartId: string, forsok: string, avtryck?: string): string {
+  return `${KASSA_MARKOR}:${cartId}:${forsok}${avtryck ? `:${avtryck}` : ""}`.slice(0, 100);
+}
+
+/** Avtrycket ur ett externalId från kassaExterntId, eller null för äldre betalningar utan avtryck. */
+export function avtryckAv(externtId: string | undefined): string | null {
+  const delar = (externtId ?? "").split(":");
+  return delar.length === 4 && delar[0] === KASSA_MARKOR && /^[0-9a-f]{16}$/.test(delar[3]) ? delar[3] : null;
+}
+
+/** FNV-1a, 32 bitar, med valbar start: ren och utan importer. */
+function fnv1a(text: string, start: number): number {
+  let h = start >>> 0;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h >>> 0;
+}
+
+/** JSON med sorterade nycklar, så att samma val alltid ger samma text. */
+function stabilJson(v: unknown): string {
+  if (Array.isArray(v)) return `[${v.map(stabilJson).join(",")}]`;
+  if (v && typeof v === "object") {
+    return `{${Object.keys(v as Record<string, unknown>)
+      .sort()
+      .map((k) => `${JSON.stringify(k)}:${stabilJson((v as Record<string, unknown>)[k])}`)
+      .join(",")}}`;
+  }
+  return JSON.stringify(v ?? null);
+}
+
+/**
+ * Avtryck av det som gör ordern: varorna (vara, val, antal), kundens uppgifter
+ * och rabattkoden. Samma avtryck betyder att den väntande ordern är samma köp.
+ * 16 hextecken; inga uppgifter går att läsa ur det.
+ */
+export function korgAvtryck(korg: Korg, kund: Kund): string {
+  const rader = (korg.lineItems ?? [])
+    .map((r) => {
+      const ref = r.source?.catalogReference;
+      const antal = r.quantityInfo?.requestedQuantity ?? r.quantityInfo?.confirmedQuantity ?? 1;
+      return `${ref?.catalogItemId ?? r.id ?? ""}|${stabilJson(ref?.options ?? null)}|${antal}`;
+    })
+    .sort();
+  const uppgifter = [kund.epost.toLowerCase(), kund.fornamn, kund.efternamn, kund.telefon, kund.gata, kund.co, kund.postnr, kund.ort, kund.kupong.toLowerCase()];
+  const text = `${rader.join(";")}#${uppgifter.join("\u0001")}`;
+  const hex = (n: number) => n.toString(16).padStart(8, "0");
+  return hex(fnv1a(text, 0x811c9dc5)) + hex(fnv1a(text, 0x01000193 ^ 0x9e3779b9));
 }
 
 /** Hör betalningen till korgen? */
@@ -143,8 +216,12 @@ export function oreAv(p: Pengar | undefined): number | null {
   return s.startsWith("-") ? -ore : ore;
 }
 
-/** Wix överträdelser som stoppar köpet, med en text till kunden. Varningar stoppar inte. */
-export function stoppandeOvertradelser(r: Rakning): { meddelanden: string[]; falt?: "kupong" | "postnr" } {
+/**
+ * Wix överträdelser som stoppar köpet, med en text till kunden. Varningar
+ * stoppar inte. Med `utanLager` hoppas lagerbristen över: när kundens egen
+ * väntande order håller varan räknar Wix den som slut, fast den är kundens.
+ */
+export function stoppandeOvertradelser(r: Rakning, opts: { utanLager?: boolean } = {}): { meddelanden: string[]; falt?: "kupong" | "postnr" } {
   const ut: string[] = [];
   let falt: "kupong" | "postnr" | undefined;
   const lagg = (t: string) => {
@@ -157,7 +234,7 @@ export function stoppandeOvertradelser(r: Rakning): { meddelanden: string[]; fal
         lagg("Varukorgen är tom.");
         break;
       case "LINE_ITEMS_OUT_OF_STOCK":
-        lagg("En vara i varukorgen har tagit slut. Ta bort den eller minska antalet.");
+        if (!opts.utanLager) lagg("En vara i varukorgen har tagit slut. Ta bort den eller minska antalet.");
         break;
       case "INVALID_COUPON_CODE":
         lagg("Rabattkoden finns inte.");
@@ -194,7 +271,7 @@ export function stoppandeOvertradelser(r: Rakning): { meddelanden: string[]; fal
     lagg((v.description ?? "").trim() || "En vara i varukorgen kan inte levereras till den adressen.");
     falt = falt ?? "postnr";
   }
-  for (const rad of r.cart?.lineItems ?? []) {
+  for (const rad of opts.utanLager ? [] : r.cart?.lineItems ?? []) {
     const namn = (rad.name?.translated || rad.name?.original || "En vara").trim();
     if (rad.status === "OUT_OF_STOCK" || rad.status === "REMOVED_FROM_CATALOG") {
       lagg(`${namn} finns inte i lager längre. Ta bort den ur varukorgen.`);
@@ -232,24 +309,50 @@ export async function betala(
   nu: Date,
 ): Promise<KassaUtfall> {
   const { cartId, kund } = inn;
-  const korg = await deps.hamtaKorg(cartId);
+  // Korgen och korgens förra försök läses samtidigt: kunden väntar på båda.
+  const [korg, forsok] = await Promise.all([deps.hamtaKorg(cartId), deps.korgensForsok(cartId, new Date(nu.getTime() - 3_600_000))]);
   if (!korg) return { ok: false, kod: "korg_saknas", meddelanden: ["Varukorgen finns inte längre. Gå tillbaka till butiken och lägg i varorna igen."] };
   if (korg.orderPlaced) return { ok: false, kod: "korg_bestalld", meddelanden: ["Den här varukorgen är redan beställd. Kolla din e-post för orderbekräftelsen."] };
   if ((korg.lineItems ?? []).length === 0) return { ok: false, kod: "korg_tom", meddelanden: ["Varukorgen är tom."] };
 
-  // Förra betalningar från samma korg släpps först: annars ligger två ordrar
-  // och reserverar samma varor, och den gamla länken går att betala. Servern
-  // letar själv (webbläsaren kan ha glömt dem, eller kunden bytt enhet), och
-  // kundens egen uppgift om förra försöket släpps också.
-  const forsok = await deps.korgensForsok(cartId, new Date(nu.getTime() - 3_600_000));
-  if (forsok.length >= MAX_FORSOK_PER_TIMME) {
-    return { ok: false, kod: "for_manga", meddelanden: ["Du har försökt många gånger på kort tid. Vänta en stund, eller kontakta oss så hjälper vi dig."] };
-  }
   // En betald betalning från samma korg betyder att kunden redan har köpt (Wix
   // webhook har bara inte hunnit avsluta korgen): en ny order vore ett dubbelköp.
   if (forsok.some((f) => f.status === "PAID")) {
     return { ok: false, kod: "redan_betald", meddelanden: ["Den här beställningen är redan betald. Kolla din e-post för orderbekräftelsen."] };
   }
+
+  // Samma köp som en väntande betalning: kunden får samma betalsida, ingen ny order.
+  const avtryck = korgAvtryck(korg, kund);
+  const kvarMs = (f: Forsok) => Date.parse(f.utgar ?? "") - nu.getTime();
+  const kandidat = forsok.find((f) => f.status === "UNPAID" && avtryckAv(f.externtId) === avtryck && kvarMs(f) > ATERBRUK_MIN_KVAR_MINUTER * 60_000);
+  if (kandidat) {
+    const kandidatOre = oreAv({ amount: kandidat.belopp });
+    const nuOre = oreAv((await deps.rakna(cartId)).summary?.priceSummary?.total);
+    if (kandidatOre !== null && kandidatOre === nuOre) {
+      const andra: Tidigare[] = forsok
+        .filter((f) => f.status === "UNPAID" && f.id !== kandidat.id)
+        .map((f) => ({ orderId: f.orderId, betalningId: f.id }));
+      if (inn.tidigare && inn.tidigare.orderId !== kandidat.orderId && !andra.some((t) => t.orderId === inn.tidigare!.orderId)) andra.push(inn.tidigare);
+      for (const t of andra) {
+        if ((await deps.slappTidigare(cartId, t)) === "betald") {
+          return { ok: false, kod: "redan_betald", meddelanden: ["Den här beställningen är redan betald. Kolla din e-post för orderbekräftelsen."] };
+        }
+      }
+      const url = await deps.betalsidansAdress(kandidat.id);
+      return { ok: true, url, orderId: kandidat.orderId, betalningId: kandidat.id, totalOre: kandidatOre, utgar: kandidat.utgar, aterbrukad: true };
+    }
+  }
+
+  // Ett nytt försök: varje försök reserverar lager, så korgen får högst
+  // MAX_FORSOK_PER_TIMME i timmen.
+  if (forsok.length >= MAX_FORSOK_PER_TIMME) {
+    return { ok: false, kod: "for_manga", meddelanden: ["Du har försökt många gånger på kort tid. Vänta en stund, eller kontakta oss så hjälper vi dig."] };
+  }
+  // Förra betalningar från samma korg släpps före den nya ordern: annars
+  // ligger två ordrar och reserverar samma varor, och en vara med ett enda
+  // exemplar kvar går inte att beställa igen. Servern letar själv (webbläsaren
+  // kan ha glömt dem, eller kunden bytt enhet), och kundens egen uppgift om
+  // förra försöket släpps också.
   const attSlappa: Tidigare[] = forsok.filter((f) => f.status === "UNPAID").map((f) => ({ orderId: f.orderId, betalningId: f.id }));
   if (inn.tidigare && !attSlappa.some((t) => t.orderId === inn.tidigare!.orderId)) attSlappa.push(inn.tidigare);
   for (const t of attSlappa) {
@@ -297,9 +400,9 @@ export async function betala(
     titel: "Din beställning hos Fyndplats",
     beskrivning: betalBeskrivning(rakning.cart?.lineItems ?? korg.lineItems ?? []),
     utgar,
-    externtId: kassaExterntId(cartId, inn.forsokId),
+    externtId: kassaExterntId(cartId, inn.forsokId, avtryck),
   });
-  return { ok: true, url: betalning.url, orderId, betalningId: betalning.id, totalOre };
+  return { ok: true, url: betalning.url, orderId, betalningId: betalning.id, totalOre, utgar };
 }
 
 /**
@@ -331,6 +434,32 @@ export function tidrad(tider: Record<string, number[]>): string {
   return Object.entries(tider)
     .map(([namn, ms]) => `${namn} ${ms.join("+")}`)
     .join(", ");
+}
+
+/** Pauserna före varje nytt försök när Wix nekar ett anrop (429). */
+export const OMFORSOK_MS = [700, 1500];
+
+/**
+ * Gör om ett anrop som Wix nekade. Wix svarar 429 när samma köpare skapar
+ * många ordrar på kort tid (mätt 2026-11-06: den sjätte på en halvtimme för
+ * samma e-post nekades, andra köpare gick igenom). Ett nekat anrop har inte
+ * gjort något. Andra fel kastas direkt: en order som kanske skapades ska
+ * aldrig skapas två gånger.
+ */
+export async function medOmforsok<T>(
+  anrop: () => Promise<T>,
+  arNekat: (e: unknown) => boolean,
+  vantan: number[] = OMFORSOK_MS,
+  sov: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms)),
+): Promise<T> {
+  for (let i = 0; ; i++) {
+    try {
+      return await anrop();
+    } catch (e) {
+      if (!arNekat(e) || i >= vantan.length) throw e;
+      await sov(vantan[i]);
+    }
+  }
 }
 
 /** Marginal efter utgången, så att en kund som trycker "Betala" i sista stund hinner. */
