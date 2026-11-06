@@ -24,3 +24,16 @@ test("Mina sidor: medlemspriset gäller → var det syns och undantagen; annars 
   const formaner = las("formaner.tsx");
   assert.match(formaner, /\{prisPa \? " på det mesta i sortimentet" : " kommer snart"\}/);
 });
+
+test("ordertrappan på produktsidan har egen pil, inte webbläsarens triangel", () => {
+  const css = readFileSync(new URL("../../app/globals.css", import.meta.url), "utf8");
+  assert.match(css, /\.foretagstrappa summary\{[^}]*list-style:none/);
+  assert.match(css, /\.foretagstrappa summary::-webkit-details-marker\{display:none\}/);
+  assert.match(css, /\.foretagstrappa\[open\] summary::after\{transform:translateY\(1px\) rotate\(225deg\)\}/);
+});
+
+test("ett företag som godkänns direkt (aktivt hos Bolagsverket) ser kortet med profilvalet, inte \"Vi kontrollerar\"", () => {
+  const ft = las("foretag.tsx");
+  assert.match(ft, /if \(svar\.ok\) return efter\(svar\.status \?\? "granskas"\);/);
+  assert.match(ft, /<Ansokan efter=\{\(status\) => \(status === "aktiv" \? ladda\(\) : setSkickad\(true\)\)\} \/>/);
+});

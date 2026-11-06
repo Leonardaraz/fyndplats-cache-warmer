@@ -46,7 +46,7 @@ const SKAL: Record<string, string> = {
   tillfalligt: "Det gick inte just nu. Försök igen om en stund.",
 };
 
-async function skicka(url: string, kropp: unknown): Promise<{ ok: boolean; fel?: Faltfel; skal?: string }> {
+async function skicka(url: string, kropp: unknown): Promise<{ ok: boolean; fel?: Faltfel; skal?: string; status?: string }> {
   try {
     const r = await fetch(url, {
       method: "POST",
@@ -54,7 +54,7 @@ async function skicka(url: string, kropp: unknown): Promise<{ ok: boolean; fel?:
       headers: { "content-type": "application/json" },
       body: JSON.stringify(kropp),
     });
-    return (await r.json().catch(() => ({ ok: false, skal: "tillfalligt" }))) as { ok: boolean; fel?: Faltfel; skal?: string };
+    return (await r.json().catch(() => ({ ok: false, skal: "tillfalligt" }))) as { ok: boolean; fel?: Faltfel; skal?: string; status?: string };
   } catch {
     return { ok: false, skal: "tillfalligt" };
   }
@@ -94,7 +94,8 @@ function uppslagstext(u: Uppslagslage): { ton: "ok" | "tyst"; text: string } | n
   }
 }
 
-function Ansokan({ efter }: { efter: () => void }) {
+/** `efter` får ansökans status: ett aktivt företag (Bolagsverket) är godkänt direkt. */
+function Ansokan({ efter }: { efter: (status: string) => void }) {
   const [orgnr, setOrgnr] = useState("");
   const [namn, setNamn] = useState("");
   // Kunden har skrivit ett eget namn: Bolagsverkets skriver då inte över det.
@@ -160,7 +161,7 @@ function Ansokan({ efter }: { efter: () => void }) {
     setSkal(null);
     const svar = await skicka("/api/konto/foretag", { ...falt, steg: "ansok" });
     setUpptagen(false);
-    if (svar.ok) return efter();
+    if (svar.ok) return efter(svar.status ?? "granskas");
     setFel(svar.fel ?? {});
     setSkal(svar.skal ? (SKAL[svar.skal] ?? SKAL.tillfalligt) : null);
   }
@@ -413,7 +414,9 @@ export function Foretagskonto({
             exklusive moms.
           </p>
           {oppen ? (
-            <Ansokan efter={() => setSkickad(true)} />
+            // Godkänt direkt (aktivt hos Bolagsverket): ladda om, så att kortet visar
+            // "Godkänt" och profilvalet. Förut stod "Vi kontrollerar …" kvar (audit 2026-11-06).
+            <Ansokan efter={(status) => (status === "aktiv" ? ladda() : setSkickad(true))} />
           ) : (
             <button type="button" className={s.utknapp} onClick={() => setOppen(true)}>
               Lägg till ett företag
