@@ -23,6 +23,8 @@ type AuctionRow = MotorRad;
 
 /** Det som klienten får se för en live-auktion (inget golv, ingen stege). */
 export type LiveAuctionView = {
+  /** Wix-produktens id: GA4:s item_id, samma som produktsidans add_to_cart (lib/analytics.ts). */
+  id: string;
   slug: string;
   name: string;
   img: string;
@@ -71,7 +73,8 @@ export type SoldAuctionView = {
 // sig ören som vi inte vill visa här).
 const fmtKr = (n: number) => `${Math.round(n).toLocaleString("sv-SE")} kr`;
 
-/** Live-auktioner (max 5), joinade mot katalogen. Fail-open: tom lista.
+/** Live-auktioner, så många som motorn schemalagt för dagen (motorns
+ *  lib/auction/antal.ts, tio sedan 2026-11-04), joinade mot katalogen. Fail-open: tom lista.
  *  `sida: "fyndauktion"` ger auktionssidan en egen cachepost, som töms varje
  *  timme när motorn bytt priserna (se hämtaAuktionsrader). */
 export async function getLiveAuctions(val: { sida?: "fyndauktion" } = {}): Promise<LiveAuctionView[]> {
@@ -91,6 +94,7 @@ export async function getLiveAuctions(val: { sida?: "fyndauktion" } = {}): Promi
       const p = { ...katalog, ...farska.get(katalog.slug) };
       const discount = Math.max(0, Math.round((1 - p.priceNum / r.listPrice) * 100));
       return {
+        id: p.id,
         slug: p.slug,
         name: p.name,
         img: p.img,

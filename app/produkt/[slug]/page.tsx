@@ -13,7 +13,7 @@ import { BUTIKENS_MARKE, varumarke } from "../../../lib/varumarke";
 import { valjBrodsmula } from "../../../lib/breadcrumb-category";
 import { categoryIndexable, countPerCategoryPage } from "../../../lib/category-threshold";
 import { pickRelated } from "../../../lib/related-pick";
-import { produktGrannar } from "../../../lib/product-neighbours";
+import { produktGrannar, type Hemvist } from "../../../lib/product-neighbours";
 import { ProductBrowse } from "../../../components/product-browse";
 import { getBlurDataURL } from "../../../lib/lqip";
 import { getProductReviews } from "../../../lib/reviews";
@@ -114,7 +114,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   // Hela katalogen behövs ändå längre ner (relaterade, bläddring). Den är
   // modulcachad, så att hämta den redan här kostar inget extra anrop.
   const all = await getProducts();
-  const brodsmula = valjBrodsmula(ownCats, navCols, countPerCategoryPage(forListings(all), cols), categoryIndexable);
+  const antalPerSida = countPerCategoryPage(forListings(all), cols);
+  const brodsmula = valjBrodsmula(ownCats, navCols, antalPerSida, categoryIndexable, p.name);
   const primaryCol = brodsmula.avdelning;
   const subCol = brodsmula.underkategori;
 
@@ -373,7 +374,25 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   // cols bygger avdelningens alla avsnitt.
   //
   // navCols, inte cols: se ovan.
-  const grannar = produktGrannar(navCols, ownCats, all, p.slug, dedupeProducts);
+  //
+  // BLÄDDRINGSRADEN FÖLJER BRÖDSMULAN (2026-11-04): varje produkt ligger i sin
+  // brödsmulas avdelning och i avsnittet för dess underkategori, så att "N av M
+  // i …" och brödsmulan pekar på samma kategori (lib/product-neighbours.ts,
+  // Hemvist). Valet räknas en gång per produkt och sidrendering.
+  const colPer = new Map(cols.map((c) => [c.id, c]));
+  const hemvistCache = new Map<string, Hemvist>();
+  const hemvistFor = (q: Product): Hemvist => {
+    const sparad = hemvistCache.get(q.id);
+    if (sparad) return sparad;
+    const egna = (q.collectionIds || [])
+      .map((id) => colPer.get(id))
+      .filter((c): c is (typeof cols)[number] => c !== undefined && !NAV_EXCLUDED.has(c.name));
+    const b = valjBrodsmula(egna, navCols, antalPerSida, categoryIndexable, q.name);
+    const h: Hemvist = { avdelning: b.avdelning?.id ?? null, avsnitt: b.underkategori?.id ?? null };
+    hemvistCache.set(q.id, h);
+    return h;
+  };
+  const grannar = produktGrannar(navCols, ownCats, all, p.slug, dedupeProducts, hemvistFor);
 
   // Korskategori-upptäckt: länka vidare till övriga HUVUDavdelningar (exkl. produktens
   // egen). Bara giltiga /kategori/{slug} → noll 404. Samma on-brand chips som kategorisidan.

@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   // ~155 tecken: Google klipper snippeten runt 160 och den gamla var 198, så
   // sista meningen syntes aldrig. Uppmaningen ligger nu tidigt i stället.
   description:
-    "Fem fynd varje dag kl 07–19. Priset sjunker varje timme tills någon slår till – vänta för ett bättre pris, eller köp innan någon hinner före.",
+    "Nya fynd varje dag kl 07–19. Priset sjunker varje timme tills någon slår till – vänta för ett bättre pris, eller köp innan någon hinner före.",
   alternates: { canonical: "https://www.fyndplats.se/fyndauktion" },
   openGraph: {
     title: "Fyndauktionen – priset sjunker varje timme tills någon köper",

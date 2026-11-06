@@ -20,6 +20,8 @@ import { AuctionOdometer } from "./auction-odometer";
 import { fmtLeft } from "../lib/auction-day";
 import { useAuctionClock } from "./use-auction-clock";
 import { TidigarePris } from "./tidigare-pris";
+// Klicket mäts (ChatGPT:s audit, punkt 5, 2026-11-04): GA4 select_item och Vercel.
+import { trackAuktionKort } from "../lib/analytics";
 
 export function AuctionCard({ a }: { a: LiveAuctionView }) {
   // phase är aldrig null: före mount kommer den från serverns klocka, så SSR
@@ -32,7 +34,7 @@ export function AuctionCard({ a }: { a: LiveAuctionView }) {
   const saved = Math.round(a.listPrice - a.priceNum);
 
   return (
-    <a className={`prod auction-card a-card${a.img2 ? "" : " noswap"}`} href={`/produkt/${a.slug}`}>
+    <a className={`prod auction-card a-card${a.img2 ? "" : " noswap"}`} href={`/produkt/${a.slug}`} onClick={() => trackAuktionKort(a)}>
       <div className="pimg">
         {dropped && <span className="sale-badge">−{a.discountPercent}%</span>}
         {a.img && (

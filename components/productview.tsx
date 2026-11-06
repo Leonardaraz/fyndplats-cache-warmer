@@ -4,7 +4,7 @@ import { forvarmKundvagn, useCart } from "./cart";
 import { Gallery } from "./gallery";
 import { synligaBilder, synligaBilderForKombination, type Kopplingar } from "../lib/variant-bilder";
 import { RestockForm } from "./restock-form";
-import { trackAddToCart, trackViewItem } from "../lib/analytics";
+import { trackAddToCart, trackAuktionVarukorg, trackViewItem } from "../lib/analytics";
 import { tightFillUrl } from "../lib/wix-image";
 import { findVariant, reconcileSelection, choiceStatus, andradeAxlar } from "../lib/variant-multi";
 import { forvalIndex, forvalKombination, prisTal } from "../lib/pdp-forval";
@@ -600,6 +600,9 @@ export function ProductView({
         ? imageChoices[sel].priceNum
         : priceNum;
     trackAddToCart({ id: productId, name, priceNum: itemPrice, category });
+    // Kom besökaren från /fyndauktion räknas varukorgen också som auktionens
+    // (lib/analytics.ts, 2026-11-04). GA4 knyter den själv via select_item.
+    trackAuktionVarukorg();
     // Lådan öppnas direkt med varan som väntande rad (components/cart.tsx).
     const val = selectedVariantLabels.map((l) => visaValnamn(l)).filter(Boolean).join(" · ");
     setAdded(true);

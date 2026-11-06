@@ -15,6 +15,8 @@ import { useEffect, useRef, useState } from "react";
 import type { LiveAuctionView } from "../lib/auction-view";
 import { PRESTART_WINDOW_MS, fmtLeft } from "../lib/auction-day";
 import { useAuctionClock } from "./use-auction-clock";
+// Klicket mäts (ChatGPT:s audit, punkt 5, 2026-11-04): GA4 select_item och Vercel.
+import { trackAuktionKort } from "../lib/analytics";
 import { TidigarePris } from "./tidigare-pris";
 
 export function AuctionLiveBar({ a }: { a: LiveAuctionView }) {
@@ -60,7 +62,7 @@ export function AuctionLiveBar({ a }: { a: LiveAuctionView }) {
 
 
   return (
-    <a ref={ref} className={`a-live-bar${scrolled ? " show" : ""}`} href={`/produkt/${a.slug}`} aria-hidden={!scrolled} tabIndex={scrolled ? undefined : -1}>
+    <a ref={ref} className={`a-live-bar${scrolled ? " show" : ""}`} href={`/produkt/${a.slug}`} aria-hidden={!scrolled} tabIndex={scrolled ? undefined : -1} onClick={() => trackAuktionKort(a)}>
       <span className="a-lb-progress" style={{ width: `${progress}%` }} aria-hidden="true" />
       <span className="a-lb-flame" aria-hidden="true">🔥</span>
       {/* 30-dagarspriset står UNDER priset, inte bredvid: på en rad åt det

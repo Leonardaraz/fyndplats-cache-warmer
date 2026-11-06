@@ -700,19 +700,29 @@ export async function getFreshPrices(
 ): Promise<Map<string, Pick<Product, "priceNum" | "inStock">>> {
   const out = new Map<string, Pick<Product, "priceNum" | "inStock">>();
   if (!wix || slugs.length === 0) return out;
-  await Promise.all(
-    slugs.map(async (slug) => {
-      try {
-        const res: any = await (wix as any).products.queryProducts().eq("slug", slug).limit(1).find();
-        const item = res.items?.[0];
-        if (!item) return;
-        const p = mapProduct(item);
-        if (p.priceNum > 0) out.set(slug, { priceNum: p.priceNum, inStock: p.inStock });
-      } catch (e) {
-        console.warn(`[products] getFreshPrices(${slug}) föll:`, (e as Error).message);
-      }
-    }),
-  );
+  // ☠️ HÖGST FYRA ÅT GÅNGEN (2026-11-04). Förut ett anrop per fynd i en
+  // obegränsad Promise.all, vid varje ombyggnad av startsidan och /fyndauktion
+  // (upp till var 15:e sekund). Med fem fynd gick det; med tio om dagen, och
+  // 50–100 under Black Week, hade det blivit en fan-out som växer med antalet
+  // (motorns CLAUDE.md: "en obegränsad fan-out skalar med katalogen"). Wix
+  // V1-frågan med en lista slugs stöds inte på en V3-katalog (501, mätt
+  // 2026-11-04), så det blir ett anrop per slug, fyra i taget.
+  const SAMTIDIGA = 4;
+  for (let i = 0; i < slugs.length; i += SAMTIDIGA) {
+    await Promise.all(
+      slugs.slice(i, i + SAMTIDIGA).map(async (slug) => {
+        try {
+          const res: any = await (wix as any).products.queryProducts().eq("slug", slug).limit(1).find();
+          const item = res.items?.[0];
+          if (!item) return;
+          const p = mapProduct(item);
+          if (p.priceNum > 0) out.set(slug, { priceNum: p.priceNum, inStock: p.inStock });
+        } catch (e) {
+          console.warn(`[products] getFreshPrices(${slug}) föll:`, (e as Error).message);
+        }
+      }),
+    );
+  }
   return out;
 }
 

@@ -8,6 +8,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { metaTrack, type MetaContent } from "./meta";
+import { track as vercelTrack } from "@vercel/analytics";
+import { franFyndauktionen } from "./fran-fyndauktionen";
 
 export type Item = {
   item_id: string;
@@ -315,4 +317,56 @@ export function trackPurchase(orderId: string | null | undefined, finalTotal?: n
     );
   }
   clearPurchaseSnapshot();
+}
+
+// ── Fyndauktionen: knappen, korten och varukorgen (2026-11-04) ──────────────
+//
+// ChatGPT:s audit, punkt 5: följ hur många som går från startsidans knapp till
+// ett auktionsobjekt och lägger det i varukorgen. Två mätare:
+//
+//   GA4 (bara för besökare som godkänt): select_promotion på knappen och
+//   bannern, select_item med item_list_id "fyndauktion" på korten. GA4 knyter
+//   själv add_to_cart och köpet till listan och kampanjen.
+//   Vercel Web Analytics (cookiefritt): en räknare per steg. Kräver att
+//   projektets plan tar emot egna händelser; annars försvinner de tyst.
+//
+// Ingenting sparas på besökarens enhet. Varukorgen räknas som auktionens när
+// besökaren kom till produktsidan från /fyndauktion (document.referrer):
+// korten är vanliga <a>-länkar och Referrer-Policy är
+// strict-origin-when-cross-origin (next.config.ts), så adressen följer med.
+
+export type AuktionKalla = "startknapp" | "banner";
+
+function vercel(namn: string) {
+  try {
+    vercelTrack(namn);
+  } catch {
+    // Mätningen får aldrig stoppa ett klick.
+  }
+}
+
+/** Klick på startsidans knapp eller banner till /fyndauktion. */
+export function trackAuktionLank(kalla: AuktionKalla) {
+  send("select_promotion", {
+    promotion_id: `fyndauktion-${kalla}`,
+    promotion_name: "Fyndauktionen",
+    creative_slot: kalla,
+  });
+  vercel(`auktion_${kalla}`);
+}
+
+/** Klick på ett auktionskort (sidan, hjältekortet eller mobilens rad). */
+export function trackAuktionKort(a: { id: string; name: string; priceNum: number }) {
+  send("select_item", {
+    item_list_id: "fyndauktion",
+    item_list_name: "Fyndauktionen",
+    items: [{ item_id: a.id, item_name: a.name, price: a.priceNum, quantity: 1 }],
+  });
+  vercel("auktion_kort");
+}
+
+/** Varukorgen på en produktsida dit besökaren kom från /fyndauktion. */
+export function trackAuktionVarukorg() {
+  if (typeof window === "undefined") return;
+  if (franFyndauktionen(document.referrer, window.location.origin)) vercel("auktion_varukorg");
 }

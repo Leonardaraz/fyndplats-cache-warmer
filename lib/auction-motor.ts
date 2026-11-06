@@ -94,7 +94,7 @@ export function auktionssidanSkaTommas(orsak: string): boolean {
 export async function hämtaAuktionsrader(
   status: "live" | "sold",
   d: Beroenden = {},
-  val: { sida?: "fyndauktion" } = {},
+  val: { sida?: "fyndauktion" | "flode" } = {},
 ): Promise<MotorRad[]> {
   const hemlighet = hemlighetEller(d);
   if (!hemlighet) {
@@ -108,7 +108,13 @@ export async function hämtaAuktionsrader(
   try {
     const res = await f(url, {
       headers: { authorization: `Bearer ${hemlighet}` },
-      next: { revalidate: 15, tags: val.sida ? ["auctions", AUKTIONSSIDANS_TAGG] : ["auctions"] },
+      // Produktflödena (sida "flode", lib/flode-auktion.ts) byggs högst en gång i
+      // timmen; 15 s hade sänkt hela flödets ISR till 15 s. Egen adress ger egen
+      // cachepost, så startsidans färska rader inte ärver flödets timme.
+      next: {
+        revalidate: val.sida === "flode" ? 3600 : 15,
+        tags: val.sida === "fyndauktion" ? ["auctions", AUKTIONSSIDANS_TAGG] : ["auctions"],
+      },
     } as RequestInit);
     if (!res.ok) {
       console.error(`[auction-motor] rader?status=${status} svarade ${res.status}`);

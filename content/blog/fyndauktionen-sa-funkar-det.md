@@ -20,7 +20,7 @@ Det är en gammal och beprövad idé – holländsk auktion, samma modell som bl
 
 ## Så funkar det
 
-1. **Kl 07:00** – dagens fem fynd startar på ordinarie pris. Inga påhittade "förr"-priser: startpriset är exakt vad produkten kostar hos oss varje annan dag.
+1. **Kl 07:00** – dagens fynd startar på ordinarie pris. Inga påhittade "förr"-priser: startpriset är exakt vad produkten kostar hos oss varje annan dag.
 2. **Varje hel timme** – priset sänks ett steg. Du ser alltid en nedräkning till nästa sänkning.
 3. **Kl 18–19** – sista timmen ligger priset på dagens absoluta botten. Det är då det brinner till.
 4. **Kl 19:00** – auktionsdagen stänger. Osålda produkter går tillbaka till ordinarie pris, och nästa morgon kl 07 tar fem nya fynd deras plats.
@@ -52,6 +52,6 @@ Poolen bakom auktionen består av **flera hundra produkter ur hela vårt sortime
 
 Och ett litet tips till kvällsmänniskorna: sidan **ser annorlunda ut ju senare det blir**. Gå in vid 18-tiden en dag, så förstår du vad vi menar.
 
-**[→ Till Fyndauktionen – se dagens fem fynd](/fyndauktion)**
+**[→ Till Fyndauktionen – se dagens fynd](/fyndauktion)**
 
 *Fri frakt över 499 kr, snabb leverans från EU-lager och betalning med Klarna – precis som vanligt.*
