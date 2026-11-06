@@ -68,9 +68,21 @@ fort någon tittade (kund, sökmotor, länkförladdning).
   stickprovssidor fortfarande kalla (1,1 s mot 0,4). Ett pass som stoppas på
   sin deadline lämnar nu resten till ett led: ett POST till samma rutt med
   listan i kroppen och `CRON_SECRET`, som svarar 202 och värmer efter svaret.
-  Högst åtta led (`MAX_LED` i `lib/warm-urval.ts`), och listorna värms av det
+  Högst tre led (`MAX_LED` i `lib/warm-urval.ts`), och listorna värms av det
   led som gör katalogen klar. Läs `[varm-katalogen] led N`-raderna i loggen
   efter en deploy: den sista ska säga `katalogen klar`.
+- ☠️ **Led 4 nekades, och kedjan sa ändå "katalogen klar" (2026-11-06).**
+  Efter båda nattens deployer värmde led 1–3 som vanligt (248–704 sidor
+  vardera på 200 s), men led 4 fick nej på varje sida direkt: "värmde 0/3736
+  (fel 3736) — katalogen klar. Listor: 0/139", tusentals hämtningar på tolv
+  sekunder. Varje led startas inifrån det förra, och fem anrop djupt nekas
+  anropen (troligen Vercels skydd mot anrop i slinga). 2 300–3 700
+  produktsidor och alla listor förblev kalla, och provet (de tolv fasta
+  sidorna) såg varmt ut, så ingen körning tog vid. Leonard bad om manuell
+  uppvärmning samma morgon. Nu: högst tre led, 700 s per körning
+  (`maxDuration` 800), felens statuskoder i loggraden (`fel 2328: 508×2328`),
+  och ett pass där varje hämtning nekades (`allaNekade`) kallas aldrig klart
+  och startar ingen kedja.
 - Menyns siffror hämtas från `/api/meny-antal` och varukorgens förslag från
   `/api/kundvagn-forslag`, i webbläsaren. Länkarna ligger kvar i HTML:en.
 - `validFrom` är första dagen i månaden och `priceValidUntil` sista dagen i

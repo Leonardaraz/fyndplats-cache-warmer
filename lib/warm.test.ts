@@ -4,7 +4,7 @@
 // i något gränssnitt, bara på fakturan. Därför låses den här.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { arSakerSlug, fastProv, kvarEfterPass, MAX_KVAR, MAX_LED, PROV_STORLEK, roterad, tolkaLed } from "./warm-urval.ts";
+import { allaNekade, arSakerSlug, fastProv, felkoder, kvarEfterPass, MAX_KVAR, MAX_LED, PROV_STORLEK, roterad, tolkaLed } from "./warm-urval.ts";
 
 const katalog = (n: number) => Array.from({ length: n }, (_, i) => `produkt-${i}`);
 
@@ -176,4 +176,53 @@ test("kedjan stannar efter MAX_LED och säger hur många som blev kvar", () => {
   assert.equal(k.led, MAX_LED);
   assert.equal(k.kvar, 500);
   assert.equal(k.varmda.size, kapacitet * (MAX_LED + 1));
+});
+
+
+// ── Led 4 nekades (2026-11-06) ────────────────────────────────────────────
+//
+// Efter båda nattens deployer värmde led 1–3 som vanligt, men led 4 fick nej på
+// varje sida direkt ("0/3736 (fel 3736)" och "0/2328 (fel 2328)") och sa sedan
+// "katalogen klar". Taket är därför det djup som fungerade, och ett led får
+// 700 s i stället för 200.
+
+test("kedjan går aldrig djupare än tre led, det djup som fungerade 2026-11-06", () => {
+  assert.ok(MAX_LED <= 3, `MAX_LED är ${MAX_LED}`);
+  assert.ok(!("fel" in tolkaLed({ led: 3, kvar: ["a"] })));
+  assert.ok("fel" in tolkaLed({ led: 4, kvar: ["a"] }), "ett led 4 tas aldrig emot");
+});
+
+test("tre led à 700 s räcker till katalogen från 2026-11-06", () => {
+  // 6 016 produktsidor. Natten mot 2026-11-06 hann ett led 250–700 kalla sidor
+  // på 200 s; på 700 s blir det ungefär 870–2 450. Räknat lågt till 1 600.
+  const k = kedja(6016, 1600);
+  assert.equal(k.varmda.size, 6016, "varje sida värms");
+  assert.equal(k.kvar, 0);
+  assert.ok(k.led <= MAX_LED);
+});
+
+test("ett pass där allt nekades är inte klart, ett pass med något värmt är det", () => {
+  assert.equal(allaNekade({ ok: 0, fel: 3736 }), true, "led 4 natten mot 2026-11-06");
+  assert.equal(allaNekade({ ok: 0, fel: 0 }), false, "ett tomt pass har inte nekats");
+  assert.equal(allaNekade({ ok: 1, fel: 3735 }), false, "en enda värmd sida betyder att vägen fungerar");
+});
+
+test("felkoderna står i loggen, vanligast först", () => {
+  assert.equal(felkoder({ "508": 2328 }), "508×2328");
+  assert.equal(felkoder({ "0": 3, "508": 10, "500": 3 }), "508×10, 0×3, 500×3", "lika många i kodordning");
+  assert.equal(felkoder({}), "");
+});
+
+test("rutten kallar aldrig ett nekat pass klart och loggar felkoderna", async () => {
+  // Rutten drar in Next och går inte att köra här; kopplingen prövas i källan.
+  const { readFile } = await import("node:fs/promises");
+  const rutt = await readFile(new URL("../app/api/cron/varm-katalogen/route.ts", import.meta.url), "utf8");
+  const led = rutt.slice(rutt.indexOf("export async function POST("));
+  assert.ok(led.indexOf("allaNekade(pass)") > -1, "ledet prövar om allt nekades");
+  assert.ok(led.indexOf("allaNekade(pass)") < led.indexOf("katalogen klar"), "före raden som säger att katalogen är klar");
+  assert.ok(led.indexOf("allaNekade(pass)") < led.indexOf("startaLed("), "och innan nästa led startas");
+  const kron = rutt.slice(rutt.indexOf("export async function GET("), rutt.indexOf("export async function POST("));
+  assert.ok(kron.indexOf("allaNekade(varmning)") > -1 && kron.indexOf("allaNekade(varmning)") < kron.indexOf("startaLed("), "kronan startar ingen kedja på ett nekat pass");
+  assert.match(rutt, /export const maxDuration = 800;/);
+  assert.match(rutt, /felkoder\(pass\.koder\)/, "statuskoderna står i loggraden");
 });
