@@ -1425,8 +1425,9 @@ tills det är klart, och Leonard får ett mejl om det inte går:
 
 ☠️ **Återbetala bara i Wix, aldrig i Stripes panel.** Leonard återbetalar som
 för alla ordrar: raderna och frakten väljs i Wix, och medlemskapets
-orderliggare läser uppdelningen per rad. Kassans betalning står på ordern med
-`refundDisabled: false`, så Wix bokför återbetalningen som manuell (Wix kan
+orderliggare läser uppdelningen per rad. Kassans betalning står på ordern som
+en **offlinebetalning** med Stripes id (`offlinePayment: true`,
+`registreraBetalning`), så Wix bokför återbetalningen som manuell (Wix kan
 inte själv nå Stripe), och butiken gör den i Stripe (`speglaAterbetalningar` i
 `flode.ts`): summan av Wix lyckade återbetalningar på betalningen mot Stripes
 summa på laddningen, och skillnaden tillbaka. Wix-webhooken (`refund`) speglar
@@ -1516,16 +1517,52 @@ provas; den kräver samtycke för kakor, som Klarnas.
   kan inte provas lokalt (ingen plånbok i Playwright); byggs och provas med
   hans iPhone på en förhandslänk.
 
-**Kvar före riktiga kunder:** Leonards Stripe-konto med Klarna, kort, Apple Pay
-och Google Pay; nycklarna i Vercel (test i Preview, live i Production);
-webhooken (`payment_intent.amount_capturable_updated` och
-`payment_intent.succeeded` till `https://www.fyndplats.se/api/stripe/webhook`);
-domänen för Apple Pay; ett prov från början till slut med testnycklar på en
-förhandslänk; att Add Payments gör ordern betald och godkänd med Wix
-orderbekräftelse, webhooks och motorns orderflöde (prövas med den dolda
-testvaran och Leonards ja, eftersom Meta CAPI och motorn reagerar); en
-återbetalning i Wix på provordern, som ska bli manuell i Wix och speglas i
-Stripe (och se om Wix skickar `refund_completed` för en manuell
-återbetalning; annars tar nätet den inom en kvart); egna påminnelser om
-övergivna kassor; Stripe-inställningarna (kortutdragets text "FYNDPLATS",
-Stripes egna kvitton av, Radar-regler).
+### Slutprovet (Leonards ja, 2026-11-06 12:30–12:37 UTC)
+
+På förhandslänken med Leonards testnycklar (nya kontot Fyndplats, SE/SEK),
+växeln på `prov` och den dolda testvaran synlig i 2 min 37 s. En provorder
+med en provadress som köpare, avbruten efteråt.
+- **Tre kort:** 4000 0000 0000 0002 gav "Ditt kort nekades." på 3,5 s och
+  ingen order. 3D Secure-kortet 4000 0027 6000 3184 med misslyckad
+  verifiering gav den allmänna texten "försök igen om en stund" (rättat:
+  `TEXT_VERIFIERING` för `payment_intent_authentication_failure`). Samma kort
+  med godkänd verifiering: verifieringssidan efter 4,5 s, `/tack` med
+  ordernumret efter 14 s; `klar` tog 4,4 s på servern och `forbered`
+  1,5–1,8 s. 0 sidfel.
+- **Ordern i Wix:** APPROVED och PAID, kanal WEB, `purchaseFlowId`, varan och
+  frakten rätt, saldo 0. Vårt bekräftelsemejl gick 7 s efter ordern (Resend), Wix
+  `order.approved` nådde butiken och motorn (motorn: inga fel, ingen
+  leverantörsuppgift för testvaran).
+- ☠️ **Återbetalningen nekades:** som onlinebetalning (`offlinePayment:
+  false`, som förut) svarade Get Order Refundability `nonRefundable
+  TRANSACTION_NOT_FOUND` och Refund Payments 428 `PAYMENT_NOT_REFUNDABLE`,
+  också med `externalRefund: true`. Leonard hade inte kunnat återbetala en
+  enda Stripe-order i Wix. Prov på samma order med en offlinebetalning på
+  0,01 kr: `manuallyRefundable OFFLINE`, den manuella återbetalningen gick
+  igenom (SCHEDULED, SUCCEEDED inom en minut, `refund_completed` till
+  webhooken), och Wix behöll `providerTransactionId` på offlinebetalningen.
+  Därför registreras kassans betalning nu som offline; ett källprov låser det
+  (`aterbetalning.test.ts`).
+- **Place Order lägger en egen väntande betalning** på hela beloppet (Wix
+  Payments-order, inget leverantörs-id). Ordern blir ändå betald av vår, men
+  panelen visar en väntande betalning. Den markeras nu avbruten efter vår
+  registrering (`platshallarbetalningar`, `avbrytPlatshallare`, Update
+  Payment Status CANCELED, provat på provordern). Faller det står den kvar, och
+  inget annat påverkas.
+- **Speglingen till Stripe är inte provad mot Stripe** än: provorderns
+  betalning var registrerad online och gick inte att återbetala i Wix. Nätet
+  på förhandslänken gick utan larm (`aterbetalningar: ordrar 2, 0 larm`).
+  Den provas i nästa provköp med offlinebetalningen.
+- Stripes testbetalning står kvar som dragen i testläget (inga riktiga
+  pengar).
+
+**Kvar före riktiga kunder:** ett andra provköp på förhandslänken med
+offlinebetalningen: återbetala i Wix och se den speglas i Stripe, och se att
+platshållaren avbryts; Klarna från en svensk uppkoppling (Leonards telefon);
+live-nycklarna i Production (en begränsad nyckel med PaymentIntents skriva,
+Charges läsa, Refunds skriva och Disputes läsa); webhooken
+(`payment_intent.amount_capturable_updated` och `payment_intent.succeeded`
+till `https://www.fyndplats.se/api/stripe/webhook`, hemligheten i
+`STRIPE_WEBHOOK_SECRET`); domänen för Apple Pay; egna påminnelser om övergivna
+kassor; Stripe-inställningarna (kortutdragets text "FYNDPLATS", Stripes egna
+kvitton av, Radar-regler).

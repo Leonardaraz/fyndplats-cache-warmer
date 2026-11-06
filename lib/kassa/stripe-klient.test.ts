@@ -11,6 +11,7 @@ import {
   RETUR_SOKVAG,
   SPARAD_MS,
   STRIPE_MEDDELANDE,
+  TEXT_VERIFIERING,
   avsiktUrKakor,
   betalfelText,
   elementsInstallningar,
@@ -229,4 +230,13 @@ test("betalfel: Stripes egen text för kort- och formulärfel, annars vår", () 
   assert.equal(betalfelText({ type: "validation_error", message: "Kortnumret är ofullständigt." }), "Kortnumret är ofullständigt.");
   assert.match(betalfelText({ type: "api_error", message: "Internal" }), /Ingen betalning drogs/);
   assert.match(betalfelText(null), /Ingen betalning drogs/);
+});
+
+test("betalfel: bankens verifiering som inte godkändes säger det, inte \"försök igen om en stund\"", () => {
+  // Slutprovet 2026-11-06: 3D Secure-kortet med misslyckad verifiering gav förut den allmänna texten.
+  const fel = { type: "invalid_request_error", code: "payment_intent_authentication_failure", message: "We are unable to authenticate your payment method." };
+  assert.equal(betalfelText(fel), TEXT_VERIFIERING);
+  assert.match(TEXT_VERIFIERING, /Ingen betalning drogs/);
+  assert.doesNotMatch(TEXT_VERIFIERING, /om en stund/);
+  assert.equal(betalfelText({ type: "card_error", code: "card_declined", message: "Ditt kort nekades." }), "Ditt kort nekades.");
 });

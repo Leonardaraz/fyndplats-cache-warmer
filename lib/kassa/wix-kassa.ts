@@ -7,7 +7,7 @@
 
 import { wixFetch, WixApiError } from "@/lib/wix-client";
 import type { Forsok, KassaDeps, Korg, Kund, OrderTransaktioner, Rakning, Tidigare } from "./flode";
-import { arKorgensBetalning, KASSA_MARKOR, medOmforsok } from "./flode";
+import { arKorgensBetalning, KASSA_MARKOR, medOmforsok, platshallarbetalningar } from "./flode";
 
 const korgSokvag = (id: string) => `/ecom/v2/carts/${encodeURIComponent(id)}`;
 
@@ -120,9 +120,18 @@ export async function laggOrder(cartId: string, prisbevis: string | null): Promi
 /**
  * Stripes betalning som godkänd betalning på ordern (Add Payments). Inga pengar
  * rör sig här; ordern räknar om sin betalstatus asynkront och blir betald.
- * Återbetalningen görs i Wix som för andra ordrar, och därför refundDisabled
- * false: Wix bokför den som manuell (betalningen gick inte genom Wix), och
- * butiken gör den i Stripe (speglaAterbetalningar i lib/kassa/flode.ts).
+ * Återbetalningen görs i Wix som för andra ordrar: Wix bokför den som manuell,
+ * och butiken gör den i Stripe (speglaAterbetalningar i lib/kassa/flode.ts).
+ *
+ * ☠️ OFFLINE, annars går den inte att återbetala i Wix. Uppmätt i slutprovet
+ * 2026-11-06 (provordern): som onlinebetalning svarar Get Order
+ * Refundability nonRefundable TRANSACTION_NOT_FOUND (Wix letar efter
+ * transaktionen i sin egen kassa) och Refund Payments 428 PAYMENT_NOT_REFUNDABLE,
+ * också med externalRefund. Som offlinebetalning blir den manuallyRefundable
+ * OFFLINE, och en manuell återbetalning går igenom (SCHEDULED, SUCCEEDED inom en
+ * minut). Wix behåller providerTransactionId också på en offlinebetalning, tvärt
+ * emot dokumentationen, så speglingen hittar laddningen och Add Payments nekar
+ * fortfarande en dubblett.
  */
 export async function registreraBetalning(orderId: string, b: { belopp: string; transaktion: string; namn: string; tid: string }): Promise<void> {
   await forsokIgen(() =>
@@ -138,7 +147,7 @@ export async function registreraBetalning(orderId: string, b: { belopp: string; 
             refundDisabled: false,
             regularPaymentDetails: {
               providerTransactionId: b.transaktion.slice(0, 100),
-              offlinePayment: false,
+              offlinePayment: true,
               paymentMethodName: { buyerLanguageName: b.namn, siteLanguageName: b.namn },
             },
           },
@@ -157,6 +166,25 @@ export async function orderTransaktioner(orderId: string): Promise<OrderTransakt
     wixFetch<{ orderTransactions?: Partial<OrderTransaktioner> }>({ path: `/ecom/v1/payments/orders/${encodeURIComponent(orderId)}` }),
   );
   return { payments: svar?.orderTransactions?.payments ?? [], refunds: svar?.orderTransactions?.refunds ?? [] };
+}
+
+/**
+ * Place Orders egen väntande betalning (platshallarbetalningar i flode.ts)
+ * markeras avbruten när vår betalning står på ordern. Inga pengar rör sig
+ * (Update Payment Status ändrar bara posten). Antalet avbrutna.
+ */
+export async function avbrytPlatshallare(orderId: string): Promise<number> {
+  const ids = platshallarbetalningar(await orderTransaktioner(orderId));
+  for (const id of ids) {
+    await forsokIgen(() =>
+      wixFetch({
+        method: "POST",
+        path: `/ecom/v1/payments/${encodeURIComponent(id)}/orders/${encodeURIComponent(orderId)}/update-payment-transaction-status`,
+        body: { status: "CANCELED" },
+      }),
+    );
+  }
+  return ids.length;
 }
 
 /**

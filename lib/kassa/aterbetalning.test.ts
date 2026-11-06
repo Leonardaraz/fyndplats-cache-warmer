@@ -3,6 +3,7 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   NAT_LARM_SEK,
   STRIPE_ATER_KALLA,
@@ -10,6 +11,7 @@ import {
   larmNu,
   larmnyckel,
   ordrarMedStripeAterbetalning,
+  platshallarbetalningar,
   speglaAterbetalningar,
   speglingsbeslut,
   wixStripeBetalningar,
@@ -26,7 +28,7 @@ const kr = (ore: number) => (ore / 100).toFixed(2);
 /** Orderns transaktioner i Wix: kassans betalning (ch_1) och återbetalningar på den. */
 function wix(betaltOre: number, ater: { ore: number; status?: string }[] = [], andra: OrderTransaktioner["payments"] = []): OrderTransaktioner {
   return {
-    payments: [{ id: "p-stripe", amount: { amount: kr(betaltOre) }, regularPaymentDetails: { providerTransactionId: "ch_1", offlinePayment: false } }, ...andra],
+    payments: [{ id: "p-stripe", amount: { amount: kr(betaltOre) }, regularPaymentDetails: { providerTransactionId: "ch_1", offlinePayment: true } }, ...andra],
     refunds: ater.map((a, i) => ({ id: `r-${i}`, transactions: [{ paymentId: "p-stripe", amount: { amount: kr(a.ore) }, refundStatus: a.status ?? "SUCCEEDED" }] })),
   };
 }
@@ -90,7 +92,10 @@ test("wixStripeBetalningar: bara kassans Stripe-betalningar, och bara lyckade å
       { id: "p-stripe", amount: { amount: "659.00" }, regularPaymentDetails: { providerTransactionId: "ch_1", offlinePayment: false } },
       // Wix Payments Klarna (uppmätt 2026-11-06 på en riktig order): leverantörens GUID.
       { id: "p-wix", amount: { amount: "1059.00" }, regularPaymentDetails: { providerTransactionId: "19b9accd-7bde-897f-af90-5fee40189481", offlinePayment: false } },
+      // Kassan registrerar sina betalningar som offline (slutprovet 2026-11-06): de räknas.
       { id: "p-offline", amount: { amount: "10.00" }, regularPaymentDetails: { providerTransactionId: "ch_offline", offlinePayment: true } },
+      // Kontant eller bankgiro, markerat i panelen: offline utan Stripes id.
+      { id: "p-kontant", amount: { amount: "20.00" }, regularPaymentDetails: { offlinePayment: true } },
       { id: "p-presentkort", amount: { amount: "50.00" } },
     ],
     refunds: [
@@ -98,13 +103,64 @@ test("wixStripeBetalningar: bara kassans Stripe-betalningar, och bara lyckade å
       { id: "r2", transactions: [{ paymentId: "p-stripe", amount: { amount: "50.00" }, refundStatus: "PENDING" }] },
       { id: "r3", transactions: [{ paymentId: "p-stripe", amount: { amount: "30.00" }, refundStatus: "FAILED" }] },
       { id: "r4", transactions: [{ paymentId: "p-wix", amount: { amount: "1059" }, refundStatus: "SUCCEEDED" }] },
+      { id: "r5", transactions: [{ paymentId: "p-kontant", amount: { amount: "20.00" }, refundStatus: "SUCCEEDED" }] },
     ],
   };
-  assert.deepEqual(wixStripeBetalningar(t), [{ betalningId: "p-stripe", transaktion: "ch_1", beloppOre: 65900, aterbetaltOre: 10000, pagar: true, okant: false }]);
+  assert.deepEqual(wixStripeBetalningar(t), [
+    { betalningId: "p-stripe", transaktion: "ch_1", beloppOre: 65900, aterbetaltOre: 10000, pagar: true, okant: false },
+    { betalningId: "p-offline", transaktion: "ch_offline", beloppOre: 1000, aterbetaltOre: 0, pagar: false, okant: false },
+  ]);
   // Klarna och kort via Stripe har ch_ eller py_; utan laddning sparas betalningens pi_.
   const med = (id: string): OrderTransaktioner => ({ payments: [{ id: "p", amount: { amount: "1" }, regularPaymentDetails: { providerTransactionId: id } }], refunds: [] });
   for (const id of ["ch_3Abc", "py_3Abc", "pi_3Abc"]) assert.equal(wixStripeBetalningar(med(id))[0]?.transaktion, id);
   for (const id of ["re_3Abc", "ch_3Abc&x", "ch_", "CH_3Abc", ""]) assert.deepEqual(wixStripeBetalningar(med(id)), [], id);
+});
+
+test("wixStripeBetalningar: provordern som Wix visade den (slutprovet 2026-11-06)", () => {
+  // Place Orders väntande platshållare, kassans offlinebetalning och en manuell
+  // återbetalning, först SCHEDULED och en minut senare SUCCEEDED.
+  const order = (status: string): OrderTransaktioner => ({
+    payments: [
+      { id: "p-platshallare", amount: { amount: "118.90" }, status: "PENDING", regularPaymentDetails: { offlinePayment: false, paymentOrderId: "wix-betalorder" } },
+      { id: "p-kassan", amount: { amount: "118.90" }, status: "APPROVED", regularPaymentDetails: { providerTransactionId: "ch_3Prov", offlinePayment: true } },
+    ],
+    refunds: [{ id: "r1", transactions: [{ paymentId: "p-kassan", amount: { amount: "118.90" }, refundStatus: status }] }],
+  });
+  assert.deepEqual(wixStripeBetalningar(order("SCHEDULED")), [{ betalningId: "p-kassan", transaktion: "ch_3Prov", beloppOre: 11890, aterbetaltOre: 0, pagar: true, okant: false }]);
+  assert.deepEqual(wixStripeBetalningar(order("SUCCEEDED")), [{ betalningId: "p-kassan", transaktion: "ch_3Prov", beloppOre: 11890, aterbetaltOre: 11890, pagar: false, okant: false }]);
+});
+
+test("registreraBetalning: kassans betalning registreras som offline, annars nekar Wix all återbetalning", () => {
+  // wix-kassa.ts går inte att köra här (Wix-klienten), så källan läses. Uppmätt i
+  // slutprovet 2026-11-06: online → 428 PAYMENT_NOT_REFUNDABLE (TRANSACTION_NOT_FOUND).
+  const kalla = readFileSync(new URL("./wix-kassa.ts", import.meta.url), "utf8");
+  const start = kalla.indexOf("export async function registreraBetalning");
+  assert.ok(start >= 0, "registreraBetalning finns");
+  const slut = kalla.indexOf("\nexport ", start + 10);
+  const kropp = kalla.slice(start, slut < 0 ? undefined : slut);
+  assert.match(kropp, /offlinePayment:\s*true/);
+  assert.doesNotMatch(kropp, /offlinePayment:\s*false/);
+  assert.match(kropp, /providerTransactionId:/, "Stripes id följer med, så speglingen hittar laddningen");
+});
+
+test("platshallarbetalningar: bara Place Orders väntande betalning utan pengar bakom", () => {
+  const t: OrderTransaktioner = {
+    payments: [
+      { id: "p-platshallare", status: "PENDING", regularPaymentDetails: { offlinePayment: false, paymentOrderId: "wix-betalorder" } },
+      { id: "p-kassan", status: "APPROVED", regularPaymentDetails: { providerTransactionId: "ch_1", offlinePayment: true } },
+      // Wix Payments-betalning som väntar på leverantören: har leverantörens id.
+      { id: "p-wix-vantar", status: "PENDING", regularPaymentDetails: { providerTransactionId: "19b9accd", paymentOrderId: "wix-2" } },
+      // Kontant som väntar på att Leonard bekräftar den.
+      { id: "p-kontant", status: "PENDING", regularPaymentDetails: { offlinePayment: true, paymentOrderId: "wix-3" } },
+      { id: "p-avbruten", status: "CANCELED", regularPaymentDetails: { offlinePayment: false, paymentOrderId: "wix-4" } },
+      { id: "p-utan-order", status: "PENDING", regularPaymentDetails: { offlinePayment: false } },
+      { status: "PENDING", regularPaymentDetails: { paymentOrderId: "wix-5" } },
+      { id: "p-presentkort", status: "PENDING" },
+    ],
+    refunds: [],
+  };
+  assert.deepEqual(platshallarbetalningar(t), ["p-platshallare"]);
+  assert.deepEqual(platshallarbetalningar({ payments: [], refunds: [] }), []);
 });
 
 test("wixStripeBetalningar: ett belopp som inte går att läsa gör betalningen okänd, inte noll", () => {

@@ -7,7 +7,7 @@
 
 import type { AterbetalningDeps, StripeKassaDeps } from "./flode";
 import { speglaAterbetalningar } from "./flode";
-import { avbrytOrder, hamtaKorg, laggOrder, laggTillKupong, orderBetalningar, orderTransaktioner, rakna, registreraBetalning, sattLeverans, taBortKupong, uppdateraKorg } from "./wix-kassa";
+import { avbrytOrder, avbrytPlatshallare, hamtaKorg, laggOrder, laggTillKupong, orderBetalningar, orderTransaktioner, rakna, registreraBetalning, sattLeverans, taBortKupong, uppdateraKorg } from "./wix-kassa";
 import { aterbetala, aterbetalaDel, dra, hamtaAvsikt, hamtaLaddning, harStripe, markeraAvsikt, skapaAvsikt, slappAvsikt, uppdateraAvsikt } from "./stripe";
 import { sparaLas, tagLas } from "./stripe-las";
 
@@ -25,6 +25,7 @@ export const stripeKassa: StripeKassaDeps = {
   sattLeverans,
   laggOrder,
   registreraBetalning,
+  avbrytPlatshallare,
   orderBetalningar,
   avbrytOrder,
   skapaAvsikt,

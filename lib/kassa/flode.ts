@@ -603,6 +603,8 @@ export interface StripeKassaDeps {
   laggOrder(cartId: string, prisbevis: string | null): Promise<{ orderId: string }>;
   /** Add Payments: Stripes betalning som godkänd betalning på ordern. */
   registreraBetalning(orderId: string, b: { belopp: string; transaktion: string; namn: string; tid: string }): Promise<void>;
+  /** Place Orders väntande platshållare markeras avbruten (platshallarbetalningar); antalet. */
+  avbrytPlatshallare?(orderId: string): Promise<number>;
   /**
    * Betalningarna som redan står på ordern, som transaktions-id (List
    * Transactions). Add Payments nekar en dubblett och gör då ingenting, och en
@@ -1024,6 +1026,13 @@ export async function slutforStripe(deps: StripeKassaDeps, avsiktId: string, nu:
     logg(`[kassa] ☠️ betalningen registrerades inte på ordern (tas om): ${e instanceof Error ? e.message.slice(0, 300) : e}`);
     return { ok: true, orderId: orderId!, ofullstandig: true };
   }
+  // Ordern är betald av vår betalning; Place Orders väntande platshållare är
+  // bara skräp i panelen. Faller det står den kvar, och inget annat påverkas.
+  if (deps.avbrytPlatshallare) {
+    await deps
+      .avbrytPlatshallare(orderId!)
+      .catch((e) => logg(`[kassa] platshållarbetalningen står kvar på ordern: ${e instanceof Error ? e.message.slice(0, 120) : e}`));
+  }
   await deps.markeraAvsikt(a.id, orderId!).catch((e) => logg(`[kassa] metadata på betalningen: ${e instanceof Error ? e.message.slice(0, 120) : e}`));
   await deps.sparaLas(a.id, { ...las, steg: "klar" }).catch(() => {});
   return { ok: true, orderId: orderId! };
@@ -1034,8 +1043,9 @@ export async function slutforStripe(deps: StripeKassaDeps, avsiktId: string, nu:
 //
 // Leonard återbetalar i Wix som för alla andra ordrar: där väljs raderna och
 // frakten, och medlemskapets orderliggare läser uppdelningen per rad.
-// Stripe-betalningen står på ordern som en betalning Wix inte själv kan betala
-// tillbaka (registreraBetalning, `refundDisabled: false`): Wix bokför
+// Stripe-betalningen står på ordern som en offlinebetalning med Stripes id
+// (registreraBetalning, `offlinePayment: true`; som onlinebetalning nekade Wix
+// all återbetalning, uppmätt i slutprovet 2026-11-06): Wix bokför
 // återbetalningen som manuell, men pengarna ligger i Stripe. Butiken speglar
 // den: summan av Wix lyckade återbetalningar på betalningen jämförs med vad
 // Stripe redan betalat tillbaka på laddningen, och skillnaden betalas tillbaka
@@ -1067,7 +1077,27 @@ export async function slutforStripe(deps: StripeKassaDeps, avsiktId: string, nu:
 export interface WixOrderBetalning {
   id?: string;
   amount?: Pengar;
-  regularPaymentDetails?: { providerTransactionId?: string; offlinePayment?: boolean };
+  status?: string;
+  regularPaymentDetails?: { providerTransactionId?: string; offlinePayment?: boolean; paymentOrderId?: string };
+}
+
+/**
+ * Place Orders egen betalning: Wix lägger en väntande betalning på hela
+ * beloppet, kopplad till en Wix Payments-order och utan leverantörens id, som
+ * ingen betalar (kunden betalade i Stripe). Uppmätt i slutprovet 2026-11-06
+ * (provordern): ordern blir ändå betald av vår betalning (saldo 0), men
+ * panelen visar en väntande betalning. Den markeras avbruten när vår betalning
+ * står på ordern (avbrytPlatshallare i wix-kassa.ts; Update Payment Status
+ * CANCELED gick igenom på provordern). Bara väntande, online, med Wix order-id och
+ * utan leverantörens id: en betalning med pengar bakom rörs aldrig.
+ */
+export function platshallarbetalningar(t: OrderTransaktioner): string[] {
+  return t.payments
+    .filter((p) => {
+      const d = p.regularPaymentDetails;
+      return Boolean(p.id) && p.status === "PENDING" && !!d && !d.offlinePayment && !d.providerTransactionId && Boolean(d.paymentOrderId);
+    })
+    .map((p) => p.id!);
 }
 
 /** En återbetalning på ordern, med en transaktion per betalning den gäller. */
@@ -1133,13 +1163,16 @@ export function arStripeTransaktion(id: string | undefined): id is string {
  * Orderns betalningar med Stripes id, med det Wix säger är återbetalt på var
  * och en. Wix egna betalningar (Wix Payments, Klarna via Wix) bär Wix och
  * leverantörens id och hoppas över; en med ett Stripe-likt id som inte är vår
- * hittas inte i vårt Stripe-konto (speglingsbeslut "inte_var").
+ * hittas inte i vårt Stripe-konto (speglingsbeslut "inte_var"). Kassan
+ * registrerar sina betalningar som offline (registreraBetalning), så offline
+ * räknas: Wix behåller Stripes id på dem (uppmätt 2026-11-06). En
+ * offlinebetalning utan Stripes id (kontant, bankgiro) hoppas över som förut.
  */
 export function wixStripeBetalningar(t: OrderTransaktioner): WixStripeBetalning[] {
   const ut: WixStripeBetalning[] = [];
   for (const p of t.payments) {
     const transaktion = p.regularPaymentDetails?.providerTransactionId;
-    if (!p.id || p.regularPaymentDetails?.offlinePayment || !arStripeTransaktion(transaktion)) continue;
+    if (!p.id || !arStripeTransaktion(transaktion)) continue;
     let aterbetaltOre = 0;
     let pagar = false;
     let okant = false;

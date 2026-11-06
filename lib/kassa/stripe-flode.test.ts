@@ -104,6 +104,8 @@ function fejk(o: {
   aterbetalaFel?: boolean;
   markeraFel?: boolean;
   kupong?: "ok" | "ogiltig";
+  /** Place Orders platshållare: "ok" avbryts, "fel" faller. Utan den saknas beroendet. */
+  platshallare?: "ok" | "fel";
 } = {}): Fejk {
   const anrop: string[] = [];
   const las = new Map<string, StripeLas>();
@@ -204,6 +206,13 @@ function fejk(o: {
       las.set(id, l);
     },
   };
+  if (o.platshallare) {
+    deps.avbrytPlatshallare = async (orderId) => {
+      anrop.push(`platshallare:${orderId}`);
+      if (o.platshallare === "fel") throw new Error("Wix 500");
+      return 1;
+    };
+  }
   return { deps, anrop, las, skapade, registrerat };
 }
 
@@ -314,6 +323,32 @@ test("slutför: ordern skapas före dragningen, och betalningen registreras efte
   assert.equal(f.las.get("pi_1")?.steg, "klar");
   assert.ok(f.anrop.includes("markera:pi_1:order-1"));
   assert.ok(!f.anrop.some((x) => x.startsWith("orderBetalningar") || x.startsWith("hamtaKorg")), "första försöket läser varken ordern eller korgen");
+});
+
+test("slutför: Place Orders platshållare avbryts först när vår betalning står på ordern", async () => {
+  const f = fejk({ platshallare: "ok" });
+  assert.deepEqual(await slutforStripe(f.deps, "pi_1", NU), { ok: true, orderId: "order-1" });
+  const i = (s: string) => f.anrop.findIndex((x) => x.startsWith(s));
+  assert.ok(i("registrera:") >= 0 && i("registrera:") < i("platshallare:order-1"), "efter registreringen");
+  assert.ok(i("platshallare:") < i("markera:"));
+  assert.equal(f.las.get("pi_1")?.steg, "klar");
+});
+
+test("slutför: en platshållare som inte går att avbryta stoppar ingenting", async () => {
+  const loggar: string[] = [];
+  const f = fejk({ platshallare: "fel" });
+  f.deps.logg = (rad) => loggar.push(rad);
+  assert.deepEqual(await slutforStripe(f.deps, "pi_1", NU), { ok: true, orderId: "order-1" });
+  assert.equal(f.las.get("pi_1")?.steg, "klar");
+  assert.ok(f.anrop.includes("markera:pi_1:order-1"));
+  assert.ok(loggar.some((r) => r.includes("platshållarbetalningen står kvar") && !r.includes("☠️")), loggar.join(" | "));
+});
+
+test("slutför: utan registrerad betalning rörs platshållaren inte", async () => {
+  const f = fejk({ platshallare: "ok", registreraFel: true });
+  const r = await slutforStripe(f.deps, "pi_1", NU);
+  assert.deepEqual(r, { ok: true, orderId: "order-1", ofullstandig: true });
+  assert.ok(!f.anrop.some((x) => x.startsWith("platshallare")), "ordern är inte betald av oss än");
 });
 
 test("slutför: en betalning som redan blev en order svarar med ordern utan att röra något", async () => {

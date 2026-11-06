@@ -261,8 +261,14 @@ export function stripeMeddelande(kod: string | null): string | null {
   return STRIPE_MEDDELANDE[tillbakaKod(kod)];
 }
 
+/** Text när bankens verifiering (3D Secure, BankID) inte godkändes: kunden kan göra något åt den. */
+export const TEXT_VERIFIERING = "Banken godkände inte verifieringen. Ingen betalning drogs. Försök igen, eller välj ett annat kort eller betalsätt.";
+
 /** Felet från stripe.confirmPayment eller elements.submit, med kundens ord. */
-export function betalfelText(e: { type?: string; message?: string } | null | undefined): string {
+export function betalfelText(e: { type?: string; code?: string; message?: string } | null | undefined): string {
+  // Bankens verifiering som avbröts eller nekades: förut stod "försök igen om en
+  // stund", som om felet var vårt (slutprovet 2026-11-06, 3D Secure-kortet).
+  if (e?.code === "payment_intent_authentication_failure") return TEXT_VERIFIERING;
   // Kort- och formulärfel har Stripes egen svenska text (locale "sv"): den säger vad som är fel.
   if (e && (e.type === "card_error" || e.type === "validation_error") && e.message) return e.message;
   return "Betalningen kunde inte genomföras just nu. Ingen betalning drogs. Försök igen om en stund.";
