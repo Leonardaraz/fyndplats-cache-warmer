@@ -1317,11 +1317,24 @@ Det som inte får ändras:
   för att skapa en order till. Ett lås äldre än 120 s tas över.
 - ☠️ **Create Order (`ecom/v1/orders`) används inte:** Wix tillåter fem anrop i
   timmen för opublicerade appar. `place-order` är vägen.
-- ☠️ **Faktureringsuppgifterna skickas med i bekräftelsen**
-  (`faktureringsuppgifter`). Betalfältet frågar aldrig efter dem
-  (`fields.billingDetails: "never"`), och då kräver Stripe VARJE fält, också
-  `state` och `line2` som tomma strängar: ett saknat fält stoppar betalningen.
-  Provat lokalt 2026-11-06 mot riktiga Stripe.js.
+- ☠️ **Faktureringsuppgifterna kommer från servern** (`faktureringAv` i
+  `flode.ts`, i svaret från `forbered`) och skickas med i bekräftelsen.
+  Betalfältet frågar aldrig efter dem (`fields.billingDetails: "never"`), och
+  då kräver Stripe VARJE fält, också `state` och `line2` som tomma strängar:
+  ett saknat fält stoppar betalningen. Adressen formas på ett ställe
+  (`stripeAdress`), så att leveransen på betalningen och faktureringen är
+  samma adress skriven på samma sätt (Klarna jämför). Provat lokalt
+  2026-11-06 mot riktiga Stripe.js.
+- ☠️ **Kort först, Klarna sist och aldrig förvalt** (`BETALFALT`), fast två av
+  tre köp är Klarna. Lagen (2010:751) om betaltjänster (prop. 2019/20:79,
+  sedan 2020-07-01): finns ett betalsätt utan kredit ska det visas först, och
+  ett med kredit får inte vara förvalt. "Kredit" ska förstås brett, och
+  Klarnas val rymmer "betala om 30 dagar" och delbetalning. Brott räknas som
+  otillbörlig marknadsföring (KO). Fältet fäller ut det första valet, kortet;
+  Klarna väljs aktivt. Provet låser regeln, inte bara ordningen. Den nya
+  konsumentkreditlagen (CCD2, i kraft 2026-11-20) räknar också räntefri
+  faktura som kredit; en butik som får ersättning från kreditgivaren kan bli
+  kreditförmedlare (Fyndplats får ingen).
 - ☠️ **Betalfältet och PaymentIntenten måste ha samma valuta och dragning**
   (`sek`, `manual`), annars nekar Stripe bekräftelsen. Provet i
   `stripe-klient.test.ts` jämför med `avsiktParametrar`.
@@ -1331,18 +1344,27 @@ Det som inte får ändras:
   betalningen tillbaka. En ny betalning får en unik nyckel; kundens försök
   återanvänds via `avsiktId` (localStorage `fp_kassa_stripe`, 24 h, bara samma
   korg), och dubbeltrycket stoppas i sidan (`pagar`-refen).
-- ☠️ **Klarnas retur går via `/api/kassa/stripe/retur`**, som skickar vidare till
-  `/kassa/klar?avsikt=pi_…` med bara betalningens id. Stripe lägger
-  `client_secret` i return_url, och sidorna laddar GA4 och Meta, som sparar hela
-  adressen. Blev det ingen order går kunden till `/kassa?stripe=<kod>`
-  (`avbruten`, `pris_andrat`, `slut`, `fel`), som säger varför och tar bort
-  koden ur adressen.
+- ☠️ **Klarnas retur går via `/api/kassa/stripe/retur`**, som lägger
+  betalningens id i kakan `fp_kassa_avsikt` (sökväg `/kassa/klar`, 15
+  minuter, ingen annan sida ser den) och skickar till `/kassa/klar` utan
+  något i adressen. Stripe lägger `client_secret` i return_url, och sidorna
+  laddar GA4 och Meta, som sparar hela adressen; inte ens betalningens id ska
+  stå där. `/kassa/klar` läser och tar bort kakan. Blev det ingen order går
+  kunden till `/kassa?stripe=<kod>` (`avbruten`, `pris_andrat`, `slut`, `fel`),
+  som säger varför och tar bort koden ur adressen.
 - **Ändrad total stoppar före betalningen:** räknar Wix fram en annan total än
   den kunden ser (fältets belopp) visas den nya, och kunden trycker igen.
-- **"Betalningen är godkänd" efter en minut:** svarar servern fortfarande
-  `pagar` efter 60 s säger sidan att orderbekräftelsen kommer via e-post, och
-  knappen låses (webhooken slutför). Kunden ska aldrig uppmanas att betala igen
-  när pengarna kan vara reserverade.
+- **"Betalningen är godkänd" efter en minut:** en väntan för båda sidorna
+  (`vantaPaOrder` i `stripe-klient.ts`: frågar `klar` med växande vila, högst
+  3 s, också genom nätfel och 5xx; ett nej är ett nej direkt). Svarar servern
+  fortfarande `pagar` efter 60 s säger sidan att orderbekräftelsen kommer via
+  e-post, och knappen låses (webhooken slutför). Kunden ska aldrig uppmanas
+  att betala igen när pengarna kan vara reserverade.
+- **Inga typsnitt från Google i Stripes ram:** butiken lägger sina typsnitt på
+  egen server, och betalfältet använder systemets typsnitt (`UTSEENDE`).
+- **Loggraderna:** inga kunduppgifter. Rader med ☠️ (pengar som inte står där
+  de ska) går till `console.error` och syns bland Vercels körfel; resten är
+  varningar (`lib/kassa/stripe-kassa.ts`).
 - **Apple Pay kräver domänen:** filen
   `public/.well-known/apple-developer-merchantid-domain-association` (Stripes,
   samma för alla Stripe-konton) och domänen `www.fyndplats.se` registrerad i
@@ -1390,6 +1412,60 @@ tills det är klart, och Leonard får ett mejl om det inte går:
   tillbaka); kunden fick höra att inget drogs. `charge_already_refunded` och
   en redan släppt reservation är inga fel.
 
+### Återbetalningar och tvister (2026-11-06)
+
+☠️ **Återbetala bara i Wix, aldrig i Stripes panel.** Leonard återbetalar som
+för alla ordrar: raderna och frakten väljs i Wix, och medlemskapets
+orderliggare läser uppdelningen per rad. Kassans betalning står på ordern med
+`refundDisabled: false`, så Wix bokför återbetalningen som manuell (Wix kan
+inte själv nå Stripe), och butiken gör den i Stripe (`speglaAterbetalningar` i
+`flode.ts`): summan av Wix lyckade återbetalningar på betalningen mot Stripes
+summa på laddningen, och skillnaden tillbaka. Wix-webhooken (`refund`) speglar
+efter svaret; nätet tar det som faller.
+- ☠️ **Bara auktoritativ data:** webhooken bidrar bara med order-id:t (den kan
+  vara lookup-verifierad); beloppen läses ur orderns transaktioner (List
+  Transactions) och laddningen i Stripe. Betalningen ska bära kassans
+  `kalla`, och `wixOrderId` (när den finns) ska vara ordern; beloppen ska vara
+  lika och i SEK. Annars larm, inga pengar.
+- ☠️ **Idempotensnyckeln är laddningen och STRIPES summa före återbetalningen**
+  (`fp-ater-<laddning>-<öre>`), aldrig Wix summa: två speglingar som läst
+  olika Wix-summor men samma Stripe-summa hade annars båda gått igenom (två
+  delåterbetalningar tätt efter varandra). Nu får de samma nyckel; Stripe gör
+  den ena, nekar den andra (samma nyckel, annat belopp), och den nekade läser
+  om och försöker igen, högst tre rundor. Proven kör en slumpad simulering
+  med samtidiga speglingar mot en låtsas-Stripe med Stripes idempotens.
+- **Stripe före Wix larmar, rättas inte:** följer Leonard Wix råd för manuella
+  betalningar och betalar tillbaka i Stripe först, blir det lika när han sedan
+  bokför i Wix, och inget görs dubbelt. Står Stripe över Wix i 30 minuter
+  mejlas det. Inget svar från Stripe (nätet) är inget larm: nästa spegling
+  läser Stripes summa och ser vad som hände.
+- **Nätet** (`/api/cron/kassa-stripe`, tre delar som felar var för sig):
+  Wix-ordrar med en återbetalning ändrad de senaste två dygnen (Search Orders
+  på `paymentStatus` och `updatedDate`, uppmätt 2026-11-06), plus ordrarna
+  bakom Stripes återbetalningar de senaste tre dygnen; avvikelser mejlas en
+  gång per läge (`larmnyckel`, anspråk i `FyndplatsWebhookMejl`). Tvister som
+  väntar på svar mejlas en gång per tvist, med sista svarsdag.
+- Wix egna betalningar (Wix Payments, Klarna via Wix) bär Wix och
+  leverantörens id och rörs aldrig; ett Stripe-likt id som inte finns i vårt
+  konto (404) hoppas över tyst.
+- Används en begränsad nyckel i Stripe behöver den: PaymentIntents (skriva),
+  Charges (läsa), Refunds (skriva) och Disputes (läsa).
+
+### Klarna-rutan på produktsidan (2026-11-06)
+
+Klarnas egen ruta (OSM, `components/klarna-osm.tsx`) visar villkoren i
+Leonards Klarna-avtal, som gäller i Wix kassa: "Betala inom 30 eller 60 dagar"
+och delbetalning i 3–24 månader. I Stripe-kassan gäller Stripes Klarna (30
+dagar och Stripes delbetalning). När Stripe-kassan är på för alla (växeln
+`pa` och Stripes hemliga nyckel) visar sidan därför vår egen rad ("Betala
+senare – räntefritt med Klarna", sann i båda), och Klarnas skript (0,8 MB)
+laddas inte (`klarnaRuta`, `/api/kassa/klarna`, `lib/use-klarna-ruta.ts`).
+Svaret är detsamma för alla och cachas fem minuter i kanten; utan Stripes
+publika nyckel i bygget frågar sidan ingenting och allt är som förut. Vill
+Leonard visa Stripes egen Klarna-ruta (Payment Method Messaging, villkoren och
+räntan i en ruta från Stripe) kan den läggas in när kontot finns och kan
+provas; den kräver samtycke för kakor, som Klarnas.
+
 **Kvar före riktiga kunder:** Leonards Stripe-konto med Klarna, kort, Apple Pay
 och Google Pay; nycklarna i Vercel (test i Preview, live i Production);
 webhooken (`payment_intent.amount_capturable_updated` och
@@ -1397,9 +1473,9 @@ webhooken (`payment_intent.amount_capturable_updated` och
 domänen för Apple Pay; ett prov från början till slut med testnycklar på en
 förhandslänk; att Add Payments gör ordern betald och godkänd med Wix
 orderbekräftelse, webhooks och motorns orderflöde (prövas med den dolda
-testvaran och Leonards ja, eftersom Meta CAPI och motorn reagerar);
-☠️ återbetalningar: Add Payments står med `refundDisabled`, så en återbetalning
-görs i Stripe och syns inte på Wix-ordern förrän den förs över (förslaget:
-`charge.refunded` → Wix extern återbetalning); egna påminnelser om övergivna
-kassor; Stripe-inställningarna (kortutdragets text "FYNDPLATS", Stripes egna
-kvitton av, Radar-regler).
+testvaran och Leonards ja, eftersom Meta CAPI och motorn reagerar); en
+återbetalning i Wix på provordern, som ska bli manuell i Wix och speglas i
+Stripe (och se om Wix skickar `refund_completed` för en manuell
+återbetalning; annars tar nätet den inom en kvart); egna påminnelser om
+övergivna kassor; Stripe-inställningarna (kortutdragets text "FYNDPLATS",
+Stripes egna kvitton av, Radar-regler).
