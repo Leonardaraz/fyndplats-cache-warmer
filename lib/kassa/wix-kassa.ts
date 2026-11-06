@@ -1,0 +1,231 @@
+// lib/kassa/wix-kassa.ts
+//
+// Wix-anropen bakom vår egen kassa (lib/kassa/flode.ts har flödet och
+// skälen). Alla går med butikens API-nyckel (lib/wix-client.ts), som läser och
+// skriver varukorgar, ordrar och betalningsbegäranden. Formerna är uppmätta mot
+// Wix 2026-11-05/06 med två testordrar, båda avbrutna utan betalning.
+
+import { wixFetch, WixApiError } from "@/lib/wix-client";
+import type { KassaDeps, Korg, Kund, Rakning, Tidigare } from "./flode";
+import { arKorgensBetalning, KASSA_MARKOR } from "./flode";
+
+const korgSokvag = (id: string) => `/ecom/v2/carts/${encodeURIComponent(id)}`;
+
+function adress(k: Kund) {
+  return {
+    country: "SE",
+    city: k.ort,
+    postalCode: k.postnr,
+    addressLine: k.gata,
+    ...(k.co ? { addressLine2: `c/o ${k.co.replace(/^c\/o\s*/i, "")}` } : {}),
+  };
+}
+
+export async function hamtaKorg(cartId: string): Promise<Korg | null> {
+  try {
+    const svar = await wixFetch<{ cart?: Korg }>({ path: korgSokvag(cartId) });
+    return svar?.cart ?? null;
+  } catch (e) {
+    if (e instanceof WixApiError && (e.status === 404 || e.status === 400)) return null;
+    throw e;
+  }
+}
+
+/** Kontakt, leveransadress och fakturaadress (samma) på korgen. */
+export async function uppdateraKorg(cartId: string, k: Kund): Promise<void> {
+  const kontakt = { firstName: k.fornamn, lastName: k.efternamn, phone: k.telefon };
+  await wixFetch({
+    method: "PATCH",
+    path: korgSokvag(cartId),
+    body: {
+      cart: {
+        id: cartId,
+        customerInfo: { email: k.epost, firstName: k.fornamn, lastName: k.efternamn, phone: k.telefon },
+        deliveryInfo: { address: adress(k) },
+        paymentInfo: { billingAddress: adress(k), billingContact: kontakt },
+      },
+    },
+  });
+}
+
+/** Bara landet (och postnumret när det finns), för räkningen innan kunden skrivit adressen. Utan land räknar Wix med serverns land. */
+export async function sattLand(cartId: string, postnr: string | null): Promise<void> {
+  await wixFetch({
+    method: "PATCH",
+    path: korgSokvag(cartId),
+    body: { cart: { id: cartId, deliveryInfo: { address: { country: "SE", ...(postnr ? { postalCode: postnr } : {}) } } } },
+  });
+}
+
+/** "ogiltig" när Wix säger att koden inte finns eller inte gäller; andra fel kastas. */
+export async function laggTillKupong(cartId: string, kod: string): Promise<"ok" | "ogiltig"> {
+  try {
+    await wixFetch({ method: "POST", path: `${korgSokvag(cartId)}/add-coupon`, body: { coupon: { code: kod } } });
+    return "ok";
+  } catch (e) {
+    if (e instanceof WixApiError && e.status >= 400 && e.status < 500 && /COUPON/i.test(e.bodyText)) return "ogiltig";
+    throw e;
+  }
+}
+
+export async function taBortKupong(cartId: string, kupongId: string): Promise<void> {
+  await wixFetch({ method: "POST", path: `${korgSokvag(cartId)}/remove-coupon`, body: { couponId: kupongId } });
+}
+
+/** Räknar korgen med katalogen uppfräschad: priser, lager och rabatter som just nu. */
+export async function rakna(cartId: string): Promise<Rakning> {
+  return wixFetch<Rakning>({ method: "POST", path: `${korgSokvag(cartId)}/calculate`, body: { refreshCart: true } });
+}
+
+export async function sattLeverans(cartId: string, satt: { code: string; appId: string }): Promise<void> {
+  await wixFetch({ method: "POST", path: `${korgSokvag(cartId)}/set-delivery-method`, body: { deliveryMethod: satt } });
+}
+
+/** Checkout V1 `create-order` på korgens id: i Cart V2 är korgens id kassans id. */
+export async function skapaOrder(cartId: string): Promise<{ orderId: string }> {
+  const svar = await wixFetch<{ orderId?: string }>({
+    method: "POST",
+    path: `/ecom/v1/checkouts/${encodeURIComponent(cartId)}/create-order`,
+    body: {},
+  });
+  if (!svar?.orderId) throw new Error("Wix skapade ingen order ur korgen");
+  return { orderId: svar.orderId };
+}
+
+export async function skapaBetalning(b: Parameters<KassaDeps["skapaBetalning"]>[0]): Promise<{ id: string; url: string }> {
+  const svar = await wixFetch<{ orderPaymentRequest?: { id?: string }; orderPaymentRequestUrl?: string }>({
+    method: "POST",
+    path: "/ecom/v1/order-payment-requests",
+    body: {
+      orderPaymentRequest: {
+        orderId: b.orderId,
+        amount: { amount: b.belopp },
+        title: b.titel,
+        description: b.beskrivning,
+        expirationDate: b.utgar,
+        source: { externalId: b.externtId },
+        blockedPaymentMethods: ["MANUAL"],
+      },
+    },
+  });
+  const id = svar?.orderPaymentRequest?.id;
+  const url = svar?.orderPaymentRequestUrl;
+  if (!id || !url) throw new Error("Wix gav ingen betalsida");
+  return { id, url };
+}
+
+interface Betalningsbegaran {
+  id?: string;
+  status?: string;
+  orderId?: string;
+  createdDate?: string;
+  expirationDate?: string;
+  source?: { externalId?: string };
+}
+
+interface OrderKort {
+  id?: string;
+  status?: string;
+  paymentStatus?: string;
+  cartId?: string;
+  checkoutId?: string;
+  number?: string;
+}
+
+export async function hamtaBetalning(id: string): Promise<Betalningsbegaran | null> {
+  try {
+    const svar = await wixFetch<{ orderPaymentRequest?: Betalningsbegaran }>({ path: `/ecom/v1/order-payment-requests/${encodeURIComponent(id)}` });
+    return svar?.orderPaymentRequest ?? null;
+  } catch (e) {
+    if (e instanceof WixApiError && e.status === 404) return null;
+    throw e;
+  }
+}
+
+export async function hamtaOrder(id: string): Promise<OrderKort | null> {
+  try {
+    const svar = await wixFetch<{ order?: OrderKort }>({ path: `/ecom/v1/orders/${encodeURIComponent(id)}` });
+    return svar?.order ?? null;
+  } catch (e) {
+    if (e instanceof WixApiError && e.status === 404) return null;
+    throw e;
+  }
+}
+
+export const arBetald = (o: OrderKort | null | undefined): boolean =>
+  !!o && (o.paymentStatus === "PAID" || o.paymentStatus === "PARTIALLY_REFUNDED" || o.paymentStatus === "FULLY_REFUNDED" || o.status === "APPROVED");
+
+/**
+ * Släpper en obetald order från vår kassa: betalningen makuleras först (så att
+ * den gamla länken aldrig går att betala), sedan avbryts ordern med
+ * återlagring och utan mejl. Bara om båda hör till korgen och kassan.
+ */
+export async function slappOrder(orderId: string, betalningId: string | null, cartId: string | null): Promise<"slappt" | "ej_var" | "betald"> {
+  const order = await hamtaOrder(orderId);
+  if (!order) return "ej_var";
+  if (cartId && order.cartId !== cartId && order.checkoutId !== cartId) return "ej_var";
+  if (arBetald(order)) return "betald";
+  if (betalningId) {
+    const b = await hamtaBetalning(betalningId);
+    if (b && b.orderId !== orderId) return "ej_var";
+    if (b && !(b.source?.externalId ?? "").startsWith(`${KASSA_MARKOR}:`)) return "ej_var";
+    if (b?.status === "PAID") return "betald";
+    if (b?.status === "UNPAID") {
+      await wixFetch({ method: "POST", path: "/ecom/v1/order-payment-requests/void", body: { orderPaymentRequestId: betalningId } });
+    }
+  }
+  if (order.status === "INITIALIZED") {
+    await wixFetch({
+      method: "POST",
+      path: `/ecom/v1/orders/${encodeURIComponent(orderId)}/cancel`,
+      body: { sendOrderCanceledEmail: false, restockAllItems: true },
+    });
+    return "slappt";
+  }
+  return "ej_var";
+}
+
+export async function slappTidigare(cartId: string, t: Tidigare): Promise<"slappt" | "ej_var" | "betald"> {
+  return slappOrder(t.orderId, t.betalningId, cartId);
+}
+
+/** Våra betalningsbegäranden, nyaste först (städjobbet; volymen är några om dagen). */
+export async function senasteKassaBetalningar(antal = 100): Promise<Betalningsbegaran[]> {
+  const svar = await wixFetch<{ orderPaymentRequests?: Betalningsbegaran[] }>({
+    method: "POST",
+    path: "/ecom/v1/order-payment-requests/query",
+    body: { query: { sort: [{ fieldName: "createdDate", order: "DESC" }], cursorPaging: { limit: Math.min(100, antal) } } },
+  });
+  return (svar?.orderPaymentRequests ?? []).filter((b) => (b.source?.externalId ?? "").startsWith(`${KASSA_MARKOR}:`));
+}
+
+/** Betald order: korgen markeras som beställd, så att besökarens varukorg töms. Fel sväljs (webhooken). */
+export async function avslutaKorg(cartId: string, orderId: string): Promise<boolean> {
+  try {
+    await wixFetch({ method: "POST", path: `${korgSokvag(cartId)}/mark-cart-as-completed`, body: { orderId } });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Kassans betalningar för en korg sedan en tidpunkt (för nästa försök och spärren). */
+export async function korgensForsok(cartId: string, sedan: Date): Promise<{ id: string; orderId: string; status: string }[]> {
+  const grans = sedan.getTime();
+  return (await senasteKassaBetalningar(100))
+    .filter((b) => arKorgensBetalning(b.source?.externalId, cartId) && Date.parse(b.createdDate ?? "") >= grans && b.id && b.orderId)
+    .map((b) => ({ id: b.id!, orderId: b.orderId!, status: b.status ?? "" }));
+}
+
+export const wixKassa: KassaDeps = {
+  hamtaKorg,
+  uppdateraKorg,
+  laggTillKupong,
+  taBortKupong,
+  rakna,
+  sattLeverans,
+  skapaOrder,
+  skapaBetalning,
+  slappTidigare,
+  korgensForsok,
+};

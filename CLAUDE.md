@@ -1095,3 +1095,49 @@ utkastet står i `docs/medlemskap-integritetstext-utkast.md`. E1-grinden är
 specens E1-1 till E1-11 och en vecka med avstämning utan avvikelser; svaret
 från `/api/cron/medlemsnivaer` och `FyndplatsMedlemslogg` (område
 `avstamning`) visar dem.
+
+## Vår egen kassa: formuläret hos oss, betalningen på Wix betalsida (2026-11-06)
+
+Leonards val 2026-11-05, efter att Wix mobilkassa lämnade tomrum under
+"Leveransinformation" på iPhone och hoppade när kunden skrev. Formuläret och
+summeringen ligger på `/kassa`; Wix räknar, skapar ordern och tar betalt på sin
+betalsida (`checkout.fyndplats.se/__ecom/payment-request-page/<id>`) med samma
+betalsätt och samma Wix Payments-konto. Koden: `lib/kassa/` (flödet och skälen
+i `flode.ts`), `app/kassa/`, `app/api/kassa/*` och städjobbet
+`/api/cron/kassa-stadning`.
+
+- **Växeln** är raden `FyndplatsButikInstallningar/kassa`, fältet `lage`: `av`
+  (saknas raden: Wix kassa som förut), `prov` (bara den som öppnat
+  `/kassa?prova=1`, kakan `fp_kassa_prov`) eller `pa`. Varukorgen frågar
+  `/api/kassa/lage` när lådan öppnas.
+- ☠️ **Priset kommer bara från Wix.** Kunden skickar formuläret och korgens id.
+  Beloppet på betalningsbegäran är Wix total för ordern som just skapades.
+- **Ordern skapas med Checkout V1 `create-order` på korgens id** (i Cart V2 är
+  korgens id kassans id). Den blir som Wix kassas egna: checkoutId, cartId,
+  purchaseFlowId, moms och leveranstid. Uppmätt med två avbrutna testordrar
+  2026-11-05/06. Cart V2 `place-order` går inte: den kräver en
+  betalnings-token från Wix Cashier-klienten, som inte finns för externa sajter.
+- ☠️ **Ordern reserverar lagret från det att den skapas.** En kund som lämnar
+  betalsidan håller varan. Nästa försök från samma korg släpper den förra
+  ordern (betalningen makuleras först, sedan avbryts ordern med återlagring),
+  och städjobbet varje timme släpper ordrar vars betalningslänk löpt ut
+  (`BETALNING_MINUTER`, 120). Bara betalningar med markören `fp-kassa:` rörs.
+- **Servern hittar själv korgens förra försök** (`fp-kassa:<korg>:<försök>` i
+  betalningens `source.externalId`), så att en kund som bytt flik eller enhet
+  inte lämnar en reserverad order efter sig. En **betald** betalning från samma
+  korg stoppar ett nytt försök (webhooken kan ligga efter och korgen se obeställd
+  ut: ett nytt försök vore ett dubbelköp). Fler än `MAX_FORSOK_PER_TIMME` (8)
+  försök från samma korg på en timme stoppas, eftersom varje försök reserverar
+  lager.
+- **Wix räknar korgen med motorns kassavalidering**, så postnummerspärren för
+  Aosom-varor (`spiViolations`) stoppar också vår kassa, med motorns text.
+- **Korgen markeras som beställd i webhooken** när ordern godkänts (betald):
+  Wix gör det inte själv för en order som skapats före betalningen, och annars
+  står varorna kvar i kundens varukorg.
+- ⚠️ **Betalsidan har ingen väg tillbaka till oss**, och dess logga leder till
+  en tom Wix-sida. Den väntande ordern ligger i sessionStorage; kommer kunden
+  tillbaka till `/kassa` frågar sidan `/api/kassa/status` och går till `/tack`
+  om ordern är betald. Vad betalsidan visar efter betalningen är inte uppmätt
+  (kräver en riktig betalning).
+- **En makulerad länk** visar Wix text "Den här länken är längre tillgänglig"
+  (stavfel hos Wix: "inte" saknas). Kassan skapar därför alltid en ny begäran.

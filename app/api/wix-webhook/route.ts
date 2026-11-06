@@ -16,6 +16,7 @@
 // Felhantering: Resend-fel returnerar 500 så Wix retry:ar. Okänd event-typ
 // returnerar 200 (ack — vi vill inte att Wix ska spamma retries).
 
+import { avslutaKorg } from "@/lib/kassa/wix-kassa";
 import { NextResponse, after, type NextRequest } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
 import crypto from "node:crypto";
@@ -1391,6 +1392,17 @@ export async function POST(req: NextRequest) {
         await recordOrder(entity as Record<string, unknown>);
       } catch (err) {
         console.error("[wix-webhook] recordOrder fel (ignorerar)", err);
+      }
+      // Vår egen kassa (lib/kassa/flode.ts) skapar ordern ur besökarens korg
+      // före betalningen, och Wix markerar inte korgen som beställd förrän
+      // någon säger till. Görs det inte står varorna kvar i kundens varukorg
+      // efter köpet. För Wix kassas ordrar är korgen redan markerad: felet
+      // sväljs (avslutaKorg), och det kostar ett anrop per order.
+      {
+        const o = entity as { cartId?: unknown; checkoutId?: unknown; id?: unknown; _id?: unknown };
+        const korgId = typeof o.cartId === "string" ? o.cartId : typeof o.checkoutId === "string" ? o.checkoutId : "";
+        const orderId = typeof o.id === "string" ? o.id : typeof o._id === "string" ? o._id : "";
+        if (korgId && orderId) after(() => avslutaKorg(korgId, orderId).then(() => undefined));
       }
       // ISR on-demand revalidation: PDPs cachas i sex timmar sedan 2026-10-01
       // (lib/produkt-cache.ts). När ett köp sker måste vi PUSHA en ny version

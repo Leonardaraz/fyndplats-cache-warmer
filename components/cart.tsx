@@ -22,7 +22,7 @@ import { PaymentMarks } from "./payment-marks";
 const STORES_APP_ID = "215238eb-22a5-4c36-9e7b-e7c08025e04e";
 const HEADLESS_CLIENT_ID = "3d8fdd09-3b3c-475f-aac2-b6bfa9e05153";
 
-function liImageUrl(x: any): string {
+export function liImageUrl(x: any): string {
   const u: any = typeof x === "string" ? x : (x?.url || x?.id || "");
   if (!u || typeof u !== "string") return "";
   if (u.startsWith("http")) return u;
@@ -250,6 +250,17 @@ async function byggKassalank(client: any, forvantatId?: string): Promise<Kassala
   return { target, vag };
 }
 
+/** Ska "Till kassan" gå till vår egen kassa? Ett fel betyder nej (Wix kassa). */
+async function fragaEgenKassa(): Promise<boolean> {
+  try {
+    const r = await fetch("/api/kassa/lage", { cache: "no-store" });
+    if (!r.ok) return false;
+    return (await r.json())?.egen === true;
+  } catch {
+    return false;
+  }
+}
+
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<any>(null);
   const [open, setOpen] = useState(false);
@@ -376,6 +387,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } finally { setBusy(false); }
   }, [remove, visaVagn]);
 
+  // Vår kassa eller Wix: frågas en gång när lådan öppnas med varor.
+  const egenKassaRef = useRef<boolean | null>(null);
+
   const checkout = useCallback(async () => {
     if (tillKassan) return;
     setTillKassan(true);
@@ -385,6 +399,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       // routar tillbaka till /tack utan items — purchase-eventet behöver det.
       trackBeginCheckout(cart);
       stashPurchaseSnapshot(cart);
+      // Vår egen kassa (/kassa) när växeln säger det (lib/kassa/lage.ts).
+      // Svaret hämtas när lådan öppnas; finns det inte än frågas det nu, och
+      // ett fel ger Wix kassa som förut.
+      const egen = egenKassaRef.current ?? (await fragaEgenKassa());
+      if (egen) {
+        window.location.href = "/kassa";
+        return;
+      }
       // Adressen förbereds när lådan öppnas (lib/kassalank.ts). Finns en för
       // just den här vagnen används den, annars byggs den nu, som förut.
       const kassaId: string = cart?._id || "";
@@ -415,6 +437,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   // det bygger trycket själv, så ett fel här märks aldrig av kunden.
   const kassaId: string = cart?._id || "";
   const harVaror = (cart?.lineItems?.length ?? 0) > 0;
+  useEffect(() => {
+    if (!open || !harVaror || egenKassaRef.current !== null) return;
+    fragaEgenKassa().then((v) => { egenKassaRef.current = v; }).catch(() => {});
+  }, [open, harVaror]);
   useEffect(() => {
     if (!open || !kassaId || !harVaror) return;
     kassalankMinne
