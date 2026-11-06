@@ -24,7 +24,7 @@ export default function Sekretesspolicy() {
       <ul>
         <li><strong>Uppgifter du själv lämnar</strong> – t.ex. vid köp, kundkonto, nyhetsbrev eller kontakt med kundtjänst: namn, e-post, leverans- och fakturaadress, telefonnummer samt uppgifter om din beställning.</li>
         <li><strong>Uppgifter som samlas in automatiskt</strong> när du besöker webbplatsen – teknisk information om din enhet (IP-adress, webbläsare, operativsystem) och hur du använder webbplatsen, via cookies och liknande tekniker.</li>
-        <li><strong>Uppgifter från vår betalleverantör</strong> – betalningsuppgifter behandlas av Klarna, som kan göra en kredit- eller identitetskontroll och då är självständigt personuppgiftsansvarig.</li>
+        <li><strong>Uppgifter från våra betalleverantörer</strong> – betalningsuppgifter behandlas av Stripe, Klarna och Wix Payments. Klarna kan göra en kredit- eller identitetskontroll. Betalleverantörerna är själva personuppgiftsansvariga för sin egen behandling, till exempel för att förebygga bedrägerier.</li>
       </ul>
 
       <h2>Varför behandlar vi dina personuppgifter?</h2>
@@ -63,7 +63,7 @@ export default function Sekretesspolicy() {
 
       <h2>Vem delar vi uppgifter med?</h2>
       <ul>
-        <li><strong>Betalleverantör:</strong> Klarna hanterar betalningar.</li>
+        <li><strong>Betalleverantörer:</strong> Stripe, Klarna och Wix Payments hanterar betalningar. När du skriver din adress i vår kassa föreslår Stripe adresser med hjälp av Google, och det du skriver skickas då till dem.</li>
         <li><strong>Frakt- och logistikpartners</strong> för att leverera dina varor.</li>
         <li><strong>IT- och plattformsleverantörer</strong> som driftar webbplatsen.</li>
         <li><strong>Marknadsförings- och analysverktyg</strong> (Meta, TikTok, Google) – aktiveras endast vid samtycke.</li>
