@@ -45,7 +45,7 @@ const KUND: KassaVarden = {
 
 test("betalfältet och PaymentIntenten har samma valuta och dragning (annars nekar Stripe bekräftelsen)", () => {
   const e = elementsInstallningar(65900);
-  const p = avsiktParametrar("korg-1", { ...KUND }, 65900, []);
+  const p = avsiktParametrar("korg-1", 65900, []);
   assert.equal(e.mode, "payment");
   assert.equal(e.amount, 65900);
   assert.equal(e.currency, p.currency);
@@ -78,7 +78,7 @@ test("betaltjänstlagen: ett betalsätt utan kredit står först och fälls ut, 
   if (layout.defaultCollapsed !== true) assert.ok(!KREDIT.has(ordning[0]));
 });
 
-test("faktureringen (från servern) har varje fält Stripe kräver, och adressen är leveransadressen", () => {
+test("faktureringen (från servern) har varje fält Stripe kräver, och adressen är kundens leveransadress", () => {
   const f = faktureringAv(KUND);
   assert.equal(f.name, "Prov Provsson");
   assert.equal(f.email, "kund@exempel.se");
@@ -86,18 +86,29 @@ test("faktureringen (från servern) har varje fält Stripe kräver, och adressen
   // Med billingDetails "never" stoppar Stripe betalningen om ett adressfält saknas.
   assert.deepEqual(Object.keys(f.address).sort(), ["city", "country", "line1", "line2", "postal_code", "state"]);
   for (const v of Object.values(f.address)) assert.equal(typeof v, "string");
-  const leverans = avsiktParametrar("korg-1", KUND, 65900, []).shipping.address;
-  assert.deepEqual({ ...f.address, line2: undefined, state: undefined }, { ...leverans, line2: undefined, state: undefined });
+  assert.deepEqual(
+    { line1: f.address.line1, city: f.address.city, postal_code: f.address.postal_code, country: f.address.country },
+    { line1: KUND.gata, city: KUND.ort, postal_code: KUND.postnr.replace(/\s/g, ""), country: "SE" },
+  );
   assert.equal(f.address.line2, "");
   assert.equal(f.address.state, "");
-  assert.equal("line2" in leverans, false, "utan c/o skickas ingen andra rad till Stripe");
+});
+
+test("☠️ betalningen får aldrig leveransadress från servern: adressfältet sätter den vid bekräftelsen", () => {
+  // Adressfältet ligger i samma Elements som betalfältet (Googles förslag är då
+  // gratis), och stripe.confirmPayment skickar dess adress som leverans. Har
+  // servern satt shipping med den hemliga nyckeln nekar Stripe bekräftelsen
+  // (400 payment_intent_invalid_parameter, förhandslänken 2026-11-06 16:06 UTC).
+  assert.equal(adressfaltInstallningar().mode, "shipping");
+  const p = avsiktParametrar("korg-1", 65900, []);
+  assert.equal("shipping" in p, false);
+  assert.deepEqual(Object.keys(p).sort(), ["amount", "automatic_payment_methods", "capture_method", "currency", "description", "metadata"]);
 });
 
 test("faktureringen: c/o på andra raden, som på leveransen", () => {
   const kund = { ...KUND, co: "c/o Andersson" };
   const f = faktureringAv(kund);
   assert.equal(f.address.line2, "c/o Andersson");
-  assert.equal(f.address.line2, avsiktParametrar("korg-1", kund, 100, []).shipping.address.line2);
   assert.equal(faktureringAv({ ...KUND, co: "Andersson" }).address.line2, "c/o Andersson");
 });
 
