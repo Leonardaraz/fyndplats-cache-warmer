@@ -34,3 +34,5 @@ python3 ../../polish-gates/livekoll.py       # InStock, brödsmula, <title> och 
   efter sex timmar.
 - Öppna till sist en av rundans sidor och läs den som kund. Var avsnitten och bilderna
   hamnar syns bara där.
+- Har en sida flera storlekar ska de ligga från minst till störst. En sammanslagning lägger det nya valet sist. Kör `sortera-val-svep.js` (torrt) och se att
+  rundans sidor inte flaggas. Flaggas någon: [*Valens ordning*](../varianter.md#valens-ordning-2026-11-06).
