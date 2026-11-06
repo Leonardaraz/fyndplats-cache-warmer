@@ -9,7 +9,7 @@ import type { AterbetalningDeps, StripeKassaDeps } from "./flode";
 import { speglaAterbetalningar } from "./flode";
 import { avbrytOrder, avbrytPlatshallare, hamtaKorg, laggOrder, laggTillKupong, orderBetalningar, orderTransaktioner, rakna, registreraBetalning, sattLeverans, taBortKupong, uppdateraKorg } from "./wix-kassa";
 import { aterbetala, aterbetalaDel, dra, hamtaAvsikt, hamtaLaddning, harStripe, markeraAvsikt, skapaAvsikt, slappAvsikt, uppdateraAvsikt } from "./stripe";
-import { sparaLas, tagLas } from "./stripe-las";
+import { sparaLas, tagLas, taOverLas } from "./stripe-las";
 
 // Ingen kunddata i raderna: bara steg, belopp i öre och Stripes/Wix felkoder.
 // ☠️-rader (pengar som inte står där de ska) är fel och syns bland Vercels
@@ -36,6 +36,7 @@ export const stripeKassa: StripeKassaDeps = {
   aterbetala,
   markeraAvsikt,
   tagLas,
+  taOverLas,
   sparaLas,
   logg,
 };

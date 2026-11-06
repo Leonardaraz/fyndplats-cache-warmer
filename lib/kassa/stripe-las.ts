@@ -6,7 +6,7 @@
 // steget och ordern, så att en avbruten körning fortsätter där den slutade
 // (lib/kassa/flode.ts, slutforStripe).
 
-import { hamta, infoga, K, spara } from "@/lib/wix-lager";
+import { andringar, hamta, infoga, K, patcha, spara } from "@/lib/wix-lager";
 import type { StripeLas } from "./flode";
 
 const STEG = new Set<StripeLas["steg"]>(["pagar", "order", "registrera", "klar", "fel"]);
@@ -31,4 +31,18 @@ export async function tagLas(avsiktId: string, las: StripeLas): Promise<"tagen" 
 
 export async function sparaLas(avsiktId: string, las: StripeLas): Promise<void> {
   await spara(K.kassaBetalningar, avsiktId, { ...las });
+}
+
+/**
+ * Tar över ett övergivet lås, men bara om raden fortfarande är den som lästes
+ * (samma steg och `at`): en villkorad skrivning (compare-and-set i Wix). Två
+ * körningar som ser samma övergivna lås, till exempel webhookens omförsök och
+ * nätet, kan annars båda ta över och lägga ordern på samma korg (auditen
+ * 2026-11-06). En rad som försvunnit (`at` 0 från tagLas) skapas igen med ett
+ * anspråk, så att bara en vinner också då. Sant bara för den som tog över.
+ */
+export async function taOverLas(avsiktId: string, forra: StripeLas, ny: StripeLas): Promise<boolean> {
+  if (!forra.at) return (await infoga(K.kassaBetalningar, avsiktId, { ...ny })) === "skapad";
+  const u = await patcha(K.kassaBetalningar, avsiktId, andringar({ ...ny }), { steg: forra.steg, at: forra.at });
+  return u.utfall === "applied";
 }
