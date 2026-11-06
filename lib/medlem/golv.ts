@@ -8,6 +8,13 @@
 // landade kostnaden exkl. moms (inköpspris plus frakt). Golvfaktorn är 1,10
 // [P6], och momsen är 25 % på hela sortimentet. Radpriset går aldrig under G.
 //
+// ☠️ HUSETS `landedCostSek` ÄR INKLUSIVE MOMS (lib/pricing/konkurrentregel.ts,
+// lib/pricing/margin-bands.ts drar av momsen för netto). C = landedCostSek /
+// 1,25, alltså G = landedCostSek × 1,10. Första versionen tog landedCostSek som
+// C och lade på momsen en gång till: golvet hamnade 25 % för högt, över
+// listpriset på varje vara, och ingen av 272 varor i lager fick medlemspris
+// (förhandsprovet 2026-11-06).
+//
 // ☠️ KOSTNADEN ÄR HEMLIG. Därför:
 //   - G avrundas UPPÅT till hela kronor. Ett medlemspris som stannar på golvet
 //     visar då inte C på öret för den som läser formeln i det publika repot.
@@ -86,10 +93,20 @@ export function golvAvKostnad(kostnadOre: number): number {
   return Math.ceil(exakt / 100) * 100;
 }
 
+/**
+ * C exkl. moms i öre ur husets landade kostnad, som är inklusive moms. Uppåt
+ * till helt öre, så att golvet aldrig blir lägre än regeln säger.
+ */
+export function kostnadExklMoms(inklOre: number): number {
+  if (!Number.isSafeInteger(inklOre) || inklOre <= 0) throw new Error(`kostnaden måste vara ett positivt heltal, fick ${inklOre}`);
+  return Math.ceil((inklOre * 100) / (100 + MOMS_PROCENT));
+}
+
+/** Variantens C exkl. moms i öre, eller null. `landedCostSek` är inklusive moms. */
 function kostnadIOre(v: { landedCostSek?: number } | undefined): number | null {
   const kr = v?.landedCostSek;
   if (typeof kr !== "number" || !Number.isFinite(kr) || kr <= 0) return null;
-  return Math.round(kr * 100);
+  return kostnadExklMoms(Math.round(kr * 100));
 }
 
 /** Wix ger en produkt utan val den här varianten. */

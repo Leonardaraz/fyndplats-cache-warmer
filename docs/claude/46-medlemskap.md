@@ -123,6 +123,12 @@ mappningar, så butiken frågar motorn (`POST /api/medlem/golv`, logiken i
 - ☠️ **Svaret bär kostnaden**, för prisbeslutsloggen. Bara
   `Authorization: Bearer REVIEW_INGEST_SECRET`, `Cache-Control: no-store`, och
   loggraden bär bara antal.
+- ☠️ **C är exklusive moms, men husets `landedCostSek` är INKLUSIVE moms**
+  (`lib/pricing/konkurrentregel.ts`, `margin-bands.ts`). C = landedCostSek /
+  1,25, uppåt till öre, alltså G = landedCostSek × 1,10. Första versionen
+  (#881) lade på momsen två gånger: golvet låg 25 % för högt, över listpriset
+  på alla 272 varor i lager som mättes på förhandslänken 2026-11-06, och ingen
+  fick medlemspris. Provet i `golv.test.ts` fäller dubbelmomsen.
 - **G avrundas uppåt till hela kronor**, så att ett medlemspris som stannar på
   golvet inte visar C på öret. Formeln står i ett publikt repo.
 - **Inget golv, och därmed inget medlemspris, för:**

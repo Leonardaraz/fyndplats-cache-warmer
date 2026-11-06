@@ -68,7 +68,8 @@ describe("POST /api/medlem/golv", () => {
     expect(svar.status).toBe(200);
     expect(svar.headers.get("cache-control")).toBe("no-store");
     const kropp = await svar.json();
-    expect(kropp.rader[0]).toMatchObject({ produktId: "p1", kostnadOre: 12_345, golvOre: 17_000 });
+    // 123,45 kr landat inkl. moms: C = 98,76 kr exkl. moms, G = 135,80 kr, 136 kr uppåt.
+    expect(kropp.rader[0]).toMatchObject({ produktId: "p1", kostnadOre: 9_876, golvOre: 13_600 });
     expect(kropp.rader[1]).toMatchObject({ produktId: "saknas", golvOre: null, utan: "saknar-mappning" });
     expect(loggar.join("\n")).toContain("2 rader, 1 med golv");
     expect(loggar.join("\n")).not.toMatch(/12345|123[.,]45|170\b|17000/);

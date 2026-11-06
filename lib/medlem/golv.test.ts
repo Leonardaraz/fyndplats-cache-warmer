@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ProductMappingRecord } from "@/lib/store";
-import { golvAvKostnad, golvFor, lasFragor, MAX_RADER } from "./golv";
+import { golvAvKostnad, golvFor, kostnadExklMoms, lasFragor, MAX_RADER } from "./golv";
 
 function mappning(over: Partial<ProductMappingRecord> & { kostnader?: (number | undefined)[] } = {}): ProductMappingRecord {
   const { kostnader = [115], ...rest } = over;
@@ -35,6 +35,22 @@ describe("golvet för medlemspriset", () => {
     expect(() => golvAvKostnad(12.5)).toThrow();
   });
 
+  it("☠️ husets landedCostSek är inklusive moms: golvet är landedCostSek × 1,10, inte × 1,375", () => {
+    // 100 kr landat inkl. moms = 80 kr exkl. moms; G = 80 × 1,10 × 1,25 = 110 kr.
+    expect(kostnadExklMoms(10_000)).toBe(8_000);
+    const m = new Map([["p1", mappning({ kostnader: [100] })]]);
+    const [rad] = golvFor([{ produktId: "p1" }], m, ingaAuktioner);
+    expect(rad.kostnadOre).toBe(8_000);
+    expect(rad.golvOre).toBe(11_000);
+    // Uppåt till öre: golvet blir aldrig lägre än 1,10 × den landade kostnaden.
+    for (const inkl of [1, 99, 12_345, 99_999, 123_457, 1_000_001]) {
+      const g = golvAvKostnad(kostnadExklMoms(inkl));
+      expect(g).toBeGreaterThanOrEqual(Math.ceil((inkl * 110) / 100));
+      expect(g).toBeLessThanOrEqual(Math.ceil((inkl * 110) / 100 / 100) * 100 + 100);
+    }
+    expect(() => kostnadExklMoms(0)).toThrow();
+  });
+
   it("Aosom och VEVOR får golv; varianten matchas på Wix-id", () => {
     const m = new Map([
       ["p1", mappning({ kostnader: [100, 200] })],
@@ -48,8 +64,8 @@ describe("golvet för medlemspriset", () => {
       m,
       ingaAuktioner,
     );
-    expect(svar[0]).toEqual({ produktId: "p1", variantId: "w1", golvOre: golvAvKostnad(20_000), kostnadOre: 20_000 });
-    expect(svar[1].golvOre).toBe(golvAvKostnad(11_500));
+    expect(svar[0]).toEqual({ produktId: "p1", variantId: "w1", golvOre: golvAvKostnad(16_000), kostnadOre: 16_000 });
+    expect(svar[1].golvOre).toBe(golvAvKostnad(9_200));
   });
 
   it("utan träff på varianten används den dyraste, och bara om alla har en kostnad", () => {
@@ -57,16 +73,16 @@ describe("golvet för medlemspriset", () => {
     expect(golvFor([{ produktId: "p1", variantId: "okand" }], m, ingaAuktioner)[0]).toEqual({
       produktId: "p1",
       variantId: "okand",
-      golvOre: golvAvKostnad(30_000),
-      kostnadOre: 30_000,
+      golvOre: golvAvKostnad(24_000),
+      kostnadOre: 24_000,
       hogstaVariant: true,
     });
     const lucka = new Map([["p1", mappning({ kostnader: [100, undefined] })]]);
     expect(golvFor([{ produktId: "p1" }], lucka, ingaAuktioner)[0].utan).toBe("saknar-kostnad");
     // En produkt med en enda variant: standardvarianten och inget id fungerar.
     const en = new Map([["p1", mappning({ kostnader: [100] })]]);
-    expect(golvFor([{ produktId: "p1", variantId: "00000000-0000-0000-0000-000000000000" }], en, ingaAuktioner)[0].kostnadOre).toBe(10_000);
-    expect(golvFor([{ produktId: "p1" }], en, ingaAuktioner)[0].kostnadOre).toBe(10_000);
+    expect(golvFor([{ produktId: "p1", variantId: "00000000-0000-0000-0000-000000000000" }], en, ingaAuktioner)[0].kostnadOre).toBe(8_000);
+    expect(golvFor([{ produktId: "p1" }], en, ingaAuktioner)[0].kostnadOre).toBe(8_000);
   });
 
   it("AliExpress, okänd leverantör, fyndauktion, flagga och saknad mappning ger inget golv", () => {
