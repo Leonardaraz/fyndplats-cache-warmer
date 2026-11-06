@@ -12,7 +12,8 @@ const minne = vi.hoisted(() => {
   const lager = {
     data,
     kol,
-    felVidMassborttagning: false,
+    /** true: varje massborttagning felar; en kollektions namn: bara den. */
+    felVidMassborttagning: false as boolean | string,
     async hamta(k: string, id: string) {
       const r = kol(k).get(id);
       return r ? { ...r } : null;
@@ -24,7 +25,8 @@ const minne = vi.hoisted(() => {
       return kol(k).delete(id) ? "borttagen" : "fanns-inte";
     },
     async taBortManga(k: string, idn: string[]) {
-      if (lager.felVidMassborttagning && idn.length) return { borttagna: 0, fel: ["WDE0055"] };
+      const felar = lager.felVidMassborttagning === true || lager.felVidMassborttagning === k;
+      if (felar && idn.length) return { borttagna: 0, fel: ["WDE0055"] };
       let n = 0;
       for (const id of idn) if (kol(k).delete(id)) n++;
       return { borttagna: n, fel: [] };
@@ -57,6 +59,12 @@ function fyll() {
   minne.kol(MEDLEM_KOL.inloggningar).set("i1", { _id: "i1", epost: EPOST });
   minne.kol(MEDLEM_KOL.inloggningar).set("i2", { _id: "i2", epost: "annan@exempel.se" });
   minne.kol(MEDLEM_KOL.orderliggare).set("o1", { _id: "o1", epost: EPOST });
+  minne.kol(MEDLEM_KOL.sparade).set("sk_0000000000000001", { _id: "sk_0000000000000001", medlemsId: ID, namn: "Kontoret" });
+  minne.kol(MEDLEM_KOL.sparade).set("sk_0000000000000002", { _id: "sk_0000000000000002", medlemsId: "annan", namn: "Hemma" });
+  minne.kol(MEDLEM_KOL.offerter).set("o_000000000001", { _id: "o_000000000001", medlemsId: ID, status: "skickad", meddelande: "Leverans före jul" });
+  minne.kol(MEDLEM_KOL.offerter).set("o_000000000002", { _id: "o_000000000002", medlemsId: ID, status: "utgangen" });
+  minne.kol(MEDLEM_KOL.offerter).set("o_000000000003", { _id: "o_000000000003", medlemsId: ID, status: "betald" });
+  minne.kol(MEDLEM_KOL.offerter).set("o_000000000004", { _id: "o_000000000004", medlemsId: "annan", status: "skickad" });
 }
 
 beforeEach(() => {
@@ -65,7 +73,7 @@ beforeEach(() => {
 });
 
 describe("taBortKonto", () => {
-  it("tar bort medlemmen, profilen, nivåbytena och inloggningarna, men lämnar orderliggaren och andra medlemmar", async () => {
+  it("tar bort medlemmen, profilen, nivåbytena, inloggningarna, de sparade korgarna och de obetalda offerterna, men lämnar orderliggaren, betalda offerter och andra medlemmar", async () => {
     fyll();
     expect(await taBortKonto(ID, ORSAK)).toBe("ok");
     expect(minne.kol(MEDLEM_KOL.medlemmar).size).toBe(0);
@@ -73,9 +81,12 @@ describe("taBortKonto", () => {
     expect([...minne.kol(MEDLEM_KOL.nivaer).keys()]).toEqual(["annan__2026-11-04"]);
     expect([...minne.kol(MEDLEM_KOL.inloggningar).keys()]).toEqual(["i2"]);
     expect(minne.kol(MEDLEM_KOL.orderliggare).size).toBe(1);
+    expect([...minne.kol(MEDLEM_KOL.sparade).keys()]).toEqual(["sk_0000000000000002"]);
+    // Den betalda offerten hör till en order och står kvar; den andras rörs inte.
+    expect([...minne.kol(MEDLEM_KOL.offerter).keys()]).toEqual(["o_000000000003", "o_000000000004"]);
     const logg = [...minne.kol(MEDLEM_KOL.logg).values()];
     expect(logg).toHaveLength(1);
-    expect(logg[0]).toMatchObject({ typ: "konto-borttaget", medlemsId: ID, efter: { nivabyten: 2, inloggningar: 1 } });
+    expect(logg[0]).toMatchObject({ typ: "konto-borttaget", medlemsId: ID, efter: { nivabyten: 2, inloggningar: 1, sparadeKorgar: 1, offerter: 2, betaldaOfferterKvar: 1 } });
     expect(JSON.stringify(logg[0])).not.toContain(EPOST);
   });
 
@@ -85,6 +96,14 @@ describe("taBortKonto", () => {
     expect(await taBortKonto(ID, ORSAK)).toMatch(/Kontot står kvar/);
     expect(minne.kol(MEDLEM_KOL.medlemmar).has(ID)).toBe(true);
     expect(minne.kol(MEDLEM_KOL.profiler).size).toBe(1);
+    expect(minne.kol(MEDLEM_KOL.logg).size).toBe(0);
+  });
+
+  it("står kvar när bara offerterna inte går att ta bort", async () => {
+    fyll();
+    minne.felVidMassborttagning = MEDLEM_KOL.offerter;
+    expect(await taBortKonto(ID, ORSAK)).toMatch(/offerterna gick inte att ta bort \(1 fel\)\. Kontot står kvar/);
+    expect(minne.kol(MEDLEM_KOL.medlemmar).has(ID)).toBe(true);
     expect(minne.kol(MEDLEM_KOL.logg).size).toBe(0);
   });
 

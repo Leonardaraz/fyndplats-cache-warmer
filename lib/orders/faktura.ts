@@ -23,6 +23,7 @@
 // än en med fel moms.
 
 import { escapeHtml } from "../email/html";
+import { ACTIONABLE_PAYMENT } from "./guard";
 import { KUND_BRAND, kundSidfotText } from "../email/kundmejl";
 
 /** Säljaren, som på butikens sekretesspolicy och i `app/layout.tsx` (headless-site). */
@@ -46,6 +47,111 @@ export const FAKTURA_FRAN = "2026-10-09T00:00:00.000Z";
 
 /** Betalningsvillkor om konfigurationen inte säger annat. */
 export const STANDARD_DAGAR = 30;
+
+/**
+ * Förskottsfaktura (medlemskapet E3, Leonards svar 3.3 2026-11-05). Wix har
+ * inget API som slår på ett betalsätt, och manuell betalning i panelen syns
+ * för alla kunder. Butiken skapar därför en obetald handlagd order åt ett
+ * godkänt företag (`POST /ecom/v1/orders`) och skriver FORSKOTT_MARKOR först i
+ * ordernoteringen. En sådan order:
+ *   - får fakturan härifrån som vilken fakturaorder som helst, men med
+ *     förfallodagen högst FORSKOTT_DAGAR bort och texten att varorna skickas
+ *     när betalningen har kommit in;
+ *   - ☠️ får inga leverantörsuppgifter förrän den är betald
+ *     (`/api/wix-order`), eftersom ingenting ska beställas innan pengarna
+ *     finns. När den markeras betald i Wix skapar kvittokörningen uppgifterna
+ *     (`efterBetalning` i faktura-kor.ts), och återhämtningen är nätet under.
+ * Villkoren för företagskonto, punkt 5.1, lovar detsamma.
+ */
+export const FORSKOTT_DAGAR = 10;
+export const FORSKOTT_MARKOR = "Förskottsfaktura";
+
+/** En förskottsorder: lagd för hand (eller av butiken) med markören först i noteringen. */
+export function arForskottsorder(o: Pick<FakturaOrder, "channelInfo" | "buyerNote">): boolean {
+  if (o.channelInfo?.type !== "BACKOFFICE_MERCHANT") return false;
+  return (o.buyerNote ?? "").trim().toLowerCase().startsWith(FORSKOTT_MARKOR.toLowerCase());
+}
+
+/**
+ * Ska webhooken hålla inne leverantörsuppgifterna? Ja för en förskottsorder
+ * som inte är betald. Samma betalstatusar som vakten och återhämtningen
+ * (ACTIONABLE_PAYMENT), så att de tre aldrig blir oense.
+ */
+export function vantarPaForskottsbetalning(o: Pick<FakturaOrder, "channelInfo" | "buyerNote" | "paymentStatus">): boolean {
+  return arForskottsorder(o) && !ACTIONABLE_PAYMENT.has(o.paymentStatus ?? "");
+}
+
+/**
+ * Kvittot för ett köp i kassan som företag (medlemskapet E3, villkoren för
+ * företagskonto 5.2: "Kvitto och faktura med köparens namn och adress, och för
+ * ett bolag organisationsnumret, skickas med e-post"). Ett godkänt företag som
+ * betalar med kort eller Klarna får samma PDF som fakturaordrarnas kvitto, med
+ * företagets namn och fakturaadress och, för ett bolag, organisationsnumret.
+ * Wix kvitton är avstängda sedan 2026-10-09, och butikens orderbekräftelse bär
+ * inte företaget.
+ *
+ * Vilka ordrar det gäller (`arKassakop`): en order ur kassan, inte handlagd,
+ * betald, skapad från och med KASSAKVITTO_FRAN, vars köpflöde
+ * (`purchaseFlowId`) har ett prisbeslut med `foretagNamn` i
+ * `FyndplatsPrisbeslut`. Butiken sparar beslutet när kunden går till kassan,
+ * med företagets uppgifter som de var då (`foretagOrgnr`, `foretagFaktura`). En
+ * privat medlemskorg och en vanlig korg har inget företag och får inget kvitto
+ * härifrån.
+ *
+ * ☠️ ORGANISATIONSNUMRET KOMMER BARA UR BESLUTET, och bara ett nummer som är en
+ * juridisk persons (siffra tre och fyra minst 20). En enskild firmas nummer är
+ * ägarens personnummer: butiken lägger det aldrig på beslutet, och skulle det
+ * ändå stå där skrivs det inte ut. Ett nummer som kunden skrivit i
+ * ordernoteringen läses aldrig för ett köp i kassan.
+ */
+export const KASSAKVITTO_FRAN = "2026-11-06T00:00:00.000Z";
+const KASSAKVITTO_BETALD = new Set(["PAID", "PARTIALLY_REFUNDED"]);
+
+export interface Foretagsuppgifter {
+  namn: string;
+  /** Bara en juridisk persons nummer, "NNNNNN-NNNN"; aldrig en enskild firmas. */
+  orgnr?: string;
+  /** Fakturaadressen i företagsprofilen när kunden gick till kassan. */
+  adress?: { gata: string; postnr: string; ort: string };
+}
+
+/** Ett betalt köp ur kassan som kan ha gjorts som företag. Beslutet avgör sedan. */
+export function arKassakop(
+  o: Pick<FakturaOrder, "channelInfo" | "status" | "paymentStatus" | "createdDate" | "_createdDate" | "purchaseFlowId">,
+): boolean {
+  if (o.channelInfo?.type === "BACKOFFICE_MERCHANT") return false;
+  if (o.status === "CANCELED" || o.status === "INITIATED") return false;
+  if (!KASSAKVITTO_BETALD.has(o.paymentStatus ?? "")) return false;
+  if (!o.purchaseFlowId) return false;
+  const skapad = o.createdDate ?? o._createdDate;
+  return Boolean(skapad && skapad >= KASSAKVITTO_FRAN);
+}
+
+/** En juridisk persons organisationsnummer: "NNNNNN-NNNN" med siffra tre och fyra minst 20. */
+export function arJuridisktOrgnr(v: string): boolean {
+  return /^\d{6}-\d{4}$/.test(v) && Number(v.slice(2, 4)) >= 20;
+}
+
+/**
+ * Prisbeslutets rad (`FyndplatsPrisbeslut`, butikens lib/medlem/lager.ts) →
+ * företaget bakom köpet, eller null när korgen prissattes som privatperson.
+ */
+export function foretagUrBeslut(rad: Record<string, unknown>): Foretagsuppgifter | null {
+  const namn = typeof rad.foretagNamn === "string" ? rad.foretagNamn.trim() : "";
+  if (!namn) return null;
+  const orgnr = typeof rad.foretagOrgnr === "string" ? rad.foretagOrgnr.trim() : "";
+  const a = rad.foretagFaktura;
+  const falt = (k: string) =>
+    a && typeof a === "object" && typeof (a as Record<string, unknown>)[k] === "string"
+      ? ((a as Record<string, unknown>)[k] as string).trim()
+      : "";
+  const adress = { gata: falt("gata"), postnr: falt("postnr"), ort: falt("ort") };
+  return {
+    namn,
+    ...(arJuridisktOrgnr(orgnr) ? { orgnr } : {}),
+    ...(adress.gata && adress.ort ? { adress } : {}),
+  };
+}
 
 /**
  * Fakturans valuta. `byggFaktura` vägrar allt annat, och koden står på
@@ -93,6 +199,8 @@ export interface FakturaOrder {
   currency?: string;
   taxIncludedInPrices?: boolean;
   channelInfo?: { type?: string };
+  /** Köpflödet: samma id som varukorgen och kassan bar (prisbeslutet, `arKassakop`). */
+  purchaseFlowId?: string;
   buyerInfo?: { email?: string };
   buyerNote?: string;
   billingInfo?: { address?: Adress; contactDetails?: Kontakt };
@@ -142,6 +250,10 @@ export interface FakturaRad {
 
 export interface Faktura {
   orderId: string;
+  /** Förskottsfaktura: varorna skickas när den är betald (arForskottsorder). */
+  forskott: boolean;
+  /** Kvitto för ett köp i kassan som företag (byggKassakvitto); numret är ordernumret. */
+  kassakop?: boolean;
   /** Fakturanumret är ordernumret, så kunden och vi talar om samma sak. */
   nummer: string;
   fakturadatum: string;
@@ -316,14 +428,17 @@ export function byggFaktura(o: FakturaOrder, nu: Date, betalning: Betalningsuppg
   const lev = o.shippingInfo?.logistics?.shippingDestination ?? o.recipientInfo;
   const notering = lasNotering(o.buyerNote);
   const skapad = o.createdDate ?? o._createdDate;
+  const forskott = arForskottsorder(o);
+  const dagar = forskott ? Math.min(betalning.dagar, FORSKOTT_DAGAR) : betalning.dagar;
 
   return {
     ok: true,
     faktura: {
       orderId: o.id,
+      forskott,
       nummer: o.number,
       fakturadatum: svensktDatum(nu),
-      forfallodatum: svensktDatum(plusDagar(nu, betalning.dagar)),
+      forfallodatum: svensktDatum(plusDagar(nu, dagar)),
       orderdatum: skapad ? svensktDatum(new Date(skapad)) : svensktDatum(nu),
       kund: {
         foretag: kontakt?.company?.trim() || undefined,
@@ -347,6 +462,92 @@ export function byggFaktura(o: FakturaOrder, nu: Date, betalning: Betalningsuppg
       betalning,
     },
   };
+}
+
+/** "15244" → "152 44", som Wix och butiken skriver svenska postnummer. */
+function postnummer(p: string): string {
+  const s = p.replace(/\s+/g, "");
+  return /^\d{5}$/.test(s) ? `${s.slice(0, 3)} ${s.slice(3)}` : p.trim();
+}
+
+/**
+ * Kvittot för ett köp i kassan. Beloppen, raderna och leveransen kommer ur
+ * ordern som för en fakturaorder (`byggFaktura`, avstämda mot Wix). Köpt som
+ * företag är köparen företaget ur prisbeslutet; annars (`null`, kvittot på
+ * Mina sidor för en privatperson) är det kassans fakturauppgifter.
+ * Organisationsnumret sätts alltid härifrån, även när det saknas, så att ett
+ * nummer i kundens ordernotering aldrig följer med.
+ */
+export function byggKassakvitto(
+  o: FakturaOrder,
+  foretag: Foretagsuppgifter | null,
+  nu: Date,
+  betalning: Betalningsuppgifter,
+): FakturaUtfall {
+  const namn = foretag ? foretag.namn.trim() : "";
+  if (foretag && !namn) return { ok: false, fel: "beslutet saknar företagets namn" };
+  const byggd = byggFaktura(o, nu, betalning);
+  if (!byggd.ok) return byggd;
+  const f = byggd.faktura;
+  const a = foretag?.adress;
+  const adressrader = a ? [a.gata, `${postnummer(a.postnr)} ${a.ort}`.trim()] : f.kund.adressrader;
+  return {
+    ok: true,
+    faktura: {
+      ...f,
+      forskott: false,
+      kassakop: true,
+      kund: {
+        ...f.kund,
+        foretag: foretag ? namn : f.kund.foretag,
+        orgnr: foretag?.orgnr && arJuridisktOrgnr(foretag.orgnr) ? foretag.orgnr : undefined,
+        adressrader,
+      },
+    },
+  };
+}
+
+/** Betalstatusar där ordern har betalats och ett kvitto gäller. */
+export const KVITTO_BETALD = KASSAKVITTO_BETALD;
+
+export type ArkivUtfall =
+  | { ok: true; faktura: Faktura; betaldDatum: string }
+  | { ok: false; skal: "inte-din" | "avbruten" | "obetald" | "inget-kvitto" | "fel"; fel?: string };
+
+/**
+ * Kvittot för en order på Mina sidor (butikens /konto, `/api/medlem/kvitto`).
+ * Samma PDF som mejlen, ritad på nytt ur ordern:
+ *   - ☠️ bara när ordern är köparens: e-posten på ordern ska vara kontots;
+ *   - bara för en betald order som inte är avbruten;
+ *   - ett köp i kassan får kvittot med köpets dag, som företag om prisbeslutet
+ *     säger det (`foretag`), annars med kassans fakturauppgifter;
+ *   - en fakturaorder får kvittot bara om det redan har skickats härifrån,
+ *     med samma datum som i mejlet. Annars vet vi inte vilken faktura det
+ *     gäller eller när den betalades.
+ */
+export function kvittoForArkiv(
+  o: FakturaOrder,
+  epost: string,
+  foretag: Foretagsuppgifter | null,
+  skickad: { faktura: Date | null; kvitto: Date | null },
+  nu: Date,
+  betalning: Betalningsuppgifter,
+): ArkivUtfall {
+  const kopare = o.buyerInfo?.email?.trim().toLowerCase();
+  if (!kopare || kopare !== epost.trim().toLowerCase()) return { ok: false, skal: "inte-din" };
+  if (o.status === "CANCELED" || o.status === "INITIATED") return { ok: false, skal: "avbruten" };
+  if (!KVITTO_BETALD.has(o.paymentStatus ?? "")) return { ok: false, skal: "obetald" };
+  if (o.channelInfo?.type === "BACKOFFICE_MERCHANT") {
+    if (!skickad.kvitto) return { ok: false, skal: "inget-kvitto" };
+    const byggd = byggFaktura(o, skickad.faktura ?? skickad.kvitto, betalning);
+    return byggd.ok
+      ? { ok: true, faktura: byggd.faktura, betaldDatum: svensktDatum(skickad.kvitto) }
+      : { ok: false, skal: "fel", fel: byggd.fel };
+  }
+  const byggd = byggKassakvitto(o, foretag, nu, betalning);
+  return byggd.ok
+    ? { ok: true, faktura: byggd.faktura, betaldDatum: byggd.faktura.orderdatum }
+    : { ok: false, skal: "fel", fel: byggd.fel };
 }
 
 export interface KundMejl {
@@ -402,9 +603,15 @@ function varulista(f: Faktura): string {
 /** Mejlet som bär fakturan. PDF:en ligger som bilaga. */
 export function fakturaMejl(f: Faktura): KundMejl {
   const att = kronor(f.totalOre);
-  const subject = `Faktura ${f.nummer} från Fyndplats`;
-  const forhandstext = `Att betala ${att} senast ${f.forfallodatum}. Fakturan ligger som PDF i mejlet.`;
-  const html = `<h1 style="${RUBRIK}">Faktura ${escapeHtml(f.nummer)}</h1>
+  const slag = f.forskott ? "Förskottsfaktura" : "Faktura";
+  const subject = `${slag} ${f.nummer} från Fyndplats`;
+  const forhandstext = f.forskott
+    ? `Att betala ${att} senast ${f.forfallodatum}. Vi skickar varorna när betalningen har kommit in.`
+    : `Att betala ${att} senast ${f.forfallodatum}. Fakturan ligger som PDF i mejlet.`;
+  const leverans = f.forskott
+    ? "Det här är en förskottsfaktura: vi skickar varorna när betalningen har kommit in, och du får ett mejl med spårningsnumret när de är på väg."
+    : "Varan skickas inom kort, och du får ett mejl med spårningsnumret när den är på väg.";
+  const html = `<h1 style="${RUBRIK}">${slag} ${escapeHtml(f.nummer)}</h1>
 <p style="${P}">${escapeHtml(hej(f))} Tack för din beställning${f.kund.foretag ? ` till ${escapeHtml(f.kund.foretag)}` : ""}. Här kommer fakturan. Den ligger också som PDF i mejlet.</p>
 ${sammanfattning([
   ["Att betala", att],
@@ -414,11 +621,11 @@ ${sammanfattning([
 ])}
 ${varulista(f)}
 <p style="${P}margin-top:18px;">Skriv <strong>${escapeHtml(f.nummer)}</strong> i meddelandet till mottagaren när du betalar, så ser vi direkt vilken faktura betalningen gäller.</p>
-<p style="${P}">Varan skickas inom kort, och du får ett mejl med spårningsnumret när den är på väg.</p>
+<p style="${P}">${escapeHtml(leverans)}</p>
 <p style="${P}">Har du frågor om fakturan? Svara på det här mejlet, så hjälper vi dig.</p>
 <p style="${P}${LITEN}">${escapeHtml(SALJARE.namn)} · org.nr ${SALJARE.orgnr} · momsreg.nr ${SALJARE.momsnr}${f.betalning.fSkatt ? " · Godkänd för F-skatt" : ""}</p>`;
   const text = [
-    `Faktura ${f.nummer} från Fyndplats`,
+    `${slag} ${f.nummer} från Fyndplats`,
     "",
     `${hej(f)} Tack för din beställning${f.kund.foretag ? ` till ${f.kund.foretag}` : ""}. Fakturan ligger som PDF i mejlet.`,
     "",
@@ -429,6 +636,8 @@ ${varulista(f)}
     "",
     ...f.rader.map((r) => `${r.antal} × ${r.benamning}  ${kronor(r.beloppOre)}`),
     "",
+    leverans,
+    "",
     "Har du frågor om fakturan? Svara på det här mejlet.",
     "",
     kundSidfotText(),
@@ -436,26 +645,36 @@ ${varulista(f)}
   return { subject, html, text, forhandstext };
 }
 
-/** Mejlet när fakturan är betald. Kvittot ligger som PDF i mejlet. */
+/**
+ * Mejlet när fakturan är betald, eller med kvittot för ett köp i kassan som
+ * företag (`kassakop`). Kvittot ligger som PDF i mejlet.
+ */
 export function kvittoMejl(f: Faktura, betaldDatum: string): KundMejl {
   const belopp = kronor(f.totalOre);
-  const subject = `Kvitto: faktura ${f.nummer} är betald`;
-  const forhandstext = `Vi har tagit emot ${belopp}. Tack!`;
-  const html = `<h1 style="${RUBRIK}">Tack för din betalning</h1>
-<p style="${P}">${escapeHtml(hej(f))} Vi har tagit emot betalningen för faktura ${escapeHtml(f.nummer)}. Det här mejlet är ditt kvitto, och det finns också som PDF i mejlet.</p>
+  const subject = f.kassakop ? `Kvitto för order ${f.nummer} från Fyndplats` : `Kvitto: faktura ${f.nummer} är betald`;
+  const forhandstext = f.kassakop
+    ? `Kvittot för order ${f.nummer}, ${belopp}, med företagets uppgifter.`
+    : `Vi har tagit emot ${belopp}. Tack!`;
+  const rubrik = f.kassakop ? "Ditt kvitto" : "Tack för din betalning";
+  const inledning = f.kassakop
+    ? `${hej(f)} Tack för köpet. Det här är kvittot för order ${f.nummer}${f.kund.foretag ? `, utställt på ${f.kund.foretag}` : ""}. Det finns också som PDF i mejlet, med företagets adress${f.kund.orgnr ? " och organisationsnummer" : ""}.`
+    : `${hej(f)} Vi har tagit emot betalningen för ${f.forskott ? "förskottsfaktura" : "faktura"} ${f.nummer}. Det här mejlet är ditt kvitto, och det finns också som PDF i mejlet.`;
+  const html = `<h1 style="${RUBRIK}">${rubrik}</h1>
+<p style="${P}">${escapeHtml(inledning)}</p>
 ${sammanfattning([
   ["Betalt", belopp],
   ["varav moms", kronor(f.moms.reduce((s, m) => s + m.ore, 0))],
   ["Betalningsdatum", betaldDatum],
-  ["Faktura", f.nummer],
+  [f.kassakop ? "Order" : "Faktura", f.nummer],
 ])}
 ${varulista(f)}
-<p style="${P}margin-top:18px;">Har du frågor? Svara på det här mejlet, så hjälper vi dig.</p>
+${f.forskott ? `<p style="${P}margin-top:18px;">Nu skickar vi varorna, och du får ett mejl med spårningsnumret när de är på väg.</p>\n` : ""}<p style="${P}margin-top:18px;">Har du frågor? Svara på det här mejlet, så hjälper vi dig.</p>
 <p style="${P}${LITEN}">${escapeHtml(SALJARE.namn)} · org.nr ${SALJARE.orgnr} · momsreg.nr ${SALJARE.momsnr}</p>`;
   const text = [
-    `Kvitto: faktura ${f.nummer} är betald`,
+    subject,
     "",
-    `${hej(f)} Vi har tagit emot betalningen för faktura ${f.nummer}. Det här mejlet är ditt kvitto.`,
+    f.kassakop ? inledning : `${hej(f)} Vi har tagit emot betalningen för ${f.forskott ? "förskottsfaktura" : "faktura"} ${f.nummer}. Det här mejlet är ditt kvitto.`,
+    ...(f.forskott ? ["", "Nu skickar vi varorna, och du får ett mejl med spårningsnumret när de är på väg."] : []),
     "",
     `Betalt: ${belopp}`,
     `Betalningsdatum: ${betaldDatum}`,

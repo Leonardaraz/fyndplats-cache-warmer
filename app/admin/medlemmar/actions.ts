@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
   LAGEN,
+  beslutaForetag,
   lasManuellNiva,
   lasOrsak,
   sattLage,
@@ -16,6 +17,8 @@ import {
   taBortKonto,
   type Lage,
 } from "@/lib/medlem/admin";
+import { avbojOffert, prissattOffert } from "@/lib/medlem/offert-admin";
+import { lasProduktId, sattEjMedlemspris } from "@/lib/medlem/ej-medlemspris";
 
 function tillbaka(q: string, meddelande: string): never {
   const sok = new URLSearchParams();
@@ -66,4 +69,58 @@ export async function lageAction(f: FormData): Promise<void> {
   await sattLage(lage, orsak);
   revalidatePath("/admin/medlemmar");
   tillbaka("", `Medlemskapet är nu i läget ${lage}. Butiken läser växeln inom en minut.`);
+}
+
+/** E3: godkänn eller neka ett företag, eller återkalla ett godkännande. */
+export async function foretagAction(f: FormData): Promise<void> {
+  const q = falt(f, "q");
+  const beslut = falt(f, "beslut");
+  if (beslut !== "aktiv" && beslut !== "nekad") tillbaka(q, "Okänt beslut.");
+  const orsak = lasOrsak(falt(f, "orsakKod"), falt(f, "orsakText"));
+  if (typeof orsak === "string") tillbaka(q, orsak);
+  const u = await beslutaForetag(falt(f, "id"), beslut, orsak);
+  revalidatePath("/admin/medlemmar");
+  tillbaka(
+    q,
+    u === "ok"
+      ? beslut === "aktiv"
+        ? "Företaget är godkänt. Kunden får ett mejl inom en timme (butikens timjobb kl :41)."
+        : "Företaget är nekat. Kontot prissätts som privatperson."
+      : u,
+  );
+}
+
+/** E3: offertens styckpriser, eller avböj. Priserna prövas mot golvet och listpriset. */
+export async function offertAction(f: FormData): Promise<void> {
+  const q = falt(f, "q");
+  const orsak = lasOrsak(falt(f, "orsakKod"), falt(f, "orsakText"));
+  if (typeof orsak === "string") tillbaka(q, orsak);
+  const id = falt(f, "id");
+  const beslut = falt(f, "beslut");
+  const u =
+    beslut === "avboj"
+      ? await avbojOffert(id, orsak)
+      : await prissattOffert(id, Object.fromEntries([...f.entries()].filter(([k]) => k.startsWith("pris_")).map(([k, v]) => [k, String(v)])), orsak);
+  revalidatePath("/admin/medlemmar");
+  tillbaka(
+    q,
+    u === "ok"
+      ? beslut === "avboj"
+        ? "Offerten är avböjd. Kunden ser det på Mina sidor."
+        : "Offerten är prissatt och gäller i 14 dagar. Kunden får mejlet inom en timme (butikens timjobb kl :41)."
+      : u,
+  );
+}
+
+/** E2: flaggan "ej medlemspris" på en produkt (lib/medlem/ej-medlemspris.ts). */
+export async function ejMedlemsprisAction(f: FormData): Promise<void> {
+  const q = falt(f, "q");
+  const id = lasProduktId(falt(f, "produkt"));
+  if (!id) tillbaka(q, "Klistra in produktens id från Wix (36 tecken med bindestreck), eller adressen till produkten i Wix-panelen.");
+  const orsak = lasOrsak(falt(f, "orsakKod"), falt(f, "orsakText"));
+  if (typeof orsak === "string") tillbaka(q, orsak);
+  const ej = falt(f, "ej") === "1";
+  const u = await sattEjMedlemspris(id, ej, orsak);
+  revalidatePath("/admin/medlemmar");
+  tillbaka(q, u === "ok" ? (ej ? "Produkten får inte medlemspris längre." : "Produkten kan få medlemspris igen.") : u);
 }

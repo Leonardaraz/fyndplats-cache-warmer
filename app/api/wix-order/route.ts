@@ -6,7 +6,7 @@ import { getStore } from "@/lib/store/factory";
 import { audit } from "@/lib/audit";
 import { enqueuePriorityCheck } from "@/lib/sync/bestsellers";
 import { recordOrder } from "@/lib/import/supplier-tracking";
-import { arFakturaorder, type FakturaOrder } from "@/lib/orders/faktura";
+import { arFakturaorder, vantarPaForskottsbetalning, type FakturaOrder } from "@/lib/orders/faktura";
 import { korFakturor } from "@/lib/orders/faktura-kor";
 import { fakturaDeps } from "@/lib/orders/faktura-deps";
 import { byggSparrLarm, sparradAosomOrder } from "@/lib/aosom/postnummer-larm";
@@ -103,7 +103,10 @@ export async function POST(req: Request) {
   // krasch mitt i skapandet återskapar bara saknade tasks utan dubbletter. Om vi
   // (som tidigare) markerade sett före skapandet kunde en krasch däremellan göra
   // att omleveransen dedupp:ades och ordern tappades helt (kund aldrig skickad).
-  const tasks = deriveTasks(event);
+  // ☠️ En förskottsorder (lib/orders/faktura.ts) beställs inte hos leverantören
+  // förrän den är betald. Uppgifterna skapas då av kvittokörningen
+  // (faktura-kor.ts, `efterBetalning`), och återhämtningen är nätet under.
+  const tasks = vantarPaForskottsbetalning((event.order ?? {}) as unknown as FakturaOrder) ? [] : deriveTasks(event);
   const skapade: typeof tasks = [];
   for (const task of tasks) {
     if (await store.createTaskIfAbsent(task)) skapade.push(task);
