@@ -1129,6 +1129,8 @@ prov som fäller dem:
 - **Texterna** har egna regler i `lib/medlem/visning.ts`: "högsta nivån" bara
   på VIP, "äldre än ett år" bara efter ett år, "spårning kommer" bara de
   första 30 dagarna och "Handla för X före Y" bara de sista 60 dagarna.
+  Rubriken är "Välkommen" den dag kontot skapas och "Välkommen tillbaka"
+  sedan (`halsning`, auditen 2026-11-06).
 - **Kortens nedre rad har ett mörkt skrim** (`--kort-skrim`). Utan det hade
   den lilla texten kontrasten 1,3–2,3 på brons, guld, platina och diamant.
 - ☠️ **Kontrasten mäts i webbläsaren, inte i en räkning** (samma kväll).
@@ -1315,7 +1317,12 @@ Det som inte får ändras:
   bara den som tar låset skapar ordern, den andra svarar `pagar` (202) och
   sidan frågar igen. Låset bär steget (`pagar` → `order` → `registrera` →
   `klar`/`fel`), så ett avbrott efter ordern fortsätter med dragningen i stället
-  för att skapa en order till. Ett lås äldre än 120 s tas över.
+  för att skapa en order till. Ett lås äldre än 120 s tas över, ☠️ **med en
+  villkorad skrivning** (`taOverLas` i `stripe-las.ts`: Wix compare-and-set på
+  steget och `at`). Webhookens omförsök och nätet kan se samma övergivna lås
+  samtidigt; med en vanlig skrivning tog båda över, lade ordern på samma korg
+  eller släppte varandras reservation (auditen 2026-11-06, provet i
+  `stripe-flode.test.ts` kör två samtidiga omtag).
 - ☠️ **Create Order (`ecom/v1/orders`) används inte:** Wix tillåter fem anrop i
   timmen för opublicerade appar. `place-order` är vägen.
 - ☠️ **Faktureringsuppgifterna kommer från servern** (`faktureringAv` i
@@ -1370,7 +1377,12 @@ Det som inte får ändras:
   e-post, och knappen låses (webhooken slutför). Kunden ska aldrig uppmanas
   att betala igen när pengarna kan vara reserverade.
 - **Inga typsnitt från Google i Stripes ram:** butiken lägger sina typsnitt på
-  egen server, och betalfältet använder systemets typsnitt (`UTSEENDE`).
+  egen server. Stripes ramar får Geist därifrån (`TYPSNITT_FIL`,
+  `public/fonts/geist-latin-v1.woff2`, samma latinska fil som next/font lägger
+  ut, med CORS och ett års cache i `next.config.ts`), bara över https: Stripe
+  nekar andra adresser, och då ritas fälten med systemets typsnitt. Förut stod
+  adressen och kortet i systemets typsnitt bredvid e-post, mobil och län i
+  Geist (auditen 2026-11-06). Byts filen får den ett nytt namn.
 - **Loggraderna:** inga kunduppgifter. Rader med ☠️ (pengar som inte står där
   de ska) går till `console.error` och syns bland Vercels körfel; resten är
   varningar (`lib/kassa/stripe-kassa.ts`).
@@ -1536,6 +1548,16 @@ provas; den kräver samtycke för kakor, som Klarnas.
     (1 vara)" i fyra bitar. Antalet visas bara när raden är minst 400 px
     (containerfråga på `.mobilSummering`), beloppet krymper aldrig och
     etiketten kortas med "…" bara som sista utväg.
+- **Andra auditen 2026-11-06 (kväll)**, i produktion utan betalning och på
+  förhandslänken (320, 390 och 1280 px):
+  - Stripes fält ser ut som kassans egna: etiketten grå och normal i ett tomt
+    fält, halvfet när den flyttat upp och röd när fältet är fel
+    (`.Label--resting`, `--floating`, `--invalid`), och texten 14 px in från
+    kanten (`.Input` `paddingLeft`). Förut stod Stripes etiketter svarta och
+    halvfeta, blev aldrig röda och låg 2 px till vänster. Provet jämför med
+    `.etikett`, `--soft`, `--sale-fill` och `.input` i CSS:en.
+  - Ingen grön bock bredvid "Menade du …?": en felstavad adress (gmial.com)
+    fick förut bocken som säger att fältet är rätt, på samma rad som förslaget.
 - **Snabbkassan** (Apple Pay och Google Pay överst) är byggd: se avsnittet
   nedan.
 
@@ -1844,6 +1866,10 @@ Ett företag läggs till på ett befintligt konto, högst ett per konto i E3.
   villkoren. Servern prövar allt igen (`lib/medlem/foretag.ts`). Raden heter
   `<medlemsId>__foretag` i `FyndplatsMedlemsprofiler` (index
   `typ-status-ansokt`) och får status `granskas`; butiken mejlar info@.
+  Ett skick som stoppas av fel ger fokus på det första felet, och varje fält
+  med fel har `aria-invalid` och sin feltext i `aria-describedby` (`felAttr`).
+  Förut stod fokus kvar på knappen och en skärmläsare fick inget besked
+  (auditen 2026-11-06).
 - **Bolagsverkets uppslag** (`lib/medlem/bolagsverket.ts`, 2026-11-06): API:t
   Värdefulla datamängder v1 (gratis, öppen data). Token med client credentials
   på `portal.api.bolagsverket.se/oauth2/token`, scope

@@ -15,6 +15,15 @@
 
 import type { Nivalage, Regler } from "./niva";
 
+/**
+ * Rubriken på Mina sidor. Den som just skapat kontot har aldrig varit här:
+ * "Välkommen" samma dag, sedan "Välkommen tillbaka" (audit 2026-11-06). Dagarna
+ * är svenska dagnummer (niva.ts `stockholmsDag`); okänt datum ger det vanliga.
+ */
+export function halsning(skapadDag: number | null, idag: number): string {
+  return skapadDag !== null && skapadDag >= idag ? "Välkommen" : "Välkommen tillbaka";
+}
+
 /** Sant bara när kunden faktiskt står på den översta nivån. */
 export function arHogstaNivan(lage: Pick<Nivalage, "niva" | "nasta">, regler: Regler): boolean {
   if (lage.nasta) return false;

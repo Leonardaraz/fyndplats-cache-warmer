@@ -13,7 +13,7 @@ import Image from "next/image";
 import { dagSomText, kronor, stockholmsDag, type Nivalage } from "@/lib/medlem/niva";
 import { maskeradEpost } from "@/lib/medlem/inloggning";
 import type { MinaSidor, OrderPaMinaSidor } from "@/lib/medlem/konto";
-import { arHogstaNivan, inteRaknadText, visaKvitto, visaSparningVantas, visaUppmaning } from "@/lib/medlem/visning";
+import { arHogstaNivan, halsning, inteRaknadText, visaKvitto, visaSparningVantas, visaUppmaning } from "@/lib/medlem/visning";
 import { Medlemskort, nivaNyckel } from "./medlemskort";
 import { KopIgen } from "./kop-igen";
 import { SparadeKorgar } from "./sparade-korgar";
@@ -83,7 +83,8 @@ export function MinaSidorVy({
 }) {
   const { lage, regler, ordrar, medlem } = data;
   const raknas = new Map(lage.raknade.map((r) => [r.orderId, r]));
-  const sedan = medlem.skapad && !Number.isNaN(Date.parse(medlem.skapad)) ? MANAD_AR.format(new Date(medlem.skapad)) : null;
+  const skapadOk = Boolean(medlem.skapad) && !Number.isNaN(Date.parse(medlem.skapad));
+  const sedan = skapadOk ? MANAD_AR.format(new Date(medlem.skapad)) : null;
   const nuIx = regler.nivaer.findIndex((n) => n.namn === lage.niva.namn);
   const procent = Math.round(andel(lage) * 100);
   const behalla = lage.sankning ? Math.max(0, lage.niva.franOre - lage.sankning.kOre) : 0;
@@ -94,7 +95,7 @@ export function MinaSidorVy({
       <div className={s.huvud}>
         <div>
           <p className={s.ogonbryn}>Mina sidor</p>
-          <h1 className={s.rubrik}>Välkommen tillbaka</h1>
+          <h1 className={s.rubrik}>{halsning(skapadOk ? stockholmsDag(medlem.skapad) : null, lage.dag)}</h1>
           <p className={s.vem}>Inloggad som {maskeradEpost(medlem.epost)}</p>
           {handlarSom ? (
             <p className={s.handlarSom}>

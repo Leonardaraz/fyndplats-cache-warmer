@@ -37,3 +37,20 @@ test("ett företag som godkänns direkt (aktivt hos Bolagsverket) ser kortet med
   assert.match(ft, /if \(svar\.ok\) return efter\(svar\.status \?\? "granskas"\);/);
   assert.match(ft, /<Ansokan efter=\{\(status\) => \(status === "aktiv" \? ladda\(\) : setSkickad\(true\)\)\} \/>/);
 });
+
+test("företagsansökan: ett stoppat skick ger fokus på första felet, och varje fält med fel säger det till skärmläsaren (audit 2026-11-06)", () => {
+  const ft = las("foretag.tsx");
+  // Fokus till det första felet efter varje skick som stoppades, som kassan (forstaFel).
+  assert.match(ft, /if \(felRunda > 0\) formular\.current\?\.querySelector<HTMLElement>\('\[aria-invalid="true"\]'\)\?\.focus\(\);/);
+  assert.match(ft, /setFel\(prov\.fel\);\s*setFelRunda\(\(n\) => n \+ 1\);/);
+  assert.match(ft, /<form ref=\{formular\} className=\{s\.foretagForm\}/);
+  // Varje fält vars fel visas med faltfel(x) bär felAttr(x): aria-invalid och fel-<x>.
+  const ansokan = ft.slice(ft.indexOf("function Ansokan"), ft.indexOf("function Villkor"));
+  const medFeltext = [...ansokan.matchAll(/\{faltfel\("(\w+)"\)\}/g)].map((m) => m[1]).filter((f) => f !== "namn");
+  assert.ok(medFeltext.length >= 7, `för få fält: ${medFeltext.join(", ")}`);
+  for (const f of medFeltext) assert.match(ansokan, new RegExp(`name="${f}"[^>]*\\{\\.\\.\\.felAttr\\("${f}"\\)\\}`), `${f} saknar felAttr`);
+  assert.match(ansokan, /const felAttr = \(f: keyof Faltfel\) => \(fel\[f\] \? \{ "aria-invalid": true, "aria-describedby": `fel-\$\{f\}` \} : \{\}\);/);
+  // Numret och namnet har egna beskrivningar; de får aria-invalid när de är fel.
+  assert.match(ansokan, /aria-invalid=\{fel\.orgnr \? true : undefined\}/);
+  assert.match(ansokan, /aria-invalid=\{fel\.namn \? true : undefined\}/);
+});
