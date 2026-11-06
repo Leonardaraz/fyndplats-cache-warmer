@@ -222,10 +222,9 @@ test("plånböckerna: rutan syns bara när Stripe hittar Apple Pay eller Google 
   assert.equal(planbokNamn([]), "Apple Pay eller Google Pay");
 });
 
-test("platsen hålls bara i webbläsare som kan ha en plånbok", () => {
-  assert.equal(planbokTrolig({ applePaySession: true, paymentRequest: true }), true);
-  assert.equal(planbokTrolig({ applePaySession: false, paymentRequest: true }), true);
-  assert.equal(planbokTrolig({ applePaySession: false, paymentRequest: false }), false);
+test("platsen hålls bara där Apple Pay finns: Google Pays kontroll är för långsam för en hållen plats", () => {
+  assert.equal(planbokTrolig({ applePaySession: true }), true);
+  assert.equal(planbokTrolig({ applePaySession: false }), false);
 });
 
 // ── Plånbokens uppgifter som kassans formulär ──────────────────────────────

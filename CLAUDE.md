@@ -1659,12 +1659,16 @@ BankID ska användas).
   monteras därför sist och i `try`: ett fel i snabbkassan får aldrig stoppa
   formuläret och betalfältet.
 - **Platsen hålls från första renderingen** (också på servern) med en
-  platshållare i knappens höjd: rutan som dök upp efter hydreringen knuffade
-  ner formuläret 256 px. Saknar webbläsaren både `ApplePaySession` och
-  `PaymentRequest` (Firefox) tas den bort direkt; annars när Stripe säger att
-  ingen plånbok finns, eller efter 12 s. Utan plånbok står rutan utanför
-  sidan (`data-visas="nej"`), eftersom knapparna måste vara monterade för att
-  Stripe ska kunna svara.
+  platshållare i knappens höjd, men bara där Apple Pay finns
+  (`ApplePaySession`: Safari och alla webbläsare på iPhone). Rutan som dök
+  upp efter hydreringen knuffade ner formuläret 256 px. Där svarar Stripe
+  snabbt och visar nästan alltid knappen; saknas plånbok tas platsen bort när
+  Stripe svarar, eller efter 12 s. ☠️ **Inte för Google Pay:** Stripes kontroll
+  av Google Pay tog 13 s på förhandsbygget (huvudlös Chromium, testnycklarna,
+  2026-11-06), och 0 av 171 köp är Google Pay (23 Apple Pay). I Chrome visas
+  rutan därför först när Stripe hittat en plånbok. Utan plånbok står rutan
+  utanför sidan (`data-visas="nej"`), eftersom knapparna måste vara monterade
+  för att Stripe ska kunna svara.
 - **Kräver domänen:** Apple Pay och Google Pay syns bara när
   `www.fyndplats.se` är registrerad i Stripe (Inställningar →
   Betalmetodsdomäner), i testläget och i live var för sig, och bara över

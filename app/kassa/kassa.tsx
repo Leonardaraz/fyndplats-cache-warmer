@@ -249,14 +249,14 @@ export function Kassa({
   // betalningen pågår därifrån (väntans text gäller då inte betalfältets val).
   const [snabbFel, setSnabbFel] = useState<string | null>(null);
   const [snabbPagar, setSnabbPagar] = useState(false);
-  // Kan webbläsaren ha en plånbok? Då hålls knapparnas plats medan Stripe svarar.
-  // Sant från början (också på servern): de flesta kunder är på iPhone eller
-  // Android, och rutan som dök upp efter hydreringen knuffade ner formuläret
-  // 256 px (lokalt prov 2026-11-06). Firefox, som saknar båda, tar bort den direkt.
+  // Finns Apple Pay i webbläsaren? Då hålls knapparnas plats medan Stripe svarar
+  // (planbokTrolig). Sant från början, också på servern: de flesta kunder är på
+  // iPhone, och rutan som dök upp efter hydreringen knuffade ner formuläret
+  // 256 px (lokalt prov 2026-11-06). Andra webbläsare tar bort platsen direkt.
   const [planbokMojlig, setPlanbokMojlig] = useState(true);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- webbläsarens förmågor finns inte på servern
-    setPlanbokMojlig(planbokTrolig({ applePaySession: "ApplePaySession" in window, paymentRequest: "PaymentRequest" in window }));
+    setPlanbokMojlig(planbokTrolig({ applePaySession: "ApplePaySession" in window }));
   }, []);
 
   /**
