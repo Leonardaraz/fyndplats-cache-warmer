@@ -277,13 +277,15 @@ test("städningen släpper bara våra utgångna, med marginal, och aldrig betald
       { id: "c", orderId: "oc", status: "UNPAID", expirationDate: fore(STADNING_MARGINAL_MINUTER - 1), ...vår },
       { id: "d", orderId: "od", status: "PAID", expirationDate: fore(500), ...vår },
       { id: "e", orderId: "oe", status: "VOIDED", expirationDate: fore(500), ...vår },
+      { id: "i", orderId: "oi", status: "VOIDED", expirationDate: fore(25 * 60), ...vår },
       { id: "f", orderId: "of", status: "EXPIRED", expirationDate: fore(500), source: { externalId: "faktura-123" } },
       { id: "g", orderId: "og", status: "EXPIRED", ...vår },
       { orderId: "oh", status: "EXPIRED", expirationDate: fore(500), ...vår },
     ],
     nu,
   );
-  assert.deepEqual(r, [{ betalningId: "a", orderId: "oa" }, { betalningId: "b", orderId: "ob" }]);
+  // Den makulerade (e) prövas ett dygn, sist, ifall ordern blev kvar; efter ett dygn (i) inte alls.
+  assert.deepEqual(r, [{ betalningId: "a", orderId: "oa" }, { betalningId: "b", orderId: "ob" }, { betalningId: "e", orderId: "oe" }]);
 });
 
 test("servern släpper själv korgens obetalda försök, också när webbläsaren glömt dem", async () => {

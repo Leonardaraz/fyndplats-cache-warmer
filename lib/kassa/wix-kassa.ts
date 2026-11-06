@@ -193,15 +193,17 @@ export async function slappOrder(orderId: string, betalningId: string | null, ca
     if (b && !(b.source?.externalId ?? "").startsWith(`${KASSA_MARKOR}:`)) return "ej_var";
     if (b?.status === "PAID") return "betald";
     if (b?.status === "UNPAID") {
-      await wixFetch({ method: "POST", path: "/ecom/v1/order-payment-requests/void", body: { orderPaymentRequestId: betalningId } });
+      await forsokIgen(() => wixFetch({ method: "POST", path: "/ecom/v1/order-payment-requests/void", body: { orderPaymentRequestId: betalningId } }));
     }
   }
   if (order.status === "INITIALIZED") {
-    await wixFetch({
-      method: "POST",
-      path: `/ecom/v1/orders/${encodeURIComponent(orderId)}/cancel`,
-      body: { sendOrderCanceledEmail: false, restockAllItems: true },
-    });
+    await forsokIgen(() =>
+      wixFetch({
+        method: "POST",
+        path: `/ecom/v1/orders/${encodeURIComponent(orderId)}/cancel`,
+        body: { sendOrderCanceledEmail: false, restockAllItems: true },
+      }),
+    );
     return "slappt";
   }
   return "ej_var";

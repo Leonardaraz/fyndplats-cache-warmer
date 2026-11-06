@@ -1122,6 +1122,9 @@ i `flode.ts`), `app/kassa/`, `app/api/kassa/*` och städjobbet
   ordern (betalningen makuleras först, sedan avbryts ordern med återlagring),
   och städjobbet varje timme släpper ordrar vars betalningslänk löpt ut
   (`BETALNING_MINUTER`, 120). Bara betalningar med markören `fp-kassa:` rörs.
+  Faller avbrottet efter makuleringen står ordern kvar med en makulerad
+  betalning: städjobbet prövar därför makulerade betalningar ett dygn
+  (`MAKULERAD_PROVAS_TIMMAR`), efter de obetalda.
 - **Servern hittar själv korgens förra försök** (`fp-kassa:<korg>:<försök>` i
   betalningens `source.externalId`), så att en kund som bytt flik eller enhet
   inte lämnar en reserverad order efter sig. En **betald** betalning från samma

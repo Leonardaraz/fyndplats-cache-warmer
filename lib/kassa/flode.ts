@@ -465,22 +465,31 @@ export async function medOmforsok<T>(
 /** Marginal efter utgången, så att en kund som trycker "Betala" i sista stund hinner. */
 export const STADNING_MARGINAL_MINUTER = 15;
 
+/** Hur länge en makulerad betalning prövas igen: ordern kan ha blivit kvar om avbrottet föll efter makuleringen. */
+export const MAKULERAD_PROVAS_TIMMAR = 24;
+
 /**
  * Betalningar från vår kassa vars order ska släppas: utgångna, eller obetalda
- * vars utgång passerats med marginal. Betalda och makulerade rörs aldrig.
+ * vars utgång passerats med marginal. En makulerad betalning prövas också i
+ * ett dygn efter utgången: föll avbrottet av ordern efter makuleringen står
+ * ordern annars kvar och håller varorna för alltid. De makulerade kommer sist,
+ * så att de aldrig tränger undan de obetalda. Betalda rörs aldrig.
  */
 export function attSlappa(
   betalningar: { id?: string; orderId?: string; status?: string; expirationDate?: string; source?: { externalId?: string } }[],
   nu: Date,
 ): { betalningId: string; orderId: string }[] {
   const grans = nu.getTime() - STADNING_MARGINAL_MINUTER * 60_000;
+  const makuleradGrans = nu.getTime() - MAKULERAD_PROVAS_TIMMAR * 3_600_000;
   const ut: { betalningId: string; orderId: string }[] = [];
+  const makulerade: { betalningId: string; orderId: string }[] = [];
   for (const b of betalningar) {
     if (!b.id || !b.orderId) continue;
     if (!(b.source?.externalId ?? "").startsWith(`${KASSA_MARKOR}:`)) continue;
     const utgang = Date.parse(b.expirationDate ?? "");
     if (!Number.isFinite(utgang) || utgang > grans) continue;
     if (b.status === "EXPIRED" || b.status === "UNPAID") ut.push({ betalningId: b.id, orderId: b.orderId });
+    else if (b.status === "VOIDED" && utgang > makuleradGrans) makulerade.push({ betalningId: b.id, orderId: b.orderId });
   }
-  return ut;
+  return [...ut, ...makulerade];
 }
