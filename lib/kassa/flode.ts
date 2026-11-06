@@ -646,6 +646,11 @@ export interface StripeKassaDeps {
   markeraAvsikt(id: string, orderId: string): Promise<void>;
   /** "tagen" när låset skapades nu, annars raden som redan fanns. */
   tagLas(avsiktId: string, las: StripeLas): Promise<"tagen" | StripeLas>;
+  /**
+   * Tar över ett övergivet lås bara om det fortfarande är `forra` (villkorad
+   * skrivning). Sant för den enda som tog över; falskt när någon hann före.
+   */
+  taOverLas(avsiktId: string, forra: StripeLas, ny: StripeLas): Promise<boolean>;
   sparaLas(avsiktId: string, las: StripeLas): Promise<void>;
   logg?(rad: string): void;
 }
@@ -927,7 +932,11 @@ export async function slutforStripe(deps: StripeKassaDeps, avsiktId: string, nu:
     }
     if (nuMs - tagen.at < STRIPE_LAS_MS) return { ok: false, kod: "pagar", meddelanden: [TEXT_PAGAR] };
     las = { ...tagen, at: nuMs };
-    await deps.sparaLas(a.id, las);
+    // ☠️ VILLKORAT: webhookens omförsök och nätet kan se samma övergivna lås
+    // samtidigt. Med en vanlig skrivning tog båda över och lade ordern på samma
+    // korg, eller släppte varandras reservation (auditen 2026-11-06). Bara den
+    // som vinner skrivningen fortsätter; den andra svarar "pagar" och tas om.
+    if (!(await deps.taOverLas(a.id, tagen, las))) return { ok: false, kod: "pagar", meddelanden: [TEXT_PAGAR] };
     logg(`[kassa] tar över ett lås i steget ${tagen.steg}`);
   }
 

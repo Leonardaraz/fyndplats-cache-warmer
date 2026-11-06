@@ -105,7 +105,16 @@ function Ansokan({ efter }: { efter: (status: string) => void }) {
   const [fel, setFel] = useState<Faltfel>({});
   const [skal, setSkal] = useState<string | null>(null);
   const [upptagen, setUpptagen] = useState(false);
+  // Varje skick som stoppades av fel: fokus till det första felet, som i kassan
+  // (forstaFel). Förut stod fokus kvar på knappen, och en skärmläsare fick inget
+  // besked om att något saknades (audit 2026-11-06).
+  const [felRunda, setFelRunda] = useState(0);
+  const formular = useRef<HTMLFormElement>(null);
   const nu = numretNu(orgnr);
+
+  useEffect(() => {
+    if (felRunda > 0) formular.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+  }, [felRunda]);
 
   // Namnet från Bolagsverket när numret är ett giltigt organisationsnummer. En
   // enskild firmas nummer är ett personnummer och slås upp först vid ansökan.
@@ -155,6 +164,7 @@ function Ansokan({ efter }: { efter: (status: string) => void }) {
     const prov = provaForetagsansokan(falt, ORG);
     if (!prov.ok) {
       setFel(prov.fel);
+      setFelRunda((n) => n + 1);
       return;
     }
     setUpptagen(true);
@@ -163,6 +173,7 @@ function Ansokan({ efter }: { efter: (status: string) => void }) {
     setUpptagen(false);
     if (svar.ok) return efter(svar.status ?? "granskas");
     setFel(svar.fel ?? {});
+    if (svar.fel && Object.keys(svar.fel).length > 0) setFelRunda((n) => n + 1);
     setSkal(svar.skal ? (SKAL[svar.skal] ?? SKAL.tillfalligt) : null);
   }
 
@@ -173,8 +184,11 @@ function Ansokan({ efter }: { efter: (status: string) => void }) {
       </span>
     ) : null;
 
+  /** Fältet är fel: skärmläsaren får veta det och läser feltexten (fel-<fält>). */
+  const felAttr = (f: keyof Faltfel) => (fel[f] ? { "aria-invalid": true, "aria-describedby": `fel-${f}` } : {});
+
   return (
-    <form className={s.foretagForm} onSubmit={sand} noValidate>
+    <form ref={formular} className={s.foretagForm} onSubmit={sand} noValidate>
       <label className={s.etikett} htmlFor="ft-orgnr">
         Organisationsnummer
       </label>
@@ -190,6 +204,7 @@ function Ansokan({ efter }: { efter: (status: string) => void }) {
           setOrgnr(e.target.value);
           if (fel.orgnr) setFel({ ...fel, orgnr: undefined });
         }}
+        aria-invalid={fel.orgnr ? true : undefined}
         aria-describedby="ft-orgnr-nu"
       />
       <span id="ft-orgnr-nu" className={fel.orgnr ? s.faltFel : nu.ton === "ok" ? s.faltOk : nu.ton === "fel" ? s.faltFel : s.faltHjalp} aria-live="polite">
@@ -211,6 +226,7 @@ function Ansokan({ efter }: { efter: (status: string) => void }) {
           namnRort.current = e.target.value.trim() !== "";
           if (fel.namn) setFel({ ...fel, namn: undefined });
         }}
+        aria-invalid={fel.namn ? true : undefined}
         aria-describedby={fel.namn ? "fel-namn" : bvText ? "ft-namn-bv" : undefined}
       />
       {fel.namn ? (
@@ -223,11 +239,11 @@ function Ansokan({ efter }: { efter: (status: string) => void }) {
 
       <fieldset className={s.adress}>
         <legend className={s.etikett}>Fakturaadress</legend>
-        <input name="gata" className={s.falt} placeholder="Gatuadress" autoComplete="street-address" maxLength={100} aria-label="Gatuadress" />
+        <input name="gata" className={s.falt} placeholder="Gatuadress" autoComplete="street-address" maxLength={100} aria-label="Gatuadress" {...felAttr("gata")} />
         {faltfel("gata")}
         <div className={s.postrad}>
-          <input name="postnr" className={s.falt} placeholder="Postnummer" inputMode="numeric" autoComplete="postal-code" maxLength={6} aria-label="Postnummer" />
-          <input name="ort" className={s.falt} placeholder="Ort" autoComplete="address-level2" maxLength={60} aria-label="Ort" />
+          <input name="postnr" className={s.falt} placeholder="Postnummer" inputMode="numeric" autoComplete="postal-code" maxLength={6} aria-label="Postnummer" {...felAttr("postnr")} />
+          <input name="ort" className={s.falt} placeholder="Ort" autoComplete="address-level2" maxLength={60} aria-label="Ort" {...felAttr("ort")} />
         </div>
         {faltfel("postnr")}
         {faltfel("ort")}
@@ -240,11 +256,11 @@ function Ansokan({ efter }: { efter: (status: string) => void }) {
       {annan && (
         <fieldset className={s.adress}>
           <legend className={s.etikett}>Leveransadress</legend>
-          <input name="lgata" className={s.falt} placeholder="Gatuadress" maxLength={100} aria-label="Leveransadressens gata" />
+          <input name="lgata" className={s.falt} placeholder="Gatuadress" maxLength={100} aria-label="Leveransadressens gata" {...felAttr("lgata")} />
           {faltfel("lgata")}
           <div className={s.postrad}>
-            <input name="lpostnr" className={s.falt} placeholder="Postnummer" inputMode="numeric" maxLength={6} aria-label="Leveransadressens postnummer" />
-            <input name="lort" className={s.falt} placeholder="Ort" maxLength={60} aria-label="Leveransadressens ort" />
+            <input name="lpostnr" className={s.falt} placeholder="Postnummer" inputMode="numeric" maxLength={6} aria-label="Leveransadressens postnummer" {...felAttr("lpostnr")} />
+            <input name="lort" className={s.falt} placeholder="Ort" maxLength={60} aria-label="Leveransadressens ort" {...felAttr("lort")} />
           </div>
           {faltfel("lpostnr")}
           {faltfel("lort")}
@@ -252,12 +268,12 @@ function Ansokan({ efter }: { efter: (status: string) => void }) {
       )}
 
       <label className={s.kryss}>
-        <input type="checkbox" name="naring" value="1" />
+        <input type="checkbox" name="naring" value="1" {...felAttr("naring")} />
         <span>Köpen görs i företagets näringsverksamhet, och jag får företräda företaget.</span>
       </label>
       {faltfel("naring")}
       <label className={s.kryss}>
-        <input type="checkbox" name="villkor" value={VILLKOR_FORETAG_VERSION} />
+        <input type="checkbox" name="villkor" value={VILLKOR_FORETAG_VERSION} {...felAttr("villkor")} />
         <span>
           Jag godkänner{" "}
           <a href="/villkor/foretag" target="_blank" rel="noopener">

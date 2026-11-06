@@ -25,6 +25,7 @@ import {
   sparadAvsikt,
   stripeMeddelande,
   tillbakaKod,
+  TYPSNITT_FIL,
   UTSEENDE,
   vantaPaOrder,
   type KlarSvar,
@@ -56,8 +57,23 @@ test("betalfältet och PaymentIntenten har samma valuta och dragning (annars nek
   assert.equal(e.captureMethod, p.capture_method);
   assert.equal(e.locale, "sv");
   // Inga typsnitt från Google i Stripes ram (butiken lägger sina på egen server).
-  assert.equal("fonts" in e, false);
+  assert.equal("fonts" in e, false, "utan sidans origin: inget typsnitt");
   assert.doesNotMatch(JSON.stringify(e), /googleapis|gstatic/);
+});
+
+test("Stripes ramar får butikens Geist från vår egen server, aldrig från Google (audit 2026-11-06)", () => {
+  const e = elementsInstallningar(65900, "https://www.fyndplats.se");
+  assert.deepEqual(e.fonts, [{ family: "Geist", src: "url(https://www.fyndplats.se/fonts/geist-latin-v1.woff2)", weight: "100 900", display: "swap" }]);
+  assert.doesNotMatch(JSON.stringify(e), /googleapis|gstatic/);
+  assert.match(String(UTSEENDE.variables?.fontFamily), /^Geist, -apple-system/);
+  // Filen finns och är en woff2 (wOF2), och servern ger CORS och lång cache för den.
+  const fil = readFileSync(new URL(`../../public${TYPSNITT_FIL}`, import.meta.url));
+  assert.equal(fil.subarray(0, 4).toString("latin1"), "wOF2");
+  const config = readFileSync(new URL("../../next.config.ts", import.meta.url), "utf8");
+  assert.match(config, /source: "\/fonts\/:fil\*",\s*headers: \[\s*\{ key: "Access-Control-Allow-Origin", value: "\*" \},/);
+  // Bara över https: Stripe nekar andra adresser.
+  const krok = readFileSync(new URL("../../app/kassa/use-stripe-betalning.ts", import.meta.url), "utf8");
+  assert.match(krok, /window\.location\.protocol === "https:" \? window\.location\.origin : undefined/);
 });
 
 test("betalfältet frågar aldrig efter namn, e-post, telefon eller adress", () => {
@@ -321,6 +337,32 @@ test("kassan står still när Stripes fält ritas (uppmätt med webbläsarens CL
   assert.match(regel('.adressYta[data-adress="laddar"] > :not(.adressSkelett)'), /position: absolute;/);
   assert.match(kassa, /className=\{s\.adressYta\} data-adress=\{adressLage\}/);
   assert.match(krok, /adr\.on\("ready", \(\) => \{\s*slutaVanta = narRamenStilla\(adressPlats\.current/);
+});
+
+test("audit 2026-11-06 (kväll): Stripes fält har kassans etiketter och indrag, och ingen bock bredvid 'Menade du …?'", () => {
+  const css = readFileSync(new URL("../../app/kassa/kassa.module.css", import.meta.url), "utf8");
+  const globalCss = readFileSync(new URL("../../app/globals.css", import.meta.url), "utf8");
+  const kassa = readFileSync(new URL("../../app/kassa/kassa.tsx", import.meta.url), "utf8");
+  const regel = (valjare: string) => {
+    const i = css.indexOf(`${valjare} {`);
+    assert.ok(i >= 0, `${valjare} saknas`);
+    return css.slice(i, css.indexOf("}", i));
+  };
+  // Kassans etikett är --soft; Stripes vilande och flytande etikett ska vara samma grå.
+  assert.match(regel(".etikett"), /color: var\(--soft\);/);
+  const soft = /--soft:\s*(#[0-9a-fA-F]{6})/.exec(globalCss)?.[1]?.toLowerCase();
+  assert.ok(soft, "--soft saknas i globals.css");
+  assert.deepEqual(UTSEENDE.rules?.[".Label--resting"], { color: soft, fontWeight: "400" });
+  assert.deepEqual(UTSEENDE.rules?.[".Label--floating"], { color: soft, fontWeight: "600" });
+  // I felläget blir etiketten röd i båda (.faltRamFel .etikett är --sale-fill).
+  assert.match(css, /\.faltRamFel \.etikett \{\s*color: var\(--sale-fill\);/);
+  const rod = /--sale-fill:\s*(#[0-9a-fA-F]{6})/.exec(globalCss)?.[1];
+  assert.deepEqual(UTSEENDE.rules?.[".Label--invalid"], { color: rod });
+  // Samma vänsterindrag som kassans .input (padding: … 14px).
+  const indrag = /padding: \d+px \d+px \d+px (\d+)px;/.exec(regel(".input"))?.[1];
+  assert.equal(UTSEENDE.rules?.[".Input"]?.paddingLeft, `${indrag}px`);
+  // En felstavad adress får förslaget, inte bocken som säger att den är rätt.
+  assert.match(kassa, /const ok = [^\n]*&& !\(f === "epost" && epostTips\);/);
 });
 
 test("visuell audit 2026-11-06: alla fel på en gång, samma felstil, länkar på egen rad och summeringen i 320 px", () => {

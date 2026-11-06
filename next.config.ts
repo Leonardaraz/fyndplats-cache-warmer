@@ -118,6 +118,16 @@ const nextConfig: NextConfig = {
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
         ],
       },
+      {
+        // Butikens typsnitt för Stripes ramar (lib/kassa/stripe-klient.ts, TYPSNITT_FIL):
+        // ramen ligger på js.stripe.com, och ett typsnitt från en annan origin laddas
+        // bara med CORS. Versionen står i filnamnet, så filen kan cachas ett år.
+        source: "/fonts/:fil*",
+        headers: [
+          { key: "Access-Control-Allow-Origin", value: "*" },
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
+      },
     ];
   },
   async redirects() {

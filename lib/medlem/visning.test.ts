@@ -4,7 +4,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { REGLER_V1, medManuellNiva, nivalage, type KPost } from "./niva.ts";
-import { arHogstaNivan, inteRaknadText, kvittoFelText, visaKvitto, visaSparningVantas, visaUppmaning } from "./visning.ts";
+import { arHogstaNivan, halsning, inteRaknadText, kvittoFelText, visaKvitto, visaSparningVantas, visaUppmaning } from "./visning.ts";
 
 const DAG = 20_400; // ett dagnummer i november 2025
 const iso = (dag: number) => new Date(dag * 86_400_000 + 12 * 3_600_000).toISOString();
@@ -65,4 +65,10 @@ test("kvittolänken bara på en betald order, och varje skäl har en egen text",
   assert.equal(new Set(texter).size, texter.length);
   assert.equal(kvittoFelText("saknas"), kvittoFelText("inte-din"));
   assert.match(kvittoFelText("tillfalligt"), /just nu/);
+});
+
+test("rubriken: 'Välkommen' den dag kontot skapas, sedan 'Välkommen tillbaka' (audit 2026-11-06)", () => {
+  assert.equal(halsning(DAG, DAG), "Välkommen");
+  assert.equal(halsning(DAG - 1, DAG), "Välkommen tillbaka");
+  assert.equal(halsning(null, DAG), "Välkommen tillbaka", "okänt datum ger det vanliga");
 });

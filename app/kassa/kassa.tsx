@@ -1095,7 +1095,9 @@ export function Kassa({
   const falt = (f: FormFalt, etikett: string, props: React.InputHTMLAttributes<HTMLInputElement>, hjalp?: React.ReactNode) => {
     const felText = fel[f];
     const visaFelText = Boolean(felText);
-    const ok = !visaFelText && rorda.has(f) && faltGiltigt(f, varden[f]);
+    // Ingen bock medan kassan frågar "Menade du …?": bocken sa förut att en
+    // felstavad adress (gmial.com) var rätt, på samma rad som förslaget (auditen 2026-11-06).
+    const ok = !visaFelText && rorda.has(f) && faltGiltigt(f, varden[f]) && !(f === "epost" && epostTips);
     const harRad = felText !== undefined || Boolean(hjalp);
     const textId = `kassa-${f}-text`;
     return (

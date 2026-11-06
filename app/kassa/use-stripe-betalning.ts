@@ -151,7 +151,11 @@ export function useStripeBetalning(nyckel: string | null, beloppOre: number | nu
           return;
         }
         stripe.current = s;
-        const e = s.elements(elementsInstallningar(beloppOre));
+        // Butikens typsnitt från vår egen server (elementsInstallningar), så att
+        // adressen och kortet står i samma typsnitt som resten av formuläret.
+        // Stripe tar bara https (lokalt över http: systemets typsnitt, och en varning).
+        const bas = window.location.protocol === "https:" ? window.location.origin : undefined;
+        const e = s.elements(elementsInstallningar(beloppOre, bas));
         elements.current = e;
         visat.current = beloppOre;
         if (adressPlats.current) {

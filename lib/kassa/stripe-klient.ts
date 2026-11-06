@@ -64,21 +64,31 @@ export const UTSEENDE: Appearance = {
     colorTextPlaceholder: "#8a8076",
     colorDanger: "#D02020",
     colorBackground: "#ffffff",
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
+    // Butikens Geist (elementsInstallningar lägger in filen från vår egen
+    // server); systemets typsnitt om den inte hinner eller går att ladda.
+    fontFamily: 'Geist, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
     // 16 px: iPhone zoomar annars in när ett fält får fokus.
     fontSizeBase: "16px",
     borderRadius: "10px",
     spacingUnit: "4px",
   },
   rules: {
-    ".Input": { border: "1.5px solid #d9cfc4", boxShadow: "none", paddingTop: "8px", paddingBottom: "8px" },
+    // 14 px in från kanten som kassans egna fält (.input i kassa.module.css):
+    // med Stripes 12 px stod texten 2 px till vänster om e-post och mobil (audit 2026-11-06).
+    ".Input": { border: "1.5px solid #d9cfc4", boxShadow: "none", paddingTop: "8px", paddingBottom: "8px", paddingLeft: "14px", paddingRight: "14px" },
     ".Input:hover": { border: "1.5px solid #c9bcae" },
     ".Input:focus": { border: "1.5px solid #C2410C", boxShadow: "0 0 0 3px rgba(194, 65, 12, 0.18)" },
     ".Input--invalid": { border: "1.5px solid #D02020", boxShadow: "none" },
     ".AccordionItem": { border: "1.5px solid #EFE7DE", boxShadow: "none", padding: "16px" },
     ".AccordionItem--selected": { border: "1.5px solid #C2410C", boxShadow: "0 0 0 3px rgba(194, 65, 12, 0.08)" },
     ".Label": { fontWeight: "500" },
-    ".Label--floating": { fontWeight: "600" },
+    // Etiketterna som kassans egna (.etikett): grå och normal vikt i ett tomt
+    // fält, halvfet när den flyttat upp, röd när fältet är fel. Stripes stod
+    // svarta och halvfeta och blev aldrig röda, så formuläret växlade stil fält
+    // för fält (audit 2026-11-06; --invalid provad med Stripe.js samma kväll).
+    ".Label--resting": { color: "#6b6157", fontWeight: "400" },
+    ".Label--floating": { color: "#6b6157", fontWeight: "600" },
+    ".Label--invalid": { color: "#D02020" },
     // Stripes felrader som kassans egna (.felText: 12 px, halvfet): när alla fel
     // visas på en gång stod Stripes i 14 px normal vikt bredvid (audit 2026-11-06).
     ".Error": { fontSize: "12px", fontWeight: "600", lineHeight: "1.45" },
@@ -86,12 +96,23 @@ export const UTSEENDE: Appearance = {
 };
 
 /**
- * Elements utan PaymentIntent (den skapas först i trycket). Beloppet visas i
- * Apple Pay och styr Klarna. Inga typsnitt hämtas till Stripes ram: butiken
- * hämtar inga typsnitt från Google (next/font lägger dem på vår egen server),
- * så fältet ritas med systemets typsnitt, som Stripe gör som standard.
+ * Butikens Geist (latin, variabel 100–900, samma fil som next/font lägger ut)
+ * på vår egen server, för Stripes ramar. Versionen står i namnet: filen cachas
+ * ett år (next.config.ts), så en ny fil får ett nytt namn.
  */
-export function elementsInstallningar(totalOre: number): StripeElementsOptionsMode {
+export const TYPSNITT_FIL = "/fonts/geist-latin-v1.woff2";
+
+/**
+ * Elements utan PaymentIntent (den skapas först i trycket). Beloppet visas i
+ * Apple Pay och styr Klarna.
+ *
+ * ☠️ Typsnittet kommer bara från vår egen server (`bas` är sidans origin),
+ * aldrig från Google: butiken hämtar inga typsnitt därifrån. Utan `bas` (och
+ * om filen inte går att ladda) ritas fälten med systemets typsnitt. Med det
+ * stod Stripes fält i ett annat typsnitt än e-post, mobil och län i samma
+ * formulär (audit 2026-11-06).
+ */
+export function elementsInstallningar(totalOre: number, bas?: string): StripeElementsOptionsMode {
   return {
     mode: "payment",
     amount: totalOre,
@@ -99,6 +120,7 @@ export function elementsInstallningar(totalOre: number): StripeElementsOptionsMo
     captureMethod: STRIPE_DRAGNING,
     locale: "sv",
     appearance: UTSEENDE,
+    ...(bas ? { fonts: [{ family: "Geist", src: `url(${bas}${TYPSNITT_FIL})`, weight: "100 900", display: "swap" }] } : {}),
   };
 }
 

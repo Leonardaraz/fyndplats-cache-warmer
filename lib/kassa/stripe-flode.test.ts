@@ -202,6 +202,14 @@ function fejk(o: {
       las.set(id, l);
       return "tagen";
     },
+    // Som Wix villkorade skrivning: bara om raden fortfarande är den som lästes.
+    async taOverLas(id, forra, ny) {
+      anrop.push(`taOverLas:${forra.steg}`);
+      const fanns = las.get(id);
+      if (!forra.at ? fanns : !fanns || fanns.steg !== forra.steg || fanns.at !== forra.at) return false;
+      las.set(id, ny);
+      return true;
+    },
     async sparaLas(id, l) {
       anrop.push(`sparaLas:${l.steg}`);
       las.set(id, l);
@@ -477,6 +485,32 @@ test("slutför: ett övergivet lås före ordern utan order på korgen kör hela
   assert.deepEqual(await slutforStripe(f.deps, "pi_1", NU), { ok: true, orderId: "order-1" });
   assert.ok(f.anrop.includes("hamtaKorg:korg-1"));
   assert.ok(f.anrop.includes("laggOrder:bevis-659.00"));
+});
+
+test("slutför: två som ser samma övergivna lås samtidigt — bara en tar över och lägger ordern", async () => {
+  // Webhookens omförsök och nätet kom samtidigt till en betalning vars körning dog (auditen 2026-11-06).
+  const f = fejk({ las: { cartId: "korg-1", steg: "pagar", at: NU.getTime() - STRIPE_LAS_MS - 1 } });
+  const [a, b] = await Promise.all([slutforStripe(f.deps, "pi_1", NU), slutforStripe(f.deps, "pi_1", NU)]);
+  const utfall = [a, b].map((u) => (u.ok ? "ok" : u.kod)).sort();
+  assert.deepEqual(utfall, ["ok", "pagar"]);
+  assert.equal(f.anrop.filter((x) => x.startsWith("laggOrder")).length, 1, "ordern läggs en gång");
+  assert.ok(!f.anrop.some((x) => x.startsWith("slapp") || x.startsWith("aterbetala")), "ingen släpper den andras reservation");
+  assert.equal(f.las.get("pi_1")?.steg, "klar");
+});
+
+test("slutför: ett övergivet lås som någon annan hann ta över svarar pagar och rör ingenting", async () => {
+  const f = fejk({ las: { cartId: "korg-1", steg: "order", orderId: "order-5", at: NU.getTime() - STRIPE_LAS_MS - 1 } });
+  // Någon annan skriver låset mellan läsningen och övertagandet.
+  const tag = f.deps.tagLas.bind(f.deps);
+  f.deps.tagLas = async (id, l) => {
+    const r = await tag(id, l);
+    f.las.set(id, { cartId: "korg-1", steg: "registrera", orderId: "order-5", at: NU.getTime() });
+    return r;
+  };
+  const r = await slutforStripe(f.deps, "pi_1", NU);
+  assert.equal(r.ok === false && r.kod, "pagar");
+  assert.ok(!f.anrop.some((x) => /^(laggOrder|dra:|registrera:|slapp|avbrytOrder)/.test(x)));
+  assert.equal(f.las.get("pi_1")?.steg, "registrera", "den andras lås står kvar");
 });
 
 test("slutför: misslyckad dragning avbryter ordern med återlagring och släpper reservationen", async () => {
