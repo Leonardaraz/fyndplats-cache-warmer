@@ -49,10 +49,12 @@ const AVSIKT_ID = /^pi_[A-Za-z0-9]+$/;
 /**
  * Betalfältets utseende: butikens färger och mått (app/globals.css,
  * app/kassa/kassa.module.css). Stripe ritar fältet i en egen ram och läser
- * inte sidans CSS, så värdena står här.
+ * inte sidans CSS, så värdena står här. Flytande etiketter som i kassans egna
+ * fält: ledtexten står i fältet och flyttar upp när kunden skriver.
  */
 export const UTSEENDE: Appearance = {
   theme: "stripe",
+  labels: "floating",
   variables: {
     colorPrimary: "#C2410C",
     colorText: "#1c1c1c",
@@ -67,12 +69,14 @@ export const UTSEENDE: Appearance = {
     spacingUnit: "4px",
   },
   rules: {
-    ".Input": { border: "1.5px solid #d9cfc4", boxShadow: "none" },
+    ".Input": { border: "1.5px solid #d9cfc4", boxShadow: "none", paddingTop: "8px", paddingBottom: "8px" },
+    ".Input:hover": { border: "1.5px solid #c9bcae" },
     ".Input:focus": { border: "1.5px solid #C2410C", boxShadow: "0 0 0 3px rgba(194, 65, 12, 0.18)" },
     ".Input--invalid": { border: "1.5px solid #D02020", boxShadow: "none" },
-    ".AccordionItem": { border: "1.5px solid #EFE7DE", boxShadow: "none" },
-    ".AccordionItem--selected": { border: "1.5px solid #C2410C" },
+    ".AccordionItem": { border: "1.5px solid #EFE7DE", boxShadow: "none", padding: "16px" },
+    ".AccordionItem--selected": { border: "1.5px solid #C2410C", boxShadow: "0 0 0 3px rgba(194, 65, 12, 0.08)" },
     ".Label": { fontWeight: "500" },
+    ".Label--floating": { fontWeight: "600" },
   },
 };
 

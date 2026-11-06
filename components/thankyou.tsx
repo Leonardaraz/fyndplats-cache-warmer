@@ -22,8 +22,11 @@ export function ThankYou({ orderNumber, children }: { orderNumber?: string | nul
     params.get("orderID");
 
   // Synligt ordernummer: det läsbara numret (t.ex. "10003") som /tack-sidan
-  // slår upp server-side, annars GUID:t som fallback så fältet aldrig blir tomt.
-  const displayNo = orderNumber || orderId;
+  // slår upp server-side. Aldrig GUID:t (36 tecken som kunden inte känner igen
+  // och inte kan läsa upp för kundtjänst) och aldrig "0", som Wix ger en order
+  // innan den är godkänd (provet 2026-11-05). Saknas numret står det i
+  // orderbekräftelsen, och sidan säger det.
+  const displayNo = orderNumber && /^\d+$/.test(orderNumber) && orderNumber !== "0" ? orderNumber : null;
 
   // Slutbelopp (efter frakt/rabatt) om Wix headless appendar det på redirecten.
   // Används för att Purchase-value ska matcha det server-autoritativa webhook-
@@ -71,12 +74,17 @@ export function ThankYou({ orderNumber, children }: { orderNumber?: string | nul
       <div className="eyebrow">Beställning mottagen</div>
       <h1 className="tack-title">Tack för din order!</h1>
 
-      {displayNo && (
+      {displayNo ? (
         <div className="tack-orderno">
           <span className="tack-orderno-label">Ordernummer</span>
           <span className="tack-orderno-val">#{displayNo}</span>
         </div>
-      )}
+      ) : orderId ? (
+        <div className="tack-orderno">
+          <span className="tack-orderno-label">Ordernummer</span>
+          <span className="tack-orderno-text">Står i orderbekräftelsen som kommer till din e-post.</span>
+        </div>
+      ) : null}
 
       <p className="tack-lede">
         Vi har skickat en orderbekräftelse till din e-post med alla detaljer.

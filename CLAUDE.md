@@ -1466,6 +1466,47 @@ Leonard visa Stripes egen Klarna-ruta (Payment Method Messaging, villkoren och
 räntan i en ruta från Stripe) kan den läggas in när kontot finns och kan
 provas; den kräver samtycke för kakor, som Klarnas.
 
+### Premiumkassan (Leonard 2026-11-06: "gör allt visuellt premium, och funktioner premium")
+
+- **Egen ram:** `/kassa` och `/kassa/klar` har eget sidhuvud (loggan, stegen
+  Varukorg › Uppgifter och betalning › Bekräftelse, "Säker kassa") och en tunn
+  sidfot (`app/kassa/kassa-ram.tsx`). Butikens kampanjremsa, meny med sökruta,
+  sidfot och tillbaka-upp-knapp döljs med `body:has([data-kassa-sida])` i
+  `app/globals.css`, utan skript och utan att något blinkar fram. Sidhuvudet är
+  inte fast mot skärmen (iPhones tangentbord flyttar fasta rader). Villkor och
+  hjälp öppnas i ny flik: det kunden skrivit sparas inte förrän hen betalar.
+- **Fälten:** flytande etiketter, 56 px, som Stripes fält (`labels: "floating"`
+  och utfyllnaden i `UTSEENDE`; mätt i webbläsaren: båda 56 px). En bock när ett
+  lämnat fält är rätt (`faltGiltigt`, samma regler som `provaKassa`), svenska
+  mobilnummer skrivs "070 123 45 67" (`snyggtTelefon`), c/o bakom en länk, och
+  `autocomplete` med `shipping`. Ett rättat fel lämnar sin rad kvar (tom) till
+  nästa tryck, så att inget flyttar medan kunden skriver.
+- **"Menade du …@gmail.com?"** (`lib/kassa/epost-forslag.ts`): stavfel i namnet
+  på en känd tjänst, felskriven toppdomän, saknad punkt och domäner som inte
+  finns (gmail.se). En riktig adress hos en annan tjänst (hotmail.dk, ett
+  företag) får aldrig förslag, och två lika troliga ger inget. Förslaget står på
+  hjälptextens rad.
+- **Spara mina uppgifter:** kundens eget val, aldrig förvalt. Utan det sparas
+  ingenting i webbläsaren, och det som sparats förut tas bort vid nästa köp.
+  Förut sparades adressen alltid (ingen kaka, men lagring på kundens enhet utan
+  val).
+- **Summeringen:** varianten per rad ("Färg: Natur"), antal varor, "Ändra"
+  (öppnar varukorgen), fri frakt-mätaren, och under den öppet köp, leveransen,
+  betalningen och Google-betyget (`getSocialProof`, samma cache som sidfoten).
+- **Rabattkoden:** Enter i fältet lägger till koden (förut skickade Enter hela
+  formuläret, alltså betalningen); en kod som gått in blir en bricka med
+  "Ta bort" (en tom kod till `/api/kassa/rakna`); en ogiltig kod syns vid koden
+  (förut syntes `fel.kupong` ingenstans).
+- **Rättat i granskningen:** fokus går till det första felet uppifrån
+  (`forstaFel`; förut hoppade det förbi ett tomt mobilnummer), ingen `<main>` i
+  `<main>` (layouten har redan en), stegen i sidhuvudet heter `data-steg` (inte
+  `data-lage`, som är betalfältets läge), och tacksidan visar aldrig GUID:t
+  eller "0" som ordernummer.
+- **Inte byggt:** snabbkassan (Apple Pay och Google Pay överst, Express Checkout
+  Element) som hoppar över formuläret. Den kräver Leonards konto och domänen och
+  kan inte provas lokalt (ingen plånbok i Playwright); byggs och provas med
+  hans iPhone på en förhandslänk.
+
 **Kvar före riktiga kunder:** Leonards Stripe-konto med Klarna, kort, Apple Pay
 och Google Pay; nycklarna i Vercel (test i Preview, live i Production);
 webhooken (`payment_intent.amount_capturable_updated` och

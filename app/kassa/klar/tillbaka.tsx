@@ -16,6 +16,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AVSIKT_KAKA, AVSIKT_KAKA_SOKVAG, STRIPE_NYCKEL, avsiktUrKakor, tillbakaKod, vantaPaOrder } from "../../../lib/kassa/stripe-klient";
+import { KassaFot, KassaHuvud, Las } from "../kassa-ram";
 import s from "../kassa.module.css";
 
 const VANTAR_NYCKEL = "fp_kassa_vantar";
@@ -85,37 +86,50 @@ export function Tillbaka() {
       .catch(() => window.location.replace("/kassa"));
   }, []);
 
+  // Kassans eget sidhuvud och sidfot (kassa-ram.tsx): kunden är mitt i köpet.
+  // Ingen <main> här: layouten har redan en (två är fel HTML och förvirrar skärmläsare).
   if (stripeLage === "nej") {
     return (
-      <main style={{ minHeight: "60vh", display: "grid", placeItems: "center", padding: 24, textAlign: "center" }}>
-        <p style={{ margin: 0, color: "var(--soft)" }}>Ett ögonblick …</p>
-      </main>
+      <div className={s.sida} data-kassa-sida="">
+        <KassaHuvud />
+        <div className={s.klarYta}>
+          <p style={{ margin: 0, color: "var(--soft)" }}>Ett ögonblick …</p>
+        </div>
+        <KassaFot />
+      </div>
     );
   }
 
   return (
-    <main style={{ minHeight: "70vh", display: "grid", placeItems: "center", padding: "32px 16px" }}>
-      <div className={s.vantanKort} role="status" aria-live="polite" aria-busy={stripeLage === "slutfor"}>
-        {stripeLage === "slutfor" ? (
-          <>
-            <div className={s.vantanRing} aria-hidden="true">
-              <svg width="26" height="26" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5Zm-3 8V7a3 3 0 1 1 6 0v3H9Z" /></svg>
-            </div>
-            <p className={s.vantanRubrik}>Vi slutför din beställning</p>
-            <p className={s.vantanUnder}>Betalningen kontrolleras och ordern skapas. Stäng inte sidan.</p>
-          </>
-        ) : (
-          <>
-            <p className={s.vantanRubrik}>Betalningen är mottagen</p>
-            <p className={s.vantanUnder}>
-              Vi slutför din beställning. Orderbekräftelsen kommer till din e-post inom några minuter, och du behöver inte betala igen.
-            </p>
-            <p className={s.vantanUnder} style={{ marginTop: 14 }}>
-              <Link href="/">Till startsidan</Link>
-            </p>
-          </>
-        )}
+    <div className={s.sida} data-kassa-sida="">
+      <KassaHuvud />
+      <div className={s.klarYta}>
+        <div className={`${s.vantanKort} ${s.klarKort}`} role="status" aria-live="polite" aria-busy={stripeLage === "slutfor"}>
+          {stripeLage === "slutfor" ? (
+            <>
+              <div className={s.vantanRing} aria-hidden="true">
+                <Las storlek={26} />
+              </div>
+              <p className={s.vantanRubrik}>Vi slutför din beställning</p>
+              <p className={s.vantanUnder}>Betalningen kontrolleras och ordern skapas. Stäng inte sidan.</p>
+            </>
+          ) : (
+            <>
+              <span className={`${s.klarBock} ${s.klarBockStor}`} aria-hidden="true">
+                <svg width="26" height="26" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" d="m5 12.5 4.5 4.5L19 7.5" /></svg>
+              </span>
+              <p className={s.vantanRubrik}>Betalningen är mottagen</p>
+              <p className={s.vantanUnder}>
+                Vi slutför din beställning. Orderbekräftelsen kommer till din e-post inom några minuter, och du behöver inte betala igen.
+              </p>
+              <p className={s.vantanUnder} style={{ marginTop: 14 }}>
+                <Link href="/">Till startsidan</Link>
+              </p>
+            </>
+          )}
+        </div>
       </div>
-    </main>
+      <KassaFot />
+    </div>
   );
 }

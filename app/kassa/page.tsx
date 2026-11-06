@@ -8,6 +8,7 @@
 
 import type { Metadata } from "next";
 import { harStripe } from "@/lib/kassa/stripe";
+import { getSocialProof } from "@/lib/social-proof-live";
 import { Kassa } from "./kassa";
 
 export const metadata: Metadata = {
@@ -15,7 +16,10 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function KassaSida() {
+export default async function KassaSida() {
   const nyckel = harStripe() ? process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.trim() || null : null;
-  return <Kassa stripeNyckel={nyckel && /^pk_(test|live)_[A-Za-z0-9]+$/.test(nyckel) ? nyckel : null} />;
+  // Google-betyget i summeringen: samma hämtning som sidfoten gör på varje sida
+  // (cachad i 6 h), så det kostar inget extra anrop.
+  const betyg = (await getSocialProof()).rating;
+  return <Kassa stripeNyckel={nyckel && /^pk_(test|live)_[A-Za-z0-9]+$/.test(nyckel) ? nyckel : null} betyg={betyg} />;
 }

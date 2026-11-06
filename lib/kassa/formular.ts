@@ -78,6 +78,51 @@ export const KASSA_TEXT: Record<Falt, { saknas: string; fel?: string }> = {
 
 const MAX: Record<Falt, number> = { epost: 254, fornamn: 60, efternamn: 60, telefon: 20, gata: 100, co: 60, postnr: 6, ort: 50, kupong: 40 };
 
+/**
+ * Fälten i den ordning kunden ser dem på sidan. Fokus går till det första
+ * felet uppifrån: provaKassa lägger felen i en annan ordning, och kassan
+ * hoppade därför förbi ett tomt mobilnummer till förnamnet under det.
+ */
+export const FALT_ORDNING: readonly Falt[] = ["epost", "telefon", "fornamn", "efternamn", "gata", "co", "postnr", "ort", "kupong"];
+
+/** Det första fältet uppifrån som har ett fel, eller null. */
+export function forstaFel(fel: Partial<Record<Falt, string>>): Falt | null {
+  return FALT_ORDNING.find((f) => Boolean(fel[f])) ?? null;
+}
+
+/**
+ * Är fältet ifyllt som kassan vill ha det? Samma regler som provaKassa, ett
+ * fält i taget: kassan visar en bock när kunden lämnat ett giltigt fält.
+ * c/o och rabattkoden är frivilliga och får ingen bock när de är tomma.
+ */
+export function faltGiltigt(f: Falt, v: unknown): boolean {
+  const t = text(v);
+  switch (f) {
+    case "epost":
+      return EPOST.test(t) && t.length <= MAX.epost;
+    case "telefon":
+      return normalTelefon(t) !== null;
+    case "postnr":
+      return normalPostnr(t) !== null;
+    case "kupong":
+      return false;
+    default:
+      return t.length > 0 && t.length <= MAX[f];
+  }
+}
+
+/**
+ * Ett svenskt mobilnummer som kunden känner igen det: "0701234567",
+ * "+46 70 123 45 67" och "070-123 45 67" blir "070 123 45 67". Allt annat
+ * (fasta nummer, utländska, ofullständiga) lämnas som kunden skrev det.
+ */
+export function snyggtTelefon(v: string): string {
+  const e164 = normalTelefon(v);
+  if (!e164 || !/^\+467\d{8}$/.test(e164)) return v;
+  const d = `0${e164.slice(3)}`;
+  return `${d.slice(0, 3)} ${d.slice(3, 6)} ${d.slice(6, 8)} ${d.slice(8)}`;
+}
+
 /** Prövar hela formuläret. Alla fel på en gång, så att kunden ser allt som saknas. */
 export function provaKassa(inn: KassaIn): KassaProv {
   const fel: Partial<Record<Falt, string>> = {};

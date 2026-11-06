@@ -16,6 +16,14 @@
 //     stängd tills kunden öppnar den, och felrader har sin plats reserverad;
 //   • knappen står sist i formuläret, i sidans eget flöde.
 //
+// Premiumkassan (Leonard 2026-11-06, "allt visuellt premium"): eget sidhuvud
+// och egen sidfot utan butikens meny (kassa-ram.tsx), flytande etiketter som i
+// betalfältet, en bock när ett fält är rätt ifyllt, "Menade du …@gmail.com?"
+// (lib/kassa/epost-forslag.ts), c/o bakom en länk, summeringen med varianter
+// och "Ändra", och "Spara mina uppgifter" som kunden själv väljer. Inget av det
+// flyttar fälten medan kunden skriver: ett fel som rättas lämnar sin rad kvar
+// (tom) tills nästa tryck.
+//
 // Wix betalsida har ingen väg tillbaka hit. Ordern som väntar på betalning
 // sparas därför i sessionStorage, och när kunden kommer tillbaka (bakåtknappen
 // eller en ny flik) frågar sidan om den är betald och går då till /tack. Är den
@@ -27,10 +35,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { preconnect, prefetchDNS } from "react-dom";
 import { useCart, liImageUrl } from "../../components/cart";
 import { PaymentMarks } from "../../components/payment-marks";
+import { GoogleG } from "../../components/google-g";
 import { tightFillUrl } from "../../lib/wix-image";
+import { valdaAlternativ } from "../../lib/cart-shape";
 import { DELIVERY_MAX_DAYS, DELIVERY_MIN_DAYS, DELIVERY_TIME, FREE_SHIPPING_FROM_KR, fraktKr } from "../../lib/shipping";
 import { leveransIntervall } from "../../lib/leveransdatum";
-import { provaKassa, normalPostnr, type Falt } from "../../lib/kassa/formular";
+import { faltGiltigt, forstaFel, provaKassa, normalPostnr, snyggtTelefon, type Falt } from "../../lib/kassa/formular";
+import { epostForslag } from "../../lib/kassa/epost-forslag";
 import {
   RETUR_SOKVAG,
   STRIPE_NYCKEL,
@@ -42,6 +53,7 @@ import {
   vantaPaOrder,
 } from "../../lib/kassa/stripe-klient";
 import { useStripeBetalning } from "./use-stripe-betalning";
+import { KassaFot, KassaHuvud, Las } from "./kassa-ram";
 import s from "./kassa.module.css";
 
 type Varden = Record<"epost" | "fornamn" | "efternamn" | "telefon" | "gata" | "co" | "postnr" | "ort", string>;
@@ -130,7 +142,27 @@ const skrivJson = (lagring: "local" | "session", nyckel: string, v: unknown) => 
   }
 };
 
-export function Kassa({ stripeNyckel = null }: { stripeNyckel?: string | null }) {
+/** Raden valda alternativ som en text: "Färg: Natur · Storlek: L". */
+function variantText(li: KorgRadVy): string {
+  return valdaAlternativ(li)
+    .map((a) => (a.namn ? `${a.namn}: ${a.varde}` : a.varde))
+    .join(" · ");
+}
+
+const IKON_BOCK = (
+  <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true">
+    <path fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" d="m5 12.5 4.5 4.5L19 7.5" />
+  </svg>
+);
+
+/** Fält vars fel kunden ser under fältet (rabattkoden har en egen rad). */
+type FormFalt = keyof Varden;
+
+/**
+ * Kassan. `betyg` är butikens Google-betyg ("4,9", lib/social-proof-live.ts),
+ * som page.tsx läser på servern; null visar ingen betygsrad.
+ */
+export function Kassa({ stripeNyckel = null, betyg = null }: { stripeNyckel?: string | null; betyg?: string | null }) {
   if (stripeNyckel) {
     // Stripe.js och betalfältet hämtas direkt när sidan visas.
     preconnect("https://js.stripe.com");
@@ -143,7 +175,7 @@ export function Kassa({ stripeNyckel = null }: { stripeNyckel?: string | null })
     prefetchDNS("https://static.wixstatic.com");
   }
 
-  const { cart } = useCart();
+  const { cart, setOpen: oppnaVarukorgen } = useCart();
   const cartId: string = cart?._id || "";
   const rader: KorgRadVy[] = useMemo(() => cart?.lineItems ?? [], [cart]);
   const [varden, setVarden] = useState<Varden>(TOMT);
@@ -177,6 +209,12 @@ export function Kassa({ stripeNyckel = null }: { stripeNyckel?: string | null })
   const [betalFel, setBetalFel] = useState<string | null>(null);
   const [klarVantar, setKlarVantar] = useState(false);
   const pagar = useRef(false);
+  // Fält kunden lämnat minst en gång: först då visas bocken och e-postförslaget.
+  const [rorda, setRorda] = useState<ReadonlySet<FormFalt>>(() => new Set());
+  const [coOppen, setCoOppen] = useState(false);
+  // "Spara mina uppgifter": kundens eget val och aldrig förvalt. Utan det sparas
+  // ingenting i webbläsaren, och det som sparats förut tas bort vid nästa köp.
+  const [komIhag, setKomIhag] = useState(false);
 
   // Provläget: /kassa?prova=1 sätter kakan som låter den här besökaren använda kassan.
   useEffect(() => {
@@ -192,8 +230,13 @@ export function Kassa({ stripeNyckel = null }: { stripeNyckel?: string | null })
   // Sparade uppgifter från förra gången (bara i den här webbläsaren).
   useEffect(() => {
     const sparat = lasJson<Partial<Varden>>("local", ADRESS_NYCKEL);
+    if (!sparat || typeof sparat !== "object") return;
+    const giltigt = Object.fromEntries(Object.entries(sparat).filter(([k, x]) => k in TOMT && typeof x === "string")) as Partial<Varden>;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- uppgifterna finns bara i webbläsaren; servern och första renderingen måste vara lika
-    if (sparat) setVarden((v) => ({ ...v, ...Object.fromEntries(Object.entries(sparat).filter(([k, x]) => k in TOMT && typeof x === "string")) }));
+    setVarden((v) => ({ ...v, ...giltigt }));
+    // Kunden valde att spara förra gången: valet står kvar tills hen tar bort det.
+    setKomIhag(true);
+    if (giltigt.co) setCoOppen(true);
   }, []);
 
   // Tillbaka från Wix betalsida? Är ordern betald går kunden till tacksidan.
@@ -290,8 +333,8 @@ export function Kassa({ stripeNyckel = null }: { stripeNyckel?: string | null })
 
   // Wix räkning: när korgen är känd, när postnumret blir giltigt och när rabattkoden ändras.
   const rakna = useCallback(
-    async (opts: { kupong?: string } = {}) => {
-      if (!cartId) return;
+    async (opts: { kupong?: string } = {}): Promise<{ kupong?: string | null; kupongFel?: string | null } | null> => {
+      if (!cartId) return null;
       setRaknar(true);
       try {
         const r = await fetch("/api/kassa/rakna", {
@@ -305,9 +348,12 @@ export function Kassa({ stripeNyckel = null }: { stripeNyckel?: string | null })
           setKupongFel(j.kupongFel ?? null);
           setMeddelanden(Array.isArray(j.meddelanden) ? j.meddelanden : []);
           if (j.kupong) setKupong(j.kupong);
+          return j;
         }
+        return null;
       } catch {
         /* summeringen visar butikens egen uppskattning tills nästa försök */
+        return null;
       } finally {
         setRaknar(false);
       }
@@ -324,10 +370,45 @@ export function Kassa({ stripeNyckel = null }: { stripeNyckel?: string | null })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cartId, korgSignatur]);
 
-  const andra = (f: keyof Varden) => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const andra = (f: FormFalt) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value;
     setVarden((x) => ({ ...x, [f]: v }));
-    if (fel[f]) setFel((x) => ({ ...x, [f]: undefined }));
+    // Felet släcks men raden står kvar (tom) till nästa tryck: annars flyttar
+    // allt under fältet upp medan kunden skriver.
+    if (fel[f]) setFel((x) => ({ ...x, [f]: "" }));
+  };
+
+  /** Kunden lämnar ett fält: bocken och förslagen visas, numret skrivs snyggt. */
+  const lamna = (f: FormFalt) => () => {
+    setRorda((r) => (r.has(f) ? r : new Set(r).add(f)));
+    if (f === "telefon") setVarden((x) => ({ ...x, telefon: snyggtTelefon(x.telefon.trim()) }));
+    if (f === "epost") setVarden((x) => ({ ...x, epost: x.epost.trim() }));
+    if (f === "postnr") postnrKlart();
+  };
+
+  /** Uppgifterna sparas bara om kunden valt det; annars tas det som sparats förut bort. */
+  const sparaUppgifter = (v: Partial<Record<FormFalt, string>>) => {
+    if (!komIhag) {
+      skrivJson("local", ADRESS_NYCKEL, null);
+      return;
+    }
+    const ut: Partial<Varden> = {};
+    for (const k of Object.keys(TOMT) as FormFalt[]) if (typeof v[k] === "string") ut[k] = v[k];
+    // Numret sparas som kunden skrev det ("070 …"), inte som Wix får det (+46…).
+    ut.telefon = varden.telefon.trim();
+    skrivJson("local", ADRESS_NYCKEL, ut);
+  };
+
+  /** Fel i formuläret: rabattkodens fel visas vid koden, och fokus går till det första felet uppifrån. */
+  const visaFel = (nya: Partial<Record<Falt, string>>) => {
+    setFel(nya);
+    if (nya.kupong) {
+      setKupongOppen(true);
+      setKupongFel(nya.kupong);
+    }
+    const forsta = forstaFel(nya);
+    if (forsta === "co") setCoOppen(true);
+    if (forsta) window.requestAnimationFrame(() => document.getElementById(`kassa-${forsta}`)?.focus());
   };
 
   const postnrKlart = () => {
@@ -448,9 +529,7 @@ export function Kassa({ stripeNyckel = null }: { stripeNyckel?: string | null })
     setBetalFel(null);
     const prov = provaKassa({ ...varden, kupong: kupongOppen ? kupong : summa?.kupong ?? "" });
     if (!prov.ok) {
-      setFel(prov.fel);
-      const forsta = (Object.keys(prov.fel) as Falt[])[0];
-      document.getElementById(`kassa-${forsta}`)?.focus();
+      visaFel(prov.fel);
       return;
     }
     setFel({});
@@ -477,8 +556,7 @@ export function Kassa({ stripeNyckel = null }: { stripeNyckel?: string | null })
       return;
     }
     stegTill(0);
-    // Numret sparas som kunden skrev det ("070 …"), inte som Wix får det (+46…).
-    skrivJson("local", ADRESS_NYCKEL, { ...prov.varden, telefon: varden.telefon.trim(), kupong: undefined });
+    sparaUppgifter(prov.varden);
     try {
       const r = await fetch("/api/kassa/stripe/forbered", {
         method: "POST",
@@ -487,7 +565,7 @@ export function Kassa({ stripeNyckel = null }: { stripeNyckel?: string | null })
       });
       const j = await r.json().catch(() => null);
       if (!r.ok || !j?.ok || typeof j.avsiktId !== "string") {
-        if (j?.fel) setFel(j.fel);
+        if (j?.fel) visaFel(j.fel);
         if (j?.falt === "kupong") {
           setKupongOppen(true);
           setKupongFel(j.meddelanden?.[0] ?? "Rabattkoden gäller inte.");
@@ -562,15 +640,12 @@ export function Kassa({ stripeNyckel = null }: { stripeNyckel?: string | null })
     setMeddelanden([]);
     const prov = provaKassa({ ...varden, kupong: kupongOppen ? kupong : summa?.kupong ?? "" });
     if (!prov.ok) {
-      setFel(prov.fel);
-      const forsta = (Object.keys(prov.fel) as Falt[])[0];
-      document.getElementById(`kassa-${forsta}`)?.focus();
+      visaFel(prov.fel);
       return;
     }
     setFel({});
     visaVantan(0);
-    // Numret sparas som kunden skrev det ("070 …"), inte som Wix får det (+46…).
-    skrivJson("local", ADRESS_NYCKEL, { ...prov.varden, telefon: varden.telefon.trim(), kupong: undefined });
+    sparaUppgifter(prov.varden);
     try {
       const r = await fetch("/api/kassa/betala", {
         method: "POST",
@@ -586,7 +661,7 @@ export function Kassa({ stripeNyckel = null }: { stripeNyckel?: string | null })
         window.location.href = j.url;
         return;
       }
-      if (j?.fel) setFel(j.fel);
+      if (j?.fel) visaFel(j.fel);
       if (j?.falt === "kupong") {
         setKupongOppen(true);
         setKupongFel(j.meddelanden?.[0] ?? "Rabattkoden gäller inte.");
@@ -613,43 +688,101 @@ export function Kassa({ stripeNyckel = null }: { stripeNyckel?: string | null })
 
   const anvandKupong = async () => {
     const kod = kupong.replace(/\s/g, "");
+    if (!kod) return;
     setKupongFel(null);
-    await rakna({ kupong: kod });
+    const j = await rakna({ kupong: kod });
+    // Koden gick in: fältet stängs och koden visas som en bricka med "Ta bort".
+    if (j?.kupong && !j.kupongFel) setKupongOppen(false);
+  };
+
+  /** Rabattkoden tas bort ur korgen (en tom kod till /api/kassa/rakna). */
+  const taBortKupong = async () => {
+    setKupong("");
+    setKupongFel(null);
+    await rakna({ kupong: "" });
+    setKupongOppen(false);
   };
 
   if (!cartId && !kollar && !korgVantas && rader.length === 0) {
     return (
-      <main className={s.sida}>
-        <div className={s.tom}>
-          <h1 className={s.rubrik}>Varukorgen är tom</h1>
-          <p>Lägg något i varukorgen först, så kommer du hit när du vill betala.</p>
-          <a className={s.knappSekundar} href="/butik">Till butiken</a>
+      <div className={s.sida} data-kassa-sida="">
+        <KassaHuvud />
+        <div className={s.innehall}>
+          <div className={s.tom}>
+            <span className={s.tomIkon} aria-hidden="true">
+              <svg width="30" height="30" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" d="M6 7h12l-1 13H7L6 7Zm3 0a3 3 0 0 1 6 0" /></svg>
+            </span>
+            <h1 className={s.rubrik}>Varukorgen är tom</h1>
+            <p>Lägg något i varukorgen först, så kommer du hit när du vill betala.</p>
+            <a className={s.knappSekundar} href="/butik">Till butiken</a>
+          </div>
         </div>
-      </main>
+        <KassaFot />
+      </div>
     );
   }
 
   /** Beloppet, eller en platshållare med samma höjd medan korgen hämtas. */
   const belopp = (ore: number | null) => (harKorg ? kr(ore) : <span className={s.skelett} aria-label="Hämtar" />);
+  const antalVaror = rader.reduce((n, li) => n + (li.quantity ?? 1), 0);
+  // "Menade du …?" när kunden lämnat fältet. Står på hjälptextens rad, så att inget flyttar.
+  const epostTips = rorda.has("epost") && !fel.epost ? epostForslag(varden.epost) : null;
+  const friFraktAndel = Math.max(0, Math.min(1, (delsummaOre - (summa?.rabattOre ?? 0)) / (FREE_SHIPPING_FROM_KR * 100)));
 
-  const falt = (f: keyof Varden, etikett: string, props: React.InputHTMLAttributes<HTMLInputElement>, hjalp?: string) => (
-    <div className={s.falt}>
-      <label className={s.etikett} htmlFor={`kassa-${f}`}>{etikett}</label>
-      <input
-        id={`kassa-${f}`}
-        name={f}
-        className={`${s.input} ${fel[f as Falt] ? s.inputFel : ""}`}
-        value={varden[f]}
-        onChange={andra(f)}
-        aria-invalid={fel[f as Falt] ? true : undefined}
-        aria-describedby={`kassa-${f}-text`}
-        {...props}
-      />
-      <div id={`kassa-${f}-text`} className={fel[f as Falt] ? s.felText : s.hjalpText} aria-live="polite">
-        {fel[f as Falt] ?? hjalp ?? " "}
+  /**
+   * Ett fält med flytande etikett (som i betalfältet). Raden under fältet finns
+   * när fältet har en hjälptext eller har haft ett fel sedan senaste trycket;
+   * ett rättat fel lämnar raden tom i stället för att ta bort den.
+   */
+  const falt = (f: FormFalt, etikett: string, props: React.InputHTMLAttributes<HTMLInputElement>, hjalp?: React.ReactNode) => {
+    const felText = fel[f];
+    const visaFelText = Boolean(felText);
+    const ok = !visaFelText && rorda.has(f) && faltGiltigt(f, varden[f]);
+    const harRad = felText !== undefined || Boolean(hjalp);
+    const textId = `kassa-${f}-text`;
+    return (
+      <div className={s.falt}>
+        <div className={`${s.faltRam} ${visaFelText ? s.faltRamFel : ""} ${ok ? s.faltRamOk : ""}`}>
+          <input
+            id={`kassa-${f}`}
+            name={f}
+            className={s.input}
+            value={varden[f]}
+            onChange={andra(f)}
+            onBlur={lamna(f)}
+            placeholder=" "
+            aria-invalid={visaFelText ? true : undefined}
+            aria-describedby={harRad ? textId : undefined}
+            {...props}
+          />
+          <label className={s.etikett} htmlFor={`kassa-${f}`}>{etikett}</label>
+          {ok ? <span className={s.faltOk} aria-hidden="true">{IKON_BOCK}</span> : null}
+        </div>
+        {harRad ? (
+          <div id={textId} className={visaFelText ? s.felText : s.hjalpText} aria-live="polite">
+            {visaFelText ? felText : hjalp}
+          </div>
+        ) : null}
       </div>
-    </div>
+    );
+  };
+
+  const epostHjalp = epostTips ? (
+    <span className={s.forslag}>
+      Menade du{" "}
+      <button type="button" onClick={() => setVarden((x) => ({ ...x, epost: epostTips }))}>
+        {epostTips}
+      </button>
+      ?
+    </span>
+  ) : (
+    "Orderbekräftelsen och spårningen kommer hit."
   );
+
+  const oppnaCo = () => {
+    setCoOppen(true);
+    window.requestAnimationFrame(() => document.getElementById("kassa-co")?.focus());
+  };
 
   const sammanfattning = (
     <div className={s.summering}>
@@ -657,14 +790,19 @@ export function Kassa({ stripeNyckel = null }: { stripeNyckel?: string | null })
         {rader.map((li) => {
           const bild = liImageUrl(li.image);
           const namn = (typeof li.productName === "string" ? li.productName : li.productName?.original) || "Vara";
+          const variant = variantText(li);
+          const antal = li.quantity ?? 1;
           return (
             <li key={li._id} className={s.rad}>
               <span className={s.bild}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 {bild ? <img src={tightFillUrl(bild, 112, 112)} alt="" width={56} height={56} loading="lazy" /> : null}
-                {(li.quantity ?? 1) > 1 ? <span className={s.antal}>{li.quantity}</span> : null}
+                {antal > 1 ? <span className={s.antal} aria-label={`${antal} st`}>{antal}</span> : null}
               </span>
-              <span className={s.radNamn}>{namn}</span>
+              <span className={s.radText}>
+                <span className={s.radNamn}>{namn}</span>
+                {variant ? <span className={s.radVariant}>{variant}</span> : null}
+              </span>
               <span className={s.radPris}>{radSumma(li)}</span>
             </li>
           );
@@ -673,9 +811,12 @@ export function Kassa({ stripeNyckel = null }: { stripeNyckel?: string | null })
       <dl className={s.summor}>
         <div><dt>Delsumma</dt><dd>{belopp(delsummaOre)}</dd></div>
         {summa && summa.rabattOre > 0 ? <div className={s.rabatt}><dt>Rabatt{summa.kupong ? ` (${summa.kupong})` : ""}</dt><dd>−{kr(summa.rabattOre)}</dd></div> : null}
-        <div><dt>Frakt</dt><dd>{harKorg ? (fraktOre === 0 ? "Fri frakt" : kr(fraktOre)) : belopp(null)}</dd></div>
+        <div><dt>Frakt</dt><dd className={harKorg && fraktOre === 0 ? s.gratis : undefined}>{harKorg ? (fraktOre === 0 ? "Fri frakt" : kr(fraktOre)) : belopp(null)}</dd></div>
         {harKorg && fraktOre > 0 && kvarTillFri > 0 ? (
-          <div className={s.friFrakt}><dt>Handla för {kr(kvarTillFri)} till så blir frakten gratis</dt><dd /></div>
+          <div className={s.friFrakt}>
+            <dt>Handla för {kr(kvarTillFri)} till så blir frakten gratis</dt>
+            <dd className={s.friFraktMatare} aria-hidden="true"><span style={{ width: `${Math.round(friFraktAndel * 100)}%` }} /></dd>
+          </div>
         ) : null}
         <div className={s.total}><dt>Att betala</dt><dd>{belopp(totalOre)}</dd></div>
       </dl>
@@ -683,170 +824,270 @@ export function Kassa({ stripeNyckel = null }: { stripeNyckel?: string | null })
     </div>
   );
 
+  // Det kunden ofta vill veta precis innan hen betalar. Bara det som stämmer:
+  // öppet köp och leveranstiden står i köpvillkoren och lib/shipping.ts.
+  const fortroende = (
+    <div className={s.fortroende}>
+      <ul className={s.fortroendeLista}>
+        <li>
+          <span className={s.fortroendeIkon} aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M4 12a8 8 0 1 0 2.3-5.6M4 4v4h4" /></svg>
+          </span>
+          <span><strong>30 dagars öppet köp</strong>Ångra köpet inom 30 dagar efter att du fått varan.</span>
+        </li>
+        <li>
+          <span className={s.fortroendeIkon} aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M3 6.5h11v9H3zM14 9.5h3.6l3.4 3.4v2.6h-7M6.5 18.5a1.75 1.75 0 1 0 0-.01M17.5 18.5a1.75 1.75 0 1 0 0-.01" /></svg>
+          </span>
+          <span><strong>Spårbar leverans</strong>{levDatum ? `Beräknad ${levDatum}` : DELIVERY_TIME}, från EU-lager utan tull.</span>
+        </li>
+        <li>
+          <span className={s.fortroendeIkon} aria-hidden="true"><Las storlek={16} /></span>
+          <span>
+            <strong>Trygg betalning</strong>
+            {stripeNyckel ? "Kort, Apple Pay, Google Pay eller Klarna, krypterat via Stripe." : "Kort, Klarna eller Apple Pay, krypterat hos Wix."}
+          </span>
+        </li>
+      </ul>
+      {betyg ? (
+        <p className={s.betyg}>
+          <GoogleG size={16} />
+          <span><strong>{betyg}</strong> av 5 på Google</span>
+          <span className={s.betygStjarnor} aria-hidden="true">★★★★★</span>
+        </p>
+      ) : null}
+    </div>
+  );
+
+  const kupongDel = summa?.kupong && !kupongOppen ? (
+    <div className={s.kupongTillagd}>
+      <span className={s.kupongBricka}>
+        <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M3 12V4h8l10 10-8 8L3 12Zm5-4.5h.01" /></svg>
+        {summa.kupong}
+      </span>
+      <span className={s.kupongBelopp}>{summa.rabattOre > 0 ? `−${kr(summa.rabattOre)}` : "Tillagd"}</span>
+      <button type="button" className={s.lankLiten} onClick={taBortKupong} disabled={raknar}>Ta bort</button>
+    </div>
+  ) : kupongOppen ? (
+    <div className={s.kupong}>
+      <div className={s.kupongRad}>
+        <div className={`${s.faltRam} ${kupongFel ? s.faltRamFel : ""}`}>
+          <input
+            id="kassa-kupong"
+            className={s.input}
+            placeholder=" "
+            value={kupong}
+            onChange={(e) => { setKupong(e.target.value); setKupongFel(null); }}
+            // Enter i rabattfältet lägger till koden. Förut skickade det hela
+            // formuläret, alltså betalningen.
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void anvandKupong(); } }}
+            autoCapitalize="characters"
+            autoComplete="off"
+            spellCheck={false}
+            enterKeyHint="done"
+            aria-invalid={kupongFel ? true : undefined}
+            aria-describedby="kassa-kupong-text"
+          />
+          <label className={s.etikett} htmlFor="kassa-kupong">Rabattkod</label>
+        </div>
+        <button type="button" className={s.knappSekundar} onClick={anvandKupong} disabled={raknar || !kupong.trim()}>Använd</button>
+      </div>
+      <div id="kassa-kupong-text" className={kupongFel ? s.felText : s.hjalpText} aria-live="polite">{kupongFel ?? ""}</div>
+    </div>
+  ) : (
+    <button type="button" className={s.lank} onClick={() => setKupongOppen(true)}>Har du en rabattkod?</button>
+  );
+
   return (
-    <main className={s.sida}>
-      <div className={s.topp}>
-        <h1 className={s.rubrik}>Kassa</h1>
-        <span className={s.saker} aria-label="Säker kassa">
-          <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5Zm-3 8V7a3 3 0 1 1 6 0v3H9Z" /></svg>
-          Säker kassa
-        </span>
-      </div>
+    <div className={s.sida} data-kassa-sida="">
+      <KassaHuvud tillVarukorgen={() => oppnaVarukorgen(true)} />
+      <div className={s.innehall}>
+        <h1 className="sr-only">Kassa</h1>
 
-      {/* Mobil: summeringen stängd ovanför formuläret, så att inget flyttar fälten. */}
-      <div className={s.mobilSummering}>
-        <button type="button" className={s.visaSummering} aria-expanded={sammanfattningOppen} onClick={() => setSammanfattningOppen((v) => !v)}>
-          <span>{sammanfattningOppen ? "Dölj din beställning" : "Visa din beställning"}</span>
-          <strong>{belopp(totalOre)}</strong>
-        </button>
-        {sammanfattningOppen ? sammanfattning : null}
-      </div>
-
-      {klarVantar ? (
-        <div className={s.klarVantar} role="status">
-          <span className={s.klarBock} aria-hidden="true">
-            <svg width="16" height="16" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" d="m5 12.5 4.5 4.5L19 7.5" /></svg>
-          </span>
-          <span className={s.vantarText}>
-            <strong>Betalningen är godkänd</strong>
-            <span>Vi slutför din beställning. Orderbekräftelsen kommer till din e-post inom några minuter, och du behöver inte betala igen.</span>
-          </span>
-        </div>
-      ) : null}
-
-      {vantar && betalbar && vantar.cartId === cartId ? (
-        <div className={s.vantar} role="status">
-          <div className={s.vantarText}>
-            <strong>Din betalning väntar</strong>
-            <span>
-              {klockslag(betalbar.utgar) ? `Varorna är reserverade åt dig till kl ${klockslag(betalbar.utgar)}.` : "Varorna är reserverade åt dig."} Ändrar du något nedan
-              får du en ny betalning med de nya uppgifterna.
+        {/* Mobil: summeringen stängd ovanför formuläret, så att inget flyttar fälten. */}
+        <div className={s.mobilSummering}>
+          <button
+            type="button"
+            className={s.visaSummering}
+            aria-expanded={sammanfattningOppen}
+            aria-controls="kassa-summering-mobil"
+            onClick={() => setSammanfattningOppen((v) => !v)}
+          >
+            <span className={s.visaSummeringText}>
+              <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M6 7h12l-1 13H7L6 7Zm3 0a3 3 0 0 1 6 0" /></svg>
+              {sammanfattningOppen ? "Dölj beställningen" : "Visa beställningen"}
+              {antalVaror > 0 ? <span className={s.visaSummeringAntal}>({antalVaror} {antalVaror === 1 ? "vara" : "varor"})</span> : null}
+              <svg className={s.chevron} data-oppen={sammanfattningOppen ? "ja" : undefined} width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" d="m6 9 6 6 6-6" /></svg>
             </span>
-          </div>
-          <a className={s.vantarKnapp} href={betalbar.url} onClick={tillVantandeBetalning}>
-            Fortsätt till betalningen <span aria-hidden="true">→</span>
-          </a>
-        </div>
-      ) : null}
-
-      <div className={s.layout}>
-        <form className={s.formular} onSubmit={skicka} noValidate>
-          <section className={s.kort} aria-labelledby="kassa-kontakt">
-            <h2 id="kassa-kontakt" className={s.steg}><span className={s.nr}>1</span> Kontakt</h2>
-            {falt("epost", "E-post", { type: "email", autoComplete: "email", inputMode: "email", autoCapitalize: "none", spellCheck: false, enterKeyHint: "next" }, "Orderbekräftelsen kommer hit.")}
-            {falt("telefon", "Mobilnummer", { type: "tel", autoComplete: "tel", inputMode: "tel", enterKeyHint: "next" }, "Transportören aviserar dit.")}
-          </section>
-
-          <section className={s.kort} aria-labelledby="kassa-leverans">
-            <h2 id="kassa-leverans" className={s.steg}><span className={s.nr}>2</span> Leverans</h2>
-            <div className={s.tva}>
-              {falt("fornamn", "Förnamn", { autoComplete: "given-name", enterKeyHint: "next" })}
-              {falt("efternamn", "Efternamn", { autoComplete: "family-name", enterKeyHint: "next" })}
-            </div>
-            {falt("gata", "Gatuadress", { autoComplete: "address-line1", enterKeyHint: "next" })}
-            {falt("co", "c/o (frivilligt)", { autoComplete: "address-line2", enterKeyHint: "next" })}
-            <div className={s.postrad}>
-              {falt("postnr", "Postnummer", { autoComplete: "postal-code", inputMode: "numeric", maxLength: 6, onBlur: postnrKlart, enterKeyHint: "next" })}
-              {falt("ort", "Ort", { autoComplete: "address-level2", enterKeyHint: "done" })}
-            </div>
-            <div className={s.frakt}>
-              <span className={s.fraktIkon} aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M3 6.5h11v9H3zM14 9.5h3.6l3.4 3.4v2.6h-7M6.5 18.5a1.75 1.75 0 1 0 0-.01M17.5 18.5a1.75 1.75 0 1 0 0-.01" /></svg>
-              </span>
-              <span>
-                <strong>{summa?.fraktnamn || "Spårbar standardleverans"}</strong>
-                <span className={s.fraktTid}>{levDatum ? `Beräknad leverans ${levDatum}` : DELIVERY_TIME}</span>
-                <span className={s.fraktTid}>Från EU-lager · spårningslänk via e-post när paketet skickas</span>
-              </span>
-              <span className={s.fraktPris}>{harKorg ? (fraktOre === 0 ? "Fri frakt" : kr(fraktOre)) : belopp(null)}</span>
-            </div>
-          </section>
-
-          <section className={s.kort} aria-labelledby="kassa-betalning">
-            <h2 id="kassa-betalning" className={s.steg}><span className={s.nr}>3</span> Betalning</h2>
-            {stripeNyckel ? (
-              <>
-                <div className={s.betalfalt} data-lage={betalLage}>
-                  {betalLage === "laddar" ? (
-                    <div className={s.betalfaltLaddar} role="status" aria-label="Hämtar betalsätten">
-                      <span />
-                      <span />
-                      <span />
-                    </div>
-                  ) : null}
-                  <div ref={betalPlats} />
-                </div>
-                {betalLage === "fel" ? <p className={s.felText} role="alert">Betalsätten kunde inte laddas. Ladda om sidan och försök igen.</p> : null}
-                {betalFel ? <p className={s.betalFel} role="alert">{betalFel}</p> : null}
-                <p className={s.betalSaker}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5Zm-3 8V7a3 3 0 1 1 6 0v3H9Z" /></svg>
-                  Krypterad betalning via Stripe. Kortuppgifterna når aldrig Fyndplats, och inget dras förrän ordern är lagd.
-                </p>
-              </>
-            ) : (
-              <>
-                <p className={s.betalText}>Du väljer kort, Klarna eller Apple Pay på nästa sida, i Wix säkra betalning.</p>
-                <p className={s.betalNot}>Väljer du Klarna fyller du i namn och adress en gång till på nästa sida innan du skickas till Klarna. Med kort och Apple Pay går det direkt.</p>
-                <PaymentMarks />
-              </>
-            )}
-            {kupongOppen ? (
-              <div className={s.kupong}>
-                <label className={s.etikett} htmlFor="kassa-kupong">Rabattkod</label>
-                <div className={s.kupongRad}>
-                  <input id="kassa-kupong" className={`${s.input} ${kupongFel ? s.inputFel : ""}`} value={kupong} onChange={(e) => { setKupong(e.target.value); setKupongFel(null); }} autoCapitalize="characters" autoComplete="off" spellCheck={false} />
-                  <button type="button" className={s.knappSekundar} onClick={anvandKupong} disabled={raknar || !kupong.trim()}>Använd</button>
-                </div>
-                <div className={kupongFel ? s.felText : s.hjalpText} aria-live="polite">{kupongFel ?? (summa?.kupong ? `${summa.kupong} är tillagd.` : " ")}</div>
-              </div>
-            ) : (
-              <button type="button" className={s.lank} onClick={() => setKupongOppen(true)}>Har du en rabattkod?</button>
-            )}
-          </section>
-
-          {meddelanden.length > 0 ? (
-            <div className={s.meddelanden} role="alert">
-              {meddelanden.map((m) => <p key={m}>{m}</p>)}
+            <strong>{belopp(totalOre)}</strong>
+          </button>
+          {sammanfattningOppen ? (
+            <div id="kassa-summering-mobil" className={s.mobilSummeringInnehall}>
+              {sammanfattning}
+              <button type="button" className={s.andraMobil} onClick={() => oppnaVarukorgen(true)}>Ändra varukorgen</button>
             </div>
           ) : null}
+        </div>
 
-          <div className={s.betala}>
-            {stripeNyckel ? (
-              <button type="submit" className={s.knapp} disabled={skickar || !cartId || klarVantar || betalLage === "fel"} aria-busy={skickar}>
-                {skickar ? (
-                  "Behandlar betalningen …"
-                ) : betalValt === "klarna" ? (
-                  // Distansavtalslagen 2 kap. 9 §: knappen ska säga att beställningen kostar
-                  // pengar. Kunden godkänner hos Klarna, men ordern skapas utan fler klick här.
-                  <>Betala med Klarna <span className={s.knappBelopp}>{belopp(totalOre)}</span></>
-                ) : (
-                  <>Betala <span className={s.knappBelopp}>{belopp(totalOre)}</span></>
-                )}
-              </button>
-            ) : (
-              <button type="submit" className={s.knapp} disabled={skickar || !cartId} aria-busy={skickar}>
-                {skickar ? "Öppnar betalningen …" : <>Till betalning <span className={s.knappBelopp}>{belopp(totalOre)}</span></>}
-              </button>
-            )}
-            <p className={s.villkor}>
-              Genom att {stripeNyckel ? "betala" : "gå vidare"} godkänner du våra <a href="/kopvillkor">köpvillkor</a> och bekräftar att du läst vår <a href="/sekretesspolicy">integritetspolicy</a>. 30 dagars öppet köp.
-            </p>
+        {klarVantar ? (
+          <div className={s.klarVantar} role="status">
+            <span className={s.klarBock} aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" d="m5 12.5 4.5 4.5L19 7.5" /></svg>
+            </span>
+            <span className={s.vantarText}>
+              <strong>Betalningen är godkänd</strong>
+              <span>Vi slutför din beställning. Orderbekräftelsen kommer till din e-post inom några minuter, och du behöver inte betala igen.</span>
+            </span>
           </div>
-        </form>
+        ) : null}
 
-        <aside className={s.sida2} aria-label="Din beställning">
-          <h2 className={s.sidRubrik}>Din beställning</h2>
-          {sammanfattning}
-        </aside>
+        {vantar && betalbar && vantar.cartId === cartId ? (
+          <div className={s.vantar} role="status">
+            <div className={s.vantarText}>
+              <strong>Din betalning väntar</strong>
+              <span>
+                {klockslag(betalbar.utgar) ? `Varorna är reserverade åt dig till kl ${klockslag(betalbar.utgar)}.` : "Varorna är reserverade åt dig."} Ändrar du något nedan
+                får du en ny betalning med de nya uppgifterna.
+              </span>
+            </div>
+            <a className={s.vantarKnapp} href={betalbar.url} onClick={tillVantandeBetalning}>
+              Fortsätt till betalningen <span aria-hidden="true">→</span>
+            </a>
+          </div>
+        ) : null}
+
+        <div className={s.layout}>
+          <form className={s.formular} onSubmit={skicka} noValidate>
+            <section className={s.kort} aria-labelledby="kassa-kontakt">
+              <h2 id="kassa-kontakt" className={s.steg}><span className={s.nr}>1</span> Kontakt</h2>
+              {falt("epost", "E-postadress", { type: "email", autoComplete: "email", inputMode: "email", autoCapitalize: "none", spellCheck: false, enterKeyHint: "next" }, epostHjalp)}
+              {falt("telefon", "Mobilnummer", { type: "tel", autoComplete: "tel", inputMode: "tel", enterKeyHint: "next" }, "Transportören aviserar dit.")}
+            </section>
+
+            <section className={s.kort} aria-labelledby="kassa-leverans">
+              <h2 id="kassa-leverans" className={s.steg}><span className={s.nr}>2</span> Leverans</h2>
+              <div className={s.tva}>
+                {falt("fornamn", "Förnamn", { autoComplete: "shipping given-name", autoCapitalize: "words", enterKeyHint: "next" })}
+                {falt("efternamn", "Efternamn", { autoComplete: "shipping family-name", autoCapitalize: "words", enterKeyHint: "next" })}
+              </div>
+              {falt("gata", "Gatuadress", { autoComplete: "shipping address-line1", autoCapitalize: "words", enterKeyHint: "next" })}
+              {coOppen || varden.co || fel.co !== undefined ? (
+                falt("co", "c/o (frivilligt)", { autoComplete: "shipping address-line2", autoCapitalize: "words", enterKeyHint: "next" })
+              ) : (
+                <button type="button" className={s.lankLiten} onClick={oppnaCo}>+ Lägg till c/o-adress</button>
+              )}
+              <div className={s.postrad}>
+                {falt("postnr", "Postnummer", { autoComplete: "shipping postal-code", inputMode: "numeric", maxLength: 6, enterKeyHint: "next" })}
+                {falt("ort", "Ort", { autoComplete: "shipping address-level2", autoCapitalize: "words", enterKeyHint: "done" })}
+              </div>
+              <div className={s.frakt}>
+                <span className={s.fraktIkon} aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M3 6.5h11v9H3zM14 9.5h3.6l3.4 3.4v2.6h-7M6.5 18.5a1.75 1.75 0 1 0 0-.01M17.5 18.5a1.75 1.75 0 1 0 0-.01" /></svg>
+                </span>
+                <span>
+                  <span className={s.fraktTopp}>
+                    <strong>{summa?.fraktnamn || "Spårbar standardleverans"}</strong>
+                    <span className={`${s.fraktPris} ${harKorg && fraktOre === 0 ? s.gratis : ""}`}>{harKorg ? (fraktOre === 0 ? "Fri frakt" : kr(fraktOre)) : belopp(null)}</span>
+                  </span>
+                  <span className={s.fraktTid}>{levDatum ? `Beräknad leverans ${levDatum}` : DELIVERY_TIME}</span>
+                  <span className={s.fraktTid}>Från EU-lager · spårningslänk via e-post när paketet skickas</span>
+                </span>
+              </div>
+              <label className={s.komIhag}>
+                <input type="checkbox" checked={komIhag} onChange={(e) => setKomIhag(e.target.checked)} />
+                <span className={s.komIhagRuta} aria-hidden="true">{IKON_BOCK}</span>
+                <span>Spara mina uppgifter i den här webbläsaren till nästa köp</span>
+              </label>
+            </section>
+
+            <section className={s.kort} aria-labelledby="kassa-betalning">
+              <h2 id="kassa-betalning" className={s.steg}><span className={s.nr}>3</span> Betalning</h2>
+              <p className={s.betalUnder}>
+                <Las storlek={12} />
+                {stripeNyckel ? "Alla betalningar är krypterade. Inget dras förrän ordern är lagd." : "Alla betalningar är krypterade."}
+              </p>
+              {stripeNyckel ? (
+                <>
+                  <div className={s.betalfalt} data-lage={betalLage}>
+                    {betalLage === "laddar" ? (
+                      <div className={s.betalfaltLaddar} role="status" aria-label="Hämtar betalsätten">
+                        <span />
+                        <span />
+                        <span />
+                      </div>
+                    ) : null}
+                    <div ref={betalPlats} />
+                  </div>
+                  {betalLage === "fel" ? <p className={s.felText} role="alert">Betalsätten kunde inte laddas. Ladda om sidan och försök igen.</p> : null}
+                  {betalFel ? <p className={s.betalFel} role="alert">{betalFel}</p> : null}
+                </>
+              ) : (
+                <>
+                  <p className={s.betalText}>Du väljer kort, Klarna eller Apple Pay på nästa sida, i Wix säkra betalning.</p>
+                  <p className={s.betalNot}>Väljer du Klarna fyller du i namn och adress en gång till på nästa sida innan du skickas till Klarna. Med kort och Apple Pay går det direkt.</p>
+                  <PaymentMarks />
+                </>
+              )}
+              {kupongDel}
+            </section>
+
+            {meddelanden.length > 0 ? (
+              <div className={s.meddelanden} role="alert">
+                {meddelanden.map((m) => <p key={m}>{m}</p>)}
+              </div>
+            ) : null}
+
+            <div className={s.betala}>
+              {stripeNyckel ? (
+                <button type="submit" className={s.knapp} disabled={skickar || !cartId || klarVantar || betalLage === "fel"} aria-busy={skickar}>
+                  {skickar ? (
+                    <><span className={s.knappSnurr} aria-hidden="true" />Behandlar betalningen …</>
+                  ) : betalValt === "klarna" ? (
+                    // Distansavtalslagen 2 kap. 9 §: knappen ska säga att beställningen kostar
+                    // pengar. Kunden godkänner hos Klarna, men ordern skapas utan fler klick här.
+                    <><Las storlek={16} />Betala med Klarna <span className={s.knappBelopp}>{belopp(totalOre)}</span></>
+                  ) : (
+                    <><Las storlek={16} />Betala <span className={s.knappBelopp}>{belopp(totalOre)}</span></>
+                  )}
+                </button>
+              ) : (
+                <button type="submit" className={s.knapp} disabled={skickar || !cartId} aria-busy={skickar}>
+                  {skickar ? <><span className={s.knappSnurr} aria-hidden="true" />Öppnar betalningen …</> : <><Las storlek={16} />Till betalning <span className={s.knappBelopp}>{belopp(totalOre)}</span></>}
+                </button>
+              )}
+              <p className={s.villkor}>
+                Genom att {stripeNyckel ? "betala" : "gå vidare"} godkänner du våra{" "}
+                <a href="/kopvillkor" target="_blank" rel="noopener">köpvillkor</a> och bekräftar att du läst vår{" "}
+                <a href="/sekretesspolicy" target="_blank" rel="noopener">integritetspolicy</a>.
+              </p>
+              {stripeNyckel ? <div className={s.betalMarken}><PaymentMarks /></div> : null}
+              <div className={s.fortroendeMobil}>{fortroende}</div>
+            </div>
+          </form>
+
+          <aside className={s.sida2} aria-label="Din beställning">
+            <div className={s.sidRubrikRad}>
+              <h2 className={s.sidRubrik}>
+                Din beställning
+                {antalVaror > 0 ? <span className={s.sidRubrikAntal}>{antalVaror} {antalVaror === 1 ? "vara" : "varor"}</span> : null}
+              </h2>
+              <button type="button" className={s.andra} onClick={() => oppnaVarukorgen(true)}>Ändra</button>
+            </div>
+            {sammanfattning}
+            {fortroende}
+          </aside>
+        </div>
       </div>
+      <KassaFot />
 
       {skickar ? (
         <div className={s.vantan} role="status" aria-live="polite" aria-busy="true">
           <div className={s.vantanKort}>
             <div className={s.vantanRing} aria-hidden="true">
-              <svg width="26" height="26" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5Zm-3 8V7a3 3 0 1 1 6 0v3H9Z" /></svg>
+              <Las storlek={26} />
             </div>
             <p className={s.vantanRubrik}>{stripeNyckel ? "Behandlar din betalning" : "Öppnar säker betalning"}</p>
+            {harKorg ? <p className={s.vantanBelopp}>{kr(totalOre)} till Fyndplats</p> : null}
             <p className={s.vantanUnder}>{stripeNyckel ? "Stäng inte sidan. Det tar bara några sekunder." : "Det tar bara några sekunder."}</p>
             <ol className={s.vantanSteg}>
               {steglista.map((t, i) => (
@@ -863,6 +1104,6 @@ export function Kassa({ stripeNyckel = null }: { stripeNyckel?: string | null })
           </div>
         </div>
       ) : null}
-    </main>
+    </div>
   );
 }
