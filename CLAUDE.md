@@ -1129,6 +1129,12 @@ i `flode.ts`), `app/kassa/`, `app/api/kassa/*` och städjobbet
   ut: ett nytt försök vore ett dubbelköp). Fler än `MAX_FORSOK_PER_TIMME` (8)
   försök från samma korg på en timme stoppas, eftersom varje försök reserverar
   lager.
+- ☠️ **En order från vår kassa finns innan den är betald.** Den står som
+  `INITIALIZED` tills betalningen kommer, och en övergiven blir `CANCELED` utan
+  att ha betalats. `lib/order-raknas.ts` (`arKop`) avgör vad som är ett köp:
+  morgonrapporten, populariteten och orderspegeln (`order-sync`) räknar bara
+  köp. Motorns ordernät rör bara betalda (`ACTIONABLE_PAYMENT`), och Trustpilot
+  bara skickade. En ny läsare av Wix-ordrar ska fråga `arKop` först.
 - **Wix räknar korgen med motorns kassavalidering**, så postnummerspärren för
   Aosom-varor (`spiViolations`) stoppar också vår kassa, med motorns text.
 - **Korgen markeras som beställd i webhooken** när ordern godkänts (betald):
