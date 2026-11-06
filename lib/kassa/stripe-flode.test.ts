@@ -187,15 +187,23 @@ test("forbered: en ny betalning på Wix total, manuell dragning och korgen i met
   assert.ok(f.anrop.indexOf("uppdateraKorg:korg-1") < f.anrop.indexOf("skapaAvsikt:65900"), "korgen får uppgifterna före betalningen");
 });
 
-test("forbered: samma korg, kund och total ger samma idempotensnyckel; ny total ger ny", async () => {
+test("forbered: varje ny betalning får en egen idempotensnyckel, också med samma korg, kund och total", async () => {
+  // Stripe svarar på en känd nyckel med det sparade svaret i ett dygn: en nyckel
+  // ur korgens innehåll gav efter en släppt betalning tillbaka den släppta.
   const a = fejk({ avsikt: null });
   await forberedStripe(a.deps, { cartId: "korg-1", kund: KUND });
   const b = fejk({ avsikt: null });
   await forberedStripe(b.deps, { cartId: "korg-1", kund: KUND });
-  const c = fejk({ avsikt: null, rakningar: [rakning("699.00")] });
-  await forberedStripe(c.deps, { cartId: "korg-1", kund: KUND });
-  assert.equal(a.skapade[0].idempotens, b.skapade[0].idempotens);
-  assert.notEqual(a.skapade[0].idempotens, c.skapade[0].idempotens);
+  assert.match(a.skapade[0].idempotens, /^fp-kassa-korg-1-[0-9a-f-]{36}$/);
+  assert.notEqual(a.skapade[0].idempotens, b.skapade[0].idempotens);
+});
+
+test("forbered: en släppt betalning från samma korg ger en ny, den släppta används inte igen", async () => {
+  const f = fejk({ avsikt: avsikt({ status: "canceled" }) });
+  const r = await forberedStripe(f.deps, { cartId: "korg-1", kund: KUND, avsiktId: "pi_1" });
+  assert.deepEqual(r, { ok: true, avsiktId: "pi_ny", clientSecret: "pi_ny_secret", totalOre: 65900 });
+  assert.equal(f.skapade.length, 1);
+  assert.ok(!f.anrop.some((x) => x.startsWith("uppdateraAvsikt")));
 });
 
 test("forbered: en obetald betalning från samma korg uppdateras i stället för att skapas", async () => {

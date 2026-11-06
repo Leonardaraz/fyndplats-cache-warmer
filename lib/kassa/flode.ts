@@ -725,12 +725,17 @@ export async function forberedStripe(
   const avtryck = korgAvtryck(rakning.cart ?? korg, kund);
   const p = avsiktParametrar(cartId, kund, totalOre, avtryck, rakning.cart?.lineItems ?? korg.lineItems ?? []);
   if (egen && OBETALD.has(egen.status)) {
-    const { currency: _c, capture_method: _m, automatic_payment_methods: _a, ...andring } = p;
-    const a = await deps.uppdateraAvsikt(egen.id, andring);
+    // Valuta, dragning och betalsätt går inte att ändra på en befintlig betalning.
+    const a = await deps.uppdateraAvsikt(egen.id, { amount: p.amount, description: p.description, metadata: p.metadata, shipping: p.shipping });
     if (a.client_secret) return { ok: true, avsiktId: a.id, clientSecret: a.client_secret, totalOre };
   }
-  // Samma korg, kund och total ger samma nyckel: ett dubbeltryck skapar en betalning, inte två.
-  const a = await deps.skapaAvsikt(p, `fp-kassa-${cartId}-${avtryck}-${totalOre}`);
+  // En ny betalning får en egen nyckel. ☠️ INTE en nyckel ur korgens innehåll:
+  // Stripe svarar på en känd nyckel med det SPARADE svaret i ett dygn, också när
+  // betalningen sedan släppts. Ett nytt försök efter "Beställningen kunde inte
+  // skapas" (samma korg, kund och total) hade fått tillbaka den släppta
+  // betalningen och aldrig kunnat betala. Dubbeltrycket stoppas i kassasidan,
+  // och kundens försök återanvänds via avsiktId (uppdateras ovan).
+  const a = await deps.skapaAvsikt(p, `fp-kassa-${cartId}-${crypto.randomUUID()}`);
   if (!a.client_secret) throw new Error("Stripe gav ingen client_secret");
   return { ok: true, avsiktId: a.id, clientSecret: a.client_secret, totalOre };
 }

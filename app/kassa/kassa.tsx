@@ -1,7 +1,13 @@
 "use client";
 
-// Vår egen kassa: kontakt, leverans och summering på www.fyndplats.se, sedan
-// Wix betalsida (lib/kassa/flode.ts). Skälet till kassan är att Wix
+// Vår egen kassa: kontakt, leverans, betalning och summering på
+// www.fyndplats.se. Två sätt att betala, valda av page.tsx:
+//   • Stripe (när nycklarna finns, Leonards val 2026-11-06): betalfältet står i
+//     steg 3 på sidan, med Klarna, kort, Apple Pay och Google Pay. Kunden
+//     skriver sina uppgifter EN gång; de följer med till Klarna.
+//     Flödet: lib/kassa/stripe-klient.ts och lib/kassa/flode.ts.
+//   • Annars Wix betalsida (Order Payment Request), som beskrivs nedan.
+// Skälet till kassan är att Wix
 // mobilkassa hoppade och lämnade tomrum på iPhone (2026-11-05), så sidan är
 // byggd för att aldrig flytta det kunden skriver i:
 //   • fälten har 16 px text (iPhone zoomar annars in när ett fält får fokus);
@@ -24,6 +30,16 @@ import { tightFillUrl } from "../../lib/wix-image";
 import { DELIVERY_MAX_DAYS, DELIVERY_MIN_DAYS, DELIVERY_TIME, FREE_SHIPPING_FROM_KR, fraktKr } from "../../lib/shipping";
 import { leveransIntervall } from "../../lib/leveransdatum";
 import { provaKassa, normalPostnr, type Falt } from "../../lib/kassa/formular";
+import {
+  RETUR_SOKVAG,
+  STRIPE_NYCKEL,
+  betalfelText,
+  faktureringsuppgifter,
+  klarBeslut,
+  sparadAvsikt,
+  stripeMeddelande,
+} from "../../lib/kassa/stripe-klient";
+import { useStripeBetalning } from "./use-stripe-betalning";
 import s from "./kassa.module.css";
 
 type Varden = Record<"epost" | "fornamn" | "efternamn" | "telefon" | "gata" | "co" | "postnr" | "ort", string>;
@@ -68,6 +84,13 @@ const VANTAR_NYCKEL = "fp_kassa_vantar";
 /** Stegen i väntan på Wix betalsida. Servern tar 1–4 s, Wix sida ytterligare några. */
 const STEG = ["Kontrollerar pris och lager", "Reserverar dina varor", "Öppnar säker betalning"] as const;
 
+/** Stegen med Stripe: korgen och betalningen förbereds, kunden godkänner, ordern skapas. */
+const stripeSteg = (valt: string | null) =>
+  ["Kontrollerar pris och lager", valt === "klarna" ? "Öppnar Klarna" : "Godkänner betalningen", "Skapar din order"] as const;
+
+/** Så länge sidan frågar om ordern efter betalningen, innan den säger att mejlet kommer. */
+const KLAR_VANTA_MS = 60_000;
+
 /** "14:05" i svensk tid. */
 const klockslag = (iso: string | null): string | null => {
   const t = iso ? Date.parse(iso) : NaN;
@@ -108,12 +131,18 @@ const skrivJson = (lagring: "local" | "session", nyckel: string, v: unknown) => 
   }
 };
 
-export function Kassa() {
-  // Wix betalsida ligger på en annan värd: anslutningen öppnas medan kunden
-  // fyller i, så att sidan börjar laddas direkt när ordern är skapad.
-  preconnect("https://checkout.fyndplats.se");
-  prefetchDNS("https://static.parastorage.com");
-  prefetchDNS("https://static.wixstatic.com");
+export function Kassa({ stripeNyckel = null }: { stripeNyckel?: string | null }) {
+  if (stripeNyckel) {
+    // Stripe.js och betalfältet hämtas direkt när sidan visas.
+    preconnect("https://js.stripe.com");
+    preconnect("https://api.stripe.com");
+  } else {
+    // Wix betalsida ligger på en annan värd: anslutningen öppnas medan kunden
+    // fyller i, så att sidan börjar laddas direkt när ordern är skapad.
+    preconnect("https://checkout.fyndplats.se");
+    prefetchDNS("https://static.parastorage.com");
+    prefetchDNS("https://static.wixstatic.com");
+  }
 
   const { cart } = useCart();
   const cartId: string = cart?._id || "";
@@ -143,6 +172,12 @@ export function Kassa() {
   const [kollar, setKollar] = useState(true);
   const [sammanfattningOppen, setSammanfattningOppen] = useState(false);
   const [senastPostnr, setSenastPostnr] = useState<string | null>(null);
+  // Stripe: felet under betalfältet, och "betalningen är godkänd men ordern inte
+  // klar" (då får kunden aldrig betala igen). `pagar` stoppar ett dubbeltryck
+  // direkt, innan React hunnit rita om knappen.
+  const [betalFel, setBetalFel] = useState<string | null>(null);
+  const [klarVantar, setKlarVantar] = useState(false);
+  const pagar = useRef(false);
 
   // Provläget: /kassa?prova=1 sätter kakan som låter den här besökaren använda kassan.
   useEffect(() => {
@@ -234,22 +269,25 @@ export function Kassa() {
   }, [cart]);
 
   useEffect(() => {
+    // Med Stripe finns ingen väntande Wix-betalning att fråga om.
     // eslint-disable-next-line react-hooks/set-state-in-effect -- den väntande ordern finns bara i webbläsarens sessionStorage
-    kollaVantande();
-    // Bakåtknappen från Wix betalsida visar ofta sidan ur webbläsarens minne:
-    // väntan stängs och betalningen kollas igen.
+    if (stripeNyckel) setKollar(false);
+    else kollaVantande();
+    // Bakåtknappen från Wix betalsida (eller från Klarna) visar ofta sidan ur
+    // webbläsarens minne: väntan stängs och betalningen kollas igen.
     const visa = (e: PageTransitionEvent) => {
       if (e.persisted) {
         for (const t of stegTimrar.current) window.clearTimeout(t);
         stegTimrar.current = [];
         setSkickar(false);
         setSteg(0);
-        kollaVantande();
+        pagar.current = false;
+        if (!stripeNyckel) kollaVantande();
       }
     };
     window.addEventListener("pageshow", visa);
     return () => window.removeEventListener("pageshow", visa);
-  }, [kollaVantande]);
+  }, [kollaVantande, stripeNyckel]);
 
   // Wix räkning: när korgen är känd, när postnumret blir giltigt och när rabattkoden ändras.
   const rakna = useCallback(
@@ -311,8 +349,241 @@ export function Kassa() {
   const harKorg = Boolean(cartId);
   const kvarTillFri = FREE_SHIPPING_FROM_KR * 100 - (delsummaOre - (summa?.rabattOre ?? 0));
 
+  // ── Stripe ──────────────────────────────────────────────────────────────
+  // Uppdelat: lage och valt är tillstånd som ritas, resten är refs som bara läses i trycket.
+  const {
+    plats: betalPlats,
+    lage: betalLage,
+    valt: betalValt,
+    stripe: stripeRef,
+    elements: elementsRef,
+    visat: visatRef,
+  } = useStripeBetalning(stripeNyckel, harKorg && totalOre > 0 ? totalOre : null);
+  const steglista: readonly string[] = stripeNyckel ? stripeSteg(betalValt) : STEG;
+
+  /** Väntan på ett bestämt steg, utan Wix-vägens klocka. */
+  const stegTill = (n: number) => {
+    stoppaSteg();
+    setSteg(n);
+    setSkickar(true);
+  };
+
+  /**
+   * Betalningen är godkänd (eller var det redan): servern gör ordern. Svarar
+   * den "pågår" frågar sidan igen; efter en minut säger sidan att
+   * bekräftelsen kommer via e-post (webhooken slutför), och kunden kan inte
+   * betala igen.
+   */
+  const slutforStripe = async (avsiktId: string) => {
+    stegTill(2);
+    const start = Date.now();
+    for (let forsok = 0; ; forsok++) {
+      let status = 0;
+      let j: unknown = null;
+      try {
+        const r = await fetch("/api/kassa/stripe/klar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ avsiktId }),
+          cache: "no-store",
+        });
+        status = r.status;
+        j = await r.json().catch(() => null);
+      } catch {
+        /* nätet: frågar igen */
+      }
+      const b = klarBeslut(status, j);
+      if (b.gor === "tack") {
+        skrivJson("local", STRIPE_NYCKEL, null);
+        window.location.replace(`/tack?orderId=${encodeURIComponent(b.orderId)}`);
+        return;
+      }
+      if (b.gor === "fel") {
+        // Ingen order: reservationen är släppt. Kunden kan försöka igen med en ny betalning.
+        skrivJson("local", STRIPE_NYCKEL, null);
+        setMeddelanden(b.meddelanden);
+        doljVantan();
+        pagar.current = false;
+        rakna();
+        return;
+      }
+      if (Date.now() - start > KLAR_VANTA_MS) {
+        setKlarVantar(true);
+        doljVantan();
+        return;
+      }
+      await new Promise((klar) => window.setTimeout(klar, Math.min(1000 + forsok * 500, 3000)));
+    }
+  };
+
+  // Tillbaka från Klarna utan order (/kassa?stripe=<kod>): säg varför, och ta bort koden ur adressen.
+  useEffect(() => {
+    if (!stripeNyckel) return;
+    try {
+      const sok = new URLSearchParams(window.location.search);
+      const text = stripeMeddelande(sok.get("stripe"));
+      if (!text) return;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- koden finns bara i webbläsarens adress
+      setMeddelanden([text]);
+      sok.delete("stripe");
+      const q = sok.toString();
+      window.history.replaceState(window.history.state, "", `${window.location.pathname}${q ? `?${q}` : ""}`);
+    } catch {
+      /* ingen adress att läsa */
+    }
+  }, [stripeNyckel]);
+
+  // En betalning som redan godkänts för den här korgen (sidan laddades om mitt
+  // i, eller kunden kom tillbaka): servern slutför den i stället för att kunden
+  // betalar igen. En obetald betalning återanvänds vid nästa tryck.
+  useEffect(() => {
+    if (!stripeNyckel || !cartId) return;
+    const id = sparadAvsikt(lasJson("local", STRIPE_NYCKEL), cartId, Date.now());
+    if (!id) return;
+    let avbruten = false;
+    (async () => {
+      try {
+        const r = await fetch("/api/kassa/stripe/klar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ avsiktId: id }),
+          cache: "no-store",
+        });
+        const j = await r.json().catch(() => null);
+        if (avbruten || pagar.current) return;
+        const b = klarBeslut(r.status, j);
+        if (b.gor === "tack") {
+          skrivJson("local", STRIPE_NYCKEL, null);
+          window.location.replace(`/tack?orderId=${encodeURIComponent(b.orderId)}`);
+        } else if (r.status === 202) {
+          pagar.current = true;
+          await slutforStripe(id);
+        }
+      } catch {
+        /* inget att visa: kunden betalar som vanligt */
+      }
+    })();
+    return () => {
+      avbruten = true;
+    };
+    // Bara när korgen blir känd; slutforStripe är en vanlig funktion i komponenten.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stripeNyckel, cartId]);
+
+  const skickaStripe = async () => {
+    if (pagar.current || klarVantar) return;
+    setMeddelanden([]);
+    setBetalFel(null);
+    const prov = provaKassa({ ...varden, kupong: kupongOppen ? kupong : summa?.kupong ?? "" });
+    if (!prov.ok) {
+      setFel(prov.fel);
+      const forsta = (Object.keys(prov.fel) as Falt[])[0];
+      document.getElementById(`kassa-${forsta}`)?.focus();
+      return;
+    }
+    setFel({});
+    const stripe = stripeRef.current;
+    const elements = elementsRef.current;
+    if (!stripe || !elements || betalLage !== "redo") {
+      setBetalFel(betalLage === "fel" ? "Betalsätten kunde inte laddas. Ladda om sidan och försök igen." : "Betalsätten laddas. Vänta ett ögonblick och försök igen.");
+      return;
+    }
+    pagar.current = true;
+    // ☠️ FÖRST, i själva trycket: Apple Pay och Google Pay öppnar sitt blad bara
+    // i ett tryck, och efter ett nätverksanrop räknas det inte längre som ett.
+    let inskickat: Awaited<ReturnType<typeof elements.submit>>;
+    try {
+      inskickat = await elements.submit();
+    } catch {
+      pagar.current = false;
+      setBetalFel(betalfelText(null));
+      return;
+    }
+    if (inskickat.error) {
+      pagar.current = false;
+      setBetalFel(betalfelText(inskickat.error));
+      return;
+    }
+    stegTill(0);
+    // Numret sparas som kunden skrev det ("070 …"), inte som Wix får det (+46…).
+    skrivJson("local", ADRESS_NYCKEL, { ...prov.varden, telefon: varden.telefon.trim(), kupong: undefined });
+    try {
+      const r = await fetch("/api/kassa/stripe/forbered", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cartId, ...prov.varden, avsiktId: sparadAvsikt(lasJson("local", STRIPE_NYCKEL), cartId, Date.now()) }),
+      });
+      const j = await r.json().catch(() => null);
+      if (!r.ok || !j?.ok || typeof j.avsiktId !== "string") {
+        if (j?.fel) setFel(j.fel);
+        if (j?.falt === "kupong") {
+          setKupongOppen(true);
+          setKupongFel(j.meddelanden?.[0] ?? "Rabattkoden gäller inte.");
+        } else if (j?.falt === "postnr") {
+          setFel((x) => ({ ...x, postnr: j.meddelanden?.[0] ?? "Kontrollera postnumret." }));
+        }
+        setMeddelanden(Array.isArray(j?.meddelanden) && j.meddelanden.length ? j.meddelanden : j?.fel ? [] : ["Något gick fel. Försök igen om en stund."]);
+        doljVantan();
+        pagar.current = false;
+        return;
+      }
+      skrivJson("local", STRIPE_NYCKEL, { avsiktId: j.avsiktId, cartId, at: Date.now() });
+      if (j.redanBetald) {
+        await slutforStripe(j.avsiktId);
+        return;
+      }
+      // Wix räknade fram en annan total än den kunden ser: ingen betalning på
+      // ett belopp kunden inte sett. Summan visas, och kunden trycker igen.
+      if (typeof j.totalOre !== "number" || typeof j.clientSecret !== "string" || j.totalOre !== visatRef.current) {
+        if (typeof j.totalOre === "number" && typeof j.clientSecret === "string") {
+          elements.update({ amount: j.totalOre });
+          visatRef.current = j.totalOre;
+          setMeddelanden([`Att betala är nu ${kr(j.totalOre)}. Kontrollera beställningen och tryck på knappen igen.`]);
+        } else {
+          setMeddelanden(["Något gick fel. Försök igen om en stund."]);
+        }
+        rakna();
+        doljVantan();
+        pagar.current = false;
+        return;
+      }
+      stegTill(1);
+      const svar = await stripe.confirmPayment({
+        elements,
+        clientSecret: j.clientSecret,
+        confirmParams: {
+          return_url: `${window.location.origin}${RETUR_SOKVAG}`,
+          payment_method_data: { billing_details: faktureringsuppgifter(prov.varden) },
+        },
+        redirect: "if_required",
+      });
+      if (svar.error) {
+        setBetalFel(betalfelText(svar.error));
+        doljVantan();
+        pagar.current = false;
+        return;
+      }
+      const lage = svar.paymentIntent?.status;
+      if (lage === "requires_capture" || lage === "succeeded" || lage === "processing") {
+        await slutforStripe(j.avsiktId);
+        return;
+      }
+      setBetalFel("Betalningen godkändes inte. Välj ett annat betalsätt eller försök igen.");
+      doljVantan();
+      pagar.current = false;
+    } catch {
+      setMeddelanden(["Ingen kontakt med kassan. Kontrollera uppkopplingen och försök igen."]);
+      doljVantan();
+      pagar.current = false;
+    }
+  };
+
   const skicka = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (stripeNyckel) {
+      await skickaStripe();
+      return;
+    }
     if (skickar) return;
     setMeddelanden([]);
     const prov = provaKassa({ ...varden, kupong: kupongOppen ? kupong : summa?.kupong ?? "" });
@@ -457,6 +728,18 @@ export function Kassa() {
         {sammanfattningOppen ? sammanfattning : null}
       </div>
 
+      {klarVantar ? (
+        <div className={s.klarVantar} role="status">
+          <span className={s.klarBock} aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" d="m5 12.5 4.5 4.5L19 7.5" /></svg>
+          </span>
+          <span className={s.vantarText}>
+            <strong>Betalningen är godkänd</strong>
+            <span>Vi slutför din beställning. Orderbekräftelsen kommer till din e-post inom några minuter, och du behöver inte betala igen.</span>
+          </span>
+        </div>
+      ) : null}
+
       {vantar && betalbar && vantar.cartId === cartId ? (
         <div className={s.vantar} role="status">
           <div className={s.vantarText}>
@@ -507,9 +790,32 @@ export function Kassa() {
 
           <section className={s.kort} aria-labelledby="kassa-betalning">
             <h2 id="kassa-betalning" className={s.steg}><span className={s.nr}>3</span> Betalning</h2>
-            <p className={s.betalText}>Du väljer kort, Klarna eller Apple Pay på nästa sida, i Wix säkra betalning.</p>
-            <p className={s.betalNot}>Väljer du Klarna fyller du i namn och adress en gång till på nästa sida innan du skickas till Klarna. Med kort och Apple Pay går det direkt.</p>
-            <PaymentMarks />
+            {stripeNyckel ? (
+              <>
+                <div className={s.betalfalt} data-lage={betalLage}>
+                  {betalLage === "laddar" ? (
+                    <div className={s.betalfaltLaddar} role="status" aria-label="Hämtar betalsätten">
+                      <span />
+                      <span />
+                      <span />
+                    </div>
+                  ) : null}
+                  <div ref={betalPlats} />
+                </div>
+                {betalLage === "fel" ? <p className={s.felText} role="alert">Betalsätten kunde inte laddas. Ladda om sidan och försök igen.</p> : null}
+                {betalFel ? <p className={s.betalFel} role="alert">{betalFel}</p> : null}
+                <p className={s.betalSaker}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5Zm-3 8V7a3 3 0 1 1 6 0v3H9Z" /></svg>
+                  Krypterad betalning via Stripe. Kortuppgifterna når aldrig Fyndplats, och inget dras förrän ordern är lagd.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className={s.betalText}>Du väljer kort, Klarna eller Apple Pay på nästa sida, i Wix säkra betalning.</p>
+                <p className={s.betalNot}>Väljer du Klarna fyller du i namn och adress en gång till på nästa sida innan du skickas till Klarna. Med kort och Apple Pay går det direkt.</p>
+                <PaymentMarks />
+              </>
+            )}
             {kupongOppen ? (
               <div className={s.kupong}>
                 <label className={s.etikett} htmlFor="kassa-kupong">Rabattkod</label>
@@ -531,11 +837,23 @@ export function Kassa() {
           ) : null}
 
           <div className={s.betala}>
-            <button type="submit" className={s.knapp} disabled={skickar || !cartId} aria-busy={skickar}>
-              {skickar ? "Öppnar betalningen …" : <>Till betalning <span className={s.knappBelopp}>{belopp(totalOre)}</span></>}
-            </button>
+            {stripeNyckel ? (
+              <button type="submit" className={s.knapp} disabled={skickar || !cartId || klarVantar || betalLage === "fel"} aria-busy={skickar}>
+                {skickar ? (
+                  "Behandlar betalningen …"
+                ) : betalValt === "klarna" ? (
+                  <>Fortsätt till Klarna <span className={s.knappBelopp}>{belopp(totalOre)}</span></>
+                ) : (
+                  <>Betala <span className={s.knappBelopp}>{belopp(totalOre)}</span></>
+                )}
+              </button>
+            ) : (
+              <button type="submit" className={s.knapp} disabled={skickar || !cartId} aria-busy={skickar}>
+                {skickar ? "Öppnar betalningen …" : <>Till betalning <span className={s.knappBelopp}>{belopp(totalOre)}</span></>}
+              </button>
+            )}
             <p className={s.villkor}>
-              Genom att gå vidare godkänner du våra <a href="/kopvillkor">köpvillkor</a> och bekräftar att du läst vår <a href="/sekretesspolicy">integritetspolicy</a>. 30 dagars öppet köp.
+              Genom att {stripeNyckel ? "betala" : "gå vidare"} godkänner du våra <a href="/kopvillkor">köpvillkor</a> och bekräftar att du läst vår <a href="/sekretesspolicy">integritetspolicy</a>. 30 dagars öppet köp.
             </p>
           </div>
         </form>
@@ -552,10 +870,10 @@ export function Kassa() {
             <div className={s.vantanRing} aria-hidden="true">
               <svg width="26" height="26" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5Zm-3 8V7a3 3 0 1 1 6 0v3H9Z" /></svg>
             </div>
-            <p className={s.vantanRubrik}>Öppnar säker betalning</p>
-            <p className={s.vantanUnder}>Det tar bara några sekunder.</p>
+            <p className={s.vantanRubrik}>{stripeNyckel ? "Behandlar din betalning" : "Öppnar säker betalning"}</p>
+            <p className={s.vantanUnder}>{stripeNyckel ? "Stäng inte sidan. Det tar bara några sekunder." : "Det tar bara några sekunder."}</p>
             <ol className={s.vantanSteg}>
-              {STEG.map((t, i) => (
+              {steglista.map((t, i) => (
                 <li key={t} data-lage={i < steg ? "klar" : i === steg ? "nu" : "sen"}>
                   <span className={s.stegPrick} aria-hidden="true">
                     {i < steg ? <svg width="12" height="12" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" d="m5 12.5 4.5 4.5L19 7.5" /></svg> : null}
@@ -565,7 +883,7 @@ export function Kassa() {
               ))}
             </ol>
             <div className={s.vantanBar} aria-hidden="true"><span data-steg={steg} /></div>
-            <p className={s.vantanFot}>Kort, Klarna och Apple Pay · krypterad betalning hos Wix</p>
+            <p className={s.vantanFot}>{stripeNyckel ? "Klarna, kort, Apple Pay och Google Pay · krypterad betalning via Stripe" : "Kort, Klarna och Apple Pay · krypterad betalning hos Wix"}</p>
           </div>
         </div>
       ) : null}

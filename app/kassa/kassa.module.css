@@ -751,3 +751,91 @@
     padding: 0;
   }
 }
+
+/* Stripe: betalfältet (Payment Element) i steg 3. Platsen hålls medan Stripe.js
+   laddas, så att knappen inte hoppar när fältet kommer. */
+.betalfalt {
+  position: relative;
+  min-height: 196px;
+  margin: 2px 0 4px;
+}
+
+.betalfalt[data-lage="redo"],
+.betalfalt[data-lage="fel"] {
+  min-height: 0;
+}
+
+.betalfaltLaddar {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.betalfaltLaddar span {
+  display: block;
+  height: 56px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-sm);
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.035) 25%, rgba(0, 0, 0, 0.075) 50%, rgba(0, 0, 0, 0.035) 75%);
+  background-size: 200% 100%;
+  animation: skimmer 1.2s linear infinite;
+}
+
+.betalFel {
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  background: #fff5f5;
+  border: 1.5px solid var(--sale-fill);
+  color: #8a1414;
+  font-size: var(--text-sm);
+  line-height: 1.45;
+}
+
+.betalSaker {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 12px 0 14px;
+  font-size: var(--text-xs);
+  line-height: 1.45;
+  color: var(--soft);
+}
+
+.betalSaker svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+/* Betalningen är godkänd men ordern inte klar efter en minut: webhooken slutför. */
+.klarVantar {
+  margin: 0 0 14px;
+  padding: 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border-radius: var(--r-md);
+  background: #f1faf4;
+  border: 1.5px solid #157a3a;
+  font-size: var(--text-sm);
+  line-height: 1.45;
+}
+
+.klarBock {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #157a3a;
+  color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .betalfaltLaddar span {
+    animation: none;
+  }
+}

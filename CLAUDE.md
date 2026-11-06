@@ -1187,8 +1187,10 @@ i `flode.ts`), `app/kassa/`, `app/api/kassa/*` och städjobbet
 - **Ordern skapas med Checkout V1 `create-order` på korgens id** (i Cart V2 är
   korgens id kassans id). Den blir som Wix kassas egna: checkoutId, cartId,
   purchaseFlowId, moms och leveranstid. Uppmätt med två avbrutna testordrar
-  2026-11-05/06. Cart V2 `place-order` går inte: den kräver en
-  betalnings-token från Wix Cashier-klienten, som inte finns för externa sajter.
+  2026-11-05/06. ⚠️ Rättat 2026-11-06: Cart V2 `place-order` GÅR på en förberedd
+  korg utan betalning (obetald order, ingen debitering), och det är
+  Stripe-kassans väg; se nästa avsnitt. Checkout V1 `create-order` tas bort
+  2027-02-01, så Wix-betalsidans väg måste bort före dess.
 - ☠️ **Ordern reserverar lagret från det att den skapas.** En kund som lämnar
   betalsidan håller varan. Nästa försök från samma korg släpper den förra
   ordern (betalningen makuleras först, sedan avbryts ordern med återlagring),
@@ -1272,3 +1274,91 @@ i `flode.ts`), `app/kassa/`, `app/api/kassa/*` och städjobbet
   samma korg. Räkningen på `/kassa` visar därför ingen lagerbrist när korgen har
   en obetald betalning (`stoppandeOvertradelser(..., { utanLager: true })`).
   Betalningen gör den vanliga kontrollen efter att den förra ordern släppts.
+
+## Stripe-kassan: Klarna, kort, Apple Pay och Google Pay på /kassa (2026-11-06)
+
+Leonards val 2026-11-06 ("Ja, börja nu"), efter auditen: Klarna är två av tre
+köp (113 av 171 betalda ordrar 2026-06–11), och Wix betalsida tvingade
+Klarna-kunden att skriva e-post, namn och adress en gång till. Nu står
+betalfältet (Stripe Payment Element) i steg 3 på `/kassa`, och kundens
+uppgifter ur formuläret följer med till Klarna. Wix räknar korgen och äger
+ordern som förut; Stripe tar betalt.
+
+**Påslag:** `/kassa` använder Stripe när BÅDA nycklarna finns när sidan byggs
+(`app/kassa/page.tsx`): `STRIPE_SECRET_KEY` och
+`NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (`pk_test_…`/`pk_live_…`). Saknas någon
+gäller Wix betalsida som i avsnittet ovan. Växeln (`FyndplatsButikInstallningar/kassa`)
+avgör som förut vem som kommer till `/kassa` alls. Webhooken kräver
+`STRIPE_WEBHOOK_SECRET`.
+
+**Flödet** (`lib/kassa/flode.ts` `forberedStripe`/`slutforStripe`, sidan i
+`lib/kassa/stripe-klient.ts` och `app/kassa/use-stripe-betalning.ts`):
+1. Betalfältet visas direkt, utan PaymentIntent (Elements i `mode: "payment"`,
+   beloppet = summeringen, så att Apple Pay visar rätt belopp).
+2. "Betala": `elements.submit()` FÖRST, i själva trycket (Apple Pay och Google
+   Pay öppnar sitt blad bara i ett tryck), sedan `/api/kassa/stripe/forbered`:
+   formuläret till Wix-korgen, Wix räknar, en PaymentIntent på Wix total med
+   `capture_method: manual` (pengarna reserveras, dras inte).
+3. `stripe.confirmPayment` med `redirect: "if_required"`. Kort, Apple Pay och
+   Google Pay stannar på sidan; Klarna går till Klarna.
+4. `/api/kassa/stripe/klar` (och webhooken `/api/stripe/webhook`, samma steg):
+   Wix räknar igen och totalen måste vara den reserverade → Cart V2
+   `place-order` med Wix prisbevis → dra beloppet → Add Payments (godkänd
+   betalning med Stripes laddnings-id och betalsättet på kundens språk) →
+   `/tack?orderId=…`. Går ordern inte att skapa släpps reservationen (eller
+   betalas en redan dragen betalning tillbaka): ingen kund betalar utan order.
+
+Det som inte får ändras:
+- ☠️ **Ett lås per betalning** (Wix CMS `FyndplatsKassaBetalningar`, ADMIN,
+  raden = betalningens id). Kundens retur och webhooken kommer ofta samtidigt;
+  bara den som tar låset skapar ordern, den andra svarar `pagar` (202) och
+  sidan frågar igen. Låset bär steget (`pagar` → `order` → `registrera` →
+  `klar`/`fel`), så ett avbrott efter ordern fortsätter med dragningen i stället
+  för att skapa en order till. Ett lås äldre än 120 s tas över.
+- ☠️ **Create Order (`ecom/v1/orders`) används inte:** Wix tillåter fem anrop i
+  timmen för opublicerade appar. `place-order` är vägen.
+- ☠️ **Faktureringsuppgifterna skickas med i bekräftelsen**
+  (`faktureringsuppgifter`). Betalfältet frågar aldrig efter dem
+  (`fields.billingDetails: "never"`), och då kräver Stripe VARJE fält, också
+  `state` och `line2` som tomma strängar: ett saknat fält stoppar betalningen.
+  Provat lokalt 2026-11-06 mot riktiga Stripe.js.
+- ☠️ **Betalfältet och PaymentIntenten måste ha samma valuta och dragning**
+  (`sek`, `manual`), annars nekar Stripe bekräftelsen. Provet i
+  `stripe-klient.test.ts` jämför med `avsiktParametrar`.
+- ☠️ **Ingen idempotensnyckel ur korgens innehåll:** Stripe svarar på en känd
+  nyckel med det sparade svaret i ett dygn, också när betalningen sedan
+  släppts. Ett nytt försök efter "kunde inte skapas" hade fått den släppta
+  betalningen tillbaka. En ny betalning får en unik nyckel; kundens försök
+  återanvänds via `avsiktId` (localStorage `fp_kassa_stripe`, 24 h, bara samma
+  korg), och dubbeltrycket stoppas i sidan (`pagar`-refen).
+- ☠️ **Klarnas retur går via `/api/kassa/stripe/retur`**, som skickar vidare till
+  `/kassa/klar?avsikt=pi_…` med bara betalningens id. Stripe lägger
+  `client_secret` i return_url, och sidorna laddar GA4 och Meta, som sparar hela
+  adressen. Blev det ingen order går kunden till `/kassa?stripe=<kod>`
+  (`avbruten`, `pris_andrat`, `slut`, `fel`), som säger varför och tar bort
+  koden ur adressen.
+- **Ändrad total stoppar före betalningen:** räknar Wix fram en annan total än
+  den kunden ser (fältets belopp) visas den nya, och kunden trycker igen.
+- **"Betalningen är godkänd" efter en minut:** svarar servern fortfarande
+  `pagar` efter 60 s säger sidan att orderbekräftelsen kommer via e-post, och
+  knappen låses (webhooken slutför). Kunden ska aldrig uppmanas att betala igen
+  när pengarna kan vara reserverade.
+- **Apple Pay kräver domänen:** filen
+  `public/.well-known/apple-developer-merchantid-domain-association` (Stripes,
+  samma för alla Stripe-konton) och domänen `www.fyndplats.se` registrerad i
+  Stripe (Inställningar → Betalmetodsdomäner). `Permissions-Policy` får aldrig
+  stänga `payment` (`next.config.ts`).
+- Stripe-anropen görs med `fetch` och formulärkodning (`lib/kassa/stripe.ts`,
+  API-version `2025-03-31.basil`), utan Stripes Node-SDK. Webhooken prövar
+  `Stripe-Signature` (HMAC-SHA256 över `t.kropp`, 300 s) på den RÅA kroppen.
+  Webbläsaren använder `@stripe/stripe-js` 7.x, samma release (basil).
+
+**Kvar före riktiga kunder:** Leonards Stripe-konto med Klarna, kort, Apple Pay
+och Google Pay; nycklarna i Vercel (test i Preview, live i Production);
+webhooken (`payment_intent.amount_capturable_updated` och
+`payment_intent.succeeded` till `https://www.fyndplats.se/api/stripe/webhook`);
+domänen för Apple Pay; ett prov från början till slut med testnycklar på en
+förhandslänk; att Add Payments gör ordern betald och godkänd med Wix
+orderbekräftelse, webhooks och motorns orderflöde (prövas med den dolda
+testvaran och Leonards ja, eftersom Meta CAPI och motorn reagerar);
+återbetalningar i Stripe och egna påminnelser om övergivna kassor.
