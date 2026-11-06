@@ -125,4 +125,14 @@ test("kontrollen efter skapandet: varje rad ska bära offertens pris, i vilken o
   assert.equal(korgenBarRaderna(RADER, wix("2290.00")), true);
   assert.equal(korgenBarRaderna(RADER, wix("2490.00")), false, "katalogpriset i stället för offertens");
   assert.equal(korgenBarRaderna(RADER, { lineItems: [] }), false);
+  // Wix svarar på POST /ecom/v2/carts i V2-formen; förut godkändes den aldrig.
+  const v2 = (id: string, produkt: string, variant: string | null, antal: number, pris: string) => ({
+    id,
+    name: { original: produkt },
+    quantityInfo: { confirmedQuantity: antal, requestedQuantity: antal },
+    pricing: { unitPrice: { amount: pris }, breakdown: { fullPrice: { amount: pris }, salePrice: { amount: pris } } },
+    source: { catalogReference: { catalogItemId: produkt, appId: STORES_APP_ID, ...(variant ? { options: { variantId: variant } } : {}) } },
+  });
+  assert.equal(korgenBarRaderna(RADER, { lineItems: [v2("b", "p2", null, 2, "3790"), v2("a", "p1", "v1", 12, "2290")] }), true);
+  assert.equal(korgenBarRaderna(RADER, { lineItems: [v2("b", "p2", null, 2, "3790"), v2("a", "p1", "v1", 12, "2490")] }), false);
 });

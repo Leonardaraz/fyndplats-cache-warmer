@@ -1814,6 +1814,17 @@ medlemmar med `testare: true`) eller `pa`. Den är skild från `lage`.
     order ur just den låsta korgen, och `taRensning` (compare-and-set på
     `besokarensKorgRensad`) gör att de två aldrig båda tar bort. En offert
     rör inte besökarens korg.
+  - ☠️ **Servern läser korgen i Cart V2-formen** (`GET /ecom/v2/carts/{id}`:
+    `source.catalogReference`, `quantityInfo.confirmedQuantity`,
+    `pricing.unitPrice` och `pricing.breakdown.fullPrice`). `lasWixVarukorg`
+    kände bara V1-formen, så varje riktig korg blev "tom": varukorgen visade
+    listpriset, "Till kassan" gick till vanliga kassan med fullt pris,
+    kontrollen av den skapade korgen (`korgenBarPriserna`,
+    `korgenBarRaderna`) godkände aldrig någon, och "Spara varukorgen" sparade
+    ingenting. Proven använde V1-formen, och provköpet 10175 byggde den låsta
+    korgen för hand. Hittat i den visuella auditen 2026-11-06 på
+    förhandsbygget. Rean ligger i `breakdown.fullPrice` (mätt: 1 519 mot
+    styckpriset 1 029), så en reavara får fortfarande inget medlemspris.
 
 Före `test`: Leonards medlemsrad med `testare: true` och ett prov på en
 förhandslänk fram till Wix-kassan. Leonard lägger ingen provorder (2026-11-05:

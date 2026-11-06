@@ -44,15 +44,35 @@ export interface Varukorgsrad {
 
 const text = (v: unknown) => (typeof v === "string" ? v : "");
 
-/** Det vi läser ur en rad i en Wix-varukorg. */
+type Katalogref = { catalogItemId?: unknown; appId?: unknown; options?: { variantId?: unknown } };
+
+/**
+ * Det vi läser ur en rad i en Wix-varukorg, i båda formerna.
+ *
+ * ☠️ Servern läser korgen med `GET /ecom/v2/carts/{id}`, och Cart V2 har en
+ * annan radform än V1 (se lib/cart-shape.ts): `source.catalogReference`,
+ * `quantityInfo`, `pricing.unitPrice` och `name`. Läsaren kände bara V1-formen,
+ * så varje riktig korg blev "tom": varukorgen visade listpriset, "Till kassan"
+ * gick till den vanliga kassan med fullt pris, och "Spara varukorgen" sparade
+ * ingenting (visuell audit 2026-11-06, förhandsbygget). Proven använde
+ * V1-formen och såg det inte.
+ */
 type WixRad = {
   id?: unknown;
-  catalogReference?: { catalogItemId?: unknown; appId?: unknown; options?: { variantId?: unknown } };
+  _id?: unknown;
+  // Cart V1
+  catalogReference?: Katalogref;
   quantity?: unknown;
   price?: { amount?: unknown };
   /** Priset före katalogens rea; samma som `price` när varan inte är på rea. */
   fullPrice?: { amount?: unknown };
   productName?: { original?: unknown; translated?: unknown };
+  // Cart V2 (REST)
+  source?: { catalogReference?: Katalogref };
+  /** `confirmedQuantity` är vad kunden får (lagret kan ha kapat det). */
+  quantityInfo?: { confirmedQuantity?: unknown; requestedQuantity?: unknown };
+  pricing?: { unitPrice?: { amount?: unknown }; breakdown?: { fullPrice?: { amount?: unknown } } };
+  name?: { original?: unknown; translated?: unknown };
 };
 
 /** Det vi läser ur en variant i en V3-produkt. */
@@ -78,9 +98,9 @@ export function beloppAvOre(ore: number): string {
 }
 
 /**
- * Besökarens varukorg som rader. En rad som inte går att läsa (inget id, inget
- * pris, antal under 1) gör hela korgen oläslig: hellre den vanliga kassan än en
- * medlemskorg som tappat en vara.
+ * Besökarens varukorg som rader, ur Cart V2 (det servern läser) eller V1. En
+ * rad som inte går att läsa (inget id, inget pris, antal under 1) gör hela
+ * korgen oläslig: hellre den vanliga kassan än en medlemskorg som tappat en vara.
  */
 export function lasWixVarukorg(cart: unknown): Varukorgsrad[] | null {
   const items = (cart as { lineItems?: unknown } | null)?.lineItems;
@@ -88,22 +108,24 @@ export function lasWixVarukorg(cart: unknown): Varukorgsrad[] | null {
   const ut: Varukorgsrad[] = [];
   for (const li of items) {
     const r = (li ?? {}) as WixRad;
-    const ref = r.catalogReference ?? {};
+    const ref = r.catalogReference ?? r.source?.catalogReference ?? {};
     const produktId = text(ref.catalogItemId);
     const appId = text(ref.appId);
-    const antal = typeof r.quantity === "number" ? r.quantity : Number.NaN;
-    const aOre = oreAvBelopp(r.price?.amount);
+    const st = r.quantity ?? r.quantityInfo?.confirmedQuantity ?? r.quantityInfo?.requestedQuantity;
+    const antal = typeof st === "number" ? st : Number.NaN;
+    const aOre = oreAvBelopp(r.price?.amount ?? r.pricing?.unitPrice?.amount);
     if (!produktId || !appId || !Number.isSafeInteger(antal) || antal < 1 || aOre === null) return null;
     const variantId = text(ref.options?.variantId) || null;
-    const fore = oreAvBelopp(r.fullPrice?.amount);
+    const fore = oreAvBelopp(r.fullPrice?.amount ?? r.pricing?.breakdown?.fullPrice?.amount);
+    const namn = r.productName ?? r.name;
     ut.push({
-      radId: text(r.id) || `${produktId}:${variantId ?? ""}`,
+      radId: text(r.id) || text(r._id) || `${produktId}:${variantId ?? ""}`,
       produktId,
       variantId,
       appId,
       antal,
       aOre,
-      namn: text(r.productName?.translated) || text(r.productName?.original),
+      namn: text(namn?.translated) || text(namn?.original),
       ...(fore !== null && fore > aOre ? { rea: true as const } : {}),
     });
   }

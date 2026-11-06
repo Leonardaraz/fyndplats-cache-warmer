@@ -62,6 +62,43 @@ test("besökarens korg läses rad för rad; en trasig rad gör hela korgen oläs
   assert.equal(lasWixVarukorg({ lineItems: [{ ...wixRad("a", "p1", "v1", 1, "10"), price: {} }] }), null);
 });
 
+/** En rad som `GET /ecom/v2/carts/{id}` svarar med (formen uppmätt 2026-11-06, värdena påhittade). */
+function wixRadV2(id: string, produkt: string, variant: string | null, antal: number, pris: string, fore = pris, appId = STORES_APP_ID) {
+  return {
+    id,
+    name: { original: `Vara ${produkt}`, translated: `Vara ${produkt}` },
+    quantityInfo: { confirmedQuantity: antal, requestedQuantity: antal, availableQuantity: 78, fixedQuantity: false },
+    pricing: {
+      unitPrice: { amount: pris, convertedAmount: pris },
+      totalPrice: { amount: pris, convertedAmount: pris },
+      priceUndetermined: false,
+      breakdown: { fullPrice: { amount: fore, convertedAmount: fore }, salePrice: { amount: pris, convertedAmount: pris } },
+    },
+    source: { catalogReference: { catalogItemId: produkt, appId, ...(variant ? { options: { variantId: variant } } : {}) }, rootCatalogItemId: produkt },
+    attributes: { descriptionLines: [], itemType: { preset: "PHYSICAL" } },
+    status: "IN_STOCK",
+  };
+}
+
+test("☠️ servern läser Cart V2: raderna ur source, quantityInfo och pricing (förut blev varje riktig korg tom)", () => {
+  const korg = { id: "c1", lineItems: [wixRadV2("00000000-0000-0000-0000-000000000001", "p1", "v1", 2, "1869"), wixRadV2("00000000-0000-0000-0000-000000000002", "p2", null, 1, "99.90")] };
+  assert.deepEqual(lasWixVarukorg(korg), [
+    { radId: "00000000-0000-0000-0000-000000000001", produktId: "p1", variantId: "v1", appId: STORES_APP_ID, antal: 2, aOre: 186_900, namn: "Vara p1" },
+    { radId: "00000000-0000-0000-0000-000000000002", produktId: "p2", variantId: null, appId: STORES_APP_ID, antal: 1, aOre: 9_990, namn: "Vara p2" },
+  ]);
+  // Rean ligger i breakdown.fullPrice: ingen medlemsrabatt ovanpå (2.1).
+  assert.equal(lasWixVarukorg({ lineItems: [wixRadV2("a", "p1", "v1", 1, "949", "999")] })?.[0].rea, true);
+  assert.equal(lasWixVarukorg({ lineItems: [wixRadV2("a", "p1", "v1", 1, "999", "999")] })?.[0].rea, undefined);
+  // Det kunden får räknas: ett slutsålt antal gör korgen oläslig (vanliga kassan).
+  const slut = wixRadV2("a", "p1", "v1", 1, "999");
+  assert.equal(lasWixVarukorg({ lineItems: [{ ...slut, quantityInfo: { confirmedQuantity: 0, requestedQuantity: 1 } }] }), null);
+  assert.equal(lasWixVarukorg({ lineItems: [{ ...slut, quantityInfo: { requestedQuantity: 3 } }] })?.[0].antal, 3);
+  assert.equal(lasWixVarukorg({ lineItems: [{ ...slut, pricing: {} }] }), null);
+  // Andra appar än Stores följer med, men får aldrig medlemspris.
+  const r = prisrader(lasWixVarukorg({ lineItems: [wixRadV2("a", "p1", "v1", 1, "499.90"), wixRadV2("c", "pk", null, 1, "500", "500", "annan-app")] })!, new Map());
+  assert.equal(r[1].undantag, "tjanst");
+});
+
 test("raderna får golvet och undantaget ur motorns svar; andra appar än Stores får aldrig medlemspris", () => {
   const golv = new Map<string, Golvsvar>([
     [golvnyckel("p1", "v1"), { golvOre: 30_000, kostnadOre: 20_000 }],
@@ -116,6 +153,11 @@ test("kontrollen efter skapandet: varje Stores-rad ska bära vårt pris, i vilke
   const katalogpris = { lineItems: [wixRad("x", "p1", "v1", 1, "499.90"), wixRad("y", "p2", null, 3, "95.00")] };
   assert.equal(korgenBarPriserna(beslut, korg, katalogpris), false);
   assert.equal(korgenBarPriserna(beslut, korg, { lineItems: [wixRad("x", "p1", "v1", 1, "474.91")] }), false);
+  // Den skapade korgen kommer i V2-formen (POST /ecom/v2/carts): förut blev den
+  // aldrig godkänd, och medlemskassan och offerten föll på kontrollen.
+  const rattV2 = { lineItems: [wixRadV2("y", "p2", null, 3, "95.00"), wixRadV2("x", "p1", "v1", 1, "474.91")] };
+  assert.equal(korgenBarPriserna(beslut, korg, rattV2), true);
+  assert.equal(korgenBarPriserna(beslut, korg, { lineItems: [wixRadV2("y", "p2", null, 3, "95.00"), wixRadV2("x", "p1", "v1", 1, "499.90")] }), false);
 });
 
 test("golvnyckeln är densamma i varukorgen och i klienten mot motorn", () => {
