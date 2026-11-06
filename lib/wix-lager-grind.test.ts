@@ -1,19 +1,20 @@
 // Run: node --test --experimental-strip-types lib/wix-lager-grind.test.ts
 //
-// ☠️ Efter flytten till Wix (lib/wix-lager.ts) får ingen kod skriva till Neon
-// utan att först fråga växeln. En fil som använder `sql` utan `anvanderWix`
-// hade fortsatt skriva till Neon efter växlingen, och raden hade aldrig synts
-// i Wix: samma tystnad som motorns /api/tracking-events 2026-09-01. Grinden
-// läser källkoden och fäller på varje sådan fil.
+// ☠️ Butikens tabeller bor bara i Wix (lib/wix-lager.ts) sedan 2026-11-05, och
+// Neon sägs upp. En Postgres-väg som kommer tillbaka skriver då mot en databas
+// som inte finns, och raden syns aldrig i Wix.
+//
+// Den förra grinden (2026-10-29 till 2026-11-05) krävde bara att en FIL som
+// använde `sql` också frågade växeln någonstans. SMS-ruttens statusskrivning
+// låg i en sådan fil utan att fråga, och skrev till Neon i en vecka efter
+// växlingen. Den här grinden fäller därför på varje spår av Postgres, inte på
+// en fil i taget.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 const ROT = new URL("..", import.meta.url).pathname;
-
-/** Kopieringen läser Neon med flit, oavsett växeln. */
-const UNDANTAG = new Set(["app/api/admin/neon-till-wix/route.ts"]);
 
 function filer(katalog: string): string[] {
   const ut: string[] = [];
@@ -21,26 +22,48 @@ function filer(katalog: string): string[] {
     const rel = `${katalog}/${namn}`;
     const st = statSync(join(ROT, rel));
     if (st.isDirectory()) ut.push(...filer(rel));
-    else if (/\.(ts|tsx)$/.test(namn) && !/\.test\.ts$/.test(namn)) ut.push(rel);
+    else if (/\.(ts|tsx|js|mjs)$/.test(namn) && !/\.test\.ts$/.test(namn)) ut.push(rel);
   }
   return ut;
 }
 
-const ANVANDER_SQL = /\bsql(\/\*sql\*\/)?`|\bsql\.query\(|\bsql<[^>]*>(\/\*sql\*\/)?`/;
+const POSTGRES = [
+  /from\s+["']@vercel\/postgres["']/,
+  /from\s+["'](@\/lib\/db|\.{1,2}\/(\.\.\/)*db)["']/,
+  /\bsql(\/\*sql\*\/)?`/,
+  /\bsql\.query\(/,
+  /\bsql<[^>]*>(\/\*sql\*\/)?`/,
+  /\banvanderWix\(/,
+];
 
-test("☠️ varje fil som använder sql frågar växeln (anvanderWix) först", () => {
-  const brister = [...filer("app"), ...filer("lib")]
-    .filter((f) => !UNDANTAG.has(f))
-    .filter((f) => {
-      const kod = readFileSync(join(ROT, f), "utf8");
-      return ANVANDER_SQL.test(kod) && !kod.includes("anvanderWix(");
-    });
+test("☠️ ingen kod når Postgres eller frågar efter växeln", () => {
+  const brister = [...filer("app"), ...filer("lib"), ...filer("components")].filter((f) => {
+    const kod = readFileSync(join(ROT, f), "utf8");
+    return POSTGRES.some((m) => m.test(kod));
+  });
   assert.deepEqual(brister, []);
 });
 
-test("grinden ser en fil som använder sql utan växeln", () => {
-  assert.equal(ANVANDER_SQL.test("await sql/*sql*/`SELECT 1`"), true);
-  assert.equal(ANVANDER_SQL.test("await sql.query(text, [])"), true);
-  assert.equal(ANVANDER_SQL.test("const r = await sql<{ n: number }>/*sql*/`SELECT 1`"), true);
-  assert.equal(ANVANDER_SQL.test("const sqlText = 'x'"), false);
+test("☠️ lib/db.ts och @vercel/postgres är borta", () => {
+  assert.equal(existsSync(join(ROT, "lib/db.ts")), false);
+  const paket = JSON.parse(readFileSync(join(ROT, "package.json"), "utf8")) as {
+    dependencies?: Record<string, string>;
+    devDependencies?: Record<string, string>;
+  };
+  assert.equal(paket.dependencies?.["@vercel/postgres"], undefined);
+  assert.equal(paket.devDependencies?.["@vercel/postgres"], undefined);
+});
+
+test("grinden ser varje form av Postgres", () => {
+  const traffar = (kod: string) => POSTGRES.some((m) => m.test(kod));
+  assert.equal(traffar('import { sql } from "@vercel/postgres";'), true);
+  assert.equal(traffar('import { sql } from "@/lib/db";'), true);
+  assert.equal(traffar("import { sql } from '../db';"), true);
+  assert.equal(traffar("await sql/*sql*/`SELECT 1`"), true);
+  assert.equal(traffar("await sql.query(text, [])"), true);
+  assert.equal(traffar("const r = await sql<{ n: number }>/*sql*/`SELECT 1`"), true);
+  assert.equal(traffar("if (await anvanderWix()) {"), true);
+  assert.equal(traffar("const sqlText = 'x'"), false);
+  assert.equal(traffar('import { sparning } from "@/lib/wix-lager";'), false);
+  assert.equal(traffar('import { x } from "./dbg";'), false);
 });

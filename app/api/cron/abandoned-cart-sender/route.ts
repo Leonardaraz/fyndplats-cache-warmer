@@ -16,7 +16,7 @@ import { NextResponse } from 'next/server';
 import { fetchDueCarts, processDueCart } from '@/lib/abandoned-cart';
 
 export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs'; // we use node:crypto + @vercel/postgres
+export const runtime = 'nodejs'; // we use node:crypto
 
 const CRON_BATCH = 25;
 

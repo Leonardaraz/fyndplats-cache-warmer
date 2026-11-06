@@ -32,8 +32,7 @@
 // Därför kan de två aldrig kollidera på samma (number, status)-nyckel.
 
 import { NextResponse, type NextRequest } from "next/server";
-import { sql } from "@/lib/db";
-import { anvanderWix, sparning } from "@/lib/wix-lager";
+import { sparning } from "@/lib/wix-lager";
 import { verify17TrackSign } from "@/lib/track17";
 import { sendDeliveryNotification } from "@/lib/delivery-notify";
 import { notisStatusFör, ärTerminalStatus } from "@/lib/delivery-status";
@@ -62,18 +61,8 @@ interface TrackingMappingRow {
 
 async function findMapping(trackingNumber: string): Promise<TrackingMappingRow | null> {
   try {
-    if (await anvanderWix()) {
-      const rad = await sparning.hamta(trackingNumber);
-      return rad && rad.status !== "ambiguous" ? rad : null;
-    }
-    const r = await sql<TrackingMappingRow>/*sql*/`
-      SELECT tracking_number, order_id, customer_email, customer_name, status
-        FROM tracking_mapping
-       WHERE tracking_number = ${trackingNumber}
-         AND status <> 'ambiguous'
-       LIMIT 1
-    `;
-    return r.rows[0] ?? null;
+    const rad = await sparning.hamta(trackingNumber);
+    return rad && rad.status !== "ambiguous" ? rad : null;
   } catch (err) {
     console.error("[track17-webhook] tracking_mapping lookup failed", err);
     return null;
@@ -82,14 +71,7 @@ async function findMapping(trackingNumber: string): Promise<TrackingMappingRow |
 
 async function updateMappingStatus(trackingNumber: string, status: string): Promise<void> {
   try {
-    if (await anvanderWix()) {
-      await sparning.sattStatus(trackingNumber, status);
-      return;
-    }
-    await sql/*sql*/`
-      UPDATE tracking_mapping SET status = ${status}, updated_at = NOW()
-       WHERE tracking_number = ${trackingNumber}
-    `;
+    await sparning.sattStatus(trackingNumber, status);
   } catch (err) {
     console.error("[track17-webhook] mapping status update failed", err);
   }

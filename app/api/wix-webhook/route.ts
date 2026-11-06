@@ -60,8 +60,7 @@ import {
 import { resolveOrderId } from "@/lib/wix-order-lookup";
 import { radensVal } from "@/lib/wix-order-fields";
 import { maskCarrierOrUndefined, transportorText } from "@/lib/carrier-mask";
-import { sql } from "@/lib/db";
-import { anvanderWix, sparning } from "@/lib/wix-lager";
+import { sparning } from "@/lib/wix-lager";
 import { metaCapiConfigured, sendMetaCapiEvent } from "@/lib/meta-capi";
 import { firePush } from "@/lib/push-send";
 import { getProducts } from "@/lib/products";
@@ -668,8 +667,8 @@ function buildRefundProps(payload: Record<string, unknown>): { props: RefundConf
 }
 
 // Persist (tracking_number → customer) for the SMS-forwarding flow. The
-// /api/sms-inbound handler reads from this table to map an incoming carrier
-// SMS back to the real customer's email. Idempotent via ON CONFLICT — Wix
+// /api/sms-inbound handler reads these rows to map an incoming carrier
+// SMS back to the real customer's email. Idempotent via the insert claim — Wix
 // can fire fulfillments_updated multiple times for the same shipment.
 async function upsertTrackingMapping(opts: {
   trackingNumber: string;
@@ -681,36 +680,17 @@ async function upsertTrackingMapping(opts: {
   registrera?: boolean;
 }): Promise<"new" | "duplicate" | "error" | "collision"> {
   try {
-    // RETURNING ger en rad ENBART när en NY rad faktiskt skrevs (inte vid
-    // ON CONFLICT). Det är vår dedup-signal: "new" = första gången vi ser den
-    // här sändningen (= mejla), "duplicate" = Wix-omfyrning (= hoppa mejl).
-    // I Wix (lib/wix-lager.ts) är samma anspråk en insert som vägrar ett nummer som finns.
-    const wix = await anvanderWix();
-    const ny = wix
-      ? await sparning.skapa({
-          trackingNumber: opts.trackingNumber,
-          orderId: opts.orderId,
-          customerEmail: opts.customerEmail,
-          customerName: opts.customerName,
-          customerPhone: opts.customerPhone,
-          status: "in_transit",
-        })
-      : (
-          await sql/*sql*/`
-            INSERT INTO tracking_mapping (
-              tracking_number, order_id, customer_email, customer_name, customer_phone, status
-            ) VALUES (
-              ${opts.trackingNumber},
-              ${opts.orderId},
-              ${opts.customerEmail},
-              ${opts.customerName},
-              ${opts.customerPhone},
-              'in_transit'
-            )
-            ON CONFLICT (tracking_number) DO NOTHING
-            RETURNING tracking_number
-          `
-        ).rows.length > 0;
+    // Anspråket är en insert som vägrar ett nummer som finns (lib/wix-lager.ts).
+    // Det är vår dedup-signal: "new" = första gången vi ser den här sändningen
+    // (= mejla), "duplicate" = Wix-omfyrning (= hoppa mejl).
+    const ny = await sparning.skapa({
+      trackingNumber: opts.trackingNumber,
+      orderId: opts.orderId,
+      customerEmail: opts.customerEmail,
+      customerName: opts.customerName,
+      customerPhone: opts.customerPhone,
+      status: "in_transit",
+    });
     if (ny) {
       // NY sändning: registrera spårnumret hos 17TRACK (sv + dest SE) så
       // push-webhooken (app/api/track17-webhook) fyrar PROAKTIVT vid Delivered/
@@ -725,14 +705,7 @@ async function upsertTrackingMapping(opts: {
     // vi inte avgöra vem en framtida push/SMS gäller → KARANTÄN: markera raden
     // 'ambiguous' så varken push eller SMS auto-notifierar (inkl. hämtkod) fel
     // kund. findMapping i båda flödena exkluderar 'ambiguous'. Hanteras manuellt.
-    const row = wix
-      ? await sparning.hamta(opts.trackingNumber)
-      : (
-          await sql<{ customer_email: string; status: string }>/*sql*/`
-            SELECT customer_email, status FROM tracking_mapping
-             WHERE tracking_number = ${opts.trackingNumber} LIMIT 1
-          `
-        ).rows[0];
+    const row = await sparning.hamta(opts.trackingNumber);
     if (
       row &&
       row.status !== "ambiguous" &&
@@ -740,14 +713,7 @@ async function upsertTrackingMapping(opts: {
       opts.customerEmail &&
       row.customer_email.trim().toLowerCase() !== opts.customerEmail.trim().toLowerCase()
     ) {
-      if (wix) {
-        await sparning.sattStatus(opts.trackingNumber, "ambiguous");
-      } else {
-        await sql/*sql*/`
-          UPDATE tracking_mapping SET status = 'ambiguous', updated_at = NOW()
-           WHERE tracking_number = ${opts.trackingNumber}
-        `;
-      }
+      await sparning.sattStatus(opts.trackingNumber, "ambiguous");
       console.error(
         `[wix-webhook] tracking_number-KOLLISION ${opts.trackingNumber}: ${row.customer_email} vs ${opts.customerEmail} → karantän (auto-notiser stoppade, hantera manuellt)`,
       );
@@ -1682,8 +1648,7 @@ export async function POST(req: NextRequest) {
           // återskapas på retry (upsert → "new" igen, 17TRACK-register idempotent).
           for (const tn of nyaRader) {
             try {
-              if (await anvanderWix()) await sparning.taBort(tn);
-              else await sql/*sql*/`DELETE FROM tracking_mapping WHERE tracking_number = ${tn}`;
+              await sparning.taBort(tn);
             } catch (e) {
               console.error("[wix-webhook] kunde inte släppa tracking_mapping vid send-fel", e);
             }

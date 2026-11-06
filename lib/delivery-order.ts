@@ -1,6 +1,7 @@
 // lib/delivery-order.ts
 //
-// Orderns paket i tracking_mapping, för levererat-mejlet per order (se
+// Orderns paket i spårningstabellen (Wix, `sparning` i lib/wix-lager.ts), för
+// levererat-mejlet per order (se
 // levereratBeslut i lib/delivery-status). Beslutet är rent och testat där;
 // här bor bara läsningarna och skrivningarna.
 //
@@ -8,46 +9,12 @@
 // duger inte: 17TRACK pushar samma status flera gånger, och varje push skriver
 // updated_at, så väntetiden mot de andra paketen hade börjat om varje gång.
 
-import { sql } from "./db";
-import { anvanderWix, leveransnotiser, sparning } from "./wix-lager";
-import { POLL_MAX_ÅLDER_DAGAR, orderNyckel, svepKandidater } from "./delivery-status";
-
-let ensured: Promise<void> | null = null;
-function ensureKolumn(): Promise<void> {
-  if (!ensured) {
-    ensured = (async () => {
-      try {
-        await sql/*sql*/`ALTER TABLE tracking_mapping ADD COLUMN IF NOT EXISTS levererad_at TIMESTAMPTZ`;
-        // Paket som blev levererade innan kolumnen fanns.
-        await sql/*sql*/`
-          UPDATE tracking_mapping SET levererad_at = updated_at
-           WHERE status = 'delivered' AND levererad_at IS NULL
-        `;
-      } catch (e) {
-        // Samtidiga kallstarter kan krocka på ALTER (42701 duplicate_column).
-        const code = (e as { code?: string })?.code;
-        if (code !== "42701" && code !== "23505") {
-          ensured = null;
-          throw e;
-        }
-      }
-    })();
-  }
-  return ensured;
-}
+import { leveransnotiser, sparning } from "./wix-lager";
+import { POLL_MAX_ÅLDER_DAGAR, svepKandidater } from "./delivery-status";
 
 /** Markerar paketet levererat. levererad_at sätts bara första gången. */
 export async function markeraLevererad(trackingNumber: string): Promise<void> {
-  if (await anvanderWix()) return sparning.markeraLevererad(trackingNumber);
-  await ensureKolumn();
-  await sql/*sql*/`
-    UPDATE tracking_mapping
-       SET status = 'delivered',
-           levererad_at = COALESCE(levererad_at, NOW()),
-           updated_at = NOW()
-     WHERE tracking_number = ${trackingNumber}
-       AND status <> 'ambiguous'
-  `;
+  return sparning.markeraLevererad(trackingNumber);
 }
 
 export interface OrderPaket {
@@ -59,17 +26,7 @@ export interface OrderPaket {
 /** Status för orderns alla paket. 'ambiguous' räknas inte: vi vet inte vems
  *  paket det är, och det ska inte hålla tillbaka mejlet. */
 export async function läsOrderPaket(orderId: string): Promise<OrderPaket> {
-  let rader: { status: string; levererad_at: Date | string | null }[];
-  if (await anvanderWix()) {
-    rader = await sparning.forOrder(orderId);
-  } else {
-    await ensureKolumn();
-    const r = await sql<{ status: string; levererad_at: Date | string | null }>/*sql*/`
-      SELECT status, levererad_at FROM tracking_mapping
-       WHERE order_id = ${orderId} AND status <> 'ambiguous'
-    `;
-    rader = r.rows;
-  }
+  const rader: { status: string; levererad_at: Date | string | null }[] = await sparning.forOrder(orderId);
   let förstaLevererad: number | null = null;
   for (const rad of rader) {
     if (!rad.levererad_at) continue;
@@ -104,41 +61,13 @@ export interface OrderAttSvepa {
  * mejl, och svepet hade annars skickat ett till för varje gammal order.
  */
 export async function ordrarAttSvepa(gräns = 30): Promise<OrderAttSvepa[]> {
-  if (await anvanderWix()) {
-    // Samma urval som frågan nedan, räknat i svepKandidater (lib/delivery-status).
-    const nu = Date.now();
-    const rader = await sparning.forSvep(new Date(nu - POLL_MAX_ÅLDER_DAGAR * 24 * 60 * 60 * 1000).toISOString());
-    const kandidater = svepKandidater(rader, nu, SVEP_MAX_DAGAR);
-    const meddelade = await leveransnotiser.medStatus(kandidater.flatMap((k) => k.nycklar), "delivered");
-    return kandidater
-      .filter((k) => !k.nycklar.some((n) => meddelade.has(n)))
-      .slice(0, gräns)
-      .map(({ order_id, tracking_number, customer_email, customer_name }) => ({ order_id, tracking_number, customer_email, customer_name }));
-  }
-  await ensureKolumn();
-  const r = await sql.query<OrderAttSvepa>(
-    `WITH o AS (
-       SELECT order_id,
-              array_agg(tracking_number) AS tns,
-              (array_agg(tracking_number) FILTER (WHERE status = 'delivered'))[1] AS tracking_number,
-              (array_agg(customer_email ORDER BY created_at DESC))[1] AS customer_email,
-              (array_agg(customer_name ORDER BY created_at DESC))[1] AS customer_name
-         FROM tracking_mapping
-        WHERE order_id IS NOT NULL
-          AND status <> 'ambiguous'
-          AND created_at > NOW() - ($1::int * INTERVAL '1 day')
-        GROUP BY order_id
-       HAVING bool_or(status = 'delivered' AND levererad_at > NOW() - ($4::int * INTERVAL '1 day'))
-     )
-     SELECT o.order_id, o.tracking_number, o.customer_email, o.customer_name
-       FROM o
-      WHERE NOT EXISTS (
-        SELECT 1 FROM delivery_notifications d
-         WHERE d.status = 'delivered'
-           AND (d.tracking_number = $2 || o.order_id OR d.tracking_number = ANY(o.tns))
-      )
-      LIMIT $3`,
-    [POLL_MAX_ÅLDER_DAGAR, orderNyckel(""), gräns, SVEP_MAX_DAGAR],
-  );
-  return r.rows;
+  // Urvalet räknas i svepKandidater (lib/delivery-status), där det är testat.
+  const nu = Date.now();
+  const rader = await sparning.forSvep(new Date(nu - POLL_MAX_ÅLDER_DAGAR * 24 * 60 * 60 * 1000).toISOString());
+  const kandidater = svepKandidater(rader, nu, SVEP_MAX_DAGAR);
+  const meddelade = await leveransnotiser.medStatus(kandidater.flatMap((k) => k.nycklar), "delivered");
+  return kandidater
+    .filter((k) => !k.nycklar.some((n) => meddelade.has(n)))
+    .slice(0, gräns)
+    .map(({ order_id, tracking_number, customer_email, customer_name }) => ({ order_id, tracking_number, customer_email, customer_name }));
 }

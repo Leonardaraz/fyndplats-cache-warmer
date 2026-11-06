@@ -1,9 +1,8 @@
-// POST /api/admin/run-job  { job: "migrate" | "morning-email" | "seo-weekly" }
-// Manuell trigger för cron-jobb och DB-migrering. Gated by proxy.ts (fp_admin-cookie).
+// POST /api/admin/run-job  { job: "order-sync" | "morning-email" | "seo-weekly" }
+// Manuell trigger för cron-jobb. Gated by proxy.ts (fp_admin-cookie).
 // Används av dashboardens snabbåtgärder + för verifiering efter deploy.
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
-import { runMigration } from "@/lib/db";
 import { buildDashboard } from "@/lib/dashboard";
 import { renderMorningEmail } from "@/lib/dashboard-email";
 import { buildSeoHealthReport, renderSeoEmailHtml, seoEmailSubject } from "@/lib/seo-health";
@@ -29,11 +28,6 @@ export async function POST(request: Request) {
   const to = process.env.OPS_ALERT_EMAIL || "info@fyndplats.com";
 
   try {
-    if (job === "migrate") {
-      await runMigration();
-      return NextResponse.json({ ok: true, job, migrated: true });
-    }
-
     if (job === "order-sync") {
       const result = await syncOrdersFromWix();
       return NextResponse.json({ job, ...result });

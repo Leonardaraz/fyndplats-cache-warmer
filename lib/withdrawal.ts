@@ -17,8 +17,7 @@ import { randomUUID } from "crypto";
 import { Resend } from "resend";
 import { render } from "@react-email/render";
 
-import { sql } from "./db";
-import { angerarenden, anvanderWix, ordrar } from "./wix-lager";
+import { angerarenden, ordrar } from "./wix-lager";
 import { getProducts } from "./products";
 import WithdrawalReceiptEmail from "../emails/withdrawal-receipt";
 import { returadressRader, type Returadress } from "./returadress";
@@ -86,21 +85,10 @@ export async function lookupOrderItems(
   const mail = (email || "").trim().toLowerCase();
   if (!num || !mail) return { found: false, items: [] };
   try {
-    let row: { items_json?: unknown } | undefined;
-    if (await anvanderWix()) {
-      const items = await ordrar.raderFor(num, mail);
-      row = items ? { items_json: items } : undefined;
-    } else {
-      const res = await sql/*sql*/`
-        SELECT items_json FROM orders
-        WHERE order_number = ${num} AND lower(email) = ${mail}
-        LIMIT 1
-      `;
-      row = res.rows[0] as { items_json?: unknown } | undefined;
-    }
-    if (!row) return { found: false, items: [] };
-    const raw = Array.isArray(row.items_json) ? row.items_json : [];
-    const items: WithdrawalLineItem[] = raw.map((it: Record<string, unknown>) => ({
+    const rader = await ordrar.raderFor(num, mail);
+    if (!rader) return { found: false, items: [] };
+    const raw = rader as Record<string, unknown>[];
+    const items: WithdrawalLineItem[] = raw.map((it) => ({
       name: String(it?.name ?? "Produkt"),
       qty: Number(it?.qty ?? 1) || 1,
       lineMinor: Number(it?.lineMinor ?? 0) || 0,
@@ -108,39 +96,14 @@ export async function lookupOrderItems(
     await attachCatalogImages(items);
     return { found: true, items };
   } catch (err) {
-    // DB nere/ej migrerad → "hittades inte" så formuläret faller tillbaka på
-    // manuell inmatning. Ångerrätten får aldrig blockeras av ett DB-fel.
+    // Wix svarar inte → "hittades inte" så formuläret faller tillbaka på
+    // manuell inmatning. Ångerrätten får aldrig blockeras av ett lagerfel.
     console.error("[angra] order-uppslag misslyckades:", err instanceof Error ? err.message : err);
     return { found: false, items: [] };
   }
 }
 
 // ── Loggning (bevis) ─────────────────────────────────────────────────────────
-let ensured: Promise<void> | null = null;
-function ensureTable(): Promise<void> {
-  if (!ensured) {
-    ensured = (async () => {
-      await sql/*sql*/`
-        CREATE TABLE IF NOT EXISTS withdrawal_requests (
-          id            TEXT PRIMARY KEY,
-          order_number  TEXT,
-          email         TEXT NOT NULL,
-          items_json    JSONB NOT NULL DEFAULT '[]'::jsonb,
-          reason        TEXT,
-          matched_order BOOLEAN NOT NULL DEFAULT FALSE,
-          created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
-        );
-      `;
-      await sql/*sql*/`CREATE INDEX IF NOT EXISTS withdrawal_requests_email_idx ON withdrawal_requests(email);`;
-      await sql/*sql*/`CREATE INDEX IF NOT EXISTS withdrawal_requests_created_idx ON withdrawal_requests(created_at DESC);`;
-    })().catch((e) => {
-      ensured = null; // tillåt retry vid nästa anrop
-      throw e;
-    });
-  }
-  return ensured;
-}
-
 export function newCaseId(): string {
   // Kort, läsbart ärende-id: ANG-XXXXXX (6 hex ur en UUID, versaler).
   return "ANG-" + randomUUID().replace(/-/g, "").slice(0, 6).toUpperCase();
@@ -157,26 +120,14 @@ export interface WithdrawalRecord {
 
 export async function recordWithdrawal(rec: WithdrawalRecord): Promise<boolean> {
   try {
-    if (await anvanderWix()) {
-      await angerarenden.logga({
-        caseId: rec.caseId,
-        orderNumber: rec.orderNumber || null,
-        email: rec.email,
-        items: rec.items,
-        reason: rec.reason || null,
-        matchedOrder: rec.matchedOrder,
-      });
-      return true;
-    }
-    await ensureTable();
-    await sql/*sql*/`
-      INSERT INTO withdrawal_requests (id, order_number, email, items_json, reason, matched_order, created_at)
-      VALUES (
-        ${rec.caseId}, ${rec.orderNumber || null}, ${rec.email},
-        ${JSON.stringify(rec.items)}::jsonb, ${rec.reason || null}, ${rec.matchedOrder}, NOW()
-      )
-      ON CONFLICT (id) DO NOTHING
-    `;
+    await angerarenden.logga({
+      caseId: rec.caseId,
+      orderNumber: rec.orderNumber || null,
+      email: rec.email,
+      items: rec.items,
+      reason: rec.reason || null,
+      matchedOrder: rec.matchedOrder,
+    });
     return true;
   } catch (err) {
     console.error("[angra] kunde inte logga ångeranmälan", rec.caseId, err instanceof Error ? err.message : err);
