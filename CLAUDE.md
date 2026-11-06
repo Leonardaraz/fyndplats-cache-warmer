@@ -1176,9 +1176,11 @@ i `flode.ts`), `app/kassa/`, `app/api/kassa/*` och städjobbet
   `attributes.image`, alt-text eller varans namn). Nekar Wix bilden (400)
   skapas betalningen utan, eftersom bilden bara är utseende.
 - ⚠️ **Klarna på Wix betalsida frågar efter adressen igen** (Leonards iPhone
-  2026-11-06), fast ordern bär leverans- och fakturaadress. Betalningsbegäran
-  har inget fält för köparen, så det går inte att fylla i från oss. Kassan
-  säger det därför före betalningen.
+  2026-11-06, mätt samma natt): väljer kunden Klarna visar Wix betalsida ett
+  eget tomt formulär (e-post, förnamn, efternamn, adress, ort, land) innan
+  Klarna, fast ordern bär leverans- och fakturaadress. Betalningsbegäran har
+  inget fält för köparen, så det går inte att fylla i från oss. Kassan säger
+  det före betalningen; kort och Apple Pay frågar inte.
 - **Kundens egen väntande order håller varorna**, så Wix räknar dem som slut för
   samma korg. Räkningen på `/kassa` visar därför ingen lagerbrist när korgen har
   en obetald betalning (`stoppandeOvertradelser(..., { utanLager: true })`).

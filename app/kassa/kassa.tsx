@@ -508,7 +508,7 @@ export function Kassa() {
           <section className={s.kort} aria-labelledby="kassa-betalning">
             <h2 id="kassa-betalning" className={s.steg}><span className={s.nr}>3</span> Betalning</h2>
             <p className={s.betalText}>Du väljer kort, Klarna eller Apple Pay på nästa sida, i Wix säkra betalning.</p>
-            <p className={s.betalNot}>Med Klarna bekräftar du köpet hos Klarna, som kan be om din adress en gång till.</p>
+            <p className={s.betalNot}>Väljer du Klarna fyller du i namn och adress en gång till på nästa sida innan du skickas till Klarna. Med kort och Apple Pay går det direkt.</p>
             <PaymentMarks />
             {kupongOppen ? (
               <div className={s.kupong}>
