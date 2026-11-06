@@ -19,3 +19,12 @@ export function arKop(order: { status?: unknown; paymentStatus?: unknown } | nul
   if (status === "CANCELED" && ALDRIG_BETALD.has(betalning)) return false;
   return true;
 }
+
+/**
+ * Samma prov för en rad i medlemmarnas orderliggare (lib/medlem/orderliggare.ts),
+ * där fälten heter `orderstatus` och `betalstatus`. Rader skrivna före
+ * 2026-11-06 kan vara försök ur vår kassa, och de är inga köp.
+ */
+export function liggarradArKop(rad: { orderstatus?: unknown; betalstatus?: unknown } | null | undefined): boolean {
+  return arKop({ status: rad?.orderstatus, paymentStatus: rad?.betalstatus });
+}

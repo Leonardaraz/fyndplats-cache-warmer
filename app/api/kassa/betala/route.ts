@@ -60,10 +60,11 @@ export async function POST(req: Request) {
   } catch (e) {
     // Bara Wix fel hamnar här. Ingen kunddata i loggen: Actions- och Vercel-loggar läses av fler.
     console.error(`[kassa] betalningen föll efter ${Date.now() - start} ms (${tidrad(tider)}):`, e instanceof Error ? e.message.slice(0, 300) : e);
-    // Wix nekar fler ordrar för samma köpare en stund efter många försök (429):
-    // det går över av sig själv, så kunden får veta att vänta.
+    // Wix nekar nya ordrar för samma e-post efter ungefär fem på en halvtimme
+    // (429, mätt 2026-11-06). Spärren går över av sig själv, men inte på en
+    // minut: kunden får veta hur länge och varför.
     if (e instanceof WixApiError && e.status === 429) {
-      return svar({ ok: false, kod: "upptagen", meddelanden: ["Betalningen öppnades inte: för många försök på kort tid. Vänta en minut och tryck igen."] }, 429);
+      return svar({ ok: false, kod: "upptagen", meddelanden: ["Betalningen öppnades inte. Efter många försök på kort tid tar Wix inte emot fler beställningar med den här e-postadressen på en stund. Försök igen om en halvtimme."] }, 429);
     }
     return svar({ ok: false, kod: "wix", meddelanden: ["Vi kunde inte öppna betalningen just nu. Försök igen om en stund."] }, 502);
   }

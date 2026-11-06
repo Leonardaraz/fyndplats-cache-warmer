@@ -1041,11 +1041,18 @@ i koden (`REGLER_V1`).
 
 Tio egenskaper som inte ska tas bort:
 
-1. ☠️ **Orderliggaren bär alla ordrar, inte bara medlemmarnas.** Ett nytt
+1. ☠️ **Orderliggaren bär alla köp, inte bara medlemmarnas.** Ett nytt
    konto ser då sina köp direkt [P3], utan ett eget uppslag i Wix. Den fylls
    från tre håll: webhooken (godkänd, avbruten, återbetald; efter svaret med
    `after`), avstämningen varje natt (ordrar ändrade senaste 48 timmarna) och
    bakåtläsningen 400 dagar bakåt, en gång.
+   ☠️ **Bara köp (`arKop`, `lib/order-raknas.ts`)**, sedan 2026-11-06. Vår
+   kassa skapar ordern före betalningen, och ett övergivet försök blir en
+   obetald, avbruten order med nummer 0 som webhooken aldrig hör om. Natten mot
+   2026-11-06 kallade avstämningen därför tolv provordrar ur kassan för
+   avvikelser, och Mina sidor visade dem som avbrutna ordrar. Nu hoppar
+   liggaren över dem, och `liggarraderForEpost` filtrerar bort de rader som
+   redan skrevs (`liggarradArKop`).
 2. ☠️ **Raden räknas alltid om ur den aktuella ordern**, aldrig ur händelsens
    payload. Betaltiden är orderns första `ORDER_PAID`-händelse, så en
    fakturaorder räknas från betalningen. Varuvärdet är radernas
@@ -1199,7 +1206,15 @@ i `flode.ts`), `app/kassa/`, `app/api/kassa/*` och städjobbet
 - ⚠️ **Betalsidan har ingen väg tillbaka till oss**, och dess logga leder till
   Wix tomma startsida (`checkout.fyndplats.se/__ecom`). `/kassa/klar` är
   vägen tillbaka: betald → `/tack`, väntande → `/kassa`, annars startsidan.
-  Wix startsida pekas dit med en egen kod i Wix (bara på `/__ecom` och roten). Den väntande ordern ligger i sessionStorage; kommer kunden
+  Wix startsida pekas dit med en egen kod i Wix: Custom Embed
+  `d8adeb6d-9666-4967-b0f6-628050399a82` (2026-11-06, ESSENTIAL, i `<head>`,
+  på varje sida). Den skickar `/__ecom` och roten till `/kassa/klar` och fångar
+  klick på länkar dit (betalsidans logga) på alla Wix-sidor på
+  checkout.fyndplats.se; Wix kassa och betalsidan rörs inte (provat med en
+  vanlig kund och en makulerad betalsida). ⚠️ Wix cachar startsidans HTML i
+  timmar: ett direkt besök på `/__ecom` kan visa den tomma sidan tills cachen
+  byts, men klicket på loggan fungerar direkt. Tas bort i Wix (Inställningar →
+  Anpassad kod) eller med DELETE på embeden. Den väntande ordern ligger i sessionStorage; kommer kunden
   tillbaka till `/kassa` frågar sidan `/api/kassa/status` och går till `/tack`
   om ordern är betald. Vad betalsidan visar efter betalningen är inte uppmätt
   (kräver en riktig betalning).
@@ -1219,12 +1234,19 @@ i `flode.ts`), `app/kassa/`, `app/api/kassa/*` och städjobbet
   betalningen: ingen ny order, inget nytt lager reserveras och taket räknas
   inte. Ändrad adress, e-post, antal, rabattkod eller pris (en fyndauktion som
   sjunkit) ger en ny order som förut.
-- **Wix 429 på ordern gäller köparen, inte sajten**: mätt 2026-11-06 nekades
-  den sjätte ordern på en halvtimme för samma e-post, medan en annan e-post gick
-  igenom. Ett nekat anrop har inte gjort något och görs om två gånger
-  (`medOmforsok`, 0,7 s och 1,5 s). Andra fel görs aldrig om: en order som
-  kanske skapades ska inte skapas två gånger. Når 429 ändå kunden säger kassan
-  "vänta en minut".
+- ☠️ **Wix 429 på ordern gäller e-postadressen, inte sajten**: ungefär fem
+  ordrar på en halvtimme per e-post, sedan nekas nya (429 RATE_LIMITED).
+  Mätt 2026-11-06 på alla nattens ordrar: varje nekad order var den sjätte på
+  en halvtimme för samma adress, nekade anrop räknas inte, och andra adresser
+  gick igenom samtidigt. Ett nekat anrop har inte gjort något och görs om två
+  gånger (`medOmforsok`, 0,7 s och 1,5 s), vilket bara hjälper mot korta toppar.
+  Andra fel görs aldrig om: en order som kanske skapades ska inte skapas två
+  gånger. Når 429 kunden säger kassan att Wix inte tar emot fler beställningar
+  med adressen på en stund och att försöka igen om en halvtimme.
+  ☠️ **Prov använder aldrig info@fyndplats.com**, som Leonard själv provar med:
+  2026-11-06 06:54 svensk tid nekades Leonards order för att mina fem prov
+  05:30–05:51 UTC hade tagit adressens halvtimme. Ett prov använder en egen
+  adress (`info+prov-<tid>@fyndplats.com`).
 - **Betalsidan visar första varans bild** (`betalBild`: mediets id ur korgens
   `attributes.image`, alt-text eller varans namn). Nekar Wix bilden (400)
   skapas betalningen utan, eftersom bilden bara är utseende.
