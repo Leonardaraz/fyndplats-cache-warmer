@@ -15,7 +15,7 @@
 //   * Convert event cancels pending sends and revokes any minted code
 
 import { Resend } from 'resend';
-import { anvandaAdresser, kundvagnMejl, kundvagnar } from './wix-lager';
+import { anvandaAdresser, kundvagnMejl, kundvagnar, ordrar } from './wix-lager';
 import { hashAddress, normalisePhone, type NormalisableAddress } from './address-hash';
 import { mintAbandonedCartCoupon, revokeCoupon } from './discount-codes';
 import { renderAbandonedCart1 } from '../emails/abandoned-cart-1';
@@ -24,7 +24,7 @@ import { renderAbandonedCart3 } from '../emails/abandoned-cart-3';
 import { renderAbandonedCart3NoCode } from '../emails/abandoned-cart-3-no-code';
 import { unsubscribeUrl, isSuppressed } from './newsletter';
 import { firePush } from './push-send';
-import { aterVunnenIWix, medKod } from './kassa/aterta';
+import { aterVunnenIWix, kopSparrSedan, medKod } from './kassa/aterta';
 import { WixApiError, wixFetch } from './wix-client';
 
 const ONE_HOUR_MS = 60 * 60 * 1000;
@@ -229,6 +229,7 @@ interface CartRow {
   status: string;
   discount_code: string | null;
   discount_code_wix_id: string | null;
+  abandoned_at?: string;
 }
 
 export async function fetchDueCarts(limit = 25, nowOverride?: Date): Promise<CartRow[]> {
@@ -239,7 +240,7 @@ export async function fetchDueCarts(limit = 25, nowOverride?: Date): Promise<Car
 export interface ProcessResult {
   cartId: string;
   step: number;
-  action: 'sent' | 'sent_no_code' | 'skipped_cooldown' | 'skipped_unsubscribed' | 'skipped_recovered' | 'skipped_below_min' | 'completed' | 'error';
+  action: 'sent' | 'sent_no_code' | 'skipped_cooldown' | 'skipped_unsubscribed' | 'skipped_recovered' | 'skipped_bought' | 'skipped_below_min' | 'completed' | 'error';
   resendId?: string;
   discountCode?: string;
   error?: string;
@@ -275,6 +276,18 @@ export async function processDueCart(
       const k = await kundvagnar.konvertera(cart.id);
       if (k.rabattWixId) await revokeCoupon(k.rabattWixId);
       return { cartId: cart.id, step, action: 'skipped_recovered' };
+    }
+
+    // Har kunden handlat med samma e-post sedan korgen lämnades, i en annan
+    // korg? Det händer när Klarna öppnar en annan webbläsare: den första korgen
+    // blir övergiven en timme efter köpet, så konverteringen vid ordern hittade
+    // ingen vagn, och Wix markerar den inte RECOVERED (lib/kassa/aterta.ts,
+    // kopSparrSedan, 2026-11-06). Då går inget mejl, och en utdelad kod återkallas.
+    const kopSedan = kopSparrSedan(cart.abandoned_at);
+    if (kopSedan && (await ordrar.kopSedan(cart.email.toLowerCase(), kopSedan))) {
+      const k = await kundvagnar.konvertera(cart.id);
+      if (k.rabattWixId) await revokeCoupon(k.rabattWixId);
+      return { cartId: cart.id, step, action: 'skipped_bought' };
     }
 
     if (step === 1) {
