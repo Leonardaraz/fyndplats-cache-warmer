@@ -1521,10 +1521,23 @@ provas; den kräver samtycke för kakor, som Klarnas.
   `<main>` (layouten har redan en), stegen i sidhuvudet heter `data-steg` (inte
   `data-lage`, som är betalfältets läge), och tacksidan visar aldrig GUID:t
   eller "0" som ordernummer.
-- **Inte byggt:** snabbkassan (Apple Pay och Google Pay överst, Express Checkout
-  Element) som hoppar över formuläret. Den kräver Leonards konto och domänen och
-  kan inte provas lokalt (ingen plånbok i Playwright); byggs och provas med
-  hans iPhone på en förhandslänk.
+- **Visuell audit 2026-11-06** (320, 390 och 1280 px, scratchpad
+  `audit/j-kassa.cjs`):
+  - Ett tryck på "Betala" visar alla fel på en gång: när kassans egna fält
+    stoppar trycket får Stripes fält (adressen och kortet) också visa sina,
+    med `elements.submit()`. Ingen betalning skapas, och fokus går till
+    kassans första fel. Förut kom Stripes fel först i nästa tryck.
+  - Stripes felrader har kassans stil (`.Error` i `UTSEENDE`: 12 px och
+    halvfet, som `.felText`).
+  - Länkarna i steg 3 ("Betala med Apple Pay …" och "Har du en rabattkod?")
+    står på var sin rad med samma stil (`.tillSnabb`, `.kupongLank`). På
+    datorn stod de förut ihop på en rad.
+  - Summeringsraden bryts aldrig. I 320 px bröts "Visa beställningen
+    (1 vara)" i fyra bitar. Antalet visas bara när raden är minst 400 px
+    (containerfråga på `.mobilSummering`), beloppet krymper aldrig och
+    etiketten kortas med "…" bara som sista utväg.
+- **Snabbkassan** (Apple Pay och Google Pay överst) är byggd: se avsnittet
+  nedan.
 
 ### Slutprovet (Leonards ja, 2026-11-06 12:30–12:37 UTC)
 
