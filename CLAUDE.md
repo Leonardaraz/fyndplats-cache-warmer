@@ -1352,6 +1352,43 @@ Det som inte får ändras:
   API-version `2025-03-31.basil`), utan Stripes Node-SDK. Webhooken prövar
   `Stripe-Signature` (HMAC-SHA256 över `t.kropp`, 300 s) på den RÅA kroppen.
   Webbläsaren använder `@stripe/stripe-js` 7.x, samma release (basil).
+- **"Betala med Klarna", aldrig "Fortsätt till Klarna":** ordern skapas utan
+  fler klick hos oss efter Klarna, så vår knapp är beställningsknappen och ska
+  säga att det kostar (distansavtalslagen 2 kap. 9 §).
+
+### Självläkningen (auditen 2026-11-06)
+
+Kunden får alltid ett svar på sekunder, men allt som inte blev klart tas om
+tills det är klart, och Leonard får ett mejl om det inte går:
+- ☠️ **Webhookens svar styr omförsöken** (`webhookStatus`, `arKlart`): 200 bara
+  när inget finns kvar att göra. `ofullstandig` (pengarna dragna, men
+  betalningen står inte på ordern) och `ostadad` (ingen order, men
+  reservationen släpptes inte eller betalningen gick inte tillbaka) svarar 500,
+  `pagar` och `behandlas` 503: Stripe försöker igen i upp till tre dygn. Förut
+  svarade allt 200 och en misslyckad registrering togs aldrig om.
+- ☠️ **Nätet `/api/cron/kassa-stripe`** (kvart 7, 22, 37, 52): kassans
+  betalningar de senaste tre dygnen (List, inte Search) som är godkända eller
+  dragna men saknar `wixOrderId` och är äldre än fem minuter, äldst först,
+  högst åtta per körning, samma steg som klar och webhooken. Är en betalning
+  inte klar 30 minuter efter att den skapades mejlas `OPS_ALERT_EMAIL` (annars
+  info@fyndplats.com), en gång per betalning, med bara betalningarnas id.
+- ☠️ **En dragning vars svar försvann läses om** innan ordern avbryts: drog
+  Stripe ändå behålls ordern och betalningen registreras. Går läget inte att
+  läsa avbryts och släpps ingenting; låset står kvar och nästa försök avgör
+  (dragningen har en idempotensnyckel).
+- ☠️ **Place Order utan svar:** ett 4xx (också 429 efter omförsöken) betyder att
+  ingen order skapades. Annars läses korgen: Cart V2 sätter `orderPlaced` och
+  `orderId`, och den ordern används i stället för att reservationen släpps (då
+  hade kunden fått en låst korg och en order utan betalning). Samma sak vid
+  omtag av ett lås som stod på `pagar`. En order som redan har en betalning
+  (korgen betaldes i Wix kassa i en annan flik) tas inte: vår reservation släpps.
+- **Omtag läser orderns betalningar** (List Transactions) före Add Payments:
+  Wix nekar en dubblett av `providerTransactionId` och hela anropet felar.
+- **Ett klart lås märker betalningen** med `wixOrderId` om markeringen föll,
+  annars tar nätet den om var femtonde minut och larmar i onödan. **Ett
+  fel-lås städar igen:** står pengarna kvar släpps de (eller betalas
+  tillbaka); kunden fick höra att inget drogs. `charge_already_refunded` och
+  en redan släppt reservation är inga fel.
 
 **Kvar före riktiga kunder:** Leonards Stripe-konto med Klarna, kort, Apple Pay
 och Google Pay; nycklarna i Vercel (test i Preview, live i Production);
@@ -1361,4 +1398,8 @@ domänen för Apple Pay; ett prov från början till slut med testnycklar på en
 förhandslänk; att Add Payments gör ordern betald och godkänd med Wix
 orderbekräftelse, webhooks och motorns orderflöde (prövas med den dolda
 testvaran och Leonards ja, eftersom Meta CAPI och motorn reagerar);
-återbetalningar i Stripe och egna påminnelser om övergivna kassor.
+☠️ återbetalningar: Add Payments står med `refundDisabled`, så en återbetalning
+görs i Stripe och syns inte på Wix-ordern förrän den förs över (förslaget:
+`charge.refunded` → Wix extern återbetalning); egna påminnelser om övergivna
+kassor; Stripe-inställningarna (kortutdragets text "FYNDPLATS", Stripes egna
+kvitton av, Radar-regler).

@@ -8,9 +8,16 @@ import {
   slutforStripe,
   kronorAv,
   avsiktParametrar,
+  arKlart,
+  attSlutfora,
+  utfallLage,
+  webhookStatus,
+  NAT_EFTER_SEK,
+  NAT_LARM_SEK,
   STRIPE_KALLA,
   STRIPE_LAS_MS,
   type Avsikt,
+  type SlutforUtfall,
   type AvsiktParametrar,
   type Korg,
   type Kund,
@@ -74,14 +81,27 @@ interface Fejk {
   registrerat: { orderId: string; belopp: string; transaktion: string; namn: string }[];
 }
 
+/** Wix 4xx: ingen order skapades. */
+class Avvisad extends Error {
+  readonly status = 400;
+}
+
 function fejk(o: {
   korg?: Korg | null;
   rakningar?: Rakning[];
   avsikt?: Avsikt | null;
   las?: StripeLas;
-  laggOrderFel?: boolean;
+  /** true och "4xx": Wix nekade (inget skapades). "okant": svaret kom aldrig (timeout). */
+  laggOrderFel?: true | "4xx" | "okant";
   draFel?: boolean;
+  /** Läget när betalningen läses om efter en misslyckad dragning. */
+  efterDragFel?: "dragen" | "olasbar";
   registreraFel?: boolean;
+  /** Betalningar som redan står på ordern (transaktions-id). */
+  betalningar?: string[];
+  slappFel?: boolean;
+  aterbetalaFel?: boolean;
+  markeraFel?: boolean;
   kupong?: "ok" | "ogiltig";
 } = {}): Fejk {
   const anrop: string[] = [];
@@ -91,6 +111,7 @@ function fejk(o: {
   const registrerat: Fejk["registrerat"] = [];
   const rakningar = [...(o.rakningar ?? [rakning("659.00")])];
   let nuvarande: Avsikt | null = o.avsikt === undefined ? avsikt() : o.avsikt;
+  let dragningenFoll = false;
   const deps: StripeKassaDeps = {
     async hamtaKorg(id) {
       anrop.push(`hamtaKorg:${id}`);
@@ -115,13 +136,18 @@ function fejk(o: {
     },
     async laggOrder(_id, bevis) {
       anrop.push(`laggOrder:${bevis}`);
-      if (o.laggOrderFel) throw new Error("Wix nekade");
+      if (o.laggOrderFel === "okant") throw new Error("The operation was aborted due to timeout");
+      if (o.laggOrderFel) throw new Avvisad("Wix nekade");
       return { orderId: "order-1" };
     },
     async registreraBetalning(orderId, b) {
       anrop.push(`registrera:${b.belopp}:${b.namn}`);
       if (o.registreraFel) throw new Error("Wix 500");
       registrerat.push({ orderId, ...b });
+    },
+    async orderBetalningar(orderId) {
+      anrop.push(`orderBetalningar:${orderId}`);
+      return [...(o.betalningar ?? []), ...registrerat.filter((r) => r.orderId === orderId).map((r) => r.transaktion)];
     },
     async avbrytOrder(orderId) {
       anrop.push(`avbrytOrder:${orderId}`);
@@ -139,21 +165,31 @@ function fejk(o: {
     },
     async hamtaAvsikt(id) {
       anrop.push(`hamtaAvsikt:${id}`);
+      if (dragningenFoll && o.efterDragFel === "olasbar") throw new Error("Stripe 500");
+      if (dragningenFoll && o.efterDragFel === "dragen") {
+        return { ...(nuvarande as Avsikt), status: "succeeded", amount_received: (nuvarande as Avsikt).amount_capturable, amount_capturable: 0 };
+      }
       return nuvarande && nuvarande.id === id ? nuvarande : null;
     },
     async dra(id, ore) {
       anrop.push(`dra:${id}:${ore}`);
-      if (o.draFel) throw new Error("Stripe 402");
+      if (o.draFel) {
+        dragningenFoll = true;
+        throw new Error("Stripe 402");
+      }
       return { ...(nuvarande as Avsikt), status: "succeeded", amount_received: ore, amount_capturable: 0 };
     },
     async slappAvsikt(id) {
       anrop.push(`slapp:${id}`);
+      if (o.slappFel) throw new Error("Stripe 500");
     },
     async aterbetala(id) {
       anrop.push(`aterbetala:${id}`);
+      if (o.aterbetalaFel) throw new Error("Stripe 500");
     },
     async markeraAvsikt(id, orderId) {
       anrop.push(`markera:${id}:${orderId}`);
+      if (o.markeraFel) throw new Error("Stripe 500");
     },
     async tagLas(id, l) {
       anrop.push(`tagLas:${id}`);
@@ -276,6 +312,7 @@ test("slutför: ordern skapas före dragningen, och betalningen registreras efte
   assert.deepEqual(f.registrerat, [{ orderId: "order-1", belopp: "659.00", transaktion: "ch_1", namn: "Klarna", tid: NU.toISOString() }]);
   assert.equal(f.las.get("pi_1")?.steg, "klar");
   assert.ok(f.anrop.includes("markera:pi_1:order-1"));
+  assert.ok(!f.anrop.some((x) => x.startsWith("orderBetalningar") || x.startsWith("hamtaKorg")), "första försöket läser varken ordern eller korgen");
 });
 
 test("slutför: en betalning som redan blev en order svarar med ordern utan att röra något", async () => {
@@ -313,7 +350,21 @@ test("slutför: ett övergivet lås efter dragningen registrerar bara betalninge
   const r = await slutforStripe(f.deps, "pi_1", NU);
   assert.deepEqual(r, { ok: true, orderId: "order-5" });
   assert.ok(!f.anrop.some((x) => x.startsWith("laggOrder") || x.startsWith("dra:")));
+  assert.ok(f.anrop.includes("orderBetalningar:order-5"), "omtaget läser ordern före Add Payments");
   assert.equal(f.registrerat[0].belopp, "659.00");
+});
+
+test("slutför: ett omtag där betalningen redan står på ordern registrerar den inte igen, och låset blir klart", async () => {
+  // Förra försöket hann registrera men inte spara låset; Add Payments hade nekat dubbletten.
+  const f = fejk({
+    avsikt: avsikt({ status: "succeeded", amount_capturable: 0, amount_received: 65900 }),
+    las: { cartId: "korg-1", steg: "registrera", orderId: "order-5", at: NU.getTime() - STRIPE_LAS_MS - 1 },
+    betalningar: ["ch_1"],
+  });
+  assert.deepEqual(await slutforStripe(f.deps, "pi_1", NU), { ok: true, orderId: "order-5" });
+  assert.ok(!f.anrop.some((x) => x.startsWith("registrera:")));
+  assert.equal(f.las.get("pi_1")?.steg, "klar");
+  assert.ok(f.anrop.includes("markera:pi_1:order-5"));
 });
 
 test("slutför: ändrat pris släpper reservationen och skapar ingen order", async () => {
@@ -333,12 +384,60 @@ test("slutför: en vara som tagit slut släpper reservationen", async () => {
   assert.ok(!f.anrop.some((x) => x.startsWith("laggOrder")));
 });
 
-test("slutför: nekar Wix ordern släpps reservationen och inget dras", async () => {
-  const f = fejk({ laggOrderFel: true });
+test("slutför: nekar Wix ordern (4xx) släpps reservationen och inget dras", async () => {
+  const f = fejk({ laggOrderFel: "4xx" });
   const r = await slutforStripe(f.deps, "pi_1", NU);
   assert.equal(r.ok === false && r.kod, "fel");
   assert.ok(f.anrop.includes("slapp:pi_1"));
   assert.ok(!f.anrop.some((x) => x.startsWith("dra:")));
+  assert.ok(!f.anrop.includes("hamtaKorg:korg-1"), "ett 4xx är ett besked: korgen läses inte");
+});
+
+test("slutför: Place Order svarade aldrig men ordern finns på korgen — den används, ingen order till", async () => {
+  const f = fejk({ laggOrderFel: "okant", korg: { ...KORG, orderPlaced: true, orderId: "order-k" } });
+  const r = await slutforStripe(f.deps, "pi_1", NU);
+  assert.deepEqual(r, { ok: true, orderId: "order-k" });
+  assert.equal(f.anrop.filter((x) => x.startsWith("laggOrder")).length, 1);
+  assert.ok(f.anrop.includes("dra:pi_1:65900"));
+  assert.equal(f.registrerat[0].orderId, "order-k");
+  assert.ok(!f.anrop.includes("slapp:pi_1"));
+});
+
+test("slutför: Place Order svarade aldrig och korgen har ingen order — reservationen släpps", async () => {
+  const f = fejk({ laggOrderFel: "okant" });
+  const r = await slutforStripe(f.deps, "pi_1", NU);
+  assert.equal(r.ok === false && r.kod, "fel");
+  assert.ok(f.anrop.includes("hamtaKorg:korg-1"));
+  assert.ok(f.anrop.includes("slapp:pi_1"));
+  assert.ok(!f.anrop.some((x) => x.startsWith("dra:")));
+});
+
+test("slutför: korgen blev beställd och betald i Wix kassa — vår reservation släpps och ordern rörs inte", async () => {
+  const f = fejk({ laggOrderFel: "okant", korg: { ...KORG, orderPlaced: true, orderId: "order-w" }, betalningar: ["wix-betalning"] });
+  const r = await slutforStripe(f.deps, "pi_1", NU);
+  assert.equal(r.ok === false && r.kod, "fel");
+  assert.match(r.ok === false ? r.meddelanden[0] : "", /redan beställd och betald/);
+  assert.ok(f.anrop.includes("slapp:pi_1"));
+  assert.ok(!f.anrop.some((x) => x.startsWith("dra:") || x.startsWith("registrera:") || x.startsWith("avbrytOrder")));
+});
+
+test("slutför: ett övergivet lås före ordern tar ordern ur korgen i stället för att lägga en till", async () => {
+  // Förra försöket dog mellan Place Order och låset.
+  const f = fejk({
+    las: { cartId: "korg-1", steg: "pagar", at: NU.getTime() - STRIPE_LAS_MS - 1 },
+    korg: { ...KORG, orderPlaced: true, orderId: "order-k" },
+  });
+  assert.deepEqual(await slutforStripe(f.deps, "pi_1", NU), { ok: true, orderId: "order-k" });
+  assert.ok(!f.anrop.some((x) => x.startsWith("laggOrder") || x === "rakna"));
+  assert.ok(f.anrop.includes("dra:pi_1:65900"));
+  assert.equal(f.las.get("pi_1")?.steg, "klar");
+});
+
+test("slutför: ett övergivet lås före ordern utan order på korgen kör hela vägen", async () => {
+  const f = fejk({ las: { cartId: "korg-1", steg: "pagar", at: NU.getTime() - STRIPE_LAS_MS - 1 } });
+  assert.deepEqual(await slutforStripe(f.deps, "pi_1", NU), { ok: true, orderId: "order-1" });
+  assert.ok(f.anrop.includes("hamtaKorg:korg-1"));
+  assert.ok(f.anrop.includes("laggOrder:bevis-659.00"));
 });
 
 test("slutför: misslyckad dragning avbryter ordern med återlagring och släpper reservationen", async () => {
@@ -348,14 +447,61 @@ test("slutför: misslyckad dragning avbryter ordern med återlagring och släppe
   assert.ok(f.anrop.includes("avbrytOrder:order-1"));
   assert.ok(f.anrop.includes("slapp:pi_1"));
   assert.equal(f.registrerat.length, 0);
+  assert.equal(f.anrop.filter((x) => x === "hamtaAvsikt:pi_1").length, 2, "läget läses om innan ordern avbryts");
 });
 
-test("slutför: misslyckad registrering svarar ändå ok (pengarna är dragna) och låset väntar på omtag", async () => {
-  const f = fejk({ registreraFel: true });
+test("slutför: dragningen felade men pengarna drogs ändå — ordern behålls och betalningen registreras", async () => {
+  const f = fejk({ draFel: true, efterDragFel: "dragen" });
   const r = await slutforStripe(f.deps, "pi_1", NU);
   assert.deepEqual(r, { ok: true, orderId: "order-1" });
+  assert.ok(!f.anrop.some((x) => x.startsWith("avbrytOrder") || x.startsWith("slapp")));
+  assert.deepEqual(f.registrerat.map((x) => [x.orderId, x.belopp, x.transaktion]), [["order-1", "659.00", "ch_1"]]);
+  assert.equal(f.las.get("pi_1")?.steg, "klar");
+});
+
+test("slutför: dragningen felade och läget går inte att läsa — inget avbryts eller släpps, nästa försök avgör", async () => {
+  const f = fejk({ draFel: true, efterDragFel: "olasbar" });
+  await assert.rejects(slutforStripe(f.deps, "pi_1", NU));
+  assert.ok(!f.anrop.some((x) => x.startsWith("avbrytOrder") || x.startsWith("slapp") || x.startsWith("aterbetala")));
+  assert.equal(f.las.get("pi_1")?.steg, "order", "låset står kvar på ordern");
+});
+
+test("slutför: misslyckad registrering svarar ok till kunden men ofullständig, och låset väntar på omtag", async () => {
+  const f = fejk({ registreraFel: true });
+  const r = await slutforStripe(f.deps, "pi_1", NU);
+  assert.deepEqual(r, { ok: true, orderId: "order-1", ofullstandig: true });
   assert.equal(f.las.get("pi_1")?.steg, "registrera");
   assert.ok(!f.anrop.some((x) => x.startsWith("markera")));
+});
+
+test("slutför: ett klart lås märker betalningen med ordern om markeringen föll förra gången", async () => {
+  const f = fejk({ las: { cartId: "korg-1", steg: "klar", orderId: "order-7", at: NU.getTime() } });
+  assert.deepEqual(await slutforStripe(f.deps, "pi_1", NU), { ok: true, orderId: "order-7" });
+  assert.ok(f.anrop.includes("markera:pi_1:order-7"));
+  const fel = fejk({ las: { cartId: "korg-1", steg: "klar", orderId: "order-7", at: NU.getTime() }, markeraFel: true });
+  assert.deepEqual(await slutforStripe(fel.deps, "pi_1", NU), { ok: true, orderId: "order-7" }, "en fallerad markering ändrar inte svaret");
+});
+
+test("slutför: ett fel-lås släpper reservationen igen, och en dragen betalning utan order betalas tillbaka", async () => {
+  const lasFel: StripeLas = { cartId: "korg-1", steg: "fel", at: NU.getTime() };
+  const reserverad = fejk({ las: lasFel });
+  const r1 = await slutforStripe(reserverad.deps, "pi_1", NU);
+  assert.deepEqual(r1.ok === false && [r1.kod, r1.ostadad], ["fel", undefined]);
+  assert.ok(reserverad.anrop.includes("slapp:pi_1"));
+  const dragen = fejk({ las: lasFel, avsikt: avsikt({ status: "succeeded", amount_capturable: 0, amount_received: 65900 }) });
+  await slutforStripe(dragen.deps, "pi_1", NU);
+  assert.ok(dragen.anrop.includes("aterbetala:pi_1"));
+  assert.ok(!dragen.anrop.some((x) => x.startsWith("slapp") || x.startsWith("laggOrder") || x.startsWith("dra:")));
+});
+
+test("slutför: går reservationen inte att släppa blir utfallet ostädat, så att webhooken och nätet tar om det", async () => {
+  const pris = await slutforStripe(fejk({ rakningar: [rakning("699.00")], slappFel: true }).deps, "pi_1", NU);
+  assert.deepEqual(pris.ok === false && [pris.kod, pris.ostadad], ["pris_andrat", true]);
+  const las = await slutforStripe(fejk({ las: { cartId: "korg-1", steg: "fel", at: NU.getTime() }, slappFel: true }).deps, "pi_1", NU);
+  assert.deepEqual(las.ok === false && [las.kod, las.ostadad], ["fel", true]);
+  const ater = fejk({ las: { cartId: "korg-1", steg: "fel", at: NU.getTime() }, avsikt: avsikt({ status: "succeeded" }), aterbetalaFel: true });
+  const r = await slutforStripe(ater.deps, "pi_1", NU);
+  assert.equal(r.ok === false && r.ostadad, true);
 });
 
 test("slutför: en redan dragen betalning (utan manuell dragning) dras inte igen, och betalas tillbaka om ordern inte går", async () => {
@@ -391,4 +537,71 @@ test("avsiktParametrar: c/o på andra raden och postnumret utan mellanslag", () 
   assert.equal(p.shipping.address.line2, "c/o Svensson");
   assert.equal(p.shipping.address.postal_code, "11122");
   assert.equal(p.description, "Pedalhink 20 l.");
+});
+
+// ─── webhooken och nätet ────────────────────────────────────────────────────
+
+test("arKlart och webhookStatus: bara det som inte har något kvar att göra svarar 200", () => {
+  const fall: [SlutforUtfall, boolean, number, string][] = [
+    [{ ok: true, orderId: "o" }, true, 200, "ok"],
+    [{ ok: true, orderId: "o", ofullstandig: true }, false, 500, "ofullstandig"],
+    [{ ok: false, kod: "pagar", meddelanden: [] }, false, 503, "pagar"],
+    [{ ok: false, kod: "behandlas", meddelanden: [] }, false, 503, "behandlas"],
+    [{ ok: false, kod: "fel", meddelanden: [] }, true, 200, "fel"],
+    [{ ok: false, kod: "fel", meddelanden: [], ostadad: true }, false, 500, "fel-ostadad"],
+    [{ ok: false, kod: "pris_andrat", meddelanden: [], ostadad: true }, false, 500, "pris_andrat-ostadad"],
+    [{ ok: false, kod: "slut", meddelanden: [] }, true, 200, "slut"],
+    [{ ok: false, kod: "okand", meddelanden: [] }, true, 200, "okand"],
+    [{ ok: false, kod: "ej_betald", meddelanden: [] }, true, 200, "ej_betald"],
+  ];
+  for (const [u, klart, status, lage] of fall) {
+    assert.equal(arKlart(u), klart, JSON.stringify(u));
+    assert.equal(webhookStatus(u), status, JSON.stringify(u));
+    assert.equal(utfallLage(u), lage);
+  }
+});
+
+type Listrad = Pick<Avsikt, "id" | "status" | "metadata" | "created">;
+
+test("attSlutfora: kassans godkända betalningar utan order, äldre än fem minuter, äldst först", () => {
+  const NU_SEK = 1_800_000_000;
+  const rad = (id: string, alder: number, over: Partial<Listrad> = {}): Listrad => ({
+    id,
+    status: "requires_capture",
+    metadata: { kalla: STRIPE_KALLA, cartId: "k" },
+    created: NU_SEK - alder,
+    ...over,
+  });
+  const { ids } = attSlutfora(
+    [
+      rad("pi_ny", NAT_EFTER_SEK - 1),
+      rad("pi_fem", NAT_EFTER_SEK),
+      rad("pi_tim", 3600),
+      rad("pi_dragen", 600, { status: "succeeded" }),
+      rad("pi_klar", 600, { metadata: { kalla: STRIPE_KALLA, cartId: "k", wixOrderId: "o" } }),
+      rad("pi_annan", 600, { metadata: { kalla: "annan" } }),
+      rad("pi_utan", 600, { metadata: {} }),
+      rad("pi_obetald", 600, { status: "requires_payment_method" }),
+      rad("pi_slappt", 600, { status: "canceled" }),
+      rad("pi_behandlas", 600, { status: "processing" }),
+    ],
+    NU_SEK,
+  );
+  assert.deepEqual(ids, ["pi_tim", "pi_dragen", "pi_fem"]);
+});
+
+test("attSlutfora: larmet gäller betalningar som passerat 30 minuter inom det senaste kvarteret, en gång", () => {
+  const NU_SEK = 1_800_000_000;
+  const rad = (id: string, alder: number): Listrad => ({ id, status: "requires_capture", metadata: { kalla: STRIPE_KALLA, cartId: "k" }, created: NU_SEK - alder });
+  const { larm } = attSlutfora(
+    [rad("pi_29", NAT_LARM_SEK - 60), rad("pi_30", NAT_LARM_SEK), rad("pi_44", NAT_LARM_SEK + 14 * 60 + 59), rad("pi_45", NAT_LARM_SEK + 15 * 60)],
+    NU_SEK,
+  );
+  assert.deepEqual(larm, ["pi_44", "pi_30"]);
+  // Var femtonde minut: varje betalning hamnar i fönstret i exakt en körning.
+  for (const alder of [NAT_EFTER_SEK, 1000, NAT_LARM_SEK - 1, NAT_LARM_SEK + 7 * 60]) {
+    let ganger = 0;
+    for (let k = 0; k < 12; k++) ganger += attSlutfora([rad("pi_x", alder + k * 15 * 60)], NU_SEK).larm.length;
+    assert.equal(ganger, 1, `ålder ${alder}`);
+  }
 });

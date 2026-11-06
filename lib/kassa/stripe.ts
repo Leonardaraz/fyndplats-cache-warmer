@@ -197,12 +197,43 @@ export async function slappAvsikt(id: string): Promise<void> {
   }
 }
 
-/** Hela beloppet tillbaka, för en dragen betalning som inte blev någon order. */
+/**
+ * Hela beloppet tillbaka, för en dragen betalning som inte blev någon order.
+ * En redan återbetald betalning är inget fel (nätet kan fråga igen efter att
+ * idempotensnyckeln gått ut efter ett dygn).
+ */
 export async function aterbetala(id: string): Promise<void> {
-  await stripeAnrop("POST", "/refunds", { payment_intent: id, reason: "requested_by_customer" }, `fp-kassa-ater-${id}`);
+  try {
+    await stripeAnrop("POST", "/refunds", { payment_intent: id, reason: "requested_by_customer" }, `fp-kassa-ater-${id}`);
+  } catch (e) {
+    if (e instanceof StripeFel && e.kod === "charge_already_refunded") return;
+    throw e;
+  }
 }
 
 /** Orderns id på betalningen, så att Stripes panel visar vilken Wix-order den blev. */
 export async function markeraAvsikt(id: string, orderId: string): Promise<void> {
   await stripeAnrop("POST", `/payment_intents/${encodeURIComponent(id)}`, { metadata: { wixOrderId: orderId } });
+}
+
+/**
+ * Kontots betalningar skapade efter `sedanSek`, nyaste först (List
+ * PaymentIntents, inte Search: listan är alltid aktuell, sökningen kan ligga
+ * en minut efter). Högst `maxSidor` × 100, för nätet (/api/cron/kassa-stripe).
+ */
+export async function listaAvsikter(sedanSek: number, maxSidor = 5): Promise<Avsikt[]> {
+  const ut: Avsikt[] = [];
+  let efter: string | null = null;
+  for (let sida = 0; sida < maxSidor; sida++) {
+    const svar: { data?: Avsikt[]; has_more?: boolean } = await stripeAnrop("GET", "/payment_intents", {
+      limit: 100,
+      created: { gte: sedanSek },
+      ...(efter ? { starting_after: efter } : {}),
+    });
+    const data = svar?.data ?? [];
+    ut.push(...data);
+    if (!svar?.has_more || data.length === 0) break;
+    efter = data[data.length - 1].id;
+  }
+  return ut;
 }

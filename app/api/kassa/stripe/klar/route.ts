@@ -10,7 +10,7 @@
 // reserverade utan order. Flödet prövar själv att betalningen är kassans.
 
 import { NextResponse } from "next/server";
-import { slutforStripe } from "@/lib/kassa/flode";
+import { slutforStripe, utfallLage } from "@/lib/kassa/flode";
 import { stripeKassa } from "@/lib/kassa/stripe-kassa";
 import { harStripe } from "@/lib/kassa/stripe";
 
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
   const start = Date.now();
   try {
     const utfall = await slutforStripe(stripeKassa, avsiktId, new Date());
-    console.info(`[kassa] stripe slutför ${utfall.ok ? "ok" : utfall.kod} på ${Date.now() - start} ms`);
+    console.info(`[kassa] stripe slutför ${utfallLage(utfall)} på ${Date.now() - start} ms`);
     // "pagar" och "behandlas" är inga fel: sidan frågar igen om en stund.
     const status = utfall.ok ? 200 : utfall.kod === "pagar" || utfall.kod === "behandlas" ? 202 : 409;
     return svar(utfall, status);

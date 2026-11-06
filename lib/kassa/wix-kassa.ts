@@ -146,6 +146,21 @@ export async function registreraBetalning(orderId: string, b: { belopp: string; 
   );
 }
 
+/**
+ * Betalningarna som står på ordern (List Transactions For Single Order; en
+ * order utan betalningar ger en tom lista, inget fel). Add Payments nekar hela
+ * anropet om transaktionen redan finns, så ett omtag läser ordern först. En
+ * betalning utan leverantörens id (presentkort) räknas med sitt eget id.
+ */
+export async function orderBetalningar(orderId: string): Promise<string[]> {
+  const svar = await forsokIgen(() =>
+    wixFetch<{ orderTransactions?: { payments?: { id?: string; regularPaymentDetails?: { providerTransactionId?: string } }[] } }>({
+      path: `/ecom/v1/payments/orders/${encodeURIComponent(orderId)}`,
+    }),
+  );
+  return (svar?.orderTransactions?.payments ?? []).map((p) => p.regularPaymentDetails?.providerTransactionId || p.id || "okand");
+}
+
 /** En order som aldrig blev betald: avbruten med återlagring och utan mejl (som slappOrder nedan). */
 export async function avbrytOrder(orderId: string): Promise<void> {
   await forsokIgen(() =>

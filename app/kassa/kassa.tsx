@@ -842,7 +842,9 @@ export function Kassa({ stripeNyckel = null }: { stripeNyckel?: string | null })
                 {skickar ? (
                   "Behandlar betalningen …"
                 ) : betalValt === "klarna" ? (
-                  <>Fortsätt till Klarna <span className={s.knappBelopp}>{belopp(totalOre)}</span></>
+                  // Distansavtalslagen 2 kap. 9 §: knappen ska säga att beställningen kostar
+                  // pengar. Kunden godkänner hos Klarna, men ordern skapas utan fler klick här.
+                  <>Betala med Klarna <span className={s.knappBelopp}>{belopp(totalOre)}</span></>
                 ) : (
                   <>Betala <span className={s.knappBelopp}>{belopp(totalOre)}</span></>
                 )}

@@ -9,11 +9,14 @@
 // bytes Stripe skickade (lib/kassa/stripe.ts, provaWebhook).
 //
 // Svaret styr Stripes omförsök: 2xx = klart, annat = Stripe försöker igen i
-// upp till tre dygn. "pagar" (någon annan slutför just nu) och betalningar som
-// inte är kassans svarar 200; ett Wix-fel svarar 500 så att Stripe tar om.
+// upp till tre dygn (webhookStatus i lib/kassa/flode.ts). ☠️ "Klart" bara när
+// inget mer finns att göra (arKlart): en betalning som inte står på ordern
+// (ofullstandig), en reservation utan order som inte släpptes (ostadad) eller
+// en som någon annan håller på med (pagar) ska tas om. Betalningar som inte är
+// kassans svarar 200; ett Wix-fel 500.
 
 import { NextResponse } from "next/server";
-import { slutforStripe } from "@/lib/kassa/flode";
+import { STRIPE_KALLA, slutforStripe, utfallLage, webhookStatus } from "@/lib/kassa/flode";
 import { stripeKassa } from "@/lib/kassa/stripe-kassa";
 import { provaWebhook } from "@/lib/kassa/stripe";
 
@@ -42,13 +45,14 @@ export async function POST(req: Request) {
   const objekt = handelse.data?.object as { id?: unknown; metadata?: Record<string, string> } | undefined;
   const avsiktId = typeof objekt?.id === "string" ? objekt.id : "";
   if (!avsiktId.startsWith("pi_")) return NextResponse.json({ ok: true, hoppad: "inget id" });
-  if (objekt?.metadata?.kalla !== "fp-kassa-stripe") return NextResponse.json({ ok: true, hoppad: "inte kassans" });
+  if (objekt?.metadata?.kalla !== STRIPE_KALLA) return NextResponse.json({ ok: true, hoppad: "inte kassans" });
 
   const start = Date.now();
   try {
     const utfall = await slutforStripe(stripeKassa, avsiktId, new Date());
-    console.info(`[stripe-webhook] ${handelse.type}: ${utfall.ok ? "ok" : utfall.kod} på ${Date.now() - start} ms`);
-    return NextResponse.json({ ok: true });
+    const status = webhookStatus(utfall);
+    console.info(`[stripe-webhook] ${handelse.type}: ${utfallLage(utfall)} (${status}) på ${Date.now() - start} ms`);
+    return NextResponse.json({ ok: status === 200 }, { status });
   } catch (e) {
     console.error(`[stripe-webhook] ${handelse.type} föll efter ${Date.now() - start} ms: ${e instanceof Error ? e.message.slice(0, 300) : e}`);
     return NextResponse.json({ ok: false }, { status: 500 });

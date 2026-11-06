@@ -67,6 +67,8 @@ export interface Korg {
   lineItems?: KorgRad[];
   coupons?: { id?: string; code?: string }[];
   orderPlaced?: boolean;
+  /** Ordern som skapades ur korgen (Cart V2 sätter den med orderPlaced). */
+  orderId?: string;
   deliveryInfo?: { method?: Leveranssatt };
 }
 
@@ -563,6 +565,8 @@ export interface Avsikt {
   metadata: Record<string, string>;
   latest_charge: string | { id: string; payment_method_details?: { type?: string; card?: { wallet?: { type?: string } | null } | null } } | null;
   payment_method_types?: string[];
+  /** Unix-sekunder. */
+  created?: number;
 }
 
 export interface AvsiktParametrar {
@@ -599,6 +603,12 @@ export interface StripeKassaDeps {
   laggOrder(cartId: string, prisbevis: string | null): Promise<{ orderId: string }>;
   /** Add Payments: Stripes betalning som godkänd betalning på ordern. */
   registreraBetalning(orderId: string, b: { belopp: string; transaktion: string; namn: string; tid: string }): Promise<void>;
+  /**
+   * Betalningarna som redan står på ordern, som transaktions-id (List
+   * Transactions). Add Payments nekar en dubblett och gör då ingenting, och en
+   * order med en främmande betalning är betald någon annanstans.
+   */
+  orderBetalningar(orderId: string): Promise<string[]>;
   /** Avbryter en order som aldrig blev betald, med återlagring och utan mejl. */
   avbrytOrder(orderId: string): Promise<void>;
   skapaAvsikt(p: AvsiktParametrar, idempotens: string): Promise<Avsikt>;
@@ -741,11 +751,71 @@ export async function forberedStripe(
 }
 
 export type SlutforUtfall =
-  | { ok: true; orderId: string }
-  | { ok: false; kod: "okand" | "ej_betald" | "behandlas" | "pagar" | "pris_andrat" | "slut" | "fel"; meddelanden: string[] };
+  /** ofullstandig: pengarna är dragna och ordern finns, men betalningen står inte på ordern än. Tas om (webhooken och nätet). */
+  | { ok: true; orderId: string; ofullstandig?: true }
+  /** ostadad: ingen order, men reservationen släpptes inte (eller den dragna betalningen gick inte tillbaka). Tas om. */
+  | { ok: false; kod: "okand" | "ej_betald" | "behandlas" | "pagar" | "pris_andrat" | "slut" | "fel"; meddelanden: string[]; ostadad?: true };
+
+/**
+ * Inget mer finns att göra för betalningen: ordern är klar med betalningen på,
+ * eller det blev ingen order och pengarna är släppta (eller inte kassans).
+ */
+export function arKlart(u: SlutforUtfall): boolean {
+  if (u.ok) return !u.ofullstandig;
+  return u.kod !== "pagar" && u.kod !== "behandlas" && !u.ostadad;
+}
+
+/**
+ * Webhookens svar till Stripe, som styr omförsöken: 2xx = klart, annat = Stripe
+ * försöker igen (i upp till tre dygn). ☠️ "Klart" får bara svaras när inget
+ * mer finns att göra (arKlart): en betalning som inte står på ordern, som inte
+ * släpptes eller som någon annan håller på med ska tas om, annars tar ingen om
+ * den (kunden har redan gått vidare).
+ */
+export function webhookStatus(u: SlutforUtfall): number {
+  if (arKlart(u)) return 200;
+  return !u.ok && (u.kod === "pagar" || u.kod === "behandlas") ? 503 : 500;
+}
+
+/** Utfallet som ett ord för loggen (inga id, belopp eller kunduppgifter). */
+export function utfallLage(u: SlutforUtfall): string {
+  if (u.ok) return u.ofullstandig ? "ofullstandig" : "ok";
+  return u.ostadad ? `${u.kod}-ostadad` : u.kod;
+}
+
+/** Nätet tar betalningar som legat godkända utan order så här länge (det vanliga flödet tar sekunder). */
+export const NAT_EFTER_SEK = 5 * 60;
+/** Ligger en betalning kvar så här länge får Leonard ett mejl. */
+export const NAT_LARM_SEK = 30 * 60;
+
+/**
+ * Nätet: kassans betalningar som är godkända (eller dragna) men saknar order,
+ * äldre än NAT_EFTER_SEK, äldst först (de är närmast larmet). `larm` är de som
+ * passerat NAT_LARM_SEK inom det senaste kvarteret, så att samma betalning ger
+ * ett mejl, inte ett i kvarten; nätet larmar bara för dem som inte blev klara.
+ * En betalning som behandlas ("processing") väntar på Stripes nästa händelse.
+ */
+export function attSlutfora(
+  avsikter: Pick<Avsikt, "id" | "status" | "metadata" | "created">[],
+  nuSek: number,
+): { ids: string[]; larm: string[] } {
+  const traffar: { id: string; alder: number }[] = [];
+  for (const a of avsikter) {
+    if (a.metadata?.kalla !== STRIPE_KALLA || a.metadata?.wixOrderId) continue;
+    if (a.status !== "requires_capture" && a.status !== "succeeded") continue;
+    const alder = nuSek - (a.created ?? nuSek);
+    if (alder >= NAT_EFTER_SEK) traffar.push({ id: a.id, alder });
+  }
+  traffar.sort((x, y) => y.alder - x.alder);
+  return {
+    ids: traffar.map((t) => t.id),
+    larm: traffar.filter((t) => t.alder >= NAT_LARM_SEK && t.alder < NAT_LARM_SEK + 15 * 60).map((t) => t.id),
+  };
+}
 
 const TEXT_PAGAR = "Vi slutför din beställning. Ett ögonblick.";
 const TEXT_EJ_DRAGEN = "Ingen betalning drogs. Försök igen, eller kontakta oss om det inte går.";
+const TEXT_BETALD_ANNANSTANS = "Den här varukorgen är redan beställd och betald. Ingen betalning drogs här. Kolla din e-post för orderbekräftelsen.";
 
 /**
  * Den reserverade betalningen → en betald order i Wix. Idempotent: webhooken
@@ -768,9 +838,28 @@ export async function slutforStripe(deps: StripeKassaDeps, avsiktId: string, nu:
 
   let las: StripeLas = { cartId, steg: "pagar", at: nuMs };
   const tagen = await deps.tagLas(a.id, las);
+  const omtag = tagen !== "tagen";
   if (tagen !== "tagen") {
-    if (tagen.steg === "klar" && tagen.orderId) return { ok: true, orderId: tagen.orderId };
-    if (tagen.steg === "fel") return { ok: false, kod: "fel", meddelanden: [TEXT_EJ_DRAGEN] };
+    if (tagen.steg === "klar" && tagen.orderId) {
+      // Klart, men betalningen saknar orderns id (markeringen föll förra gången):
+      // märk den nu, annars tar nätet den om var femtonde minut och larmar i onödan.
+      await deps.markeraAvsikt(a.id, tagen.orderId).catch((e) => logg(`[kassa] metadata på betalningen: ${e instanceof Error ? e.message.slice(0, 120) : e}`));
+      return { ok: true, orderId: tagen.orderId };
+    }
+    if (tagen.steg === "fel") {
+      // Ingen order för den här betalningen, och kunden fick höra att inget
+      // drogs. Står pengarna ändå kvar (släppet eller återbetalningen föll, eller
+      // dragningen hann gå igenom efter att läget lästs) görs det om här;
+      // Stripes idempotensnyckel gör det en gång.
+      try {
+        if (a.status === "succeeded") await deps.aterbetala(a.id);
+        else await deps.slappAvsikt(a.id);
+      } catch (e) {
+        logg(`[kassa] ☠️ betalningen utan order kunde inte ${a.status === "succeeded" ? "betalas tillbaka" : "släppas"} (tas om): ${e instanceof Error ? e.message.slice(0, 200) : e}`);
+        return { ok: false, kod: "fel", meddelanden: [TEXT_EJ_DRAGEN], ostadad: true };
+      }
+      return { ok: false, kod: "fel", meddelanden: [TEXT_EJ_DRAGEN] };
+    }
     if (nuMs - tagen.at < STRIPE_LAS_MS) return { ok: false, kod: "pagar", meddelanden: [TEXT_PAGAR] };
     las = { ...tagen, at: nuMs };
     await deps.sparaLas(a.id, las);
@@ -780,18 +869,41 @@ export async function slutforStripe(deps: StripeKassaDeps, avsiktId: string, nu:
   // Tillbaka till kunden utan order: reservationen släpps, eller en redan
   // dragen betalning (betalsätt utan manuell dragning) betalas tillbaka.
   const backa = async (kod: "pris_andrat" | "slut" | "fel", meddelanden: string[]): Promise<SlutforUtfall> => {
+    let ostadad = false;
     try {
       if (dragenFran) await deps.aterbetala(a.id);
       else await deps.slappAvsikt(a.id);
     } catch (e) {
-      logg(`[kassa] kunde inte ${dragenFran ? "betala tillbaka" : "släppa"} betalningen: ${e instanceof Error ? e.message.slice(0, 200) : e}`);
+      ostadad = true;
+      logg(`[kassa] kunde inte ${dragenFran ? "betala tillbaka" : "släppa"} betalningen (tas om): ${e instanceof Error ? e.message.slice(0, 200) : e}`);
     }
     await deps.sparaLas(a.id, { ...las, steg: "fel" }).catch(() => {});
-    return { ok: false, kod, meddelanden };
+    return ostadad ? { ok: false, kod, meddelanden, ostadad: true } : { ok: false, kod, meddelanden };
+  };
+
+  // Ordern som Place Order skapade, läst ur korgen (Wix sätter orderPlaced och
+  // orderId): för när svaret aldrig kom fram (en timeout, ett 5xx) eller när
+  // försöket dog innan låset sparades. Kastar om korgen inte går att läsa, så
+  // att nästa försök avgör. ☠️ En order som redan har en betalning är inte vår
+  // (korgen betaldes i Wix kassa i en annan flik): "betald", och vår släpps.
+  const ordernPaKorgen = async (): Promise<string | "betald" | null> => {
+    const korg = await deps.hamtaKorg(cartId);
+    if (!korg?.orderPlaced || !korg.orderId) return null;
+    return (await deps.orderBetalningar(korg.orderId)).length > 0 ? "betald" : korg.orderId;
   };
 
   let orderId = las.orderId;
   let reserverat = dragenFran ? a.amount_received : a.amount_capturable;
+  if (!orderId && omtag) {
+    const fran = await ordernPaKorgen();
+    if (fran === "betald") return backa("fel", [TEXT_BETALD_ANNANSTANS]);
+    if (fran) {
+      logg("[kassa] ordern fanns redan på korgen; den används");
+      orderId = fran;
+      las = { ...las, steg: "order", orderId };
+      await deps.sparaLas(a.id, las);
+    }
+  }
   if (!orderId) {
     const rakning = await deps.rakna(cartId);
     const totalOre = oreAv(rakning.summary?.priceSummary?.total);
@@ -805,7 +917,15 @@ export async function slutforStripe(deps: StripeKassaDeps, avsiktId: string, nu:
       orderId = (await deps.laggOrder(cartId, rakning.summary?.priceVerificationToken ?? null)).orderId;
     } catch (e) {
       logg(`[kassa] Place Order föll: ${e instanceof Error ? e.message.slice(0, 300) : e}`);
-      return backa("fel", [`Beställningen kunde inte skapas. ${TEXT_EJ_DRAGEN}`]);
+      // Ett 4xx (också 429 efter omförsöken) betyder att ingen order skapades.
+      // Annars är utfallet okänt, och korgen säger om ordern ändå finns.
+      const status = (e as { status?: unknown } | null)?.status;
+      const avgjort = typeof status === "number" && status >= 400 && status < 500;
+      const fran = avgjort ? null : await ordernPaKorgen();
+      if (fran === "betald") return backa("fel", [TEXT_BETALD_ANNANSTANS]);
+      if (!fran) return backa("fel", [`Beställningen kunde inte skapas. ${TEXT_EJ_DRAGEN}`]);
+      logg("[kassa] Place Order svarade inte, men ordern finns på korgen; den används");
+      orderId = fran;
     }
     las = { ...las, steg: "order", orderId };
     await deps.sparaLas(a.id, las);
@@ -818,12 +938,29 @@ export async function slutforStripe(deps: StripeKassaDeps, avsiktId: string, nu:
         dragen = await deps.dra(a.id, reserverat);
       } catch (e) {
         logg(`[kassa] dragningen föll: ${e instanceof Error ? e.message.slice(0, 300) : e}`);
-        try {
-          await deps.avbrytOrder(orderId!);
-        } catch (e2) {
-          logg(`[kassa] ordern kunde inte avbrytas efter misslyckad dragning: ${e2 instanceof Error ? e2.message.slice(0, 200) : e2}`);
+        // ☠️ Felet kan ha kommit EFTER att Stripe drog pengarna (svaret nådde oss
+        // inte). Läget läses färskt innan ordern avbryts: annars betalar kunden
+        // för en avbruten order.
+        const farsk = await deps.hamtaAvsikt(a.id).then(
+          (x) => x,
+          () => undefined,
+        );
+        if (farsk === undefined) {
+          // Okänt läge: varken avbryt eller släpp. Låset står kvar på "order", och
+          // nästa försök (webhooken, nätet) drar med samma nyckel och ser utfallet.
+          throw new Error("dragningen föll och betalningens läge gick inte att läsa");
         }
-        return backa("fel", [`Betalningen kunde inte genomföras. ${TEXT_EJ_DRAGEN}`]);
+        if (farsk?.status === "succeeded") {
+          logg("[kassa] dragningen hade gått igenom trots felet; ordern behålls");
+          dragen = farsk;
+        } else {
+          try {
+            await deps.avbrytOrder(orderId!);
+          } catch (e2) {
+            logg(`[kassa] ordern kunde inte avbrytas efter misslyckad dragning: ${e2 instanceof Error ? e2.message.slice(0, 200) : e2}`);
+          }
+          return backa("fel", [`Betalningen kunde inte genomföras. ${TEXT_EJ_DRAGEN}`]);
+        }
       }
       reserverat = dragen.amount_received || reserverat;
     }
@@ -831,17 +968,27 @@ export async function slutforStripe(deps: StripeKassaDeps, avsiktId: string, nu:
     await deps.sparaLas(a.id, las);
   }
 
-  // Pengarna är dragna och ordern finns: härifrån svarar vi alltid ok.
+  // Pengarna är dragna och ordern finns: härifrån svarar vi alltid ok till
+  // kunden. Står betalningen inte på ordern blir svaret ofullstandig, och
+  // webhooken (500 → Stripe försöker igen) och nätet (/api/cron/kassa-stripe)
+  // tar om det. Låset står då på "registrera".
+  const transaktion = laddningsId(dragen) ?? a.id;
   try {
-    await deps.registreraBetalning(orderId!, {
-      belopp: kronorAv(reserverat),
-      transaktion: laddningsId(dragen) ?? a.id,
-      namn: betalsattsnamn(dragen),
-      tid: nu.toISOString(),
-    });
+    // Ett tidigare försök kan ha registrerat betalningen utan att hinna spara
+    // låset, och Add Payments nekar en dubblett: vid omtag läses ordern först.
+    // (Wix sparar högst 100 tecken; Stripes id är under 30.)
+    const finns = omtag ? (await deps.orderBetalningar(orderId!)).includes(transaktion.slice(0, 100)) : false;
+    if (!finns) {
+      await deps.registreraBetalning(orderId!, {
+        belopp: kronorAv(reserverat),
+        transaktion,
+        namn: betalsattsnamn(dragen),
+        tid: nu.toISOString(),
+      });
+    }
   } catch (e) {
     logg(`[kassa] ☠️ betalningen registrerades inte på ordern (tas om): ${e instanceof Error ? e.message.slice(0, 300) : e}`);
-    return { ok: true, orderId: orderId! };
+    return { ok: true, orderId: orderId!, ofullstandig: true };
   }
   await deps.markeraAvsikt(a.id, orderId!).catch((e) => logg(`[kassa] metadata på betalningen: ${e instanceof Error ? e.message.slice(0, 120) : e}`));
   await deps.sparaLas(a.id, { ...las, steg: "klar" }).catch(() => {});
