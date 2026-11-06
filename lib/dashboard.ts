@@ -21,6 +21,7 @@ import { sql } from "./db";
 import { anvanderWix, kundvagnar, nyhetsbrev, ordrar } from "./wix-lager";
 import { getProducts, type Product } from "./products";
 import { morgonVarningar } from "./morgon-varningar";
+import { arKop } from "./order-raknas";
 
 const STOCKHOLM_TZ = "Europe/Stockholm";
 const LOW_STOCK_THRESHOLD = 5;
@@ -218,17 +219,33 @@ async function tryWixOrders(now: Date): Promise<OrdersSection | null> {
   const site = process.env.WIX_SITE_ID;
   if (!key || !site) return null;
   const since = new Date(now.getTime() - 8 * 24 * 60 * 60 * 1000).toISOString();
-  const res = await fetch("https://www.wixapis.com/ecom/v1/orders/search", {
-    method: "POST",
-    headers: { Authorization: key, "wix-site-id": site, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      search: { filter: { createdDate: { $gte: since } }, cursorPaging: { limit: 100 } },
-    }),
-    cache: "no-store",
-  });
-  if (!res.ok) return null; // 403 READ_ORDER_FORBIDDEN m.m. → spegel
-  const data = await res.json();
-  const orders = (data?.orders ?? []) as Record<string, unknown>[];
+  // Alla sidor, inte bara de första 100: vår egen kassa lägger obetalda ordrar
+  // bland de riktiga (lib/order-raknas.ts), och Black Week fyller 100 på en dag.
+  // Första sidan bär filtret; efterföljande bara markören (Wix vägrar båda).
+  const orders: Record<string, unknown>[] = [];
+  let cursor: string | undefined;
+  let ofullstandig = false;
+  for (let sida = 0; sida < 20; sida++) {
+    const res = await fetch("https://www.wixapis.com/ecom/v1/orders/search", {
+      method: "POST",
+      headers: { Authorization: key, "wix-site-id": site, "Content-Type": "application/json" },
+      body: JSON.stringify(
+        cursor
+          ? { search: { cursorPaging: { cursor } } }
+          : { search: { filter: { createdDate: { $gte: since } }, cursorPaging: { limit: 100 } } },
+      ),
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      if (sida === 0) return null; // 403 READ_ORDER_FORBIDDEN m.m. → spegel
+      ofullstandig = true;
+      break;
+    }
+    const data = await res.json();
+    for (const o of (data?.orders ?? []) as Record<string, unknown>[]) if (arKop(o)) orders.push(o);
+    cursor = data?.metadata?.cursors?.next ?? data?.pagingMetadata?.cursors?.next ?? undefined;
+    if (!cursor) break;
+  }
   const rows: OrderRow[] = orders.map((o) => {
     const totals = (o.priceSummary ?? {}) as { total?: { amount?: string; currency?: string } };
     const items = ((o.lineItems ?? []) as Record<string, unknown>[]).map((li) => ({
@@ -246,7 +263,11 @@ async function tryWixOrders(now: Date): Promise<OrdersSection | null> {
       created_at: (o.createdDate as string) ?? new Date().toISOString(),
     };
   });
-  return { source: "wix-api", ...aggregateOrders(rows, now) };
+  return {
+    source: "wix-api",
+    ...aggregateOrders(rows, now),
+    ...(ofullstandig ? { note: "Wix svarade inte på alla sidor: talen kan vara för låga." } : {}),
+  };
 }
 
 // ---------------------------------------------------------------------------

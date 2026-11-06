@@ -20,6 +20,7 @@ test("aggregateSoldUnits räknar enheter per produkt och hoppar över annullerad
   const karta = aggregateSoldUnits([
     { status: "APPROVED", lineItems: [{ quantity: 2, catalogReference: { catalogItemId: "a" } }] },
     { status: "CANCELED", lineItems: [{ quantity: 5, catalogReference: { catalogItemId: "a" } }] },
+    { status: "INITIALIZED", lineItems: [{ quantity: 7, catalogReference: { catalogItemId: "a" } }] },
     { lineItems: [{ catalogReference: { catalogItemId: "a" } }, { quantity: 3, catalogReference: { catalogItemId: "b" } }] },
     { lineItems: [{ quantity: 4 }] },
   ]);

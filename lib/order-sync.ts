@@ -16,6 +16,7 @@
 // spegel-arkitekturen finns för. Vi kastar inte; cronet rapporterar ok:false.
 
 import { recordOrder } from "./order-record";
+import { arKop } from "./order-raknas";
 
 const WIX_ORDERS_SEARCH = "https://www.wixapis.com/ecom/v1/orders/search";
 
@@ -25,6 +26,8 @@ export interface OrderSyncResult {
   inserted: number;
   alreadyMirrored: number;
   pages: number;
+  /** Ordrar som inte är köp (väntar på betalning i vår kassa, eller avbrutna obetalda): speglas inte. */
+  ejKop?: number;
   note?: string;
 }
 
@@ -58,6 +61,7 @@ export async function syncOrdersFromWix(opts?: {
   let fetched = 0;
   let inserted = 0;
   let alreadyMirrored = 0;
+  let ejKop = 0;
   let pages = 0;
   let cursor: string | undefined;
 
@@ -83,6 +87,7 @@ export async function syncOrdersFromWix(opts?: {
           fetched,
           inserted,
           alreadyMirrored,
+          ejKop,
           pages,
           note: `Wix Orders-API ${res.status}${txt ? `: ${txt.slice(0, 200)}` : ""} — spegeln förblir webhook-driven`,
         };
@@ -94,6 +99,10 @@ export async function syncOrdersFromWix(opts?: {
 
       for (const order of orders) {
         fetched += 1;
+        if (!arKop(order)) {
+          ejKop += 1;
+          continue;
+        }
         const r = await recordOrder(order);
         if (r.recorded && (r as { inserted?: boolean }).inserted) inserted += 1;
         else if (r.recorded) alreadyMirrored += 1;
@@ -102,13 +111,14 @@ export async function syncOrdersFromWix(opts?: {
       cursor = data.metadata?.cursors?.next ?? data.pagingMetadata?.cursors?.next ?? undefined;
     } while (cursor && pages < maxPages);
 
-    return { ok: true, fetched, inserted, alreadyMirrored, pages };
+    return { ok: true, fetched, inserted, alreadyMirrored, ejKop, pages };
   } catch (err) {
     return {
       ok: false,
       fetched,
       inserted,
       alreadyMirrored,
+      ejKop,
       pages,
       note: err instanceof Error ? err.message : String(err),
     };
