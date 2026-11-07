@@ -464,3 +464,28 @@ nästan alltid tysk text. En färg som inte får fyra rena bilder ur feeden är 
 leverantören inte har fler bilder för, och då stannar den på det antalet. Ett utsnitt
 (`docs/polish/bildmetoder.md`, *Beskärning*) är den enda genvägen, och bara när utsnittet är
 fritt från text och märke.
+
+**T118 (2026-11-07): loungesetet `58c5bc3a`, en Aosom-vara på en AliExpress-sida.** Leonard (*"Är detta en aosom produkt? Den har
+inte så många rena bilder per alternativ så hämta rena, och mörk khaki har en fel bild kopplad"*). Fyra lärdomar som inte ska gå
+förlorade:
+
+1. **Är en AliExpress-sida en Aosom-vara?** Mappningsraden har då `supplier: null` (äldre AliExpress-rad), och `polish-mapping.yml`
+   (`las`) säger *EJ AVGORBAR: raden är varken en Aosom- eller VEVOR-import*. Listningen avslöjar det: beskrivningsbilderna är
+   Aosoms egna (spansk säljtext, Aosoms *¿Quiénes somos?*-panel) och en av dem serveras från Aosoms bilddomän. Feeden kan ändå sakna
+   raden: sex namnsökningar (`aosom-feed-search.yml`) gav inget, så sidan går inte att mappa om och `aosom-fargtillagg` gäller den inte.
+   Bilderna hämtas då ur AliExpress-listningen (`ae-skubilder.yml`, `workflow_dispatch` med `ref` = poleringsgrenen fungerar).
+2. ☠️ **`ae-skubilder.yml` har ett annat kuvertformat än `aosom-feed-search.yml`:** `losen: …`, sedan raderna mellan `data-borjan`
+   och `data-slut` som slås ihop, och först därefter `openssl enc -d`. En dekrypteringshjälp för sökkuvertet (`data:  …` på en rad)
+   hittar inget här.
+3. **Säljbilder med spansk text beskärs med Wix crop-adress på den importerade originalfilen** (`UploadImageToWixSite` med
+   `imageUrls`, sedan en ny import av `…/v1/crop/x_…,y_…,w_…,h_…,q_95/…`). Utsnittet ska vara KVADRATISKT och rymma motivet: butikens galleri
+   visar varje bild som en kvadrat ur mitten (`farg-krop.py`), så ett brett utsnitt tappar kanterna. Hitta textens första rad med en radskanning (medelvärde och
+   standardavvikelse per 20 pixlar) och kontrollera varje utsnitt med `ocr-forgranska.py`: ett utsnitt som kapade rubrikens överkant
+   gav *TEXT* tills höjden sänktes 40 pixlar. Utsnitten ur ett foto är bara ett tillägg när de visar nya vyer (kvinnan och hunden, glasskivan),
+   aldrig för att fylla ut ett antal.
+4. ☠️ **Mät nyansen på ett delat kort innan det får ligga på flera färger.** Loungesetets måttskiss hade grå dynor på alla tre färgerna, men
+   Mörk Khaki är mörkbrun rotting med gräddvita dynor, och måttskissens dynor låg i Ljusgråns nyans (medel-RGB 134, 145, 142 mot 136, 145, 145
+   för Ljusgrå och 88, 98, 98 för Mörkgrå). Listningen hade en måttskiss för vardera grå nyans, så varje grå färg fick sin, och korten som visar
+   det mörkgrå setet ligger bara kvar på Mörkgrå (Leonard 2026-10-23: *en bild på en viss färgs vara visas inte under en annan färg*).
+   Måttskissen lades inte under Khaki: listningen har ingen för det setet, och inga nya kort byggs. Verktyg: `tools/polish-assets/runda-t118-loungeset-fargbilder/skriv-lounge.js`
+   skriver ett MÅLTILLSTÅND (galleriets ordning och varje färgs länklista) i stället för bara tillägg, och kontrollerar utgångsläget först.
