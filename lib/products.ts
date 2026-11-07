@@ -463,6 +463,8 @@ function optionsForProduct(slug: string, sdkItem: any): Product["options"] {
 }
 
 let productsPromise: Promise<Product[]> | null = null;
+// Katalogen som den här instansen senast fick färdig (katalogenLaddad).
+let laddadKatalog: Product[] | null = null;
 
 // Nödkatalogen products.json är en minimal, GAMMAL snapshot (3 produkter i ett
 // äldre schema utan id/createdAt/collectionIds/imageScore). Den släpptes förr in
@@ -506,6 +508,13 @@ const DEGRADERADE = new WeakSet<Product[]>([FALLBACK_PRODUCTS]);
  *  inget underlag byggt på en sådan katalog (lib/kundvagn-underlag.ts). */
 export function katalogenArDegraderad(lista: Product[]): boolean {
   return DEGRADERADE.has(lista);
+}
+
+/** Har den här instansen redan hela katalogen i minnet? Då bygger sidhuvudet
+ *  menyn ur den; annars läser det den färdiga menyn och väntar inte in de
+ *  21–34 sekunderna (lib/sidhuvud-data.ts). */
+export function katalogenLaddad(): boolean {
+  return laddadKatalog !== null && !DEGRADERADE.has(laddadKatalog);
 }
 
 async function fetchProducts(): Promise<Product[]> {
@@ -646,6 +655,7 @@ async function fetchProducts(): Promise<Product[]> {
 export const getProducts = cache(async (): Promise<Product[]> => {
   if (!productsPromise) productsPromise = fetchProducts();
   const lista = await productsPromise;
+  laddadKatalog = lista;
   if (DEGRADERADE.has(lista)) await kortLivslangd();
   return lista;
 });
@@ -1513,7 +1523,7 @@ export type Collection = { id: string; name: string; slug: string; parentId: str
 // i vilken ordning mixByCategory blandar kategorierna. VEVOR-trädet 2026-10-31
 // döpte om Verktyg & Fordon till Verktyg & Maskiner och lade till tre
 // avdelningar sist, så att de räknas som avdelningar före underkategorierna.
-const MAIN_ORDER = [
+export const MAIN_ORDER = [
   "Möbler", "Hem & Inredning", "Kök & Husgeråd", "Trädgård & Utemöbler", "Jul & Högtider",
   "Barn & Familj", "Husdjur", "Sport & Fritid", "Skönhet & Hälsa", "Verktyg & Maskiner",
   "Bygg & Renovering", "Bil & Garage", "Företag & Proffs",

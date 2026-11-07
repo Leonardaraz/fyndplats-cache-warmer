@@ -7,10 +7,8 @@ import { SearchBox } from "./searchbox";
 import { CookieSettingsLink } from "./cookie-settings-link";
 import { MobileNav } from "./mobilenav";
 import { MegaNav } from "./meganav";
-import { getCategoryTree } from "../lib/category-groups";
-import { utanAntal } from "../lib/meny-antal";
+import { sidhuvudsdata } from "../lib/sidhuvud-data";
 import { getPosts } from "../lib/blog";
-import { getProducts } from "../lib/products";
 import { TrustBox } from "./trustpilot";
 import { TRUSTBOX_TEMPLATES } from "../lib/trustpilot-profil";
 import { getSocialProof } from "../lib/social-proof-live";
@@ -43,13 +41,13 @@ const INTRO_EN_GANG =
   "sessionStorage.setItem('fp-intro','1')}catch(e){}";
 
 export async function SiteHeader() {
-  const tree = await getCategoryTree();
-  const hasBlog = (await getPosts()).length > 0; // dölj blogg-länk tills det finns inlägg
-  // Dölj REA-knappen tills något faktiskt ÄR nedsatt — annars leder den till en
-  // tom lista. Kräver inStock också: en nedsatt slutsåld vara är inget fynd.
-  // getProducts är React-cache:ad, så headern delar hämtning med sidan under
-  // samma render och det här kostar inget extra anrop.
-  const hasSale = (await getProducts()).some((p) => p.onSale && p.inStock);
+  // Menyn (utan antal) och REA-knappen. REA-knappen döljs tills något faktiskt
+  // ÄR nedsatt och i lager, annars leder den till en tom lista. En varm instans
+  // bygger dem ur katalogen; en kall läser den färdiga menyn, för en sida som
+  // byggs vid besöket (kassan, /tack, Mina sidor) väntade förr in hela
+  // katalogen, 21–34 s (lib/sidhuvud-data.ts).
+  const [{ tree, hasSale }, poster] = await Promise.all([sidhuvudsdata(), getPosts()]);
+  const hasBlog = poster.length > 0; // dölj blogg-länk tills det finns inlägg
   return (
     <>
       {/* Startsidans inledningsanimation bara första sidan i besöket. Kom
@@ -77,7 +75,7 @@ export async function SiteHeader() {
           <KontoLank />
           <WishlistButton />
           <CartButton />
-          <MobileNav tree={utanAntal(tree)} hasBlog={hasBlog} hasSale={hasSale} />
+          <MobileNav tree={tree} hasBlog={hasBlog} hasSale={hasSale} />
         </div>
         {/* Egen sökrad på mobil — alltid synlig högt upp, utan att öppna menyn */}
         <div className="hsearch-mobile">
@@ -86,7 +84,7 @@ export async function SiteHeader() {
         <div className="container hnav">
           {/* Trädet utan antal: siffrorna hämtas i webbläsaren, annars blir varje
               sida "ny" så fort ett antal ändras (lib/meny-antal.ts). */}
-          <MegaNav tree={utanAntal(tree)} hasBlog={hasBlog} hasSale={hasSale} />
+          <MegaNav tree={tree} hasBlog={hasBlog} hasSale={hasSale} />
         </div>
       </header>
     </>
