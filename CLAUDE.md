@@ -196,6 +196,7 @@ underrubrik.
   - Familjeregeln: bara färg, storlek, längd och förpackning delar en sida (2026-10-30)
   - Varje färg får sina egna bilder (2026-10-30)
   - Radera och börja om
+  - Syskon som importen inte slog ihop: VEVOR-sammanslagningen (2026-11-07)
 - `12-vevor-poleringen.md`: VEVOR-poleringen (2026-10-30)
 - `13-vevor-kategorierna.md`: VEVOR: kategorierna (2026-10-31)
 - `14-prissattningen.md`: Prissättningen är marknadskalibrerad, inte påhittad (`FyndplatsPricingConfig`)

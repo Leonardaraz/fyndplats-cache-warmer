@@ -52,7 +52,9 @@ sida och `fields: ["wixProductId", "seoTitle", "variants", "vevorArtiklar",
 `supplierProductId` som börjar med `vevor:` och ingen av granskningsflaggorna ovan. Räkna
 titelstammarna över alla rader (första ordet på minst fyra bokstäver som inte är *elektrisk*,
 *kraftig*, *bärbar* och liknande) och behåll bara de som har högst två rader: en stam som
-många delar är en familj, ett syskon eller en tvilling. Läs sedan avläsningen i
+många delar är en familj, ett syskon eller en tvilling. En familj av samma vara i olika färg,
+storlek, längd eller förpackning slås ihop med VEVOR-sammanslagningen (se *Varianter* nedan) och
+poleras sedan som en sida; syskon med olika effekt, kapacitet eller modell är egna sidor. Läs sedan avläsningen i
 `FyndplatsVevorAvlasningar` (`_id` är artikeln utan `vevor:`, och `fields` går också där):
 `status: i_lager`, `saldo` minst 8, `levererasTillSe` inte falskt, minst åtta bilder och tre
 specifikationsrader. **Det finns ingen prisgräns** *(Leonard 2026-11-06: alla produkter ska
@@ -195,16 +197,22 @@ kategori i trädet flaggar du utkastet med ett förslag på en ny.
 `sammanslagna.tsv`, som en sammanslagen Aosom-sida (se *En sammanslagen sida skrivs om med
 `sammanslagna.tsv`* i runbooken). SKU-steget hoppas då över, och varje variant behåller sin SKU.
 Sammanslagningsverktyget i *Syskon blir val på sidan* tar bara Aosom-artiklar
-(`utkast_ej_aosom`). Hittar du ett VEVOR-syskon som importen inte slog ihop, flaggar du det i `FLAGGADE-VEVOR.md`.
+(`utkast_ej_aosom`). Ett VEVOR-syskon som importen inte slog ihop, alltså samma vara i en annan
+färg, ett annat mönster, en annan storlek, längd eller förpackning, läggs i stället på sidan med
+**"VEVOR — lägg ett syskon som färg, storlek, längd eller förpackning på en annan VEVOR-sida"**
+(`vevor-sammanslagning.yml`, `plan` och sedan `byt`), en givare per körning, innan sidan poleras.
+Sidan vi behåller får vara ett utkast. Verktyget håller familjeregeln själv och vägrar syskon med
+olika effekt, kapacitet eller modell: de får egna sidor och poleras var för sig. Se *Syskon som
+importen inte slog ihop* i `docs/claude/11-vevor-steg-8-syskon-betyg-recensioner.md`.
 
 **Paketstorlekar som importen inte slog ihop** *(Leonard 2026-11-02, bordsdukarna: "ja slå ihop
 proffsigt", via Wix API)*. VEVOR säljer samma vara som ett 3-, 6- och 10-pack, men varje paket
 är en egen artikel utan länkar till de andra, och bara SPU:n är gemensam. Familjeregelns plan
 kan inte bygga en familj av dem (de skiljer sig bara på förpackning och vikt), och Aosoms
-sammanslagningsverktyg tar bara Aosom-artiklar och axlarna Färg och Storlek. Det finns alltså
-inget verktyg för det här, och sammanslagningen gjordes en gång för hand, på Leonards uttryckliga
-begäran. Gör inte om den utan en ny sådan begäran, och bygg ett verktyg efter
-`lib/aosom/sammanslagning.ts` om fler paketstorlekar ska slås ihop. Metoden, som den kördes:
+sammanslagningsverktyg tar bara Aosom-artiklar och axlarna Färg och Storlek. Sammanslagningen
+gjordes därför en gång för hand, på Leonards uttryckliga begäran. Sedan 2026-11-07 gör
+VEVOR-sammanslagningen samma sak med axeln Förpackning (se *Varianter* ovan), och metoden nedan är
+den som verktyget bygger på. Metoden, som den kördes:
 
 1. **Spara en ögonblicksbild utanför repot** av de tre produkterna (GET med `MERCHANT_DATA`),
    lagret och de tre mappningsraderna (de bär artikelnummer). Varje skrivning har en flagga som
