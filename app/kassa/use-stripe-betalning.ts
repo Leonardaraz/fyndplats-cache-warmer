@@ -42,7 +42,9 @@ const SNABB_VANTA_MS = 12_000;
 // känd: efter en omladdning kommer summan först när varukorgen hämtats från
 // Wix, och då startade Stripe 793 i stället för 427 ms efter sidans början och
 // betalfältet var klart 0,7 s senare (mätt 2026-11-07). Fälten monteras som
-// förut när summan finns. Ett misslyckat försök sparas inte.
+// förut när summan finns. Ett misslyckat försök sparas inte. Själva filen är
+// oftast redan hämtad: page.tsx förladdar den med sidan (STRIPE_JS), och
+// loadStripe tar den då ur webbläsarens minne.
 const stripeLoften = new Map<string, Promise<Stripe | null>>();
 function hamtaStripe(nyckel: string): Promise<Stripe | null> {
   let lofte = stripeLoften.get(nyckel);
@@ -181,6 +183,36 @@ export function useStripeBetalning(nyckel: string | null, beloppOre: number | nu
           return;
         }
         stripe.current = s;
+        // Knapparna FÖRST: de står överst och är det kunden ser först. Deras
+        // grupp frågar då Stripe om betalsätten, och deras ram börjar hämtas,
+        // före adressfältets och betalfältets, som står längre ned och förut
+        // gick före i kön (i telefonen delar ramarna samma uppkoppling). För sig
+        // och i try: ett fel i snabbkassan (Stripe kastar IntegrationError på
+        // ogiltiga val) får aldrig stoppa formuläret och betalfältet.
+        if (!snabbPlats.current) {
+          setSnabbLage("av");
+        } else {
+          try {
+            const g = s.elements(elementsInstallningar(beloppOre));
+            snabbElements.current = g;
+            snabbVisat.current = beloppOre;
+            knappar = g.create("expressCheckout", snabbknappar(snabbKoppling.current.start()));
+            knappar.on("ready", (h) => {
+              const p = planbocker(h.availablePaymentMethods);
+              setSnabbPlanbocker(p);
+              setSnabbLage(p.length > 0 ? "redo" : "tom");
+            });
+            knappar.on("loaderror", () => setSnabbLage("fel"));
+            knappar.on("click", (h) => snabbKoppling.current.klick(h));
+            knappar.on("confirm", (h) => snabbKoppling.current.bekrafta(h));
+            knappar.mount(snabbPlats.current);
+          } catch {
+            knappar = null;
+            snabbElements.current = null;
+            snabbVisat.current = null;
+            setSnabbLage("fel");
+          }
+        }
         // Butikens typsnitt från vår egen server (elementsInstallningar), så att
         // adressen och kortet står i samma typsnitt som resten av formuläret.
         // Stripe tar bara https (lokalt över http: systemets typsnitt, och en varning).
@@ -206,38 +238,13 @@ export function useStripeBetalning(nyckel: string | null, beloppOre: number | nu
         falt.on("loaderror", () => setLage("fel"));
         falt.on("change", (h) => setValt(h.value?.type ?? null));
         falt.mount(plats.current);
-        // Knapparna sist och för sig: ett fel i snabbkassan (Stripe kastar
-        // IntegrationError på ogiltiga val) får aldrig stoppa formuläret och betalfältet.
-        if (!snabbPlats.current) {
-          setSnabbLage("av");
-          return;
-        }
-        try {
-          const g = s.elements(elementsInstallningar(beloppOre));
-          snabbElements.current = g;
-          snabbVisat.current = beloppOre;
-          knappar = g.create("expressCheckout", snabbknappar(snabbKoppling.current.start()));
-          knappar.on("ready", (h) => {
-            const p = planbocker(h.availablePaymentMethods);
-            setSnabbPlanbocker(p);
-            setSnabbLage(p.length > 0 ? "redo" : "tom");
-          });
-          knappar.on("loaderror", () => setSnabbLage("fel"));
-          knappar.on("click", (h) => snabbKoppling.current.klick(h));
-          knappar.on("confirm", (h) => snabbKoppling.current.bekrafta(h));
-          knappar.mount(snabbPlats.current);
-        } catch {
-          knappar = null;
-          snabbElements.current = null;
-          snabbVisat.current = null;
-          setSnabbLage("fel");
-        }
       })
       .catch(() => {
         if (!avbruten) {
           setLage("fel");
           setAdressLage("fel");
-          setSnabbLage("fel");
+          // Ett fel i betalfältets grupp tar inte ned knappar som redan står.
+          if (!knappar) setSnabbLage("fel");
         }
       });
     return () => {

@@ -4,6 +4,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import {
   adressfaltInstallningar,
   AVSIKT_KAKA,
@@ -13,6 +14,7 @@ import {
   RAM_VANTA_MS,
   RETUR_SOKVAG,
   SPARAD_MS,
+  STRIPE_JS,
   STRIPE_MEDDELANDE,
   TEXT_VERIFIERING,
   avsiktUrKakor,
@@ -85,6 +87,46 @@ test("Apple Pay och Google Pay står överst i snabbkassan, inte en gång till i
   assert.equal(BETALFALT.wallets?.googlePay, "never");
   assert.equal(BETALFALT.wallets?.link, "never");
   assert.deepEqual(BETALFALT.paymentMethodOrder, ["card", "klarna"]);
+});
+
+test("Stripe.js förladdas med kassan på samma adress som loadStripe lägger in (annars hämtas den två gånger)", () => {
+  // Paketets egen loadStripe i en låtsad webbläsare: skripttaggen den lägger in fångas.
+  const g = globalThis as Record<string, unknown>;
+  const forut = { window: g.window, document: g.document };
+  const inlagda: string[] = [];
+  g.window = {};
+  g.document = {
+    querySelectorAll: () => [],
+    createElement: () => ({ src: "", addEventListener() {}, removeEventListener() {} }),
+    head: { appendChild: (el: { src: string }) => void inlagda.push(el.src) },
+  };
+  try {
+    const { loadStripe } = createRequire(import.meta.url)("@stripe/stripe-js/pure");
+    // Skriptet laddas aldrig här, så löftet står kvar; det får inte fälla provet.
+    void loadStripe("pk_test_prov").catch(() => {});
+  } finally {
+    g.window = forut.window;
+    g.document = forut.document;
+  }
+  assert.deepEqual(inlagda, [STRIPE_JS]);
+  // Sidan förladdar just den adressen, och bara med Stripe och en varukorg.
+  const sida = readFileSync(new URL("../../app/kassa/page.tsx", import.meta.url), "utf8");
+  assert.match(sida, /if \(stripeNyckel && \(kakor\.has\("fp_cart"\) \|\| kakor\.has\(LAST_KORG_KAKA\)\)\) preload\(STRIPE_JS, \{ as: "script" \}\);/);
+  // Krokens loadStripe kommer från samma paket (den varianten lägger in taggen först vid anropet).
+  const krok = readFileSync(new URL("../../app/kassa/use-stripe-betalning.ts", import.meta.url), "utf8");
+  assert.match(krok, /import \{ loadStripe \} from "@stripe\/stripe-js\/pure";/);
+});
+
+test("snabbkassans knappar skapas före adressfältet och betalfältet: de står överst och ska inte vänta i kön", () => {
+  const krok = readFileSync(new URL("../../app/kassa/use-stripe-betalning.ts", import.meta.url), "utf8");
+  const knappar = krok.indexOf('create("expressCheckout"');
+  const adress = krok.indexOf('create("address"');
+  const betal = krok.indexOf('create("payment"');
+  assert.ok(knappar > 0 && adress > 0 && betal > 0, "skapandet hittas inte i kroken");
+  assert.ok(knappar < adress && knappar < betal, "knapparna skapas efter fälten");
+  // Fortfarande i try: ett fel i snabbkassan får aldrig stoppa formuläret och betalfältet.
+  const fore = krok.slice(0, knappar);
+  assert.ok(fore.lastIndexOf("try {") > fore.lastIndexOf("hamtaStripe(nyckel)"), "knapparna står inte i try");
 });
 
 test("betaltjänstlagen: ett betalsätt utan kredit står först och fälls ut, Klarna (kredit) står sist och är aldrig förvalt", () => {
