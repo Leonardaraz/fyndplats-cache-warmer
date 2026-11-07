@@ -1,0 +1,17 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek 265 x 265 x 1450 mm utan axelord, och källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar diametern 265 mm (10,43 tum) vid foten och höjden 1450 mm (57,09 tum): texten skriver dem som diameter och höjd
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek 7 x 8,6 x 2,3 tum / 175 x 218 x 58 mm utan axelord, och ingen bild ritar alla tre måtten med axelord: texten skriver raden som Produktmått utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 565 x 480 x 870 mm utan axelord, och källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar höjden 870 mm (34,3 tum), bredden 565 mm (22,2 tum) och djupet 480 mm (18,9 tum): texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Total maskinstorlek 460 x 420 x 465 mm utan axelord, och källans måttbild ritar 460, 405 och 465 mm utan att namnge två av axlarna: texten skriver raden som Total storlek utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Mått på böjd stång 28 x 1,6 x 0,3 tum/710 x 40 x 8 mm utan axelord, och källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar längden 710 mm (28 tum), bredden 40 mm (1,6 tum) och tjockleken 8 mm (0,3 tum): texten skriver längd, bredd och tjocklek ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen rad för stutsens längd, och källans måttbild (position 2 i källgalleriet, inte bland sidans sex bilder) ritar ventilens längd 48 mm (1,89 tum): texten skriver den som stutsens längd
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 1185 x 510 x 500 mm utan axelord: texten skriver raden som Mått utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 330 x 150 x 80 mm utan axelord: texten skriver raden som Mått utan axelord
