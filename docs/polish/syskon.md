@@ -134,6 +134,20 @@ att båda färgerna delar den. Kör `variantbild.yml` direkt efter (varukorgens 
 för de sammanslagna sidorna (`sammanslagna.tsv`) i stället för med `aosom-fargtillagg`, så skrivs alt-texten i samma plan. ☠️ Utan en alt-text som börjar på
 *Måttbild* flyttar `bygg-media.py` bild 3 sist (den gamla regeln): numrera bilderna så att det inte spelar roll.
 
+### Byta en storleks måttbild mot egna foton (2026-11-07, T117)
+
+Stryks en storleks enda länkade bild, till exempel en måttbild vars tal säger emot texten, vägrar `bilder-bort.yml`
+att lämna valet utan bild, och Wix svarar 404 på en länkad bild som lämnar galleriet. Gör i den här ordningen:
+
+1. `polish-write` med de nya bilderna tillagda (hela galleriet i `bilder.tsv`) och måttbilderna kvar. De nya bilderna
+   kommer ur givarnas gallerier (givarens position 1 och 2 är den storlekens egen studiobild och miljöbild).
+2. `bygg-lank.py` utan `--ersatt`, så att varje storlek får sina nya bilder. Länkarna sorteras i galleriordning, så valets
+   första bild blir den nya studiobilden.
+3. `bilder-bort.yml`, torrt först och sedan `skarp=ja` med planens sha i `bekrafta`. Verktyget släpper länkarna, tar bort
+   bilderna och rättar variantbilderna i samma körning (hundburen: galleri 12 → 10, två variantbilder rättade).
+4. Skriv sedan om rundans filer till slutläget (`bilder-bort.tsv` med de struna positionerna, utan deras alt-rader) och bygg om
+   planen, så att en omkörning inte lägger tillbaka måttbilderna.
+
 ## Publicerad givare
 
 Två publicerade sidor för samma vara är en dubblett. Med `omdirigera=ja` görs detta i
