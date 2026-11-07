@@ -81,13 +81,16 @@ export default function Kontakta() {
         </div>
       </section>
 
-      <section className={`om-sektion ${s.formSek}`} id="meddelande">
+      <section className={`om-sektion ${s.formSek}`}>
         <div className={`container ${s.formGrid}`}>
           <div>
             <div className="eyebrow">Formulär</div>
             <h2>Skicka ett meddelande</h2>
             <p className={s.ingress}>Fyll i formuläret så återkommer vi så snart vi kan. Gäller det en produkt? Välj den i formuläret, så ser vi direkt vilken du menar. Har du en pågående order? Ange gärna ditt ordernummer.</p>
-            <div className={s.formKort}>
+            {/* Ankaret sitter på formuläret, inte på sektionen: produktsidans
+                länkar (#meddelande) landar vid Förnamn med "Frågan gäller"
+                synlig i telefonen, i stället för vid rubriken (Leonard 2026-11-07). */}
+            <div className={s.formKort} id="meddelande">
               <ContactForm />
             </div>
           </div>

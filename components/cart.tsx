@@ -26,6 +26,7 @@ import { visaValnamn } from "../lib/variant-lage";
 import { usePanelFokus } from "./use-panel-fokus";
 import { formatPrice } from "../lib/price-range";
 import { arSammaSida, produktLankForRad } from "../lib/kundvagn-lank";
+import { fordelaVantande, nyRadEfterTillagg, vantandeNyckel, type VantandeVara } from "../lib/kundvagn-rad";
 import { PaymentMarks } from "./payment-marks";
 
 const STORES_APP_ID = "215238eb-22a5-4c36-9e7b-e7c08025e04e";
@@ -190,7 +191,7 @@ function persistTokens(client: any) {
  *  den är: helst adressen sidan redan visar, så att den ligger i
  *  webbläsarens cache och syns direkt. */
 export type Forhandsrad = { namn: string; bild?: string; val?: string; prisNum?: number };
-type Vantande = Forhandsrad & { nyckel: number; antal: number };
+type Vantande = Forhandsrad & VantandeVara;
 
 type Ctx = {
   cart: any;
@@ -204,6 +205,9 @@ type Ctx = {
    *  emot dem; lådan öppnas då med varorna. */
   addMany: (rader: { id: string; variantId?: string; antal: number }[]) => Promise<boolean>;
   vantande: Vantande[];
+  /** Radens React-nyckel. Raden som en väntande vara blev behåller den
+   *  väntande radens nyckel, så att samma element står kvar (lib/kundvagn-rad.ts). */
+  radNyckel: (li: any) => string;
   fel: string | null;
   remove: (lineId: string) => Promise<void>;
   updateQty: (lineId: string, quantity: number) => Promise<void>;
@@ -410,16 +414,23 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return () => { aktiv = false; };
   }, [visaVagn]);
 
+  // Raden Wix skapar för en väntande vara får den väntande radens nyckel.
+  // React behåller då samma element: bilden laddas inte om och raden står
+  // still när Wix svarat (mätt 2026-11-07: förut 112 → 140 px och 132 px hopp).
+  const radnycklar = useRef(new Map<string, string>());
+  const radNyckel = useCallback((li: any) => radnycklar.current.get(li?._id) ?? String(li?._id ?? ""), []);
+
   const add = useCallback(async (id: string, variantId?: string, quantity: number = 1, forhand?: Forhandsrad) => {
     const antal = Math.max(1, Math.floor(quantity));
     const nyckel = Date.now() + Math.random();
+    const fore = new Set<string>((cartRef.current?.lineItems || []).map((li: any) => li?._id).filter(Boolean));
     setBusy(true);
     setFel(null);
     setForskottLagd(null);
     // Lådan öppnas i samma bild som trycket, med varan som väntande rad.
-    // Wix svar ersätter raden i samma rendering (React batchar setCart och
-    // borttagningen nedan), så den blinkar inte.
-    if (forhand) { setVantande((v) => [...v, { ...forhand, nyckel, antal }]); setOpen(true); }
+    // Wix svar gör samma rad bekräftad i en och samma rendering (React
+    // batchar setCart och borttagningen nedan, och raden behåller sin nyckel).
+    if (forhand) { setVantande((v) => [...v, { ...forhand, id, variantId, nyckel, antal }]); setOpen(true); }
     try {
       const { client } = await getClient();
       await sakraBesokare(client);
@@ -429,6 +440,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const res: any = await client.currentCart.addLineItemsToCurrentCart({
         catalogItems: [{ catalogReference: ref, quantity: antal }],
       });
+      if (forhand) {
+        const ny = nyRadEfterTillagg(fore, normaliseraKundvagn(res)?.lineItems ?? [], id, variantId);
+        if (ny) radnycklar.current.set(ny, vantandeNyckel(nyckel));
+      }
       visaVagn(res); persistTokens(client); setOpen(true);
       return true;
     } catch {
@@ -603,7 +618,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   // Ett fel står kvar tills lådan stängs, inte till nästa gång den öppnas.
   const oppna = useCallback((b: boolean) => { setOpen(b); if (!b) setFel(null); }, []);
 
-  return <CartCtx.Provider value={{ cart, count, open, setOpen: oppna, add, addMany, vantande, fel, remove, updateQty, checkout, busy, tillKassan, forskottLagd, forskottKlar }}>{children}</CartCtx.Provider>;
+  return <CartCtx.Provider value={{ cart, count, open, setOpen: oppna, add, addMany, vantande, radNyckel, fel, remove, updateQty, checkout, busy, tillKassan, forskottLagd, forskottKlar }}>{children}</CartCtx.Provider>;
 }
 
 export function CartButton() {
@@ -649,15 +664,87 @@ function hamtaForslag(nyckel: string): Promise<Forslagssvar> {
   return lofte;
 }
 
+// Radens bild. En ny adress visas först när bilden har laddats, så att rutan
+// aldrig blir tom: den väntande raden visar galleriets bild ur webbläsarens
+// cache, och Wix bild i 160 px tar ett ögonblick att hämta. Ingen lat
+// laddning: lådan ligger utanför skärmen tills den öppnas, och då skulle
+// bilden börja hämtas först när lådan glider in.
+function RadBild({ src, alt }: { src?: string; alt: string }) {
+  // Adressen som senast laddats klart. Den visas tills den nya är klar.
+  const [laddad, setLaddad] = useState(src);
+  useEffect(() => {
+    if (!src || !laddad || src === laddad) return;
+    let aktiv = true;
+    const ny = new Image();
+    ny.src = src;
+    const byt = () => { if (aktiv) setLaddad(src); };
+    ny.decode().then(byt, byt);
+    return () => { aktiv = false; };
+  }, [src, laddad]);
+  const visad = laddad || src;
+  // eslint-disable-next-line @next/next/no-img-element
+  return visad ? <img className="li-img" src={visad} alt={alt} width={56} height={56} decoding="async" /> : <div className="li-img" />;
+}
+
+type KorgRadProps = {
+  vantar: boolean;
+  bild?: string;
+  namn: string;
+  val: string;
+  pris: string;
+  antal: number;
+  lank?: string;
+  tillProdukt?: (e: ReactMouseEvent<HTMLAnchorElement>) => void;
+  /** Knapparna är låsta (en ändring pågår eller kassan öppnas). */
+  lasta: boolean;
+  minska?: () => void;
+  oka?: () => void;
+  taBort?: () => void;
+};
+
+// En rad i lådan. En väntande och en bekräftad rad är samma element med samma
+// mått: bara knapparnas läge och opaciteten skiljer (.li-vantar i globals.css).
+// Länken är alltid ett a-element, med href först när adressen är känd, så att
+// bilden inte flyttas till ett nytt element när länken kommer.
+function KorgRad({ vantar, bild, namn, val, pris, antal, lank, tillProdukt, lasta, minska, oka, taBort }: KorgRadProps) {
+  const last = lasta || vantar;
+  const klick = lank ? tillProdukt : undefined;
+  return (
+    <div className={vantar ? "li li-vantar" : "li"} aria-busy={vantar || undefined}>
+      <a className="li-lank" href={lank} onClick={klick} tabIndex={-1} aria-hidden="true"><RadBild src={bild} alt={namn} /></a>
+      <div className="li-info">
+        <a className="li-name li-lank" href={lank} onClick={klick}>{namn}</a>
+        {val ? <div className="li-val">{val}</div> : null}
+        <div className="li-meta">{pris}</div>
+        <div className="li-qty">
+          <button className="qbtn" onClick={minska} disabled={last} aria-label="Minska antal">−</button>
+          <span className="qnum">{antal}</span>
+          <button className="qbtn" onClick={oka} disabled={last} aria-label="Öka antal">+</button>
+        </div>
+      </div>
+      <button className="li-x" onClick={taBort} disabled={last} aria-label="Ta bort">Ta bort</button>
+    </div>
+  );
+}
+
 export function CartDrawer() {
-  const { cart, open, setOpen, remove, updateQty, checkout, busy, count, vantande, fel, tillKassan, forskottLagd, forskottKlar } = useCart();
+  const { cart, open, setOpen, remove, updateQty, checkout, busy, count, vantande, radNyckel, fel, tillKassan, forskottLagd, forskottKlar } = useCart();
   const panelRef = useRef<HTMLElement>(null);
-  // En ny vara läggs sist. Rulla dit, så att kunden ser den hamna i lådan.
+  // En ny vara läggs sist. Rulla bara så långt att raden syns, inte till
+  // botten: rullat till botten flyttade förslagen under raderna allt ovanför
+  // när de byttes (mätt 2026-11-07: 132 px).
   const kroppRef = useRef<HTMLDivElement>(null);
   const antalVantande = vantande.length;
   useEffect(() => {
     const k = kroppRef.current;
-    if (antalVantande && k) k.scrollTop = k.scrollHeight;
+    if (!antalVantande || !k) return;
+    const rader = k.querySelectorAll<HTMLElement>(".li[aria-busy]");
+    const rad = rader[rader.length - 1];
+    if (!rad) return;
+    const r = rad.getBoundingClientRect();
+    const kr = k.getBoundingClientRect();
+    if (r.bottom > kr.bottom) k.scrollTop += r.bottom - kr.bottom + 8;
+    else if (r.top < kr.top) k.scrollTop -= kr.top - r.top + 8;
   }, [antalVantande]);
   usePanelFokus(open, panelRef, () => setOpen(false));
   // Samma datum som produktsidan (lib/leveransdatum.ts), räknat när lådan
@@ -668,11 +755,11 @@ export function CartDrawer() {
   const cartIds = new Set<string>(items.map((li) => li?.catalogReference?.catalogItemId).filter(Boolean));
   // Samma varor ger samma nyckel, i vilken ordning de än lades i.
   const forslagNyckel = [...cartIds].sort().join(",");
-  const [forslag, setForslag] = useState<{ nyckel: string } & Forslagssvar>({ nyckel: "", lista: [], lankar: {} });
+  const [forslag, setForslag] = useState<Forslagssvar>({ lista: [], lankar: {} });
   useEffect(() => {
     if (!forslagNyckel) return;
     let aktiv = true;
-    const hamta = () => hamtaForslag(forslagNyckel).then((svar) => { if (aktiv) setForslag({ nyckel: forslagNyckel, ...svar }); });
+    const hamta = () => hamtaForslag(forslagNyckel).then((svar) => { if (aktiv) setForslag(svar); });
     // Öppen varukorg: hämta direkt. Annars när webbläsaren är ledig; äldre
     // Safari saknar requestIdleCallback.
     if (open) {
@@ -687,9 +774,13 @@ export function CartDrawer() {
       else window.clearTimeout(id);
     };
   }, [forslagNyckel, open]);
-  // Högst tre förslag, bara för varukorgen som den ser ut nu och aldrig något
-  // som redan ligger i den (matchas på Wix-katalog-id).
-  const recos = forslag.nyckel === forslagNyckel ? forslag.lista.filter((r) => !cartIds.has(r.id)).slice(0, 3) : [];
+  // Högst tre förslag och aldrig något som redan ligger i varukorgen (matchas
+  // på Wix-katalog-id). Förra förslagen står kvar tills de nya har kommit:
+  // förut försvann listan när en vara lades i och kom tillbaka en stund senare.
+  const recos = forslag.lista.filter((r) => !cartIds.has(r.id)).slice(0, 3);
+  // De väntande varorna: på en befintlig rad (samma vara igen) eller som egen
+  // rad sist, där Wix lägger den nya raden.
+  const { paRad, egna } = fordelaVantande(items, vantande);
   const subtotal = cart?.subtotal?.formattedAmount || cart?.priceSummary?.subtotal?.formattedAmount || "";
   const FREE_SHIP = FREE_SHIPPING_FROM_KR;
   // OBS INFÖR FLERA VALUTOR. Tröskeln är 500 KRONOR, så mätaren måste jämföra
@@ -762,82 +853,74 @@ export function CartDrawer() {
               <a className="cart-empty-cta" href="/butik" onClick={() => setOpen(false)}>Utforska butiken →</a>
             </div>
           ) : (
-            items.map((li) => {
-              const img = liImageUrl(li.image);
-              const name = li.productName?.original || li.productName || "Produkt";
-              // Namnet och bilden leder till produktsidan. Utan känd adress
-              // visas de som förut, utan länk.
-              // En slug hör till sitt produkt-id, så en äldre karta är ofarlig.
-              const lank = produktLankForRad(li, forslag.lankar);
-              // Står kunden redan på sidan och alternativet räcker det att
-              // stänga lådan. Annars laddas samma sida om och inget syns hända.
-              const tillProdukt = (e: ReactMouseEvent<HTMLAnchorElement>) => {
-                const valtPaSidan = document.querySelector(".pdp[data-vald-variant]")?.getAttribute("data-vald-variant");
-                if (lank && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0 && arSammaSida(lank, window.location, valtPaSidan)) {
-                  e.preventDefault();
-                }
-                setOpen(false);
-              };
-              const bild = img ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img className="li-img" src={tightFillUrl(img, 160, 160)} alt={name} loading="lazy" />
-              ) : (
-                <div className="li-img" />
-              );
-              return (
-                <div className="li" key={li._id}>
-                  {lank ? (
-                    <a className="li-lank" href={lank} onClick={tillProdukt} tabIndex={-1} aria-hidden="true">{bild}</a>
-                  ) : bild}
-                  <div className="li-info">
-                    {lank ? (
-                      <a className="li-name li-lank" href={lank} onClick={tillProdukt}>{name}</a>
-                    ) : (
-                      <div className="li-name">{name}</div>
-                    )}
-                    {/* Valt alternativ med samma namn som på produktsidan
-                        (visaValnamn): "Svart · 177 cm". */}
-                    {(() => {
-                      const val = valdaAlternativ(li).map((v) => visaValnamn(v.varde)).filter(Boolean);
-                      return val.length ? <div className="li-val">{val.join(" · ")}</div> : null;
-                    })()}
-                    <div className="li-meta">
-                      {(() => {
-                        // E3: företaget ser radens styckpris exkl. moms, märkt (E3-4).
-                        const r = medlem?.foretag?.rader.find((x) => x.id === li._id);
-                        return r ? `${kronorText(r.pOreExMoms)} exkl. moms` : li.price?.formattedAmount || "";
-                      })()}
-                    </div>
-                    <div className="li-qty">
-                      <button className="qbtn" onClick={() => updateQty(li._id, li.quantity - 1)} disabled={busy || tillKassan} aria-label="Minska antal">−</button>
-                      <span className="qnum">{li.quantity}</span>
-                      <button className="qbtn" onClick={() => updateQty(li._id, li.quantity + 1)} disabled={busy || tillKassan} aria-label="Öka antal">+</button>
-                    </div>
-                  </div>
-                  <button className="li-x" onClick={() => remove(li._id)} disabled={busy || tillKassan} aria-label="Ta bort">Ta bort</button>
-                </div>
-              );
-            })
+            <>
+              {items.map((li) => {
+                const img = liImageUrl(li.image);
+                const name = li.productName?.original || li.productName || "Produkt";
+                // Namnet och bilden leder till produktsidan. Utan känd adress
+                // visas de som förut, utan länk.
+                // En slug hör till sitt produkt-id, så en äldre karta är ofarlig.
+                const lank = produktLankForRad(li, forslag.lankar);
+                // Står kunden redan på sidan och alternativet räcker det att
+                // stänga lådan. Annars laddas samma sida om och inget syns hända.
+                const tillProdukt = (e: ReactMouseEvent<HTMLAnchorElement>) => {
+                  const valtPaSidan = document.querySelector(".pdp[data-vald-variant]")?.getAttribute("data-vald-variant");
+                  if (lank && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0 && arSammaSida(lank, window.location, valtPaSidan)) {
+                    e.preventDefault();
+                  }
+                  setOpen(false);
+                };
+                // Valt alternativ med samma namn som på produktsidan
+                // (visaValnamn): "Svart · 177 cm".
+                const val = valdaAlternativ(li).map((v) => visaValnamn(v.varde)).filter(Boolean).join(" · ");
+                // E3: företaget ser radens styckpris exkl. moms, märkt (E3-4).
+                const fRad = medlem?.foretag?.rader.find((x) => x.id === li._id);
+                // Varan fanns redan och läggs i igen: raden väntar med det nya
+                // antalet i stället för att få en rad till.
+                const extra = paRad.get(li._id) ?? 0;
+                return (
+                  <KorgRad
+                    key={radNyckel(li)}
+                    vantar={extra > 0}
+                    bild={img ? tightFillUrl(img, 160, 160) : undefined}
+                    namn={name}
+                    val={val}
+                    pris={fRad ? `${kronorText(fRad.pOreExMoms)} exkl. moms` : li.price?.formattedAmount || ""}
+                    antal={(li.quantity || 0) + extra}
+                    lank={lank ?? undefined}
+                    tillProdukt={tillProdukt}
+                    lasta={busy || tillKassan}
+                    minska={() => updateQty(li._id, li.quantity - 1)}
+                    oka={() => updateQty(li._id, li.quantity + 1)}
+                    taBort={() => remove(li._id)}
+                  />
+                );
+              })}
+              {/* Varor som inte fanns i lådan, tills Wix svarat. Samma rad som
+                  den bekräftade och samma nyckel som raden Wix skapar, så att
+                  ingenting byts ut när svaret kommer. */}
+              {egna.map((v) => (
+                <KorgRad
+                  key={vantandeNyckel(v.nyckel)}
+                  vantar
+                  bild={v.bild}
+                  namn={v.namn}
+                  val={v.val || ""}
+                  pris={v.prisNum ? formatPrice(v.prisNum) : ""}
+                  antal={v.totalt}
+                  lasta
+                />
+              ))}
+            </>
           )}
-          {vantande.map((v) => (
-            <div className="li li-vantar" key={v.nyckel} aria-busy="true">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              {v.bild ? <img className="li-img" src={v.bild} alt={v.namn} /> : <div className="li-img" />}
-              <div className="li-info">
-                <div className="li-name">{v.namn}</div>
-                {v.val && <div className="li-val">{v.val}</div>}
-                {v.prisNum ? <div className="li-meta">{formatPrice(v.prisNum)}</div> : null}
-                <div className="li-vantar-text">{v.antal > 1 ? `${v.antal} st · ` : ""}Läggs i varukorgen …</div>
-              </div>
-            </div>
-          ))}
+          <p className="sr-only" role="status">{antalVantande ? "Läggs i varukorgen …" : ""}</p>
           {harRader && recos.length > 0 && (
             <div className="cart-recos">
               <div className="cart-recos-head">Komplettera ditt köp</div>
               {recos.map((r) => (
                 <a className="cart-reco" key={r.slug} href={`/produkt/${r.slug}`} onClick={() => setOpen(false)}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  {r.img ? <img className="cart-reco-img" src={tightFillUrl(r.img, 160, 160)} alt={r.name} loading="lazy" /> : <span className="cart-reco-img" />}
+                  {r.img ? <img className="cart-reco-img" src={tightFillUrl(r.img, 160, 160)} alt={r.name} width={48} height={48} decoding="async" /> : <span className="cart-reco-img" />}
                   <span className="cart-reco-info">
                     <span className="cart-reco-name">{r.name}</span>
                     <span className="cart-reco-price">{r.price}</span>
