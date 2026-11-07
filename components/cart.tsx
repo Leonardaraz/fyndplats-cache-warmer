@@ -853,8 +853,11 @@ export function CartDrawer() {
               <a className="cart-empty-cta" href="/butik" onClick={() => setOpen(false)}>Utforska butiken →</a>
             </div>
           ) : (
-            <>
-              {items.map((li) => {
+            // EN lista: React parar bara ihop nycklar bland syskon i samma lista.
+            // Med väntande rader i en egen lista byggdes raden om när Wix svarade
+            // fast nyckeln var densamma (mätt på förhandsbygget 2026-11-07).
+            [
+              ...items.map((li) => {
                 const img = liImageUrl(li.image);
                 const name = li.productName?.original || li.productName || "Produkt";
                 // Namnet och bilden leder till produktsidan. Utan känd adress
@@ -895,11 +898,11 @@ export function CartDrawer() {
                     taBort={() => remove(li._id)}
                   />
                 );
-              })}
-              {/* Varor som inte fanns i lådan, tills Wix svarat. Samma rad som
-                  den bekräftade och samma nyckel som raden Wix skapar, så att
-                  ingenting byts ut när svaret kommer. */}
-              {egna.map((v) => (
+              }),
+              // Varor som inte fanns i lådan, tills Wix svarat. Samma rad som
+              // den bekräftade och samma nyckel som raden Wix skapar, så att
+              // ingenting byts ut när svaret kommer.
+              ...egna.map((v) => (
                 <KorgRad
                   key={vantandeNyckel(v.nyckel)}
                   vantar
@@ -910,8 +913,8 @@ export function CartDrawer() {
                   antal={v.totalt}
                   lasta
                 />
-              ))}
-            </>
+              )),
+            ]
           )}
           <p className="sr-only" role="status">{antalVantande ? "Läggs i varukorgen …" : ""}</p>
           {harRader && recos.length > 0 && (
