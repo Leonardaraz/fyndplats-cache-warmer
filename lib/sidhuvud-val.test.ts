@@ -4,7 +4,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
-  MENY_MAX_ALDER_MS, MENY_VERSION, arMenytrad, harRea, medTidsgrans, menyRadId, radForMeny, tolkaSparadMeny,
+  MENY_MAX_ALDER_MS, MENY_VERSION, arMenytrad, harRea, medTidsgrans, menyRadId, populara, radForMeny, tolkaSparadMeny,
   valjSidhuvud, varforInteSpara, type MenyNod, type SidhuvudKallor,
 } from "./sidhuvud-val.ts";
 
@@ -165,4 +165,37 @@ test("cronen finns, har tid för en kall katalog och står i vercel.json", () =>
   const rad = cfg.crons.find((c) => c.path === "/api/cron/meny");
   assert.ok(rad, "saknar /api/cron/meny i vercel.json");
   assert.match(rad.schedule, /^\d+(,\d+){3} \* \* \* \*$/, "fyra gånger i timmen");
+});
+
+// 404-sidan byggs med VARJE sida (gränsen för notFound() runt layouten), så den
+// får inte heller vänta in katalogen på en ny instans.
+const namn = (n: string) => ({ name: n, slug: n.toLowerCase() });
+
+test("404-sidans kategorier: de första i ordningen, okända sist i bokstavsordning", () => {
+  const trad = ["Ö-okänd", "B", "A-okänd", "C"].map(namn);
+  assert.deepEqual(populara(trad, ["C", "B"]).map((c) => c.name), ["C", "B", "A-okänd", "Ö-okänd"]);
+  assert.deepEqual(populara(trad, ["C", "B"], 2).map((c) => c.name), ["C", "B"]);
+  assert.deepEqual(trad.map((c) => c.name), ["Ö-okänd", "B", "A-okänd", "C"], "trädet självt ändras inte");
+});
+
+test("404-sidan visar samma sex kategorier som förut (MAIN_ORDER ur lib/products.ts)", () => {
+  const m = /export const MAIN_ORDER = \[([\s\S]*?)\];/.exec(kod("./products.ts"));
+  assert.ok(m, "MAIN_ORDER saknas i lib/products.ts");
+  const ordning = [...m[1].matchAll(/"([^"]+)"/g)].map((x) => x[1]);
+  // Menyns 13 huvudkategorier i menyns ordning (den sparade raden 2026-11-07).
+  const meny = [
+    "Hem & Inredning", "Möbler", "Kök & Husgeråd", "Trädgård & Utemöbler", "Bygg & Renovering", "Barn & Familj",
+    "Skönhet & Hälsa", "Husdjur", "Sport & Fritid", "Jul & Högtider", "Verktyg & Maskiner", "Bil & Garage", "Företag & Proffs",
+  ].map(namn);
+  // Det produktionens 404-sida visade 2026-11-07, då ur getCollections().
+  assert.deepEqual(populara(meny, ordning).map((c) => c.name), [
+    "Möbler", "Hem & Inredning", "Kök & Husgeråd", "Trädgård & Utemöbler", "Jul & Högtider", "Barn & Familj",
+  ]);
+});
+
+test("☠️ 404-sidan läser menyn, aldrig katalogen (den byggs med varje sida)", () => {
+  const nf = kod("../app/not-found.tsx").replace(/\/\/.*$/gm, ""); // koden, inte kommentarerna
+  assert.match(nf, /sidhuvudsdata\(\)/);
+  assert.match(nf, /populara\(tree, MAIN_ORDER\)/);
+  assert.doesNotMatch(nf, /getCollections\(|getProducts\(|getCategoryTree\(/);
 });

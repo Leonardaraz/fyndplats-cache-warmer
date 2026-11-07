@@ -249,7 +249,7 @@ Nu (`lib/sidhuvud-val.ts`, `lib/sidhuvud-data.ts`):
   har den fel form eller svarar Wix inte i tid, bygger sidhuvudet ur katalogen
   som förut. Aldrig ett sidhuvud utan meny.
 
-Fyra egenskaper som inte ska tas bort:
+Fem egenskaper som inte ska tas bort:
 
 1. ☠️ **Läsningen görs med `fetch` utan cache-val**, som `lib/popularity.ts`.
    `lib/wix-lager.ts` använder `cache: "no-store"`, och det gör en ISR-sida
@@ -262,6 +262,14 @@ Fyra egenskaper som inte ska tas bort:
    aldrig produktionens rad.
 4. **Raden bär versionen (`v`).** Ändras menyns form ska `MENY_VERSION` höjas,
    så att en gammal rad aldrig tolkas som en ny.
+5. ☠️ **404-sidan läser också `sidhuvudsdata()`, aldrig katalogen.** Next bygger
+   `app/not-found.tsx` med varje sida, också när ingen 404 visas, eftersom den
+   är gränsen för `notFound()` runt hela layouten. När den läste
+   `getCollections()` syntes /konto på en ny instans efter 2 s men blev klar
+   först efter 26 s: strömmen stod öppen tills katalogen var hämtad (mätt på
+   förhandsbygget 2026-11-07, spårat lokalt till `NotFound`). Dess sex
+   kategorier ordnas med `MAIN_ORDER` som förut (`populara()`). Provet fäller
+   en katalogläsning i filen.
 
 En cachad produktsida bär redan i dag ett sidhuvud som kan vara sex timmar
 gammalt, så den färdiga menyns högst 15 minuter ändrar ingenting kunden ser.

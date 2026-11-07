@@ -70,6 +70,23 @@ export function medTidsgrans<T>(lofte: Promise<T | null>, ms: number): Promise<T
   return Promise.race([lofte.catch(() => null), tid]).finally(() => clearTimeout(timer));
 }
 
+/**
+ * 404-sidans "Populära kategorier": menyns huvudkategorier i ordningen ur
+ * lib/products.ts (MAIN_ORDER), de okända sist i bokstavsordning, och de första
+ * `antal`. Samma sortering som getCollections() gjorde när 404-sidan läste den.
+ */
+export function populara<T extends { name: string }>(tree: readonly T[], ordning: readonly string[], antal = 6): T[] {
+  return [...tree]
+    .sort((a, b) => {
+      const ia = ordning.indexOf(a.name), ib = ordning.indexOf(b.name);
+      if (ia !== -1 && ib !== -1) return ia - ib;
+      if (ia !== -1) return -1;
+      if (ib !== -1) return 1;
+      return a.name.localeCompare(b.name, "sv");
+    })
+    .slice(0, antal);
+}
+
 /** Något nedsatt som går att köpa? Annars leder REA-knappen till en tom lista. */
 export function harRea(produkter: readonly { onSale?: boolean; inStock?: boolean }[]): boolean {
   return produkter.some((p) => Boolean(p.onSale && p.inStock));

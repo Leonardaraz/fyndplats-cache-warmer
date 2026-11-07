@@ -1492,7 +1492,7 @@ export type Collection = { id: string; name: string; slug: string; parentId: str
 // i vilken ordning mixByCategory blandar kategorierna. VEVOR-trädet 2026-10-31
 // döpte om Verktyg & Fordon till Verktyg & Maskiner och lade till tre
 // avdelningar sist, så att de räknas som avdelningar före underkategorierna.
-const MAIN_ORDER = [
+export const MAIN_ORDER = [
   "Möbler", "Hem & Inredning", "Kök & Husgeråd", "Trädgård & Utemöbler", "Jul & Högtider",
   "Barn & Familj", "Husdjur", "Sport & Fritid", "Skönhet & Hälsa", "Verktyg & Maskiner",
   "Bygg & Renovering", "Bil & Garage", "Företag & Proffs",
