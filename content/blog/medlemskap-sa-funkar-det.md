@@ -2,7 +2,7 @@
 title: "Bli medlem hos Fyndplats: så funkar ditt konto – för dig och för företag"
 seo_title: "Medlemskap hos Fyndplats – så funkar det"
 slug: medlemskap-sa-funkar-det
-meta_description: "Bli medlem hos Fyndplats gratis och utan lösenord. Dina köp, paket och kvitton på ett ställe, sex nivåer – och ett företagskonto som öppnar snart."
+meta_description: "Bli medlem hos Fyndplats gratis och utan lösenord. Ditt eget medlemspris, dina köp och paket på ett ställe, sex nivåer – och ett företagskonto."
 primary_keyword: medlemskap
 category: Nyheter
 publish_date: 2026-11-07
@@ -15,7 +15,7 @@ alt: "Tre medlemskort från Fyndplats i silver, guld och svart, under rubriken B
 
 # Bli medlem hos Fyndplats: så funkar ditt konto – för dig och för företag
 
-Nu kan alla som handlar hos oss skapa ett medlemskonto. Det är gratis, och det finns inget lösenord att hålla reda på: du loggar in med en kod som vi mejlar. På **Mina sidor** samlas dina ordrar, paketen du väntar på, dina kvitton och din medlemsnivå. Köp du redan har gjort under det senaste året räknas direkt.
+Nu kan alla som handlar hos oss skapa ett medlemskonto. Det är gratis, och det finns inget lösenord att hålla reda på: du loggar in med en kod som vi mejlar. På **Mina sidor** samlas dina ordrar, paketen du väntar på, dina kvitton och din medlemsnivå. Köp du redan har gjort under det senaste året räknas direkt. Från Silver och uppåt får du dessutom ett eget medlemspris på det mesta i sortimentet.
 
 [![Så blir du medlem i tre steg: skriv din e-post, skriv koden från mejlet, och Mina sidor öppnas med ditt medlemskort](/blog-medlemskap-steg.webp)](/konto "Bli medlem – det tar en minut")
 
@@ -46,7 +46,7 @@ Sedan är du inloggad i 90 dagar på telefonen eller datorn du använde, och ti
 
 Alla medlemmar börjar på Brons. Sedan räknar vi ihop vad du har handlat för de senaste 365 dagarna, och nivån följer med av sig själv. Du behöver inte samla poäng eller lösa in något.
 
-| Nivå | Handlat de senaste 365 dagarna | Medlemsrabatt när medlemspriserna startar |
+| Nivå | Handlat de senaste 365 dagarna | Medlemsrabatt |
 |---|---|---|
 | Brons | alla medlemmar | – |
 | Silver | från 2 000 kr | 1 % |
@@ -62,15 +62,19 @@ Så räknas det:
 - **Returer räknas av.** Får du pengar tillbaka minskar summan med lika mycket.
 - **Vi säger till.** Du får ett mejl när du når en ny nivå och två veckor innan din nivå skulle sjunka. Mejlen om nivån kan du stänga av när du vill.
 
-## Medlemspriser – snart i kassan
+## Ditt medlemspris – på varan, i varukorgen och i kassan
 
-Din nivå räknas redan nu, men medlemspriserna är inte igång än. När de startar visas ditt medlemspris på varorna, i varukorgen och i kassan, och rabatten följer din nivå enligt tabellen. Den gäller det mesta i sortimentet, men inte reavaror eller Fyndauktionen, och den går inte att kombinera med rabattkoder. På vissa varor kan rabatten bli lägre än nivåns, och det ser du på varan innan du handlar.
+[![Produktsidan för en espressomaskin med priset 1 259 kr och under det en grön ruta: Ditt medlemspris 1 221,23 kr, Platina 3 %, lägsta pris de senaste 30 dagarna 1 259 kr](/blog-medlemskap-medlemspris.webp)](/konto "Logga in och se ditt pris")
 
-## Företagskonto – öppnar snart
+När du är inloggad ser du ditt medlemspris direkt på varan, i din nivås färg, och samma pris i varukorgen och i kassan. Rabatten följer din nivå enligt tabellen och gäller det mesta i sortimentet, men inte reavaror eller Fyndauktionen. Den går inte att kombinera med rabattkoder. På vissa varor kan rabatten bli lägre än nivåns, och då står det på varan innan du handlar.
+
+*Bilden visar ett exempel för en Platina-medlem.*
+
+## Företagskonto – handla som ditt företag
 
 [![Företagskontot: kontroll mot Bolagsverket, priser exklusive moms, offert på större köp, och faktura och kvitto med företagets namn](/blog-medlemskap-foretag.webp)](/villkor/foretag "Läs företagsvillkoren")
 
-Handlar du till jobbet? Snart kan du koppla ett företag till ditt konto och handla som företaget, med samma inloggning.
+Handlar du till jobbet? Koppla ett företag till ditt konto och handla som företaget, med samma inloggning.
 
 - **Ansök på Mina sidor** med organisationsnumret. Vi kontrollerar uppgifterna mot Bolagsverket direkt, så ett aktivt bolag godkänns på några sekunder. En enskild firma går vi igenom för hand.
 - **Priser exklusive moms** när du handlar som företaget. I kassan läggs momsen på, och det är det beloppet som betalas.
@@ -79,7 +83,7 @@ Handlar du till jobbet? Snart kan du koppla ett företag till ditt konto och han
 - **Kort, Klarna eller förskottsfaktura.** Förskottsfakturan betalas inom 10 dagar, och varorna skickas när betalningen har kommit in.
 - **Kvitto och faktura med företagets namn**, och för ett bolag också organisationsnumret.
 
-Företagskontot öppnar tillsammans med medlemspriserna. Villkoren kan du läsa redan nu: [företagsvillkoren](/villkor/foretag).
+Villkoren för företagskontot finns i [företagsvillkoren](/villkor/foretag).
 
 ## Dina uppgifter
 
@@ -102,11 +106,11 @@ Det du betalade för varorna de senaste 365 dagarna, utan frakt. Ett köp räkn
 ### Kan min nivå sjunka?
 Ja, när köpen som håller uppe den blir äldre än ett år. Vi mejlar två veckor innan, och när det närmar sig ser du på Mina sidor hur mycket som behövs för att behålla nivån.
 
-### När kommer medlemspriserna?
-De är inte igång än. När de startar syns ditt medlemspris direkt på varorna, i varukorgen och i kassan.
+### Var ser jag mitt medlemspris?
+Logga in, så syns ditt medlemspris direkt på varorna, i varukorgen och i kassan. Medlemspriset börjar på nivån Silver.
 
 ### Kan mitt företag bli medlem?
-Företagskontot öppnar snart, tillsammans med medlemspriserna. Har du redan ett konto ansöker du på Mina sidor när det har öppnat.
+Ja. Logga in och ansök på Mina sidor med organisationsnumret. Ett aktivt bolag godkänns direkt efter kontrollen hos Bolagsverket, och en enskild firma går vi igenom för hand.
 
 ### Hur tar jag bort mitt konto?
 Mejla info@fyndplats.com så tar vi bort det. Dina ordrar finns kvar, som bokföringslagen kräver.
