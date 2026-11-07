@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { CartButton } from "./cart";
 import { KontoFotLank, KontoLank } from "./konto-lank";
 import { ProfilRemsa } from "./profil-remsa";
@@ -41,13 +42,10 @@ const INTRO_EN_GANG =
   "sessionStorage.setItem('fp-intro','1')}catch(e){}";
 
 export async function SiteHeader() {
-  // Menyn (utan antal) och REA-knappen. REA-knappen döljs tills något faktiskt
-  // ÄR nedsatt och i lager, annars leder den till en tom lista. En varm instans
-  // bygger dem ur katalogen; en kall läser dem ur datacachen, för en dynamisk
-  // sida som /konto eller /tack väntade förr in hela katalogen, 21,5 s
-  // (lib/sidhuvud-data.ts).
-  const [{ tree, hasSale }, poster] = await Promise.all([sidhuvudsdata(), getPosts()]);
-  const hasBlog = poster.length > 0; // dölj blogg-länk tills det finns inlägg
+  // Blogglänken döljs tills det finns inlägg. Inläggen är lokala filer och ett
+  // Wix-anrop och går fort. Katalogen gör det inte: menyerna strömmas därför in
+  // för sig (Menyer nedan), och resten av sidan väntar aldrig på dem.
+  const hasBlog = (await getPosts()).length > 0;
   return (
     <>
       {/* Startsidans inledningsanimation bara första sidan i besöket. Kom
@@ -75,20 +73,41 @@ export async function SiteHeader() {
           <KontoLank />
           <WishlistButton />
           <CartButton />
-          <MobileNav tree={tree} hasBlog={hasBlog} hasSale={hasSale} />
+          <Suspense fallback={<MobileNav hasBlog={hasBlog} />}>
+            <Menyer del="mobil" hasBlog={hasBlog} />
+          </Suspense>
         </div>
         {/* Egen sökrad på mobil — alltid synlig högt upp, utan att öppna menyn */}
         <div className="hsearch-mobile">
           <div className="container"><SearchBox /></div>
         </div>
         <div className="container hnav">
-          {/* Trädet utan antal: siffrorna hämtas i webbläsaren, annars blir varje
-              sida "ny" så fort ett antal ändras (lib/meny-antal.ts). */}
-          <MegaNav tree={tree} hasBlog={hasBlog} hasSale={hasSale} />
+          <Suspense fallback={<MegaNav tree={[]} hasBlog={hasBlog} />}>
+            <Menyer del="dator" hasBlog={hasBlog} />
+          </Suspense>
         </div>
       </header>
     </>
   );
+}
+
+/**
+ * Menyerna med katalogens träd och REA-knappen, strömmade in efter resten av
+ * sidan. ☠️ På en kall instans tar katalogen cirka 20 s, och när sidhuvudet
+ * väntade in den väntade hela sidan: 21,5 s för Mina sidor
+ * (lib/sidhuvud-data.ts). Under tiden står menyknappen och menyraden med de
+ * fasta länkarna. En ISR-sida väntar ändå in allt innan den sparas, så den
+ * sparade sidan har alltid hela menyn.
+ *
+ * REA-knappen döljs tills något faktiskt ÄR nedsatt och i lager, annars leder
+ * den till en tom lista. Trädet är utan antal: siffrorna hämtas i webbläsaren,
+ * annars blir varje sida "ny" så fort ett antal ändras (lib/meny-antal.ts).
+ */
+async function Menyer({ del, hasBlog }: { del: "mobil" | "dator"; hasBlog: boolean }) {
+  const { tree, hasSale } = await sidhuvudsdata();
+  return del === "mobil"
+    ? <MobileNav tree={tree} hasBlog={hasBlog} hasSale={hasSale} />
+    : <MegaNav tree={tree} hasBlog={hasBlog} hasSale={hasSale} />;
 }
 
 export async function SiteFooter() {

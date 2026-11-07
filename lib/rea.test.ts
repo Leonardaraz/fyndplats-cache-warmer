@@ -22,7 +22,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { saleProducts, REA_TITLE, REA_H1, REA_META_DESC, REA_INTRO, reaLede } from "./rea.ts";
-import { harRea } from "./sidhuvud-val.ts";
+import { harRea } from "./sidhuvud-rea.ts";
 
 // ── 1. Urvalet ──────────────────────────────────────────────────────────
 test("bara nedsatta OCH köpbara varor är fynd", () => {
@@ -46,7 +46,7 @@ test("tom katalog ger tom lista, inte ett kast", () => {
 });
 
 test("urvalsregeln är identisk med REA-knappens i navigationen", () => {
-  // Sidhuvudet avgör om knappen alls visas, med harRea i lib/sidhuvud-val.ts
+  // Sidhuvudet avgör om knappen alls visas, med harRea i lib/sidhuvud-rea.ts
   // (sedan 2026-11-07; förut en rad i components/site.tsx). Divergerar reglerna
   // leder knappen till en tom sida, så de prövas mot varandra för varje
   // kombination av fälten, saknade fält inräknade.
