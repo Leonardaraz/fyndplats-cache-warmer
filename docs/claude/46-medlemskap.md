@@ -89,9 +89,13 @@ motorn behöver veta:
   text, och skrivs till `FyndplatsMedlemslogg` med före- och efterläge
   (E1-11). En manuell nivå gäller i stället för den räknade, till och med sitt
   slutdatum om ett sådant anges.
-- Borttagning tar bort kontot och profilen. Orderliggaren står kvar, eftersom
-  den bär ordrarna och inget konto, och loggen får bara den maskerade
-  adressen.
+- Borttagning tar bort kontot, profilerna, nivåbytena, inloggningsförsöken
+  (adressen i klartext), de sparade varukorgarna och offerterna som aldrig
+  blev betalda. Orderliggaren, prisbesluten och en betald offert står kvar,
+  eftersom de är underlag för ordrar (bokföringslagen), och loggen får bara
+  den maskerade adressen. Allt utom kontot och profilerna tas bort först:
+  faller det står kontot kvar, så att ett nytt försök hittar allt
+  (2026-11-04, korgarna och offerterna 2026-11-05).
 - Skyddet är det som gäller för hela `/admin` (Basic Auth och Vercels
   skydd). Tvåfaktor krävs av specen före E2.
 
@@ -109,13 +113,148 @@ motorn behöver veta:
 - Återbetalningarnas varuvärde per rad finns bara i Order Transactions
   (`summary.breakdown.lineItems`), inte på ordern.
 
+## E2: golvet ur motorn (`/api/medlem/golv`)
+
+Butikens prismotor (headless-site `lib/medlem/pris.ts`) ger aldrig ett radpris
+under golvet G = C × 1,10 × 1,25 [P6]. Kostnaden C finns bara i motorns
+mappningar, så butiken frågar motorn (`POST /api/medlem/golv`, logiken i
+`lib/medlem/golv.ts`).
+
+- ☠️ **Svaret bär kostnaden**, för prisbeslutsloggen. Bara
+  `Authorization: Bearer REVIEW_INGEST_SECRET`, `Cache-Control: no-store`, och
+  loggraden bär bara antal.
+- ☠️ **C är exklusive moms, men husets `landedCostSek` är INKLUSIVE moms**
+  (`lib/pricing/konkurrentregel.ts`, `margin-bands.ts`). C = landedCostSek /
+  1,25, uppåt till öre, alltså G = landedCostSek × 1,10. Första versionen
+  (#881) lade på momsen två gånger: golvet låg 25 % för högt, över listpriset
+  på alla 272 varor i lager som mättes på förhandslänken 2026-11-06, och ingen
+  fick medlemspris. Provet i `golv.test.ts` fäller dubbelmomsen.
+- **G avrundas uppåt till hela kronor**, så att ett medlemspris som stannar på
+  golvet inte visar C på öret. Formeln står i ett publikt repo.
+- **Inget golv, och därmed inget medlemspris, för:**
+  - AliExpress, där kostnaden fryser vid importen;
+  - en levande fyndauktion, som äger priset;
+  - en produkt med `ejMedlemspris: true` i mappningen. Flaggan sätts och tas
+    bort på `/admin/medlemmar` (`#ej-medlemspris`, `lib/medlem/ej-medlemspris.ts`)
+    med orsakskod, och bara fältet ändras (`patcha`), aldrig hela raden, så
+    att synkens fält inte skrivs över. En saknad mappning skapas aldrig;
+  - en variant utan känd kostnad.
+- **Matchar inte varianten** används den högsta kostnaden bland produktens
+  varianter, och bara om alla har en kostnad.
+- **Kan auktionerna eller mappningarna inte läsas** svarar rutten 503, och
+  butiken visar listpriset.
+- Företagen (E3) får det högsta av nivån och ordertrappan, aldrig båda
+  (Leonards ja 2026-11-04). Det räknas i butiken; golvet är detsamma.
+
+## E3: företagen i kön (motorn)
+
+- Kön "Företag att granska" står överst på `/admin/medlemmar` (ankaret
+  `#foretag`, som butikens mejl till info@ länkar till). Den läser
+  `FyndplatsMedlemsprofiler` med `typ: "foretag"` och `status: "granskas"`,
+  äldst först (index `typ-status-ansokt`).
+- Butiken skriver ansökan (`<medlemsId>__foretag`); motorn skriver bara
+  beslutet: `aktiv` (godkänt), `nekad`, eller återkallat (aktiv → nekad). Varje
+  beslut kräver orsakskod och text (orsakskoden `bolagsverket` finns för
+  godkännandet) och skrivs med villkoret att läget är detsamma som när sidan
+  lästes, så att två admins inte skriver över varandra.
+- **Bolagsverkets uppslag görs i butiken** när ansökan skickas (butikens
+  `lib/medlem/bolagsverket.ts`, 2026-11-06). Ett företag som Bolagsverket visar
+  som aktivt godkänns direkt med det registrerade namnet (`beslutAv:
+  "bolagsverket"`); kön visar då "Godkänt direkt" och kan återkalla. Allt annat
+  kommer hit med Bolagsverkets besked i fältet `bolagsverket` (hittat men
+  avregistrerat, förfarande, finns inte, uppslaget föll), och kontrolleras för
+  hand. Profiler från före uppslaget saknar fältet.
+- ☠️ En enskild firmas organisationsnummer är ett personnummer. Hela numret
+  syns bara på admin-sidan; loggen får namnet och formen, aldrig numret.
+- Mejlet "Ditt företagskonto är godkänt" skickas av butikens timjobb
+  (`/api/cron/medlemskorgar`, kl :41), inom en timme. Motorn har varken
+  butikens mejlnyckel eller någon hemlig rutt i butiken.
+- Sök fungerar också på organisationsnummer (tio eller tolv siffror, med
+  eller utan bindestreck). Kontots borttagning tar också företagsprofilen.
+- **Offerterna** (`#offerter`, `lib/medlem/offert-admin.ts`): butiken skriver
+  förfrågan i `FyndplatsOfferter` (ADMIN) från varukorgen när korgen har 6
+  exemplar av samma vara eller 20 000 kr exkl. moms (F7). Admin sätter
+  styckpriset inkl. moms per rad. ☠️ Golvet räknas om vid sparandet med samma
+  räkning som `/api/medlem/golv`: aldrig under golvet, aldrig över
+  listpriset, och en vara utan golv får bara listpriset
+  (`lib/medlem/offertpriser.ts`). Offerten gäller i 14 dygn. Butikens
+  timjobb mejlar kunden, märker den betald när kassan blev en order och
+  utgången efter sista dagen. Loggen får antal rader, aldrig priser.
+
+- **Förskottsfakturan** (villkoren 5.1, Leonards svar 3.3 2026-11-05): inget
+  Wix-API slår på ett betalsätt, och manuell betalning i panelen syns för alla
+  kunder. Butiken skapar därför en obetald handlagd order åt ett godkänt
+  företag (`POST /ecom/v1/orders`, `BACKOFFICE_MERCHANT`, `NOT_PAID`) med
+  `Förskottsfaktura.` först i ordernoteringen. Motorn känner igen den
+  (`arForskottsorder`, `lib/orders/faktura.ts`):
+  - fakturan går ut som för andra fakturaordrar, men förfaller efter högst
+    10 dagar (`FORSKOTT_DAGAR`), heter Förskottsfaktura och säger att
+    varorna skickas när betalningen har kommit in;
+  - ☠️ webhooken skapar inga leverantörsuppgifter medan ordern är obetald
+    (`vantarPaForskottsbetalning`, samma betalstatusar som vakten);
+  - när Leonard markerar ordern betald i Wix skickar timcronen kvittot och
+    skapar uppgifterna i samma steg (`efterBetalning` i faktura-kor, samma
+    `deriveTasks` som återhämtningen). Ett fel där syns som `typ: "uppgifter"`
+    i svaret. Återhämtningens egna 14 dygn är nätet under, och fakturakörningen
+    ser 120 dygn bakåt, så en sent markerad betalning hittas ändå.
+
+- **Kvittot med företagets namn för kort och Klarna** (villkoren 5.2: "Kvitto
+  och faktura med köparens namn och adress, och för ett bolag
+  organisationsnumret, skickas med e-post"; byggt 2026-11-05). Butikens kassa
+  sparar företaget på prisbeslutet i `FyndplatsPrisbeslut` när kunden går
+  till kassan: `foretagNamn`, `foretagFaktura` (gata, postnr, ort) och för
+  ett bolag `foretagOrgnr` (butikens `foretagPaBeslut`). Timcronen
+  `/api/cron/faktura` tar varje betald order ur kassan från och med
+  `KASSAKVITTO_FRAN` (`arKassakop`), slår upp köpflödena 50 åt gången på
+  indexet `purchaseFlowId` och mejlar kvittot för de köp som har ett företag
+  (`byggKassakvitto`): samma PDF som fakturaordrarnas kvitto, med ordernumret,
+  köpets dag och företaget som köpare. Inom en timme från köpet; webhooken rör
+  bara fakturaordrar.
+  - ☠️ Organisationsnumret kommer bara ur beslutet, och bara ett bolags
+    (`arJuridisktOrgnr`: siffra tre och fyra minst 20). Ett nummer i kundens
+    ordernotering läses aldrig för ett köp i kassan, och en enskild firmas
+    personnummer skrivs aldrig ut, även om det skulle stå på beslutet.
+  - Samma utskickslogg som kvittot (typen `kvitto`), så kvittot går ut en
+    gång. Ett läsfel i prisbesluten ger `typ: "kassakvitto"` i svaret och
+    stoppar inte fakturorna.
+  - ☠️ Fälten heter likadant i båda repona (`foretagUrBeslut` här,
+    `foretagPaBeslut` i butiken). Byt aldrig namn på ett av dem i bara det ena.
+  - Provet: `{ lage: "prov", order: "<nummer>" }` i `/api/admin/faktura`
+    skickar kvittot till den interna larmadressen med [Prov].
+
+- **Kvittot på Mina sidor** (`POST /api/medlem/kvitto { ordernummer, epost }`,
+  byggt 2026-11-05): butikens "Kvitto (PDF)" hämtar PDF:en härifrån, med
+  butikens hemlighet (`REVIEW_INGEST_SECRET`, samma kontroll som golvet).
+  `kvittoForArkiv` avgör:
+  - ☠️ bara köparens egen order: e-posten på ordern ska vara den butiken
+    skickar, annars 404 `inte-din` utan PDF;
+  - bara en betald order som inte är avbruten (409 `obetald` eller
+    `avbruten`);
+  - ett köp i kassan får kvittot med köpets dag, som företag när prisbeslutet
+    säger det (uppslaget görs bara för köparens egen betalda order);
+  - en fakturaorder får kvittot bara när det redan har mejlats, med samma
+    datum (409 `inget-kvitto` annars).
+  Svaret har `Cache-Control: no-store`, och ingen loggrad bär e-post eller
+  ordernummer.
+
+- **Sparade varukorgar** (byggt 2026-11-05 i butiken, `lib/medlem/sparade.ts`):
+  medlemmen sparar varukorgen under ett namn på Mina sidor och lägger den i
+  varukorgen igen med ett tryck. Kollektionen `FyndplatsSparadeKorgar` (ADMIN,
+  indexet `medlem-skapad`: `medlemsId` stigande, `skapad` fallande) har
+  `medlemsId`, `namn`, `rader` (produkt, variant, antal och namn, aldrig pris)
+  och `skapad`. Butiken skriver och läser den; motorn rör den bara när ett
+  konto tas bort (`taBortKonto`, `MEDLEM_KOL.sparade`). Att spara följer
+  växeln för E2/E3, eftersom integritetstexten för E1 inte nämner korgarna.
+
 ## Kvar till E2
 
 - Leonards svar på P4–P8 (aktuellt pris, kupong, golv, fri frakt-skydd,
   visning av listpriset).
 - J1, frågan till Konsumentverket, och beslut om tvåfaktor för admin.
-- Produktflaggorna (inget medlemspris för fyndauktionens varor och
-  AliExpress-varor, vars kostnad fryser vid importen) och golvpriset per
-  variant från en hemlig motorrutt.
 - Integritetstexten (J4) ska vara publicerad innan läget `pa`. Utkastet står i
-  butikens `docs/medlemskap-integritetstext-utkast.md`.
+  butikens `docs/medlemskap-integritetstext-utkast.md`. Tillägget för E2 och
+  E3 (prisbeslut, företag, offerter, sparade varukorgar och kakan
+  `fp_medlem_inne`) står i `docs/medlemskap-integritetstext-e2-e3-utkast.md`
+  och ska stå på sidan när E2 mergas.
+- Prisbesluten sparas i sju år (D1). Ett jobb som tar bort äldre beslut är
+  inte byggt; första raden att ta bort är från 2033.

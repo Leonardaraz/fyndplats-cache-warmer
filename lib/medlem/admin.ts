@@ -13,16 +13,23 @@
 // som är inloggad i admin; det är allt.
 
 import { createHash, randomUUID } from "node:crypto";
-import { allaRader, fraga, hamta, infoga, patcha, satt, spara, taBort, taBortFalt } from "@/lib/db/wix-data-klient";
+import { allaRader, fraga, hamta, infoga, patcha, satt, spara, taBort, taBortFalt, taBortManga } from "@/lib/db/wix-data-klient";
 
 export const MEDLEM_KOL = {
   medlemmar: "FyndplatsMedlemmar",
   profiler: "FyndplatsMedlemsprofiler",
+  inloggningar: "FyndplatsInloggningar",
   orderliggare: "FyndplatsOrderliggare",
   nivaer: "FyndplatsMedlemsnivaer",
   regler: "FyndplatsMedlemsregler",
   logg: "FyndplatsMedlemslogg",
   installningar: "FyndplatsButikInstallningar",
+  /** Butikens prisbeslut per låst varukorg; motorn läser företaget till kvittot (faktura-deps.ts). */
+  prisbeslut: "FyndplatsPrisbeslut",
+  /** Butikens sparade varukorgar (E3); de går med kontot. */
+  sparade: "FyndplatsSparadeKorgar",
+  /** Offerterna (E3, offert-admin.ts). De som aldrig blev betalda går med kontot. */
+  offerter: "FyndplatsOfferter",
 } as const;
 
 /** Raderna i butikens inställningar: växeln och orderliggarens tillstånd. */
@@ -30,12 +37,14 @@ export const VAXEL_ID = "medlemskap";
 export const LIGGARE_ID = "medlemsliggare";
 
 export const ORSAKSKODER = {
+  bolagsverket: "Företaget kontrollerat hos Bolagsverket",
   kompensation: "Kompensation (reklamation eller försening)",
   felrakning: "Fel i orderliggaren eller nivån",
   kundtjanst: "Kundtjänstbeslut",
   missbruk: "Missbruk av villkoren",
   radering: "Kundens begäran om radering",
   lansering: "Lansering eller avstängning",
+  prissattning: "Prissättning (marginal eller avtal med leverantören)",
   ovrigt: "Övrigt",
 } as const;
 export type Orsakskod = keyof typeof ORSAKSKODER;
@@ -90,10 +99,25 @@ export function lasManuellNiva(niva: unknown, till: unknown, idag: string): { ni
 
 export type Rad = Record<string, unknown>;
 
-/** Medlemmen för en e-post eller ett ordernummer, och e-posten som söktes. */
+/** "NNNNNN-NNNN" ur tio eller tolv siffror, med eller utan bindestreck; annars null. */
+export function orgnrForSok(q: string): string | null {
+  const rent = q.replace(/[\s-]/g, "");
+  if (!/^(\d{10}|\d{12})$/.test(rent)) return null;
+  const tio = rent.length === 12 ? rent.slice(2) : rent;
+  return `${tio.slice(0, 6)}-${tio.slice(6)}`;
+}
+
+/** Medlemmen för en e-post, ett ordernummer eller ett organisationsnummer (E3), och e-posten som söktes. */
 export async function sokMedlem(q: string): Promise<{ epost: string | null; medlem: Rad | null }> {
   const epost = normaliseraEpost(q);
   if (epost) return { epost, medlem: await hamta(MEDLEM_KOL.medlemmar, medlemsId(epost)) };
+  const orgnr = orgnrForSok(q);
+  if (orgnr) {
+    const [profil] = await fraga<Rad>(MEDLEM_KOL.profiler, { filter: { typ: "foretag", orgnr }, limit: 1 });
+    const medlem = typeof profil?.medlemsId === "string" ? await hamta<Rad>(MEDLEM_KOL.medlemmar, profil.medlemsId) : null;
+    const e = typeof medlem?.epost === "string" && medlem.epost ? medlem.epost : null;
+    return { epost: e, medlem };
+  }
   const nummer = q.trim().replace(/^#/, "");
   if (!/^\d{3,10}$/.test(nummer)) return { epost: null, medlem: null };
   const [rad] = await fraga<Rad>(MEDLEM_KOL.orderliggare, { filter: { ordernummer: nummer }, limit: 1 });
@@ -126,10 +150,68 @@ export async function oversikt(): Promise<{ lage: Lage; liggare: Rad | null; med
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Företagen (E3): kön och beslutet
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Butikens id för kontots företagsprofil (lib/medlem/foretag.ts i butiken). */
+export const foretagsprofilId = (medlem: string) => `${medlem}__foretag`;
+
+export type Foretagsbeslut = "aktiv" | "nekad";
+
+/** Företag som väntar på granskning, äldst först, med kontots e-post. */
+export async function foretagsko(antal = 50): Promise<{ profil: Rad; epost: string }[]> {
+  const profiler = await fraga<Rad>(MEDLEM_KOL.profiler, {
+    filter: { $and: [{ typ: "foretag" }, { status: "granskas" }] },
+    sort: [{ fieldName: "ansokt", order: "ASC" }],
+    limit: antal,
+  });
+  return Promise.all(
+    profiler.map(async (profil) => {
+      const m = typeof profil.medlemsId === "string" ? await hamta<Rad>(MEDLEM_KOL.medlemmar, profil.medlemsId) : null;
+      return { profil, epost: typeof m?.epost === "string" ? m.epost : "" };
+    }),
+  );
+}
+
+export function foretagFor(medlem: string): Promise<Rad | null> {
+  return hamta<Rad>(MEDLEM_KOL.profiler, foretagsprofilId(medlem));
+}
+
+/**
+ * Godkänner eller nekar ett företag, eller återkallar ett godkännande (aktiv →
+ * nekad). Beslutet skrivs bara om profilen fortfarande har läget som lästes
+ * (villkoret), så att två admins inte skriver över varandra. Butikens timjobb
+ * mejlar kunden om ett godkännande inom en timme.
+ *
+ * ☠️ Loggen får namnet och formen, aldrig numret: för en enskild firma är det
+ * ett personnummer.
+ */
+export async function beslutaForetag(medlem: string, beslut: Foretagsbeslut, orsak: Orsak): Promise<string> {
+  const fore = await foretagFor(medlem);
+  if (!fore || fore.typ !== "foretag") return "Kontot har inget företag.";
+  const forut = String(fore.status ?? "");
+  if (forut === beslut) return beslut === "aktiv" ? "Företaget är redan godkänt." : "Företaget är redan nekat.";
+  const tid = new Date().toISOString();
+  const u = await patcha(MEDLEM_KOL.profiler, foretagsprofilId(medlem), [satt("status", beslut), satt("beslutad", tid)], { status: forut });
+  if (u !== "applied") return "Någon annan ändrade företaget samtidigt. Ladda om sidan.";
+  await logga({
+    omrade: "foretag",
+    typ: beslut === "aktiv" ? "foretag-godkant" : forut === "aktiv" ? "foretag-aterkallat" : "foretag-nekat",
+    medlemsId: medlem,
+    fore: { status: forut, namn: String(fore.namn ?? ""), form: String(fore.form ?? "") },
+    efter: { status: beslut },
+    orsakKod: orsak.kod,
+    orsakText: orsak.text,
+  });
+  return "ok";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Manuella ändringar (E1-11)
 // ─────────────────────────────────────────────────────────────────────────────
 
-async function logga(h: Rad): Promise<void> {
+/** En rad i FyndplatsMedlemslogg från admin (E1-11). */
+export async function logga(h: Rad): Promise<void> {
   const tid = new Date().toISOString();
   await infoga(MEDLEM_KOL.logg, `l_${tid.replace(/[^0-9]/g, "")}_${randomUUID().slice(0, 8)}`, { ...h, aktor: "admin", tid });
 }
@@ -172,21 +254,46 @@ export async function sattSparr(id: string, sparrad: boolean, orsak: Orsak): Pro
 }
 
 /**
- * Tar bort kontot på kundens begäran. Orderliggaren står kvar: den bär
- * ordrarna, som bokföringslagen kräver, och inget konto. Loggen får bara den
- * maskerade adressen.
+ * Tar bort kontot på kundens begäran: medlemmen, profilerna (privat och
+ * företag), nivåbytena (id och
+ * belopp per dag), inloggningsförsöken (adressen i klartext) och de sparade
+ * varukorgarna (E3; vad kunden brukar köpa, ingen bokföring). Orderliggaren
+ * och prisbesluten står kvar: de bär ordrarna och priserna, som bokföringslagen
+ * kräver, och inget konto. Loggen får bara den maskerade adressen.
+ *
+ * Nivåbytena, inloggningarna, korgarna och de obetalda offerterna tas bort först. Faller det står kontot kvar,
+ * så att ett nytt försök hittar allt; annars hade raderna blivit kvar utan
+ * konto att ta bort dem från.
  */
 export async function taBortKonto(id: string, orsak: Orsak): Promise<string> {
   const fore = await hamta<Rad>(MEDLEM_KOL.medlemmar, id);
   if (!fore) return "Medlemmen finns inte.";
+  const epost = String(fore.epost ?? "");
+  const [byten, inloggningar, korgar, offerter] = await Promise.all([
+    allaRader<Rad>(MEDLEM_KOL.nivaer, { filter: { medlemsId: id } }),
+    epost ? allaRader<Rad>(MEDLEM_KOL.inloggningar, { filter: { epost } }) : Promise.resolve([] as Rad[]),
+    allaRader<Rad>(MEDLEM_KOL.sparade, { filter: { medlemsId: id } }),
+    allaRader<Rad>(MEDLEM_KOL.offerter, { filter: { medlemsId: id } }),
+  ]);
+  // En betald offert är underlag för en order och står kvar med den
+  // (bokföringslagen), som orderliggaren och prisbeslutet. Resten går.
+  const obetalda = offerter.filter((r) => r.status !== "betald");
+  const b = await taBortManga(MEDLEM_KOL.nivaer, byten.map((r) => String(r._id)));
+  const i = await taBortManga(MEDLEM_KOL.inloggningar, inloggningar.map((r) => String(r._id)));
+  const k = await taBortManga(MEDLEM_KOL.sparade, korgar.map((r) => String(r._id)));
+  const o = await taBortManga(MEDLEM_KOL.offerter, obetalda.map((r) => String(r._id)));
+  const fel = b.fel.length + i.fel.length + k.fel.length + o.fel.length;
+  if (fel) return `Nivåbytena, inloggningarna, de sparade varukorgarna eller offerterna gick inte att ta bort (${fel} fel). Kontot står kvar; försök igen.`;
   await taBort(MEDLEM_KOL.profiler, `${id}__privat`);
+  // E3: företagsprofilen bär en enskild firmas personnummer och går med kontot.
+  await taBort(MEDLEM_KOL.profiler, foretagsprofilId(id));
   await taBort(MEDLEM_KOL.medlemmar, id);
   await logga({
     omrade: "admin",
     typ: "konto-borttaget",
     medlemsId: id,
-    fore: { epost: maskeradEpost(String(fore.epost ?? "")), niva: fore.niva ?? "" },
-    efter: {},
+    fore: { epost: maskeradEpost(epost), niva: fore.niva ?? "" },
+    efter: { nivabyten: b.borttagna, inloggningar: i.borttagna, sparadeKorgar: k.borttagna, offerter: o.borttagna, betaldaOfferterKvar: offerter.length - obetalda.length },
     orsakKod: orsak.kod,
     orsakText: orsak.text,
   });

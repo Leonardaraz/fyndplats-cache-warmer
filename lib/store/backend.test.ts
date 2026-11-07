@@ -1,6 +1,6 @@
 import { execSync } from "node:child_process";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { AUCTION_BACKENDS, auctionsBackend, isPersistentBackend, reviewsBackend, STORE_BACKENDS, storeBackend } from "./backend";
+import { isPersistentBackend, reviewsBackend, STORE_BACKENDS, storeBackend } from "./backend";
 
 afterEach(() => vi.unstubAllEnvs());
 
@@ -10,9 +10,17 @@ describe("storeBackend", () => {
     expect(storeBackend()).toBe("memory");
   });
 
-  it.each(STORE_BACKENDS)("accepterar %s (postgres betyder Wix sedan växlingen 2026-10-29)", (b) => {
+  it.each(STORE_BACKENDS)("accepterar %s", (b) => {
     vi.stubEnv("STORE_BACKEND", b);
-    expect(storeBackend()).toBe(b === "postgres" ? "wix-data" : b);
+    expect(storeBackend()).toBe(b);
+  });
+
+  it("☠️ postgres betyder Wix: värdet står kvar i Vercel efter Neon", () => {
+    // Vercel låter oss inte ändra variabeln (403). Neon är borta sedan
+    // 2026-11-05; ett kast här hade stoppat hela motorn.
+    vi.stubEnv("STORE_BACKEND", "postgres");
+    expect(storeBackend()).toBe("wix-data");
+    expect(STORE_BACKENDS as readonly string[]).not.toContain("postgres");
   });
 
   it("☠️ KASTAR på okänt värde i stället för att gissa", () => {
@@ -42,36 +50,6 @@ describe("isPersistentBackend", () => {
   });
 });
 
-describe("auctionsBackend", () => {
-  it("☠️ default är Wix sedan flytten tillbaka 2026-10-29 (Postgres 2026-09-30 till 10-29)", () => {
-    // Auktionerna flyttade till Postgres 2026-09-30, i koden eftersom Vercel
-    // nekade att skapa variabeln (403). Tillbaka till Wix 2026-10-29 genom
-    // DRIFTEN_I_WIX, av samma skäl.
-    vi.stubEnv("STORE_BACKEND", "postgres");
-    vi.stubEnv("AUCTIONS_BACKEND", "");
-    expect(auctionsBackend()).toBe("wix-data");
-    vi.stubEnv("STORE_BACKEND", "wix-data");
-    expect(auctionsBackend()).toBe("wix-data");
-  });
-
-  it("AUCTIONS_BACKEND=wix-data är vägen tillbaka och vinner över defaulten", () => {
-    vi.stubEnv("AUCTIONS_BACKEND", "wix-data");
-    expect(auctionsBackend()).toBe("wix-data");
-  });
-
-  it.each(AUCTION_BACKENDS)("accepterar %s (postgres betyder Wix sedan växlingen 2026-10-29)", (b) => {
-    vi.stubEnv("AUCTIONS_BACKEND", b);
-    expect(auctionsBackend()).toBe(b === "postgres" ? "wix-data" : b);
-  });
-
-  it("☠️ KASTAR på okänt värde, även memory (motorn har inget minneslager)", () => {
-    vi.stubEnv("AUCTIONS_BACKEND", "postgress");
-    expect(() => auctionsBackend()).toThrow(/Okänt AUCTIONS_BACKEND/);
-    vi.stubEnv("AUCTIONS_BACKEND", "memory");
-    expect(() => auctionsBackend()).toThrow(/Okänt AUCTIONS_BACKEND/);
-  });
-});
-
 describe("invarianten: EN definition, ingen läser miljövariabeln själv", () => {
   it("☠️ ingen fil utanför backend.ts läser process.env.STORE_BACKEND", () => {
     // Variabeln lästes tidigare på sex ställen med tre olika semantiker, och
@@ -90,34 +68,17 @@ describe("invarianten: EN definition, ingen läser miljövariabeln själv", () =
 
     expect(träffar).toEqual([]);
   });
-
-  it("☠️ ingen fil utanför backend.ts läser process.env.AUCTIONS_BACKEND", () => {
-    const träffar = execSync(
-      "grep -rln 'process\\.env\\.AUCTIONS_BACKEND' --include=*.ts --include=*.tsx app lib || true",
-      { encoding: "utf-8" },
-    )
-      .split("\n")
-      .map((r) => r.trim())
-      .filter(Boolean)
-      .filter((f) => !f.endsWith("lib/store/backend.ts"))
-      .filter((f) => !f.endsWith(".test.ts"));
-    expect(träffar).toEqual([]);
-  });
 });
 
-describe("DRIFTEN_I_WIX", () => {
-  it("☠️ är SANN sedan växlingen 2026-10-29: postgres i miljön betyder Wix", async () => {
-    // Steg 4 av flytten tillbaka. Kopian verifierades rad för rad före
-    // växlingen (alla 20 tabeller lika). Vercel låter oss inte ändra
-    // STORE_BACKEND, REVIEWS_BACKEND eller AUCTIONS_BACKEND (403), så de står
-    // kvar på postgres och betyder Wix så länge växeln är sann.
-    const { DRIFTEN_I_WIX } = await import("./backend");
-    expect(DRIFTEN_I_WIX).toBe(true);
+describe("☠️ postgres i miljön betyder Wix, i båda växlarna", () => {
+  it("STORE_BACKEND och REVIEWS_BACKEND på postgres ger Wix", () => {
+    // Drift-datan flyttade tillbaka till Wix 2026-10-29 och Postgres-vägen
+    // togs bort 2026-11-05. Variablerna står kvar på postgres i produktion
+    // (403 på att ändra dem) och ska läsas som lagret där datan faktiskt bor.
     vi.stubEnv("STORE_BACKEND", "postgres");
     expect(storeBackend()).toBe("wix-data");
+    expect(isPersistentBackend()).toBe(true);
     vi.stubEnv("REVIEWS_BACKEND", "postgres");
     expect(reviewsBackend()).toBe("wix-data");
-    vi.stubEnv("AUCTIONS_BACKEND", "");
-    expect(auctionsBackend()).toBe("wix-data");
   });
 });

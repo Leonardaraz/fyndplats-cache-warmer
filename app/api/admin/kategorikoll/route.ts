@@ -21,28 +21,20 @@ import { skapaWixAnrop } from "@/lib/polish/skrivplan-wix";
 import { lasKategoritradet } from "@/lib/wix/kategoritrad";
 import { saknadeTypkategorier } from "@/lib/polish/typkategori";
 import { brodsmula, PROMO, raknaPerSida, somText, type Kat } from "@/lib/kategorikoll/brodsmula";
+import { lasSynligaProdukter } from "@/lib/kategorikoll/produkter";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
 
-/** Katalogen ska ta slut långt före det här (100 per sida). Ett tak kastar, aldrig kapar. */
-const MAX_SIDOR = 300;
 /** Wix-id per grupp i svaret. Antalet är alltid det fulla. */
 const ID_PER_GRUPP = 40;
-
-type Obj = Record<string, unknown>;
 
 function auktoriserad(req: NextRequest): boolean {
   if (isAuthorized(req)) return true;
   const secret = process.env.CRON_SECRET;
   if (!secret) return false;
   return (req.headers.get("authorization") ?? "") === `Bearer ${secret}`;
-}
-
-function data(svar: unknown): Obj {
-  const s = (svar ?? {}) as Obj;
-  return ((s.data as Obj | undefined) ?? s) as Obj;
 }
 
 export async function GET(req: NextRequest) {
@@ -56,29 +48,8 @@ export async function GET(req: NextRequest) {
       .map((k) => ({ id: k.id, namn: k.namn, foralder: k.foralder }));
     const perId = new Map(kategorier.map((k) => [k.id, k]));
 
-    const produkter: Array<{ id: string; namn: string; kat: string[]; iLager: boolean }> = [];
-    let markor: string | undefined;
-    for (let sida = 0; ; sida++) {
-      if (sida >= MAX_SIDOR) throw new Error(`katalogen tog inte slut efter ${MAX_SIDOR} sidor`);
-      const d = data(
-        await wix("POST", "/stores/v3/products/query", {
-          fields: ["DIRECT_CATEGORIES_INFO"],
-          query: { filter: { visible: true }, cursorPaging: markor ? { limit: 100, cursor: markor } : { limit: 100 } },
-        }),
-      );
-      for (const p of (d.products ?? []) as Obj[]) {
-        if (typeof p.id !== "string" || typeof p.name !== "string" || p.visible === false) continue;
-        const kat = (((p.directCategoriesInfo as Obj | undefined)?.categories ?? []) as Obj[])
-          .map((c) => c.id)
-          .filter((id): id is string => typeof id === "string");
-        const status = (p.inventory as Obj | undefined)?.availabilityStatus;
-        produkter.push({ id: p.id, namn: p.name, kat, iLager: status !== "OUT_OF_STOCK" });
-      }
-      const paging = (d.pagingMetadata ?? {}) as Obj;
-      const nasta = ((paging.cursors ?? {}) as Obj).next;
-      if (typeof nasta !== "string" || !nasta || ((d.products as unknown[]) ?? []).length === 0) break;
-      markor = nasta;
-    }
+    // Filtret följer bara med första sidan; se lib/kategorikoll/produkter.ts.
+    const produkter = await lasSynligaProdukter(wix);
 
     // Butikens listningar räknar bara produkter i lager.
     const antal = raknaPerSida(
@@ -92,7 +63,7 @@ export async function GET(req: NextRequest) {
     for (const p of produkter) {
       const egna = p.kat.map((id) => perId.get(id)).filter((k): k is Kat => k !== undefined);
       const fore = somText(brodsmula(egna, kategorier, antal, "fore"));
-      const efter = somText(brodsmula(egna, kategorier, antal, "efter"));
+      const efter = somText(brodsmula(egna, kategorier, antal, "efter", p.namn));
       if (fore !== efter) {
         andras++;
         const g = brod.get(`${fore} → ${efter}`) ?? { antal: 0, ids: [] };

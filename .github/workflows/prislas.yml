@@ -21,7 +21,7 @@ name: Pris — lås eller lås upp ett pris
 # hoppas över — och ett lås ska låsas upp igen när skälet är borta.
 #
 # Samma nyckel-lösa upplägg som prisreparationen: produktionen har Wix-nycklarna
-# och DATABASE_URL, Actions har CRON_SECRET. Ingen hemlighet passerar chatten,
+# och Actions har CRON_SECRET. Ingen hemlighet passerar chatten,
 # och därför går jobbet att starta från en telefon.
 
 on:

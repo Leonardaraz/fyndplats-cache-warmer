@@ -9,7 +9,7 @@ name: Dubbletter — mappa om en produkt till Aosom
 # BEHÅLLER till Aosoms artikelnummer och pensionerar den andra.
 #
 # Samma nyckel-lösa upplägg som prisreparationen och poleringen: produktionen har
-# Wix-nycklarna och DATABASE_URL, Actions har CRON_SECRET, och de möts i
+# Wix-nycklarna, Actions har CRON_SECRET, och de möts i
 # workflowen. Ingen hemlighet passerar chatten eller en terminal — och därför går
 # jobbet att starta från en telefon.
 #

@@ -26,7 +26,7 @@ name: Dubbletter — lägg ett utkast som färg eller storlek på en publicerad 
 # dubblettspärr läser det via lib/aosom/artiklar.ts.
 #
 # Samma nyckel-lösa upplägg som ommappningen: produktionen har Wix-nycklarna
-# och DATABASE_URL, Actions har CRON_SECRET, och de möts här. Ingen hemlighet
+# och Actions har CRON_SECRET, och de möts här. Ingen hemlighet
 # passerar chatten — och jobbet går att starta från en telefon.
 #
 # ☠️ TORRKÖRNING ÄR DEFAULT (läget `plan`). Läs planen innan du kör `byt`.

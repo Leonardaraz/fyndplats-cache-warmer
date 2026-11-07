@@ -30,7 +30,6 @@
 
 import { isExternalSupplierImage, ownImageUrlForReview } from "../wix/media-import";
 import { reviewsBackend } from "./backend";
-import { PostgresReviewStore } from "./reviews-postgres";
 import { reviewImageFields, reviewImages } from "../reviews/images";
 import { aggregera, allaRader, fraga, hamta, rakna as raknaRader, spara, type Sortering } from "../db/wix-data-klient";
 
@@ -210,8 +209,8 @@ export async function normaliseraFörSkrivning(review: StoredReview): Promise<St
 }
 
 /**
- * Vad ett recensionslager kan. Wix- och Postgres-versionen implementerar den
- * här, så anroparna aldrig behöver veta vilken som är i drift.
+ * Vad ett recensionslager kan. Wix-versionen implementerar den här; testerna
+ * kan ge en egen utan att anroparna märker skillnad.
  */
 export interface ProduktBetyg {
   productId: string;
@@ -269,8 +268,8 @@ export class ReviewStore implements ReviewStoreLike {
 
   async upsert(review: StoredReview): Promise<void> {
     const id = reviewDocId(review.productId, review.reviewIdAE);
-    // Statusfallbacken och hemflytten av bilden bor i normaliseraFörSkrivning,
-    // så Postgres-lagret lyder exakt samma regler. Se den funktionen.
+    // Statusfallbacken och hemflytten av bilden bor i normaliseraFörSkrivning.
+    // Se den funktionen.
     const skickas = await normaliseraFörSkrivning(review);
     await spara(COLLECTION_ID, id, { ...skickas } as Record<string, unknown>);
   }
@@ -394,10 +393,9 @@ let singleton: ReviewStoreLike | null = null;
 /**
  * Väljer recensionslager på `REVIEWS_BACKEND` — EGEN switch, inte `STORE_BACKEND`.
  *
- * ☠️ Skälet står i `reviewsBackend()`: produktionen står redan på postgres, så
- * en delad variabel hade växlat lagret i samma sekund koden deployades — in i
- * en TOM tabell, utan att något kastade. Default är `"wix-data"` tills kopian
- * är verifierad.
+ * ☠️ Skälet står i `reviewsBackend()`: recensionerna får aldrig hamna i
+ * minnet bara för att STORE_BACKEND saknas. "postgres" i miljön betyder Wix
+ * sedan Postgres-vägen togs bort 2026-11-05.
  *
  * ☠️ VIA `backend.ts`, ALDRIG genom att läsa env här. Den filen är enda
  * läsaren av backend-variablerna, och ett källkodstest fäller om någon annan
@@ -419,8 +417,6 @@ export function getReviewStore(): ReviewStoreLike {
 // `skapaStore` i factory.ts.
 function skapaReviewStore(): ReviewStoreLike {
   switch (reviewsBackend()) {
-    case "postgres":
-      return new PostgresReviewStore();
     case "memory":
     case "wix-data":
       return new ReviewStore();

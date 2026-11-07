@@ -110,23 +110,7 @@ export interface OrderForUppslag {
  * betald, och ett tomt svar på en order som finns är det förvirrande utfallet.
  */
 export async function fetchOrderByNumber(nummer: string): Promise<OrderForUppslag | null> {
-  const body = {
-    search: {
-      filter: { number: String(nummer) },
-      cursorPaging: { limit: 5 },
-    },
-  };
-  const res = await fetch(`${WIX_BASE}/ecom/v1/orders/search`, {
-    method: "POST",
-    headers: headers(),
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Wix orders/search misslyckades (${res.status}): ${text.slice(0, 400)}`);
-  }
-  const data = (await res.json()) as { orders?: WixOrder[] };
-  const order = (data.orders ?? [])[0];
+  const order = await fetchWixOrderByNumber(nummer);
   if (!order) return null;
   return {
     orderId: order.id,
@@ -143,6 +127,31 @@ export async function fetchOrderByNumber(nummer: string): Promise<OrderForUppsla
       quantity: r.quantity ?? 1,
     })),
   };
+}
+
+/**
+ * Hela Wix-ordern på dess butiksordernummer, eller null. Samma sökning som
+ * `fetchOrderByNumber`, utan att något skalas bort: kvittot på Mina sidor
+ * (`/api/medlem/kvitto`) behöver adresser, belopp och köpflödet.
+ */
+export async function fetchWixOrderByNumber(nummer: string): Promise<WixOrder | null> {
+  const body = {
+    search: {
+      filter: { number: String(nummer) },
+      cursorPaging: { limit: 5 },
+    },
+  };
+  const res = await fetch(`${WIX_BASE}/ecom/v1/orders/search`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Wix orders/search misslyckades (${res.status}): ${text.slice(0, 400)}`);
+  }
+  const data = (await res.json()) as { orders?: WixOrder[] };
+  return (data.orders ?? [])[0] ?? null;
 }
 
 /** Wix interna order-id. Gemener i praktiken, men båda skiftlägena läses. */

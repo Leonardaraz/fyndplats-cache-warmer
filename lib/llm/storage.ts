@@ -16,12 +16,11 @@
 // in-memory får varje lambda sin EGEN räknare — taket hade slutat gälla utan
 // ett ord i loggen. Hittat i auditen 2026-08-31, innan växlingen gjordes.
 //
-// I Postgres bor alla fyra samlingarna i EN tabell (`llm_kv`), nycklad på
-// (collection, key). De hade identisk form hela tiden och skilde sig bara i
-// vilken Wix-kollektion de låg i.
+// Samlingarna bodde i Postgres (tabellen `llm_kv`) 2026-08-31 till
+// 2026-10-29. Den vägen togs bort 2026-11-05; "postgres" i STORE_BACKEND läses
+// som Wix (lib/store/backend.ts).
 
 import { storeBackend, type StoreBackend } from "../store/backend";
-import { sql } from "../db/client";
 import { allaRader, fraga, hamta, spara, taBortMedFilter } from "../db/wix-data-klient";
 
 export const LLM_COLLECTIONS = {
@@ -54,11 +53,6 @@ export async function llmGet<T>(col: string, id: string): Promise<T | null> {
   if (b === "memory") {
     return (memBucket(col).get(id) as T) ?? null;
   }
-  if (b === "postgres") {
-    const rows = await sql()`select data from llm_kv
-                              where collection = ${col} and key = ${id} limit 1`;
-    return (rows[0] as { data?: T } | undefined)?.data ?? null;
-  }
   try {
     return await hamta<T>(col, id);
   } catch (e) {
@@ -73,14 +67,6 @@ export async function llmSave(col: string, id: string, data: Record<string, unkn
   const b = backend();
   if (b === "memory") {
     memBucket(col).set(id, data);
-    return;
-  }
-  if (b === "postgres") {
-    const at = typeof data.at === "string" ? data.at : null;
-    await sql()`insert into llm_kv (collection, key, data, at)
-                values (${col}, ${id}, ${JSON.stringify(data)}, ${at})
-                on conflict (collection, key)
-                do update set data = excluded.data, at = excluded.at`;
     return;
   }
   try {
@@ -102,15 +88,6 @@ export async function llmQuery<T>(
     // Inget filter-stöd in-memory — den används bara för stats där vi sorterar
     // efter datum, vilket vi gör i ren JS i stats.ts.
     return all.slice(0, limit);
-  }
-  if (b === "postgres") {
-    // Samma begränsning som in-memory: anroparen (stats.ts) filtrerar och
-    // sorterar i JS. Att bygga ett filteruttryck här hade varit en andra
-    // frågespråksdialekt att hålla i synk med Wix — utan någon anropare.
-    const rows = await sql()`select data from llm_kv
-                              where collection = ${col}
-                              order by at desc nulls last limit ${limit}`;
-    return rows.map((r) => (r as { data: T }).data);
   }
   try {
     return limit <= 1000
@@ -144,12 +121,6 @@ export async function llmPruneOlderThan(
 ): Promise<string> {
   const cutoff = new Date(nowMs - days * 24 * 60 * 60 * 1000).toISOString();
   const b = backend();
-  if (b === "postgres") {
-    const rows = await sql()`delete from llm_kv
-                              where collection = ${col} and at is not null and at < ${cutoff}
-                              returning key`;
-    return `${rows.length} rader`;
-  }
   if (b === "memory") {
     const bucket = memBucket(col);
     let n = 0;

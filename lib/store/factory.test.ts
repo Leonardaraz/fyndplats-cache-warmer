@@ -31,6 +31,15 @@ describe("getStore — STORE_BACKEND-val", () => {
     expect(getStore()).toBeInstanceOf(WixDataStore);
   });
 
+  it("☠️ STORE_BACKEND=postgres → WixDataStore (produktionens värde efter Neon)", async () => {
+    // Vercel låter oss inte ändra variabeln (403), och Postgres-vägen är borta
+    // sedan 2026-11-05. Värdet ska ge Wix, där datan bor, aldrig minnet.
+    vi.stubEnv("STORE_BACKEND", "postgres");
+    const { getStore } = await import("./factory");
+    const { WixDataStore } = await import("./wix-data");
+    expect(getStore()).toBeInstanceOf(WixDataStore);
+  });
+
   it("Okänt STORE_BACKEND-värde kastar (typo-skydd)", async () => {
     vi.stubEnv("STORE_BACKEND", "wixdata"); // typo: ska vara wix-data
     const { getStore } = await import("./factory");

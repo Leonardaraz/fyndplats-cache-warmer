@@ -1,4 +1,10 @@
-## ☠️ Drift-datan bor i Postgres sedan 2026-08-31 — inte i Wix Data
+## ☠️ Drift-datan bodde i Postgres 2026-08-31 till 2026-10-29 (historik)
+
+**Historik.** Datan flyttade tillbaka till Wix 2026-10-29 (Elite, 10 miljoner
+rader) och Postgres-vägarna togs bort 2026-11-05, se
+`40-flytten-tillbaka-till-wix.md`. "postgres" i Vercels variabler läses som Wix.
+Lärdomarna nedan gäller fortfarande: en läsare som blir TOM syns inte i en
+kodaudit, och en radering kräver en audit av varje läsare.
 
 Wix CMS slutade ta emot nya rader: *"You've reached your 4,000 items limit
 across all collections."* Taket är **globalt över alla kollektioner** och stoppar
@@ -12,7 +18,7 @@ flytta ut hela drift-datan (18 800 → ~3 470) gör det.
 
 Hela planen, mätningarna och auditen står i **`POSTGRES-MIGRATION.md`**.
 
-### Var datan bor nu
+### Var datan bodde 2026-08-31 till 2026-10-29
 
 | | |
 |---|---|

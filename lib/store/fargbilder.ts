@@ -8,17 +8,14 @@
 //   3. Färgbildsverktyget självt, som bygger nästa plan ovanpå förra
 //      skrivningens rader — när givaren är borta är tabellen enda källan.
 //
-// Wix eller Postgres i drift (lib/store/backend.ts). `STORE_BACKEND=memory`
-// (dev och test) ger en lista i minnet. Tabellen skapas vid första användningen (FARGBILD_DDL), så den finns
-// utan att någon behöver köra kopieringen först.
+// Wix i drift (lib/store/backend.ts). `STORE_BACKEND=memory` (dev och test) ger
+// en lista i minnet.
 //
-// ☠️ SKRIVNINGEN ÄR EN SATS. Neons HTTP-drivrutin har inga transaktioner, så
-// "ta bort det som inte längre finns, skriv resten" är EN sats med en CTE.
-// Två satser hade kunnat lämna en sida utan rader om den andra föll — och då
-// hade städningen tagit filerna.
+// ☠️ SKRIVNINGEN ÄR EN SKRIVNING. "Ta bort det som inte längre finns, skriv
+// resten" i två steg hade kunnat lämna en sida utan rader om det andra föll —
+// och då hade städningen tagit filerna. Se `WixFargbildLager`: en sida är ETT
+// dokument. (I Postgres, 2026-08-31 till 2026-10-29, var det en sats med en CTE.)
 
-import { sql } from "@/lib/db/client";
-import { FARGBILD_DDL } from "@/lib/db/schema";
 import { storeBackend } from "./backend";
 import { allaRader, hamta, spara, taBort } from "@/lib/db/wix-data-klient";
 import { NYA } from "@/lib/db/wix-kollektioner";
@@ -122,132 +119,9 @@ export class MinnesFargbildLager implements FargbildLager {
   }
 }
 
-// ── Postgres ─────────────────────────────────────────────────────────────────
-
-let tabellenFinns: Promise<void> | null = null;
-
-async function sakerstall(): Promise<void> {
-  tabellenFinns ??= (async () => {
-    const q = sql();
-    for (const ddl of FARGBILD_DDL) await q.query(ddl);
-  })().catch((e) => {
-    tabellenFinns = null;
-    throw e;
-  });
-  return tabellenFinns;
-}
-
-interface PgRad {
-  wix_product_id: string;
-  choice_id: string;
-  choice_name: string;
-  ordning: number;
-  fil_id: string;
-  plats: Plats;
-  givare_id: string | null;
-}
-
-const tillRad = (r: PgRad): TabellRad => ({
-  wixProductId: r.wix_product_id,
-  choiceId: r.choice_id,
-  choiceName: r.choice_name,
-  ordning: Number(r.ordning),
-  filId: r.fil_id,
-  plats: r.plats,
-  givareId: r.givare_id,
-});
-
-const somJson = (rader: TabellRad[]) =>
-  JSON.stringify(rader.map((r) => ({
-    p: r.wixProductId, c: r.choiceId, n: r.choiceName, o: r.ordning, f: r.filId, pl: r.plats, g: r.givareId,
-  })));
-
-/**
- * Ersätt i EN sats: raderna som inte längre finns tas bort, resten skrivs med
- * upsert. Borttagningen och upserten rör skilda rader (samma rad två gånger i
- * en sats vägrar Postgres), och `villkor` avgör vilka av produktens rader
- * som ersätts — alla, eller ett vals.
- */
-function ersattSats(villkor: string): string {
-  return `
-  with ny as (
-    select r->>'p' as p, r->>'c' as c, r->>'n' as n, (r->>'o')::integer as o,
-           r->>'f' as f, r->>'pl' as pl, nullif(r->>'g', '') as g
-      from jsonb_array_elements($1::jsonb) as r
-  ), bort as (
-    delete from fargbilder t
-     where t.wix_product_id = $2 and ${villkor}
-       and not exists (select 1 from ny where ny.c = t.choice_id and ny.f = t.fil_id)
-  )
-  insert into fargbilder (wix_product_id, choice_id, choice_name, ordning, fil_id, plats, givare_id, skriven_at)
-  select p, c, n, o, f, pl, g, now() from ny
-  on conflict (wix_product_id, choice_id, fil_id) do update set
-    choice_name = excluded.choice_name,
-    ordning     = excluded.ordning,
-    plats       = excluded.plats,
-    givare_id   = excluded.givare_id,
-    skriven_at  = now(),
-    -- En ersättning är obekräftad tills Wix läst tillbaka som raderna.
-    wix_bekraftad_at = null`;
-}
-
-export class PostgresFargbildLager implements FargbildLager {
-  async lasForProdukt(wixProductId: string): Promise<TabellRad[]> {
-    await sakerstall();
-    const rows = (await sql().query(
-      `select wix_product_id, choice_id, choice_name, ordning, fil_id, plats, givare_id
-         from fargbilder where wix_product_id = $1
-        order by choice_id, ordning`,
-      [wixProductId],
-    )) as PgRad[];
-    return rows.map(tillRad);
-  }
-
-  async lasSkrivnaVal(): Promise<SkrivetVal[]> {
-    await sakerstall();
-    const rows = (await sql().query(
-      `select wix_product_id, choice_id, bool_and(wix_bekraftad_at is not null) as bekraftad
-         from fargbilder where choice_id <> ''
-        group by wix_product_id, choice_id`,
-      [],
-    )) as { wix_product_id: string; choice_id: string; bekraftad: boolean }[];
-    return rows.map((r) => ({ wixProductId: r.wix_product_id, choiceId: r.choice_id, bekraftad: r.bekraftad === true }));
-  }
-
-  async bekraftaWix(wixProductId: string, choiceId?: string): Promise<void> {
-    await sakerstall();
-    if (choiceId === undefined) {
-      await sql().query(`update fargbilder set wix_bekraftad_at = now() where wix_product_id = $1`, [wixProductId]);
-    } else {
-      await sql().query(
-        `update fargbilder set wix_bekraftad_at = now() where wix_product_id = $1 and choice_id = $2`,
-        [wixProductId, choiceId],
-      );
-    }
-  }
-
-  async lasAllaFilIdn(): Promise<string[]> {
-    await sakerstall();
-    const rows = (await sql().query(`select distinct fil_id from fargbilder`, [])) as { fil_id: string }[];
-    return rows.map((r) => r.fil_id);
-  }
-
-  async ersattForProdukt(wixProductId: string, rader: TabellRad[]): Promise<void> {
-    kontrollera(wixProductId, rader);
-    await sakerstall();
-    await sql().query(ersattSats("true"), [somJson(rader), wixProductId]);
-  }
-
-  async ersattForVal(wixProductId: string, choiceId: string, rader: TabellRad[]): Promise<void> {
-    kontrollera(wixProductId, rader, choiceId);
-    await sakerstall();
-    await sql().query(ersattSats("t.choice_id = $3"), [somJson(rader), wixProductId, choiceId]);
-  }
-}
-
 // ── Wix ──────────────────────────────────────────────────────────────────────
 
-/** En rad i Wix-dokumentet. Samma fält som tabellraden, utan produkt-id, plus Postgres två tider. */
+/** En rad i Wix-dokumentet. Samma fält som tabellraden, utan produkt-id, plus två tider. */
 export interface WixFargbildRad {
   choiceId: string;
   choiceName: string;
@@ -265,7 +139,7 @@ export interface WixFargbildDok {
   rader: WixFargbildRad[];
 }
 
-/** Dokumentets rader i (val, ordning, fil) — samma ordning som Postgres läser i, så jämförelser blir stabila. */
+/** Dokumentets rader i (val, ordning, fil), så att jämförelser blir stabila. */
 export function sorteraDokRader(rader: WixFargbildRad[]): WixFargbildRad[] {
   return [...rader].sort(
     (a, b) => a.choiceId.localeCompare(b.choiceId) || a.ordning - b.ordning || a.filId.localeCompare(b.filId),
@@ -275,8 +149,8 @@ export function sorteraDokRader(rader: WixFargbildRad[]): WixFargbildRad[] {
 /**
  * ☠️ ETT DOKUMENT PER SIDA, INTE EN RAD PER BILD.
  *
- * Postgres ersatte en sidas rader i EN sats (filens huvud): två satser hade
- * kunnat lämna sidan utan rader, och då hade städningen tagit filerna. Wix har
+ * Två skrivningar hade kunnat lämna sidan utan rader (filens huvud), och då
+ * hade städningen tagit filerna. Wix har
  * inga transaktioner över flera rader, men en skrivning av ETT dokument är
  * atomisk. Därför bor hela sidans lista i ett dokument, och en ersättning är
  * en enda `save`. En sida har högst några hundra rader, långt under Wix tak
@@ -357,7 +231,7 @@ export class WixFargbildLager implements FargbildLager {
   }
 }
 
-/** En ersättning är obekräftad tills Wix läst tillbaka som raderna — samma regel som Postgres. */
+/** En ersättning är obekräftad tills Wix läst tillbaka som raderna. */
 function tillDokRad(r: TabellRad, nu: string): WixFargbildRad {
   return {
     choiceId: r.choiceId,
@@ -373,14 +247,12 @@ function tillDokRad(r: TabellRad, nu: string): WixFargbildRad {
 
 let minne: MinnesFargbildLager | null = null;
 
-/** Lagret i drift: Wix eller Postgres (lib/store/backend.ts), eller en lista i minnet när STORE_BACKEND=memory. */
+/** Lagret i drift: Wix (lib/store/backend.ts), eller en lista i minnet när STORE_BACKEND=memory. */
 export function getFargbildLager(): FargbildLager {
   switch (storeBackend()) {
     case "memory":
       return (minne ??= new MinnesFargbildLager());
     case "wix-data":
       return new WixFargbildLager();
-    case "postgres":
-      return new PostgresFargbildLager();
   }
 }

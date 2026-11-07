@@ -548,7 +548,7 @@ describe("☠️ färgbildstabellen hör till referenslistan", () => {
   });
 
   it("ett läsfel mot tabellen FÄLLER körningen, ingen fil raderas", async () => {
-    const { d, raderade } = deps({ listaFargbilder: async () => { throw new Error("DATABASE_URL saknas"); } });
+    const { d, raderade } = deps({ listaFargbilder: async () => { throw new Error("Wix svarar inte"); } });
     await expect(runMediaCleanup(d, { dryRun: false })).rejects.toThrow(/Färgbildstabellen gick inte att läsa/);
     expect(raderade).toEqual([]);
   });
@@ -842,9 +842,9 @@ describe("granskningen 2026-10-14", () => {
 
     it("☠️ faller bokföringen raderas ingenting", async () => {
       const { d, raderade } = deps({
-        karens: { registrera: async () => { throw new Error("DATABASE_URL saknas"); }, lasAlla: async () => [], glom: async () => {} },
+        karens: { registrera: async () => { throw new Error("Wix svarar inte"); }, lasAlla: async () => [], glom: async () => {} },
       });
-      await expect(runMediaCleanup(d, { dryRun: false })).rejects.toThrow(/DATABASE_URL/);
+      await expect(runMediaCleanup(d, { dryRun: false })).rejects.toThrow(/Wix svarar inte/);
       expect(raderade).toEqual([]);
     });
 

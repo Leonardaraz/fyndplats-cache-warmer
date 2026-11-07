@@ -15,8 +15,8 @@ import {
 } from "../db/wix-data-klient";
 
 // WixDataStore: persisterar mappningar, tasks, webhook-event och audit-rader
-// i Wix Data-collections (CMS). Använd via STORE_BACKEND=wix-data i env, eller
-// `DRIFTEN_I_WIX` i lib/store/backend.ts.
+// i Wix Data-collections (CMS). Används när STORE_BACKEND är wix-data, eller
+// postgres (värdet som står kvar i Vercel, se lib/store/backend.ts).
 // API: https://dev.wix.com/docs/api-reference/business-solutions/cms/data-items
 //
 // ☠️ ALLT GÅR VIA lib/db/wix-data-klient.ts sedan 2026-10-29. Den här filen
@@ -32,6 +32,9 @@ const COL = {
   audit: process.env.WIX_DATA_COL_AUDIT ?? "FyndplatsAudit",
   tokens: process.env.WIX_DATA_COL_TOKENS ?? "FyndplatsAliExpressTokens",
 };
+
+/** Mappningarnas kollektion, för den som ändrar ett enda fält utan att skriva hela raden (lib/medlem/ej-medlemspris.ts). */
+export const MAPPNINGAR_KOL = COL.mappings;
 
 // Singleton-id för AliExpress-token-raden. En enda rad per Wix-site eftersom
 // vi bara har en AliExpress-app per Fyndplats-konto.
