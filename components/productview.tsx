@@ -21,7 +21,7 @@ import { Stars } from "./stars";
 import { GPSR_FLIK_RE, GPSR_FLIK_TITEL } from "../lib/gpsr-flik";
 import { useLandaVidBilder } from "./use-landa-vid-bilder";
 import { LANDA_SKRIPT } from "../lib/sidminne";
-import { giltigVariant, kontaktFlikLankar } from "../lib/kontakt/kontakt";
+import { KONTAKT_FLIK_HTML, kontaktFlikLankar, normVariant } from "../lib/kontakt/kontakt";
 
 // V1-sajten visade dessa fyra sektioner som expanderbara accordion-flikar
 // under produktbeskrivningen. Migrationen fogade in dem som H2-block i
@@ -40,20 +40,6 @@ const FLIK_TITLE_PATTERNS = [
 
 type Flik = { title: string; contentHtml: string };
 
-// "Kontakta oss" är statisk och IDENTISK på varje produktsida (Leonards krav:
-// alltid med). Läggs till om produktens beskrivning inte redan innehåller den, så
-// att även nya import-produkter (utan V1:s H2-block) får kontakt-fliken.
-// Texten är densamma överallt; bara länkarna till formuläret och e-posten bär
-// produkten och det valda valet (kontaktFlikLankar i lib/kontakt/kontakt.ts,
-// 2026-11-07), så att kundtjänst ser vilken vara frågan gäller.
-const CONTACT_FLIK_HTML =
-  '<p>Har du en fråga om den här produkten – mått, material, leverans eller något annat? Vi svarar normalt inom 24 timmar på vardagar.</p>' +
-  '<ul>' +
-  '<li>E-post: <a href="mailto:info@fyndplats.com">info@fyndplats.com</a></li>' +
-  '<li>Telefon: <a href="tel:+46736630990">+46 73 663 09 90</a></li>' +
-  '<li>Mer hjälp: <a href="/kontaktaoss">Kontakta oss</a> · <a href="/vanliga-fragor">Vanliga frågor</a></li>' +
-  '</ul>';
-
 function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
@@ -64,7 +50,9 @@ const CONTACT_FLIK_RE = /Kontakta\s+oss/;
 // Slår ihop beskrivningens H2-baserade flikar med syntetiserade flikar så ALLA
 // produkter (gamla med V1-block + nya importer) får samma tabb-struktur:
 //  • Tekniska specifikationer — från specLines om beskrivningen saknar den fliken
-//  • Kontakta oss — statisk, läggs alltid till om den saknas (sist)
+//  • Kontakta oss — statisk och identisk på varje sida (KONTAKT_FLIK_HTML i
+//    lib/kontakt/kontakt.ts), läggs alltid till om den saknas (sist), så att
+//    även nya import-produkter utan V1:s H2-block får fliken
 function buildFlikar(descFlikar: Flik[], specLines: string[], gpsrHtml?: string | null): Flik[] {
   const out = [...descFlikar];
   if (!out.some((f) => SPEC_FLIK_RE.test(f.title)) && specLines.length > 0) {
@@ -84,7 +72,7 @@ function buildFlikar(descFlikar: Flik[], specLines: string[], gpsrHtml?: string 
     else out.push(flik);
   }
   if (!out.some((f) => CONTACT_FLIK_RE.test(f.title))) {
-    out.push({ title: "Kontakta oss", contentHtml: CONTACT_FLIK_HTML });
+    out.push({ title: "Kontakta oss", contentHtml: KONTAKT_FLIK_HTML });
   }
   return out;
 }
@@ -298,7 +286,7 @@ export function ProductView({
 }: {
   productId: string;
   /** Produktens adress. Fliken "Kontakta oss" länkar till formuläret med den förvald. */
-  slug?: string;
+  slug: string;
   name: string;
   price: string;
   inStock: boolean;
@@ -608,11 +596,10 @@ export function ProductView({
         : priceNum;
     trackAddToCart({ id: productId, name, priceNum: itemPrice, category });
     // Lådan öppnas direkt med varan som väntande rad (components/cart.tsx).
-    const val = selectedVariantLabels.map((l) => visaValnamn(l)).filter(Boolean).join(" · ");
     setAdded(true);
     const ok = await add(productId, variantId || undefined, qty, {
       // Bilden som redan står i galleriet, ur webbläsarens cache.
-      namn: name, val: val || undefined, prisNum: itemPrice || undefined,
+      namn: name, val: valtNamn || undefined, prisNum: itemPrice || undefined,
       bild: [...document.querySelectorAll<HTMLImageElement>(".pdp .gmain img.is-shown")].pop()?.currentSrc
         || (galleryImages[0] ? tightFillUrl(galleryImages[0], 160, 160) : undefined),
     });
@@ -657,6 +644,9 @@ export function ProductView({
           ? [variants[sel]?.label]
           : []
   ).filter(Boolean) as string[];
+  // Valets namn som sidan visar det ("Röd · 140 × 200 cm"), för lådans rad och
+  // kontaktlänkarna. Tomt för en produkt utan val.
+  const valtNamn = selectedVariantLabels.map((l) => visaValnamn(l)).filter(Boolean).join(" · ");
   const variantImageIndices = imageOwners && selectedVariantLabels.length && !galleriFiltrerat
     ? galleryImages.reduce<number[]>((acc, u, i) => {
         const owner = imageOwners[mediaKey(u)];
@@ -918,17 +908,18 @@ export function ProductView({
           const split = descriptionHtml ? splitFlikar(descriptionHtml) : { mainHtml: "", flikar: [] as Flik[] };
           const flikar = buildFlikar(split.flikar, specLines, gpsrHtml);
           const specInFlik = flikar.some((f) => SPEC_FLIK_RE.test(f.title));
-          // Formuläret och e-posten får produkten, och det valda valet när
-          // produkten har val (samma ?variant= som adressfältet).
+          // Formuläret och e-posten får produkten och, när produkten har val,
+          // det val som sidan visar. Också förvalet: lager och pris kan skilja
+          // mellan valen, så kundtjänst behöver veta vilket kunden såg.
+          // Adressfältet utelämnar förvalet för att en kopierad länk ska vara
+          // kanonisk; det skälet gäller inte här.
           const harVal = multiAxis || hasImageVariants || hasTextVariants;
-          const kontaktLank = slug
-            ? {
-                slug,
-                namn: name,
-                variantId: harVal && giltigVariant(variantId) ? variantId.toLowerCase() : undefined,
-                val: harVal ? selectedVariantLabels.map((l) => visaValnamn(l)).filter(Boolean).join(" · ") || null : null,
-              }
-            : null;
+          const kontaktLank = {
+            slug,
+            namn: name,
+            variantId: harVal ? normVariant(variantId) : undefined,
+            val: valtNamn || null,
+          };
           return (
             <>
               <div className="pdp-section">
@@ -946,7 +937,7 @@ export function ProductView({
                         <div
                           className="pdp-flik-body"
                           dangerouslySetInnerHTML={{
-                            __html: kontaktLank && CONTACT_FLIK_RE.test(f.title) ? kontaktFlikLankar(f.contentHtml, kontaktLank) : f.contentHtml,
+                            __html: CONTACT_FLIK_RE.test(f.title) ? kontaktFlikLankar(f.contentHtml, kontaktLank) : f.contentHtml,
                           }}
                         />
                       </details>

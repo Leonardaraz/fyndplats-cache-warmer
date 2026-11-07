@@ -2,6 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   formatPrice,
+  listPris,
   parsePriceSlug,
   priceBounds,
   priceRangeLabel,
@@ -159,6 +160,22 @@ describe("formatPrice", () => {
     // U+202F (narrow no-break space) är vad vissa CLDR-versioner byter till.
     assert.ok(!formatPrice(1000).includes(" "));
     assert.ok(!formatPrice(1000).includes(","));
+  });
+});
+
+describe("listPris", () => {
+  const bas = { price: "879,00 kr", priceNum: 879 };
+  it("priset, eller Från när varianterna kostar olika", () => {
+    assert.equal(listPris(bas), "879 kr");
+    assert.equal(listPris({ ...bas, hasRange: true, priceFromNum: 1179, priceFrom: "1179,00kr" }), "Från 1\u00a0179 kr");
+  });
+  it("Wix färdiga sträng som reserv när talet saknas", () => {
+    assert.equal(listPris({ ...bas, hasRange: true, priceFrom: "1179,00kr" }), "Från 1179,00kr");
+    assert.equal(listPris({ ...bas, priceNum: 0, price: "Pris saknas" }), "Pris saknas");
+  });
+  it("aldrig 'undefined' i texten när båda saknas", () => {
+    assert.equal(listPris({ hasRange: true }), "Från");
+    assert.equal(listPris({}), "");
   });
 });
 

@@ -2,11 +2,42 @@
 //
 // Sökindexet (/api/search-index), hämtat en gång per sidbesök och delat av
 // sidhuvudets sökruta (components/searchbox.tsx) och kontaktformulärets
-// produktväljare (components/kontakt-produkt.tsx). Utbrutet ur searchbox.tsx
-// 2026-11-07, med skälen kvar nedan.
+// produktväljare (components/kontakt-produkt.tsx), tillsammans med rankningen
+// av förslagen. Utbrutet ur searchbox.tsx 2026-11-07, med skälen kvar nedan.
+
+import { normalize, rankByName } from "./search";
 
 // o = slutsåld (sätts bara på slutsålda produkter, se /api/search-index).
 export type SokTraff = { n: string; s: string; i: string; p: string; o?: 1 };
+
+/** Kortare sökningar än så rankas inte (sidhuvudet visar populära, formuläret ingenting). */
+export const KORTASTE_SOKNING = 2;
+
+// Namnen normaliseras en gång per hämtat index, inte vid varje tangent: 6 000
+// namn tog 2–6 ms per tangent på en dator och runt 8 ms på en strypt telefon
+// (mätt 2026-11-07), plus 6 000 nya strängar för skräpsamlaren varje gång.
+const normNamn = new WeakMap<SokTraff[], string[]>();
+
+/**
+ * Förslagen för en sökning: de `antal` mest relevanta, slutsålda sist.
+ *
+ * ORDNINGEN ÄR VIKTIG: klipp på RELEVANS först, sänk slutsålda EFTERÅT.
+ * Sänker man slutsålda före klippet kan en exakt namnträff som råkar vara
+ * slut tryckas ut ur listan av svaga träffar som råkar finnas i lager — dvs.
+ * söker man på varan man just sett hittar man den inte. Nu visas alltid de
+ * mest relevanta; slutsålda bland dem hamnar längst ned. (sort är stabil i JS,
+ * så relevansordningen består inom varje grupp.)
+ */
+export function rankaForslag(idx: SokTraff[], term: string, antal: number): SokTraff[] {
+  let namn = normNamn.get(idx);
+  if (!namn) {
+    namn = idx.map((h) => normalize(h.n));
+    normNamn.set(idx, namn);
+  }
+  return rankByName(idx, (h) => h.n, term, namn)
+    .slice(0, antal)
+    .sort((a, b) => (a.o ? 1 : 0) - (b.o ? 1 : 0));
+}
 
 // Module-level cache so the header + mobile SearchBox share ONE fetch of the index.
 //

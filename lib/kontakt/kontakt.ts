@@ -8,18 +8,31 @@
 //      produkten förvald (/kontaktaoss?produkt=<slug>&variant=<id>#meddelande),
 //      och e-postlänken öppnar kundens mejlprogram med produkten i ämnesraden
 //      och länken i texten.
-//   2. Produkten i formuläret: valen (färg, storlek …) och priset.
+//   2. Produkten i formuläret: valen (färg, storlek …), priset och det som
+//      visas för det utpekade valet. Formulärets kort och mejlet går genom
+//      samma regel (medValt).
 //   3. Mejlet till kundtjänst, med produkten överst.
 //
 // Filen importerar ingenting vid körning (bara typer), så att node:test kan
 // läsa den; formateringen av pris och valnamn skickas in (lib/kontakt/produkt.ts).
+// Produktsidan tar bara avsnitt 1; resten skakas bort ur dess JavaScript
+// (kontrollerat i förhandsbyggets filer 2026-11-07).
 
 import type { Product } from "../products";
 
-// ── 1. Länkarna ─────────────────────────────────────────────────────────────
-
 export const BUTIK = "https://www.fyndplats.se";
 export const KUNDTJANST_EPOST = "info@fyndplats.com";
+
+function esc(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+// ── 1. Länkarna ─────────────────────────────────────────────────────────────
 
 // Alla 6 016 produktadresser i webbplatskartan (2026-11-07) har den här formen,
 // den längsta 68 tecken.
@@ -36,21 +49,34 @@ export function giltigVariant(s: unknown): s is string {
   return typeof s === "string" && VARIANT_RE.test(s) && s !== TOM_VARIANT;
 }
 
+/**
+ * Variantens id i den form valen och ?variant= har (gemener), eller inget när
+ * värdet inte är ett variant-id. Id jämförs med ===, så varje väg in går hit.
+ */
+export function normVariant(s: unknown): string | undefined {
+  return giltigVariant(s) ? s.toLowerCase() : undefined;
+}
+
 /** Vilken produkt (och variant) kunden pekar ut. Bara giltiga värden. */
 export type KontaktReferens = { slug: string; variantId?: string };
 
-/** Läser ?produkt= och ?variant= ur en adress. Ett ogiltigt värde räknas som saknat. */
-export function lasKontaktParams(sok: string | URLSearchParams): KontaktReferens | null {
-  const p = typeof sok === "string" ? new URLSearchParams(sok) : sok;
+/** Läser ?produkt= och ?variant= ur adressens sökdel. Ett ogiltigt värde räknas som saknat. */
+export function lasKontaktParams(sokdel: string): KontaktReferens | null {
+  const p = new URLSearchParams(sokdel);
   const slug = p.get("produkt");
   if (!giltigSlug(slug)) return null;
-  const variant = p.get("variant");
-  return giltigVariant(variant) ? { slug, variantId: variant.toLowerCase() } : { slug };
+  const variantId = normVariant(p.get("variant"));
+  return variantId ? { slug, variantId } : { slug };
 }
 
-/** Produktsidans adress, med varianten när den finns (samma ?variant= som sidan själv sätter). */
+/** Produktsidans sökväg, med varianten när den finns (samma ?variant= som sidan själv sätter). */
+export function produktSokvag(ref: KontaktReferens): string {
+  return `/produkt/${ref.slug}` + (ref.variantId ? `?variant=${ref.variantId}` : "");
+}
+
+/** Produktsidans fullständiga adress, för mejl och e-postlänkar. */
 export function produktUrl(ref: KontaktReferens): string {
-  return `${BUTIK}/produkt/${ref.slug}` + (ref.variantId ? `?variant=${ref.variantId}` : "");
+  return BUTIK + produktSokvag(ref);
 }
 
 /** Formuläret med produkten förvald. */
@@ -87,24 +113,39 @@ export function mailtoHref(p: LankProdukt): string {
   );
 }
 
-const ATTR_ESC: Record<string, string> = { "&": "&amp;", '"': "&quot;", "<": "&lt;", ">": "&gt;" };
-const attr = (s: string) => s.replace(/[&"<>]/g, (c) => ATTR_ESC[c]);
+/**
+ * Fliken "Kontakta oss" när produktens beskrivning inte har en egen. Statisk
+ * och IDENTISK på varje produktsida (Leonards krav: alltid med); bara länkarna
+ * byts mot produktens (kontaktFlikLankar nedan, components/productview.tsx).
+ * Provet läser samma sträng, så att en ändrad länk här fäller provet i stället
+ * för att tyst sluta byta på sidorna.
+ */
+export const KONTAKT_FLIK_HTML =
+  "<p>Har du en fråga om den här produkten – mått, material, leverans eller något annat? Vi svarar normalt inom 24 timmar på vardagar.</p>" +
+  "<ul>" +
+  `<li>E-post: <a href="mailto:${KUNDTJANST_EPOST}">${KUNDTJANST_EPOST}</a></li>` +
+  '<li>Telefon: <a href="tel:+46736630990">+46 73 663 09 90</a></li>' +
+  '<li>Mer hjälp: <a href="/kontaktaoss">Kontakta oss</a> · <a href="/vanliga-fragor">Vanliga frågor</a></li>' +
+  "</ul>";
+
+const regexText = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 // Formulärets adress, med eller utan domän, snedstreck sist eller ankare.
 const KONTAKT_HREF_RE = /href=(["'])(?:https?:\/\/(?:www\.)?fyndplats\.se)?\/kontaktaoss\/?(?:#[^"']*)?\1/gi;
 // Kundtjänstens adress, med eller utan ett ämne som redan står där.
-const MAILTO_HREF_RE = /href=(["'])mailto:info@fyndplats\.com(?:\?[^"']*)?\1/gi;
+const MAILTO_HREF_RE = new RegExp(`href=(["'])mailto:${regexText(KUNDTJANST_EPOST)}(?:\\?[^"']*)?\\1`, "gi");
 
 /**
  * Flikens länkar till formuläret och kundtjänstens e-post, med produkten.
  * Bara adresserna byts; texten i fliken är densamma på varje produktsida
- * (Leonards krav, components/productview.tsx). Telefonlänken och andra länkar
- * lämnas orörda.
+ * (Leonards krav). Telefonlänken och andra länkar lämnas orörda. Fliken kan
+ * också komma ur beskrivningen (V1:s egna block), därför byts länkarna i
+ * HTML:en och inte i en mall.
  */
 export function kontaktFlikLankar(html: string, p: LankProdukt): string {
   return html
-    .replace(KONTAKT_HREF_RE, () => `href="${attr(kontaktHref(p))}"`)
-    .replace(MAILTO_HREF_RE, () => `href="${attr(mailtoHref(p))}"`);
+    .replace(KONTAKT_HREF_RE, () => `href="${esc(kontaktHref(p))}"`)
+    .replace(MAILTO_HREF_RE, () => `href="${esc(mailtoHref(p))}"`);
 }
 
 // ── 2. Produkten i formuläret: valen och priset ────────────────────────────
@@ -117,12 +158,15 @@ export type PrisKalla = Pick<Product, "price" | "priceNum" | "priceFrom" | "pric
 /** Fler val än så här visas inte i väljaren (den största familjen hade 48, 2026-11-07). */
 export const MAX_VAL = 60;
 
-/** Prisets och valnamnens format, samma som på produktsidan (formatPrice och visaValnamn). */
-export type Formatering = { pris: (kronor: number) => string; valnamn: (etikett: string) => string };
-
-function prisAv(f: Formatering, num: number | undefined, text: string | undefined): string {
-  return num ? f.pris(num) : text || "";
-}
+/**
+ * Prisets och valnamnens format, samma som på produktsidan och i sökförslagen
+ * (formatPrice, listPris och visaValnamn).
+ */
+export type Formatering = {
+  pris: (kronor: number) => string;
+  listPris: (p: PrisKalla) => string;
+  valnamn: (etikett: string) => string;
+};
 
 /**
  * Valen i sidans ordning. Med flera axlar (Färg × Storlek) blir varje rad i
@@ -131,38 +175,34 @@ function prisAv(f: Formatering, num: number | undefined, text: string | undefine
  * variant-id kommer med, och namnen är de som produktsidan visar (visaValnamn).
  */
 export function kontaktVal(p: ValKalla, f: Formatering): KontaktVal[] {
-  if (p.variantTable?.length) {
-    const axlar = (p.variantAxes ?? []).map((a) => a.name);
-    return p.variantTable
-      .filter((r) => giltigVariant(r.variantId))
-      .slice(0, MAX_VAL)
-      .map((r) => {
-        const varden = axlar.length ? axlar.map((a) => r.choices[a]).filter(Boolean) : Object.values(r.choices);
-        return {
-          id: r.variantId.toLowerCase(),
-          namn: varden.map(f.valnamn).join(" · "),
-          iLager: r.inStock,
-          pris: prisAv(f, r.priceNum, r.price),
-          ...(r.image ? { bild: r.image } : {}),
-        };
-      });
-  }
-  return (p.options?.choices ?? [])
-    .filter((c) => giltigVariant(c.variantId))
+  const axlar = (p.variantAxes ?? []).map((a) => a.name);
+  const rader = p.variantTable?.length
+    ? p.variantTable.map((r) => ({
+        variantId: r.variantId,
+        namn: (axlar.length ? axlar.map((a) => r.choices[a]).filter(Boolean) : Object.values(r.choices)).map(f.valnamn).join(" · "),
+        iLager: r.inStock,
+        priceNum: r.priceNum,
+        price: r.price,
+        bild: r.image,
+      }))
+    : (p.options?.choices ?? []).map((c) => ({
+        variantId: c.variantId,
+        namn: f.valnamn(c.label),
+        iLager: c.inStock !== false,
+        priceNum: c.priceNum,
+        price: c.price,
+        bild: c.image,
+      }));
+  return rader
+    .filter((r) => giltigVariant(r.variantId))
     .slice(0, MAX_VAL)
-    .map((c) => ({
-      id: c.variantId.toLowerCase(),
-      namn: f.valnamn(c.label),
-      iLager: c.inStock !== false,
-      pris: prisAv(f, c.priceNum, c.price),
-      ...(c.image ? { bild: c.image } : {}),
+    .map((r) => ({
+      id: r.variantId.toLowerCase(),
+      namn: r.namn,
+      iLager: r.iLager,
+      pris: r.priceNum ? f.pris(r.priceNum) : r.price || "",
+      ...(r.bild ? { bild: r.bild } : {}),
     }));
-}
-
-/** Samma pristext som sökförslagen och produktkorten: "Från …" när varianterna kostar olika. */
-export function prisText(p: PrisKalla, f: Formatering): string {
-  if (p.hasRange) return `Från ${p.priceFromNum ? f.pris(p.priceFromNum) : p.priceFrom ?? ""}`.trim();
-  return prisAv(f, p.priceNum, p.price);
 }
 
 /** Det formuläret visar och mejlet bygger på. Bara uppgifter som redan står på produktsidan. */
@@ -175,27 +215,37 @@ export type KontaktProdukt = {
   iLager: boolean;
   /** Produktens val, tomt för en produkt utan val. */
   val: KontaktVal[];
-  /** Det utpekade valet, när det finns bland valen. */
-  valtId?: string;
+  /** Namnet på det utpekade valet, när det finns bland valen. */
   valtNamn?: string;
 };
+
+/** Det som visas för ett utpekat val: valets bild, pris och lager när valet har dem, annars produktens. */
+export type ValtVisat = { valt?: KontaktVal; bild: string; pris: string; iLager: boolean; sokvag: string };
+
+/**
+ * Regeln för det utpekade valet, delad av formulärets kort
+ * (components/kontakt-produkt.tsx) och mejlet (byggKontaktProdukt). Ett okänt
+ * eller ogiltigt variant-id räknas som inget val.
+ */
+export function medValt(p: Pick<KontaktProdukt, "slug" | "bild" | "pris" | "iLager" | "val">, variantId: string | undefined): ValtVisat {
+  const id = normVariant(variantId);
+  const valt = id ? p.val.find((v) => v.id === id) : undefined;
+  return {
+    valt,
+    bild: valt?.bild || p.bild,
+    pris: valt?.pris || p.pris,
+    iLager: valt ? valt.iLager : p.iLager,
+    sokvag: produktSokvag({ slug: p.slug, variantId: valt?.id }),
+  };
+}
 
 export type ProduktKalla = Pick<Product, "slug" | "name" | "img" | "inStock"> & ValKalla & PrisKalla;
 
 /** Produkten med det utpekade valet. Ett okänt variant-id räknas som inget val. */
 export function byggKontaktProdukt(p: ProduktKalla, variantId: string | undefined, f: Formatering): KontaktProdukt {
-  const val = kontaktVal(p, f);
-  const valt = giltigVariant(variantId) ? val.find((v) => v.id === variantId.toLowerCase()) : undefined;
-  return {
-    slug: p.slug,
-    namn: p.name,
-    bild: valt?.bild || p.img,
-    pris: valt?.pris || prisText(p, f),
-    url: produktUrl({ slug: p.slug, variantId: valt?.id }),
-    iLager: valt ? valt.iLager : p.inStock,
-    val,
-    ...(valt ? { valtId: valt.id, valtNamn: valt.namn } : {}),
-  };
+  const bas = { slug: p.slug, namn: p.name, bild: p.img, pris: f.listPris(p), iLager: p.inStock, val: kontaktVal(p, f) };
+  const { valt, bild, pris, iLager, sokvag } = medValt(bas, variantId);
+  return { ...bas, bild, pris, iLager, url: BUTIK + sokvag, ...(valt ? { valtNamn: valt.namn } : {}) };
 }
 
 // ── 3. Mejlet till kundtjänst ──────────────────────────────────────────────
@@ -214,15 +264,6 @@ export type MejlProdukt =
   | { typ: "okand"; slug: string; url: string };
 
 export type Kontaktmejl = { subject: string; text: string; html: string };
-
-function esc(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
 
 function produktRaderText(p: MejlProdukt): string {
   if (p.typ === "okand") return `Produkt: kunde inte hämtas just nu (${p.slug})\nLänk: ${p.url}`;

@@ -10,13 +10,12 @@
 // Produkten (2026-11-07): kunden kan peka ut vilken vara frågan gäller, i
 // formuläret eller via produktsidans flik "Kontakta oss". Klienten skickar bara
 // slugen och variantens id; namnet, länken och bilden i mejlet slås upp här
-// (lib/kontakt/produkt.ts). Svarar Wix inte inom sex sekunder går mejlet ändå,
-// med länken byggd ur slugen.
+// (lib/kontakt/produkt.ts, laddad först när ett meddelande har en produkt).
+// Svarar Wix inte inom sex sekunder går mejlet ändå, med länken byggd ur slugen.
 
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
-import { giltigSlug, giltigVariant, kontaktMejl, produktUrl, type MejlProdukt } from "../../../lib/kontakt/kontakt";
-import { hamtaKontaktProdukt } from "../../../lib/kontakt/produkt";
+import { giltigSlug, KUNDTJANST_EPOST, kontaktMejl, normVariant, produktUrl, type MejlProdukt } from "../../../lib/kontakt/kontakt";
 import { wixMejlBild } from "../../../lib/wix-media-key";
 
 export const runtime = "nodejs";
@@ -25,7 +24,7 @@ export const dynamic = "force-dynamic";
 // Samma verifierade avsändardomän som nyhetsbrevet använder. Mejlet går till
 // kundtjänst-inkorgen; Reply-To pekar på kunden så ett svar landar rätt.
 const FROM = "Fyndplats <orders@fyndplats.se>";
-const TO = "info@fyndplats.com";
+const TO = KUNDTJANST_EPOST;
 
 function isValidEmail(e: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
@@ -42,9 +41,12 @@ async function mejlProdukt(slug: string, variantId: string | undefined): Promise
     klocka = setTimeout(() => r("tid"), PRODUKT_VANTAR_MS);
   });
   try {
-    const p = await Promise.race([hamtaKontaktProdukt(slug, variantId), tid]);
+    // Produktmodulen (katalogen, Wix-SDK:t och dess data) laddas först här, så
+    // att ett meddelande utan produkt inte betalar för den på en kall instans.
+    const uppslag = import("../../../lib/kontakt/produkt").then((m) => m.hamtaKontaktProdukt(slug, variantId));
+    const p = await Promise.race([uppslag, tid]);
     if (p && p !== "tid") {
-      return { typ: "hittad", namn: p.namn, url: p.url, pris: p.pris, bild: p.bild ? wixMejlBild(p.bild) : "", valtNamn: p.valtNamn, iLager: p.iLager };
+      return { typ: "hittad", namn: p.namn, url: p.url, pris: p.pris, bild: wixMejlBild(p.bild), valtNamn: p.valtNamn, iLager: p.iLager };
     }
     if (p === "tid") console.warn("[contact] produktens uppgifter dröjde, mejlet går med länken");
   } catch (e) {
@@ -97,7 +99,7 @@ export async function POST(request: Request) {
   const namn = `${fornamn} ${efternamn}`;
   // Ett ogiltigt värde räknas som ingen produkt; formuläret ska aldrig falla på den.
   const slug = giltigSlug(body.produkt) ? body.produkt : null;
-  const variantId = slug && giltigVariant(body.variant) ? body.variant.toLowerCase() : undefined;
+  const variantId = slug ? normVariant(body.variant) : undefined;
   const produkt = slug ? await mejlProdukt(slug, variantId) : null;
   const { subject, text, html } = kontaktMejl({ namn, epost, meddelande, produkt });
 

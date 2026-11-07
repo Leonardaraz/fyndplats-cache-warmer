@@ -10,24 +10,18 @@ import {
   amneFor,
   giltigSlug,
   giltigVariant,
+  KONTAKT_FLIK_HTML as FLIK,
   kontaktFlikLankar,
   kontaktHref,
   kortText,
   lasKontaktParams,
   mailtoHref,
+  normVariant,
+  produktSokvag,
   produktUrl,
 } from "./kontakt.ts";
 
 const V = "10b7ad08-afaa-4668-a840-f4643fd1d2b5";
-
-// Den statiska fliken i components/productview.tsx, ordagrant.
-const FLIK =
-  '<p>Har du en fråga om den här produkten – mått, material, leverans eller något annat? Vi svarar normalt inom 24 timmar på vardagar.</p>' +
-  "<ul>" +
-  '<li>E-post: <a href="mailto:info@fyndplats.com">info@fyndplats.com</a></li>' +
-  '<li>Telefon: <a href="tel:+46736630990">+46 73 663 09 90</a></li>' +
-  '<li>Mer hjälp: <a href="/kontaktaoss">Kontakta oss</a> · <a href="/vanliga-fragor">Vanliga frågor</a></li>' +
-  "</ul>";
 
 test("slug och variant: bara katalogens former släpps igenom", () => {
   assert.equal(giltigSlug("baddfatolj-med-armstod"), true);
@@ -40,6 +34,12 @@ test("slug och variant: bara katalogens former släpps igenom", () => {
   assert.equal(giltigVariant("00000000-0000-0000-0000-000000000000"), false, "Wix id för ingen variant");
   assert.equal(giltigVariant("10b7ad08"), false);
   assert.equal(giltigVariant(`${V}x`), false);
+  // Varje väg in jämför id med ===, så formen är alltid gemener.
+  assert.equal(normVariant(V.toUpperCase()), V);
+  assert.equal(normVariant("00000000-0000-0000-0000-000000000000"), undefined);
+  assert.equal(normVariant("nej"), undefined);
+  assert.equal(normVariant(undefined), undefined);
+  assert.equal(normVariant(5), undefined);
 });
 
 test("lasKontaktParams läser produkt och variant, och struntar i skräp", () => {
@@ -47,12 +47,14 @@ test("lasKontaktParams läser produkt och variant, och struntar i skräp", () =>
   assert.deepEqual(lasKontaktParams("?produkt=pallar-4-pack&variant=nej"), { slug: "pallar-4-pack" });
   assert.equal(lasKontaktParams("?produkt=%3Cscript%3E"), null);
   assert.equal(lasKontaktParams(""), null);
-  assert.deepEqual(lasKontaktParams(new URLSearchParams({ produkt: "a-b" })), { slug: "a-b" });
+  assert.deepEqual(lasKontaktParams("produkt=a-b"), { slug: "a-b" });
 });
 
 test("adresserna: produktsidan med ?variant= och formuläret med ankaret", () => {
   assert.equal(produktUrl({ slug: "a-b" }), "https://www.fyndplats.se/produkt/a-b");
   assert.equal(produktUrl({ slug: "a-b", variantId: V }), `https://www.fyndplats.se/produkt/a-b?variant=${V}`);
+  assert.equal(produktSokvag({ slug: "a-b", variantId: V }), `/produkt/a-b?variant=${V}`);
+  assert.equal(produktSokvag({ slug: "a-b" }), "/produkt/a-b");
   assert.equal(kontaktHref({ slug: "a-b" }), "/kontaktaoss?produkt=a-b#meddelande");
   assert.equal(kontaktHref({ slug: "a-b", variantId: V }), `/kontaktaoss?produkt=a-b&variant=${V}#meddelande`);
   // Formulärets läsare förstår formulärets länk.
@@ -79,6 +81,15 @@ test("ämnesraden kortas, men aldrig mitt i ett ord utan att det syns", () => {
   const amne = amneFor(lang);
   assert.ok(amne.length <= "Fråga om: ".length + 120);
   assert.ok(amne.endsWith("…"));
+});
+
+test("fliken: den statiska texten har länkarna som bytet letar efter", () => {
+  // Byts en länk i fliken utan att bytet följer med, ska provet fällas här och
+  // inte tyst sluta byta på produktsidorna.
+  const ut = kontaktFlikLankar(FLIK, { slug: "a-b", namn: "A" });
+  assert.ok(FLIK.includes('href="/kontaktaoss"') && FLIK.includes('href="mailto:info@fyndplats.com"'));
+  assert.ok(!ut.includes('href="/kontaktaoss"'), "formulärlänken byttes");
+  assert.ok(!ut.includes('href="mailto:info@fyndplats.com"'), "e-postlänken byttes");
 });
 
 test("fliken: formuläret och e-posten får produkten, telefonen och vanliga frågor rörs inte", () => {

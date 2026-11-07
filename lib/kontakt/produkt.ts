@@ -6,14 +6,12 @@
 // aldrig ur det som kunden skickade.
 
 import { getKontaktProdukt } from "../products";
-import { formatPrice } from "../price-range";
+import { formatPrice, listPris } from "../price-range";
 import { visaValnamn } from "../variant-lage";
 import { byggKontaktProdukt, giltigSlug, type Formatering, type KontaktProdukt } from "./kontakt";
 
-export type { KontaktProdukt } from "./kontakt";
-
-/** Samma pris och valnamn som produktsidan visar. */
-export const KONTAKT_FORMAT: Formatering = { pris: formatPrice, valnamn: visaValnamn };
+/** Samma pris och valnamn som produktsidan och sökförslagen visar. */
+const KONTAKT_FORMAT: Formatering = { pris: formatPrice, listPris, valnamn: visaValnamn };
 
 /** Null när ingen synlig produkt har slugen. Kastar när Wix felar. */
 export async function hamtaKontaktProdukt(slug: string, variantId?: string): Promise<KontaktProdukt | null> {

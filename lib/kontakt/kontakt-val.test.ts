@@ -2,16 +2,16 @@
 //
 // Run with: `pnpm test` (node --test --experimental-strip-types).
 // Produktens val och pris i kontaktformuläret: en axel, flera axlar, okänt
-// variant-id och priset med "Från".
+// variant-id, och regeln för det utpekade valet som kortet och mejlet delar.
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { byggKontaktProdukt, kontaktVal, MAX_VAL, prisText, type Formatering, type ProduktKalla } from "./kontakt.ts";
-import { formatPrice } from "../price-range.ts";
+import { byggKontaktProdukt, kontaktVal, MAX_VAL, medValt, type Formatering, type ProduktKalla } from "./kontakt.ts";
+import { formatPrice, listPris } from "../price-range.ts";
 import { visaValnamn } from "../variant-lage.ts";
 
 // Samma format som servern skickar in (KONTAKT_FORMAT i lib/kontakt/produkt.ts).
-const F: Formatering = { pris: formatPrice, valnamn: visaValnamn };
+const F: Formatering = { pris: formatPrice, listPris, valnamn: visaValnamn };
 
 const V1 = "10b7ad08-afaa-4668-a840-f4643fd1d2b5";
 const V2 = "2427b440-f23e-45c5-97a6-b50cc02f8033";
@@ -78,11 +78,9 @@ test("aldrig fler än MAX_VAL val", () => {
   assert.equal(kontaktVal({ ...bas, options: { name: "Modell", choices } }, F).length, MAX_VAL);
 });
 
-test("pristexten: Från när varianterna kostar olika, annars priset", () => {
-  assert.equal(prisText({ ...bas }, F), "879 kr");
-  assert.equal(prisText({ ...bas, hasRange: true, priceFromNum: 1179, priceFrom: "1179,00kr" }, F), "Från 1\u00a0179 kr");
-  assert.equal(prisText({ ...bas, hasRange: true, priceFrom: "1179,00kr" }, F), "Från 1179,00kr");
-  assert.equal(prisText({ ...bas, priceNum: 0, price: "Pris saknas" }, F), "Pris saknas");
+test("pristexten utan val: samma som sökförslagen (listPris), Från när varianterna kostar olika", () => {
+  assert.equal(byggKontaktProdukt({ ...bas }, undefined, F).pris, "879 kr");
+  assert.equal(byggKontaktProdukt({ ...bas, hasRange: true, priceFromNum: 1179 }, undefined, F).pris, "Från 1\u00a0179 kr");
 });
 
 test("byggKontaktProdukt: det utpekade valet styr namn, pris, bild, lager och länk", () => {
@@ -99,7 +97,6 @@ test("byggKontaktProdukt: det utpekade valet styr namn, pris, bild, lager och l�
     },
   };
   const blå = byggKontaktProdukt(p, V2.toUpperCase(), F);
-  assert.equal(blå.valtId, V2);
   assert.equal(blå.valtNamn, "Blå");
   assert.equal(blå.pris, "899 kr");
   assert.equal(blå.iLager, false);
@@ -110,11 +107,37 @@ test("byggKontaktProdukt: det utpekade valet styr namn, pris, bild, lager och l�
   assert.equal(röd.bild, "https://static.wixstatic.com/media/b379ce_rod~mv2.jpg");
 
   const okänd = byggKontaktProdukt(p, "9d3b09cc-df1d-4a80-8349-37ba62f3a5b4", F);
-  assert.equal(okänd.valtId, undefined, "ett id som inte finns bland valen är inget val");
+  assert.equal(okänd.valtNamn, undefined, "ett id som inte finns bland valen är inget val");
   assert.equal(okänd.pris, "Från 879 kr");
   assert.equal(okänd.url, "https://www.fyndplats.se/produkt/trehjuling");
   assert.equal(okänd.val.length, 2);
 
   const skräp = byggKontaktProdukt(p, "inte-ett-id", F);
-  assert.equal(skräp.valtId, undefined);
+  assert.equal(skräp.valtNamn, undefined);
+});
+
+test("medValt: kortet visar samma bild, pris, lager och länk som mejlet", () => {
+  const p: ProduktKalla = {
+    ...bas,
+    options: {
+      name: "Färg",
+      choices: [
+        val("Röd", V1, { priceNum: 879, inStock: true, image: "https://static.wixstatic.com/media/b379ce_rod~mv2.jpg" }),
+        val("Blå", V2, { priceNum: 899, inStock: false }),
+      ],
+    },
+  };
+  // Formuläret får produkten utan utpekat val (/api/kontakt/produkt) och pekar själv.
+  const produkt = byggKontaktProdukt(p, undefined, F);
+  for (const id of [V1, V2.toUpperCase(), "9d3b09cc-df1d-4a80-8349-37ba62f3a5b4", undefined]) {
+    const kort = medValt(produkt, id);
+    const mejl = byggKontaktProdukt(p, id, F);
+    assert.equal(kort.bild, mejl.bild, String(id));
+    assert.equal(kort.pris, mejl.pris, String(id));
+    assert.equal(kort.iLager, mejl.iLager, String(id));
+    assert.equal(`https://www.fyndplats.se${kort.sokvag}`, mejl.url, String(id));
+    assert.equal(kort.valt?.namn, mejl.valtNamn, String(id));
+  }
+  assert.equal(medValt(produkt, V2).sokvag, `/produkt/trehjuling?variant=${V2}`);
+  assert.equal(medValt(produkt, undefined).valt, undefined);
 });

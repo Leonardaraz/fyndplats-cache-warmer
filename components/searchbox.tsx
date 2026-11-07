@@ -2,8 +2,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { rankByName } from "../lib/search";
-import { laddaSokIndex, sokIndexHamtat, type SokTraff as Hit } from "../lib/sok-index";
+import { KORTASTE_SOKNING, laddaSokIndex, rankaForslag, sokIndexHamtat, type SokTraff as Hit } from "../lib/sok-index";
 
 // Hur många förslag vi visar (sökträffar + tomt-fält-lägets populära). 7, inte
 // 8: på mobil täckte Safaris bottenmeny "Visa alla resultat"-knappen när listan
@@ -84,22 +83,14 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
       setHits([]);
       return;
     }
-    if (term.length < 2) {
+    if (term.length < KORTASTE_SOKNING) {
       // < 2 tecken: visa populära förslag i stället för att filtrera på en bokstav.
       setHits([]);
       setPopular(inStockOnly(idx).slice(0, SUGGESTION_COUNT));
       return;
     }
-    // ORDNINGEN ÄR VIKTIG: klipp på RELEVANS först, sänk slutsålda EFTERÅT.
-    // Sänker man slutsålda före klippet kan en exakt namnträff som råkar vara
-    // slut tryckas ut ur listan av sju svaga träffar som råkar finnas i lager —
-    // dvs. söker man på varan man just sett hittar man den inte. Nu visas alltid
-    // de 7 mest relevanta; slutsålda bland dem hamnar längst ned. (sort är stabil
-    // i JS, så relevansordningen består inom varje grupp.)
-    const ranked = rankByName(idx, (h) => h.n, term)
-      .slice(0, SUGGESTION_COUNT)
-      .sort((a, b) => (a.o ? 1 : 0) - (b.o ? 1 : 0));
-    setHits(ranked);
+    // De 7 mest relevanta, slutsålda sist (ordningen förklaras i lib/sok-index.ts).
+    setHits(rankaForslag(idx, term, SUGGESTION_COUNT));
   };
 
   // Fokus med tomt fält → visa populära produkter som förslag.

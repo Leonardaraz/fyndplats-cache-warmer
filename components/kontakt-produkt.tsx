@@ -4,22 +4,23 @@
 // pratar om").
 //
 // Valfri. Kunden söker på produktens namn i samma index som sidhuvudets
-// sökruta (lib/sok-index.ts, rankByName) och väljer en träff. Har produkten
+// sökruta (lib/sok-index.ts, rankaForslag) och väljer en träff. Har produkten
 // flera val (färg, storlek …) kan kunden peka ut vilket. Kommer kunden från
-// produktsidans flik "Kontakta oss" är produkten redan vald
-// (components/contactform.tsx läser ?produkt= och ?variant=).
+// produktsidans flik "Kontakta oss" är produkten redan vald (?produkt= och
+// ?variant= i adressen, useValdProdukt nedan). Formuläret
+// (components/contactform.tsx) skickar bara slugen och valets id.
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { flushSync } from "react-dom";
 import Image from "next/image";
-import { rankByName } from "../lib/search";
-import { laddaSokIndex, sokIndexHamtat, type SokTraff } from "../lib/sok-index";
-import type { KontaktProdukt } from "../lib/kontakt/kontakt";
+import { KORTASTE_SOKNING, laddaSokIndex, rankaForslag, sokIndexHamtat, type SokTraff } from "../lib/sok-index";
+import { lasKontaktParams, medValt, produktUrl, type KontaktProdukt } from "../lib/kontakt/kontakt";
 
 /** Så många träffar visas. Färre än sidhuvudets sju: formuläret står ofta långt ner på skärmen. */
 const ANTAL_TRAFFAR = 6;
 
 /** Produkten för formuläret, ur /api/kontakt/produkt. Null när den inte finns eller inte svarar. */
-export async function hamtaValdProdukt(slug: string): Promise<KontaktProdukt | null> {
+async function hamtaValdProdukt(slug: string): Promise<KontaktProdukt | null> {
   try {
     const r = await fetch(`/api/kontakt/produkt?p=${encodeURIComponent(slug)}`, { signal: AbortSignal.timeout(10_000) });
     if (!r.ok) return null;
@@ -31,9 +32,68 @@ export async function hamtaValdProdukt(slug: string): Promise<KontaktProdukt | n
 }
 
 /** Det formuläret kan visa direkt för en sökträff, medan valen hämtas. */
-export function produktUrTraff(h: SokTraff): KontaktProdukt {
-  return { slug: h.s, namn: h.n, bild: h.i, pris: h.p, url: `https://www.fyndplats.se/produkt/${h.s}`, iLager: !h.o, val: [] };
+function produktUrTraff(h: SokTraff): KontaktProdukt {
+  return { slug: h.s, namn: h.n, bild: h.i, pris: h.p, url: produktUrl({ slug: h.s }), iLager: !h.o, val: [] };
 }
+
+// Adressens sökdel läses utan effekt: tom på servern och vid hydreringen,
+// sedan webbläsarens (useSyncExternalStore sköter bytet).
+const ingenPrenumeration = () => () => {};
+const lasSokdel = () => window.location.search;
+const ingenSokdel = () => "";
+
+/**
+ * Den valda produkten och valet: förvalet ur adressen (produktsidans flik
+ * "Kontakta oss"), en sökträff eller ingen alls.
+ */
+export function useValdProdukt() {
+  const [produkt, setProdukt] = useState<KontaktProdukt | null>(null);
+  const [valtId, setValtId] = useState<string | undefined>(undefined);
+  const sokdel = useSyncExternalStore(ingenPrenumeration, lasSokdel, ingenSokdel);
+  const forval = useMemo(() => lasKontaktParams(sokdel), [sokdel]);
+  // Sant när förvalet är hämtat, eller när kunden själv valt eller tagit bort en
+  // produkt. Medan förvalet hämtas visar väljaren ett skelett utan knappar, så
+  // kunden kan inte välja något annat under tiden.
+  const [forvalKlart, setForvalKlart] = useState(false);
+
+  useEffect(() => {
+    if (!forval) return;
+    let aktuell = true;
+    void hamtaValdProdukt(forval.slug).then((p) => {
+      if (!aktuell) return;
+      setForvalKlart(true);
+      if (!p) return;
+      setProdukt(p);
+      const { valt } = medValt(p, forval.variantId);
+      if (valt) setValtId(valt.id);
+    });
+    return () => {
+      aktuell = false;
+    };
+  }, [forval]);
+
+  function valj(h: SokTraff) {
+    setForvalKlart(true);
+    setProdukt(produktUrTraff(h));
+    setValtId(undefined);
+    // Valen (färg, storlek …) kommer ur katalogen; kortet visas direkt ur
+    // sökträffen. Ett sent svar för en produkt som kunden redan bytt bort eller
+    // tagit bort kastas.
+    void hamtaValdProdukt(h.s).then((p) => {
+      if (p) setProdukt((nu) => (nu?.slug === h.s ? p : nu));
+    });
+  }
+
+  function rensa() {
+    setForvalKlart(true);
+    setProdukt(null);
+    setValtId(undefined);
+  }
+
+  return { produkt, valtId, laddar: !!forval && !forvalKlart && !produkt, valj, setValtId, rensa };
+}
+
+export type ValdProdukt = ReturnType<typeof useValdProdukt>;
 
 function Forstoringsglas() {
   return (
@@ -44,17 +104,8 @@ function Forstoringsglas() {
   );
 }
 
-type Props = {
-  produkt: KontaktProdukt | null;
-  valtId: string | undefined;
-  /** Sant medan produkten från produktsidan hämtas. */
-  laddar: boolean;
-  onValj: (traff: SokTraff) => void;
-  onVariant: (id: string | undefined) => void;
-  onRensa: () => void;
-};
-
-export function ProduktValjare({ produkt, valtId, laddar, onValj, onVariant, onRensa }: Props) {
+export function ProduktValjare({ vald }: { vald: ValdProdukt }) {
+  const { produkt, valtId, laddar, valj: valjProdukt, setValtId, rensa } = vald;
   const id = useId();
   const sokId = `${id}-sok`;
   const listId = `${id}-lista`;
@@ -67,7 +118,6 @@ export function ProduktValjare({ produkt, valtId, laddar, onValj, onVariant, onR
   const senaste = useRef("");
   const wrapRef = useRef<HTMLDivElement>(null);
   const sokRef = useRef<HTMLInputElement>(null);
-  const fokusEfterRensa = useRef(false);
 
   useEffect(() => {
     const utanfor = (e: MouseEvent) => {
@@ -77,15 +127,6 @@ export function ProduktValjare({ produkt, valtId, laddar, onValj, onVariant, onR
     return () => document.removeEventListener("mousedown", utanfor);
   }, []);
 
-  // "Byt produkt" tar bort valet och ställer markören i sökrutan, som finns
-  // först när kortet försvunnit.
-  useEffect(() => {
-    if (!produkt && fokusEfterRensa.current) {
-      fokusEfterRensa.current = false;
-      sokRef.current?.focus();
-    }
-  }, [produkt]);
-
   // Bara den senaste tangenten rankas: tangenter som trycks medan indexet
   // hämtas väntar på samma löfte (samma regel som components/searchbox.tsx).
   async function sok(varde: string) {
@@ -93,7 +134,7 @@ export function ProduktValjare({ produkt, valtId, laddar, onValj, onVariant, onR
     setQ(varde);
     setAktiv(-1);
     const term = varde.trim();
-    if (term.length < 2) {
+    if (term.length < KORTASTE_SOKNING) {
       setTraffar([]);
       setOppen(false);
       return;
@@ -104,21 +145,11 @@ export function ProduktValjare({ produkt, valtId, laddar, onValj, onVariant, onR
     if (senaste.current !== varde) return;
     setIndexLaddar(false);
     setIndexFel(!idx);
-    if (!idx) {
-      setTraffar([]);
-      return;
-    }
-    // Klipp på relevans först och sänk slutsålda efteråt, så att en exakt
-    // träff som är slut aldrig trängs ut (samma ordning som sidhuvudet).
-    setTraffar(
-      rankByName(idx, (h) => h.n, term)
-        .slice(0, ANTAL_TRAFFAR)
-        .sort((a, b) => (a.o ? 1 : 0) - (b.o ? 1 : 0)),
-    );
+    setTraffar(idx ? rankaForslag(idx, term, ANTAL_TRAFFAR) : []);
   }
 
   function valj(h: SokTraff) {
-    onValj(h);
+    valjProdukt(h);
     senaste.current = "";
     setQ("");
     setTraffar([]);
@@ -146,20 +177,16 @@ export function ProduktValjare({ produkt, valtId, laddar, onValj, onVariant, onR
   }
 
   if (produkt) {
-    const valt = produkt.val.find((v) => v.id === valtId);
-    const bild = valt?.bild || produkt.bild;
-    const pris = valt?.pris || produkt.pris;
-    const iLager = valt ? valt.iLager : produkt.iLager;
-    const href = `/produkt/${produkt.slug}${valt ? `?variant=${valt.id}` : ""}`;
+    const { valt, bild, pris, iLager, sokvag } = medValt(produkt, valtId);
     return (
       <div className="kprod">
         <span className="kprod-etikett">Frågan gäller</span>
         <div className="kprod-kort">
-          <span className="kprod-bild">
+          <span className="sugg-img kprod-bild">
             {bild && <Image src={bild} alt="" fill sizes="64px" style={{ objectFit: "cover" }} />}
           </span>
           <span className="kprod-info">
-            <a className="kprod-namn" href={href} target="_blank" rel="noopener">
+            <a className="kprod-namn" href={sokvag} target="_blank" rel="noopener">
               {produkt.namn}
             </a>
             <span className="kprod-pris">
@@ -171,7 +198,7 @@ export function ProduktValjare({ produkt, valtId, laddar, onValj, onVariant, onR
         {produkt.val.length > 1 && (
           <label className="kprod-val">
             Vilken variant?
-            <select value={valt?.id ?? ""} onChange={(e) => onVariant(e.target.value || undefined)}>
+            <select value={valt?.id ?? ""} onChange={(e) => setValtId(e.target.value || undefined)}>
               <option value="">Vet inte, eller spelar ingen roll</option>
               {produkt.val.map((v) => (
                 <option key={v.id} value={v.id}>
@@ -186,13 +213,15 @@ export function ProduktValjare({ produkt, valtId, laddar, onValj, onVariant, onR
           <button
             type="button"
             onClick={() => {
-              fokusEfterRensa.current = true;
-              onRensa();
+              // Kortet försvinner och sökrutan ritas i samma tryck, så att
+              // markören kan ställas i den direkt.
+              flushSync(rensa);
+              sokRef.current?.focus();
             }}
           >
             Byt produkt
           </button>
-          <button type="button" onClick={onRensa}>
+          <button type="button" onClick={rensa}>
             Ta bort
           </button>
         </span>
@@ -205,14 +234,14 @@ export function ProduktValjare({ produkt, valtId, laddar, onValj, onVariant, onR
       <div className="kprod" aria-busy="true">
         <span className="kprod-etikett">Frågan gäller</span>
         <div className="kprod-kort kprod-laddar">
-          <span className="kprod-bild" />
+          <span className="sugg-img kprod-bild" />
           <span className="kprod-info">Hämtar produkten…</span>
         </div>
       </div>
     );
   }
 
-  const visaLista = oppen && q.trim().length >= 2;
+  const visaLista = oppen && q.trim().length >= KORTASTE_SOKNING;
   return (
     <div className="kprod" ref={wrapRef}>
       <label htmlFor={sokId}>
@@ -236,7 +265,7 @@ export function ProduktValjare({ produkt, valtId, laddar, onValj, onVariant, onR
           onChange={(e) => void sok(e.target.value)}
           onFocus={() => {
             void laddaSokIndex();
-            if (q.trim().length >= 2) setOppen(true);
+            if (q.trim().length >= KORTASTE_SOKNING) setOppen(true);
           }}
           onKeyDown={tangent}
         />
@@ -258,7 +287,7 @@ export function ProduktValjare({ produkt, valtId, laddar, onValj, onVariant, onR
                   role="option"
                   aria-selected={i === aktiv}
                   className={`sugg-item${i === aktiv ? " active" : ""}`}
-                  // Före blur, så att klicket hinner välja innan listan stängs.
+                  // Fokus stannar i sökrutan medan träffen väljs (klicket).
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => valj(h)}
                   onMouseEnter={() => setAktiv(i)}
