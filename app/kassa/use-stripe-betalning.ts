@@ -37,6 +37,26 @@ export type SnabbLage = "av" | "laddar" | "redo" | "tom" | "fel";
 /** Så länge väntar sidan på att Stripe säger vilka plånböcker som finns. */
 const SNABB_VANTA_MS = 12_000;
 
+// Stripe.js hämtas en gång per sida och nyckel. Hämtningen startar när kassan
+// visas med en varukorg (eller en på väg från Wix), inte först när summan är
+// känd: efter en omladdning kommer summan först när varukorgen hämtats från
+// Wix, och då startade Stripe 793 i stället för 427 ms efter sidans början och
+// betalfältet var klart 0,7 s senare (mätt 2026-11-07). Fälten monteras som
+// förut när summan finns. Ett misslyckat försök sparas inte.
+const stripeLoften = new Map<string, Promise<Stripe | null>>();
+function hamtaStripe(nyckel: string): Promise<Stripe | null> {
+  let lofte = stripeLoften.get(nyckel);
+  if (!lofte) {
+    const nytt = loadStripe(nyckel);
+    nytt.catch(() => {
+      if (stripeLoften.get(nyckel) === nytt) stripeLoften.delete(nyckel);
+    });
+    stripeLoften.set(nyckel, nytt);
+    lofte = nytt;
+  }
+  return lofte;
+}
+
 export interface StripeBetalning {
   /** Platsen där betalfältet monteras. */
   plats: React.RefObject<HTMLDivElement | null>;
@@ -109,7 +129,12 @@ function narRamenStilla(el: HTMLElement | null, klar: () => void): () => void {
   return () => avsluta(false);
 }
 
-export function useStripeBetalning(nyckel: string | null, beloppOre: number | null, adress: Adresskoppling, snabb: Snabbkoppling): StripeBetalning {
+/**
+ * `korgFinns`: kassan visar en varukorg, eller väntar på en (kakan fp_cart).
+ * Då börjar Stripe.js hämtas direkt (hamtaStripe); fälten monteras när
+ * `beloppOre` är känd.
+ */
+export function useStripeBetalning(nyckel: string | null, beloppOre: number | null, adress: Adresskoppling, snabb: Snabbkoppling, korgFinns = false): StripeBetalning {
   const plats = useRef<HTMLDivElement | null>(null);
   const adressPlats = useRef<HTMLDivElement | null>(null);
   const snabbPlats = useRef<HTMLDivElement | null>(null);
@@ -133,6 +158,11 @@ export function useStripeBetalning(nyckel: string | null, beloppOre: number | nu
   const [valt, setValt] = useState<string | null>(null);
   const kant = beloppOre !== null && beloppOre > 0;
 
+  // Stripe.js börjar hämtas så fort det finns en varukorg, före summan.
+  useEffect(() => {
+    if (nyckel && (korgFinns || kant)) hamtaStripe(nyckel).catch(() => {});
+  }, [nyckel, korgFinns, kant]);
+
   // Monteras en gång, när summan först blir känd.
   useEffect(() => {
     if (!nyckel || !kant || beloppOre === null) return;
@@ -141,7 +171,7 @@ export function useStripeBetalning(nyckel: string | null, beloppOre: number | nu
     let adr: StripeAddressElement | null = null;
     let knappar: StripeExpressCheckoutElement | null = null;
     let slutaVanta = () => {};
-    loadStripe(nyckel)
+    hamtaStripe(nyckel)
       .then((s) => {
         if (avbruten) return;
         if (!s || !plats.current) {

@@ -219,6 +219,9 @@ export function Kassa({
   // Varukorgen hämtas i webbläsaren när kakan fp_cart finns (components/cart.tsx).
   // Tills den kommit visas kassan med platshållare, inte "Varukorgen är tom".
   const [korgVantas, setKorgVantas] = useState(true);
+  // Kakan fp_cart finns: en varukorg är på väg, så Stripe.js kan börja hämtas
+  // innan den kommit (useStripeBetalning, korgFinns).
+  const [korgPaVag, setKorgPaVag] = useState(false);
   // "ons 11 – mån 16 november": räknas i webbläsaren (lib/leveransdatum.ts), som i varukorgen.
   const [levDatum, setLevDatum] = useState<string | null>(null);
   useEffect(() => {
@@ -435,6 +438,7 @@ export function Kassa({
       setKorgVantas(false);
       return;
     }
+    setKorgPaVag(true);
     // Hämtningen kan misslyckas tyst (Wix nere): efter 10 s gäller det som syns.
     const t = window.setTimeout(() => setKorgVantas(false), 10_000);
     return () => window.clearTimeout(t);
@@ -670,6 +674,7 @@ export function Kassa({
       klick: (h) => snabbKlick(h),
       bekrafta: (h) => void snabbBekraftaHandelse(h),
     },
+    korgPaVag || rader.length > 0,
   );
   const steglista: readonly string[] = stripeNyckel ? stripeSteg(snabbPagar ? null : betalValt) : STEG;
 

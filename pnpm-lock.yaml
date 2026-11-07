@@ -26,6 +26,12 @@ importers:
       '@vercel/speed-insights':
         specifier: ^2.0.0
         version: 2.0.0(next@16.2.6(@babel/core@7.29.7)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
+      '@wix/auto_sdk_ecom_cart-v-2':
+        specifier: 1.0.143
+        version: 1.0.143
+      '@wix/auto_sdk_ecom_current-cart-v-2':
+        specifier: 1.0.144
+        version: 1.0.144
       '@wix/blog':
         specifier: ^1.0.609
         version: 1.0.609(@types/react@19.2.15)(@wix/headless-components@0.0.0(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)(use-sync-external-store@1.6.0(react@19.2.4))

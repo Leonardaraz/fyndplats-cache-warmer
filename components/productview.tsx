@@ -594,7 +594,10 @@ export function ProductView({
       : hasImageVariants && imageChoices[sel]?.priceNum
         ? imageChoices[sel].priceNum
         : priceNum;
-    trackAddToCart({ id: productId, name, priceNum: itemPrice, category });
+    // GA4 och Meta först när lådan ritats: trycket ritar lådan, mätningen
+    // väntar en bild (mätt 2026-11-07 i en telefon med fyrdubbelt strypt
+    // processor: lådan efter 67 i stället för 133–157 ms; händelsen är densamma).
+    requestAnimationFrame(() => setTimeout(() => trackAddToCart({ id: productId, name, priceNum: itemPrice, category }), 0));
     // Lådan öppnas direkt med varan som väntande rad (components/cart.tsx).
     setAdded(true);
     const ok = await add(productId, variantId || undefined, qty, {
@@ -629,7 +632,15 @@ export function ProductView({
       if (id !== undefined) { if (ledig) window.cancelIdleCallback(id); else window.clearTimeout(id); }
     };
   }, []);
-  const avsiktAttKopa = () => forvarmKundvagn(true);
+  // Fingret på knappen: besökarnyckeln, och radens bild i lådan (160 px, samma
+  // adress som lådan ber om när Wix svarat) hämtas medan trycket pågår. Förut
+  // stod rutan tom en stund efter Wix svar (median 154 ms, mätt 2026-11-07).
+  const avsiktAttKopa = () => {
+    forvarmKundvagn(true);
+    const visad = [...document.querySelectorAll<HTMLImageElement>(".pdp .gmain img.is-shown")].pop()?.currentSrc || galleryImages[0];
+    const liten = visad ? tightFillUrl(visad, 160, 160) : "";
+    if (liten && liten !== visad) new Image().src = liten;
+  };
 
   // De galleribilder som tillhör den VALDA varianten → markeras i galleriet (ram).
   // En variant kan ha FLERA bilder: imageOwners (mediaKey → variant-etikett) är läst
