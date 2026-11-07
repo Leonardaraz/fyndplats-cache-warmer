@@ -28,14 +28,9 @@ test("utanAntal: samma träd, samma ordning och länkar, inga siffror", () => {
 });
 
 test("headern skickar trädet utan antal till båda menyerna", () => {
-  // Trädet tas bort ur antalen där sidhuvudets data byggs (lib/sidhuvud-data.ts),
-  // och site.tsx skickar det vidare till båda menyerna.
-  const data = readFileSync("lib/sidhuvud-data.ts", "utf8");
-  assert.match(data, /tree: utanAntal\(tree\)/);
   const src = readFileSync("components/site.tsx", "utf8");
-  assert.match(src, /\{ tree, hasSale \}.*sidhuvudsdata\(\)/);
-  assert.match(src, /<MegaNav tree=\{tree\}/);
-  assert.match(src, /<MobileNav tree=\{tree\}/);
+  assert.match(src, /<MegaNav tree=\{utanAntal\(tree\)\}/);
+  assert.match(src, /<MobileNav tree=\{utanAntal\(tree\)\}/);
 });
 
 test("menyerna läser antalen ur /api/meny-antal, inte ur trädet", () => {
