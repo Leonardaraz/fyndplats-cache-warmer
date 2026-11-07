@@ -226,6 +226,46 @@ Loggraden visar numera två tider, `— 51 sidor på … s, allt på … s`, dä
 fortfarande hela katalogen, så den raden kommer lika ofta som förut, bara
 snabbare.
 
+## Sidhuvudet väntar inte in katalogen: den färdiga menyn (2026-11-07)
+
+Sidhuvudets meny och REA-knapp byggs ur hela katalogen (`getCategoryTree`,
+`getProducts`). En ny instans hämtar den först, 21–34 s, och varje sida som
+byggs vid besöket väntade därför så länge: kassan efter en omladdning, Klarnas
+retur, påminnelselänken, medlemmarnas väg till kassan, `/tack` efter
+betalningen och Mina sidor (21,5 s, mätt 2026-11-06). Kassans sidor döljer
+dessutom sidhuvudet med CSS. Vercel visade cirka 690 sådana katalogladdningar
+på ett dygn.
+
+Nu (`lib/sidhuvud-val.ts`, `lib/sidhuvud-data.ts`):
+
+- **En varm instans bygger som förut** ur katalogen den redan har
+  (`katalogenLaddad()` i `lib/products.ts`).
+- **En kall instans läser den färdiga menyn** ur
+  `FyndplatsButikInstallningar/sidhuvud-meny-<miljö>`. Läsningen tar högst
+  2,5 s, och svaret hålls en minut per instans.
+- **`/api/cron/meny`** bygger menyn med samma kod fyra gånger i timmen och
+  sparar den. Loggen säger bara till när menyn ändrats eller inte sparades.
+- **Reserven är den gamla vägen.** Saknas raden, är den äldre än sex timmar,
+  har den fel form eller svarar Wix inte i tid, bygger sidhuvudet ur katalogen
+  som förut. Aldrig ett sidhuvud utan meny.
+
+Fyra egenskaper som inte ska tas bort:
+
+1. ☠️ **Läsningen görs med `fetch` utan cache-val**, som `lib/popularity.ts`.
+   `lib/wix-lager.ts` använder `cache: "no-store"`, och det gör en ISR-sida
+   dynamisk mitt i renderingen så att Next svarar 500. Provet fäller den
+   ändringen.
+2. ☠️ **En degraderad katalog sparas aldrig**, och inte heller en meny med
+   färre än tre huvudkategorier eller över 400 kB. En trasig meny i Wix hade
+   annars visats på varje kall instans.
+3. **En rad per miljö.** En förhandsversion skriver `sidhuvud-meny-preview`,
+   aldrig produktionens rad.
+4. **Raden bär versionen (`v`).** Ändras menyns form ska `MENY_VERSION` höjas,
+   så att en gammal rad aldrig tolkas som en ny.
+
+En cachad produktsida bär redan i dag ett sidhuvud som kan vara sex timmar
+gammalt, så den färdiga menyns högst 15 minuter ändrar ingenting kunden ser.
+
 ## Morgonmejlets ⚠️-ruta: bara avvikelser (2026-10-29)
 
 Rutan larmade varje morgon för produkter slut i lager och med lågt lager. Med

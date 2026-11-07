@@ -5,7 +5,7 @@
 // Provet vaktar tre saker, och alla tre har en historia:
 //
 // 1. URVALET. REA-knappen i navigationen visas när `hasSale` är sant
-//    (components/site.tsx), och sidan fylls av saleProducts() här. Det är TVÅ
+//    (harRea i lib/sidhuvud-val.ts), och sidan fylls av saleProducts() här. Det är TVÅ
 //    regler som måste betyda samma sak. Gör de inte det leder knappen till en
 //    tom sida — precis det fel som redan lagats en gång, när knappen pekade på
 //    /kategori/rea (en kategori som aldrig funnits) och 307:ade till /butik.
@@ -22,6 +22,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { saleProducts, REA_TITLE, REA_H1, REA_META_DESC, REA_INTRO, reaLede } from "./rea.ts";
+import { harRea } from "./sidhuvud-val.ts";
 
 // ── 1. Urvalet ──────────────────────────────────────────────────────────
 test("bara nedsatta OCH köpbara varor är fynd", () => {
@@ -45,14 +46,22 @@ test("tom katalog ger tom lista, inte ett kast", () => {
 });
 
 test("urvalsregeln är identisk med REA-knappens i navigationen", () => {
-  // site.tsx avgör om knappen alls visas. Divergerar reglerna leder knappen
-  // till en tom sida. Regeln är kort nog att jämföras som text.
-  const site = readFileSync("components/site.tsx", "utf8");
-  assert.match(
-    site,
-    /hasSale\s*=\s*\(await getProducts\(\)\)\.some\(\(p\) => p\.onSale && p\.inStock\)/,
-    "hasSale i components/site.tsx matchar inte saleProducts() i lib/rea.ts",
-  );
+  // Sidhuvudet avgör om knappen alls visas, med harRea i lib/sidhuvud-val.ts
+  // (sedan 2026-11-07; förut en rad i components/site.tsx). Divergerar reglerna
+  // leder knappen till en tom sida, så de prövas mot varandra för varje
+  // kombination av fälten, saknade fält inräknade.
+  const varden = [true, false, undefined];
+  for (const onSale of varden) {
+    for (const inStock of varden) {
+      const p = { ...(onSale === undefined ? {} : { onSale }), ...(inStock === undefined ? {} : { inStock }) };
+      assert.equal(harRea([p]), saleProducts([p]).length > 0, `onSale=${onSale} inStock=${inStock}`);
+    }
+  }
+  assert.equal(harRea([]), saleProducts([]).length > 0);
+  // Och sidhuvudet räknar knappen med just den regeln, både levande och i den färdiga menyn.
+  const data = readFileSync("lib/sidhuvud-data.ts", "utf8");
+  assert.match(data, /hasSale: harRea\(produkter\)/, "hasSale i lib/sidhuvud-data.ts räknas inte med harRea");
+  assert.match(readFileSync("components/site.tsx", "utf8"), /\{ tree, hasSale \}.*sidhuvudsdata\(\)/);
 });
 
 // ── 2. Adressen ─────────────────────────────────────────────────────────

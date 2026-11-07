@@ -67,6 +67,10 @@
     {
       "path": "/api/cron/medlemskorgar",
       "schedule": "41 * * * *"
+    },
+    {
+      "path": "/api/cron/meny",
+      "schedule": "3,18,33,48 * * * *"
     }
   ],
   "ignoreCommand": "[ \"$VERCEL_PROJECT_ID\" = \"prj_cFHNB471xiC8yH1XTJBNMBRpkZfe\" ] && exit 0 || exit 1"
