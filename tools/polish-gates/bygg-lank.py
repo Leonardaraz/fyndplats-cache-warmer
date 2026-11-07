@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
-"""bygg-lank.py <ut.js> <spec.json> [--torr]: gör lank-om-bilder.js till ett färdigt ExecuteWixAPI-skript för de foton som ska LÄNKAS till ett val.
+"""bygg-lank.py <ut.js> <spec.json> [--torr] [--ersatt]: gör lank-om-bilder.js till ett färdigt ExecuteWixAPI-skript för de foton som ska LÄNKAS till ett val.
 --torr bygger en torrkörning (ingenting skrivs): svaret har butikens vy per val före och efter på en option som inte är färg.
+--ersatt (2026-11-07, N349b): specens lista ERSÄTTER valets hela länklista i stället för att läggas till den. Behövs när en länk ska flyttas
+bort från ett val: en bild från Silver-givaren som visar det svarta skåpet (svart ram) låg länkad till Silver efter sammanslagningen och
+skulle länkas till Svart. Utan flaggan släpper skriptet aldrig en gammal länk. Ett val som hade länkar får ändå inte tömmas (regel 3 i lank-om-bilder.js).
 
 spec.json (2026-10-22, efter sammanslagningarna T84 och T86): [{"id": "<fullt produkt-id>", "axel": "Färg"|"Storlek",
 "val": {"<valets namn>": ["<hex6>", ...]}}]. Varje hex6 är de sex första tecknen i galleriets fil-id efter "b379ce_" och ska ge exakt en träff
@@ -14,6 +17,7 @@ spec = json.load(open(sys.argv[2], encoding='utf-8'))
 old = '  const PLANER = [{ id: "", axel: "Färg", tomt: [], lankar: {} }];\n'
 assert src.count(old) == 1
 new = '''  const TILLAGG = %s;
+  const ERSATT = %s;
   const likaT = function (a, b) { return String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase(); };
   const PLANER = [];
   for (const T of TILLAGG) {
@@ -29,21 +33,23 @@ new = '''  const TILLAGG = %s;
       if (!c) return [{ ok: false, steg: "tillagg", id: T.id.slice(0, 8), fel: "inget val " + namn }];
       const gamla = (c.linkedMedia || []).map(function (m) { return m.id; });
       const nya = [];
+      const valda = [];
       for (const h of T.val[namn]) {
         const traff = gal.filter(function (f) { return f.slice(7, 7 + h.length) === h; });
         if (traff.length !== 1) return [{ ok: false, steg: "tillagg", id: T.id.slice(0, 8), fel: "prefix " + h + " ger " + traff.length + " träffar" }];
         if (gamla.indexOf(traff[0]) < 0) nya.push(traff[0]);
+        valda.push(traff[0]);
       }
-      const alla = gamla.concat(nya);
+      const alla = ERSATT ? valda : gamla.concat(nya);
       alla.sort(function (a, b) { return gal.indexOf(a) - gal.indexOf(b); });
       lankar[namn] = alla;
     }
     PLANER.push({ id: T.id, axel: T.axel, tomt: [], lankar: lankar });
   }
-''' % json.dumps(spec, ensure_ascii=False)
+''' % (json.dumps(spec, ensure_ascii=False), 'true' if '--ersatt' in sys.argv[3:] else 'false')
 src = src.replace(old, new)
 if '--torr' in sys.argv[3:]:
     assert src.count('const TORR = false;') == 1
     src = src.replace('const TORR = false;', 'const TORR = true;', 1)
 open(sys.argv[1], 'w', encoding='utf-8').write(src)
-print(len(src), 'tecken' + (' (TORRKÖRNING: skriver ingenting, hasMutations false)' if '--torr' in sys.argv[3:] else ''))
+print(len(src), 'tecken' + (' (TORRKÖRNING: skriver ingenting, hasMutations false)' if '--torr' in sys.argv[3:] else '') + (' (ERSATT: specens listor ersätter valens hela länklistor)' if '--ersatt' in sys.argv[3:] else ''))
