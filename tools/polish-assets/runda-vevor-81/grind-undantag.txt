@@ -1,0 +1,16 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 190 x 130 x 50 mm utan axelord: texten skriver raden som Fodralets mått utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen måttrad med axelord: höjden 42,5 cm och bredden 32 cm står bara på måttbilden, där de ritas som höjd och bredd
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 1500 x 900 x 460 mm utan axelord: texten skriver raden som Mått utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen måttrad: måtten 27,9 x 16 x 26,9 cm står bara på måttbilden (Product Size) utan axelord, och texten skriver dem som Mått utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen måttrad med tre mått: längden 961 m och bredden 12,7 mm är två separata rader, och texten skriver dem som Längd och Bredd
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 270 x 360 x 1250 mm utan axelord: texten skriver raden som Bas 270 x 360 mm och Höjd 1250 mm enligt måttritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Utökade mått 3,28 x 164 ft / 1 x 50 m och Rullförpackningens mått 1050 x 220 x 220 mm utan axelord: texten skriver raderna som Mått utrullad och Rullens mått utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 27,36 x 12,60 x 44,49 tum / 695 x 320 x 1130 mm utan axelord: texten skriver raden som Mått utan axelord
