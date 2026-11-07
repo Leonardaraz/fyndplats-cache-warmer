@@ -69,7 +69,21 @@ export interface Korg {
   orderPlaced?: boolean;
   /** Ordern som skapades ur korgen (Cart V2 sätter den med orderPlaced). */
   orderId?: string;
-  deliveryInfo?: { method?: Leveranssatt };
+  deliveryInfo?: { method?: Leveranssatt; address?: { country?: string; postalCode?: string } };
+}
+
+/**
+ * Har korgen redan Sverige och samma postnummer som formuläret? Då ändrar
+ * landets PATCH ingenting och hoppas över (/api/kassa/rakna): den kostade
+ * 0,1–0,45 s på varje räkning efter den första (mätt 2026-11-07). Ett
+ * postnummer i korgen men inte i formuläret räknas som olika, så att PATCH:en
+ * gör som förut.
+ */
+export function landRedanSatt(korg: Korg | null | undefined, postnr: string | null): boolean {
+  const adress = korg?.deliveryInfo?.address;
+  if (adress?.country !== "SE") return false;
+  const siffror = (s: unknown) => (typeof s === "string" ? s.replace(/\D/g, "") : "");
+  return siffror(adress.postalCode) === siffror(postnr);
 }
 
 export interface Overtradelse {
@@ -485,6 +499,39 @@ export function medTider<T extends object>(deps: T, tider: Record<string, number
     };
   }
   return ut as T;
+}
+
+/**
+ * Samma beroenden, men förberedelsens två första läsningar (korgen och den förra
+ * betalningen) startar direkt, och första anropet för samma id får dem. De har
+ * ingen verkan, så de kan gå medan rutten läser kassans växel: den är cachad en
+ * minut och var oftast kall när kunden fyllt i formuläret (0,2–0,3 s, mätt
+ * 2026-11-07). Används läsningarna aldrig (stängd kassa) försvinner felen tyst.
+ */
+export function medForsprang(deps: StripeKassaDeps, cartId: string, avsiktId: string | null): StripeKassaDeps {
+  let korg: Promise<Korg | null> | null = deps.hamtaKorg(cartId);
+  let avsikt: Promise<Avsikt | null> | null = avsiktId ? deps.hamtaAvsikt(avsiktId) : null;
+  korg.catch(() => {});
+  avsikt?.catch(() => {});
+  return {
+    ...deps,
+    hamtaKorg: (id) => {
+      if (korg && id === cartId) {
+        const l = korg;
+        korg = null;
+        return l;
+      }
+      return deps.hamtaKorg(id);
+    },
+    hamtaAvsikt: (id) => {
+      if (avsikt && id === avsiktId) {
+        const l = avsikt;
+        avsikt = null;
+        return l;
+      }
+      return deps.hamtaAvsikt(id);
+    },
+  };
 }
 
 /** "rakna 1200+900, skapaOrder 1500": tiderna i anropsordning för loggen. */

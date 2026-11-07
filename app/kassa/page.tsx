@@ -22,12 +22,12 @@ export const metadata: Metadata = {
 
 export default async function KassaSida() {
   const nyckel = harStripe() ? process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.trim() || null : null;
-  // Google-betyget i summeringen: samma hämtning som sidfoten gör på varje sida
-  // (cachad i 6 h), så det kostar inget extra anrop.
-  const betyg = (await getSocialProof()).rating;
   const stripeNyckel = nyckel && /^pk_(test|live)_[A-Za-z0-9]+$/.test(nyckel) ? nyckel : null;
-  // Medlemskorgen med låsta priser, när kakan pekar ut en som hör till den
-  // inloggade medlemmen (lib/kassa/medlemskassa.ts). Bara med Stripe.
-  const last = stripeNyckel ? await lastKorgForKassan() : null;
-  return <Kassa stripeNyckel={stripeNyckel} betyg={betyg} last={last} />;
+  // Samtidigt, inte efter varandra:
+  // - Google-betyget i summeringen: samma hämtning som sidfoten gör på varje
+  //   sida (cachad i 6 h), så det kostar inget extra anrop.
+  // - Medlemskorgen med låsta priser, när kakan pekar ut en som hör till den
+  //   inloggade medlemmen (lib/kassa/medlemskassa.ts). Bara med Stripe.
+  const [socialt, last] = await Promise.all([getSocialProof(), stripeNyckel ? lastKorgForKassan() : null]);
+  return <Kassa stripeNyckel={stripeNyckel} betyg={socialt.rating} last={last} />;
 }

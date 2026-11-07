@@ -3,6 +3,8 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
+// Typen bakom router.prefetch:s `kind` (FULL = hela sidan, inte bara vägen).
+import { PrefetchKind } from "next/dist/client/components/router-reducer/router-reducer-types";
 import {
   stashPurchaseSnapshot,
   trackBeginCheckout,
@@ -13,7 +15,7 @@ import { tightFillUrl } from "../lib/wix-image";
 import { DELIVERY_MAX_DAYS, DELIVERY_MIN_DAYS, DELIVERY_TIME, EU_STOCK_NOTE_SHORT, FREE_SHIPPING_FROM_KR, fraktKr } from "../lib/shipping";
 import { leveransIntervall } from "../lib/leveransdatum";
 import { skapaKassalankMinne, type Kassalank } from "../lib/kassalank";
-import { medlemskassa, useMedlemskorg } from "./medlemspris";
+import { harMedlemstecken, medlemskassa, useMedlemskorg } from "./medlemspris";
 import { kronorText } from "../lib/medlem/kronor";
 import { exklMoms } from "../lib/medlem/pris";
 import { OffertForfragan } from "./offert-forfragan";
@@ -53,6 +55,31 @@ function sparadeNycklar(): any {
   return { accessToken: {}, refreshToken: {} };
 }
 
+const harNycklar = (t: any): boolean => Boolean(t?.accessToken?.value || t?.refreshToken?.value);
+
+/**
+ * Var klienten håller besökarens nycklar: i minnet, och i kakan "session" så
+ * att nästa sida har samma besökare. Varje ny nyckel sparas i kakan, också den
+ * Wix förnyar efter fyra timmar (förut förnyades den på varje sida efter det).
+ * Saknas nycklar i minnet läses kakan, som kan ha skrivits efter att klienten
+ * skapades.
+ *
+ * ☠️ Förut låg nycklarna bara i klientens minne och besökarnyckeln bara i
+ * kakan, så klienten såg inga nycklar och hämtade en ANDRA besökarnyckel före
+ * första tillägget: en Wix-tur till på varje ny varukorg (mätt 2026-11-07,
+ * median 194 ms, i 20 av 20 tillägg) och en besökare utan varukorg hos Wix.
+ */
+function nyckellager() {
+  let minne: any = sparadeNycklar();
+  return {
+    getTokens: () => (harNycklar(minne) ? minne : (minne = sparadeNycklar())),
+    setTokens: (t: any) => {
+      minne = t;
+      try { Cookies.set("session", JSON.stringify(t), { expires: 30 }); } catch { /* kakor avstängda: nycklarna finns i minnet */ }
+    },
+  };
+}
+
 function getClient(): Promise<{ client: any }> {
   if (!clientPromise) {
     const lofte = (async () => {
@@ -64,9 +91,15 @@ function getClient(): Promise<{ client: any }> {
       // och createRedirectSession med callbacks är Wix DOKUMENTERADE sätt att
       // få tillbaka kunden till en egen tacksida. Min parameter var en gissning
       // som ersatte något som redan fungerade i produktion.
-      const [sdk, ecom, redir] = await Promise.all([
+      //
+      // Varukorgens två moduler hämtas direkt, inte via @wix/ecom: paketet är
+      // ett hölje runt ett hundratal moduler (820 kB okomprimerat i en enda
+      // del, en lång uppgift på 0,1 s i en långsam telefon), och @wix/ecom
+      // själv exporterar just de här två namnrymderna (currentCartV2, cartV2).
+      const [sdk, currentCartV2, cartV2, redir] = await Promise.all([
         import("@wix/sdk"),
-        import("@wix/ecom"),
+        import("@wix/auto_sdk_ecom_current-cart-v-2"),
+        import("@wix/auto_sdk_ecom_cart-v-2"),
         import("@wix/redirects"),
       ]);
       // redir.redirects, INTE redir: paketets toppnivå är ett hölje runt
@@ -75,10 +108,10 @@ function getClient(): Promise<{ client: any }> {
       // catch:en nedan sväljer det tyst — varje köp hade tagit reservvägen
       // utan att någon märkt det. Samma uppackning som produktionen gör.
       const client = sdk.createClient({
-        modules: { currentCart: ecom.currentCartV2, cart: ecom.cartV2, redirects: redir.redirects },
+        modules: { currentCart: currentCartV2, cart: cartV2, redirects: redir.redirects },
         auth: sdk.OAuthStrategy({
           clientId: HEADLESS_CLIENT_ID,
-          tokens: sparadeNycklar(),
+          tokenStorage: nyckellager(),
         }),
       });
       return { client };
@@ -93,19 +126,45 @@ function getClient(): Promise<{ client: any }> {
 }
 
 // Besökarnyckeln hämtas en gång, även om förvärmningen och ett tryck kommer
-// samtidigt. Utan nyckel i kakan skapar Wix en ny besökare per anrop.
+// samtidigt. Utan nyckel i kakan skapar Wix en ny besökare per anrop. Har
+// klienten redan nycklar (kakan går inte att skriva) gäller de, annars hade
+// varje tillägg fått en ny besökare och en ny, tom varukorg.
 let besokareLofte: Promise<void> | null = null;
 function sakraBesokare(client: any): Promise<void> {
-  if (Cookies.get("session")) return Promise.resolve();
+  if (Cookies.get("session") || harNycklar(client.auth.getTokens?.())) return Promise.resolve();
   if (!besokareLofte) {
     besokareLofte = (async () => {
       try {
-        const t = await client.auth.generateVisitorTokens();
-        Cookies.set("session", JSON.stringify(t), { expires: 30 });
+        // Till klienten OCH kakan (nyckellager): tillägget använder samma besökare.
+        client.auth.setTokens(await client.auth.generateVisitorTokens());
       } catch { /* som förut: tillägget försöker ändå */ }
     })().finally(() => { besokareLofte = null; });
   }
   return besokareLofte;
+}
+
+// Förbindelserna till Wix API öppnas i förväg (namnuppslag, anslutning och
+// kryptering), så att tillägget inte väntar på dem: varukorgen går till
+// edge.wixapis.com och besökarnyckeln till www.wixapis.com, två värdar som inte
+// delar förbindelse. Utan inloggningsuppgifter (crossorigin), som SDK:ns
+// anrop. En webbläsare stänger en oanvänd förbindelse efter några sekunder,
+// så tipset upprepas vid trycket, högst var femte sekund.
+let senastForbundenWix = -Infinity;
+function forbindTillWix(): void {
+  try {
+    const nu = performance.now();
+    if (nu - senastForbundenWix < 5_000) return;
+    senastForbundenWix = nu;
+    const vardar = ["https://edge.wixapis.com"];
+    if (!Cookies.get("session")) vardar.push("https://www.wixapis.com");
+    for (const href of vardar) {
+      const l = document.createElement("link");
+      l.rel = "preconnect";
+      l.href = href;
+      l.crossOrigin = "anonymous";
+      document.head.appendChild(l);
+    }
+  } catch { /* bara ett tips */ }
 }
 
 /** Laddar kassans kod och, med `nyckel`, besökarnyckeln innan kunden trycker.
@@ -113,8 +172,10 @@ function sakraBesokare(client: any): Promise<void> {
  *  varav 0,7 s kod och 0,9 s nyckel; senare tryck 0,7–0,8 s (Wix svar).
  *  Koden hämtas efter kundens första rörelse på produktsidan, nyckeln först
  *  vid avsikt (fingret på knappen), så att en ren titt varken laddar koden
- *  eller skapar en besökare hos Wix. */
+ *  eller skapar en besökare hos Wix. Förbindelserna till Wix öppnas samtidigt
+ *  (forbindTillWix). */
 export function forvarmKundvagn(nyckel = false): void {
+  forbindTillWix();
   getClient().then(({ client }) => (nyckel ? sakraBesokare(client) : undefined)).catch(() => {});
 }
 
@@ -440,8 +501,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } finally { setBusy(false); }
   }, [remove, visaVagn]);
 
-  // Vår kassa eller Wix: frågas en gång när lådan öppnas med varor.
-  const egenKassaRef = useRef<boolean | null>(null);
+  // Vår kassa eller Wix: frågas en gång per sida, när lådan öppnas med varor
+  // (eller vid trycket, om svaret inte hunnit komma). Ett fel betyder Wix kassa.
+  const [egenKassa, setEgenKassa] = useState<boolean | null>(null);
+  const egenKassaFraga = useRef<Promise<boolean> | null>(null);
+  const fragaKassan = useCallback(() => (egenKassaFraga.current ??= fragaEgenKassa()), []);
 
   const checkout = useCallback(async () => {
     if (tillKassan) return;
@@ -469,7 +533,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       // Vår egen kassa (/kassa) när växeln säger det (lib/kassa/lage.ts).
       // Svaret hämtas när lådan öppnas; finns det inte än frågas det nu, och
       // ett fel ger Wix kassa som förut.
-      const egen = egenKassaRef.current ?? (await fragaEgenKassa());
+      const egen = egenKassa ?? (await fragaKassan());
       if (egen) {
         // Utan omladdning: varukorgen finns redan här och syns direkt i kassan.
         setOpen(false);
@@ -500,28 +564,38 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       setFel("Kassan kunde inte öppnas. Försök igen om en stund.");
       setTillKassan(false);
     }
-  }, [cart, tillKassan, router]);
+  }, [cart, tillKassan, router, egenKassa, fragaKassan]);
 
-  // Förbered kassans adress så fort lådan visar en vagn med varor. Faller
-  // det bygger trycket själv, så ett fel här märks aldrig av kunden.
   const kassaId: string = cart?._id || "";
   const harVaror = (cart?.lineItems?.length ?? 0) > 0;
   useEffect(() => {
-    if (!open || !harVaror || egenKassaRef.current !== null) return;
-    fragaEgenKassa()
-      .then((v) => {
-        egenKassaRef.current = v;
-        if (v) router.prefetch("/kassa");
-      })
-      .catch(() => {});
-  }, [open, harVaror, router]);
+    if (!open || !harVaror || egenKassa !== null) return;
+    void fragaKassan().then(setEgenKassa);
+  }, [open, harVaror, egenKassa, fragaKassan]);
+  // Med vår kassa hämtas hela kassasidan i förväg, inte bara vägen dit: då
+  // ritas kassan direkt efter trycket i stället för efter en serverrunda och
+  // sidans kod (mätt 2026-11-07, mobil: 78 i stället för 428 ms, betalfältet
+  // 0,5 s tidigare). Sidan visar varukorgen ur minnet, så inget i den kan bli
+  // gammalt. Varje gång lådan öppnas: en förhämtning som fortfarande gäller
+  // hämtas inte igen. Inte för en inloggad medlem: servern läser medlemskorgen
+  // (fp_kassa_korg) när sidan byggs, och den ska läsas vid trycket.
   useEffect(() => {
-    if (!open || !kassaId || !harVaror) return;
+    if (!open || !harVaror || egenKassa !== true) return;
+    try {
+      router.prefetch("/kassa", harMedlemstecken() ? undefined : { kind: PrefetchKind.FULL });
+    } catch { /* bara en förhämtning */ }
+  }, [open, harVaror, egenKassa, router]);
+  // Wix kassans adress förbereds bara när Wix kassa gäller, så fort lådan
+  // visar en vagn med varor. Faller det bygger trycket själv, så ett fel här
+  // märks aldrig av kunden. Med vår kassa användes adressen aldrig, men den
+  // kostade två Wix-anrop per öppnad låda, ett av dem samtidigt med tillägget.
+  useEffect(() => {
+    if (egenKassa !== false || !open || !kassaId || !harVaror) return;
     kassalankMinne
       .forbered(kassaId, () => getClient().then(({ client }) => byggKassalank(client, kassaId)))
       .then((l) => forbindTill(l.target))
       .catch(() => {});
-  }, [open, kassaId, harVaror]);
+  }, [egenKassa, open, kassaId, harVaror]);
 
   const count = (cart?.lineItems || []).reduce((n: number, li: any) => n + (li.quantity || 0), 0)
     + vantande.reduce((n, v) => n + v.antal, 0);
