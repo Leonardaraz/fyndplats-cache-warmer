@@ -2077,3 +2077,39 @@ Ett företag läggs till på ett befintligt konto, högst ett per konto i E3.
   fakturaorder bara kvittot som redan har mejlats. Svaret är privat och
   cachas aldrig; utan PDF visas en kort sida på svenska med länk tillbaka
   (`kvittoFelText`).
+
+## Kontaktvägarna bär produkten (Leonard 2026-11-07)
+
+Leonard: "när folk mailar oss om produkter så blir det lätt för dom att visa
+vilken dom menar". Kunder mejlade om "ert lasertag-set med projektor för
+959 kr", och kundtjänst fick gissa vilken vara de menade.
+
+- **Produktsidans flik "Kontakta oss"**: texten är densamma på varje sida
+  (Leonards krav), men länkarna bär produkten. Formuläret öppnas med den
+  förvald (`/kontaktaoss?produkt=<slug>&variant=<id>#meddelande`), och
+  e-postlänken får ämnet "Fråga om: <namn>" och produktens adress i texten
+  (`kontaktFlikLankar` i `lib/kontakt/kontakt.ts`). Det valda valet följer
+  med när kunden byter färg eller storlek.
+- **Formuläret** (`components/contactform.tsx`, `components/kontakt-produkt.tsx`):
+  det valfria fältet "Gäller det en produkt?" söker i samma index som
+  sidhuvudets sökruta (`lib/sok-index.ts`, utbrutet ur `searchbox.tsx`), och
+  den valda produkten visas som ett kort med bild, namn, pris och en väljare
+  för varianten. Förvalet läses ur adressen med `useSyncExternalStore`, inte
+  med setState i en effekt.
+- **Servern bestämmer vad mejlet säger.** Klienten skickar bara slugen och
+  variantens id. `/api/contact` slår upp produkten (`hamtaKontaktProdukt`)
+  och lägger en ruta överst i mejlet med bild, namn, val, pris och länk.
+  Ämnesraden börjar med "Fråga om <produkt>". Svarar Wix inte inom sex
+  sekunder går mejlet ändå, med länken byggd ur slugen. Utan produkt är
+  mejlet tecken för tecken som förut (prov).
+- ☠️ **Aldrig katalogens reserv i kontaktvägarna.** `getProduct` faller
+  tillbaka på hela katalogen när Wix inte hittar slugen, och det tar 23–26 s
+  på en kall instans. `getKontaktProdukt` (`lib/products.ts`) delar grunden
+  med produktsidan (`produktGrund`) men saknar både reserven och bilderna.
+- `/api/kontakt/produkt?p=<slug>` (förvalet och valen) ligger i CDN:et en
+  timme per adress, en okänd slug tio minuter.
+- Leverantörens artikelnummer står aldrig i mejlet eller i länkarna, bara det
+  som redan står på produktsidan.
+- `lib/kontakt/kontakt.ts` importerar ingenting vid körning, eftersom
+  node:test inte kan läsa importer utan filändelse. Formatet för pris och
+  valnamn skickas in (`KONTAKT_FORMAT` i `lib/kontakt/produkt.ts`).

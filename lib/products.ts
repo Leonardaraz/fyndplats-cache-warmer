@@ -20,7 +20,7 @@ import { wixMediaKey } from "./wix-image";
 import { swedishChoiceValue, swedishOptionName } from "./option-i18n";
 import { linkVariantImagesByAltText, colorOf, colorKeysFromName, valbilder, type ValBild, type V3Option } from "./variant-color-image";
 import { fargvalKropp, FARGVAL_SIDTAK } from "./product-colors-paging";
-import { v3VariantData, v3MultiVariantData, type V3VariantData, type V3MultiVariantData } from "./variant-price";
+import { v3VariantData, v3MultiVariantData } from "./variant-price";
 import { PRODUKTSIDA_SEKUNDER, produktTagg } from "./produkt-cache";
 import { kortLivslangd } from "./kort-livslangd";
 
@@ -246,19 +246,6 @@ async function fetchV3Kopplingar(
       })),
     ),
   );
-}
-
-// Per-variant pris/-id autentiserat från V3 (delar cachead hämtning med bilderna).
-// Ren parsning ligger i ./variant-price (enhetstestbar utan SDK/fetch-beroenden).
-async function fetchV3VariantData(productId: string): Promise<V3VariantData> {
-  const product = await fetchV3ProductRaw(productId);
-  return product ? v3VariantData(product) : null;
-}
-
-// Multi-axel-variantdata (Färg × Storlek) autentiserat från V3 (delar cachead hämtning).
-async function fetchV3MultiVariantData(productId: string): Promise<V3MultiVariantData> {
-  const product = await fetchV3ProductRaw(productId);
-  return product ? v3MultiVariantData(product) : null;
 }
 
 // HELA produktgalleriet från V3 (media.itemsInfo.items). Det publika SDK:t
@@ -716,79 +703,110 @@ export async function getFreshPrices(
   return out;
 }
 
+/**
+ * Byter valens visningsetiketter och namn mot svenska. Körs sist, efter all
+ * matchning på de engelska råvärdena (variant-id, färg, bilder). Wix låser
+ * choice-värdena, så detta är enda säkra vägen att visa svenska. Se
+ * lib/option-i18n.
+ */
+function svenskaValnamn(options: NonNullable<Product["options"]>): void {
+  for (const ch of options.choices) ch.label = swedishChoiceValue(ch.label);
+  options.name = swedishOptionName(options.name);
+}
+
+/**
+ * Produktens grund ur Wix: SDK-raden, priset per variant och valen (en axel
+ * eller flera) ur V3. Utan bilderna och utan katalogens reserv. Delas av
+ * produktsidan (getProduct, som lägger på bilderna, galleriet och de svenska
+ * valnamnen) och kontaktformuläret (getKontaktProdukt). Null när ingen synlig
+ * produkt har slugen; kastar när Wix felar.
+ */
+async function produktGrund(slug: string): Promise<{ prod: Product; item: any } | null> {
+  const res: any = await (wix as any).products.queryProducts().eq("slug", slug).limit(1).find();
+  const item = res.items?.[0];
+  if (!item) return null;
+  const prod = mapProduct(item);
+  prod.options = optionsForProduct(slug, item);
+  prod.descriptionHtml = item.description || "";
+  // Per-variant PRIS (+ variant-id/bild) autentiserat från V3. Det publika
+  // SDK:t (queryProducts) släpper variantpriserna för V3 → annars visas
+  // baspriset för ALLA storleksvarianter (bug: 2 L och 30 L fick samma pris).
+  // Bygger options om SDK:t inte gav dem; annars överlagras priset på matchande
+  // val (rå-etikett, FÖRE svensk-översättningen nedan). Fail-open.
+  //
+  // V3-raden hämtas EN gång och tolkas här. React cache() delar hämtningen
+  // inne i en sidrendering, men inte i en route handler (kontaktrutterna), där
+  // envariant- och flerdimensionsvägen annars hämtade samma produkt var för sig.
+  const v3 = await fetchV3ProductRaw(prod.id);
+  const v3v = v3 ? v3VariantData(v3) : null;
+  if (v3v) {
+    const isColorOpt = /färg|color|kulör/i.test(v3v.optionName);
+    const buildChoices = () =>
+      v3v.choices.map((c) => ({
+        label: c.label,
+        image: c.image,
+        color: isColorOpt ? colorOf(c.label) : "",
+        variantId: c.variantId,
+        price: c.price,
+        priceNum: c.priceNum,
+        originalPrice: c.originalPrice,
+        inStock: c.inStock,
+      }));
+    if (!prod.options) {
+      prod.options = { name: v3v.optionName, choices: buildChoices() };
+    } else {
+      const byLabel: Record<string, (typeof v3v.choices)[number]> = {};
+      for (const c of v3v.choices) byLabel[c.label] = c;
+      let matched = 0;
+      for (const ch of prod.options.choices) {
+        const c = byLabel[ch.label];
+        if (!c) continue;
+        matched++;
+        ch.price = c.price;
+        ch.priceNum = c.priceNum;
+        ch.originalPrice = c.originalPrice;
+        ch.inStock = c.inStock;
+        if (!ch.variantId) ch.variantId = c.variantId;
+        if (!ch.image) ch.image = c.image;
+      }
+      // Namnen matchade inte (SDK-värde ≠ V3-namn) → bygg från V3 (auktoritativt).
+      if (matched === 0) prod.options = { name: v3v.optionName, choices: buildChoices() };
+    }
+  } else {
+    // Multi-axel (Färg × Storlek): det publika SDK:t ger bara FÖRSTA axeln →
+    // kund kunde inte välja t.ex. storlek och alla kombinationer visade
+    // baspriset. Bygg ALLA axlar + en variant-tabell ur V3 (auktoritativ).
+    // V3-namnen är redan svenska (importen skriver svenska) → ingen extra
+    // översättning (bevarar distinkta namn). prod.options nollas så PDP:n
+    // använder per-axel-vägen i stället för SDK:ns enda (buggiga) axel.
+    const multi = v3 ? v3MultiVariantData(v3) : null;
+    if (multi) {
+      prod.variantAxes = multi.axes.map((ax) => {
+        const isColorOpt = /färg|color|kulör/i.test(ax.name);
+        return {
+          name: ax.name,
+          choices: ax.choices.map((c) => ({
+            label: c.label,
+            image: c.image,
+            color: isColorOpt ? colorOf(c.label) : "",
+          })),
+        };
+      });
+      prod.variantTable = multi.table;
+      prod.options = null;
+    }
+  }
+  return { prod, item };
+}
+
 // Per-request dedup: if two RSCs on the same product page both call getProduct(slug),
 // React reuses the in-flight Promise instead of round-tripping to Wix twice.
 export const getProduct = cache(async (slug: string): Promise<Product | undefined> => {
   if (wix) {
     try {
-      const res: any = await (wix as any).products.queryProducts().eq("slug", slug).limit(1).find();
-      if (res.items?.[0]) {
-        const prod = mapProduct(res.items[0]);
-        prod.options = optionsForProduct(slug, res.items[0]);
-        prod.descriptionHtml = res.items[0].description || "";
-        // Per-variant PRIS (+ variant-id/bild) autentiserat från V3. Det publika
-        // SDK:t (queryProducts) släpper variantpriserna för V3 → annars visas
-        // baspriset för ALLA storleksvarianter (bug: 2 L och 30 L fick samma pris).
-        // Bygger options om SDK:t inte gav dem; annars överlagras priset på matchande
-        // val (rå-etikett, FÖRE svensk-översättningen nedan). Fail-open.
-        const v3v = await fetchV3VariantData(prod.id);
-        if (v3v) {
-          const isColorOpt = /färg|color|kulör/i.test(v3v.optionName);
-          const buildChoices = () =>
-            v3v.choices.map((c) => ({
-              label: c.label,
-              image: c.image,
-              color: isColorOpt ? colorOf(c.label) : "",
-              variantId: c.variantId,
-              price: c.price,
-              priceNum: c.priceNum,
-              originalPrice: c.originalPrice,
-              inStock: c.inStock,
-            }));
-          if (!prod.options) {
-            prod.options = { name: v3v.optionName, choices: buildChoices() };
-          } else {
-            const byLabel: Record<string, (typeof v3v.choices)[number]> = {};
-            for (const c of v3v.choices) byLabel[c.label] = c;
-            let matched = 0;
-            for (const ch of prod.options.choices) {
-              const c = byLabel[ch.label];
-              if (!c) continue;
-              matched++;
-              ch.price = c.price;
-              ch.priceNum = c.priceNum;
-              ch.originalPrice = c.originalPrice;
-              ch.inStock = c.inStock;
-              if (!ch.variantId) ch.variantId = c.variantId;
-              if (!ch.image) ch.image = c.image;
-            }
-            // Namnen matchade inte (SDK-värde ≠ V3-namn) → bygg från V3 (auktoritativt).
-            if (matched === 0) prod.options = { name: v3v.optionName, choices: buildChoices() };
-          }
-        } else {
-          // Multi-axel (Färg × Storlek): det publika SDK:t ger bara FÖRSTA axeln →
-          // kund kunde inte välja t.ex. storlek och alla kombinationer visade
-          // baspriset. Bygg ALLA axlar + en variant-tabell ur V3 (auktoritativ).
-          // V3-namnen är redan svenska (importen skriver svenska) → ingen extra
-          // översättning (bevarar distinkta namn). prod.options nollas så PDP:n
-          // använder per-axel-vägen i stället för SDK:ns enda (buggiga) axel.
-          const multi = await fetchV3MultiVariantData(prod.id);
-          if (multi) {
-            prod.variantAxes = multi.axes.map((ax) => {
-              const isColorOpt = /färg|color|kulör/i.test(ax.name);
-              return {
-                name: ax.name,
-                choices: ax.choices.map((c) => ({
-                  label: c.label,
-                  image: c.image,
-                  color: isColorOpt ? colorOf(c.label) : "",
-                })),
-              };
-            });
-            prod.variantTable = multi.table;
-            prod.options = null;
-          }
-        }
+      const grund = await produktGrund(slug);
+      if (grund) {
+        const { prod, item } = grund;
         // Lägg per-val variantbilder från V3 linkedMedia ÖVERST (mest aktuell källan
         // — täcker nyimporterade produkter som inte finns i variant-images.json).
         // Strikt additivt: live-bild vinner när den finns, annars behålls den
@@ -823,14 +841,11 @@ export const getProduct = cache(async (slug: string): Promise<Product | undefine
           // lib/variant-color-image.ts. Detta täcker hela katalogen automatiskt.
           linkVariantImagesByAltText(
             prod.options.choices,
-            (res.items[0].media?.items || []).map((it: any) => ({ url: it?.image?.url, altText: it?.image?.altText })),
+            (item.media?.items || []).map((it: any) => ({ url: it?.image?.url, altText: it?.image?.altText })),
           );
           // SIST, efter ALL intern matchning (variantId/colorOf i extractOptions)
-          // och bildhydrering ovan (som matchar på det engelska RÅvärdet): byt
-          // ut visnings­etiketterna mot svenska. Wix låser choice-värdena, så
-          // detta är enda säkra vägen att visa svenska. Se lib/option-i18n.
-          for (const ch of prod.options.choices) ch.label = swedishChoiceValue(ch.label);
-          prod.options.name = swedishOptionName(prod.options.name);
+          // och bildhydrering ovan (som matchar på det engelska RÅvärdet).
+          svenskaValnamn(prod.options);
         }
         // PDP:n ska visa ALLA importerade bilder, inte SDK-listans kapade 6.
         // Hämta hela galleriet auktoritativt från V3 (delar cache:ade anropet).
@@ -892,6 +907,22 @@ export const getProduct = cache(async (slug: string): Promise<Product | undefine
   const list = await getProducts();
   return list.find((p) => p.slug === slug);
 });
+
+/**
+ * Kontaktformulärets uppslag (lib/kontakt/produkt.ts): samma grund som
+ * produktsidan, med valens svenska namn, men utan bilderna och utan katalogens
+ * reserv. Reserven laddar hela katalogen på en kall instans (23–26 s, mätt
+ * 2026-11-07), och kontaktrutterna anropas sällan och är därför nästan alltid
+ * kalla. Null när ingen synlig produkt har slugen; kastar när Wix felar.
+ */
+export async function getKontaktProdukt(slug: string): Promise<Product | null> {
+  if (!wix) return null;
+  const grund = await produktGrund(slug);
+  if (!grund) return null;
+  const { prod } = grund;
+  if (prod.options) svenskaValnamn(prod.options);
+  return prod;
+}
 
 export async function getProductSlugs(): Promise<string[]> {
   const list = await getProducts();

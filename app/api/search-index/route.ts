@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getProducts } from "../../../lib/products";
-import { formatPrice } from "../../../lib/price-range";
+import { listPris } from "../../../lib/price-range";
 
 // Lightweight product index for the search autocomplete: name / slug / image / price.
 // Cached and revalidated hourly so the dropdown filters instantly client-side after a
@@ -47,12 +47,9 @@ export async function GET() {
     // priceFromNum var lika i 28 fall av 28), men utan att antyda att det finns
     // dyrare varianter. Halvvägs efterliknat är sämre än inte alls.
     //
-    // Samma tre fall som components/productcard, i samma ordning.
-    p: p.hasRange
-      ? `Från ${p.priceFromNum ? formatPrice(p.priceFromNum) : p.priceFrom}`
-      : p.priceNum
-        ? formatPrice(p.priceNum)
-        : p.price,
+    // Samma tre fall som components/productcard, i samma ordning (listPris i
+    // lib/price-range.ts, som kontaktformulärets produktkort också använder).
+    p: listPris(p),
     ...(p.inStock ? {} : { o: 1 }),
   }));
   return NextResponse.json(index, { headers: { "Cache-Control": CACHE } });
