@@ -1,0 +1,3 @@
+# kort pos1 pos2 skäl (kvitterar ett par som gate-bilddubblett.py flaggar som misstänkt men som visar något olika)
+9b11bbf0 4 5 olika vinklar på mejseln (position 4 är tagen snett ovanifrån med bladet åt vänster och position 5 från sidan med skaftet uppåt höger, 0,039)
+61b00bb7 4 5 olika vinklar på behållaren (position 4 rakt framifrån och position 5 från sidan med locket delvis öppet, 0,031)

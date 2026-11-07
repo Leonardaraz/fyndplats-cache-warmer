@@ -1,0 +1,36 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+372e1db0 80 bredden 31,5 in / 80 cm och höjden 31,5 in / 80 cm på måttbilden; samma tal i specifikationen (Produktmått 80 x 37,5 x 80 cm)
+372e1db0 37,5 djupet 14,7 in / 37,5 cm på måttbilden; samma tal i specifikationen
+372e1db0 29 övre fackets höjd 11,4 in / 29 cm på måttbilden; samma tal i specifikationen (76 x 27,5 x 29 cm)
+372e1db0 28 nedre fackets höjd 11 in / 28 cm på måttbilden; samma tal i specifikationen (76 x 27,5 x 28 cm)
+372e1db0 27,5 fackens djup 10,8 in / 27,5 cm på måttbilden; samma tal i specifikationen
+372e1db0 6,4 avståndet 2,5 in / 6,4 cm mellan höjdlägena på bilden Handle All Storage Hassles; samma tal i specifikationen
+372e1db0 30 bordsskivans bärförmåga 66 lbs / 30 kg på måttbilden; samma tal i specifikationen (Bordsviktskapacitet 30 kg)
+372e1db0 10 hyllplanens bärförmåga 22 lbs / 10 kg på måttbilden; samma tal i specifikationen (Hyllkapacitet 10 kg)
+372e1db0 1,5 bordsskivans tjocklek 0,6 in / 1,5 cm på bilden Thick Particleboard Tabletop; samma tal i specifikationen (Bordsskiva 80 x 37,5 x 1,5 cm)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+e6c0598d 128 fackets längd 5,1 in / 128 mm på måttbilden (Compartment Dimensions 5.1 x 3.9 x 2.8 in / 128 x 100 x 70 mm); specifikationen säger 138 mm, och det lägre skrivs
+e6c0598d 100 fackets bredd 3,9 in / 100 mm på måttbilden; specifikationen säger 115 mm, och det lägre skrivs
+e6c0598d 70 fackets höjd 2,8 in / 70 mm på måttbilden; specifikationen säger 71 mm, och det lägre skrivs
+e6c0598d 6 sex skedar på bilden Charming Set och måttbilden (6 x Spoons)
+e6c0598d 50 femtio fruktgafflar för engångsbruk på bilden Charming Set och måttbilden (50 x Disposable Fruit Forks)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+f64b3a1d 19 kapaciteten 5 gal / 19 L x 2 på måttbilden och i specifikationen (19 liter *2); punkt 1 säger upp till 23 liter, och det lägre skrivs
+f64b3a1d 218 diametern 8,6 in / 218 mm på måttbilden; samma tal i specifikationen (Produktmått (diameter) 8,6" x 14,8" / 218 x 376 mm)
+f64b3a1d 376 höjden 14,8 in / 376 mm på måttbilden; samma tal i specifikationen
+f64b3a1d 2,5 produktvikten 5,5 lb / 2,5 kg inklusive alla tillbehör på måttbilden och i specifikationen
+f64b3a1d 5 fem gallon i titeln och på måttbilden (Capacity 5 gal / 19 L x 2)
+f64b3a1d 2 två dispensrar i paketet (2-pack i titeln, 19 L x 2 på måttbilden)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+abd10601 660 diametern 26 in / 660 mm på måttbilden; samma tal i specifikationen (Produktstorlek 660 x 200 mm)
+abd10601 200 höjden 7,9 in / 200 mm på måttbilden; samma tal i specifikationen
+abd10601 20 bollen är färdigt uppblåst vid höjden 20 cm enligt noten på bilden Easy To Inflate
+abd10601 250 den lilla bollen 250 mm av vetehalm på måttbilden (1 x 250mm gray wheat straw ball)
+abd10601 6 sex halkfria fötter enligt punkt 3 i beskrivningen; bilden Comprehensively Non-Slip Design anger åtta (8 anti-skid pads), och det lägre skrivs
+abd10601 2 två motståndsband och två ventilpluggar enligt beskrivningen och måttbilden (Valve plug x 2)
+abd10601 7,65 produktvikten 16,9 lbs / 7,65 kg på måttbilden och i specifikationen
+abd10601 680 maximal bärkapacitet 1500 lbs / 680 kg på bilden Comprehensively Non-Slip Design och i specifikationen

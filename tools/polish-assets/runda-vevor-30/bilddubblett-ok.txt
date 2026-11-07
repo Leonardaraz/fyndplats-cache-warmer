@@ -1,0 +1,2 @@
+# kort pos1 pos2 skäl (kvitterar ett par som gate-bilddubblett.py flaggar som misstänkt men som visar något olika)
+3fe3a5fa 4 5 olika vinkel: position 4 är tagen mer från sidan med fötterna i förgrunden och position 5 mer snett framifrån med gafflarna tydligt synliga på spettet (0,035)

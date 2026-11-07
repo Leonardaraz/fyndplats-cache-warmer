@@ -1,0 +1,6 @@
+9bb0043a infravarmare-2500-w-fjarrkontroll-tre-effektlagen
+43943aac infravarmare-3000-w-aluminium-fjarrkontroll
+b46eb759 infravarmare-3000-w-ip65-fjarrkontroll-nio-lagen
+f79f7c66 infravarmare-2500-w-stativ-fjarrkontroll
+52528dd1 terrassvarmare-2000-w-golvstativ-dragkedja
+552380c0 hangande-terrassvarmare-2000-w-fjarrkontroll-ip34

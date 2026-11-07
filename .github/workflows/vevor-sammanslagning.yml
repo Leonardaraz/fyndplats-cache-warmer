@@ -1,0 +1,177 @@
+name: VEVOR — lägg ett syskon som färg, storlek, längd eller förpackning på en annan VEVOR-sida
+
+# Leonard 2026-11-07: "Ja gör det". Importen slår ihop syskon som VEVOR länkar
+# eller som delar SPU (lib/vevor/familj.ts). Andra syskon blev egna utkast:
+# samma vara i en annan storlek, färg, längd eller förpackning. Här blir ett
+# sådant utkast en VARIANT på en annan VEVOR-sida — ett utkast eller en
+# publicerad sida — med en VEVOR-artikel per variant.
+#
+#   - Givaren anger sitt värde på varje axel sidan har eller får:
+#     varden = "Storlek=813 mm" eller "Färg=Grå; Storlek=120 cm".
+#   - Sidans värde (varden_behall) behövs bara på en axel sidan får för
+#     FÖRSTA gången. Sedan står sidans val i Wix och i mappningen.
+#   - En ny axel heter Färg, Mönster, Storlek, Längd eller Förpackning. En familj från
+#     importen behåller sina egna axelnamn.
+#   - En variant per körning — kör igen för nästa syskon.
+#   - Ligger givaren UTE krävs omdirigera=ja: dess adress omdirigeras hit och
+#     den avpubliceras. Recensionerna kopieras alltid, med givarens variant.
+#
+# Exempel: sidan är en fristående hundgrind 753 mm hög (inga val än), givaren
+# samma grind 813 mm hög. Då: varden="Storlek=813 mm", varden_behall="Storlek=753 mm".
+# Nästa syskon (610 mm): varden="Storlek=610 mm" — resten står redan på sidan.
+#
+# Hela förloppet står i lib/vevor/sammanslagning.ts.
+#
+# ☠️ FAMILJEREGELN STYR (Leonard 2026-10-30). Bara färg, mönster, storlek, längd
+#    och förpackning delar en sida. Olika effekt, kapacitet eller modell (W, V,
+#    liter …) stoppas, och så gör en rad i specifikationen som visar att varorna
+#    fungerar olika (`familjeregeln_*`, `funktion_skiljer`).
+# ☠️ TORRKÖRNING ÄR DEFAULT (läget `plan`). Läs planen innan du kör `byt`.
+# ☠️ EN GIVARE PER KÖRNING. Paret är en människas bedömning — det finns ingen
+#    kör-allt-flagga.
+# ☠️ ALDRIG I ETT SYNKFÖNSTER. `byt` vägras minut 45–57 (VEVOR-synken går minut
+#    50) och i Aosoms fönster :12–:29 var tredje timme: mappningen ska skrivas
+#    direkt efter Wix, annars nollar synken den nya variantens lager.
+# ☠️ Svaret bär aldrig artikelnummer eller inköpspris — loggen är PUBLIK.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "plan = torrkörning (skriver inget) · byt = skriv"
+        required: true
+        default: "plan"
+        type: choice
+        options:
+          - plan
+          - byt
+      behall:
+        description: "Sidan som behålls: ett VEVOR-utkast eller en publicerad VEVOR-sida (Wix-produkt-id)"
+        required: true
+        type: string
+      utkast:
+        description: "Givaren: ett VEVOR-utkast med en artikel, eller en publicerad sida (kräver omdirigera=ja) (Wix-produkt-id)"
+        required: true
+        type: string
+      varden:
+        description: "Givarens värden, t.ex. Storlek=813 mm eller Färg=Grå; Storlek=120 cm"
+        required: true
+        type: string
+      varden_behall:
+        description: "Sidans värden — bara på en axel sidan FÅR nu, t.ex. Storlek=753 mm. Annars TOMT."
+        required: false
+        default: ""
+        type: string
+      omdirigera:
+        description: "Givaren ligger ute: omdirigera och avpublicera den"
+        required: true
+        default: "nej"
+        type: choice
+        options:
+          - nej
+          - ja
+      sku:
+        description: "Den nya variantens SKU, högst 40 tecken. TOMT = sidans SKU + givarens nya värden."
+        required: false
+        default: ""
+        type: string
+      bilder:
+        description: "Givarens bilder som följer med, 1-baserat (t.ex. 1,2). TOMT = alla foton sidan inte redan har."
+        required: false
+        default: ""
+        type: string
+
+jobs:
+  sammanslagning:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          MODE: ${{ inputs.mode }}
+          BEHALL: ${{ inputs.behall }}
+          UTKAST: ${{ inputs.utkast }}
+          VARDEN: ${{ inputs.varden }}
+          VARDEN_BEHALL: ${{ inputs.varden_behall }}
+          OMDIRIGERA: ${{ inputs.omdirigera }}
+          SKU: ${{ inputs.sku }}
+          BILDER: ${{ inputs.bilder }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            # ☠️ TILL STDERR — en ::error::-rad på stdout slukas av en
+            # kommandosubstitution.
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+
+          url="${BASE%/api/cron/poll-tracking}/api/admin/vevor-sammanslagning"
+          apply=false
+          [ "${MODE}" = "byt" ] && apply=true
+          omdirigera=false
+          [ "${OMDIRIGERA}" = "ja" ] && omdirigera=true
+
+          # "Färg=Grå; Storlek=120 cm" → {"Färg":"Grå","Storlek":"120 cm"}. En del
+          # utan likhetstecken fäller jobbet här, före anropet.
+          kropp=$(jq -nc \
+            --arg behall "${BEHALL}" \
+            --arg utkast "${UTKAST}" \
+            --arg varden "${VARDEN}" \
+            --arg vb "${VARDEN_BEHALL}" \
+            --arg sku "${SKU}" \
+            --arg bilder "${BILDER}" \
+            --argjson apply "${apply}" \
+            --argjson omdirigera "${omdirigera}" \
+            'def par: split(";") | map(select(test("\\S")))
+               | map(capture("^\\s*(?<k>[^=]+?)\\s*=\\s*(?<v>.*?)\\s*$") // error("del utan likhetstecken: \(.)"))
+               | map({(.k): .v}) | add // {};
+             {behall: $behall, utkast: $utkast, varden: ($varden | par), vardenBehall: ($vb | par), omdirigera: $omdirigera, apply: $apply}
+             + (if $sku == "" then {} else {sku: $sku} end)
+             + (if $bilder == "" then {} else {bilder: ($bilder | split(",") | map(gsub("\\s"; "") | select(. != "") | tonumber))} end)')
+
+          echo "Läge: ${MODE} (apply=${apply})"
+          svar=$(curl -sS --max-time 150 -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "Content-Type: application/json" \
+            -d "${kropp}" \
+            "${url}")
+
+          echo "=== Plan ==="
+          # ☠️ HELA jq-PROGRAMMET INDENTERAT — en rad med mindre indrag än
+          # blocket avslutar YAML:ens `run: |`.
+          echo "$svar" | jq -r '
+            .plan // {} |
+            "  tillstånd       \(.tillstand // "–")",
+            "  sidan           \(if .behallPublicerad then "publicerad" else "utkast" end)",
+            "  axlar           \((.axlar // []) | join(" × "))\(if ((.nyaAxlar // []) | length) > 0 then " (ny: \(.nyaAxlar | join(", ")))" else "" end)",
+            ((.varden // {}) | to_entries[] | "  \(.key) efteråt: \(.value | join(" · "))"),
+            "  familjeregeln   \((.familjeregel // {}) | to_entries | map("\(.key): \(.value)") | join(", "))",
+            "  nya varianten   \((.nyttVal // {}) | to_entries | map("\(.key) \(.value)") | join(", "))",
+            "  varianter       \(.varianter // "–")\(if (.saknadeKombinationer // 0) > 0 then " (\(.saknadeKombinationer) kombinationer finns inte)" else "" end)",
+            "  kundpris        \(.prisBehall) kr (sidan) + \(.prisUtkast) kr (nytt) — ORÖRDA",
+            "  saldo           \(.saldoBehall // "–") (sidan) + \(.saldoUtkast // "–") (nytt)",
+            "  SKU             \(.skuBehall) + \(.skuUtkast)",
+            "  bilder          \(.bilderBehall) på sidan, \(.bilderUtkast) av givarens följer med, \(.bilderGemensamma) fanns redan (bildaxel: \(.bildaxel // "–"))",
+            "  recensioner     \(.recensionerAttKopiera) kopieras med givarens variant, \(.recensionerAttMarka) av sidans får sin"
+          ' || true
+          echo "$svar" | jq -r 'if .plan.givarenPublicerad then "  givaren ligger UTE\n  omdirigering    \(.plan.omdirigering // "–")\n  äldre som pekas om: \(.plan.omdirigeringarAttPekaOm)" else empty end' || true
+          echo "$svar" | jq -r '.plan.varningar[]? | "  ⚠️ \(.)"' || true
+          echo "$svar" | jq -r '.steg[]? | "  · \(.)"' || true
+
+          if [ "$(echo "$svar" | jq -r '.ok')" != "true" ]; then
+            echo "::error::$(echo "$svar" | jq -r '.fel // .error // "hinder — se listan nedan"')" >&2
+            echo "$svar" | jq -r '.plan.hinder[]? | "    [hinder] \(.)"' >&2
+            exit 1
+          fi
+
+          # ☠️ HÄRIFRÅN ÄR SKRIVNINGEN GJORD (i läge `byt`). Rapporteringen får
+          # aldrig fälla jobbet. `|| true` på varje rad härifrån.
+          if [ "${MODE}" = "plan" ]; then
+            echo "TORRKÖRNING: ingenting skrevs. Kör om med läge 'byt' när planen ser rimlig ut." || true
+            exit 0
+          fi
+          echo "OK: ${UTKAST} är nu en variant på ${BEHALL} (verifierat vid återläsning)" || true
+          echo "Nästa steg: polera sidan som en sammanslagen sida (sammanslagna.tsv), eller läs den live om den redan är publicerad." || true
+          exit 0

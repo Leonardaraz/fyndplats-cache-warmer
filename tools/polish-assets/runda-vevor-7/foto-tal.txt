@@ -1,0 +1,57 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+27d87b7a 120 1200 mm i källan är 120 cm
+27d87b7a 40 400 mm i källan är 40 cm
+27d87b7a 180 1800 mm i källan är 180 cm
+27d87b7a 39,5 395 mm i källan är 39,5 cm
+27d87b7a 10 100 mm i källan är 10 cm
+27d87b7a 38 380 mm i källan är 38 cm
+27d87b7a 17,5 175 mm i källan är 17,5 cm
+27d87b7a 18,5 185 mm i källan är 18,5 cm
+27d87b7a 74 740 mm i källan är 74 cm
+27d87b7a 17 170 mm i källan är 17 cm
+27d87b7a 20 200 mm i källan är 20 cm
+27d87b7a 25 250 mm i källan är 25 cm
+27d87b7a 25,5 255 mm i källan är 25,5 cm
+27d87b7a 39 390 mm i källan är 39 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+421a8fa8 39 390 mm i källan är 39 cm
+421a8fa8 30 300 mm i källan är 30 cm
+421a8fa8 99,5 995 mm i källan är 99,5 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+8ff5a963 242 2420 mm i källan är 242 cm
+8ff5a963 170 1700 mm i källan är 170 cm
+8ff5a963 40 400 mm i källan är 40 cm
+8ff5a963 11 110 mm i källan är 11 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+b0f865ac 31,7 317 mm i källan är 31,7 cm
+b0f865ac 16,9 169 mm i källan är 16,9 cm
+b0f865ac 9 90 mm i källan är 9 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+f5306e4a 79,5 795 mm i källan är 79,5 cm och titeln anger 79,5 x 59 x 4 cm
+f5306e4a 59 titeln anger 59 cm, specifikationen anger 60 (60 mm kan inte stämma för en ram som rymmer en tröja)
+f5306e4a 4 40 mm i källan är 4 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+16cdda47 50,8 508 mm i källan är 50,8 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+dc4af12a 58,4 584 mm i källan är 58,4 cm
+dc4af12a 35,5 355 mm i källan är 35,5 cm
+dc4af12a 1,5 15 mm i källan är 1,5 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+0fca9d86 35,5 355 mm i källan är 35,5 cm
+0fca9d86 30,5 305 mm i källan är 30,5 cm
+0fca9d86 33 330 mm i källan är 33 cm
+0fca9d86 32 320 mm i källan är 32 cm
+0fca9d86 28,2 282 mm i källan är 28,2 cm
+0fca9d86 5,5 55 mm i källan är 5,5 cm

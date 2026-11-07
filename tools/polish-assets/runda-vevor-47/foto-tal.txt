@@ -1,0 +1,43 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+9ba95c26 383 längden 150,8 in / 383 cm på måttbilden; specifikationen säger 152 in / 3862 mm, och det lägre skrivs
+9ba95c26 36 djupet 14,2 in / 36 cm på måttbilden; samma tal i specifikationen (360 mm)
+9ba95c26 117 höjden 46,1 in / 117 cm på måttbilden; samma tal i specifikationen (1170 mm)
+9ba95c26 299,4 bärförmågan 660 lbs / 299,4 kg på måttbilden; specifikationen säger 400 kg, och det lägre skrivs
+9ba95c26 14 den upphöjda botten 5,5 in / 14 cm på bilden Wide Base for Enhanced Stability; samma tal i specifikationen (140 mm)
+9ba95c26 25 rundröret på 25 mm på måttbilden (Tube Type: 25mm Round Tube)
+9ba95c26 35 M8-skruvarna på 35 mm på bilden Completed Accessories for Your Needs (M8 Screws (35mm) x2)
+9ba95c26 60 M8-skruvarna på 60 mm på bilden Completed Accessories for Your Needs (M8 Screws (60mm) x16)
+9ba95c26 4 fyra expansionsskruvar, fyra basplattor och fyra L-formade stänger på bilden Completed Accessories for Your Needs
+9ba95c26 2 två M8-skruvar på bilden Completed Accessories for Your Needs
+9ba95c26 16 sexton M8-skruvar på bilden Completed Accessories for Your Needs
+9ba95c26 18 arton M8-muttrar på bilden Completed Accessories for Your Needs
+9ba95c26 6 sex U-formade stänger på bilden Completed Accessories for Your Needs
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+15c0c29a 1220 längden och bredden 48 in / 1220 mm på måttbilden och i specifikationen (Artikelmått 48 x 48 x 18,1 tum / 1220 x 1220 x 460 mm)
+15c0c29a 460 panelhöjden 18 in / 460 mm på måttbilden; samma tal i specifikationen, medan titelns 48 cm är tum skrivna som centimeter
+15c0c29a 500 stolpehöjden 19,69 in / 500 mm på måttbilden (Post Height)
+15c0c29a 1360 kisspaden 53,5 in / 1360 mm på bilden Extra-Large Pee Pad; samma tal i punkt 4
+15c0c29a 15 ingångshöjden 15 cm i punkt 3 (6 in på bilden Adjustable Door Height)
+15c0c29a 30 ingångshöjden 30 cm i punkt 3 (12 in på bilden Adjustable Door Height); den tredje höjden skrivs utan tal, eftersom punkt 3 säger 47 cm och bilden 18 in (45,7 cm)
+15c0c29a 19,5 vikten 43 lbs / 19,5 kg på måttbilden; samma tal i specifikationen
+15c0c29a 4 krympningen på 4 till 6 cm efter tvätt i punkt 4 och på bilden Extra-Large Pee Pad
+15c0c29a 6 krympningen på 4 till 6 cm efter tvätt i punkt 4 och på bilden Extra-Large Pee Pad
+15c0c29a 3 tre avtagbara dörrar i specifikationen (Number of Detachable Doors: 3) och tre ingångshöjder på bilden Adjustable Door Height
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+994f81f8 640 bredden 25,2 in / 640 mm på måttbilden; samma tal i specifikationen (Produktmått 640 x 380 x 600 mm)
+994f81f8 380 djupet 15,0 in / 380 mm på måttbilden; samma tal i specifikationen
+994f81f8 600 höjden 23,6 in / 600 mm på måttbilden; samma tal i specifikationen
+994f81f8 16,6 produktvikten 36,60 lb / 16,6 kg på måttbilden; samma tal i specifikationen
+994f81f8 100 adapterns ingång AC 100 till 240 V (50/60 Hz) på måttbilden och på bilden For Home and Car Use
+994f81f8 240 adapterns ingång AC 100 till 240 V (50/60 Hz) på måttbilden och på bilden For Home and Car Use
+994f81f8 12 kylskåpets ingång DC 12/24 V på måttbilden och på bilden For Home and Car Use; samma tal i titeln
+994f81f8 24 kylskåpets ingång DC 12/24 V på måttbilden och på bilden For Home and Car Use; samma tal i titeln
+994f81f8 50 kapaciteten 52,83 qt / 50 L på måttbilden, i specifikationen och i titeln; nätfrekvensen 50/60 Hz på måttbilden
+994f81f8 60 märkeffekten 60 W på måttbilden och i specifikationen; nätfrekvensen 50/60 Hz på måttbilden
+994f81f8 45 ljudnivån 45 dB på måttbilden och i specifikationen
+994f81f8 20 kylningen från 20 °C till 0 °C på 40 minuter i punkt 3 och i grafen på bilden Rapid Cooling in 40 Minutes (68 °F / 20 °C); bildens rubrik säger 60 °F, och texten följer punkt 3 och grafen
+994f81f8 40 kylningen på 40 minuter i punkt 3 och på bilden Rapid Cooling in 40 Minutes
+994f81f8 52,83 kapaciteten 52,83 qt / 50 L på måttbilden och i specifikationen

@@ -1,0 +1,21 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+a7d2830c 2 två gymnastikringar: räknade på produktfotona (position 1, 3 och 5)
+a7d2830c 80 bredden 800 mm på VEVOR:s måttbild, som inte ligger i galleriet
+a7d2830c 58 djupet 580 mm på VEVOR:s måttbild
+a7d2830c 215 höjden 2150 mm på VEVOR:s måttbild
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+0bb78f04 2 två gymnastikringar: räknade på produktfotona (position 1, 4 och 5)
+0bb78f04 198,5 bredden 1985 mm på VEVOR:s måttbild, som inte ligger i galleriet
+0bb78f04 84 djupet 840 mm på VEVOR:s måttbild
+0bb78f04 220 höjden 2200 mm på VEVOR:s måttbild
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+11ad8a24 2 två gymnastikringar: räknade på produktfotona (position 1, 3 och 5)
+11ad8a24 110 bredden 1100 mm på VEVOR:s måttbild, som inte ligger i galleriet
+11ad8a24 84 djupet 840 mm på VEVOR:s måttbild
+11ad8a24 220 höjden 2200 mm på VEVOR:s måttbild
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+9a06d8e0 12 övre åldersgränsen 12 år (*For children aged 3-12*) på VEVOR:s specifikationsbild, som inte ligger i galleriet

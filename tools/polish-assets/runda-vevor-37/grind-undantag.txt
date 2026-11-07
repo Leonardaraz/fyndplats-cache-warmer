@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen rad med axelord för måtten, men VEVOR:s måttritning (i kallor.json) ritar höjd, bredd och djup med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py texten skriver inga yttermått för vagnen eftersom källorna säger olika (se FLAGGADE-VEVOR); bara korgens volym i liter och hjulens diameter står i texten
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har måttraden Filtstorlek utan axelord (96 in by 80 in), och filten är en rektangel: texten skriver bara längd och bredd som 240 × 200 cm, så ingen axel kan förväxlas
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått har inga axelord, men VEVOR:s måttritning (i kallor.json) ritar längd, bredd och höjd med pilar: texten skriver längd, bredd och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har måttraderna Stor panelstorlek och Liten panelstorlek utan axelord, men VEVOR:s måttritning (i kallor.json) ritar bredd och höjd med pilar: texten skriver bredd × höjd ur ritningen

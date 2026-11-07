@@ -1,0 +1,3 @@
+# kort pos1 pos2 skäl (kvitterar ett par som gate-bilddubblett.py flaggar som misstänkt men som visar något olika)
+1b6c90ef:1 8535ea89:1 olika kön: svart bakdel på den ena och mörkbrun valnöt på den andra
+1b6c90ef:5 8535ea89:5 olika kön: olika trädådring på framdelen

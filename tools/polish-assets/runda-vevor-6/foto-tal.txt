@@ -1,0 +1,46 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+e5f3ff9f 80 800 mm i källan är 80 cm
+e5f3ff9f 37,5 375 mm i källan är 37,5 cm
+e5f3ff9f 88 880 mm i källan är 88 cm
+e5f3ff9f 61,7 617 mm i källan är 61,7 cm
+e5f3ff9f 35,6 356 mm i källan är 35,6 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+de93846e 130,5 1305 mm i källan är 130,5 cm
+de93846e 30 300 mm i källan är 30 cm
+de93846e 81,5 815 mm i källan är 81,5 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+3aa888bf 25 250 mm i källan är 25 cm
+3aa888bf 38,5 385 mm i källan är 38,5 cm
+3aa888bf 30,5 305 mm i källan är 30,5 cm
+3aa888bf 8,2 18,0 lbs i källan är cirka 8,2 kg
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+92b8baec 34,2 342 mm i källan är 34,2 cm
+92b8baec 18,5 185 mm i källan är 18,5 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+5cccca67 94,9 949 mm i källan är 94,9 cm
+5cccca67 18,2 182 mm i källan är 18,2 cm
+5cccca67 153,8 1538 mm i källan är 153,8 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+35d16a45 80,5 805 mm i källan är 80,5 cm
+35d16a45 30,5 305 mm i källan är 30,5 cm
+35d16a45 44,5 445 mm i källan är 44,5 cm
+35d16a45 76,8 768 mm i källan är 76,8 cm
+35d16a45 26,7 267 mm i källan är 26,7 cm
+35d16a45 8,4 84 mm i källan är 8,4 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+fc144066 100 1000 mm i källan är 100 cm
+fc144066 30 300 mm i källan är 30 cm
+fc144066 53 530 mm i källan är 53 cm
+fc144066 44,9 449 mm i källan är 44,9 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+c6e972f4 1,5 0,6 tum i källan är cirka 1,5 cm

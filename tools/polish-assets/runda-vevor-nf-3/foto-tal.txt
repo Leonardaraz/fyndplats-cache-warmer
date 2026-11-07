@@ -1,0 +1,9 @@
+# <kort> <tal> <vad som räknades på bilden>
+1b6c90ef 2 två små läderspetsar syns på position 3
+8535ea89 2 två skyddshylsor syns på position 3
+8535ea89 2 två förlängningar syns på position 3
+3f25e008 6 sex lådor syns på position 1, 4 och 5
+3f25e008 2 två kolumner med lådor syns på position 1, 4 och 5
+2235801b 2 två bänkar syns utfällda på position 3
+21432f80 2 två hjul syns på position 1 och 4
+21432f80 2 två spännremmar syns på position 3

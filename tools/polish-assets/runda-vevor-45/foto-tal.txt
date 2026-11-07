@@ -1,0 +1,49 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+e3d60e3d 4,4 nettovikten 9,7 lbs / 4,4 kg i specifikationen och på måttbilden
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+13587b48 1750 bredden 68,9 in / 1750 mm på måttbilden; samma tal i specifikationen (Produktmått 68,9 x 51,2 x 94,5 tum / 1750 x 1300 x 2400 mm)
+13587b48 1300 djupet 51,2 in / 1300 mm på måttbilden; samma tal i specifikationen
+13587b48 2400 höjden 94,5 in / 2400 mm på måttbilden; samma tal i specifikationen
+13587b48 119,4 avståndet 4,7 in / 119,4 mm mellan varje lodrätt nivå på bilden Multi-Functional Yoga Hammock
+13587b48 101,6 avståndet 4 in / 101,6 mm mellan varje vågrät nivå på bilden Multi-Functional Yoga Hammock
+13587b48 20 tjugo skruvar och tjugo hattmuttrar på måttbilden (20 x Screws, 20 x Cap Nuts)
+13587b48 8 åtta gummiklossar på måttbilden (8 x Rubber Pads)
+13587b48 2 två O-ringar och två karbinhakar på måttbilden (2 x O-Rings, 2 x Carabiners)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+ab4cd8ac 890 längden 35,04 in / 890 mm på måttbilden (Item Dimensions 35.04 x 18.11 x 47.24 inch / 890 x 460 x 1200 mm)
+ab4cd8ac 460 bredden 18,11 in / 460 mm på måttbilden
+ab4cd8ac 1200 höjden 47,24 in / 1200 mm med utdraget handtag på måttbilden
+ab4cd8ac 15,8 nettovikten 34,83 lbs / 15,8 kg i specifikationen och på måttbilden
+ab4cd8ac 75,71 kapaciteten 80 QT / 75,71 l i titeln och specifikationen; punkt 1 säger 80 liter, och det lägre skrivs
+ab4cd8ac 110 upp till 110 burkar på bilden 80 QT Large Capacity
+ab4cd8ac 50 upp till 50 flaskor på bilden 80 QT Large Capacity och kylan i 50 timmar på bilden 50-Hour Ice Retention
+ab4cd8ac 10 värmen hålls i 10 timmar på bilden 50-Hour Ice Retention
+ab4cd8ac 25 omgivningstemperaturen 25 till 30 °C (77 till 86 °F) på bilden 50-Hour Ice Retention
+ab4cd8ac 30 omgivningstemperaturen 25 till 30 °C (77 till 86 °F) på bilden 50-Hour Ice Retention
+ab4cd8ac 150 hjulens diameter 5,91 in / 150 mm på bilden Ideal for Outdoor Surfaces
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+9a492325 2304 upplösningen 2K (2304 x 1296) i specifikationen
+9a492325 1296 upplösningen 2K (2304 x 1296) i specifikationen
+9a492325 5200 batteriets kapacitet 5200 mAh i specifikationen och på bilden Powered By 3 Solar Panels
+9a492325 335 måtten 335 x 220 x 275 mm inklusive stativ i specifikationen
+9a492325 220 måtten 335 x 220 x 275 mm inklusive stativ i specifikationen
+9a492325 275 måtten 335 x 220 x 275 mm inklusive stativ i specifikationen
+9a492325 3 tre dagars kostnadsfri molnlagring (Lifetime Free Cloud, 3 Days) på bilden Enjoy 100+ Bird Vedios Every Day; samma tal i punkt 3
+9a492325 30 molnlagringens provperiod på 30 dagar (Cloud Storage, 30-Day Trial) på bilden Enjoy 100+ Bird Vedios Every Day; samma tal i punkt 1 och 3
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+6d569162 220 spänningen AC220-240V i specifikationen
+6d569162 240 spänningen AC220-240V i specifikationen
+6d569162 50 frekvensen 50 Hz i specifikationen
+6d569162 200 den nominella effekten 200 W i specifikationen
+6d569162 45 bullret högst 45 dB i specifikationen
+6d569162 10,6 vikten 10,6 kg i specifikationen
+6d569162 169 måtten (L x B x H) 169 x 431 x 408 mm i specifikationen och på måttbilden
+6d569162 431 måtten (L x B x H) 169 x 431 x 408 mm i specifikationen och på måttbilden
+6d569162 408 måtten (L x B x H) 169 x 431 x 408 mm i specifikationen och på måttbilden
+6d569162 5 självrengöringens 5 minuter på bilden Two Steps for Easy Cleaning (1.5L water, 5 minutes)
+6d569162 1 lägsta fyllning för slush 1,0 l (1.0L / 34oz) på bilden DIY Slushies/Smoothies/Frozen Drinks

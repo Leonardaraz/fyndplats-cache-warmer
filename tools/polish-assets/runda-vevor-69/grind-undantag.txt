@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 1220 x 400 x 100 mm utan axelord, och källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar fodralet liggande med längden 1220 mm, bredden 400 mm och höjden 100 mm med pilar: texten skriver längd, bredd och höjd ur ritningen

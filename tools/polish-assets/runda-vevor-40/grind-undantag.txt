@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått utan axelord, och måttritningen på bild 7 ritar höjden 232 cm men tre basmått (118, 92 och 164 cm) som inte stämmer med specifikationens 118 × 118: texten skriver därför bara höjdintervallet 180–232 cm, som källan anger i klartext, och inga mått på basen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått utan axelord, men måttritningen på bild 7 ritar höjden 208 cm och bredden 126 cm med pilar och bild 6 anger längd och bredd (L by W) 1430 by 1260 mm: texten skriver längd × bredd × höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Mått på vagnsbädd och Produktmått utan axelord, men måttritningen på bild 7 ritar skopans längd 975 mm och bredd 650 mm samt hela kärrans längd 1390 mm och höjd 700 mm med pilar: texten skriver längd × bredd × höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått utan axelord, men måttbilden (bild 7) ritar 585 mm längs framkanten, 560 mm bakåt och 330 mm som höjd med pilar: texten skriver bredd × djup × höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek utan axelord, men måttbilden (bild 7) ritar bredden 256 mm och höjden 360 mm med pilar; djupet är det andra 256 i specifikationen och kroppen står på en rund bas: texten skriver bredd × djup × höjd

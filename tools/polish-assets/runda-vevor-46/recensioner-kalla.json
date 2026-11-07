@@ -1,0 +1,54 @@
+{
+  "372e1db0": {
+    "productId": "372e1db0-c693-4ed9-8cd6-e3555f54bfd0",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-14gt31h",
+        "betyg": 4,
+        "datum": "2026-08-05",
+        "foton": 0,
+        "text": "Nous apprécions le produit et il répond à nos besoins, mais la qualité de fabrication chinoise est un peu faible surtout au niveau de pattes"
+      }
+    ]
+  },
+  "e6c0598d": {
+    "productId": "e6c0598d-fb72-487b-ac8b-5830730fa540",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "f64b3a1d": {
+    "productId": "f64b3a1d-3fed-47cd-8b41-c242dfe38ff8",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "abd10601": {
+    "productId": "abd10601-19aa-4152-be22-cd22a9429f93",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-18bn8oz",
+        "betyg": 5,
+        "datum": "2026-09-10",
+        "foton": 1,
+        "text": "Achilles műtét utáni rehabilitációs tornához vettem itthonra. Eddig tökéletesen bevált, remélem sokáig bírni fogja a terhelést."
+      }
+    ]
+  }
+}

@@ -37,6 +37,102 @@ inga variantval. En VEVOR-familj har en variant per artikel.
 
 Det är den enda kontrollen av priset och av VEVOR-flaggorna, för skrivsteget gör ingen.
 
+### Kontrollera kategorin (tidigt)
+
+*Leonard 2026-11-01.* Kontrollera att produkten ligger i en lämplig kategori **direkt när du
+har läst den**, före bilderna och texten, och lägg den i en lämplig kategori om den inte gör
+det. GET:en ovan bär redan `directCategoriesInfo`. Kategorin avgör vilket sökord produkten
+tävlar om, vilka syskon den krockar med, vilka filter den hamnar i och vilken brödsmula
+Google ser. En text som är rätt skriven för en produkt i fel kategori hamnar ändå fel.
+
+1. **Läs kopplingen och trädet.** Slå produktens kategori-id mot trädet, med de dolda
+   kategorierna, en gång per runda (se [Kategori](05-skriv-texten.md#kategori-kategoritsv) i steg 5).
+2. **Bedöm den mot produkttypen**, som bilderna och `Lieferumfang` eller specifikationen
+   avgör, aldrig mot titelns kategoriord. Importen gissar: VEVOR:s regel
+   (`lib/vevor/kategorier.ts`) har lagt en bilramp under Baby & Småbarn och ett kassaskåp
+   med väska bland verktygslådorna, så läs dess val som ett förslag och inte som facit.
+   Frågorna är: sitter varan i den avdelning och det löv där en kund som söker just den
+   varan skulle leta? Är lövet det smalaste som passar? Finns en sökordskategori för
+   typen? Saknar produkten kategori helt, eller ligger den bara i en dold kategori
+   (brödsmulan blir då *Hem / Butik / produkt*)?
+3. **Passar kopplingen**: skriv den som första raden i `kategori.tsv` redan nu. Steg 5
+   prövar den då mot den färdiga texten (sökordskategorins facit) i stället för att välja
+   den från början.
+4. **Passar den inte, eller saknas den**: lägg produkten i den lämpliga kategorin. Skriv
+   förälder, smalaste löv och sökordskategori i `kategori.tsv` med namnen exakt som i Wix,
+   så kopplar skrivsteget dem. Finns ingen lämplig kategori i trädet skapar du ingen själv:
+   skriv föräldern, och flagga produkten med ett förslag på ny kategori i `FLAGGADE.md`
+   (`FLAGGADE-VEVOR.md` för VEVOR). Välj aldrig ett löv bara för att det finns.
+5. ☠️ **Den felaktiga kopplingen sitter kvar.** Skrivsteget och **"VEVOR — kategorier till
+   utkasten"** lägger bara till och tar aldrig bort. Skriv en rad *Kategori att ta bort* i
+   `FLAGGADE.md` / `FLAGGADE-VEVOR.md` med produktens kort och den felaktiga kategorins
+   namn. Kopplingen tas bort i en egen åtgärd, med workflowen **"Kategori — ta bort
+   felaktiga kategorilänkar"** (se [Ta bort en felaktig kategorilänk](#ta-bort-en-felaktig-kategorilänk)
+   nedan); en handbyggd skrivning i Wix är förbjuden. Textsteget publicerar varan, en
+   VEVOR-vara också (standardraden gör GPSR komplett), så den visas i den felaktiga
+   kategorin tills kopplingen är borta. Skriv därför raden direkt och **ta bort länken i
+   samma runda, direkt efter skrivningen, under väntan på ISR-fönstret** *(Leonard
+   2026-11-02, "Ja" på frågan om importens felaktiga länkar får tas bort direkt i kommande
+   rundor; de fem första 2026-11-02: "Fixa punkt 2")*. Då mäter livekontrollen slutläget,
+   brödsmulan inklusive, och `livekoll.py` fäller den inte för importens kategori (efter
+   runda 17, där borttagningen kom efter livekontrollen, föll brödsmulan på alla fyra
+   sidorna). Läs tillbaka länkarna ungefär 20 sekunder efter borttagningen, se nedan.
+   Nämn borttagningen i rundans slutrapport. Det gäller importens felaktiga länkar, inte
+   en kategori Leonard själv har valt.
+
+Kategorin kontrolleras alltså två gånger med olika uppgift. Här avgörs *var* varan hör
+hemma, utan att texten är skriven. I steg 5 prövas den mot sökordskategorins påståenden.
+
+### Ta bort en felaktig kategorilänk
+
+*Leonard 2026-11-02.* Workflowen **"Kategori — ta bort felaktiga kategorilänkar"**
+(`kategori-bort.yml`) tar bort de länkar som skrivsteget aldrig tar bort. Den rör bara
+kategorilänkar (Categories-tjänstens `remove-items`): ingen produkt-PATCH, så ingenting
+annat på varan kan tappas.
+
+1. **Skriv planen** i `tools/polish-assets/kategori-bort/<plan>.json`, en fil per omgång
+   (`vevor-1.json` är den första). Per vara: `kort`, `pid`, `bort` (kategorierna som ska
+   bort) och `behall` (kategorierna varan ska ligga kvar i). Kategorierna står som
+   **sökvägar**, `Kök & Husgeråd > Köksmaskiner & Apparater`, eftersom samma lövnamn finns
+   under flera avdelningar. Läs varans länkar live först (GET med
+   `fields=DIRECT_CATEGORIES_INFO`): importen lägger både avdelningen och lövet, och båda
+   ska bort om varan inte hör dit. En vara som ska ligga kvar i en dold kategori behöver
+   minst en synlig kategori bland sina `behall`.
+2. **Kör `torr`** med `ref` satt till grenen som bär planen, `plan` (filens namn utan
+   `.json`) och `plan_sha256` (`sha256sum` på filen). Körningen skriver ingenting och
+   räknar länkarna som tas bort (`attTaBort`).
+3. **Kör `skriv`** med samma `plan` och `plan_sha256` och `bekrafta` satt till torrens
+   `attTaBort`. Stämmer inte antalet, eller faller något villkor för någon vara, skrivs
+   ingenting. Workflowen väntar och läser tillbaka (`verifiera`) och fäller varje vara där
+   en länk finns kvar eller en `behall` saknas. Kör `verifiera` ensamt om du vill läsa om.
+
+☠️ Fem egenskaper som inte ska tas bort (`lib/polish/kategori-bort.ts`): planen säger också
+vad som ska finnas kvar; alla villkor prövas för alla varor före första skrivningen;
+kategorierna är sökvägar och en tvetydig sökväg avbryter; skarpt läge kräver antalet;
+`verifiera` läser tillbaka. Rutten körs från `main`, så en ändrad regel finns för
+workflowen först när den är mergad: `ref` styr bara vilken planfil som läses.
+
+**Ligger verktyget inte på `main` än** (PR #850) kör du ett engångsskript med ExecuteWixAPI
+som gör samma sak, som runda 16 och 17 *(Leonard 2026-11-02)*: planfilen skrivs som vanligt,
+en torrkörning (bara läsning) löser varje sökväg mot trädet (`POST /categories/v1/categories/query`
+med `returnNonVisibleCategories`) och prövar vakterna, och skrivningen anropar `remove-items`
+en gång per kategori med alla varorna och kräver att `totalSuccesses` är lika med antalet
+och `undetailedFailures` är 0. ☠️ **Läs tillbaka i ett separat anrop ungefär 20 sekunder
+senare.** En återläsning i samma anrop visade 2026-11-02 fortfarande länkarna på tre av fyra
+varor trots 4 av 4 lyckade, och 20 sekunder senare var de borta. Planfilen ligger kvar som
+bevis, och körningen skrivs i `FLAGGADE-VEVOR.md`.
+
+Tre saker från den första borttagningen (`tools/kategorifix/README.md`, 2026-09-08) gäller
+fortfarande:
+
+- **Det är en navigationsändring.** En toppkategorisida rullar inte upp sina löv, så att
+  ta bort en direkt topplänk tar varan bort från den kategorins listning. Ta bara bort en
+  topplänk när varan inte hör hemma där, som en soppvärmare under Bygg & Renovering.
+- **Läsningen släpar efter skrivningen.** Bulk-svaret är facit, och en snabb återläsning
+  kan visa länken kvar. Workflowen väntar 45 s och läser om en gång efter 60 s.
+- **Planfilen är ångerposten.** Listan `bort` är det som togs bort. Ångra genom att lägga
+  tillbaka de kategorierna med kategoristeget.
+
 ### Vad källan är värd
 
 Den tyska texten har tre delar, och de är olika mycket värda. Till dem kommer importens

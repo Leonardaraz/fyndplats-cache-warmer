@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation och text har raden Artikelmått 440 x 300 x 895 mm utan axelord, och källans galleri har ingen måttbild som ritar dem: texten skriver måtten utan att säga vilken sida som är bredd, djup och längd

@@ -1,0 +1,38 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+f92760c6 32,8 plattformens lägsta höjd 328 mm i källans plattformshöjd (328–520 mm) = 32,8 cm
+f92760c6 52 plattformens högsta höjd 520 mm = 52 cm
+f92760c6 84,4 första måttet 844 mm i källans produktmått (844 x 553 x 482 mm) = 84,4 cm
+f92760c6 55,3 andra måttet 553 mm = 55,3 cm
+f92760c6 48,2 tredje måttet 482 mm = 48,2 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+cc4e2bd6 136 300 lb på VEVOR:s funktionsbild (300lbs Weight Capacity) = 136 kg; punkten säger 145 kg och specifikationen 150 kg: det lägsta skrivs
+cc4e2bd6 100 ihopfälld längd 1000 mm i källans Vikt storlek (1000 x 730 x 440 mm) = 100 cm
+cc4e2bd6 73 ihopfälld bredd 730 mm = 73 cm
+cc4e2bd6 44 ihopfälld höjd 440 mm = 44 cm
+cc4e2bd6 165 utfälld längd 1650 mm i källans Storlek utfälld (1650 x 725 x 1250 mm) = 165 cm
+cc4e2bd6 72,5 utfälld bredd 725 mm = 72,5 cm
+cc4e2bd6 125 utfälld höjd 1250 mm = 125 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+e0d9dc4a 109 mattans första mått 1090 mm i källans mattmått (1090 x 850 mm) = 109 cm
+e0d9dc4a 85 mattans andra mått 850 mm = 85 cm
+e0d9dc4a 54 tredje måttet 540 mm i källans produktmått (1090 x 850 x 540 mm) = 54 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+3fe54a36 87,5 mattans mått 875 mm i källans mattmått (875 x 875 mm) = 87,5 cm; punkten säger 89 x 89 cm men specifikationen 875 mm: specifikationen skrivs
+3fe54a36 44 tredje måttet 440 mm i källans produktmått (875 x 875 x 440 mm) = 44 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+a2530e96 89 mattans mått 890 mm i källans mattmått (890 x 890 mm) = 89 cm; punkten säger 96 x 96 cm men specifikationen 890 mm: specifikationen skrivs
+a2530e96 48 tredje måttet 480 mm i källans produktmått (890 x 890 x 480 mm) = 48 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+e0873ee3 84 första måttet 840 mm i VEVOR:s måttangivelse (W x D x H 840 x 770 x 170 mm, ihopsatt) = 84 cm
+e0873ee3 77 andra måttet 770 mm = 77 cm
+e0873ee3 17 tredje måttet 170 mm = 17 cm

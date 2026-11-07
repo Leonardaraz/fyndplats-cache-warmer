@@ -1,0 +1,26 @@
+{
+  "754c53df": {
+    "productId": "754c53df-7779-45ba-9fe7-d387926bf005",
+    "synliga": 0,
+    "dolda": 3,
+    "kundVantar": 0,
+    "annanArtikel": 1,
+    "okandArtikel": 3,
+    "attBesluta": [
+      {
+        "id": "gen-16xqwly",
+        "betyg": 5,
+        "datum": "2026-10-05",
+        "foton": 0,
+        "text": "Great bag! Especially for the price. Made of quality material and plenty of pockets for storage. I would recommend!"
+      },
+      {
+        "id": "gen-98jacj",
+        "betyg": 5,
+        "datum": "2026-10-02",
+        "foton": 0,
+        "text": "Fantastic golf bag if it was 3 times the price! My golf buddies are kicking themselves for not ordering while they could!"
+      }
+    ]
+  }
+}

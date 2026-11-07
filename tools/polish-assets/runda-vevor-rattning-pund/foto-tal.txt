@@ -1,0 +1,5 @@
+# <kort> <tal> <vad som räknades på bilden>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+2e775ecd 181 Maxlasten 400 lb × 0,4536 = 181,4 kg, avrundat nedåt till 181 kg (Leonard 2026-11-03)
+b81bffa1 110 Sittkapaciteten 243 lb × 0,4536 = 110,2 kg, avrundat nedåt till 110 kg (Leonard 2026-11-03)

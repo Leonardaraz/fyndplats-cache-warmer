@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans titel har måtten 87 x 53,5 x 69 cm och punkt 5 91 x 51 x 74 cm utan axelord, men måttbilden (bild 7) ritar 34,25 in (870 mm) som bredd, 21,06 in (535 mm) som djup och 27,17 in (690 mm) som höjd med pilar: texten skriver bredd, djup och höjd ur ritningen, med det lägsta per axel
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 930 x 930 x 615 mm utan axelord, men måttbilden (bild 7) ritar 36,6 in (930 mm) som bredd och djup och 24,2 in (615 mm) som höjd med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 900 x 400 x 900 mm utan axelord, men måttbilden (bild 3) ritar 35,4 in (90 cm) som bredd, 15,7 in (40 cm) som djup och 35,4 in (90 cm) som höjd med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek 770x670x1025 mm utan axelord, men måttbilden (bild 7) ritar 26,4 in (670 mm) som bredd längs fotens framkant, 30,3 in (770 mm) som djup och 40,35 in (1025 mm) som höjd med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 1150 x 489 x 730 mm utan axelord, men måttbilden (bild 7) ritar 45,3 in (1150 mm) längs ramen som längd, 19,3 in (489 mm) tvärs över ramens fot som bredd och 28,7 in (730 mm) lodrätt som höjd med pilar; punkt 5 säger ramen 114 x 49 cm, och texten skriver längden 1140 mm (det lägre talet) och bredden 489 mm (det lägre talet)

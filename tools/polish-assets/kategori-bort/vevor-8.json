@@ -1,0 +1,39 @@
+{
+ "namn": "vevor-8",
+ "rader": [
+  {
+   "kort": "e79a27fe",
+   "pid": "e79a27fe-c744-48f8-bdc1-a6ba3b9364da",
+   "bort": [
+    "Verktyg & Maskiner > Elverktyg"
+   ],
+   "behall": [
+    "Verktyg & Maskiner",
+    "Verktyg & Maskiner > Verktyg & Hemmafix"
+   ]
+  },
+  {
+   "kort": "4dc7e6e5",
+   "pid": "4dc7e6e5-4fa3-4bb1-8c76-12f4d1424e8a",
+   "bort": [
+    "Verktyg & Maskiner > Elverktyg"
+   ],
+   "behall": [
+    "Verktyg & Maskiner",
+    "Verktyg & Maskiner > Verktyg & Hemmafix"
+   ]
+  },
+  {
+   "kort": "7e3fcf35",
+   "pid": "7e3fcf35-8040-4905-9521-048a7ed81baa",
+   "bort": [
+    "Hem & Inredning",
+    "Hem & Inredning > Tvätt & städ"
+   ],
+   "behall": [
+    "Bil & Garage",
+    "Bil & Garage > Verkstadsutrustning"
+   ]
+  }
+ ]
+}

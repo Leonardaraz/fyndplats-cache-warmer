@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan saknar totalmåttrad; måtten på delarna är lästa ur VEVOR:s måttbild (i kallor.json), där ritningens pilar ger bredd, djup och höjd i samma ordning som raden i texten

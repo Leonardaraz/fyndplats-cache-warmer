@@ -1,0 +1,42 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+c8f8833b 55 volymen 55L på bilden All Your Gear in One Bag
+c8f8833b 14 pjäxor upp till US size 14 på bilden Dry Boot Changes
+c8f8833b 1680 tyget 1680D Waterproof Oxford Fabric på bilden med samma rubrik
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+5bb28d3b 71,1 benets höjd 28 in / 71,1 cm på bilden Product Specifications
+5bb28d3b 45,7 benets bredd 18 in / 45,7 cm på bilden Product Specifications
+5bb28d3b 453 1000 lbs enligt bilden 1000LBS Load Bearing = 453 kg
+5bb28d3b 50 justeringen 0 till 2 in / 0 till 50 mm på bilden Adjustable Floor Protectors
+5bb28d3b 2 rörets tjocklek 0,08 in / 2 mm på bilderna Stable Construction och Product Specifications
+5bb28d3b 6 hålen på 6 mm på bilden Pre-Drilled Holes
+5bb28d3b 4 fyra justerbara fötter enligt texten och bilden Adjustable Floor Protectors
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+794af76e 4 fyra ben i setet enligt bilderna (fyra ben på bild 1, 9, 10, 11 och 12) och titelns slut (Set med 4 för DIY)
+794af76e 544 lasten 1200 lbs på bilden Reinforced Tube Walls = 544 kg
+794af76e 76 höjden 30 in / 762 mm på bilden Product Specifications = 76 cm
+794af76e 110 monteringsplattan 4,3 in / 110 mm på bilden Product Specifications
+794af76e 5 plattans tjocklek 5 mm på bilden Product Specifications
+794af76e 47 rörets diameter 47 mm på bilden Product Specifications
+794af76e 15 monteringen på 15 minuter enligt bilden Quick 15-Minute Installation
+794af76e 3,5 skruvstorleken ST3,5 × 30 mm på bilden Product Specifications
+794af76e 30 skruvstorleken ST3,5 × 30 mm på bilden Product Specifications
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+f39f1f61 95,3 lasten 210 lbs / 95,3 kg på bilden High Load Capacity; källans punktlista säger 210 kg, vilket är pundtalet
+f39f1f61 105,3 höjden 41,5 in / 1053 mm på måttritningen = 105,3 cm
+f39f1f61 63,8 måttet 25,1 in / 638 mm på måttritningen = 63,8 cm
+f39f1f61 66,2 måttet 26,1 in / 662 mm på måttritningen = 66,2 cm
+f39f1f61 185 bakhjulets diameter 7,3 in / 185 mm enligt bilden 4 Industrial PP Swivel Wheels och specifikationen
+f39f1f61 112 framhjulets diameter 4,4 in / 112 mm enligt specifikationen
+f39f1f61 360 framhjulet roterar 360 grader på bilden 4 Industrial PP Swivel Wheels
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+34cca494 76 längden 76 cm på bilden Practical Large-Capacity Kitchen Sink och bilden Undermount Installation Design
+34cca494 43 djupet 43 cm på bilden Undermount Installation Design
+34cca494 19 höjden 19 cm på bilden Undermount Installation Design
+34cca494 71 måttet för urtaget 71 cm på bilden Undermount Installation Design
+34cca494 38 måttet för urtaget 38 cm på bilden Undermount Installation Design
+34cca494 3 panelen 3 mm på bilden High-Quality Stainless Steel Material

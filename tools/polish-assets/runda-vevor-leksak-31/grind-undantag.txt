@@ -1,0 +1,12 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktstorlek har inga axelord, men VEVOR:s måttritning (i kallor.json) ritar hjulets bredd, stativets djup och höjden med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktstorlek har inga axelord, men VEVOR:s måttritning (i kallor.json) ritar hjulets bredd, stativets djup och höjden med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktstorlek har inga axelord, men VEVOR:s måttritning (i kallor.json) ritar hjulets bredd, stativets djup och höjden med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktstorlek har inga axelord, men VEVOR:s måttritning (position 8, i galleriet) ritar stativets höjd och fotavtryck med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rader har inga axelord, men VEVOR:s måttkort (i kallor.json) skriver Product Dimensions i ordningen längd, bredd och höjd och ritningen märker trumman med pilar: texten skriver längd, bredd och höjd ur kortet
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rader har inga axelord, men VEVOR:s måttkort (i kallor.json) skriver Product Dimensions i ordningen längd, bredd och höjd och ritningen märker trumman med pilar: texten skriver längd, bredd och höjd ur kortet

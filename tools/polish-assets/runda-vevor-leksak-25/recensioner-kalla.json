@@ -1,0 +1,111 @@
+{
+  "674b2a46": {
+    "productId": "674b2a46-a419-4599-bb4b-28b3bbea7ccf",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "8f175d45": {
+    "productId": "8f175d45-5819-4ed6-9682-443cf127fd05",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "d8f5e5ad": {
+    "productId": "d8f5e5ad-7bd3-4f12-b889-e0c57863b6b8",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "ccf54a6a": {
+    "productId": "ccf54a6a-5a6d-40c1-8fa2-a44de60b6996",
+    "synliga": 0,
+    "dolda": 3,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": [
+      {
+        "id": "gen-101vihu",
+        "betyg": 5,
+        "datum": "2025-01-08",
+        "foton": 0,
+        "text": "Excelente qualidade. Robusta. Facil de montar. Entrega no tempo anunciado. Totalmente satisfeito com a compra."
+      }
+    ]
+  },
+  "c737abea": {
+    "productId": "c737abea-a48d-4154-b486-c37592776d80",
+    "synliga": 0,
+    "dolda": 3,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": [
+      {
+        "id": "gen-1tyxb3x",
+        "betyg": 5,
+        "datum": "2025-08-02",
+        "foton": 0,
+        "text": "Fantástico tamaño para uso familiar. El futbolín es precioso. El envío se retrasó un poco pero la empresa lo solucionó rápidamente."
+      }
+    ]
+  },
+  "6c689929": {
+    "productId": "6c689929-219a-4a5a-8c5c-4364b15d3f38",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1mbqzo9",
+        "betyg": 5,
+        "datum": "2025-11-17",
+        "foton": 0,
+        "text": "I'm very satisfied with my Roll and Score game from Vevor. The product is even better than I expected, with solid quality and great performance. I was also impressed by the assembly instructions — they were clear, detailed, and easy to follow. Highly recommended!\""
+      },
+      {
+        "id": "gen-1lyjotu",
+        "betyg": 4,
+        "datum": "2025-09-09",
+        "foton": 0,
+        "text": "jeux très sympa mais manque de solidité, et devrait être réfléchie pour le transport pouvoir le séparer en 2"
+      }
+    ]
+  },
+  "e5a6096f": {
+    "productId": "e5a6096f-0480-4d52-a4d0-e247a030fbee",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1vq2rnq",
+        "betyg": 5,
+        "datum": "2026-10-16",
+        "foton": 0,
+        "text": "super, assez facile à assembler, tout fonctionne bien. le seul point négatif est le conteur qui fonctionne à batterie, ça serait mieux électrique."
+      },
+      {
+        "id": "gen-l1vovm",
+        "betyg": 5,
+        "datum": "2026-01-10",
+        "foton": 0,
+        "text": "Came on time. no damage, put together in couple hours. Love the game"
+      }
+    ]
+  }
+}

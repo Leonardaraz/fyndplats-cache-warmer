@@ -1,0 +1,14 @@
+# <kort> <tal> <vad som räknades på bilden>
+055d2193 4 fyra luftutlopp räknade på position 1, 3, 4 och 5
+d1d549ac 2 två handtag i metall räknade på position 3, 4 och 5
+a099f9b4 2 två metallspännen på framsidan räknade på position 1, 3 och 4
+bd8b8752 2 två handtag i metall räknade på position 3, 5 och 6
+4e508ae9 2 två spännen på locket räknade på position 5 och 6
+3d7024aa 2 två bärhandtag och två nivåfönster räknade på position 1, 4 och 5
+d1d549ac 3 märkström på den tryckta märkningen på husets sida (position 1 och 6)
+d1d549ac 10 startström 10–12 A på märkningen (position 1 och 6)
+d1d549ac 12 startström 10–12 A på märkningen (position 1 och 6)
+d1d549ac 240 överhettningsskydd på märkningen (position 1 och 6)
+bd8b8752 400 varningsetiketten på husets framsida (position 4) anger 752 °F, alltså 400 °C
+3d7024aa 20 märkningen vid nivåfönstren (position 4): fyll på diesel under 20 %
+f6657dbe 20 märkningen vid bränslemätaren (position 1): fyll på diesel under 20 %

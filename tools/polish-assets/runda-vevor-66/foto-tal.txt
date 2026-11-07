@@ -1,0 +1,14 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+d7860d50 4–5 däckstorleken 11 × 4–5 tum står i källans rubrik och på VEVOR-bild 2 och 7, medan källans text säger 11 × 4–7
+d7860d50 20 adaptersatsen på 20 delar: fyra hylsor, fyra packningar, fyra plastdetaljer, fyra plastdetaljer och fyra distansbrickor på VEVOR-bild 6 och i källans punkt
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+ad8a4fde 120 bredden 120 cm på måttbilden (47,24 in)
+ad8a4fde 46 djupet 46 cm på måttbilden (18,11 in)
+ad8a4fde 149 höjden 149 cm på måttbilden (58,66 in)
+ad8a4fde 140 lasten 140 kg per hyllplan i källans punkt, medan specifikationen och VEVOR-bild 3 och 7 säger 150 kg: det lägsta skrivs
+ad8a4fde 5 hyllplanens justering upp eller ned med 5 cm i källans punkt och ±2 tum på VEVOR-bild 5
+ad8a4fde 20 vikten 20 kg i källans specifikationstext (Artikelvikt) och på måttbilden

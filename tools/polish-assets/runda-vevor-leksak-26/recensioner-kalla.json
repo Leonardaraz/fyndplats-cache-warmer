@@ -1,0 +1,117 @@
+{
+  "f07622cb": {
+    "productId": "f07622cb-8db5-42f0-9392-cba75fb6ef32",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "459658e6": {
+    "productId": "459658e6-a7c3-4089-bb6c-2f396d4e80b5",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "1586dc36": {
+    "productId": "1586dc36-68b5-4204-9ab8-55919a13bb44",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "3e3e39f3": {
+    "productId": "3e3e39f3-c0b0-45c8-a29f-5da0092a07c2",
+    "synliga": 0,
+    "dolda": 7,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-7bkouf",
+        "betyg": 5,
+        "datum": "2025-06-25",
+        "foton": 0,
+        "text": "Pops up in seconds and creates the perfect little safe spot for my baby."
+      }
+    ]
+  },
+  "54739ea3": {
+    "productId": "54739ea3-e1e1-4bfd-b23d-360ee9f3c82f",
+    "synliga": 0,
+    "dolda": 8,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "76e9d982": {
+    "productId": "76e9d982-273a-4251-83fa-40eab248b0aa",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-7fqyuq",
+        "betyg": 5,
+        "datum": "2026-01-29",
+        "foton": 0,
+        "text": "Ottimo per dimensioni, prezzo e qualità. Facile da montare, materiali compatibili con bambini da sei mesi in su."
+      }
+    ]
+  },
+  "9356b835": {
+    "productId": "9356b835-ab1c-48f6-8dd5-d21f70e552df",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-zgfe2j",
+        "betyg": 5,
+        "datum": "2026-04-12",
+        "foton": 0,
+        "text": "My granddaughter absolutely loves her new piano!! It was so easy to put together, I am so happy with the quality of the piano!"
+      },
+      {
+        "id": "gen-1dmek7g",
+        "betyg": 5,
+        "datum": "2026-03-11",
+        "foton": 1,
+        "text": "We gifted this piano to my daughter and let me tell you how blown away I am by how good of a quality it is. She is obsessed and can’t stop playing with it."
+      },
+      {
+        "id": "gen-yqpgox",
+        "betyg": 5,
+        "datum": "2026-01-15",
+        "foton": 0,
+        "text": "We got this for our youngest, and it’s a fun little setup. The kids love it! It’s a great starter for my son. The only downside is the batteries — it would be even better if it were rechargeable."
+      },
+      {
+        "id": "gen-kxsag8",
+        "betyg": 5,
+        "datum": "2026-01-11",
+        "foton": 0,
+        "text": "Great story for beginner it's definitely a great value for the money does come with a microphone The board quality is okay but you get what you pay for more of age range like 5 and under this product will be good for That's my opinion"
+      },
+      {
+        "id": "gen-1eid3lg",
+        "betyg": 4,
+        "datum": "2026-06-16",
+        "foton": 0,
+        "text": "Onze kleinzoon is helemaal enthousiast over zijn piano; iedere dag is het het eerste waar hij naar toe gaat als hij beneden komt. Groot succes dus!!"
+      }
+    ]
+  }
+}

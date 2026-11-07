@@ -1,0 +1,22 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+623e6616 4 monteringen i fyra steg (1–4) på VEVOR-bild 6
+623e6616 15 femton flaskor i källans rubrik, punkt och specifikation
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+566d19f0 14 fjorton hyllplan (14-våningars) i källans rubrik och på VEVOR-bild 2
+566d19f0 3 tre sektioner (tre kolumner á 560 mm) på VEVOR-bild 1 och 2
+566d19f0 2 två mindre bokhyllor i källans punkt och på VEVOR-bild 5
+566d19f0 370,5 hyllavståndet 370,5 mm (14,59 in) på VEVOR-bild 2
+566d19f0 65 avståndet från golvet till nedersta hyllan 65 mm (2,56 in) på VEVOR-bild 2
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+8d7fa41c 39,5 den korta stångens längd 39,5 cm (15,6 in) på VEVOR-bild 7, medan källans punkt säger 41 cm
+8d7fa41c 30 laddningsstångens längd 30 cm (12 in) på VEVOR-bild 7
+8d7fa41c 177,8 den kortare stålvajern 177,8 cm (70 in) på VEVOR-bild 4 och 7
+8d7fa41c 228,6 den längre stålvajern 228,6 cm (90 in) på VEVOR-bild 4 och 7
+8d7fa41c 50 viktskivornas hål 50 mm (2 in) på VEVOR-bild 5 och i källans punkt (5 cm)
+8d7fa41c 25 viktskivornas hål 25 mm (1 in) på VEVOR-bild 5 och i källans punkt (2,5 cm)
+8d7fa41c 360 remskivans rotation 360° på VEVOR-bild 4
+8d7fa41c 3 tre karbinhakar (3 x Carabiners) på VEVOR-bild 7
+8d7fa41c 2 två stålvajrar (2 Steel Cables) på VEVOR-bild 4

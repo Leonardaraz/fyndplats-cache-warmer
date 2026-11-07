@@ -1,0 +1,78 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+7452c2e8 18 hjulstorleken 18 tum i källans tabell (18-tums BMX) och på VEVOR:s bild
+7452c2e8 110 rekommenderad längd 110–140 cm i källans tabell och på VEVOR:s bild
+7452c2e8 140 rekommenderad längd 110–140 cm i källans tabell och på VEVOR:s bild
+7452c2e8 5 åldern 5–10 år på VEVOR:s specifikationsbild (Recommended Age 5-10 Years)
+7452c2e8 10 åldern 5–10 år på specifikationsbilden och nettovikten 10 kg i källans tabell
+7452c2e8 85 förmonteringen 85 % i källans punkt och på VEVOR:s bild (85% Pre-assembled)
+7452c2e8 1,0 ramens tjocklek 1,0 mm i källans punkt
+7452c2e8 121 längden 1210 mm (47,6 in) på måttritningen och i källans tabell = 121 cm
+7452c2e8 50 måttet 500 mm (19,7 in) på måttritningen och i källans tabell = 50 cm
+7452c2e8 78 höjden 780 mm (30,7 in) på måttritningen och i källans tabell = 78 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+d215cc64 14 hjulstorleken 14 tum i källans tabell (14-tums BMX) och på VEVOR:s bild
+d215cc64 90 rekommenderad längd 90–115 cm i källans tabell och på VEVOR:s bild
+d215cc64 115 rekommenderad längd 90–115 cm i källans tabell och på VEVOR:s bild
+d215cc64 3 åldern 3–6 år på VEVOR:s specifikationsbild (Recommended Age 3-6 Years)
+d215cc64 6 åldern 3–6 år på VEVOR:s specifikationsbild (Recommended Age 3-6 Years)
+d215cc64 8,5 nettovikten 8,5 kg i källans tabell och på VEVOR:s bild (18.7 lbs / 8.5 kg)
+d215cc64 85 förmonteringen 85 % i källans punkt och på VEVOR:s bild (85% Pre-assembled)
+d215cc64 1,0 ramens tjocklek 1,0 mm i källans punkt
+d215cc64 105 längden 1050 mm (41,3 in) på måttritningen och i källans tabell = 105 cm
+d215cc64 50 måttet 500 mm (19,7 in) på måttritningen och i källans tabell = 50 cm
+d215cc64 69 höjden 690 mm (27,2 in) på måttritningen och i källans tabell = 69 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+a6a8c377 120 brädans längd 1,2 m i källans punkt och 1200 mm hopfälld på VEVOR:s specifikationsbild = 120 cm
+a6a8c377 60 brädans bredd 0,6 m i källans punkt och 600 mm på VEVOR:s måttritning = 60 cm
+a6a8c377 15 hålets diameter 6 in på VEVOR:s bild (6 in) = cirka 15 cm (15,24 cm)
+a6a8c377 6 hålets diameter 6 tum på VEVOR:s bild (6 in)
+a6a8c377 125,5 utfälld längd 1255 mm (4,12 ft) på VEVOR:s måttritning och i källans tabell = 125,5 cm
+a6a8c377 30,2 utfälld höjd 302 mm (0,99 ft) på VEVOR:s måttritning och i källans tabell = 30,2 cm
+a6a8c377 5,1 hopfälld tjocklek 51 mm (0,17 ft) på VEVOR:s specifikationsbild och i källans tabell = 5,1 cm
+a6a8c377 2 två brädor på VEVOR:s bild 1 (set med två brädor); 2 FT bredd på VEVOR:s bild
+a6a8c377 13,6 vikten 13,6 kg i källans tabell och på VEVOR:s bild (29.98 lbs / 13.6 kg)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+661b2d9c 120 brädans längd 1,2 m i källans punkt och 1200 mm hopfälld på VEVOR:s specifikationsbild = 120 cm
+661b2d9c 60 brädans bredd 0,6 m i källans punkt och 600 mm på VEVOR:s måttritning = 60 cm
+661b2d9c 15 hålets diameter 6 in på VEVOR:s bild (6 in) = cirka 15 cm (15,24 cm)
+661b2d9c 6 hålets diameter 6 tum på VEVOR:s bild (6 in)
+661b2d9c 125,5 utfälld längd 1255 mm (4,12 ft) på VEVOR:s måttritning och i källans tabell = 125,5 cm
+661b2d9c 30,2 utfälld höjd 302 mm (0,99 ft) på VEVOR:s måttritning och i källans tabell = 30,2 cm
+661b2d9c 5,1 hopfälld tjocklek 51 mm (0,17 ft) på VEVOR:s specifikationsbild och i källans tabell = 5,1 cm
+661b2d9c 2 två brädor på VEVOR:s bild 1 (set med två brädor); 2 FT bredd på VEVOR:s bild
+661b2d9c 8 8 kastpåsar i källans punkt och på VEVOR:s bild (Full Set of 8 Premium Bean Bags)
+661b2d9c 4 4 röda och 4 blå kastpåsar i källans punkt och på VEVOR:s bild (8 Bean Bags Red + Blue)
+661b2d9c 450 kastpåsens vikt 450 g (0.99 lbs) på VEVOR:s bild (Weight 0.99lbs/450g)
+661b2d9c 16,8 vikten 16,8 kg i källans tabell och på VEVOR:s bild (37.04 lbs / 16.8 kg)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+7082b50c 120 brädans längd 1,2 m i källans punkt och 1200 mm hopfälld på VEVOR:s specifikationsbild = 120 cm
+7082b50c 60 brädans bredd 0,6 m i källans punkt och 600 mm på VEVOR:s måttritning = 60 cm
+7082b50c 15 hålets diameter 6 in på VEVOR:s bild (6 in) = cirka 15 cm (15,24 cm)
+7082b50c 6 hålets diameter 6 tum på VEVOR:s bild (6 in)
+7082b50c 125,5 utfälld längd 1255 mm (4,12 ft) på VEVOR:s måttritning och i källans tabell = 125,5 cm
+7082b50c 30,2 utfälld höjd 302 mm (0,99 ft) på VEVOR:s måttritning och i källans tabell = 30,2 cm
+7082b50c 5,1 hopfälld tjocklek 51 mm (0,17 ft) på VEVOR:s specifikationsbild och i källans tabell = 5,1 cm
+7082b50c 2 två brädor på VEVOR:s bild 1 (set med två brädor); 2 FT bredd på VEVOR:s bild
+7082b50c 8 8 kastpåsar i källans punkt och på VEVOR:s bild (Full Set of 8 Premium Bean Bags)
+7082b50c 4 4 röda och 4 blå kastpåsar i källans punkt och på VEVOR:s bild (8 Bean Bags Red + Blue)
+7082b50c 450 kastpåsens vikt 450 g (0.99 lbs) på VEVOR:s bild (Weight 0.99lbs/450g)
+7082b50c 17,1 vikten 17,1 kg i källans tabell och på VEVOR:s bild (37.7 lbs / 17.1 kg)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+610d2c74 90 brädans mått 90 × 60 cm i källans punkt och 900 mm hopfälld på VEVOR:s specifikationsbild
+610d2c74 60 brädans bredd 60 cm i källans punkt och 600 mm på VEVOR:s måttritning
+610d2c74 92 utfälld längd 920 mm (3,02 ft) på VEVOR:s måttritning och i källans tabell = 92 cm
+610d2c74 24,1 utfälld höjd 241 mm (0,79 ft) på VEVOR:s måttritning och i källans tabell = 24,1 cm
+610d2c74 3,9 hopfälld tjocklek 39 mm (0,13 ft) på VEVOR:s specifikationsbild och i källans tabell = 3,9 cm
+610d2c74 15 hålets diameter 6 in på VEVOR:s bild (6 in) = cirka 15 cm (15,24 cm)
+610d2c74 6 hålets diameter 6 tum på VEVOR:s bild (6 in)
+610d2c74 8 8 kastpåsar i källans punkt och på VEVOR:s bild (Full Set of 8 Premium Bean Bags)
+610d2c74 4 4 röda och 4 blå kastpåsar i källans punkt och på VEVOR:s bild (8 Bean Bags Red + Blue)
+610d2c74 350 kastpåsens vikt 350 g (0.77 lbs) på VEVOR:s bild (Weight 0.77lbs/350g)
+610d2c74 12,1 vikten 12,1 kg (26.7 lbs) på VEVOR:s specifikationsbild; källans tabell säger 13 kg och det lägre skrivs
+610d2c74 2 två brädor på VEVOR:s bild 1 (set med två brädor); 2 FT bredd på VEVOR:s bild

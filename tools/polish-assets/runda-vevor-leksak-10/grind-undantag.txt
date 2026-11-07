@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py varan har inget totalmått att skriva: kubens storlek är inte setets mått, så texten har ingen Mått-rad
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py varan har inget totalmått att skriva: kubens storlek är inte setets mått, så texten har ingen Mått-rad
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py varan har inget totalmått att skriva: kubens storlek är inte setets mått, så texten har ingen Mått-rad
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktens maximala storlek (∅15,75 x 8,66 tum / ∅400 x 220 mm) har inga axelord, och VEVOR:s måttbild visar 400 mm som diameter och 220 mm som höjd med en lodrät pil: texten skriver 40 cm i diameter och 22 cm högt
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans totalmåttrad (109 x 78,5 x (50,8–66) cm) har ett höjdintervall som grinden inte läser som måttrad; texten skriver 109 cm brett, 78,5 cm djupt och 50,8–66 cm högt i samma ordning som raden, och VEVOR:s måttbild visar 109 cm över borden, 78,5 cm djupt och höjden 50,8–66 cm

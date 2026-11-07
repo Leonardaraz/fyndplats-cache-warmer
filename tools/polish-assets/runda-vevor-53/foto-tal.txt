@@ -1,0 +1,16 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+3bca8bd4 2 plåttjockleken 2 mm i punkt 1
+3bca8bd4 10 rundade hörn med radien R10 i punkt 2 och på bilden R10 Rounded Corners
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+86dadcad 30 lutningen 30 grader åt vänster eller höger i punkt 1 och på bilden Easily Adjust to the Ideal Shade Angle (Tilts 30° Left or Right)
+86dadcad 140 polyestertyget på 140 g i punkt 3 och på bilden Thoughtful Detail Design (140g Thickened polyester material)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+c5e6c97d 114 justerbar höjd 114 till 133 cm i punkt 3 och på bilden Flexible Drying Height Adjustment (44,9 in / 1140 mm); utkastets text skriver 113 cm, och 114 skrivs eftersom punkten och bilden är överens
+c5e6c97d 133 justerbar höjd 114 till 133 cm i punkt 3 och på bilden Flexible Drying Height Adjustment (52,4 in / 1330 mm)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>

@@ -1,0 +1,20 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+2efbe751 2,7 dörrens tjocklek 2,7 mm i punkt 2
+2efbe751 9 bakskivans tjocklek 9 mm i punkt 3
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+2e3ae7be 180 bärförmågan 180 kg i titeln och punkt 1; specifikationen skriver 181,44 kg (400 pund), och det lägre talet skrivs
+2e3ae7be 70 förmonteringen 70 procent i punkt 3
+2e3ae7be 30 monteringstiden 30 minuter i punkt 3
+2e3ae7be 5 lutningen 5 grader i punkt 2 och på bilden
+2e3ae7be 50 sittdjupet 50 cm i punkt 2
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+b6692131 1920 bredden 1920 mm på måttbilden (76 tum)
+b6692131 205 djupet 205 mm på måttbilden (8 tum)
+b6692131 530 höjden 530 mm på måttbilden (21 tum)
+b6692131 7,12 vikten 7,12 kg (16 pund) på måttbilden
+b6692131 5 knådningstiden 5 minuter i punkt 5
+b6692131 24 expansionstiden 24 till 48 timmar i punkt 5
+b6692131 48 se 24

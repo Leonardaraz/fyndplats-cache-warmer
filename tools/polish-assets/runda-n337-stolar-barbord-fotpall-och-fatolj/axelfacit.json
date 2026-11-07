@@ -1,0 +1,51 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "12a25c63": {
+  "tyska": "",
+  "svenska": "6er-Set",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Stuhlabmessungen: 45B x 46T x 78H cm | ✔ Sitzgröße: 37B x 37T x 45H cm | ✔ Rückenlehnen-Größe: 42B x 36H cm | ✔ Gefaltete Größe: 45B x 97T x 9H cm"
+ },
+ "2b6f24a0": {
+  "tyska": "Ø52 x 40,5H cm",
+  "svenska": "52L x 52B x 40,5H cm",
+  "bokstaver": "H",
+  "hojd": 40.5
+ },
+ "2ee2f7c7": {
+  "tyska": "37L x 45B x 87H cm",
+  "svenska": "37L x 45B x 87H cm",
+  "bokstaver": "LBH",
+  "hojd": 87,
+  "bredd": 37,
+  "djup": 45
+ },
+ "653f8098": {
+  "tyska": "",
+  "svenska": "Ø70 x 102H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tisch-Abmessungen: Ø70 x 102H cm"
+ },
+ "9a7ec41a": {
+  "tyska": "",
+  "svenska": "60L x 60B x 68-93,5H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischmaße: 60B x 60T x 68-93,5H cm"
+ },
+ "c66ee07e": {
+  "tyska": "60B x 60T x 79-91H cm",
+  "svenska": "60B x 60T x 79-91H cm",
+  "bokstaver": "BTH",
+  "djup": 60,
+  "hojd": [
+   79,
+   91
+  ],
+  "bredd": 60
+ },
+ "ce30260f": {
+  "tyska": "68B x 65T x 71,5H cm, belastbar bis 120 kg",
+  "svenska": "68 x 65 x 71,5 cm",
+  "bokstaver": "BTH",
+  "djup": 65,
+  "hojd": 71.5,
+  "bredd": 68
+ }
+}

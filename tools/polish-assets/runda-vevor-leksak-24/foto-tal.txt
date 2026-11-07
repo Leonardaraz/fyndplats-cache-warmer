@@ -1,0 +1,95 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+d0040c70 91,4 höjdläge 1: 914 mm (36 in) på VEVOR:s höjdbild och i källans text = 91,4 cm
+d0040c70 101,6 höjdläge 2: 1016 mm (40 in) på höjdbilden = 101,6 cm
+d0040c70 111,8 höjdläge 3: 1118 mm (44 in) på höjdbilden = 111,8 cm
+d0040c70 121,9 höjdläge 4: 1219 mm (48 in) på höjdbilden = 121,9 cm
+d0040c70 132,1 höjdläge 5: 1321 mm (52 in) på höjdbilden och i källans text = 132,1 cm
+d0040c70 104,6 hopfälld bredd 1046 mm (41,2 in) på bilden och i källans rad = 104,6 cm
+d0040c70 40 hopfällt djup 400 mm (15,7 in) på bilden och i källans rad = 40 cm
+d0040c70 120 hopfälld höjd 1200 mm (47,2 in) på bilden och i källans rad = 120 cm
+d0040c70 150 bredd 1500 mm (59,1 in) på bilden och i källans rad = 150 cm
+d0040c70 108 djup 1080 mm (42,5 in) på bilden och i källans rad = 108 cm
+d0040c70 135 höjd 1350 mm (53,1 in) på bilden och i källans rad = 135 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+6e366d55 91,4 höjdläge 1: 914 mm (36 in) på VEVOR:s höjdbild och i källans text = 91,4 cm
+6e366d55 101,6 höjdläge 2: 1016 mm (40 in) på höjdbilden = 101,6 cm
+6e366d55 111,8 höjdläge 3: 1118 mm (44 in) på höjdbilden = 111,8 cm
+6e366d55 121,9 höjdläge 4: 1219 mm (48 in) på höjdbilden = 121,9 cm
+6e366d55 132,1 höjdläge 5: 1321 mm (52 in) på höjdbilden och i källans text = 132,1 cm
+6e366d55 104,6 hopfälld bredd 1046 mm (41,2 in) på bilden och i källans rad = 104,6 cm
+6e366d55 40 hopfällt djup 400 mm (15,7 in) på bilden och i källans rad = 40 cm
+6e366d55 120 hopfälld höjd 1200 mm (47,2 in) på bilden och i källans rad = 120 cm; mattans bredd 1200 mm (47,2 in) på bilden och i källans rad = 120 cm
+6e366d55 150 bredd 1500 mm (59,1 in) på bilden och i källans rad = 150 cm
+6e366d55 108 djup 1080 mm (42,5 in) på bilden och i källans rad = 108 cm
+6e366d55 135 höjd 1350 mm (53,1 in) på bilden och i källans rad = 135 cm
+6e366d55 183,5 mattans längd 1835 mm (72,2 in) på bilden och i källans rad = 183,5 cm
+6e366d55 0,8 mattans tjocklek 8 mm (0,3 in) på bilden och i källans rad = 0,8 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+69195b0d 91,4 höjdläge 1: 914 mm (36 in) på VEVOR:s höjdbild och i källans text = 91,4 cm
+69195b0d 101,6 höjdläge 2: 1016 mm (40 in) på höjdbilden = 101,6 cm
+69195b0d 111,8 höjdläge 3: 1118 mm (44 in) på höjdbilden = 111,8 cm
+69195b0d 121,9 höjdläge 4: 1219 mm (48 in) på höjdbilden = 121,9 cm
+69195b0d 132,1 höjdläge 5: 1321 mm (52 in) på höjdbilden och i källans text = 132,1 cm
+69195b0d 104,6 hopfälld bredd 1046 mm (41,2 in) på bilden och i källans rad = 104,6 cm
+69195b0d 40 hopfällt djup 400 mm (15,7 in) på bilden och i källans rad = 40 cm
+69195b0d 120 hopfälld höjd 1200 mm (47,2 in) på bilden och i källans rad = 120 cm; mattans bredd 1200 mm (47,2 in) på bilden och i källans rad = 120 cm
+69195b0d 150 bredd 1500 mm (59,1 in) på bilden och i källans rad = 150 cm
+69195b0d 108 djup 1080 mm (42,5 in) på bilden och i källans rad = 108 cm
+69195b0d 135 höjd 1350 mm (53,1 in) på bilden och i källans rad = 135 cm
+69195b0d 183,5 mattans längd 1835 mm (72,2 in) på bilden och i källans rad = 183,5 cm
+69195b0d 0,8 mattans tjocklek 8 mm (0,3 in) på bilden och i källans rad = 0,8 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+4c3e49b5 91,4 höjdläge 1: 914 mm (36 in) på VEVOR:s höjdbild och i källans text = 91,4 cm
+4c3e49b5 101,6 höjdläge 2: 1016 mm (40 in) på höjdbilden = 101,6 cm
+4c3e49b5 111,8 höjdläge 3: 1118 mm (44 in) på höjdbilden = 111,8 cm
+4c3e49b5 121,9 höjdläge 4: 1219 mm (48 in) på höjdbilden = 121,9 cm
+4c3e49b5 132,1 höjdläge 5: 1321 mm (52 in) på höjdbilden och i källans text = 132,1 cm
+4c3e49b5 104,6 hopfälld bredd 1046 mm (41,2 in) på bilden och i källans rad = 104,6 cm
+4c3e49b5 40 hopfällt djup 400 mm (15,7 in) på bilden och i källans rad = 40 cm
+4c3e49b5 120 hopfälld höjd 1200 mm (47,2 in) på bilden och i källans rad = 120 cm; mattans bredd 1200 mm (47,2 in) på bilden och i källans rad = 120 cm
+4c3e49b5 150 bredd 1500 mm (59,1 in) på bilden och i källans rad = 150 cm
+4c3e49b5 108 djup 1080 mm (42,5 in) på bilden och i källans rad = 108 cm
+4c3e49b5 135 höjd 1350 mm (53,1 in) på bilden och i källans rad = 135 cm
+4c3e49b5 183,5 mattans längd 1835 mm (72,2 in) på bilden och i källans rad = 183,5 cm
+4c3e49b5 0,8 mattans tjocklek 8 mm (0,3 in) på bilden och i källans rad = 0,8 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+e58a8e66 91,4 höjdläge 1: 914 mm (36 in) på VEVOR:s höjdbild och i källans text = 91,4 cm
+e58a8e66 101,6 höjdläge 2: 1016 mm (40 in) på höjdbilden = 101,6 cm
+e58a8e66 111,8 höjdläge 3: 1118 mm (44 in) på höjdbilden = 111,8 cm
+e58a8e66 121,9 höjdläge 4: 1219 mm (48 in) på höjdbilden = 121,9 cm
+e58a8e66 132,1 höjdläge 5: 1321 mm (52 in) på höjdbilden och i källans text = 132,1 cm
+e58a8e66 104,6 hopfälld bredd 1046 mm (41,2 in) på bilden och i källans rad = 104,6 cm
+e58a8e66 40 hopfällt djup 400 mm (15,7 in) på bilden och i källans rad = 40 cm
+e58a8e66 120 hopfälld höjd 1200 mm (47,2 in) på bilden och i källans rad = 120 cm
+e58a8e66 150 bredd 1500 mm (59,1 in) på bilden och i källans rad = 150 cm
+e58a8e66 108 djup 1080 mm (42,5 in) på bilden och i källans rad = 108 cm
+e58a8e66 135 höjd 1350 mm (53,1 in) på bilden och i källans rad = 135 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+90c8bffc 91,4 höjdläge 1: 914 mm (36 in) på VEVOR:s höjdbild och i källans text = 91,4 cm
+90c8bffc 101,6 höjdläge 2: 1016 mm (40 in) på höjdbilden = 101,6 cm
+90c8bffc 111,8 höjdläge 3: 1118 mm (44 in) på höjdbilden = 111,8 cm
+90c8bffc 121,9 höjdläge 4: 1219 mm (48 in) på höjdbilden = 121,9 cm
+90c8bffc 132,1 höjdläge 5: 1321 mm (52 in) på höjdbilden och i källans text = 132,1 cm
+90c8bffc 104,6 hopfälld bredd 1046 mm (41,2 in) på bilden och i källans rad = 104,6 cm
+90c8bffc 40 hopfällt djup 400 mm (15,7 in) på bilden och i källans rad = 40 cm
+90c8bffc 120 hopfälld höjd 1200 mm (47,2 in) på bilden och i källans rad = 120 cm
+90c8bffc 150 bredd 1500 mm (59,1 in) på bilden och i källans rad = 150 cm
+90c8bffc 108 djup 1080 mm (42,5 in) på bilden och i källans rad = 108 cm
+90c8bffc 135 höjd 1350 mm (53,1 in) på bilden och i källans rad = 135 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+841b09c5 240 höjd 2400 mm (94,49 in) på VEVOR:s måttritning och i källans rad = 240 cm
+841b09c5 150 bredd 1500 mm (59,06 in) på måttritningen och i källans rad = 150 cm
+841b09c5 63 djup 630 mm (24,80 in) på måttritningen och i källans rad = 63 cm
+841b09c5 33 stegpinnarnas diameter 33 mm (1,3 in) på VEVOR:s funktionsbild (Stable and Resistant to Bending)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+5c141a8f 215 höjd 2150 mm (84,65 in) på VEVOR:s måttritning och i specifikationskortet = 215 cm
+5c141a8f 80 bredd 800 mm (31,5 in) på måttritningen och i specifikationskortet = 80 cm
+5c141a8f 58 djup 580 mm (22,83 in) på måttritningen och i specifikationskortet = 58 cm

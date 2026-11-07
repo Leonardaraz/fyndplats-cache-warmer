@@ -1,0 +1,8 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek 23,6 × 6,9 × 50,8 tum / 600 x 175 x 1290 mm utan axelord, men måttbilden (bild 7) ritar 23,6 in / 600 mm som bredd, 6,9 in / 175 mm som djup och 50,8 in / 1290 mm som höjd med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 585 × 300 × 485 mm utan axelord, men måttbilden (bild 7) ritar 23,03 in / 585 mm som bredd, 11,81 in / 300 mm som djup och 19,09 in / 485 mm som höjd med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktens storlek utfälld 9700 x 32 x 2450 mm utan axelord, men måttbilden (bild 7) ritar 32 ft / 9700 mm som nätets bredd och 8 ft / 2450 mm som stolparnas höjd med pilar, och 32 mm är stolpens diameter: texten skriver nätets bredd och stolparnas fyra höjder
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara enskilda mått (Produktlängd 78 cm, Justerbar höjd 78–84 cm, Framhjulets bredd 6 cm och Bakhjulets bredd 5 cm) och ingen samlad måttrad, och måttbilden (bild 7) ritar 30,7 in / 78 cm som längd och 30,7 till 33,1 in / 78 till 84 cm som höjd med pilar samt hjulens bredd 5 cm och 6 cm: texten skriver längd, höjd och hjulens bredd var för sig

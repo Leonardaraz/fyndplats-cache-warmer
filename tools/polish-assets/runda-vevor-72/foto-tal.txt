@@ -1,0 +1,18 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+43e64627 225 bottnens diameter 225 mm (8,86 tum) på VEVOR-bild 4 och 7
+43e64627 10 tio liter (2,64 gallon på VEVOR-bild 4) i källans punkt
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+3dd8fc76 832,8 volymen 832,8 liter (220 gallon) i källans rubrik
+3dd8fc76 4 monteringen i fyra steg (1–4) på VEVOR-bild 6
+3dd8fc76 10 den hoprullade diametern 10 cm (3,97 tum) på VEVOR-bild 7
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+218b4993 9,5 slangens 9,5 mm (3/8 tum) i källans rubrik
+218b4993 74 maxtemperaturen 74 °C i källans punkt, medan specifikationen och VEVOR-bild 5 säger 80 °C
+218b4993 90 90-gradersleden i källans punkt och på VEVOR-bild 4
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+52fd9434 147 maxvikten 147 kg i källans rubrik, medan punkten, specifikationen och VEVOR-bild 2 säger 150 kg (330 lbs)
+52fd9434 1060 högsta höjden 1060 mm (41,7 tum) i källans punkt och på VEVOR-bild 3

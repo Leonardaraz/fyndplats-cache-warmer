@@ -275,6 +275,19 @@ leverantörsnamn. **Finns ingen säkerhetsinformation i källan: skriv inget avs
 2. ☠️ **Varje siffra ska stå i källan**, med decimalkomma. Månader förblir månader
    (*36 månader*, inte *3 år*). `gate.py` kontrollerar det redan mot källtexten,
    liksom varje EN-norm — ett fynd där är ett riktigt fel, inte ett falsklarm.
+   **Undantag: pund till kilo** *(Leonard 2026-11-03, "Ja")*. En vikt eller last som källan bara
+   anger i pund (`lb`) skrivs om till kilo i stället för att stå kvar som *400 lb (pund)*,
+   eftersom svenska kunder tänker i kilo. Räkna `lb × 0,4536`: en maxlast avrundas nedåt till
+   hela kilo (400 lb blir 181 kg) och en vikt till en decimal. Kvittera omräkningen i
+   `foto-tal.txt` med en rad `<kort> <kg> <omräkningen>`, till exempel
+   `2e775ecd 181 400 lb × 0,4536 = 181,4 kg, avrundat nedåt`. Står både pund och kilo i källan
+   skrivs kilovärdet ur källan, och gäller två källor olika värden gäller det lägre. Samma
+   undantag gäller inte tum eller andra enheter: fråga Leonard först. Kilon står först och
+   pund inom parentes (*181 kg (400 lb)*, aldrig *400 lb (pund)*), och värdet byts överallt
+   där det förekommer: löpande text, punkter, spec-tabell, frågor, *Produktsäkerhet* och
+   metabeskrivningen i `seo.tsv`. Sök rundans alla filer efter `lb` och `pund` innan planen
+   byggs, inte bara HTML-filen (2e775ecd: första rättelsebygget lämnade *Bär 400 lb (pund)*
+   i metabeskrivningen, som är det Google visar).
 3. ☠️ **Samma värde i spec-tabellen och i avsnittet.** Aosoms text säger ofta emot
    sig själv: produktdatan säger `max. Belastbarkeit: 98 kg`, punktlistan
    `Bis max. 100 kg`. Uppmätt 2026-09-27: 38 produkter i feeden anger mer än ett
@@ -322,6 +335,11 @@ den tyska titeln samma SKU, så varje produkt i rundan måste få en egen. Rör 
 eller `AE-`-SKU:er på andra produkter.
 
 ### Kategori (`kategori.tsv`)
+
+Första raden skrevs redan i steg 2 ([Kontrollera kategorin](02-hamta-kallan.md#kontrollera-kategorin-tidigt)),
+var det avgjordes *var* varan hör hemma. Här är texten klar, och du prövar raden mot den:
+passar sökordskategorin fortfarande, och finns det ett smalare löv nu när du har läst
+varan noga? Ändra raden om svaret är ja.
 
 Skriv `kort ⇥ Förälder + Löv + Sökordskategori` (ett till sex namn), med kategorinamnen
 exakt som i Wix. Läs trädet varje runda (`POST /categories/v1/categories/query` med

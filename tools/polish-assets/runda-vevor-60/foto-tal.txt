@@ -1,0 +1,27 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+5856e035 7 vikten 7 kg (15,43 pund) på måttbilden och i källans specifikation
+5856e035 150 det hydrauliska lyftet 150 mm i källans punkt 2
+5856e035 400 sitsstorleken 450 x 400 mm i källans specifikation, inte på bilderna
+5856e035 450 sitsstorleken 450 x 400 mm och sitthöjden 450–600 mm i källans specifikation, inte på bilderna
+5856e035 500 måttbildens 540 x 500 x 1030 mm (rygghöjd) och källans specifikation
+5856e035 540 måttbildens 540 x 500 x 1030 mm (rygghöjd) och källans specifikation
+5856e035 600 sitthöjden 450–600 mm i källans specifikation, inte på bilderna
+5856e035 1030 måttbildens 1030 mm rygghöjd (40,2 tum) och källans specifikation
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+4416840c 15,8 repet 15800 mm i specifikationen är 15,8 m, och 51,84 fot på måttbilden stämmer med det
+4416840c 0,35 tändernas tjocklek 0,35 cm i källans punkt 2, och 3,5 mm (0,14 tum) på måttbilden
+4416840c 3 handtaget har tre delar enligt källans punkt 3, och bilden visar tre lösa rör, två raka och ett med D-handtaget
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+282781e0 10 skivtjocklek 0,39 tum är 10 mm på bilden "Two cheese slice thicknesses" i källgalleriet
+282781e0 20 skivtjocklek 0,78 tum är 20 mm på samma bild
+282781e0 370 höjden 370 mm (14,56 tum) med ramen uppfälld på måttbilden
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+71e0eed5 33 330 mm i källan är 33 cm
+71e0eed5 25,5 255 mm i källan är 25,5 cm
+71e0eed5 85,5 855 mm i källan är 85,5 cm

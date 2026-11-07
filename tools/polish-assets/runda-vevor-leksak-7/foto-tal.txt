@@ -1,0 +1,53 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+9ae2edb2 4 fyra trähjul räknade på packbilden (position 1)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+933b885d 68 handtagets utdragna höjd 680 mm, avläst i VEVOR:s måttbild (26,8 tum / 680 mm), som inte ligger i galleriet
+933b885d 4 fyra hjul räknade på närbilden (position 5)
+933b885d 32 bredd 320 mm i källans produktmått = 32 cm
+933b885d 23 djup 230 mm i källans produktmått = 23 cm
+933b885d 82,5 höjd med utfällt handtag 825 mm i källans produktmått = 82,5 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+c885725c 2 två figurer räknade på fotona (position 1 och 5)
+c885725c 1 en skattkista räknad på fotona (position 1 och 5)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+1e88e59d 3 högtalaren märkt 3 W i VEVOR:s funktionsbild, som inte ligger i galleriet
+1e88e59d 54 bredd 540 mm i källans produktmått = 54 cm
+1e88e59d 27,5 djup 275 mm i källans produktmått = 27,5 cm
+1e88e59d 18 höjd 180 mm i källans produktmått = 18 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+6d54d035 42,5 bordsytans höjd 425 mm, avläst i VEVOR:s måttbild (16,7 tum / 425 mm), som inte ligger i galleriet
+6d54d035 32 bredd och djup 320 mm i VEVOR:s måttbild = 32 cm
+6d54d035 46,5 höjd 465 mm i VEVOR:s måttbild = 46,5 cm
+6d54d035 4 fyra ben räknade på fotona (position 1 och 4)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+07d805ce 55,5 bredd 555 mm vid fötterna, avläst i VEVOR:s måttbild (21,85 tum / 555 mm), som inte ligger i galleriet
+07d805ce 53,5 djup 535 mm vid fötterna, avläst i samma måttbild (21 tum / 535 mm)
+07d805ce 111 lägsta höjd 1110 mm i källans punkt = 111 cm
+07d805ce 137 högsta höjd 1370 mm i källans punkt = 137 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+5321bf17 8 åtta filtklämmor, avlästa i VEVOR:s specifikationsbild (8 x Blanket Clips), som inte ligger i galleriet
+5321bf17 42 palats: 42 kulor och 86 stavar, avläst i VEVOR:s byggbild
+5321bf17 86 palats: 86 stavar, avläst i VEVOR:s byggbild
+5321bf17 33 slott: 33 kulor och 64 stavar, avläst i VEVOR:s byggbild
+5321bf17 64 slott: 64 stavar, avläst i VEVOR:s byggbild
+5321bf17 25 koja: 25 kulor och 44 stavar, avläst i VEVOR:s byggbild
+5321bf17 24 tält: 24 kulor och 44 stavar, avläst i VEVOR:s byggbild
+5321bf17 15 laddtid 15–30 minuter, avläst i VEVOR:s glödbild
+5321bf17 30 laddtid 15–30 minuter, avläst i VEVOR:s glödbild
+5321bf17 45 vinkelsteg 45 grader, avläst i VEVOR:s monteringsbild
+5321bf17 29 paketets höjd 290 mm i källans förpackningsmått = 29 cm
+5321bf17 13,5 paketets djup 135 mm i källans förpackningsmått = 13,5 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+1a7a00b4 35 förvaringslådan 350 mm bred, avläst i VEVOR:s måttbild (13,78 tum / 350 mm), som inte ligger i galleriet
+1a7a00b4 25 förvaringslådan 250 mm djup, avläst i samma måttbild (9,84 tum / 250 mm)
+1a7a00b4 22 förvaringslådan 220 mm hög, avläst i samma måttbild (8,66 tum / 220 mm)
+1a7a00b4 41 höjd 410 mm i källans produktmått = 41 cm
+1a7a00b4 85 djup 850 mm i källans produktmått = 85 cm

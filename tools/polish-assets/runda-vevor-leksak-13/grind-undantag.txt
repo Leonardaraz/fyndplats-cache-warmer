@@ -1,0 +1,15 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (844 x 553 x 482 mm) har inga axelord och VEVOR:s bilder har ingen måttritning i galleriet: texten skriver talen i källans ordning utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Storlek utfälld (1650 x 725 x 1250 mm) och Vikt storlek (1000 x 730 x 440 mm) har inga axelord och VEVOR:s bilder har ingen måttritning i galleriet: texten skriver talen i källans ordning utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (180° utfälld) (182 x 32,5 x 91,5 cm) har inga axelord och VEVOR:s bilder har ingen måttritning i galleriet: texten skriver talen i källans ordning utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad 107° Position (64 x 67 x 77 cm) och 126° Position (64 x 65,5 x 101,5 cm) har inga axelord och VEVOR:s bilder har ingen måttritning i galleriet: texten skriver talen i källans ordning utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (1090 x 850 x 540 mm) har inga axelord och VEVOR:s bilder har ingen måttritning i galleriet: texten skriver talen i källans ordning utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (875 x 875 x 440 mm) har inga axelord och VEVOR:s bilder har ingen måttritning i galleriet: texten skriver talen i källans ordning utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (890 x 890 x 480 mm) har inga axelord och VEVOR:s bilder har ingen måttritning i galleriet: texten skriver talen i källans ordning utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py

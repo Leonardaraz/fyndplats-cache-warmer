@@ -44,8 +44,20 @@ const ÄGARE = [
   "lib/auction/store.ts",
 ];
 
-/** Rutter som skapar kollektionerna. De rör scheman, aldrig rader. */
-const UNDANTAG = ["app/api/admin/ensure-collections/route.ts"];
+/**
+ * Filer som får nämna en drift-kollektion ändå, var och en med sitt skäl.
+ *
+ *   - Rutten som skapar kollektionerna rör scheman, aldrig rader.
+ *   - `tools/polish-kedja/hamta_vevor.js` är ingen modul utan en MALL för ett
+ *     ExecuteWixAPI-anrop i poleringschatten (steg 2 i VEVOR-poleringen). Den
+ *     körs i Wix egen sandlåda, där getStore() inte finns, och den läser bara
+ *     (`hasMutations: false`). Byter ägaren lager eller format måste mallen
+ *     skrivas om för hand — därför står den här med namn, inte som en katalog.
+ */
+const UNDANTAG = [
+  "app/api/admin/ensure-collections/route.ts",
+  "tools/polish-kedja/hamta_vevor.js",
+];
 
 // ☠️ scripts/ VAR UNDANTAGET, och undantaget dolde tre filer i tre dygn.
 //

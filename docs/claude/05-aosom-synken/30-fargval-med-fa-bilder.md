@@ -63,6 +63,21 @@ sidor gick tio att förbättra, och kläder med 7–29 färger går inte alls. F
 `928bb3c4`) är importerade och verifierade men inte skrivna. Spåret pausades 2026-10-21 efter Leonards besked *Fokusera på
 aosom produkterna*.
 
+**AE-sida vars listning inte går att läsa: foton ur en syskonsida med samma modell (elmotorcykeln `5419c746`, 2026-11-05).**
+Leonard: *"Hämta båda alternativens rena bilder o koppla till rätt alternativ"*. Röd visade en enda bild (ett barnfoto) och Himmelsblå
+fyra, varav två var våra kort. `ae-skubilder.yml` gav HTTP 500 två gånger på just den här sidan men fungerade på tre andra AE-sidor
+samma minut, så felet sitter i sidans listning och inte i rutten (workflowen loggar bara statuskoden). AE:s egen sida svarar med en
+botspärr, och säkerhetsklassificeraren stoppade ett försök med en webbläsar-User-Agent: gå inte runt den. Importens originalfiler är
+borta ur Media Manager (404), men sidans foton var Aosoms egna: den publicerade syskonsidan `5c506192` bär samma modell med Röd och
+Mintgrön, sex rena bilder var. Tio nya filer lades på med fil-id (två av syskonets bilder låg redan på sidan, byte-lika, och togs inte
+med), med utpekad ordning: packshot först, miljöbild två, måttbilden sist (`skriv-fargbilder.js` placerar bara efter färgens sista
+bild). Röd 1 → 7, Himmelsblå 3 → 8, galleri 5 → 15, återläst utan avvikelse (pris, SKU, lager och synlighet lika), `variantbild.yml`
+två gånger (1 av 1 rättad vardera, varje options-PATCH nollställer variantbilden) och live 05:06 UTC: Röd sju bilder, Himmelsblå åtta.
+☠️ **Ett olänkat kort som visar en färgs vara visas under alla färger så fort varje färg har egna bilder.** Egenskapskortet med den
+blå scootern dök upp som andra bild under Röd efter första skrivningen och försvann när det länkades till Himmelsblå. Mät varje färgvy
+live efter skrivningen (`live-galleri.mjs`) och länka varje kort till den färg det visar. Planen och skripten ligger i
+`tools/polish-assets/elmotorcykel-farger/`.
+
 För Aosom-sidorna finns verktyget **"Bilder — fler bilder till en färg på en sammanslagen
 Aosom-sida"** (`aosom-fargtillagg.yml`) → `/api/admin/aosom-fargtillagg` →
 `lib/aosom/fargtillagg.ts`, med tre lägen: `kandidater` (laddar upp feedens position 3, 8, 9

@@ -1,0 +1,43 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+e26084e7 62 första måttet 620 mm i källans produktmått (620 x 275 x 395 mm) = 62 cm
+e26084e7 27,5 andra måttet 275 mm i källans produktmått = 27,5 cm
+e26084e7 39,5 tredje måttet 395 mm i källans produktmått = 39,5 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+6c6f776a 83 första måttet 830 mm i källans produktmått (830 x 420 x 880 mm) = 83 cm
+6c6f776a 42 andra måttet 420 mm i källans produktmått = 42 cm
+6c6f776a 88 tredje måttet 880 mm i källans produktmått = 88 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+7af2faa9 107 första måttet 1070 mm i källans produktmått (1070 x 290 x 540 mm) = 107 cm
+7af2faa9 29 andra måttet 290 mm i källans produktmått = 29 cm
+7af2faa9 54 tredje måttet 540 mm i källans produktmått = 54 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+7b952c66 50 första måttet 500 mm i källans produktmått (500 x 240 x 415 mm) = 50 cm
+7b952c66 24 andra måttet 240 mm i källans produktmått = 24 cm
+7b952c66 41,5 tredje måttet 415 mm i källans produktmått = 41,5 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+cfad3ba9 96,5 första måttet 965 mm i källans produktmått (965 x 622 x 394 mm) = 96,5 cm
+cfad3ba9 62,2 andra måttet 622 mm i källans produktmått = 62,2 cm
+cfad3ba9 39,4 tredje måttet 394 mm i källans produktmått = 39,4 cm
+cfad3ba9 39 förvaringslådans längd 390 mm enligt VEVOR:s måttbild = 39 cm
+cfad3ba9 22 förvaringslådans mått 220 mm enligt VEVOR:s måttbild = 22 cm
+cfad3ba9 14 förvaringslådans höjd 140 mm enligt VEVOR:s måttbild = 14 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+12fd5134 78,7 första måttet 787 mm i källans produktmått (787 x 635 x 330 mm) = 78,7 cm
+12fd5134 63,5 andra måttet 635 mm i källans produktmått = 63,5 cm
+12fd5134 33 tredje måttet 330 mm i källans produktmått = 33 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+a5ef926b 2,5 bordsskivans tjocklek 1 in / 2.5 cm på VEVOR:s funktionsbild (Thick Tabletop)
+a5ef926b 5 fem vattenbaserade pennor: 5 x Water-Based Markers på VEVOR:s funktionsbild
+a5ef926b 6 sex kritor: 6 x Chalk på VEVOR:s funktionsbild
+a5ef926b 7 sju användningar: rita, skriva, läsa, äta, vattenlek, sandlek och förvaring (7-in-1) på VEVOR:s funktionsbild
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+7f850846 5 fem vattenbaserade pennor: 5 x Water-Based Markers på VEVOR:s funktionsbild
+7f850846 6 sex kritor: 6 x Chalk på VEVOR:s funktionsbild

@@ -1,0 +1,51 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+73cc4dc4 56 bredden 22 in / 56 cm på VEVOR:s måttritning
+73cc4dc4 33 djupet 13 in / 33 cm på måttritningen
+73cc4dc4 121,5 höjden 47,8 in / 121,5 cm på måttritningen
+73cc4dc4 71 kapprummets höjd 27,9 in / 71 cm på måttritningen
+73cc4dc4 15 panelernas tjocklek 0,6 in / 15 mm på funktionsbilden
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+45b1405e 92 bredden 36,2 in / 92 cm på VEVOR:s måttritning
+45b1405e 31,7 djupet 12,5 in / 31,7 cm på måttritningen
+45b1405e 90,6 höjden 35,6 in / 90,6 cm på måttritningen
+45b1405e 64,3 kapprummets höjd 25,3 in / 64,3 cm på måttritningen
+45b1405e 15 panelernas tjocklek 0,6 in / 15 mm på funktionsbilden
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+82948c8e 137 bredden 53,9 in / 137 cm på VEVOR:s måttritning
+82948c8e 35,5 djupet 13,9 in / 35,5 cm på måttritningen
+82948c8e 118,7 höjden 46,7 in / 118,7 cm på måttritningen
+82948c8e 60 kapprummets höjd 23,6 in / 60 cm på måttritningen
+82948c8e 25 fackets höjd 9,8 in / 25 cm på måttritningen
+82948c8e 15 panelernas tjocklek 0,6 in / 15 mm på funktionsbilden
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+ca21a654 114 bredden 44,88 in (1140 mm) på VEVOR:s måttbild = 114 cm
+ca21a654 30 djupet 300 mm i källans produktmått (1140 x 300 x 610 mm) = 30 cm
+ca21a654 61 höjden 610 mm = 61 cm och 24,02 in på måttbilden
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+f8312f7d 80 bredden 800 mm i källans produktmått (800 x 300 x 750 mm) = 80 cm och 31,50 in på måttbilden
+f8312f7d 30 djupet 300 mm = 30 cm
+f8312f7d 75 höjden 750 mm = 75 cm och 29,53 in på måttbilden
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+deb56aab 92 diametern Φ920 mm = 92 cm i källans mått (installerad 920x805 mm)
+deb56aab 80,5 höjden med handtag 805 mm = 80,5 cm
+deb56aab 68,5 ihopfälld längd 685 mm = 68,5 cm i källans mått hopfälld (685x345x80 mm)
+deb56aab 34,5 ihopfälld bredd 345 mm = 34,5 cm
+deb56aab 8 ihopfälld tjocklek 80 mm = 8 cm
+deb56aab 60 bärförmågan Max 130 lbs / 60 kg på VEVOR:s specifikationsbild; punkten och tabellen säger 100 kg (220 lb): det lägre skrivs
+deb56aab 130 bärförmågan 130 lbs på specifikationsbilden (60 kg)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+c025a2c6 111 lägsta höjden 1110 mm i källans höjdintervall (1110–1370 mm) = 111 cm
+c025a2c6 137 högsta höjden 1370 mm = 137 cm och 53,94 in på måttbilden
+c025a2c6 39 tavlans bredd 15,35 in / 390 mm på måttbilden = 39 cm
+c025a2c6 49 tavlans höjd 19,29 in / 490 mm på måttbilden = 49 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+c44b9601 45,5 lägsta handtagshöjden 455 mm i källans justerbara höjd (455–490 mm) = 45,5 cm; punkten säger 43 till 49 cm men specifikationen och måttbilden 455–490 mm: specifikationen skrivs
+c44b9601 49 högsta handtagshöjden 490 mm = 49 cm

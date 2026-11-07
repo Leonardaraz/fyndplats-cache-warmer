@@ -1,0 +1,6 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+5e72f7be 254 längden 2540 mm (100 in) på måttritningen = 254 cm; källans Produktmått säger 2640 mm: det lägre skrivs
+5e72f7be 93 bredden 930 mm i källans tabell = 93 cm; måttritningen säger 940 mm: det lägre skrivs
+5e72f7be 71 höjden 710 mm i källans tabell = 71 cm; måttritningen säger 750 mm: det lägre skrivs
+5e72f7be 300 bärförmågan 300 lbs per sits på bilden = 136,1 kg i källans specifikation

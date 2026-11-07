@@ -1,0 +1,14 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (L x B x H) 355 x 355 x 2,4 mm för ett cirkelblad, där de två första är diametern och det sista är tjockleken: texten skriver diameter och tjocklek var för sig
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 163 x 54 x 32 mm utan axelord, och källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar höjden 163 mm (6,4 tum), bredden 54 mm (2,1 tum) och tjockleken 32 mm (1,3 tum): texten skriver höjd, bredd och tjocklek ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans svenska specifikation har ingen måttrad, och källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar bredden 120 mm (4,72 tum), djupet 65 mm (2,56 tum) och höjden 100 mm (3,94 tum): texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 660 x 615 x 855 mm utan axelord, och källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar längden 660 mm (26 tum) längs sockeln och höjden 855 mm (33,7 tum), medan 615 mm (24,2 tum) står i bildens tabell: texten skriver längd, bredd och höjd i den ordning som tabellen har
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans svenska specifikation har ingen måttrad, och källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar bredden 325 mm (12,8 tum), höjden 295 mm (11,6 tum) och djupet 180 mm (7,1 tum): texten skriver bredd, höjd och djup ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans svenska specifikation har ingen måttrad, och källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar diametern 565 mm (22,2 tum) och höjden 255 mm (10 tum): texten skriver dem som diameter och höjd
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans svenska specifikation har bara matarrännornas mått och ingen bredd, djup och höjd, och källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar bredden 750 mm (29,53 tum), djupet 305 mm (12,01 tum) och höjden 1045 mm (41,14 tum): texten skriver bredd, djup och höjd ur ritningen

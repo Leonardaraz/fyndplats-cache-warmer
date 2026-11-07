@@ -1,0 +1,29 @@
+{
+ "namn": "vevor-nf-3",
+ "rader": [
+  {
+   "kort": "21432f80",
+   "pid": "21432f80-8f68-4cbb-8740-3271169a557e",
+   "bort": [
+    "Trädgård & Utemöbler > Trädgårdsskötsel & Bevattning",
+    "Trädgård & Utemöbler"
+   ],
+   "behall": [
+    "Sport & Fritid",
+    "Sport & Fritid > Friluftsliv & Resa"
+   ]
+  },
+  {
+   "kort": "2235801b",
+   "pid": "2235801b-79a0-46fb-919f-c5d6d813fe7a",
+   "bort": [
+    "Sport & Fritid > Bollsport",
+    "Sport & Fritid"
+   ],
+   "behall": [
+    "Trädgård & Utemöbler",
+    "Trädgård & Utemöbler > Utemöbler"
+   ]
+  }
+ ]
+}

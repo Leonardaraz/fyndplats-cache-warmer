@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (180 x 180 x 600 mm) har inga axelord och VEVOR:s bilder har ingen måttritning i galleriet: texten skriver talen i källans ordning utan axelord

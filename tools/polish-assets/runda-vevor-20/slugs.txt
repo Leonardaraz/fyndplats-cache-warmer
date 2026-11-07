@@ -1,0 +1,8 @@
+b961dd89 dieselvarmare-5-8-kw-rod-12-24-volt-svart-lcd-panel
+134379d5 dieselvarmare-5-8-kw-orange-12-volt-tva-nivaskalor-bluetooth
+be8e63a5 dieselvarmare-5-8-kw-orange-12-volt-svart-sockel-bluetooth
+0763c9cd dieselvarmare-5-8-kw-rod-12-volt-tva-nivaskalor-lcd
+fe9f89e3 dieselvarmare-8-kw-orange-4-5-l-tank-bluetooth-kompass
+5b5ae34d dieselvarmare-8-kw-gra-forvaringslada-5-l-tank-bluetooth
+787b206d dieselvarmare-5-8-kw-bla-tva-handtag-lcd-fjarrkontroll-5-l
+968a598f dieselvarmare-5-8-kw-bla-barhandtag-lcd-fjarrkontroll-5-l
