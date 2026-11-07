@@ -67,6 +67,7 @@ import {
   type RecensionsLager,
 } from "../aosom/sammanslagning";
 import { TILLATNA, arFunktionsrad, axelklass, type Axelklass } from "./axelklass";
+import { INTE_AXEL } from "./familj";
 import type { Avlasning } from "./lager";
 
 type Obj = Record<string, unknown>;
@@ -409,11 +410,19 @@ const specNyckel = (s: string) => s.toLowerCase().replace(/[^a-zåäöé0-9]+/g,
  * olika värden, och en effekt, kapacitet, last eller funktionsenhet som skiljer
  * (`arFunktionsrad`). Etiketten går till en publik logg; den visas bara när den
  * är ett vanligt ord utan artikelnummerform.
+ *
+ * ☠️ ARTIKELNS EGNA RADER RÄKNAS INTE. Modell, artikelnummer, vikt,
+ * förpackning, EAN och garanti skiljer sig mellan två artiklar per definition.
+ * Importen räknar dem aldrig som axel eller funktion (`INTE_AXEL`,
+ * lib/vevor/familj.ts), och det gör inte sammanslagningen heller. Utan det
+ * stoppade raden "Modell" varje par (första torrkörningen 2026-11-07,
+ * ledstången).
  */
 export function funktionSomSkiljer(a: [string, string][] | undefined, b: [string, string][] | undefined): string[] {
   const ut: string[] = [];
   const bk = new Map((b ?? []).map(([k, v]) => [specNyckel(k), v] as const));
   for (const [k, v] of a ?? []) {
+    if (INTE_AXEL.test(k)) continue;
     const andra = bk.get(specNyckel(k));
     if (andra === undefined || normText(andra) === normText(v)) continue;
     if (!arFunktionsrad(k, [v, andra])) continue;

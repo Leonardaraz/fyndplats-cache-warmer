@@ -335,7 +335,10 @@ Sju egenskaper som inte ska tas bort:
    `funktion` eller `oklar` stoppar (`familjeregeln_funktion:<axel>`,
    `familjeregeln_oklar:<axel>`). En rad i specifikationen som visar att varorna fungerar olika,
    jämförd mellan givarens avläsning och varje artikel på sidan (`arFunktionsrad`), stoppar
-   också (`funktion_skiljer:<etikett>`). En ny axel heter Färg, Mönster, Storlek, Längd eller
+   också (`funktion_skiljer:<etikett>`). Artikelns egna rader (modell, artikelnummer, vikt,
+   förpackning, EAN, garanti) räknas inte, med samma lista som importen (`INTE_AXEL` i
+   `lib/vevor/familj.ts`). Utan den stoppade raden *Modell* varje par i den första
+   torrkörningen (2026-11-07, ledstången). En ny axel heter Färg, Mönster, Storlek, Längd eller
    Förpackning; en familj från importen behåller sina axelnamn.
 2. **Sidan vi behåller får vara ett opolerat utkast.** Två syskonutkast blir ett, och poleringen
    skriver sedan sidan som en sammanslagen sida (`sammanslagna.tsv`). En publicerad sida går
@@ -360,4 +363,11 @@ Sju egenskaper som inte ska tas bort:
 Ordningen: `plan`, läs planen (familjeregeln per axel, bilder, recensioner, hinder), `byt`, och
 polera sidan som en sammanslagen sida. Ligger givaren ute krävs `omdirigera=ja`: en 301 till
 givarens variant skrivs före avpubliceringen, och då ska sidan vi behåller vara publicerad.
-Rutten finns i produktionen först när grenen är mergad till `main`.
+Rutten finns i produktionen sedan 2026-11-07 (PR #850). En ändring av verktyget gäller först när
+den är mergad till `main`.
+
+Första torrkörningen (2026-11-07, run 42421433072): ledstången 2 fot som sida och 3 fot som
+givare. Planen gav `Längd: langd`, orörda priser (349 och 399 kr), 0 av givarens 6 foton
+(alla sex är samma bilder som sidan redan har: VEVOR använder samma galleri för alla längder),
+3 recensioner att kopiera och 5 av sidans att märka. Hindret `funktion_skiljer:Modell` ledde
+till rättelsen i punkt 1.
