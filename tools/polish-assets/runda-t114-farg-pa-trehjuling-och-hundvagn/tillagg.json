@@ -1,0 +1,44 @@
+{
+ "sidor": [
+  {
+   "id": "0bab65e3-313d-4266-86d6-e3a92987ffa5",
+   "val": "d64036e1-5b7b-4e36-9760-24c664d8c871",
+   "bilder": [
+    {
+     "fil": "b379ce_b41aca96341142be9554c02d892c1587~mv2.jpg",
+     "alt": "Den mörkblå trehjulingen med solskydd och skjuthandtag på en stenlagd gångväg i en park"
+    },
+    {
+     "fil": "b379ce_08f036aa67d44743ae96bb9c1f5fef3c~mv2.jpg",
+     "alt": "Närbild på fästet för skjuthandtaget på den mörkblå trehjulingen, med en rund svart knapp och nätväv på ryggen"
+    },
+    {
+     "fil": "b379ce_1179406513f1499da0119d13ac969593~mv2.jpg",
+     "alt": "Den mörkblå trehjulingen med solskydd på en grusgång i en park, med en vuxen som skjuter den"
+    }
+   ]
+  },
+  {
+   "id": "3bc2f3f7-8ced-4740-be8c-d128bc9fcb06",
+   "val": "5aca9cb3-aeb5-4d3d-893a-743058f1aab3",
+   "bilder": [
+    {
+     "fil": "b379ce_e028491126134de28b18f43257e65bc6~mv2.jpg",
+     "alt": "Den röda hundvagnen med en hund i kabinen på en grusgång i en park"
+    },
+    {
+     "fil": "b379ce_f4a0bfc634824a3fa430503066d131b2~mv2.jpg",
+     "alt": "Den röda hundvagnen med öppen sufflett på ett stenunderlag framför en trädbänk och en häck"
+    },
+    {
+     "fil": "b379ce_ebdcf002f1f04046934c2fc91e0c2ebf~mv2.jpg",
+     "alt": "Närbild på nätfönstret i taket på den röda hundvagnen med en uppvikt flik"
+    },
+    {
+     "fil": "b379ce_c38ce065ea1c4b7ea17ddedfa045dba2~mv2.jpg",
+     "alt": "Den röda hundvagnen med en hund i kabinen på en gångväg i en park med gräs och stenar"
+    }
+   ]
+  }
+ ]
+}

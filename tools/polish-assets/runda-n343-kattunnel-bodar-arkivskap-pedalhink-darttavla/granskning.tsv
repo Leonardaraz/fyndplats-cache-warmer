@@ -1,0 +1,42 @@
+fa94ad77	1	används	vit studiobild, ren
+fa94ad77	2	används	miljöbild, ren; kattrummet intill ingår inte
+fa94ad77	3	används	måttbild med bara siffror och enheter; alla tal står i källtexten; läggs sist
+fa94ad77	4	används	miljöbild, ren
+fa94ad77	5	används	miljöbild, ren; kattträdet intill ingår inte
+eb7c19cc	1	används	vit studiobild, ren
+eb7c19cc	2	används	miljöbild, ren; hyllorna och sakerna i boden ingår inte
+eb7c19cc	3	stryks	tysk text i bilden (Hinweis, Gesamtmaße, Größe der Grundfläche, Innere Abmessung); alla tal i bilden står i källtexten; ingen beskärning eftersom fem rena bilder finns
+eb7c19cc	4	används	miljöbild, ren; hyllorna och sakerna i boden ingår inte
+eb7c19cc	5	används	miljöbild, ren
+eb7c19cc	10	används	feedens position 10, miljöbild utan grafik; behövs för att sidan ska nå fem bilder
+00def435	1	används	vit studiobild, ren
+00def435	2	används	miljöbild, ren; hyllorna och sakerna i boden ingår inte
+00def435	3	stryks	tysk text i bilden (Hinweis, Gesamtabmessungen, Boden, Innenraum) och mått i fot; alla tal i bilden står i källtexten; ingen beskärning eftersom fem rena bilder finns
+00def435	4	används	miljöbild, ren; hyllorna och sakerna i boden ingår inte
+00def435	5	används	miljöbild, ren
+00def435	10	används	feedens position 10, miljöbild utan grafik; texten på kartongen sitter på rekvisitan; behövs för att sidan ska nå fem bilder
+317a954e	1	används	vit studiobild, ren
+317a954e	2	används	miljöbild, ren; texten på namnskylten sitter på varan
+317a954e	3	används	måttbild med bara siffror och enheter; alla tal utom lådans yttermått står i källtexten, och fler mått än texten är ingen motsägelse; läggs sist
+317a954e	4	stryks	tysk text i bilden (Kippsicherungsset, Gewährleistet Sicherheit im täglichen Gebrauch); ingen beskärning eftersom fem rena bilder finns
+317a954e	5	används	miljöbild med två skåp bredvid varandra; rena bilder, och sidan säger att ett skåp ingår
+317a954e	10	används	feedens position 10, miljöbild utan grafik; behövs för att sidan ska nå fem bilder
+a20dc9ae	1	används	vit studiobild, ren
+a20dc9ae	2	används	miljöbild med en person i ett kök, ren
+a20dc9ae	3	används	måttbild med bara tal och enheter (50 L, 88, 62, 58, 35,5, 42,8, 42,2 och 27,5 cm); alla tal står i källtexten; läggs sist
+a20dc9ae	4	används	feedens position 4, miljöbild med en person i ett kontor, utan grafik; hämtad med aosom-bildkandidater
+a20dc9ae	5	används	feedens position 5, miljöbild i ett vardagsrum utan grafik; hämtad med aosom-bildkandidater
+a20dc9ae	6	stryks	feedens position 6, samma slags scen som position 2 (en person som skrapar en tallrik i ett kök); ingen beskärning
+a20dc9ae	7	stryks	feedens position 7, samma bild och vinkel som position 1
+a20dc9ae	8	används	vit studiobild med öppet lock, ren
+bacd417d	1	används	vit studiobild, ren
+bacd417d	2	används	miljöbild med tre personer, ren; kastmattan på golvet ingår inte
+bacd417d	3	används	måttbild med bara siffror och enheter; alla tal står i källtexten; läggs sist
+bacd417d	4	stryks	tysk text i bilden (SICHERER WEICHSPITZEN-DARTS, Genieße das Spiel ohne Wandabdrücke und Unfälle, 24 Ersatzspitzen, 6 Sets Darts); ingen beskärning eftersom fem rena bilder finns
+bacd417d	5	används	miljöbild med två personer, ren; kastmattan på golvet ingår inte
+bacd417d	10	används	feedens position 10, miljöbild utan grafik; kastmattan på golvet ingår inte; behövs för att sidan ska nå fem bilder
+0ca18bdd	1	används	vit studiobild, ren; texten TRICYCLE sitter tryckt på ramen
+0ca18bdd	2	används	miljöbild med ett barn, ren; texten på ramen sitter på varan
+0ca18bdd	3	används	måttbild med bara tal och enheter; alla tal står i källtexten; läggs sist
+0ca18bdd	4	används	närbild på framhjulet, ren
+0ca18bdd	5	används	närbild på ratten, ren

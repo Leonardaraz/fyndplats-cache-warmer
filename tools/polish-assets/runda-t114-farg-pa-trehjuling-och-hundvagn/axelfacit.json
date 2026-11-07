@@ -1,0 +1,16 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0bab65e3": {
+  "tyska": "",
+  "svenska": "102 × 49 × 102 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 102L x 49B x 102H cm | ✔ Sitzbreite: 26B cm | ✔ Sitz bis Boden: 33H cm | ✔ Sonnendach: 60L x 42B cm | ✔ Gefaltetes Sonnendach: 14L x 42B cm | ✔ Schiebegriff für Eltern: 98-102L cm | ✔ Aufbewahrungskorb: 33L x 26,5B x 15H cm | ✔ Muttertasche: 27,5L x 18B cm"
+ },
+ "3bc2f3f7": {
+  "tyska": "111L x 70B x 97,5H cm",
+  "svenska": "111 × 70 × 97,5 cm",
+  "bokstaver": "LBH",
+  "hojd": 97.5,
+  "bredd": 111,
+  "djup": 70
+ }
+}
