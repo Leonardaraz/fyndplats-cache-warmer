@@ -115,6 +115,25 @@ har husmärkets logotyp. Ett utkast är opolerat, så ingen har tittat på dess 
 bild som gör det. Den första bilden i `bilder` är den som kopplas till färgen, så sätt den
 först. Finns ingen sådan bild slår du inte ihop.
 
+### Efter sammanslagningen: läs bilderna per färg (2026-11-07, N349)
+
+☠️ **En givares bild kan visa den ANDRA färgen.** På vinkylskåpen visade två bilder (en man som tar ut en flaska) de svarta skåpen, men
+låg länkade till Silver: givarens egen bild 4 och värdens bild 5. Titta på ramens, skivans eller kåpans färg på varje bild som sammanslagningen
+kopplade till en färg, och jämför med färgen. Visar bilden en annan av sidans färgar länkar du den dit (`bygg-lank.py <ut.js> <spec.json> --ersatt`
+byter valets HELA länklista, så en länk går att flytta) och skriver alt-texten efter färgen den visar, annars stryks den.
+
+☠️ **En värds måttbild eller specifikationskort blir olänkat** när sidan får sin första färgaxel, och visas då under alla färger (klaffbordets vita måttbild
+under Ek och Naturträ). Länka den till värdens färg. Har varje färg en egen måttbild gäller det alla.
+
+☠️ **Den andra givaren på en tvåaxlig sida** (färg och storlek, båda värdena finns redan) får sina bilder olänkade: de syns under varje kombination. Länka varje
+bild till sin storlek OCH sin färg med två planer i en spec (en per axel, `--ersatt`). En måttbild som bara finns i en färg länkas bara till storleken, så
+att båda färgerna delar den. Kör `variantbild.yml` direkt efter (varukorgens bild är färgens första bild) och mät varje kombination i webbläsaren
+(`live-bilder.mjs`).
+
+**Rena extrabilder:** `aosom-bildkandidater` (position 4–7 och 10) ger oftast bara position 10 ren, resten är tysk säljgrafik. Lägg dem i en omskrivningsrunda
+för de sammanslagna sidorna (`sammanslagna.tsv`) i stället för med `aosom-fargtillagg`, så skrivs alt-texten i samma plan. ☠️ Utan en alt-text som börjar på
+*Måttbild* flyttar `bygg-media.py` bild 3 sist (den gamla regeln): numrera bilderna så att det inte spelar roll.
+
 ## Publicerad givare
 
 Två publicerade sidor för samma vara är en dubblett. Med `omdirigera=ja` görs detta i
