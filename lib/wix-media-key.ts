@@ -53,3 +53,16 @@ export function wixFitUrl(url: string, kant: number = FIT_KANT): string {
   if (!nyckel) return url;
   return `https://static.wixstatic.com/media/${nyckel}/v1/fit/w_${kant},h_${kant},q_85/file.jpg`;
 }
+
+/**
+ * Samma bild som en liten kvadratisk JPG för ett mejl, till exempel produkten
+ * överst i kontaktformulärets mejl till kundtjänst (lib/kontakt/kontakt.ts).
+ * JPG och inte WebP: Outlook visar inte WebP. Dubbel storlek mot rutan i mejlet
+ * (72 px), så att bilden är skarp på en skärm med hög upplösning. Andra
+ * adresser än Wix-media returneras oförändrade.
+ */
+export function wixMejlBild(url: string, kant = 144): string {
+  const nyckel = url.includes("static.wixstatic.com") ? wixMediaKey(url) : null;
+  if (!nyckel) return url;
+  return `https://static.wixstatic.com/media/${nyckel}/v1/fill/w_${kant},h_${kant},al_c,q_80/file.jpg`;
+}

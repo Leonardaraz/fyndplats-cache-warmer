@@ -181,6 +181,20 @@ export function formatPrice(n: number): string {
   return `${grouped} kr`;
 }
 
+/** Det en produkt prissätts med i en lista; fälten heter som i Product (lib/products.ts). */
+export type ListprisKalla = { price?: string; priceNum?: number; priceFrom?: string; priceFromNum?: number; hasRange?: boolean };
+
+/**
+ * Produktens pris i en lista: "Från …" när varianterna kostar olika, annars
+ * priset, med Wix färdiga sträng som reserv när talet saknas. Sökförslagen
+ * (/api/search-index) och kontaktformulärets produktkort (lib/kontakt) går
+ * båda hit, så att kortet inte byter pristext när produktens val har hämtats.
+ */
+export function listPris(p: ListprisKalla): string {
+  if (p.hasRange) return `Från ${p.priceFromNum ? formatPrice(p.priceFromNum) : p.priceFrom ?? ""}`.trim();
+  return p.priceNum ? formatPrice(p.priceNum) : p.price || "";
+}
+
 /**
  * Läsbar text för det valda spannet, t.ex. "650–1 200 kr", "Under 900 kr",
  * "Från 1 500 kr". Används både i reglagets etikett och av skärmläsaren.

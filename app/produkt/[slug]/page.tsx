@@ -457,6 +457,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         <ProductView
           key={p.id}
           productId={p.id}
+          slug={p.slug}
           name={p.name}
           price={p.price}
           priceNum={p.priceNum}

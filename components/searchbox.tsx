@@ -2,63 +2,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { rankByName } from "../lib/search";
-
-// o = slutsåld (sätts bara på slutsålda produkter, se /api/search-index).
-type Hit = { n: string; s: string; i: string; p: string; o?: 1 };
-
-// Module-level cache so the header + mobile SearchBox share ONE fetch of the index.
-//
-// HÄMTNINGEN STARTAR PÅ AVSIKT, INTE PÅ FOKUS. Förr kallades loadIndex() först
-// i onFocus, och onFocus väntade in svaret innan listan öppnades — så hela
-// nätverksrundan låg mellan tryckningen och första förslaget. Uppmätt i
-// produktion 2026-08-28: 0,29–0,92 s bara för /api/search-index, som dessutom
-// aldrig CDN-cachades (se huvudet i rutten). Det är den paus Leonard beskrev.
-//
-// Nu startar hämtningen redan på pointerenter/touchstart — händelser som fyrar
-// FÖRE focus — så indexet oftast ligger i `cache` när fokus väl kommer och
-// listan kan öppnas direkt. Kostar ingenting för den som aldrig går nära rutan.
-let cache: Hit[] | null = null;
-let inflight: Promise<Hit[] | null> | null = null;
-
-// ETT MISSLYCKANDE FICK INTE BLI PERMANENT. Förr satte .catch() inflight till
-// ett löst löfte om [] — och eftersom `cache` bara sätts i lyckade fallet var
-// `inflight` kvar som icke-null för alltid. En enda skakig hämtning på mobilen
-// dödade alltså sökrutan för hela sidbesöket: varje nytt anrop fick tillbaka
-// samma tomma lista, utan att någonsin försöka igen. Det är den "ibland buggar
-// den"-symptom Leonard rapporterade 2026-08-29.
-//
-// Nu nollställs inflight vid fel, så nästa tangenttryck gör ett nytt försök.
-//
-// TIMEOUT, av samma skäl. fetch utan gräns kan hänga i minuter på ett dåligt
-// mobilnät, och await:et i onType/onFocus hänger med — panelen förblir tom
-// utan att någonsin ge upp.
-//
-// ☠️ 6 s RÄCKTE INTE, OCH ETT FEL SÅG UT SOM "INGA TRÄFFAR" (2026-10-14).
-// Indexet har vuxit till 4 184 produkter, 1,08 MB JSON och 270 kB över nätet.
-// Uppmätt på en långsam mobilanslutning: 5,9 s. Med gränsen på 6 s avbröts det
-// mitt i, löftet löstes med en tom lista, och panelen sa "Inga produkter
-// matchade 'uppresningsfåtölj'" om en vara vi har 33 av (Leonards "det
-// buggade"). Nu är gränsen 20 s, ett fel svarar null i stället för [], och
-// panelen erbjuder sökningen på /sok, som inte behöver indexet, både medan vi
-// väntar och när hämtningen fallit.
-const TIMEOUT_MS = 20_000;
-function loadIndex(): Promise<Hit[] | null> {
-  if (cache) return Promise.resolve(cache);
-  if (!inflight) {
-    inflight = fetch("/api/search-index", { signal: AbortSignal.timeout(TIMEOUT_MS) })
-      .then((r) => {
-        if (!r.ok) throw new Error(String(r.status));
-        return r.json();
-      })
-      .then((d: Hit[]) => { cache = d; return d; })
-      .catch(() => {
-        inflight = null; // låt nästa anrop försöka igen
-        return null; // ett fel, inte en tom katalog
-      });
-  }
-  return inflight;
-}
+import { KORTASTE_SOKNING, laddaSokIndex, rankaForslag, sokIndexHamtat, type SokTraff as Hit } from "../lib/sok-index";
 
 // Hur många förslag vi visar (sökträffar + tomt-fält-lägets populära). 7, inte
 // 8: på mobil täckte Safaris bottenmeny "Visa alla resultat"-knappen när listan
@@ -130,8 +74,8 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     setOpen(true);
     setSkickad(false);
     const term = val.trim();
-    if (!cache) setLaddar(true);
-    const idx = await loadIndex();
+    if (!sokIndexHamtat()) setLaddar(true);
+    const idx = await laddaSokIndex();
     if (senaste.current !== val) return; // en nyare tangent tar över
     setLaddar(false);
     setIndexFel(!idx);
@@ -139,22 +83,14 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
       setHits([]);
       return;
     }
-    if (term.length < 2) {
+    if (term.length < KORTASTE_SOKNING) {
       // < 2 tecken: visa populära förslag i stället för att filtrera på en bokstav.
       setHits([]);
       setPopular(inStockOnly(idx).slice(0, SUGGESTION_COUNT));
       return;
     }
-    // ORDNINGEN ÄR VIKTIG: klipp på RELEVANS först, sänk slutsålda EFTERÅT.
-    // Sänker man slutsålda före klippet kan en exakt namnträff som råkar vara
-    // slut tryckas ut ur listan av sju svaga träffar som råkar finnas i lager —
-    // dvs. söker man på varan man just sett hittar man den inte. Nu visas alltid
-    // de 7 mest relevanta; slutsålda bland dem hamnar längst ned. (sort är stabil
-    // i JS, så relevansordningen består inom varje grupp.)
-    const ranked = rankByName(idx, (h) => h.n, term)
-      .slice(0, SUGGESTION_COUNT)
-      .sort((a, b) => (a.o ? 1 : 0) - (b.o ? 1 : 0));
-    setHits(ranked);
+    // De 7 mest relevanta, slutsålda sist (ordningen förklaras i lib/sok-index.ts).
+    setHits(rankaForslag(idx, term, SUGGESTION_COUNT));
   };
 
   // Fokus med tomt fält → visa populära produkter som förslag.
@@ -166,8 +102,8 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   const onFocus = async () => {
     setOpen(true);
     setSkickad(false);
-    if (!cache) setLaddar(true);
-    const idx = await loadIndex();
+    if (!sokIndexHamtat()) setLaddar(true);
+    const idx = await laddaSokIndex();
     setLaddar(false);
     setIndexFel(!idx);
     // Populära visas bara med tomt fält (showing), så de kan sättas oavsett.
@@ -191,9 +127,9 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
 
   // Avsikt att söka → börja hämta indexet. pointerenter fyrar när muspekaren
   // når rutan (desktop, ofta hundratals ms före klicket) och touchstart när
-  // fingret landar (mobil, före focus). loadIndex() är idempotent — flera
+  // fingret landar (mobil, före focus). laddaSokIndex() är idempotent — flera
   // anrop delar samma inflight-löfte.
-  const onIntent = () => { void loadIndex(); };
+  const onIntent = () => { void laddaSokIndex(); };
 
   // Det som faktiskt renderas i listan: sökträffar om man skrivit ≥2 tecken,
   // annars populära produkter.

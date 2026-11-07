@@ -298,3 +298,11 @@ test("rankByName i två varv ger samma lista som ett varv med stavfel", () => {
     }
   }
 });
+
+test("rankByName med namnen normaliserade i förväg ger samma lista (sökrutornas väg)", () => {
+  const namn = [...LYFTSTOLAR, ...ANNAT, "Cykel för barn 16 tum", "TV-bänk 160 cm", "Förvaringsbox med lock"];
+  const forvag = namn.map((n) => n.toLowerCase().trim());
+  for (const q of ["uppresningsfåtölj", "cyckel", "tv", "förvaring", "lyftfåtölj", "xyz", "upp"]) {
+    assert.deepEqual(rankByName(namn, (n) => n, q, forvag), rankByName(namn, (n) => n, q), q);
+  }
+});

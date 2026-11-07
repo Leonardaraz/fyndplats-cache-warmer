@@ -362,9 +362,13 @@ export function nameScore(name: string, query: string): number {
 // vara som är hel utan stavfel är hel utan stavfel även med det, och en vara som
 // bara blir hel genom ett stavfel slängs av regeln. Annars räknas allt om med
 // stavfel, som förut. Ett test jämför med den gamla definitionen.
-export function rankByName<T>(items: T[], nameOf: (item: T) => string, query: string): T[] {
+//
+// `normNamn` är namnen redan normaliserade, i items ordning. Sökrutorna skickar
+// in dem (rankaForslag i lib/sok-index.ts), så att hela katalogens namn inte
+// görs om vid varje tangent.
+export function rankByName<T>(items: T[], nameOf: (item: T) => string, query: string, normNamn?: readonly string[]): T[] {
   const p = prepare(query);
-  const namn = items.map((item) => normalize(nameOf(item)));
+  const namn = normNamn ?? items.map((item) => normalize(nameOf(item)));
   const varv = (fuzzy: boolean) =>
     items
       .map((item, i) => ({ item, ...matchPrepared(namn[i], p, fuzzy) }))

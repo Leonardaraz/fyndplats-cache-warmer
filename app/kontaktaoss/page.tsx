@@ -86,7 +86,7 @@ export default function Kontakta() {
           <div>
             <div className="eyebrow">Formulär</div>
             <h2>Skicka ett meddelande</h2>
-            <p className={s.ingress}>Fyll i formuläret så återkommer vi så snart vi kan. Har du en pågående order? Ange gärna ditt ordernummer.</p>
+            <p className={s.ingress}>Fyll i formuläret så återkommer vi så snart vi kan. Gäller det en produkt? Välj den i formuläret, så ser vi direkt vilken du menar. Har du en pågående order? Ange gärna ditt ordernummer.</p>
             <div className={s.formKort}>
               <ContactForm />
             </div>

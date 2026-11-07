@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { ProduktValjare, useValdProdukt } from "./kontakt-produkt";
 
 type Status = "idle" | "sending" | "sent" | "error";
 
@@ -7,6 +8,13 @@ export function ContactForm() {
   const [f, setF] = useState({ fornamn: "", efternamn: "", epost: "", meddelande: "", hp: "" });
   const [status, setStatus] = useState<Status>("idle");
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setF({ ...f, [k]: e.target.value });
+
+  // Produkten frågan gäller (components/kontakt-produkt.tsx): förvald från
+  // produktsidans flik "Kontakta oss" eller vald i formulärets sökning. Bara
+  // slugen och valets id skickas; servern slår upp resten (app/api/contact).
+  const vald = useValdProdukt();
+  // Namnet tacket visar, taget när meddelandet skickades.
+  const [skickadOm, setSkickadOm] = useState<string | null>(null);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -18,11 +26,12 @@ export function ContactForm() {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(f),
+        body: JSON.stringify({ ...f, produkt: vald.produkt?.slug, variant: vald.valtId }),
         signal: ctrl.signal,
       });
       if (!res.ok) throw new Error("send_failed");
       setStatus("sent");
+      setSkickadOm(vald.produkt?.namn ?? null);
       setF({ fornamn: "", efternamn: "", epost: "", meddelande: "", hp: "" });
     } catch {
       setStatus("error");
@@ -35,6 +44,7 @@ export function ContactForm() {
     return (
       <div className="callout" role="status" aria-live="polite">
         <p><strong>Tack för ditt meddelande!</strong> Vi har tagit emot det och återkommer normalt inom 24 timmar (vardagar 09–17).</p>
+        {skickadOm && <p className="kprod-kvitto">Frågan gäller {skickadOm}.</p>}
       </div>
     );
   }
@@ -46,6 +56,7 @@ export function ContactForm() {
         <label>Efternamn<input name="efternamn" autoComplete="family-name" required value={f.efternamn} onChange={set("efternamn")} /></label>
       </div>
       <label>E-post<input type="email" name="epost" autoComplete="email" required value={f.epost} onChange={set("epost")} /></label>
+      <ProduktValjare vald={vald} />
       <label>Meddelande<textarea name="meddelande" rows={5} required value={f.meddelande} onChange={set("meddelande")} /></label>
 
       {/* Honeypot — dolt för människor, fylls av bottar. Icke-semantiskt namn +
