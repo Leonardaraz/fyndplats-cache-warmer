@@ -10,7 +10,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { egenKassa, kassaLage, PROV_KAKA } from "@/lib/kassa/lage";
 import { normalPostnr } from "@/lib/kassa/formular";
-import { oreAv, stoppandeOvertradelser, type Forsok } from "@/lib/kassa/flode";
+import { landRedanSatt, oreAv, stoppandeOvertradelser, type Forsok } from "@/lib/kassa/flode";
 import { hamtaKorg, korgensForsok, laggTillKupong, rakna, sattLand, sattLeverans, taBortKupong } from "@/lib/kassa/wix-kassa";
 
 export const runtime = "nodejs";
@@ -21,23 +21,34 @@ const svar = (body: Record<string, unknown>, status = 200) => NextResponse.json(
 const GUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function POST(req: Request) {
-  if (!egenKassa(await kassaLage(), (await cookies()).get(PROV_KAKA)?.value)) return svar({ ok: false, kod: "stangd" }, 503);
-  let body: Record<string, unknown> = {};
+  // Växeln läses samtidigt med korgen: den är cachad en minut per instans, och
+  // en kall läsning tog 0,2–0,3 s före allt annat (mätt 2026-11-07). Svaren är
+  // desamma som förut och i samma ordning: stängd kassa först, sedan fel i
+  // anropet. Med stängd kassa används läsningen aldrig.
+  const provkaka = (await cookies()).get(PROV_KAKA)?.value;
+  const lage = kassaLage();
+  let body: Record<string, unknown> | null = null;
   try {
     body = (await req.json()) as Record<string, unknown>;
   } catch {
-    return svar({ ok: false, kod: "fel" }, 400);
+    body = null;
   }
-  const cartId = typeof body.cartId === "string" ? body.cartId : "";
-  if (!GUID.test(cartId)) return svar({ ok: false, kod: "korg" }, 400);
+  const cartId = typeof body?.cartId === "string" ? body.cartId : "";
+  // Korgen och om kunden redan har en väntande betalning, samtidigt.
+  const lasning = body && GUID.test(cartId) ? Promise.all([hamtaKorg(cartId), korgensForsok(cartId, new Date(Date.now() - 3 * 3_600_000)).catch((): Forsok[] => [])]) : null;
+  lasning?.catch(() => {});
+  if (!egenKassa(await lage, provkaka)) return svar({ ok: false, kod: "stangd" }, 503);
+  if (!body) return svar({ ok: false, kod: "fel" }, 400);
+  if (!lasning) return svar({ ok: false, kod: "korg" }, 400);
   const kupong = typeof body.kupong === "string" ? body.kupong.replace(/\s/g, "").slice(0, 40) : null;
 
   try {
-    // Korgen och om kunden redan har en väntande betalning, samtidigt.
-    const [korg, forsok] = await Promise.all([hamtaKorg(cartId), korgensForsok(cartId, new Date(Date.now() - 3 * 3_600_000)).catch((): Forsok[] => [])]);
+    const [korg, forsok] = await lasning;
     if (!korg || korg.orderPlaced) return svar({ ok: false, kod: "korg_saknas" }, 404);
     const vantarBetalning = forsok.some((f) => f.status === "UNPAID");
-    await sattLand(cartId, normalPostnr(body.postnr));
+    // Har korgen redan Sverige och samma postnummer ändrar PATCH:en ingenting.
+    const postnr = normalPostnr(body.postnr);
+    if (!landRedanSatt(korg, postnr)) await sattLand(cartId, postnr);
 
     let kupongFel: string | null = null;
     if (kupong !== null) {

@@ -31,7 +31,9 @@ export function KassaHuvud({ tillVarukorgen }: { tillVarukorgen?: () => void }) 
   return (
     <header className={s.huvud}>
       <div className={s.huvudRad}>
-        <Link className={s.logga} href="/" aria-label="Fyndplats, till startsidan">
+        {/* Ingen förhämtning: startsidan hämtades tre gånger medan kassan och
+            Stripe laddade (mätt 2026-11-07), och sällan lämnar någon kassan här. */}
+        <Link className={s.logga} href="/" prefetch={false} aria-label="Fyndplats, till startsidan">
           <Mark size={26} idPrefix="fpkassa" />
           <span>Fyndplats</span>
         </Link>

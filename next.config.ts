@@ -128,6 +128,14 @@ const nextConfig: NextConfig = {
           { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
         ],
       },
+      {
+        // Betalsättens märken (components/payment-marks.tsx) på produktsidan, i
+        // varukorgen och i kassan: förut frågade webbläsaren om dem på varje
+        // sida (max-age=0). Filnamnen bär ingen version, så de får ett dygn och
+        // sedan en vecka då den sparade visas medan en ny hämtas.
+        source: "/payments/:fil*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }],
+      },
     ];
   },
   async redirects() {

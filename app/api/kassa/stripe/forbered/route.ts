@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { egenKassa, kassaLage, PROV_KAKA } from "@/lib/kassa/lage";
 import { provaKassa } from "@/lib/kassa/formular";
-import { forberedStripe, medTider, tidrad } from "@/lib/kassa/flode";
+import { forberedStripe, medForsprang, medTider, tidrad } from "@/lib/kassa/flode";
 import { stripeKassa } from "@/lib/kassa/stripe-kassa";
 import { harStripe, StripeFel } from "@/lib/kassa/stripe";
 
@@ -21,25 +21,34 @@ const svar = (body: Record<string, unknown>, status = 200) => NextResponse.json(
 const GUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function POST(req: Request) {
-  if (!harStripe() || !egenKassa(await kassaLage(), (await cookies()).get(PROV_KAKA)?.value)) {
-    return svar({ ok: false, kod: "stangd", meddelanden: ["Kassan är stängd just nu. Gå tillbaka till varukorgen och försök igen."] }, 503);
-  }
-  let body: Record<string, unknown> = {};
+  const stangd = () => svar({ ok: false, kod: "stangd", meddelanden: ["Kassan är stängd just nu. Gå tillbaka till varukorgen och försök igen."] }, 503);
+  if (!harStripe()) return stangd();
+  // Växeln läses samtidigt med korgen och den förra betalningen (medForsprang):
+  // den är cachad en minut, och när kunden fyllt i formuläret var den oftast
+  // kall, 0,2–0,3 s före allt annat (mätt 2026-11-07). Läsningarna har ingen
+  // verkan; svaren är desamma och i samma ordning som förut.
+  const provkaka = (await cookies()).get(PROV_KAKA)?.value;
+  const lage = kassaLage();
+  let body: Record<string, unknown> | null = null;
   try {
     body = (await req.json()) as Record<string, unknown>;
   } catch {
-    return svar({ ok: false, kod: "fel", meddelanden: ["Formuläret kom inte fram. Försök igen."] }, 400);
+    body = null;
   }
-  const cartId = typeof body.cartId === "string" ? body.cartId : "";
-  if (!GUID.test(cartId)) return svar({ ok: false, kod: "korg", meddelanden: ["Varukorgen hittades inte. Gå tillbaka till butiken."] }, 400);
-  const prov = provaKassa(body);
-  if (!prov.ok) return svar({ ok: false, kod: "formular", fel: prov.fel }, 400);
-  const avsiktId = typeof body.avsiktId === "string" && /^pi_[A-Za-z0-9]+$/.test(body.avsiktId) ? body.avsiktId : null;
-
+  const cartId = typeof body?.cartId === "string" ? body.cartId : "";
+  const prov = body ? provaKassa(body) : null;
+  const avsiktId = typeof body?.avsiktId === "string" && /^pi_[A-Za-z0-9]+$/.test(body.avsiktId) ? body.avsiktId : null;
   const tider: Record<string, number[]> = {};
   const start = Date.now();
+  const deps = body && GUID.test(cartId) && prov?.ok ? medForsprang(medTider(stripeKassa, tider), cartId, avsiktId) : null;
+  if (!egenKassa(await lage, provkaka)) return stangd();
+  if (!body || !prov) return svar({ ok: false, kod: "fel", meddelanden: ["Formuläret kom inte fram. Försök igen."] }, 400);
+  if (!GUID.test(cartId)) return svar({ ok: false, kod: "korg", meddelanden: ["Varukorgen hittades inte. Gå tillbaka till butiken."] }, 400);
+  if (!prov.ok) return svar({ ok: false, kod: "formular", fel: prov.fel }, 400);
+  if (!deps) return svar({ ok: false, kod: "fel", meddelanden: ["Formuläret kom inte fram. Försök igen."] }, 400);
+
   try {
-    const utfall = await forberedStripe(medTider(stripeKassa, tider), { cartId, kund: prov.varden, avsiktId });
+    const utfall = await forberedStripe(deps, { cartId, kund: prov.varden, avsiktId });
     console.info(`[kassa] stripe förbered ${utfall.ok ? "ok" : `stopp ${utfall.kod}`} på ${Date.now() - start} ms: ${tidrad(tider)}`);
     return svar(utfall, utfall.ok ? 200 : 409);
   } catch (e) {
