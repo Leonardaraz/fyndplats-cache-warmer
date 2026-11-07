@@ -1,0 +1,4 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+cad08bfe 120 avläst på måttbilderna: längden i cm på den raka skivstången (140 cm för EZ-skivstången står i källan)
+8207dbc8 2 räknat på bilderna: en dörr fram och en dörr på sidan

@@ -1,0 +1,51 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "1f360dec": {
+  "tyska": "109,5L x 57,5B x 106,5H cm",
+  "svenska": "109,5L x 54,5B x 106,5H cm",
+  "bokstaver": "LBH",
+  "hojd": 106.5,
+  "bredd": 109.5,
+  "djup": 57.5
+ },
+ "6c5a0648": {
+  "tyska": "Ø80 x 76H cm",
+  "svenska": "80 × 80 × 76 cm",
+  "bokstaver": "H",
+  "hojd": 76
+ },
+ "8207dbc8": {
+  "tyska": "90L x 57,5B x 62H cm",
+  "svenska": "75 × 48,5 × 53 cm (B × D × H)",
+  "bokstaver": "LBH",
+  "hojd": 62,
+  "bredd": 90,
+  "djup": 57.5
+ },
+ "8ad1e003": {
+  "tyska": "106L x 65,5B x 51H cm",
+  "svenska": "106 × 65,5 × 51 cm (längd × bredd × höjd)",
+  "bokstaver": "LBH",
+  "hojd": 51,
+  "bredd": 106,
+  "djup": 65.5
+ },
+ "b330de9c": {
+  "tyska": "",
+  "svenska": "24,2cm x 19,5cm x 23,4cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Kesselabmessungen: 24,2L x 19,5B x 23,4H cm (mit Basis) | ✔ Toasterabmessungen: 27,4L x 17,7B x 18,8H cm | ✔ Jede Schlitzgröße: 13,5L x 3,5B x 13,5H cm | ✔ Kesselkapazität: 1,7L | ✔ Kesselabmessungen: 24,2L x 19,5B x 23,4H cm (mit Basis) | ✔ Toasterabmessungen: 27,4L x 17,7B x 18,8H cm | ✔ Jede Schlitzgröße: 13,5L x 3,5B x 13,5H cm | ✔ Kesselkapazität: 1,7L"
+ },
+ "cad08bfe": {
+  "tyska": "140L x 20B x 20H cm",
+  "svenska": "140L x 20B x 20H cm",
+  "bokstaver": "LBH",
+  "hojd": 20,
+  "bredd": 140,
+  "djup": 20
+ },
+ "d8c2dec6": {
+  "tyska": "",
+  "svenska": "24,2 x 19,5 x 23,4 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Wasserkochermaße: 24,2L x 19,5B x 23,4H cm (mit Basis) | ✔ Wasserkochermaße: 24,2L x 19,5B x 21,7H cm (ohne Basis) | ✔ Kapazität: 1,7L (max)"
+ }
+}
