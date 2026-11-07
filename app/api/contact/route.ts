@@ -6,9 +6,18 @@
 // ingenting alls för besökare utan konfigurerad e-postklient (vanligt på desktop
 // och mobiler utan mejlapp) → tappade meddelanden. Nu skickas mejlet server-side,
 // så "Skicka meddelande" fungerar oavsett besökarens uppsättning.
+//
+// Produkten (2026-11-07): kunden kan peka ut vilken vara frågan gäller, i
+// formuläret eller via produktsidans flik "Kontakta oss". Klienten skickar bara
+// slugen och variantens id; namnet, länken och bilden i mejlet slås upp här
+// (lib/kontakt/produkt.ts). Svarar Wix inte inom sex sekunder går mejlet ändå,
+// med länken byggd ur slugen.
 
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+import { giltigSlug, giltigVariant, kontaktMejl, produktUrl, type MejlProdukt } from "../../../lib/kontakt/kontakt";
+import { hamtaKontaktProdukt } from "../../../lib/kontakt/produkt";
+import { wixMejlBild } from "../../../lib/wix-media-key";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,13 +30,29 @@ const TO = "info@fyndplats.com";
 function isValidEmail(e: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 }
-function esc(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+
+/** Så länge väntar mejlet på produktens uppgifter innan det går med bara länken. */
+const PRODUKT_VANTAR_MS = 6000;
+
+async function mejlProdukt(slug: string, variantId: string | undefined): Promise<MejlProdukt> {
+  // Klockan stängs av när uppslaget är klart, annars håller den funktionen vid
+  // liv i sex sekunder efter svaret.
+  let klocka: ReturnType<typeof setTimeout> | undefined;
+  const tid = new Promise<"tid">((r) => {
+    klocka = setTimeout(() => r("tid"), PRODUKT_VANTAR_MS);
+  });
+  try {
+    const p = await Promise.race([hamtaKontaktProdukt(slug, variantId), tid]);
+    if (p && p !== "tid") {
+      return { typ: "hittad", namn: p.namn, url: p.url, pris: p.pris, bild: p.bild ? wixMejlBild(p.bild) : "", valtNamn: p.valtNamn, iLager: p.iLager };
+    }
+    if (p === "tid") console.warn("[contact] produktens uppgifter dröjde, mejlet går med länken");
+  } catch (e) {
+    console.warn("[contact] produkten gick inte att hämta:", (e as Error).message);
+  } finally {
+    clearTimeout(klocka);
+  }
+  return { typ: "okand", slug, url: produktUrl({ slug, variantId }) };
 }
 
 export async function POST(request: Request) {
@@ -36,6 +61,8 @@ export async function POST(request: Request) {
     efternamn?: string;
     epost?: string;
     meddelande?: string;
+    produkt?: unknown; // slugen, valfri
+    variant?: unknown; // variantens id, valfritt
     hp?: string; // honeypot — icke-semantiskt namn så webbläsar-autofyll inte rör det
   };
   try {
@@ -68,18 +95,18 @@ export async function POST(request: Request) {
   }
 
   const namn = `${fornamn} ${efternamn}`;
-  const text = `${meddelande}\n\n— — —\nFrån: ${namn}\nE-post: ${epost}`;
-  const html =
-    `<p style="white-space:pre-wrap">${esc(meddelande)}</p>` +
-    `<hr><p><strong>Från:</strong> ${esc(namn)}<br>` +
-    `<strong>E-post:</strong> <a href="mailto:${esc(epost)}">${esc(epost)}</a></p>`;
+  // Ett ogiltigt värde räknas som ingen produkt; formuläret ska aldrig falla på den.
+  const slug = giltigSlug(body.produkt) ? body.produkt : null;
+  const variantId = slug && giltigVariant(body.variant) ? body.variant.toLowerCase() : undefined;
+  const produkt = slug ? await mejlProdukt(slug, variantId) : null;
+  const { subject, text, html } = kontaktMejl({ namn, epost, meddelande, produkt });
 
   try {
     await new Resend(process.env.RESEND_API_KEY).emails.send({
       from: FROM,
       to: TO,
       replyTo: epost,
-      subject: `Kontaktformulär: ${namn}`,
+      subject,
       text,
       html,
     });

@@ -21,6 +21,7 @@ import { Stars } from "./stars";
 import { GPSR_FLIK_RE, GPSR_FLIK_TITEL } from "../lib/gpsr-flik";
 import { useLandaVidBilder } from "./use-landa-vid-bilder";
 import { LANDA_SKRIPT } from "../lib/sidminne";
+import { giltigVariant, kontaktFlikLankar } from "../lib/kontakt/kontakt";
 
 // V1-sajten visade dessa fyra sektioner som expanderbara accordion-flikar
 // under produktbeskrivningen. Migrationen fogade in dem som H2-block i
@@ -42,6 +43,9 @@ type Flik = { title: string; contentHtml: string };
 // "Kontakta oss" är statisk och IDENTISK på varje produktsida (Leonards krav:
 // alltid med). Läggs till om produktens beskrivning inte redan innehåller den, så
 // att även nya import-produkter (utan V1:s H2-block) får kontakt-fliken.
+// Texten är densamma överallt; bara länkarna till formuläret och e-posten bär
+// produkten och det valda valet (kontaktFlikLankar i lib/kontakt/kontakt.ts,
+// 2026-11-07), så att kundtjänst ser vilken vara frågan gäller.
 const CONTACT_FLIK_HTML =
   '<p>Har du en fråga om den här produkten – mått, material, leverans eller något annat? Vi svarar normalt inom 24 timmar på vardagar.</p>' +
   '<ul>' +
@@ -267,6 +271,7 @@ function VariantSwatches({ items, visaSlut = true }: { items: VariantCardItem[];
 
 export function ProductView({
   productId,
+  slug,
   name,
   price,
   inStock,
@@ -292,6 +297,8 @@ export function ProductView({
   gpsrHtml,
 }: {
   productId: string;
+  /** Produktens adress. Fliken "Kontakta oss" länkar till formuläret med den förvald. */
+  slug?: string;
   name: string;
   price: string;
   inStock: boolean;
@@ -911,6 +918,17 @@ export function ProductView({
           const split = descriptionHtml ? splitFlikar(descriptionHtml) : { mainHtml: "", flikar: [] as Flik[] };
           const flikar = buildFlikar(split.flikar, specLines, gpsrHtml);
           const specInFlik = flikar.some((f) => SPEC_FLIK_RE.test(f.title));
+          // Formuläret och e-posten får produkten, och det valda valet när
+          // produkten har val (samma ?variant= som adressfältet).
+          const harVal = multiAxis || hasImageVariants || hasTextVariants;
+          const kontaktLank = slug
+            ? {
+                slug,
+                namn: name,
+                variantId: harVal && giltigVariant(variantId) ? variantId.toLowerCase() : undefined,
+                val: harVal ? selectedVariantLabels.map((l) => visaValnamn(l)).filter(Boolean).join(" · ") || null : null,
+              }
+            : null;
           return (
             <>
               <div className="pdp-section">
@@ -925,7 +943,12 @@ export function ProductView({
                     {flikar.map((f, i) => (
                       <details key={i} className="pdp-flik">
                         <summary>{f.title}</summary>
-                        <div className="pdp-flik-body" dangerouslySetInnerHTML={{ __html: f.contentHtml }} />
+                        <div
+                          className="pdp-flik-body"
+                          dangerouslySetInnerHTML={{
+                            __html: kontaktLank && CONTACT_FLIK_RE.test(f.title) ? kontaktFlikLankar(f.contentHtml, kontaktLank) : f.contentHtml,
+                          }}
+                        />
                       </details>
                     ))}
                   </div>
