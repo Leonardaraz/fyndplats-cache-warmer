@@ -1,0 +1,75 @@
+{
+  "796a0858": {
+    "productId": "796a0858-412b-4ea8-8efd-b78a7395971a",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "1e98deb2": {
+    "productId": "1e98deb2-fb65-4b40-83a2-b8ded5663cd7",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "21445e57": {
+    "productId": "21445e57-fdce-4cab-8056-36745d90bd09",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-omdjf9",
+        "betyg": 5,
+        "datum": "2026-11-02",
+        "foton": 0,
+        "text": "Buena calidad, cumple su funcion y sobre todo buen precio."
+      },
+      {
+        "id": "gen-drtfpd",
+        "betyg": 5,
+        "datum": "2026-10-28",
+        "foton": 0,
+        "text": "Il me semble très bien mais je ne pas de tuyau de climatisation pour faire un essai et les tuyaux en mm ne passe pas"
+      },
+      {
+        "id": "gen-lnwfec",
+        "betyg": 5,
+        "datum": "2026-09-17",
+        "foton": 0,
+        "text": "en plus le l'avoir reçu rapidement,elle fonctionne parfaitement. j'en ai realisé environ 20 ils sont tous parfaitement faite. tres satisfait je recommande cet achat"
+      },
+      {
+        "id": "gen-1goph5w",
+        "betyg": 4,
+        "datum": "2026-09-22",
+        "foton": 0,
+        "text": "Not bad, flared well and easily on 20mm annealed copper pipe. Good tool to have on hand."
+      }
+    ]
+  },
+  "f9e26393": {
+    "productId": "f9e26393-1847-4033-8b4a-bafd07846394",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-zqsnqq",
+        "betyg": 5,
+        "datum": "2026-08-14",
+        "foton": 0,
+        "text": "Acheté il y a 3 semaines, fonctionne parfaitement, l'appareil rafraîchir à la perfection. Seul bémol c'est qu'il n'y a pas d'interrupteurs sélectif pour ne faire tourner et rafraîchir qu'avec un seul ou 2 éléments. Dans l'ensemble je le conseille vivement."
+      }
+    ]
+  }
+}
