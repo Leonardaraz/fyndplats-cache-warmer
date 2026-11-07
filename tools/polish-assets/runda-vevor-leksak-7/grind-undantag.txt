@@ -1,0 +1,16 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py ingen måttrad i texten: höjdetiketten på VEVOR:s bild säger emot sig själv (tum och millimeter stämmer inte), så inget mått skrivs
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans totalmåttrad är kontrollerad mot VEVOR:s måttbild (i kallor.json), där ritningens pilar ger bredd, djup och höjd i samma ordning som raden
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py varan har inget totalmått att skriva: kubens storlek är inte setets mått, så texten har ingen Mått-rad
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans totalmåttrad är kontrollerad mot VEVOR:s måttbild (i kallor.json), där ritningens pilar ger bredd, djup och höjd i samma ordning som raden
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans totalmåttrad är kontrollerad mot VEVOR:s måttbild (i kallor.json), där ritningens pilar ger bredd, djup och höjd i samma ordning som raden
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan saknar totalmåttrad; måtten är lästa ur VEVOR:s måttbild (i kallor.json), där ritningens pilar ger bredd, djup och höjd i samma ordning som raden i texten
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py varan har bara förpackningens mått i källan, och texten skriver dem som Paketmått och ingen Mått-rad
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans totalmåttrad är kontrollerad mot VEVOR:s måttbild (i kallor.json), där ritningens pilar ger bredd, djup och höjd i samma ordning som raden

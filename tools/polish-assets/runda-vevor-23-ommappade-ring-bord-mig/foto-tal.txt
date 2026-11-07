@@ -1,0 +1,9 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+a7129990 154 340 lbs i VEVOR:s produktnamn är cirka 154 kg
+a7129990 340 står som 340lbs i VEVOR:s produktnamn, sammanhängande med enheten
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+85996bde 2 två fack i förvaringsskåpet: räknade på VEVOR:s produktfoton 1, 3 och 4
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>

@@ -1,0 +1,37 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "12fd5134": {
+  "tyska": "31 x 25 x 13 in / 787 x 635 x 330 mm (drawing arrows: 30 in / 787 mm long edge, 25 in / 635 mm other edge, 12.99 in / 330 mm height); Max Load Capacity: 100 lbs / 45 kg; Net Weight: 28.66 lbs / 12 kg (the two figures do not match, the spec table says 12 kg); Main Material: Wood; Set Parts Count: 100",
+  "svenska": "",
+  "axelkalla": "engelska raden 'Product Dimensions' (källan är engelsk och etiketten bar ett bestämningsord)"
+ },
+ "6c6f776a": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "7af2faa9": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "7b952c66": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "7f850846": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "a5ef926b": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "cfad3ba9": {
+  "tyska": "37.99 x 24.49 x 15.51 in / 965 x 622 x 394 mm (drawing arrows: 37.99 in / 965 mm long edge, 24.49 in / 622 mm other edge, 15.51 in / 394 mm height); Max Load Capacity: 100 lbs / 45 kg; Net Weight: 24.91 lbs / 11.3 kg; Main Material: Wood; Set Parts Count: 84; storage bin: 15.35 in / 390 mm x 8.66 in / 220 mm x 5.51 in / 140 mm",
+  "svenska": "",
+  "axelkalla": "engelska raden 'Product Dimensions' (källan är engelsk och etiketten bar ett bestämningsord)"
+ },
+ "e26084e7": {
+  "tyska": "",
+  "svenska": ""
+ }
+}

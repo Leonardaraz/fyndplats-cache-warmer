@@ -1,0 +1,38 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+71468dce 35 bredd och djup 350 mm i källans produktstorlek = 35 cm
+71468dce 20 höjd 200 mm i källans produktstorlek = 20 cm
+71468dce 4 fyra ben räknade på VEVOR:s funktionsbild om benen och på bordsskivans fyra hörn
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+b547ab50 30 hinkens diameter 300 mm i VEVOR:s måttbild = 30 cm
+b547ab50 31 hinkens höjd upp till 310 mm i källan = 31 cm
+b547ab50 151 flaggstångens längd 1510 mm i källan = 151 cm
+b547ab50 24 flaggans bredd 240 mm i källan = 24 cm
+b547ab50 17,5 flaggans höjd 175 mm i källan = 17,5 cm
+b547ab50 19 utslagsplatsens diameter 190 mm i källan = 19 cm
+b547ab50 4,8 utslagsplatsens höjd 48 mm i källan = 4,8 cm
+b547ab50 120 klubblängd 1200 mm i källans punkt = 120 cm
+b547ab50 150 klubblängd 1500 mm i källans punkt = 150 cm
+b547ab50 4 fyra delar enligt källans rad om flaggstången (Four Sections for Folding / Connecting)
+b547ab50 2 siffran 2 på hinken och flaggan i position 5
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+1907df26 108 höjd 1080 mm i VEVOR:s måttbild = 108 cm
+1907df26 62 spegelns höjd 620 mm i källan = 62 cm
+1907df26 24,5 spegelns bredd 245 mm i källan = 24,5 cm
+1907df26 60,4 bredd 604 mm i VEVOR:s måttbild = 60,4 cm
+1907df26 33,9 djup 339 mm i VEVOR:s måttbild = 33,9 cm
+1907df26 12,4 vikt 12.4 kg i VEVOR:s måttbild
+1907df26 2 två tyglådor räknade i position 1, 3 och 4 och på VEVOR:s tillbehörsrad
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+709bbeaa 120 bredd 1200 mm i VEVOR:s måttbild = 120 cm
+709bbeaa 40 djup 400 mm i VEVOR:s måttbild = 40 cm
+709bbeaa 106 höjd 1060 mm i VEVOR:s måttbild = 106 cm
+709bbeaa 79 spegelns höjd 790 mm i källan = 79 cm
+709bbeaa 26,5 spegelns bredd 265 mm i källan = 26,5 cm
+709bbeaa 15,6 vikt 15.6 kg i VEVOR:s måttbild
+709bbeaa 3 tre björnformade utskärningar räknade i position 5 och 6 och på VEVOR:s måttbild

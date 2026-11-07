@@ -42,6 +42,37 @@ På en familj (flera varianter) visar varje rad i fliken som skiljer sig varje v
   äldre än tolv timmar rörs inte (utkasten läses en gång per dygn). Kontrollera med
   **"VEVOR — synken"** (`status`) att `aktiv` är sann före en VEVOR-runda.
 
+**Så hittar du kandidater** *(2026-11-05, `FLAGGADE-VEVOR.md` (lh))*. Läs hela VEVOR-registret
+i ett enda `ExecuteWixAPI`-anrop: `FyndplatsMappings` med `supplier: vevor`, hundra rader per
+sida och `fields: ["wixProductId", "seoTitle", "variants", "vevorArtiklar",
+"supplierProductId", "draftStatus", "vevorGranskning", "needsAiPolish"]` i frågan. Utan
+`fields` tar hundra rader omkring nio sekunder och bara 300 rader ryms i en körning, med
+`fields` tar de 0,3 sekunder och alla 10 845 rader ryms på 16 sekunder. Behåll
+`needsAiPolish: true`, `draftStatus: pending_review`, en variant, högst en artikel,
+`supplierProductId` som börjar med `vevor:` och ingen av granskningsflaggorna ovan. Räkna
+titelstammarna över alla rader (första ordet på minst fyra bokstäver som inte är *elektrisk*,
+*kraftig*, *bärbar* och liknande) och behåll bara de som har högst två rader: en stam som
+många delar är en familj, ett syskon eller en tvilling. Läs sedan avläsningen i
+`FyndplatsVevorAvlasningar` (`_id` är artikeln utan `vevor:`, och `fields` går också där):
+`status: i_lager`, `saldo` minst 8, `levererasTillSe` inte falskt, minst åtta bilder och tre
+specifikationsrader. **Det finns ingen prisgräns** *(Leonard 2026-11-06: alla produkter ska
+poleras, så priset spelar ingen roll; filtret `prisSek` minst 450 är borttaget, och sänkningen
+till 300 kr i runda 70–72 gäller inte längre)*. Sålla bort varje id8 som redan står i
+`FLAGGADE-VEVOR.md` (polerade och hållna), och sök på varje kvarvarande kandidats enskilda
+substantiv i hela registret (tvillingskärmen nedan) innan du väljer. ☠️ Sökningen på VEVOR-rader
+hör till urvalet, inte bara sökningen på de andra feedarna: popcornmaskinen i runda 49 hade ett
+svart syskonutkast med samma titel, och det såg jag först efter skrivningen. Vill du ha
+konsumentvaror först sorterar du kandidaterna på `saldo` och stryker rader vars kategori börjar
+på *Bil*, *Elektrisk*, *VVS*, *Byggnadsmaterial* eller *Vitvaror* och vars titel har elektriska
+ord (volt eller watt, *batteri*, *pump*, *LED*, *värme*, *kyl*, *digital*, *kommersiell*): 14:09
+den 2026-11-05 gav det 417 av 1 290 kandidater i lager (`FLAGGADE-VEVOR.md` (li)).
+Stryk därtill kategorier som bär *Kontors*, *Verktyg>*, *Bad>Duschar*, *Möbeltillbehör*,
+*Utomhusvärme*, *Utomhusutrustning för kraft* eller *Hyllor*, och titlar med *laser*,
+*nivå*, *kamera*, *sågverk*, *klätter*, *bindning*, *etikett*, *mynt*, *podium*, *backdrop*,
+*banner*, *spegel*, *skruvstäd*, *fräsmaskin*, *sänglyft*, *prishjul*, *vedvagn*, *slusslåda*,
+*spridare*, *ryggspruta*, *blomvägg* eller *tippvagn*: det lämnade omkring 286 kandidater
+15:19 samma dag, och det var ur dem runda 56 och 57 valdes (`FLAGGADE-VEVOR.md` (lm)).
+
 **Märket.** Skrivsteget sätter märket VEVOR i Wix. Skriv det inte i namnet eller SEO-titeln
 *(Leonard 2026-10-28)*.
 
@@ -65,24 +96,88 @@ efter det med ögonen.
 bild extra noga. Blir det färre än fem kvar efter strykningen beskär du enligt undantaget i
 runbookens *3. Bilderna före texten*. Räcker inte det flaggar du produkten i
 `FLAGGADE-VEVOR.md`: det finns
-inget verktyg som hämtar VEVOR:s övriga bilder. En familj som importerades före 2026-10-30
+inget verktyg som hämtar VEVOR:s övriga bilder. Utkastets sex bilder är VEVOR:s position 9, 8, 1, 10, 11 och 12
+(utkastets position 1–6), och VEVOR:s position 2–7 (funktionsbilder med engelsk text och en måttbild) ligger
+aldrig i galleriet. Dubbletterna sitter nästan alltid mellan utkastets position 1, 3 och 6 (`FLAGGADE-VEVOR.md` (iv)). En familj som importerades före 2026-10-30
 kan ha syskonens bilder blandade: kör **"VEVOR — rätta familjernas bilder"** (`plan`) först.
 Planen visade 0 att rätta 2026-10-31.
 
 - VEVOR-loggan på varan får stå *(Leonard 2026-10-28)*.
+- **Etiketter och typskyltar på själva varan får stå kvar i fotona, också när de visar
+  modellbeteckning och serienummer** *(Leonard 2026-11-02, "Ja" på frågan efter att fyra
+  dieselvärmare lyfts ur runda 17 av just det skälet)*. Det gäller bilden av varan: modellnumret
+  får fortfarande inte stå i texten, tabellen, namnet eller alt-texten (se ovan). Läs ändå
+  nätadapterns kontakt och spänning på varje packbild och på etiketter: en amerikansk
+  kontakt eller 100–120 V är en annan variant än sidans 230 V (lärdom *by* i
+  `FLAGGADE-VEVOR.md`), och en sådan bild stryks eller varan flaggas.
+- **Zooma på packbildens nätadapter och på husets tryckta märkning** *(runda 19)*. Kontakten
+  och adapterns spänningsetikett syns bara i originalet, och kontakten ligger ofta bakom
+  kabeln (a099f9b4: amerikansk kontakt, 100–120 V och en display i °F, så packbilden ströks).
+  En etikett på varan som går att läsa i full storlek är en källa: märkström, startström,
+  överhettningsskydd och varningstext får stå i texten, med talen i `foto-tal.txt`. Är
+  etiketten snedställd eller för liten skriver du ingenting ur den.
+- **Packbildens nätkontakt syns bara när kabeln förstoras** *(runda 20)*. På 5b5ae34d är
+  adaptern en liten svart kloss på kontaktarket, och den amerikanska kontakten (två platta
+  stift) syns först vid sju gångers förstoring. Förstora nätkabelns ände på varje packbild
+  med en adapter. En amerikansk kontakt stryker bilden, och texten nämner då varken adapter,
+  eluttag eller nätspänning, fastän källan gör det (frågan till Leonard om vilken adapter
+  VEVOR levererar till Sverige är öppen, `FLAGGADE-VEVOR.md` lärdom *fa*).
+- **Värmaren inne i fordonets kupé bredvid en människa stryks** *(runda 20)*, som värmaren i
+  ett tält bredvid en sovande (lärdom *ep* och *fb*): avgaserna ska ut. Tältbilder där
+  värmaren står utanför tältet behålls.
+- **Nivåskalan på husets sida avgör tankstorleken** när källan säger 5 liter och 1,3 liter
+  *(runda 20)*: skalan är tryckt med liter och procent (5 L vid 100 %), och *1,3* är
+  gallonen. Läs skalan innan en tankstorlek utelämnas (lärdom *fc*).
+- **Läs `recensioner-kalla.json` efter namn före commit** *(runda 20)*. Läsningens
+  namnregel tar bara signaturer på högst två ord, så en signatur med tre ord (*Mvh* och ett
+  fullständigt namn) kom med i det publika repot. Redigera bort namnet för hand, märk raden
+  `namn: true` och dölj recensionen (lärdom *fd*).
 - Bilder med säljtext på engelska eller tyska stryks, som Aosoms tyska *(Leonard 2026-10-30)*.
 - Aosom-verktygen för bilder (bildkandidater, färgtillägg och miljöbild) läser Aosoms flöde
   och fungerar inte för VEVOR.
 - Ge måttskissen en alt-text som börjar på *Måttbild*. Finns ingen sådan alt-text i
   produkten lägger `bygg-media.py` plats 3 sist, efter Aosoms gamla regel. På ett
   VEVOR-utkast är plats 3 VEVOR:s första bild och ingen måttskiss, så läs ordningen i
-  utskriften.
+  utskriften. Vill du behålla VEVOR:s egen ordning lägger du VEVOR:s sista bild på etikett 3
+  och flyttar de andra upp ett steg (`byt_filer`, hjälpfunktionen `galleri()` i runda
+  vevor-leksak-1): slutposition i får etikett 1, 2, 4, 5, 6 och den sista etikett 3.
+  `bilddubblett-ok.txt` använder etiketterna efter flytten, inte VEVOR:s positioner
+  (`FLAGGADE-VEVOR.md` (he)).
+- **VEVOR:s säljpunkter (`punkter`) bär fakta som beskrivningen saknar** (installationsguide,
+  rengöring, material och målgrupp). De ligger i avläsningen (`FyndplatsVevorAvlasningar`,
+  nyckel artikeln) och går att läsa privat i ett ExecuteWixAPI-anrop utan att skriva ut
+  numret: `FLAGGADE-VEVOR.md` (hb). Lägg dem i `kallor.json` med `vevor_kalla.py` (tredje
+  argumentet) och läs dem före texten.
+- **Bilden vinner över källans material.** *Massivt trä* i titeln och punkterna fick stå bort
+  när ett foto visade plywoodskikt (`FLAGGADE-VEVOR.md` (hd)).
+- **Måtten och vad setet innehåller ligger i VEVOR:s sista funktionsbild (`f6`)** när källan
+  saknar mått *(Leonard 2026-11-03: "kika på deras bilder")*. Avläsningen listar tolv bilder per
+  vara, men importen tar bara de sex rena (`m100`). `f1`–`f6` är funktionsbilder med engelsk text,
+  och `f6` är en måttritning med tabell (mått, material, vikt, maxlast, *Set Includes*, ibland
+  ålder). Ritningens pilar avgör axlarna. Bilden kommer inte in i galleriet, men siffrorna
+  läses och läggs som ett eget block med bara siffror och etiketter i `kallor.json`, och i
+  `foto-tal.txt`. Adresserna bär artikelnumret och skrivs därför aldrig i en fil: läs dem med
+  ExecuteWixAPI, hämta bilderna med `curl` till scratchpad under egna namn (`FLAGGADE-VEVOR.md` (hi)).
+  Lägg blocket med `tools/polish-kedja/lagg_mattbild.py <rundkatalog> <block.json>`
+  (`{id8: [rad, ...]}`): det ersätter bara sitt eget block, så `vevor_kalla.py`s block
+  försvinner inte, och det nekar en rad med modellnumrets etikett (`FLAGGADE-VEVOR.md` (jb)).
+  Säger bilden och källtexten emot varandra gäller reglerna i (ja).
 
 **Kategorierna.** Importen och verktyget **"VEVOR — kategorier till utkasten"** kopplar varje
 utkast till en avdelning och en underkategori enligt reglerna i `lib/vevor/kategorier.ts`.
-Läs kopplingen i utkastet (`directCategoriesInfo`), skriv samma namn i `kategori.tsv` och
-lägg till en sökordskategori bara när den passar varan. Workflowen lägger till kategorier men
-tar aldrig bort någon. Har regeln valt fel kategori flaggar du utkastet i `FLAGGADE-VEVOR.md`.
+Läs kopplingen i utkastet (`directCategoriesInfo`) **tidigt, i steg 2** (runbookens
+*Kontrollera kategorin*), och bedöm den mot varan, inte mot regeln: regeln gissar på VEVOR:s
+kategori och produktnamnet och har haft fel. Passar kopplingen skriver du samma namn i
+`kategori.tsv`. Passar den inte, eller saknar utkastet kategori, lägger du varan i den
+lämpliga (förälder, smalaste löv, och en sökordskategori bara när den passar varan) i
+`kategori.tsv` i stället för att bara flagga den *(Leonard 2026-11-01)*. Workflowen lägger
+till kategorier men tar aldrig bort någon: den felaktiga kopplingen skriver du som en rad
+*Kategori att ta bort* i `FLAGGADE-VEVOR.md` (kort och kategorinamn), och den tas bort i
+samma runda med workflowen **"Kategori — ta bort felaktiga kategorilänkar"** (runbookens
+*Ta bort en felaktig kategorilänk*, som också beskriver engångsskriptet när verktyget inte
+ligger på `main`). Det behöver inte längre Leonards begäran *(Leonard 2026-11-02, "Ja" på
+frågan om importens felaktiga länkar får tas bort direkt i kommande rundor)*. Passar ingen
+kategori i trädet flaggar du utkastet med ett förslag på en ny.
 
 - De nya kategorierna från 2026-10-31 är dolda i Wix tills de har tio publicerade
   produkter. Cronen `kategorier-synlighet` (minut 37 varje timme) visar dem då av sig själv.
@@ -102,12 +197,78 @@ tar aldrig bort någon. Har regeln valt fel kategori flaggar du utkastet i `FLAG
 Sammanslagningsverktyget i *Syskon blir val på sidan* tar bara Aosom-artiklar
 (`utkast_ej_aosom`). Hittar du ett VEVOR-syskon som importen inte slog ihop, flaggar du det i `FLAGGADE-VEVOR.md`.
 
+**Paketstorlekar som importen inte slog ihop** *(Leonard 2026-11-02, bordsdukarna: "ja slå ihop
+proffsigt", via Wix API)*. VEVOR säljer samma vara som ett 3-, 6- och 10-pack, men varje paket
+är en egen artikel utan länkar till de andra, och bara SPU:n är gemensam. Familjeregelns plan
+kan inte bygga en familj av dem (de skiljer sig bara på förpackning och vikt), och Aosoms
+sammanslagningsverktyg tar bara Aosom-artiklar och axlarna Färg och Storlek. Det finns alltså
+inget verktyg för det här, och sammanslagningen gjordes en gång för hand, på Leonards uttryckliga
+begäran. Gör inte om den utan en ny sådan begäran, och bygg ett verktyg efter
+`lib/aosom/sammanslagning.ts` om fler paketstorlekar ska slås ihop. Metoden, som den kördes:
+
+1. **Spara en ögonblicksbild utanför repot** av de tre produkterna (GET med `MERCHANT_DATA`),
+   lagret och de tre mappningsraderna (de bär artikelnummer). Varje skrivning har en flagga som
+   bara läser och visar nyttolasten, och den avbryter om ett pris, en variant, en synlighet
+   eller en mappningsrad inte är som i ögonblicksbilden. Läs saldot färskt: synken ändrar det
+   (tio-packets saldo gick från 3 i rundans underlag 13:43 till 1 i ögonblicksbilden 17:10).
+2. **Värdsidan**, den publicerade med längst historia: bildlistan med `PATCH /stores/v3/products`
+   (fältmask `media`, bara `{ id, altText }` med id:n som redan ligger i Media Manager, så att
+   ingen bild importeras om), sedan **ett** anrop till `products-with-inventory` med optionen
+   och alla varianterna. Optionen heter **Förpackning** (`lib/vevor/axelklass.ts` klassar den
+   som `forpackning`, som får dela sida; *Antal dukar* hade blivit `funktion`) med val som
+   *3-pack*, *6-pack* och *10-pack*, med siffra i varje. Värdens variant behåller sitt id, pris,
+   kostnad och saldo. Varje ny variant får givarens pris, `revenueDetails.cost` och saldo, och
+   en egen SKU (`FP-…-svart-3-pack`) som skiljer sig från givarnas, så att ingen SKU står på två
+   sidor. Därefter länkas varje val till sin pakets bild (`PATCH /stores/v3/products`, fältmask
+   `options`, `variantsInfo` och `visible`, `variantsInfo` ordagrant ur en läsning med
+   `MERCHANT_DATA` och `revenueDetails` reducerat till `cost`), och Wix läses tillbaka: val,
+   varianter, priser, kostnader, saldon och länkar. Faller variantskrivningen återställs
+   bildlistan.
+3. **Mappningen**: värdens rad får en variant per artikel med `choices: { Förpackning: "…" }`,
+   Wix-variantens id och SKU, `aosomSyncedQty` per variant (radens är summan) och `vevorArtiklar`
+   med alla tre. `artikelbild` (`lib/aosom/artiklar.ts`) ska ge `flera`: olika artiklar, olika
+   Wix-id, och radens artikel bland dem. Kontrollera det innan du skriver. **Skriv raden direkt
+   efter Wix (här inom en minut) och aldrig runt minut 50**, när VEVOR-synken går: en variant
+   som Wix har men mappningen inte känner till får sitt lager nollat (`okandaVarianter`).
+   Wix-skrivningarna gjordes 17:15–17:17 UTC, utanför både minut 50 och Aosoms synkfönster
+   (:12–:29 var tredje timme).
+4. **Givarna**: den publicerade avpubliceras (smal PATCH, bara `visible: false`, läs tillbaka),
+   båda raderna pensioneras som Aosoms dubbletter (`pensioneraDubblett`: `supplierProductId: ""`,
+   `draftStatus: "rejected"`, `needsAiPolish: false`, `vevorArtiklar` kvar), och en 301 skrivs
+   till `FyndplatsRedirects` **efter** avpubliceringen, eftersom omdirigeringsgrinden vägrar en
+   källa som är en synlig produkt och ett mål som inte är det. En dold givare som aldrig varit
+   publicerad behöver ingen 301. Givarnas recensioner följer inte med, eftersom recensionerna
+   ligger i Postgres och inget VEVOR-verktyg flyttar dem; kontrollera att inga synliga
+   recensioner finns på givarna först.
+5. **Texten** skrivs som en sammanslagen sida i en egen mini-runda: `sammanslagna.tsv` med
+   `kort`, tab och antal varianter, och **tomma** `sku.tsv` och `variant.tsv` (`gate-sku.py`
+   avbryter annars). Källan i `kallor.json` är de tre artiklarnas källor efter varandra. Lägg
+   paketets stora bild på källposition 3 i `bilder.tsv`, eftersom `bygg-media.py` lägger plats 3
+   sist (måttskissregeln). Namn, adress, titel och text får inte bära ett enskilt paket.
+   Skrivworkflowen rättar variantbilderna själv före återläsningen.
+6. **Adresserna**: byter värden adress i textsteget skrivs en 301 från värdens gamla och från
+   givarens adress till den nya, när värden bär den. Den som skrevs före textsteget pekade på
+   värdens gamla adress, eftersom ett mål som inte är en synlig produkt bara hade lett till en 404.
+
 **Det här i runbooken gäller bara Aosom:** *Vad källan är värd* (den tyska feedtexten),
 *Syskon blir val på sidan*, Aosom-verktygen för bilder och EN 71-beslutet. Resten gäller
 båda leverantörerna, också laglighetsgrinden, dubblettskärmen och recensionerna.
 
-**Leksaker.** Beslutet om EN 71 gäller bara Aosom. En VEVOR-leksak vars källa inte nämner
-någon standard flaggas.
+**Leksaker.** Beslutet om EN 71 gäller bara Aosom. Leonard lättade leksaksregeln för VEVOR 2026-11-03
+(`FLAGGADE-VEVOR.md` (hj)): en VEVOR-leksak poleras och publiceras också när källan bara namnger
+amerikanska normer (CPC, CPSIA, ASTM) eller ingen norm alls. Texten säger då bara det källan säger:
+åldersgräns, last, material och de normer som faktiskt står där. Skriv aldrig *Uppfyller EN 71*
+eller någon annan norm utan stöd i källan. Barnmöbler och leksakslådor som bara bär CPC och CPSIA
+poleras som vanliga varor. En norm räknas som namngiven när den står i klartext (CE, CPC, EN 71,
+CPSIA, ASTM, CPAI-84, CPSC; `FLAGGADE-VEVOR.md` (ge); mätt 2026-11-03 namngav 11 av 252 leksaksutkast
+en norm, (ha)). Produktsäkerhetsraden skrivs *Certifierad enligt CE och CPC.* när källan namnger de
+två, och bara det källan säger. Åldersgränsen står i texten och som *Rekommenderad ålder: …* i
+Produktsäkerhet, månader förblir månader. Saknar källan mått läser du dem ur `f6`, se *Bilderna* ovan.
+Leonards besked 2026-11-03 för leksaker (`FLAGGADE-VEVOR.md` (hu), (hv), (hx), (ie)): ett barn i bild,
+också under åldersgränsen, är inget skäl att stryka bilden; riktiga förpackningar i bilderna får
+stå kvar när texten säger att de inte ingår; en recension daterad efter dagens datum döljs; och en
+last som källan bara anger i pund skrivs om till kilo, *181 kg (400 lb)*, i varje fält inklusive
+metabeskrivningen (runbookens steg 5, regel 2).
 
 **Produktsäkerhet.** Tillverkaren och ansvarig i EU kommer från motorn (VEVOR:s standardrad,
 Leonards beslut 2026-10-29). Säkerhetsavsnittet skriver du som vanligt, ur källans text.
@@ -125,8 +286,32 @@ VEVOR-synken skriver det varje timme när den är påslagen. Säger grinden *PRI
 är det drift, och då rör du inte priset.
 
 **EU-lager.** Utkasten saknar märkningen "EU-lager", eftersom VEVOR:s sida inte säger
-vilket land lagret ligger i. Märkningen avgörs vid publiceringen och är inte avgjord än:
-publicera utan den.
+vilket land lagret ligger i. ✅ **Avgjort 2026-11-03** *(Leonard: "Vevors produkter är också eu vara")*:
+VEVOR-varor är EU-varor och ska bära märkningen, och hundvagnen `c21cf56b` behåller den den ärvde.
+⚠️ Importen (`lib/vevor/to-product.ts`) och poleringens skrivsteg sätter den inte: mätt 2026-11-03 saknade
+alla 40 provade av 197 publicerade VEVOR-sidor märket. Tills det är åtgärdat ska ingen sida
+publiceras med ett annat besked än Leonards.
+
+**AliExpress-tvillingskärm före varje urval** *(2026-11-04, `FLAGGADE-VEVOR.md` (je) och (jf))*. SucceBuy är VEVOR:s
+egen AliExpress-butik, så varje utkast kan redan finnas som en publicerad AliExpress-sida, också när fotona är olika
+(`dHash` hittade bara tre av sju par). Hämta registret ur `FyndplatsMappings` (`supplierName` innehåller *SucceBuy*:
+176 rader, 144 publicerade 2026-11-04; skriv aldrig ut `supplierProductId`, `supplierId` eller `sourceUrl`), matcha
+kandidaterna mot de engelska titlarna i `seoTitle` och lägg bilderna bredvid varandra. Ett utkast med en
+AliExpress-tvilling polerar du inte som en egen sida: ommappa AliExpress-sidan (nästa stycke) eller, när båda är
+publicerade, gör som på värmarna. Båda är liveändringar som Leonard svarar ja på först. ☠️ Kör skärmen före `ghw.py write`: den startar `skriv` direkt när `torr` är klar (49 s), och att döda `ghw` avbryter inte en körning som redan startat (runda leksak-12, `FLAGGADE-VEVOR.md` (jk)). Sök på tyska, engelska och svenska titelord (*Spieltisch*, *Laufstall*, *table tennis*) och inte på korta ord som träffar mitt i andra (*Ping* träffar *Camping*): i runda leksak-26 låg en publicerad 3-i-1-bordssida utanför den första listan och hittades först efter skrivningen (`FLAGGADE-VEVOR.md` (kb), fälla 10). Sök också på det enskilda substantivet och inte på en fras: *water bladder* träffar inte titeln *Water Storage Bladder* (runda vevor-48, `FLAGGADE-VEVOR.md` (le)). `$contains` ignorerar skiftläge (mätt 2026-11-05), så versaler behövs inte. Läs alla registertitlarna med ögonen också, eftersom 176 rader tar en minut. En träff med flera utföranden (en AE-sida med fyra volymer) rörs inte: utkastet i en annan färg polerar du som en egen sida med färgen i namn, slug och titel.
+
+**Samma vara som en publicerad AliExpress-sida** *(Leonard 2026-11-03, parkeringsvärmaren `22fb6792` och
+`5e964d36`)*. Är VEVOR-dubbletten ett osynligt utkast mappar du om den publicerade AliExpress-sidan, som på hundvagnen
+(`FLAGGADE-VEVOR.md` cz–dg). Är **båda sidorna publicerade** behålls den polerade VEVOR-sidan med sina recensioner, eftersom
+ingenting flyttar recensionerna (lärdom df): skriv en 301 från AliExpress-sidans adress till VEVOR-sidans med
+**"Lägg till 301-redirect"** (en rad i `batch`, `force=true` eftersom källan fortfarande är synlig), dölj sedan AliExpress-sidan
+med den smala `visible`-PATCH:en (`{ product: { revision, visible: false }, fieldMask: { paths: ["visible"] } }`), läs tillbaka
+och räkna med 12–25 minuter innan adressen svarar 308 (mätt 12 minuter på parkeringsvärmaren och 22 på husbilsvärmaren; cachade karuseller som listar den dolda sidan visar den kvar i upp till sex timmar, och klicket leder vidare). Sök hela `FyndplatsRedirects` efter rader som rör någon av adresserna först,
+eftersom workflowens lista bara visar de 200 senaste. AliExpress-sidans mappningsrad rörs inte: den håller dubblettspärren mot en
+ny import av samma vara. Bevis för att varan är samma är specifikationen rad för rad och VEVOR-loggan på AliExpress-sidans foton
+(se (fs) och (ft)).
+
+**Är VEVOR-dubbletten ett osynligt utkast: ommappa AliExpress-sidan och polera den som en VEVOR-sida** *(Leonard 2026-11-03, badringen `a7129990`, campingbordet `85996bde` och MIG-svetsen `d211a4fd`; `FLAGGADE-VEVOR.md` (fu))*. Jämför bild för bild och specifikation rad för rad först: bara exakt samma vara (storlek, modell, utförande) ommappas, och en AliExpress-sida med flera utföranden rörs inte. Efter ommappningen (cz–dg) skrivs sidan om ur VEVOR:s källa: `kallor.json` bär bara utkastets text och namn (inte AliExpress-sidans, så att siffergrinden fäller ett tal som bara stod där), det som bara AliExpress-texten påstod skrivs inte (UV-skydd, maxlast, spänning, material som VEVOR inte anger), AliExpress-sidans Fyndplats-kort tas bort och galleriet byts mot utkastets bilder (strukna: AI-genererade scener med inbränd text och packbilder med amerikansk nätkontakt), kategorin ur utkastet läggs till och de befintliga ligger kvar. Adress, SKU, recensioner, EU-lager-bandet och priset (`prisLast`) lämnas. Etikett 3 läggs sist av `bygg-media.py` när ingen alt-text börjar på *Måttbild*: lägg VEVOR:s bild 6 på etikett 3 om VEVOR:s ordning ska bevaras. Saldot på en sådan sida är AliExpress-tidens tills synken läst artikeln, så `gate-lager.py` kvitteras med skälet i `grind-undantag.txt`. Priset låses upp på Leonards begäran med *Pris — lås eller lås upp ett pris*, och recensionerna följer inte med: kopiera utkastets väntande rader som `las` på utkastet säger gäller sidans egen artikel (`<sidans id>__<suffix>`, `vevorArtikel` utan prefixet `vevor:`) och kör sedan recensionssteget på sidan (`las`, besluten, `torr`, `skriv`).
 
 **Frakt och retur** *(Leonard 2026-10-30)*. Frakten kontrolleras inte före publiceringen, och
 priset räknar med att VEVOR tar 0 kr i frakt. Butiken har ingen returadress för VEVOR, så en

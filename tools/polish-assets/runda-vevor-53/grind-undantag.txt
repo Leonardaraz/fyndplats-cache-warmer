@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 1060 x 670 x 405 mm utan axelord, men måttbilden (bild 7) ritar 41,73 in / 1060 mm som bredd, 26,38 in / 670 mm som djup och 15,94 in / 405 mm som höjd med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Skålens mått 798 x 398 x 178 mm och Produktmått 850 x 450 x 190 mm utan axelord, men måttbilderna (bild 2 och 7) ritar 798 mm som bredd, 398 mm som djup och 178 mm som höjd på skålen, och 850 mm, 450 mm och 190 mm som längd, bredd och höjd på hela hon med pilar: texten skriver längd, bredd och höjd ur ritningarna
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek 6,5 x 0,5 x 6,9 fot / 1970 x 140 x 2110 mm utan axelord, men måttbilden (bild 3) ritar 6,89 ft (2,1 m) som höjd med en pil: texten skriver diametern 1981 mm ur raden Produktdiameter och höjden 2110 mm
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 59 x 23,6 x 39,4 tum / 1470 x 600 x 1000 mm utan axelord, men måttbilden (bild 7) ritar 59 in / 1470 mm som längd, 23,6 in / 600 mm som bredd och höjden med pilar: texten skriver längd, bredd och höjd ur ritningen, med det lägre måttet 1000 mm för höjden
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py skivorna är runda och källans specifikation anger bara diameter och tjocklek per skiva, inga längd-, bredd- och höjdmått som kan blandas ihop: texten skriver diametern 210 till 214 mm och tjockleken 17 till 22 mm

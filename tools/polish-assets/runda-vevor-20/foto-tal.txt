@@ -1,0 +1,10 @@
+# <kort> <tal> <vad som räknades på bilden>
+b961dd89 20 märkningen vid nivåskalan (position 1): fyll på diesel under 20 %
+134379d5 2 två nivåskalor och två handtag räknade på position 1, 5 och 6, två metallspännen på position 1 och 5
+134379d5 20 märkningen vid nivåskalorna (position 1 och 5): fyll på diesel under 20 %
+be8e63a5 20 märkningen vid nivåskalan (position 5): fyll på diesel under 20 %
+0763c9cd 2 två nivåskalor, två handtag och två metallspännen räknade på position 1, 4 och 5
+0763c9cd 20 märkningen vid nivåskalorna (position 1 och 5): fyll på diesel under 20 %
+787b206d 2 två nivåskalor, två handtag och två metallspännen räknade på position 1, 5 och 6
+787b206d 20 märkningen vid nivåskalorna (position 1): fyll på diesel under 20 %
+968a598f 20 märkningen vid nivåskalan (position 5): fyll på diesel under 20 %

@@ -1,0 +1,23 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+4a22af42 490 bänkhöjden 19.3 in / 490 mm på bilden Product Size; specifikationen säger 500 mm, och det lägre skrivs
+4a22af42 136 bänkens belastning 299.8 lbs / 136 kg på bilden Easy on-and-off Shoes
+4a22af42 15 skohyllans belastning 33.1 lbs / 15 kg på bilden Easy on-and-off Shoes
+4a22af42 16 16 S-hooks included på bilden Freely Adjustable Hook Placement
+4a22af42 2 kroklasten 4.4 lbs / 2 kg på bilden Freely Adjustable Hook Placement och 2 tippskyddsremmar (Anti-Tip Straps x2) på bilden Outstanding Stability
+4a22af42 8 8 justerbara halkfria fötter (Adjustable Non-Slip Feet x8) på bilden Outstanding Stability
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+1b2c862d 50 hjulets diameter 2 in / 50 mm på bilden Easy to Move & Lock
+1b2c862d 8 8 portabla S-krokar på bilden Sturdy Design, Versatile Functionality (titeln säger 8 krokar)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+8f11f1a9 27,7 förvaringsfackets bredd 277 mm i specifikationen (11 in på bilden Spacious Storage Compartment); punkt 2 säger 28 cm, och det lägre skrivs
+8f11f1a9 47 förvaringsfackets längd 47 cm i punkt 2; specifikationen säger 483 mm, och det lägre skrivs
+8f11f1a9 6 förvaringsfackets djup 6 cm i punkt 2; specifikationen säger 64 mm, och det lägre skrivs
+8f11f1a9 4 4 muttrar, 4 brickor och 4 fjäderbrickor på måttbilden (Accessories)
+8f11f1a9 1 1 nyckel (Wrench) på måttbilden (Accessories)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+e9820c9c 800 trästavens längd 31.50 in / 800 mm på måttbilden; specifikationen nämner 800 i parentesen efter längden
+e9820c9c 147 maximal lastkapacitet 147 kg i specifikationen; punkt 2 säger 165 kg och måttbilden 350 lbs (158,8 kg), och det lägsta skrivs

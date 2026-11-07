@@ -1,0 +1,6 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (inklusive justerbara fötter) 430 x 290 x 895 mm utan axelord, men källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar höjden 35,2 tum (895 mm) och basens sidor 16,9 tum (430 mm) och 11,4 tum (290 mm) med pilar, och källans rubrik anger L, B och H: texten skriver längd, bredd och höjd ur rubriken och ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek 1760 x 300 x 1760 mm utan axelord, men källans måttbild (position 2 i källgalleriet, inte bland sidans sex bilder) ritar bredden 69,29 tum (1760 mm) längs underkanten, höjden 69,29 tum (1760 mm) och djupet 11,81 tum (300 mm) med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara raderna Lastvikt och Nettovikt och inga måttrader, och källans mått på stången (39,5 cm), laddningsstången (30 cm) och vajrarna (177,8 och 228,6 cm) står på VEVOR-bild 4 och 7 (inte bland sidans sex bilder) som längder utan axelord: texten skriver dem som längd på respektive del

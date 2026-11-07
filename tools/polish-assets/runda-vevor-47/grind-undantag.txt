@@ -1,0 +1,6 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek 152 x 14,2 x 46,1 tum / 3862 x 360 x 1170 mm utan axelord, men måttbilden (bild 7) ritar 383 cm som längd längs ramen, 36 cm som djup och 117 cm som höjd med pilar: texten skriver längd, djup och höjd ur ritningen, med det lägre talet för längden (383 mot 386,2 cm)
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Artikelmått 48 x 48 x 18,1 tum / 1220 x 1220 x 460 mm utan axelord, men måttbilden (bild 7) ritar 1220 mm längs två sidor och 460 mm som panelhöjd med pilar (stolparna är 500 mm): texten skriver längd, bredd och höjd ur ritningen, med 460 mm som höjd eftersom titelns 48 cm är tum som skrivits som centimeter
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 640 x 380 x 600 mm utan axelord, men måttbilden (bild 7) ritar 25,2 in (640 mm) som bredd längs framkanten, 15,0 in (380 mm) som djup och 23,6 in (600 mm) som höjd med pilar: texten skriver bredd, djup och höjd ur ritningen

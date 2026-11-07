@@ -1,0 +1,53 @@
+{
+  "namn": "vevor-2",
+  "rader": [
+    {
+      "kort": "f446461a",
+      "pid": "f446461a-9883-4190-a380-5fc983457694",
+      "bort": [
+        "Kök & Husgeråd",
+        "Kök & Husgeråd > Köksredskap & Tillbehör"
+      ],
+      "behall": [
+        "Jul & Högtider",
+        "Jul & Högtider > Kalas & Fest"
+      ]
+    },
+    {
+      "kort": "ddb1b531",
+      "pid": "ddb1b531-1df5-4f7f-8785-5fe05f38ea16",
+      "bort": [
+        "Kök & Husgeråd",
+        "Kök & Husgeråd > Köksredskap & Tillbehör"
+      ],
+      "behall": [
+        "Jul & Högtider",
+        "Jul & Högtider > Kalas & Fest"
+      ]
+    },
+    {
+      "kort": "63cea6ad",
+      "pid": "63cea6ad-f54c-486e-bdf0-e7d777900245",
+      "bort": [
+        "Trädgård & Utemöbler",
+        "Trädgård & Utemöbler > Pool & spa"
+      ],
+      "behall": [
+        "Bygg & Renovering",
+        "Bygg & Renovering > Värme, ventilation & AC"
+      ]
+    },
+    {
+      "kort": "26250940",
+      "pid": "26250940-6f2f-4759-beab-2f30a625232c",
+      "bort": [
+        "Trädgård & Utemöbler",
+        "Trädgård & Utemöbler > Pool & spa"
+      ],
+      "behall": [
+        "Bygg & Renovering",
+        "Bygg & Renovering > Värme, ventilation & AC"
+      ]
+    }
+  ]
+}

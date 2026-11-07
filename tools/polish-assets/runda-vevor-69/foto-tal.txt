@@ -1,0 +1,9 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+a3dff573 60 halsfackets bredd 60 mm (2,36 in) på VEVOR-bild 2
+a3dff573 20 halsfackets djup 20 mm (0,79 in) på VEVOR-bild 2
+a3dff573 520 kroppsfackets längd 520 mm (20,47 in) på VEVOR-bild 2
+a3dff573 50 kroppsfackets djup 50 + 30 mm (1,97 + 1,18 in) på VEVOR-bild 2
+a3dff573 30 kroppsfackets djup 50 + 30 mm (1,97 + 1,18 in) på VEVOR-bild 2
+a3dff573 2 två nycklar och två torkmedelspåsar (2 x Keys, 2 x Desiccants) på VEVOR-bild 7
+a3dff573 3 tre spärrar på fodralets långsida på VEVOR-bild 7 och 10

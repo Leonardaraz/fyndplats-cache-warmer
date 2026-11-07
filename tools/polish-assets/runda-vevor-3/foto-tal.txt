@@ -1,0 +1,30 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+637af425 1 euromynten 1, 2, 5, 10, 20 och 50 cent samt 1 och 2 euro, de åtta valörerna på displayen (position 4)
+637af425 2 euromynten 1, 2, 5, 10, 20 och 50 cent samt 1 och 2 euro, de åtta valörerna på displayen (position 4)
+637af425 5 euromynten 1, 2, 5, 10, 20 och 50 cent samt 1 och 2 euro, de åtta valörerna på displayen (position 4)
+637af425 50 euromynten 1, 2, 5, 10, 20 och 50 cent samt 1 och 2 euro, de åtta valörerna på displayen (position 4)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+40920372 6 sex långa skruvar, sex korta skruvar och sex väggpluggar på tillbehörsbilden (position 1 och 3)
+40920372 61 613 mm avrundat till cm (24 tum), samma mått som i specifikationen
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+aa14d5af 2 två ändlänkar, en i varje ände av kedjan (position 1 och 4)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+da2906aa 3 tre filterkorgar i den isärtagna bilden (position 5)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+3a022547 5 A5 tryckt på skärmattan (position 3)
+3a022547 2 två insexnycklar (position 3)
+3a022547 3 tre formuppsättningar i tre färger (position 3)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+eac8bb5b 10 tio dekorativa fiskar på tillbehörsbilden (position 3)
+eac8bb5b 2 två sjöhästar på tillbehörsbilden (position 3)
+eac8bb5b 15,5 diametern Ø 155 mm i källan är 15,5 cm

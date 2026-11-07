@@ -1,0 +1,53 @@
+{
+  "namn": "vevor-4",
+  "rader": [
+    {
+      "kort": "5e964d36",
+      "pid": "5e964d36-9212-43f9-b21a-31d2c97d747c",
+      "bort": [
+        "Bygg & Renovering",
+        "Bygg & Renovering > Värme, ventilation & AC"
+      ],
+      "behall": [
+        "Bil & Garage",
+        "Bil & Garage > Bil & släp"
+      ]
+    },
+    {
+      "kort": "60180927",
+      "pid": "60180927-6d1b-4e53-b4f6-e55343eee60d",
+      "bort": [
+        "Bygg & Renovering",
+        "Bygg & Renovering > Värme, ventilation & AC"
+      ],
+      "behall": [
+        "Bil & Garage",
+        "Bil & Garage > Bil & släp"
+      ]
+    },
+    {
+      "kort": "cfd71137",
+      "pid": "cfd71137-27ab-4d6a-9ec3-df4acee6595a",
+      "bort": [
+        "Bygg & Renovering",
+        "Bygg & Renovering > Värme, ventilation & AC"
+      ],
+      "behall": [
+        "Bil & Garage",
+        "Bil & Garage > Bil & släp"
+      ]
+    },
+    {
+      "kort": "af58273a",
+      "pid": "af58273a-eb2b-4e4c-9082-f3f7d2a05b17",
+      "bort": [
+        "Bygg & Renovering",
+        "Bygg & Renovering > Värme, ventilation & AC"
+      ],
+      "behall": [
+        "Bil & Garage",
+        "Bil & Garage > Bil & släp"
+      ]
+    }
+  ]
+}

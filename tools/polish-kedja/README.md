@@ -173,6 +173,7 @@ körningar av samma workflowfil samtidigt.
 | fil | gör |
 | :-- | :-- |
 | `ghw.py` | startar och väntar ut `polish-write`, `polish-bilder`, `aosom-sammanslagning` och valfri workflow |
+| `ghd.py` | startar en workflow och väntar på **jobbets logg** i stället för körningens status: `python3 ghd.py <workflow.yml> '<json-inputs>' [timeout]`. Använd den när `ghw.py` hänger: körningens status kan stå på `queued` i över en kvart fast jobbet redan är klart (2026-11-04, tre körningar), och en ny körning av samma steg ska inte startas innan loggen är läst |
 | `kor_wf.py` | en workflow med inputs som `nyckel=värde`, svar som JSON |
 | `mkgalleri.py` | ExecuteWixAPI-kod för en läsning av publicerade sidors galleri, valens länkade platser, vyn per val (en option) och varianternas bildplats. Körs efter varje sammanslagning (N314, 2026-10-25) |
 | `kor_lankar.py` | `leverantorslankar.yml` med krypterat svar; artikelnumren öppnas bara lokalt |

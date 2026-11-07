@@ -1,0 +1,8 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 275x240x485 mm utan axelord, men måttbilden (bild 7) ritar 10,8 in / 275 mm som bredd framtill, 9,4 in / 240 mm som djup och 19 in / 485 mm som höjd med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 560 x 555 x 480 mm utan axelord, men måttbilden (bild 7) ritar 22,0 in / 560 mm som bredd, 22,0 in / 560 mm som djup och 18,9 in / 480 mm som höjd med pilar: texten skriver bredd, djup och höjd ur ritningen, med det lägre talet 555 mm för djupet
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Artikelmått 99 x 99 x 204,5 cm utan axelord, men måttbilden (bild 7) ritar 39 in / 99 cm som bredd, 39 in / 99 cm som djup och 81 in / 204,5 cm som höjd med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Artikelmått 420 x 260 x 930 mm utan axelord, och det finns ingen måttbild: texten skriver Mått utan axelord (420 × 260 × 930 mm)

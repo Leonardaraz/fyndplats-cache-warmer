@@ -1,0 +1,6 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 840x540x(730)x630 mm utan axelord, men källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar 33 in / 840 mm längs underramens långsida, 21 in / 540 mm längs dess kortsida och 25 in / 630 mm som höjd från golvet upp till sitsen med pilar: texten skriver underramens längd och bredd och höjden till sitsen ur ritningen, och de 730 mm som ritas mellan pedalstången och sitsen skrivs inte
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Däckdimensioner 278 x 100–177 mm utan axelord, men källans måttbilder (position 2 och 7 i källgalleriet, inte bland sidans sex bilder) ritar 11 in / 278 mm som däckets diameter och 4 in som dess bredd med pilar: texten skriver diameter och bredd ur ritningen, och specifikationens 177 mm skrivs inte eftersom bilderna anger 127 mm som övre mått
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har inga måttrader alls, men källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar hyllan som 47,24 in / 120 cm bred, 18,11 in / 46 cm djup och 58,66 in / 149 cm hög med pilar: texten skriver bredd, djup och höjd ur ritningen

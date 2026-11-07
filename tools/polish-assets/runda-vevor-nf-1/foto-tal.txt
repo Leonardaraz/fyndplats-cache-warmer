@@ -1,0 +1,6 @@
+# <kort> <tal> <vad som räknades på bilden>
+24aeff4e 2 två hjul och två stödplattor syns på position 1
+ba8d9d19 4 fyra hjul syns på position 1 och 5
+ba8d9d19 2 två staplade behållare syns på position 2
+3d38760f 2 avdelaren delar nischen i två nivåer på position 1 och 4, och två fack syns på position 5
+bfb16c93 2 två metallrör syns på position 3

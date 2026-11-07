@@ -1,0 +1,93 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+1ea6ec89 94,5 bredden 945 mm i källans Produktmått (1048 x 347 x 945 mm) = 94,5 cm; måttritningen säger 995 mm: det lägre skrivs
+1ea6ec89 34,7 djupet 347 mm i källans Produktmått = 34,7 cm; måttritningen säger 370 mm: det lägre skrivs
+1ea6ec89 104,8 höjden 1048 mm i källans Produktmått = 104,8 cm; måttritningen säger 1060 mm: det lägre skrivs
+1ea6ec89 44,5 planteringslådan 445 x 310 x 230 mm i källans punkt = 44,5 x 31 x 23 cm, talen i källans ordning utan axelord
+1ea6ec89 31 planteringslådans andra mått 310 mm i källans punkt = 31 cm
+1ea6ec89 23 planteringslådans tredje mått 230 mm i källans punkt = 23 cm
+1ea6ec89 26 behållaren för småkryp 260 x 180 x 174 mm i källans punkt = 26 x 18 x 17,4 cm, talen i källans ordning utan axelord
+1ea6ec89 18 behållarens andra mått 180 mm i källans punkt = 18 cm
+1ea6ec89 17,4 behållarens tredje mått 174 mm i källans punkt = 17,4 cm
+1ea6ec89 7,8 nettovikten 7,8 kg i källans tabell; måttbildens 17,20 lbs är 7,8 kg men dess kg-tal säger 8,9: 7,8 kg skrivs
+1ea6ec89 95 barnets längd 95 cm på VEVOR:s bild (3 ft 4 in)
+1ea6ec89 125 barnets längd 125 cm på VEVOR:s bild (4 ft 1 in)
+1ea6ec89 3 tre kastruller räknade på VEVOR:s bild (3 x Pots) och i måttbildens lista
+1ea6ec89 1 ett lock enligt måttbildens lista (1 x Pot Lid)
+1ea6ec89 2 två öppna hyllor i källans punkt och två träspatlar (2 x Wooden Spatulas) i måttbildens lista
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+d25b1bb7 79,5 bredden 795 mm i källans Produktmått och på måttritningen = 79,5 cm
+d25b1bb7 33,9 djupet 339 mm i källans Produktmått och på måttritningen = 33,9 cm
+d25b1bb7 100 höjden 1000 mm i källans Produktmått och på måttritningen = 100 cm
+d25b1bb7 52 bänkhöjden 520 mm i källans punkt = 52 cm
+d25b1bb7 10,1 nettovikten 10,1 kg i källans tabell; måttbildens kort säger 25,1 lbs (11,4 kg): det lägre skrivs
+d25b1bb7 95 barnets längd 95 cm på VEVOR:s bild (3 ft 4 in)
+d25b1bb7 125 barnets längd 125 cm på VEVOR:s bild (4 ft 1 in)
+d25b1bb7 3 tre kastruller (3 x Pots), tre planteringsspadar och tre planteringskoppar räknade i måttbildens lista
+d25b1bb7 5 fem delar leksaksmat (5 x Realistic Food Items) i måttbildens lista och källans punkt
+d25b1bb7 2 två skåp i källans punkt, två träspatlar (2 x Wooden Spatulas) och två spisplattor (2-Burner Stove) på bilderna
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+80a2783b 76,2 bredden 762 mm i källans Produktmått och på måttritningen = 76,2 cm
+80a2783b 32,4 djupet 324 mm i källans Produktmått och på måttritningen = 32,4 cm
+80a2783b 91,4 höjden 914 mm i källans Produktmått och på måttritningen = 91,4 cm
+80a2783b 52 bänkhöjden 520 mm i källans punkt = 52 cm
+80a2783b 8,25 nettovikten 8,25 kg i källans tabell; måttbildens kort säger 18,3 lbs (8,3 kg): det lägre skrivs
+80a2783b 95 barnets längd 95 cm på VEVOR:s bild (3 ft 4 in)
+80a2783b 125 barnets längd 125 cm på VEVOR:s bild (4 ft 1 in)
+80a2783b 3 tre kastruller (3 x Pots), tre planteringsspadar och tre planteringskoppar räknade i måttbildens lista
+80a2783b 2 två diskhoar (2 x Sink) och två träspatlar (2 x Wooden Spatulas) i måttbildens lista
+80a2783b 4 fyra spisplattor: källans tabell (Gasspis 4), källans punkt och fyra plattor räknade på produktfotot
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+c42f32fe 183 längden 1830 mm i källans Produktmått och på måttritningen = 183 cm
+c42f32fe 105,5 bredden 1055 mm i källans Produktmått och på måttritningen = 105,5 cm
+c42f32fe 23 höjden 230 mm i källans Produktmått och på måttritningen = 23 cm
+c42f32fe 175 innerlängden 1750 mm på måttritningen och specifikationsbildens Inner Dimensions = 175 cm
+c42f32fe 98 innerbredden 980 mm på måttritningen och specifikationsbildens Inner Dimensions = 98 cm
+c42f32fe 20 innerhöjden 200 mm på specifikationsbildens Inner Dimensions = 20 cm
+c42f32fe 45 sittplatsens bärförmåga 45 kg i källans punkt; tabellen och specifikationsbilden säger 50 kg (110 lbs): det lägre skrivs
+c42f32fe 4 fyra sittplatser och fyra raka paneler, fyra böjda paneler, fyra sittbrädor och fyra stödben enligt specifikationsbildens lista (4 x)
+c42f32fe 8 åtta plastklämmor och åtta markpinnar enligt specifikationsbildens lista (8 x)
+c42f32fe 25 25 kardborrband enligt specifikationsbildens lista (25 x Velcro Strips)
+c42f32fe 6 sex monteringssteg på VEVOR:s monteringsbild (Step 1 till Step 6)
+c42f32fe 2 2–4 barn i källans punkt och på VEVOR:s bild (Accommodates 2-4 kids)
+c42f32fe 3 åldern 3–12 år i källans namn och på VEVOR:s bild (Ages 3-12)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+74c29037 120 bredden och djupet 1200 mm i källans Produktmått, punkt och på måttritningen = 120 cm
+74c29037 145,5 höjden med tak 1455 mm i källans Produktmått, punkt och på måttritningen = 145,5 cm; utkastets namn säger 137 x 119 x 119 cm, men tabellen, punkten och måttritningen är överens och namnets mått skrivs inte
+74c29037 104 innerbredden och innerdjupet 1040 mm på måttritningen och specifikationsbildens Inner Dimensions = 104 cm
+74c29037 20 innerhöjden 200 mm på specifikationsbildens Inner Dimensions = 20 cm
+74c29037 75 sittplatsens bärförmåga 75 kg i källans punkt; tabellen och specifikationsbilden säger 80 kg (175 lbs): det lägre skrivs
+74c29037 2 två fällbara bänkar (2 Seat Panel Assemblies), två stolpar till taket (2 Canopy Support Poles) och 2–4 barn i källans punkt
+74c29037 6 sex monteringssteg på VEVOR:s monteringsbild (Step 1 till Step 6)
+74c29037 3 åldern 3–12 år i källans namn och på VEVOR:s bild (Ages 3-12)
+74c29037 15 tjockleken 15 mm i källans tabell och punkt
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+fcbab54d 133 bredden 1330 mm i källans Produktmått och på måttritningen = 133 cm
+fcbab54d 120 djupet 1200 mm i källans Produktmått och på måttritningen = 120 cm
+fcbab54d 43 höjden 430 mm i källans Produktmått och på måttritningen = 43 cm
+fcbab54d 117 innerlängden 1170 mm på måttritningen och specifikationsbildens Inner Dimensions = 117 cm
+fcbab54d 114 innerbredden 1140 mm på måttritningen och specifikationsbildens Inner Dimensions = 114 cm
+fcbab54d 19,5 innerhöjden 195 mm på specifikationsbildens Inner Dimensions = 19,5 cm
+fcbab54d 75 sittplatsens bärförmåga 75 kg i källans punkt; tabellen och specifikationsbilden säger 80 kg (175 lbs): det lägre skrivs
+fcbab54d 2 två fällbara bänkar (2 Seat Panels) och 2–4 barn i källans punkt och på VEVOR:s bild
+fcbab54d 6 sex monteringssteg på VEVOR:s monteringsbild (Step 1 till Step 6)
+fcbab54d 3 åldern 3–12 år i källans namn och på VEVOR:s bild (Ages 3-12)
+fcbab54d 15 tjockleken 15 mm i källans tabell och punkt
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+a9a5cc06 192 bredden och djupet 1920 mm i källans Produktmått och på måttritningen = 192 cm; punktens 1157 x 1157 x 210 mm skrivs inte, för tabellen och måttritningen är överens
+a9a5cc06 23 höjden 230 mm i källans Produktmått och på måttritningen = 23 cm
+a9a5cc06 172 innermåttet mellan hörnen 1720 mm på måttritningen och specifikationsbildens Inner Dimensions Diagonal = 172 cm
+a9a5cc06 181,5 innermåttet mellan motstående sidor 1815 mm på måttritningen och specifikationsbildens Inner Dimensions Opposite Sides = 181,5 cm
+a9a5cc06 21,5 innerhöjden 215 mm på specifikationsbildens Inner Dimensions = 21,5 cm
+a9a5cc06 30 sittplatsens bärförmåga 30 kg i källans tabell och på specifikationsbilden (66 lbs); punkten säger 36 kg: det lägre skrivs
+a9a5cc06 4 fyra sittplatser (4 sittplatser i källans namn och 4 x Seat Boards), fyra hela paneler (4 x Full Panels) och fyra sittbrädor
+a9a5cc06 8 åtta delade paneler enligt specifikationsbildens lista (8 x Sectioned Panels)
+a9a5cc06 6 4–6 barn i källans punkt och på VEVOR:s bild (Accommodates 4-6 kids)
+a9a5cc06 3 åldern 3–12 år i källans namn och på VEVOR:s bild (Ages 3-12)
+a9a5cc06 15 tjockleken 15 mm i källans tabell och punkt

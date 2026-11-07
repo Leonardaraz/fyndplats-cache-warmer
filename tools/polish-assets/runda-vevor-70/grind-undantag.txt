@@ -1,0 +1,8 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 54,2 x 37 x 160 cm utan axelord, men källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar höjden 48-63 tum (122,92-160 cm) och basens två sidor 21,34 tum (54,2 cm) och 14,57 tum (37 cm) med pilar: texten skriver höjden och basens mått utan att säga vilken sida av basen som är bredd och vilken som är djup
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 1370 x 530 x 320 mm utan axelord, men källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar fodralet stående med höjden 53,94 tum (1370 mm), bredden 20,87 tum (530 mm) och djupet 12,60 tum (320 mm) med pilar: texten skriver höjd, bredd och djup ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Isborrens mått ø200 x 950 mm utan axelord, men källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar längden 37,5 tum (950 mm) och diametern 7,9 tum (200 mm) med pilar: texten skriver längd och diameter ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek 2057 x 300 x 240 mm utan axelord, och källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar bara affischhöjden 100-1905 mm med en pil: texten skriver höjden 2057 mm och basens mått 300 x 240 mm (som basstorleken i specifikationen) utan att säga vilken sida av basen som är bredd och vilken som är djup

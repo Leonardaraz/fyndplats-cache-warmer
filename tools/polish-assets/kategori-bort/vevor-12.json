@@ -1,0 +1,27 @@
+{
+ "namn": "vevor-12",
+ "rader": [
+  {
+   "kort": "83991661",
+   "pid": "83991661-c5d8-4623-9454-4e9a0f544685",
+   "bort": [
+    "Hem & Inredning > Projektordukar"
+   ],
+   "behall": [
+    "Hem & Inredning",
+    "Hem & Inredning > Hemelektronik & tillbehör"
+   ]
+  },
+  {
+   "kort": "50135afc",
+   "pid": "50135afc-7435-47b8-9cbc-7a9a1fa862bf",
+   "bort": [
+    "Bil & Garage > Verkstadsutrustning"
+   ],
+   "behall": [
+    "Bil & Garage",
+    "Bil & Garage > Bil & släp"
+   ]
+  }
+ ]
+}

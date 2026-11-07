@@ -1,0 +1,37 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+dce7e99d 3 tre monteringssteg på bilden Quick and Easy Assembly (Step 1 till Step 3)
+dce7e99d 180 lastkapaciteten 180 kg i punkt 1; specifikationen och måttbilden säger 181,4 kg / 400 lbs, och det lägre skrivs
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+28654aba 4 fyra timmar varm eller kall på bilden Keep Food Warm or Cold (Keep Cold 4H, Keep Warm 4H) och i punkt 1; bilden noterar att tiden varierar med förhållandena
+28654aba 10 tio avhämtningsbehållare i punkt 2 och på bilden Holds a Variety of Foods (10 x Takeout Food Containers)
+28654aba 22 tjugotvå vattenflaskor på 500 ml i punkt 2 och på bilden Holds a Variety of Foods (22 x 16.9 oz Bottled Water)
+28654aba 500 vattenflaskor på 500 ml i punkt 2 (16,9 oz på bilden)
+28654aba 45 hopfälld höjd 1,77 in / 45 mm på måttbilden (position 7)
+28654aba 0,95 vikten 2,1 lbs / 0,95 kg på måttbilden och i specifikationen; beskrivningen säger 1,2 kg, och specifikationen och måttbilden skrivs
+28654aba 600 längden 23,62 in / 600 mm på måttbilden och i specifikationen
+28654aba 405 bredden 15,94 in / 405 mm på måttbilden och i specifikationen
+28654aba 265 höjden 10,43 in / 265 mm på måttbilden och i specifikationen
+28654aba 26 väggtjockleken 1,02 in / 26 mm på bilden Optimal Non-Electric Heat Retention och i specifikationen
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+ddda4610 232 passformen 232 x 182 x 81 cm i punkt 1; titeln, specifikationen och bild 2 säger 249 x 198 x 81 cm för överdraget, och det mindre skrivs som passform
+ddda4610 182 passformens bredd 182 cm i punkt 1
+ddda4610 4 fyra spännen i beskrivningen (fyra spännen och två dragsnören) och på bilden Double-Secure to Prevent Blowing Away
+ddda4610 2 två dragsnören i beskrivningen (fyra spännen och två dragsnören)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+0f711812 20 fylld vikt 45 lbs / 20 kg per påse på bilden Quick Installation and Removal (Water-filled weight: 45 lbs / unit)
+0f711812 50 påfyllning till 50-70 % på bilden Leak-Proof and More Stable och i punkt 2
+0f711812 70 påfyllning till 50-70 % på bilden Leak-Proof and More Stable och i punkt 2
+0f711812 570 hörnstycket 1,87 x 1,85 ft / 570 x 565 mm på måttbilden och i specifikationen; punkt 1 säger 60 x 50 cm, och specifikationens mått skrivs
+0f711812 565 hörnstycket 570 x 565 mm på måttbilden och i specifikationen
+0f711812 2400 påsen 7,87 ft / 2400 mm på måttbilden och i specifikationen
+0f711812 200 påsens bredd 0,66 ft / 200 mm på måttbilden och i specifikationen; beskrivningen säger 0,77 m, och specifikationens mått skrivs
+0f711812 3,71 nettovikten 8,18 lbs / 3,71 kg på måttbilden och i specifikationen
+0f711812 1,5 sömbredden 0,59 in / 1,5 cm i specifikationen
+0f711812 0,4 tjockleken 0,02 in / 0,40 mm på måttbilden och i specifikationen
+0f711812 6 sex vattenpåsar och fyra hörnstycken i specifikationen (set med 6 delar och set med 4 delar)
+0f711812 4 fyra hörnstycken i specifikationen
+0f711812 2 två reparationslappar i TPU på måttbilden (Accessories: 2 x TPU Repair Patches, 1 x User Manual)

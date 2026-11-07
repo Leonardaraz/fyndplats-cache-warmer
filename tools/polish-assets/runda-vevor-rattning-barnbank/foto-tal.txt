@@ -1,0 +1,7 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+1000d244 59,7 bredden 597 mm på måttritningen = 59,7 cm (källans Produktmått 597 x 368 x 545 mm)
+1000d244 36,8 djupet 368 mm på måttritningen = 36,8 cm
+1000d244 53 höjden 530 mm på måttritningen = 53 cm; källans tabell och titel säger 545 mm: det lägre skrivs
+1000d244 20 locket 20 kg i källans tabell och 44 lbs på VEVOR:s bild; punkten säger 96 kg men den är kopierad från syskonbänken: det lägre skrivs
+1000d244 15 botten 15 kg i källans tabell och 33 lbs på VEVOR:s bild; punkten säger 40 kg men den är kopierad från syskonbänken: det lägre skrivs

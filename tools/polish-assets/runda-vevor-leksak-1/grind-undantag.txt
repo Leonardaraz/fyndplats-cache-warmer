@@ -1,0 +1,8 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan är VEVOR:s svenska utkast utan någon totalmåttrad för varan, och ingen tysk totalmåttrad att bygga ett facit ur; måtten på ribbstolen och klättergymmen är lästa ur VEVOR:s måttbild (bredd × djup × höjd efter ritningens pilar, i kallor.json och foto-tal.txt) och sitsens mått ur utkastets Totala mått
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan är VEVOR:s svenska utkast utan någon totalmåttrad för varan, och ingen tysk totalmåttrad att bygga ett facit ur; måtten på ribbstolen och klättergymmen är lästa ur VEVOR:s måttbild (bredd × djup × höjd efter ritningens pilar, i kallor.json och foto-tal.txt) och sitsens mått ur utkastets Totala mått
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan är VEVOR:s svenska utkast utan någon totalmåttrad för varan, och ingen tysk totalmåttrad att bygga ett facit ur; måtten på ribbstolen och klättergymmen är lästa ur VEVOR:s måttbild (bredd × djup × höjd efter ritningens pilar, i kallor.json och foto-tal.txt) och sitsens mått ur utkastets Totala mått
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan är VEVOR:s svenska utkast utan någon totalmåttrad för varan, och ingen tysk totalmåttrad att bygga ett facit ur; måtten på ribbstolen och klättergymmen är lästa ur VEVOR:s måttbild (bredd × djup × höjd efter ritningens pilar, i kallor.json och foto-tal.txt) och sitsens mått ur utkastets Totala mått

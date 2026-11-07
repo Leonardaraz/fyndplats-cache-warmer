@@ -1,0 +1,8 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Mått 39,8 × 23,6 × 17,7 tum / 1010 × 600 × 450 mm utan axelord, men måttbilden (bild 2) ritar 1010 mm som längd längs påsens sida, 600 mm som bredd och 450 mm som höjd med pilar: texten skriver längd, bredd och höjd ur ritningen, med det lägsta talet per axel (punkt 1 säger 91 × 59 × 44 cm mot 101 × 60 × 45 cm i specifikationen och på bilden)
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Artikelmått (L x B x H) 15 x 15 x 2,56 tum / 380 x 380 x 65 mm, men måttbilden (bild 7) ritar 380 mm som längd, 380 mm som bredd och 65 mm som höjd (tjocklek) med pilar: texten skriver längd, bredd och höjd ur ritningen och specifikationen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Sökspolens storlek 8,9 x 11,2 tum / 225 x 285 mm utan axelord, och måttbilden (bild 7) ritar 225 mm och 285 mm som spolens mått och 1400 mm som detektorns längd med pilar: texten skriver spolens mått som 225 × 285 mm och handtagets längd som 104 till 140 cm (det lägre av 146 cm i beskrivningen och 1400 mm på bilden)
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad: sminkborstset har bara antal, handtag, borst, hylsa och nettovikt i sin specifikation och på måttbilden (bild 7), och texten skriver inga mått

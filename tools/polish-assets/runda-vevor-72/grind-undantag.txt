@@ -1,0 +1,8 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 300 x 210 mm (11,81 x 8,27 tum) utan axelord, men källans måttbild (position 4 och 7 i källgalleriet, inte bland sidans sex bilder) ritar bredden 11,81 tum (300 mm) upptill och höjden 8,27 tum (210 mm) och bottnens diameter 8,86 tum (225 mm) med pilar: texten skriver bredd och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen mått- eller storleksrad med axelord för behållaren: raden Utvikningsstorlek (LxH) anger 335 x 90 cm med L och H, och den största diametern 42 tum står på egen rad, medan källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar höjden 90 cm, diametern 100 cm och den hoprullade storleken 90 cm och 10 cm: texten skriver längd och höjd ur LxH-raden, den största diametern ur specifikationen och den hoprullade storleken ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen måttrad, och artikelmåtten 310 x 268 x 335 mm står bara i utkastets text och på källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) utan axelord: texten skriver måtten utan att säga vilken sida som är längd, bredd och höjd
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Sitsstorlek 450 x 485 x 130 mm, Ryggstödets storlek 510 x 645 x 140 mm, Fotstödets storlek 335 x 140 mm, Basstorlek ø490 mm och Produktens minsta storlek 980 x 770 x 905 mm utan axelord, och källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar bara sidorna med pilar: texten skriver måtten utan att säga vilken sida som är längd, bredd och höjd

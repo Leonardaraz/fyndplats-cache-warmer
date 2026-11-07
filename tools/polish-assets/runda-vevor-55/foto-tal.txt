@@ -1,0 +1,14 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+98afff75 18 magnetens bredd 18 tum (45,7 cm) i produktnamnet och punkt 3; hela sopens bredd 600 mm står i specifikationen
+98afff75 46 omräkning av 18 tum (45,7 cm) till cirka 46 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+e1fa0967 160 bärförmågan 160 kg i punkt 3; specifikationen och bilden Supports up to 360 lbs skriver 360 pund (cirka 163 kg), och det lägre talet skrivs
+e1fa0967 600 tygets beteckning 600D Oxford i punkt 5
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+93a98ee8 600 bärväskans beteckning 600D i punkt 4
+93a98ee8 9,7 nätets bredd 9700 mm i specifikationen och på måttbilden (32 ft); utkastets text skriver 9x10,6 meter och punkt 1 skriver 9x10 meter, och det mått som specifikationen och måttbilden bär skrivs
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>

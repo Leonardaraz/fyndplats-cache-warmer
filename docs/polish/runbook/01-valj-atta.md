@@ -14,7 +14,10 @@ dealproffsen eller någon annan butik (Leonard 2026-10-21). En arbetsdelning mel
 till exempel att var och en tar sin ände av kön, går före.
 
 Steg 1–3 går omlott: laglighets- och dubblettskärmen behöver källtexten och bilderna, så hämta
-dem för kandidaterna innan du bestämmer dig.
+dem för kandidaterna innan du bestämmer dig. Kategorikontrollen i steg 2
+([Kontrollera kategorin](02-hamta-kallan.md#kontrollera-kategorin-tidigt)) hör till samma omlott: en produkt som
+ligger i fel kategori ger fel familjeräkning och fel krockkontroll, så läs kandidaternas
+kategorier också.
 
 **Välj familj efter luckan, inte efter högen.** Räkna utkasten mot de publicerade sidorna
 av samma produkttyp: många publicerade sidor ger krockar och dubbletter, få ger lediga
@@ -264,8 +267,8 @@ efter fjorton dygn*). Så gör du med en träff:
 |---|---|
 | samma vara som en publicerad **AliExpress-sida** | Mappa om den publicerade sidan till Aosom (Leonards regel 2026-09-03): **"Dubbletter — mappa om en produkt till Aosom"**, först `plan` och sedan `byt`, med den publicerade sidan som `wix_product_id`, utkastet som `duplicate_wix_product_id` och `sku` tomt. Kundpriset rörs inte. Stoppar marginalhindret flaggar du i stället. |
 | samma vara i samma färg och mått som en publicerad **Aosom-sida** | Pensionera utkastet (`draftStatus: rejected`, `needsAiPolish: false`) med **"Polering — läs och stämpla mappningsraden"**. |
-| ett **färg- eller storlekssyskon** till en publicerad Aosom-sida | Lägg utkastet som ett val på sidan, se [Syskon blir val på sidan](#syskon-blir-val-på-sidan). |
-| syskon **bara bland utkasten** | Polera ett av dem, helst det med flest rena bilder och saldo, och skriv namn, slug och titel utan färg och mått. Publicera det och lägg sedan de andra som val på den sidan. |
+| ett **färg- eller storlekssyskon** till en publicerad Aosom-sida | Lägg utkastet som ett val på sidan, se [Syskon blir val på sidan](#syskon-blir-val-på-sidan). **Bara när materialet är exakt detsamma** *(Leonard 2026-11-03: "om det inte är exakt samma material går det väl inte att slå ihop?")*: en snurrfåtölj i mikrofiber är inte ett färgval på samma fåtölj i linnelook, och konstläder är inte tyg. Annat material blir en egen sida med materialet i namn, slug och titel. |
+| syskon **bara bland utkasten** | Polera ett av dem, helst det med flest rena bilder och saldo, och skriv namn, slug och titel utan färg och mått. Publicera det och lägg sedan de andra som val på den sidan. Samma villkor som ovan: bara när materialet är detsamma. |
 | ett syskon till en publicerad **AliExpress-sida** | Finns sidans egen färg som Aosom-utkast mappar du om sidan (första raden) och lägger sedan syskonet som val. Finns den i feeden men inte som utkast hämtar du den först med **"Aosom — importera en sidas färg- och storlekssyskon"** (sida = syskonutkastet). Finns den inte alls polerar du syskonet som en egen sida, med färgen i namn, slug och titel. Verktyget kräver en Aosom-sida, och alla färger ska säljas. |
 
 **En AliExpress-sida med flera varianter** vägras av ommappningen (`flera_varianter`), om

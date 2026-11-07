@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 600 x 180 x 575 mm utan axelord, och källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar bredden 600 mm (23,6 tum) längs överkanten, djupet 180 mm (7,1 tum) och höjden 575 mm (22,6 tum) med pilar: texten skriver måtten i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 610 x 160 x 550 mm utan axelord, och källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar bredden 610 mm (24,0 tum) längs överkanten, djupet 160 mm (6,3 tum) och höjden 550 mm (21,6 tum) med pilar: texten skriver måtten i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara diameter- och längdmått för delarna (bränsleledning φ3,9 x 5000 mm, filter φ27 x 69 mm, gummislang φ10 x 50 mm) och ingen bredd, djup eller höjd: texten skriver varje del som diameter och längd
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 159 x 60 x 208 mm utan axelord, och källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar bredden 159 mm (6,3 tum) längs framkanten, djupet 208 mm (8,2 tum) och höjden 60 mm (2,4 tum) med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Storlek 520x370x450 mm ±10 mm utan axelord, och källans måttbild (position 2 i källgalleriet, inte bland sidans sex bilder) ritar höjden 450 mm (18 tum) och de två bottenmåtten 520 mm (20 tum) och 370 mm (15 tum) för en behållare: texten skriver måtten per behållare i källans ordning

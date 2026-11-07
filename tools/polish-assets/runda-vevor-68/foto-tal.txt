@@ -1,0 +1,6 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+754c53df 900 tygets 900D polyester Oxford i källans punkt
+754c53df 7 sju fack i toppen (7-vägs) i källans rubrik och punkt och på VEVOR-bild 2
+754c53df 6 sex fickor i källans punkt
+754c53df 3 tre bärhandtag (3 Carry Handles) på VEVOR-bild 3

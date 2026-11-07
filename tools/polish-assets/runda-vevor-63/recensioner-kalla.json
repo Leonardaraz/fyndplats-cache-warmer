@@ -1,0 +1,86 @@
+{
+  "23fd158e": {
+    "productId": "23fd158e-a429-4517-91a5-ec72dede87f5",
+    "synliga": 0,
+    "dolda": 6,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-q3y84q",
+        "betyg": 4,
+        "datum": "2025-06-30",
+        "foton": 0,
+        "text": "Very nice and strong built,some of the lids won't tighten on the spice jars is the only problem I have with this product."
+      }
+    ]
+  },
+  "6cd618a3": {
+    "productId": "6cd618a3-3d62-459e-bcd0-f2a86886ef2b",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1kx7x5x",
+        "betyg": 5,
+        "datum": "2026-02-06",
+        "foton": 0,
+        "text": "Nice luggage without the hefty price of popular name brand."
+      }
+    ]
+  },
+  "9f69d620": {
+    "productId": "9f69d620-1c6f-40b4-90ab-13d3cdfc2f15",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-2xdk3h",
+        "betyg": 5,
+        "datum": "2025-09-01",
+        "foton": 0,
+        "text": "Made of stainless steel, it has good cold retention and looks professional."
+      }
+    ]
+  },
+  "a3d988d0": {
+    "productId": "a3d988d0-f606-4f9a-8498-7356c3a396e9",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "af022e60": {
+    "productId": "af022e60-4299-4273-92c1-dfba44ac637c",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-14dos0m",
+        "betyg": 5,
+        "datum": "2026-07-26",
+        "foton": 0,
+        "text": "This worked great. Took it aesy last week and was easy to get to airport and beyond. Happy:)"
+      },
+      {
+        "id": "gen-fyqrm3",
+        "betyg": 4,
+        "datum": "2026-09-24",
+        "foton": 0,
+        "text": "Toimii hyvin omassa käytössä. 2 lentoa takana. Ei kuljeteta golf varusteita, vaan leijoja."
+      }
+    ]
+  }
+}

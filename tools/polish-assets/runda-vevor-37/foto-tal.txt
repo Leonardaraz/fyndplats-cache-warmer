@@ -1,0 +1,39 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+2b33b7cf 164 höjden 64,6 in / 1640 mm på måttritningen och specifikationskortet = 164 cm
+2b33b7cf 42 bredden 16,5 in / 420 mm på måttritningen och specifikationskortet = 42 cm
+2b33b7cf 18 djupet 7,1 in / 180 mm på måttritningen och specifikationskortet = 18 cm
+2b33b7cf 40,6 korgens längd 16 in / 406 mm på bilden med korgarnas mått = 40,6 cm
+2b33b7cf 12,5 korgens djup 4,9 in / 125 mm på bilden med korgarnas mått = 12,5 cm
+2b33b7cf 11 stor korgs höjd 4,3 in / 110 mm på bilden med korgarnas mått = 11 cm
+2b33b7cf 7,6 liten korgs höjd 3 in / 76 mm på bilden med korgarnas mått = 7,6 cm
+2b33b7cf 500 en stor korg rymmer tre flaskor på 500 ml enligt bilden Single Basket Capacity
+2b33b7cf 300 en stor korg rymmer två flaskor på 300 ml enligt bilden Single Basket Capacity
+2b33b7cf 180 fritt utrymme 7,1 in / 180 mm på bilden Perfectly Fits Most Doors
+2b33b7cf 50 dörrens tjocklek under 2 in / 50 mm på bilden Perfectly Fits Most Doors
+2b33b7cf 1,5 dörrgapet över 0,06 in / 1,5 mm på bilden Perfectly Fits Most Doors
+2b33b7cf 12 bärförmågan 26,5 lbs / 12 kg på bilden Heavy-Duty Square Tube Frame
+2b33b7cf 3 vikten 6,7 lbs / 3 kg på specifikationskortet
+2b33b7cf 14 tillbehören på specifikationskortet: 14 skruvar
+2b33b7cf 10 tillbehören på specifikationskortet: 10 fyrkantiga stålrör
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+57facbf2 360 hjulen roterar 360 grader på bilden PU Casters
+57facbf2 125 hjuldiametern 5 in på bilden PU Casters och 125 mm i specifikationen
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+00c739a4 4 vikten 8,8 lbs / 4 kg på specifikationskortet
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+3f7461bc 118 längden 46,5 in / 1180 mm på måttritningen och specifikationskortet = 118 cm
+3f7461bc 61 bredden 24 in / 610 mm på måttritningen och specifikationskortet = 61 cm
+3f7461bc 20 höjden 7,9 in / 200 mm på måttritningen och specifikationskortet = 20 cm
+3f7461bc 1,8 vikten 3,97 lbs / 1,8 kg på specifikationskortet
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+182101f0 152 den långa panelens bredd 60 in / 152 cm på måttritningen; källans punktlista säger 15,5 cm, vilket är ett tryckfel mot titeln, specifikationen och ritningen
+182101f0 61 sidopanelernas bredd och höjd 24 in / 61 cm på måttritningen
+182101f0 20 tjockleken 0,8 in / 2 cm på måttritningen
+182101f0 85 bullerminskningen 85 % på bilden Creates Privacy
+182101f0 10 skrivbordets tjocklek 0,4 till 1,4 in / 10 till 35 mm på måttritningen
+182101f0 35 skrivbordets tjocklek 0,4 till 1,4 in / 10 till 35 mm på måttritningen

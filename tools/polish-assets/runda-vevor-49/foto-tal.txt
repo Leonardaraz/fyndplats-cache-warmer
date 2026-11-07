@@ -1,0 +1,41 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+e0e4f50c 5,5 popcorn per sats i titeln (115 ml vattenkokare ger 5,5 liter per sats) och 1,5 gallon på bilden Pop for Fun; punkt 1 skriver 55 liter, en felskrivning, och det lägre skrivs
+e0e4f50c 480 effekten 480 W på måttbilden och i specifikationen
+e0e4f50c 275 bredden 10,8 in / 275 mm på måttbilden och i specifikationen
+e0e4f50c 240 djupet 9,4 in / 240 mm på måttbilden och i specifikationen
+e0e4f50c 485 höjden 19 in / 485 mm på måttbilden och i specifikationen
+e0e4f50c 3,3 vikten 3,3 kg / 7,3 lbs på måttbilden och i specifikationen
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+4f83cded 0 timern 0 till 60 min på bilden Three Temp Zones (Timer 0-60 min)
+4f83cded 3000 effekten 3000 W på måttbilden (position 7), på bilden Powerful Heating och i specifikationen
+4f83cded 220 spänningen AC 220 till 240 V, 50/60 Hz på måttbilden (position 7)
+4f83cded 240 spänningen AC 220 till 240 V, 50/60 Hz på måttbilden (position 7)
+4f83cded 50 temperaturområdet 122 till 662 °F / 50 till 350 °C på bilden Three Temp Zones; punkt 4 säger samma
+4f83cded 350 temperaturområdet 122 till 662 °F / 50 till 350 °C på bilden Three Temp Zones
+4f83cded 60 timern 0 till 60 min på bilden Three Temp Zones; punkt 4 säger 0 till 120 min, och det lägre skrivs
+4f83cded 35 förvärmningen i 35 minuter på bilden Powerful Heating Even Baking (Note: Preheat for 35 Minutes before Placing the Pizza in the Oven)
+4f83cded 16 pizzor på 16 tum på bilden 16 in Double-Deck Commercial Pizza Oven och i specifikationen (2 x 16 tum)
+4f83cded 410 pizzastenarna 16,1 x 16,1 x 0,4 tum / 410 x 410 x 11 mm på måttbilden och i specifikationen
+4f83cded 11 pizzastenarnas tjocklek 0,4 tum / 11 mm på måttbilden och i specifikationen
+4f83cded 555 djupet 555 mm i specifikationen; måttbilden ritar 22,0 in / 560 mm, och det lägre skrivs
+4f83cded 560 bredden 22,0 in / 560 mm på måttbilden och i specifikationen
+4f83cded 480 höjden 18,9 in / 480 mm på måttbilden och i specifikationen
+4f83cded 30,5 vikten 67,2 lbs / 30,5 kg på måttbilden och i specifikationen
+4f83cded 2 två ugnsfack med var sin lucka och två pizzastenar, två handtag på måttbilden (Accessories: 2 x Handles, 2 x Pizza Stones, 1 x User Manual)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+6a05475d 99 bredden och djupet 39 in / 99 cm på måttbilden och i specifikationen (99 x 99 x 204,5 cm)
+6a05475d 204,5 höjden 81 in / 204,5 cm på måttbilden och i specifikationen
+6a05475d 2,5 rörets mått 1 in / 2,5 cm på bilden Exceptional Attention to Detail (Thick Iron Pipe Frame)
+6a05475d 8,76 nettovikten 19,3 lbs / 8,76 kg på måttbilden och i specifikationen
+6a05475d 5 fem paneler på måttbilden och i specifikationen (Antal paneler: 5 paneler)
+6a05475d 6 sex monteringssteg på bilden Quickly Complete Assembly (steg 1 till 6)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+9044ec53 14 toppavdelare med 14 fack i titeln (14-vägs) och på bilden 14-Way Top Organizer, där facken är numrerade 1 till 14
+9044ec53 3 tre bärhandtag på bilden Comfortable Carrying Experience (3 Carry Handles)
+9044ec53 2 två axelremmar och två stödben på bilderna Comfortable Carrying Experience och Quick-Release Non-Slip Stand (Dual Support Legs)
+9044ec53 7 sju fickor i punkt 3
+9044ec53 5 fem dragkedjor i punkt 3

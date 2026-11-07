@@ -1,0 +1,60 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+fdc73e50 18 blockets första mått 180 mm i källans blockmått (180 x 60 x 30 mm) och produktmåttets två första (180 x 180 x 600 mm) = 18 cm
+fdc73e50 6 blockets andra mått 60 mm = 6 cm
+fdc73e50 3 blockets tredje mått 30 mm = 3 cm; tre block per rad står också i källan
+fdc73e50 60 standardhöjden med tre block per rad 600 mm = 60 cm; produktmåttets tredje mått 600 mm = 60 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+fe9c8e65 154,5 första måttet 1545 mm i källans produktmått (1545x1210 mm) = 154,5 cm
+fe9c8e65 121 andra måttet 1210 mm i källans produktmått = 121 cm
+fe9c8e65 6 sex sugkoppar och sex säkerhetsstänger står i källans punkter
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+d20e9ac0 37 vikten 37,0 kg i källans specifikation (Vikt 37,0 kg)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+cb6ee35e 15,1 vikten 15,1 kg i källans specifikation (Vikt 15,1 kg)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+2fbe290d 52 bordsskivans andra mått och bordets andra mått, 52 cm, står i källans spec (Bordsskivans storlek 74 x 52 cm; Produktmått 82 x 52 x 51 cm)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+11f9136a 81,5 första måttet 815 mm i källans produktstorlek (815 × 600 × 505 mm) = 81,5 cm
+11f9136a 60 andra måttet 600 mm i källans produktstorlek = 60 cm
+11f9136a 50,5 tredje måttet 505 mm i källans produktstorlek = 50,5 cm
+11f9136a 52 bordsskivans första mått 520 mm i källans skrivbordsstorlek (520 × 740 mm) = 52 cm
+11f9136a 74 bordsskivans andra mått 740 mm = 74 cm
+11f9136a 41,4 stora lådans första mått 414 mm i källan = 41,4 cm
+11f9136a 29,6 stora lådans andra mått 296 mm = 29,6 cm
+11f9136a 9,8 stora lådans tredje mått 98 mm = 9,8 cm
+11f9136a 29,5 mindre lådans första mått 295 mm i källan = 29,5 cm
+11f9136a 20,5 mindre lådans andra mått 205 mm = 20,5 cm
+11f9136a 9,6 mindre lådans tredje mått 96 mm = 9,6 cm
+11f9136a 7 sju användningar: läsa, äta, rita, skriva, vattenlek, sandlek och förvaring (7-in-1) på VEVOR:s funktionsbild
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+1f0f8e4b 81,5 första måttet 815 mm i källans produktstorlek (815 x 600 x 505 mm) = 81,5 cm
+1f0f8e4b 60 andra måttet 600 mm i källans produktstorlek = 60 cm
+1f0f8e4b 50,5 tredje måttet 505 mm i källans produktstorlek = 50,5 cm
+1f0f8e4b 52 bordsskivans första mått 520 mm i källans skrivbordsstorlek (520 x 740 mm) = 52 cm
+1f0f8e4b 74 bordsskivans andra mått 740 mm = 74 cm
+1f0f8e4b 41,4 stora lådans första mått 414 mm i källan = 41,4 cm
+1f0f8e4b 29,6 stora lådans andra mått 296 mm = 29,6 cm
+1f0f8e4b 9,8 stora lådans tredje mått 98 mm = 9,8 cm
+1f0f8e4b 29,5 mindre lådans första mått 295 mm i källan = 29,5 cm
+1f0f8e4b 20,5 mindre lådans andra mått 205 mm = 20,5 cm
+1f0f8e4b 9,6 mindre lådans tredje mått 96 mm = 9,6 cm
+1f0f8e4b 7 sju sorters lek: läsa, äta, rita, skriva, vattenlek, sandlek och förvaring (7-in-1) på VEVOR:s funktionsbild
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+d8bb06e5 81,5 första måttet 815 mm i källans produktstorlek (815 × 600 × 505 mm) = 81,5 cm
+d8bb06e5 60 andra måttet 600 mm i källans produktstorlek = 60 cm
+d8bb06e5 50,5 tredje måttet 505 mm i källans produktstorlek = 50,5 cm
+d8bb06e5 52 bordsskivans första mått 520 mm i källans skrivbordsstorlek (520×740 mm) = 52 cm
+d8bb06e5 74 bordsskivans andra mått 740 mm = 74 cm
+d8bb06e5 41,4 lådans första mått 414 mm i källan = 41,4 cm
+d8bb06e5 29,6 lådans andra mått 296 mm = 29,6 cm
+d8bb06e5 9,8 lådans tredje mått 98 mm = 9,8 cm
+d8bb06e5 25 pallens diameter 250 mm (φ250 mm × 290 mm) = 25 cm
+d8bb06e5 29 pallens höjd 290 mm = 29 cm

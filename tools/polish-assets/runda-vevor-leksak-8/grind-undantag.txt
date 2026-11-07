@@ -1,0 +1,15 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad är L × B × H = 410 × 300 × 300 mm, och VEVOR:s måttbild (i kallor.json) visar att 410 mm är bredden längs tangenterna och 300 mm djupet och höjden: texten skriver 41 cm brett, 30 cm djupt och 30 cm högt
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans totalmåttrad är kontrollerad mot VEVOR:s måttbild (i kallor.json), där ritningens pilar ger bredd, djup och höjd i samma ordning som raden
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans totalmåttrad är kontrollerad mot VEVOR:s måttbild (i kallor.json), där ritningens pilar ger bredd, djup och höjd i samma ordning som raden
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan saknar totalmåttrad; måtten är lästa ur VEVOR:s måttbild (i kallor.json), där ritningens pilar ger tavlans bredd och höjd och det hopfällda staffliets höjd, bredd och tjocklek
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktstorlek 52,5 x 22,5 x 37 cm har inga axelord, och VEVOR:s måttbild (i kallor.json) visar höjden 37 cm med en lodrät pil och 52,5 cm längs sidan: texten skriver 52,5 cm lång, 22,5 cm bred och 37 cm hög
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans totalmåttrad (1220 x 425 x 930 mm) och VEVOR:s måttbild (1220 x 400 x 935 mm) skiljer sig åt i djup och höjd: texten skriver det lägre måttet för varje axel (40 och 93 cm), i samma ordning som raden
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans totalmåttrad är kontrollerad mot VEVOR:s måttbild (i kallor.json), där ritningens pilar ger bredd, djup och höjd i samma ordning som raden

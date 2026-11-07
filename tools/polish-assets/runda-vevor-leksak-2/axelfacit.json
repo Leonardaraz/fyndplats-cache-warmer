@@ -1,0 +1,28 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "36917bcb": {
+  "tyska": "72 x 96 x 36 in / 1830 x 2440 x 915 mm (Max Assembled Size) (= 183 x 244 x 91,5 cm; längden 2440 mm spänner över kupolen och rutschkanan enligt ritningens pil)",
+  "svenska": "",
+  "axelkalla": "engelska raden 'Product Dimensions' (källan är engelsk och etiketten bar ett bestämningsord)"
+ },
+ "5ec143fb": {
+  "tyska": "120 x 120 x 60 in / 3050 x 3050 x 1525 mm (Max Assembled Size) (= 305 x 305 x 152,5 cm)",
+  "svenska": "",
+  "axelkalla": "engelska raden 'Product Dimensions' (källan är engelsk och etiketten bar ett bestämningsord)"
+ },
+ "6ddcea71": {
+  "tyska": "120 x 120 x 60 in / 3050 x 3050 x 1525 mm (Max Assembled Size) (= 305 x 305 x 152,5 cm)",
+  "svenska": "",
+  "axelkalla": "engelska raden 'Product Dimensions' (källan är engelsk och etiketten bar ett bestämningsord)"
+ },
+ "762a20a6": {
+  "tyska": "72 x 72 x 35.4 in / 1830 x 1830 x 900 mm (Max Assembled Size) (= 183 x 183 x 90 cm)",
+  "svenska": "",
+  "axelkalla": "engelska raden 'Product Dimensions' (källan är engelsk och etiketten bar ett bestämningsord)"
+ },
+ "c8c6a8c8": {
+  "tyska": "144 x 144 x 71.7 in / 3660 x 3660 x 1820 mm (Max Assembled Size) (= 366 x 366 x 182 cm)",
+  "svenska": "",
+  "axelkalla": "engelska raden 'Product Dimensions' (källan är engelsk och etiketten bar ett bestämningsord)"
+ }
+}

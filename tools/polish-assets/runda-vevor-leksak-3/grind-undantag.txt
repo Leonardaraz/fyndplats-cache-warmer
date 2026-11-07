@@ -1,0 +1,8 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan är VEVOR:s svenska utkast, där totalmåttraden heter Produktmått (mm eller tum och mm); måtten är kontrollerade mot VEVOR:s specifikationsbild (i kallor.json), där ritningens pilar ger bredd, djup och höjd i samma ordning som raden
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan är VEVOR:s svenska utkast, där totalmåttraden heter Produktmått (mm eller tum och mm); måtten är kontrollerade mot VEVOR:s specifikationsbild (i kallor.json), där ritningens pilar ger bredd, djup och höjd i samma ordning som raden
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan är VEVOR:s svenska utkast, där totalmåttraden heter Produktmått (mm eller tum och mm); måtten är kontrollerade mot VEVOR:s specifikationsbild (i kallor.json), där ritningens pilar ger bredd, djup och höjd i samma ordning som raden
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan är VEVOR:s svenska utkast, där totalmåttraden heter Produktmått (mm eller tum och mm); måtten är kontrollerade mot VEVOR:s specifikationsbild (i kallor.json), där ritningens pilar ger bredd, djup och höjd i samma ordning som raden

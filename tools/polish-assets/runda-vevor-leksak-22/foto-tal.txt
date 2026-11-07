@@ -1,0 +1,70 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+11350d4b 112 höjden 1120 mm (44 in) på måttbilden, från golvet till nätets överkant = 112 cm
+11350d4b 148 handtagets lägsta höjd 1480 mm (58 in) på måttbilden = 148 cm
+11350d4b 154 handtagets mellanhöjd 1540 mm (60,6 in) på måttbilden = 154 cm
+11350d4b 160 handtagets högsta höjd 1600 mm (63 in) på måttbilden = 160 cm
+11350d4b 150 diametern 1500 mm (59,06 in) på måttbilden och 150 cm i källans titel
+11350d4b 0,8 rörens godstjocklek 0,8 mm (0.03 in) på VEVOR:s bild (Thickened Galvanized Tube Frame)
+11350d4b 3 åldern 3–12 år på VEVOR:s bild (Suitable for Ages 3-12); tre höjder på handtaget (3-Level Adjustable Handlebar)
+11350d4b 12 åldern 3–12 år på VEVOR:s bild (Suitable for Ages 3-12) och i källans fråga om åldersgrupp
+11350d4b 14,36 nettovikten 14,36 kg i källans tabell och på VEVOR:s bild (31.66 lbs / 14.36 kg)
+11350d4b 60 dynamisk last 60 kg i källans tabell och på VEVOR:s bild (132 lbs / 60 kg)
+11350d4b 100 statisk last 100 kg i källans tabell och på VEVOR:s bild (220 lbs / 100 kg)
+11350d4b 30 monteringstiden 30 minuter i källans punkt
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+a2618d26 155,5 höjden 1555 mm (61,22 in) på måttbilden = 155,5 cm
+a2618d26 140 diametern 1400 mm (55,12 in) på måttbilden = 140 cm; källans titel säger 142 cm och det lägre skrivs
+a2618d26 0,8 rörens godstjocklek 0,8 mm (0.03 in) på VEVOR:s bild (Thickened Galvanized Tube Frame)
+a2618d26 3 åldern 3–12 år på VEVOR:s bild (Suitable for Ages 3-12)
+a2618d26 12 åldern 3–12 år på VEVOR:s bild (Suitable for Ages 3-12) och i källans fråga om åldersgrupp
+a2618d26 9,11 nettovikten 9,11 kg i källans tabell och på VEVOR:s bild (20.08 lbs / 9.11 kg)
+a2618d26 60 dynamisk last 60 kg i källans tabell och på VEVOR:s bild (132 lbs / 60 kg)
+a2618d26 100 statisk last 100 kg i källans tabell och på VEVOR:s bild (220 lbs / 100 kg)
+a2618d26 30 monteringstiden 30 minuter i källans punkt
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+10f17f3e 15,2 sökspolen 6 tum / 15,24 cm på VEVOR:s specifikationsbild och 15,2 cm i källans titel
+10f17f3e 91,4 skaftets största längd 36 tum / 91,4 cm på VEVOR:s bild och i källans titel (914 mm i tabellen)
+10f17f3e 66 skaftets minsta längd 26 tum / 66 cm på VEVOR:s bild och i källans titel (660 mm i tabellen)
+10f17f3e 15 detektionsdjupet 15 cm i källans tabell (6 in på VEVOR:s bild)
+10f17f3e 800 ljudfrekvensen 800–1000 Hz i källans tabell
+10f17f3e 1000 ljudfrekvensen 800–1000 Hz i källans tabell
+10f17f3e 0,95 nettovikten 0,95 kg i källans tabell
+10f17f3e 75 ljudnivån minst 75 dB i källans tabell
+10f17f3e 5,8 frekvensen 5,8 kHz i källans tabell
+10f17f3e 7,6 spänningen 7,6–9,6 V i källans tabell
+10f17f3e 9,6 spänningen 7,6–9,6 V i källans tabell
+10f17f3e 6 sökspolen 6 tum i källans tabell och på VEVOR:s bild (6 in Dia. Search Coil)
+10f17f3e 68 IP68 i källans tabell och på VEVOR:s bild
+10f17f3e 50 arbetsmiljön −10 till 50 °C i källans tabell
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+ea4d297c 150 måtten 1500 mm (59,1 in) på VEVOR:s måttbild och i källans titel och tabell = 150 cm
+ea4d297c 20 tjockleken 200 mm (7,87 in) på VEVOR:s måttbild = 20 cm; källans tabell säger 300 mm och det lägre skrivs
+ea4d297c 15 fyllningen cirka 15 kg på VEVOR:s måttbild (33 lbs / 15 kg) och i källans punkt
+ea4d297c 300 överdraget i 300D Oxfordtyg i källans tabell och på VEVOR:s bild (300D Oxford Fabric)
+ea4d297c 24 skummet behöver 24–48 timmar för att expandera efter uppackning (noten på VEVOR:s måttbild)
+ea4d297c 48 skummet behöver 24–48 timmar för att expandera efter uppackning (noten på VEVOR:s måttbild)
+ea4d297c 15,85 nettovikten 15,85 kg i källans tabell
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+6753275a 150 måtten 1500 mm (59,1 in) på VEVOR:s måttbild och i källans titel och tabell = 150 cm
+6753275a 20 tjockleken 200 mm (7,87 in) på VEVOR:s måttbild = 20 cm; källans tabell säger 300 mm och det lägre skrivs
+6753275a 15 fyllningen cirka 15 kg på VEVOR:s måttbild (33 lbs / 15 kg) och i källans punkt
+6753275a 24 skummet behöver 24–48 timmar för att expandera efter uppackning (noten på VEVOR:s måttbild)
+6753275a 48 skummet behöver 24–48 timmar för att expandera efter uppackning (noten på VEVOR:s måttbild)
+6753275a 16,25 nettovikten 16,25 kg i källans tabell
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+4dfca151 33 bredden och djupet 330 mm (13 in) på VEVOR:s måttbild och i källans tabell = 33 cm
+4dfca151 37 höjden 370 mm (14,6 in) på VEVOR:s måttbild och i källans tabell = 37 cm
+4dfca151 36 förpackningens längd 360 mm (14,2 in) i källans tabell = 36 cm
+4dfca151 31,5 förpackningens bredd 315 mm (12,4 in) i källans tabell = 31,5 cm
+4dfca151 36,5 förpackningens höjd 365 mm (14,4 in) i källans tabell = 36,5 cm
+4dfca151 1,88 vikten 1,88 kg i källans tabell och på VEVOR:s måttbild (4.15 lbs / 1.88 kg)
+4dfca151 60 60 delar i källans tabell och på VEVOR:s måttbild (60 Pieces)
+4dfca151 34 34 plastskruvar i tillbehörslistan på VEVOR:s måttbild (34 x Plastic Screws)
+4dfca151 3 åldern från 3 år i källans tabell; 3 AA-batterier till motorn i källans punkt och på VEVOR:s bild
+4dfca151 2 2 AAA-batterier till den elektriska skruvdragaren i noten på VEVOR:s bild (requires 2 AAA batteries)

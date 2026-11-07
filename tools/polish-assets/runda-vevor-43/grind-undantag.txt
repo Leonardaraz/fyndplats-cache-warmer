@@ -1,0 +1,12 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Produktmått (vid 180°) och (vid 90°) utan axelord, men måttbilden (bild 7) ritar 18,3 in (465 mm) som bredd, 36,7 in (930 mm) som längd och 3,2 in (80 mm) som tjocklek nedfälld, och 20,9 in (530 mm) som djup och 20,5 in (520 mm) som höjd med ryggstödet upprätt: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans punkt 1 har måtten 1713 x 815 x 195 mm utan axelord, men måttbilden (bild 2) ritar 67,44 in (1713 mm) som höjd, 32,09 in (815 mm) som bredd och 7,68 in (195 mm) som djup med pilar, och 24,41 in (620 mm) som bredd och 35,43 in (900 mm) som höjd för utrymmet under skåpet: texten skriver höjd, bredd och djup ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 800 x 625 x 800 mm utan axelord, men måttbilden (bild 7) ritar ringens bredd 800 mm, sitsens djup 625 mm och höjden 1200 mm från upphängningspunkten med pilar, och dynan 1480 mm lång (680 plus 800 mm) och 1100 mm bred som bredast: texten skriver ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 924 x 445 x 818 mm utan axelord, men måttbilden (bild 2) ritar 36,4 in (924 mm) som bredd, 17,5 in (445 mm) som djup och 32,2 in (820 mm) som höjd med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 28 x 28 x 16 tum / 711,2 x 711,2 x 406,4 mm utan axelord, men måttbilden (bild 7) ritar 28 in (711,2 mm) i bredd och djup och 16 in (406,4 mm) som höjd med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (L x B x H) 500 x 500 x 430 mm med engelska etiketter men utan svenska axelord, och måttbilden (bild 7) ritar 19,69 in (500 mm) som längd och bredd och 16,93 in (430 mm) som höjd med pilar: texten skriver längd, bredd och höjd ur ritningen

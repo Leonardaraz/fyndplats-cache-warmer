@@ -1,0 +1,16 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+80d847fa 63,5 belastningen 140 lbs på bilden Thick Steel Construction, som är 63,5 kg (specifikationen säger 65 kg: det lägre skrivs)
+80d847fa 60 rördiametern 60 mm på bilden Thick Steel Construction
+80d847fa 1,5 godstjockleken 1.5 mm på bilden Thick Steel Construction
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+bc47e696 63,5 belastningen 140 lbs på bilden Thick Steel Construction, som är 63,5 kg (specifikationen säger 65 kg: det lägre skrivs)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+a07a1bfd 120 rekommenderad last 264.6 lb / 120 kg på bilden Haul 4 Bags of Soil in One Go
+a07a1bfd 4 4 säckar jord på bilden Haul 4 Bags of Soil in One Go
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>

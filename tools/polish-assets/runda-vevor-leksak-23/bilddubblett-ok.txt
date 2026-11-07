@@ -1,0 +1,8 @@
+661b2d9c:2 7082b50c:2 samma scen med paret som kastar, men brädan på bilden bär sidans eget mönster (rött och gult mot amerikanskt motiv): olika varor
+661b2d9c:2 a6a8c377:2 samma scen med paret som kastar, men brädan på bilden bär sidans eget mönster (rött och gult mot obehandlad plywood): olika varor
+661b2d9c:3 a6a8c377:3 samma bräda från samma vinkel, men med sidans eget mönster (rött och gult mot obehandlad plywood): olika varor
+661b2d9c:5 7082b50c:5 samma bräda från samma vinkel, men med sidans eget mönster (rött och gult mot amerikanskt motiv): olika varor
+661b2d9c:5 a6a8c377:5 samma bräda från samma vinkel, men med sidans eget mönster (rött och gult mot obehandlad plywood): olika varor
+7082b50c:2 a6a8c377:2 samma scen med paret som kastar, men brädan på bilden bär sidans eget mönster (amerikanskt motiv mot obehandlad plywood): olika varor
+7082b50c:3 a6a8c377:3 samma bräda från samma vinkel, men med sidans eget mönster (amerikanskt motiv mot obehandlad plywood): olika varor
+7082b50c:5 a6a8c377:5 samma bräda från samma vinkel, men med sidans eget mönster (amerikanskt motiv mot obehandlad plywood): olika varor

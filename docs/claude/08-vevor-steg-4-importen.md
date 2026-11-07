@@ -69,7 +69,8 @@ Kön (/admin/queue) visar flaggorna, filtrerar på leverantör och visar högst
 
 **Utkasten saknar "EU-lager"-märkningen.** Sidan säger bara att lagret är
 VEVOR:s EU-lager, inte vilket land. Mappningen bär `hasEuWarehouse: true`
-och en tom landlista. Märkningen avgörs vid publiceringen.
+och en tom landlista. Leonard har avgjort (2026-11-03) att VEVOR-varor är EU-varor
+och ska bära märkningen, men importen sätter den inte än (se `docs/polish/vevor.md`, *EU-lager*).
 
 **Vad det kostar:** en produkt tar 5–10 sekunder (sex bilder i följd och
 skapandet), så hela katalogen är ungefär ett och ett halvt dygn funktionstid.

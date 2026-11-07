@@ -1,0 +1,4 @@
+# kort pos1 pos2 skäl (kvitterar ett par som gate-bilddubblett.py flaggar som misstänkt men som visar något olika)
+da2884e1:1 da2884e1:4 olika vyer: panelen rakt framifrån respektive snett uppifrån, bilderna är nästan helvita och liknar därför varandra i måttet
+da2884e1:1 da2884e1:5 olika vyer: hel panel respektive närbild på bikakeprofilens kant
+da2884e1:4 da2884e1:5 olika vyer: hel panel snett uppifrån respektive närbild på bikakeprofilens kant

@@ -1,0 +1,40 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+674b2a46 226 längden 2260 mm (89 in) på VEVOR:s måttritning och i källans rad = 226 cm
+674b2a46 127 bredden 1270 mm (50 in) på måttritningen och i källans rad = 127 cm
+674b2a46 82 höjden 820 mm (32 in) på måttritningen och i källans rad = 82 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+8f175d45 183 längden 1830 mm (72 in) på VEVOR:s måttritning och i källans rad = 183 cm
+8f175d45 102 bredden 1020 mm (40 in) på måttritningen och i källans rad = 102 cm
+8f175d45 79 höjden 790 mm (31 in) på måttritningen och i källans rad = 79 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+d8f5e5ad 152,5 längden 1525 mm (60 in) på VEVOR:s måttritning och i källans rad = 152,5 cm
+d8f5e5ad 76,5 bredden 765 mm (30 in) på måttritningen och i källans rad = 76,5 cm
+d8f5e5ad 82 höjden 820 mm (32 in) på måttritningen och i källans rad = 82 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+ccf54a6a 140 längden 1400 mm (55,1 in) på VEVOR:s måttritning och i källans rad = 140 cm
+ccf54a6a 72,6 bredden 726 mm (28,6 in) i källans rad; måttritningen säger 745 mm (29,3 in): det lägre skrivs (Leonards regel)
+ccf54a6a 86,4 höjden 864 mm (34 in) i källans rad; måttritningen säger 880 mm (34,6 in): det lägre skrivs (Leonards regel)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+c737abea 137,2 längden 1372 mm (54 in) på VEVOR:s måttritning och i källans rad = 137,2 cm
+c737abea 73,7 bredden 737 mm (29 in) i källans rad; måttritningen säger 745 mm (29,3 in): det lägre skrivs (Leonards regel)
+c737abea 87,8 höjden 878 mm (34,6 in) på måttritningen och i källans rad = 87,8 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+6c689929 271 längden 2710 mm (107 in) på VEVOR:s måttritning och i källans rad = 271 cm
+6c689929 62 bredden 620 mm (24,4 in) på måttritningen och i källans rad = 62 cm
+6c689929 154 höjden 1540 mm (60,6 in) på måttritningen och i källans rad = 154 cm
+6c689929 193 banans längd 1930 mm (76 in) i specifikationskortet = 193 cm
+6c689929 44 banans bredd 440 mm (17,3 in) i specifikationskortet = 44 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+e5a6096f 234 längden 2340 mm (92 in) på VEVOR:s måttritning och i källans rad = 234 cm
+e5a6096f 48,7 bredden 487 mm (19 in) på måttritningen och i källans rad = 48,7 cm
+e5a6096f 140 höjden 1400 mm (55 in) på måttritningen och i källans rad = 140 cm
+e5a6096f 178,5 banans längd 1785 mm (70,3 in) i specifikationskortet = 178,5 cm
+e5a6096f 186 banans längd med hörnen 1860 mm (73,2 in) i specifikationskortet = 186 cm
+e5a6096f 43,8 banans bredd 438 mm (17,2 in) i specifikationskortet = 43,8 cm

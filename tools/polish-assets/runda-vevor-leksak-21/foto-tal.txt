@@ -1,0 +1,88 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+80185167 398 bredden 3980 mm (13.1 ft) på måttritningens framkant = 398 cm
+80185167 382 djupet 3820 mm (12.5 ft) på måttritningens sida = 382 cm
+80185167 197 höjden 1970 mm (6.5 ft) på måttritningen och i källans tabell = 197 cm
+80185167 15 ytan cirka 15 m² i källans punkt och på VEVOR:s bild (15 sq m)
+80185167 18,8 nettovikten 18,8 kg i källans tabell
+80185167 160 viktkapaciteten 160 kg totalt i källans tabell och på måttbilden (353 lbs / 160 kg)
+80185167 40 högst 40 kg per barn på måttbilden (Per Child Max 88 lbs / 40 kg)
+80185167 550 fläkten på 550 W på VEVOR:s bild (550W)
+80185167 3 åldern 3–8 år i källans tabell och måttbilden; 3 sprutmunstycken i tillbehörsbilden (3 Spray Nozzles)
+80185167 4 3–4 barn i källans tabell; 4 pinnar för fläkten, 4 lagningslappar och 4 kastringar i tillbehörsbilden
+80185167 7 7 markpinnar i tillbehörsbilden (7 Ground Stakes)
+80185167 2 2 slangklämmor i tillbehörsbilden; under 2 minuter i källans punkt
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+bf0ee5ca 347 bredden 3470 mm (11.4 ft) på måttritningens framkant = 347 cm
+bf0ee5ca 405 djupet 4050 mm (13.3 ft) på måttritningens sida = 405 cm
+bf0ee5ca 255 höjden 2550 mm (8.4 ft) på måttritningen och i källans tabell = 255 cm
+bf0ee5ca 14 ytan cirka 14 m² i källans punkt och på VEVOR:s bild (14 sq m)
+bf0ee5ca 21,9 nettovikten 21,9 kg i källans tabell
+bf0ee5ca 160 viktkapaciteten 160 kg totalt i källans tabell och på måttbilden (353 lbs / 160 kg)
+bf0ee5ca 40 högst 40 kg per barn på måttbilden (Per Child Max 88 lbs / 40 kg)
+bf0ee5ca 550 fläkten på 550 W på VEVOR:s bild (550W)
+bf0ee5ca 3 åldern 3–8 år i källans tabell och måttbilden; 3 sprutmunstycken och 3 vattenpistoler av EVA-skum i tillbehörsbilden
+bf0ee5ca 4 3–4 barn i källans tabell; 4 pinnar för fläkten och 4 lagningslappar i tillbehörsbilden
+bf0ee5ca 8 8 markpinnar i tillbehörsbilden (8 Ground Stakes); åldern 3–8 år
+bf0ee5ca 2 2 höga rutschkanor i källans titel (dubbla höga rutschkanor); 2 slangklämmor i tillbehörsbilden; under 2 minuter i källans punkt
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+407dfb47 353 bredden 3530 mm (11.6 ft) på måttritningens framkant och i källans tabell = 353 cm
+407dfb47 400 djupet 4000 mm (13.1 ft) på måttritningens sida och i källans tabell = 400 cm
+407dfb47 235 höjden 2350 mm (7.7 ft) på måttritningen och i källans tabell = 235 cm
+407dfb47 14 ytan cirka 14 m² i källans punkt och på VEVOR:s bild (14m2)
+407dfb47 18 nettovikten 18 kg i källans tabell
+407dfb47 160 viktkapaciteten 160 kg totalt i källans tabell och på måttbilden (353 lbs / 160 kg)
+407dfb47 40 högst 40 kg per barn på måttbilden (Per Child Max 88 lbs / 40 kg)
+407dfb47 550 fläkten på 550 W (EU) på VEVOR:s bild (US 480W och EU 550W)
+407dfb47 3 åldern 3–8 år i källans tabell och måttbilden
+407dfb47 4 3–4 barn i källans tabell; 4 pinnar för fläkten, 4 lagningslappar och 4 kastringar i tillbehörsbilden
+407dfb47 6 6 markpinnar i tillbehörsbilden (6 Ground Stakes)
+407dfb47 2 2 sprutmunstycken och 2 slangklämmor i tillbehörsbilden; under 2 minuter i källans punkt
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+055bc6aa 455 bredden 4550 mm (14.9 ft) på måttritningens framkant och i källans tabell = 455 cm
+055bc6aa 390 djupet 3900 mm (12.8 ft) på måttritningens sida och i källans tabell = 390 cm
+055bc6aa 238 höjden 2380 mm (7.8 ft) på måttritningen och i källans tabell = 238 cm
+055bc6aa 17 ytan cirka 17 m² i källans punkt och på VEVOR:s bild (17 sq m)
+055bc6aa 22,3 nettovikten 22,3 kg i källans tabell
+055bc6aa 160 viktkapaciteten 160 kg totalt i källans tabell och på måttbilden (353 lbs / 160 kg)
+055bc6aa 40 högst 40 kg per barn på måttbilden (Per Child Max 88 lbs / 40 kg)
+055bc6aa 550 fläkten på 550 W på VEVOR:s bild (550W)
+055bc6aa 3 åldern 3–8 år i källans tabell och måttbilden
+055bc6aa 4 3–4 barn i källans tabell; 4 pinnar för fläkten och 4 lagningslappar i tillbehörsbilden
+055bc6aa 8 8 markpinnar i tillbehörsbilden (8 Ground Stakes); åldern 3–8 år
+055bc6aa 2 2 sprutmunstycken och 2 slangklämmor i tillbehörsbilden; under 2 minuter i källans punkt
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+e18772a3 344 bredden 3440 mm (11.3 ft) på måttritningens framkant och i källans tabell = 344 cm
+e18772a3 374 djupet 3740 mm (12.3 ft) på måttritningens sida och i källans tabell = 374 cm
+e18772a3 213 höjden 2130 mm (7 ft) på måttritningen och i källans tabell = 213 cm
+e18772a3 11,5 ytan cirka 11,5 m² i källans punkt och på VEVOR:s bild (11.5 sq m)
+e18772a3 20,8 nettovikten 20,8 kg i källans tabell
+e18772a3 160 viktkapaciteten 160 kg totalt i källans tabell och på måttbilden (353 lbs / 160 kg)
+e18772a3 40 högst 40 kg per barn på måttbilden (Per Child Max 88 lbs / 40 kg)
+e18772a3 550 fläkten på 550 W (EU) på VEVOR:s bild (US 480W och EU 550W)
+e18772a3 3 åldern 3–8 år i källans tabell och måttbilden
+e18772a3 4 3–4 barn i källans tabell; 4 pinnar för fläkten, 4 lagningslappar och 4 kastringar i tillbehörsbilden
+e18772a3 6 6 markpinnar i tillbehörsbilden (6 Ground Stakes)
+e18772a3 2 2 sprutmunstycken och 2 slangklämmor i tillbehörsbilden; under 2 minuter i källans punkt
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+c795b5d0 448 bredden 4480 mm (14.7 ft) på måttritningens framkant och i källans tabell = 448 cm
+c795b5d0 420 djupet 4200 mm (13.8 ft) på måttritningens sida och i källans tabell = 420 cm
+c795b5d0 207 höjden 2070 mm (6.8 ft) på måttritningen och i källans tabell = 207 cm
+c795b5d0 20 ytan cirka 20 m² i källans punkt och på VEVOR:s bild (20 sq m)
+c795b5d0 25,8 nettovikten 25,8 kg i källans tabell
+c795b5d0 160 viktkapaciteten 160 kg totalt i källans tabell och på måttbilden (353 lbs / 160 kg)
+c795b5d0 40 högst 40 kg per barn på måttbilden (Per Child Max 88 lbs / 40 kg)
+c795b5d0 750 fläkten på 750 W på VEVOR:s bild (750W)
+c795b5d0 120 uppblåsning på 120 sekunder i källans punkt och på VEVOR:s bild (Complete inflation in 120 seconds)
+c795b5d0 3 åldern 3–8 år i källans tabell och måttbilden
+c795b5d0 4 3–4 barn i källans tabell; 4 pinnar för fläkten och 4 lagningslappar i tillbehörsbilden
+c795b5d0 9 9 markpinnar i källans punkt och tillbehörsbilden (9 Ground Stakes)
+c795b5d0 8 8 bollar till målspelet i källans punkt och tillbehörsbilden (8 Target Balls); åldern 3–8 år
+c795b5d0 2 2 PVC-basketbollar i källans punkt och tillbehörsbilden
+c795b5d0 50 50 lekbollar i källans punkt och tillbehörsbilden (50 Play Balls)
+c795b5d0 5 uppblåsning i 5 steg på VEVOR:s bild (Boundless Fun is 5 Steps Away)

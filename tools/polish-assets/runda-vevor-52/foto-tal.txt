@@ -1,0 +1,36 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+90a1ebb2 50 hårdheten 50 HRC i punkt 1 och på måttbilden (Rockwell Hardness 50 HRC); specifikationen säger 60 HRC, och det lägre skrivs
+90a1ebb2 29 vikten 29 kg i punkt 1; titeln säger 30 kg / 66,1 pund, och det lägre skrivs
+90a1ebb2 17,78 det runda hålet 0,7 tum / 17,78 mm på måttbilden; specifikationen säger 19 mm, och det lägre skrivs
+90a1ebb2 110 toppens bredd 110 mm i specifikationen och 4,3 tum (109,2 mm) på måttbilden; punkt 4 säger 11,5 cm, och det lägre skrivs
+90a1ebb2 150 städets bredd 150 mm i specifikationen och 6 tum (152,4 mm) på måttbilden, och det lägre skrivs
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+329e58e7 7 sju höjdlägen i punkt 2 och på bilden 7-Level Height Adjustment
+329e58e7 935 justeringsområdet 37 till 49 tum (935 till 1250 mm) på bilden 7-Level Height Adjustment; punkt 2 skriver 93,5 mm, en felskrivning
+329e58e7 1250 justeringsområdets övre gräns 1250 mm på bilden 7-Level Height Adjustment och måttbildens höjd
+329e58e7 363 viktkapaciteten 363 kg i titeln, punkt 1 och specifikationen (800 lbs / 362,87 kg på bilden)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+15e137d1 180 lastkapaciteten 180 kg i punkt 1; titeln och bilden säger 440 lbs (200 kg), och det lägre skrivs
+15e137d1 2 rör på 2 mm på bilden Upgraded Craftsmanship (2 mm Thickened Tube) och i punkt 2
+15e137d1 5 lårdynan på 5 cm i punkt 3 (50 mm i specifikationen) och fem höjdlägen i punkt 4
+15e137d1 152 användarlängden 5 till 6,5 fot (152 till 198 cm) på bilden User-oriented Design
+15e137d1 198 användarlängden 5 till 6,5 fot (152 till 198 cm) på bilden User-oriented Design
+15e137d1 591 bredden 23 tum / 591 mm på måttbilden (specifikationen skriver 56 x 35 x 23 tum, alltså längd, höjd, bredd)
+15e137d1 893 höjden 35 tum / 893 mm på måttbilden
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+de1866f3 50 femtio platser i titeln, punkt 1 och specifikationen
+de1866f3 20 maximal belastning 20 kg i punkt 2 och på bilden Thick Density Board (44 lbs); produktvikten är 20,25 kg i specifikationen
+de1866f3 30 monteringen tar en halvtimme (30 minuter) i punkt 4
+de1866f3 12 spånskivan på 12 mm i specifikationen och på bilden Thick Density Board
+de1866f3 3 densitetsskivan på 3 mm i specifikationen och på bilden Thick Density Board
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+7dee9967 15 lutningssteg på 15 grader på bilden 0° to 90° Adjustable Desktop (15° Increments for Precision Adjustment)
+7dee9967 0 lutningen från 0 till 90 grader i punkt 1 och på bilden 0° to 90° Adjustable Desktop
+7dee9967 90 lutningen från 0 till 90 grader i punkt 1 och på bilden 0° to 90° Adjustable Desktop
+7dee9967 40 belastningen 40 kg i punkt 4 och på bilden Reliable H-Frame Support Structure (88 lbs / 40 kg)
+7dee9967 1 pappersformatet A1 i punkt 2 (skivan 600 × 900 mm rymmer ett A1-papper på 594 × 841 mm)

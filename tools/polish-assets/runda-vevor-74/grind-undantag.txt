@@ -1,0 +1,12 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen måttrad med bredd, djup och höjd, bara kabellängden 30 480 mm och ljusavståndet 3048 mm som enskilda mått: texten skriver dem som kabellängd och avstånd mellan lamporna
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 14,1 x 11,6 x 14,5 tum / 358 x 295 x 369 mm utan axelord, och källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar höjden 369 mm (14,5 tum), bredden 295 mm (11,6 tum) längs framsidan med kontrollpanelen och djupet 358 mm (14,1 tum) längs sidan: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 390 x 310 x 310 mm utan axelord, och källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar bredden 390 mm (15,4 tum) längs framsidan med kontrollpanelen, djupet 310 mm (12,2 tum) och höjden 310 mm (12,2 tum): texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans svenska specifikation har ingen måttrad, och källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar längden med handtaget plant 350 mm (13,8 tum), basens längd 250 mm (9,8 tum) och höjden 120 mm (4,7 tum): texten skriver dem som längd utan handtag, längd med handtaget plant och höjd
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 537 x 91 x 39 mm utan axelord, och källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar spärrhandtagets längd 537 mm (21,1 tum), huvudets bredd 91 mm (3,6 tum) och greppets tjocklek 39 mm (1,5 tum): texten skriver bara längden 537 mm
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek 5,6 x 3,4 x 11,7 tum / 143 x 87 x 297 mm utan axelord, och källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar fotplattans två sidor 143 mm (5,6 tum) och 87 mm (3,4 tum) och höjden 297 mm (11,7 tum) hopfälld: texten skriver dem som fotplatta och hopfälld höjd

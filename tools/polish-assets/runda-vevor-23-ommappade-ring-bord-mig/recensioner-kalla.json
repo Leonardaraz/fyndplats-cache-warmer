@@ -1,0 +1,45 @@
+{
+  "a7129990": {
+    "productId": "a7129990-0fd9-4b91-962b-f37af8144a49",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "85996bde": {
+    "productId": "85996bde-2452-4a2d-882d-4b60972679bd",
+    "synliga": 8,
+    "dolda": 1,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-6s7ggs",
+        "betyg": 5,
+        "datum": "2026-08-25",
+        "foton": 1,
+        "text": "A simple vista, parece que cumple con su función. Armarios grandes y espaciosos y mesa robusta. Aún no lo he probado en camping pero creo que dará buen resultado"
+      }
+    ]
+  },
+  "d211a4fd": {
+    "productId": "d211a4fd-9ec4-4ade-bc7d-178e90a98f9c",
+    "synliga": 11,
+    "dolda": 1,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-7fbvwy",
+        "betyg": 5,
+        "datum": "2026-10-18",
+        "foton": 0,
+        "text": "Kjøpte den grunnet prise og funksjoner på sveiseapparatet..."
+      }
+    ]
+  }
+}

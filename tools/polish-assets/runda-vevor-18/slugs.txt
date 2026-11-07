@@ -1,0 +1,8 @@
+3b518912 dieselvarmare-5-8-kw-bla-10-l-tank-lcd-fjarrkontroll
+347f36e8 dieselvarmare-2-kw-orange-10-l-tank-lcd-fjarrkontroll
+b502c29b dieselvarmare-5-8-kw-orange-bluetooth-hojdkompensation
+799c7c32 dieselvarmare-2-kw-orange-bluetooth-hojdkompensation
+5d849a7c dieselvarmare-5-8-kw-orange-separat-tank-fargdisplay
+1ac61ce0 dieselvarmare-5-8-kw-vit-12-v-10-l-tank-lcd
+93e761b2 dieselvarmare-5-8-kw-kolfiber-12-v-10-l-tank
+fea3552d dieselvarmare-2-kw-rod-12-v-10-l-tank-lcd

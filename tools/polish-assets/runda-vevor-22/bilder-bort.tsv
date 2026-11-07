@@ -1,0 +1,3 @@
+146c4792	3	en hängetikett med texten 2500 lbs ligger över bilden (säljgrafik med engelsk text och pund), så bilden stryks
+9dd9b625	3	samma bild som position 3 på 146c4792 med hängetiketten 2500 lbs (säljgrafik med engelsk text och pund), så bilden stryks
+38b49508	6	samma bild från samma vinkel som position 1 (gate-bilddubblett.py: 0,000), så position 1 behålls

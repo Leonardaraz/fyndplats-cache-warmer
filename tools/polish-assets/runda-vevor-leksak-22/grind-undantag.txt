@@ -1,0 +1,12 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Storlek 1540 mm (handtagets mellanhöjd) har inga axelord, men VEVOR:s måttritning (i kallor.json) ritar måtten med pilar: texten skriver diameter och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Dynamisk viktkapacitet (inga mått i tabellen) har inga axelord, men VEVOR:s måttritning (i kallor.json) ritar måtten med pilar: texten skriver diameter och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad med tre mått, och texten skriver bara skaftets justerbara längd 66–91,4 cm (Handtagslängd 660,4–914,4 mm i tabellen): inga axelord för bredd, djup eller höjd
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (59,1 x 59,1 x 11,8 tum / 1500 x 1500 x 300 mm) har inga axelord, och texten skriver måtten 150 × 150 × 20 cm, utan axelord, med tjockleken 20 cm ur VEVOR:s måttbild: inget byte av axlar är möjligt
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (59,1 x 59,1 x 11,8 tum / 1500 x 1500 x 300 mm) har inga axelord, och texten skriver måtten 150 × 150 × 20 cm, utan axelord, med tjockleken 20 cm ur VEVOR:s måttbild: inget byte av axlar är möjligt
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (330 x 330 x 370 mm) har inga axelord, och texten skriver måtten 33 × 33 × 37 cm, utan axelord: inget byte av axlar är möjligt

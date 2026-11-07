@@ -1,0 +1,178 @@
+name: Kategori — ta bort felaktiga kategorilänkar
+
+# Tar bort kategorilänkar som importen lade på en vara och som inte passar
+# (Leonard 2026-11-02: "Fixa punkt 2"). Poleringens skrivning och "VEVOR —
+# kategorier till utkasten" lägger bara till, så en felaktig länk satt kvar tills
+# den togs bort i en egen åtgärd. Det här är den åtgärden. Runbooken förbjuder
+# handbyggda skrivningar i Wix.
+#
+# Planen är en liten fil i grenen: tools/polish-assets/kategori-bort/<plan>.json.
+# Per vara står vad som ska BORT och vad som ska ligga KVAR (kategorierna som
+# sökvägar, "Kök & Husgeråd > Köksmaskiner & Apparater"). Reglerna bor i
+# lib/polish/kategori-bort.ts, via /api/admin/kategori-bort.
+#
+# Lägen:
+#   torr       läser trädet och varje vara, prövar villkoren och räknar länkarna som
+#              tas bort. Skriver ingenting. Ange antalet i `bekrafta` i läget skriv.
+#   skriv      kräver `bekrafta` = torrkörningens antal. Prövar alla villkor för alla
+#              varor före första skrivningen, tar bort länkarna, väntar och läser
+#              sedan tillbaka (verifiera) en gång till om något faller.
+#   verifiera  läser bara: varje borttagen länk ska vara borta och varje länk som
+#              ska ligga kvar ska finnas.
+#
+# Ordningen: torr, skriv med torrens antal, verifiera (görs av skriv).
+#
+# ☠️ RUTTEN ÄR DEPLOYAD FRÅN `main`. `ref` styr bara vilken planfil workflowen läser,
+# inte vilken kod rutten kör. En ny regel i lib/polish/kategori-bort.ts finns för
+# den som kör workflowen först när den är mergad.
+#
+# ☠️ LOGGEN ÄR PUBLIK. Jobbet skriver bara kort-id, kategorinamn, ok/fel och antal.
+#
+# Samma kö som skrivningen av en runda: två skrivningar mot samma butik samtidigt
+# kan ge revisionskonflikter.
+
+on:
+  workflow_dispatch:
+    inputs:
+      plan:
+        description: "Planens namn: tools/polish-assets/kategori-bort/<plan>.json, t.ex. vevor-1"
+        required: true
+        type: string
+      plan_sha256:
+        description: "sha256 av planfilen — sha256sum tools/polish-assets/kategori-bort/<plan>.json"
+        required: true
+        type: string
+      lage:
+        description: "torr = pröva, skriv inget · skriv = ta bort och verifiera · verifiera = bara läs"
+        required: true
+        default: "torr"
+        type: choice
+        options:
+          - torr
+          - skriv
+          - verifiera
+      bekrafta:
+        description: "Läget skriv: antalet länkar som torrkörningen sa att den tar bort"
+        required: false
+        default: ""
+        type: string
+
+concurrency:
+  group: polish-write
+  cancel-in-progress: false
+
+jobs:
+  kor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          PLAN: ${{ inputs.plan }}
+          PLAN_SHA256: ${{ inputs.plan_sha256 }}
+          LAGE: ${{ inputs.lage }}
+          BEKRAFTA: ${{ inputs.bekrafta }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          if ! [[ "${PLAN}" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]]; then
+            echo "::error::plan ska ha formen vevor-1 (små bokstäver, siffror och bindestreck)" >&2
+            exit 1
+          fi
+          if ! [[ "${PLAN_SHA256}" =~ ^[0-9a-f]{64}$ ]]; then
+            echo "::error::plan_sha256 ska vara 64 hextecken" >&2
+            exit 1
+          fi
+          if [ -n "${BEKRAFTA}" ] && ! [[ "${BEKRAFTA}" =~ ^[0-9]+$ ]]; then
+            echo "::error::bekrafta ska vara ett heltal" >&2
+            exit 1
+          fi
+
+          fil="tools/polish-assets/kategori-bort/${PLAN}.json"
+          if [ ! -f "${fil}" ]; then
+            echo "::error::${fil} finns inte på ${GITHUB_REF_NAME} — kör mot grenen som bär planen, inte main" >&2
+            exit 1
+          fi
+          faktisk=$(sha256sum "${fil}" | cut -d' ' -f1)
+          if [ "${faktisk}" != "${PLAN_SHA256}" ]; then
+            echo "::error::${fil} på ${GITHUB_REF_NAME} har sha256 ${faktisk}, inte den angivna. Fel gren, eller en plan som ändrats efter pushen? Ingenting skrivet." >&2
+            exit 1
+          fi
+          echo "Plan: ${fil} ($(jq '.rader | length' "${fil}") varor), ${GITHUB_REF_NAME}@${GITHUB_SHA:0:7}, läge ${LAGE}"
+
+          rot="${BASE%/api/cron/poll-tracking}"
+
+          # Ett anrop mot rutten. Svaret hamnar i svar.json; returnerar 0 bara när
+          # rutten svarar ok. Skriver bara kort, kategorinamn, ok/fel och antal.
+          anropa() {
+            jq -c --arg l "$1" --arg b "$2" \
+              '{lage: $l, plan: .} + (if $b != "" then {bekrafta: ($b | tonumber)} else {} end)' \
+              "${fil}" > kropp.json
+            http=$(curl -sS --max-time 310 -o svar.json -w '%{http_code}' -X POST \
+              -H "Authorization: Bearer ${CRON_SECRET}" \
+              -H "Content-Type: application/json" \
+              --data-binary @kropp.json \
+              "${rot}/api/admin/kategori-bort") || http="000"
+            if ! jq -e . svar.json > /dev/null 2>&1; then
+              echo "== $1: HTTP ${http}, svaret är inte JSON" >&2
+              return 1
+            fi
+            echo "== $1 (HTTP ${http}): $(jq -r '.sammanfattning // .error // "?"' svar.json)"
+            jq -r '.avbrutet // empty | "   AVBRUTET: \(.)"' svar.json
+            jq -r '.fel[]? | "   plan: \(.)"' svar.json
+            jq -r '.rader[]? | "   \(.kort // "-")\(if .kat then " [\(.kat)]" else "" end) \(if .ok then "ok" else "FEL: \(.fel // "?")" end)\(if .redan then " (redan borta)" else "" end)\(if .lankar != null then " — \(.lankar) direkta länkar" else "" end)"' svar.json
+            [ "$(jq -r '.ok' svar.json)" = "true" ]
+          }
+
+          # Läser om en gång efter en paus om något faller: läsprojektionen släpar
+          # ibland efter skrivningen.
+          verifiera() {
+            if ! anropa verifiera ""; then
+              echo "Något föll — väntar 60 s och läser om (projektionen kan släpa)."
+              sleep 60
+              anropa verifiera ""
+            fi
+          }
+
+          sammanfatta() {
+            {
+              echo "### kategori-bort ${PLAN} — ${LAGE}"
+              echo "$(jq -r '.sammanfattning // .error // "?"' svar.json)"
+            } >> "${GITHUB_STEP_SUMMARY}"
+          }
+
+          case "${LAGE}" in
+            torr)
+              anropa torr ""
+              sammanfatta
+              echo "Att ta bort: $(jq -r '.attTaBort' svar.json). Ange det i bekrafta när du kör läget skriv."
+              ;;
+            skriv)
+              if [ -z "${BEKRAFTA}" ]; then
+                echo "::error::Läget skriv kräver bekrafta = antalet länkar som torrkörningen sa att den tar bort" >&2
+                exit 1
+              fi
+              if ! anropa skriv "${BEKRAFTA}"; then
+                sammanfatta
+                echo "::error::Skrivningen avbröts eller föll. Läs raderna ovan. Kör verifiera för att se vad som blev gjort." >&2
+                exit 1
+              fi
+              sammanfatta
+              echo "Skrivet. Väntar 45 s innan den separata återläsningen."
+              sleep 45
+              verifiera
+              sammanfatta
+              ;;
+            verifiera)
+              verifiera
+              sammanfatta
+              ;;
+          esac

@@ -1,0 +1,85 @@
+{
+  "9e074a53": {
+    "productId": "9e074a53-7c0e-42ee-aee7-f00b307c79c7",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "8b253ef1": {
+    "productId": "8b253ef1-75da-4baa-a81a-76543a3b0786",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1339jkh",
+        "betyg": 5,
+        "datum": "2026-08-17",
+        "foton": 0,
+        "text": "Les enfants adorent! Aucun problème de livraison. Amusez vous!"
+      }
+    ]
+  },
+  "39ef0d4a": {
+    "productId": "39ef0d4a-ba3f-4db4-b1d6-0198ad3b2bc4",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-4gmqpa",
+        "betyg": 5,
+        "datum": "2026-08-17",
+        "foton": 0,
+        "text": "Super produit, les enfants les lâchent plus! Bel alternative pour les jours de pluie"
+      },
+      {
+        "id": "gen-6abvoi",
+        "betyg": 5,
+        "datum": "2026-06-16",
+        "foton": 0,
+        "text": "alles Suoer, wie beschrieben, bin zufrieden, mein Sohn freut sich schon und Spielt sehr gerne damit"
+      }
+    ]
+  },
+  "335d3212": {
+    "productId": "335d3212-f028-4738-85cc-ee9865f3e211",
+    "synliga": 0,
+    "dolda": 1,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": [
+      {
+        "id": "gen-1ankt2l",
+        "betyg": 5,
+        "datum": "2026-09-08",
+        "foton": 0,
+        "text": "Great Fun! Bought for my grandniece's birthday, she and her brother have gotten so much enjoyment."
+      },
+      {
+        "id": "gen-12jwnw9",
+        "betyg": 5,
+        "datum": "2026-01-31",
+        "foton": 0,
+        "text": "This is great and my husband is setting our granddaughter up to love fishing."
+      }
+    ]
+  },
+  "bd18220a": {
+    "productId": "bd18220a-3126-497f-9401-6a49581bdf93",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": []
+  }
+}

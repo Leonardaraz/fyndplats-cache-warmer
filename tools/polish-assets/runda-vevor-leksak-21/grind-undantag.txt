@@ -1,0 +1,12 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (12,5 x 13,1 x 6,5 fot/3820 x 3980 x 1970 mm) har inga axelord, men VEVOR:s måttritning (i kallor.json) ritar måtten med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (4050 x 3470 x 2550 mm) har inga axelord, men VEVOR:s måttritning (i kallor.json) ritar måtten med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (11,6 x 13,1 x 7,7 fot/3530 x 4000 x 2350 mm) har inga axelord, men VEVOR:s måttritning (i kallor.json) ritar måtten med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (4550 x 3900 x 2380 mm) har inga axelord, men VEVOR:s måttritning (i kallor.json) ritar måtten med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (11,3 x 12,3 x 7,0 fot/3440 x 3740 x 2130 mm) har inga axelord, men VEVOR:s måttritning (i kallor.json) ritar måtten med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (4480 x 4200 x 2070 mm) har inga axelord, men VEVOR:s måttritning (i kallor.json) ritar måtten med pilar: texten skriver bredd, djup och höjd ur ritningen

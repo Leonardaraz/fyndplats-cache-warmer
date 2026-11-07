@@ -1,0 +1,11 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Mått utan axelord, men VEVOR:s måttritning på bild 4 ritar bredd, höjd och djup med pilar: texten skriver bredd × djup × höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (vid 90°) utan axelord, men VEVOR:s måttbild på bild 7 ritar bredd, djup och höjd med pilar: texten skriver bredd × djup × höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara Material, Nettovikt och Antal, och måtten står bara på VEVOR:s måttbild (bild 7) som kvadratiska innermått och bottenplattemått: texten skriver dem som bilden ritar dem
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har måttraderna Totallängd, Total bredd, Handtagslängd och Gaffelhuvud (L × B) i stället för en samlad måttrad, och sidan skriver varje mått med källans eget ord
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Mått utan axelord, men VEVOR:s måttbild på bild 7 ritar längd, bredd och höjd med pilar: texten skriver längd × bredd × höjd ur ritningen
