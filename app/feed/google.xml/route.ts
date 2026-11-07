@@ -27,6 +27,7 @@ import {
   type Product,
 } from "@/lib/products";
 import { bildForVariant, type ValBild } from "@/lib/variant-color-image";
+import { uteslutenFranGoogle } from "@/lib/google-uteslutna";
 import { variantOptionXml, variantOptioner } from "@/lib/google-variant-option";
 import { visaAxelnamn, visaValnamn } from "@/lib/variant-lage";
 
@@ -373,6 +374,8 @@ function feedItem(
   const pd = v?.productData || {};
   const slug: string = pd.slug || product?.slug || "";
   if (!slug || pd.visible === false || v?.visible === false) return null;
+  // Policyvaror (tobak, vapendelar) skickas inte alls: lib/google-uteslutna.ts.
+  if (uteslutenFranGoogle(pd.productId)) return null;
 
   const productName: string = pd.name || product?.name || "";
   const choices: { option: string; choice: string }[] = (v?.optionChoices || [])
@@ -418,13 +421,22 @@ function feedItem(
   // samma bild för olika färger. Bilden tas nu ur valens länkade bilder med
   // samma källor och ordning som produktsidan (valbilder i
   // lib/variant-color-image.ts); saknas en sådan blir det huvudbilden, som förut.
-  const image: string = bildForVariant(v?.optionChoices, valbilder) || v?.media?.image?.url || mainImg;
+  //
+  // STORLEKENS BILD ÄR INTE HUVUDBILD (2026-11-07). Den är oftast leverantörens
+  // måttritning med siffror, och Google avvisade väggkaminen 91,4 cm för
+  // "Promotional overlay" på den. En storleksvariant får därför produktens
+  // huvudbild, som Google tillåter för varianter som bara skiljer i storlek,
+  // och storlekens bild blir första extrabild. Färgens bild är kvar som
+  // huvudbild, och andra axlar (modell, paket …) behåller sin bild.
+  const image: string = bildForVariant(v?.optionChoices, valbilder, { utanStorlek: true }) || v?.media?.image?.url || mainImg;
   if (!image) return null;
+  const storleksbild = bildForVariant(v?.optionChoices, valbilder);
 
-  // Extra bilder: galleriet exkl. huvudbilden OCH exkl. den valda item-bilden,
-  // dedupat på fil-id (samma foto förekommer med olika transform-params), max 10.
+  // Extra bilder: storlekens bild först, sedan galleriet exkl. huvudbilden OCH
+  // exkl. den valda item-bilden, dedupat på fil-id (samma foto förekommer med
+  // olika transform-params), max 10.
   const seen = new Set<string>([imgKey(image), imgKey(mainImg)]);
-  const additional = gallery
+  const additional = [storleksbild, ...gallery]
     .filter((g) => {
       if (!g) return false;
       const k = imgKey(g);

@@ -327,10 +327,12 @@ export type V3Option = {
   } | null;
 };
 
-/** En valbild: URL:en och om den hör till en färgaxel. */
-export type ValBild = { url: string; farg: boolean };
+/** En valbild: URL:en och om den hör till en färg- eller storleksaxel. */
+export type ValBild = { url: string; farg: boolean; storlek: boolean };
 
 const FARGAXEL = /färg|color|colour|kulör/i;
+// Samma namn som Google-flödets g:size (googleAttr i app/feed/google.xml).
+const STORLEKSAXEL = /^\s*(storlek|längd|size|length)\s*$/i;
 
 /**
  * choiceId → bild för en produkts alla val. Val utan bild saknas i kartan.
@@ -347,6 +349,7 @@ export function valbilder(
   const opts = (options || []).filter((o) => o?.choicesSettings?.choices?.length);
   for (const opt of opts) {
     const farg = FARGAXEL.test(opt.name || "");
+    const storlek = STORLEKSAXEL.test(opt.name || "");
     const val = (opt.choicesSettings?.choices || [])
       .filter((c) => c?.choiceId && c?.name)
       .map((c) => ({
@@ -357,7 +360,7 @@ export function valbilder(
     // Alt-text bara på produkter med EN option — samma avgränsning som
     // produktsidan, där matchningen bara körs i en-axel-grenen.
     if (opts.length === 1) linkVariantImagesByAltText(val, media);
-    for (const v of val) if (v.image) ut.set(v.choiceId, { url: v.image, farg });
+    for (const v of val) if (v.image) ut.set(v.choiceId, { url: v.image, farg, storlek });
   }
   return ut;
 }
@@ -365,16 +368,22 @@ export function valbilder(
 /**
  * Bilden för en variant ur dess val (query-variants `optionChoices`). Färgens
  * bild vinner, annars första valets; "" när inget val har en bild.
+ *
+ * `utanStorlek` hoppar över storleksaxelns bilder. Google-flödets huvudbild tar
+ * den vägen: en storleks bild är oftast leverantörens måttritning med text, och
+ * Google avvisar text på huvudbilden ("Promotional overlay", väggkaminen
+ * 91,4 cm 2026-11-07). Varianter som bara skiljer i storlek får dela bild.
  */
 export function bildForVariant(
   optionChoices: ReadonlyArray<{ optionChoiceIds?: { choiceId?: string | null } | null }> | null | undefined,
   bilder: ReadonlyMap<string, ValBild> | null | undefined,
+  { utanStorlek = false }: { utanStorlek?: boolean } = {},
 ): string {
   if (!bilder?.size) return "";
   let forsta = "";
   for (const oc of optionChoices || []) {
     const b = oc?.optionChoiceIds?.choiceId ? bilder.get(oc.optionChoiceIds.choiceId) : undefined;
-    if (!b) continue;
+    if (!b || (utanStorlek && b.storlek)) continue;
     if (b.farg) return b.url;
     if (!forsta) forsta = b.url;
   }

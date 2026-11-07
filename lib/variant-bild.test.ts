@@ -66,3 +66,44 @@ test("okända val och tomma kartor ger tomt", () => {
   assert.equal(bildForVariant(undefined, valbilder(BALANSBOM)), "");
   assert.equal(valbilder(undefined).size, 0);
 });
+
+// Väggkaminen 2026-11-07: storleken 91,4 cm länkar bara en måttritning, och
+// Google avvisade den som huvudbild ("Promotional overlay").
+const KAMIN: V3Option[] = [{
+  id: "cbe5a7ed", name: "Storlek",
+  choicesSettings: { choices: [
+    { choiceId: "s91", name: "91,4 cm", linkedMedia: lm("matt-91") },
+    { choiceId: "s152", name: "152,4 cm", linkedMedia: [...lm("huvud"), ...lm("matt-152")] },
+  ] },
+}];
+
+test("utanStorlek: storlekens bild hoppas över, så flödet tar huvudbilden", () => {
+  const k = valbilder(KAMIN);
+  assert.equal(bildForVariant(variant("s91"), k, { utanStorlek: true }), "");
+  assert.equal(bildForVariant(variant("s152"), k, { utanStorlek: true }), "");
+  // Utan flaggan som förut: storlekens bild (blir extrabild i flödet).
+  assert.equal(bildForVariant(variant("s91"), k), U("matt-91"));
+});
+
+test("utanStorlek: färgens bild är kvar, och andra axlar än storlek behåller sin", () => {
+  const opts: V3Option[] = [
+    { id: "s", name: "Storlek", choicesSettings: { choices: [{ choiceId: "l", name: "L", linkedMedia: lm("storlekskort") }] } },
+    { id: "f", name: "Färg", choicesSettings: { choices: [{ choiceId: "bla", name: "Blå", linkedMedia: lm("bla") }, { choiceId: "rod", name: "Röd" }] } },
+    { id: "m", name: "Modell", choicesSettings: { choices: [{ choiceId: "pro", name: "Pro", linkedMedia: lm("pro") }] } },
+  ];
+  const k = valbilder(opts);
+  assert.equal(bildForVariant(variant("l", "bla"), k, { utanStorlek: true }), U("bla"));
+  assert.equal(bildForVariant(variant("l", "rod"), k, { utanStorlek: true }), "", "bara storleksbild → huvudbilden");
+  assert.equal(bildForVariant(variant("l", "rod", "pro"), k, { utanStorlek: true }), U("pro"), "modellens bild är ingen måttritning");
+});
+
+test("storleksaxeln känns igen på samma namn som flödets g:size", () => {
+  for (const name of ["Storlek", "storlek", "Längd", "Size", "Length", " Storlek "]) {
+    const k = valbilder([{ id: "x", name, choicesSettings: { choices: [{ choiceId: "a", name: "A", linkedMedia: lm("a") }] } }]);
+    assert.equal(bildForVariant(variant("a"), k, { utanStorlek: true }), "", name);
+  }
+  for (const name of ["Modell", "Typ", "Förpackning", "Storleksguide", "Volym"]) {
+    const k = valbilder([{ id: "x", name, choicesSettings: { choices: [{ choiceId: "a", name: "A", linkedMedia: lm("a") }] } }]);
+    assert.equal(bildForVariant(variant("a"), k, { utanStorlek: true }), U("a"), name);
+  }
+});

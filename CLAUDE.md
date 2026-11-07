@@ -939,6 +939,33 @@ dem vid anrop hjälper inte: då byggs de om vid varje hämtning. De går inte u
 10 MB utan att Google-flödet tappar extrabilderna (5,5 MB), och det är ett beslut
 för Leonard.
 
+## Google-flödet: policyvaror och storlekens bild (2026-11-07)
+
+Merchant Center avvisade sju varor 2026-11-07 på något annat än pris. Två
+rättas i flödet:
+
+- **Policyvaror skickas inte alls** (`lib/google-uteslutna.ts`): den elektriska
+  cigarettmaskinen (tobaksregeln, fyra varianter) och PCP-pumpen till luftgevär
+  (vapendelar). Nyckeln är produktens id. Sidorna ligger kvar i butiken, men
+  PriceRunner- och Prisjakt-flödena byggs ur Google-flödet och tappar dem också.
+  En ny policyvara läggs till i listan med ett skäl som börjar med regelns namn.
+- ☠️ **Storlekens bild är aldrig huvudbild** (`bildForVariant(…, { utanStorlek:
+  true })`). Den är oftast leverantörens måttritning med siffror, och Google
+  avvisade väggkaminen 91,4 cm för "Promotional overlay". En variant som bara
+  skiljer i storlek får produktens huvudbild, och storlekens bild blir första
+  extrabild. Färgens bild är kvar, och andra axlar (modell, paket …) behåller
+  sin. Storleksaxeln känns igen på samma namn som `g:size`: Storlek, Längd, Size
+  och Length.
+- **Rätta inte en måttritning genom att länka huvudfotot till en storlek i Wix.**
+  Butiken visar en länkad bild bara under det första val som länkar den
+  (docs/claude/05-aosom-synken/31-storleksvyer.md i motorn), så fotot försvinner
+  då från de andra storlekarna.
+
+Hamsterburen Natur avvisades för samma skäl, men där är det märket som står
+tryckt på buren. Alla fem bilderna av färgen visar det, och Googles regler
+tillåter märken på själva varan. Den rättas med en granskningsbegäran i
+Merchant Center, inte i koden.
+
 ## Strukturerad data för Google Shopping (2026-10-22)
 
 Search Console (Säljaruppgifter) varnade på alla 657 objekt. Fyra rättningar,
