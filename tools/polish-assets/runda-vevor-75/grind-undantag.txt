@@ -1,0 +1,7 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 260 x 500 x 470 mm utan axelord, och källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar bredden 260 mm (10,24 tum) längs framkanten, djupet 500 mm (19,69 tum) och höjden 470 mm (18,50 tum): texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans svenska specifikation har ingen måttrad för bilen (bara förvaringslådan 190 x 165 mm), och källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar längden 525 mm (20,7 tum), bredden 225 mm (8,9 tum) och höjden 370 mm (14,6 tum): texten skriver längd, bredd och höjd ur ritningen och förvaringslådans två mått som de står i specifikationen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 230 x 205 x 50 mm utan axelord, och källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar förvaringsväskan med måtten 230 mm (9 tum), 205 mm (8 tum) och 50 mm (2 tum): texten skriver dem som väskans mått utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
