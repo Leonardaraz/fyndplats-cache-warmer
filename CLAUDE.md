@@ -939,6 +939,24 @@ dem vid anrop hjälper inte: då byggs de om vid varje hämtning. De går inte u
 10 MB utan att Google-flödet tappar extrabilderna (5,5 MB), och det är ett beslut
 för Leonard.
 
+## Google-flödet: policyvaror skickas inte (2026-11-07)
+
+Merchant Center avvisade 2026-11-07 den elektriska cigarettmaskinen
+(tobaksregeln, fyra varianter) och PCP-pumpen till luftgevär (vapendelar). En
+policyvara rättas inte med en bättre text eller bild, så den skickas inte alls
+(`lib/google-uteslutna.ts`). Nyckeln är produktens id, och sidorna ligger kvar i
+butiken. PriceRunner- och Prisjakt-flödena byggs ur Google-flödet och tappar dem
+också. En ny policyvara läggs till i listan med ett skäl som börjar med regelns
+namn.
+
+☠️ **"Promotional overlay" på en variant rättas i Wix, inte i flödet.** Flödets
+huvudbild är variantens egen bild (valets första länkade bild, annars variantens
+media). Är den en måttritning med siffror avvisar Google varan, som väggkaminen
+91,4 cm 2026-11-07. Lösningen är ett foto först i valets bilder. En regel i
+flödet som byter storlekens bild mot produktens huvudbild prövades och ströks:
+de flesta storlekar har ett eget rent foto av just den storleken (hundburen 75,
+90 och 106 cm), och huvudbilden hade visat fel storlek.
+
 ## Strukturerad data för Google Shopping (2026-10-22)
 
 Search Console (Säljaruppgifter) varnade på alla 657 objekt. Fyra rättningar,

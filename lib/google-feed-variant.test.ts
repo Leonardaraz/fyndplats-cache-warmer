@@ -17,6 +17,11 @@ test("flödet tar bilden ur valens bilder före variantens media", () => {
   assert.match(feed, /valbilderPerProdukt\.get\(pid\)/);
 });
 
+test("policyvarorna skickas inte till Google", () => {
+  assert.match(feed, /import \{ uteslutenFranGoogle \} from "@\/lib\/google-uteslutna";/);
+  assert.match(feed, /if \(uteslutenFranGoogle\(pd\.productId\)\) return null;/);
+});
+
 test("flödets länk öppnar varianten när det finns fler än en", () => {
   assert.match(feed, /\$\{SITE\}\/produkt\/\$\{slug\}\?variant=\$\{encodeURIComponent\(variantId\)\}/);
   assert.match(feed, /<g:link>\$\{xmlEscape\(link\)\}<\/g:link>/);

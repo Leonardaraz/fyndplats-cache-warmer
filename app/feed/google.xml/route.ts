@@ -27,6 +27,7 @@ import {
   type Product,
 } from "@/lib/products";
 import { bildForVariant, type ValBild } from "@/lib/variant-color-image";
+import { uteslutenFranGoogle } from "@/lib/google-uteslutna";
 import { variantOptionXml, variantOptioner } from "@/lib/google-variant-option";
 import { visaAxelnamn, visaValnamn } from "@/lib/variant-lage";
 
@@ -373,6 +374,8 @@ function feedItem(
   const pd = v?.productData || {};
   const slug: string = pd.slug || product?.slug || "";
   if (!slug || pd.visible === false || v?.visible === false) return null;
+  // Policyvaror (tobak, vapendelar) skickas inte alls: lib/google-uteslutna.ts.
+  if (uteslutenFranGoogle(pd.productId)) return null;
 
   const productName: string = pd.name || product?.name || "";
   const choices: { option: string; choice: string }[] = (v?.optionChoices || [])
