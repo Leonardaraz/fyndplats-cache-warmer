@@ -421,22 +421,13 @@ function feedItem(
   // samma bild för olika färger. Bilden tas nu ur valens länkade bilder med
   // samma källor och ordning som produktsidan (valbilder i
   // lib/variant-color-image.ts); saknas en sådan blir det huvudbilden, som förut.
-  //
-  // STORLEKENS BILD ÄR INTE HUVUDBILD (2026-11-07). Den är oftast leverantörens
-  // måttritning med siffror, och Google avvisade väggkaminen 91,4 cm för
-  // "Promotional overlay" på den. En storleksvariant får därför produktens
-  // huvudbild, som Google tillåter för varianter som bara skiljer i storlek,
-  // och storlekens bild blir första extrabild. Färgens bild är kvar som
-  // huvudbild, och andra axlar (modell, paket …) behåller sin bild.
-  const image: string = bildForVariant(v?.optionChoices, valbilder, { utanStorlek: true }) || v?.media?.image?.url || mainImg;
+  const image: string = bildForVariant(v?.optionChoices, valbilder) || v?.media?.image?.url || mainImg;
   if (!image) return null;
-  const storleksbild = bildForVariant(v?.optionChoices, valbilder);
 
-  // Extra bilder: storlekens bild först, sedan galleriet exkl. huvudbilden OCH
-  // exkl. den valda item-bilden, dedupat på fil-id (samma foto förekommer med
-  // olika transform-params), max 10.
+  // Extra bilder: galleriet exkl. huvudbilden OCH exkl. den valda item-bilden,
+  // dedupat på fil-id (samma foto förekommer med olika transform-params), max 10.
   const seen = new Set<string>([imgKey(image), imgKey(mainImg)]);
-  const additional = [storleksbild, ...gallery]
+  const additional = gallery
     .filter((g) => {
       if (!g) return false;
       const k = imgKey(g);

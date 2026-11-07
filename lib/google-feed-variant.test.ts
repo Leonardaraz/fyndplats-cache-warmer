@@ -12,15 +12,9 @@ const pdp = readFileSync("components/productview.tsx", "utf8");
 
 test("flödet tar bilden ur valens bilder före variantens media", () => {
   // v.media är produktens huvudbild på varje variant — får aldrig stå först.
-  // Storlekens bild hoppas över som huvudbild (måttritningen, 2026-11-07).
-  assert.match(feed, /const image: string = bildForVariant\(v\?\.optionChoices, valbilder, \{ utanStorlek: true \}\) \|\| v\?\.media\?\.image\?\.url \|\| mainImg;/);
+  assert.match(feed, /const image: string = bildForVariant\(v\?\.optionChoices, valbilder\) \|\| v\?\.media\?\.image\?\.url \|\| mainImg;/);
   assert.match(feed, /const valbilderPerProdukt = await fetchVariantImageMaps\(\);/);
   assert.match(feed, /valbilderPerProdukt\.get\(pid\)/);
-});
-
-test("storlekens bild blir första extrabild, inte borttappad", () => {
-  assert.match(feed, /const storleksbild = bildForVariant\(v\?\.optionChoices, valbilder\);/);
-  assert.match(feed, /const additional = \[storleksbild, \.\.\.gallery\]/);
 });
 
 test("policyvarorna skickas inte till Google", () => {
