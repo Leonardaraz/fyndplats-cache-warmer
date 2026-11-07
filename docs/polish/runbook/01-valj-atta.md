@@ -251,7 +251,7 @@ Gör sedan två kontroller, i den här ordningen:
    `https://www.fyndplats.se/sitemap.xml` listar de publicerade sidorna utan något Wix-anrop.
 2. **Bilderna avgör.** Lägg varje träffs bilder sida vid sida. Är medelavståndet under 1,0
    på 320 × 320 i gråskala (`dubblettgrind.py`, med kandidaternas bilder i `img/` och de
-   publicerade i `pub/`) är det samma foto. Ett högre avstånd
+   publicerade i `pub/`) är det samma foto. Samma foto kan ha olika byte (metadata): två måttbilder med 52 byte emellan hade medelavstånd 0,0 och var samma bild (N352). Ett högre avstånd
    bevisar ingenting, eftersom de två inköpsvägarna fotograferar samma vara var för sig.
    Avgör på konstruktion, detaljer och måttritning.
 
@@ -266,6 +266,7 @@ efter fjorton dygn*). Så gör du med en träff:
 | samma vara i samma färg och mått som en publicerad **Aosom-sida** | Pensionera utkastet (`draftStatus: rejected`, `needsAiPolish: false`) med **"Polering — läs och stämpla mappningsraden"**. |
 | ett **färg- eller storlekssyskon** till en publicerad Aosom-sida | Lägg utkastet som ett val på sidan, se [Syskon blir val på sidan](#syskon-blir-val-på-sidan). |
 | syskon **bara bland utkasten** | Polera ett av dem, helst det med flest rena bilder och saldo, och skriv namn, slug och titel utan färg och mått. Publicera det och lägg sedan de andra som val på den sidan. |
+| **samma vara två gånger i Aosoms feed**, båda dolda utkast (samma miljöbild och måttbild, samma text, samma kruka eller liknande mått, ofta olika pris) | Polera det med lägst kostnad och pris och flest rena bilder, och pensionera det andra (`draftStatus: rejected`, `needsAiPolish: false`) med **"Polering — läs och stämpla mappningsraden"** (`stampla`) när sidan är skriven. Lägg det andra utkastets rena bilder till det polerade om de visar varan från en annan vinkel, och stryk en bild som ligger två gånger. Det pensionerade utkastet behåller sin egen artikel och raderas därför inte av `pensionerade-radera` utan `egna=ja`. Tar den behållna artikeln slut medan den andra har saldo kan sidan byta artikel med `aosom-remap`, men verktyget kräver `needsAiPolish: true` på utkastet, så sätt tillbaka det med `stampla` först (N352). |
 | ett syskon till en publicerad **AliExpress-sida** | Finns sidans egen färg som Aosom-utkast mappar du om sidan (första raden) och lägger sedan syskonet som val. Finns den i feeden men inte som utkast hämtar du den först med **"Aosom — importera en sidas färg- och storlekssyskon"** (sida = syskonutkastet). Finns den inte alls polerar du syskonet som en egen sida, med färgen i namn, slug och titel. Verktyget kräver en Aosom-sida, och alla färger ska säljas. |
 
 **En AliExpress-sida med flera varianter** vägras av ommappningen (`flera_varianter`), om
