@@ -1764,6 +1764,11 @@ BankID ska användas).
   hämtas filen två gånger (provet i `stripe-klient.test.ts` kör paketets egen
   `loadStripe`). Knapparnas grupp skapas före adressfältets och betalfältets,
   så att deras uppslag hos Stripe går först i telefonens kö.
+- **Platshållaren är Apples egen knapp i Safari** (`.snabbSkelett` med
+  `-webkit-appearance: -apple-pay-button`, typ buy, svart, 10 px hörn som
+  Stripes): kunden ser Apple Pay från första ritningen. Den tar inga tryck;
+  Stripes knapp tar över på samma plats vid `ready`. Andra webbläsare får den
+  grå skimmern som förut.
 - **Platsen hålls från första renderingen** (också på servern) med en
   platshållare i knappens höjd, men bara där Apple Pay finns
   (`ApplePaySession`, som Safari på iPhone och Mac har). Rutan som dök upp
