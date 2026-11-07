@@ -71,14 +71,17 @@ function sparad(): Promise<Meny | null> {
   return post.lofte;
 }
 
-let varnad = false;
+// En rad per instans och väg, så att loggen visar hur ofta den färdiga menyn
+// sparade väntan (och hur ofta reserven behövdes) utan att fylla den.
+const loggat = new Set<string>();
 
 /** Menyn (utan antal) och om REA-knappen ska visas. */
 export async function sidhuvudsdata(): Promise<Meny> {
   const { data, kalla } = await valjSidhuvud<CategoryNode>({ laddad: katalogenLaddad, levande, sparad });
-  if (kalla === "reserv" && !varnad) {
-    varnad = true;
-    console.warn(`[meny] ingen färdig meny (${RAD_ID}); sidhuvudet byggdes ur katalogen som förut`);
+  if (kalla !== "levande" && !loggat.has(kalla)) {
+    loggat.add(kalla);
+    if (kalla === "sparad") console.info(`[meny] ny instans: sidhuvudet läste den färdiga menyn (${RAD_ID}) i stället för att vänta in katalogen`);
+    else console.warn(`[meny] ingen färdig meny (${RAD_ID}); sidhuvudet byggdes ur katalogen som förut`);
   }
   return data;
 }
