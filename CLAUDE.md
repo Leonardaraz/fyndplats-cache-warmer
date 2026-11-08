@@ -487,6 +487,14 @@ namn och adresser. Hur motorn sorterar in varorna står i motorns
 - **GA4** (`G-W6NZ87CX2Q`) also runs, loaded `lazyOnload` via `next/script`
   with a synchronous inline `gtag` stub. The two analytics stacks are
   independent.
+  ☠️ **Taggen mäter bara på `www.fyndplats.se`** (`MATVARD` i `lib/consent.ts`,
+  2026-11-08). Varje produktionsbygge har också en egen `*.vercel.app`-adress
+  med `VERCEL_ENV=production`, så taggen körde där, och Googles tagg föreslog
+  fem sådana adresser under "Konfigurera dina domäner". På alla andra värdar
+  blir `gtag` en tom funktion och ingenting köas. gtag.js laddas ändå men
+  skickar ingenting (mätt med Playwright med alla insamlingsanrop stoppade:
+  0 anrop, mot 8 när värden stämde). Godkänn aldrig ett `vercel.app`-förslag
+  i Googles tagg.
 
 # Meta Pixel + Conversions API (CAPI)
 
@@ -1090,12 +1098,24 @@ e-post ett år bakåt räknas vid första inloggningen (P3). Admin finns i motor
 **Växeln är en rad i Wix:** `FyndplatsButikInstallningar/medlemskap`, fältet
 `lage`. `av` (eller ingen rad): ingen kan logga in, men orderliggaren fylls.
 `tyst`: /konto fungerar för den som har adressen, ingen länk dit. `pa`:
-tacksidan erbjuder dessutom konto, och menyn får "Mitt konto"
-(`components/konto-lank.tsx`): en ikon före hjärtat på datorn och en länk i
-mobilmenyn, inte i mobilens sidhuvud, som inte rymmer en ikon till under
-339 px. Länken frågar `/api/konto/lage`, som kanten cachar i fem minuter, så
-växeln syns i menyn utan ett bygge. Utan `MEDLEM_JWT_SECRET` (minst 32 tecken)
-i miljön är inloggningen stängd oavsett läge, och ingen länk visas.
+tacksidan erbjuder dessutom konto, och sidhuvudet får knappen
+(`components/konto-lank.tsx`, #886): en mörk "Bli medlem" med personikon (ljus
+"Mitt konto" för den inloggade) före hjärtat på datorn, ikonen först i
+mobilens sidhuvud, ett kort överst i mobilmenyn och en länk i sidfoten.
+Knappen frågar `/api/konto/lage`, som kanten cachar i fem minuter, så växeln
+syns utan ett bygge. Utan `MEDLEM_JWT_SECRET` (minst 32 tecken) i miljön är
+inloggningen stängd oavsett läge, och ingen länk visas.
+
+☠️ **Sidhuvudets knapp håller sin plats från första ritningen** (2026-11-08).
+Medan frågan pågår (`synlig: null`, också i serverns HTML) står knappen kvar
+osynlig: `data-vantar` ger `visibility:hidden`, plus `aria-hidden` och
+`tabIndex=-1`. Bara ett nej tar bort den. Förut monterades den först när
+svaret kom, och i mobilen hoppade hjärtat 89 px och kundvagnen 8 px
+(`.hrow:has(.konto-btn)` byter mellanrum). Det var hela sidans CLS i
+Lighthouse, 0,002. Vänta aldrig med `display:none`: då gäller inte
+`:has(.konto-btn)` förrän svaret kommit. I lägena `tyst` och `av` försvinner
+platsen när svaret kommer, och det är priset för att `pa` står still. Provet
+står i `lib/medlem/kontolank.test.ts`.
 
 **Kollektionerna** skapades 2026-11-04 med behörigheten ADMIN och 13 index:
 `FyndplatsMedlemmar`, `FyndplatsMedlemsprofiler`, `FyndplatsInloggningar`,
