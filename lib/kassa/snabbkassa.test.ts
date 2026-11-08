@@ -258,6 +258,36 @@ test("utan Apple Pay hålls ingen plats före hydreringen: layouten kör skripte
   assert.equal(kassa.match(/data-snabb=\{snabbLage\}/g)?.length, 2);
 });
 
+test("Stripes knapp tonar fram över platshållaren: inget vitt blink när Stripe svarar (Leonard 2026-11-08)", () => {
+  const css = readFileSync(new URL("../../app/kassa/kassa.module.css", import.meta.url), "utf8");
+  const kassa = readFileSync(new URL("../../app/kassa/kassa.tsx", import.meta.url), "utf8");
+  // Platshållaren står kvar i läget "redo" och ligger före Stripes plats, som är
+  // positionerad: Stripes genomskinliga ram ritas över den.
+  assert.match(kassa, /snabbLage === "laddar" \|\| snabbLage === "redo" \? <div className=\{s\.snabbSkelett\} aria-hidden="true" \/>/);
+  const skelett = kassa.indexOf("className={s.snabbSkelett}");
+  const plats = kassa.indexOf("ref={snabbPlats}");
+  assert.ok(skelett > 0 && plats > skelett, "platshållaren ska stå före Stripes plats");
+  assert.match(kassa, /<div ref=\{snabbPlats\} className=\{s\.snabbKnappar\} \/>/);
+  assert.match(css, /\n\.snabbKnappar \{\s*position: relative;\s*\}/);
+  // Den tonar bort först när Stripes knapp sedan länge syns: Stripe lägger in vyn
+  // upp till 150 ms efter "ready" och tonar sedan 160 + 400 ms (uppmätt 2026-11-08).
+  const ut = /\.snabb\[data-snabb="redo"\] \.snabbSkelett \{\s*animation: snabbSkelettUt ([\d.]+)s ease ([\d.]+)s forwards;\s*\}/.exec(css);
+  assert.ok(ut, "regeln för läget redo saknas");
+  assert.ok(Number(ut[2]) >= 1.5, `för kort väntan: ${ut[2]} s`);
+  assert.match(css, /@keyframes snabbSkelettUt \{\s*to \{\s*opacity: 0;\s*visibility: hidden;/);
+  // Den tar aldrig ett tryck, inte heller skimmern utanför Safari.
+  const bas = /\n\.snabbSkelett \{([^}]*)\}/.exec(css);
+  assert.ok(bas, ".snabbSkelett saknas");
+  assert.match(bas[1], /pointer-events: none;/);
+  // Apples knapp i Safari har Stripes Apple Pay-mått: 50 px hög överst i ytan.
+  const apple = /:global\(html\[data-applepay="ja"\]\) \.snabbSkelett \{([^}]*)\}/.exec(css);
+  assert.ok(apple, "Safari-platshållaren saknas");
+  assert.match(apple[1], /bottom: auto;/);
+  assert.match(apple[1], /height: 50px;/);
+  // Texten står still: medan Stripe svarar syns rutan bara där Apple Pay finns.
+  assert.match(kassa, /const planbokText = snabbLage === "redo" \? planbokNamn\(snabbPlanbocker\) : "Apple Pay";/);
+});
+
 // ── Plånbokens uppgifter som kassans formulär ──────────────────────────────
 
 test("namnet på en rad: efternamnet är sista ordet", () => {
