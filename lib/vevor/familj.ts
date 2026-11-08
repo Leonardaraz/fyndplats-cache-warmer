@@ -443,8 +443,12 @@ export function vevorFamiljeProdukt(
 // 6. Ett syskon som redan sitter på en produkt följer inte med, ett som väntar
 //    på läsaren får familjen att vänta, som i byggFamilj.
 
-/** Rader som följer storleken eller är artikelns egna och därför aldrig är en axel. */
-const INTE_AXEL = /vikt|förpack|forpack|paket|modell|artikel|varumärke|märke|ean|garanti|certifi/i;
+/**
+ * Rader som följer storleken eller är artikelns egna och därför aldrig är en
+ * axel, och aldrig en funktion som skiljer. VEVOR-sammanslagningen
+ * (lib/vevor/sammanslagning.ts) läser samma lista — en sanning, inte två.
+ */
+export const INTE_AXEL = /vikt|förpack|forpack|paket|modell|artikel|varumärke|märke|ean|garanti|certifi/i;
 
 const ord = (s: string) =>
   s

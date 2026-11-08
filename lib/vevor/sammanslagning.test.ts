@@ -302,6 +302,14 @@ describe("VEVOR-sammanslagning — rena delar", () => {
     expect(funktionSomSkiljer([["Höjd", "753 mm"]], [["Höjd", "813 mm"]])).toEqual([]);
   });
 
+  it("☠️ artikelns egna rader (modell, vikt, förpackning) är ingen funktion — som i importen", () => {
+    const sidan: [string, string][] = [["Modell", "XQ-60"], ["Vikt", "2 kg"], ["Förpackningens innehåll", "1 rör"], ["Lastkapacitet (varje)", "200 kg"]];
+    const givaren: [string, string][] = [["Modell", "XQ-90"], ["Vikt", "3 kg"], ["Förpackningens innehåll", "2 rör"], ["Lastkapacitet (varje)", "200 kg"]];
+    expect(funktionSomSkiljer(sidan, givaren)).toEqual([]);
+    // En verklig funktion stoppar fortfarande, också bredvid en modellrad.
+    expect(funktionSomSkiljer([["Modell", "XQ-60"], ["Effekt", "850 W"]], [["Modell", "XQ-90"], ["Effekt", "1800 W"]])).toEqual(["Effekt"]);
+  });
+
   it("recensioner: avvisade och de som redan finns (id eller text) kopieras inte", () => {
     const g = [recension("u", "1", "Bra"), recension("u", "2", "Dålig", "rejected"), recension("u", "3", "samma text"), recension("u", "4", "Ny")];
     const s = [recension("s", "9", "Samma  TEXT")];
@@ -367,6 +375,18 @@ describe("VEVOR-sammanslagning — planen", () => {
     const svar = await korVevorSammanslagning(PAR, deps, { apply: true });
     expect(svar.plan.hinder).toContain("funktion_skiljer:Effekt");
     expect(patchar(w)).toEqual([]);
+  });
+
+  it("☠️ två artiklar med var sin modellrad stoppas inte (första torrkörningen 2026-11-07)", async () => {
+    const { deps } = miljo({
+      avlasningar: [
+        avlasning("XQSIDA1", { spec: [["Höjd", "753 mm"], ["Modell", "XQ-753"]] }),
+        avlasning("XQGIV7", { spec: [["Höjd", "813 mm"], ["Modell", "XQ-813"]] }),
+      ],
+    });
+    const svar = await korVevorSammanslagning(PAR, deps);
+    expect(svar.plan.hinder).toEqual([]);
+    expect(svar.ok).toBe(true);
   });
 
   it.each([
