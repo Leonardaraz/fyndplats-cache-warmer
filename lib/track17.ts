@@ -35,6 +35,7 @@ const ERR_CARRIER_UNDETECTED = -18019903; // auto-detektering gick bet → prova
 //   19241  PostNord Sweden      4011   PostNord Danmark
 //   100005 GLS                  100189 GLS Spain (National)
 //   100007 DPD (DE)             100043 InPost (PL)
+//   100176 PPL CZ
 // ---------------------------------------------------------------------------
 
 export interface CarrierHint {
@@ -46,6 +47,7 @@ export interface CarrierHint {
 
 const POSTNORD_SE: CarrierHint = { key: 19241, name: "PostNord Sweden" };
 const DPD: CarrierHint = { key: 100007, name: "DPD" };
+const PPL_CZ: CarrierHint = { key: 100176, name: "PPL CZ" };
 
 /** Mönster → carrier. FÖRSTA träff vinner — specifika mönster först. */
 const CARRIER_PATTERNS: Array<[RegExp, CarrierHint]> = [
@@ -68,6 +70,16 @@ const CARRIER_PATTERNS: Array<[RegExp, CarrierHint]> = [
   // /sparning stod tom. Registreras som PostNord och inte som DPD (PL), eftersom
   // det är PostNords spårning som visar hela vägen (Leonard 2026-10-27).
   [/^13\d{12}$/, POSTNORD_SE],
+  // PPL (tjeckiska Professional Parcel Logistic, DHL-gruppen): 11 siffror.
+  // Ett riktigt VEVOR-paket 2026-11-07: PPL:s egen spårning hittade numret,
+  // men 17TRACK vägrade registrera det utan carrier (-18019903), så ingen push
+  // fyrade. Sist, för det är det bredaste mönstret. 11 siffror kan också vara
+  // ett GLS-nummer (lib/gls-track.ts), men hinten används bara när 17TRACK
+  // själv inte kunde avgöra carriern: ett nummer som 17TRACK känner igen
+  // berörs inte, och ett GLS-nummer som det inte känner igen fick ingen push
+  // förut heller. Pushen mejlar bara vid "ute för leverans" och "levererat"
+  // (lib/delivery-status.ts), så en felgissning mejlar aldrig kunden.
+  [/^\d{11}$/, PPL_CZ],
 ];
 
 /**

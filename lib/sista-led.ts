@@ -51,6 +51,14 @@ export const POSTNORD_SPARNING = "https://www.postnord.se/vara-verktyg/spara-bre
 export const UPS_SPARNING = "https://www.ups.com/track?loc=sv_SE&tracknum=";
 
 /**
+ * PPL:s spårning (tjeckiska PPL, DHL-gruppen). VEVOR skickade ett paket med
+ * PPL 2026-11-07. Sidan finns på engelska och tjeckiska, inte på svenska, och
+ * läser numret ur adressen: prövat 2026-11-08 med ett riktigt PPL-nummer, och
+ * PPL:s spårning hittade paketet.
+ */
+export const PPL_SPARNING = "https://www.ppl.cz/en/shipments?form=track-and-trace&shipmentId=";
+
+/**
  * Direktlänkar till fraktbolagen. /sparning visar dem när ingen källa har
  * händelser än, så att kunden alltid kan söka själv. `kand` är fraktbolaget
  * när numret ensamt avgör det (transportorAvNummer i lib/carrier-mask.ts), och
@@ -64,6 +72,7 @@ export function transportorLankar(sparningsnummer: string, kand?: string): Array
     { name: "DHL", url: `https://www.dhl.com/se-sv/home/sparning.html?tracking-id=${nr}` },
     { name: "DPD", url: `https://tracking.dpd.de/status/sv_SE/parcel/${nr}` },
     { name: "UPS", url: UPS_SPARNING + nr },
+    { name: "PPL", url: PPL_SPARNING + nr },
   ];
   const egen = alla.filter((l) => l.name === kand);
   return egen.length > 0 ? egen : alla;
