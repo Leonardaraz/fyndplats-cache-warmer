@@ -252,6 +252,12 @@
     "Trädgård & Utemöbler",
     "Utemöbler"
    ],
+   "katUndantag": [
+    {
+     "kat": "Fåtöljer",
+     "skal": "zero gravity-fåtöljen är en solstol för uteplatsen och ligger i Utemöbler, inte bland inomhusfåtöljerna"
+    }
+   ],
    "sku": "FP-zero-gravity-fatolj-svart",
    "variantId": "f1057127-0377-4656-b757-f52149120b00",
    "textHash": "d0c49d2d4bca43d0",
