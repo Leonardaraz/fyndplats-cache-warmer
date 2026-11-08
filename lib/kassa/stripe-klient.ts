@@ -23,6 +23,16 @@ import type { Appearance, StripeAddressElementOptions, StripeElementsOptionsMode
 export const STRIPE_VALUTA = "sek";
 export const STRIPE_DRAGNING = "manual";
 
+/**
+ * Stripe.js: exakt den adress som loadStripe i @stripe/stripe-js/pure lägger in
+ * (paketets "release train"). app/kassa/page.tsx förladdar den med sidan, så
+ * att loadStripe tar filen ur webbläsarens minne i stället för att börja hämta
+ * den (260 kB packad) först när kassan ritats. En annan adress hade hämtats i
+ * onödan och sedan en gång till: provet i stripe-klient.test.ts kör paketets
+ * egen loadStripe och fäller när paketet byter adress.
+ */
+export const STRIPE_JS = "https://js.stripe.com/basil/stripe.js";
+
 /** localStorage: kundens senaste betalning, så att ett nytt tryck använder samma. */
 export const STRIPE_NYCKEL = "fp_kassa_stripe";
 

@@ -1753,8 +1753,22 @@ BankID ska användas).
   `BETALFALT`).
 - ☠️ **`layout.overflow: "never"` bara med `maxRows: 0`.** Annars kastar Stripe
   IntegrationError och inga knappar ritas (lokalt prov 2026-11-06). Knapparna
-  monteras därför sist och i `try`: ett fel i snabbkassan får aldrig stoppa
+  monteras därför i `try`: ett fel i snabbkassan får aldrig stoppa
   formuläret och betalfältet.
+- **Knapparna skapas FÖRST, Stripe.js förladdas med sidan** (Leonard
+  2026-11-07: knappen syntes först efter flera sekunder). `page.tsx` lägger
+  `preload(STRIPE_JS, { as: "script" })` när det finns en varukorg (kakan
+  `fp_cart` eller medlemskorgens), så filen hämtas med sidan, eller redan när
+  lådan förhämtar kassan, i stället för i effekten efter hydreringen.
+  ☠️ `STRIPE_JS` måste vara exakt den adress `loadStripe` lägger in, annars
+  hämtas filen två gånger (provet i `stripe-klient.test.ts` kör paketets egen
+  `loadStripe`). Knapparnas grupp skapas före adressfältets och betalfältets,
+  så att deras uppslag hos Stripe går först i telefonens kö.
+- **Platshållaren är Apples egen knapp i Safari** (`.snabbSkelett` med
+  `-webkit-appearance: -apple-pay-button`, typ buy, svart, 10 px hörn som
+  Stripes): kunden ser Apple Pay från första ritningen. Den tar inga tryck;
+  Stripes knapp tar över på samma plats vid `ready`. Andra webbläsare får den
+  grå skimmern som förut.
 - **Platsen hålls från första renderingen** (också på servern) med en
   platshållare i knappens höjd, men bara där Apple Pay finns
   (`ApplePaySession`, som Safari på iPhone och Mac har). Rutan som dök upp
@@ -2161,3 +2175,23 @@ vilken dom menar". Kunder mejlade om "ert lasertag-set med projektor för
 - `lib/kontakt/kontakt.ts` importerar ingenting vid körning, eftersom
   node:test inte kan läsa importer utan filändelse. Formatet för pris och
   valnamn skickas in (`KONTAKT_FORMAT` i `lib/kontakt/produkt.ts`).
+- **Ankaret `#meddelande` sitter på formulärkortet**, inte på sektionen
+  (Leonard 2026-11-07): länken landar vid Förnamn med "Frågan gäller" synlig i
+  telefonen, inte vid rubriken. `scroll-margin-top: var(--ankare)` på kortet.
+
+## Varukorgens rad står still när en vara läggs i (Leonard 2026-11-07)
+
+- **Den väntande och den bekräftade raden är samma element** (`KorgRad` i
+  `components/cart.tsx`). Raden Wix skapar får den väntande radens nyckel
+  (`nyRadEfterTillagg` och `vantandeNyckel` i `lib/kundvagn-rad.ts`), så React
+  behåller elementet. Förut var den väntande raden 112 px och den bekräftade
+  140 px, bilden laddades om, och med fler varor for raderna 132 px (mätt i
+  produktionen med `lada-hopp.cjs`).
+- **Samma vara igen**: den befintliga raden väntar med det nya antalet
+  (`fordelaVantande`), ingen ny rad.
+- **Bilden byts först när Wix bild har laddats** (`RadBild`): den väntande
+  raden visar galleriets bild ur webbläsarens cache. Ingen lat laddning i
+  lådan; den ligger utanför skärmen tills den öppnas.
+- **Rulla bara så långt att raden syns**, aldrig till botten: förslagen under
+  raderna byttes och klämde rullningen. Förslagen står kvar tills nya kommit.
+- Länkarna är alltid `a`-element, med `href` först när adressen är känd.

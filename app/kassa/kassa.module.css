@@ -979,6 +979,22 @@
   animation: skimmer 1.2s linear infinite;
 }
 
+/* Safari ritar Apples egen knapp medan Stripes laddar, så att kunden ser
+   Apple Pay direkt i stället för en grå ruta (Leonard 2026-11-07: "tar några
+   sekunder tills den syns"). Samma typ, färg och hörn som Stripes knapp
+   (snabbknappar: buy och black; borderRadius 10px), så bytet syns inte. Den
+   tar inga tryck: Stripes knapp tar över på samma plats när Stripe svarat. */
+@supports (-webkit-appearance: -apple-pay-button) {
+  :global(html[data-applepay="ja"]) .snabbSkelett {
+    -webkit-appearance: -apple-pay-button;
+    -apple-pay-button-type: buy;
+    -apple-pay-button-style: black;
+    background: none;
+    animation: none;
+    pointer-events: none;
+  }
+}
+
 .snabbKod {
   margin: 10px 0 0;
   font-size: var(--text-sm);

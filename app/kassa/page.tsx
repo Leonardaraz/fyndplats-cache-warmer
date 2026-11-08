@@ -10,7 +10,11 @@
 // betalsida som förut (lib/kassa/flode.ts). Nycklarna läses när sidan byggs.
 
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import { preload } from "react-dom";
 import { harStripe } from "@/lib/kassa/stripe";
+import { STRIPE_JS } from "@/lib/kassa/stripe-klient";
+import { LAST_KORG_KAKA } from "@/lib/kassa/lastkorg";
 import { getSocialProof } from "@/lib/social-proof-live";
 import { lastKorgForKassan } from "@/lib/kassa/medlemskassa";
 import { Kassa } from "./kassa";
@@ -23,6 +27,16 @@ export const metadata: Metadata = {
 export default async function KassaSida() {
   const nyckel = harStripe() ? process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.trim() || null : null;
   const stripeNyckel = nyckel && /^pk_(test|live)_[A-Za-z0-9]+$/.test(nyckel) ? nyckel : null;
+  // Stripe.js börjar hämtas med sidan när det finns en varukorg (kakan fp_cart
+  // eller medlemskorgens), inte först i kassans effekt efter sidans egen kod
+  // (useStripeBetalning): snabbkassans knapp och betalfältet väntar på filen.
+  // Förladdningen står i sidans HTML (<link rel="preload"> i <head>) och följer
+  // vid ett mjukt sidbyte med som en ledtråd i sidans data, alltså redan när
+  // varukorgen förhämtar kassan (components/cart.tsx). Bara hämtning: skriptet
+  // körs först när kassan anropar loadStripe, som förut. Samma adress som
+  // loadStripe lägger in (STRIPE_JS), annars hämtas filen två gånger.
+  const kakor = await cookies();
+  if (stripeNyckel && (kakor.has("fp_cart") || kakor.has(LAST_KORG_KAKA))) preload(STRIPE_JS, { as: "script" });
   // Samtidigt, inte efter varandra:
   // - Google-betyget i summeringen: samma hämtning som sidfoten gör på varje
   //   sida (cachad i 6 h), så det kostar inget extra anrop.
