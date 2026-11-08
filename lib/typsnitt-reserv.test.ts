@@ -23,10 +23,11 @@ function regel(familj: string) {
   return { src: m[1].match(/src:([^;]*)/)![1], ascent: v("ascent-override"), descent: v("descent-override"), lineGap: v("line-gap-override"), size: v("size-adjust") };
 }
 
-test("Fraunces Reserv har Times mått och pekar på Liberation Serif och Tinos (Linux, där Lighthouse mäter)", () => {
+test("Fraunces Reserv har Times mått: Times New Roman först (ersätter Nexts egen reserv), sedan Liberation Serif och Tinos (Linux, där Lighthouse mäter)", () => {
   const r = regel("Fraunces Reserv");
   assert.deepEqual({ ascent: r.ascent, descent: r.descent, lineGap: r.lineGap, size: r.size }, overrides("timesNewRoman"));
   assert.deepEqual(overrides("tinos"), overrides("timesNewRoman")); // Tinos och Liberation Serif har Times bredd
+  assert.ok(r.src.startsWith('local("Times New Roman")'), r.src);
   for (const namn of ['local("Liberation Serif")', 'local("LiberationSerif")', 'local("Tinos")']) assert.ok(r.src.includes(namn), namn);
 });
 
@@ -36,6 +37,9 @@ test("Fraunces Reserv N har Noto Serifs mått (Android)", () => {
   for (const namn of ['local("Noto Serif")', 'local("NotoSerif-Regular")']) assert.ok(r.src.includes(namn), namn);
 });
 
-test("båda reserverna står i Fraunces fallback-lista, i den ordningen", () => {
-  assert.match(layout, /fallback: \['"Fraunces Reserv"', '"Fraunces Reserv N"'\],/);
+test("båda reserverna står i Fraunces fallback-lista, i den ordningen och med enkla citattecken", () => {
+  assert.match(layout, /fallback: \["'Fraunces Reserv'", "'Fraunces Reserv N'"\],/);
+  // Turbopack lägger listan i en JS-sträng med dubbla citattecken: ett dubbelt här fällde bygget (2026-11-08).
+  const lista = layout.match(/fallback: \[([^\]]*)\]/)![1];
+  assert.doesNotMatch(lista.replace(/^"|"$/g, "").replace(/", "/g, ""), /"/);
 });

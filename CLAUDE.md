@@ -1130,8 +1130,11 @@ på Linux (där Lighthouse mäter) och Android. Där ritades rubrikerna med
 Liberation Serif eller Noto Serif rakt av, och texten hoppade 3–5 px när
 Fraunces bytte in sig (CLS upp till 0,0014 på datorns startsida). Reserverna har
 samma mått, räknade med Nexts formel, och textens ruta är då exakt lika före och
-efter bytet (mätt 2026-11-08). Byts rubriktypsnittet ska måtten räknas om, och
-`lib/typsnitt-reserv.test.ts` fäller tills de är det.
+efter bytet (mätt 2026-11-08). När `fallback` anges tar Turbopack bort Nexts egen
+reserv, så "Fraunces Reserv" börjar med Times New Roman och tar över den. Namnen
+i `fallback` står med enkla citattecken: Turbopack skriver listan rakt in i en
+JS-sträng, och ett dubbelt citattecken fällde bygget. Byts rubriktypsnittet ska
+måtten räknas om, och `lib/typsnitt-reserv.test.ts` fäller tills de är det.
 
 **Kollektionerna** skapades 2026-11-04 med behörigheten ADMIN och 13 index:
 `FyndplatsMedlemmar`, `FyndplatsMedlemsprofiler`, `FyndplatsInloggningar`,
