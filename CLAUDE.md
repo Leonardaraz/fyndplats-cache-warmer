@@ -1123,6 +1123,16 @@ släcks med `data-av`. Förut monterades den efter hydreringen, länken blev 13 
 bredare och menyraden (space-between) flyttade alla länkar på datorn, CLS
 0,0002. Provet står i `lib/auktionsprick.test.ts`.
 
+☠️ **Fraunces har två egna reservtypsnitt** ("Fraunces Reserv" och "Fraunces
+Reserv N" i `app/globals.css`, `fallback` i `app/layout.tsx`). Nexts egen
+"Fraunces Fallback" har rätt mått men pekar bara på Times New Roman, som saknas
+på Linux (där Lighthouse mäter) och Android. Där ritades rubrikerna med
+Liberation Serif eller Noto Serif rakt av, och texten hoppade 3–5 px när
+Fraunces bytte in sig (CLS upp till 0,0014 på datorns startsida). Reserverna har
+samma mått, räknade med Nexts formel, och textens ruta är då exakt lika före och
+efter bytet (mätt 2026-11-08). Byts rubriktypsnittet ska måtten räknas om, och
+`lib/typsnitt-reserv.test.ts` fäller tills de är det.
+
 **Kollektionerna** skapades 2026-11-04 med behörigheten ADMIN och 13 index:
 `FyndplatsMedlemmar`, `FyndplatsMedlemsprofiler`, `FyndplatsInloggningar`,
 `FyndplatsOrderliggare`, `FyndplatsMedlemsnivaer`, `FyndplatsMedlemsregler` och

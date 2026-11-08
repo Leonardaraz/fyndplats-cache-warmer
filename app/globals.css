@@ -1,3 +1,15 @@
+/* Reservtypsnitt för Fraunces där Times New Roman saknas (app/layout.tsx,
+   fallback). Nexts egen "Fraunces Fallback" har rätt mått men pekar bara på
+   Times New Roman, som finns på iPhone, Mac och Windows men inte på Linux (där
+   Lighthouse mäter) eller Android. Där ritades rubrikerna med Liberation Serif
+   eller Noto Serif rakt av, och texten hoppade 3–5 px när Fraunces bytte in sig
+   (CLS upp till 0,0014 på datorns startsida, 2026-11-08). Måtten är Nexts egen
+   formel (next/dist/server/font-utils.js) med Fraunces 1956/510/938 per 2000
+   mot reservens bredd: Liberation Serif och Tinos har Times mått (832/2048),
+   Noto Serif 481/1000. lib/typsnitt-reserv.test.ts räknar om dem. */
+@font-face{font-family:"Fraunces Reserv";src:local("Liberation Serif"),local("LiberationSerif"),local("Tinos"),local("Tinos-Regular");ascent-override:84.71%;descent-override:22.09%;line-gap-override:0.00%;size-adjust:115.45%}
+@font-face{font-family:"Fraunces Reserv N";src:local("Noto Serif"),local("Noto Serif Regular"),local("NotoSerif-Regular"),local("NotoSerif");ascent-override:100.30%;descent-override:26.15%;line-gap-override:0.00%;size-adjust:97.51%}
+
 :root{
   /* Hur långt under sidhuvudet ett ankarmål ska hamna. Sidhuvudet är 130 px
      på dator och 133 px på mobil (med sökraden), så 90 px gömde rubriken. */

@@ -63,6 +63,10 @@ const fraunces = Fraunces({
   subsets: ["latin"],
   style: ["normal", "italic"],
   display: "swap",
+  // Nexts egen reserv ("Fraunces Fallback") pekar bara på Times New Roman, som
+  // saknas på Linux (där Lighthouse mäter) och Android. Där hoppade rubrikerna
+  // 3–5 px när Fraunces bytte in sig. De här två har samma mått, se globals.css.
+  fallback: ['"Fraunces Reserv"', '"Fraunces Reserv N"'],
 });
 
 // Organization + LocalBusiness-hybrid — ger Google både företagsinfo för
