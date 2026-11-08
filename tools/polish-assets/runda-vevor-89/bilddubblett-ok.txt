@@ -1,0 +1,1 @@
+# kort pos1 pos2 skäl (kvitterar ett par som gate-bilddubblett.py flaggar som misstänkt men som visar något olika)
