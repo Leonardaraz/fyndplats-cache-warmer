@@ -1117,6 +1117,12 @@ Lighthouse, 0,002. Vänta aldrig med `display:none`: då gäller inte
 platsen när svaret kommer, och det är priset för att `pa` står still. Provet
 står i `lib/medlem/kontolank.test.ts`.
 
+Samma regel gäller allt i sidhuvudet som tänds först i webbläsaren. Auktionspricken
+vid "Fyndauktionen" (`components/auction-dot.tsx`, 07–19) renderas alltid och
+släcks med `data-av`. Förut monterades den efter hydreringen, länken blev 13 px
+bredare och menyraden (space-between) flyttade alla länkar på datorn, CLS
+0,0002. Provet står i `lib/auktionsprick.test.ts`.
+
 **Kollektionerna** skapades 2026-11-04 med behörigheten ADMIN och 13 index:
 `FyndplatsMedlemmar`, `FyndplatsMedlemsprofiler`, `FyndplatsInloggningar`,
 `FyndplatsOrderliggare`, `FyndplatsMedlemsnivaer`, `FyndplatsMedlemsregler` och

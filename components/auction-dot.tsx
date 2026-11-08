@@ -1,7 +1,12 @@
 "use client";
 // Pulserande glödprick vid Fyndauktionen-länken i navet — bara under
-// auktionsdagen (07–19 svensk tid). Mount-gated (klockberoende ⇒ skulle
-// annars ge hydration-mismatch). Rent kosmetisk.
+// auktionsdagen (07–19 svensk tid). Klockan läses först efter monteringen
+// (annars hydration-mismatch). Rent kosmetisk.
+//
+// Platsen hålls alltid och bara synligheten byter (data-av = av). Förut
+// monterades pricken först efter hydreringen: länken blev 13 px bredare och
+// menyraden (space-between) flyttade alla länkar 3–12 px, CLS 0,0002 på
+// datorn (2026-11-08).
 
 import { useEffect, useState } from "react";
 
@@ -22,5 +27,5 @@ export function AuctionDot() {
     const t = setInterval(check, 60_000);
     return () => clearInterval(t);
   }, []);
-  return on ? <span className="nav-adot" aria-hidden="true" /> : null;
+  return <span className="nav-adot" data-av={on ? undefined : ""} aria-hidden="true" />;
 }

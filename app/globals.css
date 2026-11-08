@@ -3105,6 +3105,10 @@ body:has(.drawer.show) .cookiebar{visibility:hidden}
 .nav-adot{position:relative;width:7px;height:7px;border-radius:50%;background:#F84848;box-shadow:var(--e1);flex:0 0 auto}
 .nav-adot::after{content:"";position:absolute;inset:0;border-radius:50%;background:rgba(248,72,72,.5);animation:navDot 1.6s ease-out infinite}
 @keyframes navDot{from{transform:scale(1);opacity:.7}to{transform:scale(2.4);opacity:0}}
+/* Utanför auktionsdagen står pricken kvar osynlig (AuctionDot), så att länken
+   har samma bredd hela dagen och menyraden aldrig flyttar sig. */
+.nav-adot[data-av]{visibility:hidden}
+.nav-adot[data-av]::after{animation:none}
 @media (prefers-reduced-motion:reduce){.nav-adot::after{animation:none;opacity:0}}
 
 /* ── Fyndauktionen: flytande live-pill (endast mobil) ─────────────── */
