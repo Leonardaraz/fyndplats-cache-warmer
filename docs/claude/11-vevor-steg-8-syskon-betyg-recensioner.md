@@ -404,3 +404,42 @@ Ordningen är därför:
 Mätt 2026-11-08: registret har 755 publicerade VEVOR-rader, och 233 familjegrupper (titel utan
 siffror, enheter och färgord) har minst en publicerad sida, 65 av dem med två eller fler. Många
 av dem är olika varor med olika effekt eller kapacitet, och verktygets familjeregel stoppar dem.
+
+**En hel katalog av säkra familjer på en dag (Leonard 2026-11-08: *"Kör alla säkra familjer o dom
+som är osäkra kolla upp"*).** Samma steg gjordes för 23 värdar och 28 givare (runda vevor-87 till
+94, utfallet står i `tools/polish-gates/FLAGGADE-VEVOR.md` (mu)). Det som kostade tid, och som
+nästa familj kan hoppa över:
+
+1. **Klassa först och slå bara ihop de säkra.** Registret grupperades (titel utan siffror,
+   enheter och färgord) och varje grupp fick `JA`, `SAKER`, `OSAKER` eller `NEJ`. Säker är en
+   grupp där alla axlar är färg, mönster, längd, storlek eller förpackning, där givarna går att
+   sälja och där prisskillnaden inte tyder på olika varor (`pris_x…` i klassningen). Barnkonstbord,
+   konsolbord och skrivbordsavdelare är samma vara i en annan färg men har prisgap på 600 till
+   1 840 kr och väntar på Leonards besked, stegen är en annan modell (vikt och mått skiljer), och
+   mattorna har två axlar (storlek och färg) på fyra sidor.
+2. **Byt alla värdars namn i en runda före sammanslagningarna** (87 för elva värdar, 90 för
+   åtta, 93 för julgirlangen). `namnet_bar_varde` jämför bara det exakta värdet och fångar inte
+   böjda former som *vitt* eller *mörkgrå*, så byt namn på alla.
+3. **SKU skrivs ut av oss, högst 40 tecken** (`sku_for_lang`), och ett värde får inte
+   innehålla kommatecken (`varde_ogiltigt`): *Svart och guld*, inte *Vit, svart och grå*.
+4. **Ett tomt alt-textfält på värden fäller sammanslagningen** med Wix 400
+   (`altText has size 0`) utan att något skrivits. Skriv värdens alt-texter först (runda
+   vevor-88, bänkskivan).
+5. **Galleriet på en sammanslagen sida** listas i livets ordning (värdens foton, sedan varje
+   givares) med etiketterna 1, 2, 4, 5, … och sist 3, och `bilder-bort.tsv` är tom: värdens
+   strukna positioner hör till den gamla numreringen och ger `STRUKEN BILD` mot det nya
+   galleriet. Givarens strukna foton stängs ute med `bilder` vid sammanslagningen. Alla alt-texter
+   på en sida ska vara olika.
+6. **Foton som är samma bild enligt innehållet hoppas över** (värdens foto blir delat, utan val,
+   och behåller värdens alt-text). Ett foto av samma motiv med annan hash läggs till på givarens
+   värde, och då behöver det en egen alt-text som nämner värdet (*den större*, *den svarta*).
+7. **Siffergrinden kräver siffran i källans form.** En omräkning (38100 mm som 38,1 m) märks som
+   omräkning i `kallor.json` (`=== omräkning, inte källtext: … ===`), och SEO-raden skriver talet
+   som källan gör (`71,12`, `600 eller 300 mm`). Saknas utkastskälla, som på julgirlangen som
+   publicerades utanför en runda, byggs rundan ur livesidan med sidans egen publicerade text som
+   källa, och en spec-rad *Vikt* heter *Fraktvikt* tills något visar att talet är varans egen vikt.
+8. **Recensionerna som kopierades vid sammanslagningen** läses med `las` och översätts i kundens
+   röst. En mening som inte stämmer för sidan (färger sidan inte har, verktyg som bara ingår i
+   den andra storleken) utelämnas.
+9. **Läs sidorna efter VEVOR-synken.** Skriv inte minut 50–54. Mätt 14:08 efter synken kl 13:50:
+   19 sammanslagna sidor, orörda priser och ingen variant på noll i lager.

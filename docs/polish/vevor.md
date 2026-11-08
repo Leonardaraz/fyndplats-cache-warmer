@@ -206,6 +206,13 @@ utan sidans värde (`namnet_bar_varde`), och texten och adressen skrivs om efter
 olika effekt, kapacitet eller modell: de får egna sidor och poleras var för sig. Se *Syskon som
 importen inte slog ihop* i `docs/claude/11-vevor-steg-8-syskon-betyg-recensioner.md`.
 
+**Säkra familjer är gjorda (2026-11-08, `FLAGGADE-VEVOR.md` (mu)).** 23 värdar och 28 givare blev
+sammanslagna sidor i runda vevor-87 till 94. Det som återstår är grupperna som klassningen
+stoppar: barnkonstbord, konsolbord och skrivbordsavdelare (samma vara i annan färg, prisgap på 600
+till 1 840 kr), stegen (annan modell), mattorna (två axlar på fyra sidor), BBQ-dörrarna (nio sidor,
+tre av dem med samma mått) och 13 små familjer vars axel eller pris är oklar. De slås inte ihop
+utan Leonards besked.
+
 **Paketstorlekar som importen inte slog ihop** *(Leonard 2026-11-02, bordsdukarna: "ja slå ihop
 proffsigt", via Wix API)*. VEVOR säljer samma vara som ett 3-, 6- och 10-pack, men varje paket
 är en egen artikel utan länkar till de andra, och bara SPU:n är gemensam. Familjeregelns plan
