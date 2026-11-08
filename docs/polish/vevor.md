@@ -201,7 +201,8 @@ Sammanslagningsverktyget i *Syskon blir val på sidan* tar bara Aosom-artiklar
 färg, ett annat mönster, en annan storlek, längd eller förpackning, läggs i stället på sidan med
 **"VEVOR — lägg ett syskon som färg, storlek, längd eller förpackning på en annan VEVOR-sida"**
 (`vevor-sammanslagning.yml`, `plan` och sedan `byt`), en givare per körning, innan sidan poleras.
-Sidan vi behåller får vara ett utkast. Verktyget håller familjeregeln själv och vägrar syskon med
+Sidan vi behåller får vara ett utkast. En publicerad sida går också, men först efter att dess namn gjorts
+utan sidans värde (`namnet_bar_varde`), och texten och adressen skrivs om efteråt. Verktyget håller familjeregeln själv och vägrar syskon med
 olika effekt, kapacitet eller modell: de får egna sidor och poleras var för sig. Se *Syskon som
 importen inte slog ihop* i `docs/claude/11-vevor-steg-8-syskon-betyg-recensioner.md`.
 

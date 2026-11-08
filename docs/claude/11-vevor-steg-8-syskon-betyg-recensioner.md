@@ -371,3 +371,36 @@ givare. Planen gav `Längd: langd`, orörda priser (349 och 399 kr), 0 av givare
 (alla sex är samma bilder som sidan redan har: VEVOR använder samma galleri för alla längder),
 3 recensioner att kopiera och 5 av sidans att märka. Hindret `funktion_skiljer:Modell` ledde
 till rättelsen i punkt 1.
+
+**Publicerade sidor går också, i en bestämd ordning (Leonard 2026-11-08: *"vi borde börja med
+sidorna vi redan publicerat o fixa dom sen"*, och sedan *"Byt namn först"*).** Första
+torrkörningen mot två publicerade gymnastikräckar (värd blå, givare lila) stoppades av
+`namnet_bar_varde:Färg`: en publicerad sida bär sitt namn ut till kunden, så verktyget vägrar
+den när namnet säger sidans eget värde, och alla polerade sidor har färg eller mönster i namnet.
+Ordningen är därför:
+
+1. `plan` mot paret visar hindret. Familjeregeln avgör också vad som är en familj: *Med matta*
+   mot *Utan matta* är ingen packstorlek (`familjeregeln_oklar:Förpackning`), så de sex räckarna
+   blev två sidor, tre färger utan matta och tre med.
+2. **Värdens namn och SEO görs färgneutrala** med den vanliga poleringen, i en egen liten runda
+   (runda vevor-85, mönstret från T73 i `tools/polish-kedja/mall-t`): filerna kopieras ur rundan
+   som skrev sidan, bara `namn.tsv`, `seo.tsv` och `lager.tsv` är nya, och texten rörs inte.
+   Läs sidan live först (`aterlas`-skriptet, facit ur rundans `vantat-hash.tsv`): är texten LIKA
+   skriver rundan om samma sak.
+3. **En givare per körning, `plan` före varje `byt`, `omdirigera=ja`** (givaren är publicerad).
+   Verktyget lägger givarens foton på färgen, kopierar recensionerna, avpublicerar och
+   pensionerar givaren och skriver en 301 till värdens adress med `?variant=`.
+4. **Texten för alla färger** i en runda med `sammanslagna.tsv` (runda vevor-86): färgerna i
+   inledningen, i egenskapspunkten och i `Färg:`-raden, en fråga om vilka färger som finns och
+   unika alt-texter på varje bild, med färgen nämnd där fotot visar den. Titta på fotona först:
+   samma bildtexter för tre färger blir tre lika alt-texter. Adressen får inte bära ett enskilt
+   värde, så den byts till en neutral adress.
+5. **301:orna direkt efter skrivningen** med `redirect-add.yml` (`batch`): värdens gamla adress
+   till den nya, och varje givares adress till den nya med `?variant=` så att rätt färg är
+   förvald. Verktyget upsertar rader, och målet måste vara en levande produkt, så de skrivs
+   efter textsteget. Butikens sidcache för de gamla adresserna går om inom en timme.
+6. Läs sidorna live när cachen gått om (`hamta-live.sh`, `livegrind.py`, `livekoll.py`).
+
+Mätt 2026-11-08: registret har 755 publicerade VEVOR-rader, och 233 familjegrupper (titel utan
+siffror, enheter och färgord) har minst en publicerad sida, 65 av dem med två eller fler. Många
+av dem är olika varor med olika effekt eller kapacitet, och verktygets familjeregel stoppar dem.
