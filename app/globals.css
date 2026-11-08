@@ -11,12 +11,6 @@
    lib/typsnitt-reserv.test.ts räknar om dem. */
 @font-face{font-family:"Fraunces Reserv";src:local("Times New Roman"),local("TimesNewRomanPSMT"),local("Liberation Serif"),local("LiberationSerif"),local("Tinos"),local("Tinos-Regular");ascent-override:84.71%;descent-override:22.09%;line-gap-override:0.00%;size-adjust:115.45%}
 @font-face{font-family:"Fraunces Reserv N";src:local("Noto Serif"),local("Noto Serif Regular"),local("NotoSerif-Regular"),local("NotoSerif");ascent-override:100.30%;descent-override:26.15%;line-gap-override:0.00%;size-adjust:97.51%}
-/* Samma sak för brödtextens Geist: Nexts reserv pekar bara på Arial, och
-   produktsidans rubrik hoppade 3 px på datorn när Geist bytte in sig. Arial
-   först, sedan Liberation Sans och Arimo med Arials mått (Geist 1005/295/467
-   per 1000 mot Arial 913/2048), Roboto (911/2048) för Android. */
-@font-face{font-family:"Geist Reserv";src:local("Arial"),local("ArialMT"),local("Liberation Sans"),local("LiberationSans"),local("Arimo"),local("Arimo-Regular");ascent-override:95.94%;descent-override:28.16%;line-gap-override:0.00%;size-adjust:104.76%}
-@font-face{font-family:"Geist Reserv R";src:local("Roboto"),local("Roboto Regular"),local("Roboto-Regular");ascent-override:95.73%;descent-override:28.10%;line-gap-override:0.00%;size-adjust:104.99%}
 
 :root{
   /* Hur långt under sidhuvudet ett ankarmål ska hamna. Sidhuvudet är 130 px

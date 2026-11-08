@@ -1133,10 +1133,15 @@ samma mått, räknade med Nexts formel, och textens ruta är då exakt lika för
 efter bytet (mätt 2026-11-08). När `fallback` anges tar Turbopack bort Nexts egen
 reserv, så "Fraunces Reserv" börjar med Times New Roman och tar över den. Namnen
 i `fallback` står med enkla citattecken: Turbopack skriver listan rakt in i en
-JS-sträng, och ett dubbelt citattecken fällde bygget. Geist har samma lösning
-("Geist Reserv" med Arial först och "Geist Reserv R" med Roboto), för produktsidans
-rubrik hoppade 3 px på datorn. Byts ett typsnitt ska måtten räknas om, och
-`lib/typsnitt-reserv.test.ts` fäller tills de är det.
+JS-sträng, och ett dubbelt citattecken fällde bygget. Byts rubriktypsnittet ska
+måtten räknas om, och `lib/typsnitt-reserv.test.ts` fäller tills de är det.
+
+☠️ **Geist ska inte ha en egen reserv på samma sätt** (provat och backat
+2026-11-08). Med Arials mått bröts texter med vikt 500 och 700 på färre rader än
+med Geist: kampanjremsan på en rad i stället för två, knapparna smalare. Med
+typsnitten fördröjda gav bytet CLS 0,010 på mobilens startsida, 0,024 på
+produktsidan och upp till 0,13 på kategorisidan. Nexts reserv, och Liberation
+Sans rakt av på Linux, bryter texten som Geist gör.
 
 **Kollektionerna** skapades 2026-11-04 med behörigheten ADMIN och 13 index:
 `FyndplatsMedlemmar`, `FyndplatsMedlemsprofiler`, `FyndplatsInloggningar`,
