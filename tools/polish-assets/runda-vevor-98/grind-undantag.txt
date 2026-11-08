@@ -1,6 +1,4 @@
 # <skript> <skäl> — se bygg-skrivplan.py
-bygg-axelfacit.py källans specifikation har raderna Arbetsbord 185×100 mm, Bottenstorlek 170 × 130 mm och Arbetshöjd 102 mm utan tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar bara bordets 185 mm, 102 mm och 102 mm: texten skriver måtten som i källan
-# <skript> <skäl> — se bygg-skrivplan.py
 bygg-axelfacit.py källans specifikation har raden Bogserremmens mått 7,6 x 914,4 cm utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, och infografiken ritar bara schacklarnas mått: texten skriver remmens mått som i källan
 # <skript> <skäl> — se bygg-skrivplan.py
 bygg-axelfacit.py källans specifikation har storleksraderna utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar verktygens längd, bredd och höjd: texten skriver måtten som i källan, och längden på demonteringsverktyget och monteringsstången ur ritningen
