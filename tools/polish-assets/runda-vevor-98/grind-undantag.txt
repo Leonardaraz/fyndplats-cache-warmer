@@ -1,0 +1,16 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Arbetsbord 185×100 mm, Bottenstorlek 170 × 130 mm och Arbetshöjd 102 mm utan tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar bara bordets 185 mm, 102 mm och 102 mm: texten skriver måtten som i källan
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Bogserremmens mått 7,6 x 914,4 cm utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, och infografiken ritar bara schacklarnas mått: texten skriver remmens mått som i källan
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har storleksraderna utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar verktygens längd, bredd och höjd: texten skriver måtten som i källan, och längden på demonteringsverktyget och monteringsstången ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (vid minsta höjd) 640 x 350 x 310 mm utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar stödytans 594 mm längd, 147 mm bredd, höjden 289,5–457,2 mm och 350 mm: texten skriver måtten som i källan
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Käftbredd 15 cm, Käköppning 13,5 cm och Halsdjup 3 tum utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar skruvstädet som 45 cm, 18 cm och 25 cm: texten skriver måtten som i källan utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara raderna Insatser och Huvud och ingen tysk totalmåttrad att bygga ett facit ur, och måttritningen på position 8 ritar 57 cm som längd, 9 cm och 13 cm samt handtagen 36 och 36–62 cm: texten skriver längden 57 cm som ritningen ritar den
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Objektstorlek (L x B x H) 40,75 x 5,31 x 4,33 tum / 1035 x 135 x 110 mm men ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar bara längderna 1020–1620 mm: texten skriver måtten som i källan utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek 15,2 x 10,8 x 13,6 tum / 385 x 274 x 345 mm utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar bara 385, 274 och 345 mm: texten skriver måtten som i källan utan axelord
