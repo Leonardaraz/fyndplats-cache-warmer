@@ -1133,8 +1133,10 @@ samma mått, räknade med Nexts formel, och textens ruta är då exakt lika för
 efter bytet (mätt 2026-11-08). När `fallback` anges tar Turbopack bort Nexts egen
 reserv, så "Fraunces Reserv" börjar med Times New Roman och tar över den. Namnen
 i `fallback` står med enkla citattecken: Turbopack skriver listan rakt in i en
-JS-sträng, och ett dubbelt citattecken fällde bygget. Byts rubriktypsnittet ska
-måtten räknas om, och `lib/typsnitt-reserv.test.ts` fäller tills de är det.
+JS-sträng, och ett dubbelt citattecken fällde bygget. Geist har samma lösning
+("Geist Reserv" med Arial först och "Geist Reserv R" med Roboto), för produktsidans
+rubrik hoppade 3 px på datorn. Byts ett typsnitt ska måtten räknas om, och
+`lib/typsnitt-reserv.test.ts` fäller tills de är det.
 
 **Kollektionerna** skapades 2026-11-04 med behörigheten ADMIN och 13 index:
 `FyndplatsMedlemmar`, `FyndplatsMedlemsprofiler`, `FyndplatsInloggningar`,

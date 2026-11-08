@@ -57,7 +57,8 @@ const META_PIXEL_ID = (process.env.META_PIXEL_ID || "").trim();
 // variabeln i Vercel.
 const KLARNA_CLIENT_ID = (process.env.NEXT_PUBLIC_KLARNA_CLIENT_ID || "").trim();
 
-const geist = Geist({ variable: "--font-sans", subsets: ["latin"] });
+// Egna reserver av samma skäl som Fraunces nedan (Arial saknas på Linux och Android).
+const geist = Geist({ variable: "--font-sans", subsets: ["latin"], fallback: ["'Geist Reserv'", "'Geist Reserv R'"] });
 const fraunces = Fraunces({
   variable: "--font-display",
   subsets: ["latin"],

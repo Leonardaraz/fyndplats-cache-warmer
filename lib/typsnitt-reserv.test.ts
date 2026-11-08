@@ -1,5 +1,6 @@
-// Reservtypsnitten för Fraunces: samma mått som Nexts egen reserv, för de
-// enheter som saknar Times New Roman (Linux och Android). Se app/globals.css.
+// Reservtypsnitten för Fraunces och Geist: samma mått som Nexts egna reserver,
+// också för de enheter som saknar Times New Roman och Arial (Linux och Android).
+// Se app/globals.css.
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -11,8 +12,8 @@ const matt = JSON.parse(readFileSync(new URL("../node_modules/next/dist/server/c
 
 // Samma formel som next/dist/server/font-utils.js (calculateSizeAdjustValues).
 const pct = (v: number) => Math.abs(v * 100).toFixed(2);
-function overrides(reserv: string) {
-  const f = matt.fraunces, r = matt[reserv];
+function overrides(reserv: string, typsnitt = "fraunces") {
+  const f = matt[typsnitt], r = matt[reserv];
   const size = (f.xWidthAvg / f.unitsPerEm) / (r.xWidthAvg / r.unitsPerEm);
   return { ascent: pct(f.ascent / (f.unitsPerEm * size)), descent: pct(f.descent / (f.unitsPerEm * size)), lineGap: pct(f.lineGap / (f.unitsPerEm * size)), size: pct(size) };
 }
@@ -42,4 +43,22 @@ test("båda reserverna står i Fraunces fallback-lista, i den ordningen och med 
   // Turbopack lägger listan i en JS-sträng med dubbla citattecken: ett dubbelt här fällde bygget (2026-11-08).
   const lista = layout.match(/fallback: \[([^\]]*)\]/)![1];
   assert.doesNotMatch(lista.replace(/^"|"$/g, "").replace(/", "/g, ""), /"/);
+});
+
+test("Geist Reserv har Arials mått: Arial först (ersätter Nexts egen reserv), sedan Liberation Sans och Arimo", () => {
+  const r = regel("Geist Reserv");
+  assert.deepEqual({ ascent: r.ascent, descent: r.descent, lineGap: r.lineGap, size: r.size }, overrides("arial", "geist"));
+  assert.deepEqual(overrides("arimo", "geist"), overrides("arial", "geist")); // Arimo och Liberation Sans har Arials bredd
+  assert.ok(r.src.startsWith('local("Arial")'), r.src);
+  for (const namn of ['local("Liberation Sans")', 'local("LiberationSans")', 'local("Arimo")']) assert.ok(r.src.includes(namn), namn);
+});
+
+test("Geist Reserv R har Robotos mått (Android)", () => {
+  const r = regel("Geist Reserv R");
+  assert.deepEqual({ ascent: r.ascent, descent: r.descent, lineGap: r.lineGap, size: r.size }, overrides("roboto", "geist"));
+  for (const namn of ['local("Roboto")', 'local("Roboto-Regular")']) assert.ok(r.src.includes(namn), namn);
+});
+
+test("Geists reserver står i fallback-listan med enkla citattecken", () => {
+  assert.match(layout, /Geist\(\{ variable: "--font-sans", subsets: \["latin"\], fallback: \["'Geist Reserv'", "'Geist Reserv R'"\] \}\);/);
 });
