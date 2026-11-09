@@ -368,6 +368,7 @@ export function Gallery({
   // SAMMA tryck, eftersom iPhone bara spelar ljud när play() kommer direkt ur
   // kundens egen handling. Ett play() i en effekt efter renderingen hade nekats.
   const videoRef = useRef<HTMLVideoElement>(null);
+  const videoRutaRef = useRef<HTMLButtonElement>(null);
   const [videoPa, setVideoPa] = useState(false);
   // En fil som inte går att spela tar bort rutan, hellre än en svart ruta med
   // ett felmeddelande.
@@ -403,6 +404,12 @@ export function Gallery({
     }
     setVideoStartLage(videoLage);
     setVideoPa(true);
+    // Lagret syns först efter nästa rendering, men play() måste ske nu. Visa
+    // det redan här, så att Safari aldrig startar en video som den räknar som
+    // osynlig (React sätter samma klass och tar bort inert i renderingen).
+    const lager = el.parentElement;
+    lager?.classList.add("is-on");
+    lager?.removeAttribute("inert");
     // Nekar webbläsaren att starta står spelaren kvar med sina kontroller, och
     // kunden trycker play själv. Inget fel att visa.
     void el.play().catch(() => {});
@@ -410,6 +417,15 @@ export function Gallery({
   const stangVideo = () => {
     setVideoPa(false);
     setVideoStartLage(null);
+  };
+  // ✕ och Escape: stäng och lämna fokus på videorutan. Annars försvinner fokus
+  // med den dolda spelaren, och den som använder tangentbordet hamnar överst på
+  // sidan igen. En bildruta behåller själv fokus och går inte den här vägen.
+  // Fokus flyttas bara för tangentbordet: ett tryck på ✕ med fingret ska inte
+  // lämna en fokusring på rutan (Safari visar den vid flyttat fokus).
+  const stangTillRutan = (tangentbord: boolean) => {
+    stangVideo();
+    if (tangentbord) videoRutaRef.current?.focus({ preventScroll: true });
   };
 
   // Subtil laddningsindikator: man har bytt till ett lager vars bild ännu inte
@@ -612,6 +628,7 @@ export function Gallery({
     <button
       type="button"
       key="video"
+      ref={videoRutaRef}
       className={`gtile gtile-video ${videoPa ? "active" : ""}`}
       onClick={spelaVideo}
       role="tab"
@@ -711,7 +728,16 @@ export function Gallery({
           ✕ ligger då i det svarta fältet ovanför en liggande video, eller till
           höger om en stående, och aldrig över dem. */}
       {harVideo && (
-        <div className={`gvideo ${videoPa ? "is-on" : ""}`} inert={!videoPa || undefined}>
+        <div
+          className={`gvideo ${videoPa ? "is-on" : ""}`}
+          inert={!videoPa || undefined}
+          onKeyDown={(e) => {
+            // Escape i helskärm lämnar bara helskärmen, inte videon.
+            if (e.key !== "Escape" || document.fullscreenElement) return;
+            e.stopPropagation();
+            stangTillRutan(true);
+          }}
+        >
           <video
             key={video!.id}
             ref={videoRef}
@@ -722,13 +748,21 @@ export function Gallery({
             preload="none"
             poster={videoPa && video!.poster ? tightFillUrl(video!.poster, 960, Math.round((960 * video!.hojd) / video!.bredd)) : undefined}
             aria-label={`Video: ${alt}`}
-            onError={() => {
+            onError={(e) => {
+              const el = e.currentTarget;
               setVideoPa(false);
               setVideoStartLage(null);
-              setVideoTrasig(true);
+              // Filen går inte att spela (eller har aldrig spelat): ta bort rutan.
+              // Ett nätavbrott mitt i: behåll rutan och släpp filen, så att nästa
+              // tryck hämtar den igen.
+              if (el.error?.code === 4 || !el.currentTime) setVideoTrasig(true);
+              else {
+                el.removeAttribute("src");
+                el.load();
+              }
             }}
           />
-          <button type="button" className="gvideo-stang" onClick={stangVideo} aria-label="Stäng videon och visa bilderna">
+          <button type="button" className="gvideo-stang" onClick={(e) => stangTillRutan(e.detail === 0)} aria-label="Stäng videon och visa bilderna">
             ✕
           </button>
         </div>

@@ -248,7 +248,7 @@ test("spelaren ligger utanför hjältens knapp, och bilden under är inert", () 
   const spelare = galleri.indexOf('className={`gvideo ');
   assert.ok(hjalte > 0 && slut > hjalte && spelare > slut, "<video> får inte ligga i <button>");
   assert.match(galleri.slice(hjalte, slut), /inert=\{videoPa \|\| undefined\}/);
-  assert.match(galleri, /className=\{`gvideo \$\{videoPa \? "is-on" : ""\}`\} inert=\{!videoPa \|\| undefined\}/);
+  assert.match(galleri, /className=\{`gvideo \$\{videoPa \? "is-on" : ""\}`\}\s+inert=\{!videoPa \|\| undefined\}/);
 });
 
 test("videorutan är andra ruta, och bilderna får en ruta mindre", () => {
@@ -272,8 +272,24 @@ test("en bildruta eller ett annat val stänger videon", () => {
   assert.match(galleri, /else el\.pause\(\);/);
 });
 
+test("✕ och Escape stänger och lämnar fokus på videorutan", () => {
+  const stang = galleri.slice(galleri.indexOf("const stangTillRutan"), galleri.indexOf("};", galleri.indexOf("const stangTillRutan")));
+  assert.match(stang, /stangVideo\(\);\s*if \(tangentbord\) videoRutaRef\.current\?\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(galleri, /ref=\{videoRutaRef\}\s*className=\{`gtile gtile-video/);
+  // Bara tangentbordets klick (detail 0) flyttar fokus; fingrets tryck gör det inte.
+  assert.match(galleri, /className="gvideo-stang" onClick=\{\(e\) => stangTillRutan\(e\.detail === 0\)\}/);
+  const lager = galleri.slice(galleri.indexOf('className={`gvideo ${videoPa'), galleri.indexOf("<video\n"));
+  assert.match(lager, /e\.key !== "Escape" \|\| document\.fullscreenElement/);
+  assert.match(lager, /stangTillRutan\(true\)/);
+  // En bildruta stänger utan att flytta fokus: den har det redan.
+  const bild = galleri.slice(galleri.indexOf("imgs.slice(0, bildRutor).map"), galleri.indexOf("return i === 0 && videoRuta"));
+  assert.match(bild, /stangVideo\(\);/);
+  assert.doesNotMatch(bild, /stangTillRutan/);
+});
+
 test("en fil som inte går att spela tar bort rutan", () => {
-  assert.match(videoTagg, /onError=\{\(\) => \{[\s\S]*setVideoTrasig\(true\)/);
+  // En fil som aldrig spelade (kod 4 eller inget spelat) tar bort rutan.
+  assert.match(videoTagg, /onError=\{\(e\) => \{[\s\S]*setVideoPa\(false\)[\s\S]*if \(el\.error\?\.code === 4 \|\| !el\.currentTime\) setVideoTrasig\(true\);/);
   assert.match(galleri, /const harVideo = !!video && !videoTrasig;/);
 });
 
@@ -307,4 +323,17 @@ test("spelaren har videons format mitt i rutan, så att ✕ ligger utanför Safa
   // ✕ är 36 px men går att träffa på 44 px (Apples minsta tryckyta).
   assert.match(css, /\.gvideo-stang\{[^}]*width:36px;height:36px/);
   assert.match(css, /\.gvideo-stang::before\{content:"";position:absolute;inset:-4px/);
+});
+
+test("lagret visas redan i trycket, före play(), så att Safari inte vägrar en osynlig video", () => {
+  const kropp = galleri.slice(galleri.indexOf("const spelaVideo"), galleri.indexOf("const stangVideo"));
+  const visa = kropp.indexOf('lager?.classList.add("is-on")');
+  assert.ok(visa > 0 && visa < kropp.indexOf("el.play()"));
+  assert.ok(kropp.indexOf('lager?.removeAttribute("inert")') < kropp.indexOf("el.play()"));
+});
+
+test("ett nätavbrott mitt i tar inte bort rutan, en ospelbar fil gör det", () => {
+  const fel = galleri.slice(galleri.indexOf("onError={(e) => {"), galleri.indexOf("/>", galleri.indexOf("onError={(e) => {")));
+  assert.match(fel, /if \(el\.error\?\.code === 4 \|\| !el\.currentTime\) setVideoTrasig\(true\);/);
+  assert.match(fel, /el\.removeAttribute\("src"\);\s*el\.load\(\);/);
 });
