@@ -35,10 +35,11 @@ function tecken(): string | null {
   return null;
 }
 
-export type Kontolank = { synlig: boolean; text: "Bli medlem" | "Mitt konto"; inne: boolean };
+/** `synlig` är null tills /api/konto/lage svarat. */
+export type Kontolank = { synlig: boolean | null; text: "Bli medlem" | "Mitt konto"; inne: boolean };
 
 export function useKontolank(): Kontolank {
-  const [l, setL] = useState<Kontolank>({ synlig: false, text: "Bli medlem", inne: false });
+  const [l, setL] = useState<Kontolank>({ synlig: null, text: "Bli medlem", inne: false });
   useEffect(() => {
     let aktiv = true;
     kontoOppet().then((v) => {
@@ -62,12 +63,29 @@ export function PersonIkon({ storlek = 20 }: { storlek?: number }) {
   );
 }
 
-/** Sidhuvudet: en mörk knapp "Bli medlem", eller en ljus "Mitt konto" för den inloggade. */
+/**
+ * Sidhuvudet: en mörk knapp "Bli medlem", eller en ljus "Mitt konto" för den
+ * inloggade. Platsen hålls från första ritningen, också på servern: medan
+ * frågan pågår står knappen osynlig (data-vantar) och tar inga tryck. Förut
+ * monterades den först när svaret kom, och i mobilen hoppade hjärtat 89 px åt
+ * höger och kundvagnen 8 px (raden byter mellanrum med :has(.konto-btn)),
+ * Lighthouse CLS 0,002 (2026-11-08). Bara ett nej tar bort den.
+ */
 export function KontoLank() {
   const { synlig, text, inne } = useKontolank();
-  if (!synlig) return null;
+  if (synlig === false) return null;
+  const vantar = synlig === null;
   return (
-    <a className="konto-btn" href="/konto" aria-label={text} title={text} data-inne={inne ? "" : undefined}>
+    <a
+      className="konto-btn"
+      href="/konto"
+      aria-label={text}
+      title={vantar ? undefined : text}
+      data-inne={inne ? "" : undefined}
+      data-vantar={vantar ? "" : undefined}
+      aria-hidden={vantar ? true : undefined}
+      tabIndex={vantar ? -1 : undefined}
+    >
       <PersonIkon />
       <span className="konto-btn-text">{text}</span>
     </a>

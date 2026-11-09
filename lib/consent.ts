@@ -111,6 +111,15 @@ function inlineState(value: "granted" | "denied"): string {
 }
 
 /**
+ * Taggen mäter bara på butikens egen adress. Varje produktionsbygge har också en
+ * egen vercel.app-adress med VERCEL_ENV production, så taggen skrevs ut där, och
+ * Vercel öppnar den när bygget är klart. Googles tagg såg då fem sådana adresser
+ * och föreslog dem för mätning över flera domäner (Leonards skärmbilder
+ * 2026-11-08). På alla andra värdar blir gtag en tom funktion och ingenting köas.
+ */
+export const MATVARD = "www.fyndplats.se";
+
+/**
  * Den synkrona bootstrap-raden i <head>/<body>. Måste köras FÖRE gtag.js, för
  * en default som anländer efter biblioteket är verkningslös — därför en rå
  * <script> och inte next/script.
@@ -142,12 +151,13 @@ export function consentBootstrapScript(measurementId: string): string {
   }
   return (
     `window.dataLayer=window.dataLayer||[];` +
+    `if(location.hostname!=='${MATVARD}'){window.gtag=function(){};}else{` +
     `window.gtag=function(){dataLayer.push(arguments);};` +
     `gtag('consent','default',{${inlineState("denied")},wait_for_update:500});` +
     `try{if(localStorage.getItem('${CONSENT_KEY}')==='all')` +
     `gtag('consent','update',{${inlineState("granted")}});}catch(e){}` +
     `gtag('js',new Date());` +
-    `gtag('config','${measurementId}');`
+    `gtag('config','${measurementId}');}`
   );
 }
 

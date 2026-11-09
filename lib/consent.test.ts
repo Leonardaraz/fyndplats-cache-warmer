@@ -5,6 +5,7 @@ import {
   CONSENT_KEY,
   CONSENT_SIGNALS,
   consentBootstrapScript,
+  MATVARD,
   consentState,
   marketingConsentFromCookie,
   pushConsentUpdate,
@@ -248,6 +249,34 @@ describe("reopenConsentBanner / takeReopenRequest", () => {
     } finally {
       if (fanns) (globalThis as Record<string, unknown>).window = original;
       else delete (globalThis as Record<string, unknown>).window;
+    }
+  });
+});
+
+describe("consentBootstrapScript — mäter bara på butikens adress", () => {
+  // Kör skriptet som i webbläsaren, med en påhittad window på en given värd.
+  const kor = (vard: string) => {
+    const s: Record<string, unknown> = { location: { hostname: vard }, localStorage: { getItem: () => null }, Date };
+    s.window = s;
+    new Function("s", `with (s) { ${consentBootstrapScript("G-TESTAR123")} }`)(s);
+    return s as { dataLayer: IArguments[]; gtag: (...a: unknown[]) => void };
+  };
+  const forsta = (s: { dataLayer: IArguments[] }) => s.dataLayer.map((a) => `${a[0]}:${typeof a[1] === "string" ? a[1] : "-"}`);
+
+  it("på www.fyndplats.se köas samtycket före config, som förut", () => {
+    assert.equal(MATVARD, "www.fyndplats.se");
+    const s = kor(MATVARD);
+    assert.deepEqual(forsta(s), ["consent:default", "js:-", "config:G-TESTAR123"]);
+    s.gtag("event", "view_item");
+    assert.equal(s.dataLayer.length, 4);
+  });
+
+  it("på ett bygges egen vercel.app-adress köas ingenting, inte heller senare händelser", () => {
+    for (const vard of ["fyndplats-headless-7105jjz7a-leonardarazs-projects.vercel.app", "fyndplats.se", "localhost"]) {
+      const s = kor(vard);
+      assert.deepEqual(s.dataLayer, [], vard);
+      s.gtag("event", "purchase", { value: 1 });
+      assert.deepEqual(s.dataLayer, [], vard);
     }
   });
 });
