@@ -1086,7 +1086,10 @@ export function Kassa({
   // platsen bara i webbläsare som kan ha en; annars står rutan utanför sidan
   // tills knapparna finns, så att formuläret inte hoppar.
   const snabbVisas = Boolean(stripeNyckel) && (snabbLage === "redo" || (snabbLage === "laddar" && planbokMojlig));
-  const planbokText = snabbLage === "redo" ? planbokNamn(snabbPlanbocker) : "Apple Pay eller Google Pay";
+  // Medan Stripe svarar syns rutan bara där Apple Pay finns (planbokTrolig och
+  // PLANBOK_SKRIPT), så texten säger Apple Pay från början och står still när
+  // Stripe svarar (förut bytte den mitt i knappbytet).
+  const planbokText = snabbLage === "redo" ? planbokNamn(snabbPlanbocker) : "Apple Pay";
   const antalVaror = rader.reduce((n, li) => n + (li.quantity ?? 1), 0);
   // "Menade du …?" när kunden lämnat fältet. Står på hjälptextens rad, så att inget flyttar.
   const epostTips = rorda.has("epost") && !fel.epost ? epostForslag(varden.epost) : null;
@@ -1352,9 +1355,12 @@ export function Kassa({
                 <h2 id="kassa-snabb-rubrik" className={s.snabbRubrik}>Snabbkassa</h2>
                 <p className={s.snabbUnder}>Namn, adress och e-post hämtas från {planbokText}. Du fyller inte i något.</p>
                 <div className={s.snabbYta}>
-                  {/* Stripes knappar (use-stripe-betalning.ts). Platshållaren har knappens höjd, så att inget hoppar. */}
-                  <div ref={snabbPlats} />
-                  {snabbLage === "laddar" ? <div className={s.snabbSkelett} aria-hidden="true" /> : null}
+                  {/* Platshållaren har knappens höjd, så att inget hoppar. Den ligger UNDER
+                      Stripes knappar och står kvar en stund efter svaret: Stripe tonar in
+                      knappen först efter "ready" (.snabbKnappar i kassa.module.css). */}
+                  {snabbLage === "laddar" || snabbLage === "redo" ? <div className={s.snabbSkelett} aria-hidden="true" /> : null}
+                  {/* Stripes knappar (use-stripe-betalning.ts). */}
+                  <div ref={snabbPlats} className={s.snabbKnappar} />
                 </div>
                 {snabbFel ? <p className={s.betalFel} role="alert">{snabbFel}</p> : null}
                 <p className={s.snabbKod}>

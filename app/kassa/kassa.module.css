@@ -977,13 +977,38 @@
   background: linear-gradient(90deg, rgba(0, 0, 0, 0.06) 25%, rgba(0, 0, 0, 0.11) 50%, rgba(0, 0, 0, 0.06) 75%);
   background-size: 200% 100%;
   animation: skimmer 1.2s linear infinite;
+  pointer-events: none;
+}
+
+/* Stripes knappar ritas ÖVER platshållaren: de står efter den i flödet och är
+   positionerade, och Stripes ram är genomskinlig tills knappen syns. Stripe
+   tonar nämligen in knappen först EFTER "ready": vyn läggs in i ramen runt
+   svaret (upp till 150 ms efter) och tonar från 0 till 1 på 400 ms efter
+   160 ms (uppmätt inne i ramen 2026-11-08). Förut togs platshållaren bort vid
+   svaret, och knappens plats blinkade vit en halv sekund innan Stripes knapp
+   tonat fram (Leonard 2026-11-08: "flimrar det till ett ögonblick"). Nu står
+   den kvar under knappen i läget "redo" och tonar bort först när Stripes
+   knapp sedan länge täcker den, också i en seg telefon. */
+.snabbKnappar {
+  position: relative;
+}
+
+.snabb[data-snabb="redo"] .snabbSkelett {
+  animation: snabbSkelettUt 0.2s ease 2s forwards;
+}
+
+@keyframes snabbSkelettUt {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
 }
 
 /* Safari ritar Apples egen knapp medan Stripes laddar, så att kunden ser
    Apple Pay direkt i stället för en grå ruta (Leonard 2026-11-07: "tar några
    sekunder tills den syns"). Samma typ, färg och hörn som Stripes knapp
    (snabbknappar: buy och black; borderRadius 10px), så bytet syns inte. Den
-   tar inga tryck: Stripes knapp tar över på samma plats när Stripe svarat. */
+   tar inga tryck: Stripes knapp tonar fram över den på samma plats (ovan). */
 @supports (-webkit-appearance: -apple-pay-button) {
   :global(html[data-applepay="ja"]) .snabbSkelett {
     -webkit-appearance: -apple-pay-button;
@@ -991,7 +1016,11 @@
     -apple-pay-button-style: black;
     background: none;
     animation: none;
-    pointer-events: none;
+    /* Stripes Apple Pay-knapp är 50 px hög överst i ytan (inline-stil i ramen
+       med buttonHeight 52, uppmätt 2026-11-08), inte 52: samma mått här, så
+       att ingen kant flyttar när Stripes knapp tonar fram över den. */
+    bottom: auto;
+    height: 50px;
   }
 }
 

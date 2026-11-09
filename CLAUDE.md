@@ -1765,10 +1765,25 @@ BankID ska användas).
   `loadStripe`). Knapparnas grupp skapas före adressfältets och betalfältets,
   så att deras uppslag hos Stripe går först i telefonens kö.
 - **Platshållaren är Apples egen knapp i Safari** (`.snabbSkelett` med
-  `-webkit-appearance: -apple-pay-button`, typ buy, svart, 10 px hörn som
-  Stripes): kunden ser Apple Pay från första ritningen. Den tar inga tryck;
-  Stripes knapp tar över på samma plats vid `ready`. Andra webbläsare får den
-  grå skimmern som förut.
+  `-webkit-appearance: -apple-pay-button`, typ buy, svart, 10 px hörn och
+  50 px hög som Stripes Apple Pay-knapp): kunden ser Apple Pay från första
+  ritningen. Den tar inga tryck. Andra webbläsare får den grå skimmern som
+  förut. Stripes Apple Pay-knapp är 50 px hög (inline-stil i ramen) fast
+  `buttonHeight` är 52, uppmätt 2026-11-08.
+- ☠️ **Stripes knapp tonar in EFTER `ready`** (Leonard 2026-11-08: "flimrar
+  det till ett ögonblick"). Uppmätt inne i Stripes ram: vyn
+  `.p-ExpressCheckoutView` läggs in runt svaret (upp till 150 ms efter) och
+  tonar från 0 till 1 med `transition: opacity 400ms ease 160ms`. Förut togs
+  platshållaren bort vid svaret, och knappens plats var vit en halv sekund.
+  Nu ligger den UNDER Stripes ram (`.snabbKnappar` är positionerad och står
+  efter den i flödet; ramen är genomskinlig tills knappen syns), står kvar i
+  läget `redo` och tonar bort först 2 s efter svaret
+  (`.snabb[data-snabb="redo"] .snabbSkelett`). Skärmfilm av knappens yta med
+  riktiga Stripe i produktionen: förut svart till vitt i rutan efter svaret,
+  med rättelsen svart hela vägen till 2 s.
+- **Texten säger "Apple Pay" medan Stripe svarar**: rutan syns då bara där
+  `ApplePaySession` finns, så texten byts inte mitt i knappbytet (förut
+  "Apple Pay eller Google Pay" till "Apple Pay" i samma ögonblick).
 - **Platsen hålls från första renderingen** (också på servern) med en
   platshållare i knappens höjd, men bara där Apple Pay finns
   (`ApplePaySession`, som Safari på iPhone och Mac har). Rutan som dök upp
