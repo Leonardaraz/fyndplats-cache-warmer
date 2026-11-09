@@ -2291,7 +2291,15 @@ En video som läggs på produkten i Wix (Stores V3, `media.itemsInfo.items`,
   till höger om en stående, och aldrig över dem. En kvadratisk video (1:1) har
   inget sådant fält; där ligger ✕ över Safaris ljudknapp. ✕ är 36 px men har en
   tryckyta på 44 px (`::before`), Apples minsta.
-- En bildruta, en annan variant eller ✕ stänger och pausar videon. En fil som
-  inte går att spela tar bort rutan (`onError`), hellre än en svart ruta.
+- En bildruta, en annan variant, ✕ eller Escape stänger och pausar videon.
+- En fil som aldrig gick att spela (fel 4, eller inget spelat alls) tar bort rutan
+  (`onError`), hellre än en svart ruta. Ett nätfel mitt i filmen stänger bara
+  spelaren: rutan står kvar, så att kunden kan trycka igen när täckningen är tillbaka.
+- Escape i helskärm lämnar bara helskärmen (webbläsarens eget beteende). Videon
+  spelar vidare.
+- Fokus går tillbaka till videorutan bara från tangentbordet (Escape, Enter på ✕).
+  Ett fingertryck på ✕ flyttar inget fokus, annars ritar Safari en fokusring på rutan.
+- ☠️ **Lagret visas (`is-on`, `inert` bort) INNAN `play()` anropas**, i samma tryck.
+  En webbläsare får vägra spela ett element i ett dolt eller inert lager.
 - Spelaren är dold med `visibility`, inte `display`. Den har då sin storlek, så
   filstorleken kan väljas redan i trycket. Ingen CSP i butiken behöver ändras.
