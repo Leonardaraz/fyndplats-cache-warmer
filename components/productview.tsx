@@ -2,6 +2,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { forvarmKundvagn, useCart } from "./cart";
 import { Gallery } from "./gallery";
+import type { ProduktVideo } from "../lib/produkt-video";
 import { synligaBilder, synligaBilderForKombination, type Kopplingar } from "../lib/variant-bilder";
 import { RestockForm } from "./restock-form";
 import { trackAddToCart, trackViewItem } from "../lib/analytics";
@@ -278,6 +279,7 @@ export function ProductView({
   imageOwners,
   imageKopplingar,
   imageAlts,
+  video,
   category,
   priceNum,
   reviewCount,
@@ -308,6 +310,9 @@ export function ProductView({
   imageKopplingar?: Kopplingar;
   // Wix alt-texter per bild (mediaKey → altText) — skickas vidare till Gallery.
   imageAlts?: Record<string, string>;
+  // Produktens video (lib/produkt-video.ts). Egen ruta i galleriet, aldrig en
+  // post i bildlistan: variantvalet räknar index i den.
+  video?: ProduktVideo | null;
   category?: string;
   priceNum: number;
   // Betygssammandraget. Samma siffror som recensionssektionen längre ner —
@@ -787,6 +792,7 @@ export function ProductView({
         eagerCount={multiAxis || allHaveImage ? Math.min(galleryImages.length, 12) : 1}
         variantImageIndices={variantImageIndices}
         behallRutor={allaBilder.length > 1}
+        video={video}
       />
 
       <div className="pinfo">

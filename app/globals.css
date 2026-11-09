@@ -1009,6 +1009,24 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 .gtile.variant-owned.active{box-shadow:0 0 0 2px var(--orange)}
 .gtile-more{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:rgba(28,24,20,.55);color:#fff;font-size:var(--text-xl);font-weight:800;letter-spacing:-.02em}
 @media(prefers-reduced-motion:reduce){.gtile img{transition:none}.gtile:hover img{transform:none!important}}
+/* Produktvideon (lib/produkt-video.ts, components/gallery.tsx). Spelaren ligger
+   ÖVER hjältebilden med samma ruta och kant, så ingenting flyttar när den visas
+   eller döljs. Dold med visibility, inte display: spelaren har då sin storlek,
+   och galleriet väljer filstorlek ur den redan i trycket. .gallery är sticky på
+   datorn (positionerad redan); på mobilen behöver den position för spelaren. */
+.gallery{position:relative}
+.gvideo{position:absolute;top:0;left:0;z-index:5;width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;background:#100d0a;visibility:hidden;opacity:0;transition:opacity .2s ease,visibility 0s linear .2s}
+.gvideo.is-on{visibility:visible;opacity:1;transition:opacity .2s ease}
+.gvideo-el{display:block;width:100%;height:auto;max-height:100%;object-fit:contain;background:#100d0a}
+.gvideo-el.is-staende{width:auto;height:100%;max-width:100%}
+.gvideo-stang{position:absolute;top:10px;right:10px;z-index:2;width:36px;height:36px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.92);color:var(--ink);font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;box-shadow:var(--e2);cursor:pointer}
+.gvideo-stang::before{content:"";position:absolute;inset:-4px;border-radius:50%}
+.gvideo-stang:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+.gtile-play{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.gtile-play svg{box-sizing:content-box;width:20px;height:20px;padding:11px 10px 11px 12px;border-radius:50%;background:rgba(20,16,12,.62);color:#fff;box-shadow:0 2px 10px rgba(0,0,0,.22);transition:background .2s}
+.gtile-langd{position:absolute;left:6px;bottom:6px;z-index:2;padding:2px 7px;border-radius:999px;background:rgba(20,16,12,.72);color:#fff;font-size:11px;font-weight:700;line-height:1.5;letter-spacing:.02em;font-variant-numeric:tabular-nums;pointer-events:none}
+@media(hover:hover){.gtile-video:hover .gtile-play svg{background:var(--orange-fill)}}
+@media(prefers-reduced-motion:reduce){.gvideo,.gvideo.is-on{transition:none}}
 /* lightbox */
 .lightbox{position:fixed;inset:0;z-index:300;background:rgba(20,18,15,.93);display:flex;align-items:center;justify-content:center;padding:24px;animation:lbIn .2s ease}
 @keyframes lbIn{from{opacity:0}to{opacity:1}}

@@ -23,6 +23,7 @@ import { fargvalKropp, FARGVAL_SIDTAK } from "./product-colors-paging";
 import { v3VariantData, v3MultiVariantData } from "./variant-price";
 import { PRODUKTSIDA_SEKUNDER, produktTagg } from "./produkt-cache";
 import { kortLivslangd } from "./kort-livslangd";
+import { forstaVideo, type ProduktVideo } from "./produkt-video";
 
 export type Product = {
   id: string;
@@ -108,6 +109,9 @@ export type Product = {
   // produktvägen. Saknas när produkten inte har omdömen eller när Trustpilot är
   // påslaget (då visar produktsidan inte heller våra egna omdömen).
   rating?: { stars: number; exact: number; value: string; count: number };
+  /** Produktens video, när den har en (lib/produkt-video.ts). Sätts bara av
+   *  getProduct: listsidorna visar ingen video och ska inte bära den. */
+  video?: ProduktVideo | null;
 };
 
 // Färgnamn → CSS hex för premium color-swatch när per-choice bilder saknas. Utbruten
@@ -254,7 +258,9 @@ async function fetchV3Kopplingar(
 // Wix lagrar alla. fetchV3ProductRaw begär redan `?fields=MEDIA_ITEMS_INFO` och
 // är cache:ad per request, så detta delar samma nätverksanrop som pris-/bild-
 // hydreringen (ingen extra fetch). Fail-open: saknad nyckel/fält → [].
-async function fetchV3Gallery(productId: string): Promise<{ urls: string[]; alts: Record<string, string> }> {
+async function fetchV3Gallery(
+  productId: string,
+): Promise<{ urls: string[]; alts: Record<string, string>; video: ProduktVideo | null }> {
   const product = await fetchV3ProductRaw(productId);
   const items = product?.media?.itemsInfo?.items ?? [];
   // Deduppa på fil-id (imgKey) — V3 kan lista samma foto i olika transform-params.
@@ -273,7 +279,9 @@ async function fetchV3Gallery(productId: string): Promise<{ urls: string[]; alts
     seen.add(k);
     out.push(url);
   }
-  return { urls: out, alts };
+  // Videoposter har ingen image.url och hoppas över ovan; den första spelbara
+  // blir galleriets videoruta (lib/produkt-video.ts). Samma cache:ade anrop.
+  return { urls: out, alts, video: forstaVideo(items) };
 }
 
 function stripHtml(h: string): string {
@@ -861,7 +869,8 @@ export const getProduct = cache(async (slug: string): Promise<Product | undefine
         // Hämta hela galleriet auktoritativt från V3 (delar cache:ade anropet).
         // Strikt additivt: ersätt bara när V3 har FLER bilder → aldrig en regression
         // för migrerade produkter där V3 saknar itemsInfo (då behålls SDK-galleriet).
-        const { urls: fullGallery, alts: v3Alts } = await fetchV3Gallery(prod.id);
+        const { urls: fullGallery, alts: v3Alts, video } = await fetchV3Gallery(prod.id);
+        prod.video = video;
         // V3:s alt-texter slås ihop med SDK-listans (V3 vinner — den är
         // auktoritativ för PDP-galleriet). Sker oavsett om galleriet ersätts
         // nedan, så även produkter där SDK-galleriet behålls får sina alt-texter.
