@@ -43,3 +43,17 @@ test("DPD Polska: 14 siffror som börjar på 13 → PostNord Sweden (19241)", ()
   assert.equal(detect17TrackCarrier("1312345678901"), null); // 13 siffror
   assert.equal(detect17TrackCarrier("131234567890123"), null); // 15 siffror
 });
+
+test("PPL: 11 siffror → PPL CZ (100176)", () => {
+  // Ett riktigt VEVOR-paket med PPL (2026-11-07) som 17TRACK inte kunde
+  // registrera utan carrier. Påhittat nummer.
+  assert.deepEqual(detect17TrackCarrier("21012345678"), { key: 100176, name: "PPL CZ" });
+  assert.deepEqual(detect17TrackCarrier(" 21012345678 "), { key: 100176, name: "PPL CZ" });
+  assert.equal(detect17TrackCarrier("2101234567"), null); // 10 siffror
+  assert.equal(detect17TrackCarrier("210123456789"), null); // 12 siffror
+  assert.equal(detect17TrackCarrier("2101234567A"), null);
+  // De 14-siffriga formerna är oförändrade.
+  assert.equal(detect17TrackCarrier("01497067378460")?.key, 100007);
+  assert.equal(detect17TrackCarrier("07084026870677")?.key, 19241);
+  assert.equal(detect17TrackCarrier("13123456789012")?.key, 19241);
+});

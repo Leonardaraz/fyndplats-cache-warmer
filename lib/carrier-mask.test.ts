@@ -53,6 +53,8 @@ test("Known EU carriers pass through with a normalised label", () => {
     ["Royal Mail", "Royal Mail"],
     ["Evri", "Evri"],
     ["Bpost", "Bpost"],
+    ["PPL", "PPL"],
+    ["PPL CZ", "PPL"],
   ];
   for (const [input, expected] of cases) {
     assert.equal(maskCarrier(input), expected, `${input} → ${expected}`);
@@ -66,6 +68,20 @@ test("Empty/unknown carrier never leaks", () => {
   assert.equal(maskCarrierOrUndefined("Some Random Courier AB"), undefined);
   assert.equal(maskCarrier(null), "");
   assert.equal(maskCarrier(undefined), "");
+});
+
+test("PPL släpps bara in som eget ord", () => {
+  for (const name of ["Supply Chain AB", "Apple Logistics", "Staples Delivery"]) {
+    assert.equal(maskCarrierOrUndefined(name), undefined, name);
+  }
+});
+
+test("PPL: bud och mejlrad, men inget besked ur numret ensamt", () => {
+  // Påhittat nummer. 11 siffror liknar också GLS (lib/gls-track.ts).
+  assert.deepEqual(transportorForNummer("21012345678", "PPL"), { carrier: "PPL" });
+  assert.equal(transportorText("21012345678", "PPL"), "PPL");
+  assert.equal(transportorText("21012345678", undefined), undefined);
+  assert.equal(transportorAvNummer("21012345678"), undefined);
 });
 
 test("DHL-nummer från Tyskland visas som DHL, med PostNord som sista led", () => {
@@ -164,6 +180,7 @@ test("DPD-mönstret är samma som 17TRACK-registreringens (lib/track17.ts)", () 
     "RR123456789SE",
     "CC123456789DE",
     "12345678901",
+    "21012345678",
     "YZC00000",
     "",
   ];
@@ -184,7 +201,7 @@ test("transportorAvNummer: UPS, DPD och PostNord på formen, inget annat", () =>
   // visar hela resan.
   assert.equal(transportorAvNummer("13123456789012"), "PostNord");
   // DHL:s S10 från Tyskland, GLS-lika nummer och fel längd avgör inget.
-  for (const nummer of ["CC123456789DE", "12345678901", "YZC00000", "1Z999AA1012345678", "1Z999AA101234567845", "1312345678901", ""]) {
+  for (const nummer of ["CC123456789DE", "12345678901", "21012345678", "YZC00000", "1Z999AA1012345678", "1Z999AA101234567845", "1312345678901", ""]) {
     assert.equal(transportorAvNummer(nummer), undefined, nummer);
   }
 });
@@ -211,6 +228,7 @@ test("transportorAvNummer: PostNord-formerna är samma som 17TRACK-registreringe
     "131234567890123",
     "12123456789012",
     "1Z999AA10123456784",
+    "21012345678",
   ];
   for (const nummer of prov) {
     const postnordHos17 = detect17TrackCarrier(nummer)?.key === 19241;

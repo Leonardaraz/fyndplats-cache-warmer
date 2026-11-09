@@ -15,6 +15,7 @@ import assert from "node:assert/strict";
 import {
   DSV_SPARNING,
   POSTNORD_SPARNING,
+  PPL_SPARNING,
   UPS_SPARNING,
   dsvLed,
   harKommitTillSverige,
@@ -217,13 +218,19 @@ test("transportorLankar: ett känt fraktbolag får bara sin egen länk", () => {
   assert.deepEqual(transportorLankar("01234567890123", "DPD").map((l) => l.name), ["DPD"]);
 });
 
-test("transportorLankar: utan känt fraktbolag blir det alla fem, med UPS sist", () => {
+test("transportorLankar: utan känt fraktbolag blir det alla sex, med PPL sist", () => {
   for (const kand of [undefined, "", "Fraktpartner"]) {
     const lankar = transportorLankar("RR123456789DE", kand);
-    assert.deepEqual(lankar.map((l) => l.name), ["PostNord", "GLS", "DHL", "DPD", "UPS"], String(kand));
+    assert.deepEqual(lankar.map((l) => l.name), ["PostNord", "GLS", "DHL", "DPD", "UPS", "PPL"], String(kand));
     assert.equal(lankar[0].url, POSTNORD_SPARNING + "RR123456789DE");
     assert.equal(lankar[4].url, UPS_SPARNING + "RR123456789DE");
+    assert.equal(lankar[5].url, PPL_SPARNING + "RR123456789DE");
   }
+});
+
+test("transportorLankar: PPL har en egen länk med numret i adressen", () => {
+  assert.equal(PPL_SPARNING, "https://www.ppl.cz/en/shipments?form=track-and-trace&shipmentId=");
+  assert.deepEqual(transportorLankar("21012345678", "PPL"), [{ name: "PPL", url: PPL_SPARNING + "21012345678" }]);
 });
 
 test("transportorLankar: numret kodas i varje adress", () => {

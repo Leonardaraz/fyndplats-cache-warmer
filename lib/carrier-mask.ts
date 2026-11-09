@@ -43,6 +43,10 @@ const CARRIER_ALLOW: Array<{ test: RegExp; label: string }> = [
   { test: /bpost/i, label: "Bpost" },
   { test: /omniva/i, label: "Omniva" },
   { test: /helthjem/i, label: "Helthjem" },
+  // PPL (Professional Parcel Logistic, tjeckisk, DHL-gruppen). VEVOR skickade
+  // ett paket med PPL 2026-11-07, och 17TRACK kallar bolaget "PPL CZ".
+  // \bppl\b: ett eget ord, så att "Supply" och "Apple" inte släpps in.
+  { test: /\bppl\b/i, label: "PPL" },
 ];
 
 /** Neutralt namn för okända/ursprungs-carriers. */
