@@ -2256,3 +2256,42 @@ vilken dom menar". Kunder mejlade om "ert lasertag-set med projektor för
 - **Rulla bara så långt att raden syns**, aldrig till botten: förslagen under
   raderna byttes och klämde rullningen. Förslagen står kvar tills nya kommit.
 - Länkarna är alltid `a`-element, med `href` först när adressen är känd.
+
+## Produktvideon i galleriet (Leonard 2026-11-09)
+
+En video som läggs på produkten i Wix (Stores V3, `media.itemsInfo.items`,
+`mediaType: "VIDEO"`) visas nu på produktsidan. Galleriet hoppade förut tyst
+över videoposter: det byggdes bara av poster med `image.url`. Hjullastaren
+(leksaksmotorn) var den första produkten med video.
+
+- `lib/produkt-video.ts` läser posten. Bara mp4 på `video.wixstatic.com` räknas,
+  inte HLS, privata filer eller andra värdar. Stillbilden är Wix andra
+  (`f001`), eftersom den första ofta är svart eller en titelruta.
+- `getProduct` sätter `video` ur samma cache:ade V3-anrop som bilderna. Listsidorna
+  bär ingen video.
+- Galleriet visar videon som **andra rutan** i bildraden, med play-knapp och längd.
+  På mobilen syns två och en halv ruta, och en video sist i raden hittar ingen.
+  Ett tryck spelar videon **över** hjältebilden, i samma ruta och med samma kant.
+- ☠️ **Videon är aldrig en post i bildlistan.** Variantvalet pekar på index i
+  `images`, förladdningen räknar grannar och helskärmen zoomar i den. En video i
+  listan hade flyttat varje index efter sig.
+- ☠️ **`<video>` ligger utanför hjältens `<button>`** (interaktivt innehåll i en
+  knapp är ogiltigt), och knappen är `inert` medan videon visas.
+- ☠️ **Ingenting hämtas i förväg:** `preload="none"`, ingen `src` och ingen poster i
+  sidan. Adressen sätts och `play()` anropas i SAMMA tryck. iPhone spelar bara
+  ljud när `play()` kommer direkt ur kundens handling. Ett `play()` i en effekt
+  efter renderingen hade nekats.
+- Storleken väljs ur spelarens bredd gånger pixeltätheten, aldrig under 720p och
+  högst 480p i sparläge (`valjKalla`). Gränserna räknas på **kortsidan**, så att en
+  stående video (en reel i 9:16, 720×1280) räknas som 720p och inte faller till
+  1080p. 27 sekunder i 720p är några megabyte och hämtas först när kunden trycker.
+- ☠️ **`<video>` har videons eget format och står mitt i rutan**, inte hela
+  kvadraten. Safari på iPhone lägger sina knappar (helskärm, ljud) i spelarens
+  övre hörn. ✕ ligger då i det svarta fältet ovanför en liggande video, eller
+  till höger om en stående, och aldrig över dem. En kvadratisk video (1:1) har
+  inget sådant fält; där ligger ✕ över Safaris ljudknapp. ✕ är 36 px men har en
+  tryckyta på 44 px (`::before`), Apples minsta.
+- En bildruta, en annan variant eller ✕ stänger och pausar videon. En fil som
+  inte går att spela tar bort rutan (`onError`), hellre än en svart ruta.
+- Spelaren är dold med `visibility`, inte `display`. Den har då sin storlek, så
+  filstorleken kan väljas redan i trycket. Ingen CSP i butiken behöver ändras.

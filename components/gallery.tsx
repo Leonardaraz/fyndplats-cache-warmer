@@ -6,6 +6,7 @@ import { SHIMMER_BLUR } from "../lib/lqip";
 import { tightFillUrl } from "../lib/wix-image";
 import { altForImage } from "../lib/image-alt";
 import { kandidatBredd, nearWindow, prefersDataSaving } from "../lib/gallery-preload";
+import { langdTal, langdText, valjKalla, type ProduktVideo } from "../lib/produkt-video";
 
 // LCP-fix (Leonards rapport: hjältebilden låg blank 1–2 s). Huvudbilden gick
 // tidigare via Vercels bildoptimerare (/_next/image), som KALLSTARTAR per ny
@@ -86,6 +87,7 @@ export function Gallery({
   variantImageIndices,
   behallRutor,
   glomVisad,
+  video,
 }: {
   images: string[];
   alt: string;
@@ -115,6 +117,10 @@ export function Gallery({
   // den förvalda färgens bild INTE ligga kvar tills den rätta laddat; rutan
   // står hellre tom (med skimmer) en stund än visar fel färg.
   glomVisad?: number;
+  // Produktens video (lib/produkt-video.ts). Egen ruta i bildraden och spelas
+  // över hjältebilden. Aldrig en post i `images`: variantvalet, förladdningen och
+  // helskärmen räknar index i bildlistan.
+  video?: ProduktVideo | null;
 }) {
   const imgs = images.filter(Boolean);
   // Index (i `images`) som tillhör den valda varianten → ram-markeras i thumb-raden.
@@ -354,6 +360,58 @@ export function Gallery({
     return onIdle(doPreload, 3000);
   }, [lcpDone, doPreload, active]);
 
+  // ── Produktvideon (lib/produkt-video.ts) ────────────────────────────────────
+  // Spelas ÖVER hjältebilden i en egen ruta. En <video controls> får inte ligga
+  // i hjältens <button>, och bildlistan (variantindex, förladdning, helskärm)
+  // ska vara orörd. Ingenting hämtas förrän kunden trycker på videorutan:
+  // preload="none" och ingen src i sidan. Adressen sätts och play() anropas i
+  // SAMMA tryck, eftersom iPhone bara spelar ljud när play() kommer direkt ur
+  // kundens egen handling. Ett play() i en effekt efter renderingen hade nekats.
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [videoPa, setVideoPa] = useState(false);
+  // En fil som inte går att spela tar bort rutan, hellre än en svart ruta med
+  // ett felmeddelande.
+  const [videoTrasig, setVideoTrasig] = useState(false);
+  const harVideo = !!video && !videoTrasig;
+  // Galleriets läge när videon startade. Väljer kunden en annan variant
+  // (productview byter active eller bildlistan) stängs videon. Justeras under
+  // renderingen, som glomVisad ovan, i stället för i en effekt.
+  const videoLage = `${active}|${listNyckel}`;
+  const [videoStartLage, setVideoStartLage] = useState<string | null>(null);
+  if (videoPa && videoStartLage !== videoLage) {
+    setVideoPa(false);
+    setVideoStartLage(null);
+  }
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+    // Fokus till spelaren när den visas, så tangentbordet styr den direkt;
+    // pausa när den döljs.
+    if (videoPa) el.focus({ preventScroll: true });
+    else el.pause();
+  }, [videoPa]);
+  const spelaVideo = () => {
+    const el = videoRef.current;
+    if (!el || !video) return;
+    if (!el.getAttribute("src")) {
+      // Rutans bredd i bildpunkter. Spelaren är dold men har sin storlek
+      // (visibility, inte display), så clientWidth gäller redan nu.
+      const behov = (el.clientWidth || gmainRef.current?.clientWidth || 0) * (window.devicePixelRatio || 1);
+      const kalla = valjKalla(video.kallor, behov, skipSpeculative());
+      if (!kalla) return;
+      el.src = kalla.url;
+    }
+    setVideoStartLage(videoLage);
+    setVideoPa(true);
+    // Nekar webbläsaren att starta står spelaren kvar med sina kontroller, och
+    // kunden trycker play själv. Inget fel att visa.
+    void el.play().catch(() => {});
+  };
+  const stangVideo = () => {
+    setVideoPa(false);
+    setVideoStartLage(null);
+  };
+
   // Subtil laddningsindikator: man har bytt till ett lager vars bild ännu inte
   // dekodats (det gamla ligger kvar tills det nya är redo — äkta crossfade). Utan
   // feedback upplevdes det som att "inget händer". Efter förladdningen ovan är
@@ -547,6 +605,42 @@ export function Gallery({
   // ställena → mount och prioritet kan aldrig glida isär.
   const near = nearWindow(active, imgs.length);
 
+  // Med en video får bilderna en ruta mindre, så att raden aldrig blir längre än
+  // MAX_TILES och "+N" hamnar sist som förut.
+  const bildRutor = harVideo ? MAX_TILES - 1 : MAX_TILES;
+  const videoRuta = harVideo ? (
+    <button
+      type="button"
+      key="video"
+      className={`gtile gtile-video ${videoPa ? "active" : ""}`}
+      onClick={spelaVideo}
+      role="tab"
+      aria-selected={videoPa}
+      aria-label={`Spela produktvideon${video!.langdSek ? ` (${langdTal(video!.langdSek)})` : ""}`}
+    >
+      {video!.poster && (
+        <Image
+          src={video!.poster}
+          loader={wixMainLoader}
+          alt=""
+          fill
+          placeholder="blur"
+          blurDataURL={SHIMMER_BLUR}
+          sizes={TILE_SIZES}
+          fetchPriority="low"
+          style={{ objectFit: "cover" }}
+          draggable={false}
+        />
+      )}
+      <span className="gtile-play" aria-hidden>
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M8 5.2v13.6L19 12z" fill="currentColor" />
+        </svg>
+      </span>
+      {video!.langdSek > 0 && <span className="gtile-langd" aria-hidden>{langdText(video!.langdSek)}</span>}
+    </button>
+  ) : null;
+
   return (
     <div className="gallery" ref={galleryRef}>
       <button
@@ -558,6 +652,8 @@ export function Gallery({
         onTouchMove={onHeroTouchMove}
         onTouchEnd={onHeroTouchEnd}
         aria-label="Förstora bilden"
+        // Täckt av videon: varken klick eller tangentbord ska nå bilden under.
+        inert={videoPa || undefined}
       >
         {/* Crossfade-lager: ett <Image> per bild som hunnit bli aktiv eller för-
             laddats. `is-shown` tonar in det lager vars bild laddat klart.
@@ -605,6 +701,39 @@ export function Gallery({
         <span className="gmain-zoom" aria-hidden>⤢</span>
       </button>
 
+      {/* Spelaren ligger över hjältebilden med samma ruta (globals.css,
+          .gvideo), så ingenting flyttar när den visas. Ingen src och ingen
+          poster förrän kunden tryckt: sidan hämtar inte en byte av videon i
+          förväg. Nycklad på videons id, så att en annan produkt aldrig ärver
+          förra produktens fil.
+          Själva <video> har videons eget format och står mitt i rutan. Safari
+          på iPhone lägger sina knappar (helskärm, ljud) i spelarens övre hörn;
+          ✕ ligger då i det svarta fältet ovanför en liggande video, eller till
+          höger om en stående, och aldrig över dem. */}
+      {harVideo && (
+        <div className={`gvideo ${videoPa ? "is-on" : ""}`} inert={!videoPa || undefined}>
+          <video
+            key={video!.id}
+            ref={videoRef}
+            className={`gvideo-el${video!.hojd > video!.bredd ? " is-staende" : ""}`}
+            style={{ aspectRatio: `${video!.bredd} / ${video!.hojd}` }}
+            controls
+            playsInline
+            preload="none"
+            poster={videoPa && video!.poster ? tightFillUrl(video!.poster, 960, Math.round((960 * video!.hojd) / video!.bredd)) : undefined}
+            aria-label={`Video: ${alt}`}
+            onError={() => {
+              setVideoPa(false);
+              setVideoStartLage(null);
+              setVideoTrasig(true);
+            }}
+          />
+          <button type="button" className="gvideo-stang" onClick={stangVideo} aria-label="Stäng videon och visa bilderna">
+            ✕
+          </button>
+        </div>
+      )}
+
       {/* Alla produktbilder som riktiga bilder i sidan från början: ett rutnät
           på dator och en svepbar rad på mobil. Ersätter 76-px-miniatyrerna och
           prickraden. Merchant Center (Butikskvalitet → "Bilder per produkt")
@@ -613,24 +742,29 @@ export function Gallery({
           (2026-09-30). Rutorna laddas lazy och med låg prioritet, så hjältebilden (LCP) går först. Ett
           klick visar bilden stort ovanför, som miniatyrerna gjorde. Över
           MAX_TILES bilder visar sista rutan "+N" och öppnar helskärmen. */}
-      {(imgs.length > 1 || (behallRutor && imgs.length === 1)) && (
-        <div className="gtiles" ref={tilesRef} role="tablist" aria-label="Alla produktbilder">
-          {imgs.slice(0, MAX_TILES).map((g, i) => {
-            const more = i === MAX_TILES - 1 && imgs.length > MAX_TILES ? imgs.length - i : 0;
-            return (
+      {(imgs.length > 1 || (behallRutor && imgs.length === 1) || harVideo) && (
+        <div className="gtiles" ref={tilesRef} role="tablist" aria-label={harVideo ? "Alla produktbilder och videon" : "Alla produktbilder"}>
+          {imgs.slice(0, bildRutor).map((g, i) => {
+            const more = i === bildRutor - 1 && imgs.length > bildRutor ? imgs.length - i : 0;
+            // Medan videon spelar är det videorutan som är vald, inte bilden under den.
+            const vald = i === active && !videoPa;
+            const ruta = (
               <button
                 type="button"
                 key={g + i}
                 data-idx={i}
-                className={`gtile ${i === active ? "active" : ""} ${variantSet.has(i) ? "variant-owned" : ""}`}
+                className={`gtile ${vald ? "active" : ""} ${variantSet.has(i) ? "variant-owned" : ""}`}
                 onClick={() => {
+                  // En bildruta visar bilder igen, också den bild som redan
+                  // låg under videon (då ändras inte active).
+                  stangVideo();
                   // "+N" öppnar helskärmen på bilden som redan visas. setActive
                   // hade kunnat byta vald variant (productview styr active).
                   if (more) { resetView(); setLightbox(true); return; }
                   setActive(i);
                 }}
                 role="tab"
-                aria-selected={i === active}
+                aria-selected={vald}
                 aria-label={more ? `Visa alla ${imgs.length} bilder` : `Visa bild ${i + 1} av ${imgs.length}${variantSet.has(i) ? " (vald variant)" : ""}`}
               >
                 <Image
@@ -650,6 +784,9 @@ export function Gallery({
                 {more > 0 && <span className="gtile-more" aria-hidden>+{more}</span>}
               </button>
             );
+            // Videorutan som ANDRA ruta, direkt efter huvudbilden. På mobilen
+            // syns två och en halv ruta, och en video sist i raden hittar ingen.
+            return i === 0 && videoRuta ? [ruta, videoRuta] : ruta;
           })}
         </div>
       )}

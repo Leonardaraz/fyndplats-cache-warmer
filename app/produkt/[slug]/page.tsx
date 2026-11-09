@@ -477,6 +477,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           imageOwners={p.imageOwners}
           imageKopplingar={p.imageKopplingar}
           imageAlts={p.imageAlts}
+          video={p.video ?? null}
           category={primaryCol?.name}
           // Med Trustpilot påslaget renderas våra egna omdömen inte alls
           // (se villkoret nedan) — då får betyget inte stå kvar i huvudet
