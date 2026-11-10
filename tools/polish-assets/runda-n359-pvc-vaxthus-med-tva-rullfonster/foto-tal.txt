@@ -1,0 +1,3 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+3f5d8190 10 avläst på måttbilden (bild 3): foliens nedre kant mot marken är 10 cm, och stenar ligger på den på bilden
