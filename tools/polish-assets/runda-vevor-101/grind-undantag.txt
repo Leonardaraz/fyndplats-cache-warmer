@@ -1,0 +1,12 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara raderna Produktkvantitet, Lastkapacitet, Material, Hjul, Produktmått och Nettovikt och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar skridskons tre mått 278, 220 och 105 mm utan axelord: texten skriver dem utan axelord i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Produktstorlek, Produktvikt och Material och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar bredden 77,95 tum, djupet 15,16 tum och höjden 34,65 tum (1980, 385 och 880 mm): texten skriver dem i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara raderna Material, Färg, Panelstorlek och Viktkapacitet och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar höjden 1180 mm, skivan 595 × 400 mm och sockeln 500 × 300 mm: texten skriver höjd, skiva och sockel var för sig
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Färg, Nettovikt, Produktmått, Asklådans struktur, Ytbehandling och Huvudmaterial och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar diametern 490 mm och höjden 390 mm: texten skriver diameter och höjd i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Matarkapacitet, Matningsportar, Vattenkapacitet, Material, Nettovikt och två mått utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar de tre måtten för varje del utan axelord: texten skriver dem utan axelord i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara raderna Slide Hammer Längd, Material och Nettovikt och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver längden 1175 mm och vikten 9 kg som specifikationen
