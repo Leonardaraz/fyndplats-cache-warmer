@@ -18,7 +18,9 @@ import { priceTierIntro } from "./programmatic-templates.ts";
 const sidan = readFileSync(join(import.meta.dirname, "..", "..", "components", "price-tier-page.tsx"), "utf8");
 
 test("rutnätet står före texten, och hjälten har ingen intro", () => {
-  const rutnat = sidan.indexOf('className="prodgrid"');
+  // Utan avslutande citattecken: rutnätet bär också "listgrid" sedan
+  // 2026-11-10 (två kort i bredd på mobil), och provet gäller ordningen.
+  const rutnat = sidan.indexOf('className="prodgrid');
   const text = sidan.indexOf('className="sec kat-editorial"');
   assert.ok(rutnat > 0, "rutnätet finns");
   assert.ok(text > rutnat, "texten står efter rutnätet");

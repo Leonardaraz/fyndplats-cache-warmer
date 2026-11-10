@@ -504,8 +504,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         <section className="sec relsec">
           <div className="container">
             <div className="sechead"><div className="eyebrow">Upptäck mer</div><h2>Liknande produkter</h2></div>
-            <div className="prodgrid">
-              {related.map((rp) => <ProductCard p={rp} key={rp.slug} />)}
+            <div className="prodgrid listgrid">
+              {related.map((rp) => <ProductCard p={rp} key={rp.slug} tvaKolumner />)}
             </div>
           </div>
         </section>

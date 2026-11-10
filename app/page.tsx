@@ -488,9 +488,10 @@ export default async function Home() {
             <h2>Veckans fynd</h2>
             <p>Handplockade favoriter – nya varje vecka.</p>
           </div>
-          <div className="prodgrid">
+          {/* Två kort i bredd på mobil, som listsidorna (se .listgrid i globals.css). */}
+          <div className="prodgrid listgrid">
             {products.map((p) => (
-              <ProductCard p={p} key={p.slug} />
+              <ProductCard p={p} key={p.slug} tvaKolumner />
             ))}
           </div>
           <div className="center"><a className="linkbtn" href="/alla-produkter">Visa hela sortimentet →</a></div>

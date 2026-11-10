@@ -239,8 +239,8 @@ export default async function Butik() {
             <h2>Veckans fynd</h2>
             <p>Handplockade favoriter – bara ett urval, hela sortimentet hittar du i kategorierna ovan.</p>
           </div>
-          <div className="prodgrid">
-            {veckans.map((p) => <ProductCard p={p} key={p.slug} />)}
+          <div className="prodgrid listgrid">
+            {veckans.map((p) => <ProductCard p={p} key={p.slug} tvaKolumner />)}
           </div>
           <div className="center"><a className="linkbtn" href="/alla-produkter">Visa alla produkter →</a></div>
         </div>

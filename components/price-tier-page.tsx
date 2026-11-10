@@ -68,9 +68,9 @@ export async function PriceTierPage({ price, category }: { price: number; catego
 
       <section className="sec" style={{ paddingTop: 28 }}>
         <div className="container">
-          <div className="prodgrid">
+          <div className="prodgrid listgrid">
             {produkter.map((p) => (
-              <ProductCard p={p} key={p.slug} />
+              <ProductCard p={p} key={p.slug} tvaKolumner />
             ))}
           </div>
         </div>

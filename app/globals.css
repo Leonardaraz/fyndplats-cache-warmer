@@ -2449,6 +2449,9 @@ body:has(.drawer.show) .cookiebar{visibility:hidden}
 /* Mobil: listsidornas rutnät (ShopBrowser: kategorier, sök, Alla produkter,
    Rea) har två kort i bredd, som hos de stora möbelkedjorna (Leonard
    2026-10-07). Förut hade kategorisidorna och sökningen ett kort per rad.
+   Sedan 2026-11-10 gäller samma rutnät produktkorten på startsidan, /butik,
+   produktsidans "Liknande produkter", prissidorna och /for-dig-som: där stod
+   ett kort per rad, så fyra förslag tog fyra skärmhöjder.
    Rutnätet går ut till 12 px från kanten i stället för containerns 26, och
    mellanrummet är 10 px: korten blir 180 px på en iPhone i stället för 164.
    Knappen har mindre sidoluft här, så pilen får plats. Bildernas `sizes`
