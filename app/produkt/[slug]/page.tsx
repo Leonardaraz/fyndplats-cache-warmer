@@ -488,6 +488,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           reviewCount={trustpilotBU ? 0 : reviewData.count}
           reviewAverage={trustpilotBU ? null : reviewData.average}
           gpsrHtml={gpsrHtml}
+          // Samma villkor som sektionen nedan: länken i Slutsåld-rutan får
+          // aldrig peka på en sektion som inte renderas.
+          harLiknande={related.length >= 2}
         />
       </div>
 
@@ -504,7 +507,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       )}
 
       {related.length >= 2 && (
-        <section className="sec relsec">
+        // id="liknande": målet för länken i Slutsåld-rutan (ProductView).
+        <section className="sec relsec" id="liknande">
           <div className="container">
             <div className="sechead"><div className="eyebrow">Upptäck mer</div><h2>Liknande produkter</h2></div>
             <div className="prodgrid listgrid">

@@ -285,6 +285,7 @@ export function ProductView({
   reviewCount,
   reviewAverage,
   gpsrHtml,
+  harLiknande = false,
 }: {
   productId: string;
   /** Produktens adress. Fliken "Kontakta oss" länkar till formuläret med den förvald. */
@@ -321,6 +322,9 @@ export function ProductView({
   reviewAverage?: number | null;
   // Flikens färdiga HTML (lib/gpsr-flik.ts), byggd på servern. Null = ingen flik.
   gpsrHtml?: string | null;
+  // Sant när sidan renderar "Liknande produkter" (id="liknande"). Slutsåld-rutan
+  // länkar då dit: urvalet är redan bara varor i lager (lib/related-pick.ts).
+  harLiknande?: boolean;
 }) {
   const { add, busy } = useCart();
   const ratingHead = ratingSummary(reviewCount ?? 0, reviewAverage ?? null);
@@ -824,6 +828,15 @@ export function ProductView({
             <div className="oos-banner" role="status">
               <span className="oos-banner-chip">Slutsåld</span>
               <span className="oos-banner-text">Varan är tillfälligt slut hos oss – bevaka nedan så hör vi av oss.</span>
+              {/* Var sjunde besökare som landar på en produktsida landar på en
+                  slutsåld vara (mätt 2026-11-10 på de 75 mest besökta), och
+                  förslagen i lager låg under hela beskrivningen. Länken ger
+                  vägen dit i samma ruta som beskedet. */}
+              {harLiknande && (
+                <a className="oos-banner-lank" href="#liknande">
+                  Se liknande varor i lager <span aria-hidden="true">↓</span>
+                </a>
+              )}
             </div>
           )}
           <div className="pdp-price">
