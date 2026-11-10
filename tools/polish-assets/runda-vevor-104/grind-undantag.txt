@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Storlek på slusslåda hopfälld, Storlek utfälld slusslåda, Huvudmaterial, Vikt och Mått (L x B x H) och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar slusslådans mått utan axelord: texten skriver dem i specifikationens ordning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Totala mått, Rörmått, Tjocklek, Yttre ramtråd, Inre ramtråd, Rutnätsstorlek, Material, Antal och Mått på T-formade ben och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver tornets bredd före höjden som måttbilden ritar dem
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Max. Lastkapacitet, Justerbar höjd, Passform fötter Storlek, Objektstorlek (H x L x B), Artikelvikt, Rammaterial och Basmaterial: raden Objektstorlek har ingen tysk totalmåttrad att bygga ett facit ur, och texten skriver höjd, längd och bredd i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Väggtjocklek, Antal delar, Färg, Material, Nettovikt, Rak rörstorlek, U-rörstorlek, U-rörets diameter, 90° rörstorlek och 45° rörstorlek och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver diameter före längd som specifikationen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara raderna Huvudmaterial, Produktmått (sugslang - naturligt tillstånd), Nettovikt och Max arbetstryck och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver längd, bredd och höjd i den ordningen som måttbilden ritar dem
