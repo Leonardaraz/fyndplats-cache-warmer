@@ -1,0 +1,5 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+6561ca85 2 två paket enligt måttbildens text Versand in 2 Paketen (bilden är struken, uppgiften står kvar)
+28ef7371 2 två kartonger enligt ikonen X2 i måttbilden
+e0019b67 2 två fack bakom klaffen, räknade på bild 5 (två hyllplan med skor)
