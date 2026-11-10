@@ -2472,11 +2472,13 @@ produkter o sånt i sidan, den borde inte ha det".
 - **`updated_date` i frontmattern** när texten skrivs om. Sidan visar då
   "Uppdaterad …" i stället för publiceringsdagen, och `dateModified` och
   sitemapens `lastmod` följer med. Sätt det bara vid en verklig omskrivning.
-- **Omslaget beskärs till 1200 × 630 i adressen**
-  (`…~mv2.jpg/v1/fill/w_1200,h_630,al_t,q_85/namn.jpg`, `al_t` = övre delen).
-  Sidan reserverar 1200 × 630, så en bild i annan form flyttar texten när den
-  laddats: tullinläggets stående bild gav CLS 0,04 på mobil och sköt texten
-  1 064 px ner (nu 738 px och CLS 0).
+- **Omslaget ska ha formen 1200 × 630.** Sidan reserverar den formen, så en
+  bild i annan form flyttar texten när den laddats: tullinläggets stående
+  lagerbild gav CLS 0,04 på mobil och sköt texten 1 064 px ner (nu 738 px och
+  CLS 0). Inlägget har nu ett eget omslag i husstilen (`/blog-eu-tull-2026.jpg`,
+  mörk botten, loggan, serifrubrik med ett led i orange). En Wix-bild går att
+  beskära i adressen i stället:
+  `…~mv2.jpg/v1/fill/w_1200,h_630,al_t,q_85/namn.jpg` (`al_t` = övre delen).
   Kvar: 15 inlägg har kvadratiska omslag, där texten börjar 927 px ner på mobil
   och CLS är 0,01–0,02. Varje bild behöver ses innan den beskärs.
 - **En rubrikrad i en citatruta** (`> ### Vårt löfte`) blir fet text. Förr

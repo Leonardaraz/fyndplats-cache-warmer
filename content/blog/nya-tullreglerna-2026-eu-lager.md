@@ -5,8 +5,8 @@ meta_description: "Sedan 1 juli 2026 kostar varje vara i ett paket utifrån EU 3
 category: Guider
 publish_date: 2026-06-30
 updated_date: 2026-11-10
-cover: https://static.wixstatic.com/media/b379ce_98ea16b3bf6b4ccda4369e9a38166b5c~mv2.jpg/v1/fill/w_1200,h_630,al_t,q_85/eu-tull-2026-oppen-kartong.jpg
-alt: "Öppen kartong på ett vitt bord"
+cover: /blog-eu-tull-2026.jpg
+alt: "Två kort: ett paket utifrån EU kostar 5 euro mer per vara i tull och avgift, ett paket från EU-lager 0 kronor"
 ---
 
 # Ny EU-tull 2026 – så slipper du avgiften

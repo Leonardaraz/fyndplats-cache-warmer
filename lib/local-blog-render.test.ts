@@ -100,8 +100,14 @@ test("tullinlägget: uppdaterat, utan handplockade produkter och med frågor och
   assert.equal(p.faq?.length, 5);
   // Källraden står före frågorna, annars hamnar den i sista svaret i FAQPage.
   assert.ok(!p.faq?.some((f) => /Källor/.test(f.a)));
-  // Omslaget är beskuret till 1200 × 630, samma mått som sidan reserverar.
-  assert.match(p.cover, /\/v1\/fill\/w_1200,h_630,/);
+  // Omslaget är en egen bild i /public med formen 1200 × 630, samma mått som
+  // sidan reserverar. En bild i annan form flyttar texten när den laddats.
+  assert.equal(p.cover, "/blog-eu-tull-2026.jpg");
+  const { readFileSync } = await import("node:fs");
+  const fil = readFileSync(new URL("../public/blog-eu-tull-2026.jpg", import.meta.url));
+  const { bredd, hojd } = jpegMatt(fil);
+  assert.ok(Math.abs(bredd / hojd - 1200 / 630) < 0.01, `omslaget är ${bredd} × ${hojd}`);
+  assert.ok(fil.length < 200_000, `omslaget väger ${fil.length} byte`);
 });
 
 test("ett inlägg utan updated_date har inget uppdateringsdatum", async () => {
@@ -111,3 +117,18 @@ test("ett inlägg utan updated_date har inget uppdateringsdatum", async () => {
   assert.ok(utan.length >= 40);
   assert.ok(utan.every((p) => p.updated === undefined));
 });
+
+/** Bredd och höjd ur en JPEG-fils SOF-segment. */
+function jpegMatt(b: Uint8Array): { bredd: number; hojd: number } {
+  let i = 2;
+  while (i + 9 < b.length) {
+    if (b[i] !== 0xff) throw new Error("ingen JPEG-markör");
+    const m = b[i + 1];
+    const langd = (b[i + 2] << 8) | b[i + 3];
+    if (m >= 0xc0 && m <= 0xcf && m !== 0xc4 && m !== 0xc8 && m !== 0xcc) {
+      return { hojd: (b[i + 5] << 8) | b[i + 6], bredd: (b[i + 7] << 8) | b[i + 8] };
+    }
+    i += 2 + langd;
+  }
+  throw new Error("inget SOF-segment");
+}
