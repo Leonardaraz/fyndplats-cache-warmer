@@ -1,0 +1,12 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara raderna Dragstroppens brottstyrka, Bogserremtjocklek, Material, Produktvikt och Produktstorlek och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar bara längd och bredd i tum och fot: texten skriver bredd före längd som specifikationen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara raderna Kompatibla fälgar, Färg, Huvudmaterial, Produktvikt och Produktmått och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar skyddets diameter, inre diameter och höjd utan axelord: texten skriver Ø och höjd i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara raderna Kompatibilitet, Antal blad, Diameter, Avstånd, Tandsplines, Material, Rotation och Vikt och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver diameter före stigning som specifikationen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Typ, Antal pinnar, Primärmaterial, Produktvikt, Produktmått, Trepunktsdragets storlek, Fjäderpinnar, Storlek och Typ av pinn och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar längd, djup och höjd i tum och millimeter utan axelord: texten skriver dem i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara raderna Typ, Antal pinnar, Huvudmaterial, Produktvikt, Produktmått, Storlek och Typ av pinn och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar pinnens mått i tum och millimeter utan axelord: texten skriver längd, höjd och tjocklek i den ordningen som specifikationen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara raderna Sluice Box storlekar, Sluice Box Material, Antal, Nettovikt, Stil och Tanklängd och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver bredd före längd som specifikationen
