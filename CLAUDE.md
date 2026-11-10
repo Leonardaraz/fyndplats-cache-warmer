@@ -2303,3 +2303,79 @@ En video som läggs på produkten i Wix (Stores V3, `media.itemsInfo.items`,
   En webbläsare får vägra spela ett element i ett dolt eller inert lager.
 - Spelaren är dold med `visibility`, inte `display`. Den har då sin storlek, så
   filstorleken kan väljas redan i trycket. Ingen CSP i butiken behöver ändras.
+
+## Köptratten mätt 2026-11-10, och produkten först på mobil
+
+Mätt i GA4 över 28 dygn till 2026-11-09 och stämt av mot Wix ordrar samma dygn:
+
+| Mått | Värde |
+| :-- | --: |
+| Besök som börjar på en produktsida | 69 % (77 % av den uppmätta omsättningen) |
+| Besök på telefon | 84 % |
+| Nya besökare | 97 % |
+| Källor: Google, ChatGPT, direkt | 37 %, 36 %, 20 % |
+| ChatGPT:s del av den uppmätta omsättningen | 43 % |
+| Besök med produktvisning som lägger i varukorgen | 6,6 % |
+| Påbörjade kassor som blir köp | 53 % |
+| Köp som GA4 ser (75 av 106 betalda ordrar) | ungefär sju av tio |
+| Slutsålda bland de 75 mest besökta landningsprodukterna | 11 (14 % av deras besök) |
+
+Produktsidan på en telefon är alltså butikens förstasida, och tappet ligger där,
+inte i kassan. GA4 mäter bara den som svarat "Godkänn alla": jämför kvoter, inte
+antal, och räkna ordrar i Wix.
+
+Ändrat samma dag:
+
+- **Produkten först på mobil** (upp till 760 px, `.pdp-sida` och `.crumbs-pdp` i
+  `app/globals.css`). Bilden började 435 px ner på en 844 px hög skärm och börjar
+  nu 235 px ner. Brödsmulan slutar vid kategorin, och bläddringsraden visas
+  mellan köpdelen och beskrivningen.
+- ☠️ **Bläddringsraden flyttas bara med CSS** (`order`, produktblocket har
+  `display:contents`). Den står kvar i HTML:en ovanför produkten, för länkarna
+  ska finnas där från början (avsnittet om länkar för Google ovan). Flytta den
+  inte i JSX:en.
+- **Slutsåld-rutan länkar till `#liknande`** när sidan har "Liknande produkter"
+  (`harLiknande`). Urvalet där är redan bara varor i lager.
+- **Butikens Google-betyg står vid köpknappen** (`googleBetyg`, samma
+  `getSocialProof` som sidfoten, alltså inget nytt anrop).
+- **Två kort i bredd på mobil** också på startsidan, /butik, "Liknande
+  produkter", prissidorna och /for-dig-som (`listgrid` och `tvaKolumner`).
+- `/kategori/skarmtak-entr-tak` pekar om till `/kategori/skarmtak-entretak`.
+
+Så provas en layoutändring utan deploy: bygg lokalt (`pnpm build`, utan
+Wix-nyckel renderas reservkatalogen `products.json`), eller lägg den nya CSS:en
+på den skarpa sidan i en webbläsare (`page.addStyleTag` i Playwright) och jämför
+skärmbilder före och efter i 390 × 844. En molnsession når butiken först när
+miljön tillåter `www.fyndplats.se`, `static.wixstatic.com`, `edge.wixapis.com`
+och `www.wixapis.com` (varukorgen, se `components/cart.tsx`).
+
+## Sökningen: sammanskrivet, utan prickar och ett fel före två (2026-11-10)
+
+39 provsökningar mot butiken: "fatolj" gav 0 träffar fast 284 varor har fåtölj
+i namnet, "sangbord" gav gamingbord, "tv bank" 949 varor med en hantelbänk
+överst, "laser tag" en bredgaffel ("laser" stammas till "las", som står i
+"glasfiber") och "elkammin" melaminhyllor.
+
+Tre tillägg i `lib/search.ts`, alla som reserv, så att en sökning som redan har
+en hel träff svarar som förut:
+
+1. **Sammanskrivet.** Flera sökord hittar ordet som ett ("laser tag" →
+   "Lasertag"), och ett sökord hittar namnet med bindestreck ("tvbänk" →
+   "TV-bänk", "popup" → "Pop-up"). Träffen måste börja ett ord, och går den över
+   ett bindestreck måste den sluta där en del slutar: annars blir "topp" en
+   träff i "Hardtop-paviljong".
+2. **Utan prickar.** Å, ä och ö jämförs som a och o när inget matchar med
+   prickarna kvar. Varvet körs före stavfelsledet.
+3. **Ett stavfel före två.** Finns en träff med ett fel i ordet visas inte de
+   med två.
+
+Mätt mot butikens 6 147 namn: 34 av 3 465 sökningar ur katalogen ändrades, alla
+åt det hållet, och tiden per tangent i sökrutan är densamma (4,0–4,3 ms före,
+4,3–4,4 ms efter). **Mät en sökändring på samma sätt innan den mergas:**
+
+```
+node --experimental-strip-types --no-warnings scripts/sok-jamfor.mjs
+```
+
+Skriptet hämtar `/api/search-index`, kör `rankByName` från grenen och från
+`origin/headless-site` och skriver de sökningar som ger en annan lista.
