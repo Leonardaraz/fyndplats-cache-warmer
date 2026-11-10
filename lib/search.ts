@@ -42,6 +42,11 @@
 //         med prickarna kvar. Körs före stavfelsledet.
 //      3) Ett stavfel före två: finns en träff med ett fel i ordet visas inte
 //         de med två.
+//    Samma dag, i granskningen: "barnbil" gav 118 träffar med en barnbokhylla
+//    överst, för ordet står inte i något namn och låg två fel från "barnbok".
+//      4) Ett sammansatt sökord delat i två (delningar): "barnbil" söks som
+//         "barn bil" när inget ord träffar med högst ett fel. Efter ett
+//         stavfel, före två.
 
 // Längsta suffix först — vi tar bort EN matchande ändelse och bara om stammen
 // blir ≥3 tecken (annars blir "set"→"" och allt matchar).
@@ -508,11 +513,11 @@ export function rankByName<T>(items: T[], nameOf: (item: T) => string, query: st
   // samma lista vid varje tangent), och formen utan prickar först när första
   // varvet inte gett en hel träff.
   const sparat = formerFor(namn);
-  const fogade = p.ihop ? (sparat.fogat ??= namn.map(medFogar)) : null;
-  const varv = (lage: Lage) => {
+  const varv = (lage: Lage, sokning: Prepared = p) => {
+    const fogade = sokning.ihop ? (sparat.fogat ??= namn.map(medFogar)) : null;
     const vikta = lage >= VIKT ? (sparat.vikt ??= namn.map(vik)) : null;
     return items
-      .map((item, i) => ({ item, ...matchPrepared(namn[i], p, lage, fogade ? fogade[i] : undefined, vikta ? vikta[i] : undefined) }))
+      .map((item, i) => ({ item, ...matchPrepared(namn[i], sokning, lage, fogade ? fogade[i] : undefined, vikta ? vikta[i] : undefined) }))
       .filter((r) => r.score > 0);
   };
   // Poängen först, sedan ordgränsen (kant). Sorteringen är stabil, så
@@ -540,13 +545,82 @@ export function rankByName<T>(items: T[], nameOf: (item: T) => string, query: st
   // träffar med hyllplan och en fladdermusholk överst. Finns en träff där
   // inget ord har mer än ett fel visas bara sådana.
   // (kept är antingen bara stavfelsträffar eller inga alls, se raden ovan.)
-  const ettFel = kept.some((r) => r.fel === 1) ? kept.filter((r) => r.fel === 1) : kept;
-  return sortera(ettFel);
+  if (kept.some((r) => r.fel === 1)) return sortera(kept.filter((r) => r.fel === 1));
+
+  // ETT SAMMANSATT SÖKORD SOM RESERV, före träffarna med två stavfel
+  // (2026-11-10). "barnbil" står inte i något namn, för varorna heter "Elbil
+  // barn …" och "Åkbil för barn". Två fel tillåts i sju tecken, och då låg
+  // ordet lika nära "barnbok", "barn i" och "bar vil": 118 träffar med en
+  // barnbokhylla och en viltvagn överst. Går sökordet att dela i två ord som
+  // båda står i katalogen, och finns varor med båda, visas de: "barn bil" ger
+  // 84 elbilar, åkbilar och sparkbilar. Se delningar för villkoren.
+  //
+  // ☠️ EFTER ett stavfel, inte före. Ett felstavat ord går oftare att dela i
+  // två riktiga ord än man tror: "matsolar" är "mat" och "solar", och gav en
+  // fågelmatare med solpaneler i stället för matstolarna. Mätt på 1 050
+  // felstavningar ur katalogen bytte 55 lista med delningen först, de flesta
+  // till det sämre. Ett ord med ETT fel har nästan alltid sin rätta träff i
+  // raden ovan, och kommer aldrig hit.
+  for (const delad of delningar(p, () => (sparat.ord ??= kandaOrd(namn)))) {
+    const sokning = prepare(delad);
+    for (const lage of [EXAKT, VIKT] as const) {
+      const rader = varv(lage, sokning);
+      if (rader.some((r) => r.full)) return sortera(rader.filter((r) => r.full));
+    }
+  }
+  return sortera(kept);
+}
+
+// ── Ett sammansatt sökord delat i två ─────────────────────────────────────────
+// Motsatsen till sammanskrivet: kunden skriver ett ord ("barnbil"), och
+// katalogen har de två orden var för sig ("Elbil barn", "Åkbil för barn").
+
+/** Ingen del får bli kortare än tre tecken, så sökord under sex delas aldrig. */
+const KORTASTE_DEL = 3;
+
+// Varje ord i namnen, också stammat och utan prickar. En del av sökordet är
+// känd när den står här: "barn" och "bil" gör det, "elkam" (ur "elkammin") och
+// "nbil" gör det inte. Ordet ska stå för sig i något namn: "bil" är känt för
+// att 22 namn har ordet, inte för att "Elbil" slutar så. Mätt på 749
+// felstavningar med två fel bytte en enda lista.
+function kandaOrd(namn: readonly string[]): Set<string> {
+  const ord = new Set<string>();
+  for (const n of namn) {
+    for (const t of tokenize(n)) {
+      if (t.length < KORTASTE_DEL) continue;
+      const s = stem(t);
+      ord.add(t).add(s).add(vik(t)).add(vik(s));
+    }
+  }
+  return ord;
+}
+
+// Sökordet delat i två ord, som sökningar att prova i tur och ordning. Bara
+// ett ensamt sökord delas, och bara där båda delarna är kända ord och inget av
+// dem är ett småord ("till" i "tillbehör"). Den jämnaste delningen först: ju
+// längre den kortaste delen är, desto mindre slump i träffen.
+function delningar(p: Prepared, kanda: () => Set<string>): string[] {
+  const ord = tokenize(p.q);
+  if (ord.length !== 1 || ord[0].length < 2 * KORTASTE_DEL) return [];
+  const t = ord[0];
+  const ar = (x: string, k: Set<string>) => {
+    const s = stem(x);
+    return !STOPWORDS.has(x) && (k.has(x) || k.has(s) || k.has(vik(x)) || k.has(vik(s)));
+  };
+  const k = kanda();
+  const ut: { a: string; b: string }[] = [];
+  for (let i = KORTASTE_DEL; i <= t.length - KORTASTE_DEL; i++) {
+    const a = t.slice(0, i);
+    const b = t.slice(i);
+    if (ar(a, k) && ar(b, k)) ut.push({ a, b });
+  }
+  const kortast = (d: { a: string; b: string }) => Math.min(d.a.length, d.b.length);
+  return ut.sort((x, y) => kortast(y) - kortast(x)).map((d) => `${d.a} ${d.b}`);
 }
 
 // Namnlistans övriga former, sparade per lista: sökrutorna skickar samma
 // normaliserade lista vid varje tangent (rankaForslag i lib/sok-index.ts).
-type ListFormer = { fogat?: string[]; vikt?: string[] };
+type ListFormer = { fogat?: string[]; vikt?: string[]; ord?: Set<string> };
 const formCache = new WeakMap<readonly string[], ListFormer>();
 function formerFor(namn: readonly string[]): ListFormer {
   let f = formCache.get(namn);

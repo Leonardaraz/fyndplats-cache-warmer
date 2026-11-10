@@ -2380,6 +2380,18 @@ en hel träff svarar som förut:
    prickarna kvar. Varvet körs före stavfelsledet.
 3. **Ett stavfel före två.** Finns en träff med ett fel i ordet visas inte de
    med två.
+4. **Ett sammansatt sökord delat i två** (granskningen samma dag). "barnbil"
+   står inte i något namn, för varorna heter "Elbil barn" och "Åkbil för barn".
+   Med två stavfel låg ordet lika nära "barnbok" och "barn i": 118 träffar med
+   en barnbokhylla överst. Nu söks ordet som "barn bil" (84 bilar för barn) när
+   det går att dela i två ord som båda står för sig i katalogen och någon vara
+   har båda. "barnmotorcykel" gick från 1 träff (ett motorcykelgarage) till 31,
+   "barnelbil" från 0 till 50.
+   ☠️ Delningen kommer EFTER ett stavfel, inte före. Ett felstavat ord går
+   ofta att dela i två riktiga: "matsolar" är "mat" och "solar", och gav en
+   fågelmatare med solpaneler i stället för matstolarna. Med delningen först
+   bytte 55 av 1 050 felstavningar ur katalogen lista, de flesta till det
+   sämre. Med delningen efter: ingen av 1 050, och en av 749 med två fel.
 
 Mätt mot butikens 6 147 namn: 34 av 3 465 sökningar ur katalogen ändrades, alla
 åt det hållet, och tiden per tangent i sökrutan är densamma (4,0–4,3 ms före,
@@ -2395,6 +2407,14 @@ node --experimental-strip-types --no-warnings scripts/sok-jamfor.mjs
 
 Skriptet hämtar `/api/search-index`, kör `rankByName` från grenen och från
 `origin/headless-site` och skriver de sökningar som ger en annan lista.
+Katalogens egna ord har alltid en hel träff, så skriptet prövar inte
+reserverna för stavfel och sammansatta ord. Mät dem med felstavningar gjorda
+ur katalogens ord (ett tecken borta, två omkastade, ett dubblerat): läs varje
+sökning som byter lista.
+
+Kvar: "öppen spis el" ger gnistskydd, för "el" står i "paneler" och "delar".
+Det behöver synonymer för hela fraser ("elektrisk öppen spis" är en elkamin),
+och sådana finns inte i `SYNONYM_GROUPS`.
 
 ## Hastigheten mätt 2026-11-10: startsidan byggdes om var 15:e sekund
 

@@ -280,6 +280,8 @@ test("ordgränsen ordnar likvärdiga träffar: ordets huvud, sedan ordets börja
 //   2. Bland hela: träffar som varken behövde vikta prickar eller stavfel,
 //      annars de utan stavfel, annars stavfelsträffarna.
 //   3. Bland stavfelsträffar: de med ett fel per ord, om någon finns.
+//   4. Finns bara träffar med två fel, eller inga alls: ett ensamt sökord
+//      delat i två kända ord, om varor med båda finns (delatSokord nedan).
 function ettVarv(namn: string[], q: string): string[] {
   const scored = namn.map((n) => ({ n, ...nameMatch(n, q) })).filter((r) => r.score > 0);
   const hela = scored.filter((r) => r.full);
@@ -292,7 +294,46 @@ function ettVarv(namn: string[], q: string): string[] {
     kept = scored.filter((r) => !r.stavfel);
   }
   if (kept.some((r) => r.fel === 1)) kept = kept.filter((r) => r.fel === 1);
+  else if (kept.every((r) => r.stavfel)) {
+    const delat = delatSokord(namn, q);
+    if (delat) return delat;
+  }
   return kept.sort((a, b) => b.score - a.score || (b.kant ?? 0) - (a.kant ?? 0)).map((r) => r.n);
+}
+
+// Reserven för ett sammansatt sökord, skriven för sig och inte med kodens
+// hjälpfunktioner (bara stem och nameMatch är lånade). Ett ensamt sökord på
+// minst sex tecken delas på varje ställe som ger två delar om minst tre
+// tecken. En del är känd när den, stammad eller inte, med eller utan prickar,
+// är ett ord i något namn, och inte är ett småord. Den jämnaste delningen
+// provas först, och första delningen med en hel träff utan stavfel vinner.
+const SMAORD = new Set(["med", "och", "för", "till", "på", "av", "en", "ett", "som", "från"]);
+function delatSokord(namn: string[], q: string): string[] | null {
+  const ord = q.toLowerCase().trim().split(/[^a-zåäö0-9]+/).filter(Boolean);
+  if (ord.length !== 1 || ord[0].length < 6) return null;
+  const utanPrickar = (s: string) => s.replace(/[åä]/g, "a").replace(/ö/g, "o").replace(/é/g, "e");
+  const kanda = new Set<string>();
+  for (const n of namn) {
+    for (const t of n.toLowerCase().split(/[^a-zåäö0-9]+/)) {
+      if (t.length < 3) continue;
+      for (const form of [t, stem(t)]) kanda.add(form).add(utanPrickar(form));
+    }
+  }
+  const kand = (x: string) => !SMAORD.has(x) && [x, stem(x)].some((form) => kanda.has(form) || kanda.has(utanPrickar(form)));
+  const delar: [string, string][] = [];
+  for (let i = 3; i <= ord[0].length - 3; i++) {
+    const a = ord[0].slice(0, i);
+    const b = ord[0].slice(i);
+    if (kand(a) && kand(b)) delar.push([a, b]);
+  }
+  delar.sort((x, y) => Math.min(y[0].length, y[1].length) - Math.min(x[0].length, x[1].length));
+  for (const [a, b] of delar) {
+    const hela = namn.map((n) => ({ n, ...nameMatch(n, `${a} ${b}`) })).filter((r) => r.full && !r.stavfel);
+    const exakta = hela.filter((r) => !r.vikt);
+    const kvar = exakta.length > 0 ? exakta : hela;
+    if (kvar.length > 0) return kvar.sort((x, y) => y.score - x.score || (y.kant ?? 0) - (x.kant ?? 0)).map((r) => r.n);
+  }
+  return null;
 }
 
 test("rankByName i tre varv ger samma lista som ett varv med reserverna pålagda", () => {
@@ -304,10 +345,14 @@ test("rankByName i tre varv ger samma lista som ett varv med reserverna pålagda
     "Förvaringsbox med lock", "Kontorsstol med massage och värme", "TV-bänk 160 cm", "Två viktskivor på 5 kg",
     "Lasertag-set med projektor – 2 pistoler", "Hopfällbar hantelbank med sju lägen", "Sängbord med låda – vitt",
     "Gamingbord 147 cm med skärmhylla", "Elkamin med mantel", "Två hyllplan i vit melamin",
+    "Elbil för barn 12 V med fjärrkontroll", "Åkbil polisbil för barn 19–36 månader", "Barnbokhylla med fem nivåer",
+    "Hopfällbar viltvagn av stål", "Matstolar 2-pack i sammet", "Automatisk matare för katt – solar panel",
+    "Säng för barn 140 cm", "Barstolar 2-pack i svart", "Radiostyrd bil med fjärrkontroll",
   ];
   const fragor = ["uppresningsfåtölj", "uppresningsfatolj", "lyftfåtölj", "cyckel", "sdael", "hundvagn",
     "solcell lampa", "förvaering", "kontorsstol med massage", "fåtölj med uppresning", "tv", "bord", "xyz", "upp",
-    "fatolj", "sangbord", "tv bank", "tvbänk", "laser tag", "elkammin", "forvaring"];
+    "fatolj", "sangbord", "tv bank", "tvbänk", "laser tag", "elkammin", "forvaring",
+    "barnbil", "barnbilar", "barnelbil", "barnsang", "matsolar", "barsolar", "kontorstol", "barn bil", "barnbil röd"];
   for (const q of fragor) {
     for (let k = 2; k <= q.length; k++) {
       const p = q.slice(0, k);
@@ -400,6 +445,50 @@ test("ett stavfel före två: elkammin hittar elkaminer, inte melamin och kammar
   assert.deepEqual(rankByName(namn, (n) => n, "elkammin"), [namn[2]]);
   // Utan någon träff med ett fel visas de med två, som förut.
   assert.deepEqual(rankByName(namn.slice(0, 2), (n) => n, "elkammin").length, 2);
+});
+
+test("sammansatt sökord: barnbil hittar bilarna för barn, inte barnbokhyllan", () => {
+  const namn = [
+    "Barnbokhylla Montessori med rullbar låda", "Hopfällbar viltvagn av stål med två stora hjul",
+    "Elbil för barn 12 V med fjärrkontroll", "Åkbil polisbil för barn 19–36 månader",
+    "Radiostyrd bil med fjärrkontroll", "Bilbana med 5 banor",
+  ];
+  // "barnbil" står inte i något namn. Med två stavfel låg ordet lika nära
+  // "barnbok" och "bar vil" som de varor kunden menade.
+  assert.deepEqual(new Set(rankByName(namn, (n) => n, "barnbil")), new Set([namn[2], namn[3]]));
+  assert.deepEqual(new Set(rankByName(namn, (n) => n, "barnbilar")), new Set([namn[2], namn[3]]));
+  // Utan prickar också: "barnsang" är barn och säng.
+  assert.deepEqual(rankByName(["Säng för barn 140 cm", namn[0]], (n) => n, "barnsang"), ["Säng för barn 140 cm"]);
+  // En del som inte är ett eget ord i något namn är inte känd ("barn" står
+  // här bara i "barnbokhylla"): stavfelsledet svarar som förut.
+  assert.deepEqual(rankByName([namn[0], namn[1], namn[4]], (n) => n, "barnbil"), [namn[0], namn[1]]);
+  // Båda orden är kända, men ingen vara har båda: också som förut.
+  assert.deepEqual(rankByName([namn[0], namn[1], namn[4], "Pall för barn"], (n) => n, "barnbil"), [namn[0], namn[1]]);
+});
+
+test("sammansatt sökord: ett ord med ett stavfel delas aldrig", () => {
+  // "matsolar" är matstolar med ett tecken borta. Det är också "mat" och
+  // "solar", och delningen gav en matare med solpanel i stället för stolarna.
+  const namn = ["Matstolar 2-pack i sammet", "Automatisk matare för katt – solar panel", "Barstolar 2-pack i svart"];
+  assert.deepEqual(rankByName(namn, (n) => n, "matsolar"), [namn[0]]);
+  // Ett ord som inte går att dela i två kända ord: stavfelsledet som förut.
+  const kaminer = ["Hyllplan i melamin, 2-pack", "Kammare för rökning av fisk", "Elkamin med mantel"];
+  assert.deepEqual(rankByName(kaminer, (n) => n, "elkammin"), [kaminer[2]]);
+});
+
+test("sammansatt sökord: småord och korta delar delar inget", () => {
+  // "tillbehör" får inte bli "till" och "behör", och ingen del får vara
+  // kortare än tre tecken ("bur" och "xl").
+  const namn = ["Behör och tillsatser till grillen", "Bur för hund XL", "Hundbädd i plysch"];
+  assert.deepEqual(rankByName(namn, (n) => n, "tillbehör"), []);
+  assert.deepEqual(rankByName(namn, (n) => n, "burxl"), []);
+});
+
+test("sammansatt sökord: den jämnaste delningen provas först", () => {
+  // "barnålar" är både "bar" och "nålar" (3 och 5 tecken) och "barn" och
+  // "ålar" (4 och 4). Ju längre den kortaste delen är, desto mindre slump.
+  const namn = ["Bar med nålar för anslagstavla", "Ålar för barn – leksaksfiskar i trä"];
+  assert.deepEqual(rankByName(namn, (n) => n, "barnålar"), [namn[1]]);
 });
 
 test("synonym: kontorsfåtölj och skrivbordsstol hittar kontorsstolarna", () => {
