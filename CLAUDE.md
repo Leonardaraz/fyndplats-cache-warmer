@@ -2379,3 +2379,44 @@ node --experimental-strip-types --no-warnings scripts/sok-jamfor.mjs
 
 Skriptet hämtar `/api/search-index`, kör `rankByName` från grenen och från
 `origin/headless-site` och skriver de sökningar som ger en annan lista.
+
+## Hastigheten mätt 2026-11-10: startsidan byggdes om var 15:e sekund
+
+Lighthouse på mobil (strypt till långsam 4G) gav 81–86 i prestanda, med
+simulerad LCP 3,5–3,9 s. Utan strypning låg LCP på 0,46–0,66 s på produkt- och
+kategorisidan, CLS var 0 och första byten kom efter 80–110 ms. Sidorna är
+alltså snabba i verkligheten, och det som fanns att hämta var tre saker:
+
+- ☠️ **Startsidan byggdes om var femtonde sekund**, fast sidan säger en timme.
+  Auktionsbannerns hämtning (`hämtaAuktionsrader`) hade auktionssidans 15
+  sekunder, och Next sänker hela rutten till den kortaste fetch-tiden på sidans
+  väg. Mätt mot butiken: `age` kom aldrig över 16 s och vartannat svar var
+  `STALE`, medan /butik låg kvar. Första byten tog 0,56–0,72 s mot 0,20–0,30 s
+  för övriga sidor, och varje ombyggnad frågade Wix om priset på varje fynd.
+  Nu läser startsidan raderna med egen nyckel (`sida: "startsidan"`) och en
+  timmes cache. `lib/auction-motor.test.ts` fäller om startsidan läser utan
+  nyckeln. Samma fälla som produktsidans 300 sekunder (2026-09-30, överst).
+  Kvar: `lib/image-scores.ts` har 600 s, så startsidan och /butik byggs om var
+  tionde minut, inte en gång i timmen.
+- **Bildernas `sizes` följer den bredd bilden visas i** (`lib/bild-sizes.ts`).
+  Förut stod hela skärmens bredd, så en iPhone hämtade hjältebilden i 1200w
+  och bildrutorna i 640w fast de visas i 338 och 122 px. Nu 1080w och 384w, och
+  kortbilden 384w i stället för 640w på telefoner i 2x och breda datorskärmar.
+  Mätt i Chromium på åtta skärmar: ingen fil har färre pixlar än sin ruta
+  (lägsta kvot 1,02). Wix AVIF är större än webp i samma kvalitet (121 mot
+  83 kB i 750 px), så formatet är kvar.
+- **De fyra första korten hämtas med `fetchpriority=high`.** `priority` på
+  `<Image>` ger förladdning men inte attributet, så listsidornas största bild
+  köade efter skripten.
+
+Inte ändrat, med flit: rubriktypsnittet (Fraunces, 81 kB) förladdas på varje
+sida fast produktsidan inte visar det ovanför vikningen. Utan förladdningen
+blinkar rubriken på startsidan och kategorisidorna när typsnittet byts in.
+
+Så syns om startsidan är rätt cachad efter en deploy:
+
+```
+curl -sS -o /dev/null -D - https://www.fyndplats.se/ | grep -i -E "^(age|x-vercel-cache)"
+```
+
+`age` ska kunna stå över 16 sekunder utan att svaret blir `STALE`.
