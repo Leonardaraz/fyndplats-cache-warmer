@@ -1,0 +1,4 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+9a23cbbe 2 två transporthjul under bakstycket, räknade på bild 9 (närbild underifrån)
+951efffd 2 två kartonger enligt ikonen X2 i måttbilden

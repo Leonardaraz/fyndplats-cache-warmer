@@ -1,0 +1,58 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "6d1546fc": {
+  "tyska": "99L x 55B x 56H cm",
+  "svenska": "99 x 55 x 56 cm",
+  "bokstaver": "LBH",
+  "hojd": 56,
+  "bredd": 99,
+  "djup": 55
+ },
+ "72aa9292": {
+  "tyska": "",
+  "svenska": "34 x 34 x 6 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 10-kg-Scheiben: Ø34 x 6T cm | 7,5-kg-Scheiben: Ø31 x 5,5T cm | 2,5-kg-Scheiben: Ø24 x 3T cm | ✔ Grifföffnung: 10-kg-Scheiben: 13L x 5B cm | 7,5-kg-Scheiben: 12L x 5B cm | 2,5-kg-Scheiben: 8L x 4B cm"
+ },
+ "8a2ca170": {
+  "tyska": "183,5L x 29,8B x 94,5H cm",
+  "svenska": "183,5L x 29,8B x 94,5H cm",
+  "bokstaver": "LBH",
+  "hojd": 94.5,
+  "bredd": 183.5,
+  "djup": 29.8
+ },
+ "951efffd": {
+  "tyska": "",
+  "svenska": "204 x 250 x 56 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Sofamaße: 204B x 175T x 88H cm | ✔ Bettmaße: 204B x 250T x 56H cm | ✔ Sitzmaße: 150B x 57T x 42H cm | ✔ Maße der Rückenlehne: 150B x 42H cm | ✔ Maße der Armlehnen: 25B x 100T cm | ✔ Kissenmaße: 68L x 53B x 21T cm, 54L x 40B x 14T cm"
+ },
+ "9a23cbbe": {
+  "tyska": "96L x 55B x 47H cm",
+  "svenska": "96 x 55 x 47 cm",
+  "bokstaver": "LBH",
+  "hojd": 47,
+  "bredd": 96,
+  "djup": 55
+ },
+ "bff715ee": {
+  "tyska": "80L x 115B x 100H cm",
+  "svenska": "80 x 115 x 100 cm",
+  "bokstaver": "LBH",
+  "hojd": 100,
+  "bredd": 80,
+  "djup": 115
+ },
+ "d34dd7b7": {
+  "tyska": "40L x 35B cm",
+  "svenska": "40L x 35B cm",
+  "axellos": "totalraden har tva tal utan H eller T (40L x 35B cm) — vilken axel det andra talet ar gar inte att avgora ur raden"
+ },
+ "feab43a1": {
+  "tyska": "53,3L x 48B x 51H cm",
+  "svenska": "53,3 x 48 x 51 cm",
+  "bokstaver": "LBH",
+  "hojd": 51,
+  "bredd": 53.3,
+  "djup": 48
+ }
+}
