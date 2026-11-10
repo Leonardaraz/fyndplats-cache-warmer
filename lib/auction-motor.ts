@@ -90,11 +90,25 @@ export function auktionssidanSkaTommas(orsak: string): boolean {
  * (taggarna ingår inte i nyckeln), och för att tömma auktionsdatan hade vi då
  * fått tömma "auctions". Det tömmer startsidan också, och nästa besökare där
  * hade fått vänta på en hel ombyggnad varje timme.
+ *
+ * ☠️ STARTSIDAN HAR OCKSÅ EN EGEN NYCKEL, OCH EN TIMMES CACHE (2026-11-10).
+ * Next sänker hela rutten till den kortaste fetch-tiden på sidans väg, så med
+ * 15 sekunder här byggdes startsidan om var femtonde sekund, fast sidan säger
+ * en timme. Mätt mot butiken: `age` kom aldrig över 16 s och svaret var STALE
+ * vartannat anrop, medan /butik låg kvar i cachen, och första byten tog
+ * 0,56–0,72 s mot 0,20–0,30 s för övriga sidor. Varje ombyggnad frågade
+ * dessutom Wix om priset på varje fynd (getFreshPrices). Bannern på startsidan
+ * är byggd för en timme gammal data (components/auction-banner-text.tsx räknar
+ * läget med besökarens klocka), och en försäljning tömmer taggen "auctions"
+ * som förut.
  */
+/** Startsidans livslängd för raderna: samma tal som sidans egen revalidate (app/page.tsx). */
+export const STARTSIDANS_SEKUNDER = 3600;
+
 export async function hämtaAuktionsrader(
   status: "live" | "sold",
   d: Beroenden = {},
-  val: { sida?: "fyndauktion" } = {},
+  val: { sida?: "fyndauktion" | "startsidan" } = {},
 ): Promise<MotorRad[]> {
   const hemlighet = hemlighetEller(d);
   if (!hemlighet) {
@@ -108,7 +122,10 @@ export async function hämtaAuktionsrader(
   try {
     const res = await f(url, {
       headers: { authorization: `Bearer ${hemlighet}` },
-      next: { revalidate: 15, tags: val.sida ? ["auctions", AUKTIONSSIDANS_TAGG] : ["auctions"] },
+      next: {
+        revalidate: val.sida === "startsidan" ? STARTSIDANS_SEKUNDER : 15,
+        tags: val.sida === "fyndauktion" ? ["auctions", AUKTIONSSIDANS_TAGG] : ["auctions"],
+      },
     } as RequestInit);
     if (!res.ok) {
       console.error(`[auction-motor] rader?status=${status} svarade ${res.status}`);
