@@ -238,6 +238,12 @@ const nextConfig: NextConfig = {
       { source: "/kategori/servering-glas", destination: "/kategori/vinstall-vinkylar", permanent: true },
       { source: "/kategori/burar-klader-tillbehor", destination: "/kategori/husdjur", permanent: true },
 
+      // Skärmtak & entrétak hette skarmtak-entr-tak tills é slutade bli ett
+      // bindestreck (lib/category-slug.ts, 2026-09-24). Den gamla adressen ligger
+      // kvar i Googles index och svarade 404: 59 visningar och 2 klick på 28 dygn
+      // (Search Console 2026-10-11 till 2026-11-07).
+      { source: "/kategori/skarmtak-entr-tak", destination: "/kategori/skarmtak-entretak", permanent: true },
+
       // Search Console 2026-10-08: sex äldre kategoriadresser svarade 404. Fem
       // är samma kategori under ett nytt namn, och Mode följer mode-raderna ovan.
       // Kategorier för varor vi inte säljer (högtalare, mobilladdare, iPhoneskal,
