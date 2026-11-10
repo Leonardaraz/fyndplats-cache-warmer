@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py källans 101L x 55B x 55H gäller ett fordon där L är längden och B bredden: elfyrhjulingens längd är 101 cm och bredden 55 cm, så texten binder 101 till lång och 55 till bred
