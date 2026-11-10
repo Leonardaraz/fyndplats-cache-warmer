@@ -23,11 +23,11 @@ d7853999	5	används	feedens position 9: miljöbild i ett badrum, ren
 5a7647a1	3	används	feedens position 3: måttbild med bara tal och enheter (175, 30, 45, 27,5, 42, 16 cm och 50 kg); alla tal står i källtexten; läggs sist
 5a7647a1	4	används	feedens position 8: miljöbild i en hall, ren; tio hyllplan räknade här
 5a7647a1	5	används	feedens position 9: miljöbild i en hall, ren
-eb7ab631	1	används	feedens position 1: vit studiobild, ren; kabeln på bilden har en brittisk kontakt, medan miljöbilderna visar kontinental, och texten nämner ingen kontakttyp (flaggad i FLAGGADE)
-eb7ab631	2	används	feedens position 2: miljöbild, ren; OCR läste bara tal på väckarklockan, som är rekvisita
+eb7ab631	1	används	feedens position 1: vit studiobild, ren; nätsladden har en brittisk stickpropp (typ G) medan inzoomningen på skivan visar två jordade kontinentala eluttag och USB-portar; texten nämner ingen kontakttyp (flaggad i FLAGGADE)
+eb7ab631	2	används	feedens position 2: miljöbild, ren; en brittisk stickpropp sitter i vägguttaget; OCR läste bara tal på väckarklockan, som är rekvisita
 eb7ab631	3	används	feedens position 3: måttbild med bara tal och enheter (25, 3 och 1 kg, 40, 30, 60, 35, 21, 29, 28, 13,5, 34,5 cm, sidofacket 30 × 30 och 6,5 cm); talen utom 6,5 står i källtexten och 6,5 används inte; läggs sist
-eb7ab631	4	används	feedens position 8: miljöbild vid en säng, ren
-eb7ab631	5	används	feedens position 9: miljöbild vid ett skrivbord, ren
+eb7ab631	4	används	feedens position 8: miljöbild vid en säng, ren; en brittisk stickpropp sitter i vägguttaget
+eb7ab631	5	används	feedens position 9: miljöbild vid ett skrivbord, ren; en brittisk stickpropp sitter i vägguttaget
 34c763b7	1	används	feedens position 1: vit studiobild, ren
 34c763b7	2	används	feedens position 2: miljöbild, ren
 34c763b7	3	används	feedens position 3: måttbild med bara tal och enheter (10 kg, 42,5, 50 och 45 cm); alla tal står i källtexten; läggs sist
