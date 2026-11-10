@@ -2313,8 +2313,8 @@ Mätt i GA4 över 28 dygn till 2026-11-09 och stämt av mot Wix ordrar samma dyg
 | Besök som börjar på en produktsida | 69 % (77 % av den uppmätta omsättningen) |
 | Besök på telefon | 84 % |
 | Nya besökare | 97 % |
-| Källor: Google, ChatGPT, direkt | 37 %, 36 %, 20 % |
-| ChatGPT:s del av den uppmätta omsättningen | 43 % |
+| Källor: Google, ChatGPT, direkt | 37 %, 35 %, 19 % |
+| ChatGPT:s del av den uppmätta omsättningen | 45 % |
 | Besök med produktvisning som lägger i varukorgen | 6,6 % |
 | Påbörjade kassor som blir köp | 53 % |
 | Köp som GA4 ser (75 av 106 betalda ordrar) | ungefär sju av tio |
@@ -2323,6 +2323,11 @@ Mätt i GA4 över 28 dygn till 2026-11-09 och stämt av mot Wix ordrar samma dyg
 Produktsidan på en telefon är alltså butikens förstasida, och tappet ligger där,
 inte i kassan. GA4 mäter bara den som svarat "Godkänn alla": jämför kvoter, inte
 antal, och räkna ordrar i Wix.
+
+Källorna och ChatGPT:s del är ommätta på kvällen samma dag, per kanalgrupp. GA4
+flyttar köp mellan kanalerna i efterhand: tidigare samma dag stod ChatGPT för
+43 % av omsättningen, och två köp gick sedan från "Unassigned" till AI-kanalen. Läs därför av "före" och "efter" med samma avstånd till
+periodens slut.
 
 Ändrat samma dag:
 
@@ -2341,6 +2346,13 @@ antal, och räkna ordrar i Wix.
 - **Två kort i bredd på mobil** också på startsidan, /butik, "Liknande
   produkter", prissidorna och /for-dig-som (`listgrid` och `tvaKolumner`).
 - `/kategori/skarmtak-entr-tak` pekar om till `/kategori/skarmtak-entretak`.
+- **Cookierutans knappar står på en rad på mobil** (under 540 px,
+  `white-space:nowrap`), så rutan är 185 px hög i stället för 213 vid 390 px.
+  ☠️ Under 330 px ryms de inte bredvid varandra med texten på en rad. Då föll
+  de i två rader och rutan blev 261 px vid 320 px, högre än förut (235 px).
+  Regeln för 340 px och smalare låter raden aldrig brytas: 207 px vid 320 px.
+  `lib/kakrad-smal.test.ts` vaktar. Mät en ändring i rutan på 280 till 600 px,
+  inte bara på 390.
 
 Så provas en layoutändring utan deploy: bygg lokalt (`pnpm build`, utan
 Wix-nyckel renderas reservkatalogen `products.json`), eller lägg den nya CSS:en
@@ -2371,7 +2383,11 @@ en hel träff svarar som förut:
 
 Mätt mot butikens 6 147 namn: 34 av 3 465 sökningar ur katalogen ändrades, alla
 åt det hållet, och tiden per tangent i sökrutan är densamma (4,0–4,3 ms före,
-4,3–4,4 ms efter). **Mät en sökändring på samma sätt innan den mergas:**
+4,3–4,4 ms efter). Ommätt i granskningen samma dag på en annan maskin, fyra
+omgångar: snittet 4,9–5,8 ms före och 4,5–5,6 ms efter. Den vanliga tangenten
+tar något längre (medianen 1,6–2,0 mot 2,1–2,7 ms), och de långsammaste går
+fortare (var tjugonde tangent tog minst 32–37 ms före och 15–23 ms efter).
+**Mät en sökändring på samma sätt innan den mergas:**
 
 ```
 node --experimental-strip-types --no-warnings scripts/sok-jamfor.mjs

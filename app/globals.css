@@ -1521,6 +1521,14 @@ body:has(.drawer.show) .cookiebar{visibility:hidden}
 /* Mobil: "Endast nödvändiga" radbröt i en halv rad och gjorde båda knapparna
    62 px höga. Med mindre sidoluft står etiketten på en rad, och rutan täcker
    mindre av produktbilden vid första besöket (2026-11-10). */
+/* Under 330 px ryms inte de två knapparna bredvid varandra med texten på en
+   rad. Med nowrap ovan föll de då i två rader, och rutan blev 261 px hög vid
+   320 px: högre än före ändringen (235 px, mätt 2026-11-10). Här får raden
+   aldrig brytas. Knapparna får smalare sidoluft och krymper, och först när
+   inte ens det räcker (300 px och smalare) bryts texten inne i knappen. Mätt
+   efter rättelsen: 207 px vid 310 till 330 px, 227 px vid 280 och 300 px.
+   lib/kakrad-smal.test.ts vaktar. */
+@media(max-width:340px){.cookiebtns{flex-wrap:nowrap;gap:8px}.ck-ghost,.ck-primary{flex:1 1 auto;min-width:0;padding:10px 4px;white-space:normal}}
 .li-x{background:none;border:none;color:var(--soft);font-size:var(--text-xs);cursor:pointer;text-decoration:underline;flex:0 0 auto}
 .li-x:hover:not(:disabled){color:#F84848}
 .li-x:disabled{opacity:.5;cursor:default}
