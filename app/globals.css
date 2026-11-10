@@ -901,7 +901,9 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 
 .pbrowse-txt{display:flex;flex-direction:column;gap:2px;min-width:0}
 .pbrowse-etikett{font-size:var(--text-xs);letter-spacing:.03em;text-transform:uppercase;
-  font-weight:600;opacity:.75}
+  font-weight:600}
+/* Ingen opacitet på etiketten: med 75 % blev den 3,4:1 mot vitt, under gränsen
+   4,5:1 för liten text (Lighthouse 2026-11-10). Länkens egen färg ger 6:1. */
 /* Namnet kortas visuellt, aldrig i strängen — skärmläsaren får hela. */
 .pbrowse-namn{font-size:var(--text-sm);font-weight:600;color:var(--ink);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1388,6 +1390,34 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
   .varswatches{flex-wrap:wrap;padding:4px 0;margin:0}
 }
 
+/* ── Mobil: produkten först (2026-11-10) ─────────────────────────────────────
+   69 % av besöken börjar på en produktsida, och 87 % av dem på en telefon
+   (GA4, 28 dygn till 2026-11-09). Där började produktbilden 435 px ner på en
+   844 px hög skärm: brödsmulan stod på två rader med hela produktnamnet, och
+   bläddringsraden låg mellan den och bilden. Första skärmen visade mest
+   navigering. Nu börjar bilden ungefär 240 px ner.
+
+   Upp till 760 px, samma gräns som kolumnlayouten ovan:
+   - Brödsmulan slutar vid kategorin. Produktnamnet står i rubriken strax
+     nedanför, och det ligger kvar i HTML:en och i BreadcrumbList.
+   - Bläddringsraden visas mellan köpdelen och beskrivningen. Produktblocket
+     får display:contents, så dess delar och raden blir syskon i samma kolumn
+     och kan ordnas med order. Blockets egen luft upptill och nedtill
+     försvinner då och läggs i stället på galleriet och beskrivningen.
+   DOM:en är orörd: länkarna står kvar i HTML:en från början (CLAUDE.md,
+   "Länkar som bara renderas vid hovring"). Datorlayouten är oförändrad. */
+@media(max-width:760px){
+  .crumbs-pdp{padding:6px 0 0}
+  .crumbs-pdp em,.crumbs-pdp span:has(+ em){display:none}
+  .pdp-sida{display:flex;flex-direction:column}
+  .pdp-sida>*{min-width:0}
+  .pdp-sida>.pdp{display:contents}
+  .pdp-sida>.pdp>.gallery{margin-top:8px}
+  .pdp-sida>.pbrowse{order:5;margin:24px 0 0;padding:12px 0 0;border-top:1px solid var(--line);border-bottom:0}
+  .pdp-sida .pdp-detail{order:6;padding-bottom:40px}
+  .pdp-sida .pdp-detail>.pdp-section:first-child{margin-top:8px}
+}
+
 /* cart */
 /* Ytan till 44px utan att cirkeln växer (headern är trång). */
 .cartbtn::after,.wl-btn::after{content:"";position:absolute;inset:-3px}
@@ -1477,7 +1507,10 @@ body:has(.drawer.show) .cookiebar{visibility:hidden}
 .ck-ghost:hover{border-color:var(--ink)}
 .ck-primary{background:var(--brand);color:#fff;border:1.5px solid var(--brand)}
 .ck-primary:hover{background:#A8380A;border-color:#A8380A}
-@media(max-width:540px){.cookiebar{left:10px;right:10px;bottom:10px;padding:16px}.cookiebtns{justify-content:stretch}.ck-ghost,.ck-primary{flex:1;text-align:center}}
+@media(max-width:540px){.cookiebar{left:10px;right:10px;bottom:10px;padding:14px 16px;gap:10px}.cookiebtns{justify-content:stretch}.ck-ghost,.ck-primary{flex:1;text-align:center;padding:10px 8px;min-height:44px;white-space:nowrap}}
+/* Mobil: "Endast nödvändiga" radbröt i en halv rad och gjorde båda knapparna
+   62 px höga. Med mindre sidoluft står etiketten på en rad, och rutan täcker
+   mindre av produktbilden vid första besöket (2026-11-10). */
 .li-x{background:none;border:none;color:var(--soft);font-size:var(--text-xs);cursor:pointer;text-decoration:underline;flex:0 0 auto}
 .li-x:hover:not(:disabled){color:#F84848}
 .li-x:disabled{opacity:.5;cursor:default}

@@ -434,8 +434,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumbLd) }} />
       {faqLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(faqLd) }} />}
 
-      <div className="container">
-        <nav className="crumbs">
+      {/* pdp-sida och crumbs-pdp: på mobil står produkten först. Brödsmulan
+          slutar vid kategorin och bläddringsraden visas under köpdelen, se
+          "Mobil: produkten först" i globals.css. HTML:en är densamma som förut. */}
+      <div className="container pdp-sida">
+        <nav className="crumbs crumbs-pdp">
           <a href="/">Hem</a> <span>/</span>{" "}
           {primaryCol ? (
             <>
