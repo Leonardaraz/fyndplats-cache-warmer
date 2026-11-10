@@ -2,15 +2,46 @@
 
 // Inloggningen på /konto: e-post → kod. Länken i mejlet fungerar också, på
 // den enhet där mejlet öppnas (via /api/konto/lank).
+//
+// Den direkta vägen till ett företagskonto (/konto/foretag) använder samma
+// inloggning som sitt första steg: ett eget fält före e-posten (`fore`), en
+// kontroll innan koden begärs (`kontroll`) och ett eget nästa steg i stället
+// för att lämna sidan (`efter`).
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { feltext } from "./fel";
 import { mejltjanst } from "@/lib/medlem/mejltjanst";
 import s from "./konto.module.css";
 
 type Steg = "epost" | "kod";
 
-export function KontoInloggning({ order, mal, fel }: { order?: string; mal?: string; fel?: string | null }) {
+export function KontoInloggning({
+  order,
+  mal,
+  fel,
+  knapptext = "Skicka kod",
+  kodknapp = "Logga in",
+  platshallare = "namn@exempel.se",
+  fore,
+  kontroll,
+  efter,
+}: {
+  order?: string;
+  mal?: string;
+  fel?: string | null;
+  /** Texten på första knappen. */
+  knapptext?: string;
+  /** Texten på knappen under koden. */
+  kodknapp?: string;
+  /** Exemplet i e-postfältet. */
+  platshallare?: string;
+  /** Fält före e-posten, i samma formulär. */
+  fore?: ReactNode;
+  /** Prövas innan koden begärs. Falskt stoppar: den som anropar visar felet. */
+  kontroll?: () => boolean;
+  /** Efter en lyckad inloggning med kod, i stället för att gå till målet. */
+  efter?: () => void;
+}) {
   const [steg, setSteg] = useState<Steg>("epost");
   const [epost, setEpost] = useState("");
   const [kod, setKod] = useState("");
@@ -34,6 +65,7 @@ export function KontoInloggning({ order, mal, fel }: { order?: string; mal?: str
 
   async function begarKod(e?: React.FormEvent) {
     e?.preventDefault();
+    if (kontroll && !kontroll()) return;
     setUpptagen(true);
     setMeddelande(null);
     try {
@@ -69,7 +101,10 @@ export function KontoInloggning({ order, mal, fel }: { order?: string; mal?: str
       });
       const j = (await r.json().catch(() => ({}))) as { ok?: boolean; fel?: string; mal?: string };
       if (j.ok) {
-        window.location.assign(j.mal || "/konto");
+        // Knappen står kvar som upptagen: sidan lämnas, eller så byter den som
+        // anropar ut hela steget.
+        if (efter) efter();
+        else window.location.assign(j.mal || "/konto");
         return;
       }
       setMeddelande(feltext(j.fel ?? "tillfalligt"));
@@ -95,7 +130,8 @@ export function KontoInloggning({ order, mal, fel }: { order?: string; mal?: str
   return (
     <div className={s.inloggning}>
       {steg === "epost" ? (
-        <form onSubmit={begarKod} className={s.formular}>
+        <form onSubmit={begarKod} className={s.formular} noValidate={Boolean(kontroll)}>
+          {fore}
           <label htmlFor="konto-epost" className={s.etikett}>
             E-post
           </label>
@@ -108,10 +144,10 @@ export function KontoInloggning({ order, mal, fel }: { order?: string; mal?: str
             value={epost}
             onChange={(e) => setEpost(e.target.value)}
             className={s.falt}
-            placeholder="namn@exempel.se"
+            placeholder={platshallare}
           />
           <button type="submit" className={`btn btn-primary ${s.knapp}`} disabled={upptagen}>
-            {upptagen ? "Skickar…" : "Skicka kod"}
+            {upptagen ? "Skickar…" : knapptext}
           </button>
         </form>
       ) : (
@@ -143,7 +179,7 @@ export function KontoInloggning({ order, mal, fel }: { order?: string; mal?: str
             placeholder="123456"
           />
           <button type="submit" className={`btn btn-primary ${s.knapp}`} disabled={upptagen}>
-            {upptagen ? "Loggar in…" : "Logga in"}
+            {upptagen ? "Loggar in…" : kodknapp}
           </button>
           <div className={s.alternativ}>
             <button type="button" className={s.textknapp} onClick={() => begarKod()} disabled={upptagen || kvar > 0}>

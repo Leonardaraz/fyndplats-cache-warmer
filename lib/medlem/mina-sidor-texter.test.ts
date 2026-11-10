@@ -20,7 +20,9 @@ test("Mina sidor: medlemspriset gäller → var det syns och undantagen; annars 
   // Sidan räknar läget för just den här medlemmen (testare i läget test).
   const sida = las("page.tsx");
   assert.match(sida, /prisOppet=\{prisOppet\(pl, data\.medlem\)\}/);
-  assert.match(sida, /<Formaner prisPa=\{\(await prisLage\(\)\) === "pa"\} \/>/);
+  // Samma läsning styr vägen till företagskontot (visaForetagsvag), därav variabeln.
+  assert.match(sida, /const prisPa = \(await prisLage\(\)\) === "pa";/);
+  assert.match(sida, /<Formaner prisPa=\{prisPa\} \/>/);
   const formaner = las("formaner.tsx");
   assert.match(formaner, /\{prisPa \? " på det mesta i sortimentet" : " kommer snart"\}/);
 });
@@ -34,7 +36,8 @@ test("ordertrappan på produktsidan har egen pil, inte webbläsarens triangel", 
 
 test("ett företag som godkänns direkt (aktivt hos Bolagsverket) ser kortet med profilvalet, inte \"Vi kontrollerar\"", () => {
   const ft = las("foretag.tsx");
-  assert.match(ft, /if \(svar\.ok\) return efter\(svar\.status \?\? "granskas"\);/);
+  // Namnet följer med till den direkta vägen (/konto/foretag), som visar det i sista steget.
+  assert.match(ft, /if \(svar\.ok\) return efter\(svar\.status \?\? "granskas", svar\.namn\);/);
   assert.match(ft, /<Ansokan efter=\{\(status\) => \(status === "aktiv" \? ladda\(\) : setSkickad\(true\)\)\} \/>/);
 });
 

@@ -46,7 +46,7 @@ const SKAL: Record<string, string> = {
   tillfalligt: "Det gick inte just nu. Försök igen om en stund.",
 };
 
-async function skicka(url: string, kropp: unknown): Promise<{ ok: boolean; fel?: Faltfel; skal?: string; status?: string }> {
+async function skicka(url: string, kropp: unknown): Promise<{ ok: boolean; fel?: Faltfel; skal?: string; status?: string; namn?: string }> {
   try {
     const r = await fetch(url, {
       method: "POST",
@@ -54,14 +54,14 @@ async function skicka(url: string, kropp: unknown): Promise<{ ok: boolean; fel?:
       headers: { "content-type": "application/json" },
       body: JSON.stringify(kropp),
     });
-    return (await r.json().catch(() => ({ ok: false, skal: "tillfalligt" }))) as { ok: boolean; fel?: Faltfel; skal?: string; status?: string };
+    return (await r.json().catch(() => ({ ok: false, skal: "tillfalligt" }))) as { ok: boolean; fel?: Faltfel; skal?: string; status?: string; namn?: string };
   } catch {
     return { ok: false, skal: "tillfalligt" };
   }
 }
 
 /** Vad numret är medan kunden skriver: tomt, ett fel, eller vilken sorts nummer. */
-function numretNu(text: string): { ton: "ok" | "fel" | "tyst"; text: string } {
+export function numretNu(text: string): { ton: "ok" | "fel" | "tyst"; text: string } {
   const siffror = text.replace(/\D/g, "");
   if (siffror.length < 10) return { ton: "tyst", text: "Tio siffror, till exempel 556012-5790." };
   const p = provaOrgnr(text);
@@ -94,9 +94,23 @@ function uppslagstext(u: Uppslagslage): { ton: "ok" | "tyst"; text: string } | n
   }
 }
 
-/** `efter` får ansökans status: ett aktivt företag (Bolagsverket) är godkänt direkt. */
-function Ansokan({ efter }: { efter: (status: string) => void }) {
-  const [orgnr, setOrgnr] = useState("");
+/**
+ * `efter` får ansökans status och företagets namn: ett aktivt företag
+ * (Bolagsverket) är godkänt direkt, med det registrerade namnet.
+ *
+ * Används på Mina sidor och i den direkta vägen (/konto/foretag), som skickar
+ * med numret från sitt första steg (`startOrgnr`) och en egen knapptext.
+ */
+export function Ansokan({
+  efter,
+  startOrgnr = "",
+  knapptext = "Skicka ansökan",
+}: {
+  efter: (status: string, namn?: string) => void;
+  startOrgnr?: string;
+  knapptext?: string;
+}) {
+  const [orgnr, setOrgnr] = useState(startOrgnr);
   const [namn, setNamn] = useState("");
   // Kunden har skrivit ett eget namn: Bolagsverkets skriver då inte över det.
   const namnRort = useRef(false);
@@ -171,7 +185,7 @@ function Ansokan({ efter }: { efter: (status: string) => void }) {
     setSkal(null);
     const svar = await skicka("/api/konto/foretag", { ...falt, steg: "ansok" });
     setUpptagen(false);
-    if (svar.ok) return efter(svar.status ?? "granskas");
+    if (svar.ok) return efter(svar.status ?? "granskas", svar.namn);
     setFel(svar.fel ?? {});
     if (svar.fel && Object.keys(svar.fel).length > 0) setFelRunda((n) => n + 1);
     setSkal(svar.skal ? (SKAL[svar.skal] ?? SKAL.tillfalligt) : null);
@@ -285,7 +299,7 @@ function Ansokan({ efter }: { efter: (status: string) => void }) {
       {faltfel("villkor")}
 
       <button type="submit" className={`btn btn-primary ${s.knapp}`} disabled={upptagen}>
-        {upptagen ? "Skickar …" : "Skicka ansökan"}
+        {upptagen ? "Skickar …" : knapptext}
       </button>
       {skal && (
         <p className={s.fel} role="alert">

@@ -13,12 +13,14 @@ import { aktuellStatus, offertStatusText } from "@/lib/medlem/offert";
 import { foretagsstatusText, kanHandlaSomForetag, VILLKOR_FORETAG_VERSION, type Foretagsprofil } from "@/lib/medlem/foretag";
 import { minaSidor } from "@/lib/medlem/konto";
 import { orderGuid, sakertMal } from "@/lib/medlem/inloggning";
+import { visaForetagsvag } from "@/lib/medlem/foretagsstart";
 import { getProducts } from "@/lib/products";
 import { KontoInloggning } from "./konto-inloggning";
 import { MinaSidorVy, type Produktbilder, type SparadeKorgarVy } from "./mina-sidor";
 import { Formaner, Kortfacka } from "./formaner";
 import { FornyaSession } from "./fornya";
 import { Foretagskonto, type ForetagVy, type OffertPaMinaSidor } from "./foretag";
+import { Foretagsrad, Kontotyp } from "./kontotyp";
 import s from "./konto.module.css";
 
 export const dynamic = "force-dynamic";
@@ -210,11 +212,15 @@ export default async function Konto({ searchParams }: { searchParams: Promise<So
 
   const order = orderGuid(ett(sp.order)) ?? undefined;
   const mal = sakertMal(ett(sp.mal));
+  const prisPa = (await prisLage()) === "pa";
+  // Vägen till ett företagskonto (/konto/foretag) syns när det är öppet för alla.
+  const foretagsvagOppen = visaForetagsvag(oppen, prisPa);
   return (
     <section className="sec">
       <div className={`container ${s.ram}`}>
         <div className={s.inloggYta}>
           <div>
+            {foretagsvagOppen ? <Kontotyp aktiv="privat" /> : null}
             <p className={s.ogonbryn}>Fyndplats medlem</p>
             <h1 className={`${s.rubrik} ${s.display}`}>
               {ett(sp.fran) === "tack" ? "Skapa konto – köpet räknas" : "Bli medlem eller logga in"}
@@ -224,6 +230,7 @@ export default async function Konto({ searchParams }: { searchParams: Promise<So
               direkt.
             </p>
             <KontoInloggning order={order} mal={mal === "/konto" ? undefined : mal} fel={ett(sp.fel) ?? null} />
+            {foretagsvagOppen ? <Foretagsrad /> : null}
             <p className={s.liten}>
               När du skapar ett konto sparar vi din e-postadress och räknar ihop dina köp för medlemsnivån. Läs mer i vår{" "}
               <a href="/sekretesspolicy">sekretesspolicy</a>.
@@ -231,7 +238,7 @@ export default async function Konto({ searchParams }: { searchParams: Promise<So
           </div>
           <aside className={s.formaner} aria-label="Det här får du som medlem">
             <Kortfacka />
-            <Formaner prisPa={(await prisLage()) === "pa"} />
+            <Formaner prisPa={prisPa} />
           </aside>
         </div>
       </div>
