@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { SHIMMER_BLUR } from "../lib/lqip";
 import { tightFillUrl } from "../lib/wix-image";
 import { kortDel } from "../lib/kort-galleri";
+import { kortSizes } from "../lib/bild-sizes";
 
 // Produktkortets bilder: en rad bilder man sveper mellan på pekskärm, och
 // hover-växlingen på dator.
@@ -195,10 +196,8 @@ function prenumerera(slug: string, cb: (k: string[]) => void, createdAt?: number
 const arPekskarm = () =>
   typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(hover: none)").matches;
 
-/** Kortets `sizes`, delad med förladdningen nedan så att båda väljer samma bild. */
-function kortSizes(tvaKolumner: boolean): string {
-  return `(max-width:540px) ${tvaKolumner ? "50vw" : "100vw"}, (max-width:900px) 50vw, 25vw`;
-}
+// Kortets `sizes` (kortSizes, lib/bild-sizes.ts) delas med förladdningen nedan,
+// så att båda väljer samma bild.
 
 const forladdade = new Set<string>();
 /** Hämtar kortets huvudbild till webbläsarens cache innan kortet visas: samma
@@ -319,6 +318,12 @@ export function CardGallery({
             alt={name}
             fill
             priority={priority}
+            // fetchPriority sätts SEPARAT, som i galleriet: next/image härleder
+            // den inte ur priority. Utan den saknade både förladdningslänken och
+            // <img> fetchpriority=high, och listsidornas största bild (första
+            // kortet) hämtades med låg prioritet, efter skripten (mätt på
+            // /kategori/fatoljer 2026-11-10: fyra förladdningar utan attributet).
+            fetchPriority={priority ? "high" : undefined}
             sizes={sizes}
             placeholder="blur"
             blurDataURL={SHIMMER_BLUR}
