@@ -62,3 +62,52 @@ test("en miljöbild före produktkortet tar inte över produktens namn och bild"
     { name: "stol", image: "https://static.wixstatic.com/media/stol.jpg", url: "/produkt/stol" },
   ]);
 });
+
+// ── Citatrutor och omskrivna inlägg (2026-11-10) ─────────────────────────────
+// Tullinlägget hade "> ### 🇪🇺 Vårt EU-löfte" i en citatruta. Renderaren
+// tolkar bara rubriker på egna rader, så tecknen skrevs ut som text och stod
+// så på sidan i drygt fyra månader. Sidan länkas från startsidans EU-märke.
+
+test("en rubrikrad i en citatruta blir fet text, utan tecknen kvar", () => {
+  const html = renderMarkdown(["> ### Vårt EU-löfte", "> Allt skickas från **EU-lager**."].join("\n"));
+  assert.equal(html, "<blockquote><p><strong>Vårt EU-löfte</strong></p><p>Allt skickas från <strong>EU-lager</strong>.</p></blockquote>");
+  // En vanlig rad som bara innehåller ett # rörs inte.
+  assert.ok(renderMarkdown("> Nummer #1 i test").includes("<p>Nummer #1 i test</p>"));
+});
+
+test("inget inlägg skriver ut råa rubriktecken", async () => {
+  const { readdirSync, readFileSync } = await import("node:fs");
+  const katalog = new URL("../content/blog/", import.meta.url);
+  const filer = readdirSync(katalog).filter((f) => f.endsWith(".md"));
+  assert.ok(filer.length >= 40, `väntade minst 40 inlägg, fann ${filer.length}`);
+  for (const f of filer) {
+    const text = readFileSync(new URL(f, katalog), "utf8");
+    const kropp = text.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, "");
+    const html = renderMarkdown(kropp);
+    assert.doesNotMatch(html, /<(p|li|td|th)>\s*#{1,6}\s/, `${f}: en rubrikrad skrivs ut med tecknen kvar`);
+  }
+});
+
+test("tullinlägget: uppdaterat, utan handplockade produkter och med frågor och svar", async () => {
+  const { getLocalPost } = await import("./local-blog.ts");
+  const p = await getLocalPost("nya-tullreglerna-2026-eu-lager");
+  assert.ok(p, "inlägget ska finnas");
+  assert.equal(p.date, "2026-06-30");
+  assert.equal(p.updated, "2026-11-10");
+  // De tre handplockade varorna stod kvar i månader, och en av dem var slutsåld.
+  assert.deepEqual(p.products, []);
+  assert.ok(!p.contentHtml.includes("blog-product-img"));
+  assert.equal(p.faq?.length, 5);
+  // Källraden står före frågorna, annars hamnar den i sista svaret i FAQPage.
+  assert.ok(!p.faq?.some((f) => /Källor/.test(f.a)));
+  // Omslaget är beskuret till 1200 × 630, samma mått som sidan reserverar.
+  assert.match(p.cover, /\/v1\/fill\/w_1200,h_630,/);
+});
+
+test("ett inlägg utan updated_date har inget uppdateringsdatum", async () => {
+  const { getLocalPosts } = await import("./local-blog.ts");
+  const alla = await getLocalPosts();
+  const utan = alla.filter((p) => !p.updated);
+  assert.ok(utan.length >= 40);
+  assert.ok(utan.every((p) => p.updated === undefined));
+});

@@ -2456,3 +2456,34 @@ curl -sS -o /dev/null -D - https://www.fyndplats.se/ | grep -i -E "^(age|x-verce
 ```
 
 `age` ska kunna stå över 16 sekunder utan att svaret blir `STALE`.
+
+## Bloggen: ett inlägg som åldras (2026-11-10)
+
+Tullinlägget (`content/blog/nya-tullreglerna-2026-eu-lager.md`) skrevs 30 juni i
+futurum och stod orört i drygt fyra månader. Det länkas från startsidans
+EU-märke och från /eu-lager-garanti. Leonards fråga 2026-11-10: "den har
+produkter o sånt i sidan, den borde inte ha det".
+
+- ☠️ **Handplockade produkter i ett inlägg åldras.** Tre varor låg som helbreda
+  bilder mitt i texten: 2 400 av sidans 6 500 px på dator, utan pris, och en av
+  dem var slutsåld. De är borttagna. Ett inlägg som förklarar något länkar till
+  sortimentet eller en kategori, inte till enskilda varor. Köpguiderna är en
+  annan sak: där är varorna själva innehållet, och de står i en produktrad.
+- **`updated_date` i frontmattern** när texten skrivs om. Sidan visar då
+  "Uppdaterad …" i stället för publiceringsdagen, och `dateModified` och
+  sitemapens `lastmod` följer med. Sätt det bara vid en verklig omskrivning.
+- **Omslaget beskärs till 1200 × 630 i adressen**
+  (`…~mv2.jpg/v1/fill/w_1200,h_630,al_t,q_85/namn.jpg`, `al_t` = övre delen).
+  Sidan reserverar 1200 × 630, så en bild i annan form flyttar texten när den
+  laddats: tullinläggets stående bild gav CLS 0,04 på mobil och sköt texten
+  1 064 px ner (nu 738 px och CLS 0).
+  Kvar: 15 inlägg har kvadratiska omslag, där texten börjar 927 px ner på mobil
+  och CLS är 0,01–0,02. Varje bild behöver ses innan den beskärs.
+- **En rubrikrad i en citatruta** (`> ### Vårt löfte`) blir fet text. Förr
+  skrevs tecknen ut. `lib/local-blog-render.test.ts` fäller om något inlägg
+  skriver ut råa rubriktecken.
+- **Källraden står före "## Vanliga frågor".** Efter sista svaret hamnar den i
+  svaret i FAQPage.
+- Fakta om tull hämtas hos Tullverket ("Ny tullavgift från den 1 juli 2026"),
+  inte ur minnet: 3 euro per vara sedan 1 juli 2026, 2 euro i hanteringsavgift
+  per vara från 1 november 2026, och procenttull i stället från 1 juli 2028.

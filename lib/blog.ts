@@ -9,7 +9,8 @@ import { getLocalPosts, getLocalPost } from "./local-blog";
 const CLIENT_ID = process.env.WIX_CLIENT_ID || "3d8fdd09-3b3c-475f-aac2-b6bfa9e05153";
 const wix = CLIENT_ID ? createClient({ modules: { posts: wixPosts }, auth: OAuthStrategy({ clientId: CLIENT_ID }) }) : null;
 
-export type Post = { title: string; slug: string; excerpt: string; date: string; cover: string; alt: string };
+/** `updated` är dagen texten senast skrevs om (frontmatter `updated_date`), bara lokala inlägg. */
+export type Post = { title: string; slug: string; excerpt: string; date: string; updated?: string; cover: string; alt: string };
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function wixImageToUrl(u: any): string {
@@ -58,6 +59,7 @@ async function fetchPosts(): Promise<Post[]> {
     slug: p.slug,
     excerpt: p.excerpt,
     date: p.date,
+    updated: p.updated,
     cover: p.cover,
     alt: p.alt,
   }));
@@ -82,6 +84,8 @@ export type FullPost = Post & {
   contentText: string;
   /** Kort SERP-titel ur frontmatter (seo_title) — synliga rubriken orörd. */
   seoTitle?: string;
+  /** Dagen texten senast skrevs om (frontmatter `updated_date`), bara lokala inlägg. */
+  updated?: string;
   contentHtml?: string;     // satt för lokala inlägg
   primaryKeyword?: string;
   category?: string;
@@ -99,6 +103,7 @@ export async function getPost(slug: string): Promise<FullPost | null> {
       slug: local.slug,
       excerpt: local.excerpt,
       date: local.date,
+      updated: local.updated,
       cover: local.cover,
       alt: local.alt,
       contentText: local.contentText,

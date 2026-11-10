@@ -1,70 +1,69 @@
 ---
 title: "Ny EU-tull 2026 – så slipper du avgiften"
 slug: nya-tullreglerna-2026-eu-lager
-meta_description: "Från 1 juli 2026 slopas EU:s tullfrihet på billiga paket utifrån EU. Hos Fyndplats kommer alla produkter garanterat från EU-lager – ingen ny importtull."
+meta_description: "Sedan 1 juli 2026 kostar varje vara i ett paket utifrån EU 3 euro i tull, och från 1 november 2 euro till. Hos Fyndplats skickas allt från EU-lager."
 category: Guider
 publish_date: 2026-06-30
-cover: https://static.wixstatic.com/media/b379ce_98ea16b3bf6b4ccda4369e9a38166b5c~mv2.jpg
-alt: "Paket från EU-lager redo för leverans – ingen ny importtull 2026"
+updated_date: 2026-11-10
+cover: https://static.wixstatic.com/media/b379ce_98ea16b3bf6b4ccda4369e9a38166b5c~mv2.jpg/v1/fill/w_1200,h_630,al_t,q_85/eu-tull-2026-oppen-kartong.jpg
+alt: "Öppen kartong på ett vitt bord"
 ---
 
-# Nya tullreglerna 1 juli 2026 – så slipper du extra avgifter
+# Ny EU-tull 2026 – så slipper du avgiften
 
-Från och med **1 juli 2026** ändras reglerna för paket som handlas online. Det berör miljontals svenskar som beställer billiga varor från sajter utanför EU – men **inte** dig som handlar hos Fyndplats. Här är vad som gäller, och varför.
+Sedan den **1 juli 2026** kostar varje vara i ett paket utifrån EU **3 euro i tull**, och från den **1 november 2026** tillkommer **2 euro i hanteringsavgift**. Det gäller inte dig som handlar hos Fyndplats, för allt vi säljer skickas från lager inom EU. Här är vad som gäller, och varför.
 
-## Vad ändras?
+## Vad gäller nu?
 
-EU tar bort den så kallade **"de minimis"-regeln** – tullfriheten som hittills låtit billiga paket (under 150 euro) komma in i EU helt utan tull. I stället införs:
+Tidigare kom varor värda högst 150 euro in i EU utan tull. Den tullfriheten är borttagen. Det här gäller när du beställer från en butik som skickar från ett land utanför EU:
 
-- En **fast tull på 3 euro per vara** för paket värda upp till 150 euro som skickas **in i EU utifrån** (övergångsregel enligt rådets förordning (EU) 2026/382).
-- En planerad **hanteringsavgift** (omkring 2 euro) senare under 2026.
-- Därtill lägger transportörer (t.ex. PostNord) ofta på en egen **förtullningsavgift** för paket utifrån EU.
+- **Tull på 3 euro per vara** för varor värda högst 150 euro (1 655,30 kronor). Den gäller sedan 1 juli 2026.
+- **Hanteringsavgift på 2 euro per vara**, oavsett vad varan är värd. Den gäller från 1 november 2026.
+- **Transportföretagets egen avgift** för att sköta förtullningen kan tillkomma.
 
-I praktiken betyder det att ett billigt paket från andra sidan jordklotet plötsligt kan kosta en bra bit mer än prislappen – med extra avgifter och längre leveranstid.
+Båda avgifterna räknas per vara, inte per paket. Beställer du ett mobilskal och en tröja i samma paket är det två varor: 6 euro i tull och 4 euro i hanteringsavgift. Det blir 10 euro, ungefär 110 kronor, utöver priset.
 
-> **Viktigt:** de nya avgifterna gäller bara varor som skickas **in i EU utifrån**. Varor som redan finns i lager **inom EU** berörs inte.
+Du betalar avgifterna antingen i butikens kassa eller i efterhand, på en faktura från transportföretaget. Tullen på 3 euro är tillfällig: den 1 juli 2028 ersätts den av en tull i procent av varans värde.
+
+> **Viktigt:** avgifterna gäller bara varor som skickas **in i EU utifrån**. Varor som skickas från ett lager **inom EU** berörs inte.
 
 ## Därför påverkas du inte hos Fyndplats
 
-> ### 🇪🇺 Vårt EU-löfte
-> **Alla våra produkter kommer garanterat från EU.** Vi skickar enbart varor som redan finns i lager inom EU – aldrig direkt från länder utanför EU.
+> ### Vårt EU-löfte
+> Alla våra produkter skickas från lager inom EU, aldrig direkt från länder utanför EU.
 
 Det betyder för dig som kund:
 
-- ✅ **Ingen ny EU-tull** på din beställning.
-- ✅ **Ingen hanterings- eller förtullningsavgift** för paket utifrån EU.
-- ✅ **Snabb leverans** – inga veckor i tull, paketet är redan i Europa.
-- ✅ **Inga tull-överraskningar** – ingen ny importtull eller förtullningsavgift läggs på i efterhand.
+- **Ingen EU-tull** på din beställning.
+- **Ingen hanteringsavgift** och ingen förtullning.
+- **Snabbare leverans.** Paketet är redan i Europa och fastnar inte i tullen.
+- **Priset i kassan är slutpriset.** Det kommer ingen faktura från transportföretaget i efterhand.
 
-Eftersom hela vårt sortiment skickas från lager inom EU tillkommer ingen ny importtull eller förtullningsavgift på din beställning – det fortsätter vara **enkelt och tryggt** att handla hos oss. Hela löftet, och exakt vad det omfattar, finns svart på vitt på vår [EU-lager-garanti](/eu-lager-garanti).
+Hela löftet, och exakt vad det omfattar, står på sidan om vår [EU-lager-garanti](/eu-lager-garanti).
 
-## Populära fynd – alla från EU-lager
+## Så ser du varifrån en vara skickas
 
-[![Tvättkorg i bambu med lock 120 L med 2 fack](https://static.wixstatic.com/media/b379ce_815934393bd14e9fbd07bca7ab67d30c~mv2.jpg)](/produkt/tvattkorg-bambu-120l-2-fack "Tvättkorg i bambu 120 L – från EU-lager")
+När du handlar i andra butiker: läs leveransvillkoren innan du betalar. Där ska det stå från vilket land varan skickas. Skickas den från ett annat EU-land tillkommer inga avgifter från Tullverket. Står det inget, fråga butiken.
 
-[![Ljusterapilampa 15000 lux med 3 färgtemperaturer](https://static.wixstatic.com/media/b379ce_1eda08b16b35473f8d45ecff7ad1c5b6~mv2.jpg)](/produkt/ljusterapilampa-15000-lux "Ljusterapilampa 15000 lux – från EU-lager")
-
-[![Hörnskrivbord gaming med eluttag, USB och skärmställ](https://static.wixstatic.com/media/b379ce_9187680c21b54a478556cb53e47edbcc~mv2.jpg)](/produkt/hornskrivbord-eluttag-skarmstall-128cm "Hörnskrivbord med eluttag – från EU-lager")
-
-## Hur vet jag att en vara skickas från EU?
-
-Du behöver inte leta eller jämföra – **alla våra produkter kommer garanterat från EU**. Du behöver aldrig oroa dig för ny importtull eller förtullningsavgift i kassan. Det ingår i hur vi driver butiken.
+Hos oss behöver du inte leta, för det gäller hela sortimentet.
 
 [Se hela sortimentet →](/butik)
 
-*Källa: Europeiska kommissionen, Taxation and Customs Union. Den här texten är allmän information, inte juridisk rådgivning – kontrollera med Tullverket eller din transportör för detaljer i ditt enskilda fall.*
+*Källor: Tullverket, [Ny tullavgift från den 1 juli 2026](https://www.tullverket.se/privat/panatet/handlapanatet/tullraknarenvadaravgiftenpaminvara/omtullarochavgifternarduhandlarpanatet/nytullavgiftfranden1juli2026.4.5dd2f9d519e1cbdf1a071f.html), och Europeiska kommissionen, [EU customs reform](https://taxation-customs.ec.europa.eu/customs/eu-customs-reform_en). Texten är allmän information och inte juridisk rådgivning. Kontrollera med Tullverket eller transportföretaget vad som gäller i ditt fall.*
 
 ## Vanliga frågor
 
-### Slipper jag den nya tullen på mina beställningar?
-Ja — hos oss slipper du den. Alla våra produkter kommer garanterat från EU-lager, så de nya tull- och avgiftsreglerna för paket utifrån EU gäller inte din beställning.
+### Behöver jag betala tull när jag handlar hos Fyndplats?
+Nej. Alla våra produkter skickas från lager inom EU, så varken tullen på 3 euro eller hanteringsavgiften på 2 euro gäller din beställning.
 
-### Från vilket datum gäller de nya tullreglerna?
-Tullfriheten för billiga paket (under 150 euro) tas bort den 1 juli 2026, med en fast tull på 3 euro per vara som övergångslösning.
+### När började de nya tullreglerna gälla?
+Tullen på 3 euro per vara infördes den 1 juli 2026, samtidigt som tullfriheten för varor värda högst 150 euro togs bort. Hanteringsavgiften på 2 euro per vara gäller från den 1 november 2026.
 
-### Vad kostar den nya avgiften för paket utifrån EU?
-En fast tull på 3 euro per vara, plus en planerad hanteringsavgift och ofta en förtullningsavgift från transportören. Exakta belopp och datum för hanteringsavgiften beslutas under hösten 2026.
+### Vad kostar ett paket utifrån EU nu?
+3 euro i tull och 2 euro i hanteringsavgift per vara. Det är 5 euro per vara, ungefär 55 kronor. Transportföretaget kan dessutom ta ut en egen avgift för förtullningen.
 
-### Gäller detta allt jag köper på nätet?
-Bara varor som skickas in i EU utifrån. Köper du varor som redan finns i EU-lager – som hos Fyndplats – tillkommer inga sådana avgifter.
+### Räknas avgiften per paket eller per vara?
+Per vara. Två olika varor i samma paket ger dubbla avgifter.
 
+### Gäller avgifterna allt jag köper på nätet?
+Nej, bara varor som skickas in i EU från ett land utanför EU. Varor som redan finns i lager inom EU, som hos Fyndplats, berörs inte.
