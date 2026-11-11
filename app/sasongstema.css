@@ -219,8 +219,7 @@
    där står ettorna ensamma. */
 :root[data-tema="singlesday"] .promo,
 :root[data-tema="singlesweek"] .promo{background:var(--sd-remsa)}
-:root[data-tema="singlesday"] .promo b,
-:root[data-tema="singlesweek"] .promo b{color:var(--sd-b-ljus)}
+:root[data-tema="singlesday"] .promo b{color:var(--sd-b-ljus)}
 :root[data-tema="singlesweek"] .promo b{color:var(--sd-a-ljus)}
 :root[data-tema="singlesday"] .promo b.klarna-mark,
 :root[data-tema="singlesweek"] .promo b.klarna-mark{color:#FFB3C7}
@@ -255,7 +254,9 @@
 /* Temats namn på en rad över märket, och stora siffror bakom rubriken som
    tonar ut nedåt. Raden gör att namnet står utskrivet också på mobil, där
    toppremsan bara rymmer ettorna. Siffrornas ruta har luft åt höger, annars
-   klipps den lutande sista ettan. */
+   klipps den lutande sista ettan. Under 413 px följer storleken skärmens
+   bredd (46vw): med 190 px rakt av klipptes sista ettan i högerkanten på
+   telefoner smalare än 410 px (mätt 2026-11-11: 35 px vid 375, 90 px vid 320). */
 :root[data-tema="singlesday"] .heroinner,
 :root[data-tema="singlesweek"] .heroinner{position:relative;isolation:isolate}
 :root[data-tema="singlesday"] .heroinner::before,
@@ -265,7 +266,7 @@
 :root[data-tema="singlesweek"] .heroinner::before{content:"Singles Week · till söndag"}
 :root[data-tema="singlesday"] .heroinner::after,
 :root[data-tema="singlesweek"] .heroinner::after{content:"11.11";position:absolute;z-index:-1;pointer-events:none;white-space:pre;
-  left:-.1em;top:.3em;padding:0 .16em 0 .05em;font-size:clamp(190px,24vw,330px);
+  left:-.1em;top:.3em;padding:0 .16em 0 .05em;font-size:min(46vw,clamp(190px,24vw,330px));
   font-family:var(--font-display),Georgia,serif;font-style:italic;font-weight:600;line-height:.8;letter-spacing:-.03em;
   color:transparent;-webkit-text-stroke:1.5px var(--sd-siffror-kant);
   background:var(--sd-siffror);-webkit-background-clip:text;background-clip:text;
