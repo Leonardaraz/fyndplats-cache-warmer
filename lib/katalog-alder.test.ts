@@ -82,15 +82,16 @@ describe("katalogen i minnet förnyas för flödena", () => {
   });
 });
 
-describe("de stora flödena byggs vid anrop och strömmas", () => {
+describe("de stora flödena byggs vid anrop och skickas komprimerade", () => {
   for (const fil of ["google.xml", "products.xml", "pricerunner.xml"]) {
     it(`/feed/${fil}`, () => {
       const kalla = las("app", "feed", fil, "route.ts");
       assert.match(kalla, /^export const dynamic = "force-dynamic";$/m);
       assert.match(kalla, /^export const maxDuration = 300;$/m);
       assert.doesNotMatch(kalla, /^export const revalidate\b/m, "route-ISR bygger aldrig om ett så stort svar");
-      assert.match(kalla, /return new Response\(strommatXml\(xml\), \{/);
-      assert.match(kalla, /"Cache-Control": "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400"/);
+      assert.match(kalla, /^export async function GET\(request\?: Request\) \{$/m, "utan anropet vet rutten inte om läsaren tar emot gzip");
+      assert.match(kalla, /^  return flodessvar\(xml, request\);$/m);
+      assert.doesNotMatch(kalla, /strommatXml|new Response\(/, "svaret byggs bara av flodessvar");
     });
   }
 

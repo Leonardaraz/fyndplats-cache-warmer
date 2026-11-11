@@ -916,16 +916,32 @@ väg; `lib/katalog-alder.test.ts` listar de fyra filerna som får anropa den.
 `/feed/pricerunner.xml` (18,4 MB) och `/feed/products.xml` (10,3 MB) hade
 `revalidate = 3600` och byggdes bara vid deployen: ett dygn efter bygget hade
 151 varor gårdagens pris, och tre hämtningar efter att kopian gått ut gav alla
-samma gamla fil. De körs nu vid anrop (`force-dynamic`, `maxDuration` 300) och
-strömmas med `strommatXml`, som Prisjakt-flödet sedan 2026-10-28. CDN:en håller
-svaret en timme. Över 19 MB loggar Google-flödet en varning: vid 20 MB cachas
-inget, och då byggs flödet om vid varje hämtning. Raderna måste bantas innan
-dess (färre extrabilder är det som ger mest), och det är Leonards beslut.
+samma gamla fil. De körs nu vid anrop (`force-dynamic`, `maxDuration` 300).
 
+☠️ **CDN:en behåller inget svar över 10 MB, inte heller ett strömmat.** Mätt i
+produktion 2026-11-11: `/feed/prisjakt.xml` (11,4 MB, strömmat sedan
+2026-10-28) gav MISS tre gånger i rad och byggdes om på 48–70 s varje gång,
+medan bildsitemapen gav MISS och sedan HIT. Dokumentationens 20 MB för
+strömmade svar håller alltså inte. De tre flödena skickas därför med
+`flodessvar` (`lib/feed/prisjakt-svar.ts`): den som tar emot gzip får flödet
+komprimerat (19,1 MB blir 2,5 MB), och det ryms. Den som inte gör det, och
+rutterna som läser varandra (PriceRunner och Prisjakt bygger på Google-flödets
+`GET()` utan anrop), får samma XML okomprimerad och strömmad. `Vary:
+Accept-Encoding` håller isär svaren. Över 8 MB komprimerat loggar `flodessvar`
+en varning; dit är det ungefär tre gånger dagens katalog.
+
+☠️ **`stale-while-revalidate` är två timmar, inte ett dygn** (`FLODE_CACHE`).
+CDN:en ger det gamla svaret medan nästa byggs, och med ett dygn fick den som
+hämtar en gång om dygnet (Google Merchant Center) alltid förra dygnets fil.
+Nu är ett svar aldrig äldre än tre timmar: ett äldre är borta, och hämtningen
+bygger ett nytt (10–75 s uppmätt, långsamt men rätt).
 **`/api/cron/farska-floden`** (varannan timme, `lib/flodesvarmning.ts`) hämtar
-sitemapen och de tre öppna flödena en gång. CDN:en ger det gamla svaret medan
-nästa byggs, så den som hämtar en gång om dygnet fick annars alltid förra
-dygnets fil. Prisjakts hemliga adress står inte i listan och får aldrig göra det.
+sitemapen och de tre flödena en gång, så att det ska hända sällan. Prisjakts
+hemliga adress står inte i listan och får aldrig göra det.
+
+**Prisjakt-flödena är orörda.** De strömmas som förut och byggs alltså om vid
+varje hämtning. De är alltid färska, och hur de ska hållas i CDN:en är ett
+eget beslut: Prisjakt hämtar på en adress som jobbet inte får känna till.
 
 **Länkarna i produkttexterna.** Poleringen skriver länkar i Wix adressform,
 `/product-page/<slug>`, som butiken omdirigerar med 308. Semrush räknade 600

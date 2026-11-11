@@ -3,10 +3,11 @@
 // Håller flödena och sitemapen färska mellan hämtningarna.
 //
 // VARFÖR DEN FINNS. CDN:en håller ett flöde i en timme och ger sedan det gamla
-// svaret medan nästa byggs (stale-while-revalidate). Den som hämtar en gång om
-// dygnet, som Google Merchant Center, får då alltid förra hämtningens fil: ett
-// dygn gammal. Hämtar vi själva varannan timme är filen Google får aldrig äldre
-// än ett par timmar.
+// svaret i högst två timmar till medan nästa byggs (FLODE_CACHE i
+// lib/feed/prisjakt-svar.ts). Ett äldre svar är borta, och den som då hämtar
+// får vänta medan flödet byggs: 10 till 75 sekunder uppmätt 2026-11-11.
+// Hämtar vi själva varannan timme finns det alltid ett svar som är högst ett
+// par timmar gammalt, och Google Merchant Center får det direkt.
 //
 // LÖVMODUL med flit, så att `node --test` kan ladda den. Prisjakts hemliga
 // adress står inte här och får aldrig göra det (CLAUDE.md).

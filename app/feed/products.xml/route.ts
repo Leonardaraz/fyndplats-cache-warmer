@@ -14,7 +14,7 @@
 // (för product_type = huvudkategori). CDN:en håller svaret en timme.
 
 import { getProductsFarska, getCollections, fetchFeedGalleries, fetchVarumarken, imgKey, type Product, type Collection } from "@/lib/products";
-import { strommatXml } from "@/lib/feed/prisjakt-svar";
+import { flodessvar } from "@/lib/feed/prisjakt-svar";
 import { varumarke } from "@/lib/varumarke";
 
 export const runtime = "nodejs";
@@ -27,9 +27,9 @@ export const runtime = "nodejs";
 // timme och ger det gamla medan nästa byggs, och /api/cron/farska-floden hämtar
 // flödet varannan timme så att kopian aldrig hinner bli ett dygn gammal.
 //
-// ☠️ SVARET STRÖMMAS. Vercels CDN cachar icke-strömmade svar upp till 10 MB och
-// strömmade upp till 20 MB (lib/feed/prisjakt-svar.ts). Över gränsen cachas
-// inget och flödet byggs om vid varje hämtning.
+// ☠️ SVARET SKICKAS KOMPRIMERAT (flodessvar i lib/feed/prisjakt-svar.ts).
+// CDN:en behåller inget svar över 10 MB, inte heller ett strömmat (mätt i
+// produktion 2026-11-11), och då byggs flödet om vid varje hämtning.
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
@@ -127,7 +127,7 @@ function feedItem(p: Product, marke: string, mainCategory?: string, fullGallery?
     </item>`;
 }
 
-export async function GET() {
+export async function GET(request?: Request) {
   let products: Product[] = [];
   try {
     // Högst en timme gammal katalog: priset i flödet kommer härifrån.
@@ -170,10 +170,5 @@ ${items.join("\n")}
   </channel>
 </rss>`;
 
-  return new Response(strommatXml(xml), {
-    headers: {
-      "Content-Type": "application/xml; charset=utf-8",
-      "Cache-Control": "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400",
-    },
-  });
+  return flodessvar(xml, request);
 }

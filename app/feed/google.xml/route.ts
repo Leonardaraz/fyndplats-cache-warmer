@@ -40,15 +40,16 @@ export const runtime = "nodejs";
 // timme och ger det gamla medan nästa byggs, och /api/cron/farska-floden hämtar
 // flödet varannan timme så att kopian aldrig hinner bli ett dygn gammal.
 //
-// ☠️ SVARET STRÖMMAS. Vercels CDN cachar icke-strömmade svar upp till 10 MB och
-// strömmade upp till 20 MB (lib/feed/prisjakt-svar.ts). Över gränsen cachas
-// inget och flödet byggs om vid varje hämtning.
+// ☠️ SVARET SKICKAS KOMPRIMERAT (flodessvar i lib/feed/prisjakt-svar.ts).
+// CDN:en behåller inget svar över 10 MB, inte heller ett strömmat (mätt i
+// produktion 2026-11-11), och då byggs flödet om vid varje hämtning. Som gzip
+// är flödet omkring 2 MB.
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 import { KAMPANJ_2026_09 } from "../../../lib/kampanj-2026-09";
 import { varumarke } from "../../../lib/varumarke";
-import { PRISJAKT_VARNING_BYTE_STROMMAT, strommatXml } from "../../../lib/feed/prisjakt-svar";
+import { flodessvar } from "../../../lib/feed/prisjakt-svar";
 
 const SITE = "https://www.fyndplats.se";
 // Märket: Wix fält "brand" när det är satt, annars Fyndplats. Aosoms märken
@@ -521,7 +522,7 @@ function feedItem(
     </item>`;
 }
 
-export async function GET() {
+export async function GET(request?: Request) {
   // Fyra batchade, cachade källor — inga per-produkt-anrop:
   //   getProductsFarska()     → visible-filtrerad katalog, högst en timme gammal
   //                             (seoDescription, img, slug; lib/katalog-alder.ts)
@@ -581,18 +582,6 @@ ${items.join("\n")}
   </channel>
 </rss>`;
 
-  const byte = Buffer.byteLength(xml);
-  if (byte > PRISJAKT_VARNING_BYTE_STROMMAT) {
-    console.warn(
-      `[google-flodet] flödet är ${(byte / 1e6).toFixed(1)} MB med ${items.length} rader. Vercels CDN cachar inte strömmade svar över 20 MB, `
-        + "och då byggs flödet om vid varje hämtning. Banta raderna (färre extrabilder) innan dess.",
-    );
-  }
-
-  return new Response(strommatXml(xml), {
-    headers: {
-      "Content-Type": "application/xml; charset=utf-8",
-      "Cache-Control": "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400",
-    },
-  });
+  // flodessvar varnar i loggen om det komprimerade svaret närmar sig CDN:ens gräns.
+  return flodessvar(xml, request);
 }

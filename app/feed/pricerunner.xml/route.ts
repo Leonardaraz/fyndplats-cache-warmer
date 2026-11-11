@@ -6,12 +6,12 @@
 // (pris kunden betalar, frakt per vara, bara varor i lager) ligger i
 // lib/feed/pricerunner.ts.
 //
-// Körs vid anrop och strömmas, som Google-feeden (se kommentaren där): med
+// Körs vid anrop och skickas komprimerat, som Google-feeden (se kommentaren där): med
 // route-ISR byggdes flödet vid deployen och sedan aldrig mer.
 
 import { GET as googleFeed } from "../google.xml/route";
 import { tillPricerunner } from "@/lib/feed/pricerunner";
-import { strommatXml } from "@/lib/feed/prisjakt-svar";
+import { flodessvar } from "@/lib/feed/prisjakt-svar";
 import {
   DELIVERY_MAX_DAYS,
   DELIVERY_MIN_DAYS,
@@ -24,7 +24,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
-export async function GET() {
+export async function GET(request?: Request) {
   const googleXml = await (await googleFeed()).text();
   const xml = tillPricerunner(googleXml, {
     standardKr: STANDARD_SHIPPING_KR,
@@ -34,10 +34,5 @@ export async function GET() {
     maxTransitDays: DELIVERY_MAX_DAYS,
   });
 
-  return new Response(strommatXml(xml), {
-    headers: {
-      "Content-Type": "application/xml; charset=utf-8",
-      "Cache-Control": "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400",
-    },
-  });
+  return flodessvar(xml, request);
 }
