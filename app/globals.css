@@ -2922,6 +2922,16 @@ body:has(.drawer.show) .cookiebar{visibility:hidden}
 .prog-links{display:flex;flex-wrap:wrap;gap:12px}
 .prog-link-chip{display:inline-flex;align-items:center;padding:11px 18px;border:1.5px solid var(--line);border-radius:var(--r-pill);font-size:var(--text-sm);font-weight:600;color:var(--ink);background:#fff;transition:border-color .18s,background .18s,transform .15s}
 .prog-link-chip:hover{border-color:var(--orange);background:var(--warm);transform:translateY(-1px)}
+/* Många länkar på mobilen: EN rad i sidled, kant i kant med skärmen, som
+   underkategorierna (.subchips). Som rader blev prissidans 19 länkar ett torn
+   på 1 014 px (mätt 2026-11-11, lib/seo/grannlankar.ts). 26px = .container.
+   De 4 px uppe och nere ger plats åt fokusramen, som raden annars klipper. */
+@media(max-width:700px){
+  .prog-links-svep{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;margin:-4px -26px;padding:4px 26px;scroll-padding:0 26px}
+  .prog-links-svep::-webkit-scrollbar{display:none}
+  .prog-links-svep .prog-link-chip{flex:0 0 auto;white-space:nowrap}
+}
 .prog-bloglinks{margin-top:16px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;font-size:var(--text-sm)}
 .prog-bloglinks-label{color:var(--soft);font-weight:600}
 .prog-bloglinks a{color:var(--orange);font-weight:600;text-decoration:underline;text-underline-offset:2px}

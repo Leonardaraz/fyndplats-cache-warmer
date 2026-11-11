@@ -95,7 +95,7 @@ export async function PriceTierPage({ price, category }: { price: number; catego
         </div>
       </section>
 
-      <ProgCrossLinks title="Fortsätt fynda" links={view.related} />
+      <ProgCrossLinks title="Fortsätt fynda" links={view.related} svepbar />
     </>
   );
 }

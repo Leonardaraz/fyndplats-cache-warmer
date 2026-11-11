@@ -2,7 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { hogstaTrappa, MAX_BARN, MAX_SYSKON, prisgrannar, ringEfter, type TrappKategori, type Trappsteg } from "./grannlankar.ts";
+import { hogstaTrappa, MAX_BARN, MAX_SYSKON, prisgrannar, ringEfter, SVEP_FRAN_LANKAR, svepRad, type TrappKategori, type Trappsteg } from "./grannlankar.ts";
 
 const las = (...delar: string[]) => readFileSync(join(import.meta.dirname, "..", "..", ...delar), "utf8");
 
@@ -145,3 +145,48 @@ describe("sidorna använder ringen", () => {
     assert.match(k, /<a href=\{`\/blogg\/\$\{g\.slug\}`\}>\{g\.title\}<\/a>/);
   });
 });
+
+describe("☠️ många länkar blir en rad i sidled på mobilen (mätt: 19 länkar var 18 rader och 1 014 px)", () => {
+  it("regeln: upp till sex länkar radbryts som förut, från sju blir det en rad", () => {
+    assert.equal(SVEP_FRAN_LANKAR, 7);
+    assert.equal(svepRad(0), false);
+    assert.equal(svepRad(6), false);
+    assert.equal(svepRad(7), true);
+    assert.equal(svepRad(19), true);
+  });
+
+  it("länkraden får klassen bara när sidan bett om det OCH länkarna är många", () => {
+    const k = las("components", "programmatic.tsx");
+    assert.match(k, /import \{ svepRad \} from "\.\.\/lib\/seo\/grannlankar";/);
+    assert.match(k, /<div className=\{svepbar && svepRad\(links\.length\) \? "prog-links prog-links-svep" : "prog-links"\}>/);
+    assert.doesNotMatch(k, /^"use client"/, "regeln ska inte följa med till webbläsaren");
+  });
+
+  it("prissidan ber om det, de andra sidorna gör det inte", () => {
+    assert.match(las("components", "price-tier-page.tsx"), /<ProgCrossLinks title="Fortsätt fynda" links=\{view\.related\} svepbar \/>/);
+    for (const sida of [["app", "produkt", "[slug]", "page.tsx"], ["app", "kategori", "[slug]", "page.tsx"], ["app", "for-dig-som", "[interest]", "page.tsx"], ["app", "kopguider", "[type]", "page.tsx"]]) {
+      const k = las(...sida);
+      assert.match(k, /<ProgCrossLinks /, sida.join("/"));
+      assert.doesNotMatch(k, /<ProgCrossLinks [^>]*svepbar/, sida.join("/"));
+    }
+  });
+
+  it("stilen: bara på mobilen, en rad som rullar i sidled, kant i kant med behållaren", () => {
+    const css = las("app", "globals.css");
+    const block = css.match(/@media\(max-width:700px\)\{\s*\.prog-links-svep\{([^}]*)\}\s*\.prog-links-svep::-webkit-scrollbar\{display:none\}\s*\.prog-links-svep \.prog-link-chip\{([^}]*)\}\s*\}/);
+    assert.ok(block, "regeln ska stå i ett eget mobilblock");
+    const [, rad, lank] = block!;
+    assert.match(rad, /flex-wrap:nowrap/);
+    assert.match(rad, /overflow-x:auto/);
+    assert.match(lank, /flex:0 0 auto/);
+    assert.match(lank, /white-space:nowrap/);
+    // Kant i kant: radens negativa marginal i sidled är behållarens luft, och
+    // samma luft står som padding, så första länken börjar där rubriken börjar.
+    const luft = css.match(/^\.container\{[^}]*padding:0 (\d+)px\}/m);
+    assert.ok(luft, ".container ska ha en fast luft i sidled");
+    assert.match(rad, new RegExp(`margin:-4px -${luft![1]}px;padding:4px ${luft![1]}px`));
+    // Utanför mobilblocket finns ingen regel för klassen: på datorn radbryts länkarna.
+    assert.equal((css.match(/\.prog-links-svep/g) || []).length, 3);
+  });
+});
+

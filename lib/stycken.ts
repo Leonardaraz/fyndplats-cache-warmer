@@ -4,12 +4,18 @@
 //
 // ☠️ MÄTT 2026-11-11 (Semrush, "Content not optimized", kategorin AI Search).
 // 22 produktsidor pekades ut. På var och en fanns ett enda stycke på 158–219
-// ord, nästan alltid en lång kundrecension. Sidor utan fynd hade högst 84 ord i
-// ett stycke. En maskinläsare får hela recensionen som ett block utan struktur.
+// ord: på 13 sidor en lång kundrecension, på 9 ett stycke i produkttexten.
+// Sidor utan fynd hade högst 84 ord i ett stycke. En maskinläsare får annars
+// hela texten som ett block utan struktur.
 //
 // Texten ändras aldrig: samma ord i samma ordning, bara fler <p>. Hur styckena
 // ser ut avgör den som ritar dem (recensionerna ritar dem i följd, så att
 // klampen på fem rader och "Visa mer" fungerar som förut).
+//
+// ☠️ MODULEN GÅR TILL WEBBLÄSAREN (recensionerna är en klientkomponent). Därför
+// inga bakåtblickande reguljära uttryck här: Safari före 16.4 kan inte läsa dem,
+// och då faller hela skriptfilen, inte bara delningen. Butiken lovar iOS 14 och
+// uppåt (browserslist i package.json). `lib/stycken.test.ts` vaktar det.
 //
 // LÖVMODUL med flit, så att `node --test` kan ladda den.
 
@@ -19,6 +25,48 @@ export const MAX_ORD_PER_STYCKE = 70;
 export const DELA_FRAN_ORD = 84;
 
 const antalOrd = (s: string) => s.split(/\s+/).filter(Boolean).length;
+
+/**
+ * Förkortningar som följs av mer text i samma mening. Efter dem börjar ingen ny
+ * mening, hur nästa ord än ser ut: "ca. 10 cm", "max. 135 kg", "kl. 10".
+ * Förkortningar som oftast AVSLUTAR en mening (osv., m.m., etc.) står inte här.
+ */
+const EJ_MENINGSSLUT = new Set([
+  "ca", "c:a", "max", "min", "t.ex", "bl.a", "inkl", "exkl", "resp", "kl", "nr",
+  "dvs", "d.v.s", "s.k", "ev", "fr.o.m", "t.o.m",
+]);
+
+/** Sista ordet före punkten, utan inledande citattecken och parenteser. */
+const sistaOrdet = (fore: string) => (fore.split(/\s+/).pop() || "").replace(/^["“”'(\[]+/, "");
+
+/**
+ * Delar texten i meningar. En mening slutar på . ! ? eller …, kanske följt av
+ * ett citattecken eller en parentes, och nästa börjar efter ett vanligt
+ * mellanslag med versal, siffra eller citattecken. "t.ex. en" delas alltså inte.
+ *
+ * Tre ställen är ALDRIG en meningsgräns, för där skulle ett nytt stycke hamna
+ * mitt i en uppgift:
+ *   - efter en förkortning i EJ_MENINGSSLUT ("max." | "135 kg"),
+ *   - efter ett ensamt tal med punkt, alltså en numrering ("2." | "Skruva fast"),
+ *   - vid ett hårt mellanslag, som skribenten satt för att hålla ihop orden.
+ * En utebliven delning gör bara ett stycke lite längre. En felaktig syns.
+ */
+function delaIMeningar(ren: string): string[] {
+  const slut = /([.!?…]["”’')\]]?)[ \t\r\n]+(?=[A-ZÅÄÖÉ0-9"“”'(])/gu;
+  const ut: string[] = [];
+  let start = 0;
+  let m: RegExpExecArray | null;
+  while ((m = slut.exec(ren)) !== null) {
+    if (m[1][0] === ".") {
+      const ord = sistaOrdet(ren.slice(start, m.index));
+      if (EJ_MENINGSSLUT.has(ord.toLowerCase()) || /^\d+$/.test(ord)) continue;
+    }
+    ut.push(ren.slice(start, m.index + m[1].length));
+    start = m.index + m[0].length;
+  }
+  ut.push(ren.slice(start));
+  return ut;
+}
 
 /**
  * Delar texten i stycken om högst `maxOrd` ord, bara mellan meningar. En text
@@ -32,10 +80,7 @@ export function delaIStycken(text: string, maxOrd: number = MAX_ORD_PER_STYCKE):
   const ren = text.trim();
   if (!ren) return [];
   if (antalOrd(ren) <= maxOrd) return [ren];
-  // En mening slutar på . ! ? eller …, kanske följt av ett citattecken eller en
-  // parentes, och nästa börjar med versal, siffra eller citattecken. "t.ex. en"
-  // delas alltså inte.
-  const meningar = ren.split(/(?<=[.!?…]["”’')\]]?)\s+(?=[A-ZÅÄÖÉ0-9"“”'(])/u);
+  const meningar = delaIMeningar(ren);
   const totalt = antalOrd(ren);
   const andel = Math.ceil(totalt / Math.ceil(totalt / maxOrd));
   const ut: string[] = [];
@@ -68,6 +113,8 @@ export function delaIStycken(text: string, maxOrd: number = MAX_ORD_PER_STYCKE):
  *
  * Bara stycken som är REN TEXT delas. Ett stycke med en tagg i sig (en länk,
  * fetstil) lämnas som det är, för en delning får aldrig hamna mitt i en tagg.
+ * Ett stycke med ett `id` lämnas också: delarna ärver attributen, och ett id
+ * får bara stå på ett ställe på sidan.
  */
 export function delaLangaStyckenIHtml(
   html: string,
@@ -77,6 +124,7 @@ export function delaLangaStyckenIHtml(
   if (!html || !html.includes("<p")) return html;
   return html.replace(/<p(\s[^>]*)?>([^<]*)<\/p>/g, (hela: string, attribut: string | undefined, inre: string) => {
     if (antalOrd(inre) <= franOrd) return hela;
+    if (attribut && /\sid\s*=/i.test(attribut)) return hela;
     const delar = delaIStycken(inre, maxOrd);
     if (delar.length < 2) return hela;
     return delar.map((d) => `<p${attribut || ""}>${d}</p>`).join("");

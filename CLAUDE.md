@@ -427,6 +427,12 @@ följande, runt hörnet. Då får varje sida lika många länkar in som den har 
   nivån.
 - Intressesidan: de tre följande i `INTERESTS`, bland dem som har en giltig sida.
 - Blogginlägget: "Fler inlägg" med de två följande i bloggens ordning.
+- ☠️ Prissidans länkrad är EN RAD I SIDLED på mobilen när länkarna är sju eller
+  fler (`svepRad()`, `.prog-links-svep`, samma mönster som `.subchips`). Mätt på
+  förhandsbygget i 390 px: avdelningen Möbler fick 19 länkar, och som rader blev
+  de 18 rader och 1 014 px (förut 102). Ingen länk är kort nog för att två ska
+  rymmas i bredd. Bara prissidan ber om det (`svepbar`); produkt-, kategori-,
+  intresse- och guidesidorna radbryter som förut, och det gör datorn också.
 
 **"Content not optimized" (23).** 22 produktsidor och `/kopvillkor`. Mätt orsak:
 ETT stycke på 158–219 ord. Sidor utan fynd hade högst 84 ord i ett stycke.
@@ -441,7 +447,22 @@ Rubrikordningen och läsbarheten var inte orsaken.
   `delaLangaStyckenIHtml()` delar varje rent textstycke över 84 ord när sidan
   ritas (`app/produkt/[slug]/page.tsx`). Texten i Wix rörs inte, och JSON-LD,
   FAQ och säkerhetsraderna läser den råa texten. Ett stycke med en tagg i sig
-  (länk, fetstil) delas aldrig.
+  (länk, fetstil) delas aldrig, och inte heller ett stycke med ett `id`
+  (delarna ärver attributen). Mätt på 240 produktsidor ur sitemapen: 12 har
+  ett sådant stycke i produkttexten (5 %), alltså runt 300 i hela katalogen.
+- ☠️ `lib/stycken.ts` GÅR TILL WEBBLÄSAREN, för recensionerna är en
+  klientkomponent. Första versionen delade meningarna med ett bakåtblickande
+  reguljärt uttryck (lookbehind). Safari före 16.4 kan inte läsa ett sådant,
+  och då faller HELA skriptfilen, inte bara delningen. Butiken lovar iOS 14 och
+  uppåt (browserslist). Det hittades i granskningen före mergen, inte av något
+  prov: Chromium är den enda webbläsaren som går att köra i molnet. Nu delas
+  meningarna utan bakåtblick, och provet fäller en sådan i modulen eller i
+  recensionskomponenten.
+- Tre ställen är aldrig en meningsgräns: efter en förkortning som följs av mer
+  text ("max. 135 kg", `EJ_MENINGSSLUT`), efter ett ensamt tal med punkt
+  ("2. Skruva fast") och vid ett hårt mellanslag. En utebliven delning gör bara
+  stycket längre, en felaktig syns. Mätt på 84 riktiga texter över 70 ord från
+  262 produktsidor: delningen blev densamma som förut i alla.
 - ☠️ Styckena ritas I FÖLJD (`.rev-text p{display:inline}`), och klampen sitter
   på behållaren. Annars räknar klampen på fem rader per stycke, och "Visa mer"
   mäter fel. Mätt i Chromium 320–1280 px: samma höjd, samma radbrytningar och
@@ -450,6 +471,11 @@ Rubrikordningen och läsbarheten var inte orsaken.
   lagstadgade kostnadsupplysningen för skrymmande returer (98 ord) ritas med
   `delaIStycken(SKRYMMANDE_RETURKOSTNAD)` som två stycken, ord för ord. Provet
   fäller ett stycke över 84 ord.
+
+☠️ Samma fälla finns kvar på ett annat ställe, utanför den här ändringen:
+`lib/spec-facets.ts` bygger sina uttryck med bakåtblick och går till webbläsaren
+med `components/shopbrowser.tsx` (filtren på listsidorna). Mätt i det byggda
+klientskriptet 2026-11-11. Inte rättat här, Leonard har fått veta.
 
 Inte gjort, med flit:
 

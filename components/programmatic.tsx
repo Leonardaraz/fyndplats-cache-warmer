@@ -10,6 +10,7 @@ import Image from "next/image";
 import { formatPrice } from "../lib/price-range";
 import { jsonLdString } from "../lib/seo";
 import type { ResolvedProduct, CrossLink } from "../lib/seo/programmatic";
+import { svepRad } from "../lib/seo/grannlankar";
 import { SHIMMER_BLUR } from "../lib/lqip";
 
 export function ProgSchemas({ schemas }: { schemas: object[] }) {
@@ -148,13 +149,24 @@ export function ProgFaq({ faqs }: { faqs: { q: string; a: string }[] }) {
   );
 }
 
-export function ProgCrossLinks({ title, links, blogLinks }: { title: string; links: CrossLink[]; blogLinks?: CrossLink[] }) {
+export function ProgCrossLinks({
+  title,
+  links,
+  blogLinks,
+  svepbar,
+}: {
+  title: string;
+  links: CrossLink[];
+  blogLinks?: CrossLink[];
+  /** Många länkar ritas som en rad i sidled på mobilen (lib/seo/grannlankar.ts). */
+  svepbar?: boolean;
+}) {
   if (links.length === 0 && (!blogLinks || blogLinks.length === 0)) return null;
   return (
     <section className="sec prog-links-sec">
       <div className="container">
         <h2 className="prog-h2">{title}</h2>
-        <div className="prog-links">
+        <div className={svepbar && svepRad(links.length) ? "prog-links prog-links-svep" : "prog-links"}>
           {links.map((l, i) => (
             <a key={`l${i}`} className="prog-link-chip" href={l.href}>
               {l.label}

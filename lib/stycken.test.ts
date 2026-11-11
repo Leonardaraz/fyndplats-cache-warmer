@@ -70,6 +70,101 @@ describe("delaIStycken", () => {
   });
 });
 
+describe("meningsgränserna: tre ställen där ett stycke aldrig får börja", () => {
+  // Tre meningar om 30, 40 och 30 ord. Mitten har ett ställe efter 20 ord som SER
+  // ut som en meningsgräns. Delas den där blir första stycket 50 ord, precis sin
+  // andel, och stycket slutar mitt i uppgiften.
+  const ordrad = (n: number, p: string) => Array.from({ length: n }, (_, k) => `${p}${k}`).join(" ");
+  const treMeningar = (fore: string, efter: string, skilje = " ") =>
+    `Start ${ordrad(28, "a")} slut. Stolen ${ordrad(18, "b")} ${fore}${skilje}${efter} ${ordrad(17, "c")} slut. Sist ${ordrad(28, "d")} slut.`;
+
+  it("☠️ efter en förkortning som följs av mer text: max. 135 kg, ca. 10 cm, kl. 10", () => {
+    for (const f of ["max.", "ca.", "c:a.", "min.", "t.ex.", "bl.a.", "inkl.", "exkl.", "resp.", "kl.", "nr.", "dvs.", "Max.", "(max.", "t.o.m."]) {
+      const text = treMeningar(f, "135 kg");
+      assert.equal(ord(text), 100, f);
+      const stycken = delaIStycken(text);
+      assert.equal(stycken.length, 2, `${f}: ${stycken.map(ord)}`);
+      assert.deepEqual(stycken.map(ord), [70, 30], f);
+      for (const s of stycken) assert.ok(!s.endsWith(f), `ett stycke slutar på ${f}`);
+      assert.equal(stycken.join(" "), text, f);
+    }
+  });
+
+  it("också när nästa ord har versal: t.ex. Aosom, bl.a. Sverige", () => {
+    for (const f of ["t.ex.", "bl.a.", "inkl."]) {
+      const stycken = delaIStycken(treMeningar(f, "Sverige och"));
+      for (const s of stycken) assert.ok(!s.endsWith(f), `ett stycke slutar på ${f}`);
+    }
+  });
+
+  it("☠️ efter ett ensamt tal med punkt: numreringen hör till sin mening", () => {
+    const text = treMeningar("2.", "Skruva fast");
+    const stycken = delaIStycken(text);
+    assert.deepEqual(stycken.map(ord), [70, 30]);
+    for (const s of stycken) assert.doesNotMatch(s, /(^|\s)\d+\.$/);
+    assert.equal(stycken.join(" "), text);
+  });
+
+  it("☠️ vid ett hårt mellanslag: det sattes för att hålla ihop orden, och det står kvar", () => {
+    const text = treMeningar("stadigt.", "Den står", " ");
+    const stycken = delaIStycken(text);
+    assert.deepEqual(stycken.map(ord), [70, 30]);
+    assert.equal(stycken.join(" "), text, "texten är densamma, tecken för tecken");
+    assert.ok(stycken[0].includes("stadigt. Den"));
+  });
+
+  it("en vanlig meningsgräns på samma plats delas som förut", () => {
+    const stycken = delaIStycken(treMeningar("stadigt.", "Den står"));
+    assert.deepEqual(stycken.map(ord), [50, 50]);
+    assert.ok(stycken[0].endsWith("stadigt."));
+  });
+
+  it("förkortningar som brukar avsluta en mening delar som vanligt: osv., m.m., etc.", () => {
+    for (const f of ["osv.", "m.m.", "etc."]) {
+      const stycken = delaIStycken(treMeningar(f, "Den står"));
+      assert.deepEqual(stycken.map(ord), [50, 50], f);
+      assert.ok(stycken[0].endsWith(f), f);
+    }
+  });
+
+  it("ett ord som bara SLUTAR som en förkortning är ingen förkortning: klimax., stamina.", () => {
+    for (const f of ["klimax.", "kamin.", "ventilnr."]) {
+      const stycken = delaIStycken(treMeningar(f, "Den står"));
+      assert.deepEqual(stycken.map(ord), [50, 50], f);
+    }
+  });
+
+  it("en punkt följd av gemen är ingen meningsgräns, vilket ord som än står före", () => {
+    for (const f of ["osv.", "m.m.", "stadigt."]) {
+      const text = treMeningar(f, "den står");
+      const stycken = delaIStycken(text);
+      assert.deepEqual(stycken.map(ord), [70, 30], f);
+      assert.equal(stycken.join(" "), text, f);
+    }
+  });
+
+  it("utropstecken och frågetecken efter en förkortning är en meningsgräns", () => {
+    const stycken = delaIStycken(treMeningar("max!", "Den står"));
+    assert.deepEqual(stycken.map(ord), [50, 50]);
+  });
+});
+
+describe("☠️ modulen går till webbläsaren: inga uttryck som Safari före 16.4 inte kan läsa", () => {
+  const BAKATBLICK = /\(\?<[=!]/;
+  it("lib/stycken.ts har inget bakåtblickande reguljärt uttryck", () => {
+    assert.doesNotMatch(las("lib", "stycken.ts"), BAKATBLICK);
+  });
+  it("recensionskomponenten, som laddar modulen i webbläsaren, har det inte heller", () => {
+    const komponent = las("components", "ProductReviews.tsx");
+    assert.match(komponent, /^"use client";/);
+    assert.match(komponent, /from "\.\.\/lib\/stycken"/);
+    assert.doesNotMatch(komponent, BAKATBLICK);
+  });
+  it("butiken lovar fortfarande webbläsare som saknar stödet (annars kan vakten tas bort)", () => {
+    assert.match(las("package.json"), /"iOS >= 1[0-5]"/);
+  });
+});
+
 describe("styckena blir ungefär lika långa", () => {
   it("90 ord blir 45 + 45, inte 70 + 20", () => {
     const text = Array.from({ length: 6 }, (_, i) => mening(15, i)).join(" ");
@@ -126,6 +221,17 @@ describe("delaLangaStyckenIHtml: produkttextens långa stycken", () => {
     const oppnar = ut.match(/<p[^>]*>/g) || [];
     assert.equal(oppnar.length, 2);
     for (const o of oppnar) assert.equal(o, '<p class="ingress" data-x="1">');
+  });
+
+  it("☠️ ett stycke med ett id lämnas som det är: ett id får bara stå på ett ställe", () => {
+    const lang = Array.from({ length: 17 }, (_, i) => mening(10, i)).join(" ");
+    const medId = `<p id="skotsel">${lang}</p>`;
+    assert.equal(delaLangaStyckenIHtml(medId), medId);
+    const medIdSist = `<p class="x" ID = "skotsel">${lang}</p>`;
+    assert.equal(delaLangaStyckenIHtml(medIdSist), medIdSist);
+    // data-id är inget id: det stycket delas som vanligt.
+    const delat = delaLangaStyckenIHtml(`<p data-id="7">${lang}</p>`);
+    assert.ok((delat.match(/<p data-id="7">/g) || []).length >= 3, delat.slice(0, 80));
   });
 
   it("☠️ ett stycke med en tagg i sig lämnas som det är: en delning får aldrig hamna mitt i en länk", () => {

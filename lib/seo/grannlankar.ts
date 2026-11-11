@@ -69,3 +69,19 @@ export function prisgrannar(
   ut.push(...ringEfter(syskon, syskon.findIndex((c) => c.id === cat.id), maxSyskon).map(lank));
   return ut;
 }
+
+/**
+ * Från så många länkar är länkraden EN rad i sidled på mobilen. Med färre
+ * radbryts den som förut.
+ *
+ * ☠️ MÄTT 2026-11-11 på förhandsbygget, 390 px: /under-1000-kr/mobler fick 19
+ * länkar, och som rader blev de 18 rader och 1 014 px (förut 2 rader, 102 px).
+ * Varje länk är för lång för att två ska rymmas i bredd. Med en rad i sidled,
+ * samma mönster som kategorisidans underkategorier, är blocket en rad högt
+ * hur många länkarna än är. På datorn radbryts de som förut (5 rader).
+ */
+export const SVEP_FRAN_LANKAR = 7;
+
+export function svepRad(antalLankar: number): boolean {
+  return antalLankar >= SVEP_FRAN_LANKAR;
+}
