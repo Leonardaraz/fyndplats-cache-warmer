@@ -30,6 +30,16 @@ export const SASONGSTEMAN: readonly Sasongstema[] = [
   // ligger före mergen, så temat syns från första sidan efter deployen.
   // Vintertid (UTC+1) sedan 25 oktober, så 03:00 är 02:00 UTC.
   { namn: "halloween", fran: "2026-10-27T23:00:00Z", till: "2026-11-02T02:00:00Z" },
+  // Singles Day och Singles Week (Leonard 2026-11-11: "single day tema då
+  // single day är idag och sen single week tema för resten av dagarna denna
+  // vecka. Sen 00:00 på måndag så går den tillbaka till vanliga").
+  // Onsdag 11 november hela dygnet i svensk tid, sedan torsdag till söndag,
+  // och slut måndag 16 november 00:00. Vintertid (UTC+1), så svensk midnatt är
+  // 23:00 UTC kvällen före. Det ena temat slutar i samma ögonblick som det
+  // andra börjar: aktivtTema och skriptet tar det första som gäller, och
+  // provet fäller två teman som överlappar.
+  { namn: "singlesday", fran: "2026-11-10T23:00:00Z", till: "2026-11-11T23:00:00Z" },
+  { namn: "singlesweek", fran: "2026-11-11T23:00:00Z", till: "2026-11-15T23:00:00Z" },
 ];
 
 const NAMN = /^[a-z]+$/;

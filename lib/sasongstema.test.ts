@@ -44,6 +44,58 @@ describe("Halloween-temats datum", () => {
   });
 });
 
+describe("Singles Day och Singles Week", () => {
+  const dag = SASONGSTEMAN.find((t) => t.namn === "singlesday")!;
+  const vecka = SASONGSTEMAN.find((t) => t.namn === "singlesweek")!;
+
+  it("Singles Day är onsdag 11 november, hela dygnet i svensk tid", () => {
+    assert.equal(svenskTid(dag.fran), "2026-11-11 00:00");
+    assert.equal(svenskTid(dag.till), "2026-11-12 00:00");
+  });
+
+  it("Singles Week tar vid i samma ögonblick och slutar måndag 16 november 00:00", () => {
+    assert.equal(vecka.fran, dag.till);
+    assert.equal(svenskTid(vecka.till), "2026-11-16 00:00");
+    assert.equal(new Date(vecka.till).getUTCDay(), 0, "23:00 UTC en söndag är måndag 00:00 i Sverige");
+  });
+
+  it("rätt tema varje dag i veckan, och butiken som vanligt före och efter", () => {
+    assert.equal(aktivtTema(ms(dag.fran) - 1), null);
+    assert.equal(aktivtTema(ms(dag.fran)), "singlesday");
+    assert.equal(aktivtTema(ms("2026-11-11T11:00:00Z")), "singlesday"); // onsdag 12:00
+    assert.equal(aktivtTema(ms(dag.till) - 1), "singlesday"); // onsdag 23:59:59
+    assert.equal(aktivtTema(ms(dag.till)), "singlesweek"); // torsdag 00:00
+    for (const d of ["12", "13", "14", "15"]) assert.equal(aktivtTema(ms(`2026-11-${d}T11:00:00Z`)), "singlesweek", d);
+    assert.equal(aktivtTema(ms(vecka.till) - 1), "singlesweek"); // söndag 23:59:59
+    assert.equal(aktivtTema(ms(vecka.till)), null); // måndag 00:00
+    assert.equal(aktivtTema(ms("2027-11-11T11:00:00Z")), null);
+  });
+
+  it("skriptet sätter samma tema som aktivtTema, minut för minut över båda skiftena", () => {
+    for (const mitt of [dag.fran, dag.till, vecka.till]) {
+      for (let m = -3; m <= 3; m++) {
+        const nu = ms(mitt) + m * 60_000;
+        const vantat = aktivtTema(nu);
+        assert.deepEqual(korSkript(TEMA_SKRIPT, nu), vantat ? { "data-tema": vantat } : {}, `${mitt} ${m} min`);
+      }
+    }
+  });
+});
+
+describe("temanas datum", () => {
+  it("inga två teman gäller samtidigt, så att det aldrig är oklart vilket som syns", () => {
+    const sorterade = [...SASONGSTEMAN].sort((a, b) => ms(a.fran) - ms(b.fran));
+    for (let i = 1; i < sorterade.length; i++) {
+      assert.ok(ms(sorterade[i].fran) >= ms(sorterade[i - 1].till), `${sorterade[i - 1].namn} och ${sorterade[i].namn} överlappar`);
+    }
+  });
+
+  it("varje namn finns en gång", () => {
+    const namn = SASONGSTEMAN.map((t) => t.namn);
+    assert.equal(new Set(namn).size, namn.length);
+  });
+});
+
 describe("TEMA_SKRIPT", () => {
   it("sätter data-tema på <html> inom temat och ingenting utanför", () => {
     assert.deepEqual(korSkript(TEMA_SKRIPT, ms("2026-10-30T18:00:00Z")), { "data-tema": "halloween" });
@@ -118,6 +170,14 @@ describe("app/sasongstema.css", () => {
 
   it("varje tema har sina regler", () => {
     for (const n of namn) assert.ok(alla.some((s) => s.startsWith(`:root[data-tema="${n}"]`)), n);
+  });
+
+  it("Singles-temana skriver ut sitt namn och lovar ingen rabatt (temat är bara stil)", () => {
+    const text = [...CSS.matchAll(/content:"([^"]*)"/g)].map((m) => m[1]).filter((t) => t !== "");
+    assert.ok(text.includes("Singles Day · 11.11") && text.includes("Singles Day 11.11"), text.join(" | "));
+    assert.ok(text.includes("Singles Week · till söndag") && text.includes("Singles Week"), text.join(" | "));
+    // Inga priser, procent eller ord som lovar ett erbjudande i något temas text.
+    for (const t of text) assert.doesNotMatch(t, /%|\bkr\b|rabatt|rea\b|erbjudande|billig|spara|upp till/i, t);
   });
 
   it("animationerna har egna namn, inte butikens (@keyframes gäller överallt, temat eller ej)", () => {
