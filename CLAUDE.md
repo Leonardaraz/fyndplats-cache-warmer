@@ -922,13 +922,26 @@ samma gamla fil. De körs nu vid anrop (`force-dynamic`, `maxDuration` 300).
 produktion 2026-11-11: `/feed/prisjakt.xml` (11,4 MB, strömmat sedan
 2026-10-28) gav MISS tre gånger i rad och byggdes om på 48–70 s varje gång,
 medan bildsitemapen gav MISS och sedan HIT. Dokumentationens 20 MB för
-strömmade svar håller alltså inte. De tre flödena skickas därför med
-`flodessvar` (`lib/feed/prisjakt-svar.ts`): den som tar emot gzip får flödet
-komprimerat (19,1 MB blir 2,5 MB), och det ryms. Den som inte gör det, och
-rutterna som läser varandra (PriceRunner och Prisjakt bygger på Google-flödets
-`GET()` utan anrop), får samma XML okomprimerad och strömmad. `Vary:
-Accept-Encoding` håller isär svaren. Över 8 MB komprimerat loggar `flodessvar`
-en varning; dit är det ungefär tre gånger dagens katalog.
+strömmade svar håller alltså inte. De tre flödena skickas därför
+gzip-komprimerade: 19,1 MB blir 2,5 MB, och det ryms.
+
+☠️ **CDN:en håller en kopia per Accept-Encoding-sträng.** Mätt på förhandsbygget
+samma natt med `Vary: Accept-Encoding`: "gzip" gav MISS och sedan HIT, men
+"gzip, deflate, br", "gzip, deflate" och "br, gzip" gav alla MISS. Varje läsare
+hade fått sin egen kopia, och den vi värmer hade inte hjälpt Google. Därför har
+varje flöde två adresser (`lib/feed/prisjakt-svar.ts`):
+
+- **`/feed/<fil>`** är adressen läsarna har. `next.config.ts` skriver om den
+  till `/feed/gz/<fil>` för den som tar emot gzip (`beforeFiles`, före CDN:en).
+  Den som inte gör det får XML:en okomprimerad och strömmad som förut; det
+  svaret behålls inte av CDN:en och byggs vid varje hämtning.
+- **`/feed/gz/<fil>`** (`app/feed/gz/[fil]/route.ts`) svarar alltid med gzip
+  och **utan `Vary`**. Det är den enda kopian i CDN:en, lika för alla. Lägg
+  aldrig `Vary: Accept-Encoding` där: då är uppdelningen tillbaka.
+
+Listan över flöden står på tre ställen (omskrivningen, rutten och jobbet), och
+`lib/feed/prisjakt-svar.test.ts` fäller om de går isär. Över 8 MB komprimerat
+loggas en varning; dit är det ungefär tre gånger dagens katalog.
 
 ☠️ **`stale-while-revalidate` är två timmar, inte ett dygn** (`FLODE_CACHE`).
 CDN:en ger det gamla svaret medan nästa byggs, och med ett dygn fick den som
@@ -938,6 +951,13 @@ bygger ett nytt (10–75 s uppmätt, långsamt men rätt).
 **`/api/cron/farska-floden`** (varannan timme, `lib/flodesvarmning.ts`) hämtar
 sitemapen och de tre flödena en gång, så att det ska hända sällan. Prisjakts
 hemliga adress står inte i listan och får aldrig göra det.
+
+☠️ **Ett flöde utan en enda vara skickas aldrig** (`arTomtFlode`). Det betyder
+att katalogen eller varianterna inte gick att läsa, och den som läser in ett
+tomt flöde tar bort varenda vara hos sig. Läsaren får 503 med `no-store` och
+behåller sin förra inläsning, CDN:en behåller sin förra kopia, och felet står
+i loggen som `[flode] … byggdes utan en enda vara`. Sedan flödena byggs vid
+anrop kan det hända vilken timme som helst, inte bara vid deployen.
 
 **Prisjakt-flödena är orörda.** De strömmas som förut och byggs alltså om vid
 varje hämtning. De är alltid färska, och hur de ska hållas i CDN:en är ett

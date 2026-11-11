@@ -16,8 +16,22 @@
 // strömmat svar över 10 MB, vad dokumentationen än säger. Prisjakt-flödena
 // byggs därför om vid varje hämtning i dag. De är alltid färska och lämnas så.
 //
-// Google-, Meta- och PriceRunner-flödena skickas i stället med `flodessvar`
-// nedan: gzip-komprimerade (19,1 MB blir 2,5 MB), och det ryms i CDN:en.
+// Google-, Meta- och PriceRunner-flödena skickas i stället gzip-komprimerade
+// (19,1 MB blir 2,5 MB), och det ryms i CDN:en.
+//
+// ☠️ MEN CDN:EN HÅLLER EN KOPIA PER ACCEPT-ENCODING-STRÄNG. Mätt på
+// förhandsbygget 2026-11-11 med Vary: Accept-Encoding: "gzip" gav MISS och
+// sedan HIT, men "gzip, deflate, br", "gzip, deflate" och "br, gzip" gav alla
+// MISS. Varje läsare får alltså sin egen kopia, och den vi värmer hjälper inte
+// Google. Därför två adresser:
+//
+//   /feed/<fil>      den adress läsarna har. next.config.ts skriver om den
+//                    till /feed/gz/<fil> för den som tar emot gzip.
+//   /feed/gz/<fil>   svarar ALLTID med gzip, utan Vary. En kopia i CDN:en,
+//                    samma för alla (`komprimeratFlodessvar`).
+//
+// Den som inte tar emot gzip hamnar på /feed/<fil> som förut och får XML:en
+// okomprimerad och strömmad (`flodessvar`); det svaret behålls inte av CDN:en.
 //
 // LÖVMODUL med flit, så att `node --test` kan ladda den.
 
@@ -57,6 +71,34 @@ export function strommatXml(xml: string): ReadableStream<Uint8Array> {
 }
 
 /**
+ * Flödena som har en komprimerad adress. next.config.ts skriver om
+ * /feed/<fil> till /feed/gz/<fil> för just de här, och app/feed/gz/[fil]
+ * bygger just de här. lib/feed/prisjakt-svar.test.ts håller ihop de tre listorna.
+ */
+export const KOMPRIMERADE_FLODEN = ["google.xml", "products.xml", "pricerunner.xml"] as const;
+
+/**
+ * Sant när flödet saknar varor. Ett tomt flöde är aldrig rätt: det betyder att
+ * katalogen eller varianterna inte gick att läsa, och den som läser in det
+ * tar bort varenda vara hos sig.
+ */
+export function arTomtFlode(xml: string): boolean {
+  return !xml.includes("<item>");
+}
+
+/**
+ * Svaret i stället för ett tomt flöde: 503 som inte sparas någonstans.
+ * Läsaren behåller då sin förra inläsning, och CDN:en sin förra kopia.
+ */
+export function tomtFlodeSvar(vilket: string): Response {
+  console.error(`[flode] ${vilket} byggdes utan en enda vara och skickas inte. Läsaren får 503 och behåller förra inläsningen.`);
+  return new Response("Flödet kan inte byggas just nu", {
+    status: 503,
+    headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store", "Retry-After": "600" },
+  });
+}
+
+/**
  * Så här håller CDN:en ett flöde: färskt i en timme, och sedan det gamla i
  * högst två timmar till medan nästa byggs.
  *
@@ -69,17 +111,17 @@ export function strommatXml(xml: string): ReadableStream<Uint8Array> {
 export const FLODE_CACHE = "public, max-age=3600, s-maxage=3600, stale-while-revalidate=7200";
 
 /**
- * Svaret för ett stort XML-flöde.
+ * Svaret på /feed/<fil>, adressen läsarna har.
  *
- * Den som tar emot gzip (varje flödesläsare och webbläsare gör det) får flödet
- * komprimerat, med Content-Length. Det svaret är omkring en tiondel så stort
- * och ryms i CDN:en, så bara den första hämtningen efter en timme bygger om
- * flödet, och den som hämtar får under tiden det förra svaret direkt.
+ * Utan `request`, eller utan gzip i Accept-Encoding, kommer flödet
+ * okomprimerat och strömmat. Så läser rutterna varandra (Prisjakt, PriceRunner
+ * och /feed/gz/<fil> bygger på flödets GET utan anrop), och så får en läsare
+ * som inte kan gzip ett giltigt svar.
  *
- * Utan `request`, eller utan gzip i Accept-Encoding, kommer flödet som förut:
- * okomprimerat och strömmat. Så läser rutterna varandra (Prisjakt och
- * PriceRunner bygger på Google-flödets GET), och så får en läsare som inte
- * kan gzip fortfarande ett giltigt svar. `Vary` håller isär de två.
+ * Den som tar emot gzip ska inte komma hit alls: omskrivningen i
+ * next.config.ts skickar den till /feed/gz/<fil>. Kommer den hit ändå (en
+ * miljö utan omskrivningen) får den flödet komprimerat härifrån, och `Vary`
+ * håller isär de två svaren.
  */
 export function flodessvar(
   xml: string,
@@ -92,9 +134,29 @@ export function flodessvar(
     "Cache-Control": opts.cacheControl ?? FLODE_CACHE,
     Vary: "Accept-Encoding",
   };
+  // Bara mot en läsare utifrån: rutterna som läser varandra utan anrop får
+  // XML:en som den är och prövar den själva.
+  if (request && arTomtFlode(xml)) return tomtFlodeSvar(new URL(request.url).pathname);
   if (!tarEmotGzip(request?.headers.get("accept-encoding"))) {
     return new Response(strommatXml(xml), { headers: rubriker });
   }
+  return gzipSvar(xml, rubriker);
+}
+
+/**
+ * Svaret på /feed/gz/<fil>: ALLTID gzip, och UTAN Vary.
+ *
+ * ☠️ Lägg aldrig Vary: Accept-Encoding här. Då delar CDN:en upp kopian per
+ * rubriksträng igen, och det är just det adressen finns till för att slippa.
+ * Hit kommer bara den som tar emot gzip (omskrivningen i next.config.ts) och
+ * vårt eget jobb /api/cron/farska-floden.
+ */
+export function komprimeratFlodessvar(xml: string, vilket: string): Response {
+  if (arTomtFlode(xml)) return tomtFlodeSvar(vilket);
+  return gzipSvar(xml, { "Content-Type": "application/xml; charset=utf-8", "Cache-Control": FLODE_CACHE });
+}
+
+function gzipSvar(xml: string, rubriker: Record<string, string>): Response {
   const kropp = gzipSync(xml, { level: 6 });
   if (kropp.byteLength > FLODE_VARNING_BYTE_GZIP) {
     console.warn(
