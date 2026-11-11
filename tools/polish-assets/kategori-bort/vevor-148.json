@@ -1,0 +1,66 @@
+{
+  "namn": "vevor-148",
+  "rader": [
+    {
+      "kort": "39a0597f",
+      "pid": "39a0597f-c692-48f5-b41d-c29d2a87d33d",
+      "bort": [
+        "Bygg & Renovering > Trall & räcken",
+        "Bygg & Renovering"
+      ],
+      "behall": [
+        "Verktyg & Maskiner",
+        "Verktyg & Maskiner > Handverktyg"
+      ]
+    },
+    {
+      "kort": "039fd221",
+      "pid": "039fd221-48fc-401c-a059-d0f2d11a4287",
+      "bort": [
+        "Bygg & Renovering > Trall & räcken",
+        "Bygg & Renovering"
+      ],
+      "behall": [
+        "Verktyg & Maskiner",
+        "Verktyg & Maskiner > Handverktyg"
+      ]
+    },
+    {
+      "kort": "defc1f6b",
+      "pid": "defc1f6b-ea7d-4bba-a218-c1389c7e9e14",
+      "bort": [
+        "Bygg & Renovering > Trall & räcken",
+        "Bygg & Renovering"
+      ],
+      "behall": [
+        "Verktyg & Maskiner",
+        "Verktyg & Maskiner > Handverktyg"
+      ]
+    },
+    {
+      "kort": "36978178",
+      "pid": "36978178-14d4-4d50-9b28-bf691d22e164",
+      "bort": [
+        "Bygg & Renovering > Trall & räcken",
+        "Bygg & Renovering"
+      ],
+      "behall": [
+        "Verktyg & Maskiner",
+        "Verktyg & Maskiner > Handverktyg"
+      ]
+    },
+    {
+      "kort": "4f25cff1",
+      "pid": "4f25cff1-342a-4c68-a884-bd76fc8182da",
+      "bort": [
+        "Bygg & Renovering > Trall & räcken",
+        "Bygg & Renovering"
+      ],
+      "behall": [
+        "Verktyg & Maskiner",
+        "Verktyg & Maskiner > Handverktyg",
+        "Verktyg & Maskiner > Lyft & transport"
+      ]
+    }
+  ]
+}
