@@ -163,3 +163,163 @@
   }
 }
 @keyframes hwSvavaMobil{0%,100%{transform:translate(0,0)}50%{transform:translate(-8px,-6px)}}
+
+/* ── Singles Day och Singles Week (Leonard 2026-11-11) ───────────────────
+   "single day tema då single day är idag och sen single week tema för resten
+   av dagarna denna vecka. Sen 00:00 på måndag så går den tillbaka".
+   Två teman med samma form och var sin färg. Singles Day (11 november) är
+   natt i plommon med hallonrosa, Singles Week (12–15 november) är natt i
+   vinrött med korall. Båda bär "11.11" bakom rubriken och sitt namn på en rad
+   över den. Som Halloween bara på fyra ställen: toppremsan, linjen under
+   sidhuvudet, startsidans hjälte och löftesremsan.
+
+   ☠️ Temat lovar ingen rabatt och nämner inga priser. Det är bara stil: en
+   kampanj med riktiga priser är ett eget beslut och en egen ändring. */
+:root[data-tema="singlesday"]{
+  --sd-ljus:#FBEEF2;
+  --sd-dampad:#D9C4CC;
+  --sd-a:#FF5C93;
+  --sd-a-ljus:#FFA3C0;
+  --sd-b-ljus:#FFC4A6;
+  --sd-kant:rgba(255,163,192,.32);
+  --sd-natt:linear-gradient(158deg,#12080F 0%,#1C0B18 46%,#2A0E1E 100%);
+  --sd-remsa:linear-gradient(90deg,#12080F 0%,#2B0D21 50%,#12080F 100%);
+  --sd-golv:#150A12;
+  --sd-glod:rgba(255,92,147,.24);
+  --sd-glod-svag:rgba(255,138,92,.16);
+  --sd-linje:linear-gradient(90deg,rgba(255,92,147,0) 4%,rgba(255,92,147,.85) 30%,#FF8A5C 50%,rgba(255,92,147,.85) 70%,rgba(255,92,147,0) 96%);
+  --sd-ord:linear-gradient(100deg,#FFB3CB 0%,#FF5C93 48%,#FF8A5C 100%);
+  --sd-knapp:linear-gradient(100deg,#E11D63 0%,#D9381E 100%);
+  --sd-knapp-skugga:rgba(225,29,99,.9);
+  --sd-siffror:linear-gradient(180deg,rgba(255,92,147,.20) 0%,rgba(255,138,92,.06) 70%,rgba(255,138,92,0) 100%);
+  --sd-siffror-kant:rgba(255,163,192,.26);
+}
+:root[data-tema="singlesweek"]{
+  --sd-ljus:#FBF0EC;
+  --sd-dampad:#DAC7C0;
+  --sd-a:#FF8A5C;
+  --sd-a-ljus:#FFC0A0;
+  --sd-b-ljus:#FFB3CB;
+  --sd-kant:rgba(255,192,160,.32);
+  --sd-natt:linear-gradient(158deg,#130909 0%,#1F0D10 46%,#2C1012 100%);
+  --sd-remsa:linear-gradient(90deg,#130909 0%,#2C0F14 50%,#130909 100%);
+  --sd-golv:#160B0B;
+  --sd-glod:rgba(255,138,92,.22);
+  --sd-glod-svag:rgba(255,92,147,.14);
+  --sd-linje:linear-gradient(90deg,rgba(255,138,92,0) 4%,rgba(255,138,92,.85) 30%,#FF5C93 50%,rgba(255,138,92,.85) 70%,rgba(255,138,92,0) 96%);
+  --sd-ord:linear-gradient(100deg,#FFD3BC 0%,#FF8A5C 48%,#FF5C93 100%);
+  --sd-knapp:linear-gradient(100deg,#D9381E 0%,#C2410C 100%);
+  --sd-knapp-skugga:rgba(217,56,30,.9);
+  --sd-siffror:linear-gradient(180deg,rgba(255,138,92,.20) 0%,rgba(255,92,147,.06) 70%,rgba(255,92,147,0) 100%);
+  --sd-siffror-kant:rgba(255,192,160,.26);
+}
+
+/* Toppremsan: fyra ettor i stället för lastbilen, och temats namn på dator.
+   På mobil får texten bara två rader (CLS, se .promorow i globals.css), så
+   där står ettorna ensamma. */
+:root[data-tema="singlesday"] .promo,
+:root[data-tema="singlesweek"] .promo{background:var(--sd-remsa)}
+:root[data-tema="singlesday"] .promo b,
+:root[data-tema="singlesweek"] .promo b{color:var(--sd-b-ljus)}
+:root[data-tema="singlesweek"] .promo b{color:var(--sd-a-ljus)}
+:root[data-tema="singlesday"] .promo b.klarna-mark,
+:root[data-tema="singlesweek"] .promo b.klarna-mark{color:#FFB3C7}
+:root[data-tema="singlesday"] .promo-ikon,
+:root[data-tema="singlesweek"] .promo-ikon{display:none}
+:root[data-tema="singlesday"] .promotext::before,
+:root[data-tema="singlesweek"] .promotext::before{content:"";display:inline-block;width:19px;height:13px;margin-right:8px;
+  vertical-align:-2px;background:url(/tema/singles-ettor.svg) center/contain no-repeat}
+@media(min-width:901px){
+  :root[data-tema="singlesday"] .promotext::before,
+  :root[data-tema="singlesweek"] .promotext::before{width:auto;height:auto;padding:0 12px 0 27px;
+    margin-right:12px;border-right:1px solid rgba(255,255,255,.22);background-position:left center;background-size:19px 13px;
+    font-family:var(--font-display),Georgia,serif;font-style:italic;font-weight:500;font-size:var(--text-sm);
+    letter-spacing:.01em;color:var(--sd-a-ljus);vertical-align:0}
+  :root[data-tema="singlesday"] .promotext::before{content:"Singles Day 11.11"}
+  :root[data-tema="singlesweek"] .promotext::before{content:"Singles Week"}
+}
+
+/* En tunn glödande linje under sidhuvudet, på varje sida. */
+:root[data-tema="singlesday"] .sidhuvud::after,
+:root[data-tema="singlesweek"] .sidhuvud::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;pointer-events:none;
+  background:var(--sd-linje)}
+
+/* Startsidans hjälte: natt med butikens två glöd i temats färg. */
+:root[data-tema="singlesday"] .hero,
+:root[data-tema="singlesweek"] .hero{background:radial-gradient(90% 70% at 82% 112%,var(--sd-glod),transparent 62%),var(--sd-natt)}
+:root[data-tema="singlesday"] .hero::before,
+:root[data-tema="singlesweek"] .hero::before{background:radial-gradient(circle,var(--sd-glod),transparent 68%)}
+:root[data-tema="singlesday"] .hero::after,
+:root[data-tema="singlesweek"] .hero::after{background:radial-gradient(circle,var(--sd-glod-svag),transparent 70%)}
+
+/* Temats namn på en rad över märket, och stora siffror bakom rubriken som
+   tonar ut nedåt. Raden gör att namnet står utskrivet också på mobil, där
+   toppremsan bara rymmer ettorna. Siffrornas ruta har luft åt höger, annars
+   klipps den lutande sista ettan. */
+:root[data-tema="singlesday"] .heroinner,
+:root[data-tema="singlesweek"] .heroinner{position:relative;isolation:isolate}
+:root[data-tema="singlesday"] .heroinner::before,
+:root[data-tema="singlesweek"] .heroinner::before{display:block;margin:0 0 14px 2px;font-size:var(--text-xs);font-weight:700;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--sd-a-ljus)}
+:root[data-tema="singlesday"] .heroinner::before{content:"Singles Day · 11.11"}
+:root[data-tema="singlesweek"] .heroinner::before{content:"Singles Week · till söndag"}
+:root[data-tema="singlesday"] .heroinner::after,
+:root[data-tema="singlesweek"] .heroinner::after{content:"11.11";position:absolute;z-index:-1;pointer-events:none;white-space:pre;
+  left:-.1em;top:.3em;padding:0 .16em 0 .05em;font-size:clamp(190px,24vw,330px);
+  font-family:var(--font-display),Georgia,serif;font-style:italic;font-weight:600;line-height:.8;letter-spacing:-.03em;
+  color:transparent;-webkit-text-stroke:1.5px var(--sd-siffror-kant);
+  background:var(--sd-siffror);-webkit-background-clip:text;background-clip:text;
+  -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 38%,transparent 88%);mask-image:linear-gradient(180deg,#000 0%,#000 38%,transparent 88%)}
+
+:root[data-tema="singlesday"] .hero .heroinner,
+:root[data-tema="singlesweek"] .hero .heroinner,
+:root[data-tema="singlesday"] .hero h1,
+:root[data-tema="singlesweek"] .hero h1{color:var(--sd-ljus)}
+:root[data-tema="singlesday"] .hero h1,
+:root[data-tema="singlesweek"] .hero h1{text-shadow:0 2px 22px rgba(18,8,15,.55)}
+:root[data-tema="singlesday"] .hero h1 em,
+:root[data-tema="singlesweek"] .hero h1 em{color:var(--sd-a)}
+@supports ((-webkit-background-clip:text) or (background-clip:text)){
+  :root[data-tema="singlesday"] .hero h1 em,
+  :root[data-tema="singlesweek"] .hero h1 em{background:var(--sd-ord);-webkit-background-clip:text;background-clip:text;
+    color:transparent;-webkit-text-fill-color:transparent;text-shadow:none}
+}
+:root[data-tema="singlesday"] .hero p,
+:root[data-tema="singlesweek"] .hero p{color:var(--sd-dampad)}
+:root[data-tema="singlesday"] .hero .badge,
+:root[data-tema="singlesweek"] .hero .badge{background:rgba(255,255,255,.07);border-color:var(--sd-kant);color:var(--sd-ljus);
+  box-shadow:none;backdrop-filter:blur(6px)}
+:root[data-tema="singlesday"] .hero .btn-primary,
+:root[data-tema="singlesweek"] .hero .btn-primary{background:var(--sd-knapp);
+  box-shadow:0 14px 34px -14px var(--sd-knapp-skugga),inset 0 1px 0 rgba(255,255,255,.18)}
+:root[data-tema="singlesday"] .hero .btn-quiet,
+:root[data-tema="singlesweek"] .hero .btn-quiet{color:var(--sd-ljus)}
+:root[data-tema="singlesday"] .hero .btn-quiet:hover,
+:root[data-tema="singlesweek"] .hero .btn-quiet:hover,
+:root[data-tema="singlesday"] .hero .btn-quiet:focus-visible,
+:root[data-tema="singlesweek"] .hero .btn-quiet:focus-visible{color:var(--sd-a-ljus);text-decoration-color:var(--sd-kant)}
+:root[data-tema="singlesday"] .hero .herotrust>a,
+:root[data-tema="singlesweek"] .hero .herotrust>a{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.13);color:var(--sd-ljus);
+  box-shadow:none}
+:root[data-tema="singlesday"] .hero .herotrust>a:hover,
+:root[data-tema="singlesweek"] .hero .herotrust>a:hover,
+:root[data-tema="singlesday"] .hero .herotrust>a:focus-visible,
+:root[data-tema="singlesweek"] .hero .herotrust>a:focus-visible{border-color:var(--sd-kant)}
+:root[data-tema="singlesday"] .hero .ht-sub,
+:root[data-tema="singlesweek"] .hero .ht-sub{color:rgba(251,238,242,.7)}
+:root[data-tema="singlesday"] .hero .herotile,
+:root[data-tema="singlesweek"] .hero .herotile{box-shadow:0 0 0 1px rgba(255,255,255,.08),0 22px 44px -20px rgba(0,0,0,.75)}
+:root[data-tema="singlesday"] .hero .herotile:hover,
+:root[data-tema="singlesweek"] .hero .herotile:hover{box-shadow:0 0 0 1px var(--sd-kant),0 26px 52px -20px rgba(0,0,0,.8)}
+
+/* Löftesremsan fortsätter natten, med ikoner i temats färg. */
+:root[data-tema="singlesday"] .usp,
+:root[data-tema="singlesweek"] .usp{background:var(--sd-golv);border-bottom:1px solid rgba(255,255,255,.06)}
+:root[data-tema="singlesday"] .uspitem,
+:root[data-tema="singlesweek"] .uspitem{color:var(--sd-ljus)}
+:root[data-tema="singlesday"] .uspitem svg,
+:root[data-tema="singlesweek"] .uspitem svg{color:var(--sd-a)}
+:root[data-tema="singlesday"] a.uspitem:hover,
+:root[data-tema="singlesweek"] a.uspitem:hover,
+:root[data-tema="singlesday"] a.uspitem:focus-visible,
+:root[data-tema="singlesweek"] a.uspitem:focus-visible{color:var(--sd-a-ljus);text-decoration-color:var(--sd-kant)}

@@ -1067,6 +1067,38 @@ datum inom temat. Nästa år byts datumen i `SASONGSTEMAN` och i testet, som
 räknar om dem till svensk tid. Sverige går över till vintertid sista söndagen
 i oktober, så 03:00 den 2 november är 02:00 UTC.
 
+### Singles Day och Singles Week (Leonard 2026-11-11)
+
+*"single day tema då single day är idag och sen single week tema för resten av
+dagarna denna vecka. Sen 00:00 på måndag så går den tillbaka till vanliga"*.
+Två teman i samma mekanism, `singlesday` och `singlesweek`:
+
+- **Singles Day** gäller onsdag 11 november hela dygnet i svensk tid: natt i
+  plommon med hallonrosa.
+- **Singles Week** tar vid torsdag 00:00 och slutar måndag 16 november 00:00:
+  natt i vinrött med korall.
+
+Formen är densamma och färgerna står i variabler per tema (`--sd-…`). Båda
+syns på Halloweens fyra ställen: toppremsan (fyra ettor i stället för
+lastbilen, och temats namn på dator), linjen under sidhuvudet, startsidans
+hjälte (temats namn på en rad över märket och ett stort "11.11" bakom
+rubriken) och löftesremsan. Raden över märket finns för att namnet ska stå
+utskrivet också på mobil, där toppremsan bara rymmer ettorna.
+
+- ☠️ **Temat lovar ingen rabatt och nämner inga priser.** Det är bara stil. En
+  kampanj med riktiga priser är Leonards beslut och en egen ändring; provet
+  fäller ord som "rabatt", "rea", "%" och "kr" i temats texter.
+- **Inga två teman får gälla samtidigt.** Det ena slutar i samma ögonblick som
+  det andra börjar, och provet fäller en överlappning.
+- **Knappen i hjälten håller 4,5:1 mot vit text** (#E11D63 → #D9381E, och
+  #D9381E → #C2410C under veckan). Ljusare rosa hade sett bättre ut och fallit
+  på kontrasten.
+- **Siffrornas ruta har luft åt höger.** Utan den klipps den lutande sista
+  ettan av `background-clip:text`.
+- Granskat på 320, 360, 390, 768, 1024, 1280 och 1440 px genom att lägga in
+  stilen på den riktiga startsidan i webbläsaren: ingen sidledsscroll och
+  inga sidfel.
+
 ## Medlemskapet, etapp E1: konto, orderliggare och Mina sidor (2026-11-04)
 
 Leonards uppdrag 2026-11-04: en medlemsportal för privatpersoner och företag,
