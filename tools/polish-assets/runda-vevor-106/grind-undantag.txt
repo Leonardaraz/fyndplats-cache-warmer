@@ -1,0 +1,12 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen tysk totalmåttrad att bygga ett facit ur, och måttritningen ritar höjd, bredd och djup utan axelord: texten skriver höjd, bredd och djup i den ordning ritningen visar
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara raderna Matriser, Monteringshål, Handtagslängd och Kapacitet och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver längd med handtag och basplattans mått efter måttritningen utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara raderna Antal, Handtag, Borst, Hylsa och Nettovikt och inga mått alls: texten skriver inga mått
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara delmått för varje borrkrona och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver diametrar och längd utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara raderna Antal verktyg, Bladmaterial, Maxlängd, Nettovikt och Produktmått och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver väskans mått i den ordning specifikationen ger
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Längd, Bredd och Tjocklek och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver längd, bredd och höjd var för sig
