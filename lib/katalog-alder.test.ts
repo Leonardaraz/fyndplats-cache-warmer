@@ -45,7 +45,9 @@ describe("katalogen i minnet förnyas för flödena", () => {
   });
 
   it("förnyelsen behåller den gamla listan när den nya inte är hel", () => {
-    const start = produkter.indexOf("export async function getProductsFarska");
+    // Förnyelsen bor i farskEllerBehallen sedan 2026-11-11. getProductsFarska
+    // lägger kravet på en hel katalog runt den (lib/hel-katalog.test.ts).
+    const start = produkter.indexOf("async function farskEllerBehallen");
     assert.ok(start > 0);
     const kropp = produkter.slice(start, produkter.indexOf("\n}\n", start));
     assert.match(kropp, /if \(!forGammal\(katalogHamtad, Date\.now\(\), maxAlderMs\)\) return nuvarande;/);

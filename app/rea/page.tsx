@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getProducts, forListings } from "../../lib/products";
+import { getHelaKatalogen, forListings } from "../../lib/products";
 import { listaForSidan, ordnaLista } from "../../lib/list-pages";
 import { currentDayMs } from "../../lib/sort-products";
 import { jsonLdString, pageMeta } from "../../lib/seo";
@@ -17,14 +17,14 @@ export const revalidate = 3600;
 // Antalet måste hämtas för att avgöra robots-taggen, därför async metadata.
 // Samma mönster som /blogg: en tom sida ska inte be Google indexera sig.
 export async function generateMetadata(): Promise<Metadata> {
-  const rea = saleProducts(forListings(await getProducts()));
+  const rea = saleProducts(forListings(await getHelaKatalogen()));
   const meta = pageMeta(REA_TITLE, REA_META_DESC, "/rea", "rea-2026");
   if (rea.length === 0) meta.robots = { index: false, follow: true };
   return meta;
 }
 
 export default async function Rea() {
-  const all = forListings(await getProducts());
+  const all = forListings(await getHelaKatalogen());
   const rea = saleProducts(all);
 
   // Ordnad med samma dag som webbläsaren får — se ordnaLista i lib/list-pages.

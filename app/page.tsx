@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { jsonLdString } from "../lib/seo";
-import { getProducts, getProduct, getCollections, forListings, dedupeProducts, sortByNewest, mixByCategory } from "../lib/products";
+import { getHelaKatalogen, getProduct, getCollections, forListings, dedupeProducts, sortByNewest, mixByCategory } from "../lib/products";
 import { forvaltPris } from "../lib/pdp-forval";
 import { ProductCard } from "../components/productcard";
 import { getReviewAggregates } from "../lib/review-aggregates";
@@ -79,7 +79,7 @@ export default async function Home() {
   // sida: "startsidan" ger raderna en timmes cache. Utan den gäller auktionssidans
   // 15 sekunder, och då byggs HELA startsidan om var femtonde sekund (se
   // hämtaAuktionsrader i lib/auction-motor.ts).
-  const [allProductsRaw, cols, liveAuctions] = await Promise.all([getProducts(), getCollections(), getLiveAuctions({ sida: "startsidan" })]);
+  const [allProductsRaw, cols, liveAuctions] = await Promise.all([getHelaKatalogen(), getCollections(), getLiveAuctions({ sida: "startsidan" })]);
   // Bannerns "pågår"-läge avgörs i AuctionBannerText (klientkomponent): den här
   // sidan har ISR-fönster på en timme och auktionsrotationen kl 19 invaliderar
   // den inte, så en serverberäknad flagga frös in och kunde påstå "sjunker just

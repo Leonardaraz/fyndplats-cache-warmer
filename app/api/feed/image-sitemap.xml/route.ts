@@ -8,7 +8,7 @@
 //
 // Skickas som fristående sitemap; refereras från /robots.ts.
 
-import { getProducts, forListings } from "../../../../lib/products";
+import { getHelaKatalogen, forListings } from "../../../../lib/products";
 import type { Product } from "../../../../lib/products";
 
 const SITE_BASE = "https://www.fyndplats.se";
@@ -48,7 +48,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 3600;
 
 export async function GET(): Promise<Response> {
-  const all = await getProducts();
+  const all = await getHelaKatalogen();
   const listable = forListings(all);
   const urls = listable
     .map(buildUrl)

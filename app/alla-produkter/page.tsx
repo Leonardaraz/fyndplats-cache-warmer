@@ -1,4 +1,4 @@
-import { getProducts, getCollections, forListings } from "../../lib/products";
+import { getHelaKatalogen, getCollections, forListings } from "../../lib/products";
 import { listaForSidan, ordnaLista, slutsaldaUtanKategorisida, utanKategorisida } from "../../lib/list-pages";
 import { currentDayMs } from "../../lib/sort-products";
 import { jsonLdString } from "../../lib/seo";
@@ -34,7 +34,7 @@ export const metadata = pageMeta(
 export const revalidate = 3600;
 
 export default async function AllaProdukter() {
-  const [allProducts, collections] = await Promise.all([getProducts(), getCollections()]);
+  const [allProducts, collections] = await Promise.all([getHelaKatalogen(), getCollections()]);
   const products = forListings(allProducts); // dölj ev. slutsålda från listan (opt-in)
   // Rekommenderat är sidans standardordning (Leonard 2026-08-21) — samma som
   // ShopBrowsers defaultSort "img", och samma som kategorisidorna redan hade.

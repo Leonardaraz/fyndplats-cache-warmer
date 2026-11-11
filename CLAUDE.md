@@ -330,6 +330,79 @@ Tre regler (`lib/list-pages.ts`, vaktas av `lib/listsidor.test.ts`):
    färdig HTML-sträng, eftersom en JSX-lista ligger en gång till, dubbelt så
    stor, i React-datan.
 
+## ☠️ En listsida byggs aldrig på reservkatalogen (2026-11-11)
+
+**Mätt 2026-11-11.** Kl 12:09:40 UTC svarade Wix 504 på kataloghämtningen för
+en ny instans, också efter de tre omförsöken. Sex kategorisidor byggdes just då
+om i bakgrunden, på reservkatalogen (`products.json`: 413 gamla produkter utan
+en enda kategori). Sidorna blev tomma, fick `noindex` av tröskeln i
+`lib/category-threshold.ts` och ersatte de hela sidorna i cachen. Fem av dem,
+bland annat Elbilar för barn och Skrivbord, låg kvar så i två timmar och tio
+minuter, tills nästa besök råkade komma. Körloggen hade felet som en enda rad:
+`[wix] live fetch failed, using local fallback`.
+
+`kortLivslangd()` räckte inte. Den sänker sidans livslängd till fem minuter,
+men en sida byggs bara om när någon besöker den. En sällan besökt kategori står
+kvar tom tills dess, och nästa besökare kan vara Googlebot.
+
+**Regeln.** En sida vars innehåll ÄR katalogen läser `getHelaKatalogen()` och
+aldrig `getProducts()`. Är katalogen reservlistan eller en kapad hämtning
+kastar den `KatalogenEjHel`. När en ombyggnad i bakgrunden kastar behåller Next
+den förra, hela sidan och försöker igen vid nästa besök.
+
+- Listan över sidorna står i `LISTSIDOR` i `lib/hel-katalog.ts`: startsidan,
+  `/butik`, `/alla-produkter`, `/rea`, kategorisidan (sidan OCH
+  `generateMetadata`, där `noindex` räknas), de programmatiska sidorna
+  (`lib/seo/programmatic.ts`) och de två äldre flödesrutterna under `/api/feed`.
+  `lib/hel-katalog.test.ts` läser källtexten för var och en.
+- `getProductsFarska()` har samma krav. Sitemapen och sökindexet behåller då
+  sin förra version. Flödena fångar felet, bygger utan varor och svarar 503
+  som inte sparas (`tomtFlodeSvar`), så läsaren behåller sin förra inläsning.
+  Ett flöde byggt på reservkatalogen hade fått Google att ta bort resten av
+  sortimentet.
+- **Kategorisidan läser också kategorilistan genom en spärr,
+  `getHelaKategorier()`.** Faller kategorihämtningen kommer listan hem tom.
+  Kategorin "finns" då inte, och sidan svarade förr med en 307 till `/butik`
+  som sparades i den hela sidans ställe. Butiken har alltid kategorier, så en
+  tom lista är ett fel och aldrig ett svar. En okänd adress ger 404 och en känd
+  men tom kategori 307 som förut: de fallen har en kategorilista att fråga.
+  `generateStaticParams` läser `getCollections()`, så ett bygge utan
+  kategorilista ger inga förbyggda kategorisidor men faller inte.
+- **Produktsidan, sidhuvudet, varukorgen och kontot läser `getProducts()` som
+  förut.** Produktsidan läser sin vara direkt ur Wix och ska gå att köpa från
+  också när katalogen i minnet är reservlistan. Där gäller `kortLivslangd()`.
+  Startsidan, `/butik` och `/alla-produkter` läser `getCollections()` som
+  förut: utan kategorier tappar de sina kategorirutor i fem minuter, men
+  varorna står kvar och sidan går att indexera.
+
+**Följden vid ett bygge.** Faller kataloghämtningen medan sidorna
+förgenereras, faller bygget med `KatalogenEjHel` i loggen. Det är avsikten:
+förr gick ett sådant bygge igenom och lade ut tomma kategorisidor utan att
+någon såg det. Den förra produktionen står kvar. Starta om bygget.
+
+**Så syns det i drift.** `[katalog] … byggs inte på reservkatalogen` i
+körloggen betyder att en ombyggnad avstod och att den gamla sidan visas. En
+sådan rad då och då är Wix som hickar. Många i rad betyder att Wix är nere, och
+då är sidorna så gamla som den senaste lyckade ombyggnaden.
+
+**Provat lokalt 2026-11-11** med `next start`, kategorisidans livslängd sänkt
+till 20 sekunder bara i provet, och Wix blockerat på tre sätt. Sidan hämtades
+fyra gånger per fall, med 30–45 sekunder emellan.
+
+| Wix-anrop som faller | Utan spärren | Med spärren |
+|---|---|---|
+| Bara produkterna (som kl 12:09) | tom lista med `noindex` från andra hämtningen | den hela sidan alla fyra gångerna |
+| Bara kategorierna | sparad 307 till `/butik` från andra hämtningen | den hela sidan alla fyra gångerna |
+| Alla | sparad 307 till `/butik` från andra hämtningen | den hela sidan alla fyra gångerna |
+
+Ett riktigt Wix-avbrott i produktionen är inte provat.
+
+☠️ **Provet ljög två gånger innan det höll.** En gammal `next start` stod kvar
+på porten, den nya servern dog på `EADDRINUSE`, och hämtningarna träffade den
+gamla. Varken `ss` (finns inte) eller `lsof` (ser ingenting) hittar lyssnaren i
+molnbehållaren. Läs porten ur `/proc/net/tcp`, och lita aldrig på ett prov vars
+serverlogg säger `EADDRINUSE`.
+
 ## Måttfilter på kategorisidorna (2026-09-27)
 
 Kategorisidorna filtrerar på bredd, djup, höjd, sitthöjd, maxlast, vikt,
