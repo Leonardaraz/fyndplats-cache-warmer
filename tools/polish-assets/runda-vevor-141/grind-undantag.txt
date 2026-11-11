@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad i specifikationen, och måttritningen visar 375 mm som väskans längd, 205 mm som djup och 65 mm som höjd: sidan skriver måtten i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rader Förvaringsmått och Mått upplyft och utfälld har axelorden (L x B x H) i radnamnet, men bildens ritning visar höjden 615 mm och djupet 500 mm: sidan skriver måtten i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Artikelmått (LxBxH) har axelorden i radnamnet, och måttritningen visar 788 mm som bredd, 558 mm som höjd och 100 mm som djup: sidan skriver bredd, djup och höjd
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad i specifikationen, och måttritningen visar 830 mm som bredd, 610 mm som djup och 990 mm som höjd, medan en punkt säger 81 x 61 x 101 cm: sidan skriver det lägsta per axel, 810 × 610 × 990 mm
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (605 mm x 605 mm) saknar axelord, och måttritningen visar 605 mm som både bredd och höjd: sidan skriver måtten som de står
