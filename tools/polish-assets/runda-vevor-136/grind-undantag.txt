@@ -1,0 +1,12 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad i specifikationen, och måttbilden visar 425 mm som nyckelns längd: sidan skriver bara längden
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Bladstorlek (34 x 90 mm) saknar axelord, och måttbilden visar 34 mm som bladets bredd och 90 mm som längd: sidan skriver måtten som de står
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Artikelmått (32,81 x 9,84 fot / 10000 x 3000 mm) saknar axelord, och måttritningen visar 32,81 fot som längd och 9,84 fot som bredd: sidan skriver måtten som de står
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (8,7 x 15,7 x 19,3 tum / 476 x 400 x 490 mm) saknar axelord, och måttbilden visar 476 mm som bredd och 490 mm som höjd: sidan skriver måtten som de står
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad med flera axlar, bara diametrar (mattans diameter och ramens ytterdiameter): sidan skriver diametrarna som de står
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (400 x 255 x 2160 mm) saknar axelord, och måttritningen visar 400 mm som bredd, 255 mm som djup och 2160 mm som höjd: sidan skriver måtten som de står
