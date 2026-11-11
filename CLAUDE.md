@@ -472,10 +472,29 @@ Rubrikordningen och läsbarheten var inte orsaken.
   `delaIStycken(SKRYMMANDE_RETURKOSTNAD)` som två stycken, ord för ord. Provet
   fäller ett stycke över 84 ord.
 
-☠️ Samma fälla finns kvar på ett annat ställe, utanför den här ändringen:
-`lib/spec-facets.ts` bygger sina uttryck med bakåtblick och går till webbläsaren
-med `components/shopbrowser.tsx` (filtren på listsidorna). Mätt i det byggda
-klientskriptet 2026-11-11. Inte rättat här, Leonard har fått veta.
+☠️ **Samma fälla fanns i listsidornas filter, och den är rättad på ett annat
+sätt.** `lib/spec-facets.ts` bygger sina uttryck med bakåtblick (`sv()` gör om
+`\b` så att å, ä och ö räknas som bokstäver) och går till webbläsaren med
+`components/shopbrowser.tsx`. Varje `sv(...)` körs när modulen laddas, så i
+Safari före 16.4 kastade modulen redan där.
+
+- Uttrycken KÖRS bara på servern (`lasSpec()`). Webbläsaren använder
+  `FACETTER` och funktionerna för intervall, val och adresser.
+- Därför frågar modulen motorn en gång (`KAN_BAKATBLICK`). Med bakåtblick
+  byggs uttrycken precis som förut. Utan får `\b` stå som det står: uttrycket
+  blir giltigt, modulen laddas, och ingen kör det.
+- Att skriva om uttrycken utan bakåtblick hade ändrat vad filtren läser ur
+  produkttexterna. Det här sättet ändrar ingenting på servern. Mätt: alla 47
+  exporterade uttryck är tecken för tecken desamma, och `lasSpec()` ger samma
+  svar som förut på 262 riktiga produktsidor (1 561 fält).
+- ☠️ Bakåtblicken får bara stå i en STRÄNG som byggs med `new RegExp`, aldrig
+  som ett uttryck direkt i koden. Ett sådant läses när skriptfilen tolkas, och
+  då hjälper ingen kontroll. Provet fäller det, och det kör modulen i en
+  process där `RegExp` vägrar bakåtblick, som den gamla Safarin.
+- `lib/variant-bilder.ts` har också ett bakåtblickande uttryck och importeras
+  av `components/productview.tsx`, men bara funktioner som inte rör det. Mätt i
+  bygget: det följer inte med till webbläsaren. Den som börjar använda
+  `nammdaFarger()` i en klientkomponent tar med det dit.
 
 Inte gjort, med flit:
 
