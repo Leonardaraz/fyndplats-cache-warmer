@@ -21,7 +21,7 @@ vi.mock("@/lib/polish/skrivplan-wix", () => ({
   skapaWixAnrop: () => async (metod: string, sokvag: string, kropp?: unknown) => {
     anrop.push({ metod, sokvag, kropp });
     if (wixKastar) throw new Error("Wix 503: nere");
-    if (sokvag === "/stores/v3/products/query") return { products: publicerade, pagingMetadata: { hasNext: false } };
+    if (sokvag === "/stores/v3/products/query") return seoSvar(publicerade, kropp);
     if (sokvag.startsWith("/categories/v1/categories/query")) {
       return { categories: [{ id: "kat-hem", name: "Hem & Inredning" }] };
     }
@@ -29,6 +29,7 @@ vi.mock("@/lib/polish/skrivplan-wix", () => ({
   },
 }));
 
+import { seoSvar } from "@/lib/polish/seo-svar.provhjalp";
 import { POST } from "./route";
 
 const HTML = "<p>Hej.</p>";

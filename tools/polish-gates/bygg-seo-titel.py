@@ -22,6 +22,13 @@ Vad en plan får innehålla avgör lib/polish/seo-titel.ts (valideraSeoPlan), oc
 att ingen titel redan står på en annan publicerad sida avgör rutten mot butiken
 själv, i workflowens torra läge. Här prövas bara det som går att pröva i filerna.
 
+☠️ PID SKA VARA PRODUKTENS ID, INTE EN VARIANTS (2026-11-11). En sida med färg-
+eller storleksval är en ProductGroup i sidans JSON-LD: produktens id står i
+`productGroupID`, och varje `"sku"` är en variants id. De första planerna
+byggdes ur sidans första "sku", och 24 av 66 rader bar ett variant-id. Rutten
+hade svarat "en sida gick inte att läsa" för var och en av dem. Därför jämförs
+varje pid i ids.tsv här med id:t som live/<kort>.html själv bär.
+
 ANVÄNDNING (från rundans katalog):
   python3 ../../polish-gates/bygg-seo-titel.py <plan>
 """
@@ -31,6 +38,50 @@ HAR = os.path.dirname(os.path.abspath(__file__))
 PLAN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 KORT = re.compile(r"^[0-9a-f]{8}$")
 UUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
+
+
+LD = re.compile(r'<script[^>]*type="application/ld\+json"[^>]*>(.*?)</script>', re.S | re.I)
+
+
+def _samla(x, grupper, produkter, i_grupp=False):
+    """Går igenom ett JSON-LD-träd. Varianterna under en ProductGroup räknas inte som sidans produkt."""
+    if isinstance(x, list):
+        for v in x:
+            _samla(v, grupper, produkter, i_grupp)
+    elif isinstance(x, dict):
+        t = x.get("@type")
+        typer = t if isinstance(t, list) else [t]
+        if "ProductGroup" in typer:
+            if isinstance(x.get("productGroupID"), str):
+                grupper.add(x["productGroupID"])
+            for v in x.values():
+                _samla(v, grupper, produkter, True)
+            return
+        if "Product" in typer and not i_grupp and isinstance(x.get("sku"), str) and UUID.match(x["sku"]):
+            produkter.add(x["sku"])
+        for v in x.values():
+            _samla(v, grupper, produkter, i_grupp)
+
+
+def sidans_produkt_id(html):
+    """Produktens Wix-id så som den publicerade sidan bär det, eller None.
+
+    En sida med val: ProductGroup.productGroupID. En sida utan val: den enda
+    Product-postens sku. Flera olika id:n, eller inget, ger None: då vet vi inte
+    vilken produkt sidan är, och planen byggs inte.
+    """
+    grupper, produkter = set(), set()
+    for block in LD.findall(html):
+        try:
+            data = json.loads(block)
+        except ValueError:
+            continue
+        _samla(data, grupper, produkter)
+    if len(grupper) == 1:
+        return next(iter(grupper))
+    if not grupper and len(produkter) == 1:
+        return next(iter(produkter))
+    return None
 
 
 def rader(fil, minst):
@@ -68,6 +119,16 @@ def main(plan):
             raise SystemExit(f"seo.tsv: {kort} saknas i ids.tsv")
         if not os.path.exists(os.path.join("live", f"{kort}.html")):
             raise SystemExit(f"live/{kort}.html saknas — hämta den publicerade sidan först")
+        with open(os.path.join("live", f"{kort}.html"), encoding="utf-8", errors="replace") as f:
+            sidans = sidans_produkt_id(f.read())
+        if sidans is None:
+            raise SystemExit(f"live/{kort}.html: hittar inte produktens id i sidans JSON-LD (en ProductGroup eller en enda Product med sku)")
+        if sidans != pid[kort]:
+            raise SystemExit(
+                f"ids.tsv: {kort} är inte produktens id — sidan live/{kort}.html bär {sidans[:8]}. "
+                "En sida med färg- eller storleksval är en ProductGroup: produktens id står i productGroupID, "
+                "och varje sku är en variants id."
+            )
     dubbla = sorted({k for k in kortlista if kortlista.count(k) > 1})
     if dubbla:
         raise SystemExit(f"seo.tsv: står två gånger: {', '.join(dubbla)}")

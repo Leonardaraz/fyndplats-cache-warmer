@@ -30,12 +30,25 @@ för båda sidorna och `Ingenting skrivet`. Rätta `seo.tsv`, bygg om planen och
 - **Frågan filtrerar på `visible: true`.** Mätt 2026-11-11 mot butiken: filtret biter åt
   båda hållen. Svaret prövas ändå, och ett utkast i svaret kastar (`filtret bet inte`).
   Utkasten är två tredjedelar av katalogen och bär tyska titlar.
+- ☠️ **Filtret skickas bara på första sidan (`seoFraga`).** Markören bär redan frågan, och
+  Wix svarar `400 INVALID_CURSOR` när filtret skickas igen. Den första versionen skickade
+  filtret på varje sida och hade fällt varje körning av textsteget på sida två, eftersom
+  katalogen är 64 sidor lång. Proven såg det inte: deras påhittade butik hade en sida.
+  Granskningen före mergen fann det med ett riktigt anrop: sida två med filter och markör
+  gav 400, sida två med bara markören gav 200 och bara publicerade sidor. Det är samma
+  fälla som lagerläsningen (2026-09-13) och kategorikollen (2026-11-05) gick i. Provens
+  butik (`lib/polish/seo-svar.provhjalp.ts`) svarar nu två produkter per sida och kastar
+  Wix eget fel när filtret följer med markören.
+- Läsningen slutar när markören saknas, när sidan är tom eller när `hasNext` är `false`.
+  Ett svar utan `hasNext` kortar inte listan: en avkortad lista släpper igenom dubbletter.
 - **Kan butiken inte svara skrivs ingenting.** Läsningen kastar, och rutten svarar 500.
 - En publicerad sida utan titeltagg räknas med sitt namn, för det är vad butiken visar.
 - Felet bär kort-id och fältnamn, aldrig texten: svaret går till en publik logg.
 
 Kostnaden är en läsning av de publicerade sidorna per körning av textsteget, 100 per
-anrop. Tiden är inte mätt i drift: med cirka 6 200 publicerade sidor är det 62 anrop.
+anrop. Mätt 2026-11-11 genom Wix-kopplingen i chatten: 6 377 publicerade sidor, 64 anrop,
+0,6 till 1,5 sekunder per anrop, alltså ungefär en minut. Från Vercel är tiden inte mätt.
+Rutterna har 300 sekunder.
 
 ### Rätta publicerade sidor: `seo-titel.yml`
 
@@ -69,6 +82,16 @@ längd, suffix) och skriver `tools/polish-assets/seo-titel/<plan>.json` och dess
 när grinden är utan fynd. `lib/polish/seo-titel.test.ts` prövar varje planfil i grenen mot
 serverns regler och fäller om en titel står i två planer.
 
+☠️ **`pid` i `ids.tsv` är produktens id, inte en variants.** Butikens produktsida bär sitt id
+i sin JSON-LD på två olika ställen. En sida utan val är en `Product`, och dess `sku` är
+produktens id. En sida med färg- eller storleksval är en `ProductGroup`: produktens id står i
+`productGroupID`, och varje `sku` under `hasVariant` är en VARIANTS id. De första planerna
+byggdes ur sidans första `sku`, och 24 av 66 rader bar därför ett variant-id. Rutten hade
+svarat "en sida gick inte att läsa" för var och en, och ingenting hade skrivits. Bygget
+jämför nu varje `pid` med id:t som sidan i `live/` själv bär (`sidans_produkt_id`) och
+stannar utan planfil när de skiljer sig eller när sidan saknar ett entydigt id.
+`lib/polish/bygg-seo-titel.test.ts` kör bygget mot båda sidtyperna.
+
 ### De 66 sidorna: `semrush-1` och `semrush-2`
 
 Två planer bär nya titlar för 62 sidor och nya metabeskrivningar för fyra (två färgpar som
@@ -79,6 +102,20 @@ rubrik: mått, material, färg eller en funktion.
 Körs efter mergen, utanför synkfönstret, i den här ordningen för varje plan: `torr`, läs
 antalet, `skriv` med antalet. Butikens sidor byggs om inom fem minuter. Kontrollera sedan
 `<title>` på ett par sidor per plan och kör om granskningen i Semrush.
+
+**Granskningen före mergen (2026-11-11)** läste hela den publicerade katalogen och jämförde
+med planerna, på samma nyckel som spärren:
+
+- alla 66 `pid` är publicerade produkter, efter att de 24 variant-id:na rättats;
+- en ny titel stod redan på en publicerad sida utanför planerna, en kontorsstol med massage
+  och värme, och byttes mot en som bär stolens maxlast;
+- efter rättningarna står ingen av planernas titlar eller metabeskrivningar på en annan
+  publicerad sida: 0 krockar mot 6 377 sidor.
+
+Katalogen ändras varje dag. Torrkörningen efter mergen gör samma jämförelse en gång till
+och är den som gäller.
+
+Tre av sidorna bär fem SEO-taggar i dag. De skrivs om till husets två, som regeln ovan säger.
 
 ### Inte gjort
 

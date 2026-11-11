@@ -9,8 +9,8 @@ name: SEO — titel och metabeskrivning på publicerade sidor
 #
 # Planen är en liten fil i grenen: tools/polish-assets/seo-titel/<plan>.json,
 # byggd av tools/polish-gates/bygg-seo-titel.py ur seo.tsv och ids.tsv i
-# tools/polish-assets/seo-titel/<plan>/ när gate-seo.py är grön mot de
-# publicerade sidorna. Reglerna bor i lib/polish/seo-titel.ts, via
+# tools/polish-assets/runda-seo-<plan>/ när gate-seo.py är grön mot de
+# publicerade sidorna och varje pid är sidans eget produkt-id. Reglerna bor i lib/polish/seo-titel.ts, via
 # /api/admin/seo-titel: bara seoData skrivs, med fältmask, bara på publicerade
 # sidor, och ingen titel får stå på en annan publicerad sida.
 #

@@ -62,6 +62,25 @@ export function seoUrProdukt(p: Obj): { titel: string; besk: string } {
 export const MAX_SEO_SIDOR = 400;
 
 /**
+ * Frågan för en sida av läsningen: filtret på första sidan, bara markören sedan.
+ *
+ * ☠️ FILTRET FÅR INTE FÖLJA MED MARKÖREN. Markören bär redan frågan, och Wix
+ * svarar `400 INVALID_CURSOR: "Sort or filter can not be specified together with
+ * cursor"` när filtret skickas igen. Mätt mot butiken 2026-11-11 på just den här
+ * frågan: sida två med filter och markör gav 400, sida två med bara markören gav
+ * 200 och bara publicerade sidor. Samma fälla som lagerläsningen (2026-09-13)
+ * och kategorikollen (2026-11-05) gick i. Här hade den fällt varje körning av
+ * textsteget, eftersom katalogen är längre än en sida.
+ */
+export function seoFraga(markor: string | undefined): Obj {
+  return {
+    query: markor
+      ? { cursorPaging: { limit: 100, cursor: markor } }
+      : { filter: { visible: true }, cursorPaging: { limit: 100 } },
+  };
+}
+
+/**
  * Alla PUBLICERADE produkters titel och metabeskrivning, färskt ur Wix.
  *
  * Frågan filtrerar på `visible: true` (mätt 2026-11-11: filtret biter åt båda
@@ -69,21 +88,19 @@ export const MAX_SEO_SIDOR = 400;
  * en produkt med `visible: false` i svaret betyder att filtret inte bet, och då
  * kastar läsningen hellre än jämför mot utkastens tyska titlar.
  *
- * ☠️ Taket kastar, det kortar inte av. En avkortad lista hade släppt igenom en
- * dubblett utan att säga det.
+ * ☠️ Läsningen följer markören tills den tar slut. `hasNext: false` avslutar,
+ * men ett svar UTAN `hasNext` gör det inte: en läsning som slutade där hade
+ * gett en avkortad lista, och en avkortad lista släpper igenom en dubblett utan
+ * att säga det. Av samma skäl kastar taket, det kortar inte av.
  */
 export async function lasPubliceradSeo(wix: WixAnrop): Promise<PubliceradSeo[]> {
   const ut: PubliceradSeo[] = [];
-  let cursor: string | undefined;
+  let markor: string | undefined;
   for (let sida = 0; ; sida++) {
     if (sida === MAX_SEO_SIDOR) {
       throw new Error(`de publicerade sidornas titlar passerade ${MAX_SEO_SIDOR} sidor — höj taket, en avkortad lista släpper igenom dubbletter`);
     }
-    const cursorPaging: Obj = { limit: 100 };
-    if (cursor) cursorPaging.cursor = cursor;
-    const svar = (await wix("POST", "/stores/v3/products/query", {
-      query: { filter: { visible: true }, cursorPaging },
-    })) as Obj | null;
+    const svar = (await wix("POST", "/stores/v3/products/query", seoFraga(markor))) as Obj | null;
     const produkter = svar?.products;
     if (!Array.isArray(produkter)) throw new Error("frågan om publicerade sidors titlar svarade utan produktlista");
     for (const p of produkter as Obj[]) {
@@ -93,8 +110,8 @@ export async function lasPubliceradSeo(wix: WixAnrop): Promise<PubliceradSeo[]> 
       ut.push({ id, ...seoUrProdukt(p) });
     }
     const paging = (svar?.pagingMetadata as Obj | undefined) ?? {};
-    cursor = text((paging.cursors as Obj | undefined)?.next) || undefined;
-    if (!cursor || paging.hasNext !== true) break;
+    markor = text((paging.cursors as Obj | undefined)?.next) || undefined;
+    if (!markor || produkter.length === 0 || paging.hasNext === false) break;
   }
   return ut;
 }

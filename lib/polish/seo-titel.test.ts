@@ -8,6 +8,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { seoSvar } from "./seo-svar.provhjalp";
 import type { WixAnrop } from "./skrivplan";
 import { korSeoTitel, MAX_SEO_RADER, SKRIVPAUS_MS, valideraSeoPlan, type SeoPlan, type SeoRad } from "./seo-titel";
 
@@ -128,13 +129,14 @@ function butik(sidor: Record<string, Sida>, andra: Array<{ id: string; titel: st
   const wix: WixAnrop = async (metod, sokvag, kropp) => {
     anrop.push({ metod, sokvag, kropp });
     if (metod === "POST" && sokvag === "/stores/v3/products/query") {
-      return {
-        products: [
+      // Som Wix: två per svar, markören bär läget, och filter + markör ger 400.
+      return seoSvar(
+        [
           ...Object.keys(sidor).filter((pid) => sidor[pid].visible ?? true).map(produkt),
           ...andra.map((a) => ({ id: a.id, visible: true, seoData: { tags: tags({ titel: a.titel, besk: a.besk ?? "En annan sidas beskrivning." }) } })),
         ],
-        pagingMetadata: { hasNext: false },
-      };
+        kropp,
+      );
     }
     const pid = sokvag.split("/").pop()!;
     if (!(pid in sidor)) throw new Error("Wix 404: PRODUCT_NOT_FOUND");

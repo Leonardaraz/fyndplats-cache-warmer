@@ -15,7 +15,7 @@ interface Anrop {
 let anrop: Anrop[] = [];
 const PID = "1a2b3c4d-0000-4000-8000-000000000001";
 vi.mock("@/lib/polish/skrivplan-wix", () => ({
-  skapaWixAnrop: () => async (metod: string, sokvag: string) => {
+  skapaWixAnrop: () => async (metod: string, sokvag: string, kropp?: unknown) => {
     anrop.push({ metod, sokvag });
     const produkt = {
       id: PID,
@@ -23,11 +23,12 @@ vi.mock("@/lib/polish/skrivplan-wix", () => ({
       revision: "7",
       seoData: { tags: [{ type: "title", children: "Gammal titel | Fyndplats" }, { type: "meta", props: { name: "description", content: "Gammal." } }] },
     };
-    if (sokvag === "/stores/v3/products/query") return { products: [produkt], pagingMetadata: { hasNext: false } };
+    if (sokvag === "/stores/v3/products/query") return seoSvar([produkt], kropp);
     return { product: metod === "PATCH" ? { revision: "8" } : produkt };
   },
 }));
 
+import { seoSvar } from "@/lib/polish/seo-svar.provhjalp";
 import { POST } from "./route";
 
 function plan(over: Record<string, unknown> = {}) {

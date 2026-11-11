@@ -30,6 +30,7 @@ import {
   WIX_STORES_APP_ID,
 } from "./skrivplan";
 import { WIX_MAX_BILDER_PER_PRODUKT } from "../wix/limits";
+import { seoSvar } from "./seo-svar.provhjalp";
 
 const HTML = "<p>Hej.</p>";
 
@@ -81,7 +82,7 @@ function fakeWix(
   const wix: WixAnrop = async (metod, sokvag, kropp) => {
     const a = { metod, sokvag, kropp };
     anrop.push(a);
-    if (metod === "POST" && sokvag === SEO_FRAGA) return { products: publicerade, pagingMetadata: { hasNext: false } };
+    if (metod === "POST" && sokvag === SEO_FRAGA) return seoSvar(publicerade, kropp);
     const s = svara(a);
     if (s instanceof Error) throw s;
     return s;
@@ -283,6 +284,22 @@ describe("stegText", () => {
       const u = await stegText(plan(), wix, false);
       expect(u.rader.map((r) => r.fel)).toEqual(["seoTitel står redan på 9f8e7d6c", "seoBesk står redan på 9f8e7d6c"]);
       expect(anrop.some((a) => a.metod === "PATCH")).toBe(false);
+    });
+
+    it("☠️ en titel på butikens ANDRA sida av svaret fälls också: markören följs, utan filter", async () => {
+      const butik = [
+        { ...annanSida("Stol A | Fyndplats", "Stol A."), id: "11111111-0000-4000-8000-000000000001" },
+        { ...annanSida("Stol B | Fyndplats", "Stol B."), id: "22222222-0000-4000-8000-000000000002" },
+        annanSida("Testbord i ek | Fyndplats"),
+      ];
+      const { wix, anrop } = fakeWix(() => ({ product: { revision: "3" } }), butik);
+      const u = await stegText(plan(), wix, false);
+      expect(u.ok).toBe(false);
+      expect(u.avbrutet).toContain("1a2b3c4d: titeln står redan på 9f8e7d6c");
+      // Två sidor av frågan, och sedan ingenting: ingen läsning och ingen skrivning.
+      expect(anrop.map((a) => a.metod)).toEqual(["POST", "POST"]);
+      expect(anrop[0].kropp).toEqual({ query: { filter: { visible: true }, cursorPaging: { limit: 100 } } });
+      expect(anrop[1].kropp).toEqual({ query: { cursorPaging: { limit: 100, cursor: "m2" } } });
     });
 
     it("sidans egen publicerade titel hindrar inte en omskrivning", async () => {
