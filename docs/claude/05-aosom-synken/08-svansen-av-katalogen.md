@@ -26,6 +26,8 @@ Lagningen:
   markör och sparar sin egen. Går den hela vägen börjar nästa om.
 - **Priserna körs fyra gånger per dygn** (03, 09, 15 och 21 UTC), lagret som
   förut fyra, och båda har `limit=1200`. Tidsbudgeten är det som stoppar.
+  (Ändrat 2026-11-11: priserna körs en gång om dagen och går ett helt varv, se
+  `41-en-priskorning-om-dagen.md`. Lagret är oförändrat.)
 
 Fem egenskaper som inte ska tas bort:
 

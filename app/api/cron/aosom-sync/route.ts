@@ -49,6 +49,24 @@
 //                        namn slutade, och spara var den här slutar
 //                        (lib/aosom/sync-markor.ts). Bara skarpa körningar
 //                        flyttar markören. `after` och `sku` vinner över den.
+//                        `pris` går ETT HELT VARV: efter markören till slutet,
+//                        sedan från början fram till markören.
+//   ?budget=660          sekunder körningen får börja på nya tuggor (default
+//                        240, högst 660). Den schemalagda priskörningen har
+//                        660; workflowens anrop väntar bara 310 sekunder och
+//                        står kvar på 240.
+//   ?fortsatt=1          bara tillsammans med `rotation`: kör BARA om förra
+//                        körningen inte hann klart (en sparad markör finns).
+//                        Annars svarar rutten direkt utan att läsa något.
+//   ?samtidiga=3         så många produkters priser skrivs samtidigt (1–6,
+//                        default `PRIS_SAMTIDIGA`). Finns för att takten ska gå
+//                        att mäta och sänka utan ett nytt bygge.
+//
+// ☠️ EN PRISKÖRNING OM DAGEN, OCH DEN SKA HINNA HELA KATALOGEN (Leonard
+// 2026-11-11: "den borde köras 1 gång om dagen och fungera också"). Körningen
+// 03:13 UTC går ett helt varv. De tre fortsättningarna (09:13, 15:13 och 21:13,
+// `fortsatt=1`) gör något bara den dag Aosom flyttat så många priser att
+// varvet inte hanns med. Se docs/claude/05-aosom-synken/41-en-priskorning-om-dagen.md.
 
 import { type NextRequest, NextResponse } from "next/server";
 import { isAuthorized } from "@/lib/auth";
@@ -59,10 +77,33 @@ import { arRotation, getSyncMarkorLager, nastaMarkor } from "@/lib/aosom/sync-ma
 import { beskrivUtskick } from "@/lib/restock/notify";
 
 export const runtime = "nodejs";
-export const maxDuration = 300;
+export const maxDuration = 800;
 
-/** Under maxDuration med marginal — feeden tar ~5 s att hämta och tolka. */
+/**
+ * Default för hur länge körningen får börja på nya tuggor. Workflowens anrop
+ * väntar 310 sekunder på svaret, så en körning utan `?budget=` ska vara klar
+ * långt före det.
+ */
 const TIME_BUDGET_MS = 240_000;
+
+/** Högsta `?budget=`, i sekunder. Med `PRIS_SLUT_MARGINAL_MS` och sista tuggans stämplar ryms det i maxDuration. */
+const MAX_BUDGET_SEK = 660;
+
+/**
+ * Så länge efter budgeten får en påbörjad tugga fortsätta skriva priser
+ * (`prisSlutMs` i lib/aosom/sync.ts). Efter det skjuts resten av tuggans
+ * priser upp till nästa körning, i stället för att Vercel dödar körningen
+ * mitt i tuggan utan stämplar, markör och loggrad (uppmätt 2026-11-11).
+ */
+const PRIS_SLUT_MARGINAL_MS = 45_000;
+
+/**
+ * Högsta `?samtidiga=`. Wix stryper på tempo (edge-spärren, se
+ * docs/claude/05-aosom-synken/02-lagerskrivningen-och-edge-sparren.md), och
+ * varje prisskrivning är minst två anrop. Sex är dubbla defaulten och räcker
+ * för att mäta var gränsen går.
+ */
+const MAX_SAMTIDIGA = 6;
 
 /** Wix-produkt-id: en uuid. */
 const WIX_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -86,6 +127,12 @@ async function handle(req: NextRequest) {
 
   const dryRun = req.nextUrl.searchParams.get("dryRun") !== "false";
   const limit = intParam(req, "limit", 400);
+  const budgetMs = Math.min(intParam(req, "budget", TIME_BUDGET_MS / 1000), MAX_BUDGET_SEK) * 1000;
+  const fortsatt = req.nextUrl.searchParams.get("fortsatt") === "1";
+  // Utan parametern (eller med ett värde som inte är ett positivt heltal) gäller
+  // synkens egen default, `PRIS_SAMTIDIGA`.
+  const samtidiga = intParam(req, "samtidiga", 0);
+  const prisSamtidiga = samtidiga > 0 ? Math.min(samtidiga, MAX_SAMTIDIGA) : undefined;
   // ☠️ Markören är ett artikelnummer. Den går ut FÖRSEGLAD och kommer tillbaka
   // förseglad — se lib/aosom/markor.ts. En handskriven markör i klartext tas
   // fortfarande emot; en förseglad som inte går att öppna är 400, aldrig
@@ -142,6 +189,21 @@ async function handle(req: NextRequest) {
     }
   }
 
+  // ── FORTSÄTTNINGEN (`fortsatt=1`) ─────────────────────────────────────
+  // Kör bara när förra körningen med samma rotation inte hann klart. Blev den
+  // klar finns ingen markör, och då finns inget att fortsätta på: rutten
+  // svarar utan att läsa feeden eller butiken.
+  //
+  // ☠️ GÅR MARKÖREN INTE ATT LÄSA KÖR FORTSÄTTNINGEN ÄNDÅ. Att hoppa över på
+  // ett läsfel hade kunnat lämna ett halvt varv liggande ett dygn till, och en
+  // körning för mycket kostar bara en genomläsning.
+  if (fortsatt && rotation && !sparadMarkor && !markorLasFel) {
+    console.log(
+      `[aosom-sync] rotation ${rotation}: fortsättningen hoppas över, förra körningen hann hela varvet`,
+    );
+    return NextResponse.json({ ok: true, hoppad: true, rotation }, { status: 200 });
+  }
+
   try {
     const summary = await runAosomSync(await liveDeps(), {
       dryRun,
@@ -150,7 +212,12 @@ async function handle(req: NextRequest) {
       skipPrices,
       onlySkus: onlySkus.length ? onlySkus : undefined,
       godkannPrisandring: godkannPris.length ? new Set(godkannPris) : undefined,
-      timeBudgetMs: TIME_BUDGET_MS,
+      timeBudgetMs: budgetMs,
+      prisSlutMs: budgetMs + PRIS_SLUT_MARGINAL_MS,
+      prisSamtidiga,
+      // Priskörningen går ett helt varv, så att hela katalogen granskas också
+      // den dag körningen börjar mitt i den. Lagerkörningen går som förut.
+      varv: rotation === "pris",
     });
 
     // Markören för nästa schemalagda körning. Ett fel här stoppar ingenting:
@@ -184,6 +251,7 @@ async function handle(req: NextRequest) {
       || summary.okandaVarianter > 0 || summary.tvetydiga > 0 || summary.stampelHoppade > 0
       || summary.okantBesked > 0
       || summary.restockMejl > 0 || summary.restockEjSkickade > 0 || summary.restockFel
+      || summary.prisUppskjutna > 0 || summary.varningar.length > 0
       || summary.prislistaFel)) {
       await audit(
         "aosom-sync",
@@ -191,7 +259,16 @@ async function handle(req: NextRequest) {
         `${summary.lagerUppdaterade} lagersaldon och ${summary.prisUppdaterade} priser uppdaterade, `
           + `${summary.urFeeden} ur feeden, ${summary.slutsalda} slutsålda, `
           + `${summary.ejSkeppbara} EJ SKEPPBARA, `
-          + `${summary.varningar.length} blockerade prishopp, `
+          + `${summary.varningar.length} blockerade prishopp`
+          // ☠️ MED PRODUKT OCH BELOPP (2026-11-11). Raden bar bara antalet, så
+          // ingen såg vilka varor taket höll kvar: fem synliga varor i lager stod
+          // 40–54 % från regelpriset, en av dem sedan oktober. Wix-id, aldrig
+          // artikelnummer.
+          + (summary.varningar.length
+            ? ` (${summary.varningar.slice(0, 20).map((v) => `${v.wixProductId ?? "okänd"} ${v.fran}→${v.till}`).join(", ")})`
+            : "")
+          + ", "
+          + `${summary.prisUppskjutna} priser uppskjutna (tiden tog slut), `
           + (summary.godkandaHopp.length
             ? `${summary.godkandaHopp.length} godkända prishopp (`
               + summary.godkandaHopp.map((h) => `${h.wixProductId} ${h.fran}→${h.till}`).join(", ") + "), "
@@ -226,7 +303,10 @@ async function handle(req: NextRequest) {
     // ha CRON_SECRET för handen.
     console.log(
       `[aosom-sync] ${summary.granskade} granskade, ${summary.lagerUppdaterade} lager, `
-        + `${summary.prisUppdaterade} priser, ${summary.utanWixPris} utan butikspris, `
+        + `${summary.prisUppdaterade} priser, `
+        // Priser som inte hanns med före `prisSlutMs`. Ska vara 0 en vanlig natt.
+        + (summary.prisUppskjutna ? `${summary.prisUppskjutna} priser UPPSKJUTNA (tiden tog slut), ` : "")
+        + `${summary.utanWixPris} utan butikspris, `
         + `${summary.prisLasta} prislåsta, `
         // En levande fyndauktion äger priset (2026-10-13) — se lasAuktionsprodukter.
         + `${summary.iAuktion} i fyndauktion, `
@@ -273,6 +353,14 @@ async function handle(req: NextRequest) {
         + (summary.prislistaFel ? ` — PRISDELEN FÖLL: ${summary.prislistaFel}` : "")
         + (summary.restockFel ? ` — BEVAKARNA GICK INTE ATT LÄSA: ${summary.restockFel}` : ""),
     );
+    // Prishoppen som taket stoppade, med Wix-id och belopp. De skrivs aldrig
+    // utan en människas godkännande (`godkannPris`), så de ska gå att se.
+    for (const v of summary.varningar.slice(0, 20)) {
+      console.warn(
+        `[aosom-sync] prishopp stoppat${dryRun ? " (torrkörning)" : ""}: ${v.wixProductId ?? "okänd produkt"} `
+          + `${v.fran} → ${v.till} kr (${v.andringPct} %)`,
+      );
+    }
     // Produkterna som skrevs bara för att butiken drivit från stämpeln. Wix-id
     // är publika, så de får stå i loggen — artikelnumren gör det aldrig.
     if (summary.lagerDriftProdukter.length > 0) {

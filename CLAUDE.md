@@ -180,6 +180,12 @@ underrubrik.
     - ☠️ Korten GRINDAS sedan 2026-09-16 — och de byggs ur en fil
     - ☠️ Tre publicerade/utkastade sidor var EN kattlåda (2026-09-16)
     - ☠️ Flera produkter kan dela EN SKU — kolla varje batch
+  - `05-aosom-synken/41-en-priskorning-om-dagen.md`: En priskörning om dagen, och den hinner hela katalogen (2026-11-11)
+    - ☠️ Vad som gjorde den långsam
+    - Vad som ändrades
+    - ☠️ Wix stryper på tempo: tre skydd
+    - Sex egenskaper som inte ska tas bort
+    - Vad som inte är mätt
 - `06-vevor-steg-1-och-3-leverantorstyp.md`: VEVOR: steg 1 och 3 — leverantören är en uttömmande typ (2026-10-21)
   - Steg 1: varje val mellan leverantörer tar ställning till alla
   - Steg 3: synken tar emot ett besked, inte en Aosom-rad
