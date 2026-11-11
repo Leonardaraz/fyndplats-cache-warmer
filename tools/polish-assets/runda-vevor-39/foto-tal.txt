@@ -1,0 +1,24 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+cb3b4a05 297 djupet 11.69 in / 297 mm på bilden Heavy-Duty Steel, No Deformation och specifikationskortet
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+e830157c 610 djupet 24 in / 610 mm på måttbilden (specifikationen säger 630: det lägre skrivs)
+e830157c 135 läget över 135 grader på bilden Multifunctional Chair
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+74cf2278 3,5 balkstorleken 3.5 by 3.5 in på bilden Fits 3.5 by 3.5 in Wood Beam
+74cf2278 120 stolpfästets höjd 4.72 in / 120 mm på måttbilden
+74cf2278 150 bottenplattan 5.91 in / 150 mm på måttbilden
+74cf2278 220 hörnfästets mått 8.66 in / 220 mm på måttbilden
+74cf2278 112 112 självborrande skruvar på måttbilden
+74cf2278 16 16 expansionsbultar på måttbilden
+74cf2278 304 expansionsbultarna 304 Stainless Steel på måttbilden
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+53990603 33 kärlens volym 33L*2 på bilden High-Quality Materials och specifikationskortet
+53990603 25 lastkapaciteten 55.12 lbs / 25 kg på bilden High-Quality Materials och specifikationskortet (punkten och tabellen säger 30 kg: det lägre skrivs)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>

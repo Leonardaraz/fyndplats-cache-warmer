@@ -1,0 +1,8 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 455 × 330 × 765 mm utan axelord, men måttbilden (bild 7) ritar 17,9 in / 455 mm som bredd, 13,0 in / 330 mm som djup och 30,1 in / 765 mm som höjd med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 600 x 405 x 265 mm utan axelord, men måttbilden (bild 7) ritar 23,62 in / 600 mm som längd, 15,94 in / 405 mm som bredd och 10,43 in / 265 mm som höjd med pilar: texten skriver längd, bredd och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 98 x 78 x 32 tum / 249 x 198 x 81 cm utan axelord, men bild 2 ritar 98 in som längd, 78 in som bredd och 32 in som höjd med pilar, och titeln säger 249L x 198B x 81H cm: texten skriver längd, bredd och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Vattenpåsens mått 2400 x 200 mm och Hörnstyckets mått 570 x 565 mm utan axelord, och måttbilden (bild 7) ritar samma mått med pilar: texten skriver längd × bredd för påsarna och hörnstyckets sidor ur ritningen

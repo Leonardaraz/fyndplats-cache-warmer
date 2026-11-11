@@ -1,0 +1,6 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Gamingmattans mått 985 x 380 x 1,6 mm och Bordets mått 1200 x 600 x 450 mm utan axelord, men källans måttbild (position 2 i källgalleriet, inte bland sidans fem bilder) ritar 47,2 in / 1200 mm som längd, 23,6 in / 600 mm som bredd och 17,7 in / 450 mm som höjd med pilar: texten skriver längd, bredd och höjd för bordet ur ritningen och mattans mått utan axelord som i specifikationen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Lådans innermått 510 x 382 x 255 mm och Produktstorlek 450 x 620 x 1340 mm utan axelord, men källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar skåpet som 450 mm bredd, 620 mm djup och 1340 mm höjd och lådan som 510 mm djup, 382 mm bredd och 255 mm höjd med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek 1200 x 600 x 400 mm utan axelord, men källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar 47,2 in / 120 cm som längd, 23,6 in / 60 cm som bredd och 15,7 in / 40 cm som höjd med pilar: texten skriver längd, bredd och höjd ur ritningen

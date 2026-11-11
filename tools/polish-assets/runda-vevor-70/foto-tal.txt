@@ -1,0 +1,22 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+43f38dae 270 lastkapaciteten 270 kg i källans punkt, medan specifikationen och VEVOR-bild 3 och 7 säger 272 kg (600 lbs)
+43f38dae 122,92 det lägsta höjdläget 122,92 cm (48 in) på VEVOR-bild 4 och 7, medan källans punkt säger 122 cm
+43f38dae 160 det högsta höjdläget 160 cm (63 in) på VEVOR-bild 4 och 7, medan källans punkt säger 163 cm
+43f38dae 54,2 basens ena sida 54,2 cm (21,34 in) på VEVOR-bild 7
+43f38dae 37 basens andra sida 37 cm (14,57 in) på VEVOR-bild 7
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+7259e0f2 2 två stråkhållare (2 x Bow Holders) på VEVOR-bild 3 och två axelremmar (2 x Straps) på VEVOR-bild 7
+7259e0f2 3 tre lager skydd (3-layer Shockproof Cushioning) på VEVOR-bild 2
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+b336139d 20 kopplingens axel med 20 mm (0,787 in) innerdiameter på VEVOR-bild 3 och hålets diameter 20 cm i källans punkt
+b336139d 200 diametern 200 mm (7,9 in) på VEVOR-bild 7, medan titeln och VEVOR-bild 2 säger 203 mm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+c50d614f 1 en sexkantsnyckel (1 x Hex Wrench) på VEVOR-bild 7
+c50d614f 2 två affischer samtidigt i källans punkt och två stödstänger på VEVOR-bild 5
+c50d614f 4 fyra hörn med stötdämpande svampar (Shock-absorbing Sponge At All Corners) på VEVOR-bild 4 och 12
+c50d614f 2057 ställets höjd 2057 mm (81,0 in) i källans specifikation
+c50d614f 3 basens tjocklek 3 mm på VEVOR-bild 4 och 7

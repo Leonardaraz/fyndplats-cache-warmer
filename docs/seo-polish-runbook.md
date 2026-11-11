@@ -88,7 +88,7 @@ byggskripten ligger i `tools/polish-gates/` och anropas därifrån
 | # | Steg | Filer som skrivs |
 |---|---|---|
 | 1 | [Välj åtta](polish/runbook/01-valj-atta.md): kön, saldo, laglighet, dubbletter och sökord | `ids.tsv`, `lager.tsv`, `djurbostad.tsv`, `sammanslagna.tsv` |
-| 2 | [Hämta källan](polish/runbook/02-hamta-kallan.md) | `bilder.tsv`, `variant.tsv`, `kallor.json` |
+| 2 | [Hämta källan](polish/runbook/02-hamta-kallan.md) och [kontrollera kategorin](polish/runbook/02-hamta-kallan.md#kontrollera-kategorin-tidigt) | `bilder.tsv`, `variant.tsv`, `kallor.json`, `kategori.tsv` (första raden) |
 | 3 | [Bilderna före texten](polish/runbook/03-bilderna-fore-texten.md) | `ark/`, `bilder-bort.tsv`, `foto-tal.txt`, `alt.tsv` |
 | 4 | [Verifiera påståendena](polish/runbook/04-verifiera-pastaendena.md) | — |
 | 5 | [Skriv texten](polish/runbook/05-skriv-texten.md) | `<kort>.html`, `namn.tsv`, `slugs.txt`, `seo.tsv`, `sku.tsv`, `kategori.tsv` |
@@ -122,6 +122,9 @@ punkterna under *Efter skriv* kontrollerar du efteråt.
   dubblettskärmen, och prisgrinden i mappningsraden säger inte FALLER, SLUTSALD eller LÅST
   PRIS utan att du vet varför. För VEVOR: ingen möjlig medicinteknik.
 - Det som hoppades över står i `FLAGGADE.md`.
+- Varje produkts kategori är kontrollerad i steg 2: den ligger i en lämplig avdelning och
+  ett lämpligt löv, eller så är den lagd i den lämpliga i `kategori.tsv`. En felkopplad
+  kategori som sitter kvar och en produkt som saknar lämplig kategori står i `FLAGGADE.md`.
 
 **Text**
 

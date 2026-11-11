@@ -244,6 +244,13 @@ export interface ProductMappingRecord {
    */
   prisLast?: boolean;
   /**
+   * true: produkten får aldrig medlemspris (medlemskapet E2, flaggad i admin).
+   * Golvrutten (lib/medlem/golv.ts) ger den då inget golv, och butikens
+   * prismotor lämnar raden på listpriset. Saknas: medlemspris när kostnaden
+   * är känd.
+   */
+  ejMedlemspris?: boolean;
+  /**
    * Dealproffsens pris för samma Aosom-artikel, sparat av
    * `/api/admin/konkurrentpris` läge `spara` (lib/pricing/konkurrentregel.ts).
    *

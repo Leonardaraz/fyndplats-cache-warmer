@@ -1,0 +1,11 @@
+# <kort> <tal> <vad som räknades på bilden>
+2cc87e6c 4 fyra hjul syns på position 1 och 4
+2cc87e6c 1 en L-formad nyckel syns på position 1 och 3
+950e19ac 4 fyra hjul syns på position 5
+0dbde6c8 3 tre paneler syns på position 1, 3 och 4
+0dbde6c8 2 två fötter syns på position 3
+82ae466f 6 sex dricksskålar syns på position 4
+77d98f0e 6 sex pilar syns i hållarna på position 3
+77d98f0e 2 två dörrar syns på position 3
+9e1e3be6 2 två kryddströare syns på position 3
+22693580 5 fem fjädrar syns på funktionsbild f1

@@ -1,0 +1,3 @@
+# kort pos1 pos2 skäl (kvitterar ett par som gate-bilddubblett.py flaggar som misstänkt men som visar något olika; etiketterna är de i bilder.tsv)
+9a06d8e0 1 3 etikett 3 (VEVOR:s bild 6) är en närmare vy där sitsens vänstra ände står högre och krokarna syns, medan etikett 1 visar sitsen rakt framifrån (0,031)
+9a06d8e0 1 5 etikett 5 (VEVOR:s bild 4) visar sitsen vriden så att högra änden står högre, sedd snett från sidan, medan etikett 1 visar den rakt framifrån (0,024)

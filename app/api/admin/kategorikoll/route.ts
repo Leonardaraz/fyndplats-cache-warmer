@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
     for (const p of produkter) {
       const egna = p.kat.map((id) => perId.get(id)).filter((k): k is Kat => k !== undefined);
       const fore = somText(brodsmula(egna, kategorier, antal, "fore"));
-      const efter = somText(brodsmula(egna, kategorier, antal, "efter"));
+      const efter = somText(brodsmula(egna, kategorier, antal, "efter", p.namn));
       if (fore !== efter) {
         andras++;
         const g = brod.get(`${fore} → ${efter}`) ?? { antal: 0, ids: [] };

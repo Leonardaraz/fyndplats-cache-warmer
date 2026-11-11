@@ -1,0 +1,11 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek 21,3 x 19,9 x 40,2 tum/540 x 500 x 1030 mm (rygghöjd) där bara höjden har ett axelord, och källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar 540 och 500 mm utan axelord men 1030 mm som rygghöjd med pilar: texten skriver de två första talen i källans ordning utan axelord och anger bara höjden vid namn
+bygg-axelfacit.py källans specifikation har raden Sitsstorlek 450 x 400 mm utan axelord och ingen måttbild ritar sitsen: texten skriver talen i källans ordning utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 102,01 x 36 x 4,92 tum/2590 x 914 x 125 mm med ett snedstreck mellan tum och mm som gaten inte läser som måttrad, och längden och vikten krockar med måttbilden (3380 mm och 2,6 kg mot 2590 mm och 2,3 kg): texten skriver inget totalmått och ingen vikt, bara huvudets bredd 914 mm som alla källor anger
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Artikelmått 520,7 x 292,1 x 330,2 mm utan axelord och ingen måttbild finns: texten skriver de tre talen i källans ordning utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek 317 x 169 x 90 mm / 12,4 x 6,6 x 3,54 tum utan axelord, men källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar 12,5 in / 317 mm som längd, 6,7 in / 169 mm som bredd och 3,5 in / 90 mm som höjd med pilar: texten skriver längd, bredd och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek 330 x 255 x 855 mm utan axelord, men källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar 13 in / 330 mm som bredd, 10 in / 255 mm som djup och 33,7 in / 855 mm som höjd med pilar: texten skriver bredd, djup och höjd ur ritningen

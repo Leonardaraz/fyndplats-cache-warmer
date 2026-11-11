@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har måttrader utan axelord, och sidan skriver mått som källan anger dem utan att ge dem axlar där källan inte gör det
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har måttrader utan axelord, och sidan skriver mått som källan anger dem utan att ge dem axlar där källan inte gör det
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har måttrader utan axelord, och sidan skriver mått som källan anger dem utan att ge dem axlar där källan inte gör det
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek utan axelord, men VEVOR:s måttritning på bild 6 (i kallor.json) ritar korgarnas bredd, djup och höjd med pilar: texten skriver bredd × djup × höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har måttraderna Produktmått och Mått för installationsurskärning utan axelord, och sidan skriver yttermåttet som 76 × 43 × 19 cm med bredd, djup och höjd efter bildens måttritning

@@ -1,0 +1,42 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+87167ab9 41 bredd 410 mm i källans produktmått = 41 cm
+87167ab9 30 djup och höjd 300 mm i källans produktmått = 30 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+0650a791 4 fyra hjul: två vridbara och två fasta enligt källans punkt och VEVOR:s funktionsbild
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+2d02f00a 90,5 bredd 905 mm i källans bordsstorlek = 90,5 cm
+2d02f00a 49,7 djup 497 mm i källans bordsstorlek = 49,7 cm
+2d02f00a 39,3 höjd 393 mm i källans bordsstorlek = 39,3 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+356afb37 45 bredd 450 mm i källans produktstorlek = 45 cm
+356afb37 38 djup 380 mm i källans produktstorlek = 38 cm
+356afb37 54,5 höjd 545 mm i källans produktstorlek = 54,5 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+f6adf0f8 68 lägsta höjd 680 mm i källans höjdintervall = 68 cm
+f6adf0f8 97 högsta höjd 970 mm i källans höjdintervall och i VEVOR:s måttbild = 97 cm
+f6adf0f8 32,5 tavlans bredd 325 mm i VEVOR:s måttbild = 32,5 cm
+f6adf0f8 43,5 tavlans höjd 435 mm i VEVOR:s måttbild = 43,5 cm
+f6adf0f8 59,5 hopfälld höjd 595 mm i VEVOR:s måttbild = 59,5 cm
+f6adf0f8 49,5 hopfälld bredd 495 mm i VEVOR:s måttbild = 49,5 cm
+f6adf0f8 5 hopfälld tjocklek 50 mm i VEVOR:s måttbild = 5 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+cbcd6b2c 122 bredd 1220 mm i källans produktmått = 122 cm
+cbcd6b2c 40 djup 400 mm i VEVOR:s måttbild = 40 cm; källans text säger 425 mm och det lägre måttet skrivs
+cbcd6b2c 93 höjd 930 mm i källans produktmått = 93 cm; VEVOR:s måttbild säger 935 mm och det lägre måttet skrivs
+cbcd6b2c 52 bänkhöjd 520 mm i källans punkt = 52 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+615424e8 4 fyra hjul räknade på resväskan i position 4 och 5
+615424e8 32 bredd 320 mm i källans produktmått = 32 cm
+615424e8 23 djup 230 mm i källans produktmått = 23 cm
+615424e8 45 höjd 450 mm i källans produktmått = 45 cm
+615424e8 68 handtagets höjd 680 mm i VEVOR:s måttbild = 68 cm
+615424e8 82,5 handtagets höjd 825 mm i VEVOR:s måttbild = 82,5 cm

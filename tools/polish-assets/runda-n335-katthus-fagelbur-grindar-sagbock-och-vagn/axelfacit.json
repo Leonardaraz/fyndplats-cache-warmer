@@ -1,0 +1,53 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "300e7a4f": {
+  "tyska": "",
+  "svenska": "610L x 3B x 75H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Plattengröße: 61B x 3T x 75H cm | ✔ Zusammengeklappte Größe: 66L x 24,5B x 75,5H cm"
+ },
+ "37926947": {
+  "tyska": "102,5L x 71B x 101H cm",
+  "svenska": "102,5 x 71 x 101 cm",
+  "bokstaver": "LBH",
+  "hojd": 101,
+  "bredd": 102.5,
+  "djup": 71
+ },
+ "612cc8f2": {
+  "tyska": "44L x 42B x 45H cm",
+  "svenska": "44 x 42 x 45 cm",
+  "bokstaver": "LBH",
+  "hojd": 45,
+  "bredd": 44,
+  "djup": 42
+ },
+ "a6bc54eb": {
+  "tyska": "",
+  "svenska": "305 x 3 x 75 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Plattengröße: 305L x 3B x 75H cm | ✔ Türbreite: 3B cm | ✔ Türabstand: 62,5B cm | ✔ Stangenabstand: 5,2B cm"
+ },
+ "aa7970f8": {
+  "tyska": "70B x 2,6T x 200H cm",
+  "svenska": "70B x 200H cm",
+  "bokstaver": "BTH",
+  "djup": 2.6,
+  "hojd": 200,
+  "bredd": 70
+ },
+ "e2146e67": {
+  "tyska": "94L x 57B x 153H cm",
+  "svenska": "94 x 57 x 153 cm",
+  "bokstaver": "LBH",
+  "hojd": 153,
+  "bredd": 94,
+  "djup": 57
+ },
+ "f13e59bf": {
+  "tyska": "94L x 48,5B x 100H cm",
+  "svenska": "94x48,5x100cm",
+  "bokstaver": "LBH",
+  "hojd": 100,
+  "bredd": 94,
+  "djup": 48.5
+ }
+}

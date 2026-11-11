@@ -1,11 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { KOLLEKTIONER } from "./wix-kollektioner";
-import { neonKallor } from "../migration/neon-till-wix-kallor";
+
+/** Drift-kollektionerna som kom tillbaka från Neon 2026-10-29 (förut ur
+ *  migreringens tabellista, borttagen med Postgres-vägen 2026-11-05). */
+const DRIFTENS = [
+  "FyndplatsMappings", "FyndplatsTasks", "FyndplatsWebhookEvents", "FyndplatsAudit",
+  "FyndplatsAliExpressSyncLog", "FyndplatsAliExpressSyncState", "FyndplatsAliExpressSyncAlerts",
+  "FyndplatsProductHashes", "FyndplatsImportCosts", "FyndplatsImportedReviews", "FyndplatsAuctions",
+  "FyndplatsClaudeCache", "FyndplatsAnthropicSpend", "FyndplatsLlmStats", "FyndplatsVariantTranslations",
+];
 
 describe("motorns kollektioner i Wix", () => {
-  it("☠️ varje kopierad tabell har sin kollektion i listan — annars förbereds den inte", () => {
+  it("☠️ varje drift-kollektion står i listan — annars förbereds den inte", () => {
     const kanda = new Set(KOLLEKTIONER.map((k) => k.id));
-    for (const k of neonKallor()) expect(kanda.has(k.kollektion), k.kollektion).toBe(true);
+    for (const k of DRIFTENS) expect(kanda.has(k), k).toBe(true);
     expect(kanda.has("FyndplatsAliExpressTokens")).toBe(true);
   });
 

@@ -1,0 +1,12 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "2e775ecd": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "b81bffa1": {
+  "tyska": "32.68 in / 830 mm wide, 17.91 in / 455 mm deep, 24.02 in / 609 mm high (= 83 x 45,5 x 60,9 cm, bredd x djup x höjd efter ritningens pilar)",
+  "svenska": "",
+  "axelkalla": "engelska raden 'Product Dimensions' (källan är engelsk och etiketten bar ett bestämningsord)"
+ }
+}

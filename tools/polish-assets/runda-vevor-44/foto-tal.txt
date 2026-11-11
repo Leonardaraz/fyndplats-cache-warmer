@@ -1,0 +1,36 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+6e9b2853 87 bredden 870 mm i titeln (87 cm) och på måttbilden; punkt 5 säger 91 cm, och det lägre skrivs
+6e9b2853 51 djupet 51 cm i punkt 5; titeln och måttbilden säger 53,5 cm, och det lägre skrivs
+6e9b2853 69 höjden 69 cm i titeln och 27,17 in / 690 mm på måttbilden; punkt 5 säger 74 cm, och det lägre skrivs
+6e9b2853 13,5 nettovikten 13,5 kg i specifikationen och 29,76 lbs på måttbilden
+6e9b2853 40 värmedynans jämna värme 40 °C på bilden A Purry Warm Home for Your Cat
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+ca5a7ed9 610 panelens bredd 24 in / 610 mm på måttbilden; samma tal i specifikationen (Storlek på staketpanel 610 x 914 mm)
+ca5a7ed9 914 panelens längd 36 in / 914 mm på måttbilden; samma tal i specifikationen
+ca5a7ed9 930 bredden och djupet 36,6 in / 930 mm på måttbilden; samma tal i specifikationen (Produktmått 930 x 930 x 615 mm)
+ca5a7ed9 615 höjden 24,2 in / 615 mm på måttbilden; samma tal i specifikationen
+ca5a7ed9 5,8 nettovikten 12,79 lbs = 5,8 kg på måttbilden; samma tal i specifikationen
+ca5a7ed9 14 hundraser upp till 14 tum i mankhöjd på bilden Room to Play, Space to Stay
+ca5a7ed9 13 13 elastiska spännen på måttbilden
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+7dd1d295 900 bredden och höjden 35,4 in / 90 cm på måttbilden; samma tal i specifikationen (Produktmått 900 x 400 x 900 mm)
+7dd1d295 400 djupet 15,7 in / 40 cm på måttbilden; samma tal i specifikationen
+7dd1d295 11,1 nettovikten 11,1 kg i specifikationen
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+171dadc2 1,5 rörens väggtjocklek 1,5 mm på bilden Sturdy Structure
+171dadc2 51 innerdiametern 5,1 cm (51 mm) på bilden Sturdy Structure
+171dadc2 50 fjäderklämmornas diameter 50 mm på måttbilden
+171dadc2 670 bredden 26,4 in / 670 mm på måttbilden; samma tal i specifikationen (Produktstorlek 770x670x1025 mm)
+171dadc2 770 djupet 30,3 in / 770 mm på måttbilden; samma tal i specifikationen
+171dadc2 1025 höjden 40,35 in / 1025 mm på måttbilden; samma tal i specifikationen
+171dadc2 12,7 vikten 12,7 kg i specifikationen och 28 lbs inklusive alla tillbehör på måttbilden
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+f30a08e7 1140 längden 114 cm (1140 mm) i punkt 5; specifikationen och måttbilden säger 1150 mm, och det lägre skrivs
+f30a08e7 489 bredden 19,3 in / 489 mm på måttbilden; samma tal i specifikationen (Produktmått 1150 x 489 x 730 mm); punkt 5 säger 49 cm
+f30a08e7 730 höjden 28,7 in / 730 mm på måttbilden; samma tal i specifikationen
+f30a08e7 16,47 nettovikten 36 lbs / 16,47 kg i specifikationen och på måttbilden

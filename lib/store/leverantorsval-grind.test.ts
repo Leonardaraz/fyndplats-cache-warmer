@@ -343,6 +343,11 @@ const UNDANTAG: ReadonlyArray<{ fil: string; utdrag: string; skal: string }> = [
     utdrag: 'if (dm.supplier !== "aosom") hindra("utkast_ej_aosom");',
     skal: "ett hinder för allt utom Aosom, alltså ett positivt filter",
   },
+  {
+    fil: "lib/vevor/sammanslagning.ts",
+    utdrag: 'if (dm.supplier !== "vevor") hindra("utkast_ej_vevor");',
+    skal: "ett hinder för allt utom VEVOR, alltså ett positivt filter (samma som Aosoms sammanslagning)",
+  },
 ];
 
 function fyndIProduktionen(): Array<{ fil: string; f: Fynd }> {

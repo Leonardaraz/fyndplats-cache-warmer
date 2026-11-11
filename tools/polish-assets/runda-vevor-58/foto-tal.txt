@@ -1,0 +1,16 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+8f048245 6 monteringens sex steg på bild 5
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+3739e676 20 märklasten 20 kg i punkt 2 och på bild 7 (44 pund); specifikationen skriver 20,0 kg
+3739e676 610 innerbredden mellan benen 610 mm i punkt 1 och på bild 2
+3739e676 755 basens innerbredd 755 mm på bild 2
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+61385b47 24 väntetiden 24 timmar på bild 7, och 24–48 timmar i punkt 4; texten skriver minst 24 timmar
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+a6855b58 64 antalet markpinnar 64 på bild 7

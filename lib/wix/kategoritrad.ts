@@ -142,6 +142,63 @@ export async function kopplaTillKategori(
   return ut;
 }
 
+/**
+ * Tar produkterna ur kategorin, högst 100 per anrop (Bulk Remove Items From
+ * Category, `/remove-items`, samma form som `/add-items`). Tolkas som
+ * `kopplaTillKategori`: bulk-svaret är facit per produkt, en produkt utan rad är
+ * ett fel och `undetailedFailures` gör hela anropet oadresserbart.
+ *
+ * Det finns ingen "redan"-kod här. Den som anropar läser länken först
+ * (lib/polish/kategori-bort.ts), och en länk som inte finns är för den ett eget
+ * utfall. En skrivning försöks aldrig om (lib/polish/skrivplan-wix.ts).
+ */
+export async function taBortFranKategori(
+  wix: Anrop,
+  kategoriId: string,
+  produktIds: readonly string[],
+): Promise<Map<string, "ok" | { fel: string }>> {
+  const ut = new Map<string, "ok" | { fel: string }>();
+  for (let i = 0; i < produktIds.length; i += KOPPLA_PER_ANROP) {
+    const tugga = produktIds.slice(i, i + KOPPLA_PER_ANROP);
+    let d: Obj;
+    try {
+      d = data(
+        await wix("POST", `/categories/v1/bulk/categories/${encodeURIComponent(kategoriId)}/remove-items`, {
+          items: tugga.map((pid) => ({ catalogItemId: pid, appId: WIX_STORES_APP_ID })),
+          treeReference: KATEGORITRAD,
+        }),
+      );
+    } catch (e) {
+      const fel = String((e as Error)?.message ?? e).slice(0, 200);
+      for (const pid of tugga) ut.set(pid, { fel });
+      continue;
+    }
+    const meta = (d.bulkActionMetadata ?? {}) as Obj;
+    if (Number(meta.undetailedFailures ?? 0) > 0) {
+      for (const pid of tugga) ut.set(pid, { fel: "undetailedFailures: anropet går inte att tolka per produkt" });
+      continue;
+    }
+    const rader = (d.results ?? []) as Obj[];
+    tugga.forEach((pid, idx) => {
+      const traff =
+        rader.find((r) => ((r.itemMetadata as Obj | undefined)?.item as Obj | undefined)?.catalogItemId === pid) ??
+        rader.find((r) => ((r.itemMetadata as Obj | undefined)?.originalIndex as number | undefined) === idx);
+      const m = (traff?.itemMetadata ?? null) as Obj | null;
+      if (!m) {
+        ut.set(pid, { fel: "inget utfall för produkten" });
+        return;
+      }
+      if (m.success === true) {
+        ut.set(pid, "ok");
+        return;
+      }
+      const felJson = m.error ? JSON.stringify(m.error) : "";
+      ut.set(pid, { fel: felJson.slice(0, 200) || "misslyckades" });
+    });
+  }
+  return ut;
+}
+
 /** Sidor i listan över en kategoris produkter: 500 × 100 = Wix tak på 50 000 produkter. */
 const MAX_PRODUKTSIDOR = 500;
 

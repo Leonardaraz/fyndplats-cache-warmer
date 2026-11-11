@@ -1,0 +1,6 @@
+# <kort> <tal> <vad som räknades på bilden>
+bd3b662c 4 fyra bultar håller fast bladet på position 1 och 5
+30a513b0 2 två rännor syns på position 6
+3414d4d0 2 två rännor syns på position 6
+3c500e4d 2 två armstöd syns på position 4
+61b00bb7 2 två hjul syns på position 4, 5 och 6

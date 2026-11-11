@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 42,9 × 23,03 × 35,5 tum / 106,5 × 58,5 × 90,1 cm utan axelord, men måttbilden (bild 7) ritar 42,9 in / 106,5 cm som bredd, 23,03 in / 58,5 cm som djup och 35,5 in / 90,1 cm som höjd med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 855 x 593 x 797 mm utan axelord, men måttbilden (bild 7) ritar 33,7 in / 855 mm som bredd, 23,3 in / 593 mm som djup och 31,4 in / 797 mm som höjd med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 46 x 46 x 25 tum / 1168 x 1168 x 635 mm utan axelord, men säcken är rund och måttbilden (bild 2) ritar 46 in som bredd och djup och 25 in som höjd med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (vid 90°) 540 x 660 x 760 mm utan axelord, men måttbilden (bild 7) ritar 21,3 in / 540 mm som bredd, 24,6 in / 650 mm som djup och 30 in / 760 mm som höjd med pilar: texten skriver bredd, djup och höjd ur ritningen, och djupet 660 mm ur specifikationen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Mått på trampsten 15,55 × 15,55 × 1,02 tum / 395 × 395 × 26 mm utan axelord, men plattan är kvadratisk och måttbilden (bild 7) ritar 15,55 in / 395 mm på båda sidorna: texten skriver bredd, djup och tjocklek ur ritningen och specifikationen

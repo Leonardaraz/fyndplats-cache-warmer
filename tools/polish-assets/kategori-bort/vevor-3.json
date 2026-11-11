@@ -1,0 +1,39 @@
+{
+  "namn": "vevor-3",
+  "rader": [
+    {
+      "kort": "265ab43c",
+      "pid": "265ab43c-c23f-405a-a59e-50ceb4eb93e2",
+      "bort": [
+        "Bil & Garage",
+        "Bil & Garage > Husbil & husvagn"
+      ],
+      "behall": [
+        "Verktyg & Maskiner"
+      ]
+    },
+    {
+      "kort": "90c962dd",
+      "pid": "90c962dd-92e9-4547-b7c3-63e6ed530c2b",
+      "bort": [
+        "Hem & Inredning > Dekoration & Prydnad"
+      ],
+      "behall": [
+        "Hem & Inredning",
+        "Hem & Inredning > Förvaring & Organisering"
+      ]
+    },
+    {
+      "kort": "e6fdbe60",
+      "pid": "e6fdbe60-5f27-4b8a-908c-68c749b2b4fb",
+      "bort": [
+        "Trädgård & Utemöbler",
+        "Trädgård & Utemöbler > Grill & Utekök"
+      ],
+      "behall": [
+        "Kök & Husgeråd",
+        "Kök & Husgeråd > Köksmaskiner & Apparater"
+      ]
+    }
+  ]
+}

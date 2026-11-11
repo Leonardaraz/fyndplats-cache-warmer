@@ -1,0 +1,45 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+4868282a 91 längden i punkt 1 (91 x 59 x 44 cm); specifikationen och måttbilden säger 1010 x 600 x 450 mm, och det lägsta per axel skrivs
+4868282a 59 bredden i punkt 1; specifikationen och måttbilden säger 600 mm, och det lägsta skrivs
+4868282a 44 höjden i punkt 1; specifikationen och måttbilden säger 450 mm, och det lägsta skrivs
+4868282a 240 kapaciteten 240 L / 63,4 gal på måttbilden och i specifikationen; beskrivningen säger 290 liter, och det lägre skrivs
+4868282a 63,4 kapaciteten 240 L / 63,4 gal på måttbilden och i specifikationen
+4868282a 10 temperaturområdet 10 till 74 °C i punkt 2; specifikationen säger -15 till 75 °C, och det smalare området skrivs
+4868282a 74 temperaturområdet 10 till 74 °C i punkt 2; specifikationen säger -15 till 75 °C, och det smalare området skrivs
+4868282a 1,2 tjockleken 1,2 mm ± 0,05 mm i specifikationen
+4868282a 2,65 vikten 2,65 kg i specifikationen
+4868282a 25 fyllningsporten DN25 i punkt 4, på bilden Easy to Use (Inlet: DN25) och i specifikationen (ID 25 mm); bildens i.d.=32 mm och den utvändiga gängan på 32 mm i punkt 4 motsäger specifikationen (ID 25 mm respektive 30 mm), och de talen skrivs inte
+4868282a 20 utloppet DN20 i punkt 4 och specifikationen (ID 20 mm)
+4868282a 4 fyra förstärkta bäröglor i punkt 5
+4868282a 2 två tuber lim, två tätningsringar och två reparationslappar på bilden 240 L / 63.4 Gal Water Storage Bladder Set (Glue x2, Sealing Rings x2, Repair Patch x2)
+4868282a 3/4 kranen och slangadaptern på 3/4 tum på bilden 240 L / 63.4 Gal Water Storage Bladder Set (3/4" Valve Faucet x1, 3/4" Hose Adapter x1)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+788982c9 24 tjugofyra paneler i specifikationen (Antal 24 st) och på bilden 1 Set Includes 24 Pieces
+788982c9 37,5 täckningen 37,5 kvadratfot (37.5 sq.ft) på bilden 1 Set Includes 24 Pieces; punkt 5 skriver 37,5 kvm, vilket är kvadratfot, och texten skriver kvadratfot
+788982c9 380 längden och bredden 15 in / 380 mm på måttbilden och i specifikationen (Artikelmått 15 x 15 x 2,56 tum / 380 x 380 x 65 mm)
+788982c9 65 höjden 2,56 in / 65 mm på måttbilden och i specifikationen
+788982c9 200 tvåhundra buntband på bilden 1 Set Includes 24 Pieces och måttbilden (Ties x 200) och i punkt 3
+788982c9 3,6 nettovikten 7,94 lbs / 3,6 kg på måttbilden och i specifikationen
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+8b88064e 225 sökspolens bredd 8,9 in / 225 mm på måttbilden; samma tal i specifikationen (8,9 x 11,2 tum / 225 x 285 mm)
+8b88064e 285 sökspolens längd 11,2 in / 285 mm på måttbilden; samma tal i specifikationen
+8b88064e 5,8 driftfrekvensen 5,8 kHz på måttbilden och i specifikationen
+8b88064e 203,2 detektionsdjupet 8 in / 203,2 mm (U.S. Quarter Coin Test) på måttbilden; specifikationen och bilden Find Targets More Accurately säger 254 mm / 10 in, och det lägre skrivs
+8b88064e 104 handtagets minsta längd 41 in / 104 cm på bilden Easy Height Adjustment och i beskrivningen (104-146 cm)
+8b88064e 140 handtagets största längd 55 in / 1400 mm på måttbilden; beskrivningen säger 146 cm, och det lägre skrivs
+8b88064e 800 ljudfrekvensen 800 till 1000 Hz på måttbilden och i specifikationen
+8b88064e 1000 ljudfrekvensen 800 till 1000 Hz på måttbilden och i specifikationen
+8b88064e 18 strömförsörjningen DC 18 V på måttbilden och i specifikationen
+8b88064e 9 batterierna på 9 V (9V Batteries x2) på måttbilden
+8b88064e 2 två batterier på 9 V (9V Batteries x2) på måttbilden
+8b88064e 2,25 nettovikten 5,0 lbs / 2,25 kg på måttbilden
+8b88064e 5 fem lägen på bilden 5 Detection Modes More Accurate Finds och i titeln
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+9703ff2b 0,12 nettovikten 0,26 lbs / 0,12 kg på måttbilden och i specifikationen
+9703ff2b 9 nio delar i specifikationen (Antal 9 stycken) och på bilden 9-Piece Makeup Brush Set
+9703ff2b 3 tre ögonskuggsborstar i punkt 1 och tre borstar med syntetiska borst i punkt 2
+9703ff2b 6 sex borstar med borst av naturlig ull i punkt 2

@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 72,4 × 17,9 × 28,1 tum / 1840 × 455 × 715 mm utan axelord, men måttbilden (bild 7) ritar 72,4 in / 1840 mm som längd, 17,9 in / 455 mm som bredd och 28,1 in / 715 mm som höjd med pilar: texten skriver längd, bredd och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Skrivbordsstorlek 914,4 x 609,6 mm, Skrivbordshöjd 800,1 mm och Armhöjd 881,4 mm utan axelord, men måttbilden (bild 7) ritar 36 in som längd, 24 in som bredd, 31,5 in som bordshöjd och 34,7 in som höjd till armarna med pilar: texten skriver längd × bredd för skivan och de två höjderna ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (LxBxH) 23,89 x 23,81 x 32,48 tum/60,7 x 60,5 x 82,5 cm med axelbokstäverna L, B och H i etiketten, och måttbilden (bild 7) ritar 23,89 in / 60,7 cm och 23,81 in / 60,5 cm som sidor och 32,48 in / 82,5 cm som höjd med pilar: texten skriver längd, bredd och höjd i källans ordning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek 52,5 x 35,5 x 30 cm utan axelord, men måttbilden (bild 7) ritar 20,7 in / 52,5 cm som längd, 14 in / 35,5 cm som bredd och 11,8 in / 30 cm som höjd med pilar: texten skriver längd, bredd och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 500 x 467 x 400 mm utan axelord, men måttbilden (bild 7) ritar 19,7 in / 500 mm som bredd, 18,4 in / 467 mm som djup och 15,7 in / 400 mm som höjd med pilar: texten skriver bredd, djup och höjd ur ritningen

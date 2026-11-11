@@ -1,0 +1,25 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+1959bee3 14 vattentanken på 14 liter i punkt 3 och på bilden Realistic Water Rowing Sound (14L Larger Capacity)
+1959bee3 0,27 förvaringsytan 0,27 m² på bilden Foldable & Convenient Storage
+1959bee3 610 förvaringsytan 610 mm på bilden Foldable & Convenient Storage
+1959bee3 445 förvaringsytan 445 mm på bilden Foldable & Convenient Storage
+1959bee3 147 lastkapaciteten 147 kg i punkt 1; titeln och specifikationen säger 158 kg och bilden 350 lbs / 159 kg, och det lägsta skrivs
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+3f36f208 36 bordsskivans längd 36 tum på måttbilden (Desktop Size 36" x 24")
+3f36f208 24 bordsskivans bredd 24 tum på måttbilden (Desktop Size 36" x 24")
+3f36f208 150 statisk belastning 150 kg i punkt 1 och titeln; specifikationen säger 149,7 kg, och det lägre skrivs
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+e1cc75fa 4 fyra monteringssteg på bilden Quick and Easy Assembly (steg 1 till 4)
+e1cc75fa 300 volymen 300 liter (80 gallon) i punkt 2 och i specifikationen
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+87e02c12 60 att öppna eller stänga en korg tar 60 sekunder i punkt 2 och på bilden Collapsible to Save Space (Open and close in one minute)
+87e02c12 6,5 hopfälld höjd 6,5 cm (2,56 tum) på bilden Collapsible to Save Space
+87e02c12 15,9 belastning 35 lbs (15,9 kg) på bilden Safer & Easier Outdoor Life (35 lbs Load Capacity)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+2783f4bc 153 den halkfria remsans längd över 153 cm (60,2 tum) på måttbilden (Accessories)
+2783f4bc 1,3 innerhinken 1,3 gallon / 5 liter på måttbilden och i titeln

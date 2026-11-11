@@ -1,0 +1,15 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+44826c99 6 vinkeljusteringen plus 6 till minus 25 grader i specifikationen och på bilden Ergonomic Position (Angle Adjustment +6° to -25°); punkt 1 skriver 38° lutning, och specifikationens lägre intervall skrivs
+44826c99 230 skivans djup 23 cm i punkt 2 (65 x 23 cm), medan specifikationen skriver 250 mm och måttbilden 9,8 in; det lägre måttet skrivs
+44826c99 241 glidlängden 241 mm (9,5 in) i specifikationen
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+5c8aa7eb 100 lastkapaciteten 100 kg (220 lbs) i punkt 2, specifikationen och på bilden Hold Up to 220 lbs; texten skriver att lådan är gjord av 100 procent gran enligt punkt 2
+5c8aa7eb 76 höjden 76 cm (30 tum) i specifikationen och på måttbilden

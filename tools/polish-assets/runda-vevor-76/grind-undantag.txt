@@ -1,0 +1,15 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen måttrad, och källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar bredden 450 mm (17,72 tum), djupet 270 mm (10,63 tum) och höjden 470 mm (18,5 tum): texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Produktmått (24 tum) 805 x 155 x 55 mm och (31 tum) 985 x 155 x 55 mm utan axelord, och källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar längderna 805 mm (31,7 tum) och 985 mm (38,8 tum) samt 155 mm (6,1 tum) och 55 mm (2,2 tum): texten skriver bara längderna
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek 335 x 218 x 70 mm utan axelord, och källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar förvaringslådan med måtten 335 mm (13,19 tum), 218 mm (8,58 tum) och 70 mm (2,76 tum): texten skriver dem som lådans mått utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen måttrad, och källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar höjden 450 mm (17,72 tum) och bredden 310 mm (12,20 tum) med vev och klämma: texten skriver höjd och bredd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Basmått 203 x 130 x 10 mm och Produktmått 500 x 230 x 740 mm utan axelord, och källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar spakens längd 500 mm (19,69 tum), höjden 740 mm (29,13 tum) och basen 203 mm (8 tum), 130 mm (5,12 tum) och 10 mm (0,39 tum): texten skriver längd och höjd samt basens längd, bredd och tjocklek
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått med fyra kuldiametrar (Ø100, Ø150, Ø200 och Ø300 mm) och ingen bredd, djup och höjd: texten skriver dem som kulornas diametrar
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek (L x B x H) 7,32 m x 25,4 cm x 15,3 cm med axelord men i blandade enheter (meter och centimeter), och källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar längden 7,32 m (24 fot), bredden 25,4 cm (10 tum) och höjden 15,3 cm (6 tum): texten skriver längd, bredd och höjd som i raden
+# <skript> <skäl> — se bygg-skrivplan.py

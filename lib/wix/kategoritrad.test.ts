@@ -5,6 +5,7 @@ import {
   kopplaTillKategori,
   lasKategoritradet,
   produkterIKategori,
+  taBortFranKategori,
   type Anrop,
 } from "./kategoritrad";
 
@@ -94,5 +95,69 @@ describe("produkterIKategori", () => {
         : { items: [{ catalogItemId: "p1" }], pagingMetadata: { cursors: { next: "n" } } };
     };
     expect([...(await produkterIKategori(wix, "kat"))]).toEqual(["p1", "p2"]);
+  });
+});
+
+describe("taBortFranKategori", () => {
+  it("skickar remove-items med Wix Stores app-id och trädet, och tolkar svaret per produkt", async () => {
+    const anrop: Array<{ metod: string; sokvag: string; kropp: Kropp }> = [];
+    const wix: Anrop = async (metod, sokvag, kropp) => {
+      anrop.push({ metod, sokvag, kropp: kropp as Kropp });
+      return {
+        results: [
+          { itemMetadata: { item: { catalogItemId: "p1" }, success: true } },
+          // id saknas i raden: härleds ur originalIndex mot det som skickades
+          { itemMetadata: { originalIndex: 1, success: false, error: { code: "NOT_FOUND" } } },
+        ],
+        bulkActionMetadata: { totalSuccesses: 1, totalFailures: 1, undetailedFailures: 0 },
+      };
+    };
+    const u = await taBortFranKategori(wix, "kat/1", ["p1", "p2", "p3"]);
+    expect(anrop).toHaveLength(1);
+    expect(anrop[0].metod).toBe("POST");
+    // Id:t kodas i sökvägen, som i add-items.
+    expect(anrop[0].sokvag).toBe("/categories/v1/bulk/categories/kat%2F1/remove-items");
+    expect(anrop[0].kropp.treeReference).toEqual({ appNamespace: "@wix/stores" });
+    expect(anrop[0].kropp.items).toEqual([
+      { catalogItemId: "p1", appId: "215238eb-22a5-4c36-9e7b-e7c08025e04e" },
+      { catalogItemId: "p2", appId: "215238eb-22a5-4c36-9e7b-e7c08025e04e" },
+      { catalogItemId: "p3", appId: "215238eb-22a5-4c36-9e7b-e7c08025e04e" },
+    ]);
+    expect(u.get("p1")).toBe("ok");
+    expect(u.get("p2")).toEqual({ fel: expect.stringContaining("NOT_FOUND") });
+    // En produkt Wix inte nämner är inte borttagen.
+    expect(u.get("p3")).toEqual({ fel: "inget utfall för produkten" });
+  });
+
+  it("undetailedFailures gör hela anropet oadresserbart: alla produkter får ett fel", async () => {
+    const wix: Anrop = async () => ({
+      results: [],
+      bulkActionMetadata: { totalSuccesses: 0, totalFailures: 2, undetailedFailures: 2 },
+    });
+    const u = await taBortFranKategori(wix, "kat", ["p1", "p2"]);
+    expect([...u.values()].every((x) => x !== "ok" && x.fel.includes("undetailedFailures"))).toBe(true);
+  });
+
+  it("ett kast i anropet blir ett fel per produkt, inte ett kast", async () => {
+    const wix: Anrop = async () => {
+      throw new Error("Wix 403: MANAGED_CATEGORY_OPERATION_NOT_ALLOWED");
+    };
+    const u = await taBortFranKategori(wix, "kat", ["p1"]);
+    expect(u.get("p1")).toEqual({ fel: expect.stringContaining("MANAGED_CATEGORY") });
+  });
+
+  it("delar upp i anrop om högst 100 produkter", async () => {
+    let anrop = 0;
+    const wix: Anrop = async (_m, _s, kropp) => {
+      anrop++;
+      const items = (kropp as { items: Array<{ catalogItemId: string }> }).items;
+      return {
+        results: items.map((it, i) => ({ itemMetadata: { item: { catalogItemId: it.catalogItemId }, originalIndex: i, success: true } })),
+      };
+    };
+    const ids = Array.from({ length: KOPPLA_PER_ANROP + 1 }, (_, i) => `p${i}`);
+    const u = await taBortFranKategori(wix, "kat", ids);
+    expect(anrop).toBe(2);
+    expect(u.size).toBe(ids.length);
   });
 });

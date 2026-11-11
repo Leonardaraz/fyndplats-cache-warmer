@@ -1,0 +1,1 @@
+bygg-axelfacit.py f6c7ff3a: generatorn stöder inte svensk totalmåttrad i millimeter. Måtten 830 × 350 × 826 mm återges exakt ur källan; inga axlar påstås i löptext. Samtliga originalbilder granskade och proportionerna stämmer. Ingen måttskiss finns, dokumenterat i FLAGGADE-VEVOR.md. Inget handskrivet axelfacit.

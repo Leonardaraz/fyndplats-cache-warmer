@@ -1,0 +1,6 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+fdc73e50 18 blockets första mått 180 mm i källans blockmått (180 x 60 x 30 mm) och produktmåttets två första (180 x 180 x 600 mm) = 18 cm
+fdc73e50 6 blockets andra mått 60 mm = 6 cm
+fdc73e50 3 blockets tredje mått 30 mm = 3 cm; tre block per rad står också i källan
+fdc73e50 60 standardhöjden med tre block per rad 600 mm = 60 cm; produktmåttets tredje mått 600 mm = 60 cm

@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktstorlek har inga axelord, och VEVOR:s måttbild (i kallor.json) visar axlarna med pilar: höjden 45 cm med en lodrät pil och 51 cm längs bilens långsida: texten skriver 51 cm lång, 25 cm bred och 45 cm hög
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktstorlek har inga axelord, och VEVOR:s måttbild (i kallor.json) visar axlarna med pilar: höjden 200 mm med en lodrät pil och 350 mm längs de två bottenkanterna: texten skriver 35 cm brett, 35 cm djupt och 20 cm högt
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py varan har inga totalmått som bredd, djup och höjd: källans rader är delmått (hink, flagga, utslagsplats, flaggstång) med engelska och svenska axelord i kallor.json, och texten skriver varje delmått som källan gör
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har bara en rad för spegelns storlek och ingen totalmåttrad; totalmåtten är lästa ur VEVOR:s måttbild (i kallor.json), där ritningens pilar ger bredd 604 mm, djup 339 mm och höjd 1080 mm
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har bara en rad för spegelns storlek och ingen totalmåttrad; totalmåtten är lästa ur VEVOR:s måttbild (i kallor.json), där ritningens pilar ger bredd 1200 mm, djup 400 mm och höjd 1060 mm

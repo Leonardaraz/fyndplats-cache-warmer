@@ -1,0 +1,8 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått utan axelord, men måttritningen på bild 5 ritar 840 mm för vardera sidan i hörnet och 1800 mm som höjd med pilar: texten skriver bredd × djup × höjd ur ritningen, och bänkhöjden skrivs som 490 mm (ritningen) i stället för 500 mm (specifikationen)
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått utan axelord, men måttbilden (bild 3) ritar bredden 602 mm, djupet 402 mm och höjden 902 mm med pilar: texten skriver bredd × djup × höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått utan axelord, men måttbilden (bild 7) ritar 22 tum (560 mm) vågrätt, 13,78 tum (350 mm) som djup och 19 tum (485 mm) som höjd med pilar: texten skriver bredd × djup × höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått med en fjärde siffra i parentes (800 mm) utan axelord, men måttbilden (bild 7) ritar 36,61 tum (930 mm) som längd, 17 tum (420 mm) som bredd och 13 tum (330 mm) som höjd med pilar, och 800 mm som trästavens längd: texten skriver längd × bredd × höjd ur ritningen

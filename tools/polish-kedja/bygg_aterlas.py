@@ -48,13 +48,13 @@ js = '''async function () {
     return u ? u.split("?")[0].split("/").pop() : "";
   };
   const kmap = {};
-  const kbody = { query: { cursorPaging: { limit: 200 } }, treeReference: { appNamespace: "@wix/stores" } };
+  const kbody = { query: { cursorPaging: { limit: 200 } }, treeReference: { appNamespace: "@wix/stores" }, returnNonVisibleCategories: true };
   let kres = await wix.request({ method: "POST", url: "https://www.wixapis.com/categories/v1/categories/query", body: kbody });
   let kd = kres.data || kres;
   (kd.categories || []).forEach(function (c) { kmap[c.id] = c.name; });
   let sidor = 1;
   while (kd.pagingMetadata && kd.pagingMetadata.hasNext && kd.pagingMetadata.cursors && kd.pagingMetadata.cursors.next && sidor < 10) {
-    const nb = { query: { cursorPaging: { limit: 200, cursor: kd.pagingMetadata.cursors.next } }, treeReference: { appNamespace: "@wix/stores" } };
+    const nb = { query: { cursorPaging: { limit: 200, cursor: kd.pagingMetadata.cursors.next } }, treeReference: { appNamespace: "@wix/stores" }, returnNonVisibleCategories: true };
     kres = await wix.request({ method: "POST", url: "https://www.wixapis.com/categories/v1/categories/query", body: nb });
     kd = kres.data || kres;
     (kd.categories || []).forEach(function (c) { kmap[c.id] = c.name; });

@@ -1,0 +1,16 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen måttrad: måtten 12,7 x 35,6 x 24,4 cm står bara på måttbilden (Product Size) utan axelord, och texten skriver dem som Mått utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 54,53 x 14,37 x 10,04 tum / 1385 x 365 x 255 mm utan axelord: texten skriver raden som Mått utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen måttrad: längderna 29,8 och 22,5 tum står bara på måttritningen utan axelord, och texten skriver dem som Längd, handtag utdragna och infällda
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen måttrad med axelord: måtten 980 x 620 x 600 mm och snittkapaciteten 340 x 90 mm står bara på måttbilden utan axelord, och texten skriver dem som Mått och Snittkapacitet utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (monterade) 55 x 50,4 x 25,6 tum / 1397 x 1280 x 650 mm utan axelord: texten skriver raden som Mått (monterad) utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 99 x 56 x 92 cm utan axelord: texten skriver raden som Mått utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Stativstorlek 25 x 20 x 27 cm och Produktstorlek 25,4 x 20 x 46,5 cm utan axelord: texten skriver raderna som Stativstorlek och Mått utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 40,47 x 11,81 x 66,92 tum / 102,8 x 30 x 170 cm utan axelord: texten skriver raden som Mått utan axelord

@@ -1,0 +1,56 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+473082c2 75,4 bredden 754 mm på måttritningen = 75,4 cm (källans Produktmått 754 x 389 x 480 mm)
+473082c2 38,9 djupet 389 mm på måttritningen = 38,9 cm
+473082c2 48 höjden 480 mm på måttritningen = 48 cm
+473082c2 96 locket 96 kg i källans tabell och 211,64 lb på specifikationsbilden; punkten säger 20 kg men den är kopierad från syskonbänken med ryggstöd: tabellen gäller
+473082c2 40 botten 40 kg i källans tabell och 88,18 lb på specifikationsbilden; punkten säger 15 kg men den är kopierad från syskonbänken: tabellen gäller
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+852e7975 1,4 vikten 1,4 kg i källans punkt; VEVOR:s bild säger 1,7 kg (3,7 lb): det lägre skrivs
+852e7975 65 hjulets diameter 65 mm (2,6 tum) på VEVOR:s bild
+852e7975 12 hjulets bredd 12 mm (0,5 tum) på VEVOR:s bild
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+362c13c4 190,5 längden 1905 mm på måttritningen (75.00 in) = 190,5 cm
+362c13c4 62 bredden 620 mm på måttritningen (24.41 in) = 62 cm
+362c13c4 66 höjden 660 mm på måttritningen (25.98 in) = 66 cm
+362c13c4 23,5 sitsens 9.25 in / 235 mm på bilden = 23,5 cm
+362c13c4 20 sitsens 7.87 in / 200 mm på bilden = 20 cm
+362c13c4 10 sitsens 3.94 in / 100 mm på bilden = 10 cm
+362c13c4 100 bärförmågan 100 lbs per sits på specifikationsbilden = 45,4 kg i källans specifikation
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+5e72f7be 264 längden 2640 mm i källans Produktmått 2640 x 930 x 710 mm = 264 cm; måttritningen säger 2540 mm: tabellen skrivs
+5e72f7be 93 bredden 930 mm i källans tabell = 93 cm; måttritningen säger 940 mm: tabellen skrivs
+5e72f7be 71 höjden 710 mm i källans tabell = 71 cm; måttritningen säger 750 mm: tabellen skrivs
+5e72f7be 300 bärförmågan 300 lbs per sits på bilden = 136,1 kg i källans specifikation
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+84108d1b 2 två lådor räknade på produktfotot och i utkastets titel (2 mobila lådor)
+84108d1b 102 bredden 1020 mm på måttritningen (40.16 in) = 102 cm
+84108d1b 29,7 djupet 297 mm på måttritningen (11.69 in) = 29,7 cm
+84108d1b 60 höjden 600 mm på måttritningen (23.62 in) = 60 cm
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+da5c3618 76,2 bredden 762 mm på måttritningen (30 in) = 76,2 cm
+da5c3618 32,4 djupet 324 mm på måttritningen (12.8 in) = 32,4 cm
+da5c3618 91,4 höjden 914 mm på måttritningen (36 in) = 91,4 cm
+da5c3618 52 bänkhöjden 520 mm i källans punkt = 52 cm
+da5c3618 95 barnets längd 95 cm på VEVOR:s bild (3 ft 4 in)
+da5c3618 125 barnets längd 125 cm på VEVOR:s bild (4 ft 1 in)
+da5c3618 5,3 nettovikten 5,3 kg i källans tabell; specifikationsbilden säger 6,3 kg (13,88 lb): det lägre skrivs
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+833fbe08 2 två AA-batterier till ljudfunktionen enligt noten Music functions require two AA batteries (not included) på VEVOR:s bild
+833fbe08 83 första måttet 830 mm i källans Produktmått 830 x 300 x 930 mm = 83 cm
+833fbe08 30 andra måttet 300 mm = 30 cm
+833fbe08 93 tredje måttet 930 mm = 93 cm
+833fbe08 12,5 viktkapaciteten 12,5–80 kg i källans tabell och titel; bildens 22,05–110 lbs (10–50 kg) är ponnyns mindre syskons text: tabellen gäller
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+e4034c52 2 två AA-batterier till ljudfunktionen enligt noten Music functions require two AA batteries (not included) på VEVOR:s bild
+e4034c52 82 första måttet 820 mm i källans Produktmått 820 x 300 x 990 mm = 82 cm
+e4034c52 30 andra måttet 300 mm = 30 cm
+e4034c52 99 tredje måttet 990 mm = 99 cm
+e4034c52 12,5 viktkapaciteten 12,5–80 kg i källans tabell och 27.56–176 lbs på VEVOR:s bild

@@ -4,8 +4,24 @@
 // nivåbyten och logg), och gör manuella ändringar med orsakskod (E1-11).
 // Överst: växeln (av, tyst, på) och nattens avstämning.
 
-import { ORSAKSKODER, NIVAER, LAGEN, liggarraderForEpost, loggFor, maskeradEpost, medlemsId, nivabyten, oversikt, sokMedlem, type Rad } from "@/lib/medlem/admin";
-import { lageAction, manuellNivaAction, sparrAction, taBortAction } from "./actions";
+import {
+  ORSAKSKODER,
+  NIVAER,
+  LAGEN,
+  foretagFor,
+  foretagsko,
+  liggarraderForEpost,
+  loggFor,
+  maskeradEpost,
+  medlemsId,
+  nivabyten,
+  oversikt,
+  sokMedlem,
+  type Rad,
+} from "@/lib/medlem/admin";
+import { offertko, senasteOfferter, type OffertIKon } from "@/lib/medlem/offert-admin";
+import { varorUtanMedlemspris, type FlaggadVara } from "@/lib/medlem/ej-medlemspris";
+import { ejMedlemsprisAction, foretagAction, lageAction, manuellNivaAction, offertAction, sparrAction, taBortAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +49,148 @@ function Orsaksfalt() {
       </select>{" "}
       <input name="orsakText" placeholder="Orsak (syns i loggen)" required minLength={5} maxLength={500} style={{ width: 280 }} />
     </>
+  );
+}
+
+const adress = (a: unknown) => {
+  const r = (a ?? {}) as Record<string, unknown>;
+  const p = typeof r.postnr === "string" && /^\d{5}$/.test(r.postnr) ? `${r.postnr.slice(0, 3)} ${r.postnr.slice(3)}` : text(r.postnr);
+  return r.gata ? `${text(r.gata)}, ${p} ${text(r.ort)}` : "–";
+};
+
+/**
+ * Bolagsverkets besked från butikens uppslag (butikens lib/medlem/bolagsverket.ts,
+ * sedan 2026-11-06): ett aktivt företag godkändes direkt (`beslutAv`), annars
+ * står orsaken här. Profiler från före uppslaget saknar fältet.
+ */
+function Bolagsverket({ profil }: { profil: Rad }) {
+  const k = (profil.bolagsverket ?? null) as Record<string, unknown> | null;
+  const stil = { margin: "0 0 6px", fontSize: 13, color: "#555" } as const;
+  if (!k) {
+    return (
+      <p style={stil}>
+        Kontrollera hos Bolagsverket att numret hör till namnet och att bolaget är aktivt (enskilda firmor finns inte alltid där).
+      </p>
+    );
+  }
+  const orsaker = Array.isArray(k.orsaker) ? k.orsaker.filter((o): o is string => typeof o === "string") : [];
+  const angivet = typeof profil.namnAngivet === "string" && profil.namnAngivet ? ` · kunden skrev "${profil.namnAngivet}"` : "";
+  if (profil.beslutAv === "bolagsverket") {
+    return (
+      <p style={stil}>
+        ✅ Godkänt direkt: aktivt hos Bolagsverket{typeof k.form === "string" ? ` (${k.form})` : ""}, registrerat namn{angivet}. Kontrollerat {dag(k.kontrollerad)}.
+      </p>
+    );
+  }
+  const utfall = k.utfall === "hittad" ? "hittat" : k.utfall === "saknas" ? "finns inte" : "uppslaget föll";
+  return (
+    <p style={stil}>
+      ⚠️ Bolagsverket: {utfall}
+      {typeof k.namn === "string" ? ` som "${k.namn}"` : ""}
+      {orsaker.length ? ` · ${orsaker.join(", ")}` : ""}
+      {angivet} · kontrollerat {dag(k.kontrollerad)}. Granska för hand.
+    </p>
+  );
+}
+
+/** Ett företags uppgifter och beslutsknapparna (E3). Hela numret syns bara här i admin. */
+function Foretaget({ profil, q, epost }: { profil: Rad; q: string; epost?: string }) {
+  const status = text(profil.status);
+  const id = text(profil.medlemsId);
+  return (
+    <div style={{ borderTop: "1px solid #eee", padding: "10px 0" }}>
+      <p style={{ margin: "0 0 6px" }}>
+        <b>{text(profil.namn)}</b> · {text(profil.orgnr)} ({profil.form === "enskild" ? "enskild firma, numret är ett personnummer" : "juridisk person"}) ·
+        status <b>{status}</b> · ansökt {dag(profil.ansokt)}
+        {profil.beslutad ? ` · beslut ${dag(profil.beslutad)}` : ""} · villkor v{text(profil.villkorVersion)}
+        {epost ? (
+          <>
+            {" "}
+            · konto <a href={`/admin/medlemmar?q=${encodeURIComponent(epost)}`}>{epost}</a>
+          </>
+        ) : null}
+      </p>
+      <p style={{ margin: "0 0 6px", fontSize: 13, color: "#555" }}>
+        Faktura: {adress(profil.faktura)}
+        {profil.leverans ? ` · Leverans: ${adress(profil.leverans)}` : " · Leverans till fakturaadressen"}
+      </p>
+      <Bolagsverket profil={profil} />
+      {status !== "aktiv" ? (
+        <form action={foretagAction} style={{ display: "inline-block", marginRight: 12 }}>
+          <input type="hidden" name="id" value={id} />
+          <input type="hidden" name="q" value={q} />
+          <input type="hidden" name="beslut" value="aktiv" />
+          <Orsaksfalt /> <button type="submit">Godkänn</button>
+        </form>
+      ) : null}
+      {status !== "nekad" ? (
+        <form action={foretagAction} style={{ display: "inline-block", marginTop: 6 }}>
+          <input type="hidden" name="id" value={id} />
+          <input type="hidden" name="q" value={q} />
+          <input type="hidden" name="beslut" value="nekad" />
+          <Orsaksfalt /> <button type="submit">{status === "aktiv" ? "Återkalla" : "Neka"}</button>
+        </form>
+      ) : null}
+    </div>
+  );
+}
+
+const krTal = (ore: number) => (ore / 100).toLocaleString("sv-SE", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+
+/** En förfrågan med listpris och golv per rad, och prisfälten (E3-10). */
+function Offerten({ o, q }: { o: OffertIKon; q: string }) {
+  const lista = o.rader.reduce((s, r) => s + r.aOre * r.antal, 0);
+  return (
+    <div style={{ borderTop: "1px solid #eee", padding: "10px 0" }}>
+      <p style={{ margin: "0 0 6px" }}>
+        <b>{o.foretagNamn || "Företag"}</b> · begärd {dag(o.skapad)} · listpris {kr(lista)} inkl. moms
+        {o.epost ? (
+          <>
+            {" "}
+            · konto <a href={`/admin/medlemmar?q=${encodeURIComponent(o.epost)}`}>{o.epost}</a>
+          </>
+        ) : null}
+      </p>
+      {o.meddelande ? <p style={{ margin: "0 0 6px", fontStyle: "italic" }}>”{o.meddelande}”</p> : null}
+      <form action={offertAction}>
+        <input type="hidden" name="id" value={o.id} />
+        <input type="hidden" name="q" value={q} />
+        <input type="hidden" name="beslut" value="prissatt" />
+        <table style={TABELL}>
+          <thead>
+            <tr>
+              <th style={CELL}>Vara</th>
+              <th style={CELL}>Antal</th>
+              <th style={CELL}>Listpris/st</th>
+              <th style={CELL}>Golv/st</th>
+              <th style={CELL}>Offertpris/st inkl. moms (kr)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {o.rader.map((r, i) => (
+              <tr key={`${r.produktId}-${i}`}>
+                <td style={CELL}>{r.namn}</td>
+                <td style={CELL}>{r.antal}</td>
+                <td style={CELL}>{kr(r.aOre)}</td>
+                <td style={CELL}>{r.golvOre === null ? "saknas (bara listpris)" : kr(r.golvOre)}</td>
+                <td style={CELL}>
+                  <input name={`pris_${i}`} defaultValue={krTal(r.aOre)} required style={{ width: 110 }} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p style={{ margin: "8px 0" }}>
+          <Orsaksfalt /> <button type="submit">Skicka offerten (gäller 14 dagar)</button>
+        </p>
+      </form>
+      <form action={offertAction}>
+        <input type="hidden" name="id" value={o.id} />
+        <input type="hidden" name="q" value={q} />
+        <input type="hidden" name="beslut" value="avboj" />
+        <Orsaksfalt /> <button type="submit">Avböj</button>
+      </form>
+    </div>
   );
 }
 
@@ -73,13 +231,24 @@ export default async function Medlemmar({ searchParams }: { searchParams: Promis
   const sp = await searchParams;
   const q = (sp.q ?? "").trim();
   const meddelande = sp.m ?? "";
-  const o = await oversikt();
+  const [o, ko, offerter, senaste, flaggade] = await Promise.all([
+    oversikt(),
+    foretagsko(),
+    offertko().catch(() => [] as OffertIKon[]),
+    senasteOfferter().catch(() => [] as Rad[]),
+    varorUtanMedlemspris().catch(() => null as FlaggadVara[] | null),
+  ]);
   const sok = q ? await sokMedlem(q) : null;
   const medlem = sok?.medlem ?? null;
   const id = medlem ? String(medlem._id) : sok?.epost ? medlemsId(sok.epost) : "";
-  const [rader, byten, logg] = sok?.epost
-    ? await Promise.all([liggarraderForEpost(sok.epost), medlem ? nivabyten(id) : Promise.resolve([]), loggFor({ medlemsId: id }, 30)])
-    : [[], [], []];
+  const [rader, byten, logg, foretag] = sok?.epost
+    ? await Promise.all([
+        liggarraderForEpost(sok.epost),
+        medlem ? nivabyten(id) : Promise.resolve([]),
+        loggFor({ medlemsId: id }, 30),
+        medlem ? foretagFor(id) : Promise.resolve(null),
+      ])
+    : [[], [], [], null];
 
   return (
     <main style={{ padding: 24, maxWidth: 1100, fontFamily: "system-ui, sans-serif" }}>
@@ -116,11 +285,104 @@ export default async function Medlemmar({ searchParams }: { searchParams: Promis
         <Logg rader={o.avvikelser} />
       </section>
 
+      <section style={KORT} id="foretag">
+        <h2 style={{ marginTop: 0 }}>Företag att granska ({ko.length})</h2>
+        {ko.length ? (
+          ko.map(({ profil, epost }) => <Foretaget key={String(profil._id)} profil={profil} q={q} epost={epost} />)
+        ) : (
+          <p style={{ color: "#666" }}>Inga företag väntar. Butiken mejlar info@ när en ansökan kommer in.</p>
+        )}
+      </section>
+
+      <section style={KORT} id="offerter">
+        <h2 style={{ marginTop: 0 }}>Offerter att prissätta ({offerter.length})</h2>
+        <p style={{ color: "#555", fontSize: 13 }}>
+          Priset skrivs per styck inkl. moms. Aldrig under golvet och aldrig över listpriset; en vara utan golv får bara
+          listpriset. Offerten gäller i 14 dagar, och kunden får ett mejl inom en timme.
+        </p>
+        {offerter.length ? offerter.map((x) => <Offerten key={x.id} o={x} q={q} />) : <p style={{ color: "#666" }}>Inga förfrågningar väntar.</p>}
+        {senaste.length ? (
+          <>
+            <h3>Senaste offerterna</h3>
+            <table style={TABELL}>
+              <thead>
+                <tr>
+                  <th style={CELL}>Begärd</th>
+                  <th style={CELL}>Företag</th>
+                  <th style={CELL}>Status</th>
+                  <th style={CELL}>Gäller till</th>
+                </tr>
+              </thead>
+              <tbody>
+                {senaste.map((x) => (
+                  <tr key={String(x._id)}>
+                    <td style={CELL}>{dag(x.skapad)}</td>
+                    <td style={CELL}>{text(x.foretagNamn)}</td>
+                    <td style={CELL}>{text(x.status)}</td>
+                    <td style={CELL}>{dag(x.giltigTill)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
+        ) : null}
+      </section>
+
+      <section style={KORT} id="ej-medlemspris">
+        <h2 style={{ marginTop: 0 }}>Varor utan medlemspris ({flaggade ? flaggade.length : "?"})</h2>
+        <p style={{ color: "#555", fontSize: 13 }}>
+          En flaggad vara får aldrig medlemspris: golvrutten ger den inget golv, och butiken visar listpriset. AliExpress-varor,
+          levande fynd, reavaror och varor utan känd kostnad är redan undantagna och behöver ingen flagga.
+        </p>
+        {flaggade === null ? (
+          <p style={{ color: "#b91c1c" }}>Listan gick inte att läsa just nu.</p>
+        ) : flaggade.length ? (
+          <table style={TABELL}>
+            <thead>
+              <tr>
+                <th style={CELL}>Vara</th>
+                <th style={CELL}>Leverantör</th>
+                <th style={CELL}>Ta bort flaggan</th>
+              </tr>
+            </thead>
+            <tbody>
+              {flaggade.map((v) => (
+                <tr key={v.wixProductId}>
+                  <td style={CELL}>
+                    {v.namn || "(ej polerad)"}
+                    <br />
+                    <code style={{ fontSize: 12 }}>{v.wixProductId}</code>
+                  </td>
+                  <td style={CELL}>{text(v.leverantor)}</td>
+                  <td style={CELL}>
+                    <form action={ejMedlemsprisAction}>
+                      <input type="hidden" name="q" value={q} />
+                      <input type="hidden" name="produkt" value={v.wixProductId} />
+                      <input type="hidden" name="ej" value="0" />
+                      <Orsaksfalt /> <button type="submit">Ge medlemspris igen</button>
+                    </form>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p style={{ color: "#666" }}>Ingen vara är flaggad.</p>
+        )}
+        <h3>Flagga en vara</h3>
+        <form action={ejMedlemsprisAction}>
+          <input type="hidden" name="q" value={q} />
+          <input type="hidden" name="ej" value="1" />
+          <input name="produkt" placeholder="Produktens id i Wix, eller adressen i Wix-panelen" required style={{ width: 360 }} /> <Orsaksfalt />{" "}
+          <button type="submit">Flagga</button>
+        </form>
+      </section>
+
       <form method="get" style={{ margin: "16px 0" }}>
-        <input name="q" defaultValue={q} placeholder="E-post eller ordernummer" style={{ width: 320 }} /> <button type="submit">Sök</button>
+        <input name="q" defaultValue={q} placeholder="E-post, ordernummer eller organisationsnummer" style={{ width: 360 }} /> <button type="submit">Sök</button>
       </form>
 
-      {q && !sok?.epost ? <p>Ingen träff. Sök på hela e-postadressen eller ett ordernummer.</p> : null}
+      {q && !sok?.epost ? <p>Ingen träff. Sök på hela e-postadressen, ett ordernummer eller ett organisationsnummer.</p> : null}
 
       {sok?.epost ? (
         <section style={KORT}>
@@ -153,6 +415,8 @@ export default async function Medlemmar({ searchParams }: { searchParams: Promis
                 <input name="till" placeholder="Till och med ÅÅÅÅ-MM-DD (valfritt)" style={{ width: 230 }} /> <Orsaksfalt />{" "}
                 <button type="submit">Spara</button>
               </form>
+              <h3>Företag</h3>
+              {foretag && foretag.typ === "foretag" ? <Foretaget profil={foretag} q={q} /> : <p style={{ color: "#666" }}>Inget företag på kontot.</p>}
               <h3>Spärra eller ta bort</h3>
               <form action={sparrAction} style={{ marginBottom: 8 }}>
                 <input type="hidden" name="id" value={id} />

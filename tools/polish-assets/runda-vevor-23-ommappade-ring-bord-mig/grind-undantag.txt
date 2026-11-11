@@ -1,0 +1,7 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan är VEVOR:s svenska utkast med Produktmått, Produktstorlek eller Mått utan axelord (eller med axelbokstäver i etiketten), och ingen tysk totalmåttrad att bygga ett facit ur; måtten står som i källan utan axelord i texten
+gate-lager.py saldot 0 är sidans gamla (slutsåld sedan 2026-09-15, den gamla synken är avstängd); sidan är ommappad till VEVOR-artikeln, vars utkast bär saldo 37, och VEVOR-synken skriver det när artikeln läses nästa gång
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan är VEVOR:s svenska utkast med Produktmått, Produktstorlek eller Mått utan axelord (eller med axelbokstäver i etiketten), och ingen tysk totalmåttrad att bygga ett facit ur; måtten står som i källan utan axelord i texten
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan är VEVOR:s svenska utkast med Produktmått, Produktstorlek eller Mått utan axelord (eller med axelbokstäver i etiketten), och ingen tysk totalmåttrad att bygga ett facit ur; måtten står som i källan utan axelord i texten

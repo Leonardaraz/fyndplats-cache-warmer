@@ -1,0 +1,29 @@
+{
+ "namn": "vevor-leksak-22",
+ "rader": [
+  {
+   "kort": "ea4d297c",
+   "pid": "ea4d297c-8aff-411c-a94f-39bdaeddb50c",
+   "bort": [
+    "Sport & Fritid",
+    "Sport & Fritid > Bollsport"
+   ],
+   "behall": [
+    "Barn & Familj",
+    "Barn & Familj > Leksaker & Spel"
+   ]
+  },
+  {
+   "kort": "6753275a",
+   "pid": "6753275a-5392-40db-8fab-a24af8dfd1ed",
+   "bort": [
+    "Sport & Fritid",
+    "Sport & Fritid > Bollsport"
+   ],
+   "behall": [
+    "Barn & Familj",
+    "Barn & Familj > Leksaker & Spel"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 12,68 x 10,24 x 6,50 tum / 322 x 260 x 165 mm utan axelord, men måttbilden (bild 7) ritar 12,68 in / 322 mm som bredden med handtagen, 10,24 in / 260 mm som djupet (diametern) och 6,5 in / 165 mm som höjden med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Innermått 11,8 x 13,0 tum / 300 x 330 mm utan axelord och med bara två mått, men måttbilden (bild 7) ritar 11,8 in / 300 mm som bredden och 13,0 in / 330 mm som höjden med pilar: texten skriver diameter och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Innermått 315 x 420 mm utan axelord och med bara två mått, men måttbilden (bild 7) ritar 12,4 in / 315 mm som bredden och 16,5 in / 420 mm som höjden med pilar: texten skriver diameter och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Tangentbordsfackets storlek 9,8 x 25 tum / 250 x 635 mm utan axelord och med bara två mått, men måttbilden (bild 3) ritar 25 in / 635 mm som längden och 9,8 in / 250 mm som djupet med pilar: texten skriver längd och djup, med det lägre måttet 230 mm för djupet (utkastets text anger 65 x 23 cm)
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek 47,2 x 22,8 x 30 tum / 120 x 58 x 76 cm utan axelord, men måttbilden (bild 7) ritar 47,2 in / 120 cm som längden, 22,8 in / 58 cm som bredden och 30 in / 76 cm som höjden med pilar: texten skriver längd, bredd och höjd ur ritningen

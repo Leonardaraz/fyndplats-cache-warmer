@@ -1,0 +1,3 @@
+# <kort> <pos1> <pos2> <skäl> (i samma sida) eller <kort1>:<pos1> <kort2>:<pos2> <skäl> (mellan sidor)
+c90ace0a 3 5 samma vinkel snett framifrån med dörrfliken nedfälld: den ena bilden har färgglada bollar på golvet och den andra är tom
+0e9eb766:5 6d568414:5 samma vinkel på två olika klockspel: 32 respektive 30 toner, alltså olika antal tangenter

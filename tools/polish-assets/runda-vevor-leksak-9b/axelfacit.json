@@ -1,0 +1,25 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "1907df26": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "709bbeaa": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "71468dce": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "b547ab50": {
+  "tyska": "φ11.8 in / φ300 mm; Bucket Adjustable Height: up to 12.2 in / 310 mm; Ball Dimensions: φ2.76 in / φ70 mm; Flag Stick Dimensions: φ0.3 x 59.45 in / φ7.7 x 1510 mm (Four Sections for Folding / Connecting); Tee Box Size: φ7.48 x 1.89 in / φ190 x 48 mm; Flag Dimensions: 9.45 x 6.89 in / 240 x 175 mm",
+  "svenska": "",
+  "axelkalla": "engelska raden 'Bucket Dimensions' (källan är engelsk och etiketten bar ett bestämningsord)"
+ },
+ "e12189ca": {
+  "tyska": "20.08 x 9.84 x 17.72 in / 51 x 25 x 45 cm; Load Capacity: 48.5 lbs / 22 kg; Product Weight: 3.41 lbs / 1.55 kg; Material: PP; Color: Multicolored",
+  "svenska": "",
+  "axelkalla": "engelska raden 'Product Dimensions' (källan är engelsk och etiketten bar ett bestämningsord)"
+ }
+}

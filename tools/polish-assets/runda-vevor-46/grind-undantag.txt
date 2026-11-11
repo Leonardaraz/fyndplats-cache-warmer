@@ -1,0 +1,8 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 80 x 37,5 x 80 cm och fackmåtten 76 x 27,5 x 29 cm och 76 x 27,5 x 28 cm utan axelord, men måttbilden (bild 3) ritar 80 cm som bredd längs framkanten, 37,5 cm som djup och 80 cm som höjd med pilar, och facken som 29 cm och 28 cm höga och 27,5 cm djupa: texten skriver bredd, djup och höjd ur ritningen, och 76 cm som fackens bredd eftersom det är den axel som återstår
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har raderna Fackmått 138 x 115 x 71 mm och Artikelmått 503 x 165 x 117 mm utan axelord, men måttbilden (bild 7) ritar 503 mm som längd längs brickan, 165 mm som bredd och 117 mm som höjd med pilar, och facket som 128 mm, 100 mm och 70 mm: texten skriver längd, bredd och höjd ur ritningen, med det lägre talet per axel för facket (138 mot 128, 115 mot 100, 71 mot 70)
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (diameter) 8,6" x 14,8" / 218 x 376 mm, men måttbilden (bild 7) ritar 218 mm som diameter längs botten och 376 mm som höjd med pilar: texten skriver diameter och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek 660 x 200 mm utan axelord, men måttbilden (bild 7) ritar 26 in (660 mm) som diameter längs basen och 7,9 in (200 mm) som höjd med pilar, och bilden om uppblåsning anger att bollen är färdigt uppblåst vid 20 cm höjd: texten skriver diameter och höjd ur ritningen

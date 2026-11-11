@@ -1,4 +1,4 @@
-// ☠️ En migrerad kollektion nås BARA genom storen.
+// ☠️ En drift-kollektion nås BARA genom sin ägare.
 //
 // VARFÖR DET HÄR TESTET FINNS. `/api/tracking-events` hade en egen
 // fetch-helper mot `POST /wix-data/v2/items/query` med
@@ -15,52 +15,49 @@
 // Samma form som `backend.test.ts` (STORE_BACKEND har exakt en läsare) och av
 // samma skäl som `SHIP_AXIS_RE` och `EU_TULL_CODES` har varsitt tvillingtest:
 // huset går sönder när samma sanning bor på två ställen.
+//
+// Efter flytten tillbaka till Wix (2026-10-29) och Postgres-vägens borttagning
+// (2026-11-05) är kollektionerna inte tomma längre, men regeln står kvar: en
+// läsare vid sidan av ägaren byter inte lager, format eller markörregler när
+// ägaren gör det. Listan nedan stod förut i lib/db/tabeller.ts (Postgres-kartan).
 
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { join } from "node:path";
-import { ATT_KOPIERA, LLM_SAMLINGAR } from "@/lib/db/tabeller";
 
 const ROT = join(__dirname, "..", "..");
 
 /**
- * Modulerna som ÄGER varsin flyttad kollektion och därför måste kunna nämna
- * den. Alla fyra väljer backend via `lib/store/backend.ts`; det är dem hela
- * migreringen gick ut på att växla.
+ * Modulerna som ÄGER varsin drift-kollektion och därför måste kunna nämna
+ * den. De väljer lager via `lib/store/backend.ts` (Wix, eller minnet i test).
  */
 const ÄGARE = [
   "lib/store/wix-data.ts",
-  "lib/store/postgres.ts",
   "lib/store/product-hashes.ts",
   "lib/store/import-costs.ts",
   "lib/sync/sync-log.ts",
   "lib/llm/storage.ts",
-  // ☠️ Recensionslagret ÄGER FyndplatsImportedReviews och måste behålla sin
-  // Wix-väg, till skillnad från de övriga ägarna vars kollektioner redan är
-  // tömda. Två skäl, och båda upphör först vid raderingen:
-  //   1. Butiksrepot läser fortfarande kollektionen DIREKT (lib/reviews.ts och
-  //      lib/review-aggregates.ts på grenen headless-site). Raderna finns
-  //      alltså kvar och är inte tomma.
-  //   2. Wix-vägen är kopieringens KÄLLA och tills vidare vägen tillbaka.
-  // Filen är därför ägare, inte ett brott. När butiken följt med och raderingen
-  // är gjord kan Wix-klassen tas bort helt — och då fäller det här testet om
-  // någon lämnat kvar en läsare.
+  // Recensionerna och auktionerna. Butiken läser båda via motorns rutter
+  // (/api/reviews/*, /api/auctions/*), aldrig kollektionerna direkt.
   "lib/store/reviews.ts",
-  // Auktionerna, av samma två skäl som recensionerna: Wix-vägen är
-  // kopieringens källa och lagret fram till AUCTIONS_BACKEND=postgres.
-  // Butiken läser inte längre kollektionen själv — den går via
-  // /api/auctions/* — så ägaren här är den enda som talar med Wix om den.
   "lib/auction/store.ts",
-  // Definitionslistan i sig, plus migreringens egna verktyg: de SKA tala med
-  // Wix, det är hela deras uppgift.
-  "lib/db/tabeller.ts",
-  "lib/migration/radera-wix.ts",
-  "lib/migration/copy-to-postgres.ts",
 ];
 
-/** Rutter som skapar kollektionerna. De rör scheman, aldrig rader. */
-const UNDANTAG = ["app/api/admin/ensure-collections/route.ts"];
+/**
+ * Filer som får nämna en drift-kollektion ändå, var och en med sitt skäl.
+ *
+ *   - Rutten som skapar kollektionerna rör scheman, aldrig rader.
+ *   - `tools/polish-kedja/hamta_vevor.js` är ingen modul utan en MALL för ett
+ *     ExecuteWixAPI-anrop i poleringschatten (steg 2 i VEVOR-poleringen). Den
+ *     körs i Wix egen sandlåda, där getStore() inte finns, och den läser bara
+ *     (`hasMutations: false`). Byter ägaren lager eller format måste mallen
+ *     skrivas om för hand — därför står den här med namn, inte som en katalog.
+ */
+const UNDANTAG = [
+  "app/api/admin/ensure-collections/route.ts",
+  "tools/polish-kedja/hamta_vevor.js",
+];
 
 // ☠️ scripts/ VAR UNDANTAGET, och undantaget dolde tre filer i tre dygn.
 //
@@ -85,14 +82,31 @@ function källfiler(): string[] {
     .filter((f) => !ÄGARE.includes(f) && !UNDANTAG.includes(f));
 }
 
-/** Kollektionsnamnen som flyttat till Postgres och alltså är TOMMA i Wix. */
-const FLYTTADE = [...ATT_KOPIERA.map((s) => s.kollektion), ...LLM_SAMLINGAR];
+/** Drift-kollektionerna och deras miljönamn (WIX_DATA_COL_…), där det finns ett. */
+const KOLLEKTIONER: [string, string | null][] = [
+  ["FyndplatsMappings", "WIX_DATA_COL_MAPPINGS"],
+  ["FyndplatsTasks", "WIX_DATA_COL_TASKS"],
+  ["FyndplatsWebhookEvents", "WIX_DATA_COL_WEBHOOK_EVENTS"],
+  ["FyndplatsAudit", "WIX_DATA_COL_AUDIT"],
+  ["FyndplatsAliExpressSyncLog", "WIX_DATA_COL_SYNC_LOG"],
+  ["FyndplatsAliExpressSyncState", "WIX_DATA_COL_SYNC_STATE"],
+  ["FyndplatsAliExpressSyncAlerts", "WIX_DATA_COL_SYNC_ALERTS"],
+  ["FyndplatsProductHashes", "WIX_DATA_COL_PRODUCT_HASHES"],
+  ["FyndplatsImportCosts", "WIX_DATA_COL_IMPORT_COSTS"],
+  ["FyndplatsImportedReviews", "WIX_DATA_COL_REVIEWS"],
+  ["FyndplatsAuctions", "WIX_DATA_COL_AUCTIONS"],
+  ["FyndplatsClaudeCache", null],
+  ["FyndplatsAnthropicSpend", null],
+  ["FyndplatsLlmStats", null],
+  ["FyndplatsVariantTranslations", null],
+];
+const FLYTTADE = KOLLEKTIONER.map(([k]) => k);
 
 /** Ett Wix Data-anrop, oavsett vilken hjälpare som byggde adressen. */
 const WIX_DATA_ANROP = /wix-data\/v2\/(items|bulk)|dataCollectionId/;
 
-describe("☠️ ingen kod utanför storen talar Wix Data om en flyttad kollektion", () => {
-  it("listan över flyttade kollektioner är inte tom (annars mäter testet ingenting)", () => {
+describe("☠️ ingen kod utanför ägaren talar Wix Data om en drift-kollektion", () => {
+  it("listan över kollektionerna är inte tom (annars mäter testet ingenting)", () => {
     expect(FLYTTADE.length).toBeGreaterThan(5);
     expect(FLYTTADE).toContain("FyndplatsTasks");
     expect(FLYTTADE).toContain("FyndplatsMappings");
@@ -126,15 +140,15 @@ describe("☠️ ingen kod utanför storen talar Wix Data om en flyttad kollekti
 
     expect(
       brott,
-      "Kollektionen är TOM i Wix sedan migreringen — ett anrop dit svarar 200 med "
-        + "noll rader, alltså tyst fel. Gå via lib/store/factory.ts (getStore()) i "
-        + "stället.\n" + brott.join("\n"),
+      "Kollektionen har en ägare — ett eget anrop dit följer inte med när ägaren "
+        + "byter format eller lager. Gå via lib/store/factory.ts (getStore()) eller "
+        + "ägarmodulen i stället.\n" + brott.join("\n"),
     ).toEqual([]);
   });
 });
 
 /** `FyndplatsTasks` → `WIX_DATA_COL_TASKS`: fångar den som läser env-namnet. */
 function kollektionsEnvFör(kollektion: string): string {
-  const spec = ATT_KOPIERA.find((s) => s.kollektion === kollektion);
-  return spec ? `WIX_DATA_COL_${spec.tabell.toUpperCase()}` : `__saknas_${kollektion}`;
+  const env = KOLLEKTIONER.find(([k]) => k === kollektion)?.[1];
+  return env ?? `__saknas_${kollektion}`;
 }

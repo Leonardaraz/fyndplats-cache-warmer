@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans mått har inga axelord (bagagemattan 1470 x 485 mm, ryggstödsmattorna 690 x 445 och 690 x 700 mm, bara tal); texten skriver måtten som på VEVOR:s måttbild, bredd före höjd för ryggstödsmattorna
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad har inga axelord (1455 x 940 mm, bara tal); texten skriver måtten i samma ordning som källan
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad har inga axelord (1650 x 1550 x 45 mm, bara tal); texten skriver längd och bredd som på VEVOR:s måttbild, där 1650 mm är längden
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad har inga axelord (1138 x 244 x 49 mm, bara tal); texten skriver bredden 1138 mm som på VEVOR:s måttbild och måtten i källans ordning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad har inga axelord (1340 x 180 x 46,5 mm, bara tal); texten skriver bredden 1340 mm som på VEVOR:s måttbild och måtten i källans ordning

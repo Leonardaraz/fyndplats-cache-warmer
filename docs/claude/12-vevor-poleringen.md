@@ -41,3 +41,6 @@ Tre ändringar i koden samma dag:
      `lib/polish/modellnummer.ts`, som importen, verktyget och skrivplanen läser) fäller
      etiketten. Vårt eget `FP-…` efter *Artikelnummer* och en modell med ord får stå. Numret
      i löpande text ser grinden inte.
+   - **Fotona är undantagna** *(Leonard 2026-11-02)*: en etikett eller typskylt på själva
+     varan, med modellbeteckning och serienummer, får stå kvar i en produktbild. Spärrarna
+     ovan gäller text, tabell, namn och alt-text.

@@ -1,0 +1,18 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Borsthuvudets storlek 320 x 103 mm utan axelord: texten skriver raden som Borsthuvudets mått utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek 252 x 190 mm utan axelord: texten skriver raden som Mått med orden diameter och höjd
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Mått (L x B x H) 565 x 386 x 95 mm med bokstäverna i etiketten och inte vid talen: texten skriver raden som Mått (L × B × H) utan axelord vid talen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Mått 600 x 320 x 500 mm utan axelord: texten skriver raden som Mått (B x D x H)
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (per styck) 160 x 235 x 280 mm utan axelord: texten skriver raden som Mått per fäste utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 85 x 62 x 30 mm utan axelord: texten skriver raden som Mått per gångjärn utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 45 x 45 x 22,6 tum / 1140 x 1140 x 575 mm utan axelord: texten skriver raden som Mått utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek 38,2 x 11,4 x 20 tum / 97 x 29 x 50 cm utan axelord: texten skriver raden som Mått (L x D x H) enligt måttritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 200 x 125 x 350 mm utan axelord: texten skriver raden som Mått utan axelord

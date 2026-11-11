@@ -1,0 +1,29 @@
+{
+ "namn": "vevor-9",
+ "rader": [
+  {
+   "kort": "967b90fd",
+   "pid": "967b90fd-304a-4544-9e79-82ec63d531c1",
+   "bort": [
+    "Företag & Proffs",
+    "Företag & Proffs > Butik, evenemang & trafik"
+   ],
+   "behall": [
+    "Bygg & Renovering",
+    "Bygg & Renovering > Trall & räcken"
+   ]
+  },
+  {
+   "kort": "63cf96b6",
+   "pid": "63cf96b6-7c4c-4432-a4c4-c508a9e1c0f8",
+   "bort": [
+    "Företag & Proffs",
+    "Företag & Proffs > Butik, evenemang & trafik"
+   ],
+   "behall": [
+    "Bygg & Renovering",
+    "Bygg & Renovering > Trall & räcken"
+   ]
+  }
+ ]
+}

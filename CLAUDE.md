@@ -197,6 +197,7 @@ underrubrik.
   - Familjeregeln: bara färg, storlek, längd och förpackning delar en sida (2026-10-30)
   - Varje färg får sina egna bilder (2026-10-30)
   - Radera och börja om
+  - Syskon som importen inte slog ihop: VEVOR-sammanslagningen (2026-11-07)
 - `12-vevor-poleringen.md`: VEVOR-poleringen (2026-10-30)
 - `13-vevor-kategorierna.md`: VEVOR: kategorierna (2026-10-31)
 - `14-prissattningen.md`: Prissättningen är marknadskalibrerad, inte påhittad (`FyndplatsPricingConfig`)
@@ -266,8 +267,9 @@ underrubrik.
   - Aosom-ordern har ingen automatik alls — den läggs OCH skeppas för hand
   - ☠️ Ett fullt CMS gör importen till en dubblettfabrik
 - `40-flytten-tillbaka-till-wix.md`: Flytten tillbaka till Wix CMS (Elite, 2026-10-29)
-- `41-drift-datan-i-postgres.md`: ☠️ Drift-datan bor i Postgres sedan 2026-08-31 — inte i Wix Data
-  - Var datan bor nu
+  - Avslutet 2026-11-05: sista delta och Postgres-vägarna borta
+- `41-drift-datan-i-postgres.md`: ☠️ Drift-datan bodde i Postgres 2026-08-31 till 2026-10-29 (historik)
+  - Var datan bodde 2026-08-31 till 2026-10-29
   - Fem egenskaper som inte ska tas bort
   - Kopiering och verifiering körs från GitHub Actions
   - ☠️ Verifieringen fällde en halvtimme efter växlingen — och hade rätt fel
@@ -276,7 +278,7 @@ underrubrik.
   - ☠️ Och två fällor till i samma block (2026-09-02)
   - Så såg resonemanget ut innan raderingen
   - ☠️ Och den bröt kundens spårningssida — en läsare auditen inte kunde se
-- `42-fyndauktionen-i-postgres.md`: Fyndauktionen flyttar till Postgres (`AUCTIONS_BACKEND`, 2026-09-29)
+- `42-fyndauktionen-i-postgres.md`: Fyndauktionen bodde i Postgres 2026-09-30 till 2026-10-29 (historik)
 - `43-recensioner-fran-aliexpress.md`: Recensioner: hämtas server-side från AliExpress, översätts i chatten
   - Vad som faktiskt gallrar — mätt 2026-08-25
   - Så körs den
@@ -294,6 +296,8 @@ underrubrik.
   - E1: konto, orderliggare och Mina sidor (butiken)
   - Admin: /admin/medlemmar (motorn)
   - Wix-gränser som styr formen
+  - E2: golvet ur motorn (`/api/medlem/golv`)
+  - E3: företagen i kön (motorn)
   - Kvar till E2
 - `44-mediainventering.md`: Mediainventering: "utan katalogreferens" är inte "oanvänd"
 - `45-fyndauktionens-antal-och-sparr.md`: Fyndauktionen: tio fynd om dagen och 30-dagarsspärren (2026-11-04)

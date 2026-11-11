@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Topp 355 x 110 mm och Bas 210 x 150 mm utan axelord, men måttbilden (bild 7) ritar toppen som 14 in × 4,3 in och längden 21,3 in / 540 mm, bredden 6 in och höjden 6,3 in / 160 mm med pilar: texten skriver toppens längd × bredd och städets längd, bredd och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek 1260 x 1210 x 1250 mm utan axelord, men måttbilden (bild 7) ritar 49,6 in / 1260 mm som bredd, 47,6 in / 1210 mm som djup och 49,2 in / 1250 mm som höjd med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek 56 x 35 x 23 tum / 1422 x 893 x 591 mm utan axelord, men måttbilden (bild 7) ritar 56 in / 1422 mm som längd, 35 in / 893 mm som höjd och 23 in / 591 mm som bredd med pilar: texten skriver längd, bredd och höjd (1422 × 591 × 893 mm) ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 29,7×15,6×30,7 tum/765×395×780 mm utan axelord, men måttbilden (bild 7) ritar 30,1 in / 765 mm som bredd, 15,6 in / 395 mm som djup och 30,7 in / 780 mm som höjd med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 600 x 900 x 910 mm utan axelord, men måttbilden (bild 7) ritar 23,62 in / 600 mm och 35,43 in / 900 mm som skivans sidor och 35,83 in / 910 mm som höjd med pilar: texten skriver bredd, djup och höjd ur ritningen

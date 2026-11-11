@@ -1,0 +1,64 @@
+{
+  "namn": "vevor-1",
+  "rader": [
+    {
+      "kort": "3aa888bf",
+      "pid": "3aa888bf-4e4d-41c4-b4c9-6ecd44b64c19",
+      "bort": [
+        "Kök & Husgeråd > Miniugnar & airfryers"
+      ],
+      "behall": [
+        "Kök & Husgeråd",
+        "Kök & Husgeråd > Köksmaskiner & Apparater"
+      ]
+    },
+    {
+      "kort": "5cccca67",
+      "pid": "5cccca67-4b2d-4fc0-8ff1-89c26c2fa270",
+      "bort": [
+        "Möbler > TV-bänkar"
+      ],
+      "behall": [
+        "Möbler",
+        "Möbler > Bokhyllor",
+        "Hem & Inredning",
+        "Hem & Inredning > Förvaring & Organisering"
+      ]
+    },
+    {
+      "kort": "92b8baec",
+      "pid": "92b8baec-9c3a-4615-84c5-14349b6b3571",
+      "bort": [
+        "Trädgård & Utemöbler"
+      ],
+      "behall": [
+        "Kök & Husgeråd",
+        "Kök & Husgeråd > Köksredskap & Tillbehör",
+        "Trädgård & Utemöbler > Grill & Utekök"
+      ]
+    },
+    {
+      "kort": "421a8fa8",
+      "pid": "421a8fa8-a28f-44a3-ba27-9ded7f276a24",
+      "bort": [
+        "Hem & Inredning > Dekoration & Prydnad"
+      ],
+      "behall": [
+        "Hem & Inredning",
+        "Hem & Inredning > Förvaring & Organisering"
+      ]
+    },
+    {
+      "kort": "76175ccf",
+      "pid": "76175ccf-c048-4bb9-b7c6-22ca9320615b",
+      "bort": [
+        "Bygg & Renovering",
+        "Bygg & Renovering > Beslag & järnvaror"
+      ],
+      "behall": [
+        "Kök & Husgeråd",
+        "Kök & Husgeråd > Servering & Glas"
+      ]
+    }
+  ]
+}

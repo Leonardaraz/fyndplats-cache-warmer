@@ -316,3 +316,58 @@ med betyg (utkasten och katalogen läses en gång per dygn), och kör en torr
 `prov` i "VEVOR — importen" (`betyg_okant` ska vara nära noll och `familjer`
 över noll). Kör sedan `plan`, `radera` med planens antal, `plan` igen
 (raderbara ska vara 0), och sist importen `pa` med Leonards ja.
+
+### Syskon som importen inte slog ihop: VEVOR-sammanslagningen (2026-11-07)
+
+Leonard 2026-11-07: *"Ja gör det"*. Importen slår bara ihop syskon som VEVOR länkar eller som
+delar SPU. Andra syskon blev egna utkast: samma vara i en annan storlek, färg, längd eller
+förpackning. Workflowen **"VEVOR — lägg ett syskon som färg, storlek, längd eller förpackning på
+en annan VEVOR-sida"** (`plan` · `byt`) → `/api/admin/vevor-sammanslagning` →
+`lib/vevor/sammanslagning.ts` gör ett sådant utkast till en variant på en annan VEVOR-sida, en
+givare per körning. Förlagan är Aosoms verktyg (`lib/aosom/sammanslagning.ts`,
+`docs/polish/syskon.md`) och handmetoden från bordsdukarna (`docs/polish/vevor.md`). Värdena
+anges som `Storlek=813 mm` eller `Färg=Grå; Storlek=120 cm`, och sidans värde bara på en axel
+sidan får för första gången.
+
+Sju egenskaper som inte ska tas bort:
+
+1. ☠️ **Familjeregeln styr.** Varje axel klassas efter sammanslagningen (`axelklass`), och
+   `funktion` eller `oklar` stoppar (`familjeregeln_funktion:<axel>`,
+   `familjeregeln_oklar:<axel>`). En rad i specifikationen som visar att varorna fungerar olika,
+   jämförd mellan givarens avläsning och varje artikel på sidan (`arFunktionsrad`), stoppar
+   också (`funktion_skiljer:<etikett>`). Artikelns egna rader (modell, artikelnummer, vikt,
+   förpackning, EAN, garanti) räknas inte, med samma lista som importen (`INTE_AXEL` i
+   `lib/vevor/familj.ts`). Utan den stoppade raden *Modell* varje par i den första
+   torrkörningen (2026-11-07, ledstången). En ny axel heter Färg, Mönster, Storlek, Längd eller
+   Förpackning; en familj från importen behåller sina axelnamn.
+2. **Sidan vi behåller får vara ett opolerat utkast.** Två syskonutkast blir ett, och poleringen
+   skriver sedan sidan som en sammanslagen sida (`sammanslagna.tsv`). En publicerad sida går
+   också, men där stoppar ett namn som bär sidans värde (`namnet_bar_varde:<axel>`). På ett
+   utkast är det en varning, eftersom poleringen skriver ett namn för alla varianter.
+3. ☠️ **Bilderna känns igen på innehållet** (Wix `hash`, `getMediaHashes`). Ett foto som sidan
+   redan har läggs inte till och kopplas inte. Givarens egna foton kopplas till givarens värde,
+   och sidans egna till sidans värde när axeln är ny. En ny färg utan eget foto stoppar
+   (`utkast_saknar_egna_bilder`): den hade visat en annan färgs bild.
+4. ☠️ **Givaren ska gå att sälja.** Avläsningen ska finnas, inte vara borta och levereras till
+   Sverige (`utkast_saknar_avlasning`, `utkast_borta_hos_vevor`,
+   `utkast_levereras_inte_till_sverige`). Slut i lager är en varning.
+5. **Recensionerna kopieras alltid, också från ett utkast**, med `kopt` satt till givarens
+   variant. Givarens egna rader rörs inte, och avvisade rader följer inte med. När sidan får sin
+   första axel får sidans egna rader sin variant.
+6. ☠️ **Mappningen skrivs direkt efter Wix och aldrig i ett synkfönster.** `byt` vägras minut
+   45–57 (VEVOR-synken går minut 50) och i Aosoms fönster. Sidans rad får en artikel per variant
+   och givarens artikel i `vevorArtiklar`, och läses tillbaka som `flera`. Givaren pensioneras
+   (`pensioneraDubblett`) men raderas inte, och `vevorArtiklar` står kvar på dess rad.
+7. ☠️ **Priset rörs inte, och svaret bär aldrig ett artikelnummer eller en kostnad.**
+
+Ordningen: `plan`, läs planen (familjeregeln per axel, bilder, recensioner, hinder), `byt`, och
+polera sidan som en sammanslagen sida. Ligger givaren ute krävs `omdirigera=ja`: en 301 till
+givarens variant skrivs före avpubliceringen, och då ska sidan vi behåller vara publicerad.
+Rutten finns i produktionen sedan 2026-11-07 (PR #850). En ändring av verktyget gäller först när
+den är mergad till `main`.
+
+Första torrkörningen (2026-11-07, run 42421433072): ledstången 2 fot som sida och 3 fot som
+givare. Planen gav `Längd: langd`, orörda priser (349 och 399 kr), 0 av givarens 6 foton
+(alla sex är samma bilder som sidan redan har: VEVOR använder samma galleri för alla längder),
+3 recensioner att kopiera och 5 av sidans att märka. Hindret `funktion_skiljer:Modell` ledde
+till rättelsen i punkt 1.

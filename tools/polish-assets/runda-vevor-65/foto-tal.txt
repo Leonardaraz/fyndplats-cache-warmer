@@ -1,0 +1,10 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+9cc29701 1200 längden 1200 mm i källans specifikation (Produktstorlek) och 47,2 in / 120 cm på måttbilden
+9cc29701 600 bredden 600 mm i källans specifikation och 23,6 in / 60 cm på måttbilden
+9cc29701 400 höjden 400 mm i källans specifikation och 15,7 in / 40 cm på måttbilden
+9cc29701 11,25 nettovikten 11,25 kg i källans specifikation

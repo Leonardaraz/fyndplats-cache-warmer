@@ -1,0 +1,16 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+fb2cef6a 119 längden 1,19 m i specifikationen och 47.2 in på bilden Large Room & Capacity; titeln och punkt 2 säger 122 cm, och det lägsta skrivs
+fb2cef6a 49 bredden 49 cm i titeln och punkt 2; specifikationen säger 0,5 m, och det lägsta skrivs
+fb2cef6a 54 höjden 54 cm i titeln; punkt 2 säger 59 cm och specifikationen 0,55 m, och det lägsta skrivs
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+d8b6805f 64 lägsta höjden 640 mm i specifikationen; punkt 4 säger 65 cm, och det lägre skrivs
+d8b6805f 91 högsta höjden 91 cm i punkt 4; specifikationen och måttbilden säger 970 mm, och det lägre skrivs
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+87f66310 3 justeringen 1.18 in, alltså 3 cm, på bilden Adjustable Shelves for Kitchen DIY; punkt 2 säger 3,8 cm, och det lägre skrivs

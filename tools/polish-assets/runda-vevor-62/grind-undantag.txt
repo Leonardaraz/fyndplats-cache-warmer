@@ -1,0 +1,8 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 25x17x9 tum/625x435x240 mm utan axelord, men källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar 25 in / 625 mm som längd, 17 in / 435 mm som bredd och 9 in / 240 mm som höjd med pilar: texten skriver längd, bredd och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans text har inga måttrader med axelord, men källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar 39,8 in / 1010 mm som längd, 20,1 in / 510 mm som djup och 17,3 in / 440 mm som höjd med pilar: texten skriver längd, djup och höjd ur ritningen, och innermåtten 920 x 420 x 410 mm i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek 23,3 x 14,2 x 6,2 tum / 592 x 361 x 158 mm utan axelord, men källans måttbild (position 7 i källgalleriet, inte bland sidans sex bilder) ritar 23,3 in / 592 mm som längd, 14,2 in / 361 mm som bredd och 6,2 in / 158 mm som höjd med pilar: texten skriver längd, bredd och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått Φ9,06 x 34,25 tum / Φ230 x 870 mm med diameter och längd men utan axelord, och måttbilden (position 7 i källgalleriet, inte bland sidans sex bilder) ritar Φ230 mm som diameter och 870 mm som längd: texten skriver diameter och längd ur ritningen

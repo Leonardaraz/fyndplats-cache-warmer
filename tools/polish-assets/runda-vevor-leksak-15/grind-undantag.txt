@@ -1,0 +1,16 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Kubstorlek (890×400×800 mm) har inga axelord, men VEVOR:s måttritning (i kallor.json) ritar måtten med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad i specifikationen (bara kapacitet 17 liter) och VEVOR:s bilder har ingen måttritning i galleriet: texten skriver inga yttermått
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (710 x 280 x 760 mm) har inga axelord och VEVOR:s bilder har ingen måttritning i galleriet: texten skriver talen i källans ordning utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (710 x 280 x 800 mm) har inga axelord och VEVOR:s bilder har ingen måttritning i galleriet: texten skriver talen i källans ordning utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (990 x 395 x 480 mm) har inga axelord, men VEVOR:s måttritning (i kallor.json) ritar måtten med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (597 x 368 x 545 mm) har inga axelord, men VEVOR:s måttritning (i kallor.json) ritar måtten med pilar: texten skriver bredd, djup och höjd ur ritningen, och höjden ur tabellen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (830 x 830 x 1400 mm) har inga axelord, men VEVOR:s måttbild (i kallor.json) ritar höjderna med pilar och basens sida 830 mm: texten skriver basen och höjden ur måttbilden
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (74,80 x 74,80 x 25,98 tum / 1900 x 1900 x 660 mm) har inga axelord, men VEVOR:s måttritning (i kallor.json) ritar 660 mm som höjd: texten skriver ytan och höjden ur ritningen

@@ -1,0 +1,17 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+10b82043 1010 ytterlängden 39,8 in / 1010 mm på måttbilden
+10b82043 510 ytterdjupet 20,1 in / 510 mm på måttbilden
+10b82043 440 ytterhöjden 17,3 in / 440 mm på måttbilden
+10b82043 920 innerlängden 36,2 in / 920 mm på måttbilden
+10b82043 420 innerbredden 16,5 in / 420 mm på måttbilden
+10b82043 410 innerhöjden 16,1 in / 410 mm på måttbilden
+10b82043 4,8 nettovikten 10,58 pund / 4,8 kg på måttbilden
+10b82043 10 stoppningens tjocklek 0,39 tum / 10 mm på bilden "Better Protection on the Go"
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+df4cbfb0 10 färgflaskan på 10 ml på bilden "Thoughtful Features" och på måttbilden

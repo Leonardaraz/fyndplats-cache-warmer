@@ -8,6 +8,12 @@
 > `/api/admin/aosom-sammanslagning`. Workflowen heter **"Dubbletter — lägg ett utkast som
 > färg eller storlek på en publicerad sida"** (`.github/workflows/aosom-sammanslagning.yml`).
 > Planen är aktuell per #666 (2026-09-27).
+>
+> **VEVOR-syskon** har ett eget verktyg med samma skrivordning: `lib/vevor/sammanslagning.ts`,
+> rutten `/api/admin/vevor-sammanslagning` och workflowen **"VEVOR — lägg ett syskon som färg,
+> storlek, längd eller förpackning på en annan VEVOR-sida"** (`vevor-sammanslagning.yml`). Det tar
+> ett utkast som sida, håller familjeregeln och jämför bilderna på innehållet. Se
+> `docs/claude/11-vevor-steg-8-syskon-betyg-recensioner.md`.
 
 ## Vad den gör
 

@@ -1,6 +1,5 @@
 import { getMemoryStore } from "./memory";
 import { WixDataStore } from "./wix-data";
-import { PostgresStore } from "./postgres";
 import type { Store } from "./index";
 import { storeBackend } from "./backend";
 
@@ -8,8 +7,8 @@ let singleton: Store | null = null;
 
 /**
  * Väljer lagring baserat på STORE_BACKEND-env:
- * - "wix-data" (rekommenderat för produktion): persistent i Wix Data-collections.
- * - "postgres": drift-datan i Neon. Målet för migreringen ur Wix Data.
+ * - "wix-data" (produktionen): persistent i Wix Data-collections. "postgres"
+ *   i miljön läses också som Wix, se lib/store/backend.ts.
  * - "memory" (default): in-memory, försvinner vid omstart. Bra för dev/test.
  *
  * Okända värden kastar — se lib/store/backend.ts. Tyst fallback gör en
@@ -29,8 +28,6 @@ function skapaStore(): Store {
       return getMemoryStore();
     case "wix-data":
       return new WixDataStore();
-    case "postgres":
-      return new PostgresStore();
   }
 }
 

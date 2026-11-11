@@ -1,0 +1,4 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen måttrad: verktygets längder står bara på måttritningen utan axelord, och texten skriver inga produktmått utom däckjärnens längd
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen måttrad: satsens delar har gängmått men inga produktmått, och texten skriver inga produktmått

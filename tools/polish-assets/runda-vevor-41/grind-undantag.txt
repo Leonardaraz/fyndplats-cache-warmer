@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek (tum och meter) utan axelord, men bilden Large Room & Capacity ritar längden 47.2 in, djupet 19.7 in och höjden 21.7 in med pilar och titeln anger L × B × H (122 × 49 × 54 cm): texten skriver längd × bredd × höjd med det lägsta talet per axel (119, 49 och 54 cm)
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått utan axelord, men måttritningen på bild 7 ritar höjden 104,1 cm lodrätt, djupet 35,5 cm och bredden 71,1 cm med pilar: texten skriver bredd × djup × höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått utan axelord, men måttritningen på bild 3 ritar bredden 193 cm vågrätt, djupet 40 cm och höjden 194 cm lodrätt med pilar: texten skriver bredd × djup × höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Produktstorlek och Strykbrädans storlek utan axelord; texten skriver strykytan 137 × 36 cm som längd × bredd (punkt 5 och måttbilden visar brädan längre än den är bred) och ingen produktstorlek på tre axlar, och höjdintervallet är ett omfång och inget mått på tre axlar
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått utan axelord, men måttritningen på bild 7 ritar 24 tum vågrätt över skåpets front, 12 tum som djup och 60 tum som höjd med pilar: texten skriver djup × bredd × höjd i specifikationens ordning 305 × 610 × 1529 mm

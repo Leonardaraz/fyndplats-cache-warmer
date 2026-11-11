@@ -1,0 +1,63 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+d74879ce 42,5 bordets bredd 16,73 in / 42,5 cm på VEVOR:s måttbild (position 2)
+d74879ce 47,8 bordets höjd 18,82 in / 47,8 cm på måttbilden
+d74879ce 39,5 stolens bredd 15,55 in / 39,5 cm på måttbilden
+d74879ce 24 stolens djup 9,45 in / 24 cm på måttbilden
+d74879ce 38 stolens höjd 14,96 in / 38 cm på måttbilden
+d74879ce 1,5 pappersrullens diameter Ø1,5 cm i källans rad
+d74879ce 39,8 pappersrullens längd 39,8 cm i källans rad
+d74879ce 59 bärförmågan 59 kg för bordet i en punkt (60 kg i raden, 132 lb på bilden): det lägre, 59 kg, skrivs
+d74879ce 36 bärförmågan 36 kg för stolen i en punkt (40 kg i raden, 88 lb på bilden): det lägre, 36 kg, skrivs
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+e1b0a15e 39,8 bordets och stolens bredd 15,67 in / 39,8 cm på måttbilden (position 2)
+e1b0a15e 31,5 bordets djup 12,40 in / 31,5 cm på måttbilden
+e1b0a15e 40 höjden 15,75 in / 40 cm på måttbilden
+e1b0a15e 28 stolens djup 11,02 in / 28 cm på måttbilden
+e1b0a15e 33,2 sidoskåpets djup 13,07 in / 33,2 cm på måttbilden
+e1b0a15e 29,5 förvaringslådans längd 11,61 in / 29,5 cm på måttbilden
+e1b0a15e 20,5 förvaringslådans bredd 8,07 in / 20,5 cm på måttbilden
+e1b0a15e 59 bärförmågan 59 kg för bordet i en punkt (60 kg i raden, 132 lb på bilden): det lägre, 59 kg, skrivs
+e1b0a15e 36 bärförmågan 36 kg för stolen i en punkt (40 kg i raden, 88 lb på bilden): det lägre, 36 kg, skrivs
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+dea61c53 39,2 bordets bredd 392 mm (15,4 in) på VEVOR:s måttritning och i källans rad = 39,2 cm
+dea61c53 30 bordets djup 300 mm (12 in) på måttritningen och i källans rad = 30 cm
+dea61c53 38,1 bordets höjd 381 mm (15 in) på måttritningen och i källans rad = 38,1 cm
+dea61c53 33,2 stolens bredd 332 mm (13,1 in) på måttritningen och i källans rad = 33,2 cm
+dea61c53 28,5 stolens djup 285 mm (11,2 in) på måttritningen och i källans rad = 28,5 cm
+dea61c53 34,5 stolens höjd 345 mm (13,6 in) på måttritningen och i källans rad = 34,5 cm
+dea61c53 16 antalet sexkantsskruvar på specifikationskortet (16 x M6 × 40 mm)
+dea61c53 9 antalet dymlingar på specifikationskortet (9 x 6 × 30 mm)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+b217eae5 38 bordets bredd 380 mm (15 in) på VEVOR:s måttritning och i källans rad = 38 cm
+b217eae5 30 bordets djup 300 mm (11,8 in) på måttritningen och i källans rad = 30 cm
+b217eae5 36,2 bordets höjd 362 mm (14,2 in) på måttritningen och i källans rad = 36,2 cm
+b217eae5 30,2 stolens bredd 302 mm (12 in) på måttritningen och i källans rad = 30,2 cm
+b217eae5 28 stolens djup 280 mm (8,2 in) på måttritningen och i källans rad = 28 cm
+b217eae5 26,5 stolens höjd 265 mm (10,4 in) på måttritningen och i källans rad = 26,5 cm
+b217eae5 11,5 sitthöjden 115 mm (4,5 in) med vänd sits på VEVOR:s höjdbild och i källans punkt = 11,5 cm
+b217eae5 16,5 sitthöjden 165 mm (6,5 in) med upprätt sits på VEVOR:s höjdbild och i källans punkt = 16,5 cm
+b217eae5 16 antalet sexkantsskruvar på specifikationskortet (16 x M6 × 40 mm)
+b217eae5 9 antalet dymlingar på specifikationskortet (9 x 6 × 30 mm)
+b217eae5 2 antalet dekaler för hålens lägen på specifikationskortet (2 x Hole Position Stickers)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+665026f8 227 maxlasten 227 kg i källans namn (272 kg i specifikationen, punkten och på måttbilden): den lägre, 227 kg, skrivs
+665026f8 304,8 bredden 120 in på VEVOR:s måttritning = 304,8 cm; ritningens enhet mm är fel, tummåttet visar cm
+665026f8 182,9 djupet 72,01 in på måttritningen = 182,9 cm; ritningens enhet mm är fel, tummåttet visar cm
+665026f8 165,1 höjden 65 in på måttritningen = 165,1 cm; ritningens enhet mm är fel, tummåttet visar cm
+665026f8 81,3 tallriksgungans diameter 813 mm (32 in) på specifikationskortet och 81,3 cm i källans rad
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+73ef922a 312 bredden 10,2 ft / 3,12 m på VEVOR:s måttritning och i källans rad = 312 cm
+73ef922a 200 djupet 6,6 ft / 2,0 m på måttritningen och i källans rad = 200 cm
+73ef922a 220 höjden 7,2 ft / 2,2 m på måttritningen och i källans rad = 220 cm
+73ef922a 33 sitthöjden 13,0–38,2 in / 33–97 cm för bältesgungorna på VEVOR:s höjdbild
+73ef922a 97 sitthöjden 13,0–38,2 in / 33–97 cm för bältesgungorna på VEVOR:s höjdbild
+73ef922a 40 sitthöjden 15,8–43,3 in / 40–110 cm för gungsitsen på VEVOR:s höjdbild
+73ef922a 110 gungsitsens mått 110 x 80 cm i källans namn och punkt; sitthöjden 40–110 cm för gungsitsen på höjdbilden
+73ef922a 2 antalet insexnycklar på specifikationskortet (1 x Allen Wrench A och 1 x Allen Wrench B)
+73ef922a 4 antalet spiralformade markankare på specifikationskortet (4 x Spiral Ground Anchors)

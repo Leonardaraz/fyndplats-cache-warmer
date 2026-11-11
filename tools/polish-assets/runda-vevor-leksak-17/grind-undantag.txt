@@ -1,0 +1,16 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Stolens mått (11,8 x 11,4 x 20,8 tum/30 x 29 x 53 cm), Bordets mått (24 x 24 x 19 tum/61 x 61 x 48,3 cm) och Tyglådans innermått (9,6 x 9,2 x 4,3 tum/24,5 x 23,5 x 11 cm) har inga axelord, men VEVOR:s måttritning (i kallor.json) ritar måtten med pilar: texten skriver stolens bredd 29 cm, djup 30 cm och höjd 53 cm (källans ordning är 30, 29, 53), bordets bredd 61 cm, djup 61 cm och höjd 48,3 cm och tygboxens bredd 24,5 cm, djup 23,5 cm och höjd 11 cm ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Stolens mått (11,8 x 11,4 x 20,8 tum/30 x 29 x 53 cm), Bordets mått (24 x 24 x 19 tum/61 x 61 x 48,3 cm) och Tyglådans innermått (9,6 x 9,2 x 4,3 tum/24,5 x 23,5 x 11 cm) har inga axelord, men VEVOR:s måttritning (i kallor.json) ritar måtten med pilar: texten skriver stolens bredd 29 cm, djup 30 cm och höjd 53 cm (källans ordning är 30, 29, 53), bordets bredd 61 cm, djup 61 cm och höjd 48,3 cm och tygboxens bredd 24,5 cm, djup 23,5 cm och höjd 11 cm ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (bord + sidoskåp) (40,3 x 22,8 x 25,2 tum/102,5 x 58 x 64 cm), Stolens mått (26,5 x 26,5 x 50 cm), Bordets mått (79,5 x 55,5 x 54 cm) och Skåpets mått (9 x 23 x 25,2 tum/22,9 x 58 x 64 cm) har inga axelord, men VEVOR:s måttritning (i kallor.json) ritar måtten med pilar: texten skriver bredd, djup och höjd för bordet med skåpet (102,5, 58 och 64 cm), bordet (79,5, 55,5 och 54 cm), stolen (26,5, 26,5 och 50 cm) och skåpet (22,9, 58 och 64 cm) ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans tabell har ingen måttrad: ramens bredd och ritytan är lästa ur VEVOR:s måttritning (i kallor.json), som ritar måtten med pilar
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Kubstorlek (890×400×760 mm/35×16×30 tum) har inga axelord, men VEVOR:s måttritning (i kallor.json) ritar måtten med pilar: texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (55,3 x 27,5 x 20,8 tum / 140,5 x 70 x 53 cm) har inga axelord, men VEVOR:s måttritning (i kallor.json) ritar måtten med pilar: texten skriver bredd, djup och höjd som soffa ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (60,43 x 19,29 x 25,39 tum / 1535 x 490 x 645 mm) har inga axelord, men VEVOR:s måttritning (i kallor.json) ritar måtten med pilar: texten skriver längd, bredd och höjd, med längden 1535 mm ur tabellen, bredden 405 mm ur ritningen och höjden 645 mm (det lägre per sträcka) ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Maximala produktmått (27,36 x 13,19 x 40,47 tum / 69,5 x 33,5 x 102,8 cm) har inga axelord, men VEVOR:s måttritning (i kallor.json) ritar måtten med pilar: texten skriver största bredd, djup och höjd (ritningen har bara tum) ur ritningen

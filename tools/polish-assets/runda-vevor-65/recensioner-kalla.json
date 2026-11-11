@@ -1,0 +1,59 @@
+{
+  "31c6a41a": {
+    "productId": "31c6a41a-bdc9-4091-96a2-e4fae97b8a5f",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "82acf54b": {
+    "productId": "82acf54b-fa86-4188-905c-11cd06009406",
+    "synliga": 0,
+    "dolda": 7,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-oqtjlt",
+        "betyg": 3,
+        "datum": "2026-03-11",
+        "foton": 0,
+        "text": "The file cabinet is not Heavy duty as advertised. The drawers are shorter in length then what the cabinet t self is. Would not buy again."
+      }
+    ]
+  },
+  "9cc29701": {
+    "productId": "9cc29701-2606-42a3-b00c-b1615b1f03a5",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-nvanm9",
+        "betyg": 5,
+        "datum": "2025-09-10",
+        "foton": 0,
+        "text": "Piękny stolik, lekki, kolor wymarzony, polecam, szybki zakup, wszystko ok"
+      },
+      {
+        "id": "gen-5yx10o",
+        "betyg": 5,
+        "datum": "2025-09-05",
+        "foton": 0,
+        "text": "Très belle, se trouve sa place dans le salon ou le séjour. Correspond parfaitement aux photos"
+      },
+      {
+        "id": "gen-x4l2bs",
+        "betyg": 4,
+        "datum": "2025-04-05",
+        "foton": 0,
+        "text": "Easy to put together and instructions are clear. My only issue is all the screws go in correctly except for one. It just refuses to go in the hole. Still is solid without it."
+      }
+    ]
+  }
+}

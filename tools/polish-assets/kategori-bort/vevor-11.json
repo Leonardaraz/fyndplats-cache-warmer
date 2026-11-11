@@ -1,0 +1,27 @@
+{
+ "namn": "vevor-11",
+ "rader": [
+  {
+   "kort": "6a9f31ac",
+   "pid": "6a9f31ac-0d76-4b08-b619-efeb6c59a656",
+   "bort": [
+    "Verktyg & Maskiner > Verkstadsmaskiner"
+   ],
+   "behall": [
+    "Verktyg & Maskiner",
+    "Verktyg & Maskiner > Elverktyg"
+   ]
+  },
+  {
+   "kort": "dd76a2d7",
+   "pid": "dd76a2d7-2f64-4389-8fe4-3086fba12886",
+   "bort": [
+    "Möbler",
+    "Möbler > Kontorstillbehör"
+   ],
+   "behall": [
+    "Företag & Proffs"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,52 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+9257822d 38 bordets bredd 380 mm (15 in) på VEVOR:s måttritning och i källans rad = 38 cm
+9257822d 31,6 bordets djup 316 mm (12,4 in) på måttritningen och i källans rad = 31,6 cm
+9257822d 40 bordets höjd 400 mm (15,7 in) på måttritningen och i källans rad = 40 cm
+9257822d 32,4 stolens bredd 324 mm (12,8 in) på måttritningen och i källans rad = 32,4 cm
+9257822d 30 stolens djup 300 mm (11,8 in) på måttritningen och i källans rad = 30 cm
+9257822d 34 stolens höjd 340 mm (13,4 in) på måttritningen och i källans rad = 34 cm
+9257822d 16 antalet sexkantsskruvar på specifikationskortet (16 x M6 × 40 mm)
+9257822d 9 antalet dymlingar av trä på specifikationskortet (9 x 6 × 30 mm)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+7d5b96c1 42,4 bordets bredd 424 mm (16,7 in) på VEVOR:s måttritning och i källans rad = 42,4 cm
+7d5b96c1 30 bordets djup 300 mm (11,8 in) på måttritningen och i källans rad = 30 cm
+7d5b96c1 38,5 bordets höjd 385 mm (15,2 in) på måttritningen och i källans rad = 38,5 cm
+7d5b96c1 32,4 stolens bredd 324 mm (12,8 in) på måttritningen och i källans rad = 32,4 cm
+7d5b96c1 28,5 stolens djup 285 mm (11,2 in) på måttritningen och i källans rad = 28,5 cm
+7d5b96c1 34,5 stolens höjd 345 mm (13,5 in) på måttritningen och i källans rad = 34,5 cm
+7d5b96c1 16 antalet sexkantsskruvar på specifikationskortet (16 x M6 × 40 mm)
+7d5b96c1 9 antalet dymlingar av trä på specifikationskortet (9 x 6 × 30 mm)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+2447e340 193,5 bredden 1,935 m (6,4 ft) på VEVOR:s måttritning och i källans rad = 193,5 cm
+2447e340 184 djupet 1,84 m (6,0 ft) på måttritningen och i källans rad = 184 cm
+2447e340 182 höjden 1,82 m (6,0 ft) på måttritningen och i källans rad = 182 cm
+2447e340 64 sitthöjden 2,8–25,2 in / 7–64 cm för bältesgungan på VEVOR:s höjdbild
+2447e340 72 sitthöjden 7,9–28,4 in / 20–72 cm för tallriksgungan på VEVOR:s höjdbild
+2447e340 7 sitthöjden 2,8–25,2 in / 7–64 cm för bältesgungan på VEVOR:s höjdbild
+2447e340 20 sitthöjden 7,9–28,4 in / 20–72 cm för tallriksgungan på VEVOR:s höjdbild
+2447e340 2 antalet insexnycklar på specifikationskortet (1 x Allen Wrench A och 1 x Allen Wrench B)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+18226585 180 bredden 1,8 m (5,9 ft) på VEVOR:s måttritning och i källans rad = 180 cm
+18226585 181 djupet 1,81 m på måttritningen och höjden 1,81 m på ritningen och i källans rad; källans djup är 1,84 m och det lägre, 181 cm, skrivs
+18226585 19 sitthöjden 7,5–33,5 in / 19–85 cm på VEVOR:s höjdbild
+18226585 85 sitthöjden 7,5–33,5 in / 19–85 cm på VEVOR:s höjdbild
+18226585 150 gungsitsens längd 60 in / 150 cm på måttritningen och i källans punkt
+18226585 81 gungsitsens bredd 32 in / 81 cm på måttritningen och i källans punkt
+18226585 2 antalet insexnycklar på specifikationskortet (1 x Allen Wrench A och 1 x Allen Wrench B)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+43708a6f 206 bredden 81,10 in på VEVOR:s måttritning = 206 cm; ritningens enhet mm är fel, tummåtten visar cm (206 mm vore 8 in)
+43708a6f 183 djupet 72,05 in på måttritningen = 183 cm; ritningens enhet mm är fel, tummåtten visar cm
+43708a6f 181 höjden 71,26 in på måttritningen = 181 cm; ritningens enhet mm är fel, tummåtten visar cm
+43708a6f 100 tallriksgungans diameter 100 cm i källans namn (40 in / 101,6 cm i specifikationen): det lägre, 100 cm, skrivs
+43708a6f 180 maxlasten 180 kg i källans namn (199,6 kg i specifikationen och punkten): den lägsta, 180 kg, skrivs
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+9926f75d 216 bredden 2160 mm på VEVOR:s måttritning (tummåttet 8,50 in har fel decimal; 2160 mm är 85 in) = 216 cm
+9926f75d 185 djupet 1850 mm på måttritningen (tummåttet 7,28 in har fel decimal) = 185 cm
+9926f75d 180 höjden 1800 mm på måttritningen (tummåttet 7,09 in har fel decimal) = 180 cm; maxlasten 180 kg står i källans namn (199,6 kg i specifikationen och punkten): den lägsta, 180 kg, skrivs
+9926f75d 81,3 tallriksgungans diameter 813 mm (32 in) på specifikationskortet och 81,3 cm i källans rad

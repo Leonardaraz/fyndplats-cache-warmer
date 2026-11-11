@@ -1,0 +1,100 @@
+{
+  "66a93bed": {
+    "productId": "66a93bed-d4bf-4c0b-9c4d-584ccdb70c48",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "91b8c4d1": {
+    "productId": "91b8c4d1-aa6e-4329-bec2-c700df44c91b",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1mm65kx",
+        "betyg": 5,
+        "datum": "2026-10-14",
+        "foton": 0,
+        "text": "Bonjour. Suite à un léger souci, le produit a été remplacé. Un grand merci au service client qui a réagit de manière très rapide et très professionnelle. Super produit et super service."
+      }
+    ]
+  },
+  "ac3b986f": {
+    "productId": "ac3b986f-1b42-4808-9395-f916fa4c5d72",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 1,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-1f4dewf",
+        "betyg": 5,
+        "datum": "2026-10-26",
+        "foton": 0,
+        "text": "This thing works Put a couple of 8 kilo concrete blocks in the tray, ground was moist and did my premium lawn in about an hour. It cuts hole into the soil, does not remove plugs, but makes holes so the water and fertiliser can get into the root bed."
+      },
+      {
+        "id": "gen-1xbfbcx",
+        "betyg": 5,
+        "datum": "2026-10-23",
+        "foton": 0,
+        "text": "Easy to put together very well wrapped have one of the spikes came in damaged but not bad."
+      }
+    ]
+  },
+  "8a6a1e89": {
+    "productId": "8a6a1e89-d823-4549-9947-07b95c2ba2c8",
+    "synliga": 0,
+    "dolda": 6,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1ezlgvr",
+        "betyg": 5,
+        "datum": "2026-10-08",
+        "foton": 0,
+        "text": "Acqistato appendiabiti ad angolo in settembre 2026, ha soddisfatto le mie aspettative. Risoloto prontamante un problema di spedizione. Azienda consigliata"
+      },
+      {
+        "id": "gen-1efsjoe",
+        "betyg": 5,
+        "datum": "2026-06-10",
+        "foton": 0,
+        "text": "Very Sturdy and lots of space to put things. Does not take up too much room. Great for apartments IMO."
+      },
+      {
+        "id": "gen-17i86a4",
+        "betyg": 5,
+        "datum": "2026-05-14",
+        "foton": 0,
+        "text": "Easier to put together with another person. Good quality. Fits perfectly in a tight corner."
+      }
+    ]
+  },
+  "819711b7": {
+    "productId": "819711b7-4141-42b8-9f40-97c9b4483c36",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-1rkd72o",
+        "betyg": 4,
+        "datum": "2026-01-26",
+        "foton": 0,
+        "text": "Ordered 3 set of these tables 2-black one white. The quality of these tables are mediocre, easy to install and functional."
+      }
+    ]
+  }
+}
