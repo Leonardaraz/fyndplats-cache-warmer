@@ -61,7 +61,8 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
     datePublished: p.date || undefined,
     // dateModified rekommenderas av Google; = publiceringsdatum tills inlägget
     // faktiskt uppdateras (ärligt — vi stämplar inte om utan verklig ändring).
-    dateModified: p.date || undefined,
+    // Ett omskrivet inlägg bär `updated_date` i sin frontmatter.
+    dateModified: p.updated || p.date || undefined,
     inLanguage: "sv-SE",
     mainEntityOfPage: {
       "@type": "WebPage",
@@ -147,7 +148,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
           dangerouslySetInnerHTML={{ __html: jsonLdString(itemListJsonLd) }}
         />
       )}
-      <ContentPage eyebrow={fmtDate(p.date) || "Blogg"} title={p.title} lead={p.excerpt || undefined}>
+      <ContentPage eyebrow={(p.updated ? `Uppdaterad ${fmtDate(p.updated)}` : fmtDate(p.date)) || "Blogg"} title={p.title} lead={p.excerpt || undefined}>
         {p.cover && (
           <div style={{ borderRadius: 18, overflow: "hidden", margin: "0 0 28px", border: "1px solid var(--line)" }}>
             <Image src={p.cover} alt={p.alt || p.title} width={1200} height={630} sizes="(max-width:760px) 100vw, 720px" style={{ width: "100%", height: "auto", display: "block" }} />

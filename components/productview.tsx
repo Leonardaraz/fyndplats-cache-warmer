@@ -285,6 +285,8 @@ export function ProductView({
   reviewCount,
   reviewAverage,
   gpsrHtml,
+  harLiknande = false,
+  googleBetyg,
 }: {
   productId: string;
   /** Produktens adress. Fliken "Kontakta oss" länkar till formuläret med den förvald. */
@@ -321,6 +323,12 @@ export function ProductView({
   reviewAverage?: number | null;
   // Flikens färdiga HTML (lib/gpsr-flik.ts), byggd på servern. Null = ingen flik.
   gpsrHtml?: string | null;
+  // Sant när sidan renderar "Liknande produkter" (id="liknande"). Slutsåld-rutan
+  // länkar då dit: urvalet är redan bara varor i lager (lib/related-pick.ts).
+  harLiknande?: boolean;
+  // Butikens Google-betyg som text ("4,9", lib/social-proof-live.ts). Samma
+  // siffra som sidfoten, startsidan och kassan visar.
+  googleBetyg?: string | null;
 }) {
   const { add, busy } = useCart();
   const ratingHead = ratingSummary(reviewCount ?? 0, reviewAverage ?? null);
@@ -824,6 +832,15 @@ export function ProductView({
             <div className="oos-banner" role="status">
               <span className="oos-banner-chip">Slutsåld</span>
               <span className="oos-banner-text">Varan är tillfälligt slut hos oss – bevaka nedan så hör vi av oss.</span>
+              {/* Var sjunde besökare som landar på en produktsida landar på en
+                  slutsåld vara (mätt 2026-11-10 på de 75 mest besökta), och
+                  förslagen i lager låg under hela beskrivningen. Länken ger
+                  vägen dit i samma ruta som beskedet. */}
+              {harLiknande && (
+                <a className="oos-banner-lank" href="#liknande">
+                  Se liknande varor i lager <span aria-hidden="true">↓</span>
+                </a>
+              )}
             </div>
           )}
           <div className="pdp-price">
@@ -907,6 +924,18 @@ export function ProductView({
               </svg>
               Trygg betalning med Klarna
             </span>
+            {/* Butikens betyg vid köpknappen: 97 % av besökarna är nya (GA4,
+                28 dygn till 2026-11-09) och 69 % landar på en produktsida,
+                där betyget förut bara stod i sidfoten. Länken går till
+                /omdomen, som startsidans rad. */}
+            {googleBetyg && (
+              <span className="pdp-trust-betyg">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M12 3.2l2.7 5.5 6 .9-4.35 4.24 1.03 6-5.38-2.83L6.62 19.84l1.03-6L3.3 9.6l6-.9L12 3.2Z" />
+                </svg>
+                <a href="/omdomen">{googleBetyg} av 5 på Google</a>
+              </span>
+            )}
             {/* Raden "Skickas från EU-lager – ingen importtull …" togs bort här
                 2026-09-24 på ägarens begäran. Garanti-sidan (/eu-lager-garanti),
                 kundvagnen och villkoren bär fortfarande upplysningen. */}

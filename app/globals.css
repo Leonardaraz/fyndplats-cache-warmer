@@ -901,7 +901,9 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 
 .pbrowse-txt{display:flex;flex-direction:column;gap:2px;min-width:0}
 .pbrowse-etikett{font-size:var(--text-xs);letter-spacing:.03em;text-transform:uppercase;
-  font-weight:600;opacity:.75}
+  font-weight:600}
+/* Ingen opacitet på etiketten: med 75 % blev den 3,4:1 mot vitt, under gränsen
+   4,5:1 för liten text (Lighthouse 2026-11-10). Länkens egen färg ger 6:1. */
 /* Namnet kortas visuellt, aldrig i strängen — skärmläsaren får hela. */
 .pbrowse-namn{font-size:var(--text-sm);font-weight:600;color:var(--ink);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1316,6 +1318,12 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 .oos-banner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#FEF2F2;border:1px solid #FECACA;border-radius:var(--r-md);padding:12px 16px;margin:6px 0 16px}
 .oos-banner-chip{display:inline-block;background:#DC2626;color:#fff;font-weight:800;font-size:var(--text-xs);letter-spacing:.05em;text-transform:uppercase;padding:5px 12px;border-radius:var(--r-pill);flex:none}
 .oos-banner-text{font-size:var(--text-sm);color:#7F1D1D;line-height:1.4}
+/* Länken till "Liknande produkter", på egen rad i rutan. Tryckytan är 44 px;
+   de negativa marginalerna tar tillbaka höjden så att rutan inte växer mer än
+   en textrad. */
+.oos-banner-lank{flex-basis:100%;display:inline-flex;align-items:center;gap:6px;min-height:44px;margin:-10px 0 -12px;font-size:var(--text-sm);font-weight:700;color:#7F1D1D;text-decoration:underline;text-underline-offset:3px}
+.oos-banner-lank:hover{color:#991B1B}
+.oos-banner-lank:focus-visible{outline:2px solid #991B1B;outline-offset:2px;border-radius:3px}
 .restock-box{margin-top:16px;max-width:460px;background:linear-gradient(180deg,#FFFBF7,var(--warm));border:1px solid #F0E3D6;border-radius:var(--r-lg);padding:20px 20px 22px;box-shadow:var(--e2)}
 .restock-label{display:block;font-size:var(--text-sm);font-weight:700;color:var(--ink);margin-bottom:14px;line-height:1.35}
 /* Vertikal stack: e-postfältet är den visuella hjälten (stort, full bredd),
@@ -1350,12 +1358,16 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 .pdp-trust a{color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px;text-decoration-color:rgba(43,38,33,.32)}
 .pdp-trust a:hover{text-decoration-color:currentColor}
 .pdp-trust a:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:3px}
+/* Betygsraden är en länk i en 20 px hög rad. Tryckytan sträcks till 44 px
+   över radens luft; grannraderna är text och har inget att trycka på. */
+.pdp-trust-betyg a{position:relative}
+.pdp-trust-betyg a::after{content:"";position:absolute;inset:-12px -8px}
 .specbox{margin-top:28px;background:var(--warm);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px 22px}
 .specbox h2{font-size:var(--text-base);font-weight:700;margin-bottom:10px}
 .specbox ul{list-style:none;display:flex;flex-direction:column;gap:6px}
 .specbox li{font-size:var(--text-sm);color:#4a443d;padding-left:16px;position:relative}
 .specbox li::before{content:"";position:absolute;left:0;top:8px;width:6px;height:6px;border-radius:50%;background:var(--orange)}
-.relsec{border-top:1px solid var(--line);padding-top:56px}
+.relsec{border-top:1px solid var(--line);padding-top:56px;scroll-margin-top:var(--ankare)}
 /* Liknande produkter: .pdp:s 64 px luft under, 10 px marginal och .sec:s 80 px
    ovanför gav 162 px mellan sista fliken och rubriken (Leonard 2026-10-07:
    "lite för stor"). Nu 120 px på dator och 88 px på mobil. */
@@ -1386,6 +1398,34 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
   /* Swatches radbryter (ingen dold sidled-scroll) — alla val syns även på mobil.
      margin:0 → första pillens vänsterkant i linje med hero-bilden och titeln. */
   .varswatches{flex-wrap:wrap;padding:4px 0;margin:0}
+}
+
+/* ── Mobil: produkten först (2026-11-10) ─────────────────────────────────────
+   69 % av besöken börjar på en produktsida, och 87 % av dem på en telefon
+   (GA4, 28 dygn till 2026-11-09). Där började produktbilden 435 px ner på en
+   844 px hög skärm: brödsmulan stod på två rader med hela produktnamnet, och
+   bläddringsraden låg mellan den och bilden. Första skärmen visade mest
+   navigering. Nu börjar bilden ungefär 240 px ner.
+
+   Upp till 760 px, samma gräns som kolumnlayouten ovan:
+   - Brödsmulan slutar vid kategorin. Produktnamnet står i rubriken strax
+     nedanför, och det ligger kvar i HTML:en och i BreadcrumbList.
+   - Bläddringsraden visas mellan köpdelen och beskrivningen. Produktblocket
+     får display:contents, så dess delar och raden blir syskon i samma kolumn
+     och kan ordnas med order. Blockets egen luft upptill och nedtill
+     försvinner då och läggs i stället på galleriet och beskrivningen.
+   DOM:en är orörd: länkarna står kvar i HTML:en från början (CLAUDE.md,
+   "Länkar som bara renderas vid hovring"). Datorlayouten är oförändrad. */
+@media(max-width:760px){
+  .crumbs-pdp{padding:6px 0 0}
+  .crumbs-pdp em,.crumbs-pdp span:has(+ em){display:none}
+  .pdp-sida{display:flex;flex-direction:column}
+  .pdp-sida>*{min-width:0}
+  .pdp-sida>.pdp{display:contents}
+  .pdp-sida>.pdp>.gallery{margin-top:8px}
+  .pdp-sida>.pbrowse{order:5;margin:24px 0 0;padding:12px 0 0;border-top:1px solid var(--line);border-bottom:0}
+  .pdp-sida .pdp-detail{order:6;padding-bottom:40px}
+  .pdp-sida .pdp-detail>.pdp-section:first-child{margin-top:8px}
 }
 
 /* cart */
@@ -1477,7 +1517,18 @@ body:has(.drawer.show) .cookiebar{visibility:hidden}
 .ck-ghost:hover{border-color:var(--ink)}
 .ck-primary{background:var(--brand);color:#fff;border:1.5px solid var(--brand)}
 .ck-primary:hover{background:#A8380A;border-color:#A8380A}
-@media(max-width:540px){.cookiebar{left:10px;right:10px;bottom:10px;padding:16px}.cookiebtns{justify-content:stretch}.ck-ghost,.ck-primary{flex:1;text-align:center}}
+@media(max-width:540px){.cookiebar{left:10px;right:10px;bottom:10px;padding:14px 16px;gap:10px}.cookiebtns{justify-content:stretch}.ck-ghost,.ck-primary{flex:1;text-align:center;padding:10px 8px;min-height:44px;white-space:nowrap}}
+/* Mobil: "Endast nödvändiga" radbröt i en halv rad och gjorde båda knapparna
+   62 px höga. Med mindre sidoluft står etiketten på en rad, och rutan täcker
+   mindre av produktbilden vid första besöket (2026-11-10). */
+/* Under 330 px ryms inte de två knapparna bredvid varandra med texten på en
+   rad. Med nowrap ovan föll de då i två rader, och rutan blev 261 px hög vid
+   320 px: högre än före ändringen (235 px, mätt 2026-11-10). Här får raden
+   aldrig brytas. Knapparna får smalare sidoluft och krymper, och först när
+   inte ens det räcker (300 px och smalare) bryts texten inne i knappen. Mätt
+   efter rättelsen: 207 px vid 310 till 330 px, 227 px vid 280 och 300 px.
+   lib/kakrad-smal.test.ts vaktar. */
+@media(max-width:340px){.cookiebtns{flex-wrap:nowrap;gap:8px}.ck-ghost,.ck-primary{flex:1 1 auto;min-width:0;padding:10px 4px;white-space:normal}}
 .li-x{background:none;border:none;color:var(--soft);font-size:var(--text-xs);cursor:pointer;text-decoration:underline;flex:0 0 auto}
 .li-x:hover:not(:disabled){color:#F84848}
 .li-x:disabled{opacity:.5;cursor:default}
@@ -2449,6 +2500,9 @@ body:has(.drawer.show) .cookiebar{visibility:hidden}
 /* Mobil: listsidornas rutnät (ShopBrowser: kategorier, sök, Alla produkter,
    Rea) har två kort i bredd, som hos de stora möbelkedjorna (Leonard
    2026-10-07). Förut hade kategorisidorna och sökningen ett kort per rad.
+   Sedan 2026-11-10 gäller samma rutnät produktkorten på startsidan, /butik,
+   produktsidans "Liknande produkter", prissidorna och /for-dig-som: där stod
+   ett kort per rad, så fyra förslag tog fyra skärmhöjder.
    Rutnätet går ut till 12 px från kanten i stället för containerns 26, och
    mellanrummet är 10 px: korten blir 180 px på en iPhone i stället för 164.
    Knappen har mindre sidoluft här, så pilen får plats. Bildernas `sizes`

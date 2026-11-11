@@ -56,7 +56,7 @@ test("ingen annan modul har en kort revalidate utan att stå på listan", () => 
   // Varje post här är granskad: modulen körs INTE när en produktsida renderas,
   // eller körs inne i unstable_cache där fetch-tiden inte räknas.
   const granskade: Record<string, string> = {
-    "auction-motor.ts": "15 s — Fyndauktionen och startsidan, inte produktsidan",
+    "auction-motor.ts": "15 s — Fyndauktionen, inte produktsidan (startsidan läser med en timme, se lib/auction-motor.test.ts)",
     "image-scores.ts": "600 s — startsidan och /butik",
     "redirects.ts": "300 s — bara när produkten inte finns (404/omdirigering)",
     "google-reviews.ts": "3000 s token — inne i unstable_cache",

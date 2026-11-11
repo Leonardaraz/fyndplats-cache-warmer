@@ -54,9 +54,9 @@ export default async function ForDigSomPage({ params }: { params: Promise<{ inte
       <section className="sec" style={{ paddingTop: 36 }}>
         <div className="container">
           <h2 className="prog-h2">Trendar nu</h2>
-          <div className="prodgrid">
+          <div className="prodgrid listgrid">
             {produkter.map((p) => (
-              <ProductCard p={p} key={p.slug} />
+              <ProductCard p={p} key={p.slug} tvaKolumner />
             ))}
           </div>
         </div>

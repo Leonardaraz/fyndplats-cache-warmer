@@ -135,7 +135,7 @@ export async function getSiteUrls(): Promise<SiteUrl[]> {
   }
   for (const post of posts) {
     urls.push(
-      entry(`/blogg/${post.slug}`, "blogg", "monthly", 0.6, post.date ? new Date(post.date) : undefined),
+      entry(`/blogg/${post.slug}`, "blogg", "monthly", 0.6, (post.updated || post.date) ? new Date(post.updated || post.date) : undefined),
     );
   }
 

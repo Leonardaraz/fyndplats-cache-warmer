@@ -7,7 +7,8 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { AUKTIONSSIDANS_TAGG, auktionssidanSkaTommas, avslutaHosMotorn, hämtaAuktionsrader } from "./auction-motor.ts";
+import { readFileSync } from "node:fs";
+import { AUKTIONSSIDANS_TAGG, STARTSIDANS_SEKUNDER, auktionssidanSkaTommas, avslutaHosMotorn, hämtaAuktionsrader } from "./auction-motor.ts";
 
 type Anrop = { url: string; init: RequestInit & { next?: unknown } };
 
@@ -43,6 +44,30 @@ test("auktionssidan: egen adress och egen tagg, så att den kan tömmas utan sta
   // Startsidans hämtning (testet ovan) bär bara "auctions": en tömning av
   // auktionssidans tagg rör den inte.
   assert.notEqual(AUKTIONSSIDANS_TAGG, "auctions");
+});
+
+// ☠️ Next sänker hela rutten till den kortaste fetch-tiden på sidans väg. Med
+// auktionssidans 15 sekunder byggdes startsidan om var femtonde sekund fram
+// till 2026-11-10, fast sidan säger en timme: `age` kom aldrig över 16 s mot
+// butiken, och varje ombyggnad frågade Wix om priset på varje fynd.
+test("startsidan: egen adress och sidans egen livslängd, så att sidan inte byggs om var 15:e sekund", async () => {
+  const { f, anrop } = falskFetch(() => json({ ok: true, rader: [{ slug: "a", slot: 1 }] }));
+  await hämtaAuktionsrader("live", { fetchImpl: f, hemlighet: "h", bas: BAS }, { sida: "startsidan" });
+  // Egen adress: taggarna ingår inte i cachens nyckel, så utan den delar
+  // startsidan post (och livslängd) med hämtningen utan `sida`.
+  assert.equal(anrop[0].url, `${BAS}/rader?status=live&sida=startsidan`);
+  // En försäljning tömmer "auctions" som förut. Auktionssidans tagg bärs inte,
+  // så timmens tömning där rör inte startsidan.
+  assert.deepEqual(anrop[0].init.next, { revalidate: STARTSIDANS_SEKUNDER, tags: ["auctions"] });
+});
+
+test("startsidan läser raderna med sin egen nyckel, och talet är sidans revalidate", () => {
+  const sida = readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const m = sida.match(/export const revalidate = (\d+);/);
+  assert.ok(m, "hittade ingen `export const revalidate = <tal>;` i startsidan");
+  assert.equal(Number(m[1]), STARTSIDANS_SEKUNDER);
+  assert.match(sida, /getLiveAuctions\(\{ sida: "startsidan" \}\)/);
+  assert.doesNotMatch(sida, /getLiveAuctions\(\)/, "utan `sida` gäller auktionssidans 15 sekunder för hela startsidan");
 });
 
 test("auktionssidan töms bara för motorns auktionsorsak", () => {

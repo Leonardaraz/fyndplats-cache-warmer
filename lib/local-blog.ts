@@ -9,6 +9,10 @@ export type LocalPost = {
   slug: string;
   excerpt: string;
   date: string;             // ISO datum (YYYY-MM-DD eller full ISO)
+  /** Dagen texten senast skrevs om (frontmatter `updated_date`). Sätts bara
+      när innehållet faktiskt ändrats: sidan visar då "Uppdaterad …", och
+      dateModified och sitemapens lastmod följer med. */
+  updated?: string;
   cover: string;            // tom om bild saknas
   alt: string;
   contentHtml: string;      // renderad markdown → HTML
@@ -140,7 +144,14 @@ export function renderMarkdown(md: string): string {
   };
   const flushBq = () => {
     if (bqBuf.length) {
-      out.push(`<blockquote>${bqBuf.map((l) => `<p>${renderInline(l)}</p>`).join("")}</blockquote>`);
+      // En rubrikrad i en citatruta ("> ### Vårt löfte") blir fet text. Förr
+      // skrevs den ut med tecknen kvar: "### Vårt EU-löfte" stod så i
+      // tullinlägget från 30 juni till 10 november 2026.
+      const rad = (l: string) => {
+        const rubrik = l.match(/^#{1,6}\s+(.*)$/);
+        return rubrik ? `<p><strong>${renderInline(rubrik[1])}</strong></p>` : `<p>${renderInline(l)}</p>`;
+      };
+      out.push(`<blockquote>${bqBuf.map(rad).join("")}</blockquote>`);
       bqBuf = [];
     }
   };
@@ -410,6 +421,7 @@ async function readAllPosts(): Promise<LocalPost[]> {
       slug,
       excerpt,
       date,
+      updated: data.updated_date ? String(data.updated_date) : undefined,
       cover: String(data.cover || ""),
       // `cover_alt` accepteras jämsides med `alt`: tio inlägg skrevs med det
       // namnet, och eftersom parsern bara läste `alt` föll deras omsorgsfullt

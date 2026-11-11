@@ -73,8 +73,9 @@ const fmtKr = (n: number) => `${Math.round(n).toLocaleString("sv-SE")} kr`;
 
 /** Live-auktioner (max 5), joinade mot katalogen. Fail-open: tom lista.
  *  `sida: "fyndauktion"` ger auktionssidan en egen cachepost, som töms varje
- *  timme när motorn bytt priserna (se hämtaAuktionsrader). */
-export async function getLiveAuctions(val: { sida?: "fyndauktion" } = {}): Promise<LiveAuctionView[]> {
+ *  timme när motorn bytt priserna (se hämtaAuktionsrader). `sida: "startsidan"`
+ *  ger startsidan sin egen, som lever en timme som sidan själv. */
+export async function getLiveAuctions(val: { sida?: "fyndauktion" | "startsidan" } = {}): Promise<LiveAuctionView[]> {
   const [rows, products] = await Promise.all([hämtaAuktionsrader("live", {}, val), getProducts()]);
   const bySlug = new Map<string, Product>(products.map((p) => [p.slug, p]));
   const now = Date.now();

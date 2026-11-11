@@ -29,6 +29,7 @@ import { HANDLING_MIN_DAYS, HANDLING_MAX_DAYS, TRANSIT_MIN_DAYS, TRANSIT_MAX_DAY
 import { prisGiltigFran, prisGiltigTill } from "../../../lib/pris-giltig";
 import { jsonLdVarianter, variantBeskrivning, variantUrl, variesBy } from "../../../lib/variant-jsonld";
 import { visaValnamn } from "../../../lib/variant-lage";
+import { getSocialProof } from "../../../lib/social-proof-live";
 
 // ISR: produktsidan cachas i SEX TIMMAR, och det är ett säkerhetsnät — inte
 // färskheten. En ändring på produkten (pris, lager, synlighet, text, bilder,
@@ -123,7 +124,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   // produkter utan uppgifter, och då visas ingen flik.
   // Märket ur Wix (ett svep för hela katalogen, cachat i sex timmar);
   // lib/varumarke.ts avgör vad det blir.
-  const [reviewData, gpsr, marken] = await Promise.all([getProductReviews(p.id), getGpsr(p.id), fetchVarumarken()]);
+  // Butikens Google-betyg till raden vid köpknappen. Samma svar som sidfoten
+  // redan hämtar på varje sida (sex timmars cache), alltså inget nytt anrop.
+  const [reviewData, gpsr, marken, socialt] = await Promise.all([getProductReviews(p.id), getGpsr(p.id), fetchVarumarken(), getSocialProof()]);
   // Poleringens eget säkerhetsavsnitt i beskrivningen vinner över motorns data.
   const egnaSakerhetsrader = sakerhetUrBeskrivning(p.descriptionHtml);
   const gpsrHtml = gpsr
@@ -434,8 +437,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumbLd) }} />
       {faqLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(faqLd) }} />}
 
-      <div className="container">
-        <nav className="crumbs">
+      {/* pdp-sida och crumbs-pdp: på mobil står produkten först. Brödsmulan
+          slutar vid kategorin och bläddringsraden visas under köpdelen, se
+          "Mobil: produkten först" i globals.css. HTML:en är densamma som förut. */}
+      <div className="container pdp-sida">
+        <nav className="crumbs crumbs-pdp">
           <a href="/">Hem</a> <span>/</span>{" "}
           {primaryCol ? (
             <>
@@ -485,6 +491,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           reviewCount={trustpilotBU ? 0 : reviewData.count}
           reviewAverage={trustpilotBU ? null : reviewData.average}
           gpsrHtml={gpsrHtml}
+          // Samma villkor som sektionen nedan: länken i Slutsåld-rutan får
+          // aldrig peka på en sektion som inte renderas.
+          harLiknande={related.length >= 2}
+          googleBetyg={socialt.rating}
         />
       </div>
 
@@ -501,11 +511,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       )}
 
       {related.length >= 2 && (
-        <section className="sec relsec">
+        // id="liknande": målet för länken i Slutsåld-rutan (ProductView).
+        <section className="sec relsec" id="liknande">
           <div className="container">
             <div className="sechead"><div className="eyebrow">Upptäck mer</div><h2>Liknande produkter</h2></div>
-            <div className="prodgrid">
-              {related.map((rp) => <ProductCard p={rp} key={rp.slug} />)}
+            <div className="prodgrid listgrid">
+              {related.map((rp) => <ProductCard p={rp} key={rp.slug} tvaKolumner />)}
             </div>
           </div>
         </section>

@@ -2484,3 +2484,189 @@ En video som läggs på produkten i Wix (Stores V3, `media.itemsInfo.items`,
   En webbläsare får vägra spela ett element i ett dolt eller inert lager.
 - Spelaren är dold med `visibility`, inte `display`. Den har då sin storlek, så
   filstorleken kan väljas redan i trycket. Ingen CSP i butiken behöver ändras.
+
+## Köptratten mätt 2026-11-10, och produkten först på mobil
+
+Mätt i GA4 över 28 dygn till 2026-11-09 och stämt av mot Wix ordrar samma dygn:
+
+| Mått | Värde |
+| :-- | --: |
+| Besök som börjar på en produktsida | 69 % (77 % av den uppmätta omsättningen) |
+| Besök på telefon | 84 % |
+| Nya besökare | 97 % |
+| Källor: Google, ChatGPT, direkt | 37 %, 35 %, 19 % |
+| ChatGPT:s del av den uppmätta omsättningen | 45 % |
+| Besök med produktvisning som lägger i varukorgen | 6,6 % |
+| Påbörjade kassor som blir köp | 53 % |
+| Köp som GA4 ser (75 av 106 betalda ordrar) | ungefär sju av tio |
+| Slutsålda bland de 75 mest besökta landningsprodukterna | 11 (14 % av deras besök) |
+
+Produktsidan på en telefon är alltså butikens förstasida, och tappet ligger där,
+inte i kassan. GA4 mäter bara den som svarat "Godkänn alla": jämför kvoter, inte
+antal, och räkna ordrar i Wix.
+
+Källorna och ChatGPT:s del är ommätta på kvällen samma dag, per kanalgrupp. GA4
+flyttar köp mellan kanalerna i efterhand: tidigare samma dag stod ChatGPT för
+43 % av omsättningen, och två köp gick sedan från "Unassigned" till AI-kanalen. Läs därför av "före" och "efter" med samma avstånd till
+periodens slut.
+
+Ändrat samma dag:
+
+- **Produkten först på mobil** (upp till 760 px, `.pdp-sida` och `.crumbs-pdp` i
+  `app/globals.css`). Bilden började 435 px ner på en 844 px hög skärm och börjar
+  nu 235 px ner. Brödsmulan slutar vid kategorin, och bläddringsraden visas
+  mellan köpdelen och beskrivningen.
+- ☠️ **Bläddringsraden flyttas bara med CSS** (`order`, produktblocket har
+  `display:contents`). Den står kvar i HTML:en ovanför produkten, för länkarna
+  ska finnas där från början (avsnittet om länkar för Google ovan). Flytta den
+  inte i JSX:en.
+- **Slutsåld-rutan länkar till `#liknande`** när sidan har "Liknande produkter"
+  (`harLiknande`). Urvalet där är redan bara varor i lager.
+- **Butikens Google-betyg står vid köpknappen** (`googleBetyg`, samma
+  `getSocialProof` som sidfoten, alltså inget nytt anrop).
+- **Två kort i bredd på mobil** också på startsidan, /butik, "Liknande
+  produkter", prissidorna och /for-dig-som (`listgrid` och `tvaKolumner`).
+- `/kategori/skarmtak-entr-tak` pekar om till `/kategori/skarmtak-entretak`.
+- **Cookierutans knappar står på en rad på mobil** (under 540 px,
+  `white-space:nowrap`), så rutan är 185 px hög i stället för 213 vid 390 px.
+  ☠️ Under 330 px ryms de inte bredvid varandra med texten på en rad. Då föll
+  de i två rader och rutan blev 261 px vid 320 px, högre än förut (235 px).
+  Regeln för 340 px och smalare låter raden aldrig brytas: 207 px vid 320 px.
+  `lib/kakrad-smal.test.ts` vaktar. Mät en ändring i rutan på 280 till 600 px,
+  inte bara på 390.
+
+Så provas en layoutändring utan deploy: bygg lokalt (`pnpm build`, utan
+Wix-nyckel renderas reservkatalogen `products.json`), eller lägg den nya CSS:en
+på den skarpa sidan i en webbläsare (`page.addStyleTag` i Playwright) och jämför
+skärmbilder före och efter i 390 × 844. En molnsession når butiken först när
+miljön tillåter `www.fyndplats.se`, `static.wixstatic.com`, `edge.wixapis.com`
+och `www.wixapis.com` (varukorgen, se `components/cart.tsx`).
+
+## Sökningen: sammanskrivet, utan prickar och ett fel före två (2026-11-10)
+
+39 provsökningar mot butiken: "fatolj" gav 0 träffar fast 284 varor har fåtölj
+i namnet, "sangbord" gav gamingbord, "tv bank" 949 varor med en hantelbänk
+överst, "laser tag" en bredgaffel ("laser" stammas till "las", som står i
+"glasfiber") och "elkammin" melaminhyllor.
+
+Tre tillägg i `lib/search.ts`, alla som reserv, så att en sökning som redan har
+en hel träff svarar som förut:
+
+1. **Sammanskrivet.** Flera sökord hittar ordet som ett ("laser tag" →
+   "Lasertag"), och ett sökord hittar namnet med bindestreck ("tvbänk" →
+   "TV-bänk", "popup" → "Pop-up"). Träffen måste börja ett ord, och går den över
+   ett bindestreck måste den sluta där en del slutar: annars blir "topp" en
+   träff i "Hardtop-paviljong".
+2. **Utan prickar.** Å, ä och ö jämförs som a och o när inget matchar med
+   prickarna kvar. Varvet körs före stavfelsledet.
+3. **Ett stavfel före två.** Finns en träff med ett fel i ordet visas inte de
+   med två.
+4. **Ett sammansatt sökord delat i två** (granskningen samma dag). "barnbil"
+   står inte i något namn, för varorna heter "Elbil barn" och "Åkbil för barn".
+   Med två stavfel låg ordet lika nära "barnbok" och "barn i": 118 träffar med
+   en barnbokhylla överst. Nu söks ordet som "barn bil" (84 bilar för barn) när
+   det går att dela i två ord som båda står för sig i katalogen och någon vara
+   har båda. "barnmotorcykel" gick från 1 träff (ett motorcykelgarage) till 31,
+   "barnelbil" från 0 till 50.
+   ☠️ Delningen kommer EFTER ett stavfel, inte före. Ett felstavat ord går
+   ofta att dela i två riktiga: "matsolar" är "mat" och "solar", och gav en
+   fågelmatare med solpaneler i stället för matstolarna. Med delningen först
+   bytte 55 av 1 050 felstavningar ur katalogen lista, de flesta till det
+   sämre. Med delningen efter: ingen av 1 050, och en av 749 med två fel.
+
+Mätt mot butikens 6 147 namn: 34 av 3 465 sökningar ur katalogen ändrades, alla
+åt det hållet, och tiden per tangent i sökrutan är densamma (4,0–4,3 ms före,
+4,3–4,4 ms efter). Ommätt i granskningen samma dag på en annan maskin, fyra
+omgångar: snittet 4,9–5,8 ms före och 4,5–5,6 ms efter. Den vanliga tangenten
+tar något längre (medianen 1,6–2,0 mot 2,1–2,7 ms), och de långsammaste går
+fortare (var tjugonde tangent tog minst 32–37 ms före och 15–23 ms efter).
+**Mät en sökändring på samma sätt innan den mergas:**
+
+```
+node --experimental-strip-types --no-warnings scripts/sok-jamfor.mjs
+```
+
+Skriptet hämtar `/api/search-index`, kör `rankByName` från grenen och från
+`origin/headless-site` och skriver de sökningar som ger en annan lista.
+Katalogens egna ord har alltid en hel träff, så skriptet prövar inte
+reserverna för stavfel och sammansatta ord. Mät dem med felstavningar gjorda
+ur katalogens ord (ett tecken borta, två omkastade, ett dubblerat): läs varje
+sökning som byter lista.
+
+Kvar: "öppen spis el" ger gnistskydd, för "el" står i "paneler" och "delar".
+Det behöver synonymer för hela fraser ("elektrisk öppen spis" är en elkamin),
+och sådana finns inte i `SYNONYM_GROUPS`.
+
+## Hastigheten mätt 2026-11-10: startsidan byggdes om var 15:e sekund
+
+Lighthouse på mobil (strypt till långsam 4G) gav 81–86 i prestanda, med
+simulerad LCP 3,5–3,9 s. Utan strypning låg LCP på 0,46–0,66 s på produkt- och
+kategorisidan, CLS var 0 och första byten kom efter 80–110 ms. Sidorna är
+alltså snabba i verkligheten, och det som fanns att hämta var tre saker:
+
+- ☠️ **Startsidan byggdes om var femtonde sekund**, fast sidan säger en timme.
+  Auktionsbannerns hämtning (`hämtaAuktionsrader`) hade auktionssidans 15
+  sekunder, och Next sänker hela rutten till den kortaste fetch-tiden på sidans
+  väg. Mätt mot butiken: `age` kom aldrig över 16 s och vartannat svar var
+  `STALE`, medan /butik låg kvar. Första byten tog 0,56–0,72 s mot 0,20–0,30 s
+  för övriga sidor, och varje ombyggnad frågade Wix om priset på varje fynd.
+  Nu läser startsidan raderna med egen nyckel (`sida: "startsidan"`) och en
+  timmes cache. `lib/auction-motor.test.ts` fäller om startsidan läser utan
+  nyckeln. Samma fälla som produktsidans 300 sekunder (2026-09-30, överst).
+  Kvar: `lib/image-scores.ts` har 600 s, så startsidan och /butik byggs om var
+  tionde minut, inte en gång i timmen.
+- **Bildernas `sizes` följer den bredd bilden visas i** (`lib/bild-sizes.ts`).
+  Förut stod hela skärmens bredd, så en iPhone hämtade hjältebilden i 1200w
+  och bildrutorna i 640w fast de visas i 338 och 122 px. Nu 1080w och 384w, och
+  kortbilden 384w i stället för 640w på telefoner i 2x och breda datorskärmar.
+  Mätt i Chromium på åtta skärmar: ingen fil har färre pixlar än sin ruta
+  (lägsta kvot 1,02). Wix AVIF är större än webp i samma kvalitet (121 mot
+  83 kB i 750 px), så formatet är kvar.
+- **De fyra första korten hämtas med `fetchpriority=high`.** `priority` på
+  `<Image>` ger förladdning men inte attributet, så listsidornas största bild
+  köade efter skripten.
+
+Inte ändrat, med flit: rubriktypsnittet (Fraunces, 81 kB) förladdas på varje
+sida fast produktsidan inte visar det ovanför vikningen. Utan förladdningen
+blinkar rubriken på startsidan och kategorisidorna när typsnittet byts in.
+
+Så syns om startsidan är rätt cachad efter en deploy:
+
+```
+curl -sS -o /dev/null -D - https://www.fyndplats.se/ | grep -i -E "^(age|x-vercel-cache)"
+```
+
+`age` ska kunna stå över 16 sekunder utan att svaret blir `STALE`.
+
+## Bloggen: ett inlägg som åldras (2026-11-10)
+
+Tullinlägget (`content/blog/nya-tullreglerna-2026-eu-lager.md`) skrevs 30 juni i
+futurum och stod orört i drygt fyra månader. Det länkas från startsidans
+EU-märke och från /eu-lager-garanti. Leonards fråga 2026-11-10: "den har
+produkter o sånt i sidan, den borde inte ha det".
+
+- ☠️ **Handplockade produkter i ett inlägg åldras.** Tre varor låg som helbreda
+  bilder mitt i texten: 2 400 av sidans 6 500 px på dator, utan pris, och en av
+  dem var slutsåld. De är borttagna. Ett inlägg som förklarar något länkar till
+  sortimentet eller en kategori, inte till enskilda varor. Köpguiderna är en
+  annan sak: där är varorna själva innehållet, och de står i en produktrad.
+- **`updated_date` i frontmattern** när texten skrivs om. Sidan visar då
+  "Uppdaterad …" i stället för publiceringsdagen, och `dateModified` och
+  sitemapens `lastmod` följer med. Sätt det bara vid en verklig omskrivning.
+- **Omslaget ska ha formen 1200 × 630.** Sidan reserverar den formen, så en
+  bild i annan form flyttar texten när den laddats: tullinläggets stående
+  lagerbild gav CLS 0,04 på mobil och sköt texten 1 064 px ner (nu 738 px och
+  CLS 0). Inlägget har nu ett eget omslag i husstilen (`/blog-eu-tull-2026.jpg`,
+  mörk botten, loggan, serifrubrik med ett led i orange). En Wix-bild går att
+  beskära i adressen i stället:
+  `…~mv2.jpg/v1/fill/w_1200,h_630,al_t,q_85/namn.jpg` (`al_t` = övre delen).
+  Kvar: 15 inlägg har kvadratiska omslag, där texten börjar 927 px ner på mobil
+  och CLS är 0,01–0,02. Varje bild behöver ses innan den beskärs.
+- **En rubrikrad i en citatruta** (`> ### Vårt löfte`) blir fet text. Förr
+  skrevs tecknen ut. `lib/local-blog-render.test.ts` fäller om något inlägg
+  skriver ut råa rubriktecken.
+- **Källraden står före "## Vanliga frågor".** Efter sista svaret hamnar den i
+  svaret i FAQPage.
+- Fakta om tull hämtas hos Tullverket ("Ny tullavgift från den 1 juli 2026"),
+  inte ur minnet: 3 euro per vara sedan 1 juli 2026, 2 euro i hanteringsavgift
+  per vara från 1 november 2026, och procenttull i stället från 1 juli 2028.

@@ -76,7 +76,10 @@ const websiteJsonLd = {
 const MIN_MED_OMDOMEN = 2;
 
 export default async function Home() {
-  const [allProductsRaw, cols, liveAuctions] = await Promise.all([getProducts(), getCollections(), getLiveAuctions()]);
+  // sida: "startsidan" ger raderna en timmes cache. Utan den gäller auktionssidans
+  // 15 sekunder, och då byggs HELA startsidan om var femtonde sekund (se
+  // hämtaAuktionsrader i lib/auction-motor.ts).
+  const [allProductsRaw, cols, liveAuctions] = await Promise.all([getProducts(), getCollections(), getLiveAuctions({ sida: "startsidan" })]);
   // Bannerns "pågår"-läge avgörs i AuctionBannerText (klientkomponent): den här
   // sidan har ISR-fönster på en timme och auktionsrotationen kl 19 invaliderar
   // den inte, så en serverberäknad flagga frös in och kunde påstå "sjunker just
@@ -466,7 +469,7 @@ export default async function Home() {
 
       {/* Fyndauktionen-banner: visas bara när det finns live-auktioner (fail-open:
           tom lista → ingen banner, startsidan opåverkad). Data hämtas server-side
-          med 60s-revalidate via lib/auction-view. */}
+          via lib/auction-view och lever en timme, som sidan. */}
       {liveAuctions.length > 0 && (
         <section className="sec" style={{ paddingTop: 0 }}>
           <div className="container">
@@ -496,9 +499,10 @@ export default async function Home() {
             <h2>Veckans fynd</h2>
             <p>Handplockade favoriter – nya varje vecka.</p>
           </div>
-          <div className="prodgrid">
+          {/* Två kort i bredd på mobil, som listsidorna (se .listgrid i globals.css). */}
+          <div className="prodgrid listgrid">
             {products.map((p) => (
-              <ProductCard p={p} key={p.slug} />
+              <ProductCard p={p} key={p.slug} tvaKolumner />
             ))}
           </div>
           <div className="center"><a className="linkbtn" href="/alla-produkter">Visa hela sortimentet →</a></div>

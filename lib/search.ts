@@ -31,6 +31,22 @@
 //    "…uppresningshjälp" (synonymgrupp), och småord som "med" krävs inte i namnet.
 //    Inom samma poäng går namn där sökordet är ordets huvud före de andra
 //    (kant): "tv" visar TV-bänkar före viktvästar, "bord" bord före bordslampor.
+//  • 2026-11-10: 39 provsökningar mot butiken. "fatolj" gav 0 träffar fast
+//    284 varor har fåtölj i namnet, "sangbord" gamingbord, "tv bank" 949 varor med
+//    en hantelbänk överst, "laser tag" en bredgaffel och "elkammin" melaminhyllor.
+//    Tre tillägg, alla som RESERV i samma anda som stavfelsledet, så att en
+//    sökning som redan har en hel träff svarar som förut:
+//      1) Sammanskrivet (sammanskrivet): "laser tag" hittar "lasertag", och
+//         "tvbänk" eller "tv bänk" hittar "TV-bänk". Går före ordträffarna.
+//      2) Utan prickar (vik): å, ä och ö jämförs som a och o när inget matchar
+//         med prickarna kvar. Körs före stavfelsledet.
+//      3) Ett stavfel före två: finns en träff med ett fel i ordet visas inte
+//         de med två.
+//    Samma dag, i granskningen: "barnbil" gav 118 träffar med en barnbokhylla
+//    överst, för ordet står inte i något namn och låg två fel från "barnbok".
+//      4) Ett sammansatt sökord delat i två (delningar): "barnbil" söks som
+//         "barn bil" när inget ord träffar med högst ett fel. Efter ett
+//         stavfel, före två.
 
 // Längsta suffix först — vi tar bort EN matchande ändelse och bara om stammen
 // blir ≥3 tecken (annars blir "set"→"" och allt matchar).
@@ -97,6 +113,9 @@ const SYNONYM_GROUPS: string[][] = [
   ["stol", "chair"],
   ["pall", "stool"],
   ["fåtölj", "armchair"],
+  // "kontorsfåtölj" gav en enda träff, varan som heter så, fast katalogen har
+  // 120 kontorsstolar (2026-11-10).
+  ["kontorsstol", "kontorsfåtölj", "skrivbordsstol", "datorstol"],
   // Uppresningsfåtöljer (Leonard 2026-10-14). 29 heter "Uppresningsfåtölj …",
   // fyra "Massagefåtölj med uppresning" eller "…uppresningshjälp". Nålen "uppres"
   // (stammen av "uppresning") stod i exakt de 33 namnen och inga andra. "lyft"
@@ -187,10 +206,15 @@ export function expandSynonyms(term: string): string[] {
 // för hela mönstret som slutar någonstans i texten. Returnerar true om ≤ maxDist.
 // O(|pattern|·|text|); körs bara när exakt/synonym redan missat en token.
 export function fuzzyContains(pattern: string, text: string, maxDist: number): boolean {
+  return fuzzyAvstand(pattern, text, maxDist) <= maxDist;
+}
+
+/** Minsta redigeringsavståndet för mönstret någonstans i texten. Över maxDist: Infinity. */
+export function fuzzyAvstand(pattern: string, text: string, maxDist: number): number {
   const m = pattern.length;
   const n = text.length;
-  if (m === 0) return true;
-  if (m > n + maxDist) return false; // kan omöjligt rymmas
+  if (m === 0) return 0;
+  if (m > n + maxDist) return Infinity; // kan omöjligt rymmas
   let prevPrev: number[] = new Array(n + 1).fill(0);
   let prev: number[] = new Array(n + 1).fill(0); // rad 0: fri start överallt
   for (let i = 1; i <= m; i++) {
@@ -209,26 +233,102 @@ export function fuzzyContains(pattern: string, text: string, maxDist: number): b
   }
   let best = Infinity;
   for (let j = 0; j <= n; j++) if (prev[j] < best) best = prev[j];
-  return best <= maxDist;
+  return best <= maxDist ? best : Infinity;
+}
+
+// ── Utan prickar och sammanskrivet ───────────────────────────────────────────
+// Den som skriver på ett tangentbord utan å, ä och ö skriver "fatolj" och
+// "sangbord". Båda sidor viks, så det gäller åt båda hållen.
+export function vik(s: string): string {
+  return /[åäöé]/.test(s) ? s.replace(/[åä]/g, "a").replace(/ö/g, "o").replace(/é/g, "e") : s;
+}
+
+// Ett bindestreck INUTI ett ord byts mot en fog, ett tecken som aldrig står i
+// ett namn: "tv-bänk" blir "tv␁bänk". Sökorden jämförs sedan sammanskrivna
+// med en valfri fog mellan varje tecken (ihopMonster). Mellanslag rörs inte:
+// två ord som bara råkar stå intill varandra ("fäst olika") blir aldrig ett
+// ("stol").
+const FOG = "\u0001";
+function medFogar(s: string): string {
+  return s.includes("-") ? s.replace(/([a-zåäö0-9])-(?=[a-zåäö0-9])/g, "$1" + FOG) : s;
+}
+
+/** Kortare än så jämförs inget sammanskrivet: "tv å" ska inte bli "två". */
+const KORTASTE_SAMMANSKRIVET = 4;
+
+// Sökorden skrivna som ett ord, som mönster med valfri fog mellan tecknen.
+// Tecknen kommer ur tokenize och är bara bokstäver och siffror.
+function ihopMonster(ihop: string): RegExp {
+  return new RegExp([...ihop].join(FOG + "?"), "g");
+}
+
+// Var sökorden står sammanskrivna i ett namn med fogar: 2 = i huvuddelen,
+// 1 = bara efter den, 0 = inte alls. Två villkor håller slumpträffar borta:
+//   - Träffen börjar ett ord. "bädd soffa" är inte "hörnbäddsoffa" här (den
+//     hittas ändå som två ord), och "topp" börjar inte mitt i "hardtop".
+//   - Går träffen över en fog slutar den där en del slutar: "tvbänk" är hela
+//     "tv-bänk", men "topp" är inte "top-p…" i "top-paviljong".
+// Utan fog i träffen räcker ordets början ("laser tag" → "lasertag-set"), och
+// det kan bara hända när sökningen har flera ord: ett ensamt sökord som står
+// i namnet utan fog har redan träffat som fras.
+function sammanskrivet(fogat: string, re: RegExp, flerOrd: boolean): { var: 0 | 1 | 2; slutarOrd: boolean } {
+  const huvudSlut = fogat.search(/ [–-] |,| med | för | till /);
+  let bast: 0 | 1 | 2 = 0;
+  let slutarOrd = false;
+  re.lastIndex = 0;
+  for (let m = re.exec(fogat); m; m = re.exec(fogat)) {
+    const i = m.index;
+    const efter = fogat[i + m[0].length];
+    const borjar = i === 0 || (fogat[i - 1] !== FOG && !BOKSTAV.test(fogat[i - 1]));
+    const slutar = efter === undefined || efter === FOG || !BOKSTAV.test(efter);
+    const overFog = m[0].includes(FOG);
+    if (borjar && (overFog ? slutar : flerOrd)) {
+      const har: 1 | 2 = huvudSlut < 0 || i < huvudSlut ? 2 : 1;
+      if (har > bast) { bast = har; slutarOrd = slutar; }
+      if (bast === 2) break;
+    }
+    re.lastIndex = i + 1; // nästa möjliga start, också en som överlappar
+  }
+  return { var: bast, slutarOrd };
 }
 
 // Hur bra en enskild sökterm matchar ett namn: 1 = exakt delsträng, 0.85 = via
 // synonym, 0.6 = via stavfelstolerans, 0 = ingen träff. Stavfel gäller bara
 // tokens ≥5 tecken (kortare ord blir för tvetydigt — en enda redigering i ett
 // 4-teckensord matchar nästan vad som helst) och körs sist (billigast först).
-// maxDist skalar med längden: 1 för 5–6 tecken, 2 för ≥7. Med fuzzy=false
-// hoppas stavfelsledet över (första varvet i rankByName).
-type Unit = { stem: string; key: string };
+// maxDist skalar med längden: 1 för 5–6 tecken, 2 för ≥7.
+//
+// Tre lägen, i den ordning rankByName provar dem:
+//   EXAKT    — delsträng och synonym.
+//   VIKT     — dessutom utan prickar ("fatolj" → fåtölj), 0.95.
+//   STAVFEL  — dessutom stavfelstoleransen: 0.6 för ett fel, 0.5 för två.
+type Unit = { stem: string; key: string; vikt: string };
+const EXAKT = 0, VIKT = 1, STAVFEL = 2;
+type Lage = typeof EXAKT | typeof VIKT | typeof STAVFEL;
 
-function tokenQuality(unit: Unit, nameNorm: string, fuzzy: boolean): number {
+/** Kvaliteten, antalet stavfel när träffen kom via stavfelstoleransen, och om den krävde vikta prickar. */
+type Ordtraff = { qual: number; fel: number; vikt: boolean };
+const INGEN: Ordtraff = { qual: 0, fel: 0, vikt: false };
+const HEL: Ordtraff = { qual: 1, fel: 0, vikt: false };
+const SYNONYM: Ordtraff = { qual: 0.85, fel: 0, vikt: false };
+const UTAN_PRICKAR: Ordtraff = { qual: 0.95, fel: 0, vikt: true };
+const ETT_FEL: Ordtraff = { qual: 0.6, fel: 1, vikt: false };
+const TVA_FEL: Ordtraff = { qual: 0.5, fel: 2, vikt: false };
+
+function tokenQuality(unit: Unit, nameNorm: string, lage: Lage, namnVikt: string): Ordtraff {
   const { stem: s, key } = unit;
-  if (nameNorm.includes(s)) return 1;
+  if (nameNorm.includes(s)) return HEL;
   const needles = SYN.get(key);
   if (needles) {
-    for (const nd of needles) if (nameNorm.includes(nd)) return 0.85;
+    for (const nd of needles) if (nameNorm.includes(nd)) return SYNONYM;
   }
-  if (fuzzy && s.length >= 5 && fuzzyContains(s, nameNorm, s.length >= 7 ? 2 : 1)) return 0.6;
-  return 0;
+  if (lage >= VIKT && namnVikt.includes(unit.vikt)) return UTAN_PRICKAR;
+  if (lage >= STAVFEL && s.length >= 5) {
+    const fel = fuzzyAvstand(s, nameNorm, s.length >= 7 ? 2 : 1);
+    if (fel === 1) return ETT_FEL;
+    if (fel === 2) return TVA_FEL;
+  }
+  return INGEN;
 }
 
 // Småord som inte säger vad varan är. De krävs inte i namnet när sökningen har
@@ -238,7 +338,10 @@ function tokenQuality(unit: Unit, nameNorm: string, fuzzy: boolean): number {
 // fortfarande med småorden kvar, så en exakt fras ger 100 som förut.
 const STOPWORDS = new Set(["med", "och", "för", "till", "på", "av", "en", "ett", "som", "från"]);
 
-type Prepared = { q: string; units: Unit[] };
+// `ihop` är sökorden skrivna som ett ord ("laser tag" → "lasertag") som
+// mönster, med prickarna kvar och utan. Null när det blir för kort.
+type Ihop = { re: RegExp; reVikt: RegExp; flerOrd: boolean };
+type Prepared = { q: string; units: Unit[]; ihop: Ihop | null };
 
 // Sökordet tolkas EN gång per sökning. nameMatch gjorde det förr per vara, alltså
 // 4 184 gånger per tangent.
@@ -248,8 +351,16 @@ function prepare(query: string): Prepared {
     .map((t) => ({ tok: t, stem: stem(t), key: canon(t) }))
     .filter((u) => u.stem.length >= 2);
   const innehall = alla.filter((u) => !STOPWORDS.has(u.tok));
-  const units = (innehall.length > 0 ? innehall : alla).map(({ stem: s, key }) => ({ stem: s, key }));
-  return { q, units };
+  const units = (innehall.length > 0 ? innehall : alla).map(({ stem: s, key }) => ({ stem: s, key, vikt: vik(s) }));
+  const ord = tokenize(q);
+  const ihop = ord.join("");
+  return {
+    q,
+    units,
+    ihop: ihop.length >= KORTASTE_SAMMANSKRIVET
+      ? { re: ihopMonster(ihop), reVikt: ihopMonster(vik(ihop)), flerOrd: ord.length > 1 }
+      : null,
+  };
 }
 
 // Produktnamnen skrivs "Vad det är – detaljer" ("Klösträd 200 cm med sex
@@ -296,45 +407,74 @@ export type NameMatch = {
   full: boolean;
   /** Sant när minst en term bara hittades via stavfelstoleransen. */
   stavfel?: boolean;
+  /** Flest stavfel i ett enskilt sökord (1 eller 2) när stavfel är sant. */
+  fel?: number;
+  /** Sant när träffen krävde att å, ä och ö jämfördes som a och o. */
+  vikt?: boolean;
   /** Sämsta ordgränsen bland de exakta träffarna (se kant). Bara för ordningen. */
   kant?: number;
 };
 
 // Hur väl matchar `query` ett produktNAMN?
 //   100 — hela söksträngen finns i namnets huvuddel ("vinöppnare")
+//    95 — sökorden finns sammanskrivna i huvuddelen ("laser tag" → "Lasertag-set",
+//         "tvbänk" → "TV-bänk"); 93 när det dessutom krävde att prickarna veks
 //    90 — hela söksträngen finns, men bara efter huvuddelen ("…med hängmatta")
+//    88 — sammanskrivet, men bara efter huvuddelen; 86 med prickarna vikta
 //    60 — alla söktermer matchar exakt (compound-aware: "knivset"→"kniv" i
 //         "knivhållare", "halsband" i "kedjehalsband")
+//   ~57 — alla söktermer matchar men minst en bara utan prickar ("fatolj")
 //   ~51 — alla söktermer matchar men minst en via synonym ("mtb"→cykel)
-//   ~36 — alla söktermer matchar men minst en via stavfelstolerans ("cyckel"→cykel)
+//   ~36 — alla söktermer matchar men minst en via stavfelstolerans ("cyckel"→cykel),
+//         ~30 när ordet har två fel
 //   1–59 — bara några termer matchade (delvis), proportionellt & kvalitetsviktat
 export function nameMatch(name: string, query: string): NameMatch {
-  return matchPrepared(normalize(name), prepare(query), true);
+  return matchPrepared(normalize(name), prepare(query), STAVFEL);
 }
 
-function matchPrepared(nameNorm: string, p: Prepared, fuzzy: boolean): NameMatch {
+// `fogatNamn` och `viktNamn` är namnet med fogar (medFogar) och utan prickar
+// (vik). rankByName räknar dem en gång per namnlista och skickar in dem; utan
+// dem räknas de här.
+function matchPrepared(nameNorm: string, p: Prepared, lage: Lage, fogatNamn?: string, viktNamn?: string): NameMatch {
   const none = { score: 0, full: false };
-  const { q, units } = p;
+  const { q, units, ihop } = p;
   if (!q || !nameNorm) return none;
   if (nameNorm.includes(q)) {
     return { score: mainPart(nameNorm).includes(q) ? 100 : 90, full: true, kant: kant(nameNorm, q) };
   }
+  // Sammanskrivet: flera sökord som ett ord i namnet, eller ett sökord över
+  // ett bindestreck i namnet.
+  const fogat = ihop ? (fogatNamn ?? medFogar(nameNorm)) : "";
+  if (ihop && (ihop.flerOrd || fogat !== nameNorm)) {
+    const t = sammanskrivet(fogat, ihop.re, ihop.flerOrd);
+    if (t.var) return { score: t.var === 2 ? 95 : 88, full: true, kant: t.slutarOrd ? 2 : 1 };
+  }
+  const vikt = lage >= VIKT ? (viktNamn ?? vik(nameNorm)) : "";
+  if (ihop && lage >= VIKT && (ihop.flerOrd || fogat !== nameNorm)) {
+    const t = sammanskrivet(vik(fogat), ihop.reVikt, ihop.flerOrd);
+    if (t.var) return { score: t.var === 2 ? 93 : 86, full: true, kant: t.slutarOrd ? 2 : 1, vikt: true };
+  }
   if (units.length === 0) return none;
   let sum = 0;
   let hit = 0;
-  let stavfel = false;
+  let fel = 0;
+  let utanPrickar = false;
   let kanter = 2;
   for (const u of units) {
-    const qual = tokenQuality(u, nameNorm, fuzzy);
-    sum += qual;
-    if (qual > 0) hit++;
-    if (qual > 0 && qual < 0.85) stavfel = true;
-    if (qual === 1) kanter = Math.min(kanter, kant(nameNorm, u.stem));
+    const t = tokenQuality(u, nameNorm, lage, vikt);
+    sum += t.qual;
+    if (t.qual > 0) hit++;
+    if (t.fel > fel) fel = t.fel;
+    if (t.vikt) utanPrickar = true;
+    if (t.qual === 1) kanter = Math.min(kanter, kant(nameNorm, u.stem));
   }
   if (sum === 0) return none;
   // Perfekt täckning (alla exakta) → 60, samma tak som förr. Synonym-/stavfel-
   // tokens bidrar <1 så de landar strax under en likvärdig exakt träff.
-  return { score: Math.max(1, Math.round((sum / units.length) * 60)), full: hit === units.length, stavfel, kant: kanter };
+  const m: NameMatch = { score: Math.max(1, Math.round((sum / units.length) * 60)), full: hit === units.length, stavfel: fel > 0, kant: kanter };
+  if (fel > 0) m.fel = fel;
+  if (utanPrickar) m.vikt = true;
+  return m;
 }
 
 export function nameScore(name: string, query: string): number {
@@ -369,20 +509,124 @@ export function nameScore(name: string, query: string): number {
 export function rankByName<T>(items: T[], nameOf: (item: T) => string, query: string, normNamn?: readonly string[]): T[] {
   const p = prepare(query);
   const namn = normNamn ?? items.map((item) => normalize(nameOf(item)));
-  const varv = (fuzzy: boolean) =>
-    items
-      .map((item, i) => ({ item, ...matchPrepared(namn[i], p, fuzzy) }))
+  // Namnens övriga former räknas en gång per namnlista (sökrutorna skickar
+  // samma lista vid varje tangent), och formen utan prickar först när första
+  // varvet inte gett en hel träff.
+  const sparat = formerFor(namn);
+  const varv = (lage: Lage, sokning: Prepared = p) => {
+    const fogade = sokning.ihop ? (sparat.fogat ??= namn.map(medFogar)) : null;
+    const vikta = lage >= VIKT ? (sparat.vikt ??= namn.map(vik)) : null;
+    return items
+      .map((item, i) => ({ item, ...matchPrepared(namn[i], sokning, lage, fogade ? fogade[i] : undefined, vikta ? vikta[i] : undefined) }))
       .filter((r) => r.score > 0);
+  };
   // Poängen först, sedan ordgränsen (kant). Sorteringen är stabil, så
   // katalogens ordning gäller mellan likvärdiga träffar.
   const sortera = (rader: ReturnType<typeof varv>) =>
     rader.sort((a, b) => b.score - a.score || (b.kant ?? 0) - (a.kant ?? 0)).map((r) => r.item);
 
-  const forsta = varv(false);
+  const forsta = varv(EXAKT);
   if (forsta.some((r) => r.full)) return sortera(forsta.filter((r) => r.full));
 
-  const scored = varv(true);
+  // UTAN PRICKAR SOM RESERV, före stavfelsledet (2026-11-10). "fatolj" är två
+  // fel från "fåtölj" och sex tecken långt, så stavfelsledet (ett fel för 5–6
+  // tecken) hittade ingenting, och "sangbord" låg lika nära "gamingbord" som
+  // "sängbord". Finns en hel träff när å, ä och ö jämförs som a och o visas
+  // bara de. Varvet är billigt (en delsträngsjämförelse per ord), så den som
+  // skriver "fato…" slipper dessutom stavfelsledet vid varje tangent.
+  const andra = varv(VIKT);
+  if (andra.some((r) => r.full)) return sortera(andra.filter((r) => r.full));
+
+  const scored = varv(STAVFEL);
   const hela = scored.some((r) => r.full) ? scored.filter((r) => r.full) : scored;
   const kept = hela.some((r) => !r.stavfel) ? hela.filter((r) => !r.stavfel) : hela;
+  // ETT STAVFEL FÖRE TVÅ. Två fel tillåts i ord på sju tecken eller fler, och
+  // då låg "elkammin" lika nära "melamin" och "kammare" som "elkamin": 39
+  // träffar med hyllplan och en fladdermusholk överst. Finns en träff där
+  // inget ord har mer än ett fel visas bara sådana.
+  // (kept är antingen bara stavfelsträffar eller inga alls, se raden ovan.)
+  if (kept.some((r) => r.fel === 1)) return sortera(kept.filter((r) => r.fel === 1));
+
+  // ETT SAMMANSATT SÖKORD SOM RESERV, före träffarna med två stavfel
+  // (2026-11-10). "barnbil" står inte i något namn, för varorna heter "Elbil
+  // barn …" och "Åkbil för barn". Två fel tillåts i sju tecken, och då låg
+  // ordet lika nära "barnbok", "barn i" och "bar vil": 118 träffar med en
+  // barnbokhylla och en viltvagn överst. Går sökordet att dela i två ord som
+  // båda står i katalogen, och finns varor med båda, visas de: "barn bil" ger
+  // 84 elbilar, åkbilar och sparkbilar. Se delningar för villkoren.
+  //
+  // ☠️ EFTER ett stavfel, inte före. Ett felstavat ord går oftare att dela i
+  // två riktiga ord än man tror: "matsolar" är "mat" och "solar", och gav en
+  // fågelmatare med solpaneler i stället för matstolarna. Mätt på 1 050
+  // felstavningar ur katalogen bytte 55 lista med delningen först, de flesta
+  // till det sämre. Ett ord med ETT fel har nästan alltid sin rätta träff i
+  // raden ovan, och kommer aldrig hit.
+  for (const delad of delningar(p, () => (sparat.ord ??= kandaOrd(namn)))) {
+    const sokning = prepare(delad);
+    for (const lage of [EXAKT, VIKT] as const) {
+      const rader = varv(lage, sokning);
+      if (rader.some((r) => r.full)) return sortera(rader.filter((r) => r.full));
+    }
+  }
   return sortera(kept);
+}
+
+// ── Ett sammansatt sökord delat i två ─────────────────────────────────────────
+// Motsatsen till sammanskrivet: kunden skriver ett ord ("barnbil"), och
+// katalogen har de två orden var för sig ("Elbil barn", "Åkbil för barn").
+
+/** Ingen del får bli kortare än tre tecken, så sökord under sex delas aldrig. */
+const KORTASTE_DEL = 3;
+
+// Varje ord i namnen, också stammat och utan prickar. En del av sökordet är
+// känd när den står här: "barn" och "bil" gör det, "elkam" (ur "elkammin") och
+// "nbil" gör det inte. Ordet ska stå för sig i något namn: "bil" är känt för
+// att 22 namn har ordet, inte för att "Elbil" slutar så. Mätt på 749
+// felstavningar med två fel bytte en enda lista.
+function kandaOrd(namn: readonly string[]): Set<string> {
+  const ord = new Set<string>();
+  for (const n of namn) {
+    for (const t of tokenize(n)) {
+      if (t.length < KORTASTE_DEL) continue;
+      const s = stem(t);
+      ord.add(t).add(s).add(vik(t)).add(vik(s));
+    }
+  }
+  return ord;
+}
+
+// Sökordet delat i två ord, som sökningar att prova i tur och ordning. Bara
+// ett ensamt sökord delas, och bara där båda delarna är kända ord och inget av
+// dem är ett småord ("till" i "tillbehör"). Den jämnaste delningen först: ju
+// längre den kortaste delen är, desto mindre slump i träffen.
+function delningar(p: Prepared, kanda: () => Set<string>): string[] {
+  const ord = tokenize(p.q);
+  if (ord.length !== 1 || ord[0].length < 2 * KORTASTE_DEL) return [];
+  const t = ord[0];
+  const ar = (x: string, k: Set<string>) => {
+    const s = stem(x);
+    return !STOPWORDS.has(x) && (k.has(x) || k.has(s) || k.has(vik(x)) || k.has(vik(s)));
+  };
+  const k = kanda();
+  const ut: { a: string; b: string }[] = [];
+  for (let i = KORTASTE_DEL; i <= t.length - KORTASTE_DEL; i++) {
+    const a = t.slice(0, i);
+    const b = t.slice(i);
+    if (ar(a, k) && ar(b, k)) ut.push({ a, b });
+  }
+  const kortast = (d: { a: string; b: string }) => Math.min(d.a.length, d.b.length);
+  return ut.sort((x, y) => kortast(y) - kortast(x)).map((d) => `${d.a} ${d.b}`);
+}
+
+// Namnlistans övriga former, sparade per lista: sökrutorna skickar samma
+// normaliserade lista vid varje tangent (rankaForslag i lib/sok-index.ts).
+type ListFormer = { fogat?: string[]; vikt?: string[]; ord?: Set<string> };
+const formCache = new WeakMap<readonly string[], ListFormer>();
+function formerFor(namn: readonly string[]): ListFormer {
+  let f = formCache.get(namn);
+  if (!f) {
+    f = {};
+    formCache.set(namn, f);
+  }
+  return f;
 }

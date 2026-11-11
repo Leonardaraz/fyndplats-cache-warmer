@@ -7,6 +7,7 @@ import { tightFillUrl } from "../lib/wix-image";
 import { altForImage } from "../lib/image-alt";
 import { kandidatBredd, nearWindow, prefersDataSaving } from "../lib/gallery-preload";
 import { langdTal, langdText, valjKalla, type ProduktVideo } from "../lib/produkt-video";
+import { HERO_SIZES, TILE_SIZES } from "../lib/bild-sizes";
 
 // LCP-fix (Leonards rapport: hjältebilden låg blank 1–2 s). Huvudbilden gick
 // tidigare via Vercels bildoptimerare (/_next/image), som KALLSTARTAR per ny
@@ -39,17 +40,12 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
 // båda träffar samma adress i cachen.
 const LB_HI = 1600;
 
-// Hjältelagrens sizes — desktopkolumnen är FAST 544 px (.container 1180 − padding
-// 52 − gap 40, ÷2; box-sizing:border-box), så w_1200 räcker även på breda skärmar
-// (544×DPR2=1088; hover-zoom 1.07× → 1164 < 1200). Delas med lightboxens baslager
-// så det VÄLJER SAMMA srcset-kandidat som hjälten → öppning är en ren cache-träff.
-// Aldrig calc() här — Next parsar sizes med regexen (^|\s)\d+vw och tappar tyst
-// kandidatlistan om 100vw göms i en calc().
-const HERO_SIZES = "(max-width:760px) 100vw, (max-width:1180px) 45vw, 544px";
-
-// Bildrutorna under hjälten: tre i bredd på dator (≈176 px i 544-kolumnen),
-// ≈36 % av skärmbredden i mobilens svepbara rad.
-const TILE_SIZES = "(max-width:760px) 38vw, (max-width:1180px) 15vw, 180px";
+// Hjältelagrens sizes (HERO_SIZES, lib/bild-sizes.ts) — desktopkolumnen är FAST
+// 544 px (.container 1180 − padding 52 − gap 40, ÷2; box-sizing:border-box), så
+// w_1200 räcker även på breda skärmar (544×DPR2=1088; hover-zoom 1.07× → 1164 <
+// 1200). Delas med lightboxens baslager så det VÄLJER SAMMA srcset-kandidat som
+// hjälten → öppning är en ren cache-träff. Bildrutorna under hjälten har
+// TILE_SIZES. Om calc() och Nexts regex: se lib/bild-sizes.ts.
 const MAX_TILES = 12;
 
 // Spekulativ förladdning avstängd? (Data Saver / 2g — se lib/gallery-preload.)
