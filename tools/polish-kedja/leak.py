@@ -21,6 +21,9 @@ for f in files:
             # två mått i en adress ("metallskjul-…-ventilation-277-195") följer på bokstav och bindestreck; ett artikelnummer gör aldrig det
             if p==r'\b\d{3}-\d{3}\b' and re.search(r'[a-zåäö]-$',t[max(0,m.start()-2):m.start()]): continue
             print('MONSTER',os.path.basename(f),p,repr(t[max(0,m.start()-30):m.end()+30])); n+=1
+    # leverantörens modellbeteckning (VEVOR: SU-50, YP-9): 1-4 stora bokstäver, bindestreck och siffror; gäller bara rundans rotfiler, aldrig skriv/ eller orig/
+    for m in re.finditer(r'\b[A-Z]{1,4}-\d{1,4}[A-Z]?\b',t):
+        print('MODELL',os.path.basename(f),repr(t[max(0,m.start()-30):m.end()+30])); n+=1
     for name in ('ARTNR','MARKEN'):
         rx=getattr(gatelib,name,None)
         if rx is None: continue
