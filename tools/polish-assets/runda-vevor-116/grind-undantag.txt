@@ -1,0 +1,12 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Mått per enhet (Ø13,39 x 48,43 tum / Ø340 x 1230 mm) utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, men måttritningen visar höjd 1230 mm och basdiameter 340 mm: texten skriver måtten med orden höjd och diameter ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek (1200 x 750 mm) utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, men måttritningen visar längd 1200 mm, bredd 750 mm och tjocklek 38 mm: texten skriver måtten med orden längd, bredd och tjocklek ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (340 x 315 x 942 mm) utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, men måttritningen visar höjd 942 mm, bredd 315 mm upptill och 340 mm längs basen: texten skriver höjden med ordet höjd och de två breddmåtten med orden vid hjulen och upptill ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (120 x 50 x 75 cm) utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, men måttritningen visar längd 120 cm, djup 50 cm och höjd 76 cm (specifikationen anger 75 cm): texten skriver 75 cm som i specifikationen och använder orden längd, djup och höjd ur ritningen; lådans mått läses likaså ur ritningen (bredd 29,5 cm, djup 47,8 cm och höjd 15,7 cm)
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation saknar måttrad, och utkastets artikelstorlek (41 x 26 x 10 tum / 1030 x 670 x 730 mm) har inga axelord; måttritningen visar höjd 41 tum (1030 mm) och bredd 26 tum (670 mm): texten skriver bara de två måtten med orden höjd och bredd ur ritningen. Det tredje måttet är 730 mm i utkastets specifikation men 254 mm (10 tum) på måttbilden, och skrivs därför inte
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Mått (L * B * H) 30 * 10 * 13 cm och ingen tysk totalmåttrad att bygga ett facit ur; måttritningen visar 30 cm, 13 cm och 10 cm utan axelord, så texten skriver specifikationens L × B × H utan att lägga till egna axelord
