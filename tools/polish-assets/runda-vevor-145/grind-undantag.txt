@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktstorlek saknar axelord, och måttritningen visar 2000 mm som bredd, 820 mm som djup och 1200 mm som höjd: sidan skriver bredd, djup och höjd
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktstorlek saknar axelord, och måttritningen visar 1200 mm som bredd, 820 mm som djup och 1200 mm som höjd: sidan skriver bredd, djup och höjd
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått saknar axelord, och måttritningen visar 53 cm som längd, 33 cm som bredd och 32,5 cm som höjd: sidan skriver längd, bredd och höjd
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Storlek saknar axelord och går inte ihop med måttritningen, så sidan skriver inga yttermått
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått saknar axelord, och måttritningen visar längden och diametern: sidan skriver bara rörlängd och ytterdiameter
