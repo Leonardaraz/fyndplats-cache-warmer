@@ -11,17 +11,25 @@
 // medlem", med tecken "Mitt konto". Datorn visar ikonen och texten; mobilen
 // visar ikonen i sidhuvudet (raden rymmer den ned till 320 px, se .hrow i
 // app/globals.css) och texten överst i menyn.
+//
+// En sida som loggar in utan att laddas om (/konto/foretag, steg 1) säger till
+// med händelsen `fp-konto-andrat`; då läses tecknet om, så att knappen inte
+// står kvar på "Bli medlem" för den som just blev det.
 
 import { useEffect, useState } from "react";
 import { kontolankText } from "../lib/medlem/kontolank";
 
-let fragan: Promise<boolean> | null = null;
+/** Svaret från /api/konto/lage: kontot i menyn, och företagskontot i sidfoten. */
+type Lage = { pa: boolean; foretag: boolean };
+const STANGT: Lage = { pa: false, foretag: false };
 
-function kontoOppet(): Promise<boolean> {
+let fragan: Promise<Lage> | null = null;
+
+function kontoOppet(): Promise<Lage> {
   fragan ??= fetch("/api/konto/lage")
     .then((r) => (r.ok ? r.json() : null))
-    .then((s: { pa?: unknown } | null) => s?.pa === true)
-    .catch(() => false);
+    .then((s: { pa?: unknown; foretag?: unknown } | null) => ({ pa: s?.pa === true, foretag: s?.pa === true && s?.foretag === true }))
+    .catch(() => STANGT);
   return fragan;
 }
 
@@ -35,20 +43,24 @@ function tecken(): string | null {
   return null;
 }
 
-/** `synlig` är null tills /api/konto/lage svarat. */
-export type Kontolank = { synlig: boolean | null; text: "Bli medlem" | "Mitt konto"; inne: boolean };
+/** `synlig` är null tills /api/konto/lage svarat. `foretag`: vägen till ett företagskonto är öppen. */
+export type Kontolank = { synlig: boolean | null; text: "Bli medlem" | "Mitt konto"; inne: boolean; foretag: boolean };
 
 export function useKontolank(): Kontolank {
-  const [l, setL] = useState<Kontolank>({ synlig: null, text: "Bli medlem", inne: false });
+  const [l, setL] = useState<Kontolank>({ synlig: null, text: "Bli medlem", inne: false, foretag: false });
   useEffect(() => {
     let aktiv = true;
-    kontoOppet().then((v) => {
-      if (!aktiv) return;
-      const text = kontolankText(tecken());
-      setL({ synlig: v, text, inne: text === "Mitt konto" });
-    });
+    const las = () =>
+      kontoOppet().then((v) => {
+        if (!aktiv) return;
+        const text = kontolankText(tecken());
+        setL({ synlig: v.pa, text, inne: text === "Mitt konto", foretag: v.foretag });
+      });
+    las();
+    window.addEventListener("fp-konto-andrat", las);
     return () => {
       aktiv = false;
+      window.removeEventListener("fp-konto-andrat", las);
     };
   }, []);
   return l;
@@ -97,4 +109,11 @@ export function KontoFotLank() {
   const { synlig, text } = useKontolank();
   if (!synlig) return null;
   return <a href="/konto">{text}</a>;
+}
+
+/** Sidfoten, kolumnen Handla: den direkta vägen till ett företagskonto (/konto/foretag). */
+export function ForetagFotLank() {
+  const { foretag } = useKontolank();
+  if (!foretag) return null;
+  return <a href="/konto/foretag">Företagskonto</a>;
 }

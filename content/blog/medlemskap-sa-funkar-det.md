@@ -74,9 +74,9 @@ När du är inloggad ser du ditt medlemspris direkt på varan, i din nivås fär
 
 [![Företagskontot: kontroll mot Bolagsverket, priser exklusive moms, offert på större köp, och faktura och kvitto med företagets namn](/blog-medlemskap-foretag.webp)](/villkor/foretag "Läs företagsvillkoren")
 
-Handlar du till jobbet? Koppla ett företag till ditt konto och handla som företaget, med samma inloggning.
+Handlar du till jobbet? [Skapa ett företagskonto](/konto/foretag) direkt och handla som företaget. Har du redan ett konto lägger du till företaget på Mina sidor, med samma inloggning.
 
-- **Ansök på Mina sidor** med organisationsnumret. Vi kontrollerar uppgifterna mot Bolagsverket direkt, så ett aktivt bolag godkänns på några sekunder. En enskild firma går vi igenom för hand.
+- **Tre steg, ett par minuter:** organisationsnumret och din e-post, företagets uppgifter, klart. Vi kontrollerar uppgifterna mot Bolagsverket direkt, så ett aktivt bolag godkänns på några sekunder. En enskild firma går vi igenom för hand.
 - **Priser exklusive moms** när du handlar som företaget. I kassan läggs momsen på, och det är det beloppet som betalas.
 - **Rabatt på större ordrar.** Företag får samma nivåer som alla medlemmar, och dessutom en ordertrappa: från 1 % på ordrar från 5 000 kr exkl. moms upp till 5 % från 50 000 kr. Du får alltid den högsta av de två, aldrig båda.
 - **Offert på större köp.** Från 6 exemplar av samma vara, eller från 20 000 kr exkl. moms, begär du en offert direkt i varukorgen. Den gäller i 14 dagar.
@@ -110,7 +110,7 @@ Ja, när köpen som håller uppe den blir äldre än ett år. Vi mejlar två vec
 Logga in, så syns ditt medlemspris direkt på varorna, i varukorgen och i kassan. Medlemspriset börjar på nivån Silver.
 
 ### Kan mitt företag bli medlem?
-Ja. Logga in och ansök på Mina sidor med organisationsnumret. Ett aktivt bolag godkänns direkt efter kontrollen hos Bolagsverket, och en enskild firma går vi igenom för hand.
+Ja. Välj Företag på inloggningssidan och skapa ett företagskonto med organisationsnumret och din e-post. Ett aktivt bolag godkänns direkt efter kontrollen hos Bolagsverket, och en enskild firma går vi igenom för hand.
 
 ### Hur tar jag bort mitt konto?
 Mejla info@fyndplats.com så tar vi bort det. Dina ordrar finns kvar, som bokföringslagen kräver.

@@ -39,6 +39,8 @@ export function Medlemskort({
   rad2,
   id = "mk",
   liten = false,
+  etikett = "Medlem",
+  nyckel,
 }: {
   niva: string;
   /** Nere till vänster, t.ex. den maskerade adressen. */
@@ -48,15 +50,19 @@ export function Medlemskort({
   /** Unikt prefix för kubens gradienter när flera kort står på samma sida. */
   id?: string;
   liten?: boolean;
+  /** Ordet uppe till höger. Företagskortet säger "Företag". */
+  etikett?: string;
+  /** Färgernas nyckel när kortet inte är en medlemsnivå ("foretag"). */
+  nyckel?: string;
 }) {
   return (
-    <div className={`${s.medlemskort} ${liten ? s.medlemskortLiten : ""}`} data-niva={nivaNyckel(niva)}>
+    <div className={`${s.medlemskort} ${liten ? s.medlemskortLiten : ""}`} data-niva={nyckel ?? nivaNyckel(niva)}>
       <div className={s.kortTopp}>
         <span className={s.kortMarke}>
           <Kub id={id} />
           Fyndplats
         </span>
-        <span className={s.kortEtikett}>Medlem</span>
+        <span className={s.kortEtikett}>{etikett}</span>
       </div>
       <p className={s.kortNiva}>{niva}</p>
       {rad1 || rad2 ? (

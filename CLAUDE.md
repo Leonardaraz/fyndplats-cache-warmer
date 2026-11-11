@@ -2233,6 +2233,41 @@ Ett företag läggs till på ett befintligt konto, högst ett per konto i E3.
   cachas aldrig; utan PDF visas en kort sida på svenska med länk tillbaka
   (`kvittoFelText`).
 
+## Företagskonto direkt: `/konto/foretag` (Leonard 2026-11-10)
+
+Förut fanns företagskontot bara som rutan "Lägg till ett företag" på Mina
+sidor: kunden fick bli medlem först. Nu finns en egen väg i tre steg
+(e-post, företaget, klart). Kontot är samma medlemskonto med en
+företagsprofil; det är vägen dit som är ny. Rutan på Mina sidor står kvar.
+
+- **Vägarna in:** växeln Privatperson/Företag överst på `/konto` och raden
+  "Handlar du till ett företag?" under inloggningen (`app/konto/kontotyp.tsx`),
+  plus "Företagskonto" i sidfoten (`ForetagFotLank`). Allt är vanliga länkar i
+  serverns HTML utom sidfotens, som följer `/api/konto/lage` (`foretag`).
+- **Reglerna står i `lib/medlem/foretagsstart.ts`** (ren modul, prov i
+  `foretagsstart.test.ts`): `foretagsvag` avgör vad sidan gör, `visaForetagsvag`
+  om vägarna in syns, `efterInloggning` vart steg 1 leder.
+- ☠️ **Utloggad syns vägen bara när `pris` står på `pa`.** I läget `test` hade
+  vem som helst annars skapat ett konto och mötts av "inte öppnat än" i steg 2.
+  En testare loggar in först och går sedan till adressen.
+- **Steg 1** är den vanliga inloggningen (`KontoInloggning`) med
+  organisationsnumret som extra fält (`fore`, `kontroll`) och `mal` satt till
+  `/konto/foretag`, så att länken i mejlet också landar på vägen. Efter koden
+  frågar sidan `/api/konto/foretag { steg: "lage" }` och går vidare utan
+  omladdning. ☠️ Det steget svarar FÖRE spärren `skal: "stangt"`; flytta det
+  inte under den.
+- ☠️ **Organisationsnumret bor bara i komponentens tillstånd** fram till
+  ansökan: aldrig i adressen, `sessionStorage` eller en kaka. För en enskild
+  firma är det ett personnummer. Den som loggar in via mejllänken i en annan
+  flik får därför skriva numret igen i steg 2.
+- **Steg 2** är samma `Ansokan` som på Mina sidor (exporterad ur
+  `app/konto/foretag.tsx`) med numret ifyllt. Ett godkänt bolag växlar profilen
+  via `/api/konto/profil` innan steg 3 visas.
+- **Ordertrappans bild** ritas ur `ORDERTRAPPA` (`trappsteg`), så den kan inte
+  lova något annat än kassan räknar. Under 364 px visas beloppen utan "kr".
+- Inloggad med företag (också ett nekat) → `/konto#foretag`. Stängd väg →
+  `/konto`. Sidan är `force-dynamic` och noindex som `/konto`.
+
 ## Kontaktvägarna bär produkten (Leonard 2026-11-07)
 
 Leonard: "när folk mailar oss om produkter så blir det lätt för dom att visa

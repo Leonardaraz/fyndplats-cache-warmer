@@ -5,9 +5,15 @@
 //     lpostnr?, lort?, naring: "1", villkor: "<version>" }
 //   { steg: "villkor", villkor: "<version>" }   (ny version av villkoren)
 //   { steg: "sla-upp", orgnr }                  (namnet medan kunden skriver)
+//   { steg: "lage" }                            (har kontot ett företag, och är vägen öppen?)
 //
-// Kräver inloggning och att prisväxeln släpper fram kontot (läget `pa`, eller
-// `test` för en testare). Ansökan prövas på servern med samma regler som i
+// "lage" är frågan den direkta vägen (/konto/foretag) ställer direkt efter
+// inloggningen i steg 1: svaret { ok, oppet, foretag } avgör om steg 2 visas
+// på samma sida eller om kunden hör hemma på Mina sidor. Det besvaras före
+// prisväxelns spärr, så att ett stängt konto får ett besked och inte ett fel.
+//
+// Allt annat kräver inloggning och att prisväxeln släpper fram kontot (läget
+// `pa`, eller `test` för en testare). Ansökan prövas på servern med samma regler som i
 // formuläret (lib/medlem/foretag.ts) och slås sedan upp hos Bolagsverket
 // (lib/medlem/bolagsverket.ts). Ett aktivt företag godkänns direkt med det
 // registrerade namnet (Leonard 2026-11-06); allt annat får status "granskas"
@@ -23,7 +29,7 @@
 
 import { NextResponse } from "next/server";
 import { PRIVAT, inloggad } from "@/lib/medlem/inloggad";
-import { godkannForetagsvillkor, hamtaMedlem, prisLage, prisOppet, sparaForetagsansokan } from "@/lib/medlem/lager";
+import { godkannForetagsvillkor, hamtaForetagsprofil, hamtaMedlem, prisLage, prisOppet, sparaForetagsansokan } from "@/lib/medlem/lager";
 import { VILLKOR_FORETAG_VERSION, provaForetagsansokan } from "@/lib/medlem/foretag";
 import { orgnrFeltext, provaOrgnr } from "@/lib/medlem/orgnr";
 import { beslutForAnsokan, slaUppForetag } from "@/lib/medlem/bolagsverket";
@@ -66,6 +72,13 @@ export async function POST(req: Request) {
   try {
     const medlem = await hamtaMedlem(session.sub);
     if (!medlem || medlem.status !== "aktiv") return svar({ ok: false, skal: "sparrad" }, 403);
+
+    if (kropp.steg === "lage") {
+      const [lage, profil] = await Promise.all([prisLage(), hamtaForetagsprofil(medlem.id)]);
+      // Bara läget lämnar servern: aldrig namn, nummer eller adress.
+      return svar({ ok: true, oppet: prisOppet(lage, medlem), foretag: profil?.status ?? null });
+    }
+
     if (!prisOppet(await prisLage(), medlem)) return svar({ ok: false, skal: "stangt" }, 403);
 
     if (kropp.steg === "villkor") {

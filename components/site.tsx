@@ -1,5 +1,5 @@
 import { CartButton } from "./cart";
-import { KontoFotLank, KontoLank } from "./konto-lank";
+import { ForetagFotLank, KontoFotLank, KontoLank } from "./konto-lank";
 import { ProfilRemsa } from "./profil-remsa";
 import { HemLank } from "./hem-lank";
 import { WishlistButton } from "./wishlist";
@@ -131,7 +131,7 @@ export async function SiteFooter() {
             <Social className="footer-social" />
           </div>
         </div>
-        <div className="fcol"><div className="fhead">Handla</div><a href="/butik">Butik</a><a href="/fyndauktion">Fyndauktionen</a><KontoFotLank /><a href="/omoss">Om oss</a><a href="/omdomen">Omdömen</a>{hasBlog && <a href="/blogg">Blogg</a>}</div>
+        <div className="fcol"><div className="fhead">Handla</div><a href="/butik">Butik</a><a href="/fyndauktion">Fyndauktionen</a><KontoFotLank /><ForetagFotLank /><a href="/omoss">Om oss</a><a href="/omdomen">Omdömen</a>{hasBlog && <a href="/blogg">Blogg</a>}</div>
         <div className="fcol"><div className="fhead">Kundservice</div><a href="/vanliga-fragor">Vanliga frågor</a><a href="/returer">Returer &amp; ångerrätt</a><a href="/angra-kop">Ångra köp</a><a href="/eu-lager-garanti">EU-lager &amp; tull</a><a href="/kopvillkor">Köpvillkor</a><a href="/sparning">Spåra paket</a><a href="/kontaktaoss">Kontakta oss</a><a href="/kundtjanst">Kundtjänst</a></div>
         <div className="fcol"><div className="fhead">Kontakt &amp; betalning</div><a href="mailto:info@fyndplats.com">info@fyndplats.com</a><a href="tel:+46736630990">+46 73 663 09 90</a><div className="fpay"><span className="fsocial-rubrik">Betala tryggt</span><PaymentMarks /></div></div>
       </div>
