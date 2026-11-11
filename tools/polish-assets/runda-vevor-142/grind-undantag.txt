@@ -1,0 +1,7 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått saknar axelord, och infografiken visar bredden och längden: sidan skriver bredd och längd
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad i specifikationen, och måttritningen på infografiken visar längden, bredden och den totala höjden: sidan skriver måtten i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Artikelmått saknar axelord, och måttbilden visar diametern och höjden: sidan skriver diameter och höjd, och diametern 18 cm är det lägsta av de två värdena i källan
