@@ -3138,12 +3138,15 @@ describe("☠️ en priskörning om dagen: per tugga, flera åt gången, ett hel
       expect(sparade.every((m) => m.variants[0].grossSek === NYTT)).toBe(true);
     });
 
-    it("default är PRIS_SAMTIDIGA", async () => {
+    it("☠️ default är EN i taget: tre samtidiga fick Wix att strypa (mätt 2026-11-11)", async () => {
       const { setPrice, matt } = langsam();
-      const { d } = katalog(8, { setPrice });
-      await runAosomSync(d, { dryRun: false });
-      expect(matt.max).toBe(PRIS_SAMTIDIGA);
-      expect(PRIS_SAMTIDIGA).toBeGreaterThan(1);
+      const { d, sparade } = katalog(8, { setPrice });
+      const s = await runAosomSync(d, { dryRun: false });
+      expect(PRIS_SAMTIDIGA).toBe(1);
+      expect(matt.max).toBe(1);
+      // Takten ändrar inte utfallet: alla åtta skrivs och stämplas.
+      expect(s.prisUppdaterade).toBe(8);
+      expect(sparade).toHaveLength(8);
     });
 
     it("en torrkörning skriver ingenting, men räknar vad som skulle skrivas", async () => {

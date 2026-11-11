@@ -42,9 +42,19 @@ priser och hann 50–100 produkter, och ett varv tog fyra dygn.
   id gav 50 produkter på 0,34 sekunder och 100 id gav 100 på 0,63, alla med
   prisfälten, och dolda utkast kommer med. Hela prislistan läses inte längre av
   Aosom-synken. Sammanslagna sidor läser som förut sitt facit per variant.
-- **Flera produkters priser skrivs samtidigt** (`PRIS_SAMTIDIGA`, tre åt
-  gången, `mapWithConcurrency`). Varianterna på EN sammanslagen sida skrivs
-  fortfarande i följd, för de delar produktens revision.
+- **Priserna skrivs en produkt i taget** (`PRIS_SAMTIDIGA` = 1, genom
+  `mapWithConcurrency`). Koden klarar flera samtidigt, och `?samtidiga=` på
+  rutten höjer takten för en enskild körning. Varianterna på EN sammanslagen
+  sida skrivs alltid i följd, för de delar produktens revision.
+  - ☠️ Mätt i drift 2026-11-11: med tre samtidiga svarade Wix edge-spärr 429
+    efter några hundra skrivningar (nio fel på 581 priser, cirka 97 priser i
+    minuten), och körningen stoppade på `strypt`. Med en i taget gick 3 968
+    priser i tre jobb utan ett enda 429, i 39 priser per minut. Två samtidiga
+    är inte provat. Leonard bad chatten ta beslutet, och defaulten sänktes
+    från tre till en samma dag.
+  - Det räcker: 660 sekunder ger drygt 400 priser per körning, och schemat
+    har fyra körningar om dagen. Ikappkörningen samma dag tog katalogen från
+    5 020 väntande priser till noll.
 - **En hård tidsgräns inne i tuggan** (`prisSlutMs`, 45 sekunder efter
   budgeten). Priser som inte hinns med skjuts upp och räknas
   (`prisUppskjutna`). Det som skrevs stämplas, markören sparas och loggraden

@@ -59,8 +59,8 @@
 //                        körningen inte hann klart (en sparad markör finns).
 //                        Annars svarar rutten direkt utan att läsa något.
 //   ?samtidiga=3         så många produkters priser skrivs samtidigt (1–6,
-//                        default `PRIS_SAMTIDIGA`). Finns för att takten ska gå
-//                        att mäta och sänka utan ett nytt bygge.
+//                        default `PRIS_SAMTIDIGA`, en i taget). Finns för att
+//                        takten ska gå att mäta och höja utan ett nytt bygge.
 //
 // ☠️ EN PRISKÖRNING OM DAGEN, OCH DEN SKA HINNA HELA KATALOGEN (Leonard
 // 2026-11-11: "den borde köras 1 gång om dagen och fungera också"). Körningen
@@ -100,8 +100,8 @@ const PRIS_SLUT_MARGINAL_MS = 45_000;
 /**
  * Högsta `?samtidiga=`. Wix stryper på tempo (edge-spärren, se
  * docs/claude/05-aosom-synken/02-lagerskrivningen-och-edge-sparren.md), och
- * varje prisskrivning är minst två anrop. Sex är dubbla defaulten och räcker
- * för att mäta var gränsen går.
+ * varje prisskrivning är minst två anrop. Tre samtidiga ströps i drift
+ * 2026-11-11, så sex räcker gott för att mäta var gränsen går.
  */
 const MAX_SAMTIDIGA = 6;
 

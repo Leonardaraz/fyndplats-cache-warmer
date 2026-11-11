@@ -95,8 +95,8 @@ on:
         type: string
       samtidiga:
         # Så många produkters priser skrivs samtidigt (rutten tar 1–6, default
-        # 3 sedan 2026-11-11). Finns för att takten ska gå att mäta mot Wix
-        # strypning och sänkas utan ett nytt bygge.
+        # 1: tre ströps av Wix 2026-11-11). Finns för att takten ska gå att
+        # mäta mot Wix strypning utan ett nytt bygge.
         description: "Samtidiga prisskrivningar, 1–6. Tomt = ruttens default."
         required: false
         default: ""
