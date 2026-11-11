@@ -54,6 +54,7 @@ import {
   type SynkadLeverantor,
 } from "../sync/leverantorsrad";
 import { MIN_WIX_PRODUKTER, type WixProduktPris } from "../wix/v3-products";
+import { mapWithConcurrency } from "../concurrency";
 import type { RestockUtskick } from "../restock/notify";
 
 const DEFAULT_LIMIT = 400;
@@ -154,6 +155,30 @@ export const MAX_PRISANDRING_PCT = 40;
 /** Priser under detta är alltid fel. Skyddar mot en tom eller nollad feed-rad. */
 const MIN_RIMLIGT_PRIS_SEK = 20;
 
+/**
+ * Så många produkter prisskrivs samtidigt. Priset är per produkt hos Wix (ett
+ * GET och en PATCH var), så tempot avgör hur många priser en körning hinner.
+ *
+ * ☠️ TRE, INTE TJUGO. Wix edge-spärr utlöses av tempo (`aosomSkrivPausMs`),
+ * och den går inte att vänta ut inom en körning. Svarar Wix 429 på en
+ * prisskrivning går resten av körningen en i taget, och blir de många avbryts
+ * den (`STRYPNING_STOPP`).
+ */
+export const PRIS_SAMTIDIGA = 3;
+
+/**
+ * Så många prisskrivningar i EN tugga får falla på 429 innan körningen avbryts
+ * (`stoppedBy: "strypt"`). Att fortsätta mot en spärr som redan slagit till
+ * ger bara fler fel, och varje fel är ett pris som får vänta till nästa körning.
+ */
+export const STRYPNING_STOPP = 5;
+
+/** Är felet Wix sätt att säga "för många anrop"? Felen bär statusen i texten. */
+export function arStrypning(fel: unknown): boolean {
+  const text = fel instanceof Error ? fel.message : String(fel);
+  return /\(429\)|\b429:/.test(text);
+}
+
 export interface AosomSyncOptions {
   /** Torrkörning. DEFAULT TRUE — samma husregel som svepet och bildfixen. */
   dryRun?: boolean;
@@ -188,6 +213,34 @@ export interface AosomSyncOptions {
    * taket igen.
    */
   godkannPrisandring?: ReadonlySet<string>;
+  /**
+   * Gå ETT HELT VARV: börja efter `after`, gå till slutet, fortsätt från början
+   * och sluta vid `after`. Utan `after` är det samma sak som förut.
+   *
+   * Priskörningen går så (2026-11-11). En körning som fortsätter efter en
+   * sparad markör ska ändå granska hela katalogen den dagen, inte bara
+   * svansen: annars väntar huvudet ett dygn till. Markören flyttas som förut,
+   * så en körning som inte hinner varvet fortsätter där den stannade.
+   */
+  varv?: boolean;
+  /**
+   * Hur många PRODUKTER som får prisskrivas samtidigt. Default
+   * `PRIS_SAMTIDIGA`. En produkts egna varianter skrivs alltid i följd: två
+   * skrivningar på samma produkt samtidigt krockar på revisionen.
+   */
+  prisSamtidiga?: number;
+  /**
+   * Efter så här många millisekunder från körningens start påbörjas ingen ny
+   * prisskrivning. Default: ingen gräns.
+   *
+   * ☠️ `timeBudgetMs` kollas bara FÖRE varje tugga, och en tugga med femtio
+   * prisskrivningar tar över två minuter en i taget. 2026-11-11 dog en skarp
+   * körning på Vercels tidsgräns mitt i en tugga: priserna stod i butiken, men
+   * tuggan stämplades aldrig, markören sparades inte och ingen loggrad skrevs.
+   * Priserna som inte hinns med räknas i `prisUppskjutna` och skrivs av nästa
+   * körning. Det som redan skrivits stämplas som vanligt.
+   */
+  prisSlutMs?: number;
 }
 
 export interface AosomSyncSummary {
@@ -199,6 +252,12 @@ export interface AosomSyncSummary {
   lagerUppdaterade: number;
   /** Produkter vars pris skrevs om. */
   prisUppdaterade: number;
+  /**
+   * Produkter vars nya pris INTE skrevs för att körningens tid var slut
+   * (`prisSlutMs`). De är granskade och ligger före markören, och skrivs av
+   * nästa körning. Ska vara 0 en vanlig natt.
+   */
+  prisUppskjutna: number;
   /** Nollade för att raden saknades i feeden (tillfälligt bortplockad hos Aosom). */
   urFeeden: number;
   /** Nollade för att saldot låg på eller under bufferten. */
@@ -392,7 +451,11 @@ export interface AosomSyncSummary {
   misslyckade: number;
   kvar: number;
   cursor: string | null;
-  stoppedBy: "klart" | "limit" | "tidsbudget";
+  /**
+   * `strypt`: Wix svarade 429 på så många prisskrivningar i en tugga att
+   * körningen avbröts (`STRYPNING_STOPP`). Markören står där den stannade.
+   */
+  stoppedBy: "klart" | "limit" | "tidsbudget" | "strypt";
   /**
    * `wixProductId` är produktens PUBLIKA id och det som workflowen skriver ut.
    * `sku` är Aosoms artikelnummer och får aldrig nå en publik logg — se
@@ -481,6 +544,21 @@ export interface AosomSyncDeps {
    * ☠️ FACIT ÄR WIX, INTE MAPPNINGEN. Se `jamforelsePris` nedan.
    */
   listWixPriser: () => Promise<Map<string, WixProduktPris>>;
+  /**
+   * Butikens priser för JUST de här produkterna, `wixProductId` → pris. Finns
+   * den läser synken priserna per tugga och anropar aldrig `listWixPriser`.
+   *
+   * ☠️ VARFÖR (2026-11-11). `listWixPriser` läser HELA butikens prislista före
+   * loopen, 100 produkter per anrop, också VEVOR-utkasten som Aosom-synken
+   * aldrig rör. En körning på EN produkt tog 115 sekunder 2026-10-30, och av
+   * priskörningens 240 sekunder blev så lite kvar att den hann 50–100
+   * produkter. När Aosom flyttade nästan alla priser 3–9 november tog ett varv
+   * över fyra dygn, och 5 020 priser låg fel 2026-11-11.
+   *
+   * En produkt som inte kommer med i svaret är "saknas" (`jamforelsePris`) och
+   * får inget pris skrivet, precis som förut.
+   */
+  lasWixPriserFor?: (wixProductIds: string[]) => Promise<Map<string, WixProduktPris>>;
   /** Alla Aosom-mappningar. */
   listAosom: () => Promise<ProductMappingRecord[]>;
   /**
@@ -1690,6 +1768,21 @@ export function aterkomnaLagerrader(
   return tillbaka.length > 0 ? tillbaka : null;
 }
 
+/**
+ * Vad prisskrivningen på EN produkt blev (FAS 4). Skrivningarna görs flera
+ * produkter åt gången och bokförs efteråt i tuggans ordning.
+ */
+interface Prisskrivning {
+  /** Sammanslagen sida: varianterna vars pris skrevs. */
+  skrivna: VariantPlan[];
+  /** Sammanslagen sida: varianterna vars skrivning föll, med artikeln som felraden bär. */
+  fel: { sku: string; fel: unknown }[];
+  /** Vanlig sida: felet om skrivningen föll, annars null. */
+  kast: unknown;
+  /** Minst ett pris på produkten skrevs inte för att tiden var slut (`prisSlutMs`). */
+  uppskjuten: boolean;
+}
+
 /** Aosom-synken: motorn med Aosoms feed som källa. Oförändrad utåt sedan steg 5. */
 export async function runAosomSync(
   deps: AosomSyncDeps,
@@ -1755,9 +1848,14 @@ export async function korSynk(
   //
   // Priset för att fortsätta är att körningen inte får se frisk ut: felet går
   // ut i `prislistaFel` → svaret, loggraden, audit-raden och workflow-jobbet.
+  //
+  // ☠️ MED `lasWixPriserFor` LÄSES PRISERNA PER TUGGA I STÄLLET (2026-11-11),
+  // bara för tuggans produkter och precis innan de planeras. Hela-listan-vägen
+  // nedan finns kvar för en uppsättning deps utan den läsaren. Se depens
+  // kommentar för mätningen som byggde den.
   let wixPriser = new Map<string, WixProduktPris>();
   let prislistaFel: string | null = null;
-  if (!opts.skipPrices) {
+  if (!opts.skipPrices && !deps.lasWixPriserFor) {
     try {
       wixPriser = await deps.listWixPriser();
       if (wixPriser.size < MIN_WIX_PRODUKTER) {
@@ -1815,8 +1913,17 @@ export async function korSynk(
     .filter((m) => arISynkensUrval(m, prefix))
     .map((m) => ({ m, sku: artikelUtanPrefix(m, prefix), bild: artikelbild(m, prefix) }))
     .filter((x) => !onlySkus || artiklarPaRaden(x.m, prefix).some((a) => onlySkus.has(a)))
-    .filter((x) => !opts.after || x.sku.localeCompare(opts.after) > 0)
+    .filter((x) => opts.varv || !opts.after || x.sku.localeCompare(opts.after) > 0)
     .sort((a, b) => a.sku.localeCompare(b.sku));
+  // ── ETT HELT VARV (`varv`) ─────────────────────────────────────────────
+  // Raderna efter markören först, sedan de från början fram till och med
+  // markören. Ordningen inom varje del är oförändrad artikelnummerordning, och
+  // markören som går ut är fortfarande den sist granskade raden.
+  if (opts.varv && opts.after) {
+    const after = opts.after;
+    const forstaEfter = mappningar.findIndex((x) => x.sku.localeCompare(after) > 0);
+    if (forstaEfter > 0) mappningar.push(...mappningar.splice(0, forstaEfter));
+  }
 
   // ── PRISER PER VARIANT, FÖR DE SAMMANSLAGNA SIDORNA ────────────────────
   // En sida vars färger kostar olika har inget produktpris att jämföra mot —
@@ -1851,12 +1958,42 @@ export async function korSynk(
     }
   };
 
+  // ── PRISER PER TUGGA, FÖR DE VANLIGA SIDORNA (`lasWixPriserFor`) ────────
+  // Bara produkterna vars pris kan komma att skrivas: sammanslagna sidor läser
+  // sitt facit per variant ovan, och en tvetydig rad får inget pris alls.
+  //
+  // ☠️ INGET SVAR ALLS ÄR ETT LÄSFEL, INTE EN TOM KATALOG. Samma hållning som
+  // `MIN_WIX_PRODUKTER` på hela listan: frågar vi efter tuggans produkter och
+  // får noll tillbaka skrivs inget pris i tuggan, och felet går ut i
+  // `prislistaFel`. En enstaka produkt som saknas i svaret är "saknas" och
+  // räknas i `utanWixPris`, som förut.
+  let tuggprisFel: string | null = null;
+  const lasWixPriserForTugga = async (
+    tugga: readonly { m: ProductMappingRecord; bild: Artikelbild }[],
+  ): Promise<Map<string, WixProduktPris>> => {
+    if (!deps.lasWixPriserFor) return wixPriser;
+    const idn = tugga.filter((x) => x.bild.typ === "en").map((x) => x.m.wixProductId);
+    if (planval.skipPrices || idn.length === 0) return new Map();
+    try {
+      const svar = await deps.lasWixPriserFor(idn);
+      if (svar.size === 0) {
+        throw new Error(`butiken svarade utan en enda av tuggans ${idn.length} produkter`);
+      }
+      return svar;
+    } catch (err) {
+      const fel = err instanceof Error ? err.message : String(err);
+      tuggprisFel ??= `butikens priser gick inte att läsa för en tugga: ${fel}`;
+      return new Map();
+    }
+  };
+
   const summary: AosomSyncSummary = {
     dryRun,
     feedRader: kallan.antal,
     granskade: 0,
     lagerUppdaterade: 0,
     prisUppdaterade: 0,
+    prisUppskjutna: 0,
     urFeeden: 0,
     slutsalda: 0,
     ejSkeppbara: 0,
@@ -1900,6 +2037,11 @@ export async function korSynk(
 
   /** Antal produkter vi FAKTISKT skrivit. Det är den här `limit` gäller. */
   let skrivna = 0;
+  /** Produkter som prisskrivs samtidigt. Sjunker till 1 vid första 429 (FAS 4). */
+  let prisSamtidiga = Math.max(1, Math.floor(opts.prisSamtidiga ?? PRIS_SAMTIDIGA));
+  /** Wix svarade 429 på så många prisskrivningar i en tugga att körningen ska avbrytas. */
+  let strypt = false;
+  const prisSlutMs = opts.prisSlutMs ?? Number.POSITIVE_INFINITY;
 
   /** Produkter med väntande restock-bevakare. Läses första gången en produkt kommer tillbaka. */
   let bevakade: Set<string> | null = null;
@@ -1926,6 +2068,12 @@ export async function korSynk(
       summary.stoppedBy = "tidsbudget";
       break;
     }
+    // Wix stryper prisskrivningarna (se FAS 4). Förra tuggan är stämplad och
+    // markören står efter den, så nästa körning fortsätter här.
+    if (strypt) {
+      summary.stoppedBy = "strypt";
+      break;
+    }
 
     const tuggstorlek = Math.max(1, Math.min(CHUNK_PRODUKTER, limit - skrivna));
     const tugga = mappningar.slice(i, i + tuggstorlek);
@@ -1938,6 +2086,7 @@ export async function korSynk(
     // batchningen möjlig: vi vet vilka rader som ska med i anropet innan vi
     // gör det.
     const variantPriser = await lasVariantPriserFor(tugga);
+    const tuggansPriser = await lasWixPriserForTugga(tugga);
     const allaPlaner = tugga.map(({ m, sku, bild }) => {
       // ☠️ SYNKEN PLANERAR BARA KÄLLANS LEVERANTÖRS RADER. Urvalet går på
       // prefixet (`aosom:`, `vevor:`), men leverantören avgörs av
@@ -1950,7 +2099,7 @@ export async function korSynk(
         return planeraFlerartikel(m, bild, perSku, variantPriser.get(m.wixProductId), deps, planval);
       }
       if (bild.typ === "tvetydig") return planeraTvetydig(m, sku, bild.skal);
-      return planeraProdukt(m, sku, perSku.get(sku), wixPriser.get(m.wixProductId), deps, planval);
+      return planeraProdukt(m, sku, perSku.get(sku), tuggansPriser.get(m.wixProductId), deps, planval);
     });
     // ☠️ OKÄNT RÖRS INTE. En plan märkt `okand` når varken avdraget,
     // rättelsen mot butiken, skrivningen eller stämpeln — den räknas och
@@ -2188,8 +2337,86 @@ export async function korSynk(
 
     // ── FAS 4: PRISET — PER PRODUKT ──────────────────────────────────────
     // Priset är per produkt hos Wix (`updateV3VariantPrices` tar ett
-    // produkt-id), så den delen kan inte batchas. Den är också den lilla
-    // delen: efter konvergens vill nästan inga priser skrivas.
+    // produkt-id), så den delen kan inte batchas som lagret.
+    //
+    // ☠️ "DEN LILLA DELEN" HÖLL INTE (2026-11-11). Kommentaren här sa att nästan
+    // inga priser vill skrivas efter konvergens. Aosom flyttade nästan alla
+    // priser två gånger på en vecka, och med en skrivning i taget hann en
+    // körning 60–100 priser: 5 020 låg fel. Skrivningarna görs därför FÖRST,
+    // `prisSamtidiga` produkter åt gången, och bokförs sedan i tuggans ordning
+    // i loopen nedan. En produkts egna varianter skrivs i följd.
+    //
+    // Samma grindar som förut avgör vem som får skrivas: en tvetydig rad får
+    // inget pris, och en produkt vars lagerskrivning föll rörs inte alls.
+    const skaPrisskrivas = (p: Produktplan): boolean => {
+      if (p.tvetydig) return false;
+      if (p.nyttSaldo !== null && lagerOk.get(p.m.wixProductId) !== true) return false;
+      if (p.varianter) return p.varianter.some((v) => v.nyttPris !== null && v.nyLandad !== null);
+      return p.nyttPris !== null && p.nyLandad !== null && !!p.variant;
+    };
+    const skrivPriserna = async (p: Produktplan): Promise<Prisskrivning> => {
+      const ut: Prisskrivning = { skrivna: [], fel: [], kast: null, uppskjuten: false };
+      const tidenSlut = () => !dryRun && now() - start >= prisSlutMs;
+      if (p.varianter) {
+        // ☠️ EN VARIANT I TAGET, och ett fel fäller bara den varianten. Gick
+        // den första färgens pris igenom ska det stämplas även om den andras
+        // föll — annars jämför nästa körning mot butiken, ser rätt pris och
+        // lämnar mappningens tal gammalt för alltid.
+        for (const v of p.varianter) {
+          if (v.nyttPris === null || v.nyLandad === null) continue;
+          if (tidenSlut()) {
+            ut.uppskjuten = true;
+            continue;
+          }
+          try {
+            if (!dryRun) {
+              await deps.setPrice(
+                p.m.wixProductId,
+                { wixVariantId: v.wixVariantId, sku: v.sku },
+                v.nyttPris,
+                v.nyLandad,
+              );
+            }
+            ut.skrivna.push(v);
+          } catch (err) {
+            ut.fel.push({ sku: v.artikel, fel: err });
+          }
+        }
+        return ut;
+      }
+      if (tidenSlut()) {
+        ut.uppskjuten = true;
+        return ut;
+      }
+      try {
+        if (!dryRun && p.variant && p.nyttPris !== null && p.nyLandad !== null) {
+          await deps.setPrice(
+            p.m.wixProductId,
+            { wixVariantId: p.variant.wixVariantId, sku: p.variant.sku },
+            p.nyttPris,
+            p.nyLandad,
+          );
+        }
+      } catch (err) {
+        ut.kast = err;
+      }
+      return ut;
+    };
+    const attPrisskriva = planer.filter(skaPrisskrivas);
+    const prisutfall = new Map<Produktplan, Prisskrivning>();
+    const utfallen = await mapWithConcurrency(attPrisskriva, dryRun ? 1 : prisSamtidiga, skrivPriserna);
+    attPrisskriva.forEach((p, k) => prisutfall.set(p, utfallen[k] as Prisskrivning));
+    // ☠️ SVARAR WIX 429 GÅR RESTEN EN I TAGET, och blir felen många avbryts
+    // körningen efter tuggan (se `STRYPNING_STOPP`). Tempot utlöser spärren,
+    // så det enda som hjälper är att sakta ner.
+    let strypta = 0;
+    for (const u of utfallen) {
+      if (u.kast && arStrypning(u.kast)) strypta++;
+      strypta += u.fel.filter((f) => arStrypning(f.fel)).length;
+    }
+    if (strypta > 0) prisSamtidiga = 1;
+    if (strypta >= STRYPNING_STOPP) strypt = true;
+
     for (const p of planer) {
       if (p.tvetydig) {
         summary.errors.push({
@@ -2214,50 +2441,34 @@ export async function korSynk(
         let skrevPris = false;
         /** Sammanslagen sida: de varianter vars pris faktiskt skrevs. */
         const prisSkrivna: VariantPlan[] = [];
-        if (p.varianter) {
-          // ☠️ EN VARIANT I TAGET, och ett fel fäller bara den varianten. Gick
-          // den första färgens pris igenom ska det stämplas även om den andras
-          // föll — annars jämför nästa körning mot butiken, ser rätt pris och
-          // lämnar mappningens tal gammalt för alltid.
-          for (const v of p.varianter) {
-            if (v.nyttPris === null || v.nyLandad === null) continue;
-            try {
-              if (!dryRun) {
-                await deps.setPrice(
-                  p.m.wixProductId,
-                  { wixVariantId: v.wixVariantId, sku: v.sku },
-                  v.nyttPris,
-                  v.nyLandad,
-                );
-              }
-              summary.prisUppdaterade++;
-              prisSkrivna.push(v);
-              skrevPris = true;
-            } catch (err) {
-              summary.misslyckade++;
-              summary.errors.push({
-                sku: v.artikel,
-                wixProductId: p.m.wixProductId,
-                error: err instanceof Error ? err.message : String(err),
-              });
-            }
+        const utfall = prisutfall.get(p);
+        if (utfall?.uppskjuten) summary.prisUppskjutna++;
+        if (utfall && p.varianter) {
+          for (const v of utfall.skrivna) {
+            summary.prisUppdaterade++;
+            prisSkrivna.push(v);
+            skrevPris = true;
           }
-        } else if (p.nyttPris !== null && p.nyLandad !== null && p.variant) {
-          if (!dryRun) {
-            await deps.setPrice(
-              p.m.wixProductId,
-              { wixVariantId: p.variant.wixVariantId, sku: p.variant.sku },
-              p.nyttPris,
-              p.nyLandad,
-            );
+          for (const f of utfall.fel) {
+            summary.misslyckade++;
+            summary.errors.push({
+              sku: f.sku,
+              wixProductId: p.m.wixProductId,
+              error: f.fel instanceof Error ? f.fel.message : String(f.fel),
+            });
           }
+        } else if (utfall && !utfall.uppskjuten) {
+          // Föll skrivningen kastas felet här, där det föll förut, så
+          // lagerräkningen ovan och felraden nedan blir desamma.
+          if (utfall.kast) throw utfall.kast;
           summary.prisUppdaterade++;
           skrevPris = true;
         }
 
         if (skrevPris) prisSkrivet.add(p.m.wixProductId);
         if (!skrevLager && !skrevPris) {
-          summary.oforandrade++;
+          // En uppskjuten prisskrivning är inte "oförändrad": priset stämmer inte än.
+          if (!utfall?.uppskjuten) summary.oforandrade++;
           continue;
         }
         skrivna++;
@@ -2325,8 +2536,8 @@ export async function korSynk(
     }
   }
 
-  if (variantPrisFel) {
-    summary.prislistaFel = summary.prislistaFel ? `${summary.prislistaFel}; ${variantPrisFel}` : variantPrisFel;
+  for (const fel of [variantPrisFel, tuggprisFel]) {
+    if (fel) summary.prislistaFel = summary.prislistaFel ? `${summary.prislistaFel}; ${fel}` : fel;
   }
   if (summary.kvar <= 0) summary.cursor = null;
   return summary;
@@ -2358,6 +2569,36 @@ export function aosomSkrivPausMs(): number {
   return Number.isFinite(n) && n >= 0 ? n : 120;
 }
 
+/** Så många sammanslagna sidors variantpriser läses samtidigt. Läsningar, så taket är högre än för skrivningar. */
+const LAS_SAMTIDIGA = 4;
+
+/** Väntan före andra och tredje försöket när Wix svarar 429. */
+const OMFORSOK_VID_429_MS: readonly number[] = [1_000, 3_000];
+
+/**
+ * Kör `fn`, och gör om den när Wix svarar 429 (`arStrypning`). Andra fel
+ * kastas direkt.
+ *
+ * ☠️ TRAPPAN ÄR KORT MED FLIT. Edge-spärren går inte att vänta ut inom en
+ * körning (`aosomSkrivPausMs`), så tre försök räcker för en tillfällig topp
+ * och kostar högst fyra sekunder. Faller det tredje räknar körningen felet
+ * som en strypning och saktar ner (`STRYPNING_STOPP`).
+ */
+export async function medOmforsokVid429<T>(
+  fn: () => Promise<T>,
+  pauserMs: readonly number[] = OMFORSOK_VID_429_MS,
+  sov: (ms: number) => Promise<unknown> = (ms) => new Promise((r) => setTimeout(r, ms)),
+): Promise<T> {
+  for (let forsok = 0; ; forsok++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (!arStrypning(err) || forsok >= pauserMs.length) throw err;
+      await sov(pauserMs[forsok] as number);
+    }
+  }
+}
+
 /**
  * Motorns beroenden mot skarpa systemet, utom källan och mappningarna: Wix
  * lager och priser, stämplarna, ordrarna, auktionerna och restock-mejlen.
@@ -2379,15 +2620,21 @@ export async function gemensammaSynkDeps(): Promise<Omit<SynkDeps, "listMappning
 
   return {
     listWixPriser: () => v3.listV3ProductPrices(),
+    // Priserna för tuggans produkter, ett anrop per tugga. Hela butikens
+    // prislista läses inte längre före loopen — se depens kommentar.
+    lasWixPriserFor: (ids) => v3.listV3ProductPriserFor(ids),
     lasLagerposter: (ids) => wix.queryInventoryItemsByProductIds(ids),
-    // Ett GET per färgsammanslagen sida, en i taget, och bara för tuggans
-    // sidor (`lasVariantPriserFor`). De var ~360 den 2026-10-13 — lästa alla
-    // på en gång åt de hela tidsbudgeten. Ett fel ska fälla prisdelen synligt
+    // Ett GET per färgsammanslagen sida, och bara för tuggans sidor
+    // (`lasVariantPriserFor`). De var ~360 den 2026-10-13 — lästa alla på en
+    // gång åt de hela tidsbudgeten — och 1 032 den 2026-11-11, då en
+    // torrkörning över katalogen tog fyra varv om 3,5 minuter. Läses därför
+    // `LAS_SAMTIDIGA` åt gången. Ett fel ska fälla prisdelen synligt
     // (`prislistaFel`), inte gissas förbi.
     lasVariantPriser: async (ids) => {
-      const ut = new Map<string, Map<string, number>>();
-      for (const id of ids) ut.set(id, await v3.getV3VariantPriser(id));
-      return ut;
+      const svar = await mapWithConcurrency(ids, LAS_SAMTIDIGA, (id) =>
+        medOmforsokVid429(() => v3.getV3VariantPriser(id)),
+      );
+      return new Map(ids.map((id, i) => [id, svar[i] as Map<string, number>] as const));
     },
     // Pacingen ligger kvar trots att anropen är ~40 i stället för ~2 000.
     // Den kostar fem sekunder på ett helt svep och är den enda kuren mot en
@@ -2409,14 +2656,19 @@ export async function gemensammaSynkDeps(): Promise<Omit<SynkDeps, "listMappning
       //
       // Sjunde gången samma lärdom i det här repot: ett svar utan fel är inget
       // kvitto. Räkna efter.
-      const resultat = await v3.updateV3VariantPrices(wixProductId, [
+      //
+      // Ett 429 görs om (`medOmforsokVid429`): Wix avvisade anropet, så
+      // ingenting är skrivet, och skrivningen läser produkten på nytt varje
+      // gång. Andra fel görs inte om — en PATCH som kan ha gått fram ska inte
+      // skickas en gång till på en gammal revision.
+      const resultat = await medOmforsokVid429(() => v3.updateV3VariantPrices(wixProductId, [
         {
           ...(variant.wixVariantId ? { wixVariantId: variant.wixVariantId } : {}),
           ...(variant.sku ? { sku: variant.sku } : {}),
           actualPrice: grossSek,
           costAmount: Math.round(landedCostSek),
         },
-      ]);
+      ]));
       if (resultat.updated === 0) {
         throw new Error(
           `prisskrivningen matchade ingen variant på ${wixProductId} `
