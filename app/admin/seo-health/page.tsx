@@ -122,6 +122,35 @@ export default async function SeoHealthPage() {
         </ul>
       )}
 
+      {(
+        [
+          ["Produktsidor med samma titel", report.dubbletter.titlar],
+          ["Produktsidor med samma metabeskrivning", report.dubbletter.beskrivningar],
+        ] as const
+      ).map(([rubrik, grupper]) =>
+        grupper.length === 0 ? null : (
+          <section key={rubrik}>
+            <h2 style={{ fontSize: 16 }}>
+              {rubrik} ({grupper.length} grupper)
+            </h2>
+            <ul>
+              {grupper.map((g) => (
+                <li key={g.slugs[0]} style={{ marginBottom: 6 }}>
+                  {g.text}
+                  <br />
+                  {g.slugs.map((slug, i) => (
+                    <span key={slug}>
+                      {i > 0 ? " · " : ""}
+                      <a href={`${report.site}/produkt/${slug}`}>{slug}</a>
+                    </span>
+                  ))}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ),
+      )}
+
       <h2 style={{ fontSize: 16 }}>Nya blogginlägg (senaste 7 dagarna)</h2>
       {report.blog.newThisWeek.length === 0 ? (
         <p style={{ color: "#555" }}>Inga nya inlägg.</p>

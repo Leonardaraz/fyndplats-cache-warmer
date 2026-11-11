@@ -2467,6 +2467,28 @@ kontroll sedan augusti, kategorilänkarna ingen.
   först nästa måndag. Att en tom säsongskategori ska svara 200 i stället för
   307 är ett eget beslut som väntar på Leonard.
 
+## Dubbla titlar och metabeskrivningar syns i veckorapporten (2026-11-11)
+
+Semrush fann 63 produktsidor som delade `<title>` med en annan sida (30
+grupper) och fyra som delade metabeskrivning. Sökmotorerna läser sådana sidor
+som dubbletter. Rubrikerna skilde sig: det var SEO-titeln som var för allmän.
+
+- **Motorn hindrar nya.** Poleringens skrivning vägrar en plan vars titel
+  eller metabeskrivning redan står på en annan publicerad sida, och de
+  befintliga rättas med motorns workflow för SEO-titlar
+  (`docs/claude/47-seo-titlar-egna.md` i motorn).
+- **Butiken är nätet under** (`lib/seo-dubbletter.ts`). Veckorapporten jämför
+  alla produktsidor i sitemapen och lägger en rad under Åtgärder när två delar
+  titel eller beskrivning. Mejlet listar högst trettio grupper per sort, och
+  `/admin/seo-health` visar alla, när som helst.
+- **Nyckeln är densamma som motorns `seoNyckel`**: utan ` | Fyndplats`,
+  gemener, och bara bokstäver och siffror. Ett kommatecken gör inte en ny
+  titel. Proven i båda repona bär samma exempel; ändras regeln på ett ställe
+  ska den ändras på båda.
+- Titeln som jämförs är den sidan visar: den kuraterade SEO-titeln, annars
+  namnet med butikens suffix. Beskrivningen jämförs bara när den är kuraterad;
+  reserven som byggs ur brödtexten jämförs inte.
+
 ## Varukorgens rad står still när en vara läggs i (Leonard 2026-11-07)
 
 - **Den väntande och den bekräftade raden är samma element** (`KorgRad` i

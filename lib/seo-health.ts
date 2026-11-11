@@ -9,7 +9,9 @@
 import { SITE, getSiteUrls, type SiteUrl, type SiteUrlType } from "./site-urls";
 import { getPosts, getPost, type FullPost } from "./blog";
 
+import { getProducts } from "./products";
 import { dodaKategorilankar, dodaLankRader, dodaProduktlankar, type DodLank } from "./blog-product-links";
+import { dubblaBeskrivningar, dubblaTitlar, seoSidaAv, sidorIGrupper, type DubbelGrupp } from "./seo-dubbletter";
 
 export type BrokenUrl = { url: string; status: number; type: SiteUrlType };
 export type MetaIssue = { url: string; missing: string[] };
@@ -31,6 +33,11 @@ export type SeoHealthReport = {
     checked: number;
     issues: MetaIssue[]; // pages missing description and/or og:image
   } | null;
+  /** Produktsidor i sitemapen som delar <title> eller metabeskrivning (lib/seo-dubbletter.ts). */
+  dubbletter: {
+    titlar: DubbelGrupp[];
+    beskrivningar: DubbelGrupp[];
+  };
   blog: {
     total: number;
     newThisWeek: { slug: string; title: string; date: string }[];
@@ -181,6 +188,13 @@ export async function buildSeoHealthReport(opts: ReportOptions = {}): Promise<Se
   );
   const kategoriLankar = dodaKategorilankar(artiklar, levandeKategorier);
 
+  // ── dubbla titlar och metabeskrivningar på produktsidorna ──
+  // Sökmotorerna läser två sidor med samma titel som dubbletter (Semrush fann
+  // 63 sådana sidor 2026-11-11). Bara sidorna i sitemapen jämförs: det är dem
+  // vi ber sökmotorn hämta.
+  const seoSidor = (await getProducts()).filter((p) => levandeSlugs.has(p.slug)).map(seoSidaAv);
+  const dubbletter = { titlar: dubblaTitlar(seoSidor), beskrivningar: dubblaBeskrivningar(seoSidor) };
+
   const issues: string[] = [];
   if (urls.length === 0) issues.push("Sitemap är tom — inga URL:er genererades (Wix-hämtning misslyckad?).");
   if (!sokExcluded) issues.push("/sok ligger i sitemap — sökresultatsidor ska inte indexeras.");
@@ -194,6 +208,18 @@ export async function buildSeoHealthReport(opts: ReportOptions = {}): Promise<Se
     issues.push(
       `${blogLankar.length} produktlänkar i bloggen pekar på slugs som inte finns i katalogen ` +
         `(${[...new Set(blogLankar.map((l) => l.artikel))].length} artiklar).`,
+    );
+  }
+
+  if (dubbletter.titlar.length > 0) {
+    issues.push(
+      `${sidorIGrupper(dubbletter.titlar)} produktsidor delar titel med en annan sida (${dubbletter.titlar.length} grupper). ` +
+        "Ge varje sida en egen SEO-titel.",
+    );
+  }
+  if (dubbletter.beskrivningar.length > 0) {
+    issues.push(
+      `${sidorIGrupper(dubbletter.beskrivningar)} produktsidor delar metabeskrivning med en annan sida (${dubbletter.beskrivningar.length} grupper).`,
     );
   }
 
@@ -212,6 +238,7 @@ export async function buildSeoHealthReport(opts: ReportOptions = {}): Promise<Se
     sitemap: { total: urls.length, breakdown, sokExcluded },
     crawl: crawlReport,
     meta: metaReport,
+    dubbletter,
     blog: { total: posts.length, newThisWeek, dodaProduktlankar: blogLankar, dodaKategorilankar: kategoriLankar },
     ping: {
       indexNowKeyLocation: `${SITE}/a3f9c2e7b6d8419fae20c5d731b8e4f6.txt`,
@@ -288,6 +315,28 @@ export function renderSeoEmailHtml(report: SeoHealthReport): string {
            .join("")}</ul>`
       : "";
 
+  // Vilka sidor som delar titel eller beskrivning. Högst trettio grupper i
+  // mejlet; resten står som ett antal, och hela listan finns i rapportens JSON.
+  const MAX_GRUPPER = 30;
+  const dubbelLista = (rubrik: string, grupper: DubbelGrupp[]) =>
+    grupper.length > 0
+      ? `<h2 style="font-size:15px;margin:20px 0 4px">${rubrik}</h2>
+         <ul style="margin:8px 0;padding-left:18px">${grupper
+           .slice(0, MAX_GRUPPER)
+           .map(
+             (g) =>
+               `<li>${esc(g.text)}<br>${g.slugs
+                 .map((slug) => `<a href="${esc(report.site)}/produkt/${esc(slug)}">${esc(slug)}</a>`)
+                 .join(" · ")}</li>`,
+           )
+           .join("")}</ul>${
+           grupper.length > MAX_GRUPPER ? `<p style="font-size:13px;color:#555;margin:4px 0">… och ${grupper.length - MAX_GRUPPER} grupper till.</p>` : ""
+         }`
+      : "";
+  const dubbletterHtml =
+    dubbelLista("Produktsidor med samma titel", report.dubbletter.titlar) +
+    dubbelLista("Produktsidor med samma metabeskrivning", report.dubbletter.beskrivningar);
+
   const actionsHtml =
     report.issues.length > 0
       ? `<div style="background:#fff5f5;border:1px solid #f3c2c2;border-radius:8px;padding:12px 16px;margin:16px 0">
@@ -315,6 +364,7 @@ export function renderSeoEmailHtml(report: SeoHealthReport): string {
       ${brokenHtml}
       <h2 style="font-size:15px;margin:20px 0 4px">Meta-taggar</h2>
       ${metaHtml}
+      ${dubbletterHtml}
       ${dodaHtml}
       <h2 style="font-size:15px;margin:20px 0 4px">Nya blogginlägg (7 dagar)</h2>
       ${blogHtml}
