@@ -249,8 +249,12 @@ describe("produktsidan använder uppslaget", () => {
     const sida = las("app", "produkt", "[slug]", "page.tsx");
     assert.match(sida, /const descriptionHtml = await medLevandeLankar\(/);
     assert.match(sida, /getProductRedirects\(slugs, revalidate\)/);
-    assert.match(sida, /descriptionHtml=\{descriptionHtml\}/);
+    // Texten med levande länkar går vidare genom styckedelningen (lib/stycken.ts)
+    // och det är den som ritas, aldrig den råa texten.
+    assert.match(sida, /const beskrivningHtml = delaLangaStyckenIHtml\(descriptionHtml\);/);
+    assert.match(sida, /descriptionHtml=\{beskrivningHtml\}/);
     assert.doesNotMatch(sida, /descriptionHtml=\{p\.descriptionHtml\}/);
+    assert.doesNotMatch(sida, /descriptionHtml=\{descriptionHtml\}/);
   });
 
   it("☠️ uppslaget för flera sluggar tar sidans egen giltighetstid, inte 300 sekunder", () => {

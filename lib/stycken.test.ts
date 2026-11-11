@@ -2,7 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { delaIStycken, MAX_ORD_PER_STYCKE } from "./stycken.ts";
+import { DELA_FRAN_ORD, delaIStycken, delaLangaStyckenIHtml, MAX_ORD_PER_STYCKE } from "./stycken.ts";
 import { SKRYMMANDE_REGEL, SKRYMMANDE_RETURKOSTNAD } from "./retur-frakt.ts";
 
 const las = (...delar: string[]) => readFileSync(join(import.meta.dirname, "..", ...delar), "utf8");
@@ -67,6 +67,90 @@ describe("delaIStycken", () => {
     const text = Array.from({ length: 10 }, (_, i) => mening(10, i)).join(" ");
     assert.equal(delaIStycken(text, 20).length, 5);
     assert.equal(delaIStycken(text, 100).length, 1);
+  });
+});
+
+describe("styckena blir ungefär lika långa", () => {
+  it("90 ord blir 45 + 45, inte 70 + 20", () => {
+    const text = Array.from({ length: 6 }, (_, i) => mening(15, i)).join(" ");
+    assert.deepEqual(delaIStycken(text).map(ord), [45, 45]);
+  });
+
+  it("170 ord blir tre stycken om 50–60 ord", () => {
+    const text = Array.from({ length: 17 }, (_, i) => mening(10, i)).join(" ");
+    assert.deepEqual(delaIStycken(text).map(ord), [60, 60, 50]);
+  });
+
+  it("ojämna meningar: inget stycke över gränsen, och texten är densamma", () => {
+    const langder = [31, 9, 24, 40, 12, 18, 35, 7, 22, 29, 14];
+    const text = langder.map((n, i) => mening(n, i)).join(" ");
+    const delar = delaIStycken(text);
+    assert.equal(delar.join(" "), text);
+    for (const d of delar) assert.ok(ord(d) <= MAX_ORD_PER_STYCKE, `${ord(d)} ord`);
+    assert.ok(delar.length >= Math.ceil(ord(text) / MAX_ORD_PER_STYCKE));
+  });
+});
+
+describe("delaLangaStyckenIHtml: produkttextens långa stycken", () => {
+  const lang = (n: number) => Array.from({ length: n }, (_, i) => mening(10, i)).join(" ");
+  const utanTaggar = (h: string) => h.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+
+  it("☠️ ett stycke på 170 ord blir flera stycken med samma ord (mätt: 164–185 ord under Användning och skötsel)", () => {
+    const html = `<h3>Användning och skötsel</h3><p>${lang(17)}</p><h3>Leverans</h3><p>Kort text.</p>`;
+    const ut = delaLangaStyckenIHtml(html);
+    const stycken = [...ut.matchAll(/<p>([^<]*)<\/p>/g)].map((m) => m[1]);
+    assert.deepEqual(stycken.map(ord), [60, 60, 50, 2]);
+    assert.equal(utanTaggar(ut), utanTaggar(html));
+    // Rubrikerna och ordningen är orörda.
+    assert.match(ut, /^<h3>Användning och skötsel<\/h3><p>Mening 0 /);
+    assert.match(ut, /<\/p><h3>Leverans<\/h3><p>Kort text\.<\/p>$/);
+  });
+
+  it("gränsen: 84 ord lämnas, 90 ord delas", () => {
+    const precis = `<p>${Array.from({ length: 7 }, (_, i) => mening(12, i)).join(" ")}</p>`;
+    assert.equal(ord(precis.replace(/<[^>]+>/g, "")), DELA_FRAN_ORD);
+    assert.equal(delaLangaStyckenIHtml(precis), precis);
+    const over = `<p>${lang(9)}</p>`;
+    assert.equal((delaLangaStyckenIHtml(over).match(/<p>/g) || []).length, 2);
+  });
+
+  it("en text utan långa stycken kommer tillbaka byte för byte", () => {
+    const html = `<p>En kort text.</p>\n<ul><li>${lang(12)}</li></ul><p class="x">${lang(8)}</p>`;
+    assert.equal(delaLangaStyckenIHtml(html), html);
+    assert.equal(delaLangaStyckenIHtml(""), "");
+    assert.equal(delaLangaStyckenIHtml("<div>Ingen stycketagg alls.</div>"), "<div>Ingen stycketagg alls.</div>");
+  });
+
+  it("attributen på stycket följer med till varje del", () => {
+    const ut = delaLangaStyckenIHtml(`<p class="ingress" data-x="1">${lang(12)}</p>`);
+    const oppnar = ut.match(/<p[^>]*>/g) || [];
+    assert.equal(oppnar.length, 2);
+    for (const o of oppnar) assert.equal(o, '<p class="ingress" data-x="1">');
+  });
+
+  it("☠️ ett stycke med en tagg i sig lämnas som det är: en delning får aldrig hamna mitt i en länk", () => {
+    const html = `<p>${lang(8)} <a href="/produkt/x">Se den här. Den är bra</a> ${lang(8)}</p>`;
+    assert.equal(delaLangaStyckenIHtml(html), html);
+    const fet = `<p><strong>Viktigt.</strong> ${lang(15)}</p>`;
+    assert.equal(delaLangaStyckenIHtml(fet), fet);
+  });
+
+  it("bara <p>: varken <pre> eller <picture> räknas som stycke", () => {
+    const html = `<pre>${lang(15)}</pre><picture>${lang(15)}</picture>`;
+    assert.equal(delaLangaStyckenIHtml(html), html);
+  });
+
+  it("en enda lång mening går inte att dela och lämnas orörd", () => {
+    const html = `<p>Lång mening ${Array.from({ length: 118 }, (_, k) => `ord${k}`).join(" ")}.</p>`;
+    assert.equal(delaLangaStyckenIHtml(html), html);
+  });
+
+  it("produktsidan ritar den delade texten, och JSON-LD, FAQ och säkerhetsraderna läser den råa", () => {
+    const sida = las("app", "produkt", "[slug]", "page.tsx");
+    assert.match(sida, /const beskrivningHtml = delaLangaStyckenIHtml\(descriptionHtml\);/);
+    assert.match(sida, /descriptionHtml=\{beskrivningHtml\}/);
+    assert.match(sida, /faqPageJsonLd\(p\.descriptionHtml \|\| ""\)/);
+    assert.match(sida, /sakerhetUrBeskrivning\(p\.descriptionHtml\)/);
   });
 });
 

@@ -4,6 +4,7 @@ import { faqPageJsonLd } from "../../../lib/faq-jsonld";
 import { notFound, permanentRedirect } from "next/navigation";
 import { getProductRedirect, getProductRedirects } from "../../../lib/redirects";
 import { medLevandeLankar } from "../../../lib/interna-lankar";
+import { delaLangaStyckenIHtml } from "../../../lib/stycken";
 import { ProductView } from "../../../components/productview";
 import { forvalIndex, forvalKombination } from "../../../lib/pdp-forval";
 import { colorKeysOf } from "../../../lib/variant-color-image";
@@ -127,6 +128,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     (s) => publicerade.has(s),
     (slugs) => getProductRedirects(slugs, revalidate),
   );
+  // ☠️ Ett stycke på över 84 ord i produkttexten ritas som flera stycken, vid
+  // meningsgränserna (lib/stycken.ts). Texten i Wix rörs inte, och JSON-LD,
+  // FAQ och säkerhetsraderna läser den som den är (p.descriptionHtml).
+  const beskrivningHtml = delaLangaStyckenIHtml(descriptionHtml);
   const primaryCol = brodsmula.avdelning;
   const subCol = brodsmula.underkategori;
 
@@ -481,7 +486,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           inStock={p.inStock}
           stockQuantity={p.stockQuantity}
           blurb={p.blurb}
-          descriptionHtml={descriptionHtml}
+          descriptionHtml={beskrivningHtml}
           originalPrice={p.originalPrice}
           onSale={p.onSale}
           specLines={specLines}

@@ -432,9 +432,16 @@ följande, runt hörnet. Då får varje sida lika många länkar in som den har 
 ETT stycke på 158–219 ord. Sidor utan fynd hade högst 84 ord i ett stycke.
 Rubrikordningen och läsbarheten var inte orsaken.
 
-- På produktsidorna var stycket nästan alltid en lång kundrecension.
+- På 13 av de 22 produktsidorna var stycket en lång kundrecension.
   `delaIStycken()` i `lib/stycken.ts` delar texten vid meningsgränserna i stycken
-  om högst 70 ord. Samma ord i samma ordning, bara fler `<p>`.
+  om högst 70 ord, ungefär lika långa. Samma ord i samma ordning, bara fler `<p>`.
+- ☠️ På de 9 andra satt stycket i PRODUKTTEXTEN, i fliken "Användning och
+  skötsel": 164–185 ord i ett enda `<p>`. Det syntes först när förhandsbygget
+  mättes sida för sida; kartläggningen hade bara sett recensionerna.
+  `delaLangaStyckenIHtml()` delar varje rent textstycke över 84 ord när sidan
+  ritas (`app/produkt/[slug]/page.tsx`). Texten i Wix rörs inte, och JSON-LD,
+  FAQ och säkerhetsraderna läser den råa texten. Ett stycke med en tagg i sig
+  (länk, fetstil) delas aldrig.
 - ☠️ Styckena ritas I FÖLJD (`.rev-text p{display:inline}`), och klampen sitter
   på behållaren. Annars räknar klampen på fem rader per stycke, och "Visa mer"
   mäter fel. Mätt i Chromium 320–1280 px: samma höjd, samma radbrytningar och
@@ -448,7 +455,8 @@ Inte gjort, med flit:
 
 - Produktsidor som bara nås med `?variant=` i adressen: Leonard lägger `variant`
   bland parametrarna som Semrush ska bortse från.
-- Ett långt stycke i en produkttext går genom poleringsrutinen, inte för hand.
+- Poleringen har ingen spärr mot ett stycke över 84 ord. Sidan delar det vid
+  visningen, så felet syns inte, men texten i Wix är fortfarande ett stycke.
 - Produkter som bara ligger i en synlig kategori har en länk för att de har en
   plats. Det är inget fel.
 
