@@ -48,7 +48,7 @@
 // Vercels funktionsloggar i stället för att gå obemärkt förbi — och sätts
 // CRON_SECRET i miljön börjar grinden gälla av sig själv, utan kodändring.
 import { NextResponse } from "next/server";
-import { getProductSitemapEntries } from "../../../../lib/products";
+import { getProductSitemapEntries, getProductsFarska } from "../../../../lib/products";
 import { farskaProdukter } from "../../../../lib/fresh-products";
 import { pingSearchEngines } from "../../../../lib/indexnow";
 import { SITE } from "../../../../lib/site-urls";
@@ -97,6 +97,10 @@ export async function GET(request: Request) {
     );
   }
 
+  // ☠️ FÖRST EN FÄRSK KATALOG. Instansen håller katalogen i minnet så länge den
+  // lever, så en vara som publicerats efter att instansen startade fanns aldrig
+  // i listan här och blev varken värmd eller aviserad (lib/katalog-alder.ts).
+  await getProductsFarska();
   const entries = await getProductSitemapEntries();
   const urval = farskaProdukter(entries, Date.now(), FONSTER_MS, TAK_PER_KORNING);
 

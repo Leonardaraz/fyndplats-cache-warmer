@@ -24,6 +24,13 @@ import { v3VariantData, v3MultiVariantData } from "./variant-price";
 import { PRODUKTSIDA_SEKUNDER, produktTagg } from "./produkt-cache";
 import { kortLivslangd } from "./kort-livslangd";
 import { forstaVideo, type ProduktVideo } from "./produkt-video";
+import { rattaProduktlankar } from "./interna-lankar";
+import { behallNy, forGammal, KATALOG_FARSK_MS } from "./katalog-alder";
+import gamlaWixMal from "../data/legacy-wix-redirects.json";
+
+// De gamla Wix-produkterna som next.config.ts skickar till en kategori. En länk
+// till dem i en produkttext lämnas som den är (lib/interna-lankar.ts).
+const GAMLA_WIX_SLUGGAR = new Set(Object.keys(gamlaWixMal));
 
 export type Product = {
   id: string;
@@ -473,6 +480,10 @@ function optionsForProduct(slug: string, sdkItem: any): Product["options"] {
 let productsPromise: Promise<Product[]> | null = null;
 // Katalogen som den här instansen senast fick färdig (katalogenLaddad).
 let laddadKatalog: Product[] | null = null;
+// När instansens katalog började hämtas (ms). 0 = aldrig. Se getProductsFarska.
+let katalogHamtad = 0;
+// En förnyelse åt gången: flödena och sitemapen kan byggas samtidigt.
+let fornyelse: Promise<Product[]> | null = null;
 
 // Nödkatalogen products.json är en minimal, GAMMAL snapshot (3 produkter i ett
 // äldre schema utan id/createdAt/collectionIds/imageScore). Den släpptes förr in
@@ -661,12 +672,67 @@ async function fetchProducts(): Promise<Product[]> {
 // liknande produkter, fel brödsmulor) hade annars cachats i produktsidans sex
 // timmar. Kollen görs därför på VÄRDET, i varje anropares rendering.
 export const getProducts = cache(async (): Promise<Product[]> => {
-  if (!productsPromise) productsPromise = fetchProducts();
+  if (!productsPromise) {
+    productsPromise = fetchProducts();
+    katalogHamtad = Date.now();
+  }
   const lista = await productsPromise;
   laddadKatalog = lista;
   if (DEGRADERADE.has(lista)) await kortLivslangd();
   return lista;
 });
+
+/**
+ * Katalogen, högst `maxAlderMs` gammal. För det som byggs i bakgrunden:
+ * flödena, sitemapen och sökindexet.
+ *
+ * ☠️ getProducts() håller katalogen så länge instansen lever. Ett flöde som
+ * byggs om varje timme på en instans som levt ett dygn fick därför gårdagens
+ * priser och saknade dagens nya varor (mätt 2026-11-10, lib/katalog-alder.ts).
+ * Här hämtas katalogen om när den är för gammal, och den nya listan ersätter
+ * instansens, så att också sidorna på samma instans får den.
+ *
+ * Anroparen VÄNTAR på hämtningen (10–25 s). Använd den därför aldrig på en
+ * sidas väg: en kund ska inte vänta på katalogen. Faller hämtningen, eller blir
+ * den kapad, behålls den gamla hela katalogen och nästa anrop försöker igen.
+ */
+export async function getProductsFarska(maxAlderMs: number = KATALOG_FARSK_MS): Promise<Product[]> {
+  const nuvarande = await getProducts();
+  if (!forGammal(katalogHamtad, Date.now(), maxAlderMs)) return nuvarande;
+  if (!fornyelse) {
+    fornyelse = (async () => {
+      const gammal = productsPromise;
+      const gamlaKategorier = collectionsPromise;
+      const alder = Math.round((Date.now() - katalogHamtad) / 60000);
+      try {
+        // fetchProducts släpper modulens katalog när hämtningen faller eller
+        // blir kapad. Här finns en hel gammal lista att falla tillbaka på.
+        const ny = await fetchProducts();
+        if (!behallNy(DEGRADERADE.has(ny))) {
+          productsPromise = gammal;
+          console.warn(`[wix] katalogen var ${alder} min gammal men förnyelsen blev inte hel. Den gamla behålls, nästa bygge försöker igen.`);
+          return nuvarande;
+        }
+        productsPromise = Promise.resolve(ny);
+        katalogHamtad = Date.now();
+        laddadKatalog = ny;
+        // Kategorierna räknas ur katalogen (antal per kategori, vilka som syns).
+        // Blir de tomma är det ett fel: behåll de gamla.
+        const nyaKategorier = await fetchCollections();
+        collectionsPromise = nyaKategorier.length > 0 ? Promise.resolve(nyaKategorier) : gamlaKategorier;
+        console.log(`[wix] katalogen förnyad efter ${alder} min: ${nuvarande.length} → ${ny.length} produkter, ${nyaKategorier.length} kategorier`);
+        return ny;
+      } catch (e) {
+        productsPromise = gammal;
+        console.error("[wix] katalogens förnyelse föll, den gamla behålls:", (e as Error).message);
+        return nuvarande;
+      } finally {
+        fornyelse = null;
+      }
+    })();
+  }
+  return fornyelse;
+}
 
 /**
  * Bara huvudbild och galleri för en produkt, direkt från Wix — ETT uppslag.
@@ -745,7 +811,9 @@ async function produktGrund(slug: string): Promise<{ prod: Product; item: any } 
   if (!item) return null;
   const prod = mapProduct(item);
   prod.options = optionsForProduct(slug, item);
-  prod.descriptionHtml = item.description || "";
+  // Länkarna i texten går till /produkt/<slug>, inte till Wix adressform som
+  // omdirigeras (lib/interna-lankar.ts).
+  prod.descriptionHtml = rattaProduktlankar(item.description || "", (slug) => GAMLA_WIX_SLUGGAR.has(slug));
   // Per-variant PRIS (+ variant-id/bild) autentiserat från V3. Det publika
   // SDK:t (queryProducts) släpper variantpriserna för V3 → annars visas
   // baspriset för ALLA storleksvarianter (bug: 2 L och 30 L fick samma pris).

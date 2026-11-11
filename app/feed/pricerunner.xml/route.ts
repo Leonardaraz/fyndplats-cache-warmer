@@ -6,10 +6,12 @@
 // (pris kunden betalar, frakt per vara, bara varor i lager) ligger i
 // lib/feed/pricerunner.ts.
 //
-// Samma route-ISR som Google-feeden: Wix anropas högst en gång i timmen.
+// Körs vid anrop och strömmas, som Google-feeden (se kommentaren där): med
+// route-ISR byggdes flödet vid deployen och sedan aldrig mer.
 
 import { GET as googleFeed } from "../google.xml/route";
 import { tillPricerunner } from "@/lib/feed/pricerunner";
+import { strommatXml } from "@/lib/feed/prisjakt-svar";
 import {
   DELIVERY_MAX_DAYS,
   DELIVERY_MIN_DAYS,
@@ -19,7 +21,8 @@ import {
 } from "@/lib/shipping";
 
 export const runtime = "nodejs";
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 
 export async function GET() {
   const googleXml = await (await googleFeed()).text();
@@ -31,7 +34,7 @@ export async function GET() {
     maxTransitDays: DELIVERY_MAX_DAYS,
   });
 
-  return new Response(xml, {
+  return new Response(strommatXml(xml), {
     headers: {
       "Content-Type": "application/xml; charset=utf-8",
       "Cache-Control": "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400",

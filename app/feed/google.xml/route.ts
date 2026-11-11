@@ -16,7 +16,7 @@
 // /feed/products.xml (produktnivå) behålls orörd för Meta/Pinterest/TikTok.
 
 import {
-  getProducts,
+  getProductsFarska,
   getCollections,
   fetchAllVariantsRaw,
   fetchFeedGalleries,
@@ -31,10 +31,24 @@ import { variantOptionXml, variantOptioner } from "@/lib/google-variant-option";
 import { visaAxelnamn, visaValnamn } from "@/lib/variant-lage";
 
 export const runtime = "nodejs";
-export const revalidate = 3600;
+// ☠️ INGEN ROUTE-ISR HÄR (2026-11-11). Med `revalidate = 3600` byggdes flödet
+// vid deployen och sedan aldrig mer: svaret är större än vad Vercel bygger om i
+// bakgrunden, så CDN:en gav byggets kopia tills nästa deploy. Känt sedan
+// 2026-10-19 (se /feed/prisjakt.xml), mätt igen 2026-11-10: 151 varor med
+// gårdagens pris ett dygn efter bygget, och tre hämtningar efter att kopian gått
+// ut gav alla samma gamla fil. Nu körs rutten vid anrop, CDN:en håller svaret en
+// timme och ger det gamla medan nästa byggs, och /api/cron/farska-floden hämtar
+// flödet varannan timme så att kopian aldrig hinner bli ett dygn gammal.
+//
+// ☠️ SVARET STRÖMMAS. Vercels CDN cachar icke-strömmade svar upp till 10 MB och
+// strömmade upp till 20 MB (lib/feed/prisjakt-svar.ts). Över gränsen cachas
+// inget och flödet byggs om vid varje hämtning.
+export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 
 import { KAMPANJ_2026_09 } from "../../../lib/kampanj-2026-09";
 import { varumarke } from "../../../lib/varumarke";
+import { PRISJAKT_VARNING_BYTE_STROMMAT, strommatXml } from "../../../lib/feed/prisjakt-svar";
 
 const SITE = "https://www.fyndplats.se";
 // Märket: Wix fält "brand" när det är satt, annars Fyndplats. Aosoms märken
@@ -509,12 +523,13 @@ function feedItem(
 
 export async function GET() {
   // Fyra batchade, cachade källor — inga per-produkt-anrop:
-  //   getProducts()           → visible-filtrerad katalog (seoDescription, img, slug)
+  //   getProductsFarska()     → visible-filtrerad katalog, högst en timme gammal
+  //                             (seoDescription, img, slug; lib/katalog-alder.ts)
   //   fetchFeedGalleries()    → fulla gallerier, id → URL:er (~4 anrop)
   //   fetchAllVariantsRaw()   → alla varianter (~2 anrop, retry/backoff)
   //   fetchVariantImageMaps() → valens bilder för produkter med optioner (~3 anrop)
   let products: Product[] = [];
-  try { products = await getProducts(); } catch { products = []; }
+  try { products = await getProductsFarska(); } catch { products = []; }
   const byId = new Map(products.map((p) => [p.id, p]));
   // Kollektioner → g:product_type + g:google_product_category. Best-effort:
   // utan kollektioner skickas items som förut (bara utan taxonomi-fälten).
@@ -566,7 +581,15 @@ ${items.join("\n")}
   </channel>
 </rss>`;
 
-  return new Response(xml, {
+  const byte = Buffer.byteLength(xml);
+  if (byte > PRISJAKT_VARNING_BYTE_STROMMAT) {
+    console.warn(
+      `[google-flodet] flödet är ${(byte / 1e6).toFixed(1)} MB med ${items.length} rader. Vercels CDN cachar inte strömmade svar över 20 MB, `
+        + "och då byggs flödet om vid varje hämtning. Banta raderna (färre extrabilder) innan dess.",
+    );
+  }
+
+  return new Response(strommatXml(xml), {
     headers: {
       "Content-Type": "application/xml; charset=utf-8",
       "Cache-Control": "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400",

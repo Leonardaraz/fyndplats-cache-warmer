@@ -15,7 +15,7 @@
 // /tack (transient/private order page), /admin/* (proxy-gated). /sparning is
 // IN since 2026-10-02: the page itself shows no order data until the customer
 // enters a number, and customers search for "fyndplats spåra paket".
-import { getProductSitemapEntries, getCollections, getProducts, forListings } from "./products";
+import { getProductSitemapEntries, getCollections, getProducts, getProductsFarska, forListings } from "./products";
 import { saleProducts } from "./rea";
 import { getPosts } from "./blog";
 import { getProgrammaticUrls } from "./seo/programmatic";
@@ -70,6 +70,12 @@ const STATIC_INFO_PATHS = [
  * loaders the storefront uses, so it costs nothing extra per request.
  */
 export async function getSiteUrls(): Promise<SiteUrl[]> {
+  // ☠️ FÖRST EN FÄRSK KATALOG. Instansen håller katalogen i minnet så länge den
+  // lever, och sitemapen byggdes om ur samma lista: 2026-11-10 saknade den
+  // dagens 15 nya varor och bar en adress som bytts ett dygn tidigare (Semrush:
+  // "fel sida i sitemapen"). Laddarna nedan läser sedan den förnyade listan.
+  // Sitemapen byggs i bakgrunden, så ingen kund väntar på hämtningen.
+  await getProductsFarska();
   const [prodEntries, collections, posts, programmatic] = await Promise.all([
     getProductSitemapEntries(),
     getCollections(),
