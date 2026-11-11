@@ -1,0 +1,12 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Bandningsrulle, Bandningsmaskin och Bandförseglare med tre mått vardera utan axelord, och måttbilden anger måtten för spännaren och förslutaren utan att namnge axlarna: texten skriver de tre måtten som de står, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation och måttbilderna saknar måttrad (bara antal steg och viktkapacitet anges): texten skriver inga mått
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Plastkantens mått (2000 × 10 cm) utan axelord; måttbilden visar totallängd 2000 cm och höjd 10 cm: texten skriver längd och höjd efter måttbilden
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Produktstorlek (53 × 18 × 21,5 cm) och Storlek på varje springa (10 × 18 × 10 cm) utan axelord; måttbilden visar bredd 530 mm, djup 180 mm och höjd 215 mm och fackets bredd och höjd 100 mm, och texten har axelord för fackets mått i punkterna (B, D och H): texten skriver bredd, djup och höjd efter ritningen och punkterna
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (L x B x H) med axelbokstäver (190 × 78 × 165 mm), som facitbyggaren inte känner igen som måttrad; måttritningen visar längd 190 mm, bredd 78 mm och höjd 165 mm: texten skriver längd, bredd och höjd efter raden och ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Storlek per produkt (12,7 × 38,1 × 914,4 mm) utan axelord; måttbilden visar längd 914,4 mm, bredd 38,1 mm och tjocklek 12,7 mm: texten skriver längd, bredd och tjocklek efter måttbilden
