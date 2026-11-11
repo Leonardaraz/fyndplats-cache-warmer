@@ -129,7 +129,9 @@ punkterna under *Efter skriv* kontrollerar du efteråt.
 **Text**
 
 - Namn, slug, titel och meta är på svenska och bär fokussökordet, och namn, slug och titel
-  skiljer sig från syskonen. Inget husmärke, inget artikelnummer och inget `Skickas från`.
+  skiljer sig från syskonen. Titeln och metan står inte på någon annan publicerad sida
+  (textsteget vägrar annars planen). Inget husmärke, inget artikelnummer och inget
+  `Skickas från`.
 - Ingen tysk text finns kvar, inte heller i `Färg`-värdet.
 - De tre flikrubrikerna står ordagrant, i rätt ordning och som rena `<h2>`. Allt innehåll
   i brödtexten står före den första.
