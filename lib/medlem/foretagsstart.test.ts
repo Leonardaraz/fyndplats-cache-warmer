@@ -11,6 +11,7 @@ import {
   klartext,
   stegLage,
   trappmening,
+  trappspann,
   trappsteg,
   utvag,
   visaForetagsvag,
@@ -91,6 +92,10 @@ test("ordertrappans bild läser prismotorns tabell: samma gränser och procent s
   // En tabell utan rabattsteg ger ingen bild och ingen mening.
   assert.deepEqual(trappsteg([{ franOreExMoms: 0, procent: 0 }]), []);
   assert.equal(trappmening([{ franOreExMoms: 0, procent: 0 }]), "");
+  // Företagskortets rad kommer ur samma tabell som staplarna.
+  assert.equal(trappspann(ORDERTRAPPA), "1–5\u00a0%");
+  assert.equal(trappspann([{ franOreExMoms: 0, procent: 0 }, { franOreExMoms: 100, procent: 3 }]), "3\u00a0%");
+  assert.equal(trappspann([{ franOreExMoms: 0, procent: 0 }]), "");
 });
 
 test("sista steget: godkänt och växlat, godkänt utan växling, och under granskning", () => {

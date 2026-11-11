@@ -6,17 +6,24 @@
 
 import type { CSSProperties } from "react";
 import { ORDERTRAPPA, OFFERT_BAS_ORE_EX_MOMS, OFFERT_EXEMPLAR } from "@/lib/medlem/pris";
-import { trappmening, trappsteg } from "@/lib/medlem/foretagsstart";
+import { trappmening, trappspann, trappsteg } from "@/lib/medlem/foretagsstart";
+import { kronor } from "@/lib/medlem/niva";
 import { Medlemskort } from "./medlemskort";
 import s from "./konto.module.css";
 
-const KR = new Intl.NumberFormat("sv-SE", { maximumFractionDigits: 0 });
-const kr = (ore: number) => `${KR.format(Math.round(ore / 100)).replace(/\s/g, "\u00a0")}\u00a0kr`;
-
 export function Foretagskort() {
+  // Spannet kommer ur prismotorns tabell, som staplarna under kortet.
+  const spann = trappspann(ORDERTRAPPA);
   return (
     <div className={s.foretagskort} aria-hidden="true">
-      <Medlemskort niva="Företag" etikett="Företagskonto" nyckel="foretag" rad1="Priser exkl. moms" rad2="Ordertrappa 1–5 %" id="mk-ft" />
+      <Medlemskort
+        niva="Företag"
+        etikett="Företagskonto"
+        nyckel="foretag"
+        rad1="Priser exkl. moms"
+        rad2={spann ? `Ordertrappa ${spann}` : undefined}
+        id="mk-ft"
+      />
     </div>
   );
 }
@@ -55,7 +62,7 @@ export function Foretagsformaner() {
         <strong>Priser exklusive moms</strong> i butiken och varukorgen. Momsen läggs på i kassan.
       </li>
       <li>
-        <strong>Offert på större köp</strong>, från {OFFERT_EXEMPLAR} exemplar av samma vara eller {kr(OFFERT_BAS_ORE_EX_MOMS)} exklusive moms.
+        <strong>Offert på större köp</strong>, från {OFFERT_EXEMPLAR} exemplar av samma vara eller {kronor(OFFERT_BAS_ORE_EX_MOMS)} exklusive moms.
       </li>
       <li>
         <strong>Kvitto och faktura med företagets namn</strong>, och för ett bolag också organisationsnumret.

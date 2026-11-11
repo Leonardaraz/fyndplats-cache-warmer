@@ -78,7 +78,6 @@ export function utvag(till: "mina-sidor" | "privat"): string {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const STEG = ["E-post", "Företaget", "Klart"] as const;
-export type Stegnummer = 0 | 1 | 2;
 
 /** Stegets läge i raden: redan gjort, det man står på, eller kvar. */
 export function stegLage(steg: number, aktivt: number): "klar" | "nu" | "sen" {
@@ -125,6 +124,18 @@ export function trappsteg(trappa: Ordertrappa): Trappsteg[] {
       hojd: (i + 1) / steg.length,
     };
   });
+}
+
+/**
+ * Trappans lägsta och högsta rabatt, "1–5 %", för företagskortet. Ur samma
+ * tabell som staplarna, så att kortet inte säger något annat än kassan räknar.
+ * Tom sträng när trappan saknar steg med rabatt.
+ */
+export function trappspann(trappa: Ordertrappa): string {
+  const procent = trappa.map((s) => s.procent).filter((p) => p > 0);
+  if (procent.length === 0) return "";
+  const [lagst, hogst] = [Math.min(...procent), Math.max(...procent)];
+  return lagst === hogst ? `${lagst}\u00a0%` : `${lagst}–${hogst}\u00a0%`;
 }
 
 /** Trappan som en mening, för skärmläsare och för den som inte ser staplarna. */
