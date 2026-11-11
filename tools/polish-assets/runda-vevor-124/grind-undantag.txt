@@ -1,0 +1,12 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (9,84 x 10,63 x 14,57 tum / 250 x 270 x 370 mm) saknar axelord, och måttritningen visar höjden 370 mm och basens två mått 250 och 270 mm utan bredd- eller djupord: sidan skriver höjd och bas efter ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (443 x 276 x 240 mm) saknar axelord, och måttritningen visar höjden 240 mm och basens två mått 443 och 276 mm utan bredd- eller djupord: sidan skriver bas och höjd efter ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rader Produktstorlek (6,61 x 7,08 x 7,59 tum / 168 x 180 x 193 mm) och Kuddens mått (82 x 81 mm) saknar axelbokstäver, och måttritningen visar bredden 168 mm, djupet 180 mm och höjden 193 mm: sidan skriver måtten med axelord enligt ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (260 x 208 x 65 mm) saknar axelord, och måttritningen visar längden 260 mm, höjden 208 mm och bredden 65 mm: sidan skriver måtten med axelord enligt ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (Ø490 x 200 mm) saknar axelord, och sidan skriver rullens diameter och höjd som de står
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått, monterad (1090 x 80 x 230 mm) saknar axelord, och sidan skriver måtten som de står
