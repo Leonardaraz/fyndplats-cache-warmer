@@ -1,0 +1,28 @@
+{
+  "namn": "vevor-106",
+  "rader": [
+    {
+      "kort": "6e4a5211",
+      "pid": "6e4a5211-68d6-4649-b4e9-a2ce025d6fcf",
+      "bort": [
+        "Bygg & Renovering > VVS & vatten",
+        "Bygg & Renovering"
+      ],
+      "behall": [
+        "Verktyg & Maskiner",
+        "Verktyg & Maskiner > Handverktyg"
+      ]
+    },
+    {
+      "kort": "9d0626ef",
+      "pid": "9d0626ef-341b-4d62-b437-a3a2aa9b1a0f",
+      "bort": [
+        "Skönhet & Hälsa > Kropp & Välbefinnande"
+      ],
+      "behall": [
+        "Skönhet & Hälsa",
+        "Skönhet & Hälsa > Hudvård & Ansikte"
+      ]
+    }
+  ]
+}
