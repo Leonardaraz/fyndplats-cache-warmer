@@ -52,11 +52,11 @@ En fast (installerad) projektor passar dig som vill ha en permanent hemmabio i e
 
 ## Vår rekommendation
 
-Använd checklistan ovan när du jämför modeller: Full HD som bas, så många ANSI-lumen du har råd med, och WiFi + Bluetooth + HDMI så du slipper begränsningar senare. Duk behöver du inte köpa för att komma igång – en matt, ljus vägg räcker långt, och ute på altanen gör ett spänt vitt lakan jobbet. Fler prylar till hemmabion och tekniken hittar du under [Elektronik & Tillbehör](/kategori/elektronik-tillbehor).
+Använd checklistan ovan när du jämför modeller: Full HD som bas, så många ANSI-lumen du har råd med, och WiFi + Bluetooth + HDMI så du slipper begränsningar senare. Duk behöver du inte köpa för att komma igång – en matt, ljus vägg räcker långt, och ute på altanen gör ett spänt vitt lakan jobbet. Möbler till hemmabion hittar du under [TV-bänkar](/kategori/tv-bankar).
 
 ## Utforska mer hos Fyndplats
 
-Se vårt utbud inom [Elektronik & Tillbehör](/kategori/elektronik-tillbehor) — och letar du något för barnrummet är guiden [Stjärnprojektor – köpguide](/blogg/stjarnprojektor-kopguide-2026) ett bra nästa steg.
+Se vårt utbud av [projektordukar](/kategori/projektordukar) — och letar du något för barnrummet är guiden [Stjärnprojektor – köpguide](/blogg/stjarnprojektor-kopguide-2026) ett bra nästa steg.
 
 
 ## Vanliga frågor om projektorer

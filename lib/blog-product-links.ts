@@ -50,6 +50,47 @@ export function produktSlugsIInnehall(innehall: string): string[] {
 }
 
 /**
+ * Alla kategori-slugs ett stycke innehåll länkar till (/kategori/<slug>), i
+ * markdown eller renderad HTML. Query och fragment ignoreras.
+ *
+ * Bara VÅRA länkar räknas: en relativ adress (`](/kategori/x)`, `href="/kategori/x"`)
+ * eller en hel adress på fyndplats.se. Många svenska sajter har också
+ * /kategori/ i sina adresser, och en källhänvisning dit är ingen död länk hos
+ * oss.
+ *
+ * ☠️ VARFÖR (2026-11-11). Halloweenguiden länkade till
+ * /kategori/halloweendekoration. Efter säsongen var kategorin tom, och en tom
+ * kategori skickar besökaren till /butik med 307: Semrush varnade för en
+ * tillfällig omdirigering. Två andra guider länkade på tre ställen till en
+ * kategori som bytt namn och svarade 308. Produktlänkarna hade en kontroll,
+ * kategorilänkarna ingen.
+ */
+export function kategoriSlugsIInnehall(innehall: string): string[] {
+  const ut: string[] = [];
+  const re = /(?:(?<![\w.-])|(?<=fyndplats\.se))\/kategori\/([a-z0-9-]+)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(innehall)) !== null) ut.push(m[1]);
+  return ut;
+}
+
+/**
+ * Artiklarnas kategorilänkar som inte finns i `levandeKategorier`.
+ *
+ * `levandeKategorier` ska vara sitemapens kategorier: de som finns och har
+ * minst fem produkter (lib/category-threshold.ts). En kategori utanför den
+ * mängden är tunn (sidan svarar 200 men är noindex), tom (307 till /butik),
+ * omdöpt (308) eller borta (404). Ingen av dem ska en guide länka till. Tom
+ * mängd ger inget svar, av samma skäl som för produkterna: då gick uppslaget
+ * fel.
+ */
+export function dodaKategorilankar(
+  artiklar: { slug: string; innehall: string }[],
+  levandeKategorier: Set<string>,
+): DodLank[] {
+  return dodaLankar(artiklar, levandeKategorier, kategoriSlugsIInnehall);
+}
+
+/**
  * Artiklarnas produktlänkar som inte finns i `levandeSlugs`.
  *
  * `levandeSlugs` ska vara katalogens slugs — samma mängd sitemapen byggs av.
@@ -60,12 +101,20 @@ export function dodaProduktlankar(
   artiklar: { slug: string; innehall: string }[],
   levandeSlugs: Set<string>,
 ): DodLank[] {
-  if (levandeSlugs.size === 0) return [];
+  return dodaLankar(artiklar, levandeSlugs, produktSlugsIInnehall);
+}
+
+function dodaLankar(
+  artiklar: { slug: string; innehall: string }[],
+  levande: Set<string>,
+  slugsI: (innehall: string) => string[],
+): DodLank[] {
+  if (levande.size === 0) return [];
   const ut: DodLank[] = [];
   for (const a of artiklar) {
     const antalPerSlug = new Map<string, number>();
-    for (const s of produktSlugsIInnehall(a.innehall)) {
-      if (levandeSlugs.has(s)) continue;
+    for (const s of slugsI(a.innehall)) {
+      if (levande.has(s)) continue;
       antalPerSlug.set(s, (antalPerSlug.get(s) || 0) + 1);
     }
     for (const [slug, antal] of antalPerSlug) ut.push({ artikel: a.slug, slug, antal });
@@ -73,4 +122,19 @@ export function dodaProduktlankar(
   // Stabil ordning: artikel, sedan slug — så rapporten inte kastar om sig
   // mellan körningar och en diff blir läsbar.
   return ut.sort((a, b) => a.artikel.localeCompare(b.artikel) || a.slug.localeCompare(b.slug));
+}
+
+/** En död länk med sitt mål utskrivet, för rapportens lista. */
+export type DodLankRad = { artikel: string; mal: string; antal: number };
+
+/**
+ * Produkt- och kategorilänkarna i en lista med målet som sökväg, i den ordning
+ * rapporten visar dem: produkterna först, sedan kategorierna. Antalet ensamt
+ * säger inte var man ska rätta.
+ */
+export function dodaLankRader(produkter: DodLank[], kategorier: DodLank[]): DodLankRad[] {
+  return [
+    ...produkter.map((l) => ({ artikel: l.artikel, mal: `/produkt/${l.slug}`, antal: l.antal })),
+    ...kategorier.map((l) => ({ artikel: l.artikel, mal: `/kategori/${l.slug}`, antal: l.antal })),
+  ];
 }

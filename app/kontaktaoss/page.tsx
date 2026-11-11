@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { jsonLdString } from "../../lib/seo";
 import { ContactForm } from "../../components/contactform";
+import { KONTAKT_ANKARE, KONTAKT_RULLA_SKRIPT } from "../../lib/kontakt/kontakt";
 import { Ikon, Svg } from "../../components/kundservice-ikoner";
 import s from "./kontaktaoss.module.css";
 
@@ -88,9 +89,11 @@ export default function Kontakta() {
             <h2>Skicka ett meddelande</h2>
             <p className={s.ingress}>Fyll i formuläret så återkommer vi så snart vi kan. Gäller det en produkt? Välj den i formuläret, så ser vi direkt vilken du menar. Har du en pågående order? Ange gärna ditt ordernummer.</p>
             {/* Ankaret sitter på formuläret, inte på sektionen: produktsidans
-                länkar (#meddelande) landar vid Förnamn med "Frågan gäller"
-                synlig i telefonen, i stället för vid rubriken (Leonard 2026-11-07). */}
-            <div className={s.formKort} id="meddelande">
+                länkar landar vid Förnamn med "Frågan gäller" synlig i telefonen,
+                i stället för vid rubriken (Leonard 2026-11-07). Sedan 2026-11-11
+                bär de produkten i fragmentet (#produkt=…), och skriptet sist på
+                sidan rullar hit. */}
+            <div className={s.formKort} id={KONTAKT_ANKARE}>
               <ContactForm />
             </div>
           </div>
@@ -123,6 +126,9 @@ export default function Kontakta() {
           </aside>
         </div>
       </section>
+
+      {/* Sist på sidan, så att allt ovanför har sin höjd när det körs. */}
+      <script dangerouslySetInnerHTML={{ __html: KONTAKT_RULLA_SKRIPT }} />
     </>
   );
 }

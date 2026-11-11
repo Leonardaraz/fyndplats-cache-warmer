@@ -2,7 +2,15 @@
 // importera sin syskonmodul MED .ts-ändelse för att köraren ska hitta den.
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { produktSlugsIInnehall, dodaProduktlankar } from "./blog-product-links.ts";
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import {
+  dodaKategorilankar,
+  dodaLankRader,
+  dodaProduktlankar,
+  kategoriSlugsIInnehall,
+  produktSlugsIInnehall,
+} from "./blog-product-links.ts";
 
 const LEVANDE = new Set(["lampa", "bord", "stol"]);
 
@@ -88,5 +96,75 @@ describe("dodaProduktlankar", () => {
     const b = dodaProduktlankar(artiklar, LEVANDE);
     assert.deepEqual(a, b);
     assert.deepEqual(a.map((x) => x.slug), ["aaa", "zzz"]);
+  });
+});
+
+describe("☠️ kategorilänkar i bloggen (2026-11-11)", () => {
+  const KATEGORIER = new Set(["belysning", "soffbord"]);
+
+  it("hittar kategorilänkar i markdown och HTML, utan fråga och ankare", () => {
+    assert.deepEqual(kategoriSlugsIInnehall("[Belysning](/kategori/belysning) och <a href=\"/kategori/soffbord?x=1#topp\">x</a>"), [
+      "belysning",
+      "soffbord",
+    ]);
+    assert.deepEqual(kategoriSlugsIInnehall("bara [en produkt](/produkt/lampa)"), []);
+  });
+
+  it("bara våra länkar: en annan sajts /kategori/ räknas inte, vår egen hela adress gör det", () => {
+    assert.deepEqual(kategoriSlugsIInnehall("[källa](https://www.exempel.se/kategori/leksaker)"), []);
+    assert.deepEqual(kategoriSlugsIInnehall('<a href="https://exempel.se/butik/kategori/lampor">x</a>'), []);
+    assert.deepEqual(kategoriSlugsIInnehall("[x](https://www.fyndplats.se/kategori/belysning)"), ["belysning"]);
+    assert.deepEqual(kategoriSlugsIInnehall("[x](https://fyndplats.se/kategori/soffbord)"), ["soffbord"]);
+    assert.deepEqual(kategoriSlugsIInnehall("adressen /kategori/belysning i löptext"), ["belysning"]);
+  });
+
+  it("en tom, omdöpt eller borttagen kategori rapporteras, en levande inte", () => {
+    const ut = dodaKategorilankar(
+      [
+        { slug: "halloweenguide", innehall: "Hela sortimentet finns under [Halloweendekoration](/kategori/halloweendekoration)." },
+        { slug: "lampguide", innehall: "[Belysning](/kategori/belysning)" },
+      ],
+      KATEGORIER,
+    );
+    assert.deepEqual(ut, [{ artikel: "halloweenguide", slug: "halloweendekoration", antal: 1 }]);
+  });
+
+  it("produktlänkar räknas inte som kategorier, och tvärtom", () => {
+    const artiklar = [{ slug: "g", innehall: "/produkt/belysning /kategori/lampa" }];
+    assert.deepEqual(dodaKategorilankar(artiklar, KATEGORIER).map((x) => x.slug), ["lampa"]);
+    assert.deepEqual(dodaProduktlankar(artiklar, LEVANDE).map((x) => x.slug), ["belysning"]);
+  });
+
+  it("rapportens lista: målet som sökväg, produkterna först, antalet med", () => {
+    assert.deepEqual(
+      dodaLankRader(
+        [{ artikel: "lampguide", slug: "gammal-lampa", antal: 2 }],
+        [{ artikel: "halloweenguide", slug: "halloweendekoration", antal: 3 }],
+      ),
+      [
+        { artikel: "lampguide", mal: "/produkt/gammal-lampa", antal: 2 },
+        { artikel: "halloweenguide", mal: "/kategori/halloweendekoration", antal: 3 },
+      ],
+    );
+    assert.deepEqual(dodaLankRader([], []), []);
+  });
+
+  it("TOM kategorilista ger inga fynd: då gick uppslaget fel", () => {
+    assert.deepEqual(dodaKategorilankar([{ slug: "g", innehall: "/kategori/belysning" }], new Set()), []);
+  });
+
+  it("inget inlägg länkar till de två kategorier som gav omdirigeringar 2026-11-11", () => {
+    // halloweendekoration var tom efter säsongen (307 till /butik) och
+    // elektronik-tillbehor har bytt namn (308). Veckorapporten fångar nästa;
+    // det här provet håller de två kända borta.
+    const mapp = join(import.meta.dirname, "..", "content", "blog");
+    const filer = readdirSync(mapp).filter((f) => f.endsWith(".md"));
+    assert.ok(filer.length > 30, "blogginläggen hittades inte");
+    for (const f of filer) {
+      const slugs = kategoriSlugsIInnehall(readFileSync(join(mapp, f), "utf8"));
+      for (const dod of ["halloweendekoration", "elektronik-tillbehor"]) {
+        assert.ok(!slugs.includes(dod), `${f} länkar till /kategori/${dod}`);
+      }
+    }
   });
 });
