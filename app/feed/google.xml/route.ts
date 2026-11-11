@@ -16,7 +16,7 @@
 // /feed/products.xml (produktnivå) behålls orörd för Meta/Pinterest/TikTok.
 
 import {
-  getProducts,
+  getProductsFarska,
   getCollections,
   fetchAllVariantsRaw,
   fetchFeedGalleries,
@@ -31,10 +31,25 @@ import { variantOptionXml, variantOptioner } from "@/lib/google-variant-option";
 import { visaAxelnamn, visaValnamn } from "@/lib/variant-lage";
 
 export const runtime = "nodejs";
-export const revalidate = 3600;
+// ☠️ INGEN ROUTE-ISR HÄR (2026-11-11). Med `revalidate = 3600` byggdes flödet
+// vid deployen och sedan aldrig mer: svaret är större än vad Vercel bygger om i
+// bakgrunden, så CDN:en gav byggets kopia tills nästa deploy. Känt sedan
+// 2026-10-19 (se /feed/prisjakt.xml), mätt igen 2026-11-10: 151 varor med
+// gårdagens pris ett dygn efter bygget, och tre hämtningar efter att kopian gått
+// ut gav alla samma gamla fil. Nu körs rutten vid anrop, CDN:en håller svaret en
+// timme och ger det gamla medan nästa byggs, och /api/cron/farska-floden hämtar
+// flödet varannan timme så att kopian aldrig hinner bli ett dygn gammal.
+//
+// ☠️ SVARET SKICKAS KOMPRIMERAT (flodessvar i lib/feed/prisjakt-svar.ts).
+// CDN:en behåller inget svar över 10 MB, inte heller ett strömmat (mätt i
+// produktion 2026-11-11), och då byggs flödet om vid varje hämtning. Som gzip
+// är flödet omkring 2 MB.
+export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 
 import { KAMPANJ_2026_09 } from "../../../lib/kampanj-2026-09";
 import { varumarke } from "../../../lib/varumarke";
+import { flodessvar } from "../../../lib/feed/prisjakt-svar";
 
 const SITE = "https://www.fyndplats.se";
 // Märket: Wix fält "brand" när det är satt, annars Fyndplats. Aosoms märken
@@ -507,14 +522,15 @@ function feedItem(
     </item>`;
 }
 
-export async function GET() {
+export async function GET(request?: Request) {
   // Fyra batchade, cachade källor — inga per-produkt-anrop:
-  //   getProducts()           → visible-filtrerad katalog (seoDescription, img, slug)
+  //   getProductsFarska()     → visible-filtrerad katalog, högst en timme gammal
+  //                             (seoDescription, img, slug; lib/katalog-alder.ts)
   //   fetchFeedGalleries()    → fulla gallerier, id → URL:er (~4 anrop)
   //   fetchAllVariantsRaw()   → alla varianter (~2 anrop, retry/backoff)
   //   fetchVariantImageMaps() → valens bilder för produkter med optioner (~3 anrop)
   let products: Product[] = [];
-  try { products = await getProducts(); } catch { products = []; }
+  try { products = await getProductsFarska(); } catch { products = []; }
   const byId = new Map(products.map((p) => [p.id, p]));
   // Kollektioner → g:product_type + g:google_product_category. Best-effort:
   // utan kollektioner skickas items som förut (bara utan taxonomi-fälten).
@@ -566,10 +582,6 @@ ${items.join("\n")}
   </channel>
 </rss>`;
 
-  return new Response(xml, {
-    headers: {
-      "Content-Type": "application/xml; charset=utf-8",
-      "Cache-Control": "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400",
-    },
-  });
+  // flodessvar varnar i loggen om det komprimerade svaret närmar sig CDN:ens gräns.
+  return flodessvar(xml, request);
 }

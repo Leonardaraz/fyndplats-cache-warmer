@@ -71,6 +71,10 @@
     {
       "path": "/api/cron/meny",
       "schedule": "3,18,33,48 * * * *"
+    },
+    {
+      "path": "/api/cron/farska-floden",
+      "schedule": "37 */2 * * *"
     }
   ],
   "ignoreCommand": "[ \"$VERCEL_PROJECT_ID\" = \"prj_cFHNB471xiC8yH1XTJBNMBRpkZfe\" ] && exit 0 || exit 1"

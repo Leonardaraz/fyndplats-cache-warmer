@@ -90,7 +90,20 @@ const nextConfig: NextConfig = {
     ],
   },
   async rewrites() {
-    return [
+    // ☠️ Flödena: den som tar emot gzip får adressen som alltid svarar
+    // komprimerat. CDN:en håller en kopia per Accept-Encoding-sträng om svaret
+    // varierar på rubriken, så variationen görs HÄR, före CDN:en, och blir två
+    // adresser med var sin kopia (lib/feed/prisjakt-svar.ts, mätt 2026-11-11).
+    // beforeFiles: /feed/<fil> är en riktig rutt och hade annars gått före.
+    const komprimeradeFloden = ["google.xml", "products.xml", "pricerunner.xml"].map((fil) => ({
+      source: `/feed/${fil}`,
+      has: [{ type: "header" as const, key: "accept-encoding", value: "(.*[, ])?gzip([,; ].*)?" }],
+      destination: `/feed/gz/${fil}`,
+    }));
+    return {
+      beforeFiles: komprimeradeFloden,
+      fallback: [],
+      afterFiles: [
       // 17TRACK-push: dashboardens webhook-URL ärvdes från Velo och pekar på
       // /_functions/track_webhook. Sen DNS-cutovern är fyndplats.se → Vercel, så
       // vi serverar den legacy-vägen vidare till den nya headless-handlern. Då
@@ -98,7 +111,8 @@ const nextConfig: NextConfig = {
       // mappar som börjar med "_" som privata → ingen riktig route kan ligga
       // där; därför en rewrite i stället för en fil under app/_functions/.)
       { source: "/_functions/track_webhook", destination: "/api/track17-webhook" },
-    ];
+      ],
+    };
   },
   // Säkerhetsheaders på alla svar. Förut skickades bara HSTS (extern audit
   // 2026-10-07). Ingen Content-Security-Policy ännu: den måste provas mot

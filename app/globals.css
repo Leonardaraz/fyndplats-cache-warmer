@@ -3467,3 +3467,31 @@ body:has([data-kassa-sida])>.sidhuvud,
 body:has([data-kassa-sida])>footer,
 body:has([data-kassa-sida])>.backtotop{display:none}
 body:has([data-kassa-sida]){background:var(--surface-1)}
+
+/* ── Auditens rättelser 2026-11-11 ───────────────────────────────────────────
+   Samlade sist i filen med flit: reglerna de ersätter står kvar på sin plats,
+   och en gren som väntar på deploy ändrar raderna runt dem. */
+
+/* Varukorgens knappar. Plus och minus var 25 px och "Ta bort" 38 × 16 px, för
+   små att träffa med tummen (auditen 2026-11-10). Nu 44 px, som köpknapparna
+   på produktsidan. Raden får plats ner till 320 px: bild, 124 px antal och
+   "Ta bort". */
+.qbtn{width:44px;height:44px;font-size:var(--text-lg)}
+.qnum{min-width:34px;font-size:var(--text-sm)}
+.li-x{min-height:44px;display:inline-flex;align-items:center;padding:0 8px;margin-right:-8px}
+
+/* Kontrast (WCAG 1.4.3, mätt med axe 2026-11-11). Kategorisidans länkar till
+   köpguiderna stod i --orange, 2,7:1 mot vitt; --brand ger 5,2:1 och är samma
+   ton som brödtextens länkar. Bläddringsradens "Föregående" och "Nästa" var
+   --soft med opacity .75, alltså 3,5:1 i 11 px; utan genomskinligheten 5,9:1. */
+.prog-bloglinks a{color:var(--brand)}
+.pbrowse-etikett{opacity:1}
+
+/* Sökning utan träff (app/sok/page.tsx): samma knappar och kategorirad som
+   404-sidan, och fyra varor under. */
+.sok-tom{max-width:var(--container,1180px);margin:0 auto;text-align:center}
+.sok-tom-text{max-width:560px;margin:0 auto 28px;font-size:var(--text-base);line-height:1.55;color:#5c544c}
+.sok-tom .nf-actions{margin-bottom:28px}
+.sok-tom .nf-cats{max-width:640px;margin:0 auto}
+.sok-tom-populart{margin-top:48px;text-align:left}
+.sok-tom-populart h2{font-family:var(--font-display),Georgia,serif;font-size:var(--text-xl);font-weight:600;letter-spacing:-.012em;margin:0 0 18px;text-align:center}

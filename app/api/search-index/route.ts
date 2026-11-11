@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getProducts } from "../../../lib/products";
+import { getProductsFarska } from "../../../lib/products";
 import { listPris } from "../../../lib/price-range";
 
 // Lightweight product index for the search autocomplete: name / slug / image / price.
@@ -30,7 +30,10 @@ export const revalidate = 3600;
 const CACHE = "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400";
 
 export async function GET() {
-  const products = await getProducts();
+  // Högst en timme gammal katalog: indexet byggs om i bakgrunden, och utan
+  // förnyelsen fick sökrutan aldrig se en vara som publicerats efter att
+  // instansen startade (lib/katalog-alder.ts).
+  const products = await getProductsFarska();
   const index = products.map((p) => ({
     n: p.name,
     s: p.slug,

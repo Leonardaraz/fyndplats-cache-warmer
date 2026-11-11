@@ -29,6 +29,9 @@
 //     huvudbilden. Kvar blev 9,30 MB (2026-10-28), och sedan dess strömmas
 //     svaret (lib/feed/prisjakt-svar.ts), så gränsen är 20 MB. Över
 //     PRISJAKT_VARNING_BYTE_STROMMAT loggar rutterna en varning.
+//     ☠️ Mätt i produktion 2026-11-11: det strömmade flödet på 11,4 MB gav
+//     MISS tre gånger i rad. Gränsen är 10 MB i praktiken också för ett
+//     strömmat svar, så flödet byggs om vid varje hämtning. Se prisjakt-svar.ts.
 //
 //  7. g:color har högst tre färger, skilda med "/" (Googles och Prisjakts
 //     regel). Ett värde med fler får varningen "Ogiltlig" i Business Center

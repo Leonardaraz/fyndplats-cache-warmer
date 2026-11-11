@@ -10,14 +10,28 @@
 // shop-länkarna leder till den publika butiken. Wix:s ett-klicks-koppling
 // skulle länka till Wix-URL:er (fel sajt); därför detta egna feed.
 //
-// Återanvänder getProducts() (cachad, visible-filtrerad) + getCollections()
-// (för product_type = huvudkategori). Cache:as 1h (matchar katalog-revalidate).
+// Läser katalogen (visible-filtrerad, högst en timme gammal) + getCollections()
+// (för product_type = huvudkategori). CDN:en håller svaret en timme.
 
-import { getProducts, getCollections, fetchFeedGalleries, fetchVarumarken, imgKey, type Product, type Collection } from "@/lib/products";
+import { getProductsFarska, getCollections, fetchFeedGalleries, fetchVarumarken, imgKey, type Product, type Collection } from "@/lib/products";
+import { flodessvar } from "@/lib/feed/prisjakt-svar";
 import { varumarke } from "@/lib/varumarke";
 
 export const runtime = "nodejs";
-export const revalidate = 3600;
+// ☠️ INGEN ROUTE-ISR HÄR (2026-11-11). Med `revalidate = 3600` byggdes flödet
+// vid deployen och sedan aldrig mer: svaret är större än vad Vercel bygger om i
+// bakgrunden, så CDN:en gav byggets kopia tills nästa deploy. Känt sedan
+// 2026-10-19 (se /feed/prisjakt.xml), mätt igen 2026-11-10: 151 varor med
+// gårdagens pris ett dygn efter bygget, och tre hämtningar efter att kopian gått
+// ut gav alla samma gamla fil. Nu körs rutten vid anrop, CDN:en håller svaret en
+// timme och ger det gamla medan nästa byggs, och /api/cron/farska-floden hämtar
+// flödet varannan timme så att kopian aldrig hinner bli ett dygn gammal.
+//
+// ☠️ SVARET SKICKAS KOMPRIMERAT (flodessvar i lib/feed/prisjakt-svar.ts).
+// CDN:en behåller inget svar över 10 MB, inte heller ett strömmat (mätt i
+// produktion 2026-11-11), och då byggs flödet om vid varje hämtning.
+export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 
 const SITE = "https://www.fyndplats.se";
 
@@ -113,10 +127,11 @@ function feedItem(p: Product, marke: string, mainCategory?: string, fullGallery?
     </item>`;
 }
 
-export async function GET() {
+export async function GET(request?: Request) {
   let products: Product[] = [];
   try {
-    products = await getProducts();
+    // Högst en timme gammal katalog: priset i flödet kommer härifrån.
+    products = await getProductsFarska();
   } catch {
     products = [];
   }
@@ -155,10 +170,5 @@ ${items.join("\n")}
   </channel>
 </rss>`;
 
-  return new Response(xml, {
-    headers: {
-      "Content-Type": "application/xml; charset=utf-8",
-      "Cache-Control": "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400",
-    },
-  });
+  return flodessvar(xml, request);
 }

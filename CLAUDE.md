@@ -895,6 +895,120 @@ utan indrag (−1,4 MB) och inga extrabilder (−5 MB) gav 9,30 MB med 6 818 var
 (`lib/feed/prisjakt-svar.ts`, bitar om 64 kB utan Content-Length), så gränsen är
 20 MB. Över 19 MB loggar rutterna en varning.
 
+## Flödena och sitemapen hålls färska, och Semrush-rättelserna (Leonard 2026-11-11)
+
+Leonard bad om att Semrush Site Audit skulle rättas (68 fel, 11 754 varningar)
+och att auditens punkter utan beslut skulle göras. Det här avsnittet säger vad
+som gjordes i koden och vad som med flit inte gjordes.
+
+☠️ **Katalogen i minnet lever så länge instansen lever.** `getProducts()` hämtar
+katalogen en gång per instans, och en instans med jämn trafik lever i många
+timmar. Sitemapen byggdes om varje timme men ur samma lista: 2026-11-10 saknade
+den dagens 15 nya varor och bar en adress som bytts ett dygn tidigare.
+`getProductsFarska()` (`lib/products.ts`, regeln i `lib/katalog-alder.ts`)
+hämtar om katalogen när den är äldre än en timme och behåller den gamla om den
+nya inte är hel. Den **väntar** på hämtningen (10–25 s) och används därför bara
+där ingen kund väntar: `getSiteUrls()` (sitemapen, IndexNow, SEO-kollen),
+flödena, `/api/search-index` och `/api/cron/warm-and-ping`. Aldrig på en sidas
+väg; `lib/katalog-alder.test.ts` listar de fyra filerna som får anropa den.
+
+☠️ **Route-ISR bygger aldrig om ett stort flöde.** `/feed/google.xml` (18,9 MB),
+`/feed/pricerunner.xml` (18,4 MB) och `/feed/products.xml` (10,3 MB) hade
+`revalidate = 3600` och byggdes bara vid deployen: ett dygn efter bygget hade
+151 varor gårdagens pris, och tre hämtningar efter att kopian gått ut gav alla
+samma gamla fil. De körs nu vid anrop (`force-dynamic`, `maxDuration` 300).
+
+☠️ **CDN:en behåller inget svar över 10 MB, inte heller ett strömmat.** Mätt i
+produktion 2026-11-11: `/feed/prisjakt.xml` (11,4 MB, strömmat sedan
+2026-10-28) gav MISS tre gånger i rad och byggdes om på 48–70 s varje gång,
+medan bildsitemapen gav MISS och sedan HIT. Dokumentationens 20 MB för
+strömmade svar håller alltså inte. De tre flödena skickas därför
+gzip-komprimerade: 19,1 MB blir 2,5 MB, och det ryms.
+
+☠️ **CDN:en håller en kopia per Accept-Encoding-sträng.** Mätt på förhandsbygget
+samma natt med `Vary: Accept-Encoding`: "gzip" gav MISS och sedan HIT, men
+"gzip, deflate, br", "gzip, deflate" och "br, gzip" gav alla MISS. Varje läsare
+hade fått sin egen kopia, och den vi värmer hade inte hjälpt Google. Därför har
+varje flöde två adresser (`lib/feed/prisjakt-svar.ts`):
+
+- **`/feed/<fil>`** är adressen läsarna har. `next.config.ts` skriver om den
+  till `/feed/gz/<fil>` för den som tar emot gzip (`beforeFiles`, före CDN:en).
+  Den som inte gör det får XML:en okomprimerad och strömmad som förut; det
+  svaret behålls inte av CDN:en och byggs vid varje hämtning.
+- **`/feed/gz/<fil>`** (`app/feed/gz/[fil]/route.ts`) svarar alltid med gzip
+  och **utan `Vary`**. Det är den enda kopian i CDN:en, lika för alla. Lägg
+  aldrig `Vary: Accept-Encoding` där: då är uppdelningen tillbaka.
+
+Listan över flöden står på tre ställen (omskrivningen, rutten och jobbet), och
+`lib/feed/prisjakt-svar.test.ts` fäller om de går isär. Över 8 MB komprimerat
+loggas en varning; dit är det ungefär tre gånger dagens katalog.
+
+☠️ **`stale-while-revalidate` är två timmar, inte ett dygn** (`FLODE_CACHE`).
+CDN:en ger det gamla svaret medan nästa byggs, och med ett dygn fick den som
+hämtar en gång om dygnet (Google Merchant Center) alltid förra dygnets fil.
+Nu är ett svar aldrig äldre än tre timmar: ett äldre är borta, och hämtningen
+bygger ett nytt (10–75 s uppmätt, långsamt men rätt).
+**`/api/cron/farska-floden`** (varannan timme, `lib/flodesvarmning.ts`) hämtar
+sitemapen och de tre flödena en gång, så att det ska hända sällan. Prisjakts
+hemliga adress står inte i listan och får aldrig göra det.
+
+☠️ **Ett flöde utan en enda vara skickas aldrig** (`arTomtFlode`). Det betyder
+att katalogen eller varianterna inte gick att läsa, och den som läser in ett
+tomt flöde tar bort varenda vara hos sig. Läsaren får 503 med `no-store` och
+behåller sin förra inläsning, CDN:en behåller sin förra kopia, och felet står
+i loggen som `[flode] … byggdes utan en enda vara`. Sedan flödena byggs vid
+anrop kan det hända vilken timme som helst, inte bara vid deployen.
+
+**Prisjakt-flödena är orörda.** De strömmas som förut och byggs alltså om vid
+varje hämtning. De är alltid färska, och hur de ska hållas i CDN:en är ett
+eget beslut: Prisjakt hämtar på en adress som jobbet inte får känna till.
+
+**Länkarna i produkttexterna.** Poleringen skriver länkar i Wix adressform,
+`/product-page/<slug>`, som butiken omdirigerar med 308. Semrush räknade 600
+sådana länkar. `rattaProduktlankar` (`lib/interna-lankar.ts`) skriver om dem
+till `/produkt/<slug>` där texten läses ur Wix (`produktGrund`). De gamla
+Wix-produkterna i `data/legacy-wix-redirects.json` lämnas, eftersom deras
+`/produkt/`-adress är en 404. Länkar till en sida som senare slagits ihop med
+en annan (`/produkt/<gammal slug>`, ett femtiotal) rättas inte här: de kräver
+ett uppslag i omdirigeringstabellen per sida och hör hemma i poleringen.
+
+**`/llms.txt`** (`lib/llms-txt.ts`): en kort karta över butiken för
+språkmodeller, byggd ur menyn, köpguiderna och samma villkorskonstanter som
+sidorna använder. Inga priser på varor och inga löften utöver konstanterna.
+
+**Tillgänglighet (mätt med axe 2026-11-11).** Sidfotens Google-betyg och
+startsidans kategorirutor har inget `aria-label` längre: det upplästa namnet
+ska innehålla texten som syns (WCAG 2.5.3), och det gjorde det inte. Namnet
+kommer nu ur innehållet, med dolda ord (`.sr-only`) där det behövs.
+Kategorisidans länkar till köpguiderna står i `--brand` (5,2:1, förut 2,7:1),
+bläddringsradens etiketter har ingen genomskinlighet (5,9:1, förut 3,5:1), och
+toppremsan är ett `<aside>` med namn, så att den ligger i ett landmärke.
+
+**Varukorgens knappar** är 44 px (plus och minus var 25 px, "Ta bort"
+38 × 16 px). **En sökning utan träff** visar samma knappar och kategorirad som
+404-sidan och fyra varor som säljer just nu (`lib/sok-tom.ts`).
+
+De nya stilreglerna står sist i `app/globals.css`: reglerna de ersätter står
+kvar på sin plats, eftersom en gren som väntar på deploy ändrar raderna runt dem.
+
+**Inte gjort i koden, med flit:**
+
+- **62 dubbla titlar och 4 dubbla metabeskrivningar.** Det är syskonprodukter
+  med samma `seoTitle` ("Kontorsstol med massage och värme" på två stolar).
+  Titeln är produkttext och ändras i poleringen, inte i butiken: motorns grind
+  läser den publicerade `<title>`.
+- **464 sidor i sitemapen utan intern länk** är slutsålda varor. De döljs ur
+  listorna med flit och står kvar i sitemapen. Vad som ska hända med dem är ett
+  beslut (auditens punkt om slutsålda landningar).
+- **Låg andel text i HTML:en på 11 753 sidor.** En produktsida är 210 kB och
+  4 % text (stickprov på 300 sidor), eftersom produkttexten och produktdatan
+  står två gånger: en gång i HTML:en och en gång i React-datan till
+  klientkomponenten. Det påverkar inte rankingen och går inte att rätta med en
+  liten ändring.
+- **En tillfällig omdirigering** från halloweenguiden till
+  `/kategori/halloweendekoration`: kategorin är tom efter säsongen och kommer
+  tillbaka, så 307 är rätt svar.
+
 ## Prisjakt: märke och artikelnummer på en hemlig adress (Leonard 2026-10-28)
 
 Prisjakt matchade 9 av 6 818 erbjudanden, alla nio med `g:gtin`. Prisjakts
