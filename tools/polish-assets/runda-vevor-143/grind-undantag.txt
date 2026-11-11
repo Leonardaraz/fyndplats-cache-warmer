@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått saknar axelord och ingen bild visar måttens axlar: sidan skriver de tre måtten utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått saknar axelord, och måttritningen på infografiken visar 600 mm som bredd, 600 mm som höjd och 260 mm som djup: sidan skriver bredd, höjd och djup
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad i specifikationen, och måttritningen visar 930 mm som höjd och 510 mm och 465 mm som basens kanter: sidan skriver höjd och basens kanter
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Mått saknar axelord, och måttritningen visar 835,78 mm som höjd och 503,71 mm och 608,56 mm som basens kanter: sidan skriver längd, bredd och höjd ur punktens mått med axelord, och det lägsta värdet per axel
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Mått saknar axelord, och måttritningen visar 753 mm som höjd och 507 mm och 300 mm som basens kanter: sidan skriver längd, bredd och höjd ur punktens mått med axelord, och det lägsta värdet per axel
