@@ -1,0 +1,28 @@
+{
+ "namn": "vevor-155",
+ "rader": [
+  {
+   "kort": "7e997907",
+   "pid": "7e997907-45a0-4f2a-8b46-19604ca8fe7e",
+   "bort": [
+    "Bil & Garage > Domkrafter & billyftar"
+   ],
+   "behall": [
+    "Bil & Garage",
+    "Bil & Garage > Bil & släp"
+   ]
+  },
+  {
+   "kort": "fd33944a",
+   "pid": "fd33944a-e2e3-4aec-9454-b5128afc375e",
+   "bort": [
+    "Bygg & Renovering > Trall & räcken",
+    "Bygg & Renovering"
+   ],
+   "behall": [
+    "Verktyg & Maskiner",
+    "Verktyg & Maskiner > Lyft & transport"
+   ]
+  }
+ ]
+}
