@@ -55,14 +55,16 @@ export async function SiteHeader() {
           knapparna tonades in en gång till (2026-10-01). Skriptet står före
           sidhuvudet och körs alltså innan startsidan ritas. */}
       <script dangerouslySetInnerHTML={{ __html: INTRO_EN_GANG }} />
-      <div className="promo">
+      {/* Ett eget landmärke: remsan ligger utanför sidhuvudet, och innehåll
+          utanför landmärken hoppar en skärmläsare över när den går mellan dem. */}
+      <aside className="promo" aria-label="Frakt och betalning">
         <div className="container promorow">
           <ProfilRemsa>
             <span className="promotext"><span className="promo-ikon" aria-hidden="true">🚚 </span>Fri frakt över <b>499 kr</b> · Betala smidigt med <b className="klarna-mark">Klarna</b></span>
           </ProfilRemsa>
           <Social className="promo-social" />
         </div>
-      </div>
+      </aside>
       <header className="sidhuvud">
         {/* Datorn: loggan, sökrutan, hjärtat och kundvagnen på första raden, och
             menyn på en egen rad under (.hnav). Mobilen: loggan, hjärtat,
@@ -111,10 +113,15 @@ export async function SiteFooter() {
               klicka på är ett belägg. Ärver sidfotens färg i stället för
               länkblått — betygsraden ska läsa som en uppgift, inte som en
               menypost bland de andra länkarna i footern. */}
-          <a className="grat" href="/omdomen" aria-label={`Google-betyg ${proof.rating} av 5 – läs omdömena`}>
-            <span className="g-logo"><GoogleG size={22} /></span>
+          {/* Inget aria-label: det upplästa namnet ska innehålla texten som syns
+              (WCAG 2.5.3). Förut löd det "Google-betyg 4,9 av 5 – läs omdömena"
+              medan raden visade "4,9" och "Omdömen på Google", och den som
+              styr med rösten kunde inte säga det hen såg. Nu läses raden som
+              "Betyg 4,9 av 5. Omdömen på Google". */}
+          <a className="grat" href="/omdomen">
+            <span className="g-logo" aria-hidden="true"><GoogleG size={22} /></span>
             <span className="g-txt">
-              <span className="g-top"><b className="g-score">{proof.rating}</b><span className="star" aria-hidden="true">★★★★★</span></span>
+              <span className="g-top"><span className="sr-only">Betyg </span><b className="g-score">{proof.rating}</b><span className="sr-only"> av 5. </span><span className="star" aria-hidden="true">★★★★★</span></span>
               <span className="g-sub">Omdömen på Google</span>
             </span>
           </a>

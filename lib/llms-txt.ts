@@ -41,7 +41,7 @@ const GUIDER_MAX = 40;
 
 /** En rad i en länklista. Radbrytningar och hakparenteser i namn tas bort. */
 function lank(namn: string, adress: string, beskrivning?: string): string {
-  const rent = (s: string) => s.replace(/[\r\n]+/g, " ").replace(/[[\]]/g, "").replace(/\s+/g, " ").trim();
+  const rent = (s: string) => s.replace(/[[\]]/g, "").replace(/\s+/g, " ").trim();
   const text = beskrivning ? rent(beskrivning) : "";
   return `- [${rent(namn)}](${adress})${text ? `: ${text}` : ""}`;
 }

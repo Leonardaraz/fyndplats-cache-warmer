@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
-import { getProducts } from "../../lib/products";
+import { getProducts, MAIN_ORDER } from "../../lib/products";
 import { forListClient } from "../../lib/list-payload";
 import { ShopBrowser } from "../../components/shopbrowser";
+import { ProductCard } from "../../components/productcard";
+import { populartNu } from "../../lib/sok-tom";
+import { sidhuvudsdata } from "../../lib/sidhuvud-data";
+import { populara } from "../../lib/sidhuvud-val";
 import { attachRatings } from "../../lib/review-aggregates";
 import { normalize, rankByName } from "../../lib/search";
 import { productCountLabel } from "../../lib/rating";
@@ -46,6 +50,21 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
     results = await attachRatings([...results.filter((p) => p.inStock), ...results.filter((p) => !p.inStock)]);
   }
 
+  // UTAN TRÄFF: samma vägar vidare som 404-sidan, och fyra varor som säljer
+  // just nu (lib/sok-tom.ts). Förut var sidan en mening och en länk.
+  const tom = Boolean(term) && results.length === 0;
+  let populart: typeof all = [];
+  let kategorier: { name: string; slug: string }[] = [];
+  if (tom) {
+    populart = await attachRatings(populartNu(all, 4));
+    try {
+      const { tree } = await sidhuvudsdata();
+      kategorier = populara(tree, MAIN_ORDER).map((c) => ({ name: c.name, slug: c.slug }));
+    } catch {
+      kategorier = []; // hellre ingen kategorirad än en trasig söksida
+    }
+  }
+
   return (
     <>
       <section className="sec">
@@ -67,10 +86,34 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
               så "soffa" gav "Sidobord för soffan" på plats två och en
               hängmatta i ett klösträd före riktiga mattor. */}
           {results.length > 0 && <ShopBrowser products={forListClient(results)} defaultSort="rel" />}
-          {q && results.length === 0 && (
-            <p className="empty" style={{ textAlign: "center", color: "var(--soft)" }}>
-              Inga resultat för “{q}”. Prova att söka på kategori eller varumärke — eller <a href="/butik" style={{ color: "var(--orange)", fontWeight: 600 }}>se hela sortimentet</a>.
-            </p>
+          {tom && (
+            <div className="sok-tom">
+              <p className="sok-tom-text">
+                Vi hittade inget på “{q}”. Prova ett kortare ord, en annan stavning eller varans typ, till exempel “fåtölj” i stället för ett märke.
+              </p>
+              <div className="nf-actions">
+                <a className="btn btn-primary" href="/butik">Se alla kategorier</a>
+                <a className="btn btn-ghost" href="/kontaktaoss">Fråga oss om varan</a>
+              </div>
+              {kategorier.length > 0 && (
+                <div className="nf-cats">
+                  <div className="nf-cats-label">Populära kategorier</div>
+                  <div className="nf-cats-row">
+                    {kategorier.map((c) => (
+                      <a key={c.slug} href={`/kategori/${c.slug}`}>{c.name}</a>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {populart.length > 0 && (
+                <div className="sok-tom-populart">
+                  <h2>Populärt just nu</h2>
+                  <div className="prodgrid listgrid">
+                    {forListClient(populart).map((p) => <ProductCard p={p} key={p.slug} tvaKolumner />)}
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </section>
