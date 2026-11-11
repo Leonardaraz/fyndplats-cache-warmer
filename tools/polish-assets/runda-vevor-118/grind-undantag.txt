@@ -1,0 +1,11 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har tre mått per läge (Storlek hopfälld, platt tryck och lutningsläge) utan axelord, men måttritningen visar höjd, bredd och djup för det upprätta läget och längd, bredd och höjd för plattformsläget och lutningsläget: texten skriver orden höjd, bredd, djup respektive längd och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation saknar en måttrad, och måttritningen visar höjden 77 cm (30,3 tum) och två mått vid foten (31 och 32,3 cm) utan förklaring: texten skriver bara höjden och utelämnar de två måtten vid foten
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (450 x 170 x 100 mm) utan axelord, men måttritningen visar 450 mm som bordets längd, 170 mm som bredd och 100 mm som höjd: texten skriver orden längd, bredd och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Djup (455 mm) och höjden i U men inga yttermått, och måttritningen visar bredd 510 mm, djup 460 mm och höjd 872 mm (med hjul): texten skriver yttermåtten med orden bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Verktygslådans mått (12,2×9,1×2,6 tum / 310×230×65 mm) utan axelord, men måttritningen visar 310 mm som längd, 230 mm som bredd och 65 mm som höjd: texten skriver orden längd, bredd och höjd ur ritningen
