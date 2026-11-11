@@ -56,8 +56,13 @@ Regler som inte ska tas bort:
    synlighet oförändrade) och butikens sidor hämtades (`age` 88–115 s, alla 16 i den nya ordningen).
 3. **Bara publicerade sidor skrivs.** En variantsInfo-PATCH publicerar ett utkast (se `13-variantsinfo-patch-publicerar.md`), så verktyget vägrar dolda sidor.
    13 av 11 414 dolda utkast har samma fel, de flesta AliExpress-sidor med blandade val som *Färg-kvantitet*. De sorteras när de publiceras.
-4. **Kör svepet efter varje sammanslagning som lägger till en storlek** tills `lib/aosom/sammanslagning.ts` placerar det nya valet i ordning. Svepet är torrt
-   och tar 30 s. Kvar att göra i koden (kräver ett motorbygge): placera givarens val i storleksordning i stället för sist, både där optionen redan finns
-   och där den skapas med två val.
+4. **Kör svepet efter varje sammanslagning som lägger till en storlek.** Svepet är torrt och tar 30 s. **Motorfixen är byggd 2026-11-11** (`lib/aosom/valordning.ts`,
+   `valPlats` och `valPar`, anropade från `lib/aosom/sammanslagning.ts` både där optionen redan finns och där den skapas med två val): givarens val hamnar på sin plats i
+   storleksordning i stället för sist. Funktionen följer svepets regler (bokstavsstorlekar och tal med lika många mått och samma enhetsfamilj, gruppen är texten före första
+   siffran), flyttar aldrig ett val som redan finns och låter allt den inte kan bedöma (Färg, *Liten – Mellan – Stor*, olika antal tal, blandade enheter) hamna sist som förut.
+   ☠️ **Den gäller först när PR #870 är mergad och bygget är klart:** workflowen `aosom-sammanslagning.yml` anropar den driftsatta appen, så en `ref` på grenen hjälper inte.
+   Fram till dess och en tid efteråt gäller svepet efter varje sammanslagning, och det blir kvar som kontroll därefter. Fixen rättar inga sidor som redan ligger fel,
+   det gör `sortera-val.js`. Svepet 2026-11-11 fann växthuset `e891b752` (rättat, 180 före 270 cm) och fyra VEVOR-sidor med fel ordning (`605e12f2`, `cf5bdddc`, `d9a8b523`
+   och `fef11978`, VEVOR-chattens sidor, orörda här).
 5. **Jämför ordningen i butiken, inte texten.** Butiken skriver tum som cm (*29.5 tum* visas som *75 cm*) och lägger *– slut i lager* efter slutsålda val i
    `aria-label`.

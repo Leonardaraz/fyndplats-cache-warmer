@@ -240,7 +240,8 @@ den i samma vända som övriga variantändringar så du bara betalar följdskado
 ## Valens ordning (2026-11-06)
 
 Valen i en storleksoption ska ligga från minst till störst, eftersom butiken visar dem i den ordning Wix har dem. En sammanslagning (`aosom-sammanslagning`)
-lägger givarens val SIST, så en sida som fått en ny storlek ligger ofta fel (hantlarna: 4, 5, 10 och sedan 6 kg).
+lade givarens val SIST, så en sida som fått en ny storlek låg ofta fel (hantlarna: 4, 5, 10 och sedan 6 kg). Motorn placerar valet i storleksordning sedan
+`lib/aosom/valordning.ts` (2026-11-11), men bara efter att fixen är mergad och byggd, och den kan inte bedöma val utan tal, olika antal tal eller blandade enheter.
 
 - Kör `tools/polish-gates/sortera-val-svep.js` via ExecuteWixAPI (torrt, 30 s för alla publicerade sidor) efter en sammanslagning och i kontrollen live, och
   rätta det som flaggas med `tools/polish-gates/sortera-val.js` (torrt först, högst åtta sidor per körning).

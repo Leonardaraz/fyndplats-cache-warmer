@@ -221,6 +221,13 @@ tillverkaren. Det blir **inte** en egen flik bredvid och syns inte i brödtexten
 Skriver du inget avsnitt använder fliken motorns förhandsöversättning (hela feeden,
 2026-09-27) — **ditt avsnitt vinner alltid**, för det är skrivet för den polerade sidan.
 
+☠️ **En sida utan leverantör i mappningen har ingen tillverkare att lägga i fliken.** Äldre
+AliExpress-rader (`supplier: null`) som saknar rad i Aosoms feed har ingen data i motorn, så ett eget
+avsnitt ger en flik utan tillverkare, och `livegrind.py` fäller på den (*fliken saknar tillverkaren*,
+loungesetet `58c5bc3a`, T123, 2026-11-11). Skriv inget avsnitt på en sådan sida: maxlast och standarder står
+i specifikationen och frågorna. Sidan saknar då tillverkaruppgift (artikel 19), så flagga det till
+Leonard: åtgärden är en leverantör eller tillverkare i mappningen, inte en text.
+
 #### Så skriver du det
 
 Sist i rundans källfil `<kort>.html` (den som blir `plainDescription`), efter *Vanliga frågor*:
