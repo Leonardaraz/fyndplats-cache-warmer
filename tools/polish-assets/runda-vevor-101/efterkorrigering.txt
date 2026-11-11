@@ -1,0 +1,6 @@
+# Efterkorrigering efter runda-vevor-101 (2026-11-11)
+f261370d (den rökfria eldstaden): etikett 3 (Wix-fil b379ce_39969cbb…) och etikett 6 är samma foto av eldstaden från samma vinkel
+(mått 0,012 i bilddubblettgrinden efter att den skärptes 2026-11-11; grinden hoppade tidigare över bilder som fyller rutan).
+Etikett 3, som ligger sist i galleriet, togs bort med workflowen "Bilder - ta bort bilder ur en publicerad sida" (bilder-bort.yml):
+torrkörning och skarp körning 2026-11-11 00:36 UTC (skarp körning 42932735727, plan-sha e9c36d5e309d6961d888a150f3a8999dad24003fbceebba0605921ba7b34e540),
+galleri 6 -> 5, återläsningen stämde (galleri, alt-texter, länkar, synlighet och varianter). Text, pris och lager är orörda.
