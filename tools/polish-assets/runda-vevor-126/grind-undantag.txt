@@ -3,8 +3,6 @@ bygg-axelfacit.py källans rad Artikelmått (600 x 600 x 1550 mm) saknar axelord
 # <skript> <skäl> — se bygg-skrivplan.py
 bygg-axelfacit.py källans rad Artikelmått (23 x 23 x 23 tum / 584 x 584 x 584 mm) är tre lika mått för en boll, och måttritningen visar diametern 584 mm: sidan skriver diameter
 # <skript> <skäl> — se bygg-skrivplan.py
-bygg-axelfacit.py källans rad Artikelmått (L x B x H) 870 x 850 x 1560 mm och måttritningen (870 x 850 x 1524 mm) skiljer sig åt i höjden, och raden Trädhöjd (1524 mm) visar höjden: sidan skriver höjden 1524 mm efter specifikationen och ritningen
-# <skript> <skäl> — se bygg-skrivplan.py
 bygg-axelfacit.py källans rad Produktmått (310 x 100 x 45 mm) saknar axelord, och namnet anger 30 cm L, 10 cm B och 4 cm H för ett fäste: sidan skriver längd, bredd och höjd efter namnet
 # <skript> <skäl> — se bygg-skrivplan.py
 bygg-axelfacit.py källans rad Produktmått (57,7 x 20,9 x 17,7 tum / 1465 x 530 x 450 mm) saknar axelord, och måttritningen visar längden 1465 mm, bredden 530 mm och höjden 450 mm: sidan skriver längd, bredd och höjd efter ritningen
