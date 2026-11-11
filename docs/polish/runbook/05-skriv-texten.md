@@ -226,7 +226,16 @@ AliExpress-rader (`supplier: null`) som saknar rad i Aosoms feed har ingen data 
 avsnitt ger en flik utan tillverkare, och `livegrind.py` fäller på den (*fliken saknar tillverkaren*,
 loungesetet `58c5bc3a`, T123, 2026-11-11). Skriv inget avsnitt på en sådan sida: maxlast och standarder står
 i specifikationen och frågorna. Sidan saknar då tillverkaruppgift (artikel 19), så flagga det till
-Leonard: åtgärden är en leverantör eller tillverkare i mappningen, inte en text.
+Leonard.
+
+✅ **Åtgärden för en Aosom-vara på en AliExpress-sida är en rad i `lib/gpsr/aosom-pa-ae.ts`** (Leonard
+2026-11-11: *"Fixa loungesetets tillverkaruppgift"*). Står sidans Wix-id där svarar `/api/gpsr` med Aosoms
+tillverkare (MH Handel GmbH, Hamburg), utan märke och utan säkerhetstext, och sidan får sin flik. Lägg
+bara till en sida när varan är kontrollerad som Aosoms på sidans egna bilder (Aosoms egna produktbilder och
+måttskisser), inte på namnet. ☠️ **Sätt aldrig `supplier: "aosom"` på en sådan rad:** Aosom-synken räknar en
+rad som saknas i feeden som slutsåld och hade nollat saldot på en vara som beställs via AliExpress.
+Listan gäller från bygget av PR #870 (2026-11-11). Först när den är live och `livegrind.py` visar en
+flik med tillverkaren kan sidan få ett eget avsnitt *Produktsäkerhet* i texten.
 
 #### Så skriver du det
 

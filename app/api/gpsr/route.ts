@@ -21,6 +21,11 @@
 // Är uppgifterna inte kompletta svarar rutten 404, och då visar butiken ingen
 // flik. Varan är då heller inte publicerad (lib/publicering.ts).
 //
+// AOSOM-VARA PÅ EN ALIEXPRESS-SIDA. En äldre AliExpress-rad utan leverantör och
+// utan feed-rad, vars vara ändå är Aosoms, står i lib/gpsr/aosom-pa-ae.ts och får
+// Aosoms tillverkare utan märke och säkerhetstext. Leverantörsfältet rörs inte:
+// `supplier: "aosom"` hade dragit in sidan i Aosom-synken.
+//
 // Ingen auth — allt i svaret står på den publika produktsidan.
 //
 // 404 när produkten varken är en Aosom-vara eller en VEVOR-vara med kompletta
@@ -31,6 +36,7 @@ import { getStore } from "@/lib/store/factory";
 import { aosomSkuOf, mappingSupplier, vevorSkuOf } from "@/lib/store/supplier";
 import { assertNever } from "@/lib/assert-never";
 import { tillPublik } from "@/lib/gpsr/aosom";
+import { arAosomVaraPaAeSida } from "@/lib/gpsr/aosom-pa-ae";
 import { gpsrForSku } from "@/lib/gpsr/data";
 import { publikGpsr } from "@/lib/vevor/gpsr";
 import { wixGpsrLager } from "@/lib/vevor/gpsr-lager";
@@ -75,6 +81,12 @@ export async function GET(req: NextRequest) {
         return NextResponse.json(publik, { headers: { "Cache-Control": CACHE_OK } });
       }
       case "aliexpress":
+        // En AliExpress-sida vars vara är Aosoms (lib/gpsr/aosom-pa-ae.ts) har
+        // samma tillverkare som varje Aosom-vara. Märket är okänt: ingen feed-rad.
+        if (arAosomVaraPaAeSida(id)) {
+          return NextResponse.json(tillPublik({ m: null, s: [] }), { headers: { "Cache-Control": CACHE_OK } });
+        }
+        return saknas(CACHE_OK);
       case "okand":
         return saknas(CACHE_OK);
       default:

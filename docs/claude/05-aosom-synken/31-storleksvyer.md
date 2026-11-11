@@ -63,6 +63,9 @@ Regler som inte ska tas bort:
    ☠️ **Den gäller först när PR #870 är mergad och bygget är klart:** workflowen `aosom-sammanslagning.yml` anropar den driftsatta appen, så en `ref` på grenen hjälper inte.
    Fram till dess och en tid efteråt gäller svepet efter varje sammanslagning, och det blir kvar som kontroll därefter. Fixen rättar inga sidor som redan ligger fel,
    det gör `sortera-val.js`. Svepet 2026-11-11 fann växthuset `e891b752` (rättat, 180 före 270 cm) och fyra VEVOR-sidor med fel ordning (`605e12f2`, `cf5bdddc`, `d9a8b523`
-   och `fef11978`, VEVOR-chattens sidor, orörda här).
+   och `fef11978`). De fyra rättades samma dag på Leonards uppmaning (*"Fixa dom med fel storleksordning"*): `sortera-val.js` (4 av 4, 0 avvikelser), därefter
+   `variantbild.yml` (skarp, `ids`, `utkast=nej`: 4 kontrollerade, 4 rättade, 0 avvikelser), Wix lästes tillbaka (varje varians bild är sitt vals första bild, inga
+   delade länkar) och butikens sidor visade den nya ordningen (`age` 0–21 s). Svepet efteråt: 6 248 publicerade sidor, 0 tydliga fel. Sju sidor med en ordning som
+   kan diskuteras (regel 1) ligger kvar orörda.
 5. **Jämför ordningen i butiken, inte texten.** Butiken skriver tum som cm (*29.5 tum* visas som *75 cm*) och lägger *– slut i lager* efter slutsålda val i
    `aria-label`.
