@@ -32,7 +32,7 @@ describe("uppläst namn innehåller texten som syns (WCAG 2.5.3)", () => {
     assert.doesNotMatch(rad.split("\n")[0], /aria-label/);
     assert.match(rad, /<div className="homecat-mosaic" aria-hidden="true">/);
     assert.match(rad, /alt=""/);
-    assert.match(rad, /<span className="homecat-count">\{c\.count\} st<span className="sr-only"> i kategorin<\/span><\/span>/);
+    assert.match(rad, /<span className="homecat-count">\{tusental\(c\.count\)\} st<span className="sr-only"> i kategorin<\/span><\/span>/);
   });
 
   it("toppremsan ligger i ett landmärke", () => {

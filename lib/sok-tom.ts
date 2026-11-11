@@ -21,7 +21,6 @@ export type Valbar = { slug: string; inStock: boolean; img?: string; priceNum?: 
 export function populartNu<T extends Valbar>(produkter: readonly T[], antal = 4): T[] {
   return produkter
     .filter((p) => p.inStock && Boolean(p.img) && (p.priceNum ?? 0) > 0)
-    .slice()
     .sort(
       (a, b) =>
         (b.popularity ?? 0) - (a.popularity ?? 0)

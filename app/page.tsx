@@ -5,7 +5,7 @@ import { forvaltPris } from "../lib/pdp-forval";
 import { ProductCard } from "../components/productcard";
 import { getReviewAggregates } from "../lib/review-aggregates";
 import { Stars } from "../components/stars";
-import { applyRatings, reviewCountLabel } from "../lib/rating";
+import { applyRatings, reviewCountLabel, tusental } from "../lib/rating";
 import { pickHero, ensureRated } from "../lib/hero-picks";
 import { buildGroupCards } from "../lib/category-groups";
 import { getBlurDataURLs, SHIMMER_BLUR } from "../lib/lqip";
@@ -429,7 +429,8 @@ export default async function Home() {
                       namn är texten under. Förut bar länken ett aria-label
                       ("Möbler, 1 392 produkter") som inte innehöll texten som
                       syns ("1392 st"), vilket WCAG 2.5.3 kräver, och de fyra
-                      bilderna hade alla kategorins namn som alt. */}
+                      bilderna hade alla kategorins namn som alt. Antalet
+                      skrivs med tusental ("1 392 st"), som i resten av butiken. */}
                   <div className="homecat-mosaic" aria-hidden="true">
                     {Array.from({ length: 4 }).map((_, i) =>
                       c.thumbs[i] ? (
@@ -451,7 +452,7 @@ export default async function Home() {
                   <div className="homecat-body">
                     <span className="homecat-name">{c.main.name}<span className="homecat-arrow" aria-hidden="true">→</span></span>
                     <span className="sr-only">, </span>
-                    <span className="homecat-count">{c.count} st<span className="sr-only"> i kategorin</span></span>
+                    <span className="homecat-count">{tusental(c.count)} st<span className="sr-only"> i kategorin</span></span>
                   </div>
                 </PrefetchLink>
               ))}
