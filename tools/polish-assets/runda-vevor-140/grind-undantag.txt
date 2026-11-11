@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (440 x 250 x 68 mm) saknar axelord, och måttritningen visar 440 mm som fodralets längd, 250 mm som bredd och 68 mm som höjd: sidan skriver måtten i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktstorlek (1260 x 586 x 456 mm / 49,61 x 23,07 x 17,95 tum) saknar axelord, och måttritningen visar 1260 mm som bredd längs väggen, 586 mm som djup från väggen och 456 mm som höjd: sidan skriver måtten med axelorden från ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (535 x 330 x 160 mm) saknar axelord och säger emot måttbilden (550 x 350 x 140 mm): sidan skriver det lägsta värdet per axel, 535 × 330 × 140 mm, i måttbildens ordning (bredd, djup och höjd)
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (27,99 x 27,99 x 40,98 tum / 71,1 x 71,1 x 104,1 cm) saknar axelord, och måttritningen visar 71,1 cm som burens båda sidor vid basen och 104,1 cm som höjd: sidan skriver måtten i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktstorlek (7,5 x 20 fot / 2280 x 6100 mm) saknar axelord, och måttritningen visar 2280 mm som bredden och 6100 mm som längden: sidan skriver bredd × längd
