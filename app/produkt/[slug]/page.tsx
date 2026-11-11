@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { jsonLdString } from "../../../lib/seo";
 import { faqPageJsonLd } from "../../../lib/faq-jsonld";
 import { notFound, permanentRedirect } from "next/navigation";
-import { getProductRedirect } from "../../../lib/redirects";
+import { getProductRedirect, getProductRedirects } from "../../../lib/redirects";
+import { medLevandeLankar } from "../../../lib/interna-lankar";
 import { ProductView } from "../../../components/productview";
 import { forvalIndex, forvalKombination } from "../../../lib/pdp-forval";
 import { colorKeysOf } from "../../../lib/variant-color-image";
@@ -116,6 +117,16 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   // modulcachad, så att hämta den redan här kostar inget extra anrop.
   const all = await getProducts();
   const brodsmula = valjBrodsmula(ownCats, navCols, countPerCategoryPage(forListings(all), cols), categoryIndexable);
+  // Produkttextens länkar till syskon som slagits ihop eller fått ny adress
+  // ritas med målets adress, så att länken inte går genom en omdirigering
+  // (lib/interna-lankar.ts). Uppslaget görs bara för länkar vars slug inte är
+  // en publicerad produkt, och cachas lika länge som sidan själv.
+  const publicerade = new Set(all.map((x) => x.slug));
+  const descriptionHtml = await medLevandeLankar(
+    p.descriptionHtml || "",
+    (s) => publicerade.has(s),
+    (slugs) => getProductRedirects(slugs, revalidate),
+  );
   const primaryCol = brodsmula.avdelning;
   const subCol = brodsmula.underkategori;
 
@@ -470,7 +481,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           inStock={p.inStock}
           stockQuantity={p.stockQuantity}
           blurb={p.blurb}
-          descriptionHtml={p.descriptionHtml}
+          descriptionHtml={descriptionHtml}
           originalPrice={p.originalPrice}
           onSale={p.onSale}
           specLines={specLines}

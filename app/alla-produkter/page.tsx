@@ -1,5 +1,5 @@
 import { getProducts, getCollections, forListings } from "../../lib/products";
-import { listaForSidan, ordnaLista, utanKategorisida } from "../../lib/list-pages";
+import { listaForSidan, ordnaLista, slutsaldaUtanKategorisida, utanKategorisida } from "../../lib/list-pages";
 import { currentDayMs } from "../../lib/sort-products";
 import { jsonLdString } from "../../lib/seo";
 import { ShopBrowser } from "../../components/shopbrowser";
@@ -119,6 +119,8 @@ export default async function AllaProdukter() {
               lib/list-pages.ts för mätningen. Kvar är bara de produkter som
               saknar kategorisida (normalt ingen), så ingen blir utan länk. */}
           <ProductIndex products={utanKategorisida(products, collections)} title="Övriga produkter A–Ö" />
+          {/* Slutsålda som ingen kategorisida kan länka till (lib/list-pages.ts). */}
+          <ProductIndex products={slutsaldaUtanKategorisida(allProducts, collections)} title="Slut i lager just nu" />
         </div>
       </section>
     </div>

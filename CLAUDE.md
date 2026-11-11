@@ -2670,3 +2670,37 @@ produkter o sånt i sidan, den borde inte ha det".
 - Fakta om tull hämtas hos Tullverket ("Ny tullavgift från den 1 juli 2026"),
   inte ur minnet: 3 euro per vara sedan 1 juli 2026, 2 euro i hanteringsavgift
   per vara från 1 november 2026, och procenttull i stället från 1 juli 2028.
+
+## Produkttextens länkar till syskon som flyttat, och slutsålda sidors länk (2026-11-11)
+
+Två notiser i Semrush hade en riktig orsak i butiken. Båda är lösta vid visningen,
+utan att något ändras i Wix.
+
+- ☠️ **166 länkar mellan produktsidor gick till en omdirigering.** Poleringen
+  skriver "Passar inte den här?" med länkar till syskonen ("Samma vagn i svart").
+  När syskonen senare slås ihop till en sida med färgval, eller får en ny adress,
+  står länken kvar i texten. Tolv av tolv stickprov stod kvar i sidornas HTML.
+  - `medLevandeLankar` (`lib/interna-lankar.ts`) byter adressen när sidan ritas,
+    mot den som omdirigeringen ändå leder till (`FyndplatsRedirects`). Ankartexten
+    stämmer: givarens omdirigering landar på givarens färg (`?variant=`).
+  - Bara länkar vars slug INTE är en publicerad produkt slås upp, alla i ett anrop
+    (`getProductRedirects`, `$in`). Ett mål som självt har flyttat följs, högst tre
+    steg. Ett mål som inte finns skrivs aldrig in: hellre en omdirigering än en död
+    länk. Kan tabellen inte läsas ritas texten som den står.
+  - ☠️ Uppslaget tar produktsidans egen `revalidate`. Next låter sidans kortaste
+    fetch styra hur ofta sidan byggs om, och det vanliga uppslagets 300 sekunder
+    hade byggt om varje sådan sida var femte minut.
+  - Texten i Wix är fortfarande gammal. Den rättas när produkten poleras om.
+- ☠️ **475 sidor i sitemapen hade ingen intern länk.** Alla var slutsålda:
+  listorna döljer dem (`forListings`), sitemapen behåller dem, och ingenting
+  länkade dit. 208 sidor låg dessutom fler än tre klick från startsidan.
+  - Kategorisidan har en andra hopfälld textlista, "Slut i lager just nu", under
+    A–Ö-listan (`slutsaldaIKategorin` i `lib/list-pages.ts`, regeln i
+    `lib/slutsalda-lankar.ts`). Rutnätet rörs inte: kunden ser bara det som går
+    att köpa.
+  - Slutsålda som ingen kategorisida kan bära (bara i Övrigt, eller i en kategori
+    som saknar sida för att allt i den är slut) listas på `/alla-produkter`.
+  - Listan är tom när `SHOW_OOS_IN_LISTINGS=1`, och för rea och populära.
+- Inte ändrat, med flit: startsidans adress i sitemapen står utan snedstreck sist
+  (`https://www.fyndplats.se`), samma som sidans canonical. Semrush räknar den som
+  en sida utan intern länk, men det är samma adress enligt standarden.

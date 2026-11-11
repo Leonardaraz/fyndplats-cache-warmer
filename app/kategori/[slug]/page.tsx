@@ -4,7 +4,7 @@ import { jsonLdString } from "../../../lib/seo";
 import type { Metadata } from "next";
 import { redirect, notFound } from "next/navigation";
 import { getProducts, getCollections, getAllCategorySlugs, forListings, dedupeProducts } from "../../../lib/products";
-import { kategoriProdukter, listaForSidan, ordnaLista, specDefsFor } from "../../../lib/list-pages";
+import { kategoriProdukter, listaForSidan, ordnaLista, slutsaldaIKategorin, specDefsFor } from "../../../lib/list-pages";
 import { currentDayMs } from "../../../lib/sort-products";
 import { CategoryDropdown } from "../../../components/categorydropdown";
 import { ShopBrowser } from "../../../components/shopbrowser";
@@ -120,6 +120,7 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
   // lib/list-pages.ts.
   const dagMs = currentDayMs();
   const list = await ordnaLista(dedupeProducts(catList), dagMs);
+  const slutsalda = slutsaldaIKategorin(active, collections, allProducts);
   // Förälder (om detta är en subkategori) → för brödsmulor.
   const parent = active.parentId ? collections.find((c) => c.id === active.parentId) : undefined;
   // Programmatiska SEO-länkar för kategorin (pris-tiers + bäst-i-test) — bara
@@ -304,6 +305,10 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
               i server-HTML (Suspense-fallback) → utan denna lista fick svans-
               produkterna inga kategori-ankarlänkar alls. Ren text = noll perf. */}
           <ProductIndex products={list} title={`Alla inom ${kategoriIMening(active.name)} A–Ö`} />
+          {/* Slutsålda produkter döljs i rutnätet men lever kvar som sidor med
+              bevakning. Utan den här listan länkade ingen sida till dem
+              (slutsaldaIKategorin i lib/list-pages.ts). */}
+          <ProductIndex products={slutsalda} title="Slut i lager just nu" />
         </div>
       </section>
 

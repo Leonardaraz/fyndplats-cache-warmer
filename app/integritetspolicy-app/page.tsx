@@ -77,7 +77,7 @@ export default function IntegritetspolicyApp() {
 
       <h2>Dina rättigheter</h2>
       <p>Du har rätt till tillgång (registerutdrag), rättelse, radering, begränsning, att invända mot behandling som sker med stöd av berättigat intresse samt mot direktmarknadsföring, och under vissa förutsättningar dataportabilitet. Grundar sig behandlingen på samtycke kan du återkalla det när som helst. Kontakta <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> för att utöva dina rättigheter. Du kan även radera ditt konto direkt i appen.</p>
-      <p>Anser du att vi behandlar dina uppgifter felaktigt har du rätt att klaga till Integritetsskyddsmyndigheten (IMY), <a href="https://www.imy.se" rel="nofollow">www.imy.se</a>.</p>
+      <p>Anser du att vi behandlar dina uppgifter felaktigt har du rätt att klaga till Integritetsskyddsmyndigheten (IMY), <a href="https://www.imy.se">www.imy.se</a>.</p>
 
       <h2>Ändringar &amp; kontakt</h2>
       <p>Vi kan komma att uppdatera denna policy. Den senaste versionen finns alltid här. Frågor? Kontakta oss på <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> eller Fyndplats, Bergviksgatan 10, 152 44 Södertälje.</p>

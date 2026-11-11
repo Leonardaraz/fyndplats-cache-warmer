@@ -2088,6 +2088,8 @@ body:has(.drawer.show) .cookiebar{visibility:hidden}
    Premium katalog-look: bokstavsgrupperat med serif-initialer i brand-orange,
    count-pill och mjuk hover — fortfarande bara server-renderade textlänkar. */
 .prodindex{margin-top:40px;border:1px solid var(--line);border-radius:var(--r-lg);background:linear-gradient(180deg,#fff,var(--warm));overflow:hidden;box-shadow:var(--e2)}
+/* Två listor i följd (A–Ö och "Slut i lager just nu") hör ihop: liten lucka. */
+.prodindex + .prodindex{margin-top:14px}
 .prodindex summary{display:flex;align-items:center;gap:12px;padding:18px 22px;cursor:pointer;list-style:none;transition:background .2s}
 .prodindex summary::-webkit-details-marker{display:none}
 .prodindex summary:hover{background:rgba(194,65,12,.04)}
