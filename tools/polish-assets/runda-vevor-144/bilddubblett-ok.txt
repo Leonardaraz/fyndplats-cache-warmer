@@ -1,0 +1,3 @@
+# kort:pos kort:pos skäl (kvitterar par mellan sidor som gate-bilddubblett.py flaggar men som visar olika varor)
+52bbf101:3 7490ecb4:3 olika varor: ramper av olika längd (2400 mm respektive 2745 mm och olika profilhöjd) sedda rakt från sidan, skalade till samma bildhöjd, så att formen blir lika i 96 × 96 punkter men fotona är olika
+52bbf101:5 7490ecb4:5 olika varor: ramper av olika längd (2400 mm respektive 2745 mm och olika profilhöjd) sedda på högkant, skalade till samma bildhöjd, så att formen blir lika i 96 × 96 punkter men fotona är olika
