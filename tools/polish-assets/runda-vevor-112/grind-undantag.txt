@@ -1,0 +1,12 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek (23,62 x 14,17 x 47,24 tum / 600 x 360 x 1200 mm) utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, men måttritningen visar bredd 600 mm, djup 360 mm och höjd 1200 mm: texten skriver måtten med axelorden B × D × H ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (870 × 560 × 300 mm) utan axelord och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver längd, bredd och höjd med ord ur måttritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen måttrad med axelord och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver toalettens och tältets mått ur måttritningen med antalet och orden för plan, höjd och diameter
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (914,4 x 152,4 x 19,7 mm) utan axelord och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver längd, bredd och höjd för varje skydd med ord ur måttritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (86,5 x 15 x 1828 mm) utan axelord, och måttbilden anger profilbredden 30 mm i stället för 15 mm: texten skriver längd, profilens bredd och förankringsplattans bredd med ord ur måttbilden
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (L x B x H) 100 x 70 x 700 mm med axelord, men totalhöjden står som 864 mm i specifikationen och 700 mm på måttbilden, och ingen tysk totalmåttrad finns att bygga ett facit ur: texten skriver måtten med axelorden L × B × H och totalhöjden 700 mm ur måttbilden
