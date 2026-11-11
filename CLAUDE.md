@@ -403,6 +403,55 @@ gamla. Varken `ss` (finns inte) eller `lsof` (ser ingenting) hittar lyssnaren i
 molnbehållaren. Läs porten ur `/proc/net/tcp`, och lita aldrig på ett prov vars
 serverlogg säger `EADDRINUSE`.
 
+## Grannlänkar och korta stycken: Semrush-kategorin AI Search (2026-11-11)
+
+Semrush kategori "AI Search" har bara notiser. Två av dem hade fynd, och båda
+räknas också i andra kategorier.
+
+**"Pages with only one incoming internal link" (6 001).** 5 754 var
+`/kontaktaoss?produkt=…` (lösta när länken fick `#` i stället för `?`). Resten:
+
+- 50 prissidor (`/under-…-kr/<kategori>`) hade en enda länk, den från sin egen
+  kategorisida.
+- Två intressesidor och två blogginlägg hade en enda länk.
+- Orsaken på alla tre ställena: listan "fler sidor" togs med `.slice(0, 3)` från
+  början, eller fanns inte. De första sidorna fick alla länkar, de sista inga.
+
+☠️ **En lista med "fler sidor" är en RING, aldrig de N första.**
+`ringEfter(lista, index, antal)` i `lib/seo/grannlankar.ts` ger de närmast
+följande, runt hörnet. Då får varje sida lika många länkar in som den har ut.
+
+- Prissidan: `prisgrannar()` länkar till avdelningens prissida, till
+  underkategoriernas (högst `MAX_BARN`) och till de fyra följande syskonens
+  (`MAX_SYSKON`). Bara kategorier med en giltig prissida, och alltid den högsta
+  nivån.
+- Intressesidan: de tre följande i `INTERESTS`, bland dem som har en giltig sida.
+- Blogginlägget: "Fler inlägg" med de två följande i bloggens ordning.
+
+**"Content not optimized" (23).** 22 produktsidor och `/kopvillkor`. Mätt orsak:
+ETT stycke på 158–219 ord. Sidor utan fynd hade högst 84 ord i ett stycke.
+Rubrikordningen och läsbarheten var inte orsaken.
+
+- På produktsidorna var stycket nästan alltid en lång kundrecension.
+  `delaIStycken()` i `lib/stycken.ts` delar texten vid meningsgränserna i stycken
+  om högst 70 ord. Samma ord i samma ordning, bara fler `<p>`.
+- ☠️ Styckena ritas I FÖLJD (`.rev-text p{display:inline}`), och klampen sitter
+  på behållaren. Annars räknar klampen på fem rader per stycke, och "Visa mer"
+  mäter fel. Mätt i Chromium 320–1280 px: samma höjd, samma radbrytningar och
+  samma "…" som med ett enda `<p>`. Safari är inte mätt.
+- Köpvillkoren: fyra långa stycken delade i kortare, samma meningar. Den
+  lagstadgade kostnadsupplysningen för skrymmande returer (98 ord) ritas med
+  `delaIStycken(SKRYMMANDE_RETURKOSTNAD)` som två stycken, ord för ord. Provet
+  fäller ett stycke över 84 ord.
+
+Inte gjort, med flit:
+
+- Produktsidor som bara nås med `?variant=` i adressen: Leonard lägger `variant`
+  bland parametrarna som Semrush ska bortse från.
+- Ett långt stycke i en produkttext går genom poleringsrutinen, inte för hand.
+- Produkter som bara ligger i en synlig kategori har en länk för att de har en
+  plats. Det är inget fel.
+
 ## Måttfilter på kategorisidorna (2026-09-27)
 
 Kategorisidorna filtrerar på bredd, djup, höjd, sitthöjd, maxlast, vikt,

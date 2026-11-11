@@ -32,6 +32,7 @@ import typesJson from "./programmatic-types.json";
 import interestsJson from "./programmatic-interests.json";
 import * as T from "./programmatic-templates";
 import * as S from "./programmatic-select";
+import { prisgrannar, ringEfter } from "./grannlankar";
 
 export const SITE = "https://www.fyndplats.se";
 export const PRICE_TIERS = [200, 500, 1000] as const;
@@ -495,6 +496,11 @@ export const resolvePriceTier = cache(async (price: number, categorySlug: string
   for (const cfg of TYPES.filter((c) => c.category === cat.name && validTypes.includes(c.slug)).slice(0, 2)) {
     related.push({ href: `/kopguider/${cfg.slug}`, label: `Köpguide: ${cfg.label}` });
   }
+  // ☠️ Utan grannarna hade en prissida EN intern länk, den från sin egen
+  // kategorisida (50 sidor i Semrush 2026-11-11, lib/seo/grannlankar.ts).
+  for (const granne of prisgrannar(cat, collections, allTiers)) {
+    if (!related.some((r) => r.href === granne.href)) related.push(granne);
+  }
 
   const crumbs = [
     { name: "Hem", path: "/" },
@@ -595,7 +601,10 @@ export const resolveInterest = cache(async (slug: string): Promise<InterestView 
     .filter((c): c is Collection => !!c && !c.parentId)
     .slice(0, 2);
   for (const c of linkedCats) related.push({ href: `/kategori/${c.slug}`, label: `Allt inom ${c.name}` });
-  for (const other of INTERESTS.filter((c) => c.slug !== slug && validSlugs.includes(c.slug)).slice(0, 3)) {
+  // ☠️ En RING, inte de tre första: med `.slice(0, 3)` fick de första
+  // intressesidorna alla länkar och de sista inga (lib/seo/grannlankar.ts).
+  const giltiga = INTERESTS.filter((c) => validSlugs.includes(c.slug));
+  for (const other of ringEfter(giltiga, giltiga.findIndex((c) => c.slug === slug), 3)) {
     related.push({ href: `/for-dig-som/${other.slug}`, label: `För dig som ${other.verb}` });
   }
   const blogLinks: CrossLink[] = relatedPosts(posts, [cfg.verb, cfg.noun, ...cfg.keywords], 2).map((b) => ({
