@@ -18,6 +18,12 @@ import { AuctionBannerText } from "../components/auction-banner-text";
 import { tightFillUrl } from "../lib/wix-image";
 import { getSocialProof } from "../lib/social-proof-live";
 import { PrefetchLink } from "../components/prefetch-link";
+import { categoryHero } from "../lib/category-groups";
+import { GoogleG } from "../components/google-g";
+import { getPosts } from "../lib/blog";
+import { CURATED_RESULT } from "../lib/curated-reviews";
+// Förslaget till ny startsida (2026-11-12). Allt står under .hem2.
+import "./startsida.css";
 
 // ISR: startsidan renderas statiskt men regenereras i bakgrunden var timme, så
 // nyimporterade produkter och kategori-ändringar dyker upp utan en ny deploy.
@@ -273,13 +279,29 @@ export default async function Home() {
   // groupbuild som /butik så curated hero-bilder matchar — användaren ser samma
   // bild för "Hem & Inredning" på startsidan som på butik-landningen.
   const allGroups = buildGroupCards(allProducts, cols);
-  const homeCats = [...allGroups].sort((a, b) => b.count - a.count).slice(0, 4);
+  // Förslaget: alla avdelningar i storleksordning, med EN bild var (samma bild
+  // som /butik visar). Datorn visar de åtta största, mobilens rad visar alla.
+  const homeCats = [...allGroups].sort((a, b) => b.count - a.count).slice(0, 12);
+
+  // Tre senaste köpguiderna. Bloggen läses redan av sidhuvudet och sidfoten
+  // (samma modul-cache), så startsidan gör ingen ny hämtning.
+  const guider = (await getPosts().catch(() => []))
+    .filter((p) => p.cover && p.title)
+    .sort((a, b) => (b.updated || b.date).localeCompare(a.updated || a.date))
+    .slice(0, 3);
+
+  // Tre riktiga Google-omdömen ur samma lista som /omdomen visar. Bara
+  // femstjärniga med en text som ryms på ett kort utan att kapas.
+  const roster = CURATED_RESULT.reviews
+    .filter((r) => r.rating === 5 && r.text.length >= 80 && r.text.length <= 220)
+    .slice(0, 3);
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(websiteJsonLd) }} />
 
+      <div className="hem2">
       <section className="hero">
         <div className="container">
           <div className="herogrid">
@@ -312,6 +334,9 @@ export default async function Home() {
                   Allt från EU-lager <span className="ht-sub">– ingen importtull</span>
                 </a>
                 <a className="ht-goog" href="/omdomen">
+                  {/* Förslaget: på mobilen står Googles märke i stället för orden
+                      "på Google", så att de två löftena ryms på en rad. */}
+                  <span className="ht-g" aria-hidden="true"><GoogleG size={15} /></span>
                   {/* Siffran och skalan står ihop — "4,9 av 5" är ETT
                       påstående. Stjärnorna är beviset och kommer efter, källan
                       sist. Samma ordning som i sidfoten. */}
@@ -410,58 +435,52 @@ export default async function Home() {
           {/* Stjärnan som SVG, inte som ⭐-emoji: de tre andra märkena är
               enfärgade streckikoner i accentfärgen, och en gul färgemoji bredvid
               dem läser som ett främmande element i raden. */}
-          <a className="uspitem" href="/omdomen"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3.2l2.7 5.5 6 .9-4.35 4.24 1.03 6-5.38-2.83L6.62 19.84l1.03-6L3.3 9.6l6-.9L12 3.2Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg>{proof.rating} av 5 på Google</a>
+          {/* Förslaget: Google-betyget står redan i hjälten strax ovanför och i
+              omdömena längre ned. Platsen går till kundtjänsten, som förut bara
+              stod i korten längst ner. */}
+          <a className="uspitem" href="/kontaktaoss"><svg viewBox="0 0 24 24" fill="none"><path d="M21 11.5a8.5 8.5 0 0 1-12.2 7.7L3 21l1.8-5.8A8.5 8.5 0 1 1 21 11.5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg>Svensk kundtjänst</a>
         </div>
       </div>
 
       {homeCats.length > 0 && (
         <section className="homecat-sec" id="kategorier">
           <div className="container">
-            <div className="homecat-head">
-              <div className="eyebrow">Utforska kategorier</div>
-              <h2>Hitta dina nästa fynd</h2>
-              <p>Våra största avdelningar – noga utvalda för svenska hem.</p>
+            <div className="h2rad">
+              <div>
+                <div className="eyebrow">Utforska kategorier</div>
+                <h2>Hitta dina nästa fynd</h2>
+              </div>
+              <PrefetchLink className="h2lank" href="/butik">Alla kategorier <span aria-hidden="true">→</span></PrefetchLink>
             </div>
-            <div className="homecat-grid">
-              {homeCats.map((c) => (
-                <PrefetchLink className="homecat" key={c.main.id} href={`/kategori/${c.main.slug}`}>
-                  {/* 2×2-mosaik av 4 riktiga produktbilder ur kategorin. Under-fold →
-                      ingen priority, lazy default; sized thumbs håller LCP på hjälten.
-
-                      Mosaiken är dekoration (tom alt, aria-hidden): rutans
-                      namn är texten under. Förut bar länken ett aria-label
-                      ("Möbler, 1 392 produkter") som inte innehöll texten som
-                      syns ("1392 st"), vilket WCAG 2.5.3 kräver, och de fyra
-                      bilderna hade alla kategorins namn som alt. Antalet
-                      skrivs med tusental ("1 392 st"), som i resten av butiken. */}
-                  <div className="homecat-mosaic" aria-hidden="true">
-                    {Array.from({ length: 4 }).map((_, i) =>
-                      c.thumbs[i] ? (
-                        <span className="homecat-thumb" key={i}>
-                          <Image
-                            src={tightFillUrl(c.thumbs[i], 280, 280)}
-                            alt=""
-                            fill
-                            placeholder="blur"
-                            blurDataURL={SHIMMER_BLUR}
-                            sizes="(max-width:380px) 25vw, (max-width:880px) 12vw, 140px"
-                          />
-                        </span>
-                      ) : (
-                        <span className="homecat-thumb homecat-thumb-pad" key={i} aria-hidden="true" />
-                      )
-                    )}
-                  </div>
-                  <div className="homecat-body">
-                    <span className="homecat-name">{c.main.name}<span className="homecat-arrow" aria-hidden="true">→</span></span>
-                    <span className="sr-only">, </span>
-                    <span className="homecat-count">{tusental(c.count)} st<span className="sr-only"> i kategorin</span></span>
-                  </div>
-                </PrefetchLink>
-              ))}
-            </div>
-            <div className="homecat-allwrap">
-              <a className="homecat-alllink" href="/butik">Se alla kategorier <span aria-hidden="true">→</span></a>
+            <div className="katrad">
+              {homeCats.map((c) => {
+                // Samma bild som /butik visar för avdelningen.
+                const bild = categoryHero(c.main.name) || c.heroImg || c.thumbs[0];
+                return (
+                  <PrefetchLink className="kat" key={c.main.id} href={`/kategori/${c.main.slug}`}>
+                    <span className="kat-bild" aria-hidden="true">
+                      {bild && (
+                        <Image
+                          src={tightFillUrl(bild, 560, 420)}
+                          alt=""
+                          fill
+                          placeholder="blur"
+                          blurDataURL={SHIMMER_BLUR}
+                          // 128 px, inte rutans 148: på en telefon med tre pixlar per punkt
+                          // väljer webbläsaren då 384 px i stället för 640 (mätt lokalt:
+                          // 115 kB per bild vid 640). 384 px i en ruta på 148 är 2,6 pixlar per punkt.
+                          sizes="(max-width:880px) 128px, 270px"
+                        />
+                      )}
+                    </span>
+                    <span className="kat-text">
+                      <span className="kat-namn">{c.main.name}</span>
+                      <span className="sr-only">, </span>
+                      <span className="kat-antal">{tusental(c.count)} st<span className="sr-only"> i kategorin</span></span>
+                    </span>
+                  </PrefetchLink>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -471,7 +490,7 @@ export default async function Home() {
           tom lista → ingen banner, startsidan opåverkad). Data hämtas server-side
           via lib/auction-view och lever en timme, som sidan. */}
       {liveAuctions.length > 0 && (
-        <section className="sec" style={{ paddingTop: 0 }}>
+        <section className="auktionsrad">
           <div className="container">
             <a className="auction-banner" href="/fyndauktion">
               <AuctionBannerText
@@ -492,12 +511,14 @@ export default async function Home() {
         </section>
       )}
 
-      <section className="sec" id="produkter" style={{ paddingTop: 0 }}>
+      <section className="sec" id="produkter">
         <div className="container">
-          <div className="sechead">
-            <div className="eyebrow">Populärt just nu</div>
-            <h2>Veckans fynd</h2>
-            <p>Handplockade favoriter – nya varje vecka.</p>
+          <div className="h2rad">
+            <div>
+              <div className="eyebrow">Populärt just nu</div>
+              <h2>Veckans fynd</h2>
+            </div>
+            <PrefetchLink className="h2lank bara-dator" href="/alla-produkter">Hela sortimentet <span aria-hidden="true">→</span></PrefetchLink>
           </div>
           {/* Två kort i bredd på mobil, som listsidorna (se .listgrid i globals.css). */}
           <div className="prodgrid listgrid">
@@ -505,26 +526,63 @@ export default async function Home() {
               <ProductCard p={p} key={p.slug} tvaKolumner />
             ))}
           </div>
-          <div className="center"><a className="linkbtn" href="/alla-produkter">Visa hela sortimentet →</a></div>
+          <div className="efter-rad"><a className="linkbtn" href="/alla-produkter">Visa hela sortimentet →</a></div>
         </div>
       </section>
 
-      <section className="sec why">
-        <div className="container">
-          <div className="sechead">
-            <div className="eyebrow">Trygg svensk e-handel</div>
-            <h2>Därför handlar du hos Fyndplats</h2>
+      {guider.length === 3 && (
+        <section className="sec guidesek">
+          <div className="container">
+            <div className="h2rad">
+              <div>
+                <div className="eyebrow">Köpguider</div>
+                <h2>Välj rätt innan du köper</h2>
+              </div>
+              <PrefetchLink className="h2lank" href="/blogg">Alla guider <span aria-hidden="true">→</span></PrefetchLink>
+            </div>
+            <div className="guider">
+              {guider.map((g) => (
+                <PrefetchLink className="guide" key={g.slug} href={`/blogg/${g.slug}`}>
+                  <span className="guide-bild">
+                    <Image src={g.cover} alt="" fill sizes="(max-width:880px) 78vw, 360px" />
+                  </span>
+                  <span className="guide-titel">{g.title}</span>
+                  {g.excerpt && <span className="guide-text">{g.excerpt}</span>}
+                </PrefetchLink>
+              ))}
+            </div>
           </div>
-          <div className="cards">
-            <a className="card" href="/sparning"><div className="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><circle cx="7" cy="17" r="1.7" stroke="currentColor" strokeWidth="1.7" /><circle cx="17.5" cy="17" r="1.7" stroke="currentColor" strokeWidth="1.7" /></svg></div><h3>Spårbar leverans</h3><p>Fri frakt över 499 kr. Följ paketet hela vägen hem.</p></a>
-            <a className="card" href="/kopvillkor"><div className="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2l8 4v6c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6l8-4Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg></div><h3>Trygg betalning med Klarna</h3><p>Faktura, delbetalning, kort, Apple Pay eller Google Pay – du väljer själv.</p></a>
-            <a className="card" href="/returer"><div className="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M9 14L4 9l5-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /><path d="M4 9h11a5 5 0 0 1 5 5v1" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg></div><h3>30 dagars öppet köp</h3><p>Ändrat dig? Enkel och trygg retur – vi förlänger lagens 14 dagar till 30.</p></a>
-            <a className="card" href="/kontaktaoss"><div className="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M21 11.5a8.5 8.5 0 0 1-12.2 7.7L3 21l1.8-5.8A8.5 8.5 0 1 1 21 11.5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg></div><h3>Svensk kundtjänst</h3><p>Vi svarar normalt inom 24 timmar.</p></a>
+        </section>
+      )}
+
+      {roster.length === 3 && (
+        <section className="sec">
+          <div className="container">
+            <div className="h2rad">
+              <div>
+                <div className="eyebrow">{proof.rating} av 5 på Google</div>
+                <h2>Det här säger kunderna</h2>
+              </div>
+              <PrefetchLink className="h2lank" href="/omdomen">Alla omdömen <span aria-hidden="true">→</span></PrefetchLink>
+            </div>
+            <div className="roster">
+              {roster.map((r) => (
+                <figure className="rost" key={r.id}>
+                  <Stars rating={r.rating} aria-hidden />
+                  <blockquote className="rost-text">{r.text}</blockquote>
+                  <figcaption className="rost-fot">
+                    <span className="rost-namn">{r.author}</span>
+                    <span className="rost-kalla">Omdöme på Google</span>
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <Newsletter />
+      </div>
     </>
   );
 }
