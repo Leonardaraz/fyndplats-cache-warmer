@@ -1,0 +1,25 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "117804ee": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "2c6aa4e0": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Image: Multiple Adjustable Energy Levels; Flexibly Match Welding Energy to Working Conditions; 20 ms Pulse Time; 01 to 99T Adjustable (99 levels)"
+ },
+ "54aaeda3": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "c5b4a8f2": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Image: Multiple Adjustable Energy Levels; Flexibly Match Welding Energy to Working Conditions; 0–20 ms Pulse Time; 01 to 99T Adjustable (99 levels)"
+ },
+ "dbf94246": {
+  "tyska": "",
+  "svenska": ""
+ }
+}
