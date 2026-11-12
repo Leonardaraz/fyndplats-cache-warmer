@@ -2865,9 +2865,16 @@ alltså snabba i verkligheten, och det som fanns att hämta var tre saker:
   Mätt i Chromium på åtta skärmar: ingen fil har färre pixlar än sin ruta
   (lägsta kvot 1,02). Wix AVIF är större än webp i samma kvalitet (121 mot
   83 kB i 750 px), så formatet är kvar.
-- **De fyra första korten hämtas med `fetchpriority=high`.** `priority` på
+- **De två första korten hämtas med `fetchpriority=high`, resten är lazy**
+  (`components/shopbrowser.tsx`, 2026-11-12; förut fyra). `priority` på
   `<Image>` ger förladdning men inte attributet, så listsidornas största bild
-  köade efter skripten.
+  köade efter skripten. Fyra förladdningar tävlade sedan med sidans största
+  bild: på /kategori/mobler låg kort tre och fyra under vikningen på telefonen
+  och alla fyra under kategorins bild på datorn. ☠️ `loading="eager"` är ingen
+  mellanväg: Reacts server lägger själv en förladdning i `<head>` för varje
+  `<img>` som inte är lazy (mätt: kort tre och fyra fick var sin). Ett lazy kort
+  i första raden (fyra kolumner på /alla-produkter) hämtas så snart layouten
+  är klar.
 
 Inte ändrat, med flit: rubriktypsnittet (Fraunces, 81 kB) förladdas på varje
 sida fast produktsidan inte visar det ovanför vikningen. Utan förladdningen
