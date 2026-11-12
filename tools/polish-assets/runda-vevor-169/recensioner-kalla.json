@@ -1,192 +1,161 @@
 {
-  "bc4ee83d": {
-    "productId": "bc4ee83d-4aa7-406e-a321-50286b8a3cdd",
-    "synliga": 0,
-    "dolda": 0,
-    "kundVantar": 0,
-    "annanArtikel": 0,
-    "okandArtikel": 0,
-    "attBesluta": [
-      {
-        "id": "gen-1sv4moo",
-        "betyg": 5,
-        "datum": "2026-10-22",
-        "foton": 0,
-        "text": "Förtroendeingivande konstruktion och finish, klart prisvärd!"
-      },
-      {
-        "id": "gen-68p1cf",
-        "betyg": 5,
-        "datum": "2026-10-04",
-        "foton": 0,
-        "text": "En ole käyttänyt vielä, mutta varmasti toimiva. Ilmoitettuun kuormankantokykyyn kannattaa käyttää harkintaa"
-      },
-      {
-        "id": "gen-1sh2ev6",
-        "betyg": 4,
-        "datum": "2026-09-10",
-        "foton": 0,
-        "text": "Yhdessä dollyssä oli päällä olevassa kääntyvässä laipassa laakerivika. Ei pystynyt kääntään paino päällä. Muuten kyllä ajoi asiansa. Konevuokraamosta ei tähän hintaan saa vielä edes vuokrattua vastaavia."
-      }
-    ]
-  },
-  "2dfc8ef9": {
-    "productId": "2dfc8ef9-1e72-4c30-a96a-8875d9dc3bb7",
-    "synliga": 0,
-    "dolda": 0,
-    "kundVantar": 0,
-    "annanArtikel": 0,
-    "okandArtikel": 0,
-    "attBesluta": [
-      {
-        "id": "gen-1hp4fyt",
-        "betyg": 5,
-        "datum": "2026-08-09",
-        "foton": 0,
-        "text": "Really happy with this purchase. Sits flush and does not get in the way. Feels like it will last a good while. Can't fault it for the price."
-      },
-      {
-        "id": "gen-1f6d9qa",
-        "betyg": 5,
-        "datum": "2025-07-21",
-        "foton": 0,
-        "text": "Wipes down easily with a damp cloth. Doesn't attract dust like fabric covers."
-      },
-      {
-        "id": "gen-1f984fd",
-        "betyg": 5,
-        "datum": "2025-03-14",
-        "foton": 0,
-        "text": "Covers the cable from my router to my TV. Prevents my kids from tripping. Easy to install."
-      },
-      {
-        "id": "gen-14vv3lm",
-        "betyg": 4,
-        "datum": "2026-10-15",
-        "foton": 0,
-        "text": "Ordered 2 sets and neither set came with the screws to keep them in place"
-      }
-    ]
-  },
-  "36558cf0": {
-    "productId": "36558cf0-9546-487a-a5c7-44c9e184e971",
-    "synliga": 0,
-    "dolda": 0,
-    "kundVantar": 0,
-    "annanArtikel": 0,
-    "okandArtikel": 0,
-    "attBesluta": [
-      {
-        "id": "gen-s7hug2",
-        "betyg": 5,
-        "datum": "2026-08-12",
-        "foton": 0,
-        "text": "Der Sommer ist sehr heiß und die jungen Bäume würden absterben wenn sie kein Wasser bekämen. Die Ringe helfen super die Bäume zu bewässern. Ein Fülladapter für Standard Gartenkupplungen wäre hilfreich. Mit 3D Druck kann man sich aber einen Adapter selber herstellen."
-      },
-      {
-        "id": "gen-187oirk",
-        "betyg": 5,
-        "datum": "2026-08-03",
-        "foton": 1,
-        "text": "erős anyag, jól bírta az elmúlt hónapok perzselő napsütését, a tavaly ősszel ültetett fáink túlélése ezeknek a locsolókzsákoknak köszönhető"
-      },
-      {
-        "id": "gen-1sqgs77",
-        "betyg": 4,
-        "datum": "2026-08-13",
-        "foton": 0,
-        "text": "la valve empêche de vider manuellement les sacs mais n'empêche pas le sac de déborder quand un tuyau est inséré. Le vidage est trop rapide (quelques heures)"
-      }
-    ]
-  },
-  "3eb384a5": {
-    "productId": "3eb384a5-14ce-4bb4-ab58-cbf6f9828bf8",
-    "synliga": 0,
-    "dolda": 0,
-    "kundVantar": 0,
-    "annanArtikel": 0,
-    "okandArtikel": 0,
-    "attBesluta": [
-      {
-        "id": "gen-n4zef9",
-        "betyg": 5,
-        "datum": "2026-10-04",
-        "foton": 0,
-        "text": "Großartig! Einfacher Zusammenbau, leicht zu montieren! Preis Leistung top! Mittlerweile habe ich drei Stück um die Terrasse und bin super zufrieden"
-      },
-      {
-        "id": "gen-1x3qnp1",
-        "betyg": 5,
-        "datum": "2026-07-04",
-        "foton": 0,
-        "text": "Easy to install Good looking Sturdy Comes with wedge anchors for concrete and carbide drill bit"
-      },
-      {
-        "id": "gen-1b40rga",
-        "betyg": 5,
-        "datum": "2026-07-03",
-        "foton": 0,
-        "text": "Einfache Handhabung, alle Schrauben, Dübel und Bohrer wurden mitgeliefert."
-      },
-      {
-        "id": "gen-pzdta9",
-        "betyg": 4,
-        "datum": "2026-09-02",
-        "foton": 1,
-        "text": "Rýchlo doručené, dobre zabalené. Montáž nie je zložitá. Kotvy do betónu nie sú najkvalitnejšie, hlavy skrutiek sú veľmi nízke, čo sťažuje prikrúcanie. Zábradlie je nainštalované na schody do obytného domu, čas ukáže koľko vydrží. Fast delivery, well packaged. The assembly is not difficult. The concrete anchors are not the best quality, the screw heads are very low, which makes it difficult to screw in. The railing is installed on the stairs of a residential building, time will tell how long it will last."
-      }
-    ]
-  },
-  "205d7d60": {
-    "productId": "205d7d60-124d-4652-a776-6b4f9d0df8f6",
-    "synliga": 0,
-    "dolda": 0,
-    "kundVantar": 0,
-    "annanArtikel": 0,
-    "okandArtikel": 0,
-    "attBesluta": [
-      {
-        "id": "gen-107i7q6",
-        "betyg": 5,
-        "datum": "2026-10-30",
-        "foton": 0,
-        "text": "Très bien, livraison express et réponse immédiate 👍👍"
-      },
-      {
-        "id": "gen-i7tdnh",
-        "betyg": 5,
-        "datum": "2026-10-17",
-        "foton": 1,
-        "text": "I got the pet stroller for my elderly dog so I didn’t have to carry him, absolutely wonderful, so worth the $$$$"
-      },
-      {
-        "id": "gen-zrg72u",
-        "betyg": 5,
-        "datum": "2026-09-10",
-        "foton": 0,
-        "text": "Zeer vlugge levering. Prijs kwaliteit alles in orde."
-      },
-      {
-        "id": "gen-1n13lhy",
-        "betyg": 5,
-        "datum": "2026-09-04",
-        "foton": 1,
-        "text": "I’m very happy with this pet stroller! It’s sturdy, comfortable, and well designed. Easy to assemble and maneuver, and my pet is comfortable inside. Great value for the price — very satisfied with my purchase!"
-      },
-      {
-        "id": "gen-f39ed0",
-        "betyg": 5,
-        "datum": "2026-09-03",
-        "foton": 1,
-        "text": "Impeccable on met notre caniche qui a 18 ans et aussi un teckel à ses côtés. Pliable très facilement. On l'utilise également pur la mettre dedans à nos côtés lorsque nous sommes à table."
-      },
-      {
-        "id": "gen-vnqqpv",
-        "betyg": 4,
-        "datum": "2026-08-26",
-        "foton": 0,
-        "text": "I bought this stroller for my 11 lb cat who loves to be outside but couldn't wear a leash for a few weeks after a surgery. What a great little stroller! Easy to set up, collapse and use. Plenty of space and viewing areas There are only a few quirks I don't like: -clips on the leash inside are just too small for my harness but easy enough to replace -The side of the stroller where all the different fabrics come together doesn't totally seal and I wonder about escape attempts -it is only really meant for super smooth tarmac, bumps on sidewalk and older road surfaces"
-      }
-    ]
-  }
+ "bc4ee83d": {
+  "productId": "bc4ee83d-4aa7-406e-a321-50286b8a3cdd",
+  "synliga": 0,
+  "dolda": 0,
+  "kundVantar": 0,
+  "annanArtikel": 0,
+  "okandArtikel": 0,
+  "attBesluta": [
+   {
+    "id": "gen-1sv4moo",
+    "betyg": 5,
+    "datum": "2026-10-22",
+    "foton": 0,
+    "text": "Förtroendeingivande konstruktion och finish, klart prisvärd!"
+   },
+   {
+    "id": "gen-68p1cf",
+    "betyg": 5,
+    "datum": "2026-10-04",
+    "foton": 0,
+    "text": "En ole käyttänyt vielä, mutta varmasti toimiva. Ilmoitettuun kuormankantokykyyn kannattaa käyttää harkintaa"
+   },
+   {
+    "id": "gen-1sh2ev6",
+    "betyg": 4,
+    "datum": "2026-09-10",
+    "foton": 0,
+    "text": "Yhdessä dollyssä oli päällä olevassa kääntyvässä laipassa laakerivika. Ei pystynyt kääntään paino päällä. Muuten kyllä ajoi asiansa. Konevuokraamosta ei tähän hintaan saa vielä edes vuokrattua vastaavia."
+   }
+  ]
+ },
+ "2dfc8ef9": {
+  "productId": "2dfc8ef9-1e72-4c30-a96a-8875d9dc3bb7",
+  "synliga": 0,
+  "dolda": 0,
+  "kundVantar": 0,
+  "annanArtikel": 0,
+  "okandArtikel": 0,
+  "attBesluta": [
+   {
+    "id": "gen-1hp4fyt",
+    "betyg": 5,
+    "datum": "2026-08-09",
+    "foton": 0,
+    "text": "Really happy with this purchase. Sits flush and does not get in the way. Feels like it will last a good while. Can't fault it for the price."
+   },
+   {
+    "id": "gen-1f6d9qa",
+    "betyg": 5,
+    "datum": "2025-07-21",
+    "foton": 0,
+    "text": "Wipes down easily with a damp cloth. Doesn't attract dust like fabric covers."
+   },
+   {
+    "id": "gen-1f984fd",
+    "betyg": 5,
+    "datum": "2025-03-14",
+    "foton": 0,
+    "text": "Covers the cable from my router to my TV. Prevents my kids from tripping. Easy to install."
+   },
+   {
+    "id": "gen-14vv3lm",
+    "betyg": 4,
+    "datum": "2026-10-15",
+    "foton": 0,
+    "text": "Ordered 2 sets and neither set came with the screws to keep them in place"
+   }
+  ]
+ },
+ "3eb384a5": {
+  "productId": "3eb384a5-14ce-4bb4-ab58-cbf6f9828bf8",
+  "synliga": 0,
+  "dolda": 0,
+  "kundVantar": 0,
+  "annanArtikel": 0,
+  "okandArtikel": 0,
+  "attBesluta": [
+   {
+    "id": "gen-n4zef9",
+    "betyg": 5,
+    "datum": "2026-10-04",
+    "foton": 0,
+    "text": "Großartig! Einfacher Zusammenbau, leicht zu montieren! Preis Leistung top! Mittlerweile habe ich drei Stück um die Terrasse und bin super zufrieden"
+   },
+   {
+    "id": "gen-1x3qnp1",
+    "betyg": 5,
+    "datum": "2026-07-04",
+    "foton": 0,
+    "text": "Easy to install Good looking Sturdy Comes with wedge anchors for concrete and carbide drill bit"
+   },
+   {
+    "id": "gen-1b40rga",
+    "betyg": 5,
+    "datum": "2026-07-03",
+    "foton": 0,
+    "text": "Einfache Handhabung, alle Schrauben, Dübel und Bohrer wurden mitgeliefert."
+   },
+   {
+    "id": "gen-pzdta9",
+    "betyg": 4,
+    "datum": "2026-09-02",
+    "foton": 1,
+    "text": "Rýchlo doručené, dobre zabalené. Montáž nie je zložitá. Kotvy do betónu nie sú najkvalitnejšie, hlavy skrutiek sú veľmi nízke, čo sťažuje prikrúcanie. Zábradlie je nainštalované na schody do obytného domu, čas ukáže koľko vydrží. Fast delivery, well packaged. The assembly is not difficult. The concrete anchors are not the best quality, the screw heads are very low, which makes it difficult to screw in. The railing is installed on the stairs of a residential building, time will tell how long it will last."
+   }
+  ]
+ },
+ "205d7d60": {
+  "productId": "205d7d60-124d-4652-a776-6b4f9d0df8f6",
+  "synliga": 0,
+  "dolda": 0,
+  "kundVantar": 0,
+  "annanArtikel": 0,
+  "okandArtikel": 0,
+  "attBesluta": [
+   {
+    "id": "gen-107i7q6",
+    "betyg": 5,
+    "datum": "2026-10-30",
+    "foton": 0,
+    "text": "Très bien, livraison express et réponse immédiate 👍👍"
+   },
+   {
+    "id": "gen-i7tdnh",
+    "betyg": 5,
+    "datum": "2026-10-17",
+    "foton": 1,
+    "text": "I got the pet stroller for my elderly dog so I didn’t have to carry him, absolutely wonderful, so worth the $$$$"
+   },
+   {
+    "id": "gen-zrg72u",
+    "betyg": 5,
+    "datum": "2026-09-10",
+    "foton": 0,
+    "text": "Zeer vlugge levering. Prijs kwaliteit alles in orde."
+   },
+   {
+    "id": "gen-1n13lhy",
+    "betyg": 5,
+    "datum": "2026-09-04",
+    "foton": 1,
+    "text": "I’m very happy with this pet stroller! It’s sturdy, comfortable, and well designed. Easy to assemble and maneuver, and my pet is comfortable inside. Great value for the price — very satisfied with my purchase!"
+   },
+   {
+    "id": "gen-f39ed0",
+    "betyg": 5,
+    "datum": "2026-09-03",
+    "foton": 1,
+    "text": "Impeccable on met notre caniche qui a 18 ans et aussi un teckel à ses côtés. Pliable très facilement. On l'utilise également pur la mettre dedans à nos côtés lorsque nous sommes à table."
+   },
+   {
+    "id": "gen-vnqqpv",
+    "betyg": 4,
+    "datum": "2026-08-26",
+    "foton": 0,
+    "text": "I bought this stroller for my 11 lb cat who loves to be outside but couldn't wear a leash for a few weeks after a surgery. What a great little stroller! Easy to set up, collapse and use. Plenty of space and viewing areas There are only a few quirks I don't like: -clips on the leash inside are just too small for my harness but easy enough to replace -The side of the stroller where all the different fabrics come together doesn't totally seal and I wonder about escape attempts -it is only really meant for super smooth tarmac, bumps on sidewalk and older road surfaces"
+   }
+  ]
+ }
 }
