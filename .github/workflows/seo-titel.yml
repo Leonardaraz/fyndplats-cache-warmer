@@ -1,0 +1,186 @@
+name: SEO — titel och metabeskrivning på publicerade sidor
+
+# Ger redan publicerade sidor en egen SEO-titel och metabeskrivning. Semrush fann
+# 2026-11-11 63 sidor som delade titel med en annan sida och fyra som delade
+# metabeskrivning, och sökmotorerna läser sådana sidor som dubbletter. Poleringens
+# skrivning kan inte rätta dem: textsteget skriver namn, adress och brödtext i
+# samma anrop och kräver en hel runda per sida. Runbooken förbjuder handbyggda
+# skrivningar i Wix. Det här är den smala vägen.
+#
+# Planen är en liten fil i grenen: tools/polish-assets/seo-titel/<plan>.json,
+# byggd av tools/polish-gates/bygg-seo-titel.py ur seo.tsv och ids.tsv i
+# tools/polish-assets/runda-seo-<plan>/ när gate-seo.py är grön mot de
+# publicerade sidorna och varje pid är sidans eget produkt-id. Reglerna bor i lib/polish/seo-titel.ts, via
+# /api/admin/seo-titel: bara seoData skrivs, med fältmask, bara på publicerade
+# sidor, och ingen titel får stå på en annan publicerad sida.
+#
+# Lägen:
+#   torr       läser varje sida och butikens alla publicerade titlar, prövar
+#              villkoren och räknar sidorna som skrivs. Skriver ingenting. Ange
+#              antalet i `bekrafta` i läget skriv.
+#   skriv      kräver `bekrafta` = torrkörningens antal. Prövar alla villkor för
+#              alla sidor före första skrivningen, skriver, väntar och läser sedan
+#              tillbaka (verifiera) en gång till om något faller.
+#   verifiera  läser bara: varje sida ska bära planens titel och beskrivning i
+#              två taggar och vara publicerad.
+#
+# Ordningen: torr, skriv med torrens antal, verifiera (görs av skriv).
+#
+# ☠️ ALDRIG I AOSOMS SYNKFÖNSTER (:12–:29 UTC var tredje timme, 00, 03 … 21).
+# Rutten vägrar läget skriv i fönstret och när fönstret börjar inom fem minuter.
+#
+# ☠️ RUTTEN ÄR DEPLOYAD FRÅN `main`. `ref` styr bara vilken planfil workflowen
+# läser, inte vilken kod rutten kör.
+#
+# ☠️ LOGGEN ÄR PUBLIK. Jobbet skriver bara kort-id, fältnamn, ok/fel och antal,
+# aldrig texterna.
+#
+# Samma kö som skrivningen av en runda: två skrivningar mot samma butik samtidigt
+# kan ge revisionskonflikter.
+
+on:
+  workflow_dispatch:
+    inputs:
+      plan:
+        description: "Planens namn: tools/polish-assets/seo-titel/<plan>.json, t.ex. semrush-1"
+        required: true
+        type: string
+      plan_sha256:
+        description: "sha256 av planfilen — sha256sum tools/polish-assets/seo-titel/<plan>.json"
+        required: true
+        type: string
+      lage:
+        description: "torr = pröva, skriv inget · skriv = skriv och verifiera · verifiera = bara läs"
+        required: true
+        default: "torr"
+        type: choice
+        options:
+          - torr
+          - skriv
+          - verifiera
+      bekrafta:
+        description: "Läget skriv: antalet sidor som torrkörningen sa att den skriver"
+        required: false
+        default: ""
+        type: string
+
+concurrency:
+  group: polish-write
+  cancel-in-progress: false
+
+jobs:
+  kor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Kör
+        env:
+          BASE: ${{ secrets.POLL_TRACKING_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          PLAN: ${{ inputs.plan }}
+          PLAN_SHA256: ${{ inputs.plan_sha256 }}
+          LAGE: ${{ inputs.lage }}
+          BEKRAFTA: ${{ inputs.bekrafta }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::POLL_TRACKING_URL eller CRON_SECRET saknas" >&2
+            exit 1
+          fi
+          if ! [[ "${PLAN}" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]]; then
+            echo "::error::plan ska ha formen semrush-1 (små bokstäver, siffror och bindestreck)" >&2
+            exit 1
+          fi
+          if ! [[ "${PLAN_SHA256}" =~ ^[0-9a-f]{64}$ ]]; then
+            echo "::error::plan_sha256 ska vara 64 hextecken" >&2
+            exit 1
+          fi
+          if [ -n "${BEKRAFTA}" ] && ! [[ "${BEKRAFTA}" =~ ^[0-9]+$ ]]; then
+            echo "::error::bekrafta ska vara ett heltal" >&2
+            exit 1
+          fi
+
+          fil="tools/polish-assets/seo-titel/${PLAN}.json"
+          if [ ! -f "${fil}" ]; then
+            echo "::error::${fil} finns inte på ${GITHUB_REF_NAME} — kör mot grenen som bär planen, inte main" >&2
+            exit 1
+          fi
+          faktisk=$(sha256sum "${fil}" | cut -d' ' -f1)
+          if [ "${faktisk}" != "${PLAN_SHA256}" ]; then
+            echo "::error::${fil} på ${GITHUB_REF_NAME} har sha256 ${faktisk}, inte den angivna. Fel gren, eller en plan som ändrats efter pushen? Ingenting skrivet." >&2
+            exit 1
+          fi
+          echo "Plan: ${fil} ($(jq '.rader | length' "${fil}") sidor), ${GITHUB_REF_NAME}@${GITHUB_SHA:0:7}, läge ${LAGE}"
+
+          rot="${BASE%/api/cron/poll-tracking}"
+
+          # Ett anrop mot rutten. Svaret hamnar i svar.json; returnerar 0 bara när
+          # rutten svarar ok. Skriver bara kort, fältnamn, ok/fel och antal.
+          anropa() {
+            jq -c --arg l "$1" --arg b "$2" \
+              '{lage: $l, plan: .} + (if $b != "" then {bekrafta: ($b | tonumber)} else {} end)' \
+              "${fil}" > kropp.json
+            http=$(curl -sS --max-time 310 -o svar.json -w '%{http_code}' -X POST \
+              -H "Authorization: Bearer ${CRON_SECRET}" \
+              -H "Content-Type: application/json" \
+              --data-binary @kropp.json \
+              "${rot}/api/admin/seo-titel") || http="000"
+            if ! jq -e . svar.json > /dev/null 2>&1; then
+              echo "== $1: HTTP ${http}, svaret är inte JSON" >&2
+              return 1
+            fi
+            echo "== $1 (HTTP ${http}): $(jq -r '.sammanfattning // .error // "?"' svar.json)"
+            jq -r '.avbrutet // empty | "   AVBRUTET: \(.)"' svar.json
+            jq -r '.fel[]? | "   plan: \(.)"' svar.json
+            jq -r '.efter // empty | "   fönstret är slut \(.)"' svar.json
+            jq -r '.rader[]? | "   \(.kort // "-") \(if .ok then "ok" else "FEL: \(.fel // "?")" end)\(if .andras then " — skrivs: \(.andras)" else "" end)\(if .redan then " (bär redan planens texter)" else "" end)"' svar.json
+            [ "$(jq -r '.ok' svar.json)" = "true" ]
+          }
+
+          # Läser om en gång efter en paus om något faller: läsprojektionen släpar
+          # ibland efter skrivningen.
+          verifiera() {
+            if ! anropa verifiera ""; then
+              echo "Något föll — väntar 60 s och läser om (projektionen kan släpa)."
+              sleep 60
+              anropa verifiera ""
+            fi
+          }
+
+          sammanfatta() {
+            {
+              echo "### seo-titel ${PLAN} — ${LAGE}"
+              echo "$(jq -r '.sammanfattning // .error // "?"' svar.json)"
+            } >> "${GITHUB_STEP_SUMMARY}"
+          }
+
+          case "${LAGE}" in
+            torr)
+              anropa torr ""
+              sammanfatta
+              echo "Att skriva: $(jq -r '.attSkriva' svar.json). Ange det i bekrafta när du kör läget skriv."
+              ;;
+            skriv)
+              if [ -z "${BEKRAFTA}" ]; then
+                echo "::error::Läget skriv kräver bekrafta = antalet sidor som torrkörningen sa att den skriver" >&2
+                exit 1
+              fi
+              if ! anropa skriv "${BEKRAFTA}"; then
+                sammanfatta
+                echo "::error::Skrivningen avbröts eller föll. Läs raderna ovan. Kör verifiera för att se vad som blev gjort." >&2
+                exit 1
+              fi
+              sammanfatta
+              echo "Skrivet. Väntar 45 s innan den separata återläsningen."
+              sleep 45
+              verifiera
+              sammanfatta
+              ;;
+            verifiera)
+              verifiera
+              sammanfatta
+              ;;
+          esac

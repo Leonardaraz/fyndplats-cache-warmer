@@ -30,6 +30,7 @@ import {
   WIX_STORES_APP_ID,
 } from "./skrivplan";
 import { WIX_MAX_BILDER_PER_PRODUKT } from "../wix/limits";
+import { seoSvar } from "./seo-svar.provhjalp";
 
 const HTML = "<p>Hej.</p>";
 
@@ -65,12 +66,23 @@ interface Anrop {
   kropp?: unknown;
 }
 
-/** En låtsas-Wix som svarar ur en handläggare och minns varje anrop. */
-function fakeWix(svara: (a: Anrop) => unknown): { wix: WixAnrop; anrop: Anrop[] } {
+/** Frågan textsteget ställer före allt annat: de publicerade sidornas titlar (seo-unik.ts). */
+const SEO_FRAGA = "/stores/v3/products/query";
+
+/**
+ * En låtsas-Wix som svarar ur en handläggare och minns varje anrop. Frågan om de
+ * publicerade sidornas titlar besvaras ur `publicerade` (tom butik om inget
+ * anges) och minns som de andra anropen.
+ */
+function fakeWix(
+  svara: (a: Anrop) => unknown,
+  publicerade: Array<Record<string, unknown>> = [],
+): { wix: WixAnrop; anrop: Anrop[] } {
   const anrop: Anrop[] = [];
   const wix: WixAnrop = async (metod, sokvag, kropp) => {
     const a = { metod, sokvag, kropp };
     anrop.push(a);
+    if (metod === "POST" && sokvag === SEO_FRAGA) return seoSvar(publicerade, kropp);
     const s = svara(a);
     if (s instanceof Error) throw s;
     return s;
@@ -197,7 +209,11 @@ describe("stegText", () => {
     const { wix, anrop } = fakeWix(() => ({ product: { revision: "3", visible: false } }));
     const u = await stegText(plan(), wix, true);
     expect(u.ok).toBe(true);
-    expect(anrop.map((a) => a.metod)).toEqual(["GET"]);
+    // Först frågan om de publicerade sidornas titlar, sedan produkten. Ingen skrivning.
+    expect(anrop.map((a) => `${a.metod} ${a.sokvag}`)).toEqual([
+      `POST ${SEO_FRAGA}`,
+      "GET /stores/v3/products/1a2b3c4d-0000-4000-8000-000000000001",
+    ]);
   });
 
   it("skriver namn, slug, brödtext, två SEO-taggar, tomma nyckelord och synlighet med färsk revision", async () => {
@@ -240,6 +256,81 @@ describe("stegText", () => {
     expect(u.ok).toBe(false);
     expect(u.sammanfattning).toBe("1 av 2 skrivna");
     expect(u.rader[0]).toMatchObject({ ok: false, fel: expect.stringContaining("INVALID_REVISION") });
+  });
+
+  describe("☠️ titeln och metabeskrivningen ska vara sidans egna (2026-11-11)", () => {
+    const annanSida = (titel: string, besk = "En helt annan beskrivning.") => ({
+      id: "9f8e7d6c-0000-4000-8000-000000000009",
+      visible: true,
+      name: "Ett annat bord",
+      seoData: { tags: [{ type: "title", children: titel }, { type: "meta", props: { name: "description", content: besk } }] },
+    });
+
+    for (const torr of [true, false]) {
+      it(`en titel som redan står på en annan publicerad sida skriver ingenting (${torr ? "torrt" : "skarpt"})`, async () => {
+        const { wix, anrop } = fakeWix(() => ({ product: { revision: "3", visible: false } }), [annanSida("Testbord i ek | Fyndplats")]);
+        const u = await stegText(plan(), wix, torr);
+        expect(u.ok).toBe(false);
+        expect(u.sammanfattning).toBe("0 skrivna");
+        expect(u.avbrutet).toContain("1a2b3c4d: titeln står redan på 9f8e7d6c");
+        expect(u.rader).toEqual([{ kort: "1a2b3c4d", ok: false, fel: "seoTitel står redan på 9f8e7d6c" }]);
+        // Bara frågan: produkten läses inte och ingenting skrivs.
+        expect(anrop.map((a) => a.metod)).toEqual(["POST"]);
+      });
+    }
+
+    it("ett kommatecken räddar inte titeln, och samma beskrivning fälls för sig", async () => {
+      const { wix, anrop } = fakeWix(() => ({ product: { revision: "3" } }), [annanSida("Testbord, i ek | Fyndplats", "Ett testbord i ek – 40 × 30 cm")]);
+      const u = await stegText(plan(), wix, false);
+      expect(u.rader.map((r) => r.fel)).toEqual(["seoTitel står redan på 9f8e7d6c", "seoBesk står redan på 9f8e7d6c"]);
+      expect(anrop.some((a) => a.metod === "PATCH")).toBe(false);
+    });
+
+    it("☠️ en titel på butikens ANDRA sida av svaret fälls också: markören följs, utan filter", async () => {
+      const butik = [
+        { ...annanSida("Stol A | Fyndplats", "Stol A."), id: "11111111-0000-4000-8000-000000000001" },
+        { ...annanSida("Stol B | Fyndplats", "Stol B."), id: "22222222-0000-4000-8000-000000000002" },
+        annanSida("Testbord i ek | Fyndplats"),
+      ];
+      const { wix, anrop } = fakeWix(() => ({ product: { revision: "3" } }), butik);
+      const u = await stegText(plan(), wix, false);
+      expect(u.ok).toBe(false);
+      expect(u.avbrutet).toContain("1a2b3c4d: titeln står redan på 9f8e7d6c");
+      // Två sidor av frågan, och sedan ingenting: ingen läsning och ingen skrivning.
+      expect(anrop.map((a) => a.metod)).toEqual(["POST", "POST"]);
+      expect(anrop[0].kropp).toEqual({ query: { filter: { visible: true }, cursorPaging: { limit: 100 } } });
+      expect(anrop[1].kropp).toEqual({ query: { cursorPaging: { limit: 100, cursor: "m2" } } });
+    });
+
+    it("sidans egen publicerade titel hindrar inte en omskrivning", async () => {
+      const egen = { ...annanSida("Testbord i ek | Fyndplats", "Ett testbord i ek, 40 × 30 cm."), id: "1a2b3c4d-0000-4000-8000-000000000001" };
+      const { wix, anrop } = fakeWix((a) => (a.metod === "GET" ? { product: { revision: "7" } } : { product: { revision: "8" } }), [egen]);
+      const u = await stegText(plan(), wix, false);
+      expect(u.ok).toBe(true);
+      expect(anrop.map((a) => a.metod)).toEqual(["POST", "GET", "PATCH"]);
+    });
+
+    it("kan butiken inte svara på frågan skrivs ingenting", async () => {
+      const anrop: string[] = [];
+      const wix: WixAnrop = async (metod) => {
+        anrop.push(metod);
+        if (metod === "POST") throw new Error("Wix 503: nere");
+        return { product: { revision: "1" } };
+      };
+      await expect(stegText(plan(), wix, false)).rejects.toThrow("503");
+      expect(anrop).toEqual(["POST"]);
+    });
+
+    it("valideraPlan: två produkter i samma plan får inte dela titel eller beskrivning", () => {
+      const andra = produkt({ kort: "2b3c4d5e", pid: "2b3c4d5e-0000-4000-8000-000000000001", slug: "andra", sku: "FP-andra" });
+      const v = valideraPlan(plan([produkt(), andra]));
+      expect("fel" in v && v.fel).toEqual([
+        "2b3c4d5e: seoTitel är densamma som hos 1a2b3c4d i planen",
+        "2b3c4d5e: seoBesk är densamma som hos 1a2b3c4d i planen",
+      ]);
+      const egen = { ...andra, seoTitel: "Ett annat bord | Fyndplats", seoBesk: "Ett annat bord i ek." };
+      expect("plan" in valideraPlan(plan([produkt(), egen]))).toBe(true);
+    });
   });
 
   it("☠️ ett Wix-fel som citerar ett artikelnummer tvättas innan det lämnar steget", async () => {
