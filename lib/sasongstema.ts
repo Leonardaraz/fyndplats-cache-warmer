@@ -80,4 +80,7 @@ export function temaSkript(teman: readonly Sasongstema[] = SASONGSTEMAN): string
   );
 }
 
-export const TEMA_SKRIPT = temaSkript();
+// BARA FÖR VISNING (grenen claude/startsida-utan-tema-visning-1q3bw2, mergas aldrig):
+// Leonard 2026-11-12 ville se startsidans förslag som det blir efter Singles Week.
+// Temat styrs av datumet, så här får skriptet en tom lista och sätter ingenting.
+export const TEMA_SKRIPT = temaSkript([]);
