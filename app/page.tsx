@@ -19,6 +19,7 @@ import { tightFillUrl } from "../lib/wix-image";
 import { getSocialProof } from "../lib/social-proof-live";
 import { PrefetchLink } from "../components/prefetch-link";
 import { categoryHero } from "../lib/category-groups";
+import { unsplashIForm } from "../lib/bildformat";
 import { getPosts } from "../lib/blog";
 import { CURATED_RESULT } from "../lib/curated-reviews";
 // Förslaget till ny startsida (2026-11-12). Allt står under .hem2.
@@ -448,7 +449,7 @@ export default async function Home() {
             <div className="katrad">
               {homeCats.map((c) => {
                 // Samma bild som /butik visar för avdelningen.
-                const bild = categoryHero(c.main.name) || c.heroImg || c.thumbs[0];
+                const bild = unsplashIForm(categoryHero(c.main.name), "4:3") || c.heroImg || c.thumbs[0];
                 return (
                   <PrefetchLink className="kat" key={c.main.id} href={`/kategori/${c.main.slug}`}>
                     <span className="kat-bild" aria-hidden="true">

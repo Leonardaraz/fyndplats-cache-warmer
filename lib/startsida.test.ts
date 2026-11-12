@@ -35,6 +35,31 @@ describe("startsidans stilar rör bara startsidan", () => {
   });
 });
 
+describe("hjälten håller huvudtråden stilla", () => {
+  // En animation på ett element utan egen ruta (display:contents) kan inte
+  // köras på grafikkortet. Dagens heroFloat på .mcol räknade därför om sidans
+  // stil i varje bildruta utan att något syntes (mätt 2026-11-12: 300
+  // omräkningar per 5 s mot 30 i dag).
+  it("ett element utan egen ruta har ingen av butikens oändliga animationer", () => {
+    const globals = las("app", "globals.css").replace(/\/\*[\s\S]*?\*\//g, "");
+    // Klasser som globals.css animerar utan slut, som .mcol{animation:heroFloat 6s ease-in-out infinite}.
+    const animerade = new Set([...globals.matchAll(/\.([\w-]+)\{[^}]*animation:[^;}]*infinite/g)].map((m) => m[1]));
+    assert.ok(animerade.has("mcol"), "globals.css animerar inte längre .mcol: se över provet");
+    const utanRuta = regler.filter(([, d]) => /(^|;)display:contents/.test(d)).flatMap(([s]) => s);
+    assert.ok(utanRuta.includes(".hem2 .mcol"), "hjältens kolumner har inte längre display:contents: se över provet");
+    const stilla = new Set(regler.filter(([, d]) => /(^|;)animation:none/.test(d)).flatMap(([s]) => s));
+    for (const s of utanRuta) {
+      const klass = s.match(/\.([\w-]+)$/)?.[1];
+      if (klass && animerade.has(klass)) assert.ok(stilla.has(s), `${s} har display:contents men animeras fortfarande`);
+    }
+  });
+
+  it("kategorifotona hämtas i rutans form (4:3)", () => {
+    assert.match(sida, /unsplashIForm\(categoryHero\(c\.main\.name\), "4:3"\)/);
+    assert.match(css, /\.hem2 \.kat-bild\{[^}]*aspect-ratio:4\/3/);
+  });
+});
+
 describe("rader som rullar i sidled", () => {
   // .sr-only är position:absolute. Utan en positionerad förälder i raden hamnar
   // den utanför raden och gör hela sidan bredare (mätt: 1 663 px i en 390 px vy).

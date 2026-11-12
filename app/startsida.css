@@ -122,6 +122,12 @@
 .hem2 .hrating{position:static;flex:0 0 auto;padding:0;background:none;border-radius:0;box-shadow:none;gap:4px}
 .hem2 .hrating::before{content:"★";color:var(--gold);font-size:var(--text-sm);line-height:1}
 
+/* Kolumnerna har ingen egen ruta här (display:contents nedan), så dagens
+   svävande animation (heroFloat på .mcol i globals.css) kan inte köras på
+   grafikkortet. Webbläsaren räknade i stället om sidans stil på huvudtråden i
+   varje bildruta, utan att något syntes: 300 omräkningar per 5 s mot 30 i
+   dag, och Lighthouse väntade förgäves på en stilla sida (mätt 2026-11-12). */
+.hem2 .mcol{animation:none}
 @media(min-width:881px){
   .hem2 .herogrid{grid-template-columns:minmax(0,1.04fr) minmax(0,.96fr);gap:64px;padding:72px 0 84px}
   /* Fasta andelar: kolumnerna står still när typsnittet byts in. */
