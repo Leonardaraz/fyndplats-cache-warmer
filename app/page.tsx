@@ -22,6 +22,7 @@ import { categoryHero } from "../lib/category-groups";
 import { unsplashIForm } from "../lib/bildformat";
 import { getPosts } from "../lib/blog";
 import { CURATED_RESULT } from "../lib/curated-reviews";
+import { initialer } from "../lib/initialer";
 // Förslaget till ny startsida (2026-11-12). Allt står under .hem2.
 import "./startsida.css";
 
@@ -568,7 +569,9 @@ export default async function Home() {
                   <Stars rating={r.rating} aria-hidden />
                   <blockquote className="rost-text">{r.text}</blockquote>
                   <figcaption className="rost-fot">
-                    <span className="rost-namn">{r.author}</span>
+                    {/* Initialer, aldrig hela namnet (Leonard 2026-10-07 för /omdomen och
+                        2026-11-12 för startsidan): kundens integritet. */}
+                    <span className="rost-namn">{initialer(r.author)}</span>
                     <span className="rost-kalla">Omdöme på Google</span>
                   </figcaption>
                 </figure>

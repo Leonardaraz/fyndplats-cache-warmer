@@ -82,6 +82,15 @@ describe("startsidans sektioner", () => {
     assert.match(sida, /\{roster\.length === 3 && \(/);
   });
 
+  it("omdömena visar initialer, aldrig kundens hela namn", () => {
+    // Samma regel som /omdomen (lib/initialer.ts). Leonard 2026-11-12: "Ändra så
+    // det inte står kundernas för och efternamn utan istället initialer".
+    const kort = sida.slice(sida.indexOf('className="roster"'), sida.indexOf("</figure>", sida.indexOf('className="roster"')));
+    assert.match(kort, /<span className="rost-namn">\{initialer\(r\.author\)\}<\/span>/);
+    assert.doesNotMatch(kort.replace(/initialer\(r\.author\)/g, ""), /r\.author/);
+    assert.match(sida, /^import \{ initialer \} from "\.\.\/lib\/initialer";$/m);
+  });
+
   it("omdömena är Googles egna, fem stjärnor och lagom långa", () => {
     assert.match(sida, /CURATED_RESULT\.reviews\s*\.filter\(\(r\) => r\.rating === 5 && r\.text\.length >= 80 && r\.text\.length <= 220\)/);
   });
