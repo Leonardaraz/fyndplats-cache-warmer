@@ -2390,7 +2390,7 @@ vilken dom menar". Kunder mejlade om "ert lasertag-set med projektor för
 
 - **Produktsidans flik "Kontakta oss"**: texten är densamma på varje sida
   (Leonards krav), men länkarna bär produkten. Formuläret öppnas med den
-  förvald (`/kontaktaoss?produkt=<slug>&variant=<id>#meddelande`), och
+  förvald (`/kontaktaoss#produkt=<slug>&variant=<id>`, se ☠️ nedan), och
   e-postlänken får ämnet "Fråga om: <namn>" och produktens adress i texten
   (`kontaktFlikLankar` i `lib/kontakt/kontakt.ts`). Det valda valet följer
   med när kunden byter färg eller storlek.
@@ -2420,6 +2420,74 @@ vilken dom menar". Kunder mejlade om "ert lasertag-set med projektor för
 - **Ankaret `#meddelande` sitter på formulärkortet**, inte på sektionen
   (Leonard 2026-11-07): länken landar vid Förnamn med "Frågan gäller" synlig i
   telefonen, inte vid rubriken. `scroll-margin-top: var(--ankare)` på kortet.
+- ☠️ **Förvalet står efter `#`, aldrig efter `?` (2026-11-11).** Länken hette
+  först `/kontaktaoss?produkt=<slug>#meddelande`. Varje produktsida fick då en
+  egen adress till samma formulär, och Semrush läste cirka 5 700 av dem som
+  egna sidor: 47 % av hela genomsökningen, ungefär hälften av varningarna och
+  fyra av fem notiser. Sidorna pekade ut `/kontaktaoss` som original, så
+  inget såg fel ut på sidan. Det som står efter `#` skickas aldrig till
+  servern och är ingen ny sida.
+  - `kontaktHref` bygger `/kontaktaoss#produkt=<slug>&variant=<id>`, och
+    `lasKontaktAdress` läser fragmentet först och sedan sökdelen, så länkar
+    som kunder sparat före bytet fungerar kvar.
+  - Fragmentet är upptaget av förvalet, så webbläsaren rullar inte själv till
+    `#meddelande`. `KONTAKT_RULLA_SKRIPT` (sist på sidan, före hydreringen)
+    och `rullaTillFormularet` i `components/kontakt-produkt.tsx` gör det, bara
+    när fragmentet börjar med `produkt=`.
+  - Förvalet läses om vid `hashchange`, så en länk som bara byter fragment
+    byter produkt utan omladdning.
+- ☠️ **Ingen ny intern adress med `?namn=`.** `lib/interna-lankar-fragestrang.test.ts`
+  läser källkoden i `app/` (utom `app/api`), `components/` och `lib/` och
+  fäller på varje intern adress med sökdel som inte står i listan `GRANSKADE`
+  med ett skäl. En rad som inte längre träffar fäller också. Ett förval till
+  en sida som är densamma för alla hör hemma efter `#`. Provet ser strängar,
+  inte adresser som sätts ihop av lösa bitar: det är en snubbeltråd, inget
+  bevis.
+
+## Bloggens kategorilänkar kontrolleras varje vecka (2026-11-11)
+
+Halloweenguiden länkade till `/kategori/halloweendekoration`, som var tom efter
+säsongen och svarade 307 till `/butik`. Två andra guider länkade på tre ställen
+till en kategori som bytt namn (308). Produktlänkarna i bloggen hade en
+kontroll sedan augusti, kategorilänkarna ingen.
+
+- `dodaKategorilankar` (`lib/blog-product-links.ts`) jämför artiklarnas
+  `/kategori/<slug>` med sitemapens kategorier: de som finns och har minst fem
+  produkter. Allt utanför är tunt (noindex), tomt (307), omdöpt (308) eller
+  borta (404).
+- Bara våra egna länkar räknas (relativa, eller hela adresser på
+  fyndplats.se). Andra sajters `/kategori/` är källhänvisningar.
+- Veckorapporten (`lib/seo-health.ts`) har fältet `blog.dodaKategorilankar` och
+  en rad under Åtgärder, som syns både i måndagens mejl och på
+  `/admin/seo-health`. Mejlet listar dessutom artikel och mål för varje död
+  produkt- och kategorilänk (`dodaLankRader`). Förut stod bara antalet.
+- Ett prov i `lib/blog-product-links.test.ts` läser `content/blog/*.md` och
+  fäller om någon av de två kända kategorierna länkas igen.
+- ☠️ Kontrollen går en gång i veckan, så en kategori som töms på måndagen syns
+  först nästa måndag. Att en tom säsongskategori ska svara 200 i stället för
+  307 är ett eget beslut som väntar på Leonard.
+
+## Dubbla titlar och metabeskrivningar syns i veckorapporten (2026-11-11)
+
+Semrush fann 63 produktsidor som delade `<title>` med en annan sida (30
+grupper) och fyra som delade metabeskrivning. Sökmotorerna läser sådana sidor
+som dubbletter. Rubrikerna skilde sig: det var SEO-titeln som var för allmän.
+
+- **Motorn hindrar nya.** Poleringens skrivning vägrar en plan vars titel
+  eller metabeskrivning redan står på en annan publicerad sida, och de
+  befintliga rättas med motorns workflow för SEO-titlar
+  (`docs/claude/47-seo-titlar-egna.md` i motorn).
+- **Butiken är nätet under** (`lib/seo-dubbletter.ts`). Veckorapporten jämför
+  alla produktsidor i sitemapen och lägger en rad under Åtgärder när två delar
+  titel eller beskrivning. Mejlet listar högst trettio grupper per sort, och
+  `/admin/seo-health` visar alla, när som helst.
+- **Nyckeln är densamma som motorns `seoNyckel`**: utan ` | Fyndplats`,
+  gemener, och bara bokstäver och siffror. Ett kommatecken gör inte en ny
+  titel. Proven i båda repona bär samma exempel; ändras regeln på ett ställe
+  ska den ändras på båda.
+- Titeln som jämförs är den sidan visar: den kuraterade SEO-titeln, annars
+  namnet med butikens suffix. Beskrivningen jämförs bara när den är kuraterad;
+  reserven som byggs ur brödtexten jämförs inte.
 
 ## Varukorgens rad står still när en vara läggs i (Leonard 2026-11-07)
 

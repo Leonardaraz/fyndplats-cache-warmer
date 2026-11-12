@@ -11,9 +11,12 @@ import {
   giltigSlug,
   giltigVariant,
   KONTAKT_FLIK_HTML as FLIK,
+  KONTAKT_ANKARE,
+  KONTAKT_RULLA_SKRIPT,
   kontaktFlikLankar,
   kontaktHref,
   kortText,
+  lasKontaktAdress,
   lasKontaktParams,
   mailtoHref,
   normVariant,
@@ -55,11 +58,64 @@ test("adresserna: produktsidan med ?variant= och formuläret med ankaret", () =>
   assert.equal(produktUrl({ slug: "a-b", variantId: V }), `https://www.fyndplats.se/produkt/a-b?variant=${V}`);
   assert.equal(produktSokvag({ slug: "a-b", variantId: V }), `/produkt/a-b?variant=${V}`);
   assert.equal(produktSokvag({ slug: "a-b" }), "/produkt/a-b");
-  assert.equal(kontaktHref({ slug: "a-b" }), "/kontaktaoss?produkt=a-b#meddelande");
-  assert.equal(kontaktHref({ slug: "a-b", variantId: V }), `/kontaktaoss?produkt=a-b&variant=${V}#meddelande`);
+  assert.equal(kontaktHref({ slug: "a-b" }), "/kontaktaoss#produkt=a-b");
+  assert.equal(kontaktHref({ slug: "a-b", variantId: V }), `/kontaktaoss#produkt=a-b&variant=${V}`);
   // Formulärets läsare förstår formulärets länk.
   const href = kontaktHref({ slug: "a-b", variantId: V });
-  assert.deepEqual(lasKontaktParams(href.slice(href.indexOf("?"), href.indexOf("#"))), { slug: "a-b", variantId: V });
+  assert.deepEqual(lasKontaktAdress(href.slice("/kontaktaoss".length)), { slug: "a-b", variantId: V });
+});
+
+test("☠️ formulärets länk har ingen sökdel: varje ?produkt= blev en egen sida för sökmotorerna (2026-11-11)", () => {
+  // Semrush läste cirka 5 700 adresser av formen /kontaktaoss?produkt=<slug>
+  // som egna sidor. Allt efter # stannar i webbläsaren.
+  for (const ref of [{ slug: "a-b" }, { slug: "a-b", variantId: V }]) {
+    const href = kontaktHref(ref);
+    assert.ok(!href.includes("?"), href);
+    assert.equal(href.split("#")[0], "/kontaktaoss");
+  }
+  // Också i fliken, där länken står i färdig HTML.
+  const flik = kontaktFlikLankar(FLIK, { slug: "a-b", namn: "Pall", variantId: V });
+  const interna = [...flik.matchAll(/href="(\/[^"]*)"/g)].map((m) => m[1]);
+  assert.ok(interna.length >= 2);
+  for (const h of interna) assert.ok(!h.includes("?"), h);
+});
+
+test("lasKontaktAdress: fragmentet först, sedan sökdelen från länkar före 2026-11-11", () => {
+  // Den nya formen.
+  assert.deepEqual(lasKontaktAdress(`#produkt=pallar-4-pack&variant=${V.toUpperCase()}`), { slug: "pallar-4-pack", variantId: V });
+  assert.deepEqual(lasKontaktAdress("#produkt=pallar-4-pack"), { slug: "pallar-4-pack" });
+  // Den gamla formen, som ligger kvar i mejl och bokmärken.
+  assert.deepEqual(lasKontaktAdress(`?produkt=pallar-4-pack&variant=${V}#meddelande`), { slug: "pallar-4-pack", variantId: V });
+  assert.deepEqual(lasKontaktAdress("?produkt=pallar-4-pack"), { slug: "pallar-4-pack" });
+  // Båda: fragmentet vinner.
+  assert.deepEqual(lasKontaktAdress("?produkt=gammal#produkt=ny"), { slug: "ny" });
+  // Ett ogiltigt fragment faller tillbaka på sökdelen, och skräp ger inget förval.
+  assert.deepEqual(lasKontaktAdress("?produkt=a-b#produkt=%3Cscript%3E"), { slug: "a-b" });
+  assert.equal(lasKontaktAdress("#meddelande"), null);
+  assert.equal(lasKontaktAdress("#produkt=%3Cscript%3E"), null);
+  assert.equal(lasKontaktAdress(""), null);
+  assert.equal(lasKontaktAdress("?utm_source=x"), null);
+});
+
+test("rullskriptet: bara för förval i fragmentet, och mot formulärkortets id", () => {
+  assert.equal(KONTAKT_ANKARE, "meddelande");
+  assert.ok(KONTAKT_RULLA_SKRIPT.includes(`getElementById("${KONTAKT_ANKARE}")`));
+  // Skriptet körs i en låtsad webbläsare: rullar för #produkt=, annars inte.
+  const kor = (hash: string, finns = true) => {
+    let rullat = 0;
+    const location = { hash };
+    const document = { getElementById: (id: string) => (finns && id === KONTAKT_ANKARE ? { scrollIntoView: () => rullat++ } : null) };
+    new Function("location", "document", KONTAKT_RULLA_SKRIPT)(location, document);
+    return rullat;
+  };
+  assert.equal(kor("#produkt=a-b"), 1);
+  assert.equal(kor(`#produkt=a-b&variant=${V}`), 1);
+  assert.equal(kor("#meddelande"), 0, "det vanliga ankaret sköter webbläsaren");
+  assert.equal(kor(""), 0);
+  assert.equal(kor("#annat-produkt=a"), 0);
+  assert.equal(kor("#produkt=a-b", false), 0, "utan kort händer ingenting, och inget kastas");
+  // Skriptet står i en <script>-tagg: inget som stänger den.
+  assert.ok(!/<\/script/i.test(KONTAKT_RULLA_SKRIPT));
 });
 
 test("e-postlänken: ämne och text ifyllda, mellanslag som %20 och radbrytningar som %0D%0A", () => {
@@ -94,7 +150,7 @@ test("fliken: den statiska texten har länkarna som bytet letar efter", () => {
 
 test("fliken: formuläret och e-posten får produkten, telefonen och vanliga frågor rörs inte", () => {
   const ut = kontaktFlikLankar(FLIK, { slug: "pallar-4-pack", namn: "Stapelbara pallar 4-pack", variantId: V, val: "Grå" });
-  assert.ok(ut.includes(`href="/kontaktaoss?produkt=pallar-4-pack&amp;variant=${V}#meddelande"`));
+  assert.ok(ut.includes(`href="/kontaktaoss#produkt=pallar-4-pack&amp;variant=${V}"`));
   assert.ok(ut.includes('href="mailto:info@fyndplats.com?subject=F'));
   assert.ok(ut.includes('href="tel:+46736630990"'));
   assert.ok(ut.includes('href="/vanliga-fragor"'));
@@ -109,7 +165,7 @@ test("fliken: beskrivningens egna varianter av länkarna byts också", () => {
     '<a href="/kontaktaoss#meddelande">C</a> <a href="mailto:info@fyndplats.com?subject=Hej">D</a> ' +
     '<a href="/kontaktaoss-gammal">E</a> <a href="mailto:annan@example.com">F</a>';
   const ut = kontaktFlikLankar(html, { slug: "a-b", namn: "A & B" });
-  assert.equal((ut.match(/\/kontaktaoss\?produkt=a-b#meddelande/g) || []).length, 3);
+  assert.equal((ut.match(/href="\/kontaktaoss#produkt=a-b"/g) || []).length, 3);
   assert.equal((ut.match(/mailto:info@fyndplats\.com\?subject=Fr/g) || []).length, 1);
   assert.ok(ut.includes('href="/kontaktaoss-gammal"'), "en annan sida lämnas orörd");
   assert.ok(ut.includes('href="mailto:annan@example.com"'));

@@ -6,15 +6,15 @@
 // Valfri. Kunden söker på produktens namn i samma index som sidhuvudets
 // sökruta (lib/sok-index.ts, rankaForslag) och väljer en träff. Har produkten
 // flera val (färg, storlek …) kan kunden peka ut vilket. Kommer kunden från
-// produktsidans flik "Kontakta oss" är produkten redan vald (?produkt= och
-// ?variant= i adressen, useValdProdukt nedan). Formuläret
+// produktsidans flik "Kontakta oss" är produkten redan vald (#produkt= och
+// variant= i adressens fragment, useValdProdukt nedan). Formuläret
 // (components/contactform.tsx) skickar bara slugen och valets id.
 
 import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { flushSync } from "react-dom";
 import Image from "next/image";
 import { KORTASTE_SOKNING, laddaSokIndex, rankaForslag, sokIndexHamtat, type SokTraff } from "../lib/sok-index";
-import { lasKontaktParams, medValt, produktUrl, type KontaktProdukt } from "../lib/kontakt/kontakt";
+import { KONTAKT_ANKARE, lasKontaktAdress, medValt, produktUrl, type KontaktProdukt } from "../lib/kontakt/kontakt";
 
 /** Så många träffar visas. Färre än sidhuvudets sju: formuläret står ofta långt ner på skärmen. */
 const ANTAL_TRAFFAR = 6;
@@ -36,11 +36,29 @@ function produktUrTraff(h: SokTraff): KontaktProdukt {
   return { slug: h.s, namn: h.n, bild: h.i, pris: h.p, url: produktUrl({ slug: h.s }), iLager: !h.o, val: [] };
 }
 
-// Adressens sökdel läses utan effekt: tom på servern och vid hydreringen,
-// sedan webbläsarens (useSyncExternalStore sköter bytet).
-const ingenPrenumeration = () => () => {};
-const lasSokdel = () => window.location.search;
-const ingenSokdel = () => "";
+// Adressen efter sökvägen (sökdelen och fragmentet) läses utan effekt: tom på
+// servern och vid hydreringen, sedan webbläsarens (useSyncExternalStore sköter
+// bytet). Förvalet står i fragmentet; ett byte av fragment på samma sida läses
+// också.
+function vidAdressbyte(lasOm: () => void) {
+  window.addEventListener("hashchange", lasOm);
+  return () => window.removeEventListener("hashchange", lasOm);
+}
+const lasAdress = () => window.location.search + window.location.hash;
+const ingenAdress = () => "";
+
+/**
+ * Rullar till formulärkortet när det inte redan syns i skärmens övre del.
+ * Sidans eget skript (KONTAKT_RULLA_SKRIPT) har oftast redan gjort det; det
+ * här tar fallen där skriptet inte körs: ett byte av sida utan omladdning och
+ * ett byte av fragment på samma sida.
+ */
+function rullaTillFormularet() {
+  const kort = document.getElementById(KONTAKT_ANKARE);
+  if (!kort) return;
+  const { top, bottom } = kort.getBoundingClientRect();
+  if (bottom < 0 || top > window.innerHeight * 0.6) kort.scrollIntoView();
+}
 
 /**
  * Den valda produkten och valet: förvalet ur adressen (produktsidans flik
@@ -49,8 +67,8 @@ const ingenSokdel = () => "";
 export function useValdProdukt() {
   const [produkt, setProdukt] = useState<KontaktProdukt | null>(null);
   const [valtId, setValtId] = useState<string | undefined>(undefined);
-  const sokdel = useSyncExternalStore(ingenPrenumeration, lasSokdel, ingenSokdel);
-  const forval = useMemo(() => lasKontaktParams(sokdel), [sokdel]);
+  const adress = useSyncExternalStore(vidAdressbyte, lasAdress, ingenAdress);
+  const forval = useMemo(() => lasKontaktAdress(adress), [adress]);
   // Sant när förvalet är hämtat, eller när kunden själv valt eller tagit bort en
   // produkt. Medan förvalet hämtas visar väljaren ett skelett utan knappar, så
   // kunden kan inte välja något annat under tiden.
@@ -58,6 +76,9 @@ export function useValdProdukt() {
 
   useEffect(() => {
     if (!forval) return;
+    // Bara för förval i fragmentet: en gammal länk (?produkt=…#meddelande) har
+    // sitt eget ankare, som webbläsaren redan har följt.
+    if (window.location.hash.startsWith("#produkt=")) rullaTillFormularet();
     let aktuell = true;
     void hamtaValdProdukt(forval.slug).then((p) => {
       if (!aktuell) return;

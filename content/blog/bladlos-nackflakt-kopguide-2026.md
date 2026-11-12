@@ -48,7 +48,7 @@ Under 300 gram upplevs sällan som besvärande. Tyngre modeller börjar belasta 
 
 ## Utforska mer hos Fyndplats
 
-Håll dig sval i sommar med fler fynd inom [Skönhet & Hälsa](/kategori/skonhet-halsa) och [Elektronik & Tillbehör](/kategori/elektronik-tillbehor) — eller gör hela uteplatsen redo med [Gör uteplatsen sommarklar](/blogg/gor-uteplatsen-sommarklar-2026).
+Håll dig sval i sommar med fler fynd inom [Skönhet & Hälsa](/kategori/skonhet-halsa) och [Hushållsapparater](/kategori/hushallsapparater) — eller gör hela uteplatsen redo med [Gör uteplatsen sommarklar](/blogg/gor-uteplatsen-sommarklar-2026).
 
 
 ## Vanliga frågor

@@ -5,9 +5,9 @@
 //
 // Rena funktioner för tre saker, i den här ordningen:
 //   1. Länkarna: produktsidans flik "Kontakta oss" länkar till formuläret med
-//      produkten förvald (/kontaktaoss?produkt=<slug>&variant=<id>#meddelande),
-//      och e-postlänken öppnar kundens mejlprogram med produkten i ämnesraden
-//      och länken i texten.
+//      produkten förvald (/kontaktaoss#produkt=<slug>&variant=<id>), och
+//      e-postlänken öppnar kundens mejlprogram med produkten i ämnesraden och
+//      länken i texten.
 //   2. Produkten i formuläret: valen (färg, storlek …), priset och det som
 //      visas för det utpekade valet. Formulärets kort och mejlet går genom
 //      samma regel (medValt).
@@ -60,13 +60,26 @@ export function normVariant(s: unknown): string | undefined {
 /** Vilken produkt (och variant) kunden pekar ut. Bara giltiga värden. */
 export type KontaktReferens = { slug: string; variantId?: string };
 
-/** Läser ?produkt= och ?variant= ur adressens sökdel. Ett ogiltigt värde räknas som saknat. */
+/** Läser produkt= och variant= ur en parametersträng. Ett ogiltigt värde räknas som saknat. */
 export function lasKontaktParams(sokdel: string): KontaktReferens | null {
   const p = new URLSearchParams(sokdel);
   const slug = p.get("produkt");
   if (!giltigSlug(slug)) return null;
   const variantId = normVariant(p.get("variant"));
   return variantId ? { slug, variantId } : { slug };
+}
+
+/**
+ * Förvalet ur adressen efter sökvägen, alltså sökdelen följd av fragmentet
+ * (`location.search + location.hash`). Fragmentet går först: det är formen
+ * produktsidan länkar med sedan 2026-11-11. Sökdelen läses fortfarande, för
+ * länkar som redan ligger i mejl och bokmärken (?produkt=…#meddelande).
+ */
+export function lasKontaktAdress(efterSokvag: string): KontaktReferens | null {
+  const i = efterSokvag.indexOf("#");
+  const sokdel = i < 0 ? efterSokvag : efterSokvag.slice(0, i);
+  const fragment = i < 0 ? "" : efterSokvag.slice(i + 1);
+  return lasKontaktParams(fragment) ?? lasKontaktParams(sokdel);
 }
 
 /** Produktsidans sökväg, med varianten när den finns (samma ?variant= som sidan själv sätter). */
@@ -79,12 +92,34 @@ export function produktUrl(ref: KontaktReferens): string {
   return BUTIK + produktSokvag(ref);
 }
 
-/** Formuläret med produkten förvald. */
+/** Formulärkortets id på /kontaktaoss, dit förvalda länkar rullar. */
+export const KONTAKT_ANKARE = "meddelande";
+
+/**
+ * Formuläret med produkten förvald.
+ *
+ * ☠️ Förvalet står i FRAGMENTET, aldrig i sökdelen (2026-11-11). Med
+ * ?produkt=<slug> fick varje produktsida en egen adress till samma formulär:
+ * Semrush läste cirka 5 700 av dem som egna sidor, 47 % av hela sin
+ * genomsökning, och varje sökmotor som följer länken gör samma sak. Det som
+ * står efter # skickas aldrig till servern och räknas inte som en ny sida.
+ * Ankaret #meddelande ryms då inte i adressen, så sidan rullar själv till
+ * formuläret (KONTAKT_RULLA_SKRIPT nedan och useValdProdukt).
+ */
 export function kontaktHref(ref: KontaktReferens): string {
   const q = new URLSearchParams({ produkt: ref.slug });
   if (ref.variantId) q.set("variant", ref.variantId);
-  return `/kontaktaoss?${q.toString()}#meddelande`;
+  return `/kontaktaoss#${q.toString()}`;
 }
+
+/**
+ * Rullar till formuläret när adressen bär ett förval i fragmentet. Står som
+ * ett litet skript sist på /kontaktaoss, så att det körs medan sidan läses in
+ * och inte först när React har vaknat: kunden landar vid formuläret direkt,
+ * som med ett vanligt ankare. Kortets scroll-margin-top gäller som förut.
+ */
+export const KONTAKT_RULLA_SKRIPT =
+  `(function(){try{if(/^#produkt=/.test(location.hash)){var e=document.getElementById(${JSON.stringify(KONTAKT_ANKARE)});if(e)e.scrollIntoView()}}catch(_){}})()`;
 
 /** Kortar en text på ett ordgräns-oberoende sätt, med "…" sist när den kortades. */
 export function kortText(s: string, max: number): string {
