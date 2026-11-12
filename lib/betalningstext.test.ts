@@ -32,12 +32,16 @@ describe("ingen text säger att allt går via Klarna", () => {
     /Klarna, som tillhandahåller/,
     /Du betalar via Klarna/,
     /återbetalning via Klarna/,
+    // Retur- och ångermejlen (emails/), också efter kortköp.
+    /betalmedel via Klarna/,
+    // Startsidans kort räknade upp kort och plånböcker under rubriken Klarna.
+    /Faktura, delbetalning, kort, Apple Pay eller Google Pay/,
     // Klarna anger betalningstiden per köp (components/klarna-message.tsx).
     /14 eller 30 dagar/,
   ];
 
-  it("i sidor och komponenter", () => {
-    const alla = [...filer("app"), ...filer("components")];
+  it("i sidor, komponenter och mejl", () => {
+    const alla = [...filer("app"), ...filer("components"), ...filer("emails")];
     assert.ok(alla.length > 100, `bara ${alla.length} filer lästa`);
     for (const fil of alla) {
       const text = readFileSync(join(rot, fil), "utf8");
@@ -67,6 +71,16 @@ describe("betalsätten och vem som tar dem", () => {
     // Tacksidan visas efter varje köp, också med kort. Startsidans löfte
     // "Trygg Klarna-betalning" står kvar: det säger vad kunden kan välja.
     assert.doesNotMatch(las("components", "thankyou.tsx"), /Klarna-betalning/);
+  });
+
+  it("retur- och ångermejlen lovar återbetalning till samma betalsätt", () => {
+    for (const fil of ["return-confirmation.tsx", "withdrawal-receipt.tsx"]) {
+      assert.match(las("emails", fil), /till samma betalsätt som du använde/, fil);
+    }
+  });
+
+  it("startsidans kort om betalningen räknar upp alla betalsätt", () => {
+    assert.match(las("app", "page.tsx"), /<h3>Trygg betalning<\/h3><p>Kort, Apple Pay, Google Pay eller Klarna med faktura och delbetalning/);
   });
 
   it("kassan och villkoren räknar upp samma betalsätt", () => {
