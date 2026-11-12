@@ -1,0 +1,27 @@
+{
+  "namn": "vevor-179",
+  "rader": [
+    {
+      "kort": "3dbaa540",
+      "pid": "3dbaa540-cea9-4edc-8cc0-6bfe615bad0e",
+      "bort": [
+        "Bil & Garage > Bildelar"
+      ],
+      "behall": [
+        "Bil & Garage",
+        "Bil & Garage > Verkstadsutrustning"
+      ]
+    },
+    {
+      "kort": "896a0fd6",
+      "pid": "896a0fd6-503f-47e9-9a6a-79d0ac5b447c",
+      "bort": [
+        "Bil & Garage > Bildelar"
+      ],
+      "behall": [
+        "Bil & Garage",
+        "Bil & Garage > Verkstadsutrustning"
+      ]
+    }
+  ]
+}
