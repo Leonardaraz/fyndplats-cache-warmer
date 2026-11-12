@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans mått saknar axelord och sidan skriver måtten som i källan, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans mått saknar axelord och sidan skriver måtten som i källan, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans mått saknar axelord och sidan skriver måtten som i källan, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans mått saknar axelord och sidan skriver måtten som i källan, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans bokstavsordning för måtten stämmer inte med måttritningen, där 1219 mm är den långa sidan, 356 mm djupet och 864 mm höjden, och sidan följer ritningen
