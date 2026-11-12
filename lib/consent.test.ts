@@ -12,7 +12,12 @@ import {
   CONSENT_REOPEN_EVENT,
   reopenConsentBanner,
   takeReopenRequest,
+  taggLaddare,
+  TAGG_DIREKT,
+  TAGG_INTERAKTIONER,
+  TAGG_RESERV_MS,
 } from "./consent.ts";
+import { readFileSync } from "node:fs";
 
 // Granskning 2026-08-19: samtycket låg bara i localStorage, som servern inte
 // kan läsa. /tack bygger Google-konfigurationen SERVER-side och den innehåller
@@ -254,21 +259,44 @@ describe("reopenConsentBanner / takeReopenRequest", () => {
 });
 
 describe("consentBootstrapScript — mäter bara på butikens adress", () => {
+  const LANDNING = "https://www.fyndplats.se/produkt/x?utm_source=chatgpt.com&srsltid=abc";
   // Kör skriptet som i webbläsaren, med en påhittad window på en given värd.
   const kor = (vard: string) => {
-    const s: Record<string, unknown> = { location: { hostname: vard }, localStorage: { getItem: () => null }, Date };
+    const s: Record<string, unknown> = {
+      location: { hostname: vard, href: `${LANDNING}#galleri` },
+      document: { referrer: "https://chatgpt.com/", title: "Produkt X" },
+      localStorage: { getItem: () => null },
+      Date,
+    };
     s.window = s;
     new Function("s", `with (s) { ${consentBootstrapScript("G-TESTAR123")} }`)(s);
     return s as { dataLayer: IArguments[]; gtag: (...a: unknown[]) => void };
   };
-  const forsta = (s: { dataLayer: IArguments[] }) => s.dataLayer.map((a) => `${a[0]}:${typeof a[1] === "string" ? a[1] : "-"}`);
+  const forsta = (s: { dataLayer: IArguments[] }) =>
+    s.dataLayer.map((a) => `${a[0]}:${typeof a[1] === "string" ? a[1] : "-"}`);
 
-  it("på www.fyndplats.se köas samtycket före config, som förut", () => {
+  it("på www.fyndplats.se köas samtycket före config och den första sidvisningen sist", () => {
     assert.equal(MATVARD, "www.fyndplats.se");
     const s = kor(MATVARD);
-    assert.deepEqual(forsta(s), ["consent:default", "js:-", "config:G-TESTAR123"]);
+    assert.deepEqual(forsta(s), ["consent:default", "js:-", "config:G-TESTAR123", "event:page_view"]);
     s.gtag("event", "view_item");
-    assert.equal(s.dataLayer.length, 4);
+    assert.equal(s.dataLayer.length, 5);
+  });
+
+  it("configens egen sidvisning är avstängd: taggen kommer sent, adressen kan ha bytts", () => {
+    const s = kor(MATVARD);
+    assert.deepEqual(s.dataLayer[2]?.[2], { send_page_view: false });
+  });
+
+  it("sidvisningen bär landningsadressen med utm och srsltid, hänvisaren och titeln", () => {
+    // ChatGPT:s utm-parametrar och Googles srsltid är källan. Läses adressen
+    // först när taggen kommer kan ett tryck på en länk redan ha bytt den.
+    const s = kor(MATVARD);
+    assert.deepEqual(s.dataLayer[3]?.[2], {
+      page_location: LANDNING,
+      page_referrer: "https://chatgpt.com/",
+      page_title: "Produkt X",
+    });
   });
 
   it("på ett bygges egen vercel.app-adress köas ingenting, inte heller senare händelser", () => {
@@ -278,5 +306,192 @@ describe("consentBootstrapScript — mäter bara på butikens adress", () => {
       s.gtag("event", "purchase", { value: 1 });
       assert.deepEqual(s.dataLayer, [], vard);
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Taggen hämtas när besökaren rör sidan (Leonard 2026-11-12)
+// ---------------------------------------------------------------------------
+
+type Lyssnare = { typ: string; fn: () => void; opt: { capture?: boolean; passive?: boolean } };
+type Skript = { src: string; async: boolean; onload: null | (() => void) };
+
+/** Kör laddaren i en påhittad webbläsare där tid, bildrutor och nätet styrs för hand. */
+function laddare(l: { vard?: string; sokvag?: string; href?: string; laddad?: boolean } = {}) {
+  const lyssnare: Lyssnare[] = [];
+  const timers: { ms: number; fn: () => void }[] = [];
+  const bildrutor: (() => void)[] = [];
+  const skript: Skript[] = [];
+  const gtagAnrop: unknown[][] = [];
+  const loc = {
+    hostname: l.vard ?? MATVARD,
+    pathname: l.sokvag ?? "/produkt/a",
+    href: l.href ?? "https://www.fyndplats.se/produkt/a?utm_source=chatgpt.com",
+  };
+  const s: Record<string, unknown> = {
+    location: loc,
+    document: {
+      readyState: l.laddad ? "complete" : "loading",
+      title: "Titel",
+      createElement: () => ({ src: "", async: false, onload: null }),
+      head: { appendChild: (el: Skript) => void skript.push(el) },
+    },
+    addEventListener: (typ: string, fn: () => void, opt: Lyssnare["opt"]) => void lyssnare.push({ typ, fn, opt }),
+    removeEventListener: (typ: string, fn: () => void, opt: Lyssnare["opt"]) => {
+      const i = lyssnare.findIndex((x) => x.typ === typ && x.fn === fn && x.opt?.capture === opt?.capture);
+      if (i > -1) lyssnare.splice(i, 1);
+    },
+    setTimeout: (fn: () => void, ms: number) => void timers.push({ ms, fn }),
+    requestAnimationFrame: (fn: () => void) => void bildrutor.push(fn),
+    gtag: (...a: unknown[]) => void gtagAnrop.push(a),
+  };
+  s.window = s;
+  new Function("s", `with (s) { ${taggLaddare("G-TESTAR123")} }`)(s);
+  const interaktion = (typ: string) => {
+    for (const x of lyssnare.filter((y) => y.typ === typ)) x.fn();
+  };
+  const ritaBildruta = () => { for (const f of bildrutor.splice(0)) f(); };
+  const korTimers = (ms?: number) => {
+    for (const t of timers.splice(0)) {
+      if (ms === undefined || t.ms === ms) t.fn();
+      else timers.push(t);
+    }
+  };
+  return { lyssnare, timers, bildrutor, skript, gtagAnrop, loc, interaktion, ritaBildruta, korTimers };
+}
+
+describe("taggLaddare", () => {
+  it("på en annan värd än butikens gör den ingenting", () => {
+    for (const vard of ["fyndplats-headless-7105jjz7a-leonardarazs-projects.vercel.app", "fyndplats.se", "localhost"]) {
+      const m = laddare({ vard, sokvag: "/tack" });
+      assert.equal(m.skript.length, 0, vard);
+      assert.equal(m.lyssnare.length, 0, vard);
+      assert.equal(m.timers.length, 0, vard);
+    }
+  });
+
+  it("på www väntar den: inget skript förrän besökaren rör sidan", () => {
+    const m = laddare();
+    assert.equal(m.skript.length, 0);
+    const typer = m.lyssnare.filter((x) => x.typ !== "load").map((x) => x.typ).sort();
+    assert.deepEqual(typer, [...TAGG_INTERAKTIONER].sort());
+    for (const x of m.lyssnare.filter((y) => y.typ !== "load")) {
+      // Fångstfasen ser också rullning i inre rutor; passiv stör aldrig rullningen.
+      assert.deepEqual(x.opt, { capture: true, passive: true }, x.typ);
+    }
+  });
+
+  it("aldrig på pointerdown eller touchstart: trycket ska hinna besvaras först", () => {
+    // Ligger biblioteket i cachen körs det millisekunder efter att det begärts.
+    // Begärt när fingret landar hade det kört före tryckets klick.
+    for (const typ of ["pointerdown", "touchstart", "mousedown"]) {
+      assert.ok(!(TAGG_INTERAKTIONER as readonly string[]).includes(typ), typ);
+    }
+    assert.ok((TAGG_INTERAKTIONER as readonly string[]).includes("pointerup"));
+  });
+
+  it("ett tryck hämtar taggen först efter nästa bildruta, och bara en gång", () => {
+    const m = laddare();
+    m.interaktion("pointerup");
+    assert.equal(m.skript.length, 0, "inte i samma händelse som trycket");
+    assert.equal(m.lyssnare.filter((x) => x.typ !== "load").length, 0, "lyssnarna tas bort direkt");
+    m.ritaBildruta();
+    assert.equal(m.skript.length, 0, "inte i bildrutans eget anrop heller");
+    m.korTimers(0);
+    assert.equal(m.skript.length, 1);
+    assert.equal(m.skript[0]?.src, "https://www.googletagmanager.com/gtag/js?id=G-TESTAR123");
+    assert.equal(m.skript[0]?.async, true);
+    // Reserven efter load hittar taggen redan hämtad.
+    m.interaktion("load");
+    m.korTimers(TAGG_RESERV_MS);
+    assert.equal(m.skript.length, 1);
+  });
+
+  it("rullning, tangent och musrörelse räknas också", () => {
+    for (const typ of ["scroll", "wheel", "keydown", "mousemove", "touchend"]) {
+      const m = laddare();
+      m.interaktion(typ);
+      m.ritaBildruta();
+      m.korTimers(0);
+      assert.equal(m.skript.length, 1, typ);
+    }
+  });
+
+  it("utan interaktion hämtas taggen 10 s efter load", () => {
+    assert.equal(TAGG_RESERV_MS, 10_000);
+    const m = laddare();
+    assert.equal(m.timers.length, 0, "klockan startar först vid load");
+    m.interaktion("load");
+    assert.deepEqual(m.timers.map((t) => t.ms), [TAGG_RESERV_MS]);
+    m.korTimers(TAGG_RESERV_MS);
+    assert.equal(m.skript.length, 1);
+    assert.equal(m.lyssnare.filter((x) => x.typ !== "load").length, 0);
+  });
+
+  it("körs laddaren efter load startar klockan direkt", () => {
+    const m = laddare({ laddad: true });
+    assert.deepEqual(m.timers.map((t) => t.ms), [TAGG_RESERV_MS]);
+  });
+
+  it("på tacksidan hämtas taggen direkt: köpet skickas när sidan öppnas", () => {
+    assert.deepEqual([...TAGG_DIREKT], ["/tack"]);
+    for (const sokvag of ["/tack", "/tack/"]) {
+      const m = laddare({ sokvag });
+      assert.equal(m.skript.length, 1, sokvag);
+      assert.equal(m.lyssnare.length, 0, sokvag);
+    }
+    const annan = laddare({ sokvag: "/tackkort" });
+    assert.equal(annan.skript.length, 0, "/tackkort är inte tacksidan");
+  });
+
+  it("byttes adressen innan taggen kom, skickas en sidvisning för den nya sidan", () => {
+    // Googles historiklyssnare fanns inte när länken trycktes och såg aldrig bytet.
+    const m = laddare({ href: "https://www.fyndplats.se/produkt/a?utm_source=chatgpt.com#galleri" });
+    m.interaktion("pointerup");
+    m.ritaBildruta();
+    m.korTimers(0);
+    m.loc.href = "https://www.fyndplats.se/produkt/b";
+    m.skript[0]?.onload?.();
+    assert.deepEqual(m.gtagAnrop, [[
+      "event",
+      "page_view",
+      {
+        page_location: "https://www.fyndplats.se/produkt/b",
+        page_referrer: "https://www.fyndplats.se/produkt/a?utm_source=chatgpt.com",
+        page_title: "Titel",
+      },
+    ]]);
+  });
+
+  it("samma sida, också med en annan fragmentdel, ger ingen extra sidvisning", () => {
+    const m = laddare({ href: "https://www.fyndplats.se/produkt/a" });
+    m.interaktion("scroll");
+    m.ritaBildruta();
+    m.korTimers(0);
+    m.loc.href = "https://www.fyndplats.se/produkt/a#recensioner";
+    m.skript[0]?.onload?.();
+    assert.deepEqual(m.gtagAnrop, []);
+  });
+
+  it("kastar på ett mät-ID som kan bryta ut ur script-taggen", () => {
+    for (const ont of ["G-X');alert(1);//", "</script>", ""]) {
+      assert.throws(() => taggLaddare(ont), /otillåtet mät-ID/);
+    }
+  });
+});
+
+describe("layouten skriver ut kön och laddaren i samma skript", () => {
+  const layout = readFileSync(new URL("../app/layout.tsx", import.meta.url), "utf8");
+
+  it("laddaren följer direkt efter kön, bara i produktion", () => {
+    assert.match(
+      layout,
+      /IS_PRODUCTION && \(\s*<script\s+dangerouslySetInnerHTML=\{\{ __html: consentBootstrapScript\(GA_MEASUREMENT_ID\) \+ taggLaddare\(GA_MEASUREMENT_ID\) \}\}/,
+    );
+  });
+
+  it("gtag.js skrivs inte ut en gång till med next/script", () => {
+    // Två vägar in hade hämtat och kört biblioteket två gånger.
+    assert.doesNotMatch(layout, /googletagmanager\.com\/gtag\/js/);
   });
 });

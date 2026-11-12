@@ -34,7 +34,11 @@ function send(eventName: string, params: Record<string, unknown>) {
   const g = gtag();
   if (!g) return;
   try {
-    g("event", eventName, params);
+    // Sidans adress när händelsen sker, inte när taggen kör. Taggen hämtas
+    // först när besökaren rör sidan (taggLaddare i lib/consent.ts), och en
+    // händelse i kön hade annars fått den sida som visas då: produktsidans
+    // view_item hade räknats på nästa produkt efter ett tryck på en länk.
+    g("event", eventName, { page_location: window.location.href.split("#")[0], ...params });
   } catch {
     // GA4 ska aldrig krascha sidan — svälj och fortsätt
   }
