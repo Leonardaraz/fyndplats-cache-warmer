@@ -159,12 +159,19 @@ const MIN_RIMLIGT_PRIS_SEK = 20;
  * Så många produkter prisskrivs samtidigt. Priset är per produkt hos Wix (ett
  * GET och en PATCH var), så tempot avgör hur många priser en körning hinner.
  *
- * ☠️ TRE, INTE TJUGO. Wix edge-spärr utlöses av tempo (`aosomSkrivPausMs`),
- * och den går inte att vänta ut inom en körning. Svarar Wix 429 på en
- * prisskrivning går resten av körningen en i taget, och blir de många avbryts
- * den (`STRYPNING_STOPP`).
+ * ☠️ EN I TAGET, MÄTT 2026-11-11. Med tre samtidiga svarade Wix edge-spärr 429
+ * efter några hundra skrivningar (nio fel på 581 priser), och körningen
+ * stoppade på `strypt`. Med en i taget gick 3 968 priser i tre jobb utan ett
+ * enda 429, i 39 priser per minut. Spärren utlöses av tempo
+ * (`aosomSkrivPausMs`) och går inte att vänta ut inom en körning. Två
+ * samtidiga är inte provat.
+ *
+ * Det räcker: en körning om 660 sekunder hinner drygt 400 priser, och schemat
+ * har fyra om dagen. `?samtidiga=` på rutten finns kvar för den som vill mäta
+ * en högre takt för hand. Svarar Wix ändå 429 avbryts körningen när felen blir
+ * många (`STRYPNING_STOPP`).
  */
-export const PRIS_SAMTIDIGA = 3;
+export const PRIS_SAMTIDIGA = 1;
 
 /**
  * Så många prisskrivningar i EN tugga får falla på 429 innan körningen avbryts
