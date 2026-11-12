@@ -19,7 +19,6 @@ import { tightFillUrl } from "../lib/wix-image";
 import { getSocialProof } from "../lib/social-proof-live";
 import { PrefetchLink } from "../components/prefetch-link";
 import { categoryHero } from "../lib/category-groups";
-import { GoogleG } from "../components/google-g";
 import { getPosts } from "../lib/blog";
 import { CURATED_RESULT } from "../lib/curated-reviews";
 // Förslaget till ny startsida (2026-11-12). Allt står under .hem2.
@@ -296,6 +295,61 @@ export default async function Home() {
     .filter((r) => r.rating === 5 && r.text.length >= 80 && r.text.length <= 220)
     .slice(0, 3);
 
+  // Hjältens tredje faktum: hur många varor som går att köpa just nu, avrundat
+  // nedåt till närmaste hundratal ("6 500+"), så att talet aldrig lovar för mycket.
+  const iLager = allProducts.filter((p) => p.inStock).length;
+  const antalIHjalten = `${tusental(Math.floor(iLager / 100) * 100)}+`;
+
+  // En bricka i hjälten. Den första är den utvalda och bär namn och etikett;
+  // de andra bär bara pris och betyg, som förut. Bilden ligger i en egen ruta
+  // ovanför texten: priset stod förut PÅ bilden och behövde mörk botten för att
+  // synas mot vita varor.
+  const heroBricka = (p: (typeof hero)[number], i: number) => (
+    <PrefetchLink className={i === 0 ? "herotile herotile-stor" : "herotile"} key={p.slug} href={`/produkt/${p.slug}`}>
+      <span className="hbild">
+        <Image
+          src={tightFillUrl(p.img, 800, 800)}
+          alt={p.name}
+          fill
+          // `priority` utfasad i Next 16 → `preload`. Bara första brickan:
+          // den är startsidans största bild på dator.
+          {...(i === 0 ? { preload: true as const, fetchPriority: "high" as const } : {})}
+          placeholder="blur"
+          blurDataURL={heroBlur[i]}
+          sizes={i === 0 ? "(max-width:880px) 112px, 280px" : "(max-width:880px) 112px, 180px"}
+        />
+        {p.onSale && p.inStock && <span className="sale-badge">Rea</span>}
+      </span>
+      <span className="hinfo">
+        {i === 0 && <span className="hinfo-etikett" aria-hidden="true">{p.rating ? "Kundfavorit" : "Nytt i butiken"}</span>}
+        {/* Namnet står redan i bildens alt-text, som bär länkens namn. */}
+        {i === 0 && <span className="hnamn" aria-hidden="true">{p.name}</span>}
+        <span className="hrad">
+          {p.price && (
+            <span className="htag">
+              {"visaFran" in p && p.visaFran && p.priceFromNum
+                ? `Från ${formatPrice(p.priceFromNum)}`
+                : p.priceNum ? formatPrice(p.priceNum) : p.price}
+              {p.onSale && (p.originalPriceNum || p.originalPrice) && (
+                <TidigarePris
+                  kort
+                  belopp={p.originalPriceNum ? formatPrice(p.originalPriceNum) : p.originalPrice || ""}
+                  className="htag-old"
+                />
+              )}
+            </span>
+          )}
+          {p.rating && (
+            <span className="hrating" role="img" aria-label={`Betyg ${p.rating.value} av 5, ${reviewCountLabel(p.rating.count)}`}>
+              <span aria-hidden="true">{p.rating.value}</span>
+              <span className="hrating-count" aria-hidden="true">({p.rating.count})</span>
+            </span>
+          )}
+        </span>
+      </span>
+    </PrefetchLink>
+  );
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(jsonLd) }} />
@@ -307,7 +361,11 @@ export default async function Home() {
           <div className="herogrid">
             <div className="heroinner">
               <span className="badge">✦ Trygg svensk e-handel · Nya fynd varje vecka</span>
-              <h1>Fyndplats — Noga utvalda fynd, <em>tryggt köp</em></h1>
+              {/* Samma ord i samma ordning som förut ("Fyndplats — Noga utvalda
+                  fynd, tryggt köp"), så rubriken läses likadant av Google och
+                  skärmläsare. Butiksnamnet står som en liten etikett, eftersom
+                  loggan står strax ovanför, och påståendet får två stora rader. */}
+              <h1><span className="h1-marke">Fyndplats —</span> <span className="h1-rad">Noga utvalda</span> fynd, <em>tryggt köp</em></h1>
               {/* Kort ingress. Den långa versionen upprepade frakt och kundtjänst,
                   som står i USP-remsan strax under — hjälten sa alltså samma sak
                   två gånger innan besökaren sett en enda produkt. */}
@@ -329,21 +387,22 @@ export default async function Home() {
                   helst, och de får varsitt eget märke i stället för fyra
                   likadana bockar. */}
               <div className="herotrust">
-                <a className="ht-eu" href="/blogg/nya-tullreglerna-2026-eu-lager">
-                  <span className="ht-mark" aria-hidden="true">🇪🇺</span>
-                  Allt från EU-lager <span className="ht-sub">– ingen importtull</span>
-                </a>
                 <a className="ht-goog" href="/omdomen">
-                  {/* Förslaget: på mobilen står Googles märke i stället för orden
-                      "på Google", så att de två löftena ryms på en rad. */}
-                  <span className="ht-g" aria-hidden="true"><GoogleG size={15} /></span>
                   {/* Siffran och skalan står ihop — "4,9 av 5" är ETT
-                      påstående. Stjärnorna är beviset och kommer efter, källan
-                      sist. Samma ordning som i sidfoten. */}
-                  <span className="ht-score">{proof.rating}</span>
-                  <span className="ht-sub">av 5</span>
-                  <Stars rating={Number(proof.rating.replace(",", ".")) || 5} className="ht-stars" aria-hidden />
-                  <span className="ht-sub">på Google</span>
+                      påstående. Stjärnorna är beviset, källan sist. */}
+                  <span className="ht-tal">
+                    <span className="ht-score">{proof.rating}</span>
+                    <Stars rating={Number(proof.rating.replace(",", ".")) || 5} className="ht-stars" aria-hidden />
+                  </span>
+                  <span className="ht-etikett ht-sub"><span className="ht-lang">av 5 </span>på Google</span>
+                </a>
+                <a className="ht-eu" href="/blogg/nya-tullreglerna-2026-eu-lager">
+                  <span className="ht-tal">0 kr</span>
+                  <span className="ht-etikett ht-sub">i tull<span className="ht-lang"> – allt från EU-lager</span></span>
+                </a>
+                <a className="ht-antal" href="/alla-produkter">
+                  <span className="ht-tal">{antalIHjalten}</span>
+                  <span className="ht-etikett ht-sub"><span className="ht-lang">utvalda </span>produkter</span>
                 </a>
               </div>
             </div>
@@ -351,74 +410,8 @@ export default async function Home() {
                 produktsidan öppnades då inte vid bilderna som från korten
                 (Leonard 2026-10-07, components/use-landa-vid-bilder.ts). */}
             <div className="heromosaic">
-              <div className="mcol">
-                {hero.slice(0, 2).map((p, i) => (
-                  <PrefetchLink className="herotile" key={p.slug} href={`/produkt/${p.slug}`}>
-                    <Image
-                      src={tightFillUrl(p.img, 800, 800)}
-                      alt={p.name}
-                      fill
-                      // `priority` utfasad i Next 16 → `preload`. Bara första
-                      // brickan: den är startsidans LCP-element.
-                      {...(i === 0 ? { preload: true as const, fetchPriority: "high" as const } : {})}
-                      placeholder="blur"
-                      blurDataURL={heroBlur[i]}
-                      sizes="(max-width:880px) 42vw, 22vw"
-                    />
-                    {p.onSale && p.inStock && <span className="sale-badge">Rea</span>}
-                    {p.rating && (
-                      <span className="hrating" role="img" aria-label={`Betyg ${p.rating.value} av 5, ${reviewCountLabel(p.rating.count)}`}>
-                        <Stars rating={p.rating.exact} className="hrating-stars" aria-hidden />
-                        <span aria-hidden="true">{p.rating.value}</span>
-                        <span className="hrating-count" aria-hidden="true">({p.rating.count})</span>
-                      </span>
-                    )}
-                    {p.price && (
-                      <span className="htag">
-                        {"visaFran" in p && p.visaFran && p.priceFromNum
-                          ? `Från ${formatPrice(p.priceFromNum)}`
-                          : p.priceNum ? formatPrice(p.priceNum) : p.price}
-                        {p.onSale && (p.originalPriceNum || p.originalPrice) && (
-                          <TidigarePris
-                            kort
-                            belopp={p.originalPriceNum ? formatPrice(p.originalPriceNum) : p.originalPrice || ""}
-                            className="htag-old"
-                          />
-                        )}
-                      </span>
-                    )}
-                  </PrefetchLink>
-                ))}
-              </div>
-              <div className="mcol mcol-offset">
-                {hero.slice(2, 4).map((p, i) => (
-                  <PrefetchLink className="herotile" key={p.slug} href={`/produkt/${p.slug}`}>
-                    <Image src={tightFillUrl(p.img, 800, 800)} alt={p.name} fill placeholder="blur" blurDataURL={heroBlur[i + 2]} sizes="(max-width:880px) 42vw, 22vw" />
-                    {p.onSale && p.inStock && <span className="sale-badge">Rea</span>}
-                    {p.rating && (
-                      <span className="hrating" role="img" aria-label={`Betyg ${p.rating.value} av 5, ${reviewCountLabel(p.rating.count)}`}>
-                        <Stars rating={p.rating.exact} className="hrating-stars" aria-hidden />
-                        <span aria-hidden="true">{p.rating.value}</span>
-                        <span className="hrating-count" aria-hidden="true">({p.rating.count})</span>
-                      </span>
-                    )}
-                    {p.price && (
-                      <span className="htag">
-                        {"visaFran" in p && p.visaFran && p.priceFromNum
-                          ? `Från ${formatPrice(p.priceFromNum)}`
-                          : p.priceNum ? formatPrice(p.priceNum) : p.price}
-                        {p.onSale && (p.originalPriceNum || p.originalPrice) && (
-                          <TidigarePris
-                            kort
-                            belopp={p.originalPriceNum ? formatPrice(p.originalPriceNum) : p.originalPrice || ""}
-                            className="htag-old"
-                          />
-                        )}
-                      </span>
-                    )}
-                  </PrefetchLink>
-                ))}
-              </div>
+              <div className="mcol">{hero.slice(0, 2).map((p, i) => heroBricka(p, i))}</div>
+              <div className="mcol mcol-offset">{hero.slice(2, 4).map((p, i) => heroBricka(p, i + 2))}</div>
             </div>
           </div>
         </div>
@@ -470,6 +463,9 @@ export default async function Home() {
                           // väljer webbläsaren då 384 px i stället för 640 (mätt lokalt:
                           // 115 kB per bild vid 640). 384 px i en ruta på 148 är 2,6 pixlar per punkt.
                           sizes="(max-width:880px) 128px, 270px"
+                          // Stämningsbilder tål lägre kvalitet än varubilder. 60 i stället
+                          // för laddarens 80 (lib/image-loader.ts) sparar en dryg tredjedel.
+                          quality={60}
                         />
                       )}
                     </span>

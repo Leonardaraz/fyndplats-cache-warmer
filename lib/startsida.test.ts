@@ -20,7 +20,8 @@ const regler = css
 describe("startsidans stilar rör bara startsidan", () => {
   it("varje selektor börjar med .hem2", () => {
     assert.ok(regler.length > 60, `bara ${regler.length} regler lästa`);
-    for (const [selektorer] of regler) for (const s of selektorer) assert.match(s, /^\.hem2[ .:>]/, s);
+    // Ett säsongstema får stå före: det sätts på <html> av lib/sasongstema.ts.
+    for (const [selektorer] of regler) for (const s of selektorer) assert.match(s, /^(:root\[data-tema\] )?\.hem2[ .:>]/, s);
   });
 
   it("sidan läser stilen och bär klassen runt hela innehållet", () => {
@@ -64,5 +65,46 @@ describe("startsidans sektioner", () => {
     const kort = sida.slice(sida.indexOf('className="guide"'), sida.indexOf("</PrefetchLink>", sida.indexOf('className="guide"')));
     assert.match(kort, /<Image src=\{g\.cover\} alt="" fill /);
     assert.match(kort, /className="guide-titel"/);
+  });
+});
+
+describe("hjälten", () => {
+  it("rubriken bär samma ord i samma ordning som förut", () => {
+    const h1 = sida.slice(sida.indexOf("<h1>"), sida.indexOf("</h1>"));
+    assert.equal(h1.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim(), "Fyndplats — Noga utvalda fynd, tryggt köp");
+    assert.match(h1, /<span className="h1-marke">Fyndplats —<\/span>/);
+    assert.match(h1, /<em>tryggt köp<\/em>/);
+  });
+
+  it("faktaraden har tre länkar, och orden som döljs på mobilen står kvar i texten", () => {
+    const rad = sida.slice(sida.indexOf('<div className="herotrust">'), sida.indexOf("{/* PrefetchLink, inte <a>"));
+    assert.equal(rad.split("<a ").length - 1, 3);
+    assert.doesNotMatch(rad, /aria-label/);
+    assert.match(rad, /<span className="ht-lang">av 5 <\/span>på Google/);
+    assert.match(rad, /i tull<span className="ht-lang"> – allt från EU-lager<\/span>/);
+    // Dolt för ögat, inte för skärmläsaren.
+    assert.match(css, /\.hem2 \.ht-lang\{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset\(50%\);white-space:nowrap\}/);
+  });
+
+  it("antalet i faktaraden avrundas nedåt, så att det aldrig lovar för mycket", () => {
+    assert.match(sida, /const antalIHjalten = `\$\{tusental\(Math\.floor\(iLager \/ 100\) \* 100\)\}\+`;/);
+  });
+
+  it("bara första brickan förladdas, och namnet läses en gång", () => {
+    const bricka = sida.slice(sida.indexOf("const heroBricka ="), sida.indexOf("  return (\n    <>"));
+    assert.match(bricka, /\{\.\.\.\(i === 0 \? \{ preload: true as const, fetchPriority: "high" as const \} : \{\}\)\}/);
+    assert.match(bricka, /alt=\{p\.name\}/);
+    assert.match(bricka, /<span className="hnamn" aria-hidden="true">\{p\.name\}<\/span>/);
+  });
+
+  it("bildrutan är kvadratisk, så att platshållaren aldrig syns bredvid bilden", () => {
+    assert.match(css, /\.hem2 \.hbild\{[^}]*aspect-ratio:1;/);
+    assert.match(css, /\.hem2 \.herotile img\{object-fit:contain;mix-blend-mode:multiply\}/);
+  });
+
+  it("faktaraden ärver hjältens färg, så att den syns i ett mörkt säsongstema", () => {
+    assert.match(css, /\.hem2 \.herotrust\{[^}]*color:inherit;/);
+    assert.match(css, /\.hem2 \.ht-tal\{[^}]*color:inherit;/);
+    assert.match(css, /:root\[data-tema\] \.hem2 \.hero \.herotrust>a\{background:none;box-shadow:none\}/);
   });
 });
