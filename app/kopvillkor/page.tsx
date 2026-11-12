@@ -56,8 +56,8 @@ const KORTHET: { rubrik: string; text: React.ReactNode; punkt: string }[] = [
     punkt: "priser",
   },
   {
-    rubrik: "Betalning via Klarna",
-    text: "Faktura, delbetalning, kort, direktbetalning via bank, Apple Pay och Google Pay.",
+    rubrik: "Betalning",
+    text: "Kort, Apple Pay och Google Pay via Stripe, eller Klarna med faktura, delbetalning eller direktbetalning via bank.",
     punkt: "betalning",
   },
   {
@@ -187,15 +187,13 @@ export default function Kopvillkor() {
             <p>Du ansvarar för att de uppgifter du lämnar vid beställning är korrekta. Felaktig adress eller kontaktinformation kan medföra att paketet inte når fram – se även punkt 6 om ej uthämtade paket.</p>
 
             <h2 id="betalning" className={s.anker}>4. Betalning</h2>
-            <p>Vi erbjuder betalning via <strong>Klarna</strong>, som tillhandahåller följande betalsätt:</p>
+            <p>Du kan betala med kort (Visa, Mastercard, American Express), Apple Pay, Google Pay eller <strong>Klarna</strong>. Kort, Apple Pay och Google Pay hanteras av vår betaltjänstleverantör <strong>Stripe</strong>. Med Klarna väljer du mellan följande betalsätt:</p>
             <ul>
-              <li>Faktura (betala inom 14 eller 30 dagar)</li>
-              <li>Delbetalning (Klarna Konto)</li>
-              <li>Kortbetalning (Visa, Mastercard, American Express)</li>
+              <li>Faktura (betala senare)</li>
+              <li>Delbetalning</li>
               <li>Direktbetalning via bank</li>
-              <li>Apple Pay och Google Pay</li>
             </ul>
-            <p>Klarnas fullständiga villkor hittar du på <a href="https://www.klarna.com/se/" target="_blank" rel="noopener noreferrer">klarna.com/se</a>. När du betalar med Klarna sker betalningen direkt till Klarna, och eventuell återbetalning hanteras också av Klarna.</p>
+            <p>Klarnas fullständiga villkor hittar du på <a href="https://www.klarna.com/se/" target="_blank" rel="noopener noreferrer">klarna.com/se</a>. När du betalar med Klarna sker betalningen direkt till Klarna, och eventuell återbetalning hanteras också av Klarna. Har du betalat med kort, Apple Pay eller Google Pay går en återbetalning tillbaka till samma kort.</p>
 
             <h2 id="leverans" className={s.anker}>5. Leverans och leveranstid</h2>
             <p>Normal leveranstid är <strong>3–6 arbetsdagar</strong> från det att beställningen bekräftats. Leveranstiden kan variera beroende på produkt, lager och säsong. Aktuell leveranstid visas i kassan och uppdaterad status skickas via e-post.</p>
@@ -271,7 +269,7 @@ export default function Kopvillkor() {
               <li><a href="/kontaktaoss">Kontakta oss</a></li>
             </ul>
 
-            <p style={{ fontSize: 14, color: "var(--soft)", marginTop: 24 }}>Senast uppdaterad: 18 oktober 2026</p>
+            <p style={{ fontSize: 14, color: "var(--soft)", marginTop: 24 }}>Senast uppdaterad: 12 november 2026</p>
           </article>
         </div>
       </section>

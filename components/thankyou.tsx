@@ -120,7 +120,7 @@ export function ThankYou({ orderNumber, children }: { orderNumber?: string | nul
       <div className="tack-trust">
         <span><i className="dot" /> Fri frakt över 499 kr</span>
         <span><i className="dot" /> 30 dagars öppet köp</span>
-        <span><i className="dot" /> Trygg Klarna-betalning</span>
+        <span><i className="dot" /> Trygg betalning</span>
       </div>
 
       <div className="tack-actions">
