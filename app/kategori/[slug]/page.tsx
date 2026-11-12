@@ -3,8 +3,8 @@ import Image from "next/image";
 import { jsonLdString } from "../../../lib/seo";
 import type { Metadata } from "next";
 import { redirect, notFound } from "next/navigation";
-import { getProducts, getCollections, getAllCategorySlugs, forListings, dedupeProducts } from "../../../lib/products";
-import { kategoriProdukter, listaForSidan, ordnaLista, specDefsFor } from "../../../lib/list-pages";
+import { getHelaKatalogen, getHelaKategorier, getCollections, getAllCategorySlugs, forListings, dedupeProducts } from "../../../lib/products";
+import { kategoriProdukter, listaForSidan, ordnaLista, slutsaldaIKategorin, specDefsFor } from "../../../lib/list-pages";
 import { currentDayMs } from "../../../lib/sort-products";
 import { CategoryDropdown } from "../../../components/categorydropdown";
 import { ShopBrowser } from "../../../components/shopbrowser";
@@ -33,7 +33,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const [cols, products] = await Promise.all([getCollections(), getProducts()]);
+  const [cols, products] = await Promise.all([getHelaKategorier(), getHelaKatalogen()]);
   const c = cols.find((x) => x.slug === slug);
   if (!c) return { title: "Kategori" };
   // Sökordsanpassad titel/beskrivning när kategorin har en (lib/category-seo):
@@ -91,7 +91,7 @@ function produktBild(slug: string, lista: { slug: string; img: string; imageScor
 
 export default async function Kategori({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const [allProducts, collections] = await Promise.all([getProducts(), getCollections()]);
+  const [allProducts, collections] = await Promise.all([getHelaKatalogen(), getHelaKategorier()]);
   const products = forListings(allProducts); // dölj ev. slutsålda från listan (opt-in)
   const active = collections.find((c) => c.slug === slug);
   // KÄND men just nu tom kategori (t.ex. tömd efter Kina-utfasningen) →
@@ -120,6 +120,7 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
   // lib/list-pages.ts.
   const dagMs = currentDayMs();
   const list = await ordnaLista(dedupeProducts(catList), dagMs);
+  const slutsalda = slutsaldaIKategorin(active, collections, allProducts);
   // Förälder (om detta är en subkategori) → för brödsmulor.
   const parent = active.parentId ? collections.find((c) => c.id === active.parentId) : undefined;
   // Programmatiska SEO-länkar för kategorin (pris-tiers + bäst-i-test) — bara
@@ -304,6 +305,10 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
               i server-HTML (Suspense-fallback) → utan denna lista fick svans-
               produkterna inga kategori-ankarlänkar alls. Ren text = noll perf. */}
           <ProductIndex products={list} title={`Alla inom ${kategoriIMening(active.name)} A–Ö`} />
+          {/* Slutsålda produkter döljs i rutnätet men lever kvar som sidor med
+              bevakning. Utan den här listan länkade ingen sida till dem
+              (slutsaldaIKategorin i lib/list-pages.ts). */}
+          <ProductIndex products={slutsalda} title="Slut i lager just nu" />
         </div>
       </section>
 

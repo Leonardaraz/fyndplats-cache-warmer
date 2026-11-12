@@ -21,7 +21,7 @@
 //   • Unik H1 + meta per sida — seedad variation + unika slot-data; verifieras i
 //     scripts/verify-programmatic-full.mjs.
 import { cache } from "react";
-import { getProducts, getCollections, dedupeProducts, type Product, type Collection } from "../products";
+import { getHelaKatalogen, getCollections, dedupeProducts, type Product, type Collection } from "../products";
 import { produkterIKategorin } from "../bara-i-underkategorin";
 import { formatPrice } from "../price-range";
 import { getPosts, type Post } from "../blog";
@@ -32,6 +32,7 @@ import typesJson from "./programmatic-types.json";
 import interestsJson from "./programmatic-interests.json";
 import * as T from "./programmatic-templates";
 import * as S from "./programmatic-select";
+import { prisgrannar, ringEfter } from "./grannlankar";
 
 export const SITE = "https://www.fyndplats.se";
 export const PRICE_TIERS = [200, 500, 1000] as const;
@@ -360,7 +361,7 @@ function typeCore(products: Product[], collections: Collection[], cfg: TypeConfi
 }
 
 export const getValidTypeSlugs = cache(async (): Promise<string[]> => {
-  const [products, collections] = await Promise.all([getProducts(), getCollections()]);
+  const [products, collections] = await Promise.all([getHelaKatalogen(), getCollections()]);
   return TYPES.filter((cfg) => typeCore(products, collections, cfg)).map((c) => c.slug);
 });
 
@@ -368,7 +369,7 @@ export const resolveKopguide = cache(async (slug: string): Promise<KopguideView 
   const cfg = TYPES.find((c) => c.slug === slug);
   if (!cfg) return null;
   const [products, collections, posts, validSlugs, tierParams] = await Promise.all([
-    getProducts(),
+    getHelaKatalogen(),
     getCollections(),
     getPosts(),
     getValidTypeSlugs(),
@@ -459,7 +460,7 @@ function tierCore(products: Product[], collections: Collection[], cat: Collectio
 }
 
 export const getValidPriceTierParams = cache(async (): Promise<{ price: number; categorySlug: string }[]> => {
-  const [products, collections] = await Promise.all([getProducts(), getCollections()]);
+  const [products, collections] = await Promise.all([getHelaKatalogen(), getCollections()]);
   const out: { price: number; categorySlug: string }[] = [];
   for (const price of PRICE_TIERS) {
     for (const cat of collections) {
@@ -472,7 +473,7 @@ export const getValidPriceTierParams = cache(async (): Promise<{ price: number; 
 export const resolvePriceTier = cache(async (price: number, categorySlug: string): Promise<PriceTierView | null> => {
   if (!PRICE_TIERS.includes(price as (typeof PRICE_TIERS)[number])) return null;
   const [products, collections, allTiers, validTypes] = await Promise.all([
-    getProducts(),
+    getHelaKatalogen(),
     getCollections(),
     getValidPriceTierParams(),
     getValidTypeSlugs(),
@@ -494,6 +495,11 @@ export const resolvePriceTier = cache(async (price: number, categorySlug: string
   }
   for (const cfg of TYPES.filter((c) => c.category === cat.name && validTypes.includes(c.slug)).slice(0, 2)) {
     related.push({ href: `/kopguider/${cfg.slug}`, label: `Köpguide: ${cfg.label}` });
+  }
+  // ☠️ Utan grannarna hade en prissida EN intern länk, den från sin egen
+  // kategorisida (50 sidor i Semrush 2026-11-11, lib/seo/grannlankar.ts).
+  for (const granne of prisgrannar(cat, collections, allTiers)) {
+    if (!related.some((r) => r.href === granne.href)) related.push(granne);
   }
 
   const crumbs = [
@@ -562,7 +568,7 @@ function interestCore(products: Product[], collections: Collection[], cfg: Inter
 }
 
 export const getValidInterestSlugs = cache(async (): Promise<string[]> => {
-  const [products, collections] = await Promise.all([getProducts(), getCollections()]);
+  const [products, collections] = await Promise.all([getHelaKatalogen(), getCollections()]);
   return INTERESTS.filter((cfg) => interestCore(products, collections, cfg)).map((c) => c.slug);
 });
 
@@ -570,7 +576,7 @@ export const resolveInterest = cache(async (slug: string): Promise<InterestView 
   const cfg = INTERESTS.find((c) => c.slug === slug);
   if (!cfg) return null;
   const [products, collections, posts, validSlugs] = await Promise.all([
-    getProducts(),
+    getHelaKatalogen(),
     getCollections(),
     getPosts(),
     getValidInterestSlugs(),
@@ -595,7 +601,10 @@ export const resolveInterest = cache(async (slug: string): Promise<InterestView 
     .filter((c): c is Collection => !!c && !c.parentId)
     .slice(0, 2);
   for (const c of linkedCats) related.push({ href: `/kategori/${c.slug}`, label: `Allt inom ${c.name}` });
-  for (const other of INTERESTS.filter((c) => c.slug !== slug && validSlugs.includes(c.slug)).slice(0, 3)) {
+  // ☠️ En RING, inte de tre första: med `.slice(0, 3)` fick de första
+  // intressesidorna alla länkar och de sista inga (lib/seo/grannlankar.ts).
+  const giltiga = INTERESTS.filter((c) => validSlugs.includes(c.slug));
+  for (const other of ringEfter(giltiga, giltiga.findIndex((c) => c.slug === slug), 3)) {
     related.push({ href: `/for-dig-som/${other.slug}`, label: `För dig som ${other.verb}` });
   }
   const blogLinks: CrossLink[] = relatedPosts(posts, [cfg.verb, cfg.noun, ...cfg.keywords], 2).map((b) => ({
@@ -653,7 +662,7 @@ export const resolveInterest = cache(async (slug: string): Promise<InterestView 
 // huvudkategori där flest av dess produkter bor. Garanterar ≥1 kategorisk
 // inlänk per giltigt intresse; subkategorisidor ärver toppens intressen.
 const interestsByTopCategory = cache(async (): Promise<Map<string, InterestConfig[]>> => {
-  const [products, collections] = await Promise.all([getProducts(), getCollections()]);
+  const [products, collections] = await Promise.all([getHelaKatalogen(), getCollections()]);
   const topOf = new Map<string, string>();
   for (const c of collections) topOf.set(c.id, c.parentId ?? c.id);
   const out = new Map<string, InterestConfig[]>();

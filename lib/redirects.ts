@@ -66,3 +66,47 @@ export async function getProductRedirect(slug: string): Promise<string | null> {
     return null;
   }
 }
+
+/**
+ * Omdirigeringarna för FLERA sluggar i ett anrop: slug → intern sökväg. Sluggar
+ * utan rad saknas i svaret.
+ *
+ * Används av produktsidan för länkarna i produkttexten (lib/interna-lankar.ts,
+ * medLevandeLankar): en länk till en produkt som slagits ihop med en annan
+ * ritas med målets adress i stället för att gå genom en 308.
+ *
+ * ☠️ `giltigSek` ska vara produktsidans egen `revalidate`. Next låter sidans
+ * kortaste fetch styra hur ofta sidan byggs om: med uppslagets vanliga 300
+ * sekunder hade varje produktsida med en flyttad länk byggts om var femte
+ * minut i stället för var sjätte timme.
+ *
+ * Kastar när tabellen inte går att läsa. Anroparen avgör vad det betyder: för
+ * produkttexten ritas länkarna då som de står.
+ */
+export async function getProductRedirects(slugs: readonly string[], giltigSek: number): Promise<Map<string, string>> {
+  const ut = new Map<string, string>();
+  const fraga = [...new Set(slugs)].filter(Boolean).sort();
+  if (fraga.length === 0) return ut;
+  if (!WIX_API_KEY) throw new Error("WIX_API_KEY saknas");
+  const res = await fetch("https://www.wixapis.com/wix-data/v2/items/query", {
+    method: "POST",
+    headers: {
+      Authorization: WIX_API_KEY,
+      "wix-site-id": WIX_SITE_ID,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      dataCollectionId: REDIRECTS_COLLECTION,
+      query: { filter: { fromSlug: { $in: fraga } }, paging: { limit: Math.min(fraga.length, 100) } },
+    }),
+    next: { revalidate: giltigSek },
+  });
+  if (!res.ok) throw new Error(`FyndplatsRedirects svarade ${res.status}`);
+  const body = (await res.json()) as { dataItems?: { data?: { fromSlug?: unknown; toPath?: unknown } }[] };
+  for (const rad of body.dataItems ?? []) {
+    const fran = rad.data?.fromSlug;
+    const till = sanitizeRedirectTarget(rad.data?.toPath);
+    if (typeof fran === "string" && till) ut.set(fran, till);
+  }
+  return ut;
+}

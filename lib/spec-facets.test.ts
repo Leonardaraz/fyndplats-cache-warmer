@@ -6,9 +6,13 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import {
   lasMatt, lasSpec, lasAlder, specRader, inomIntervall, passarVal,
   specSkala, specOversikt, specFor, specSlug, lasSpecSlug, specEtikett, specUndre, specOvre,
+  FACETTER, MATERIAL, VAL, formatTal,
   type Spec,
 } from "./spec-facets.ts";
 
@@ -332,3 +336,139 @@ test("översikt: en ensam byrå med tio lådor går att välja via N+", () => {
 test("egenskaper: en solcellslampa är inte batteridriven", () => {
   assert.equal(lasSpec("Solcellslampa 77 cm", "<ul><li><p>Litiumbatteriet ingår och laddas av solpanelen</p></li></ul>")?.eg, "s");
 });
+
+// ☠️ MODULEN GÅR TILL WEBBLÄSAREN med listsidornas filter. Safari före 16.4
+// kan inte kompilera ett bakåtblickande uttryck, och butiken lovar iOS 14 och
+// uppåt. Proven nedan vaktar tre saker: servern bygger uttrycken som förut, en
+// motor utan bakåtblick kan ladda modulen, och inget bakåtblickande uttryck
+// står direkt i koden (ett sådant läses när skriptfilen tolkas, och då hjälper
+// ingen kontroll).
+
+const FORE_KALLA = String.raw`(?<![\p{L}\p{N}_])`;
+const EFTER_KALLA = String.raw`(?![\p{L}\p{N}_])`;
+const ROT = join(import.meta.dirname, "..");
+
+test("bakåtblick: på servern byggs uttrycken som förut, med svenska bokstavsgränser", () => {
+  const tra = MATERIAL.find((m) => m.kod === "t")!.ord;
+  assert.ok(tra.source.startsWith(FORE_KALLA), tra.source.slice(0, 40));
+  assert.ok(tra.source.endsWith(EFTER_KALLA), tra.source.slice(-40));
+  assert.ok(tra.flags.includes("u"));
+  // Varje uttryck som hade ett \b bär gränserna, inget har ett \b kvar.
+  const alla = [...MATERIAL.map((m) => m.ord), ...Object.values(VAL).flat().map((v) => v.ord).filter((o): o is RegExp => !!o)];
+  assert.ok(alla.length > 40, String(alla.length));
+  for (const re of alla) assert.doesNotMatch(re.source, /\\b/, re.source.slice(0, 60));
+  assert.ok(alla.filter((re) => re.source.includes(FORE_KALLA)).length > 20);
+  // Det som gränserna finns till för: å, ä och ö räknas som bokstäver.
+  assert.equal(lasSpec("Byrå", "<ul><li><p>Material: trä</p></li></ul>")?.m, "t");
+  assert.equal(lasSpec("Träningsbänk", "<ul><li><p>Material: stål</p></li></ul>")?.m, "m");
+});
+
+/** Kör kod i en egen process där RegExp vägrar bakåtblick, som Safari före 16.4. */
+function utanBakatblick(kod: string, miljo: Record<string, string> = {}): { status: number | null; ut: string; fel: string } {
+  const skript = `
+    const Akta = RegExp;
+    const vagra = (arg) => {
+      const kalla = arg[0] instanceof Akta ? arg[0].source : String(arg[0]);
+      if (/\\(\\?<[=!]/.test(kalla)) {
+        globalThis.__nekade = (globalThis.__nekade || 0) + 1;
+        throw new SyntaxError("Invalid regular expression: invalid group specifier name");
+      }
+    };
+    globalThis.RegExp = new Proxy(Akta, {
+      construct(mal, arg, nyMal) { vagra(arg); return Reflect.construct(mal, arg, nyMal); },
+      apply(mal, detta, arg) { vagra(arg); return Reflect.apply(mal, detta, arg); },
+    });
+    const m = await import("./lib/spec-facets.ts");
+    ${kod}
+  `;
+  const r = spawnSync(process.execPath, ["--experimental-strip-types", "--no-warnings", "--input-type=module", "-e", skript], {
+    cwd: ROT, encoding: "utf8", env: { ...process.env, ...miljo },
+  });
+  return { status: r.status, ut: r.stdout, fel: r.stderr };
+}
+
+test("☠️ bakåtblick: en motor utan den kan ladda modulen (Safari före 16.4 kastade här)", () => {
+  const r = utanBakatblick(`
+    const tra = m.MATERIAL.find((x) => x.kod === "t").ord;
+    console.log(JSON.stringify({ nekade: globalThis.__nekade || 0, facetter: Object.keys(m.FACETTER).length, material: m.MATERIAL.length, borjan: tra.source.slice(0, 3), slut: tra.source.slice(-2), flaggor: tra.flags }));
+  `);
+  assert.equal(r.status, 0, r.fel.slice(0, 600));
+  const ut = JSON.parse(r.ut);
+  // Uttrycket är det som står i koden, med \b kvar och samma flaggor som på servern.
+  assert.equal(ut.borjan, "\\b(");
+  assert.equal(ut.slut, "\\b");
+  assert.equal(ut.flaggor, MATERIAL.find((x) => x.kod === "t")!.ord.flags);
+  // Kontrollen frågade motorn en gång och fick nej. Sedan byggdes inget
+  // bakåtblickande uttryck alls: ett enda till hade kastat.
+  assert.equal(ut.nekade, 1);
+  assert.equal(ut.facetter, Object.keys(FACETTER).length);
+  assert.equal(ut.material, MATERIAL.length);
+});
+
+test("bakåtblick: provmotorn vägrar verkligen, så provet ovan mäter något", () => {
+  const r = utanBakatblick(`new RegExp("(?<!a)b");`);
+  assert.notEqual(r.status, 0);
+  assert.match(r.fel, /invalid group specifier name/);
+});
+
+test("bakåtblick: det webbläsaren använder ger samma svar i en motor utan den", () => {
+  // Det här är allt components/shopbrowser.tsx hämtar ur modulen.
+  const specar: (Spec | undefined)[] = [
+    lasSpec("Byrå med fyra lådor", "<ul><li><p>Mått: 82 × 35 × 76 cm</p></li><li><p>Material: trä och stål</p></li><li><p>Vikt: 21,5 kg</p></li></ul>"),
+    lasSpec("Kontorsstol", "<ul><li><p>Sitthöjd: 45–55 cm</p></li><li><p>Maxlast: 120 kg</p></li><li><p>Material: nätrygg och konstläder</p></li></ul>"),
+    { b: 120, d: 60, h: [72, 118], ld: 3, m: "tm", eg: "hj" } as Spec,
+    undefined,
+  ];
+  assert.ok(specar[0]?.b && specar[0]?.m, JSON.stringify(specar[0]));
+  const kod = `
+    const specar = JSON.parse(process.env.SPECAR).map((s) => s ?? undefined);
+    const skala = { min: 40, max: 200, step: 5, openTop: true };
+    console.log(JSON.stringify({
+      facetter: m.FACETTER,
+      inom: specar.map((s) => ["b", "d", "h", "sh", "ml", "kg"].map((k) => [m.inomIntervall(s, k, 0, 60), m.inomIntervall(s, k, 61, 5000)])),
+      val: specar.map((s) => [m.passarVal(s, "m", ["t"], false), m.passarVal(s, "m", ["t", "m"], true), m.passarVal(s, "eg", ["h", "j"], true), m.passarVal(s, "ld", ["3"], false), m.passarVal(s, "ld", ["4+"], false), m.passarVal(s, "m", [], false)]),
+      tal: [m.formatTal(1234.5), m.formatTal(80), m.formatTal(2000)],
+      etikett: [m.specEtikett(40, 120, skala, "cm"), m.specEtikett(60, 120, skala, "cm"), m.specEtikett(60, 200, skala, "W"), m.specEtikett(40, 200, skala, "")],
+      slug: [m.specSlug(40, 120, skala), m.specSlug(60, 120, skala), m.specSlug(60, 200, skala), m.specSlug(40, 200, skala)],
+      last: [m.lasSpecSlug("under-120", skala), m.lasSpecSlug("over-60", skala), m.lasSpecSlug("60-120", skala), m.lasSpecSlug("57.5-90", skala), m.lasSpecSlug("skräp", skala), m.lasSpecSlug(null, skala)],
+      granser: [m.specOvre(200, skala) === Infinity, m.specOvre(120, skala), m.specUndre(40, skala) === -Infinity, m.specUndre(60, skala)],
+    }));
+  `;
+  const r = utanBakatblick(kod, { SPECAR: JSON.stringify(specar.map((s) => s ?? null)) });
+  assert.equal(r.status, 0, r.fel.slice(0, 600));
+  const skala = { min: 40, max: 200, step: 5, openTop: true };
+  const nycklar = ["b", "d", "h", "sh", "ml", "kg"] as const;
+  const har = {
+    facetter: FACETTER,
+    inom: specar.map((s) => nycklar.map((k) => [inomIntervall(s, k, 0, 60), inomIntervall(s, k, 61, 5000)])),
+    val: specar.map((s) => [passarVal(s, "m", ["t"], false), passarVal(s, "m", ["t", "m"], true), passarVal(s, "eg", ["h", "j"], true), passarVal(s, "ld", ["3"], false), passarVal(s, "ld", ["4+"], false), passarVal(s, "m", [], false)]),
+    tal: [formatTal(1234.5), formatTal(80), formatTal(2000)],
+    etikett: [specEtikett(40, 120, skala, "cm"), specEtikett(60, 120, skala, "cm"), specEtikett(60, 200, skala, "W"), specEtikett(40, 200, skala, "")],
+    slug: [specSlug(40, 120, skala), specSlug(60, 120, skala), specSlug(60, 200, skala), specSlug(40, 200, skala)],
+    last: [lasSpecSlug("under-120", skala), lasSpecSlug("over-60", skala), lasSpecSlug("60-120", skala), lasSpecSlug("57.5-90", skala), lasSpecSlug("skräp", skala), lasSpecSlug(null, skala)],
+    granser: [specOvre(200, skala) === Infinity, specOvre(120, skala), specUndre(40, skala) === -Infinity, specUndre(60, skala)],
+  };
+  assert.deepEqual(JSON.parse(r.ut), JSON.parse(JSON.stringify(har)));
+  // Och svaren är inte tomma: provet jämför något.
+  assert.ok(har.inom.flat(2).includes(true) && har.inom.flat(2).includes(false));
+  assert.ok(har.val.flat().includes(true) && har.val.flat().includes(false));
+});
+
+test("☠️ bakåtblick: inget sådant uttryck står direkt i koden, bara i strängen som kontrollen prövar", () => {
+  const kalla = readFileSync(join(ROT, "lib", "spec-facets.ts"), "utf8");
+  const BAKATBLICK = /\(\?<[=!]/g;
+  // Ett enda ställe: strängen FORE. Den byggs med new RegExp först efter att
+  // KAN_BAKATBLICK frågat motorn.
+  const rader = kalla.split("\n").filter((r) => r.match(BAKATBLICK));
+  assert.deepEqual(rader, ["const FORE = String.raw`(?<![\\p{L}\\p{N}_])`;"]);
+  assert.match(kalla, /const KAN_BAKATBLICK = \(\(\) => \{\s*try \{\s*new RegExp\(FORE, "u"\);\s*return true;\s*\} catch \{\s*return false;\s*\}\s*\}\)\(\);/);
+  assert.match(kalla, /if \(!KAN_BAKATBLICK\) return new RegExp\(re\.source, flaggor\);/);
+  // Klientkomponenten som laddar modulen har inget sådant uttryck själv.
+  const klient = readFileSync(join(ROT, "components", "shopbrowser.tsx"), "utf8");
+  assert.match(klient, /^"use client";/);
+  assert.match(klient, /from "\.\.\/lib\/spec-facets"/);
+  assert.doesNotMatch(klient, BAKATBLICK);
+  // Butiken lovar fortfarande webbläsare som saknar stödet (annars kan vakten tas bort).
+  assert.match(readFileSync(join(ROT, "package.json"), "utf8"), /"iOS >= 1[0-5]"/);
+});
+

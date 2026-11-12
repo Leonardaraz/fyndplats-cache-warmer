@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { jsonLdString } from "../../lib/seo";
-import { getProducts, getCollections, forListings, dedupeProducts } from "../../lib/products";
+import { getHelaKatalogen, getCollections, forListings, dedupeProducts } from "../../lib/products";
 import { ProductCard } from "../../components/productcard";
 import { attachRatings } from "../../lib/review-aggregates";
 import { buildGroupCards, MOSAIC_DENYLIST, categoryHero } from "../../lib/category-groups";
@@ -40,7 +40,7 @@ export const metadata = pageMeta(
 export const revalidate = 3600;
 
 export default async function Butik() {
-  const [allProducts, collections] = await Promise.all([getProducts(), getCollections()]);
+  const [allProducts, collections] = await Promise.all([getHelaKatalogen(), getCollections()]);
   const products = forListings(allProducts); // dölj ev. slutsålda från listan (opt-in)
   const groups = buildGroupCards(products, collections);
 

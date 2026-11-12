@@ -3,7 +3,8 @@ import { jsonLdString } from "../../../lib/seo";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ContentPage } from "../../../components/content";
-import { getPost, fmtDate, absolutCover } from "../../../lib/blog";
+import { getPost, getPosts, fmtDate, absolutCover } from "../../../lib/blog";
+import { ringEfter } from "../../../lib/seo/grannlankar";
 import { getLocalPosts } from "../../../lib/local-blog";
 
 // Lokala markdown-inlägg statisk-genereras vid build. Wix-inlägg fallback-renderas
@@ -126,6 +127,12 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
     ],
   };
 
+  // ☠️ Varje inlägg länkar till de två följande i bloggens ordning, runt
+  // hörnet. Utan det hade ett inlägg som ingen annan sida nämner EN intern
+  // länk, den från /blogg (Semrush 2026-11-11, lib/seo/grannlankar.ts).
+  const allaInlagg = await getPosts();
+  const grannar = ringEfter(allaInlagg, allaInlagg.findIndex((x) => x.slug === p.slug), 2);
+
   return (
     <>
       <script
@@ -164,6 +171,16 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
             const paragraphs = (p.contentText || "").split(/\n{1,}/).map((s) => s.trim()).filter(Boolean);
             return paragraphs.length ? paragraphs.map((para, i) => <p key={i}>{para}</p>) : <p>{p.excerpt}</p>;
           })()
+        )}
+        {grannar.length > 0 && (
+          <nav aria-label="Fler inlägg" style={{ marginTop: 32 }}>
+            <h2>Fler inlägg</h2>
+            <ul>
+              {grannar.map((g) => (
+                <li key={g.slug}><a href={`/blogg/${g.slug}`}>{g.title}</a></li>
+              ))}
+            </ul>
+          </nav>
         )}
         <p style={{ marginTop: 28 }}><a href="/blogg">← Tillbaka till bloggen</a></p>
       </ContentPage>

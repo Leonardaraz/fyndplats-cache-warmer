@@ -121,17 +121,47 @@ const FORE = String.raw`(?<![\p{L}\p{N}_])`;
 const EFTER = String.raw`(?![\p{L}\p{N}_])`;
 
 /**
+ * Kan motorn kompilera ett bakåtblickande uttryck, som FORE är?
+ *
+ * ☠️ Safari före 16.4 kan inte det, och den här modulen går till webbläsaren
+ * med listsidornas filter (components/shopbrowser.tsx). Varje sv(...) nedan
+ * körs när modulen laddas, så i en sådan Safari kastade modulen redan där, och
+ * listsidan fick aldrig sitt skript (mätt i det byggda klientskriptet
+ * 2026-11-11; butiken lovar iOS 14 och uppåt i browserslist).
+ *
+ * Uttrycken KÖRS bara på servern, i lasSpec() och det den anropar. Där finns
+ * bakåtblick alltid, och uttrycken byggs precis som förut. Webbläsaren
+ * använder FACETTER och funktionerna för intervall, val och adresser, och de
+ * rör inga av de här uttrycken. I en motor utan bakåtblick får därför \b stå
+ * som det står: uttrycket blir giltigt och modulen laddas.
+ *
+ * FORE står i en sträng och byggs med new RegExp, aldrig som ett uttryck
+ * direkt i koden: ett sådant läses redan när skriptfilen tolkas, och då
+ * hjälper ingen kontroll. lib/spec-facets.test.ts vaktar båda sakerna.
+ */
+const KAN_BAKATBLICK = (() => {
+  try {
+    new RegExp(FORE, "u");
+    return true;
+  } catch {
+    return false;
+  }
+})();
+
+/**
  * Ett mönster där \b räknar å, ä, ö och é som bokstäver. JavaScripts egen \b
  * gör inte det, så /\bträ\b/ hittade aldrig "Material: trä" och /\båtta/
  * aldrig "åtta lådor". Ett \b före ett ord blir "ingen bokstav före", ett
  * efter "ingen bokstav efter": en kontroll i stället för två.
  */
 function sv(re: RegExp): RegExp {
+  const flaggor = re.flags.includes("u") ? re.flags : re.flags + "u";
+  if (!KAN_BAKATBLICK) return new RegExp(re.source, flaggor);
   // Följs \b av något som börjar ett ord (en bokstav, en siffra, en grupp
   // eller en klass) står det först; annars sist.
   const kalla = re.source.replace(/\\b(?=([\s\S]{0,3}))/g, (_, efter: string) =>
     /^(?:[\p{L}\p{N}[]|\\[dw]|\((?!\?[=!<]))/u.test(efter) ? FORE : EFTER);
-  return new RegExp(kalla, re.flags.includes("u") ? re.flags : re.flags + "u");
+  return new RegExp(kalla, flaggor);
 }
 
 /**

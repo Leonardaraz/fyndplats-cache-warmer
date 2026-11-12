@@ -18,11 +18,12 @@
 // /alla-produkter och /rea gjorde redan rätt; nu gör alla listsidor det.
 
 import type { Collection, ListProduct, Product } from "./products";
-import { dedupeProducts, forClient, forListings, getCollections, getProducts } from "./products";
+import { dedupeProducts, forClient, forListings, getCollections, getProducts, hideOosFromListings } from "./products";
 import { attachRatings } from "./review-aggregates";
 import { currentDayMs, orderRecommended, topparPerSortering, type Sortering } from "./sort-products";
 import { universalCollectionIds } from "./related-pick";
 import { produkterIKategorin } from "./bara-i-underkategorin";
+import { slutsaldaIKategorinAv, slutsaldaUtanKategorisidaAv, utanKategorisidaAv } from "./slutsalda-lankar";
 import { saleProducts } from "./rea";
 import { listOversikt, type ListOversikt } from "./list-overview";
 import { listaUrl, type ListNyckel } from "./list-key";
@@ -195,12 +196,15 @@ export function listaForSidan(
  * dem och ingen produkt blir utan länk.
  */
 export function utanKategorisida(products: Product[], collections: Collection[]): Product[] {
-  const medSida = new Set(
-    collections.filter((c) => !UTAN_EGEN_LISTA.has(c.slug)).map((c) => c.id),
-  );
-  return products.filter((p) => !(p.collectionIds || []).some((id) => medSida.has(id)));
+  return utanKategorisidaAv(products, collections);
 }
 
-/** Kategorier vars sida inte listar sina egna produkter. "ovrigt" omdirigeras
- *  till /alla-produkter; rea och populara fylls från produktflaggor. */
-const UTAN_EGEN_LISTA = new Set(["ovrigt", "rea", "populara"]);
+/** Kategorins slutsålda produkter, till listan "Slut i lager just nu" (lib/slutsalda-lankar.ts). */
+export function slutsaldaIKategorin(active: Collection, collections: Collection[], allaProdukter: Product[]): Product[] {
+  return slutsaldaIKategorinAv(active, collections, allaProdukter, hideOosFromListings(), produkterIKategorin);
+}
+
+/** Slutsålda produkter som ingen kategorisida kan länka till (lib/slutsalda-lankar.ts). */
+export function slutsaldaUtanKategorisida(allaProdukter: Product[], collections: Collection[]): Product[] {
+  return slutsaldaUtanKategorisidaAv(allaProdukter, collections, hideOosFromListings());
+}

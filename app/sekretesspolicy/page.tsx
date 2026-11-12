@@ -100,7 +100,7 @@ export default function Sekretesspolicy() {
       <p>Du har rätt till tillgång (registerutdrag), rättelse, radering, begränsning, att invända mot behandling som sker med stöd av berättigat intresse samt mot direktmarknadsföring, och under vissa förutsättningar dataportabilitet. När behandlingen grundar sig på samtycke kan du återkalla det när som helst. Kontakta <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> för att utöva dina rättigheter.</p>
 
       <h2>Klagomål</h2>
-      <p>Anser du att vi behandlar dina uppgifter felaktigt har du rätt att klaga till Integritetsskyddsmyndigheten (IMY), <a href="https://www.imy.se" rel="nofollow">www.imy.se</a>.</p>
+      <p>Anser du att vi behandlar dina uppgifter felaktigt har du rätt att klaga till Integritetsskyddsmyndigheten (IMY), <a href="https://www.imy.se">www.imy.se</a>.</p>
 
       <h2>Ändringar &amp; kontakt</h2>
       <p>Vi kan komma att uppdatera denna policy. Senaste versionen finns alltid här. Frågor? Kontakta oss på <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> eller Fyndplats, Bergviksgatan 10, 152 44 Södertälje.</p>

@@ -26,6 +26,7 @@ import { kortLivslangd } from "./kort-livslangd";
 import { forstaVideo, type ProduktVideo } from "./produkt-video";
 import { rattaProduktlankar } from "./interna-lankar";
 import { behallNy, forGammal, KATALOG_FARSK_MS } from "./katalog-alder";
+import { kravHel, TOM_KATEGORILISTA } from "./hel-katalog";
 import gamlaWixMal from "../data/legacy-wix-redirects.json";
 
 // De gamla Wix-produkterna som next.config.ts skickar till en kategori. En länk
@@ -683,6 +684,30 @@ export const getProducts = cache(async (): Promise<Product[]> => {
 });
 
 /**
+ * Kastar när listan är reservkatalogen eller en kapad hämtning. Se
+ * lib/hel-katalog.ts för mätningen och skälet.
+ */
+export function kravHelKatalog(lista: Product[], vad: string): Product[] {
+  return kravHel(lista, DEGRADERADE.has(lista), vad);
+}
+
+/**
+ * Katalogen för en LISTSIDA: hel, eller ett fel.
+ *
+ * ☠️ En kategorisida, /butik, startsidan och de andra sidorna vars innehåll ÄR
+ * katalogen läser den här och aldrig getProducts(). På reservkatalogen blev en
+ * kategori tom och fick noindex, och den tomma sidan ersatte den hela i cachen
+ * (mätt 2026-11-11, lib/hel-katalog.ts). Kastar ombyggnaden behåller Next den
+ * förra sidan.
+ *
+ * Produktsidan, sidhuvudet och varukorgen läser getProducts() som förut: de
+ * ska fungera också på reservlistan.
+ */
+export const getHelaKatalogen = cache(async (): Promise<Product[]> =>
+  kravHelKatalog(await getProducts(), "En listsida"),
+);
+
+/**
  * Katalogen, högst `maxAlderMs` gammal. För det som byggs i bakgrunden:
  * flödena, sitemapen och sökindexet.
  *
@@ -696,7 +721,7 @@ export const getProducts = cache(async (): Promise<Product[]> => {
  * sidas väg: en kund ska inte vänta på katalogen. Faller hämtningen, eller blir
  * den kapad, behålls den gamla hela katalogen och nästa anrop försöker igen.
  */
-export async function getProductsFarska(maxAlderMs: number = KATALOG_FARSK_MS): Promise<Product[]> {
+async function farskEllerBehallen(maxAlderMs: number): Promise<Product[]> {
   const nuvarande = await getProducts();
   if (!forGammal(katalogHamtad, Date.now(), maxAlderMs)) return nuvarande;
   if (!fornyelse) {
@@ -732,6 +757,18 @@ export async function getProductsFarska(maxAlderMs: number = KATALOG_FARSK_MS): 
     })();
   }
   return fornyelse;
+}
+
+/**
+ * ☠️ ALDRIG RESERVKATALOGEN I ETT FLÖDE ELLER I SITEMAPEN. Förnyelsen ovan
+ * behåller en hel gammal lista när den nya inte blir hel. Men en ny instans
+ * vars FÖRSTA hämtning föll har ingen gammal lista, bara reservkatalogen: 413
+ * gamla produkter. Ett flöde byggt på den hade fått läsaren att ta bort resten
+ * av sortimentet. Då kastar vi: flödena svarar 503 som inte sparas, och
+ * sitemapen och sökindexet behåller sin förra version (lib/hel-katalog.ts).
+ */
+export async function getProductsFarska(maxAlderMs: number = KATALOG_FARSK_MS): Promise<Product[]> {
+  return kravHelKatalog(await farskEllerBehallen(maxAlderMs), "Flöden, sitemap och sökindex");
 }
 
 /**
@@ -1710,6 +1747,19 @@ export const getCollections = cache(async (): Promise<Collection[]> => {
   // Tomt betyder fel (se ovan). Sidan byggs då om efter fem minuter, inte sex timmar.
   if (lista.length === 0) await kortLivslangd();
   return lista;
+});
+
+/**
+ * ☠️ KATEGORISIDAN BYGGS ALDRIG PÅ EN TOM KATEGORILISTA. Tomt betyder att
+ * hämtningen föll (se fetchCollections). Kategorin "finns" då inte, och sidan
+ * svarade förr med en 307 till /butik som sparades i den hela sidans ställe.
+ * Nu kastar läsningen, och den förra sidan ligger kvar (lib/hel-katalog.ts).
+ * Sidhuvudet och de andra listsidorna läser getCollections() som förut: de
+ * klarar sig utan kategorier i fem minuter.
+ */
+export const getHelaKategorier = cache(async (): Promise<Collection[]> => {
+  const lista = await getCollections();
+  return kravHel(lista, lista.length === 0, "En kategorisida", TOM_KATEGORILISTA);
 });
 
 // Alla KÄNDA kategorislugs — även tomma kategorier (getCollections filtrerar

@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { ProductReview } from "../lib/reviews";
 import { ratingSummary } from "../lib/rating";
 import { klamppas, klampenDoljer, visaUtfallningsknapp } from "../lib/review-utfallning";
+import { delaIStycken } from "../lib/stycken";
 import { Stars } from "./stars";
 
 export function ProductReviews({
@@ -242,8 +243,12 @@ function RecensionsText({
   onVaxla: () => void;
 }) {
   const lang = klamppas(text);
-  const ref = useRef<HTMLParagraphElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
   const knappRef = useRef<HTMLButtonElement>(null);
+  // ☠️ Samma text, fler <p>: en recension på 200 ord i ETT stycke pekades ut
+  // som "innehållet inte optimerat" (lib/stycken.ts). Styckena ritas i följd
+  // (.rev-text p i globals.css), så klampen och mätningen gäller hela texten.
+  const stycken = delaIStycken(text);
   const [doljer, setDoljer] = useState<boolean | null>(null);
 
   useLayoutEffect(() => {
@@ -270,9 +275,14 @@ function RecensionsText({
 
   return (
     <>
-      <p ref={ref} tabIndex={-1} className={`rev-text${lang && !utfalld ? " rev-text-klamp" : ""}`}>
-        {text}
-      </p>
+      <div ref={ref} tabIndex={-1} className={`rev-text${lang && !utfalld ? " rev-text-klamp" : ""}`}>
+        {stycken.map((s, i) => (
+          <Fragment key={i}>
+            {i > 0 ? " " : null}
+            <p>{s}</p>
+          </Fragment>
+        ))}
+      </div>
       {visaUtfallningsknapp({ lang, utfalld, doljer }) ? (
         <button ref={knappRef} type="button" className="rev-expand" aria-expanded={utfalld} onClick={onVaxla}>
           {utfalld ? "Visa mindre" : "Visa mer"}

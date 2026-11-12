@@ -12,7 +12,7 @@
 // Innehåll: alla `forListings`-produkter (dvs visible + in-stock). Ur-katalogen —
 // inte kuraterat urval — så prisjämförelse-tjänsterna ser hela sortimentet.
 
-import { getProducts, forListings, fetchVarumarken } from "../../../../lib/products";
+import { getHelaKatalogen, forListings, fetchVarumarken } from "../../../../lib/products";
 import { varumarke } from "../../../../lib/varumarke";
 import type { Product } from "../../../../lib/products";
 import { fraktKr } from "../../../../lib/shipping";
@@ -124,7 +124,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 3600; // 1 tim cache — flödet läses högst 1×/dag av prisjakt
 
 export async function GET(): Promise<Response> {
-  const [all, marken] = await Promise.all([getProducts(), fetchVarumarken()]);
+  const [all, marken] = await Promise.all([getHelaKatalogen(), fetchVarumarken()]);
   const listable = forListings(all);
   const items = listable
     .map((p) => buildItem(p, varumarke(marken.get(p.id))))
