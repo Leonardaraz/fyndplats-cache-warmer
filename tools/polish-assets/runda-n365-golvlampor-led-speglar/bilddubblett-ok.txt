@@ -1,0 +1,3 @@
+0575a33b:1 0ef9e2e9:1 olika lampor frilagda på vit bakgrund: båglampa med fem huvuden mot en rektangulär ram med rektangulär skärm, låg avvikelse beror på den vita ytan
+0575a33b:1 7ee7a245:1 olika lampor frilagda på vit bakgrund: båglampa med fem huvuden mot en lampa med rund skärm och läslampa, låg avvikelse beror på den vita ytan
+0ef9e2e9:1 7ee7a245:1 olika lampor frilagda på vit bakgrund: rektangulär skärm på två stolpar mot en rund skärm på en stång, låg avvikelse beror på den vita ytan
