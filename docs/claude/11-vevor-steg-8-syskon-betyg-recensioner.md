@@ -466,3 +466,19 @@ nästa familj kan hoppa över:
     variant kan vara slutsåld, och livegrind och livekoll flaggar då *OutOfStock på en variant*
     (SLUTSALD) även när det är rätt. Sidan öppnar på den variant importen skapade först, inte på
     den billigaste. Utfallet står i `tools/polish-gates/FLAGGADE-VEVOR.md` (rq).
+12. **Samma foto flera gånger eller ett tredjepartsmärke i bilderna stoppar en importfamilj
+    (runda vevor-224 och 225, 2026-11-13).** En luftslang med två varianter hade elva bilder men bara fem olika foton
+    (position 1, 5 och 10 var samma foto, liksom 2 och 7, 3, 4 och 6 samt 8 och 11), och
+    bilddubblettgrinden gav 8 fynd. Butiken visar bara vald varians bilder, så första varianten
+    fick tre olika foton och andra fyra, under lägsta fem. Skrivstegets skydd vägrar att stryka en
+    länkad bild, så familjen hölls i stället för att kvitteras. Räkna olika foton per variant, inte
+    per sida: kvittera bara par som ligger på olika varianter (punkt 11). Samma sak gäller ett
+    tredjepartsmärke som syns i varje varians bilder (märket på en borrmaskin eller på uppblåsbara
+    leksaker i runda vevor-225): bilderna är länkade till valen och kan inte strykas av skrivsteget,
+    och utan dem får varianten för få bilder. Titta på lifestyle-bilderna i full storlek innan en
+    familj väljs. Två grindfällor från samma
+    bygge: SKU-grinden läser tre tecken, bindestreck och tre tecken i en slug (`300-psi`) som ett
+    artikelnummer, och SEO-grinden fäller ett riktigt minustecken (U+2212), så skriv *minus 40*.
+    Ett omdöme som säger att kunden ändrade varan (nätet höjdes till 2,35 m) översätts utan den
+    delen när den går emot sidans mått. Utfallet står i `tools/polish-gates/FLAGGADE-VEVOR.md` (rr)
+    och (rs).
