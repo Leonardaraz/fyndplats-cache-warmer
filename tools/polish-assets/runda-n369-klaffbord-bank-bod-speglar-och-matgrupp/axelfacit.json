@@ -1,0 +1,70 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "03b45ab1": {
+  "tyska": "179,5B x 108T x 129,5/113H cm",
+  "svenska": "179,5L x 108B x 129,5H cm",
+  "bokstaver": "BTH",
+  "djup": 108,
+  "hojd": [
+   129.5,
+   113
+  ],
+  "bredd": 179.5
+ },
+ "0c2709e4": {
+  "tyska": "60B x 3T x 80H cm",
+  "svenska": "60 x 3 x 80 cm",
+  "bokstaver": "BTH",
+  "djup": 3,
+  "hojd": 80,
+  "bredd": 60
+ },
+ "117570f6": {
+  "tyska": "303B x 123T x 197/184H cm",
+  "svenska": "303cm x 123cm x 197cm",
+  "bokstaver": "BTH",
+  "djup": 123,
+  "hojd": [
+   197,
+   184
+  ],
+  "bredd": 303
+ },
+ "1f7377b2": {
+  "tyska": "50B x 3T x 70H cm",
+  "svenska": "50 x 70 cm",
+  "bokstaver": "BTH",
+  "djup": 3,
+  "hojd": 70,
+  "bredd": 50
+ },
+ "63280e64": {
+  "tyska": "80B x 41T x 39H cm",
+  "svenska": "80 x 41 x 39 cm",
+  "bokstaver": "BTH",
+  "djup": 41,
+  "hojd": 39,
+  "bredd": 80
+ },
+ "8d8debb2": {
+  "tyska": "",
+  "svenska": "6er-Set",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Stuhlabmessungen: 45B x 46T x 78H cm | ✔ Sitzgröße: 37B x 37T x 45H cm | ✔ Rückenlehnen-Größe: 42B x 36H cm | ✔ Gefaltete Größe: 45B x 97T x 9H cm"
+ },
+ "9f79f510": {
+  "tyska": "80L x 52B x 76H cm (Tisch), 49L x 43B x 75H cm (Stuhl)",
+  "svenska": "80L x 52B x 76H cm",
+  "bokstaver": "LBHLBH",
+  "hojd": 76,
+  "bredd": 80,
+  "djup": 52
+ },
+ "fda82673": {
+  "tyska": "80B x 80T x 76H cm",
+  "svenska": "80 x 80 x 76 cm",
+  "bokstaver": "BTH",
+  "djup": 80,
+  "hojd": 76,
+  "bredd": 80
+ }
+}
