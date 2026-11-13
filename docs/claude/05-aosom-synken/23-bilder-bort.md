@@ -12,7 +12,7 @@ Workflowen **"Bilder — ta bort bilder ur en publicerad sida (också länkade)"
 `skarp=ja` kräver `bekrafta` = planens sha, som står i torrkörningens logg.
 Fil-id på bilderna läses ur sidans galleri (`GET /stores/v3/products/{id}?fields=MEDIA_ITEMS_INFO`).
 
-Sex egenskaper som inte ska tas bort:
+Sju egenskaper som inte ska tas bort:
 
 1. ☠️ **Ordningen är omvänd mot färgbildsverktygets.** Valens `linkedMedia`
    skrivs FÖRST utan bilderna (options + variantsInfo ordagrant ur GET:en och
@@ -35,6 +35,20 @@ Sex egenskaper som inte ska tas bort:
    ger ingen skrivning.
 6. ☠️ **Svaret bär bara wix-id, platser, antal och hinder.** Aldrig alt-texter,
    namn eller sluggar: loggen är publik.
+7. ☠️ **Fil-id:na tas ur importens ordning, aldrig ur planens galleriordning
+   (2026-11-13, runda vevor-227).** Planens galleri lägger etikett 3 sist, så
+   *plats 8* i planen är inte importens bild 8. På gaffelförlängningarna
+   hämtades id:na ur planens lista, och körningen (`platser 2,8`, utan hinder)
+   tog bort importens bild 2, rätt, och bild 9, en ren produktbild, medan
+   bild 8 med texten *AI-Generated Character and Scene* blev kvar. Verktyget
+   kontrollerar bara att bilderna finns och inte är huvudbild, så ingenting
+   stoppade det. Läs fil-id:na ur sidans importläsning (`items`, importens
+   ordning, alt-textens *bild N*), titta på hörnen av varje bild före körningen
+   och jämför `platser` i torrkörningen med galleriets platser. Rättelsen
+   kostade en omskrivning av rundan (alla bilder tillbaka) och en ny körning,
+   och omskrivningen återställde inte den bortkopplade bildens länk till
+   längdvalet, så ett val kan bli kvar med färre bilder. Livekollen fångade
+   felet (*alt N saknas*): läs dess alt-rader mot de bilder du tog bort.
 
 ⚠️ Filerna ligger kvar i Media Manager tills bildstädningen tar dem. Så länge
 givarens pensionerade utkast finns räknar städningen filen som använd; den
