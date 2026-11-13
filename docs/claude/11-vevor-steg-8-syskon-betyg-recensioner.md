@@ -387,6 +387,28 @@ nollställer variantens bild) och `kolla-agare.py` mot butikens sida. 12,03 m gi
 bilder utan att något annat ändrades (revision 20 → 21, priser, SKU, lager och kostnad
 oförändrade).
 
+☠️ **En struken bild som är valets enda länkade foto stoppas av *Bilder bort* (2026-11-13,
+stripgardinen `c0a2348b`).** Givarens enda nya foto, VEVOR:s position 1 på 30,5 cm-remsan,
+sa *150 ft* i sin text medan specifikationen säger 82 fot (2500 cm, 25 m), så bilden skulle
+strykas. Sammanslagningen hade gjort den till valets enda länkade bild (de fem andra fotona var
+gemensamma med sidans och olänkade), och torrkörningen av *Bilder bort* svarade
+`val_skulle_sakna_bild (Storlek)` (*val Storlek: 1 → 0 länkade bilder*). Lagat i två steg:
+`bygg-agare.py` med de gemensamma fotona som `"-"`, 20 cm-valets eget foto som dess val och
+`"tomt": ["Remsbredd 30,5 cm, 3 mm"]` (valet lämnas utan länkade bilder, och butiken visar då hela
+galleriet för det valet), torrt först (`valLankar`: 20 cm 1 → 1, 30,5 cm 1 → 0) och sedan skarpt
+(revision 7 → 8, inga avvikelser), därefter *Bilder bort* (galleri 7 → 6, återläst).
+Webbläsarmätningen 12:48 visade sex bilder för båda valen: 20 cm-valet de fem gemensamma fotona
+och sitt eget, och 30,5 cm-valet, som saknar länkade bilder, hela galleriet. Fem gemensamma
+foton räcker som minimum (runbookens *Minst fem bilder* per val).
+Första argumentet till `bygg-agare.py` är UTFILEN: en körning som angav mallen
+`lank-om-bilder.js` skrev över den (återställd med `git checkout`), och verktyget vägrar nu att
+skriva över mallen. Två körningar av *Bilder bort* får aldrig gå samtidigt: ett vänteskript som
+sökte efter ordet *fel* matchade *felrad* i den förra körningens lyckade logg, startade stripgardinens
+körning mitt i glastavlans, och dispatchskriptet lade stripgardinens torrlogg på glastavlans körning.
+Stripgardinens första skarpa körning föll med HTTP 409 utan att skriva något, och den andra,
+efter att glastavlan var klar, gick igenom. Vänta på en exakt sluttext, inte på ett ord som står i
+varje lyckad logg.
+
 **Publicerade sidor går också, i en bestämd ordning (Leonard 2026-11-08: *"vi borde börja med
 sidorna vi redan publicerat o fixa dom sen"*, och sedan *"Byt namn först"*).** Första
 torrkörningen mot två publicerade gymnastikräckar (värd blå, givare lila) stoppades av
