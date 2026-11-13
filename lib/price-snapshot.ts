@@ -115,12 +115,35 @@ export async function jamforprisFor(
   aktuelltKronor: number,
   nu: Date = new Date(),
 ): Promise<Jamforpris | null> {
-  const aktuellt = tillMinor(aktuelltKronor);
-  if (!produktId || aktuellt === null) return null;
-  const datum = idagISO(nu);
+  if (!produktId || tillMinor(aktuelltKronor) === null) return null;
+  return jamforprisUrHistorik(await historikForJamforpris(produktId, nu), aktuelltKronor, nu);
+}
+
+/**
+ * Prishistoriken som jämförpriset räknas ur, eller null om den inte gick att
+ * läsa. Läsningen är densamma för alla priser på produkten, så medlemsrutan
+ * (lib/medlem/medlemspris.ts) startar den medan profilen och produkten läses
+ * och räknar sedan med jamforprisUrHistorik.
+ */
+export async function historikForJamforpris(produktId: string, nu: Date = new Date()): Promise<Observation[] | null> {
+  if (!produktId) return null;
   try {
-    const observationer: Observation[] = await prishistorik.forProdukt(produktId, datumMinus(datum, SPAR_DAGAR));
-    return jamforpris(observationer, datum, aktuellt);
+    return await prishistorik.forProdukt(produktId, datumMinus(idagISO(nu), SPAR_DAGAR));
+  } catch {
+    return null;
+  }
+}
+
+/** Jämförpriset ur en redan läst historik: samma uträkning som jamforprisFor. */
+export function jamforprisUrHistorik(
+  observationer: Observation[] | null,
+  aktuelltKronor: number,
+  nu: Date = new Date(),
+): Jamforpris | null {
+  const aktuellt = tillMinor(aktuelltKronor);
+  if (!observationer || aktuellt === null) return null;
+  try {
+    return jamforpris(observationer, idagISO(nu), aktuellt);
   } catch {
     return null;
   }

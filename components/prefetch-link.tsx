@@ -28,23 +28,44 @@
 // Förhämtas EN gång per kort (hämtat-flaggan). Utan den fyrar pointerenter
 // om vid varje passage över kortet i ett rutnät.
 
+// Medlemspriset (2026-11-13): på ett produktkort startar samma avsikt också
+// hämtningen av medlemspriset, så att rutan på produktsidan har sitt svar när
+// sidan ritas. Bara med tecknet fp_medlem_inne, en gång per kort, och vid
+// pekaren först efter en kort stund, så att en mus som drar över rutnätet
+// inte hämtar för varje kort den passerar.
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, type ReactNode } from "react";
+import { hamtaMedlemspris, sparatSvar } from "../lib/medlem/medlemspris-klient";
+
+/** Så länge pekaren ska vila på kortet innan medlemspriset hämtas. */
+const MEDLEM_VILA_MS = 120;
 
 export function PrefetchLink({
   href,
   className,
   children,
   "aria-label": ariaLabel,
+  medlemspris,
 }: {
   href: string;
   className?: string;
   children: ReactNode;
   "aria-label"?: string;
+  /** Produktens id: kortet förhämtar också medlemspriset för en inloggad medlem. */
+  medlemspris?: string;
 }) {
   const router = useRouter();
   const hamtat = useRef(false);
+  const medlemHamtat = useRef(false);
+  const vila = useRef<number | null>(null);
+
+  const medlem = useCallback(() => {
+    if (!medlemspris || medlemHamtat.current) return;
+    medlemHamtat.current = true;
+    if (sparatSvar(medlemspris) === undefined) hamtaMedlemspris(medlemspris);
+  }, [medlemspris]);
 
   const forhamta = useCallback(() => {
     if (hamtat.current) return;
@@ -64,8 +85,19 @@ export function PrefetchLink({
       href={href}
       aria-label={ariaLabel}
       prefetch={false}
-      onPointerEnter={forhamta}
-      onTouchStart={forhamta}
+      onPointerEnter={() => {
+        forhamta();
+        if (medlemspris && !medlemHamtat.current) vila.current = window.setTimeout(medlem, MEDLEM_VILA_MS);
+      }}
+      onPointerLeave={() => {
+        if (vila.current !== null) window.clearTimeout(vila.current);
+        vila.current = null;
+      }}
+      onPointerDown={medlem}
+      onTouchStart={() => {
+        forhamta();
+        medlem();
+      }}
     >
       {children}
     </Link>

@@ -2279,6 +2279,26 @@ medlemmar med `testare: true`) eller `pa`. Den är skild från `lage`.
   `components/medlemspris.tsx` i nivåns metall, samma nyckel som medlemskortet
   (`lib/medlem/niva-nyckel.ts`). Utan tecknet `fp_medlem_inne` görs inget
   anrop.
+- **Rutan står där direkt** (Leonard 2026-11-13: företagsrutan kom efter
+  nästan en sekund och hoppade in; samma för privata Silver–VIP).
+  `lib/medlem/tidig.ts` och `lib/medlem/medlemspris-klient.ts`:
+  - Produktsidans HTML bär ett litet skript som startar hämtningen medan sidan
+    läses, inte när Reacts skript har startat. Rutan tar över samma löfte
+    (`window.__fpMp`). Vid en mjuk navigering har kortet (`PrefetchLink`,
+    pekaren vilar 120 ms, eller fingret) redan hämtat; ett svar yngre än 30 s
+    hämtas inte om.
+  - Platsen hålls från första bilden i nivåns metall, med förra rutans höjd
+    (`localStorage` `fp_mp_vy`, `data-mp` på `<html>`), så att inget under
+    rutan flyttar sig. En Brons-medlem sparar höjden 0 och får ingen plats.
+    Platsen släpps när svaret ritas, senast efter 6 s. Ingen plats på en
+    reavara: där står en kortare rad.
+  - Rutten läser växeln, medlemmen, reglerna, liggaren och företaget i ETT
+    `Promise.all`, och startar produkten, golvet (för sidans variant-id, `v`)
+    och prishistoriken innan profilen är klar. Utan session startar ingenting.
+    `Server-Timing` visar profil, pris och total.
+  - ☠️ Skriptet och `hallPlats` i klienten följer samma regler;
+    `lib/medlem/tidig.test.ts` kör skriptet i en sandlåda och jämför dem i
+    över tusen fall. Ändra båda eller ingen.
 - **Jämförelsen som kedjorna gör den** (Leonard 2026-11-05: "kolla hur andra
   stora sidor gör och härma", i stället för att fråga Konsumentverket).
   Elgiganten visar klubbpriset med priset för den som inte är medlem och
@@ -2295,8 +2315,9 @@ medlemmar med `testare: true`) eller `pa`. Den är skild från `lage`.
   - ☠️ **Prishistoriken är produktens lägsta variantpris** (price-snapshot).
     Har varianterna olika pris visas ingen jämförelse och ingen procent, bara
     "Ditt medlemspris".
-  - Jämförpriset sparas i tio minuter per produkt och pris och instans; ett fel
-    ger ingen jämförelse, aldrig en gissad.
+  - Prishistoriken sparas i tio minuter per produkt och instans, och
+    jämförpriset räknas ur den för varje pris; ett fel ger ingen jämförelse,
+    aldrig en gissad.
 - ☠️ **Medlemspriset läggs aldrig ovanpå en rea** (Leonard 2026-11-05, 2.1:
   "det ska inte kunna kombineras med rabattkoder eller fyndauktionsrabatterna";
   rean är en rabatt av samma slag). En rad är rea när Wix `fullPrice` ligger
