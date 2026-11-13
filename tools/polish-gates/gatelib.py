@@ -363,6 +363,12 @@ TYSKA_ORD = [
     "Kunstpflanze", "Zementtopf", "Gartenschrank", "Pflanztisch", "Geräteschuppen",
     "Edelstahlplatte", "Antibeschlag", "Stoffschubladen", "Monitorständer", "Lichtstreifen",
     "Rückenhaken", "Zuggriff", "Schaukelstopper",
+    # runda N362 (ribbstolar, monitorarmar, gungdjur)
+    "Sprossenwand", "Kletterwand", "Klimmzugstange", "Klettergerüst", "Kinderklettergerüst",
+    "Turnringe", "Kletterleiter", "Monitorhalterung", "Tischhalterung", "Laptophalterung",
+    "Gasfeder", "Bildschirmhalter", "Bildschirmständer", "Schaukelstopp", "Schaukelbegrenzer",
+    "Eichhörnchen", "Robbe", "Seehund", "Einhorn", "Plüschstoff", "Schaukelrobbe",
+    "Hufschläge", "Wiehern", "Spreizschrauben", "Schwebefunktion", "Tischdurchführung",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med
