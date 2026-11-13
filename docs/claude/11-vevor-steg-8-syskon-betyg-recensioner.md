@@ -448,9 +448,21 @@ nästa familj kan hoppa över:
     varje värde i källans egen enhet (*Längd=0,9 m*), inte omräknat från titelns fot (*0,91 m*):
     torrkörningarna med omräknade värden gjordes om, eftersom sidans text och siffergrinden
     använder källans värden. Utkast som delar bildfiler (här 2 och 3 fot, 4, 5 och 7 fot, och 10
-    och 11 fot) ger inga nya foton, så bara fyra av åtta längder fick en egen valbild; de andra
-    delar foton med en närliggande längd. Planen varnar *beskrivningen nämner sidans längd*: sidans
+    och 11 fot) ger inga nya foton och inga valbilder: bara fyra av åtta längder fick en egen
+    valbild och visar i butiken bara sina sex bilder, medan de fyra som delar foton med en annan
+    längd visar hela galleriet (mätt i en webbläsare 2026-11-13). Planen varnar *beskrivningen nämner sidans längd*: sidans
     text skrivs om för alla längder i en runda med `sammanslagna.tsv`. Den levande sidans lager
     (`stockQuantity`) och mappningens `aosomSyncedQty` är summan av längdernas saldon (1 459), och
     längden med lägst saldo (3) kan bli slutsåld först. Utfallet står i
     `tools/polish-gates/FLAGGADE-VEVOR.md` (rp).
+11. **Importens egna familjer poleras som sammanslagna sidor utan givare (runda vevor-223,
+    2026-11-13).** Ett utkast som importen redan gjort till en familj, med flera varianter och
+    varje varians bilder kopplade till valet (till exempel 12 bilder, 6 per variant), får en rad i
+    `sammanslagna.tsv` (antalet varianter), tomma `sku.tsv` och `variant.tsv` och alt-texter som
+    nämner storlek eller färg. Kör familjeregelns plan (*VEVOR — familjeregeln på befintliga utkast*,
+    läge `plan`) först och polera bara de som inte flaggas. Butiken visar bara vald varians bilder,
+    så samma foto på två varianter är ingen dubblett i praktiken: kvittera paret i
+    `bilddubblett-ok.txt`, eftersom skrivstegets skydd ändå vägrar att stryka en länkad bild. En
+    variant kan vara slutsåld, och livegrind och livekoll flaggar då *OutOfStock på en variant*
+    (SLUTSALD) även när det är rätt. Sidan öppnar på den variant importen skapade först, inte på
+    den billigaste. Utfallet står i `tools/polish-gates/FLAGGADE-VEVOR.md` (rq).
