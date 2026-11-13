@@ -6,6 +6,8 @@ import {
   reviewCountLabel,
   productCountLabel,
   categoryCountLabel,
+  kategoriOrd,
+  avdelningOrd,
   mapAggregateRows,
   applyRatings,
   ownReviewsHidden,
@@ -144,5 +146,15 @@ describe("categoryCountLabel", () => {
     assert.equal(categoryCountLabel(1), "1 kategori");
     assert.equal(categoryCountLabel(0), "0 kategorier");
     assert.equal(categoryCountLabel(46), "46 kategorier");
+  });
+});
+
+describe("kategoriOrd och avdelningOrd", () => {
+  it("ger bara ordet, böjt efter antalet", () => {
+    assert.equal(kategoriOrd(1), "kategori");
+    assert.equal(kategoriOrd(87), "kategorier");
+    assert.equal(avdelningOrd(1), "avdelning");
+    assert.equal(avdelningOrd(0), "avdelningar");
+    assert.equal(avdelningOrd(13), "avdelningar");
   });
 });

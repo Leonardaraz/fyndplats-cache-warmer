@@ -22,7 +22,7 @@
 //     scripts/verify-programmatic-full.mjs.
 import { cache } from "react";
 import { getHelaKatalogen, getCollections, dedupeProducts, mixByCategory, type Product, type Collection } from "../products";
-import { produkterIKategorin } from "../bara-i-underkategorin";
+import { produkterIKategorin, BARA_I_UNDERKATEGORIN } from "../bara-i-underkategorin";
 import { formatPrice } from "../price-range";
 import { getPosts, type Post } from "../blog";
 import { getLocalPosts } from "../local-blog";
@@ -34,7 +34,9 @@ import * as T from "./programmatic-templates";
 import * as S from "./programmatic-select";
 import { prisgrannar, ringEfter } from "./grannlankar";
 import { byggPrisOversikt, type HubCore } from "./pris-oversikt";
-import { productCountLabel } from "../rating";
+import { getHiddenFromFeatured } from "../image-scores";
+import { MOSAIC_DENYLIST } from "../category-groups";
+import { productCountLabel, tusental } from "../rating";
 
 export const SITE = "https://www.fyndplats.se";
 export const PRICE_TIERS = [200, 500, 1000] as const;
@@ -491,7 +493,7 @@ export const resolvePriceTier = cache(async (price: number, categorySlug: string
     { href: `/kategori/${cat.slug}`, label: `Allt inom ${cat.name}` },
   ];
   // Översikten för samma prisgräns (Pattern 2b), när den finns.
-  if (hubPrices.includes(price)) related.push({ href: `/under-${price}-kr`, label: `Alla fynd under ${price} kr` });
+  if (hubPrices.includes(price)) related.push({ href: `/under-${price}-kr`, label: `Alla fynd under ${prisText(price)}` });
   for (const t of PRICE_TIERS) {
     if (t === price) continue;
     if (allTiers.some((x) => x.price === t && x.categorySlug === cat.slug)) {
@@ -541,6 +543,11 @@ export const resolvePriceTier = cache(async (price: number, categorySlug: string
 // avgör giltigheten, och både sitemapen och sidan går via den.
 const MAX_HUB_LIST = 24;
 
+/** "500 kr", "1 000 kr": tusental och "kr" med hårda mellanslag, så att beloppet
+ *  aldrig bryts över två rader. */
+const HART = String.fromCharCode(160);
+export const prisText = (kronor: number) => `${tusental(kronor)}${HART}kr`;
+
 export type PriceHubView = HubCore<Product> & { schemas: object[] };
 
 function hubCore(
@@ -548,10 +555,13 @@ function hubCore(
   collections: Collection[],
   tierParams: { price: number; categorySlug: string }[],
   price: number,
+  andraSidor: readonly number[],
+  gomda: Set<string>,
 ): HubCore<Product> | null {
   return byggPrisOversikt({
     price,
     granser: PRICE_TIERS,
+    andraSidor,
     products,
     kategorier: collections,
     prissidor: tierParams,
@@ -561,24 +571,31 @@ function hubCore(
     },
     dedupe: dedupeProducts,
     blanda: (lista) => mixByCategory(lista, collections),
+    // Samma spärrar som /butiks "Populärt just nu", plus varorna som bara får
+    // synas i sin underkategori (lib/bara-i-underkategorin.ts): urvalet är en
+    // bredare lista än en avdelningssida.
+    iUrvalet: (p) => !gomda.has(p.id) && !MOSAIC_DENYLIST.has(p.slug) && !BARA_I_UNDERKATEGORIN.has(p.id),
     raknaOrd: T.countWords,
     produkterText: productCountLabel,
+    prisText,
     minProdukter: MIN_PRODUCTS,
     minOrd: MIN_BODY_WORDS,
     maxLista: MAX_HUB_LIST,
   });
 }
 
+// Om en översikt finns beror inte på länkarna till de andra gränserna, så
+// giltigheten räknas utan dem.
 export const getValidPriceHubs = cache(async (): Promise<number[]> => {
-  const [products, collections, tierParams] = await Promise.all([getHelaKatalogen(), getCollections(), getValidPriceTierParams()]);
-  return PRICE_TIERS.filter((price) => hubCore(products, collections, tierParams, price) !== null);
+  const [products, collections, tierParams, gomda] = await Promise.all([getHelaKatalogen(), getCollections(), getValidPriceTierParams(), getHiddenFromFeatured()]);
+  return PRICE_TIERS.filter((price) => hubCore(products, collections, tierParams, price, [], gomda) !== null);
 });
 
 export const resolvePriceHub = cache(async (price: number): Promise<PriceHubView | null> => {
-  const [products, collections, tierParams] = await Promise.all([getHelaKatalogen(), getCollections(), getValidPriceTierParams()]);
-  const core = hubCore(products, collections, tierParams, price);
+  const [products, collections, tierParams, giltiga, gomda] = await Promise.all([getHelaKatalogen(), getCollections(), getValidPriceTierParams(), getValidPriceHubs(), getHiddenFromFeatured()]);
+  const core = hubCore(products, collections, tierParams, price, giltiga, gomda);
   if (!core) return null;
-  const namn = `Fynd under ${price} kr`;
+  const namn = `Fynd under ${prisText(price)}`;
   const schemas = [
     breadcrumbSchema([
       { name: "Hem", path: "/" },
