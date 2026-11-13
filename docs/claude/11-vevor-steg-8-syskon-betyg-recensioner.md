@@ -497,3 +497,20 @@ nästa familj kan hoppa över:
     per val i en webbläsare (Playwright mot den levande sidan), inte i Wix-data, eftersom
     länkarna och de olänkade fotona bara syns där. Utfallet står i
     `tools/polish-gates/FLAGGADE-VEVOR.md` (rv).
+14. ☠️ **SKU-hinder och foton som två syskonsidor delar (runda vevor-230, 2026-11-13).**
+    Verktygets SKU för en ny variant är sidans SKU plus givarens värden och blir över 40 tecken
+    på längre namn (`sku_for_lang`, tre av sex planer): ange `sku` själv, högst 40 tecken. En egen
+    SKU med tre tecken, bindestreck och minst tre tecken som bär en siffra (`254-borstad`) fäller
+    `sku_ogiltig`, eftersom artikelnummergrinden (`FORM` i `lib/polish/skrivplan.ts`) läser den
+    som ett artikelnummer: skriv `254-mm-borstad`. Tre duschset av samma serie delade samma
+    miljöfoto (en kvinna i en dusch, där bara sidoduschens färg skilde) och samma foto av
+    handduschen, vilket bilddubblettgrinden fäller mellan sidor (0,000 till 0,018) och
+    runbooken förbjuder mellan syskonsidor. På en sammanslagen sida är fotona kopplade till valen,
+    och skrivstegets spärr vägrar att stryka en länkad bild: ett foto som måste bort tas bort
+    med *Bilder bort* på utkastet FÖRE skrivningen (samma etikett i `bilder-bort.tsv`, torrkörning
+    och bekräftad skarp körning, 40 sekunder var), medan ett olänkat foto stryks i planen.
+    Strykningen får inte lämna ett val under fem bilder, så de två duschset som bara hade en
+    bild att välja bort hölls i stället (varje färg har sex bilder, varav en är miljöfotot och
+    en handduschens närbild som båda har). Samma rullfoto kan stå två gånger på en sida (en med
+    ett litet underlägg i hörnet): strykningen valde den med underlägget. Utfallet står i
+    `tools/polish-gates/FLAGGADE-VEVOR.md` (rx).
