@@ -1,0 +1,310 @@
+/* ============================================================
+   Startsidan, förslag 2026-11-12.
+
+   Leonard: "då får göra större ändringar som förslag men bara samma typ av
+   färger alltså typografi". Inga nya färger och inga nya typsnitt: allt
+   nedan använder butikens tokens (--brand, --warm, --surface-2, --line,
+   --font-display) och samma radier och skuggor.
+
+   Allt står under .hem2, som bara startsidan bär. Ingen annan sida ändras.
+
+   TRE SAKER SOM STYR FÖRSLAGET (mätt på startsidan utan tema, 390 × 844):
+   1. Första skärmen visade rubrik, text och tre förtroenderutor, men inga
+      varor: hjältens brickor började 735 px ner. Nu ryms rubrik, knapp,
+      de två löftena OCH en rad med varor och priser i första skärmen.
+   2. Samma fyra löften stod tre gånger (remsan, hjälten, korten längst ner),
+      och de fyra korten tog 1 200 px på mobilen. Löftena står nu en gång, i
+      remsan, och platsen längst ner går till kundernas egna ord.
+   3. Varje sektion hade samma centrerade huvud (etikett, rubrik, ingress).
+      Rubrikerna står nu till vänster med länken vidare till höger: mindre
+      höjd, och det syns direkt vart sektionen leder.
+   ============================================================ */
+
+/* ── Rytm och sektionshuvud ───────────────────────────────────────── */
+.hem2 .sec,.hem2 .homecat-sec{padding:64px 0}
+/* Kategorierna och Veckans fynd är båda vita: ett sektionsmellanrum, inte två. */
+.hem2 .homecat-sec{padding-bottom:20px}
+.hem2 .h2rad{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:26px}
+.hem2 .h2rad .eyebrow{margin-bottom:8px}
+/* Etiketten börjar där rubriken börjar: strecket före togs bort, strecket
+   efter står kvar som i resten av butiken. */
+.hem2 .h2rad .eyebrow::before{display:none}
+.hem2 .h2rad h2{font-family:var(--font-display),Georgia,serif;font-size:clamp(26px,3.2vw,36px);font-weight:600;
+  letter-spacing:-.018em;line-height:1.1;color:var(--ink);text-wrap:balance}
+.hem2 .h2lank{flex:0 0 auto;display:inline-block;padding:12px 0;line-height:20px;font-size:var(--text-sm);font-weight:700;
+  color:var(--ink);white-space:nowrap;text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:5px;
+  transition:color .15s}
+.hem2 .h2lank:hover,.hem2 .h2lank:focus-visible{color:var(--brand)}
+
+/* ── Hjälten ───────────────────────────────────────────────────────
+   Leonard: "Ska hero se likadant ut? Tänk som premium boss."
+   Fyra saker gör jobbet, och ingen av dem är en ny färg:
+   1. Påståendet i två stora rader. Butiksnamnet tog förut en hel rad i
+      rubrikens storlek, strax under loggan. Nu är det en liten etikett.
+   2. Fakta i stället för piller: tre tal i rubrikens snitt på en rad med
+      en tunn linje över, som i en årsredovisning.
+   3. En utvald vara stor, två små bredvid. Fyra lika stora rutor sa
+      "sortiment", en stor säger "utvalt".
+   4. Varorna står på butikens varma ton i stället för i vita rutor.
+      Bildens vita botten smälter in (multiply), så varan ser frilagd ut,
+      och priset står under bilden i stället för på den. */
+/* Märket ovanför rubriken sa "trygg svensk e-handel" en tredje gång. */
+.hem2 .badge{display:none}
+.hem2 .heroinner{max-width:none}
+.hem2 .hero h1{font-size:clamp(52px,6vw,78px);line-height:.98;letter-spacing:-.022em;margin-bottom:22px}
+.hem2 .h1-marke{display:block;margin-bottom:18px;
+  font-family:var(--font-sans),-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  font-size:var(--text-xs);font-weight:700;letter-spacing:.2em;line-height:1;text-transform:uppercase;color:var(--brand)}
+/* Radbrytningen är bestämd: "Noga utvalda" / "fynd, tryggt köp". Mätt i
+   Fraunces är den andra raden 7,06 gånger teckenstorleken, så den ryms i
+   spalten på varje bredd.
+   Brytningen är ett radslut i texten, inte ett eget block: webbläsaren mäter
+   sidans största element (LCP) per block, och med raden som eget block blev
+   varje rad mindre än den stora varubilden. Som EN text är rubriken störst,
+   och den ritas utan att vänta på någon bild (mätt lokalt på dator). */
+.hem2 .h1-rad::after{content:"\A";white-space:pre}
+.hem2 .hero p{max-width:44ch;margin-bottom:30px}
+.hem2 .hero .btn-primary{padding:17px 34px}
+
+/* Faktaraden */
+/* Färgen ärvs från hjälten, så att raden följer med när ett säsongstema gör
+   hjälten mörk. Linjerna tar sin ton ur samma färg (color-mix; äldre
+   webbläsare får den fasta raden före). */
+.hem2 .herotrust{margin-top:38px;padding-top:22px;color:inherit;
+  border-top:1px solid rgba(28,28,28,.1);border-top-color:color-mix(in srgb,currentColor 12%,transparent);
+  display:flex;flex-wrap:nowrap;gap:0}
+.hem2 .herotrust>a{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:6px;
+  min-height:44px;padding:0 28px;background:none;border:0;border-left:1px solid rgba(28,28,28,.1);
+  border-left-color:color-mix(in srgb,currentColor 12%,transparent);
+  border-radius:0;box-shadow:none;backdrop-filter:none;font-weight:500;line-height:1.2;text-decoration:none}
+.hem2 .herotrust>a:first-child{padding-left:0;border-left:0}
+.hem2 .herotrust>a:hover,.hem2 .herotrust>a:focus-visible{transform:none;box-shadow:none}
+.hem2 .ht-tal{display:inline-flex;align-items:center;gap:9px;font-family:var(--font-display),Georgia,serif;
+  font-size:var(--text-xl);font-weight:600;letter-spacing:-.015em;line-height:1;color:inherit;
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.hem2 .ht-score{font-size:inherit;font-weight:inherit;letter-spacing:inherit}
+.hem2 .herotrust .ht-stars{font-size:var(--text-sm);letter-spacing:.5px}
+/* Etiketten bär också .ht-sub, butikens klass för radens lägre röst: därifrån
+   kommer färgen, och det är den klassen säsongstemana färgar om. */
+.hem2 .ht-etikett{font-size:var(--text-xs);white-space:nowrap}
+.hem2 .herotrust>a:hover .ht-etikett,.hem2 .herotrust>a:focus-visible .ht-etikett{text-decoration:underline;text-underline-offset:3px}
+/* Säsongstemana (app/sasongstema.css) ger de gamla pillerna en svag botten,
+   och har en egen etikett över rubriken. */
+:root[data-tema] .hem2 .hero .herotrust>a{background:none;box-shadow:none}
+:root[data-tema] .hem2 .h1-marke{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+/* Brickorna */
+/* Två fasta rader: bilden och texten. Brickans mått beror då inte på vad som
+   hunnit läsas in. Med en flexkolumn flyttade bilden sig när texten under den
+   kom (mätt lokalt med strypt processor: 0,0037 i 3 av 10 laddningar). */
+.hem2 .herotile{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) 48px;
+  isolation:isolate;background:var(--warm);
+  border:1px solid rgba(255,255,255,.92);color:var(--ink);text-decoration:none;
+  box-shadow:0 30px 60px -34px rgba(120,58,20,.45),0 2px 8px rgba(120,58,20,.06)}
+.hem2 .herotile:hover{transform:translateY(-4px);box-shadow:0 36px 64px -32px rgba(120,58,20,.5),0 2px 8px rgba(120,58,20,.08)}
+/* Bildrutan är alltid kvadratisk, som bilderna. Då fyller bilden hela rutan,
+   och den suddiga platshållaren syns aldrig som ränder bredvid den. */
+.hem2 .hbild{position:relative;display:block;grid-row:1;align-self:stretch;justify-self:center;min-height:0;aspect-ratio:1;margin:14px 0 0}
+.hem2 .herotile img{object-fit:contain;mix-blend-mode:multiply}
+.hem2 .hinfo{grid-row:2;display:flex;flex-direction:column;justify-content:flex-end;gap:4px;min-width:0;padding:0 16px 14px}
+.hem2 .hinfo-etikett{font-size:var(--text-xs);font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--brand)}
+/* Alltid två rader högt. Innan Geist laddats bryts namnet ibland på ett annat
+   antal rader, och då flyttade sig bilden ovanför (mätt: 0,0037 i 1 av 6). */
+.hem2 .hnamn{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;
+  min-height:2.7em;font-size:var(--text-sm);font-weight:600;line-height:1.35;color:var(--ink)}
+.hem2 .hrad{display:flex;align-items:baseline;justify-content:space-between;gap:8px;min-width:0}
+.hem2 .htag{position:static;padding:0;background:none;border-radius:0;box-shadow:none;backdrop-filter:none;
+  color:var(--ink);font-size:var(--text-lg);white-space:nowrap}
+.hem2 .herotile-stor .htag{font-size:var(--text-xl)}
+.hem2 .htag-old,.hem2 .htag-old s{color:var(--soft)}
+/* Betyget: en stjärna, värdet och antalet. Fem stjärnor rymdes inte bredvid
+   priset på de små brickorna. */
+.hem2 .hrating{position:static;flex:0 0 auto;padding:0;background:none;border-radius:0;box-shadow:none;gap:4px}
+.hem2 .hrating::before{content:"★";color:var(--gold);font-size:var(--text-sm);line-height:1}
+
+/* Kolumnerna har ingen egen ruta här (display:contents nedan), så dagens
+   svävande animation (heroFloat på .mcol i globals.css) kan inte köras på
+   grafikkortet. Webbläsaren räknade i stället om sidans stil på huvudtråden i
+   varje bildruta, utan att något syntes: 300 omräkningar per 5 s mot 30 i
+   dag, och Lighthouse väntade förgäves på en stilla sida (mätt 2026-11-12). */
+.hem2 .mcol{animation:none}
+@media(min-width:881px){
+  .hem2 .herogrid{grid-template-columns:minmax(0,1.04fr) minmax(0,.96fr);gap:64px;padding:72px 0 84px}
+  /* Fasta andelar: kolumnerna står still när typsnittet byts in. */
+  .hem2 .herotrust{display:grid;grid-template-columns:1fr 1.3fr 1fr}
+  .hem2 .herotrust>a{min-width:0}
+  /* En stor och två små. Den fjärde varan visas bara i mobilens rad. */
+  .hem2 .heromosaic{grid-template-columns:1.3fr 1fr;grid-template-rows:1fr 1fr;gap:14px;height:clamp(400px,37vw,468px)}
+  .hem2 .mcol{display:contents}
+  .hem2 .herotile{aspect-ratio:auto;min-height:0}
+  .hem2 .herotile-stor{grid-column:1;grid-row:1/3;grid-template-rows:minmax(0,1fr) 128px}
+  /* Den stora rutan är högre än bred: bilden tar bredden och står mitt i höjden. */
+  .hem2 .herotile-stor .hbild{align-self:center;justify-self:stretch;margin:0 18px}
+  .hem2 .herotile-stor .hinfo{padding:0 22px 20px;gap:6px}
+  /* Varje bricka har sin plats utskriven, så att den inte beror på syskonen. */
+  .hem2 .mcol:first-child .herotile:nth-child(2){grid-column:2;grid-row:1}
+  .hem2 .mcol-offset .herotile:first-child{grid-column:2;grid-row:2}
+  .hem2 .mcol-offset .herotile:last-child{display:none}
+}
+@media(max-width:880px){
+  .hem2 .herogrid{padding:24px 0 26px;gap:20px}
+  .hem2 .hero h1{font-size:clamp(32px,11.2vw,46px);margin-bottom:12px}
+  .hem2 .h1-marke{margin-bottom:12px}
+  .hem2 .hero p{font-size:var(--text-base);line-height:1.5;margin-bottom:18px}
+  .hem2 .hero .btn-primary{padding:15px 28px}
+  /* Tre tal på en rad. Orden som förklarar ("av 5", "allt från EU-lager",
+     "utvalda") döljs för ögat men läses fortfarande upp. */
+  .hem2 .herotrust{margin-top:20px;padding-top:14px}
+  .hem2 .herotrust>a{position:relative;flex:1 1 0;min-width:0;padding:0 0 0 14px;gap:5px}
+  .hem2 .ht-tal{font-size:20px;gap:6px}
+  .hem2 .herotrust .ht-stars{font-size:11px;letter-spacing:0}
+  .hem2 .ht-lang{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  /* Brickorna som en rad i sidled i stället för 2 × 2: halva höjden, och
+     den tredje brickan sticker fram i kanten så att det syns att raden
+     fortsätter. Samma mönster som kategorisidans underkategorier. */
+  .hem2 .heromosaic{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;
+    margin-inline:-26px;padding:2px 26px 10px;scrollbar-width:none;animation:none;
+    -webkit-overflow-scrolling:touch;scroll-padding-inline:26px}
+  .hem2 .heromosaic::-webkit-scrollbar{display:none}
+  .hem2 .mcol{display:contents}
+  .hem2 .herotile{flex:0 0 41%;scroll-snap-align:start;aspect-ratio:auto;box-shadow:0 14px 26px -18px rgba(120,58,20,.45);
+    grid-template-rows:calc(clamp(88px,26vw,112px) + 8px) 42px}
+  .hem2 .hbild{align-self:end;height:clamp(88px,26vw,112px);margin:0}
+  /* Betyget står uppe i brickans hörn på mobilen, så att priset får hela
+     raden: "Från 2 469 kr" och ett betyg ryms inte bredvid varandra i 139 px. */
+  .hem2 .hrating-count{display:none}
+  .hem2 .hrating{position:absolute;top:7px;right:7px;z-index:2;padding:3px 7px;border-radius:var(--r-pill);
+    background:rgba(255,255,255,.92);font-size:11px}
+  .hem2 .hrating::before{font-size:11px}
+  .hem2 .hinfo{padding:0 11px 10px}
+  .hem2 .hinfo-etikett,.hem2 .hnamn{display:none}
+  .hem2 .htag,.hem2 .herotile-stor .htag{font-size:var(--text-base)}
+  .hem2 .sec,.hem2 .homecat-sec{padding:44px 0}
+  /* Etiketten och länken delar första raden, rubriken får hela bredden under.
+     Bredvid varandra bröts både etiketten och rubriken på två rader. */
+  .hem2 .h2rad{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:12px;row-gap:0;margin-bottom:16px}
+  .hem2 .h2rad>div{display:contents}
+  .hem2 .h2rad .eyebrow{grid-column:1;grid-row:1;margin-bottom:0}
+  .hem2 .h2rad .eyebrow::after{display:none}
+  .hem2 .h2rad .h2lank{grid-column:2;grid-row:1}
+  .hem2 .h2rad h2{grid-column:1/-1;grid-row:2}
+  .hem2 .homecat-sec{padding-bottom:16px}
+}
+/* De smalaste telefonerna (320 px): stjärnorna ryms inte bredvid 4,9. */
+@media(max-width:360px){
+  .hem2 .herotrust .ht-stars{display:none}
+  .hem2 .htag,.hem2 .herotile-stor .htag{font-size:var(--text-sm)}
+  .hem2 .hinfo{padding:0 9px 9px}
+}
+
+/* ── Löftesremsan: en rad i sidled på mobilen ─────────────────────── */
+@media(max-width:600px){
+  .hem2 .usprow{display:flex;flex-wrap:nowrap;justify-content:flex-start;gap:0;overflow-x:auto;
+    padding:4px 14px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .hem2 .usprow::-webkit-scrollbar{display:none}
+  .hem2 .uspitem{flex:0 0 auto;padding:11px 12px;font-size:var(--text-xs)}
+}
+
+/* ── Kategorierna: en bild var, åtta i stället för fyra ───────────── */
+.hem2 .katrad{display:grid;grid-template-columns:repeat(4,1fr);gap:26px 18px}
+.hem2 .kat{display:block;color:inherit;text-decoration:none;-webkit-tap-highlight-color:transparent}
+.hem2 .kat-bild{position:relative;display:block;aspect-ratio:4/3;border-radius:var(--r-lg);overflow:hidden;background:#F4EEE8;
+  -webkit-user-select:none;user-select:none}
+/* multiply: produktfotonas vita bakgrund tar brickans varma ton, så bilden
+   slutar mot brickan och inte mot en vit ruta inuti den. */
+.hem2 .kat-bild img{object-fit:cover;mix-blend-mode:multiply;-webkit-user-drag:none;transition:transform .55s cubic-bezier(.2,.7,.2,1)}
+.hem2 .kat-text{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:12px 2px 0}
+.hem2 .kat-namn{font-family:var(--font-display),Georgia,serif;font-size:var(--text-lg);font-weight:600;letter-spacing:-.012em;
+  line-height:1.2;color:var(--ink);transition:color .2s}
+.hem2 .kat-antal{font-size:var(--text-xs);font-weight:600;color:var(--soft);white-space:nowrap}
+@media(hover:hover){
+  .hem2 .kat:hover .kat-bild img{transform:scale(1.05)}
+  .hem2 .kat:hover .kat-namn{color:var(--brand)}
+}
+.hem2 .kat:focus-visible .kat-namn{color:var(--brand)}
+/* Datorn visar åtta. Mobilens rad visar alla. */
+.hem2 .kat:nth-child(n+9){display:none}
+@media(max-width:880px){
+  .hem2 .katrad{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x proximity;margin-inline:-26px;
+    padding:0 26px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-padding-inline:26px}
+  .hem2 .katrad::-webkit-scrollbar{display:none}
+  .hem2 .kat,.hem2 .kat:nth-child(n+9){display:block;flex:0 0 148px;scroll-snap-align:start}
+  .hem2 .kat-text{flex-direction:column;gap:2px;padding-top:9px}
+  .hem2 .kat-namn{font-size:var(--text-base)}
+}
+
+/* ── Auktionsbannern sitter ihop med kategorierna ─────────────────── */
+.hem2 .auktionsrad{padding:0 0 8px}
+
+/* ── Veckans fynd: brickor utan ram och utan knapp ────────────────── */
+.hem2 .prodgrid{gap:34px 20px}
+.hem2 .prod{border:0;border-radius:0;box-shadow:none;background:transparent;overflow:visible}
+@media(hover:hover){
+  .hem2 .prod:hover{transform:none;box-shadow:none}
+  .hem2 .prod:hover .pname{color:var(--brand)}
+}
+.hem2 .prod .pimg{border-radius:var(--r-lg);background:#F4EEE8}
+.hem2 .prod .pimg img{mix-blend-mode:multiply}
+.hem2 .prod .pbody{padding:12px 2px 0}
+.hem2 .prod .pname{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;transition:color .2s}
+.hem2 .prod .prow{padding-top:8px;gap:0}
+.hem2 .prod .pprice{font-size:var(--text-lg)}
+/* Hela kortet är länken. Knappen sa samma sak en gång till på varje kort. */
+.hem2 .prod .pbtn{display:none}
+@media(max-width:880px){
+  .hem2 .prodgrid.listgrid{margin-inline:0;gap:24px 12px}
+  .hem2 .listgrid .prod .pbody{padding:10px 2px 0}
+  .hem2 .prod .pprice{font-size:var(--text-base)}
+}
+.hem2 .efter-rad{margin-top:30px;text-align:center}
+@media(min-width:881px){.hem2 .efter-rad{display:none}}
+@media(max-width:880px){.hem2 .h2rad .h2lank.bara-dator{display:none}}
+
+/* ── Köpguiderna ──────────────────────────────────────────────────── */
+.hem2 .guidesek{background:var(--warm)}
+.hem2 .guider{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.hem2 .guide{display:block;color:inherit;text-decoration:none;-webkit-tap-highlight-color:transparent}
+/* Bloggens omslag finns i fyra format (1:1 till 1,9:1) med det läsbara i mitten: 4:3 klipper minst. */
+.hem2 .guide-bild{position:relative;display:block;aspect-ratio:4/3;border-radius:var(--r-lg);overflow:hidden;background:var(--surface-2)}
+.hem2 .guide-bild img{object-fit:cover;transition:transform .55s cubic-bezier(.2,.7,.2,1)}
+.hem2 .guide-titel{display:block;font-family:var(--font-display),Georgia,serif;font-size:20px;font-weight:600;letter-spacing:-.012em;
+  line-height:1.22;color:var(--ink);margin-top:14px;text-wrap:balance;transition:color .2s}
+.hem2 .guide-text{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-size:var(--text-sm);
+  color:var(--soft);line-height:1.55;margin-top:6px}
+@media(hover:hover){
+  .hem2 .guide:hover .guide-bild img{transform:scale(1.04)}
+  .hem2 .guide:hover .guide-titel{color:var(--brand)}
+}
+.hem2 .guide:focus-visible .guide-titel{color:var(--brand)}
+@media(max-width:880px){
+  .hem2 .guider{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x proximity;margin-inline:-26px;
+    padding:0 26px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-padding-inline:26px}
+  .hem2 .guider::-webkit-scrollbar{display:none}
+  .hem2 .guide{flex:0 0 78%;scroll-snap-align:start}
+  .hem2 .guide-titel{font-size:var(--text-lg)}
+}
+
+/* ── Kundernas egna ord ───────────────────────────────────────────── */
+.hem2 .roster{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.hem2 .rost{display:flex;flex-direction:column;gap:14px;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:24px 24px 20px;box-shadow:var(--e1)}
+.hem2 .rost .rev-stars{font-size:var(--text-sm);letter-spacing:1px}
+.hem2 .rost-text{font-size:var(--text-base);line-height:1.6;color:var(--ink)}
+.hem2 .rost-fot{margin-top:auto;display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+  padding-top:14px;border-top:1px solid var(--line)}
+.hem2 .rost-namn{font-size:var(--text-sm);font-weight:700;color:var(--ink)}
+.hem2 .rost-kalla{font-size:var(--text-xs);color:var(--soft);white-space:nowrap}
+@media(max-width:880px){
+  .hem2 .roster{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x proximity;margin-inline:-26px;
+    padding:2px 26px 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-padding-inline:26px}
+  .hem2 .roster::-webkit-scrollbar{display:none}
+  .hem2 .rost{flex:0 0 84%;scroll-snap-align:start;padding:20px 20px 16px}
+}
+
+/* ── Rader i sidled: dolda hjälptexter får inte bredda sidan ─────────
+   .sr-only är position:absolute. Utan en positionerad förälder räknas den mot
+   sidan och inte mot raden, så en text längst ut i raden gjorde hela sidan
+   1 663 px bred på mobilen (mätt 2026-11-12: webbläsaren zoomade ut till en
+   fjärdedel). Med position:relative hör den till sitt kort och klipps av raden. */
+.hem2 .heromosaic,.hem2 .usprow,.hem2 .katrad,.hem2 .guider,.hem2 .roster{position:relative}
+.hem2 .kat,.hem2 .guide,.hem2 .rost,.hem2 .uspitem{position:relative}

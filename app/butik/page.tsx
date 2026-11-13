@@ -1,13 +1,19 @@
 import Image from "next/image";
-import { jsonLdString } from "../../lib/seo";
+import Link from "next/link";
+import { jsonLdString, pageMeta } from "../../lib/seo";
 import { getHelaKatalogen, getCollections, forListings, dedupeProducts } from "../../lib/products";
 import { ProductCard } from "../../components/productcard";
 import { attachRatings } from "../../lib/review-aggregates";
 import { buildGroupCards, MOSAIC_DENYLIST, categoryHero } from "../../lib/category-groups";
-import { pageMeta } from "../../lib/seo";
-import { getHiddenFromFeatured, FEATURED_MIN_SCORE } from "../../lib/image-scores";
+import { getHiddenFromFeatured } from "../../lib/image-scores";
 import { tightFillUrl } from "../../lib/wix-image";
-import { productCountLabel, categoryCountLabel } from "../../lib/rating";
+import { productCountLabel, categoryCountLabel, tusental } from "../../lib/rating";
+import { unsplashIForm } from "../../lib/bildformat";
+import { populartNu } from "../../lib/sok-tom";
+import { PrefetchLink } from "../../components/prefetch-link";
+import { SHIMMER_BLUR } from "../../lib/lqip";
+import { FREE_SHIPPING_OVER_KR, STANDARD_SHIPPING_KR } from "../../lib/shipping";
+import "./butik.css";
 
 export const metadata = pageMeta(
   "Butik – utforska hela vårt sortiment",
@@ -21,65 +27,51 @@ export const metadata = pageMeta(
 // Sidan läste tidigare searchParams (?kategori=X) enbart för att vidarebefordra
 // gamla länkar till /kategori/[slug]. Det gjorde hela routen dynamisk: ingen
 // CDN-cache, ingen ETag, full origin-rendering av 250 kB vid VARJE hämtning —
-// också Googlebots.
-//
-// Parametern hanteras inte längre någonstans, och ska inte göra det. Första
-// försöket lade en query-gatad redirect (?kategori=X → /kategori/X) i
-// next.config.ts. Den byggde en OÄNDLIG LOOP, bevisad på preview-deployen:
-// Next skickar med query-värden till destinationen, och /kategori/ovrigt
-// omdirigerar redan till /alla-produkter (next.config.ts). Alltså
-// /alla-produkter?kategori=ovrigt → /kategori/ovrigt?kategori=ovrigt →
-// /alla-produkter?kategori=ovrigt → … curl gav upp efter 50 hopp.
-//
-// En okänd ?kategori= ignoreras nu i stället, och sidan renderas som vanligt —
-// exakt vad den gamla koden gjorde för varje slug som inte matchade en
-// kategori. Kostnaden är att ett gammalt bokmärke inte längre landar
-// förfiltrerat. Search Console: 0 klick och 0 visningar på parametern över 92
-// dagar, och inget i appen bygger sådana länkar (kategori-dropdownen länkar
-// till /kategori/[slug]).
+// också Googlebots. En okänd ?kategori= ignoreras nu, och sidan renderas som
+// vanligt. (Den query-gatade omdirigeringen i next.config.ts byggde en oändlig
+// loop via /kategori/ovrigt → /alla-produkter; se git-historiken.)
 export const revalidate = 3600;
+
+// ── Förslag 2026-11-12 ──────────────────────────────────────────────────
+// Leonard: "designen där är inte heller snygg premium eller så, kolla vad du
+// kan göra för att det ska bli mycket bättre och optimera hastigheten".
+//
+// Mätt på produktionen samma dag (390 × 844 och 1280 × 900):
+//   - sidan var 19 387 px hög på mobilen och 10 456 px på datorn;
+//   - 171 bilder, varav en tumnagel på 48 px för var och en av de 127
+//     underkategorierna, och srcset-texten för dem vägde 294 kB av sidans
+//     695 kB HTML;
+//   - avdelningarna stod två gånger (listan i hjälten och korten under);
+//   - Veckans fynd valdes på bildpoäng, så raden visade ett skåp för
+//     brandfarliga vätskor och en flaggstång.
+// Nu: en bild per avdelning, underkategorierna som ett register i text,
+// varorna som kunderna faktiskt köper, och löftena en gång längst ner.
+
+/** Genvägarna under rubriken. Sidor som redan finns i butiken. */
+const GENVAGAR = [
+  { href: "/rea", text: "Rea" },
+  { href: "/under-500-kr", text: "Under 500 kr" },
+  { href: "/under-1000-kr", text: "Under 1 000 kr" },
+  { href: "/fyndauktion", text: "Fyndauktionen" },
+  { href: "/kopguider", text: "Köpguider" },
+] as const;
 
 export default async function Butik() {
   const [allProducts, collections] = await Promise.all([getHelaKatalogen(), getCollections()]);
   const products = forListings(allProducts); // dölj ev. slutsålda från listan (opt-in)
   const groups = buildGroupCards(products, collections);
+  // Talen i hjälten räknas ur samma lista som sidan visar, så att antalet
+  // kategorier är exakt så många länkar som registret har.
+  const antalKategorier = groups.reduce((s, g) => s + g.subs.length, 0);
 
-  // Veckans fynd: 8 curated picks (samma logik som hemsidan men oberoende
-  // utfall — användaren ska se nya intressanta produkter, inte exakt samma rad).
-  const VECKANS_CURATION = [
-    "elektrisk-vinoppnare",
-    "astronaut-stjarnprojektor",
-    "magnetisk-knivhallare-akacia-vaggmonterad-knivlist",
-    "gua-sha-massagesten-i-akta-jade",
-    "trendigt-snake-chain-kedjehalsband-slat",
-    "mjuk-huva-handduk-i-coral-fleece",
-    "gamewave-x-handhallen-spelkonsol-med-64gb",
-    "digital-bagagevag",
-  ];
-  // Poäng-driven Veckans fynd (se lib/image-scores): topp-nivå (> 75), gömda
-  // bortfiltrerade, curation först när den klarar baren, annars poäng-sorterat.
+  // Det som kunderna köper: flest sålda enheter de senaste 90 dagarna
+  // (lib/sok-tom.ts, samma urval som söksidan utan träff). Gömda bilder och
+  // varor med text eller förpackning i bilden står utanför, som förut.
   const hiddenFromFeatured = await getHiddenFromFeatured();
-  const veckansPool = products.filter(
-    (p) => !hiddenFromFeatured.has(p.id) && !MOSAIC_DENYLIST.has(p.slug),
-  );
-  const topTier = veckansPool.filter((p) => p.imageScore > FEATURED_MIN_SCORE);
-  const curatedSet = new Set(VECKANS_CURATION);
-  const curatedFront = VECKANS_CURATION
-    .map((slug) => topTier.find((p) => p.slug === slug))
-    .filter((p): p is (typeof products)[number] => Boolean(p));
-  const byScore = topTier
-    .filter((p) => !curatedSet.has(p.slug))
-    .sort((a, b) => b.imageScore - a.imageScore);
-  const veckansPicks = [...curatedFront, ...byScore];
-  if (veckansPicks.length < 8) {
-    const used = new Set(veckansPicks.map((p) => p.slug));
-    for (const p of [...veckansPool].sort((a, b) => b.imageScore - a.imageScore)) {
-      if (veckansPicks.length >= 8) break;
-      if (used.has(p.slug)) continue;
-      veckansPicks.push(p); used.add(p.slug);
-    }
-  }
-  const veckans = await attachRatings(dedupeProducts(veckansPicks).slice(0, 8));
+  const pool = products.filter((p) => !hiddenFromFeatured.has(p.id) && !MOSAIC_DENYLIST.has(p.slug));
+  const populara = await attachRatings(dedupeProducts(populartNu(pool, 12)).slice(0, 8));
+  // Etiketten lovar "mest köpt" bara när varje vara i raden har sålts.
+  const allaSalda = populara.length > 0 && populara.every((p) => (p.popularity ?? 0) > 0);
 
   const breadcrumbLd = {
     "@context": "https://schema.org",
@@ -103,191 +95,191 @@ export default async function Butik() {
   };
 
   return (
-    <>
+    <div className="butik2">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumbLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(collectionPageLd) }} />
 
-      {/* PREMIUM HERO — minimal, typografi-driven, ingen tung bild → snabb LCP */}
-      <section className="butik-hero">
+      <section className="b2-hjalte">
         <div className="container">
           <nav className="butik-crumbs" aria-label="Brödsmulor">
-            <a href="/">Hem</a>
+            <Link href="/">Hem</Link>
             <span aria-hidden="true">/</span>
             <em>Butik</em>
           </nav>
-          <div className="butik-hero-grid">
-          <div className="butik-hero-inner">
-            <span className="butik-hero-eyebrow">Hela vårt sortiment</span>
-            <h1 className="butik-hero-title">Hitta dina nästa fynd.</h1>
-            <p className="butik-hero-lede">
-              Möbler, heminredning, kök, trädgård, leksaker och husdjur – noga utvalda fynd, samlade på ett ställe.
-              <span className="butik-hero-meta"> {productCountLabel(products.length)} · {categoryCountLabel(collections.length)}</span>
-            </p>
-            <div className="butik-hero-ctas">
-              <a className="butik-hero-cta-all" href="/alla-produkter">
-                Se alla {productCountLabel(products.length)} <span aria-hidden="true">→</span>
-              </a>
-              <a className="butik-hero-cta-cats" href="#kategorier">
-                Bläddra kategorier
-              </a>
+          <div className="b2-hjalte-rad">
+            <div className="b2-hjalte-text">
+              <div className="eyebrow">Hela sortimentet</div>
+              <h1>Hitta dina nästa fynd.</h1>
+              <p className="b2-ingress">
+                Möbler, heminredning, kök, trädgård, leksaker och husdjur – noga utvalda fynd, samlade på ett ställe.
+              </p>
             </div>
+            <a className="btn btn-primary b2-cta" href="/alla-produkter">
+              Se alla {productCountLabel(products.length)} <span aria-hidden="true">→</span>
+            </a>
           </div>
-          {/* Avdelningarna direkt i heron: högerspalten stod tom på dator, och
-              kunden ska kunna gå rakt till rätt avdelning utan att scrolla.
-              Samma lista och antal som korten nedan (buildGroupCards). Dold
-              med CSS på mobil, där korten följer direkt — länkarna finns kvar
-              i HTML:en. */}
-          <nav className="butik-hero-avd" aria-label="Avdelningar">
-            <span className="butik-hero-avd-rubrik">Avdelningar</span>
-            <ul>
-              {groups.map((g) => (
-                <li key={g.main.id}>
-                  <a href={`/kategori/${g.main.slug}`}>
-                    <span className="butik-hero-avd-namn">{g.main.name}</span>
-                    <span className="butik-hero-avd-antal">{productCountLabel(g.count)}</span>
-                  </a>
-                </li>
-              ))}
+          <div className="b2-hjalte-fot">
+            <ul className="b2-fakta" aria-label="Sortimentet i siffror">
+              <li><span className="b2-tal">{tusental(products.length)}</span><span className="b2-etikett">produkter</span></li>
+              <li><span className="b2-tal">{groups.length}</span><span className="b2-etikett">avdelningar</span></li>
+              <li><span className="b2-tal">{tusental(antalKategorier)}</span><span className="b2-etikett">kategorier</span></li>
             </ul>
-          </nav>
+            <nav className="b2-genvagar" aria-label="Genvägar">
+              {GENVAGAR.map((g) => (
+                <a key={g.href} href={g.href}>{g.text}</a>
+              ))}
+            </nav>
           </div>
         </div>
       </section>
 
-      {/* HUVUDKATEGORIER — stora premium-kort med hero-bild + undergrupper */}
-      <section className="butik-cats-sec" id="kategorier">
+      <section className="sec b2-avdsek" id="avdelningar">
         <div className="container">
-          <h2 className="sronly">Huvudkategorier</h2>
-          <div className="butik-cats-grid">
-            {groups.map((g, idx) => {
-              // Samma curated lifestyle-hero som huvudkategori-sidans egen hero
-              // (lib categoryHero). Faller tillbaka på produkt-heron bara om en
-              // huvudkategori saknar curated bild (ska inte hända för de 8).
-              const heroSrc = categoryHero(g.main.name) || g.heroImg;
+          <div className="h2rad">
+            <div>
+              <div className="eyebrow">{groups.length} avdelningar</div>
+              <h2>Välj avdelning</h2>
+            </div>
+          </div>
+          <div className="b2-avdrad">
+            {groups.map((g, i) => {
+              // Samma bild som avdelningens egen sida och startsidan, i rutans
+              // form (lib/bildformat.ts). Produktbilden bara om stämningsbild saknas.
+              const bild = unsplashIForm(categoryHero(g.main.name), "4:3") || g.heroImg || g.thumbs[0];
               return (
-              <article className="butik-cat" key={g.main.id}>
-                <a className="butik-cat-imgwrap" href={`/kategori/${g.main.slug}`} aria-label={`Utforska ${g.main.name}`}>
-                  {heroSrc && (
-                    <Image
-                      className="butik-cat-img"
-                      src={tightFillUrl(heroSrc, 1120, 1120)}
-                      alt={g.main.name}
-                      fill
-                      sizes="(max-width:760px) 100vw, (max-width:1100px) 50vw, 560px"
-                      // `priority` utfasad i Next 16. HÄR blir ersättningen inte
-                      // `preload`: korten ligger i ett responsivt rutnät där
-                      // olika bilder är LCP beroende på skärmbredd, och Next-
-                      // doken avråder uttryckligen från preload i just det
-                      // läget. `loading="eager"` bevarar det som spelade roll
-                      // (de två översta lazy-laddas inte), och fetchPriority
-                      // pekar fortsatt ut den enda säkra kandidaten.
-                      loading={idx < 2 ? "eager" : undefined}
-                      fetchPriority={idx === 0 ? "high" : undefined}
-                    />
-                  )}
-                  <span className="butik-cat-imghover">
-                    <span>Utforska →</span>
+                <PrefetchLink className="b2-avd" key={g.main.id} href={`/kategori/${g.main.slug}`}>
+                  <span className="b2-avd-bild" aria-hidden="true">
+                    {bild && (
+                      <Image
+                        src={tightFillUrl(bild, 560, 420)}
+                        alt=""
+                        fill
+                        placeholder="blur"
+                        blurDataURL={SHIMMER_BLUR}
+                        // 30 % av bredden på mobilen, inte rutans 44 %: en telefon med tre
+                        // pixlar per punkt väljer då 384 px i stället för 640 (samma
+                        // avvägning som startsidans kategorirutor). Tre kolumner upp
+                        // till 1 100 px, där rutan är 30 % av bredden (337 px vid 1 100).
+                        sizes="(max-width:1100px) 30vw, 270px"
+                        quality={60}
+                        // De fyra första hämtas direkt, utan hög prioritet. Mätt
+                        // 2026-11-12: på 768, 1 100 och 1 200 px står första raden i
+                        // vyn och är större än rubrikens text (39 900, 85 339 och
+                        // 54 069 px² mot 23 558, 42 987 och 51 398), så sidans största
+                        // element är en bild där. Reacts server förladdar en bild som
+                        // inte är lazy, så webbläsaren hittar dem tidigt; på telefonen
+                        // är rubriken och ingressen störst och bilderna små.
+                        loading={i < 4 ? "eager" : undefined}
+                      />
+                    )}
                   </span>
-                </a>
-                <div className="butik-cat-body">
-                  <div className="butik-cat-head">
-                    <a className="butik-cat-titlelink" href={`/kategori/${g.main.slug}`}>
-                      <h3 className="butik-cat-title">{g.main.name}</h3>
-                    </a>
-                    <span className="butik-cat-count">{productCountLabel(g.count)}</span>
-                  </div>
-                  <p className="butik-cat-tag">{g.tag}</p>
-                  {g.subs.length > 0 && (
-                    <div className="butik-cat-subs" aria-label={`Underkategorier i ${g.main.name}`}>
-                      {g.subs.map((s) => (
-                        <a className="butik-subchip" key={s.id} href={`/kategori/${s.slug}`}>
-                          {s.img && (
-                            <span className="butik-subchip-thumb">
-                              {/* Dekorativ MED FLIT: bilden är en godtycklig produktbild ur
-                                  underkategorin (lib/category-groups.ts), inte en bild PÅ
-                                  kategorin — ett alt med kategorinamnet hade beskrivit
-                                  länkmålet i stället för bilden (fel enligt WCAG 1.1.1) och
-                                  dessutom upprepat texten som redan står i samma länk. */}
-                              <Image src={tightFillUrl(s.img, 96, 96)} alt="" fill sizes="48px" />
-                            </span>
-                          )}
-                          <span className="butik-subchip-text">
-                            <span className="butik-subchip-name">{s.name}</span>
-                            <span className="butik-subchip-count">{productCountLabel(s.count)}</span>
-                          </span>
-                          <span className="butik-subchip-arr" aria-hidden="true">→</span>
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                  <a className="butik-cat-cta" href={`/kategori/${g.main.slug}`}>
-                    Se alla {g.main.name.toLowerCase()} <span aria-hidden="true">→</span>
-                  </a>
-                </div>
-              </article>
+                  <span className="b2-avd-text">
+                    <span className="b2-avd-namn">{g.main.name}</span>
+                    <span className="b2-avd-antal">{productCountLabel(g.count)}</span>
+                  </span>
+                  <span className="b2-avd-tag">{g.tag}</span>
+                </PrefetchLink>
               );
             })}
+            {/* Den tolfte rutan: hela sortimentet. Elva avdelningar lämnade ett hål i
+                rutnätet på datorn (4 + 4 + 3). */}
+            <PrefetchLink className="b2-avd b2-avd-alla" href="/alla-produkter">
+              <span className="b2-avd-bild b2-alla-yta" aria-hidden="true">
+                <span className="b2-alla-tal">{tusental(products.length)}</span>
+                <span className="b2-alla-text">produkter i alla avdelningar</span>
+              </span>
+              <span className="b2-avd-text">
+                <span className="b2-avd-namn">Hela sortimentet</span>
+                <span className="b2-avd-antal">Se alla <span aria-hidden="true">→</span></span>
+              </span>
+              <span className="b2-avd-tag">Filtrera på pris, rea och kategori.</span>
+            </PrefetchLink>
           </div>
         </div>
       </section>
 
-      {/* VECKANS FYND — smal curated rad, inte en full produktlista */}
-      <section className="sec butik-veckans">
-        <div className="container">
-          <div className="sechead">
-            <div className="eyebrow">Populärt just nu</div>
-            <h2>Veckans fynd</h2>
-            <p>Handplockade favoriter – bara ett urval, hela sortimentet hittar du i kategorierna ovan.</p>
-          </div>
-          <div className="prodgrid listgrid">
-            {veckans.map((p) => <ProductCard p={p} key={p.slug} tvaKolumner />)}
-          </div>
-          <div className="center"><a className="linkbtn" href="/alla-produkter">Visa alla produkter →</a></div>
-        </div>
-      </section>
-
-      {/* EDITORIAL — "Vad är Fyndplats?" — bygger varumärkesförtroende */}
-      <section className="butik-story">
-        <div className="container">
-          <div className="butik-story-grid">
-            <div className="butik-story-text">
-              <div className="eyebrow" style={{ justifyContent: "flex-start" }}>Vår story</div>
-              <h2>Vad är Fyndplats?</h2>
-              <p>
-                Vi är en svensk webbutik som letar upp och kvalitetssäkrar fynd från hela världen, så du
-                inte behöver göra det själv. Inget överflöd – bara saker som verkligen är värda din tid.
-              </p>
-              <p>
-                Vi driver Fyndplats från Sverige med svensk kundtjänst som svarar inom 24 timmar.
-                Trygga köp med Klarna, 30 dagars öppet köp och spårbar leverans – varje gång.
-              </p>
+      {populara.length >= 4 && (
+        <section className="sec b2-populart">
+          <div className="container">
+            <div className="h2rad">
+              <div>
+                <div className="eyebrow">{allaSalda ? "Mest köpt de senaste 90 dagarna" : "Urval ur sortimentet"}</div>
+                <h2>Populärt just nu</h2>
+              </div>
+              <PrefetchLink className="h2lank" href="/alla-produkter">Alla produkter <span aria-hidden="true">→</span></PrefetchLink>
             </div>
-            <ul className="butik-story-pillars">
-              <li>
-                <span className="butik-pillar-num">01</span>
-                <div>
-                  <h4>Noga utvalda</h4>
-                  <p>Vi testar och granskar varje produkt innan den hamnar i butiken.</p>
-                </div>
-              </li>
-              <li>
-                <span className="butik-pillar-num">02</span>
-                <div>
-                  <h4>Svensk kundtjänst</h4>
-                  <p>Riktig kontakt med svensktalande personal – vi svarar inom 24 timmar.</p>
-                </div>
-              </li>
-              <li>
-                <span className="butik-pillar-num">03</span>
-                <div>
-                  <h4>Trygga köp</h4>
-                  <p>Klarna, 30 dagars öppet köp och spårbar leverans till hela Sverige.</p>
-                </div>
-              </li>
-            </ul>
+            <div className="prodgrid listgrid">
+              {populara.map((p) => <ProductCard p={p} key={p.slug} tvaKolumner />)}
+            </div>
+          </div>
+        </section>
+      )}
+
+      <section className="sec b2-registersek" id="kategorier">
+        <div className="container">
+          <div className="h2rad">
+            <div>
+              <div className="eyebrow">{categoryCountLabel(antalKategorier)}</div>
+              <h2>Alla kategorier</h2>
+            </div>
+          </div>
+          {/* Registret i text: varje underkategori en gång, utan bild. Förut bar varje
+              länk en egen tumnagel (127 bilder och 294 kB srcset). */}
+          <div className="b2-register">
+            {groups.map((g) => (
+              <div className="b2-grupp" key={g.main.id}>
+                <h3 className="b2-grupp-rubrik">
+                  <a href={`/kategori/${g.main.slug}`}>{g.main.name}</a>
+                  <span className="b2-grupp-antal">{tusental(g.count)}</span>
+                </h3>
+                {g.subs.length > 0 && (
+                  <ul className="b2-grupp-lista">
+                    {g.subs.map((s) => (
+                      <li key={s.id}>
+                        <a href={`/kategori/${s.slug}`}>
+                          <span>{s.name}</span>
+                          <span className="b2-sub-antal">{tusental(s.count)}</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </section>
-    </>
+
+      <section className="b2-tryggt" aria-label="Därför Fyndplats">
+        <div className="container">
+          <ul>
+            <li>
+              <a href="/kopvillkor#leverans">
+                <span className="b2-tryggt-rubrik">Fri frakt över {FREE_SHIPPING_OVER_KR} kr</span>
+                <span className="b2-tryggt-text">Annars {STANDARD_SHIPPING_KR} kr, till hela Sverige.</span>
+              </a>
+            </li>
+            <li>
+              <a href="/returer">
+                <span className="b2-tryggt-rubrik">30 dagars öppet köp</span>
+                <span className="b2-tryggt-text">14 dagars ångerrätt, sedan öppet köp till dag 30.</span>
+              </a>
+            </li>
+            <li>
+              <a href="/eu-lager-garanti">
+                <span className="b2-tryggt-rubrik">Ingen tull</span>
+                <span className="b2-tryggt-text">Allt skickas från lager inom EU.</span>
+              </a>
+            </li>
+            <li>
+              <a href="/kopvillkor#betalning">
+                <span className="b2-tryggt-rubrik">Kort, Klarna, Apple Pay</span>
+                <span className="b2-tryggt-text">Och Google Pay. Krypterat hela vägen.</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </section>
+    </div>
   );
 }

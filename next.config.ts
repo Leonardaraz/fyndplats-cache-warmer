@@ -83,6 +83,9 @@ const nextConfig: NextConfig = {
     // Vercels /_next/image-optimerare (kallstart + extra hop). remotePatterns
     // behålls som dokumentation av tillåtna värdar; optimeraren är förbikopplad.
     loaderFile: "./lib/image-loader.ts",
+    // Kvaliteter som <Image quality> får be om. Laddaren ovan skickar talet
+    // vidare till bildens egen CDN; utan raden varnar Next i utvecklingsläget.
+    qualities: [60, 75],
     remotePatterns: [
       { protocol: "https", hostname: "static.wixstatic.com" },
       // Curated kategori-hero-bilder (lib/category-groups.ts → CATEGORY_HERO_IMAGES).

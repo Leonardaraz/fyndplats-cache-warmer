@@ -79,8 +79,16 @@ describe("betalsätten och vem som tar dem", () => {
     }
   });
 
-  it("startsidans kort om betalningen räknar upp alla betalsätt", () => {
-    assert.match(las("app", "page.tsx"), /<h3>Trygg betalning<\/h3><p>Kort, Apple Pay, Google Pay eller Klarna med faktura och delbetalning/);
+  it("startsidans löfte om betalningen leder till köpvillkoren, och ett kort räknar upp alla betalsätt", () => {
+    const sida = las("app", "page.tsx");
+    // Den nya startsidan (2026-11-13) har inga trygghetskort. Löftesraden säger
+    // "Trygg Klarna-betalning" och länkar till köpvillkoren, där § 4 räknar upp
+    // alla betalsätt (provet ovan).
+    assert.match(sida, /<a className="uspitem" href="\/kopvillkor"><svg[^]*?<\/svg>Trygg Klarna-betalning<\/a>/);
+    // Kommer ett kort om betalningen tillbaka ska det räkna upp alla betalsätt.
+    for (const kort of sida.matchAll(/<h3>Trygg betalning<\/h3><p>([^<]*)<\/p>/g)) {
+      assert.match(kort[1], /^Kort, Apple Pay, Google Pay eller Klarna med faktura och delbetalning/);
+    }
   });
 
   it("kassan och villkoren räknar upp samma betalsätt", () => {
