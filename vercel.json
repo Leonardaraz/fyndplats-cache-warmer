@@ -38,8 +38,12 @@
       "schedule": "20 */6 * * *"
     },
     {
-      "path": "/api/cron/aosom-sync?dryRun=false&limit=1200&rotation=pris",
-      "schedule": "20 3,9,15,21 * * *"
+      "path": "/api/cron/aosom-sync?dryRun=false&limit=6000&rotation=pris&budget=660",
+      "schedule": "13 3 * * *"
+    },
+    {
+      "path": "/api/cron/aosom-sync?dryRun=false&limit=6000&rotation=pris&budget=660&fortsatt=1",
+      "schedule": "13 9,15,21 * * *"
     },
     {
       "path": "/api/cron/aosom-import?dryRun=false&limit=60&skipFreightHeavy=1",

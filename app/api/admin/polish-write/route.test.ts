@@ -15,10 +15,13 @@ interface Anrop {
 }
 let anrop: Anrop[] = [];
 let wixKastar = false;
+/** Butikens publicerade sidor, så som frågan om titlar får dem (lib/polish/seo-unik.ts). */
+let publicerade: Array<Record<string, unknown>> = [];
 vi.mock("@/lib/polish/skrivplan-wix", () => ({
   skapaWixAnrop: () => async (metod: string, sokvag: string, kropp?: unknown) => {
     anrop.push({ metod, sokvag, kropp });
     if (wixKastar) throw new Error("Wix 503: nere");
+    if (sokvag === "/stores/v3/products/query") return seoSvar(publicerade, kropp);
     if (sokvag.startsWith("/categories/v1/categories/query")) {
       return { categories: [{ id: "kat-hem", name: "Hem & Inredning" }] };
     }
@@ -26,6 +29,7 @@ vi.mock("@/lib/polish/skrivplan-wix", () => ({
   },
 }));
 
+import { seoSvar } from "@/lib/polish/seo-svar.provhjalp";
 import { POST } from "./route";
 
 const HTML = "<p>Hej.</p>";
@@ -65,6 +69,7 @@ beforeEach(() => {
   auktoriserad = false;
   anrop = [];
   wixKastar = false;
+  publicerade = [];
   process.env.CRON_SECRET = HEMLIG;
 });
 afterEach(() => {
@@ -75,6 +80,28 @@ afterEach(() => {
 const MED_NYCKEL = { authorization: `Bearer ${HEMLIG}` };
 
 describe("POST /api/admin/polish-write", () => {
+  it("☠️ en titel som redan står på en annan publicerad sida skriver ingenting, varken torrt eller skarpt", async () => {
+    publicerade = [
+      {
+        id: "9f8e7d6c-0000-4000-8000-000000000009",
+        visible: true,
+        seoData: { tags: [{ type: "title", children: "Testbord i ek | Fyndplats" }] },
+      },
+    ];
+    for (const dryRun of [true, false]) {
+      anrop = [];
+      const res = await POST(req({ steg: "text", dryRun, plan: plan() }, MED_NYCKEL));
+      const kropp = await res.json();
+      expect(kropp.ok).toBe(false);
+      expect(kropp.avbrutet).toContain("1a2b3c4d: titeln står redan på 9f8e7d6c");
+      expect(kropp.avbrutet).toContain("Ingenting skrivet");
+      // Bara frågan gick till Wix: ingen läsning av produkten och ingen skrivning.
+      expect(anrop.map((a) => a.metod)).toEqual(["POST"]);
+      // Titeln själv står inte i svaret, som går till en publik logg.
+      expect(JSON.stringify(kropp)).not.toContain("Testbord i ek");
+    }
+  });
+
   it("svarar 401 utan nyckel och rör aldrig Wix", async () => {
     const res = await POST(req({ steg: "text", dryRun: false, plan: plan() }));
     expect(res.status).toBe(401);
@@ -131,7 +158,7 @@ describe("POST /api/admin/polish-write", () => {
     expect(res.status).toBe(200);
     const kropp = await res.json();
     expect(kropp.dryRun).toBe(true);
-    expect(anrop.map((a) => a.metod)).toEqual(["GET"]);
+    expect(anrop.map((a) => a.metod)).toEqual(["POST", "GET"]) // frågan om publicerade titlar, sedan produkten;
   });
 
   it("☠️ strängen \"false\" är INTE false — fortfarande torrt", async () => {
@@ -145,7 +172,7 @@ describe("POST /api/admin/polish-write", () => {
     expect(res.status).toBe(200);
     const kropp = await res.json();
     expect(kropp).toMatchObject({ ok: true, steg: "text", dryRun: false, runda: "runda-t1-test" });
-    expect(anrop.map((a) => a.metod)).toEqual(["GET", "PATCH"]);
+    expect(anrop.map((a) => a.metod)).toEqual(["POST", "GET", "PATCH"]);
   });
 
   it("ett fel före produktloopen blir 500 med meddelandet", async () => {

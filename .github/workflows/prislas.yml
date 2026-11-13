@@ -1,6 +1,6 @@
 name: Pris — lås eller lås upp ett pris
 
-# Aosom-synken räknar om priset ur kostnaden var sjätte timme och skriver
+# Aosom-synken räknar om priset ur kostnaden en gång om dagen och skriver
 # husets regel (1,20 × landedCostSek, charm99). Det är rätt för sortimentet i
 # stort — men inte för varje rad.
 #
@@ -108,5 +108,5 @@ jobs:
             echo "Lagret synkas som vanligt. Raden syns som 'prisLasta' i synkens summering." || true
             echo "Kom ihag att lasa upp den nar skalet ar borta — ett last pris foljer inte kostnaden." || true
           else
-            echo "Aosom-synken ager priset igen och skriver husets regel vid nasta korning (20 */6 * * *)." || true
+            echo "Aosom-synken ager priset igen och skriver husets regel vid nasta priskorning (13 3 * * *)." || true
           fi

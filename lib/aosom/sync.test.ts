@@ -14,6 +14,10 @@ import {
   MAX_PRISANDRING_PCT,
   jamforelsePris,
   aterkomnaLagerrader,
+  PRIS_SAMTIDIGA,
+  STRYPNING_STOPP,
+  arStrypning,
+  medOmforsokVid429,
   type AosomSyncDeps,
   type SaldOrderrad,
 } from "./sync";
@@ -2933,5 +2937,424 @@ describe("☠️ steg 3: körningen rör inte en rad vars fält och id är oense
     expect(s.okantBesked).toBe(0);
     expect(s.urFeeden).toBe(1);
     expect(lager).toContainEqual({ id: "wix-B-2", antal: 0 });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// En priskörning om dagen (2026-11-11)
+// ---------------------------------------------------------------------------
+//
+// ☠️ Vad som byggde testerna. Aosom flyttade nästan alla priser två gånger på en
+// vecka (3–9 november). Priskörningen läste hela butikens prislista före loopen
+// (en körning på EN produkt tog 115 sekunder) och skrev sedan ett pris i taget,
+// så den hann 50–100 produkter av 5 051. En torrkörning 2026-11-11 visade 5 020
+// priser som låg fel, och en skarp körning samma dag dog på Vercels tidsgräns
+// mitt i en tugga.
+describe("☠️ en priskörning om dagen: per tugga, flera åt gången, ett helt varv (2026-11-11)", () => {
+  const DYRARE = { wholesaleEur: 60 };
+  const NYTT = computePriceWithRules(
+    landadKostnadSek(rad("x", DYRARE), FX.eurToSek) / FX.usdToSek,
+    REGLER,
+    null,
+  ).grossSek;
+  const skus = (n: number) => Array.from({ length: n }, (_, i) => `P-${String(i + 1).padStart(3, "0")}`);
+
+  /** Butikens svar på en fråga om utpekade produkter. `null` = produkten saknas i svaret. */
+  function butiken(over: Record<string, number | null> = {}) {
+    const fragor: string[][] = [];
+    const las = async (ids: string[]) => {
+      fragor.push([...ids]);
+      const m = new Map<string, WixProduktPris>();
+      for (const id of ids) {
+        if (over[id] === null) continue;
+        m.set(id, { priceSek: over[id] ?? BASPRIS, variantCount: 1 });
+      }
+      return m;
+    };
+    return { las, fragor };
+  }
+
+  /** `n` produkter vars regelpris är NYTT medan butiken står på BASPRIS. Saldot stämmer redan. */
+  function katalog(n: number, over: Partial<AosomSyncDeps> = {}) {
+    const alla = skus(n);
+    const b = butiken();
+    const x = deps({
+      fetchFeed: async () => feedMed(...alla.map((sku) => rad(sku, DYRARE))),
+      listAosom: async () => alla.map((sku) => mappning(sku, { aosomSyncedQty: S50 })),
+      lasLagerposter: async (ids) => ids.map((id) => lagerpost(id, S50)),
+      listWixPriser: async () => {
+        throw new Error("hela butikens prislista ska aldrig läsas");
+      },
+      lasWixPriserFor: b.las,
+      ...over,
+    });
+    return { ...x, fragor: b.fragor };
+  }
+
+  it("förutsättningen: det nya priset skiljer sig och ligger under taket", () => {
+    expect(NYTT).not.toBe(BASPRIS);
+    expect(Math.abs((NYTT - BASPRIS) / BASPRIS) * 100).toBeLessThan(MAX_PRISANDRING_PCT);
+  });
+
+  describe("priserna läses per tugga", () => {
+    it("☠️ hela butikens prislista läses aldrig: bara tuggans produkter", async () => {
+      const { d, priser, fragor } = katalog(3);
+      const s = await runAosomSync(d, { dryRun: false });
+
+      expect(fragor).toEqual([["wix-P-001", "wix-P-002", "wix-P-003"]]);
+      expect(s.prislistaFel).toBeNull();
+      expect(s.prisUppdaterade).toBe(3);
+      expect(priser.map((x) => x.pris)).toEqual([NYTT, NYTT, NYTT]);
+    });
+
+    it("en fråga per tugga, inte en per produkt", async () => {
+      const { d, fragor } = katalog(120);
+      await runAosomSync(d, { dryRun: true });
+      expect(fragor.map((f) => f.length)).toEqual([50, 50, 20]);
+    });
+
+    it("☠️ inget svar alls är ett LÄSFEL: inget pris skrivs och körningen ser inte frisk ut", async () => {
+      const { d, priser } = katalog(3, { lasWixPriserFor: async () => new Map() });
+      const s = await runAosomSync(d, { dryRun: false });
+
+      expect(priser).toEqual([]);
+      expect(s.prisUppdaterade).toBe(0);
+      expect(s.utanWixPris).toBe(3);
+      expect(s.prislistaFel).toMatch(/priser gick inte att läsa/);
+    });
+
+    it("☠️ kastar läsningen skrivs inget pris, men lagret synkas", async () => {
+      const alla = skus(2);
+      const { d, priser, lager } = katalog(2, {
+        lasWixPriserFor: async () => {
+          throw new Error("Wix svarade 503");
+        },
+        fetchFeed: async () => feedMed(...alla.map((sku) => rad(sku, { ...DYRARE, qty: 13 }))),
+      });
+      const s = await runAosomSync(d, { dryRun: false });
+
+      expect(priser).toEqual([]);
+      expect(s.prislistaFel).toMatch(/503/);
+      expect(lager).toEqual([
+        { id: "wix-P-001", antal: S13 },
+        { id: "wix-P-002", antal: S13 },
+      ]);
+    });
+
+    it("en produkt som saknas i svaret får inget pris, de andra skrivs", async () => {
+      const b = butiken({ "wix-P-002": null });
+      const { d, priser } = katalog(3, { lasWixPriserFor: b.las });
+      const s = await runAosomSync(d, { dryRun: false });
+
+      expect(priser.map((x) => x.id)).toEqual(["wix-P-001", "wix-P-003"]);
+      expect(s.utanWixPris).toBe(1);
+      expect(s.prislistaFel).toBeNull();
+    });
+
+    it("prisdelen avstängd (`skipPrices`): butiken frågas inte alls", async () => {
+      const { d, fragor } = katalog(3);
+      await runAosomSync(d, { dryRun: false, skipPrices: true });
+      expect(fragor).toEqual([]);
+    });
+
+    it("utan den nya läsaren går synken som förut, på hela prislistan", async () => {
+      const { d, priser } = deps({
+        fetchFeed: async () => feedMed(rad("A-1", DYRARE), rad("B-2")),
+      });
+      const s = await runAosomSync(d, { dryRun: false });
+      expect(priser.map((x) => x.id)).toEqual(["wix-A-1"]);
+      expect(s.prislistaFel).toBeNull();
+    });
+  });
+
+  describe("ett helt varv (`varv`)", () => {
+    const ordningen = async (opts: Parameters<typeof runAosomSync>[1]) => {
+      const { d, priser } = katalog(4);
+      const s = await runAosomSync(d, { dryRun: false, prisSamtidiga: 1, ...opts });
+      return { s, ordning: priser.map((x) => x.id.replace("wix-", "")) };
+    };
+
+    it("☠️ börjar efter markören, går till slutet och tar sedan början fram till markören", async () => {
+      const { s, ordning } = await ordningen({ varv: true, after: "P-002" });
+
+      expect(ordning).toEqual(["P-003", "P-004", "P-001", "P-002"]);
+      expect(s.granskade).toBe(4);
+      expect(s.kvar).toBe(0);
+      expect(s.stoppedBy).toBe("klart");
+      expect(s.cursor).toBeNull();
+    });
+
+    it("utan `varv` betyder markören som förut: bara det som ligger efter den", async () => {
+      const { s, ordning } = await ordningen({ after: "P-002" });
+      expect(ordning).toEqual(["P-003", "P-004"]);
+      expect(s.granskade).toBe(2);
+    });
+
+    it("ett varv som inte hinner klart lämnar markören där det stannade", async () => {
+      const { s, ordning } = await ordningen({ varv: true, after: "P-002", limit: 1 });
+
+      expect(ordning).toEqual(["P-003"]);
+      expect(s.stoppedBy).toBe("limit");
+      expect(s.cursor).toBe("P-003");
+      expect(s.kvar).toBe(3);
+    });
+
+    it("utan markör, eller med en markör efter sista raden, börjar varvet från början", async () => {
+      expect((await ordningen({ varv: true })).ordning).toEqual(["P-001", "P-002", "P-003", "P-004"]);
+      expect((await ordningen({ varv: true, after: "ZZZ" })).ordning).toEqual([
+        "P-001", "P-002", "P-003", "P-004",
+      ]);
+    });
+  });
+
+  describe("prisskrivningarna går flera åt gången", () => {
+    /** En prisskrivning som tar tid, och som räknar hur många som är i luften. */
+    function langsam(fel: (id: string) => Error | null = () => null) {
+      const matt = { iLuften: 0, max: 0, perProdukt: new Map<string, number>(), maxPerProdukt: 0, anrop: [] as string[] };
+      const setPrice: AosomSyncDeps["setPrice"] = async (id) => {
+        matt.anrop.push(id);
+        matt.iLuften++;
+        matt.max = Math.max(matt.max, matt.iLuften);
+        const egna = (matt.perProdukt.get(id) ?? 0) + 1;
+        matt.perProdukt.set(id, egna);
+        matt.maxPerProdukt = Math.max(matt.maxPerProdukt, egna);
+        await new Promise((r) => setTimeout(r, 3));
+        matt.iLuften--;
+        matt.perProdukt.set(id, egna - 1);
+        const f = fel(id);
+        if (f) throw f;
+      };
+      return { setPrice, matt };
+    }
+
+    it("☠️ högst `prisSamtidiga` produkter skrivs samtidigt, och alla skrivs", async () => {
+      const { setPrice, matt } = langsam();
+      const { d, sparade } = katalog(8, { setPrice });
+      const s = await runAosomSync(d, { dryRun: false, prisSamtidiga: 3 });
+
+      expect(matt.max).toBe(3);
+      expect(s.prisUppdaterade).toBe(8);
+      expect(sparade).toHaveLength(8);
+      expect(sparade.every((m) => m.variants[0].grossSek === NYTT)).toBe(true);
+    });
+
+    it("☠️ default är EN i taget: tre samtidiga fick Wix att strypa (mätt 2026-11-11)", async () => {
+      const { setPrice, matt } = langsam();
+      const { d, sparade } = katalog(8, { setPrice });
+      const s = await runAosomSync(d, { dryRun: false });
+      expect(PRIS_SAMTIDIGA).toBe(1);
+      expect(matt.max).toBe(1);
+      // Takten ändrar inte utfallet: alla åtta skrivs och stämplas.
+      expect(s.prisUppdaterade).toBe(8);
+      expect(sparade).toHaveLength(8);
+    });
+
+    it("en torrkörning skriver ingenting, men räknar vad som skulle skrivas", async () => {
+      const { setPrice, matt } = langsam();
+      const { d } = katalog(8, { setPrice });
+      const s = await runAosomSync(d, { dryRun: true });
+      expect(matt.anrop).toEqual([]);
+      expect(s.prisUppdaterade).toBe(8);
+    });
+
+    it("☠️ ett fel på en produkt bokförs på DEN produkten, och de andra stämplas", async () => {
+      const { setPrice } = langsam((id) => (id === "wix-P-002" ? new Error("Wix sa 409") : null));
+      const { d, sparade } = katalog(4, { setPrice });
+      const s = await runAosomSync(d, { dryRun: false, prisSamtidiga: 3 });
+
+      expect(s.prisUppdaterade).toBe(3);
+      expect(s.misslyckade).toBe(1);
+      expect(s.errors.map((e) => e.wixProductId)).toEqual(["wix-P-002"]);
+      expect(sparade.map((m) => m.wixProductId)).toEqual(["wix-P-001", "wix-P-003", "wix-P-004"]);
+    });
+
+    it("☠️ en sammanslagen sidas varianter skrivs i följd, aldrig två samtidigt på samma produkt", async () => {
+      const bas = mappning("A-1");
+      const landadGra = landadKostnadSek(rad("G-7"), FX.eurToSek);
+      const stol: ProductMappingRecord = {
+        ...bas,
+        wixProductId: "wix-stol",
+        aosomSyncedQty: 2 * S50,
+        variants: [
+          { ...bas.variants[0], sku: "FP-stol-svart", wixVariantId: "wixvar-svart", choices: { Färg: "Svart" }, aosomSyncedQty: S50 },
+          {
+            supplierVariantId: "G-7", sku: "FP-stol-gra", wixVariantId: "wixvar-gra", choices: { Färg: "Grå" },
+            costUsd: landadGra / FX.usdToSek, landedCostSek: landadGra, grossSek: BASPRIS, aosomSyncedQty: S50,
+          },
+        ],
+      };
+      const { setPrice, matt } = langsam();
+      const b = butiken();
+      const { d } = deps({
+        fetchFeed: async () => feedMed(rad("A-1", DYRARE), rad("G-7", DYRARE), rad("B-2", DYRARE)),
+        listAosom: async () => [stol, mappning("B-2", { aosomSyncedQty: S50 })],
+        lasLagerposter: async () => [
+          { id: "inv-svart", revision: "1", productId: "wix-stol", variantId: "wixvar-svart", quantity: S50 },
+          { id: "inv-gra", revision: "1", productId: "wix-stol", variantId: "wixvar-gra", quantity: S50 },
+          lagerpost("wix-B-2", S50),
+        ],
+        lasVariantPriser: async () =>
+          new Map([["wix-stol", new Map([["wixvar-svart", BASPRIS], ["wixvar-gra", BASPRIS]])]]),
+        lasWixPriserFor: b.las,
+        setPrice,
+      });
+      const s = await runAosomSync(d, { dryRun: false, prisSamtidiga: 3 });
+
+      expect(s.prisUppdaterade).toBe(3);
+      expect(matt.maxPerProdukt).toBe(1);
+      expect(matt.max).toBe(2);
+      // Den sammanslagna sidan läser sitt facit per variant, inte ur prisfrågan.
+      expect(b.fragor).toEqual([["wix-B-2"]]);
+    });
+  });
+
+  describe("Wix stryper (429)", () => {
+    const strypt = (id: string) => new Error(`updateV3VariantPrices PATCH ${id} (429): Too Many Requests`);
+
+    it("arStrypning känner igen felens två former, och bara dem", () => {
+      expect(arStrypning(new Error("updateV3VariantPrices PATCH abc (429): x"))).toBe(true);
+      expect(arStrypning(new Error("getV3VariantPriser(abc) 429: x"))).toBe(true);
+      expect(arStrypning(new Error("updateV3VariantPrices PATCH abc (409): revision"))).toBe(false);
+      expect(arStrypning(new Error("priset 1429 kr avvisades (400)"))).toBe(false);
+      expect(arStrypning("okänt")).toBe(false);
+    });
+
+    it(`☠️ ${STRYPNING_STOPP} strypta skrivningar i en tugga avbryter körningen, och markören står efter tuggan`, async () => {
+      const strypta = new Set(skus(STRYPNING_STOPP).map((x) => `wix-${x}`));
+      const { d, priser } = katalog(60, {
+        setPrice: async (id, variant, pris, kostnad) => {
+          if (strypta.has(id)) throw strypt(id);
+          priser.push({ id, pris, kostnad, variant });
+        },
+      });
+      const s = await runAosomSync(d, { dryRun: false });
+
+      expect(s.stoppedBy).toBe("strypt");
+      expect(s.granskade).toBe(50);
+      expect(s.kvar).toBe(10);
+      expect(s.cursor).toBe("P-050");
+      expect(s.misslyckade).toBe(STRYPNING_STOPP);
+      expect(s.prisUppdaterade).toBe(50 - STRYPNING_STOPP);
+    });
+
+    it("☠️ efter ett enda 429 går resten av körningen en produkt i taget", async () => {
+      let iLuften = 0;
+      const maxPerTugga = [0, 0];
+      const { d } = katalog(60, {
+        setPrice: async (id) => {
+          const tugga = Number(id.slice(-3)) <= 50 ? 0 : 1;
+          iLuften++;
+          maxPerTugga[tugga] = Math.max(maxPerTugga[tugga], iLuften);
+          await new Promise((r) => setTimeout(r, 2));
+          iLuften--;
+          if (id === "wix-P-007") throw strypt(id);
+        },
+      });
+      const s = await runAosomSync(d, { dryRun: false, prisSamtidiga: 3 });
+
+      expect(s.stoppedBy).toBe("klart");
+      expect(s.misslyckade).toBe(1);
+      expect(maxPerTugga).toEqual([3, 1]);
+    });
+
+    it("andra fel än 429 saktar inte ner och avbryter inte", async () => {
+      const { d } = katalog(60, {
+        setPrice: async (id) => {
+          if (Number(id.slice(-3)) <= 10) throw new Error(`updateV3VariantPrices PATCH ${id} (409): revision`);
+        },
+      });
+      const s = await runAosomSync(d, { dryRun: false });
+      expect(s.stoppedBy).toBe("klart");
+      expect(s.misslyckade).toBe(10);
+      expect(s.granskade).toBe(60);
+    });
+
+    describe("medOmforsokVid429", () => {
+      it("gör om ett 429 efter en paus och lämnar svaret", async () => {
+        const pauser: number[] = [];
+        let n = 0;
+        const svar = await medOmforsokVid429(
+          async () => {
+            if (++n < 3) throw strypt("p");
+            return "skrivet";
+          },
+          [1_000, 3_000],
+          async (ms) => void pauser.push(ms),
+        );
+        expect(svar).toBe("skrivet");
+        expect(pauser).toEqual([1_000, 3_000]);
+      });
+
+      it("☠️ andra fel görs ALDRIG om: en PATCH som kan ha gått fram skickas inte igen", async () => {
+        let n = 0;
+        await expect(
+          medOmforsokVid429(
+            async () => {
+              n++;
+              throw new Error("updateV3VariantPrices PATCH p (500): boom");
+            },
+            [1, 1],
+            async () => {},
+          ),
+        ).rejects.toThrow(/500/);
+        expect(n).toBe(1);
+      });
+
+      it("ger upp när pauserna är slut, med det sista felet", async () => {
+        let n = 0;
+        await expect(
+          medOmforsokVid429(
+            async () => {
+              n++;
+              throw strypt("p");
+            },
+            [1, 1],
+            async () => {},
+          ),
+        ).rejects.toThrow(/429/);
+        expect(n).toBe(3);
+      });
+    });
+  });
+
+  describe("tiden tar slut mitt i en tugga (`prisSlutMs`)", () => {
+    it("☠️ priserna som inte hinns med skjuts upp: de räknas, och det som skrevs stämplas", async () => {
+      let klocka = 0;
+      const { d, priser, sparade } = katalog(5, {
+        now: () => klocka,
+        setPrice: async (id, variant, pris, kostnad) => {
+          klocka += 100;
+          priser.push({ id, pris, kostnad, variant });
+        },
+      });
+      const s = await runAosomSync(d, { dryRun: false, prisSamtidiga: 1, prisSlutMs: 250 });
+
+      // 0 → skriv, 100 → skriv, 200 → skriv, 300 ≥ 250 → resten skjuts upp.
+      expect(priser.map((x) => x.id)).toEqual(["wix-P-001", "wix-P-002", "wix-P-003"]);
+      expect(s.prisUppdaterade).toBe(3);
+      expect(s.prisUppskjutna).toBe(2);
+      expect(s.misslyckade).toBe(0);
+      // En uppskjuten prisskrivning är inte "oförändrad": priset stämmer inte än.
+      expect(s.oforandrade).toBe(0);
+      expect(sparade.map((m) => m.wixProductId)).toEqual(["wix-P-001", "wix-P-002", "wix-P-003"]);
+    });
+
+    it("utan gräns skjuts ingenting upp", async () => {
+      let klocka = 0;
+      const { d } = katalog(5, { now: () => klocka, setPrice: async () => void (klocka += 100_000) });
+      const s = await runAosomSync(d, { dryRun: false, prisSamtidiga: 1, timeBudgetMs: 10_000_000 });
+      expect(s.prisUppdaterade).toBe(5);
+      expect(s.prisUppskjutna).toBe(0);
+    });
+
+    it("en torrkörning skjuter aldrig upp: den ska räkna hela tuggan", async () => {
+      // Klockan går en sekund per avläsning, så gränsen är passerad långt
+      // innan första priset planeras.
+      let klocka = 0;
+      const { d } = katalog(5, { now: () => (klocka += 1_000) });
+      const s = await runAosomSync(d, { dryRun: true, prisSlutMs: 1, timeBudgetMs: 10_000_000 });
+      expect(s.prisUppdaterade).toBe(5);
+      expect(s.prisUppskjutna).toBe(0);
+    });
   });
 });

@@ -1422,6 +1422,53 @@ export async function getV3ProduktKort(productId: string): Promise<V3ProduktKort
   };
 }
 
+/** Svaret från en prisfråga: sidans produkter och markören till nästa sida. */
+interface Prissida {
+  products?: Array<{
+    id?: string;
+    actualPriceRange?: { minValue?: { amount?: string }; maxValue?: { amount?: string } };
+    variantSummary?: { variantCount?: number };
+  }>;
+  pagingMetadata?: { cursors?: { next?: string }; hasNext?: boolean };
+}
+
+/**
+ * EN prisfråga mot V3, med prislistans backoff (`PRIS_PAUS_MS`). Delas av hela
+ * prislistan (`listV3ProductPrices`) och frågan på utpekade produkter
+ * (`listV3ProductPriserFor`), så att de två väntar ut Wix på samma sätt.
+ * Kastar med `etikett` först när försöken är slut.
+ */
+async function fragaPrissida(query: Record<string, unknown>, etikett: string): Promise<Prissida> {
+  let sistaFel = "";
+  for (let forsok = 0; forsok <= PRIS_PAUS_MS.length; forsok++) {
+    let res: Response;
+    try {
+      res = await fetch(`${WIX_BASE}/stores/v3/products/query`, {
+        method: "POST",
+        headers: headers(),
+        body: JSON.stringify({ query }),
+      });
+    } catch (err) {
+      // Nätverksfel är per definition övergående.
+      sistaFel = err instanceof Error ? err.message : String(err);
+      if (forsok === PRIS_PAUS_MS.length) break;
+      await sov(PRIS_PAUS_MS[forsok]);
+      continue;
+    }
+    if (res.ok) return (await res.json()) as Prissida;
+    const text = await res.text();
+    sistaFel = `${res.status}: ${text.slice(0, 200)}`;
+    if (!arOvergaende(res.status) || forsok === PRIS_PAUS_MS.length) break;
+    const retryAfter = Number(res.headers.get("retry-after"));
+    await sov(
+      Number.isFinite(retryAfter) && retryAfter > 0
+        ? Math.min(retryAfter * 1000, 15_000)
+        : PRIS_PAUS_MS[forsok],
+    );
+  }
+  throw new Error(`${etikett} — ${sistaFel}`);
+}
+
 export async function listV3ProductPrices(): Promise<Map<string, WixProduktPris>> {
   const priser = new Map<string, WixProduktPris>();
   let cursor: string | undefined;
@@ -1432,48 +1479,7 @@ export async function listV3ProductPrices(): Promise<Map<string, WixProduktPris>
 
     if (sida > 0) await sov(PRIS_SIDPAUS_MS);
 
-    let svar: Response | null = null;
-    let sistaFel = "";
-    for (let forsok = 0; forsok <= PRIS_PAUS_MS.length; forsok++) {
-      let res: Response;
-      try {
-        res = await fetch(`${WIX_BASE}/stores/v3/products/query`, {
-          method: "POST",
-          headers: headers(),
-          body: JSON.stringify({ query: { cursorPaging } }),
-        });
-      } catch (err) {
-        // Nätverksfel är per definition övergående.
-        sistaFel = err instanceof Error ? err.message : String(err);
-        if (forsok === PRIS_PAUS_MS.length) break;
-        await sov(PRIS_PAUS_MS[forsok]);
-        continue;
-      }
-      if (res.ok) {
-        svar = res;
-        break;
-      }
-      const text = await res.text();
-      sistaFel = `${res.status}: ${text.slice(0, 200)}`;
-      if (!arOvergaende(res.status) || forsok === PRIS_PAUS_MS.length) break;
-      const retryAfter = Number(res.headers.get("retry-after"));
-      await sov(
-        Number.isFinite(retryAfter) && retryAfter > 0
-          ? Math.min(retryAfter * 1000, 15_000)
-          : PRIS_PAUS_MS[forsok],
-      );
-    }
-    if (!svar) {
-      throw new Error(`V3 prisquery föll på sida ${sida} — ${sistaFel}`);
-    }
-    const data = (await svar.json()) as {
-      products?: Array<{
-        id?: string;
-        actualPriceRange?: { minValue?: { amount?: string }; maxValue?: { amount?: string } };
-        variantSummary?: { variantCount?: number };
-      }>;
-      pagingMetadata?: { cursors?: { next?: string }; hasNext?: boolean };
-    };
+    const data = await fragaPrissida({ cursorPaging }, `V3 prisquery föll på sida ${sida}`);
 
     for (const p of data.products ?? []) {
       if (!p.id) continue;
@@ -1491,6 +1497,45 @@ export async function listV3ProductPrices(): Promise<Map<string, WixProduktPris>
       + `markören kvar. Katalogen är större än väntat — höj taket hellre än att `
       + `arbeta vidare på en halv lista.`,
   );
+}
+
+/** Så många produkt-id tar en prisfråga på utpekade produkter. Sidans storlek hos V3. */
+export const PRISFRAGA_MAX_ID = 100;
+
+/**
+ * Priset för JUST de här produkterna: `wixProductId` → pris.
+ *
+ * ☠️ VARFÖR DEN FINNS (2026-11-11). `listV3ProductPrices` bläddrar HELA
+ * butiken, och sedan VEVOR-importen är det runt 170 sidor. Aosom-synken läste
+ * dem alla före varje priskörning: en körning på en enda produkt tog 115
+ * sekunder, och av de 240 sekunderna blev så lite kvar att priskörningen hann
+ * 50–100 produkter. Här frågas bara efter de produkter som ska granskas.
+ *
+ * Samma fråga som hela listan, med ett `$in` på `id`. Mätt mot skarpa V3
+ * 2026-11-11: sex id gav sex produkter, och ett dolt utkast (`visible:false`)
+ * kom med. Frågan har alltså inget tyst synlighetsvillkor här heller.
+ *
+ * En produkt som inte finns i butiken saknas i svaret. Anroparen avgör vad det
+ * betyder (`jamforelsePris` i Aosom-synken: "saknas", inget pris skrivs).
+ */
+export async function listV3ProductPriserFor(
+  productIds: readonly string[],
+): Promise<Map<string, WixProduktPris>> {
+  const priser = new Map<string, WixProduktPris>();
+  const unika = [...new Set(productIds.filter(Boolean))];
+  for (let i = 0; i < unika.length; i += PRISFRAGA_MAX_ID) {
+    const idn = unika.slice(i, i + PRISFRAGA_MAX_ID);
+    if (i > 0) await sov(PRIS_SIDPAUS_MS);
+    const data = await fragaPrissida(
+      { filter: { id: { $in: idn } }, cursorPaging: { limit: PRISFRAGA_MAX_ID } },
+      `V3 prisquery på ${idn.length} utpekade produkter föll`,
+    );
+    for (const p of data.products ?? []) {
+      if (!p.id) continue;
+      priser.set(p.id, tolkaProduktPris(p));
+    }
+  }
+  return priser;
 }
 
 // ---------------------------------------------------------------------------

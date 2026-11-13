@@ -6,6 +6,10 @@
 2. Kör **"Polering — skriv en runda till Wix"** med `ref` satt till poleringsgrenen,
    `runda` satt till katalogens namn, `plan_sha256` från bygget och läget `torr`.
    Körningen prövar planen och recensionerna (steg 7) utan att skriva något.
+   ☠️ Avbryts textsteget med `SEO-titel eller metabeskrivning står redan på en annan
+   publicerad sida` delar en av rundans produkter titel eller meta med sidan vars kort-id
+   står i felet. Skriv en egen i `seo.tsv`, bygg om planen och kör `torr` igen. Skälet står i
+   `docs/claude/47-seo-titlar-egna.md`.
 3. Kör samma sak med läget `skriv`. Workflowen prövar recensionerna först och skriver
    ingenting om en produkt har väntande recensioner utan beslut. Sedan skriver den texten,
    som också publicerar produkten, och därefter bilderna, kategorierna och SKU:n, i den

@@ -1,9 +1,10 @@
 // Aosoms synkfönster: när motorn själv skriver lager och priser mot Wix.
 //
-// Lagerkörningen (`20 */6`) och priskörningen (`20 3,9,15,21`) i vercel.json går tillsammans
-// var tredje timme, 00, 03, 06 … 21 UTC, och startar :20. Läsningen av feeden, mappningarna och
-// butikens priser före dem gör att Wix tar emot skrivningar redan från ungefär :12, och en körning
-// kan hålla på till :29. Verktygen som skriver sida för sida och jämför lagret före och efter
+// Lagerkörningen (`20 */6`) och priskörningen (`13 3`, med fortsättningar `13 9,15,21`) i
+// vercel.json går tillsammans var tredje timme, 00, 03, 06 … 21 UTC. Lagret startar :20 och är klart
+// på ett par minuter. Priskörningen startar :13 och får hålla på i tolv minuter (`budget=660` plus
+// sista tuggan), alltså till ungefär :26 (sedan 2026-11-11, då den fick tid att hinna hela katalogen).
+// Fönstret :12 till :30 rymmer båda. Verktygen som skriver sida för sida och jämför lagret före och efter
 // (kostnaden, variantbilderna, bildrundorna) tolkar en ändring av lagret som en avvikelse och
 // stannar, så de väntar ut fönstret i stället för att krocka med synken.
 //

@@ -33,7 +33,7 @@ function req(fraga: string) {
 
 function summary(over: Partial<AosomSyncSummary> = {}): AosomSyncSummary {
   return {
-    dryRun: true, feedRader: 3, granskade: 3, lagerUppdaterade: 1, prisUppdaterade: 0, urFeeden: 0,
+    dryRun: true, feedRader: 3, granskade: 3, lagerUppdaterade: 1, prisUppdaterade: 0, prisUppskjutna: 0, urFeeden: 0,
     slutsalda: 0, ejSkeppbara: 0, okantBesked: 1, okantBeskedProdukter: ["wix-3"], leverantorOense: 0,
     prisVantar: 1, oforandrade: 1, utanWixPris: 0, prisLasta: 0, iAuktion: 0, iAuktionProdukter: [],
     konkurrentMal: 0, konkurrentTak: 0, konkurrentGolv: 0, konkurrentFrysta: 0, prislistaFel: null,

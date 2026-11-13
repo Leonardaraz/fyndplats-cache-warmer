@@ -12,7 +12,9 @@
 // Ingenting skrivs av, så avskriftsfelet finns inte längre att fånga.
 //
 // Stegen är desamma som i steg1–5.js, och i samma ordning:
-//   text        namn, slug, brödtext, SEO (två taggar, tomma nyckelord), synlig
+//   text        namn, slug, brödtext, SEO (två taggar, tomma nyckelord), synlig.
+//               Vägrar en titel eller metabeskrivning som redan står på en
+//               annan publicerad sida (seo-unik.ts)
 //   media       bildlistan ENSAM, `media.main` skickas aldrig
 //   kategorier  namn → id i en färsk fråga; okänt namn skriver ingenting
 //   sku         variantens SKU SIST och ENSAM, round-trip ur en färsk GET
@@ -32,6 +34,7 @@ import { saknadeTypkategorier } from "@/lib/polish/typkategori";
 import { WIX_MAX_BILDER_PER_PRODUKT } from "../wix/limits";
 import { lasMedKostnad, variantMedKostnad } from "../wix/produkt-kostnad";
 import { MODELLNR } from "./modellnummer";
+import { krocktext, lasPubliceradSeo, seoKrockar, seoKrockarInom } from "./seo-unik";
 
 export const MAX_PRODUKTER = 20;
 export const WIX_STORES_APP_ID = "215238eb-22a5-4c36-9e7b-e7c08025e04e";
@@ -256,6 +259,19 @@ export function valideraPlan(x: unknown): { plan: Skrivplan } | { fel: string[] 
     }
   });
 
+  // ☠️ Två produkter i samma plan får inte dela SEO-titel eller metabeskrivning
+  // (lib/polish/seo-unik.ts). Jämförs på nyckeln: ett kommatecken eller ett
+  // tankstreck gör inte två titlar av en.
+  const seoRader = p.produkter.map((r: unknown, i: number) => {
+    const d = (typeof r === "object" && r !== null ? r : {}) as Record<string, unknown>;
+    return {
+      kort: typeof d.kort === "string" && HEX8.test(d.kort) ? d.kort : `rad ${i + 1}`,
+      seoTitel: typeof d.seoTitel === "string" ? d.seoTitel : "",
+      seoBesk: typeof d.seoBesk === "string" ? d.seoBesk : "",
+    };
+  });
+  for (const k of seoKrockarInom(seoRader)) fel.push(`${k.kort}: ${k.falt} är densamma som hos ${k.mot} i planen`);
+
   return fel.length ? { fel } : { plan: x as Skrivplan };
 }
 
@@ -335,6 +351,23 @@ export async function stegText(
   torr: boolean,
   pub: Publiceringsplan = INGEN_PUBLICERINGSPLAN,
 ): Promise<StegUtfall> {
+  // ☠️ Titeln och metabeskrivningen ska vara sidans egna (lib/polish/seo-unik.ts).
+  // Butiken tillfrågas före första läsningen och före första skrivningen, i
+  // torrt läge och skarpt: en plan vars titel redan står på en annan publicerad
+  // sida skriver ingenting. Kan butiken inte svara kastar läsningen, och då
+  // skrivs inte heller något.
+  const krockar = seoKrockar(plan.produkter, await lasPubliceradSeo(wix));
+  if (krockar.length) {
+    return {
+      ok: false,
+      rader: krockar.map((k) => ({ kort: k.kort, ok: false, fel: `${k.falt} står redan på ${k.mot}` })),
+      avbrutet:
+        `SEO-titel eller metabeskrivning står redan på en annan publicerad sida: ${krocktext(krockar)} — ` +
+        "sökmotorerna läser två sidor med samma titel som dubbletter. Skriv en egen titel i seo.tsv och bygg om planen. Ingenting skrivet",
+      sammanfattning: "0 skrivna",
+    };
+  }
+
   const rader: StegRad[] = [];
   for (const p of plan.produkter) {
     const hinder = pub.hinder.get(p.pid) ?? null;

@@ -8,8 +8,8 @@ Skriv allt i rundans filer. Ingen text skrivs direkt i ett anrop.
 |---|---|---|
 | **Namn** (H1) | `namn.tsv` (`kort ⇥ namn`) | Börjar med fokussökordet. Högst 80 tecken, eftersom Wix avvisar fler. Produkttypen är vad varan faktiskt är. Måste namnet kortas stryks färgen före det som hindrar en missuppfattning om vad som ingår (`utan stomme`). |
 | **Slug** | `slugs.txt` (`kort slug`) | ASCII, gemener och bindestreck, med fokussökordet. |
-| **SEO-titel** | `seo.tsv` (`kort ⇥ titel ⇥ meta`) | Börjar med fokussökordet. Högst 60 tecken inklusive ` \| Fyndplats`. Skiljer den sig inte från namnet struntar butiken i både titeln och metan och visar `{namn} \| Fyndplats` och första stycket. |
-| **Meta** | `seo.tsv` | Sikta på högst 155 tecken (`gate-seo.py` fäller över 160), med nyttan och sökordet och inga påståenden som inte är verifierade. |
+| **SEO-titel** | `seo.tsv` (`kort ⇥ titel ⇥ meta`) | Börjar med fokussökordet. Högst 60 tecken inklusive ` \| Fyndplats`. Skiljer den sig inte från namnet struntar butiken i både titeln och metan och visar `{namn} \| Fyndplats` och första stycket. ☠️ Titeln får inte stå på en annan publicerad sida: textsteget frågar butiken och vägrar hela planen, och ett kommatecken eller tankstreck gör inte en ny titel. Lägg det som skiljer varan från syskonen i titeln: mått, material, färg eller en funktion. |
+| **Meta** | `seo.tsv` | Sikta på högst 155 tecken (`gate-seo.py` fäller över 160), med nyttan och sökordet och inga påståenden som inte är verifierade. Samma regel som titeln: två publicerade sidor får inte dela metabeskrivning. |
 
 Fokussökordet står i namnet, sluggen och titeln. Det som skiljer produkten från ett syskon
 som får en egen sida ska synas i alla tre. Ett färg- eller storlekssyskon som ska bli ett val

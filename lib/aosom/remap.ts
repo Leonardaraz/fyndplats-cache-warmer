@@ -369,8 +369,8 @@ export function tillämpaOmmappning(
     // WIX-PRODUKT — det överlever alltså bytet. Det är ofarligt just för att
     // spärren är en typ: `supplier: "aosom"` gör `isAliExpressMapping` falsk,
     // AE-synken hoppar över raden och läser aldrig tillståndet igen.
-    // Aosom-synken (`20 */6 * * *`) skriver lager och pris ur feeden på nästa
-    // varv och äger raden därefter.
+    // Aosom-synken (lagret `20 */6 * * *`, priset `13 3 * * *`) skriver lager
+    // och pris ur feeden på nästa varv och äger raden därefter.
 
     // Recensionerna hämtades från AE-listningen och hör till den varan, inte
     // till Aosom-artikeln. Stämpeln nollas så backfillen får titta igen — utan
