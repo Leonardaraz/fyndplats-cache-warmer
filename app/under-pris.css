@@ -1,0 +1,14 @@
+/* ============================================================
+   Översikterna /under-{200,500,1000}-kr (components/price-hub-page.tsx).
+
+   Sidorna bär .butik2 och importerar app/butik/butik.css, så att de har
+   samma utseende som nya /butik. Här står bara det som är eget för dem.
+   ============================================================ */
+
+/* "Välj kategori ↓" ska landa med registrets rubrik under sidhuvudet, inte bakom det. */
+.pris2 #kategorier{scroll-margin-top:var(--ankare)}
+/* Urvalet kommer direkt efter hjälten: samma luft ovanför som /butiks avdelningar. */
+.pris2 .p2-urval{padding-bottom:56px}
+@media(max-width:880px){
+  .pris2 .p2-urval{padding-bottom:40px}
+}

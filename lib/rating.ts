@@ -57,7 +57,18 @@ export function tusental(n: number): string {
 
 /** "1 kategori", "2 kategorier". Samma sak för kategoriräknarna. */
 export function categoryCountLabel(count: number): string {
-  return `${tusental(count)} ${count === 1 ? "kategori" : "kategorier"}`;
+  return `${tusental(count)} ${kategoriOrd(count)}`;
+}
+
+/** Bara ordet, för en etikett under ett stort tal (faktaraden på
+ *  /under-X-kr): "kategori" eller "kategorier". */
+export function kategoriOrd(count: number): string {
+  return count === 1 ? "kategori" : "kategorier";
+}
+
+/** "avdelning" eller "avdelningar", av samma skäl som kategoriOrd. */
+export function avdelningOrd(count: number): string {
+  return count === 1 ? "avdelning" : "avdelningar";
 }
 
 /**

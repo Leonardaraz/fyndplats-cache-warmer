@@ -6,8 +6,9 @@
 // man går in i underkategorin Hushållsapparater. Wix har inget sådant val, så
 // listan bor här, nycklad på produktens Wix-id, som inte ändras med sluggen.
 //
-// Regeln gäller kategorisidan och dess lista (lib/list-pages.ts) och
-// prissidorna /under-…-kr/<kategori> (lib/seo/programmatic.ts). Menyns och
+// Regeln gäller kategorisidan och dess lista (lib/list-pages.ts),
+// prissidorna /under-…-kr/<kategori> och urvalet på översikterna
+// /under-…-kr (lib/seo/programmatic.ts), som är en ännu bredare lista. Menyns och
 // sitemapens räknare tar fortfarande med produkten. Det är en produkt av
 // hundratals och syns inte i siffrorna.
 //
