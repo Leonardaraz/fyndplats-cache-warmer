@@ -1,2 +1,2 @@
-cae3c97d:1 cae3c97d:7 två olika foton: den andra längden (2440 mm) är längre och bilderna är tagna för varje längd
-cae3c97d:2 cae3c97d:8 samma foto (VEVOR:s position 8) i båda längderna; båda bär texten AI-Generated Character and Scene och tas bort efter publiceringen med Bilder bort, eftersom skrivstegets bildplan inte tappar en bild som ett val pekar på
+cae3c97d 1 7 två olika foton: den andra längden (2440 mm) är längre och bilderna är tagna för varje längd
+cae3c97d 2 8 samma foto (VEVOR:s position 8) i båda längderna; båda bär texten AI-Generated Character and Scene och tas bort efter publiceringen med Bilder bort, eftersom skrivstegets bildplan inte tappar en bild som ett val pekar på
