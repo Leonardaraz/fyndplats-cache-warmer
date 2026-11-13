@@ -1,0 +1,14 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad saknar axelord i specifikationen; axelorden längd, bredd och höjd (L, W och H) är lästa ur VEVOR:s måttbild
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad saknar axelord i specifikationen; axelorden längd, bredd och höjd (L, W och H) är lästa ur VEVOR:s måttbild
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad bär axelorden (L x B x H) och sidan skriver måtten i samma ordning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad bär axelorden (L x B x H) och sidan skriver måtten i samma ordning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktstorlek) saknar axelord, och sidan skriver måtten som längd × bredd × höjd efter bordets egen ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktstorlek) saknar axelord, och sidan skriver måtten som längd × bredd × höjd efter bordets egen ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord, och axelorden bredd, djup och höjd är lästa ur VEVOR:s måttbild (29,53 tum bred, 18 tum djup och 48,43 tum hög)
