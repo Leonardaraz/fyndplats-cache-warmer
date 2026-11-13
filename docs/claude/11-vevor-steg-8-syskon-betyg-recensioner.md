@@ -482,3 +482,18 @@ nästa familj kan hoppa över:
     Ett omdöme som säger att kunden ändrade varan (nätet höjdes till 2,35 m) översätts utan den
     delen när den går emot sidans mått. Utfallet står i `tools/polish-gates/FLAGGADE-VEVOR.md` (rr)
     och (rs).
+13. ☠️ **Valbilderna hör till EN axel, och delade foton blir olänkade (runda vevor-228,
+    2026-11-13).** På en sida med två axlar (bordsdukarna: storlek och paket) kopplar verktyget
+    bilderna till en enda axel (`bildaxel`, här paketet), så den andra axeln får inga egna
+    bilder och visar den valda förpackningens. Butikens galleri visar de bilder som är
+    kopplade till det valda valet tillsammans med ALLA olänkade, så ett foto som givaren delade
+    med sidan (samma innehåll) läggs inte till en gång till och syns på varje val: garagegolvrullen
+    visade tre kopplade och tre delade foton på båda storlekarna. Givarens bilder för en axel som
+    inte får valbilder hör inte till något val, dubblerar ofta den andra axelns foton och kan bära
+    märkning (en av dem bar *AI-Generated Character and Scene*). Stryk dem i skrivplanen, före
+    skrivningen: skrivstegets spärr mot att tappa länkade bilder ser dem inte, och en strykning
+    efteråt med *Bilder bort* kräver fil-id ur importens ordning (se *Bilder bort*). Identiska
+    foton mellan paketen kvitteras i `bilddubblett-ok.txt` (`kort pos1 pos2 skäl`). Mät galleriet
+    per val i en webbläsare (Playwright mot den levande sidan), inte i Wix-data, eftersom
+    länkarna och de olänkade fotona bara syns där. Utfallet står i
+    `tools/polish-gates/FLAGGADE-VEVOR.md` (rv).
