@@ -132,6 +132,16 @@ export const MATVARD = "www.fyndplats.se";
  * wait_for_update ger förstagångsbesökaren en kort stund att hinna klicka
  * innan den cookielösa pingen skickas.
  *
+ * Den första sidvisningen köas här, med adressen, hänvisaren och titeln som
+ * de är när sidan öppnas (send_page_view:false stänger av configens egen).
+ * Taggen hämtas först när besökaren rör sidan (taggLaddare nedan), och då kan
+ * ett tryck på en länk redan ha bytt adress: configens egen sidvisning hade
+ * fått den nya adressen och tappat källan, alltså utm-parametrarna från
+ * ChatGPT och Googles srsltid. Sidbyten efter att taggen kommit räknar Googles
+ * egen historiklyssnare som förut: send_page_view:false stänger inte av den
+ * (developers.google.com/analytics/devguides/collection/ga4/views, läst
+ * 2026-11-12).
+ *
  * KASTAR på ett mät-ID som inte är rent alfanumeriskt. Strängen renderas via
  * dangerouslySetInnerHTML, så ett citattecken i ID:t skulle bryta ut ur
  * JS-literalen och köra godtycklig kod på VARJE sida. I dag matas alltid
@@ -142,13 +152,17 @@ export const MATVARD = "www.fyndplats.se";
  * Att kasta är avsiktligt hellre än att tyst rendera ingenting: ett trasigt
  * bygge lagas på minuter, en tyst bortfallen mätning upptäcks efter veckor.
  */
-export function consentBootstrapScript(measurementId: string): string {
+function kontrolleraMatId(funktion: string, measurementId: string): void {
   if (!/^[A-Za-z0-9_-]+$/.test(measurementId)) {
     throw new Error(
-      `consentBootstrapScript: otillåtet mät-ID ${JSON.stringify(measurementId)} — ` +
+      `${funktion}: otillåtet mät-ID ${JSON.stringify(measurementId)} — ` +
         "bara bokstäver, siffror, bindestreck och understreck får bäddas in i sidans script-tagg.",
     );
   }
+}
+
+export function consentBootstrapScript(measurementId: string): string {
+  kontrolleraMatId("consentBootstrapScript", measurementId);
   return (
     `window.dataLayer=window.dataLayer||[];` +
     `if(location.hostname!=='${MATVARD}'){window.gtag=function(){};}else{` +
@@ -157,7 +171,81 @@ export function consentBootstrapScript(measurementId: string): string {
     `try{if(localStorage.getItem('${CONSENT_KEY}')==='all')` +
     `gtag('consent','update',{${inlineState("granted")}});}catch(e){}` +
     `gtag('js',new Date());` +
-    `gtag('config','${measurementId}');}`
+    `gtag('config','${measurementId}',{send_page_view:false});` +
+    `gtag('event','page_view',{page_location:location.href.split('#')[0],` +
+    `page_referrer:document.referrer,page_title:document.title});}`
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Googles tagg laddas när besökaren rör sidan (Leonard 2026-11-12)
+// ---------------------------------------------------------------------------
+// gtag.js är 202 kB packad och 629 kB uppackad (mätt 2026-11-12) och höll
+// telefonens processor upptagen ungefär 0,2 s på varje produktsida, mitt i
+// sidans första sekunder. Butiken kör inga annonser, och Leonard valde att
+// taggen hämtas först när besökaren rör sidan. Händelserna köas under tiden i
+// dataLayer och skickas när biblioteket kommer, så inget tappas på vägen.
+//
+// Tre undantag, för att mätningen ska stå sig:
+//   1. Tacksidan hämtar taggen direkt. Köpet skickas när sidan öppnas
+//      (components/thankyou.tsx), och kunden kommer dit med en ny sidladdning
+//      (window.location.replace i kassan) och läser ofta bara "Tack".
+//   2. Den som inte rör sidan alls får taggen 10 s efter load, så den som
+//      bara läser räknas också. Lighthouse hinner sluta mäta före dess.
+//   3. Byttes adressen innan taggen kom (ett tryck på en länk), skickas en
+//      sidvisning för den nya sidan när taggen har kört, med landningssidan
+//      som hänvisare. Googles historiklyssnare fanns inte då och såg bytet
+//      inte.
+//
+// ☠️ Taggen hämtas när trycket är SLUT och sidan har ritat sitt svar, aldrig
+// på pointerdown eller touchstart. Biblioteket ligger ofta redan i webbläsarens
+// cache (Google sparar det i 15 minuter, och den som öppnar flera produkter
+// från ChatGPT laddar om sidan för varje). Då körs det några millisekunder
+// efter att det begärts, och hade det begärts när fingret landade hade
+// webbläsaren fått köra 0,2 s Google-kod innan den hann svara på samma tryck.
+
+/** Det som räknas som att röra sidan: slutet av ett tryck eller ett klick,
+ *  en tangent, rullning och musrörelse. Rullning i en inre ruta (galleriet,
+ *  raderna i sidled) fångas också, eftersom lyssnarna sitter i fångstfasen.
+ *  pointerdown och touchstart är med flit borta (se ☠️ ovan). */
+export const TAGG_INTERAKTIONER = ["pointerup", "keydown", "touchend", "wheel", "scroll", "mousemove"] as const;
+
+/** Sidor där taggen hämtas direkt: köpet skickas när sidan öppnas. */
+export const TAGG_DIREKT = ["/tack"] as const;
+
+/** Taggen hämtas senast så här länge efter load, också utan interaktion. */
+export const TAGG_RESERV_MS = 10_000;
+
+/**
+ * Laddaren som hämtar gtag.js. Körs efter consentBootstrapScript i samma
+ * <script>, så kön (samtycket, config och den första sidvisningen) ligger
+ * redan i dataLayer när biblioteket kommer. Bara på butikens egen adress
+ * (MATVARD): på andra värdar är gtag en tom funktion och biblioteket onödigt.
+ */
+export function taggLaddare(measurementId: string): string {
+  kontrolleraMatId("taggLaddare", measurementId);
+  const direkt = TAGG_DIREKT.map((p) => p.replace(/\//g, "\\/")).join("|");
+  return (
+    `(function(){` +
+    `if(location.hostname!=='${MATVARD}')return;` +
+    `var w=window,d=document,klar=false,landning=location.href.split('#')[0],` +
+    `ev=${JSON.stringify(TAGG_INTERAKTIONER).replace(/"/g, "'")},o={capture:true,passive:true};` +
+    `function av(){for(var i=0;i<ev.length;i++)w.removeEventListener(ev[i],rord,o);}` +
+    `function ladda(){` +
+    `if(klar)return;klar=true;av();` +
+    `var s=d.createElement('script');s.async=true;` +
+    `s.src='https://www.googletagmanager.com/gtag/js?id=${measurementId}';` +
+    `s.onload=function(){var h=location.href.split('#')[0];` +
+    `if(h!==landning)gtag('event','page_view',{page_location:h,page_referrer:landning,page_title:d.title});};` +
+    `d.head.appendChild(s);}` +
+    // Efter nästa målning: requestAnimationFrame körs före bildrutan och
+    // setTimeout i den efter, så trycket hinner ritas innan taggen begärs.
+    `function rord(){av();requestAnimationFrame(function(){setTimeout(ladda,0);});}` +
+    `if(/^(${direkt})(\\/|$)/.test(location.pathname)){ladda();return;}` +
+    `for(var i=0;i<ev.length;i++)w.addEventListener(ev[i],rord,o);` +
+    `function reserv(){setTimeout(ladda,${TAGG_RESERV_MS});}` +
+    `if(d.readyState==='complete')reserv();else w.addEventListener('load',reserv);` +
+    `})();`
   );
 }
 

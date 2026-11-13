@@ -47,7 +47,7 @@ export default function ReturnConfirmationEmail({
       <Text style={text.h2}>Återbetalning</Text>
       <Text style={text.body}>
         Vi betalar tillbaka inom <strong>{REFUND_TIME}</strong> efter att vi tagit emot och
-        kontrollerat produkten, till ditt ursprungliga betalmedel via Klarna. Hur snabbt
+        kontrollerat produkten, till samma betalsätt som du använde. Hur snabbt
         pengarna syns på kontot beror sedan på din bank.
       </Text>
       <Text style={text.body}>{AVGIFT_SENTENCE}</Text>

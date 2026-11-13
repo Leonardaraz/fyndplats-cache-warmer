@@ -659,17 +659,52 @@ namn och adresser. Hur motorn sorterar in varorna står i motorns
   cookie-free / privacy-friendly, so they render unconditionally (outside the
   `CookieConsent` gate) and require no GDPR consent. Beacons hit
   `/_vercel/insights/view` and `/_vercel/speed-insights/vitals`.
-- **GA4** (`G-W6NZ87CX2Q`) also runs, loaded `lazyOnload` via `next/script`
-  with a synchronous inline `gtag` stub. The two analytics stacks are
-  independent.
+- **GA4** (`G-W6NZ87CX2Q`) körs också, oberoende av Vercels mätning.
+  ☠️ **gtag.js hämtas först när besökaren rör sidan** (`taggLaddare` i
+  `lib/consent.ts`, Leonard 2026-11-12; förut `lazyOnload` via `next/script`).
+  Biblioteket är 202 kB packat och 629 kB uppackat och körde förut i sidans
+  första sekunder. Mätt på ett produktionsbygge med processorn strypt fyra
+  gånger, 5 + 5 laddningar utan interaktion: blockeringen fram till 9,5 s efter
+  load 545 → 365 ms i median, långa uppgifter 8 → 4. Det är samma arbete,
+  flyttat till efter första trycket. Fem egenskaper som inte ska tas bort:
+  1. **Kön och laddaren i samma inline-skript** (`consentBootstrapScript` +
+     `taggLaddare` i `app/layout.tsx`). Kön tar emot samtycket, config,
+     sidvisningen och händelserna tills biblioteket kommer. Skriv aldrig ut
+     gtag.js en gång till med `next/script`; `lib/consent.test.ts` vaktar.
+  2. **Den första sidvisningen köas med adressen från landningen**
+     (`send_page_view:false` och en egen `page_view` med `page_location`,
+     `page_referrer` och `page_title`). Ett tryck på en länk före taggen hade
+     annars gett den nya adressen och tappat utm från ChatGPT och srsltid.
+     Byttes adressen innan taggen kom skickar laddaren en sidvisning för den
+     nya sidan med landningssidan som hänvisare. Sidbyten efter det räknar
+     Googles historiklyssnare som förut: `send_page_view:false` stänger inte av
+     den (mätt med dagens och det nya skriptet, lika i båda; GA4 skickar
+     sidbytena i klump 5–6 s senare, så vänta minst 8 s innan du räknar).
+  3. ☠️ **Taggen begärs när trycket är slut.** Lyssnarna är `pointerup`,
+     `keydown`, `touchend`, `wheel`, `scroll` och `mousemove`, i fångstfasen och
+     passiva, och biblioteket begärs efter nästa bildruta
+     (`requestAnimationFrame` + `setTimeout`). Aldrig `pointerdown` eller
+     `touchstart`: ligger biblioteket i cachen (Google sparar det i 15
+     minuter) kör det millisekunder efter att det begärts, och då före
+     tryckets klick.
+  4. **Tacksidan hämtar direkt** (`TAGG_DIREKT`), för köpet skickas när sidan
+     öppnas. Utan interaktion hämtas taggen 10 s efter load
+     (`TAGG_RESERV_MS`). Den som lämnar inom 10 s utan att röra sidan räknas
+     inte längre.
+  5. **Händelserna bär sin egen adress** (`page_location` i `send()` i
+     `lib/analytics.ts`). En view_item i kön hade annars räknats på nästa sida.
+  Provat med riktiga gtag.js där varje träff fångades lokalt: landningsadress
+  med utm och srsltid, hänvisare, sidbyte före och efter taggen, tacksidan,
+  srsltid-städningen utan extra sidvisning, och samtycke som första tryck ger
+  `gcs=G111` på sidvisningen (utan val `G100`).
   ☠️ **Taggen mäter bara på `www.fyndplats.se`** (`MATVARD` i `lib/consent.ts`,
   2026-11-08). Varje produktionsbygge har också en egen `*.vercel.app`-adress
   med `VERCEL_ENV=production`, så taggen körde där, och Googles tagg föreslog
   fem sådana adresser under "Konfigurera dina domäner". På alla andra värdar
-  blir `gtag` en tom funktion och ingenting köas. gtag.js laddas ändå men
-  skickar ingenting (mätt med Playwright med alla insamlingsanrop stoppade:
-  0 anrop, mot 8 när värden stämde). Godkänn aldrig ett `vercel.app`-förslag
-  i Googles tagg.
+  blir `gtag` en tom funktion och ingenting köas (mätt med Playwright med
+  alla insamlingsanrop stoppade: 0 anrop, mot 8 när värden stämde). Sedan
+  2026-11-12 hämtas gtag.js inte heller där, för laddaren slutar direkt.
+  Godkänn aldrig ett `vercel.app`-förslag i Googles tagg.
 
 # Meta Pixel + Conversions API (CAPI)
 
@@ -1001,7 +1036,7 @@ adressfältet, logiken bor i `lib/srsltid.ts` och är testad där.
 Fyra egenskaper som inte ska tas bort:
 
 1. ☠️ **Koden står kvar tills Googles tagg är klar med den.** Städningen väntar
-   på att gtag.js laddats (den laddas med `lazyOnload`) OCH att besökaren valt
+   på att gtag.js laddats (den hämtas när besökaren rör sidan, se GA4) OCH att besökaren valt
    i cookiebannern, och sedan tre sekunder till. Uppmätt mot den skarpa sidan:
    när besökaren klickar "Godkänn alla" skickar Ads-taggen sin
    `consent_update` med koden i adressen. Städas den före valet går den
@@ -2765,8 +2800,10 @@ periodens slut.
   inte i JSX:en.
 - **Slutsåld-rutan länkar till `#liknande`** när sidan har "Liknande produkter"
   (`harLiknande`). Urvalet där är redan bara varor i lager.
-- **Butikens Google-betyg står vid köpknappen** (`googleBetyg`, samma
-  `getSocialProof` som sidfoten, alltså inget nytt anrop).
+- **Raden "4,9 av 5 på Google" vid köpknappen är borttagen** (Leonard
+  2026-11-12). Betyget står kvar på startsidan, i sidfoten och på /omdomen,
+  och produktsidan hämtar inte längre butiksbetyget.
+  `lib/produktsida-fortroende.test.ts` vaktar.
 - **Två kort i bredd på mobil** också på startsidan, /butik, "Liknande
   produkter", prissidorna och /for-dig-som (`listgrid` och `tvaKolumner`).
 - `/kategori/skarmtak-entr-tak` pekar om till `/kategori/skarmtak-entretak`.
@@ -2865,9 +2902,16 @@ alltså snabba i verkligheten, och det som fanns att hämta var tre saker:
   Mätt i Chromium på åtta skärmar: ingen fil har färre pixlar än sin ruta
   (lägsta kvot 1,02). Wix AVIF är större än webp i samma kvalitet (121 mot
   83 kB i 750 px), så formatet är kvar.
-- **De fyra första korten hämtas med `fetchpriority=high`.** `priority` på
+- **De två första korten hämtas med `fetchpriority=high`, resten är lazy**
+  (`components/shopbrowser.tsx`, 2026-11-12; förut fyra). `priority` på
   `<Image>` ger förladdning men inte attributet, så listsidornas största bild
-  köade efter skripten.
+  köade efter skripten. Fyra förladdningar tävlade sedan med sidans största
+  bild: på /kategori/mobler låg kort tre och fyra under vikningen på telefonen
+  och alla fyra under kategorins bild på datorn. ☠️ `loading="eager"` är ingen
+  mellanväg: Reacts server lägger själv en förladdning i `<head>` för varje
+  `<img>` som inte är lazy (mätt: kort tre och fyra fick var sin). Ett lazy kort
+  i första raden (fyra kolumner på /alla-produkter) hämtas så snart layouten
+  är klar.
 
 Inte ändrat, med flit: rubriktypsnittet (Fraunces, 81 kB) förladdas på varje
 sida fast produktsidan inte visar det ovanför vikningen. Utan förladdningen

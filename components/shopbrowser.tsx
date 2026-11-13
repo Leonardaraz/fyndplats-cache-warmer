@@ -1060,13 +1060,22 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
 
       {list.length ? (
         <>
-          {/* De fyra första korten är över vikningen på varje skärmbredd (1–4
-              kolumner), så deras bilder hämtas eager med hög prioritet. Resten
-              är kvar på lazy — 24 kort × 2 bilder är inget att förladda. */}
+          {/* Två kort förladdas med hög prioritet, resten är lazy (24 kort × 2
+              bilder är inget att förladda).
+              Mätt på /kategori/mobler 2026-11-12: på telefonen (412 × 823)
+              står första raden på 688 px och andra på 1 099 px, alltså under
+              vikningen, och på datorn (1350 × 940) börjar korten på 1 350 px
+              under kategorins bild. De fyra förladdningarna tävlade då med
+              sidans största bild om bandbredden.
+              ☠️ loading="eager" är ingen mellanväg: Reacts server lägger själv
+              en förladdning i <head> för varje <img> som inte är lazy (mätt
+              samma dag: kort tre och fyra fick var sin). Ett lazy kort som
+              syns i första raden (fyra kolumner på /alla-produkter) hämtas så
+              snart layouten är klar. */}
           {/* Väntar vi på hela listan står korten kvar, tonade, tills den kommer
               (se .prodgrid.is-vantar i globals.css) — hellre det än ett tomt
               rutnät eller kort som byts ut under fingret. */}
-          <div className={`prodgrid listgrid${vantar ? " is-vantar" : ""}`} aria-busy={vantar || undefined} onClickCapture={sparaLage}>{visible.map((p, i) => { const f = iFarg(medBild(p)); return <ProductCard p={f.p} href={f.href} key={p.slug} priority={i < 4} tvaKolumner />; })}</div>
+          <div className={`prodgrid listgrid${vantar ? " is-vantar" : ""}`} aria-busy={vantar || undefined} onClickCapture={sparaLage}>{visible.map((p, i) => { const f = iFarg(medBild(p)); return <ProductCard p={f.p} href={f.href} key={p.slug} priority={i < 2} tvaKolumner />; })}</div>
           {listaFel && behoverLista && (
             <div className="loadmore-wrap">
               <button type="button" className="loadmore" onClick={hamtaLista}>

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { jsonLdString } from "../lib/seo";
 import { Geist, Fraunces } from "next/font/google";
-import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
@@ -22,7 +21,7 @@ import {
 } from "../components/deferred";
 import { MetaPixel } from "../components/metapixel";
 import { KlarnaSDK } from "../components/klarna-sdk";
-import { consentBootstrapScript } from "../lib/consent";
+import { consentBootstrapScript, taggLaddare } from "../lib/consent";
 import { TIDIGA_KLICK_SKRIPT } from "../lib/tidiga-klick";
 import { TRUSTPILOT_PROFIL_URL } from "../lib/trustpilot-profil";
 import { TEMA_SKRIPT } from "../lib/sasongstema";
@@ -315,21 +314,17 @@ export default async function RootLayout({
           Innehållet byggs i lib/consent.ts så att flaggnamnen har en enda
           källa, delad med pushConsentUpdate() som körs vid klick i bannern.
         */}
-        {IS_PRODUCTION && (
-          <script dangerouslySetInnerHTML={{ __html: consentBootstrapScript(GA_MEASUREMENT_ID) }} />
-        )}
         {/*
-          lazyOnload (round-2 perf): GA4 doesn't need to load before user idle.
-          The inline stub above already queues 'consent', 'js' and 'config' onto
-          window.dataLayer, so when gtag.js eventually arrives it processes
-          the backlog — no pageview / event loss. Moving from afterInteractive
-          to lazyOnload removes ~50KB of script execution from main-thread
-          critical path and shrinks TBT.
+          gtag.js hämtas när besökaren rör sidan, direkt på tacksidan och
+          annars 10 s efter load (taggLaddare i lib/consent.ts, Leonard
+          2026-11-12). Förut lazyOnload: biblioteket (202 kB packat) kördes då
+          i sidans första sekunder och höll telefonens processor upptagen
+          ungefär 0,2 s på varje produktsida. Kön ovan tar hand om allt som
+          händer innan biblioteket kommer.
         */}
         {IS_PRODUCTION && (
-          <Script
-            src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
-            strategy="lazyOnload"
+          <script
+            dangerouslySetInnerHTML={{ __html: consentBootstrapScript(GA_MEASUREMENT_ID) + taggLaddare(GA_MEASUREMENT_ID) }}
           />
         )}
         {/*

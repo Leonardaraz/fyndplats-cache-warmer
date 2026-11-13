@@ -39,7 +39,8 @@ export const WishlistDrawer = dynamic(
 
 // Tar bort Googles ?srsltid= ur adressfältet när taggen är klar med den
 // (lib/srsltid.ts). Den har ingen markup och väntar ändå på gtag.js, som
-// laddas med lazyOnload, så den behöver inte ligga i första bunten.
+// hämtas först när besökaren rör sidan (taggLaddare i lib/consent.ts), så den
+// behöver inte ligga i första bunten.
 export const RensaSrsltid = dynamic(
   () => import("./rensa-srsltid").then((m) => m.RensaSrsltid),
   { ssr: false, loading: () => null },

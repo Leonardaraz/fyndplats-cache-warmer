@@ -1358,10 +1358,6 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 .pdp-trust a{color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px;text-decoration-color:rgba(43,38,33,.32)}
 .pdp-trust a:hover{text-decoration-color:currentColor}
 .pdp-trust a:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:3px}
-/* Betygsraden är en länk i en 20 px hög rad. Tryckytan sträcks till 44 px
-   över radens luft; grannraderna är text och har inget att trycka på. */
-.pdp-trust-betyg a{position:relative}
-.pdp-trust-betyg a::after{content:"";position:absolute;inset:-12px -8px}
 .specbox{margin-top:28px;background:var(--warm);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px 22px}
 .specbox h2{font-size:var(--text-base);font-weight:700;margin-bottom:10px}
 .specbox ul{list-style:none;display:flex;flex-direction:column;gap:6px}

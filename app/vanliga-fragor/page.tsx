@@ -46,17 +46,21 @@ type Amne = {
 
 // Frågorna och svaren är desamma som före ämnesindelningen, ord för ord. Bara
 // ordningen har ändrats, så att frågor om samma sak står tillsammans.
+// Undantag: betalningssvaren skrevs om 2026-11-12. Kort, Apple Pay och Google
+// Pay går via Stripe sedan vår egen kassa, inte via Klarna, och Klarna anger
+// betalningstiden per köp (därför inget antal dagar här, som i
+// components/klarna-message.tsx).
 const AMNEN: Amne[] = [
   {
     id: "bestallning-betalning",
     kort: "Betalning",
     rubrik: "Beställning & betalning",
     ikon: Ikon.betalning,
-    intro: "Alla betalningar går via Klarna: direkt, mot faktura eller uppdelat.",
+    intro: "Kort, Apple Pay, Google Pay eller Klarna: betala direkt, senare eller dela upp köpet.",
     lankar: [{ href: "/kopvillkor", text: "Köpvillkor" }],
     fragor: [
-      { q: "Vilka betalningsmetoder accepterar ni?", a: "Vi använder Klarna för alla betalningar. Du väljer mellan faktura (14 eller 30 dagar), delbetalning, kort (Visa, Mastercard, American Express), direktbetalning via bank samt Apple Pay och Google Pay." },
-      { q: "Erbjuder ni faktura?", a: "Ja, via Klarna kan du välja faktura med 14 eller 30 dagars betalningstid. Du får först varan och betalar sedan – ingen extra avgift för faktura." },
+      { q: "Vilka betalningsmetoder accepterar ni?", a: "Du kan betala med kort (Visa, Mastercard, American Express), Apple Pay, Google Pay eller Klarna. Kort, Apple Pay och Google Pay går via vår betalpartner Stripe. Med Klarna kan du betala direkt via banken, betala senare mot faktura eller dela upp betalningen." },
+      { q: "Erbjuder ni faktura?", a: "Ja, med Klarna kan du betala mot faktura. Du får först varan och betalar sedan – ingen extra avgift för faktura. Betalningstiden ser du hos Klarna när du betalar." },
     ],
   },
   {
@@ -98,7 +102,7 @@ const AMNEN: Amne[] = [
     ],
     fragor: [
       { q: "Kan jag ångra mitt köp / returnera?", a: `${TOTAL_SUMMARY} Under de första 14 dagarna har du rätt att undersöka produkten som du skulle ha gjort i en butik; har den hanterats mer än så kan ett skäligt värdeminskningsavdrag göras. För det frivilliga öppna köpet dag 15–30 ska produkten vara oanvänd, komplett och i säljbart skick, anmälas skriftligt med ordernummer innan den skickas och skickas spårbart. Meddela oss spårningsnumret och posta returen inom 7 dagar från att du fått returadressen – den lagstadgade fristen på 14 dagar under ångerrätten påverkas inte. Under dag 15–30 står du för risken för returpaketet tills det är framme. Under dag 15–30 återbetalas produktens pris, men inte vad du betalat för frakten till dig — det gör vi bara under den lagstadgade ångerfristen. Det är dagen du anmäler returen som avgör vilken period som gäller, inte dagen paketet är tillbaka hos oss. Enklast ångrar du direkt på sidan Ångra köp (fyndplats.se/angra-kop): ange din e-postadress och ditt ordernummer, välj vilka artiklar du vill ångra och skicka, så får du ett automatiskt mottagningskvitto. ${RETURADRESS_NAR} Ångerrätten gäller även innan paketet hunnit fram. Returfrakten betalas av kunden. ${RETURLAGER} Du bokar själv hos valfri transportör som tar emot varans storlek och vikt, gärna spårbart. ${SKRYMMANDE_RETURKOSTNAD} ${AVGIFT_SENTENCE} Vi betalar tillbaka inom 2–3 arbetsdagar efter mottagen och kontrollerad retur; hur snabbt pengarna syns på kontot beror sedan på din bank. Är varan trasig eller fel är det istället en reklamation – en egen rättighet som inte har med 30-dagarsfristen att göra; då står Fyndplats för returfrakten.` },
-      { q: "Vad gör jag om produkten är skadad vid leverans?", a: "Kontakta oss gärna inom 7 dagar på info@fyndplats.com med ditt ordernummer och en bild på skadan. Vi löser det snabbt – antingen genom ny produkt eller återbetalning via Klarna. Din reklamationsrätt enligt konsumentköplagen gäller oavsett." },
+      { q: "Vad gör jag om produkten är skadad vid leverans?", a: "Kontakta oss gärna inom 7 dagar på info@fyndplats.com med ditt ordernummer och en bild på skadan. Vi löser det snabbt – antingen genom ny produkt eller återbetalning till samma betalsätt som du använde. Din reklamationsrätt enligt konsumentköplagen gäller oavsett." },
       { q: "Produkten gick sönder efter ett tag – är jag för sen?", a: `${COMPLAINT.lead} ${COMPLAINT.points.join(" ")}` },
     ],
   },

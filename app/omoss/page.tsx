@@ -68,8 +68,8 @@ function Svg({ d }: { d: React.ReactNode }) {
 const LOFTEN = [
   {
     ikon: Ikon.klarna,
-    rubrik: "Trygg betalning med Klarna",
-    text: "Betala direkt, senare eller dela upp köpet. Återbetalningar går alltid tillbaka till samma betalsätt.",
+    rubrik: "Trygg betalning",
+    text: "Kort, Apple Pay, Google Pay eller Klarna: betala direkt, senare eller dela upp köpet. Återbetalningar går alltid tillbaka till samma betalsätt.",
     lank: { href: "/kopvillkor", text: "Köpvillkor" },
   },
   {
@@ -97,7 +97,7 @@ function FRAGOR(betyg: string): { q: string; a: string }[] {
   return [
     {
       q: "Är Fyndplats en seriös butik?",
-      a: `Ja. Fyndplats är ett svenskt företag i Södertälje som har sålt på nätet sedan 2021. Du betalar via Klarna, har 30 dagars öppet köp och kan se vad andra kunder tycker: vi har ${betyg} av 5 i betyg på Google.`,
+      a: `Ja. Fyndplats är ett svenskt företag i Södertälje som har sålt på nätet sedan 2021. Du betalar med kort, Apple Pay, Google Pay eller Klarna, har 30 dagars öppet köp och kan se vad andra kunder tycker: vi har ${betyg} av 5 i betyg på Google.`,
     },
     {
       q: "Varifrån skickas varorna?",
