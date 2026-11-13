@@ -372,6 +372,21 @@ givare. Planen gav `Längd: langd`, orörda priser (349 och 399 kr), 0 av givare
 3 recensioner att kopiera och 5 av sidans att märka. Hindret `funktion_skiljer:Modell` ledde
 till rättelsen i punkt 1.
 
+☠️ **Ett val vars foton sidan redan har får för få bilder (2026-11-13, rengöringskitet
+`b91a4d05`).** Punkt 3 betyder att ett foto som sidan redan har varken läggs till eller kopplas
+till givarens val. Det spärrar bara ett val helt utan egna foton (`utkast_saknar_egna_bilder`), inte
+ett val med få. Längderna 10,02 och 12,03 m hade fyra av sex foton gemensamma (byte-identiska,
+`dHash` 0, samma foto med olika filnamn), så planen sa *18 på sidan, 2 av givarens följer med,
+4 fanns redan*, och efter *Bilder bort* visade 12,03 m en enda bild i butiken (webbläsarkontroll
+`rakna.js`: 5, 5, 5 och 1). **Räkna bilder per val live efter varje sammanslagning av längder och
+storlekar** (`node tools/polish-gates/live-galleri.mjs <slug>`), minst fem per val. Lagas med
+`bygg-agare.py` och en ägarlista för de delade fotona (`"6c1866": ["10,02 m", "12,03 m"]`, torrt
+först; en skarp körning kräver att butikens sida bär `imageKopplingar`, och flera val i samma
+option betyder *något av dem*), sedan `variantbild.yml` med `ids` (en id-skrivning av optionerna
+nollställer variantens bild) och `kolla-agare.py` mot butikens sida. 12,03 m gick från 1 till 5
+bilder utan att något annat ändrades (revision 20 → 21, priser, SKU, lager och kostnad
+oförändrade).
+
 **Publicerade sidor går också, i en bestämd ordning (Leonard 2026-11-08: *"vi borde börja med
 sidorna vi redan publicerat o fixa dom sen"*, och sedan *"Byt namn först"*).** Första
 torrkörningen mot två publicerade gymnastikräckar (värd blå, givare lila) stoppades av
