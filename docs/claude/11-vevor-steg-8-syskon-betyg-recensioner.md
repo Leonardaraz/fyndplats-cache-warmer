@@ -443,3 +443,14 @@ nästa familj kan hoppa över:
    den andra storleken) utelämnas.
 9. **Läs sidorna efter VEVOR-synken.** Skriv inte minut 50–54. Mätt 14:08 efter synken kl 13:50:
    19 sammanslagna sidor, orörda priser och ingen variant på noll i lager.
+10. **En längdfamilj med åtta utkast: ledstången (runda vevor-222, 2026-11-13).** Sju givare lades
+    på värden på fem minuter (01:07–01:12, `plan` före varje `byt`, utanför minut 45–57). Ange
+    varje värde i källans egen enhet (*Längd=0,9 m*), inte omräknat från titelns fot (*0,91 m*):
+    torrkörningarna med omräknade värden gjordes om, eftersom sidans text och siffergrinden
+    använder källans värden. Utkast som delar bildfiler (här 2 och 3 fot, 4, 5 och 7 fot, och 10
+    och 11 fot) ger inga nya foton, så bara fyra av åtta längder fick en egen valbild; de andra
+    delar foton med en närliggande längd. Planen varnar *beskrivningen nämner sidans längd*: sidans
+    text skrivs om för alla längder i en runda med `sammanslagna.tsv`. Den levande sidans lager
+    (`stockQuantity`) och mappningens `aosomSyncedQty` är summan av längdernas saldon (1 459), och
+    längden med lägst saldo (3) kan bli slutsåld först. Utfallet står i
+    `tools/polish-gates/FLAGGADE-VEVOR.md` (rp).
