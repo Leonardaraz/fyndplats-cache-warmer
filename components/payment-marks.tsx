@@ -3,8 +3,8 @@
 // importera i BÅDE serverträd (sidfoten, components/site.tsx) och klientträd
 // (köp-blocket, components/productview.tsx).
 //
-// Samma betalsätt som köpvillkoren § 4: allt går via Klarna, som tar kort
-// (Visa, Mastercard, American Express), Apple Pay och Google Pay. Varje märke
+// Samma betalsätt som köpvillkoren § 4: kort (Visa, Mastercard, American
+// Express), Apple Pay och Google Pay via Stripe, och Klarna. Varje märke
 // sitter i en bricka med samma mått, så raden läser som en rad och inte som
 // fem logotyper i olika storlekar. Klarna har sitt eget rosa märke i stället
 // för en vit bricka — det är så Klarna själva vill att det visas.

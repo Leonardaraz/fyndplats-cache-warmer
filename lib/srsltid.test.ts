@@ -47,7 +47,8 @@ describe("kanStadas", () => {
   });
 
   it("väntar så länge Googles tagg inte har laddats", () => {
-    // Taggen laddas med lazyOnload och läser adressen först när den kommer.
+    // Taggen hämtas först när besökaren rör sidan (taggLaddare i lib/consent.ts)
+    // och läser adressen först när den kommer.
     assert.equal(kanStadas({ samtycke: "all", taggLaddad: false }), false);
     assert.equal(kanStadas({ samtycke: "necessary", taggLaddad: false }), false);
   });

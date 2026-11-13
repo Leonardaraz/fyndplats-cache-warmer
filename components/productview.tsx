@@ -269,6 +269,7 @@ export function ProductView({
   descriptionHtml,
   originalPrice,
   onSale,
+  medlemsVarianter,
   specLines,
   images,
   mainBlur,
@@ -286,7 +287,6 @@ export function ProductView({
   reviewAverage,
   gpsrHtml,
   harLiknande = false,
-  googleBetyg,
 }: {
   productId: string;
   /** Produktens adress. Fliken "Kontakta oss" länkar till formuläret med den förvald. */
@@ -299,6 +299,8 @@ export function ProductView({
   descriptionHtml?: string;
   originalPrice?: string;
   onSale?: boolean;
+  /** Produktens variant-id till medlemsrutan (lib/medlem/tidig.ts sidansVarianter). */
+  medlemsVarianter?: string[];
   specLines: string[];
   images: string[];
   mainBlur?: string;
@@ -326,9 +328,6 @@ export function ProductView({
   // Sant när sidan renderar "Liknande produkter" (id="liknande"). Slutsåld-rutan
   // länkar då dit: urvalet är redan bara varor i lager (lib/related-pick.ts).
   harLiknande?: boolean;
-  // Butikens Google-betyg som text ("4,9", lib/social-proof-live.ts). Samma
-  // siffra som sidfoten, startsidan och kassan visar.
-  googleBetyg?: string | null;
 }) {
   const { add, busy } = useCart();
   const ratingHead = ratingSummary(reviewCount ?? 0, reviewAverage ?? null);
@@ -853,7 +852,7 @@ export function ProductView({
           {ordinarie > 0 && <TidigarePris belopp={formatPrice(ordinarie)} className="pdp-price-old" />}
           {/* Medlemspriset hämtas i webbläsaren för en inloggad medlem; sidan
               själv är densamma för alla (medlemskapet E2-2). */}
-          <Medlemspris produktId={productId} variantId={variantId} />
+          <Medlemspris produktId={productId} variantId={variantId} varianter={medlemsVarianter} rea={Boolean(onSale)} />
           <KlarnaOSM priceNum={currentPriceNum} />
           {/* Lagerstatus visas i leveransboxen ("✓ I lager · Beräknad leverans…")
               — en fristående pill här såg övergiven ut. Slut-i-lager-läget bärs
@@ -924,18 +923,9 @@ export function ProductView({
               </svg>
               Trygg betalning med Klarna
             </span>
-            {/* Butikens betyg vid köpknappen: 97 % av besökarna är nya (GA4,
-                28 dygn till 2026-11-09) och 69 % landar på en produktsida,
-                där betyget förut bara stod i sidfoten. Länken går till
-                /omdomen, som startsidans rad. */}
-            {googleBetyg && (
-              <span className="pdp-trust-betyg">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M12 3.2l2.7 5.5 6 .9-4.35 4.24 1.03 6-5.38-2.83L6.62 19.84l1.03-6L3.3 9.6l6-.9L12 3.2Z" />
-                </svg>
-                <a href="/omdomen">{googleBetyg} av 5 på Google</a>
-              </span>
-            )}
+            {/* Raden "4,9 av 5 på Google" togs bort här 2026-11-12 på Leonards
+                begäran. Betyget står kvar på startsidan, i sidfoten och på
+                /omdomen. */}
             {/* Raden "Skickas från EU-lager – ingen importtull …" togs bort här
                 2026-09-24 på ägarens begäran. Garanti-sidan (/eu-lager-garanti),
                 kundvagnen och villkoren bär fortfarande upplysningen. */}

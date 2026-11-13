@@ -16,10 +16,22 @@
 // bara när det tidigare priset är listpriset (lib/medlem/jamforelse.ts). En
 // reavara får inget medlemspris ovanpå (2.1), och rutan säger varför.
 
-import { useEffect, useState } from "react";
+//
+// [Direkt] Rutan står där när sidan ritas (Leonard 2026-11-13: företagsrutan
+// kom efter nästan en sekund och syntes hoppa in). Hämtningen startar redan i
+// produktsidans HTML eller när kunden pekar på kortet, platsen hålls i nivåns
+// metall med förra rutans höjd, och servern läser allt samtidigt. Reglerna
+// står i lib/medlem/tidig.ts och lib/medlem/medlemspris-klient.ts.
+
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { TidigarePris } from "./tidigare-pris";
 import { kronorText } from "../lib/medlem/kronor";
 import { nivaNyckel } from "../lib/medlem/niva-nyckel";
+import { VANTAN_MAX_MS } from "../lib/medlem/tidig";
+import { FARSKT_MS, hallPlats, hamtaMedlemspris, slappPlats, sparaVy, sparatSvar, tecken } from "../lib/medlem/medlemspris-klient";
+
+// useLayoutEffect varnar på servern; där finns ingen ruta att rita.
+const useForeRitning = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 type Begransning = "ingen" | "golv" | "ej-berattigad" | "fri-frakt" | "ingen-rabatt";
 type Variant = {
@@ -52,16 +64,6 @@ type Svar =
     }
   | { medlemspris: false };
 
-/** Tecknets värde: "1" privat, "f" företag (lib/medlem/session.ts). */
-function tecken(): string | null {
-  if (typeof document === "undefined") return null;
-  for (const c of document.cookie.split(";")) {
-    const [k, v] = c.trim().split("=");
-    if (k === "fp_medlem_inne") return v ?? "";
-  }
-  return null;
-}
-
 /** Finns en inloggning att fråga om? Sessionen själv är httpOnly. */
 export function harMedlemstecken(): boolean {
   const t = tecken();
@@ -93,87 +95,155 @@ export function Ordertrappa({ trappa, hogsta }: { trappa: Trappsteg[]; hogsta?: 
   );
 }
 
-export function Medlemspris({ produktId, variantId }: { produktId: string; variantId?: string | null }) {
-  const [svar, setSvar] = useState<Svar | null>(null);
+/** Vad rutan visar, för att veta vilken plats nästa sida ska hålla. */
+type Utfall = "ruta" | "text" | "inget" | "okant";
 
-  useEffect(() => {
-    if (!produktId || !harMedlemstecken()) return;
-    const avbryt = new AbortController();
-    fetch(`/api/medlem/priser?p=${encodeURIComponent(produktId)}`, { credentials: "same-origin", signal: avbryt.signal })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((s: Svar | null) => {
-        if (s) setSvar(s);
-      })
-      .catch(() => {});
-    return () => avbryt.abort();
-  }, [produktId]);
+export function Medlemspris({
+  produktId,
+  variantId,
+  varianter,
+  rea = false,
+}: {
+  produktId: string;
+  variantId?: string | null;
+  /** Produktens variant-id, så att servern kan fråga golvet medan produkten läses. */
+  varianter?: readonly string[];
+  /** Reavara: där står en kortare rad, så ingen plats hålls i rutans höjd. */
+  rea?: boolean;
+}) {
+  const [las, setLas] = useState<{ produktId: string; svar: Svar | null } | null>(null);
+  const plats = useRef<HTMLDivElement>(null);
+  const variantNyckel = (varianter ?? []).join(",");
 
-  if (!svar || !svar.medlemspris) return null;
+  // Före första ritningen: ett svar som redan finns ritas direkt; annars hålls
+  // platsen tills svaret kommer, högst VANTAN_MAX_MS. Utan tecken görs inget.
+  useForeRitning(() => {
+    const t = tecken();
+    if (!produktId || (t !== "1" && t !== "f")) return;
+    let levande = true;
+    const sparat = sparatSvar(produktId);
+    if (sparat) setLas({ produktId, svar: sparat.svar as Svar });
+    else if (!rea) hallPlats(produktId);
+    // Ett nyss hämtat svar räcker; ett äldre ritas direkt och hämtas om.
+    const p = sparat && sparat.alderMs < FARSKT_MS ? null : hamtaMedlemspris(produktId, variantNyckel ? variantNyckel.split(",") : []);
+    p?.then((s) => {
+      if (levande) setLas({ produktId, svar: (s as Svar | null) ?? null });
+    });
+    const timer = window.setTimeout(() => slappPlats(produktId), VANTAN_MAX_MS);
+    return () => {
+      levande = false;
+      window.clearTimeout(timer);
+      slappPlats(produktId);
+    };
+  }, [produktId, variantNyckel, rea]);
+
+  const svar = las && las.produktId === produktId ? las.svar : null;
+  const { innehall, utfall } = rutan(svar, variantId);
+
+  // Samma ritning som svaret: platsen släpps när innehållet står där, och
+  // måtten sparas till nästa sida. Bara en riktig ruta sätter höjden; en
+  // medlem utan rabatt (Brons) får ingen plats nästa gång.
+  useForeRitning(() => {
+    if (!las || las.produktId !== produktId) return;
+    slappPlats(produktId);
+    const t = tecken();
+    if (t !== "1" && t !== "f") return;
+    if (utfall === "inget") sparaVy({ t, h: 0, r: 0 });
+    if (utfall !== "ruta" || !plats.current || !svar || !svar.medlemspris) return;
+    const h = Math.round(plats.current.getBoundingClientRect().height);
+    const r = Math.round(plats.current.querySelector<HTMLElement>(".medlemspris")?.getBoundingClientRect().height ?? h);
+    if (h > 0) sparaVy({ t, h, r, n: nivaNyckel(svar.niva) });
+  }, [las, produktId, utfall, svar]);
+
+  return (
+    <div className="mp-plats" ref={plats}>
+      {innehall}
+    </div>
+  );
+}
+
+function rutan(svar: Svar | null, variantId: string | null | undefined): { innehall: ReactNode; utfall: Utfall } {
+  if (!svar) return { innehall: null, utfall: "okant" };
+  if (!svar.medlemspris) return { innehall: null, utfall: "inget" };
   const v =
     svar.varianter.find((x) => x.variantId === variantId) ?? (svar.varianter.length === 1 ? svar.varianter[0] : null);
-  if (!v) return null;
+  if (!v) return { innehall: null, utfall: "okant" };
 
   // 2.1: rean först, för både privatpersoner och företag.
   if (v.orsak === "rea") {
-    return (
-      <p className="medlemspris-utan" role="status">
-        {svar.profil === "foretag"
-          ? "Varan är redan på rea. Företagsrabatten läggs inte ovanpå reapriset."
-          : "Varan är redan på rea. Medlemspriset läggs inte ovanpå reapriset."}
-      </p>
-    );
+    return {
+      utfall: "text",
+      innehall: (
+        <p className="medlemspris-utan" role="status">
+          {svar.profil === "foretag"
+            ? "Varan är redan på rea. Företagsrabatten läggs inte ovanpå reapriset."
+            : "Varan är redan på rea. Medlemspriset läggs inte ovanpå reapriset."}
+        </p>
+      ),
+    };
   }
 
   // E3: företaget ser priset exkl. moms, märkt vid priset (E3-4), och trappan.
   if (svar.profil === "foretag" && v.aOreExMoms !== undefined && v.pOreExMoms !== undefined) {
     const utan = v.begransning === "ej-berattigad" || (v.begransning === "golv" && v.pOre >= v.aOre);
     const rabatt = !utan && v.pOre < v.aOre;
-    return (
-      <div className="medlemspris-foretag">
-        <div className="medlemspris" data-niva={nivaNyckel(svar.niva)} role="status">
-          <span className="medlemspris-etikett">{rabatt ? "Ditt företagspris" : "Pris för företaget"}</span>
-          <span className="medlemspris-belopp">
-            {kronorText(rabatt ? v.pOreExMoms : v.aOreExMoms)} <small>exkl. moms</small>
-          </span>
-          <span className="medlemspris-niva">
-            {rabatt ? `${svar.niva} · ${v.begransning === "golv" && v.hogstaProcent !== undefined ? `högst ${v.hogstaProcent}` : v.procent} %` : "Företag"}
-          </span>
+    return {
+      utfall: utan ? "text" : "ruta",
+      innehall: (
+        <div className="medlemspris-foretag">
+          <div className="medlemspris" data-niva={nivaNyckel(svar.niva)} role="status">
+            <span className="medlemspris-etikett">{rabatt ? "Ditt företagspris" : "Pris för företaget"}</span>
+            <span className="medlemspris-belopp">
+              {kronorText(rabatt ? v.pOreExMoms : v.aOreExMoms)} <small>exkl. moms</small>
+            </span>
+            <span className="medlemspris-niva">
+              {rabatt ? `${svar.niva} · ${v.begransning === "golv" && v.hogstaProcent !== undefined ? `högst ${v.hogstaProcent}` : v.procent} %` : "Företag"}
+            </span>
+          </div>
+          {utan ? (
+            <p className="medlemspris-utan">Den här varan omfattas inte av företagsrabatterna.</p>
+          ) : svar.trappa?.length ? (
+            <Ordertrappa trappa={svar.trappa} hogsta={v.hogstaProcent} />
+          ) : null}
+          {svar.foretag ? <p className="medlemspris-som">Du handlar som {svar.foretag}.</p> : null}
         </div>
-        {utan ? (
-          <p className="medlemspris-utan">Den här varan omfattas inte av företagsrabatterna.</p>
-        ) : svar.trappa?.length ? (
-          <Ordertrappa trappa={svar.trappa} hogsta={v.hogstaProcent} />
-        ) : null}
-        {svar.foretag ? <p className="medlemspris-som">Du handlar som {svar.foretag}.</p> : null}
-      </div>
-    );
+      ),
+    };
   }
 
   if (v.begransning === "ej-berattigad" || (v.begransning === "golv" && v.pOre >= v.aOre)) {
-    return (
-      <p className="medlemspris-utan" role="status">
-        Den här varan omfattas inte av medlemspriset.
-      </p>
-    );
+    return {
+      utfall: "text",
+      innehall: (
+        <p className="medlemspris-utan" role="status">
+          Den här varan omfattas inte av medlemspriset.
+        </p>
+      ),
+    };
   }
-  if (v.pOre >= v.aOre) return null;
+  // Ingen rabatt på nivån (Brons, lib/medlem/pris.ts radpris): ingen ruta,
+  // och ingen plats nästa gång.
+  if (v.pOre >= v.aOre) return { innehall: null, utfall: v.begransning === "ingen-rabatt" ? "inget" : "okant" };
 
-  return (
-    <div className="medlemspris" data-niva={nivaNyckel(svar.niva)} role="status">
-      <span className="medlemspris-etikett">Ditt medlemspris</span>
-      {/* Med ören: samma tal som kassan (specen, avrundning). */}
-      <span className="medlemspris-belopp">{kronorText(v.pOre)}</span>
-      <span className="medlemspris-niva">
-        {svar.niva}
-        {v.visaProcent
-          ? ` · ${v.begransning === "golv" && v.hogstaProcent !== undefined ? `högst ${v.hogstaProcent} %` : `${v.procent} %`}`
-          : ""}
-      </span>
-      {v.tidigareOre !== undefined ? (
-        <TidigarePris belopp={kronorText(v.tidigareOre)} className="medlemspris-tidigare" />
-      ) : null}
-    </div>
-  );
+  return {
+    utfall: "ruta",
+    innehall: (
+      <div className="medlemspris" data-niva={nivaNyckel(svar.niva)} role="status">
+        <span className="medlemspris-etikett">Ditt medlemspris</span>
+        {/* Med ören: samma tal som kassan (specen, avrundning). */}
+        <span className="medlemspris-belopp">{kronorText(v.pOre)}</span>
+        <span className="medlemspris-niva">
+          {svar.niva}
+          {v.visaProcent
+            ? ` · ${v.begransning === "golv" && v.hogstaProcent !== undefined ? `högst ${v.hogstaProcent} %` : `${v.procent} %`}`
+            : ""}
+        </span>
+        {v.tidigareOre !== undefined ? (
+          <TidigarePris belopp={kronorText(v.tidigareOre)} className="medlemspris-tidigare" />
+        ) : null}
+      </div>
+    ),
+  };
 }
 
 type Kassasvar = { ok: true; adress: string } | { ok: false; skal?: string };

@@ -28,10 +28,10 @@ import { ProgCrossLinks } from "../../../components/programmatic";
 import { blogLinksForPage } from "../../../lib/seo/programmatic";
 import { NAV_EXCLUDED } from "../../../lib/category-groups";
 import { HANDLING_MIN_DAYS, HANDLING_MAX_DAYS, TRANSIT_MIN_DAYS, TRANSIT_MAX_DAYS, fraktKr } from "../../../lib/shipping";
+import { medlemsprisSkript, sidansVarianter } from "../../../lib/medlem/tidig";
 import { prisGiltigFran, prisGiltigTill } from "../../../lib/pris-giltig";
 import { jsonLdVarianter, variantBeskrivning, variantUrl, variesBy } from "../../../lib/variant-jsonld";
 import { visaValnamn } from "../../../lib/variant-lage";
-import { getSocialProof } from "../../../lib/social-proof-live";
 
 // ISR: produktsidan cachas i SEX TIMMAR, och det är ett säkerhetsnät — inte
 // färskheten. En ändring på produkten (pris, lager, synlighet, text, bilder,
@@ -140,9 +140,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   // produkter utan uppgifter, och då visas ingen flik.
   // Märket ur Wix (ett svep för hela katalogen, cachat i sex timmar);
   // lib/varumarke.ts avgör vad det blir.
-  // Butikens Google-betyg till raden vid köpknappen. Samma svar som sidfoten
-  // redan hämtar på varje sida (sex timmars cache), alltså inget nytt anrop.
-  const [reviewData, gpsr, marken, socialt] = await Promise.all([getProductReviews(p.id), getGpsr(p.id), fetchVarumarken(), getSocialProof()]);
+  const [reviewData, gpsr, marken] = await Promise.all([getProductReviews(p.id), getGpsr(p.id), fetchVarumarken()]);
   // Poleringens eget säkerhetsavsnitt i beskrivningen vinner över motorns data.
   const egnaSakerhetsrader = sakerhetUrBeskrivning(p.descriptionHtml);
   const gpsrHtml = gpsr
@@ -433,6 +431,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   // bild, pris och väljare (platsen behålls) när adressen avser ett annat val.
   // ProductView tar bort döljningen när valet gjorts; senast efter 4 s gör
   // skriptet det själv.
+  const medlemsVarianter = sidansVarianter([
+    ...p.variants.map((v) => v.id),
+    ...(p.variantTable ?? []).map((r) => r.variantId),
+    ...(p.options?.choices ?? []).map((c) => c.variantId),
+  ]);
+  const medlemsSkript = medlemsprisSkript(p.id, medlemsVarianter, Boolean(p.onSale));
   const valVantar = (() => {
     const { id, etiketter } = forval;
     if (!id) return null;
@@ -476,8 +480,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
         {valVantar && <script dangerouslySetInnerHTML={{ __html: valVantar }} />}
 
+        {/* Medlemspriset hämtas medan sidan läses, och rutans plats hålls från
+            första bilden (lib/medlem/tidig.ts). Gör ingenting utan tecknet
+            fp_medlem_inne, alltså för alla som inte är inloggade medlemmar. */}
+        {medlemsSkript && <script dangerouslySetInnerHTML={{ __html: medlemsSkript }} />}
+
         <ProductView
           key={p.id}
+          medlemsVarianter={medlemsVarianter}
           productId={p.id}
           slug={p.slug}
           name={p.name}
@@ -510,7 +520,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           // Samma villkor som sektionen nedan: länken i Slutsåld-rutan får
           // aldrig peka på en sektion som inte renderas.
           harLiknande={related.length >= 2}
-          googleBetyg={socialt.rating}
         />
       </div>
 

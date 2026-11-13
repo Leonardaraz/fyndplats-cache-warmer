@@ -30,6 +30,9 @@ const TIDSGRANS_MS = 4_000;
 export const GOLV_CACHE_MS = 60_000;
 /** Motorns gräns per anrop. */
 const PER_ANROP = 200;
+/** Fler nycklar än så sparas inte: produktsidan skickar sina variant-id
+ *  (lib/medlem/tidig.ts), och en tom cache kostar bara ett anrop till. */
+export const GOLV_CACHE_MAX = 5_000;
 
 const cache = new Map<string, { svar: Golvsvar; at: number }>();
 
@@ -112,6 +115,7 @@ export async function hamtaGolv(
         if (!r || !saknas.has(r.nyckel)) continue;
         const { nyckel, ...golv } = r;
         ut.set(nyckel, golv);
+        if (cache.size >= GOLV_CACHE_MAX) cache.clear();
         cache.set(nyckel, { svar: golv, at: nu });
       }
     } catch {
