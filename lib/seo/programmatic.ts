@@ -21,7 +21,7 @@
 //   • Unik H1 + meta per sida — seedad variation + unika slot-data; verifieras i
 //     scripts/verify-programmatic-full.mjs.
 import { cache } from "react";
-import { getHelaKatalogen, getCollections, dedupeProducts, type Product, type Collection } from "../products";
+import { getHelaKatalogen, getCollections, dedupeProducts, mixByCategory, type Product, type Collection } from "../products";
 import { produkterIKategorin } from "../bara-i-underkategorin";
 import { formatPrice } from "../price-range";
 import { getPosts, type Post } from "../blog";
@@ -33,6 +33,8 @@ import interestsJson from "./programmatic-interests.json";
 import * as T from "./programmatic-templates";
 import * as S from "./programmatic-select";
 import { prisgrannar, ringEfter } from "./grannlankar";
+import { byggPrisOversikt, type HubCore } from "./pris-oversikt";
+import { productCountLabel } from "../rating";
 
 export const SITE = "https://www.fyndplats.se";
 export const PRICE_TIERS = [200, 500, 1000] as const;
@@ -472,11 +474,12 @@ export const getValidPriceTierParams = cache(async (): Promise<{ price: number; 
 
 export const resolvePriceTier = cache(async (price: number, categorySlug: string): Promise<PriceTierView | null> => {
   if (!PRICE_TIERS.includes(price as (typeof PRICE_TIERS)[number])) return null;
-  const [products, collections, allTiers, validTypes] = await Promise.all([
+  const [products, collections, allTiers, validTypes, hubPrices] = await Promise.all([
     getHelaKatalogen(),
     getCollections(),
     getValidPriceTierParams(),
     getValidTypeSlugs(),
+    getValidPriceHubs(),
   ]);
   const cat = collections.find((c) => c.slug === categorySlug);
   if (!cat) return null;
@@ -487,6 +490,8 @@ export const resolvePriceTier = cache(async (price: number, categorySlug: string
     { href: "/alla-produkter", label: "Se alla produkter" },
     { href: `/kategori/${cat.slug}`, label: `Allt inom ${cat.name}` },
   ];
+  // Översikten för samma prisgräns (Pattern 2b), när den finns.
+  if (hubPrices.includes(price)) related.push({ href: `/under-${price}-kr`, label: `Alla fynd under ${price} kr` });
   for (const t of PRICE_TIERS) {
     if (t === price) continue;
     if (allTiers.some((x) => x.price === t && x.categorySlug === cat.slug)) {
@@ -524,6 +529,64 @@ export const resolvePriceTier = cache(async (price: number, categorySlug: string
     schemas,
     bodyWords: core.bodyWords,
   };
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PATTERN 2b — /under-{200,500,1000}-kr (översikten för en prisgräns)
+// ─────────────────────────────────────────────────────────────────────────────
+// Genvägarna på /butik pekade hit innan sidorna fanns, och båda gav 404
+// (Leonard 2026-11-13). Översikten visar ett urval varor under gränsen i hela
+// sortimentet och länkar till varje kategori som har en egen prissida. Därmed
+// får prissidorna ännu en länk in. Samma regel som de andra mönstren: core
+// avgör giltigheten, och både sitemapen och sidan går via den.
+const MAX_HUB_LIST = 24;
+
+export type PriceHubView = HubCore<Product> & { schemas: object[] };
+
+function hubCore(
+  products: Product[],
+  collections: Collection[],
+  tierParams: { price: number; categorySlug: string }[],
+  price: number,
+): HubCore<Product> | null {
+  return byggPrisOversikt({
+    price,
+    granser: PRICE_TIERS,
+    products,
+    kategorier: collections,
+    prissidor: tierParams,
+    iKategorin: (slug) => {
+      const cat = collections.find((c) => c.slug === slug);
+      return cat ? productsInCategory(products, collections, cat) : [];
+    },
+    dedupe: dedupeProducts,
+    blanda: (lista) => mixByCategory(lista, collections),
+    raknaOrd: T.countWords,
+    produkterText: productCountLabel,
+    minProdukter: MIN_PRODUCTS,
+    minOrd: MIN_BODY_WORDS,
+    maxLista: MAX_HUB_LIST,
+  });
+}
+
+export const getValidPriceHubs = cache(async (): Promise<number[]> => {
+  const [products, collections, tierParams] = await Promise.all([getHelaKatalogen(), getCollections(), getValidPriceTierParams()]);
+  return PRICE_TIERS.filter((price) => hubCore(products, collections, tierParams, price) !== null);
+});
+
+export const resolvePriceHub = cache(async (price: number): Promise<PriceHubView | null> => {
+  const [products, collections, tierParams] = await Promise.all([getHelaKatalogen(), getCollections(), getValidPriceTierParams()]);
+  const core = hubCore(products, collections, tierParams, price);
+  if (!core) return null;
+  const namn = `Fynd under ${price} kr`;
+  const schemas = [
+    breadcrumbSchema([
+      { name: "Hem", path: "/" },
+      { name: namn, path: core.path },
+    ]),
+    itemListSchema(namn, `${SITE}${core.path}`, core.products),
+  ];
+  return { ...core, schemas };
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -715,10 +778,11 @@ export const categoryProgrammaticLinks = cache(async (categorySlug: string): Pro
 export type ProgrammaticUrl = { path: string; changeFrequency: "daily" | "weekly" | "monthly"; priority: number };
 
 export const getProgrammaticUrls = cache(async (): Promise<ProgrammaticUrl[]> => {
-  const [typeSlugs, tierParams, interestSlugs] = await Promise.all([
+  const [typeSlugs, tierParams, interestSlugs, hubPrices] = await Promise.all([
     getValidTypeSlugs(),
     getValidPriceTierParams(),
     getValidInterestSlugs(),
+    getValidPriceHubs(),
   ]);
   const urls: ProgrammaticUrl[] = [];
   for (const s of typeSlugs) urls.push({ path: `/kopguider/${s}`, changeFrequency: "weekly", priority: 0.6 });
@@ -733,6 +797,9 @@ export const getProgrammaticUrls = cache(async (): Promise<ProgrammaticUrl[]> =>
   for (const [catSlug, price] of highestByCat) {
     urls.push({ path: `/under-${price}-kr/${catSlug}`, changeFrequency: "weekly", priority: 0.6 });
   }
+  // Översikterna per prisgräns (Pattern 2b) har var sitt eget innehåll och
+  // kanoniserar till sig själva.
+  for (const price of hubPrices) urls.push({ path: `/under-${price}-kr`, changeFrequency: "daily", priority: 0.6 });
   for (const s of interestSlugs) urls.push({ path: `/for-dig-som/${s}`, changeFrequency: "weekly", priority: 0.6 });
   return urls;
 });

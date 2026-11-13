@@ -47,13 +47,14 @@ export const revalidate = 3600;
 // Nu: en bild per avdelning, underkategorierna som ett register i text,
 // varorna som kunderna faktiskt köper, och löftena en gång längst ner.
 
-/** Genvägarna under rubriken. Sidor som redan finns i butiken. */
+/** Genvägarna under rubriken. Varje adress är en sida, aldrig en omdirigering
+ *  (lib/interna-lankar-finns.test.ts). /kopguider skickar vidare till /blogg. */
 const GENVAGAR = [
   { href: "/rea", text: "Rea" },
   { href: "/under-500-kr", text: "Under 500 kr" },
   { href: "/under-1000-kr", text: "Under 1 000 kr" },
   { href: "/fyndauktion", text: "Fyndauktionen" },
-  { href: "/kopguider", text: "Köpguider" },
+  { href: "/blogg", text: "Köpguider" },
 ] as const;
 
 export default async function Butik() {
