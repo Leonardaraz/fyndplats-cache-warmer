@@ -269,6 +269,7 @@ export function ProductView({
   descriptionHtml,
   originalPrice,
   onSale,
+  medlemsVarianter,
   specLines,
   images,
   mainBlur,
@@ -298,6 +299,8 @@ export function ProductView({
   descriptionHtml?: string;
   originalPrice?: string;
   onSale?: boolean;
+  /** Produktens variant-id till medlemsrutan (lib/medlem/tidig.ts sidansVarianter). */
+  medlemsVarianter?: string[];
   specLines: string[];
   images: string[];
   mainBlur?: string;
@@ -849,7 +852,7 @@ export function ProductView({
           {ordinarie > 0 && <TidigarePris belopp={formatPrice(ordinarie)} className="pdp-price-old" />}
           {/* Medlemspriset hämtas i webbläsaren för en inloggad medlem; sidan
               själv är densamma för alla (medlemskapet E2-2). */}
-          <Medlemspris produktId={productId} variantId={variantId} />
+          <Medlemspris produktId={productId} variantId={variantId} varianter={medlemsVarianter} rea={Boolean(onSale)} />
           <KlarnaOSM priceNum={currentPriceNum} />
           {/* Lagerstatus visas i leveransboxen ("✓ I lager · Beräknad leverans…")
               — en fristående pill här såg övergiven ut. Slut-i-lager-läget bärs

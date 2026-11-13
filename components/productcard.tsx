@@ -34,7 +34,7 @@ export function ProductCard({ p, priority = false, href, tvaKolumner = false }: 
     // hover: varje klick började från noll. PrefetchLink hämtar i stället vid
     // avsikt (pointerenter/touchstart), vilket ger klientruttningen OCH en
     // rutt som redan är på väg när fingret släpper. Se components/prefetch-link.
-    <PrefetchLink className="prod" href={href ?? `/produkt/${p.slug}`}>
+    <PrefetchLink className="prod" href={href ?? `/produkt/${p.slug}`} medlemspris={p.id}>
       <div className="pimg">
         {/* Slutsåld-badge: OOS-produkter göms inte från listningarna (default) utan
             visas med badge + dämpad bild så kunden ser dem och kan bevaka. */}

@@ -41,7 +41,7 @@ import {
 import { stadaLastaKorgar, type Stadutfall } from "./korgstadning";
 import { hamtaGolv } from "./golv-klient";
 import { ettPris, jamforelseForMedlem } from "./jamforelse";
-import { jamforprisFor } from "@/lib/price-snapshot";
+import { historikForJamforpris, jamforprisUrHistorik } from "@/lib/price-snapshot";
 import {
   ORDERTRAPPA,
   exklMoms,
@@ -97,29 +97,45 @@ export const MOMS_PROCENT = 25;
 const PROFIL_CACHE_MS = 5 * 60_000;
 const profiler = new Map<string, { v: Medlemsprofil; at: number }>();
 
-/** Den inloggade medlemmens profil, eller varför medlemspris inte gäller. */
+/**
+ * Den inloggade medlemmens profil, eller varför medlemspris inte gäller.
+ *
+ * Växeln, medlemmen, reglerna, orderliggaren och företagsprofilen läses
+ * SAMTIDIGT (Leonard 2026-11-13: rutan kom efter nästan en sekund). Förut
+ * väntade varje läsning på den förra: växeln, sedan medlemmen, sedan de tre
+ * sista. Sessionen bär medlemmens id och e-post, så inget behöver vänta på
+ * medlemsraden. Reglerna är desamma: växeln `av` går före allt, en spärrad
+ * medlem får inget pris, och företaget prövas vid varje prissättning som
+ * inte står i profilcachen (E3-11, E3-12).
+ */
 export async function medlemsprofil(): Promise<Medlemsprofil | { utan: Utan }> {
-  const lage = await prisLage();
-  if (lage === "av") return { utan: "av" };
+  const lageP = prisLage();
   const session = await inloggad();
-  if (!session) return { utan: "utloggad" };
+  if (!session) return (await lageP) === "av" ? { utan: "av" } : { utan: "utloggad" };
   // E3-11: profilvalet ingår i nyckeln, så att ett byte räknar om direkt.
   const villForetag = session.profil === "foretag";
   const nyckel = `${session.sub}|${villForetag ? "f" : "p"}`;
   const c = profiler.get(nyckel);
   if (c && Date.now() - c.at < PROFIL_CACHE_MS) {
+    const lage = await lageP;
+    if (lage === "av") return { utan: "av" };
     if (lage === "test" && !c.v.medlem.testare) return { utan: "inte-testare" };
     return c.v;
   }
   try {
-    const medlem = await hamtaMedlem(session.sub);
+    const [lage, medlem, regler, raderForSessionen, fp] = await Promise.all([
+      lageP,
+      hamtaMedlem(session.sub),
+      aktuellaRegler(),
+      liggarraderForEpost(session.email),
+      villForetag ? hamtaForetagsprofil(session.sub) : Promise.resolve(null),
+    ]);
+    if (lage === "av") return { utan: "av" };
     if (!medlem || medlem.status !== "aktiv") return { utan: "sparrad" };
     if (lage === "test" && !medlem.testare) return { utan: "inte-testare" };
-    const [regler, rader, fp] = await Promise.all([
-      aktuellaRegler(),
-      liggarraderForEpost(medlem.epost),
-      villForetag ? hamtaForetagsprofil(medlem.id) : Promise.resolve(null),
-    ]);
+    // Kontots id räknas ur adressen, så sessionen och raden bär samma; skulle
+    // de ändå skilja gäller medlemsradens adress, som förut.
+    const rader = medlem.epost === session.email ? raderForSessionen : await liggarraderForEpost(medlem.epost);
     const l = lageFor(medlem, rader, regler);
     const niva = { niva: l.niva.namn, nivaProcent: l.niva.rabattProcent };
     // Ett företag som inte längre är godkänt, eller vars villkor är gamla
@@ -160,37 +176,80 @@ export interface Variantmedlemspris {
   pOreExMoms?: number;
 }
 
-/** Jämförpriset för ett medlemspris, sparat en kort stund per produkt och pris. */
-const JAMFOR_CACHE_MS = 10 * 60_000;
-const jamforCache = new Map<string, { ore: number | null; at: number }>();
+/** Prishistoriken till jämförpriset, sparad en kort stund per produkt. Ett
+ *  misslyckat läs sparas också (null): ingen jämförelse hellre än en som inte
+ *  går att belägga, och inget nytt försök vid varje sidvisning. */
+const HISTORIK_CACHE_MS = 10 * 60_000;
+const HISTORIK_MAX = 2_000;
+const historiker = new Map<string, { p: Promise<Observationer>; at: number }>();
+type Observationer = Awaited<ReturnType<typeof historikForJamforpris>>;
+
+function historikFor(produktId: string): Promise<Observationer> {
+  const c = historiker.get(produktId);
+  if (c && Date.now() - c.at < HISTORIK_CACHE_MS) return c.p;
+  if (historiker.size >= HISTORIK_MAX) historiker.clear();
+  // historikForJamforpris sväljer sina egna fel och ger då null.
+  const p = historikForJamforpris(produktId);
+  historiker.set(produktId, { p, at: Date.now() });
+  return p;
+}
 
 async function tidigarePris(produktId: string, pOre: number): Promise<number | null> {
-  const nyckel = `${produktId}|${pOre}`;
-  const c = jamforCache.get(nyckel);
-  if (c && Date.now() - c.at < JAMFOR_CACHE_MS) return c.ore;
-  // jamforprisFor sväljer sina egna fel och ger då null: ingen jämförelse
-  // hellre än en som inte går att belägga.
-  const jf = await jamforprisFor(produktId, pOre / 100);
-  const ore = jf ? jf.prisMinor : null;
-  jamforCache.set(nyckel, { ore, at: Date.now() });
-  return ore;
+  const jf = jamforprisUrHistorik(await historikFor(produktId), pOre / 100);
+  return jf ? jf.prisMinor : null;
+}
+
+type Produktlasning = { ok: true; produkt: unknown } | { ok: false };
+
+async function lasProdukt(produktId: string): Promise<Produktlasning> {
+  try {
+    return { ok: true, produkt: (await wixFetch<{ product?: unknown }>({ path: `/stores/v3/products/${encodeURIComponent(produktId)}` }))?.product };
+  } catch (e) {
+    console.warn(`[medlemspris] produkten gick inte att läsa (${e instanceof WixApiError ? e.status : "nät"})`);
+    return { ok: false };
+  }
+}
+
+/** Produktsidans läsningar, startade innan profilen är klar. */
+export type Forhamtning = {
+  produkt: Promise<Produktlasning>;
+  /** Golvet för sidans variant-id, frågat medan produkten läses. */
+  golv: Promise<Map<string, Golvsvar>> | null;
+};
+
+/**
+ * Startar läsningarna som inte beror på medlemmen: produkten i Wix, golvet för
+ * de variant-id sidan skickade (lib/medlem/tidig.ts) och, för en privat
+ * medlem, prishistoriken till jämförpriset. Anropas bara med en giltig
+ * session (rutten prövar den först), så en okänd besökare kan aldrig få
+ * butiken att fråga motorn. Ingen av läsningarna kastar.
+ */
+export function forhamtaProdukt(produktId: string, ledtrad: readonly string[], privat: boolean): Forhamtning {
+  if (privat) void historikFor(produktId);
+  return {
+    produkt: lasProdukt(produktId),
+    golv: ledtrad.length ? hamtaGolv(ledtrad.map((variantId) => ({ produktId, variantId }))) : null,
+  };
 }
 
 /** Medlemspriset för varje variant av en produkt, räknat på Wix färska pris. */
 export async function medlemsprisForProdukt(
   produktId: string,
   profil: Profil,
+  forhand: Forhamtning = forhamtaProdukt(produktId, [], profil.typ !== "foretag"),
 ): Promise<Variantmedlemspris[] | null> {
-  let produkt: unknown;
-  try {
-    produkt = (await wixFetch<{ product?: unknown }>({ path: `/stores/v3/products/${encodeURIComponent(produktId)}` }))?.product;
-  } catch (e) {
-    console.warn(`[medlemspris] produkten gick inte att läsa (${e instanceof WixApiError ? e.status : "nät"})`);
-    return null;
-  }
-  const varianter = variantpriserUrV3(produkt);
+  const lasning = await forhand.produkt;
+  if (!lasning.ok) return null;
+  const varianter = variantpriserUrV3(lasning.produkt);
   if (varianter.length === 0) return null;
-  const golv = await hamtaGolv(varianter.map((v) => ({ produktId, variantId: v.variantId })));
+  // Golvet för sidans variant-id är redan frågat; det som saknas (en variant
+  // som kommit till sedan sidan byggdes) frågas nu. Ett svar för ett id som
+  // inte hör till produkten används aldrig: raderna nedan byggs ur Wix.
+  const golv = new Map(forhand.golv ? await forhand.golv : []);
+  const saknas = varianter.filter((v) => !golv.has(golvnyckel(produktId, v.variantId)));
+  if (saknas.length) {
+    for (const [k, g] of await hamtaGolv(saknas.map((v) => ({ produktId, variantId: v.variantId })))) golv.set(k, g);
+  }
   const foretag = profil.typ === "foretag";
   const trappansTak = ORDERTRAPPA[ORDERTRAPPA.length - 1].procent;
   const exMoms = (aOre: number, pOre: number) =>
