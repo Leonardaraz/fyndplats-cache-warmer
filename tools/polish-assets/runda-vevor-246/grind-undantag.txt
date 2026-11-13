@@ -1,0 +1,18 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord, och sidan skriver fotytan som 740 × 780 mm utan axelord och höjden 920 mm efter sågbockens egen måttbild
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktstorlek) saknar axelord, och sidan skriver basen som 460 × 240 mm utan axelord och höjden 560 mm efter pressens egen måttbild
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord, och sidan skriver trummans längd 1000 mm och diameter 445 mm samt höjden 1240 mm efter vältens egen måttbild
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord, och sidan skriver måtten som längd × bredd × tjocklek efter rampens egen måttbild
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Nivelleringsplattans mått) saknar axelord, och sidan skriver plattorna som bredd × djup × tjocklek efter plattans egen måttbild
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (Bredd x Tjocklek och Spårstorlek) anger måtten utan axelord, och sidan skriver bredd × tjocklek respektive slitsens två sidor
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord, och sidan skriver måtten som längd × bredd × höjd efter skärarens egen måttbild
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad med axlar (bara storleken 36 tum, kedjelängden och rörkapaciteten), och sidan skriver inga yttermått för tången
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad saknar axelord, och sidan skriver måtten som höjd × bredd × djup efter linjemålarens egen måttbild
