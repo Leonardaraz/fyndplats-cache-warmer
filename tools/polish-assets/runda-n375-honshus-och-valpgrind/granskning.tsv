@@ -1,0 +1,16 @@
+47d08429	1	behålls	feedens position 1: studiobild på vit bakgrund utan text
+47d08429	2	behålls	feedens position 2: miljöbild med höns på en äng, utan text
+47d08429	3	behålls	feedens position 3: måttbild med bara siffror och enheter, måtten stämmer mot källan (personsilhuetten på 180 cm citeras inte)
+47d08429	4	förkastad	feedens position 4: tysk säljgrafik med inbränd text över bilden (Passt perfekt in Ecken)
+47d08429	5	förkastad	feedens position 5: tysk säljgrafik med inbränd text och ytsiffror (Geräumiger Wohnbereich)
+47d08429	6	förkastad	feedens position 6: tysk säljgrafik med inbränd text (Allwetterschutz)
+47d08429	7	förkastad	feedens position 7: tysk säljgrafik med inbränd text (Leicht zu reinigen)
+47d08429	8	struken	feedens position 8: tysk och engelsk text i bilden (Mehr Details, Sicherheitsschloss, Rutschfeste Rampe, Windows)
+47d08429	9	struken	feedens position 9: tysk text och husmärkets logotyp som motiv (Sicher, sauber und kuschelig bequem)
+47d08429	10	används	feedens position 10: ren miljöbild med hönshuset framför ett grönt trähus, utan text
+c8f3d3ea	1	behålls	feedens position 1: studiobild på vit bakgrund utan text
+c8f3d3ea	2	behålls	feedens position 2: miljöbild med en hund i hagen, utan text
+c8f3d3ea	3	struken	feedens position 3: måttbilden anger 27 × 40,5 cm för dörren och 56 cm för panelen, källan säger 39 × 52,5 cm och 68 cm (bilden bär den mindre grindens mått)
+c8f3d3ea	8	behålls	feedens position 8: miljöbild med grinden som en ring, utan text
+c8f3d3ea	9	behålls	feedens position 9: närbild på panelernas skarv, utan text
+47d08429	0	flagga	fyra bilder kvar, under minst fem: ingen leverantörsbild går att beskära rent (grafik ligger över själva fotot eller kortsidan blir under 700 px)
