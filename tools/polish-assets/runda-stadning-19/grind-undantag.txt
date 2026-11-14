@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py Städrunda, diffgrind.py REN (0 nya fynd, 0 i målklasserna). Kvar är bara en äldre avvikelse som fanns före rättelsen: INGEN MÅTTRAD × 1. Skäl: källan är sidans publicerade svenska text plus monteringsanvisningen, inte leverantörens tyska rad, så det finns ingen Gesamtmaße-rad att bygga axelfacit ur. Måtten på sidan rörs inte av rättelsen.
