@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad, och sidan skriver väskornas längd, bredd och höjd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktstorlek) saknar axelord och anger måtten i en annan ordning än måttbildens ritning, och sidan skriver väskans längd, bredd och höjd efter ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader har axelbokstäverna i etiketten (L x B x H) och inte vid talen, så facit kan inte byggas positionellt; sidan skriver mejslarnas mått i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader har axelbokstäverna i etiketten (L x B x H) och inte vid talen, så facit kan inte byggas positionellt; sidan skriver mejslarnas mått i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad (bara storleken på drivenheten), och sidan skriver hylsans längd och diameter efter måttbildens ritning
