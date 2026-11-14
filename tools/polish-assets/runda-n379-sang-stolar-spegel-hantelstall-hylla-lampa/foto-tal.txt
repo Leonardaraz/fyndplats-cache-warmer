@@ -1,0 +1,5 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+8618dd6a 2 antal USB-uttag: leverantörens bild (2 USB-Anschlüsse och ett USB-C-Anschluss, DC 5V, 2A) visar två USB-uttag och ett USB-C-uttag
+9bab7489 2,3 5 lb × 0,4536 = 2,27 kg, avrundat till en decimal
+9bab7489 11,3 25 lb × 0,4536 = 11,34 kg, avrundat till en decimal

@@ -376,6 +376,12 @@ TYSKA_ORD = [
     "Tischtennisplatte", "Tischtennistisch", "Tischtennisschläger", "Tischtennisnetz", "Netztasche",
     "Liegeergometer", "Liegefahrrad", "Liegetrainer", "Magnetwiderstand", "Riemenantrieb",
     "Widerstandsstufe", "Transportrollen", "Fußriemen",
+    # runda N379 (sängram, matstolar, kontorsstol, LED-spegel, skivstångsställ, hantelställ, skoförvaring, solcellslampa)
+    "Bettgestell", "Stauraum", "Hebevorrichtung", "Plattformbett", "Kopfteil", "Fußteil", "Esszimmerstühle",
+    "Sprossenlehne", "Kautschukholz", "Gummibaumholz", "Filzgleiter", "Bürostuhl", "Schneidersitz", "Kopfstütze",
+    "Armlehnen", "Aufbewahrungstaschen", "Badezimmerspiegel", "Vergrößerungsspiegel", "Hantelständer",
+    "Langhantelständer", "Kurzhantelständer", "Hantelablage", "Kurzhantelablage", "Regalsystem", "Steckregal",
+    "Würfelregal", "Würfelfächer", "Schuhkarton", "Stehlampe", "Solarlampe", "Erdspieß", "Spritzwasserschutz",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med
