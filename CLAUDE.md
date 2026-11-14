@@ -330,6 +330,23 @@ Tre regler (`lib/list-pages.ts`, vaktas av `lib/listsidor.test.ts`):
    färdig HTML-sträng, eftersom en JSX-lista ligger en gång till, dubbelt så
    stor, i React-datan.
 
+## ☠️ Kortets andra bild står aldrig i HTML:en (2026-11-14)
+
+Google Bilder visade massagestolens foto under gamingstolens adress.
+Gamingstolens sida har "Liknande produkter" med massagestolens kort, och
+kortets andra bild (hover-bilden, `.pimg-alt`) låg i sidans HTML. Google
+tillskrev bilden den sidan. Andra bilden läggs därför in först när en människa
+rört sidan (`components/kort-andra-bild.tsx`, `lib/forsta-rorelse.ts`, vaktas
+av `lib/kort-andra-bild.test.ts`):
+
+- Bara pointermove, pointerdown, touchstart, keydown och wheel räknas, aldrig
+  scroll: sidan kan rulla utan att någon rört den.
+- Servern och hydreringen säger alltid nej, så bilden står aldrig i HTML:en.
+- Hover-bytet tonar bort huvudbilden först när andra bilden är laddad
+  (`data-klar`). Kortet blir aldrig tomt.
+- Produktkortet och auktionskortet går båda genom `KortAndraBild`. Ett nytt
+  kort med en andra bild gör likadant.
+
 ## ☠️ En listsida byggs aldrig på reservkatalogen (2026-11-11)
 
 **Mätt 2026-11-11.** Kl 12:09:40 UTC svarade Wix 504 på kataloghämtningen för

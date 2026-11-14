@@ -2161,8 +2161,12 @@ body:has(.drawer.show) .cookiebar{visibility:hidden}
 /* Extrabilderna (hämtas vid svep) hör bara hemma i svepraden. */
 .pimg-slide-extra{display:none}
 @media (hover:hover){
-  .prod:hover .pimg-alt{opacity:1}
-  .prod:hover .pimg-main{opacity:0}
+  /* Andra bilden läggs in först när besökaren rört sidan och tonas in först när
+     den laddats (data-klar, components/kort-andra-bild.tsx). Huvudbilden tonas
+     bort bara då: annars blev kortet tomt medan andra bilden hämtades. Utan
+     :has() (äldre webbläsare) står huvudbilden kvar under, och bytet ser likadant ut. */
+  .prod:hover .pimg-alt[data-klar]{opacity:1}
+  .prod:hover .pimg:has(.pimg-alt[data-klar]) .pimg-main{opacity:0}
   /* Mjuk zoom på hover (.pimg har overflow:hidden → beskärs rent). GPU-only,
      ingen reflow. */
   .prod:hover .pimg-main,.prod:hover .pimg-alt{transform:scale(1.045)}
