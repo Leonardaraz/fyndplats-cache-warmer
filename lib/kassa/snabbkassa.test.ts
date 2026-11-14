@@ -15,12 +15,14 @@ import {
   kronor,
   planbocker,
   planbokFel,
+  planbokGissning,
   planbokNamn,
-  planbokTrolig,
   PLANBOK_SKRIPT,
   snabbBekrafta,
   snabbknappar,
   snabbRader,
+  webblasarensPlanbok,
+  type PlanbokGissning,
   type PlanbokHandelse,
   type Sammandrag,
   type SnabbDeps,
@@ -56,22 +58,56 @@ const APPLE_PAY: PlanbokVarde = {
   },
 };
 
+const GISSNINGAR: readonly PlanbokGissning[] = ["apple", "google", "ingen"];
+
+// Webbläsarnas egna namn. De tre sista är inbyggda webbläsare i appar på
+// Android (WebView, märket "; wv)"), som den som trycker på en annons hamnar i.
+const UA = {
+  chromeDator: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+  chromeAndroid: "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Mobile Safari/537.36",
+  edge: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0",
+  firefox: "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0",
+  samsung: "Mozilla/5.0 (Linux; Android 14; SM-S911B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/28.0 Chrome/130.0.0.0 Mobile Safari/537.36",
+  safariIphone: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Mobile/15E148 Safari/604.1",
+  safariMac: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Safari/605.1.15",
+  instagramAndroid: "Mozilla/5.0 (Linux; Android 14; Pixel 7 Build/UQ1A.240205.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/141.0.0.0 Mobile Safari/537.36 Instagram 350.0.0.0.0 Android",
+  facebookAndroid: "Mozilla/5.0 (Linux; Android 14; Pixel 7 Build/UQ1A.240205.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/141.0.0.0 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/480.0.0.0.0;]",
+  tiktokAndroid: "Mozilla/5.0 (Linux; Android 14; Pixel 7 Build/UQ1A.240205.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/141.0.0.0 Mobile Safari/537.36 trill_360000 BytedanceWebview/d8a21c6",
+} as const;
+const UTAN_APPLE = [UA.chromeDator, UA.chromeAndroid, UA.edge, UA.firefox, UA.samsung];
+const APPAR = [UA.instagramAndroid, UA.facebookAndroid, UA.tiktokAndroid];
+
 // ── Knapparna ──────────────────────────────────────────────────────────────
 
 test("knapparna: bara Apple Pay och Google Pay, aldrig Klarna, Link, PayPal eller Amazon Pay", () => {
-  const o = snabbknappar(null);
-  assert.equal(o.paymentMethods?.applePay, "auto");
-  assert.equal(o.paymentMethods?.googlePay, "auto");
-  // Betaltjänstlagen: Klarna (kredit) står sist i betalfältet och får aldrig stå först på sidan.
-  assert.equal(o.paymentMethods?.klarna, "never");
-  assert.equal(o.paymentMethods?.link, "never");
-  assert.equal(o.paymentMethods?.paypal, "never");
-  assert.equal(o.paymentMethods?.amazonPay, "never");
-  assert.deepEqual(o.paymentMethodOrder, ["apple_pay", "google_pay"]);
+  for (const g of GISSNINGAR) {
+    const o = snabbknappar(null, g);
+    assert.notEqual(o.paymentMethods?.applePay, "never", g);
+    assert.notEqual(o.paymentMethods?.googlePay, "never", g);
+    // Betaltjänstlagen: Klarna (kredit) står sist i betalfältet och får aldrig stå först på sidan.
+    assert.equal(o.paymentMethods?.klarna, "never", g);
+    assert.equal(o.paymentMethods?.link, "never", g);
+    assert.equal(o.paymentMethods?.paypal, "never", g);
+    assert.equal(o.paymentMethods?.amazonPay, "never", g);
+    assert.deepEqual(o.paymentMethodOrder, ["apple_pay", "google_pay"], g);
+  }
+});
+
+test("Google Pay visas för alla utanför Apples webbläsare, inte bara för den som redan sparat ett kort hos Google (Leonard 2026-11-14)", () => {
+  // Med "auto" visar Stripe knappen bara för den som har Google Pay uppsatt:
+  // kassan på www visade ingen knapp alls i Chrome (svar efter 12 s, 2026-11-14).
+  // Med "always" kom knappen på 3–4 s i samma webbläsare.
+  assert.equal(snabbknappar(null, "google").paymentMethods?.googlePay, "always");
+  assert.equal(snabbknappar(null, "ingen").paymentMethods?.googlePay, "always");
+  // Apples webbläsare är orörda: där är knappen Apple Pay, och platsen som hålls
+  // rymmer EN knapp. Två knappar hade knuffat ned formuläret när Stripe svarade.
+  assert.equal(snabbknappar(null, "apple").paymentMethods?.googlePay, "auto");
+  // Apple Pay visas som förut bara för den som har det uppsatt.
+  for (const g of GISSNINGAR) assert.equal(snabbknappar(null, g).paymentMethods?.applePay, "auto", g);
 });
 
 test("knapparna: plånboken ger e-post, telefon och en svensk leveransadress, så kunden slipper formuläret", () => {
-  const o = snabbknappar(null);
+  const o = snabbknappar(null, "google");
   assert.equal(o.emailRequired, true);
   assert.equal(o.phoneNumberRequired, true);
   assert.equal(o.shippingAddressRequired, true);
@@ -84,18 +120,22 @@ test("knapparna: plånboken ger e-post, telefon och en svensk leveransadress, s�
 
 test("☠️ knapparnas layout är en Stripe godtar: overflow \"never\" bara med maxRows 0", () => {
   // Annars kastar Stripe IntegrationError och inga knappar ritas (lokalt prov 2026-11-06).
-  const l = snabbknappar(null).layout;
-  assert.ok(l && typeof l === "object");
-  if (l.overflow === "never") assert.equal(l.maxRows, 0);
-  assert.equal(l.maxColumns, 1);
+  for (const g of GISSNINGAR) {
+    const l = snabbknappar(null, g).layout;
+    assert.ok(l && typeof l === "object");
+    if (l.overflow === "never") assert.equal(l.maxRows, 0);
+    assert.equal(l.maxColumns, 1);
+  }
 });
 
 test("knapparna skapas med samma rader och frakt som trycket svarar med", () => {
-  const o = snabbknappar(SAMMANDRAG);
   const k = klickSvar(SAMMANDRAG);
-  assert.deepEqual(o.lineItems, k.lineItems);
-  assert.deepEqual(o.shippingRates, k.shippingRates);
-  assert.equal("lineItems" in snabbknappar(null), false);
+  for (const g of GISSNINGAR) {
+    const o = snabbknappar(SAMMANDRAG, g);
+    assert.deepEqual(o.lineItems, k.lineItems);
+    assert.deepEqual(o.shippingRates, k.shippingRates);
+    assert.equal("lineItems" in snabbknappar(null, g), false);
+  }
 });
 
 test("snabbkassans grupp har samma valuta och dragning som betalningen servern skapar", () => {
@@ -108,9 +148,13 @@ test("snabbkassans grupp har samma valuta och dragning som betalningen servern s
 });
 
 test("betalfältet visar inte plånböckerna som står överst", () => {
-  const knappar = snabbknappar(null).paymentMethods ?? {};
-  assert.equal(BETALFALT.wallets?.applePay === "never" && knappar.applePay === "auto", true);
-  assert.equal(BETALFALT.wallets?.googlePay === "never" && knappar.googlePay === "auto", true);
+  assert.equal(BETALFALT.wallets?.applePay, "never");
+  assert.equal(BETALFALT.wallets?.googlePay, "never");
+  for (const g of GISSNINGAR) {
+    const knappar = snabbknappar(null, g).paymentMethods ?? {};
+    assert.ok(knappar.applePay === "auto" || knappar.applePay === "always", g);
+    assert.ok(knappar.googlePay === "auto" || knappar.googlePay === "always", g);
+  }
   assert.ok(!(BETALFALT.paymentMethodOrder ?? []).some((t) => t === "apple_pay" || t === "google_pay"));
 });
 
@@ -224,38 +268,80 @@ test("plånböckerna: rutan syns bara när Stripe hittar Apple Pay eller Google 
   assert.equal(planbokNamn([]), "Apple Pay eller Google Pay");
 });
 
-test("platsen hålls bara där Apple Pay finns: Google Pays kontroll är för långsam för en hållen plats", () => {
-  assert.equal(planbokTrolig({ applePaySession: true }), true);
-  assert.equal(planbokTrolig({ applePaySession: false }), false);
+test("gissningen före Stripes svar: Apple där Apple Pay finns, Google i andra webbläsare, ingen i en app", () => {
+  // Apples webbläsare (Safari, och alla webbläsare på iPhone) har ApplePaySession.
+  for (const ua of Object.values(UA)) assert.equal(planbokGissning({ applePaySession: true, userAgent: ua }), "apple", ua);
+  // Utan Apple Pay visar Stripe Google Pay (läget "always"): mätt 2026-11-14 i
+  // Chrome på dator och Android, också utan PaymentRequest i webbläsaren.
+  for (const ua of UTAN_APPLE) assert.equal(planbokGissning({ applePaySession: false, userAgent: ua }), "google", ua);
+  // ☠️ En inbyggd webbläsare i en app på Android (märket "; wv)") får aldrig
+  // någon knapp av Stripe, varken med "always" eller "auto" (mätt 2026-11-14
+  // med Instagrams, Facebooks och TikToks namn). Där hålls ingen plats:
+  // annars försvann rutan efter tre sekunder och formuläret hoppade upp.
+  for (const ua of APPAR) assert.equal(planbokGissning({ applePaySession: false, userAgent: ua }), "ingen", ua);
+  // Märket ska stå som det gör i ett riktigt namn, inte som en bokstavsföljd var som helst.
+  assert.equal(planbokGissning({ applePaySession: false, userAgent: "Mozilla/5.0 (X11; Linux x86_64) wvdial; wview" }), "google");
+  assert.equal(planbokGissning({ applePaySession: false, userAgent: "" }), "google");
 });
 
-test("skriptet före första ritningen ger <html> samma svar som planbokTrolig", () => {
+test("skriptet före första ritningen ger <html> samma svar som planbokGissning", () => {
   for (const apple of [true, false]) {
-    const satt: Record<string, string> = {};
-    const fonster: Record<string, unknown> = apple ? { ApplePaySession: function ApplePaySession() {} } : {};
-    const dokument = { documentElement: { setAttribute: (k: string, v: string) => void (satt[k] = v) } };
-    new Function("document", "window", PLANBOK_SKRIPT)(dokument, fonster);
-    assert.deepEqual(satt, { "data-applepay": planbokTrolig({ applePaySession: apple }) ? "ja" : "nej" });
+    for (const ua of Object.values(UA)) {
+      const satt: Record<string, string> = {};
+      const fonster: Record<string, unknown> = { navigator: { userAgent: ua }, ...(apple ? { ApplePaySession: function ApplePaySession() {} } : {}) };
+      const dokument = { documentElement: { setAttribute: (k: string, v: string) => void (satt[k] = v) } };
+      new Function("document", "window", PLANBOK_SKRIPT)(dokument, fonster);
+      assert.deepEqual(satt, { "data-planbok": planbokGissning({ applePaySession: apple, userAgent: ua }) }, `${apple} ${ua}`);
+      // Kassan och knapparna läser webbläsaren på samma sätt som skriptet.
+      const g = globalThis as { window?: unknown };
+      const fore = g.window;
+      try {
+        g.window = fonster;
+        assert.equal(webblasarensPlanbok(), satt["data-planbok"], `${apple} ${ua}`);
+      } finally {
+        if (fore === undefined) delete g.window;
+        else g.window = fore;
+      }
+    }
   }
   // Ett fel i skriptet får aldrig stoppa sidan.
   assert.doesNotThrow(() => new Function("document", "window", PLANBOK_SKRIPT)({}, {}));
+  assert.doesNotThrow(() => new Function("document", "window", PLANBOK_SKRIPT)({ documentElement: { setAttribute() {} } }, {}));
+  // Inget som en gammal webbläsare inte kan läsa: skriptet står i varje sidas <head>.
+  assert.doesNotMatch(PLANBOK_SKRIPT, /=>|\b(?:const|let)\b|`|\?\.|\(\?<[=!]/);
 });
 
-test("utan Apple Pay hålls ingen plats före hydreringen: layouten kör skriptet och CSS:en flyttar ut rutan", () => {
+test("platsen hålls där en plånbok väntas, och knapparna får samma gissning som platsen", () => {
+  const kassa = readFileSync(new URL("../../app/kassa/kassa.tsx", import.meta.url), "utf8");
+  const krok = readFileSync(new URL("../../app/kassa/use-stripe-betalning.ts", import.meta.url), "utf8");
+  // Kassan: platsen hålls utom i läget "ingen". Sant från början, också på servern.
+  assert.match(kassa, /const \[planbokMojlig, setPlanbokMojlig\] = useState\(true\);/);
+  assert.match(kassa, /setPlanbokMojlig\(webblasarensPlanbok\(\) !== "ingen"\);/);
+  // Knapparna: Google Pay "always" väljs ur samma läsning av webbläsaren.
+  assert.match(krok, /g\.create\("expressCheckout", snabbknappar\(snabbKoppling\.current\.start\(\), webblasarensPlanbok\(\)\)\)/);
+  assert.equal(kassa.match(/webblasarensPlanbok\(\)/g)?.length, 1);
+  assert.equal(krok.match(/webblasarensPlanbok\(\)/g)?.length, 1);
+});
+
+test("utan väntad plånbok hålls ingen plats före hydreringen: layouten kör skriptet och CSS:en flyttar ut rutan", () => {
   const layout = readFileSync(new URL("../../app/layout.tsx", import.meta.url), "utf8");
   const css = readFileSync(new URL("../../app/kassa/kassa.module.css", import.meta.url), "utf8");
   const kassa = readFileSync(new URL("../../app/kassa/kassa.tsx", import.meta.url), "utf8");
   assert.match(layout, /<script dangerouslySetInnerHTML=\{\{ __html: PLANBOK_SKRIPT \}\} \/>/);
   // Rutan flyttas ut på samma sätt som utan plånbok, men bara medan Stripe svarar:
   // knapparna måste vara monterade (inte display: none) för att Stripe ska kunna svara.
-  const regel = /\.snabb\[data-visas="nej"\],\s*:global\(html\[data-applepay="nej"\]\) \.snabb\[data-snabb="laddar"\]\s*\{([^}]*)\}/.exec(css);
+  const regel = /\.snabb\[data-visas="nej"\],\s*:global\(html\[data-planbok="ingen"\]\) \.snabb\[data-snabb="laddar"\]\s*\{([^}]*)\}/.exec(css);
   assert.ok(regel, "regeln för rutan saknas");
   assert.match(regel[1], /left: -10000px/);
   assert.match(regel[1], /visibility: hidden/);
   assert.doesNotMatch(regel[1], /display: none/);
-  assert.match(css, /:global\(html\[data-applepay="nej"\]\) \.eller\[data-snabb="laddar"\]\s*\{\s*display: none;/);
+  assert.match(css, /:global\(html\[data-planbok="ingen"\]\) \.eller\[data-snabb="laddar"\]\s*\{\s*display: none;/);
   // Rutan och skiljeraden bär Stripes läge, så att regeln släpper när knapparna finns.
   assert.equal(kassa.match(/data-snabb=\{snabbLage\}/g)?.length, 2);
+  // Det gamla attributet finns inte kvar någonstans: en regel på det hade aldrig träffat.
+  for (const [namn, text] of [["css", css], ["kassa", kassa], ["layout", layout], ["skript", PLANBOK_SKRIPT]] as const) {
+    assert.doesNotMatch(text, /data-applepay/, namn);
+  }
 });
 
 test("Stripes knapp tonar fram över platshållaren: inget vitt blink när Stripe svarar (Leonard 2026-11-08)", () => {
@@ -279,13 +365,62 @@ test("Stripes knapp tonar fram över platshållaren: inget vitt blink när Strip
   const bas = /\n\.snabbSkelett \{([^}]*)\}/.exec(css);
   assert.ok(bas, ".snabbSkelett saknas");
   assert.match(bas[1], /pointer-events: none;/);
+  assert.match(bas[1], /inset: 0;/);
+  assert.match(bas[1], /border-radius: 10px;/);
   // Apples knapp i Safari har Stripes Apple Pay-mått: 50 px hög överst i ytan.
-  const apple = /:global\(html\[data-applepay="ja"\]\) \.snabbSkelett \{([^}]*)\}/.exec(css);
+  const apple = /:global\(html\[data-planbok="apple"\]\) \.snabbSkelett \{([^}]*)\}/.exec(css);
   assert.ok(apple, "Safari-platshållaren saknas");
   assert.match(apple[1], /bottom: auto;/);
   assert.match(apple[1], /height: 50px;/);
-  // Texten står still: medan Stripe svarar syns rutan bara där Apple Pay finns.
-  assert.match(kassa, /const planbokText = snabbLage === "redo" \? planbokNamn\(snabbPlanbocker\) : "Apple Pay";/);
+  // Google Pay: Stripes knapp är svart och 52 px hög, med en grå kant som är en
+  // punkt bred och inte helt tät (uppmätt i fyrdubbel förstoring 2026-11-14).
+  // Platshållaren ligger en punkt innanför platsen, helt under knappens svarta
+  // yta: låg den under kanten syntes den igenom, och kanten ljusnade när
+  // platshållaren togs bort två sekunder senare. Med 11 px hörn ändras ingen
+  // bildpunkt mer än 2 nivåer av 255 vid borttagningen (9 px: 28 bildpunkter).
+  const google = /\n:global\(html\[data-planbok="google"\]\) \.snabbSkelett \{([^}]*)\}/.exec(css);
+  assert.ok(google, "platshållaren för Google Pay saknas");
+  assert.match(google[1], /inset: 1px;/);
+  assert.match(google[1], /border-radius: 11px;/);
+  assert.match(google[1], /overflow: hidden;/);
+  assert.match(google[1], /background: #000;/);
+  // Skimmern ligger i ::after, så att den kan tona ut när Stripe svarar. På
+  // själva platshållaren byttes rörelsen mot borttagningens i samma ögonblick,
+  // och det ljusa bandet hoppade till kanten och stod stilla under knappen.
+  assert.match(google[1], /animation: none;/);
+  assert.doesNotMatch(google[1], /height|bottom|linear-gradient/);
+  const skimmer = /\n:global\(html\[data-planbok="google"\]\) \.snabbSkelett::after \{([^}]*)\}/.exec(css);
+  assert.ok(skimmer, "skimmern för Google Pay saknas");
+  assert.match(skimmer[1], /content: "";/);
+  assert.match(skimmer[1], /background: linear-gradient\(90deg, rgba\(47, 47, 47, 0\) 25%, #2f2f2f 50%, rgba\(47, 47, 47, 0\) 75%\);/);
+  assert.match(skimmer[1], /animation: skimmer 1\.2s linear infinite;/);
+  assert.match(skimmer[1], /transition: opacity 0\.15s ease;/);
+  assert.match(css, /\n:global\(html\[data-planbok="google"\]\) \.snabb\[data-snabb="redo"\] \.snabbSkelett::after \{\s*opacity: 0;\s*\}/);
+  // Borttagningen gäller fortfarande Google-platshållaren: regeln för läget redo
+  // väger tyngre (tre klasser) än Google-regeln (två och ett element), så
+  // "animation: none" där stänger inte av den.
+  assert.ok(css.indexOf('.snabb[data-snabb="redo"] .snabbSkelett {') >= 0 && !/html\[data-planbok="google"\]\) \.snabb\[data-snabb="redo"\] \.snabbSkelett \{/.test(css));
+  // Med minskad rörelse finns ingen skimmer alls: helsvart, inte en stilla toning.
+  const stilla = css.indexOf('@media (prefers-reduced-motion: reduce) {\n  :global(html[data-planbok="google"]) .snabbSkelett::after {\n    content: none;\n  }\n}');
+  assert.ok(stilla > css.indexOf(':global(html[data-planbok="google"]) .snabbSkelett::after {'), "regeln för minskad rörelse saknas eller står före skimmern");
+  assert.equal(SNABB_HOJD, 52);
+  assert.match(css, /\.snabbYta \{[^}]*min-height: 52px;/);
+});
+
+test("texten nämner rätt plånbok från första ritningen och står still när Stripe svarar", () => {
+  const css = readFileSync(new URL("../../app/kassa/kassa.module.css", import.meta.url), "utf8");
+  const kassa = readFileSync(new URL("../../app/kassa/kassa.tsx", import.meta.url), "utf8");
+  // När Stripe har svarat: plånbokens namn ur svaret.
+  assert.match(kassa, /const planbokText = snabbLage === "redo" \? planbokNamn\(snabbPlanbocker\) : null;/);
+  // Medan Stripe svarar: båda namnen står i sidan, och CSS:en visar det ena efter
+  // data-planbok. React vet inte webbläsaren förrän efter hydreringen, och ett
+  // namn som byttes då ("Apple Pay" till "Google Pay") hade synts i Chrome.
+  assert.match(kassa, /hämtas från \{planbokText \?\? <><span className=\{s\.planbokApple\}>Apple Pay<\/span><span className=\{s\.planbokGoogle\}>Google Pay<\/span><\/>\}\. Du fyller inte i något\./);
+  assert.match(css, /\n\.planbokGoogle \{\s*display: none;\s*\}/);
+  assert.match(css, /\n:global\(html\[data-planbok="google"\]\) \.planbokApple \{\s*display: none;\s*\}/);
+  assert.match(css, /\n:global\(html\[data-planbok="google"\]\) \.planbokGoogle \{\s*display: inline;\s*\}/);
+  // Länken i betalfältet står bara när Stripe har svarat, alltså alltid med ett namn.
+  assert.match(kassa, /\{snabbLage === "redo" \? \(\s*<button type="button" className=\{`\$\{s\.lankLiten\} \$\{s\.tillSnabb\}`\} onClick=\{tillSnabbkassan\}>\s*Betala med \{planbokText\} i stället/);
 });
 
 // ── Plånbokens uppgifter som kassans formulär ──────────────────────────────

@@ -238,7 +238,7 @@ export default async function RootLayout({
   // efter ett tryck på ett kort (CLS 0,33, 2026-10-01). Med attributet byter
   // Next direkt, och mjuk scroll gäller fortfarande inom sidan.
   // suppressHydrationWarning: TEMA_SKRIPT sätter data-tema och PLANBOK_SKRIPT
-  // data-applepay på <html> innan React tar över, och attributen finns inte i
+  // data-planbok på <html> innan React tar över, och attributen finns inte i
   // serverns HTML. Gäller bara <html>-elementets egna attribut, inte något
   // under det.
   return (
@@ -271,9 +271,10 @@ export default async function RootLayout({
             Datumet läses i webbläsaren, så temat försvinner av sig självt
             efter sista dagen, även på sidor som ligger cachade. */}
         <script dangerouslySetInnerHTML={{ __html: TEMA_SKRIPT }} />
-        {/* Apple Pay i webbläsaren? Kassan håller bara då plats för
-            snabbkassans knappar, redan från första ritningen, också när
-            kunden kommer till /kassa med ett mjukt sidbyte
+        {/* Vilken plånbok väntas i webbläsaren: Apple Pay, Google Pay eller
+            ingen? Kassan håller plats för snabbkassans knapp, ritar rätt
+            platshållare och nämner rätt namn redan från första ritningen,
+            också när kunden kommer till /kassa med ett mjukt sidbyte
             (lib/kassa/snabbkassa.ts, PLANBOK_SKRIPT). */}
         <script dangerouslySetInnerHTML={{ __html: PLANBOK_SKRIPT }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(orgJsonLd) }} />
