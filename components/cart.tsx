@@ -669,7 +669,9 @@ function hamtaForslag(nyckel: string): Promise<Forslagssvar> {
 // cache, och Wix bild i 160 px tar ett ögonblick att hämta. Ingen lat
 // laddning: lådan ligger utanför skärmen tills den öppnas, och då skulle
 // bilden börja hämtas först när lådan glider in.
-function RadBild({ src, alt }: { src?: string; alt: string }) {
+// Favoriternas rader (components/favoriter-rader.tsx) visar sin bild på samma
+// sätt, med egen klass och storlek.
+export function RadBild({ src, alt, klass = "li-img", kant = 56 }: { src?: string; alt: string; klass?: string; kant?: number }) {
   // Adressen som senast laddats klart. Den visas tills den nya är klar.
   const [laddad, setLaddad] = useState(src);
   useEffect(() => {
@@ -683,7 +685,7 @@ function RadBild({ src, alt }: { src?: string; alt: string }) {
   }, [src, laddad]);
   const visad = laddad || src;
   // eslint-disable-next-line @next/next/no-img-element
-  return visad ? <img className="li-img" src={visad} alt={alt} width={56} height={56} decoding="async" /> : <div className="li-img" />;
+  return visad ? <img className={klass} src={visad} alt={alt} width={kant} height={kant} decoding="async" /> : <div className={klass} />;
 }
 
 type KorgRadProps = {

@@ -39,6 +39,7 @@ import { VILLKOR_FORETAG_VERSION, foretagsprofilId, foretagsprofilUrRad, type Fo
 import type { Bolagsverkskontroll } from "./bolagsverket";
 import { offertUrRad, type Offert } from "./offert";
 import { MAX_KORGAR, sparadKorgUrRad, type SparadKorg } from "./sparade";
+import { andraILager, favoriterUrRad, type Andring } from "../favoriter";
 
 export const MK = {
   medlemmar: "FyndplatsMedlemmar",
@@ -245,6 +246,44 @@ export async function uppdateraMedlem(id: string, falt: Rad): Promise<void> {
 export async function sattNivamejl(id: string, pa: boolean): Promise<"klar" | "saknas"> {
   const r = await patcha(MK.medlemmar, id, andringar({ nivamejl: pa ? undefined : false }));
   return r.utfall === "not-found" ? "saknas" : "klar";
+}
+
+// Favoriterna (lib/favoriter.ts) står på medlemsraden: fältet `favoriter`
+// (produktadresser, äldst först), `favoriterVersion` (räknare för den
+// villkorade skrivningen) och `favoriterAndrad`. Ingen egen kollektion: listan
+// försvinner då med kontot, eftersom motorn tar bort hela raden, och varken
+// butiken eller motorn skriver någonsin om en hel medlemsrad (bara enstaka
+// fält), så listan skrivs inte över av ett nivåbyte eller en spärr.
+
+const aktivRad = (d: Rad | null): d is Rad => d !== null && d.status !== "sparrad";
+
+/** Kontots favoriter, äldst först. Null: inget sådant aktivt konto. */
+export async function favoriterFor(medlemsId: string): Promise<string[] | null> {
+  const d = await hamta(MK.medlemmar, medlemsId);
+  return aktivRad(d) ? favoriterUrRad(d).lista : null;
+}
+
+/** Lägger till och tar bort i kontots lista och svarar med den. Null: inget sådant aktivt konto. */
+export function andraFavoriter(medlemsId: string, a: Andring): Promise<string[] | null> {
+  return andraILager(
+    {
+      las: async () => {
+        const d = await hamta(MK.medlemmar, medlemsId);
+        return aktivRad(d) ? favoriterUrRad(d) : null;
+      },
+      skriv: async (lista, foreVersion) => {
+        const p = await patcha(
+          MK.medlemmar,
+          medlemsId,
+          [satt("favoriter", lista), satt("favoriterVersion", foreVersion + 1), satt("favoriterAndrad", nu())],
+          // Första skrivningen: fältet finns inte än. Därefter: versionen som lästes.
+          foreVersion === 0 ? { favoriterVersion: { $exists: false } } : { favoriterVersion: foreVersion },
+        );
+        return p.utfall === "applied" ? "skriven" : p.utfall === "not-found" ? "saknas" : "upptagen";
+      },
+    },
+    a,
+  );
 }
 
 export async function allaMedlemmar(): Promise<Medlem[]> {

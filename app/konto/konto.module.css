@@ -1031,6 +1031,11 @@
 }
 
 /* Sparade varukorgar (lib/medlem/sparade.ts) */
+.favoriter {
+  margin-top: 28px;
+  /* Länken "Visa på Mina sidor" i favoriternas låda hoppar hit; sidhuvudet är klistrat. */
+  scroll-margin-top: 96px;
+}
 .sparade {
   margin-top: 28px;
 }

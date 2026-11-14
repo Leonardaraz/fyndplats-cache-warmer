@@ -16,6 +16,7 @@ import type { MinaSidor, OrderPaMinaSidor } from "@/lib/medlem/konto";
 import { arHogstaNivan, halsning, inteRaknadText, visaKvitto, visaSparningVantas, visaUppmaning } from "@/lib/medlem/visning";
 import { Medlemskort, nivaNyckel } from "./medlemskort";
 import { KopIgen } from "./kop-igen";
+import { MinaFavoriter } from "./favoriter";
 import { SparadeKorgar } from "./sparade-korgar";
 import type { SparadKorgVy } from "@/lib/medlem/sparade";
 import s from "./konto.module.css";
@@ -309,6 +310,8 @@ export function MinaSidorVy({
           <p className={s.tom}>Ordrar du lägger med {maskeradEpost(medlem.epost)} visas här, med spårning och vad de räknas för.</p>
         </div>
       )}
+
+      <MinaFavoriter />
 
       {sparade ? <SparadeKorgar korgar={sparade.korgar} kanSpara={sparade.kanSpara} /> : null}
 

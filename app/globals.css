@@ -2193,9 +2193,98 @@ body:has(.drawer.show) .cookiebar{visibility:hidden}
 .wl-count{position:absolute;top:-2px;right:-2px;background:var(--brand);color:#fff;font-size:var(--text-xs);font-weight:700;min-width:18px;height:18px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;padding:0 5px}
 
 /* #11 Wishlist drawer */
-.wl-drawer .wl-item{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
-.wl-drawer .wl-link{flex:1;font-size:var(--text-sm);color:var(--ink);text-transform:capitalize}
-.wl-drawer .wl-link:hover{color:var(--brand)}
+/* ── Favoriterna (2026-11-14): lådan, raderna och hjärtat på produktsidan ──
+   Raderna (.fav-rad) delas av lådan och Mina sidor (components/favoriter-rader.tsx).
+   En rad är ett rutnät: bilden till vänster över båda raderna, texten och
+   krysset överst, knappen under texten. Varje rad har samma delar i samma
+   ordning medan butikens svar hämtas (streck i stället för text), så att
+   ingenting flyttar sig när svaret kommer. */
+.wl-drawer .drawer-body{display:flex;flex-direction:column;padding:4px 22px 0}
+.fav-rubrik{display:inline-flex;align-items:center;gap:10px}
+/* Lådans kryss står i linje med radernas kryss, vid innehållets högerkant. */
+.wl-drawer .drawer-x{margin-right:-14px}
+.fav-antal{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 8px;border-radius:var(--r-pill);background:var(--warm);color:var(--ink);font-size:var(--text-xs);font-weight:700;font-variant-numeric:tabular-nums}
+.fav-lista{list-style:none;margin:0;padding:0}
+.fav-rad{display:grid;grid-template-columns:84px minmax(0,1fr) 32px;column-gap:14px;row-gap:10px;padding:16px 0;border-bottom:1px solid var(--line)}
+.fav-lista>.fav-rad:last-child{border-bottom:0}
+.fav-bild{grid-column:1;grid-row:1 / span 2;align-self:start;display:block;width:84px;height:84px;border-radius:var(--r-md);overflow:hidden;background:var(--surface-2)}
+/* Vit produktbakgrund smälter in i brickans varmgrå (multiply), så att varje bild står på samma bricka. */
+.fav-bild-img{display:block;width:100%;height:100%;object-fit:cover;mix-blend-mode:multiply}
+.fav-text{grid-column:2;grid-row:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.fav-namn{font-size:var(--text-sm);font-weight:600;line-height:1.35;color:var(--ink);text-decoration:none;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere}
+.fav-namn:hover,.fav-namn:focus-visible{text-decoration:underline}
+.fav-prisrad{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px}
+.fav-pris{font-size:var(--text-base);font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.fav-tidigare{font-size:var(--text-xs);color:var(--soft);white-space:nowrap}
+.fav-lager{display:inline-flex;align-items:center;gap:6px;font-size:var(--text-xs);line-height:1.35;color:var(--soft)}
+.fav-lager::before{content:"";flex:none;width:7px;height:7px;border-radius:50%;background:#1B8A52}
+.fav-lager[data-lager="fa"]{color:#8A4B00}
+.fav-lager[data-lager="fa"]::before{background:#D97706}
+.fav-lager[data-lager="slut"]::before,.fav-lager[data-lager="borta"]::before{background:#B8AEA3}
+.fav-rad[data-lage="borta"] .fav-bild-img{opacity:.5;filter:grayscale(1)}
+.fav-rad[data-lage="borta"] .fav-namn{color:var(--soft)}
+/* Krysset: 32 px synligt, 44 px att träffa. */
+.fav-bort{grid-column:3;grid-row:1;align-self:start;justify-self:end;position:relative;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;margin:-6px -8px 0 0;border:0;border-radius:50%;background:none;color:var(--soft);cursor:pointer;transition:background .15s,color .15s}
+.fav-bort::after{content:"";position:absolute;inset:-6px}
+.fav-bort:hover{background:var(--surface-2);color:var(--ink)}
+.fav-bort:focus-visible{outline:none;box-shadow:var(--e-ring)}
+.fav-atg{grid-column:2 / -1;grid-row:2;display:flex;min-height:44px}
+/* En vara som inte finns längre har ingen knapp: raden slutar efter texten. */
+.fav-atg:empty{display:none}
+.fav-kop{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 20px;border:0;border-radius:var(--r-pill);background:var(--ink);color:#fff;font:inherit;font-size:var(--text-sm);font-weight:700;line-height:1.2;text-align:center;text-decoration:none;white-space:nowrap;cursor:pointer;transition:background .15s,box-shadow .15s}
+.fav-kop:hover{background:#000}
+.fav-kop:disabled{opacity:.55;cursor:default}
+.fav-kop:focus-visible{outline:none;box-shadow:var(--e-ring)}
+.fav-kop-tyst{background:#fff;color:var(--ink);box-shadow:inset 0 0 0 1.5px #D8CFC5}
+.fav-kop-tyst:hover{background:var(--surface-2)}
+/* Väntan: samma mått som det färdiga, i butikens varmgrå. */
+.fav-streck{display:block;width:88%;height:13px;margin:3px 0;border-radius:6px;background:var(--surface-2)}
+.fav-streck-kort{width:44%}
+.fav-kop-vantar{width:164px;background:var(--surface-2);cursor:default}
+.fav-kop-vantar:hover{background:var(--surface-2)}
+.fav-rad[data-lage="laddar"] .fav-streck,.fav-rad[data-lage="laddar"] .fav-kop-vantar,.fav-rad[data-lage="laddar"] div.fav-bild-img{animation:vantarPuls 1.2s ease-in-out infinite}
+/* Ångra: ligger sist i listans ruta och följer med nederkanten när listan rullar. */
+.fav-angra{position:sticky;bottom:12px;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:auto;border-radius:var(--r-md);background:var(--ink);color:#fff;font-size:var(--text-sm);box-shadow:var(--e3);opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s}
+.fav-angra[data-synlig]{padding:8px 8px 8px 16px;margin-bottom:12px;opacity:1;transform:none}
+.fav-angra-knapp{min-height:36px;padding:0 16px;border:0;border-radius:var(--r-pill);background:#fff;color:var(--ink);font:inherit;font-size:var(--text-sm);font-weight:700;cursor:pointer}
+.fav-angra-knapp:focus-visible{outline:2px solid #fff;outline-offset:2px}
+/* Tomt läge. */
+.fav-tom{display:flex;flex-direction:column;align-items:center;gap:8px;padding:56px 8px 40px;text-align:center}
+.fav-tom-ikon{display:flex;align-items:center;justify-content:center;width:64px;height:64px;margin-bottom:8px;border-radius:50%;background:var(--warm);color:var(--brand)}
+.fav-tom-rubrik{font-size:var(--text-lg);line-height:1.3;color:var(--ink)}
+.fav-tom p{margin:0 0 12px;max-width:28ch;font-size:var(--text-sm);line-height:1.5;color:var(--soft)}
+/* Foten: kopplingen till kontot. */
+.fav-fot{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin:0;padding:14px 22px;border-top:1px solid var(--line);font-size:var(--text-sm);line-height:1.45;color:var(--soft)}
+.fav-fot svg{flex:none;color:#1B8A52}
+.fav-fot a{color:var(--ink);font-weight:700;text-decoration:underline;text-underline-offset:2px}
+/* Mina sidor: samma rader i ett rutnät, två i bredd där det finns plats. */
+.fav-sida{margin-top:6px}
+.fav-sida .fav-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));column-gap:36px}
+.fav-sida .fav-lista>.fav-rad:last-child{border-bottom:1px solid var(--line)}
+/* Smala lådor (telefoner under 360 px): mindre bild, och namnet får en rad till. */
+@media (max-width:359px){
+  .wl-drawer .drawer-head{padding-left:16px;padding-right:16px}
+  .wl-drawer .drawer-body{padding:4px 16px 0}
+  .fav-fot{padding:12px 16px}
+  .wl-drawer .fav-rad{grid-template-columns:68px minmax(0,1fr) 28px;column-gap:12px}
+  .wl-drawer .fav-bild{width:68px;height:68px}
+  .wl-drawer .fav-namn{-webkit-line-clamp:3}
+  .wl-drawer .fav-kop{padding:0 16px}
+}
+/* Hjärtat slår ett slag när det tänds. Bara efter ett tryck (data-nyss), aldrig när sidan laddas. */
+@keyframes hjartslag{0%{transform:scale(1)}40%{transform:scale(1.28)}100%{transform:scale(1)}}
+.wl-heart[data-nyss] svg,.fav-knapp[data-nyss] svg{animation:hjartslag .36s ease-out}
+/* Produktsidan: hjärtat står bredvid köpknappen, lika högt som den. */
+.buy-rad{display:flex;align-items:stretch;gap:10px}
+.buy-rad .buy{flex:1 1 auto;min-width:0}
+.fav-knapp{flex:none;display:inline-flex;align-items:center;justify-content:center;width:54px;min-height:52px;border:1.5px solid #D8CFC5;border-radius:var(--r-md);background:#fff;color:var(--ink);cursor:pointer;transition:border-color .15s,color .15s,background .15s}
+.fav-knapp:hover{border-color:var(--brand);color:var(--brand)}
+.fav-knapp.on{border-color:rgba(194,65,12,.4);background:#FFF6F1;color:var(--brand)}
+.fav-knapp:focus-visible{outline:none;box-shadow:var(--e-ring)}
+@media (prefers-reduced-motion:reduce){
+  .wl-heart[data-nyss] svg,.fav-knapp[data-nyss] svg,.fav-rad[data-lage="laddar"] .fav-streck,.fav-rad[data-lage="laddar"] .fav-kop-vantar,.fav-rad[data-lage="laddar"] div.fav-bild-img{animation:none}
+  .fav-angra{transition:none}
+}
 
 /* #3 Low stock badges */
 .low-stock-badge{position:absolute;top:10px;left:10px;z-index:2;background:var(--brand);color:#fff;font-size:var(--text-xs);font-weight:700;padding:5px 10px;border-radius:var(--r-xs);letter-spacing:.02em;box-shadow:var(--e2)}
