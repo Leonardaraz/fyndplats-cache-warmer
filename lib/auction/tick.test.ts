@@ -64,6 +64,8 @@ function varld(opts: {
   stegaFel?: (a: AuctionDoc) => Error | undefined;
   aterstallFel?: (a: AuctionDoc) => Error | undefined;
   finns?: (productId: string) => boolean;
+  /** Varans pris i Wix per variant. Saknas den gäller radens egna priser (oförändrat sedan seeden). */
+  priser?: (productId: string) => ReadonlyMap<string, number> | null;
   sparaFel?: (docs: AuctionDoc[]) => { id: string; fel: string }[];
   strypningar?: number;
 }): Varld {
@@ -108,7 +110,16 @@ function varld(opts: {
         stegade.push(a.slug);
         if (lage.stat && opts.strypningar) lage.stat.wix429 += opts.strypningar;
       }),
-    produktFinns: (productId) => skrivning(() => opts.finns?.(productId) ?? true),
+    produktNu: (productId) =>
+      skrivning(() => {
+        if (!(opts.finns?.(productId) ?? true)) return { finns: false as const };
+        if (opts.priser) return { finns: true as const, priser: opts.priser(productId) };
+        const rad = [...opts.rader, ...(opts.avslutade ?? [])].find((x) => x.productId === productId);
+        const priser = new Map<string, number>(
+          rad?.variantPrices?.length ? rad.variantPrices.map((t) => [t.wixVariantId, t.listPrice]) : [[`v-${productId}`, rad?.listPrice ?? 1000]],
+        );
+        return { finns: true as const, priser };
+      }),
     taBort: async (id) => {
       borttagna.push(id);
     },
@@ -347,3 +358,85 @@ describe("påfyllningen", () => {
     expect(r.klar).toBe(true);
   });
 });
+
+describe("☠️ främjandet kräver varans pris just nu (fynden 12–14/11)", () => {
+  // 20:00 svensk tid: dagens fynd är slut, och tio ska schemaläggas till i morgon.
+  const KVALL = "2026-11-10T19:05:00Z";
+
+  it("en rad vars pris ändrats sedan seeden främjas inte, och nästa i kön tar platsen", async () => {
+    const w = varld({
+      nu: KVALL,
+      rader: ko(12),
+      priser: (id) => new Map([[`v-${id}`, id === "p1000" || id === "p1003" ? 900 : 1000]]),
+    });
+    const r = await korTick(w.d);
+    expect(r.promoted.map((x) => x.slug)).toEqual(["s1001", "s1002", "s1004", "s1005", "s1006", "s1007", "s1008", "s1009", "s1010", "s1011"]);
+    expect(r.prisHoppade).toEqual([
+      { slug: "s1000", skal: "pris_andrat" },
+      { slug: "s1003", skal: "pris_andrat" },
+    ]);
+    // Raderna står kvar i kön: ingenting raderas, och de sparas inte som live.
+    expect(w.borttagna).toEqual([]);
+    const sparade = w.sparningar.flat().map((x) => x.slug);
+    expect(sparade).not.toContain("s1000");
+    expect(sparade).not.toContain("s1003");
+    expect(r.errors).toEqual([]);
+  });
+
+  it("ett pris som inte går att läsa: raden står kvar, raderas inte och främjas inte", async () => {
+    const w = varld({ nu: KVALL, rader: ko(11), priser: (id) => (id === "p1000" ? null : new Map([[`v-${id}`, 1000]])) });
+    const r = await korTick(w.d);
+    expect(r.prisHoppade).toEqual([{ slug: "s1000", skal: "pris_okant" }]);
+    expect(r.promoted).toHaveLength(10);
+    expect(r.promoted.map((x) => x.slug)).not.toContain("s1000");
+    expect(w.borttagna).toEqual([]);
+  });
+
+  it("☠️ Wix stryper läsningarna: ticken slutar läsa, och resten väntar till nästa tick", async () => {
+    let lasta = 0;
+    const w = varld({
+      nu: KVALL,
+      rader: ko(40),
+      priser: () => {
+        lasta++;
+        return null;
+      },
+    });
+    const r = await korTick(w.d);
+    // En omgång om tio (de lediga platserna) felar helt: inte hela kön läses.
+    expect(lasta).toBe(10);
+    expect(r.promoted).toEqual([]);
+    expect(r.prisHoppade).toHaveLength(10);
+    expect(r.prisHoppade?.every((x) => x.skal === "pris_okant")).toBe(true);
+    expect(r.kvar.framjanden).toBe(10);
+    expect(r.klar).toBe(false);
+    expect(w.borttagna).toEqual([]);
+  });
+
+  it("ett oläsbart pris när kön tar slut är kvar till nästa tick, inte en tom kö", async () => {
+    const w = varld({ nu: KVALL, rader: ko(10), priser: (id) => (id === "p1000" ? null : new Map([[`v-${id}`, 1000]])) });
+    const r = await korTick(w.d);
+    expect(r.promoted).toHaveLength(9);
+    expect(r.kvar.framjanden).toBe(1);
+    expect(r.klar).toBe(false);
+  });
+
+  it("en raderad produkt slängs som förut", async () => {
+    const w = varld({ nu: KVALL, rader: ko(11), finns: (id) => id !== "p1000" });
+    const r = await korTick(w.d);
+    expect(r.removedDead).toContain("s1000");
+    expect(r.promoted).toHaveLength(10);
+    expect(r.prisHoppade).toBeUndefined();
+  });
+
+  it("räcker inte kön med rätt pris: färre fynd, aldrig ett med fel pris", async () => {
+    const w = varld({ nu: KVALL, rader: ko(12), priser: (id) => new Map([[`v-${id}`, Number(id.slice(1)) % 2 === 0 ? 1000 : 1100]]) });
+    const r = await korTick(w.d);
+    expect(r.promoted).toHaveLength(6);
+    expect(r.promoted.every((x) => Number(x.slug.slice(1)) % 2 === 0)).toBe(true);
+    expect(r.prisHoppade).toHaveLength(6);
+    // Kön tog slut: inget "kvar" (raderna väntar på nästa natts seed).
+    expect(r.kvar.framjanden).toBe(0);
+  });
+});
+

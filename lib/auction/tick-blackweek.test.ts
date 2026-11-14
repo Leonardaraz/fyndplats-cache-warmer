@@ -46,7 +46,11 @@ function beroenden(rader: Map<string, AuctionDoc>, klocka: { t: number }): TickB
     hamtaOrdrar: async () => [],
     aterstall: async () => {},
     stega: async () => {},
-    produktFinns: async () => true,
+    // Ingen pris har ändrats sedan seeden: varje variant står på radens listpris.
+    produktNu: async (productId) => ({
+      finns: true,
+      priser: new Map([[`v-${productId}`, rader.get(`auction-${productId}`)?.listPrice ?? 1000]]),
+    }),
     taBort: async (id) => {
       rader.delete(id);
     },

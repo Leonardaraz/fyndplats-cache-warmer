@@ -19,6 +19,7 @@ import { WIX_BASE, wixHeaders } from "@/lib/wix/client";
 import { KOSTNAD_EJ_LASBAR, KOSTNADSFALT, arKostnadNekadSvar, variantMedKostnad } from "@/lib/wix/produkt-kostnad";
 import { allaRader, fraga, sparaManga, spara, taBort, taBortManga } from "@/lib/db/wix-data-klient";
 import type { AuctionDoc } from "./engine";
+import type { ProduktNu } from "./framjbar";
 
 export const AUCTION_COLLECTION = "FyndplatsAuctions";
 
@@ -191,16 +192,38 @@ export function isProductGone(e: unknown): boolean {
  * tolkas som "finns" — ett transient Wix-fel får aldrig leda till att
  * kö-dokument slängs eller att en främjning hoppar över en levande produkt.
  */
-export async function productExists(productId: string): Promise<boolean> {
+/**
+ * Varans läge för tickens främjande: finns den, och vad kostar varianterna nu.
+ * Det är samma läsning som existenskollen gjorde förut. 404 betyder borta. Ett
+ * annat fel, eller ett svar utan priser, räknas som "finns" med okänt pris:
+ * raden raderas inte, men den främjas inte heller förrän priset går att läsa
+ * (lib/auction/framjbar.ts).
+ */
+export async function produktNu(productId: string): Promise<ProduktNu> {
   try {
     const res = await fetch(`${WIX_BASE}/stores/v3/products/${productId}`, {
       method: "GET",
       headers: headers(),
     });
-    return res.status !== 404;
+    if (res.status === 404) return { finns: false };
+    if (!res.ok) return { finns: true, priser: null };
+    const data = (await res.json()) as { product?: { variantsInfo?: { variants?: RawVariant[] } } };
+    return { finns: true, priser: variantPriser(data.product?.variantsInfo?.variants) };
   } catch {
-    return true;
+    return { finns: true, priser: null };
   }
+}
+
+/** Wix-variant-id → pris i kronor ur en V3-läsning, eller null när något pris saknas. */
+export function variantPriser(variants: readonly RawVariant[] | undefined): Map<string, number> | null {
+  if (!variants || variants.length === 0) return null;
+  const ut = new Map<string, number>();
+  for (const v of variants) {
+    const n = Number(v.price?.actualPrice?.amount);
+    if (!v.id || !Number.isFinite(n) || n <= 0) return null;
+    ut.set(v.id, n);
+  }
+  return ut;
 }
 
 async function wixRemoveAuction(id: string): Promise<void> {

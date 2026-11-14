@@ -52,7 +52,7 @@ timslaget blivit 100 läsningar, 100 skrivningar och 100 sparningar i rad, och k
 till plus främjandena. Rutten (`app/api/cron/auction-tick`) är nu bara kopplingen till Wix, och
 logiken bor i `korTick` med beroendena utifrån, så att den går att pröva med 100 fynd.
 
-Åtta egenskaper som inte ska tas bort:
+Nio egenskaper som inte ska tas bort:
 
 1. **Högst fyra Wix-anrop samtidigt** (`SAMTIDIGA`). Wix stryper täta Stores-anrop:
    spec-skrivaren stoppades efter 186 och 127 sidor i rad (2026-11-01).
@@ -77,9 +77,19 @@ logiken bor i `korTick` med beroendena utifrån, så att den går att pröva med
    GitHub-schemat körde 29 gånger på 122 timmar i stället för ~735 (`39-orderpipelinen.md`),
    så ticket som skulle ta resten hade kunnat dröja en timme. Workflowen finns kvar för en
    körning för hand och som larm: de körningar GitHub ändå gör blir röda på `ok:false`.
+9. ☠️ **Ett fynd främjas bara om startpriset är varans pris i Wix just då**
+   (`lib/auction/framjbar.ts`, `produktNu` i `store.ts`). Samma läsning som förut prövade att
+   produkten finns ger nu också priset per variant, och varje spårad variant jämförs i öre.
+   Ett annat pris, en variant som saknas eller ett pris som inte gick att läsa: raden står kvar
+   i kön (`prisHoppade`, `prishopp=` i loggraden), och nästa natts seed räknar om den. Bara en
+   raderad produkt (404) tas bort. ☠️ Förut räknades ett läsfel som "finns" och raden främjades;
+   nu hoppas den över, och efter `FEL_LASNINGAR_MAX` (8) läsfel i ett tick slutar ticken läsa och
+   resten står i `kvar`. Annars hade en strypning fått ticken att läsa igenom hela kön. Skälet är fynden 12–14/11 (nedan): kön bar priser från före
+   en priskörning, och sju fynd fick ett överstruket pris som varan inte haft dagen före.
 
 Varje tick skriver en rad i Vercels logg, med bara antal:
-`[auction-tick] mal=… sald=… slut=… steg=… framjad=… fel=… kvar=…/…/…/… wix429=… tid=…ms`.
+`[auction-tick] mal=… sald=… slut=… steg=… framjad=… dod=… fel=… kvar=…/…/…/… wix429=… tid=…ms`,
+med `prishopp=…` och `vantar=…` bara när de inte är noll.
 
 **Mäts under generalrepetitionen:** `tid` och `wix429` på timslagen och kl 19, butikens
 ombyggnadstid, sidvikten på mobil och korten i 390 px.
@@ -147,4 +157,12 @@ Rättat i C2:
 - **Påfyllningen gjordes för hand** 2026-11-14 22:39 UTC med `apply` och `force`: 862 i kön,
   393 borttagna, 0 fel. Ticken fyllde de fem lediga platserna inför 15/11.
 
-Inte mätt: om fynden 12–14/11 skulle ha klarat spärren.
+**Mätt 2026-11-14 (bara läsning, spärrens regel på de 30 raderna med start 12, 13 och 14/11):**
+alla hade historik och 0 luckor. 23 klarade spärren. **7 klarade den inte** (`lagre_pris`): det
+överstrukna priset låg 1–15 % över varans pris dagen före. I alla sju hade synken sänkt priset
+efter seeden 11/11, och auktionen startade på det gamla, högre priset. I 20 andra hade synken
+höjt priset, och auktionen startade på det gamla, lägre (lagligt, men lägre marginal). Alla 30
+slutade osålda, och ingen order sedan 12/11 innehöll någon av dem.
+
+Därför egenskap 9 ovan: ticken främjar inte en rad vars pris inte längre är varans pris, också
+om seeden skulle falla en natt till.

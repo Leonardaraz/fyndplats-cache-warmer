@@ -48,6 +48,7 @@ import type { AndradProdukt } from "@/lib/headless/produktsidor";
 import { isExpired, nextStartAt, priceAt, stepIndexAt, type AuctionDoc } from "./engine";
 import { attFramja, auktionerFor, ledigaSlots } from "./antal";
 import { forstaSankning, slutadeInomFonstret } from "./trettio-dagar";
+import { framjbar, type ProduktNu } from "./framjbar";
 import { isProductGone, type Skrivlage } from "./store";
 
 /** Så många Wix-anrop ticken har i luften samtidigt. */
@@ -58,6 +59,13 @@ export const BUDGET_MS = 240_000;
 export const SYNK_MARGINAL_MS = 60_000;
 /** Kön läses från toppen; 200 räcker även när en dag med 100 ska fyllas. */
 export const KO_HUVUD = 200;
+/**
+ * Så många priser som inte gick att läsa (429, 5xx, nätet) tål främjandet per
+ * tick. En enstaka trasig produkt hoppas över och nästa i kön läses; felar
+ * läsningarna gång på gång är det Wix som stryper, och då väntar resten till
+ * nästa tick i stället för att läsa igenom hela kön.
+ */
+export const FEL_LASNINGAR_MAX = 8;
 
 export type Order = Parameters<typeof aggregateOrders>[0][number];
 
@@ -70,8 +78,11 @@ export interface TickBeroenden {
   aterstall: (a: AuctionDoc, lage: Skrivlage) => Promise<void>;
   /** Auktionens pris för tidpunkten `nuMs` (per variant om trackar finns). */
   stega: (a: AuctionDoc, nuMs: number, lage: Skrivlage) => Promise<void>;
-  /** Finns produkten kvar i katalogen? Ett fel räknas som "finns". */
-  produktFinns: (productId: string) => Promise<boolean>;
+  /**
+   * Varans läge i Wix: finns den, och vad kostar varianterna nu. Ett läsfel
+   * räknas som "finns" med okänt pris (lib/auction/framjbar.ts).
+   */
+  produktNu: (productId: string) => Promise<ProduktNu>;
   taBort: (id: string) => Promise<void>;
   /** Massparning. Svarar med de rader som INTE sparades. */
   spara: (docs: AuctionDoc[]) => Promise<{ id: string; fel: string }[]>;
@@ -92,6 +103,12 @@ export interface TickRapport {
   removedDead: string[];
   errors: string[];
   recycled?: string[];
+  /**
+   * Köade rader som inte främjades eftersom startpriset inte är varans pris i
+   * Wix (`pris_andrat`), eller priset inte gick att läsa (`pris_okant`). De står
+   * kvar i kön, och nästa natts seed uppdaterar dem.
+   */
+  prisHoppade?: { slug: string; skal: "pris_andrat" | "pris_okant" }[];
   /** Nästa starts antal. */
   mal?: number;
   butiken?: unknown;
@@ -313,15 +330,23 @@ export async function korTick(d: TickBeroenden, val: TickVal = {}): Promise<Tick
       // Kandidater vars produkt raderats ur katalogen hoppas över (och raden
       // slängs): en blind främjning ger en död auktion som bränner platsen en
       // hel dag. Existensen kollas i omgångar om det som fattas, fyra i taget.
+      // ☠️ Samma läsning ger varans pris: en rad vars startpris inte är priset
+      // i Wix just nu främjas inte (lib/auction/framjbar.ts, fynden 12–14/11).
       const valda: AuctionDoc[] = [];
       let qi = 0;
-      while (valda.length < freeSlots.length && qi < pool.length && d.nu() < framjaSlut) {
+      let felLasningar = 0;
+      while (valda.length < freeSlots.length && qi < pool.length && d.nu() < framjaSlut && felLasningar < FEL_LASNINGAR_MAX) {
         const omgang = pool.slice(qi, qi + (freeSlots.length - valda.length));
         qi += omgang.length;
-        const finns = await mapWithConcurrency(omgang, samtidiga, (k) => d.produktFinns(k.productId));
+        const lagen = await mapWithConcurrency(omgang, samtidiga, (k) => d.produktNu(k.productId));
         for (let i = 0; i < omgang.length; i++) {
-          if (finns[i]) valda.push(omgang[i]);
-          else await retireDead(omgang[i]);
+          const f = framjbar(omgang[i], lagen[i]);
+          if (f === "ok") valda.push(omgang[i]);
+          else if (f === "borta") await retireDead(omgang[i]);
+          else {
+            if (f === "pris_okant") felLasningar++;
+            (r.prisHoppade ??= []).push({ slug: omgang[i].slug, skal: f });
+          }
         }
       }
       const framjade: AuctionDoc[] = valda.map((next, i) => ({
@@ -349,8 +374,9 @@ export async function korTick(d: TickBeroenden, val: TickVal = {}): Promise<Tick
         if (!ejSparade.has(p._id ?? `auction-${p.productId}`)) r.promoted.push({ slug: p.slug, slot: p.slot, startAt: nastaStart });
       }
       const saknas = behov - r.promoted.length - ejSparade.size;
-      // Kön tog slut är inget "kvar"; tiden eller fönstret är det.
-      if (saknas > 0 && qi < pool.length) r.kvar.framjanden = saknas;
+      // Kön tog slut är inget "kvar"; tiden, fönstret eller ett pris som inte
+      // gick att läsa är det (den raden står kvar i kön till nästa tick).
+      if (saknas > 0 && (qi < pool.length || felLasningar > 0)) r.kvar.framjanden = saknas;
     }
   }
 
