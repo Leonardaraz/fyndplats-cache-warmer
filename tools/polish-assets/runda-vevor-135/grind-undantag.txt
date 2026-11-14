@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad i specifikationen, och måttritningen visar 410 mm som väskans bredd och 280 mm som höjd: sidan skriver bara bredden
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktens maxstorlek (bas + installerad kula) (5,7 x 5,7 x 6,7 tum / 145 x 145 x 170 mm) saknar axelord, och måttritningen visar 145 mm som bredd och djup och 170 mm som höjd: sidan skriver måtten som de står
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktstorlek (21,3 x 21,3 x 21,7 till 28,0 tum / 54 x 54 x 55 till 71 cm) saknar axelord, och måttritningen visar 540 mm som basens bredd och 550 till 710 mm som höjd: sidan skriver måtten som de står
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rader Handtagsstorlek (118 x 23 x 55 mm) och Produktstorlek (160 x 140 x 65 mm) saknar axelord, och måttritningen visar 4,65 tum som längd och 2,56 tum som bredd och höjd: sidan skriver måtten som de står
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktstorlek (5,1 x 11,8 x 3,5 tum / 130 x 300 x 90 mm) saknar axelord, och måttritningen visar 130 mm som bredd och 300 mm som höjd: sidan skriver måtten som de står

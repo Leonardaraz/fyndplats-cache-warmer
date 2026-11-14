@@ -1,0 +1,10 @@
+4fb08e7f hylsnyckelsats-kvartstum-55-delar-sae-metrisk-djupa-grunda-krafthylsor
+ab61a050 hylsnyckelsats-kvartstum-48-delar-sae-metrisk-djupa-grunda-hylsor
+47ef40b5 hylsnyckelsats-tre-attondels-tum-18-delar-djupa-metriska-krafthylsor-8-till-22-mm
+b5d88962 hylsnyckelsats-halvtum-26-grunda-krafthylsor-metriska-10-till-36-mm
+c22b497b hylsnyckelsats-halvtum-26-djupa-krafthylsor-metriska-10-till-36-mm
+e814692f hylsnyckelsats-halvtum-43-delar-metrisk-9-till-30-mm-standard-djupa
+39fb143c hylsnyckelsats-tre-attondels-och-halvtum-59-delar-sae-metrisk
+ee64a9d9 hylsnyckelsats-halvtum-65-delar-sae-metrisk-sparrnyckel-forlangningar
+73ce8745 hylsnyckelsats-tre-attondels-och-halvtum-hundratrettio-delar-sae-metrisk-adaptrar
+ff98e859 hylsnyckelsats-tre-attondels-tum-14-delar-vridbara-djupa-krafthylsor-10-till-19-mm

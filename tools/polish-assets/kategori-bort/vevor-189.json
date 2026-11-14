@@ -1,0 +1,29 @@
+{
+  "namn": "vevor-189",
+  "rader": [
+    {
+      "kort": "ca183ff0",
+      "pid": "ca183ff0-d75b-4025-9e4e-bba2aa2892c1",
+      "bort": [
+        "Bil & Garage > Bildelar",
+        "Bil & Garage"
+      ],
+      "behall": [
+        "Trädgård & Utemöbler",
+        "Trädgård & Utemöbler > Trädgårdsmaskiner"
+      ]
+    },
+    {
+      "kort": "d903569e",
+      "pid": "d903569e-36f1-428b-876e-c887574defa1",
+      "bort": [
+        "Bil & Garage > Bildelar",
+        "Bil & Garage"
+      ],
+      "behall": [
+        "Verktyg & Maskiner",
+        "Verktyg & Maskiner > Lyft & transport"
+      ]
+    }
+  ]
+}

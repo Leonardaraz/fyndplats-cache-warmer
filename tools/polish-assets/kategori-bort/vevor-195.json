@@ -1,0 +1,29 @@
+{
+  "namn": "vevor-195",
+  "rader": [
+    {
+      "kort": "1c358800",
+      "pid": "1c358800-de7f-43b4-81cb-26f2d8faee09",
+      "bort": [
+        "Trädgård & Utemöbler > Pool & spa",
+        "Trädgård & Utemöbler"
+      ],
+      "behall": [
+        "Sport & Fritid",
+        "Sport & Fritid > Båt & vattensport"
+      ]
+    },
+    {
+      "kort": "728c0765",
+      "pid": "728c0765-4164-4266-a634-3e2ee265ae39",
+      "bort": [
+        "Bygg & Renovering > Färg & tapet",
+        "Bygg & Renovering"
+      ],
+      "behall": [
+        "Sport & Fritid",
+        "Sport & Fritid > Bollsport"
+      ]
+    }
+  ]
+}

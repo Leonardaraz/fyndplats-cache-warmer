@@ -1,0 +1,12 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Utan rack (530 x 280 x 1040 mm) och Med ställ och hjul (601 x 280 x 723 mm) utan axelord och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver måtten i den ordning specifikationen ger
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek (L x B x H, maxstorlek: 440 x 110 x 85 mm) för den hoprullade väskan och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver måtten i den ordning specifikationen ger
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Skåpets mått (660 x 305 x 660 mm) utan axelord, och måttritningen visar bredd 26 tum, djup 12 tum och höjd 26 tum: texten skriver måtten i den ordning specifikationen ger, med axelorden ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (955 x 670 x 1050 mm) utan axelord, och måttritningen visar bredd 37,6 tum, djup 26,4 tum och höjd 41,3 tum: texten skriver måtten i den ordning specifikationen ger, med axelorden ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger Storlek (L x B) 300 x 6,5 fot, medan titeln och måttbilden anger 6,5 × 300 fot (bredd × längd) och ingen tysk totalmåttrad finns att bygga ett facit ur: texten skriver bredd och längd med axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek (25,2 x 13,2 x 15,4 tum / 640 x 335 x 390 mm) utan axelord och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver måtten i den ordning specifikationen ger

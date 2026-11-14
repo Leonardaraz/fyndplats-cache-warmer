@@ -1,0 +1,16 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Mått) anger bara 254 x 254 x 50 mm utan axelord, och sidan skriver inga yttermått för satsen utan bara pannornas storlekar 254 och 355 mm
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord, och sidan skriver måtten som längd × höjd × djup för förvaringsväskan efter verktygets egen måttbild
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord, och sidan skriver måtten som bredd × djup × höjd efter basens egen måttbild
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktstorlek) saknar axelord, och sidan skriver måtten som längd × bredd × höjd efter skärarens egen måttbild
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktstorlek) anger diameter × höjd utan axelord, och slangmåtten anges som i källan utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger stångstorleken 6 x 20 mm utan axelord, och sidan skriver måtten på gallret efter dess egen måttritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktstorlek) saknar axelord, och sidan skriver måtten som längd × höjd × tjocklek efter kantens egen måttbild
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen måttrad, och sidan skriver bredd, höjd och djup efter nätets egen måttritning

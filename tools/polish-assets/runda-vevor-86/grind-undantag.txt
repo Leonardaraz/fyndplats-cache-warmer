@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rader om mått ("Produktmått" och "Mått hopfällda") har inga axelord, men VEVOR:s måttritningar (position 2 och 6, i kallor.json) ritar bredden, djupet och höjden med pilar: texten skriver bredd, djup och höjd ur ritningarna

@@ -1,0 +1,40 @@
+{
+ "namn": "vevor-269",
+ "rader": [
+  {
+   "kort": "109e3de1",
+   "pid": "109e3de1-f9f5-4260-90d8-6c411d4c6e3e",
+   "bort": [
+    "Verktyg & Maskiner > Lyft & transport"
+   ],
+   "behall": [
+    "Verktyg & Maskiner",
+    "Verktyg & Maskiner > Verktygsvagnar & verktygslådor",
+    "Bil & Garage",
+    "Bil & Garage > Garageinredning"
+   ]
+  },
+  {
+   "kort": "02b1112e",
+   "pid": "02b1112e-02f4-4d77-ae94-99d0cf28b901",
+   "bort": [
+    "Företag & Proffs > Storkök & restaurang"
+   ],
+   "behall": [
+    "Företag & Proffs",
+    "Företag & Proffs > Butik, evenemang & trafik"
+   ]
+  },
+  {
+   "kort": "3a1b3ebf",
+   "pid": "3a1b3ebf-e330-4b3d-a008-a3fbcf8c7c56",
+   "bort": [
+    "Sport & Fritid > Camping & kylboxar"
+   ],
+   "behall": [
+    "Sport & Fritid",
+    "Sport & Fritid > Friluftsliv & Resa"
+   ]
+  }
+ ]
+}

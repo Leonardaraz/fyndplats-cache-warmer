@@ -1,0 +1,16 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord, och sidan skriver måtten som höjd × bredd × djup efter skåpets egen måttritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktstorlek) saknar axelord, och sidan skriver måtten som bredd × djup × höjd efter skåpets egen måttbild
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans korgmått saknar axelord, och sidan skriver måtten som bredd × djup × höjd efter måttbildens ordning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader saknar axelord, och sidan skriver måtten som bredd × djup × höjd efter måttbildens ordning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord, och sidan skriver måtten som bredd × djup × höjd efter skåpets egen måttritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord, och sidan skriver måtten som bredd × djup × höjd efter bordets egen måttbild
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktstorlek) saknar axelord, och sidan skriver måtten som bredd × djup × höjd efter talarstolens egen måttbild
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans korgmått saknar axelord, och sidan skriver måtten som bredd × djup × höjd efter måttbildens ordning

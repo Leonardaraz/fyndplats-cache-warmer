@@ -1,0 +1,24 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "31793a9c": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "8f912a15": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "c83e6ccd": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Table (from the listing text): slot type T-slot; profile size 4040 (a 40 x 40 mm profile); quantity 4; finish anodised; centre hole diameter 0.27 in / 6.8 mm (self-tapping screws not included); slot compatibility M8 T-slot nuts; length 78.74 in / 2000 mm; the listing says screws, T-slot nuts and brackets are included; used for 3D printer frames, workbenches, display stands and furniture (an alloy grade is not written)"
+ },
+ "e890574d": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "f7f6ee9c": {
+  "tyska": "",
+  "svenska": ""
+ }
+}

@@ -1,0 +1,12 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara raderna Kapacitet platt stål, Rund stålkapacitet, Fyrkantig stålkapacitet och Bruttovikt och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar längden 66,80 cm, djupet 20,8 cm och höjden 18,03 cm: texten skriver dem i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Antal, Huvudmaterial, Specifikationer och Huvudfärg och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar väskan som 375 mm lång, 185 mm bred och 33 mm hög: texten skriver dem i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara raderna Antal, Material och Nettovikt och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar klämmans öppning och höjd i flera lägen utan ett enda totalmått: texten skriver bara justeringsområdet 18,5–25,6 cm ur källans text
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara raderna Nettovikt och Produktmått och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar längden 805 mm, bredden 65 mm och höjden 120 mm: texten skriver dem i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara raderna Total filtreringskapacitet, Filtrerad kannans kapacitet och Flödeshastighet och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar kannan som 112 mm bred, 110 mm djup och 318 mm hög: texten skriver dem i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Längd, Bredd, Höjd, Produktvikt, Material och Skengränsklämmor och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver längd, bredd och höjd i den ordningen som specifikationen

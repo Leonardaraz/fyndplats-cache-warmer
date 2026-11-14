@@ -1,0 +1,9 @@
+# kort:pos kort:pos skäl (kvitterar par mellan sidor som gate-bilddubblett.py flaggar men som visar olika varor)
+039fd221:2 39a0597f:2 samma skogsmotiv med en stock på ett asfalterat underlag men olika verktyg: vändhaken med 150 cm handtag når högre upp i bilden än den med 118 cm handtag, och kroken sitter på olika ställen vid stocken
+039fd221:4 39a0597f:4 samma vy från sidan av två vändhakar med olika handtagslängd (150 cm respektive 118 cm), skalade till samma bildbredd, så att formen blir lika i 96 × 96 punkter men fotona är olika
+36978178:1 defc1f6b:1 två vändhakar med spets sedda snett uppifrån: den ena har ett brunt trähandtag och den andra ett orange stålhandtag med svart gummigrepp, så fotona är olika trots lika form
+36978178:2 defc1f6b:2 samma skogsmotiv men olika verktyg: vändhaken med brunt trähandtag respektive den med orange stålhandtag och svart gummigrepp
+36978178:3 39a0597f:3 vändhake med spets och brunt trähandtag respektive vändhake utan spets med orange stålhandtag och gummigrepp, båda stående snett mot vit bakgrund
+36978178:5 39a0597f:5 vändhake med spets och brunt trähandtag respektive vändhake utan spets med orange stålhandtag och gummigrepp, båda stående snett mot vit bakgrund
+36978178:5 defc1f6b:5 vändhake med brunt trähandtag respektive orange stålhandtag med svart gummigrepp, båda med spets och stående snett mot vit bakgrund
+39a0597f:4 defc1f6b:4 vändhake utan spets respektive med spets (olika huvud) och med olika handtagslängd i bild, båda liggande vågrätt mot vit bakgrund

@@ -1,0 +1,12 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rader Infraröd upplösning, Förbättrad upplösning, Upplösning i synligt ljus och Synfält anger pixlar och grader som tal × tal utan axelord, och sidan skriver dem som de står
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Tillagningsyta anger 342 × 235 mm utan axelord (måttbilden visar bara 13,5 × 9,3 tum), och sidan skriver måtten som de står
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Sugkoppens storlek anger 104 × 266 mm (4 × 10,4 tum) utan axelord, och sidan skriver måttet som det står
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Hyllor anger tre hyllors mått i tum som tal × tal utan axelord (måttbilden visar dem utan beteckning), och sidan skriver måtten som de står
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktstorlek (54 × 22 × 32 cm) saknar axelord, och måttbilden visar längden 54 cm, 22 cm och höjden 32 cm utan djup- eller breddord: sidan skriver måtten som de står
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (21x12x7 tum / 526x300x180 mm) saknar axelbokstäver, och måttritningen visar höjden 180 mm, djupet 300 mm och bredden 526 mm: sidan skriver måtten med axelord enligt ritningen

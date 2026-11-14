@@ -1,0 +1,26 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "10f917f9": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Totalmått: 63,8 x 38,4 x 14,5 cm (L×B×H)"
+ },
+ "36288b59": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "993ad0c4": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "aebdd952": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Image: 35L Big Volume (the title and the specification say 36 L and the bag's inner size 340 x 200 x 530 mm gives 36 L, so the page writes 36 liters); Perfect for shopping & transporting bulk items (a claim, not used); drawing 38.98 in / 990 mm high, 14.76 in / 375 mm and 17.52 in / 445 mm | Image: drawing: unfolded 38.98 in / 990 mm high, 14.76 in / 375 mm and 17.52 in / 445 mm; folded 17.32 in / 440 mm, 20.08 in / 510 mm and 4.33 in / 110 mm (the specification says 510 x 440 x 110 mm); Item Model Number (left out on purpose); Material Aluminium Alloy + EVA + PP + 600D Oxford Cloth (the specification says carbon steel instead of aluminium, and the designations are not written); Volume 36L; Product Weight 4.85 lbs / 2.2 kg (the specification says 2.7 kg, which differs, so no weight is written). Unit conversions: 3.94 in is 100 mm; 38.98 in is 990 mm; 14.76 in is 375 mm; 17.52 in is 445 mm; 20.08 in is 510 mm; 17.32 in is 440 mm; 4.33 in is 110 mm"
+ },
+ "e219a992": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Produktabmessungen: | Image: drawing and table: Item Model Number (left out on purpose); Capacity 4 Gal / 16 L (the title and the text say 15 L, so the page writes the lowest, 15 liters, and the specification's 1.8 liters does not fit and is not written); Max Flow Rate 3.6 L / min; Pump Pressure Range 0 to 94 psi; Product Weight 19.8 lbs / 9 kg (the specification says 9.4 kg, which differs, so no weight is written); drawing 44.29 in / 112.5 cm, 17.91 in / 45.5 cm and 12.01 in / 30.5 cm (the specification gives other sizes, so no size is written); telescopic wand 21.5 to 39.4 in / 54.5 to 100 cm; filler opening 5 in / 12.6 cm; hose 13 ft / 4 m. Unit conversions: 94 psi is 6.5 bar; 6.3 in is 160 mm; 20 in is 51 cm; 13 ft is 4 m"
+ }
+}

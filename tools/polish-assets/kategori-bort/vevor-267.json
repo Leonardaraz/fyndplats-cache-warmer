@@ -1,0 +1,40 @@
+{
+ "namn": "vevor-267",
+ "rader": [
+  {
+   "kort": "60d50a6e",
+   "pid": "60d50a6e-2e05-4e1c-9f2b-e46c12ddf952",
+   "bort": [
+    "Företag & Proffs > Storkök & restaurang",
+    "Företag & Proffs"
+   ],
+   "behall": [
+    "Hem & Inredning",
+    "Hem & Inredning > Förvaring & Organisering"
+   ]
+  },
+  {
+   "kort": "ec41c15b",
+   "pid": "ec41c15b-a8af-4480-aea3-3b689aa705f3",
+   "bort": [
+    "Husdjur > Valphagar & hundhagar"
+   ],
+   "behall": [
+    "Husdjur",
+    "Husdjur > Hundburar"
+   ]
+  },
+  {
+   "kort": "b662bcff",
+   "pid": "b662bcff-a02e-4e9a-bf76-c79400f1d596",
+   "bort": [
+    "Företag & Proffs > Storkök & restaurang",
+    "Företag & Proffs"
+   ],
+   "behall": [
+    "Hem & Inredning",
+    "Hem & Inredning > Förvaring & Organisering"
+   ]
+  }
+ ]
+}

@@ -122,8 +122,9 @@ ovan), så position 10 är nästan alltid användbar.
 
 ⚠️ **Position 10 är inte alltid en ny bild (N337, 2026-11-03).** På barbordet `653f8098` var position 5, 9 och 10 samma bistrobild
 från samma vinkel, och på barbordet `9a7ec41a` var position 10 samma packshot som position 1 i en annan rendering. Lägg bara till
-position 10 när den visar något som inte redan ligger i galleriet, och kör `gate-bilddubblett.py` före pushen (inom en sida jämför den bara
-bilder på vit botten, så miljöbilder ser du med ögonen; mellan sidor i rundan ingår de). Räcker de rena bilderna ändå inte till fem är nästa steg ett utsnitt enligt
+position 10 när den visar något som inte redan ligger i galleriet, och kör `gate-bilddubblett.py` före pushen (inom en sida jämför den bilder på vit botten, filer med identiska byte och, sedan 2026-11-11, två bilder som fyller rutan
+eller är miljöbilder, hela bilden mot hela bilden. Två vyer av en smal vara på vit botten och en miljöbild mot en vitbottenbild ser du med
+ögonen; mellan sidor i rundan ingår alla). Räcker de rena bilderna ändå inte till fem är nästa steg ett utsnitt enligt
 undantaget ovan: på `653f8098` bar position 4 och 8 (samma detaljbild), 6 (rubriker och en pil under y 1474) och 7 (storleksguide) tysk
 text, och ett utsnitt ur position 6 (`x_267,y_0,w_1465,h_1465`, ovanför pilen) blev position 11 (`UploadImageToWixSite` med
 `imageUrls`, md5 mot Wix beskärningsadress, se `bildmetoder.md`).

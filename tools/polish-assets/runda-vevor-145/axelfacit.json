@@ -1,0 +1,25 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "3697c927": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "5565c070": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "57e254e2": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Image: dimension drawing and table: 2000 mm / 78.7 in width, 820 mm / 32.3 in depth, 1200 mm / 47.2 in height; Power 1000 W; Capacity 32 Cu.Ft. / 901 L; Main Material Stainless Steel + Tempered Glass; Cooling Type Enhanced Direct Cooling; Energy Consumption 8.4 kWh / 24h; Temperature Range 35.6 to 46.4 degrees F / 2 to 8 degrees C; Net Weight 509.3 lbs / 231 kg; Product Size 2000 x 820 x 1200 mm / 78.7 x 32.3 x 47.2 in"
+ },
+ "9254772f": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "fe97228b": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Image: dimension drawing and table: 1200 mm / 47.2 in width, 820 mm / 32.3 in depth, 1200 mm / 47.2 in height; Power 670 W (the specification table says 950 W, not used); Capacity 18 Cu.Ft. / 505 L; Main Material Stainless Steel + Tempered Glass; Cooling Type Enhanced Direct Cooling; Energy Consumption 6.1 kWh / 24h; Temperature Range 35.6 to 46.4 degrees F / 2 to 8 degrees C; Net Weight 341.7 lbs / 155 kg; Product Size 1200 x 820 x 1200 mm / 47.2 x 32.3 x 47.2 in"
+ }
+}

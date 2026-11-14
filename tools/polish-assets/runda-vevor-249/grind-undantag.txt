@@ -1,0 +1,4 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans mått för bordsskivan och hyllan (tre tal vardera) saknar axelord i specifikationen, och sidan skriver dem som i källan, utan axelord; bordets yttermått står med bredd, djup och höjd efter utkastets titel (B, D och H) och måttritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans mått (bredd, höjd och tjocklek) står i specifikationen med axelordet efter varje mått (B x H x D), och sidan skriver varje mått med sitt eget namn

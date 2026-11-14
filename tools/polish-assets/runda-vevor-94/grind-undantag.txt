@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py sidan publicerades utanför en runda och har ingen utkastskälla med måttrad i repot; texten är sidans egen publicerade text, och måtten står som på sidan (Mått: 183 × 27 × 10 cm utan axelord)

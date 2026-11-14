@@ -1,0 +1,19 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Lådans storlek) står med axelord, och sidan skriver lådans mått efter måttbilden (längd × bredd × höjd)
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen måttrad med tre mått (bara Produktstorlek B x L med två), och sidan skriver rullens storlek som bredd × längd
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen måttrad, och sidan skriver rullens längdintervall och handtagets längd som i källan
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord, och sidan skriver armens mått utan axelord som i källan
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Storlek på inre stödram) saknar axelord, och sidan skriver stödramens mått utan axelord som i källan
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord, och sidan skriver bärarens mått utan axelord som i källan
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord, och sidan skriver framsidans mått som bredd × höjd och djupet efter cajonens egen måttbild
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen måttrad, och sidan skriver höjden och basens mått efter pressens egen måttbild, basen utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader anger diameter och höjd för varje cymbal, och sidan skriver dem med orden diameter och höjd

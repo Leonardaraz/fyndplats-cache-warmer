@@ -1,0 +1,28 @@
+{
+  "namn": "vevor-108",
+  "rader": [
+    {
+      "kort": "e9861d8c",
+      "pid": "e9861d8c-39ac-4999-b2d1-76836cd99ac4",
+      "bort": [
+        "Verktyg & Maskiner > Lyft & transport",
+        "Verktyg & Maskiner"
+      ],
+      "behall": [
+        "Företag & Proffs",
+        "Företag & Proffs > Storkök & restaurang"
+      ]
+    },
+    {
+      "kort": "51d5c6ff",
+      "pid": "51d5c6ff-7be2-425a-8492-f31ed37837db",
+      "bort": [
+        "Husdjur > Mat & Vattenskålar"
+      ],
+      "behall": [
+        "Husdjur",
+        "Husdjur > Selar, Koppel & Transport"
+      ]
+    }
+  ]
+}

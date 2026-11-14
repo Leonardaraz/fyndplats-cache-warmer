@@ -1,0 +1,25 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0e908062": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Denna hydrauliska stans är lämplig för järnplåt med en tjocklek på 3–10 mm, koppar-/aluminiumplåt med en tjocklek på 3–12,7 mm och rostfritt stål med en tjocklek på 3–8 mm. Stanskraft: 35T/350KN. | Stanskraft: 350KN (35T) | Utmärkt stansning: Stanskraft: 35T/350KN; Djup på hålet: 4,3\"/109 mm. Stansformarna är tillverkade av volframstål med hög kolhalt och slits inte lätt av. Maxtjocklek på järnplåt: 1/10\" till 2/5\" (3–10 mm), maxtjocklek på koppar-/aluminiumstång: 1/10\" till 1/2\" (3–12,7 mm), maxtjocklek på rostfritt stål: 1/10\" till 3/10\" (3–8 mm). | Image: Great Punching Capacity (a claim, not used); Max. Thickness of Iron Plate 1/10in to 2/5in (3-10 mm); Max. Thickness of Copper / Aluminum Bar 1/10in to 1/2in (3-12.7 mm); Max. Thickness of Stainless Steel 1/10in to 3/10in (3-8 mm); Punching Force 350KN / 35T. Unit conversions: 2/5 in is 10 mm; 1/10 in is 3 mm; 3/10 in is 8 mm | Image: drawing and table: height 13.8 in / 35.1 cm, width 4.5 in / 11.4 cm and length 10.4 in / 26.4 cm; Punching Force 350KN (35T); Depth of Throat 4.3in; Aperture (4 pairs) 3/8in (10.5 mm), 1/2in (13.8 mm), 5/8in (17.5 mm), 3/4in (20.5 mm); Max. Thickness of Iron Plate 1/10in to 2/5in (3-10 mm); Max. Thickness of Copper Bar 1/10in to 1/2in (3-12.7 mm); Max. Thickness of Aluminum 1/10in to 1/2in (3-12.7 mm); Max. Thickness of Stainless Steel 1/10in to 3/10in (3-8 mm); Accessories: 1 x Puncher, 1 x Concave pressing plate, 4 x Dies (one of them in the puncher), 1 x Allen wrench. The table gives copper and aluminium as 3-12 mm and the description as 3-12.7 mm, so the page writes the narrower 3 to 12 mm. The throat depth is 4.3 in, 109 mm in one bullet, 110 mm in the table and 11.3 cm in the draft text, so the page writes the 4.3 in (109 mm) of the drawing. Unit conversions: 13.8 in is 351 mm; 4.5 in is 114 mm; 10.4 in is 264 mm; 4.3 in is 109 mm"
+ },
+ "595633e8": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "5d687068": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "8ae8092f": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Image: Load Capacity Up to 1100 LBS; Breaking Strength 4400 lbs / 2 T (the title gives 1800 kg, which is lower, so the page writes 1800 kg); Working Load 1100 lbs / 500 kg; a weight marked 1100 LBS hangs from the hoist. Unit conversions: 1100 lbs is 500 kg | Image: drawing and table: soft loop straps 18 in / 490 mm; block shell 2 x 4.3 in / 50 x 109 mm; hook 2.3 in / 58 mm; hook opening 0.79 in / 20 mm; Working Load 1100 lbs / 500 kg; Breaking Strength 4400 lbs / 2 T; Product Weight 5.3 lbs / 2.4 kg; Hook Dimensions 2.3 in / 58 mm; Hook Opening Size 0.79 in / 20 mm; Shell Dimensions 2 x 4.3 in / 50 x 109 mm; Pulley Diameter 1.9 in / 47.5 mm; Pulley Groove Size 0.39 in / 10 mm; Rope Diameter 0.2 in / 6 mm; Rope Length 100 ft / 30.48 m; Accessories: 2 x Soft Loop Straps (Length 18 in / 490 mm), 1 x Rope Storage Bag, 1 x Instruction Manual. Unit conversions: 5.3 lbs is 2.4 kg; 18 in is 490 mm; 100 ft is 30.48 m"
+ },
+ "96fd2056": {
+  "tyska": "",
+  "svenska": ""
+ }
+}

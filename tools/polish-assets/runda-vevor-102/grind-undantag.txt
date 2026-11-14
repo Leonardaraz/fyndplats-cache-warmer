@@ -1,0 +1,12 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Antal kit, Tryckområde, Nettovikt, Produktstorlek och Förpackningsstorlek och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar väskans tre mått utan axelord: texten skriver dem i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Antal kit, Tryckområde, Nettovikt, Produktstorlek och Förpackningsstorlek och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar väskans tre mått utan axelord: texten skriver dem i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara raderna Formningsdörrar, Kompatibla slangstorlekar, Tillämpliga slangar, Tillämplig väggtjocklek, Huvudmaterial, Nettovikt och Produktmått och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar väskans mått 220, 115 och 45 mm utan axelord: texten skriver dem i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara raderna Produktstorlek, Max lastkapacitet, Installationshöjd, Antal hjul och Funktioner och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar hjulets tre mått 160, 70 och 174 mm utan axelord: texten skriver dem i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara raderna Lastkapacitet, Hjulstorlek, Kapacitet Storlek, Produktstorlek och Produktvikt och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar lastytans tre mått 770, 430 och 180 mm utan axelord: texten skriver dem i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Material, Lastkapacitet, Produktvikt, Halvexpanderad storlek och Fullt utökad storlek och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver längd, bredd och höjd i samma ordning som specifikationens L, B och H

@@ -89,7 +89,7 @@ raden *Artikelmodellnummer* (och ibland *Modell*, *Artikelnummer*, *Produktmodel
 Importen tar bort raderna sedan samma dag, och **"VEVOR — specifikationen på utkast som saknar
 den"** byter ut fliken på äldre utkast som har dem. Står raden ändå i källan skriver du inte
 in den i `kallor.json` (repot är publikt) och inte i texten. Grinden `MODELLNUMMER` i
-`gatelib.py` och skrivplanen fäller etiketten. Vårt eget artikelnummer (`FP-…`) och en
+`gatelib.py` och skrivplanen fäller etiketten. ☠️ Men modellen kan stå på en rad med ett annat namn än *Modell*: runda 108 bar en rad *Maskintyp* (och en rad *Spännemodell*) med ett modellnummer i utkastets text, och `leak.py` såg det inte förrän den fick ett `MODELL`-mönster (1–4 stora bokstäver, bindestreck, siffror; runda 106 hade en modellbeteckning i utkastets namn på samma sätt). `bygg_data`-skriptets `sanera()` tar bort raderna *Maskintyp*, *Spännemodell*, *Artikelmodellnummer* och *Modellnummer* ur utkastets text, och rundans filer ska ge 0 träffar i `tools/polish-kedja/leak.py` före första pushen: en push av en modellbeteckning till det publika repot går inte att ta tillbaka utan att skriva om historiken. Vårt eget artikelnummer (`FP-…`) och en
 modell med ord (*Modell: Premium*) får stå. Ett nummer i löpande text ser grinden inte: leta
 efter det med ögonen.
 
@@ -201,9 +201,17 @@ Sammanslagningsverktyget i *Syskon blir val på sidan* tar bara Aosom-artiklar
 färg, ett annat mönster, en annan storlek, längd eller förpackning, läggs i stället på sidan med
 **"VEVOR — lägg ett syskon som färg, storlek, längd eller förpackning på en annan VEVOR-sida"**
 (`vevor-sammanslagning.yml`, `plan` och sedan `byt`), en givare per körning, innan sidan poleras.
-Sidan vi behåller får vara ett utkast. Verktyget håller familjeregeln själv och vägrar syskon med
+Sidan vi behåller får vara ett utkast. En publicerad sida går också, men först efter att dess namn gjorts
+utan sidans värde (`namnet_bar_varde`), och texten och adressen skrivs om efteråt. Verktyget håller familjeregeln själv och vägrar syskon med
 olika effekt, kapacitet eller modell: de får egna sidor och poleras var för sig. Se *Syskon som
 importen inte slog ihop* i `docs/claude/11-vevor-steg-8-syskon-betyg-recensioner.md`.
+
+**Säkra familjer är gjorda (2026-11-08, `FLAGGADE-VEVOR.md` (mu)).** 23 värdar och 28 givare blev
+sammanslagna sidor i runda vevor-87 till 94. Det som återstår är grupperna som klassningen
+stoppar: barnkonstbord, konsolbord och skrivbordsavdelare (samma vara i annan färg, prisgap på 600
+till 1 840 kr), stegen (annan modell), mattorna (två axlar på fyra sidor), BBQ-dörrarna (nio sidor,
+tre av dem med samma mått) och 13 små familjer vars axel eller pris är oklar. De slås inte ihop
+utan Leonards besked.
 
 **Paketstorlekar som importen inte slog ihop** *(Leonard 2026-11-02, bordsdukarna: "ja slå ihop
 proffsigt", via Wix API)*. VEVOR säljer samma vara som ett 3-, 6- och 10-pack, men varje paket

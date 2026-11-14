@@ -1,0 +1,28 @@
+{
+  "namn": "vevor-170",
+  "rader": [
+    {
+      "kort": "ff1e5195",
+      "pid": "ff1e5195-51ee-4c56-9b48-9afe82e28a48",
+      "bort": [
+        "Bygg & Renovering > El & installation",
+        "Bygg & Renovering"
+      ],
+      "behall": [
+        "Sport & Fritid",
+        "Sport & Fritid > Båt & vattensport"
+      ]
+    },
+    {
+      "kort": "b0437ee8",
+      "pid": "b0437ee8-cb21-4a4a-af31-de733d73a57a",
+      "bort": [
+        "Husdjur > Pälsvård & Skötsel"
+      ],
+      "behall": [
+        "Husdjur",
+        "Husdjur > Selar, Koppel & Transport"
+      ]
+    }
+  ]
+}

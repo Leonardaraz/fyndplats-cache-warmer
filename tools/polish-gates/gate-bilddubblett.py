@@ -20,6 +20,15 @@ ligga nära gränsen. Ser du med ögonen att vinkeln skiljer kvitterar du paret 
 ☠️ Stryk den ena bilden i `bilder-bort.tsv`, aldrig den som blir huvudbild. Blir sidan under fem bilder av strykningen
 gäller runbookens *Minst fem bilder*: hämta fler, beskär, eller flagga i `FLAGGADE.md`. En dubblett fyller inte upp till fem.
 
+☠️ Samma FIL två gånger (runda-vevor-105, 2026-11-11): varudraget ovan hoppar över en bild där varan fyller mer än
+60 % av rutan, och över en miljöbild, så en sida med två BYTE-IDENTISKA foton av ett svart fodral (skruvutdragarsatsen
+`90ac2f79`, VEVOR:s position 1 och 11, samma md5) gick igenom med "0 fynd". Grinden jämför därför först filernas
+sha256 inom en sida (identiska byte är alltid ett fynd), och ett par där varudraget saknas för någon av bilderna jämförs
+som hela bilder (96 × 96 gråskala, samma gräns 0,02 som mellan sidor) när båda fyller rutan (över 60 % ej vitt). En smal vara
+på vit botten (under 2 % ej vitt) jämförs inte så: bucklorsatsens fyra vyer av samma stång (`a5cab986`, runda-vevor-78)
+låg på 0,015 av ren vit botten utan att vara samma bild. Körd bakåt över runda-vevor-60 till 104 fällde den skärpta grinden
+rökfria eldstaden `f261370d` (position 3 och 6, 0,012), som ströks ur galleriet 2026-11-11.
+
 Mellan sidor (runda-vevor-31, 2026-11-04): grinden jämför också varje kvarvarande bild med varje bild på de ANDRA
 sidorna i rundan, hel bild i 96 × 96 gråskala (miljöbilder ingår här). Under 0,02 är samma foto på två sidor. Runbooken
 säger att två syskonsidor inte får dela miljöfoto (steg 3, *Galleriet*), men grinden såg bara inom en sida, och på
@@ -30,6 +39,7 @@ runda 31 bar två ledningssatser samma foto av två händer vid en utomhusenhet 
 Kör från rundans katalog:  python3 ../../polish-gates/gate-bilddubblett.py
 Slutkod 1 vid fynd.
 """
+import hashlib
 import itertools
 import os
 import subprocess
@@ -79,6 +89,18 @@ def drag(fn):
     return np.asarray(im.convert("L").resize((96, 96))).astype(float) / 255
 
 
+def andel_ej_vit(fn):
+    """Andelen av bilden som inte är vit. Över 0,6 fyller varan rutan eller bilden är en miljöbild."""
+    a = np.asarray(Image.open(fn).convert("RGB")).astype(float)
+    return float((a.min(axis=2) < 235).mean())
+
+
+def sha(fn):
+    """Filens sha256: identiska byte är samma foto, hur mycket av rutan varan än fyller."""
+    with open(fn, "rb") as f:
+        return hashlib.sha256(f.read()).hexdigest()
+
+
 def hel(fn):
     """Hela bilden som 96 × 96 gråskala, för jämförelsen mellan sidor (miljöbilder ingår)."""
     return np.asarray(Image.open(fn).convert("L").resize((96, 96))).astype(float) / 255
@@ -103,13 +125,27 @@ def main():
             per.setdefault(r[0], []).append((r[1], r[2]))
     fynd, misstankta = [], []
     for kort, bilder in per.items():
-        drag_per = {}
+        drag_per, hel_per, sha_per, andel_per = {}, {}, {}, {}
         for pos, fid in bilder:
-            drag_per[pos] = drag(hamta(fid))
+            fn = hamta(fid)
+            drag_per[pos] = drag(fn)
+            hel_per[pos] = hel(fn)
+            sha_per[pos] = sha(fn)
+            andel_per[pos] = andel_ej_vit(fn)
         for a, b in itertools.combinations([p for p, _ in bilder], 2):
-            if drag_per[a] is None or drag_per[b] is None:
-                continue
             if (kort, frozenset((a, b))) in ok:
+                continue
+            if sha_per[a] == sha_per[b]:
+                fynd.append((kort, a, b, 0.0))
+                continue
+            if drag_per[a] is None or drag_per[b] is None:
+                # två bilder som fyller rutan (varan eller en miljöbild): jämför hela bilden i stället för att hoppa över
+                # paret. En smal vara på vit botten (under 2 % ej vitt) jämförs inte som helbild, för då väger den vita
+                # botten mest och två vyer av samma stång ser lika ut (runda-vevor-78, bucklorsatsen).
+                if andel_per[a] > 0.6 and andel_per[b] > 0.6:
+                    d = float(np.abs(hel_per[a] - hel_per[b]).mean())
+                    if d < SAMMA:
+                        fynd.append((kort, a, b, d))
                 continue
             d = float(np.abs(drag_per[a] - drag_per[b]).mean())
             if d < SAMMA:

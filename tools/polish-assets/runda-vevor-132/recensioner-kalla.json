@@ -1,0 +1,66 @@
+{
+  "66761453": {
+    "productId": "66761453-f064-4b5e-8441-360ac8e0a9c6",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "cc642ed4": {
+    "productId": "cc642ed4-108d-40a0-837b-903bb285c558",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1o3cpj9",
+        "betyg": 5,
+        "datum": "2026-03-15",
+        "foton": 0,
+        "text": "I had purchased an older model of this same rack and the improvements are fantastic. This model is way more sturdy and you can lock in the sizing of the pockets - the old style constantly slips out of alignment. I am seriously considering replacing my old rack with the new and improved version. You can fit lots of greeting cards on this rack and the sections spin effortlessly. The locking wheels are also a plus. I highly recommend this display."
+      },
+      {
+        "id": "gen-wagc5n",
+        "betyg": 4,
+        "datum": "2026-04-28",
+        "foton": 0,
+        "text": "I love the Card Display Rack as it is tall and narrow, so fits easily into the space we have. The locking wheels are also a great feature I did have one problem That was fitting it together. The instructions were confusing and inadequate I did eventually get it together, but what should have taken me a couple of hours, ended up being 4-5hrs. I have put together A LOT of IKEA furniture, so have had plenty of experience."
+      }
+    ]
+  },
+  "92130d4c": {
+    "productId": "92130d4c-e0c7-4532-a0b1-1aa7266eb24c",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-tsw1h5",
+        "betyg": 5,
+        "datum": "2026-09-29",
+        "foton": 0,
+        "text": "Bonjour, Produit conforme à mes attentes et livré rapidement. Matériel costaud et de qualité"
+      },
+      {
+        "id": "gen-1jo6627",
+        "betyg": 5,
+        "datum": "2026-08-01",
+        "foton": 0,
+        "text": "Bought it and it was totally worth it! This hand-crank winch has made my warehouse work much easier. The 1588 kg load capacity is perfect for my workload. It's sturdy, and all the parts feel really high-quality."
+      },
+      {
+        "id": "gen-nwoxlz",
+        "betyg": 5,
+        "datum": "2026-07-22",
+        "foton": 0,
+        "text": "I needed to replace a winch strap, only to realize the entire winch and assembly was rusting, so replaced it with this. I was pleasantly surprised how easy the installation was. Relatively simple tools and some general common sense and you're good to go!"
+      }
+    ]
+  }
+}

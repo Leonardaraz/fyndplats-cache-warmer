@@ -1,0 +1,20 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen måttrad med axelord, och sidan skriver väskans längd, bredd och höjd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Total maskinstorlek) saknar axelord, och sidan skriver måtten utan axelord som i källan
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord, och sidan skriver diskbänkens bredd, djup och höjd samt skålens mått efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord, och sidan skriver bäddens längd, bredd och höjd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation saknar axelord, och sidan skriver tumblerns diameter och höjd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger total längd, total bredd och handtagets längd, och sidan skriver gaffelhuvudets längd och bredd efter källan
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad saknar axelord, och sidan skriver gitarrens mått utan axelord som i källan
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått L x B x H) anger längd, bredd och höjd, och sidan skriver sätets bredd, höjd och djup efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation saknar axelord, och sidan skriver fräsens höjd och bredd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen måttrad, och sidan skriver stenstorleken utan axelord som i källan

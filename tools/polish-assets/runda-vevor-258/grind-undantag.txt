@@ -1,0 +1,6 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Mått, D x B x H) saknar tal, och sidan skriver bänkens längd, djup och höjd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (Kapacitetsstorlek och Produktstorlek) saknar axelord, och sidan skriver behållarens och vagnens mått i källans ordning utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (Produktmått) saknar axelord, och sidan skriver bredd × höjd efter valens etiketter (H60 x B15 tum är 38 × 152 cm, och motsvarande för de andra måtten) och efter bilderna, där spaljéerna är höga och smala

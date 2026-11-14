@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har handtagslängden i en rad med axelord medan produktstorleken saknar dem: sidan skriver bara handtagslängden och produktstorleken som i källan, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har handtagslängden i en rad med axelord medan produktstorleken saknar dem: sidan skriver bara handtagslängden som i källan
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har handtagslängden i en rad med axelord medan produktstorleken saknar dem: sidan skriver bara handtagslängden och produktstorleken som i källan, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har handtagslängden i en rad med axelord medan produktstorleken saknar dem: sidan skriver bara handtagslängden och produktstorleken som i källan, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått saknar axelord och måttritningen visar höjd och bredd: sidan skriver måtten som i källan, utan axelord

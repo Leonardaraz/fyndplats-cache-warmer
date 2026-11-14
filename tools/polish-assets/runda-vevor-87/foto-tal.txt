@@ -1,0 +1,21 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# <kort> <tal> <vad som räknades på bilden>
+5cccca67 94,9 949 mm i källan är 94,9 cm
+5cccca67 18,2 182 mm i källan är 18,2 cm
+5cccca67 153,8 1538 mm i källan är 153,8 cm
+372e1db0 80 bredden 31,5 in / 80 cm och höjden 31,5 in / 80 cm på måttbilden; samma tal i specifikationen (Produktmått 80 x 37,5 x 80 cm)
+372e1db0 37,5 djupet 14,7 in / 37,5 cm på måttbilden; samma tal i specifikationen
+372e1db0 29 övre fackets höjd 11,4 in / 29 cm på måttbilden; samma tal i specifikationen (76 x 27,5 x 29 cm)
+372e1db0 28 nedre fackets höjd 11 in / 28 cm på måttbilden; samma tal i specifikationen (76 x 27,5 x 28 cm)
+372e1db0 27,5 fackens djup 10,8 in / 27,5 cm på måttbilden; samma tal i specifikationen
+372e1db0 6,4 avståndet 2,5 in / 6,4 cm mellan höjdlägena på bilden Handle All Storage Hassles; samma tal i specifikationen
+372e1db0 30 bordsskivans bärförmåga 66 lbs / 30 kg på måttbilden; samma tal i specifikationen (Bordsviktskapacitet 30 kg)
+372e1db0 10 hyllplanens bärförmåga 22 lbs / 10 kg på måttbilden; samma tal i specifikationen (Hyllkapacitet 10 kg)
+372e1db0 1,5 bordsskivans tjocklek 0,6 in / 1,5 cm på bilden Thick Particleboard Tabletop; samma tal i specifikationen (Bordsskiva 80 x 37,5 x 1,5 cm)
+ad716229 15,45 nettovikten 15,45 kg (34 lb) på VEVOR:s specifikationsbild; källans tabell säger 15,75 kg: det lägre skrivs
+933b885d 68 handtagets utdragna höjd 680 mm, avläst i VEVOR:s måttbild (26,8 tum / 680 mm), som inte ligger i galleriet
+933b885d 4 fyra hjul räknade på närbilden (position 5)
+933b885d 32 bredd 320 mm i källans produktmått = 32 cm
+933b885d 23 djup 230 mm i källans produktmått = 23 cm
+933b885d 82,5 höjd med utfällt handtag 825 mm i källans produktmått = 82,5 cm

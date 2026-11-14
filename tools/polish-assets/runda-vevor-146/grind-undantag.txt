@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått har bokstäverna för längd, bredd och höjd men ingen läsbar måttrad för grinden, och måttritningen visar 697 mm som längd, 205 mm som bredd och 87 mm som höjd: sidan skriver längd, bredd och höjd
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Betongskivans storlek saknar axelord, och måttritningen visar 75 cm som längd, 20 cm som bredd och 6 cm som höjd: sidan skriver längd, bredd och höjd
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad i specifikationen, och måttritningen visar 65 cm som längd, 13 cm som bredd och 14 cm som höjd: sidan skriver längd, bredd och höjd
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad i specifikationen, och måttritningen visar 17,9 cm som längd, 6,9 cm som bredd och 18,5 cm som höjd: sidan skriver längd, bredd och höjd
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad i specifikationen, och måttritningen visar bindarens justerbara längd och handtagets längd: sidan skriver bara längd för bindaren, handtaget och kedjan

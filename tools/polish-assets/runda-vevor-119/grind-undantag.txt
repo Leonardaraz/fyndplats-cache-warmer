@@ -1,0 +1,11 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (tre mått) och raden Bänkskivans storlek (två mått) utan axelord; måttritningen visar längd 1220 mm, djup 600 mm och höjd 670–1020 mm: texten skriver bänkskivans längd och djup och höjdintervallet efter ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation saknar en måttrad; måttritningen visar diametern 50,8 cm och tjockleken 6,35 cm: texten skriver diameter och tjocklek efter ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation saknar en måttrad; måttritningen visar brickans mått 380 × 275 × 30 mm (längd, bredd och höjd efter ritningens pilar): texten skriver brickans längd, bredd och höjd efter ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation saknar en måttrad; måttbilden visar hylsans diameter 17 mm och längd 27,5 mm: texten skriver diameter och längd efter ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (762 × 313 × 1600 mm) utan axelord; måttritningen visar höjd 1600 mm, djup 313 mm och bredd 762 mm: texten skriver bredd, djup och höjd efter ritningen

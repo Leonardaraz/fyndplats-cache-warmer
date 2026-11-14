@@ -1,0 +1,9 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# <kort> <tal> <vad som räknades på bilden>
+ad716229 15,45 nettovikten 15,45 kg (34 lb) på VEVOR:s specifikationsbild; källans tabell säger 15,75 kg: det lägre skrivs
+933b885d 68 handtagets utdragna höjd 680 mm, avläst i VEVOR:s måttbild (26,8 tum / 680 mm), som inte ligger i galleriet
+933b885d 4 fyra hjul räknade på närbilden (position 5)
+933b885d 32 bredd 320 mm i källans produktmått = 32 cm
+933b885d 23 djup 230 mm i källans produktmått = 23 cm
+933b885d 82,5 höjd med utfällt handtag 825 mm i källans produktmått = 82,5 cm

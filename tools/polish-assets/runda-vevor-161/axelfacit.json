@@ -1,0 +1,20 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "29a6cd01": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "322ff295": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Image: 1000LBS LOAD CAPACITY; Handle & move with zero burden (claim, not used); 1000 lbs / 454 kg MAX. LOAD (the draft's first paragraph says 450 kg, so the lower 450 kg is written); 55 Gallon / 250 L RATED CAPACITY (the title says 208,2 l, which is 55 gallons, so the drum volume 208,2 liters is written); the dolly shown with a drum, a bonsai pot and a bin | Image: dimension drawing and table: Material Carbon Steel; Surface Finish Galvanization; Rated Capacity 55 Gallon / 250 L; Max. Load 1000 lbs / 454 kg; Net Weight 17.64 lbs / 8 kg; Wheel Diameter 3 in / 76 mm; Wheel Width 1.18 in / 30 mm; outer diameter 28.54 in / 72.5 cm; inner diameter 23.9 in / 60.7 cm; inner depth 1.97 in / 5 cm; total height 6.3 in / 16 cm (the model number row is left out on purpose). Unit conversions: 1000 lbs is 454 kg; 17.64 lbs is 8 kg; 55 gallons is 208.2 L"
+ },
+ "442b0bf2": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "8d2c149f": {
+  "tyska": "",
+  "svenska": ""
+ }
+}

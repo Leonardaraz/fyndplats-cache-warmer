@@ -1,0 +1,4 @@
+# kort pos1 pos2 skäl: par som gate-bilddubblett.py flaggar men som ses med ögonen vara olika, eller som inte visas tillsammans (olika breddval)
+736dcadb 4 10 dörrgallret sett rakt framifrån i bredderna 622,3 och 673,1 mm: varje breddval visar bara sina egna bilder
+736dcadb 4 15 dörrgallret sett rakt framifrån i bredderna 622,3 och 571,5 mm: varje breddval visar bara sina egna bilder
+736dcadb 5 11 dörrgallret sett snett från sidan i bredderna 622,3 och 673,1 mm: varje breddval visar bara sina egna bilder

@@ -1,0 +1,4 @@
+# kort:pos kort:pos skäl (kvitterar par mellan sidor som gate-bilddubblett.py flaggar men som visar olika varor)
+8755305a:1 99c8210f:1 olika varor: samma mikroskopkropp fotad från samma håll, men det trinokulära mikroskopet har en tredje, lodrät tub i huvudet som saknas på det binokulära; bilderna skiljer sig i just det som skiljer de två varorna åt (sedda sida vid sida 2026-11-12)
+8755305a:5 99c8210f:5 olika varor: samma mikroskopkropp fotad från samma håll, men det trinokulära mikroskopet har en tredje, lodrät tub i huvudet som saknas på det binokulära; bilderna skiljer sig i just det som skiljer de två varorna åt (sedda sida vid sida 2026-11-12)
+8755305a:6 99c8210f:6 olika varor: samma mikroskopkropp fotad från samma håll, men det trinokulära mikroskopet har en tredje, lodrät tub i huvudet som saknas på det binokulära; bilderna skiljer sig i just det som skiljer de två varorna åt (sedda sida vid sida 2026-11-12)

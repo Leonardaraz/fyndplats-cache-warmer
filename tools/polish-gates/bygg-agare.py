@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""bygg-agare.py <ut.js> <spec.json> [--torr]: gör lank-om-bilder.js till ett färdigt ExecuteWixAPI-skript där VARJE galleribild får en uttalad ägare.
+"""bygg-agare.py <ut.js> <spec.json> [--torr]: gör lank-om-bilder.js (mallen, som aldrig skrivs över) till ett färdigt ExecuteWixAPI-skript i ut.js där VARJE galleribild får en uttalad ägare.
 --torr bygger en torrkörning (ingenting skrivs, hasMutations false): svaret har valens länkar före → efter och, på en option som inte är färg, butikens vy per val.
 --kompakt tar bort radkommentarerna ur ut.js (skriptet klistras in i ExecuteWixAPI, och kommentarerna är tre kilobyte som inte behövs där).
 --utan-vy (bara skarpt) tar bort `kombinationer`-förhandsvisningen ur ut.js: ytterligare sex kilobyte som inte behövs i en skrivning. Skrivvägen och alla kontroller är
@@ -133,6 +133,11 @@ def main():
     if len(sys.argv) < 3:
         sys.exit(__doc__)
     ut, specfil = sys.argv[1], sys.argv[2]
+    mall = os.path.join(HERE, "lank-om-bilder.js")
+    if os.path.realpath(ut) == os.path.realpath(mall):
+        # ☠️ Första argumentet är UTFILEN. Runda vevor-237 (2026-11-13) angav mallen själv och skrev över den med det byggda skriptet
+        # (återställd med git checkout). Mallen skrivs aldrig över.
+        sys.exit("första argumentet är UTFILEN och får inte vara mallen lank-om-bilder.js: ange en egen fil, till exempel agare_torr.js i rundans arbetskatalog")
     torr = "--torr" in sys.argv[3:]
     kompakt = "--kompakt" in sys.argv[3:]
     utan_vy = "--utan-vy" in sys.argv[3:]

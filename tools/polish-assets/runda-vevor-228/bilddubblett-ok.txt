@@ -1,0 +1,6 @@
+a0440a55 1 7 samma foto på 6-pack och 10-pack: varje paketval visar bara sina egna bilder
+a0440a55 2 8 samma foto på 6-pack och 10-pack: varje paketval visar bara sina egna bilder
+a0440a55 3 9 samma foto med olika paketikon (6 och 10 dukar): varje paketval visar bara sina egna bilder
+a0440a55 4 10 samma foto på 6-pack och 10-pack: varje paketval visar bara sina egna bilder
+a0440a55 6 11 samma foto på 6-pack och 10-pack: varje paketval visar bara sina egna bilder
+aedc9f9f 1 7 två olika storlekar sedda rakt framifrån: den större är bredare (4 m mot 3 m)

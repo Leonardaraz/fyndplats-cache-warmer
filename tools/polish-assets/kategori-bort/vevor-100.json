@@ -1,0 +1,50 @@
+{
+  "namn": "vevor-100",
+  "rader": [
+    {
+      "kort": "c3fb9940",
+      "pid": "c3fb9940-c1f1-4b4b-8e87-65f19a6f230b",
+      "bort": [
+        "Bygg & Renovering > VVS & vatten",
+        "Bygg & Renovering"
+      ],
+      "behall": [
+        "Verktyg & Maskiner",
+        "Verktyg & Maskiner > Handverktyg"
+      ]
+    },
+    {
+      "kort": "64b41c64",
+      "pid": "64b41c64-be54-44a4-b0a7-99a500f1ba8f",
+      "bort": [
+        "Bil & Garage > Bilverktyg"
+      ],
+      "behall": [
+        "Bil & Garage",
+        "Bil & Garage > Biltillbehör"
+      ]
+    },
+    {
+      "kort": "7317c5d6",
+      "pid": "7317c5d6-a96e-4edc-8b8e-6888229f549a",
+      "bort": [
+        "Kök & Husgeråd > Köksmaskiner & Apparater"
+      ],
+      "behall": [
+        "Kök & Husgeråd",
+        "Kök & Husgeråd > Köksredskap & Tillbehör"
+      ]
+    },
+    {
+      "kort": "109a7e50",
+      "pid": "109a7e50-ae0f-4bc9-b30a-c40a20b9e2d4",
+      "bort": [
+        "Verktyg & Maskiner > Verkstadsmaskiner"
+      ],
+      "behall": [
+        "Verktyg & Maskiner",
+        "Verktyg & Maskiner > Verktygstillbehör"
+      ]
+    }
+  ]
+}

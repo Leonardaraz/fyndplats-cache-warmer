@@ -1,0 +1,4 @@
+# kort pos1 pos2 skäl: par som gate-bilddubblett.py flaggar men som ses med ögonen vara olika, eller som inte visas tillsammans (olika storleksval)
+8ca339b4 1 7 samma vinkel på tavlan med tillbehör i storlekarna 900 × 600 och 1200 × 800 mm: varje storleksval visar bara sina egna bilder
+8ca339b4 2 8 samma bild på kvinnan vid tavlan i de två storlekarna: varje storleksval visar bara sina egna bilder
+8ca339b4 10 12 tavlan sedd rakt framifrån (10) respektive snett från höger med en markör på brickan (12): vinkeln skiljer, men en vit platt tavla ger nästan samma form

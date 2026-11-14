@@ -1,0 +1,20 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Objektstorlek) saknar axelord, och sidan skriver måtten som bredd × djup × höjd efter köksöns egen måttritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (Enkelsoffa och Kombinerad soffa) saknar axelord, och sidan skriver måtten som längd × djup × höjd efter måttbilden
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen måttrad, och sidan skriver diameter och höjd ur grytans egen måttritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord och säger 6,3 och 187 cm, och sidan skriver bredd × djup × höjd efter måttritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rader (Skärmstorlek och Höjd utfälld) saknar axelord och säger 347 × 201,9 cm och 282,7 cm, och sidan skriver duken och stativet som bredd × höjd efter måttbilden
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Maximala mått) saknar axelord, och sidan skriver måtten som höjd × bredd × djup efter vagnens egen måttritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rader (Inmatningsstorlek och Produktstorlek) saknar axelord, och sidan skriver bredd × djup × höjd och inkastet som höjd × bredd efter måttbilden
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord, och sidan skriver måtten som bredd × djup × höjd efter måttbilden
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen måttrad, och sidan skriver den täckta ytan som bredd × höjd efter måttbilden
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad (Toppmått) saknar axelord, och sidan skriver toppen som bredd × djup efter måttbilden

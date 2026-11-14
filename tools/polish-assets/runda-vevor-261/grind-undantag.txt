@@ -1,0 +1,12 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Förvaringslådans storlek eller Storlek på uttagsorganisatör) saknar axelord, och sidan skriver organisatörens, hållarens eller förvaringslådans längd, bredd och höjd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Förvaringslådans storlek eller Storlek på uttagsorganisatör) saknar axelord, och sidan skriver organisatörens, hållarens eller förvaringslådans längd, bredd och höjd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Förvaringslådans storlek eller Storlek på uttagsorganisatör) saknar axelord, och sidan skriver organisatörens, hållarens eller förvaringslådans längd, bredd och höjd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktstorlek) har axelbokstäverna i etiketten (L x B x H) och inte vid talen, så facit kan inte byggas positionellt; sidan skriver rullfickans längd, bredd och höjd i den ordning etiketten och måttbildens ritning anger (260 lång, 70 bred, 55 hög)
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktstorlek) har axelbokstäverna i etiketten (L x B x H) och inte vid talen, så facit kan inte byggas positionellt; sidan skriver hållarens tre mått utan axelord, eftersom etikettens ordning inte stämmer med måttbildens ritning (bredd, höjd, djup)
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad för den utvikta rullfickan, och sidan skriver dess bredd och höjd efter måttbildens ritning

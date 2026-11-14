@@ -371,3 +371,183 @@ givare. Planen gav `Längd: langd`, orörda priser (349 och 399 kr), 0 av givare
 (alla sex är samma bilder som sidan redan har: VEVOR använder samma galleri för alla längder),
 3 recensioner att kopiera och 5 av sidans att märka. Hindret `funktion_skiljer:Modell` ledde
 till rättelsen i punkt 1.
+
+☠️ **Ett val vars foton sidan redan har får för få bilder (2026-11-13, rengöringskitet
+`b91a4d05`).** Punkt 3 betyder att ett foto som sidan redan har varken läggs till eller kopplas
+till givarens val. Det spärrar bara ett val helt utan egna foton (`utkast_saknar_egna_bilder`), inte
+ett val med få. Längderna 10,02 och 12,03 m hade fyra av sex foton gemensamma (byte-identiska,
+`dHash` 0, samma foto med olika filnamn), så planen sa *18 på sidan, 2 av givarens följer med,
+4 fanns redan*, och efter *Bilder bort* visade 12,03 m en enda bild i butiken (webbläsarkontroll
+`rakna.js`: 5, 5, 5 och 1). **Räkna bilder per val live efter varje sammanslagning av längder och
+storlekar** (`node tools/polish-gates/live-galleri.mjs <slug>`), minst fem per val. Lagas med
+`bygg-agare.py` och en ägarlista för de delade fotona (`"6c1866": ["10,02 m", "12,03 m"]`, torrt
+först; en skarp körning kräver att butikens sida bär `imageKopplingar`, och flera val i samma
+option betyder *något av dem*), sedan `variantbild.yml` med `ids` (en id-skrivning av optionerna
+nollställer variantens bild) och `kolla-agare.py` mot butikens sida. 12,03 m gick från 1 till 5
+bilder utan att något annat ändrades (revision 20 → 21, priser, SKU, lager och kostnad
+oförändrade).
+
+☠️ **En struken bild som är valets enda länkade foto stoppas av *Bilder bort* (2026-11-13,
+stripgardinen `c0a2348b`).** Givarens enda nya foto, VEVOR:s position 1 på 30,5 cm-remsan,
+sa *150 ft* i sin text medan specifikationen säger 82 fot (2500 cm, 25 m), så bilden skulle
+strykas. Sammanslagningen hade gjort den till valets enda länkade bild (de fem andra fotona var
+gemensamma med sidans och olänkade), och torrkörningen av *Bilder bort* svarade
+`val_skulle_sakna_bild (Storlek)` (*val Storlek: 1 → 0 länkade bilder*). Lagat i två steg:
+`bygg-agare.py` med de gemensamma fotona som `"-"`, 20 cm-valets eget foto som dess val och
+`"tomt": ["Remsbredd 30,5 cm, 3 mm"]` (valet lämnas utan länkade bilder, och butiken visar då hela
+galleriet för det valet), torrt först (`valLankar`: 20 cm 1 → 1, 30,5 cm 1 → 0) och sedan skarpt
+(revision 7 → 8, inga avvikelser), därefter *Bilder bort* (galleri 7 → 6, återläst).
+Webbläsarmätningen 12:48 visade sex bilder för båda valen: 20 cm-valet de fem gemensamma fotona
+och sitt eget, och 30,5 cm-valet, som saknar länkade bilder, hela galleriet. Fem gemensamma
+foton räcker som minimum (runbookens *Minst fem bilder* per val).
+Första argumentet till `bygg-agare.py` är UTFILEN: en körning som angav mallen
+`lank-om-bilder.js` skrev över den (återställd med `git checkout`), och verktyget vägrar nu att
+skriva över mallen. Två körningar av *Bilder bort* får aldrig gå samtidigt: ett vänteskript som
+sökte efter ordet *fel* matchade *felrad* i den förra körningens lyckade logg, startade stripgardinens
+körning mitt i glastavlans, och dispatchskriptet lade stripgardinens torrlogg på glastavlans körning.
+Stripgardinens första skarpa körning föll med HTTP 409 utan att skriva något, och den andra,
+efter att glastavlan var klar, gick igenom. Vänta på en exakt sluttext, inte på ett ord som står i
+varje lyckad logg.
+
+**Publicerade sidor går också, i en bestämd ordning (Leonard 2026-11-08: *"vi borde börja med
+sidorna vi redan publicerat o fixa dom sen"*, och sedan *"Byt namn först"*).** Första
+torrkörningen mot två publicerade gymnastikräckar (värd blå, givare lila) stoppades av
+`namnet_bar_varde:Färg`: en publicerad sida bär sitt namn ut till kunden, så verktyget vägrar
+den när namnet säger sidans eget värde, och alla polerade sidor har färg eller mönster i namnet.
+Ordningen är därför:
+
+1. `plan` mot paret visar hindret. Familjeregeln avgör också vad som är en familj: *Med matta*
+   mot *Utan matta* är ingen packstorlek (`familjeregeln_oklar:Förpackning`), så de sex räckarna
+   blev två sidor, tre färger utan matta och tre med.
+2. **Värdens namn och SEO görs färgneutrala** med den vanliga poleringen, i en egen liten runda
+   (runda vevor-85, mönstret från T73 i `tools/polish-kedja/mall-t`): filerna kopieras ur rundan
+   som skrev sidan, bara `namn.tsv`, `seo.tsv` och `lager.tsv` är nya, och texten rörs inte.
+   Läs sidan live först (`aterlas`-skriptet, facit ur rundans `vantat-hash.tsv`): är texten LIKA
+   skriver rundan om samma sak.
+3. **En givare per körning, `plan` före varje `byt`, `omdirigera=ja`** (givaren är publicerad).
+   Verktyget lägger givarens foton på färgen, kopierar recensionerna, avpublicerar och
+   pensionerar givaren och skriver en 301 till värdens adress med `?variant=`.
+4. **Texten för alla färger** i en runda med `sammanslagna.tsv` (runda vevor-86): färgerna i
+   inledningen, i egenskapspunkten och i `Färg:`-raden, en fråga om vilka färger som finns och
+   unika alt-texter på varje bild, med färgen nämnd där fotot visar den. Titta på fotona först:
+   samma bildtexter för tre färger blir tre lika alt-texter. Adressen får inte bära ett enskilt
+   värde, så den byts till en neutral adress.
+5. **301:orna direkt efter skrivningen** med `redirect-add.yml` (`batch`): värdens gamla adress
+   till den nya, och varje givares adress till den nya med `?variant=` så att rätt färg är
+   förvald. Verktyget upsertar rader, och målet måste vara en levande produkt, så de skrivs
+   efter textsteget. Butikens sidcache för de gamla adresserna går om inom en timme.
+6. Läs sidorna live när cachen gått om (`hamta-live.sh`, `livegrind.py`, `livekoll.py`).
+
+Mätt 2026-11-08: registret har 755 publicerade VEVOR-rader, och 233 familjegrupper (titel utan
+siffror, enheter och färgord) har minst en publicerad sida, 65 av dem med två eller fler. Många
+av dem är olika varor med olika effekt eller kapacitet, och verktygets familjeregel stoppar dem.
+
+**En hel katalog av säkra familjer på en dag (Leonard 2026-11-08: *"Kör alla säkra familjer o dom
+som är osäkra kolla upp"*).** Samma steg gjordes för 23 värdar och 28 givare (runda vevor-87 till
+94, utfallet står i `tools/polish-gates/FLAGGADE-VEVOR.md` (mu)). Det som kostade tid, och som
+nästa familj kan hoppa över:
+
+1. **Klassa först och slå bara ihop de säkra.** Registret grupperades (titel utan siffror,
+   enheter och färgord) och varje grupp fick `JA`, `SAKER`, `OSAKER` eller `NEJ`. Säker är en
+   grupp där alla axlar är färg, mönster, längd, storlek eller förpackning, där givarna går att
+   sälja och där prisskillnaden inte tyder på olika varor (`pris_x…` i klassningen). Barnkonstbord,
+   konsolbord och skrivbordsavdelare är samma vara i en annan färg men har prisgap på 600 till
+   1 840 kr och väntar på Leonards besked, stegen är en annan modell (vikt och mått skiljer), och
+   mattorna har två axlar (storlek och färg) på fyra sidor.
+2. **Byt alla värdars namn i en runda före sammanslagningarna** (87 för elva värdar, 90 för
+   åtta, 93 för julgirlangen). `namnet_bar_varde` jämför bara det exakta värdet och fångar inte
+   böjda former som *vitt* eller *mörkgrå*, så byt namn på alla.
+3. **SKU skrivs ut av oss, högst 40 tecken** (`sku_for_lang`), och ett värde får inte
+   innehålla kommatecken (`varde_ogiltigt`): *Svart och guld*, inte *Vit, svart och grå*.
+4. **Ett tomt alt-textfält på värden fäller sammanslagningen** med Wix 400
+   (`altText has size 0`) utan att något skrivits. Skriv värdens alt-texter först (runda
+   vevor-88, bänkskivan).
+5. **Galleriet på en sammanslagen sida** listas i livets ordning (värdens foton, sedan varje
+   givares) med etiketterna 1, 2, 4, 5, … och sist 3, och `bilder-bort.tsv` är tom: värdens
+   strukna positioner hör till den gamla numreringen och ger `STRUKEN BILD` mot det nya
+   galleriet. Givarens strukna foton stängs ute med `bilder` vid sammanslagningen. Alla alt-texter
+   på en sida ska vara olika.
+6. **Foton som är samma bild enligt innehållet hoppas över** (värdens foto blir delat, utan val,
+   och behåller värdens alt-text). Ett foto av samma motiv med annan hash läggs till på givarens
+   värde, och då behöver det en egen alt-text som nämner värdet (*den större*, *den svarta*).
+7. **Siffergrinden kräver siffran i källans form.** En omräkning (38100 mm som 38,1 m) märks som
+   omräkning i `kallor.json` (`=== omräkning, inte källtext: … ===`), och SEO-raden skriver talet
+   som källan gör (`71,12`, `600 eller 300 mm`). Saknas utkastskälla, som på julgirlangen som
+   publicerades utanför en runda, byggs rundan ur livesidan med sidans egen publicerade text som
+   källa, och en spec-rad *Vikt* heter *Fraktvikt* tills något visar att talet är varans egen vikt.
+8. **Recensionerna som kopierades vid sammanslagningen** läses med `las` och översätts i kundens
+   röst. En mening som inte stämmer för sidan (färger sidan inte har, verktyg som bara ingår i
+   den andra storleken) utelämnas.
+9. **Läs sidorna efter VEVOR-synken.** Skriv inte minut 50–54. Mätt 14:08 efter synken kl 13:50:
+   19 sammanslagna sidor, orörda priser och ingen variant på noll i lager.
+10. **En längdfamilj med åtta utkast: ledstången (runda vevor-222, 2026-11-13).** Sju givare lades
+    på värden på fem minuter (01:07–01:12, `plan` före varje `byt`, utanför minut 45–57). Ange
+    varje värde i källans egen enhet (*Längd=0,9 m*), inte omräknat från titelns fot (*0,91 m*):
+    torrkörningarna med omräknade värden gjordes om, eftersom sidans text och siffergrinden
+    använder källans värden. Utkast som delar bildfiler (här 2 och 3 fot, 4, 5 och 7 fot, och 10
+    och 11 fot) ger inga nya foton och inga valbilder: bara fyra av åtta längder fick en egen
+    valbild och visar i butiken bara sina sex bilder, medan de fyra som delar foton med en annan
+    längd visar hela galleriet (mätt i en webbläsare 2026-11-13). Planen varnar *beskrivningen nämner sidans längd*: sidans
+    text skrivs om för alla längder i en runda med `sammanslagna.tsv`. Den levande sidans lager
+    (`stockQuantity`) och mappningens `aosomSyncedQty` är summan av längdernas saldon (1 459), och
+    längden med lägst saldo (3) kan bli slutsåld först. Utfallet står i
+    `tools/polish-gates/FLAGGADE-VEVOR.md` (rp).
+11. **Importens egna familjer poleras som sammanslagna sidor utan givare (runda vevor-223,
+    2026-11-13).** Ett utkast som importen redan gjort till en familj, med flera varianter och
+    varje varians bilder kopplade till valet (till exempel 12 bilder, 6 per variant), får en rad i
+    `sammanslagna.tsv` (antalet varianter), tomma `sku.tsv` och `variant.tsv` och alt-texter som
+    nämner storlek eller färg. Kör familjeregelns plan (*VEVOR — familjeregeln på befintliga utkast*,
+    läge `plan`) först och polera bara de som inte flaggas. Butiken visar bara vald varians bilder,
+    så samma foto på två varianter är ingen dubblett i praktiken: kvittera paret i
+    `bilddubblett-ok.txt`, eftersom skrivstegets skydd ändå vägrar att stryka en länkad bild. En
+    variant kan vara slutsåld, och livegrind och livekoll flaggar då *OutOfStock på en variant*
+    (SLUTSALD) även när det är rätt. Sidan öppnar på den variant importen skapade först, inte på
+    den billigaste. Utfallet står i `tools/polish-gates/FLAGGADE-VEVOR.md` (rq).
+12. **Samma foto flera gånger eller ett tredjepartsmärke i bilderna stoppar en importfamilj
+    (runda vevor-224 och 225, 2026-11-13).** En luftslang med två varianter hade elva bilder men bara fem olika foton
+    (position 1, 5 och 10 var samma foto, liksom 2 och 7, 3, 4 och 6 samt 8 och 11), och
+    bilddubblettgrinden gav 8 fynd. Butiken visar bara vald varians bilder, så första varianten
+    fick tre olika foton och andra fyra, under lägsta fem. Skrivstegets skydd vägrar att stryka en
+    länkad bild, så familjen hölls i stället för att kvitteras. Räkna olika foton per variant, inte
+    per sida: kvittera bara par som ligger på olika varianter (punkt 11). Samma sak gäller ett
+    tredjepartsmärke som syns i varje varians bilder (märket på en borrmaskin eller på uppblåsbara
+    leksaker i runda vevor-225): bilderna är länkade till valen och kan inte strykas av skrivsteget,
+    och utan dem får varianten för få bilder. Titta på lifestyle-bilderna i full storlek innan en
+    familj väljs. Två grindfällor från samma
+    bygge: SKU-grinden läser tre tecken, bindestreck och tre tecken i en slug (`300-psi`) som ett
+    artikelnummer, och SEO-grinden fäller ett riktigt minustecken (U+2212), så skriv *minus 40*.
+    Ett omdöme som säger att kunden ändrade varan (nätet höjdes till 2,35 m) översätts utan den
+    delen när den går emot sidans mått. Utfallet står i `tools/polish-gates/FLAGGADE-VEVOR.md` (rr)
+    och (rs).
+13. ☠️ **Valbilderna hör till EN axel, och delade foton blir olänkade (runda vevor-228,
+    2026-11-13).** På en sida med två axlar (bordsdukarna: storlek och paket) kopplar verktyget
+    bilderna till en enda axel (`bildaxel`, här paketet), så den andra axeln får inga egna
+    bilder och visar den valda förpackningens. Butikens galleri visar de bilder som är
+    kopplade till det valda valet tillsammans med ALLA olänkade, så ett foto som givaren delade
+    med sidan (samma innehåll) läggs inte till en gång till och syns på varje val: garagegolvrullen
+    visade tre kopplade och tre delade foton på båda storlekarna. Givarens bilder för en axel som
+    inte får valbilder hör inte till något val, dubblerar ofta den andra axelns foton och kan bära
+    märkning (en av dem bar *AI-Generated Character and Scene*). Stryk dem i skrivplanen, före
+    skrivningen: skrivstegets spärr mot att tappa länkade bilder ser dem inte, och en strykning
+    efteråt med *Bilder bort* kräver fil-id ur importens ordning (se *Bilder bort*). Identiska
+    foton mellan paketen kvitteras i `bilddubblett-ok.txt` (`kort pos1 pos2 skäl`). Mät galleriet
+    per val i en webbläsare (Playwright mot den levande sidan), inte i Wix-data, eftersom
+    länkarna och de olänkade fotona bara syns där. Utfallet står i
+    `tools/polish-gates/FLAGGADE-VEVOR.md` (rv).
+14. ☠️ **SKU-hinder och foton som två syskonsidor delar (runda vevor-230, 2026-11-13).**
+    Verktygets SKU för en ny variant är sidans SKU plus givarens värden och blir över 40 tecken
+    på längre namn (`sku_for_lang`, tre av sex planer): ange `sku` själv, högst 40 tecken. En egen
+    SKU med tre tecken, bindestreck och minst tre tecken som bär en siffra (`254-borstad`) fäller
+    `sku_ogiltig`, eftersom artikelnummergrinden (`FORM` i `lib/polish/skrivplan.ts`) läser den
+    som ett artikelnummer: skriv `254-mm-borstad`. Tre duschset av samma serie delade samma
+    miljöfoto (en kvinna i en dusch, där bara sidoduschens färg skilde) och samma foto av
+    handduschen, vilket bilddubblettgrinden fäller mellan sidor (0,000 till 0,018) och
+    runbooken förbjuder mellan syskonsidor. På en sammanslagen sida är fotona kopplade till valen,
+    och skrivstegets spärr vägrar att stryka en länkad bild: ett foto som måste bort tas bort
+    med *Bilder bort* på utkastet FÖRE skrivningen (samma etikett i `bilder-bort.tsv`, torrkörning
+    och bekräftad skarp körning, 40 sekunder var), medan ett olänkat foto stryks i planen.
+    Strykningen får inte lämna ett val under fem bilder, så de två duschset som bara hade en
+    bild att välja bort hölls i stället (varje färg har sex bilder, varav en är miljöfotot och
+    en handduschens närbild som båda har). Samma rullfoto kan stå två gånger på en sida (en med
+    ett litet underlägg i hörnet): strykningen valde den med underlägget. Utfallet står i
+    `tools/polish-gates/FLAGGADE-VEVOR.md` (rx).

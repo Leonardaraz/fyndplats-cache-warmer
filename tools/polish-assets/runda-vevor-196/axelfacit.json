@@ -1,0 +1,24 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "57565917": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "75668ddd": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "8659b09f": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "9cde7c86": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Image: package content and drawing: 1 x 3.5 CFM Vacuum Pump; 1 x 5 Gallon Vacuum Chamber; 1 x Tempered Glass Chamber Cover; 1 x Connection Hose of 1.5m; 1 x Vacuum Meter; 1 x Bottle of Pump Oil; 1 x Silicone Pad; 1 x User Manual; the pump is 11.4 in / 290 mm long, 4.7 in / 120 mm wide and 8.7 in / 220 mm high; the chamber is 11.8 in / 300 mm in diameter and 12 in / 305 mm high. Specification: Free Air Flow 100 LPM; Ultimate Vacuum 5 Pa; Intake Fitting 1/4 in SAE male; Speed 1440 PRM (not written, see above); Voltage/Frequency 220-240 V/50 Hz; Power 150 W, 1/5 HP; Oil Capacity 250 ml; Net Weight 11.54 kg; Chamber Dimensions (diameter x height) 300 x 305 mm; Pump Dimensions 290 x 120 x 220 mm. The listing's bullet says the chamber holds 23 liters, but the title and the package list say 5 gallons, which is 18.9 L, so the lower 18.9 L is written. Unit conversions: 3.5 CFM is about 100 l/min; 5 gallon is 18.9 L; 11.4 in is 290 mm; 4.7 in is 120 mm; 8.7 in is 220 mm; 11.8 in is 300 mm; 12 in is 305 mm; 1/5 HP is 150 W"
+ },
+ "adf02bb2": {
+  "tyska": "",
+  "svenska": ""
+ }
+}

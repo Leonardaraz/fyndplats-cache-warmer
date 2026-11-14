@@ -1,0 +1,61 @@
+{
+  "60d50a6e": {
+    "productId": "60d50a6e-2e05-4e1c-9f2b-e46c12ddf952",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "ec41c15b": {
+    "productId": "ec41c15b-a8af-4480-aea3-3b689aa705f3",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1f8qyde",
+        "betyg": 5,
+        "datum": "2026-07-14",
+        "kopt": "2 × 2 × 1,6 m",
+        "foton": 0,
+        "text": "Parfait - Envoi rapide - Bien emballé - Tout c'est bien passè - Correspond a la description - Merci beaucoup."
+      },
+      {
+        "id": "gen-zulyj1",
+        "betyg": 5,
+        "datum": "2026-04-27",
+        "kopt": "2 × 2 × 1,6 m",
+        "foton": 0,
+        "text": "This unit was very easy to set up and put to use in a very short time. It is very convenient to move for yard work and clean up if necessary."
+      },
+      {
+        "id": "gen-3rx75o",
+        "betyg": 5,
+        "datum": "2026-02-01",
+        "kopt": "2 × 2 × 1,6 m",
+        "foton": 0,
+        "text": "Customer service replied fast and solved all my doubts clearly. Very pleasant shopping experience."
+      },
+      {
+        "id": "gen-1orz7fh",
+        "betyg": 5,
+        "datum": "2026-01-16",
+        "kopt": "2,3 × 2,3 × 2,15 m",
+        "foton": 0,
+        "text": "Smooth logistics process, fast delivery and real-time parcel tracking all the way."
+      },
+      {
+        "id": "gen-1mfzl0k",
+        "betyg": 3,
+        "datum": "2026-09-15",
+        "kopt": "2,3 × 2,3 × 2,15 m",
+        "foton": 0,
+        "text": "Just received it today and started assembling it was abit dissapointed as pipes were bent a little and it was hard to assemble as there was some damage"
+      }
+    ]
+  }
+}

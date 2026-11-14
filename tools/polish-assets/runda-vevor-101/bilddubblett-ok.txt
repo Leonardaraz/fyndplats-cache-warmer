@@ -1,0 +1,2 @@
+# kort pos1 pos2 skäl (kvitterar ett par som gate-bilddubblett.py flaggar men som visar något olika)
+37ed711b 4 5 olika vyer: VEVOR:s position 10 visar hela verktyget från sidan med kilens kant i profil, och position 11 är en närbild snett framifrån på hylsan och kilens plana yta
