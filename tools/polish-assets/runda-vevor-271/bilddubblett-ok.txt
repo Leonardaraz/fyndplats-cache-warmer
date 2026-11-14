@@ -1,0 +1,15 @@
+# Kvitterade par i runda-vevor-271 (bedömda sida vid sida med ögonen)
+0b3416b3:1 e3ecab02:1 olika verktyg: 0b3416b3 har ett litet svart huvud med hjul och kattklo medan e3ecab02 har ett ledat gult plåthuvud, och skaften ser lika ut från samma vinkel
+0b3416b3:1 e3ecab02:7 olika verktyg: 0b3416b3 har ett litet svart huvud med hjul och kattklo medan e3ecab02 har ett ledat orange plåthuvud, och skaften ser lika ut från samma vinkel
+0b3416b3:5 e3ecab02:4 olika verktyg: 0b3416b3 har ett litet svart huvud med hjul och kattklo medan e3ecab02 har ett ledat gult plåthuvud, och skaften ser lika ut från samma vinkel
+0b3416b3:6 e3ecab02:11 olika verktyg: 0b3416b3 har ett litet svart huvud med hjul och kattklo medan e3ecab02 har ett ledat orange plåthuvud, och skaften ser lika ut från samma vinkel
+0b3416b3:6 e3ecab02:5 olika verktyg: 0b3416b3 har ett litet svart huvud med hjul och kattklo medan e3ecab02 har ett ledat gult plåthuvud, och skaften ser lika ut från samma vinkel
+da57b20b 7 8 samma rullfoto med olika längdetikett (2465 respektive 1848 mm), och var och en är den längdens egen bild
+b38eaf68 1 7 länkad dubblett (givarens kopia av artikel 1:s foto) som tas bort med Bilder bort efter skrivningen
+b38eaf68 4 9 länkad dubblett (givarens kopia av artikel 1:s foto) som tas bort med Bilder bort efter skrivningen
+b38eaf68 5 10 länkad dubblett (givarens kopia av artikel 1:s foto) som tas bort med Bilder bort efter skrivningen
+e3ecab02 1 7 samma vy i gult och orange, och varje bild ägs av sin färg
+e3ecab02 3 9 samma vy i gult och orange, och varje bild ägs av sin färg
+e3ecab02 4 10 samma vy i gult och orange, och varje bild ägs av sin färg
+e3ecab02 5 11 samma vy i gult och orange, och varje bild ägs av sin färg
+e3ecab02 6 12 samma närbild av handtaget i gult och orange, och varje bild ägs av sin färg
