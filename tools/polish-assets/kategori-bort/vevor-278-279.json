@@ -1,0 +1,29 @@
+{
+ "namn": "vevor-278-279",
+ "rader": [
+  {
+   "kort": "69babca5",
+   "pid": "69babca5-ed3a-4460-8b58-697564fe1f4d",
+   "bort": [
+    "Bygg & Renovering > Beslag & järnvaror",
+    "Bygg & Renovering"
+   ],
+   "behall": [
+    "Företag & Proffs",
+    "Företag & Proffs > Butik, evenemang & trafik"
+   ]
+  },
+  {
+   "kort": "cea58073",
+   "pid": "cea58073-ab74-4751-b82e-5226e5b01b8b",
+   "bort": [
+    "Barn & Familj > Leksaker & Spel",
+    "Barn & Familj"
+   ],
+   "behall": [
+    "Sport & Fritid",
+    "Sport & Fritid > Hobby & musik"
+   ]
+  }
+ ]
+}
