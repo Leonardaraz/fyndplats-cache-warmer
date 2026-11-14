@@ -1,0 +1,6 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (Pusselområdets mått, Lådmått och Produktmått) saknar axelord, och sidan skriver bordets mått och höjd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (Pusselområdets mått, Lådmått och Produktmått) saknar axelord, och sidan skriver bordets mått och höjd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Storlek (Queen) är ett storleksnamn utan axelord, och sidan skriver skivans längd och bredd efter måttbildens ritning
