@@ -86,13 +86,83 @@ describe("betalsätten och vem som tar dem", () => {
     // alla betalsätt (provet ovan).
     assert.match(sida, /<a className="uspitem" href="\/kopvillkor"><svg[^]*?<\/svg>Trygg Klarna-betalning<\/a>/);
     // Kommer ett kort om betalningen tillbaka ska det räkna upp alla betalsätt.
+    // Kredit nämns inte (provet om CCD2 nedan).
     for (const kort of sida.matchAll(/<h3>Trygg betalning<\/h3><p>([^<]*)<\/p>/g)) {
-      assert.match(kort[1], /^Kort, Apple Pay, Google Pay eller Klarna med faktura och delbetalning/);
+      assert.match(kort[1], /^Kort, Apple Pay, Google Pay eller Klarna\b/);
     }
   });
 
   it("kassan och villkoren räknar upp samma betalsätt", () => {
     // Kassans egen rad under betalfältet (app/kassa/kassa.tsx).
     assert.match(las("app", "kassa", "kassa.tsx"), /"Kort, Apple Pay, Google Pay eller Klarna, krypterat via Stripe\."/);
+  });
+});
+
+/** Alla .md under katalogen. */
+function markdown(katalog: string): string[] {
+  const ut: string[] = [];
+  for (const namn of readdirSync(join(rot, katalog))) {
+    const sokvag = join(katalog, namn);
+    if (statSync(join(rot, sokvag)).isDirectory()) ut.push(...markdown(sokvag));
+    else if (namn.endsWith(".md")) ut.push(sokvag);
+  }
+  return ut;
+}
+
+/** Källan utan kommentarer: en förklaring får nämna det förbjudna, sidan får inte. */
+export function utanKommentarer(kallkod: string): string {
+  return kallkod
+    .replace(/\/\*[\s\S]*?\*\//g, "") // block, också {/* … */} i JSX
+    .replace(/(^|[^:"'`\\])\/\/.*$/gm, "$1"); // radkommentarer, inte https://
+}
+
+describe("Klarnas kredit nämns bara med Klarnas egna ord (CCD2 från 2026-11-20)", () => {
+  // Klarnas riktlinjer för Sverige, som Stripes Klarna-sida länkar till
+  // (docs.klarna.com/acquirer/klarna/resources/marketing-tools/partner-marketing-legal-guidelines/sweden/):
+  // text om att betala senare, om 30 dagar eller med delbetalning är
+  // kreditreklam. Den kräver Klarnas exakta ordalydelse, riskvarningen "Att
+  // låna kostar pengar!" lika framträdande och direkt intill, och ett exempel
+  // med effektiv ränta. "Räntefritt" får aldrig läggas till. Butikens egna
+  // texter säger därför bara "Betala med Klarna" eller räknar upp Klarna bland
+  // betalsätten. Klarnas egen ruta (klarna-osm.tsx) och Stripes betalfält
+  // uppdateras av Klarna och Stripe och står inte i källan.
+  //
+  // Mejlen (emails/) läses inte: de är besked om ett köp, inte reklam.
+  const KREDIT = [
+    /räntefri/i,
+    /\bbetala(?:r)?\s+(?:senare|sen|sedan)\b/i,
+    /\bbetala\b[^.!?\n"]{0,30}\bsenare\b/i, // "betala direkt, senare eller …"
+    /\bbetala(?:r)?\s+(?:om|inom)\s+\d+\s+dagar/i,
+    /dagar på dig att betala/i,
+    /delbetal/i,
+    /\bdela upp\s+(?:betalningen|köpet|beloppet)/i,
+    /\bKlarna\b[^.!?\n"]{0,60}\bfaktura|\bfaktura\b[^.!?\n"]{0,60}\bKlarna\b/i,
+    /\bpay (?:later|in \d)\b/i,
+  ];
+
+  it("ingen sida, komponent, text i lib/ eller blogginlägg nämner Klarnas kredit", () => {
+    const kod = [...filer("app"), ...filer("components"), ...filer("lib")];
+    const md = markdown(join("content", "blog"));
+    assert.ok(kod.length > 300 && md.length > 20, `bara ${kod.length} källfiler och ${md.length} inlägg lästa`);
+    const traffar: string[] = [];
+    for (const fil of [...kod, ...md]) {
+      const text = readFileSync(join(rot, fil), "utf8");
+      const synlig = fil.endsWith(".md") ? text : utanKommentarer(text);
+      for (const monster of KREDIT) {
+        const m = synlig.match(monster);
+        if (m) traffar.push(`${fil}: ${JSON.stringify(m[0])}`);
+      }
+    }
+    assert.deepEqual(traffar, []);
+  });
+
+  it("produktsidans rad och toppremsan säger Klarnas allmänna text", () => {
+    assert.match(las("components", "klarna-message.tsx"), /<span><strong>Betala med Klarna<\/strong><\/span>/);
+    assert.match(las("components", "site.tsx"), /· Betala med <b className="klarna-mark">Klarna<\/b>/);
+  });
+
+  it("kommentarerna tas bort, men inte en adress", () => {
+    assert.equal(utanKommentarer('a("https://klarna.com") // betala senare'), 'a("https://klarna.com") ');
+    assert.equal(utanKommentarer("x /* räntefritt */ y {/* delbetalning */}"), "x  y {}");
   });
 });

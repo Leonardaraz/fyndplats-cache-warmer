@@ -60,7 +60,7 @@ export async function SiteHeader() {
       <aside className="promo" aria-label="Frakt och betalning">
         <div className="container promorow">
           <ProfilRemsa>
-            <span className="promotext"><span className="promo-ikon" aria-hidden="true">🚚 </span>Fri frakt över <b>499 kr</b> · Betala smidigt med <b className="klarna-mark">Klarna</b></span>
+            <span className="promotext"><span className="promo-ikon" aria-hidden="true">🚚 </span>Fri frakt över <b>499 kr</b> · Betala med <b className="klarna-mark">Klarna</b></span>
           </ProfilRemsa>
           <Social className="promo-social" />
         </div>

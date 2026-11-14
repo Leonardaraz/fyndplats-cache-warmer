@@ -59,7 +59,7 @@ const ARENDEN: Arende[] = [
   {
     ikon: Ikon.betalning,
     rubrik: "Betalning",
-    text: "Betala tryggt med kort, Apple Pay, Google Pay eller Klarna. Med Klarna betalar du direkt, mot faktura eller med delbetalning.",
+    text: "Betala tryggt med kort, Apple Pay, Google Pay eller Klarna.",
     lankar: [{ href: "/kopvillkor", text: "Betalning i köpvillkoren" }],
   },
   {

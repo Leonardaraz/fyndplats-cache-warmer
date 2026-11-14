@@ -1936,6 +1936,32 @@ efter svaret; nätet tar det som faller.
 - Används en begränsad nyckel i Stripe behöver den: PaymentIntents (skriva),
   Charges (läsa), Refunds (skriva) och Disputes (läsa).
 
+### ☠️ Klarnas kredit nämns bara med Klarnas egna ord (CCD2, 2026-11-20)
+
+Stripe mejlade 2026-11-14: från 2026-11-20 gäller det nya
+konsumentkreditdirektivet, och egen marknadsföring av Klarnas kredit ska
+använda Klarnas förgodkända text med alla upplysningar. Klarnas riktlinjer för
+Sverige (docs.klarna.com/acquirer/klarna/resources/marketing-tools/partner-marketing-legal-guidelines/sweden/,
+länkade från Stripes Klarna-sida):
+
+- Text om att betala senare, om 30 dagar eller med delbetalning är
+  kreditreklam. Den får bara stå i Klarnas exakta ordalydelse och kräver
+  riskvarningen "Att låna kostar pengar!" med röd triangel, lika framträdande
+  och direkt intill, och ett exempel med effektiv ränta.
+- "Räntefritt", en ränta eller ett månadsbelopp får aldrig läggas till.
+- "Betala med Klarna" och "Klarna tillgänglig" nämner bara Klarna som
+  betalsätt och behöver ingenting. Det gör inte heller en uppräkning som "kort,
+  Apple Pay, Google Pay eller Klarna".
+
+Butikens egna texter nämner därför ingen kredit: produktsidans rad och
+toppremsan säger "Betala med Klarna", och vanliga frågor, köpvillkoren, om
+oss, kundtjänst och bloggen räknar upp Klarna bland betalsätten. Klarnas egen
+ruta (OSM) och Stripes betalfält uppdateras av Klarna och Stripe.
+`lib/betalningstext.test.ts` fäller kredittext i app/, components/, lib/ och
+blogginläggen (kommentarer räknas inte). Mejlen är besked om ett köp och läses
+inte. Vill Leonard ändå visa "Handla nu. Betala senare med Klarna." krävs
+varningen och exemplet på samma ställe, och det är ett eget beslut.
+
 ### Klarna-rutan på produktsidan (2026-11-06)
 
 Klarnas egen ruta (OSM, `components/klarna-osm.tsx`) visar villkoren i
@@ -1943,8 +1969,7 @@ Leonards Klarna-avtal, som gäller i Wix kassa: "Betala inom 30 eller 60 dagar"
 och delbetalning i 3–24 månader. I Stripe-kassan gäller Stripes Klarna (30
 dagar och Stripes delbetalning). När Stripe-kassan är på för alla (växeln
 `pa` och Stripes hemliga nyckel) visar sidan därför vår egen rad ("Betala
-senare – räntefritt med Klarna", sann i båda), och Klarnas skript (0,8 MB)
-laddas inte (`klarnaRuta`, `/api/kassa/klarna`, `lib/use-klarna-ruta.ts`).
+med Klarna", sann i båda), och Klarnas skript (0,8 MB) laddas inte (`klarnaRuta`, `/api/kassa/klarna`, `lib/use-klarna-ruta.ts`).
 Svaret är detsamma för alla och cachas fem minuter i kanten; utan Stripes
 publika nyckel i bygget frågar sidan ingenting och allt är som förut. Vill
 Leonard visa Stripes egen Klarna-ruta (Payment Method Messaging, villkoren och

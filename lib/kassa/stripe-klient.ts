@@ -225,7 +225,7 @@ export const RAM_VANTA_MS = 1000;
  * inom 30 eller 60 dagar" och delbetalning i 3–24 månader. I Stripe-kassan
  * betalar kunden med Stripes Klarna, som har andra villkor (30 dagar och
  * Stripes delbetalning). När Stripe-kassan är på för alla visar sidan därför
- * vår egen rad (components/klarna-message.tsx: "Betala senare – räntefritt"),
+ * vår egen rad (components/klarna-message.tsx: "Betala med Klarna"),
  * som stämmer i båda, och Klarnas skript laddas inte. Provläget ändrar inget
  * för vanliga kunder, så där står OSM kvar.
  */
