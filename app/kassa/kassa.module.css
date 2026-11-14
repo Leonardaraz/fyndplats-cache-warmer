@@ -1050,6 +1050,15 @@
   background-image: linear-gradient(90deg, #000 25%, #2f2f2f 50%, #000 75%);
 }
 
+/* Med minskad rörelse står skimmern still (regeln längre ned), och en stilla
+   toning från svart till grått ser ojämn ut: då är platshållaren helsvart. */
+@media (prefers-reduced-motion: reduce) {
+  :global(html[data-planbok="google"]) .snabbSkelett {
+    background-image: none;
+    background-color: #000;
+  }
+}
+
 .snabbKod {
   margin: 10px 0 0;
   font-size: var(--text-sm);

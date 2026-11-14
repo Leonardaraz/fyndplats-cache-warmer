@@ -380,6 +380,8 @@ test("Stripes knapp tonar fram över platshållaren: inget vitt blink när Strip
   assert.ok(google, "platshållaren för Google Pay saknas");
   assert.match(google[1], /background-image: linear-gradient\(90deg, #000 /);
   assert.doesNotMatch(google[1], /background:|height|inset|bottom|animation/);
+  // Med minskad rörelse står skimmern still: då helsvart, inte en stilla toning.
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{\s*:global\(html\[data-planbok="google"\]\) \.snabbSkelett \{\s*background-image: none;\s*background-color: #000;\s*\}\s*\}/);
   assert.equal(SNABB_HOJD, 52);
   assert.match(css, /\.snabbYta \{[^}]*min-height: 52px;/);
 });
