@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad, och sidan skriver fräsens höjd och bredd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad, och sidan skriver fräsens höjd och bredd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad, och sidan skriver fräsens höjd och bredd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Sitsmått) saknar axelord, och sidan skriver sitsens längd, bredd och tjocklek efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Storlek på enkelkort) saknar axelord, och sidan skriver skyddets längd, bredd och höjd efter måttbildens ritning
