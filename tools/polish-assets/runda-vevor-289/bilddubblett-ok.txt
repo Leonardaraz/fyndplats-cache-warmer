@@ -1,5 +1,5 @@
 # Par som grinden mäter som samma form men som visar olika längder av samma kniv (varje längd har sitt eget foto på en vit botten med varan i full bredd): kontrollerat med ögonen på kontaktark 2026-11-14.
-59691368 1 10 olika längd: 813 mm och 1016 mm, bladet upprätt, olika förhållande mellan bredd och höjd
+59691368 3 10 olika längd: 813 mm och 1016 mm, bladet upprätt, olika förhållande mellan bredd och höjd
 59691368 5 8 olika längd: 813 mm och 610 mm, sedd från långsidan
 59691368 5 14 olika längd: 813 mm och 1016 mm, sedd från långsidan
 59691368 8 14 olika längd: 610 mm och 1016 mm, sedd från långsidan
@@ -7,7 +7,7 @@
 59691368 6 15 olika längd: 813 mm och 1016 mm, sedd från änden
 59691368 9 15 olika längd: 610 mm och 1016 mm, sedd från änden
 # Par som stryks efter skrivningen med Bilder bort (länkade bilder kan inte tas bort i själva skrivningen): se u289a.py, LANKAD.
-59691368 3 4 stryks efter skrivningen: samma foto från samma vinkel
+59691368 1 4 stryks efter skrivningen: samma foto från samma vinkel
 59691368 12 13 stryks efter skrivningen: samma foto från samma vinkel
-f9641a18 3 5 stryks efter skrivningen: samma foto från samma vinkel
+f9641a18 1 5 stryks efter skrivningen: samma foto från samma vinkel
 f9641a18 8 10 stryks efter skrivningen: samma foto från samma vinkel
