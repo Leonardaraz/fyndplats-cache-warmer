@@ -372,16 +372,37 @@ test("Stripes knapp tonar fram över platshållaren: inget vitt blink när Strip
   assert.ok(apple, "Safari-platshållaren saknas");
   assert.match(apple[1], /bottom: auto;/);
   assert.match(apple[1], /height: 50px;/);
-  // Google Pay: Stripes knapp är svart, 52 px hög och fyller hela platsen med
-  // 10 px hörn (uppmätt i ramen 2026-11-14). Platshållaren är därför svart i
-  // samma mått: bara knappens text tonar fram. Bara bilden byts, så att
-  // skimmerns storlek och rörelse står kvar.
+  // Google Pay: Stripes knapp är svart och 52 px hög, med en grå kant som är en
+  // punkt bred och inte helt tät (uppmätt i fyrdubbel förstoring 2026-11-14).
+  // Platshållaren ligger en punkt innanför platsen, helt under knappens svarta
+  // yta: låg den under kanten syntes den igenom, och kanten ljusnade när
+  // platshållaren togs bort två sekunder senare. Med 11 px hörn ändras ingen
+  // bildpunkt mer än 2 nivåer av 255 vid borttagningen (9 px: 28 bildpunkter).
   const google = /\n:global\(html\[data-planbok="google"\]\) \.snabbSkelett \{([^}]*)\}/.exec(css);
   assert.ok(google, "platshållaren för Google Pay saknas");
-  assert.match(google[1], /background-image: linear-gradient\(90deg, #000 /);
-  assert.doesNotMatch(google[1], /background:|height|inset|bottom|animation/);
-  // Med minskad rörelse står skimmern still: då helsvart, inte en stilla toning.
-  assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{\s*:global\(html\[data-planbok="google"\]\) \.snabbSkelett \{\s*background-image: none;\s*background-color: #000;\s*\}\s*\}/);
+  assert.match(google[1], /inset: 1px;/);
+  assert.match(google[1], /border-radius: 11px;/);
+  assert.match(google[1], /overflow: hidden;/);
+  assert.match(google[1], /background: #000;/);
+  // Skimmern ligger i ::after, så att den kan tona ut när Stripe svarar. På
+  // själva platshållaren byttes rörelsen mot borttagningens i samma ögonblick,
+  // och det ljusa bandet hoppade till kanten och stod stilla under knappen.
+  assert.match(google[1], /animation: none;/);
+  assert.doesNotMatch(google[1], /height|bottom|linear-gradient/);
+  const skimmer = /\n:global\(html\[data-planbok="google"\]\) \.snabbSkelett::after \{([^}]*)\}/.exec(css);
+  assert.ok(skimmer, "skimmern för Google Pay saknas");
+  assert.match(skimmer[1], /content: "";/);
+  assert.match(skimmer[1], /background: linear-gradient\(90deg, rgba\(47, 47, 47, 0\) 25%, #2f2f2f 50%, rgba\(47, 47, 47, 0\) 75%\);/);
+  assert.match(skimmer[1], /animation: skimmer 1\.2s linear infinite;/);
+  assert.match(skimmer[1], /transition: opacity 0\.15s ease;/);
+  assert.match(css, /\n:global\(html\[data-planbok="google"\]\) \.snabb\[data-snabb="redo"\] \.snabbSkelett::after \{\s*opacity: 0;\s*\}/);
+  // Borttagningen gäller fortfarande Google-platshållaren: regeln för läget redo
+  // väger tyngre (tre klasser) än Google-regeln (två och ett element), så
+  // "animation: none" där stänger inte av den.
+  assert.ok(css.indexOf('.snabb[data-snabb="redo"] .snabbSkelett {') >= 0 && !/html\[data-planbok="google"\]\) \.snabb\[data-snabb="redo"\] \.snabbSkelett \{/.test(css));
+  // Med minskad rörelse finns ingen skimmer alls: helsvart, inte en stilla toning.
+  const stilla = css.indexOf('@media (prefers-reduced-motion: reduce) {\n  :global(html[data-planbok="google"]) .snabbSkelett::after {\n    content: none;\n  }\n}');
+  assert.ok(stilla > css.indexOf(':global(html[data-planbok="google"]) .snabbSkelett::after {'), "regeln för minskad rörelse saknas eller står före skimmern");
   assert.equal(SNABB_HOJD, 52);
   assert.match(css, /\.snabbYta \{[^}]*min-height: 52px;/);
 });

@@ -1041,21 +1041,50 @@
 }
 
 /* Google Pay (Chrome och andra webbläsare utanför Apples): platshållaren är
-   svart som Stripes knapp, som är 52 px hög och fyller hela platsen med 10 px
-   hörn (uppmätt inne i ramen 2026-11-14, buy och black). När Stripes knapp
-   tonar fram över den syns bara texten komma, inte ett byte från grått till
-   svart. Skimmern går kvar, så att rutan läses som något som laddar. Bara
-   bilden byts: storlek och rörelse ärvs från .snabbSkelett. */
+   svart som Stripes knapp (buy och black), så att bara knappens text tonar
+   fram, inte ett byte från grått till svart.
+
+   Två saker är mätta i en skärmfilm, ruta för ruta, och i fyrdubbel
+   förstoring (2026-11-14):
+
+   1. Googles knapp har en grå kant, en punkt bred, runt hela knappen, och den
+      är inte helt tät. Låg platshållaren under kanten syntes den igenom: kanten
+      var mörkgrå i två sekunder och ljusnade när platshållaren togs bort (595
+      av 9 216 bildpunkter i ett hörn bytte färg, upp till 165 nivåer av 255).
+      Platshållaren ligger därför en punkt innanför platsen: helt under
+      knappens svarta yta. Hörnet är 11 px, inte 9: med 9 px följde bågen
+      kantens insida och syntes igenom den i 28 bildpunkter, med 11 px ändras
+      ingen bildpunkt mer än 2 nivåer när platshållaren tas bort.
+   2. Skimmern ligger i ::after och tonar ut när Stripe svarar. Förut byttes
+      rörelsen mot borttagningens i samma ögonblick, och det ljusa bandet
+      hoppade till höger kant och stod stilla där under knappen. */
 :global(html[data-planbok="google"]) .snabbSkelett {
-  background-image: linear-gradient(90deg, #000 25%, #2f2f2f 50%, #000 75%);
+  inset: 1px;
+  border-radius: 11px;
+  overflow: hidden;
+  background: #000;
+  animation: none;
 }
 
-/* Med minskad rörelse står skimmern still (regeln längre ned), och en stilla
-   toning från svart till grått ser ojämn ut: då är platshållaren helsvart. */
+:global(html[data-planbok="google"]) .snabbSkelett::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(47, 47, 47, 0) 25%, #2f2f2f 50%, rgba(47, 47, 47, 0) 75%);
+  background-size: 200% 100%;
+  animation: skimmer 1.2s linear infinite;
+  transition: opacity 0.15s ease;
+}
+
+:global(html[data-planbok="google"]) .snabb[data-snabb="redo"] .snabbSkelett::after {
+  opacity: 0;
+}
+
+/* Med minskad rörelse står skimmern still, och en stilla toning från svart
+   till grått ser ojämn ut: då är platshållaren helsvart. */
 @media (prefers-reduced-motion: reduce) {
-  :global(html[data-planbok="google"]) .snabbSkelett {
-    background-image: none;
-    background-color: #000;
+  :global(html[data-planbok="google"]) .snabbSkelett::after {
+    content: none;
   }
 }
 

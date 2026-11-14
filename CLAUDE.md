@@ -2181,12 +2181,33 @@ BankID ska användas).
   ritningen. Den tar inga tryck. Stripes Apple Pay-knapp är 50 px hög
   (inline-stil i ramen) fast `buttonHeight` är 52, uppmätt 2026-11-08.
 - **Platshållaren för Google Pay är svart** (`html[data-planbok="google"]
-  .snabbSkelett`): Stripes Google Pay-knapp är svart, 52 px hög och fyller
-  hela platsen med 10 px hörn (uppmätt inne i ramen 2026-11-14; knappens egen
-  ram är 6 px bredare men genomskinlig i kanten). När knappen tonar fram över
-  platshållaren syns bara texten komma. ☠️ Regeln byter bara
-  `background-image`: `background` hade nollat skimmerns storlek. Den grå
-  skimmern finns kvar som grundval, när skriptet inte har satt något.
+  .snabbSkelett`), så att bara knappens text tonar fram. Den grå skimmern finns
+  kvar som grundval, när skriptet inte har satt något.
+- ☠️ **Googles knapp har en grå kant som inte är helt tät** (Leonard
+  2026-11-14: "Se till att google pay inte har visuella buggar som apple pay
+  hade"). Mätt i en skärmfilm, ruta för ruta, och i fyrdubbel förstoring:
+  - Kanten är en punkt bred runt hela knappen. Låg platshållaren under den
+    syntes den igenom: kanten var mörkgrå i två sekunder och ljusnade när
+    platshållaren togs bort (595 av 9 216 bildpunkter i ett hörn, upp till 165
+    nivåer av 255). Det är samma slags fel som Apple Pays två punkter.
+  - Platshållaren ligger därför en punkt innanför platsen (`inset: 1px`), med
+    11 px hörn. Med 9 px följde bågen kantens insida och syntes igenom i 28
+    bildpunkter. Med 11 px ändras ingen bildpunkt mer än 2 nivåer.
+  - **Skimmern ligger i `::after` och tonar ut på 0,15 s när Stripe svarar.**
+    På själva platshållaren byttes rörelsen mot borttagningens i samma
+    ögonblick, och det ljusa bandet hoppade till höger kant och stod stilla
+    där under knappen.
+  - ☠️ Regeln för läget `redo` (tre klasser) ska väga tyngre än Google-regeln:
+    annars stänger `animation: none` av borttagningen.
+  - Filmen: `film.cjs` (CDP screencast, varje ritad ruta, mörkt och ljust i
+    knappens inre, kanten för sig). Hörnen: `horn.cjs` (tre lägen i fyrdubbel
+    skala). ☠️ Pausa aldrig platshållarens rörelse i ett prov utan att
+    begränsa pausen till läget `laddar`: borttagningen är en rörelse på samma
+    element, och provet visade då aldrig knappen ensam.
+  - Mätt efter rättelsen, i Chromium på dator och i Android-läge: platsen
+    svart från kassans första ritade ruta, ingen ljus blinkning, varje ruta
+    lika från 0,8 s efter svaret, platsen och formuläret stilla.
+  - Inte mätt: en riktig Android-telefon, Firefox, och knappen i mörkt läge.
 - ☠️ **Stripes knapp tonar in EFTER `ready`** (Leonard 2026-11-08: "flimrar
   det till ett ögonblick"). Uppmätt inne i Stripes ram: vyn
   `.p-ExpressCheckoutView` läggs in runt svaret (upp till 150 ms efter) och
