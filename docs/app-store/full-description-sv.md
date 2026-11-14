@@ -28,7 +28,7 @@ Sortimentet uppdateras löpande med nya fynd – öppna appen ofta så missar du
 nyheter.
 
 **Tryggt att handla**
-• **Klarna** – betala direkt, senare eller dela upp betalningen
+• **Betala med Klarna**, kort, Apple Pay eller Google Pay
 • **Fri frakt** på alla beställningar över 499 kr
 • **30 dagars öppet köp** – ångrar du dig är det enkelt att skicka tillbaka
 • **Svensk kundtjänst** som svarar på svenska och hjälper dig hela vägen
@@ -38,7 +38,7 @@ nyheter.
 • **Bläddra** smidigt bland alla kategorier och utvalda fynd
 • **Sök** snabbt efter precis det du letar efter
 • **Kundvagn** som följer med dig mellan besök
-• **Klarna-betalning** direkt i kassan – smidigt och säkert
+• **Betala med Klarna** direkt i kassan
 • **Push-notiser** när det kommer nya fynd, kampanjer och när din vara åter finns
   i lager
 • **Orderspårning** – följ din leverans från beställning till dörr

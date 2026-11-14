@@ -69,7 +69,7 @@ const LOFTEN = [
   {
     ikon: Ikon.klarna,
     rubrik: "Trygg betalning",
-    text: "Kort, Apple Pay, Google Pay eller Klarna: betala direkt, senare eller dela upp köpet. Återbetalningar går alltid tillbaka till samma betalsätt.",
+    text: "Kort, Apple Pay, Google Pay eller Klarna. Återbetalningar går alltid tillbaka till samma betalsätt.",
     lank: { href: "/kopvillkor", text: "Köpvillkor" },
   },
   {

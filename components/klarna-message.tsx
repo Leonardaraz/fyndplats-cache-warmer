@@ -1,29 +1,21 @@
-// "Betala senare – räntefritt med Klarna" under priset på produktsidan.
+// "Betala med Klarna" under priset på produktsidan.
 //
-// VIKTIGT (verifierat mot Fyndplats Klarna-kassa 2026-06, payments.klarna.com):
-//   • Klarnas MÅNADSFAKTURA (betala hela beloppet inom ~30 dagar) = 0 kr ränta → räntefri.
-//   • Klarnas DELBETALNING (3 resp. 6 betalningar) = 21,90 % effektiv ränta → INTE räntefri.
-// Därför får vi ALDRIG kalla delbetalningen "räntefri" eller visa ett "räntefritt
-// månadsbelopp" — det vore ett felaktigt (och reglerat) kreditpåstående. Vi leder
-// i stället med den ärligt räntefria fakturaoptionen (Klarnas "Betala senare").
-//
-// INGET DAGANTAL I VÅR EGEN RAD (2026-08-27). Raden sa tidigare "Betala inom 30
-// dagar". Det var sant i vissa beloppsband men fel i andra: Klarnas eget API
-// svarar "Betala inom 30 dagar" ELLER "Betala inom 60 dagar" beroende på belopp
-// (mätt 2026-08-26 mot js.klarna.com för 99, 789, 2 579, 9 999 och 25 000 kr).
-//
-// Att skriva 30 underskattade alltså erbjudandet i 60-banden, och att skriva 60
-// hade varit direkt falskt i 30-banden. Vi kan inte veta bandet här — det avgörs
-// av Klarna per köp och kund — så vi anger inget antal alls. "Betala senare" är
-// Klarnas eget namn på betalsättet och är sant i alla band.
-//
-// Det exakta dagantalet visas ändå: OSM-widgeten hämtar det från Klarna och tar
-// över den här raden när den laddat (se klarna-osm.tsx). Vår rad är fallback och
-// höjdhållare, och en fallback ska inte påstå mer än den kan veta.
-//
-// Inget externt script (snabbt + integritetsvänligt). Vill man visa exakta
-// delbetalnings-/månadsbelopp MÅSTE det göras via Klarnas officiella On-Site Messaging-
-// widget (som hämtar de verkliga villkoren inkl. ränta/representativt exempel).
+// ☠️ BARA KLARNAS ALLMÄNNA TEXT, ALDRIG KREDIT (2026-11-14). Från 2026-11-20
+// gäller det nya konsumentkreditdirektivet (CCD2), och Stripe mejlade alla
+// handlare med Klarna i EU om det. Klarnas riktlinjer för Sverige
+// (docs.klarna.com/acquirer/klarna/resources/marketing-tools/partner-marketing-legal-guidelines/sweden/,
+// länkade från Stripes Klarna-sida) säger:
+//   • Text som nämner att betala senare, om 30 dagar eller delbetalning är
+//     kreditreklam. Den får bara stå i Klarnas exakta ordalydelse och ska ha
+//     riskvarningen "Att låna kostar pengar!" med röd triangel, lika
+//     framträdande och direkt intill, och ett exempel med effektiv ränta.
+//   • Lägg aldrig till "räntefritt", en ränta eller ett månadsbelopp.
+//   • "Betala med Klarna" och "Klarna tillgänglig" nämner bara Klarna som
+//     betalsätt och behöver varken varning eller exempel.
+// Raden sa förut "Betala senare – räntefritt med Klarna" och hade alltså fallit
+// på båda punkterna. Ändra inte orden här (Klarnas regel), och skriv aldrig in
+// dagar, ränta eller belopp. Klarnas egen ruta (klarna-osm.tsx) uppdateras av
+// Klarna och får visa villkoren; den här raden är dess reserv och höjdhållare.
 //
 // MÄRKET (bytt 2026-08-26): tidigare /payments/klarna.svg — bara "K."-glyfen i ett
 // litet rosa chip, 28×22. Nu Klarnas riktiga bricka i 72×30: samma fil (deras
@@ -37,8 +29,8 @@ export function KlarnaMessage({ priceNum }: { priceNum: number }) {
   if (!priceNum || priceNum <= 0) return null;
   return (
     <div className="klarna-msg">
-      <img src="/payments/klarna-badge.svg" alt="Klarna" width={72} height={30} />
-      <span><strong>Betala senare</strong> – räntefritt med Klarna</span>
+      <img src="/payments/klarna-badge.svg" alt="" width={72} height={30} />
+      <span><strong>Betala med Klarna</strong></span>
     </div>
   );
 }

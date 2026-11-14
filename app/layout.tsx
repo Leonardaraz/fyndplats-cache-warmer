@@ -104,7 +104,7 @@ const orgJsonLd = {
   },
   areaServed: { "@type": "Country", name: "Sweden" },
   currenciesAccepted: "SEK",
-  paymentAccepted: ["Klarna", "Faktura", "Delbetalning", "Visa", "Mastercard", "American Express", "Direktbetalning via bank", "Apple Pay", "Google Pay"],
+  paymentAccepted: ["Klarna", "Visa", "Mastercard", "American Express", "Direktbetalning via bank", "Apple Pay", "Google Pay"],
   vatID: "SE950914403701",  // enskild firma — SE + org.nr (utan bindestreck) + 01
   sameAs: [
     // Google Business Profile — kritisk bidirektionell länk för Knowledge Graph
@@ -352,9 +352,10 @@ export default async function RootLayout({
           Klarna On-Site Messaging SDK. Consent-gated inuti komponenten (samma
           som MetaPixel). Laddar Klarnas web-sdk med data-client-id, som sedan
           hydrerar alla <klarna-placement>-taggar på sidan (se components/
-          klarna-osm.tsx). Klarna-widgeten är compliance-säker per betalsätt —
-          till skillnad från vår manuella "räntefritt"-etikett, som bara får
-          användas för 30-dagars-fakturan.
+          klarna-osm.tsx). Klarnas ruta uppdateras av Klarna och får visa
+          villkoren. Vår egen rad säger bara "Betala med Klarna"
+          (components/klarna-message.tsx): egen kredittext kräver Klarnas
+          riskvarning från 2026-11-20.
         */}
         {KLARNA_CLIENT_ID && <KlarnaSDK clientId={KLARNA_CLIENT_ID} />}
       </body>

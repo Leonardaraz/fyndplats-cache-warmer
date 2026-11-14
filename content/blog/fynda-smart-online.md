@@ -24,7 +24,7 @@ Här är vanorna som skiljer ett impulsköp från ett genomtänkt fynd:
 - **Räkna på pris per användning.** En något dyrare produkt som du använder varje dag är nästan alltid en bättre affär än en billig som glöms bort efter en vecka.
 - **Läs hela produktbeskrivningen.** Mått, material och kompatibilitet avgör om produkten passar ditt behov – och besparar dig en returrunda.
 - **Jämför frakt och leveranstid.** Ett lågt pris äts snabbt upp av dyr frakt. Hos [Fyndplats](/) är standardfrakten 19 kr inom Sverige – och helt fri vid köp över 499 kr.
-- **Välj trygg betalning.** Med Klarna får du varan först och betalar sen – så du aldrig betalar för något du inte fått hem.
+- **Välj trygg betalning.** Handla där du kan betala med kort, Apple Pay, Google Pay eller Klarna, och där köpvillkor och returrätt står tydligt.
 - **Tajma köpet.** Säsongsprodukter är ofta billigast strax före eller efter högsäsong. Planera de större köpen.
 - **Läs en köpguide före större köp.** Tjugo minuters research innan du köper gör att du väljer rätt modell från början – se till exempel vår [köpguide till massagepistol](/blogg/massagepistol-kopguide-2026) eller guiden till [bärbar projektor](/blogg/barbar-projektor-kopguide-2026).
 - **Samla köpen på ett ställe.** Att handla allt under samma tak sparar både frakt och tid – och gör det enklare att hålla koll på dina beställningar.
@@ -33,7 +33,7 @@ Här är vanorna som skiljer ett impulsköp från ett genomtänkt fynd:
 
 Hos [Fyndplats](/) hittar du ett brett sortiment för hela familjen samlat under ett och samma tak. Vi väljer ut produkter vi själva skulle köpa hem: prisvärda och gjorda för att användas.
 
-- **Trygg betalning med Klarna** – få varorna först och betala sen.
+- **Trygg betalning** – kort, Apple Pay, Google Pay eller Klarna.
 - **Fri frakt över 499 kr** – annars bara 19 kr inom Sverige.
 - **Nöjda kunder** – 4,9 av 5 i betyg på Google.
 - **Brett utbud** – produkter för hela familjen, samlade på ett ställe.
@@ -71,7 +71,7 @@ Standardfrakt är 19 kr inom Sverige. Vid köp över 499 kr är frakten helt fri
 
 ### Kan jag betala med Klarna?
 
-Ja. Med Klarna får du dina varor först och betalar sedan, vilket gör näthandeln tryggare.
+Ja. Du väljer Klarna i kassan, och Klarna visar sina betalsätt och villkor innan du godkänner köpet.
 
 ### Levererar Fyndplats i hela Sverige?
 
