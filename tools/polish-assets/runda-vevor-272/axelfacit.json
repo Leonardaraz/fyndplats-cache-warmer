@@ -1,5 +1,9 @@
 {
  "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "1fdb49e4": {
+  "tyska": "",
+  "svenska": ""
+ },
  "33bf1a8a": {
   "tyska": "",
   "svenska": ""
@@ -8,7 +12,20 @@
   "tyska": "",
   "svenska": ""
  },
+ "49a2b489": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "5e6e836b": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Image, materials: 27 QT x 2 (25 L x 2); convenient handle; solid basket; load capacity 25 kg / 55,12 lbs"
+ },
  "6e454611": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "9f7aa01c": {
   "tyska": "",
   "svenska": ""
  },

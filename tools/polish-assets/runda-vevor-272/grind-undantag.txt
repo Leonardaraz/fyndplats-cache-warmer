@@ -8,3 +8,11 @@ bygg-axelfacit.py källans måttrader (Produktmått, Käköppning eller måttbil
 bygg-axelfacit.py källans måttrader (Produktmått, Käköppning eller måttbildens ritning) saknar axelord, och sidan skriver längd, höjd och bredd efter måttbildens ritning
 # <skript> <skäl> — se bygg-skrivplan.py
 bygg-axelfacit.py källans måttrader (Produktmått, Käköppning eller måttbildens ritning) saknar axelord, och sidan skriver längd, höjd och bredd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad saknar axelord eller anger dem fel, och sidan skriver bredd, djup och höjd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad saknar axelord eller anger dem fel, och sidan skriver bredd, djup och höjd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad saknar axelord eller anger dem fel, och sidan skriver bredd, djup och höjd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad saknar axelord eller anger dem fel, och sidan skriver bredd, djup och höjd efter måttbildens ritning
