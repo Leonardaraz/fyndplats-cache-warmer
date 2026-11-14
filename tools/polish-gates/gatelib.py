@@ -369,6 +369,13 @@ TYSKA_ORD = [
     "Gasfeder", "Bildschirmhalter", "Bildschirmständer", "Schaukelstopp", "Schaukelbegrenzer",
     "Eichhörnchen", "Robbe", "Seehund", "Einhorn", "Plüschstoff", "Schaukelrobbe",
     "Hufschläge", "Wiehern", "Spreizschrauben", "Schwebefunktion", "Tischdurchführung",
+    # runda N378 (ridhäst, käpphäst, bordsfotbollar, bordtennisbord, liggande motionscykel)
+    "Reitpferd", "Spielpferd", "Steckenpferd", "Stockpferd", "Stehpferd", "Wiehergeräusche",
+    "Tischkicker", "Kickertisch", "Tischfußball", "Tischfussball", "Kickerbälle", "Fußbälle",
+    "Torhüter", "Ballfächern", "Ballrückgabeschächte", "Punktezähler", "Punktetafeln",
+    "Tischtennisplatte", "Tischtennistisch", "Tischtennisschläger", "Tischtennisnetz", "Netztasche",
+    "Liegeergometer", "Liegefahrrad", "Liegetrainer", "Magnetwiderstand", "Riemenantrieb",
+    "Widerstandsstufe", "Transportrollen", "Fußriemen",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med
