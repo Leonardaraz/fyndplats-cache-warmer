@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { adminAuthDecision } from "@/lib/admin-auth";
+import { oppetUtanKonfiguration } from "@/lib/sakerhetslage";
 
 // CORS för /api/*. Browser-tillägget och AliExpress-sidor anropar dessa
 // endpoints från andra origins; preflight (OPTIONS) måste få Allow-headers
@@ -33,16 +34,29 @@ function isAllowedOrigin(origin: string): boolean {
 }
 
 export function middleware(req: NextRequest) {
-  // /admin-sidorna (+ deras server-actions, som POST:ar till samma path): valfri
-  // HTTP Basic Auth på app-nivå. Opt-in via ADMIN_BASIC_USER/ADMIN_BASIC_PASS —
-  // av som default (ingen utelåsning; Vercel Deployment Protection är yttre lager
-  // tills detta sätts). Påverkar INTE /api/* (tillägget auth:ar med token där).
+  // /admin-sidorna (+ deras server-actions, som POST:ar till samma path): HTTP
+  // Basic Auth på app-nivå med ADMIN_BASIC_USER/ADMIN_BASIC_PASS. Påverkar INTE
+  // /api/* (tillägget auth:ar med token där).
+  //
+  // ☠️ Saknas variablerna i en driftsatt motor NEKAS sidorna (503). Förut
+  // släpptes allt igenom då. Öppet utan inställning är det bara lokalt och i
+  // prov (`lib/sakerhetslage.ts`).
   if (req.nextUrl.pathname.startsWith("/admin")) {
     const decision = adminAuthDecision(
       req.headers.get("authorization"),
       process.env.ADMIN_BASIC_USER,
       process.env.ADMIN_BASIC_PASS,
+      oppetUtanKonfiguration(),
     );
+    if (decision === "misconfigured") {
+      // Variablernas NAMN, aldrig deras värden. Raden behövs: utan den ser ett
+      // 503 ut som ett driftfel, och ingen vet vad som ska läggas in.
+      console.error("[admin] ADMIN_BASIC_USER eller ADMIN_BASIC_PASS saknas — /admin nekas tills båda är satta");
+      return new NextResponse(
+        "Admin är inte konfigurerad: ADMIN_BASIC_USER och ADMIN_BASIC_PASS måste vara satta.",
+        { status: 503, headers: { "Cache-Control": "no-store", "Content-Type": "text/plain; charset=utf-8" } },
+      );
+    }
     if (decision === "unauthorized") {
       return new NextResponse("Autentisering krävs.", {
         status: 401,

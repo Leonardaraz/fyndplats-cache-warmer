@@ -12,26 +12,45 @@ import { fakturaDeps } from "@/lib/orders/faktura-deps";
 import { byggSparrLarm, sparradAosomOrder } from "@/lib/aosom/postnummer-larm";
 import { isAosomMapping } from "@/lib/store/supplier";
 import { sendEmail } from "@/lib/email/resend";
+import { oppetUtanKonfiguration } from "@/lib/sakerhetslage";
 
-// Wix eCom Order-webhook. Verifierar signatur (om publik nyckel finns),
-// avduplicerar på event-id (idempotens) och skapar en fulfillment-task per
-// orderrad. Returnerar alltid 200 vid giltig men redan sedd händelse så att
-// Wix inte fortsätter göra retries.
+// Wix eCom Order-webhook. Verifierar avsändaren (den delade hemligheten från
+// butikens vidarebefordran, eller Wix signatur), avduplicerar på event-id
+// (idempotens) och skapar en fulfillment-task per orderrad. Returnerar alltid
+// 200 vid giltig men redan sedd händelse så att Wix inte fortsätter göra
+// retries.
 export async function POST(req: Request) {
   const raw = await req.text();
   const publicKey = process.env.WIX_WEBHOOK_PUBLIC_KEY;
+  const forwardSecret = process.env.WEBHOOK_FORWARD_SECRET;
+  // Bara lokalt och i prov får en saknad inställning betyda "öppet".
+  const oppet = oppetUtanKonfiguration();
+
+  // ☠️ Ingen av de två inställningarna finns: då går avsändaren inte att pröva
+  // alls. Förut togs kroppen emot ändå, så att en tappad variabel öppnade
+  // orderflödet för påhittade ordrar. Nu nekas anropet med ett tydligt
+  // konfigurationsfel. 503 och inte 401: Wix och butiken försöker igen på 5xx,
+  // och återhämtningen (`/api/cron/order-backfill`) tar det som ändå tappas.
+  // Raden nämner variablernas NAMN, aldrig deras värden.
+  if (!publicKey && !forwardSecret && !oppet) {
+    console.error(
+      "[wix-order] varken WEBHOOK_FORWARD_SECRET eller WIX_WEBHOOK_PUBLIC_KEY är satt — webhooken nekas tills minst en finns",
+    );
+    return NextResponse.json({ error: "Webhooken är inte konfigurerad" }, { status: 503 });
+  }
 
   // Forward från fyndplats-headless: signaturen är redan verifierad upstream
   // (Wix tillåter bara EN webhook-subscription per event-type, så headless tar
   // emot Wix:s direktanrop och fan-out:ar hit). Forwarden litas på BARA om
-  // X-Forwarded-From stämmer OCH — när WEBHOOK_FORWARD_SECRET är satt — en
-  // matchande X-Forward-Secret medföljer (annars faller vi tillbaka på
-  // JWT-signaturverifiering nedan). Opt-in: utan satt hemlighet = oförändrat.
+  // X-Forwarded-From stämmer OCH en X-Forward-Secret som matchar
+  // WEBHOOK_FORWARD_SECRET följer med. Annars faller vi tillbaka på
+  // JWT-signaturverifiering nedan.
   const forwardedFrom = req.headers.get("x-forwarded-from");
   const trustedForwarded = isTrustedForward(
     forwardedFrom,
     req.headers.get("x-forward-secret"),
-    process.env.WEBHOOK_FORWARD_SECRET,
+    forwardSecret,
+    oppet,
   );
   if (trustedForwarded) {
     console.log(
@@ -40,7 +59,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const parsed = parseWebhookBody(raw, publicKey, { trustedForwarded });
+  const parsed = parseWebhookBody(raw, publicKey, { trustedForwarded, tillatOsignerat: oppet });
   if (!parsed) {
     return NextResponse.json({ error: "Ogiltig eller osignerad webhook" }, { status: 401 });
   }

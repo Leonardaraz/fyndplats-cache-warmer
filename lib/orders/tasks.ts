@@ -158,6 +158,15 @@ export function deriveTasks(event: OrderEvent): FulfillmentTask[] {
   }));
 }
 
+/**
+ * Nycklarna till de uppgifter en order ska ha: en per orderrad, i radernas
+ * ordning. Samma härledning som `deriveTasks`, så att vakten och
+ * återhämtningen frågar efter exakt det webhooken skulle ha skrivit.
+ */
+export function vantadeUppgifter(order: WixOrder): string[] {
+  return deriveTasks({ eventId: "", slug: "", orderId: order.id, order }).map((t) => t.taskId);
+}
+
 function extractSku(li: WixLineItem): string | undefined {
   return li.physicalProperties?.sku || undefined;
 }

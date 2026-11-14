@@ -35,9 +35,11 @@ import {
   buildSyncDigest,
   rollupSyncRuns,
   SYNC_DIGEST_WINDOW_MS,
+  tillVaktensOrder,
   type GuardExtras,
   type GuardOrderInput,
 } from "@/lib/orders/guard";
+import type { WixOrder } from "@/lib/orders/types";
 import { searchProductSummaries } from "@/lib/wix/client";
 import { vevorPubliceradeUtanGpsr } from "@/lib/vevor/gpsr-vakt";
 import { wixGpsrLager } from "@/lib/vevor/gpsr-lager";
@@ -105,12 +107,11 @@ export async function GET(req: NextRequest) {
     let orders: GuardOrderInput[] = [];
     try {
       const raw = await fetchOrders(isoDaysAgo(ORDER_LOOKBACK_DAYS), { maxPages: 5 });
-      orders = raw.map((o) => ({
-        id: o.id,
-        number: o.number,
-        createdAt: o._createdDate ?? o.createdDate,
-        paymentStatus: o.paymentStatus,
-      }));
+      // `tillVaktensOrder` lägger till en väntad uppgift per orderrad, så att
+      // vakten jämför per rad: en order där bara den första raden fick sin
+      // uppgift ser inte längre hel ut. Typen i `lib/wix/orders.ts` är en
+      // smalare projektion av samma svar, därav överlämningen.
+      orders = raw.map((o) => tillVaktensOrder(o as unknown as WixOrder));
     } catch (err) {
       sectionErrors.push(`Wix-ordrar gick inte att hämta: ${(err as Error).message.slice(0, 150)}`);
     }

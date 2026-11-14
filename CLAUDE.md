@@ -265,6 +265,8 @@ underrubrik.
 - `39-orderpipelinen.md`: ☠️ Orderpipelinen hade EN väg in, och inget nät under (2026-08-31)
   - `/api/cron/order-backfill` är nätet (`lib/orders/backfill.ts`)
   - Larmet går via mejl, för det är den enda kanal som fungerar
+  - ☠️ Nätet jämför per orderrad, inte per order (2026-11-14)
+  - ☠️ Saknad säkerhetsinställning nekar i drift (2026-11-14)
   - En manuellt lagd AliExpress-order är osynlig tills numret kopplas (2026-09-01)
   - Faktura och kvitto: våra egna, inte Wix (2026-10-09)
   - Den gamla GitHub-värmaren är borttagen (2026-10-31)

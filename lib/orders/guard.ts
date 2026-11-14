@@ -11,7 +11,8 @@
 // tillbaka fynd + färdigt mejl. Trösklarna är exporterade så testerna kan
 // låsa dem.
 
-import type { FulfillmentTask } from "@/lib/orders/types";
+import type { FulfillmentTask, WixOrder } from "@/lib/orders/types";
+import { vantadeUppgifter } from "@/lib/orders/tasks";
 import type { SyncLogEntry } from "@/lib/sync/sync-log";
 import { isTerminal } from "@/lib/orders/status";
 
@@ -41,6 +42,51 @@ export interface GuardOrderInput {
   number?: string;
   createdAt?: string;
   paymentStatus?: string;
+  /**
+   * Nycklarna (`order:rad`) till de uppgifter ordern ska ha: en per orderrad,
+   * ur `deriveTasks`. Med dem jämför vakten per rad, så att en order med en
+   * uppgift av två inte ser hel ut. Utan dem (äldre anropare) faller vakten
+   * tillbaka på "har ordern någon uppgift alls?".
+   */
+  expectedTaskIds?: string[];
+}
+
+/**
+ * Wix-order → vaktens orderbild, med en väntad uppgift per orderrad.
+ *
+ * Bor här och inte i rutten, så att kopplingen går att pröva: utan
+ * `expectedTaskIds` faller vakten tyst tillbaka på den grövre frågan, och då
+ * är en delvis skapad order osynlig igen.
+ */
+export function tillVaktensOrder(o: WixOrder): GuardOrderInput {
+  return {
+    id: o.id,
+    number: o.number,
+    createdAt: o._createdDate ?? o.createdDate,
+    paymentStatus: o.paymentStatus,
+    // En nyckel per orderrad, ur SAMMA härledning som webhooken och
+    // återhämtningen använder.
+    expectedTaskIds: vantadeUppgifter(o),
+  };
+}
+
+/** En betald order där minst en orderrad saknar uppgift. */
+export interface GuardMissingOrder extends GuardOrderInput {
+  /** Antal orderrader utan uppgift. Saknas när väntelistan är okänd eller tom. */
+  missingLines?: number;
+  /** Antal orderrader ordern har. Saknas när väntelistan är okänd eller tom. */
+  expectedLines?: number;
+}
+
+/**
+ * Vilka av de väntade uppgifterna saknas?
+ *
+ * EN definition, delad av vakten och återhämtningen (`lib/orders/backfill.ts`).
+ * Skrev de var sin jämförelse skulle de förr eller senare bli oense om vad en
+ * tappad orderrad är, och då larmar den ena om något den andra inte lagar.
+ */
+export function saknadeUppgifter(vantade: readonly string[], finns: ReadonlySet<string>): string[] {
+  return vantade.filter((id) => !finns.has(id));
 }
 
 /** Minimal audit-rad (matchar lib/store AuditEntry). */
@@ -59,8 +105,9 @@ export interface PollErrorGroup {
 }
 
 export interface GuardFindings {
-  /** Betalda ordrar helt utan fulfillment-task — webhooken har tappat dem. */
-  missingTasks: GuardOrderInput[];
+  /** Betalda ordrar där minst en orderrad saknar fulfillment-task — webhooken
+   *  har tappat hela ordern eller en del av den. */
+  missingTasks: GuardMissingOrder[];
   /** pending äldre än PENDING_REMINDER_MS — dags att lägga AliExpress-ordern. */
   placeOrderReminders: FulfillmentTask[];
   /** pending_payment äldre än PENDING_PAYMENT_REMINDER_MS — dags att betala. */
@@ -83,13 +130,29 @@ export function buildGuardFindings(input: {
 }): GuardFindings {
   const { orders, tasks, auditEntries, nowMs } = input;
 
+  // ☠️ PER ORDERRAD, INTE PER ORDER (2026-11-14). Förut räckte EN uppgift för
+  // att ordern skulle räknas som hel. En order där webhooken hann skriva rad 1
+  // men föll på rad 2 syntes därför aldrig här, och den andra varan blev
+  // liggande. Samma jämförelse som återhämtningen gör (`saknadeUppgifter`).
+  const taskIds = new Set(tasks.map((t) => t.taskId));
   const orderIdsWithTasks = new Set(tasks.map((t) => t.orderId));
-  const missingTasks = orders.filter((o) => {
-    if (!ACTIONABLE_PAYMENT.has(o.paymentStatus ?? "")) return false;
+  const missingTasks: GuardMissingOrder[] = [];
+  for (const o of orders) {
+    if (!ACTIONABLE_PAYMENT.has(o.paymentStatus ?? "")) continue;
     const created = o.createdAt ? Date.parse(o.createdAt) : NaN;
-    if (!Number.isFinite(created) || nowMs - created < TASK_GRACE_MS) return false;
-    return !orderIdsWithTasks.has(o.id);
-  });
+    if (!Number.isFinite(created) || nowMs - created < TASK_GRACE_MS) continue;
+    const vantade = o.expectedTaskIds;
+    if (vantade && vantade.length > 0) {
+      const saknas = saknadeUppgifter(vantade, taskIds);
+      if (saknas.length > 0) {
+        missingTasks.push({ ...o, missingLines: saknas.length, expectedLines: vantade.length });
+      }
+      continue;
+    }
+    // Ingen väntelista (äldre anropare), eller en order utan rader: då går
+    // bara den grövre frågan att ställa.
+    if (!orderIdsWithTasks.has(o.id)) missingTasks.push({ ...o });
+  }
 
   const isFlagged = (t: FulfillmentTask) =>
     Boolean(t.cancelMidOrder || t.refundFlagged || t.orderUncertain);
@@ -379,6 +442,18 @@ function fmtAge(nowMs: number, iso?: string): string {
   return `${Math.floor(h / 24)} dagar`;
 }
 
+/**
+ * Vad som saknas på en betald order. En order med en uppgift av två beskrivs
+ * med antalet, så att Leonard inte lägger om hela ordern: raden som finns kan
+ * redan vara beställd.
+ */
+function saknasText(o: GuardMissingOrder): string {
+  const saknas = o.missingLines ?? 0;
+  const vantade = o.expectedLines ?? 0;
+  if (saknas > 0 && saknas < vantade) return `${saknas} av ${vantade} orderrader saknar task`;
+  return "ingen task skapades";
+}
+
 function taskLine(t: FulfillmentTask, nowMs: number): string {
   return `${t.productName || t.taskId} — order ${t.orderNumber || t.orderId} (${fmtAge(nowMs, t.createdAt)})`;
 }
@@ -418,10 +493,10 @@ export function buildGuardEmail(
     section(
       `🚨 Betalda ordrar UTAN leverans-task (${findings.missingTasks.length})`,
       findings.missingTasks.map((o) =>
-        li(`Order ${o.number || o.id} (${fmtAge(nowMs, o.createdAt)}) — ingen task skapades. Kolla ordern i Wix och lägg AliExpress-ordern manuellt.`),
+        li(`Order ${o.number || o.id} (${fmtAge(nowMs, o.createdAt)}) — ${saknasText(o)}. Kolla ordern i Wix och lägg ordern hos leverantören manuellt.`),
       ),
       `BETALDA ORDRAR UTAN TASK (${findings.missingTasks.length}):`,
-      findings.missingTasks.map((o) => `Order ${o.number || o.id} (${fmtAge(nowMs, o.createdAt)})`),
+      findings.missingTasks.map((o) => `Order ${o.number || o.id} (${fmtAge(nowMs, o.createdAt)}) — ${saknasText(o)}`),
     );
   }
   if (findings.heldForReview.length > 0) {

@@ -22,11 +22,20 @@
 // Idempotent i båda ändar: `createTaskIfAbsent` skriver aldrig över en
 // befintlig task, så en omkörning är gratis och en order som redan hämtats
 // hem rörs inte. Därför är det ofarligt att köra ofta.
+//
+// ☠️ JÄMFÖRELSEN GÖRS PER ORDERRAD, INTE PER ORDER (2026-11-14). Webhooken
+// skriver en uppgift per rad, en i taget. Faller skrivningen efter första
+// raden har ordern en uppgift av två, och förut räckte den för att ordern
+// skulle räknas som hel: nätet jämförde på order-id. Den andra varan låg då
+// utan uppgift, och varken återhämtningen eller vakten såg det. Nu jämförs
+// uppgiftens egen nyckel (`order:rad`, samma som `deriveTasks` sätter), och
+// bara de rader som saknas skrivs. En uppgift som finns rörs aldrig: den kan
+// redan vara beställd hos leverantören.
 
 import type { WixOrder } from "@/lib/orders/types";
 import type { FulfillmentTask } from "@/lib/orders/types";
 import { deriveTasks } from "@/lib/orders/tasks";
-import { ACTIONABLE_PAYMENT, TASK_GRACE_MS } from "@/lib/orders/guard";
+import { ACTIONABLE_PAYMENT, TASK_GRACE_MS, saknadeUppgifter } from "@/lib/orders/guard";
 
 /** Hur långt bak i tiden vi letar. Rymligt: en tappad order är värd att hitta
  *  även en vecka senare, och jämförelsen mot befintliga tasks är gratis. */
@@ -62,8 +71,10 @@ export interface OrderBackfillSummary {
   dryRun: boolean;
   /** Ordrar som lästes från Wix inom fönstret. */
   scanned: number;
-  /** Betalda ordrar utan task, äldre än webhookens respit. */
+  /** Betalda ordrar där minst en orderrad saknar task, äldre än webhookens respit. */
   missing: number;
+  /** Orderrader utan task, summerat över ordrarna i `missing`. */
+  missingLines: number;
   /** Tasks som faktiskt skrevs. */
   created: number;
   /** Ordrar där skrivningen kastade. */
@@ -83,12 +94,14 @@ export interface OrderBackfillDeps {
 }
 
 /**
- * Letar upp betalda Wix-ordrar utan fulfillment-task och skapar dem.
+ * Letar upp betalda Wix-ordrar där en orderrad saknar fulfillment-task och
+ * skapar de uppgifter som saknas.
  *
  * Urvalet är MEDVETET identiskt med `buildGuardFindings.missingTasks`: samma
- * betalstatusar, samma respit. Vakten och återhämtningen ska aldrig kunna bli
- * oense om vad "tappad order" betyder — därför importeras båda villkoren i
- * stället för att skrivas av.
+ * betalstatusar, samma respit och samma jämförelse per orderrad
+ * (`saknadeUppgifter`). Vakten och återhämtningen ska aldrig kunna bli oense
+ * om vad "tappad order" betyder — därför importeras villkoren i stället för
+ * att skrivas av.
  */
 export async function runOrderBackfill(
   opts: OrderBackfillOptions,
@@ -104,6 +117,7 @@ export async function runOrderBackfill(
     dryRun,
     scanned: 0,
     missing: 0,
+    missingLines: 0,
     created: 0,
     failed: 0,
     recovered: [],
@@ -116,6 +130,10 @@ export async function runOrderBackfill(
   if (orders.length === 0) return s;
 
   const tasks = await deps.listTasks();
+  // Två frågor, två mängder. "Finns just den här radens uppgift?" besvaras av
+  // uppgiftens nyckel. "Har ordern någon uppgift alls?" behövs bara för en
+  // order utan rader (se grenen nedan).
+  const befintliga = new Set(tasks.map((t) => t.taskId));
   const orderIdsWithTasks = new Set(tasks.map((t) => t.orderId));
 
   for (const order of orders) {
@@ -123,18 +141,30 @@ export async function runOrderBackfill(
     if (opts.onlyOrderNumbers?.length) {
       if (!opts.onlyOrderNumbers.includes(order.number ?? "")) continue;
     }
+    // ☠️ En avbruten order får aldrig nya uppgifter. Cronens orderläsning
+    // (`fetchOrders`) lämnar redan ute avbrutna ordrar, men spärren står här
+    // också: en spärr som hänger på att varje anropare minns filtret är ingen
+    // spärr. En avbruten order kan stå som PAID tills återbetalningen är gjord.
+    if (order.status === "CANCELED") continue;
     if (!ACTIONABLE_PAYMENT.has(order.paymentStatus ?? "")) continue;
-    if (orderIdsWithTasks.has(order.id)) continue;
 
     // Respiten skyddar mot att vi tävlar med webhooken om en helt färsk order.
     // Utan den kan båda skriva samma task samtidigt; `createTaskIfAbsent` gör
     // det ofarligt, men vi vill inte rapportera "återhämtad" om webhooken bara
-    // var en sekund efter oss.
+    // var en sekund efter oss. Den gäller också en order som redan har NÅGON
+    // uppgift: webhooken kan vara mitt i skrivandet av resten.
     const created = Date.parse(order.createdDate ?? order._createdDate ?? "");
     if (!Number.isFinite(created) || nowMs - created < TASK_GRACE_MS) continue;
 
-    s.missing++;
     const label = order.number || order.id;
+
+    // ☠️ En delvis återbetald order: återbetalningen bär inga radnummer, så vi
+    // vet inte om raden som saknas är den som betalades tillbaka. Webhooken
+    // flaggar därför orderns öppna uppgifter (`flagTasksForOrderRefund`), och
+    // en uppgift som skapas i efterhand ska hamna i samma läge: synlig i
+    // /admin, men spärrad för beställning tills någon har tittat. Utan flaggan
+    // kunde en vara som redan betalats tillbaka beställas hos leverantören.
+    const hallsForGranskning = order.paymentStatus === "PARTIALLY_REFUNDED";
 
     // Samma härledning som webhooken. `eventId`/`slug` är tomma med flit —
     // deriveTasks läser dem inte, och att hitta på ett event-id hade smutsat
@@ -147,19 +177,35 @@ export async function runOrderBackfill(
       // hade börjat om från början. Vi bär ordens FAKTISKA tid i stället, så
       // en återhämtad order genast ser lika sen ut som den är.
       createdAt: new Date(created).toISOString(),
+      ...(hallsForGranskning
+        ? { refundFlagged: true, refundFlaggedAt: new Date(nowMs).toISOString() }
+        : {}),
     }));
 
     // En order utan rader ger inga tasks. Utan den här grenen räknas den som
     // `missing` vid varje körning i all evighet, utan att någonsin bli
     // `created` — en lucka som ser ut som ett växande problem men aldrig går
     // att åtgärda. Bättre att den syns EN gång som ett fel med sitt nummer.
+    // Har ordern redan uppgifter (raderna togs bort i efterhand) finns
+    // ingenting att skapa och ingenting att larma om.
     if (derived.length === 0) {
+      if (orderIdsWithTasks.has(order.id)) continue;
+      s.missing++;
       const reason = "ordern har inga orderrader — inget att skapa";
       s.failed++;
       s.errors.push({ order: label, error: reason });
       s.stuck.push({ number: label, reason, customer: order.buyerInfo?.email, items: [] });
       continue;
     }
+
+    // Bara raderna som saknas. En uppgift som finns skrivs aldrig om och får
+    // inget skrivförsök: den kan redan vara beställd, betald eller skickad.
+    const saknasId = new Set(saknadeUppgifter(derived.map((t) => t.taskId), befintliga));
+    const saknade = derived.filter((t) => saknasId.has(t.taskId));
+    if (saknade.length === 0) continue;
+
+    s.missing++;
+    s.missingLines += saknade.length;
 
     if (dryRun) {
       s.recovered.push(label);
@@ -169,10 +215,10 @@ export async function runOrderBackfill(
     // Skrivningarna räknas EN i taget så att en order som faller halvvägs
     // rapporterar exakt de rader som saknas — inte hela ordern. Ett mejl som
     // listar rader Leonard redan har i /admin gör att han beställer dubbelt.
-    const oskrivna = [...derived];
+    const oskrivna = [...saknade];
     try {
       let any = false;
-      for (const task of derived) {
+      for (const task of saknade) {
         const skapad = await deps.createTaskIfAbsent(task);
         oskrivna.splice(oskrivna.indexOf(task), 1);
         if (skapad) {

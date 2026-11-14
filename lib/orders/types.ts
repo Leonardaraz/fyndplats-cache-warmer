@@ -124,6 +124,9 @@ export interface WixOrder {
   // orderåterhämtningen (lib/orders/backfill.ts), som måste kunna avgöra om en
   // order är betald och hur gammal den är utan att gissa.
   paymentStatus?: string;
+  // Orderns egen status (APPROVED, CANCELED …). Återhämtningen skapar aldrig
+  // uppgifter för en avbruten order, också om den fortfarande står som betald.
+  status?: string;
   createdDate?: string;
   _createdDate?: string;
   lineItems?: WixLineItem[];

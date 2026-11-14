@@ -66,8 +66,30 @@ describe("parseWebhookBody", () => {
     expect(parseWebhookBody(token, publicPem)).toBeNull();
   });
 
-  it("parses raw JSON when no public key is configured (dev/test)", () => {
-    expect(parseWebhookBody(JSON.stringify({ id: "evt-2" }))).toEqual({ id: "evt-2" });
+  it("☠️ utan nyckel och utan betrodd forward nekas en osignerad kropp", () => {
+    // Förut tolkades kroppen som rå JSON så fort nyckeln saknades: en tappad
+    // WIX_WEBHOOK_PUBLIC_KEY gjorde att vem som helst kunde skicka in en order.
+    const kropp = JSON.stringify({ id: "evt-2" });
+    expect(parseWebhookBody(kropp)).toBeNull();
+    expect(parseWebhookBody(kropp, undefined)).toBeNull();
+    expect(parseWebhookBody(kropp, "")).toBeNull();
+    expect(parseWebhookBody(kropp, undefined, {})).toBeNull();
+    expect(parseWebhookBody(kropp, undefined, { trustedForwarded: false, tillatOsignerat: false })).toBeNull();
+  });
+
+  it("en osignerad kropp tas emot bara med uttryckligt tillstånd (lokalt och i prov)", () => {
+    expect(parseWebhookBody(JSON.stringify({ id: "evt-2" }), undefined, { tillatOsignerat: true })).toEqual({
+      id: "evt-2",
+    });
+    expect(parseWebhookBody("inte json", undefined, { tillatOsignerat: true })).toBeNull();
+  });
+
+  it("☠️ tillståndet kringgår aldrig en nyckel som finns: med nyckel krävs signatur", () => {
+    const kropp = JSON.stringify({ id: "evt-2" });
+    expect(parseWebhookBody(kropp, publicPem, { tillatOsignerat: true })).toBeNull();
+    const [h, p, sig] = signJwt({ id: "evt-3" }).split(".");
+    const forfalskad = `${h}.${p}.${sig.slice(0, -4)}AAAA`;
+    expect(parseWebhookBody(forfalskad, publicPem, { tillatOsignerat: true })).toBeNull();
   });
 
   it("accepts a forwarded JWT body without verifying the signature", () => {
@@ -108,9 +130,27 @@ describe("isTrustedForward", () => {
     expect(isTrustedForward(null, null, undefined)).toBe(false);
   });
 
-  it("utan konfigurerad hemlighet → bakåtkompatibelt (bara header-koll)", () => {
-    expect(isTrustedForward("fyndplats-webhook", null, undefined)).toBe(true);
-    expect(isTrustedForward("fyndplats-webhook", "vadsomhelst", undefined)).toBe(true);
+  it("☠️ utan konfigurerad hemlighet litas forwarden INTE på", () => {
+    // Förut räckte rubriken, som vem som helst kan skriva, för att slippa
+    // signaturkollen. En tappad WEBHOOK_FORWARD_SECRET öppnade orderflödet.
+    expect(isTrustedForward("fyndplats-webhook", null, undefined)).toBe(false);
+    expect(isTrustedForward("fyndplats-webhook", "vadsomhelst", undefined)).toBe(false);
+    expect(isTrustedForward("fyndplats-webhook", "", "")).toBe(false);
+    expect(isTrustedForward("fyndplats-webhook", null, undefined, false)).toBe(false);
+  });
+
+  it("öppet läge (lokalt och i prov): utan hemlighet räcker rubriken, som förut", () => {
+    expect(isTrustedForward("fyndplats-webhook", null, undefined, true)).toBe(true);
+    expect(isTrustedForward("fyndplats-webhook", "vadsomhelst", undefined, true)).toBe(true);
+    // Rubriken krävs fortfarande.
+    expect(isTrustedForward("nån-annan", null, undefined, true)).toBe(false);
+    expect(isTrustedForward(null, null, undefined, true)).toBe(false);
+  });
+
+  it("öppet läge försvagar aldrig en hemlighet som ÄR satt", () => {
+    expect(isTrustedForward("fyndplats-webhook", "fel", "rätt-hemlis", true)).toBe(false);
+    expect(isTrustedForward("fyndplats-webhook", null, "rätt-hemlis", true)).toBe(false);
+    expect(isTrustedForward("fyndplats-webhook", "rätt-hemlis", "rätt-hemlis", true)).toBe(true);
   });
 
   it("med hemlighet satt → kräver matchande X-Forward-Secret", () => {

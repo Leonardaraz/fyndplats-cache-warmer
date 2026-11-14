@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { generateKeyPairSync, createSign } from "node:crypto";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryStore } from "@/lib/store/memory";
 import type { FulfillmentTask } from "@/lib/orders/types";
 
@@ -120,5 +121,111 @@ describe("/api/wix-order — F19 cancel/refund-gate", () => {
     const res = await POST(req({ id: "evt-x", entityFqdn: "wix.ecom.v1.order", slug: "canceled" }));
     expect(res.status).toBe(200);
     expect(await res.json()).toMatchObject({ ignored: true });
+  });
+});
+
+// ── Stängt läge: en driftsatt motor ─────────────────────────────────────────
+// Proven ovan körs i provläget (NODE_ENV "test"), där en saknad inställning får
+// betyda "öppet". Här ställs NODE_ENV till "production", som i en driftsatt
+// motor. ☠️ Inget av det här skickas någonstans: rutten anropas som en funktion
+// mot ett lager i minnet.
+describe("/api/wix-order — saknad säkerhetsinställning nekar i drift", () => {
+  const HEMLIS = "prov-hemlighet-som-inte-finns-nagon-annanstans";
+  const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
+  const publicPem = publicKey.export({ type: "spki", format: "pem" }).toString();
+  const b64url = (v: string | Buffer) =>
+    Buffer.from(v).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  const signera = (payload: unknown) => {
+    const huvud = b64url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
+    const kropp = b64url(JSON.stringify(payload));
+    const s = createSign("RSA-SHA256");
+    s.update(`${huvud}.${kropp}`);
+    s.end();
+    return `${huvud}.${kropp}.${b64url(s.sign(privateKey))}`;
+  };
+  const anrop = (kropp: string, rubriker: Record<string, string> = {}) =>
+    POST(
+      new Request("http://localhost/api/wix-order", {
+        method: "POST",
+        headers: { "content-type": "application/json", ...rubriker },
+        body: kropp,
+      }) as unknown as Parameters<typeof POST>[0],
+    );
+  const antalUppgifter = async () => (await store.listTasks()).length;
+  const forward = { "x-forwarded-from": "fyndplats-webhook" };
+
+  beforeEach(() => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
+  });
+
+  it("☠️ ingen inställning alls → 503 med konfigurationsfel, ingen uppgift skapas", async () => {
+    // Förut: rubriken räckte utan hemlighet, och utan nyckel togs kroppen emot
+    // osignerad. Den här ordern hade skapats.
+    for (const rubriker of [{}, forward, { ...forward, "x-forward-secret": "vadsomhelst" }]) {
+      const res = await anrop(JSON.stringify(createdEvent), rubriker);
+      expect(res.status).toBe(503);
+      expect(await res.json()).toEqual({ error: "Webhooken är inte konfigurerad" });
+    }
+    expect(await antalUppgifter()).toBe(0);
+    // Loggraden nämner variablernas namn, så att felet går att åtgärda.
+    const rad = vi.mocked(console.error).mock.calls.map((c) => String(c[0])).join("\n");
+    expect(rad).toContain("WEBHOOK_FORWARD_SECRET");
+    expect(rad).toContain("WIX_WEBHOOK_PUBLIC_KEY");
+  });
+
+  it("☠️ bara hemligheten satt: rubriken utan rätt hemlighet räcker inte → 401", async () => {
+    process.env.WEBHOOK_FORWARD_SECRET = HEMLIS;
+    const kropp = JSON.stringify(createdEvent);
+    expect((await anrop(kropp, forward)).status).toBe(401);
+    expect((await anrop(kropp, { ...forward, "x-forward-secret": "fel" })).status).toBe(401);
+    expect((await anrop(kropp, { ...forward, "x-forward-secret": "" })).status).toBe(401);
+    // Och en osignerad kropp UTAN rubriken tas inte emot bara för att nyckeln saknas.
+    expect((await anrop(kropp)).status).toBe(401);
+    expect(await antalUppgifter()).toBe(0);
+  });
+
+  it("rätt hemlighet → ordern tas emot som förut", async () => {
+    process.env.WEBHOOK_FORWARD_SECRET = HEMLIS;
+    const res = await anrop(JSON.stringify(createdEvent), { ...forward, "x-forward-secret": HEMLIS });
+    expect(res.status).toBe(200);
+    expect(await antalUppgifter()).toBe(1);
+  });
+
+  it("☠️ bara nyckeln satt: rubriken ensam ger ingen genväg förbi signaturen → 401", async () => {
+    process.env.WIX_WEBHOOK_PUBLIC_KEY = publicPem;
+    const kropp = JSON.stringify(createdEvent);
+    expect((await anrop(kropp, forward)).status).toBe(401);
+    expect((await anrop(kropp, { ...forward, "x-forward-secret": "vadsomhelst" })).status).toBe(401);
+    expect((await anrop(kropp)).status).toBe(401);
+    expect(await antalUppgifter()).toBe(0);
+  });
+
+  it("bara nyckeln satt: en riktigt signerad händelse tas emot", async () => {
+    process.env.WIX_WEBHOOK_PUBLIC_KEY = publicPem;
+    const res = await anrop(signera(createdEvent));
+    expect(res.status).toBe(200);
+    expect(await antalUppgifter()).toBe(1);
+  });
+
+  it("båda satta: fel hemlighet faller tillbaka på signaturen, som då måste stämma", async () => {
+    process.env.WIX_WEBHOOK_PUBLIC_KEY = publicPem;
+    process.env.WEBHOOK_FORWARD_SECRET = HEMLIS;
+    const fel = { ...forward, "x-forward-secret": "fel" };
+    expect((await anrop(JSON.stringify(createdEvent), fel)).status).toBe(401);
+    expect(await antalUppgifter()).toBe(0);
+    expect((await anrop(signera(createdEvent), fel)).status).toBe(200);
+    expect(await antalUppgifter()).toBe(1);
+  });
+
+  it("i provläget är beteendet oförändrat: utan inställning räcker rubriken", async () => {
+    vi.stubEnv("NODE_ENV", "test");
+    const res = await anrop(JSON.stringify(createdEvent), forward);
+    expect(res.status).toBe(200);
+    expect(await antalUppgifter()).toBe(1);
   });
 });
