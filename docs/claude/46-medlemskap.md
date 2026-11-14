@@ -246,6 +246,29 @@ mappningar, så butiken frågar motorn (`POST /api/medlem/golv`, logiken i
   konto tas bort (`taBortKonto`, `MEDLEM_KOL.sparade`). Att spara följer
   växeln för E2/E3, eftersom integritetstexten för E1 inte nämner korgarna.
 
+## Medlemspriserna står på under Black Week 23–29/11 (beslut 2026-11-14)
+
+Planen från 2026-11-04 sa att E2 inte skulle slås på under Black Week. E2 slogs på
+2026-11-07 (`pris: pa`), och Leonard lämnade frågan till Claude 2026-11-14. Beslutet:
+priserna står på. Skälen, kontrollerade i butikens kod samma dag:
+
+- **Ingen stapling.** En reavara får reapriset men aldrig ett medlemspris ovanpå
+  (`lib/medlem/medlemspris.ts` och `varukorg.ts`, undantaget `rea`). En levande
+  fyndauktion får inget golv här (undantaget `auktion`). Black Weeks rea och de 50–100
+  fynden om dagen ger alltså aldrig dubbla avdrag.
+- **Golvet gäller som vanligt**, och inget radpris hamnar under G.
+- **Svarar motorn inte får kunden listpriset** (`motorn-svarade-inte` i butikens
+  golvklient). En överbelastad motor ger alltså aldrig ett för lågt pris.
+- **Risken som planen syftade på är passerad.** Pausen var tänkt för en lansering under årets
+  mest belastade vecka, och E2 har gått sedan 2026-11-07.
+- **Att stänga av mitt i veckan är sämre.** En medlem som ser ett pris på måndagen men inte
+  får det på tisdagen litar mindre på butiken.
+
+**Nödbromsen** är oförändrad: `pris: av` på raden `medlemskap` i
+`FyndplatsButikInstallningar`. Varje serverinstans läser läget med en minuts cache, och
+webbläsaren minns ett medlemspris i fem minuter. Inom några minuter visar alltså butiken
+listpriset.
+
 ## Kvar till E2
 
 - Leonards svar på P4–P8 (aktuellt pris, kupong, golv, fri frakt-skydd,

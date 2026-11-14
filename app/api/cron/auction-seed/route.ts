@@ -52,6 +52,7 @@ import {
   type SeedInput,
   type SeedRejection,
   type SeedVariantInput,
+  raknaForsvunna,
 } from "@/lib/auction/seed";
 
 export const runtime = "nodejs";
@@ -320,6 +321,9 @@ export async function GET(req: NextRequest) {
     const stoppade = { prishistorik: 0, nyssAuktionerad: 0 };
     const detaljer: Partial<Record<Historikdetalj, number>> = {};
     const prov: { prishistorik: string[]; nyssAuktionerad: string[] } = { prishistorik: [], nyssAuktionerad: [] };
+    // Produkter som spärren stoppade: de lämnar kön med ett belagt skäl, och
+    // skyddsräcket nedan räknar dem inte (se där).
+    const sparrStoppade = new Set<string>();
     const urval: SeedCandidate[] = [];
     for (const c of included) {
       const forra = radPer.get(c.productId);
@@ -346,10 +350,12 @@ export async function GET(req: NextRequest) {
       if (prov[utfall.skal].length < 10) prov[utfall.skal].push(c.slug);
       // Torrläge: avslaget räknas men kandidaten står kvar.
       if (!sparr.pa) urval.push(c);
+      else sparrStoppade.add(c.productId);
     }
 
     const order = assignQueueOrder(urval);
     const { toSave, toRemove, skippedLive, refreshedLive, liveNotRefreshed } = planSeed(urval, existing, order, nuMs);
+    const forsvunna = raknaForsvunna(toRemove, sparrStoppade);
 
     const report: Record<string, unknown> = {
       apply,
@@ -372,6 +378,7 @@ export async function GET(req: NextRequest) {
       refreshedLive,
       liveNotRefreshed,
       removeFromQueue: toRemove.map((r) => r.slug),
+      removeFromQueueSparren: toRemove.length - forsvunna,
       launchLineup: toSave
         .filter((d) => d.status === "queued" && (d.queueOrder ?? 0) <= 5)
         .sort((a, b) => a.queueOrder - b.queueOrder)
@@ -396,12 +403,21 @@ export async function GET(req: NextRequest) {
     // Skyddsräcke för den schemalagda körningen: försvinner en stor del av kön
     // på en gång är det nästan alltid katalogläsningen som brustit, inte
     // sortimentet. Då skrivs ingenting; ?force=1 kör ändå.
+    //
+    // ☠️ RÄCKET RÄKNAR BARA DET SOM FÖRSVINNER, INTE DET SPÄRREN STOPPAR
+    // (2026-11-14). Aosoms priser i kapp 11/11 höjde cirka 4 300 priser, och
+    // 30-dagarsspärren stoppade då 393 av 845 köade fynd, med ett belagt skäl
+    // per fynd. Räcket räknade dem som en trasig katalogläsning, seeden skrev
+    // ingenting tre nätter i rad (12–14/11), och ticken främjade ur en kö där
+    // fem av morgondagens tio inte längre klarade spärren. En spärr som inte
+    // går att läsa stoppar redan ovan (historikFel), så det spärren stoppar här
+    // är alltid belagt.
     const queuedBefore = existing.filter((e) => e.status === "queued").length;
     const removeLimit = Math.max(50, Math.ceil(queuedBefore * 0.2));
     const force = req.nextUrl.searchParams.get("force") === "1";
-    if (apply && !force && toRemove.length > removeLimit) {
+    if (apply && !force && forsvunna > removeLimit) {
       report.ok = false;
-      report.error = `Skulle ta bort ${toRemove.length} av ${queuedBefore} köade (gräns ${removeLimit}); inget skrevs. Granska rapporten och kör med force=1 om det stämmer.`;
+      report.error = `Skulle ta bort ${forsvunna} av ${queuedBefore} köade utan spärrens skäl (gräns ${removeLimit}); inget skrevs. Granska rapporten och kör med force=1 om det stämmer.`;
       return NextResponse.json(report);
     }
 

@@ -117,5 +117,28 @@ INGENTING.** Det gäller också morgonens prisuppdatering av dagens fynd, som va
 2. Slå på med `sparr: pa`.
 3. Kör seeden för hand med `apply` och `force`.
 
-Därefter är det dagliga bortfallet litet. Är spärren på och prishistoriken oläsbar skriver
-seeden ingenting, eftersom ett fynd utan prövning inte får starta.
+Därefter är det dagliga bortfallet oftast litet, men inte efter en stor prisändring (se
+nästa avsnitt). Är spärren på och prishistoriken oläsbar skriver seeden ingenting, eftersom
+ett fynd utan prövning inte får starta.
+
+### ☠️ Kön stod still 12–14/11: skyddsräcket räknade spärrens avslag (2026-11-14)
+
+Prissynkens ikappkörning 2026-11-11 skrev drygt 5 000 priser. En vara med nytt pris klarar
+inte spärren på 30 dagar, så seeden ville ta bort 393 köade på en natt. Skyddsräcket
+(max(50, 20 % av kön)) tog det för en trasig katalogläsning och skrev ingenting, tre nätter i
+rad. Kön fylldes inte på, och morgondagens schemalagda fynd prövades aldrig: av de tio som
+skulle starta 15/11 klarade fem inte spärren. GitHub-schemat startade dessutom 10:56, 11:35
+och 11:51 UTC, alltså efter 07-starten.
+
+Rättat i C2:
+
+- **Skyddsräcket räknar bara köade som försvinner utan spärrens skäl** (`raknaForsvunna` i
+  `lib/auction/seed.ts`, `seed-skyddsracke.test.ts`). Rapporten visar spärrens del som
+  `removeFromQueueSparren`.
+- **Seeden går på Vercels klocka**: `vercel.json`, 03:47 UTC, `apply=1`, aldrig `force`
+  (`app/api/cron/auction-seed/schema.test.ts`). Workflowen finns kvar för körningar för hand
+  och som larm, och dess eget schema är andra chansen.
+- **Påfyllningen gjordes för hand** 2026-11-14 22:39 UTC med `apply` och `force`: 862 i kön,
+  393 borttagna, 0 fel. Ticken fyllde de fem lediga platserna inför 15/11.
+
+Inte mätt: om fynden 12–14/11 skulle ha klarat spärren.

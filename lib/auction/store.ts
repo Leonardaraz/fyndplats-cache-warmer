@@ -88,17 +88,6 @@ export async function sparaAuktioner(docs: AuctionDoc[]): Promise<{ id: string; 
     .map((d) => ({ id: `auction-${d.productId}`, fel: "dokumentet saknar _id" }));
   const med = docs.filter((d) => d._id);
   if (med.length === 0) return fel;
-  if (iPostgres()) {
-    // Postgres-vägen tas bort med Neon; en rad i taget räcker tills dess.
-    for (const d of med) {
-      try {
-        await pgSaveAuction(d);
-      } catch (e) {
-        fel.push({ id: d._id as string, fel: (e as Error).message.slice(0, 200) });
-      }
-    }
-    return fel;
-  }
   const u = await sparaManga(
     AUCTION_COLLECTION,
     med.map((d) => ({ id: d._id as string, data: { ...d } as unknown as Record<string, unknown> })),
