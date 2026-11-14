@@ -1,0 +1,8 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (Produktmått, Installationsöppningens storlek och Utbytbart glasstorlek) saknar axelord, och sidan skriver produktmåtten som bredd × höjd × djup och installationsöppningen som bredd × höjd efter fönstrets egen måttbild, medan glasytans mått skrivs som i källan utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (Produktmått, Mått på mellanlåda och Djup låda, mått) saknar axelord, och sidan skriver kupans mått som grundyta och höjd och lådornas mått som grundyta och höjd efter kupans egen måttbild
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (Produktmått, Mått på mellanlåda och Djup låda, mått) saknar axelord, och sidan skriver kupans mått som grundyta och höjd och lådornas mått som grundyta och höjd efter kupans egen måttbild
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (Produktmått, Mått på mellanlåda och Djup låda, mått) saknar axelord, och sidan skriver kupans mått som grundyta och höjd och lådornas mått som grundyta och höjd efter kupans egen måttbild
