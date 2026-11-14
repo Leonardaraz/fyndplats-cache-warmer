@@ -1,0 +1,16 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Monteringsplatta) anger längd × bredd, och sidan skriver monteringsplattans mått som 11 × 11 cm efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (Produktstorlek, Produktmått, Returområde eller Produktmått i bildtexten) saknar axelord, och sidan skriver bredd, djup och höjd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (Produktstorlek, Produktmått, Returområde eller Produktmått i bildtexten) saknar axelord, och sidan skriver bredd, djup och höjd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (Produktstorlek, Produktmått, Returområde eller Produktmått i bildtexten) saknar axelord, och sidan skriver bredd, djup och höjd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (Produktstorlek, Produktmått, Returområde eller Produktmått i bildtexten) saknar axelord, och sidan skriver bredd, djup och höjd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (Produktstorlek, Produktmått, Returområde eller Produktmått i bildtexten) saknar axelord, och sidan skriver bredd, djup och höjd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (Produktstorlek, Produktmått, Returområde eller Produktmått i bildtexten) saknar axelord, och sidan skriver bredd, djup och höjd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (Produktstorlek, Produktmått, Returområde eller Produktmått i bildtexten) saknar axelord, och sidan skriver bredd, djup och höjd efter måttbildens ritning
