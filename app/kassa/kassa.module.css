@@ -931,14 +931,14 @@
   padding-bottom: 12px;
 }
 
-/* Utan plånbok (eller medan Stripe svarar i en webbläsare utan Apple Pay)
-   står rutan utanför sidan: knapparna måste vara monterade för att Stripe ska
-   kunna säga om de finns, men formuläret ska inte flytta. Den andra raden
-   gäller från första ritningen, innan React tagit över: PLANBOK_SKRIPT
-   (lib/kassa/snabbkassa.ts, körs i app/layout.tsx) sätter data-applepay på
-   <html>. */
+/* Utan plånbok (eller medan Stripe svarar i en webbläsare där ingen plånbok
+   väntas, som en app på Android) står rutan utanför sidan: knapparna måste
+   vara monterade för att Stripe ska kunna säga om de finns, men formuläret ska
+   inte flytta. Den andra raden gäller från första ritningen, innan React tagit
+   över: PLANBOK_SKRIPT (lib/kassa/snabbkassa.ts, körs i app/layout.tsx) sätter
+   data-planbok="apple", "google" eller "ingen" på <html>. */
 .snabb[data-visas="nej"],
-:global(html[data-applepay="nej"]) .snabb[data-snabb="laddar"] {
+:global(html[data-planbok="ingen"]) .snabb[data-snabb="laddar"] {
   position: absolute;
   top: 0;
   left: -10000px;
@@ -959,6 +959,22 @@
   font-size: var(--text-sm);
   line-height: 1.45;
   color: var(--soft);
+}
+
+/* Plånbokens namn medan Stripe svarar. Båda står i sidan, och den som
+   webbläsaren väntas få visas (data-planbok): texten är rätt från första
+   ritningen, också före hydreringen, och byts aldrig under kunden. Apple Pay
+   är grundvalet, som förut. */
+.planbokGoogle {
+  display: none;
+}
+
+:global(html[data-planbok="google"]) .planbokApple {
+  display: none;
+}
+
+:global(html[data-planbok="google"]) .planbokGoogle {
+  display: inline;
 }
 
 /* flow-root: Stripes ram har −4 px marginal (plats för fokusringen). Utan egen
@@ -1010,7 +1026,7 @@
    (snabbknappar: buy och black; borderRadius 10px), så bytet syns inte. Den
    tar inga tryck: Stripes knapp tonar fram över den på samma plats (ovan). */
 @supports (-webkit-appearance: -apple-pay-button) {
-  :global(html[data-applepay="ja"]) .snabbSkelett {
+  :global(html[data-planbok="apple"]) .snabbSkelett {
     -webkit-appearance: -apple-pay-button;
     -apple-pay-button-type: buy;
     -apple-pay-button-style: black;
@@ -1022,6 +1038,16 @@
     bottom: auto;
     height: 50px;
   }
+}
+
+/* Google Pay (Chrome och andra webbläsare utanför Apples): platshållaren är
+   svart som Stripes knapp, som är 52 px hög och fyller hela platsen med 10 px
+   hörn (uppmätt inne i ramen 2026-11-14, buy och black). När Stripes knapp
+   tonar fram över den syns bara texten komma, inte ett byte från grått till
+   svart. Skimmern går kvar, så att rutan läses som något som laddar. Bara
+   bilden byts: storlek och rörelse ärvs från .snabbSkelett. */
+:global(html[data-planbok="google"]) .snabbSkelett {
+  background-image: linear-gradient(90deg, #000 25%, #2f2f2f 50%, #000 75%);
 }
 
 .snabbKod {
@@ -1043,7 +1069,7 @@
   color: var(--soft);
 }
 
-:global(html[data-applepay="nej"]) .eller[data-snabb="laddar"] {
+:global(html[data-planbok="ingen"]) .eller[data-snabb="laddar"] {
   display: none;
 }
 

@@ -56,7 +56,7 @@ import {
   stripeMeddelande,
   vantaPaOrder,
 } from "../../lib/kassa/stripe-klient";
-import { klickSvar, planbokNamn, planbokTrolig, snabbBekrafta, type Sammandrag } from "../../lib/kassa/snabbkassa";
+import { klickSvar, planbokNamn, snabbBekrafta, webblasarensPlanbok, type Sammandrag } from "../../lib/kassa/snabbkassa";
 import type { StripeAddressElementChangeEvent, StripeExpressCheckoutElementClickEvent, StripeExpressCheckoutElementConfirmEvent } from "@stripe/stripe-js";
 import { useStripeBetalning } from "./use-stripe-betalning";
 import { KassaFot, KassaHuvud, Las } from "./kassa-ram";
@@ -252,15 +252,16 @@ export function Kassa({
   // betalningen pågår därifrån (väntans text gäller då inte betalfältets val).
   const [snabbFel, setSnabbFel] = useState<string | null>(null);
   const [snabbPagar, setSnabbPagar] = useState(false);
-  // Finns Apple Pay i webbläsaren? Då hålls knapparnas plats medan Stripe svarar
-  // (planbokTrolig). Sant från början, också på servern: de flesta kunder är på
-  // iPhone, och rutan som dök upp efter hydreringen knuffade ner formuläret
-  // 256 px (lokalt prov 2026-11-06). I andra webbläsare håller CSS:en ingen plats
-  // redan före hydreringen (PLANBOK_SKRIPT sätter data-applepay på <html>).
+  // Väntas en plånbok i webbläsaren (planbokGissning)? Då hålls knapparnas plats
+  // medan Stripe svarar: Apple Pay i Apples webbläsare, Google Pay i de andra.
+  // Sant från början, också på servern: rutan som dök upp efter hydreringen
+  // knuffade ner formuläret 256 px (lokalt prov 2026-11-06). I en app på Android
+  // visar Stripe ingen knapp, och där håller CSS:en ingen plats redan före
+  // hydreringen (PLANBOK_SKRIPT sätter data-planbok på <html>).
   const [planbokMojlig, setPlanbokMojlig] = useState(true);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- webbläsarens förmågor finns inte på servern
-    setPlanbokMojlig(planbokTrolig({ applePaySession: "ApplePaySession" in window }));
+    setPlanbokMojlig(webblasarensPlanbok() !== "ingen");
   }, []);
 
   /**
@@ -1086,10 +1087,11 @@ export function Kassa({
   // platsen bara i webbläsare som kan ha en; annars står rutan utanför sidan
   // tills knapparna finns, så att formuläret inte hoppar.
   const snabbVisas = Boolean(stripeNyckel) && (snabbLage === "redo" || (snabbLage === "laddar" && planbokMojlig));
-  // Medan Stripe svarar syns rutan bara där Apple Pay finns (planbokTrolig och
-  // PLANBOK_SKRIPT), så texten säger Apple Pay från början och står still när
+  // Plånbokens namn när Stripe har svarat. Medan Stripe svarar står båda namnen i
+  // sidan, och CSS:en visar det som webbläsaren väntas få (data-planbok,
+  // PLANBOK_SKRIPT): texten är rätt från första ritningen och står still när
   // Stripe svarar (förut bytte den mitt i knappbytet).
-  const planbokText = snabbLage === "redo" ? planbokNamn(snabbPlanbocker) : "Apple Pay";
+  const planbokText = snabbLage === "redo" ? planbokNamn(snabbPlanbocker) : null;
   const antalVaror = rader.reduce((n, li) => n + (li.quantity ?? 1), 0);
   // "Menade du …?" när kunden lämnat fältet. Står på hjälptextens rad, så att inget flyttar.
   const epostTips = rorda.has("epost") && !fel.epost ? epostForslag(varden.epost) : null;
@@ -1353,7 +1355,7 @@ export function Kassa({
                 aria-hidden={snabbVisas ? undefined : true}
               >
                 <h2 id="kassa-snabb-rubrik" className={s.snabbRubrik}>Snabbkassa</h2>
-                <p className={s.snabbUnder}>Namn, adress och e-post hämtas från {planbokText}. Du fyller inte i något.</p>
+                <p className={s.snabbUnder}>Namn, adress och e-post hämtas från {planbokText ?? <><span className={s.planbokApple}>Apple Pay</span><span className={s.planbokGoogle}>Google Pay</span></>}. Du fyller inte i något.</p>
                 <div className={s.snabbYta}>
                   {/* Platshållaren har knappens höjd, så att inget hoppar. Den ligger UNDER
                       Stripes knappar och står kvar en stund efter svaret: Stripe tonar in

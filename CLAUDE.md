@@ -2153,6 +2153,15 @@ BankID ska användas).
 - **Bara Apple Pay och Google Pay** i knapparna: Link, PayPal, Amazon Pay och
   Klarna `never`. ☠️ Klarna står aldrig överst (betaltjänstlagen, se
   `BETALFALT`).
+- **Google Pay står på `always` utanför Apples webbläsare** (Leonard
+  2026-11-14, `snabbknappar(s, planbok)`). Med `auto` visar Stripe knappen bara
+  för den som redan har ett kort sparat hos Google: kassan på www visade ingen
+  knapp alls i Chrome, och svaret kom efter 12–13 s. Med `always` kom knappen
+  på 3–4 s i samma webbläsare; den som saknar kort lägger in det i Googles
+  eget blad. ☠️ I Apples webbläsare (`ApplePaySession` finns: Safari, och alla
+  webbläsare på iPhone) står Google Pay kvar på `auto`: Stripe visar Google
+  Pay där bara med `always`, och då hade det stått två knappar i en plats som
+  rymmer en. Apple Pay står på `auto` överallt, som förut.
 - ☠️ **`layout.overflow: "never"` bara med `maxRows: 0`.** Annars kastar Stripe
   IntegrationError och inga knappar ritas (lokalt prov 2026-11-06). Knapparna
   monteras därför i `try`: ett fel i snabbkassan får aldrig stoppa
@@ -2169,9 +2178,15 @@ BankID ska användas).
 - **Platshållaren är Apples egen knapp i Safari** (`.snabbSkelett` med
   `-webkit-appearance: -apple-pay-button`, typ buy, svart, 10 px hörn och
   50 px hög som Stripes Apple Pay-knapp): kunden ser Apple Pay från första
-  ritningen. Den tar inga tryck. Andra webbläsare får den grå skimmern som
-  förut. Stripes Apple Pay-knapp är 50 px hög (inline-stil i ramen) fast
-  `buttonHeight` är 52, uppmätt 2026-11-08.
+  ritningen. Den tar inga tryck. Stripes Apple Pay-knapp är 50 px hög
+  (inline-stil i ramen) fast `buttonHeight` är 52, uppmätt 2026-11-08.
+- **Platshållaren för Google Pay är svart** (`html[data-planbok="google"]
+  .snabbSkelett`): Stripes Google Pay-knapp är svart, 52 px hög och fyller
+  hela platsen med 10 px hörn (uppmätt inne i ramen 2026-11-14; knappens egen
+  ram är 6 px bredare men genomskinlig i kanten). När knappen tonar fram över
+  platshållaren syns bara texten komma. ☠️ Regeln byter bara
+  `background-image`: `background` hade nollat skimmerns storlek. Den grå
+  skimmern finns kvar som grundval, när skriptet inte har satt något.
 - ☠️ **Stripes knapp tonar in EFTER `ready`** (Leonard 2026-11-08: "flimrar
   det till ett ögonblick"). Uppmätt inne i Stripes ram: vyn
   `.p-ExpressCheckoutView` läggs in runt svaret (upp till 150 ms efter) och
@@ -2183,27 +2198,48 @@ BankID ska användas).
   (`.snabb[data-snabb="redo"] .snabbSkelett`). Skärmfilm av knappens yta med
   riktiga Stripe i produktionen: förut svart till vitt i rutan efter svaret,
   med rättelsen svart hela vägen till 2 s.
-- **Texten säger "Apple Pay" medan Stripe svarar**: rutan syns då bara där
-  `ApplePaySession` finns, så texten byts inte mitt i knappbytet (förut
-  "Apple Pay eller Google Pay" till "Apple Pay" i samma ögonblick).
+- **Gissningen före Stripes svar** (`planbokGissning`, 2026-11-14) styr
+  platsen, platshållaren, texten och Google Pays läge:
+  - `apple`: webbläsaren har `ApplePaySession`. Allt som förut.
+  - `google`: alla andra webbläsare. Platsen hålls, platshållaren är svart och
+    texten säger Google Pay.
+  - `ingen`: en inbyggd webbläsare i en app på Android (märket `; wv)` i
+    webbläsarens namn), som den som trycker på en annons i Instagram, Facebook
+    eller TikTok hamnar i. ☠️ Där svarade Stripe utan plånbok efter cirka 3 s,
+    både med `always` och med `auto`, också när `PaymentRequest` fanns kvar
+    (mätt 2026-11-14 med apparnas namn på webbläsaren, inte i en riktig app).
+    Ingen plats hålls: annars försvann rutan och formuläret hoppade upp.
+  `PaymentRequest` säger ingenting om Stripes svar: med `always` kom knappen
+  också när den togs bort ur webbläsaren.
+- **Texten nämner rätt plånbok från första ritningen**: medan Stripe svarar
+  står båda namnen i sidan (`.planbokApple`, `.planbokGoogle`), och CSS:en visar
+  det ena efter `data-planbok`. React vet inte webbläsaren förrän efter
+  hydreringen, och ett namn som byttes då hade synts. När Stripe har svarat
+  står plånbokens namn ur svaret (`planbokNamn`).
 - **Platsen hålls från första renderingen** (också på servern) med en
-  platshållare i knappens höjd, men bara där Apple Pay finns
-  (`ApplePaySession`, som Safari på iPhone och Mac har). Rutan som dök upp
-  efter hydreringen knuffade ner formuläret 256 px. Där svarar Stripe snabbt
-  och visar nästan alltid knappen; saknas plånbok tas platsen bort när Stripe
-  svarar, eller efter 12 s. ☠️ **Inte för Google Pay:** Stripes kontroll av
-  Google Pay tog 13 s på förhandsbygget (huvudlös Chromium, testnycklarna,
-  2026-11-06), och 0 av 171 köp är Google Pay (23 Apple Pay). I Chrome visas
-  rutan därför först när Stripe hittat en plånbok. Utan plånbok står rutan
-  utanför sidan (`data-visas="nej"`), eftersom knapparna måste vara monterade
-  för att Stripe ska kunna svara.
+  platshållare i knappens höjd, utom i läget `ingen`. Rutan som dök upp
+  efter hydreringen knuffade ner formuläret 256 px. Saknas plånbok tas platsen
+  bort när Stripe svarar, eller efter 12 s. Utan plånbok står rutan utanför
+  sidan (`data-visas="nej"`), eftersom knapparna måste vara monterade för att
+  Stripe ska kunna svara. Mätt 2026-11-14 med grenens bygge under
+  www.fyndplats.se (Chromium, dator och Android, hel sidladdning och mjukt
+  sidbyte från varukorgen): rutan syns från första ritningen, knappen kommer
+  efter 3,3–4,0 s, och kontaktrutan står på samma plats hela vägen.
+  ☠️ Stoppas Googles skript (`pay.google.com`, till exempel av ett filter)
+  svarar Stripe utan plånbok efter cirka 3,6 s: platsen släpps och formuläret
+  flyttas upp 236 px en gång. Förut hölls platsen bara där Apple Pay finns:
+  med `auto` tog Stripes kontroll av Google Pay 12–13 s och slutade nästan
+  alltid utan knapp.
 - **Före hydreringen avgör `PLANBOK_SKRIPT`** (`lib/kassa/snabbkassa.ts`, körs
-  först i `app/layout.tsx`): det sätter `data-applepay="ja"|"nej"` på `<html>`,
-  och CSS:en flyttar ut rutan medan Stripe svarar (`data-snabb="laddar"`) i en
-  webbläsare utan Apple Pay. Annars stod platsen kvar tills React tagit över
-  och försvann sedan. Skriptet ligger i layouten och inte på kassasidan,
-  eftersom kunden oftast kommer till `/kassa` med ett mjukt sidbyte från
-  varukorgen, och då körs inga skript i sidans HTML.
+  först i `app/layout.tsx`): det sätter `data-planbok="apple"|"google"|"ingen"`
+  på `<html>`, och CSS:en flyttar ut rutan medan Stripe svarar
+  (`data-snabb="laddar"`) i läget `ingen`. Annars stod platsen kvar tills
+  React tagit över och försvann sedan. Skriptet ligger i layouten och inte på
+  kassasidan, eftersom kunden oftast kommer till `/kassa` med ett mjukt
+  sidbyte från varukorgen, och då körs inga skript i sidans HTML. Kassan och
+  knapparna läser webbläsaren med `webblasarensPlanbok()`, och proven kör
+  skriptet mot `planbokGissning`, så att de aldrig svarar olika. ☠️ Attributet
+  hette förut `data-applepay`: en regel på det gamla namnet träffar aldrig.
 - ☠️ **Stripes ram har −4 px marginal** (plats för fokusringen). Utan egen
   formateringskontext kollapsade den genom ytan runt fältet, och allt under
   flyttade 4 px när Stripe monterade. `.snabbYta` och `.betalfalt` har därför
