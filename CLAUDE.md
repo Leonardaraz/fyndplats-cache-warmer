@@ -129,6 +129,7 @@ underrubrik.
   - `05-aosom-synken/30-fargval-med-fa-bilder.md`: Färgval med få bilder: fler bilder per färg (2026-10-21)
     - Bildstädningen rör inte färgbilderna (kontrollerat 2026-10-22)
   - `05-aosom-synken/31-storleksvyer.md`: Storleksvyer och andra enkla val: mätta först 2026-10-22
+    - Valens ordning: storlekarna ska ligga i storleksordning (2026-11-06)
   - `05-aosom-synken/32-cowork-rundan.md`: Cowork-rundan: bilder ur aosom.de:s galleri, plats 11 och uppåt (2026-10-22)
   - `05-aosom-synken/33-delade-mattbilder.md`: Delade måttbilder på storleksidor visas under fel storlek (2026-10-22)
   - `05-aosom-synken/34-tvaaxliga-sidor/`: Tvåaxliga sidor: färgfoton på färgen, ett kort per storlek (2026-10-23). En fil per avsnitt, inledningen först.

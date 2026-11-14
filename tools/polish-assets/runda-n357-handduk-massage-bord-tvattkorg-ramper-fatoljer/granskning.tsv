@@ -1,0 +1,46 @@
+8f3aecb9	1	används	feedens position 1: vit studiobild, ren
+8f3aecb9	2	används	feedens position 2: miljöbild i ett badrum, ren; handdukar och badrumsinredning är rekvisita
+8f3aecb9	3	används	feedens position 3: måttbild med bara tal och enheter (45, 21,5, 85, 58 och 7,5 cm samt 6 kg); talen står i källtexten; OCR läste bara siffror; läggs sist
+8f3aecb9	4	används	feedens position 8: miljöbild vid gardiner, ren
+8f3aecb9	5	används	feedens position 9: närbild på hållarens nedre del, ren
+b536fdf9	1	används	feedens position 1: vit studiobild, ren
+b536fdf9	2	används	feedens position 2: miljöbild, ren; rullpallen är rekvisita och ingår inte enligt källans leveranslista
+b536fdf9	3	används	feedens position 3: måttbild med bara tal och enheter (182, 82, 68, 62, 70, 58 och 18 cm); talen står i källtexten; bilden ritar den hopfällda bänken stående med 58 cm som höjd medan källtexten anger 18 cm som höjd, så de hopfällda måtten skrivs utan axelnamn; läggs sist
+b536fdf9	4	används	feedens position 8: miljöbild, ren; rullpallen är rekvisita
+b536fdf9	5	används	feedens position 9: bänken i tre lägen sedd uppifrån, ren; visar hur ryggstödet och benstödet kan ställas
+8a45270a	1	används	feedens position 1: vit studiobild, ren
+8a45270a	2	används	feedens position 2: miljöbild i ett vardagsrum, ren
+8a45270a	3	används	feedens position 3: måttbild med bara tal och enheter (80, 43,8 och 46 cm samt 20 kg); talen står i källtexten; läggs sist
+8a45270a	4	används	feedens position 8: miljöbild, ren; OCR läste bara boktitlar på rekvisita
+8a45270a	5	används	feedens position 9: miljöbild, ren; OCR läste bara de engelska titlarna på böckerna på hyllan, som är rekvisita och inte bildtext
+d41b8a4b	1	används	feedens position 1: vit studiobild, ren
+d41b8a4b	2	används	feedens position 2: miljöbild i ett vardagsrum, ren; OCR läste bara brus
+d41b8a4b	3	används	feedens position 3: måttbild med bara tal och enheter (75, 65, 42 och 36 cm samt 10 kg); talen står i källtexten; läggs sist
+d41b8a4b	4	används	feedens position 8: miljöbild, ren
+d41b8a4b	5	används	feedens position 9: miljöbild, ren
+c3bb2ce8	1	används	feedens position 1: vit studiobild, ren
+c3bb2ce8	2	används	feedens position 2: miljöbild vid en vitpanelad vägg, ren
+c3bb2ce8	3	används	feedens position 3: måttbild med bara tal och enheter (75, 48, 67, 22, 38 och 51 cm, 9 kg och 129 L); talen står i källtexten; OCR läste ikonbrus; läggs sist
+c3bb2ce8	4	används	feedens position 8: närbild uppifrån på facken, ren
+c3bb2ce8	5	används	feedens position 9: miljöbild på ett trägolv, ren
+f655c4ce	1	används	feedens position 1: vit studiobild med två ramper, ren
+f655c4ce	2	används	feedens position 2: miljöbild med ett bilhjul på rampen och en infälld bild på de två ramperna, ren
+f655c4ce	3	används	feedens position 3: måttbild med bara tal och enheter (70, 19,5 och 7,8 cm); talen står i källtexten; läggs sist
+f655c4ce	4	används	feedens position 8: närbild på rutnätsytan, ren
+f655c4ce	5	används	feedens position 9: närbild på rampens ände, ren
+3f437894	1	används	feedens position 1: vit studiobild, ren; handkontrollen med sladd syns i sidofickan
+3f437894	2	används	feedens position 2: miljöbild i ett vardagsrum, ren
+3f437894	3	används	feedens position 3: måttbild med bara tal och enheter (148, 88, 91, 107, 95, 92, 56, 48, 75 och 174 cm); talen står i källtexten; läggs sist
+3f437894	4	används	feedens position 8: närbild på fotstödet, ren
+3f437894	5	används	feedens position 9: närbild på nackstöd och armstöd, ren
+640676ef	1	används	feedens position 1: vit studiobild, ren; två handkontroller syns i sidofickan
+640676ef	2	används	feedens position 2: miljöbild med fåtöljen i upplyft läge, ren
+640676ef	3	används	feedens position 3: måttbild med bara tal och enheter (84, 158, 140, 107, 50, 55, 49, 94, 85 och 84 cm); talen står i källtexten; läggs sist
+640676ef	4	struken	feedens position 8: inbränd tysk text (Einfache Montage, Sie brauchen nur etwa 5 Minuten) överst; utsnittet på position 11 ersätter den
+640676ef	5	struken	feedens position 9: inbränd tysk text (Sockel aus Stahl, Einziehbare Fußstütze, Seitentasche) och infällda bilder; går inte att beskära utan att skära i fåtöljen
+640676ef	f4	förkastad	feedens position 4 (aosom-bildkandidater): inbränd tysk text (Hilfe zum Stand) och en person i bilden; laddades upp men används inte
+640676ef	f5	förkastad	feedens position 5 (aosom-bildkandidater): inbränd tysk text (Vibrationsmassage, 8 Punkte, 4 Modi, Funktion Heizung); bilden anger 4 massageprogram medan källtexten anger 5, så antalet utelämnas; laddades upp men används inte
+640676ef	f6	förkastad	feedens position 6 (aosom-bildkandidater): inbränd tysk text (Elektrischer Liegesessel) och en lutningsvinkel på 135° medan källtexten anger 150°, så vinkeln utelämnas; laddades upp men används inte
+640676ef	f7	förkastad	feedens position 7 (aosom-bildkandidater): inbränd tysk text (Gepolsterter Komfort) och en genomskärning av stoppningen; laddades upp men används inte
+640676ef	10	används	feedens position 10 (aosom-bildkandidater): miljöbild med fåtöljen upprätt, ren; OCR läste bara en text på en glob, som är rekvisita; två handkontroller syns i sidofickan
+640676ef	11	används	utsnitt ur feedens position 8 (1 650 × 1 620 px, x 140, y 380): den bakåtlutade fåtöljen med utfällt fotstöd; rubriken ligger utanför; OCR REN; två handkontroller syns i sidofickan

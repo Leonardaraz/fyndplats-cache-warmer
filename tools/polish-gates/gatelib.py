@@ -363,6 +363,25 @@ TYSKA_ORD = [
     "Kunstpflanze", "Zementtopf", "Gartenschrank", "Pflanztisch", "Geräteschuppen",
     "Edelstahlplatte", "Antibeschlag", "Stoffschubladen", "Monitorständer", "Lichtstreifen",
     "Rückenhaken", "Zuggriff", "Schaukelstopper",
+    # runda N362 (ribbstolar, monitorarmar, gungdjur)
+    "Sprossenwand", "Kletterwand", "Klimmzugstange", "Klettergerüst", "Kinderklettergerüst",
+    "Turnringe", "Kletterleiter", "Monitorhalterung", "Tischhalterung", "Laptophalterung",
+    "Gasfeder", "Bildschirmhalter", "Bildschirmständer", "Schaukelstopp", "Schaukelbegrenzer",
+    "Eichhörnchen", "Robbe", "Seehund", "Einhorn", "Plüschstoff", "Schaukelrobbe",
+    "Hufschläge", "Wiehern", "Spreizschrauben", "Schwebefunktion", "Tischdurchführung",
+    # runda N378 (ridhäst, käpphäst, bordsfotbollar, bordtennisbord, liggande motionscykel)
+    "Reitpferd", "Spielpferd", "Steckenpferd", "Stockpferd", "Stehpferd", "Wiehergeräusche",
+    "Tischkicker", "Kickertisch", "Tischfußball", "Tischfussball", "Kickerbälle", "Fußbälle",
+    "Torhüter", "Ballfächern", "Ballrückgabeschächte", "Punktezähler", "Punktetafeln",
+    "Tischtennisplatte", "Tischtennistisch", "Tischtennisschläger", "Tischtennisnetz", "Netztasche",
+    "Liegeergometer", "Liegefahrrad", "Liegetrainer", "Magnetwiderstand", "Riemenantrieb",
+    "Widerstandsstufe", "Transportrollen", "Fußriemen",
+    # runda N379 (sängram, matstolar, kontorsstol, LED-spegel, skivstångsställ, hantelställ, skoförvaring, solcellslampa)
+    "Bettgestell", "Stauraum", "Hebevorrichtung", "Plattformbett", "Kopfteil", "Fußteil", "Esszimmerstühle",
+    "Sprossenlehne", "Kautschukholz", "Gummibaumholz", "Filzgleiter", "Bürostuhl", "Schneidersitz", "Kopfstütze",
+    "Armlehnen", "Aufbewahrungstaschen", "Badezimmerspiegel", "Vergrößerungsspiegel", "Hantelständer",
+    "Langhantelständer", "Kurzhantelständer", "Hantelablage", "Kurzhantelablage", "Regalsystem", "Steckregal",
+    "Würfelregal", "Würfelfächer", "Schuhkarton", "Stehlampe", "Solarlampe", "Erdspieß", "Spritzwasserschutz",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med

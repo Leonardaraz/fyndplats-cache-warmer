@@ -1,0 +1,40 @@
+18377619	1	används	feedens position 1: vit studiobild, ren
+18377619	2	används	feedens position 2: miljöbild i en hall, ren
+18377619	3	används	feedens position 3: måttbild med bara tal och enheter (40, 15,5 och 15,5 cm); talen står i källtexten; läggs sist
+18377619	4	används	feedens position 8: närbild med två paraplyer och en krok, ren
+18377619	5	används	feedens position 9: närbild på det utskurna paraplyet, ren
+af12eeab	1	används	feedens position 1: vit studiobild, ren; OCR läste bara texten Lights och Darks, som är tryckt på korgens tygband
+af12eeab	2	används	feedens position 2: miljöbild i en tvättstuga, ren; OCR läste bara texten på tygbandet
+af12eeab	3	används	feedens position 3: måttbild med bara tal och enheter (63, 52 och 32 cm); talen står i källtexten; läggs sist
+af12eeab	4	används	feedens position 8: närbild på lockets handtag, ren; texten är tryckt på korgens tygband
+af12eeab	5	används	feedens position 9: närbild på insidan, ren
+921fca21	1	används	feedens position 1: vit studiobild, ren; OCR läste bara loggan på verktygsfickan, som sitter på varan och inte nämns i texten
+921fca21	2	används	feedens position 2: miljöbild i en trädgård, ren; OCR läste bara loggan på verktygsfickan
+921fca21	3	används	feedens position 3: måttbild med bara tal och enheter (27, 50, 15, 64,5, 39, 60,5 och 29 cm); 39 och 15 cm står inte i källtexten (40 och 15,5) och används inte; resten står i källtexten; läggs sist
+921fca21	4	struken	feedens position 8: inbränd tysk text (Faltbares Design) och två infällda cirklar över bilden; går inte att beskära utan att skära i bänken
+921fca21	5	används	feedens position 9: miljöbild i en trädgård, ren
+921fca21	f4	förkastad	feedens position 4 (aosom-bildkandidater): inbränd tysk text (Zwei Möglichkeiten der Anwendung, Gartensitz, Gartenkniebank); laddades upp men används inte
+921fca21	f5	förkastad	feedens position 5 (aosom-bildkandidater): inbränd tysk text (Stabiler und beruhigender, Leicht umzukippen und instabil) och en svartvit bild; laddades upp men används inte
+921fca21	f6	förkastad	feedens position 6 (aosom-bildkandidater): inbränd tysk text (Breiter und weicher) och mått som inte stämmer med källtexten; laddades upp men används inte
+921fca21	f7	förkastad	feedens position 7 (aosom-bildkandidater): inbränd tysk text (Premium-Material) över bilden; laddades upp men används inte
+921fca21	10	används	feedens position 10 (aosom-bildkandidater): miljöbild vid en husvägg, ren; OCR läste bara loggan på verktygsfickan
+0bb51513	1	används	feedens position 1: vit studiobild, ren
+0bb51513	2	används	feedens position 2: miljöbild med böcker på sitsen, ren
+0bb51513	3	struken	feedens position 3: måttbild vars nedre hälft har inbränd tysk text (Bitte messen Sie vor dem Kauf die Breite Ihres Bettes) med sängbredder; måtten 76, 38 och 35 cm står i källtexten
+0bb51513	4	används	feedens position 8: miljöbild vid en säng, ren
+0bb51513	5	används	feedens position 9: miljöbild i ett vardagsrum, ren
+0bb51513	f4	förkastad	feedens position 4 (aosom-bildkandidater): inbränd tysk text (72 Liter versteckter Stauraum); laddades upp men används inte
+0bb51513	f5	förkastad	feedens position 5 (aosom-bildkandidater): inbränd tysk text (Faltbares Design Zum Gebrauch aufklappen); laddades upp men används inte
+0bb51513	f6	förkastad	feedens position 6 (aosom-bildkandidater): inbränd tysk text (Angenehme Haptik och materialnamn); laddades upp men används inte
+0bb51513	f7	förkastad	feedens position 7 (aosom-bildkandidater): inbränd tysk text (Multifunktionaler Osman, Zusätzlicher Sitzplatz, Schuhbank, Bettendebank, Fußhocker); laddades upp men används inte
+0bb51513	10	används	feedens position 10 (aosom-bildkandidater): miljöbild i ett sovrum, ren
+e38609c1	1	används	feedens position 1: vit studiobild, ren; OCR läste bara dekalerna på kåpan, som sitter på varan och inte nämns i texten
+e38609c1	2	används	feedens position 2: miljöbild med ett barn på elfyrhjulingen i en skog, ren; OCR läste bara dekalen på varan och ordet Quad på barnets tröja
+e38609c1	3	struken	feedens position 3: måttbild med inbränd tysk text (Empfohlenes Alter, Max. Belastbarkeit) över bildens övre del; går inte att beskära till en kvadrat med måtten kvar; måtten 101, 55 och 55 cm och sitsmåtten står i källtexten
+e38609c1	4	används	feedens position 8: närbild på bakre bagagehållaren, ren; OCR läste bara en varningsdekal på varan
+e38609c1	5	används	feedens position 9: närbild på styret, ren; OCR läste bara texten på instrumentpanelen
+e38609c1	f4	förkastad	feedens position 4 (aosom-bildkandidater): inbränd tysk text (Kraftvoller Antrieb m.fl.); laddades upp men används inte
+e38609c1	f5	förkastad	feedens position 5 (aosom-bildkandidater): inbränd tysk text (Langlebiger Lithium-Akku, Ladezustandsanzeige); laddades upp men används inte
+e38609c1	f6	förkastad	feedens position 6 (aosom-bildkandidater): inbränd tysk text (Sanfter Start); laddades upp men används inte
+e38609c1	f7	förkastad	feedens position 7 (aosom-bildkandidater): inbränd tysk text (Vorne und hinten Gepäckkörbe); laddades upp men används inte
+e38609c1	10	används	feedens position 10 (aosom-bildkandidater): miljöbild på en grusväg, ren; OCR läste bara dekalerna på varan

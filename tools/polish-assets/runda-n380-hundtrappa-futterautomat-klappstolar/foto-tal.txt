@@ -1,0 +1,4 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+51c6a7b1 17,5 skålens bredd och längd: källan anger 175 × 175 mm, och måttbilden visar 17,5 cm
+51c6a7b1 4,2 skålens höjd: källan anger 42 mm, omräknat till 4,2 cm

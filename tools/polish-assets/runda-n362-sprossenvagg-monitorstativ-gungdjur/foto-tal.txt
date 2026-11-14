@@ -1,0 +1,4 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+15dbb4ad 28 sitthöjden: det lodräta måttet från golv till sits på måttbilden (feedens position 3); sälen på samma stomme har 28 cm i sin källtext
+1105436b 32 feedens produkttitel anger Monitorhalterung für 1 Monitor bis 32 Zoll; beskrivningen nämner skärmen utan storlek

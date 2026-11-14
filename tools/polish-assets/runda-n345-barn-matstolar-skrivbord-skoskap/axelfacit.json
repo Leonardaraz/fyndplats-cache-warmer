@@ -1,0 +1,56 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "00d25b5d": {
+  "tyska": "84B x 63T x 93H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 63,
+  "hojd": 93,
+  "bredd": 84
+ },
+ "2a7e7917": {
+  "tyska": "48B x 53T x 95H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 53,
+  "hojd": 95,
+  "bredd": 48
+ },
+ "43e257c6": {
+  "tyska": "49,5B x 58T x 82H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 58,
+  "hojd": 82,
+  "bredd": 49.5
+ },
+ "5b44fce7": {
+  "tyska": "60L x 28B x 50H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 50,
+  "bredd": 60,
+  "djup": 28
+ },
+ "5f0a4d6e": {
+  "tyska": "56B x 51T x 80H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 51,
+  "hojd": 80,
+  "bredd": 56
+ },
+ "75a707bd": {
+  "tyska": "124,6B x 17T x 84H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 17,
+  "hojd": 84,
+  "bredd": 124.6
+ },
+ "971b7fa2": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Schreibtischmaße: 92,5L x 40B x 72,2H cm | ✔ Maße der Tischplatte: 59,5L x 30B cm | ✔ Höhe der Tischplatte: 49,2H cm | ✔ Stuhlmaße: 28,7L x 30B x 47H cm | ✔ Sitzmaße: 25,6L x 23,8B cm | ✔ Sitzhöhe: 24,2H cm | ✔ Bücherregal: 29B x 14,5T x 14H cm | ✔ Aufbewahrungsfach: 29B x 37,7T x 26,5H cm | ✔ Stoffbox: 28B x 36T x 24,5H cm | ✔ Innenmaße der Schublade: 32,2L x 22,2B x 6H cm | Mått: 92,5L x 40B x 72,2H cm"
+ }
+}

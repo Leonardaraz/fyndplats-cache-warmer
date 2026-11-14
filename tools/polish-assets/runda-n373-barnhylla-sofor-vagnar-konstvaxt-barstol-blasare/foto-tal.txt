@@ -1,0 +1,5 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+71ba2ceb 2 stolar: leverantörens titel (Kindertisch mit 2 Stühlen) och bild 1, 2 och 10 visar bordet med två stolar
+aa705931 93 höjdspannets undre gräns, 93–113 cm avläst i måttbilden (källtexten skriver 93-113H)
+aa705931 113 höjdspannets övre gräns, 93–113 cm avläst i måttbilden (källtexten skriver 93-113H)

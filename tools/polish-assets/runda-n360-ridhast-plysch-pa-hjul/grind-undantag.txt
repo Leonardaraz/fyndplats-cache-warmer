@@ -1,0 +1,3 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+gate.py EN 71 antas uppfyllt för allt från Aosom (Leonards beslut 2026-10-08), källtexten nämner ingen standard
+gate-axel.py källans 65L x 28B x 75H gäller en ridhäst där L är längden och B bredden: måttbilden (bild 3, som tas bort för sin tyska text) visar 65 cm längs hästen och 28 cm tvärs över den, så texten binder 65 till lång och 28 till bred

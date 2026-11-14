@@ -1,0 +1,4 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+5a7647a1 10 tio hyllplan, räknade på bild 4 (en rad skor per hyllplan, och 20 par på 10 plan ger två par per plan)
+eb7ab631 2 två tygladdor, räknade på bild 1 (två lådor med tygfront)

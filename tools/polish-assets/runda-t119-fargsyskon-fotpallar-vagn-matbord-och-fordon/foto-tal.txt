@@ -1,0 +1,3 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+1a39c946 4 räknat på bilderna: fotpallen har fyra ben

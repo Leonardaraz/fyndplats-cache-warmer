@@ -1,0 +1,34 @@
+{
+ "sidor": [
+  {
+   "id": "8ad1e003-84cf-41c2-95cf-58335a980ffa",
+   "val": "5aca9cb3-aeb5-4d3d-893a-743058f1aab3",
+   "bilder": [
+    {
+     "fil": "b379ce_6d8b87b65b824a9f9ce4c1798764e38c~mv2.jpg",
+     "alt": "Ett barn i blå tröja kör den röda Land Rover-elbilen på en stenlagd uppfart framför grönska"
+    }
+   ]
+  },
+  {
+   "id": "1f360dec-0526-49c9-a7b4-c9cf181e35e4",
+   "val": "5aca9cb3-aeb5-4d3d-893a-743058f1aab3",
+   "bilder": [
+    {
+     "fil": "b379ce_fbd38469b1e7472da7d875ceca50be04~mv2.jpg",
+     "alt": "Ett par går i en höstpark med den röda hundvagnen, där en liten vit hund sitter i kabinen"
+    }
+   ]
+  },
+  {
+   "id": "5f7566a1-464f-4df3-a4ab-6a544afe7ffd",
+   "val": "eaae581f-7a17-4999-bd19-efb13eeafc6d",
+   "bilder": [
+    {
+     "fil": "b379ce_033269fa13844c989b780ed279d8dd0f~mv2.jpg",
+     "alt": "Närbild på hörnet av den gröna aluminiumstommen med bultar och polykarbonatskivor bakom"
+    }
+   ]
+  }
+ ]
+}

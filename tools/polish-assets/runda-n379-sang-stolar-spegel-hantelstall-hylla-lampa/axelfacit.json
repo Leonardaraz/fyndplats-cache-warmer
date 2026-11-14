@@ -1,0 +1,59 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "28cd1897": {
+  "tyska": "70B x 70T x 116-126H cm",
+  "svenska": "70 x 70 x 126 cm",
+  "bokstaver": "BTH",
+  "djup": 70,
+  "hojd": [
+   116,
+   126
+  ],
+  "bredd": 70
+ },
+ "2e05b505": {
+  "tyska": "44B x 50T x 96,5H cm",
+  "svenska": "44 x 50 x 96,5 cm",
+  "bokstaver": "BTH",
+  "djup": 50,
+  "hojd": 96.5,
+  "bredd": 44
+ },
+ "8618dd6a": {
+  "tyska": "214L x 146,5B x 113H cm",
+  "svenska": "214L x 146,5B x 113H cm",
+  "bokstaver": "LBH",
+  "hojd": 113,
+  "bredd": 214,
+  "djup": 146.5
+ },
+ "912e74e1": {
+  "tyska": "",
+  "svenska": "52cm x 48cm x 160cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maße (je Ständer): 52 x 48 x (105-160) cm (L x B x H)"
+ },
+ "9bab7489": {
+  "tyska": "32,5L x 30,5B x 71H cm",
+  "svenska": "32,5 x 30,5 x 71 cm",
+  "bokstaver": "LBH",
+  "hojd": 71,
+  "bredd": 32.5,
+  "djup": 30.5
+ },
+ "a2e07c2a": {
+  "tyska": "45L x 45B x 178H cm",
+  "svenska": "45 x 45 x 178 cm",
+  "bokstaver": "LBH",
+  "hojd": 178,
+  "bredd": 45,
+  "djup": 45
+ },
+ "d142655a": {
+  "tyska": "100B x 80H x 3T cm",
+  "svenska": "100 x 3 x 80 cm",
+  "bokstaver": "BHT",
+  "hojd": 80,
+  "djup": 3,
+  "bredd": 100
+ }
+}

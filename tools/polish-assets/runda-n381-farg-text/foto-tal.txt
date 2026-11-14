@@ -1,0 +1,4 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+13a52237 11 pelarens diameter i cm, avläst på måttbilden
+13a52237 64,5 fotens diameter i cm, avläst på måttbilden

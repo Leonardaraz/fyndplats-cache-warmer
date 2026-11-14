@@ -1,0 +1,3 @@
+0ecd0b7d:1 31557469:1 samma ribbstol men olika varor: 0ecd0b7d bär repstege och gymnastikringar på bilden, 31557469 saknar dem
+0ecd0b7d:2 31557469:2 samma rum men olika varor: 0ecd0b7d bär repstege och gymnastikringar på bilden, 31557469 saknar dem
+0ecd0b7d:9 31557469:9 närbild på chinsstången: 0ecd0b7d visar repstege och gymnastikringar som 31557469 saknar
