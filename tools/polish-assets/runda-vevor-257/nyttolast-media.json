@@ -1,30 +1,4 @@
 {
- "89738307": [
-  {
-   "id": "b379ce_3039ec46db3344c2b182748cf6325f4d~mv2.jpg",
-   "altText": "Grå sittbänk med rullade armstöd och knapptuffad sits sedd rakt framifrån på vit botten"
-  },
-  {
-   "id": "b379ce_dedc813f8f8d49a380abc043e35d778e~mv2.jpg",
-   "altText": "Kvinna som sitter på den grå sittbänken och tar på sig en sko, med en handväska bredvid, på ett parkettgolv"
-  },
-  {
-   "id": "b379ce_f872f9cf6a6246f3a549325778ac8743~mv2.jpg",
-   "altText": "Grå sittbänk sedd snett framifrån med stängt lock och samma bänk med öppet lock och det tomma förvaringsfacket under på vit botten"
-  },
-  {
-   "id": "b379ce_4a519a4f1a6342bc907a0cc9f2d7ef57~mv2.jpg",
-   "altText": "Grå sittbänk sedd snett framifrån från vänster med knapptuffad sits och svarta svarvade ben på vit botten"
-  },
-  {
-   "id": "b379ce_6e8112e900454f1fba3fe0a35c8fa778~mv2.jpg",
-   "altText": "Grå sittbänk sedd framifrån med uppfällt lock och det tomma förvaringsfacket synligt på vit botten"
-  },
-  {
-   "id": "b379ce_94041cbf3e11499c8c07163496abf8dd~mv2.jpg",
-   "altText": "Grå sittbänk sedd snett framifrån från höger med rullade armstöd och svarta ben på vit botten"
-  }
- ],
  "3a9083db": [
   {
    "id": "b379ce_67715f73844d48cc95240e694c07c697~mv2.jpg",
@@ -103,32 +77,6 @@
    "altText": "Hundcykelvagn sedd snett bakifrån med flaggan, dragstången och hjulen på vit botten"
   }
  ],
- "e6ad7d51": [
-  {
-   "id": "b379ce_ec1af0f3b44b428297b219587d3e6d51~mv2.jpg",
-   "altText": "Svart uppblåsbar båtfender sedd rakt framifrån med ett hål i varje ände på vit botten"
-  },
-  {
-   "id": "b379ce_eaeaf960d22742e3b69a368eecf1f9c7~mv2.jpg",
-   "altText": "Två svarta båtfendrar som hänger på sidan av en vit och röd motorbåt vid vattnet"
-  },
-  {
-   "id": "b379ce_4b19642491ff43819c0f5598c238a1a8~mv2.jpg",
-   "altText": "Fyra svarta båtfendrar med fyra svarta rep, en luftpump, fyra nålar och en förvaringsväska av nät på vit botten"
-  },
-  {
-   "id": "b379ce_babf3d6962a5477180c512c45996eaf0~mv2.jpg",
-   "altText": "Svart båtfender som hänger vågrätt i ett rep med två fästpunkter på vit botten"
-  },
-  {
-   "id": "b379ce_ca52bd4637204679bcb400e6dfecd54c~mv2.jpg",
-   "altText": "Svart båtfender sedd snett från sidan liggande med längsgående räfflor på vit botten"
-  },
-  {
-   "id": "b379ce_b2434caf784c4f64b6a1d308f36e8419~mv2.jpg",
-   "altText": "Förvaringsväska av svart nät med dragsko sedd framifrån på vit botten"
-  }
- ],
  "c81ab8df": [
   {
    "id": "b379ce_227217809cee4d7c9d92709475cd0648~mv2.jpg",
@@ -179,28 +127,6 @@
   {
    "id": "b379ce_1a27ce40216d4127883bf82b78639e91~mv2.jpg",
    "altText": "Svart viktskivestativ sett snett framifrån från andra sidan med hjulen på vit botten"
-  }
- ],
- "76f7f87c": [
-  {
-   "id": "b379ce_92c8cafe1e05465cba7b1ab3cdc05c5e~mv2.jpg",
-   "altText": "Sex klara glascylindrar uppställda i rad på vit botten"
-  },
-  {
-   "id": "b379ce_b0d7cc8bfca046f3a24e5f1f63046e87~mv2.jpg",
-   "altText": "Dukat bord med rosor och höga glascylindrar över smala ljus, där en hand håller ett av ljusen"
-  },
-  {
-   "id": "b379ce_3e7bff161a7b4a5fba15bd152f64418b~mv2.jpg",
-   "altText": "Tjugofyra klara glascylindrar uppställda i fyra rader på vit botten"
-  },
-  {
-   "id": "b379ce_2b90998fc4d14f2490bee68bef39b71d~mv2.jpg",
-   "altText": "En klar glascylinder stående på vit botten"
-  },
-  {
-   "id": "b379ce_89d8b8e0d4d24b8bb8d461fe5511ad9e~mv2.jpg",
-   "altText": "Två klara glascylindrar stående bredvid varandra på vit botten"
   }
  ]
 }
