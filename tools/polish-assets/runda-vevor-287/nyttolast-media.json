@@ -1,30 +1,4 @@
 {
- "edfe6c12": [
-  {
-   "id": "b379ce_c6f6951ca65e47dc94ea5a234400e9c6~mv2.jpg",
-   "altText": "Strandcabana med blå och vita ränder sedd snett framifrån på vit botten, med mittstången synlig och sidogardinen hängande åt höger"
-  },
-  {
-   "id": "b379ce_a40e015ba0834f17820451ecddec291c~mv2.jpg",
-   "altText": "Fyra personer som sitter på en filt under en strandcabana med blå och vita ränder vid havet, en av dem spelar gitarr"
-  },
-  {
-   "id": "b379ce_82b31a0fab934508aa8f47e8faa46312~mv2.jpg",
-   "altText": "Strandcabana med blå och vita ränder på en strand med fem personer som umgås framför på en rutig filt, en av dem spelar gitarr"
-  },
-  {
-   "id": "b379ce_efa2340ff5c54f19afa88d7f149f2b6f~mv2.jpg",
-   "altText": "Strandcabana med blå och vita ränder sedd rakt framifrån på vit botten, med mittstången i mitten och sidogardinen öppen åt höger"
-  },
-  {
-   "id": "b379ce_08d939386a62469cb8ee7a7d6592b6b8~mv2.jpg",
-   "altText": "Strandcabana med blå och vita ränder sedd snett framifrån på vit botten, med sidogardinen utdragen åt vänster"
-  },
-  {
-   "id": "b379ce_b62ea58688014a11822b4cf5107c61ab~mv2.jpg",
-   "altText": "Strandcabana med blå och vita ränder sedd snett från vänster och uppifrån på vit botten, med sidogardinen närmast kameran"
-  }
- ],
  "210e6b4d": [
   {
    "id": "b379ce_9714787acb6545af90f29a38598fffae~mv2.jpg",
@@ -49,28 +23,6 @@
   {
    "id": "b379ce_7f46764cfd93402a878ae268a2a7205b~mv2.jpg",
    "altText": "Baksidan av en verktygsryggsäck med vadderade axelremmar, ett bröstspänne och en ryggpanel av nät, på vit botten"
-  }
- ],
- "f9641a18": [
-  {
-   "id": "b379ce_bfdd4e433cf84b0b940cce9ca46a683f~mv2.jpg",
-   "altText": "Skorstenslock i rostfritt stål med nät på sidorna sett från sidan och något uppifrån på vit botten"
-  },
-  {
-   "id": "b379ce_8e6b80091c724e05be14436c6cd9d2a8~mv2.jpg",
-   "altText": "Skorstenslock i rostfritt stål monterat på en skorsten bland röda tegelpannor på ett tak"
-  },
-  {
-   "id": "b379ce_2d90321df34745068da388eeb4410869~mv2.jpg",
-   "altText": "Skorstenslock i rostfritt stål sett snett uppifrån med takplattan, nätsidorna och en perforerad kant längst ner, på vit botten"
-  },
-  {
-   "id": "b379ce_a25c6cb2fc934da8b45be293f6569e10~mv2.jpg",
-   "altText": "Skorstenslock i rostfritt stål sett från ett hörn med nät på två sidor och takplattan som skjuter ut över kanten, på vit botten"
-  },
-  {
-   "id": "b379ce_29df9f4161c649e48d04e849c7972aed~mv2.jpg",
-   "altText": "Skorstenslock i rostfritt stål sett rakt från sidan med nätet och skruvarna i kanten, på vit botten"
   }
  ],
  "71b78de0": [
@@ -177,26 +129,56 @@
    "altText": "Svart bordsskiva sedd rakt uppifrån med spår i längdriktningen och en liten ring för parasollhålet i mitten, på vit botten"
   }
  ],
- "59691368": [
+ "1f3ec84e": [
   {
-   "id": "b379ce_ce2db2666a9443088053fa3dfc3056d9~mv2.jpg",
-   "altText": "Avjämningskniv med aluminiumhölje och blad sedd snett uppifrån med en svart etikett på höljet, på vit botten"
+   "id": "b379ce_13efb3df2df24b07a75804f4b2eaee5a~mv2.jpg",
+   "altText": "Svart redskapsställ i metall med perforerade hyllor, galler och krokar sett rakt framifrån på vit botten"
   },
   {
-   "id": "b379ce_10a41d7eb0184244b9aa8eed6cb466c2~mv2.jpg",
-   "altText": "Man med orange hjälm som jämnar ut gips på en vit tegelvägg med en avjämningskniv"
+   "id": "b379ce_480aebb904af4d4e880471dd03dc87fc~mv2.jpg",
+   "altText": "Redskapsställ med spadar, krattor, kvastar, en vattenkanna och en slangrulle vid en vit husvägg i en trädgård"
   },
   {
-   "id": "b379ce_8200fb5a65054c01a6b2b2ad4f6cceb7~mv2.jpg",
-   "altText": "Avjämningskniv sedd från änden med det svarta greppet längst ner och bladet snett bakom höljet, på vit botten"
+   "id": "b379ce_17ba64edcf494db8a7932032951db76e~mv2.jpg",
+   "altText": "Svart redskapsställ med spadar, krattor, kvastar, en vattenkanna, en slangrulle och jordpåsar, sett snett framifrån på vit botten"
   },
   {
-   "id": "b379ce_09f8ae4f66c1442e8263e34957210e4b~mv2.jpg",
-   "altText": "Avjämningskniv sedd från kanten med aluminiumhöljet till vänster och det tunna bladet till höger, på vit botten"
+   "id": "b379ce_98d79cf6ddbf4701b8d8e408bcdcc1c3~mv2.jpg",
+   "altText": "Tomt svart redskapsställ sett rakt framifrån med krokar uppe till vänster och till höger, på vit botten"
   },
   {
-   "id": "b379ce_8f6affd982ad4d2da5fe07577ba37aea~mv2.jpg",
-   "altText": "Avjämningskniv liggande sedd rakt från kanten med höljets profil längs hela längden, på vit botten"
+   "id": "b379ce_680570fb588446e6811c84985bb0066c~mv2.jpg",
+   "altText": "Tomt svart redskapsställ sett snett framifrån med galler och perforerad botten, på vit botten"
+  },
+  {
+   "id": "b379ce_7a7247db49d940f6aa621eb57b676f49~mv2.jpg",
+   "altText": "Tomt svart redskapsställ sett snett från vänster med hyllor, galler och krokar, på vit botten"
+  }
+ ],
+ "59a17a01": [
+  {
+   "id": "b379ce_7afd76794cdb4d06bf3f2bc3e80a1859~mv2.jpg",
+   "altText": "Konstgjort blomsterarrangemang med orange, krämvita och röda rosor och eukalyptusblad på en träbas, sett framifrån på vit botten"
+  },
+  {
+   "id": "b379ce_22ee0ee6bac94b5c9a6fd176def50e7c~mv2.jpg",
+   "altText": "Konstgjorda orange och krämvita rosor med eukalyptusblad som ligger på en duk på ett träbord bredvid en tallrik och en gaffel"
+  },
+  {
+   "id": "b379ce_78449a733b0949a38c9a283d34cbc653~mv2.jpg",
+   "altText": "Fyra konstgjorda blomsterarrangemang i orange, krämvitt och rött med eukalyptusblad på träbaser, på vit botten"
+  },
+  {
+   "id": "b379ce_95bc725925144744a248cc036592a900~mv2.jpg",
+   "altText": "Konstgjort blomsterarrangemang sett snett från sidan med eukalyptusgrenar uppåt och en träbas längst ner, på vit botten"
+  },
+  {
+   "id": "b379ce_a9da4281dc414f9c9547f7eda80608e5~mv2.jpg",
+   "altText": "Konstgjort blomsterarrangemang med rosor, gula blommor och eukalyptusblad sett framifrån, med träbasen synlig, på vit botten"
+  },
+  {
+   "id": "b379ce_7a34fcd066084160b401a3a0b203eef4~mv2.jpg",
+   "altText": "Träbasen till ett konstgjort blomsterarrangemang sedd rakt uppifrån med gula, vita och orange blommor runt kanten, på vit botten"
   }
  ]
 }
