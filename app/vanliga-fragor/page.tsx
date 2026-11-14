@@ -57,9 +57,10 @@ const AMNEN: Amne[] = [
     rubrik: "Beställning & betalning",
     ikon: Ikon.betalning,
     intro: "Kort, Apple Pay, Google Pay eller Klarna.",
-    lankar: [{ href: "/kopvillkor", text: "Köpvillkor" }],
+    lankar: [{ href: "/kopvillkor", text: "Köpvillkor" }, { href: "/konto/foretag", text: "Företagskonto" }],
     fragor: [
       { q: "Vilka betalningsmetoder accepterar ni?", a: "Du kan betala med kort (Visa, Mastercard, American Express), Apple Pay, Google Pay eller Klarna. Kort, Apple Pay och Google Pay går via vår betalpartner Stripe. Väljer du Klarna visar Klarna sina betalsätt och villkor i kassan innan du godkänner köpet." },
+      { q: "Erbjuder ni faktura?", a: "Ja, till företag. Med ett godkänt företagskonto kan du betala mot förskottsfaktura: den kommer med e-post och betalas inom 10 dagar, och ordern skickas när betalningen har kommit in. Företagskontot skapar du under Mitt konto." },
     ],
   },
   {

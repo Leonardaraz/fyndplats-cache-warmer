@@ -7,6 +7,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
+import { FORSKOTT_DAGAR } from "./medlem/varukorg.ts";
 
 const rot = join(import.meta.dirname, "..");
 const las = (...delar: string[]) => readFileSync(join(rot, ...delar), "utf8");
@@ -159,6 +160,20 @@ describe("Klarnas kredit nämns bara med Klarnas egna ord (CCD2 från 2026-11-20
   it("produktsidans rad och toppremsan säger Klarnas allmänna text", () => {
     assert.match(las("components", "klarna-message.tsx"), /<span><strong>Betala med Klarna<\/strong><\/span>/);
     assert.match(las("components", "site.tsx"), /· Betala med <b className="klarna-mark">Klarna<\/b>/);
+  });
+
+  it("vanliga frågor svarar på fakturafrågan med företagens förskottsfaktura", () => {
+    // Leonard 2026-11-14: "Vi erbjuder ju faktura till företagkunder?" En
+    // förskottsfaktura betalas innan varan skickas och är ingen kredit.
+    const faq = las("app", "vanliga-fragor", "page.tsx");
+    const svar = faq.slice(faq.indexOf('q: "Erbjuder ni faktura?"'));
+    assert.ok(svar.length > 0 && faq.includes('q: "Erbjuder ni faktura?"'), "frågan saknas");
+    const a = svar.slice(0, svar.indexOf("}"));
+    assert.match(a, /till företag/);
+    assert.match(a, /förskottsfaktura/);
+    assert.match(a, new RegExp(`inom ${FORSKOTT_DAGAR} dagar`));
+    assert.doesNotMatch(a, /Klarna/);
+    assert.match(faq, /href: "\/konto\/foretag", text: "Företagskonto"/);
   });
 
   it("kommentarerna tas bort, men inte en adress", () => {
