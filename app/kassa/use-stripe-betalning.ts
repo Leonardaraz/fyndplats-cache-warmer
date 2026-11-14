@@ -27,7 +27,7 @@ import type {
   StripePaymentElement,
 } from "@stripe/stripe-js";
 import { BETALFALT, RAM_VANTA_MS, adressfaltInstallningar, elementsInstallningar, ramenStilla, type AdressStart } from "../../lib/kassa/stripe-klient";
-import { planbocker, snabbknappar, webblasarensPlanbok, type Planbok, type Sammandrag } from "../../lib/kassa/snabbkassa";
+import { minnsStripesSvar, planbocker, snabbknappar, webblasarensPlanbok, type Planbok, type Sammandrag } from "../../lib/kassa/snabbkassa";
 
 export type BetalfaltLage = "av" | "laddar" | "redo" | "fel";
 
@@ -203,6 +203,8 @@ export function useStripeBetalning(nyckel: string | null, beloppOre: number | nu
               const p = planbocker(h.availablePaymentMethods);
               setSnabbPlanbocker(p);
               setSnabbLage(p.length > 0 ? "redo" : "tom");
+              // Utan plånbok hålls ingen plats nästa gång; med plånbok glöms det (PLANBOK_MINNE).
+              minnsStripesSvar(p);
             });
             knappar.on("loaderror", () => setSnabbLage("fel"));
             knappar.on("click", (h) => snabbKoppling.current.klick(h));

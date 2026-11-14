@@ -56,7 +56,7 @@ import {
   stripeMeddelande,
   vantaPaOrder,
 } from "../../lib/kassa/stripe-klient";
-import { klickSvar, planbokNamn, snabbBekrafta, webblasarensPlanbok, type Sammandrag } from "../../lib/kassa/snabbkassa";
+import { klickSvar, planbokNamn, snabbBekrafta, webblasarensPlanbokPlats, type Sammandrag } from "../../lib/kassa/snabbkassa";
 import type { StripeAddressElementChangeEvent, StripeExpressCheckoutElementClickEvent, StripeExpressCheckoutElementConfirmEvent } from "@stripe/stripe-js";
 import { useStripeBetalning } from "./use-stripe-betalning";
 import { KassaFot, KassaHuvud, Las } from "./kassa-ram";
@@ -257,11 +257,12 @@ export function Kassa({
   // Sant från början, också på servern: rutan som dök upp efter hydreringen
   // knuffade ner formuläret 256 px (lokalt prov 2026-11-06). I en app på Android
   // visar Stripe ingen knapp, och där håller CSS:en ingen plats redan före
-  // hydreringen (PLANBOK_SKRIPT sätter data-planbok på <html>).
+  // hydreringen (PLANBOK_SKRIPT sätter data-planbok på <html>). Samma sak när
+  // webbläsaren minns att Stripe svarade utan plånbok (PLANBOK_MINNE).
   const [planbokMojlig, setPlanbokMojlig] = useState(true);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- webbläsarens förmågor finns inte på servern
-    setPlanbokMojlig(webblasarensPlanbok() !== "ingen");
+    setPlanbokMojlig(webblasarensPlanbokPlats() !== "ingen");
   }, []);
 
   /**

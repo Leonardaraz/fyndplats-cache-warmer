@@ -2301,6 +2301,16 @@ BankID ska användas).
   knapparna läser webbläsaren med `webblasarensPlanbok()`, och proven kör
   skriptet mot `planbokGissning`, så att de aldrig svarar olika. ☠️ Attributet
   hette förut `data-applepay`: en regel på det gamla namnet träffar aldrig.
+- **Minnet** (`PLANBOK_MINNE`, `fp_planbok_tom`, 2026-11-15): svarar Stripe
+  uttryckligen utan plånbok (en blockerare stoppar Googles betalskript, eller
+  Apple Pay saknar kort) sparar webbläsaren det i 30 dygn, och nästa besök
+  hålls ingen plats. Förut hölls platsen varje gång och släpptes efter 3–4 s,
+  och formuläret hoppade upp 236 px. Skriptet och kassan läser minnet
+  (`webblasarensPlanbokPlats()`); knapparna läser bara webbläsaren
+  (`webblasarensPlanbok()`). ☠️ Får knapparna minnet blir en Safari utan kort
+  `ingen`, Google Pay hamnar på `always` och två knappar står där platsen
+  rymmer en. Bara `ready` utan plånbok sparas, aldrig tidsgränsen eller
+  `loaderror`, och en knapp en senare gång glömmer minnet direkt.
 - ☠️ **Stripes ram har −4 px marginal** (plats för fokusringen). Utan egen
   formateringskontext kollapsade den genom ytan runt fältet, och allt under
   flyttade 4 px när Stripe monterade. `.snabbYta` och `.betalfalt` har därför
