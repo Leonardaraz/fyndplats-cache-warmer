@@ -26,6 +26,11 @@ främjar tills ALLA levande (startade och schemalagda) är lika många som NÄST
 - **`/api/auctions/rader`** läser upp till 200 levande rader. Startade och schemalagda kan
   samsas dagen före en större dag. "Senast sålda" har kvar sina 50.
 
+**Generalrepetitionen står i `DAGAR`** (Leonards ja 2026-11-14): 50 fynd onsdag 18 november,
+en vanlig vardag före Black Week. Tisdag 17/11 kl 08 schemaläggs 40 till onsdagen och kl 19
+resten, och torsdag 19/11 är det tio igen. `antal.test.ts` låser 17→18→19, och
+`tick-blackweek.test.ts` kör de tre dagarna genom ticken.
+
 **Black Week står i `DAGAR`**, med Leonards datum: 50 om dagen 23–29 november, 100 fredag
 27 november, och 10 igen från 30 november. Ticken fyller en större dag redan dagen före:
 söndag 22/11 kl 08 schemaläggs 40 till måndagen, och torsdag 26/11 fylls fredagen till 100 i
@@ -35,9 +40,10 @@ två omgångar (kl 08 och kl 19). `antal.test.ts` låser varje datum och överg�
 ☠️ **Grindarna före söndag 22 november**, när ticken börjar schemalägga måndagens 50:
 
 - butikens gemensamma klocka för korten är mergad (planens del C2, butiken);
-- generalrepetitionen med 50 fynd en vardag är gjord, med Leonards ja;
-- kön räcker: veckan tar 400 olika produkter (6 × 50 + 100), och 30-dagarsspärren släpper
-  aldrig samma vara två gånger.
+- generalrepetitionen med 50 fynd onsdag 18/11 är gjord och mätt (Leonards ja 2026-11-14);
+- kön räcker: 15–29/11 tar cirka 520 olika produkter (tio om dagen, 50 den 18/11 och veckans
+  400 = 6 × 50 + 100), och 30-dagarsspärren släpper aldrig samma vara två gånger. Kön hade
+  862 fynd 2026-11-14.
 
 ### Ticken klarar 50 och 100 om dagen (`lib/auction/tick.ts`, planens del C2)
 

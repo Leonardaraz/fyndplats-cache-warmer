@@ -1,7 +1,8 @@
 // Black Week genom ticken: var tionde minut från söndag 22 november till
 // tisdag 1 december 2026, mot ett lager som minns. Varje dag ska starta exakt
 // sitt antal (lib/auction/antal.ts), inga fler ska leva än den största av i
-// dag och i morgon, och ingen auktion får leva kvar efter kl 19.
+// dag och i morgon, och ingen auktion får leva kvar efter kl 19. Samma prov
+// för generalrepetitionen, 50 fynd onsdag 18 november (Leonards ja 2026-11-14).
 
 import { describe, expect, it } from "vitest";
 import { buildLadder, type AuctionDoc } from "./engine";
@@ -60,38 +61,59 @@ function beroenden(rader: Map<string, AuctionDoc>, klocka: { t: number }): TickB
 /** 07:00 svensk vintertid är 06:00 UTC. */
 const startFor = (dag: string) => `${dag}T06:00:00.000Z`;
 
-describe("Black Week genom ticken", () => {
-  it("☠️ varje dag startar exakt sitt antal, och ingen auktion lever efter kl 19", async () => {
-    const rader = lager(700);
-    const klocka = { t: Date.parse("2026-11-21T19:00:30Z") };
-    const d = beroenden(rader, klocka);
-    const slut = Date.parse("2026-12-01T19:00:30Z");
-    const startadePerDag = new Map<string, number>();
-    let fel = 0;
+/**
+ * Kör ticken var tionde minut från `fran` till `till` (ISO, UTC) och prövar
+ * varje tick: ingen auktion lever efter dagens slut, och aldrig fler levande
+ * än den största av dagens och morgondagens antal. Ger felen och antalet
+ * startade per dag, räknat kl 12 svensk tid.
+ */
+async function genomTicken(fran: string, till: string, antalIKo: number) {
+  const rader = lager(antalIKo);
+  const klocka = { t: Date.parse(fran) };
+  const d = beroenden(rader, klocka);
+  const slut = Date.parse(till);
+  const startadePerDag = new Map<string, number>();
+  let fel = 0;
 
-    for (; klocka.t <= slut; klocka.t += 10 * MIN) {
-      const r = await korTick(d);
-      fel += r.errors.length;
-      const nu = klocka.t;
-      const levande = [...rader.values()].filter((x) => x.status === "live");
+  for (; klocka.t <= slut; klocka.t += 10 * MIN) {
+    const r = await korTick(d);
+    fel += r.errors.length;
+    const nu = klocka.t;
+    const levande = [...rader.values()].filter((x) => x.status === "live");
 
-      // Ingen auktion lever efter dagens slut (start + 12 h), högst ett tick sent.
-      for (const x of levande) expect(nu < Date.parse(x.startAt as string) + 12 * TIMME + 10 * MIN, `${x.slug} ${x.startAt}`).toBe(true);
+    // Ingen auktion lever efter dagens slut (start + 12 h), högst ett tick sent.
+    for (const x of levande) expect(nu < Date.parse(x.startAt as string) + 12 * TIMME + 10 * MIN, `${x.slug} ${x.startAt}`).toBe(true);
 
-      // Aldrig fler levande än den största av dagens och morgondagens antal.
-      const idag = new Date(nu + TIMME).toISOString().slice(0, 10); // svensk dag (UTC+1)
-      const imorgon = new Date(nu + TIMME + 24 * TIMME).toISOString().slice(0, 10);
-      const tak = Math.max(auktionerFor(startFor(idag)), auktionerFor(startFor(imorgon)));
-      expect(levande.length, new Date(nu).toISOString()).toBeLessThanOrEqual(tak);
+    // Aldrig fler levande än den största av dagens och morgondagens antal.
+    const idag = new Date(nu + TIMME).toISOString().slice(0, 10); // svensk dag (UTC+1)
+    const imorgon = new Date(nu + TIMME + 24 * TIMME).toISOString().slice(0, 10);
+    const tak = Math.max(auktionerFor(startFor(idag)), auktionerFor(startFor(imorgon)));
+    expect(levande.length, new Date(nu).toISOString()).toBeLessThanOrEqual(tak);
 
-      // Kl 12 svensk tid: räkna dagens startade.
-      if (new Date(nu).getUTCHours() === 11 && new Date(nu).getUTCMinutes() < 10) {
-        startadePerDag.set(idag, levande.filter((x) => x.startAt === startFor(idag)).length);
-      }
+    // Kl 12 svensk tid: räkna dagens startade.
+    if (new Date(nu).getUTCHours() === 11 && new Date(nu).getUTCMinutes() < 10) {
+      startadePerDag.set(idag, levande.filter((x) => x.startAt === startFor(idag)).length);
     }
+  }
 
+  return { fel, startadePerDag: Object.fromEntries(startadePerDag) };
+}
+
+describe("Black Week genom ticken", () => {
+  it("☠️ generalrepetitionen: onsdag 18 november startar 50, tisdagen och torsdagen tio", async () => {
+    const { fel, startadePerDag } = await genomTicken("2026-11-16T19:00:30Z", "2026-11-19T19:00:30Z", 200);
     expect(fel).toBe(0);
-    expect(Object.fromEntries(startadePerDag)).toEqual({
+    expect(startadePerDag).toEqual({
+      "2026-11-17": 10,
+      "2026-11-18": 50,
+      "2026-11-19": 10,
+    });
+  }, 60_000);
+
+  it("☠️ varje dag startar exakt sitt antal, och ingen auktion lever efter kl 19", async () => {
+    const { fel, startadePerDag } = await genomTicken("2026-11-21T19:00:30Z", "2026-12-01T19:00:30Z", 700);
+    expect(fel).toBe(0);
+    expect(startadePerDag).toEqual({
       "2026-11-22": 10,
       "2026-11-23": 50,
       "2026-11-24": 50,

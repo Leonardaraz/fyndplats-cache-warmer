@@ -29,12 +29,17 @@ export const STANDARD_ANTAL = 10;
 /**
  * Dagar med ett annat antal: "ÅÅÅÅ-MM-DD" (startens dag, svensk tid) → antal.
  *
+ * Generalrepetitionen (Leonards ja 2026-11-14): 50 fynd onsdag 18 november,
+ * en vanlig vardag före Black Week. Tisdag 17/11 kl 08 schemaläggs 40 till
+ * onsdagen och kl 19 resten, och torsdag 19/11 är det tio igen.
+ *
  * Black Week 2026, Leonards datum (2026-11-04): 50 om dagen 23–29 november,
  * 100 fredag 27 november, och tio igen från 30 november. Ticken börjar fylla en
  * större dag redan dagen före (söndag 22/11 kl 08 schemaläggs 40 till måndag),
  * men butiken visar en schemalagd rad först när dagens fynd är slut.
  */
 export const DAGAR: Readonly<Record<string, number>> = {
+  "2026-11-18": 50,
   "2026-11-23": 50,
   "2026-11-24": 50,
   "2026-11-25": 50,
