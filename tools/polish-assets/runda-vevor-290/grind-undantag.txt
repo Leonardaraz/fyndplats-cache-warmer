@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Objektstorlek L x B x H) anger längd, djup och höjd, men sidan skriver längderna efter variantvalen och djupet och höjden var för sig
