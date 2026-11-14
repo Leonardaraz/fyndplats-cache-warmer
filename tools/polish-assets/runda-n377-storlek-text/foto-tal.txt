@@ -1,0 +1,4 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+2c1d652d 13,4 siffra i måttskissen: hantelhuvudets höjd mellan två sidor
+43b0de34 14 siffra i måttbilden: hantelhuvudets höjd mellan två sidor
