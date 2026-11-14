@@ -161,7 +161,7 @@ describe("buildStuckOrdersEmail", () => {
   const order = {
     number: "10024",
     reason: "WDE0195: Items limit exceeded. Delete some items and try again.",
-    customer: "Göran Wallin",
+    customer: "Anna Provsson",
     items: [{ name: "Förvaringsskåp 60 cm svart", sku: "FP-forvaringsskap-60-svart", quantity: 1 }],
   };
 
@@ -170,7 +170,7 @@ describe("buildStuckOrdersEmail", () => {
     expect(b).not.toBeNull();
     for (const text of [b!.html, b!.text]) {
       expect(text).toContain("10024");
-      expect(text).toContain("Göran Wallin");
+      expect(text).toContain("Anna Provsson");
       expect(text).toContain("Förvaringsskåp 60 cm svart");
       expect(text).toContain("FP-forvaringsskap-60-svart");
       expect(text).toContain("WDE0195");

@@ -26,13 +26,13 @@ function order(over: Partial<WixOrder> = {}): WixOrder {
       logistics: {
         shippingDestination: {
           address: {
-            addressLine: "Stensborgsgatan 8 b",
-            city: "Eskilstuna",
+            addressLine: "Provgatan 1",
+            city: "Provstad",
             subdivision: "SE-D",
-            postalCode: "633 55",
+            postalCode: "123 45",
             country: "SE",
           },
-          contactDetails: { firstName: "Göran", lastName: "Wallin", phone: "+46705454393" },
+          contactDetails: { firstName: "Anna", lastName: "Provsson", phone: "+46700000000" },
         },
       },
     },
@@ -84,9 +84,9 @@ describe("runOrderBackfill", () => {
     const d = deps();
     await runOrderBackfill({}, d);
     expect(d.skapade[0].shippingAddress).toMatchObject({
-      fullName: "Göran Wallin",
-      addressLine1: "Stensborgsgatan 8 b",
-      city: "Eskilstuna",
+      fullName: "Anna Provsson",
+      addressLine1: "Provgatan 1",
+      city: "Provstad",
       province: "Sodermanland",
       country: "SE",
     });
@@ -215,7 +215,7 @@ describe("stuck — underlaget för larmmejlet", () => {
     expect(s.stuck).toHaveLength(1);
     const [o] = s.stuck;
     expect(o.number).toBe("10024");
-    expect(o.customer).toBe("Göran Wallin");
+    expect(o.customer).toBe("Anna Provsson");
     expect(o.reason).toContain("WDE0195");
     expect(o.items).toEqual([
       { name: "Förvaringsskåp 60 cm svart", sku: "FP-forvaringsskap-60-svart", quantity: 1 },
