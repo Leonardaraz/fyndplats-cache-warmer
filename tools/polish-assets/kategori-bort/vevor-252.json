@@ -1,0 +1,31 @@
+{
+ "namn": "vevor-252",
+ "rader": [
+  {
+   "kort": "370eaaaa",
+   "pid": "370eaaaa-457d-436a-ac2f-9882ca00524c",
+   "bort": [
+    "Kök & Husgeråd > Kyl & frys"
+   ],
+   "behall": [
+    "Företag & Proffs",
+    "Företag & Proffs > Storkök & restaurang",
+    "Kök & Husgeråd",
+    "Kök & Husgeråd > Servering & Glas"
+   ]
+  },
+  {
+   "kort": "0960c042",
+   "pid": "0960c042-2cab-4cb5-b70a-6c814146898d",
+   "bort": [
+    "Kök & Husgeråd > Kyl & frys"
+   ],
+   "behall": [
+    "Företag & Proffs",
+    "Företag & Proffs > Storkök & restaurang",
+    "Kök & Husgeråd",
+    "Kök & Husgeråd > Servering & Glas"
+   ]
+  }
+ ]
+}
