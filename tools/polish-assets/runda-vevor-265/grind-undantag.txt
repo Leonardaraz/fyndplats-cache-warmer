@@ -1,0 +1,8 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (Pusselområdets mått, Lådmått och Produktmått) saknar axelord, och sidan skriver brädets mått och tjocklek efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (Pusselområdets mått, Lådmått och Produktmått) saknar axelord, och sidan skriver brädets mått och tjocklek efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (Storlek på kopparrörsskärare och Verktygslådans mått) saknar axelord, och sidan skriver skärarens och fodralets mått efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad, och sidan skriver skärarens längd, bredd och höjd efter måttbildens ritning
