@@ -33,7 +33,7 @@ export const CartDrawer = dynamic(
 );
 
 export const WishlistDrawer = dynamic(
-  () => import("./wishlist").then((m) => m.WishlistDrawer),
+  () => import("./favoriter-lada").then((m) => m.WishlistDrawer),
   { ssr: false, loading: () => null },
 );
 

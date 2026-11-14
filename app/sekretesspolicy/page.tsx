@@ -47,6 +47,7 @@ export default function Sekretesspolicy() {
         <li>Har du ett företagskonto: företagets namn, organisationsnummer och form, faktura- och leveransadress, Bolagsverkets svar när vi kontrollerade företaget, vilken version av företagsvillkoren du godkände och när, och när ansökan beslutades.</li>
         <li>Begär du en offert: vilka varor och hur många, ditt meddelande, offertens priser och hur länge den gäller.</li>
         <li>Sparar du en varukorg: namnet du gav den, vilka varor och hur många, och när den sparades. Vi sparar inte priset; när du lägger korgen i varukorgen gäller dagens pris.</li>
+        <li>Dina favoriter: vilka varor du har markerat med hjärtat, och när listan senast ändrades. Utan konto finns listan bara i din webbläsare. När du är inloggad sparas den på kontot, så att den följer med till dina andra enheter.</li>
       </ul>
       <h3>Företagskonto</h3>
       <p>När du ansöker om ett företagskonto slår vi upp organisationsnumret hos Bolagsverket, för att kontrollera att företaget finns och är aktivt och för att få dess registrerade namn. För en enskild firma är organisationsnumret ditt personnummer. Det visas maskerat på Mina sidor och skrivs aldrig ut på kvitton eller fakturor. Kvitton och fakturor för köp som företag får företagets namn och adress, och för ett aktiebolag eller en annan juridisk person organisationsnumret.</p>
@@ -55,7 +56,7 @@ export default function Sekretesspolicy() {
       <ul>
         <li>För att ge dig kontot och räkna din medlemsnivå. Det är en del av avtalet om medlemskapet (GDPR artikel 6.1 b).</li>
         <li>För att skydda kontot mot intrång och missbruk, till exempel att någon försöker gissa koder. Det är vårt berättigade intresse (artikel 6.1 f).</li>
-        <li>Medlemspriset, företagskontot, kontrollen hos Bolagsverket, offerterna och de sparade varukorgarna är en del av avtalet om medlemskapet och om köpen (artikel 6.1 b).</li>
+        <li>Medlemspriset, företagskontot, kontrollen hos Bolagsverket, offerterna, de sparade varukorgarna och favoriterna är en del av avtalet om medlemskapet och om köpen (artikel 6.1 b).</li>
         <li>Prisbeslutet och en offert som blev ett köp är underlag för bokföringen. Det är en rättslig förpliktelse (artikel 6.1 c, bokföringslagen).</li>
       </ul>
       <h3>Mejl</h3>
@@ -68,11 +69,11 @@ export default function Sekretesspolicy() {
         <li>Köpen räknas i nivån i 365 dagar. Uppgifterna om köpen sparas så länge bokföringslagen kräver för ordern.</li>
         <li>Inloggningsförsök sparas i 30 dagar.</li>
         <li>Prisbeslut sparas i sju år, som annat underlag för bokföringen.</li>
-        <li>Företagsuppgifterna, offerterna och de sparade varukorgarna sparas tills du tar bort kontot. En sparad varukorg kan du också ta bort själv på Mina sidor.</li>
+        <li>Företagsuppgifterna, offerterna, de sparade varukorgarna och favoriterna sparas tills du tar bort kontot. En sparad varukorg och en favorit kan du också ta bort själv, när du vill.</li>
         <li>En offert som blev ett köp sparas lika länge som ordern.</li>
       </ul>
       <h3>Ta bort kontot</h3>
-      <p>Mejla <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> så tar vi bort kontot. Dina ordrar finns kvar, som bokföringslagen kräver. Företagsuppgifterna, de sparade varukorgarna och offerterna som inte blev köp tas bort med kontot. Prisbeslut och offerter som blev köp hör till dina ordrar och finns kvar lika länge som de.</p>
+      <p>Mejla <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> så tar vi bort kontot. Dina ordrar finns kvar, som bokföringslagen kräver. Företagsuppgifterna, de sparade varukorgarna, favoriterna och offerterna som inte blev köp tas bort med kontot. Prisbeslut och offerter som blev köp hör till dina ordrar och finns kvar lika länge som de.</p>
 
       <h2>Vem delar vi uppgifter med?</h2>
       <ul>

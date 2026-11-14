@@ -3012,3 +3012,80 @@ utan att något ändras i Wix.
 - Inte ändrat, med flit: startsidans adress i sitemapen står utan snedstreck sist
   (`https://www.fyndplats.se`), samma som sidans canonical. Semrush räknar den som
   en sida utan intern länk, men det är samma adress enligt standarden.
+
+## Favoriterna: lådan, hjärtat och kontot (Leonard 2026-11-14)
+
+Leonards skärmbild visade lådan "Mina favoriter" med adressernas ord som namn
+och ingenting annat. Nu visar varje rad bild, namn, pris, lager och en knapp,
+och en inloggad medlems favoriter följer kontot.
+
+- **Reglerna står i `lib/favoriter.ts`**, en ren modul utan importer (den går
+  till webbläsaren). Proven står i `lib/favoriter.test.ts`.
+- **Listan är densamma som förut:** `fp_wishlist` i webbläsarens minne, en lista
+  av produktadresser med den äldsta först. Lådan visar den nyaste först. Taket
+  är 100 (`MAX_FAVORITER`), och de nyaste står kvar.
+  - ☠️ Taket får aldrig gå om `MAX_SLUGGAR_PER_UPPSLAG` i `lib/products.ts`:
+    hela listan ska rymmas i ETT uppslag.
+- **Uppslaget är ett enda anrop:** `GET /api/favoriter?s=<adress>,<adress>` läser
+  alla favoriter med `queryProducts().in("slug", …)` (`getProdukterForSluggar`),
+  samma uppgifter som produktkortet. Adresserna sorteras i frågan
+  (`favoritFraga`), så att kanten kan spara svaret. En adress som inte längre
+  finns kommer tillbaka under `saknas`.
+- **Det sparade kortet** (`fp_wishlist_info`: namn, bild, pris per favorit)
+  skrivs när hjärtat tänds (`kortUrSidan` läser kortet det sitter på) och när
+  butiken svarar. Lådan visar det direkt, och butikens svar gäller framför det.
+  - ☠️ Namnet byggs aldrig ur adressen med versal på varje ord. Saknas kortet
+    visas adressens ord med EN versal (`namnUrSlug`) tills svaret kommit.
+  - En vara som är borta visar det sparade namnet dämpat, utan pris och knapp.
+- **Radens knapp** (`handling`): "Lägg i varukorgen" bara när varan finns i
+  lager och inget val krävs, annars "Välj alternativ" eller "Bevaka varan".
+  Borttagning går att ångra i sju sekunder.
+- **Hjärtat på produktsidan** är `FavoritKnapp` bredvid köpknappen
+  (`.buy-rad`). Kortens hjärta är `WishlistHeart`.
+
+### Kontot
+
+- **Favoriterna bor på medlemsraden** i `FyndplatsMedlemmar`: fälten
+  `favoriter`, `favoriterVersion` och `favoriterAndrad`. Ingen ny kollektion.
+  Motorn ändrar bara enskilda fält på raden och tar bort hela raden när kontot
+  tas bort (läst i motorns `lib/medlem/admin.ts`), så listan skrivs aldrig över
+  och försvinner med kontot utan en ändring i motorn.
+- **Skrivningen är villkorad på versionen** (`andraFavoriter` i
+  `lib/medlem/lager.ts`, `andraILager`): läs, räkna, skriv bara om versionen är
+  densamma, annars läs om, högst fyra gånger. Två enheter samtidigt tappar
+  inget hjärta. Den första skrivningen villkoras på att fältet saknas.
+- **Rutten** `/api/konto/favoriter`: `GET` ger kontots lista, `POST` tar
+  `{ lagg, taBort }` och svarar med hela listan. 401 utan session. Loggen bär
+  varken e-post eller varor.
+- **Avstämningen** (`synkplan`):
+  - Första gången inloggad läggs enhetens lista till kontots i ett anrop.
+  - Därefter köas varje tryck (`fp_wishlist_ko`) och skickas efter en halv
+    sekund. Kön överlever en omladdning och en stund utan nät.
+  - Kontot frågas högst var femte minut, och var trettionde sekund när lådan
+    eller Mina sidor öppnas. Ett svar tar bort det som skickades ur kön efter
+    innehåll, inte efter antal (`utanSkickade`), så att två flikar inte tar
+    varandras ändringar.
+- ☠️ **Utloggning och en session som gått ut är två olika saker.**
+  - Går sessionen ut av sig själv står listan kvar i webbläsaren som en vanlig
+    lista (`slapp`). Annars hade favoriterna försvunnit för en kund som inte
+    gjort någonting.
+  - Loggar kunden ut själv lämnar kontots lista enheten (`vidUtloggning`), och
+    bara det som aldrig hann skickas står kvar. Hjärtat känner igen
+    utloggningen på formuläret till `UTLOGGNING`. Byter utloggningen form ska
+    provet "hjärtats lyssnare känner igen formulären som loggar ut" följa med.
+- **Mina sidor** har sektionen `#favoriter` (`app/konto/favoriter.tsx`), med
+  samma rader som lådan. Lådans fot länkar dit för en inloggad medlem.
+- **Integritetstexten** nämner favoriterna (vad som sparas, var, och att de tas
+  bort med kontot).
+
+### Mätt och inte mätt
+
+- Uppslaget mot Wix tog 0,3–0,8 s för tre till fem favoriter (lokalt bygge mot
+  den riktiga katalogen, 2026-11-14).
+- Webbläsarprovet (Chromium, grenens bygge serverat under butikens adress,
+  kontot spelat i minnet): 240 kontroller utan fel i 320, 390, 768 och 1280 px.
+  Mutationsprovet fäller 89 av 89 ändringar i reglerna.
+- ☠️ **Inte provat före mergen:** en riktig inloggning och den riktiga
+  skrivningen till Wix (listfältet med villkoret på versionen). Proven kör mot
+  ett lager i minnet. Safari och iPhone är inte heller provade. Prova med ett
+  riktigt konto på en förhandslänk innan funktionen räknas som kvitterad.

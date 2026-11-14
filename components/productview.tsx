@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { forvarmKundvagn, useCart } from "./cart";
+import { FavoritKnapp } from "./wishlist";
+import { FAVORITBILD_KANT } from "../lib/favoriter";
 import { Gallery } from "./gallery";
 import type { ProduktVideo } from "../lib/produkt-video";
 import { synligaBilder, synligaBilderForKombination, type Kopplingar } from "../lib/variant-bilder";
@@ -880,15 +882,26 @@ export function ProductView({
               </div>
             </div>
           )}
-          <button
-            className="buy"
-            disabled={busy || !productId || !buyable || (needsVariant && !variantId)}
-            onClick={onAdd}
-            onPointerDown={avsiktAttKopa}
-            onTouchStart={avsiktAttKopa}
-          >
-            {!buyable ? (variantOnlyOOS ? "Slut i denna variant" : "Slutsåld") : added ? "✓ Tillagd i varukorgen" : busy ? "Lägger till…" : "Lägg i kundvagn"}
-          </button>
+          {/* Hjärtat står bredvid köpknappen (components/wishlist.tsx). Varans
+              namn och bild följer med till favoriternas låda; priset bara när
+              varan saknar val, annars visar lådan "Från …" ur butikens svar. */}
+          <div className="buy-rad">
+            <button
+              className="buy"
+              disabled={busy || !productId || !buyable || (needsVariant && !variantId)}
+              onClick={onAdd}
+              onPointerDown={avsiktAttKopa}
+              onTouchStart={avsiktAttKopa}
+            >
+              {!buyable ? (variantOnlyOOS ? "Slut i denna variant" : "Slutsåld") : added ? "✓ Tillagd i varukorgen" : busy ? "Lägger till…" : "Lägg i kundvagn"}
+            </button>
+            <FavoritKnapp
+              slug={slug}
+              namn={name}
+              pris={!options && !multiAxis && priceNum ? formatPrice(priceNum) : undefined}
+              bild={images[0] ? tightFillUrl(images[0], FAVORITBILD_KANT, FAVORITBILD_KANT) : undefined}
+            />
+          </div>
 
           {!buyable && productId && <RestockForm productId={productId} />}
 
