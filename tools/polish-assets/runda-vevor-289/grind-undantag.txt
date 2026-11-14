@@ -1,0 +1,4 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktstorlek L x B x H) anger längd, bredd och höjd, men sidan skriver längderna efter variantvalen och bredd och höjd var för sig
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (panelmått) saknar axelord, och sidan skriver takplattans och basens mått efter måttbildernas ritningar
