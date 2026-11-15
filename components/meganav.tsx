@@ -5,6 +5,7 @@ import { AuctionDot } from "./auction-dot";
 import { productCountLabel } from "../lib/rating";
 import { grupperaUnderkategorier } from "../lib/meny-grupper";
 import { AVDELNING_PRODUKT_KANT, hjalteAdress, menyBildIStorlek } from "../lib/meny-bilder";
+import { mjukaBindestreck } from "../lib/mjukt-bindestreck";
 import { useMenyAntal } from "./use-meny-antal";
 import { forvarmMenyBilder, hamtaMenyBilder, MenyBild, useMenyBilder } from "./use-meny-bilder";
 
@@ -147,9 +148,12 @@ export function MegaNav({ tree, hasBlog, hasSale }: { tree: CategoryNode[]; hasB
                       <a key={s.id} className="meganav-sub" href={`/kategori/${s.slug}`} onClick={close}>
                         <MenyBild src={bilder?.bilder[s.slug]} />
                         {/* Antalet står direkt efter namnet, så att ett långt
-                            sammansatt ord (Trädgårdsanläggning) får hela bredden. */}
+                            sammansatt ord (Trädgårdsanläggning) får hela bredden.
+                            Ordet får dessutom ett mjukt bindestreck vid fogen, så
+                            att det bryts som "Trädgårds-" / "anläggning" och inte
+                            mitt i (lib/mjukt-bindestreck.ts). */}
                         <span className="meganav-sub-name">
-                          {s.name}
+                          {mjukaBindestreck(s.name)}
                           {antal?.[s.slug] !== undefined && <span className="meganav-sub-count"> {antal[s.slug]}</span>}
                         </span>
                       </a>

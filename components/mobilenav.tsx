@@ -7,6 +7,7 @@ import { AuctionDot } from "./auction-dot";
 import type { CategoryNode } from "../lib/category-groups";
 import { grupperaUnderkategorier } from "../lib/meny-grupper";
 import { hjalteAdress } from "../lib/meny-bilder";
+import { mjukaBindestreck } from "../lib/mjukt-bindestreck";
 import { productCountLabel } from "../lib/rating";
 import { useMenyAntal } from "./use-meny-antal";
 import { forvarmMenyBilder, hamtaMenyBilder, MenyBild, useMenyBilder } from "./use-meny-bilder";
@@ -185,13 +186,13 @@ export function MobileNav({ tree = [], hasBlog = false, hasSale = false }: { tre
                         aria-label={`${m.name}: visa underkategorier`}
                       >
                         <MenyBild src={bilder?.bilder[m.slug]} klass="mn-bild mn-bild-stor" lat={false} />
-                        <span className="mm-avd-namn">{m.name}</span>
+                        <span className="mm-avd-namn">{mjukaBindestreck(m.name)}</span>
                         <span className="mm-avd-pil"><Pil /></span>
                       </button>
                     ) : (
                       <a key={m.id} className="mm-avd" href={`/kategori/${m.slug}`} onClick={closeMenu}>
                         <MenyBild src={bilder?.bilder[m.slug]} klass="mn-bild mn-bild-stor" lat={false} />
-                        <span className="mm-avd-namn">{m.name}</span>
+                        <span className="mm-avd-namn">{mjukaBindestreck(m.name)}</span>
                         <span className="mm-avd-pil"><Pil /></span>
                       </a>
                     ),
@@ -247,7 +248,7 @@ export function MobileNav({ tree = [], hasBlog = false, hasSale = false }: { tre
                       {g.subs.map((s) => (
                         <a key={s.id} className="mm-sub" href={`/kategori/${s.slug}`} onClick={closeMenu}>
                           <MenyBild src={bilder?.bilder[s.slug]} />
-                          <span className="mm-sub-namn">{s.name}</span>
+                          <span className="mm-sub-namn">{mjukaBindestreck(s.name)}</span>
                           {antal?.[s.slug] !== undefined && <span className="mm-sub-count">{antal[s.slug]}</span>}
                         </a>
                       ))}
