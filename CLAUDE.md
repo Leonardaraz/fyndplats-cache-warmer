@@ -1374,7 +1374,9 @@ Nu:
   deploy läser en kopia som äldre kod byggde.
 - **Loggen säger vem som hämtar**: `[flode] /feed/gz/pinterest.xml ur kopian,
   14 min gammal (gzip, deflate; Pinterestbot/1.0)`. Bara Accept-Encoding och
-  robotens namn ur User-Agent (`lasare`).
+  robotens namn ur User-Agent (`lasare`). ☠️ Bara de första 512 tecknen av
+  User-Agent läses: regexen tar kvadratisk tid mot längden, och en User-Agent
+  på 32 kB kostade 2,3 s CPU per anrop (mätt 2026-11-15).
 - Mätt på förhandsbygget (Pinterest-flödet, 2026-11-15): HEAD 0,5–0,9 s (förut
   52 s), GET ur kopian 0,9 s med gzip och 2,0 s utan (förut 50–80 s), samma
   byte. Vercel skickar `Accept-Encoding: gzip` till rutten också när läsaren

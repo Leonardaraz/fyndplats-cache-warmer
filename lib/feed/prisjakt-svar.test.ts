@@ -437,4 +437,24 @@ describe("lasare: vem som hämtar, för loggen", () => {
     const r = lasare(med({ "accept-encoding": "x".repeat(500), "user-agent": "y".repeat(500) }));
     assert.ok(r.length <= 82, r);
   });
+
+  it("en jättelång User-Agent kostar ingen märkbar tid", () => {
+    // Regexen på User-Agent tar kvadratisk tid mot längden: 32 kB tog 2,3 s
+    // CPU per anrop innan den kapades (mätt 2026-11-15). Vem som helst kan
+    // skicka en sådan till flödena, också på HEAD.
+    const anrop = med({ "user-agent": "a".repeat(32_000) });
+    const start = performance.now();
+    const r = lasare(anrop);
+    const ms = performance.now() - start;
+    assert.equal(r, `utan accept-encoding; ${"a".repeat(40)}`);
+    assert.ok(ms < 100, `${ms.toFixed(0)} ms`);
+  });
+
+  it("en lång men riktig robot känns fortfarande igen", () => {
+    // Googlebot för mobil: 199 tecken, med namnet sist.
+    const ua =
+      "Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) " +
+      "Chrome/142.0.7444.59 Mobile Safari/537.36 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)";
+    assert.equal(lasare(med({ "user-agent": ua })), "utan accept-encoding; Googlebot/2.1");
+  });
 });

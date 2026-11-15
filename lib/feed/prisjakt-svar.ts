@@ -289,7 +289,10 @@ export function huvudsvar(opts: { komprimerat: boolean; kopia?: KopiansHuvud | n
  */
 export function lasare(request?: Request): string {
   const ae = (request?.headers.get("accept-encoding") ?? "").trim().slice(0, 40) || "utan accept-encoding";
-  const ua = request?.headers.get("user-agent") ?? "";
+  // Bara början av User-Agent: regexen nedan tar kvadratisk tid mot längden,
+  // och vem som helst kan skicka tiotals kB (32 kB: 2,3 s CPU per anrop, mätt
+  // 2026-11-15). Robotarnas namn står långt före tecken 512.
+  const ua = (request?.headers.get("user-agent") ?? "").slice(0, 512);
   const robot = ua.match(/[\w.-]*(?:bot|pinterest|google|facebook|meta|pricerunner|crawler|spider)[\w./-]*/i)?.[0];
   const namn = (robot ?? ua.split(/[\s(;]/)[0] ?? "").slice(0, 40) || "okänd";
   return `${ae}; ${namn}`;
