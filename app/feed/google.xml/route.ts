@@ -49,7 +49,8 @@ export const maxDuration = 300;
 
 import { KAMPANJ_2026_09 } from "../../../lib/kampanj-2026-09";
 import { varumarke } from "../../../lib/varumarke";
-import { flodessvar } from "../../../lib/feed/prisjakt-svar";
+import { arTomtFlode, flodessvar, flodessvarUrKopia, huvudsvar, lasare } from "../../../lib/feed/prisjakt-svar";
+import { anvandbarKopia, anvandbartHuvud, sparaEfterSvaret } from "../../../lib/feed/kopiesvar";
 
 const SITE = "https://www.fyndplats.se";
 // Märket: Wix fält "brand" när det är satt, annars Fyndplats. Aosoms märken
@@ -523,6 +524,15 @@ function feedItem(
 }
 
 export async function GET(request?: Request) {
+  // ☠️ En läsare utifrån får den sparade kopian (lib/feed/flodeslager.ts) när
+  // den är yngre än tre timmar; /api/cron/farska-floden bygger den varannan
+  // timme. Anropad utan anrop (PriceRunner, Pinterest, Prisjakt, gz-rutten)
+  // bygger rutten ALLTID.
+  if (request) {
+    const kopia = await anvandbarKopia("google.xml", request, "/feed/google.xml");
+    if (kopia) return flodessvarUrKopia(kopia, request);
+  }
+  const byggd = Date.now();
   // Fyra batchade, cachade källor — inga per-produkt-anrop:
   //   getProductsFarska()     → visible-filtrerad katalog, högst en timme gammal
   //                             (seoDescription, img, slug; lib/katalog-alder.ts)
@@ -582,6 +592,14 @@ ${items.join("\n")}
   </channel>
 </rss>`;
 
+  if (request && !arTomtFlode(xml)) sparaEfterSvaret("google.xml", "/feed/google.xml", byggd, xml);
   // flodessvar varnar i loggen om det komprimerade svaret närmar sig CDN:ens gräns.
   return flodessvar(xml, request);
+}
+
+// HEAD bygger aldrig: utan den körde Next GET och byggde hela flödet för ett
+// svar utan kropp. Se `huvudsvar` i lib/feed/prisjakt-svar.ts.
+export async function HEAD(request: Request) {
+  console.log(`[flode] HEAD /feed/google.xml (${lasare(request)})`);
+  return huvudsvar({ komprimerat: false, kopia: await anvandbartHuvud("google.xml") });
 }

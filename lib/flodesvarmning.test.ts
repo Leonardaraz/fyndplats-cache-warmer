@@ -91,7 +91,11 @@ describe("jobbet är schemalagt", () => {
     const vercel = JSON.parse(readFileSync(join(import.meta.dirname, "..", "vercel.json"), "utf8")) as { crons: { path: string; schedule: string }[] };
     assert.deepEqual(vercel.crons.filter((c) => c.path === "/api/cron/farska-floden"), [{ path: "/api/cron/farska-floden", schedule: "37 */2 * * *" }]);
     const rutt = readFileSync(join(import.meta.dirname, "..", "app", "api", "cron", "farska-floden", "route.ts"), "utf8");
-    assert.match(rutt, /hamtaFloden\(SITE\)/);
+    // Bygget av de sparade flödena går först och tar sin tid ur samma budget,
+    // så att hela jobbet håller sig under maxDuration.
+    assert.match(rutt, /hamtaFloden\(SITE, \{ budgetMs: Math\.max\(10_000, BUDGET_MS - \(Date\.now\(\) - start\)\) \}\)/);
+    assert.match(rutt, /const BUDGET_MS = 240_000;/);
+    assert.match(rutt, /const BYGGE_MS = 150_000;/);
     assert.match(rutt, /export const maxDuration = 300;/);
   });
 });
