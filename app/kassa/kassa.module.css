@@ -1261,7 +1261,7 @@
   height: 28px;
 }
 
-/* ── Förtroende: öppet köp, leveransen, betalningen och betyget ──────── */
+/* ── Förtroende: öppet köp, leveransen och betalningen ───────────────── */
 .fortroende {
   margin-top: 16px;
 }
@@ -1299,27 +1299,6 @@
   border-radius: 50%;
   background: var(--warm);
   color: var(--brand);
-}
-
-.betyg {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 14px 0 0;
-  padding-top: 12px;
-  border-top: 1px solid var(--line);
-  font-size: var(--text-sm);
-  color: var(--soft);
-}
-
-.betyg strong {
-  color: var(--ink);
-}
-
-.betygStjarnor {
-  margin-left: auto;
-  color: #f5a623;
-  letter-spacing: 1px;
 }
 
 .fortroendeMobil {

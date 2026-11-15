@@ -15,7 +15,6 @@ import { preload } from "react-dom";
 import { harStripe } from "@/lib/kassa/stripe";
 import { STRIPE_JS } from "@/lib/kassa/stripe-klient";
 import { LAST_KORG_KAKA } from "@/lib/kassa/lastkorg";
-import { getSocialProof } from "@/lib/social-proof-live";
 import { lastKorgForKassan } from "@/lib/kassa/medlemskassa";
 import { Kassa } from "./kassa";
 
@@ -37,11 +36,10 @@ export default async function KassaSida() {
   // loadStripe lägger in (STRIPE_JS), annars hämtas filen två gånger.
   const kakor = await cookies();
   if (stripeNyckel && (kakor.has("fp_cart") || kakor.has(LAST_KORG_KAKA))) preload(STRIPE_JS, { as: "script" });
-  // Samtidigt, inte efter varandra:
-  // - Google-betyget i summeringen: samma hämtning som sidfoten gör på varje
-  //   sida (cachad i 6 h), så det kostar inget extra anrop.
-  // - Medlemskorgen med låsta priser, när kakan pekar ut en som hör till den
-  //   inloggade medlemmen (lib/kassa/medlemskassa.ts). Bara med Stripe.
-  const [socialt, last] = await Promise.all([getSocialProof(), stripeNyckel ? lastKorgForKassan() : null]);
-  return <Kassa stripeNyckel={stripeNyckel} betyg={socialt.rating} last={last} />;
+  // Medlemskorgen med låsta priser, när kakan pekar ut en som hör till den
+  // inloggade medlemmen (lib/kassa/medlemskassa.ts). Bara med Stripe. Kassan
+  // läser inte längre Google-betyget (borttaget 2026-11-15, Leonard): raden
+  // stod sist på mobil, och hämtningen låg i varje kassasidas svarstid.
+  const last = stripeNyckel ? await lastKorgForKassan() : null;
+  return <Kassa stripeNyckel={stripeNyckel} last={last} />;
 }

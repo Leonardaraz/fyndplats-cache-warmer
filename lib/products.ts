@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { categorySignalIsUsable, keepCategory, medForaldrar } from "./category-filter";
 import { imgKey } from "./image-alt";
 import { agareMedAltText, kopplingarPerOption, medAgareUrAltText, type Kopplingar } from "./variant-bilder";
@@ -23,6 +24,7 @@ import { fargvalKropp, FARGVAL_SIDTAK } from "./product-colors-paging";
 import { v3VariantData, v3MultiVariantData } from "./variant-price";
 import { PRODUKTSIDA_SEKUNDER, produktTagg } from "./produkt-cache";
 import { kortLivslangd } from "./kort-livslangd";
+import { markeUrV3, svepaVarumarken } from "./varumarken-svep";
 import { forstaVideo, type ProduktVideo } from "./produkt-video";
 import { rattaProduktlankar } from "./interna-lankar";
 import { behallNy, forGammal, KATALOG_FARSK_MS } from "./katalog-alder";
@@ -47,6 +49,8 @@ export type Product = {
   // då lastmod (ärligare än att stämpla render-tid). Att den rör sig vid lager-/
   // pris-sync är RÄTT för sitemap-lastmod (sidans innehåll ändrades faktiskt).
   updatedAt: number;
+  /** Märket i Wix fält "brand" (V3), bara där produktsidans rad hämtats (produktGrund). */
+  marke?: string;
   price: string;
   currency: string;
   priceNum: number;
@@ -861,6 +865,11 @@ async function produktGrund(slug: string): Promise<{ prod: Product; item: any } 
   // inne i en sidrendering, men inte i en route handler (kontaktrutterna), där
   // envariant- och flerdimensionsvägen annars hämtade samma produkt var för sig.
   const v3 = await fetchV3ProductRaw(prod.id);
+  // Märket står i samma V3-rad (brand.name). Produktsidan hämtade förut hela
+  // katalogens märkeskarta för att slå upp det, ca 20 anrop som gav Wix 429
+  // (lib/varumarken-svep.ts). Saknas raden blir det Fyndplats, som förut.
+  const marke = markeUrV3(v3);
+  if (marke) prod.marke = marke;
   const v3v = v3 ? v3VariantData(v3) : null;
   if (v3v) {
     const isColorOpt = /färg|color|kulör/i.test(v3v.optionName);
@@ -1427,46 +1436,41 @@ export async function fetchAllVariantsRaw(): Promise<any[]> {
 
 /**
  * Produkt-id → märket som står i Wix fält "brand", för de produkter som har ett.
+ * Bara för flödena: produktsidan läser varans eget märke ur sin V3-rad
+ * (`marke`, produktGrund) och anropar inte det här.
  *
- * ETT svep för hela katalogen: frågan filtrerar på `brand.id` (uppmätt
- * 2026-10-06: sju produkter, en sida). `products/query` vägrar filtret
- * ("not declared as filterable"), `products/search` tar det. Filtret går bara
- * med på första sidan; markören bär frågan (CLAUDE.md, Wix-hämtningar).
- *
- * Vad märket blir i strukturerad data och flöden avgör lib/varumarke.ts —
- * Aosoms märken blir Fyndplats. Fail-open: ett fel ger en tom karta, alltså
- * Fyndplats överallt som förut, och produktsidan byggs om efter fem minuter.
+ * Hela kartan är EN cachepost i sex timmar (unstable_cache). Inne i cachen
+ * hämtar Next varje sida utan egen cache (patch-fetch.js, 'unstable-cache'), så
+ * markörkedjan ger inga cache-missar längre. Svepet (lib/varumarken-svep.ts)
+ * kastar vid fel i stället för att lämna en delvis karta: då står den förra
+ * hela kartan kvar, och förnyelsen görs om vid nästa anrop. Bara utan någon
+ * sparad karta alls blir svaret tomt, alltså Fyndplats överallt som förut.
+ * Vad märket blir avgör lib/varumarke.ts — Aosoms märken blir Fyndplats.
  */
-export async function fetchVarumarken(): Promise<Map<string, string>> {
-  const out = new Map<string, string>();
-  if (!WIX_API_KEY) return out;
-  try {
-    let cursor: string | undefined;
-    for (let page = 0; page < 20; page++) {
-      const search: Record<string, unknown> = { cursorPaging: cursor ? { limit: 100, cursor } : { limit: 100 } };
-      if (!cursor) search.filter = { "brand.id": { $exists: true } };
-      const res = await fetch("https://www.wixapis.com/stores/v3/products/search", {
+const varumarkenCachat = unstable_cache(
+  () =>
+    svepaVarumarken((search) =>
+      fetch("https://www.wixapis.com/stores/v3/products/search", {
         method: "POST",
-        headers: { Authorization: WIX_API_KEY, "wix-site-id": WIX_SITE_ID, "Content-Type": "application/json" },
+        // fetchVarumarken anropar bara cachen när nyckeln finns.
+        headers: { Authorization: WIX_API_KEY ?? "", "wix-site-id": WIX_SITE_ID, "Content-Type": "application/json" },
         body: JSON.stringify({ search }),
-        next: { revalidate: PRODUKTSIDA_SEKUNDER, tags: ["varumarken"] },
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      for (const p of data?.products || []) {
-        const namn = p?.brand?.name;
-        if (p?.id && typeof namn === "string" && namn.trim()) out.set(p.id, namn.trim());
-      }
-      cursor = data?.pagingMetadata?.cursors?.next || undefined;
-      if (!cursor || !data?.pagingMetadata?.hasNext) return out;
-    }
-    // ☠️ Ett tak ska logga ett fel, aldrig kapa tyst (CLAUDE.md).
-    console.error("[wix] fetchVarumarken nådde sidtaket med markören kvar");
+        cache: "no-store",
+      }),
+    ),
+  ["varumarken-v2"],
+  { revalidate: PRODUKTSIDA_SEKUNDER, tags: ["varumarken"] },
+);
+
+export async function fetchVarumarken(): Promise<Map<string, string>> {
+  if (!WIX_API_KEY) return new Map();
+  try {
+    return new Map(await varumarkenCachat());
   } catch (e) {
     console.error("[wix] fetchVarumarken failed:", (e as Error).message);
     await kortLivslangd();
+    return new Map();
   }
-  return out;
 }
 
 /**
