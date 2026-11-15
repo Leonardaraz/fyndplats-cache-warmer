@@ -29,10 +29,20 @@ FAKTISKA bilder; bilder-bort.tsv drar ifrån dem vi medvetet strukit.
 två filer råkade dela ett fel är just varför den här bor i polish-gates och
 inte i rundans katalog.
 
+☠️ EN STÄDRUNDA FLYTTAR INGA BILDER (2026-11-14). Regeln "måttbilden sist"
+gäller när en runda bygger galleriet. På en publicerad sida med färgval kan
+måttbilden med flit ligga bland sin färgs bilder: hundgrinden dab49bb1 har den
+som tredje av de grå, före de vita. En städrunda som bara rättar texten hade
+ändå flyttat den sist, bland de vita, eftersom mediasteget alltid skickar hela
+listan. `behall-bildordning.tsv` ("kort  skäl", skälet minst tio tecken) håller
+produktens bilder i positionsordning, alltså i den ordning `bilder.tsv` och
+`alt.tsv` hämtades ur Wix. Utan filen bygger allt som förut.
+
 ANVÄNDNING (från rundans katalog):  python3 ../../polish-gates/bygg-media.py
   bilder.tsv       "kort  position  wix-fil-id"
   alt.tsv          "kort  position  alt-text"  (position = KÄLLposition)
   bilder-bort.tsv  VALFRI: "kort  position  skäl"
+  behall-bildordning.tsv  VALFRI: "kort  skäl" — ordningen följer positionen
   -> nyttolast-media.json
 """
 import json, os, re, sys, collections
@@ -59,6 +69,16 @@ if os.path.exists("bilder-bort.tsv"):
 
 vis = collections.OrderedDict()
 fel = []
+behall = {}
+if os.path.exists("behall-bildordning.tsv"):
+    for nr, r in enumerate(open("behall-bildordning.tsv", encoding="utf-8"), 1):
+        if not r.strip() or r.startswith("#"):
+            continue
+        delar = r.rstrip("\n").split("\t", 1)
+        if len(delar) != 2 or len(delar[1].strip()) < 10:
+            fel.append(f"behall-bildordning.tsv:{nr}  ska vara kort ⇥ skäl (minst tio tecken)")
+            continue
+        behall[delar[0].strip()] = delar[1].strip()
 for nr, r in enumerate(open("alt.tsv", encoding="utf-8"), 1):
     if not r.strip():
         continue
@@ -82,6 +102,10 @@ for r in open("bilder.tsv", encoding="utf-8"):
     if r.strip():
         har[r.split("\t")[0]] += 1
 
+for kort in behall:
+    if kort not in vis:
+        fel.append(f"behall-bildordning.tsv: {kort} har inga rader i alt.tsv")
+
 for kort, rader in vis.items():
     vantat = (har[kort] or 5) - bort[kort]
     if len(rader) != vantat:
@@ -103,10 +127,14 @@ for kort, rader in vis.items():
     # bara när måttbilden råkar ligga på position 3. I T78 låg den på 5 (agilityvärden) och 4 (hindersetet), så en
     # närbild på ett rör hamnade sist och måttbilden mitt i galleriet. Finns ingen alt-text som börjar på Måttbild/
     # Måttskiss/Måttritning gäller den gamla regeln (position 3), så äldre rundor bygger som förut.
-    har_matt = any(ar_mattbild(a) for _, _, a in rader)
-    rader.sort(key=lambda t: ((ar_mattbild(t[2]) if har_matt else t[0] == "3"), int(t[0])))   # måttbilden sist
+    if kort in behall:
+        rader.sort(key=lambda t: int(t[0]))   # den publicerade ordningen, se behall-bildordning.tsv
+    else:
+        har_matt = any(ar_mattbild(a) for _, _, a in rader)
+        rader.sort(key=lambda t: ((ar_mattbild(t[2]) if har_matt else t[0] == "3"), int(t[0])))   # måttbilden sist
     ut[kort] = [{"id": f, "altText": a} for _, f, a in rader]
 
 json.dump(ut, open("nyttolast-media.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 for k, v in ut.items():
-    print(f"{k}  {len(v)} bilder  ordning {' '.join(p for p, _, _ in vis[k])}")
+    print(f"{k}  {len(v)} bilder  ordning {' '.join(p for p, _, _ in vis[k])}"
+          + ("  (behållen, behall-bildordning.tsv)" if k in behall else ""))

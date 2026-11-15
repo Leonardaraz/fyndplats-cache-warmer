@@ -235,6 +235,8 @@ som ser friskt ut men har fel innehåll, inte ett felmeddelande.
   fäller bara på nya fynd och på fynd i målklasserna. Äldre avvikelser som flikrubriker eller
   fraktvikt stoppar alltså inte en städning som inte rör dem, och `grind-undantag.txt` räknar
   upp dem. Produkter med flera varianter skrivs med `sammanslagna.tsv` (sedan 2026-09-30).
+  Ligger måttbilden med flit bland en färgs bilder (en sida med färgval) får sidan en rad i
+  `behall-bildordning.tsv`, annars flyttar mediasteget den sist (2026-11-14).
   Sidor vars oförändrade slug fälls av skrivplanens formkontroll (`212-manchester`,
   `med-100`) går inte att skriva med workflowen: byt adress och lägg en omdirigering.
 - **Katalogsvep** (tomma alt-texter, löv utan förälder, leverantörskoder i publicerad text)
