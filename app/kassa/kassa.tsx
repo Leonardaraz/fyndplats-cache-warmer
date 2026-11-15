@@ -38,7 +38,6 @@ import { preconnect, prefetchDNS } from "react-dom";
 import { useCart, liImageUrl } from "../../components/cart";
 import { lastKorgStammer } from "../../lib/kassa/lastkorg";
 import { PaymentMarks } from "../../components/payment-marks";
-import { GoogleG } from "../../components/google-g";
 import { tightFillUrl } from "../../lib/wix-image";
 import { valdaAlternativ } from "../../lib/cart-shape";
 import { DELIVERY_MAX_DAYS, DELIVERY_MIN_DAYS, DELIVERY_TIME, FREE_SHIPPING_FROM_KR, fraktKr } from "../../lib/shipping";
@@ -171,16 +170,14 @@ const IKON_PIL = (
 type FormFalt = keyof Varden;
 
 /**
- * Kassan. `betyg` är butikens Google-betyg ("4,9", lib/social-proof-live.ts),
- * som page.tsx läser på servern; null visar ingen betygsrad.
+ * Kassan. Google-betyget står inte här längre (Leonard 2026-11-15); det finns
+ * på startsidan, i sidfoten och på /omdomen.
  */
 export function Kassa({
   stripeNyckel = null,
-  betyg = null,
   last: lastFranServern = null,
 }: {
   stripeNyckel?: string | null;
-  betyg?: string | null;
   /** Medlemskorgen med låsta priser (lib/kassa/medlemskassa.ts), eller null. */
   last?: { id: string; rader: KorgRadVy[]; epost: string | null; besokarensKorg: string | null } | null;
 }) {
@@ -1232,13 +1229,6 @@ export function Kassa({
           </span>
         </li>
       </ul>
-      {betyg ? (
-        <p className={s.betyg}>
-          <GoogleG size={16} />
-          <span><strong>{betyg}</strong> av 5 på Google</span>
-          <span className={s.betygStjarnor} aria-hidden="true">★★★★★</span>
-        </p>
-      ) : null}
     </div>
   );
 

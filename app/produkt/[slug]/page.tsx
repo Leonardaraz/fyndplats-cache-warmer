@@ -10,7 +10,7 @@ import { forvalIndex, forvalKombination } from "../../../lib/pdp-forval";
 import { colorKeysOf } from "../../../lib/variant-color-image";
 import { ProductCard } from "../../../components/productcard";
 import { attachRatings } from "../../../lib/review-aggregates";
-import { getProduct, getProducts, getCollections, dedupeProducts, forListings, fetchVarumarken, type Product } from "../../../lib/products";
+import { getProduct, getProducts, getCollections, dedupeProducts, forListings, type Product } from "../../../lib/products";
 import { BUTIKENS_MARKE, varumarke } from "../../../lib/varumarke";
 import { valjBrodsmula } from "../../../lib/breadcrumb-category";
 import { categoryIndexable, countPerCategoryPage } from "../../../lib/category-threshold";
@@ -138,9 +138,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   // Riktiga importerade kundrecensioner (social proof + schema.org). Tom om inga.
   // Produktsäkerheten (GPSR, lib/gpsr-flik.ts) hämtas parallellt — null för
   // produkter utan uppgifter, och då visas ingen flik.
-  // Märket ur Wix (ett svep för hela katalogen, cachat i sex timmar);
-  // lib/varumarke.ts avgör vad det blir.
-  const [reviewData, gpsr, marken] = await Promise.all([getProductReviews(p.id), getGpsr(p.id), fetchVarumarken()]);
+  const [reviewData, gpsr] = await Promise.all([getProductReviews(p.id), getGpsr(p.id)]);
   // Poleringens eget säkerhetsavsnitt i beskrivningen vinner över motorns data.
   const egnaSakerhetsrader = sakerhetUrBeskrivning(p.descriptionHtml);
   const gpsrHtml = gpsr
@@ -246,8 +244,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     // Samma preferens som meta-descriptionen ovan: kuraterad Wix-SEO när den
     // finns, annars blurb — så strukturerad data och snippet matchar.
     description: p.seoDescription || p.blurb,
-    // Riktiga märkesvaror sitt eget märke, Aosoms white label Fyndplats.
-    brand: { "@type": "Brand", name: varumarke(marken.get(p.id)) },
+    // Riktiga märkesvaror sitt eget märke, Aosoms white label Fyndplats. Märket
+    // står i produktens egen V3-rad (p.marke); ingen märkeskarta hämtas här.
+    brand: { "@type": "Brand", name: varumarke(p.marke) },
   };
 
   // En produkt med varianter beskrivs som en ProductGroup med en Product per
