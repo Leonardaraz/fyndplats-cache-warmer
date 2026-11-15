@@ -279,8 +279,12 @@ export const DJUPARE_KATEGORIER: Readonly<Record<string, readonly Regel[]>> = {
     // Parasollets tillbehör först: "viktplattor till parasoll", "myggnät till parasoll".
     R(/^(\S+ )?(parasollfot|parasollställ|parasollhållare|parasollvikt|viktplatt)|till (häng)?parasoll/, 6751, "Home & Garden > Lawn & Garden > Outdoor Living > Outdoor Umbrella & Sunshade Accessories"),
     R(/^(reservduk|reservtak|ersättningstak|paviljongtak|pergolatak|pergolamarkis|tak till|sidoväggar|sidovägg|myggnät|nätväggar)/, 6105, "Home & Garden > Lawn & Garden > Outdoor Living > Outdoor Structures > Canopy & Gazebo Accessories"),
+    // Beslag och fästen till en pergola är beslag, inte en pergola.
+    R(/^(\S+ )?(pergolabeslag|pergolafäst)|^pergolakit\b.*fäst/, 7092, "Hardware > Hardware Accessories > Brackets & Reinforcement Braces"),
     R(/pergola/, 703, "Home & Garden > Lawn & Garden > Outdoor Living > Outdoor Structures > Garden Arches, Trellises, Arbors & Pergolas"),
     R(/paviljong|partytält|eventtält|gazebo/, 716, "Home & Garden > Lawn & Garden > Outdoor Living > Outdoor Structures > Canopies & Gazebos"),
+    // Nätet till en markis är ett tillbehör till markisen.
+    R(/^solskyddsnät för \S*markis/, 499908, "Home & Garden > Lawn & Garden > Outdoor Living > Awning Accessories"),
     R(/markis|skärmtak|entrétak/, 499907, "Home & Garden > Lawn & Garden > Outdoor Living > Awnings"),
     R(/parasoll|solsegel/, 719, "Home & Garden > Lawn & Garden > Outdoor Living > Outdoor Umbrellas & Sunshades"),
   ],
@@ -315,7 +319,8 @@ export const DJUPARE_KATEGORIER: Readonly<Record<string, readonly Regel[]>> = {
     R(/^gåvagn/, 1241, "Baby & Toddler > Baby Toys & Activity Equipment > Baby Walkers & Entertainers"),
     // Skumklossarna före tunneln och rutschkanan som de bygger.
     R(SKUMKLOSSAR, 3172, "Toys & Games > Toys > Building Toys > Foam Blocks"),
-    R(/^(kantskydd|skyddsnät|reservnät)/, 5524, "Toys & Games > Outdoor Play Equipment > Trampoline Accessories"),
+    // Mattan och hoppduken till en studsmatta är tillbehör, inte studsmattor.
+    R(/^(kantskydd|skyddsnät|reservnät|ersättningsmatta|reservmatta|hoppduk)/, 5524, "Toys & Games > Outdoor Play Equipment > Trampoline Accessories"),
     R(/vattenrutschkana|vattenbord|vattenlek/, 6464, "Toys & Games > Outdoor Play Equipment > Water Play Equipment"),
     // Hoppborgen före rutschkanan: "hoppborg med rutschkana" är en hoppborg.
     R(/hoppborg/, 6396, "Toys & Games > Outdoor Play Equipment > Inflatable Bouncers"),
@@ -323,6 +328,8 @@ export const DJUPARE_KATEGORIER: Readonly<Record<string, readonly Regel[]>> = {
     R(/studsmatta/, 1738, "Toys & Games > Outdoor Play Equipment > Trampolines"),
     R(/sandlåda/, 2743, "Toys & Games > Outdoor Play Equipment > Sandboxes"),
     R(/lekstuga|lekhus/, 1251, "Toys & Games > Outdoor Play Equipment > Playhouses"),
+    // Fästena till en gungställning är tillbehör: före gungställningen.
+    R(/^(\S+ )?(gungfäst|a-ramsfäst)/, 6269, "Toys & Games > Outdoor Play Equipment > Swing Set & Playset Accessories"),
     R(/gungställning|lekställning|klätterställning|klätterkupol|klättertorn/, 6271, "Toys & Games > Outdoor Play Equipment > Swing Sets & Playsets"),
     R(/gungbräda|vippgunga/, 6450, "Toys & Games > Outdoor Play Equipment > See Saws"),
     R(/gunga|gungor/, 6270, "Toys & Games > Outdoor Play Equipment > Play Swings"),
@@ -362,13 +369,16 @@ export const DJUPARE_KATEGORIER: Readonly<Record<string, readonly Regel[]>> = {
     R(null, 2743, "Toys & Games > Outdoor Play Equipment > Sandboxes"),
   ],
   "utelek-spel": [
-    R(/^(kantskydd|skyddsnät|reservnät)/, 5524, "Toys & Games > Outdoor Play Equipment > Trampoline Accessories"),
+    // Mattan och hoppduken till en studsmatta är tillbehör, inte studsmattor.
+    R(/^(kantskydd|skyddsnät|reservnät|ersättningsmatta|reservmatta|hoppduk)/, 5524, "Toys & Games > Outdoor Play Equipment > Trampoline Accessories"),
     R(/vattenrutschkana|vattenbord|vattenlek|plaskdamm/, 6464, "Toys & Games > Outdoor Play Equipment > Water Play Equipment"),
     R(/hoppborg/, 6396, "Toys & Games > Outdoor Play Equipment > Inflatable Bouncers"),
     R(/rutschkana/, 2867, "Toys & Games > Outdoor Play Equipment > Slides"),
     R(/studsmatta|trampolin/, 1738, "Toys & Games > Outdoor Play Equipment > Trampolines"),
     R(/sandlåda/, 2743, "Toys & Games > Outdoor Play Equipment > Sandboxes"),
     R(/lekstuga|lekhus/, 1251, "Toys & Games > Outdoor Play Equipment > Playhouses"),
+    // Fästena till en gungställning är tillbehör: före gungställningen.
+    R(/^(\S+ )?(gungfäst|a-ramsfäst)/, 6269, "Toys & Games > Outdoor Play Equipment > Swing Set & Playset Accessories"),
     R(/gungställning|lekställning|klätterställning|klätterkupol|klättertorn/, 6271, "Toys & Games > Outdoor Play Equipment > Swing Sets & Playsets"),
     R(/gungbräda|vippgunga/, 6450, "Toys & Games > Outdoor Play Equipment > See Saws"),
     R(/gunga|gungor|gungsits/, 6270, "Toys & Games > Outdoor Play Equipment > Play Swings"),

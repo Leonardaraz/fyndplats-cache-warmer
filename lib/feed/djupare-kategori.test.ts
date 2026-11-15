@@ -30,6 +30,13 @@ describe("djupareKategori: varans namn väljer en djupare nod", () => {
     // Paviljong med myggnät är en paviljong; reservtaket är ett tillbehör.
     ["solskydd-paviljonger", "Paviljong 3 × 3 m med dubbeltak och myggnät - Mörkgrå", 716],
     ["solskydd-paviljonger", "Reservtak till paviljong 3 × 3 m med dubbeltak", 6105],
+    // Beslagen till en pergola är beslag; nätet till en markis är ett markistillbehör.
+    ["solskydd-paviljonger", "Pergolabeslag med snedställt fyrvägsfäste och två baser för 92 × 92 mm trä", 7092],
+    ["solskydd-paviljonger", "Pergolakit 92 × 92 mm: 4 trevägshörnfästen och 4 stolpfästen i kolstål", 7092],
+    ["solskydd-paviljonger", "Trevägs pergolafästen för 92 × 92 mm trästolpar, 4 st, kolstål", 7092],
+    ["solskydd-paviljonger", "Pergola 3 × 3 m med sluttande tak – galvaniserad ram och polyestertak UPF 30+", 703],
+    ["solskydd-paviljonger", "Solskyddsnät för husbilsmarkis, 2 × 3,7 m, för markiser på 4 m", 499908],
+    ["solskydd-paviljonger", "Markis med handvev och blåvit randig duk – 396 × 300 cm", 499907],
     // Träning: kläderna behåller sin kategori, aerobicsteppern är ingen trappmaskin.
     ["traning-gym", "Sömlösa leggings med låg ribbad midja – ankellånga i elva färger - Druva Lila / M", undefined],
     ["traning-gym", "Aerobicstepper 80 × 31 cm med tre höjder – bär 150 kg - Rosa", 237166],
@@ -43,6 +50,12 @@ describe("djupareKategori: varans namn väljer en djupare nod", () => {
     // Studsmatta med nät är en studsmatta; kantskyddet är ett tillbehör.
     ["utelek-spel", "Studsmatta 305 cm med skyddsnät och stege", 1738],
     ["utelek-spel", "Kantskydd till studsmatta 305 cm", 5524],
+    // Mattan, hoppduken och gungfästena är tillbehör (Leonards audit 2026-11-15).
+    ["utelek-spel", "Ersättningsmatta för studsmatta, 373 cm, 72 V-ringar, för ram på 14 fot", 5524],
+    ["utelek-spel", "Hoppduk till studsmatta Ø 323 cm – 72 V-ringar för 14 cm fjädrar", 5524],
+    ["utelek-spel", "Gungfästen A-ram för gungställning i trä, 2 fästen och 4 hängare, grön", 6269],
+    ["utelek-spel", "A-ramsfästen för gungställning i kolstål, ben 4 × 4 och balk 4 × 6 tum - 2 st", 6269],
+    ["utelek-spel", "Gungställning med tallriksgunga och bältesgunga, grön A-ram av stål", 6271],
     ["klostrad", "Klöstunna 70 cm med tre hålor i spiral och liggyta överst - Ljusgrå", 4997],
     ["vaxthus-odling", "Tunnelväxthus 5,95 × 3 m – 17,9 m² med åtta nätfönster", 693],
     ["vaxthus-odling", "Låg odlingstunnel med nätfönster – 45 cm hög, i två längder - Grön / 200 cm", 693],
