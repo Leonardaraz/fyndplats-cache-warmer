@@ -67,6 +67,23 @@ export function MobileNav({ tree = [], hasBlog = false, hasSale = false }: { tre
   // Antalen och bilderna hämtas i webbläsaren; trädet kommer utan dem (lib/meny-antal.ts).
   const antal = useMenyAntal();
   const bilder = useMenyBilder();
+  // Avdelningarnas bilder i första steget ritas inte i en låda som ingen ska
+  // öppna. Förut fick den stängda lådan sina tretton bilder så fort bildlistan
+  // kom, och webbläsaren hämtade dem på varje sida, också på datorn där lådan
+  // aldrig syns (mätt 2026-11-15). På en pekskärm är menyknappen vägen in, så
+  // där ritas de när listan kommit (webbläsaren är då ledig): lådan har dem när
+  // den glider in. Utan dem tog de 0,94 s efter trycket med Lighthouse strypta
+  // mobilnät, mot lådans 0,32 s. Med sparläge, och på en dator med mus, väntar
+  // de på trycket.
+  // Läses när tillståndet skapas: servern svarar alltid nej, och lådan ritas
+  // först efter monteringen (portalen nedan), så sidans HTML blir densamma.
+  const [visaBilder, setVisaBilder] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const pekskarm = window.matchMedia?.("(hover: none) and (pointer: coarse)").matches === true;
+    const sparlage = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true;
+    return pekskarm && !sparlage;
+  });
+  const stegBilder = visaBilder ? bilder : null;
 
   // Render the overlay + drawer via a portal on <body>. The <header> uses
   // backdrop-filter, which makes it a containing block for fixed-position
@@ -123,17 +140,16 @@ export function MobileNav({ tree = [], hasBlog = false, hasSale = false }: { tre
 
   const oppna = () => {
     void hamtaMenyBilder();
+    setVisaBilder(true);
     setOpen(true);
   };
-  // Trycket börjar en tiondels sekund före klicket: hämta redan då.
+  // Trycket börjar en tiondels sekund före klicket: rita avdelningarnas bilder
+  // redan då. Bildelementen själva laddar dem, så att webbläsaren väljer rätt
+  // storlek ur srcset (en förladdning med new Image() tog alltid 2x-bilden,
+  // också på en skärm som sedan ville ha 3x).
   const forvarna = () => {
-    void hamtaMenyBilder().then((s) => {
-      // Avdelningarnas bilder syns direkt när lådan öppnas; be om dem nu.
-      for (const m of tree) {
-        const src = s.bilder[m.slug];
-        if (src) new Image().src = src;
-      }
-    });
+    void hamtaMenyBilder();
+    setVisaBilder(true);
   };
 
   const avd = tree.find((m) => m.slug === visad) ?? null;
@@ -184,13 +200,13 @@ export function MobileNav({ tree = [], hasBlog = false, hasSale = false }: { tre
                         onClick={() => visa(m.slug)}
                         aria-label={`${m.name}: visa underkategorier`}
                       >
-                        <MenyBild src={bilder?.bilder[m.slug]} klass="mn-bild mn-bild-stor" lat={false} />
+                        <MenyBild src={stegBilder?.bilder[m.slug]} klass="mn-bild mn-bild-stor" lat={false} />
                         <span className="mm-avd-namn">{mjukaBindestreck(m.name)}</span>
                         <span className="mm-avd-pil"><Pil /></span>
                       </button>
                     ) : (
                       <a key={m.id} className="mm-avd" href={`/kategori/${m.slug}`} onClick={closeMenu}>
-                        <MenyBild src={bilder?.bilder[m.slug]} klass="mn-bild mn-bild-stor" lat={false} />
+                        <MenyBild src={stegBilder?.bilder[m.slug]} klass="mn-bild mn-bild-stor" lat={false} />
                         <span className="mm-avd-namn">{mjukaBindestreck(m.name)}</span>
                         <span className="mm-avd-pil"><Pil /></span>
                       </a>

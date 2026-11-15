@@ -258,7 +258,8 @@ test("rutten: CDN-cachad en timme, kort cache när katalogen är reservkatalogen
 
 test("menyerna hämtar bilderna först när någon rör menyn eller webbläsaren är ledig", () => {
   const dator = readFileSync("components/meganav.tsx", "utf8");
-  // Bara på en dator med mus; en telefon hämtar när menyknappen trycks.
+  // Datorns meny förvärmer bara på en dator med mus. Mobilmenyn hämtar listan
+  // när webbläsaren är ledig, men ritar bilderna först när menyknappen trycks.
   assert.match(dator, /matchMedia\?\.\("\(hover: hover\) and \(pointer: fine\)"\)/);
   assert.match(dator, /forvarmMenyBilder\(\)/);
   assert.match(dator, /const open = \(i: number\) => \{[^}]*hamtaMenyBilder\(\)/);
@@ -269,6 +270,35 @@ test("menyerna hämtar bilderna först när någon rör menyn eller webbläsaren
   const hook = readFileSync("components/use-meny-bilder.tsx", "utf8");
   assert.match(hook, /loading=\{lat \? "lazy" : "eager"\}/);
   assert.match(hook, /alt=""/);
+});
+
+test("bara det som syns ritar bilder: den öppna panelen och den öppnade mobilmenyn", () => {
+  // Förut fick alla tretton paneler och den stängda mobilmenyn sina bildelement
+  // så fort bildlistan kom: cirka 186 element i en lång uppgift på varje sida,
+  // och mobilmenyns tretton bilder hämtades fast ingen öppnat den. Mätt
+  // 2026-11-15 med processorn strypt fyra gånger: TBT på mobil cirka 105 → 200 ms.
+  const dator = readFileSync("components/meganav.tsx", "utf8");
+  assert.match(dator, /const panelensBilder = \(i: number\) => \(active === i \? bilder : null\);/);
+  assert.doesNotMatch(dator, /bilder\?\.(bilder|hjaltar)\[/, "ingen panel läser bildlistan förbi panelensBilder");
+  assert.match(dator, /foto=\{panelensBilder\(i\)\?\.hjaltar\[m\.slug\]\}/);
+  assert.match(dator, /produkt=\{panelensBilder\(i\)\?\.bilder\[m\.slug\]\}/);
+  assert.match(dator, /<MenyBild src=\{panelensBilder\(i\)\?\.bilder\[s\.slug\]\} \/>/);
+  const mobil = readFileSync("components/mobilenav.tsx", "utf8");
+  assert.match(mobil, /const stegBilder = visaBilder \? bilder : null;/);
+  // Båda varianterna av avdelningsraden (knapp och länk) går genom stegBilder.
+  assert.equal(mobil.match(/<MenyBild src=\{stegBilder\?\.bilder\[m\.slug\]\}/g)?.length, 2);
+  // På en pekskärm utan sparläge ritas de i förväg (lådan har dem när den glider in);
+  // annars när trycket börjar och vid klicket (tangentbordet har inget tryck).
+  assert.match(mobil, /matchMedia\?\.\("\(hover: none\) and \(pointer: coarse\)"\)\.matches === true/);
+  assert.match(mobil, /return pekskarm && !sparlage;/);
+  assert.match(mobil, /connection\?\.saveData === true/);
+  // Servern ritar aldrig lådan, så ett annat startvärde i webbläsaren ger ingen skillnad i HTML:en.
+  assert.match(mobil, /if \(typeof window === "undefined"\) return false;/);
+  assert.match(mobil, /\{mounted \? createPortal\(menu, document\.body\) : null\}/);
+  assert.match(mobil, /const forvarna = \(\) => \{[^}]*setVisaBilder\(true\)/);
+  assert.match(mobil, /const oppna = \(\) => \{[^}]*setVisaBilder\(true\)/);
+  // Ingen förladdning vid sidan av: den tog 2x-bilden också där skärmen ville ha 3x.
+  assert.doesNotMatch(mobil, /new Image\(\)\.src/);
 });
 
 test("cookierutan väntar medan mobilmenyn är öppen, som för varukorgen och favoriterna", () => {

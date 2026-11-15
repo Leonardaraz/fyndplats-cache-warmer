@@ -32,8 +32,12 @@ import { forvarmMenyBilder, hamtaMenyBilder, MenyBild, useMenyBilder } from "./u
 // medianprodukt, fast sökordskategorierna (TV-bänkar, Golvlampor, Hantlar …)
 // ska ranka på ord med tiotusentals sökningar. Med panelerna i HTML länkar
 // varje sida till varje underkategori, precis som menyn redan gör för den som
-// hovrar. Bilderna kommer först i webbläsaren: en dold panels bilder laddas
-// aldrig (loading="lazy" i ett dolt element).
+// hovrar. Bilderna kommer först i webbläsaren, och bara den öppna panelen
+// ritar sina: förut fick alla tretton paneler sina cirka 170 bildelement så
+// fort bildlistan kom. Bilderna laddades aldrig (loading="lazy" i ett dolt
+// element), men elementen byggdes ändå i en enda lång uppgift, också på en
+// telefon där datorns meny aldrig syns. Mätt 2026-11-15 med processorn strypt
+// fyra gånger: Lighthouse TBT på mobil cirka 105 → 200 ms mot produktionen.
 
 // Kort etikett = första ordet i kategorinamnet ("Elektronik & Tillbehör" → "Elektronik").
 function shortLabel(name: string): string {
@@ -70,6 +74,8 @@ export function MegaNav({ tree, hasBlog, hasSale }: { tree: CategoryNode[]; hasB
   };
   const open = (i: number) => { cancelClose(); void hamtaMenyBilder(); setByte(active !== null && active !== i); setActive(i); };
   const close = () => { cancelClose(); setActive(null); };
+  // Bara den öppna panelen får bilderna (se kommentaren överst).
+  const panelensBilder = (i: number) => (active === i ? bilder : null);
 
   return (
     <nav
@@ -132,8 +138,8 @@ export function MegaNav({ tree, hasBlog, hasSale }: { tree: CategoryNode[]; hasB
               namn={m.name}
               href={`/kategori/${m.slug}`}
               antal={antal?.[m.slug]}
-              foto={bilder?.hjaltar[m.slug]}
-              produkt={bilder?.bilder[m.slug]}
+              foto={panelensBilder(i)?.hjaltar[m.slug]}
+              produkt={panelensBilder(i)?.bilder[m.slug]}
               vidKlick={close}
             />
             {m.subs.length > 0 ? (
@@ -146,7 +152,7 @@ export function MegaNav({ tree, hasBlog, hasSale }: { tree: CategoryNode[]; hasB
                     {g.rubrik && <p className="meganav-grupp-rubrik">{g.rubrik}</p>}
                     {g.subs.map((s) => (
                       <a key={s.id} className="meganav-sub" href={`/kategori/${s.slug}`} onClick={close}>
-                        <MenyBild src={bilder?.bilder[s.slug]} />
+                        <MenyBild src={panelensBilder(i)?.bilder[s.slug]} />
                         {/* Antalet står direkt efter namnet, så att ett långt
                             sammansatt ord (Trädgårdsanläggning) får hela bredden.
                             Ordet får dessutom ett mjukt bindestreck vid fogen, så

@@ -3301,6 +3301,17 @@ Datorns meny och mobilmenyn visar en bild per avdelning och underkategori.
   Mätt på förhandsbygget 2026-11-15: en datorpanel cirka 86 kB (median 612 ms
   tills panelens bilder syns), mobilens första steg 27 kB (13 miniatyrer),
   ett steg två cirka 134 kB (median 764 ms).
+- ☠️ **Bara det som syns ritar bildelement.** Datorns panel ritar sina bilder
+  först när den är öppen (`panelensBilder`), och mobilmenyns första steg ritar
+  sina tretton när menyn ska öppnas: i förväg på en pekskärm utan sparläge
+  (lådan har dem när den glider in), annars vid trycket. Förut fick alla
+  tretton paneler och den stängda lådan sina cirka 186 bildelement så fort
+  bildlistan kom, i en enda lång uppgift på varje sida, och lådans tretton
+  bilder hämtades också på datorn där den aldrig syns. Mätt 2026-11-15:
+  Lighthouse TBT på mobil cirka 105 → 200 ms mot produktionen; lokalt med
+  processorn strypt fyra gånger blockerad tid 421 → 308 ms på startsidan och
+  582 → 494 ms på produktsidan efter rättelsen. `lib/meny-bilder.test.ts`
+  fäller en panel eller ett första steg som läser bildlistan direkt.
 - **Mjuka bindestreck** (`lib/mjukt-bindestreck.ts`) vid ordfogen i långa
   namn, så att "Verkstadsutrustning" bryts som "Verkstads-" / "utrustning" och
   inte mitt i ordet. Bara i synlig text, aldrig i `aria-label` eller adresser.
