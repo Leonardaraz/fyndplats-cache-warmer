@@ -154,6 +154,56 @@ describe("djupareKategori: varans namn väljer en djupare nod", () => {
     ["vaxthus-odling", "Spaljé i A-form 180 cm med klätternät", 499894],
     ["utemobler", "Hängsoffa 2-sits i konstrotting – kedjor och dynor, stativ ingår inte", 718],
 
+    // ── Standardnoden får inte ta det som inte hör dit (förhandsbygget 2026-11-15) ──
+    // I Skrivbord ligger också skärmstöd, bordsskivor och arkivskåp.
+    ["skrivbord", "Monitorställ i transparent akryl – 53 cm bred, med plats för tangentbordet under", 5489],
+    ["skrivbord", "Datorbord med monitorställ och fyra hyllor, brunt trädekor och svart ram", 4191],
+    ["skrivbord", "Elektrisk höj- och sänkbar skrivbordsram, 70 till 117 cm, tre minnesplatser", 503766],
+    ["skrivbord", "Vit bordsskiva i spånskiva med runda hörn, 1397 × 711 × 25 mm", 6910],
+    ["skrivbord", "Arkivskåp på hjul med två lådor och centrallås – hängmappar A4, 90 × 40 cm", 5938],
+    ["skrivbord", "Ritbord med lutbar skiva 90 × 60 cm – höjd 70–90 cm i fem steg, svart", 2242],
+    ["skrivbord", "Racingstativ för ratt & pedaler – hopfällbart, justerbart", undefined],
+    ["skrivbord", "Hörnskrivbord 170 cm med tre lådor – svart", 4191],
+    // I Pallar ligger pianopallar, sminkpallar och en trappall.
+    ["pallar", "Pianopall i svart högglans, höjdjusterbar 45–56 cm", 505328],
+    ["pallar", "Pall till sminkbord i ljusgrå sammet – Ø35 cm, på hjul, sitthöjd 49–61 cm", 4241],
+    ["pallar", "Förvaringspall i sammetslook med lock som blir bricka – Ø 44 cm, bär 150 kg", 458],
+    ["pallar", "Pall för barn med tre steg och handtag – ställs om till två steg, 2–5 år", 635],
+    ["pallar", "Salongspall med fotring – sitthöjd 50–64 cm, bär 110 kg", 1463],
+    ["hundburar", "Hundgård för utomhusbruk med tak, 2 × 2 m eller 2,3 × 2,3 m", 7274],
+    ["soffbord-smabord", "Nattduksbord på hjul, tre hyllor – vitt med grå betonglook, 35 × 29,5 × 65,5 cm", 462],
+    ["sandlador", "Vattenbord för barn med fiskespel och 9 tillbehör", 6464],
+    ["sandlador", "Sensoriskt aktivitetsbord i trä för barn med 3 lådor och vändbar skiva", 6351],
+    ["sandlador", "Sandlåda med lekkök och sandtratt – 154 × 80 cm, diskho", 2743],
+    ["utelek-spel", "Driftkart för barn med musik och ljus – 3–8 km/h, 8–12 år", 2753],
+    ["utelek-spel", "Trampgokart för barn i ljusblått med handbroms – 97 × 66 × 59 cm", 2724],
+    ["utelek-spel", "Barntrampolin med justerbart handtag för två barn, hopfällbar, 1435 × 970 mm", 1738],
+    ["utelek-spel", "Gungsits för barn i EVA, 2-pack – med belagda kedjor och karbinhakar", 6270],
+    ["utelek-spel", "Mudkök för barn i trä – utomhus lekkök med 2 diskhoar och spishäll", 543622],
+    // En häst på hjul gungar inte.
+    ["gunghastar-gungdjur", "Åkhäst i plysch på hjul – för barn 3–5 år, bär 25 kg", 2724],
+    ["gunghastar-gungdjur", "Gunghäst med ljud – handtag, stigbyglar och medar i trä, 12–36 mån", 3441],
+    ["massage-aterhamtning", "Massagefåtölj i svart konstläder – åtta punkter och ländvärme", 1442],
+    ["massage-aterhamtning", "Benmassager med luftkompression och värme – hela benet, 3 program och 3 styrkor", 543596],
+    // Pälsvård för får och kor är inte husdjursvård.
+    ["palsvard-skotsel", "Klippbord för får och getter med nosögla, höjdjusterbart, 130 × 59 cm", undefined],
+    ["palsvard-skotsel", "Trimbord för hund, hopfällbart med galge, blått", 6383],
+    ["rumsavdelare", "Skrivbordsavdelare med tre gröna paneler, 152 cm lång, med klämfästen", 6909],
+    ["redskapsbodar-forrad", "Garage för robotgräsklippare i granträ med tak av takpapp – 75 × 76 × 70 cm", 4566],
+    ["redskapsbodar-forrad", "Förvaringsbänk för uteplatsen i granträ, två sittplatser, bär 319,8 kg", 7310],
+    // Kattsängar är kattsängar, i Katthus och i Hundbäddar.
+    ["katthus", "Rund kattbädd med klämma för skrivbord – avtagbar och tvättbar", 4433],
+    ["katthus", "Husdjurstrappa med kattgrotta och förvaring i ljusgrått tyg – 40,5 cm hög", 6973],
+    ["katthus", "Modulär kattbur i svart stål med 3 nivåer, 71,1 × 35,5 × 104,1 cm", 5087],
+    ["katthus", "Kattgård utomhus 191 cm – hus, rastgård och tre plattformar", 4997],
+    ["hundbaddar-hundsoffor", "Kattbädd med kattöron 50 cm – öppen korg, avtagbar kudde", 4433],
+    ["hundbaddar-hundsoffor", "Husdjurssoffa 70 cm i krämvitt – plysch och massiv fururam", 4434],
+    // Utfodring för grisar och får är lantbruk.
+    ["mat-vattenskalar", "Grisutfodringsautomat i galvaniserat stål med en foderlucka, för 5 grisar", 6990],
+    ["mat-vattenskalar", "Fodertråg i galvaniserat stål, 74 liter, för 10 får eller getter", 6990],
+    ["mat-vattenskalar", "Foderbehållare för torrfoder – vikbar, 25 liter, med lås och fuktfack", 5162],
+    ["mat-vattenskalar", "Kattbrunn i keramik – 2,2 liter, fyrstegsfilter och tyst pump", 6252],
+
     // ── Varor som stod kvar grunda trots regler i kategorin ─────────────────
     ["utemobler", "Hollywoodgunga för tre med justerbart soltak och stålram – 198 × 118 × 168 cm", 718],
     ["utemobler", "3-i-1 hängmattestativ, hopfällbart, svart/silver", 6737],

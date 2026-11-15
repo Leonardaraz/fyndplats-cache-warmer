@@ -82,12 +82,23 @@ export const DJUPARE_KATEGORIER: Readonly<Record<string, readonly Regel[]>> = {
     R(/stol/, 5886, "Furniture > Chairs > Kitchen & Dining Room Chairs"),
     R(/bord/, 4355, "Furniture > Tables > Kitchen & Dining Room Tables"),
   ],
-  skrivbord: [R(null, 4191, "Furniture > Office Furniture > Desks")],
+  skrivbord: [
+    // Här ligger också skärmstöd, skrivbordsstativ, bordsskivor och arkivskåp.
+    // Skärmstödet bara först i namnet: "datorbord med monitorställ" är ett bord.
+    R(/^(\S+ )?(monitorställ|skärmstöd|skärmhöjare|skärmstativ|laptopställ)|^sängbord för laptop/, 5489, "Electronics > Electronics Accessories > Computer Accessories > Computer Risers & Stands"),
+    R(/skrivbordsram|skrivbordsstativ/, 503766, "Furniture > Office Furniture Accessories > Desk Parts & Accessories"),
+    R(/^(\S+ )?bordsskiva/, 6910, "Furniture > Table Accessories > Table Tops"),
+    R(/arkivskåp/, 5938, "Furniture > Cabinets & Storage > Storage Cabinets & Lockers"),
+    R(/ritbord/, 2242, "Furniture > Office Furniture > Workspace Tables > Art & Drafting Tables"),
+    R(/racingstativ/, null, BEHALL),
+    R(null, 4191, "Furniture > Office Furniture > Desks"),
+  ],
   "soffor-baddsoffor": [
     R(/bäddsoffa|sovsoffa|futon/, 450, "Furniture > Futons"),
     R(null, 460, "Furniture > Sofas"),
   ],
   "soffbord-smabord": [
+    R(/nattduksbord|sängbord/, 462, "Furniture > Tables > Nightstands"),
     R(/soffbord/, 1395, "Furniture > Tables > Accent Tables > Coffee Tables"),
     R(/konsolbord|hallbord/, 1602, "Furniture > Tables > Accent Tables > Sofa Tables"),
     R(/sidobord|småbord|satsbord|lampbord|avlastningsbord/, 1549, "Furniture > Tables > Accent Tables > End Tables"),
@@ -108,11 +119,18 @@ export const DJUPARE_KATEGORIER: Readonly<Record<string, readonly Regel[]>> = {
     R(/säng|dagbädd/, 505764, "Furniture > Beds & Accessories > Beds & Bed Frames"),
   ],
   pallar: [
+    R(/pianopall|pianobänk/, 505328, "Arts & Entertainment > Hobbies & Creative Arts > Musical Instrument & Orchestra Accessories > Music Benches & Stools"),
+    R(/sminkpall|pall till sminkbord/, 4241, "Furniture > Benches > Vanity Benches"),
+    R(/(två|tre) steg/, 635, "Hardware > Tools > Ladders & Scaffolding > Step Stools"),
+    R(/förvaringspall/, 458, "Furniture > Ottomans"),
     R(/fotpall/, 458, "Furniture > Ottomans"),
     R(/hopfällbar|fällbar/, 3358, "Furniture > Chairs > Folding Chairs & Stools"),
     R(null, 1463, "Furniture > Chairs > Table & Bar Stools"),
   ],
-  rumsavdelare: [R(null, 4163, "Furniture > Room Dividers")],
+  rumsavdelare: [
+    R(/skrivbordsavdelare/, 6909, "Furniture > Office Furniture Accessories > Workstation & Cubicle Accessories"),
+    R(null, 4163, "Furniture > Room Dividers"),
+  ],
   "serveringsvagnar-rullvagnar": [R(null, 453, "Furniture > Carts & Islands > Kitchen & Dining Carts")],
   "koksoar-koksvagnar": [
     R(/köksö/, 6374, "Furniture > Carts & Islands > Kitchen Islands"),
@@ -231,7 +249,8 @@ export const DJUPARE_KATEGORIER: Readonly<Record<string, readonly Regel[]>> = {
     R(/odlingslåd|odlingsbädd|pallkrage|planteringslåd|planteringsvagn|odlingskärl|kruka|krukor|planteringskärl/, 721, "Home & Garden > Lawn & Garden > Gardening > Pots & Planters"),
   ],
   "redskapsbodar-forrad": [
-    R(/dynbox|förvaringsbox|förvaringslåda|förvaringskista/, 7310, "Furniture > Outdoor Furniture > Outdoor Storage Boxes"),
+    R(/robotgräsklippare|robotklippare/, 4566, "Home & Garden > Lawn & Garden > Outdoor Power Equipment Accessories > Lawn Mower Accessories"),
+    R(/dynbox|förvaringsbox|förvaringslåda|förvaringskista|förvaringsbänk/, 7310, "Furniture > Outdoor Furniture > Outdoor Storage Boxes"),
     R(/skåp/, 5938, "Furniture > Cabinets & Storage > Storage Cabinets & Lockers"),
     R(null, 720, "Home & Garden > Lawn & Garden > Outdoor Living > Outdoor Structures > Sheds, Garages & Carports"),
   ],
@@ -330,23 +349,33 @@ export const DJUPARE_KATEGORIER: Readonly<Record<string, readonly Regel[]>> = {
     R(/trampbil|pedalbil|gåbil|sparkbil/, 2724, "Toys & Games > Toys > Riding Toys > Push & Pedal Riding Vehicles"),
     R(null, 2753, "Toys & Games > Toys > Riding Toys > Electric Riding Vehicles"),
   ],
-  "gunghastar-gungdjur": [R(null, 3441, "Toys & Games > Toys > Riding Toys > Rocking & Spring Riding Toys")],
+  "gunghastar-gungdjur": [
+    // En häst på hjul gungar inte: den är en åkleksak.
+    R(/på (fyra )?hjul|med pedaler|åkhäst|ridhäst/, 2724, "Toys & Games > Toys > Riding Toys > Push & Pedal Riding Vehicles"),
+    R(null, 3441, "Toys & Games > Toys > Riding Toys > Rocking & Spring Riding Toys"),
+  ],
   "sparkcyklar-for-barn": [R(null, 5879, "Sporting Goods > Outdoor Recreation > Riding Scooters")],
   leksakskok: [R(null, 543622, "Toys & Games > Toys > Pretend Play > Toy Kitchens & Play Food > Toy Kitchens")],
-  sandlador: [R(null, 2743, "Toys & Games > Outdoor Play Equipment > Sandboxes")],
+  sandlador: [
+    R(/vattenbord|vattenlek/, 6464, "Toys & Games > Outdoor Play Equipment > Water Play Equipment"),
+    R(/sensorisk|aktivitetsbord|lekbord/, 6351, "Furniture > Tables > Activity Tables"),
+    R(null, 2743, "Toys & Games > Outdoor Play Equipment > Sandboxes"),
+  ],
   "utelek-spel": [
     R(/^(kantskydd|skyddsnät|reservnät)/, 5524, "Toys & Games > Outdoor Play Equipment > Trampoline Accessories"),
     R(/vattenrutschkana|vattenbord|vattenlek|plaskdamm/, 6464, "Toys & Games > Outdoor Play Equipment > Water Play Equipment"),
     R(/hoppborg/, 6396, "Toys & Games > Outdoor Play Equipment > Inflatable Bouncers"),
     R(/rutschkana/, 2867, "Toys & Games > Outdoor Play Equipment > Slides"),
-    R(/studsmatta/, 1738, "Toys & Games > Outdoor Play Equipment > Trampolines"),
+    R(/studsmatta|trampolin/, 1738, "Toys & Games > Outdoor Play Equipment > Trampolines"),
     R(/sandlåda/, 2743, "Toys & Games > Outdoor Play Equipment > Sandboxes"),
     R(/lekstuga|lekhus/, 1251, "Toys & Games > Outdoor Play Equipment > Playhouses"),
     R(/gungställning|lekställning|klätterställning|klätterkupol|klättertorn/, 6271, "Toys & Games > Outdoor Play Equipment > Swing Sets & Playsets"),
     R(/gungbräda|vippgunga/, 6450, "Toys & Games > Outdoor Play Equipment > See Saws"),
-    R(/gunga|gungor/, 6270, "Toys & Games > Outdoor Play Equipment > Play Swings"),
+    R(/gunga|gungor|gungsits/, 6270, "Toys & Games > Outdoor Play Equipment > Play Swings"),
     R(/lektält|tunnel/, 6397, "Toys & Games > Outdoor Play Equipment > Play Tents & Tunnels"),
-    R(/balanscykel|springcykel|trehjuling/, 2724, "Toys & Games > Toys > Riding Toys > Push & Pedal Riding Vehicles"),
+    R(/driftkart|elgokart/, 2753, "Toys & Games > Toys > Riding Toys > Electric Riding Vehicles"),
+    R(/balanscykel|springcykel|trehjuling|gokart|hjullastare/, 2724, "Toys & Games > Toys > Riding Toys > Push & Pedal Riding Vehicles"),
+    R(/lekkök|mudkök/, 543622, "Toys & Games > Toys > Pretend Play > Toy Kitchens & Play Food > Toy Kitchens"),
     R(/basketkorg|basketställning/, 3552, "Toys & Games > Toys > Sports Toys > Basketball Toys"),
     // Saknade kategori helt (varning 157). Grundare än tre nivåer, men rätt gren.
     R(null, 1249, "Toys & Games > Outdoor Play Equipment"),
@@ -385,13 +414,33 @@ export const DJUPARE_KATEGORIER: Readonly<Record<string, readonly Regel[]>> = {
 
   // ── Husdjur ───────────────────────────────────────────────────────────────
   klostrad: [R(null, 4997, "Animals & Pet Supplies > Pet Supplies > Cat Supplies > Cat Furniture")],
-  katthus: [R(null, 4997, "Animals & Pet Supplies > Pet Supplies > Cat Supplies > Cat Furniture")],
+  katthus: [
+    R(/kattbädd|väggbädd|husdjursbädd|kattkorg|katthåla|kattbo\b|kattgrotta i plysch|tipitält/, 4433, "Animals & Pet Supplies > Pet Supplies > Cat Supplies > Cat Beds"),
+    R(/husdjurstrappa/, 6973, "Animals & Pet Supplies > Pet Supplies > Pet Steps & Ramps"),
+    R(/kattbur/, 5087, "Animals & Pet Supplies > Pet Supplies > Pet Playpens"),
+    R(null, 4997, "Animals & Pet Supplies > Pet Supplies > Cat Supplies > Cat Furniture"),
+  ],
   kattlador: [R(null, 5000, "Animals & Pet Supplies > Pet Supplies > Cat Supplies > Cat Litter Boxes")],
-  "hundbaddar-hundsoffor": [R(null, 4434, "Animals & Pet Supplies > Pet Supplies > Dog Supplies > Dog Beds")],
+  "hundbaddar-hundsoffor": [
+    R(/kattbädd|kattsäng/, 4433, "Animals & Pet Supplies > Pet Supplies > Cat Supplies > Cat Beds"),
+    R(null, 4434, "Animals & Pet Supplies > Pet Supplies > Dog Supplies > Dog Beds"),
+  ],
   hundkojor: [R(null, 5094, "Animals & Pet Supplies > Pet Supplies > Dog Supplies > Dog Houses")],
-  hundburar: [R(null, 6251, "Animals & Pet Supplies > Pet Supplies > Pet Carriers & Crates")],
-  "mat-vattenskalar": [R(null, 6252, "Animals & Pet Supplies > Pet Supplies > Pet Bowls, Feeders & Waterers")],
-  "palsvard-skotsel": [R(null, 6383, "Animals & Pet Supplies > Pet Supplies > Pet Grooming Supplies")],
+  hundburar: [
+    R(/hundgård|rastgård/, 7274, "Animals & Pet Supplies > Pet Supplies > Dog Supplies > Dog Kennels & Runs"),
+    R(null, 6251, "Animals & Pet Supplies > Pet Supplies > Pet Carriers & Crates"),
+  ],
+  "mat-vattenskalar": [
+    // Utfodring för grisar, får och getter är lantbruk, inte husdjur.
+    R(/grisar|för får|getter|nötkreatur|kalvar|höns/, 6990, "Business & Industrial > Agriculture > Animal Husbandry > Livestock Feeders & Waterers"),
+    R(/foderbehållare|matbehållare/, 5162, "Animals & Pet Supplies > Pet Supplies > Pet Food Containers"),
+    R(null, 6252, "Animals & Pet Supplies > Pet Supplies > Pet Bowls, Feeders & Waterers"),
+  ],
+  "palsvard-skotsel": [
+    // Kliborsten för kor och klippbordet för får är inte husdjursvård.
+    R(/nötkreatur|för får|hästar/, null, BEHALL),
+    R(null, 6383, "Animals & Pet Supplies > Pet Supplies > Pet Grooming Supplies"),
+  ],
   "selar-koppel-transport": [
     R(/hundgaller|bilgrind|lastgaller/, 8474, "Animals & Pet Supplies > Pet Supplies > Vehicle Pet Barriers"),
     R(/hundvagn|husdjursvagn|kattvagn/, 6276, "Animals & Pet Supplies > Pet Supplies > Pet Strollers"),
@@ -633,10 +682,11 @@ export const DJUPARE_KATEGORIER: Readonly<Record<string, readonly Regel[]>> = {
 
   // ── Skönhet & Hälsa ───────────────────────────────────────────────────────
   "massage-aterhamtning": [
-    R(/massagestol/, 1442, "Health & Beauty > Personal Care > Massage & Relaxation > Massage Chairs"),
+    // Fåtöljerna och schäslongerna här har massage: de är massagestolar.
+    R(/massagestol|massagefåtölj|massageschäslong|reclinerfåtölj|uppresningsfåtölj|relaxfåtölj|kontorsstol/, 1442, "Health & Beauty > Personal Care > Massage & Relaxation > Massage Chairs"),
     R(/massagebänk|massagebord|massagesäng/, 2074, "Health & Beauty > Personal Care > Massage & Relaxation > Massage Tables"),
     R(/massagedyna|massagekudde|massagesits/, 543595, "Health & Beauty > Personal Care > Massage & Relaxation > Massagers > Massage Cushions"),
-    R(/massagepistol|massageapparat|fotmassage/, 543596, "Health & Beauty > Personal Care > Massage & Relaxation > Massagers > Electric Massagers"),
+    R(/massagepistol|massageapparat|fotmassage|vadmassage|benmassager|luftkompression/, 543596, "Health & Beauty > Personal Care > Massage & Relaxation > Massagers > Electric Massagers"),
     R(null, 5663, "Health & Beauty > Personal Care > Massage & Relaxation"),
   ],
 };

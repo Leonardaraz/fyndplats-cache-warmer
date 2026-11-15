@@ -1304,7 +1304,7 @@ för det på 7 046 varor. `lib/feed/djupare-kategori.ts` väljer en djupare nod 
 varans namn innan kartan frågas (`taxonomyFor` i Google-flödet), så rättningen
 följer med till alla flöden som byggs ovanpå: PriceRunner, Prisjakt och
 Pinterest. Mätt på Pinterest-flödet 2026-11-15: varor med noll till två nivåer
-7 322 → 2 328 av 10 061, 5 208 varor bytte nod.
+7 322 → 2 325 av 10 061, 5 205 varor bytte nod.
 
 - Reglerna prövas mot namnets huvud (det före första tankstrecket), sedan mot
   hela namnet, sist mot underkategorins standardnod. Första träffen vinner, så
@@ -1314,6 +1314,10 @@ Pinterest. Mätt på Pinterest-flödet 2026-11-15: varor med noll till två niv�
   (`^(\S+ )?madrass`, `^\S*parasoll`, `TANGER`): "extrasäng med madrass",
   "matbord med parasollhål", "fåtölj med fotpall", "mätstång". Ett nytt ord:
   sök det i hela flödet först och se vad mer det träffar.
+- ☠️ Standardnoden (regeln utan ord) tar allt annat i underkategorin, och i
+  Wix ligger tillbehör bland huvudvarorna: skärmstöd i Skrivbord, pianopallar i
+  Pallar, kattsängar i Hundbäddar. Läs vad som faller till standardnoden innan
+  en ny läggs till.
 - ☠️ Inga noder under Apparel & Accessories. Kläder kräver kön, ålder och
   storlek i Merchant Center, och en vara som flyttas dit utan dem avvisas.
 - Ett nytt id läses ur taxonomifilen (taxonomy-with-ids.en-US.txt), inte ur
