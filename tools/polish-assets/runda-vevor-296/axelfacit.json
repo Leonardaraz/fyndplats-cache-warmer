@@ -1,0 +1,33 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "17d5d561": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "2ae95e87": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Image, specification: tank capacity 10 gal / 40 L; suggested abrasive capacity 4,9 gal / 18,5 L (the bullet point says 20 L, so the page uses the 18,5 L that the specification row and the image give); operating pressure 60 - 110 PSI; applicable abrasive 60–100 grit; oil-water separator yes; wheel size Ø5,9 in x 1,2 in / Ø150 x 31,5 mm; product weight 33,1 lbs / 15 kg; product dimensions 24,8 x 13,8 x 31,5 in / 630 x 350 x 800 mm"
+ },
+ "2cef20f0": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "b700a41a": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Image, drawing and specification: dimensions with top hook and no chain 18,1 x 4,5 x 6,1 in / 46 x 11,5 x 15,5 cm; load capacity 1650 lbs / 0,75 T; chain length 10 ft / 3 m; chain grade G80; hook opening 1,1 in / 28 mm; handle length 12,8 in / 32,5 cm; net weight 16,8 lbs / 7,63 kg"
+ },
+ "c09b0b8c": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "c6f9f39a": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "de994154": {
+  "tyska": "",
+  "svenska": ""
+ }
+}
