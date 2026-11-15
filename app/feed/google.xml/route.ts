@@ -47,10 +47,10 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
+import { djupareKategori } from "../../../lib/feed/djupare-kategori";
 import { KAMPANJ_2026_09 } from "../../../lib/kampanj-2026-09";
 import { varumarke } from "../../../lib/varumarke";
 import { flodessvar } from "../../../lib/feed/prisjakt-svar";
-import { djupareKategori } from "../../../lib/feed/djupare-kategori";
 
 const SITE = "https://www.fyndplats.se";
 // Märket: Wix fält "brand" när det är satt, annars Fyndplats. Aosoms märken
