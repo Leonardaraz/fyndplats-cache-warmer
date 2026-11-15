@@ -8,6 +8,7 @@
 // det utan nätet. Faller hämtningen visas menyn utan bilder; länkarna fungerar.
 
 import { useSyncExternalStore, type SyntheticEvent } from "react";
+import { menyBildSrcSet } from "../lib/meny-bilder";
 
 export type MenyBildsvar = {
   /** Kategorislug → produktbild (kvadrat, 112 px). */
@@ -86,6 +87,7 @@ export function MenyBild({ src, klass = "mn-bild", lat = true }: { src?: string;
           key={src}
           ref={visaOmKlar}
           src={src}
+          srcSet={menyBildSrcSet(src)}
           alt=""
           width={56}
           height={56}

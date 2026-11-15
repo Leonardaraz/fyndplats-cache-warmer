@@ -7,9 +7,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
+  AVDELNING_PRODUKT_KANT,
   hjalteAdress,
   MENY_BILD_KANT,
   menyBildAdress,
+  menyBildIStorlek,
+  menyBildSrcSet,
   rangordna,
   valjMenyBilder,
   wixNyckel,
@@ -193,6 +196,34 @@ test("valjMenyBilder och lib/meny-bilder.ts importerar ingenting", () => {
   const kalla = readFileSync("lib/meny-bilder.ts", "utf8");
   assert.doesNotMatch(kalla, /^\s*import\s/m);
   assert.doesNotMatch(readFileSync("lib/meny-bild-val.ts", "utf8"), /^\s*import\s/m);
+});
+
+test("menyBildIStorlek och menyBildSrcSet: miniatyren i fler storlekar, andra adresser orörda", () => {
+  const liten = adress("abc");
+  const i = (k: number) => `https://static.wixstatic.com/media/b379ce_abc~mv2.jpg/v1/fit/w_${k},h_${k},q_80/file.webp`;
+  // Avdelningens produktbild i datorns stora ruta (cirka 160 px bred, tre bildpunkter per px).
+  assert.equal(AVDELNING_PRODUKT_KANT, 480);
+  assert.equal(menyBildIStorlek(liten, AVDELNING_PRODUKT_KANT), i(480));
+  assert.equal(menyBildIStorlek(liten, 168), i(168));
+  // 112 px räcker för 56 px med två bildpunkter per px; en telefon med tre får 168.
+  assert.equal(menyBildSrcSet(liten), `${liten} 2x, ${i(168)} 3x`);
+  // Bara menyns egen miniatyr byts: en annan storlek, form eller kvalitet står kvar.
+  assert.equal(menyBildSrcSet(i(480)), undefined);
+  assert.equal(menyBildIStorlek(i(480), 168), null);
+  assert.equal(menyBildIStorlek(liten.replace("/v1/fit/", "/v1/fill/"), 480), null);
+  assert.equal(menyBildIStorlek(liten.replace("q_80", "q_90"), 480), null);
+  assert.equal(menyBildIStorlek(`${liten}?x=1`, 480), null);
+  // Miljöfotot och främmande adresser får ingen srcset.
+  assert.equal(menyBildSrcSet("https://images.unsplash.com/photo-1?w=496&fit=crop&ar=4:5"), undefined);
+  assert.equal(menyBildIStorlek("https://example.com/a.jpg", 480), null);
+});
+
+test("datorns avdelningsruta visar produktbilden i 480 px, och miniatyrerna har en 3x-variant", () => {
+  // ☠️ Förut stod menyns miniatyr (112 px) i rutan om 232 × 290 och blev suddig.
+  const dator = readFileSync("components/meganav.tsx", "utf8");
+  assert.match(dator, /menyBildIStorlek\(produkt, AVDELNING_PRODUKT_KANT\) \?\? produkt/);
+  const hook = readFileSync("components/use-meny-bilder.tsx", "utf8");
+  assert.match(hook, /srcSet=\{menyBildSrcSet\(src\)\}/);
 });
 
 // ── Var bilderna kommer ifrån ────────────────────────────────────────────

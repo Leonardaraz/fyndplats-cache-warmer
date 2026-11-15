@@ -73,6 +73,34 @@ export function menyBildAdress(img: string, kant: number = MENY_BILD_KANT): stri
   return `https://static.wixstatic.com/media/${nyckel}/v1/fit/w_${kant},h_${kant},q_80/file.webp`;
 }
 
+/**
+ * Avdelningens produktbild i datorns stora ruta, när avdelningen saknar
+ * miljöfoto. Rutan är 232 × 290 px och bilden har 16 % luft, alltså cirka
+ * 160 px bred: 480 räcker också för en skärm med tre bildpunkter per px.
+ * ☠️ Förut stod menyns miniatyr på 112 px där och blev suddig (mätt
+ * 2026-11-15 på Bygg & Renovering, Bil & Garage och Företag & Proffs).
+ */
+export const AVDELNING_PRODUKT_KANT = 480;
+
+const MINIATYR = new RegExp(`^(https://static\\.wixstatic\\.com/media/[^/?#]+/v1/fit/)w_${MENY_BILD_KANT},h_${MENY_BILD_KANT}(,q_80/file\\.webp)$`);
+
+/** Menyns miniatyr i en annan storlek, eller null när adressen inte är en miniatyr ur menyBildAdress. */
+export function menyBildIStorlek(url: string, kant: number): string | null {
+  const m = url.match(MINIATYR);
+  return m ? `${m[1]}w_${kant},h_${kant}${m[2]}` : null;
+}
+
+/**
+ * srcset för en miniatyr: 112 px räcker för rutorna på 42 och 56 px med två
+ * bildpunkter per px, men en telefon med tre fick en uppförstorad bild. Bara
+ * miniatyren får en 3x-variant; andra adresser (miljöfotot, avdelningens stora
+ * bild) står som de är.
+ */
+export function menyBildSrcSet(src: string): string | undefined {
+  const tre = menyBildIStorlek(src, Math.round(MENY_BILD_KANT * 1.5));
+  return tre ? `${src} 2x, ${tre} 3x` : undefined;
+}
+
 function duger(p: MenyKandidat, neka: ReadonlySet<string>): boolean {
   if (!p.inStock || !wixNyckel(p.img) || neka.has(p.slug)) return false;
   return !(p.imageFlags ?? []).some((f) => MENY_BILD_NEKADE_FLAGGOR.has(f));

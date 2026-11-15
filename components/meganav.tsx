@@ -4,7 +4,7 @@ import type { CategoryNode } from "../lib/category-groups";
 import { AuctionDot } from "./auction-dot";
 import { productCountLabel } from "../lib/rating";
 import { grupperaUnderkategorier } from "../lib/meny-grupper";
-import { hjalteAdress } from "../lib/meny-bilder";
+import { AVDELNING_PRODUKT_KANT, hjalteAdress, menyBildIStorlek } from "../lib/meny-bilder";
 import { useMenyAntal } from "./use-meny-antal";
 import { forvarmMenyBilder, hamtaMenyBilder, MenyBild, useMenyBilder } from "./use-meny-bilder";
 
@@ -181,7 +181,7 @@ function Avdelningsfoto({
       {fotoAdress ? (
         <MenyBild src={fotoAdress} klass="meganav-feature-bild" />
       ) : (
-        <MenyBild src={produkt} klass="meganav-feature-bild meganav-feature-produkt" />
+        <MenyBild src={produkt ? menyBildIStorlek(produkt, AVDELNING_PRODUKT_KANT) ?? produkt : undefined} klass="meganav-feature-bild meganav-feature-produkt" />
       )}
       <span className="meganav-feature-namn">{namn}</span>
       <span className="meganav-feature-cta">

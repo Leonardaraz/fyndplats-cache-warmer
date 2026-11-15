@@ -7,6 +7,15 @@
 // för Jul & Högtider och en matchtröja med text för Dekoration & Prydnad.
 // Ingen produkt står två gånger (lib/meny-bilder.test.ts).
 //
+// ANDRA GRANSKNINGEN SAMMA DAG (Leonards audit, kontaktark med alla 155 rutor
+// i 150 px): elva val byttes mot bilder som visar kategorin tydligare. En
+// takfläkt stod för Belysning, en fönsterspegel för Dekoration (som Speglar
+// bredvid), en klocklåda för Förvaring, en brevlåda för Dörrar, en
+// takgenomföring för Byggmaterial, en lucköppnare för Hönshus, ett fiskespö för
+// Friluftsliv, en bakbild av yogabyxor för Träningskläder, ett leksakskök med
+// inklippta detaljbilder, en hundramp för Selar och transport, och depåstöd för
+// Bil & Garage.
+//
 // Ett val som slutar gälla (produkten slut, dold eller borttagen) faller tyst
 // tillbaka på det automatiska urvalet. En ny kategori får också det.
 //
@@ -15,9 +24,9 @@
 export const MENY_BILD_VAL: Readonly<Record<string, string>> = {
   // Hem & Inredning
   "hem-inredning": "konstgjord-bananvaxt",
-  "belysning": "takflakt-lampa-infallbara-blad-95-cm",
-  "dekoration-prydnad": "fonsterspegel-svart-76x149-cm-3-delar-vaggspegel",
-  "forvaring-organisering": "klocklada-24-klockor",
+  "belysning": "hanglampa-tre-skarmar-linneoptik-50-cm",
+  "dekoration-prydnad": "vaggdekor-metall-monsterablad-guld",
+  "forvaring-organisering": "smal-byra-95-cm-5-lador",
   "hushallsapparater": "kompakt-torktumlare",
   "badrum-hemtextil": "duschmatta-tra-akacia-91x51",
   "konstvaxter": "konstgjort-olivtrad",
@@ -106,16 +115,16 @@ export const MENY_BILD_VAL: Readonly<Record<string, string>> = {
   "badrumsrenovering": "infalld-duschnisch-rostfritt-stal-silver",
   "golv-golvverktyg": "manuell-kakelskarare-1200-mm-laserpositionering-aluminiumram",
   "farg-tapet": "airless-fargspruta-vagn-membranpump-1800-w-22-75-mpa",
-  "dorrar-dorrbeslag": "brevlada-genom-dorren-kombinationslas-regnflik-morkgra",
+  "dorrar-dorrbeslag": "skjutdorrsbeslag-ladugardsdorr-j-hangare-tvadelad-skena",
   "beslag-jarnvaror": "hairpin-bordsben-tjocka-stanger-set-om-fyra-71-cm",
-  "byggmaterial-byggverktyg": "rormanschett-tak-aluminiumbas-flexibel",
+  "byggmaterial-byggverktyg": "vaggpaneler-3d-stenimitation-pu-fyra-paneler",
   // Barn & Familj
   "barn-familj": "tagbana-i-tra-70-delar",
   "baby-smabarn": "babybadkar-med-stallning",
   "leksaker-spel": "sparkbil-barn-gabil-musik",
   "elbilar-for-barn": "elbil-barn-audi",
   "sparkcyklar-for-barn": "trehjulig-sparkcykel",
-  "leksakskok": "leksakskok-barn-38-delar-ljud",
+  "leksakskok": "leksakskok-i-tra-telefon-klocka",
   "sandlador": "sandlada-tra-justerbart-tak-banker",
   "gunghastar-gungdjur": "gungdjur-giraff-plysch-baby",
   "barnmobler": "barnbord-med-stol",
@@ -131,7 +140,7 @@ export const MENY_BILD_VAL: Readonly<Record<string, string>> = {
   // Husdjur
   "husdjur": "hojd-hundbadd-tak-morkbla-stor",
   "palsvard-skotsel": "trimbord-hund-107x60-cm",
-  "selar-koppel-transport": "hundramp-bil-155-cm",
+  "selar-koppel-transport": "hundbilstol-svart-sakerhetsbalte-sidohandtag-tvattbart-overdrag",
   "mat-vattenskalar": "upphojt-hundmatstall-med-forvaring",
   "lek-tillbehor-for-husdjur": "katthjul-i-tra",
   "klostrad": "klostrad-140-cm",
@@ -143,14 +152,14 @@ export const MENY_BILD_VAL: Readonly<Record<string, string>> = {
   "kaninburar-marsvinsburar": "modular-smadjursbur",
   "hamsterburar-gnagarburar": "hamsterbur-med-tunnel-tillbehor",
   "terrarier": "glasterrarium-natlock-foderlucka-termometer-tva-hojder",
-  "honshus-honsgardar": "automatisk-honslucka-timer-ljussensor",
+  "honshus-honsgardar": "honshus-dvarghons-pa-ben-hagar-168-x-75-cm",
   "hundvagnar": "hundvagn-stor-hund-30-kg",
   "valphagar-hundhagar": "hopfallbar-hundhage",
   "hundgrindar": "justerbar-hundgrind",
   // Sport & Fritid
   "sport-fritid": "kettlebell-10-kg-sandfylld",
   "traning-gym": "justerbar-stepbrada",
-  "friluftsliv-resa": "fiskespo-med-rulle-kolfiber",
+  "friluftsliv-resa": "naturehike-star-river-2-campingtalt-2-personer",
   "bil-cykel": "barncykel-stodhjul-2-i-1",
   "boxningssackar": "fristaende-boxningssack-160-230-cm",
   "hantlar-hantelset": "hexhantlar-par-12-5-kg-gummiklatt",
@@ -158,7 +167,7 @@ export const MENY_BILD_VAL: Readonly<Record<string, string>> = {
   "motionscyklar": "liggande-motionscykel-ryggstod",
   "spel-bordsspel": "basketspel-inomhus",
   "bollsport": "volleybollnat-set",
-  "traningsklader": "yogabyxor-raka-ben",
+  "traningsklader": "traningslinne-med-inbyggd-bh",
   "hobby-musik": "dronare-4k-gimbal-gps",
   "hantverk-somnad": "hopfallbart-sybord-forvaring-hjul",
   "camping-kylboxar": "kylbox-hardplast-52-qt-torrvarukorg-mugghallare",
@@ -180,7 +189,7 @@ export const MENY_BILD_VAL: Readonly<Record<string, string>> = {
   "handverktyg": "hylsnyckelsats-48-delar-cr-v-stal-fodral",
   "lyft-transport": "sackvagn-aluminium-tvahjuligt-fyrhjuligt-lage",
   // Bil & Garage
-  "bil-garage": "depastod-mc-hjulstod",
+  "bil-garage": "pallbockar-bil-par-sparrstang-lasstift",
   "bil-slap": "takkorg-bil-lastkorg-vaska",
   "elbilsladdning-solenergi": "solpanel-12v-monokristallin",
   "verkstadsutrustning": "rullande-oljetrag-70-liter-12-v-pump-slang",
