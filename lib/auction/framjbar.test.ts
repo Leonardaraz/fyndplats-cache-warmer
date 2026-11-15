@@ -31,6 +31,20 @@ describe("framjbar", () => {
     expect(framjbar(rad(499, [["a", 499], ["b", 549]]), nu([["a", 499]]))).toBe("pris_andrat");
   });
 
+  it("en ospårad variant utan pris (0 kr) stoppar inte ett fynd vars spårade priser stämmer", () => {
+    const priser = variantPriser([
+      { id: "a", price: { actualPrice: { amount: "499" } } },
+      { id: "gratis", price: { actualPrice: { amount: "0" } } },
+    ]);
+    expect(framjbar(rad(499, [["a", 499]]), { finns: true, priser })).toBe("ok");
+    // Men en spårad variant som läses utan pris: står kvar i kön, utan att räknas som läsfel.
+    const utanPris = variantPriser([
+      { id: "a", price: { actualPrice: { amount: "0" } } },
+      { id: "b", price: { actualPrice: { amount: "549" } } },
+    ]);
+    expect(framjbar(rad(499, [["a", 499], ["b", 549]]), { finns: true, priser: utanPris })).toBe("pris_andrat");
+  });
+
   it("öre jämförs, inte strängar eller flyttal", () => {
     expect(framjbar(rad(1239, [["a", 1239]]), nu([["a", 1239.0]]))).toBe("ok");
     // 0,1 + 0,2 blir 0,30000000000000004 i flyttal: samma pris i öre.
@@ -64,8 +78,10 @@ describe("variantPriser (V3-läsningen)", () => {
     expect(m && [...m]).toEqual([["a", 1239], ["b", 1239.5]]);
   });
 
-  it("☠️ ett saknat eller trasigt pris ger null, aldrig en halv karta", () => {
-    expect(variantPriser([{ id: "a", price: { actualPrice: { amount: "1239" } } }, { id: "b" }])).toBeNull();
+  it("en variant utan giltigt pris lämnas utanför; null bara när ingen variant har ett pris", () => {
+    // En variant utan pris (0 kr, saknas) lämnas utanför; de andra läses.
+    expect([...(variantPriser([{ id: "a", price: { actualPrice: { amount: "1239" } } }, { id: "b" }]) ?? [])]).toEqual([["a", 1239]]);
+    expect([...(variantPriser([{ id: "a", price: { actualPrice: { amount: "0" } } }, { id: "b", price: { actualPrice: { amount: "549" } } }]) ?? [])]).toEqual([["b", 549]]);
     expect(variantPriser([{ id: "a", price: { actualPrice: { amount: "gratis" } } }])).toBeNull();
     expect(variantPriser([{ id: "a", price: { actualPrice: { amount: "0" } } }])).toBeNull();
     expect(variantPriser([])).toBeNull();

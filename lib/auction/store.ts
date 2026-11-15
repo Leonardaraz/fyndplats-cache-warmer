@@ -188,11 +188,6 @@ export function isProductGone(e: unknown): boolean {
 }
 
 /**
- * Finns produkten kvar i katalogen? 404 = raderad. Alla andra svar (även fel)
- * tolkas som "finns" — ett transient Wix-fel får aldrig leda till att
- * kö-dokument slängs eller att en främjning hoppar över en levande produkt.
- */
-/**
  * Varans läge för tickens främjande: finns den, och vad kostar varianterna nu.
  * Det är samma läsning som existenskollen gjorde förut. 404 betyder borta. Ett
  * annat fel, eller ett svar utan priser, räknas som "finns" med okänt pris:
@@ -214,16 +209,21 @@ export async function produktNu(productId: string): Promise<ProduktNu> {
   }
 }
 
-/** Wix-variant-id → pris i kronor ur en V3-läsning, eller null när något pris saknas. */
+/**
+ * Wix-variant-id → pris i kronor ur en V3-läsning. En variant utan giltigt pris
+ * (till exempel 0 kr) lämnas utanför: seeden spårar bara varianter med pris, och
+ * en spårad variant som saknas i kartan ger "pris_andrat" i framjbar. ☠️ Gav en
+ * sådan variant null hade produkten räknats som ett läsfel i varje tick och tagit
+ * av taket FEL_LASNINGAR_MAX. Null bara när ingen variant har ett giltigt pris.
+ */
 export function variantPriser(variants: readonly RawVariant[] | undefined): Map<string, number> | null {
   if (!variants || variants.length === 0) return null;
   const ut = new Map<string, number>();
   for (const v of variants) {
     const n = Number(v.price?.actualPrice?.amount);
-    if (!v.id || !Number.isFinite(n) || n <= 0) return null;
-    ut.set(v.id, n);
+    if (v.id && Number.isFinite(n) && n > 0) ut.set(v.id, n);
   }
-  return ut;
+  return ut.size > 0 ? ut : null;
 }
 
 async function wixRemoveAuction(id: string): Promise<void> {
