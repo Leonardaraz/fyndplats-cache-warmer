@@ -1,0 +1,43 @@
+{
+ "namn": "vevor-301",
+ "rader": [
+  {
+   "kort": "8c882160",
+   "pid": "8c882160-6c2a-49e1-b619-d139d39bf4b4",
+   "bort": [
+    "Skönhet & Hälsa > Hjälpmedel",
+    "Skönhet & Hälsa"
+   ],
+   "behall": [
+    "Möbler",
+    "Möbler > Sängar & sovrum",
+    "Möbler > Skrivbord"
+   ]
+  },
+  {
+   "kort": "64e8a594",
+   "pid": "64e8a594-87c1-4db1-bbcd-135fc04e91e6",
+   "bort": [
+    "Bil & Garage > Bildelar",
+    "Bil & Garage"
+   ],
+   "behall": [
+    "Verktyg & Maskiner",
+    "Verktyg & Maskiner > Lyft & transport"
+   ]
+  },
+  {
+   "kort": "b5379954",
+   "pid": "b5379954-301f-41d3-9f25-a3de36ba2b0b",
+   "bort": [
+    "Bygg & Renovering > Trall & räcken",
+    "Bygg & Renovering"
+   ],
+   "behall": [
+    "Verktyg & Maskiner",
+    "Verktyg & Maskiner > Lyft & transport",
+    "Verktyg & Maskiner > Handverktyg"
+   ]
+  }
+ ]
+}
