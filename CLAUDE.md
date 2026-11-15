@@ -2400,7 +2400,18 @@ BankID ska användas).
   eget blad. ☠️ I Apples webbläsare (`ApplePaySession` finns: Safari, och alla
   webbläsare på iPhone) står Google Pay kvar på `auto`: Stripe visar Google
   Pay där bara med `always`, och då hade det stått två knappar i en plats som
-  rymmer en. Apple Pay står på `auto` överallt, som förut.
+  rymmer en.
+- **Apple Pay står på `always` i Apples webbläsare** (Leonard 2026-11-15). Med
+  `auto` visar Stripe knappen bara när plånboken har ett kort: på Leonards
+  iPhone utan kort syntes platshållaren en halv sekund och försvann sedan,
+  medan ett privat fönster visade knappen (där berättar Safari inte om
+  korten). Med `always` syns knappen på varje enhet som klarar Apple Pay, och
+  den som saknar kort lägger in det i Apples eget blad. En iPhone utan kort
+  ger därför inget svar utan plånbok längre; det gör bara en enhet där Apple
+  Pay inte går att använda. ☠️ Utanför Apples webbläsare står Apple Pay kvar
+  på `auto`: med `always` visar Stripe Apple Pay också i Chrome på Mac,
+  bredvid Google Pay. Aldrig båda plånböckerna på `always` i samma webbläsare
+  (provet fäller det).
 - ☠️ **`layout.overflow: "never"` bara med `maxRows: 0`.** Annars kastar Stripe
   IntegrationError och inga knappar ritas (lokalt prov 2026-11-06). Knapparna
   monteras därför i `try`: ett fel i snabbkassan får aldrig stoppa

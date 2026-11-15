@@ -125,11 +125,22 @@ export function klickSvar(s: Sammandrag): ClickResolveDetails {
  * Stripe visar Google Pay i Safari och på iPhone bara med "always", och då hade
  * det stått TVÅ knappar där platsen som hålls rymmer en: formuläret hade
  * knuffats ned när Stripe svarade.
+ *
+ * Apple Pay står på "always" i Apples webbläsare (Leonard 2026-11-15). Med
+ * "auto" visar Stripe knappen bara när plånboken har ett kort: på Leonards
+ * iPhone utan kort syntes platshållaren en halv sekund och försvann sedan,
+ * medan ett privat fönster visade knappen (där berättar Safari inte om korten).
+ * Med "always" syns knappen på varje enhet som klarar Apple Pay, och den som
+ * saknar kort lägger in det i Apples eget blad. Stripe visar den ändå aldrig
+ * där Apple Pay inte går att använda, och bara där sparas ett svar utan
+ * plånbok. ☠️ Utanför Apples webbläsare står Apple Pay kvar på "auto": med
+ * "always" visar Stripe Apple Pay också i Chrome på Mac, bredvid Google Pay,
+ * och två knappar ryms inte i platsen som hålls.
  */
 export function snabbknappar(s: Sammandrag | null, planbok: PlanbokGissning): StripeExpressCheckoutElementOptions {
   return {
     paymentMethods: {
-      applePay: "auto",
+      applePay: planbok === "apple" ? "always" : "auto",
       googlePay: planbok === "apple" ? "auto" : "always",
       link: "never",
       paypal: "never",
