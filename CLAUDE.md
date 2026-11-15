@@ -330,6 +330,23 @@ Tre regler (`lib/list-pages.ts`, vaktas av `lib/listsidor.test.ts`):
    färdig HTML-sträng, eftersom en JSX-lista ligger en gång till, dubbelt så
    stor, i React-datan.
 
+## ☠️ Kortets andra bild står aldrig i HTML:en (2026-11-14)
+
+Google Bilder visade massagestolens foto under gamingstolens adress.
+Gamingstolens sida har "Liknande produkter" med massagestolens kort, och
+kortets andra bild (hover-bilden, `.pimg-alt`) låg i sidans HTML. Google
+tillskrev bilden den sidan. Andra bilden läggs därför in först när en människa
+rört sidan (`components/kort-andra-bild.tsx`, `lib/forsta-rorelse.ts`, vaktas
+av `lib/kort-andra-bild.test.ts`):
+
+- Bara pointermove, pointerdown, touchstart, keydown och wheel räknas, aldrig
+  scroll: sidan kan rulla utan att någon rört den.
+- Servern och hydreringen säger alltid nej, så bilden står aldrig i HTML:en.
+- Hover-bytet tonar bort huvudbilden först när andra bilden är laddad
+  (`data-klar`). Kortet blir aldrig tomt.
+- Produktkortet och auktionskortet går båda genom `KortAndraBild`. Ett nytt
+  kort med en andra bild gör likadant.
+
 ## ☠️ En listsida byggs aldrig på reservkatalogen (2026-11-11)
 
 **Mätt 2026-11-11.** Kl 12:09:40 UTC svarade Wix 504 på kataloghämtningen för
@@ -1026,6 +1043,21 @@ Nu:
 med ett gammalt pris visar den det högre priset med nedräkning. Nya besökare
 får rätt pris inom 30 s, men en öppen flik frågar först efter fem minuter.
 
+## Fyndauktionen: en klocka för hela sidan (Black Week, 2026-11-04)
+
+Med 50 och 100 fynd om dagen (Black Week 23–29/11) fick `/fyndauktion` en timer per kort:
+mätt lokalt med 100 kort var det 52 timers i sekundtakt och 50 i 20-sekunderstakt. Nu delar
+alla kort `lib/delad-klocka.ts` via `useClientNow` (`useSyncExternalStore`). Samma mätning
+gav en timer per takt och en omritning i sekunden.
+
+- ☠️ **Tiden är gemensam för alla takter.** Ett kort byter takt vid fasbytet (1 s → 20 s).
+  Med en egen tid per takt kunde den nya takten ligga efter, kortet såg den gamla fasen och
+  pendlade.
+- Klockan stannar aldrig medan fliken syns, och vid återkomst läses tiden om direkt.
+- Utan lyssnare är tiden `null`, så ett kort som monteras senare börjar med serverns tid.
+- Kort, luntan och "Sista timmen" får ingen egen `setInterval`
+  (`lib/delad-klocka.test.ts`).
+
 ## Googles ?srsltid= tas bort ur adressfältet (2026-09-30)
 
 Merchant Centers automatiska taggning lägger `?srsltid=…` på varje länk från
@@ -1069,8 +1101,8 @@ Flödet byggs ur Google-flödet som PriceRunner-flödet, och skillnaderna ligger
   i flödet behövs inga leveranstjänster i Business Center.
 - Googles kampanjetiketter, `g:identifier_exists`, `g:size` (som kräver
   `g:size_system`) och extrabilderna tas bort. Ingen mpn i det öppna flödet, och
-  som regel ingen GTIN, utom i testet nedan. Märke och artikelnummer finns bara
-  på den hemliga adressen (se nästa avsnitt).
+  GTIN bara på varorna i kartan nedan (CDON-listan och dealproffsens). Märke och
+  artikelnummer finns bara på den hemliga adressen (se nästa avsnitt).
 - `g:color` har högst tre färger, skilda med `/` (`begransaFarger`). Fyra varor
   hade fler och fick varningen "Ogiltlig" i Business Center (2026-10-28).
 - **Testet med koder (2026-10-23).** 902 varor får en `g:gtin` ur
@@ -1093,6 +1125,32 @@ Flödet byggs ur Google-flödet som PriceRunner-flödet, och skillnaderna ligger
   `{}` (tillbaka till de 50), eller båda: flödet blir då byte för byte som förut.
   Artikelnummer, inköpspriser och adresser får aldrig stå i kartan (repot är
   publikt); `prisjakt-gtin.test.ts` vaktar formen på varje rad.
+- **CDON-listans koder (2026-11-15, Leonards "kör dina förslag noggrant").**
+  `lib/feed/gtin-cdon.ts` har 3 476 varianter (variant-id → GTIN-13), genererad
+  ur Leonards konfidentiella lista från 2026-11-14. Listan ligger aldrig i repot.
+  - Med är Aosoms egen CDON-butik (2 877) och VEVOR-varor hos Bonideco (599, UPC-12
+    skrivna som GTIN-13 med en inledande nolla). Varje rad är parad på
+    leverantörens artikelnummer, med "Ja: samma nr" och statusen "Hittad".
+  - Utanför är Bancros (53 företagsprefix, ser köpta ut), Kaufland, "Osäker" och
+    kontorsstolen.
+  - `lib/feed/gtin.ts` (`byggFlodeGtin`) slår ihop källorna, och
+    `lib/feed/flode-gtin.ts` är kartan som rutterna använder.
+    - Listans kod vinner för samma variant. 492 av de 534 varianter som båda
+      källorna har skilde sig.
+    - Dealproffsens kod står kvar där listan saknar varianten (368).
+    - En dealproffsen-kod som listan har på en annan variant tas bort.
+  - `gtinUrval` (prisjakt.ts) väljer koderna per vara. En CDON-kod hör till sin
+    variant och gäller också produkter med flera varianter. För dealproffsens
+    gäller regeln om exakt en variant.
+  - Samma urval går till Prisjakt (öppet och hemligt flöde) och till PriceRunner.
+    Där ersätter `g:gtin` raden `g:identifier_exists=no`.
+  - Mätt på produktionens Google-flöde 2026-11-15: 3 776 varor i lager med
+    `g:gtin` i båda flödena, förut 834 i Prisjakt och 0 i PriceRunner.
+  - ☠️ **Aldrig i Google-flödet.** Aosom levererar white label, och Google stämmer
+    av GTIN mot märket (Fyndplats). `gtin.test.ts` fäller om
+    `app/feed/google.xml` läser en GTIN-karta.
+  - Följ upp i Business Center, och ta bort koder som kopplas till fel
+    produktsida, som kontorsstolen.
 
 ☠️ **Vercels CDN cachar inga icke-strömmade svar över 10 MB.** Dokumentationen
 säger 10 MB för icke-strömmade svar och 20 MB för strömmade
@@ -2323,6 +2381,16 @@ BankID ska användas).
   knapparna läser webbläsaren med `webblasarensPlanbok()`, och proven kör
   skriptet mot `planbokGissning`, så att de aldrig svarar olika. ☠️ Attributet
   hette förut `data-applepay`: en regel på det gamla namnet träffar aldrig.
+- **Minnet** (`PLANBOK_MINNE`, `fp_planbok_tom`, 2026-11-15): svarar Stripe
+  uttryckligen utan plånbok (en blockerare stoppar Googles betalskript, eller
+  Apple Pay saknar kort) sparar webbläsaren det i 30 dygn, och nästa besök
+  hålls ingen plats. Förut hölls platsen varje gång och släpptes efter 3–4 s,
+  och formuläret hoppade upp 236 px. Skriptet och kassan läser minnet
+  (`webblasarensPlanbokPlats()`); knapparna läser bara webbläsaren
+  (`webblasarensPlanbok()`). ☠️ Får knapparna minnet blir en Safari utan kort
+  `ingen`, Google Pay hamnar på `always` och två knappar står där platsen
+  rymmer en. Bara `ready` utan plånbok sparas, aldrig tidsgränsen eller
+  `loaderror`, och en knapp en senare gång glömmer minnet direkt.
 - ☠️ **Stripes ram har −4 px marginal** (plats för fokusringen). Utan egen
   formateringskontext kollapsade den genom ytan runt fältet, och allt under
   flyttade 4 px när Stripe monterade. `.snabbYta` och `.betalfalt` har därför
