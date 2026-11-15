@@ -1,0 +1,27 @@
+{
+ "namn": "vevor-293",
+ "rader": [
+  {
+   "kort": "9eb0000e",
+   "pid": "9eb0000e-3c6e-4e16-9d4a-52ed50edb688",
+   "bort": [
+    "Kök & Husgeråd > Kyl & frys"
+   ],
+   "behall": [
+    "Kök & Husgeråd",
+    "Kök & Husgeråd > Servering & Glas"
+   ]
+  },
+  {
+   "kort": "130a4d43",
+   "pid": "130a4d43-bda1-4f49-999f-a02c2fcddce4",
+   "bort": [
+    "Kök & Husgeråd > Köksredskap & Tillbehör"
+   ],
+   "behall": [
+    "Kök & Husgeråd",
+    "Kök & Husgeråd > Servering & Glas"
+   ]
+  }
+ ]
+}
