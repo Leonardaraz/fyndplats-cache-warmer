@@ -388,6 +388,10 @@ TYSKA_ORD = [
     "Steckdosen", "Ladestation", "Monitorerhöhungen", "Badschrank", "Wasserwellenprojektor", "Ambientebeleuchtung",
     "Leuchtenstange", "Lampenkopf", "Fernbedienung", "Kippsicherung", "Druckerablage", "Regalfächer", "Bücherablagen",
     "Verschlüsse", "Gewichtsplatten", "Heimtraining", "Sitzbereich", "Neuschaumstoff", "Polyesterfaserfüllung",
+    "Kinderregal", "Aufbewahrungsboxen", "Aufbewahrungsbox", "Vliesstoff", "Rollschubladen", "Stoffboxen",
+    "Zeitschriftenfach", "Bilderbücher", "Spielzeugregal", "Kindertafel", "Staffelei", "Kreidetafel", "Papierrolle",
+    "Verlängerung", "Nivellierfüße", "Fußschalter", "Leuchtenköpfe", "Ablageregal", "Kippsicherungsband",
+    "Einklemmschutz", "Schienenstopper", "Kugelspindel", "Spielzeugkiste", "Stauraumfach",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med
