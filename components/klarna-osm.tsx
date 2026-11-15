@@ -102,9 +102,9 @@ import { KlarnaMessage } from "./klarna-message";
 // en enda rad, "Shoppa nu. Betala inom 30/60 dagar med Klarna." + "Läs mer",
 // och ALDRIG någon legalnod. Brickan kommer separat som en IMAGE-nod.
 //
-// Notera: Klarna erbjuder 60 dagar i vissa beloppsband, 30 i andra. Därför
-// anger vår statiska rad inget dagantal alls längre — den säger "Betala senare",
-// vilket är sant i båda banden. Se klarna-message.tsx för hela resonemanget.
+// Notera: Klarna erbjuder 60 dagar i vissa beloppsband, 30 i andra. Vår
+// statiska rad säger sedan 2026-11-14 bara "Betala med Klarna" (Klarnas
+// allmänna text, ingen kredit); se klarna-message.tsx för skälet.
 const PLACEMENT_KEY = "credit-promotion-badge";
 const LOCALE = "sv-SE";
 
@@ -204,10 +204,8 @@ export function KlarnaOSM({ priceNum }: { priceNum: number }) {
 
   if (!priceNum || priceNum <= 0) return null;
 
-  // Utan samtycke, och med Stripe-kassan: bara den statiska raden. Den är
-  // komplianssäker på egen hand (enbart "Betala senare – räntefritt" om
-  // fakturan, aldrig ett månadsbelopp eller delbetalning) och stämmer i båda
-  // kassorna.
+  // Utan samtycke, och med Stripe-kassan: bara den statiska raden. Den säger
+  // bara "Betala med Klarna", nämner ingen kredit och stämmer i båda kassorna.
   if (!consent || ruta === "statisk") return <KlarnaMessage priceNum={priceNum} />;
 
   // Svaret om kassan väntar: raden håller höjden osynligt, som i "vantar".

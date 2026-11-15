@@ -114,10 +114,28 @@ export function klickSvar(s: Sammandrag): ClickResolveDetails {
  * inte, och Klarna står i betalfältet, sist och aldrig förvalt
  * (betaltjänstlagen, se BETALFALT). Plånboken frågar efter e-post, telefon
  * (transportören aviserar) och en svensk leveransadress.
+ *
+ * Google Pay står på "always" utanför Apples webbläsare (Leonard 2026-11-14).
+ * Med "auto" visar Stripe knappen bara för den som redan har ett kort sparat
+ * hos Google: kassan på www visade då ingen knapp alls i Chrome, och svaret kom
+ * efter 12 s. Med "always" kom knappen på 3–4 s i samma webbläsare, och den som
+ * saknar kort hos Google lägger in det i Googles eget blad.
+ *
+ * ☠️ I Apples webbläsare (planbok "apple") står Google Pay kvar på "auto".
+ * Stripe visar Google Pay i Safari och på iPhone bara med "always", och då hade
+ * det stått TVÅ knappar där platsen som hålls rymmer en: formuläret hade
+ * knuffats ned när Stripe svarade.
  */
-export function snabbknappar(s: Sammandrag | null): StripeExpressCheckoutElementOptions {
+export function snabbknappar(s: Sammandrag | null, planbok: PlanbokGissning): StripeExpressCheckoutElementOptions {
   return {
-    paymentMethods: { applePay: "auto", googlePay: "auto", link: "never", paypal: "never", amazonPay: "never", klarna: "never" },
+    paymentMethods: {
+      applePay: "auto",
+      googlePay: planbok === "apple" ? "auto" : "always",
+      link: "never",
+      paypal: "never",
+      amazonPay: "never",
+      klarna: "never",
+    },
     paymentMethodOrder: ["apple_pay", "google_pay"],
     buttonType: { applePay: "buy", googlePay: "buy" },
     buttonTheme: { applePay: "black", googlePay: "black" },
@@ -152,32 +170,53 @@ export function planbokNamn(p: readonly Planbok[]): string {
   return namn.length ? namn.join(" eller ") : "Apple Pay eller Google Pay";
 }
 
+/** Plånboken som webbläsaren väntas visa, innan Stripe har svarat. */
+export type PlanbokGissning = "apple" | "google" | "ingen";
+
+// Androids inbyggda webbläsare i appar (WebView) har märket "; wv)" i sitt namn.
+const WEBVIEW = /; wv\)/;
+
 /**
- * Ska platsen för knapparna hållas medan Stripe tar reda på om kunden har en
- * plånbok? Bara där Apple Pay finns (webbläsaren har ApplePaySession, som
- * Safari på iPhone och Mac). Där svarar Stripe snabbt och visar nästan alltid
- * knappen, så platsen fylls i stället för att försvinna.
+ * Vilken plånbok kommer Stripe att visa? Gissningen styr tre saker medan Stripe
+ * svarar: om platsen för knapparna hålls, hur platshållaren ser ut och vilket
+ * namn texten nämner.
  *
- * Inte för Google Pay: Stripes kontroll av Google Pay tog 13 s på
- * förhandsbygget (huvudlös Chromium, 2026-11-06), och 0 av 171 köp har
- * betalats med Google Pay (23 med Apple Pay). En hållen plats i Chrome hade
- * oftast försvunnit efter en stund och knuffat upp formuläret under kunden. Där
- * visas rutan i stället först när Stripe har hittat en plånbok.
+ * - "apple": webbläsaren har ApplePaySession (Safari, och alla webbläsare på
+ *   iPhone). Stripe svarar snabbt och visar nästan alltid Apple Pay.
+ * - "google": alla andra webbläsare. Med Google Pay på "always" (snabbknappar)
+ *   visade Stripe knappen på 3–4 s i Chrome på dator och på Android, också när
+ *   PaymentRequest togs bort ur webbläsaren (mätt 2026-11-14 på en provsida
+ *   under www.fyndplats.se med kassans egna inställningar).
+ * - "ingen": en inbyggd webbläsare i en app på Android, som den som trycker på
+ *   en annons i Instagram, Facebook eller TikTok hamnar i. Där svarade Stripe
+ *   utan plånbok efter cirka 3 s, både med "always" och med "auto" (samma
+ *   mätning, med apparnas namn på webbläsaren). Ingen plats hålls: annars
+ *   försvann rutan efter tre sekunder och formuläret hoppade upp under kunden.
+ *
+ * Förut hölls platsen bara där Apple Pay finns: med "auto" tog Stripes kontroll
+ * av Google Pay 12–13 s och slutade nästan alltid utan knapp.
  */
-export function planbokTrolig(f: { applePaySession: boolean }): boolean {
-  return f.applePaySession;
+export function planbokGissning(f: { applePaySession: boolean; userAgent: string }): PlanbokGissning {
+  if (f.applePaySession) return "apple";
+  return WEBVIEW.test(f.userAgent) ? "ingen" : "google";
+}
+
+/** Gissningen ur webbläsaren själv. Bara i webbläsaren: kassans effekter och knapparna. */
+export function webblasarensPlanbok(): PlanbokGissning {
+  return planbokGissning({ applePaySession: "ApplePaySession" in window, userAgent: window.navigator.userAgent });
 }
 
 /**
- * Samma regel före första ritningen: app/layout.tsx kör skriptet innan något
- * syns, och det sätter data-applepay="ja" eller "nej" på <html>. Kassans CSS
- * håller då ingen plats i en webbläsare utan Apple Pay, varken innan React tagit
- * över eller vid ett mjukt sidbyte från varukorgen (då körs effekten med
- * planbokTrolig först efter att sidan ritats). Utan skriptet syntes platsen
- * tills React tog över, och sedan hoppade formuläret upp.
+ * Samma gissning före första ritningen: app/layout.tsx kör skriptet innan något
+ * syns, och det sätter data-planbok="apple", "google" eller "ingen" på <html>.
+ * Kassans CSS håller då ingen plats i läget "ingen", ritar rätt platshållare och
+ * visar rätt namn i texten, både innan React tagit över och vid ett mjukt sidbyte
+ * från varukorgen (då körs effekten med webblasarensPlanbok först efter att sidan
+ * ritats). Utan skriptet syntes platsen tills React tog över, och sedan hoppade
+ * formuläret upp. Proven kör skriptet mot planbokGissning, så att de två aldrig
+ * svarar olika.
  */
-export const PLANBOK_SKRIPT =
-  "try{document.documentElement.setAttribute('data-applepay','ApplePaySession' in window?'ja':'nej')}catch(e){}";
+export const PLANBOK_SKRIPT = `try{document.documentElement.setAttribute('data-planbok','ApplePaySession' in window?'apple':${WEBVIEW}.test(window.navigator.userAgent)?'ingen':'google')}catch(e){}`;
 
 type Orsak = NonNullable<Parameters<StripeExpressCheckoutElementConfirmEvent["paymentFailed"]>[0]>["reason"];
 

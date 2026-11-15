@@ -27,7 +27,7 @@ import type {
   StripePaymentElement,
 } from "@stripe/stripe-js";
 import { BETALFALT, RAM_VANTA_MS, adressfaltInstallningar, elementsInstallningar, ramenStilla, type AdressStart } from "../../lib/kassa/stripe-klient";
-import { planbocker, snabbknappar, type Planbok, type Sammandrag } from "../../lib/kassa/snabbkassa";
+import { planbocker, snabbknappar, webblasarensPlanbok, type Planbok, type Sammandrag } from "../../lib/kassa/snabbkassa";
 
 export type BetalfaltLage = "av" | "laddar" | "redo" | "fel";
 
@@ -196,7 +196,9 @@ export function useStripeBetalning(nyckel: string | null, beloppOre: number | nu
             const g = s.elements(elementsInstallningar(beloppOre));
             snabbElements.current = g;
             snabbVisat.current = beloppOre;
-            knappar = g.create("expressCheckout", snabbknappar(snabbKoppling.current.start()));
+            // Google Pay för alla utanför Apples webbläsare (snabbknappar): samma
+            // läsning av webbläsaren som håller platsen i kassan.
+            knappar = g.create("expressCheckout", snabbknappar(snabbKoppling.current.start(), webblasarensPlanbok()));
             knappar.on("ready", (h) => {
               const p = planbocker(h.availablePaymentMethods);
               setSnabbPlanbocker(p);

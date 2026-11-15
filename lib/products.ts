@@ -1048,6 +1048,27 @@ export async function getKontaktProdukt(slug: string): Promise<Product | null> {
   return prod;
 }
 
+/** Så många produktadresser som ett uppslag tar (Wix sidgräns för frågan). */
+export const MAX_SLUGGAR_PER_UPPSLAG = 100;
+
+/**
+ * Flera produkter på en gång, slagna på sina adresser i ETT anrop till Wix
+ * (favoriterna, lib/favoriter-produkter.ts). Aldrig via hela katalogen:
+ * rutten möter ofta en kall instans, och katalogen tar då 20–60 s. Kortens
+ * uppgifter (namn, pris, bild, lager, val) kommer ur samma fråga som
+ * listsidorna bygger på, så en favorit visar samma pris som sitt kort. En
+ * adress utan synlig produkt saknas i svaret. Kastar när Wix felar.
+ */
+export async function getProdukterForSluggar(sluggar: readonly string[]): Promise<Product[]> {
+  if (!wix || sluggar.length === 0) return [];
+  const res: any = await (wix as any).products
+    .queryProducts()
+    .in("slug", sluggar.slice(0, MAX_SLUGGAR_PER_UPPSLAG))
+    .limit(MAX_SLUGGAR_PER_UPPSLAG)
+    .find();
+  return ((res.items as any[]) || []).map(mapProduct);
+}
+
 export async function getProductSlugs(): Promise<string[]> {
   const list = await getProducts();
   return list.map((p) => p.slug);

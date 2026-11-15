@@ -30,7 +30,7 @@ export default function AnvandarvillkorApp() {
 
       <h2>3. Beställningar och betalning</h2>
       <p>Avtal ingås när vi bekräftat din beställning via e-post. Alla priser anges i svenska kronor (SEK) inklusive moms (25 %).</p>
-      <p>Du betalar med kort, Apple Pay, Google Pay eller <strong>Klarna</strong> (faktura, delbetalning eller direktbetalning). Kort, Apple Pay och Google Pay hanteras av betaltjänstleverantören Stripe. När du betalar med Klarna gäller Klarnas egna villkor, och eventuell återbetalning hanteras av Klarna – se <a href="https://www.klarna.com/se/" target="_blank" rel="noopener noreferrer">klarna.com/se</a>.</p>
+      <p>Du betalar med kort, Apple Pay, Google Pay eller <strong>Klarna</strong>. Kort, Apple Pay och Google Pay hanteras av betaltjänstleverantören Stripe. När du betalar med Klarna gäller Klarnas egna villkor, och eventuell återbetalning hanteras av Klarna – se <a href="https://www.klarna.com/se/" target="_blank" rel="noopener noreferrer">klarna.com/se</a>.</p>
 
       <h2>4. Frakt och leverans</h2>
       <p>Normal leveranstid är <strong>3–6 arbetsdagar</strong> från bekräftad beställning. Fri frakt vid köp över <strong>499 kr</strong>; vid mindre köp är frakten 19 kr och visas i kassan. Levererar vi inte i tid kan du ge oss en skälig extra tid och häva köpet om varan inte kommer inom den; har du inte fått varan inom 30 dagar från beställningen kan du alltid häva. Vid hävning får du tillbaka hela beloppet. Se <a href="/kopvillkor#leverans">köpvillkoren punkt 5</a>.</p>

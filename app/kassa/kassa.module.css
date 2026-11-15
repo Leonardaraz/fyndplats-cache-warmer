@@ -931,14 +931,14 @@
   padding-bottom: 12px;
 }
 
-/* Utan plånbok (eller medan Stripe svarar i en webbläsare utan Apple Pay)
-   står rutan utanför sidan: knapparna måste vara monterade för att Stripe ska
-   kunna säga om de finns, men formuläret ska inte flytta. Den andra raden
-   gäller från första ritningen, innan React tagit över: PLANBOK_SKRIPT
-   (lib/kassa/snabbkassa.ts, körs i app/layout.tsx) sätter data-applepay på
-   <html>. */
+/* Utan plånbok (eller medan Stripe svarar i en webbläsare där ingen plånbok
+   väntas, som en app på Android) står rutan utanför sidan: knapparna måste
+   vara monterade för att Stripe ska kunna säga om de finns, men formuläret ska
+   inte flytta. Den andra raden gäller från första ritningen, innan React tagit
+   över: PLANBOK_SKRIPT (lib/kassa/snabbkassa.ts, körs i app/layout.tsx) sätter
+   data-planbok="apple", "google" eller "ingen" på <html>. */
 .snabb[data-visas="nej"],
-:global(html[data-applepay="nej"]) .snabb[data-snabb="laddar"] {
+:global(html[data-planbok="ingen"]) .snabb[data-snabb="laddar"] {
   position: absolute;
   top: 0;
   left: -10000px;
@@ -959,6 +959,22 @@
   font-size: var(--text-sm);
   line-height: 1.45;
   color: var(--soft);
+}
+
+/* Plånbokens namn medan Stripe svarar. Båda står i sidan, och den som
+   webbläsaren väntas få visas (data-planbok): texten är rätt från första
+   ritningen, också före hydreringen, och byts aldrig under kunden. Apple Pay
+   är grundvalet, som förut. */
+.planbokGoogle {
+  display: none;
+}
+
+:global(html[data-planbok="google"]) .planbokApple {
+  display: none;
+}
+
+:global(html[data-planbok="google"]) .planbokGoogle {
+  display: inline;
 }
 
 /* flow-root: Stripes ram har −4 px marginal (plats för fokusringen). Utan egen
@@ -1010,7 +1026,7 @@
    (snabbknappar: buy och black; borderRadius 10px), så bytet syns inte. Den
    tar inga tryck: Stripes knapp tonar fram över den på samma plats (ovan). */
 @supports (-webkit-appearance: -apple-pay-button) {
-  :global(html[data-applepay="ja"]) .snabbSkelett {
+  :global(html[data-planbok="apple"]) .snabbSkelett {
     -webkit-appearance: -apple-pay-button;
     -apple-pay-button-type: buy;
     -apple-pay-button-style: black;
@@ -1021,6 +1037,54 @@
        att ingen kant flyttar när Stripes knapp tonar fram över den. */
     bottom: auto;
     height: 50px;
+  }
+}
+
+/* Google Pay (Chrome och andra webbläsare utanför Apples): platshållaren är
+   svart som Stripes knapp (buy och black), så att bara knappens text tonar
+   fram, inte ett byte från grått till svart.
+
+   Två saker är mätta i en skärmfilm, ruta för ruta, och i fyrdubbel
+   förstoring (2026-11-14):
+
+   1. Googles knapp har en grå kant, en punkt bred, runt hela knappen, och den
+      är inte helt tät. Låg platshållaren under kanten syntes den igenom: kanten
+      var mörkgrå i två sekunder och ljusnade när platshållaren togs bort (595
+      av 9 216 bildpunkter i ett hörn bytte färg, upp till 165 nivåer av 255).
+      Platshållaren ligger därför en punkt innanför platsen: helt under
+      knappens svarta yta. Hörnet är 11 px, inte 9: med 9 px följde bågen
+      kantens insida och syntes igenom den i 28 bildpunkter, med 11 px ändras
+      ingen bildpunkt mer än 2 nivåer när platshållaren tas bort.
+   2. Skimmern ligger i ::after och tonar ut när Stripe svarar. Förut byttes
+      rörelsen mot borttagningens i samma ögonblick, och det ljusa bandet
+      hoppade till höger kant och stod stilla där under knappen. */
+:global(html[data-planbok="google"]) .snabbSkelett {
+  inset: 1px;
+  border-radius: 11px;
+  overflow: hidden;
+  background: #000;
+  animation: none;
+}
+
+:global(html[data-planbok="google"]) .snabbSkelett::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(47, 47, 47, 0) 25%, #2f2f2f 50%, rgba(47, 47, 47, 0) 75%);
+  background-size: 200% 100%;
+  animation: skimmer 1.2s linear infinite;
+  transition: opacity 0.15s ease;
+}
+
+:global(html[data-planbok="google"]) .snabb[data-snabb="redo"] .snabbSkelett::after {
+  opacity: 0;
+}
+
+/* Med minskad rörelse står skimmern still, och en stilla toning från svart
+   till grått ser ojämn ut: då är platshållaren helsvart. */
+@media (prefers-reduced-motion: reduce) {
+  :global(html[data-planbok="google"]) .snabbSkelett::after {
+    content: none;
   }
 }
 
@@ -1043,7 +1107,7 @@
   color: var(--soft);
 }
 
-:global(html[data-applepay="nej"]) .eller[data-snabb="laddar"] {
+:global(html[data-planbok="ingen"]) .eller[data-snabb="laddar"] {
   display: none;
 }
 

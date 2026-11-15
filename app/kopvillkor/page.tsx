@@ -57,7 +57,7 @@ const KORTHET: { rubrik: string; text: React.ReactNode; punkt: string }[] = [
   },
   {
     rubrik: "Betalning",
-    text: "Kort, Apple Pay och Google Pay via Stripe, eller Klarna med faktura, delbetalning eller direktbetalning via bank.",
+    text: "Kort, Apple Pay och Google Pay via Stripe, eller Klarna.",
     punkt: "betalning",
   },
   {
@@ -187,12 +187,7 @@ export default function Kopvillkor() {
             <p>Du ansvarar för att de uppgifter du lämnar vid beställning är korrekta. Felaktig adress eller kontaktinformation kan medföra att paketet inte når fram – se även punkt 6 om ej uthämtade paket.</p>
 
             <h2 id="betalning" className={s.anker}>4. Betalning</h2>
-            <p>Du kan betala med kort (Visa, Mastercard, American Express), Apple Pay, Google Pay eller <strong>Klarna</strong>. Kort, Apple Pay och Google Pay hanteras av vår betaltjänstleverantör <strong>Stripe</strong>. Med Klarna väljer du mellan följande betalsätt:</p>
-            <ul>
-              <li>Faktura (betala senare)</li>
-              <li>Delbetalning</li>
-              <li>Direktbetalning via bank</li>
-            </ul>
+            <p>Du kan betala med kort (Visa, Mastercard, American Express), Apple Pay, Google Pay eller <strong>Klarna</strong>. Kort, Apple Pay och Google Pay hanteras av vår betaltjänstleverantör <strong>Stripe</strong>. Väljer du Klarna visar Klarna i kassan vilka betalsätt du kan välja och villkoren för dem, innan du godkänner köpet.</p>
             <p>Klarnas fullständiga villkor hittar du på <a href="https://www.klarna.com/se/" target="_blank" rel="noopener noreferrer">klarna.com/se</a>. När du betalar med Klarna sker betalningen direkt till Klarna, och eventuell återbetalning hanteras också av Klarna. Har du betalat med kort, Apple Pay eller Google Pay går en återbetalning tillbaka till samma kort.</p>
 
             <h2 id="leverans" className={s.anker}>5. Leverans och leveranstid</h2>

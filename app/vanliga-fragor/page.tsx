@@ -56,11 +56,11 @@ const AMNEN: Amne[] = [
     kort: "Betalning",
     rubrik: "Beställning & betalning",
     ikon: Ikon.betalning,
-    intro: "Kort, Apple Pay, Google Pay eller Klarna: betala direkt, senare eller dela upp köpet.",
-    lankar: [{ href: "/kopvillkor", text: "Köpvillkor" }],
+    intro: "Kort, Apple Pay, Google Pay eller Klarna.",
+    lankar: [{ href: "/kopvillkor", text: "Köpvillkor" }, { href: "/konto/foretag", text: "Företagskonto" }],
     fragor: [
-      { q: "Vilka betalningsmetoder accepterar ni?", a: "Du kan betala med kort (Visa, Mastercard, American Express), Apple Pay, Google Pay eller Klarna. Kort, Apple Pay och Google Pay går via vår betalpartner Stripe. Med Klarna kan du betala direkt via banken, betala senare mot faktura eller dela upp betalningen." },
-      { q: "Erbjuder ni faktura?", a: "Ja, med Klarna kan du betala mot faktura. Du får först varan och betalar sedan – ingen extra avgift för faktura. Betalningstiden ser du hos Klarna när du betalar." },
+      { q: "Vilka betalningsmetoder accepterar ni?", a: "Du kan betala med kort (Visa, Mastercard, American Express), Apple Pay, Google Pay eller Klarna. Kort, Apple Pay och Google Pay går via vår betalpartner Stripe. Väljer du Klarna visar Klarna sina betalsätt och villkor i kassan innan du godkänner köpet." },
+      { q: "Erbjuder ni faktura?", a: "Ja, till företag. Med ett godkänt företagskonto kan du betala mot förskottsfaktura: den kommer med e-post och betalas inom 10 dagar, och ordern skickas när betalningen har kommit in. Företagskontot skapar du under Mitt konto." },
     ],
   },
   {

@@ -33,7 +33,7 @@ Se hela butiken →
 
 ## Varför handla hos Fyndplats?
 
-- Trygg betalning med Klarna – få varorna först och betala sen
+- Trygg betalning med kort, Apple Pay, Google Pay eller Klarna
 - Låg fraktkostnad – endast 19 kr i frakt
 - Nöjda kunder – vi har 4,9 av 5 i betyg på Google
 - Brett utbud – produkter för hela familjen, samlade på ett ställe
