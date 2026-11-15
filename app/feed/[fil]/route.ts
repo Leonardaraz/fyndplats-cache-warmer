@@ -1,4 +1,4 @@
-// GET /feed/<fil>
+// GET och HEAD /feed/<fil>
 //
 // Prisjakt-flödet MED märke och artikelnummer, på en hemlig adress:
 // /feed/prisjakt-<kod>.xml, där koden är miljövariabeln PRISJAKT_FLODE_KOD i
@@ -20,27 +20,33 @@
 //
 // Når motorn inte fram svarar adressen 503, och CDN:en serverar förra flödet
 // (stale-if-error). Ett flöde där numren plötsligt saknas hade sett ut som
-// ett lyckat svar.
+// ett lyckat svar. Ett flöde utan en enda vara (Wix svarade inte) får också
+// 503, som de andra flödena (`arTomtFlode`).
+//
+// ☠️ Prisjakt får den sparade kopian (lib/feed/flodeslager.ts, namnet
+// PRISJAKT_HEMLIG_KOPIA) när den är yngre än tre timmar. /api/cron/farska-floden
+// bygger den varannan timme med samma byggare (`prisjaktHemligXml` i
+// lib/feed/prisjakt-hemlig.ts), utan att känna till adressen. Prisjakt hämtar tre
+// gånger om dygnet och fick förut vänta på ett bygge varje gång. Bara när ingen
+// kopia duger byggs flödet här, och det som byggdes sparas efter svaret.
+// Loggen och kopian bär namnet, aldrig adressen.
 
 import { GET as googleFeed } from "../google.xml/route";
-import { tillPrisjakt } from "@/lib/feed/prisjakt";
-import { FLODE_GTIN } from "@/lib/feed/flode-gtin";
 import { arHemligPrisjaktFil, prisjaktKod } from "@/lib/feed/prisjakt-adress";
 import { hamtaPrisjaktArtiklar } from "@/lib/feed/prisjakt-motor";
-import { PRISJAKT_VARNING_BYTE_STROMMAT, prisjaktRakning, strommatXml } from "@/lib/feed/prisjakt-svar";
-import {
-  DELIVERY_MAX_DAYS,
-  DELIVERY_MIN_DAYS,
-  FREE_SHIPPING_FROM_KR,
-  SHIPPING_SERVICE,
-  STANDARD_SHIPPING_KR,
-} from "@/lib/shipping";
+import { PRISJAKT_HEMLIG_KOPIA, prisjaktHemligXml } from "@/lib/feed/prisjakt-hemlig";
+import { anvandbarKopia, anvandbartHuvud, sparaEfterSvaret } from "@/lib/feed/kopiesvar";
+import { arTomtFlode, flodessvarUrKopia, huvudsvar, kopiansCacheControl, lasare, strommatXml } from "@/lib/feed/prisjakt-svar";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 const NOINDEX = { "X-Robots-Tag": "noindex" } as const;
+/** Namnet i loggen. Aldrig adressen. */
+const NAMN = "det hemliga Prisjakt-flödet";
+/** CDN:en ger det gamla flödet i ett dygn om ett nytt bygge faller (503). */
+const VID_FEL = "stale-if-error=86400";
 
 function ingenFil(): Response {
   return new Response("Not Found", {
@@ -49,10 +55,26 @@ function ingenFil(): Response {
   });
 }
 
-export async function GET(_req: Request, { params }: { params: Promise<{ fil: string }> }) {
+function kanInteByggas(): Response {
+  return new Response("Flödet kan inte byggas just nu", {
+    status: 503,
+    headers: { ...NOINDEX, "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store", "Retry-After": "600" },
+  });
+}
+
+export async function GET(request: Request, { params }: { params: Promise<{ fil: string }> }) {
   const { fil } = await params;
   if (!arHemligPrisjaktFil(fil, prisjaktKod())) return ingenFil();
 
+  const kopia = await anvandbarKopia(PRISJAKT_HEMLIG_KOPIA, request, NAMN);
+  if (kopia) {
+    const alderS = (Date.now() - kopia.byggd) / 1000;
+    return flodessvarUrKopia(kopia, request, {
+      rubriker: { ...NOINDEX, "Cache-Control": `${kopiansCacheControl(alderS)}, ${VID_FEL}` },
+    });
+  }
+
+  const byggd = Date.now();
   // Google-flödet och motorns nummer hämtas samtidigt: flödet tar 35–40 s, motorn några sekunder.
   const [google, motorn] = await Promise.allSettled([
     googleFeed().then((r) => r.text()),
@@ -61,40 +83,30 @@ export async function GET(_req: Request, { params }: { params: Promise<{ fil: st
   if (google.status === "rejected" || motorn.status === "rejected") {
     const orsak = google.status === "rejected" ? "Google-flödet föll" : `motorns artikelnummer: ${motorn.status === "rejected" && motorn.reason instanceof Error ? motorn.reason.message : "okänt fel"}`;
     console.error(`[prisjakt-hemlig] flödet byggdes inte, ${orsak}`);
-    return new Response("Flödet kan inte byggas just nu", {
-      status: 503,
-      headers: { ...NOINDEX, "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store", "Retry-After": "600" },
-    });
+    return kanInteByggas();
   }
 
-  const xml = tillPrisjakt(
-    google.value,
-    {
-      standardKr: STANDARD_SHIPPING_KR,
-      freeFromKr: FREE_SHIPPING_FROM_KR,
-      service: SHIPPING_SERVICE,
-      minDays: DELIVERY_MIN_DAYS,
-      maxDays: DELIVERY_MAX_DAYS,
-    },
-    FLODE_GTIN,
-    motorn.value.artiklar,
-  );
-
-  const r = prisjaktRakning(xml);
-  console.info(
-    `[prisjakt-hemlig] ${r.varor} varor, g:mpn på ${r.mpn}, varans märke på ${r.mpnMedMarke} av dem ` +
-      `(motorn gav ${motorn.value.poster} poster, ${motorn.value.ogiltiga} ogiltiga), g:gtin på ${r.gtin}, ` +
-      `${(r.byte / 1e6).toFixed(2)} MB`,
-  );
-  if (r.byte > PRISJAKT_VARNING_BYTE_STROMMAT) {
-    console.warn(`[prisjakt-hemlig] flödet är ${(r.byte / 1e6).toFixed(1)} MB. Vercels CDN cachar inte strömmade svar över 20 MB.`);
+  const xml = prisjaktHemligXml(google.value, motorn.value);
+  if (arTomtFlode(xml)) {
+    console.error(`[prisjakt-hemlig] flödet byggdes utan en enda vara och skickas inte. Prisjakt behåller förra inläsningen.`);
+    return kanInteByggas();
   }
+  sparaEfterSvaret(PRISJAKT_HEMLIG_KOPIA, NAMN, byggd, xml);
 
   return new Response(strommatXml(xml), {
     headers: {
       ...NOINDEX,
       "Content-Type": "application/xml; charset=utf-8",
-      "Cache-Control": "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400, stale-if-error=86400",
+      "Cache-Control": `public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400, ${VID_FEL}`,
     },
   });
+}
+
+// HEAD bygger aldrig (se `huvudsvar` i lib/feed/prisjakt-svar.ts). Ett fel
+// filnamn får 404 också här, så att HEAD inte avslöjar mer än GET.
+export async function HEAD(request: Request, { params }: { params: Promise<{ fil: string }> }) {
+  const { fil } = await params;
+  if (!arHemligPrisjaktFil(fil, prisjaktKod())) return ingenFil();
+  console.log(`[flode] HEAD ${NAMN} (${lasare(request)})`);
+  return huvudsvar({ komprimerat: false, kopia: await anvandbartHuvud(PRISJAKT_HEMLIG_KOPIA), rubriker: { ...NOINDEX } });
 }

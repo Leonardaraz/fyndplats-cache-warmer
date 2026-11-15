@@ -23,7 +23,7 @@
 import { GET as googleFeed } from "../google.xml/route";
 import { tillPrisjakt } from "@/lib/feed/prisjakt";
 import { FLODE_GTIN } from "@/lib/feed/flode-gtin";
-import { PRISJAKT_VARNING_BYTE_STROMMAT, strommatXml } from "@/lib/feed/prisjakt-svar";
+import { PRISJAKT_VARNING_BYTE_STROMMAT, huvudsvar, lasare, strommatXml } from "@/lib/feed/prisjakt-svar";
 import {
   DELIVERY_MAX_DAYS,
   DELIVERY_MIN_DAYS,
@@ -72,4 +72,11 @@ export async function GET() {
       "Cache-Control": "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400",
     },
   });
+}
+
+// HEAD bygger aldrig: utan den körde Next GET och byggde hela flödet för ett
+// svar utan kropp. Se `huvudsvar` i lib/feed/prisjakt-svar.ts.
+export async function HEAD(request: Request) {
+  console.log(`[flode] HEAD /feed/prisjakt.xml (${lasare(request)})`);
+  return huvudsvar({ komprimerat: false });
 }
