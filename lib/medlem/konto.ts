@@ -83,11 +83,22 @@ function orderstatus(r: Liggarrad): OrderPaMinaSidor["status"] {
   return "betald";
 }
 
-/** Underlaget till Mina sidor, eller null om kontot saknas. */
-export async function minaSidor(medlemsId: string): Promise<MinaSidor | null> {
-  const medlem = await hamtaMedlem(medlemsId);
+/**
+ * Underlaget till Mina sidor, eller null om kontot saknas.
+ *
+ * `epost` är sessionens e-post (2026-11-15). Med den läses orderliggaren
+ * samtidigt som medlemsraden i stället för efter den: förut väntade sidan in
+ * tre Wix-frågor i rad. Är medlemsradens e-post en annan läses liggaren om på
+ * den, så att ingen ser någon annans köp.
+ */
+export async function minaSidor(medlemsId: string, epost?: string): Promise<MinaSidor | null> {
+  const forhand = epost ? liggarraderForEpost(epost) : null;
+  // Felet hanteras där svaret används; här bara så att det inte blir ett
+  // ohanterat avslag när kontot saknas och svaret aldrig läses.
+  forhand?.catch(() => {});
+  const [medlem, regler] = await Promise.all([hamtaMedlem(medlemsId), aktuellaRegler()]);
   if (!medlem || medlem.status !== "aktiv") return null;
-  const [regler, rader] = await Promise.all([aktuellaRegler(), liggarraderForEpost(medlem.epost)]);
+  const rader = forhand && medlem.epost === epost ? await forhand : await liggarraderForEpost(medlem.epost);
   const lage = lageFor(medlem, rader, regler);
 
   // Paketen, i en fråga: spårningstabellen bär orderns nummer, inte dess id.

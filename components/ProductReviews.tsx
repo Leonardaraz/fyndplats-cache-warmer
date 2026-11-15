@@ -6,6 +6,7 @@ import type { ProductReview } from "../lib/reviews";
 import { ratingSummary } from "../lib/rating";
 import { klamppas, klampenDoljer, visaUtfallningsknapp } from "../lib/review-utfallning";
 import { delaIStycken } from "../lib/stycken";
+import { lasSidan } from "../lib/las-sidan";
 import { Stars } from "./stars";
 
 export function ProductReviews({
@@ -40,11 +41,10 @@ export function ProductReviews({
       if (e.key === "Escape") close();
     };
     window.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const slapp = lasSidan();
     return () => {
       window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
+      slapp();
     };
   }, [photo, close]);
 

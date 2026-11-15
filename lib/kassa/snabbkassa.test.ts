@@ -15,13 +15,20 @@ import {
   kronor,
   planbocker,
   planbokFel,
+  minnsStripesSvar,
+  minnsUtanPlanbok,
   planbokGissning,
+  planbokMinne,
   planbokNamn,
+  planbokPlats,
+  PLANBOK_MINNE,
+  PLANBOK_MINNE_MS,
   PLANBOK_SKRIPT,
   snabbBekrafta,
   snabbknappar,
   snabbRader,
   webblasarensPlanbok,
+  webblasarensPlanbokPlats,
   type PlanbokGissning,
   type PlanbokHandelse,
   type Sammandrag,
@@ -99,11 +106,25 @@ test("Google Pay visas för alla utanför Apples webbläsare, inte bara för den
   // Med "always" kom knappen på 3–4 s i samma webbläsare.
   assert.equal(snabbknappar(null, "google").paymentMethods?.googlePay, "always");
   assert.equal(snabbknappar(null, "ingen").paymentMethods?.googlePay, "always");
-  // Apples webbläsare är orörda: där är knappen Apple Pay, och platsen som hålls
-  // rymmer EN knapp. Två knappar hade knuffat ned formuläret när Stripe svarade.
+  // I Apples webbläsare är knappen Apple Pay, och platsen som hålls rymmer EN
+  // knapp. Två knappar hade knuffat ned formuläret när Stripe svarade.
   assert.equal(snabbknappar(null, "apple").paymentMethods?.googlePay, "auto");
-  // Apple Pay visas som förut bara för den som har det uppsatt.
-  for (const g of GISSNINGAR) assert.equal(snabbknappar(null, g).paymentMethods?.applePay, "auto", g);
+});
+
+test("Apple Pay visas i Apples webbläsare också utan kort i plånboken (Leonard 2026-11-15)", () => {
+  // Med "auto" visade Stripe knappen bara när plånboken hade ett kort: på en
+  // iPhone utan kort syntes platshållaren en halv sekund och försvann sedan.
+  // Med "always" lägger kunden in kortet i Apples eget blad.
+  assert.equal(snabbknappar(null, "apple").paymentMethods?.applePay, "always");
+  // Utanför Apples webbläsare kvar på "auto": med "always" visar Stripe Apple Pay
+  // också i Chrome på Mac, bredvid Google Pay, och platsen rymmer en knapp.
+  assert.equal(snabbknappar(null, "google").paymentMethods?.applePay, "auto");
+  assert.equal(snabbknappar(null, "ingen").paymentMethods?.applePay, "auto");
+  // Aldrig två plånböcker på "always" samtidigt, i någon webbläsare.
+  for (const g of GISSNINGAR) {
+    const pm = snabbknappar(null, g).paymentMethods ?? {};
+    assert.ok(!(pm.applePay === "always" && pm.googlePay === "always"), g);
+  }
 });
 
 test("knapparna: plånboken ger e-post, telefon och en svensk leveransadress, så kunden slipper formuläret", () => {
@@ -311,16 +332,164 @@ test("skriptet före första ritningen ger <html> samma svar som planbokGissning
   assert.doesNotMatch(PLANBOK_SKRIPT, /=>|\b(?:const|let)\b|`|\?\.|\(\?<[=!]/);
 });
 
+test("minnet: ett svar utan plånbok minns 30 dygn, bara för samma gissning och bara när det går att läsa", () => {
+  const nu = Date.parse("2026-11-15T03:00:00Z");
+  const dygn = 24 * 60 * 60 * 1000;
+  assert.equal(PLANBOK_MINNE, "fp_planbok_tom");
+  assert.equal(PLANBOK_MINNE_MS, 30 * dygn);
+  assert.equal(planbokMinne("google", nu + 0.7), `google:${nu}`);
+  for (const g of ["apple", "google"] as const) {
+    assert.equal(minnsUtanPlanbok(planbokMinne(g, nu), g, nu), true, g);
+    assert.equal(minnsUtanPlanbok(planbokMinne(g, nu - 29 * dygn), g, nu), true, `${g} 29 dygn`);
+    // 30 dygn och äldre: glömt.
+    assert.equal(minnsUtanPlanbok(planbokMinne(g, nu - 30 * dygn), g, nu), false, `${g} 30 dygn`);
+    // En tid i framtiden (fel klocka) räknas inte.
+    assert.equal(minnsUtanPlanbok(planbokMinne(g, nu + 60_000), g, nu), false, `${g} framtid`);
+  }
+  // En annan gissning än den som sparades: en dator som bytt webbläsare har ett eget minne,
+  // men samma lagring ska aldrig låta Apples svar gälla Google eller tvärtom.
+  assert.equal(minnsUtanPlanbok(planbokMinne("apple", nu), "google", nu), false);
+  assert.equal(minnsUtanPlanbok(planbokMinne("google", nu), "apple", nu), false);
+  // I en app hålls ingen plats ändå; minnet ändrar ingenting.
+  assert.equal(minnsUtanPlanbok(planbokMinne("google", nu), "ingen", nu), false);
+  for (const trasigt of [null, undefined, "", "google", "google:", "google:abc", "kanske:123", ` google:${nu}`, `google:${nu}x`, "google:12345678901234567"]) {
+    assert.equal(minnsUtanPlanbok(trasigt, "google", nu), false, String(trasigt));
+  }
+  assert.equal(planbokPlats("google", planbokMinne("google", nu), nu), "ingen");
+  assert.equal(planbokPlats("apple", planbokMinne("apple", nu), nu), "ingen");
+  assert.equal(planbokPlats("google", null, nu), "google");
+  assert.equal(planbokPlats("apple", planbokMinne("google", nu), nu), "apple");
+  assert.equal(planbokPlats("ingen", null, nu), "ingen");
+});
+
+test("skriptet läser minnet som planbokPlats, och en lagring som kastar ändrar ingenting", () => {
+  const nu = Date.now();
+  const dygn = 24 * 60 * 60 * 1000;
+  const fall: { minne: string | null; kastar?: boolean }[] = [
+    { minne: null },
+    { minne: planbokMinne("google", nu - 1000) },
+    { minne: planbokMinne("apple", nu - 1000) },
+    { minne: planbokMinne("google", nu - 31 * dygn) },
+    { minne: planbokMinne("apple", nu - 31 * dygn) },
+    { minne: planbokMinne("google", nu + 10 * 60_000) },
+    { minne: "google:inte-ett-tal" },
+    { minne: planbokMinne("google", nu - 1000), kastar: true },
+  ];
+  for (const apple of [true, false]) {
+    for (const ua of [UA.chromeDator, UA.chromeAndroid, UA.safariIphone, UA.instagramAndroid]) {
+      for (const f of fall) {
+        const satt: Record<string, string> = {};
+        const lagring = {
+          getItem(k: string) {
+            if (f.kastar) throw new Error("SecurityError");
+            return k === PLANBOK_MINNE ? f.minne : null;
+          },
+        };
+        const fonster: Record<string, unknown> = {
+          navigator: { userAgent: ua },
+          localStorage: lagring,
+          ...(apple ? { ApplePaySession: function ApplePaySession() {} } : {}),
+        };
+        const dokument = { documentElement: { setAttribute: (k: string, v: string) => void (satt[k] = v) } };
+        new Function("document", "window", PLANBOK_SKRIPT)(dokument, fonster);
+        const gissning = planbokGissning({ applePaySession: apple, userAgent: ua });
+        const vantat = planbokPlats(gissning, f.kastar ? null : f.minne, Date.now());
+        assert.deepEqual(satt, { "data-planbok": vantat }, `${apple} ${ua} ${f.minne} ${f.kastar ?? false}`);
+        // Kassan läser webbläsaren och minnet på samma sätt som skriptet.
+        const g = globalThis as { window?: unknown };
+        const fore = g.window;
+        try {
+          g.window = fonster;
+          assert.equal(webblasarensPlanbokPlats(), vantat, `${apple} ${ua} ${f.minne} plats`);
+          assert.equal(webblasarensPlanbok(), gissning, `${apple} ${ua} ${f.minne} gissning`);
+        } finally {
+          if (fore === undefined) delete g.window;
+          else g.window = fore;
+        }
+      }
+    }
+  }
+});
+
+test("Stripes svar: utan plånbok sparas utfallet och <html> släpper platsen, med plånbok glöms det", () => {
+  const lagrat = new Map<string, string>();
+  const attr: Record<string, string> = {};
+  const lagring = {
+    getItem: (k: string) => lagrat.get(k) ?? null,
+    setItem: (k: string, v: string) => void lagrat.set(k, v),
+    removeItem: (k: string) => void lagrat.delete(k),
+  };
+  const g = globalThis as { window?: unknown; document?: unknown };
+  const [foreW, foreD] = [g.window, g.document];
+  const satt = (ua: string, apple: boolean) => {
+    g.window = { navigator: { userAgent: ua }, localStorage: lagring, ...(apple ? { ApplePaySession: function ApplePaySession() {} } : {}) };
+    g.document = { documentElement: { setAttribute: (k: string, v: string) => void (attr[k] = v) } };
+  };
+  try {
+    satt(UA.chromeDator, false);
+    const fore = Date.now();
+    minnsStripesSvar([]);
+    const sparat = lagrat.get(PLANBOK_MINNE) ?? "";
+    assert.match(sparat, /^google:\d+$/);
+    assert.ok(Number(sparat.slice(7)) >= fore);
+    assert.equal(attr["data-planbok"], "ingen");
+    assert.equal(webblasarensPlanbokPlats(), "ingen");
+    // Nästa gång visar Stripe Google Pay: minnet glöms och platsen hålls igen.
+    minnsStripesSvar(["google_pay"]);
+    assert.equal(lagrat.has(PLANBOK_MINNE), false);
+    assert.equal(attr["data-planbok"], "google");
+    assert.equal(webblasarensPlanbokPlats(), "google");
+    // Safari utan kort i Wallet: Apples gissning minns.
+    satt(UA.safariIphone, true);
+    minnsStripesSvar([]);
+    assert.match(lagrat.get(PLANBOK_MINNE) ?? "", /^apple:\d+$/);
+    assert.equal(attr["data-planbok"], "ingen");
+    // I en app sparas ingenting: där hålls ingen plats ändå.
+    lagrat.clear();
+    satt(UA.instagramAndroid, false);
+    minnsStripesSvar([]);
+    assert.equal(lagrat.size, 0);
+    assert.equal(attr["data-planbok"], "ingen");
+    // En lagring som kastar stoppar aldrig kassan.
+    g.window = { navigator: { userAgent: UA.chromeDator }, get localStorage() { throw new Error("SecurityError"); } };
+    assert.doesNotThrow(() => minnsStripesSvar([]));
+    assert.equal(webblasarensPlanbokPlats(), "google");
+  } finally {
+    if (foreW === undefined) delete g.window;
+    else g.window = foreW;
+    if (foreD === undefined) delete g.document;
+    else g.document = foreD;
+  }
+});
+
+test("bara Stripes uttryckliga svar sparas: inte tidsgränsen och inte ett fel att ladda", () => {
+  const krok = readFileSync(new URL("../../app/kassa/use-stripe-betalning.ts", import.meta.url), "utf8");
+  // Exakt ett anrop, i knapparnas "ready" efter att läget satts.
+  assert.equal(krok.match(/minnsStripesSvar\(/g)?.length, 1);
+  const ready = /knappar\.on\("ready", \(h\) => \{([\s\S]*?)\n {12}\}\);/.exec(krok);
+  assert.ok(ready, "knapparnas ready saknas");
+  assert.match(ready[1], /setSnabbLage\(p\.length > 0 \? "redo" : "tom"\);[\s\S]*minnsStripesSvar\(p\);/);
+  // Tidsgränsen (SNABB_VANTA_MS) och loaderror rör inte minnet.
+  const vanta = /SNABB_VANTA_MS\);[\s\S]{0,40}/.exec(krok);
+  assert.ok(vanta);
+  assert.match(krok, /knappar\.on\("loaderror", \(\) => setSnabbLage\("fel"\)\);/);
+});
+
 test("platsen hålls där en plånbok väntas, och knapparna får samma gissning som platsen", () => {
   const kassa = readFileSync(new URL("../../app/kassa/kassa.tsx", import.meta.url), "utf8");
   const krok = readFileSync(new URL("../../app/kassa/use-stripe-betalning.ts", import.meta.url), "utf8");
-  // Kassan: platsen hålls utom i läget "ingen". Sant från början, också på servern.
+  // Kassan: platsen hålls utom i läget "ingen", och läget räknar med minnet
+  // (PLANBOK_MINNE), samma som skriptet. Sant från början, också på servern.
   assert.match(kassa, /const \[planbokMojlig, setPlanbokMojlig\] = useState\(true\);/);
-  assert.match(kassa, /setPlanbokMojlig\(webblasarensPlanbok\(\) !== "ingen"\);/);
-  // Knapparna: Google Pay "always" väljs ur samma läsning av webbläsaren.
+  assert.match(kassa, /setPlanbokMojlig\(webblasarensPlanbokPlats\(\) !== "ingen"\);/);
+  assert.equal(kassa.match(/webblasarensPlanbokPlats\(\)/g)?.length, 1);
+  assert.equal(kassa.match(/webblasarensPlanbok\(\)/g), null);
+  // ☠️ Knapparna: Google Pay "always" väljs ur WEBBLÄSAREN, aldrig ur minnet.
+  // Med minnet hade en Safari utan kort fått "ingen", och då Google Pay på
+  // "always": två knappar där platsen rymmer en (se snabbknappar).
   assert.match(krok, /g\.create\("expressCheckout", snabbknappar\(snabbKoppling\.current\.start\(\), webblasarensPlanbok\(\)\)\)/);
-  assert.equal(kassa.match(/webblasarensPlanbok\(\)/g)?.length, 1);
   assert.equal(krok.match(/webblasarensPlanbok\(\)/g)?.length, 1);
+  assert.equal(krok.match(/webblasarensPlanbokPlats/g), null);
 });
 
 test("utan väntad plånbok hålls ingen plats före hydreringen: layouten kör skriptet och CSS:en flyttar ut rutan", () => {

@@ -7,6 +7,7 @@ import {
   giltigtMarke,
   giltigtMpn,
   giltigtPrisjaktId,
+  gtinUrval,
   prisjaktItem,
   prisjaktTider,
   tillPrisjakt,
@@ -285,6 +286,49 @@ describe("tillPrisjakt med GTIN-karta", () => {
   it("utan karta är flödet som förut, utan en enda g:gtin", () => {
     assert.doesNotMatch(tillPrisjakt(feed([A, B]), S), /gtin/);
     assert.equal(tillPrisjakt(feed([A, B]), S, {}), tillPrisjakt(feed([A, B]), S));
+  });
+
+  describe("källorna (CDON-listan 2026-11-15)", () => {
+    const KOD2 = "4255826889629";
+    const syskon = item({ id: "a2", group: GRUPP_A, price: "249.00" });
+
+    it("en kod ur CDON-listan hamnar på sin variant också när produkten har flera varianter", () => {
+      const out = tillPrisjakt(feed([A, syskon, B]), S, {
+        a1: { kod: KOD, kalla: "cdon" },
+        a2: { kod: KOD2, kalla: "cdon" },
+      });
+      assert.match(radFor(out, "a1"), new RegExp(`<g:gtin>${KOD}</g:gtin>`));
+      assert.match(radFor(out, "a2"), new RegExp(`<g:gtin>${KOD2}</g:gtin>`));
+      assert.doesNotMatch(radFor(out, "b2"), /gtin/);
+    });
+
+    it("dealproffsens kod följer regeln om en enda variant, också som post", () => {
+      const flera = tillPrisjakt(feed([A, syskon]), S, { a1: { kod: KOD, kalla: "dealproffsen" } });
+      assert.doesNotMatch(flera, /gtin/);
+      const ensam = tillPrisjakt(feed([A, B]), S, { a1: { kod: KOD, kalla: "dealproffsen" } });
+      assert.match(radFor(ensam, "a1"), new RegExp(`<g:gtin>${KOD}</g:gtin>`));
+    });
+
+    it("samma kod på två varor ger ingen kod, vilken källa den än kommer från", () => {
+      const out = tillPrisjakt(feed([A, B]), S, { a1: { kod: KOD, kalla: "cdon" }, b2: KOD });
+      assert.doesNotMatch(out, /gtin/);
+    });
+
+    it("en CDON-kod med fel kontrollsiffra kommer aldrig med, inte heller i urvalet som PriceRunner får", () => {
+      const karta = { a1: { kod: "4006381333932", kalla: "cdon" as const } };
+      assert.doesNotMatch(tillPrisjakt(feed([A, syskon]), S, karta), /gtin/);
+      assert.equal(gtinUrval(feed([A, syskon]), karta).size, 0);
+    });
+
+    it("gtinUrval ger exakt de koder flödet skriver, också för varor som är slut i lager", () => {
+      const slut = item({ id: "b3", group: GRUPP_B, price: "399.00", stock: "out_of_stock" });
+      const karta = { a1: { kod: KOD, kalla: "cdon" as const }, a2: { kod: KOD2, kalla: "cdon" as const }, b2: "4250871286386" };
+      const valda = gtinUrval(feed([A, syskon, B, slut]), karta);
+      // b2 har en syster (b3, slut i lager) i sin grupp: dealproffsens regel stänger ute den.
+      assert.deepEqual([...valda].sort(), [["a1", KOD], ["a2", KOD2]]);
+      const out = tillPrisjakt(feed([A, syskon, B, slut]), S, karta);
+      assert.equal(out.split("<g:gtin>").length - 1, 2);
+    });
   });
 });
 

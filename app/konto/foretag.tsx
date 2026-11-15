@@ -352,18 +352,38 @@ function Villkor({ efter }: { efter: () => void }) {
   );
 }
 
+/**
+ * "Du handlar som". Bytet laddar inte om sidan och hämtar inte om den
+ * (2026-11-15): valet markeras direkt, rutten byter sessionen och tecknet
+ * `fp_medlem_inne`, och allt på sidan som visar profilen läser tecknet på
+ * händelsen `fp-konto-andrat` (raden "Du handlar som" här på Mina sidor, remsan
+ * överst, kontoknappen och priserna). Priserna sätts ändå alltid av servern.
+ *
+ * ☠️ Ingen router.refresh() här. I Next 16.2 (React-kanariefågeln 20260317)
+ * fastnar en uppdatering av en sida med en Suspense-gräns ibland för gott:
+ * svaret kommer fram men sidan byts aldrig ut, och knapparna stod gråa. Mätt
+ * på förhandsbygget 2026-11-15: 2–5 av 12 byten fastnade. Felet är
+ * vercel/next.js#86055, rättat i React (facebook/react#36134) och med i Next
+ * 16.3. Mjuka länkar till en annan adress fastnar inte (30 av 30).
+ */
 function Profilval({ namn, aktiv }: { namn: string; aktiv: "privat" | "foretag" }) {
+  const [vald, setVald] = useState<"privat" | "foretag">(aktiv);
   const [upptagen, setUpptagen] = useState(false);
   const [skal, setSkal] = useState<string | null>(null);
   async function byt(till: "privat" | "foretag") {
-    if (till === aktiv || upptagen) return;
+    if (till === vald || upptagen) return;
+    const forra = vald;
     setUpptagen(true);
+    setVald(till);
+    setSkal(null);
     const svar = await skicka("/api/konto/profil", { profil: till });
+    setUpptagen(false);
     if (svar.ok) {
-      window.location.reload();
+      window.dispatchEvent(new Event("fp-konto-andrat"));
       return;
     }
-    setUpptagen(false);
+    // Misslyckas bytet står det förra valet kvar.
+    setVald(forra);
     setSkal(SKAL[svar.skal ?? ""] ?? SKAL.tillfalligt);
   }
   return (
@@ -372,11 +392,11 @@ function Profilval({ namn, aktiv }: { namn: string; aktiv: "privat" | "foretag" 
         Du handlar som
       </p>
       <div className={s.profilval} role="radiogroup" aria-labelledby="du-handlar-som">
-        <button type="button" role="radio" aria-checked={aktiv === "privat"} className={s.profilknapp} disabled={upptagen} onClick={() => byt("privat")}>
+        <button type="button" role="radio" aria-checked={vald === "privat"} aria-busy={upptagen && vald === "privat"} className={s.profilknapp} disabled={upptagen} onClick={() => byt("privat")}>
           Privatperson
           <small>Priser inkl. moms</small>
         </button>
-        <button type="button" role="radio" aria-checked={aktiv === "foretag"} className={s.profilknapp} disabled={upptagen} onClick={() => byt("foretag")}>
+        <button type="button" role="radio" aria-checked={vald === "foretag"} aria-busy={upptagen && vald === "foretag"} className={s.profilknapp} disabled={upptagen} onClick={() => byt("foretag")}>
           {namn}
           <small>Priser exkl. moms och ordertrappan</small>
         </button>
@@ -483,7 +503,7 @@ export function Foretagskonto({
             {foretag.statustext}
           </p>
           {foretag.status === "aktiv" && !foretag.villkorAktuellt && <Villkor efter={ladda} />}
-          {foretag.status === "aktiv" && foretag.villkorAktuellt && <Profilval namn={foretag.namn} aktiv={aktivProfil} />}
+          {foretag.status === "aktiv" && foretag.villkorAktuellt && <Profilval key={aktivProfil} namn={foretag.namn} aktiv={aktivProfil} />}
           {foretag.status === "aktiv" && foretag.villkorAktuellt && <Offerter offerter={offerter} />}
           {foretag.status === "nekad" && (
             <button type="button" className={s.utknapp} onClick={() => setOppen(true)}>

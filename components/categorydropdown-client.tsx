@@ -3,6 +3,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { CategoryNode } from "../lib/category-groups";
 import { aktivGruppId, scrollTillAktiv } from "../lib/kategori-scroll";
 import { tusental } from "../lib/rating";
+import { lasSidan } from "../lib/las-sidan";
 
 // Premium "Kategorier ▾"-dropdown:
 //   • Stängd: en enda knapp som visar aktiv kategori eller "Alla kategorier" + antal.
@@ -47,14 +48,13 @@ export function CategoryDropdownClient({ tree, totalProducts, activeSlug }: {
     document.addEventListener("mousedown", onDown);
     document.addEventListener("touchstart", onDown);
     document.addEventListener("keydown", onKey);
-    // Förhindra body scroll på mobil när bottom-sheet är öppen
-    const prev = document.body.style.overflow;
-    if (window.innerWidth <= 760) document.body.style.overflow = "hidden";
+    // Sidan bakom står still på mobil medan bottom-sheet är öppen (lib/las-sidan.ts).
+    const slapp = window.innerWidth <= 760 ? lasSidan() : null;
     return () => {
       document.removeEventListener("mousedown", onDown);
       document.removeEventListener("touchstart", onDown);
       document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
+      slapp?.();
     };
   }, [open]);
 

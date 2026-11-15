@@ -13,6 +13,7 @@
 // Golvet/prisstegen finns aldrig i klienten.
 
 import Image from "next/image";
+import { KortAndraBild } from "./kort-andra-bild";
 import { SHIMMER_BLUR } from "../lib/lqip";
 import { tightFillUrl } from "../lib/wix-image";
 import type { LiveAuctionView } from "../lib/auction-view";
@@ -47,18 +48,10 @@ export function AuctionCard({ a }: { a: LiveAuctionView }) {
             style={{ objectFit: "cover" }}
           />
         )}
-        {/* Hover-bytet: andra galleribilden, samma mönster som butikskorten.
-            Utan img2 får kortet .noswap så första bilden aldrig tonas bort. */}
-        {a.img2 && (
-          <Image
-            className="pimg-alt"
-            src={tightFillUrl(a.img2, 600, 600)}
-            alt={a.name}
-            fill
-            sizes="(max-width:540px) 100vw, (max-width:900px) 50vw, 20vw"
-            style={{ objectFit: "cover" }}
-          />
-        )}
+        {/* Hover-bytet: andra galleribilden, samma mönster som butikskorten och
+            samma regel: bilden läggs in först när besökaren rört sidan
+            (components/kort-andra-bild.tsx). Utan img2 får kortet .noswap. */}
+        {a.img2 && <KortAndraBild src={tightFillUrl(a.img2, 600, 600)} sizes="(max-width:540px) 100vw, (max-width:900px) 50vw, 20vw" />}
       </div>
       <div className="pbody">
         <div className="pname">{a.name}</div>

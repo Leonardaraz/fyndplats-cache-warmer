@@ -125,11 +125,22 @@ export function klickSvar(s: Sammandrag): ClickResolveDetails {
  * Stripe visar Google Pay i Safari och på iPhone bara med "always", och då hade
  * det stått TVÅ knappar där platsen som hålls rymmer en: formuläret hade
  * knuffats ned när Stripe svarade.
+ *
+ * Apple Pay står på "always" i Apples webbläsare (Leonard 2026-11-15). Med
+ * "auto" visar Stripe knappen bara när plånboken har ett kort: på Leonards
+ * iPhone utan kort syntes platshållaren en halv sekund och försvann sedan,
+ * medan ett privat fönster visade knappen (där berättar Safari inte om korten).
+ * Med "always" syns knappen på varje enhet som klarar Apple Pay, och den som
+ * saknar kort lägger in det i Apples eget blad. Stripe visar den ändå aldrig
+ * där Apple Pay inte går att använda, och bara där sparas ett svar utan
+ * plånbok. ☠️ Utanför Apples webbläsare står Apple Pay kvar på "auto": med
+ * "always" visar Stripe Apple Pay också i Chrome på Mac, bredvid Google Pay,
+ * och två knappar ryms inte i platsen som hålls.
  */
 export function snabbknappar(s: Sammandrag | null, planbok: PlanbokGissning): StripeExpressCheckoutElementOptions {
   return {
     paymentMethods: {
-      applePay: "auto",
+      applePay: planbok === "apple" ? "always" : "auto",
       googlePay: planbok === "apple" ? "auto" : "always",
       link: "never",
       paypal: "never",
@@ -207,16 +218,82 @@ export function webblasarensPlanbok(): PlanbokGissning {
 }
 
 /**
+ * ☠️ MINNET (2026-11-15). Svarade Stripe att ingen plånbok finns, till exempel
+ * för att en blockerare stoppar Googles betalskript eller för att Apple Pay
+ * saknar kort, sparar webbläsaren det i 30 dygn (PLANBOK_MINNE). Nästa gång
+ * hålls ingen plats: formuläret står kvar där det ritades. Förut hölls platsen
+ * varje gång och släpptes efter 3–4 s, och formuläret hoppade upp 236 px
+ * (mätt 2026-11-14 med Googles skript stoppat). Knapparna monteras ändå: visar
+ * Stripe en knapp en senare gång glöms utfallet direkt (minnsStripesSvar).
+ * Bara ett uttryckligt svar utan plånbok sparas, aldrig tidsgränsen eller ett
+ * fel att ladda: ett segt nät ska inte ta bort knapparna i en månad.
+ */
+export const PLANBOK_MINNE = "fp_planbok_tom";
+
+/** Hur länge ett svar utan plånbok minns: 30 dygn. */
+export const PLANBOK_MINNE_MS = 30 * 24 * 60 * 60 * 1000;
+
+/** Det som sparas när Stripe svarade utan plånbok: gissningen och tiden (ms). */
+export function planbokMinne(gissning: "apple" | "google", nuMs: number): string {
+  return `${gissning}:${Math.floor(nuMs)}`;
+}
+
+/** Minns webbläsaren att Stripe svarade utan plånbok, för samma gissning och inom 30 dygn? */
+export function minnsUtanPlanbok(varde: string | null | undefined, gissning: PlanbokGissning, nuMs: number): boolean {
+  if (!varde || gissning === "ingen") return false;
+  const m = /^(apple|google):(\d{1,16})$/.exec(varde);
+  if (!m || m[1] !== gissning) return false;
+  const alder = nuMs - Number(m[2]);
+  return alder >= 0 && alder < PLANBOK_MINNE_MS;
+}
+
+/** Läget platsen ritas i: gissningen, utom när webbläsaren minns ett svar utan plånbok. */
+export function planbokPlats(gissning: PlanbokGissning, minne: string | null | undefined, nuMs: number): PlanbokGissning {
+  return minnsUtanPlanbok(minne, gissning, nuMs) ? "ingen" : gissning;
+}
+
+/** Lagringen kan saknas eller kasta (privat läge, spärrad lagring): då minns ingenting. */
+function lasPlanbokMinne(): string | null {
+  try {
+    return window.localStorage.getItem(PLANBOK_MINNE);
+  } catch {
+    return null;
+  }
+}
+
+/** Platsens läge i webbläsaren, med minnet: samma svar som PLANBOK_SKRIPT ger <html>. */
+export function webblasarensPlanbokPlats(): PlanbokGissning {
+  return planbokPlats(webblasarensPlanbok(), lasPlanbokMinne(), Date.now());
+}
+
+/**
+ * Stripe har svarat ("ready"). Utan plånbok sparas utfallet, med plånbok glöms
+ * det. <html> får samma läge direkt, så att en kassa som öppnas igen med ett
+ * mjukt sidbyte inte håller platsen en bildruta innan effekten hunnit köra.
+ */
+export function minnsStripesSvar(hittade: readonly Planbok[]): void {
+  try {
+    const g = webblasarensPlanbok();
+    if (hittade.length > 0) window.localStorage.removeItem(PLANBOK_MINNE);
+    else if (g !== "ingen") window.localStorage.setItem(PLANBOK_MINNE, planbokMinne(g, Date.now()));
+    document.documentElement.setAttribute("data-planbok", hittade.length > 0 ? g : "ingen");
+  } catch {
+    // Utan lagring hålls platsen som förut.
+  }
+}
+
+/**
  * Samma gissning före första ritningen: app/layout.tsx kör skriptet innan något
  * syns, och det sätter data-planbok="apple", "google" eller "ingen" på <html>.
  * Kassans CSS håller då ingen plats i läget "ingen", ritar rätt platshållare och
  * visar rätt namn i texten, både innan React tagit över och vid ett mjukt sidbyte
- * från varukorgen (då körs effekten med webblasarensPlanbok först efter att sidan
- * ritats). Utan skriptet syntes platsen tills React tog över, och sedan hoppade
- * formuläret upp. Proven kör skriptet mot planbokGissning, så att de två aldrig
- * svarar olika.
+ * från varukorgen (då körs effekten med webblasarensPlanbokPlats först efter att
+ * sidan ritats). Utan skriptet syntes platsen tills React tog över, och sedan
+ * hoppade formuläret upp. Skriptet läser också minnet (PLANBOK_MINNE): minns
+ * webbläsaren ett svar utan plånbok blir läget "ingen". Proven kör skriptet mot
+ * planbokGissning och planbokPlats, så att de aldrig svarar olika.
  */
-export const PLANBOK_SKRIPT = `try{document.documentElement.setAttribute('data-planbok','ApplePaySession' in window?'apple':${WEBVIEW}.test(window.navigator.userAgent)?'ingen':'google')}catch(e){}`;
+export const PLANBOK_SKRIPT = `try{var g='ApplePaySession' in window?'apple':${WEBVIEW}.test(window.navigator.userAgent)?'ingen':'google',m=null;try{m=window.localStorage.getItem('${PLANBOK_MINNE}')}catch(e){}var x=g!=='ingen'&&m?/^(apple|google):(\\d{1,16})$/.exec(m):null;if(x&&x[1]===g){var a=Date.now()-Number(x[2]);if(a>=0&&a<${PLANBOK_MINNE_MS})g='ingen'}document.documentElement.setAttribute('data-planbok',g)}catch(e){}`;
 
 type Orsak = NonNullable<Parameters<StripeExpressCheckoutElementConfirmEvent["paymentFailed"]>[0]>["reason"];
 

@@ -78,6 +78,25 @@ describe("pricerunnerItem", () => {
   it("hoppar över varor som inte finns i lager", () => {
     assert.equal(pricerunnerItem(item({ id: "e", price: "99.00", stock: "out_of_stock" }).trim(), S), null);
   });
+
+  it("med en kod: g:gtin i stället för identifier_exists=no, före frakten", () => {
+    const out = pricerunnerItem(item({ id: "f", price: "99.00" }).trim(), S, "4006381333931")!;
+    assert.match(out, /<g:condition>new<\/g:condition>\n      <g:gtin>4006381333931<\/g:gtin>\n      <g:shipping>/);
+    assert.doesNotMatch(out, /identifier_exists/);
+    assert.equal(out.match(/<g:gtin>/g)?.length, 1);
+  });
+
+  it("något annat än 13 siffror skrivs aldrig, och då står identifier_exists=no kvar", () => {
+    for (const fel of ["400638133393", "40063813339311", "4006381333a31", ""]) {
+      const out = pricerunnerItem(item({ id: "g", price: "99.00" }).trim(), S, fel)!;
+      assert.doesNotMatch(out, /gtin/, fel);
+      assert.match(out, /<g:identifier_exists>no<\/g:identifier_exists>/, fel);
+    }
+  });
+
+  it("en vara med kod som är slut i lager hoppas fortfarande över", () => {
+    assert.equal(pricerunnerItem(item({ id: "h", price: "99.00", stock: "out_of_stock" }).trim(), S, "4006381333931"), null);
+  });
 });
 
 describe("tillPricerunner", () => {
@@ -99,6 +118,25 @@ describe("tillPricerunner", () => {
     assert.doesNotMatch(out, /<g:id>b<\/g:id>/);
     assert.match(out, /<g:price>699\.00 SEK<\/g:price>/);
     assert.ok(out.endsWith("    </item>\n  </channel>\n</rss>"));
+  });
+
+  it("koderna hamnar på sina varor och bara på dem", () => {
+    const xml = tillPricerunner(
+      feed([item({ id: "p1", price: "99.00" }), item({ id: "p2", price: "199.00" })]),
+      S,
+      new Map([["p1", "4006381333931"]]),
+    );
+    const rad = (id: string) => xml.split("</item>").find((r) => r.includes(`<g:id>${id}</g:id>`)) ?? "";
+    assert.match(rad("p1"), /<g:gtin>4006381333931<\/g:gtin>/);
+    assert.doesNotMatch(rad("p1"), /identifier_exists/);
+    assert.doesNotMatch(rad("p2"), /gtin/);
+    assert.match(rad("p2"), /<g:identifier_exists>no<\/g:identifier_exists>/);
+  });
+
+  it("utan koder är flödet som förut", () => {
+    const f = feed([item({ id: "p1", price: "99.00" })]);
+    assert.equal(tillPricerunner(f, S, new Map()), tillPricerunner(f, S));
+    assert.doesNotMatch(tillPricerunner(f, S), /gtin/);
   });
 
   it("tom Google-feed ger en giltig tom feed", () => {

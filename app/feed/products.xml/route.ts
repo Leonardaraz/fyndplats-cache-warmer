@@ -14,7 +14,7 @@
 // (för product_type = huvudkategori). CDN:en håller svaret en timme.
 
 import { getProductsFarska, getCollections, fetchFeedGalleries, fetchVarumarken, imgKey, type Product, type Collection } from "@/lib/products";
-import { flodessvar } from "@/lib/feed/prisjakt-svar";
+import { flodessvar, huvudsvar, lasare } from "@/lib/feed/prisjakt-svar";
 import { varumarke } from "@/lib/varumarke";
 
 export const runtime = "nodejs";
@@ -171,4 +171,11 @@ ${items.join("\n")}
 </rss>`;
 
   return flodessvar(xml, request);
+}
+
+// HEAD bygger aldrig: utan den körde Next GET och byggde hela flödet för ett
+// svar utan kropp. Se `huvudsvar` i lib/feed/prisjakt-svar.ts.
+export async function HEAD(request: Request) {
+  console.log(`[flode] HEAD /feed/products.xml (${lasare(request)})`);
+  return huvudsvar({ komprimerat: false });
 }

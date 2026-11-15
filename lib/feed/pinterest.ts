@@ -15,7 +15,7 @@
 //     originalbilden, ".../media/<fil>", som saknar kommatecken. Högst tio.
 //
 // Den tredje varningen (126: google_product_category med bara en eller två
-// nivåer) rör kategorikartan och ändras inte här.
+// nivåer) rättas i Google-flödet (lib/feed/djupare-kategori.ts), inte här.
 //
 // Dessutom:
 //  - g:gtin från lib/feed/pinterest-gtin.ts, bara när koden har rätt

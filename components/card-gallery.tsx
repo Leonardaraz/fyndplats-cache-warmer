@@ -5,6 +5,7 @@ import { SHIMMER_BLUR } from "../lib/lqip";
 import { tightFillUrl } from "../lib/wix-image";
 import { kortDel } from "../lib/kort-galleri";
 import { kortSizes } from "../lib/bild-sizes";
+import { KortAndraBild } from "./kort-andra-bild";
 
 // Produktkortets bilder: en rad bilder man sveper mellan på pekskärm, och
 // hover-växlingen på dator.
@@ -330,19 +331,12 @@ export function CardGallery({
             style={{ objectFit: "cover" }}
           />
         </div>
+        {/* Rutan står kvar från början (svepet och prickarna stämmer), men
+            bilden läggs in först när besökaren rört sidan, så att Google inte
+            läser den som en bild på den här sidan (components/kort-andra-bild.tsx). */}
         {altImg && (
           <div className="pimg-slide">
-            <Image
-              className="pimg-alt"
-              src={tightFillUrl(altImg, 600, 600)}
-              // Dekorativ: samma länk visar redan huvudbilden med alt={name} och
-              // produktnamnet som text. Med alt här läste skärmläsare namnet två
-              // gånger per kort. Tom alt = hoppa över dubbletten.
-              alt=""
-              fill
-              sizes={sizes}
-              style={{ objectFit: "cover" }}
-            />
+            <KortAndraBild src={tightFillUrl(altImg, 600, 600)} sizes={sizes} />
           </div>
         )}
         {/* Rutorna finns direkt (prickarna stämmer och raden byggs aldrig om

@@ -330,6 +330,23 @@ Tre regler (`lib/list-pages.ts`, vaktas av `lib/listsidor.test.ts`):
    färdig HTML-sträng, eftersom en JSX-lista ligger en gång till, dubbelt så
    stor, i React-datan.
 
+## ☠️ Kortets andra bild står aldrig i HTML:en (2026-11-14)
+
+Google Bilder visade massagestolens foto under gamingstolens adress.
+Gamingstolens sida har "Liknande produkter" med massagestolens kort, och
+kortets andra bild (hover-bilden, `.pimg-alt`) låg i sidans HTML. Google
+tillskrev bilden den sidan. Andra bilden läggs därför in först när en människa
+rört sidan (`components/kort-andra-bild.tsx`, `lib/forsta-rorelse.ts`, vaktas
+av `lib/kort-andra-bild.test.ts`):
+
+- Bara pointermove, pointerdown, touchstart, keydown och wheel räknas, aldrig
+  scroll: sidan kan rulla utan att någon rört den.
+- Servern och hydreringen säger alltid nej, så bilden står aldrig i HTML:en.
+- Hover-bytet tonar bort huvudbilden först när andra bilden är laddad
+  (`data-klar`). Kortet blir aldrig tomt.
+- Produktkortet och auktionskortet går båda genom `KortAndraBild`. Ett nytt
+  kort med en andra bild gör likadant.
+
 ## ☠️ En listsida byggs aldrig på reservkatalogen (2026-11-11)
 
 **Mätt 2026-11-11.** Kl 12:09:40 UTC svarade Wix 504 på kataloghämtningen för
@@ -1026,6 +1043,21 @@ Nu:
 med ett gammalt pris visar den det högre priset med nedräkning. Nya besökare
 får rätt pris inom 30 s, men en öppen flik frågar först efter fem minuter.
 
+## Fyndauktionen: en klocka för hela sidan (Black Week, 2026-11-04)
+
+Med 50 och 100 fynd om dagen (Black Week 23–29/11) fick `/fyndauktion` en timer per kort:
+mätt lokalt med 100 kort var det 52 timers i sekundtakt och 50 i 20-sekunderstakt. Nu delar
+alla kort `lib/delad-klocka.ts` via `useClientNow` (`useSyncExternalStore`). Samma mätning
+gav en timer per takt och en omritning i sekunden.
+
+- ☠️ **Tiden är gemensam för alla takter.** Ett kort byter takt vid fasbytet (1 s → 20 s).
+  Med en egen tid per takt kunde den nya takten ligga efter, kortet såg den gamla fasen och
+  pendlade.
+- Klockan stannar aldrig medan fliken syns, och vid återkomst läses tiden om direkt.
+- Utan lyssnare är tiden `null`, så ett kort som monteras senare börjar med serverns tid.
+- Kort, luntan och "Sista timmen" får ingen egen `setInterval`
+  (`lib/delad-klocka.test.ts`).
+
 ## Googles ?srsltid= tas bort ur adressfältet (2026-09-30)
 
 Merchant Centers automatiska taggning lägger `?srsltid=…` på varje länk från
@@ -1069,8 +1101,8 @@ Flödet byggs ur Google-flödet som PriceRunner-flödet, och skillnaderna ligger
   i flödet behövs inga leveranstjänster i Business Center.
 - Googles kampanjetiketter, `g:identifier_exists`, `g:size` (som kräver
   `g:size_system`) och extrabilderna tas bort. Ingen mpn i det öppna flödet, och
-  som regel ingen GTIN, utom i testet nedan. Märke och artikelnummer finns bara
-  på den hemliga adressen (se nästa avsnitt).
+  GTIN bara på varorna i kartan nedan (CDON-listan och dealproffsens). Märke och
+  artikelnummer finns bara på den hemliga adressen (se nästa avsnitt).
 - `g:color` har högst tre färger, skilda med `/` (`begransaFarger`). Fyra varor
   hade fler och fick varningen "Ogiltlig" i Business Center (2026-10-28).
 - **Testet med koder (2026-10-23).** 902 varor får en `g:gtin` ur
@@ -1093,6 +1125,34 @@ Flödet byggs ur Google-flödet som PriceRunner-flödet, och skillnaderna ligger
   `{}` (tillbaka till de 50), eller båda: flödet blir då byte för byte som förut.
   Artikelnummer, inköpspriser och adresser får aldrig stå i kartan (repot är
   publikt); `prisjakt-gtin.test.ts` vaktar formen på varje rad.
+- **CDON-listans koder (2026-11-15, Leonards "kör dina förslag noggrant").**
+  `lib/feed/gtin-cdon.ts` har 3 476 varianter (variant-id → GTIN-13), genererad
+  ur Leonards konfidentiella lista från 2026-11-14. Listan ligger aldrig i repot.
+  - Med är Aosoms egen CDON-butik (2 877) och VEVOR-varor hos Bonideco (599, UPC-12
+    skrivna som GTIN-13 med en inledande nolla). Varje rad är parad på
+    leverantörens artikelnummer, med "Ja: samma nr" och statusen "Hittad".
+  - Utanför är Bancros (53 företagsprefix, ser köpta ut), Kaufland, "Osäker" och
+    kontorsstolen.
+  - `lib/feed/gtin.ts` (`byggFlodeGtin`) slår ihop källorna, och
+    `lib/feed/flode-gtin.ts` är kartan som byggarna använder:
+    `pricerunnerXml` (`lib/feed/harledda.ts`), `prisjaktHemligXml`
+    (`lib/feed/prisjakt-hemlig.ts`) och det öppna Prisjakt-flödets rutt.
+    - Listans kod vinner för samma variant. 492 av de 534 varianter som båda
+      källorna har skilde sig.
+    - Dealproffsens kod står kvar där listan saknar varianten (368).
+    - En dealproffsen-kod som listan har på en annan variant tas bort.
+  - `gtinUrval` (prisjakt.ts) väljer koderna per vara. En CDON-kod hör till sin
+    variant och gäller också produkter med flera varianter. För dealproffsens
+    gäller regeln om exakt en variant.
+  - Samma urval går till Prisjakt (öppet och hemligt flöde) och till PriceRunner.
+    Där ersätter `g:gtin` raden `g:identifier_exists=no`.
+  - Mätt på produktionens Google-flöde 2026-11-15: 3 776 varor i lager med
+    `g:gtin` i båda flödena, förut 834 i Prisjakt och 0 i PriceRunner.
+  - ☠️ **Aldrig i Google-flödet.** Aosom levererar white label, och Google stämmer
+    av GTIN mot märket (Fyndplats). `gtin.test.ts` fäller om
+    `app/feed/google.xml` läser en GTIN-karta.
+  - Följ upp i Business Center, och ta bort koder som kopplas till fel
+    produktsida, som kontorsstolen.
 
 ☠️ **Vercels CDN cachar inga icke-strömmade svar över 10 MB.** Dokumentationen
 säger 10 MB för icke-strömmade svar och 20 MB för strömmade
@@ -1161,6 +1221,11 @@ bygger ett nytt (10–75 s uppmätt, långsamt men rätt).
 **`/api/cron/farska-floden`** (varannan timme, `lib/flodesvarmning.ts`) hämtar
 sitemapen och de tre flödena en gång, så att det ska hända sällan. Prisjakts
 hemliga adress står inte i listan och får aldrig göra det.
+☠️ Mätt 2026-11-15: det räcker inte för ett flöde som hämtas en gång om
+dygnet. CDN:en hade tappat kopian före varje körning (MISS fyra gånger av
+fyra på Pinterest-, Google- och PriceRunner-flödet). De flödena och det
+hemliga Prisjakt-flödet sparas därför i Runtime Cache, och alla flödesrutter
+har en HEAD som inte bygger (se "Flödena svarar direkt").
 
 ☠️ **Ett flöde utan en enda vara skickas aldrig** (`arTomtFlode`). Det betyder
 att katalogen eller varianterna inte gick att läsa, och den som läser in ett
@@ -1169,9 +1234,9 @@ behåller sin förra inläsning, CDN:en behåller sin förra kopia, och felet st
 i loggen som `[flode] … byggdes utan en enda vara`. Sedan flödena byggs vid
 anrop kan det hända vilken timme som helst, inte bara vid deployen.
 
-**Prisjakt-flödena är orörda.** De strömmas som förut och byggs alltså om vid
-varje hämtning. De är alltid färska, och hur de ska hållas i CDN:en är ett
-eget beslut: Prisjakt hämtar på en adress som jobbet inte får känna till.
+**Det öppna Prisjakt-flödet är orört** (utom HEAD): det strömmas och byggs om
+vid varje hämtning. **Det hemliga sparas sedan 2026-11-15** som de andra, och
+jobbet bygger det utan att känna till adressen (se "Flödena svarar direkt").
 
 **Länkarna i produkttexterna.** Poleringen skriver länkar i Wix adressform,
 `/product-page/<slug>`, som butiken omdirigerar med 308. Semrush räknade 600
@@ -1239,8 +1304,9 @@ Google-, PriceRunner- och det öppna Prisjakt-flödet byggs utan numren.
   loggrad. Saknas variabeln, eller är koden för kort, finns ingen hemlig adress:
   varje filnamn svarar 404. Ett fel filnamn ger 404. Svaren bär `X-Robots-Tag:
   noindex`. `lib/feed/prisjakt-adress.test.ts` fäller om något som ser ut som
-  adressen checkas in, och om ett annat flöde än den hemliga rutten hämtar
-  numren.
+  adressen checkas in, och om någon annan fil än den hemliga rutten och
+  `/api/cron/farska-floden` hämtar numren eller bygger flödet. Jobbet sparar
+  flödet under ett namn, aldrig adressen (se "Flödena svarar direkt").
 - **Numren och märkena** hämtas från motorns `/api/prisjakt-artiklar` (grenen
   main) när flödet byggs, med `REVIEW_INGEST_SECRET`. Mappningarna bor i
   motorns Wix-lager och aldrig i en fil här (repot är publikt).
@@ -1297,8 +1363,32 @@ Skillnaderna mot Google-flödet, alla mätta i Pinterests "Testa din datakälla"
   källorna har fel.
 - `g:identifier_exists` tas bort. Fältet finns inte i Pinterests spec.
 
-Kvar efter ändringen: varning 126 (google_product_category med en eller två
-nivåer). Den rör kategorikartan, inte flödet.
+**Djupare kategorier** (Leonard 2026-11-15, varning 126 och 157). Kartan
+`GOOGLE_CATEGORY_BY_SLUG` ger varje underkategori en enda nod, och där varorna
+är blandade blev noden grund ("Furniture", "Toys & Games"). Pinterest varnade
+för det på 7 046 varor. `lib/feed/djupare-kategori.ts` väljer en djupare nod ur
+varans namn innan kartan frågas (`taxonomyFor` i Google-flödet), så rättningen
+följer med till alla flöden som byggs ovanpå: PriceRunner, Prisjakt och
+Pinterest. Mätt på Pinterest-flödet 2026-11-15: varor med noll till två nivåer
+7 322 → 2 325 av 10 061, 5 205 varor bytte nod.
+
+- Reglerna prövas mot namnets huvud (det före första tankstrecket), sedan mot
+  hela namnet, sist mot underkategorins standardnod. Första träffen vinner, så
+  ordningen i listan är en del av regeln: "hoppborg med rutschkana" är en
+  hoppborg bara om hoppborgen står först.
+- ☠️ Ord som ofta står i namnet på något annat är förankrade i början
+  (`^(\S+ )?madrass`, `^\S*parasoll`, `TANGER`): "extrasäng med madrass",
+  "matbord med parasollhål", "fåtölj med fotpall", "mätstång". Ett nytt ord:
+  sök det i hela flödet först och se vad mer det träffar.
+- ☠️ Standardnoden (regeln utan ord) tar allt annat i underkategorin, och i
+  Wix ligger tillbehör bland huvudvarorna: skärmstöd i Skrivbord, pianopallar i
+  Pallar, kattsängar i Hundbäddar. Läs vad som faller till standardnoden innan
+  en ny läggs till.
+- ☠️ Inga noder under Apparel & Accessories. Kläder kräver kön, ålder och
+  storlek i Merchant Center, och en vara som flyttas dit utan dem avvisas.
+- Ett nytt id läses ur taxonomifilen (taxonomy-with-ids.en-US.txt), inte ur
+  minnet. Provet fäller samma id med två olika namn, och noder grundare än tre
+  nivåer utom de få löv som saknar djupare noder.
 
 **Kontot**, gjort i webbläsaren 2026-11-15 efter Leonards ja:
 
@@ -1307,6 +1397,93 @@ nivåer). Den rör kategorikartan, inte flödet.
   katalogen.
 - Säljargranskningen startade av sig själv när katalogen laddades upp.
 - Inget annonskonto och ingen Pinterest-tagg. Leonard valde bort dem 2026-11-15.
+- 13 produktgrupper i katalogen, en per avdelning, gjorda 2026-11-15 efter
+  Leonards val. Filtret är Produkttyp, och Pinterest har bara "är" och "är
+  inte", så varje grupp räknar upp sina underkategorier ("Avdelning >
+  Underkategori"). ☠️ En ny underkategori i Wix hamnar inte i någon grupp förrän
+  den läggs till för hand. Butik-fliken på profilen finns inte längre hos
+  Pinterest, så grupperna syns inte där.
+
+## Flödena svarar direkt: HEAD och sparade kopior (Leonard 2026-11-15)
+
+Leonard bad om att Pinterest-flödet skulle optimeras, och sedan om Google,
+PriceRunner och Prisjakt: "borde vi inte fixa dom med?". Mätt samma förmiddag:
+
+- **En HEAD byggde hela flödet.** Pinterest gör en HEAD före inläsningen
+  (09:12 UTC). CDN:ens nyckel innehåller metoden (vercel.com/docs/caching/
+  cdn-cache/purge, "Cache keys"), så en HEAD läser aldrig GET:s kopia, och
+  utan en egen HEAD kör Next GET. Mätt: 52 s för ett svar utan kropp, fyra
+  minuter efter att GET-kopian lagts i samma region.
+- **CDN:en behåller inte ett flöde som hämtas en gång om dygnet.** Varje
+  körning av `/api/cron/farska-floden` 02:40–08:39 UTC fick MISS på Pinterest-,
+  Google- och PriceRunner-flödet (50–78 s), fast förra körningen byggt kopian
+  två timmar tidigare och den skulle ha gällt i tre. `/feed/products.xml`, som
+  hämtas oftare, gav HIT och STALE. Vercel skriver att sällan hämtade svar kan
+  försvinna ur regionens cache (cdn-cache, Limits). Värmningen höll alltså inte
+  kopiorna vid liv.
+- **Prisjakt hämtar den hemliga adressen tre gånger om dygnet** (16:20, 00:21
+  och 08:21 svensk tid) och väntade på ett bygge av 13 MB varje gång.
+
+Nu:
+
+- ☠️ **Varje flödesrutt har en egen HEAD som aldrig bygger** (`huvudsvar` i
+  `lib/feed/prisjakt-svar.ts`): de fyra under `/feed/`, `/feed/gz/[fil]`, det
+  öppna Prisjakt-flödet och den hemliga adressen, där ett fel filnamn ger 404
+  också på HEAD. Svaret har samma rubriker som GET och `Cache-Control:
+  no-store`, och längd och tid när det finns en sparad kopia. Provet fäller en
+  rutt utan HEAD och en HEAD som bygger.
+- **Google-, PriceRunner-, Pinterest- och det hemliga Prisjakt-flödet sparas i
+  Vercels Runtime Cache** (`lib/feed/flodeslager.ts`: `LAGRADE_FLODEN` och
+  `PRISJAKT_HEMLIG_KOPIA`). Läsaren får kopian när den är yngre än tre timmar;
+  den okomprimerade adressen packar upp den. Saknas kopian byggs flödet som
+  förut, och det som byggdes sparas efter svaret (`lib/feed/kopiesvar.ts`).
+  Anropad utan anrop bygger en rutt alltid.
+- ☠️ **Jobbet bygger Google-flödet EN gång** och gör PriceRunner-, Pinterest-
+  och det hemliga Prisjakt-flödet ur det, med samma byggare som rutterna
+  (`lib/feed/harledda.ts`, `lib/feed/prisjakt-hemlig.ts`). Förut byggdes
+  Google-flödet tre gånger per körning, en gång per flöde. Provet fäller ett
+  andra bygge.
+- ☠️ **Byggarna bär EAN-kartan FLODE_GTIN** (se Prisjakt-avsnittet). #919 skrevs
+  mot koden före #917 och hade tappat koderna i PriceRunner- och det hemliga
+  Prisjakt-flödet utan ett enda fel i tsc eller proven: kartan är valfri, och
+  typen tar också dealproffsens gamla. Löst vid mergen 2026-11-16, och
+  `lib/feed/flode-gtin-anvandning.test.ts` fäller nu en byggare utan kartan.
+- ☠️ **Jobbet känner inte till Prisjakts hemliga adress.** Det hämtar motorns
+  nummer, bygger flödet och sparar det under namnet `prisjakt-hemlig`, och bara
+  rutten på adressen läser kopian. Loggen bär namnet, aldrig adressen.
+  `lib/feed/prisjakt-adress.test.ts` fäller om någon annan fil än rutten och
+  jobbet hämtar numren eller bygger flödet. Faller motorn gäller förra kopian.
+- Den hemliga adressen svarar nu 503 också på ett flöde utan en enda vara
+  (`arTomtFlode`), som de andra flödena. Förut hade ett sådant flöde gått ut.
+- ☠️ **En post i Runtime Cache är högst 2 MB**, och Pinterest-flödet är 2,9 MB
+  som gzip. Filen sparas i bitar om 512 kB under en egen generation och pekas
+  ut sist, med längd och kontrollsumma. En kopia som inte stämmer används inte:
+  lagret kan göra ett flöde snabbare, aldrig fel.
+- ☠️ **Paketets `set` sväljer sina fel** (loggar och ger upp efter 500 ms).
+  Varje bit läses tillbaka och skrivs om en gång innan pekaren skrivs, och
+  jobbets rad säger `SPARADES INTE` när det ändå inte gick. Raden säger också
+  `BARA PROCESSENS MINNE` om Runtime Cache inte nås (då hjälper kopian bara
+  samma instans).
+- **Nyckeln bär driftsättningen** (`VERCEL_DEPLOYMENT_ID`): efter en deploy
+  finns ingen kopia förrän jobbet körts eller någon hämtat flödet, och ingen
+  deploy läser en kopia som äldre kod byggde.
+- **Loggen säger vem som hämtar**: `[flode] /feed/gz/pinterest.xml ur kopian,
+  14 min gammal (gzip, deflate; Pinterestbot/1.0)`. Bara Accept-Encoding och
+  robotens namn ur User-Agent (`lasare`). ☠️ Bara de första 512 tecknen av
+  User-Agent läses: regexen tar kvadratisk tid mot längden, och en User-Agent
+  på 32 kB kostade 2,3 s CPU per anrop (mätt 2026-11-15).
+- Mätt på förhandsbygget (Pinterest-flödet, 2026-11-15): HEAD 0,5–0,9 s (förut
+  52 s), GET ur kopian 0,9 s med gzip och 2,0 s utan (förut 50–80 s), samma
+  byte. Vercel skickar `Accept-Encoding: gzip` till rutten också när läsaren
+  inte skickat någon, och packar själv upp svaret åt en sådan läsare.
+- Kostnad: runt 1 600 skrivenheter per körning för de fyra (en enhet är 8 kB,
+  och filerna är 2–3 MB som gzip och en tredjedel större som base64), tolv
+  gånger om dygnet, och lika många läsenheter för kontrollen. Ungefär tre
+  dollar i månaden.
+
+Produktflödet har bara fått HEAD: det hämtas ofta nog för att CDN:en ska
+behålla det. Det öppna `/feed/prisjakt.xml` har också bara fått HEAD; det ska
+bort (se Prisjakt-avsnittet) och hämtades en gång natten mot 2026-11-15.
 
 ## Strukturerad data för Google Shopping (2026-10-22)
 
@@ -2223,7 +2400,18 @@ BankID ska användas).
   eget blad. ☠️ I Apples webbläsare (`ApplePaySession` finns: Safari, och alla
   webbläsare på iPhone) står Google Pay kvar på `auto`: Stripe visar Google
   Pay där bara med `always`, och då hade det stått två knappar i en plats som
-  rymmer en. Apple Pay står på `auto` överallt, som förut.
+  rymmer en.
+- **Apple Pay står på `always` i Apples webbläsare** (Leonard 2026-11-15). Med
+  `auto` visar Stripe knappen bara när plånboken har ett kort: på Leonards
+  iPhone utan kort syntes platshållaren en halv sekund och försvann sedan,
+  medan ett privat fönster visade knappen (där berättar Safari inte om
+  korten). Med `always` syns knappen på varje enhet som klarar Apple Pay, och
+  den som saknar kort lägger in det i Apples eget blad. En iPhone utan kort
+  ger därför inget svar utan plånbok längre; det gör bara en enhet där Apple
+  Pay inte går att använda. ☠️ Utanför Apples webbläsare står Apple Pay kvar
+  på `auto`: med `always` visar Stripe Apple Pay också i Chrome på Mac,
+  bredvid Google Pay. Aldrig båda plånböckerna på `always` i samma webbläsare
+  (provet fäller det).
 - ☠️ **`layout.overflow: "never"` bara med `maxRows: 0`.** Annars kastar Stripe
   IntegrationError och inga knappar ritas (lokalt prov 2026-11-06). Knapparna
   monteras därför i `try`: ett fel i snabbkassan får aldrig stoppa
@@ -2323,6 +2511,16 @@ BankID ska användas).
   knapparna läser webbläsaren med `webblasarensPlanbok()`, och proven kör
   skriptet mot `planbokGissning`, så att de aldrig svarar olika. ☠️ Attributet
   hette förut `data-applepay`: en regel på det gamla namnet träffar aldrig.
+- **Minnet** (`PLANBOK_MINNE`, `fp_planbok_tom`, 2026-11-15): svarar Stripe
+  uttryckligen utan plånbok (en blockerare stoppar Googles betalskript, eller
+  Apple Pay saknar kort) sparar webbläsaren det i 30 dygn, och nästa besök
+  hålls ingen plats. Förut hölls platsen varje gång och släpptes efter 3–4 s,
+  och formuläret hoppade upp 236 px. Skriptet och kassan läser minnet
+  (`webblasarensPlanbokPlats()`); knapparna läser bara webbläsaren
+  (`webblasarensPlanbok()`). ☠️ Får knapparna minnet blir en Safari utan kort
+  `ingen`, Google Pay hamnar på `always` och två knappar står där platsen
+  rymmer en. Bara `ready` utan plånbok sparas, aldrig tidsgränsen eller
+  `loaderror`, och en knapp en senare gång glömmer minnet direkt.
 - ☠️ **Stripes ram har −4 px marginal** (plats för fokusringen). Utan egen
   formateringskontext kollapsade den genom ytan runt fältet, och allt under
   flyttade 4 px när Stripe monterade. `.snabbYta` och `.betalfalt` har därför
@@ -2584,6 +2782,16 @@ Ett företag läggs till på ett befintligt konto, högst ett per konto i E3.
   ingen rätt: `medlemsprofil()` läser företagsprofilen vid varje prissättning
   och prissätter som privatperson om företaget inte är godkänt eller dess
   villkor är gamla (E3-12, `VILLKOR_FORETAG_VERSION`).
+- ☠️ **Ingen `router.refresh()` i kontots kod** (2026-11-15). I Next 16.2.6
+  (React-canaryn 20260317) blir en `router.refresh()` på en sida med Suspense
+  ibland aldrig klar: svaret kommer i sin helhet, men vyn står kvar och
+  knapparna är spärrade. Mätt på profilbytet: 2–5 av 12 fastnade
+  (vercel/next.js#86055, rättat av facebook/react#36134 i Next 16.3). Bytet
+  laddar därför inte om: raden "Du handlar som" läser tecknet
+  `fp_medlem_inne` på händelsen `fp-konto-andrat` (`app/konto/handlar-som.tsx`),
+  och de sparade korgarna uppdateras i webbläsaren (`synligaKorgar`). Mjuka
+  `next/link`-byten till en annan adress påverkas inte (30 av 30).
+  `lib/konto-fart.test.ts` fäller en `.refresh()` under `app/konto`.
 - **Priserna**: produktsidans ruta visar företagspriset exkl. moms, märkt, och
   ordertrappan som tabell med "högst x %" när golvet stoppar trappan (E3-8).
   Varukorgen visar varor och frakt exkl. moms, momsen, totalen inkl. moms,
@@ -3208,3 +3416,49 @@ och en inloggad medlems favoriter följer kontot.
   skrivningen till Wix (listfältet med villkoret på versionen). Proven kör mot
   ett lager i minnet. Safari och iPhone är inte heller provade. Prova med ett
   riktigt konto på en förhandslänk innan funktionen räknas som kvitterad.
+
+## Menyn med bilder, och skrollåset (Leonard 2026-11-15)
+
+Datorns meny och mobilmenyn visar en bild per avdelning och underkategori.
+
+- **Bilderna** kommer från `/api/meny-bilder` (CDN-cachad en timme, byggd vid
+  bygget) och står aldrig i sidans HTML, så ett nytt bildval gör inte varje
+  sida "ny". Urvalet: `lib/meny-bilder.ts` (mest såld först, ingen bild två
+  gånger, aldrig collage, inbakad text, vattenmärke eller slutsålt) och 168
+  granskade handval i `lib/meny-bild-val.ts` (bara adresser till egna sidor).
+- **Hämtningen:** bildlistan (cirka 5 kB) hämtas när sidan har laddat klart
+  (`load`) och webbläsaren sedan är ledig, på dator och telefon, eller direkt
+  när någon rör menyn. Förut startade den vid första lediga stund, och i
+  Lighthouse (som spelar in sidan ostrypt) tävlade listan och mobilens
+  miniatyrer då med sidans största bild. Bilderna hämtas först när en panel
+  eller ett steg öppnas.
+  Mätt på förhandsbygget 2026-11-15: en datorpanel cirka 86 kB (median 612 ms
+  tills panelens bilder syns), mobilens första steg 27 kB (13 miniatyrer),
+  ett steg två cirka 134 kB (median 764 ms).
+- ☠️ **Bara det som syns ritar bildelement.** Datorns panel ritar sina bilder
+  först när den är öppen (`panelensBilder`), och mobilmenyns första steg ritar
+  sina tretton när menyn ska öppnas: i förväg på en pekskärm utan sparläge
+  (lådan har dem när den glider in), annars vid trycket. Förut fick alla
+  tretton paneler och den stängda lådan sina cirka 186 bildelement så fort
+  bildlistan kom, i en enda lång uppgift på varje sida, och lådans tretton
+  bilder hämtades också på datorn där den aldrig syns. Mätt 2026-11-15:
+  Lighthouse TBT på mobil cirka 105 → 200 ms mot produktionen; lokalt med
+  processorn strypt fyra gånger blockerad tid 421 → 308 ms på startsidan och
+  582 → 494 ms på produktsidan efter rättelsen. `lib/meny-bilder.test.ts`
+  fäller en panel eller ett första steg som läser bildlistan direkt.
+- **Mjuka bindestreck** (`lib/mjukt-bindestreck.ts`) vid ordfogen i långa
+  namn, så att "Verkstadsutrustning" bryts som "Verkstads-" / "utrustning" och
+  inte mitt i ordet. Bara i synlig text, aldrig i `aria-label` eller adresser.
+  Konstanten står som escape-sekvens; provet fäller ett osynligt tecken i
+  källkoden.
+- ☠️ **Skrollåset sitter på `html`, aldrig på `body`** (`lib/las-sidan.ts`).
+  `html` har `overflow-x:clip`, och då förs `body`:s `overflow` aldrig vidare
+  till fönstret. Låset på `body` låste därför ingenting: med mobilmenyn öppen
+  gick sidan bakom att svepa och skrolla (scrollY 0 → 787 med ett svep, 1 387
+  med mushjulet, mätt på www och på förhandsbygget). Det gjorde dessutom
+  `body` till en skrollbehållare, och då hämtade Chrome sidans lata bilder:
+  tio bilder och 336 kB på startsidan varje gång menyn öppnades. Alla sex
+  lager (mobilmenyn, filtren, kategorivalet, bildvisaren och de två
+  fotovisarna för omdömen) låser via `lasSidan()`, som räknar samtidiga lås
+  och håller rullningslistens plats på datorn. `lib/las-sidan.test.ts` fäller
+  `document.body.style.overflow` var som helst i koden.
