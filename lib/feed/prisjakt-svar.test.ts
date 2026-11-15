@@ -307,7 +307,7 @@ describe("svaren ur den sparade kopian", () => {
 
   it("den som inte tar emot gzip får XML:en uppackad och strömmad, samma tecken som byggdes", async () => {
     for (const ae of [undefined, "identity", "br", "gzip;q=0"]) {
-      const res = flodessvarUrKopia(kopia, med(ae), nu);
+      const res = flodessvarUrKopia(kopia, med(ae), { nu });
       assert.equal(res.headers.get("content-encoding"), null, ae);
       assert.equal(res.headers.get("content-length"), null, "strömmat: ett svar över 4,5 MB får inte skickas i ett stycke");
       assert.equal(res.headers.get("vary"), "Accept-Encoding");
@@ -317,8 +317,18 @@ describe("svaren ur den sparade kopian", () => {
     }
   });
 
+  it("egna rubriker läggs till sist: det hemliga Prisjakt-flödets X-Robots-Tag och stale-if-error", () => {
+    const cc = `${kopiansCacheControl(1800)}, stale-if-error=86400`;
+    for (const ae of ["gzip", undefined]) {
+      const res = flodessvarUrKopia(kopia, med(ae), { nu, rubriker: { "X-Robots-Tag": "noindex", "Cache-Control": cc } });
+      assert.equal(res.headers.get("x-robots-tag"), "noindex");
+      assert.equal(res.headers.get("cache-control"), cc);
+      assert.equal(res.headers.get("content-type"), "application/xml; charset=utf-8");
+    }
+  });
+
   it("den som tar emot gzip på /feed/<fil> (utan omskrivningen) får de sparade byten", async () => {
-    const res = flodessvarUrKopia(kopia, med("gzip, deflate"), nu);
+    const res = flodessvarUrKopia(kopia, med("gzip, deflate"), { nu });
     assert.equal(res.headers.get("content-encoding"), "gzip");
     assert.equal(res.headers.get("vary"), "Accept-Encoding");
     assert.deepEqual(Buffer.from(await res.arrayBuffer()), gz);
@@ -377,18 +387,35 @@ describe("huvudsvar: HEAD bygger aldrig", () => {
 
   it("☠️ varje flödesrutt har en egen HEAD som aldrig bygger", () => {
     const rot = join(import.meta.dirname, "..", "..", "app", "feed");
-    for (const fil of [...KOMPRIMERADE_FLODEN.map((f) => join(f, "route.ts")), join("gz", "[fil]", "route.ts")]) {
+    const rutter = [
+      ...KOMPRIMERADE_FLODEN.map((f) => join(f, "route.ts")),
+      join("gz", "[fil]", "route.ts"),
+      join("prisjakt.xml", "route.ts"),
+      join("[fil]", "route.ts"),
+    ];
+    for (const fil of rutter) {
       const kalla = readFileSync(join(rot, fil), "utf8");
       const start = kalla.indexOf("export async function HEAD(");
       assert.ok(start >= 0, `${fil} saknar HEAD: då kör Next GET och bygger hela flödet`);
       const slut = kalla.indexOf("\n}\n", start);
       const kropp = kalla.slice(start, slut);
       assert.ok(slut > start);
-      for (const forbjudet of ["GET(", "googleFeed(", "BYGGARE", "fetch", "tillPinterest", "lasKopia(", "flodessvar("]) {
+      for (const forbjudet of ["GET(", "googleFeed(", "BYGGARE", "fetch", "tillPinterest", "lasKopia(", "flodessvar(", "Xml(", "hamtaPrisjaktArtiklar"]) {
         assert.ok(!kropp.includes(forbjudet), `${fil}: HEAD får inte röra ${forbjudet}`);
       }
       assert.match(kropp, /return huvudsvar\(/);
     }
+    const hemlig = readFileSync(join(rot, "[fil]", "route.ts"), "utf8");
+    const head = hemlig.slice(hemlig.indexOf("export async function HEAD("));
+    assert.match(head, /^export async function HEAD\([^)]*\{ params \}[^)]*\) \{\n  const \{ fil \} = await params;\n  if \(!arHemligPrisjaktFil\(fil, prisjaktKod\(\)\)\) return ingenFil\(\);/, "fel filnamn ger 404 också på HEAD");
+    assert.match(head, /rubriker: \{ \.\.\.NOINDEX \}/, "HEAD bär X-Robots-Tag som GET");
+  });
+
+  it("huvudsvar tar egna rubriker men skriver aldrig över typen och CDN-tiden", () => {
+    const res = huvudsvar({ komprimerat: false, rubriker: { "X-Robots-Tag": "noindex", "Content-Type": "text/html", "Cache-Control": "public, max-age=99" } });
+    assert.equal(res.headers.get("x-robots-tag"), "noindex");
+    assert.equal(res.headers.get("content-type"), "application/xml; charset=utf-8");
+    assert.equal(res.headers.get("cache-control"), "no-store");
   });
 });
 

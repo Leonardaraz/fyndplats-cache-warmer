@@ -220,22 +220,55 @@ describe("åldern", () => {
 });
 
 describe("listorna", () => {
-  it("bara komprimerade flöden sparas, och Pinterest är ett av dem", () => {
+  it("bara komprimerade flöden sparas: Google, PriceRunner och Pinterest, inte produktflödet", () => {
     for (const fil of LAGRADE_FLODEN) assert.ok((KOMPRIMERADE_FLODEN as readonly string[]).includes(fil), fil);
-    assert.ok(arLagratFlode("pinterest.xml"));
+    assert.deepEqual([...LAGRADE_FLODEN], ["google.xml", "pricerunner.xml", "pinterest.xml"]);
+    for (const fil of LAGRADE_FLODEN) assert.ok(arLagratFlode(fil), fil);
+    assert.ok(!arLagratFlode("products.xml"));
     assert.ok(!arLagratFlode("prisjakt.xml"));
-    assert.ok(!arLagratFlode("google.xml"));
   });
 
-  it("jobbet bygger och sparar varje lagrat flöde, och gz-rutten och /feed/pinterest.xml läser kopian", () => {
-    const rot = join(import.meta.dirname, "..", "..");
-    const jobb = readFileSync(join(rot, "app", "api", "cron", "farska-floden", "route.ts"), "utf8");
-    assert.match(jobb, /for \(const fil of LAGRADE_FLODEN\) kopior\.push\(await byggOchSpara\(fil\)\);/);
-    assert.match(jobb, /await sparaKopia\(fil, gz, \{ byggd, xmlByte: Buffer\.byteLength\(xml\) \}\)/);
-    assert.match(jobb, /if \(arTomtFlode\(xml\)\) return/, "ett tomt flöde sparas aldrig");
-    const gzRutt = readFileSync(join(rot, "app", "feed", "gz", "[fil]", "route.ts"), "utf8");
-    assert.match(gzRutt, /if \(kopia && anvandbar\(kopia\.byggd\)\)/);
-    const pinterest = readFileSync(join(rot, "app", "feed", "pinterest.xml", "route.ts"), "utf8");
-    assert.match(pinterest, /if \(request\) \{\n    const kopia = await lasKopia\(FIL\);/, "bara en läsare utifrån får kopian: utan anrop byggs flödet");
+  const rot = join(import.meta.dirname, "..", "..");
+  const las = (...p: string[]) => readFileSync(join(rot, ...p), "utf8");
+
+  it("☠️ jobbet bygger Google-flödet EN gång och gör resten ur det", () => {
+    const jobb = las("app", "api", "cron", "farska-floden", "route.ts");
+    assert.equal(jobb.match(/googleFeed\(\)/g)?.length, 1, "ett enda bygge av Google-flödet per körning");
+    assert.doesNotMatch(jobb, /BYGGARE/, "inga bygg via rutterna: de bygger Google-flödet en gång var");
+    assert.match(jobb, /const UR_GOOGLE: Record<LagratFlode, \(googleXml: string\) => string> = \{/);
+    assert.match(jobb, /"pricerunner\.xml": pricerunnerXml,/);
+    assert.match(jobb, /"pinterest\.xml": pinterestXml,/);
+    assert.match(jobb, /if \(arTomtFlode\(xml\)\) return \{ rad: `\$\{namn\} utan en enda vara, förra kopian behölls`, ok: false \};/, "ett tomt flöde sparas aldrig");
+    assert.match(jobb, /await sparaKopia\(namn, gz, \{ byggd, xmlByte: Buffer\.byteLength\(xml\) \}\)/);
+    assert.match(jobb, /await spara\(PRISJAKT_HEMLIG_KOPIA, prisjaktHemligXml\(googleXml, motorn\.value\), byggd\)/);
+  });
+
+  it("☠️ jobbet känner aldrig till Prisjakts hemliga adress", () => {
+    const jobb = las("app", "api", "cron", "farska-floden", "route.ts");
+    assert.doesNotMatch(jobb, /prisjaktKod|arHemligPrisjaktFil|PRISJAKT_FLODE_KOD|prisjakt-adress/);
+  });
+
+  it("rutterna läser kopian bara åt en läsare utifrån, och sparar det de bygger", () => {
+    for (const fil of ["google.xml", "pricerunner.xml", "pinterest.xml"]) {
+      const rutt = las("app", "feed", fil, "route.ts");
+      assert.match(rutt, /if \(request\) \{\n    const kopia = await anvandbarKopia\(/, `${fil}: utan anrop byggs flödet alltid`);
+      assert.match(rutt, /if \(request && !arTomtFlode\(xml\)\) sparaEfterSvaret\(/, fil);
+    }
+    const gz = las("app", "feed", "gz", "[fil]", "route.ts");
+    assert.match(gz, /const kopia = await anvandbarKopia\(fil, request, `\/feed\/gz\/\$\{fil\}`\);/);
+    assert.match(gz, /sparaEfterSvaret\(fil, `\/feed\/gz\/\$\{fil\}`, byggd, xml, gz\);/);
+    const hemlig = las("app", "feed", "[fil]", "route.ts");
+    assert.match(hemlig, /const kopia = await anvandbarKopia\(PRISJAKT_HEMLIG_KOPIA, request, NAMN\);/);
+    assert.match(hemlig, /sparaEfterSvaret\(PRISJAKT_HEMLIG_KOPIA, NAMN, byggd, xml\);/);
+    assert.ok(hemlig.indexOf("if (!arHemligPrisjaktFil(fil, prisjaktKod())) return ingenFil();") < hemlig.indexOf("anvandbarKopia("), "adressen prövas före kopian");
+  });
+
+  it("☠️ loggen för det hemliga flödet bär ett namn, aldrig adressen", () => {
+    const hemlig = las("app", "feed", "[fil]", "route.ts");
+    assert.match(hemlig, /const NAMN = "det hemliga Prisjakt-flödet";/);
+    for (const rad of hemlig.split("\n").filter((r) => /console\.\w+\(/.test(r))) {
+      assert.doesNotMatch(rad, /\$\{fil\}|request\.url|params/, rad.trim());
+    }
+    assert.doesNotMatch(las("lib", "feed", "kopiesvar.ts"), /request\.url|new URL\(request/, "loggen tar namnet, aldrig adressen ur anropet");
   });
 });

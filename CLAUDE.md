@@ -1163,9 +1163,9 @@ sitemapen och de tre flödena en gång, så att det ska hända sällan. Prisjakt
 hemliga adress står inte i listan och får aldrig göra det.
 ☠️ Mätt 2026-11-15: det räcker inte för ett flöde som hämtas en gång om
 dygnet. CDN:en hade tappat kopian före varje körning (MISS fyra gånger av
-fyra på Pinterest-, Google- och PriceRunner-flödet). Pinterest-flödet sparas
-därför i Runtime Cache, och alla flödesrutter har en HEAD som inte bygger (se
-Pinterest-avsnittet).
+fyra på Pinterest-, Google- och PriceRunner-flödet). De flödena och det
+hemliga Prisjakt-flödet sparas därför i Runtime Cache, och alla flödesrutter
+har en HEAD som inte bygger (se "Flödena svarar direkt").
 
 ☠️ **Ett flöde utan en enda vara skickas aldrig** (`arTomtFlode`). Det betyder
 att katalogen eller varianterna inte gick att läsa, och den som läser in ett
@@ -1174,9 +1174,9 @@ behåller sin förra inläsning, CDN:en behåller sin förra kopia, och felet st
 i loggen som `[flode] … byggdes utan en enda vara`. Sedan flödena byggs vid
 anrop kan det hända vilken timme som helst, inte bara vid deployen.
 
-**Prisjakt-flödena är orörda.** De strömmas som förut och byggs alltså om vid
-varje hämtning. De är alltid färska, och hur de ska hållas i CDN:en är ett
-eget beslut: Prisjakt hämtar på en adress som jobbet inte får känna till.
+**Det öppna Prisjakt-flödet är orört** (utom HEAD): det strömmas och byggs om
+vid varje hämtning. **Det hemliga sparas sedan 2026-11-15** som de andra, och
+jobbet bygger det utan att känna till adressen (se "Flödena svarar direkt").
 
 **Länkarna i produkttexterna.** Poleringen skriver länkar i Wix adressform,
 `/product-page/<slug>`, som butiken omdirigerar med 308. Semrush räknade 600
@@ -1244,8 +1244,9 @@ Google-, PriceRunner- och det öppna Prisjakt-flödet byggs utan numren.
   loggrad. Saknas variabeln, eller är koden för kort, finns ingen hemlig adress:
   varje filnamn svarar 404. Ett fel filnamn ger 404. Svaren bär `X-Robots-Tag:
   noindex`. `lib/feed/prisjakt-adress.test.ts` fäller om något som ser ut som
-  adressen checkas in, och om ett annat flöde än den hemliga rutten hämtar
-  numren.
+  adressen checkas in, och om någon annan fil än den hemliga rutten och
+  `/api/cron/farska-floden` hämtar numren eller bygger flödet. Jobbet sparar
+  flödet under ett namn, aldrig adressen (se "Flödena svarar direkt").
 - **Numren och märkena** hämtas från motorns `/api/prisjakt-artiklar` (grenen
   main) när flödet byggs, med `REVIEW_INGEST_SECRET`. Mappningarna bor i
   motorns Wix-lager och aldrig i en fil här (repot är publikt).
@@ -1313,9 +1314,10 @@ nivåer). Den rör kategorikartan, inte flödet.
 - Säljargranskningen startade av sig själv när katalogen laddades upp.
 - Inget annonskonto och ingen Pinterest-tagg. Leonard valde bort dem 2026-11-15.
 
-### Pinterest får flödet direkt: HEAD och den sparade kopian (Leonard 2026-11-15)
+## Flödena svarar direkt: HEAD och sparade kopior (Leonard 2026-11-15)
 
-Leonard bad om att flödet skulle optimeras. Mätt samma förmiddag:
+Leonard bad om att Pinterest-flödet skulle optimeras, och sedan om Google,
+PriceRunner och Prisjakt: "borde vi inte fixa dom med?". Mätt samma förmiddag:
 
 - **En HEAD byggde hela flödet.** Pinterest gör en HEAD före inläsningen
   (09:12 UTC). CDN:ens nyckel innehåller metoden (vercel.com/docs/caching/
@@ -1328,25 +1330,40 @@ Leonard bad om att flödet skulle optimeras. Mätt samma förmiddag:
   två timmar tidigare och den skulle ha gällt i tre. `/feed/products.xml`, som
   hämtas oftare, gav HIT och STALE. Vercel skriver att sällan hämtade svar kan
   försvinna ur regionens cache (cdn-cache, Limits). Värmningen höll alltså inte
-  Pinterests kopia vid liv.
+  kopiorna vid liv.
+- **Prisjakt hämtar den hemliga adressen tre gånger om dygnet** (16:20, 00:21
+  och 08:21 svensk tid) och väntade på ett bygge av 13 MB varje gång.
 
 Nu:
 
 - ☠️ **Varje flödesrutt har en egen HEAD som aldrig bygger** (`huvudsvar` i
-  `lib/feed/prisjakt-svar.ts`): de fyra under `/feed/` och `/feed/gz/[fil]`.
-  Svaret har samma rubriker som GET och `Cache-Control: no-store`, och längd
-  och tid när det finns en sparad kopia. Provet fäller en rutt utan HEAD och en
-  HEAD som bygger.
-- **Pinterest-flödet sparas i Vercels Runtime Cache** (`lib/feed/flodeslager.ts`,
-  `LAGRADE_FLODEN`). Jobbet bygger det först i varje körning och sparar
-  gzip-filen. `/feed/gz/pinterest.xml` och `/feed/pinterest.xml` svarar ur
-  kopian när den är yngre än tre timmar (den okomprimerade adressen packar upp
-  den). Saknas kopian byggs flödet som förut, och det som byggdes sparas efter
-  svaret. Anropad utan anrop (gz-rutten och jobbet) bygger rutten alltid.
-- ☠️ **En post i Runtime Cache är högst 2 MB**, och flödet är 2,9 MB som gzip.
-  Filen sparas i sex bitar under en egen generation och pekas ut sist, med
-  längd och kontrollsumma. En kopia som inte stämmer används inte: lagret kan
-  göra flödet snabbare, aldrig fel.
+  `lib/feed/prisjakt-svar.ts`): de fyra under `/feed/`, `/feed/gz/[fil]`, det
+  öppna Prisjakt-flödet och den hemliga adressen, där ett fel filnamn ger 404
+  också på HEAD. Svaret har samma rubriker som GET och `Cache-Control:
+  no-store`, och längd och tid när det finns en sparad kopia. Provet fäller en
+  rutt utan HEAD och en HEAD som bygger.
+- **Google-, PriceRunner-, Pinterest- och det hemliga Prisjakt-flödet sparas i
+  Vercels Runtime Cache** (`lib/feed/flodeslager.ts`: `LAGRADE_FLODEN` och
+  `PRISJAKT_HEMLIG_KOPIA`). Läsaren får kopian när den är yngre än tre timmar;
+  den okomprimerade adressen packar upp den. Saknas kopian byggs flödet som
+  förut, och det som byggdes sparas efter svaret (`lib/feed/kopiesvar.ts`).
+  Anropad utan anrop bygger en rutt alltid.
+- ☠️ **Jobbet bygger Google-flödet EN gång** och gör PriceRunner-, Pinterest-
+  och det hemliga Prisjakt-flödet ur det, med samma byggare som rutterna
+  (`lib/feed/harledda.ts`, `lib/feed/prisjakt-hemlig.ts`). Förut byggdes
+  Google-flödet tre gånger per körning, en gång per flöde. Provet fäller ett
+  andra bygge.
+- ☠️ **Jobbet känner inte till Prisjakts hemliga adress.** Det hämtar motorns
+  nummer, bygger flödet och sparar det under namnet `prisjakt-hemlig`, och bara
+  rutten på adressen läser kopian. Loggen bär namnet, aldrig adressen.
+  `lib/feed/prisjakt-adress.test.ts` fäller om någon annan fil än rutten och
+  jobbet hämtar numren eller bygger flödet. Faller motorn gäller förra kopian.
+- Den hemliga adressen svarar nu 503 också på ett flöde utan en enda vara
+  (`arTomtFlode`), som de andra flödena. Förut hade ett sådant flöde gått ut.
+- ☠️ **En post i Runtime Cache är högst 2 MB**, och Pinterest-flödet är 2,9 MB
+  som gzip. Filen sparas i bitar om 512 kB under en egen generation och pekas
+  ut sist, med längd och kontrollsumma. En kopia som inte stämmer används inte:
+  lagret kan göra ett flöde snabbare, aldrig fel.
 - ☠️ **Paketets `set` sväljer sina fel** (loggar och ger upp efter 500 ms).
   Varje bit läses tillbaka och skrivs om en gång innan pekaren skrivs, och
   jobbets rad säger `SPARADES INTE` när det ändå inte gick. Raden säger också
@@ -1358,14 +1375,18 @@ Nu:
 - **Loggen säger vem som hämtar**: `[flode] /feed/gz/pinterest.xml ur kopian,
   14 min gammal (gzip, deflate; Pinterestbot/1.0)`. Bara Accept-Encoding och
   robotens namn ur User-Agent (`lasare`).
-- Kostnad: runt 470 skrivenheter per sparning (en enhet är 8 kB, och 2,9 MB
-  blir 3,8 MB som base64), tolv gånger om dygnet, och lika många läsenheter för
-  kontrollen. Under en dollar i månaden.
+- Mätt på förhandsbygget (Pinterest-flödet, 2026-11-15): HEAD 0,5–0,9 s (förut
+  52 s), GET ur kopian 0,9 s med gzip och 2,0 s utan (förut 50–80 s), samma
+  byte. Vercel skickar `Accept-Encoding: gzip` till rutten också när läsaren
+  inte skickat någon, och packar själv upp svaret åt en sådan läsare.
+- Kostnad: runt 1 600 skrivenheter per körning för de fyra (en enhet är 8 kB,
+  och filerna är 2–3 MB som gzip och en tredjedel större som base64), tolv
+  gånger om dygnet, och lika många läsenheter för kontrollen. Ungefär tre
+  dollar i månaden.
 
-Google-, PriceRunner- och produktflödet har bara fått HEAD. Ska de också
-sparas räcker en rad i `LAGRADE_FLODEN`: jobbet bygger dem då själv före
-hämtningarna, och hämtningen läser kopian, så jobbets tid blir ungefär
-densamma. Varje flöde kostar sina skrivenheter.
+Produktflödet har bara fått HEAD: det hämtas ofta nog för att CDN:en ska
+behålla det. Det öppna `/feed/prisjakt.xml` har också bara fått HEAD; det ska
+bort (se Prisjakt-avsnittet) och hämtades en gång natten mot 2026-11-15.
 
 ## Strukturerad data för Google Shopping (2026-10-22)
 

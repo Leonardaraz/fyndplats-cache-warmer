@@ -8,15 +8,17 @@
 // Google- och PriceRunner-flödet, fast förra körningen byggt kopian två timmar
 // tidigare och den skulle ha gällt i tre. Vercel skriver själva att sällan
 // hämtade svar kan försvinna ur regionens cache (vercel.com/docs/caching/
-// cdn-cache, Limits). Pinterest fick därför nästan alltid vänta på ett bygge:
-// 50–78 s, och lika länge till för sin HEAD (se `huvudsvar` i
+// cdn-cache, Limits). Läsarna (Google Merchant Center, PriceRunner, Pinterest,
+// Prisjakt) fick därför nästan alltid vänta på ett bygge: 50–78 s, och
+// Pinterest lika länge till för sin HEAD (se `huvudsvar` i
 // lib/feed/prisjakt-svar.ts).
 //
 // HUR.
-// - /api/cron/farska-floden bygger flödet varannan timme och sparar gzip-filen
-//   här. /feed/gz/<fil> och /feed/<fil> svarar ur kopian när den är yngre än tre
-//   timmar (LAGER_MAX_ALDER_S, samma gräns som FLODE_CACHE). Annars byggs flödet
-//   som förut, och det som byggdes sparas efter svaret.
+// - /api/cron/farska-floden bygger Google-flödet varannan timme, gör de andra
+//   ur det och sparar gzip-filerna här. /feed/gz/<fil>, /feed/<fil> och den
+//   hemliga Prisjakt-adressen svarar ur kopian när den är yngre än tre timmar
+//   (LAGER_MAX_ALDER_S, samma gräns som FLODE_CACHE). Annars byggs flödet som
+//   förut, och det som byggdes sparas efter svaret.
 // - ☠️ En post får vara högst 2 MB (vercel.com/docs/runtime-cache, Limits), och
 //   Pinterest-flödet är 2,9 MB som gzip. Filen sparas därför i bitar om 512 kB
 //   (base64, eftersom värdet skickas som JSON) under en egen generation, och
@@ -39,14 +41,18 @@ import { createHash, randomUUID } from "node:crypto";
 import { getCache } from "@vercel/functions";
 
 /**
- * Flödena som sparas. Var och ett ska också stå i KOMPRIMERADE_FLODEN
- * (lib/feed/prisjakt-svar.ts); provet håller ihop listorna. Jobbet bygger
- * varje flöde här för sig, så ett flöde till kostar ett bygge till varannan
- * timme.
+ * Flödena med en komprimerad adress som sparas. Var och ett ska också stå i
+ * KOMPRIMERADE_FLODEN (lib/feed/prisjakt-svar.ts); provet håller ihop
+ * listorna. Alla tre byggs ur Google-flödet, så jobbet bygger Google en gång.
+ * Det hemliga Prisjakt-flödet sparas också, under PRISJAKT_HEMLIG_KOPIA
+ * (lib/feed/prisjakt-hemlig.ts). Produktflödet sparas inte: det hämtas ofta
+ * nog för att CDN:en ska behålla det (HIT och STALE i varje körning).
  */
-export const LAGRADE_FLODEN = ["pinterest.xml"] as const;
+export const LAGRADE_FLODEN = ["google.xml", "pricerunner.xml", "pinterest.xml"] as const;
 
-export function arLagratFlode(fil: string): fil is (typeof LAGRADE_FLODEN)[number] {
+export type LagratFlode = (typeof LAGRADE_FLODEN)[number];
+
+export function arLagratFlode(fil: string): fil is LagratFlode {
   return (LAGRADE_FLODEN as readonly string[]).includes(fil);
 }
 

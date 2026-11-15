@@ -196,9 +196,10 @@ function gzSvar(kropp: Uint8Array<ArrayBuffer>, rubriker: Record<string, string>
 // den skulle ha gällt i tre. Vercel: "If your asset is rarely requested (e.g.
 // once a day), it may be evicted from the regional cache"
 // (vercel.com/docs/caching/cdn-cache, Limits). Den som hämtar en gång om
-// dygnet (Pinterest) fick därför nästan alltid vänta på ett bygge: 50–78 s.
-// En kopia sparad i Vercels Runtime Cache läses i stället på en bråkdel av en
-// sekund, och svaren nedan byggs ur den.
+// dygnet (Google Merchant Center, PriceRunner, Pinterest) eller tre gånger om
+// dygnet (Prisjakt) fick därför nästan alltid vänta på ett bygge: 50–78 s.
+// En kopia sparad i Vercels Runtime Cache läses i stället på en sekund eller
+// två, och svaren nedan byggs ur den.
 // ---------------------------------------------------------------------------
 
 /** En sparad kopia av ett flöde: gzip-filen, när bygget började och den okomprimerade storleken. */
@@ -235,9 +236,20 @@ export function komprimeratSvarUrKopia(kopia: FlodesKopia, nu = Date.now()): Res
  * /feed/<fil> ur kopian. Den som inte tar emot gzip får XML:en uppackad och
  * strömmad, som från ett bygge: ett svar över 10 MB behålls inte av CDN:en,
  * och då ska läsaren åtminstone slippa vänta på bygget.
+ *
+ * Mätt på förhandsbygget 2026-11-15: Vercel skickar `Accept-Encoding: gzip`
+ * till rutten också när läsaren inte skickat någon, och packar själv upp
+ * svaret åt en sådan läsare (19,9 MB på 2,0 s). Svaret är rätt åt båda hållen.
+ *
+ * `rubriker` läggs till sist: det hemliga Prisjakt-flödet skickar
+ * X-Robots-Tag och en egen CDN-tid med stale-if-error.
  */
-export function flodessvarUrKopia(kopia: FlodesKopia, request: Request | undefined, nu = Date.now()): Response {
-  const rubriker = { ...kopiansRubriker(kopia, nu), Vary: "Accept-Encoding" };
+export function flodessvarUrKopia(
+  kopia: FlodesKopia,
+  request: Request | undefined,
+  opts: { nu?: number; rubriker?: Record<string, string> } = {},
+): Response {
+  const rubriker = { ...kopiansRubriker(kopia, opts.nu ?? Date.now()), Vary: "Accept-Encoding", ...opts.rubriker };
   if (tarEmotGzip(request?.headers.get("accept-encoding"))) return gzSvar(kopia.gz, rubriker);
   return new Response(strommadeByte(gunzipSync(kopia.gz)), { headers: rubriker });
 }
@@ -254,8 +266,9 @@ export function flodessvarUrKopia(kopia: FlodesKopia, request: Request | undefin
  * Längden och tiden står med när det finns en sparad kopia att läsa dem ur.
  * `no-store`: svaret ska spegla kopian som den är nu, inte för en timme sedan.
  */
-export function huvudsvar(opts: { komprimerat: boolean; kopia?: KopiansHuvud | null }): Response {
+export function huvudsvar(opts: { komprimerat: boolean; kopia?: KopiansHuvud | null; rubriker?: Record<string, string> }): Response {
   const rubriker: Record<string, string> = {
+    ...opts.rubriker,
     "Content-Type": "application/xml; charset=utf-8",
     "Cache-Control": "no-store",
   };
