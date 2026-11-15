@@ -268,6 +268,10 @@ test("menyerna hämtar bilderna först när någon rör menyn eller webbläsaren
   assert.match(mobil, /onClick=\{oppna\}/);
   // En dold panels bilder laddas aldrig: datorns bilder är lata.
   const hook = readFileSync("components/use-meny-bilder.tsx", "utf8");
+  // Förvärmningen väntar tills sidan har laddat klart, så att listan och
+  // mobilens miniatyrer aldrig tävlar med sidans egna bilder om nätet.
+  assert.match(hook, /if \(document\.readyState === "complete"\) starta\(\);\s*else window\.addEventListener\("load", starta, \{ once: true \}\);/);
+  assert.match(hook, /window\.removeEventListener\("load", starta\);/);
   assert.match(hook, /loading=\{lat \? "lazy" : "eager"\}/);
   assert.match(hook, /alt=""/);
 });

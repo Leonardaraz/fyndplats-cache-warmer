@@ -2,8 +2,9 @@
 // Menyns bilder, hämtade i webbläsaren från /api/meny-bilder (varför: se rutten).
 //
 // EN hämtning per sidvisning, delad av datorns meny och mobilens. Den startar
-// när någon rör menyn (hamtaMenyBilder), eller när webbläsaren är ledig
-// (forvarmMenyBilder): då är bilderna oftast framme innan panelen öppnas.
+// när någon rör menyn (hamtaMenyBilder), eller när sidan har laddat klart och
+// webbläsaren är ledig (forvarmMenyBilder): då är bilderna oftast framme innan
+// panelen öppnas, och de tävlar aldrig med sidans egna bilder om nätet.
 // Svaret är CDN-cachat och sparas i webbläsaren en timme, så nästa sida får
 // det utan nätet. Faller hämtningen visas menyn utan bilder; länkarna fungerar.
 
@@ -42,14 +43,30 @@ export function hamtaMenyBilder(): Promise<MenyBildsvar> {
   return lofte;
 }
 
-/** Hämtar när webbläsaren är ledig, så att panelen har sina bilder när den öppnas. */
+/**
+ * Hämtar när sidan har laddat klart (load) och webbläsaren sedan är ledig, så
+ * att panelen har sina bilder när den öppnas. Förut startade hämtningen vid
+ * första lediga stund, 0,7–1,6 s in i laddningen, och listan och mobilens
+ * tretton miniatyrer tävlade då med sidans största bild på ett långsamt nät
+ * (Lighthouse mobil 2026-11-15: produktsidans LCP cirka 300 ms sämre än www).
+ */
 export function forvarmMenyBilder(): () => void {
   if (typeof window === "undefined" || svar || lofte) return () => {};
   const ledig = "requestIdleCallback" in window;
-  const id = ledig
-    ? window.requestIdleCallback(() => void hamtaMenyBilder(), { timeout: 5000 })
-    : window.setTimeout(() => void hamtaMenyBilder(), 2500);
-  return () => (ledig ? window.cancelIdleCallback(id) : window.clearTimeout(id));
+  let id: number | undefined;
+  const starta = () => {
+    id = ledig
+      ? window.requestIdleCallback(() => void hamtaMenyBilder(), { timeout: 5000 })
+      : window.setTimeout(() => void hamtaMenyBilder(), 2500);
+  };
+  if (document.readyState === "complete") starta();
+  else window.addEventListener("load", starta, { once: true });
+  return () => {
+    window.removeEventListener("load", starta);
+    if (id === undefined) return;
+    if (ledig) window.cancelIdleCallback(id);
+    else window.clearTimeout(id);
+  };
 }
 
 function prenumerera(f: () => void): () => void {

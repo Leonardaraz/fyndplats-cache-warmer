@@ -3296,8 +3296,12 @@ Datorns meny och mobilmenyn visar en bild per avdelning och underkategori.
   sida "ny". Urvalet: `lib/meny-bilder.ts` (mest såld först, ingen bild två
   gånger, aldrig collage, inbakad text, vattenmärke eller slutsålt) och 168
   granskade handval i `lib/meny-bild-val.ts` (bara adresser till egna sidor).
-- **Hämtningen:** bildlistan (cirka 5 kB) hämtas när webbläsaren är ledig, på
-  dator och telefon. Bilderna hämtas först när en panel eller ett steg öppnas.
+- **Hämtningen:** bildlistan (cirka 5 kB) hämtas när sidan har laddat klart
+  (`load`) och webbläsaren sedan är ledig, på dator och telefon, eller direkt
+  när någon rör menyn. Förut startade den vid första lediga stund, och i
+  Lighthouse (som spelar in sidan ostrypt) tävlade listan och mobilens
+  miniatyrer då med sidans största bild. Bilderna hämtas först när en panel
+  eller ett steg öppnas.
   Mätt på förhandsbygget 2026-11-15: en datorpanel cirka 86 kB (median 612 ms
   tills panelens bilder syns), mobilens första steg 27 kB (13 miniatyrer),
   ett steg två cirka 134 kB (median 764 ms).
