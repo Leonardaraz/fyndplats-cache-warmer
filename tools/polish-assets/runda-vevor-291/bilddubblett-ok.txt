@@ -1,0 +1,4 @@
+# Par som grinden mäter som lika (nätet på vit botten, tunna linjer) men som visar fyrvägsnätet från tre olika vinklar (sett från ett hörn med fyra sidor, med tre sidor mot kameran och rakt från sidan med två sidor): kontrollerat med ögonen på kontaktark 2026-11-15.
+d095762f 4 5 olika vinklar av fyrvägsnätet: fyra nätsidor mot en med tre sidor mot kameran
+d095762f 4 6 olika vinklar av fyrvägsnätet: fyra nätsidor mot rakt från sidan med två sidor
+d095762f 5 6 olika vinklar av fyrvägsnätet: tre nätsidor mot rakt från sidan med två sidor
