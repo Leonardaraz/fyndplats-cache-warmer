@@ -24,7 +24,7 @@
 
 import { GET as googleFeed } from "../google.xml/route";
 import { tillPrisjakt } from "@/lib/feed/prisjakt";
-import { PRISJAKT_GTIN } from "@/lib/feed/prisjakt-gtin";
+import { FLODE_GTIN } from "@/lib/feed/flode-gtin";
 import { arHemligPrisjaktFil, prisjaktKod } from "@/lib/feed/prisjakt-adress";
 import { hamtaPrisjaktArtiklar } from "@/lib/feed/prisjakt-motor";
 import { PRISJAKT_VARNING_BYTE_STROMMAT, prisjaktRakning, strommatXml } from "@/lib/feed/prisjakt-svar";
@@ -76,7 +76,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ fil: st
       minDays: DELIVERY_MIN_DAYS,
       maxDays: DELIVERY_MAX_DAYS,
     },
-    PRISJAKT_GTIN,
+    FLODE_GTIN,
     motorn.value.artiklar,
   );
 

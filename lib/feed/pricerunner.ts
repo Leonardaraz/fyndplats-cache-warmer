@@ -15,8 +15,13 @@
 //     slutsåld vara kostar pengar och ger ingen försäljning.
 //
 // Googles interna kampanjetiketter (g:custom_label_*) tas bort — de betyder
-// bara något i Google Ads. Ingen EAN/GTIN finns (varorna är omärkta), och
-// g:identifier_exists=no följer med som i Google-feeden.
+// bara något i Google Ads.
+//
+// EAN/GTIN (2026-11-15): PriceRunner kopplar ett erbjudande till sin produktsida
+// via EAN. Varor som urvalet i lib/feed/prisjakt.ts (gtinUrval, samma som i
+// Prisjakt-flödet) pekar ut får g:gtin, och deras g:identifier_exists=no tas
+// bort (de två motsäger varandra). Alla andra varor har g:identifier_exists=no
+// som i Google-feeden. ☠️ Google-feeden får aldrig koderna (lib/feed/gtin.ts).
 //
 // Ren funktion utan importer, så att node:test kan köra den direkt; routen
 // skickar in fraktvärdena.
@@ -33,13 +38,19 @@ const ITEM_RE = /<item>[\s\S]*?<\/item>/g;
 const PRICE_RE = /<g:price>([\d.]+) SEK<\/g:price>/;
 const SALE_RE = /\n?[ \t]*<g:sale_price>([\d.]+) SEK<\/g:sale_price>/;
 const LABEL_RE = /\n?[ \t]*<g:custom_label_\d>[^<]*<\/g:custom_label_\d>/g;
+const ID_RE = /<g:id>([^<]*)<\/g:id>/;
+const IDENTIFIER_RE = /\n?[ \t]*<g:identifier_exists>[^<]*<\/g:identifier_exists>/g;
 
 export function fraktFor(pris: number, s: PricerunnerShipping): number {
   return pris >= s.freeFromKr ? 0 : s.standardKr;
 }
 
-/** En <item> i Google-format → samma item för PriceRunner, eller null om den ska bort. */
-export function pricerunnerItem(item: string, s: PricerunnerShipping): string | null {
+/**
+ * En <item> i Google-format → samma item för PriceRunner, eller null om den ska bort.
+ * `gtin` (valfri, en GTIN-13 ur gtinUrval) skrivs som g:gtin i stället för
+ * g:identifier_exists=no. Något annat än 13 siffror skrivs aldrig.
+ */
+export function pricerunnerItem(item: string, s: PricerunnerShipping, gtin?: string): string | null {
   if (!item.includes("<g:availability>in_stock</g:availability>")) return null;
 
   const regular = item.match(PRICE_RE);
@@ -58,18 +69,26 @@ export function pricerunnerItem(item: string, s: PricerunnerShipping): string | 
         <g:max_transit_time>${s.maxTransitDays}</g:max_transit_time>
       </g:shipping>`;
 
-  return item
+  const kod = gtin && /^\d{13}$/.test(gtin) ? gtin : null;
+  const ut = kod ? item.replace(IDENTIFIER_RE, "") : item;
+  const gtinTagg = kod ? `\n      <g:gtin>${kod}</g:gtin>` : "";
+
+  return ut
     .replace(SALE_RE, "")
     .replace(PRICE_RE, `<g:price>${pris.toFixed(2)} SEK</g:price>`)
     .replace(LABEL_RE, "")
-    .replace(/\n?[ \t]*<\/item>$/, `${shipping}\n    </item>`);
+    .replace(/\n?[ \t]*<\/item>$/, `${gtinTagg}${shipping}\n    </item>`);
 }
 
-/** Hela Google-feeden → PriceRunner-feeden. */
-export function tillPricerunner(googleXml: string, s: PricerunnerShipping): string {
+/**
+ * Hela Google-feeden → PriceRunner-feeden. `gtin` är g:id → kod för de varor som
+ * får en g:gtin (gtinUrval i lib/feed/prisjakt.ts). Utan den blir flödet som förut.
+ */
+export function tillPricerunner(googleXml: string, s: PricerunnerShipping, gtin: ReadonlyMap<string, string> = new Map()): string {
   const items: string[] = [];
   for (const m of googleXml.matchAll(ITEM_RE)) {
-    const out = pricerunnerItem(m[0], s);
+    const id = gtin.size > 0 ? (m[0].match(ID_RE)?.[1] ?? "") : "";
+    const out = pricerunnerItem(m[0], s, gtin.get(id));
     if (out) items.push(`    ${out}`);
   }
 

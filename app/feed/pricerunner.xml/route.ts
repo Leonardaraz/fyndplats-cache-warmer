@@ -1,16 +1,17 @@
 // GET /feed/pricerunner.xml
 //
-// Produktfeed för PriceRunner, utan EAN (varorna är omärkta — se BRAND-
-// kommentaren i ../google.xml/route.ts). Byggs ur Google-feeden så att båda
-// alltid visar samma katalog, samma länkar och samma bilder; skillnaderna
-// (pris kunden betalar, frakt per vara, bara varor i lager) ligger i
-// lib/feed/pricerunner.ts.
+// Produktfeed för PriceRunner. Byggs ur Google-feeden så att båda alltid visar
+// samma katalog, samma länkar och samma bilder; skillnaderna (pris kunden
+// betalar, frakt per vara, bara varor i lager och EAN på de varor som
+// lib/feed/flode-gtin.ts pekar ut) ligger i lib/feed/pricerunner.ts.
 //
 // Körs vid anrop och skickas komprimerat, som Google-feeden (se kommentaren där): med
 // route-ISR byggdes flödet vid deployen och sedan aldrig mer.
 
 import { GET as googleFeed } from "../google.xml/route";
 import { tillPricerunner } from "@/lib/feed/pricerunner";
+import { gtinUrval } from "@/lib/feed/prisjakt";
+import { FLODE_GTIN } from "@/lib/feed/flode-gtin";
 import { flodessvar } from "@/lib/feed/prisjakt-svar";
 import {
   DELIVERY_MAX_DAYS,
@@ -32,7 +33,8 @@ export async function GET(request?: Request) {
     service: SHIPPING_SERVICE,
     minTransitDays: DELIVERY_MIN_DAYS,
     maxTransitDays: DELIVERY_MAX_DAYS,
-  });
+  }, gtinUrval(googleXml, FLODE_GTIN));
+  console.info(`[pricerunner] g:gtin på ${xml.split("<g:gtin>").length - 1} av ${Object.keys(FLODE_GTIN).length} varor i kartan`);
 
   return flodessvar(xml, request);
 }

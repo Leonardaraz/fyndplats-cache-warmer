@@ -1101,8 +1101,8 @@ Flödet byggs ur Google-flödet som PriceRunner-flödet, och skillnaderna ligger
   i flödet behövs inga leveranstjänster i Business Center.
 - Googles kampanjetiketter, `g:identifier_exists`, `g:size` (som kräver
   `g:size_system`) och extrabilderna tas bort. Ingen mpn i det öppna flödet, och
-  som regel ingen GTIN, utom i testet nedan. Märke och artikelnummer finns bara
-  på den hemliga adressen (se nästa avsnitt).
+  GTIN bara på varorna i kartan nedan (CDON-listan och dealproffsens). Märke och
+  artikelnummer finns bara på den hemliga adressen (se nästa avsnitt).
 - `g:color` har högst tre färger, skilda med `/` (`begransaFarger`). Fyra varor
   hade fler och fick varningen "Ogiltlig" i Business Center (2026-10-28).
 - **Testet med koder (2026-10-23).** 902 varor får en `g:gtin` ur
@@ -1125,6 +1125,32 @@ Flödet byggs ur Google-flödet som PriceRunner-flödet, och skillnaderna ligger
   `{}` (tillbaka till de 50), eller båda: flödet blir då byte för byte som förut.
   Artikelnummer, inköpspriser och adresser får aldrig stå i kartan (repot är
   publikt); `prisjakt-gtin.test.ts` vaktar formen på varje rad.
+- **CDON-listans koder (2026-11-15, Leonards "kör dina förslag noggrant").**
+  `lib/feed/gtin-cdon.ts` har 3 476 varianter (variant-id → GTIN-13), genererad
+  ur Leonards konfidentiella lista från 2026-11-14. Listan ligger aldrig i repot.
+  - Med är Aosoms egen CDON-butik (2 877) och VEVOR-varor hos Bonideco (599, UPC-12
+    skrivna som GTIN-13 med en inledande nolla). Varje rad är parad på
+    leverantörens artikelnummer, med "Ja: samma nr" och statusen "Hittad".
+  - Utanför är Bancros (53 företagsprefix, ser köpta ut), Kaufland, "Osäker" och
+    kontorsstolen.
+  - `lib/feed/gtin.ts` (`byggFlodeGtin`) slår ihop källorna, och
+    `lib/feed/flode-gtin.ts` är kartan som rutterna använder.
+    - Listans kod vinner för samma variant. 492 av de 534 varianter som båda
+      källorna har skilde sig.
+    - Dealproffsens kod står kvar där listan saknar varianten (368).
+    - En dealproffsen-kod som listan har på en annan variant tas bort.
+  - `gtinUrval` (prisjakt.ts) väljer koderna per vara. En CDON-kod hör till sin
+    variant och gäller också produkter med flera varianter. För dealproffsens
+    gäller regeln om exakt en variant.
+  - Samma urval går till Prisjakt (öppet och hemligt flöde) och till PriceRunner.
+    Där ersätter `g:gtin` raden `g:identifier_exists=no`.
+  - Mätt på produktionens Google-flöde 2026-11-15: 3 776 varor i lager med
+    `g:gtin` i båda flödena, förut 834 i Prisjakt och 0 i PriceRunner.
+  - ☠️ **Aldrig i Google-flödet.** Aosom levererar white label, och Google stämmer
+    av GTIN mot märket (Fyndplats). `gtin.test.ts` fäller om
+    `app/feed/google.xml` läser en GTIN-karta.
+  - Följ upp i Business Center, och ta bort koder som kopplas till fel
+    produktsida, som kontorsstolen.
 
 ☠️ **Vercels CDN cachar inga icke-strömmade svar över 10 MB.** Dokumentationen
 säger 10 MB för icke-strömmade svar och 20 MB för strömmade
