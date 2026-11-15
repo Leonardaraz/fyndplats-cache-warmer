@@ -382,6 +382,12 @@ TYSKA_ORD = [
     "Armlehnen", "Aufbewahrungstaschen", "Badezimmerspiegel", "Vergrößerungsspiegel", "Hantelständer",
     "Langhantelständer", "Kurzhantelständer", "Hantelablage", "Kurzhantelablage", "Regalsystem", "Steckregal",
     "Würfelregal", "Würfelfächer", "Schuhkarton", "Stehlampe", "Solarlampe", "Erdspieß", "Spritzwasserschutz",
+    # runda N382 (skrivbord med hylla, badrumsskåp med tvättkorg, läskudde, två gamingskrivbord, barnbord, golvlampa, skivstångsset)
+    "Lesekissen", "Rückenstütze", "Nackenkissen", "Kindertisch", "Kindersitzgruppe", "Tiermotive", "Langhantel",
+    "Langhantelstange", "Gewichtsscheiben", "Hantelstange", "Eckschreibtisch", "Aufsatzregal", "Kopfhörerhaken",
+    "Steckdosen", "Ladestation", "Monitorerhöhungen", "Badschrank", "Wasserwellenprojektor", "Ambientebeleuchtung",
+    "Leuchtenstange", "Lampenkopf", "Fernbedienung", "Kippsicherung", "Druckerablage", "Regalfächer", "Bücherablagen",
+    "Verschlüsse", "Gewichtsplatten", "Heimtraining", "Sitzbereich", "Neuschaumstoff", "Polyesterfaserfüllung",
 ]
 # ☠️ GRÄNSKLASSEN MÅSTE TÄCKA VERSALER OCKSÅ. Fram till 2026-09-07 stod här
 # `(?<![a-zåäöéü])`, alltså bara gemener — och då fyrar varje SVENSKT ord med

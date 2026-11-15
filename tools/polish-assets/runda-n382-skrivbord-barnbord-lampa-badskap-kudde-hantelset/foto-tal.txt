@@ -1,0 +1,5 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+81824da9 34,6 lådans bredd avläst på måttbilden (bild 3)
+81824da9 24,6 lådans djup avläst på måttbilden (bild 3)
+81824da9 9,8 lådans höjd avläst på måttbilden (bild 3)
