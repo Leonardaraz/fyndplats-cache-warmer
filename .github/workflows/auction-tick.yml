@@ -4,14 +4,14 @@ name: Fyndauktion tick
 # (→ rotera in nästa produkt ur kön), återställer priser vid sold/expired.
 # All logik ligger i appen — workflow:n är bara väckarklockan.
 #
-# VAR 10:e MINUT, inte varje timme (audit 2026-08-14): GitHub Actions-cron
-# driver 9–57 min (uppmätt: körningar 05:29, 03:57, 01:09 för "0 * * * *"),
-# och Vercel-cronen i vercel.json täcker inte upp på hobby-planen. Med timvis
-# schemaläggning landade prissänkningarna upp till en timme sena — kundernas
-# nedräkning nådde noll utan att något hände och korten fastnade på "Priset
-# uppdateras…". Ticken är idempotent och billig (PATCH:ar bara när målsteget
-# ändrats), så tätare väckning kostar sekunder per körning och gör att varje
-# sänkning landar minuter efter timslaget i stället för uppåt en timme.
+# ☠️ DET HÄR ÄR INTE TICKENS KLOCKA. Den är Vercels cron i vercel.json, var
+# tionde minut sedan Black Week-delen (planens del C2). GitHub körde det här
+# schemat 29 gånger på 122 timmar i stället för ~735 (uppmätt 24–29 oktober,
+# docs/claude/39-orderpipelinen.md), så prissänkningarna hängde på Vercels
+# timcron. Workflowen finns kvar av två skäl: en körning för hand
+# (workflow_dispatch), och ett larm — de körningar GitHub ändå gör blir röda när
+# ticket rapporterar ok:false. Ticken är idempotent, så en körning härifrån
+# samtidigt som Vercels gör samma skrivningar en gång till och inget annat.
 #
 # Återanvänder befintlig repository secret:
 #   CRON_SECRET — samma värde som CRON_SECRET i Vercel env vars

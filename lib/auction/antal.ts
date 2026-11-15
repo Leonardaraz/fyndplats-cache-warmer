@@ -4,8 +4,9 @@
 //
 // Leonard 2026-11-04: tio om dagen i stället för fem. Driften kostar nästan
 // ingenting mer (ticken går var tionde minut oavsett antal); det som kostar är
-// rabatten på de fynd som faktiskt säljs. Black Week läggs in som datum i
-// `DAGAR` när motorn klarar 50 och 100 om dagen (planen, del C2).
+// rabatten på de fynd som faktiskt säljs. Black Week står som datum i `DAGAR`
+// sedan planens del C2, som gjorde ticken byggd för 50 och 100 om dagen
+// (lib/auction/tick.ts).
 //
 // DAGEN RÄKNAS PÅ STARTEN. Antalet för en dag gäller fynden som startar 07:00
 // den dagen (svensk väggklocka). Ticken fyller platserna med start NÄSTA 07:00,
@@ -27,9 +28,26 @@ export const STANDARD_ANTAL = 10;
 
 /**
  * Dagar med ett annat antal: "ÅÅÅÅ-MM-DD" (startens dag, svensk tid) → antal.
- * Tom tills Black Week-delen är byggd (planen, del C2).
+ *
+ * Generalrepetitionen (Leonards ja 2026-11-14): 50 fynd onsdag 18 november,
+ * en vanlig vardag före Black Week. Tisdag 17/11 kl 08 schemaläggs 40 till
+ * onsdagen och kl 19 resten, och torsdag 19/11 är det tio igen.
+ *
+ * Black Week 2026, Leonards datum (2026-11-04): 50 om dagen 23–29 november,
+ * 100 fredag 27 november, och tio igen från 30 november. Ticken börjar fylla en
+ * större dag redan dagen före (söndag 22/11 kl 08 schemaläggs 40 till måndag),
+ * men butiken visar en schemalagd rad först när dagens fynd är slut.
  */
-export const DAGAR: Readonly<Record<string, number>> = {};
+export const DAGAR: Readonly<Record<string, number>> = {
+  "2026-11-18": 50,
+  "2026-11-23": 50,
+  "2026-11-24": 50,
+  "2026-11-25": 50,
+  "2026-11-26": 50,
+  "2026-11-27": 100,
+  "2026-11-28": 50,
+  "2026-11-29": 50,
+};
 
 /** Det största antalet någon dag kan ha. Läsgränsen i /api/auctions/rader följer det. */
 export const MAX_ANTAL = Math.max(STANDARD_ANTAL, ...Object.values(DAGAR));

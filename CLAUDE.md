@@ -305,6 +305,7 @@ underrubrik.
   - Wix-gränser som styr formen
   - E2: golvet ur motorn (`/api/medlem/golv`)
   - E3: företagen i kön (motorn)
+  - Medlemspriserna står på under Black Week 23–29/11 (beslut 2026-11-14)
   - Kvar till E2
 - `47-seo-titlar-egna.md`: SEO-titeln och metabeskrivningen ska vara sidans egna (2026-11-11)
   - Spärren i poleringens skrivning (`lib/polish/seo-unik.ts`)
@@ -314,5 +315,7 @@ underrubrik.
 - `44-mediainventering.md`: Mediainventering: "utan katalogreferens" är inte "oanvänd"
 - `45-fyndauktionens-antal-och-sparr.md`: Fyndauktionen: tio fynd om dagen och 30-dagarsspärren (2026-11-04)
   - Antalet per dag (`lib/auction/antal.ts`)
+  - Ticken klarar 50 och 100 om dagen (`lib/auction/tick.ts`, planens del C2)
   - 30-dagarsspärren (`lib/auction/trettio-dagar.ts`)
   - Strömbrytaren och första påslaget
+  - ☠️ Kön stod still 12–14/11: skyddsräcket räknade spärrens avslag (2026-11-14)

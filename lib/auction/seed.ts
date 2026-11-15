@@ -181,6 +181,20 @@ export interface SeedPlan {
  * fem ~10 % under butikens pris, och vid 19 hade de återställts dit. En
  * startad dag rörs aldrig: priset får inte hoppa mitt i nedräkningen.
  */
+/**
+ * Hur många av köns borttagningar som saknar 30-dagarsspärrens skäl: produkter
+ * som försvann ur katalogläsningen eller inte längre kvalar (dold, slut, tunn
+ * marginal). Det är dem seedens skyddsräcke väger, för en trasig katalogläsning
+ * tömmer kön på just det sättet. Det spärren stoppar har ett belagt skäl per
+ * fynd och räknas inte (2026-11-15: 393 av 845 efter prishöjningarna 11/11).
+ */
+export function raknaForsvunna(
+  toRemove: readonly Pick<AuctionDoc, "productId">[],
+  sparrStoppade: ReadonlySet<string>,
+): number {
+  return toRemove.filter((r) => !sparrStoppade.has(r.productId)).length;
+}
+
 export function planSeed(
   included: SeedCandidate[],
   existing: AuctionDoc[],

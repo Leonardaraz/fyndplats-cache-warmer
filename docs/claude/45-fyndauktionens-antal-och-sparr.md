@@ -26,16 +26,73 @@ främjar tills ALLA levande (startade och schemalagda) är lika många som NÄST
 - **`/api/auctions/rader`** läser upp till 200 levande rader. Startade och schemalagda kan
   samsas dagen före en större dag. "Senast sålda" har kvar sina 50.
 
-☠️ **Black Week läggs in i `DAGAR` först när motorn klarar 50 och 100 om dagen.** Följande
-måste vara på plats först:
+**Generalrepetitionen står i `DAGAR`** (Leonards ja 2026-11-14): 50 fynd onsdag 18 november,
+en vanlig vardag före Black Week. Tisdag 17/11 kl 08 schemaläggs 40 till onsdagen och kl 19
+resten, och torsdag 19/11 är det tio igen. `antal.test.ts` låser 17→18→19, och
+`tick-blackweek.test.ts` kör de tre dagarna genom ticken.
 
-- prisstegen med begränsad parallellism och samlade sparningar;
-- butikens `getFreshPrices` i klump;
-- en gemensam klocka för korten;
-- orderläsningen till slutet.
+**Black Week står i `DAGAR`**, med Leonards datum: 50 om dagen 23–29 november, 100 fredag
+27 november, och 10 igen från 30 november. Ticken fyller en större dag redan dagen före:
+söndag 22/11 kl 08 schemaläggs 40 till måndagen, och torsdag 26/11 fylls fredagen till 100 i
+två omgångar (kl 08 och kl 19). `antal.test.ts` låser varje datum och övergångarna 22→23,
+26→27→28 och 29→30, och `tick-blackweek.test.ts` kör hela veckan genom ticken var tionde minut.
 
-Leonards datum: 50 om dagen 23–29 november, 100 fredag 27 november, och 10 igen från 30
-november.
+☠️ **Grindarna före söndag 22 november**, när ticken börjar schemalägga måndagens 50:
+
+- butikens gemensamma klocka för korten är mergad (planens del C2, butiken);
+- generalrepetitionen med 50 fynd onsdag 18/11 är gjord och mätt (Leonards ja 2026-11-14);
+- kön räcker: 15–29/11 tar cirka 520 olika produkter (tio om dagen, 50 den 18/11 och veckans
+  400 = 6 × 50 + 100), och 30-dagarsspärren släpper aldrig samma vara två gånger. Kön hade
+  862 fynd 2026-11-14.
+
+### Ticken klarar 50 och 100 om dagen (`lib/auction/tick.ts`, planens del C2)
+
+Ticken skrev förut en produkt i taget och sparade varje rad för sig. Med 100 fynd hade
+timslaget blivit 100 läsningar, 100 skrivningar och 100 sparningar i rad, och kl 19 lika många
+till plus främjandena. Rutten (`app/api/cron/auction-tick`) är nu bara kopplingen till Wix, och
+logiken bor i `korTick` med beroendena utifrån, så att den går att pröva med 100 fynd.
+
+Nio egenskaper som inte ska tas bort:
+
+1. **Högst fyra Wix-anrop samtidigt** (`SAMTIDIGA`). Wix stryper täta Stores-anrop:
+   spec-skrivaren stoppades efter 186 och 127 sidor i rad (2026-11-01).
+2. **Prisskrivningen gör om ett strypt försök** (`lib/auction/store.ts`, `PRIS_PAUS_MS`
+   1, 3 och 8 s, och `Retry-After` upp till 15 s). Det gäller 429, edge-spärrens HTML-sida,
+   408, 409 och 5xx. Varje nytt försök läser en färsk revision. En 404 (produkten är raderad)
+   görs aldrig om, och ingen väntan får sluta efter tickens tidsgräns.
+3. **Sparningarna samlas** i ett massanrop per steg (`sparaAuktioner`, felen per rad). ☠️ Går
+   en såld eller avslutad rad inte att spara väntar främjandena: lagret säger då fortfarande
+   live, och platsen hade fyllts två gånger.
+4. **Tidsbudgeten är 240 s** av ruttens 300. Ingen ny skrivning startar efter den. Det som inte
+   hann göras står i `kvar`, och nästa tick tar det. Varje steg tål att göras om.
+5. ☠️ **Främjanden startar aldrig i Aosoms synkfönster**, och inte heller den sista minuten före
+   det. Synken läser auktionerna en gång per körning (`05-aosom-synken/09-levande-fyndauktion.md`),
+   och en rad som blev live mitt i en körning hade den inte sett. **Återställningen kl 19 väntar
+   däremot aldrig**: ett auktionspris får inte stå kvar efter dagens slut.
+6. ☠️ **En såld eller avslutad auktion stegas aldrig**, inte heller när återställningen föll.
+   Förut sänktes en avslutad auktion vars återställning föll till golvet efter kl 19.
+7. **Ordrarna läses till slutet**, med `strict`. Förut lästes tre sidor, och ett 403 gav tyst
+   inga ordrar alls. Ett fel att läsa dem står nu i `errors`, och resten av ticket går ändå.
+8. ☠️ **Klockan är Vercels cron var tionde minut** (`vercel.json`, låst i `schema.test.ts`).
+   GitHub-schemat körde 29 gånger på 122 timmar i stället för ~735 (`39-orderpipelinen.md`),
+   så ticket som skulle ta resten hade kunnat dröja en timme. Workflowen finns kvar för en
+   körning för hand och som larm: de körningar GitHub ändå gör blir röda på `ok:false`.
+9. ☠️ **Ett fynd främjas bara om startpriset är varans pris i Wix just då**
+   (`lib/auction/framjbar.ts`, `produktNu` i `store.ts`). Samma läsning som förut prövade att
+   produkten finns ger nu också priset per variant, och varje spårad variant jämförs i öre.
+   Ett annat pris, en variant som saknas eller ett pris som inte gick att läsa: raden står kvar
+   i kön (`prisHoppade`, `prishopp=` i loggraden), och nästa natts seed räknar om den. Bara en
+   raderad produkt (404) tas bort. ☠️ Förut räknades ett läsfel som "finns" och raden främjades;
+   nu hoppas den över, och efter `FEL_LASNINGAR_MAX` (8) läsfel i ett tick slutar ticken läsa och
+   resten står i `kvar`. Annars hade en strypning fått ticken att läsa igenom hela kön. Skälet är fynden 12–14/11 (nedan): kön bar priser från före
+   en priskörning, och sju fynd fick ett överstruket pris som varan inte haft dagen före.
+
+Varje tick skriver en rad i Vercels logg, med bara antal:
+`[auction-tick] mal=… sald=… slut=… steg=… framjad=… dod=… fel=… kvar=…/…/…/… wix429=… tid=…ms`,
+med `prishopp=…` och `vantar=…` bara när de inte är noll.
+
+**Mäts under generalrepetitionen:** `tid` och `wix429` på timslagen och kl 19, butikens
+ombyggnadstid, sidvikten på mobil och korten i 390 px.
 
 ### 30-dagarsspärren (`lib/auction/trettio-dagar.ts`)
 
@@ -76,5 +133,36 @@ INGENTING.** Det gäller också morgonens prisuppdatering av dagens fynd, som va
 2. Slå på med `sparr: pa`.
 3. Kör seeden för hand med `apply` och `force`.
 
-Därefter är det dagliga bortfallet litet. Är spärren på och prishistoriken oläsbar skriver
-seeden ingenting, eftersom ett fynd utan prövning inte får starta.
+Därefter är det dagliga bortfallet oftast litet, men inte efter en stor prisändring (se
+nästa avsnitt). Är spärren på och prishistoriken oläsbar skriver seeden ingenting, eftersom
+ett fynd utan prövning inte får starta.
+
+### ☠️ Kön stod still 12–14/11: skyddsräcket räknade spärrens avslag (2026-11-14)
+
+Prissynkens ikappkörning 2026-11-11 skrev drygt 5 000 priser. En vara med nytt pris klarar
+inte spärren på 30 dagar, så seeden ville ta bort 393 köade på en natt. Skyddsräcket
+(max(50, 20 % av kön)) tog det för en trasig katalogläsning och skrev ingenting, tre nätter i
+rad. Kön fylldes inte på, och morgondagens schemalagda fynd prövades aldrig: av de tio som
+skulle starta 15/11 klarade fem inte spärren. GitHub-schemat startade dessutom 10:56, 11:35
+och 11:51 UTC, alltså efter 07-starten.
+
+Rättat i C2:
+
+- **Skyddsräcket räknar bara köade som försvinner utan spärrens skäl** (`raknaForsvunna` i
+  `lib/auction/seed.ts`, `seed-skyddsracke.test.ts`). Rapporten visar spärrens del som
+  `removeFromQueueSparren`.
+- **Seeden går på Vercels klocka**: `vercel.json`, 03:47 UTC, `apply=1`, aldrig `force`
+  (`app/api/cron/auction-seed/schema.test.ts`). Workflowen finns kvar för körningar för hand
+  och som larm, och dess eget schema är andra chansen.
+- **Påfyllningen gjordes för hand** 2026-11-14 22:39 UTC med `apply` och `force`: 862 i kön,
+  393 borttagna, 0 fel. Ticken fyllde de fem lediga platserna inför 15/11.
+
+**Mätt 2026-11-14 (bara läsning, spärrens regel på de 30 raderna med start 12, 13 och 14/11):**
+alla hade historik och 0 luckor. 23 klarade spärren. **7 klarade den inte** (`lagre_pris`): det
+överstrukna priset låg 1–15 % över varans pris dagen före. I alla sju hade synken sänkt priset
+efter seeden 11/11, och auktionen startade på det gamla, högre priset. I 20 andra hade synken
+höjt priset, och auktionen startade på det gamla, lägre (lagligt, men lägre marginal). Alla 30
+slutade osålda, och ingen order sedan 12/11 innehöll någon av dem.
+
+Därför egenskap 9 ovan: ticken främjar inte en rad vars pris inte längre är varans pris, också
+om seeden skulle falla en natt till.
