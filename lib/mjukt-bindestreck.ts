@@ -18,7 +18,7 @@
 // Safari före 16.4 kan inte läsa dem (se lib/stycken.ts).
 
 /** Det mjuka bindestrecket. Syns bara där raden bryts. */
-export const MJUKT_BINDESTRECK = "­";
+export const MJUKT_BINDESTRECK = "\u00AD";
 
 /** Kortare ord än så får plats i menyns spalt och lämnas orörda. */
 export const MINSTA_ORD = 13;

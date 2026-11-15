@@ -124,3 +124,15 @@ test("modulen går till webbläsaren och har inga bakåtblickande uttryck", () =
   const src = readFileSync(new URL("./mjukt-bindestreck.ts", import.meta.url), "utf8");
   assert.doesNotMatch(src, /\(\?<[=!]/);
 });
+
+test("bindestrecket står som escape i koden, aldrig som ett osynligt tecken", () => {
+  // Ett osynligt U+00AD i källkoden syns inte för den som läser och kan raderas
+  // av misstag. Verktyg gör ibland om escape-sekvensen till själva tecknet.
+  const src = readFileSync(new URL("./mjukt-bindestreck.ts", import.meta.url), "utf8");
+  assert.equal(MJUKT_BINDESTRECK, String.fromCharCode(0xad));
+  assert.ok(!src.includes(String.fromCharCode(0xad)), "osynligt mjukt bindestreck i lib/mjukt-bindestreck.ts");
+  assert.ok(src.includes("\\u00AD"), "escape-sekvensen saknas");
+  for (const fil of ["../components/meganav.tsx", "../components/mobilenav.tsx"]) {
+    assert.ok(!readFileSync(new URL(fil, import.meta.url), "utf8").includes(String.fromCharCode(0xad)), fil);
+  }
+});
