@@ -1,0 +1,29 @@
+{
+ "namn": "vevor-317",
+ "rader": [
+  {
+   "kort": "ce605769",
+   "pid": "ce605769-03ce-4e37-b9c2-583146cee1cb",
+   "bort": [
+    "Bygg & Renovering > Badrumsrenovering",
+    "Bygg & Renovering"
+   ],
+   "behall": [
+    "Sport & Fritid",
+    "Sport & Fritid > Friluftsliv & Resa",
+    "Sport & Fritid > Camping & kylboxar"
+   ]
+  },
+  {
+   "kort": "d6f8ea3b",
+   "pid": "d6f8ea3b-5b20-42ce-8d69-988fdaaee982",
+   "bort": [
+    "Bil & Garage > Husbil & husvagn"
+   ],
+   "behall": [
+    "Bil & Garage",
+    "Bil & Garage > Biltillbehör"
+   ]
+  }
+ ]
+}
