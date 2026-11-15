@@ -161,8 +161,19 @@ Planen visade 0 att rätta 2026-10-31.
   uppställning i olika skala och med skugga: dHash gav 61 och grinden sa 0 fynd, och bara
   kontaktarket visade det. Titta på alla utkastets bilder sida vid sida även när båda måtten
   är tysta, och stryk den mindre eller mer beskurna av två lika uppställningar.
+- **Spegelvända kopior, förstoringar och bilder utan tillbehör går igenom båda grindarna** *(runda 294)*.
+  Hörnskyddens position 11 var position 9 spegelvänd och förstorad 1,8 gånger (korskorrelation
+  0,97 på hela bilden, 0,90 på kantbilder), och degdelarens position 12 var position 9 utan bricka
+  och verktyg (0,98 över maskinen, 0,94 på kantbilder). `gate-bilddubblett.py` sa 0 fynd för båda,
+  eftersom den beskär varan till sin ruta och inte speglar, och dHash ser inte heller en spegling.
+  Det syntes när bilderna lades bredvid varandra och den ena speglades. `gate-bildspegel.py` listar
+  sådana par (kantbild, mittutsnitt, skalor 1,0 till 2,8, rak och spegelvänd) men **fäller inte**:
+  två olika vyer av samma svarta, avsmalnande planteringskruka låg på 0,93, eftersom en silhuett
+  ger hög korrelation hur man än vrider den. Se varje listad rad med ögonen. Efter strykningen
+  höll hörnskydden bara fyra olika rena bilder (position 1 är dessutom ett montage), och de hålls
+  (se (86) i *Öppet för Leonard* i (szzj)).
 - **Tvillingkontrollen hämtar publicerade sidor en i taget** *(runda 293)*. Fem `twin16.py` i
-  parallell gav 403 från butiken och "0 bilder" för sex av sjutton adresser. En tom träff är
+  parallell gav 403 från butiken och "0 bilder" för sex av sexton adresser. En tom träff är
   inget kvitto: kör om de adresser som gav noll, en och en, och kontrollera att antalet bilder
   är över noll innan du litar på avståndet.
 - **VEVOR:s säljpunkter (`punkter`) bär fakta som beskrivningen saknar** (installationsguide,

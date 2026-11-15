@@ -90,7 +90,14 @@ den ena. `gate-bilddubblett.py` mäter det sedan runda 31 (2026-11-04): grinden 
 mot varje bild på de andra sidorna i rundan, miljöbilder ingår, och under 0,02 är samma foto.
 Det behövdes, för två ledningssatser bar samma foto av två händer vid en utomhusenhet (mått
 0,000) och grinden såg tidigare bara inom en sida. Är bilderna olika kvitterar du paret i
-`bilddubblett-ok.txt` som `kort1:pos1 kort2:pos2 skäl`.
+`bilddubblett-ok.txt` som `kort1:pos1 kort2:pos2 skäl`. Dubblettgrinden ser inte en SPEGELVÄND kopia, en
+FÖRSTORAD kopia där bara en del av varan syns eller samma bild utan de tillbehör som ligger bredvid varan
+(hörnskydden `9e135f38`: position 11 var position 9 spegelvänd och 1,8 gånger förstorad, och degdelaren
+`8e72043f`: position 12 var position 9 utan bricka och verktyg, runda 294, 2026-11-15, och båda gav 0 fynd).
+`gate-bildspegel.py` listar sådana par, men den **fäller inte**: en symmetrisk silhuett (en svart,
+avsmalnande planteringskruka i två vyer) ger också 0,93, så ingen gräns skiljer de äkta dubbletterna
+(0,90 till 0,94) från de olika vyerna. Se varje listad rad med ögonen, spegla den ena bilden och jämför
+ytans detaljer, och stryk den ena om det är samma foto.
 
 Rundan bearbetar inga bilder utom beskärningen i undantaget ovan, den väljer bland dem som
 finns. Metoderna står i [`polish/bildmetoder.md`](../bildmetoder.md).
