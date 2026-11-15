@@ -1,0 +1,28 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "2963accb": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "7819c44c": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "a44d0401": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "e14f4939": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "e8d30c93": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Source specification rows (not in the draft text): rope length 100 ft / 30,48 m; maximum load capacity 1653 lbs / 0,75 T; handle length 16,9 in / 42,9 cm; product weight 15 lbs / 6,8 kg; product size 26,2 x 3,1 x 7,9 in / 665 x 80 x 200 mm | Image, functions: 3/4T pulling force for moving boats, securing items and transporting logs; a 100 ft polyester rope for long-distance boat towing that stands up to corrosion in wet environments, with a thickened rope of 15 mm diameter that is less prone to breakage and multi-strand weaving that is hard to wear out; an aluminium die-cast integrated gear; a gear with brake device, a thickened embedded tongue hook, a quick-locking spring switch and a stop pawl trigger; a 16,9 in non-slip handle; five steps: release the pawl spring switch lock, press and hold the stop pawl trigger, lift the handle to pull out the rope, lock the pawl spring switch and swing the handle back and forth to tighten the line | Conversion: 0,75 T is 750 kg and 1653 lbs is 750 kg"
+ },
+ "e9057624": {
+  "tyska": "",
+  "svenska": ""
+ }
+}
