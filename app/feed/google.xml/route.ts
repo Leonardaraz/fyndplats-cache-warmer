@@ -50,6 +50,7 @@ export const maxDuration = 300;
 import { KAMPANJ_2026_09 } from "../../../lib/kampanj-2026-09";
 import { varumarke } from "../../../lib/varumarke";
 import { flodessvar } from "../../../lib/feed/prisjakt-svar";
+import { djupareKategori } from "../../../lib/feed/djupare-kategori";
 
 const SITE = "https://www.fyndplats.se";
 // Märket: Wix fält "brand" när det är satt, annars Fyndplats. Aosoms märken
@@ -334,7 +335,9 @@ const GOOGLE_CATEGORY_BY_SLUG: Record<string, number> = {
 
 /** Produktens taxonomi för feeden: g:product_type = kategoristigen ("Husdjur >
  *  Burar, kläder & tillbehör" — barnkategori föredras, den är mest specifik)
- *  och g:google_product_category via slug-mappningen ovan. */
+ *  och g:google_product_category: först en djupare nod ur varans namn
+ *  (lib/feed/djupare-kategori.ts, "Gungstol …" i Fåtöljer blir Rocking Chairs),
+ *  annars slug-mappningen ovan. */
 function taxonomyFor(
   product: Product | undefined,
   byColId: Map<string, Collection>,
@@ -346,6 +349,7 @@ function taxonomyFor(
   const parent = child.parentId ? byColId.get(child.parentId) : undefined;
   const productType = parent && parent.id !== child.id ? `${parent.name} > ${child.name}` : child.name;
   const googleCategory =
+    djupareKategori(child.slug, product?.name) ??
     GOOGLE_CATEGORY_BY_SLUG[child.slug] ?? (parent ? GOOGLE_CATEGORY_BY_SLUG[parent.slug] : undefined);
   return { productType, googleCategory };
 }

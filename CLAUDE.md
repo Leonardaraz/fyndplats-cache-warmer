@@ -1297,8 +1297,28 @@ Skillnaderna mot Google-flödet, alla mätta i Pinterests "Testa din datakälla"
   källorna har fel.
 - `g:identifier_exists` tas bort. Fältet finns inte i Pinterests spec.
 
-Kvar efter ändringen: varning 126 (google_product_category med en eller två
-nivåer). Den rör kategorikartan, inte flödet.
+**Djupare kategorier** (Leonard 2026-11-15, varning 126 och 157). Kartan
+`GOOGLE_CATEGORY_BY_SLUG` ger varje underkategori en enda nod, och där varorna
+är blandade blev noden grund ("Furniture", "Toys & Games"). Pinterest varnade
+för det på 7 046 varor. `lib/feed/djupare-kategori.ts` väljer en djupare nod ur
+varans namn innan kartan frågas (`taxonomyFor` i Google-flödet), så rättningen
+följer med till alla flöden som byggs ovanpå: PriceRunner, Prisjakt och
+Pinterest. Mätt på Pinterest-flödet 2026-11-15: varor med noll till två nivåer
+7 322 → 2 328 av 10 061, 5 208 varor bytte nod.
+
+- Reglerna prövas mot namnets huvud (det före första tankstrecket), sedan mot
+  hela namnet, sist mot underkategorins standardnod. Första träffen vinner, så
+  ordningen i listan är en del av regeln: "hoppborg med rutschkana" är en
+  hoppborg bara om hoppborgen står först.
+- ☠️ Ord som ofta står i namnet på något annat är förankrade i början
+  (`^(\S+ )?madrass`, `^\S*parasoll`, `TANGER`): "extrasäng med madrass",
+  "matbord med parasollhål", "fåtölj med fotpall", "mätstång". Ett nytt ord:
+  sök det i hela flödet först och se vad mer det träffar.
+- ☠️ Inga noder under Apparel & Accessories. Kläder kräver kön, ålder och
+  storlek i Merchant Center, och en vara som flyttas dit utan dem avvisas.
+- Ett nytt id läses ur taxonomifilen (taxonomy-with-ids.en-US.txt), inte ur
+  minnet. Provet fäller samma id med två olika namn, och noder grundare än tre
+  nivåer utom de få löv som saknar djupare noder.
 
 **Kontot**, gjort i webbläsaren 2026-11-15 efter Leonards ja:
 
@@ -1307,6 +1327,12 @@ nivåer). Den rör kategorikartan, inte flödet.
   katalogen.
 - Säljargranskningen startade av sig själv när katalogen laddades upp.
 - Inget annonskonto och ingen Pinterest-tagg. Leonard valde bort dem 2026-11-15.
+- 13 produktgrupper i katalogen, en per avdelning, gjorda 2026-11-15 efter
+  Leonards val. Filtret är Produkttyp, och Pinterest har bara "är" och "är
+  inte", så varje grupp räknar upp sina underkategorier ("Avdelning >
+  Underkategori"). ☠️ En ny underkategori i Wix hamnar inte i någon grupp förrän
+  den läggs till för hand. Butik-fliken på profilen finns inte längre hos
+  Pinterest, så grupperna syns inte där.
 
 ## Strukturerad data för Google Shopping (2026-10-22)
 

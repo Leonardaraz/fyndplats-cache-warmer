@@ -75,6 +75,18 @@ test("varje ny avdelning och underkategori har ett Google-ID med taxonomins namn
   }
 });
 
+test("taxonomyFor frågar varans namn om en djupare nod före kartan", () => {
+  // lib/feed/djupare-kategori.ts väljer en djupare nod ur varans namn, och
+  // kartan gäller när den inte har någon. Ordningen är poängen: kartan först
+  // lämnar aldrig plats åt den djupare noden.
+  const start = kalla.indexOf("function taxonomyFor(");
+  const fn = kalla.slice(start, kalla.indexOf("\n}\n", start));
+  const djup = fn.indexOf("djupareKategori(child.slug, product?.name)");
+  const karta = fn.indexOf("GOOGLE_CATEGORY_BY_SLUG[child.slug]");
+  assert.ok(djup > 0, "taxonomyFor anropar inte djupareKategori med underkategorins slug och varans namn");
+  assert.ok(karta > djup, "kartan ska prövas efter den djupare noden");
+});
+
 test("de flyttade underkategorierna behåller sina ID:n", () => {
   assert.equal(rader.get("bil-slap")?.id, 5613);                 // Vehicles & Parts > Vehicle Parts & Accessories
   assert.equal(rader.get("elbilsladdning-solenergi")?.id, 4714); // Hardware > Power & Electrical Supplies > Solar Panels
