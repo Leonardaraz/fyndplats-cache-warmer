@@ -350,3 +350,49 @@ export function MinaSidorVy({
     </div>
   );
 }
+
+/**
+ * Skissen som syns medan Mina sidor läses (Suspense i app/konto/page.tsx).
+ * Samma ram, rubrikrad, kort och summa som sidan, så att innehållet tar över
+ * platsen utan att något hoppar åt sidan. Ingen text som kan vara fel: bara
+ * ytor och "Mina sidor", som alltid står där.
+ */
+export function MinaSidorSkelett() {
+  return (
+    <div className={`container ${s.ram}`} aria-busy="true">
+      <div className={s.portal}>
+        <div className={s.huvud}>
+          <div>
+            <p className={s.ogonbryn}>Mina sidor</p>
+            <span className={`${s.skelett} ${s.skelettRubrik}`} />
+            <span className={`${s.skelett} ${s.skelettRad}`} />
+          </div>
+        </div>
+        <div className={s.topp}>
+          <div className={s.kortyta}>
+            <span className={`${s.skelett} ${s.skelettKort}`} />
+          </div>
+          <div className={`${s.kort} ${s.summakort}`}>
+            <span className={`${s.skelett} ${s.skelettRad}`} />
+            <span className={`${s.skelett} ${s.skelettSumma}`} />
+            <span className={`${s.skelett} ${s.skelettStapel}`} />
+          </div>
+        </div>
+        <div className={s.kort}>
+          {[0, 1, 2].map((i) => (
+            <div key={i} className={s.skelettOrder}>
+              <span className={`${s.skelett} ${s.skelettBild}`} />
+              <span className={s.skelettText}>
+                <span className={`${s.skelett} ${s.skelettRad}`} />
+                <span className={`${s.skelett} ${s.skelettRadKort}`} />
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <p className="sr-only" role="status">
+        Hämtar Mina sidor …
+      </p>
+    </div>
+  );
+}

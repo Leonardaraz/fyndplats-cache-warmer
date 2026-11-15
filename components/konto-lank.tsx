@@ -12,10 +12,16 @@
 // visar ikonen i sidhuvudet (raden rymmer den ned till 320 px, se .hrow i
 // app/globals.css) och texten överst i menyn.
 //
+// Länkarna in i kontot är mjuka (next/link, 2026-11-15): sidhuvudet, menyn
+// och varukorgen står kvar och bara sidans innehåll hämtas, och Mina sidor
+// visar sin skiss direkt (app/konto/page.tsx). Ingen förhämtning: knappen
+// syns på varje sida, och /konto är dynamisk och privat.
+//
 // En sida som loggar in utan att laddas om (/konto/foretag, steg 1) säger till
 // med händelsen `fp-konto-andrat`; då läses tecknet om, så att knappen inte
 // står kvar på "Bli medlem" för den som just blev det.
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { kontolankText } from "../lib/medlem/kontolank";
 
@@ -88,7 +94,8 @@ export function KontoLank() {
   if (synlig === false) return null;
   const vantar = synlig === null;
   return (
-    <a
+    <Link
+      prefetch={false}
       className="konto-btn"
       href="/konto"
       aria-label={text}
@@ -100,7 +107,7 @@ export function KontoLank() {
     >
       <PersonIkon />
       <span className="konto-btn-text">{text}</span>
-    </a>
+    </Link>
   );
 }
 
@@ -108,12 +115,20 @@ export function KontoLank() {
 export function KontoFotLank() {
   const { synlig, text } = useKontolank();
   if (!synlig) return null;
-  return <a href="/konto">{text}</a>;
+  return (
+    <Link prefetch={false} href="/konto">
+      {text}
+    </Link>
+  );
 }
 
 /** Sidfoten, kolumnen Handla: den direkta vägen till ett företagskonto (/konto/foretag). */
 export function ForetagFotLank() {
   const { foretag } = useKontolank();
   if (!foretag) return null;
-  return <a href="/konto/foretag">Företagskonto</a>;
+  return (
+    <Link prefetch={false} href="/konto/foretag">
+      Företagskonto
+    </Link>
+  );
 }

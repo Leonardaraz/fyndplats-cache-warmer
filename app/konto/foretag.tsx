@@ -10,6 +10,7 @@
 // bara det maskerade (`orgnrVisas`).
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { orgnrFeltext, provaOrgnr } from "@/lib/medlem/orgnr";
 import { VILLKOR_FORETAG_VERSION, postnrText, provaForetagsansokan, type Faltfel } from "@/lib/medlem/foretag";
 import s from "./konto.module.css";
@@ -352,17 +353,31 @@ function Villkor({ efter }: { efter: () => void }) {
   );
 }
 
+/**
+ * "Du handlar som". Bytet laddar inte om hela sidan längre (2026-11-15): valet
+ * markeras direkt, rutten byter sessionen, och sidan hämtar om sitt innehåll
+ * (router.refresh) medan sidhuvudet, menyn och varukorgen står kvar. Remsan
+ * överst och kontoknappen läser om tecknet på händelsen `fp-konto-andrat`.
+ * Komponenten nycklas på profilen där den används, så att den börjar om när
+ * sidan kommit tillbaka med det nya valet.
+ */
 function Profilval({ namn, aktiv }: { namn: string; aktiv: "privat" | "foretag" }) {
+  const router = useRouter();
+  const [vald, setVald] = useState<"privat" | "foretag">(aktiv);
   const [upptagen, setUpptagen] = useState(false);
   const [skal, setSkal] = useState<string | null>(null);
   async function byt(till: "privat" | "foretag") {
-    if (till === aktiv || upptagen) return;
+    if (till === vald || upptagen) return;
     setUpptagen(true);
+    setVald(till);
+    setSkal(null);
     const svar = await skicka("/api/konto/profil", { profil: till });
     if (svar.ok) {
-      window.location.reload();
+      window.dispatchEvent(new Event("fp-konto-andrat"));
+      router.refresh();
       return;
     }
+    setVald(aktiv);
     setUpptagen(false);
     setSkal(SKAL[svar.skal ?? ""] ?? SKAL.tillfalligt);
   }
@@ -372,11 +387,11 @@ function Profilval({ namn, aktiv }: { namn: string; aktiv: "privat" | "foretag" 
         Du handlar som
       </p>
       <div className={s.profilval} role="radiogroup" aria-labelledby="du-handlar-som">
-        <button type="button" role="radio" aria-checked={aktiv === "privat"} className={s.profilknapp} disabled={upptagen} onClick={() => byt("privat")}>
+        <button type="button" role="radio" aria-checked={vald === "privat"} aria-busy={upptagen && vald === "privat"} className={s.profilknapp} disabled={upptagen} onClick={() => byt("privat")}>
           Privatperson
           <small>Priser inkl. moms</small>
         </button>
-        <button type="button" role="radio" aria-checked={aktiv === "foretag"} className={s.profilknapp} disabled={upptagen} onClick={() => byt("foretag")}>
+        <button type="button" role="radio" aria-checked={vald === "foretag"} aria-busy={upptagen && vald === "foretag"} className={s.profilknapp} disabled={upptagen} onClick={() => byt("foretag")}>
           {namn}
           <small>Priser exkl. moms och ordertrappan</small>
         </button>
@@ -483,7 +498,7 @@ export function Foretagskonto({
             {foretag.statustext}
           </p>
           {foretag.status === "aktiv" && !foretag.villkorAktuellt && <Villkor efter={ladda} />}
-          {foretag.status === "aktiv" && foretag.villkorAktuellt && <Profilval namn={foretag.namn} aktiv={aktivProfil} />}
+          {foretag.status === "aktiv" && foretag.villkorAktuellt && <Profilval key={aktivProfil} namn={foretag.namn} aktiv={aktivProfil} />}
           {foretag.status === "aktiv" && foretag.villkorAktuellt && <Offerter offerter={offerter} />}
           {foretag.status === "nekad" && (
             <button type="button" className={s.utknapp} onClick={() => setOppen(true)}>
