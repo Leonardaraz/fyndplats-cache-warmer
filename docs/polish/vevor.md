@@ -145,6 +145,26 @@ Planen visade 0 att rätta 2026-10-31.
   vevor-leksak-1): slutposition i får etikett 1, 2, 4, 5, 6 och den sista etikett 3.
   `bilddubblett-ok.txt` använder etiketterna efter flytten, inte VEVOR:s positioner
   (`FLAGGADE-VEVOR.md` (he)).
+- **`gate-bilddubblett.py` jämför bara rundans egna sidor, aldrig mot publicerade sidor**
+  *(runda 291)*. Två syskonmodeller ur samma källa kan dela ett foto med olika fil-id:
+  fyrfackstvättkorgens närbild på kardborrebandet var samma foto som bild 5 på den publicerade
+  tvåfackskorgen (dHash 16 × 16 på Wix-miniatyrer, 256 bitar: avstånd 2, och samma foto ger
+  högst 5), och grinden sa 0 fynd. Kör tvillingkontrollen mot de publicerade sidorna med samma
+  varuslag (läs deras adresser, hämta sidorna och jämför varje utkastsbild) **innan** planen
+  byggs, och stryk en delad bild. Ett miljöfoto där samma vardagsrum visar en annan ram
+  (avstånd 35) är en annan bild.
+- **Samma foto kommer tillbaka i en annan skala, och två mått säger olika** *(runda 293)*.
+  Rörställets position 1, 8 och 9 var samma foto i olika beskärning, så med måttritningen
+  (inbrända tal) som enda andra bild fanns bara fyra olika bilder och utkastet hölls.
+  Flodankarets position 1 och 10 är samma uppställning i olika skala: dHash 16 × 16 gav 45
+  men `gate-bilddubblett.py` gav 0,001 och stoppade bygget. Bestickens position 1 och 9 är samma
+  uppställning i olika skala och med skugga: dHash gav 61 och grinden sa 0 fynd, och bara
+  kontaktarket visade det. Titta på alla utkastets bilder sida vid sida även när båda måtten
+  är tysta, och stryk den mindre eller mer beskurna av två lika uppställningar.
+- **Tvillingkontrollen hämtar publicerade sidor en i taget** *(runda 293)*. Fem `twin16.py` i
+  parallell gav 403 från butiken och "0 bilder" för sex av sjutton adresser. En tom träff är
+  inget kvitto: kör om de adresser som gav noll, en och en, och kontrollera att antalet bilder
+  är över noll innan du litar på avståndet.
 - **VEVOR:s säljpunkter (`punkter`) bär fakta som beskrivningen saknar** (installationsguide,
   rengöring, material och målgrupp). De ligger i avläsningen (`FyndplatsVevorAvlasningar`,
   nyckel artikeln) och går att läsa privat i ett ExecuteWixAPI-anrop utan att skriva ut
