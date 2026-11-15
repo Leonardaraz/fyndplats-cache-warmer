@@ -1,0 +1,27 @@
+{
+ "namn": "vevor-303",
+ "rader": [
+  {
+   "kort": "9d0c3654",
+   "pid": "9d0c3654-b1b8-460e-a651-50b0bf3f0be2",
+   "bort": [
+    "Hem & Inredning > Konstväxter"
+   ],
+   "behall": [
+    "Hem & Inredning",
+    "Hem & Inredning > Dekoration & Prydnad"
+   ]
+  },
+  {
+   "kort": "a8d872cb",
+   "pid": "a8d872cb-1169-4550-9b9d-93f58a003280",
+   "bort": [
+    "Verktyg & Maskiner > Verkstadsmaskiner"
+   ],
+   "behall": [
+    "Verktyg & Maskiner",
+    "Verktyg & Maskiner > Verktygstillbehör"
+   ]
+  }
+ ]
+}
