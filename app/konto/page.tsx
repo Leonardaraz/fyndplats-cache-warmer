@@ -97,16 +97,20 @@ function foretagVy(p: Foretagsprofil): ForetagVy {
   };
 }
 
-/** Företagets ruta och namnet i sidhuvudet. Felar läsningen visas Mina sidor utan rutan. */
+/**
+ * Företagets ruta och namnet i sidhuvudet. Namnet följer med när kontot får
+ * handla som företaget; raden "Du handlar som" följer sedan tecknet i
+ * webbläsaren (app/konto/handlar-som.tsx). Felar läsningen visas Mina sidor utan rutan.
+ */
 async function foretagsdel(
   medlem: { id: string; testare?: boolean },
   sessionProfil: "foretag" | undefined,
   profilP: ReturnType<typeof hamtaForetagsprofil>,
   lageP: Promise<Prislage>,
-): Promise<{ ruta: ReactNode; handlarSom: string | null }> {
+): Promise<{ ruta: ReactNode; foretagNamn: string | null; handlarSomForetag: boolean }> {
   try {
     const [fp, lage] = await Promise.all([profilP, lageP]);
-    if (!fp && !prisOppet(lage, medlem)) return { ruta: null, handlarSom: null };
+    if (!fp && !prisOppet(lage, medlem)) return { ruta: null, foretagNamn: null, handlarSomForetag: false };
     const aktiv = sessionProfil === "foretag" && kanHandlaSomForetag(fp) ? "foretag" : "privat";
     const nu = Date.now();
     const offerter: OffertPaMinaSidor[] = kanHandlaSomForetag(fp)
@@ -122,11 +126,12 @@ async function foretagsdel(
       : [];
     return {
       ruta: <Foretagskonto foretag={fp ? foretagVy(fp) : null} aktivProfil={aktiv} offerter={offerter} />,
-      handlarSom: aktiv === "foretag" && fp ? fp.namn : null,
+      foretagNamn: fp && kanHandlaSomForetag(fp) ? fp.namn : null,
+      handlarSomForetag: aktiv === "foretag",
     };
   } catch (e) {
     console.error("[konto] företaget gick inte att läsa:", e instanceof Error ? e.message.slice(0, 120) : e);
-    return { ruta: null, handlarSom: null };
+    return { ruta: null, foretagNamn: null, handlarSomForetag: false };
   }
 }
 
@@ -242,7 +247,8 @@ async function MinaSidorInnehall({ session, sp }: { session: Session; sp: Sok })
           data={data}
           bilder={bilder}
           foretag={ft.ruta}
-          handlarSom={ft.handlarSom}
+          foretagNamn={ft.foretagNamn}
+          handlarSomForetag={ft.handlarSomForetag}
           sparade={korgar}
           prisOppet={prisOppet(pl, data.medlem)}
         />

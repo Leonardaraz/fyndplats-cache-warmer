@@ -18,6 +18,7 @@ import { Medlemskort, nivaNyckel } from "./medlemskort";
 import { KopIgen } from "./kop-igen";
 import { MinaFavoriter } from "./favoriter";
 import { SparadeKorgar } from "./sparade-korgar";
+import { HandlarSom } from "./handlar-som";
 import type { SparadKorgVy } from "@/lib/medlem/sparade";
 import s from "./konto.module.css";
 
@@ -67,7 +68,8 @@ export function MinaSidorVy({
   data,
   bilder: produkter = {},
   foretag,
-  handlarSom,
+  foretagNamn = null,
+  handlarSomForetag = false,
   sparade,
   prisOppet = false,
 }: {
@@ -75,8 +77,10 @@ export function MinaSidorVy({
   bilder?: Produktbilder;
   /** E3: företagskontots ruta, när prisväxeln släpper fram den. */
   foretag?: ReactNode;
-  /** E3: företagets namn när kontot handlar som företaget. */
-  handlarSom?: string | null;
+  /** E3: företagets namn när kontot får handla som företaget (godkänt, gällande villkor). */
+  foretagNamn?: string | null;
+  /** E3: kontot handlade som företaget när sidan ritades; därefter följer raden tecknet. */
+  handlarSomForetag?: boolean;
   /** E3: sparade varukorgar; saknas när växeln är av och kontot inte har några, eller när de inte gick att läsa. */
   sparade?: SparadeKorgarVy;
   /** Medlemspriset gäller för medlemmen (`prisOppet`): då lovar sidan inget som redan finns. */
@@ -98,11 +102,7 @@ export function MinaSidorVy({
           <p className={s.ogonbryn}>Mina sidor</p>
           <h1 className={s.rubrik}>{halsning(skapadOk ? stockholmsDag(medlem.skapad) : null, lage.dag)}</h1>
           <p className={s.vem}>Inloggad som {maskeradEpost(medlem.epost)}</p>
-          {handlarSom ? (
-            <p className={s.handlarSom}>
-              Du handlar som <a href="#foretag">{handlarSom}</a>
-            </p>
-          ) : null}
+          <HandlarSom namn={foretagNamn} foretagNu={handlarSomForetag} />
         </div>
         <form action="/api/konto/ut" method="post">
           <button type="submit" className={s.utknapp}>

@@ -3,12 +3,16 @@
 // Kunden sparar varukorgen som den är under ett namn och lägger den i
 // varukorgen igen med ett tryck. Servern läser varukorgen själv; härifrån
 // skickas bara korgens id och namnet.
+//
+// Listan uppdateras här, utan att sidan hämtas om (2026-11-15): rutten svarar
+// med den sparade korgen, och en borttagen korg tas ur listan. ☠️ Ingen
+// router.refresh(): på Mina sidor (en Suspense-gräns) fastnar den ibland i
+// Next 16.2, se Profilval i app/konto/foretag.tsx.
 
 import { useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
 import { useCart } from "@/components/cart";
 import { kopIgenBesked, type KopIgenRad } from "@/lib/medlem/kop-igen";
-import { MAX_KORGAR, NAMN_MAX, sparaFelText, type SparadKorgVy } from "@/lib/medlem/sparade";
+import { MAX_KORGAR, NAMN_MAX, sparaFelText, synligaKorgar, type SparadKorgVy } from "@/lib/medlem/sparade";
 import s from "./konto.module.css";
 
 const INTE_NU = "Det gick inte just nu. Försök igen om en stund.";
@@ -18,9 +22,11 @@ const varor = (n: number) => (n === 1 ? "1 vara" : `${n} varor`);
 type Kopsvar = { ok: true; rader: KopIgenRad[]; slut: number; borta: number } | { ok: false; skal?: string };
 
 /** `kanSpara`: växeln för E2/E3 (`sparadeSektion`); utan den syns bara korgar som redan finns. */
-export function SparadeKorgar({ korgar, kanSpara }: { korgar: SparadKorgVy[]; kanSpara: boolean }) {
+export function SparadeKorgar({ korgar: franServern, kanSpara }: { korgar: SparadKorgVy[]; kanSpara: boolean }) {
   const { cart, count, addMany, busy } = useCart();
-  const router = useRouter();
+  const [tillagda, setTillagda] = useState<SparadKorgVy[]>([]);
+  const [borttagna, setBorttagna] = useState<ReadonlySet<string>>(() => new Set());
+  const korgar = synligaKorgar(franServern, tillagda, borttagna);
   const [namn, setNamn] = useState("");
   const [sparar, setSparar] = useState(false);
   const [sparBesked, setSparBesked] = useState<string | null>(null);
@@ -41,11 +47,12 @@ export function SparadeKorgar({ korgar, kanSpara }: { korgar: SparadKorgVy[]; ka
         body: JSON.stringify({ cartId: cart._id, namn }),
         signal: AbortSignal.timeout(20_000),
       });
-      const svar = (await r.json().catch(() => null)) as { ok?: boolean; skal?: string } | null;
+      const svar = (await r.json().catch(() => null)) as { ok?: boolean; skal?: string; korg?: SparadKorgVy } | null;
       if (svar?.ok) {
         setNamn("");
         setSparBesked("Varukorgen är sparad.");
-        router.refresh();
+        const ny = svar.korg;
+        if (ny) setTillagda((t) => [ny, ...t]);
       } else {
         setSparBesked(sparaFelText(svar?.skal));
       }
@@ -97,7 +104,7 @@ export function SparadeKorgar({ korgar, kanSpara }: { korgar: SparadKorgVy[]; ka
       });
       if (r.ok) {
         setBekrafta(null);
-        router.refresh();
+        setBorttagna((b) => new Set(b).add(id));
       } else {
         setBesked({ id, text: INTE_NU });
       }

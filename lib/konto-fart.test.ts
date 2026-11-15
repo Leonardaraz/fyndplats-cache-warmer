@@ -8,7 +8,7 @@
 //   - länkarna in i kontot och profilbytet laddar inte om hela sidan.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 
 const rot = new URL("../", import.meta.url);
 const las = (fil: string) => readFileSync(new URL(fil, rot), "utf8");
@@ -83,17 +83,67 @@ test("företagsvägen efter inloggningen byter sida mjukt", () => {
   assert.doesNotMatch(s, /window\.location\.assign\(/);
 });
 
-test("profilbytet laddar inte om sidan: valet syns direkt, sidan hämtar om sitt innehåll", () => {
+test("profilbytet hämtar inte om sidan: valet och raden syns direkt, knapparna släpps när rutten svarat", () => {
   const s = las("app/konto/foretag.tsx");
-  const p = s.slice(s.indexOf("function Profilval"), s.indexOf("function Profilval") + 2000);
+  const p = s.slice(s.indexOf("function Profilval"), s.indexOf("function Profilval") + 1500);
   assert.match(p, /setVald\(till\);/);
-  assert.match(p, /window\.dispatchEvent\(new Event\("fp-konto-andrat"\)\);\s*router\.refresh\(\);/);
+  // Knapparna släpps när rutten svarat, inte när en omhämtning av sidan kommit tillbaka.
+  assert.match(p, /const svar = await skicka\("\/api\/konto\/profil", \{ profil: till \}\);\s*setUpptagen\(false\);/);
+  assert.match(p, /if \(svar\.ok\) \{\s*window\.dispatchEvent\(new Event\("fp-konto-andrat"\)\);\s*return;/);
+  assert.doesNotMatch(p, /router\./);
   assert.doesNotMatch(p, /window\.location\.reload\(\)/);
-  // Misslyckas bytet står det förra valet kvar.
-  assert.match(p, /setVald\(aktiv\);/);
+  // Misslyckas bytet står det förra valet kvar (inte serverns, som kan vara äldre än förra bytet).
+  assert.match(p, /const forra = vald;/);
+  assert.match(p, /setVald\(forra\);/);
   assert.match(p, /aria-checked=\{vald === "privat"\}/);
-  // Komponenten börjar om när sidan kommit tillbaka med det nya valet.
+  // Ritas sidan om (en navigering) börjar valet om från serverns besked.
   assert.match(s, /<Profilval key=\{aktivProfil\} /);
   // Remsan överst läser om tecknet på samma händelse.
   assert.match(las("components/profil-remsa.tsx"), /window\.addEventListener\("fp-konto-andrat", andrat\)/);
+});
+
+test("raden \"Du handlar som\" följer tecknet, och servern ger namnet bara när kontot får handla som företaget", () => {
+  const h = las("app/konto/handlar-som.tsx");
+  assert.match(h, /^"use client";/);
+  assert.match(h, /window\.addEventListener\("fp-konto-andrat", andrat\)/);
+  assert.match(h, /useSyncExternalStore\(prenumerera, foretagstecken, \(\) => foretagNu\)/);
+  assert.match(h, /if \(!namn \|\| !foretag\) return null;/);
+  const m = las("app/konto/mina-sidor.tsx");
+  assert.match(m, /<HandlarSom namn=\{foretagNamn\} foretagNu=\{handlarSomForetag\} \/>/);
+  assert.doesNotMatch(m, /Du handlar som <a/, "raden ritas av klientkomponenten, inte av servern");
+  const sida = las("app/konto/page.tsx");
+  assert.match(sida, /foretagNamn: fp && kanHandlaSomForetag\(fp\) \? fp\.namn : null,/);
+  assert.match(sida, /handlarSomForetag: aktiv === "foretag",/);
+});
+
+test("ingen router.refresh() i kontots kod: på Mina sidor fastnar den ibland i Next 16.2 (vercel/next.js#86055)", () => {
+  // En omhämtning av en sida med en Suspense-gräns fastnade på förhandsbygget
+  // i 2–5 av 12 byten (2026-11-15): svaret kom fram men sidan byttes aldrig ut.
+  const filer = readdirSync(new URL("app/konto/", rot), { recursive: true })
+    .map(String)
+    .filter((f) => /\.(tsx|ts)$/.test(f));
+  assert.ok(filer.length > 10, "kontots filer hittades");
+  for (const f of filer) {
+    const kod = las(`app/konto/${f}`)
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "");
+    assert.doesNotMatch(kod, /\.refresh\(\)/, `app/konto/${f}`);
+  }
+});
+
+test("de sparade korgarna uppdateras i webbläsaren: den nya först, borttagna bort, inga dubbletter", async () => {
+  const { synligaKorgar } = await import("./medlem/sparade.ts");
+  const k = (id: string) => ({ id, namn: id, antalVaror: 1, forsta: [], skapad: "2026-11-15T10:00:00.000Z" });
+  const server = [k("b"), k("a")];
+  assert.deepEqual(synligaKorgar(server, [], new Set()).map((x) => x.id), ["b", "a"]);
+  assert.deepEqual(synligaKorgar(server, [k("c")], new Set()).map((x) => x.id), ["c", "b", "a"]);
+  assert.deepEqual(synligaKorgar(server, [k("c")], new Set(["b"])).map((x) => x.id), ["c", "a"]);
+  // Efter en ny ritning finns den nya korgen också i serverns lista: en gång.
+  assert.deepEqual(synligaKorgar([k("c"), ...server], [k("c")], new Set()).map((x) => x.id), ["c", "b", "a"]);
+  const c = las("app/konto/sparade-korgar.tsx");
+  assert.match(c, /if \(ny\) setTillagda\(\(t\) => \[ny, \.\.\.t\]\);/);
+  assert.match(c, /setBorttagna\(\(b\) => new Set\(b\)\.add\(id\)\);/);
+  assert.match(c, /const korgar = synligaKorgar\(franServern, tillagda, borttagna\);/);
+  // Rutten svarar med den sparade korgen.
+  assert.match(las("app/api/konto/sparade/route.ts"), /return svar\(\{ ok: true, korg: sparadKorgVy\(k\) \}\);/);
 });

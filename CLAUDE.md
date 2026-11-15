@@ -2652,6 +2652,16 @@ Ett företag läggs till på ett befintligt konto, högst ett per konto i E3.
   ingen rätt: `medlemsprofil()` läser företagsprofilen vid varje prissättning
   och prissätter som privatperson om företaget inte är godkänt eller dess
   villkor är gamla (E3-12, `VILLKOR_FORETAG_VERSION`).
+- ☠️ **Ingen `router.refresh()` i kontots kod** (2026-11-15). I Next 16.2.6
+  (React-canaryn 20260317) blir en `router.refresh()` på en sida med Suspense
+  ibland aldrig klar: svaret kommer i sin helhet, men vyn står kvar och
+  knapparna är spärrade. Mätt på profilbytet: 2–5 av 12 fastnade
+  (vercel/next.js#86055, rättat av facebook/react#36134 i Next 16.3). Bytet
+  laddar därför inte om: raden "Du handlar som" läser tecknet
+  `fp_medlem_inne` på händelsen `fp-konto-andrat` (`app/konto/handlar-som.tsx`),
+  och de sparade korgarna uppdateras i webbläsaren (`synligaKorgar`). Mjuka
+  `next/link`-byten till en annan adress påverkas inte (30 av 30).
+  `lib/konto-fart.test.ts` fäller en `.refresh()` under `app/konto`.
 - **Priserna**: produktsidans ruta visar företagspriset exkl. moms, märkt, och
   ordertrappan som tabell med "högst x %" när golvet stoppar trappan (E3-8).
   Varukorgen visar varor och frakt exkl. moms, momsen, totalen inkl. moms,

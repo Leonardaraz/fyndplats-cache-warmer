@@ -10,7 +10,6 @@
 // bara det maskerade (`orgnrVisas`).
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
 import { orgnrFeltext, provaOrgnr } from "@/lib/medlem/orgnr";
 import { VILLKOR_FORETAG_VERSION, postnrText, provaForetagsansokan, type Faltfel } from "@/lib/medlem/foretag";
 import s from "./konto.module.css";
@@ -354,31 +353,37 @@ function Villkor({ efter }: { efter: () => void }) {
 }
 
 /**
- * "Du handlar som". Bytet laddar inte om hela sidan längre (2026-11-15): valet
- * markeras direkt, rutten byter sessionen, och sidan hämtar om sitt innehåll
- * (router.refresh) medan sidhuvudet, menyn och varukorgen står kvar. Remsan
- * överst och kontoknappen läser om tecknet på händelsen `fp-konto-andrat`.
- * Komponenten nycklas på profilen där den används, så att den börjar om när
- * sidan kommit tillbaka med det nya valet.
+ * "Du handlar som". Bytet laddar inte om sidan och hämtar inte om den
+ * (2026-11-15): valet markeras direkt, rutten byter sessionen och tecknet
+ * `fp_medlem_inne`, och allt på sidan som visar profilen läser tecknet på
+ * händelsen `fp-konto-andrat` (raden "Du handlar som" här på Mina sidor, remsan
+ * överst, kontoknappen och priserna). Priserna sätts ändå alltid av servern.
+ *
+ * ☠️ Ingen router.refresh() här. I Next 16.2 (React-kanariefågeln 20260317)
+ * fastnar en uppdatering av en sida med en Suspense-gräns ibland för gott:
+ * svaret kommer fram men sidan byts aldrig ut, och knapparna stod gråa. Mätt
+ * på förhandsbygget 2026-11-15: 2–5 av 12 byten fastnade. Felet är
+ * vercel/next.js#86055, rättat i React (facebook/react#36134) och med i Next
+ * 16.3. Mjuka länkar till en annan adress fastnar inte (30 av 30).
  */
 function Profilval({ namn, aktiv }: { namn: string; aktiv: "privat" | "foretag" }) {
-  const router = useRouter();
   const [vald, setVald] = useState<"privat" | "foretag">(aktiv);
   const [upptagen, setUpptagen] = useState(false);
   const [skal, setSkal] = useState<string | null>(null);
   async function byt(till: "privat" | "foretag") {
     if (till === vald || upptagen) return;
+    const forra = vald;
     setUpptagen(true);
     setVald(till);
     setSkal(null);
     const svar = await skicka("/api/konto/profil", { profil: till });
+    setUpptagen(false);
     if (svar.ok) {
       window.dispatchEvent(new Event("fp-konto-andrat"));
-      router.refresh();
       return;
     }
-    setVald(aktiv);
-    setUpptagen(false);
+    // Misslyckas bytet står det förra valet kvar.
+    setVald(forra);
     setSkal(SKAL[svar.skal ?? ""] ?? SKAL.tillfalligt);
   }
   return (
