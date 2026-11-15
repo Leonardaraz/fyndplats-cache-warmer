@@ -99,11 +99,25 @@ test("Google Pay visas för alla utanför Apples webbläsare, inte bara för den
   // Med "always" kom knappen på 3–4 s i samma webbläsare.
   assert.equal(snabbknappar(null, "google").paymentMethods?.googlePay, "always");
   assert.equal(snabbknappar(null, "ingen").paymentMethods?.googlePay, "always");
-  // Apples webbläsare är orörda: där är knappen Apple Pay, och platsen som hålls
-  // rymmer EN knapp. Två knappar hade knuffat ned formuläret när Stripe svarade.
+  // I Apples webbläsare är knappen Apple Pay, och platsen som hålls rymmer EN
+  // knapp. Två knappar hade knuffat ned formuläret när Stripe svarade.
   assert.equal(snabbknappar(null, "apple").paymentMethods?.googlePay, "auto");
-  // Apple Pay visas som förut bara för den som har det uppsatt.
-  for (const g of GISSNINGAR) assert.equal(snabbknappar(null, g).paymentMethods?.applePay, "auto", g);
+});
+
+test("Apple Pay visas i Apples webbläsare också utan kort i plånboken (Leonard 2026-11-15)", () => {
+  // Med "auto" visade Stripe knappen bara när plånboken hade ett kort: på en
+  // iPhone utan kort syntes platshållaren en halv sekund och försvann sedan.
+  // Med "always" lägger kunden in kortet i Apples eget blad.
+  assert.equal(snabbknappar(null, "apple").paymentMethods?.applePay, "always");
+  // Utanför Apples webbläsare kvar på "auto": med "always" visar Stripe Apple Pay
+  // också i Chrome på Mac, bredvid Google Pay, och platsen rymmer en knapp.
+  assert.equal(snabbknappar(null, "google").paymentMethods?.applePay, "auto");
+  assert.equal(snabbknappar(null, "ingen").paymentMethods?.applePay, "auto");
+  // Aldrig två plånböcker på "always" samtidigt, i någon webbläsare.
+  for (const g of GISSNINGAR) {
+    const pm = snabbknappar(null, g).paymentMethods ?? {};
+    assert.ok(!(pm.applePay === "always" && pm.googlePay === "always"), g);
+  }
 });
 
 test("knapparna: plånboken ger e-post, telefon och en svensk leveransadress, så kunden slipper formuläret", () => {
