@@ -4,7 +4,8 @@
 // CDN:en håller en kopia av: en enda, lika för alla läsare.
 //
 // Ingen läsare har adressen. next.config.ts skriver om /feed/google.xml,
-// /feed/products.xml och /feed/pricerunner.xml hit för den som tar emot gzip,
+// /feed/products.xml, /feed/pricerunner.xml och /feed/pinterest.xml hit för den
+// som tar emot gzip,
 // och /api/cron/farska-floden hämtar dem varannan timme så att kopian finns.
 // Varför det är två adresser i stället för Vary: Accept-Encoding står i
 // lib/feed/prisjakt-svar.ts (mätt 2026-11-11: en kopia per rubriksträng).
@@ -15,6 +16,7 @@
 import { GET as google } from "../../google.xml/route";
 import { GET as produkter } from "../../products.xml/route";
 import { GET as pricerunner } from "../../pricerunner.xml/route";
+import { GET as pinterest } from "../../pinterest.xml/route";
 import { KOMPRIMERADE_FLODEN, komprimeratFlodessvar } from "@/lib/feed/prisjakt-svar";
 
 export const runtime = "nodejs";
@@ -25,6 +27,7 @@ const BYGGARE: Record<(typeof KOMPRIMERADE_FLODEN)[number], () => Promise<Respon
   "google.xml": () => google(),
   "products.xml": () => produkter(),
   "pricerunner.xml": () => pricerunner(),
+  "pinterest.xml": () => pinterest(),
 };
 
 export async function GET(_req: Request, { params }: { params: Promise<{ fil: string }> }) {
