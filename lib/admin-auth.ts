@@ -1,8 +1,11 @@
 // Edge-säker HTTP Basic Auth för /admin-sidorna (används av middleware.ts, som
-// kör på Vercel Edge → INGEN node:crypto här). Opt-in: aktiveras bara när
-// ADMIN_BASIC_USER + ADMIN_BASIC_PASS är satta i miljön, annars släpps allt
-// igenom (ingen risk att låsa ute Leonard, och Vercel Deployment Protection
-// fortsätter vara det yttre skyddet tills detta aktiveras).
+// kör på Vercel Edge → INGEN node:crypto här).
+//
+// ☠️ Skyddet är inte längre ett tillval (2026-11-14). Saknas ADMIN_BASIC_USER
+// eller ADMIN_BASIC_PASS i en driftsatt motor NEKAS /admin med ett tydligt
+// konfigurationsfel. Förut släpptes allt igenom då, så att en tappad variabel
+// öppnade adminsidorna utan att något syntes. Öppet utan inställning är det
+// bara lokalt och i prov (`lib/sakerhetslage.ts`).
 
 /** Konstant-tid-ish strängjämförelse utan node:crypto (edge-kompatibel). */
 function safeEqual(a: string, b: string): boolean {
@@ -26,18 +29,26 @@ export function parseBasicAuth(header: string | null): { user: string; pass: str
   return { user: decoded.slice(0, idx), pass: decoded.slice(idx + 1) };
 }
 
+export type AdminAuthUtfall = "disabled" | "misconfigured" | "ok" | "unauthorized";
+
 /**
  * Beslutar admin-Basic-Auth-utfall (ren funktion → enhetstestbar):
- * - env saknas (user ELLER pass tom) → "disabled" (släpp igenom — ingen utelåsning)
+ * - env saknas (user ELLER pass tom) → "misconfigured": middleware NEKAR med
+ *   ett konfigurationsfel. Bara med `oppetUtanKonfig` (lokalt och i prov, se
+ *   `oppetUtanKonfiguration`) blir det "disabled" och släpps igenom.
  * - korrekt matchande Basic-credentials → "ok"
  * - annars → "unauthorized" (middleware svarar 401 + WWW-Authenticate)
+ *
+ * `oppetUtanKonfig` är FALSKT om inget annat sägs: den som glömmer argumentet
+ * får det stängda läget, inte det öppna.
  */
 export function adminAuthDecision(
   authHeader: string | null,
   envUser: string | undefined,
   envPass: string | undefined,
-): "disabled" | "ok" | "unauthorized" {
-  if (!envUser || !envPass) return "disabled";
+  oppetUtanKonfig = false,
+): AdminAuthUtfall {
+  if (!envUser || !envPass) return oppetUtanKonfig ? "disabled" : "misconfigured";
   const creds = parseBasicAuth(authHeader);
   if (creds && safeEqual(creds.user, envUser) && safeEqual(creds.pass, envPass)) return "ok";
   return "unauthorized";

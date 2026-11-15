@@ -13,9 +13,14 @@ import {
   buildGuardFindings,
   buildSyncDigest,
   rollupSyncRuns,
+  saknadeUppgifter,
+  tillVaktensOrder,
   type GuardAuditInput,
   type GuardOrderInput,
 } from "./guard";
+import { readFileSync } from "node:fs";
+import { runOrderBackfill } from "./backfill";
+import type { WixOrder } from "./types";
 import type { SyncLogEntry } from "@/lib/sync/sync-log";
 import type { FulfillmentTask, TaskStatus } from "./types";
 
@@ -87,6 +92,158 @@ describe("buildGuardFindings — ordrar utan task", () => {
       ],
     });
     expect(f.missingTasks).toHaveLength(0);
+  });
+});
+
+describe("buildGuardFindings — per orderrad (en delvis skapad order)", () => {
+  // ☠️ Förut räckte EN uppgift för att ordern skulle räknas som hel. En order
+  // där webhooken hann skriva rad 1 men föll på rad 2 syntes aldrig här.
+  const gammal = iso(TASK_GRACE_MS + HOUR);
+  const tvaRader = (over: Partial<GuardOrderInput> = {}) =>
+    order({ createdAt: gammal, expectedTaskIds: ["o1:l1", "o1:l2"], ...over });
+
+  it("☠️ en av två rader saknar task → larm, med antalet", () => {
+    const f = findings({ orders: [tvaRader()], tasks: [task({ status: "ordered" })] });
+    expect(f.missingTasks).toHaveLength(1);
+    expect(f.missingTasks[0]).toMatchObject({ id: "o1", missingLines: 1, expectedLines: 2 });
+    expect(f.actionCount).toBe(1);
+  });
+
+  it("båda raderna har sin task → inget larm", () => {
+    const f = findings({
+      orders: [tvaRader()],
+      tasks: [task({ status: "ordered" }), task({ status: "pending", taskId: "o1:l2", lineItemId: "l2" })],
+    });
+    expect(f.missingTasks).toHaveLength(0);
+  });
+
+  it("ingen rad har task → larm för hela ordern", () => {
+    const f = findings({ orders: [tvaRader()] });
+    expect(f.missingTasks[0]).toMatchObject({ missingLines: 2, expectedLines: 2 });
+  });
+
+  it("☠️ en annan orders uppgift med samma rad-id fyller inte luckan", () => {
+    const f = findings({
+      orders: [tvaRader()],
+      tasks: [
+        task({ status: "ordered", taskId: "o2:l1", orderId: "o2" }),
+        task({ status: "ordered", taskId: "o2:l2", orderId: "o2", lineItemId: "l2" }),
+      ],
+    });
+    expect(f.missingTasks).toHaveLength(1);
+    expect(f.missingTasks[0].missingLines).toBe(2);
+  });
+
+  it("en avbruten uppgift räknas som att raden HAR sin task (den ska inte skapas om)", () => {
+    const f = findings({
+      orders: [tvaRader()],
+      tasks: [
+        task({ status: "cancelled" }),
+        task({ status: "cancelled", taskId: "o1:l2", lineItemId: "l2" }),
+      ],
+    });
+    expect(f.missingTasks).toHaveLength(0);
+  });
+
+  it("respiten och betalstatusen gäller också en delvis skapad order", () => {
+    const tasks = [task({ status: "ordered" })];
+    expect(findings({ orders: [tvaRader({ createdAt: iso(TASK_GRACE_MS - HOUR) })], tasks }).missingTasks).toHaveLength(0);
+    expect(findings({ orders: [tvaRader({ paymentStatus: "FULLY_REFUNDED" })], tasks }).missingTasks).toHaveLength(0);
+    expect(findings({ orders: [tvaRader({ paymentStatus: "PARTIALLY_REFUNDED" })], tasks }).missingTasks).toHaveLength(1);
+  });
+
+  it("tom väntelista (order utan rader) → den grövre frågan: har ordern någon task?", () => {
+    const utanRader = order({ createdAt: gammal, expectedTaskIds: [] });
+    expect(findings({ orders: [utanRader] }).missingTasks).toHaveLength(1);
+    expect(findings({ orders: [utanRader], tasks: [task({ status: "ordered" })] }).missingTasks).toHaveLength(0);
+  });
+
+  it("mejlet säger hur många rader som saknas, så att hela ordern inte läggs om", () => {
+    const f = findings({ orders: [tvaRader()], tasks: [task({ status: "ordered" })] });
+    const email = buildGuardEmail(f, { sectionErrors: [], baseUrl: "https://example.test" }, NOW);
+    expect(email.html).toContain("1 av 2 orderrader saknar task");
+    expect(email.text).toContain("1 av 2 orderrader saknar task");
+    expect(email.html).not.toContain("ingen task skapades");
+  });
+
+  it("mejlet för en helt tappad order säger som förut att ingen task skapades", () => {
+    const email = buildGuardEmail(
+      findings({ orders: [tvaRader()] }),
+      { sectionErrors: [], baseUrl: "https://example.test" },
+      NOW,
+    );
+    expect(email.html).toContain("ingen task skapades");
+    expect(email.html).not.toContain("orderrader saknar task");
+  });
+});
+
+describe("vakten och återhämtningen dömer lika", () => {
+  // De delar jämförelsen (`saknadeUppgifter`) och härledningen (`deriveTasks`).
+  // Proven här kör SAMMA order genom båda: larmar vakten om något som
+  // återhämtningen inte lagar, eller tvärtom, är de oense.
+  const wixOrder = (over: Partial<WixOrder> = {}): WixOrder => ({
+    id: "o1",
+    number: "10001",
+    paymentStatus: "PAID",
+    _createdDate: iso(TASK_GRACE_MS + HOUR),
+    lineItems: [
+      { id: "l1", productName: { original: "Lampa" }, quantity: 1 },
+      { id: "l2", productName: { original: "Matta" }, quantity: 2 },
+    ],
+    ...over,
+  });
+
+  it("saknadeUppgifter: bara nycklarna som inte finns, i väntad ordning", () => {
+    expect(saknadeUppgifter(["a:1", "a:2", "a:3"], new Set(["a:2"]))).toEqual(["a:1", "a:3"]);
+    expect(saknadeUppgifter(["a:1"], new Set(["a:1"]))).toEqual([]);
+    expect(saknadeUppgifter([], new Set(["a:1"]))).toEqual([]);
+    expect(saknadeUppgifter(["a:1"], new Set())).toEqual(["a:1"]);
+  });
+
+  it("tillVaktensOrder bär en väntad uppgift per orderrad, med webhookens nyckel", () => {
+    expect(tillVaktensOrder(wixOrder())).toEqual({
+      id: "o1",
+      number: "10001",
+      createdAt: iso(TASK_GRACE_MS + HOUR),
+      paymentStatus: "PAID",
+      expectedTaskIds: ["o1:l1", "o1:l2"],
+    });
+    expect(tillVaktensOrder(wixOrder({ lineItems: [] })).expectedTaskIds).toEqual([]);
+  });
+
+  it("☠️ delvis skapad order: vakten larmar, återhämtningen fyller luckan, vakten tystnar", async () => {
+    const lager = new Map<string, FulfillmentTask>([["o1:l1", task({ status: "ordered" })]]);
+    const o = wixOrder();
+    const fore = findings({ orders: [tillVaktensOrder(o)], tasks: [...lager.values()] });
+    expect(fore.missingTasks).toHaveLength(1);
+    expect(fore.missingTasks[0].missingLines).toBe(1);
+
+    const s = await runOrderBackfill(
+      {},
+      {
+        listOrders: async () => [o],
+        listTasks: async () => [...lager.values()],
+        createTaskIfAbsent: async (t) => {
+          if (lager.has(t.taskId)) return false;
+          lager.set(t.taskId, t);
+          return true;
+        },
+        now: () => NOW,
+      },
+    );
+    // Återhämtningen såg exakt det vakten såg, och skrev exakt det.
+    expect(s.missing).toBe(fore.missingTasks.length);
+    expect(s.missingLines).toBe(fore.missingTasks[0].missingLines);
+    expect(s.created).toBe(1);
+    expect([...lager.keys()].sort()).toEqual(["o1:l1", "o1:l2"]);
+
+    const efter = findings({ orders: [tillVaktensOrder(o)], tasks: [...lager.values()] });
+    expect(efter.missingTasks).toHaveLength(0);
+  });
+
+  it("vaktens rutt bygger orderbilden med tillVaktensOrder (annars jämförs det per order igen)", () => {
+    const rutt = readFileSync("app/api/cron/order-guard/route.ts", "utf8");
+    expect(rutt).toMatch(/orders = raw\.map\(\(o\) => tillVaktensOrder\(/);
   });
 });
 

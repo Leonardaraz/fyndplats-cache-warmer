@@ -10,23 +10,27 @@ function safeStrEqual(a: string, b: string): boolean {
 
 /**
  * Avgör om ett forwardat anrop (från headless-fanouten) får litas på och hoppa
- * över egen signaturverifiering. Kräver rätt `X-Forwarded-From` OCH — när en delad
- * hemlighet är konfigurerad (`WEBHOOK_FORWARD_SECRET`) — en matchande
- * `X-Forward-Secret`. Är ingen hemlighet satt behålls nuvarande beteende (bara
- * header-kollen), så inget bryts förrän hemligheten satts på BÅDA sidor.
+ * över egen signaturverifiering. Kräver rätt `X-Forwarded-From` OCH en
+ * `X-Forward-Secret` som matchar den delade hemligheten
+ * (`WEBHOOK_FORWARD_SECRET`).
  *
- * Säkerhet: tidigare räckte den gissningsbara klartext-headern `X-Forwarded-From`
- * för att skippa signaturkollen → vem som helst kunde forwarda falska order. Med
- * hemligheten satt måste en forgare nu antingen kunna hemligheten eller skicka ett
- * giltigt Wix-RS256-JWT (verifieras mot WIX_WEBHOOK_PUBLIC_KEY).
+ * ☠️ Utan konfigurerad hemlighet litas forwarden INTE på (2026-11-14). Förut
+ * räckte då rubriken `X-Forwarded-From`, en gissningsbar klartext som vem som
+ * helst kan skriva, och den som skrev den slapp signaturkollen helt. En tappad
+ * variabel öppnade alltså orderflödet för påhittade ordrar. Nu faller ett
+ * sådant anrop tillbaka på Wix signatur (WIX_WEBHOOK_PUBLIC_KEY).
+ *
+ * `oppetUtanKonfig` (lokalt och i prov, se `oppetUtanKonfiguration`) ger det
+ * gamla beteendet: bara rubriken. Det är FALSKT om inget annat sägs.
  */
 export function isTrustedForward(
   forwardedFrom: string | null,
   providedSecret: string | null,
   expectedSecret: string | undefined,
+  oppetUtanKonfig = false,
 ): boolean {
   if (forwardedFrom !== "fyndplats-webhook") return false;
-  if (!expectedSecret) return true; // ingen hemlighet konfigurerad → bakåtkompatibelt
+  if (!expectedSecret) return oppetUtanKonfig;
   return safeStrEqual(providedSecret ?? "", expectedSecret);
 }
 
@@ -144,18 +148,23 @@ function unwrapDataLayers(payload: Record<string, unknown>): Record<string, unkn
 
 /**
  * Tar emot råa request-body:n. Om en publik nyckel är konfigurerad verifieras
- * och avkodas JWT:t; annars (t.ex. i test/dev) tolkas body som rå JSON.
- * Wix lägger ofta själva händelsen i ett `data`-fält som JSON-sträng.
+ * och avkodas JWT:t. Wix lägger ofta själva händelsen i ett `data`-fält som
+ * JSON-sträng.
  *
  * `trustedForwarded=true` skippar signaturverifiering helt — använd ENDAST när
- * vi vet att payloaden redan verifierats upstream (X-Forwarded-From-header från
- * fyndplats-headless). Body kan då vara antingen ett JWT (Wix-format som
- * forwardats orört) eller rå JSON.
+ * vi vet att payloaden redan verifierats upstream (`isTrustedForward`). Body
+ * kan då vara antingen ett JWT (Wix-format som forwardats orört) eller rå JSON.
+ *
+ * ☠️ En OSIGNERAD kropp tas bara emot med `tillatOsignerat` (2026-11-14).
+ * Förut tolkades kroppen som rå JSON så fort nyckeln saknades, så att en
+ * tappad WIX_WEBHOOK_PUBLIC_KEY gjorde att vem som helst kunde skicka in en
+ * order. Flaggan sätts bara lokalt och i prov (`oppetUtanKonfiguration`), och
+ * den kringgår aldrig en nyckel som FINNS: med nyckel krävs alltid signatur.
  */
 export function parseWebhookBody(
   rawBody: string,
   publicKeyPem?: string,
-  options?: { trustedForwarded?: boolean },
+  options?: { trustedForwarded?: boolean; tillatOsignerat?: boolean },
 ): Record<string, unknown> | null {
   let outer: Record<string, unknown> | null = null;
 
@@ -177,6 +186,8 @@ export function parseWebhookBody(
     outer = verifyJwtRs256(rawBody.trim(), publicKeyPem);
     if (!outer) return null; // signatur ogiltig → avvisa
   } else {
+    // Ingen nyckel och ingen betrodd forward: signaturen går inte att pröva.
+    if (!options?.tillatOsignerat) return null;
     try {
       outer = JSON.parse(rawBody) as Record<string, unknown>;
     } catch {

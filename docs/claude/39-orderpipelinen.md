@@ -67,6 +67,88 @@ expedieras SKA tjata, och tjatet upphör av sig självt när skrivningen går
 igenom. **Bara raderna som inte hann skrivas listas** — annars beställer man om
 en rad som redan ligger i `/admin` och kunden får två paket.
 
+### ☠️ Nätet jämför per orderrad, inte per order (2026-11-14)
+
+Webhooken skriver en uppgift per orderrad, en i taget. Faller skrivningen efter
+första raden har ordern en uppgift av två. Förut räckte den uppgiften för att
+ordern skulle räknas som hel: både återhämtningen (`lib/orders/backfill.ts`) och
+vakten (`lib/orders/guard.ts`) jämförde på order-id. Den andra varan låg då utan
+uppgift, och ingen fick veta det. Fyndet kom ur en extern kodgranskning.
+
+**Mätt samma dag mot butiken (bara läsning):** 192 ordrar sedan mitten av juni,
+182 med en betalstatus som räknas, 12 med flera rader, 214 uppgifter. 181 hade
+en uppgift för varje rad, 0 var delvis skapade och 1 saknade uppgifter helt (den
+är äldre än orderflödet). Felet fanns alltså i koden, men ingen kund hade
+drabbats.
+
+Nu:
+
+1. **En jämförelse, delad.** `saknadeUppgifter()` i `guard.ts` jämför uppgiftens
+   egen nyckel (`order:rad`, den `deriveTasks` sätter). Återhämtningen och vakten
+   anropar samma funktion, och `vantadeUppgifter()` i `tasks.ts` ger båda samma
+   väntelista. Skriver de var sin jämförelse blir de förr eller senare oense.
+2. **Bara det som saknas skrivs.** En uppgift som finns får inget skrivförsök:
+   den kan redan vara beställd, betald eller skickad. En avbruten uppgift räknas
+   som att raden HAR sin uppgift och skapas inte om.
+3. **Vakten säger hur många rader som saknas** ("1 av 2 orderrader saknar
+   task"), så att hela ordern inte läggs om för hand. Vaktens rutt bygger
+   orderbilden med `tillVaktensOrder()`; utan den faller vakten tyst tillbaka på
+   den grövre frågan, och ett prov läser rutten för att fälla det.
+4. **Respiten gäller också en delvis skapad order.** Webhooken kan vara mitt i
+   skrivandet.
+5. ☠️ **En avbruten order får aldrig nya uppgifter**, också om den står som
+   betald. Cronens orderläsning lämnar redan ute avbrutna ordrar, men spärren
+   står i återhämtningen också, så att den inte hänger på att varje anropare
+   minns filtret.
+6. ☠️ **En delvis återbetald order: den återskapade raden hålls för granskning**
+   (`refundFlagged`). Återbetalningen bär inga radnummer, så vi vet inte om
+   raden som saknas är den som betalades tillbaka. Webhooken flaggar av samma
+   skäl orderns öppna uppgifter (`flagTasksForOrderRefund`). Utan flaggan kunde
+   en vara som redan betalats tillbaka beställas hos leverantören.
+
+Sammanfattningen bär `missingLines` (rader) bredvid `missing` (ordrar), och
+loggraden säger båda. Mutationskontrollen fällde 24 av 24 ändringar i de två
+modulerna.
+
+### ☠️ Saknad säkerhetsinställning nekar i drift (2026-11-14)
+
+Tre skydd var skrivna som tillval: saknades inställningen släppte de igenom.
+
+| Skydd | Variabel | Förut, utan variabeln | Nu, utan variabeln |
+|---|---|---|---|
+| `/admin` | `ADMIN_BASIC_USER`, `ADMIN_BASIC_PASS` | sidorna öppna | 503 med konfigurationsfel |
+| Vidarebefordran från butiken | `WEBHOOK_FORWARD_SECRET` | rubriken `X-Forwarded-From` räckte | rubriken räcker inte, signaturen prövas |
+| Wix signatur | `WIX_WEBHOOK_PUBLIC_KEY` | osignerad kropp togs emot | osignerad kropp nekas (401) |
+
+Saknas BÅDE hemligheten och nyckeln svarar `/api/wix-order` 503 "Webhooken är
+inte konfigurerad". 503 och inte 401: Wix och butiken försöker igen på 5xx, och
+återhämtningen tar det som ändå tappas.
+
+**I produktionen var alla tre inställda när det mättes** (2026-11-14: `/admin`
+svarade 401, en osignerad webhook 401 med och utan rubriken). Ändringen skyddar
+mot att en variabel tappas vid en flytt, ett nytt projekt eller en rensning i
+Vercel: en spärr man måste komma ihåg glöms bort.
+
+- **`lib/sakerhetslage.ts` avgör läget.** Öppet utan inställning är det bara i
+  `next dev` och i proven (`NODE_ENV` `development` eller `test`). Allt annat är
+  stängt, också förhandsbyggen och ett saknat eller okänt `NODE_ENV`.
+- **Det stängda läget är förvalet i varje funktion.** `adminAuthDecision`,
+  `isTrustedForward` och `parseWebhookBody` tar det öppna läget som ett
+  uttryckligt argument. Den som glömmer argumentet får det stängda.
+- **Det öppna läget försvagar aldrig ett skydd som ÄR inställt.** Med nyckel
+  krävs alltid signatur, med hemlighet krävs alltid rätt hemlighet.
+- **Felmeddelanden och loggrader nämner variablernas namn, aldrig deras
+  värden.**
+- ☠️ **`WEBHOOK_FORWARD_SECRET` måste vara densamma i butiken och i motorn.**
+  Byts den på ena sidan nekas varje order tills den andra är bytt. Byt på båda
+  i samma stund, och läs sedan att nästa order får sina uppgifter.
+- **Svarar `/admin` 503 på ett förhandsbygge** saknar Preview-miljön
+  variablerna. Lägg in dem där; det är inget driftfel.
+
+Inga påhittade orderhändelser skickas till produktionen för att prova detta.
+Proven anropar rutten som en funktion mot ett lager i minnet, med `NODE_ENV`
+ställt till `production`. Mutationskontrollen fällde 16 av 16 ändringar.
+
 ### En manuellt lagd AliExpress-order är osynlig tills numret kopplas (2026-09-01)
 
 Order 10025: lagd för hand i AliExpress konsumentkassa (kampanj/kupong

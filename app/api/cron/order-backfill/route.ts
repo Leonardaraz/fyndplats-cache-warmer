@@ -96,8 +96,8 @@ async function handle(req: NextRequest) {
     // nät — det är den bugg nätet byggdes för att fånga, en våning upp.
     if (summary.missing > 0 || summary.failed > 0) {
       console.error(
-        `[order-backfill] ${summary.created} av ${summary.missing} saknade tasks skapade`
-          + `, ${summary.failed} fel`
+        `[order-backfill] ${summary.created} av ${summary.missingLines} saknade tasks skapade`
+          + ` (${summary.missing} ordrar), ${summary.failed} fel`
           + (summary.recovered.length ? ` (räddade: ${summary.recovered.join(", ")})` : "")
           + (summary.errors.length
             ? ` — ${summary.errors.map((e) => `${e.order}: ${e.error}`).join(" | ")}`
@@ -145,7 +145,7 @@ async function handle(req: NextRequest) {
         "order-backfill",
         "cron",
         `${summary.created} tasks återskapade för order ${summary.recovered.join(", ") || "—"}`
-          + `, ${summary.failed} fel av ${summary.missing} saknade`,
+          + `, ${summary.failed} fel, ${summary.missingLines} rader saknades på ${summary.missing} ordrar`,
       );
     }
 

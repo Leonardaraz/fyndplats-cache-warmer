@@ -20,10 +20,28 @@ describe("parseBasicAuth", () => {
 });
 
 describe("adminAuthDecision", () => {
-  it("disabled när env saknas (ingen utelåsning)", () => {
-    expect(adminAuthDecision(null, undefined, undefined)).toBe("disabled");
-    expect(adminAuthDecision(basic("leo", "x"), "leo", undefined)).toBe("disabled");
-    expect(adminAuthDecision(basic("leo", "x"), undefined, "x")).toBe("disabled");
+  it("☠️ saknad inställning NEKAR: en tappad variabel öppnar inte admin", () => {
+    // Förut svarade funktionen "disabled" här, och middleware släppte igenom.
+    expect(adminAuthDecision(null, undefined, undefined)).toBe("misconfigured");
+    expect(adminAuthDecision(null, "", "")).toBe("misconfigured");
+    // Också när bara den ena saknas, och också med inloggningsuppgifter som
+    // hade stämt mot den som finns.
+    expect(adminAuthDecision(basic("leo", "x"), "leo", undefined)).toBe("misconfigured");
+    expect(adminAuthDecision(basic("leo", "x"), undefined, "x")).toBe("misconfigured");
+  });
+  it("det stängda läget är förvalet: den som glömmer argumentet får inte det öppna", () => {
+    expect(adminAuthDecision(null, undefined, undefined, false)).toBe("misconfigured");
+    expect(adminAuthDecision(null, undefined, undefined, undefined)).toBe("misconfigured");
+  });
+  it("öppet läge (lokalt och i prov) släpper igenom utan inställning", () => {
+    expect(adminAuthDecision(null, undefined, undefined, true)).toBe("disabled");
+    expect(adminAuthDecision(basic("leo", "x"), "leo", undefined, true)).toBe("disabled");
+    expect(adminAuthDecision(basic("leo", "x"), undefined, "x", true)).toBe("disabled");
+  });
+  it("öppet läge försvagar aldrig ett skydd som ÄR inställt", () => {
+    expect(adminAuthDecision(null, "leo", "hemligt", true)).toBe("unauthorized");
+    expect(adminAuthDecision(basic("leo", "fel"), "leo", "hemligt", true)).toBe("unauthorized");
+    expect(adminAuthDecision(basic("leo", "hemligt"), "leo", "hemligt", true)).toBe("ok");
   });
   it("ok vid korrekta credentials", () => {
     expect(adminAuthDecision(basic("leo", "hemligt"), "leo", "hemligt")).toBe("ok");
