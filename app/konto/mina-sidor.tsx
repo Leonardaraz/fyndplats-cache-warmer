@@ -18,6 +18,7 @@ import { Medlemskort, nivaNyckel } from "./medlemskort";
 import { KopIgen } from "./kop-igen";
 import { MinaFavoriter } from "./favoriter";
 import { SparadeKorgar } from "./sparade-korgar";
+import { HandlarSom } from "./handlar-som";
 import type { SparadKorgVy } from "@/lib/medlem/sparade";
 import s from "./konto.module.css";
 
@@ -67,7 +68,8 @@ export function MinaSidorVy({
   data,
   bilder: produkter = {},
   foretag,
-  handlarSom,
+  foretagNamn = null,
+  handlarSomForetag = false,
   sparade,
   prisOppet = false,
 }: {
@@ -75,8 +77,10 @@ export function MinaSidorVy({
   bilder?: Produktbilder;
   /** E3: företagskontots ruta, när prisväxeln släpper fram den. */
   foretag?: ReactNode;
-  /** E3: företagets namn när kontot handlar som företaget. */
-  handlarSom?: string | null;
+  /** E3: företagets namn när kontot får handla som företaget (godkänt, gällande villkor). */
+  foretagNamn?: string | null;
+  /** E3: kontot handlade som företaget när sidan ritades; därefter följer raden tecknet. */
+  handlarSomForetag?: boolean;
   /** E3: sparade varukorgar; saknas när växeln är av och kontot inte har några, eller när de inte gick att läsa. */
   sparade?: SparadeKorgarVy;
   /** Medlemspriset gäller för medlemmen (`prisOppet`): då lovar sidan inget som redan finns. */
@@ -98,11 +102,7 @@ export function MinaSidorVy({
           <p className={s.ogonbryn}>Mina sidor</p>
           <h1 className={s.rubrik}>{halsning(skapadOk ? stockholmsDag(medlem.skapad) : null, lage.dag)}</h1>
           <p className={s.vem}>Inloggad som {maskeradEpost(medlem.epost)}</p>
-          {handlarSom ? (
-            <p className={s.handlarSom}>
-              Du handlar som <a href="#foretag">{handlarSom}</a>
-            </p>
-          ) : null}
+          <HandlarSom namn={foretagNamn} foretagNu={handlarSomForetag} />
         </div>
         <form action="/api/konto/ut" method="post">
           <button type="submit" className={s.utknapp}>
@@ -346,6 +346,52 @@ export function MinaSidorVy({
 
       <p className={s.hjalp}>
         Frågor om ditt konto eller en order? Mejla <a href="mailto:info@fyndplats.com">info@fyndplats.com</a>.
+      </p>
+    </div>
+  );
+}
+
+/**
+ * Skissen som syns medan Mina sidor läses (Suspense i app/konto/page.tsx).
+ * Samma ram, rubrikrad, kort och summa som sidan, så att innehållet tar över
+ * platsen utan att något hoppar åt sidan. Ingen text som kan vara fel: bara
+ * ytor och "Mina sidor", som alltid står där.
+ */
+export function MinaSidorSkelett() {
+  return (
+    <div className={`container ${s.ram}`} aria-busy="true">
+      <div className={s.portal}>
+        <div className={s.huvud}>
+          <div>
+            <p className={s.ogonbryn}>Mina sidor</p>
+            <span className={`${s.skelett} ${s.skelettRubrik}`} />
+            <span className={`${s.skelett} ${s.skelettRad}`} />
+          </div>
+        </div>
+        <div className={s.topp}>
+          <div className={s.kortyta}>
+            <span className={`${s.skelett} ${s.skelettKort}`} />
+          </div>
+          <div className={`${s.kort} ${s.summakort}`}>
+            <span className={`${s.skelett} ${s.skelettRad}`} />
+            <span className={`${s.skelett} ${s.skelettSumma}`} />
+            <span className={`${s.skelett} ${s.skelettStapel}`} />
+          </div>
+        </div>
+        <div className={s.kort}>
+          {[0, 1, 2].map((i) => (
+            <div key={i} className={s.skelettOrder}>
+              <span className={`${s.skelett} ${s.skelettBild}`} />
+              <span className={s.skelettText}>
+                <span className={`${s.skelett} ${s.skelettRad}`} />
+                <span className={`${s.skelett} ${s.skelettRadKort}`} />
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <p className="sr-only" role="status">
+        Hämtar Mina sidor …
       </p>
     </div>
   );

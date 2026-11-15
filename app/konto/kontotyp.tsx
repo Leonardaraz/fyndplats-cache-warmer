@@ -2,8 +2,10 @@
 //
 // Två länkar, inte två flikar: varje val är en egen sida (/konto och
 // /konto/foretag), så växeln fungerar utan skript och går att länka till.
+// Med skript byter next/link sidan utan att ladda om sidhuvudet (2026-11-15).
 // Den visas bara när företagskontot är öppet för alla (visaForetagsvag).
 
+import Link from "next/link";
 import { FORETAGSVAG } from "@/lib/medlem/foretagsstart";
 import s from "./konto.module.css";
 
@@ -30,14 +32,14 @@ export function Portfolj({ storlek = 18 }: { storlek?: number }) {
 export function Kontotyp({ aktiv }: { aktiv: "privat" | "foretag" }) {
   return (
     <nav className={s.kontotyp} aria-label="Typ av konto">
-      <a href="/konto" className={s.kontotypVal} aria-current={aktiv === "privat" ? "page" : undefined}>
+      <Link prefetch={false} href="/konto" className={s.kontotypVal} aria-current={aktiv === "privat" ? "page" : undefined}>
         <Person />
         Privatperson
-      </a>
-      <a href={FORETAGSVAG} className={s.kontotypVal} aria-current={aktiv === "foretag" ? "page" : undefined}>
+      </Link>
+      <Link prefetch={false} href={FORETAGSVAG} className={s.kontotypVal} aria-current={aktiv === "foretag" ? "page" : undefined}>
         <Portfolj />
         Företag
-      </a>
+      </Link>
     </nav>
   );
 }
@@ -45,7 +47,7 @@ export function Kontotyp({ aktiv }: { aktiv: "privat" | "foretag" }) {
 /** Raden under inloggningen på /konto: den andra vägen in för den som missade växeln. */
 export function Foretagsrad() {
   return (
-    <a href={FORETAGSVAG} className={s.foretagsrad}>
+    <Link prefetch={false} href={FORETAGSVAG} className={s.foretagsrad}>
       <span className={s.foretagsradIkon} aria-hidden="true">
         <Portfolj storlek={22} />
       </span>
@@ -59,6 +61,6 @@ export function Foretagsrad() {
           </svg>
         </span>
       </span>
-    </a>
+    </Link>
   );
 }

@@ -8,6 +8,8 @@
 // det tre gånger varannan timme, en gång per flöde (2026-11-15).
 
 import { tillPricerunner } from "@/lib/feed/pricerunner";
+import { gtinUrval } from "@/lib/feed/prisjakt";
+import { FLODE_GTIN } from "@/lib/feed/flode-gtin";
 import { pinterestRakning, tillPinterest } from "@/lib/feed/pinterest";
 import { PINTEREST_GTIN } from "@/lib/feed/pinterest-gtin";
 import {
@@ -18,15 +20,29 @@ import {
   STANDARD_SHIPPING_KR,
 } from "@/lib/shipping";
 
-/** PriceRunner-flödet: pris kunden betalar, frakt per vara, bara varor i lager (lib/feed/pricerunner.ts). */
+/**
+ * PriceRunner-flödet: pris kunden betalar, frakt per vara, bara varor i lager
+ * (lib/feed/pricerunner.ts) och EAN på de varor som FLODE_GTIN pekar ut
+ * (lib/feed/flode-gtin.ts, regeln i `gtinUrval`). En rad med antalet i loggen.
+ *
+ * ☠️ Utan koderna faller PriceRunner tillbaka på identifier_exists=no och
+ * matchar varorna sämre. lib/feed/flode-gtin-anvandning.test.ts fäller om
+ * kartan tappas här.
+ */
 export function pricerunnerXml(googleXml: string): string {
-  return tillPricerunner(googleXml, {
-    standardKr: STANDARD_SHIPPING_KR,
-    freeFromKr: FREE_SHIPPING_FROM_KR,
-    service: SHIPPING_SERVICE,
-    minTransitDays: DELIVERY_MIN_DAYS,
-    maxTransitDays: DELIVERY_MAX_DAYS,
-  });
+  const xml = tillPricerunner(
+    googleXml,
+    {
+      standardKr: STANDARD_SHIPPING_KR,
+      freeFromKr: FREE_SHIPPING_FROM_KR,
+      service: SHIPPING_SERVICE,
+      minTransitDays: DELIVERY_MIN_DAYS,
+      maxTransitDays: DELIVERY_MAX_DAYS,
+    },
+    gtinUrval(googleXml, FLODE_GTIN),
+  );
+  console.info(`[pricerunner] g:gtin på ${xml.split("<g:gtin>").length - 1} av ${Object.keys(FLODE_GTIN).length} varor i kartan`);
+  return xml;
 }
 
 /** Pinterest-flödet (lib/feed/pinterest.ts), och en rad med antalen i loggen. */

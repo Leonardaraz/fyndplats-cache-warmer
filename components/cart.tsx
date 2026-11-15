@@ -731,7 +731,7 @@ function KorgRad({ vantar, bild, namn, val, pris, antal, lank, tillProdukt, last
 
 export function CartDrawer() {
   const { cart, open, setOpen, remove, updateQty, checkout, busy, count, vantande, radNyckel, fel, tillKassan, forskottLagd, forskottKlar } = useCart();
-  const panelRef = useRef<HTMLElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   // En ny vara läggs sist. Rulla bara så långt att raden syns, inte till
   // botten: rullat till botten flyttade förslagen under raderna allt ovanför
   // när de byttes (mätt 2026-11-07: 132 px).
@@ -812,7 +812,7 @@ export function CartDrawer() {
   return (
     <>
       <div className={`drawer-ov ${open ? "show" : ""}`} onClick={() => setOpen(false)} />
-      <aside ref={panelRef} className={`drawer ${open ? "show" : ""}`} role="dialog" aria-modal="true" aria-label="Varukorg" aria-hidden={!open} inert={!open}>
+      <div ref={panelRef} className={`drawer ${open ? "show" : ""}`} role="dialog" aria-modal="true" aria-label="Varukorg" aria-hidden={!open} inert={!open}>
         <div className="drawer-head">
           <strong>Varukorg{count > 0 ? ` (${count})` : ""}</strong>
           <button className="drawer-x" onClick={() => setOpen(false)} aria-label="Stäng">✕</button>
@@ -1021,7 +1021,7 @@ export function CartDrawer() {
             </p>
           </div>
         )}
-      </aside>
+      </div>
     </>
   );
 }

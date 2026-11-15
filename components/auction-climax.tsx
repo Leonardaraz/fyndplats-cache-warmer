@@ -1,19 +1,14 @@
 "use client";
 // "SISTA TIMMEN"-bannern: fälls ut 18:00–19:00 med nedräkning till stängning.
-// Egen klientticker; syns aldrig utanför sista timmen.
+// Går på sidans gemensamma sekundklocka; syns aldrig utanför sista timmen.
 
-import { useEffect, useState } from "react";
 import { isFinalHour, msToDayEnd } from "../lib/auction-day";
+import { useClientNow } from "./use-client-now";
 
 export function AuctionClimax({ startAt }: { startAt: string | null }) {
   // Mount-gated: synligheten beror på klockan (server/klient-mismatch annars).
-  const [now, setNow] = useState<number | null>(null);
-  useEffect(() => {
-    setNow(Date.now());
-    const t = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(t);
-  }, []);
-  if (now === null) return null;
+  const { nowMs: now, mounted } = useClientNow(0, 1000);
+  if (!mounted) return null;
   const startMs = startAt ? Date.parse(startAt) : null;
   const show = isFinalHour(startMs, now);
   const left = msToDayEnd(startMs, now);

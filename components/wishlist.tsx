@@ -11,6 +11,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { productCountLabel } from "../lib/rating";
+import { forvarmFavoriter } from "./favoriter-hamtning";
 import {
   FAVORIT_NYCKLAR as N,
   MAX_KO,
@@ -344,9 +345,12 @@ export function FavoritKnapp({ slug, namn, pris, bild }: { slug: string; namn: s
 }
 
 export function WishlistButton() {
-  const { count, setOpen } = useWishlist();
+  const { count, setOpen, lista } = useWishlist();
+  // Lådans rader frågas redan när kunden siktar på knappen (musen över, fingret
+  // ner, tangentbordets fokus), så att svaret oftast är framme när lådan glidit in.
+  const forvarna = () => forvarmFavoriter(lista);
   return (
-    <button className="wl-btn" onClick={() => setOpen(true)} aria-label={`Öppna favoriter, ${productCountLabel(count)}`}>
+    <button className="wl-btn" onClick={() => setOpen(true)} onPointerEnter={forvarna} onPointerDown={forvarna} onFocus={forvarna} aria-label={`Öppna favoriter, ${productCountLabel(count)}`}>
       <HjartIkon />
       {count > 0 && <span className="wl-count">{count}</span>}
     </button>

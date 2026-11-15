@@ -132,6 +132,22 @@ export function sparadKorgVy(k: SparadKorg): SparadKorgVy {
   };
 }
 
+/**
+ * Listan som visas: nysparade först (nyast först, som servern sorterar), sedan
+ * serverns, utan borttagna och utan dubbletter (en ny korg finns i serverns
+ * lista när sidan ritats om).
+ */
+export function synligaKorgar(franServern: SparadKorgVy[], tillagda: SparadKorgVy[], borttagna: ReadonlySet<string>): SparadKorgVy[] {
+  const sett = new Set<string>();
+  const ut: SparadKorgVy[] = [];
+  for (const k of [...tillagda, ...franServern]) {
+    if (borttagna.has(k.id) || sett.has(k.id)) continue;
+    sett.add(k.id);
+    ut.push(k);
+  }
+  return ut;
+}
+
 /** Raderna som "Köp igen" prövar mot katalogen (`kopIgen`): alla är varor. */
 export function somOrderrader(k: SparadKorg): Orderrad[] {
   return k.rader.map((r) => ({ produktId: r.produktId, ...(r.variantId ? { variantId: r.variantId } : {}), antal: r.antal, raknas: true }));

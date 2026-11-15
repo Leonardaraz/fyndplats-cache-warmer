@@ -26,6 +26,7 @@ import {
 import type { ListaInfo } from "../lib/list-pages";
 import { productCountLabel, tusental } from "../lib/rating";
 import { spelaUppTidigaKlick } from "../lib/tidiga-klick";
+import { lasSidan } from "../lib/las-sidan";
 import { rullaDirekt } from "./use-landa-vid-bilder";
 import { komMedHistoriken, lasListlage, sparaListlage, type Fonster, type Listlage } from "../lib/sidminne";
 
@@ -614,15 +615,14 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 700px)");
     if (!open || !mq.matches) return;
-    const forr = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const slapp = lasSidan();
     stangRef.current?.focus();
     const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
     const bredd = () => { if (!mq.matches) setOpen(false); };
     window.addEventListener("keydown", esc);
     mq.addEventListener("change", bredd);
     return () => {
-      document.body.style.overflow = forr;
+      slapp();
       window.removeEventListener("keydown", esc);
       mq.removeEventListener("change", bredd);
     };

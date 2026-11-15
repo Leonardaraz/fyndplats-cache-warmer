@@ -11,7 +11,7 @@
 // märke.
 
 import { tillPrisjakt } from "@/lib/feed/prisjakt";
-import { PRISJAKT_GTIN } from "@/lib/feed/prisjakt-gtin";
+import { FLODE_GTIN } from "@/lib/feed/flode-gtin";
 import type { PrisjaktArtiklar } from "@/lib/feed/prisjakt";
 import { PRISJAKT_VARNING_BYTE_STROMMAT, prisjaktRakning } from "@/lib/feed/prisjakt-svar";
 import {
@@ -38,7 +38,7 @@ export function prisjaktHemligXml(googleXml: string, motorn: Motorsvar): string 
       minDays: DELIVERY_MIN_DAYS,
       maxDays: DELIVERY_MAX_DAYS,
     },
-    PRISJAKT_GTIN,
+    FLODE_GTIN,
     motorn.artiklar,
   );
   const r = prisjaktRakning(xml);

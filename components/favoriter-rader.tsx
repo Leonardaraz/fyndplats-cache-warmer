@@ -5,57 +5,34 @@
 //
 // Raden ritas direkt ur det sparade kortet (namn, bild och pris från när
 // hjärtat trycktes) och fylls på med butikens svar: GET /api/favoriter, ETT
-// anrop för hela listan. Svaret delas mellan lådan och Mina sidor och är
-// färskt i en minut.
+// anrop för hela listan (components/favoriter-hamtning.ts). Svaret delas
+// mellan lådan, Mina sidor och hjärtknappens fråga i förväg, och är färskt i
+// en minut.
 
 import { useEffect, useRef, useState } from "react";
 import { RadBild, useCart } from "./cart";
+import { farsktSvar, hamtaFavoriter, senasteSvar, tacker } from "./favoriter-hamtning";
 import { TidigarePris } from "./tidigare-pris";
 import { useWishlist } from "./wishlist";
 import { trackAddToCart } from "../lib/analytics";
-import { favoritFraga, favoritrader, handling, type FavoritProdukt, type Favoritrad, type Favoritsvar } from "../lib/favoriter";
+import { favoritrader, handling, type FavoritProdukt, type Favoritrad } from "../lib/favoriter";
 
-const FARSK_MS = 60_000;
 /** Så länge går en borttagning att ångra. */
 const ANGRA_MS = 7000;
-
-let senaste: { svar: Favoritsvar; tid: number } | null = null;
-let pagaende: { adress: string; lofte: Promise<Favoritsvar | "fel"> } | null = null;
-
-const tacker = (svar: Favoritsvar, lista: readonly string[]) => lista.every((s) => svar.produkter[s] || svar.saknas.includes(s));
-
-function hamta(lista: readonly string[]): Promise<Favoritsvar | "fel"> {
-  const adress = favoritFraga(lista);
-  if (pagaende?.adress === adress) return pagaende.lofte;
-  const lofte = fetch(adress, { signal: AbortSignal.timeout(15_000) })
-    .then((r) => (r.ok ? r.json() : null))
-    .then((j: { ok?: boolean; produkter?: Record<string, FavoritProdukt>; saknas?: string[] } | null): Favoritsvar | "fel" => {
-      if (!j?.ok || !j.produkter || !Array.isArray(j.saknas)) return "fel";
-      const svar = { produkter: j.produkter, saknas: j.saknas };
-      senaste = { svar, tid: Date.now() };
-      return svar;
-    })
-    .catch((): "fel" => "fel")
-    .finally(() => {
-      if (pagaende?.adress === adress) pagaende = null;
-    });
-  pagaende = { adress, lofte };
-  return lofte;
-}
 
 /** Raderna, nyast först. `aktiv`: lådan är öppen eller sektionen visas; först då frågas butiken. */
 export function useFavoritrader(aktiv: boolean): Favoritrad[] {
   const { lista, info, sparaInfo } = useWishlist();
-  // Utfallet av den här komponentens senaste hämtning. Själva svaret delas i
-  // `senaste`, så att lådan och Mina sidor visar samma sak.
+  // Utfallet av den här komponentens senaste hämtning. Själva svaret delas
+  // (components/favoriter-hamtning.ts), så att lådan och Mina sidor visar samma sak.
   const [hamtat, setHamtat] = useState({ fel: false, varv: 0 });
   const nyckel = lista.join(",");
 
   useEffect(() => {
     if (!aktiv || lista.length === 0) return;
-    if (senaste && tacker(senaste.svar, lista) && Date.now() - senaste.tid < FARSK_MS) return;
+    if (farsktSvar(lista)) return;
     let lever = true;
-    hamta(lista).then((r) => {
+    hamtaFavoriter(lista).then((r) => {
       if (!lever) return;
       // Varvet räknas upp så att raderna ritas om också när utfallet är detsamma som sist.
       setHamtat((h) => ({ fel: r === "fel", varv: h.varv + 1 }));
@@ -71,7 +48,8 @@ export function useFavoritrader(aktiv: boolean): Favoritrad[] {
 
   // Ett svar som täcker hela listan gäller. Annars: gick hämtningen inte,
   // visas det sparade kortet som det är; pågår den, väntar raderna.
-  const svar = senaste && tacker(senaste.svar, lista) ? senaste.svar : hamtat.fel ? "fel" : (senaste?.svar ?? null);
+  const senaste = senasteSvar();
+  const svar = senaste && tacker(senaste, lista) ? senaste : hamtat.fel ? "fel" : senaste;
   return favoritrader(lista, info, svar);
 }
 

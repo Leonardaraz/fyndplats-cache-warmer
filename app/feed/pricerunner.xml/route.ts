@@ -1,11 +1,11 @@
 // GET och HEAD /feed/pricerunner.xml
 //
-// Produktfeed för PriceRunner, utan EAN (varorna är omärkta — se BRAND-
-// kommentaren i ../google.xml/route.ts). Byggs ur Google-feeden så att båda
-// alltid visar samma katalog, samma länkar och samma bilder; skillnaderna
-// (pris kunden betalar, frakt per vara, bara varor i lager) ligger i
-// lib/feed/pricerunner.ts. Byggaren är `pricerunnerXml` (lib/feed/harledda.ts),
-// samma som jobbet använder.
+// Produktfeed för PriceRunner. Byggs ur Google-feeden så att båda alltid visar
+// samma katalog, samma länkar och samma bilder; skillnaderna (pris kunden
+// betalar, frakt per vara, bara varor i lager och EAN på de varor som
+// lib/feed/flode-gtin.ts pekar ut) ligger i lib/feed/pricerunner.ts. Byggaren
+// är `pricerunnerXml` (lib/feed/harledda.ts), samma som jobbet använder: där
+// väljs koderna (`gtinUrval` med FLODE_GTIN).
 //
 // Körs vid anrop och skickas komprimerat, som Google-feeden (se kommentaren där): med
 // route-ISR byggdes flödet vid deployen och sedan aldrig mer.

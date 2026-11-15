@@ -22,7 +22,7 @@
 
 import { GET as googleFeed } from "../google.xml/route";
 import { tillPrisjakt } from "@/lib/feed/prisjakt";
-import { PRISJAKT_GTIN } from "@/lib/feed/prisjakt-gtin";
+import { FLODE_GTIN } from "@/lib/feed/flode-gtin";
 import { PRISJAKT_VARNING_BYTE_STROMMAT, huvudsvar, lasare, strommatXml } from "@/lib/feed/prisjakt-svar";
 import {
   DELIVERY_MAX_DAYS,
@@ -47,13 +47,13 @@ export async function GET() {
       minDays: DELIVERY_MIN_DAYS,
       maxDays: DELIVERY_MAX_DAYS,
     },
-    PRISJAKT_GTIN,
+    FLODE_GTIN,
   );
 
-  // Testet med koder (lib/feed/prisjakt-gtin.ts): färre g:gtin i flödet än i
-  // kartan betyder att en vara fått en andra variant, gått ur lager eller
-  // försvunnit ur katalogen.
-  const gtinIKartan = Object.keys(PRISJAKT_GTIN).length;
+  // Koderna (lib/feed/flode-gtin.ts): färre g:gtin i flödet än i kartan betyder
+  // att en vara gått ur lager eller försvunnit ur katalogen, eller att en vara
+  // med dealproffsens kod fått en andra variant.
+  const gtinIKartan = Object.keys(FLODE_GTIN).length;
   if (gtinIKartan > 0) {
     console.info(`[prisjakt] g:gtin på ${xml.split("<g:gtin>").length - 1} av ${gtinIKartan} varor i kartan`);
   }

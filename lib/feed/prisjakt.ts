@@ -37,8 +37,9 @@
 //     regel). Ett värde med fler får varningen "Ogiltlig" i Business Center
 //     (fyra varor 2026-10-28), så de tre första står kvar.
 //
-// Som regel ingen EAN/GTIN, eftersom varorna är omärkta. Undantaget är de varor
-// som kartan i prisjakt-gtin.ts pekar ut (testet 2026-10-23, se tillPrisjakt).
+// EAN/GTIN bara på de varor som kartan i lib/feed/flode-gtin.ts pekar ut: CDON-
+// listans koder per variant (2026-11-15) och dealproffsens där listan saknar
+// varianten (testet 2026-10-23). Regeln står i gtinUrval och lib/feed/gtin.ts.
 //
 // ☠️ MÄRKE OCH ARTIKELNUMMER BARA PÅ DEN HEMLIGA ADRESSEN (Leonard 2026-10-28).
 // Prisjakt matchade 9 av 6 818 erbjudanden, och deras sidor för Aosom-varor
@@ -52,6 +53,8 @@
 //
 // Ren funktion utan importer, så att node:test kan köra den direkt; routen
 // skickar in fraktvärdena.
+
+import type { GtinPost } from "./gtin";
 
 export type PrisjaktShipping = {
   standardKr: number;
@@ -214,8 +217,12 @@ export function prisjaktItem(item: string, s: PrisjaktShipping, gtin?: string, a
     .replace(/<\/item>$/, `${mpnTagg}${gtinTagg}${shipping}</item>`);
 }
 
-/** Variant-id (g:id) → GTIN-13 för just den varianten. */
-export type PrisjaktGtin = Readonly<Record<string, string>>;
+/**
+ * Variant-id (g:id) → GTIN-13. En ren sträng är en kod som bara får användas när
+ * produkten har exakt en variant (som dealproffsens). En post med källan "cdon"
+ * hör till sin variant och används också när produkten har flera.
+ */
+export type PrisjaktGtin = Readonly<Record<string, string | GtinPost>>;
 
 /** Hur många varianter varje produktgrupp har i Google-feeden, slutsålda medräknade. */
 function varianterPerGrupp(googleXml: string): Map<string, number> {
@@ -241,12 +248,44 @@ function artikelFor(
 }
 
 /**
+ * Vilka varor i Google-feeden som får en g:gtin, och vilken: g:id → kod. Samma
+ * urval i Prisjakt- och PriceRunner-flödet. En kod används bara när
+ * kontrollsiffran stämmer och ingen annan vara i kartan har samma kod. En kod ur
+ * CDON-listan (källan "cdon") hör till sin variant och används också när
+ * produkten har flera varianter. Andra koder bara när produkten har EXAKT en
+ * variant i Google-feeden, slutsålda medräknade: annars kunde en kod som hör
+ * till en färg hamna på en annan.
+ */
+export function gtinUrval(googleXml: string, gtin: PrisjaktGtin): Map<string, string> {
+  return urval(googleXml, gtin, null);
+}
+
+function urval(googleXml: string, gtin: PrisjaktGtin, grupperIn: ReadonlyMap<string, number> | null): Map<string, string> {
+  const valda = new Map<string, string>();
+  const poster = Object.values(gtin);
+  if (poster.length === 0) return valda;
+  const kodAntal = new Map<string, number>();
+  for (const p of poster) {
+    const kod = typeof p === "string" ? p : p.kod;
+    kodAntal.set(kod, (kodAntal.get(kod) ?? 0) + 1);
+  }
+  const grupper = grupperIn ?? varianterPerGrupp(googleXml);
+  for (const m of googleXml.matchAll(ITEM_RE)) {
+    const id = m[0].match(ID_RE)?.[1] ?? "";
+    if (!Object.hasOwn(gtin, id)) continue;
+    const p = gtin[id];
+    const kod = typeof p === "string" ? p : p.kod;
+    const perVariant = typeof p !== "string" && p.kalla === "cdon";
+    const grupp = m[0].match(GROUP_RE)?.[1] ?? "";
+    if (giltigtGtin13(kod) && kodAntal.get(kod) === 1 && (perVariant || grupper.get(grupp) === 1)) valda.set(id, kod);
+  }
+  return valda;
+}
+
+/**
  * Hela Google-feeden → Prisjakt-feeden, en vara per rad.
  *
- * `gtin` pekar ut varianter som får en g:gtin. En kod används bara när alla tre
- * stämmer: kontrollsiffran, att ingen annan vara i kartan har samma kod, och att
- * produkten har EXAKT en variant i Google-feeden, slutsålda medräknade. Annars
- * kunde en kod som hör till en färg hamna på en annan.
+ * `gtin` pekar ut varianter som får en g:gtin, se gtinUrval.
  *
  * `artiklar` (bara på den hemliga adressen) ger Aosom-varorna g:mpn och märke,
  * se artikelFor. Utan `artiklar` blir flödet exakt som förut.
@@ -257,19 +296,16 @@ export function tillPrisjakt(
   gtin: PrisjaktGtin = {},
   artiklar?: PrisjaktArtiklar,
 ): string {
-  const kodAntal = new Map<string, number>();
-  for (const kod of Object.values(gtin)) kodAntal.set(kod, (kodAntal.get(kod) ?? 0) + 1);
   const produktnycklar = artiklar ? Object.keys(artiklar.produkter).length > 0 : false;
-  const grupper = kodAntal.size > 0 || produktnycklar ? varianterPerGrupp(googleXml) : new Map<string, number>();
+  const harKoder = Object.keys(gtin).length > 0;
+  const grupper = harKoder || produktnycklar ? varianterPerGrupp(googleXml) : new Map<string, number>();
+  const valda = harKoder ? urval(googleXml, gtin, grupper) : new Map<string, string>();
 
   const items: string[] = [];
   for (const m of googleXml.matchAll(ITEM_RE)) {
     const id = m[0].match(ID_RE)?.[1] ?? "";
     const grupp = m[0].match(GROUP_RE)?.[1] ?? "";
-    const kod = Object.hasOwn(gtin, id) ? gtin[id] : undefined;
-    let saker: string | undefined;
-    if (kod && kodAntal.get(kod) === 1 && grupper.get(grupp) === 1) saker = kod;
-    const out = prisjaktItem(m[0], s, saker, artiklar ? artikelFor(artiklar, id, grupp, grupper) : undefined);
+    const out = prisjaktItem(m[0], s, valda.get(id), artiklar ? artikelFor(artiklar, id, grupp, grupper) : undefined);
     if (out) items.push(out);
   }
 

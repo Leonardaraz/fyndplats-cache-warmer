@@ -330,6 +330,23 @@ Tre regler (`lib/list-pages.ts`, vaktas av `lib/listsidor.test.ts`):
    färdig HTML-sträng, eftersom en JSX-lista ligger en gång till, dubbelt så
    stor, i React-datan.
 
+## ☠️ Kortets andra bild står aldrig i HTML:en (2026-11-14)
+
+Google Bilder visade massagestolens foto under gamingstolens adress.
+Gamingstolens sida har "Liknande produkter" med massagestolens kort, och
+kortets andra bild (hover-bilden, `.pimg-alt`) låg i sidans HTML. Google
+tillskrev bilden den sidan. Andra bilden läggs därför in först när en människa
+rört sidan (`components/kort-andra-bild.tsx`, `lib/forsta-rorelse.ts`, vaktas
+av `lib/kort-andra-bild.test.ts`):
+
+- Bara pointermove, pointerdown, touchstart, keydown och wheel räknas, aldrig
+  scroll: sidan kan rulla utan att någon rört den.
+- Servern och hydreringen säger alltid nej, så bilden står aldrig i HTML:en.
+- Hover-bytet tonar bort huvudbilden först när andra bilden är laddad
+  (`data-klar`). Kortet blir aldrig tomt.
+- Produktkortet och auktionskortet går båda genom `KortAndraBild`. Ett nytt
+  kort med en andra bild gör likadant.
+
 ## ☠️ En listsida byggs aldrig på reservkatalogen (2026-11-11)
 
 **Mätt 2026-11-11.** Kl 12:09:40 UTC svarade Wix 504 på kataloghämtningen för
@@ -1026,6 +1043,21 @@ Nu:
 med ett gammalt pris visar den det högre priset med nedräkning. Nya besökare
 får rätt pris inom 30 s, men en öppen flik frågar först efter fem minuter.
 
+## Fyndauktionen: en klocka för hela sidan (Black Week, 2026-11-04)
+
+Med 50 och 100 fynd om dagen (Black Week 23–29/11) fick `/fyndauktion` en timer per kort:
+mätt lokalt med 100 kort var det 52 timers i sekundtakt och 50 i 20-sekunderstakt. Nu delar
+alla kort `lib/delad-klocka.ts` via `useClientNow` (`useSyncExternalStore`). Samma mätning
+gav en timer per takt och en omritning i sekunden.
+
+- ☠️ **Tiden är gemensam för alla takter.** Ett kort byter takt vid fasbytet (1 s → 20 s).
+  Med en egen tid per takt kunde den nya takten ligga efter, kortet såg den gamla fasen och
+  pendlade.
+- Klockan stannar aldrig medan fliken syns, och vid återkomst läses tiden om direkt.
+- Utan lyssnare är tiden `null`, så ett kort som monteras senare börjar med serverns tid.
+- Kort, luntan och "Sista timmen" får ingen egen `setInterval`
+  (`lib/delad-klocka.test.ts`).
+
 ## Googles ?srsltid= tas bort ur adressfältet (2026-09-30)
 
 Merchant Centers automatiska taggning lägger `?srsltid=…` på varje länk från
@@ -1069,8 +1101,8 @@ Flödet byggs ur Google-flödet som PriceRunner-flödet, och skillnaderna ligger
   i flödet behövs inga leveranstjänster i Business Center.
 - Googles kampanjetiketter, `g:identifier_exists`, `g:size` (som kräver
   `g:size_system`) och extrabilderna tas bort. Ingen mpn i det öppna flödet, och
-  som regel ingen GTIN, utom i testet nedan. Märke och artikelnummer finns bara
-  på den hemliga adressen (se nästa avsnitt).
+  GTIN bara på varorna i kartan nedan (CDON-listan och dealproffsens). Märke och
+  artikelnummer finns bara på den hemliga adressen (se nästa avsnitt).
 - `g:color` har högst tre färger, skilda med `/` (`begransaFarger`). Fyra varor
   hade fler och fick varningen "Ogiltlig" i Business Center (2026-10-28).
 - **Testet med koder (2026-10-23).** 902 varor får en `g:gtin` ur
@@ -1093,6 +1125,34 @@ Flödet byggs ur Google-flödet som PriceRunner-flödet, och skillnaderna ligger
   `{}` (tillbaka till de 50), eller båda: flödet blir då byte för byte som förut.
   Artikelnummer, inköpspriser och adresser får aldrig stå i kartan (repot är
   publikt); `prisjakt-gtin.test.ts` vaktar formen på varje rad.
+- **CDON-listans koder (2026-11-15, Leonards "kör dina förslag noggrant").**
+  `lib/feed/gtin-cdon.ts` har 3 476 varianter (variant-id → GTIN-13), genererad
+  ur Leonards konfidentiella lista från 2026-11-14. Listan ligger aldrig i repot.
+  - Med är Aosoms egen CDON-butik (2 877) och VEVOR-varor hos Bonideco (599, UPC-12
+    skrivna som GTIN-13 med en inledande nolla). Varje rad är parad på
+    leverantörens artikelnummer, med "Ja: samma nr" och statusen "Hittad".
+  - Utanför är Bancros (53 företagsprefix, ser köpta ut), Kaufland, "Osäker" och
+    kontorsstolen.
+  - `lib/feed/gtin.ts` (`byggFlodeGtin`) slår ihop källorna, och
+    `lib/feed/flode-gtin.ts` är kartan som byggarna använder:
+    `pricerunnerXml` (`lib/feed/harledda.ts`), `prisjaktHemligXml`
+    (`lib/feed/prisjakt-hemlig.ts`) och det öppna Prisjakt-flödets rutt.
+    - Listans kod vinner för samma variant. 492 av de 534 varianter som båda
+      källorna har skilde sig.
+    - Dealproffsens kod står kvar där listan saknar varianten (368).
+    - En dealproffsen-kod som listan har på en annan variant tas bort.
+  - `gtinUrval` (prisjakt.ts) väljer koderna per vara. En CDON-kod hör till sin
+    variant och gäller också produkter med flera varianter. För dealproffsens
+    gäller regeln om exakt en variant.
+  - Samma urval går till Prisjakt (öppet och hemligt flöde) och till PriceRunner.
+    Där ersätter `g:gtin` raden `g:identifier_exists=no`.
+  - Mätt på produktionens Google-flöde 2026-11-15: 3 776 varor i lager med
+    `g:gtin` i båda flödena, förut 834 i Prisjakt och 0 i PriceRunner.
+  - ☠️ **Aldrig i Google-flödet.** Aosom levererar white label, och Google stämmer
+    av GTIN mot märket (Fyndplats). `gtin.test.ts` fäller om
+    `app/feed/google.xml` läser en GTIN-karta.
+  - Följ upp i Business Center, och ta bort koder som kopplas till fel
+    produktsida, som kontorsstolen.
 
 ☠️ **Vercels CDN cachar inga icke-strömmade svar över 10 MB.** Dokumentationen
 säger 10 MB för icke-strömmade svar och 20 MB för strömmade
@@ -1353,6 +1413,11 @@ Nu:
   (`lib/feed/harledda.ts`, `lib/feed/prisjakt-hemlig.ts`). Förut byggdes
   Google-flödet tre gånger per körning, en gång per flöde. Provet fäller ett
   andra bygge.
+- ☠️ **Byggarna bär EAN-kartan FLODE_GTIN** (se Prisjakt-avsnittet). #919 skrevs
+  mot koden före #917 och hade tappat koderna i PriceRunner- och det hemliga
+  Prisjakt-flödet utan ett enda fel i tsc eller proven: kartan är valfri, och
+  typen tar också dealproffsens gamla. Löst vid mergen 2026-11-16, och
+  `lib/feed/flode-gtin-anvandning.test.ts` fäller nu en byggare utan kartan.
 - ☠️ **Jobbet känner inte till Prisjakts hemliga adress.** Det hämtar motorns
   nummer, bygger flödet och sparar det under namnet `prisjakt-hemlig`, och bara
   rutten på adressen läser kopian. Loggen bär namnet, aldrig adressen.
@@ -2405,6 +2470,16 @@ BankID ska användas).
   knapparna läser webbläsaren med `webblasarensPlanbok()`, och proven kör
   skriptet mot `planbokGissning`, så att de aldrig svarar olika. ☠️ Attributet
   hette förut `data-applepay`: en regel på det gamla namnet träffar aldrig.
+- **Minnet** (`PLANBOK_MINNE`, `fp_planbok_tom`, 2026-11-15): svarar Stripe
+  uttryckligen utan plånbok (en blockerare stoppar Googles betalskript, eller
+  Apple Pay saknar kort) sparar webbläsaren det i 30 dygn, och nästa besök
+  hålls ingen plats. Förut hölls platsen varje gång och släpptes efter 3–4 s,
+  och formuläret hoppade upp 236 px. Skriptet och kassan läser minnet
+  (`webblasarensPlanbokPlats()`); knapparna läser bara webbläsaren
+  (`webblasarensPlanbok()`). ☠️ Får knapparna minnet blir en Safari utan kort
+  `ingen`, Google Pay hamnar på `always` och två knappar står där platsen
+  rymmer en. Bara `ready` utan plånbok sparas, aldrig tidsgränsen eller
+  `loaderror`, och en knapp en senare gång glömmer minnet direkt.
 - ☠️ **Stripes ram har −4 px marginal** (plats för fokusringen). Utan egen
   formateringskontext kollapsade den genom ytan runt fältet, och allt under
   flyttade 4 px när Stripe monterade. `.snabbYta` och `.betalfalt` har därför
@@ -2666,6 +2741,16 @@ Ett företag läggs till på ett befintligt konto, högst ett per konto i E3.
   ingen rätt: `medlemsprofil()` läser företagsprofilen vid varje prissättning
   och prissätter som privatperson om företaget inte är godkänt eller dess
   villkor är gamla (E3-12, `VILLKOR_FORETAG_VERSION`).
+- ☠️ **Ingen `router.refresh()` i kontots kod** (2026-11-15). I Next 16.2.6
+  (React-canaryn 20260317) blir en `router.refresh()` på en sida med Suspense
+  ibland aldrig klar: svaret kommer i sin helhet, men vyn står kvar och
+  knapparna är spärrade. Mätt på profilbytet: 2–5 av 12 fastnade
+  (vercel/next.js#86055, rättat av facebook/react#36134 i Next 16.3). Bytet
+  laddar därför inte om: raden "Du handlar som" läser tecknet
+  `fp_medlem_inne` på händelsen `fp-konto-andrat` (`app/konto/handlar-som.tsx`),
+  och de sparade korgarna uppdateras i webbläsaren (`synligaKorgar`). Mjuka
+  `next/link`-byten till en annan adress påverkas inte (30 av 30).
+  `lib/konto-fart.test.ts` fäller en `.refresh()` under `app/konto`.
 - **Priserna**: produktsidans ruta visar företagspriset exkl. moms, märkt, och
   ordertrappan som tabell med "högst x %" när golvet stoppar trappan (E3-8).
   Varukorgen visar varor och frakt exkl. moms, momsen, totalen inkl. moms,
@@ -3290,3 +3375,49 @@ och en inloggad medlems favoriter följer kontot.
   skrivningen till Wix (listfältet med villkoret på versionen). Proven kör mot
   ett lager i minnet. Safari och iPhone är inte heller provade. Prova med ett
   riktigt konto på en förhandslänk innan funktionen räknas som kvitterad.
+
+## Menyn med bilder, och skrollåset (Leonard 2026-11-15)
+
+Datorns meny och mobilmenyn visar en bild per avdelning och underkategori.
+
+- **Bilderna** kommer från `/api/meny-bilder` (CDN-cachad en timme, byggd vid
+  bygget) och står aldrig i sidans HTML, så ett nytt bildval gör inte varje
+  sida "ny". Urvalet: `lib/meny-bilder.ts` (mest såld först, ingen bild två
+  gånger, aldrig collage, inbakad text, vattenmärke eller slutsålt) och 168
+  granskade handval i `lib/meny-bild-val.ts` (bara adresser till egna sidor).
+- **Hämtningen:** bildlistan (cirka 5 kB) hämtas när sidan har laddat klart
+  (`load`) och webbläsaren sedan är ledig, på dator och telefon, eller direkt
+  när någon rör menyn. Förut startade den vid första lediga stund, och i
+  Lighthouse (som spelar in sidan ostrypt) tävlade listan och mobilens
+  miniatyrer då med sidans största bild. Bilderna hämtas först när en panel
+  eller ett steg öppnas.
+  Mätt på förhandsbygget 2026-11-15: en datorpanel cirka 86 kB (median 612 ms
+  tills panelens bilder syns), mobilens första steg 27 kB (13 miniatyrer),
+  ett steg två cirka 134 kB (median 764 ms).
+- ☠️ **Bara det som syns ritar bildelement.** Datorns panel ritar sina bilder
+  först när den är öppen (`panelensBilder`), och mobilmenyns första steg ritar
+  sina tretton när menyn ska öppnas: i förväg på en pekskärm utan sparläge
+  (lådan har dem när den glider in), annars vid trycket. Förut fick alla
+  tretton paneler och den stängda lådan sina cirka 186 bildelement så fort
+  bildlistan kom, i en enda lång uppgift på varje sida, och lådans tretton
+  bilder hämtades också på datorn där den aldrig syns. Mätt 2026-11-15:
+  Lighthouse TBT på mobil cirka 105 → 200 ms mot produktionen; lokalt med
+  processorn strypt fyra gånger blockerad tid 421 → 308 ms på startsidan och
+  582 → 494 ms på produktsidan efter rättelsen. `lib/meny-bilder.test.ts`
+  fäller en panel eller ett första steg som läser bildlistan direkt.
+- **Mjuka bindestreck** (`lib/mjukt-bindestreck.ts`) vid ordfogen i långa
+  namn, så att "Verkstadsutrustning" bryts som "Verkstads-" / "utrustning" och
+  inte mitt i ordet. Bara i synlig text, aldrig i `aria-label` eller adresser.
+  Konstanten står som escape-sekvens; provet fäller ett osynligt tecken i
+  källkoden.
+- ☠️ **Skrollåset sitter på `html`, aldrig på `body`** (`lib/las-sidan.ts`).
+  `html` har `overflow-x:clip`, och då förs `body`:s `overflow` aldrig vidare
+  till fönstret. Låset på `body` låste därför ingenting: med mobilmenyn öppen
+  gick sidan bakom att svepa och skrolla (scrollY 0 → 787 med ett svep, 1 387
+  med mushjulet, mätt på www och på förhandsbygget). Det gjorde dessutom
+  `body` till en skrollbehållare, och då hämtade Chrome sidans lata bilder:
+  tio bilder och 336 kB på startsidan varje gång menyn öppnades. Alla sex
+  lager (mobilmenyn, filtren, kategorivalet, bildvisaren och de två
+  fotovisarna för omdömen) låser via `lasSidan()`, som räknar samtidiga lås
+  och håller rullningslistens plats på datorn. `lib/las-sidan.test.ts` fäller
+  `document.body.style.overflow` var som helst i koden.

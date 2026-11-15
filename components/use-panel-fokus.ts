@@ -22,7 +22,7 @@ export function usePanelFokus(open: boolean, panel: RefObject<HTMLElement | null
     const forra = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const el = panel.current;
     const fokusbara = () =>
-      el ? Array.from(el.querySelectorAll<HTMLElement>(FOKUSBARA)).filter((x) => x.offsetParent !== null) : [];
+      el ? Array.from(el.querySelectorAll<HTMLElement>(FOKUSBARA)).filter((x) => x.offsetParent !== null && !x.closest("[inert]")) : [];
     fokusbara()[0]?.focus({ preventScroll: true });
 
     const tangent = (e: KeyboardEvent) => {

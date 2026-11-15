@@ -35,9 +35,15 @@ async function vaglage(): Promise<Vaglage> {
   const stangt: Vaglage = { oppen: false, prisPa: false, inloggad: false };
   try {
     if (!medlemsHemlighet() || (await medlemsLage()) === "av") return stangt;
-    const [session, lage] = await Promise.all([inloggad(), prisLage()]);
+    // Kakan läses utan Wix; prisväxeln, medlemmen och företaget frågas sedan på
+    // en gång i stället för i två varv (2026-11-15).
+    const session = await inloggad();
+    const [lage, medlem, profil] = await Promise.all([
+      prisLage(),
+      session ? hamtaMedlem(session.sub) : null,
+      session ? hamtaForetagsprofil(session.sub) : null,
+    ]);
     if (!session) return { oppen: true, prisPa: lage === "pa", inloggad: false };
-    const [medlem, profil] = await Promise.all([hamtaMedlem(session.sub), hamtaForetagsprofil(session.sub)]);
     // En spärrad eller borttagen medlem: /konto säger vad som gäller.
     if (!medlem || medlem.status !== "aktiv") return stangt;
     return { oppen: true, prisPa: lage === "pa", inloggad: true, oppetForMedlem: prisOppet(lage, medlem), foretag: profil?.status ?? null };

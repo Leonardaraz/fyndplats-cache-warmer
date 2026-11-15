@@ -7,19 +7,25 @@
 // hoppar när tecknet läses efter hydreringen. Servern och första renderingen
 // visar alltid butikens vanliga text.
 
+import Link from "next/link";
 import { useSyncExternalStore, type ReactNode } from "react";
 import { foretagstecken } from "./medlemspris";
 
-const prenumerera = () => () => {};
+// Tecknet ändras utan omladdning när kunden byter profil på Mina sidor
+// (app/konto/foretag.tsx säger till med händelsen `fp-konto-andrat`).
+const prenumerera = (andrat: () => void) => {
+  window.addEventListener("fp-konto-andrat", andrat);
+  return () => window.removeEventListener("fp-konto-andrat", andrat);
+};
 
 export function ProfilRemsa({ children }: { children: ReactNode }) {
   const foretag = useSyncExternalStore(prenumerera, foretagstecken, () => false);
   if (!foretag) return <>{children}</>;
   return (
     <span className="promotext">
-      <a className="promo-foretag" href="/konto#foretag">
+      <Link prefetch={false} className="promo-foretag" href="/konto#foretag">
         Du handlar som företag
-      </a>{" "}
+      </Link>{" "}
       · priserna visas exkl. moms
     </span>
   );
