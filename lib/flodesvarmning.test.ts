@@ -8,7 +8,7 @@ const svar = (status: number, huvuden: Record<string, string>, kropp = "<x/>") =
   new Response(kropp, { status, headers: huvuden });
 
 describe("hamtaFloden", () => {
-  it("hämtar sitemapen och de tre öppna flödena, ett i taget och i ordning", async () => {
+  it("hämtar sitemapen och de fyra öppna flödena, ett i taget och i ordning", async () => {
     const anrop: string[] = [];
     let samtidigt = 0;
     let mest = 0;
@@ -26,6 +26,7 @@ describe("hamtaFloden", () => {
       "https://www.fyndplats.se/feed/google.xml",
       "https://www.fyndplats.se/feed/products.xml",
       "https://www.fyndplats.se/feed/pricerunner.xml",
+      "https://www.fyndplats.se/feed/pinterest.xml",
     ]);
     assert.equal(mest, 1);
     assert.deepEqual(hoppade, []);
@@ -58,7 +59,7 @@ describe("hamtaFloden", () => {
       return svar(n === 3 ? 500 : 200, {});
     }) as unknown as typeof fetch;
     const { utfall } = await hamtaFloden("https://x", { hamta });
-    assert.deepEqual(utfall.map((u) => u.status), [200, 0, 500, 200]);
+    assert.deepEqual(utfall.map((u) => u.status), [200, 0, 500, 200, 200]);
     assert.equal(utfall[1].cache, "fel");
   });
 
@@ -70,7 +71,7 @@ describe("hamtaFloden", () => {
     }) as unknown as typeof fetch;
     const { utfall, hoppade } = await hamtaFloden("https://x", { hamta, nu: () => klocka, budgetMs: 240_000 });
     assert.equal(utfall.length, 3);
-    assert.deepEqual(hoppade, ["/feed/pricerunner.xml"]);
+    assert.deepEqual(hoppade, ["/feed/pricerunner.xml", "/feed/pinterest.xml"]);
   });
 
   it("listan bär aldrig Prisjakts adresser", () => {

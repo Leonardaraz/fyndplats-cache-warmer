@@ -1329,6 +1329,43 @@ dem vid anrop hjälper inte: då byggs de om vid varje hämtning. De går inte u
 10 MB utan att Google-flödet tappar extrabilderna (5,5 MB), och det är ett beslut
 för Leonard.
 
+## Pinterest: flödet och kontot (Leonard 2026-11-15)
+
+`https://www.fyndplats.se/feed/pinterest.xml` är datakällan "Fyndplats
+produktflöde" i katalogen "Fyndplats" i Pinterest Business (Kataloger →
+Fyndplats → Datakälla; Sverige, svenska, SEK, hämtas var 24:e timme). Flödet
+byggs ur Google-flödet i `lib/feed/pinterest.ts`, som PriceRunner- och
+Prisjakt-flödena, och skickas komprimerat via `/feed/gz/pinterest.xml`. Det står
+sist i listorna (omskrivningen, gz-rutten och `/api/cron/farska-floden`).
+
+Skillnaderna mot Google-flödet, alla mätta i Pinterests "Testa din datakälla"
+2026-11-15:
+
+- **Lagerstatus med mellanslag** (`in stock`, `out of stock`). Med understreck
+  gav varje vara varning 163.
+- **Extrabilderna är Wix originaladress** (`.../media/<fil>`). Pinterest delar
+  `g:additional_image_link` på kommatecken, och adresserna med storlek
+  (`w_2000,h_2000,q_90`) föll bort (varning 137). Högst tio per vara.
+- **`g:gtin`** ur `lib/feed/pinterest-gtin.ts`: 3 283 varianter, 898 VEVOR och
+  2 385 Aosom. ☠️ Leonard 2026-11-15: "aosom koderna får också läggas in". Det
+  gäller Pinterest. Google-flödet bär fortfarande ingen kod. Koderna kommer från
+  CDON-annonser där säljarens artikelnummer är exakt vårt. 492 Aosom-varianter där
+  Prisjakt-kartan har en annan kod är utelämnade tills det är utrett: oftast
+  ligger koderna ett eller två steg ifrån varandra (en syskonfärg), så en av
+  källorna har fel.
+- `g:identifier_exists` tas bort. Fältet finns inte i Pinterests spec.
+
+Kvar efter ändringen: varning 126 (google_product_category med en eller två
+nivåer). Den rör kategorikartan, inte flödet.
+
+**Kontot**, gjort i webbläsaren 2026-11-15 efter Leonards ja:
+
+- fyndplats.se är bekräftad med en TXT-post `pinterest-site-verification=…` på
+  roten i Wix DNS. ☠️ Ta inte bort den: då försvinner bekräftelsen, och med den
+  katalogen.
+- Säljargranskningen startade av sig själv när katalogen laddades upp.
+- Inget annonskonto och ingen Pinterest-tagg. Leonard valde bort dem 2026-11-15.
+
 ## Strukturerad data för Google Shopping (2026-10-22)
 
 Search Console (Säljaruppgifter) varnade på alla 657 objekt. Fyra rättningar,

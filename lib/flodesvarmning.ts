@@ -18,6 +18,8 @@ export const FLODEN_ATT_HALLA_FARSKA = [
   "/feed/google.xml",
   "/feed/products.xml",
   "/feed/pricerunner.xml",
+  // Sist: Pinterest hämtar en gång per dygn och tål en långsammare hämtning.
+  "/feed/pinterest.xml",
 ] as const;
 
 export type Flodesutfall = {
@@ -84,7 +86,7 @@ export async function hamtaFloden(
   return { utfall, hoppade };
 }
 
-/** En rad för loggen: "/feed/google.xml 200 STALE 7586 s (0,4 s)". Inga adresser utöver de fyra. */
+/** En rad för loggen: "/feed/google.xml 200 STALE 7586 s (0,4 s)". Inga adresser utöver de fem. */
 export function flodesrad(u: Flodesutfall): string {
   return `${u.path} ${u.status || "fel"} ${u.cache || "-"} ${u.alderS} s (${(u.ms / 1000).toFixed(1).replace(".", ",")} s)`;
 }
