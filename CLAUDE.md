@@ -2652,6 +2652,16 @@ Ett företag läggs till på ett befintligt konto, högst ett per konto i E3.
   ingen rätt: `medlemsprofil()` läser företagsprofilen vid varje prissättning
   och prissätter som privatperson om företaget inte är godkänt eller dess
   villkor är gamla (E3-12, `VILLKOR_FORETAG_VERSION`).
+- ☠️ **Ingen `router.refresh()` i kontots kod** (2026-11-15). I Next 16.2.6
+  (React-canaryn 20260317) blir en `router.refresh()` på en sida med Suspense
+  ibland aldrig klar: svaret kommer i sin helhet, men vyn står kvar och
+  knapparna är spärrade. Mätt på profilbytet: 2–5 av 12 fastnade
+  (vercel/next.js#86055, rättat av facebook/react#36134 i Next 16.3). Bytet
+  laddar därför inte om: raden "Du handlar som" läser tecknet
+  `fp_medlem_inne` på händelsen `fp-konto-andrat` (`app/konto/handlar-som.tsx`),
+  och de sparade korgarna uppdateras i webbläsaren (`synligaKorgar`). Mjuka
+  `next/link`-byten till en annan adress påverkas inte (30 av 30).
+  `lib/konto-fart.test.ts` fäller en `.refresh()` under `app/konto`.
 - **Priserna**: produktsidans ruta visar företagspriset exkl. moms, märkt, och
   ordertrappan som tabell med "högst x %" när golvet stoppar trappan (E3-8).
   Varukorgen visar varor och frakt exkl. moms, momsen, totalen inkl. moms,
@@ -3276,3 +3286,49 @@ och en inloggad medlems favoriter följer kontot.
   skrivningen till Wix (listfältet med villkoret på versionen). Proven kör mot
   ett lager i minnet. Safari och iPhone är inte heller provade. Prova med ett
   riktigt konto på en förhandslänk innan funktionen räknas som kvitterad.
+
+## Menyn med bilder, och skrollåset (Leonard 2026-11-15)
+
+Datorns meny och mobilmenyn visar en bild per avdelning och underkategori.
+
+- **Bilderna** kommer från `/api/meny-bilder` (CDN-cachad en timme, byggd vid
+  bygget) och står aldrig i sidans HTML, så ett nytt bildval gör inte varje
+  sida "ny". Urvalet: `lib/meny-bilder.ts` (mest såld först, ingen bild två
+  gånger, aldrig collage, inbakad text, vattenmärke eller slutsålt) och 168
+  granskade handval i `lib/meny-bild-val.ts` (bara adresser till egna sidor).
+- **Hämtningen:** bildlistan (cirka 5 kB) hämtas när sidan har laddat klart
+  (`load`) och webbläsaren sedan är ledig, på dator och telefon, eller direkt
+  när någon rör menyn. Förut startade den vid första lediga stund, och i
+  Lighthouse (som spelar in sidan ostrypt) tävlade listan och mobilens
+  miniatyrer då med sidans största bild. Bilderna hämtas först när en panel
+  eller ett steg öppnas.
+  Mätt på förhandsbygget 2026-11-15: en datorpanel cirka 86 kB (median 612 ms
+  tills panelens bilder syns), mobilens första steg 27 kB (13 miniatyrer),
+  ett steg två cirka 134 kB (median 764 ms).
+- ☠️ **Bara det som syns ritar bildelement.** Datorns panel ritar sina bilder
+  först när den är öppen (`panelensBilder`), och mobilmenyns första steg ritar
+  sina tretton när menyn ska öppnas: i förväg på en pekskärm utan sparläge
+  (lådan har dem när den glider in), annars vid trycket. Förut fick alla
+  tretton paneler och den stängda lådan sina cirka 186 bildelement så fort
+  bildlistan kom, i en enda lång uppgift på varje sida, och lådans tretton
+  bilder hämtades också på datorn där den aldrig syns. Mätt 2026-11-15:
+  Lighthouse TBT på mobil cirka 105 → 200 ms mot produktionen; lokalt med
+  processorn strypt fyra gånger blockerad tid 421 → 308 ms på startsidan och
+  582 → 494 ms på produktsidan efter rättelsen. `lib/meny-bilder.test.ts`
+  fäller en panel eller ett första steg som läser bildlistan direkt.
+- **Mjuka bindestreck** (`lib/mjukt-bindestreck.ts`) vid ordfogen i långa
+  namn, så att "Verkstadsutrustning" bryts som "Verkstads-" / "utrustning" och
+  inte mitt i ordet. Bara i synlig text, aldrig i `aria-label` eller adresser.
+  Konstanten står som escape-sekvens; provet fäller ett osynligt tecken i
+  källkoden.
+- ☠️ **Skrollåset sitter på `html`, aldrig på `body`** (`lib/las-sidan.ts`).
+  `html` har `overflow-x:clip`, och då förs `body`:s `overflow` aldrig vidare
+  till fönstret. Låset på `body` låste därför ingenting: med mobilmenyn öppen
+  gick sidan bakom att svepa och skrolla (scrollY 0 → 787 med ett svep, 1 387
+  med mushjulet, mätt på www och på förhandsbygget). Det gjorde dessutom
+  `body` till en skrollbehållare, och då hämtade Chrome sidans lata bilder:
+  tio bilder och 336 kB på startsidan varje gång menyn öppnades. Alla sex
+  lager (mobilmenyn, filtren, kategorivalet, bildvisaren och de två
+  fotovisarna för omdömen) låser via `lasSidan()`, som räknar samtidiga lås
+  och håller rullningslistens plats på datorn. `lib/las-sidan.test.ts` fäller
+  `document.body.style.overflow` var som helst i koden.

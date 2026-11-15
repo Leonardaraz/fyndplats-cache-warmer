@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import Image from "next/image";
 import type { GoogleReview, ReviewPhoto } from "../lib/google-reviews";
 import { wixFitUrl } from "../lib/wix-media-key";
+import { lasSidan } from "../lib/las-sidan";
 
 // Omdömeslistan på /omdomen. Rubriken och ingressen ligger i sidan
 // (app/omdomen/page.tsx); här finns korten, knappen för fler och fotnoten.
@@ -81,11 +82,10 @@ function ReviewCard({ r, index }: { r: GoogleReview; index: number }) {
       if (e.key === "Escape") stang();
     };
     window.addEventListener("keydown", onKey);
-    const forra = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const slapp = lasSidan();
     return () => {
       window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = forra;
+      slapp();
     };
   }, [stor, stang]);
 

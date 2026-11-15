@@ -1,16 +1,22 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CategoryNode } from "../lib/category-groups";
 import { AuctionDot } from "./auction-dot";
 import { productCountLabel } from "../lib/rating";
 import { grupperaUnderkategorier } from "../lib/meny-grupper";
+import { AVDELNING_PRODUKT_KANT, hjalteAdress, menyBildIStorlek } from "../lib/meny-bilder";
+import { mjukaBindestreck } from "../lib/mjukt-bindestreck";
 import { useMenyAntal } from "./use-meny-antal";
+import { forvarmMenyBilder, hamtaMenyBilder, MenyBild, useMenyBilder } from "./use-meny-bilder";
 
-// Desktop-nav: 8 huvudkategorier inline (korta etiketter) + en full-bredds
+// Desktop-nav: huvudkategorierna inline (korta etiketter) + en full-bredds
 // mega-meny som fälls ut under headern när man hovrar/fokuserar en kategori.
-// Panelen visar den hovrade kategorins underkategorier i ett luftigt 3–4-koll-
-// rutnät med produktantal (hämtade i webbläsaren, se useMenyAntal). Stänger på mouseleave (med kort fördröjning så man
-// hinner flytta musen ner i panelen), Escape eller efter navigering.
+// Panelen (2026-11-15, Leonards önskan om IKEA-klass): avdelningens miljöfoto
+// med namn och "Se alla" till vänster, och underkategorierna under sina
+// rubriker med en produktbild var. Produktantal och bilder hämtas i webbläsaren
+// (useMenyAntal, useMenyBilder), inte i sidans HTML. Stänger på mouseleave (med
+// kort fördröjning så man hinner flytta musen ner i panelen), Escape eller
+// efter navigering.
 //
 // Positionering: panelen är position:absolute med left/right:0 → den ankras mot
 // <header> (närmaste positionerade förälder, sticky) och spänner hela bredden,
@@ -26,12 +32,20 @@ import { useMenyAntal } from "./use-meny-antal";
 // medianprodukt, fast sökordskategorierna (TV-bänkar, Golvlampor, Hantlar …)
 // ska ranka på ord med tiotusentals sökningar. Med panelerna i HTML länkar
 // varje sida till varje underkategori, precis som menyn redan gör för den som
-// hovrar.
+// hovrar. Bilderna kommer först i webbläsaren, och bara den öppna panelen
+// ritar sina: förut fick alla tretton paneler sina cirka 170 bildelement så
+// fort bildlistan kom. Bilderna laddades aldrig (loading="lazy" i ett dolt
+// element), men elementen byggdes ändå i en enda lång uppgift, också på en
+// telefon där datorns meny aldrig syns. Mätt 2026-11-15 med processorn strypt
+// fyra gånger: Lighthouse TBT på mobil cirka 105 → 200 ms mot produktionen.
 
 // Kort etikett = första ordet i kategorinamnet ("Elektronik & Tillbehör" → "Elektronik").
 function shortLabel(name: string): string {
   return name.split(/\s*&\s*|\s+/)[0];
 }
+
+/** Avdelningens foto i panelen: 4:5, 248 px brett på skärmen, dubbelt för skarpa skärmar. */
+const FOTO_BREDD = 496;
 
 export function MegaNav({ tree, hasBlog, hasSale }: { tree: CategoryNode[]; hasBlog?: boolean; hasSale?: boolean }) {
   const [active, setActive] = useState<number | null>(null);
@@ -43,6 +57,13 @@ export function MegaNav({ tree, hasBlog, hasSale }: { tree: CategoryNode[]; hasB
   // Antalen kommer från /api/meny-antal, inte ur trädet: trädet skickas utan
   // siffror så att en ny siffra inte gör varje sida "ny" (lib/meny-antal.ts).
   const antal = useMenyAntal();
+  // Bilderna från /api/meny-bilder, av samma skäl. De hämtas när webbläsaren är
+  // ledig på en dator med mus, och annars senast när en kategori hovras.
+  const bilder = useMenyBilder();
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia?.("(hover: hover) and (pointer: fine)").matches) return;
+    return forvarmMenyBilder();
+  }, []);
 
   const cancelClose = () => {
     if (closeTimer.current) { clearTimeout(closeTimer.current); closeTimer.current = null; }
@@ -51,14 +72,17 @@ export function MegaNav({ tree, hasBlog, hasSale }: { tree: CategoryNode[]; hasB
     cancelClose();
     closeTimer.current = setTimeout(() => setActive(null), 140);
   };
-  const open = (i: number) => { cancelClose(); setByte(active !== null && active !== i); setActive(i); };
+  const open = (i: number) => { cancelClose(); void hamtaMenyBilder(); setByte(active !== null && active !== i); setActive(i); };
   const close = () => { cancelClose(); setActive(null); };
+  // Bara den öppna panelen får bilderna (se kommentaren överst).
+  const panelensBilder = (i: number) => (active === i ? bilder : null);
 
   return (
     <nav
       className={byte ? "meganav byte" : "meganav"}
       aria-label="Kategorier"
       onMouseLeave={scheduleClose}
+      onPointerEnter={() => void hamtaMenyBilder()}
       onKeyDown={(e) => { if (e.key === "Escape") close(); }}
     >
       <a className="meganav-shop" href="/butik">Butik</a>
@@ -110,14 +134,14 @@ export function MegaNav({ tree, hasBlog, hasSale }: { tree: CategoryNode[]; hasB
           onMouseLeave={scheduleClose}
         >
           <div className="container meganav-panel-inner">
-            <div className="meganav-panel-head">
-              <a className="meganav-panel-title" href={`/kategori/${m.slug}`} onClick={close}>
-                {m.name}
-              </a>
-              <a className="meganav-panel-all" href={`/kategori/${m.slug}`} onClick={close}>
-                Se alla {antal?.[m.slug] !== undefined ? productCountLabel(antal[m.slug]) : "produkter"} <span aria-hidden="true">→</span>
-              </a>
-            </div>
+            <Avdelningsfoto
+              namn={m.name}
+              href={`/kategori/${m.slug}`}
+              antal={antal?.[m.slug]}
+              foto={panelensBilder(i)?.hjaltar[m.slug]}
+              produkt={panelensBilder(i)?.bilder[m.slug]}
+              vidKlick={close}
+            />
             {m.subs.length > 0 ? (
               <div className="meganav-grid">
                 {grupperaUnderkategorier(m.slug, m.subs).map((g) => (
@@ -128,8 +152,16 @@ export function MegaNav({ tree, hasBlog, hasSale }: { tree: CategoryNode[]; hasB
                     {g.rubrik && <p className="meganav-grupp-rubrik">{g.rubrik}</p>}
                     {g.subs.map((s) => (
                       <a key={s.id} className="meganav-sub" href={`/kategori/${s.slug}`} onClick={close}>
-                        <span className="meganav-sub-name">{s.name}</span>
-                        {antal?.[s.slug] !== undefined && <span className="meganav-sub-count">{antal[s.slug]}</span>}
+                        <MenyBild src={panelensBilder(i)?.bilder[s.slug]} />
+                        {/* Antalet står direkt efter namnet, så att ett långt
+                            sammansatt ord (Trädgårdsanläggning) får hela bredden.
+                            Ordet får dessutom ett mjukt bindestreck vid fogen, så
+                            att det bryts som "Trädgårds-" / "anläggning" och inte
+                            mitt i (lib/mjukt-bindestreck.ts). */}
+                        <span className="meganav-sub-name">
+                          {mjukaBindestreck(s.name)}
+                          {antal?.[s.slug] !== undefined && <span className="meganav-sub-count"> {antal[s.slug]}</span>}
+                        </span>
                       </a>
                     ))}
                   </div>
@@ -142,5 +174,29 @@ export function MegaNav({ tree, hasBlog, hasSale }: { tree: CategoryNode[]; hasB
         </div>
       ))}
     </nav>
+  );
+}
+
+/**
+ * Avdelningens kort till vänster i panelen: miljöfotot (eller avdelningens
+ * produktbild när fotot saknas), namnet och vägen till hela avdelningen. Rutan
+ * har fast form, så att ingenting flyttar sig när bilden kommer.
+ */
+function Avdelningsfoto({
+  namn, href, antal, foto, produkt, vidKlick,
+}: { namn: string; href: string; antal?: number; foto?: string; produkt?: string; vidKlick: () => void }) {
+  const fotoAdress = foto ? hjalteAdress(foto, FOTO_BREDD, "4:5") : null;
+  return (
+    <a className="meganav-feature" href={href} onClick={vidKlick}>
+      {fotoAdress ? (
+        <MenyBild src={fotoAdress} klass="meganav-feature-bild" />
+      ) : (
+        <MenyBild src={produkt ? menyBildIStorlek(produkt, AVDELNING_PRODUKT_KANT) ?? produkt : undefined} klass="meganav-feature-bild meganav-feature-produkt" />
+      )}
+      <span className="meganav-feature-namn">{namn}</span>
+      <span className="meganav-feature-cta">
+        Se alla {antal !== undefined ? productCountLabel(antal) : "produkter"} <span aria-hidden="true">→</span>
+      </span>
+    </a>
   );
 }

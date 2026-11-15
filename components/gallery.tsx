@@ -8,6 +8,7 @@ import { altForImage } from "../lib/image-alt";
 import { kandidatBredd, nearWindow, prefersDataSaving } from "../lib/gallery-preload";
 import { langdTal, langdText, valjKalla, type ProduktVideo } from "../lib/produkt-video";
 import { HERO_SIZES, TILE_SIZES } from "../lib/bild-sizes";
+import { lasSidan } from "../lib/las-sidan";
 
 // LCP-fix (Leonards rapport: hjältebilden låg blank 1–2 s). Huvudbilden gick
 // tidigare via Vercels bildoptimerare (/_next/image), som KALLSTARTAR per ny
@@ -472,9 +473,8 @@ export function Gallery({
       else if (e.key === "ArrowRight") go(1);
     };
     window.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
+    const slapp = lasSidan();
+    return () => { window.removeEventListener("keydown", onKey); slapp(); };
   }, [lightbox, go]);
 
   // ── Inline hero: svep vänster/höger för att bläddra på mobil ────────────────

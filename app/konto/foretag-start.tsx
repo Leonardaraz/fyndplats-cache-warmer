@@ -17,6 +17,8 @@
 // Vad som går att pröva utan webbläsare bor i lib/medlem/foretagsstart.ts.
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { orgnrFeltext, provaOrgnr } from "@/lib/medlem/orgnr";
 import { FORETAGSVAG, STEG, efterInloggning, klartext, stegLage, utvag, type Utfall } from "@/lib/medlem/foretagsstart";
 import { KontoInloggning } from "./konto-inloggning";
@@ -70,6 +72,7 @@ function Stegrad({ aktivt }: { aktivt: number }) {
 }
 
 export function ForetagStart({ inloggad, fel }: { inloggad: boolean; fel?: string | null }) {
+  const router = useRouter();
   const [steg, setSteg] = useState<Steg>(inloggad ? "uppgifter" : "start");
   const [orgnr, setOrgnr] = useState("");
   const [orgFel, setOrgFel] = useState<string | null>(null);
@@ -106,7 +109,8 @@ export function ForetagStart({ inloggad, fel }: { inloggad: boolean; fel?: strin
     const nasta = efterInloggning(await fraga("/api/konto/foretag", { steg: "lage" }));
     if (nasta === "uppgifter") return setSteg("uppgifter");
     setLamnar(true);
-    window.location.assign(utvag(nasta));
+    // Mjukt: sidhuvudet står kvar och Mina sidor visar sin skiss direkt (2026-11-15).
+    router.push(utvag(nasta));
   }
 
   /** Ansökan är sparad. Ett godkänt företag börjar handla som företaget direkt. */
@@ -213,9 +217,9 @@ export function ForetagStart({ inloggad, fel }: { inloggad: boolean; fel?: strin
           </p>
           <div className={s.klartKnappar}>
             {slut.knappar.map((k, i) => (
-              <a key={k.href + k.text} href={k.href} className={i === 0 ? `btn btn-primary ${s.knapp}` : s.utknapp}>
+              <Link prefetch={false} key={k.href + k.text} href={k.href} className={i === 0 ? `btn btn-primary ${s.knapp}` : s.utknapp}>
                 {k.text}
-              </a>
+              </Link>
             ))}
           </div>
         </div>

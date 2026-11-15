@@ -46,7 +46,7 @@ test("CSS:en låter hidden dölja panelen", () => {
   assert.ok(regel, "hittade ingen .meganav-panel-regel");
   assert.doesNotMatch(regel[1], /display\s*:/);
   // Varje regel där panelen SJÄLV är det som stylas (sista ledet i väljaren),
-  // inte .meganav-panel-head och andra barn.
+  // inte .meganav-panel-inner och andra barn.
   let sett = 0;
   for (const m of css.matchAll(/([^{}]+)\{([^}]*)\}/g)) {
     for (const valjare of m[1].split(",")) {
