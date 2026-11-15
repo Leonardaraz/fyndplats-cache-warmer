@@ -8,6 +8,7 @@ import type { CategoryNode } from "../lib/category-groups";
 import { grupperaUnderkategorier } from "../lib/meny-grupper";
 import { hjalteAdress } from "../lib/meny-bilder";
 import { mjukaBindestreck } from "../lib/mjukt-bindestreck";
+import { lasSidan } from "../lib/las-sidan";
 import { productCountLabel } from "../lib/rating";
 import { useMenyAntal } from "./use-meny-antal";
 import { forvarmMenyBilder, hamtaMenyBilder, MenyBild, useMenyBilder } from "./use-meny-bilder";
@@ -74,10 +75,8 @@ export function MobileNav({ tree = [], hasBlog = false, hasSale = false }: { tre
   useEffect(() => setMounted(true), []);
   useEffect(() => forvarmMenyBilder(), []);
 
-  useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
-  }, [open]);
+  // Sidan bakom står still medan menyn är öppen (lib/las-sidan.ts: låset sitter på html).
+  useEffect(() => (open ? lasSidan() : undefined), [open]);
 
   // En stängd meny börjar om i första steget nästa gång (efter att lådan glidit ut).
   useEffect(() => {
