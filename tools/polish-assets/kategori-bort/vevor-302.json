@@ -1,0 +1,29 @@
+{
+ "namn": "vevor-302",
+ "rader": [
+  {
+   "kort": "c5d857b8",
+   "pid": "c5d857b8-851c-4a24-9749-86868a3bac55",
+   "bort": [
+    "Verktyg & Maskiner > Verktygsvagnar & verktygslådor",
+    "Verktyg & Maskiner"
+   ],
+   "behall": [
+    "Hem & Inredning",
+    "Hem & Inredning > Förvaring & Organisering"
+   ]
+  },
+  {
+   "kort": "af1d4290",
+   "pid": "af1d4290-7811-48fd-bdfb-dc77e374474e",
+   "bort": [
+    "Trädgård & Utemöbler > Trädgårdsanläggning & konstgräs",
+    "Trädgård & Utemöbler"
+   ],
+   "behall": [
+    "Bygg & Renovering",
+    "Bygg & Renovering > Byggmaterial & byggverktyg"
+   ]
+  }
+ ]
+}
