@@ -49,7 +49,7 @@ export const maxDuration = 300;
 
 import { KAMPANJ_2026_09 } from "../../../lib/kampanj-2026-09";
 import { varumarke } from "../../../lib/varumarke";
-import { flodessvar } from "../../../lib/feed/prisjakt-svar";
+import { flodessvar, huvudsvar, lasare } from "../../../lib/feed/prisjakt-svar";
 
 const SITE = "https://www.fyndplats.se";
 // Märket: Wix fält "brand" när det är satt, annars Fyndplats. Aosoms märken
@@ -584,4 +584,11 @@ ${items.join("\n")}
 
   // flodessvar varnar i loggen om det komprimerade svaret närmar sig CDN:ens gräns.
   return flodessvar(xml, request);
+}
+
+// HEAD bygger aldrig: utan den körde Next GET och byggde hela flödet för ett
+// svar utan kropp. Se `huvudsvar` i lib/feed/prisjakt-svar.ts.
+export async function HEAD(request: Request) {
+  console.log(`[flode] HEAD /feed/google.xml (${lasare(request)})`);
+  return huvudsvar({ komprimerat: false });
 }

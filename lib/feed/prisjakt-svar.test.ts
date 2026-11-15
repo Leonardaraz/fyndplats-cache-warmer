@@ -9,7 +9,14 @@ import {
   KOMPRIMERADE_FLODEN,
   arTomtFlode,
   flodessvar,
+  flodessvarUrKopia,
+  gzipFlode,
+  huvudsvar,
   komprimeratFlodessvar,
+  komprimeratSvar,
+  komprimeratSvarUrKopia,
+  kopiansCacheControl,
+  lasare,
   prisjaktRakning,
   strommatXml,
   tarEmotGzip,
@@ -251,10 +258,13 @@ describe("omskrivningen i next.config.ts", () => {
   });
 
   it("rutten bygger samma flöden, och jobbet håller samma flöden färska", () => {
-    const rutt = readFileSync(join(import.meta.dirname, "..", "..", "app", "feed", "gz", "[fil]", "route.ts"), "utf8");
-    const nycklar = [...rutt.matchAll(/^  "([a-z.]+)": \(\) => \w+\(\),$/gm)].map((m) => m[1]);
+    const byggare = readFileSync(join(import.meta.dirname, "byggare.ts"), "utf8");
+    const nycklar = [...byggare.matchAll(/^  "([a-z.]+)": \(\) => \w+\(\),$/gm)].map((m) => m[1]);
     assert.deepEqual(nycklar, [...KOMPRIMERADE_FLODEN]);
-    assert.match(rutt, /return komprimeratFlodessvar\(xml, `\/feed\/\$\{fil\}`\);/);
+    const rutt = readFileSync(join(import.meta.dirname, "..", "..", "app", "feed", "gz", "[fil]", "route.ts"), "utf8");
+    assert.match(rutt, /if \(!arKomprimeratFlode\(fil\)\) return finnsInte\(\);/);
+    assert.match(rutt, /const xml = await \(await BYGGARE\[fil\]\(\)\)\.text\(\);/);
+    assert.match(rutt, /if \(arTomtFlode\(xml\)\) return tomtFlodeSvar\(`\/feed\/\$\{fil\}`\);/);
     assert.deepEqual(
       FLODEN_ATT_HALLA_FARSKA.filter((p) => p.startsWith("/feed/")),
       KOMPRIMERADE_FLODEN.map((fil) => `/feed/${fil}`),
@@ -274,5 +284,130 @@ describe("prisjaktRakning", () => {
     const r = prisjaktRakning(xml);
     assert.deepEqual({ ...r, byte: 0 }, { varor: 3, gtin: 1, mpn: 2, mpnMedMarke: 1, byte: 0 });
     assert.equal(r.byte, Buffer.byteLength(xml));
+  });
+});
+
+describe("svaren ur den sparade kopian", () => {
+  const xml = `<?xml version="1.0"?><rss>${"<item>Sängbord å ä ö – 499 kr</item>\n".repeat(20000)}</rss>`;
+  const gz = gzipFlode(xml);
+  const nu = Date.parse("2026-11-15T10:00:00Z");
+  const kopia = { gz, byggd: nu - 30 * 60_000, xmlByte: Buffer.byteLength(xml) };
+  const med = (ae?: string) => new Request("https://www.fyndplats.se/feed/pinterest.xml", ae === undefined ? {} : { headers: { "accept-encoding": ae } });
+
+  it("gz-adressen: exakt de sparade byten, med längd, tid och utan Vary", async () => {
+    const res = komprimeratSvarUrKopia(kopia, nu);
+    assert.equal(res.status, 200);
+    assert.equal(res.headers.get("content-encoding"), "gzip");
+    assert.equal(res.headers.get("content-type"), "application/xml; charset=utf-8");
+    assert.equal(res.headers.get("content-length"), String(gz.byteLength));
+    assert.equal(res.headers.get("last-modified"), new Date(kopia.byggd).toUTCString());
+    assert.equal(res.headers.get("vary"), null);
+    assert.deepEqual(Buffer.from(await res.arrayBuffer()), gz);
+  });
+
+  it("den som inte tar emot gzip får XML:en uppackad och strömmad, samma tecken som byggdes", async () => {
+    for (const ae of [undefined, "identity", "br", "gzip;q=0"]) {
+      const res = flodessvarUrKopia(kopia, med(ae), nu);
+      assert.equal(res.headers.get("content-encoding"), null, ae);
+      assert.equal(res.headers.get("content-length"), null, "strömmat: ett svar över 4,5 MB får inte skickas i ett stycke");
+      assert.equal(res.headers.get("vary"), "Accept-Encoding");
+      const { text, bitar } = await lasAllt(res.body!);
+      assert.equal(text, xml);
+      assert.ok(bitar > 1);
+    }
+  });
+
+  it("den som tar emot gzip på /feed/<fil> (utan omskrivningen) får de sparade byten", async () => {
+    const res = flodessvarUrKopia(kopia, med("gzip, deflate"), nu);
+    assert.equal(res.headers.get("content-encoding"), "gzip");
+    assert.equal(res.headers.get("vary"), "Accept-Encoding");
+    assert.deepEqual(Buffer.from(await res.arrayBuffer()), gz);
+  });
+
+  it("CDN-tiden räknas från bygget: en timme räknat från då, minst en minut, och det gamla i högst två till", () => {
+    assert.equal(kopiansCacheControl(0), "public, max-age=3600, s-maxage=3600, stale-while-revalidate=7200");
+    assert.equal(kopiansCacheControl(1800), "public, max-age=1800, s-maxage=1800, stale-while-revalidate=7200");
+    assert.equal(kopiansCacheControl(3590), "public, max-age=60, s-maxage=60, stale-while-revalidate=7200");
+    assert.equal(kopiansCacheControl(7200), "public, max-age=60, s-maxage=60, stale-while-revalidate=7200");
+    assert.equal(kopiansCacheControl(-50), "public, max-age=3600, s-maxage=3600, stale-while-revalidate=7200");
+    assert.equal(komprimeratSvarUrKopia(kopia, nu).headers.get("cache-control"), kopiansCacheControl(1800));
+    assert.equal(FLODE_CACHE, kopiansCacheControl(0), "en ny kopia får samma tid som ett nytt bygge");
+  });
+
+  it("ett nytt bygge skickas som förut: samma byte som sparas", async () => {
+    const res = komprimeratSvar(gz);
+    assert.equal(res.headers.get("cache-control"), FLODE_CACHE);
+    assert.equal(res.headers.get("vary"), null);
+    assert.deepEqual(Buffer.from(await res.arrayBuffer()), gz);
+  });
+});
+
+describe("huvudsvar: HEAD bygger aldrig", () => {
+  const huvud = { byggd: Date.parse("2026-11-15T09:00:00Z"), gzByte: 2_879_046, xmlByte: 19_600_000 };
+
+  it("gz-adressen med kopia: längden och tiden ur kopian, ingen kropp", async () => {
+    const res = huvudsvar({ komprimerat: true, kopia: huvud });
+    assert.equal(res.status, 200);
+    assert.equal(res.body, null);
+    assert.equal(res.headers.get("content-encoding"), "gzip");
+    assert.equal(res.headers.get("content-length"), "2879046");
+    assert.equal(res.headers.get("last-modified"), "Sun, 15 Nov 2026 09:00:00 GMT");
+    assert.equal(res.headers.get("content-type"), "application/xml; charset=utf-8");
+    assert.equal(res.headers.get("cache-control"), "no-store");
+    assert.equal(res.headers.get("vary"), null);
+  });
+
+  it("utan kopia: bara typen, ingen längd och ingen tid", () => {
+    for (const komprimerat of [true, false]) {
+      const res = huvudsvar({ komprimerat, kopia: null });
+      assert.equal(res.status, 200);
+      assert.equal(res.headers.get("content-length"), null);
+      assert.equal(res.headers.get("last-modified"), null);
+      assert.equal(res.headers.get("content-type"), "application/xml; charset=utf-8");
+    }
+  });
+
+  it("/feed/<fil>: som GET, strömmat utan längd och med Vary", () => {
+    const res = huvudsvar({ komprimerat: false, kopia: huvud });
+    assert.equal(res.headers.get("content-encoding"), null);
+    assert.equal(res.headers.get("content-length"), null);
+    assert.equal(res.headers.get("vary"), "Accept-Encoding");
+    assert.equal(res.headers.get("last-modified"), "Sun, 15 Nov 2026 09:00:00 GMT");
+  });
+
+  it("☠️ varje flödesrutt har en egen HEAD som aldrig bygger", () => {
+    const rot = join(import.meta.dirname, "..", "..", "app", "feed");
+    for (const fil of [...KOMPRIMERADE_FLODEN.map((f) => join(f, "route.ts")), join("gz", "[fil]", "route.ts")]) {
+      const kalla = readFileSync(join(rot, fil), "utf8");
+      const start = kalla.indexOf("export async function HEAD(");
+      assert.ok(start >= 0, `${fil} saknar HEAD: då kör Next GET och bygger hela flödet`);
+      const slut = kalla.indexOf("\n}\n", start);
+      const kropp = kalla.slice(start, slut);
+      assert.ok(slut > start);
+      for (const forbjudet of ["GET(", "googleFeed(", "BYGGARE", "fetch", "tillPinterest", "lasKopia(", "flodessvar("]) {
+        assert.ok(!kropp.includes(forbjudet), `${fil}: HEAD får inte röra ${forbjudet}`);
+      }
+      assert.match(kropp, /return huvudsvar\(/);
+    }
+  });
+});
+
+describe("lasare: vem som hämtar, för loggen", () => {
+  const med = (h: Record<string, string>) => new Request("https://www.fyndplats.se/feed/pinterest.xml", { headers: h });
+
+  it("rubriken och robotens namn, inget mer", () => {
+    assert.equal(lasare(med({ "accept-encoding": "gzip, deflate", "user-agent": "Pinterestbot/1.0 (+http://www.pinterest.com/bot.html)" })), "gzip, deflate; Pinterestbot/1.0");
+    assert.equal(
+      lasare(med({ "accept-encoding": "gzip,deflate,br", "user-agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" })),
+      "gzip,deflate,br; Googlebot/2.1",
+    );
+    assert.equal(lasare(med({ "user-agent": "fyndplats-flodesvarmning/1.0" })), "utan accept-encoding; fyndplats-flodesvarmning/1.0");
+    assert.equal(lasare(med({ "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/142.0" })), "utan accept-encoding; Mozilla/5.0");
+    assert.equal(lasare(undefined), "utan accept-encoding; okänd");
+  });
+
+  it("korta fält även när rubrikerna är långa", () => {
+    const r = lasare(med({ "accept-encoding": "x".repeat(500), "user-agent": "y".repeat(500) }));
+    assert.ok(r.length <= 82, r);
   });
 });

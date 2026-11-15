@@ -1161,6 +1161,11 @@ bygger ett nytt (10–75 s uppmätt, långsamt men rätt).
 **`/api/cron/farska-floden`** (varannan timme, `lib/flodesvarmning.ts`) hämtar
 sitemapen och de tre flödena en gång, så att det ska hända sällan. Prisjakts
 hemliga adress står inte i listan och får aldrig göra det.
+☠️ Mätt 2026-11-15: det räcker inte för ett flöde som hämtas en gång om
+dygnet. CDN:en hade tappat kopian före varje körning (MISS fyra gånger av
+fyra på Pinterest-, Google- och PriceRunner-flödet). Pinterest-flödet sparas
+därför i Runtime Cache, och alla flödesrutter har en HEAD som inte bygger (se
+Pinterest-avsnittet).
 
 ☠️ **Ett flöde utan en enda vara skickas aldrig** (`arTomtFlode`). Det betyder
 att katalogen eller varianterna inte gick att läsa, och den som läser in ett
@@ -1307,6 +1312,60 @@ nivåer). Den rör kategorikartan, inte flödet.
   katalogen.
 - Säljargranskningen startade av sig själv när katalogen laddades upp.
 - Inget annonskonto och ingen Pinterest-tagg. Leonard valde bort dem 2026-11-15.
+
+### Pinterest får flödet direkt: HEAD och den sparade kopian (Leonard 2026-11-15)
+
+Leonard bad om att flödet skulle optimeras. Mätt samma förmiddag:
+
+- **En HEAD byggde hela flödet.** Pinterest gör en HEAD före inläsningen
+  (09:12 UTC). CDN:ens nyckel innehåller metoden (vercel.com/docs/caching/
+  cdn-cache/purge, "Cache keys"), så en HEAD läser aldrig GET:s kopia, och
+  utan en egen HEAD kör Next GET. Mätt: 52 s för ett svar utan kropp, fyra
+  minuter efter att GET-kopian lagts i samma region.
+- **CDN:en behåller inte ett flöde som hämtas en gång om dygnet.** Varje
+  körning av `/api/cron/farska-floden` 02:40–08:39 UTC fick MISS på Pinterest-,
+  Google- och PriceRunner-flödet (50–78 s), fast förra körningen byggt kopian
+  två timmar tidigare och den skulle ha gällt i tre. `/feed/products.xml`, som
+  hämtas oftare, gav HIT och STALE. Vercel skriver att sällan hämtade svar kan
+  försvinna ur regionens cache (cdn-cache, Limits). Värmningen höll alltså inte
+  Pinterests kopia vid liv.
+
+Nu:
+
+- ☠️ **Varje flödesrutt har en egen HEAD som aldrig bygger** (`huvudsvar` i
+  `lib/feed/prisjakt-svar.ts`): de fyra under `/feed/` och `/feed/gz/[fil]`.
+  Svaret har samma rubriker som GET och `Cache-Control: no-store`, och längd
+  och tid när det finns en sparad kopia. Provet fäller en rutt utan HEAD och en
+  HEAD som bygger.
+- **Pinterest-flödet sparas i Vercels Runtime Cache** (`lib/feed/flodeslager.ts`,
+  `LAGRADE_FLODEN`). Jobbet bygger det först i varje körning och sparar
+  gzip-filen. `/feed/gz/pinterest.xml` och `/feed/pinterest.xml` svarar ur
+  kopian när den är yngre än tre timmar (den okomprimerade adressen packar upp
+  den). Saknas kopian byggs flödet som förut, och det som byggdes sparas efter
+  svaret. Anropad utan anrop (gz-rutten och jobbet) bygger rutten alltid.
+- ☠️ **En post i Runtime Cache är högst 2 MB**, och flödet är 2,9 MB som gzip.
+  Filen sparas i sex bitar under en egen generation och pekas ut sist, med
+  längd och kontrollsumma. En kopia som inte stämmer används inte: lagret kan
+  göra flödet snabbare, aldrig fel.
+- ☠️ **Paketets `set` sväljer sina fel** (loggar och ger upp efter 500 ms).
+  Varje bit läses tillbaka och skrivs om en gång innan pekaren skrivs, och
+  jobbets rad säger `SPARADES INTE` när det ändå inte gick. Raden säger också
+  `BARA PROCESSENS MINNE` om Runtime Cache inte nås (då hjälper kopian bara
+  samma instans).
+- **Nyckeln bär driftsättningen** (`VERCEL_DEPLOYMENT_ID`): efter en deploy
+  finns ingen kopia förrän jobbet körts eller någon hämtat flödet, och ingen
+  deploy läser en kopia som äldre kod byggde.
+- **Loggen säger vem som hämtar**: `[flode] /feed/gz/pinterest.xml ur kopian,
+  14 min gammal (gzip, deflate; Pinterestbot/1.0)`. Bara Accept-Encoding och
+  robotens namn ur User-Agent (`lasare`).
+- Kostnad: runt 470 skrivenheter per sparning (en enhet är 8 kB, och 2,9 MB
+  blir 3,8 MB som base64), tolv gånger om dygnet, och lika många läsenheter för
+  kontrollen. Under en dollar i månaden.
+
+Google-, PriceRunner- och produktflödet har bara fått HEAD. Ska de också
+sparas räcker en rad i `LAGRADE_FLODEN`: jobbet bygger dem då själv före
+hämtningarna, och hämtningen läser kopian, så jobbets tid blir ungefär
+densamma. Varje flöde kostar sina skrivenheter.
 
 ## Strukturerad data för Google Shopping (2026-10-22)
 

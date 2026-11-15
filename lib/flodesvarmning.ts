@@ -9,6 +9,12 @@
 // Hämtar vi själva varannan timme finns det alltid ett svar som är högst ett
 // par timmar gammalt, och Google Merchant Center får det direkt.
 //
+// ☠️ MÄTT 2026-11-15: CDN:EN TAPPAR ÄNDÅ ETT FLÖDE SOM SÄLLAN HÄMTAS. Varje
+// körning fick MISS på Google-, PriceRunner- och Pinterest-flödet, fast förra
+// körningen byggt kopian två timmar tidigare. Pinterest-flödet byggs därför i
+// jobbet och sparas i Runtime Cache (lib/feed/flodeslager.ts), och hämtningen
+// här läser den kopian.
+//
 // LÖVMODUL med flit, så att `node --test` kan ladda den. Prisjakts hemliga
 // adress står inte här och får aldrig göra det (CLAUDE.md).
 
@@ -18,7 +24,8 @@ export const FLODEN_ATT_HALLA_FARSKA = [
   "/feed/google.xml",
   "/feed/products.xml",
   "/feed/pricerunner.xml",
-  // Sist: Pinterest hämtar en gång per dygn och tål en långsammare hämtning.
+  // Sist: jobbet har redan byggt och sparat flödet (lib/feed/flodeslager.ts),
+  // så hämtningen läser kopian och visar vad Pinterest får.
   "/feed/pinterest.xml",
 ] as const;
 

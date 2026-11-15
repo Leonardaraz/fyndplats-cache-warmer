@@ -11,7 +11,7 @@
 
 import { GET as googleFeed } from "../google.xml/route";
 import { tillPricerunner } from "@/lib/feed/pricerunner";
-import { flodessvar } from "@/lib/feed/prisjakt-svar";
+import { flodessvar, huvudsvar, lasare } from "@/lib/feed/prisjakt-svar";
 import {
   DELIVERY_MAX_DAYS,
   DELIVERY_MIN_DAYS,
@@ -35,4 +35,11 @@ export async function GET(request?: Request) {
   });
 
   return flodessvar(xml, request);
+}
+
+// HEAD bygger aldrig: utan den körde Next GET och byggde hela flödet för ett
+// svar utan kropp. Se `huvudsvar` i lib/feed/prisjakt-svar.ts.
+export async function HEAD(request: Request) {
+  console.log(`[flode] HEAD /feed/pricerunner.xml (${lasare(request)})`);
+  return huvudsvar({ komprimerat: false });
 }

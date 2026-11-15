@@ -35,7 +35,7 @@
 //
 // LÖVMODUL med flit, så att `node --test` kan ladda den.
 
-import { gzipSync } from "node:zlib";
+import { gunzipSync, gzipSync } from "node:zlib";
 
 /** Bitstorleken i strömmen. */
 const BIT_BYTE = 64 * 1024;
@@ -56,7 +56,11 @@ export const FLODE_VARNING_BYTE_GZIP = 8_000_000;
 
 /** XML:en som en ström. Samma byte som strängen, i bitar. */
 export function strommatXml(xml: string): ReadableStream<Uint8Array> {
-  const byte = new TextEncoder().encode(xml);
+  return strommadeByte(new TextEncoder().encode(xml));
+}
+
+/** Byte som en ström, i bitar om 64 kB. */
+function strommadeByte(byte: Uint8Array): ReadableStream<Uint8Array> {
   let i = 0;
   return new ReadableStream<Uint8Array>({
     pull(controller) {
@@ -153,10 +157,16 @@ export function flodessvar(
  */
 export function komprimeratFlodessvar(xml: string, vilket: string): Response {
   if (arTomtFlode(xml)) return tomtFlodeSvar(vilket);
-  return gzipSvar(xml, { "Content-Type": "application/xml; charset=utf-8", "Cache-Control": FLODE_CACHE });
+  return komprimeratSvar(gzipFlode(xml));
 }
 
-function gzipSvar(xml: string, rubriker: Record<string, string>): Response {
+/** Svaret på /feed/gz/<fil> för ett flöde som redan är komprimerat: gzip, utan Vary. */
+export function komprimeratSvar(gz: Uint8Array<ArrayBuffer>): Response {
+  return gzSvar(gz, { "Content-Type": "application/xml; charset=utf-8", "Cache-Control": FLODE_CACHE });
+}
+
+/** Flödet komprimerat, som det skickas och sparas. Varnar när det närmar sig CDN:ens gräns. */
+export function gzipFlode(xml: string): Buffer<ArrayBuffer> {
   const kropp = gzipSync(xml, { level: 6 });
   if (kropp.byteLength > FLODE_VARNING_BYTE_GZIP) {
     console.warn(
@@ -164,9 +174,112 @@ function gzipSvar(xml: string, rubriker: Record<string, string>): Response {
         "och då byggs flödet om vid varje hämtning. Se lib/feed/prisjakt-svar.ts.",
     );
   }
+  return kropp;
+}
+
+function gzipSvar(xml: string, rubriker: Record<string, string>): Response {
+  return gzSvar(gzipFlode(xml), rubriker);
+}
+
+function gzSvar(kropp: Uint8Array<ArrayBuffer>, rubriker: Record<string, string>): Response {
   return new Response(kropp, {
     headers: { ...rubriker, "Content-Encoding": "gzip", "Content-Length": String(kropp.byteLength) },
   });
+}
+
+// ---------------------------------------------------------------------------
+// Svaren ur den sparade kopian (lib/feed/flodeslager.ts).
+//
+// ☠️ CDN:EN BEHÅLLER INTE ETT FLÖDE SOM SÄLLAN HÄMTAS (mätt 2026-11-15). Varje
+// körning av /api/cron/farska-floden fick MISS på Google-, PriceRunner- och
+// Pinterest-flödet, fast förra körningen byggt kopian två timmar tidigare och
+// den skulle ha gällt i tre. Vercel: "If your asset is rarely requested (e.g.
+// once a day), it may be evicted from the regional cache"
+// (vercel.com/docs/caching/cdn-cache, Limits). Den som hämtar en gång om
+// dygnet (Pinterest) fick därför nästan alltid vänta på ett bygge: 50–78 s.
+// En kopia sparad i Vercels Runtime Cache läses i stället på en bråkdel av en
+// sekund, och svaren nedan byggs ur den.
+// ---------------------------------------------------------------------------
+
+/** En sparad kopia av ett flöde: gzip-filen, när bygget började och den okomprimerade storleken. */
+export type FlodesKopia = { gz: Uint8Array<ArrayBuffer>; byggd: number; xmlByte: number };
+
+/** Det HEAD behöver veta om kopian, utan att läsa själva filen. */
+export type KopiansHuvud = { byggd: number; gzByte: number; xmlByte: number };
+
+/**
+ * CDN-tiden för ett svar ur kopian: färskt tills kopian är en timme gammal,
+ * minst en minut, och sedan det gamla i högst två timmar medan nästa hämtas,
+ * som FLODE_CACHE. En kopia som redan är två timmar gammal ska alltså inte
+ * hållas en timme till.
+ */
+export function kopiansCacheControl(alderS: number): string {
+  const s = Math.min(3600, Math.max(60, Math.round(3600 - Math.max(0, alderS))));
+  return `public, max-age=${s}, s-maxage=${s}, stale-while-revalidate=7200`;
+}
+
+function kopiansRubriker(kopia: FlodesKopia, nu: number): Record<string, string> {
+  return {
+    "Content-Type": "application/xml; charset=utf-8",
+    "Cache-Control": kopiansCacheControl((nu - kopia.byggd) / 1000),
+    "Last-Modified": new Date(kopia.byggd).toUTCString(),
+  };
+}
+
+/** /feed/gz/<fil> ur kopian: samma gzip-byte som sparades, utan Vary (se komprimeratFlodessvar). */
+export function komprimeratSvarUrKopia(kopia: FlodesKopia, nu = Date.now()): Response {
+  return gzSvar(kopia.gz, kopiansRubriker(kopia, nu));
+}
+
+/**
+ * /feed/<fil> ur kopian. Den som inte tar emot gzip får XML:en uppackad och
+ * strömmad, som från ett bygge: ett svar över 10 MB behålls inte av CDN:en,
+ * och då ska läsaren åtminstone slippa vänta på bygget.
+ */
+export function flodessvarUrKopia(kopia: FlodesKopia, request: Request | undefined, nu = Date.now()): Response {
+  const rubriker = { ...kopiansRubriker(kopia, nu), Vary: "Accept-Encoding" };
+  if (tarEmotGzip(request?.headers.get("accept-encoding"))) return gzSvar(kopia.gz, rubriker);
+  return new Response(strommadeByte(gunzipSync(kopia.gz)), { headers: rubriker });
+}
+
+/**
+ * Svaret på HEAD: samma rubriker som GET skulle ge, utan att något byggs.
+ *
+ * ☠️ MÄTT 2026-11-15: CDN:EN NYCKLAR PÅ METODEN. En HEAD läser aldrig GET:s
+ * kopia (vercel.com/docs/caching/cdn-cache/purge, "Cache keys"), och utan en
+ * egen HEAD kör Next GET och bygger hela flödet: 52 s för ett svar utan kropp,
+ * medan GET-kopian låg i samma region. Pinterest gör en HEAD före varje
+ * inläsning (loggen 09:12–09:13 UTC samma dag).
+ *
+ * Längden och tiden står med när det finns en sparad kopia att läsa dem ur.
+ * `no-store`: svaret ska spegla kopian som den är nu, inte för en timme sedan.
+ */
+export function huvudsvar(opts: { komprimerat: boolean; kopia?: KopiansHuvud | null }): Response {
+  const rubriker: Record<string, string> = {
+    "Content-Type": "application/xml; charset=utf-8",
+    "Cache-Control": "no-store",
+  };
+  if (opts.komprimerat) {
+    rubriker["Content-Encoding"] = "gzip";
+    if (opts.kopia) rubriker["Content-Length"] = String(opts.kopia.gzByte);
+  } else {
+    rubriker.Vary = "Accept-Encoding";
+  }
+  if (opts.kopia) rubriker["Last-Modified"] = new Date(opts.kopia.byggd).toUTCString();
+  return new Response(null, { status: 200, headers: rubriker });
+}
+
+/**
+ * Vem som hämtar, för loggen: Accept-Encoding och läsarens namn ur
+ * User-Agent ("Pinterestbot/1.0", "Googlebot/2.1"), aldrig mer än så. Där
+ * syns vad Pinterest och de andra läsarna skickar.
+ */
+export function lasare(request?: Request): string {
+  const ae = (request?.headers.get("accept-encoding") ?? "").trim().slice(0, 40) || "utan accept-encoding";
+  const ua = request?.headers.get("user-agent") ?? "";
+  const robot = ua.match(/[\w.-]*(?:bot|pinterest|google|facebook|meta|pricerunner|crawler|spider)[\w./-]*/i)?.[0];
+  const namn = (robot ?? ua.split(/[\s(;]/)[0] ?? "").slice(0, 40) || "okänd";
+  return `${ae}; ${namn}`;
 }
 
 /**
