@@ -1,0 +1,28 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "64e8a594": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "8066147f": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "84d8264b": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "8c882160": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "98f23ba5": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "b5379954": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Image, drawing and specification: handle length 48 in / 1219 mm; max log diameter 25 in; product size 55,12 x 5,91 x 17,72 in / 1400 x 150 x 450 mm; main material carbon steel; product weight 15,43 lbs / 7 kg; package content 1 user manual, 1 claw, 1 bar, 1 handle, 1 support rod, 1 T-shaped leg, 5 screws and 5 nuts"
+ }
+}
