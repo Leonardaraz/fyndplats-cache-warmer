@@ -2216,7 +2216,7 @@ provas; den kräver samtycke för kakor, som Klarnas.
   val).
 - **Summeringen:** varianten per rad ("Färg: Natur"), antal varor, "Ändra"
   (öppnar varukorgen), fri frakt-mätaren, och under den öppet köp, leveransen,
-  betalningen och Google-betyget (`getSocialProof`, samma cache som sidfoten).
+  och betalningen. Google-betyget står inte i kassan sedan 2026-11-15 (se nedan).
 - **Rabattkoden:** Enter i fältet lägger till koden (förut skickade Enter hela
   formuläret, alltså betalningen); en kod som gått in blir en bricka med
   "Ta bort" (en tom kod till `/api/kassa/rakna`); en ogiltig kod syns vid koden
@@ -3152,6 +3152,21 @@ periodens slut.
   2026-11-12). Betyget står kvar på startsidan, i sidfoten och på /omdomen,
   och produktsidan hämtar inte längre butiksbetyget.
   `lib/produktsida-fortroende.test.ts` vaktar.
+- **Kassans rad "4,9 av 5 på Google" är också borttagen** (Leonard
+  2026-11-15: "det ser inte snyggt ut"). På mobil stod den sist i kassan.
+  /kassa hämtar inte längre butiksbetyget (`getSocialProof`), så den
+  hämtningen ligger inte heller i kassans svarstid. `lib/kassa-fortroende.test.ts`
+  vaktar.
+- **Märket läses ur varans egen rad** (2026-11-15). Produktsidan tar
+  `brand.name` ur V3-raden den redan hämtar (`markeUrV3` i `produktGrund`, sedan
+  `p.marke`) och hämtar ingen märkeskarta. Förut hämtade varje produktsida hela
+  katalogens märkeskarta, ca 20 anrop mot Wix (1 930 produkter med märke, mest
+  VEVOR). I produktion var 4 049 av 4 051 felrader på ett dygn
+  `fetchVarumarken failed: HTTP 429`, och ett fel gav en delvis karta, så att
+  VEVOR-varor fick märket Fyndplats. Flödena läser kartan ur EN cachepost
+  (`unstable_cache`, sex timmar). Svepet (`lib/varumarken-svep.ts`) väntar ut
+  429 och kastar hellre än lämnar en delvis karta, så att den förra hela kartan
+  står kvar. `lib/varumarken-svep.test.ts` vaktar.
 - **Två kort i bredd på mobil** också på startsidan, /butik, "Liknande
   produkter", prissidorna och /for-dig-som (`listgrid` och `tvaKolumner`).
 - `/kategori/skarmtak-entr-tak` pekar om till `/kategori/skarmtak-entretak`.
