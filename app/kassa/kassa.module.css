@@ -437,14 +437,22 @@
   background: #fff;
 }
 
+/* Rutorna ser ut som Stripes fält i vila: samma ram, samma etikett på samma
+   plats (lib/kassa/stripe-klient.ts, ".Input" och ".Label--resting"). Förut
+   var de grå med en skimmer, och kassan såg tom ut i upp till två sekunder
+   (Leonard 2026-11-16). */
 .adressSkelett span {
-  display: block;
+  display: flex;
+  align-items: center;
   height: 56px;
-  border: 1.5px solid #efe7de;
+  padding: 0 14px;
+  border: 1.5px solid #d9cfc4;
   border-radius: var(--r-sm);
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.025) 25%, rgba(0, 0, 0, 0.06) 50%, rgba(0, 0, 0, 0.025) 75%);
-  background-size: 200% 100%;
-  animation: skimmer 1.2s linear infinite;
+  background: #fff;
+  color: #6b6157;
+  font-size: 16px;
+  line-height: 1.25;
+  cursor: progress;
 }
 
 /* Från 442 px bredd lägger Stripe förnamn och efternamn bredvid varandra, och

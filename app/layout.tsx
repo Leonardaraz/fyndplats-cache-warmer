@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { jsonLdString } from "../lib/seo";
-import { Geist, Fraunces } from "next/font/google";
+import { Geist } from "next/font/google";
+import localFont from "next/font/local";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
@@ -57,17 +58,30 @@ const META_PIXEL_ID = (process.env.META_PIXEL_ID || "").trim();
 const KLARNA_CLIENT_ID = (process.env.NEXT_PUBLIC_KLARNA_CLIENT_ID || "").trim();
 
 const geist = Geist({ variable: "--font-sans", subsets: ["latin"] });
-const fraunces = Fraunces({
+// Rubriktypsnittet: Newsreader (Leonard 2026-11-16: "folk tycker vårt f ser lite
+// konstigt ut, och j:et"). Fraunces f har en kort krok och dess j går knappt
+// under raden; Newsreader har vanliga former. Filerna i app/typsnitt är bantade
+// (app/typsnitt/LICENS.md säger hur): bara latinska tecken, optisk storlek låst
+// vid 40 och vikterna 500–700 (rak) och 500–600 (kursiv). 75 kB mot Fraunces
+// 79 kB; hela Newsreader med båda axlarna väger 271 kB.
+const rubrik = localFont({
   variable: "--font-display",
-  subsets: ["latin"],
-  style: ["normal", "italic"],
+  src: [
+    { path: "./typsnitt/newsreader-rak.woff2", weight: "500 700", style: "normal" },
+    { path: "./typsnitt/newsreader-kursiv.woff2", weight: "500 600", style: "italic" },
+  ],
   display: "swap",
-  // Nexts egen reserv ("Fraunces Fallback") pekar bara på Times New Roman, som
-  // saknas på Linux (där Lighthouse mäter) och Android. Där hoppade rubrikerna
-  // 3–5 px när Fraunces bytte in sig. De här två har samma mått, se globals.css.
+  // 6 % större än teckenstorleken: Newsreaders små bokstäver är lägre än
+  // Fraunces, och med 106 % blir rubrikerna lika breda som förut. Butikens mått
+  // (radbrytningar, kortens höjder) står då kvar utan att varje regel ändras.
+  declarations: [{ prop: "size-adjust", value: "106%" }],
+  // Nexts egen reserv bygger på Arial. De här två har Times och Noto Serifs
+  // former och Newsreaders mått, så rubrikerna inte hoppar när typsnittet byter
+  // in sig (app/globals.css, lib/typsnitt-reserv.test.ts).
   // Enkla citattecken: Turbopack skriver listan rakt in i en JS-sträng med
   // dubbla, och ett dubbelt citattecken här fäller bygget.
-  fallback: ["'Fraunces Reserv'", "'Fraunces Reserv N'"],
+  adjustFontFallback: false,
+  fallback: ["'Newsreader Reserv'", "'Newsreader Reserv N'"],
 });
 
 // Organization + LocalBusiness-hybrid — ger Google både företagsinfo för
@@ -242,7 +256,7 @@ export default async function RootLayout({
   // serverns HTML. Gäller bara <html>-elementets egna attribut, inte något
   // under det.
   return (
-    <html lang="sv" data-scroll-behavior="smooth" className={`${geist.variable} ${fraunces.variable}`} suppressHydrationWarning>
+    <html lang="sv" data-scroll-behavior="smooth" className={`${geist.variable} ${rubrik.variable}`} suppressHydrationWarning>
       <head>
         {/* Hint browsers to open the TLS connection to Wix's image CDN early —
             every product image (hero, mosaic, PDP) is hosted at static.wixstatic.com,

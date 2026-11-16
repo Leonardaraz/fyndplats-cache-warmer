@@ -1,16 +1,22 @@
-/* Reservtypsnitt för Fraunces (app/layout.tsx, fallback). Nexts egen
-   "Fraunces Fallback" har rätt mått men pekar bara på Times New Roman, som finns
-   på iPhone, Mac och Windows men inte på Linux (där Lighthouse mäter) eller
-   Android. Där ritades rubrikerna med Liberation Serif eller Noto Serif rakt av,
-   och texten hoppade 3–5 px när Fraunces bytte in sig (CLS upp till 0,0014 på
-   datorns startsida, 2026-11-08). När fallback anges tar Turbopack bort Nexts
-   egen reserv, så "Fraunces Reserv" tar över den: Times New Roman först, sedan
-   Liberation Serif och Tinos, som har Times mått. Måtten är Nexts egen formel
-   (next/dist/server/font-utils.js) med Fraunces 1956/510/938 per 2000 mot
-   reservens bredd: Times 832/2048, Noto Serif 481/1000.
+/* Reservtypsnitt för rubriktypsnittet Newsreader (app/layout.tsx, fallback).
+   Tills Newsreader har laddats ritas rubrikerna med ett typsnitt som redan
+   finns i enheten: Times New Roman (iPhone, Mac, Windows), Liberation Serif
+   eller Tinos (Linux, där Lighthouse mäter; samma mått som Times) och Noto
+   Serif (Android). Måtten nedan ger reserven Newsreaders radhöjd och bredd, så
+   att texten inte hoppar när typsnittet byter in sig (med Fraunces och utan
+   egen reserv: 3–5 px och CLS upp till 0,0014 på datorns startsida, 2026-11-08).
+   Bredden är UPPMÄTT 2026-11-16: butikens egna rubriker i vikt 600 är 1,1069
+   gånger så breda i Newsreader (app/typsnitt, optisk storlek 40) som i Times.
+   Newsreader ritas dessutom 6 % större än sin teckenstorlek (size-adjust 106 %
+   i app/layout.tsx: bokstäverna är lägre än Fraunces, och med 106 % blir
+   raderna lika breda som förut, så att butikens mått står kvar). Reservens
+   size-adjust är därför 1,1069 × 1,06. Noto Serif räknas om med bredderna i
+   Nexts tabell (Times 832/2048, Noto Serif 481/1000). Höjderna är Newsreaders
+   1470/530 per 2000 delat med 1,1069: de 6 procenten förstorar båda
+   typsnitten lika och tar ut varandra.
    lib/typsnitt-reserv.test.ts räknar om dem. */
-@font-face{font-family:"Fraunces Reserv";src:local("Times New Roman"),local("TimesNewRomanPSMT"),local("Liberation Serif"),local("LiberationSerif"),local("Tinos"),local("Tinos-Regular");ascent-override:84.71%;descent-override:22.09%;line-gap-override:0.00%;size-adjust:115.45%}
-@font-face{font-family:"Fraunces Reserv N";src:local("Noto Serif"),local("Noto Serif Regular"),local("NotoSerif-Regular"),local("NotoSerif");ascent-override:100.30%;descent-override:26.15%;line-gap-override:0.00%;size-adjust:97.51%}
+@font-face{font-family:"Newsreader Reserv";src:local("Times New Roman"),local("TimesNewRomanPSMT"),local("Liberation Serif"),local("LiberationSerif"),local("Tinos"),local("Tinos-Regular");ascent-override:66.40%;descent-override:23.94%;line-gap-override:0.00%;size-adjust:117.34%}
+@font-face{font-family:"Newsreader Reserv N";src:local("Noto Serif"),local("Noto Serif Regular"),local("NotoSerif-Regular"),local("NotoSerif");ascent-override:78.62%;descent-override:28.34%;line-gap-override:0.00%;size-adjust:99.10%}
 
 :root{
   /* Hur långt under sidhuvudet ett ankarmål ska hamna. Sidhuvudet är 130 px
@@ -161,8 +167,50 @@ img{display:block;max-width:100%}
 ::selection{background:var(--peach);color:var(--ink)}
 .container{max-width:1180px;margin:0 auto;padding:0 26px}
 
-.promo{background:var(--char);color:#fff;text-align:center;font-size:var(--text-xs);font-weight:500;padding:10px}
-.promo b{color:var(--peach)}
+/* ── Natten: butikens mörka ton (Leonard 2026-11-16) ─────────────────────
+   Singles Week-temat (app/sasongstema.css) var natt med glöd, och Leonard
+   ville ha det året runt i butikens egna färger: "vår design för single week
+   var super snygg men nu är den borta, vårt original är inte så 10/10".
+   Samma ton bär toppremsan, startsidans hjälte och löftesremsa
+   (app/startsida.css), auktionsremsan, nyhetsbrevet och sidfoten, så att sidan
+   hänger ihop uppifrån och ner. Säsongstemana ligger ovanpå som förut: deras
+   regler börjar med :root[data-tema] och väger tyngre.
+   ☠️ Vit text på --natt-knapp ska klara 4,5:1 i knappens LJUSA ände. #D8480F
+   gav 4,3:1 och föll; #D0440E ger 4,6:1. lib/natten.test.ts räknar om det. */
+:root{
+  --natt:linear-gradient(160deg,#0C0907 0%,#130D09 44%,#1D120B 100%);
+  --natt-remsa:linear-gradient(90deg,#0C0907 0%,#1F130B 50%,#0C0907 100%);
+  --natt-golv:#0E0A07;
+  --natt-ljus:#FBF4EC;
+  --natt-dampad:#D2C4B6;
+  --natt-knapp:linear-gradient(100deg,#D0440E 0%,#B93A0A 100%);
+  --natt-knapp-over:linear-gradient(100deg,#BE3E0C 0%,#A8340A 100%);
+  /* Hjältens brickor: varm vit, så att varan lyser mot natten. */
+  --natt-bricka:#FFFAF5;
+  --glod:rgba(244,118,48,.24);
+  --glod-svag:rgba(255,176,120,.07);
+  --glod-sken:rgba(255,160,100,.10);
+  /* Mobilen (sista genomgången 2026-11-16): glöden samlas nere till höger
+     bakom brickorna, och klotet uppe till höger är nästan släckt. Med samma
+     styrka som på datorn låg ett brunt dis bakom rubriken, så att den stod mot
+     brunt i stället för svart. */
+  --glod-stark:rgba(244,118,48,.30);
+  --glod-lugn:rgba(244,118,48,.11);
+  --glod-sken-stark:rgba(255,160,100,.13);
+  --glod-a:#FF8A4C;
+  --glod-ljus:#FFC29A;
+  --glod-linje:linear-gradient(90deg,rgba(244,122,53,0) 4%,rgba(244,122,53,.85) 30%,#FFB078 50%,rgba(244,122,53,.85) 70%,rgba(244,122,53,0) 96%);
+  --glod-ord:linear-gradient(100deg,#FFD9BC 0%,#FF9A5C 46%,#F2602A 100%);
+  /* Ett fint korn över de mörka ytorna: en toning mellan två nästan svarta
+     färger får annars synliga band på telefonskärmar. */
+  --natt-korn:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .045 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.promo{background:var(--natt-remsa);color:#fff;text-align:center;font-size:var(--text-xs);font-weight:500;padding:10px}
+.promo b{color:var(--glod-ljus)}
+/* Lastbilen var en färgemoji bredvid enfärgad text. Säsongstemana lägger sitt eget märke här. */
+.promo-ikon{display:none}
+/* En tunn glödande linje under sidhuvudet, på varje sida. */
+.sidhuvud::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;pointer-events:none;background:var(--glod-linje)}
 /* "Klarna" i promobaren ska bära Klarnas egen rosa (#FFB3C7, samma som footerns
    .pay-klarna), inte den generella peach-accenten — övriga <b> (t.ex. "499 kr")
    förblir peach. OBS: regeln MÅSTE matcha `.promo b`-specificiteten (0,1,1),
@@ -438,21 +486,40 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
    antalet fick dem att overlappa med nagra pixlar. Antalet ar det minst
    informativa av de tre, sa det ar det som gar. */
 @media(max-width:880px){.hrating{top:8px;right:8px;font-size:var(--text-xs);padding:4px 8px;gap:4px}.herotile .hrating-stars{font-size:var(--text-xs)}.hrating-count{display:none}}
-/* hero motion — staggered entrance, gentle float, drifting glow (all disabled under prefers-reduced-motion) */
-@keyframes heroRise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+/* Hjältens entré (Leonard 2026-11-16: "texten verkar falla in till hero
+   sektionen men det är inte smooth, det hackar in. Kan man inte göra det sådär
+   3d sexigt"). Förut gled rubriken 16 px rakt upp utan toning medan resten
+   tonade in var för sig, på 0,62 s. Nu reser sig rubriken och brickorna i
+   djupled: de börjar lutade bakåt och en bit bort, och fälls upp mot
+   betraktaren med en lång mjuk inbromsning.
+   ☠️ Tre saker som inte ska ändras:
+   1. Rubriken och brickorna rör sig BARA med transform, aldrig opacitet.
+      Rubriken är sidans största element (LCP), och det som börjar på
+      opacitet 0 räknas inte som ritat förrän toningen är klar (+0,84 s LCP
+      med brickorna, Lighthouse mobil 2026-10-07).
+   2. Slutläget är samma funktioner med nollor, inte "none": då räknar
+      webbläsaren varje del för sig hela vägen, i stället för att väga ihop två
+      matriser.
+   3. "backwards", inte "both": efter sista rutan släpper animationen
+      elementet, så att brickans egen hover-rörelse fungerar och inget extra
+      ritlager blir kvar. Slutläget är oförvrängt, så inget hoppar när den släpper.
+   Allt stängs av under prefers-reduced-motion (längre ned). */
+@keyframes heroRise{from{opacity:0;transform:translate3d(0,22px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+@keyframes heroRes{from{transform:perspective(900px) translate3d(0,28px,-80px) rotateX(20deg)}to{transform:perspective(900px) translate3d(0,0,0) rotateX(0deg)}}
+@keyframes brickaRes{from{transform:perspective(1000px) translate3d(0,30px,-110px) rotateX(16deg) rotateY(-12deg)}to{transform:perspective(1000px) translate3d(0,0,0) rotateX(0deg) rotateY(0deg)}}
 @keyframes heroLift{from{transform:translateY(16px)}to{transform:none}}
 @keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
 @keyframes glowDrift{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-26px,20px) scale(1.1)}}
-.heroinner>*{animation:heroRise .62s cubic-bezier(.2,.7,.2,1) both}
-.heroinner>*:nth-child(2){animation-delay:.05s}
-.heroinner>*:nth-child(3){animation-delay:.11s}
-.heroinner>*:nth-child(4){animation-delay:.17s}
-.heroinner>*:nth-child(5){animation-delay:.23s}
-.hero h1{animation:heroLift .62s cubic-bezier(.2,.7,.2,1) both}
-.heromosaic{animation:heroLift .7s cubic-bezier(.2,.7,.2,1) both;animation-delay:.14s}
-/* heroLift, inte heroRise: mosaiken bär startsidans LCP-bild, och en bild som
-   börjar på opacity 0 räknas inte som ritad förrän toningen är klar (+0,84 s
-   LCP, Lighthouse mobil 2026-10-07). Samma skäl som h1:an ovan. */
+.heroinner>*{animation:heroRise .8s cubic-bezier(.16,1,.3,1) backwards}
+.heroinner>*:nth-child(2){animation-delay:.04s}
+.heroinner>*:nth-child(3){animation-delay:.12s}
+.heroinner>*:nth-child(4){animation-delay:.19s}
+.heroinner>*:nth-child(5){animation-delay:.26s}
+.hero h1{animation:heroRes .95s cubic-bezier(.16,1,.3,1) backwards;transform-origin:50% 100%}
+.herotile{animation:brickaRes 1s cubic-bezier(.16,1,.3,1) backwards;transform-origin:50% 100%;animation-delay:.1s}
+.mcol:first-child .herotile:nth-child(2){animation-delay:.18s}
+.mcol-offset .herotile:nth-child(1){animation-delay:.26s}
+.mcol-offset .herotile:nth-child(2){animation-delay:.34s}
 .mcol{animation:heroFloat 6s ease-in-out infinite}
 .mcol-offset{animation-duration:7.6s;animation-delay:-2.6s}
 
@@ -575,25 +642,25 @@ a.uspitem:hover,a.uspitem:focus-visible{color:var(--brand);text-decoration:under
 .band .btn-white{background:#fff;color:var(--brand);font-weight:700;padding:14px 30px;border-radius:var(--r-md);display:inline-block}
 
 /* ── Nyhetsbrev — varm premium-card med äkta e-postfält + GDPR-samtycke ── */
-.nl{position:relative;background:var(--warm);border:1px solid var(--line);border-radius:var(--r-lg);padding:46px 40px;text-align:center;overflow:hidden;box-shadow:var(--e3)}
-.nl::before{content:"";position:absolute;inset:0 0 auto 0;height:5px;background:linear-gradient(90deg,#F47A35,var(--brand))}
-.nl-eyebrow{font-size:var(--text-xs);font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--brand);margin-bottom:12px}
-.nl h2{font-family:var(--font-display),Georgia,serif;font-size:clamp(26px,3.4vw,38px);font-weight:600;letter-spacing:-.015em;color:var(--ink);margin-bottom:10px}
-.nl-sub{font-size:var(--text-base);color:var(--soft);max-width:520px;margin:0 auto 26px;line-height:1.55}
+.nl{position:relative;background:var(--natt-korn),radial-gradient(90% 90% at 100% 112%,var(--glod),transparent 62%),var(--natt);border:1px solid rgba(255,255,255,.07);border-radius:var(--r-lg);padding:46px 40px;text-align:center;overflow:hidden;box-shadow:var(--e3)}
+.nl::before{content:"";position:absolute;inset:0 0 auto 0;height:2px;background:var(--glod-linje)}
+.nl-eyebrow{font-size:var(--text-xs);font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--glod-ljus);margin-bottom:12px}
+.nl h2{font-family:var(--font-display),Georgia,serif;font-size:clamp(26px,3.4vw,38px);font-weight:600;letter-spacing:-.015em;line-height:1.14;color:var(--natt-ljus);margin-bottom:10px}
+.nl-sub{font-size:var(--text-base);color:var(--natt-dampad);max-width:520px;margin:0 auto 26px;line-height:1.55}
 .nl-form{max-width:540px;margin:0 auto}
 .nl-row{display:flex;gap:10px;flex-wrap:wrap}
-.nl-input{flex:1;min-width:200px;height:52px;padding:0 18px;border:1px solid var(--line);border-radius:var(--r-md);background:#fff;font-size:var(--text-base);color:var(--ink);outline:none;transition:border-color .2s,box-shadow .2s}
+.nl-input{flex:1;min-width:200px;height:52px;padding:0 18px;border:1px solid transparent;border-radius:var(--r-md);background:#fff;font-size:var(--text-base);color:var(--ink);outline:none;transition:border-color .2s,box-shadow .2s}
 .nl-input::placeholder{color:#6b6157}
 .nl-input:focus{border-color:var(--orange);box-shadow:var(--e-ring)}
-.nl-btn{height:52px;padding:0 26px;border:none;border-radius:var(--r-md);background:var(--brand);color:#fff;font-weight:700;font-size:var(--text-base);cursor:pointer;white-space:nowrap;box-shadow:var(--e3);transition:transform .2s,box-shadow .2s,opacity .2s}
+.nl-btn{height:52px;padding:0 26px;border:none;border-radius:var(--r-md);background:var(--natt-knapp);color:#fff;font-weight:700;font-size:var(--text-base);cursor:pointer;white-space:nowrap;box-shadow:var(--e3);transition:transform .2s,box-shadow .2s,opacity .2s}
 .nl-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:var(--e3)}
 .nl-btn:disabled{opacity:.65;cursor:default}
-.nl-consent{display:flex;align-items:flex-start;gap:10px;margin-top:16px;text-align:left;font-size:var(--text-xs);color:var(--soft);line-height:1.45}
+.nl-consent{display:flex;align-items:flex-start;gap:10px;margin-top:16px;text-align:left;font-size:var(--text-xs);color:var(--natt-dampad);line-height:1.45}
 .nl-consent input{margin-top:2px;width:16px;height:16px;flex:0 0 auto;accent-color:var(--brand);cursor:pointer}
-.nl-err{margin-top:12px;color:#b42318;font-size:var(--text-xs);font-weight:600}
+.nl-err{margin-top:12px;color:#FFB4A8;font-size:var(--text-xs);font-weight:600}
 .nl-done{display:flex;flex-direction:column;align-items:center;gap:14px;padding:14px 0 4px}
 .nl-done-ic{width:54px;height:54px;border-radius:50%;background:#0B6B3A;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:var(--e2)}
-.nl-done p{font-size:var(--text-base);font-weight:600;color:var(--ink)}
+.nl-done p{font-size:var(--text-base);font-weight:600;color:var(--natt-ljus)}
 @media (max-width:560px){.nl{padding:36px 22px}.nl-btn{width:100%}}
 
 /* Text bara för skärmläsare (t.ex. en rubrik som håller ordningen h1→h2→h3). */
@@ -602,7 +669,7 @@ a.uspitem:hover,a.uspitem:focus-visible{color:var(--brand);text-decoration:under
 main:focus{outline:none}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
-footer{background:var(--char);color:#cfcac3;margin-top:64px}
+footer{background:var(--natt-golv);color:#cfcac3;margin-top:64px}
 /* Sidor som slutar med det mörka .om-slut-blocket går rakt över i sidfoten,
    utan ett vitt band emellan. */
 main:has(.om-slut)+footer{margin-top:0}
@@ -653,7 +720,7 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 .fsocial-rubrik{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8f887f;margin-bottom:8px}
 .fpay{margin-top:10px}
 .fpay .paymarks{margin-top:0}
-.fbar{border-top:1px solid #3a382f;text-align:center;font-size:var(--text-xs);color:#9a948c;padding:16px}
+.fbar{border-top:1px solid rgba(255,255,255,.08);text-align:center;font-size:var(--text-xs);color:#9a948c;padding:16px}
 .fbar a,.fbar button{color:#cfcac3;text-decoration:underline}
 .fbar a:hover,.fbar button:hover{color:#fff}
 .fbar button{background:none;border:0;font:inherit;cursor:pointer}
@@ -708,12 +775,14 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 .mm-social a{position:relative;display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;color:inherit;background:var(--surface-2);border:1px solid var(--line);transition:background .2s,color .2s,transform .2s}
 .mm-social a:hover{background:var(--orange);border-color:var(--orange);color:#fff;transform:translateY(-2px)}
 /* premium brand-colored social — promo-strip + footer + mobile menu */
-.promo-social .soc-ig,.footer-social .soc-ig,.mm-social .soc-ig{background:linear-gradient(45deg,#feda75,#fa7e1e,#d62976,#962fbf,#4f5bd5);border-color:transparent;color:#fff}
-.promo-social .soc-fb,.footer-social .soc-fb,.mm-social .soc-fb{background:#0866FF;border-color:transparent;color:#fff}
-/* Instagram-loggans egen gradient (radial från nedre vänstra hörnet). */
-.footer-social .soc-ig{background:radial-gradient(circle at 30% 107%,#fdf497 0%,#fdf497 5%,#fd5949 45%,#d6249f 60%,#285AEB 90%)}
+.mm-social .soc-ig{background:linear-gradient(45deg,#feda75,#fa7e1e,#d62976,#962fbf,#4f5bd5);border-color:transparent;color:#fff}
+.mm-social .soc-fb{background:#0866FF;border-color:transparent;color:#fff}
 .footer-social{margin-top:0;gap:12px}
 .footer-social a{width:40px;height:40px;box-shadow:0 1px 2px rgba(0,0,0,.3)}
+/* Toppremsan och sidfoten är natt (2026-11-16): Instagrams regnbåge och
+   Facebooks blå var två främmande färger på butikens mest synliga rad. Där är
+   knapparna enfärgade. I mobilmenyn, på vit botten, bär de sina märkesfärger. */
+.promo-social a,.footer-social a{background:rgba(255,255,255,.07);border-color:transparent;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);color:var(--natt-ljus)}
 .promo-social .soc-ig:hover,.footer-social .soc-ig:hover,.mm-social .soc-ig:hover,.promo-social .soc-fb:hover,.footer-social .soc-fb:hover,.mm-social .soc-fb:hover{color:#fff;transform:translateY(-2px);filter:brightness(1.07);box-shadow:var(--e2)}
 
 /* tracking page */
@@ -800,6 +869,15 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
      42 → 46 px och flyttade hela sidan (CLS 0,239 i PageSpeed, mobil,
      /kategori/mobler, 2026-10-01). En rad centreras nu i samma höjd. */
   .promorow{gap:10px;justify-content:space-between;min-height:2.7em}
+}
+/* Under 390 px (iPhone SE och mini, många Android) rymdes inte texten bredvid
+   de två knapparna: den bröts på två rader med "Klarna" ensamt på den andra
+   (sista genomgången 2026-11-16, mätt vid 320, 360 och 375 px). Där står
+   knapparna bara i sidfoten och mobilmenyn, och texten får hela raden. Radens
+   höjd är densamma som förut (min-height ovan), så inget flyttar sig. */
+@media(max-width:389px){
+  .promo-social{display:none}
+  .promotext{text-align:center}
 }
 /* Smal telefon. Sidhuvudets rad har ingen sidomarginal (.hrow nollar
    .container-paddingen) och behöver 339 px: loggan 159, hjärtat och kundvagnen
@@ -2260,6 +2338,14 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
 /* En vara som inte finns längre har ingen knapp: raden slutar efter texten. */
 .fav-atg:empty{display:none}
 .fav-kop{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 20px;border:0;border-radius:var(--r-pill);background:var(--ink);color:#fff;font:inherit;font-size:var(--text-sm);font-weight:700;line-height:1.2;text-align:center;text-decoration:none;white-space:nowrap;cursor:pointer;transition:background .15s,box-shadow .15s}
+/* ☠️ Eget ritlager. Leonards skärmbild 2026-11-16: ett tunt ljust streck tvärs
+   över knappens nederdel, i Safari på iPhone med sidan i 75 % zoom och en enda
+   favorit i lådan. Strecket låg 256 px under lådans överkant, där knappen då
+   korsar gränsen mellan två av lådans ritrutor, och i den zoomen hamnar
+   gränsen mellan två skärmpixlar: lådans vita botten lyste igenom. Med eget
+   lager ritas knappen i ett stycke. Inte återskapat här (Chromium ritar inte i
+   rutor på det sättet), så rättelsen är prövad först när Leonard sett den. */
+.fav-kop{transform:translateZ(0)}
 .fav-kop:hover{background:#000}
 .fav-kop:disabled{opacity:.55;cursor:default}
 .fav-kop:focus-visible{outline:none;box-shadow:var(--e-ring)}
@@ -3160,12 +3246,12 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
 .auction-sold-list a:hover{color:var(--brand)}
 .auction-sold-list li>span{flex-shrink:0;white-space:nowrap;text-align:right}
 .auction-sold-list em{color:#1B7A3D;font-style:normal;font-weight:700}
-.auction-banner{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:linear-gradient(90deg,#1B1B1A,#3A2A1D);color:#fff;border-radius:var(--r-lg);padding:16px 22px;text-decoration:none;box-shadow:var(--e3)}
+.auction-banner{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:radial-gradient(120% 150% at 100% 110%,var(--glod),transparent 62%),var(--natt);color:#fff;border-radius:var(--r-lg);padding:16px 22px;text-decoration:none;box-shadow:var(--e3)}
 .auction-banner:hover .auction-banner-cta{transform:translateX(4px)}
-.auction-banner-badge{background:var(--brand);color:#fff;font-weight:800;font-size:var(--text-xs);padding:6px 12px;border-radius:var(--r-pill);letter-spacing:.02em}
+.auction-banner-badge{background:var(--natt-knapp);color:#fff;font-weight:800;font-size:var(--text-xs);padding:6px 12px;border-radius:var(--r-pill);letter-spacing:.02em}
 .auction-banner-text{font-size:var(--text-sm)}
-.auction-banner-text b{color:#FFB300}
-.auction-banner-cta{margin-left:auto;font-weight:700;color:#FFB300;transition:transform .2s}
+.auction-banner-text b{color:var(--glod-ljus)}
+.auction-banner-cta{margin-left:auto;font-weight:700;color:var(--glod-ljus);transition:transform .2s}
 @media(max-width:600px){.auction-banner-cta{margin-left:0}}
 
 /* ═══════════════════════════════════════════════════════════════════
