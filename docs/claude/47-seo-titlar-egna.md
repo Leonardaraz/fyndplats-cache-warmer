@@ -173,8 +173,10 @@ det är samma väg för nästa par där båda sidorna är publicerade:
   *Slut i denna variant* och bevakningsformuläret, sidan visar 8 omdömen, och `<title>` och meta
   är utan färg. De två äldre adresserna svarar 308 till värden (Grå med `?variant=`).
   Givarens egen adress `smadjursstall-230-cm-gra` låg kvar i butikens cache och svarade 200
-  med den gamla texten 09:40; omdirigeringen i Wix finns, och adressen ska svara 308 när cachen
-  tömts (runbooken säger inom en timme). ⚠️ Det gemensamma kortet och måttritningen visar
+  med den gamla texten 09:40, och svarade 308 till värden med `?variant=` från 09:42 (cachen
+  tömdes efter drygt tio minuter, runbooken säger inom en timme). Ett enstaka `403` på adressen
+  är butikens brandvägg mot många snabba anrop från samma ställe, inte sidan.
+  ⚠️ Det gemensamma kortet och måttritningen visar
   natur-varan även under Grå. Det är standard tills Leonard svarat om givarens egna ska länkas
   till sin färg (`05-aosom-synken/22-fargbilderna.md`, *Gemensamma kort och måttbilder*).
 
