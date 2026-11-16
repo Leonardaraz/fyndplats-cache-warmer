@@ -135,11 +135,60 @@ metabeskrivning är kontrollerade live på alla sexton sidor, och ingen av dem d
 beskrivning med en annan. Två av campingsängarna bar fler än två SEO-taggar och skrevs om till
 husets två (torrkörningen säger det: `seoBesk+taggar`).
 
+**Smådjursstallarna blev en sida med färgval (2026-11-16, Leonards *"fixa"*).** Veckorapportens
+två metabeskrivningsgrupper var campingsängarna och smådjursstallarna, och `semrush-3` hade
+redan gjort dem unika. Att slå ihop dem var ett eget beslut. Mätt först: de fyra sidorna fick
+8 visningar i Google på 6,5 månader (butiken i övrigt 276 069), inga klick, noll sidvisningar i
+GA4 på 90 dygn och inget köp, så vinsten var liten och jag rekommenderade att vänta till efter
+Black Week. Leonard sa ändå *"fixa"*, och sidorna slogs ihop 2026-11-16. Det gick så här, och
+det är samma väg för nästa par där båda sidorna är publicerade:
+
+- **Torrkörning åt båda hållen före allt annat** (`aosom-sammanslagning`, `plan`, `omdirigera=ja`).
+  Åt vilket håll paret slås ihop avgör saldot, recensionerna och priset: natur-sidan
+  (`a75fcfde`) hade 40 i lager, 12 recensioner och ett eget konkurrentpris (3 219 kr), grå-sidan
+  (`c0770388`) hade 0 i lager och inga recensioner som natur saknade. Med grå som värd hade
+  natur-varianten bytt till husets prisregel (planen varnade). Natur blev värd, och grå
+  omdirigeras (301 med `?variant=`, och en äldre omdirigering pekades om).
+- **Värdrundan före sammanslagningen** (`tools/polish-assets/runda-smadjursstall-farg-vard`):
+  namnet utan färg (annars vägrar planen med `namnet_bar_farg`), texten för båda färgerna med
+  vikt och paketmått per färg, meningen *Samma stall finns också i grått* borta och SEO-titel
+  och meta utan färg. Importens `Vikt` är vikten med förpackning, så raden heter `Fraktvikt` och
+  frågan säger *Paketet väger* (`gate.py` fäller annars). Adress, SKU, bilder, kategorier och pris
+  rördes inte. `gate-vardalt-farg.py` gav 0 fynd.
+- ☠️ **Värdens väntande recensioner stoppar skrivningen.** Natur hade nio utan beslut och
+  `torr` vägrade (steg 7 i runbooken). Fem översattes. Fyra dolda: tre om kanin eller
+  dvärgkanin, som sidans text uttryckligen säger att stallet inte är till för, och en om ett
+  leveransfel som nämner leverantören. Kör `polish-recensioner` i läget `las` direkt efter
+  värdrundans första push, inte efter första `torr`.
+- ☠️ **En skrivkörning kan stå i kö i nio minuter utan jobb och går då inte att avbryta**
+  (`409 Cannot cancel a workflow run that has not been queued yet`). Run 2085 köades 08:51 och
+  startade 09:00. En ny dispatch i väntan blev en dubblett som kördes efteråt, utan skada eftersom
+  alla steg tål omkörning, men den kan hamna i Aosoms synkfönster. Vänta på den första.
+- **Resultatet.** Sammanslagningen (`byt`, `omdirigera=ja`) kördes 09:31 UTC, utanför
+  synkfönstret, och återlästes i Wix: två varianter (Natur 3 219 kr och 40 i lager, Grå 3 269 kr
+  och slut hos Aosom), fyra länkade bilder per färg, galleriet 6 → 10, en artikel per variant i
+  mappningen, och givaren avpublicerad och pensionerad, inte raderad. `variantbild` i läget
+  `torr` gav 0 avvikelser. Live efter butikens cache: Natur och Grå visar sex bilder var (fyra
+  egna och det gemensamma kortet och måttritningen), Grå står som *slut i lager* med knappen
+  *Slut i denna variant* och bevakningsformuläret, sidan visar 8 omdömen, och `<title>` och meta
+  är utan färg. De två äldre adresserna svarar 308 till värden (Grå med `?variant=`).
+  Givarens egen adress `smadjursstall-230-cm-gra` låg kvar i butikens cache och svarade 200
+  med den gamla texten 09:40; omdirigeringen i Wix finns, och adressen ska svara 308 när cachen
+  tömts (runbooken säger inom en timme). ⚠️ Det gemensamma kortet och måttritningen visar
+  natur-varan även under Grå. Det är standard tills Leonard svarat om givarens egna ska länkas
+  till sin färg (`05-aosom-synken/22-fargbilderna.md`, *Gemensamma kort och måttbilder*).
+
 ### Inte gjort
 
-- **Syskonen är fortfarande egna sidor.** Tre paviljongtak, två Kawasaki-bilar och två
-  smådjurshagar skiljer sig bara i färg och hör hemma på en sida med färgval
+- **Syskonen är fortfarande egna sidor, utom smådjursstallarna.** Tre paviljongtak och två
+  Kawasaki-bilar skiljer sig bara i färg och hör hemma på en sida med färgval
   (`05-aosom-synken/20-fargsammanslagning.md`). Det är ett eget beslut.
+- **Campingsängarna (grön och svart) går inte att slå ihop.** Båda är AliExpress-sidor, och
+  både Aosom- och VEVOR-verktyget vägrar dem (`behall_ej_aosom`, `utkast_ej_aosom`,
+  `behall_ej_vevor`, `utkast_ej_vevor`). Runbookens regel för ett syskon utan Aosom-motsvarighet
+  är egna sidor med färgen i namn, slug och titel, som nu (`docs/polish/runbook/01-valj-atta.md`,
+  *Dubblettskärmen*). Hos Aosom säljs sängen kanske också: det är inte kontrollerat
+  (`aosom-syskon-import.yml` i läget `plan` med den gröna sidans id svarar).
 - **Ingen nattlig kontroll av hela katalogen i motorn.** Spärren hindrar nya dubbletter från
   poleringen. En titel som ändras för hand i Wix, eller en sida som publiceras på en annan
   väg, syns i butikens veckorapport om SEO och på butikens `/admin/seo-health`
