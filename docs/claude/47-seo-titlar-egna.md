@@ -128,6 +128,13 @@ på 90 dagar och inga klick, så ingen rankning stod på spel och båda sidorna 
 fick en ny titel. De fyra färgsyskonen (campingsängar, smådjursstallar) hade redan egna titlar
 och fick färgen i metabeskrivningen. `pid` kommer ur sidans egen JSON-LD, som i planerna ovan.
 
+Körd 2026-11-16 kl. 08:05–08:11 UTC med grenen som `ref`, före mergen (rutten kör `main`, så
+`ref` räckte): `torr` gav 16 att skriva och noll krockar mot hela den publicerade katalogen,
+`skriv` med 16 gav 16 skrivna och noll fel, `verifiera` gav 16 av 16. Butikens `<title>` och
+metabeskrivning är kontrollerade live på alla sexton sidor, och ingen av dem delar titel eller
+beskrivning med en annan. Två av campingsängarna bar fler än två SEO-taggar och skrevs om till
+husets två (torrkörningen säger det: `seoBesk+taggar`).
+
 ### Inte gjort
 
 - **Syskonen är fortfarande egna sidor.** Tre paviljongtak, två Kawasaki-bilar och två
