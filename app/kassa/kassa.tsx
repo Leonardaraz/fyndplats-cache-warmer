@@ -675,6 +675,15 @@ export function Kassa({
     },
     korgPaVag || rader.length > 0,
   );
+  // Kunden tryckte på adressfältets platshållare innan Stripes fält var ritat:
+  // fältet får fokus så fort det finns.
+  const villTillAdress = useRef(false);
+  useEffect(() => {
+    if (adressLage === "redo" && villTillAdress.current) {
+      villTillAdress.current = false;
+      adressfaltRef.current?.focus();
+    }
+  }, [adressLage, adressfaltRef]);
   const steglista: readonly string[] = stripeNyckel ? stripeSteg(snabbPagar ? null : betalValt) : STEG;
 
   /** Väntan på ett bestämt steg, utan Wix-vägens klocka. */
@@ -1388,10 +1397,13 @@ export function Kassa({
                 <div className={s.adressYta} data-adress={adressLage}>
                   <div ref={adressPlats} className={s.adressfalt} />
                   {adressLage === "laddar" ? (
-                    <div className={s.adressSkelett} aria-hidden="true">
-                      <span />
-                      <span />
-                      <span />
+                    // Rutorna bär fältens etiketter medan Stripes ram laddas (Leonard
+                    // 2026-11-16: "rutorna är blanka"). Ett tryck här ger fältet
+                    // fokus så fort det är ritat (villTillAdress).
+                    <div className={s.adressSkelett} aria-hidden="true" onPointerDown={() => { villTillAdress.current = true; }}>
+                      <span>Förnamn</span>
+                      <span>Efternamn</span>
+                      <span>Adress</span>
                     </div>
                   ) : null}
                 </div>

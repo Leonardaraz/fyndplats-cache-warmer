@@ -28,6 +28,7 @@ import { formatPrice } from "../lib/price-range";
 import { arSammaSida, produktLankForRad } from "../lib/kundvagn-lank";
 import { fordelaVantande, nyRadEfterTillagg, vantandeNyckel, type VantandeVara } from "../lib/kundvagn-rad";
 import { PaymentMarks } from "./payment-marks";
+import { forstartaStripe } from "@/lib/kassa/stripe-forstart";
 
 const STORES_APP_ID = "215238eb-22a5-4c36-9e7b-e7c08025e04e";
 const HEADLESS_CLIENT_ID = "3d8fdd09-3b3c-475f-aac2-b6bfa9e05153";
@@ -550,6 +551,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       // ett fel ger Wix kassa som förut.
       const egen = egenKassa ?? (await fragaKassan());
       if (egen) {
+        // Stripe.js börjar köras nu, inte först när kassan har ritats: adressfälten
+        // är Stripes och går att skriva i tidigare (lib/kassa/stripe-forstart.ts).
+        forstartaStripe();
         // Utan omladdning: varukorgen finns redan här och syns direkt i kassan.
         setOpen(false);
         setTillKassan(false);

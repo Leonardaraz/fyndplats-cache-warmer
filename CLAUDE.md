@@ -1693,17 +1693,29 @@ släcks med `data-av`. Förut monterades den efter hydreringen, länken blev 13 
 bredare och menyraden (space-between) flyttade alla länkar på datorn, CLS
 0,0002. Provet står i `lib/auktionsprick.test.ts`.
 
-☠️ **Fraunces har två egna reservtypsnitt** ("Fraunces Reserv" och "Fraunces
-Reserv N" i `app/globals.css`, `fallback` i `app/layout.tsx`). Nexts egen
-"Fraunces Fallback" har rätt mått men pekar bara på Times New Roman, som saknas
-på Linux (där Lighthouse mäter) och Android. Där ritades rubrikerna med
-Liberation Serif eller Noto Serif rakt av, och texten hoppade 3–5 px när
-Fraunces bytte in sig (CLS upp till 0,0014 på datorns startsida). Reserverna har
-samma mått, räknade med Nexts formel, och textens ruta är då exakt lika före och
-efter bytet (mätt 2026-11-08). När `fallback` anges tar Turbopack bort Nexts egen
-reserv, så "Fraunces Reserv" börjar med Times New Roman och tar över den. Namnen
-i `fallback` står med enkla citattecken: Turbopack skriver listan rakt in i en
-JS-sträng, och ett dubbelt citattecken fällde bygget. Byts rubriktypsnittet ska
+☠️ **Rubriktypsnittet är Newsreader och har två egna reservtypsnitt**
+("Newsreader Reserv" och "Newsreader Reserv N" i `app/globals.css`, `fallback` i
+`app/layout.tsx`). Fram till 2026-11-16 var det Fraunces; Leonard: "folk tycker
+vårt f ser lite konstigt ut, och j:et" (Fraunces f har en kort krok och j:et går
+knappt under raden, och det går inte att ställa in bort).
+- **Filerna är bantade och ligger i `app/typsnitt`** (`next/font/local`). Hela
+  Newsreader med båda axlarna väger 271 kB; de två filerna väger 75 kB (Fraunces
+  vägde 79). Optisk storlek är låst vid 40, vikterna är 500–700 (rak) och 500–600
+  (kursiv), och bara latinska tecken finns med. `app/typsnitt/LICENS.md` säger
+  exakt hur de är gjorda. Ett tecken eller en vikt utanför det ritas med reserven.
+- **Typsnittet ritas 6 % större än sin teckenstorlek** (`size-adjust: 106%` i
+  `declarations`). Newsreaders små bokstäver är lägre än Fraunces, och med 106 %
+  blir raderna lika breda som förut, så butikens mått (radbrytningar, kortens
+  höjder) står kvar utan att varje regel ändras.
+- **Reserverna har typsnittets mått**, så textens ruta är lika före och efter
+  bytet. Nexts egen reserv bygger på Arial och är avstängd
+  (`adjustFontFallback: false`). Bredden mot Times är uppmätt på butikens egna
+  rubriker (1,1069 i vikt 600), och `lib/typsnitt-reserv.test.ts` räknar om
+  resten. Times New Roman saknas på Linux (där Lighthouse mäter) och Android,
+  därför står Liberation Serif, Tinos och Noto Serif också i listan.
+- Namnen i `fallback` står med enkla citattecken: Turbopack skriver listan rakt
+  in i en JS-sträng, och ett dubbelt citattecken fällde bygget. Byts
+  rubriktypsnittet igen ska
 måtten räknas om, och `lib/typsnitt-reserv.test.ts` fäller tills de är det.
 
 ☠️ **Geist ska inte ha en egen reserv på samma sätt** (provat och backat
@@ -3240,6 +3252,55 @@ Kvar: "öppen spis el" ger gnistskydd, för "el" står i "paneler" och "delar".
 Det behöver synonymer för hela fraser ("elektrisk öppen spis" är en elkamin),
 och sådana finns inte i `SYNONYM_GROUPS`.
 
+## Natten: butikens mörka ton, hjältens entré och tre rättelser (2026-11-16)
+
+Leonard: "vår design för single week var super snygg men nu är den borta, vårt
+original är inte så 10/10". Han valde förslaget "Varm natt" ur tre.
+
+**Färgerna står på ett ställe**, i `:root` i `app/globals.css` ("Natten"):
+`--natt`, `--natt-remsa`, `--natt-golv`, `--natt-ljus`, `--natt-dampad`,
+`--natt-knapp`, `--glod` med flera. Samma ton bär toppremsan, startsidans hjälte
+och löftesremsa (`app/startsida.css`), auktionsremsan, nyhetsbrevet och sidfoten.
+- Säsongstemana ligger ovanpå som förut: deras regler börjar med
+  `:root[data-tema]` och väger tyngre. `lib/natten.test.ts` fäller en temaregel
+  för hjälten utan det prefixet.
+- ☠️ Vit text på `--natt-knapp` ska klara 4,5:1 i knappens LJUSA ände. `#D8480F`
+  gav 4,3:1; `#D0440E` ger 4,6:1. Provet räknar om kontrasten ur variablerna.
+- `app/startsida.css` får fortfarande inga egna färger (`lib/startsida.test.ts`):
+  en ny ton läggs som variabel i `:root`.
+- Toppremsans och sidfotens Instagram- och Facebook-knappar är enfärgade.
+  Mobilmenyns, på vit botten, bär sina märkesfärger.
+
+**Hjältens entré i djupled** (Leonard: "det hackar in. Kan man inte göra det
+sådär 3d sexigt"). Rubriken och brickorna börjar lutade bakåt och en bit bort
+och fälls upp (`heroRes`, `brickaRes` i `app/globals.css`).
+- ☠️ Bara `transform`, aldrig opacitet, på rubriken och brickorna: rubriken är
+  sidans största element (LCP), och det som börjar på opacitet 0 räknas inte
+  som ritat förrän toningen är klar.
+- ☠️ `backwards`, inte `both`: annars ligger animationens slutläge kvar över
+  brickans egen hover-rörelse, och varje bricka behåller ett eget ritlager.
+- Slutläget är samma funktioner med nollor, inte `none`.
+
+**Favoritlådans knapp har ett eget ritlager** (`.fav-kop{transform:translateZ(0)}`).
+Leonards skärmbild visade ett tunt ljust streck tvärs över "Lägg i varukorgen",
+i Safari på iPhone med sidan i 75 % zoom och en enda favorit. Strecket låg
+256 px under lådans överkant, där knappen korsar gränsen mellan två av lådans
+ritrutor. ☠️ Inte återskapat i Chromium: rättelsen är prövad först när Leonard
+sett den på sin telefon.
+
+**Kassans adressfält** är Stripes egna och ritas i en ram. Mätt på www med strypt
+processor (4×) och 9 Mbit: kassan syns 0,28 s efter trycket på "Till kassan", men
+fälten gick att skriva i först efter 2,2 s. Ramen själv tar 1,2–1,3 s första
+gången och 0,5–0,65 s när Stripes filer redan är hämtade.
+- Platshållaren bär fältens etiketter (Förnamn, Efternamn, Adress) i fältens
+  ram, i stället för grå rutor. Ett tryck på den ger fältet fokus när det ritats.
+- Stripe.js börjar köras vid trycket på "Till kassan"
+  (`lib/kassa/stripe-forstart.ts`, en lövmodul så att varukorgen inte drar med sig
+  kassans kod). Inga kakor sätts av det: Stripes ramar skapas som förut i kassan.
+- Inte gjort: att värma Stripes ramar redan när varukorgen öppnas. Det hade
+  sparat 0,6–0,7 s för nya besökare, men då körs Stripe och sätter sina kakor
+  före kassan. Det är Leonards beslut.
+
 ## Hastigheten mätt 2026-11-10: startsidan byggdes om var 15:e sekund
 
 Lighthouse på mobil (strypt till långsam 4G) gav 81–86 i prestanda, med
@@ -3276,7 +3337,7 @@ alltså snabba i verkligheten, och det som fanns att hämta var tre saker:
   i första raden (fyra kolumner på /alla-produkter) hämtas så snart layouten
   är klar.
 
-Inte ändrat, med flit: rubriktypsnittet (Fraunces, 81 kB) förladdas på varje
+Inte ändrat, med flit: rubriktypsnittet (Newsreader, 75 kB; Fraunces 81 kB när raden skrevs) förladdas på varje
 sida fast produktsidan inte visar det ovanför vikningen. Utan förladdningen
 blinkar rubriken på startsidan och kategorisidorna när typsnittet byts in.
 
