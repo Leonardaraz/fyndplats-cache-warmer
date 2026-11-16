@@ -3294,9 +3294,11 @@ fälten gick att skriva i först efter 2,2 s. Ramen själv tar 1,2–1,3 s förs
 gången och 0,5–0,65 s när Stripes filer redan är hämtade.
 - Platshållaren bär fältens etiketter (Förnamn, Efternamn, Adress) i fältens
   ram, i stället för grå rutor. Ett tryck på den ger fältet fokus när det ritats.
-- Stripe.js börjar köras vid trycket på "Till kassan"
-  (`lib/kassa/stripe-forstart.ts`, en lövmodul så att varukorgen inte drar med sig
-  kassans kod). Inga kakor sätts av det: Stripes ramar skapas som förut i kassan.
+- ☠️ Provat och borttaget samma dag: att köra Stripe.js redan vid trycket på
+  "Till kassan". Mätt på förhandsbygget, fyra varv var: fälten gick att skriva i
+  efter 2,06 s med förstarten och 2,01 s utan, men kassan visades efter 0,55 s i
+  stället för 0,21 s, eftersom Stripe.js då körs mitt i sidbytet.
+  `lib/kassa/adressfalt-platshallare.test.ts` fäller om varukorgen startar Stripe.
 - Inte gjort: att värma Stripes ramar redan när varukorgen öppnas. Det hade
   sparat 0,6–0,7 s för nya besökare, men då körs Stripe och sätter sina kakor
   före kassan. Det är Leonards beslut.
