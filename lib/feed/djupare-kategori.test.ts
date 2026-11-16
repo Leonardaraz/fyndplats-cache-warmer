@@ -60,7 +60,7 @@ describe("djupareKategori: varans namn väljer en djupare nod", () => {
     ["vaxthus-odling", "Tunnelväxthus 5,95 × 3 m – 17,9 m² med åtta nätfönster", 693],
     ["vaxthus-odling", "Låg odlingstunnel med nätfönster – 45 cm hög, i två längder - Grön / 200 cm", 693],
     // Förvaring: krokarna i smyckeskrinet gör det inte till en krokhängare.
-    ["forvaring-organisering", "Smyckeskrin med spegel – 4 plan, 2 lådor och 8 krokar, vitt", undefined],
+    ["forvaring-organisering", "Smyckeskrin med spegel – 4 plan, 2 lådor och 8 krokar, vitt", 5974],
     ["forvaring-organisering", "Förvaringsbänk 112 cm i manchester med 84 liter - Beige", 6851],
     ["forvaring-organisering", "Rund förvaringspall i gräddvit manchester med lock som blir bricka – Ø56 cm", 458],
     ["forvaring-organisering", "Tyggarderob med dragkedjor – hängstänger på 40 cm och sex sidofickor - 212 cm", 4063],
@@ -151,7 +151,8 @@ describe("djupareKategori: varans namn väljer en djupare nod", () => {
     // Skumklossar med tunnel är skumklossar; hoppborgen med rutschkana är en hoppborg.
     ["leksaker-spel", "Skumklossar 5 delar med tunnel – bågar som passar i varandra, ramp och trappa - Sand och turkos", 3172],
     ["leksaker-spel", "Mjuka byggklossar i skumgummi, sex delar – klätterset för barn från 1 år", 3172],
-    ["leksaker-spel", "Klätterset i trä med prinsesskronor – triangel, båge och ramp, 18–48 månader", undefined],
+    // Klätterset i trä är inga skumklossar, men en leksak för motorik.
+    ["leksaker-spel", "Klätterset i trä med prinsesskronor – triangel, båge och ramp, 18–48 månader", 3199],
     ["baby-smabarn", "Klätterset 4-i-1 i furu – båge, ramp med två sidor och dyna, 18–48 månader", undefined],
     ["leksaker-spel", "8-i-1-hoppborg med rutschkana, pool och klättervägg – 350 × 325 × 210 cm", 6396],
     ["leksaker-spel", "Kundvagn för barn i metall, rosa – med babydocka, korg och hylla", 8295],
@@ -160,7 +161,7 @@ describe("djupareKategori: varans namn väljer en djupare nod", () => {
     ["forvaring-organisering", "Utdragbar låda under skrivbordet i svart stål, tre storlekar - 84 cm", 503766],
     ["forvaring-organisering", "Paraplyställ med droppbricka i vitt – smalt 14 cm, fyra krokar", 5494],
     ["spel-bordsspel", "Biljardbord och pingisbord 2 i 1, 140 × 63 cm, höjdjusterbart och hopfällbart", 7010],
-    ["verktyg-hemmafix", "Kabelskalare för borrmaskin och handvev – 6 hål, 3–17 mm", undefined],
+    ["verktyg-hemmafix", "Kabelskalare för borrmaskin och handvev – 6 hål, 3–17 mm", 1469],
     // Odlingslådan med spaljé eller växthusduk är en odlingslåda.
     ["vaxthus-odling", "Odlingslåda på hjul med spaljé för klätterväxter – 40 × 40 × 185 cm", 721],
     ["vaxthus-odling", "Odlingslåda med växthusduk och fyra spaljéer – 53 × 53 × 90 cm, stål", 721],
@@ -248,6 +249,25 @@ describe("djupareKategori: varans namn väljer en djupare nod", () => {
     ["hobby-musik", "Violin 4/4 i full storlek med fodral, stråke och stämapparat", 86],
     ["hobby-musik", "Lågvolymcymbaler i rostfritt stål, 4 delar: 14, 16, 18 och 20 tum, med väska", 3043],
     ["hobby-musik", "Teleskop 70 mm för nybörjare — två okular, ställbart stativ och väska", 165],
+    // Andra passet 2026-11-16 (Pinterests varning 126 och 157). Riktiga varunamn.
+    // Ett ord längre bak flyttar inte varan: bokhyllorna är bokhyllor.
+    ["forvaring-organisering", "Bokhylla med fem hyllplan i svart metall, industriell stil, 170,5 cm hög", 465],
+    ["forvaring-organisering", "Bokhylla barn 3-i-1 med tidningsställ och nattduksbord i rosa MDF", 465],
+    ["forvaring-organisering", "Två hyllplan i vit melamin, 58,4 × 35,5 × 1,5 cm", 8024],
+    // Den portabla kolgrillen behåller sin campingnod; den hopfällbara är en grill.
+    ["friluftsliv-resa", "Portabel kolgrill i rostfritt stål – hopfällbar campinggrill med sidobord", 1014],
+    ["friluftsliv-resa", "Barnresväska med ryggsäck, nackkudde och matväska – 5 delar - Bi", 107],
+    // Beslagen före dörren, väskan före sadeln, ställen före dynan.
+    ["verktyg-hemmafix", "Skjutdörrsbeslag 183 cm med golvstyrning – för rumsdörrar upp till 100 cm", 6343],
+    ["verktyg-hemmafix", "Skjutdörr inomhus i frostat glas – 91,4 × 203,2 cm, svart stålram och skena", 4634],
+    ["bil-cykel", "Vattentät sadelväska i 600D TPU med vredlås – WEST BIKING", 3778],
+    ["traning-gym", "Boxställ 140–205 cm med två speedballs och kickdyna, rött", 3297],
+    // Leggings stannar utanför klädnoderna.
+    ["traning-gym", "Utsvängda leggings med rynkad bakdel", undefined],
+    // Varor utan kategori i Wix: halloweenfigurerna får säsongsnoden.
+    ["utan-kategori", "Animerad bordshäxa 47 cm som rör om i kitteln", 596],
+    ["utan-kategori", "Stapelbara Halloween-clowner med rörelse", 596],
+    ["utan-kategori", "Kontorsstol i mesh", undefined],
   ];
   for (const [slug, titel, id] of fall) {
     it(`${slug}: ${titel.slice(0, 60)}`, () => {
@@ -292,8 +312,9 @@ describe("DJUPARE_KATEGORIER: reglerna går att lita på", () => {
 
   it("varje nod är minst tre nivåer djup, utom de få löv som är grundare", () => {
     // Googles taxonomi har inget djupare under de här: Sofas, Futons,
-    // Ottomans, Room Dividers och Outdoor Play Equipment.
-    const grundaLov = new Set([460, 450, 458, 4163, 1249]);
+    // Ottomans, Room Dividers, Outdoor Play Equipment, Suitcases, Backpacks
+    // och Janitorial Carts & Caddies.
+    const grundaLov = new Set([460, 450, 458, 4163, 1249, 107, 100, 500086]);
     for (const [slug, regler] of Object.entries(DJUPARE_KATEGORIER)) {
       for (const r of regler) {
         if (r.id === null) continue;

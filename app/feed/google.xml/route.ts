@@ -345,7 +345,8 @@ function taxonomyFor(
 ): { productType?: string; googleCategory?: number } {
   const ids = product?.collectionIds || [];
   const mine = ids.map((id) => byColId.get(id)).filter((c): c is Collection => Boolean(c));
-  if (mine.length === 0) return {};
+  // Utan samling i Wix: bara namnet kan ge en nod (halloweenfigurerna, varning 157).
+  if (mine.length === 0) return { googleCategory: djupareKategori("utan-kategori", product?.name) };
   const child = mine.find((c) => c.parentId) || mine[0];
   const parent = child.parentId ? byColId.get(child.parentId) : undefined;
   const productType = parent && parent.id !== child.id ? `${parent.name} > ${child.name}` : child.name;
