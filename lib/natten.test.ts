@@ -122,6 +122,20 @@ describe("hjältens entré i djupled", () => {
   });
 });
 
+describe("toppremsan på smala telefoner", () => {
+  it("under 390 px står de sociala knapparna inte i remsan, så texten ryms på en rad", () => {
+    assert.match(css, /@media\(max-width:389px\)\{\s*\.promo-social\{display:none\}/);
+    // Radens höjd är låst för två rader på mobilen (CLS): den regeln ska stå kvar.
+    assert.match(css, /\.promorow\{gap:10px;justify-content:space-between;min-height:2\.7em\}/);
+  });
+
+  it("mobilens glöd är samlad bakom brickorna: klotet bakom rubriken är nästan släckt", () => {
+    const mobil = start.slice(start.lastIndexOf("@media(max-width:880px){"));
+    assert.match(mobil, /\.hem2 \.hero::before\{background:radial-gradient\(circle,var\(--glod-lugn\)/);
+    assert.match(mobil, /var\(--glod-stark\)/);
+  });
+});
+
 describe("favoritknappen ritas i ett eget lager", () => {
   it(".fav-kop har translateZ(0)", () => {
     assert.match(css, /\n\.fav-kop\{transform:translateZ\(0\)\}/);

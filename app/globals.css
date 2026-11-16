@@ -190,6 +190,13 @@ img{display:block;max-width:100%}
   --glod:rgba(244,118,48,.24);
   --glod-svag:rgba(255,176,120,.07);
   --glod-sken:rgba(255,160,100,.10);
+  /* Mobilen (sista genomgången 2026-11-16): glöden samlas nere till höger
+     bakom brickorna, och klotet uppe till höger är nästan släckt. Med samma
+     styrka som på datorn låg ett brunt dis bakom rubriken, så att den stod mot
+     brunt i stället för svart. */
+  --glod-stark:rgba(244,118,48,.30);
+  --glod-lugn:rgba(244,118,48,.11);
+  --glod-sken-stark:rgba(255,160,100,.13);
   --glod-a:#FF8A4C;
   --glod-ljus:#FFC29A;
   --glod-linje:linear-gradient(90deg,rgba(244,122,53,0) 4%,rgba(244,122,53,.85) 30%,#FFB078 50%,rgba(244,122,53,.85) 70%,rgba(244,122,53,0) 96%);
@@ -862,6 +869,15 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
      42 → 46 px och flyttade hela sidan (CLS 0,239 i PageSpeed, mobil,
      /kategori/mobler, 2026-10-01). En rad centreras nu i samma höjd. */
   .promorow{gap:10px;justify-content:space-between;min-height:2.7em}
+}
+/* Under 390 px (iPhone SE och mini, många Android) rymdes inte texten bredvid
+   de två knapparna: den bröts på två rader med "Klarna" ensamt på den andra
+   (sista genomgången 2026-11-16, mätt vid 320, 360 och 375 px). Där står
+   knapparna bara i sidfoten och mobilmenyn, och texten får hela raden. Radens
+   höjd är densamma som förut (min-height ovan), så inget flyttar sig. */
+@media(max-width:389px){
+  .promo-social{display:none}
+  .promotext{text-align:center}
 }
 /* Smal telefon. Sidhuvudets rad har ingen sidomarginal (.hrow nollar
    .container-paddingen) och behöver 339 px: loggan 159, hjärtat och kundvagnen

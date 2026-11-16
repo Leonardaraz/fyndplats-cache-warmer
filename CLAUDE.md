@@ -3270,6 +3270,16 @@ och löftesremsa (`app/startsida.css`), auktionsremsan, nyhetsbrevet och sidfote
   en ny ton läggs som variabel i `:root`.
 - Toppremsans och sidfotens Instagram- och Facebook-knappar är enfärgade.
   Mobilmenyns, på vit botten, bär sina märkesfärger.
+- Mobilen har en egen glöd (`--glod-stark`, `--glod-lugn`): med datorns styrka låg
+  ett brunt dis bakom rubriken. Glöden är samlad nere till höger bakom brickorna.
+- Under 390 px står de sociala knapparna inte i toppremsan: texten bröts annars
+  på två rader med "Klarna" ensamt. Radens höjd är låst (`min-height`), så inget
+  flyttar sig.
+- Sista genomgången före mergen (2026-11-16, förhandsbygget): 17 bredder från 320
+  till 1920 px utan sidledsscroll och med rubriken på två rader; 13 sidtyper på
+  mobil och dator utan sidfel; axe-core utan kontrastfel på startsidan och
+  produktsidan; Halloween- och Singles-temana ritas rätt ovanpå; rubriktypsnittet
+  har varje tecken som används utom ★, som ritas av systemet som förut.
 
 **Hjältens entré i djupled** (Leonard: "det hackar in. Kan man inte göra det
 sådär 3d sexigt"). Rubriken och brickorna börjar lutade bakåt och en bit bort

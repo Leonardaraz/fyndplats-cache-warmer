@@ -348,9 +348,11 @@
 @media(max-width:880px){
   /* Skenet bakom brickorna ligger längst ner på mobilen, där raden står. */
   .hem2 .hero{background:var(--natt-korn),
-    radial-gradient(96% 30% at 50% 86%,var(--glod-sken),transparent 72%),
-    radial-gradient(78% 40% at 100% 104%,var(--glod),transparent 64%),
+    radial-gradient(96% 32% at 50% 88%,var(--glod-sken-stark),transparent 72%),
+    radial-gradient(84% 42% at 100% 106%,var(--glod-stark),transparent 64%),
     radial-gradient(70% 30% at 0% -4%,var(--glod-svag),transparent 70%),
     var(--natt)}
+  /* Klotet uppe till höger ligger bakom rubriken på mobilen: nästan släckt. */
+  .hem2 .hero::before{background:radial-gradient(circle,var(--glod-lugn),transparent 66%)}
   .hem2 .hero .herotile{box-shadow:0 0 0 1px rgba(255,255,255,.06),0 18px 34px -18px rgba(0,0,0,.85)}
 }
