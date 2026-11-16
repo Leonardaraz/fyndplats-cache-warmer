@@ -1,0 +1,8 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "a75fcfde": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Golvytan som räknas är 0,86 m² — bara markplanet, inte huset ovanpå. Jordbruksverkets föreskrifter för sällskapsdjur (SJVFS 2019:15, L80) kräver 0,30 m² för ett ensamt marsvin och 0,15 m² per djur när flera hålls tillsammans, med kortaste sidan minst 40 cm och höjden minst 25 cm. Stallet räcker alltså till fyra marsvin. Måtten är innermått — det är den yta djuren faktiskt har. | Yttermått: 230 × 53 × 93,5 cm (L × B × H) | Golvytan som räknas är 0,86 m² — bara markplanet, inte huset ovanpå. Jordbruksverkets föreskrifter för sällskapsdjur (SJVFS 2019:15, L80) kräver 0,30 m² för ett ensamt marsvin och 0,15 m² per djur när flera hålls tillsammans, med kortaste sidan minst 40 cm och höjden minst 25 cm. Stallet räcker alltså till fyra marsvin. Måtten är innermått — det är den yta djuren faktiskt har. | Yttermått: 230 × 53 × 93,5 cm (L × B × H)"
+ }
+}
