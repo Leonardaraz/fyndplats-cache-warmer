@@ -117,6 +117,17 @@ och är den som gäller.
 
 Tre av sidorna bär fem SEO-taggar i dag. De skrivs om till husets två, som regeln ovan säger.
 
+**`semrush-3` (2026-11-16): sexton sidor som Semrush inte hann se.** Efter att de 66 sidorna
+skrivits (2026-11-12) listade veckorapporten (`/admin/seo-health` i butiken) ändå sex grupper
+med samma titel och två grupper med samma metabeskrivning, tillsammans sexton sidor. Ingen av
+dem stod i `semrush-1` eller `semrush-2`. Rapporten jämför hela sitemapen, Semrushs svep gjorde
+det inte, så **Semrushs lista var inte hela sanningen och veckorapporten är den som gäller.**
+Orsaken var den vanliga: syskonen hade polerats i olika rundor (bland annat `runda-n81-inomhus`
+och `runda-vevor-10`) utan att någon jämförde dem. Search Console visade 1–6 visningar per sida
+på 90 dagar och inga klick, så ingen rankning stod på spel och båda sidorna i varje titelpar
+fick en ny titel. De fyra färgsyskonen (campingsängar, smådjursstallar) hade redan egna titlar
+och fick färgen i metabeskrivningen. `pid` kommer ur sidans egen JSON-LD, som i planerna ovan.
+
 ### Inte gjort
 
 - **Syskonen är fortfarande egna sidor.** Tre paviljongtak, två Kawasaki-bilar och två
