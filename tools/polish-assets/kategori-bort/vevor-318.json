@@ -1,0 +1,31 @@
+{
+ "namn": "vevor-318",
+ "rader": [
+  {
+   "kort": "220689ed",
+   "pid": "220689ed-a1c8-4b7b-9aeb-0fb40ebcd0ba",
+   "bort": [
+    "Hem & Inredning > Badrum & Hemtextil",
+    "Hem & Inredning"
+   ],
+   "behall": [
+    "Skönhet & Hälsa",
+    "Skönhet & Hälsa > Hår & Rakning",
+    "Företag & Proffs",
+    "Företag & Proffs > Salong & spa"
+   ]
+  },
+  {
+   "kort": "c35a6ed3",
+   "pid": "c35a6ed3-92c0-4833-8971-b5e027ee5132",
+   "bort": [
+    "Bil & Garage > Takräcken & lastbärare",
+    "Bil & Garage"
+   ],
+   "behall": [
+    "Sport & Fritid",
+    "Sport & Fritid > Bil & Cykel"
+   ]
+  }
+ ]
+}
