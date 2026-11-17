@@ -37,7 +37,7 @@ export { Mark };
 
 const INTRO_EN_GANG =
   "try{if(sessionStorage.getItem('fp-intro')){var s=document.createElement('style');" +
-  "s.textContent='.heroinner>*,.hero h1,.heromosaic{animation:none!important}';document.head.appendChild(s)}" +
+  "s.textContent='.heroinner>*,.hero h1,.heromosaic,.herotile,.hero .btn-primary::after{animation:none!important}';document.head.appendChild(s)}" +
   "sessionStorage.setItem('fp-intro','1')}catch(e){}";
 
 export async function SiteHeader() {

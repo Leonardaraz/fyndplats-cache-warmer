@@ -3325,8 +3325,8 @@ Han valde Studio bland fyra förslag och svart och guld bland två.
 - Väggen tonar över i ett golv, en ljuskägla faller uppifrån mot varorna och
   en ljuspöl ligger på golvet under dem.
 - Varuväggen står vinklad mot texten i riktigt perspektiv på dator och speglas
-  i golvet (`-webkit-box-reflect`). På mobilen lutar brickorna lätt bakåt och
-  var och en bär sin egen spegling.
+  i golvet (`-webkit-box-reflect`). På mobilen står brickorna upprätt och var
+  och en bär sin egen spegling.
 - Brickorna har ljus kant upptill och varmare ton nedtill, siffrorna ligger på
   en glasskiva, knappen har ljus ovankant och mörk underkant, och orden
   "tryggt köp" glöder svagt.
@@ -3338,10 +3338,27 @@ en fast andel av rutnätets bredd (76 % + 15 px), men inte av hjältens: på en
 bred skärm är rutnätet 1 128 px mitt i hjälten. Första skisserna satte ljuset
 i procent av hjälten och stämde bara vid 1 440 px.
 
-☠️ **Mobilens bricka har tre lägen som ska vara samma tal:** vilan, entréns
-slutläge (`brickaResLutad` i `globals.css`) och hover. Annars hoppar brickan
-när entrén släpper eller rätar upp sig när ett finger nuddar den. Mätt: största
-skillnaden mellan sista bildrutan i entrén och vilan är 0,0001 i matrisen.
+☠️ **Entrén börjar mjukt, och det är inte en smaksak.** Leonard provade
+förhandsvisningen på en iPhone 15 (2026-11-18): speglingen syntes och följde
+med, men entrén var "lite hackig" och priset på de lutade brickorna bara
+"ganska" skarpt. Mätt på kall mobil med strypt nät och processor: förra kurvan
+(`cubic-bezier(.16,1,.3,1)`) gör 49 % av rörelsen på de första 10 % av tiden
+och 75 % på de första 20 %. Under samma 0,2 till 0,3 sekunder byts typsnittet
+in (86 till 126 ms efter första bildrutan), två brickbilder landar (cirka
+320 ms efter) och huvudtråden står still i en lång uppgift. Rubriken flyttade
+sig 28 till 33 av sina 43 px mellan två bildrutor. Tre ändringar:
+
+1. Kurvan är `cubic-bezier(.4,0,.1,1)`: 3 % av rörelsen på de första 10 % av
+   tiden, 16 % på de första 20 %. `lib/natten.test.ts` räknar om det och
+   fäller en kurva som börjar fort.
+2. Texten under rubriken tonar in för sig (`heroTona`, 0,5 s) och glider för
+   sig (`heroGlid`), så den går att läsa direkt.
+3. På mobilen reser sig hela raden med brickor som en yta (`radRes`), och
+   brickorna står upprätt. Fyra lutade, speglade ytor som rörde sig var för
+   sig är borta, och priset ritas skarpt.
+
+Vid nästa besök i samma flik rör sig ingenting (`INTRO_EN_GANG` i
+`components/site.tsx` täcker nu också brickorna och ljussvepet).
 
 ☠️ **`*{animation:none!important}` når inte `::before` och `::after`.**
 Butikens regel för mindre rörelse väljer bara element. Ljussvepet och temats

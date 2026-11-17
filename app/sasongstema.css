@@ -430,7 +430,10 @@
    som fläckar (mätt 2026-11-17 vid 320, 390 och 881 px).
    På mobilen ligger ringarna på golvet under brickorna, och en uppe i hörnet.
    Gnistorna (.hero::after) är punkter på drygt en pixel och får ligga var som
-   helst. De två lagren driver långsamt åt var sitt håll, bara med transform. */
+   helst. På dator driver de två lagren långsamt åt var sitt håll, bara med
+   transform. På mobilen står stoftet stilla: driften är 14 px på en halv
+   minut och syns knappt där, men den gör två stora lager till egna ytor på
+   grafikkortet under hela besöket. */
 :root[data-tema="blackweek"],
 :root[data-tema="blackfriday"],
 :root[data-tema="blackweekend"]{--studio-stoft:radial-gradient(circle at calc(76% - 193px + (24% - 207px)*-1.13) calc(72px + (100% - 156px)*0.12),rgba(236,176,74,0.150) 0,rgba(236,176,74,0.186) 6.1px,rgba(255,212,132,0.300) 8.1px,rgba(255,212,132,0) 9.0px),
@@ -461,6 +464,12 @@
 @keyframes bwStoftFjarran{from{transform:translate3d(0,0,0)}to{transform:translate3d(-14px,8px,0)}}
 @keyframes bwStoftNara{from{transform:translate3d(0,0,0)}to{transform:translate3d(18px,-14px,0)}}
 @media(max-width:880px){
+  :root[data-tema="blackweek"] .herogrid::before,
+  :root[data-tema="blackfriday"] .herogrid::before,
+  :root[data-tema="blackweekend"] .herogrid::before,
+  :root[data-tema="blackweek"] .hero::after,
+  :root[data-tema="blackfriday"] .hero::after,
+  :root[data-tema="blackweekend"] .hero::after{animation:none;will-change:auto}
   :root[data-tema="blackweek"],
   :root[data-tema="blackfriday"],
   :root[data-tema="blackweekend"]{--studio-stoft:radial-gradient(circle at calc(50% - 36vw) calc(100% - 20px),rgba(236,176,74,0.100) 0,rgba(236,176,74,0.124) 9.5px,rgba(255,212,132,0.200) 12.6px,rgba(255,212,132,0) 14.0px),

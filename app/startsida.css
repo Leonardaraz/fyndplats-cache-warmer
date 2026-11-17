@@ -432,19 +432,23 @@
   .hem2 .herogrid::before,.hem2 .herogrid::after{inset:0 -60px}
   .hem2 .herogrid{padding-bottom:8px}
   .hem2 .hero .herotrust{margin-top:18px;padding:12px 14px;border-radius:16px}
-  /* Brickorna lutar lätt bakåt, som tavlor som står på golvet, och var och en
-     bär sin egen spegling. Speglingen sitter på brickan och inte på raden:
-     raden rullar i sidled, och en spegling av en rullande yta är inte säker i
-     Safari. Radens luft nedtill (44 px) är speglingens plats: det som sticker
-     ut under raden klipps.
-     ☠️ Vilan, entréns slutläge (brickaResLutad i globals.css) och hover-läget
-     är samma funktioner med samma tal. Annars hoppar brickan när entrén
-     släpper, eller rätar upp sig när ett finger nuddar den. */
+  /* Brickorna står upprätt och var och en bär sin egen spegling. Speglingen
+     sitter på brickan och inte på raden: raden rullar i sidled, och en
+     spegling av en rullande yta är inte säker i Safari. Radens luft nedtill
+     (44 px) är speglingens plats: det som sticker ut under raden klipps.
+     ☠️ Brickorna lutade först 5 grader bakåt. På en riktig iPhone 15 blev
+     priset bara "ganska" skarpt (Leonard 2026-11-18), och en lutad bricka är
+     en egen yta på grafikkortet. Upprätt ritas texten skarpt och hela raden
+     är en yta.
+     ☠️ Raden reser sig som en yta (radRes i globals.css), inte bricka för
+     bricka: brickorna har ingen egen entré på mobilen. Fyra speglade ytor som
+     rör sig var för sig var en del av det som hackade. */
   .hem2 .heromosaic{padding-bottom:44px}
-  .hem2 .hero .herotile{transform:perspective(520px) translate3d(0,0,0) rotateX(5deg) rotateY(0deg);animation-name:brickaResLutad;
+  .hem2 .hero .heromosaic{animation:radRes 1.1s cubic-bezier(.4,0,.1,1) .08s backwards;transform-origin:50% 100%}
+  .hem2 .hero .herotile{animation:none;
     box-shadow:inset 0 1.5px 0 #fff,inset 0 -1px 0 rgba(120,70,30,.2),0 0 0 1px rgba(var(--studio-ljus),.16),0 16px 18px -12px rgba(0,0,0,.98);
     -webkit-box-reflect:below 5px linear-gradient(180deg,transparent 0%,transparent 74%,rgba(0,0,0,.1) 84%,rgba(0,0,0,.44) 100%)}
-  .hem2 .hero .herotile:hover{transform:perspective(520px) translate3d(0,0,0) rotateX(5deg) rotateY(0deg);
+  .hem2 .hero .herotile:hover{transform:none;
     box-shadow:inset 0 1.5px 0 #fff,inset 0 -1px 0 rgba(120,70,30,.2),0 0 0 1px rgba(var(--studio-ljus),.16),0 16px 18px -12px rgba(0,0,0,.98)}
 }
 @media(min-width:361px) and (max-width:880px){

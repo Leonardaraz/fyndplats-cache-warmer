@@ -95,16 +95,16 @@ describe("hjältens entré i djupled", () => {
   };
 
   it("rubriken och brickorna rör sig bara med transform, aldrig opacitet (LCP)", () => {
-    for (const namn of ["heroRes", "brickaRes", "brickaResLutad"]) {
+    for (const namn of ["heroRes", "brickaRes", "radRes", "heroGlid"]) {
       assert.doesNotMatch(nyckelrutor(namn), /opacity/);
-      assert.match(nyckelrutor(namn), /perspective\(\d+px\)/);
+      if (namn !== "heroGlid") assert.match(nyckelrutor(namn), /perspective\(\d+px\)/);
     }
     assert.match(css, /\n\.hero h1\{animation:heroRes /);
     assert.match(css, /\n\.herotile\{animation:brickaRes /);
   });
 
   it("slutläget är samma funktioner med nollor, inte none", () => {
-    for (const namn of ["heroRes", "brickaRes"]) {
+    for (const namn of ["heroRes", "brickaRes", "radRes"]) {
       const till = nyckelrutor(namn).split("to{")[1];
       assert.match(till, /perspective\(\d+px\) translate3d\(0,0,0\) rotateX\(0deg\)/);
     }
@@ -117,8 +117,53 @@ describe("hjältens entré i djupled", () => {
     }
   });
 
-  it("hela mosaiken har ingen egen entré längre: brickorna reser sig var för sig", () => {
+  it("på dator reser sig brickorna var för sig; på mobilen reser sig raden som en yta", () => {
     assert.doesNotMatch(css, /\n\.heromosaic\{animation:/);
+    const utan = start.replace(/\/\*[\s\S]*?\*\//g, "");
+    const mobil = utan.slice(utan.lastIndexOf("@media(max-width:880px){"));
+    assert.match(mobil, /\.hem2 \.hero \.heromosaic\{animation:radRes [^;}]* backwards;transform-origin:50% 100%\}/);
+    assert.match(mobil, /\.hem2 \.hero \.herotile\{animation:none;/);
+  });
+
+  // Leonard 2026-11-18, iPhone 15: "den är lite hackig". Förra kurvan gjorde 75 % av
+  // rörelsen på de första 20 % av tiden, när typsnitt och bilder fortfarande landar.
+  it("entrén börjar mjukt: högst 6 % av rörelsen på de första 10 % av tiden, högst 20 % på de första 20 %", () => {
+    const kurva = (x1: number, y1: number, x2: number, y2: number) => (t: number) => {
+      let lo = 0, hi = 1, u = t;
+      for (let i = 0; i < 50; i++) {
+        u = (lo + hi) / 2;
+        if (3 * (1 - u) ** 2 * u * x1 + 3 * (1 - u) * u * u * x2 + u ** 3 < t) lo = u;
+        else hi = u;
+      }
+      return 3 * (1 - u) ** 2 * u * y1 + 3 * (1 - u) * u * u * y2 + u ** 3;
+    };
+    const utan = start.replace(/\/\*[\s\S]*?\*\//g, "");
+    const rader = [
+      css.split("\n").find((r) => r.startsWith(".hero h1{animation:heroRes ")),
+      css.split("\n").find((r) => r.startsWith(".herotile{animation:brickaRes ")),
+      css.split("\n").find((r) => r.startsWith(".heroinner>*{animation:"))?.split(",heroGlid ")[1],
+      utan.match(/\.hem2 \.hero \.heromosaic\{animation:radRes [^}]*\}/)?.[0],
+    ];
+    for (const rad of rader) {
+      assert.ok(rad, "en entréregel saknas");
+      const m = rad.match(/cubic-bezier\(([^)]+)\)/);
+      assert.ok(m, rad.slice(0, 70));
+      const [x1, y1, x2, y2] = m[1].split(",").map(Number);
+      const f = kurva(x1, y1, x2, y2);
+      assert.ok(f(0.1) <= 0.06, `${rad.slice(0, 40)}: ${(f(0.1) * 100).toFixed(0)} % vid 10 %`);
+      assert.ok(f(0.2) <= 0.2, `${rad.slice(0, 40)}: ${(f(0.2) * 100).toFixed(0)} % vid 20 %`);
+      assert.ok(f(0.6) >= 0.85, `${rad.slice(0, 40)}: landar för sent`);
+    }
+  });
+
+  it("texten under rubriken tonar in kort och rakt, och glider för sig", () => {
+    assert.match(css, /\n\.heroinner>\*\{animation:heroTona \.5s ease-out backwards,heroGlid 1s cubic-bezier\([^)]+\) backwards\}/);
+    assert.doesNotMatch(css, /heroRise/);
+  });
+
+  it("vid nästa besök i samma flik rör sig ingenting: varken text, brickor, rad eller ljussvep", () => {
+    const sidhuvud = las("components/site.tsx");
+    assert.match(sidhuvud, /\.heroinner>\*,\.hero h1,\.heromosaic,\.herotile,\.hero \.btn-primary::after\{animation:none!important\}/);
   });
 });
 
@@ -204,14 +249,11 @@ describe("studion: hjälten som en fotostudio", () => {
     assert.match(temat, /\.hero::after\{animation:none\}/);
   });
 
-  it("mobilens bricka: vilan, entréns slutläge och hover är samma läge", () => {
-    const vila = transform(mobil.slice(mobil.indexOf(".hem2 .hero .herotile{")));
-    const hover = transform(mobil.slice(mobil.indexOf(".hem2 .hero .herotile:hover{")));
-    const slut = transform(nyckelrutor("brickaResLutad").split("to{")[1]);
-    assert.ok(vila && vila.includes("rotateX(5deg)"), String(vila));
-    assert.equal(hover, vila);
-    assert.equal(slut, vila);
-    assert.match(mobil, /\.hem2 \.hero \.herotile\{[^}]*animation-name:brickaResLutad/);
+  it("mobilens brickor står upprätt (skarp text) och rätar inte upp eller lyfter sig vid beröring", () => {
+    const vila = mobil.slice(mobil.indexOf(".hem2 .hero .herotile{"), mobil.indexOf("}", mobil.indexOf(".hem2 .hero .herotile{")));
+    assert.doesNotMatch(vila, /transform:|rotateX|perspective/);
+    assert.equal(transform(mobil.slice(mobil.indexOf(".hem2 .hero .herotile:hover{"))), "none");
+    assert.doesNotMatch(css, /brickaResLutad/);
   });
 
   it("mobilens spegling sitter på brickan, och raden har plats för den", () => {
@@ -251,6 +293,15 @@ describe("Black Week-temat byter nattens variabler", () => {
     for (const namn of ["--natt", "--natt-remsa", "--natt-golv", "--natt-ljus", "--natt-dampad", "--natt-knapp", "--natt-knapp-over", "--natt-knapp-text",
       "--natt-knapp-kant", "--natt-knapp-skugga", "--studio-ljus", "--studio-glod", "--studio-bricka", "--glod", "--glod-svag", "--glod-sken", "--glod-stark",
       "--glod-lugn", "--glod-sken-stark", "--glod-a", "--glod-ljus", "--glod-linje", "--glod-ord"]) v(namn);
+  });
+
+  it("stoftet står stilla på mobilen: ingen drift och inga egna ytor på grafikkortet", () => {
+    const mobilen = utan.slice(utan.indexOf("@media(max-width:880px){", a));
+    for (const n of ["blackweek", "blackfriday", "blackweekend"]) {
+      assert.ok(mobilen.includes(`:root[data-tema="${n}"] .herogrid::before`), n);
+      assert.ok(mobilen.includes(`:root[data-tema="${n}"] .hero::after`), n);
+    }
+    assert.match(mobilen, /\.hero::after\{animation:none;will-change:auto\}/);
   });
 
   it("mörk text på guldknappen klarar 4,5:1 i båda ändar, också när pekaren är över", () => {
