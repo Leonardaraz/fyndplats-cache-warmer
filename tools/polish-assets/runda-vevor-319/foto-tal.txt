@@ -3,8 +3,6 @@
 b6a28622 45 höjden 450 mm på måttbilden omräknad till 45 cm
 b6a28622 50 djupet 500 mm på måttbilden omräknad till 50 cm
 3ddf0ff9 21 vikten 21,0 kg i specifikationen skriven som 21 kg
-984fadff 70 djupet 700 mm på måttbilden omräknad till 70 cm
-984fadff 30,5 höjden 305 mm på måttbilden omräknad till 30,5 cm
 a839ee16 120 bredden 1200 mm på måttbilden omräknad till 120 cm
 a839ee16 74 djupet 740 mm på måttbilden omräknad till 74 cm
 a839ee16 93 höjden 930 mm på måttbilden omräknad till 93 cm
