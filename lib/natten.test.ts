@@ -95,7 +95,7 @@ describe("hjältens entré i djupled", () => {
   };
 
   it("rubriken och brickorna rör sig bara med transform, aldrig opacitet (LCP)", () => {
-    for (const namn of ["heroRes", "brickaRes"]) {
+    for (const namn of ["heroRes", "brickaRes", "brickaResLutad"]) {
       assert.doesNotMatch(nyckelrutor(namn), /opacity/);
       assert.match(nyckelrutor(namn), /perspective\(\d+px\)/);
     }
@@ -129,15 +129,145 @@ describe("toppremsan på smala telefoner", () => {
     assert.match(css, /\.promorow\{gap:10px;justify-content:space-between;min-height:2\.7em\}/);
   });
 
-  it("mobilens glöd är samlad bakom brickorna: klotet bakom rubriken är nästan släckt", () => {
-    const mobil = start.slice(start.lastIndexOf("@media(max-width:880px){"));
-    assert.match(mobil, /\.hem2 \.hero::before\{background:radial-gradient\(circle,var\(--glod-lugn\)/);
-    assert.match(mobil, /var\(--glod-stark\)/);
-  });
 });
 
 describe("favoritknappen ritas i ett eget lager", () => {
   it(".fav-kop har translateZ(0)", () => {
     assert.match(css, /\n\.fav-kop\{transform:translateZ\(0\)\}/);
+  });
+});
+
+// ── Studion (Leonard 2026-11-17) ─────────────────────────────────────────
+describe("studion: hjälten som en fotostudio", () => {
+  const utan = start.replace(/\/\*[\s\S]*?\*\//g, "");
+  const mobil = utan.slice(utan.lastIndexOf("@media(max-width:880px){"));
+  const nyckelrutor = (namn: string) => {
+    const a = css.indexOf(`@keyframes ${namn}{`);
+    assert.ok(a > -1, `${namn} saknas`);
+    return css.slice(a, css.indexOf("\n", a));
+  };
+  const transform = (text: string) => text.match(/transform:([^;}]+)/)?.[1];
+
+  it("ljuset sitter på rutnätet, inte på hjälten: varuväggen står på en andel av rutnätets bredd", () => {
+    assert.match(utan, /\.hem2 \.hero::before,\.hem2 \.hero::after\{display:none\}/);
+    assert.match(utan, /\.hem2 \.herogrid::before,\.hem2 \.herogrid::after\{content:"";position:absolute;z-index:-1;inset:0 -400px;pointer-events:none\}/);
+    // Rutnätet är en egen staplingsordning, annars hamnar z-index:-1 bakom hjältens bakgrund.
+    assert.match(css, /\n\.herogrid\{position:relative;z-index:2;/);
+    // Väggens mitt: 76 % + 15 px av rutnätet, alltså 76 % − 193 px av ett lager som börjar 400 px till vänster.
+    assert.ok(utan.split("calc(76% - 193px)").length - 1 >= 3, "ljuspölens två lager och ljuskäglan ska stå på väggens mitt");
+    assert.match(utan, /\.hem2 \.herogrid\{grid-template-columns:minmax\(0,1\.04fr\) minmax\(0,\.96fr\);gap:64px;/);
+  });
+
+  it("ljuset och brickans kanter tar färg ur variablerna, så att ett tema byter dem på ett ställe", () => {
+    for (const namn of ["--studio-ljus", "--studio-glod"]) assert.match(variabel(namn), /^\d{1,3},\d{1,3},\d{1,3}$/, namn);
+    assert.match(regel(start, ".hem2 .hero .herotile"), /background:var\(--studio-bricka\)/);
+    // Ljuspölen och ljuskäglan, på dator och mobil: bara studions färger, svart och genomskinligt.
+    const ljus = [...utan.matchAll(/\.hem2 \.herogrid::(?:before|after)\{([^}]*)\}/g)].map((m) => m[1]).filter((d) => d.includes("gradient"));
+    assert.equal(ljus.length, 4);
+    for (const d of ljus) for (const f of d.match(/rgba?\([^)]*\)?/g) ?? []) assert.match(f, /^rgba\(var\(--studio-(ljus|glod)\)|^rgba?\(0,0,0/, f);
+  });
+
+  it("inget filter och ingen backdrop-filter i hjälten (Safari, och grafikkortet)", () => {
+    const hjalte = utan.slice(utan.indexOf(".hem2 .hero{background:var(--natt-korn)"));
+    assert.doesNotMatch(hjalte, /(^|[;{\s])(-webkit-)?(backdrop-)?filter:/);
+  });
+
+  it("knappens text är en variabel, och samma knapp i nyhetsbrevet och auktionsremsan bär den", () => {
+    assert.match(regel(start, ".hem2 .hero .btn-primary"), /color:var\(--natt-knapp-text\)/);
+    assert.match(regel(css, ".nl-btn"), /background:var\(--natt-knapp\);color:var\(--natt-knapp-text\)/);
+    assert.match(regel(css, ".auction-banner-badge"), /background:var\(--natt-knapp\);color:var\(--natt-knapp-text\)/);
+    assert.equal(hex(variabel("--natt-knapp-text"))[0].toUpperCase(), "FFFFFF");
+  });
+
+  it("knappens ljusa ovankant slutar ovanför texten, så textens kontrast är knappens egen färg", () => {
+    const m = regel(start, ".hem2 .hero .btn-primary").match(/linear-gradient\(180deg,rgba\(255,255,255,[.\d]+\) 0%,rgba\(255,255,255,0\) (\d+)%\)/);
+    assert.ok(m, "ovankantens toning saknas");
+    assert.ok(Number(m[1]) <= 38, `toningen når ${m[1]} %: texten börjar vid ungefär 40 %`);
+  });
+
+  it("ljussvepet vilar där det slutar, och rör sig bara med transform", () => {
+    const till = nyckelrutor("knappSvep").split("to{")[1];
+    assert.doesNotMatch(nyckelrutor("knappSvep"), /opacity/);
+    assert.equal(transform(regel(start, ".hem2 .hero .btn-primary::after")), transform(till));
+    assert.match(regel(start, ".hem2 .hero .btn-primary::after"), /animation:knappSvep [^;}]* backwards/);
+  });
+
+  it("mindre rörelse stänger också det som rör sig i ::before och ::after", () => {
+    // *{animation:none!important} i globals.css väljer bara element, inte pseudoelement.
+    const lugn = (kalla: string) => [...kalla.matchAll(/@media\(prefers-reduced-motion:reduce\)\{([\s\S]*?\})\s*\}/g)].map((m) => m[1]).join("\n");
+    assert.match(lugn(utan), /\.hem2 \.hero \.btn-primary::after\{animation:none\}/);
+    const temat = lugn(tema.replace(/\/\*[\s\S]*?\*\//g, ""));
+    for (const n of ["blackweek", "blackfriday", "blackweekend"]) {
+      assert.ok(temat.includes(`:root[data-tema="${n}"] .herogrid::before`), n);
+      assert.ok(temat.includes(`:root[data-tema="${n}"] .hero::after`), n);
+    }
+    assert.match(temat, /\.hero::after\{animation:none\}/);
+  });
+
+  it("mobilens bricka: vilan, entréns slutläge och hover är samma läge", () => {
+    const vila = transform(mobil.slice(mobil.indexOf(".hem2 .hero .herotile{")));
+    const hover = transform(mobil.slice(mobil.indexOf(".hem2 .hero .herotile:hover{")));
+    const slut = transform(nyckelrutor("brickaResLutad").split("to{")[1]);
+    assert.ok(vila && vila.includes("rotateX(5deg)"), String(vila));
+    assert.equal(hover, vila);
+    assert.equal(slut, vila);
+    assert.match(mobil, /\.hem2 \.hero \.herotile\{[^}]*animation-name:brickaResLutad/);
+  });
+
+  it("mobilens spegling sitter på brickan, och raden har plats för den", () => {
+    assert.match(mobil, /\.hem2 \.heromosaic\{padding-bottom:44px\}/);
+    assert.match(mobil, /\.hem2 \.hero \.herotile\{[^}]*-webkit-box-reflect:below 5px/);
+    assert.doesNotMatch(mobil, /\.heromosaic\{[^}]*box-reflect/);
+  });
+
+  it("datorns vägg står vinklad, följer --hx och --hy och speglas", () => {
+    const dator = utan.slice(utan.lastIndexOf("@media(min-width:881px){"), utan.lastIndexOf("@media(max-width:880px){"));
+    assert.match(dator, /\.hem2 \.hero \.heromosaic\{transform:perspective\(1500px\) rotateY\(calc\(-8deg \+ var\(--hx,0\)\*3deg\)\) rotateX\(calc\(2deg - var\(--hy,0\)\*2deg\)\)/);
+    assert.match(dator, /-webkit-box-reflect:below 14px/);
+    const komponent = las("components/hero-lutning.tsx");
+    assert.match(komponent, /vagg\.style\.setProperty\("--hx"/);
+    assert.doesNotMatch(komponent, /hjalte\.style\.setProperty/);
+    assert.match(komponent, /prefers-reduced-motion:reduce/);
+    assert.match(komponent, /\(hover:hover\) and \(pointer:fine\) and \(min-width:881px\)/);
+    assert.match(las("app/page.tsx"), /<HeroLutning \/>/);
+  });
+});
+
+describe("Black Week-temat byter nattens variabler", () => {
+  const utan = tema.replace(/\/\*[\s\S]*?\*\//g, "");
+  const a = utan.indexOf(':root[data-tema="blackweek"],');
+  const block = utan.slice(a, utan.indexOf("}", a));
+  const v = (namn: string) => {
+    const m = block.match(new RegExp(`${namn}:([^;]+);`));
+    assert.ok(m, `${namn} saknas i temat`);
+    return m[1];
+  };
+
+  it("alla tre temana delar blocket", () => {
+    assert.match(utan.slice(a, a + 140), /^:root\[data-tema="blackweek"\],\s*:root\[data-tema="blackfriday"\],\s*:root\[data-tema="blackweekend"\]\{/);
+  });
+
+  it("varje variabel som natten och studion bär finns i temat", () => {
+    for (const namn of ["--natt", "--natt-remsa", "--natt-golv", "--natt-ljus", "--natt-dampad", "--natt-knapp", "--natt-knapp-over", "--natt-knapp-text",
+      "--natt-knapp-kant", "--natt-knapp-skugga", "--studio-ljus", "--studio-glod", "--studio-bricka", "--glod", "--glod-svag", "--glod-sken", "--glod-stark",
+      "--glod-lugn", "--glod-sken-stark", "--glod-a", "--glod-ljus", "--glod-linje", "--glod-ord"]) v(namn);
+  });
+
+  it("mörk text på guldknappen klarar 4,5:1 i båda ändar, också när pekaren är över", () => {
+    const text = hex(v("--natt-knapp-text"))[0];
+    for (const namn of ["--natt-knapp", "--natt-knapp-over"]) {
+      const andar = hex(v(namn));
+      assert.equal(andar.length, 2);
+      for (const h of andar) assert.ok(kontrast(text, h) >= 4.5, `${namn} #${h}: ${kontrast(text, h).toFixed(2)}:1`);
+    }
+  });
+
+  it("ljus, dämpad och guldfärgad text klarar 7:1 mot temats ljusaste ton, och accentordet 3:1", () => {
+    const ljusast = hex(v("--natt")).sort((x, y) => lum(y) - lum(x))[0];
+    for (const namn of ["--natt-ljus", "--natt-dampad", "--glod-ljus"]) {
+      const k = kontrast(hex(v(namn))[0], ljusast);
+      assert.ok(k >= 7, `${namn}: ${k.toFixed(2)}:1`);
+    }
+    for (const h of hex(v("--glod-ord"))) assert.ok(kontrast(h, ljusast) >= 3, `#${h}`);
   });
 });

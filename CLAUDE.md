@@ -3313,6 +3313,86 @@ gången och 0,5–0,65 s när Stripes filer redan är hämtade.
   sparat 0,6–0,7 s för nya besökare, men då körs Stripe och sätter sina kakor
   före kassan. Det är Leonards beslut.
 
+## Studion: hjälten som fotostudio, och Black Week-temana (2026-11-17)
+
+Leonard 2026-11-17: "göra bakgrundsfärgen i hero sektionen en mer premium 3d
+look codad och sen tema för black friday", och sedan "finslipa den till max".
+Han valde Studio bland fyra förslag och svart och guld bland två.
+
+**Studion** (`app/startsida.css`, blocket "Studion", färgerna i `:root` i
+`app/globals.css`). Hjälten är en fotostudio i ren CSS, utan bildfiler:
+
+- Väggen tonar över i ett golv, en ljuskägla faller uppifrån mot varorna och
+  en ljuspöl ligger på golvet under dem.
+- Varuväggen står vinklad mot texten i riktigt perspektiv på dator och speglas
+  i golvet (`-webkit-box-reflect`). På mobilen lutar brickorna lätt bakåt och
+  var och en bär sin egen spegling.
+- Brickorna har ljus kant upptill och varmare ton nedtill, siffrorna ligger på
+  en glasskiva, knappen har ljus ovankant och mörk underkant, och orden
+  "tryggt köp" glöder svagt.
+- Rörelse: ett ljussvep över knappen en gång, och varuväggen följer
+  muspekaren några grader på dator (`components/hero-lutning.tsx`).
+
+☠️ **Ljuset sitter på `.herogrid`, inte på `.hero`.** Varuväggens mitt står på
+en fast andel av rutnätets bredd (76 % + 15 px), men inte av hjältens: på en
+bred skärm är rutnätet 1 128 px mitt i hjälten. Första skisserna satte ljuset
+i procent av hjälten och stämde bara vid 1 440 px.
+
+☠️ **Mobilens bricka har tre lägen som ska vara samma tal:** vilan, entréns
+slutläge (`brickaResLutad` i `globals.css`) och hover. Annars hoppar brickan
+när entrén släpper eller rätar upp sig när ett finger nuddar den. Mätt: största
+skillnaden mellan sista bildrutan i entrén och vilan är 0,0001 i matrisen.
+
+☠️ **`*{animation:none!important}` når inte `::before` och `::after`.**
+Butikens regel för mindre rörelse väljer bara element. Ljussvepet och temats
+stoft låg kvar för den som bett om mindre rörelse tills de fick egna regler.
+
+☠️ **Inget filter i hjälten.** Glöden på de kursiva orden är en text-shadow.
+Ett filter på text med `background-clip:text` är skört i Safari.
+
+**Black Week** (`lib/sasongstema.ts`, sist i `app/sasongstema.css`). Tre teman
+i rad med samma utseende, svart och guld, eftersom varje namn bara får stå en
+gång:
+
+| Tema | Svensk tid | Raden över rubriken | Ordet bakom |
+|---|---|---|---|
+| `blackweek` | mån 23/11 00:00 till fre 27/11 00:00 | Black Week · 23–29 november | Black |
+| `blackfriday` | fre 27/11, hela dygnet | Black Friday · i dag | Friday |
+| `blackweekend` | lör 28/11 00:00 till mån 30/11 00:00 | Black Week · till söndag | Black |
+
+Temat byter nattens och studions variabler, så toppremsan, sidhuvudets linje,
+hjälten, löftesremsan, auktionsremsan, nyhetsbrevet och sidfoten följer med.
+Butikens orange står kvar i loggan, menyn och produkternas etiketter.
+
+☠️ **Knappens text är en variabel (`--natt-knapp-text`).** Guldknappen är ljus,
+så texten är mörk i temat. Samma knapp står i nyhetsbrevet och auktionsremsan,
+som förr hade vit text fastskriven.
+
+☠️ **Guldstoftets ringar står i varuväggens mått, aldrig i procent av
+hjälten** (`--studio-stoft`). I procent hamnade de intill text och på
+glasskivans kant på smala skärmar och såg ut som fläckar.
+
+**Provläget.** Ett tema som börjar nästa vecka går inte att se i dag, så en
+förhandsvisning hos Vercel (`VERCEL_ENV` "preview") lyder adressen:
+`?tema=blackweek`, `?tema=blackfriday`, `?tema=blackweekend`, och `?tema=av`
+för butiken utan tema. Valet ligger kvar i fliken. I produktionen finns den
+koden inte i skriptet; `lib/sasongstema.test.ts` fäller om den gör det.
+
+**Mätt 2026-11-17, lokal build i Chromium:**
+
+- 19 bredder (320 till 1 920 px) i fyra utseenden, 76 lägen: ingen sidscroll,
+  ingen rullning på höjden i brickraden, inga sidfel.
+- axe-core: 0 kontrastfel i alla fyra utseenden, mobil och dator.
+- Hjältens höjd: oförändrad på dator (624 px), +23 px på mobil vid 390 px
+  (579 mot 556), för glasskivan och speglingens plats.
+- Faktaraden gick in i sig själv på glasskivan på två ställen och är rättad:
+  375–390 px (stjärnornas kolumn får mer bredd) och 881–1 099 px (korta
+  etiketter och andra andelar).
+- Halloween och Singles ser hela ut ovanpå studion.
+
+**Inte provat:** Safari och en riktig telefon (speglingen, perspektivet och
+textskärpan på de vinklade brickorna), och Firefox, som inte ritar speglingen.
+
 ## Hastigheten mätt 2026-11-10: startsidan byggdes om var 15:e sekund
 
 Lighthouse på mobil (strypt till långsam 4G) gav 81–86 i prestanda, med

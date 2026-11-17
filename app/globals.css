@@ -201,6 +201,18 @@ img{display:block;max-width:100%}
   --glod-ljus:#FFC29A;
   --glod-linje:linear-gradient(90deg,rgba(244,122,53,0) 4%,rgba(244,122,53,.85) 30%,#FFB078 50%,rgba(244,122,53,.85) 70%,rgba(244,122,53,0) 96%);
   --glod-ord:linear-gradient(100deg,#FFD9BC 0%,#FF9A5C 46%,#F2602A 100%);
+  /* Studion (Leonard 2026-11-17): hjälten som en fotostudio, där varorna står
+     på ett golv i ljuset. Färgerna står som trippletter (r,g,b), så att samma
+     färg kan bära olika styrka i ljuskäglan, ljuspölen och brickans kant, och
+     så att ett säsongstema byter dem på ett ställe (app/sasongstema.css).
+     Knappens text är en egen färg: i ett guldtema är knappen ljus och texten
+     mörk, och samma knapp står i nyhetsbrevet och auktionsremsan. */
+  --studio-ljus:255,190,140;
+  --studio-glod:244,118,48;
+  --studio-bricka:linear-gradient(180deg,#FFFEFC 0%,#FFF9F2 56%,#F7E8DA 100%);
+  --natt-knapp-text:#FFFFFF;
+  --natt-knapp-kant:#7A2706;
+  --natt-knapp-skugga:rgba(208,68,14,.9);
   /* Ett fint korn över de mörka ytorna: en toning mellan två nästan svarta
      färger får annars synliga band på telefonskärmar. */
   --natt-korn:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .045 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
@@ -507,6 +519,12 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 @keyframes heroRise{from{opacity:0;transform:translate3d(0,22px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
 @keyframes heroRes{from{transform:perspective(900px) translate3d(0,28px,-80px) rotateX(20deg)}to{transform:perspective(900px) translate3d(0,0,0) rotateX(0deg)}}
 @keyframes brickaRes{from{transform:perspective(1000px) translate3d(0,30px,-110px) rotateX(16deg) rotateY(-12deg)}to{transform:perspective(1000px) translate3d(0,0,0) rotateX(0deg) rotateY(0deg)}}
+/* Studion (app/startsida.css). På mobilen står brickorna lätt bakåtlutade, så
+   deras entré slutar i det läget: samma funktioner som brickans vila, annars
+   hoppar brickan när animationen släpper. Svepet är ett ljusband som går över
+   knappen en gång; det vilar utanför knappen åt höger. */
+@keyframes brickaResLutad{from{transform:perspective(520px) translate3d(0,30px,-110px) rotateX(16deg) rotateY(-12deg)}to{transform:perspective(520px) translate3d(0,0,0) rotateX(5deg) rotateY(0deg)}}
+@keyframes knappSvep{from{transform:translate3d(-140%,0,0) skewX(-18deg)}to{transform:translate3d(340%,0,0) skewX(-18deg)}}
 @keyframes heroLift{from{transform:translateY(16px)}to{transform:none}}
 @keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
 @keyframes glowDrift{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-26px,20px) scale(1.1)}}
@@ -652,7 +670,7 @@ a.uspitem:hover,a.uspitem:focus-visible{color:var(--brand);text-decoration:under
 .nl-input{flex:1;min-width:200px;height:52px;padding:0 18px;border:1px solid transparent;border-radius:var(--r-md);background:#fff;font-size:var(--text-base);color:var(--ink);outline:none;transition:border-color .2s,box-shadow .2s}
 .nl-input::placeholder{color:#6b6157}
 .nl-input:focus{border-color:var(--orange);box-shadow:var(--e-ring)}
-.nl-btn{height:52px;padding:0 26px;border:none;border-radius:var(--r-md);background:var(--natt-knapp);color:#fff;font-weight:700;font-size:var(--text-base);cursor:pointer;white-space:nowrap;box-shadow:var(--e3);transition:transform .2s,box-shadow .2s,opacity .2s}
+.nl-btn{height:52px;padding:0 26px;border:none;border-radius:var(--r-md);background:var(--natt-knapp);color:var(--natt-knapp-text);font-weight:700;font-size:var(--text-base);cursor:pointer;white-space:nowrap;box-shadow:var(--e3);transition:transform .2s,box-shadow .2s,opacity .2s}
 .nl-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:var(--e3)}
 .nl-btn:disabled{opacity:.65;cursor:default}
 .nl-consent{display:flex;align-items:flex-start;gap:10px;margin-top:16px;text-align:left;font-size:var(--text-xs);color:var(--natt-dampad);line-height:1.45}
@@ -3248,7 +3266,7 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
 .auction-sold-list em{color:#1B7A3D;font-style:normal;font-weight:700}
 .auction-banner{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:radial-gradient(120% 150% at 100% 110%,var(--glod),transparent 62%),var(--natt);color:#fff;border-radius:var(--r-lg);padding:16px 22px;text-decoration:none;box-shadow:var(--e3)}
 .auction-banner:hover .auction-banner-cta{transform:translateX(4px)}
-.auction-banner-badge{background:var(--natt-knapp);color:#fff;font-weight:800;font-size:var(--text-xs);padding:6px 12px;border-radius:var(--r-pill);letter-spacing:.02em}
+.auction-banner-badge{background:var(--natt-knapp);color:var(--natt-knapp-text);font-weight:800;font-size:var(--text-xs);padding:6px 12px;border-radius:var(--r-pill);letter-spacing:.02em}
 .auction-banner-text{font-size:var(--text-sm)}
 .auction-banner-text b{color:var(--glod-ljus)}
 .auction-banner-cta{margin-left:auto;font-weight:700;color:var(--glod-ljus);transition:transform .2s}

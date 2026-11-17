@@ -82,6 +82,102 @@ describe("Singles Day och Singles Week", () => {
   });
 });
 
+describe("Black Week, Black Friday och helgen efter", () => {
+  const vecka = SASONGSTEMAN.find((t) => t.namn === "blackweek")!;
+  const fredag = SASONGSTEMAN.find((t) => t.namn === "blackfriday")!;
+  const helg = SASONGSTEMAN.find((t) => t.namn === "blackweekend")!;
+
+  it("måndag 23 november till söndag 29 november, med fredagen 27 som egen dag", () => {
+    assert.equal(svenskTid(vecka.fran), "2026-11-23 00:00");
+    assert.equal(svenskTid(fredag.fran), "2026-11-27 00:00");
+    assert.equal(svenskTid(helg.fran), "2026-11-28 00:00");
+    assert.equal(svenskTid(helg.till), "2026-11-30 00:00");
+    assert.equal(new Date(vecka.fran).getUTCDay(), 0, "23:00 UTC en söndag är måndag 00:00 i Sverige");
+    assert.equal(new Date(fredag.fran).getUTCDay(), 4, "23:00 UTC en torsdag är fredag 00:00 i Sverige");
+  });
+
+  it("de tre tar vid efter varandra utan glapp", () => {
+    assert.equal(fredag.fran, vecka.till);
+    assert.equal(helg.fran, fredag.till);
+  });
+
+  it("rätt tema varje dag, och butiken som vanligt före och efter", () => {
+    assert.equal(aktivtTema(ms(vecka.fran) - 1), null); // söndag 22 november 23:59:59
+    for (const d of ["23", "24", "25", "26"]) assert.equal(aktivtTema(ms(`2026-11-${d}T11:00:00Z`)), "blackweek", d);
+    assert.equal(aktivtTema(ms(fredag.fran) - 1), "blackweek");
+    assert.equal(aktivtTema(ms(fredag.fran)), "blackfriday");
+    assert.equal(aktivtTema(ms("2026-11-27T11:00:00Z")), "blackfriday");
+    assert.equal(aktivtTema(ms(fredag.till) - 1), "blackfriday"); // fredag 23:59:59
+    for (const d of ["28", "29"]) assert.equal(aktivtTema(ms(`2026-11-${d}T11:00:00Z`)), "blackweekend", d);
+    assert.equal(aktivtTema(ms(helg.till) - 1), "blackweekend"); // söndag 23:59:59
+    assert.equal(aktivtTema(ms(helg.till)), null); // måndag 30 november 00:00
+    assert.equal(aktivtTema(ms("2027-11-27T11:00:00Z")), null);
+  });
+
+  it("skriptet sätter samma tema som aktivtTema, minut för minut över alla fyra skiftena", () => {
+    for (const mitt of [vecka.fran, vecka.till, fredag.till, helg.till]) {
+      for (let m = -3; m <= 3; m++) {
+        const nu = ms(mitt) + m * 60_000;
+        const vantat = aktivtTema(nu);
+        assert.deepEqual(korSkript(TEMA_SKRIPT, nu), vantat ? { "data-tema": vantat } : {}, `${mitt} ${m} min`);
+      }
+    }
+  });
+});
+
+// ── Provläget: ett kommande tema går att se på en förhandsvisning ────────
+describe("provläget (?tema=) finns bara på förhandsvisningar", () => {
+  /** Kör skriptet med en adress och ett minne som ligger kvar mellan körningarna. */
+  function korMedAdress(skript: string, nuMs: number, search: string, minne: Record<string, string> = {}): Record<string, string> {
+    const attribut: Record<string, string> = {};
+    const document = { documentElement: { setAttribute: (k: string, v: string) => (attribut[k] = v) } };
+    const sessionStorage = { getItem: (k: string) => minne[k] ?? null, setItem: (k: string, v: string) => void (minne[k] = v) };
+    runInNewContext(skript, { Date: { now: () => nuMs }, document, location: { search }, sessionStorage });
+    return attribut;
+  }
+  const prov = temaSkript(SASONGSTEMAN, true);
+  const idag = ms("2026-11-18T10:00:00Z"); // inget tema gäller
+  const fredag = ms("2026-11-27T10:00:00Z"); // blackfriday gäller
+
+  it("produktionens skript läser varken adressen eller minnet", () => {
+    assert.equal(temaSkript(SASONGSTEMAN), temaSkript(SASONGSTEMAN, false));
+    assert.doesNotMatch(temaSkript(SASONGSTEMAN), /location|sessionStorage|tema=/);
+    // Proven körs utan VERCEL_ENV, som produktionens bygge inte är "preview".
+    assert.doesNotMatch(TEMA_SKRIPT, /location|sessionStorage|tema=/);
+    assert.match(readFileSync(join(ROT, "lib/sasongstema.ts"), "utf8"), /TEMA_PROV = \(process\.env\.VERCEL_ENV \|\| ""\)\.trim\(\) === "preview"/);
+  });
+
+  it("?tema=namn slår på ett tema ur listan, oavsett datum", () => {
+    assert.deepEqual(korMedAdress(prov, idag, "?tema=blackweek"), { "data-tema": "blackweek" });
+    assert.deepEqual(korMedAdress(prov, idag, "?a=1&tema=blackfriday"), { "data-tema": "blackfriday" });
+    assert.deepEqual(korMedAdress(prov, fredag, "?tema=halloween"), { "data-tema": "halloween" });
+  });
+
+  it("ett namn som inte står i listan gör ingenting, och datumet gäller som vanligt", () => {
+    assert.deepEqual(korMedAdress(prov, idag, "?tema=hittepa"), {});
+    assert.deepEqual(korMedAdress(prov, idag, "?tema=Black%20Week"), {});
+    assert.deepEqual(korMedAdress(prov, fredag, "?tema=hittepa"), { "data-tema": "blackfriday" });
+    assert.deepEqual(korMedAdress(prov, idag, ""), {});
+    assert.deepEqual(korMedAdress(prov, fredag, ""), { "data-tema": "blackfriday" });
+  });
+
+  it("?tema=av visar butiken utan tema, också en dag då ett tema gäller", () => {
+    assert.deepEqual(korMedAdress(prov, fredag, "?tema=av"), {});
+  });
+
+  it("valet följer med till nästa sida i samma flik", () => {
+    const minne: Record<string, string> = {};
+    assert.deepEqual(korMedAdress(prov, idag, "?tema=blackweekend", minne), { "data-tema": "blackweekend" });
+    assert.deepEqual(korMedAdress(prov, idag, "", minne), { "data-tema": "blackweekend" });
+    assert.deepEqual(korMedAdress(prov, idag, "?tema=av", minne), {});
+    assert.deepEqual(korMedAdress(prov, idag, "", minne), {});
+  });
+
+  it("kastar aldrig, inte ens utan adress, minne eller dokument", () => {
+    assert.doesNotThrow(() => runInNewContext(prov, { Date: { now: () => idag } }));
+  });
+});
+
 describe("temanas datum", () => {
   it("inga två teman gäller samtidigt, så att det aldrig är oklart vilket som syns", () => {
     const sorterade = [...SASONGSTEMAN].sort((a, b) => ms(a.fran) - ms(b.fran));
@@ -178,6 +274,16 @@ describe("app/sasongstema.css", () => {
     assert.ok(text.includes("Singles Week · till söndag") && text.includes("Singles Week"), text.join(" | "));
     // Inga priser, procent eller ord som lovar ett erbjudande i något temas text.
     for (const t of text) assert.doesNotMatch(t, /%|\bkr\b|rabatt|rea\b|erbjudande|billig|spara|upp till/i, t);
+  });
+
+  it("Black Week-temana skriver ut sitt namn och sina dagar", () => {
+    const text = [...CSS.matchAll(/content:"([^"]*)"/g)].map((m) => m[1]).filter((t) => t !== "");
+    for (const t of ["Black Week · 23–29 november", "Black Friday · i dag", "Black Week · till söndag", "Black Week", "Black Friday", "Black", "Friday"]) {
+      assert.ok(text.includes(t), `"${t}" saknas: ${text.join(" | ")}`);
+    }
+    // Raden över rubriken tar butiksnamnets plats, men namnet står kvar i rubrikens text.
+    assert.match(CSS, /:root\[data-tema="blackweekend"\] \.h1-marke\{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset\(50%\);white-space:nowrap\}/);
+    assert.doesNotMatch(CSS, /\.h1-marke\{[^}]*display:none/);
   });
 
   it("animationerna har egna namn, inte butikens (@keyframes gäller överallt, temat eller ej)", () => {
