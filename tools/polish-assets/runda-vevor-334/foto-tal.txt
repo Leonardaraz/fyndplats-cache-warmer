@@ -1,0 +1,9 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+b97313dc 91,4 914 mm i källans spec och på måttbilden, 91,4 cm
+b97313dc 31,4 314 mm på måttbilden, 31,4 cm
+b97313dc 30,5 305 mm i källans spec och på måttbilden, 30,5 cm
+b97313dc 124,5 1245 mm i givarens spec och på måttbilden, 124,5 cm
+b97313dc 35,3 353 mm i givarens spec och på måttbilden, 35,3 cm
+b97313dc 47 470 mm i givarens spec och på måttbilden, 47 cm
+9fcc2edd 4 fyra T-formade klämmor, räknade på bild 5 (ett i varje hörn)
