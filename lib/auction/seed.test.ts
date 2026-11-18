@@ -60,7 +60,8 @@ describe("evaluateCandidate — enkel variant", () => {
       ...single,
       variants: [
         { wixVariantId: "billig-platt", listPrice: 369, landedCostSek: 460 }, // netto 368 → golv ≈ list → platt
-        { wixVariantId: "dyr-fallande", listPrice: 2859, landedCostSek: 1000 }, // faller djupt
+        // Under pristaket (2 000 kr), annars hade taket avvisat varan före marginalen.
+        { wixVariantId: "dyr-fallande", listPrice: 1859, landedCostSek: 1000 }, // faller djupt
       ],
     });
     expect(v).toEqual({ ok: false, reason: "thinMargin" });
@@ -178,6 +179,8 @@ describe("assignQueueOrder", () => {
 });
 
 describe("planSeed — vad seeden skriver", () => {
+  // Priserna ligger under pristaket (2 000 kr, lib/auction/pristak.ts): proven
+  // här gäller vad seeden skriver, inte vilka varor som kvalar in.
   const NOW = Date.parse("2026-09-28T02:00:00Z"); // 04:00 i Stockholm
   const cand = (id: string, list: number) => {
     const v = evaluateCandidate({ ...single, productId: id, slug: `s-${id}`, variants: [{ wixVariantId: `v-${id}`, listPrice: list, landedCostSek: 400 }] });
@@ -186,7 +189,7 @@ describe("planSeed — vad seeden skriver", () => {
   };
   const doc = (id: string, over: Partial<AuctionDoc>): AuctionDoc => ({
     _id: `auction-${id}`,
-    ...cand(id, 2199),
+    ...cand(id, 1199),
     slot: 0,
     status: "queued",
     queueOrder: 7,
@@ -195,8 +198,8 @@ describe("planSeed — vad seeden skriver", () => {
 
   it("live som väntar på 07:00 får dagens pris men behåller slot och start", () => {
     const start = "2026-09-28T05:00:00.000Z";
-    const prev = doc("a", { status: "live", slot: 3, startAt: start, lastPatchedPrice: 2199, lastPatchedStep: 0 });
-    const fresh = cand("a", 2419);
+    const prev = doc("a", { status: "live", slot: 3, startAt: start, lastPatchedPrice: 1199, lastPatchedStep: 0 });
+    const fresh = cand("a", 1419);
     const plan = planSeed([fresh], [prev], new Map([["a", 1]]), NOW);
     expect(plan.refreshedLive).toEqual(["s-a"]);
     const saved = plan.toSave[0];
@@ -204,15 +207,15 @@ describe("planSeed — vad seeden skriver", () => {
     expect(saved.slot).toBe(3);
     expect(saved.startAt).toBe(start);
     expect(saved.queueOrder).toBe(7);
-    expect(saved.listPrice).toBe(2419);
-    expect(saved.ladder[0]).toBe(2419);
-    expect(saved.lastPatchedPrice).toBe(2419);
+    expect(saved.listPrice).toBe(1419);
+    expect(saved.ladder[0]).toBe(1419);
+    expect(saved.lastPatchedPrice).toBe(1419);
     expect(saved.lastPatchedStep).toBe(0);
   });
 
   it("startad live-dag rörs aldrig", () => {
     const prev = doc("a", { status: "live", slot: 1, startAt: "2026-09-28T01:00:00.000Z" });
-    const plan = planSeed([cand("a", 2419)], [prev], new Map(), NOW);
+    const plan = planSeed([cand("a", 1419)], [prev], new Map(), NOW);
     expect(plan.toSave).toHaveLength(0);
     expect(plan.skippedLive).toEqual(["s-a"]);
   });
@@ -234,10 +237,10 @@ describe("planSeed — vad seeden skriver", () => {
   });
 
   it("köade och nya får status queued och köordning, avslutade behåller historiken", () => {
-    const sold = doc("c", { status: "sold", endedAt: "2026-09-01T10:00:00Z", soldPrice: 1999 });
-    const plan = planSeed([cand("c", 2419), cand("d", 999)], [sold], new Map([["c", 2], ["d", 1]]), NOW);
+    const sold = doc("c", { status: "sold", endedAt: "2026-09-01T10:00:00Z", soldPrice: 1099 });
+    const plan = planSeed([cand("c", 1419), cand("d", 999)], [sold], new Map([["c", 2], ["d", 1]]), NOW);
     const byId = new Map(plan.toSave.map((d) => [d.productId, d]));
-    expect(byId.get("c")).toMatchObject({ status: "sold", soldPrice: 1999, queueOrder: 2, listPrice: 2419 });
+    expect(byId.get("c")).toMatchObject({ status: "sold", soldPrice: 1099, queueOrder: 2, listPrice: 1419 });
     expect(byId.get("d")).toMatchObject({ status: "queued", slot: 0, queueOrder: 1, _id: "auction-d" });
   });
 });

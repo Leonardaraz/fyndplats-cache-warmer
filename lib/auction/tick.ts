@@ -12,7 +12,8 @@
 //      nya pris. Ett framtida startAt ger steg 0 och ingen PATCH.
 //   4. PÅFYLLNING: färre levande än nästa starts antal (lib/auction/antal.ts) ⇒
 //      kö-produkter främjas med start nästa 07:00. Sinar kön återvinns
-//      avslutade, men aldrig en som slutade inom 30-dagarsfönstret.
+//      avslutade, men aldrig en som slutade inom 30-dagarsfönstret. En rad
+//      över pristaket (2 000 kr, lib/auction/pristak.ts) främjas aldrig.
 //   5. BUTIKEN: produkterna vars pris ändrades skickas till butiken, som
 //      tömmer och värmer deras sidor.
 //
@@ -49,6 +50,7 @@ import { isExpired, nextStartAt, priceAt, stepIndexAt, type AuctionDoc } from ".
 import { attFramja, auktionerFor, ledigaSlots } from "./antal";
 import { forstaSankning, slutadeInomFonstret } from "./trettio-dagar";
 import { framjbar, type ProduktNu } from "./framjbar";
+import { overPristak } from "./pristak";
 import { isProductGone, type Skrivlage } from "./store";
 
 /** Så många Wix-anrop ticken har i luften samtidigt. */
@@ -313,7 +315,11 @@ export async function korTick(d: TickBeroenden, val: TickVal = {}): Promise<Tick
       // Inga främjanden efter budgeten, och inga in i nästa fönster.
       const framjaSlut = Math.min(slutMs, fonster - (val.synkMarginalMs ?? SYNK_MARGINAL_MS));
       const freeSlots = ledigaSlots(new Set(live.map((a) => a.slot)), behov);
-      let pool: AuctionDoc[] = [...queued];
+      // Pristaket (lib/auction/pristak.ts): en rad över taket främjas aldrig.
+      // Den köade står kvar tills nattens seed tar bort den; den avslutade
+      // prövas här, för seeden rör inte avslutade rader.
+      const koade = queued.filter((a) => !overPristak(a));
+      let pool: AuctionDoc[] = [...koade];
       if (pool.length < freeSlots.length) {
         const ended = await d.lasAuktioner(["sold", "expired"]);
         // 30-dagarsspärren: en vara vars förra auktion slutade inom fönstret får
@@ -322,9 +328,10 @@ export async function korTick(d: TickBeroenden, val: TickVal = {}): Promise<Tick
         const recyclable = ended
           .filter((e) => e.floorPrice < e.listPrice) // hoppa produkter utan rabattutrymme
           .filter((e) => !slutadeInomFonstret(e, tSankning))
+          .filter((e) => !overPristak(e))
           .sort((x, y) => Date.parse(x.endedAt ?? "1970-01-01") - Date.parse(y.endedAt ?? "1970-01-01"));
         pool = pool.concat(recyclable);
-        if (recyclable.length > 0) r.recycled = recyclable.slice(0, freeSlots.length - queued.length).map((x) => x.slug);
+        if (recyclable.length > 0) r.recycled = recyclable.slice(0, freeSlots.length - koade.length).map((x) => x.slug);
       }
 
       // Kandidater vars produkt raderats ur katalogen hoppas över (och raden

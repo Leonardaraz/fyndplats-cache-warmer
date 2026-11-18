@@ -440,3 +440,70 @@ describe("☠️ främjandet kräver varans pris just nu (fynden 12–14/11)", (
   });
 });
 
+describe("☠️ pristaket: ingen rad över 2 000 kr främjas (Leonard 2026-11-18)", () => {
+  // 20:00 svensk tid: dagens fynd är slut, och tio ska schemaläggas till i morgon.
+  const KVALL = "2026-11-10T19:05:00Z";
+  const dyrtSpar = (id: string) => [
+    { wixVariantId: `liten-${id}`, listPrice: 1499, floorPrice: 1279, ladder: buildLadder(1499, 1279) },
+    { wixVariantId: `stor-${id}`, listPrice: 2899, floorPrice: 2469, ladder: buildLadder(2899, 2469) },
+  ];
+
+  it("en köad rad över taket främjas inte, läses inte i Wix och står kvar i kön", async () => {
+    const rader = ko(12);
+    rader[0] = { ...rader[0], listPrice: 2499, floorPrice: 2129, ladder: buildLadder(2499, 2129) };
+    // Kortet visar 1 499 kr, men den stora storleken kostar 2 899 kr.
+    rader[3] = { ...rader[3], listPrice: 1499, floorPrice: 1279, ladder: buildLadder(1499, 1279), variantPrices: dyrtSpar("p1003") };
+    const lasta: string[] = [];
+    const w = varld({ nu: KVALL, rader });
+    const produktNu = w.d.produktNu;
+    w.d.produktNu = (id) => {
+      lasta.push(id);
+      return produktNu(id);
+    };
+    const r = await korTick(w.d);
+    expect(r.promoted.map((x) => x.slug)).toEqual(["s1001", "s1002", "s1004", "s1005", "s1006", "s1007", "s1008", "s1009", "s1010", "s1011"]);
+    expect(lasta).not.toContain("p1000");
+    expect(lasta).not.toContain("p1003");
+    // Raderna står kvar tills nattens seed tar bort dem: inget raderas här.
+    expect(w.borttagna).toEqual([]);
+    const sparade = w.sparningar.flat().map((x) => x.slug);
+    expect(sparade).not.toContain("s1000");
+    expect(sparade).not.toContain("s1003");
+    expect(r.prisHoppade).toBeUndefined();
+    expect(r.errors).toEqual([]);
+  });
+
+  it("exakt 2 000 kr främjas", async () => {
+    const rader = ko(10);
+    rader[0] = { ...rader[0], listPrice: 2000, floorPrice: 1709, ladder: buildLadder(2000, 1709) };
+    const r = await korTick(varld({ nu: KVALL, rader }).d);
+    expect(r.promoted).toHaveLength(10);
+    expect(r.promoted[0].slug).toBe("s1000");
+  });
+
+  it("☠️ en avslutad rad över taket återvinns inte när kön sinar", async () => {
+    // Seeden rör inte avslutade rader, så taket måste prövas här.
+    const gammal = "2026-09-01T17:00:00.000Z";
+    const avslutade = [
+      auktion(1, { status: "expired", endedAt: gammal, listPrice: 2499, floorPrice: 2129, ladder: buildLadder(2499, 2129) }),
+      auktion(2, { status: "sold", endedAt: gammal }),
+      auktion(3, { status: "expired", endedAt: gammal, listPrice: 1499, floorPrice: 1279, ladder: buildLadder(1499, 1279), variantPrices: dyrtSpar("p3") }),
+    ];
+    const w = varld({ nu: KVALL, rader: ko(8), avslutade });
+    const r = await korTick(w.d);
+    expect(r.promoted).toHaveLength(9);
+    expect(r.promoted.map((x) => x.slug)).toContain("s2");
+    expect(r.promoted.map((x) => x.slug)).not.toContain("s1");
+    expect(r.promoted.map((x) => x.slug)).not.toContain("s3");
+    expect(r.recycled).toEqual(["s2"]);
+  });
+
+  it("bara rader över taket i kön: färre fynd, aldrig ett över taket", async () => {
+    const rader = ko(12).map((a, i) => (i % 2 === 0 ? { ...a, listPrice: 2499, floorPrice: 2129, ladder: buildLadder(2499, 2129) } : a));
+    const r = await korTick(varld({ nu: KVALL, rader }).d);
+    expect(r.promoted).toHaveLength(6);
+    expect(r.promoted.every((x) => Number(x.slug.slice(1)) % 2 === 1)).toBe(true);
+    // Kön tog slut: inget "kvar" (taket ändras inte till nästa tick).
+    expect(r.kvar.framjanden).toBe(0);
+  });
+});

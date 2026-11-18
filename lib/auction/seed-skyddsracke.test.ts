@@ -1,5 +1,6 @@
 // Seedens skyddsräcke räknar bara det som försvinner, inte det 30-dagarsspärren
-// stoppar (2026-11-14). Se raknaForsvunna i ./seed och rutten app/api/cron/auction-seed.
+// stoppar (2026-11-14) och inte det pristaket stoppar (2026-11-18). Se
+// raknaForsvunna i ./seed och rutten app/api/cron/auction-seed.
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { raknaForsvunna } from "./seed";
@@ -22,13 +23,31 @@ describe("raknaForsvunna", () => {
     expect(forsvunna).toBe(13);
     expect(forsvunna).toBeLessThanOrEqual(grans);
   });
+
+  it("natten pristaket infördes: 118 av 773 över taket ger inget stopp", () => {
+    // Mätt 2026-11-18 i FyndplatsAuctions. Utan undantaget hade 118 + nattens
+    // vanliga bortfall legat nära gränsen 155, och efter en priskörning som
+    // lyfter många varor över taket hade seeden stått still igen.
+    const ids = Array.from({ length: 130 }, (_, i) => `p${i}`);
+    const taket = new Set(ids.slice(0, 118));
+    const forsvunna = raknaForsvunna(rader(ids), taket);
+    expect(forsvunna).toBe(12);
+    expect(forsvunna).toBeLessThanOrEqual(Math.max(50, Math.ceil(773 * 0.2)));
+  });
+
+  it("☠️ men 200 som försvinner utan skäl stoppar fortfarande, också när taket tar 118 till", () => {
+    const ids = Array.from({ length: 318 }, (_, i) => `p${i}`);
+    const taket = new Set(ids.slice(0, 118));
+    expect(raknaForsvunna(rader(ids), taket)).toBe(200);
+    expect(200).toBeGreaterThan(Math.max(50, Math.ceil(773 * 0.2)));
+  });
 });
 
 describe("rutten väger räcket på det som försvann", () => {
   const rutt = readFileSync(new URL("../../app/api/cron/auction-seed/route.ts", import.meta.url), "utf8");
 
   it("räcket jämför forsvunna, inte alla borttagningar, med gränsen", () => {
-    expect(rutt).toMatch(/const forsvunna = raknaForsvunna\(toRemove, sparrStoppade\);/);
+    expect(rutt).toMatch(/const forsvunna = raknaForsvunna\(toRemove, new Set\(\[\.\.\.sparrStoppade, \.\.\.takStoppade\]\)\);/);
     expect(rutt).toMatch(/if \(apply && !force && forsvunna > removeLimit\) \{/);
     expect(rutt).not.toMatch(/toRemove\.length > removeLimit/);
   });
@@ -43,8 +62,17 @@ describe("rutten väger räcket på det som försvann", () => {
     expect(iRacke).toBeGreaterThan(iHistorikFel);
   });
 
-  it("rapporten visar båda talen", () => {
-    expect(rutt).toMatch(/removeFromQueueSparren: toRemove\.length - forsvunna,/);
-    expect(rutt).toMatch(/Skulle ta bort \$\{forsvunna\} av \$\{queuedBefore\} köade utan spärrens skäl/);
+  it("bara det pristaket AVVISAR räknas som belagt: skälet kommer ur seedens eget avslag", () => {
+    expect(rutt).toMatch(/if \(verdict\.reason === "overPristak"\) takStoppade\.add\(row\.id\);/);
+    // Inget annat lägger något i mängden.
+    expect(rutt.match(/takStoppade\.add\(/g)).toHaveLength(1);
+    expect(rutt).toMatch(/overPristak: 0,/);
+  });
+
+  it("rapporten visar talen var för sig", () => {
+    expect(rutt).toMatch(/const borttagnaPristak = toRemove\.filter\(\(x\) => takStoppade\.has\(x\.productId\)\)\.length;/);
+    expect(rutt).toMatch(/removeFromQueueSparren: toRemove\.length - forsvunna - borttagnaPristak,/);
+    expect(rutt).toMatch(/removeFromQueuePristak: borttagnaPristak,/);
+    expect(rutt).toMatch(/Skulle ta bort \$\{forsvunna\} av \$\{queuedBefore\} köade utan spärrens eller pristakets skäl/);
   });
 });

@@ -43,7 +43,8 @@ två omgångar (kl 08 och kl 19). `antal.test.ts` låser varje datum och överg�
 - generalrepetitionen med 50 fynd onsdag 18/11 är gjord och mätt (Leonards ja 2026-11-14);
 - kön räcker: 15–29/11 tar cirka 520 olika produkter (tio om dagen, 50 den 18/11 och veckans
   400 = 6 × 50 + 100), och 30-dagarsspärren släpper aldrig samma vara två gånger. Kön hade
-  862 fynd 2026-11-14.
+  862 fynd 2026-11-14. Med pristaket (nedan) blir det 655 av 773 den 18/11, mot cirka 440
+  som återstår till 29/11.
 
 ### Ticken klarar 50 och 100 om dagen (`lib/auction/tick.ts`, planens del C2)
 
@@ -166,3 +167,48 @@ slutade osålda, och ingen order sedan 12/11 innehöll någon av dem.
 
 Därför egenskap 9 ovan: ticken främjar inte en rad vars pris inte längre är varans pris, också
 om seeden skulle falla en natt till.
+
+### Pristaket: inget fynd över 2 000 kr (`lib/auction/pristak.ts`, 2026-11-18)
+
+Leonard 2026-11-18: "kan du göra så fyndauktionen inte har grejer som är dyrare än 2000 kr".
+`AUKTION_PRISTAK_KR` = 2000, ordinarie pris inklusive moms. Exakt 2 000 kr får vara med.
+
+**Varje variant räknas**, inte bara den billigaste som kortet visar. En sida "från 1 499 kr"
+med en storlek för 2 899 kr hade annars sålt den dyra storleken till auktionspris. Den 18/11
+gav de två läsningarna samma tal (118), eftersom nästan inga produkter med flera varianter
+har kommit igenom 30-dagarsspärren än; från december skiljer de sig.
+
+Taket prövas på tre ställen, och alla behövs:
+
+1. **Seeden** (`evaluateCandidate`, skälet `overPristak`): varan lämnar urvalet. En köad rad
+   och en schemalagd rad som inte startat tas då bort av `planSeed`, och ticken fyller platsen
+   före 07. En startad auktion rörs aldrig mitt i sin dag.
+2. **Ticken** (`korTick`): en rad över taket främjas aldrig. Det täcker tiden mellan
+   driftsättningen och första seeden. ☠️ Det täcker också de AVSLUTADE raderna: dem rör seeden
+   inte, och ticken återvinner dem när kön sinar.
+3. **Skyddsräcket** (`raknaForsvunna`): det taket stoppar räknas inte som försvunnet, på
+   samma sätt som spärrens avslag. Annars står seeden still nästa gång en priskörning lyfter
+   många varor över taket, som den gjorde 12–14/11. Rapporten visar talet för sig
+   (`removeFromQueuePristak`, och `excluded.overPristak` för hela katalogen).
+
+Taket byts genom att ändra konstanten. Det står inte i `FyndplatsAppConfig`: en ändring ska
+gå genom proven.
+
+**Mätt 2026-11-18 (bara läsning i `FyndplatsAuctions`):** 773 köade, 118 med någon variant
+över 2 000 kr, 655 kvar. Morgondagens tio schemalagda låg alla på högst 1 999 kr.
+
+**En avslutad rad med gammalt pris slinker inte igenom.** En rad vars pris höjts över taket
+EFTER dess senaste auktion bär sitt gamla, lägre pris, och taket ser den inte. Återvinns den,
+stoppar prisjämförelsen vid främjandet den (`framjbar`, egenskap 9: radens pris är inte varans
+pris just då).
+
+**"Varför är inte de nya varorna med?"** (Leonard samma dag). Seeden läser HELA katalogen
+varje natt, så ingen vara behöver läggas till för hand, och ingen saknade kostnad (`noCost`
+0). Det som håller nya varor utanför är 30-dagarsspärren. Dagens rapport (2026-11-18):
+18 226 produkter i katalogen, 10 670 dolda utkast, 993 slut i lager, 156 med rea, 45 med för
+tunn marginal. Av de 6 362 som prövades stoppade spärren 5 458: 3 080 där historiken inte
+täcker hela fönstret (`ofullstandig`, mest produkter med flera varianter, som har
+timhistorik först från 2026-11-01), 304 nya i butiken (`ny`), 1 869 med ett lägre pris de
+senaste 30 dagarna (`lagre_pris`, efter priskörningen 11/11) och 205 som nyss auktionerats.
+De kommer in av sig själva när deras 30 dagar har gått. Att släppa in dem tidigare vore att
+visa ett överstruket pris som lagen inte tillåter.
