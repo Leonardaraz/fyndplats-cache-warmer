@@ -1,0 +1,79 @@
+{
+  "5c442341": {
+    "productId": "5c442341-7a73-4fd4-b730-fda26bfb380b",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": []
+  },
+  "accd51d8": {
+    "productId": "accd51d8-b9ab-4531-bbcf-890978808a19",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1geg8k9",
+        "betyg": 5,
+        "datum": "2026-08-13",
+        "kopt": "2,74 x 3,66 m",
+        "foton": 0,
+        "text": "This jewels my rug in place and is also extra cushion for my rug since it is thin. I love the large size and low price. I would definitely buy again"
+      },
+      {
+        "id": "gen-c2edpb",
+        "betyg": 5,
+        "datum": "2026-06-11",
+        "kopt": "1,52 x 2,13 m",
+        "foton": 0,
+        "text": "Ein sehr guter Unterleger für diesen Preis."
+      },
+      {
+        "id": "gen-1d9vtum",
+        "betyg": 5,
+        "datum": "2026-05-21",
+        "kopt": "2,74 x 3,66 m",
+        "foton": 0,
+        "namn": true,
+        "text": "For the price, this thing is great and it is exactly as described. The one I ordered is on the thin side for a ‹NAMN› ‹NAMN›, but that's what I needed and wanted so I am very satisfied. I have not been disappointed by a Vevor product yet."
+      },
+      {
+        "id": "gen-k75n43",
+        "betyg": 5,
+        "datum": "2026-05-13",
+        "kopt": "0,91 x 1,52 m",
+        "foton": 0,
+        "text": "Wish I'd bought this earlier! It eliminates all rug shifting and makes the carpet feel much more stable underfoot."
+      },
+      {
+        "id": "gen-1nq4rxp",
+        "betyg": 5,
+        "datum": "2026-04-17",
+        "kopt": "0,91 x 1,52 m",
+        "foton": 0,
+        "text": "The quality of this carpet pad is fantastic. It's thick enough for comfort but not too bulky, and the grip is excellent."
+      },
+      {
+        "id": "gen-eyrs97",
+        "betyg": 5,
+        "datum": "2026-03-07",
+        "kopt": "2,74 x 3,66 m",
+        "foton": 0,
+        "text": "It’s a good rug pad, I think. Can’t complain but also don’t know what a bad rug pad would look like"
+      }
+    ]
+  },
+  "435edb44": {
+    "productId": "435edb44-4013-4e76-8ead-b5cf5a35aacf",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  }
+}
