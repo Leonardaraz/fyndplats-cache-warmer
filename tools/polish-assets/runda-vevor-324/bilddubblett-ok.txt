@@ -13,4 +13,3 @@ f83e9f58 10 15 olika längd: varje längd visar bara sina egna bilder
 f83e9f58 6 11 olika längd: varje längd visar bara sina egna bilder
 f83e9f58 6 16 olika längd: varje längd visar bara sina egna bilder
 f83e9f58 11 16 olika längd: varje längd visar bara sina egna bilder
-f83e9f58 1 3 samma bild: position 3 tas bort med Bilder bort direkt efter skrivningen, eftersom en länkad bild inte får stå i skrivplanen
