@@ -1,0 +1,3 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+9b1332de 136 300 lbs på infografiken, avrundat nedåt till 136 kg (lb till kg), lägre än specifikationens 150 kg

@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader saknar axelord som skriptet läser. Skenornas mått skrivs som längd × bredd × tjocklek efter specifikationen och måttritningarna (skjutdörrsbeslaget och skensatserna), och måtten står i källans tum- och mm-rader utan axelord
