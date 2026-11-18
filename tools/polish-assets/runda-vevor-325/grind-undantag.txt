@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader saknar axelord som skriptet läser. Hörnställets och läderpressens mått skrivs utan axelord utom höjden, som följer måttbildens ritning (610 respektive 300 mm)
