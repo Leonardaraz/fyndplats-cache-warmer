@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader saknar axelord som skriptet läser. Mått, fackstorlek och vikt skrivs som egna rader efter specifikationerna, och källans specifikationer anger dem utan axelord

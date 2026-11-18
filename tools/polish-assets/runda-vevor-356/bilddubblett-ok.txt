@@ -1,0 +1,5 @@
+61853b21 2 7 samma bild av personen i hängmattan i två färger (Blå och Vit): färgerna syns aldrig tillsammans, och varje färgs val har sina egna bilder
+61853b21 2 12 samma bild av personen i hängmattan i två färger (Blå och Grön): färgerna syns aldrig tillsammans, och varje färgs val har sina egna bilder
+61853b21 7 12 samma bild av personen i hängmattan i två färger (Vit och Grön): färgerna syns aldrig tillsammans, och varje färgs val har sina egna bilder
+61853b21 4 9 samma vy av den hängande hängmattan i två färger (Blå och Vit): färgerna syns aldrig tillsammans, och varje färgs val har sina egna bilder
+61853b21 4 14 samma vy av den hängande hängmattan i två färger (Blå och Grön): färgerna syns aldrig tillsammans, och varje färgs val har sina egna bilder
