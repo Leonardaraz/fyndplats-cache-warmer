@@ -1,0 +1,5 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+39b0d068 tre sidans tre storleksval: 135 × 84 cm, 152 × 92 cm och 92 × 92 cm
+585bb666 tre tre trappsteg, räknade på produktfotot (position 1, 3, 5 och 6) och på ritningen
+585bb666 150 bredden 1500 mm på ritningen och i specifikationen skriven som 150 cm (mm till cm)
