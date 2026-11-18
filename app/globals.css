@@ -498,60 +498,79 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
    antalet fick dem att overlappa med nagra pixlar. Antalet ar det minst
    informativa av de tre, sa det ar det som gar. */
 @media(max-width:880px){.hrating{top:8px;right:8px;font-size:var(--text-xs);padding:4px 8px;gap:4px}.herotile .hrating-stars{font-size:var(--text-xs)}.hrating-count{display:none}}
-/* Hjältens entré (Leonard 2026-11-16: "texten verkar falla in till hero
-   sektionen men det är inte smooth, det hackar in. Kan man inte göra det sådär
-   3d sexigt"). Förut gled rubriken 16 px rakt upp utan toning medan resten
-   tonade in var för sig, på 0,62 s. Nu reser sig rubriken och brickorna i
-   djupled: de börjar lutade bakåt och en bit bort, och fälls upp mot
-   betraktaren med en lång mjuk inbromsning.
-   ☠️ Tre saker som inte ska ändras:
-   1. Rubriken och brickorna rör sig BARA med transform, aldrig opacitet.
-      Rubriken är sidans största element (LCP), och det som börjar på
-      opacitet 0 räknas inte som ritat förrän toningen är klar (+0,84 s LCP
-      med brickorna, Lighthouse mobil 2026-10-07).
-   2. Slutläget är samma funktioner med nollor, inte "none": då räknar
-      webbläsaren varje del för sig hela vägen, i stället för att väga ihop två
-      matriser.
-   3. "backwards", inte "both": efter sista rutan släpper animationen
-      elementet, så att brickans egen hover-rörelse fungerar och inget extra
-      ritlager blir kvar. Slutläget är oförvrängt, så inget hoppar när den släpper.
-   4. Kurvan börjar mjukt (cubic-bezier(.4,0,.1,1)): 3 % av rörelsen på de
-      första 10 % av tiden och 16 % på de första 20 %. Förra kurvan
-      (.16,1,.3,1) gjorde 49 % och 75 %, alltså nästan allt under de första
-      0,2 sekunderna, och just då byts typsnittet in, brickornas bilder landar
-      och sidan gör sitt tyngsta arbete (mätt 2026-11-18 på kall mobil med
-      strypt nät: typsnittet 130 till 160 ms efter första ritningen, två
-      brickbilder 150 till 230 ms efter, och en lång uppgift på huvudtråden
-      i samma ögonblick). Leonard på en iPhone 15: "den är lite hackig".
-      Nu rör sig hjälten först när det har landat.
-      Texten under rubriken tonar in för sig (heroTona, kort och rak) och
-      glider för sig (heroGlid, samma mjuka kurva): då går den att läsa
-      direkt, och rörelsen kommer efteråt.
-   Allt stängs av under prefers-reduced-motion (längre ned). */
-@keyframes heroRes{from{transform:perspective(900px) translate3d(0,28px,-80px) rotateX(20deg)}to{transform:perspective(900px) translate3d(0,0,0) rotateX(0deg)}}
-@keyframes brickaRes{from{transform:perspective(1000px) translate3d(0,30px,-110px) rotateX(16deg) rotateY(-12deg)}to{transform:perspective(1000px) translate3d(0,0,0) rotateX(0deg) rotateY(0deg)}}
-@keyframes heroTona{from{opacity:0}to{opacity:1}}
-@keyframes heroGlid{from{transform:translate3d(0,22px,0)}to{transform:translate3d(0,0,0)}}
-/* Studion (app/startsida.css). På mobilen reser sig hela raden med brickor som
-   en yta (radRes), inte bricka för bricka: varje bricka bär en spegling där,
-   och fyra speglade ytor som rör sig var för sig är dyrt för telefonen.
-   Svepet är ett ljusband som går över knappen en gång; det vilar utanför
-   knappen åt höger. */
-@keyframes radRes{from{transform:perspective(900px) translate3d(0,34px,-70px) rotateX(13deg)}to{transform:perspective(900px) translate3d(0,0,0) rotateX(0deg)}}
+/* ── Hjältens entré: studion vaknar (Leonard 2026-11-18) ─────────────────
+   Texten står på plats från första bildrutan. När sidan är färdigladdad och
+   lugn tänds ljuskäglan, varorna reser sig ur mörkret i djupled, texten lyfter
+   sig några pixlar och ett ljussvep går över knappen.
+
+   ☠️ VARFÖR DEN VÄNTAR. Förra entrén började vid första bildrutan, och
+   Leonard såg den hacka på en iPhone 15, två gånger. Under den första halva
+   sekunden byts typsnittet in, brickornas bilder landar och sidan väcks
+   (mätt på kall mobil med strypt nät: typsnittet 86 till 126 ms efter första
+   bildrutan, två brickbilder cirka 320 ms efter, och huvudtråden stilla i 200
+   till 320 ms i samma ögonblick). En rörelse som går just då hackar, hur den
+   än är ritad. Nu startar den först när inget annat händer:
+
+   1. Skriptet först i sidan (INTRO_EN_GANG i components/site.tsx) sätter
+      data-entre="vantar" på <html>, bara på startsidan, bara första gången i
+      fliken och aldrig för den som bett om mindre rörelse.
+   2. I väntläget hålls varorna nästan osynliga och texten 12 px lägre. Det
+      är startrutan i en animation med fördröjning (backwards), inte en fast
+      stil.
+   3. components/hero-entre.tsx byter till "gar" när sidan är väckt,
+      typsnittet och brickornas bilder är inne och bildrutorna kommer jämnt
+      (lib/hero-entre.ts), och tar bort attributet när allt har landat.
+
+   ☠️ Fyra saker som inte ska ändras:
+   1. Väntläget har en egen utgång. Animationen i "vantar" spelar av sig själv
+      efter 2,4 s, så varorna syns också om skriptet aldrig byter läge. Utan
+      attributet finns ingen entré alls: sidan är hel och stilla.
+   2. Texten rör sig BARA med transform, aldrig opacitet. Rubriken är sidans
+      största element (LCP), och det som börjar på opacitet 0 räknas inte som
+      ritat förrän toningen är klar (+0,84 s LCP, Lighthouse mobil 2026-10-07).
+      Varorna tonar in från 0,01 och inte från 0: då ritas deras yta i förväg.
+   3. Slutläget är samma funktioner med nollor, inte "none", och varje läge
+      börjar i samma ruta som det förra slutar i. Annars hoppar något vid bytet.
+      ☠️ Väntläget och entrén har EGNA nyckelrutor med samma startruta
+      (vantaLyft och textLyft, vantaTona och framTona, vantaLjus och
+      ljusTands). Med samma namn i båda lägena startar webbläsaren ingen ny
+      animation vid bytet: den fortsätter den som redan går, med de nya
+      tiderna, och den har då redan gått förbi sitt slut. Texten och toningen
+      hoppade rakt till slutläget (mätt 2026-11-18, bildruta för bildruta).
+   4. Kurvan börjar mjukt (cubic-bezier(.4,0,.1,1)): 3 % av rörelsen på de första
+      10 % av tiden. lib/natten.test.ts räknar om det.
+   På mobilen reser sig hela raden med brickor som en yta (radRes): varje
+   bricka bär en spegling där, och fyra speglade ytor som rör sig var för sig
+   är dyrt för telefonen. På dator reser sig brickorna en och en. */
+@keyframes vantaTona{from{opacity:.01}to{opacity:1}}
+@keyframes vantaLyft{from{transform:translate3d(0,12px,0)}to{transform:translate3d(0,0,0)}}
+@keyframes vantaLjus{from{opacity:.12}to{opacity:1}}
+@keyframes framTona{from{opacity:.01}to{opacity:1}}
+@keyframes brickaRes{from{transform:perspective(1000px) translate3d(0,44px,-120px) rotateX(18deg) rotateY(-12deg)}to{transform:perspective(1000px) translate3d(0,0,0) rotateX(0deg) rotateY(0deg)}}
+@keyframes radRes{from{transform:perspective(900px) translate3d(0,40px,-80px) rotateX(14deg)}to{transform:perspective(900px) translate3d(0,0,0) rotateX(0deg)}}
+@keyframes textLyft{from{transform:translate3d(0,12px,0)}to{transform:translate3d(0,0,0)}}
+@keyframes ljusTands{from{opacity:.12}to{opacity:1}}
 @keyframes knappSvep{from{transform:translate3d(-140%,0,0) skewX(-18deg)}to{transform:translate3d(340%,0,0) skewX(-18deg)}}
+html[data-entre="vantar"] .heroinner{animation:vantaLyft .6s ease-out 2.4s backwards}
+html[data-entre="vantar"] .herotile{animation:vantaTona .6s ease-out 2.4s backwards}
+html[data-entre="vantar"] .herogrid::after{animation:vantaLjus .6s ease-out 2.4s backwards}
+html[data-entre="gar"] .heroinner{animation:textLyft 1s cubic-bezier(.4,0,.1,1) backwards}
+html[data-entre="gar"] .herotile{animation:framTona .5s ease-out backwards,brickaRes 1.1s cubic-bezier(.4,0,.1,1) backwards;transform-origin:50% 100%;animation-delay:.12s}
+html[data-entre="gar"] .mcol:first-child .herotile:nth-child(2){animation-delay:.22s}
+html[data-entre="gar"] .mcol-offset .herotile:nth-child(1){animation-delay:.32s}
+html[data-entre="gar"] .mcol-offset .herotile:nth-child(2){animation-delay:.42s}
+html[data-entre="gar"] .herogrid::after{animation:ljusTands .9s ease-out backwards}
+html[data-entre="gar"] .hero .btn-primary::after{animation:knappSvep 1.15s cubic-bezier(.3,.6,.3,1) 1.1s backwards}
+@media(max-width:880px){
+  html[data-entre="vantar"] .hem2 .hero .heromosaic{animation:vantaTona .6s ease-out 2.4s backwards}
+  html[data-entre="gar"] .hem2 .hero .heromosaic{animation:framTona .5s ease-out backwards,radRes 1.1s cubic-bezier(.4,0,.1,1) backwards;transform-origin:50% 100%;animation-delay:.1s}
+}
+@media(prefers-reduced-motion:reduce){
+  html[data-entre] .herogrid::after,html[data-entre] .hero .btn-primary::after{animation:none}
+}
 @keyframes heroLift{from{transform:translateY(16px)}to{transform:none}}
 @keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
 @keyframes glowDrift{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-26px,20px) scale(1.1)}}
-.heroinner>*{animation:heroTona .5s ease-out backwards,heroGlid 1s cubic-bezier(.4,0,.1,1) backwards}
-.heroinner>*:nth-child(2){animation-delay:.04s}
-.heroinner>*:nth-child(3){animation-delay:.12s}
-.heroinner>*:nth-child(4){animation-delay:.19s}
-.heroinner>*:nth-child(5){animation-delay:.26s}
-.hero h1{animation:heroRes 1.05s cubic-bezier(.4,0,.1,1) backwards;transform-origin:50% 100%}
-.herotile{animation:brickaRes 1.1s cubic-bezier(.4,0,.1,1) backwards;transform-origin:50% 100%;animation-delay:.1s}
-.mcol:first-child .herotile:nth-child(2){animation-delay:.18s}
-.mcol-offset .herotile:nth-child(1){animation-delay:.26s}
-.mcol-offset .herotile:nth-child(2){animation-delay:.34s}
 .mcol{animation:heroFloat 6s ease-in-out infinite}
 .mcol-offset{animation-duration:7.6s;animation-delay:-2.6s}
 

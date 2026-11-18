@@ -16,6 +16,7 @@ import { harStripe } from "@/lib/kassa/stripe";
 import { STRIPE_JS } from "@/lib/kassa/stripe-klient";
 import { LAST_KORG_KAKA } from "@/lib/kassa/lastkorg";
 import { lastKorgForKassan } from "@/lib/kassa/medlemskassa";
+import { inloggad } from "@/lib/medlem/inloggad";
 import { Kassa } from "./kassa";
 
 export const metadata: Metadata = {
@@ -41,5 +42,14 @@ export default async function KassaSida() {
   // läser inte längre Google-betyget (borttaget 2026-11-15, Leonard): raden
   // stod sist på mobil, och hämtningen låg i varje kassasidas svarstid.
   const last = stripeNyckel ? await lastKorgForKassan() : null;
-  return <Kassa stripeNyckel={stripeNyckel} last={last} />;
+  // Den inloggade medlemmens e-post följer med till kassan (Leonard 2026-11-18),
+  // också när korgen är besökarens vanliga. Utan inloggning, eller om sessionen
+  // inte går att läsa, är fältet tomt som förut.
+  let medlemsEpost: string | null = null;
+  try {
+    medlemsEpost = (await inloggad())?.email ?? null;
+  } catch {
+    medlemsEpost = null;
+  }
+  return <Kassa stripeNyckel={stripeNyckel} last={last} medlemsEpost={medlemsEpost} />;
 }

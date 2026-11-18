@@ -16,6 +16,7 @@ import { TidigarePris } from "../components/tidigare-pris";
 import { getLiveAuctions } from "../lib/auction-view";
 import { AuctionBannerText } from "../components/auction-banner-text";
 import { HeroLutning } from "../components/hero-lutning";
+import { HeroEntre } from "../components/hero-entre";
 import { tightFillUrl } from "../lib/wix-image";
 import { getSocialProof } from "../lib/social-proof-live";
 import { PrefetchLink } from "../components/prefetch-link";
@@ -360,7 +361,9 @@ export default async function Home() {
 
       <div className="hem2">
       <section className="hero">
-        {/* Varuväggen följer muspekaren några grader på dator (components/hero-lutning.tsx). */}
+        {/* Entrén startar när sidan är lugn (components/hero-entre.tsx), och
+            varuväggen följer muspekaren några grader på dator (components/hero-lutning.tsx). */}
+        <HeroEntre />
         <HeroLutning />
         <div className="container">
           <div className="herogrid">

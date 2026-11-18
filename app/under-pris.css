@@ -12,3 +12,20 @@
 @media(max-width:880px){
   .pris2 .p2-urval{padding-bottom:40px}
 }
+
+/* "Visa fler" står inne i rutnätet, på en egen rad över hela bredden
+   (components/pris-fler.tsx). */
+.pris2 .p2-fler{grid-column:1/-1;margin-top:8px}
+
+/* Registret med miniatyrer som i menyn (components/pris-kategoribild.tsx).
+   Namnet tar bredden mellan bilden och antalet. */
+.pris2 .b2-grupp-lista a{justify-content:flex-start;gap:12px;min-height:50px}
+.pris2 .p2-namn{flex:1 1 auto;min-width:0}
+.pris2 .b2-grupp-lista a:hover .mn-bild,.pris2 .b2-grupp-lista a:focus-visible .mn-bild{background:#EFE3D6}
+@media(max-width:880px){
+  /* Mobilens register är rader av piller som rullas i sidled: bilden står
+     först i pillret, rund som pillret. */
+  .pris2 .b2-grupp-lista a{min-height:46px;padding:0 15px 0 5px;gap:9px}
+  .pris2 .p2-bild{width:36px;height:36px;border-radius:50%}
+}
+

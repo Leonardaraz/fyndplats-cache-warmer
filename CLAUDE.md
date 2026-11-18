@@ -3338,27 +3338,40 @@ en fast andel av rutnätets bredd (76 % + 15 px), men inte av hjältens: på en
 bred skärm är rutnätet 1 128 px mitt i hjälten. Första skisserna satte ljuset
 i procent av hjälten och stämde bara vid 1 440 px.
 
-☠️ **Entrén börjar mjukt, och det är inte en smaksak.** Leonard provade
-förhandsvisningen på en iPhone 15 (2026-11-18): speglingen syntes och följde
-med, men entrén var "lite hackig" och priset på de lutade brickorna bara
-"ganska" skarpt. Mätt på kall mobil med strypt nät och processor: förra kurvan
-(`cubic-bezier(.16,1,.3,1)`) gör 49 % av rörelsen på de första 10 % av tiden
-och 75 % på de första 20 %. Under samma 0,2 till 0,3 sekunder byts typsnittet
-in (86 till 126 ms efter första bildrutan), två brickbilder landar (cirka
-320 ms efter) och huvudtråden står still i en lång uppgift. Rubriken flyttade
-sig 28 till 33 av sina 43 px mellan två bildrutor. Tre ändringar:
+☠️ **Entrén väntar tills sidan är lugn ("studion vaknar").** Leonard provade
+på en iPhone 15, två gånger (2026-11-18): "den är lite hackig", "det är inte
+smooth". Förra entrén började vid första bildrutan. Mätt på kall mobil med
+strypt nät och processor byts typsnittet in 86 till 126 ms efter första
+bildrutan, två brickbilder landar cirka 320 ms efter, och huvudtråden står
+still i 200 till 320 ms i samma ögonblick. En rörelse som går just då hackar,
+hur den än är ritad. Nu är den byggd så här:
 
-1. Kurvan är `cubic-bezier(.4,0,.1,1)`: 3 % av rörelsen på de första 10 % av
-   tiden, 16 % på de första 20 %. `lib/natten.test.ts` räknar om det och
-   fäller en kurva som börjar fort.
-2. Texten under rubriken tonar in för sig (`heroTona`, 0,5 s) och glider för
-   sig (`heroGlid`), så den går att läsa direkt.
-3. På mobilen reser sig hela raden med brickor som en yta (`radRes`), och
-   brickorna står upprätt. Fyra lutade, speglade ytor som rörde sig var för
-   sig är borta, och priset ritas skarpt.
+- Texten står på plats från första bildrutan (rubriken är fortfarande LCP).
+- Skriptet först i sidan (`INTRO_EN_GANG` i `components/site.tsx`) sätter
+  `data-entre="vantar"` på `<html>`: bara på startsidan, bara första gången i
+  fliken och aldrig för den som bett om mindre rörelse.
+- I väntläget hålls varorna nästan osynliga (0,01, inte 0) och texten 12 px
+  lägre. Det är startrutan i en animation med fördröjning, inte en fast stil,
+  så efter 2,4 s visas varorna av sig själva även om inget skript körs.
+- `components/hero-entre.tsx` byter till `"gar"` när sidan är väckt,
+  typsnittet och brickornas bilder är inne och fyra bildrutor i rad har kommit
+  i tid (`lib/hero-entre.ts`). Då tänds ljuskäglan, varorna reser sig i
+  djupled, texten lyfter sig och ett ljussvep går över knappen.
+- På mobilen reser sig hela raden med brickor som en yta, och brickorna står
+  upprätt (de lutade först 5 grader, och priset blev bara "ganska" skarpt).
 
-Vid nästa besök i samma flik rör sig ingenting (`INTRO_EN_GANG` i
-`components/site.tsx` täcker nu också brickorna och ljussvepet).
+☠️ **Väntläget och entrén har egna nyckelrutor med samma startruta**
+(`vantaLyft`/`textLyft`, `vantaTona`/`framTona`, `vantaLjus`/`ljusTands`). Med
+samma namn i båda lägena startar webbläsaren ingen ny animation vid bytet: den
+fortsätter den som redan går med de nya tiderna, och den har då redan gått
+förbi sitt slut. Texten och toningen hoppade rakt till slutläget. Det syntes
+först i mätningen bildruta för bildruta, inte i en skärmbild.
+
+Mätt i Chromium med samma strypning (median av fyra laddningar), i entréns
+eget fönster: längsta luckan mellan två bildrutor är cirka 50 ms (förr 230
+till 320 ms), och raden med brickor flyttar sig som mest cirka 6 px mellan två
+bildrutor (förr 29 px för en bricka och 32 px för rubriken). Kurvan är
+`cubic-bezier(.4,0,.1,1)`: 3 % av rörelsen på de första 10 % av tiden.
 
 ☠️ **`*{animation:none!important}` når inte `::before` och `::after`.**
 Butikens regel för mindre rörelse väljer bara element. Ljussvepet och temats
@@ -3409,6 +3422,68 @@ koden inte i skriptet; `lib/sasongstema.test.ts` fäller om den gör det.
 
 **Inte provat:** Safari och en riktig telefon (speglingen, perspektivet och
 textskärpan på de vinklade brickorna), och Firefox, som inte ritar speglingen.
+
+## Kassan nekar e-postadresser som inte kan finnas (2026-11-18)
+
+Order 10233 lades med en adress som slutade på `.con`: bekräftelsen, kvittot
+och spårningen kom aldrig fram. Leonard: "vår kassa borde inte acceptera mail
+som inte existerar", och "för medlemmar borde mail adressen följa med".
+
+Tre spärrar, som i kassorna hos de stora butikerna:
+
+1. **Formen** (`epostFel` i `lib/kassa/formular.ts`): namn@doman.topp, en hel
+   domän, inga led som börjar eller slutar med bindestreck.
+2. **Toppdomänen finns.** IANA:s hela lista (1 436 stycken, version
+   2026111700) står i samma fil. `.con` finns inte. Felet säger det rakt ut:
+   "Adressen slutar på .con, som inte finns. Menade du .com?"
+3. **Domänen kan ta emot e-post.** När kunden lämnat fältet frågar kassan
+   `/api/kassa/epost-kontroll`, som slår upp domänen i DNS
+   (`lib/kassa/epost-dns.ts`). Finns domänen inte, eller har den varken
+   e-postservrar eller en adress, visas ett fel och köpet spärras för just den
+   adressen.
+
+Spärr 1 och 2 gäller i webbläsaren (bocken, felet under fältet) och på servern
+(`provaKassa`, som båda betalvägarna och snabbkassan går igenom). Förslaget
+"Menade du namn@gmail.com?" står kvar bredvid felet.
+
+- ☠️ **Bara det som säkert är fel nekas.** DNS-frågan har en tidsgräns på
+  1,5 s, och allt osäkert (tidsgräns, trasig namnserver, okänt fel) släpper
+  igenom kunden. Rutten nekar aldrig ett köp själv.
+- ☠️ **Listan över toppdomäner ska vara hela listan.** En toppdomän som saknas
+  stänger ute en riktig kund. `lib/kassa/epost.test.ts` fäller när listan är
+  äldre än två år: hämta filen hos IANA, ersätt listan och versionen.
+- ☠️ **Reglerna står i `formular.ts`, inte i en egen fil.** Modulen läses av
+  `node --test` utan importer, och bygget tillåter inte importer med
+  `.ts`-ändelse (bygget föll på typkontrollen när reglerna låg i egna filer).
+- ☠️ **Ingen e-postadress i loggen**, bara att uppslaget felade.
+- **Medlemmens e-post** läses ur sessionen i `app/kassa/page.tsx` och fyller
+  fältet. Den skrivs efter de uppgifter som sparats i webbläsaren, så ett
+  inloggat köp räknas på kontot.
+
+Inte provat: DNS-frågan mot riktiga domäner i produktionen (beslutet är prövat
+med låtsassvar), och kassan i Safari.
+
+## Prissidorna: Visa fler och miniatyrer (2026-11-18)
+
+Leonard om /under-500-kr och /under-1000-kr: "det borde finnas visa mera knapp
+så man kan se alla och kategorierna borde ha minityr bilder som menyn har".
+
+- **Visa fler** (`components/pris-fler.tsx`). Sidan bär de 24 första korten;
+  knappen hämtar nästa 48 från `/api/pris-lista?k=<pris>-<sida>` och lägger dem
+  sist i samma rutnät. Listan är `prisLista` i `lib/seo/pris-oversikt.ts`:
+  urvalet först, i samma ordning som sidan, sedan resten med bästa bilden
+  först. Varor som bara får synas i sin underkategori står inte med.
+- ☠️ **Högst 48 kort per hämtning.** Listans kort får bara bild för de 48
+  första (`FORSTA_MED_BILD` i `lib/list-payload.ts`); provet jämför talen.
+- ☠️ **En parameter i adressen**, som `/api/lista`: varje annan parameter hade
+  blivit en egen CDN-nyckel. Påhittade sidnummer ger 404.
+- **Miniatyrerna** (`components/pris-kategoribild.tsx`) är menyns egna bilder
+  och menyns egen hämtning (`use-meny-bilder.tsx`), så sidan hämtar inget nytt.
+  Rutan har fast storlek och inget flyttar sig när bilden kommer.
+
+Mätt lokalt 2026-11-18: under 500 kr har 374 varor och under 1 000 kr 2 986.
+Två tryck ger 120 kort utan dubbletter, alla med bild, och alla 84 kategorier
+under 1 000 kr har en miniatyr.
 
 ## Hastigheten mätt 2026-11-10: startsidan byggdes om var 15:e sekund
 

@@ -87,47 +87,86 @@ describe("natten bär toppremsan, hjälten, löftesremsan, auktionsremsan, nyhet
   });
 });
 
-describe("hjältens entré i djupled", () => {
+describe("hjältens entré: studion vaknar när sidan är lugn", () => {
+  const utanK = css.replace(/\/\*[\s\S]*?\*\//g, "");
   const nyckelrutor = (namn: string) => {
     const a = css.indexOf(`@keyframes ${namn}{`);
     assert.ok(a > -1, `${namn} saknas`);
     return css.slice(a, css.indexOf("\n", a));
   };
+  const rad = (borjan: string) => {
+    const r = utanK.split("\n").map((x) => x.trim()).find((x) => x.startsWith(borjan));
+    assert.ok(r, `${borjan} saknas`);
+    return r;
+  };
 
-  it("rubriken och brickorna rör sig bara med transform, aldrig opacitet (LCP)", () => {
-    for (const namn of ["heroRes", "brickaRes", "radRes", "heroGlid"]) {
-      assert.doesNotMatch(nyckelrutor(namn), /opacity/);
-      if (namn !== "heroGlid") assert.match(nyckelrutor(namn), /perspective\(\d+px\)/);
+  // Leonard 2026-11-18, iPhone 15, två gånger: "den är lite hackig", "det är inte smooth".
+  it("ingenting i hjälten rör sig av sig självt vid första bildrutan", () => {
+    for (const v of [".heroinner>*", ".hero h1", ".herotile", ".heromosaic", ".heroinner"]) {
+      assert.doesNotMatch(css, new RegExp(`\\n${v.replace(/[.*>]/g, "\\$&")}\\{[^}]*animation:`), v);
     }
-    assert.match(css, /\n\.hero h1\{animation:heroRes /);
-    assert.match(css, /\n\.herotile\{animation:brickaRes /);
+    assert.doesNotMatch(start.replace(/\/\*[\s\S]*?\*\//g, ""), /animation:(?!none)[a-zA-Z]/);
+    for (const borta of ["heroRise", "heroTona", "heroGlid", "heroRes", "brickaResLutad"]) assert.doesNotMatch(css, new RegExp(`@keyframes ${borta}\\{`), borta);
   });
 
-  it("slutläget är samma funktioner med nollor, inte none", () => {
-    for (const namn of ["heroRes", "brickaRes", "radRes"]) {
-      const till = nyckelrutor(namn).split("to{")[1];
-      assert.match(till, /perspective\(\d+px\) translate3d\(0,0,0\) rotateX\(0deg\)/);
+  it("entrén finns bara under data-entre på <html>, i två lägen", () => {
+    const regler = [...utanK.matchAll(/(^|\})\s*([^{}@]+)\{[^{}]*animation:(?!none)[^{}]*\}/g)].map((m) => m[2].trim()).filter((v) => /(^|[\s>+~,])\.(hero|heroinner|herotile|heromosaic|herogrid)(?![\w-])/.test(v));
+    assert.ok(regler.length >= 6, `bara ${regler.length} regler`);
+    // Hjältens två klot (.hero::before och ::after) driver sedan förr; studion släcker dem.
+    for (const v of regler) for (const del of v.split(",")) if (!/^\.hero::(before|after)$/.test(del.trim())) assert.match(del.trim(), /^html\[data-entre="(vantar|gar)"\] /, del);
+  });
+
+  it("väntläget har en egen utgång: efter 2,4 s spelar det av sig självt", () => {
+    for (const v of [".heroinner", ".herotile", ".herogrid::after"]) {
+      const r = rad(`html[data-entre="vantar"] ${v}{`);
+      assert.match(r, /animation:\w+ \.6s ease-out 2\.4s backwards\}/, r);
+    }
+    assert.match(utanK, /html\[data-entre="vantar"\] \.hem2 \.hero \.heromosaic\{animation:vantaTona \.6s ease-out 2\.4s backwards\}/);
+  });
+
+  it("☠️ väntläget och entrén har egna nyckelrutor med samma startruta, så att entrén startar om vid bytet", () => {
+    const namn = (r: string) => r.match(/animation:(\w+)/)![1];
+    const start = (n: string) => nyckelrutor(n).match(/from\{([^}]*)\}/)![1];
+    const par: Array<[string, string, string]> = [
+      [".heroinner", "vantaLyft", "textLyft"],
+      [".herotile", "vantaTona", "framTona"],
+      [".herogrid::after", "vantaLjus", "ljusTands"],
+    ];
+    for (const [v, vanta, gar] of par) {
+      assert.equal(namn(rad(`html[data-entre="vantar"] ${v}{`)), vanta);
+      assert.equal(namn(rad(`html[data-entre="gar"] ${v}{`)), gar);
+      assert.notEqual(vanta, gar);
+      assert.equal(start(vanta), start(gar), `${vanta} och ${gar} ska börja i samma ruta`);
+    }
+    assert.match(rad('html[data-entre="gar"] .herotile{'), /animation:framTona \.5s ease-out backwards,brickaRes /);
+    assert.match(utanK, /html\[data-entre="vantar"\] \.hem2 \.hero \.heromosaic\{animation:vantaTona \.6s ease-out 2\.4s backwards\}/);
+    assert.match(utanK, /html\[data-entre="gar"\] \.hem2 \.hero \.heromosaic\{animation:framTona \.5s ease-out backwards,radRes /);
+    // Inget namn står i båda lägena.
+    const iLage = (l: string) => new Set([...utanK.matchAll(new RegExp(`html\\[data-entre="${l}"\\][^{]*\\{animation:([^}]*)\\}`, "g"))].flatMap((m) => m[1].split(",").map((d) => d.trim().split(" ")[0])));
+    const [v, g] = [iLage("vantar"), iLage("gar")];
+    assert.ok(v.size >= 3 && g.size >= 5);
+    for (const n of v) assert.ok(!g.has(n), `${n} står i båda lägena`);
+  });
+
+  it("texten rör sig bara med transform (LCP), och varorna tonar från 0,01, inte 0", () => {
+    for (const n of ["textLyft", "brickaRes", "radRes", "knappSvep"]) assert.doesNotMatch(nyckelrutor(n), /opacity/, n);
+    assert.equal(nyckelrutor("framTona"), "@keyframes framTona{from{opacity:.01}to{opacity:1}}");
+    for (const n of ["vantaLyft"]) assert.doesNotMatch(nyckelrutor(n), /opacity/, n);
+    for (const n of ["brickaRes", "radRes"]) {
+      assert.match(nyckelrutor(n), /perspective\(\d+px\)/);
+      assert.match(nyckelrutor(n).split("to{")[1], /perspective\(\d+px\) translate3d\(0,0,0\) rotateX\(0deg\)/);
+    }
+    assert.match(nyckelrutor("textLyft").split("to{")[1], /^transform:translate3d\(0,0,0\)/);
+  });
+
+  it("alla lägen släpper elementet efteråt (backwards)", () => {
+    for (const r of utanK.split("\n").filter((x) => /html\[data-entre="(vantar|gar)"\][^{]*\{animation:/.test(x))) {
+      assert.match(r, / backwards[;}]/, r.slice(0, 90));
+      assert.doesNotMatch(r, / both| forwards/);
     }
   });
 
-  it("animationerna släpper elementet efteråt (backwards), så brickans hover fungerar", () => {
-    for (const rad of css.split("\n").filter((r) => /^\.(heroinner>\*|hero h1|herotile)\{animation:/.test(r))) {
-      assert.match(rad, / backwards[;}]/, rad.slice(0, 80));
-      assert.doesNotMatch(rad, / both| forwards/);
-    }
-  });
-
-  it("på dator reser sig brickorna var för sig; på mobilen reser sig raden som en yta", () => {
-    assert.doesNotMatch(css, /\n\.heromosaic\{animation:/);
-    const utan = start.replace(/\/\*[\s\S]*?\*\//g, "");
-    const mobil = utan.slice(utan.lastIndexOf("@media(max-width:880px){"));
-    assert.match(mobil, /\.hem2 \.hero \.heromosaic\{animation:radRes [^;}]* backwards;transform-origin:50% 100%\}/);
-    assert.match(mobil, /\.hem2 \.hero \.herotile\{animation:none;/);
-  });
-
-  // Leonard 2026-11-18, iPhone 15: "den är lite hackig". Förra kurvan gjorde 75 % av
-  // rörelsen på de första 20 % av tiden, när typsnitt och bilder fortfarande landar.
-  it("entrén börjar mjukt: högst 6 % av rörelsen på de första 10 % av tiden, högst 20 % på de första 20 %", () => {
+  it("rörelsen börjar mjukt: högst 6 % på de första 10 % av tiden, högst 20 % på de första 20 %", () => {
     const kurva = (x1: number, y1: number, x2: number, y2: number) => (t: number) => {
       let lo = 0, hi = 1, u = t;
       for (let i = 0; i < 50; i++) {
@@ -137,33 +176,40 @@ describe("hjältens entré i djupled", () => {
       }
       return 3 * (1 - u) ** 2 * u * y1 + 3 * (1 - u) * u * u * y2 + u ** 3;
     };
-    const utan = start.replace(/\/\*[\s\S]*?\*\//g, "");
-    const rader = [
-      css.split("\n").find((r) => r.startsWith(".hero h1{animation:heroRes ")),
-      css.split("\n").find((r) => r.startsWith(".herotile{animation:brickaRes ")),
-      css.split("\n").find((r) => r.startsWith(".heroinner>*{animation:"))?.split(",heroGlid ")[1],
-      utan.match(/\.hem2 \.hero \.heromosaic\{animation:radRes [^}]*\}/)?.[0],
-    ];
-    for (const rad of rader) {
-      assert.ok(rad, "en entréregel saknas");
-      const m = rad.match(/cubic-bezier\(([^)]+)\)/);
-      assert.ok(m, rad.slice(0, 70));
+    const rader = [rad('html[data-entre="gar"] .heroinner{'), rad('html[data-entre="gar"] .herotile{').split(",brickaRes ")[1], rad('html[data-entre="gar"] .hem2 .hero .heromosaic{').split(",radRes ")[1]];
+    for (const r of rader) {
+      const m = r.match(/cubic-bezier\(([^)]+)\)/);
+      assert.ok(m, r.slice(0, 70));
       const [x1, y1, x2, y2] = m[1].split(",").map(Number);
       const f = kurva(x1, y1, x2, y2);
-      assert.ok(f(0.1) <= 0.06, `${rad.slice(0, 40)}: ${(f(0.1) * 100).toFixed(0)} % vid 10 %`);
-      assert.ok(f(0.2) <= 0.2, `${rad.slice(0, 40)}: ${(f(0.2) * 100).toFixed(0)} % vid 20 %`);
-      assert.ok(f(0.6) >= 0.85, `${rad.slice(0, 40)}: landar för sent`);
+      assert.ok(f(0.1) <= 0.06 && f(0.2) <= 0.2, `${r.slice(0, 40)}: ${(f(0.1) * 100).toFixed(0)} % och ${(f(0.2) * 100).toFixed(0)} %`);
+      assert.ok(f(0.6) >= 0.85, "landar för sent");
     }
   });
 
-  it("texten under rubriken tonar in kort och rakt, och glider för sig", () => {
-    assert.match(css, /\n\.heroinner>\*\{animation:heroTona \.5s ease-out backwards,heroGlid 1s cubic-bezier\([^)]+\) backwards\}/);
-    assert.doesNotMatch(css, /heroRise/);
+  it("mobilen: raden reser sig som en yta, och brickorna har ingen egen entré i något läge", () => {
+    const mobil = start.replace(/\/\*[\s\S]*?\*\//g, "");
+    assert.match(mobil.slice(mobil.lastIndexOf("@media(max-width:880px){")), /\.hem2 \.hero \.herotile\{animation:none;/);
+    // (0,3,0) väger tyngre än html[data-entre] .herotile (0,2,1): annars doldes varje bricka för sig i väntläget.
   });
 
-  it("vid nästa besök i samma flik rör sig ingenting: varken text, brickor, rad eller ljussvep", () => {
+  it("skriptet sätter väntläget bara på startsidan, första gången i fliken och aldrig vid mindre rörelse", () => {
     const sidhuvud = las("components/site.tsx");
-    assert.match(sidhuvud, /\.heroinner>\*,\.hero h1,\.heromosaic,\.herotile,\.hero \.btn-primary::after\{animation:none!important\}/);
+    assert.match(sidhuvud, /!sessionStorage\.getItem\('fp-intro'\)&&location\.pathname==='\/'&&!\(m&&m\('\(prefers-reduced-motion:reduce\)'\)\.matches\)\)d\.setAttribute\('data-entre','vantar'\)/);
+    assert.match(sidhuvud, /^\s*"try\{/m);
+    assert.match(sidhuvud, /\}catch\(e\)\{\}";/);
+    assert.match(utanK, /@media\(prefers-reduced-motion:reduce\)\{\s*html\[data-entre\] \.herogrid::after,html\[data-entre\] \.hero \.btn-primary::after\{animation:none\}/);
+  });
+
+  it("komponenten startar entrén först när innehållet är inne och bildrutorna kommer jämnt", () => {
+    const k = las("components/hero-entre.tsx");
+    assert.match(k, /getAttribute\("data-entre"\) !== "vantar"\) return;/);
+    assert.match(k, /b\.decode\(\)\.catch/);
+    assert.match(k, /document\.fonts\?\.ready/);
+    assert.match(k, /Promise\.race\(\[Promise\.all\(\[typsnitt, \.\.\.bilder\]\), tak\]\)/);
+    assert.match(k, /vantaPaLugn\(requestAnimationFrame, starta\)/);
+    assert.match(k, /synlig\(forsta\) && synlig\(rad\)\) return ta_bort\(\)/);
+    assert.match(las("app/page.tsx"), /<HeroEntre \/>/);
   });
 });
 
@@ -230,17 +276,15 @@ describe("studion: hjälten som en fotostudio", () => {
     assert.ok(Number(m[1]) <= 38, `toningen når ${m[1]} %: texten börjar vid ungefär 40 %`);
   });
 
-  it("ljussvepet vilar där det slutar, och rör sig bara med transform", () => {
+  it("ljussvepet vilar där det slutar", () => {
     const till = nyckelrutor("knappSvep").split("to{")[1];
-    assert.doesNotMatch(nyckelrutor("knappSvep"), /opacity/);
     assert.equal(transform(regel(start, ".hem2 .hero .btn-primary::after")), transform(till));
-    assert.match(regel(start, ".hem2 .hero .btn-primary::after"), /animation:knappSvep [^;}]* backwards/);
+    assert.doesNotMatch(regel(start, ".hem2 .hero .btn-primary::after"), /animation:/);
   });
 
-  it("mindre rörelse stänger också det som rör sig i ::before och ::after", () => {
-    // *{animation:none!important} i globals.css väljer bara element, inte pseudoelement.
+  it("mindre rörelse stänger också temats stoft, som rör sig i ::before och ::after", () => {
+    // Stjärnväljaren med animation:none i globals.css väljer bara element, inte pseudoelement.
     const lugn = (kalla: string) => [...kalla.matchAll(/@media\(prefers-reduced-motion:reduce\)\{([\s\S]*?\})\s*\}/g)].map((m) => m[1]).join("\n");
-    assert.match(lugn(utan), /\.hem2 \.hero \.btn-primary::after\{animation:none\}/);
     const temat = lugn(tema.replace(/\/\*[\s\S]*?\*\//g, ""));
     for (const n of ["blackweek", "blackfriday", "blackweekend"]) {
       assert.ok(temat.includes(`:root[data-tema="${n}"] .herogrid::before`), n);
@@ -253,7 +297,6 @@ describe("studion: hjälten som en fotostudio", () => {
     const vila = mobil.slice(mobil.indexOf(".hem2 .hero .herotile{"), mobil.indexOf("}", mobil.indexOf(".hem2 .hero .herotile{")));
     assert.doesNotMatch(vila, /transform:|rotateX|perspective/);
     assert.equal(transform(mobil.slice(mobil.indexOf(".hem2 .hero .herotile:hover{"))), "none");
-    assert.doesNotMatch(css, /brickaResLutad/);
   });
 
   it("mobilens spegling sitter på brickan, och raden har plats för den", () => {

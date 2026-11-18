@@ -33,7 +33,7 @@ import interestsJson from "./programmatic-interests.json";
 import * as T from "./programmatic-templates";
 import * as S from "./programmatic-select";
 import { prisgrannar, ringEfter } from "./grannlankar";
-import { byggPrisOversikt, type HubCore } from "./pris-oversikt";
+import { byggPrisOversikt, type HubCore, prisLista } from "./pris-oversikt";
 import { getHiddenFromFeatured } from "../image-scores";
 import { MOSAIC_DENYLIST } from "../category-groups";
 import { productCountLabel, tusental } from "../rating";
@@ -604,6 +604,29 @@ export const resolvePriceHub = cache(async (price: number): Promise<PriceHubView
     itemListSchema(namn, `${SITE}${core.path}`, core.products),
   ];
   return { ...core, schemas };
+});
+
+/** Så många kort hämtar "Visa fler" per tryck. Högst FORSTA_MED_BILD (lib/list-payload.ts), så att varje kort har sin bild. */
+export const PRIS_SIDA = 48;
+/** Så många kort står redan på översikten. */
+export const PRIS_PA_SIDAN = MAX_HUB_LIST;
+
+/**
+ * Hela listan under en prisgräns, eller null när översikten inte finns.
+ * Samma varor och samma ordning i början som översikten (prisLista).
+ */
+export const resolvePriceList = cache(async (price: number): Promise<Product[] | null> => {
+  const [products, collections, giltiga, gomda] = await Promise.all([getHelaKatalogen(), getCollections(), getValidPriceHubs(), getHiddenFromFeatured()]);
+  if (!giltiga.includes(price)) return null;
+  return prisLista({
+    price,
+    products,
+    dedupe: dedupeProducts,
+    blanda: (lista) => mixByCategory(lista, collections),
+    iUrvalet: (p) => !gomda.has(p.id) && !MOSAIC_DENYLIST.has(p.slug) && !BARA_I_UNDERKATEGORIN.has(p.id),
+    // Varor som bara får synas i sin underkategori står inte här heller.
+    iListan: (p) => !BARA_I_UNDERKATEGORIN.has(p.id),
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

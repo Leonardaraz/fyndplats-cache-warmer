@@ -367,15 +367,15 @@
 .hem2 .hero p{color:var(--natt-dampad)}
 /* Knappen har tyngd: ljus ovankant, mörk underkant och glöd under. Det ljusa
    överst slutar ovanför texten (36 %), så textens kontrast är knappens egen
-   färg (☠️ 4,5:1, se "Natten" i globals.css). Ljussvepet går över knappen en
-   gång, 1,5 s efter att sidan ritats, och bara med transform. */
+   färg (☠️ 4,5:1, se "Natten" i globals.css). Ljussvepet vilar utanför knappen
+   åt höger och går över den en gång i entrén (globals.css, "studion vaknar"). */
 .hem2 .hero .btn-primary{position:relative;overflow:hidden;color:var(--natt-knapp-text);
   background:linear-gradient(180deg,rgba(255,255,255,.17) 0%,rgba(255,255,255,0) 36%),var(--natt-knapp);
   box-shadow:0 20px 40px -14px var(--natt-knapp-skugga),0 2px 0 var(--natt-knapp-kant),inset 0 1px 0 rgba(255,255,255,.42),inset 0 -3px 8px -2px rgba(0,0,0,.22)}
 .hem2 .hero .btn-primary:hover{background:linear-gradient(180deg,rgba(255,255,255,.17) 0%,rgba(255,255,255,0) 36%),var(--natt-knapp-over)}
 .hem2 .hero .btn-primary::after{content:"";position:absolute;top:0;bottom:0;left:0;width:38%;pointer-events:none;
   background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.36),rgba(255,255,255,0));
-  transform:translate3d(340%,0,0) skewX(-18deg);animation:knappSvep 1.15s cubic-bezier(.3,.6,.3,1) 1.5s backwards}
+  transform:translate3d(340%,0,0) skewX(-18deg)}
 .hem2 .hero .btn-quiet{color:var(--natt-ljus)}
 .hem2 .hero .btn-quiet:hover,.hem2 .hero .btn-quiet:focus-visible{color:var(--glod-ljus)}
 .hem2 .hero .ht-sub{color:var(--natt-dampad)}
@@ -440,11 +440,10 @@
      priset bara "ganska" skarpt (Leonard 2026-11-18), och en lutad bricka är
      en egen yta på grafikkortet. Upprätt ritas texten skarpt och hela raden
      är en yta.
-     ☠️ Raden reser sig som en yta (radRes i globals.css), inte bricka för
-     bricka: brickorna har ingen egen entré på mobilen. Fyra speglade ytor som
-     rör sig var för sig var en del av det som hackade. */
+     ☠️ I entrén reser sig raden som en yta (radRes i globals.css), inte
+     bricka för bricka: brickorna har ingen egen entré på mobilen, varken i
+     väntläget eller när den går. */
   .hem2 .heromosaic{padding-bottom:44px}
-  .hem2 .hero .heromosaic{animation:radRes 1.1s cubic-bezier(.4,0,.1,1) .08s backwards;transform-origin:50% 100%}
   .hem2 .hero .herotile{animation:none;
     box-shadow:inset 0 1.5px 0 #fff,inset 0 -1px 0 rgba(120,70,30,.2),0 0 0 1px rgba(var(--studio-ljus),.16),0 16px 18px -12px rgba(0,0,0,.98);
     -webkit-box-reflect:below 5px linear-gradient(180deg,transparent 0%,transparent 74%,rgba(0,0,0,.1) 84%,rgba(0,0,0,.44) 100%)}
@@ -457,10 +456,4 @@
      luft vid 390, 5 px överlapp vid 375). Under 361 px är stjärnorna dolda
      och kolumnerna lika breda. */
   .hem2 .hero .herotrust>a:first-child{flex-grow:1.35}
-}
-@media(prefers-reduced-motion:reduce){
-  /* Butikens regel för mindre rörelse (stjärnväljaren med animation:none i
-     globals.css) når inte ::before och ::after: stjärnan väljer bara element.
-     Ljussvepet låg kvar för den som bett om mindre rörelse (mätt 2026-11-17). */
-  .hem2 .hero .btn-primary::after{animation:none}
 }
