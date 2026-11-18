@@ -656,9 +656,14 @@ h1,h2,h3{text-wrap:balance}
 .prod .pimg img{mix-blend-mode:multiply}
 .prod .pbody{flex:1;display:flex;flex-direction:column;padding:12px 2px 0}
 /* Två rader i skyltfönstren. Listorna (.shoplista, ShopBrowser) får tre: där
-   jämför man, och måtten står sist i namnet. */
+   jämför man, och måtten står sist i namnet. På mobilen är kortet 161 px brett
+   och vartannat namn behöver en fjärde rad: tre rader kapade 42–63 % av namnen
+   på en 393 px bred skärm och 63–88 % på en 360 px bred (mätt 2026-11-18), så
+   där är gränsen fyra. Radsteget växer bara i de rader som har ett långt namn,
+   och lika många hela kort ryms på två skärmar. */
 .prod .pname{font-size:var(--text-sm);font-weight:600;line-height:1.35;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;transition:color .2s}
 .shoplista .prod .pname{-webkit-line-clamp:3}
+@media(max-width:540px){.shoplista .prod .pname{-webkit-line-clamp:4}}
 /* Med hovrande pekare: plattan lyfter, namnet tar märkesfärgen och en pil
    tonar in i plattans hörn. Pilen är det enda som är kvar av knappen: den
    syns bara när man pekar på kortet. Bara plattan flyttas, aldrig kortet, och
@@ -679,6 +684,13 @@ h1,h2,h3{text-wrap:balance}
 .prod.auction-card .pimg{border-radius:0;background:var(--surface-2);isolation:auto;transition:none}
 .prod.auction-card .pimg img{mix-blend-mode:normal}
 .prod.auction-card .pbody{padding:16px}
+/* Bloggens artikelkort delar brickan men är inget produktkort. Rubriken får
+   tre rader: då ryms varje rubrik hel på alla bredder (två rader kapade 18 av
+   44 på 1024 px, mätt 2026-11-18). Fotot visas som det är: blandningsläget är
+   gjort för produktfoton på vit botten, och ett redaktionellt foto blir bara
+   mörkare av det. */
+.prod.blogg-kort .pname{-webkit-line-clamp:3}
+.prod.blogg-kort .pimg img{mix-blend-mode:normal}
 /* Pris OVANFÖR, "Köp"-knapp UNDER (vertikal stack). På smala kort fanns tidigare
    en horisontell space-between-layout, men priset (nowrap "Från X" + ev. överstruket
    gammalt pris) kunde då flöda ut ur sitt flex-utrymme och hamna OVANPÅ knappen.

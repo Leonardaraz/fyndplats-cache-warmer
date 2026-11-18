@@ -3526,12 +3526,20 @@ kopiorna är borta: fotot på en varm platta (`#F4EEE8`, 18 px hörn,
 `mix-blend-mode:multiply` så att fotonas vita botten tar plattans ton), namnet,
 betyget och priset under, ingen ram och ingen knapp. `.pbtn` finns inte längre,
 varken i komponenten eller i stilen. Listorna (ShopBrowser, `.shoplista`) kapar
-namnet vid tre rader, övriga ytor vid två.
+namnet vid tre rader, och vid fyra på mobilen (≤ 540 px). Övriga ytor kapar
+vid två, som startsidans brickor alltid har gjort.
 
-Mätt på /kategori/mobler, mobil 393 px, före (live) och efter (lokalt bygge):
-kortet 383 → 277 px högt, radsteget 401 → 301 px, hela varor inom två skärmar
-4 → 6 (sök 6 → 8). Dator 1440 px: kortet 460 → 384 px, radsteget 480 → 418 px.
-Längsta bildruta under rullning med fyra gångers CPU-strypning: 34 → 29 ms.
+☠️ Radgränsen ska mätas, inte väljas på känn. Första versionen hade tre rader
+överallt i listorna. På förhandsvisningen kapade det 42–63 % av namnen på en
+393 px bred skärm och 63–88 % på en 360 px bred, där den liva sajten visade
+hela namnet: måtten och färgen står sist i namnet, och det är dem man jämför
+på. Med fyra rader kapas 1 av 96 namn på 393 px, 3 av 96 på 375 px och 10 av
+96 på 360 px (fyra listsidor à 24 kort). Från 541 px och uppåt kapas inget.
+
+Mätt på /kategori/mobler, mobil 393 px, före (live) och efter: kortet 383 →
+277–296 px högt, radsteget 401 → 302–320 px, hela varor inom två skärmar 4 → 6
+(sök 6 → 8). Dator 1440 px: kortet 460 → 365 px, radsteget 480 → 399 px, hela
+varor inom två skärmar 0 → 4. Layoutskift och rulltid är oförändrade.
 
 - **Med hovrande pekare** lyfter plattan (inte kortet), namnet tar
   märkesfärgen och en pil tonar in i plattans hörn (`.pimg::after`). Pilen är
@@ -3552,6 +3560,14 @@ Längsta bildruta under rullning med fyra gångers CPU-strypning: 34 → 29 ms.
 - `lib/kort-andra-bild.test.ts` letade efter bildbytet i filens första
   `@media (hover:hover)`-block. Det finns fler sådana block nu, så provet
   letar upp det som bär `.pimg-alt`.
+- **☠️ Bloggens artikelkort delar också klassen `.prod`** (`app/blogg/page.tsx`).
+  De följde med när brickan blev grunden, och det syntes först i provet på
+  förhandsvisningen: rubriken kapades vid två rader (18 av 44 på 1024 px, 8 av
+  44 på 1440 px) och fotona tonades av blandningsläget. Kortet bär nu
+  `blogg-kort`: tre rader, då ryms varje rubrik hel på alla bredder, och
+  `mix-blend-mode:normal`, för blandningen är gjord för produktfoton på vit
+  botten. Den som ändrar `.prod` ska leta upp ALLA som bär klassen
+  (`grep -rn '"prod' app components`), inte bara `ProductCard`.
 
 **Rubriktypsnittet på infosidorna.** Sidans huvudrubrik är serif på varje sida
 utom produktsidan och kassan: `.om-hero h1` (tio infosidor) och `.pagehero h1`
@@ -3559,6 +3575,13 @@ utom produktsidan och kassan: `.om-hero h1` (tio infosidor) och `.pagehero h1`
 överrubrik (`.om-sektion h2`, `.om-slut h2`) följer med, annars bytte sidan
 röst efter första skärmen. Rubriker inne i löptext (`.prose`) och allt i
 köpflödet är kvar i sans.
+
+☠️ Typsnittsfamiljen heter `rubrik` i den beräknade stilen, inte Newsreader
+(`--font-display: "rubrik", "Newsreader Reserv", …`). Ett prov som letar efter
+"Newsreader" i `font-family` säger "sans" om varje rubrik, också de som är
+rätt. Fråga webbläsaren vad den ritar med i stället:
+`CSS.getPlatformFontsForNode` över CDP svarar "Newsreader 16pt" eller "Geist"
+och säger om det är webbtypsnittet eller reserven.
 
 **Lådornas tomma läge** (`.lada-tom`): varukorgen och favoritlådan har samma
 rundel, rubrik, rad och knapp ("Upptäck sortimentet →" i märkesfärgen).

@@ -80,7 +80,7 @@ export default async function Blogg() {
           ) : (
             <div className="prodgrid">
               {posts.map((p) => (
-                <a className="prod" key={p.slug} href={`/blogg/${p.slug}`}>
+                <a className="prod blogg-kort" key={p.slug} href={`/blogg/${p.slug}`}>
                   <div className="pimg" style={p.cover ? undefined : { background: "linear-gradient(135deg,#FFB078,#F47A35)" }}>
                     {p.cover && <Image src={p.cover} alt={p.alt || p.title} fill sizes="(max-width:540px) 100vw, (max-width:900px) 50vw, 25vw" style={{ objectFit: "cover" }} />}
                   </div>

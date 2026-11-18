@@ -43,6 +43,13 @@ describe("produktkortet är en bricka utan ram och utan knapp", () => {
     assert.match(las("components", "shopbrowser.tsx"), /className=\{`prodgrid listgrid shoplista\$\{vantar \? " is-vantar" : ""\}`\}/);
   });
 
+  // Mätt 2026-11-18 på förhandsvisningen: med tre rader kapades 42–63 % av
+  // namnen i listorna på en 393 px bred skärm (63–88 % på 360 px), där
+  // produktionen visade hela namnet. Med fyra kapas högst ett av 24.
+  it("på mobilen får listornas namn fyra rader, direkt efter grundregeln", () => {
+    assert.match(css, /\.shoplista \.prod \.pname\{-webkit-line-clamp:3\}\s*@media\(max-width:540px\)\{\.shoplista \.prod \.pname\{-webkit-line-clamp:4\}\}/);
+  });
+
   it("brickans regler står på ett ställe: startsidan och /butik skriver inte över kortet", () => {
     for (const fil of [las("app", "startsida.css"), las("app", "butik", "butik.css")]) {
       assert.doesNotMatch(utanKommentarer(fil), /\.prod\b/);
@@ -83,6 +90,25 @@ describe("Fyndauktionens kort är kvar som kort med ram", () => {
     assert.match(css, /\.prod\.auction-card \.pimg img\{mix-blend-mode:normal\}/);
     assert.match(css, /\.prod\.auction-card \.pbody\{padding:16px\}/);
     assert.match(las("components", "auction-card.tsx"), /className=\{`prod auction-card a-card\$\{a\.img2 \? "" : " noswap"\}`\}/);
+  });
+});
+
+// Bloggens lista bygger sina artikelkort på samma klass (.prod). När brickan
+// blev grunden följde de med, och två saker blev sämre: rubriken kapades vid
+// två rader (18 av 44 på 1024 px) och fotot tonades av blandningsläget.
+describe("bloggens artikelkort delar brickan men har egna regler", () => {
+  it("kortet bär klassen blogg-kort", () => {
+    assert.match(las("app", "blogg", "page.tsx"), /<a className="prod blogg-kort" key=\{p\.slug\} href=\{`\/blogg\/\$\{p\.slug\}`\}>/);
+  });
+
+  it("rubriken får tre rader och fotot visas utan blandningsläge", () => {
+    assert.match(css, /\.prod\.blogg-kort \.pname\{-webkit-line-clamp:3\}/);
+    assert.match(css, /\.prod\.blogg-kort \.pimg img\{mix-blend-mode:normal\}/);
+  });
+
+  it("reglerna står efter grundens, så de vinner även vid lika vikt", () => {
+    assert.ok(css.indexOf(".prod.blogg-kort .pimg img{") > css.indexOf(".prod .pimg img{mix-blend-mode:multiply}"));
+    assert.ok(css.indexOf(".prod.blogg-kort .pname{") > css.indexOf(".shoplista .prod .pname{-webkit-line-clamp:3}"));
   });
 });
 
