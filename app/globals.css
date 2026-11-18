@@ -4001,8 +4001,12 @@ body:has([data-kassa-sida]){background:var(--surface-1)}
 .rev-expand,.angra-link{position:relative}
 .rev-expand::after{content:"";position:absolute;inset:-13px -10px}
 .angra-link::after{content:"";position:absolute;inset:-10px 0}
-/* Bildtexten under en produktbild i en köpguide: 38 px. */
+/* Bildtexten under en produktbild i en köpguide: 38 px. Bildraderna har en
+   egen, mer specifik regel för luften (.blog-produktrad), så där sätts höjden:
+   det första försöket ändrade bara luften i den allmänna regeln, och raderna
+   stod kvar på 38 px (mätt på förhandsvisningen 2026-11-18). */
 .prose figure.blog-product-img figcaption a{padding:14px}
+.prose .blog-produktrad figure.blog-product-img figcaption a{min-height:44px}
 /* Toppremsans Instagram och Facebook: 28 × 28 på mobilen. */
 @media(max-width:768px){
   .promo-social a{position:relative}

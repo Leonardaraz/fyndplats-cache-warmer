@@ -126,11 +126,15 @@ describe("tryckytor på mobilen", () => {
     assert.match(css, /\.angra-link::after\{content:"";position:absolute;inset:-10px 0\}/);
     assert.match(css, /\.promo-social a::after\{content:"";position:absolute;inset:-8px -4px\}/);
     assert.match(css, /\.blogg-tillbaka\{display:inline-block;padding:12px 0;margin:-12px 0\}/);
+    // Bildraderna i en köpguide har en egen regel för luften, så höjden sätts där.
+    assert.match(css, /\.prose \.blog-produktrad figure\.blog-product-img figcaption a\{min-height:44px\}/);
     assert.match(utanKommentarer(las("app", "butik", "butik.css")), /\.butik2 \.b2-grupp-rubrik a\{display:inline-block;padding:11px 0;margin:-11px 0\}/);
   });
 
   it("köpvillkorens innehållsförteckning och kassans sidfot", () => {
-    assert.match(utanKommentarer(las("app", "kopvillkor", "kopvillkor.module.css")), /@media \(max-width: 900px\) \{[^}]*\}[^}]*\}\s*\.toc a \{ padding: 12\.5px 8px \}/);
+    const villkor = utanKommentarer(las("app", "kopvillkor", "kopvillkor.module.css"));
+    assert.match(villkor, /@media \(max-width: 900px\) \{[^}]*\}[^}]*\}\s*\.toc a \{ padding: 12\.5px 8px \}\s*\.relaterade a \{ display: inline-block; padding: 11px 0 \}/);
+    assert.match(las("app", "kopvillkor", "page.tsx"), /<ul className=\{s\.relaterade\}>/);
     const kassa = utanKommentarer(las("app", "kassa", "kassa.module.css"));
     assert.match(kassa, /\.fot a::after \{\s*content: "";\s*position: absolute;\s*inset: -12px -4px;\s*\}/);
     assert.match(kassa, /\.logga::after \{\s*content: "";\s*position: absolute;\s*inset: -5px 0;\s*\}/);

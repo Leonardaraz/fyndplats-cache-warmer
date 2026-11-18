@@ -3491,14 +3491,17 @@ pricken ritad i stilen, före varje led, med radens första prick bortklippt
 pricken kvar som text räckte inte: raden bröts då efter en prick i stället för
 mitt i ett led (mätt på det första försöket).
 
-**Tryckytor.** Nio ställen låg under 40 px på mobilen, mätt med
+**Tryckytor.** Tio ställen låg under 40 px på mobilen, mätt med
 `::after`-ytan inräknad (sidhuvudets knappar har redan sådana och ser bara
 små ut för den som mäter elementet): brödsmulorna på /butik, /alla-produkter
 och samlingssidorna (26 × 18), avdelningsnamnen i registret (23 px),
 köpvillkorens innehållsförteckning (31), "Visa mer" i en recension (18),
 länken på ångra-sidan (24), toppremsans Instagram och Facebook (28 × 28),
 kassans sidfot och logga (16 till 34), bildtexten under en produktbild i en
-köpguide (38) och "Tillbaka till bloggen" (21). Ytan växer utan att något flyttas:
+köpguide (38), "Tillbaka till bloggen" (21) och länkarna under "Relaterade
+sidor" i köpvillkoren (21). ☠️ Mät om efter rättningen: bildtexterna stod
+kvar på 38 px första gången, för bildraderna (`.blog-produktrad`) har en egen,
+mer specifik regel. Ytan växer utan att något flyttas:
 luft in och lika mycket marginal ut, eller en osynlig yta runt länken.
 
 **Sett men inte ändrat** (större än en smådetalj, Leonards beslut):
