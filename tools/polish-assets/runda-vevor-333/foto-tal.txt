@@ -1,0 +1,12 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+9aaa0e6c 37 370 mm i källans spec och på måttbilden, 37 cm
+9aaa0e6c 19,5 195 mm i källans spec och på måttbilden, 19,5 cm
+9aaa0e6c 52 520 mm i källans spec och på måttbilden, 52 cm
+f5fa1d9c 213,4 2134 mm i källans spec och på måttbilden, 213,4 cm
+f5fa1d9c 121,5 1215 mm i källans spec och på måttbilden, 121,5 cm
+f5fa1d9c 80,5 805 mm i källans spec och på måttbilden, 80,5 cm
+f5fa1d9c 6 sex fickor räknade på bilderna: en i varje hörn och en på mitten av varje långsida
+f5fa1d9c 222,5 2225 mm på måttbilden, 222,5 cm
+f5fa1d9c 131 1310 mm på måttbilden, 131 cm
+f5fa1d9c 16 160 mm på måttbilden, 16 cm
