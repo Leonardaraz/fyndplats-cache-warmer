@@ -314,45 +314,151 @@
    Färgerna står i :root (app/globals.css, "Natten"). Här står bara vad som
    bär dem på startsidan. Brickorna är ljusa med flit: varan ska lysa mot det
    mörka, och bildernas vita botten smälter in som förut (multiply).
-   Säsongstemana (app/sasongstema.css) väger tyngre och ligger ovanpå. */
+   Säsongstemana (app/sasongstema.css) väger tyngre och ligger ovanpå.
+
+   ── Studion (Leonard 2026-11-17: "en mer premium 3d look codad") ──────────
+   Hjälten är en fotostudio: väggen tonar över i ett golv, en ljuskägla faller
+   uppifrån mot varorna, en ljuspöl ligger på golvet under dem, och brickorna
+   speglas i golvet. Allt är CSS, inga bildfiler.
+   ☠️ Ljuskäglan och ljuspölen sitter på .herogrid, inte på .hero. Varuväggen
+   står på en fast andel av rutnätets bredd (76 % + 15 px, se måtten nedan),
+   men INTE av hjältens: på en bred skärm är rutnätet 1 128 px mitt i hjälten,
+   och ett ljus satt i procent av hjälten hamnar bredvid varorna. Lagren är
+   400 px bredare än rutnätet åt varje håll, så att ljuset inte klipps vid
+   rutnätets kant; hjälten klipper resten (overflow:hidden).
+   Hjältens två drivande klot (.hero::before och ::after i globals.css) är
+   släckta här. Säsongstemana får tända dem för eget bruk. */
 .hem2 .hero{background:var(--natt-korn),
-  radial-gradient(34% 56% at 72% 50%,var(--glod-sken),transparent 72%),
-  radial-gradient(78% 64% at 90% 108%,var(--glod),transparent 64%),
-  radial-gradient(54% 46% at 2% -8%,var(--glod-svag),transparent 70%),
+  radial-gradient(120% 110% at 62% 34%,transparent 46%,rgba(0,0,0,.62) 100%),
+  linear-gradient(180deg,rgba(var(--studio-ljus),0) 56%,rgba(var(--studio-ljus),.07) 88%,rgba(0,0,0,.3) 100%),
   var(--natt)}
-.hem2 .hero::before{background:radial-gradient(circle,var(--glod),transparent 68%)}
-.hem2 .hero::after{background:radial-gradient(circle,var(--glod-svag),transparent 70%)}
+.hem2 .hero::before,.hem2 .hero::after{display:none}
+/* Ljuspölen (::before) och ljuskäglan (::after). z-index:-1 lägger dem bakom
+   text och brickor men framför hjältens bakgrund: .herogrid är en egen
+   staplingsordning (position:relative och z-index:2 i globals.css).
+   Varuväggens mitt: kolumnerna är 1.04fr och .96fr med 64 px emellan, så
+   mitten ligger på 52 % + 30,7 px + halva väggen (24 % − 15,4 px) av rutnätet.
+   Lagret börjar 400 px till vänster om rutnätet och är 800 px bredare, så
+   samma punkt står på 76 % − 193 px av lagret.
+   --studio-stoft är tom utan tema. Ett säsongstema lägger sina ljuspunkter
+   där (guldstoftet i Black Week), i samma lager och med samma mått, så att
+   de står runt varuväggen på varje bredd och aldrig intill texten. */
+.hem2 .herogrid::before,.hem2 .herogrid::after{content:"";position:absolute;z-index:-1;inset:0 -400px;pointer-events:none}
+.hem2 .herogrid::before{background:var(--studio-stoft,none),
+  radial-gradient(min(560px,40vw) 92px at calc(76% - 193px) calc(100% - 46px),rgba(var(--studio-ljus),.42),transparent 72%),
+  radial-gradient(min(900px,64vw) 190px at calc(76% - 193px) calc(100% - 22px),rgba(var(--studio-glod),.22),transparent 74%)}
+.hem2 .herogrid::after{
+  background:conic-gradient(from 158deg at calc(76% - 193px) -12%,rgba(var(--studio-ljus),0) 0deg,rgba(var(--studio-ljus),.12) 14deg,rgba(var(--studio-ljus),.19) 22deg,rgba(var(--studio-ljus),.12) 30deg,rgba(var(--studio-ljus),0) 44deg,transparent 44deg 360deg);
+  -webkit-mask-image:linear-gradient(180deg,rgb(0,0,0) 0%,rgba(0,0,0,.7) 46%,transparent 90%);mask-image:linear-gradient(180deg,rgb(0,0,0) 0%,rgba(0,0,0,.7) 46%,transparent 90%)}
 .hem2 .hero .heroinner,.hem2 .hero h1{color:var(--natt-ljus)}
 .hem2 .hero h1{text-shadow:0 2px 24px rgba(0,0,0,.45)}
 .hem2 .hero h1 em{color:var(--glod-a);text-shadow:none}
 /* Toningen ritas i bokstävernas form. Luften åt höger och nedåt gör att den
-   lutande sista bokstaven och g:ets och p:ets nederdel inte klipps. */
+   lutande sista bokstaven och g:ets och p:ets nederdel inte klipps.
+   Orden glöder svagt: skuggan är en text-shadow i glödens egen färg, inte ett
+   filter. Ett filter på text med background-clip är skört i Safari, och en
+   skugga i samma ton som toningen syns bara runt bokstäverna. */
 @supports ((-webkit-background-clip:text) or (background-clip:text)){
   .hem2 .hero h1 em{background:var(--glod-ord);-webkit-background-clip:text;background-clip:text;color:transparent;
-    -webkit-text-fill-color:transparent;padding:0 .06em .12em 0;margin-right:-.06em}
+    -webkit-text-fill-color:transparent;padding:0 .06em .12em 0;margin-right:-.06em;
+    text-shadow:0 3px 26px rgba(var(--studio-glod),.34)}
 }
 .hem2 .h1-marke{color:var(--glod-ljus);text-shadow:none}
 .hem2 .hero p{color:var(--natt-dampad)}
-.hem2 .hero .btn-primary{background:var(--natt-knapp);box-shadow:0 16px 36px -14px rgba(208,68,14,.85),inset 0 1px 0 rgba(255,255,255,.22)}
-.hem2 .hero .btn-primary:hover{background:var(--natt-knapp-over)}
+/* Knappen har tyngd: ljus ovankant, mörk underkant och glöd under. Det ljusa
+   överst slutar ovanför texten (36 %), så textens kontrast är knappens egen
+   färg (☠️ 4,5:1, se "Natten" i globals.css). Ljussvepet vilar utanför knappen
+   åt höger och går över den en gång i entrén (globals.css, "studion vaknar"). */
+.hem2 .hero .btn-primary{position:relative;overflow:hidden;color:var(--natt-knapp-text);
+  background:linear-gradient(180deg,rgba(255,255,255,.17) 0%,rgba(255,255,255,0) 36%),var(--natt-knapp);
+  box-shadow:0 20px 40px -14px var(--natt-knapp-skugga),0 2px 0 var(--natt-knapp-kant),inset 0 1px 0 rgba(255,255,255,.42),inset 0 -3px 8px -2px rgba(0,0,0,.22)}
+.hem2 .hero .btn-primary:hover{background:linear-gradient(180deg,rgba(255,255,255,.17) 0%,rgba(255,255,255,0) 36%),var(--natt-knapp-over)}
+.hem2 .hero .btn-primary::after{content:"";position:absolute;top:0;bottom:0;left:0;width:38%;pointer-events:none;
+  background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.36),rgba(255,255,255,0));
+  transform:translate3d(340%,0,0) skewX(-18deg)}
 .hem2 .hero .btn-quiet{color:var(--natt-ljus)}
 .hem2 .hero .btn-quiet:hover,.hem2 .hero .btn-quiet:focus-visible{color:var(--glod-ljus)}
 .hem2 .hero .ht-sub{color:var(--natt-dampad)}
-.hem2 .hero .herotile{background:var(--natt-bricka);border-color:rgba(255,255,255,.9);
-  box-shadow:0 0 0 1px rgba(255,255,255,.06),0 30px 60px -24px rgba(0,0,0,.85),0 0 80px -30px var(--glod)}
-.hem2 .hero .herotile:hover{box-shadow:0 0 0 1px rgba(255,194,154,.3),0 34px 64px -24px rgba(0,0,0,.9),0 0 90px -28px var(--glod)}
+/* Siffrorna ligger på en glasskiva i stället för under ett streck. Ingen
+   backdrop-filter: bakom skivan finns bara den mörka väggen, så en oskärpa
+   hade kostat grafikkortet utan att synas. */
+.hem2 .hero .herotrust{margin-top:30px;padding:17px 24px;border-top:0;border-radius:20px;
+  background:linear-gradient(180deg,rgba(255,255,255,.085) 0%,rgba(255,255,255,.022) 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),inset 0 0 0 1px rgba(255,255,255,.07),0 26px 44px -30px rgba(0,0,0,.98)}
+/* Brickorna har tyngd: ljus kant upptill, varmare ton nedtill och en tät
+   skugga där de möter golvet. */
+.hem2 .hero .herotile{background:var(--studio-bricka);border-color:rgba(255,255,255,.9);
+  box-shadow:inset 0 1.5px 0 #fff,inset 0 -1px 0 rgba(120,70,30,.2),0 0 0 1px rgba(var(--studio-ljus),.16),0 40px 46px -28px rgba(0,0,0,.98),0 0 120px -30px rgba(var(--studio-glod),.5)}
+.hem2 .hero .herotile:hover{box-shadow:inset 0 1.5px 0 #fff,inset 0 -1px 0 rgba(120,70,30,.2),0 0 0 1px rgba(var(--studio-ljus),.42),0 44px 50px -28px rgba(0,0,0,.98),0 0 130px -28px rgba(var(--studio-glod),.6)}
 .hem2 .usp{background:var(--natt-golv);border-bottom:1px solid rgba(255,255,255,.06)}
 .hem2 .uspitem{color:var(--natt-ljus)}
 .hem2 .uspitem svg{color:var(--glod-a)}
 .hem2 a.uspitem:hover,.hem2 a.uspitem:focus-visible{color:var(--glod-ljus)}
+@media(min-width:881px){
+  /* Varuväggen står vinklad mot texten, i riktigt perspektiv, och speglas i
+     golvet. --hx och --hy sätts av components/hero-lutning.tsx när muspekaren
+     rör sig över hjälten (−1 till 1); utan dem står väggen i sitt viloläge.
+     Speglingen (-webkit-box-reflect) finns i Safari och Chrome. Firefox ritar
+     ingen spegling, och allt annat ser likadant ut. */
+  .hem2 .hero .heromosaic{transform:perspective(1500px) rotateY(calc(-8deg + var(--hx,0)*3deg)) rotateX(calc(2deg - var(--hy,0)*2deg));
+    transform-origin:50% 55%;transition:transform .7s cubic-bezier(.2,.8,.2,1);
+    -webkit-box-reflect:below 14px linear-gradient(180deg,transparent 0%,transparent 78%,rgba(0,0,0,.06) 86%,rgba(0,0,0,.34) 100%)}
+}
+@media(min-width:881px) and (max-width:1099px){
+  /* Textspalten är under 512 px här, och de långa etiketterna ("i tull – allt
+     från EU-lager", "utvalda produkter") gick in i varandra på glasskivan
+     (mätt 2026-11-17: 23 px överlapp vid 881, 1 px vid 1 024, 11 px luft vid
+     1 100). De korta etiketterna visas, som på mobilen; orden står kvar i
+     texten för skärmläsare. Med korta etiketter är det "4,9" och stjärnorna
+     som är bredast, så första kolumnen får mest (13 px överlapp vid 881 med
+     de vanliga andelarna 1fr 1.3fr 1fr). */
+  .hem2 .hero .herotrust{padding:16px 20px;grid-template-columns:1.25fr 1fr 1fr}
+  .hem2 .herotrust>a{position:relative;padding:0 18px}
+  .hem2 .ht-lang{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+}
 @media(max-width:880px){
-  /* Skenet bakom brickorna ligger längst ner på mobilen, där raden står. */
-  .hem2 .hero{background:var(--natt-korn),
-    radial-gradient(96% 32% at 50% 88%,var(--glod-sken-stark),transparent 72%),
-    radial-gradient(84% 42% at 100% 106%,var(--glod-stark),transparent 64%),
-    radial-gradient(70% 30% at 0% -4%,var(--glod-svag),transparent 70%),
-    var(--natt)}
-  /* Klotet uppe till höger ligger bakom rubriken på mobilen: nästan släckt. */
-  .hem2 .hero::before{background:radial-gradient(circle,var(--glod-lugn),transparent 66%)}
-  .hem2 .hero .herotile{box-shadow:0 0 0 1px rgba(255,255,255,.06),0 18px 34px -18px rgba(0,0,0,.85)}
+  /* Mobilen: brickorna står i en rad längst ner över hela bredden, så ljuset
+     är satt mitt i rutnätet. Käglan faller från höger om mitten, så att
+     rubrikens början står mot svart. */
+  .hem2 .herogrid::before{background:var(--studio-stoft,none),
+    radial-gradient(74vw 50px at 48% calc(100% - 26px),rgba(var(--studio-ljus),.44),transparent 72%),
+    radial-gradient(120vw 120px at 50% calc(100% - 4px),rgba(var(--studio-glod),.22),transparent 74%)}
+  .hem2 .herogrid::after{
+    background:conic-gradient(from 150deg at calc(50% + 12vw) -8%,rgba(var(--studio-ljus),0) 0deg,rgba(var(--studio-ljus),.09) 18deg,rgba(var(--studio-ljus),.15) 30deg,rgba(var(--studio-ljus),.09) 42deg,rgba(var(--studio-ljus),0) 60deg,transparent 60deg 360deg)}
+  /* Ljuset är satt från rutnätets mitt här, så lagren behöver bara nå
+     skärmens kanter (rutnätet har 26 px marginal). Ett tema som låter stoftet
+     driva gör lagret till en egen yta på grafikkortet, och 800 px extra bredd
+     på en telefon är minne som inte syns. */
+  .hem2 .herogrid::before,.hem2 .herogrid::after{inset:0 -60px}
+  .hem2 .herogrid{padding-bottom:8px}
+  .hem2 .hero .herotrust{margin-top:18px;padding:12px 14px;border-radius:16px}
+  /* Brickorna står upprätt och var och en bär sin egen spegling. Speglingen
+     sitter på brickan och inte på raden: raden rullar i sidled, och en
+     spegling av en rullande yta är inte säker i Safari. Radens luft nedtill
+     (44 px) är speglingens plats: det som sticker ut under raden klipps.
+     ☠️ Brickorna lutade först 5 grader bakåt. På en riktig iPhone 15 blev
+     priset bara "ganska" skarpt (Leonard 2026-11-18), och en lutad bricka är
+     en egen yta på grafikkortet. Upprätt ritas texten skarpt och hela raden
+     är en yta.
+     ☠️ I entrén reser sig raden som en yta (radRes i globals.css), inte
+     bricka för bricka: brickorna har ingen egen entré på mobilen, varken i
+     väntläget eller när den går.
+     ☠️ Varje bricka är en egen yta på grafikkortet (translate3d utan
+     förflyttning och will-change). När brickorna ritades som en del av raden
+     försvann speglingen på en riktig iPhone 15 (Leonard 2026-11-18); med en
+     egen yta per bricka, som i den första versionen, syntes den. Brickan står
+     fortfarande upprätt och i skala ett, så priset är skarpt. */
+  .hem2 .heromosaic{padding-bottom:44px}
+  .hem2 .hero .herotile{animation:none;transform:translate3d(0,0,0);will-change:transform;
+    box-shadow:inset 0 1.5px 0 #fff,inset 0 -1px 0 rgba(120,70,30,.2),0 0 0 1px rgba(var(--studio-ljus),.16),0 16px 18px -12px rgba(0,0,0,.98);
+    -webkit-box-reflect:below 5px linear-gradient(180deg,transparent 0%,transparent 74%,rgba(0,0,0,.1) 84%,rgba(0,0,0,.44) 100%)}
+  .hem2 .hero .herotile:hover{transform:translate3d(0,0,0);
+    box-shadow:inset 0 1.5px 0 #fff,inset 0 -1px 0 rgba(120,70,30,.2),0 0 0 1px rgba(var(--studio-ljus),.16),0 16px 18px -12px rgba(0,0,0,.98)}
+}
+@media(min-width:361px) and (max-width:880px){
+  /* Över 360 px står stjärnorna bredvid 4,9, och med tre lika breda kolumner
+     på glasskivan gick de in i nästa kolumns linje (mätt 2026-11-17: 0 px
+     luft vid 390, 5 px överlapp vid 375). Under 361 px är stjärnorna dolda
+     och kolumnerna lika breda. */
+  .hem2 .hero .herotrust>a:first-child{flex-grow:1.35}
 }

@@ -94,6 +94,30 @@ export function avdelningFor(kat: HubKategori, alla: HubKategori[]): HubKategori
 const storstForst = (a: { antal: number; namn: string }, b: { antal: number; namn: string }) =>
   b.antal - a.antal || a.namn.localeCompare(b.namn, "sv");
 
+/**
+ * Varje vara under priset, för knappen "Visa fler" på översikten (Leonard
+ * 2026-11-18: "det borde finnas visa mera knapp så man kan se alla").
+ * De första är urvalet, i samma ordning som översikten visar dem, så att
+ * korten som redan står på sidan inte flyttas eller kommer två gånger. Sedan
+ * följer de varor som inte får stå i urvalet men får stå i listan, med bästa
+ * bilden först och sedan lägst pris.
+ */
+export function prisLista<P extends HubProdukt>(inn: {
+  price: number;
+  products: P[];
+  dedupe: (lista: P[]) => P[];
+  blanda: (lista: P[]) => P[];
+  iUrvalet: (p: P) => boolean;
+  /** Får varan stå i den fulla listan? */
+  iListan: (p: P) => boolean;
+}): P[] {
+  const under = inn.dedupe(underPriset(inn.products.filter((p) => p.inStock), inn.price));
+  const sorterade = [...under].sort((a, b) => b.imageScore - a.imageScore || a.priceNum - b.priceNum);
+  const urval = inn.blanda(sorterade.filter(inn.iUrvalet));
+  const ovriga = sorterade.filter((p) => !inn.iUrvalet(p) && inn.iListan(p));
+  return [...urval, ...ovriga];
+}
+
 export function byggPrisOversikt<P extends HubProdukt>(inn: PrisOversiktIn<P>): HubCore<P> | null {
   const { price } = inn;
   if (!inn.granser.includes(price)) return null;

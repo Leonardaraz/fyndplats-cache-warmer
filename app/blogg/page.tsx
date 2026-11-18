@@ -60,13 +60,18 @@ export default async function Blogg() {
       {posts.length > 0 && (
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(blogLd) }} />
       )}
-      <section className="sec">
+      {/* Rubriken står i studiobandet (.sidtopp i globals.css), som på de andra listsidorna. */}
+      <section className="sidtopp">
         <div className="container">
           <div className="sechead">
             <div className="eyebrow">Blogg</div>
             <h1>Tips, guider &amp; nyheter</h1>
             <p>Inspiration för dina nästa fynd.</p>
           </div>
+        </div>
+      </section>
+      <section className="sec">
+        <div className="container">
 
           {posts.length === 0 ? (
             <p className="empty" style={{ textAlign: "center", color: "var(--soft)" }}>

@@ -24,7 +24,7 @@ import {
   type IntervallNyckel, type SpecFacett,
 } from "../lib/spec-facets";
 import type { ListaInfo } from "../lib/list-pages";
-import { productCountLabel, tusental } from "../lib/rating";
+import { productCountLabel, produktOrd, tusental } from "../lib/rating";
 import { spelaUppTidigaKlick } from "../lib/tidiga-klick";
 import { lasSidan } from "../lib/las-sidan";
 import { rullaDirekt } from "./use-landa-vid-bilder";
@@ -834,7 +834,7 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
   return (
     <>
       {/* Top toolbar — filter vänster, count mitten/subtilt, sort höger */}
-      <div className={`shopbar ${open ? "open" : ""}`}>
+      <div className={`shopbar ${open ? "open" : ""}${activeFilters > 0 ? " har-filter" : ""}`}>
         {/* Att öppna filterpanelen är avsikt att filtrera, och ett filter kan
             landa på produkter långt ner i katalogen. */}
         <button type="button" className="shopbar-toggle" data-tidigt="filter"
@@ -847,7 +847,11 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
         </button>
 
         <div className="shopcount-inline" aria-live="polite">
-          {liveCount === null ? "Räknar …" : productCountLabel(liveCount)}
+          {/* Talet och ordet var för sig: på mobilen står antalet inne i
+              filterknappens ruta, och där ryms bara talet ("100 st"). */}
+          {liveCount === null ? "Räknar …" : (
+            <><span className="shopcount-tal">{tusental(liveCount)}</span><span className="shopcount-ord"> {produktOrd(liveCount)}</span></>
+          )}
           {activeFilters > 0 && <span className="shopcount-of"> av {ov ? ov.antal : products.length}</span>}
         </div>
 

@@ -3313,6 +3313,282 @@ gången och 0,5–0,65 s när Stripes filer redan är hämtade.
   sparat 0,6–0,7 s för nya besökare, men då körs Stripe och sätter sina kakor
   före kassan. Det är Leonards beslut.
 
+## Studiobandet på listsidorna, mobilens verktygsrad och speglingen (2026-11-18)
+
+Leonard 2026-11-18, efter förhandsvisningen: "alla kategoriers övre sektion
+får också en premium look som startsidans hero", om brickornas spegling: "det
+va ju jätte snyggt. Vill ha det", och sedan, efter min genomgång av vad som
+skilde sidan från 10/10: "Gör punkt 1 och 2" (samma topp på resten av
+listsidorna, och varorna högre upp på mobilen).
+
+**Studiobandet** (`app/globals.css`, "Studiobandet"). Listsidornas övre
+sektion har samma natt, korn och ljus som hjälten, ur samma variabler, så
+säsongstemana byter färg där också:
+
+| Band | Sidor |
+| --- | --- |
+| `.kat-hero` | kategorierna, och de programmatiska sidorna (`.prog-hero`) |
+| `.butik-hero` | /alla-produkter och /rea |
+| `.b2-hjalte` | /butik och prissidorna |
+| `.sidtopp` | /sok och /blogg (rubriken flyttad ur `.sec` till ett eget band) |
+
+EN regel bär bakgrunden och EN bär ljuset (ljuspöl, glöd och ljuskägla).
+Sidornas egna regler sätter bara mått och ljusets plats (`--band-ljus`), styrka
+(`--band-pol`, `--band-glod`) och storlek (`-b`, `-h`). De ljusa bakgrunderna
+och de gamla klotens `::after` är borttagna ur grundreglerna, inte överskrivna.
+
+- ☠️ **Procenten i ljusets plats räknas av lagret, inte av rutnätet.** På
+  kategorisidan ligger ljuset på `.kat-hero-grid::before`, som är 800 px
+  bredare än rutnätet. Med `calc(400px + 74%)` låg ljuset utanför lagret på
+  mobilen och syntes inte alls; rätt är `calc(74% - 192px)`.
+- ☠️ **Texten får inte stå på pölen.** Med datorns höjd på mobilen föll
+  kategorins ingress till 4,5:1 mot pölens ljusaste punkt. På mobilen är
+  pölen 24 px hög och ligger i bandets luft nedtill.
+- ☠️ **axe-core kan inte avgöra kontrast mot en toning.** Mät i bilden: gör
+  texten genomskinlig och jämför textens färg med den ljusaste punkten bakom
+  varje textbärande element. Mätt 2026-11-18 på nio sidor, fyra bredder och
+  två utseenden: sämst 5,0:1 (etiketten under talen på /butik, 360 px).
+- ☠️ **`.crumbs span` träffar mer än avdelaren.** På de programmatiska sidorna
+  är varje led ett eget `span`, så regelns halva styrka låg på länkarna: 3,6:1
+  mot natten. `.prog-hero .crumbs>span{opacity:1}`.
+- ☠️ **En mobilregel längre ner i filen vinner över en tidigare med samma
+  vikt.** `.alla-prod-hero` fick aldrig sin mobilluft: `.butik-hero` står
+  längre ner och har samma vikt. Skriv `.butik-hero.alla-prod-hero`.
+
+**Mobilens verktygsrad på en rad** (`components/shopbrowser.tsx`, "Mobilens
+verktygsrad" i `app/globals.css`). Filter och sortering stod på var sin rad
+under kategoriväljaren. Nu: filterknappen med antalet inne i samma ruta
+("100 st"), och sorteringen bredvid. Den riktiga väljaren ligger osynlig över
+hela sorteringsknappen, så trycket öppnar telefonens egen lista. Samma rad på
+/alla-produkter, /rea och /sok.
+
+- Antalet och filterknappen delar rutnätets första cell; antalet tar inga
+  tryck. Talet och ordet är var sitt `span` (`produktOrd` i `lib/rating.ts`:
+  böjningen får inte skrivas om i en yta, `lib/plural-global.test.ts`).
+- Mätt på 393 px: första varan på kategorisidan står 102 px högre (524 px från
+  sidans topp i stället för 626), på /alla-produkter 66 px högre.
+- Mätt på åtta bredder (320 till 700 px) och fem sidor: en rad, 44 px höga
+  knappar, antalet inom knappen och minst 21 px från ordet "Filter", ingen
+  sidscroll. Under 350 px göms antalet när ett filter är valt.
+
+**Kolsvart i stället för brunt.** Leonard samma natt: "är verkligen den där
+bruna bakgrundsfärgen rätt färg för att ge hemsidan 10/10 design eller vet du
+en som passar bättre?" Natten var en brunsvart toning med persikofärgat ljus,
+och orange ljus över nästan svart blir brunt: logga, knapp och bakgrund flöt
+ihop. Nu är grunden neutral (`--natt` #09090A till #141312, `--natt-golv`
+#0A0A0A), ljuset varmvitt (`--studio-ljus` 255,226,200) och glöden svagare
+(`--studio-glod`, `--glod`). Bara variablerna är bytta, så toppremsan, hjälten,
+studiobanden, auktionsremsan, nyhetsbrevet och sidfoten följer med. Han fick
+tre bilder (A brunt, B kolsvart, C midnattsblått). Jag förde in mitt förslag,
+kolsvart, medan han tittade, och han svarade "Kör b" före mergen. Vill han ha
+en annan grund är det samma handfull variabler.
+
+- Mätt efter bytet: axe-core 0 kontrastfel på startsidan i fyra utseenden;
+  textens kontrast i banden mätt i bilden på mobil sämst 5,2:1.
+- ☠️ **Det varmvita ljuset är ljusare än det persikofärgade.** Ljuskäglan
+  ligger bakom text på mobilen (ingress, etiketter). Höjs käglans styrka måste
+  kontrasten mätas om i bilden.
+
+**Sökfältet zoomade in sidan på iPhone** (`lib/ios-fokuszoom.ts`). Alla fält
+har 16 px på mobilen, så felet var inte textstorleken. I Leonards skärmbilder
+var sidan ritad 524 px bred på en 393 px bred telefon: Safaris sidzoom stod på
+75 %, och då är 16 px bara 12 punkter på skärmen, så iOS zoomar in vid fokus
+och står kvar inzoomad. Skriptet lägger `maximum-scale=1` i sidans viewport,
+bara på iOS, där värdet styr fokuszoomen men inte kundens egen nypzoom. I
+Android Chrome hade samma värde stängt av nypzoomen, så där rörs ingenting.
+
+- ☠️ **Värdet sätts vid tryck, inte vid laddning.** Ändras taggen innan React
+  väckt sidan lägger React in en egen bredvid, och den sista (utan taket)
+  gäller. Skriptet går igenom alla viewport-taggar vid varje `touchstart`.
+- Inte provat på en riktig iPhone. Att Safari följer `maximum-scale` vid
+  fokus men inte vid nypzoom är läst, inte mätt.
+
+**Speglingen på mobilen.** Speglingen (`-webkit-box-reflect` på varje bricka)
+syntes på Leonards iPhone 15 i första versionen, där varje bricka var en egen
+yta på grafikkortet (den lutade). När brickorna ställdes upprätt och ritades
+som en del av raden försvann den i Safari, fast Chromium ritade den hela tiden.
+Nu har varje bricka `transform:translate3d(0,0,0)` och `will-change:transform`:
+en egen yta utan lutning, så priset är fortfarande skarpt.
+
+- ☠️ **Chromium är inget kvitto på speglingen.** Den ritas där i båda lägena.
+  Bara en riktig iPhone visar om den finns.
+
+## Studion: hjälten som fotostudio, och Black Week-temana (2026-11-17)
+
+Leonard 2026-11-17: "göra bakgrundsfärgen i hero sektionen en mer premium 3d
+look codad och sen tema för black friday", och sedan "finslipa den till max".
+Han valde Studio bland fyra förslag och svart och guld bland två.
+
+**Studion** (`app/startsida.css`, blocket "Studion", färgerna i `:root` i
+`app/globals.css`). Hjälten är en fotostudio i ren CSS, utan bildfiler:
+
+- Väggen tonar över i ett golv, en ljuskägla faller uppifrån mot varorna och
+  en ljuspöl ligger på golvet under dem.
+- Varuväggen står vinklad mot texten i riktigt perspektiv på dator och speglas
+  i golvet (`-webkit-box-reflect`). På mobilen står brickorna upprätt och var
+  och en bär sin egen spegling.
+- Brickorna har ljus kant upptill och varmare ton nedtill, siffrorna ligger på
+  en glasskiva, knappen har ljus ovankant och mörk underkant, och orden
+  "tryggt köp" glöder svagt.
+- Rörelse: ett ljussvep över knappen en gång, och varuväggen följer
+  muspekaren några grader på dator (`components/hero-lutning.tsx`).
+
+☠️ **Ljuset sitter på `.herogrid`, inte på `.hero`.** Varuväggens mitt står på
+en fast andel av rutnätets bredd (76 % + 15 px), men inte av hjältens: på en
+bred skärm är rutnätet 1 128 px mitt i hjälten. Första skisserna satte ljuset
+i procent av hjälten och stämde bara vid 1 440 px.
+
+☠️ **Entrén väntar tills sidan är lugn ("studion vaknar").** Leonard provade
+på en iPhone 15, två gånger (2026-11-18): "den är lite hackig", "det är inte
+smooth". Förra entrén började vid första bildrutan. Mätt på kall mobil med
+strypt nät och processor byts typsnittet in 86 till 126 ms efter första
+bildrutan, två brickbilder landar cirka 320 ms efter, och huvudtråden står
+still i 200 till 320 ms i samma ögonblick. En rörelse som går just då hackar,
+hur den än är ritad. Nu är den byggd så här:
+
+- Texten står på plats från första bildrutan (rubriken är fortfarande LCP).
+- Skriptet först i sidan (`INTRO_EN_GANG` i `components/site.tsx`) sätter
+  `data-entre="vantar"` på `<html>`: bara på startsidan, bara första gången i
+  fliken och aldrig för den som bett om mindre rörelse.
+- I väntläget hålls varorna nästan osynliga (0,01, inte 0) och texten 12 px
+  lägre. Det är startrutan i en animation med fördröjning, inte en fast stil,
+  så efter 2,4 s visas varorna av sig själva även om inget skript körs.
+- `components/hero-entre.tsx` byter till `"gar"` när sidan är väckt,
+  typsnittet och brickornas bilder är inne och fyra bildrutor i rad har kommit
+  i tid (`lib/hero-entre.ts`). Då tänds ljuskäglan, varorna reser sig i
+  djupled, texten lyfter sig och ett ljussvep går över knappen.
+- På mobilen reser sig hela raden med brickor som en yta, och brickorna står
+  upprätt (de lutade först 5 grader, och priset blev bara "ganska" skarpt).
+
+☠️ **Väntläget och entrén har egna nyckelrutor med samma startruta**
+(`vantaLyft`/`textLyft`, `vantaTona`/`framTona`, `vantaLjus`/`ljusTands`). Med
+samma namn i båda lägena startar webbläsaren ingen ny animation vid bytet: den
+fortsätter den som redan går med de nya tiderna, och den har då redan gått
+förbi sitt slut. Texten och toningen hoppade rakt till slutläget. Det syntes
+först i mätningen bildruta för bildruta, inte i en skärmbild.
+
+Mätt i Chromium med samma strypning (median av fyra laddningar), i entréns
+eget fönster: längsta luckan mellan två bildrutor är cirka 50 ms (förr 230
+till 320 ms), och raden med brickor flyttar sig som mest cirka 6 px mellan två
+bildrutor (förr 29 px för en bricka och 32 px för rubriken). Kurvan är
+`cubic-bezier(.4,0,.1,1)`: 3 % av rörelsen på de första 10 % av tiden.
+
+☠️ **`*{animation:none!important}` når inte `::before` och `::after`.**
+Butikens regel för mindre rörelse väljer bara element. Ljussvepet och temats
+stoft låg kvar för den som bett om mindre rörelse tills de fick egna regler.
+
+☠️ **Inget filter i hjälten.** Glöden på de kursiva orden är en text-shadow.
+Ett filter på text med `background-clip:text` är skört i Safari.
+
+**Black Week** (`lib/sasongstema.ts`, sist i `app/sasongstema.css`). Tre teman
+i rad med samma utseende, svart och guld, eftersom varje namn bara får stå en
+gång:
+
+| Tema | Svensk tid | Raden över rubriken | Ordet bakom |
+|---|---|---|---|
+| `blackweek` | mån 23/11 00:00 till fre 27/11 00:00 | Black Week · 23–29 november | Black |
+| `blackfriday` | fre 27/11, hela dygnet | Black Friday · i dag | Friday |
+| `blackweekend` | lör 28/11 00:00 till mån 30/11 00:00 | Black Week · till söndag | Black |
+
+Temat byter nattens och studions variabler, så toppremsan, sidhuvudets linje,
+hjälten, löftesremsan, auktionsremsan, nyhetsbrevet och sidfoten följer med.
+Butikens orange står kvar i loggan, menyn och produkternas etiketter.
+
+☠️ **Knappens text är en variabel (`--natt-knapp-text`).** Guldknappen är ljus,
+så texten är mörk i temat. Samma knapp står i nyhetsbrevet och auktionsremsan,
+som förr hade vit text fastskriven.
+
+☠️ **Guldstoftets ringar står i varuväggens mått, aldrig i procent av
+hjälten** (`--studio-stoft`). I procent hamnade de intill text och på
+glasskivans kant på smala skärmar och såg ut som fläckar.
+
+**Provläget.** Ett tema som börjar nästa vecka går inte att se i dag, så en
+förhandsvisning hos Vercel (`VERCEL_ENV` "preview") lyder adressen:
+`?tema=blackweek`, `?tema=blackfriday`, `?tema=blackweekend`, och `?tema=av`
+för butiken utan tema. Valet ligger kvar i fliken. I produktionen finns den
+koden inte i skriptet; `lib/sasongstema.test.ts` fäller om den gör det.
+
+**Mätt 2026-11-17, lokal build i Chromium:**
+
+- 19 bredder (320 till 1 920 px) i fyra utseenden, 76 lägen: ingen sidscroll,
+  ingen rullning på höjden i brickraden, inga sidfel.
+- axe-core: 0 kontrastfel i alla fyra utseenden, mobil och dator.
+- Hjältens höjd: oförändrad på dator (624 px), +23 px på mobil vid 390 px
+  (579 mot 556), för glasskivan och speglingens plats.
+- Faktaraden gick in i sig själv på glasskivan på två ställen och är rättad:
+  375–390 px (stjärnornas kolumn får mer bredd) och 881–1 099 px (korta
+  etiketter och andra andelar).
+- Halloween och Singles ser hela ut ovanpå studion.
+
+**Inte provat:** Safari och en riktig telefon (speglingen, perspektivet och
+textskärpan på de vinklade brickorna), och Firefox, som inte ritar speglingen.
+
+## Kassan nekar e-postadresser som inte kan finnas (2026-11-18)
+
+En order lades med en adress som slutade på `.con`: bekräftelsen, kvittot
+och spårningen kom aldrig fram. Leonard: "vår kassa borde inte acceptera mail
+som inte existerar", och "för medlemmar borde mail adressen följa med".
+
+Tre spärrar, som i kassorna hos de stora butikerna:
+
+1. **Formen** (`epostFel` i `lib/kassa/formular.ts`): namn@doman.topp, en hel
+   domän, inga led som börjar eller slutar med bindestreck.
+2. **Toppdomänen finns.** IANA:s hela lista (1 436 stycken, version
+   2026111700) står i samma fil. `.con` finns inte. Felet säger det rakt ut:
+   "Adressen slutar på .con, som inte finns. Menade du .com?"
+3. **Domänen kan ta emot e-post.** När kunden lämnat fältet frågar kassan
+   `/api/kassa/epost-kontroll`, som slår upp domänen i DNS
+   (`lib/kassa/epost-dns.ts`). Finns domänen inte, eller har den varken
+   e-postservrar eller en adress, visas ett fel och köpet spärras för just den
+   adressen.
+
+Spärr 1 och 2 gäller i webbläsaren (bocken, felet under fältet) och på servern
+(`provaKassa`, som båda betalvägarna och snabbkassan går igenom). Förslaget
+"Menade du namn@gmail.com?" står kvar bredvid felet. Då står frågan bara en
+gång (`epostFelUtanForslag` tar bort "Menade du .com?" ur feltexten), och ett
+tryck på förslaget släcker felet: det gällde den gamla adressen. Mätt på
+förhandsvisningen 2026-11-18: förut stod "Menade du" två gånger, och felet
+stod kvar under en rättad adress.
+
+- ☠️ **Bara det som säkert är fel nekas.** DNS-frågan har en tidsgräns på
+  1,5 s, och allt osäkert (tidsgräns, trasig namnserver, okänt fel) släpper
+  igenom kunden. Rutten nekar aldrig ett köp själv.
+- ☠️ **Listan över toppdomäner ska vara hela listan.** En toppdomän som saknas
+  stänger ute en riktig kund. `lib/kassa/epost.test.ts` fäller när listan är
+  äldre än två år: hämta filen hos IANA, ersätt listan och versionen.
+- ☠️ **Reglerna står i `formular.ts`, inte i en egen fil.** Modulen läses av
+  `node --test` utan importer, och bygget tillåter inte importer med
+  `.ts`-ändelse (bygget föll på typkontrollen när reglerna låg i egna filer).
+- ☠️ **Ingen e-postadress i loggen**, bara att uppslaget felade.
+- **Medlemmens e-post** läses ur sessionen i `app/kassa/page.tsx` och fyller
+  fältet. Den skrivs efter de uppgifter som sparats i webbläsaren, så ett
+  inloggat köp räknas på kontot.
+
+Inte provat: DNS-frågan mot riktiga domäner i produktionen (beslutet är prövat
+med låtsassvar), och kassan i Safari.
+
+## Prissidorna: Visa fler och miniatyrer (2026-11-18)
+
+Leonard om /under-500-kr och /under-1000-kr: "det borde finnas visa mera knapp
+så man kan se alla och kategorierna borde ha minityr bilder som menyn har".
+
+- **Visa fler** (`components/pris-fler.tsx`). Sidan bär de 24 första korten;
+  knappen hämtar nästa 48 från `/api/pris-lista?k=<pris>-<sida>` och lägger dem
+  sist i samma rutnät. Listan är `prisLista` i `lib/seo/pris-oversikt.ts`:
+  urvalet först, i samma ordning som sidan, sedan resten med bästa bilden
+  först. Varor som bara får synas i sin underkategori står inte med.
+- ☠️ **Högst 48 kort per hämtning.** Listans kort får bara bild för de 48
+  första (`FORSTA_MED_BILD` i `lib/list-payload.ts`); provet jämför talen.
+- ☠️ **En parameter i adressen**, som `/api/lista`: varje annan parameter hade
+  blivit en egen CDN-nyckel. Påhittade sidnummer ger 404.
+- **Miniatyrerna** (`components/pris-kategoribild.tsx`) är menyns egna bilder
+  och menyns egen hämtning (`use-meny-bilder.tsx`), så sidan hämtar inget nytt.
+  Rutan har fast storlek och inget flyttar sig när bilden kommer.
+
+Mätt lokalt 2026-11-18: under 500 kr har 374 varor och under 1 000 kr 2 986.
+Två tryck ger 120 kort utan dubbletter, alla med bild, och alla 84 kategorier
+under 1 000 kr har en miniatyr.
+
 ## Hastigheten mätt 2026-11-10: startsidan byggdes om var 15:e sekund
 
 Lighthouse på mobil (strypt till långsam 4G) gav 81–86 i prestanda, med

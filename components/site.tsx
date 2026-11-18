@@ -35,9 +35,14 @@ export function Social({ className }: { className?: string }) {
 // Loggan (components/mark.tsx): delas med kassans sidhuvud.
 export { Mark };
 
+// Hjältens entré spelas en gång per flik, och bara när startsidan är den första
+// sidan: skriptet sätter data-entre="vantar" på <html> innan hjälten ritas
+// (app/globals.css, "studion vaknar"), och components/hero-entre.tsx startar
+// entrén när sidan är lugn. Aldrig för den som bett om mindre rörelse. Går
+// något fel här sätts ingenting, och sidan är hel och stilla.
 const INTRO_EN_GANG =
-  "try{if(sessionStorage.getItem('fp-intro')){var s=document.createElement('style');" +
-  "s.textContent='.heroinner>*,.hero h1,.heromosaic{animation:none!important}';document.head.appendChild(s)}" +
+  "try{var d=document.documentElement,m=window.matchMedia;" +
+  "if(!sessionStorage.getItem('fp-intro')&&location.pathname==='/'&&!(m&&m('(prefers-reduced-motion:reduce)').matches))d.setAttribute('data-entre','vantar');" +
   "sessionStorage.setItem('fp-intro','1')}catch(e){}";
 
 export async function SiteHeader() {

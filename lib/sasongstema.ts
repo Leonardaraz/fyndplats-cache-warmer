@@ -40,6 +40,16 @@ export const SASONGSTEMAN: readonly Sasongstema[] = [
   // provet fäller två teman som överlappar.
   { namn: "singlesday", fran: "2026-11-10T23:00:00Z", till: "2026-11-11T23:00:00Z" },
   { namn: "singlesweek", fran: "2026-11-11T23:00:00Z", till: "2026-11-15T23:00:00Z" },
+  // Black Week (Leonard 2026-11-17: "tema för black friday"). Samma vecka som
+  // Fyndauktionens Black Week: måndag 23 till söndag 29 november, med fredagen
+  // 27 november som Black Friday. Tre teman i rad, eftersom varje namn bara
+  // får stå en gång: måndag till torsdag, fredagen, och helgen efter.
+  // De delar utseende (svart och guld) och skiljer sig bara i raden över
+  // rubriken och ordet bakom den. Slut måndag 30 november 00:00 svensk tid.
+  // Vintertid (UTC+1), så svensk midnatt är 23:00 UTC kvällen före.
+  { namn: "blackweek", fran: "2026-11-22T23:00:00Z", till: "2026-11-26T23:00:00Z" },
+  { namn: "blackfriday", fran: "2026-11-26T23:00:00Z", till: "2026-11-27T23:00:00Z" },
+  { namn: "blackweekend", fran: "2026-11-27T23:00:00Z", till: "2026-11-29T23:00:00Z" },
 ];
 
 const NAMN = /^[a-z]+$/;
@@ -61,8 +71,16 @@ export function aktivtTema(nuMs: number, teman: readonly Sasongstema[] = SASONGS
  * Datumen kontrolleras här, vid bygget. Ett namn eller datum som inte går att
  * lita på fäller bygget i stället för att ge ett tema som aldrig, eller
  * alltid, slås på.
+ *
+ * PROVLÄGET (`prov`, Leonard 2026-11-17: "ge mig länken till förhandsvisningen
+ * så jag får prova"). Ett tema som börjar nästa vecka går inte att se i dag,
+ * så en förhandsvisning (VERCEL_ENV "preview") lyder också adressen:
+ * `?tema=blackweek` slår på ett tema ur listan, och `?tema=av` visar butiken
+ * utan tema. Valet ligger kvar i fliken (sessionStorage), så att det följer
+ * med när man klickar vidare. I produktionen finns den koden inte i skriptet
+ * alls: där styr bara datumet. Ett namn som inte står i listan gör ingenting.
  */
-export function temaSkript(teman: readonly Sasongstema[] = SASONGSTEMAN): string {
+export function temaSkript(teman: readonly Sasongstema[] = SASONGSTEMAN, prov = false): string {
   const rader = teman.map((t) => {
     if (!NAMN.test(t.namn)) throw new Error(`Säsongstema: ogiltigt namn "${t.namn}"`);
     if (!UTC.test(t.fran) || !UTC.test(t.till)) throw new Error(`Säsongstema ${t.namn}: datumen ska vara UTC med Z`);
@@ -73,11 +91,21 @@ export function temaSkript(teman: readonly Sasongstema[] = SASONGSTEMAN): string
     }
     return [t.namn, fran, till];
   });
+  const provval = prov
+    ? "var q=/[?&]tema=([a-z]+)/.exec(location.search),v=q?q[1]:null;" +
+      "try{if(v)sessionStorage.setItem('fp-tema',v);else v=sessionStorage.getItem('fp-tema')}catch(e){}" +
+      "if(v==='av')return;" +
+      "if(v)for(var j=0;j<t.length;j++)if(t[j][0]===v){document.documentElement.setAttribute('data-tema',v);return}"
+    : "";
   return (
     "(function(){try{var n=Date.now(),t=" + JSON.stringify(rader) + ";" +
+    provval +
     "for(var i=0;i<t.length;i++)if(n>=t[i][1]&&n<t[i][2]){document.documentElement.setAttribute('data-tema',t[i][0]);return}" +
     "}catch(e){}})()"
   );
 }
 
-export const TEMA_SKRIPT = temaSkript();
+/** Sant bara i en förhandsvisning hos Vercel, aldrig i produktionen eller lokalt. */
+export const TEMA_PROV = (process.env.VERCEL_ENV || "").trim() === "preview";
+
+export const TEMA_SKRIPT = temaSkript(SASONGSTEMAN, TEMA_PROV);

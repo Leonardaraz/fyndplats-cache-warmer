@@ -4,7 +4,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { avdelningFor, byggPrisOversikt, underPriset, type HubKategori, type HubProdukt, type PrisOversiktIn } from "./pris-oversikt.ts";
+import { avdelningFor, byggPrisOversikt, prisLista, underPriset, type HubKategori, type HubProdukt, type PrisOversiktIn } from "./pris-oversikt.ts";
 
 type P = HubProdukt & { kat: string };
 
@@ -185,3 +185,88 @@ describe("kopplingen i lib/seo/programmatic.ts", () => {
     assert.match(kalla, /hubCore\(products, collections, tierParams, price, giltiga, gomda\)/);
   });
 });
+
+// ── "Visa fler" på översikten (Leonard 2026-11-18) ───────────────────────
+describe("prisLista: varje vara under priset, för Visa fler", () => {
+  const lista = (products: P[], gomda: string[] = [], bara: string[] = []) =>
+    prisLista<P>({
+      price: 500,
+      products,
+      dedupe: (l) => l,
+      blanda: (l) => [...l].reverse(),
+      iUrvalet: (p) => !gomda.includes(p.slug) && !bara.includes(p.slug),
+      iListan: (p) => !bara.includes(p.slug),
+    });
+
+  it("börjar med urvalet i urvalets ordning, så att korten som redan står på sidan inte flyttas", () => {
+    const a = vara(100, "soffbord", { imageScore: 90 });
+    const b = vara(200, "soffbord", { imageScore: 80 });
+    const c = vara(300, "lampor", { imageScore: 70 });
+    // blanda vänder här på listan: urvalet är c, b, a.
+    assert.deepEqual(lista([a, b, c]).map((p) => p.slug), [c.slug, b.slug, a.slug]);
+  });
+
+  it("varor som inte får stå i urvalet kommer efter det, bästa bilden först och sedan lägst pris", () => {
+    const a = vara(100, "soffbord", { imageScore: 90 });
+    const dold1 = vara(400, "lampor", { imageScore: 60 });
+    const dold2 = vara(150, "lampor", { imageScore: 95 });
+    const dold3 = vara(120, "lampor", { imageScore: 95 });
+    const ut = lista([dold1, a, dold2, dold3], [dold1.slug, dold2.slug, dold3.slug]).map((p) => p.slug);
+    assert.deepEqual(ut, [a.slug, dold3.slug, dold2.slug, dold1.slug]);
+  });
+
+  it("varor som bara får synas i sin underkategori står inte i listan alls", () => {
+    const a = vara(100, "soffbord");
+    const bara = vara(150, "lampor");
+    assert.deepEqual(lista([a, bara], [], [bara.slug]).map((p) => p.slug), [a.slug]);
+  });
+
+  it("bara varor i lager och under priset, och ingen två gånger", () => {
+    const a = vara(100, "soffbord");
+    const slut = vara(100, "soffbord", { inStock: false });
+    const dyr = vara(900, "soffbord");
+    const ut = lista([a, slut, dyr, a]);
+    assert.ok(ut.every((p) => p.inStock && p.priceNum <= 500));
+    assert.ok(!ut.some((p) => p.slug === slut.slug || p.slug === dyr.slug));
+  });
+});
+
+describe("Visa fler och miniatyrerna är inkopplade", () => {
+  const las = (...d: string[]) => readFileSync(join(process.cwd(), ...d), "utf8");
+  const sida = las("components", "price-hub-page.tsx");
+  const rutt = las("app", "api", "pris-lista", "route.ts");
+  const knapp = las("components", "pris-fler.tsx");
+  const prog = las("lib", "seo", "programmatic.ts");
+
+  it("knappen står inne i rutnätet och visas bara när det finns fler varor", () => {
+    assert.match(sida, /\{flerKvar > 0 && <PrisFler pris=\{price\} kvar=\{flerKvar\} \/>\}\s*<\/div>/);
+    assert.match(sida, /const flerKvar = Math\.max\(0, \(helaListan\?\.length \?\? 0\) - produkter\.length\);/);
+    assert.match(las("app", "under-pris.css"), /\.pris2 \.p2-fler\{grid-column:1\/-1/);
+  });
+
+  it("rutten tar EN parameter, nekar påhittade sidor och ger samma ordning som sidan", () => {
+    assert.match(rutt, /params\.length === 1 \? \/\^\(\\d\{2,5\}\)-\(\\d\{1,3\}\)\$\//);
+    assert.match(rutt, /const fran = PRIS_PA_SIDAN \+ \(sida - 1\) \* PRIS_SIDA;/);
+    assert.match(rutt, /if \(sida < 1 \|\| fran >= lista\.length\) return NextResponse\.json\(\{ error: "okänd sida" \}, \{ status: 404/);
+    assert.match(prog, /export const PRIS_PA_SIDAN = MAX_HUB_LIST;/);
+    // Högst så många kort per hämtning som listans första grupp med bilder (lib/list-payload.ts).
+    const per = Number(prog.match(/export const PRIS_SIDA = (\d+);/)?.[1]);
+    const medBild = Number(las("lib", "list-payload.ts").match(/export const FORSTA_MED_BILD = (\d+);/)?.[1]);
+    assert.ok(per > 0 && per <= medBild, `${per} kort per hämtning, men bara de ${medBild} första får bild`);
+  });
+
+  it("knappen hämtar en sida en gång, tål ett fel och lägger inte samma vara två gånger", () => {
+    assert.match(knapp, /if \(lofte\.current\?\.sida === sida\.current\) return lofte\.current\.svar;/);
+    assert.match(knapp, /lage === "fel" \? "Kunde inte hämta fler · Försök igen"/);
+    assert.match(knapp, /s\.kort\.filter\(\(k\) => !redan\.has\(k\.slug\)\)/);
+  });
+
+  it("varje kategori i registret har miniatyren från menyn, med kategorins slug ur adressen", () => {
+    assert.match(sida, /<PrisKategoriBild slug=\{k\.href\.slice\(k\.href\.lastIndexOf\("\/"\) \+ 1\)\} \/>/);
+    const bild = las("components", "pris-kategoribild.tsx");
+    assert.match(bild, /useMenyBilder\(\)/);
+    assert.match(bild, /void hamtaMenyBilder\(\);/);
+    assert.match(bild, /<MenyBild src=\{bilder\?\.bilder\[slug\]\} klass="mn-bild p2-bild" \/>/);
+  });
+});
+

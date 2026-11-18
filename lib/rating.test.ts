@@ -5,6 +5,7 @@ import {
   ratingSummary,
   reviewCountLabel,
   productCountLabel,
+  produktOrd,
   categoryCountLabel,
   kategoriOrd,
   avdelningOrd,
@@ -123,6 +124,16 @@ describe("exakt snitt för delvis fyllda stjärnor", () => {
     const m = mapAggregateRows([{ productId: "a", antal: 5, snitt: 4.6 }]);
     assert.equal(m.a.exact, 4.6);
     assert.equal(m.a.value, "4,6");
+  });
+});
+
+describe("produktOrd", () => {
+  it("bara ordet, böjt som i productCountLabel", () => {
+    assert.equal(produktOrd(1), "produkt");
+    for (const n of [0, 2, 100, 2326]) {
+      assert.equal(produktOrd(n), "produkter");
+      assert.ok(productCountLabel(n).endsWith(` ${produktOrd(n)}`));
+    }
   });
 });
 

@@ -14,13 +14,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { pageMeta } from "../lib/seo";
-import { prisText, resolvePriceHub } from "../lib/seo/programmatic";
+import { prisText, resolvePriceHub, resolvePriceList } from "../lib/seo/programmatic";
 import { tusental, productCountLabel, categoryCountLabel, kategoriOrd, avdelningOrd } from "../lib/rating";
 import { FREE_SHIPPING_OVER_KR, STANDARD_SHIPPING_KR } from "../lib/shipping";
 import { ProductCard } from "./productcard";
 import { PrefetchLink } from "./prefetch-link";
 import { attachRatings } from "../lib/review-aggregates";
 import { ProgSchemas } from "./programmatic";
+import { PrisFler } from "./pris-fler";
+import { PrisKategoriBild } from "./pris-kategoribild";
 
 export async function priceHubMetadata(price: number): Promise<Metadata> {
   const view = await resolvePriceHub(price);
@@ -37,6 +39,9 @@ export async function PriceHubPage({ price }: { price: number }) {
 
   const pris = prisText(price);
   const produkter = await attachRatings(view.products);
+  // "Visa fler": så många varor till finns i listan under priset (components/pris-fler.tsx).
+  const helaListan = await resolvePriceList(price);
+  const flerKvar = Math.max(0, (helaListan?.length ?? 0) - produkter.length);
   const avdelningar = view.grupper.length;
   const antalKategorier = view.kategorier.length;
   // De andra gränserna först (bara de som finns), sedan samma vägar som /butik.
@@ -102,6 +107,7 @@ export async function PriceHubPage({ price }: { price: number }) {
             {produkter.map((p) => (
               <ProductCard p={p} key={p.slug} tvaKolumner />
             ))}
+            {flerKvar > 0 && <PrisFler pris={price} kvar={flerKvar} />}
           </div>
         </div>
       </section>
@@ -129,7 +135,9 @@ export async function PriceHubPage({ price }: { price: number }) {
                       {g.kategorier.map((k) => (
                         <li key={k.href}>
                           <a href={k.href}>
-                            <span>{k.namn}</span>
+                            {/* Miniatyren som i menyn: kategorins slug är sista ledet i adressen. */}
+                            <PrisKategoriBild slug={k.href.slice(k.href.lastIndexOf("/") + 1)} />
+                            <span className="p2-namn">{k.namn}</span>
                             <span className="b2-sub-antal">{tusental(k.antal)}</span>
                           </a>
                         </li>

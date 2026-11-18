@@ -20,29 +20,30 @@
    ============================================================ */
 
 /* ── Hjälten ─────────────────────────────────────────────────────── */
-.butik2 .b2-hjalte{background:linear-gradient(180deg,var(--surface-1) 0%,#fff 100%);border-bottom:1px solid var(--line);padding:26px 0 34px}
+/* Bakgrunden och ljuset kommer ur studiobandet i globals.css. */
+.butik2 .b2-hjalte{padding:26px 0 34px}
 .butik2 .b2-hjalte .butik-crumbs{margin-bottom:28px}
 .butik2 .b2-hjalte-rad{display:flex;align-items:flex-end;justify-content:space-between;gap:40px}
 .butik2 .b2-hjalte-text{max-width:660px}
 .butik2 .b2-hjalte .eyebrow::before{display:none}
 .butik2 h1{font-family:var(--font-display),Georgia,serif;font-size:clamp(40px,5.4vw,68px);font-weight:600;line-height:1;
-  letter-spacing:-.024em;color:var(--ink);margin:0 0 18px;text-wrap:balance}
-.butik2 .b2-ingress{max-width:52ch;margin:0;font-size:var(--text-lg);line-height:1.55;color:var(--soft)}
+  letter-spacing:-.024em;color:var(--natt-ljus);text-shadow:0 2px 24px rgba(0,0,0,.45);margin:0 0 18px;text-wrap:balance}
+.butik2 .b2-ingress{max-width:52ch;margin:0;font-size:var(--text-lg);line-height:1.55;color:var(--natt-dampad)}
 .butik2 .b2-cta{flex:0 0 auto;padding:17px 30px}
 /* Talen och genvägarna på en rad under en tunn linje, som i startsidans hjälte. */
 .butik2 .b2-hjalte-fot{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:34px;padding-top:22px;
-  border-top:1px solid var(--line)}
+  border-top:1px solid rgba(var(--studio-ljus),.2)}
 .butik2 .b2-fakta{display:flex;gap:0;list-style:none;margin:0;padding:0}
-.butik2 .b2-fakta li{display:flex;flex-direction:column;gap:5px;padding:0 26px;border-left:1px solid var(--line)}
+.butik2 .b2-fakta li{display:flex;flex-direction:column;gap:5px;padding:0 26px;border-left:1px solid rgba(var(--studio-ljus),.2)}
 .butik2 .b2-fakta li:first-child{padding-left:0;border-left:0}
 .butik2 .b2-tal{font-family:var(--font-display),Georgia,serif;font-size:var(--text-xl);font-weight:600;line-height:1;
-  letter-spacing:-.015em;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
-.butik2 .b2-etikett{font-size:var(--text-xs);color:var(--soft);white-space:nowrap}
+  letter-spacing:-.015em;color:var(--natt-ljus);font-variant-numeric:tabular-nums;white-space:nowrap}
+.butik2 .b2-etikett{font-size:var(--text-xs);color:var(--natt-dampad);white-space:nowrap}
 .butik2 .b2-genvagar{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}
-.butik2 .b2-genvagar a{display:inline-flex;align-items:center;min-height:40px;padding:0 16px;border:1px solid var(--line);
-  border-radius:var(--r-pill);background:#fff;font-size:var(--text-sm);font-weight:600;color:var(--ink);text-decoration:none;
+.butik2 .b2-genvagar a{display:inline-flex;align-items:center;min-height:40px;padding:0 16px;border:1px solid rgba(var(--studio-ljus),.34);
+  border-radius:var(--r-pill);background:rgba(10,10,10,.55);font-size:var(--text-sm);font-weight:600;color:var(--natt-ljus);text-decoration:none;
   white-space:nowrap;transition:border-color .15s,color .15s}
-.butik2 .b2-genvagar a:hover,.butik2 .b2-genvagar a:focus-visible{border-color:var(--ink);color:var(--brand)}
+.butik2 .b2-genvagar a:hover,.butik2 .b2-genvagar a:focus-visible{border-color:var(--natt-ljus);color:var(--glod-ljus)}
 
 /* ── Sektionshuvud (samma som startsidans förslag) ──────────────── */
 .butik2 .sec{padding:64px 0}
@@ -140,7 +141,7 @@
 
 /* ── Mobil ───────────────────────────────────────────────────────── */
 @media(max-width:880px){
-  .butik2 .b2-hjalte{padding:18px 0 24px}
+  .butik2 .b2-hjalte{padding:18px 0 30px}
   .butik2 .b2-hjalte .butik-crumbs{margin-bottom:18px}
   .butik2 .b2-hjalte-rad{flex-direction:column;align-items:stretch;gap:20px}
   .butik2 h1{font-size:clamp(34px,10.4vw,44px);margin-bottom:12px}

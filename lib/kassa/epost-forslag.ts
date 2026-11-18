@@ -46,7 +46,7 @@ const FINNS_INTE: Record<string, string> = {
 };
 
 /** Felskrivna toppdomäner, per rätt toppdomän. */
-const TOPPDOMAN_FEL: Record<string, readonly string[]> = {
+export const TOPPDOMAN_FEL: Record<string, readonly string[]> = {
   com: ["con", "cm", "co", "om", "cpm", "vom", "xom", "comm", "cim", "clm", "ocm", "coom", "c0m", "cmo"],
   se: ["s", "es", "see", "sse"],
   net: ["ne", "nt", "nett", "met", "bet", "ner"],

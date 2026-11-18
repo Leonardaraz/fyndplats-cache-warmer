@@ -42,7 +42,7 @@ import { tightFillUrl } from "../../lib/wix-image";
 import { valdaAlternativ } from "../../lib/cart-shape";
 import { DELIVERY_MAX_DAYS, DELIVERY_MIN_DAYS, DELIVERY_TIME, FREE_SHIPPING_FROM_KR, fraktKr } from "../../lib/shipping";
 import { leveransIntervall } from "../../lib/leveransdatum";
-import { ADRESS_FALT, LAN, adressFranStripe, faltGiltigt, forstaFel, kundFranPlanbok, lanFranPostnr, provaKassa, normalPostnr, normalTelefon, snyggtTelefon, type Falt } from "../../lib/kassa/formular";
+import { ADRESS_FALT, LAN, adressFranStripe, epostDoman, epostFelText, epostFelUtanForslag, faltGiltigt, forstaFel, kundFranPlanbok, lanFranPostnr, provaKassa, normalPostnr, normalTelefon, snyggtTelefon, type Falt } from "../../lib/kassa/formular";
 import { visaTomKorg } from "../../lib/kassa/vy";
 import { epostForslag } from "../../lib/kassa/epost-forslag";
 import {
@@ -176,10 +176,13 @@ type FormFalt = keyof Varden;
 export function Kassa({
   stripeNyckel = null,
   last: lastFranServern = null,
+  medlemsEpost = null,
 }: {
   stripeNyckel?: string | null;
   /** Medlemskorgen med låsta priser (lib/kassa/medlemskassa.ts), eller null. */
   last?: { id: string; rader: KorgRadVy[]; epost: string | null; besokarensKorg: string | null } | null;
+  /** Den inloggade medlemmens e-post, eller null. Fyller fältet, så att köpet räknas på kontot. */
+  medlemsEpost?: string | null;
 }) {
   if (stripeNyckel) {
     // Stripe.js och betalfältet hämtas direkt när sidan visas.
@@ -357,6 +360,18 @@ export function Kassa({
     forifyllt.current = null;
     skickaKontakt(f);
   }, [cartId, skickaKontakt]);
+
+  // Den inloggade medlemmens e-post följer med till kassan (Leonard 2026-11-18).
+  // Den går före en adress som sparats i webbläsaren från ett tidigare köp:
+  // är kunden inloggad ska köpet räknas på kontot. Effekten står efter den som
+  // läser de sparade uppgifterna, så den skriver sist. Har kunden redan rört
+  // fältet lämnas det.
+  const medlemIfylld = useRef(false);
+  useEffect(() => {
+    if (!medlemsEpost || medlemIfylld.current) return;
+    medlemIfylld.current = true;
+    setVarden((v) => (v.epost === medlemsEpost ? v : { ...v, epost: medlemsEpost }));
+  }, [medlemsEpost]);
 
   // Rabattkoden från påminnelsemejlet (/kassa/aterta → /kassa?kod=…) läggs på
   // när korgen är känd, en gång, och tas sedan bort ur adressen.
@@ -548,11 +563,52 @@ export function Kassa({
     if (fel[f]) setFel((x) => ({ ...x, [f]: "" }));
   };
 
+  // E-postadressen prövas när kunden lämnar fältet (Leonard 2026-11-18, efter en
+  // order med en adress på .con). En toppdomän som inte finns visas direkt som
+  // ett fel. Annars frågas servern om domänen kan ta emot e-post
+  // (/api/kassa/epost-kontroll); ett säkert nej visas som ett fel och spärrar
+  // köpet för just den adressen. Allt annat än ett säkert nej släpper igenom.
+  const nekadEpost = useRef<{ adress: string; text: string } | null>(null);
+  const provaEpost = (adress: string) => {
+    if (!adress) return;
+    const text = epostFelText(adress);
+    if (text) {
+      setFel((x) => ({ ...x, epost: text }));
+      return;
+    }
+    const nyckel = adress.toLowerCase();
+    if (nekadEpost.current?.adress === nyckel) {
+      setFel((x) => ({ ...x, epost: nekadEpost.current!.text }));
+      return;
+    }
+    void fetch("/api/kassa/epost-kontroll", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ epost: adress }) })
+      .then((r) => (r.ok ? (r.json() as Promise<{ svar?: string }>) : null))
+      .then((j) => {
+        if (j?.svar !== "nej") return;
+        const text = `Domänen ${epostDoman(adress) ?? ""} kan inte ta emot e-post. Kontrollera stavningen.`;
+        nekadEpost.current = { adress: nyckel, text };
+        // Bara om adressen står kvar i fältet: kunden kan ha hunnit rätta den.
+        const iFaltet = (document.getElementById("kassa-epost") as HTMLInputElement | null)?.value.trim().toLowerCase();
+        if (iFaltet === nyckel) setFel((x) => ({ ...x, epost: text }));
+      })
+      .catch(() => {});
+  };
+  /** Formuläret prövat, med domänens nej inlagt när adressen är den som nekades. */
+  const provaForm = (inn: Parameters<typeof provaKassa>[0]): ReturnType<typeof provaKassa> => {
+    const p = provaKassa(inn);
+    const n = nekadEpost.current;
+    if (!n || (typeof inn.epost === "string" ? inn.epost : "").trim().toLowerCase() !== n.adress) return p;
+    return { ok: false, fel: { ...(p.ok ? {} : p.fel), epost: n.text } };
+  };
+
   /** Kunden lämnar ett fält: bocken och förslagen visas, numret skrivs snyggt. */
   const lamna = (f: FormFalt) => () => {
     setRorda((r) => (r.has(f) ? r : new Set(r).add(f)));
     if (f === "telefon") setVarden((x) => ({ ...x, telefon: snyggtTelefon(x.telefon.trim()) }));
-    if (f === "epost") setVarden((x) => ({ ...x, epost: x.epost.trim() }));
+    if (f === "epost") {
+      setVarden((x) => ({ ...x, epost: x.epost.trim() }));
+      provaEpost(varden.epost.trim());
+    }
     if (f === "postnr") postnrKlart();
     if (f === "epost" || f === "telefon") skickaKontakt(varden);
   };
@@ -777,7 +833,7 @@ export function Kassa({
     if (pagar.current || klarVantar) return;
     setMeddelanden([]);
     setBetalFel(null);
-    const prov = provaKassa({ ...varden, kupong: kupongOppen ? kupong : summa?.kupong ?? "" });
+    const prov = provaForm({ ...varden, kupong: kupongOppen ? kupong : summa?.kupong ?? "" });
     // Adressen står i Stripes fält: det visar själv vad som saknas när
     // elements.submit() prövar det nedan. Kassans egna fält prövas här.
     const egnaFel = prov.ok ? {} : Object.fromEntries(Object.entries(prov.fel).filter(([f]) => !ADRESS_FALT.includes(f as Falt)));
@@ -1004,7 +1060,7 @@ export function Kassa({
     }
     if (skickar) return;
     setMeddelanden([]);
-    const prov = provaKassa({ ...varden, kupong: kupongOppen ? kupong : summa?.kupong ?? "" });
+    const prov = provaForm({ ...varden, kupong: kupongOppen ? kupong : summa?.kupong ?? "" });
     if (!prov.ok) {
       visaFel(prov.fel);
       return;
@@ -1101,7 +1157,8 @@ export function Kassa({
   const planbokText = snabbLage === "redo" ? planbokNamn(snabbPlanbocker) : null;
   const antalVaror = rader.reduce((n, li) => n + (li.quantity ?? 1), 0);
   // "Menade du …?" när kunden lämnat fältet. Står på hjälptextens rad, så att inget flyttar.
-  const epostTips = rorda.has("epost") && !fel.epost ? epostForslag(varden.epost) : null;
+  // Förslaget står kvar bredvid felet: "…slutar på .con, som inte finns" och "Menade du namn@gmail.com?".
+  const epostTips = rorda.has("epost") ? epostForslag(varden.epost) : null;
   const friFraktAndel = Math.max(0, Math.min(1, (delsummaOre - (summa?.rabattOre ?? 0)) / (FREE_SHIPPING_FROM_KR * 100)));
 
   /**
@@ -1137,7 +1194,7 @@ export function Kassa({
         </div>
         {harRad ? (
           <div id={textId} className={visaFelText ? s.felText : s.hjalpText} aria-live="polite">
-            {visaFelText ? felText : hjalp}
+            {visaFelText ? (f === "epost" && epostTips ? <>{epostFelUtanForslag(felText ?? "")} {hjalp}</> : felText) : hjalp}
           </div>
         ) : null}
       </div>
@@ -1151,6 +1208,8 @@ export function Kassa({
         type="button"
         onClick={() => {
           setVarden((x) => ({ ...x, epost: epostTips }));
+          // Felet gällde den gamla adressen ("…slutar på .con"): det släcks med förslaget.
+          setFel((x) => (x.epost ? { ...x, epost: "" } : x));
           skickaKontakt({ ...varden, epost: epostTips });
         }}
       >

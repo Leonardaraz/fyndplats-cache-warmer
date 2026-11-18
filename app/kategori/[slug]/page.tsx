@@ -289,7 +289,7 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
         </div>
       </section>
 
-      <section className="sec" style={{ paddingTop: 24 }}>
+      <section className="sec kat-lista">
         <div className="container">
           <CategoryDropdown products={products} collections={collections} activeSlug={active.slug} />
 
