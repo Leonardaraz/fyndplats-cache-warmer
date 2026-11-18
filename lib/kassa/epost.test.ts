@@ -1,7 +1,7 @@
 // Run: node --test --experimental-strip-types 'lib/**/*.test.ts'
 //
 // Kassans spärr mot e-postadresser som inte kan finnas (Leonard 2026-11-18,
-// order 10233 med en adress som slutade på .con).
+// efter en order med en adress som slutade på .con).
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { TOPPDOMANER, TOPPDOMANER_VERSION, epostDoman, epostFel, epostFelText, epostGiltig, epostToppdoman, faltGiltigt, provaKassa, rattToppdoman, toppdomanFinns } from "./formular.ts";

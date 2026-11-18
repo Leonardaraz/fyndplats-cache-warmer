@@ -162,7 +162,7 @@ export function snyggtTelefon(v: string): string {
 // ── E-postadressen: kan den finnas? ────────────────────────────────────────
 //
 // Kassan nekar en adress som säkert är fel, i webbläsaren (bocken och felet
-// under fältet) och på servern (provaKassa), med samma regler. Order 10233
+// under fältet) och på servern (provaKassa), med samma regler. En order
 // lades med en adress som slutade på .con: bekräftelsen, kvittot och
 // spårningen kom aldrig fram (Leonard 2026-11-18).
 //
@@ -325,7 +325,7 @@ export function rattToppdoman(topp: string): string | null {
 /**
  * Texten under e-postfältet när adressen inte kan finnas, eller null.
  * En toppdomän som inte finns sägs rakt ut, med den rätta när felet är ett
- * känt stavfel: order 10233 lades med en adress som slutade på .con.
+ * känt stavfel: en order lades med en adress som slutade på .con.
  */
 export function epostFelText(adress: string): string | null {
   const vad = epostFel(adress);

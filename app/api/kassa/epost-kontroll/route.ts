@@ -2,7 +2,7 @@
 //
 // Kassan frågar hit när kunden lämnat e-postfältet: kan domänen ta emot
 // e-post? (lib/kassa/epost-dns.ts). "nej" visas som ett fel under fältet och
-// kunden får rätta adressen innan köpet går vidare. Order 10233 lades med en
+// kunden får rätta adressen innan köpet går vidare. En order lades med en
 // adress som inte fanns (Leonard 2026-11-18).
 //
 // ☠️ Öppet vid osäkerhet: allt som inte är ett säkert nej släpper igenom

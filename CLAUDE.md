@@ -3425,7 +3425,7 @@ textskärpan på de vinklade brickorna), och Firefox, som inte ritar speglingen.
 
 ## Kassan nekar e-postadresser som inte kan finnas (2026-11-18)
 
-Order 10233 lades med en adress som slutade på `.con`: bekräftelsen, kvittot
+En order lades med en adress som slutade på `.con`: bekräftelsen, kvittot
 och spårningen kom aldrig fram. Leonard: "vår kassa borde inte acceptera mail
 som inte existerar", och "för medlemmar borde mail adressen följa med".
 

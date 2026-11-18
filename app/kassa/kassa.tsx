@@ -563,8 +563,8 @@ export function Kassa({
     if (fel[f]) setFel((x) => ({ ...x, [f]: "" }));
   };
 
-  // E-postadressen prövas när kunden lämnar fältet (Leonard 2026-11-18, order
-  // 10233 med en adress på .con). En toppdomän som inte finns visas direkt som
+  // E-postadressen prövas när kunden lämnar fältet (Leonard 2026-11-18, efter en
+  // order med en adress på .con). En toppdomän som inte finns visas direkt som
   // ett fel. Annars frågas servern om domänen kan ta emot e-post
   // (/api/kassa/epost-kontroll); ett säkert nej visas som ett fel och spärrar
   // köpet för just den adressen. Allt annat än ett säkert nej släpper igenom.
