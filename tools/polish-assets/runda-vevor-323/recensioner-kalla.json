@@ -1,0 +1,74 @@
+{
+  "4fdc9d22": {
+    "productId": "4fdc9d22-61c1-4395-b19e-7aa6d52d6f94",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-pbib39",
+        "betyg": 5,
+        "datum": "2026-06-23",
+        "foton": 0,
+        "text": "Une table basse acrylique magnifique et polyvalente, elle s'adapte parfaitement à tous les styles de décoration!"
+      }
+    ]
+  },
+  "2d51d9cc": {
+    "productId": "2d51d9cc-803f-49be-8347-076532b685f8",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-nd1h1o",
+        "betyg": 5,
+        "datum": "2026-09-23",
+        "foton": 0,
+        "text": "Work well, compact size. Fit in a tight spot I was working on"
+      },
+      {
+        "id": "gen-ydrpu7",
+        "betyg": 4,
+        "datum": "2026-10-04",
+        "foton": 0,
+        "text": "Toimiva vipumittakello. Tuuma asteikko hankala kun Suomessa käytössä milli järjestelmä. Magneettijalka hyvä mutta pienikokoinen"
+      },
+      {
+        "id": "gen-1cfrltl",
+        "betyg": 4,
+        "datum": "2026-09-24",
+        "foton": 0,
+        "text": "Ok, pieni mittakello. Oli tuumamitoilla, vaikka piti olla metrisellä asteikolla. Ei omassa käytössä merkitystä. Toimii, kuten tarkoituskin."
+      }
+    ]
+  },
+  "ac45f6f1": {
+    "productId": "ac45f6f1-5273-4053-985a-41d1782f93f4",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": [
+      {
+        "id": "gen-2dzyjk",
+        "betyg": 5,
+        "datum": "2026-10-11",
+        "foton": 0,
+        "text": "I sure do like it! I use it once a day and it save me a lot of hassle and work. I have bever used one but this seems to be just about perfect for my needs."
+      },
+      {
+        "id": "gen-1jw5kan",
+        "betyg": 4,
+        "datum": "2026-10-23",
+        "foton": 0,
+        "text": "Goede wals voor zowel plaat als draad. Stevig en mooi. Ik heb aangegeven dat het staafje metaal dat de rollen op elkaar houdt, vastzit in de platte roller. Klantenservice bericht en zij hebben dit goed opgepakt"
+      }
+    ]
+  }
+}
