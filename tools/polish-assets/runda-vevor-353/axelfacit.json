@@ -1,0 +1,8 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "2d35b605": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Specification graphic of the source listing (the same in every color): hole spacing 4 inch / 102 mm; hole diameter 1.22-1.41 inch / 31-35.81 mm; deck thickness 0.4 to 1.4 inch / 10.16 to 35.56 mm; dimensions L160 x W57 mm; accessories: 1 x user manual; 1 x faucet; 2 x handles (hot and cold, red and blue marked); 1 x cold water hose; 1 x hot water hose; 1 x tee connector"
+ }
+}
