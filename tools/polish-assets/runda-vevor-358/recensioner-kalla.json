@@ -1,0 +1,77 @@
+{
+  "5acd5ad2": {
+    "productId": "5acd5ad2-3f1d-4ba1-989f-856a2bf847b0",
+    "synliga": 0,
+    "dolda": 6,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "fde122a3": {
+    "productId": "fde122a3-1b55-4dc0-9da1-b9eab476b846",
+    "synliga": 0,
+    "dolda": 1,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 5,
+    "attBesluta": []
+  },
+  "4b113c7c": {
+    "productId": "4b113c7c-a6d1-4083-b0cb-886392c64cbf",
+    "synliga": 0,
+    "dolda": 6,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "78de1f65": {
+    "productId": "78de1f65-e0e3-4118-bdfc-6ea124ec82db",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": [
+      {
+        "id": "gen-nqxhex",
+        "betyg": 5,
+        "datum": "2026-09-25",
+        "foton": 1,
+        "text": "Super pratique moi qui aime les différents goût d épices ces super pratique, tres facile a monter."
+      },
+      {
+        "id": "gen-w7h70x",
+        "betyg": 5,
+        "datum": "2026-07-17",
+        "foton": 0,
+        "text": "put this on my pantry door and has helped a lot for items to be stored nice addition to my pantry"
+      }
+    ]
+  },
+  "e01d8c16": {
+    "productId": "e01d8c16-9a89-492c-9f62-3c22aed29b0a",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-18ajxuh",
+        "betyg": 4,
+        "datum": "2026-10-15",
+        "foton": 0,
+        "text": "This is perfect for my craft shows, and for the first two of the season it's been awesome!"
+      },
+      {
+        "id": "gen-pugojb",
+        "betyg": 4,
+        "datum": "2026-07-06",
+        "foton": 0,
+        "text": "nice rack, could be stiffer. but will work for my small parts painting"
+      }
+    ]
+  }
+}
