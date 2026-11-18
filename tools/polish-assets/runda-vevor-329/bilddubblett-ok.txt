@@ -1,0 +1,3 @@
+c2084b39 1 5 olika vyer: bild 1 är sedd rakt framifrån och bild 5 snett framifrån
+0b110709 1 5 olika vyer: bild 1 är sedd rakt framifrån och bild 5 snett framifrån
+0b110709:6 c2084b39:6 samma förvaringsväska ingår i båda modellerna, så bilden är sann för båda

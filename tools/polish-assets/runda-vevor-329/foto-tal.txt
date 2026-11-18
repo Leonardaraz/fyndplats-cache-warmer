@@ -1,0 +1,12 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+c2084b39 40 400 mm på måttbilden, 40 cm
+c2084b39 90 900 mm på måttbilden, 90 cm
+c2084b39 4,9 10,8 lb × 0,4536 = 4,899 kg, avrundat till en decimal
+0b110709 40 400 mm på måttbilden, 40 cm
+0b110709 90 900 mm på måttbilden, 90 cm
+0b110709 4,3 9,4 lb × 0,4536 = 4,264 kg, avrundat till en decimal
+8bd7943a 64 640 mm på måttbilden, 64 cm
+8bd7943a 55 550 mm på måttbilden, 55 cm
+8bd7943a 87 870 mm på måttbilden, 87 cm
+8bd7943a 5,4 11,8 lb × 0,4536 = 5,352 kg, avrundat till en decimal
