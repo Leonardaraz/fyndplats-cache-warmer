@@ -1,0 +1,25 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+c5ff33fb 10668 Mått i specifikationen på listningen med tre bågar (35,0 x 10,5 x 10,2 fot/10668 x 3200 x 3100 mm)
+c5ff33fb 3200 Mått i specifikationen på listningen med tre bågar (10668 x 3200 x 3100 mm)
+c5ff33fb 3100 Mått i specifikationen på listningen med tre bågar (10668 x 3200 x 3100 mm) och på listningen med fyra valv (12000 x 3680 x 3100 mm)
+c5ff33fb 12000 Mått i specifikationen på listningen med fyra valv (12000 x 3680 x 3100 mm)
+c5ff33fb 3680 Mått i specifikationen på listningen med fyra valv (12000 x 3680 x 3100 mm)
+c5ff33fb 48 Maskstorleken 48 mm i punkten Premiumnät (tjockt HDPE-nät och 48 mm maskor)
+c5ff33fb 32,3 Nettovikt i specifikationen på listningen med tre bågar: 32,3 kg
+c5ff33fb 48,0 Nettovikt i specifikationen på listningen med fyra valv: 48,0 kg
+c5ff33fb 3 Antal bågar i specifikationen på listningen med mått 10668 x 3200 x 3100 mm (Antal bågar: 3)
+c5ff33fb 4 Antal valv (bågar) i specifikationen på listningen med mått 12000 x 3680 x 3100 mm (Antal valv: 4)
+c5ff33fb 2 Antalet storlekar (två listningar) och antalet personer vid monteringen (punkten Snabb installation: på några minuter av två personer)
+ab671023 6060 Mått i specifikationen (Produktmått 6060 x 3660 x 2500 mm)
+ab671023 3660 Mått i specifikationen (6060 x 3660 x 2500 mm)
+ab671023 2500 Mått i specifikationen (6060 x 3660 x 2500 mm)
+ab671023 44 Maskstorleken 44 mm i punkten Premiumnät (tjockt HDPE-nät och 44 mm maskor)
+ab671023 18 Nettovikt i specifikationen: 18 kg
+ab671023 3 Antal bågar i specifikationen (Antal bågar: 3)
+ab671023 2 Antalet personer vid monteringen (punkten Snabb installation: på några minuter av två personer)
+09b20325 12700 Mått i specifikationen (Produktmått 41,7 x 12,8 x 10,1 fot/12700 x 3900 x 3080 mm); punkten Rymlig träningsbur har tryckfelet 1270
+09b20325 3900 Mått i specifikationen (12700 x 3900 x 3080 mm)
+09b20325 3080 Mått i specifikationen (12700 x 3900 x 3080 mm)
+09b20325 11,2 Nettovikt i specifikationen: 11,2 kg
+09b20325 2 Antalet personer vid monteringen (punkten Snabb montering: Två personer kan montera den på några minuter)
