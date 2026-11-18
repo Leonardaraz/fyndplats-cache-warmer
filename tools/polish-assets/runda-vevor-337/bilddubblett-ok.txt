@@ -1,0 +1,1 @@
+592a3e47 4 9 samma vy för två bredder: bilderna hör till varsin bredd (varianternas egna galleri) och visas aldrig i samma galleri
