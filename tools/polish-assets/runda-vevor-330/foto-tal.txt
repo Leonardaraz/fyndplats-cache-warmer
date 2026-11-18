@@ -1,0 +1,16 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+94220375 237 2370 mm i källans spec och på måttbilden, 237 cm
+94220375 89 890 mm i källans spec och på måttbilden, 89 cm
+94220375 212 2120 mm i källans spec och på måttbilden, 212 cm
+83eb52e5 232 2320 mm i källans spec och på måttbilden, 232 cm
+83eb52e5 60 600 mm i källans spec och på måttbilden, 60 cm
+83eb52e5 78 780 mm i källans spec och på måttbilden, 78 cm
+83eb52e5 136 1360 mm på måttbilden, 136 cm
+83eb52e5 30 300 mm på måttbilden, 30 cm
+aa612c06 132 1320 mm i källans spec och på måttbilden, 132 cm
+aa612c06 112,5 1125 mm i källans spec och på måttbilden, 112,5 cm
+aa612c06 144 1440 mm i källans spec och på måttbilden, 144 cm
+aa612c06 217 2170 mm i källans spec och på måttbilden, 217 cm
+aa612c06 39 390 mm i källans text och på måttbilden, 39 cm
+aa612c06 161 1610 mm i källans text och på måttbilden, 161 cm
