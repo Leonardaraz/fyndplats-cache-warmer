@@ -1,0 +1,6 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+4edc7154 60 600 mm i källans spec och på måttbilden, 60 cm
+4edc7154 46 460 mm i källans spec och på måttbilden, 46 cm
+4edc7154 45 450 mm i källans spec och på måttbilden, 45 cm
+4edc7154 56,5 565 mm i källans spec och på måttbilden, 56,5 cm
