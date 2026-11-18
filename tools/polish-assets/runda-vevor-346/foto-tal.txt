@@ -1,0 +1,6 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+a473dd27 155 bredden 1550 mm på ritningen och i specifikationen skriven som 155 cm (mm till cm)
+f2a4ecda 137 bredden 1372 mm på ritningen och i specifikationen skriven som 137 cm (mm till cm), storleksvalets namn
+f2a4ecda 168 bredden 1678 mm på ritningen och i specifikationen skriven som 168 cm (mm till cm, avrundat), storleksvalets namn
+f2a4ecda fyra fyra ben, räknade på produktfotot (position 3, 6, 9 och 12) och på ritningen
