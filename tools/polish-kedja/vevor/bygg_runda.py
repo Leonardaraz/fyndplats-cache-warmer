@@ -85,6 +85,7 @@ def main():
         # kallor.json
         t = '\n'.join(r for r in d['html'].split('\n') if not MODELLRAD.match(re.sub(r'<[^>]+>', '', r)))
         t = re.sub(r'(?<=\d)x(?=\d)', ' x ', t)   # 96,5x6,5 blir 96,5 x 6,5: leak.py läser annars 5x6 som en artikelnummerform
+        t = re.sub(r'\b(\d{3})-(\d{3})\b', r'\1 till \2', t)   # 240-100 N (gasdämparens kraft) blir 240 till 100 N: leak.py läser annars intervallet som en artikelnummerform
         txt = f'=== källa: sidans utkast {k}, hela texten ===\n' + t.rstrip('\n') + '\n'
         txt += '=== vevor-källa: Vikt i specifikationen är varans egen ===\n'
         txt += '=== källa: utkastets namn ===\n' + d['name'] + '\n'
