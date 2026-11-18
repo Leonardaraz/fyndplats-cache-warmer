@@ -295,8 +295,10 @@ describe("studion: hjälten som en fotostudio", () => {
 
   it("mobilens brickor står upprätt (skarp text) och rätar inte upp eller lyfter sig vid beröring", () => {
     const vila = mobil.slice(mobil.indexOf(".hem2 .hero .herotile{"), mobil.indexOf("}", mobil.indexOf(".hem2 .hero .herotile{")));
-    assert.doesNotMatch(vila, /transform:|rotateX|perspective/);
-    assert.equal(transform(mobil.slice(mobil.indexOf(".hem2 .hero .herotile:hover{"))), "none");
+    assert.doesNotMatch(vila, /rotate|perspective|scale/);
+    // En egen yta per bricka, utan förflyttning: speglingen ritas av grafikkortet (Safari).
+    assert.match(vila, /transform:translate3d\(0,0,0\);will-change:transform;/);
+    assert.equal(transform(mobil.slice(mobil.indexOf(".hem2 .hero .herotile:hover{"))), "translate3d(0,0,0)");
   });
 
   it("mobilens spegling sitter på brickan, och raden har plats för den", () => {
@@ -363,5 +365,41 @@ describe("Black Week-temat byter nattens variabler", () => {
       assert.ok(k >= 7, `${namn}: ${k.toFixed(2)}:1`);
     }
     for (const h of hex(v("--glod-ord"))) assert.ok(kontrast(h, ljusast) >= 3, `#${h}`);
+  });
+});
+
+describe("kategoribandet i studions stil", () => {
+  const utan = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  const band = [...utan.matchAll(/\.kat-hero:not\(\.prog-hero\)[^{]*\{[^}]*\}/g)].map((m) => m[0]).join("\n");
+
+  it("bär nattens variabler, så att säsongstemana byter färg där också", () => {
+    assert.match(band, /\.kat-hero:not\(\.prog-hero\)\{[^}]*background:var\(--natt-korn\),[^}]*var\(--natt\)\}/);
+    assert.match(band, /\.kat-hero-text h1\{color:var\(--natt-ljus\)/);
+    assert.match(band, /\.kat-hero-text p\{color:var\(--natt-dampad\)\}/);
+    assert.match(band, /\.crumbs\{color:var\(--natt-dampad\)\}/);
+    // Inga egna färger för ljuset: bara studions trippletter.
+    assert.doesNotMatch(band.replace(/border-color:#FFFDFA/, ""), /#[0-9A-Fa-f]{3,6}\b/);
+    assert.match(band, /rgba\(var\(--studio-ljus\),var\(--kat-pol\)\)/);
+  });
+
+  it("ingressen klarar 4,5:1 mot natten", () => {
+    for (const h of hex(variabel("--natt"))) assert.ok(kontrast(hex(variabel("--natt-dampad"))[0], h) >= 4.5, `#${h}`);
+  });
+
+  it("ljuset sitter på rutnätet, och mobilens plats är räknad av lagret", () => {
+    assert.match(band, /\.kat-hero-grid::before\{content:"";position:absolute;z-index:-1;inset:-96px -400px -44px/);
+    assert.match(band, /\.kat-hero:not\(\.prog-hero\)\{--kat-ljus:calc\(100% - 570px\)/);
+    assert.match(band, /--kat-ljus:calc\(74% - 192px\)/);
+    assert.doesNotMatch(band, /--kat-ljus:calc\(400px \+/);
+  });
+
+  it("inget filter i bandet, och de programmatiska sidorna står kvar ljusa", () => {
+    assert.doesNotMatch(band, /filter:/);
+    assert.doesNotMatch(utan, /\.prog-hero\{[^}]*var\(--natt\)/);
+  });
+
+  it("bilden speglas, och speglingen ryms i bandets luft", () => {
+    assert.match(band, /\.kat-hero-img\{[^}]*-webkit-box-reflect:below 6px/);
+    assert.match(band, /\.kat-hero:not\(\.prog-hero\)\{[^}]*padding-bottom:44px/);
   });
 });

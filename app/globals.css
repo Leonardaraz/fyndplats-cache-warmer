@@ -3089,6 +3089,44 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
 .kat-hero-img.is-product{aspect-ratio:1/1;width:100%;max-width:260px;justify-self:end;background:#fff}
 .kat-hero-img.is-product img{object-fit:contain;object-position:center;padding:18px}
 @media(max-width:980px){.kat-hero-grid{grid-template-columns:minmax(0,1fr) 260px;gap:32px}}
+/* Bandet i studions stil (Leonard 2026-11-18: "alla kategoriers övre sektion
+   får också en premium look som startsidans hero"). Samma natt, korn och ljus
+   som hjälten, ur samma variabler ("Natten" och "Studion" överst i filen), så
+   att säsongstemana byter färg här också.
+   Ljuset (ljuspölen och ljuskäglan) ligger på .kat-hero-grid och inte på
+   bandet: bilden står i rutnätets högra kolumn, och ett ljus satt i procent av
+   bandet hamnar bredvid bilden på breda skärmar. Lagret är 400 px bredare än
+   rutnätet åt varje håll; bandet klipper resten. --kat-ljus är ljusets plats
+   i lagret: bildens mitt på dator, strax till höger om mitten på mobil.
+   --kat-pol och --kat-glod är ljusets styrka, --kat-pol-b och --kat-glod-b
+   dess bredd, --kat-pol-h och --kat-glod-h dess höjd.
+   Bandet är lika lågt som förut på mobilen. På datorn är luften nedtill 44 px
+   i stället för 28: där ligger bildens spegling.
+   De programmatiska sidorna (.prog-hero) har långa ingresser och står kvar
+   ljusa. */
+.kat-hero:not(.prog-hero){--kat-ljus:calc(100% - 570px);--kat-pol:.4;--kat-glod:.22;--kat-pol-b:min(460px,56vw);--kat-glod-b:min(760px,88vw);--kat-pol-h:70px;--kat-glod-h:150px;border-bottom:0;padding-bottom:44px;color:var(--natt-ljus);
+  box-shadow:inset 0 -1px 0 rgba(var(--studio-ljus),.18);
+  background:var(--natt-korn),
+    radial-gradient(130% 160% at 66% 8%,transparent 44%,rgba(0,0,0,.6) 100%),
+    linear-gradient(180deg,rgba(var(--studio-ljus),0) 46%,rgba(var(--studio-ljus),.08) 90%,rgba(0,0,0,.3) 100%),
+    var(--natt)}
+.kat-hero:not(.prog-hero)::after{display:none}
+.kat-hero:not(.prog-hero) .kat-hero-grid::before{content:"";position:absolute;z-index:-1;inset:-96px -400px -44px;pointer-events:none;
+  background:
+    radial-gradient(var(--kat-pol-b) var(--kat-pol-h) at var(--kat-ljus) calc(100% - 4px),rgba(var(--studio-ljus),var(--kat-pol)),transparent 72%),
+    radial-gradient(var(--kat-glod-b) var(--kat-glod-h) at var(--kat-ljus) 100%,rgba(var(--studio-glod),var(--kat-glod)),transparent 74%),
+    conic-gradient(from 158deg at var(--kat-ljus) -24%,rgba(var(--studio-ljus),0) 0deg,rgba(var(--studio-ljus),.1) 14deg,rgba(var(--studio-ljus),.17) 22deg,rgba(var(--studio-ljus),.1) 30deg,rgba(var(--studio-ljus),0) 44deg,transparent 44deg 360deg)}
+.kat-hero:not(.prog-hero) .crumbs{color:var(--natt-dampad)}
+.kat-hero:not(.prog-hero) .crumbs a:hover{color:var(--glod-ljus)}
+.kat-hero:not(.prog-hero) .crumbs em{color:var(--natt-ljus)}
+.kat-hero:not(.prog-hero) .kat-hero-text h1{color:var(--natt-ljus);text-shadow:0 2px 24px rgba(0,0,0,.45)}
+.kat-hero:not(.prog-hero) .kat-hero-text p{color:var(--natt-dampad)}
+/* Bilden står som en bricka i ljuset, med samma kant och spegling som hjältens
+   brickor. Speglingen visar bildens nedersta 14 %: den ryms i bandets luft. */
+.kat-hero:not(.prog-hero) .kat-hero-img{border-color:#FFFDFA;
+  box-shadow:0 0 0 1px rgba(var(--studio-ljus),.2),0 26px 30px -18px rgba(0,0,0,.96);
+  -webkit-box-reflect:below 6px linear-gradient(180deg,transparent 0%,transparent 86%,rgba(0,0,0,.08) 92%,rgba(0,0,0,.36) 100%)}
+@media(max-width:980px){.kat-hero:not(.prog-hero){--kat-ljus:calc(100% - 530px)}}
 /* Mobil: ingen bild. Den sköt ner produkterna en hel skärm; IKEA, JYSK och
    Mio visar rubriken och går direkt på varorna. */
 @media(max-width:760px){
@@ -3098,6 +3136,18 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
   .kat-hero-img{display:none}
   .kat-hero-text h1{margin-bottom:8px}
   .kat-hero-text p{font-size:var(--text-sm)}
+  /* Utan bild är ljuset det enda som bär studion på mobilen: pölen är bredare
+     och starkare, och står längre in från kanten.
+     ☠️ Procenten i --kat-ljus räknas av lagret, som är 800 px bredare än
+     rutnätet. 74 % av rutnätet är 74 % av lagret minus 192 px (400 px in,
+     minus 74 % av de 800). Med "400px + 74%" låg ljuset utanför lagret och
+     syntes inte alls (mätt 2026-11-18).
+     ☠️ Pölen är låg (24 px, glöden 40 px) och ligger i bandets luft nedtill
+     (30 px): med datorns höjd låg den bakom ingressens sista rader, och
+     ingressen föll till 4,5:1 mot den ljusaste punkten. Nu är den sämsta
+     uppmätta kontrasten 5,7:1 (se "Kategoribandet" i CLAUDE.md). */
+  .kat-hero:not(.prog-hero){--kat-ljus:calc(74% - 192px);--kat-pol:.5;--kat-glod:.26;--kat-pol-b:62vw;--kat-glod-b:105vw;--kat-pol-h:24px;--kat-glod-h:40px;padding-bottom:30px}
+  .kat-hero:not(.prog-hero) .kat-hero-grid::before{inset:-76px -400px -30px}
 }
 
 /* Redaktionellt kategori-block (intro + FAQ) under produktnätet — riktig brödtext

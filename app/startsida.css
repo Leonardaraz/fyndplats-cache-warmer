@@ -442,12 +442,17 @@
      är en yta.
      ☠️ I entrén reser sig raden som en yta (radRes i globals.css), inte
      bricka för bricka: brickorna har ingen egen entré på mobilen, varken i
-     väntläget eller när den går. */
+     väntläget eller när den går.
+     ☠️ Varje bricka är en egen yta på grafikkortet (translate3d utan
+     förflyttning och will-change). När brickorna ritades som en del av raden
+     försvann speglingen på en riktig iPhone 15 (Leonard 2026-11-18); med en
+     egen yta per bricka, som i den första versionen, syntes den. Brickan står
+     fortfarande upprätt och i skala ett, så priset är skarpt. */
   .hem2 .heromosaic{padding-bottom:44px}
-  .hem2 .hero .herotile{animation:none;
+  .hem2 .hero .herotile{animation:none;transform:translate3d(0,0,0);will-change:transform;
     box-shadow:inset 0 1.5px 0 #fff,inset 0 -1px 0 rgba(120,70,30,.2),0 0 0 1px rgba(var(--studio-ljus),.16),0 16px 18px -12px rgba(0,0,0,.98);
     -webkit-box-reflect:below 5px linear-gradient(180deg,transparent 0%,transparent 74%,rgba(0,0,0,.1) 84%,rgba(0,0,0,.44) 100%)}
-  .hem2 .hero .herotile:hover{transform:none;
+  .hem2 .hero .herotile:hover{transform:translate3d(0,0,0);
     box-shadow:inset 0 1.5px 0 #fff,inset 0 -1px 0 rgba(120,70,30,.2),0 0 0 1px rgba(var(--studio-ljus),.16),0 16px 18px -12px rgba(0,0,0,.98)}
 }
 @media(min-width:361px) and (max-width:880px){

@@ -3313,6 +3313,38 @@ gången och 0,5–0,65 s när Stripes filer redan är hämtade.
   sparat 0,6–0,7 s för nya besökare, men då körs Stripe och sätter sina kakor
   före kassan. Det är Leonards beslut.
 
+## Kategoribandet i studions stil, och speglingen på mobilen (2026-11-18)
+
+Leonard 2026-11-18, efter förhandsvisningen: "alla kategoriers övre sektion
+får också en premium look som startsidans hero", och om brickornas spegling på
+startsidan: "det va ju jätte snyggt. Vill ha det."
+
+**Kategoribandet** (`.kat-hero:not(.prog-hero)` i `app/globals.css`): samma
+natt, korn och ljus som hjälten, ur samma variabler, så säsongstemana byter
+färg där också. Ljuspölen och ljuskäglan ligger på `.kat-hero-grid::before`,
+bilden står som en bricka i ljuset och speglas. De programmatiska sidorna
+(`.prog-hero`) har långa ingresser och står kvar ljusa.
+
+- ☠️ **Procenten i ljusets plats räknas av lagret, inte av rutnätet.** Lagret
+  är 800 px bredare än rutnätet. Med `calc(400px + 74%)` låg ljuset utanför
+  lagret på mobilen och syntes inte alls; rätt är `calc(74% - 192px)`.
+- ☠️ **Pölen får inte ligga bakom ingressen.** Med datorns höjd föll ingressen
+  till 4,5:1 mot pölens ljusaste punkt. På mobilen är pölen 24 px hög och
+  ligger i bandets luft nedtill. Mätt i bilden (texten gömd, ljusaste punkten
+  bakom varje textrad): sämsta kontrast 5,7:1 över fyra kategorier, sex
+  mobilbredder och två utseenden; på dator minst 9:1.
+- axe-core kan inte avgöra kontrast mot en toning. Mät i bilden.
+
+**Speglingen på mobilen.** Speglingen (`-webkit-box-reflect` på varje bricka)
+syntes på Leonards iPhone 15 i första versionen, där varje bricka var en egen
+yta på grafikkortet (den lutade). När brickorna ställdes upprätt och ritades
+som en del av raden försvann den i Safari, fast Chromium ritade den hela tiden.
+Nu har varje bricka `transform:translate3d(0,0,0)` och `will-change:transform`:
+en egen yta utan lutning, så priset är fortfarande skarpt.
+
+- ☠️ **Chromium är inget kvitto på speglingen.** Den ritas där i båda lägena.
+  Bara en riktig iPhone visar om den finns.
+
 ## Studion: hjälten som fotostudio, och Black Week-temana (2026-11-17)
 
 Leonard 2026-11-17: "göra bakgrundsfärgen i hero sektionen en mer premium 3d
