@@ -166,7 +166,7 @@ export default function Sparning() {
               <p className="om-not"><a href="/angra-kop">Ångra köp</a> · <a href="/returer">Returer &amp; ångerrätt</a></p>
             </div>
             <div className="om-kontakt">
-              <h3>Kundservice</h3>
+              <h3>Kundtjänst</h3>
               <p><a href="mailto:info@fyndplats.com">info@fyndplats.com</a><br /><a href="tel:+46736630990" style={{ whiteSpace: "nowrap" }}>+46 73 663 09 90</a></p>
               <p className="om-not">Telefon vardagar 09–17. Vi svarar normalt inom 24 timmar.</p>
             </div>

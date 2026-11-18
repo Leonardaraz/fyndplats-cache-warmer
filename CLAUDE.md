@@ -3504,15 +3504,79 @@ kvar på 38 px första gången, för bildraderna (`.blog-produktrad`) har en ege
 mer specifik regel. Ytan växer utan att något flyttas:
 luft in och lika mycket marginal ut, eller en osynlig yta runt länken.
 
-**Sett men inte ändrat** (större än en smådetalj, Leonards beslut):
-rubrikerna är serif på startsidan, listsidorna och i lådorna men sans på
-produktsidan, i kassan, i köpguiderna och på kundtjänst- och villkorssidorna;
-produktkorten har två utseenden (ramlösa brickor på startsidan, /butik och
-samlingssidorna, kort med ram och "Visa produkt" i listorna); verktygsraden på
-/alla-produkter är hopfälld på dator medan kategorisidans filter står öppna;
-den tomma varukorgen och den tomma favoritlådan ser olika ut; sidfotens spalt
-heter "Kundservice" och sidan "Kundtjänst"; en produktbild i Bygg &
-Renovering visar leverantörens märke på verktyget.
+**Sett i den här rundan och gjort i nästa** (avsnittet "Produktkortet är en
+bricka, överallt" nedan): rubrikerna i två typsnitt, produktkortens två
+utseenden, lådornas olika tomma lägen och orden "Kundservice" och
+"Kundtjänst". Kvar: en produktbild i Bygg & Renovering visar leverantörens
+märke på verktyget, och det är avgjort sedan 2026-10-28: VEVOR-loggan på
+själva varan får stå.
+
+## Produktkortet är en bricka, överallt (Leonard 2026-11-18)
+
+Leonards ord: "visuellt sexig ska det vara", och korten "super sexigt visuellt
+o optimerat". Samma dag fick infosidorna rubriktypsnittet, lådorna ett
+gemensamt tomt läge och kundtjänsten ett ord. `lib/produktkortet.test.ts`
+vaktar alltihop.
+
+**Ett kort, en uppsättning regler.** `ProductCard` var hela tiden en
+komponent. De två utseendena kom av att `app/startsida.css` (`.hem2 .prod`) och
+`app/butik/butik.css` (`.butik2 .prod`) skrev över grunden med samma femton
+rader var. Nu är brickan grunden (`.prod` i `app/globals.css`) och de två
+kopiorna är borta: fotot på en varm platta (`#F4EEE8`, 18 px hörn,
+`mix-blend-mode:multiply` så att fotonas vita botten tar plattans ton), namnet,
+betyget och priset under, ingen ram och ingen knapp. `.pbtn` finns inte längre,
+varken i komponenten eller i stilen. Listorna (ShopBrowser, `.shoplista`) kapar
+namnet vid tre rader, övriga ytor vid två.
+
+Mätt på /kategori/mobler, mobil 393 px, före (live) och efter (lokalt bygge):
+kortet 383 → 277 px högt, radsteget 401 → 301 px, hela varor inom två skärmar
+4 → 6 (sök 6 → 8). Dator 1440 px: kortet 460 → 384 px, radsteget 480 → 418 px.
+Längsta bildruta under rullning med fyra gångers CPU-strypning: 34 → 29 ms.
+
+- **Med hovrande pekare** lyfter plattan (inte kortet), namnet tar
+  märkesfärgen och en pil tonar in i plattans hörn (`.pimg::after`). Pilen är
+  det enda som är kvar av knappen. ☠️ Ingen transform på själva kortet och
+  inget av det här utan `@media (hover:hover)`: på iPhone fyrar `:hover` vid
+  första beröringen, och en transform mitt i gesten bröt svepet mellan
+  bilderna (2026-09-24).
+- **☠️ Fyndauktionens kort delar klassen `.prod`** (`components/auction-card.tsx`)
+  men är ett kort med ram. Dess grund står under `.prod.auction-card` med de
+  värden kortets grund hade förut, och brickans hover-regler gäller
+  `.prod:not(.auction-card)`: auktionen använder `.pimg::after` till sin egen
+  glöd. Den som ändrar `.prod` ska jämföra auktionskortets beräknade stil före
+  och efter.
+- **Mobilens rutnät håller sig inom containern** (26 px). Korten med ram gick
+  ut till 12 px från kanten; en platta utan ram ska linjera med rubriken och
+  verktygsraden ovanför. Plattorna är 164 px breda på en iPhone, som på
+  startsidan.
+- `lib/kort-andra-bild.test.ts` letade efter bildbytet i filens första
+  `@media (hover:hover)`-block. Det finns fler sådana block nu, så provet
+  letar upp det som bär `.pimg-alt`.
+
+**Rubriktypsnittet på infosidorna.** Sidans huvudrubrik är serif på varje sida
+utom produktsidan och kassan: `.om-hero h1` (tio infosidor) och `.pagehero h1`
+(villkorssidorna och köpguiderna) hade sans i 800. Sektionsrubrikerna under en
+överrubrik (`.om-sektion h2`, `.om-slut h2`) följer med, annars bytte sidan
+röst efter första skärmen. Rubriker inne i löptext (`.prose`) och allt i
+köpflödet är kvar i sans.
+
+**Lådornas tomma läge** (`.lada-tom`): varukorgen och favoritlådan har samma
+rundel, rubrik, rad och knapp ("Upptäck sortimentet →" i märkesfärgen).
+Varukorgens eget kort med ram och serifrubrik är borta (`.cart-empty*`).
+
+**Kundtjänst är ordet.** Sidan, adressen, sidtiteln och mobilmenyn säger
+"Kundtjänst", och löptexten "kontakta kundtjänst". Överrubriker och kort sa
+"Kundservice" på åtta ställen; de säger nu "Kundtjänst". Sidfotens spalt heter
+"Hjälp" (annars hade spalten och dess sista länk samma namn). ☠️ Jag föreslog
+först det omvända, efter att ha räknat bara ordet med stor bokstav i
+`.tsx`-filerna (8 mot 4). Med löptexten medräknad var det sidans namn som
+skulle gälla. Kundernas egna omdömen (`lib/curated-reviews.ts`) är citat och
+rörs inte.
+
+**Sett men inte ändrat:** på datorns kategorisidor står alla filter utfällda
+ovanför varorna. På /kategori/mobler är verktygsraden med filtren 625 px hög
+och första varuraden börjar 1 364 px ner (1440 × 900). /alla-produkter har
+samma filter hopfällda bakom en knapp och börjar vid 776 px.
 
 ## Studion: hjälten som fotostudio, och Black Week-temana (2026-11-17)
 

@@ -104,9 +104,9 @@ export default function Kundtjanst() {
               <a className="btn btn-ghost" href="/kontaktaoss">Kontakta oss</a>
             </div>
           </div>
-          <aside className={s.heroKort} aria-label="Kundservice">
+          <aside className={s.heroKort} aria-label="Kontakt">
             <span className="om-ikon"><Svg d={Ikon.service} /></span>
-            <h2>Kundservice</h2>
+            <h2>Kontakt</h2>
             <p>
               <a href="mailto:info@fyndplats.com">info@fyndplats.com</a>
               <br />

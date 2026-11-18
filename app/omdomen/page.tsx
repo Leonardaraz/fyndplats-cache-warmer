@@ -199,7 +199,7 @@ export default async function Omdomen() {
         <section className="om-slut">
           <div className="container om-slut-inner">
             <h2>Redo för nästa fynd?</h2>
-            <p>Trygg betalning med Klarna, 30 dagars öppet köp och kundservice på svenska.</p>
+            <p>Trygg betalning med Klarna, 30 dagars öppet köp och kundtjänst på svenska.</p>
             <div className="om-cta">
               <a className="btn btn-primary" href="/butik">Till butiken</a>
               <a className="btn om-btn-ljus" href="/omoss">Om Fyndplats</a>

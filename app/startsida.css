@@ -237,26 +237,9 @@
 /* ── Auktionsbannern sitter ihop med kategorierna ─────────────────── */
 .hem2 .auktionsrad{padding:0 0 8px}
 
-/* ── Veckans fynd: brickor utan ram och utan knapp ────────────────── */
-.hem2 .prodgrid{gap:34px 20px}
-.hem2 .prod{border:0;border-radius:0;box-shadow:none;background:transparent;overflow:visible}
-@media(hover:hover){
-  .hem2 .prod:hover{transform:none;box-shadow:none}
-  .hem2 .prod:hover .pname{color:var(--brand)}
-}
-.hem2 .prod .pimg{border-radius:var(--r-lg);background:#F4EEE8}
-.hem2 .prod .pimg img{mix-blend-mode:multiply}
-.hem2 .prod .pbody{padding:12px 2px 0}
-.hem2 .prod .pname{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;transition:color .2s}
-.hem2 .prod .prow{padding-top:8px;gap:0}
-.hem2 .prod .pprice{font-size:var(--text-lg)}
-/* Hela kortet är länken. Knappen sa samma sak en gång till på varje kort. */
-.hem2 .prod .pbtn{display:none}
-@media(max-width:880px){
-  .hem2 .prodgrid.listgrid{margin-inline:0;gap:24px 12px}
-  .hem2 .listgrid .prod .pbody{padding:10px 2px 0}
-  .hem2 .prod .pprice{font-size:var(--text-base)}
-}
+/* ── Veckans fynd ─────────────────────────────────────────────────────
+   Brickornas utseende är kortets grund sedan 2026-11-18 (.prod i globals.css).
+   Reglerna stod här och en gång till i app/butik/butik.css. */
 .hem2 .efter-rad{margin-top:30px;text-align:center}
 @media(min-width:881px){.hem2 .efter-rad{display:none}}
 @media(max-width:880px){.hem2 .h2rad .h2lank.bara-dator{display:none}}

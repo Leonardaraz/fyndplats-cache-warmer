@@ -830,9 +830,10 @@ export function CartDrawer() {
         )}
         <div className="drawer-body" ref={kroppRef}>
           {!harRader ? (
-            <div className="cart-empty">
-              <span className="cart-empty-ic" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+            // Samma tomma läge som favoritlådan (.lada-tom i globals.css).
+            <div className="lada-tom">
+              <span className="lada-tom-ikon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="9" cy="21" r="1" />
                   <circle cx="20" cy="21" r="1" />
                   <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
@@ -840,22 +841,22 @@ export function CartDrawer() {
               </span>
               {forskottLagd && !harRader ? (
                 <>
-                  <p className="cart-empty-title">Tack! Order {forskottLagd.nummer} är lagd</p>
-                  <p className="cart-empty-sub" role="status">
+                  <strong className="lada-tom-rubrik">Tack! Order {forskottLagd.nummer} är lagd</strong>
+                  <p role="status">
                     Förskottsfakturan på {kronorText(forskottLagd.totalOre)} kommer med e-post inom några minuter. Vi
                     skickar varorna när betalningen har kommit in.
                   </p>
                 </>
               ) : (
                 <>
-                  <p className="cart-empty-title">Din varukorg är tom</p>
+                  <strong className="lada-tom-rubrik">Din varukorg är tom</strong>
                   {/* Favoriterna har en egen låda sedan 2026-11-14 (hjärtat i
                       sidhuvudet). "Här samlar du dina favoritfynd" pekade på fel
                       låda. */}
-                  <p className="cart-empty-sub">Det du lägger i varukorgen hamnar här.</p>
+                  <p>Det du lägger i varukorgen hamnar här.</p>
                 </>
               )}
-              <a className="cart-empty-cta" href="/butik" onClick={() => setOpen(false)}>Utforska butiken →</a>
+              <a className="lada-tom-knapp" href="/butik" onClick={() => setOpen(false)}>Upptäck sortimentet <span aria-hidden="true">→</span></a>
             </div>
           ) : (
             // EN lista: React parar bara ihop nycklar bland syskon i samma lista.

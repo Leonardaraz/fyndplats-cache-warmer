@@ -85,20 +85,6 @@
 
 /* ── Populärt just nu: brickor utan ram och utan knapp ───────────── */
 .butik2 .b2-populart{padding-top:44px}
-.butik2 .prodgrid{gap:34px 20px}
-.butik2 .prod{border:0;border-radius:0;box-shadow:none;background:transparent;overflow:visible}
-@media(hover:hover){
-  .butik2 .prod:hover{transform:none;box-shadow:none}
-  .butik2 .prod:hover .pname{color:var(--brand)}
-}
-.butik2 .prod .pimg{border-radius:var(--r-lg);background:#F4EEE8}
-.butik2 .prod .pimg img{mix-blend-mode:multiply}
-.butik2 .prod .pbody{padding:12px 2px 0}
-.butik2 .prod .pname{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;transition:color .2s}
-.butik2 .prod .prow{padding-top:8px;gap:0}
-.butik2 .prod .pprice{font-size:var(--text-lg)}
-/* Hela kortet är länken. Knappen sa samma sak en gång till på varje kort. */
-.butik2 .prod .pbtn{display:none}
 
 /* ── Registret: alla kategorier i text ───────────────────────────── */
 .butik2 .b2-registersek{background:var(--surface-1);border-top:1px solid var(--line)}
@@ -171,9 +157,6 @@
   .butik2 .b2-alla-yta{padding:14px}
   .butik2 .b2-alla-text{font-size:var(--text-xs)}
   .butik2 .b2-populart{padding-top:28px}
-  .butik2 .prodgrid.listgrid{margin-inline:0;gap:24px 12px}
-  .butik2 .listgrid .prod .pbody{padding:10px 2px 0}
-  .butik2 .prod .pprice{font-size:var(--text-base)}
   /* Registret: en grupp per rad, underkategorierna som en rad i sidled.
      Raden sticker ut i kanten, så att det syns att den fortsätter. */
   .butik2 .b2-register{columns:auto}

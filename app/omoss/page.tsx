@@ -24,7 +24,7 @@ import { getSocialProof } from "../../lib/social-proof-live";
 export const revalidate = 3600;
 
 const BESKRIVNING =
-  "Fyndplats är en svensk webbutik från Södertälje. Sedan 2021 säljer vi utvalda produkter för hem, trädgård och vardag, med Klarna och kundservice på svenska.";
+  "Fyndplats är en svensk webbutik från Södertälje. Sedan 2021 säljer vi utvalda produkter för hem, trädgård och vardag, med Klarna och kundtjänst på svenska.";
 
 export const metadata: Metadata = {
   title: "Om oss",
@@ -86,7 +86,7 @@ const LOFTEN = [
   },
   {
     ikon: Ikon.service,
-    rubrik: "Kundservice på svenska",
+    rubrik: "Kundtjänst på svenska",
     text: "Mejla eller ring vardagar 09–17. Vi svarar normalt inom 24 timmar, på svenska eller engelska.",
     lank: { href: "/kontaktaoss", text: "Kontakta oss" },
   },
@@ -326,7 +326,7 @@ export default async function OmOss() {
           <div className="om-rubrikrad">
             <div>
               <div className="eyebrow">Kontakt</div>
-              <h2>Företagsuppgifter och kundservice</h2>
+              <h2>Företagsuppgifter och kundtjänst</h2>
             </div>
           </div>
           <div className="om-kontakt-grid">
@@ -336,7 +336,7 @@ export default async function OmOss() {
               <p className="om-not">Fyndplats är en ren webbutik. Adressen är inte ett lager, och vi har ingen butik eller upphämtning där.</p>
             </div>
             <div className="om-kontakt">
-              <h3>Kundservice</h3>
+              <h3>Kundtjänst</h3>
               <p><a href="mailto:info@fyndplats.com">info@fyndplats.com</a><br /><a href="tel:+46736630990" style={{ whiteSpace: "nowrap" }}>+46 73 663 09 90</a></p>
               <p className="om-not">Telefon vardagar 09–17. Vi svarar normalt inom 24 timmar.</p>
             </div>

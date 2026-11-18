@@ -95,8 +95,9 @@ describe("samma sak heter samma sak", () => {
 
   it("den tomma varukorgen talar om varukorgen, inte om favoriter (de har en egen låda)", () => {
     const korg = las("components", "cart.tsx");
-    assert.match(korg, /<p className="cart-empty-sub">Det du lägger i varukorgen hamnar här\.<\/p>/);
-    assert.doesNotMatch(korg, /className="cart-empty-sub">[^<]*favorit/);
+    assert.match(korg, /<strong className="lada-tom-rubrik">Din varukorg är tom<\/strong>/);
+    assert.match(korg, /<p>Det du lägger i varukorgen hamnar här\.<\/p>/);
+    assert.doesNotMatch(korg, /favoritfynd<\/p>/);
   });
 
   it("köpknappen i varukorgen säger vad den väntar på, inte bara tre punkter", () => {
