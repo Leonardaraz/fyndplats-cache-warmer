@@ -3379,9 +3379,9 @@ ihop. Nu är grunden neutral (`--natt` #09090A till #141312, `--natt-golv`
 #0A0A0A), ljuset varmvitt (`--studio-ljus` 255,226,200) och glöden svagare
 (`--studio-glod`, `--glod`). Bara variablerna är bytta, så toppremsan, hjälten,
 studiobanden, auktionsremsan, nyhetsbrevet och sidfoten följer med. Han fick
-tre bilder (brunt, kolsvart, midnattsblått) och svarade inte före mergen; jag
-förde in mitt eget förslag, kolsvart, eftersom han flyttade mergen för att jag
-skulle hinna. Vill han ha en annan grund är det samma handfull variabler.
+tre bilder (A brunt, B kolsvart, C midnattsblått). Jag förde in mitt förslag,
+kolsvart, medan han tittade, och han svarade "Kör b" före mergen. Vill han ha
+en annan grund är det samma handfull variabler.
 
 - Mätt efter bytet: axe-core 0 kontrastfel på startsidan i fyra utseenden;
   textens kontrast i banden mätt i bilden på mobil sämst 5,2:1.
