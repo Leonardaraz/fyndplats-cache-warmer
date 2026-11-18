@@ -1,0 +1,44 @@
+{
+  "6b8f1de3": {
+    "productId": "6b8f1de3-f60b-43ab-8b39-4e54ea1167e6",
+    "synliga": 3,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-vl8oud",
+        "betyg": 5,
+        "datum": "2026-09-13",
+        "kopt": "3 m",
+        "foton": 0,
+        "text": "This our second door seal, just likr the first one, fits like a charm."
+      },
+      {
+        "id": "gen-1kpgpq",
+        "betyg": 5,
+        "datum": "2026-09-01",
+        "kopt": "3 m",
+        "foton": 0,
+        "text": "Tiiviste oli oiken kokoinen ja olen tyytyväinen hankintaan."
+      },
+      {
+        "id": "gen-1h1xlm1",
+        "betyg": 5,
+        "datum": "2026-08-31",
+        "kopt": "3 m",
+        "foton": 0,
+        "text": "Great value, awesome fit, easy to change (with soap) and so much cheaper than the manufacturers channel!"
+      },
+      {
+        "id": "gen-15c8ki5",
+        "betyg": 4,
+        "datum": "2026-10-07",
+        "kopt": "3 m",
+        "foton": 0,
+        "text": "Seals perfect but the short pieces of T ends are a pain to line up so the seal inserts freely."
+      }
+    ]
+  }
+}
