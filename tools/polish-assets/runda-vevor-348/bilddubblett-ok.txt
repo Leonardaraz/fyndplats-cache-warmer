@@ -1,7 +1,2 @@
-31ff6619 1 7 samma vy av beslaget för två längder (2000 och 1830 mm mot 1500 mm): skenans längd skiljer, och längdvalet 1500 mm har sina egna bilder
-31ff6619 2 8 samma vy av beslaget för två längder (2000 och 1830 mm mot 1500 mm): skenans längd skiljer, och längdvalet 1500 mm har sina egna bilder
-31ff6619 3 9 samma vy av beslaget för två längder (2000 och 1830 mm mot 1500 mm): skenans längd skiljer, och längdvalet 1500 mm har sina egna bilder
 31ff6619 4 10 samma vy av beslaget för två längder (2000 och 1830 mm mot 1500 mm): skenans längd skiljer, och längdvalet 1500 mm har sina egna bilder
-31ff6619 5 11 samma vy av beslaget för två längder (2000 och 1830 mm mot 1500 mm): skenans längd skiljer, och längdvalet 1500 mm har sina egna bilder
 31ff6619 4 5 olika vyer av skenan: snett framifrån och från sidan respektive rakt framifrån
-31ff6619 10 11 olika vyer av skenan: snett framifrån och från sidan respektive rakt framifrån
