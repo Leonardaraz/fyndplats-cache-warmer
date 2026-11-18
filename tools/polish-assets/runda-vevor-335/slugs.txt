@@ -1,0 +1,4 @@
+8b85ccb7 verktygsryggsack-45-fickor-laptopfack-laddningsport
+68c1f5d6 verktygsryggsack-49-fickor-oglor-laptopfack-forstarkt-bas
+8556df45 verktygsryggsack-64-fickor-laptopfack-pvc-bas
+dcfc2e2d verktygsryggsack-56-fickor-kombinationslas-laddningsport
