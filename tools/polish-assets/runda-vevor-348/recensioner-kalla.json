@@ -1,0 +1,38 @@
+{
+  "31ff6619": {
+    "productId": "31ff6619-fe58-4c92-97f0-d0643698c4a3",
+    "synliga": 0,
+    "dolda": 6,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-sjy4kr",
+        "betyg": 5,
+        "datum": "2026-10-16",
+        "kopt": "1500 mm",
+        "foton": 0,
+        "text": "Prodotto ottimo e perfetto. Ricevuto in tempi ragionevoli. Lo consiglio"
+      }
+    ]
+  },
+  "9b1332de": {
+    "productId": "9b1332de-9f91-4f27-a2ec-89f1ed3e3888",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 3,
+    "attBesluta": []
+  },
+  "f212c7f2": {
+    "productId": "f212c7f2-29cb-4d31-a1d1-902f81cb3189",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  }
+}
