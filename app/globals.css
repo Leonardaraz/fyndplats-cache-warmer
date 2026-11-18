@@ -2725,9 +2725,10 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
    /kategori/[slug] påverkas inte)
    ============================================================ */
 .alla-prod-hero{padding:36px 0 56px}
-@media(max-width:760px){.alla-prod-hero{padding:24px 0 44px}}
+/* .butik-hero.alla-prod-hero: mobilregeln för .butik-hero står längre ner i filen och vann över den här. */
+@media(max-width:760px){.butik-hero.alla-prod-hero{padding:18px 0 32px}.alla-prod-hero .butik-crumbs{margin-bottom:16px}}
 .alla-prod-body{padding:48px 0 90px;background:#fff}
-@media(max-width:760px){.alla-prod-body{padding:32px 0 60px}}
+@media(max-width:760px){.alla-prod-body{padding:16px 0 60px}}
 
 /* Clean shopbar: filter (vänster) · count (subtilt) · sort (höger) */
 .alla-prod .shopbar{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:16px;padding:14px 18px;background:var(--surface-1);border:1px solid var(--line);border-radius:var(--r-md);margin-bottom:28px}
@@ -2843,6 +2844,42 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
 }
 @keyframes sheetIn{from{transform:translateY(100%)}to{transform:none}}
 
+/* Mobilens verktygsrad på EN rad (Leonard 2026-11-18). Filter och sortering
+   stod på var sin rad under kategoriväljaren, så första varan kom först
+   längst ner på skärmen. Nu: filterknappen till vänster med antalet inne i
+   samma ruta ("100 st"), och sorteringen till höger.
+   - Antalet och filterknappen delar rutnätets första cell. Antalet tar inga
+     tryck (pointer-events:none), så hela rutan är knappen. Ordet och
+     " av N" finns kvar för skärmläsare.
+   - Sorteringen visar ordet "Sortera"; den riktiga väljaren ligger osynlig
+     över hela knappen, så trycket öppnar telefonens egen lista, där det valda
+     står förbockat. 16 px i väljaren: mindre text får iOS att zooma in.
+   - Under 350 px ryms inte antalet bredvid filtrens bricka: det göms när ett
+     filter är valt (.har-filter).
+   Samma rad på /alla-produkter och /rea (.alla-prod), som förut hade en egen
+   tvåradig panel. Kategoriväljaren och luften runt den är lägre, och etiketten
+   "Förfina" över underkategorierna är borta på mobilen. */
+.kat-lista{padding-top:24px}
+@media(max-width:700px){
+  .kat-lista{padding-top:12px}
+  .catdrop{margin:0 0 10px}
+  .catdrop-btn{min-height:44px;padding:8px 14px}
+  .subnav-label{display:none}
+  .shopbar,.alla-prod .shopbar{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:8px;align-items:stretch;margin-bottom:12px;padding:0;background:none;border:0}
+  .shopbar-toggle,.alla-prod .shopbar-toggle{grid-area:1/1;width:100%;min-height:44px;margin:0;padding:0 14px}
+  .shopcount-inline,.alla-prod .shopcount-inline{grid-area:1/1;justify-self:end;align-self:center;margin-right:14px;font-size:var(--text-xs);font-weight:500;color:var(--soft);white-space:nowrap;pointer-events:none}
+  .shopcount-ord,.shopcount-of,.shopbar-sort select{position:absolute;opacity:0}
+  .shopcount-ord,.shopcount-of{width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+  .shopcount-tal::after{content:" st"}
+  .shopbar-sort,.alla-prod .shopbar-sort{grid-area:1/2;justify-self:stretch;position:relative;display:flex;align-items:center;justify-content:center;gap:9px;min-width:0;min-height:44px;
+    background:#fff;border:1.5px solid var(--line);border-radius:var(--r-sm);font-size:var(--text-sm);font-weight:600;color:var(--ink)}
+  .shopbar-sort::after{content:"";flex:none;width:7px;height:7px;border-right:1.8px solid currentColor;border-bottom:1.8px solid currentColor;transform:translateY(-2px) rotate(45deg)}
+  .shopbar-sort:focus-within{border-color:var(--orange)}
+  .shopbar-sort select{inset:0;width:100%;height:100%;margin:0;padding:0;border:0;font-size:16px}
+  .shopbar-panel,.alla-prod .shopbar-panel{grid-column:1/-1}
+}
+@media(max-width:349px){.shopbar.har-filter .shopcount-inline{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}}
+
 /* Mobile nav: scrollable content area + categories section */
 .mm-scroll{flex:1;overflow-y:auto;display:flex;flex-direction:column;min-height:0;padding-bottom:calc(20px + env(safe-area-inset-bottom));overscroll-behavior:contain}
 /* Inget i listan får krympa: en ruta med overflow:hidden (banderollen i steg
@@ -2897,20 +2934,19 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
 .sronly{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
 /* Hero — typografi-driven, kort men premium. Cream-bakgrund ger värme. */
-.butik-hero{background:linear-gradient(180deg,var(--surface-1) 0%,#FDF9F4 100%);border-bottom:1px solid var(--line);padding:42px 0 64px;position:relative;overflow:hidden}
-.butik-hero::after{content:"";position:absolute;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,rgba(244,122,53,.08),transparent 70%);right:-160px;top:-180px;pointer-events:none}
-.butik-crumbs{font-size:var(--text-xs);color:var(--soft);margin-bottom:38px;display:flex;gap:8px;align-items:center;position:relative;z-index:1}
-.butik-crumbs a{color:var(--soft);transition:color .15s}
-.butik-crumbs a:hover{color:var(--brand)}
+.butik-hero{padding:42px 0 64px}
+.butik-crumbs{font-size:var(--text-xs);color:var(--natt-dampad);margin-bottom:38px;display:flex;gap:8px;align-items:center;position:relative;z-index:1}
+.butik-crumbs a{color:var(--natt-dampad);transition:color .15s}
+.butik-crumbs a:hover{color:var(--glod-ljus)}
 .butik-crumbs span{opacity:.5}
-.butik-crumbs em{color:var(--ink);font-style:normal;font-weight:600}
+.butik-crumbs em{color:var(--natt-ljus);font-style:normal;font-weight:600}
 .butik-hero-inner{max-width:760px;position:relative;z-index:1}
-.butik-hero-eyebrow{display:inline-block;font-size:var(--text-xs);font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--brand);margin-bottom:16px}
+.butik-hero-eyebrow{display:inline-block;font-size:var(--text-xs);font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--glod-ljus);margin-bottom:16px}
 .butik-hero-eyebrow::before{content:"";display:inline-block;width:22px;height:2px;background:currentColor;border-radius:2px;opacity:.55;margin-right:9px;vertical-align:middle}
-.butik-hero-title{font-family:var(--font-display),Georgia,serif;font-size:clamp(42px,7vw,86px);line-height:1;letter-spacing:-.025em;font-weight:600;color:var(--ink);margin-bottom:24px}
+.butik-hero-title{font-family:var(--font-display),Georgia,serif;font-size:clamp(42px,7vw,86px);line-height:1;letter-spacing:-.025em;font-weight:600;color:var(--natt-ljus);text-shadow:0 2px 24px rgba(0,0,0,.45);margin-bottom:24px}
 .butik-hero-title br{display:inline}
-.butik-hero-lede{font-size:var(--text-lg);color:#5c544c;line-height:1.55;max-width:54ch}
-.butik-hero-meta{display:block;margin-top:10px;font-size:var(--text-sm);color:var(--soft);font-weight:500;letter-spacing:.02em}
+.butik-hero-lede{font-size:var(--text-lg);color:var(--natt-dampad);line-height:1.55;max-width:54ch}
+.butik-hero-meta{display:block;margin-top:10px;font-size:var(--text-sm);color:var(--natt-dampad);font-weight:500;letter-spacing:.02em}
 .butik-hero-ctas{margin-top:32px;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
 .butik-hero-cta-all{display:inline-flex;align-items:center;gap:10px;background:var(--ink,#1a1a1a);color:#fff;padding:14px 24px;border-radius:var(--r-pill);font-size:var(--text-base);font-weight:600;letter-spacing:.005em;border:1.5px solid var(--ink,#1a1a1a);transition:background .2s,color .2s,gap .2s,transform .15s,box-shadow .2s}
 .butik-hero-cta-all:hover{background:var(--brand);border-color:var(--brand);color:#fff;gap:14px;transform:translateY(-1px);box-shadow:var(--e3)}
@@ -3068,14 +3104,15 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
    ============================================================ */
 /* Kompakt (2026-09-30): produkterna ska synas utan att man scrollar förbi
    en halv skärm hero. Rubriken och kategorins egen ingress räcker. */
-.kat-hero{background:linear-gradient(180deg,var(--surface-1) 0%,#FDF9F4 100%);border-bottom:1px solid var(--line);padding:20px 0 28px;position:relative;overflow:hidden}
-.kat-hero::after{content:"";position:absolute;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(244,122,53,.08),transparent 70%);right:-150px;top:-160px;pointer-events:none}
+.kat-hero{padding:20px 0 44px}
 .kat-hero .crumbs{padding:0 0 14px;position:relative;z-index:1}
 .kat-hero-grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:48px;align-items:center;position:relative;z-index:1}
 .kat-hero-text .eyebrow{margin-bottom:12px;justify-content:flex-start}
-.kat-hero-text h1{font-family:var(--font-display),Georgia,serif;font-size:clamp(32px,4vw,48px);font-weight:600;line-height:1.06;letter-spacing:-.02em;color:var(--ink);margin-bottom:12px}
-.kat-hero-text p{font-size:var(--text-base);color:#5c544c;line-height:1.55;max-width:62ch;text-wrap:pretty}
-.kat-hero-img{position:relative;aspect-ratio:3/2;border-radius:var(--r-lg);overflow:hidden;background:var(--surface-2);box-shadow:var(--e3);border:4px solid #fff}
+.kat-hero-text h1{font-family:var(--font-display),Georgia,serif;font-size:clamp(32px,4vw,48px);font-weight:600;line-height:1.06;letter-spacing:-.02em;color:var(--natt-ljus);text-shadow:0 2px 24px rgba(0,0,0,.45);margin-bottom:12px}
+.kat-hero-text p{font-size:var(--text-base);color:var(--natt-dampad);line-height:1.55;max-width:62ch;text-wrap:pretty}
+.kat-hero-img{position:relative;aspect-ratio:3/2;border-radius:var(--r-lg);overflow:hidden;background:var(--surface-2);border:4px solid #FFFDFA;
+  box-shadow:0 0 0 1px rgba(var(--studio-ljus),.2),0 26px 30px -18px rgba(0,0,0,.96);
+  -webkit-box-reflect:below 6px linear-gradient(180deg,transparent 0%,transparent 86%,rgba(0,0,0,.08) 92%,rgba(0,0,0,.36) 100%)}
 /* Curated Unsplash-hero (huvudkategori) levereras redan i exakt 5:4 → cover fyller
    rutan utan dubbelbeskärning. */
 .kat-hero-img img{object-fit:cover}
@@ -3089,65 +3126,78 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
 .kat-hero-img.is-product{aspect-ratio:1/1;width:100%;max-width:260px;justify-self:end;background:#fff}
 .kat-hero-img.is-product img{object-fit:contain;object-position:center;padding:18px}
 @media(max-width:980px){.kat-hero-grid{grid-template-columns:minmax(0,1fr) 260px;gap:32px}}
-/* Bandet i studions stil (Leonard 2026-11-18: "alla kategoriers övre sektion
-   får också en premium look som startsidans hero"). Samma natt, korn och ljus
-   som hjälten, ur samma variabler ("Natten" och "Studion" överst i filen), så
-   att säsongstemana byter färg här också.
-   Ljuset (ljuspölen och ljuskäglan) ligger på .kat-hero-grid och inte på
-   bandet: bilden står i rutnätets högra kolumn, och ett ljus satt i procent av
-   bandet hamnar bredvid bilden på breda skärmar. Lagret är 400 px bredare än
-   rutnätet åt varje håll; bandet klipper resten. --kat-ljus är ljusets plats
-   i lagret: bildens mitt på dator, strax till höger om mitten på mobil.
-   --kat-pol och --kat-glod är ljusets styrka, --kat-pol-b och --kat-glod-b
-   dess bredd, --kat-pol-h och --kat-glod-h dess höjd.
-   Bandet är lika lågt som förut på mobilen. På datorn är luften nedtill 44 px
-   i stället för 28: där ligger bildens spegling.
-   De programmatiska sidorna (.prog-hero) har långa ingresser och står kvar
-   ljusa. */
-.kat-hero:not(.prog-hero){--kat-ljus:calc(100% - 570px);--kat-pol:.4;--kat-glod:.22;--kat-pol-b:min(460px,56vw);--kat-glod-b:min(760px,88vw);--kat-pol-h:70px;--kat-glod-h:150px;border-bottom:0;padding-bottom:44px;color:var(--natt-ljus);
-  box-shadow:inset 0 -1px 0 rgba(var(--studio-ljus),.18);
+/* Studiobandet (Leonard 2026-11-18): listsidornas övre sektion i samma stil
+   som startsidans hjälte. Först kategorierna ("alla kategoriers övre sektion
+   får också en premium look"), sedan resten, så att sidorna hänger ihop:
+   .kat-hero (kategorier och de programmatiska sidorna, .prog-hero),
+   .butik-hero (/alla-produkter och /rea), .b2-hjalte (/butik och prissidorna)
+   och .sidtopp (/sok och /blogg). Samma natt, korn och ljus som hjälten, ur
+   samma variabler ("Natten" och "Studion" överst i filen), så säsongstemana
+   byter färg här också. EN regel bär bakgrunden och EN bär ljuset; sidornas
+   egna regler sätter bara mått och ljusets plats.
+   Ljuset är en ljuspöl på golvet, en glöd runt den och en ljuskägla uppifrån.
+   --band-ljus är dess plats i sidled, --band-pol och --band-glod dess styrka,
+   -b bredden och -h höjden.
+   På kategorisidan ligger ljuset på .kat-hero-grid och inte på bandet: bilden
+   står i rutnätets högra kolumn, och ett ljus satt i procent av bandet hamnar
+   bredvid bilden på breda skärmar. Lagret är 400 px bredare än rutnätet åt
+   varje håll; bandet klipper resten. De andra banden har ingen bild, så där
+   ligger ljuset på bandet självt, svagare och lägre, till höger om texten.
+   ☠️ Texten får inte stå på pölen. Kontrasten mäts i bilden (texten gömd,
+   ljusaste punkten bakom varje textrad), inte med axe-core, som inte kan
+   avgöra en toning. Se "Studiobandet" i CLAUDE.md. */
+.kat-hero,.butik-hero,.b2-hjalte,.sidtopp{--band-ljus:82%;--band-pol:.3;--band-glod:.18;--band-pol-b:min(460px,56vw);--band-glod-b:min(760px,88vw);--band-pol-h:44px;--band-glod-h:110px;
+  position:relative;overflow:hidden;color:var(--natt-ljus);box-shadow:inset 0 -1px 0 rgba(var(--studio-ljus),.18);
   background:var(--natt-korn),
     radial-gradient(130% 160% at 66% 8%,transparent 44%,rgba(0,0,0,.6) 100%),
     linear-gradient(180deg,rgba(var(--studio-ljus),0) 46%,rgba(var(--studio-ljus),.08) 90%,rgba(0,0,0,.3) 100%),
     var(--natt)}
-.kat-hero:not(.prog-hero)::after{display:none}
-.kat-hero:not(.prog-hero) .kat-hero-grid::before{content:"";position:absolute;z-index:-1;inset:-96px -400px -44px;pointer-events:none;
+.kat-hero-grid::before,.prog-hero::after,.butik-hero::after,.b2-hjalte::after,.sidtopp::after{content:"";position:absolute;inset:0;pointer-events:none;
   background:
-    radial-gradient(var(--kat-pol-b) var(--kat-pol-h) at var(--kat-ljus) calc(100% - 4px),rgba(var(--studio-ljus),var(--kat-pol)),transparent 72%),
-    radial-gradient(var(--kat-glod-b) var(--kat-glod-h) at var(--kat-ljus) 100%,rgba(var(--studio-glod),var(--kat-glod)),transparent 74%),
-    conic-gradient(from 158deg at var(--kat-ljus) -24%,rgba(var(--studio-ljus),0) 0deg,rgba(var(--studio-ljus),.1) 14deg,rgba(var(--studio-ljus),.17) 22deg,rgba(var(--studio-ljus),.1) 30deg,rgba(var(--studio-ljus),0) 44deg,transparent 44deg 360deg)}
-.kat-hero:not(.prog-hero) .crumbs{color:var(--natt-dampad)}
-.kat-hero:not(.prog-hero) .crumbs a:hover{color:var(--glod-ljus)}
-.kat-hero:not(.prog-hero) .crumbs em{color:var(--natt-ljus)}
-.kat-hero:not(.prog-hero) .kat-hero-text h1{color:var(--natt-ljus);text-shadow:0 2px 24px rgba(0,0,0,.45)}
-.kat-hero:not(.prog-hero) .kat-hero-text p{color:var(--natt-dampad)}
-/* Bilden står som en bricka i ljuset, med samma kant och spegling som hjältens
-   brickor. Speglingen visar bildens nedersta 14 %: den ryms i bandets luft. */
-.kat-hero:not(.prog-hero) .kat-hero-img{border-color:#FFFDFA;
-  box-shadow:0 0 0 1px rgba(var(--studio-ljus),.2),0 26px 30px -18px rgba(0,0,0,.96);
-  -webkit-box-reflect:below 6px linear-gradient(180deg,transparent 0%,transparent 86%,rgba(0,0,0,.08) 92%,rgba(0,0,0,.36) 100%)}
-@media(max-width:980px){.kat-hero:not(.prog-hero){--kat-ljus:calc(100% - 530px)}}
+    radial-gradient(var(--band-pol-b) var(--band-pol-h) at var(--band-ljus) calc(100% - 4px),rgba(var(--studio-ljus),var(--band-pol)),transparent 72%),
+    radial-gradient(var(--band-glod-b) var(--band-glod-h) at var(--band-ljus) 100%,rgba(var(--studio-glod),var(--band-glod)),transparent 74%),
+    conic-gradient(from 158deg at var(--band-ljus) -24%,rgba(var(--studio-ljus),0) 0deg,rgba(var(--studio-ljus),.1) 14deg,rgba(var(--studio-ljus),.17) 22deg,rgba(var(--studio-ljus),.1) 30deg,rgba(var(--studio-ljus),0) 44deg,transparent 44deg 360deg)}
+.prog-hero>.container,.b2-hjalte>.container,.sidtopp>.container{position:relative;z-index:1}
+/* Kategorisidan: ljuset står på bildens mitt (rutnätets högra kolumn, 340 px
+   bred; 260 px under 981 px), och pölen är stor, för där står en bricka. */
+.kat-hero:not(.prog-hero){--band-ljus:calc(100% - 570px);--band-pol:.4;--band-glod:.22;--band-pol-h:70px;--band-glod-h:150px}
+.kat-hero-grid::before{z-index:-1;inset:-96px -400px -44px}
+.kat-hero .crumbs,.sidtopp .sechead p{color:var(--natt-dampad)}
+.kat-hero .crumbs a:hover{color:var(--glod-ljus)}
+.kat-hero .crumbs em{color:var(--natt-ljus)}
+.kat-hero .eyebrow,.b2-hjalte .eyebrow,.sidtopp .eyebrow{color:var(--glod-ljus)}
+.prog-hero{padding-bottom:56px}
+/* Brödsmulornas led är egna span där, och regeln för avdelaren (.crumbs span,
+   halv styrka) träffade hela ledet: länkarna stod på 3,6:1 mot natten. */
+.prog-hero .crumbs>span{opacity:1}
+.prog-hero .prog-intro p{color:var(--natt-dampad)}
+/* /sok och /blogg: rubriken i ett eget band, innehållet under. */
+.sidtopp{padding:40px 0 48px}
+.sidtopp .sechead{margin-bottom:0}
+.sidtopp+.sec{padding-top:44px}
+@media(max-width:980px){.kat-hero:not(.prog-hero){--band-ljus:calc(100% - 530px)}}
 /* Mobil: ingen bild. Den sköt ner produkterna en hel skärm; IKEA, JYSK och
    Mio visar rubriken och går direkt på varorna. */
 @media(max-width:760px){
-  .kat-hero{padding:12px 0 18px}
+  .kat-hero{padding:12px 0 30px}
   .kat-hero .crumbs{padding-bottom:10px}
   .kat-hero-grid{grid-template-columns:1fr;gap:0}
   .kat-hero-img{display:none}
   .kat-hero-text h1{margin-bottom:8px}
   .kat-hero-text p{font-size:var(--text-sm)}
-  /* Utan bild är ljuset det enda som bär studion på mobilen: pölen är bredare
-     och starkare, och står längre in från kanten.
-     ☠️ Procenten i --kat-ljus räknas av lagret, som är 800 px bredare än
-     rutnätet. 74 % av rutnätet är 74 % av lagret minus 192 px (400 px in,
-     minus 74 % av de 800). Med "400px + 74%" låg ljuset utanför lagret och
-     syntes inte alls (mätt 2026-11-18).
-     ☠️ Pölen är låg (24 px, glöden 40 px) och ligger i bandets luft nedtill
-     (30 px): med datorns höjd låg den bakom ingressens sista rader, och
-     ingressen föll till 4,5:1 mot den ljusaste punkten. Nu är den sämsta
-     uppmätta kontrasten 5,7:1 (se "Kategoribandet" i CLAUDE.md). */
-  .kat-hero:not(.prog-hero){--kat-ljus:calc(74% - 192px);--kat-pol:.5;--kat-glod:.26;--kat-pol-b:62vw;--kat-glod-b:105vw;--kat-pol-h:24px;--kat-glod-h:40px;padding-bottom:30px}
-  .kat-hero:not(.prog-hero) .kat-hero-grid::before{inset:-76px -400px -30px}
+  /* Mobilen har ingen bild i banden, så ljuset bär studion ensamt: pölen är
+     bredare och starkare, men låg (24 px, glöden 40 px), och ligger i bandets
+     luft nedtill (minst 24 px). Med datorns höjd låg den bakom ingressens
+     sista rader, och ingressen föll till 4,5:1 mot den ljusaste punkten.
+     ☠️ På kategorisidan räknas procenten i --band-ljus av lagret, som är
+     800 px bredare än rutnätet. 74 % av rutnätet är 74 % av lagret minus
+     192 px (400 px in, minus 74 % av de 800). Med "400px + 74%" låg ljuset
+     utanför lagret och syntes inte alls (mätt 2026-11-18). */
+  .kat-hero,.butik-hero,.b2-hjalte,.sidtopp{--band-ljus:74%;--band-pol:.5;--band-glod:.26;--band-pol-b:62vw;--band-glod-b:105vw;--band-pol-h:24px;--band-glod-h:40px}
+  .kat-hero:not(.prog-hero){--band-ljus:calc(74% - 192px);--band-pol:.5;--band-glod:.26;--band-pol-h:24px;--band-glod-h:40px}
+  .kat-hero-grid::before{inset:-76px -400px -30px}
+  .sidtopp{padding:22px 0 32px}
+  .sidtopp+.sec{padding-top:26px}
 }
 
 /* Redaktionellt kategori-block (intro + FAQ) under produktnätet — riktig brödtext

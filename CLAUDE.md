@@ -3313,27 +3313,63 @@ gången och 0,5–0,65 s när Stripes filer redan är hämtade.
   sparat 0,6–0,7 s för nya besökare, men då körs Stripe och sätter sina kakor
   före kassan. Det är Leonards beslut.
 
-## Kategoribandet i studions stil, och speglingen på mobilen (2026-11-18)
+## Studiobandet på listsidorna, mobilens verktygsrad och speglingen (2026-11-18)
 
 Leonard 2026-11-18, efter förhandsvisningen: "alla kategoriers övre sektion
-får också en premium look som startsidans hero", och om brickornas spegling på
-startsidan: "det va ju jätte snyggt. Vill ha det."
+får också en premium look som startsidans hero", om brickornas spegling: "det
+va ju jätte snyggt. Vill ha det", och sedan, efter min genomgång av vad som
+skilde sidan från 10/10: "Gör punkt 1 och 2" (samma topp på resten av
+listsidorna, och varorna högre upp på mobilen).
 
-**Kategoribandet** (`.kat-hero:not(.prog-hero)` i `app/globals.css`): samma
-natt, korn och ljus som hjälten, ur samma variabler, så säsongstemana byter
-färg där också. Ljuspölen och ljuskäglan ligger på `.kat-hero-grid::before`,
-bilden står som en bricka i ljuset och speglas. De programmatiska sidorna
-(`.prog-hero`) har långa ingresser och står kvar ljusa.
+**Studiobandet** (`app/globals.css`, "Studiobandet"). Listsidornas övre
+sektion har samma natt, korn och ljus som hjälten, ur samma variabler, så
+säsongstemana byter färg där också:
 
-- ☠️ **Procenten i ljusets plats räknas av lagret, inte av rutnätet.** Lagret
-  är 800 px bredare än rutnätet. Med `calc(400px + 74%)` låg ljuset utanför
-  lagret på mobilen och syntes inte alls; rätt är `calc(74% - 192px)`.
-- ☠️ **Pölen får inte ligga bakom ingressen.** Med datorns höjd föll ingressen
-  till 4,5:1 mot pölens ljusaste punkt. På mobilen är pölen 24 px hög och
-  ligger i bandets luft nedtill. Mätt i bilden (texten gömd, ljusaste punkten
-  bakom varje textrad): sämsta kontrast 5,7:1 över fyra kategorier, sex
-  mobilbredder och två utseenden; på dator minst 9:1.
-- axe-core kan inte avgöra kontrast mot en toning. Mät i bilden.
+| Band | Sidor |
+| --- | --- |
+| `.kat-hero` | kategorierna, och de programmatiska sidorna (`.prog-hero`) |
+| `.butik-hero` | /alla-produkter och /rea |
+| `.b2-hjalte` | /butik och prissidorna |
+| `.sidtopp` | /sok och /blogg (rubriken flyttad ur `.sec` till ett eget band) |
+
+EN regel bär bakgrunden och EN bär ljuset (ljuspöl, glöd och ljuskägla).
+Sidornas egna regler sätter bara mått och ljusets plats (`--band-ljus`), styrka
+(`--band-pol`, `--band-glod`) och storlek (`-b`, `-h`). De ljusa bakgrunderna
+och de gamla klotens `::after` är borttagna ur grundreglerna, inte överskrivna.
+
+- ☠️ **Procenten i ljusets plats räknas av lagret, inte av rutnätet.** På
+  kategorisidan ligger ljuset på `.kat-hero-grid::before`, som är 800 px
+  bredare än rutnätet. Med `calc(400px + 74%)` låg ljuset utanför lagret på
+  mobilen och syntes inte alls; rätt är `calc(74% - 192px)`.
+- ☠️ **Texten får inte stå på pölen.** Med datorns höjd på mobilen föll
+  kategorins ingress till 4,5:1 mot pölens ljusaste punkt. På mobilen är
+  pölen 24 px hög och ligger i bandets luft nedtill.
+- ☠️ **axe-core kan inte avgöra kontrast mot en toning.** Mät i bilden: gör
+  texten genomskinlig och jämför textens färg med den ljusaste punkten bakom
+  varje textbärande element. Mätt 2026-11-18 på nio sidor, fyra bredder och
+  två utseenden: sämst 5,0:1 (etiketten under talen på /butik, 360 px).
+- ☠️ **`.crumbs span` träffar mer än avdelaren.** På de programmatiska sidorna
+  är varje led ett eget `span`, så regelns halva styrka låg på länkarna: 3,6:1
+  mot natten. `.prog-hero .crumbs>span{opacity:1}`.
+- ☠️ **En mobilregel längre ner i filen vinner över en tidigare med samma
+  vikt.** `.alla-prod-hero` fick aldrig sin mobilluft: `.butik-hero` står
+  längre ner och har samma vikt. Skriv `.butik-hero.alla-prod-hero`.
+
+**Mobilens verktygsrad på en rad** (`components/shopbrowser.tsx`, "Mobilens
+verktygsrad" i `app/globals.css`). Filter och sortering stod på var sin rad
+under kategoriväljaren. Nu: filterknappen med antalet inne i samma ruta
+("100 st"), och sorteringen bredvid. Den riktiga väljaren ligger osynlig över
+hela sorteringsknappen, så trycket öppnar telefonens egen lista. Samma rad på
+/alla-produkter, /rea och /sok.
+
+- Antalet och filterknappen delar rutnätets första cell; antalet tar inga
+  tryck. Talet och ordet är var sitt `span` (`produktOrd` i `lib/rating.ts`:
+  böjningen får inte skrivas om i en yta, `lib/plural-global.test.ts`).
+- Mätt på 393 px: första varan på kategorisidan står 102 px högre (524 px från
+  sidans topp i stället för 626), på /alla-produkter 66 px högre.
+- Mätt på åtta bredder (320 till 700 px) och fem sidor: en rad, 44 px höga
+  knappar, antalet inom knappen och minst 21 px från ordet "Filter", ingen
+  sidscroll. Under 350 px göms antalet när ett filter är valt.
 
 **Speglingen på mobilen.** Speglingen (`-webkit-box-reflect` på varje bricka)
 syntes på Leonards iPhone 15 i första versionen, där varje bricka var en egen

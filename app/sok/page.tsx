@@ -67,13 +67,18 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
 
   return (
     <>
-      <section className="sec">
+      {/* Rubriken står i studiobandet (.sidtopp i globals.css), som på de andra listsidorna. */}
+      <section className="sidtopp">
         <div className="container">
           <div className="sechead">
             <div className="eyebrow">Sök</div>
             <h1>{q ? `Sökresultat för “${q}”` : "Sök i butiken"}</h1>
             <p>{q ? `${productCountLabel(results.length)} hittades` : "Skriv i sökrutan ovan för att hitta produkter."}</p>
           </div>
+        </div>
+      </section>
+      <section className="sec">
+        <div className="container">
           {/* forClient, inte results rakt av. Product är strukturellt
               tilldelningsbar till ListProduct, så det HAR kompilerat — men då
               serialiserades hela Product-objektet in i klient-nyttolasten:

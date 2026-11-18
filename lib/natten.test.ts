@@ -368,38 +368,90 @@ describe("Black Week-temat byter nattens variabler", () => {
   });
 });
 
-describe("kategoribandet i studions stil", () => {
+describe("studiobandet på listsidorna", () => {
   const utan = css.replace(/\/\*[\s\S]*?\*\//g, "");
-  const band = [...utan.matchAll(/\.kat-hero:not\(\.prog-hero\)[^{]*\{[^}]*\}/g)].map((m) => m[0]).join("\n");
+  const butik = las("app/butik/butik.css").replace(/\/\*[\s\S]*?\*\//g, "");
 
-  it("bär nattens variabler, så att säsongstemana byter färg där också", () => {
-    assert.match(band, /\.kat-hero:not\(\.prog-hero\)\{[^}]*background:var\(--natt-korn\),[^}]*var\(--natt\)\}/);
-    assert.match(band, /\.kat-hero-text h1\{color:var\(--natt-ljus\)/);
-    assert.match(band, /\.kat-hero-text p\{color:var\(--natt-dampad\)\}/);
-    assert.match(band, /\.crumbs\{color:var\(--natt-dampad\)\}/);
-    // Inga egna färger för ljuset: bara studions trippletter.
-    assert.doesNotMatch(band.replace(/border-color:#FFFDFA/, ""), /#[0-9A-Fa-f]{3,6}\b/);
-    assert.match(band, /rgba\(var\(--studio-ljus\),var\(--kat-pol\)\)/);
+  it("en regel bär bakgrunden för alla band, ur nattens variabler", () => {
+    const m = utan.match(/\.kat-hero,\.butik-hero,\.b2-hjalte,\.sidtopp\{[^}]*\}/);
+    assert.ok(m, "bandets regel saknas");
+    assert.match(m[0], /background:var\(--natt-korn\),[\s\S]*var\(--natt\)\}/);
+    assert.match(m[0], /color:var\(--natt-ljus\)/);
+    assert.doesNotMatch(m[0], /#[0-9A-Fa-f]{3,6}\b/);
+  });
+
+  it("inget band har kvar en egen ljus bakgrund", () => {
+    assert.match(utan, /^\.kat-hero\{padding:20px 0 44px\}$/m);
+    assert.match(utan, /^\.butik-hero\{padding:42px 0 64px\}$/m);
+    assert.match(butik, /^\.butik2 \.b2-hjalte\{padding:26px 0 34px\}$/m);
+    assert.doesNotMatch(utan, /\.kat-hero::after|\.butik-hero::after\{content:"";position:absolute;width/);
+  });
+
+  it("en regel bär ljuset, och bara studions trippletter färgar det", () => {
+    const m = utan.match(/\.kat-hero-grid::before,\.prog-hero::after,\.butik-hero::after,\.b2-hjalte::after,\.sidtopp::after\{[^}]*\}/);
+    assert.ok(m, "ljusets regel saknas");
+    assert.match(m[0], /rgba\(var\(--studio-ljus\),var\(--band-pol\)\)/);
+    assert.match(m[0], /rgba\(var\(--studio-glod\),var\(--band-glod\)\)/);
+    assert.doesNotMatch(m[0], /#[0-9A-Fa-f]{3,6}\b|filter:/);
+  });
+
+  it("kategorisidans ljus står på bildens mitt, och mobilens plats är räknad av lagret", () => {
+    assert.match(utan, /\.kat-hero:not\(\.prog-hero\)\{--band-ljus:calc\(100% - 570px\)/);
+    assert.match(utan, /\.kat-hero:not\(\.prog-hero\)\{--band-ljus:calc\(74% - 192px\)/);
+    assert.match(utan, /\.kat-hero-grid::before\{z-index:-1;inset:-96px -400px -44px\}/);
+    assert.doesNotMatch(utan, /--band-ljus:calc\(400px \+/);
+  });
+
+  it("texten i banden bär nattens färger", () => {
+    assert.match(utan, /\.kat-hero-text h1\{[^}]*color:var\(--natt-ljus\)/);
+    assert.match(utan, /\.kat-hero-text p\{[^}]*color:var\(--natt-dampad\)/);
+    assert.match(utan, /\.butik-hero-title\{[^}]*color:var\(--natt-ljus\)/);
+    assert.match(utan, /\.butik-crumbs a\{color:var\(--natt-dampad\)/);
+    assert.match(butik, /\.butik2 h1\{[^}]*color:var\(--natt-ljus\)/);
+    assert.match(butik, /\.butik2 \.b2-ingress\{[^}]*color:var\(--natt-dampad\)\}/);
+    // De programmatiska sidornas brödsmulor: ledet har full styrka, bara avdelaren är svag.
+    assert.match(utan, /\.prog-hero \.crumbs>span\{opacity:1\}/);
   });
 
   it("ingressen klarar 4,5:1 mot natten", () => {
     for (const h of hex(variabel("--natt"))) assert.ok(kontrast(hex(variabel("--natt-dampad"))[0], h) >= 4.5, `#${h}`);
   });
 
-  it("ljuset sitter på rutnätet, och mobilens plats är räknad av lagret", () => {
-    assert.match(band, /\.kat-hero-grid::before\{content:"";position:absolute;z-index:-1;inset:-96px -400px -44px/);
-    assert.match(band, /\.kat-hero:not\(\.prog-hero\)\{--kat-ljus:calc\(100% - 570px\)/);
-    assert.match(band, /--kat-ljus:calc\(74% - 192px\)/);
-    assert.doesNotMatch(band, /--kat-ljus:calc\(400px \+/);
+  it("kategoribilden speglas, och speglingen ryms i bandets luft", () => {
+    assert.match(utan, /\.kat-hero-img\{[^}]*-webkit-box-reflect:below 6px/);
   });
 
-  it("inget filter i bandet, och de programmatiska sidorna står kvar ljusa", () => {
-    assert.doesNotMatch(band, /filter:/);
-    assert.doesNotMatch(utan, /\.prog-hero\{[^}]*var\(--natt\)/);
+  it("/sok och /blogg har rubriken i bandet", () => {
+    for (const f of ["app/sok/page.tsx", "app/blogg/page.tsx"]) {
+      assert.match(las(f), /<section className="sidtopp">\s*<div className="container">\s*<div className="sechead">/, f);
+    }
+  });
+});
+
+describe("mobilens verktygsrad på en rad", () => {
+  const utan = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  const rad = utan.slice(utan.indexOf(".kat-lista{padding-top:24px}"));
+
+  it("filterknappen och antalet delar första cellen, sorteringen står bredvid", () => {
+    assert.match(rad, /\.shopbar,\.alla-prod \.shopbar\{display:grid;grid-template-columns:minmax\(0,1\.5fr\) minmax\(0,1fr\)/);
+    assert.match(rad, /\.shopbar-toggle,\.alla-prod \.shopbar-toggle\{grid-area:1\/1;[^}]*min-height:44px/);
+    assert.match(rad, /\.shopcount-inline,\.alla-prod \.shopcount-inline\{grid-area:1\/1;[^}]*pointer-events:none\}/);
+    assert.match(rad, /\.shopbar-sort,\.alla-prod \.shopbar-sort\{grid-area:1\/2;[^}]*min-height:44px/);
   });
 
-  it("bilden speglas, och speglingen ryms i bandets luft", () => {
-    assert.match(band, /\.kat-hero-img\{[^}]*-webkit-box-reflect:below 6px/);
-    assert.match(band, /\.kat-hero:not\(\.prog-hero\)\{[^}]*padding-bottom:44px/);
+  it("den riktiga väljaren täcker hela sorteringsknappen, med 16 px mot iOS zoom", () => {
+    assert.match(rad, /\.shopbar-sort select\{inset:0;width:100%;height:100%;[^}]*font-size:16px\}/);
+    assert.match(rad, /\.shopbar-sort:focus-within\{border-color:var\(--orange\)\}/);
+  });
+
+  it("antalet skrivs som tal och ord var för sig, och raden vet när ett filter är valt", () => {
+    const k = las("components/shopbrowser.tsx");
+    assert.match(k, /<span className="shopcount-tal">\{tusental\(liveCount\)\}<\/span><span className="shopcount-ord">/);
+    assert.match(k, /activeFilters > 0 \? " har-filter" : ""/);
+    assert.match(rad, /@media\(max-width:349px\)\{\.shopbar\.har-filter \.shopcount-inline\{/);
+  });
+
+  it("kategorisidans lista har klassen som bär luften", () => {
+    assert.match(las("app/kategori/[slug]/page.tsx"), /<section className="sec kat-lista">/);
   });
 });

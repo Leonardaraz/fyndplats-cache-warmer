@@ -43,7 +43,15 @@ export function reviewCountLabel(count: number): string {
  * villkor skrivet två gånger. Det är regeln som flyttat hit.
  */
 export function productCountLabel(count: number): string {
-  return `${tusental(count)} ${count === 1 ? "produkt" : "produkter"}`;
+  return `${tusental(count)} ${produktOrd(count)}`;
+}
+
+/**
+ * Bara ordet, böjt efter antalet. För ytor där talet står för sig: mobilens
+ * verktygsrad visar "100 st" och har ordet kvar för skärmläsare.
+ */
+export function produktOrd(count: number): string {
+  return count === 1 ? "produkt" : "produkter";
 }
 
 /**
