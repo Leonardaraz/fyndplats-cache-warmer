@@ -24,6 +24,7 @@ import { MetaPixel } from "../components/metapixel";
 import { KlarnaSDK } from "../components/klarna-sdk";
 import { consentBootstrapScript, taggLaddare } from "../lib/consent";
 import { TIDIGA_KLICK_SKRIPT } from "../lib/tidiga-klick";
+import { IOS_FOKUSZOOM_SKRIPT } from "../lib/ios-fokuszoom";
 import { TRUSTPILOT_PROFIL_URL } from "../lib/trustpilot-profil";
 import { TEMA_SKRIPT } from "../lib/sasongstema";
 import { PLANBOK_SKRIPT } from "../lib/kassa/snabbkassa";
@@ -285,6 +286,10 @@ export default async function RootLayout({
             Datumet läses i webbläsaren, så temat försvinner av sig självt
             efter sista dagen, även på sidor som ligger cachade. */}
         <script dangerouslySetInnerHTML={{ __html: TEMA_SKRIPT }} />
+        {/* iOS zoomar in hela sidan när ett fält får fokus om kunden har
+            Safaris sidzoom under 100 %. Skriptet tar bort den inzoomningen,
+            bara på iOS (lib/ios-fokuszoom.ts). */}
+        <script dangerouslySetInnerHTML={{ __html: IOS_FOKUSZOOM_SKRIPT }} />
         {/* Vilken plånbok väntas i webbläsaren: Apple Pay, Google Pay eller
             ingen? Kassan håller plats för snabbkassans knapp, ritar rätt
             platshållare och nämner rätt namn redan från första ritningen,

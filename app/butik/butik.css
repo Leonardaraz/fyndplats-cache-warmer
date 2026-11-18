@@ -41,7 +41,7 @@
 .butik2 .b2-etikett{font-size:var(--text-xs);color:var(--natt-dampad);white-space:nowrap}
 .butik2 .b2-genvagar{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}
 .butik2 .b2-genvagar a{display:inline-flex;align-items:center;min-height:40px;padding:0 16px;border:1px solid rgba(var(--studio-ljus),.34);
-  border-radius:var(--r-pill);background:rgba(12,9,7,.55);font-size:var(--text-sm);font-weight:600;color:var(--natt-ljus);text-decoration:none;
+  border-radius:var(--r-pill);background:rgba(10,10,10,.55);font-size:var(--text-sm);font-weight:600;color:var(--natt-ljus);text-decoration:none;
   white-space:nowrap;transition:border-color .15s,color .15s}
 .butik2 .b2-genvagar a:hover,.butik2 .b2-genvagar a:focus-visible{border-color:var(--natt-ljus);color:var(--glod-ljus)}
 

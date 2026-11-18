@@ -3371,6 +3371,38 @@ hela sorteringsknappen, så trycket öppnar telefonens egen lista. Samma rad på
   knappar, antalet inom knappen och minst 21 px från ordet "Filter", ingen
   sidscroll. Under 350 px göms antalet när ett filter är valt.
 
+**Kolsvart i stället för brunt.** Leonard samma natt: "är verkligen den där
+bruna bakgrundsfärgen rätt färg för att ge hemsidan 10/10 design eller vet du
+en som passar bättre?" Natten var en brunsvart toning med persikofärgat ljus,
+och orange ljus över nästan svart blir brunt: logga, knapp och bakgrund flöt
+ihop. Nu är grunden neutral (`--natt` #09090A till #141312, `--natt-golv`
+#0A0A0A), ljuset varmvitt (`--studio-ljus` 255,226,200) och glöden svagare
+(`--studio-glod`, `--glod`). Bara variablerna är bytta, så toppremsan, hjälten,
+studiobanden, auktionsremsan, nyhetsbrevet och sidfoten följer med. Han fick
+tre bilder (brunt, kolsvart, midnattsblått) och svarade inte före mergen; jag
+förde in mitt eget förslag, kolsvart, eftersom han flyttade mergen för att jag
+skulle hinna. Vill han ha en annan grund är det samma handfull variabler.
+
+- Mätt efter bytet: axe-core 0 kontrastfel på startsidan i fyra utseenden;
+  textens kontrast i banden mätt i bilden på mobil sämst 5,2:1.
+- ☠️ **Det varmvita ljuset är ljusare än det persikofärgade.** Ljuskäglan
+  ligger bakom text på mobilen (ingress, etiketter). Höjs käglans styrka måste
+  kontrasten mätas om i bilden.
+
+**Sökfältet zoomade in sidan på iPhone** (`lib/ios-fokuszoom.ts`). Alla fält
+har 16 px på mobilen, så felet var inte textstorleken. I Leonards skärmbilder
+var sidan ritad 524 px bred på en 393 px bred telefon: Safaris sidzoom stod på
+75 %, och då är 16 px bara 12 punkter på skärmen, så iOS zoomar in vid fokus
+och står kvar inzoomad. Skriptet lägger `maximum-scale=1` i sidans viewport,
+bara på iOS, där värdet styr fokuszoomen men inte kundens egen nypzoom. I
+Android Chrome hade samma värde stängt av nypzoomen, så där rörs ingenting.
+
+- ☠️ **Värdet sätts vid tryck, inte vid laddning.** Ändras taggen innan React
+  väckt sidan lägger React in en egen bredvid, och den sista (utan taket)
+  gäller. Skriptet går igenom alla viewport-taggar vid varje `touchstart`.
+- Inte provat på en riktig iPhone. Att Safari följer `maximum-scale` vid
+  fokus men inte vid nypzoom är läst, inte mätt.
+
 **Speglingen på mobilen.** Speglingen (`-webkit-box-reflect` på varje bricka)
 syntes på Leonards iPhone 15 i första versionen, där varje bricka var en egen
 yta på grafikkortet (den lutade). När brickorna ställdes upprätt och ritades

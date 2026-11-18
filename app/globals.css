@@ -178,16 +178,22 @@ img{display:block;max-width:100%}
    ☠️ Vit text på --natt-knapp ska klara 4,5:1 i knappens LJUSA ände. #D8480F
    gav 4,3:1 och föll; #D0440E ger 4,6:1. lib/natten.test.ts räknar om det. */
 :root{
-  --natt:linear-gradient(160deg,#0C0907 0%,#130D09 44%,#1D120B 100%);
-  --natt-remsa:linear-gradient(90deg,#0C0907 0%,#1F130B 50%,#0C0907 100%);
-  --natt-golv:#0E0A07;
+  /* Kolsvart, inte brunt (Leonard 2026-11-18: "är verkligen den där bruna
+     bakgrundsfärgen rätt färg"). Natten var en brunsvart toning (#0C0907 till
+     #1D120B) med persikofärgat ljus, och orange ljus över nästan svart blir
+     brunt: logga, knapp och bakgrund flöt ihop till en brun-orange massa.
+     Nu är grunden neutral, med en aning värme i den ljusa änden, och det
+     varma finns i ljuset (--studio-ljus, varmvitt) och i accenterna. */
+  --natt:linear-gradient(160deg,#09090A 0%,#0E0D0D 44%,#141312 100%);
+  --natt-remsa:linear-gradient(90deg,#09090A 0%,#161514 50%,#09090A 100%);
+  --natt-golv:#0A0A0A;
   --natt-ljus:#FBF4EC;
   --natt-dampad:#D2C4B6;
   --natt-knapp:linear-gradient(100deg,#D0440E 0%,#B93A0A 100%);
   --natt-knapp-over:linear-gradient(100deg,#BE3E0C 0%,#A8340A 100%);
   /* Hjältens brickor: varm vit, så att varan lyser mot natten. */
   --natt-bricka:#FFFAF5;
-  --glod:rgba(244,118,48,.24);
+  --glod:rgba(226,132,70,.16);
   --glod-svag:rgba(255,176,120,.07);
   --glod-sken:rgba(255,160,100,.10);
   /* Mobilen (sista genomgången 2026-11-16): glöden samlas nere till höger
@@ -207,8 +213,8 @@ img{display:block;max-width:100%}
      så att ett säsongstema byter dem på ett ställe (app/sasongstema.css).
      Knappens text är en egen färg: i ett guldtema är knappen ljus och texten
      mörk, och samma knapp står i nyhetsbrevet och auktionsremsan. */
-  --studio-ljus:255,190,140;
-  --studio-glod:244,118,48;
+  --studio-ljus:255,226,200;
+  --studio-glod:200,124,68;
   --studio-bricka:linear-gradient(180deg,#FFFEFC 0%,#FFF9F2 56%,#F7E8DA 100%);
   --natt-knapp-text:#FFFFFF;
   --natt-knapp-kant:#7A2706;
