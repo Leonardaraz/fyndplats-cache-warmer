@@ -1,0 +1,35 @@
+{
+  "85a75c37": {
+    "productId": "85a75c37-7cff-4e7d-ad12-33000b099dcd",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-5vms9q",
+        "betyg": 5,
+        "datum": "2026-10-13",
+        "foton": 0,
+        "text": "Great product received well packaged. Sturdy when fastened to the wall. Held all my tools that were scattered everywhere."
+      },
+      {
+        "id": "gen-1dow9ir",
+        "betyg": 5,
+        "datum": "2026-09-19",
+        "foton": 0,
+        "text": "Easy to assemble and keeps garden tools organized."
+      }
+    ]
+  },
+  "fc340ffc": {
+    "productId": "fc340ffc-51e2-4197-a8d4-71f371652de0",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  }
+}
