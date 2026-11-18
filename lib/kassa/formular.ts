@@ -338,6 +338,14 @@ export function epostFelText(adress: string): string | null {
   return KASSA_TEXT.epost.fel ?? "Skriv den som namn@exempel.se.";
 }
 
+/**
+ * Feltexten utan "Menade du .com?". Kassan visar hela adressen som förslag
+ * bredvid felet ("Menade du namn@gmail.com?"), och frågan ska inte stå två gånger.
+ */
+export function epostFelUtanForslag(text: string): string {
+  return text.replace(/ Menade du \.[^\s?]+\?$/, "");
+}
+
 /** Prövar hela formuläret. Alla fel på en gång, så att kunden ser allt som saknas. */
 export function provaKassa(inn: KassaIn): KassaProv {
   const fel: Partial<Record<Falt, string>> = {};

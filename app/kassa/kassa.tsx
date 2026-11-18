@@ -42,7 +42,7 @@ import { tightFillUrl } from "../../lib/wix-image";
 import { valdaAlternativ } from "../../lib/cart-shape";
 import { DELIVERY_MAX_DAYS, DELIVERY_MIN_DAYS, DELIVERY_TIME, FREE_SHIPPING_FROM_KR, fraktKr } from "../../lib/shipping";
 import { leveransIntervall } from "../../lib/leveransdatum";
-import { ADRESS_FALT, LAN, adressFranStripe, epostDoman, epostFelText, faltGiltigt, forstaFel, kundFranPlanbok, lanFranPostnr, provaKassa, normalPostnr, normalTelefon, snyggtTelefon, type Falt } from "../../lib/kassa/formular";
+import { ADRESS_FALT, LAN, adressFranStripe, epostDoman, epostFelText, epostFelUtanForslag, faltGiltigt, forstaFel, kundFranPlanbok, lanFranPostnr, provaKassa, normalPostnr, normalTelefon, snyggtTelefon, type Falt } from "../../lib/kassa/formular";
 import { visaTomKorg } from "../../lib/kassa/vy";
 import { epostForslag } from "../../lib/kassa/epost-forslag";
 import {
@@ -1194,7 +1194,7 @@ export function Kassa({
         </div>
         {harRad ? (
           <div id={textId} className={visaFelText ? s.felText : s.hjalpText} aria-live="polite">
-            {visaFelText ? (f === "epost" && epostTips ? <>{felText} {hjalp}</> : felText) : hjalp}
+            {visaFelText ? (f === "epost" && epostTips ? <>{epostFelUtanForslag(felText ?? "")} {hjalp}</> : felText) : hjalp}
           </div>
         ) : null}
       </div>
@@ -1208,6 +1208,8 @@ export function Kassa({
         type="button"
         onClick={() => {
           setVarden((x) => ({ ...x, epost: epostTips }));
+          // Felet gällde den gamla adressen ("…slutar på .con"): det släcks med förslaget.
+          setFel((x) => (x.epost ? { ...x, epost: "" } : x));
           skickaKontakt({ ...varden, epost: epostTips });
         }}
       >

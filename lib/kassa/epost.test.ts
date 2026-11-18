@@ -4,7 +4,7 @@
 // efter en order med en adress som slutade på .con).
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { TOPPDOMANER, TOPPDOMANER_VERSION, epostDoman, epostFel, epostFelText, epostGiltig, epostToppdoman, faltGiltigt, provaKassa, rattToppdoman, toppdomanFinns } from "./formular.ts";
+import { TOPPDOMANER, TOPPDOMANER_VERSION, epostDoman, epostFel, epostFelText, epostFelUtanForslag, epostGiltig, epostToppdoman, faltGiltigt, provaKassa, rattToppdoman, toppdomanFinns } from "./formular.ts";
 import { KANDA_DOMANER, TOPPDOMAN_FEL } from "./epost-forslag.ts";
 
 describe("toppdomänerna är IANA:s hela lista", () => {
@@ -92,6 +92,12 @@ describe("kassans formulär använder spärren, i webbläsaren och på servern",
     assert.equal(epostFelText("anna@gmail"), "Skriv den som namn@exempel.se.");
     assert.equal(rattToppdoman("CON"), "com");
     assert.equal(rattToppdoman("se"), null);
+  });
+
+  it("bredvid ett förslag på hela adressen står frågan bara en gång", () => {
+    assert.equal(epostFelUtanForslag(epostFelText("anna@gmail.con") ?? ""), "Adressen slutar på .con, som inte finns.");
+    assert.equal(epostFelUtanForslag("Adressen slutar på .qqq, som inte finns. Kontrollera stavningen."), "Adressen slutar på .qqq, som inte finns. Kontrollera stavningen.");
+    assert.equal(epostFelUtanForslag("Skriv den som namn@exempel.se."), "Skriv den som namn@exempel.se.");
   });
 
   it("en tom adress säger att den saknas, som förut", () => {

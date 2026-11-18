@@ -65,9 +65,13 @@ describe("rutten och kassan", () => {
     assert.doesNotMatch(kassa, /const prov = provaKassa\(\{ \.\.\.varden,/);
   });
 
+  it("ett tryck på förslaget släcker felet om den gamla adressen", () => {
+    assert.match(kassa, /setVarden\(\(x\) => \(\{ \.\.\.x, epost: epostTips \}\)\);\s*\/\/[^\n]*\n\s*setFel\(\(x\) => \(x\.epost \? \{ \.\.\.x, epost: "" \} : x\)\);/);
+  });
+
   it("förslaget står kvar bredvid felet", () => {
     assert.match(kassa, /const epostTips = rorda\.has\("epost"\) \? epostForslag\(varden\.epost\) : null;/);
-    assert.match(kassa, /f === "epost" && epostTips \? <>\{felText\} \{hjalp\}<\/> : felText/);
+    assert.match(kassa, /f === "epost" && epostTips \? <>\{epostFelUtanForslag\(felText \?\? ""\)\} \{hjalp\}<\/> : felText/);
   });
 
   it("den inloggade medlemmens e-post följer med till kassan och skrivs efter de sparade uppgifterna", () => {

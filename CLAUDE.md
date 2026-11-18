@@ -3444,7 +3444,11 @@ Tre spärrar, som i kassorna hos de stora butikerna:
 
 Spärr 1 och 2 gäller i webbläsaren (bocken, felet under fältet) och på servern
 (`provaKassa`, som båda betalvägarna och snabbkassan går igenom). Förslaget
-"Menade du namn@gmail.com?" står kvar bredvid felet.
+"Menade du namn@gmail.com?" står kvar bredvid felet. Då står frågan bara en
+gång (`epostFelUtanForslag` tar bort "Menade du .com?" ur feltexten), och ett
+tryck på förslaget släcker felet: det gällde den gamla adressen. Mätt på
+förhandsvisningen 2026-11-18: förut stod "Menade du" två gånger, och felet
+stod kvar under en rättad adress.
 
 - ☠️ **Bara det som säkert är fel nekas.** DNS-frågan har en tidsgräns på
   1,5 s, och allt osäkert (tidsgräns, trasig namnserver, okänt fel) släpper
