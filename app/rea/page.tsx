@@ -4,8 +4,8 @@ import { listaForSidan, ordnaLista } from "../../lib/list-pages";
 import { currentDayMs } from "../../lib/sort-products";
 import { jsonLdString, pageMeta } from "../../lib/seo";
 import { ShopBrowser } from "../../components/shopbrowser";
+import { ListaAntalText } from "../../components/lista-antal";
 import { ProductIndex } from "../../components/product-index";
-import { productCountLabel } from "../../lib/rating";
 import { REA_TITLE, REA_H1, REA_INTRO, REA_META_DESC, reaLede, saleProducts } from "../../lib/rea";
 
 // ISR 1 h — samma takt som /alla-produkter, /kategori och sitemapen. Rean byts
@@ -71,7 +71,7 @@ export default async function Rea() {
             <p className="butik-hero-lede">
               {reaLede(list.length)}
               {list.length > 0 && (
-                <span className="butik-hero-meta"> {productCountLabel(list.length)} · Fri frakt över 499 kr · 30 dagars öppet köp</span>
+                <span className="butik-hero-meta"><span><ListaAntalText antal={list.length} /></span><span>Fri frakt över 499 kr</span><span>30 dagars öppet köp</span></span>
               )}
             </p>
           </div>

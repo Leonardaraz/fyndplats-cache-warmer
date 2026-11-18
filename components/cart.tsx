@@ -849,7 +849,10 @@ export function CartDrawer() {
               ) : (
                 <>
                   <p className="cart-empty-title">Din varukorg är tom</p>
-                  <p className="cart-empty-sub">Här samlar du dina favoritfynd.</p>
+                  {/* Favoriterna har en egen låda sedan 2026-11-14 (hjärtat i
+                      sidhuvudet). "Här samlar du dina favoritfynd" pekade på fel
+                      låda. */}
+                  <p className="cart-empty-sub">Det du lägger i varukorgen hamnar här.</p>
                 </>
               )}
               <a className="cart-empty-cta" href="/butik" onClick={() => setOpen(false)}>Utforska butiken →</a>
@@ -993,7 +996,7 @@ export function CartDrawer() {
               )}
             </dl>
             )}
-            <button className="buy" disabled={busy || tillKassan} aria-busy={tillKassan} onClick={checkout}>{tillKassan ? "Öppnar kassan …" : busy ? "…" : "Till kassan →"}</button>
+            <button className="buy" disabled={busy || tillKassan} aria-busy={tillKassan} onClick={checkout}>{tillKassan ? "Öppnar kassan …" : busy ? "Uppdaterar …" : "Till kassan →"}</button>
             <ul className="drawer-trygg">
               <li>
                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">

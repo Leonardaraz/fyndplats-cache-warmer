@@ -3413,6 +3413,104 @@ en egen yta utan lutning, så priset är fortfarande skarpt.
 - ☠️ **Chromium är inget kvitto på speglingen.** Den ritas där i båda lägena.
   Bara en riktig iPhone visar om den finns.
 
+## Smådetaljerna (Leonard 2026-11-18: "alla smådetaljer är viktiga")
+
+Granskningen gick igenom varje sidtyp på mobil (393 px) och dator (1440 px):
+31 sidor i skivor om fyra bilder, alla 168 kategorisidor maskinellt, mobilens
+öppna lägen (meny, varukorg, favoriter, filter, kategoriväljare) och varje
+länk och knapp under 40 px. Varje rättning nedan har ett prov i
+`lib/smadetaljer-2026-11-18.test.ts`, `lib/lista-antal.test.ts`,
+`lib/category-seo.test.ts` eller `lib/butiksidan.test.ts`.
+
+**☠️ Samma tal på två ställen ska räknas på ett ställe.** Tre av fynden var
+samma fel:
+
+- Kategoriväljarens knapp sa "Bygg & Renovering 227" med "228 st" i
+  verktygsraden strax under. Väljaren räknade varje produkt i avdelningen
+  eller en underkategori (`buildCategoryTree`), verktygsraden sidans egen lista,
+  som hoppar över dubbletter och det som bara hör hemma i underkategorin
+  (`kategoriProdukter` och `dedupeProducts`). Och när ShopBrowser hämtat hela
+  listan från `/api/lista` följde verktygsraden den färskare listan medan
+  väljaren stod kvar på den cachade sidans tal. Nu skickar sidan sin listas
+  längd till väljaren (`activeCount`), och ShopBrowser säger till när hela
+  listan kommit (`lib/lista-antal.ts`, händelsen `fp:lista-antal`). Rubrikytan
+  på /alla-produkter och /rea visar samma tal och lyssnar på samma händelse
+  (`ListaAntalText` i `components/lista-antal.tsx`): i det lokala bygget stod
+  den annars kvar på 6 829 medan väljaren och verktygsraden visade 6 834.
+- /butik sa "142 kategorier" och /alla-produkter "168 kategorier". Den ena
+  räknade länkarna i sitt register, den andra varje samling i Wix med
+  avdelningarna och de tomma. Båda läser nu `antalKategorierIRegistret`
+  (`lib/category-threshold.ts`; där och inte i `category-groups.ts`, som inte
+  går att importera i ett prov).
+- Avdelningsrutorna sa "1 500 st" på startsidan och "1 500 produkter" på
+  /butik. Båda säger "st". Det längre ordet bröt avdelningsnamnen på två rader
+  vid 1024 px, så det var /butik som fick ändra sig.
+
+**Kategorisidan.** På mobilen göms brödsmulornas sista led och strecket före
+det (`.kat-hero:not(.prog-hero) .crumbs em`), som på produktsidan: namnet står
+som rubrik raden under, och på 40 av 168 sidor bröts spåret på två rader för
+det ledets skull. Listan i JSON-LD och i HTML:en är orörd. De 37 kategorier
+som visade mallraden "Noga utvalda fynd inom badrumsrenovering." har en egen
+ingress i `CATEGORY_INGRESS` (`lib/category-seo.ts`), skriven ur sidans egen
+A–Ö-lista. Den bär också metabeskrivningen. Titeln är orörd: en post i
+`CATEGORY_SEO` kräver redaktionell text i `lib/category-content.ts` och en
+sökordstitel väljs med sökdata. ☠️ Ingressen är sann den dag den skrevs. Byts
+sortimentet i en av de 37 ska raden skrivas om, som beskrivningarna i
+`CATEGORY_SEO`.
+
+**Sidfoten.** Sista raden står i två led (`.fbar-info`, `.fbar-lankar`). På
+mobilen står leden på var sin rad och länkarna skiljs åt med luft: raden bröts
+förut mitt i och lämnade en ensam prick sist. Den flytande "till
+toppen"-knappen låg ovanpå sidfotens högra länkspalt, och på produktsidan,
+där köpraden lyfter den, ovanpå "Cookie-inställningar". På mobilen göms den
+när sidfoten når den (`.backtotop.vid-fot`), och sidfoten har en egen "Till
+toppen" (`components/till-toppen-lank.tsx`). ☠️ Den göms på dator med
+`.fbar .fbar-topp`, två klasser: `.fbar a,.fbar button{display:inline-block}`
+väger tyngre än en ensam klass, och länken syntes först också på dator (sett i
+datorbilden, inte i något prov). Betalmärkena bryts tre och tre
+när sex inte får plats (`@container` på `.fpay`): på dator stod Google Pay
+ensamt under de andra fem. Loggan i sidfoten har egna id:n (`fpmk-fot`);
+sidhuvudets logga stod med samma tre id:n i samma dokument.
+
+**Samma sak heter samma sak.** Kassans sidfot sa "Integritetspolicy",
+"Returer och ångerrätt" och "073-663 09 90"; resten av butiken säger
+"Sekretesspolicy" (18 filer), "Returer & ångerrätt" och "+46 73 663 09 90"
+(11 ställen). Överrubrikens streck stod före texten på /alla-produkter och
+/rea och efter den på /butik, startsidan och samlingssidorna. Rubriken på
+/butik slutade med en punkt som ingen annan hjälterubrik har. Den tomma
+varukorgen sa "Här samlar du dina favoritfynd", fast favoriterna har en egen
+låda sedan 2026-11-14. Varukorgens köpknapp visade bara "…" medan korgen
+sparades; nu "Uppdaterar …".
+
+**Radbrytningar.** `h1,h2,h3{text-wrap:balance}` för alla rubriker; den
+gamla regeln räknade upp sex ställen, och produkttitlar och mellanrubriker i
+köpguider och villkor slutade med ett ensamt ord. Faktaraden på
+/alla-produkter och /rea (`.butik-hero-meta`) har ett element per led och
+pricken ritad i stilen, före varje led, med radens första prick bortklippt
+(`clip-path`). ☠️ Att bara hålla ihop leden med `white-space:nowrap` och ha
+pricken kvar som text räckte inte: raden bröts då efter en prick i stället för
+mitt i ett led (mätt på det första försöket).
+
+**Tryckytor.** Nio ställen låg under 40 px på mobilen, mätt med
+`::after`-ytan inräknad (sidhuvudets knappar har redan sådana och ser bara
+små ut för den som mäter elementet): brödsmulorna på /butik, /alla-produkter
+och samlingssidorna (26 × 18), avdelningsnamnen i registret (23 px),
+köpvillkorens innehållsförteckning (31), "Visa mer" i en recension (18),
+länken på ångra-sidan (24), toppremsans Instagram och Facebook (28 × 28),
+kassans sidfot och logga (16 till 34), bildtexten under en produktbild i en
+köpguide (38) och "Tillbaka till bloggen" (21). Ytan växer utan att något flyttas:
+luft in och lika mycket marginal ut, eller en osynlig yta runt länken.
+
+**Sett men inte ändrat** (större än en smådetalj, Leonards beslut):
+rubrikerna är serif på startsidan, listsidorna och i lådorna men sans på
+produktsidan, i kassan, i köpguiderna och på kundtjänst- och villkorssidorna;
+produktkorten har två utseenden (ramlösa brickor på startsidan, /butik och
+samlingssidorna, kort med ram och "Visa produkt" i listorna); verktygsraden på
+/alla-produkter är hopfälld på dator medan kategorisidans filter står öppna;
+den tomma varukorgen och den tomma favoritlådan ser olika ut; sidfotens spalt
+heter "Kundservice" och sidan "Kundtjänst"; en produktbild i Bygg &
+Renovering visar leverantörens märke på verktyget.
+
 ## Studion: hjälten som fotostudio, och Black Week-temana (2026-11-17)
 
 Leonard 2026-11-17: "göra bakgrundsfärgen i hero sektionen en mer premium 3d

@@ -5,6 +5,7 @@ import { getHelaKatalogen, getCollections, forListings, dedupeProducts } from ".
 import { ProductCard } from "../../components/productcard";
 import { attachRatings } from "../../lib/review-aggregates";
 import { buildGroupCards, MOSAIC_DENYLIST, categoryHero } from "../../lib/category-groups";
+import { antalKategorierIRegistret } from "../../lib/category-threshold";
 import { getHiddenFromFeatured } from "../../lib/image-scores";
 import { tightFillUrl } from "../../lib/wix-image";
 import { productCountLabel, categoryCountLabel, tusental } from "../../lib/rating";
@@ -63,7 +64,7 @@ export default async function Butik() {
   const groups = buildGroupCards(products, collections);
   // Talen i hjälten räknas ur samma lista som sidan visar, så att antalet
   // kategorier är exakt så många länkar som registret har.
-  const antalKategorier = groups.reduce((s, g) => s + g.subs.length, 0);
+  const antalKategorier = antalKategorierIRegistret(groups);
 
   // Det som kunderna köper: flest sålda enheter de senaste 90 dagarna
   // (lib/sok-tom.ts, samma urval som söksidan utan träff). Gömda bilder och
@@ -110,7 +111,7 @@ export default async function Butik() {
           <div className="b2-hjalte-rad">
             <div className="b2-hjalte-text">
               <div className="eyebrow">Hela sortimentet</div>
-              <h1>Hitta dina nästa fynd.</h1>
+              <h1>Hitta dina nästa fynd</h1>
               <p className="b2-ingress">
                 Möbler, heminredning, kök, trädgård, leksaker och husdjur – noga utvalda fynd, samlade på ett ställe.
               </p>
@@ -176,7 +177,10 @@ export default async function Butik() {
                   </span>
                   <span className="b2-avd-text">
                     <span className="b2-avd-namn">{g.main.name}</span>
-                    <span className="b2-avd-antal">{productCountLabel(g.count)}</span>
+                    {/* "1 326 st", som avdelningsrutorna på startsidan. Här stod
+                        "1 326 produkter" för samma tal, och det längre ordet bröt
+                        "Trädgård & Utemöbler" på två rader (granskningen 2026-11-18). */}
+                    <span className="b2-avd-antal">{tusental(g.count)} st<span className="sr-only"> i avdelningen</span></span>
                   </span>
                   <span className="b2-avd-tag">{g.tag}</span>
                 </PrefetchLink>

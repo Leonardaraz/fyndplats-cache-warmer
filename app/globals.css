@@ -608,6 +608,12 @@ a.uspitem:hover,a.uspitem:focus-visible{color:var(--brand);text-decoration:under
    text-wrap är progressiv förbättring: äldre webbläsare ignorerar den, ingen
    layout-risk, noll prestanda-kostnad. */
 .hero h1,.sechead h1,.sechead h2,.homecat-head h2,.kat-hero-text h1,.butik-hero-title{text-wrap:balance}
+/* Och alla övriga rubriker. Regeln ovan räknade upp sex ställen, och allt
+   utanför dem bröt som löptext: produktsidans titel, köpguidernas och
+   villkorssidornas mellanrubriker och kundtjänstens rubriker slutade med ett
+   ensamt ord på sista raden (granskningen 2026-11-18, 393 px). Produktkorten
+   berörs inte, deras namn är inga rubrikelement. */
+h1,h2,h3{text-wrap:balance}
 .hero p,.sechead p,.homecat-head p,.butik-hero-lede{text-wrap:pretty}
 
 .catgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
@@ -781,6 +787,20 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 .fbar a,.fbar button{color:#cfcac3;text-decoration:underline}
 .fbar a:hover,.fbar button:hover{color:#fff}
 .fbar button{background:none;border:0;font:inherit;cursor:pointer}
+/* Sidfotens sista rad i två led. På dator en rad med prickar, som förut. På
+   mobilen uppgiften för sig och länkarna under, skilda med luft: en rad som
+   bryts mitt i lämnar annars en ensam prick sist.
+   ☠️ .fbar .fbar-topp, inte bara .fbar-topp: längre ner gör regeln för
+   tryckytorna varje länk och knapp i .fbar till inline-block, och den väger
+   tyngre än en ensam klass. Länken syntes då också på dator, bredvid den
+   flytande knappen (sett i datorbilden 2026-11-18). */
+.fbar .fbar-topp{display:none}
+@media(max-width:768px){
+  .fbar-info{display:block}
+  .fbar-prick{display:none}
+  .fbar-lankar{display:flex;flex-wrap:wrap;justify-content:center;column-gap:20px}
+  .fbar .fbar-topp{display:inline-block}
+}
 
 /* social + mobile nav */
 .promorow{display:flex;align-items:center;justify-content:space-between;gap:14px}
@@ -2283,6 +2303,11 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
 .backtotop.show{opacity:1;visibility:visible;transform:translateY(0)}
 .backtotop:hover{background:var(--brand);color:#fff;border-color:var(--brand)}
 @media(max-width:768px){.backtotop{right:16px;bottom:84px;width:44px;height:44px;font-size:var(--text-lg)}}
+/* Vid sidfoten göms den flytande knappen på mobilen: den låg ovanpå sidfotens
+   högra länkspalt och, på produktsidan, ovanpå sista radens länk. Sidfoten har
+   sin egen "Till toppen" (.fbar-topp). Ett dolt element (visibility) går inte
+   att nå med tangentbordet, så tabIndex behöver inte följa med. */
+@media(max-width:768px){.backtotop.vid-fot{opacity:0;visibility:hidden;transform:translateY(12px)}}
 @media(prefers-reduced-motion:reduce){.backtotop{transition:opacity .2s,visibility .2s}}
 
 /* #6 Hover-alt-image on product cards */
@@ -2948,11 +2973,20 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
 .butik-crumbs em{color:var(--natt-ljus);font-style:normal;font-weight:600}
 .butik-hero-inner{max-width:760px;position:relative;z-index:1}
 .butik-hero-eyebrow{display:inline-block;font-size:var(--text-xs);font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--glod-ljus);margin-bottom:16px}
-.butik-hero-eyebrow::before{content:"";display:inline-block;width:22px;height:2px;background:currentColor;border-radius:2px;opacity:.55;margin-right:9px;vertical-align:middle}
+/* Strecket står EFTER texten, som i startsidans hjälte, på /butik och på
+   samlingssidorna. Här stod det före: samma överrubrik ("Hela sortimentet")
+   såg olika ut på /butik och /alla-produkter. */
+.butik-hero-eyebrow::after{content:"";display:inline-block;width:22px;height:2px;background:currentColor;border-radius:2px;opacity:.55;margin-left:9px;vertical-align:middle}
 .butik-hero-title{font-family:var(--font-display),Georgia,serif;font-size:clamp(42px,7vw,86px);line-height:1;letter-spacing:-.025em;font-weight:600;color:var(--natt-ljus);text-shadow:0 2px 24px rgba(0,0,0,.45);margin-bottom:24px}
 .butik-hero-title br{display:inline}
 .butik-hero-lede{font-size:var(--text-lg);color:var(--natt-dampad);line-height:1.55;max-width:54ch}
-.butik-hero-meta{display:block;margin-top:10px;font-size:var(--text-sm);color:var(--natt-dampad);font-weight:500;letter-spacing:.02em}
+/* Faktaraden under ingressen på /alla-produkter och /rea. Varje led är ett
+   eget element som inte bryts, och pricken ritas före ledet. Raden är dragen
+   en prickbredd åt vänster och klippt där, så att det led som börjar en rad
+   står utan prick: ingen prick hänger kvar sist eller först när raden bryts. */
+.butik-hero-meta{display:flex;flex-wrap:wrap;margin:10px 0 0 -1.3em;clip-path:inset(0 0 0 1.3em);font-size:var(--text-sm);color:var(--natt-dampad);font-weight:500;letter-spacing:.02em}
+.butik-hero-meta>span{position:relative;padding-left:1.3em;white-space:nowrap}
+.butik-hero-meta>span::before{content:"·";position:absolute;left:.5em}
 .butik-hero-ctas{margin-top:32px;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
 .butik-hero-cta-all{display:inline-flex;align-items:center;gap:10px;background:var(--ink,#1a1a1a);color:#fff;padding:14px 24px;border-radius:var(--r-pill);font-size:var(--text-base);font-weight:600;letter-spacing:.005em;border:1.5px solid var(--ink,#1a1a1a);transition:background .2s,color .2s,gap .2s,transform .15s,box-shadow .2s}
 .butik-hero-cta-all:hover{background:var(--brand);border-color:var(--brand);color:#fff;gap:14px;transform:translateY(-1px);box-shadow:var(--e3)}
@@ -3187,6 +3221,12 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
 @media(max-width:760px){
   .kat-hero{padding:12px 0 30px}
   .kat-hero .crumbs{padding-bottom:10px}
+  /* Sista ledet är sidans eget namn, och det står som rubrik raden under. På
+     40 av 168 kategorisidor bröts brödsmulorna dessutom på två rader för det
+     ledets skull (mätt 2026-11-18, 393 px). Samma regel som produktsidan har
+     (.crumbs-pdp): på mobilen slutar spåret vid föräldern. Listan i JSON-LD
+     är orörd. Samlingssidornas spår (.prog-hero) är ett led och rörs inte. */
+  .kat-hero:not(.prog-hero) .crumbs em,.kat-hero:not(.prog-hero) .crumbs span:has(+ em){display:none}
   .kat-hero-grid{grid-template-columns:1fr;gap:0}
   .kat-hero-img{display:none}
   .kat-hero-text h1{margin-bottom:8px}
@@ -3948,3 +3988,34 @@ body:has([data-kassa-sida]){background:var(--surface-1)}
 .sok-tom .nf-cats{max-width:640px;margin:0 auto}
 .sok-tom-populart{margin-top:48px;text-align:left}
 .sok-tom-populart h2{font-family:var(--font-display),Georgia,serif;font-size:var(--text-xl);font-weight:600;letter-spacing:-.012em;margin:0 0 18px;text-align:center}
+
+/* ── Tryckytor under 40 px på mobilen (mätt 2026-11-18, ::after-ytan inräknad) ──
+   Ytan växer och utseendet står kvar: antingen lika mycket luft in som marginal
+   ut, eller en osynlig yta runt länken. Varukorgens knappar fick 44 px samma
+   väg (granskningen 2026-11-11). */
+/* Brödsmulorna på /butik, /alla-produkter, /rea och samlingssidorna: "Hem" var
+   26 × 18 px. Kategorisidornas (.crumbs a) har redan 12 px luft. */
+.butik-crumbs a{display:inline-block;padding:12px 2px;margin:-12px -2px}
+/* "Visa mer" i en recension (56 × 18) och "Jag hittar inte mitt ordernummer"
+   på ångra-sidan (24 px hög). */
+.rev-expand,.angra-link{position:relative}
+.rev-expand::after{content:"";position:absolute;inset:-13px -10px}
+.angra-link::after{content:"";position:absolute;inset:-10px 0}
+/* Bildtexten under en produktbild i en köpguide: 38 px. */
+.prose figure.blog-product-img figcaption a{padding:14px}
+/* Toppremsans Instagram och Facebook: 28 × 28 på mobilen. */
+@media(max-width:768px){
+  .promo-social a{position:relative}
+  .promo-social a::after{content:"";position:absolute;inset:-8px -4px}
+}
+/* Sidfotens betalmärken: sex i rad om de får plats, annars tre och tre. Förut
+   bröts raden efter det femte och Google Pay stod ensamt under de andra, på
+   dator (spalten är 309 px vid 1440, raden 325) och på de smalaste telefonerna. */
+.fpay{container-type:inline-size}
+@container (max-width:326px){
+  .fpay .paymarks{display:grid;grid-template-columns:repeat(3,60px);justify-content:start}
+  .fpay .paymarks .pay{width:100%}
+}
+@media(max-width:768px){@container (max-width:326px){.fpay .paymarks{justify-content:center}}}
+/* "Tillbaka till bloggen" under en köpguide: 21 px hög. */
+.blogg-tillbaka{display:inline-block;padding:12px 0;margin:-12px 0}

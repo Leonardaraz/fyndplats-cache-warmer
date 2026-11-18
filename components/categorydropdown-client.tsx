@@ -4,6 +4,8 @@ import type { CategoryNode } from "../lib/category-groups";
 import { aktivGruppId, scrollTillAktiv } from "../lib/kategori-scroll";
 import { tusental } from "../lib/rating";
 import { lasSidan } from "../lib/las-sidan";
+import { giltigtAntal } from "../lib/lista-antal";
+import { useHamtatListaAntal } from "./lista-antal";
 
 // Premium "Kategorier ▾"-dropdown:
 //   • Stängd: en enda knapp som visar aktiv kategori eller "Alla kategorier" + antal.
@@ -16,12 +18,18 @@ import { lasSidan } from "../lib/las-sidan";
 //
 // Länkar går till /kategori/[slug] (eller /alla-produkter för "Alla") – samma URL-
 // struktur som tidigare CatNav, så SEO och bakåt-länkar bevaras.
-export function CategoryDropdownClient({ tree, totalProducts, activeSlug }: {
+export function CategoryDropdownClient({ tree, totalProducts, activeSlug, sidansAntal }: {
   tree: CategoryNode[];
   totalProducts: number;
   activeSlug?: string;
+  /** Längden på sidans egen lista: det tal verktygsraden under visar. */
+  sidansAntal?: number;
 }) {
   const [open, setOpen] = useState(false);
+  // Sidans antal gäller för den aktiva raden, och byts mot hela listans längd
+  // när ShopBrowser har hämtat den (lib/lista-antal.ts).
+  const hamtatAntal = useHamtatListaAntal();
+  const aktivtAntal = hamtatAntal ?? giltigtAntal(sidansAntal);
   const wrapRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const gruppId = aktivGruppId(tree, activeSlug);
@@ -36,6 +44,9 @@ export function CategoryDropdownClient({ tree, totalProducts, activeSlug }: {
       if (sub) { activeLabel = sub.name; activeCount = sub.count; break; }
     }
   }
+  if (aktivtAntal !== null) activeCount = aktivtAntal;
+  // Samma tal på den aktiva raden i panelen som på knappen.
+  const antalFor = (slug: string, count: number) => (slug === activeSlug && aktivtAntal !== null ? aktivtAntal : count);
 
   // Stäng vid klick utanför + Escape
   useEffect(() => {
@@ -115,7 +126,7 @@ export function CategoryDropdownClient({ tree, totalProducts, activeSlug }: {
                 onClick={() => setOpen(false)}
               >
                 <span>Alla produkter</span>
-                <span className="catdrop-count">{tusental(totalProducts)}</span>
+                <span className="catdrop-count">{tusental(!activeSlug && aktivtAntal !== null ? aktivtAntal : totalProducts)}</span>
               </a>
 
               <div className="catdrop-tree">
@@ -131,7 +142,7 @@ export function CategoryDropdownClient({ tree, totalProducts, activeSlug }: {
                       onClick={() => setOpen(false)}
                     >
                       <span className="catdrop-main-name">{root.name}</span>
-                      <span className="catdrop-count">{tusental(root.count)}</span>
+                      <span className="catdrop-count">{tusental(antalFor(root.slug, root.count))}</span>
                     </a>
                     {root.subs.length > 0 && (
                       <ul className="catdrop-subs">
@@ -143,7 +154,7 @@ export function CategoryDropdownClient({ tree, totalProducts, activeSlug }: {
                               onClick={() => setOpen(false)}
                             >
                               <span className="catdrop-sub-name">{s.name}</span>
-                              <span className="catdrop-count">{tusental(s.count)}</span>
+                              <span className="catdrop-count">{tusental(antalFor(s.slug, s.count))}</span>
                             </a>
                           </li>
                         ))}

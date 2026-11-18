@@ -1598,7 +1598,7 @@ export function Kassa({
               <p className={s.villkor}>
                 Genom att {stripeNyckel ? "betala" : "gå vidare"} godkänner du våra{" "}
                 <a href="/kopvillkor" target="_blank" rel="noopener">köpvillkor</a> och bekräftar att du läst vår{" "}
-                <a href="/sekretesspolicy" target="_blank" rel="noopener">integritetspolicy</a>.
+                <a href="/sekretesspolicy" target="_blank" rel="noopener">sekretesspolicy</a>.
               </p>
               {stripeNyckel ? <div className={s.betalMarken}><PaymentMarks /></div> : null}
               <div className={s.fortroendeMobil}>{fortroende}</div>

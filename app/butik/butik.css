@@ -204,3 +204,7 @@
   .butik2 .b2-fakta li{padding-left:10px}
   .butik2 .b2-tal{font-size:18px}
 }
+
+/* Avdelningens namn i registret är en länk på 23 px höjd (mätt 2026-11-18).
+   Luft in och lika mycket marginal ut: raden står kvar, ytan blir 45 px. */
+.butik2 .b2-grupp-rubrik a{display:inline-block;padding:11px 0;margin:-11px 0}

@@ -12,7 +12,7 @@ import { ProductIndex } from "../../../components/product-index";
 import { pageMeta } from "../../../lib/seo";
 import { MOSAIC_DENYLIST, categoryHero, KATEGORI_HERO_PRODUKT } from "../../../lib/category-groups";
 import { categoryContent } from "../../../lib/category-content";
-import { categorySeo } from "../../../lib/category-seo";
+import { categorySeo, kategoriBeskrivning } from "../../../lib/category-seo";
 import { getBlurDataURL } from "../../../lib/lqip";
 import { categoryProgrammaticLinks, blogLinksForPage } from "../../../lib/seo/programmatic";
 import { ProgCrossLinks } from "../../../components/programmatic";
@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const seo = categorySeo(c.slug);
   const base = pageMeta(
     seo?.title ?? c.name,
-    seo?.description ??
+    kategoriBeskrivning(c.slug) ??
       `Köp ${c.name} online hos Fyndplats – prisvärda, noga utvalda fynd till smarta priser. Fri frakt över 499 kr & 30 dagars öppet köp.`,
     `/kategori/${c.slug}`
   );
@@ -255,13 +255,14 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
               <h1>{active.name}</h1>
               {/* Ingressen är kategorins egen beskrivning (lib/category-seo.ts,
                   skriven per sida), inte en mall med namnet utbytt. Antalet står
-                  redan ovanför rutnätet och följer filtren; här blev det dubbelt. */}
+                  redan ovanför rutnätet och följer filtren; här blev det dubbelt.
+                  Mallraden sist är bara för en kategori som är nyare än filen. */}
               <p>
                 {active.slug === "rea"
                   ? "Fynd till nedsatt pris just nu."
                   : active.slug === "populara"
                     ? "Våra mest populära fynd just nu."
-                    : categorySeo(active.slug)?.description ||
+                    : kategoriBeskrivning(active.slug) ||
                       `Noga utvalda fynd inom ${kategoriIMening(active.name)}.`}
               </p>
             </div>
@@ -291,7 +292,7 @@ export default async function Kategori({ params }: { params: Promise<{ slug: str
 
       <section className="sec kat-lista">
         <div className="container">
-          <CategoryDropdown products={products} collections={collections} activeSlug={active.slug} />
+          <CategoryDropdown products={products} collections={collections} activeSlug={active.slug} activeCount={list.length} />
 
           {/* ShopBrowser ger sortering (Rekommenderat/pris/namn), prisfilter,
               lager-/rea-toggles, paginering och delbart filter-tillstånd i URL:en

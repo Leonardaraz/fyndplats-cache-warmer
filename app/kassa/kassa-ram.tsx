@@ -71,12 +71,12 @@ export function KassaFot() {
     <footer className={s.fot}>
       <nav className={s.fotLankar} aria-label="Villkor och hjälp">
         <a href="/kopvillkor" {...NY_FLIK}>Köpvillkor</a>
-        <a href="/sekretesspolicy" {...NY_FLIK}>Integritetspolicy</a>
-        <a href="/returer" {...NY_FLIK}>Returer och ångerrätt</a>
+        <a href="/sekretesspolicy" {...NY_FLIK}>Sekretesspolicy</a>
+        <a href="/returer" {...NY_FLIK}>Returer &amp; ångerrätt</a>
         <a href="/vanliga-fragor" {...NY_FLIK}>Vanliga frågor</a>
       </nav>
       <p className={s.fotKontakt}>
-        Frågor om ditt köp? <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> · <a href="tel:+46736630990">073-663 09 90</a>
+        Frågor om ditt köp? <a href="mailto:info@fyndplats.com">info@fyndplats.com</a> · <a href="tel:+46736630990">+46 73 663 09 90</a>
       </p>
       <p className={s.fotRatt}>© 2021–2026 Fyndplats · Trygg svensk e-handel</p>
     </footer>

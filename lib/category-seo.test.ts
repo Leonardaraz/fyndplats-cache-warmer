@@ -1,7 +1,7 @@
 // Run: node --test --experimental-strip-types lib/category-seo.test.ts
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CATEGORY_SEO, categorySeo } from "./category-seo.ts";
+import { CATEGORY_INGRESS, CATEGORY_SEO, categorySeo, kategoriBeskrivning } from "./category-seo.ts";
 import { CATEGORY_CONTENT } from "./category-content.ts";
 
 // Layoutens template är "%s | Fyndplats" (12 tecken). Google klipper runt 60,
@@ -165,4 +165,33 @@ test("redaktionellt innehåll håller måttet: text + minst två frågor", () =>
       assert.ok(f.q.trim().length > 0 && f.a.trim().length > 0, `${slug}: tom FAQ-post`);
     }
   }
+});
+
+// 37 kategorier visade mallraden "Noga utvalda fynd inom …" under rubriken
+// (mätt på sajten 2026-11-18). De har nu en egen ingress i CATEGORY_INGRESS tills
+// de får sökordstitel och redaktionell text.
+test("ingresserna håller samma krav som beskrivningarna", () => {
+  const texter = Object.entries(CATEGORY_INGRESS);
+  assert.ok(texter.length > 0);
+  for (const [slug, t] of texter) {
+    assert.ok(t.length >= 110 && t.length <= 165, `${slug}: ingressen är ${t.length} tecken (ska vara 110–165)`);
+    assert.equal(t.match(MARKUP), null, `${slug}: markup i ingressen`);
+    assert.match(t, /^[A-ZÅÄÖ].*\.$/, `${slug}: ingressen ska börja med versal och sluta med punkt`);
+    assert.doesNotMatch(t, /Noga utvalda fynd/, `${slug}: mallraden`);
+    assert.doesNotMatch(t, /\d \d{3}/, `${slug}: tusental ska ha hårt mellanslag`);
+  }
+  const alla = [...texter.map(([, t]) => t), ...Object.values(CATEGORY_SEO).map((x) => x.description)];
+  assert.equal(new Set(alla).size, alla.length, "en ingress är lik en annan beskrivning");
+});
+
+test("en kategori står antingen i CATEGORY_SEO eller i CATEGORY_INGRESS", () => {
+  for (const slug of Object.keys(CATEGORY_INGRESS)) {
+    assert.equal(CATEGORY_SEO[slug], undefined, `${slug}: har fått sökordspost, ta bort ingressen`);
+  }
+});
+
+test("kategoriBeskrivning: sökordsposten först, ingressen annars", () => {
+  assert.equal(kategoriBeskrivning("mobler"), CATEGORY_SEO["mobler"].description);
+  assert.equal(kategoriBeskrivning("badrumsrenovering"), CATEGORY_INGRESS["badrumsrenovering"]);
+  assert.equal(kategoriBeskrivning("finns-inte"), undefined);
 });
