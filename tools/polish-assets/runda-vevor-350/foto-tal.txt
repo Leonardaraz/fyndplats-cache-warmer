@@ -1,0 +1,5 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+392a66d2 136 300 lbs på infografiken, avrundat nedåt till 136 kg (lb till kg), lägre än specifikationens 150 kg
+392a66d2 812,8 öppningens största bredd för skenan på 914 mm, avläst i mm i storlekstabellen på infografiken (Fit Opening Width), och stämmer med källans regel om en skena som är minst 10 cm bredare än öppningen
+392a66d2 914,4 öppningens största bredd för skenan på 1016 mm, avläst i mm i storlekstabellen på infografiken (Fit Opening Width), och stämmer med källans regel om en skena som är minst 10 cm bredare än öppningen
