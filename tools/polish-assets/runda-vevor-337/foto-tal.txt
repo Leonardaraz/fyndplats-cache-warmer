@@ -1,0 +1,8 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+592a3e47 75 75 kg i givarens spec (bredden 1829 mm)
+592a3e47 1320 51,9 tum / 1320 mm skenans längd på måttbilden för bredden 1219 mm
+592a3e47 1900 74,8 tum / 1900 mm skenans längd på måttbilden för bredden 1829 mm
+50df890c 710 28 tum / 710 mm skenans längd på måttbilden
+aff094da 1016 40 tum / 1016 mm skenans längd på måttbilden
+aff094da 3 tre glasfält per panel, räknade på bild 1
