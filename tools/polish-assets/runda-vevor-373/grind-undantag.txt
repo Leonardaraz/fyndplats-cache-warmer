@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad med axelord (bredd, längd): måtten står som en enda rad (Produktmått: 12 tum x 25 fot / 304,8 x 7260 mm och 12 tum x 50 fot / 304,8 x 15240 mm) utan namn på axlarna, och bredden 304,8 mm och längderna 7260 och 15240 mm skrivs därför som egna rader (Bredd och Längd) efter punkten Maskinkompatibel design (30 cm breda); siffrorna ur källan kvitteras i foto-tal.txt
