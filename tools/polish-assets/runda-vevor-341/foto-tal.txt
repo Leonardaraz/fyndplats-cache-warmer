@@ -1,0 +1,8 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+d329e997 4 fyra hörnstöd på ovansidan, räknade på bilderna (position 1, 3 och 6)
+d329e997 2 två runda sidohål, räknade på bilderna (position 1, 4 och 6)
+e4f812ab 69 154 lbs på måttbilden, 69,85 kg, avrundat nedåt till helt kilo (bilden skriver 70 kg)
+e4f812ab 740 29,13 tum / 740 mm på måttbilden
+e4f812ab 970 38,19 tum / 970 mm på måttbilden
+e4f812ab 1210 47,64 tum / 1210 mm på måttbilden
