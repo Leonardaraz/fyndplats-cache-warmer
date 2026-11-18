@@ -1,0 +1,12 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "d59cd550": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "f470d793": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Specification of the 25,4 cm listing (its own source): color matte black; thread type G 1/2 inch; installation ceiling mounted; shower head shape square; shower head size 254 mm; shower arm length 200 mm (without threads); hose length 1500 mm; panel size 7,28 x 5,51 inch / 185 x 140 mm; hand shower length 200 mm; max flow rate 1,78 GPM (6,7 L/min); product weight 3,2 kg; shower arm + shower head size 9,72 x 9,72 x 10,63 inch / 247 x 247 x 270 mm"
+ }
+}
