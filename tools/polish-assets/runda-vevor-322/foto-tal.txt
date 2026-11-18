@@ -1,0 +1,5 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+a2117774 4 antalet stolar i setet om 4, ur givarens titel vid sammanslagningen
+a2117774 6 antalet stolar i setet om 6, ur givarens titel vid sammanslagningen
+00882963 4 antalet stolar i setet om 4, ur givarens titel vid sammanslagningen

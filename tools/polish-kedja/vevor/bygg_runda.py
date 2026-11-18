@@ -84,6 +84,7 @@ def main():
             foto.append(f'{k} {tal} {skal}\n')
         # kallor.json
         t = '\n'.join(r for r in d['html'].split('\n') if not MODELLRAD.match(re.sub(r'<[^>]+>', '', r)))
+        t = re.sub(r'(?<=\d)x(?=\d)', ' x ', t)   # 96,5x6,5 blir 96,5 x 6,5: leak.py läser annars 5x6 som en artikelnummerform
         txt = f'=== källa: sidans utkast {k}, hela texten ===\n' + t.rstrip('\n') + '\n'
         txt += '=== vevor-källa: Vikt i specifikationen är varans egen ===\n'
         txt += '=== källa: utkastets namn ===\n' + d['name'] + '\n'

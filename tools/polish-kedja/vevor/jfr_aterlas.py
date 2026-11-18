@@ -34,6 +34,7 @@ if i < 0:
 assert i > 0, 'ingen pad-markör i filen (avkortad före?)'
 D = json.loads(s[s.find('{'):i] + '}')
 namn, seo, sku, kat, ids = tsv('namn.tsv'), tsv('seo.tsv'), tsv('sku.tsv'), tsv('kategori.tsv'), tsv('ids.tsv')
+samman = tsv('sammanslagna.tsv') if os.path.exists(os.path.join(rot, 'sammanslagna.tsv')) else {}
 slugs = {l.split()[0]: l.split()[1] for l in io.open(os.path.join(rot, 'slugs.txt'), encoding='utf-8') if l.strip()}
 media = json.load(io.open(os.path.join(rot, 'nyttolast-media.json'), encoding='utf-8'))
 print(D.get('SAMMANFATTNING'), '| allaSkiljer:', D.get('allaSkiljer'))
@@ -63,7 +64,13 @@ for r in D['rader']:
         fel.append('alt-texterna skiljer')
     vs = r['variants']
     pris = re.match(r'^(\d+)', ids[k][1]).group(1)
-    if len(vs) != 1:
+    if k in samman:
+        # en sammanslagen sida: alla varianter ska finnas och synas; varje variant behåller sin SKU och sitt pris (skrivs i svaret)
+        if len(vs) != int(samman[k][0]):
+            fel.append(f"{len(vs)} varianter (väntat {samman[k][0]})")
+        if not all(v['vis'] for v in vs):
+            fel.append('en variant är inte synlig')
+    elif len(vs) != 1:
         fel.append(f'{len(vs)} varianter')
     else:
         if vs[0]['sku'] != sku[k][0]:
@@ -80,7 +87,7 @@ for r in D['rader']:
     if extra and strikt:
         fel.append('extra kategorier: ' + ', '.join(extra))
     fel_totalt += len(fel)
-    print(k, 'OK' if not fel else 'FEL', '| bilder', len(r['items']), '| rev', r['revision'], '| pris', vs[0]['pris'] if vs else None,
+    print(k, 'OK' if not fel else 'FEL', '| bilder', len(r['items']), '| rev', r['revision'], '| pris', (' + '.join(str(v['pris']) for v in vs) if k in samman else (vs[0]['pris'] if vs else None)),
           '| extra kategorier: ' + ', '.join(extra) if extra else '', '|', '; '.join(fel))
 print('FEL TOTALT:', fel_totalt)
 sys.exit(1 if fel_totalt else 0)
