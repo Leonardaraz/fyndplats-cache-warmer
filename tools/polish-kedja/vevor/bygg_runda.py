@@ -12,7 +12,7 @@ Spec (JSON):
   {"produkter": [{"id8": "a66c15b4", "namn": "...", "slug": "...", "sku": "FP-...", "seo": ["Titel | Fyndplats", "Meta"],
                   "kategori": "Förälder + Löv", "alt": {"1": "...", "2": "..."}, "bort": {"3": "skäl"},
                   "foto_tal": [["90", "skäl"]], "matt": ["Image, dimensions: ...", "Image, functions: ..."],
-                  "status": "utkast, publiceras"}],
+                  "status": "utkast, publiceras", "sammanslagen": 3}],   # sammanslagen: sidan har så många varianter (inga rader i sku.tsv och variant.tsv)
    "grind_undantag": [["bygg-axelfacit.py", "skäl"]],
    "bilddubblett_ok": ["kort1:pos1 kort2:pos2 skäl"]}
 
@@ -41,18 +41,22 @@ def rad(*delar):
 def main():
     rot, spec, arb = sys.argv[1], sys.argv[2], sys.argv[3]
     S = json.load(open(spec, encoding='utf-8'))
-    ut = {n: [] for n in ('ids.tsv', 'lager.tsv', 'variant.tsv', 'bilder.tsv', 'kategori.tsv', 'sku.tsv', 'namn.tsv', 'seo.tsv', 'alt.tsv', 'bilder-bort.tsv')}
+    ut = {n: [] for n in ('ids.tsv', 'lager.tsv', 'variant.tsv', 'bilder.tsv', 'kategori.tsv', 'sku.tsv', 'namn.tsv', 'seo.tsv', 'alt.tsv', 'bilder-bort.tsv', 'sammanslagna.tsv')}
     slugs, foto, kallor = [], [], {}
     for p in S['produkter']:
         k = p['id8']
         d = json.load(open(f'{arb}/cand/{k}/data.json', encoding='utf-8'))
         u = json.load(open(f'{arb}/cand/{k}/ut.json', encoding='utf-8'))
         v = d['variants'][0]
-        assert len(d['variants']) == 1, (k, 'fler än en variant')
+        sam = p.get('sammanslagen')   # en sammanslagen sida: antal varianter; ingen rad i sku.tsv och variant.tsv
+        if sam:
+            assert len(d['variants']) == int(sam), (k, 'antalet varianter stämmer inte med spec.sammanslagen', len(d['variants']))
+        else:
+            assert len(d['variants']) == 1, (k, 'fler än en variant')
         assert len(p['namn']) <= 80, (k, 'namnet över 80 tecken', len(p['namn']))
         assert len(p['seo'][0]) <= 60, (k, 'SEO-titeln över 60 tecken', len(p['seo'][0]))
         assert len(p['seo'][1]) <= 155, (k, 'metan över 155 tecken', len(p['seo'][1]))
-        assert len(p['sku']) <= 40 and re.fullmatch(r'FP-[a-z0-9-]+', p['sku']), (k, 'SKU', p['sku'])
+        assert sam or (len(p['sku']) <= 40 and re.fullmatch(r'FP-[a-z0-9-]+', p['sku'])), (k, 'SKU', p.get('sku'))
         assert os.path.exists(f'{rot}/{k}.html'), (k, 'texten saknas')
         n = len(d['items'])
         assert set(p['alt']) | set(p.get('bort', {})) == {str(i) for i in range(1, n + 1)}, (k, 'alt och bort täcker inte alla positioner')
@@ -60,11 +64,15 @@ def main():
         status = p.get('status', 'utkast, publiceras')
         ut['ids.tsv'] += [rad(k, d['fullid'], f"{v['pris']} kr {d['name'][:60]} ({status})")]
         ut['lager.tsv'] += [rad(k, d['lager'])]
-        ut['variant.tsv'] += [rad(k, v['id'])]
+        if sam:
+            ut['sammanslagna.tsv'] += [rad(k, sam)]
+        else:
+            ut['variant.tsv'] += [rad(k, v['id'])]
         for i, m in enumerate(d['items'], 1):
             ut['bilder.tsv'] += [rad(k, i, m['id'])]
         ut['kategori.tsv'] += [rad(k, p['kategori'])]
-        ut['sku.tsv'] += [rad(k, p['sku'])]
+        if not sam:
+            ut['sku.tsv'] += [rad(k, p['sku'])]
         ut['namn.tsv'] += [rad(k, p['namn'])]
         ut['seo.tsv'] += [rad(k, p['seo'][0], p['seo'][1])]
         slugs.append(f"{k} {p['slug']}\n")
@@ -90,6 +98,8 @@ def main():
             txt += RUB_MATT + '\n' + '\n'.join(matt) + '\n'
         kallor[k] = txt
     for fil, rader in ut.items():
+        if fil == 'sammanslagna.tsv' and not rader:
+            continue   # en runda utan sammanslagen sida får ingen sådan fil
         open(f'{rot}/{fil}', 'w', encoding='utf-8').write(''.join(rader))
     open(f'{rot}/slugs.txt', 'w', encoding='utf-8').write(''.join(slugs))
     open(f'{rot}/foto-tal.txt', 'w', encoding='utf-8').write(
