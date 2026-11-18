@@ -1,0 +1,16 @@
+e5ff6a73 1 7 olika storlek: varje storlek visar bara sina egna bilder
+e5ff6a73 2 8 olika storlek: varje storlek visar bara sina egna bilder
+e5ff6a73 3 9 olika storlek: varje storlek visar bara sina egna bilder
+e5ff6a73 4 10 olika storlek: varje storlek visar bara sina egna bilder
+e5ff6a73 5 11 olika storlek: varje storlek visar bara sina egna bilder
+e5ff6a73 4 12 olika storlek: varje storlek visar bara sina egna bilder
+e5ff6a73 5 10 olika storlek: varje storlek visar bara sina egna bilder
+e5ff6a73 1 10 olika storlek: varje storlek visar bara sina egna bilder
+e5ff6a73 1 12 olika storlek: varje storlek visar bara sina egna bilder
+e5ff6a73 1 11 olika storlek: varje storlek visar bara sina egna bilder
+e5ff6a73 4 7 olika storlek: varje storlek visar bara sina egna bilder
+e5ff6a73 5 7 olika storlek: varje storlek visar bara sina egna bilder
+e5ff6a73 5 12 olika storlek: varje storlek visar bara sina egna bilder
+e5ff6a73 3 10 olika storlek: varje storlek visar bara sina egna bilder
+e5ff6a73 6 12 olika storlek: varje storlek visar bara sina egna bilder
+e5ff6a73 10 12 olika vinklar: bild 10 är sedd snett uppifrån från vänster och bild 12 nästan rakt framifrån
