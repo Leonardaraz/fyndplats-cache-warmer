@@ -1,0 +1,63 @@
+{
+  "9d58e172": {
+    "productId": "9d58e172-4264-4bef-b500-eda567d5802d",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "9da5e4ab": {
+    "productId": "9da5e4ab-bae5-44f1-88b3-80a37e0bbdc0",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "bb6c8344": {
+    "productId": "bb6c8344-7dfb-433b-80d7-9e82894e6513",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-17rbbrr",
+        "betyg": 5,
+        "datum": "2026-07-22",
+        "foton": 0,
+        "text": "Its really good quality and good size. Very easy to assemble"
+      }
+    ]
+  },
+  "c4c4cdb3": {
+    "productId": "c4c4cdb3-6f61-4c76-ab9e-dc7b45ca7ba6",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1jbegmk",
+        "betyg": 4,
+        "datum": "2026-10-15",
+        "foton": 0,
+        "text": "Bien pratique et bonne facture pour le prix demandé"
+      }
+    ]
+  },
+  "295d2f3b": {
+    "productId": "295d2f3b-dfa7-48d1-ad27-23d67f7f6798",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  }
+}
