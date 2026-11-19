@@ -1,0 +1,29 @@
+{
+ "namn": "vevor-389",
+ "rader": [
+  {
+   "kort": "46b6db31",
+   "pid": "46b6db31-584b-4394-9556-6755ec011387",
+   "bort": [
+    "Barn & Familj > Leksaker & Spel",
+    "Barn & Familj"
+   ],
+   "behall": [
+    "Sport & Fritid",
+    "Sport & Fritid > Hobby & musik"
+   ]
+  },
+  {
+   "kort": "5531d504",
+   "pid": "5531d504-1915-4bcf-b4a0-677714146ef1",
+   "bort": [
+    "Barn & Familj > Leksaker & Spel",
+    "Barn & Familj"
+   ],
+   "behall": [
+    "Sport & Fritid",
+    "Sport & Fritid > Hobby & musik"
+   ]
+  }
+ ]
+}
