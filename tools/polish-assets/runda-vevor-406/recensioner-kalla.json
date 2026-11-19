@@ -1,0 +1,77 @@
+{
+  "0f672564": {
+    "productId": "0f672564-f9e0-4b29-b7cd-c4001d7615d5",
+    "synliga": 0,
+    "dolda": 1,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "905ef53b": {
+    "productId": "905ef53b-3b96-4e50-adde-217ba1585a62",
+    "synliga": 0,
+    "dolda": 1,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "3bcf1ae4": {
+    "productId": "3bcf1ae4-e652-4484-ac22-35387c19b85a",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-2f08ic",
+        "betyg": 5,
+        "datum": "2026-09-24",
+        "foton": 2,
+        "text": "Satisfied with the product"
+      }
+    ]
+  },
+  "b5d582d5": {
+    "productId": "b5d582d5-94a9-4fb9-aa0a-ea5094d9b76c",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "b40d4d3d": {
+    "productId": "b40d4d3d-0c32-42e8-8164-aeadb9562af6",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-2bzur5",
+        "betyg": 5,
+        "datum": "2026-08-08",
+        "foton": 1,
+        "text": "Super Wandparkour für einen wirklich guten Preis! Die Montage war sehr einfach und es wurde alles Nötige mitgeliefert, sogar Arbeitshandschuhe und ein Inbusschlüssel. Der Parkour ist stabil und meine Katzen lieben ihn. Würde ich jederzeit wieder kaufen!:)"
+      },
+      {
+        "id": "gen-19at83n",
+        "betyg": 5,
+        "datum": "2026-08-07",
+        "foton": 0,
+        "text": "Totul este exact conform pozei, foarte frumoase și calitative, preț decent, are toate accesoriile necesare, doar sa fiți atenți dacă aveți perete de cărămidă, montajul este mai dificil, pentru că necesită alte dibluri speciale. Cel puțin așa a fost la mine, cu bloc vechi. Diblurile din dotare nu au ținut la peretele meu! Încă nu l-am montat, trebuie sa folosesc fie adeziv special, fie dibluri speciale, fie....să renunț la el, din păcate!"
+      },
+      {
+        "id": "gen-1dsyeik",
+        "betyg": 5,
+        "datum": "2026-07-22",
+        "foton": 0,
+        "text": "It is a bit smaller than i expexted but my cats love it anyway and use it. Very good quality and everything provided"
+      }
+    ]
+  }
+}
