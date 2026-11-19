@@ -257,7 +257,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 /* max-height i dvh (dynamisk viewport, följer mobil-webbläsarens menyer) +
    overflow-scroll: listan kan aldrig växa ner bakom Safaris bottenfält —
    "Visa alla resultat" (sticky nedan) förblir alltid klickbar. */
-.sugg{position:absolute;top:calc(100% + 8px);left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--e4);padding:6px;z-index:200;animation:suggIn .16s ease;max-height:min(640px,calc(100dvh - 200px));overflow-y:auto;overscroll-behavior:contain}
+.sugg{position:absolute;top:calc(100% + 8px);left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--e4);padding:6px;z-index:200;animation:suggIn .16s ease;max-height:min(640px,var(--sok-max,calc(100dvh - 200px)));overflow-y:auto;overscroll-behavior:contain}
 @keyframes suggIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 .sugg-item{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:var(--r-sm);cursor:pointer;transition:background .15s}
 .sugg-item.active{background:var(--warm)}
@@ -283,6 +283,10 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 /* Sökrutans sista genomgång (2026-11-19): krysset, senaste sökningar och vägarna vidare utan träff. */
 .search-rensa{flex:none;background:none;border:0;padding:0;display:grid;place-items:center;width:28px;height:28px;margin:-4px -8px -4px 0;border-radius:50%;color:var(--soft);cursor:pointer;transition:background .15s,color .15s}
 .search-rensa:hover,.search-rensa:focus-visible{background:var(--line);color:var(--ink)}
+/* Krysset är 28 px att se på och 44 px att träffa (2026-11-19). */
+.search-rensa{position:relative}
+.search-rensa::after{content:"";position:absolute;inset:-8px}
+@media (pointer:coarse){.sugg-chip{padding-top:10px;padding-bottom:10px}}
 .sugg-head-rad{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .sugg-rensa{background:none;border:0;font-family:inherit;font-size:var(--text-xs);font-weight:700;letter-spacing:0;text-transform:none;color:var(--brand);cursor:pointer;padding:4px 2px}
 .sugg-senaste{display:flex;flex-wrap:wrap;gap:8px;padding:2px 10px 10px}

@@ -134,6 +134,16 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     return () => { document.removeEventListener("mousedown", onDoc); document.removeEventListener("keydown", onKey); };
   }, []);
 
+  // TABB UT UR RUTAN STÄNGER PANELEN (2026-11-19). Förr stod den kvar öppen
+  // över sidan när fokus gått vidare till menyn. ☠️ Bara när fokus faktiskt
+  // landat utanför: på iPhone får en länk eller knapp inget fokus av ett
+  // tryck, så relatedTarget är null när man trycker på ett förslag. Stängde
+  // vi då försvann förslaget innan klicket hann fram.
+  const onBlur = (e: React.FocusEvent) => {
+    const till = e.relatedTarget as Node | null;
+    if (till && wrapRef.current && !wrapRef.current.contains(till)) setOpen(false);
+  };
+
   // SÖKORDET STÅR KVAR I RUTAN PÅ RESULTATSIDAN (2026-11-19), också efter en
   // omladdning, en delad länk eller bakåtknappen: där vill man kunna ändra sin
   // sökning. Lämnar man resultatsidan börjar rutan om. Värdet läses ur
@@ -389,6 +399,30 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     else if (e.key === "ArrowUp") { e.preventDefault(); setActive((a) => Math.max(a - 1, -1)); }
   };
 
+  // PANELEN SLUTAR OVANFÖR TANGENTBORDET (2026-11-19). 100dvh krymper inte när
+  // telefonens tangentbord kommer upp: det lägger sig över sidan, och panelens
+  // fot ("Visa alla 89 resultat") hamnade bakom det. visualViewport är det som
+  // faktiskt syns. Höjden sätts som en CSS-variabel på rutan; utan den gäller
+  // den gamla regeln i globals.css.
+  useEffect(() => {
+    const vv = window.visualViewport;
+    const wrap = wrapRef.current;
+    if (!vv || !wrap || !visas) return;
+    const satt = () => {
+      const topp = wrap.getBoundingClientRect().bottom + 8;
+      wrap.style.setProperty("--sok-max", `${Math.max(160, Math.round(vv.height + vv.offsetTop - topp - 8))}px`);
+    };
+    satt();
+    vv.addEventListener("resize", satt);
+    vv.addEventListener("scroll", satt);
+    window.addEventListener("scroll", satt, { passive: true });
+    return () => {
+      vv.removeEventListener("resize", satt);
+      vv.removeEventListener("scroll", satt);
+      window.removeEventListener("scroll", satt);
+    };
+  }, [visas]);
+
   // Raden som piltangenterna står på ska synas: listan har en högsta höjd och rullar.
   const radId = (i: number) => `${uid}-rad-${i}`;
   useEffect(() => {
@@ -436,7 +470,9 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
 
   // VARJE sökord i fetstil. Förut bara hela frasen, så "svart tv-bänk" och
   // "hundbur xl" markerade ingenting. Priset i sökningen räknas inte som ord.
-  const ord = (visar || pris.fraga).split(/\s+/).filter((t) => t.length >= 2).sort((a, b) => b.length - a.length).map(regexSakert);
+  // Också ordets andra böjningar: "speglar" markerar "spegel" (lib/search.ts,
+  // markeringsord). Motorn är laddad när det finns träffar att markera.
+  const ord = (motor ? motor.markeringsord(visar || pris.fraga) : (visar || pris.fraga).split(/\s+/).filter((t) => t.length >= 2).sort((a, b) => b.length - a.length)).map(regexSakert);
   const ordRe = ord.length > 0 ? new RegExp(`(${ord.join("|")})`, "gi") : null;
   // I ett sökförslag är det tvärtom: det kunden redan skrivit står som det är,
   // och det förslaget LÄGGER TILL står i fetstil ("sof" → sof**fbord**).
@@ -455,8 +491,16 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     return <>{delar.map((d, i) => (i % 2 === 1 ? <b key={i}>{d}</b> : d))}</>;
   };
 
+  // Vad en skärmläsare får höra när listan ändras: antalet, och vilket ord
+  // det gäller när det inte är det som står i rutan.
+  const listaId = `${uid}-lista`;
+  const upplast = isPopular || laddar || soker ? ""
+    : showing.length > 0 ? `${totalt === 1 ? "1 träff" : `${totalt} träffar`}${visar ? ` för ${visar}` : liknande ? ", närmast i stavning" : ""}`
+    : kategorier.length > 0 ? "Inga varor i namnet. Titta i kategorin ovan."
+    : indexFel ? "" : "Inga träffar";
+
   return (
-    <div className="searchwrap" ref={wrapRef}>
+    <div className="searchwrap" ref={wrapRef} onBlur={onBlur}>
       {/* action+method+name ger progressiv förbättring: utan JS submittar Enter
           en GET till /sok?q=… (server-renderad sökresultatsida). Med JS kör
           onSubmit (preventDefault) client-side routing istället. */}
@@ -483,7 +527,7 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
           enterKeyHint="search"
           role="combobox"
           aria-expanded={visas}
-          aria-controls="search-suggestions"
+          aria-controls={listaId}
           aria-autocomplete="list"
           aria-activedescendant={visas && active >= 0 && active < rader ? radId(active) : undefined}
         />
@@ -495,7 +539,7 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
       </form>
 
       {visas && (showing.length > 0 || laddar || soker || indexFel || visaTidigare || visaExempel || q.trim().length >= 2) && (
-        <div className="sugg" id="search-suggestions" role="listbox">
+        <div className="sugg">
           {fortsatt && q.trim().length >= 2 && <div className="sugg-fortsatt" role="status">Skriv lite till, så visar vi förslag.</div>}
           {visaTidigare && (
             <>
@@ -527,10 +571,14 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
               ))}
             </div>
           )}
+          {/* Listboxen bär bara raderna man väljer bland. Chipsen ovanför är
+              knappar och foten en knapp: de hör inte hemma i en listbox, och en
+              skärmläsare räknade dem förr som trasiga alternativ. */}
+          <div role="listbox" id={listaId} aria-label="Förslag">
           {isPopular && showing.length > 0 && (
-            <div className="sugg-head">Populära produkter</div>
+            <div className="sugg-head" role="presentation">Populära produkter</div>
           )}
-          {kategorier.length > 0 && <div className="sugg-head">Kategorier</div>}
+          {kategorier.length > 0 && <div className="sugg-head" role="presentation">Kategorier</div>}
           {kategorier.map((k, j) => (
             <a
               key={k.slug}
@@ -550,7 +598,7 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
             </a>
           ))}
           {!isPopular && showing.length > 0 && (kategorier.length > 0 || harPris(pris) || visar || liknande) && (
-            <div className="sugg-head">{visar ? `Visar “${visar}”` : liknande ? "Närmast i stavning" : harPris(pris) ? `Varor ${prisText(pris)}` : "Varor"}</div>
+            <div className="sugg-head" role="presentation">{visar ? `Visar “${visar}”` : liknande ? "Närmast i stavning" : harPris(pris) ? `Varor ${prisText(pris)}` : "Varor"}</div>
           )}
           {showing.map((h, hi) => { const i = hi + kategorier.length; return (
             <a
@@ -574,6 +622,8 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
               {h.p && <span className="sugg-price">{h.p}</span>}
             </a>
           ); })}
+          </div>
+          <div className="sr-only" role="status" aria-live="polite">{upplast}</div>
           {rader > 0 && (
             <div className="sugg-tangenter" aria-hidden="true">
               <span><kbd>↑</kbd><kbd>↓</kbd> bläddra</span><span><kbd>Enter</kbd> välj</span><span><kbd>Esc</kbd> stäng</span>

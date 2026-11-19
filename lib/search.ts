@@ -1171,6 +1171,21 @@ export type Sokutfall<T> = { traffar: T[]; strukna: string[]; utan?: string[]; h
 /** Färre hela träffar än så, och sökningen har en färg eller ett mått: fyll på. */
 export const FYLL_PA_UNDER = 24;
 
+/**
+ * Orden att markera i en träff: sökorden som de skrevs, deras stammar och
+ * böjda former, längst först. "speglar" markerar "spegel" i "Rund spegel",
+ * och "stolar" markerar "stol" i "Kontorsstol". Småorden markeras inte.
+ */
+export function markeringsord(query: string): string[] {
+  const ord = new Set<string>();
+  for (const u of prepare(query).units) {
+    ord.add(u.tok);
+    if (u.stem.length >= 3) ord.add(u.stem);
+    for (const f of u.former ?? []) ord.add(f);
+  }
+  return [...ord].filter((o) => o.length >= 2).sort((a, b) => b.length - a.length);
+}
+
 // rankByName med besked. `strukna` är sökord som inget namn har tillsammans
 // med de andra: sökningen visar då träffarna för resten, och sidan säger det.
 //
@@ -1385,7 +1400,6 @@ function rattaStavning(p: Prepared, okanda: readonly boolean[], antal: () => Map
     const forsta = vik(u.tok[0]);
     let bast = "";
     let bastFel = 3;
-    let bastAntal = 0;
     for (const [w, n] of antal()) {
       const skillnad = Math.abs(w.length - u.tok.length);
       if (skillnad > 2 || w.length < 4 || vik(w[0]) !== forsta || !/^[a-zåäö]+$/.test(w)) continue;
@@ -1399,7 +1413,7 @@ function rattaStavning(p: Prepared, okanda: readonly boolean[], antal: () => Map
       const steg = ordAvstand(u.tok, w, tak);
       if (steg > tak || steg === 0) continue;
       const fel = steg + (skillnad === 0 && !sammaBokstaver(u.tok, w) ? (bytVokal(u.tok, w) ? 0.25 : 0.5) : 0) - 0.15 * Math.log(n);
-      if (fel < bastFel) { bast = w; bastFel = fel; bastAntal = n; }
+      if (fel < bastFel) { bast = w; bastFel = fel; }
     }
     if (!bast) return null;
     byten.set(u.tok, bast);

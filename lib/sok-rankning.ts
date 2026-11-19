@@ -11,10 +11,10 @@
 // aldrig. Kontaktformulärets produktväljare importerar den som vanligt: den
 // sidan söker alltid.
 
-import { byggOrdforrad, kortOrd, matchaKategorier, normalize, rankaMedInfo, rankByName, sokforslagINamn, visaVarorFor, type Ordforrad } from "./search";
+import { byggOrdforrad, kortOrd, markeringsord, matchaKategorier, normalize, rankaMedInfo, rankByName, sokforslagINamn, visaVarorFor, type Ordforrad } from "./search";
 import type { SokTraff } from "./sok-index";
 
-export { kortOrd, matchaKategorier, visaVarorFor };
+export { kortOrd, markeringsord, matchaKategorier, visaVarorFor };
 
 // Namnen normaliseras en gång per hämtat index, inte vid varje tangent: 6 000
 // namn tog 2–6 ms per tangent på en dator och runt 8 ms på en strypt telefon
