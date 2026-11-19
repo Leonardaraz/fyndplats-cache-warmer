@@ -2,6 +2,8 @@
 // vars `seoTitle` innehåller ordet (`$contains` ignorerar skiftläge), och de åtta första visas som id8|status|titel. Skicka som `code`
 // med hasMutations: false. Sökningen görs på det enskilda varuordet och inte på en fras, och på flera stavningar när varan har
 // flera (`vevor.md`, AliExpress-tvillingskärmen). Svaret är litet (högst cirka 40 000 tecken för 60 ord).
+// Bara de åtta första raderna visas: ett ord som ger fler än åtta (`n` över 8) kan dölja ett syskon längre ned (runda 432: det närmaste syskonet till
+// lasernivån låg på rad elva). Läs då ordet en gång till med `paging.limit` 25 eller sök på en smalare fras (till exempel *korslinje*) före urvalet.
 async function () {
   const ORD = ["suv", "isbollspress"];
   const ut = {};
