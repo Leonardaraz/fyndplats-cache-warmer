@@ -1,0 +1,12 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "65ed3538": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "72c62437": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: The source images (not in the gallery): the dimension picture gives 26,4 in / 670 mm, 26,6 in / 675 mm and 5,9 in / 150 mm, a static load of 1543 lbs / 700 kg, a sump of 11,4 gal / 43,2 L and the package content one grate and one base tray; the usage picture gives one 200 L drum, four 25 L canisters or four 20 L buckets on the grate; these numbers are in foto-tal.txt (200, 25 and 20) | Images: six clean photos (VEVOR positions 9, 8, 1, 10, 11 and 12): the pallet from above; the pallet with a blue drum in a warehouse (no AI note in the corners); the pallet with a translucent 200 L drum above it (the text 200L on the drum is metric and stays); the pallet from the front; from the side; and a close-up of the drain outlet; bildkoll_fore found six different photos, and there is no published spill pallet to check against"
+ }
+}

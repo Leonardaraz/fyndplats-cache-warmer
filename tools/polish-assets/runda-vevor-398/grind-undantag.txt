@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger måtten som en egen rad (*Produktmått* och *Total längd*) eller i en måttritning i källans bilder: spilluppsamlingspallen skrivs som längd × bredd × höjd i den ordning specifikationens rad visar (670 × 675 × 150 mm) och rörtången bara med sin totala längd, 14 tum eller 355,6 mm

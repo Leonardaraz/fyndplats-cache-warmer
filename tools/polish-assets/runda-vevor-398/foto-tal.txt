@@ -1,0 +1,5 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+72c62437 200 liter, fatets storlek enligt texten 200L på tredje fotot och i källans bild
+72c62437 25 liter, dunkens storlek enligt källans bild (fyra dunkar på 25 liter)
+72c62437 20 liter, hinkens storlek enligt källans bild (fyra hinkar på 20 liter)
