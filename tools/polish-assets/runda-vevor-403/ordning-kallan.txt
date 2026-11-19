@@ -1,0 +1,2 @@
+# <kort> <skäl> — se bygg-media.py
+47072b43 galleriet behåller ordningen från sammanslagningen: 1-6 är den blå färgens foton och 7-11 den röda färgens (det andra framifrånfotot hoppades över eftersom det är samma foto som det första); inget foto är en måttbild, så ordningen från källan hålls; position 4 är samma foto som position 3 och tas bort med Bilder bort efter skrivningen

@@ -1,0 +1,3 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+47072b43 2 antalet handtag (ett på varje sida, räknat på fotona och i källans titel: dubbla handtag) och antalet färger (blå och röd, de två färgvalen på sidan)
