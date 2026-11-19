@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger storleken som en egen rad (*Produktstorlek* 132 tum / 3352 mm) utan axelord, och sidan skriver storlekarna som i källan, utan axelord utom ordet diameter som titeln och måttbilden använder

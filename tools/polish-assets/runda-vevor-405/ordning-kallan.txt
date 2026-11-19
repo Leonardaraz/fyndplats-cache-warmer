@@ -1,0 +1,2 @@
+# <kort> <skäl> — se bygg-media.py
+3939ca06 galleriet behåller ordningen från sammanslagningarna: 1-6 är storleken 3352 mm, 7-19 storleken 3048 mm (sex-, tio- och tvåpaketens foton) och 20-24 storleken 2286 mm; inget foto är en måttbild, så ordningen från källan hålls

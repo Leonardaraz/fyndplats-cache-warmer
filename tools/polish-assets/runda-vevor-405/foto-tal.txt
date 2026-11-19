@@ -1,0 +1,3 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+3939ca06 3 antalet storlekar: tre (90, 120 och 132 tum, 2286, 3048 och 3352 mm), räknade i måttbilden och i de fem annonsernas specifikationer
