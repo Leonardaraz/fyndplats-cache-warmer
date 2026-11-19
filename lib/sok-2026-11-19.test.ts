@@ -43,6 +43,14 @@ test('ett tal är ett mått: "120" är inte "1200" eller "2120"', () => {
   assert.equal(nameScore("Hylla 2120 mm", "120"), 0);
 });
 
+test('förkortningar står för sig: "usb" är inte "husbilstrappa" och "led" inte "ledstång"', () => {
+  assert.equal(nameScore("Husbilstrappa med ledstång och fyra steg", "usb"), 0);
+  assert.equal(nameScore("Husbilstrappa med ledstång och fyra steg", "led"), 0);
+  assert.ok(nameScore("LED-ljusbräda med USB-C och steglös dimring", "usb") > 0);
+  assert.ok(nameScore("LED-ljusbräda med USB-C och steglös dimring", "led") > 0);
+  assert.ok(nameScore("Badrumsspegel LED 100 × 80 cm", "badrumsspegel led") > 0);
+});
+
 test("tre bokstäver räcker som delsträng: huvudet i en sammansättning", () => {
   assert.ok(nameScore("Elbil för barn 12 V", "bil") > 0);
   assert.ok(nameScore("Hundbur på hjul", "bur") > 0);
@@ -110,6 +118,16 @@ test("strykningen: först ord som inte finns, sedan färg och mått, sedan det v
   assert.deepEqual(info(namn, "barn soffa").strukna, ["barn"]);
   // Ingenting struket när ett namn har alla ord.
   assert.deepEqual(info(namn, "hundbur 100").strukna, []);
+});
+
+test('☠️ ett kort ord blir inte kvar som det "ovanligaste": öppen spis el', () => {
+  const namn = [
+    "Gnistskydd för öppen spis 96 cm – tre paneler", "Gnistskydd för öppen spis i svart metall",
+    "Kylbox 42,6 liter utan el – håller kylan i 72 timmar", "Öppen garderob i svart", "Spis med två plattor",
+  ];
+  const r = info(namn, "öppen spis el");
+  assert.deepEqual(r.traffar, [namn[0], namn[1]]);
+  assert.deepEqual(r.strukna, ["el"]);
 });
 
 test("ett ensamt ord som inte finns ger ärligt ingenting", () => {
@@ -245,4 +263,14 @@ test("ett ord utan kategori ger ingen, och varje ord måste träffa", () => {
   assert.deepEqual(kat("soffa pulka"), []);
   assert.deepEqual(kat("a"), []);
   assert.deepEqual(kat(""), []);
+});
+
+test("plattaKategorier: avdelningarna först, sedan delarna, och en slug bara en gång", async () => {
+  const { plattaKategorier, rentNamn } = await import("./sok-kategorier.ts");
+  const trad = [
+    { name: "Möbler", slug: "mobler", subs: [{ name: "Soffor", slug: "soffor" }, { name: "Utemöbler", slug: "utemobler" }] },
+    { name: "Trädgård", slug: "tradgard", subs: [{ name: "Utemöbler", slug: "utemobler" }, { name: "", slug: "tom" }] },
+  ];
+  assert.deepEqual(plattaKategorier(trad).map((k) => k.slug), ["mobler", "tradgard", "soffor", "utemobler"]);
+  assert.equal(rentNamn("Trädgårds­möbler"), "Trädgårdsmöbler");
 });

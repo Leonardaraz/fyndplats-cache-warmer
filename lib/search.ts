@@ -511,7 +511,11 @@ const TVA_FEL: Ordtraff = { qual: 0.5, fel: 2, vikt: false };
 // nivåer" före första tv-bänken (2026-11-19). Ett tal är ett mått: "120" är
 // inte "1200". Tre bokstäver räcker som delsträng, för där står huvudet i
 // sammansättningar som "elbil" och "hundbur".
-const helord = (tok: string): boolean => tok.length <= 2 || /^\d+$/.test(tok);
+//
+// Förkortningar på tre eller fyra bokstäver står också för sig: "usb" står i
+// "husbilstrappa" och "led" i "ledstång".
+const FORKORTNINGAR = new Set(["usb", "led", "rgb", "pvc", "lcd", "gps", "mdf", "abs", "hdmi", "wifi"]);
+const helord = (tok: string): boolean => tok.length <= 2 || /^\d+$/.test(tok) || FORKORTNINGAR.has(tok);
 
 /** Står `s` i namnet med skiljetecken (eller namnets kant) på båda sidor? */
 function starSomOrd(nameNorm: string, s: string): boolean {
@@ -814,7 +818,7 @@ export const FYLL_PA_UNDER = 24;
 // "svart tv-bänk" gav en diskbänkslåda, en trädgårdsbänk och ett picknickset.
 // Nu stryks ett ord i taget tills något namn har alla som är kvar:
 //   1. ord som inte står i något namn alls,
-//   2. färg, storlek och mått (EGENSKAPSORD),
+//   2. färg, storlek och mått (EGENSKAPSORD) och korta ord som "el",
 //   3. det vanligaste ordet (det säger minst).
 // Kvar blir det som säger mest om vad kunden letar efter.
 export function rankaMedInfo<T>(items: T[], nameOf: (item: T) => string, query: string, normNamn?: readonly string[]): Sokutfall<T> {
@@ -909,7 +913,11 @@ export function rankaMedInfo<T>(items: T[], nameOf: (item: T) => string, query: 
   if (n < 2 || scored.length === 0) return { traffar: [], strukna: [] };
   const antal: number[] = new Array(n).fill(0);
   for (const r of scored) for (let i = 0; i < n; i++) if ((r.mask ?? 0) & (1 << i)) antal[i]++;
-  const rang = (i: number) => (antal[i] === 0 ? 0 : p.units[i].egenskap ? 1 : 2);
+  // Korta ord ("el", "xl") räknas som egenskaper här: de är sällsynta som
+  // egna ord, och hade annars blivit kvar som det "ovanligaste" ordet. "öppen
+  // spis el" gav tre varor "utan el" i stället för det som har med öppen spis
+  // att göra.
+  const rang = (i: number) => (antal[i] === 0 ? 0 : p.units[i].egenskap || p.units[i].helord ? 1 : 2);
   const ordning = p.units.map((_, i) => i).sort((a, b) => rang(a) - rang(b) || antal[b] - antal[a]);
   let kvar = n < 31 ? (1 << n) - 1 : 0x7fffffff;
   for (let k = 0; k < n - 1; k++) {

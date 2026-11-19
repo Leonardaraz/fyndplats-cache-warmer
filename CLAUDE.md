@@ -3252,6 +3252,106 @@ Kvar: "öppen spis el" ger gnistskydd, för "el" står i "paneler" och "delar".
 Det behöver synonymer för hela fraser ("elektrisk öppen spis" är en elkamin),
 och sådana finns inte i `SYNONYM_GROUPS`.
 
+## Sökningen 2026-11-19: ordförrådet, två ord, ärligt tomt och en kall katalog
+
+Leonard: "tycker du vår sökfunktion av produkter är 10/10?" Svaret var 6 av 10,
+efter 124 provsökningar mot butiken, och han sa: "gör alla 1-6 förutom 5". Det
+som INTE är byggt är punkt 5: genvägar till frakt, retur, spårning och kontakt
+("frakt" ger fortfarande en fraktvåg).
+
+Stavningen höll redan (avsnittet ovan). Det här gick fel, och är ändrat:
+
+| Sökning på live 2026-11-19 | Svar då | Svar nu |
+|---|---|---|
+| svart tv-bänk | diskbänkslåda, trädgårdsbänk, picknickset, och en tv-bänk på plats fem | 21 tv-bänkar, den svarta först bland de köpbara |
+| hundbur xl | en hundbädd i XL och en hundtrappa | 19 hundburar, med beskedet att "xl" ströks |
+| länstol | ett barnbord med molnstolar | 294 fåtöljer |
+| papperskorg | två barnstafflier | 61 soptunnor och pedalhinkar |
+| pallkrage | ingenting | 61 odlingslådor |
+| utemöbler | åtta varor, två av de tre första skyddsöverdrag | 89 varor, och kategorin Utemöbler ovanför |
+| trädgårdsmöbler | presenning, högtryckstvätt och plåtbod (ur beskrivningarna) | samma 89, och kategorierna Utemöbler och Trädgård |
+| pulka | nio tomtar med polkagris | ingenting, ärligt |
+| aosom | nio varor med ordet "som" | ingenting |
+| soffa under 2000 | 692 träffar med "förvaring under sitsen" överst | 137 soffor, med beskedet att "2000" ströks |
+
+**Reglerna i `lib/search.ts`** (`lib/sok-2026-11-19.test.ts` bär varje sökning
+ovan):
+
+1. **Korta ord och tal står som egna ord** (`helord`, `starSomOrd`). "tv" stod
+   i "två", "tvåsitsig" och "viktväst". Det gäller ord på högst två tecken,
+   tal, och förkortningarna i `FORKORTNINGAR` ("usb" stod i "husbilstrappa").
+   Tre bokstäver räcker annars som delsträng: där står huvudet i "elbil" och
+   "hundbur". Hela frasen följer samma regel: "skrivbord 120" står inte i
+   "Skrivbord 1200 mm".
+2. **Stavfel bara för ord som inte finns i katalogen.** Ett ord som står i
+   något namn är rättstavat. "hundbur" blev annars "hundbädd" så fort inget
+   namn hade alla sökord.
+3. **Ett stavfel ligger i ETT ord, träffar ordets slut och har rätt första
+   bokstav** (`fuzzyOrdslut`). Huvudet står sist i en svensk sammansättning.
+   "pulka" var början av "polkagris", "aosom" var "a som" över ett mellanslag,
+   och "cyckel" låg lika nära "nyckel" som "cykel". ☠️ Priset: ett felstavat
+   FÖRLED hittas inte längre ("cyckel" hittar elcyklar och motionscyklar, inte
+   cykelpumpen). Mätt på 592 felstavningar av katalogens vanligaste första
+   ord: täckningen 96,7 → 94,4 %, renheten 96,9 → 97,6 %. De elva som blev
+   klart sämre var alla adjektiv ("justerbar", "utdragbar", "dubbel").
+4. **Inget namn har alla sökord: stryk ord, med besked** (`rankaMedInfo`,
+   `strukna`). Förut visades allt som träffade NÅGOT ord. Nu stryks i tur och
+   ordning ord som inte finns alls, sedan färg, storlek, mått och korta ord
+   (`EGENSKAPSORD`), sedan det vanligaste ordet. Sidan säger vilka ord som
+   ströks.
+5. **Färg och mått står ofta inte i namnet** (`fyllPa`, `utan`, `hela`).
+   "svart tv-bänk" hade en enda hel träff, en slutsåld bänk, fast flera
+   tv-bänkar är svarta: färgen ligger i varans val. Är de hela träffarna färre
+   än en skärm (`FYLL_PA_UNDER`, 24) fylls listan på med varorna som har resten
+   av orden, och sidan säger det.
+6. **Frågeord räknas inte**: "billig", "under", "över", "köp", "kr" står i
+   `STOPWORDS`.
+7. **Kundens ord för varor som heter något annat.** 51 nya synonymgrupper, och
+   `ENVAGS` för ord åt ett håll ("länstol" → fåtölj, "kommod" → byrå,
+   "utemöbler" → trädgårdsbord, loungegrupp, bistroset …). ☠️ Ett envägsord går
+   inte genom `canon`: "byrå" hade blivit nålen "byr", som står i "labyrint",
+   och "eldfat" hade blivit "eldf", som står i "eldfast". **Pröva varje ny nål
+   mot katalogens namn** innan den läggs in: hur många namn den står i, och om
+   något av dem är ett annat ord.
+
+**Kategorier i förslagen och på söksidan** (`kategoriPoang`, `matchaKategorier`
+i `lib/search.ts`, `lib/sok-kategorier.ts`). Kategorinamnen står i plural, och
+delsträngsjämförelsen räcker inte åt det hållet ("soffa" står inte i
+"soffor"), så orden jämförs i kanonisk form. ☠️ Förledet jämförs som kunden
+skrev det: "soffa" blir kanoniskt "soff", som också inleder "soffbord".
+Sökrutan visar högst två kategorier överst, och de tar plats från varorna så
+att listan inte blir högre. Trädet kommer ur menyerna, som redan har det
+(`registreraKategorier` i `meganav.tsx` och `mobilenav.tsx`): ingen ny hämtning
+och inga nya byte i sidan.
+
+**☠️ Söksidan väntar aldrig på en kall katalog** (`app/sok/page.tsx`,
+`components/sok-kall.tsx`). En ny instans läser hela katalogen innan
+`getProducts` svarar: 7 617 varor, 25–28 sekunder (Vercels logg 2026-11-19,
+minst 30 gånger på en och en halv timme, över alla rutter). Kategorisidorna
+ligger färdiga i CDN:t, men söksidan räknas per sökning, och 2 av 125
+provsökningar tog 14 och 29 sekunder. Nu frågar sidan `katalogenLaddad()`, som
+sidhuvudet redan gör:
+
+- **Varm instans:** som förut, träffarna räknas på servern.
+- **Kall instans:** sidan svarar direkt, och webbläsaren hämtar hela
+  varulistan som listsidorna redan använder (`/api/lista?k=alla`, CDN-cachad)
+  och kör samma rankning där. Instansen läser in katalogen i bakgrunden
+  (`after`), så nästa sökning får den varma vägen.
+
+De två vägarna ritar samma vy (`components/sok-vy.tsx`). Skillnaden: den kalla
+vägen har inte reserven som letar i beskrivningarna, för den texten finns inte
+i listan. Reserven används numera bara när varken ett namn eller en kategori
+matchar.
+
+Mät en sökändring med `scripts/sok-jamfor.mjs` som förut. Den här gången
+ändrades 369 av 4 443 sökningar ur katalogen: synonymerna, påfyllningen efter
+färg och mått, och korta ord och förkortningar som inte längre träffar mitt i
+andra ord ("a" 7 433 → 29, "tv" 1 179 → 35, "usb" 97 → 47).
+
+Kvar: "öppen spis el" ger gnistskydd för öppen spis (nu med beskedet att "el"
+ströks). Att "öppen spis" med "el" är en elkamin behöver synonymer för hela
+fraser, och sådana finns inte.
+
 ## Natten: butikens mörka ton, hjältens entré och tre rättelser (2026-11-16)
 
 Leonard: "vår design för single week var super snygg men nu är den borta, vårt
