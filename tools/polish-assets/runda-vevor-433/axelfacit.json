@@ -1,0 +1,24 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "191d8e61": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "43e79d82": {
+  "tyska": "",
+  "svenska": "30 x 30 x 70 mm"
+ },
+ "5382379f": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "62644e72": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Pictures of the source images: built for common pressure testing (0-30 bar pressure testing range, 0-50 C / 32-122 F working temperature; pipeline testing, technical testing, heating system testing); dual-valve system for more accurate testing (V1 shut-off valve controls fluid flow within the hydraulic system; V2 air release valve maintains stable pressure within the hydraulic system; release air bubbles before testing to improve accuracy); 1.6 gal / 6.06 L water tank (portable, sturdy cast iron, no deformation, leak-proof design); high-precision pressure gauge with 3 units (MPa, PSI, Bar; note: for home systems, 5-10 bar is recommended, excess pressure may reduce pipe lifespan); dimension picture with 10.24 in / 260 mm, 6.3 in / 160 mm and 13.58 in / 345 mm, valve type dual valve, maximum pressure gauge range 40 bar, working temperature 0-50 C / 32-122 F, pump type manual pump, flow volume per stroke approx. 1.52 oz / 45 ml, filter included bottom filter screen, net weight 12.1 lbs / 5.5 kg, main material copper (pump body) iron (tank), accessories 1 x 1/2 in water hose (1.4 m length), 1 x 3/4 in adapter (female to male thread), 1 x user manual"
+ },
+ "b518e061": {
+  "tyska": "",
+  "svenska": ""
+ }
+}
