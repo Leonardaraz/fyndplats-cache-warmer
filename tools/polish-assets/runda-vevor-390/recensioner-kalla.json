@@ -1,0 +1,37 @@
+{
+  "adf2ce7b": {
+    "productId": "adf2ce7b-54ac-4b47-aa4b-7e5496ba88ec",
+    "synliga": 0,
+    "dolda": 1,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 3,
+    "attBesluta": [
+      {
+        "id": "gen-1h7eiii",
+        "betyg": 5,
+        "datum": "2026-10-15",
+        "kopt": "Silver",
+        "foton": 0,
+        "text": "Livraison très rapide et compacte. Très simple à monter et déplacer. Aspect très net une fois remplis. Agréables comme hauteur. Volume suffisant pour cultiver facilement."
+      }
+    ]
+  },
+  "fe20ca6c": {
+    "productId": "fe20ca6c-e1e3-45a2-b3b4-da7e4935127f",
+    "synliga": 0,
+    "dolda": 3,
+    "kundVantar": 0,
+    "annanArtikel": 1,
+    "okandArtikel": 3,
+    "attBesluta": [
+      {
+        "id": "gen-1mnypqy",
+        "betyg": 4,
+        "datum": "2026-10-13",
+        "foton": 0,
+        "text": "Comodi e facile da montare. Ne prenderò altri per allargare l'orto."
+      }
+    ]
+  }
+}
