@@ -1,0 +1,6 @@
+# <kort> <skäl> — se bygg-media.py
+23b1c6ae källposition 6 stryks (samma foto som position 5, i annan skala); källposition 3 är ett vanligt foto (en hand som håller i ledstången med expansionspluggar och skruvar), inte en måttbild; övriga positioner behåller källordningen
+a7909595 källposition 3 är ett vanligt foto (räcket bredvid marmortrappan med tillbehören), inte en måttbild; galleriet behåller källordningen
+4c81a092 källposition 4 stryks (samma foto som position 3); källposition 3 är ett vanligt foto (skåpet med två lådor utdragna), inte en måttbild; övriga positioner behåller källordningen
+5e3e419e källposition 6 stryks (samma foto som position 3); källposition 3 är ett vanligt foto (bordet snett från sidan), inte en måttbild; övriga positioner behåller källordningen
+8d8652e9 källposition 3 är ett vanligt foto (markisen med skruvarna och vattenflödet), inte en måttbild; galleriet behåller källordningen

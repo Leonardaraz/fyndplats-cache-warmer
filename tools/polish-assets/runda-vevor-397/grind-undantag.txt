@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger måtten som en egen rad (*Produktmått*, *Produktstorlek* eller *Lådans mått*) eller i en måttritning i källans bilder: arbetsbordet skrivs som längd × bredd × höjd i den ordning ritningen visar, förvaringsskåpet som bredd × djup × höjd, ledstängerna och dörrmarkisen i källans ordning och rörledstångens totala mått bara i en måttritning

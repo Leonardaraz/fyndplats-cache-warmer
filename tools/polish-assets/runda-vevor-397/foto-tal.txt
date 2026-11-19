@@ -1,0 +1,10 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+23b1c6ae 1740 mm mellan de yttre fästena enligt måttritningen i källans bilder
+23b1c6ae 870 mm mellan varje fäste enligt måttritningen i källans bilder
+23b1c6ae 12 expansionsskruvar enligt tillbehörsbilden i källans bilder (räknade på tredje fotot)
+a7909595 100 cm, räckets längd enligt måttritningen i källans bilder
+4c81a092 38 cm, skåpets bredd enligt måttritningen i källans bilder
+4c81a092 47 cm, skåpets höjd enligt måttritningen i källans bilder
+4c81a092 2,9 kg, vikten enligt tabellen i källans bild (6,4 lb)
+8d8652e9 15 tum, minsta avstånd mellan markisens överkant och dörrkarmens överkant enligt måttritningen i källans bilder
