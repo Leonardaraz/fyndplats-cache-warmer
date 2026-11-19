@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger måtten som en egen rad (*Produktmått* 1230 × 1235 × 20 mm) utan axelord, och sidan skriver måtten som i källan, utan axelord

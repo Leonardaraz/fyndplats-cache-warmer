@@ -1,0 +1,1 @@
+199ea506 1 5 Samma bild som position 1 men länkad till den vita färgen, så polish-write kan inte stryka den; den tas bort med Bilder bort direkt efter skrivningen

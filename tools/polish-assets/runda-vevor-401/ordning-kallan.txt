@@ -1,0 +1,2 @@
+# <kort> <skäl> — se bygg-media.py
+199ea506 galleriet behåller ordningen från sammanslagningarna: 1-6 är den vita färgens foton, 7-11 den svarta färgens (sidovyn hoppades över eftersom den är samma bild som den vita färgens) och 12-16 den gråa färgens (samma skott och samma hoppade sidovy); position 3 är ett vanligt foto (ribbpanelen med verktyg och trappstege), inte en måttbild; inga positioner stryks
