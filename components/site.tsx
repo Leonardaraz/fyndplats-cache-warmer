@@ -5,6 +5,7 @@ import { HemLank } from "./hem-lank";
 import { WishlistButton } from "./wishlist";
 import { SearchBox } from "./searchbox";
 import { CookieSettingsLink } from "./cookie-settings-link";
+import { TillToppenLank } from "./till-toppen-lank";
 import { MobileNav } from "./mobilenav";
 import { MegaNav } from "./meganav";
 import { sidhuvudsdata } from "../lib/sidhuvud-data";
@@ -111,7 +112,7 @@ export async function SiteFooter() {
     <footer>
       <div className="container fgrid">
         <div>
-          <div className="fbrand"><Mark size={30} />Fyndplats</div>
+          <div className="fbrand"><Mark size={30} idPrefix="fpmk-fot" />Fyndplats</div>
           <p style={{ fontSize: 14, color: "#a39c93", maxWidth: "30ch" }}>Trygg svensk e-handel med ett brett sortiment till låga priser.</p>
           {/* Betyget går till omdömessidan där siffran kan granskas. En påstådd
               4,9 som inte går att klicka på är ett påstående; en som går att
@@ -144,10 +145,23 @@ export async function SiteFooter() {
           </div>
         </div>
         <div className="fcol"><div className="fhead">Handla</div><a href="/butik">Butik</a><a href="/fyndauktion">Fyndauktionen</a><KontoFotLank /><ForetagFotLank /><a href="/omoss">Om oss</a><a href="/omdomen">Omdömen</a>{hasBlog && <a href="/blogg">Blogg</a>}</div>
-        <div className="fcol"><div className="fhead">Kundservice</div><a href="/vanliga-fragor">Vanliga frågor</a><a href="/returer">Returer &amp; ångerrätt</a><a href="/angra-kop">Ångra köp</a><a href="/eu-lager-garanti">EU-lager &amp; tull</a><a href="/kopvillkor">Köpvillkor</a><a href="/sparning">Spåra paket</a><a href="/kontaktaoss">Kontakta oss</a><a href="/kundtjanst">Kundtjänst</a></div>
+        <div className="fcol"><div className="fhead">Hjälp</div><a href="/vanliga-fragor">Vanliga frågor</a><a href="/returer">Returer &amp; ångerrätt</a><a href="/angra-kop">Ångra köp</a><a href="/eu-lager-garanti">EU-lager &amp; tull</a><a href="/kopvillkor">Köpvillkor</a><a href="/sparning">Spåra paket</a><a href="/kontaktaoss">Kontakta oss</a><a href="/kundtjanst">Kundtjänst</a></div>
         <div className="fcol"><div className="fhead">Kontakt &amp; betalning</div><a href="mailto:info@fyndplats.com">info@fyndplats.com</a><a href="tel:+46736630990">+46 73 663 09 90</a><div className="fpay"><span className="fsocial-rubrik">Betala tryggt</span><PaymentMarks /></div></div>
       </div>
-      <div className="fbar">©2021–2026 Fyndplats · Trygg svensk e-handel · <a href="/kopvillkor">Köpvillkor</a> · <a href="/sekretesspolicy">Sekretesspolicy</a> · <a href="/vara-butikspolicyer">Butikspolicyer</a> · <CookieSettingsLink /></div>
+      {/* Två led: uppgiften och länkarna. På mobilen står de på var sin rad och
+          länkarna skiljs åt med luft i stället för prickar. Förut bröts raden mitt
+          i och lämnade en ensam prick sist på första raden. */}
+      <div className="fbar">
+        <span className="fbar-info">© 2021–2026 Fyndplats · Trygg svensk e-handel</span>
+        <span className="fbar-prick" aria-hidden="true"> · </span>
+        <span className="fbar-lankar">
+          <a href="/kopvillkor">Köpvillkor</a><span className="fbar-prick" aria-hidden="true"> · </span>
+          <a href="/sekretesspolicy">Sekretesspolicy</a><span className="fbar-prick" aria-hidden="true"> · </span>
+          <a href="/vara-butikspolicyer">Butikspolicyer</a><span className="fbar-prick" aria-hidden="true"> · </span>
+          <CookieSettingsLink />
+          <TillToppenLank />
+        </span>
+      </div>
     </footer>
   );
 }

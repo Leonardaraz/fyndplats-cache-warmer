@@ -1803,3 +1803,22 @@
   color: #157a3a;
   font-weight: 600;
 }
+
+/* Sidfotens länkar var 16 till 19 px höga och loggan 34 (mätt 2026-11-18). En
+   osynlig yta runt varje länk, så att raderna står kvar där de står. */
+.fot a,
+.logga {
+  position: relative;
+}
+
+.fot a::after {
+  content: "";
+  position: absolute;
+  inset: -12px -4px;
+}
+
+.logga::after {
+  content: "";
+  position: absolute;
+  inset: -5px 0;
+}

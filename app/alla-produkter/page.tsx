@@ -4,9 +4,12 @@ import { currentDayMs } from "../../lib/sort-products";
 import { jsonLdString } from "../../lib/seo";
 import { ShopBrowser } from "../../components/shopbrowser";
 import { CategoryDropdown } from "../../components/categorydropdown";
+import { ListaAntalText } from "../../components/lista-antal";
+import { buildGroupCards } from "../../lib/category-groups";
+import { antalKategorierIRegistret } from "../../lib/category-threshold";
 import { ProductIndex } from "../../components/product-index";
 import { pageMeta } from "../../lib/seo";
-import { productCountLabel, categoryCountLabel } from "../../lib/rating";
+import { categoryCountLabel } from "../../lib/rating";
 
 export const metadata = pageMeta(
   "Alla produkter – hela sortimentet",
@@ -36,6 +39,8 @@ export const revalidate = 3600;
 export default async function AllaProdukter() {
   const [allProducts, collections] = await Promise.all([getHelaKatalogen(), getCollections()]);
   const products = forListings(allProducts); // dölj ev. slutsålda från listan (opt-in)
+  // Samma tal som /butik visar (lib/category-threshold.ts), inte antalet samlingar i Wix.
+  const antalKategorier = antalKategorierIRegistret(buildGroupCards(products, collections));
   // Rekommenderat är sidans standardordning (Leonard 2026-08-21) — samma som
   // ShopBrowsers defaultSort "img", och samma som kategorisidorna redan hade.
   // Ersätter Nyast, som sorterade på importdatum: hela katalogen är importerad
@@ -97,7 +102,10 @@ export default async function AllaProdukter() {
             <h1 className="butik-hero-title">Alla produkter</h1>
             <p className="butik-hero-lede">
               Noga utvalda fynd inom möbler, hem, kök, trädgård och mer – varje produkt handplockad för svenska hem.
-              <span className="butik-hero-meta"> {productCountLabel(products.length)} · {categoryCountLabel(collections.length)} · Fri frakt över 499 kr</span>
+              {/* Varje led hålls ihop och pricken ritas i stilen (.butik-hero-meta):
+                  raden bryts mellan två led och börjar aldrig eller slutar med en
+                  prick. Förut stod "499 kr" ensamt på nästa rad. */}
+              <span className="butik-hero-meta"><span><ListaAntalText antal={list.length} /></span><span>{categoryCountLabel(antalKategorier)}</span><span>Fri frakt över 499 kr</span></span>
             </p>
           </div>
         </div>
@@ -105,7 +113,7 @@ export default async function AllaProdukter() {
 
       <section className="alla-prod-body">
         <div className="container">
-          <CategoryDropdown products={products} collections={collections} />
+          <CategoryDropdown products={products} collections={collections} activeCount={list.length} />
 
           {/* Sidan bär de första korten och en sammanfattning för filtren;
               resten hämtar ShopBrowser från /api/lista. Hela listan i HTML:en

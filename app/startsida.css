@@ -237,34 +237,32 @@
 /* ── Auktionsbannern sitter ihop med kategorierna ─────────────────── */
 .hem2 .auktionsrad{padding:0 0 8px}
 
-/* ── Veckans fynd: brickor utan ram och utan knapp ────────────────── */
-.hem2 .prodgrid{gap:34px 20px}
-.hem2 .prod{border:0;border-radius:0;box-shadow:none;background:transparent;overflow:visible}
-@media(hover:hover){
-  .hem2 .prod:hover{transform:none;box-shadow:none}
-  .hem2 .prod:hover .pname{color:var(--brand)}
-}
-.hem2 .prod .pimg{border-radius:var(--r-lg);background:#F4EEE8}
-.hem2 .prod .pimg img{mix-blend-mode:multiply}
-.hem2 .prod .pbody{padding:12px 2px 0}
-.hem2 .prod .pname{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;transition:color .2s}
-.hem2 .prod .prow{padding-top:8px;gap:0}
-.hem2 .prod .pprice{font-size:var(--text-lg)}
-/* Hela kortet är länken. Knappen sa samma sak en gång till på varje kort. */
-.hem2 .prod .pbtn{display:none}
-@media(max-width:880px){
-  .hem2 .prodgrid.listgrid{margin-inline:0;gap:24px 12px}
-  .hem2 .listgrid .prod .pbody{padding:10px 2px 0}
-  .hem2 .prod .pprice{font-size:var(--text-base)}
-}
+/* ── Veckans fynd ─────────────────────────────────────────────────────
+   Brickornas utseende är kortets grund sedan 2026-11-18 (.prod i globals.css).
+   Reglerna stod här och en gång till i app/butik/butik.css. */
 .hem2 .efter-rad{margin-top:30px;text-align:center}
 @media(min-width:881px){.hem2 .efter-rad{display:none}}
 @media(max-width:880px){.hem2 .h2rad .h2lank.bara-dator{display:none}}
 
 /* ── Köpguiderna ──────────────────────────────────────────────────── */
 .hem2 .guidesek{background:var(--warm)}
-.hem2 .guider{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
-.hem2 .guide{display:block;color:inherit;text-decoration:none;-webkit-tap-highlight-color:transparent}
+/* EN RAD MAN BLÄDDRAR I (2026-11-19): alla inlägg, tre i bredd på datorn.
+   Förut ett rutnät med de tre senaste. Korten ritas efter hand
+   (components/guide-karusell.tsx), raden rullar i sidled med snäpp, och
+   pilarna sitter mitt för omslagen. */
+.hem2 .guide-karusell{position:relative;container-type:inline-size}
+.hem2 .guider{display:flex;gap:22px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
+.hem2 .guider::-webkit-scrollbar{display:none}
+.hem2 .guide{display:block;flex:0 0 calc((100% - 44px)/3);min-width:0;scroll-snap-align:start;color:inherit;text-decoration:none;-webkit-tap-highlight-color:transparent}
+/* Pilens mitt = omslagets mitt: omslaget är 4:3 och en tredjedel av raden brett. */
+.hem2 .guide-pil{position:absolute;top:110px;top:calc((100cqw - 44px)/3*.375 - 22px);z-index:2;width:44px;height:44px;border-radius:50%;
+  display:grid;place-items:center;background:#fff;color:var(--ink);border:1px solid var(--line);box-shadow:var(--e2,0 4px 14px rgba(0,0,0,.12));
+  cursor:pointer;transition:opacity .2s,transform .2s,color .2s}
+.hem2 .guide-pil-bak{left:-16px}
+.hem2 .guide-pil-fram{right:-16px}
+.hem2 .guide-pil:disabled{opacity:0;pointer-events:none}
+.hem2 .guide-pil:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+@media(hover:hover){.hem2 .guide-pil:hover{color:var(--brand);transform:scale(1.06)}}
 /* Bloggens omslag finns i fyra format (1:1 till 1,9:1) med det läsbara i mitten: 4:3 klipper minst. */
 .hem2 .guide-bild{position:relative;display:block;aspect-ratio:4/3;border-radius:var(--r-lg);overflow:hidden;background:var(--surface-2)}
 .hem2 .guide-bild img{object-fit:cover;transition:transform .55s cubic-bezier(.2,.7,.2,1)}
@@ -278,10 +276,12 @@
 }
 .hem2 .guide:focus-visible .guide-titel{color:var(--brand)}
 @media(max-width:880px){
-  .hem2 .guider{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x proximity;margin-inline:-26px;
-    padding:0 26px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-padding-inline:26px}
-  .hem2 .guider::-webkit-scrollbar{display:none}
+  /* Raden rullar redan (regeln ovan); här bara mobilens mått och kant till kant. */
+  .hem2 .guider{gap:14px;scroll-snap-type:x proximity;margin-inline:-26px;
+    padding:0 26px 4px;-webkit-overflow-scrolling:touch;scroll-padding-inline:26px}
   .hem2 .guide{flex:0 0 78%;scroll-snap-align:start}
+  /* På en pekskärm sveper man: pilarna hör till datorn. */
+  .hem2 .guide-pil{display:none}
   .hem2 .guide-titel{font-size:var(--text-lg)}
 }
 

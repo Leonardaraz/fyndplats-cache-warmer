@@ -111,7 +111,7 @@ const AMNEN: Amne[] = [
     kort: "Kontakt",
     rubrik: "Om Fyndplats & kontakt",
     ikon: Ikon.service,
-    intro: "Kundservice vardagar 09–17. Vi svarar normalt inom 24 timmar.",
+    intro: "Kundtjänst vardagar 09–17. Vi svarar normalt inom 24 timmar.",
     lankar: [
       { href: "/kontaktaoss", text: "Kontakta oss" },
       { href: "/omoss", text: "Om oss" },
@@ -119,7 +119,7 @@ const AMNEN: Amne[] = [
     fragor: [
       { q: "Hur kontaktar jag kundtjänst?", a: "Snabbast når du oss via mejl: info@fyndplats.com. Du kan också ringa +46 73 663 09 90 vardagar 09–17, eller använda kontaktformuläret på sidan Kontakta oss. Vi svarar normalt inom 24 timmar." },
       { q: "Har ni en fysisk butik?", a: "Fyndplats är en renodlad webbutik – allt sker online via fyndplats.se. Vår företagsadress är Bergviksgatan 10 i Södertälje; det är inget lager och vi erbjuder för närvarande inte besök eller upphämtning där. Produkterna skickas från våra leverantörers och logistikpartners lager inom EU. Det gör att vi kan erbjuda ett stort sortiment utan att allt behöver mellanlagras hos oss i Sverige." },
-      { q: "Hur skyddar ni mina personuppgifter?", a: "Vi följer GDPR och svensk dataskyddslag. Vi behandlar personuppgifter för att kunna genomföra köp, betalningar, leveranser, kundservice och driva vår webbplats. Personuppgifter kan behandlas av betrodda tjänsteleverantörer som hjälper oss med exempelvis betalning, leverans, utskick av mejl och teknisk drift. Analys och marknadsföring sker enligt tillämplig rättslig grund och dina cookieval. Läs hela vår sekretesspolicy på fyndplats.se/sekretesspolicy." },
+      { q: "Hur skyddar ni mina personuppgifter?", a: "Vi följer GDPR och svensk dataskyddslag. Vi behandlar personuppgifter för att kunna genomföra köp, betalningar, leveranser, kundtjänst och driva vår webbplats. Personuppgifter kan behandlas av betrodda tjänsteleverantörer som hjälper oss med exempelvis betalning, leverans, utskick av mejl och teknisk drift. Analys och marknadsföring sker enligt tillämplig rättslig grund och dina cookieval. Läs hela vår sekretesspolicy på fyndplats.se/sekretesspolicy." },
     ],
   },
 ];
@@ -193,7 +193,7 @@ export default function VanligaFragor() {
 
       <section className="om-hero">
         <div className={`container ${s.heroInner}`}>
-          <div className="eyebrow">Kundservice</div>
+          <div className="eyebrow">Kundtjänst</div>
           <h1>Vanliga frågor</h1>
           <p className="om-lede">
             Du frågar, vi svarar. Här hittar du snabbt svar om beställning, betalning, frakt och returer.

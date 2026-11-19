@@ -4,6 +4,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { antalKategorierIRegistret } from "./category-threshold.ts";
 
 const las = (...delar: string[]) => readFileSync(join(import.meta.dirname, "..", ...delar), "utf8");
 const css = las("app", "butik", "butik.css").replace(/\/\*[\s\S]*?\*\//g, "");
@@ -78,7 +79,14 @@ describe("innehållet", () => {
   });
 
   it("talen räknas ur samma lista som sidan visar", () => {
-    assert.match(sida, /const antalKategorier = groups\.reduce\(\(s, g\) => s \+ g\.subs\.length, 0\);/);
+    assert.match(sida, /const antalKategorier = antalKategorierIRegistret\(groups\);/);
+    // Räkningen bor i lib/category-threshold.ts sedan 2026-11-18, så att
+    // /alla-produkter säger samma tal (där stod "168 kategorier" mot 142 här).
+    assert.equal(antalKategorierIRegistret([{ subs: [1, 2, 3] }, { subs: [] }, { subs: [4] }]), 4);
+    const alla = readFileSync(join(import.meta.dirname, "..", "app", "alla-produkter", "page.tsx"), "utf8");
+    assert.match(alla, /const antalKategorier = antalKategorierIRegistret\(buildGroupCards\(products, collections\)\);/);
+    assert.match(alla, /\{categoryCountLabel\(antalKategorier\)\}/);
+    assert.doesNotMatch(alla, /categoryCountLabel\(collections\.length\)/);
     assert.match(sida, /\{categoryCountLabel\(antalKategorier\)\}/);
     assert.match(sida, /<span className="b2-tal">\{tusental\(antalKategorier\)\}<\/span>/);
   });

@@ -16,7 +16,7 @@ import { dayHeat, isDayOver, isFinalHour, hourIndex } from "../lib/auction-day";
 
 // Färgstopp för dagen (ljust läge) + ember-läget för sista timmen.
 const LIGHT = [
-  { t: 0, bg1: "#FFF9F3", bg2: "#FCEFE0", ink: "#241c16", soft: "#6b6157", accent: "#C2410C", card: "#ffffff", cardink: "#241c16", line: "#EFE7DE", glow: 0 },
+  { t: 0, bg1: "#FFFFFF", bg2: "#FFF6EF", ink: "#241c16", soft: "#6b6157", accent: "#C2410C", card: "#ffffff", cardink: "#241c16", line: "#EFE7DE", glow: 0 },
   { t: 0.5, bg1: "#FDEAD3", bg2: "#F6D6AE", ink: "#241206", soft: "#7a5c44", accent: "#E5560F", card: "#fffdfb", cardink: "#241206", line: "#F0D8BC", glow: 0.3 },
   { t: 1, bg1: "#F7C888", bg2: "#E89A3C", ink: "#2a1305", soft: "#7c4a1f", accent: "#C93E08", card: "#fff7ee", cardink: "#2a1305", line: "#E9BE86", glow: 0.62 },
 ];

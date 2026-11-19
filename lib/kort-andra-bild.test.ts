@@ -109,7 +109,9 @@ test("båda korten lägger in andra bilden genom KortAndraBild, aldrig direkt i 
 
 test("☠️ hover-bytet tömmer aldrig kortet: huvudbilden tonas bort bara när andra bilden är laddad", () => {
   const css = las("app/globals.css");
-  const hover = /@media \(hover:hover\)\{\n([\s\S]*?)\n\}/.exec(css);
+  // Blocket med bildbytet. Filen har fler hover-block sedan 2026-11-18 (kortets
+  // lyft och pil står i ett eget, tidigare i filen), så det första räcker inte.
+  const hover = [...css.matchAll(/@media \(hover:hover\)\{\n([\s\S]*?)\n\}/g)].find((m) => m[1].includes(".pimg-alt"));
   assert.ok(hover, "hover-blocket saknas");
   assert.match(hover[1], /\.prod:hover \.pimg-alt\[data-klar\]\{opacity:1\}/);
   assert.match(hover[1], /\.prod:hover \.pimg:has\(\.pimg-alt\[data-klar\]\) \.pimg-main\{opacity:0\}/);

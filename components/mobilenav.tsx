@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { SearchBox } from "./searchbox";
 import { AuctionDot } from "./auction-dot";
+import { registreraKategorier } from "../lib/sok-kategorier";
 import type { CategoryNode } from "../lib/category-groups";
 import { grupperaUnderkategorier } from "../lib/meny-grupper";
 import { hjalteAdress } from "../lib/meny-bilder";
@@ -55,6 +56,8 @@ function Kryss() {
 }
 
 export function MobileNav({ tree = [], hasBlog = false, hasSale = false }: { tree?: CategoryNode[]; hasBlog?: boolean; hasSale?: boolean }) {
+  // Sökrutan föreslår kategorier ur samma träd (lib/sok-kategorier.ts).
+  registreraKategorier(tree);
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   // Steg två: avdelningen som visas (slug), eller null i första steget. `visad`

@@ -3252,6 +3252,312 @@ Kvar: "öppen spis el" ger gnistskydd, för "el" står i "paneler" och "delar".
 Det behöver synonymer för hela fraser ("elektrisk öppen spis" är en elkamin),
 och sådana finns inte i `SYNONYM_GROUPS`.
 
+## Sökningen 2026-11-19: ordförrådet, två ord, ärligt tomt och en kall katalog
+
+Leonard: "tycker du vår sökfunktion av produkter är 10/10?" Svaret var 6 av 10,
+efter 124 provsökningar mot butiken, och han sa: "gör alla 1-6 förutom 5". Det
+som INTE är byggt är punkt 5: genvägar till frakt, retur, spårning och kontakt
+("frakt" ger fortfarande en fraktvåg).
+
+Stavningen höll redan (avsnittet ovan). Det här gick fel, och är ändrat:
+
+| Sökning på live 2026-11-19 | Svar då | Svar nu |
+|---|---|---|
+| svart tv-bänk | diskbänkslåda, trädgårdsbänk, picknickset, och en tv-bänk på plats fem | 21 tv-bänkar, med beskedet att en har "svart" i namnet (den är slutsåld och står sist) |
+| hundbur xl | en hundbädd i XL och en hundtrappa | 19 hundburar, med beskedet att "xl" ströks |
+| länstol | ett barnbord med molnstolar | 294 fåtöljer |
+| papperskorg | två barnstafflier | 61 soptunnor och pedalhinkar |
+| pallkrage | ingenting | 61 odlingslådor |
+| utemöbler | åtta varor, två av de tre första skyddsöverdrag | 89 varor med möblerna först och överdragen efter, och kategorin Utemöbler ovanför |
+| trädgårdsmöbler | presenning, högtryckstvätt och plåtbod (ur beskrivningarna) | samma 89, och kategorierna Utemöbler och Trädgård |
+| pulka | nio tomtar med polkagris | ingenting, ärligt |
+| aosom | nio varor med ordet "som" | ingenting |
+| soffa under 2000 | 692 träffar med "förvaring under sitsen" överst | 137 soffor, med beskedet att "2000" ströks |
+
+**Reglerna i `lib/search.ts`** (`lib/sok-2026-11-19.test.ts` bär varje sökning
+ovan):
+
+1. **Korta ord och tal står som egna ord** (`helord`, `starSomOrd`). "tv" stod
+   i "två", "tvåsitsig" och "viktväst". Det gäller ord på högst två tecken,
+   tal, och förkortningarna i `FORKORTNINGAR` ("usb" stod i "husbilstrappa").
+   Tre bokstäver räcker annars som delsträng: där står huvudet i "elbil" och
+   "hundbur". Hela frasen följer samma regel: "skrivbord 120" står inte i
+   "Skrivbord 1200 mm".
+2. **Stavfel bara för ord som inte finns i katalogen.** Ett ord som står i
+   något namn är rättstavat. "hundbur" blev annars "hundbädd" så fort inget
+   namn hade alla sökord.
+3. **Ett stavfel ligger i ETT ord, träffar ordets slut och har rätt första
+   bokstav** (`fuzzyOrdslut`). Huvudet står sist i en svensk sammansättning.
+   "pulka" var början av "polkagris", "aosom" var "a som" över ett mellanslag,
+   och "cyckel" låg lika nära "nyckel" som "cykel". ☠️ Priset: ett felstavat
+   FÖRLED hittas inte längre ("cyckel" hittar elcyklar och motionscyklar, inte
+   cykelpumpen). Mätt på 592 felstavningar av katalogens vanligaste första
+   ord: täckningen 96,7 → 94,4 %, renheten 96,9 → 97,6 %. De elva som blev
+   klart sämre var alla adjektiv ("justerbar", "utdragbar", "dubbel").
+4. **Inget namn har alla sökord: stryk ord, med besked** (`rankaMedInfo`,
+   `strukna`). Förut visades allt som träffade NÅGOT ord. Nu stryks i tur och
+   ordning ord som inte finns alls, sedan färg, storlek, mått och korta ord
+   (`EGENSKAPSORD`), sedan det vanligaste ordet. Sidan säger vilka ord som
+   ströks.
+5. **Färg och mått står ofta inte i namnet** (`fyllPa`, `utan`, `hela`).
+   "svart tv-bänk" hade en enda hel träff, en slutsåld bänk, fast flera
+   tv-bänkar är svarta: färgen ligger i varans val. Är de hela träffarna färre
+   än en skärm (`FYLL_PA_UNDER`, 24) fylls listan på med varorna som har resten
+   av orden, och sidan säger det.
+6. **Frågeord räknas inte**: "billig", "under", "över", "köp", "kr" står i
+   `STOPWORDS`.
+7. **Kundens ord för varor som heter något annat.** 51 nya synonymgrupper, och
+   `ENVAGS` för ord åt ett håll ("länstol" → fåtölj, "kommod" → byrå,
+   "utemöbler" → trädgårdsbord, loungegrupp, bistroset …). ☠️ Ett envägsord går
+   inte genom `canon`: "byrå" hade blivit nålen "byr", som står i "labyrint",
+   och "eldfat" hade blivit "eldf", som står i "eldfast". **Pröva varje ny nål
+   mot katalogens namn** innan den läggs in: hur många namn den står i, och om
+   något av dem är ett annat ord.
+8. **Ett envägsord: varan före tillbehöret** (`ENVAGS_I_HUVUDDELEN`, 92).
+   "utemöbler" gav ett möblemang och sedan tre skyddsöverdrag "för utemöbler":
+   ordet i namnet gav 90 och envägsträffen 51. Står varans typ i namnets
+   huvuddel (före "för", "med", "till", komma och tankstreck) går den före
+   ett namn som bara nämner ordet. ☠️ Bara `ENVAGS`, inte synonymgrupperna:
+   prövat på båda ändrades ordningen i 210 av 4 443 sökningar ("bokhylla",
+   "cykel", "barstol"), och där är ordet i namnet oftast rätt vara. Med bara
+   envägsorden ändrades 1 ("utemöbler").
+
+**Kategorier i förslagen och på söksidan** (`kategoriPoang`, `matchaKategorier`
+i `lib/search.ts`, `lib/sok-kategorier.ts`). Kategorinamnen står i plural, och
+delsträngsjämförelsen räcker inte åt det hållet ("soffa" står inte i
+"soffor"), så orden jämförs i kanonisk form. ☠️ Förledet jämförs som kunden
+skrev det: "soffa" blir kanoniskt "soff", som också inleder "soffbord".
+Sökrutan visar högst två kategorier överst, och de tar plats från varorna så
+att listan inte blir högre. Trädet kommer ur menyerna, som redan har det
+(`registreraKategorier` i `meganav.tsx` och `mobilenav.tsx`): ingen ny hämtning
+och inga nya byte i sidan.
+
+**☠️ Söksidan väntar aldrig på en kall katalog** (`app/sok/page.tsx`,
+`components/sok-kall.tsx`). En ny instans läser hela katalogen innan
+`getProducts` svarar: 7 617 varor, 25–28 sekunder (Vercels logg 2026-11-19,
+minst 30 gånger på en och en halv timme, över alla rutter). Kategorisidorna
+ligger färdiga i CDN:t, men söksidan räknas per sökning, och 2 av 125
+provsökningar tog 14 och 29 sekunder. Nu frågar sidan `katalogenLaddad()`, som
+sidhuvudet redan gör:
+
+- **Varm instans:** som förut, träffarna räknas på servern.
+- **Kall instans:** sidan svarar direkt, och webbläsaren hämtar hela
+  varulistan som listsidorna redan använder (`/api/lista?k=alla`, CDN-cachad)
+  och kör samma rankning där. Instansen läser in katalogen i bakgrunden
+  (`after`), så nästa sökning får den varma vägen.
+
+De två vägarna ritar samma vy (`components/sok-vy.tsx`). Skillnaden: den kalla
+vägen har inte reserven som letar i beskrivningarna, för den texten finns inte
+i listan. Reserven används numera bara när varken ett namn eller en kategori
+matchar.
+
+☠️ **Varulistan har bara det som går att köpa, och söksidan visar också det
+slutsålda** (`lib/sok-kall.ts`). Första bygget sökte bara i varulistan, och
+provet i webbläsaren visade skillnaden mot servern: "svart tv-bänk" 18 mot
+21, "länstol" 250 mot 294, "utemöbler" 69 mot 89. Den enda tv-bänken med
+"svart" i namnet var slutsåld, så den kalla vägen strök dessutom ordet och gav
+ett annat besked. Nu läggs de slutsålda till ur sökindexet (`kandidater`,
+`kortUrIndex`), som har namn, adress, foto, pris och märket `o`. Faller
+indexet, eller dröjer det mer än fem sekunder efter listan, visas det som går
+att köpa. **Jämför alltid de två vägarnas antal** när något i dem ändras.
+
+☠️ **Den kalla vägen går inte att prova på en förhandsvisning eller lokalt
+utan vidare.** Sidhuvudet läser den färdiga menyn (`sidhuvudsdata`), och den
+skrivs av `/api/cron/meny`, som bara går i produktion. Utan färdig meny bygger
+sidhuvudet menyn ur katalogen och väntar in den, och då är katalogen redan
+laddad när söksidan frågar. Provet 2026-11-19 gjordes mot ett lokalt bygge
+där villkoret i `app/sok/page.tsx` var framtvingat (aldrig committat).
+
+Mät en sökändring med `scripts/sok-jamfor.mjs` som förut. Den här gången
+ändrades 369 av 4 443 sökningar ur katalogen: synonymerna, påfyllningen efter
+färg och mått, och korta ord och förkortningar som inte längre träffar mitt i
+andra ord ("a" 7 433 → 29, "tv" 1 179 → 35, "usb" 97 → 47).
+
+Kvar: "öppen spis el" ger gnistskydd för öppen spis (nu med beskedet att "el"
+ströks). Att "öppen spis" med "el" är en elkamin behöver synonymer för hela
+fraser, och sådana finns inte.
+
+## Sökfältets sista genomgång (2026-11-19)
+
+Leonard samma natt: "gör en sista kill på sökfältet och tänker saknas det något
+mer för att göra detta till världens bästa e-handel sökfält, och fixa det."
+Det här lades till (`components/searchbox.tsx`, prov i
+`lib/sok-2026-11-19.test.ts`):
+
+1. **Priset i sökningen** (`lib/sok-pris.ts`). "soffa under 2000" gav 137
+   soffor med beskedet att "2000" ströks. Nu läses priset ur sökningen
+   (`tolkaPris`), sökorden rankas utan det, och träffarna gallras på priset:
+   36 soffor under 2 000 kr, samma antal i sökrutan och på söksidan. Söksidan
+   säger "Du ser 36 varor under 2 000 kr" med knappen "Visa alla 137".
+   Finns ingen träff inom priset visas alla, med besked. ☠️ Ett tal efter
+   "under" är inte alltid ett pris: det måste stå direkt efter ett prisord,
+   får inte följas av en enhet ("under 3 år", "under 120 cm"), och måste utan
+   "kr" vara minst 300 ("tv-bänk max 160" är ett mått). Bara ett pris utan
+   sökord ("under 500") lämnas som det är.
+2. **Senaste sökningar** när rutan är tom (`lib/sok-senaste.ts`), högst fem,
+   med "Rensa". ☠️ **Sparas bara med kundens ja till kakor.** Sökhistorik i
+   webbläsarens lagring är inte nödvändig för att butiken ska fungera. Listan
+   ligger alltid i minnet under sidbesöket, och skrivs till `localStorage`
+   bara när kakvalet är "all". De tar plats från de populära varorna (fem i
+   stället för sju), så panelen blir inte högre.
+3. **Antalet i knappen**: "Visa alla 89 resultat för …" (`rankaForslagMedAntal`
+   i `lib/sok-index.ts`). Priset gallrar FÖRE klippet till sju rader.
+4. **Krysset** som tömmer rutan med fokus kvar, och `enterKeyHint="search"` så
+   att telefonens tangentbord säger Sök.
+5. **Varje sökord i fetstil** i namnen. Förut bara hela frasen, så "svart
+   tv-bänk" markerade ingenting.
+6. **Uppläst rad**: `aria-activedescendant` följer piltangenterna, och raden
+   rullas fram när listan är högre än panelen.
+7. **Utan träff**: ett tips och länkar till kategorierna och kontaktsidan.
+
+**Sökförslag och exempel** (samma natt, efter Leonards "det känns fortfarande
+inte som att det är världens bästa e-handel sökfält"). Det som saknades var
+det de bästa rutorna gör först: föreslå SÖKNINGEN, inte bara varorna.
+
+- Medan man skriver står högst tre sökförslag som chips överst: "sof" →
+  soffbord, soffa; "soffa" → tvåsitssoffa, bäddsoffa, hörnsoffa; "tv" →
+  tv-bänk; "fatol" → fåtölj. Det förslaget lägger till står i fetstil. Ett
+  tryck gör sökningen.
+- En tom ruta visar "Sök till exempel" med katalogens sex vanligaste varuord
+  (kontorsstol, klösträd, golvlampa …). Rubriken säger inte "populära": det
+  är vad butiken har mest av, inte vad kunderna söker mest.
+- På datorn står en rad med vad piltangenterna, Enter och Esc gör.
+
+Orden kommer ur katalogens egna namn (`byggOrdforrad` och `sokforslag` i
+`lib/search.ts`, cachat per hämtat index i `lib/sok-index.ts`): varje förslag
+ger träffar, ingen sökstatistik behövs och inget nytt hämtas. Mätt på 7 617
+namn: 2 916 ord, 52 ms att bygga en gång, under en millisekund per tangent.
+Reglerna, var och en med ett prov:
+
+- **Adjektiv föreslås inte.** De känns igen på böjningen: finns ordet också
+  med -t ("manuell", "manuellt"; "konstgjord", "konstgjort") är det inget
+  varuord. Utan regeln var "konstgjord", "smalt" och "manuell" bland de
+  vanligaste exemplen.
+- **Ett kort ord står för sig**, som i sökningen: "tv" är tv-bänk och
+  tv-stativ, inte tvåsitssoffa och tvättkorg.
+- **Vilken sorts ord är det?** "soffa", "bord" och "stol" är huvudet i många
+  sammansättningar, så de smalare formerna går först (bäddsoffa). "barn",
+  "hund" och "jul" inleder många, så de går först (barnbord). Avgörs av vilken
+  grupp som har flest namn.
+- ☠️ **Stammen är inte ordet.** "julgr" har samma stam som "julgran", och
+  "matt" samma som "matta", så en regel som hoppade över "samma ord" tog bort
+  just det kunden var på väg att skriva. Bara en ren böjning av ett
+  färdigskrivet ord hoppas över ("stol" → "stolar").
+
+Chipsen tar plats från varorna (en rad), så panelen är inte högre på mobilen:
+561 px mot 573 förut.
+
+☠️ **Listan börjar om när varorna byts** (`key` på `ShopBrowser` i
+`components/sok-vy.tsx`). `ShopBrowser` håller prisreglagets läge som
+tillstånd, satt efter varorna den först fick. Efter "Visa alla 137" stod
+reglaget kvar på de 36 varornas gränser och blev ett filter ingen hade valt:
+sidan sa 137 träffar och listan visade 36 med märket "1" på Filter. Felet syntes
+bara på en skärmbild, alla prov var gröna. Samma sak gällde två sökningar i
+rad, redan före den här ändringen. Nyckeln är sökningen plus läget.
+
+☠️ **En ny `<button>` får webbläsarens grå ram.** Butiken har ingen global
+nollställning av knappar, så varje ny knappklass behöver `background:none;
+border:0` (och `font-family:inherit`). "Rensa" stod med grå ruta på första
+skärmbilden.
+
+Inte byggt: färgen i sökningen läst ur varans färgval ("svart tv-bänk" visar
+alla tv-bänkar och säger att färgen ofta står bland valen; `colors` finns i
+listkortet men inte i sökindexet), "menade du" vid stavfel, och genvägarna
+till frakt, retur och spårning (Leonards punkt 5, som han valde bort).
+
+## Sökrutan: sista kontrollen, sökmotorn vid avsikt och vita bakgrunder (2026-11-19)
+
+Leonard, sista vändan samma natt: "finslipa en sista gång sökfältet nu när du
+lagt till mycket, kontrollera att inget buggar och att det är optimerat", och
+om Fyndauktionen och filterlådan: "det känns inte som att bakgrundsfärgen
+passar in om man jämför med våra andra sidor".
+
+**☠️ Sökmotorn laddas vid avsikt, inte med sidan.** Sökrutan ligger i
+sidhuvudet på varje sida, och rankningen (`lib/search.ts`) följde med i varje
+sidas JavaScript: 18 kB minifierat, 7,6 kB gzip, och nattens synonymer hade
+gjort den större. Nu ligger rankningen av förslagen i `lib/sok-rankning.ts`,
+som sökrutan hämtar med `import()` när pekaren eller fingret når rutan,
+samtidigt som sökindexet (`laddaMotor` i `components/searchbox.tsx`).
+`lib/sok-index.ts` har bara hämtningen kvar. Mätt i bygget: startsidans
+JavaScript 846 → 831 kB, 267,4 → 261,0 kB gzip, på varje sida. Mätt i
+webbläsare (`bf/sok-kontroll.cjs`): ingen fil med sökmotorn laddas med sidan,
+från tryck till första förslagen 0,2 s lokalt, och högst 74 ms per tangent.
+**Importera aldrig `lib/search` eller `lib/sok-rankning` överst i sökrutan,
+i `lib/sok-index.ts` eller i menyerna**: `lib/sok-2026-11-19.test.ts` fäller.
+Ordförrådet för sökförslagen (30–50 ms) byggs i en ledig stund efter avsikten
+(`varmUpp`).
+
+**Tre lägen runt rutan som var fel, alla hittade i webbläsaren:**
+
+- ☠️ **Fokus med ett ord i rutan** visade "Inga produkter matchade" om ett ord
+  med hundratals träffar, när rutan fått ordet utan att förslagen räknats
+  (ur adressen, eller skrivet före hydreringen). Fokus räknar nu om
+  förslagen för ordet som står där.
+- ☠️ **Det gjorde att krysset slutade fungera.** `focus()` anropas innan React
+  har skrivit det tömda värdet, så fokus läste det gamla ordet och skrev
+  tillbaka det. Krysset tömmer nu rutan i DOM först. Lärdomen: den som läser
+  rutans värde i en händelse måste veta att tillståndet kan ligga ett steg
+  efter.
+- ☠️ **Ett valt sökförslag** bytte rutans ord men inte listan: nästa gång rutan
+  öppnades stod förslagen för det gamla ordet. Valet räknar nu om.
+
+**Sökordet står kvar i rutan på resultatsidan**, också efter en omladdning,
+en delad länk och bakåtknappen, och rutan töms när man lämnar sidan. Ordet
+läses ur adressen i en effekt (`usePathname` och `popstate`). ☠️ Inte med
+`useSearchParams`: i sidhuvudet tvingar den varje statisk sida att vänta på
+webbläsaren.
+
+**Bakgrunderna.** Kroppen, kundvagnslådan och mobilmenyn är vita. Filterlådan
+på mobilen stod i `--warm` (krämfärgad) på tre ställen och är nu vit, som de
+andra lådorna.
+
+Fyndauktionens scen gick i sitt viloläge från kräm till en gulbeige persika
+(`#FFF9F3` → `#FCEFE0`) som inte finns någon annanstans i butiken. Nu går den
+från vitt till butikens egen kräm (`--warm`, `#FFF6EF`, samma ton som
+köpguidernas sektion på startsidan). ☠️ **Helt vitt prövades först och föll**
+(Leonard: "Stopp, tycker vit passar för fyndauktionen??"): korten är vita och
+tappade kontrasten, och scenen blev platt. Jag hade läst "passar inte in
+jämfört med våra andra sidor" som "gör den vit som de andra", utan att fråga.
+Frågan var tonen, inte att sidan har en egen värme.
+
+Auktionens första färgsteg står på två ställen som måste vara lika: `.a-stage`
+i `app/globals.css` och `LIGHT[0]` i `components/auction-stage.tsx`. Värmen
+under dagen (07 till 19, och glöden sista timmen) är kvar: det är auktionens
+egen dramaturgi, och den börjar nu från butikens kräm.
+
+## Köpguiderna på startsidan: en rad med alla inlägg (2026-11-19)
+
+Leonard: "kan du göra så det går att bläddra mellan alla blogginlägg där inte
+bara 3. Jag vill att det ska vara optimerad hastighet fortfarande super snabb."
+
+Startsidan visade de tre senaste inläggen. Nu är det en rad med alla (44),
+nyast först: tre i bredd på datorn med pilar mitt för omslagen, och svep på
+mobilen som förut (`components/guide-karusell.tsx`, `lib/guide-kort.ts`,
+`.hem2 .guider` i `app/startsida.css`).
+
+**Så hålls sidan lika lätt.** Startsidan bär fyra kort, mot tre förut, och
+inget mer. De andra inläggen (rubrik, adress, omslag och ingressen kortad till
+130 tecken, kortet visar ändå bara två rader) ligger i EN cachad fil,
+`/api/guider`, som hämtas först när någon rör raden: pekaren eller fingret
+når den, eller en pil trycks. Sedan ritas korten sex åt gången, en och en halv
+radbredd innan de behövs. Ett kort som inte är ritat har inget `<img>`, så
+ingen bild hämtas för det.
+
+☠️ **Första bygget lät alla inläggs data följa med i sidan.** Mätt mot live
+samma natt: 33,2 → 37,4 kB brotli, alltså 4,2 kB mer för varje besökare, fast
+de flesta aldrig bläddrar. ☠️ Och att bara föra pekaren över raden får inte
+rita fler kort: då hämtas deras omslag. Filen hämtas vid avsikt, korten ritas
+vid bläddring (`rort` i komponenten).
+
+Mätt i webbläsare 2026-11-19 (`bf/blogg-karusell.cjs`): när sidan laddas hämtas
+filen inte alls; före bläddring fyra kort ritade och två omslag hämtade på
+mobilen, fyra på datorn; efter bläddring 44 av 44 inlägg med filen hämtad en
+gång, och ingen sidledsrullning på sidan.
+
+☠️ `lib/startsida.test.ts` räknar raderna som rullar i sidled, en regel per
+rad. Radens `overflow-x:auto` står därför bara i grundregeln; mobilens regel
+ändrar mått och kant, inte rullningen.
+
 ## Natten: butikens mörka ton, hjältens entré och tre rättelser (2026-11-16)
 
 Leonard: "vår design för single week var super snygg men nu är den borta, vårt
@@ -3412,6 +3718,194 @@ en egen yta utan lutning, så priset är fortfarande skarpt.
 
 - ☠️ **Chromium är inget kvitto på speglingen.** Den ritas där i båda lägena.
   Bara en riktig iPhone visar om den finns.
+
+## Smådetaljerna (Leonard 2026-11-18: "alla smådetaljer är viktiga")
+
+Granskningen gick igenom varje sidtyp på mobil (393 px) och dator (1440 px):
+31 sidor i skivor om fyra bilder, alla 168 kategorisidor maskinellt, mobilens
+öppna lägen (meny, varukorg, favoriter, filter, kategoriväljare) och varje
+länk och knapp under 40 px. Varje rättning nedan har ett prov i
+`lib/smadetaljer-2026-11-18.test.ts`, `lib/lista-antal.test.ts`,
+`lib/category-seo.test.ts` eller `lib/butiksidan.test.ts`.
+
+**☠️ Samma tal på två ställen ska räknas på ett ställe.** Tre av fynden var
+samma fel:
+
+- Kategoriväljarens knapp sa "Bygg & Renovering 227" med "228 st" i
+  verktygsraden strax under. Väljaren räknade varje produkt i avdelningen
+  eller en underkategori (`buildCategoryTree`), verktygsraden sidans egen lista,
+  som hoppar över dubbletter och det som bara hör hemma i underkategorin
+  (`kategoriProdukter` och `dedupeProducts`). Och när ShopBrowser hämtat hela
+  listan från `/api/lista` följde verktygsraden den färskare listan medan
+  väljaren stod kvar på den cachade sidans tal. Nu skickar sidan sin listas
+  längd till väljaren (`activeCount`), och ShopBrowser säger till när hela
+  listan kommit (`lib/lista-antal.ts`, händelsen `fp:lista-antal`). Rubrikytan
+  på /alla-produkter och /rea visar samma tal och lyssnar på samma händelse
+  (`ListaAntalText` i `components/lista-antal.tsx`): i det lokala bygget stod
+  den annars kvar på 6 829 medan väljaren och verktygsraden visade 6 834.
+- /butik sa "142 kategorier" och /alla-produkter "168 kategorier". Den ena
+  räknade länkarna i sitt register, den andra varje samling i Wix med
+  avdelningarna och de tomma. Båda läser nu `antalKategorierIRegistret`
+  (`lib/category-threshold.ts`; där och inte i `category-groups.ts`, som inte
+  går att importera i ett prov).
+- Avdelningsrutorna sa "1 500 st" på startsidan och "1 500 produkter" på
+  /butik. Båda säger "st". Det längre ordet bröt avdelningsnamnen på två rader
+  vid 1024 px, så det var /butik som fick ändra sig.
+
+**Kategorisidan.** På mobilen göms brödsmulornas sista led och strecket före
+det (`.kat-hero:not(.prog-hero) .crumbs em`), som på produktsidan: namnet står
+som rubrik raden under, och på 40 av 168 sidor bröts spåret på två rader för
+det ledets skull. Listan i JSON-LD och i HTML:en är orörd. De 37 kategorier
+som visade mallraden "Noga utvalda fynd inom badrumsrenovering." har en egen
+ingress i `CATEGORY_INGRESS` (`lib/category-seo.ts`), skriven ur sidans egen
+A–Ö-lista. Den bär också metabeskrivningen. Titeln är orörd: en post i
+`CATEGORY_SEO` kräver redaktionell text i `lib/category-content.ts` och en
+sökordstitel väljs med sökdata. ☠️ Ingressen är sann den dag den skrevs. Byts
+sortimentet i en av de 37 ska raden skrivas om, som beskrivningarna i
+`CATEGORY_SEO`.
+
+**Sidfoten.** Sista raden står i två led (`.fbar-info`, `.fbar-lankar`). På
+mobilen står leden på var sin rad och länkarna skiljs åt med luft: raden bröts
+förut mitt i och lämnade en ensam prick sist. Den flytande "till
+toppen"-knappen låg ovanpå sidfotens högra länkspalt, och på produktsidan,
+där köpraden lyfter den, ovanpå "Cookie-inställningar". På mobilen göms den
+när sidfoten når den (`.backtotop.vid-fot`), och sidfoten har en egen "Till
+toppen" (`components/till-toppen-lank.tsx`). ☠️ Den göms på dator med
+`.fbar .fbar-topp`, två klasser: `.fbar a,.fbar button{display:inline-block}`
+väger tyngre än en ensam klass, och länken syntes först också på dator (sett i
+datorbilden, inte i något prov). Betalmärkena bryts tre och tre
+när sex inte får plats (`@container` på `.fpay`): på dator stod Google Pay
+ensamt under de andra fem. Loggan i sidfoten har egna id:n (`fpmk-fot`);
+sidhuvudets logga stod med samma tre id:n i samma dokument.
+
+**Samma sak heter samma sak.** Kassans sidfot sa "Integritetspolicy",
+"Returer och ångerrätt" och "073-663 09 90"; resten av butiken säger
+"Sekretesspolicy" (18 filer), "Returer & ångerrätt" och "+46 73 663 09 90"
+(11 ställen). Överrubrikens streck stod före texten på /alla-produkter och
+/rea och efter den på /butik, startsidan och samlingssidorna. Rubriken på
+/butik slutade med en punkt som ingen annan hjälterubrik har. Den tomma
+varukorgen sa "Här samlar du dina favoritfynd", fast favoriterna har en egen
+låda sedan 2026-11-14. Varukorgens köpknapp visade bara "…" medan korgen
+sparades; nu "Uppdaterar …".
+
+**Radbrytningar.** `h1,h2,h3{text-wrap:balance}` för alla rubriker; den
+gamla regeln räknade upp sex ställen, och produkttitlar och mellanrubriker i
+köpguider och villkor slutade med ett ensamt ord. Faktaraden på
+/alla-produkter och /rea (`.butik-hero-meta`) har ett element per led och
+pricken ritad i stilen, före varje led, med radens första prick bortklippt
+(`clip-path`). ☠️ Att bara hålla ihop leden med `white-space:nowrap` och ha
+pricken kvar som text räckte inte: raden bröts då efter en prick i stället för
+mitt i ett led (mätt på det första försöket).
+
+**Tryckytor.** Tio ställen låg under 40 px på mobilen, mätt med
+`::after`-ytan inräknad (sidhuvudets knappar har redan sådana och ser bara
+små ut för den som mäter elementet): brödsmulorna på /butik, /alla-produkter
+och samlingssidorna (26 × 18), avdelningsnamnen i registret (23 px),
+köpvillkorens innehållsförteckning (31), "Visa mer" i en recension (18),
+länken på ångra-sidan (24), toppremsans Instagram och Facebook (28 × 28),
+kassans sidfot och logga (16 till 34), bildtexten under en produktbild i en
+köpguide (38), "Tillbaka till bloggen" (21) och länkarna under "Relaterade
+sidor" i köpvillkoren (21). ☠️ Mät om efter rättningen: bildtexterna stod
+kvar på 38 px första gången, för bildraderna (`.blog-produktrad`) har en egen,
+mer specifik regel. Ytan växer utan att något flyttas:
+luft in och lika mycket marginal ut, eller en osynlig yta runt länken.
+
+**Sett i den här rundan och gjort i nästa** (avsnittet "Produktkortet är en
+bricka, överallt" nedan): rubrikerna i två typsnitt, produktkortens två
+utseenden, lådornas olika tomma lägen och orden "Kundservice" och
+"Kundtjänst". Kvar: en produktbild i Bygg & Renovering visar leverantörens
+märke på verktyget, och det är avgjort sedan 2026-10-28: VEVOR-loggan på
+själva varan får stå.
+
+## Produktkortet är en bricka, överallt (Leonard 2026-11-18)
+
+Leonards ord: "visuellt sexig ska det vara", och korten "super sexigt visuellt
+o optimerat". Samma dag fick infosidorna rubriktypsnittet, lådorna ett
+gemensamt tomt läge och kundtjänsten ett ord. `lib/produktkortet.test.ts`
+vaktar alltihop.
+
+**Ett kort, en uppsättning regler.** `ProductCard` var hela tiden en
+komponent. De två utseendena kom av att `app/startsida.css` (`.hem2 .prod`) och
+`app/butik/butik.css` (`.butik2 .prod`) skrev över grunden med samma femton
+rader var. Nu är brickan grunden (`.prod` i `app/globals.css`) och de två
+kopiorna är borta: fotot på en varm platta (`#F4EEE8`, 18 px hörn,
+`mix-blend-mode:multiply` så att fotonas vita botten tar plattans ton), namnet,
+betyget och priset under, ingen ram och ingen knapp. `.pbtn` finns inte längre,
+varken i komponenten eller i stilen. Listorna (ShopBrowser, `.shoplista`) kapar
+namnet vid tre rader, och vid fyra på mobilen (≤ 540 px). Övriga ytor kapar
+vid två, som startsidans brickor alltid har gjort.
+
+☠️ Radgränsen ska mätas, inte väljas på känn. Första versionen hade tre rader
+överallt i listorna. På förhandsvisningen kapade det 42–63 % av namnen på en
+393 px bred skärm och 63–88 % på en 360 px bred, där den liva sajten visade
+hela namnet: måtten och färgen står sist i namnet, och det är dem man jämför
+på. Med fyra rader kapas 1 av 96 namn på 393 px, 3 av 96 på 375 px och 10 av
+96 på 360 px (fyra listsidor à 24 kort). Från 541 px och uppåt kapas inget.
+
+Mätt på /kategori/mobler, mobil 393 px, före (live) och efter: kortet 383 →
+277–296 px högt, radsteget 401 → 302–320 px, hela varor inom två skärmar 4 → 6
+(sök 6 → 8). Dator 1440 px: kortet 460 → 365 px, radsteget 480 → 399 px, hela
+varor inom två skärmar 0 → 4. Layoutskift och rulltid är oförändrade.
+
+- **Med hovrande pekare** lyfter plattan (inte kortet), namnet tar
+  märkesfärgen och en pil tonar in i plattans hörn (`.pimg::after`). Pilen är
+  det enda som är kvar av knappen. ☠️ Ingen transform på själva kortet och
+  inget av det här utan `@media (hover:hover)`: på iPhone fyrar `:hover` vid
+  första beröringen, och en transform mitt i gesten bröt svepet mellan
+  bilderna (2026-09-24).
+- **☠️ Fyndauktionens kort delar klassen `.prod`** (`components/auction-card.tsx`)
+  men är ett kort med ram. Dess grund står under `.prod.auction-card` med de
+  värden kortets grund hade förut, och brickans hover-regler gäller
+  `.prod:not(.auction-card)`: auktionen använder `.pimg::after` till sin egen
+  glöd. Den som ändrar `.prod` ska jämföra auktionskortets beräknade stil före
+  och efter.
+- **Mobilens rutnät håller sig inom containern** (26 px). Korten med ram gick
+  ut till 12 px från kanten; en platta utan ram ska linjera med rubriken och
+  verktygsraden ovanför. Plattorna är 164 px breda på en iPhone, som på
+  startsidan.
+- `lib/kort-andra-bild.test.ts` letade efter bildbytet i filens första
+  `@media (hover:hover)`-block. Det finns fler sådana block nu, så provet
+  letar upp det som bär `.pimg-alt`.
+- **☠️ Bloggens artikelkort delar också klassen `.prod`** (`app/blogg/page.tsx`).
+  De följde med när brickan blev grunden, och det syntes först i provet på
+  förhandsvisningen: rubriken kapades vid två rader (18 av 44 på 1024 px, 8 av
+  44 på 1440 px) och fotona tonades av blandningsläget. Kortet bär nu
+  `blogg-kort`: tre rader, då ryms varje rubrik hel på alla bredder, och
+  `mix-blend-mode:normal`, för blandningen är gjord för produktfoton på vit
+  botten. Den som ändrar `.prod` ska leta upp ALLA som bär klassen
+  (`grep -rn '"prod' app components`), inte bara `ProductCard`.
+
+**Rubriktypsnittet på infosidorna.** Sidans huvudrubrik är serif på varje sida
+utom produktsidan och kassan: `.om-hero h1` (tio infosidor) och `.pagehero h1`
+(villkorssidorna och köpguiderna) hade sans i 800. Sektionsrubrikerna under en
+överrubrik (`.om-sektion h2`, `.om-slut h2`) följer med, annars bytte sidan
+röst efter första skärmen. Rubriker inne i löptext (`.prose`) och allt i
+köpflödet är kvar i sans.
+
+☠️ Typsnittsfamiljen heter `rubrik` i den beräknade stilen, inte Newsreader
+(`--font-display: "rubrik", "Newsreader Reserv", …`). Ett prov som letar efter
+"Newsreader" i `font-family` säger "sans" om varje rubrik, också de som är
+rätt. Fråga webbläsaren vad den ritar med i stället:
+`CSS.getPlatformFontsForNode` över CDP svarar "Newsreader 16pt" eller "Geist"
+och säger om det är webbtypsnittet eller reserven.
+
+**Lådornas tomma läge** (`.lada-tom`): varukorgen och favoritlådan har samma
+rundel, rubrik, rad och knapp ("Upptäck sortimentet →" i märkesfärgen).
+Varukorgens eget kort med ram och serifrubrik är borta (`.cart-empty*`).
+
+**Kundtjänst är ordet.** Sidan, adressen, sidtiteln och mobilmenyn säger
+"Kundtjänst", och löptexten "kontakta kundtjänst". Överrubriker och kort sa
+"Kundservice" på åtta ställen; de säger nu "Kundtjänst". Sidfotens spalt heter
+"Hjälp" (annars hade spalten och dess sista länk samma namn). ☠️ Jag föreslog
+först det omvända, efter att ha räknat bara ordet med stor bokstav i
+`.tsx`-filerna (8 mot 4). Med löptexten medräknad var det sidans namn som
+skulle gälla. Kundernas egna omdömen (`lib/curated-reviews.ts`) är citat och
+rörs inte.
+
+**Sett men inte ändrat:** på datorns kategorisidor står alla filter utfällda
+ovanför varorna. På /kategori/mobler är verktygsraden med filtren 625 px hög
+och första varuraden börjar 1 364 px ner (1440 × 900). /alla-produkter har
+samma filter hopfällda bakom en knapp och börjar vid 776 px.
 
 ## Studion: hjälten som fotostudio, och Black Week-temana (2026-11-17)
 

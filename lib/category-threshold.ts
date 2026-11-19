@@ -93,3 +93,16 @@ export function countPerCategoryPage(
   }
   return antal;
 }
+
+/**
+ * Antalet kategorier som butiken säger sig ha: underkategorierna i
+ * avdelningskorten, alltså precis de länkar som registret på /butik räknar upp.
+ *
+ * Ett ställe, för att talet ska vara detsamma överallt. /butik räknade så här
+ * medan /alla-produkter räknade varje samling i Wix, avdelningarna och de
+ * tomma medräknade: "142 kategorier" på den ena sidan och "168 kategorier" på
+ * den andra, ett klick ifrån varandra (granskningen 2026-11-18).
+ */
+export function antalKategorierIRegistret(groups: ReadonlyArray<{ subs: ReadonlyArray<unknown> }>): number {
+  return groups.reduce((s, g) => s + g.subs.length, 0);
+}

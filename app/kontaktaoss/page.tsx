@@ -44,7 +44,7 @@ export default function Kontakta() {
       <section className="om-hero">
         <div className="container">
           <div className={s.heroText}>
-            <div className="eyebrow">Kundservice</div>
+            <div className="eyebrow">Kundtjänst</div>
             <h1>Kontakta oss</h1>
             <p className="om-lede">
               Vi finns här när du behöver oss. Hör av dig på det sätt som passar dig bäst, vi svarar normalt

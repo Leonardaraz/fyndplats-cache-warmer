@@ -38,14 +38,26 @@ describe("populartNu", () => {
 
 describe("söksidan utan träff", () => {
   const sida = readFileSync(join(import.meta.dirname, "..", "app", "sok", "page.tsx"), "utf8");
+  // Sedan 2026-11-19 ritas sidan av components/sok-vy.tsx, från två håll: servern
+  // när katalogen ligger i minnet, och webbläsaren när den inte gör det
+  // (components/sok-kall.tsx). Urvalet står kvar i sidan respektive sok-kall.
+  const vy = readFileSync(join(import.meta.dirname, "..", "components", "sok-vy.tsx"), "utf8");
+  const kall = readFileSync(join(import.meta.dirname, "..", "components", "sok-kall.tsx"), "utf8");
 
   it("visar vägar vidare, kategorier och populära varor", () => {
     assert.match(sida, /const tom = Boolean\(term\) && results\.length === 0;/);
     assert.match(sida, /populartNu\(all, 4\)/);
     assert.match(sida, /populara\(tree, MAIN_ORDER\)/);
-    assert.match(sida, /className="nf-cats"/);
-    assert.match(sida, /href="\/butik"/);
-    assert.match(sida, /href="\/kontaktaoss"/);
+    assert.match(vy, /className="nf-cats"/);
+    assert.match(vy, /href="\/butik"/);
+    assert.match(vy, /href="\/kontaktaoss"/);
+    // Den kalla vägen väljer samma fyra varor ur listan den hämtat.
+    assert.match(kall, /populartNu\(lista, 4\)/);
+  });
+
+  it("en kategori som matchar går före de populära, och är aldrig en återvändsgränd", () => {
+    assert.match(vy, /<Kategorier lista=\{klar\.kategorier\} etikett="Titta i" \/>/);
+    assert.match(vy, /klar\.kategorier\.length === 0 && klar\.popularaKategorier\.length > 0/);
   });
 
   it("läser menyn som 404-sidan, utan att fälla sidan om den saknas", () => {

@@ -182,7 +182,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
             </ul>
           </nav>
         )}
-        <p style={{ marginTop: 28 }}><a href="/blogg">← Tillbaka till bloggen</a></p>
+        <p style={{ marginTop: 28 }}><a href="/blogg" className="blogg-tillbaka">← Tillbaka till bloggen</a></p>
       </ContentPage>
     </>
   );

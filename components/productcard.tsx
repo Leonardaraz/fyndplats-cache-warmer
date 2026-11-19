@@ -68,7 +68,7 @@ export function ProductCard({ p, priority = false, href, tvaKolumner = false }: 
             runt hälften av katalogen saknar omdömen.
 
             Nu sköts linjeringen i stället av .prow{margin-top:auto} i ett
-            flex-kort (se globals.css): pris och knapp sitter i kortets botten
+            flex-kort (se globals.css): priset sitter i kortets botten
             oavsett vad som finns ovanför. Det linjerar BÄTTRE än reserverad
             höjd gjorde — även när produktnamnen är olika långa — och utan
             tomrum. */}
@@ -91,7 +91,7 @@ export function ProductCard({ p, priority = false, href, tvaKolumner = false }: 
           <span className="pprice">
             {/* pprice-now håller "Från X" / priset ihop på en rad (nowrap) så det
                 aldrig bryts mitt itu; ett ev. överstruket gammalt pris radbryter
-                i stället under, och "Köp"-knappen förblir alltid synlig. */}
+                i stället under. */}
             {/* Priset skrivs från talet, inte från Wix färdiga sträng: "1 369 kr"
                 i stället för "1369,00kr". Öret är brus när ingen produkt har
                 något, och samma formatPrice() driver prisreglagets etiketter —
@@ -112,21 +112,11 @@ export function ProductCard({ p, priority = false, href, tvaKolumner = false }: 
               />
             )}
           </span>
-          {/* Etiketten säger vad knappen GÖR. Hela kortet är en länk till
-              produktsidan (se <PrefetchLink className="prod"> ovan) — "Köp" lovade därför
-              en handling som inte fanns: trycker man på den händer exakt samma
-              sak som överallt annars på kortet. Ett falskt löfte kostar mer än
-              det säljer.
-
-              Slutsålt får "Bevaka" i dämpad grå: det är precis vad produktsidan
-              erbjuder, och den ska aldrig konkurrera med de köpbara korten.
-
-              Färgen bor i CSS, inte i en inline-stil. Den gamla skrev över
-              .pbtn:s bakgrund vid varje rendering, så CSS-regeln var död kod
-              som ändå såg ut att gälla. */}
-          <span className={`pbtn ${p.inStock ? "" : "pbtn-oos"}`}>
-            {p.inStock ? "Visa produkt →" : "Bevaka"}
-          </span>
+          {/* Ingen knapp. Hela kortet är länken till produktsidan (se
+              <PrefetchLink className="prod"> ovan), och "Visa produkt →" sa
+              samma sak en gång till på varje kort, på en egen rad. Med
+              hovrande pekare tonar en pil in i plattans hörn (.pimg::after i
+              globals.css). Slutsålda varor bär märket "Slutsåld" på fotot. */}
         </div>
       </div>
     </PrefetchLink>

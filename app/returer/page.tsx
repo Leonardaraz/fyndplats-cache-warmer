@@ -34,7 +34,7 @@ export default function Returer() {
 
       <section className="om-hero">
         <div className={`container ${s.hero}`}>
-          <div className="eyebrow">Kundservice</div>
+          <div className="eyebrow">Kundtjänst</div>
           <h1>Så här gör du en retur</h1>
           <p className="om-lede">{TOTAL_SUMMARY}</p>
           <div className="om-cta">

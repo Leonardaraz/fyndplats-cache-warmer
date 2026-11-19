@@ -256,7 +256,7 @@ export default function Kopvillkor() {
             <p>Fyndplats förbehåller sig rätten att uppdatera dessa villkor. Den senaste versionen finns alltid publicerad på denna sida. För redan lagda beställningar gäller de villkor som var i kraft vid köptillfället.</p>
 
             <h2 id="relaterade" className={s.anker}>Relaterade sidor</h2>
-            <ul>
+            <ul className={s.relaterade}>
               <li><a href="/returer">Returer &amp; ångerrätt</a></li>
               <li><a href="/sekretesspolicy">Sekretesspolicy</a></li>
               <li><a href="/vara-butikspolicyer">Våra butikspolicyer</a></li>

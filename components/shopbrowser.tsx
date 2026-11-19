@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ProductCard } from "./productcard";
 import { forladdaKortbild } from "./card-gallery";
 import { PrefetchLink } from "./prefetch-link";
+import { sagListaAntal } from "../lib/lista-antal";
 import { currentDayMs, kortForSlugs, SORTERINGAR, sorteraLista, type Sortering } from "../lib/sort-products";
 import { colorLabel, colorOf, fargNycklar } from "../lib/variant-color-image";
 import { universalCollectionIds } from "../lib/related-pick";
@@ -310,6 +311,10 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
   // för ett rutnät som väntar på något som inte kommer.
   const [listaFel, setListaFel] = useState(false);
   const alla = lista ? hamtad : products;
+  // Kategoriväljaren ovanför visar samma antal som verktygsraden (lib/lista-antal.ts).
+  useEffect(() => {
+    if (lista && hamtad) sagListaAntal(hamtad.length);
+  }, [lista, hamtad]);
   const listaBegard = useRef(false);
   const listaUrl = lista?.url;
   const hamtaLista = useCallback(() => {
@@ -1079,7 +1084,7 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
           {/* Väntar vi på hela listan står korten kvar, tonade, tills den kommer
               (se .prodgrid.is-vantar i globals.css) — hellre det än ett tomt
               rutnät eller kort som byts ut under fingret. */}
-          <div className={`prodgrid listgrid${vantar ? " is-vantar" : ""}`} aria-busy={vantar || undefined} onClickCapture={sparaLage}>{visible.map((p, i) => { const f = iFarg(medBild(p)); return <ProductCard p={f.p} href={f.href} key={p.slug} priority={i < 2} tvaKolumner />; })}</div>
+          <div className={`prodgrid listgrid shoplista${vantar ? " is-vantar" : ""}`} aria-busy={vantar || undefined} onClickCapture={sparaLage}>{visible.map((p, i) => { const f = iFarg(medBild(p)); return <ProductCard p={f.p} href={f.href} key={p.slug} priority={i < 2} tvaKolumner />; })}</div>
           {listaFel && behoverLista && (
             <div className="loadmore-wrap">
               <button type="button" className="loadmore" onClick={hamtaLista}>

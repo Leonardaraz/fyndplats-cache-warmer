@@ -710,3 +710,99 @@ export const CATEGORY_SEO: Record<string, CategorySeo> = {
 export function categorySeo(slug: string): CategorySeo | undefined {
   return CATEGORY_SEO[slug];
 }
+
+// ── Ingress för kategorier som ännu saknar sökordstitel ──────────────────────
+//
+// 37 av 168 kategorisidor visade mallraden "Noga utvalda fynd inom
+// badrumsrenovering." under rubriken (mätt på sajten 2026-11-18): avdelningarna
+// Bygg & Renovering och Företag & Proffs och de underkategorier som kom med
+// VEVOR-sortimentet. En post i CATEGORY_SEO kräver också redaktionell text i
+// lib/category-content.ts (intro och FAQ), och den görs när sidan poleras. Tills
+// dess bär de här raderna sidans ingress och metabeskrivning. Titeln är orörd:
+// en sökordstitel väljs med sökdata, inte i förbigående.
+//
+// Samma krav som beskrivningarna ovan: sant mot sortimentet (varje text är
+// skriven ur sidans egen A–Ö-lista 2026-11-18), unik, 110–165 tecken, ingen
+// markup. När en kategori får sin post i CATEGORY_SEO ska raden bort härifrån;
+// lib/category-seo.test.ts fäller om en slug står på båda ställena.
+export const CATEGORY_INGRESS: Record<string, string> = {
+  "bygg-renovering":
+    "VVS och pumpar, el och installation, värme och ventilation, badrumsrenovering, golv, färgsprutor, skjutdörrsbeslag, beslag och byggmaterial till renoveringen.",
+  "foretag-proffs":
+    "Arbetsbord och diskhoar i rostfritt stål till storköket, avspärrningsstolpar och kabelramper till butik och evenemang, mikroskop och labbvagnar till labbet.",
+  badrumsrenovering:
+    "Duschdörrar och skjutdörrar till badkar, duschpaneler och duschset med takdusch, infällda duschnischer, handfat i keramik, badkarsblandare och sensorkranar.",
+  "beslag-jarnvaror":
+    "Bordsben i svart stål, svängbara hjul med broms, nivelleringshjul, lådskenor, skåpgångjärn, skåpknoppar, stolpfästen och brevlådor för montering i dörr eller vägg.",
+  biltillbehor:
+    "Bagagemattor och insynsskydd till utvalda bilmodeller, sätesöverdrag, hjullås, bärgningsremmar, växelriktare, verktygslåda för lastbilsflak och golfbilsöverdrag.",
+  bilverktyg:
+    "Avdragare för hjulnav och hjullager, glidhammare och bucklorsatser, bördelverktyg för bromsrör, kompressions- och kylsystemtestare, däckverktyg och slagnycklar.",
+  "butik-evenemang-trafik":
+    "Avspärrningsstolpar med band och sammetsrep, kabelramper och farthinder i gummi, kassalådor, kundkorgar, mässdiskar, serveringsfönster och bagagevagnar för hotell.",
+  "byggmaterial-byggverktyg":
+    "Väggpaneler i 3D och lamell, takplattor i PVC, polykarbonatpaneler, isoleringsrullar och rännskydd, och gipsverktyg som flatbox, gipsstyltor och avjämningskniv.",
+  "bat-vattensport":
+    "Båtstegar, båtstolar, fendrar, ankare, bränsletank och bimini-överdrag till båten, och kajakvagnar, kajakstolar, takställ för kajaker och pump till paddleboard.",
+  "camping-kylboxar":
+    "Kompressorkylboxar och bilkylskåp på 38 till 60 liter, kylboxar i hårdplast, tält i canvas, campingkök och campingbord, campingstolar och campingtoaletter.",
+  "dorrar-dorrbeslag":
+    "Skjutdörrar i ladugårdsstil, skjutdörrsbeslag med skena, skensatser för vikbara dörrar, dörrhandtag, brevlådor, paketlådor, grindbeslag och remsgardiner i klar PVC.",
+  "el-installation":
+    "Kabeldragare och dragtråd i glasfiber, kabelskalare, kabelhållare för spolar, kopplingsdosor och elskåp i rostfritt stål, värmekameror och handhållna vindmätare.",
+  elverktyg:
+    "Bandsågar, kap- och geringssåg, bandslip, kompakt träfräs, kärnborrmaskin för våtborrning, sladdlöst multiverktyg, polermaskin för bil och inspektionskameror.",
+  "farg-tapet":
+    "Luftlösa färgsprutor på stativ och vagn, HVLP-sprutpistoler, tryckbehållare för färg, lackeringstält för spraymålning, linjemålare och presenning som skyddar golvet.",
+  garageinredning:
+    "Arbetsbänkar med träskiva, lagerhyllor och förvaringsskåp i stål, garagegolv i plattor och på rulle, hållare för trädgårdsredskap och parkeringsstopp i gummi.",
+  "golv-golvverktyg":
+    "Självhäftande vinylgolv, mattplattor, golvunderlägg och dräneringsmattor, dansgolv i PVC, manuella kakelskärare och sugkoppar för att lyfta glas och granit.",
+  handverktyg:
+    "Hylsnyckelsatser, tång- och skiftnyckelsatser, tvingar, rörtänger och rörpressverktyg, gängreparationssatser, mätklockor och självnivellerande laser med grön stråle.",
+  "hantverk-somnad":
+    "Drejskivor, sybord med förvaring, knappmaskiner, muggpressar för sublimering, polermaskiner och valsverk för smycken, stansmaskiner för läder och silkscreenramar.",
+  "kompressorer-tryckluft":
+    "Luftslagnycklar i 1/2 och 1 tum, kompressorpumpar, bärbar kompressor för 12 V, sandbläster på 40 liter, pneumatisk häftpistol, luftpistol och tryckluftsledning.",
+  kontorstillbehor:
+    "Monitorarmar för en eller två skärmar, arkivskåp och dokumentsorterare, whiteboard i glas, tidskriftsställ, laminator, kambindningsmaskin och pappersgiljotin för A4.",
+  "lyft-transport":
+    "Säckkärror, plattformsvagnar och fatvagnar, kättingtelfrar och kranvågar, pallgafflar och gaffelförlängningar, panelvagnar för skivor och stocklyftare.",
+  "matforvaring-koksorganisering":
+    "Skafferiskåp, kryddhyllor och hörnkaruseller, brödlådor, ingrediensbehållare på hjul, gastronormbehållare i rostfritt stål och isolerade matbärare för catering.",
+  "pool-spa":
+    "Locklyft och trappor till spabadet, poolräcken i rostfritt stål, sandfilter, poolborstar och rengöringskit, solskydd för poolen och vattenrutschkanor för barn.",
+  pumpar:
+    "Avloppspumpar och maceratorpump för gråvatten, hydroforpump med trycktank, handpumpar i gjutjärn för brunnen, vattenpumpar för 12 V, bränslepumpar och vakuumpumpar.",
+  "staket-grindar":
+    "Svetsat trådnät och hönsnät på rulle, staketstolpar, stolpdrivare och stolpdragare, insynsskydd, säkerhetsgrind, grindbeslag, markankare och elstängselaggregat.",
+  "storkok-restaurang":
+    "Arbetsbord, diskhoar och hyllor i rostfritt stål, kylmontrar, dryckesdispensrar och slushmaskiner, grönsaksskärare, hamburgerpress och bagarställ till storköket.",
+  svetsning:
+    "MIG-svets på 200 A, punktsvetsar för batterier, svetsbord på hjul, svetsskärm med tre paneler, vinda för svetskablar, lödstation och utsug för lödrök.",
+  "takracken-lastbarare":
+    "Takräcken med lastkorg, takbox och takväskor, skidhållare med lås och lastnät till bilen, och toppboxar, sadelväskor och sidoväskor till motorcykeln.",
+  "tradgardsanlaggning-konstgras":
+    "Ogräsduk i flera bredder, rabattkanter i cortenstål, galvaniserat stål och plast, grusgaller, stigplattor, konstgräsplattor och utrullbar trädgårdsgång i cederträ.",
+  tradgardsmaskiner:
+    "Elektriska jordfräsar, gräsmatteluftare och krattor att dra efter traktorn, gräsmattevält, sladdlös häcksax, lövblås med ryggsele och sågverk för motorsåg.",
+  verkstadsmaskiner:
+    "Arborpressar och hydraulisk verkstadspress, mini-metallsvarv, glidvalsar och rullbockare för plåt, kryssbord för borr och fräs, delningshuvud och linjärskenor.",
+  verkstadsutrustning:
+    "Hylsnyckelsatser och spärrnycklar, lastramper i stål och aluminium, hjulvagnar för bil, motorcykelställ, oljesug och oljepump, fettspruta och krypstol.",
+  verktygstillbehor:
+    "Sågbockar och rullstativ, stativ till bordssåg, kärnborr och hålsågar, SDS Plus-mejslar, sågblad till multiverktyg, spännhylssatser, svarvchuckar och frässlädar.",
+  vinschar:
+    "Elvinschar för 12 V, handvinschar med rem, handdragare med spärr, talja med rep, kastblock och vinschkabel i stål, och bärgningsremmar och bärgningsbrädor.",
+  "vvs-vatten":
+    "Rörbockare och rörställ, avloppsrensare med rensspiral, diskhoar i rostfritt stål, frostfria utomhuskranar, dräneringsrännor med galler, brunnslock och hydroforpump.",
+  "vard-labb":
+    "Mikroskop från monokulära till trinokulära, precisionsvåg, pH- och TDS-mätare, destillationssats i borosilikatglas, labbvagnar, skelettmodeller och ögondusch.",
+  "varme-ventilation-ac":
+    "Infravärmare på 2 500 och 3 000 W, kanalfläktar och ventilationsslang, utsugsfläkt, tornfläkt, golvvärmefördelare, koldioxidmätare och tillbehör till dieselvärmare.",
+};
+
+/** Kategorins egen beskrivning: sökordsposten om den finns, annars ingressen. */
+export function kategoriBeskrivning(slug: string): string | undefined {
+  return CATEGORY_SEO[slug]?.description ?? CATEGORY_INGRESS[slug];
+}

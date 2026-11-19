@@ -62,14 +62,15 @@ export function WishlistDrawer() {
         </div>
         <div className="drawer-body">
           {count === 0 ? (
-            <div className="fav-tom">
-              <span className="fav-tom-ikon"><HjartIkon storlek={28} /></span>
-              <strong className="fav-tom-rubrik">{vantarPaKontot ? "Dina favoriter finns på ditt konto" : "Inga favoriter än"}</strong>
+            // Samma tomma läge som varukorgslådan (.lada-tom i globals.css).
+            <div className="lada-tom">
+              <span className="lada-tom-ikon" aria-hidden="true"><HjartIkon storlek={28} /></span>
+              <strong className="lada-tom-rubrik">{vantarPaKontot ? "Dina favoriter finns på ditt konto" : "Inga favoriter än"}</strong>
               <p>{vantarPaKontot ? "Logga in, så står de här igen." : "Tryck på hjärtat på en vara du gillar, så sparas den här."}</p>
               {vantarPaKontot ? (
-                <a className="fav-kop" href="/konto" onClick={stang}>Logga in</a>
+                <a className="lada-tom-knapp" href="/konto" onClick={stang}>Logga in</a>
               ) : (
-                <a className="fav-kop" href="/butik" onClick={stang}>Upptäck sortimentet</a>
+                <a className="lada-tom-knapp" href="/butik" onClick={stang}>Upptäck sortimentet <span aria-hidden="true">→</span></a>
               )}
             </div>
           ) : monterad ? (

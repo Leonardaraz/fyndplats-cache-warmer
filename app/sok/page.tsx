@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
-import { getProducts, MAIN_ORDER } from "../../lib/products";
+import { after } from "next/server";
+import { getProducts, katalogenLaddad, MAIN_ORDER } from "../../lib/products";
 import { forListClient } from "../../lib/list-payload";
-import { ShopBrowser } from "../../components/shopbrowser";
-import { ProductCard } from "../../components/productcard";
+import { SokVy } from "../../components/sok-vy";
+import { SokKall } from "../../components/sok-kall";
 import { populartNu } from "../../lib/sok-tom";
 import { sidhuvudsdata } from "../../lib/sidhuvud-data";
 import { populara } from "../../lib/sidhuvud-val";
 import { attachRatings } from "../../lib/review-aggregates";
-import { normalize, rankByName } from "../../lib/search";
-import { productCountLabel } from "../../lib/rating";
+import { matchaKategorier, normalize, rankaMedInfo } from "../../lib/search";
+import { plattaKategorier, type SokKategori } from "../../lib/sok-kategorier";
+import { harPris, tolkaPris } from "../../lib/sok-pris";
 
 export const metadata: Metadata = {
   title: "Sök",
@@ -21,7 +23,37 @@ export const metadata: Metadata = {
 export default async function Sok({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const { q = "" } = await searchParams;
   const term = q.trim();
-  const all = await getProducts();
+  // PRISET I SÖKNINGEN (lib/sok-pris.ts): "soffa under 2000" rankas som "soffa",
+  // och vyn visar träffarna inom priset med en knapp för alla.
+  const prisfraga = tolkaPris(term);
+  const fraga = prisfraga.fraga;
+  const pris = harPris(prisfraga) ? { max: prisfraga.max, min: prisfraga.min } : undefined;
+
+  // KATEGORIERNA SOM MATCHAR, ur menyns träd. sidhuvudsdata väntar aldrig in en
+  // kall katalog (lib/sidhuvud-data.ts), och sidhuvudet läser samma data, så
+  // det här kostar ingen egen hämtning.
+  let kategorier: SokKategori[] = [];
+  let popularaKategorier: SokKategori[] = [];
+  try {
+    const { tree } = await sidhuvudsdata();
+    if (term) kategorier = matchaKategorier(fraga, plattaKategorier(tree), 3);
+    popularaKategorier = populara(tree, MAIN_ORDER).map((c) => ({ name: c.name, slug: c.slug }));
+  } catch {
+    // hellre inga kategorier än en trasig söksida
+  }
+
+  // ☠️ VÄNTA ALDRIG PÅ EN KALL KATALOG (2026-11-19). En ny instans läser hela
+  // katalogen innan getProducts svarar: 7 617 varor, 25–28 sekunder. Två av 125
+  // provsökningar mot butiken tog 14 och 29 sekunder. Har instansen inte
+  // katalogen i minnet svarar sidan direkt, och webbläsaren söker i den
+  // CDN-cachade varulistan (components/sok-kall.tsx). Instansen läser in
+  // katalogen i bakgrunden, så nästa sökning får den varma vägen.
+  if (term && !katalogenLaddad()) {
+    after(() => getProducts().then(() => undefined, () => undefined));
+    return <SokKall kategorier={kategorier} popularaKategorier={popularaKategorier} q={q} />;
+  }
+
+  const all = term ? await getProducts() : [];
   // Tokeniserad, stam-medveten matchning (lib/search) — samma som autocomplete:
   // NAMN-träffar först, rankade på relevans-score ("knivset" → knivhållare,
   // "halsband" → kedjehalsband). Beskrivning/specs-matchning används BARA som
@@ -37,12 +69,19 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
   // de köpbara går alltid först (stabil partition, relevansordningen behålls inom
   // varje grupp) så det man faktiskt kan handla möter ögat överst.
   let results: typeof all = [];
+  let strukna: string[] = [];
+  let utan: string[] | undefined;
+  let hela: number | undefined;
   if (term) {
-    const ranked = rankByName(all, (p) => p.name, term);
-    if (ranked.length > 0) {
-      results = ranked;
-    } else {
-      const phrase = normalize(term);
+    const utfall = rankaMedInfo(all, (p) => p.name, fraga);
+    if (utfall.traffar.length > 0) {
+      results = utfall.traffar;
+      ({ strukna, utan, hela } = utfall);
+    } else if (kategorier.length === 0) {
+      // Reserven i beskrivningarna, bara när varken ett namn eller en kategori
+      // matchar. "trädgårdsmöbler" gav förut en presenning, en högtryckstvätt
+      // och en plåtbod härifrån, fast kategorin Utemöbler fanns.
+      const phrase = normalize(fraga);
       results = all.filter(
         (p) => normalize(p.blurb || "").includes(phrase) || normalize(p.specs || "").includes(phrase)
       );
@@ -53,75 +92,20 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
   // UTAN TRÄFF: samma vägar vidare som 404-sidan, och fyra varor som säljer
   // just nu (lib/sok-tom.ts). Förut var sidan en mening och en länk.
   const tom = Boolean(term) && results.length === 0;
-  let populart: typeof all = [];
-  let kategorier: { name: string; slug: string }[] = [];
-  if (tom) {
-    populart = await attachRatings(populartNu(all, 4));
-    try {
-      const { tree } = await sidhuvudsdata();
-      kategorier = populara(tree, MAIN_ORDER).map((c) => ({ name: c.name, slug: c.slug }));
-    } catch {
-      kategorier = []; // hellre ingen kategorirad än en trasig söksida
-    }
-  }
+  const populart = tom ? await attachRatings(populartNu(all, 4)) : [];
 
+  // forListClient, inte results rakt av. Product är strukturellt
+  // tilldelningsbar till ListProduct, så det HAR kompilerat — men då
+  // serialiserades hela Product-objektet in i klient-nyttolasten: gallery,
+  // imageAlts, blurb, specs, variants, descriptionHtml. Mätt på skarp sajt
+  // 2026-09-04 vägde /sok?q=bord 791 kB HTML, varav 465 kB flight-payload.
   return (
-    <>
-      {/* Rubriken står i studiobandet (.sidtopp i globals.css), som på de andra listsidorna. */}
-      <section className="sidtopp">
-        <div className="container">
-          <div className="sechead">
-            <div className="eyebrow">Sök</div>
-            <h1>{q ? `Sökresultat för “${q}”` : "Sök i butiken"}</h1>
-            <p>{q ? `${productCountLabel(results.length)} hittades` : "Skriv i sökrutan ovan för att hitta produkter."}</p>
-          </div>
-        </div>
-      </section>
-      <section className="sec">
-        <div className="container">
-          {/* forClient, inte results rakt av. Product är strukturellt
-              tilldelningsbar till ListProduct, så det HAR kompilerat — men då
-              serialiserades hela Product-objektet in i klient-nyttolasten:
-              gallery, imageAlts, blurb, specs, variants, descriptionHtml. Mätt
-              på skarp sajt 2026-09-04 vägde /sok?q=bord 791 kB HTML, varav 465 kB
-              flight-payload. Listsidorna mappade redan ner; söksidan var den enda
-              som inte gjorde det. */}
-          {/* defaultSort "rel": behåll relevansordningen ovan. Förr sorterades
-              träffarna om efter Rekommenderat (samma mix som kategorisidorna),
-              så "soffa" gav "Sidobord för soffan" på plats två och en
-              hängmatta i ett klösträd före riktiga mattor. */}
-          {results.length > 0 && <ShopBrowser products={forListClient(results)} defaultSort="rel" />}
-          {tom && (
-            <div className="sok-tom">
-              <p className="sok-tom-text">
-                Vi hittade inget på “{q}”. Prova ett kortare ord, en annan stavning eller varans typ, till exempel “fåtölj” i stället för ett märke.
-              </p>
-              <div className="nf-actions">
-                <a className="btn btn-primary" href="/butik">Se alla kategorier</a>
-                <a className="btn btn-ghost" href="/kontaktaoss">Fråga oss om varan</a>
-              </div>
-              {kategorier.length > 0 && (
-                <div className="nf-cats">
-                  <div className="nf-cats-label">Populära kategorier</div>
-                  <div className="nf-cats-row">
-                    {kategorier.map((c) => (
-                      <a key={c.slug} href={`/kategori/${c.slug}`}>{c.name}</a>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {populart.length > 0 && (
-                <div className="sok-tom-populart">
-                  <h2>Populärt just nu</h2>
-                  <div className="prodgrid listgrid">
-                    {forListClient(populart).map((p) => <ProductCard p={p} key={p.slug} tvaKolumner />)}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </section>
-    </>
+    <SokVy
+      q={q}
+      data={{
+        traffar: forListClient(results), strukna, utan, hela, kategorier, pris,
+        populart: forListClient(populart), popularaKategorier,
+      }}
+    />
   );
 }

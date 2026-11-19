@@ -46,6 +46,10 @@
 @media (max-width: 900px) {
   .layout { grid-template-columns: 1fr; gap: 28px }
   .toc { position: static }
+  /* Pekskärm: raderna var 31 px höga (mätt 2026-11-18). */
+  .toc a { padding: 12.5px 8px }
+  /* Och länkarna under "Relaterade sidor" 21 px. */
+  .relaterade a { display: inline-block; padding: 11px 0 }
   .toc ol { grid-template-columns: repeat(2, 1fr); column-gap: 20px }
 }
 @media (max-width: 640px) {
