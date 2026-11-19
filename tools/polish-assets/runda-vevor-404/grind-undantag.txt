@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (*Produktmått (L x B x H)*) har bara bokstäver och inga axelord, men specifikationen har en egen rad *Höjd* och måttbilden visar panelen som en kvadrat med höjden 1 tum, så sidan skriver kvadratens sidor utan axelord och höjden som *mm hög*

@@ -1,0 +1,4 @@
+# <kort> <skäl> — se bygg-media.py
+eab7e3c2 galleriet behåller ordningen från sammanslagningen: 1-6 är den vita färgens foton och 7-12 den svarta färgens, i samma sex skott i samma ordning; inget foto är en måttbild, så ordningen från källan hålls
+4ece7cda galleriet behåller ordningen från utkastet: sex vanliga foton och ingen måttbild
+36f71740 galleriet behåller ordningen från utkastet: sex vanliga foton och ingen måttbild
