@@ -1,0 +1,4 @@
+41e46949 roterande-bord-frasmaskin-horisontellt-vertikalt-200-mm
+d4827f21 fast-duschvagg-hardat-glas-864-x-1870-mm-mattsvart-ram
+fd70d971 kajakvagn-ballonghjul-lastkapacitet-160-kg
+cb34b532 kajakvagn-massiva-hjul-lastkapacitet-204-kg

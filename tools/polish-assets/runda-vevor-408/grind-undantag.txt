@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py måttbilden för det roterande bordet har bara siffror (265 mm på den lodräta måttlinjen, 400 mm längs basen och 105 mm på basens kortsida), så bordets mått skrivs som längd 400 mm, djup 105 mm och höjd 265 mm efter ritningen, och kajakvagnens produktmått skrivs som källans rad utan axelord
