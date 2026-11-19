@@ -1,0 +1,29 @@
+{
+ "namn": "vevor-396",
+ "rader": [
+  {
+   "kort": "9cf44bc6",
+   "pid": "9cf44bc6-608a-49e2-891e-ae6b81527002",
+   "bort": [
+    "Bil & Garage > Takräcken & lastbärare",
+    "Bil & Garage"
+   ],
+   "behall": [
+    "Sport & Fritid",
+    "Sport & Fritid > Bil & Cykel"
+   ]
+  },
+  {
+   "kort": "6a831e66",
+   "pid": "6a831e66-7e3c-4b8a-bdc5-5483106c9ea6",
+   "bort": [
+    "Sport & Fritid > Hantverk & sömnad",
+    "Sport & Fritid"
+   ],
+   "behall": [
+    "Hem & Inredning",
+    "Hem & Inredning > Förvaring & Organisering"
+   ]
+  }
+ ]
+}

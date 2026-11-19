@@ -1,0 +1,8 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+9cf44bc6 400 mm, uppfällt mått enligt måttritningen i källans bilder
+9cf44bc6 365 mm, uppfällt mått enligt måttritningen i källans bilder
+9cf44bc6 460 mm, uppfälld höjd och hopfälld längd enligt måttritningen i källans bilder
+9cf44bc6 75 mm, hopfälld höjd enligt måttritningen i källans bilder
+6a831e66 6,8 kg per låda enligt viktetiketten på lådan i källans måttbild
+76a45fd5 30 mm, tjocklek på skumplattan av EPE enligt tillbehörslistan i källans bild

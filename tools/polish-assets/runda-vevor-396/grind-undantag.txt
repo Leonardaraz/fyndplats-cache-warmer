@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger måtten som en egen rad (*Produktmått*, *Storlek på huvudfacket för bollen* eller *Produktstorlek*) och måttritningen i källans bilder anger axlarna där den gör det: handfatet skrivs som bredd × djup × höjd i den ordning ritningen visar, bowlingväskans fack och rullvagnens golvyta i källans ordning, och cykelställets uppfällda och hopfällda mått står bara i en måttritning och skrivs i dess ordning utan axelnamn
