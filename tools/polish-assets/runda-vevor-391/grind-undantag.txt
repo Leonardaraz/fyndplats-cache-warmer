@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger måtten som en egen rad (*Produktmått*) utan namn på axlarna (1800 x 900 x 430 mm, 2400 x 1200 x 290 mm, 2400 x 600 x 290 mm och 2400 x 600 x 600 mm); måtten skrivs i källans form som en egen rad

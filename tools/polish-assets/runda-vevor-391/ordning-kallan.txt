@@ -1,0 +1,5 @@
+# <kort> <skäl> — se bygg-media.py
+4850d303 källposition 3 är ett vanligt foto (bädden full av blommor, sallat, kål och örter med verktyg och handske ovanför), inte en måttbild; galleriet behåller källordningen
+4a4061bb källposition 3 är ett vanligt foto (bädden full av blommor, sallat, kål och örter med verktyg och handske ovanför), inte en måttbild; galleriet behåller källordningen
+1509efb3 källposition 3 är ett vanligt foto (bädden full av örter och blommor med stång, platta och skruv ovanför), inte en måttbild; galleriet behåller källordningen
+763ba99d källposition 3 är ett vanligt foto (bädden med handske, skruv, vingmutter och skruvmejsel ovanför), inte en måttbild; galleriet behåller källordningen
