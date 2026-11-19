@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger höjden som en egen rad (Bordsbenshöjd) utan axelord som skriptet läser, och sidan skriver höjderna som i källorna, utan axelord

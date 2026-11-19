@@ -1,0 +1,2 @@
+# <kort> <skäl> — se bygg-media.py
+bb40f93c galleriet behåller källordningen från sammanslagningarna: 1-7 är sidans egna bilder, 8-12 hör till 86,3 cm, 13 till 91,5 cm och bilden med det inbrända lastmärket (live-position 8, 50,8 cm-valets enda länkade bild, som Bilder bort inte får ta bort) läggs sist som 14; position 3 är ett vanligt foto (benet sett från sidan), inte en måttbild; inga positioner stryks
