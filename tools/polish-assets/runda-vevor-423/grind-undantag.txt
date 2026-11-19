@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py pulpeternas mått står i källans måttbilder, som ritar axlarna med pilar (bredd, djup och höjd), medan källraderna inte har några måttrader, och sidorna skriver axelorden efter bilderna
