@@ -319,3 +319,4 @@ underrubrik.
   - 30-dagarsspärren (`lib/auction/trettio-dagar.ts`)
   - Strömbrytaren och första påslaget
   - ☠️ Kön stod still 12–14/11: skyddsräcket räknade spärrens avslag (2026-11-14)
+  - Pristaket: inget fynd över 2 000 kr (`lib/auction/pristak.ts`, 2026-11-18)

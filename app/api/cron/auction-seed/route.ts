@@ -7,8 +7,8 @@
 // från sitt ordinariepris (LIVE-priset i katalogen) till sitt eget −7 %-golv
 // (ur variantens landade kostnad i FyndplatsMappings). Enkel-variant-produkter
 // blir en en-element-track. lib/auction/seed avgör kvalificering (synlig, i
-// lager, ingen befintlig rea, känd kostnad per variant, ≥10 % rabatt på minst
-// en variant) och köordning. Sedan:
+// lager, ingen befintlig rea, ingen variant över pristaket 2 000 kr, känd
+// kostnad per variant, ≥10 % rabatt på minst en variant) och köordning. Sedan:
 //
 //   • STARTADE live-auktioner rörs ALDRIG (mitt i sin auktionsdag); live-rader
 //     som väntar på nästa 07:00 får dagens pris och stege (lib/auction/seed planSeed)
@@ -250,11 +250,15 @@ export async function GET(req: NextRequest) {
       outOfStock: 0,
       noVariants: 0,
       existingSale: 0,
+      overPristak: 0,
       noCost: 0,
       thinMargin: 0,
     };
     const excludedSamples: Partial<Record<SeedRejection, string[]>> = {};
     const included: SeedCandidate[] = [];
+    // Produkter som pristaket stoppade (lib/auction/pristak.ts): de lämnar kön
+    // med ett belagt skäl, och skyddsräcket nedan räknar dem inte.
+    const takStoppade = new Set<string>();
 
     for (const row of catalog) {
       const override = overrideCost.get(row.id);
@@ -297,6 +301,7 @@ export async function GET(req: NextRequest) {
         excluded.noCost++;
         (excludedSamples.noCost ??= []).length < 20 && excludedSamples.noCost!.push(row.slug);
       } else {
+        if (verdict.reason === "overPristak") takStoppade.add(row.id);
         excluded[verdict.reason]++;
         (excludedSamples[verdict.reason] ??= []).length < 20 &&
           excludedSamples[verdict.reason]!.push(row.slug);
@@ -355,7 +360,8 @@ export async function GET(req: NextRequest) {
 
     const order = assignQueueOrder(urval);
     const { toSave, toRemove, skippedLive, refreshedLive, liveNotRefreshed } = planSeed(urval, existing, order, nuMs);
-    const forsvunna = raknaForsvunna(toRemove, sparrStoppade);
+    const forsvunna = raknaForsvunna(toRemove, new Set([...sparrStoppade, ...takStoppade]));
+    const borttagnaPristak = toRemove.filter((x) => takStoppade.has(x.productId)).length;
 
     const report: Record<string, unknown> = {
       apply,
@@ -378,7 +384,8 @@ export async function GET(req: NextRequest) {
       refreshedLive,
       liveNotRefreshed,
       removeFromQueue: toRemove.map((r) => r.slug),
-      removeFromQueueSparren: toRemove.length - forsvunna,
+      removeFromQueueSparren: toRemove.length - forsvunna - borttagnaPristak,
+      removeFromQueuePristak: borttagnaPristak,
       launchLineup: toSave
         .filter((d) => d.status === "queued" && (d.queueOrder ?? 0) <= 5)
         .sort((a, b) => a.queueOrder - b.queueOrder)
@@ -417,7 +424,7 @@ export async function GET(req: NextRequest) {
     const force = req.nextUrl.searchParams.get("force") === "1";
     if (apply && !force && forsvunna > removeLimit) {
       report.ok = false;
-      report.error = `Skulle ta bort ${forsvunna} av ${queuedBefore} köade utan spärrens skäl (gräns ${removeLimit}); inget skrevs. Granska rapporten och kör med force=1 om det stämmer.`;
+      report.error = `Skulle ta bort ${forsvunna} av ${queuedBefore} köade utan spärrens eller pristakets skäl (gräns ${removeLimit}); inget skrevs. Granska rapporten och kör med force=1 om det stämmer.`;
       return NextResponse.json(report);
     }
 

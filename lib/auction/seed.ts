@@ -11,6 +11,7 @@
 //     ett fynd med en slutsåld färg kunde visa just den färgens pris)
 //   • ingen befintlig rea (compareAtPrice satt — auktionen skulle skriva över
 //     och sedan RADERA den vid dagens slut)
+//   • ingen variant kostar mer än pristaket, 2 000 kr (lib/auction/pristak.ts)
 //   • VARJE variant har känd landad kostnad (annars kan inget golv räknas)
 //   • VISNINGSPRISET (billigaste varianten — det auktionskortet visar) faller
 //     ≥10 % till sitt golv. Att någon DYR variant faller räcker inte: 13 juli
@@ -30,6 +31,7 @@
 // NETTOPRISET. Golvet räknas ur nettokostnaden — se netSupplierCost().
 
 import { buildVariantTracks, minTrack, type AuctionDoc, type AuctionVariantTrack } from "./engine";
+import { overPristak } from "./pristak";
 
 /** Minsta rabatt (bästa variants golv vs. dess lista) för auktionsvärdhet. */
 export const MIN_AUCTION_DISCOUNT = 0.1;
@@ -49,7 +51,7 @@ export const MIN_AUCTION_DISCOUNT = 0.1;
 import { SUPPLIER_VAT_RATE, netSupplierCost } from "../import/pricing";
 export { SUPPLIER_VAT_RATE, netSupplierCost };
 
-export type SeedRejection = "hidden" | "outOfStock" | "noVariants" | "existingSale" | "noCost" | "thinMargin";
+export type SeedRejection = "hidden" | "outOfStock" | "noVariants" | "existingSale" | "overPristak" | "noCost" | "thinMargin";
 
 export interface SeedVariantInput {
   wixVariantId: string;
@@ -91,6 +93,9 @@ export function evaluateCandidate(p: SeedInput): SeedVerdict {
 
   const priced = p.variants.filter((v) => v.listPrice > 0);
   if (priced.length === 0) return { ok: false, reason: "noVariants" };
+  // Pristaket (lib/auction/pristak.ts, Leonard 2026-11-18): ingen variant får
+  // kosta mer än taket i ordinarie pris.
+  if (overPristak({ variantPrices: priced })) return { ok: false, reason: "overPristak" };
   // KRAV: varje prissatt variant måste ha en kostnad — annars kan vi inte
   // garantera dess golv, och en okänd-kostnads-variant får aldrig auktioneras.
   if (priced.some((v) => v.landedCostSek == null || v.landedCostSek <= 0)) return { ok: false, reason: "noCost" };
@@ -182,17 +187,22 @@ export interface SeedPlan {
  * startad dag rörs aldrig: priset får inte hoppa mitt i nedräkningen.
  */
 /**
- * Hur många av köns borttagningar som saknar 30-dagarsspärrens skäl: produkter
- * som försvann ur katalogläsningen eller inte längre kvalar (dold, slut, tunn
+ * Hur många av köns borttagningar som saknar ett belagt skäl: produkter som
+ * försvann ur katalogläsningen eller inte längre kvalar (dold, slut, tunn
  * marginal). Det är dem seedens skyddsräcke väger, för en trasig katalogläsning
- * tömmer kön på just det sättet. Det spärren stoppar har ett belagt skäl per
- * fynd och räknas inte (2026-11-15: 393 av 845 efter prishöjningarna 11/11).
+ * tömmer kön på just det sättet.
+ *
+ * `belagda` är de produkter som en REGEL stoppade, med ett skäl per fynd, och
+ * de räknas inte: 30-dagarsspärren (2026-11-15: 393 av 845 efter
+ * prishöjningarna 11/11, och seeden skrev ingenting tre nätter i rad) och
+ * pristaket (lib/auction/pristak.ts: 118 av 773 den natt taket infördes, och
+ * lika många nästa gång en priskörning lyfter många varor över taket).
  */
 export function raknaForsvunna(
   toRemove: readonly Pick<AuctionDoc, "productId">[],
-  sparrStoppade: ReadonlySet<string>,
+  belagda: ReadonlySet<string>,
 ): number {
-  return toRemove.filter((r) => !sparrStoppade.has(r.productId)).length;
+  return toRemove.filter((r) => !belagda.has(r.productId)).length;
 }
 
 export function planSeed(
