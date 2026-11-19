@@ -1,0 +1,4 @@
+# <kort> <skäl> — se bygg-media.py
+c37d3eb3 källposition 3 är ett vanligt foto (vagnen sedd uppifrån med nätbotten), inte en måttbild; alla bilder är foton och galleriet behåller källordningen
+66a26e5c källposition 3 är ett vanligt foto (skåpet snett framifrån), inte en måttbild; alla bilder är foton och galleriet behåller källordningen
+e8a67c71 källposition 3 är ett vanligt foto (skåpen hopsatta snett framifrån), inte en måttbild; alla bilder är foton och galleriet behåller källordningen

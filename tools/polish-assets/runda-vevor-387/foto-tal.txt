@@ -1,0 +1,3 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+c37d3eb3 4 hjul räknade på fotona: fyra hjul

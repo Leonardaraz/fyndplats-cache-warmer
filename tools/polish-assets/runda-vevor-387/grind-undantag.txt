@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger vagnens mått med bokstäverna L x B x H och skrivs med axlarna i samma ordning (längd, bredd, höjd), och väggskåpens mått anges som egna rader utan namn på axlarna: *Produktmått* (31,6 x 137,2 x 51,6 cm) och *Produktstorlek* (30,5 x 122 x 61 cm och 30,5 x 61 x 61 cm); måtten skrivs i källans form som egna rader
