@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger måtten som egna rader utan namn på axlarna: *Produktmått* (380 x 380 x 110 mm på rullbasen) och *Produktmått* 455 x 155 mm på den runda vagnen; måtten skrivs i källans form som egna rader
