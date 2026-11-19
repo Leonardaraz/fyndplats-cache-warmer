@@ -1,0 +1,5 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+dd9ace1b 2 stekspadar räknade på första fotot: en stekspade och en genomborrad stekspade
+46b6db31 2 klubbor räknade på packbilden: två klubbor
+5531d504 2 klubbor räknade på packbilden: två klubbor

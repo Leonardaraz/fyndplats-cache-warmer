@@ -1,0 +1,4 @@
+# <kort> <skäl> — se bygg-media.py
+dd9ace1b källposition 3 är ett vanligt foto (stekplattan på 610 x 365 mm sedd snett uppifrån), inte en måttbild; galleriet behåller källordningen
+46b6db31 källposition 3 är ett vanligt foto (packbilden med trumman, påsen, fingerplektrum, nottejp, stöd, klubbor och notbok), inte en måttbild; galleriet behåller källordningen
+5531d504 källposition 3 är ett vanligt foto (packbilden med trumman, bärväskan, fingerplektrum, nottejp, stöd, klubbor och notbok), inte en måttbild; galleriet behåller källordningen

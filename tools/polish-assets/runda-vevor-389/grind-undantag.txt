@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger måtten som egna rader utan namn på axlarna: *Tillagningsyta* och *Produktmått* (610 x 365 mm och 610 x 406 x 90 mm respektive 630 x 365 mm och 635 x 406 x 90 mm på stekplattan), *Produktmått* (165 x 165 x 65 mm på D-dur-trumman) och *Artikelmått* (254 x 254 x 130 mm på C-dur-trumman); måtten skrivs i källans form som egna rader
