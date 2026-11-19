@@ -1,0 +1,87 @@
+{
+  "041b9663": {
+    "productId": "041b9663-45be-4b4a-b420-13d2b39dc102",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "2863e7b8": {
+    "productId": "2863e7b8-9fc9-4272-87eb-fb28b4cb9295",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1bfwm95",
+        "betyg": 5,
+        "datum": "2026-10-02",
+        "foton": 0,
+        "text": "Achat de septembre 2026 conforme aux besoins attendus."
+      },
+      {
+        "id": "gen-1svgiln",
+        "betyg": 4,
+        "datum": "2026-02-08",
+        "foton": 0,
+        "text": "Bonjour, pas encore déballer alors difficile de noter!"
+      }
+    ]
+  },
+  "94cd649a": {
+    "productId": "94cd649a-e921-4e06-93d2-daaa858c36f1",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "c01d7744": {
+    "productId": "c01d7744-2dd4-4d36-b20a-27418d768a8d",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-3ztbbl",
+        "betyg": 4,
+        "datum": "2026-02-14",
+        "foton": 0,
+        "text": "La pompe je l’ai reçu rapidement, monte depuis presque 2 mois sur une micro pelle, remplace l’ancienne parfaitement, la machine n’est pas utilisée à un usage intensif."
+      }
+    ]
+  },
+  "20a1c06d": {
+    "productId": "20a1c06d-780a-46d6-bd34-b3f2d9ff37c0",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-hc131t",
+        "betyg": 5,
+        "datum": "2026-10-29",
+        "foton": 0,
+        "text": "Buena Amoladora, motor silencioso y robusto"
+      }
+    ]
+  },
+  "85d93d55": {
+    "productId": "85d93d55-f253-41ed-897a-7a8f5972f128",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  }
+}
