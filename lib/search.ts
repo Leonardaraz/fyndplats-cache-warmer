@@ -560,6 +560,21 @@ const utanBindestreck = (n: string): string => (n.includes("-") ? n.replace(/([a
 // här gäller det ordet i en sökning med flera ("svart tvbänk" gav sittbänkar
 // 2026-11-19, för stavfelsledet låg ett fel från "sittbänk"). Samma villkor
 // som där: "topp" är inte "top-p…" i "Hardtop-paviljong".
+/** Över ordet utanför huvuddelen (90), under ordet i huvuddelen (100). */
+const ENVAGS_I_HUVUDDELEN = 92;
+
+/**
+ * Står något av det envägsordet pekar på i texten? BARA `ENVAGS`, inte
+ * synonymgrupperna: prövat på båda 2026-11-19 ändrades ordningen i 210 av
+ * 4 443 sökningar ("bokhylla", "cykel", "barstol"), och där är ordet i namnet
+ * oftast rätt vara. Ett envägsord är kundens ord för varor som heter något
+ * annat, så ordet i ett namn är oftast ett tillbehör.
+ */
+function envagsI(unit: Unit, text: string): boolean {
+  for (const nd of ENVAGS_NALAR.get(unit.key) ?? []) if (text.includes(nd)) return true;
+  return false;
+}
+
 function tokenQuality(unit: Unit, nameNorm: string, lage: Lage, namnVikt: string, stavfelOk = true, fogat = ""): Ordtraff {
   const { stem: s, key } = unit;
   if (unit.helord) return starSomOrd(nameNorm, s) ? HEL : INGEN;
@@ -751,6 +766,14 @@ function matchPrepared(
     if (t.qual === 1) kanter = Math.min(kanter, kant(nameNorm, u.stem));
   }
   if (sum === 0) return none;
+  // ETT ENVÄGSORD, OCH VARAN HETER NÅGOT ANNAT (2026-11-19). "utemöbler" gav
+  // tre skyddsöverdrag "för utemöbler" före varenda trädgårdsbord och
+  // loungegrupp: ordet i namnet gav 90 och envägsträffen 51. Står varans typ
+  // i namnets HUVUDDEL (före "för", "med", "till", komma och tankstreck) är
+  // varan det kunden söker, och den går före ett tillbehör som nämner ordet.
+  if (units.length === 1 && sum === SYNONYM.qual && envagsI(units[0], mainPart(nameNorm))) {
+    return { score: ENVAGS_I_HUVUDDELEN, full: true, kant: 2, mask };
+  }
   // Perfekt täckning (alla exakta) → 60, samma tak som förr. Synonym-/stavfel-
   // tokens bidrar <1 så de landar strax under en likvärdig exakt träff.
   const m: NameMatch = { score: Math.max(1, Math.round((sum / units.length) * 60)), full: hit === units.length, stavfel: fel > 0, kant: kanter, mask };

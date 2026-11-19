@@ -199,8 +199,19 @@ test('kategoriord ger varor som hör dit: "trädgårdsmöbler" gav en presenning
   const namn = ["Trädgårdsbord Ø 80 cm", "Loungegrupp i konstrotting", "Bistroset i vitt stål", "Skyddsöverdrag för utemöbler 135 × 135 cm", "Presenning 6 × 4 m"];
   assert.equal(sok(namn, "trädgårdsmöbler").length, 4);
   assert.equal(sok(namn, "utemöbler").length, 4);
-  // Den som har ordet i namnet först.
-  assert.equal(sok(namn, "utemöbler")[0], namn[3]);
+});
+
+test('☠️ möblerna går före tillbehöret som bara nämner ordet: "utemöbler" gav tre skyddsöverdrag först', () => {
+  const namn = [
+    "Skyddsöverdrag för utemöbler 135 × 135 cm", "Trädgårdsbord Ø 80 cm", "Loungegrupp i konstrotting",
+    "Stapelbara utemöbler 7 delar – bord och sex stolar", "Parasoll till trädgårdsbord, 3 m",
+  ];
+  // Ordet i namnets huvuddel, sedan varor av rätt typ, sedan tillbehören.
+  assert.deepEqual(sok(namn, "utemöbler"), [namn[3], namn[1], namn[2], namn[0], namn[4]]);
+  assert.equal(nameScore(namn[1], "utemöbler"), 92);
+  assert.equal(nameScore(namn[0], "utemöbler"), 90);
+  // Synonymgrupperna rörs inte: ordet i namnet går fortfarande före synonymen.
+  assert.ok(nameScore("Skydd för soptunna", "soptunna") > nameScore("Pedalhink 12 liter", "soptunna"));
 });
 
 test('ett sökord skrivet ihop träffar över bindestrecket, också bredvid andra ord', () => {
@@ -273,4 +284,45 @@ test("plattaKategorier: avdelningarna först, sedan delarna, och en slug bara en
   ];
   assert.deepEqual(plattaKategorier(trad).map((k) => k.slug), ["mobler", "tradgard", "soffor", "utemobler"]);
   assert.equal(rentNamn("Trädgårds­möbler"), "Trädgårdsmöbler");
+});
+
+// ── Den kalla vägen: samma varor som servern söker i (lib/sok-kall.ts) ──────
+test("☠️ den kalla vägen söker också bland de slutsålda: varulistan har bara det som går att köpa", async () => {
+  const { kandidater, kortUrIndex } = await import("./sok-kall.ts");
+  const lista = [
+    { id: "a", slug: "tv-bank-valnot", name: "TV-bänk i valnöt 160 cm", price: "1 599 kr", priceNum: 1599, inStock: true },
+    { id: "b", slug: "sittbank", name: "Sittbänk 120 cm", price: "899 kr", priceNum: 899, inStock: true },
+  ];
+  const index = [
+    { n: "TV-bänk i valnöt 160 cm", s: "tv-bank-valnot", i: "a.jpg", p: "1 599 kr" },
+    { n: "Svart TV-bänk på hjul", s: "tv-bank-svart", i: "b.jpg", p: "Från 1 259 kr", o: 1 as const },
+    { n: "Sittbänk 120 cm", s: "sittbank", i: "c.jpg", p: "899 kr", o: 1 as const }, // står redan i listan: listan vinner
+    { n: "Hylla utan märke", s: "hylla", i: "d.jpg", p: "499 kr" },                // köpbar men inte i listan: läggs inte till
+  ];
+  const alla = kandidater(lista, index);
+  assert.deepEqual(alla.map((p) => p.slug), ["tv-bank-valnot", "sittbank", "tv-bank-svart"]);
+  // Med den slutsålda med har ett namn alla sökord, så "svart" stryks inte.
+  const r = rankaMedInfo(alla, (p) => p.name, "svart tv-bänk");
+  assert.deepEqual(r.strukna, []);
+  assert.equal(r.hela, 1);
+  // Utan index: bara det som går att köpa, och då stryks ordet.
+  assert.deepEqual(kandidater(lista, null).map((p) => p.slug), ["tv-bank-valnot", "sittbank"]);
+  assert.deepEqual(rankaMedInfo(kandidater(lista, null), (p) => p.name, "svart tv-bänk").strukna, ["svart"]);
+
+  // Kortet ritar samma pristext som indexet bär (components/productcard.tsx).
+  assert.deepEqual(kortUrIndex(index[1]), {
+    id: "", slug: "tv-bank-svart", name: "Svart TV-bänk på hjul", price: "1 259 kr", priceNum: 1259, inStock: false,
+    img: "b.jpg", hasRange: true, priceFrom: "1 259 kr", priceFromNum: 1259,
+  });
+  const utanFoto = kortUrIndex({ n: "Pall", s: "pall", i: "", p: "12 999 kr", o: 1 });
+  assert.equal(utanFoto.priceNum, 12999);
+  assert.equal("img" in utanFoto, false);
+  assert.equal(utanFoto.hasRange, undefined);
+});
+
+test("söksidans kalla väg lägger till de slutsålda ur sökindexet", async () => {
+  const { readFileSync } = await import("node:fs");
+  const kalla = readFileSync(new URL("../components/sok-kall.tsx", import.meta.url), "utf8");
+  assert.match(kalla, /kandidater\(lista, slutsalda\)/);
+  assert.match(kalla, /laddaSokIndex\(\)/);
 });

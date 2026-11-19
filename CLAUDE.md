@@ -3263,12 +3263,12 @@ Stavningen höll redan (avsnittet ovan). Det här gick fel, och är ändrat:
 
 | Sökning på live 2026-11-19 | Svar då | Svar nu |
 |---|---|---|
-| svart tv-bänk | diskbänkslåda, trädgårdsbänk, picknickset, och en tv-bänk på plats fem | 21 tv-bänkar, den svarta först bland de köpbara |
+| svart tv-bänk | diskbänkslåda, trädgårdsbänk, picknickset, och en tv-bänk på plats fem | 21 tv-bänkar, med beskedet att en har "svart" i namnet (den är slutsåld och står sist) |
 | hundbur xl | en hundbädd i XL och en hundtrappa | 19 hundburar, med beskedet att "xl" ströks |
 | länstol | ett barnbord med molnstolar | 294 fåtöljer |
 | papperskorg | två barnstafflier | 61 soptunnor och pedalhinkar |
 | pallkrage | ingenting | 61 odlingslådor |
-| utemöbler | åtta varor, två av de tre första skyddsöverdrag | 89 varor, och kategorin Utemöbler ovanför |
+| utemöbler | åtta varor, två av de tre första skyddsöverdrag | 89 varor med möblerna först och överdragen efter, och kategorin Utemöbler ovanför |
 | trädgårdsmöbler | presenning, högtryckstvätt och plåtbod (ur beskrivningarna) | samma 89, och kategorierna Utemöbler och Trädgård |
 | pulka | nio tomtar med polkagris | ingenting, ärligt |
 | aosom | nio varor med ordet "som" | ingenting |
@@ -3313,6 +3313,14 @@ ovan):
    och "eldfat" hade blivit "eldf", som står i "eldfast". **Pröva varje ny nål
    mot katalogens namn** innan den läggs in: hur många namn den står i, och om
    något av dem är ett annat ord.
+8. **Ett envägsord: varan före tillbehöret** (`ENVAGS_I_HUVUDDELEN`, 92).
+   "utemöbler" gav ett möblemang och sedan tre skyddsöverdrag "för utemöbler":
+   ordet i namnet gav 90 och envägsträffen 51. Står varans typ i namnets
+   huvuddel (före "för", "med", "till", komma och tankstreck) går den före
+   ett namn som bara nämner ordet. ☠️ Bara `ENVAGS`, inte synonymgrupperna:
+   prövat på båda ändrades ordningen i 210 av 4 443 sökningar ("bokhylla",
+   "cykel", "barstol"), och där är ordet i namnet oftast rätt vara. Med bara
+   envägsorden ändrades 1 ("utemöbler").
 
 **Kategorier i förslagen och på söksidan** (`kategoriPoang`, `matchaKategorier`
 i `lib/search.ts`, `lib/sok-kategorier.ts`). Kategorinamnen står i plural, och
@@ -3342,6 +3350,23 @@ De två vägarna ritar samma vy (`components/sok-vy.tsx`). Skillnaden: den kalla
 vägen har inte reserven som letar i beskrivningarna, för den texten finns inte
 i listan. Reserven används numera bara när varken ett namn eller en kategori
 matchar.
+
+☠️ **Varulistan har bara det som går att köpa, och söksidan visar också det
+slutsålda** (`lib/sok-kall.ts`). Första bygget sökte bara i varulistan, och
+provet i webbläsaren visade skillnaden mot servern: "svart tv-bänk" 18 mot
+21, "länstol" 250 mot 294, "utemöbler" 69 mot 89. Den enda tv-bänken med
+"svart" i namnet var slutsåld, så den kalla vägen strök dessutom ordet och gav
+ett annat besked. Nu läggs de slutsålda till ur sökindexet (`kandidater`,
+`kortUrIndex`), som har namn, adress, foto, pris och märket `o`. Faller
+indexet, eller dröjer det mer än fem sekunder efter listan, visas det som går
+att köpa. **Jämför alltid de två vägarnas antal** när något i dem ändras.
+
+☠️ **Den kalla vägen går inte att prova på en förhandsvisning eller lokalt
+utan vidare.** Sidhuvudet läser den färdiga menyn (`sidhuvudsdata`), och den
+skrivs av `/api/cron/meny`, som bara går i produktion. Utan färdig meny bygger
+sidhuvudet menyn ur katalogen och väntar in den, och då är katalogen redan
+laddad när söksidan frågar. Provet 2026-11-19 gjordes mot ett lokalt bygge
+där villkoret i `app/sok/page.tsx` var framtvingat (aldrig committat).
 
 Mät en sökändring med `scripts/sok-jamfor.mjs` som förut. Den här gången
 ändrades 369 av 4 443 sökningar ur katalogen: synonymerna, påfyllningen efter
