@@ -97,6 +97,22 @@ def ar_mattbild(alt):
     return re.match(r"\s*(Måttbild|Måttskiss|Måttritning)\b", alt, re.I) is not None
 
 
+# ☠️ KÄLLORDNINGEN BEHÅLLS när position 3 inte är en måttbild (runda vevor-384, 2026-11-19). Utan en alt-text som börjar på
+# Måttbild/Måttskiss/Måttritning gäller den gamla regeln "källposition 3 sist". På en sammanslagen möbelsida är position 3 ett
+# vanligt foto (bänken med locket lyft åt sidan): skrivningen flyttade det sist i galleriet, efter de andra färgernas bilder,
+# och ingen grind sa något, eftersom planen redan hade den ordningen. Valfri fil i rundans katalog:
+#   ordning-kallan.txt   "kort  skäl"  — de produkterna sorteras på källposition, ingen bild flyttas sist. Skälet är obligatoriskt.
+behall = {}
+if os.path.exists("ordning-kallan.txt"):
+    for r in open("ordning-kallan.txt", encoding="utf-8"):
+        if r.strip() and not r.lstrip().startswith("#"):
+            d = r.rstrip("\n").split(None, 1)
+            if len(d) == 2 and d[1].strip():
+                behall[d[0]] = d[1].strip()
+            else:
+                print(f"ordning-kallan.txt: raden {r.strip()!r} saknar skäl")
+                sys.exit(1)
+
 ut = collections.OrderedDict()
 for kort, rader in vis.items():
     # ☠️ MÅTTBILDEN SIST — avgjord på alt-texten, inte på position 3 (2026-10-21). Regeln "källposition 3 sist" stämmer
@@ -104,7 +120,10 @@ for kort, rader in vis.items():
     # närbild på ett rör hamnade sist och måttbilden mitt i galleriet. Finns ingen alt-text som börjar på Måttbild/
     # Måttskiss/Måttritning gäller den gamla regeln (position 3), så äldre rundor bygger som förut.
     har_matt = any(ar_mattbild(a) for _, _, a in rader)
-    rader.sort(key=lambda t: ((ar_mattbild(t[2]) if har_matt else t[0] == "3"), int(t[0])))   # måttbilden sist
+    if kort in behall and not har_matt:
+        rader.sort(key=lambda t: int(t[0]))   # källordningen, med skäl i ordning-kallan.txt
+    else:
+        rader.sort(key=lambda t: ((ar_mattbild(t[2]) if har_matt else t[0] == "3"), int(t[0])))   # måttbilden sist
     ut[kort] = [{"id": f, "altText": a} for _, f, a in rader]
 
 json.dump(ut, open("nyttolast-media.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)

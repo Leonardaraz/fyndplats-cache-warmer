@@ -1,0 +1,2 @@
+# <kort> <skäl> — se bygg-media.py
+0f83fb74 källposition 3 är ett vanligt foto (skärmen visar ett bergslandskap), inte en måttbild; alla tolv bilder är foton och galleriet behåller källordningen
