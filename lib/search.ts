@@ -597,7 +597,9 @@ const arEgenskap = (tok: string): boolean =>
 // "elektrisk", "vägghängd", "justerad", "sladdlös". Känns igen på ändelsen.
 // Bara för valet av vilka sökord som stryks (rankaMedInfo).
 const BESKRIVNING = /(?:bar|bart|bara|ande|ende|isk|iskt|iska|lig|ligt|liga|ig|igt|iga|hängd|hängt|hängda|erad|erat|erade|formad|formade|klädd|klätt|klädda|fri|fritt|fria|lös|löst|lösa)$/;
-const arBeskrivning = (tok: string): boolean => tok.length >= 6 && BESKRIVNING.test(tok);
+// Inte varorna som råkar sluta likadant: en bardisk är ingen "-isk", och en
+// kaffebar ingen "-bar" (BARER).
+const arBeskrivning = (tok: string): boolean => tok.length >= 6 && BESKRIVNING.test(tok) && !tok.endsWith("disk") && !BARER.includes(tok);
 
 // Namnet med bindestrecken inne i ord borttagna: "tv-bänkar" blir "tvbänkar".
 // Bara för kategorinamnen (kategoriPoang); i varunamnen går samma sak genom

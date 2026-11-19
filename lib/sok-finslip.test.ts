@@ -228,6 +228,9 @@ test("strykval: orden som säger mest om varan blir kvar", () => {
   assert.deepEqual(pall.strukna, ["ihopfällbar"]);
   assert.deepEqual(pall.traffar.sort(), ["Stegpall av stål", "Stegpall med ledstång"]);
   assert.deepEqual(utfall(VARMARE, "klädhängare golvstående").traffar, ["Klädhängare i bambu"]);
+  // En bardisk är en vara, fast ordet slutar som "elektrisk".
+  const disk = ["Hopfällbar bardisk med hylla", "Svart soffa", "Svart byrå", "Svart hylla", "Svart stol"];
+  assert.deepEqual(utfall(disk, "svart bardisk").traffar, ["Hopfällbar bardisk med hylla"]);
   // Ett mycket ovanligare ord vinner över sökningens första.
   const brandbil = utfall(VARMARE, "elbil brandbil barn");
   assert.deepEqual(brandbil.traffar, ["Elektrisk brandbil för barn 3–5 år"]);
