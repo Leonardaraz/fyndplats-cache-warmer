@@ -1,0 +1,21 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "15d17194": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "179a697d": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Infällbar vikgrind: Vikgrinden har en struktur med infällbar bredd. Maximal storlek utfälld: 104 x 147 cm (B x H). Minsta bredd i vikt: 14,5 cm. Denna standardstorlek passar säkerhetsdörrar, skyddande barrikadgrindar och försvarsanläggningar. | Source disagreement (runbook step 4, rules 3 and 4): the first bullet gives the maximum size unfolded as 104 x 147 cm (W x H) and the minimum folded width as 14,5 cm, while the specification and the dimension picture (43,31 in / 1100 mm and 51,57 in / 1310 mm) give 1100 x 1310 mm and the picture gives the folded width as 5,51 in / 140 mm; the dimension drawing decides the geometry, so the page writes 1100 x 1310 mm and 140 mm and nothing from the bullet (question to Leonard)"
+ },
+ "375af3a8": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Infällbar vikgrind: Vikgrinden har en struktur med infällbar bredd. Maximal storlek utfälld: 340 x 150 cm (B x H). Minsta bredd ihopfälld: 15 cm. Denna standardstorlek passar säkerhetsdörrar, skyddande barrikadgrindar och försvarsanläggningar. | Source disagreement (runbook step 4, rules 3 and 4): the first bullet gives the maximum size unfolded as 340 x 150 cm (W x H) and the minimum folded width as 15 cm, while the specification, the title of the dimension picture (129,92 in / 3300 mm and 63,19 in / 1605 mm) and the door dimensions row give 3300 x 1605 mm, and the picture gives the folded width as 6,3 in / 160 mm; the dimension drawing decides the geometry, so the page writes 3300 x 1605 mm and 160 mm and nothing from the bullet; the difference is a question to Leonard"
+ },
+ "5a2591d7": {
+  "tyska": "",
+  "svenska": ""
+ }
+}

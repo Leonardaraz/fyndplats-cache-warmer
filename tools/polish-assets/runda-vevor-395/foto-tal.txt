@@ -1,0 +1,4 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+5a2591d7 8 expanderbultar räknade på tredje fotot och enligt monteringsbilden i källans bilder
+5a2591d7 5,5 kg vikt enligt tabellen i källans bild (12,1 lb)

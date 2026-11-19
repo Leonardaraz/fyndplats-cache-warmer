@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger måtten som en egen rad (*Dörrmått*, *Produktmått* eller *Produktstorlek*) och måttritningen i källans bilder anger axlarna: sidorna skriver dem som bredd × höjd (grindarna) och längd × bredd × höjd (power racken) i den ordning ritningen visar, och trappräckets mått i källans form som längd × höjd

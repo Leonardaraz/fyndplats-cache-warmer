@@ -1,0 +1,5 @@
+# <kort> <skäl> — se bygg-media.py
+375af3a8 källposition 3 är ett vanligt foto (dubbeldörrsgrinden rakt framifrån), inte en måttbild; galleriet behåller källordningen
+179a697d källposition 3 är ett vanligt foto (grinden rakt framifrån), inte en måttbild; galleriet behåller källordningen
+5a2591d7 källposition 2 stryks (samma foto som position 3 men utan expanderbultarna); källposition 3 är ett vanligt foto (trappan med ledstången och åtta expanderbultar), inte en måttbild; övriga positioner behåller källordningen
+15d17194 källposition 3 är ett vanligt foto (en man som gör knäböj i ställningen), inte en måttbild; galleriet behåller källordningen
