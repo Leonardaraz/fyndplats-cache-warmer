@@ -1,87 +1,56 @@
 {
-  "e8141884": {
-    "productId": "e8141884-e4ac-49fe-8dcc-97d27dcaa984",
-    "synliga": 0,
-    "dolda": 0,
-    "kundVantar": 0,
-    "annanArtikel": 0,
-    "okandArtikel": 1,
-    "attBesluta": [
-      {
-        "id": "gen-x86t8u",
-        "betyg": 5,
-        "datum": "2026-05-05",
-        "foton": 0,
-        "text": "RESISTENTE, SÓLIDO Y MUY SENCILLO DE MONTAR. MUY CONTENTO"
-      },
-      {
-        "id": "gen-tthwxj",
-        "betyg": 5,
-        "datum": "2026-04-29",
-        "foton": 0,
-        "text": "Exactly what I need it. Easy to install and it allows me to storage all cleaning and laundry products without having to mount wall shelves and being scare they might fall down with the weight. Nice if you rent so you don't have to mess with them walls. If you have a laundry closet (like me), be mainful of assemble it inside the closet or make sure it clears the door dimensions if you rather assembling it outaide and them bri g it in. I had to take it partially apart to bring it inside the closet and put it back together again inside. Also, I have a stepper storaged next to the washer so I can reach things from the top shelves (I am 5'2\")."
-      },
-      {
-        "id": "gen-fneikg",
-        "betyg": 5,
-        "datum": "2026-04-21",
-        "foton": 0,
-        "text": "Great item. Looks complex to construct but really easy."
-      },
-      {
-        "id": "gen-tb04pk",
-        "betyg": 5,
-        "datum": "2025-08-06",
-        "foton": 0,
-        "text": "Sturdy versatile easy to assemble. Would recommend."
-      },
-      {
-        "id": "gen-uynmb3",
-        "betyg": 4,
-        "datum": "2025-07-02",
-        "foton": 0,
-        "text": "The item is well designed and painted, but it is light duty, from the thin narrow poles to the wire shelves, to the hanging bar. This is a barely adequate shelving system for the laundry area, with light storage requirements. It's priced accordingly."
-      }
-    ]
-  },
-  "b1dfe849": {
-    "productId": "b1dfe849-6eb4-446e-b2dd-ad31d8c10868",
-    "synliga": 0,
-    "dolda": 4,
-    "kundVantar": 0,
-    "annanArtikel": 0,
-    "okandArtikel": 1,
-    "attBesluta": []
-  },
-  "b08012c7": {
-    "productId": "b08012c7-0489-44ef-b3d2-2780553c6464",
-    "synliga": 0,
-    "dolda": 5,
-    "kundVantar": 0,
-    "annanArtikel": 0,
-    "okandArtikel": 0,
-    "attBesluta": [
-      {
-        "id": "gen-1i6cemq",
-        "betyg": 5,
-        "datum": "2026-08-25",
-        "foton": 0,
-        "text": "Chassis correct, les dimensions sont correctes, petit bémol problème de fermeture du sac de transport, je penses que je vais devoir déposer les quatre angles pour sécuriser la pose de panneaux sur le châssis. sinon rien à redire"
-      },
-      {
-        "id": "gen-epcwn5",
-        "betyg": 5,
-        "datum": "2026-08-08",
-        "foton": 0,
-        "text": "This is the 3rd one I have bought, went with the taller one this time, for my taller workers,they love it as much as us short guys, great price and great quality"
-      },
-      {
-        "id": "gen-162ovp9",
-        "betyg": 5,
-        "datum": "2026-03-30",
-        "foton": 0,
-        "text": "Copie du bora Centipede qui n'a rien n'a envier à l'original, hyper stable et très robuste, on peut monter dessus sans problème"
-      }
-    ]
-  }
+ "e8141884": {
+  "productId": "e8141884-e4ac-49fe-8dcc-97d27dcaa984",
+  "synliga": 0,
+  "dolda": 0,
+  "kundVantar": 0,
+  "annanArtikel": 0,
+  "okandArtikel": 1,
+  "attBesluta": [
+   {
+    "id": "gen-x86t8u",
+    "betyg": 5,
+    "datum": "2026-05-05",
+    "foton": 0,
+    "text": "RESISTENTE, SÓLIDO Y MUY SENCILLO DE MONTAR. MUY CONTENTO"
+   },
+   {
+    "id": "gen-tthwxj",
+    "betyg": 5,
+    "datum": "2026-04-29",
+    "foton": 0,
+    "text": "Exactly what I need it. Easy to install and it allows me to storage all cleaning and laundry products without having to mount wall shelves and being scare they might fall down with the weight. Nice if you rent so you don't have to mess with them walls. If you have a laundry closet (like me), be mainful of assemble it inside the closet or make sure it clears the door dimensions if you rather assembling it outaide and them bri g it in. I had to take it partially apart to bring it inside the closet and put it back together again inside. Also, I have a stepper storaged next to the washer so I can reach things from the top shelves (I am 5'2\")."
+   },
+   {
+    "id": "gen-fneikg",
+    "betyg": 5,
+    "datum": "2026-04-21",
+    "foton": 0,
+    "text": "Great item. Looks complex to construct but really easy."
+   },
+   {
+    "id": "gen-tb04pk",
+    "betyg": 5,
+    "datum": "2025-08-06",
+    "foton": 0,
+    "text": "Sturdy versatile easy to assemble. Would recommend."
+   },
+   {
+    "id": "gen-uynmb3",
+    "betyg": 4,
+    "datum": "2025-07-02",
+    "foton": 0,
+    "text": "The item is well designed and painted, but it is light duty, from the thin narrow poles to the wire shelves, to the hanging bar. This is a barely adequate shelving system for the laundry area, with light storage requirements. It's priced accordingly."
+   }
+  ]
+ },
+ "b1dfe849": {
+  "productId": "b1dfe849-6eb4-446e-b2dd-ad31d8c10868",
+  "synliga": 0,
+  "dolda": 4,
+  "kundVantar": 0,
+  "annanArtikel": 0,
+  "okandArtikel": 1,
+  "attBesluta": []
+ }
 }
