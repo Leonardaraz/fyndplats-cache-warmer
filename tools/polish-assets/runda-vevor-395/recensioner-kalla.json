@@ -1,0 +1,104 @@
+{
+  "375af3a8": {
+    "productId": "375af3a8-8022-46bb-b3bb-beca91eb6cf1",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 3,
+    "attBesluta": []
+  },
+  "179a697d": {
+    "productId": "179a697d-2f2f-4754-9791-d37506cfdaa1",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": []
+  },
+  "5a2591d7": {
+    "productId": "5a2591d7-cdd7-43d1-9362-f81bb565cce2",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": [
+      {
+        "id": "gen-1rtq309",
+        "betyg": 5,
+        "datum": "2026-10-07",
+        "foton": 0,
+        "text": "Perfecto y viene con todos los herrajes para la instalación, incluso la broca para hacer los agujeros. Un 10 en la entrega y el producto."
+      },
+      {
+        "id": "gen-189ofmt",
+        "betyg": 5,
+        "datum": "2026-09-18",
+        "foton": 1,
+        "text": "I need an aluminum handrail. They were a third price of everybody else that I was looking at so I got it. It came fast. It's just what I need. It's not high end but it does the job and look great"
+      },
+      {
+        "id": "gen-70l39z",
+        "betyg": 5,
+        "datum": "2026-08-07",
+        "foton": 2,
+        "text": "Pose d'une rampe de chaque côté de la sortie du sous-sol pour faciliter la montée et la descente à pied. La rampe n'étant pas fixée sur une marche horizontale, la difficulté était d'entamer la pente afin de créer un socle horizontal."
+      },
+      {
+        "id": "gen-16h6oc5",
+        "betyg": 4,
+        "datum": "2026-08-09",
+        "foton": 0,
+        "text": "Would need more anchoring holes to adjust for length."
+      }
+    ]
+  },
+  "15d17194": {
+    "productId": "15d17194-c0b5-4c22-8fbb-3e53d11aa3a0",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-cayve1",
+        "betyg": 5,
+        "datum": "2026-10-07",
+        "foton": 0,
+        "text": "Fantastic bang for your buck. Works well and has been stable even for heavier squats. The J-hooks could be a lower profile, but for the price its hard to have any issues with it"
+      },
+      {
+        "id": "gen-u9qrzt",
+        "betyg": 5,
+        "datum": "2026-09-14",
+        "foton": 0,
+        "text": "Really impressed with the quality and easy of assembly of this cage. It is strong and sturdy, the hooks are well made and don't wobble at all."
+      },
+      {
+        "id": "gen-1swf3ou",
+        "betyg": 5,
+        "datum": "2026-08-02",
+        "foton": 0,
+        "text": "For the money you can’t beat the deal. Only complaint is the rubber comes off easy on some of the items but easy replaceable if needed"
+      },
+      {
+        "id": "gen-aol9nd",
+        "betyg": 5,
+        "datum": "2026-01-20",
+        "foton": 0,
+        "text": "It has multiple functions, provides excellent stability with its legs, and is all you need for home fitness!"
+      },
+      {
+        "id": "gen-1qw8h3u",
+        "betyg": 3,
+        "datum": "2026-05-18",
+        "foton": 0,
+        "namn": true,
+        "text": "The packaging was all torn and taped when we received the rack. We think that while it was being delivered and en route, some of the materials (nuts, bolts, and washers) either fell out of the box or were never in there. Please send us the materials needed to finish assembling the ‹NAMN› rack. Thank You!"
+      }
+    ]
+  }
+}
