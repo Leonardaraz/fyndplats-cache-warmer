@@ -268,7 +268,10 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 /* Slutsåld-etikett i sökförslagen: grå (samma familj som kortens .oos-badge),
    aldrig röd — rött läser som REA i den här butiken. 4.6:1 mot vitt. */
 .sugg-oos{display:inline-block;margin-left:7px;padding:1px 6px;border-radius:var(--r-xs);background:#EDEFF2;color:#52606D;font-size:var(--text-xs);font-weight:700;letter-spacing:.02em;vertical-align:1px}
-.sugg-all{display:block;width:100%;text-align:left;padding:12px;margin-top:4px;border-top:1px solid var(--line);font-size:var(--text-xs);font-weight:700;color:var(--ink);background:#fff;cursor:pointer;position:sticky;bottom:-6px;border-radius:0 0 10px 10px}
+/* border:0 först: knappen bar webbläsarens egen ram på sidorna och i nederkanten
+   (butiken har ingen gemensam nollställning av knappar), synlig som en mörk
+   båge runt "Visa alla resultat" i varje skärmbild av panelen. */
+.sugg-all{display:block;width:100%;text-align:left;padding:12px;margin-top:4px;border:0;border-top:1px solid var(--line);font-size:var(--text-xs);font-weight:700;color:var(--ink);background:#fff;cursor:pointer;position:sticky;bottom:-6px;border-radius:0 0 10px 10px}
 .sugg-all:hover{color:var(--brand)}
 .sugg-empty{padding:18px 12px;font-size:var(--text-sm);color:var(--soft);text-align:center}
 .sugg-head{padding:8px 10px 6px;font-size:var(--text-xs);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
@@ -294,6 +297,10 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .sugg-chip-sok svg{flex:none;color:var(--soft)}
 .sugg-chip-sok b{font-weight:800}
 .sugg-chip-sok:hover,.sugg-chip-sok:focus-visible{background:#fff}
+/* Förslaget vars varor listan visar ("få" → fåtölj), och raden som ber om fler bokstäver. */
+.sugg-chip-visas{background:#fff;border-color:var(--brand);color:var(--brand)}
+.sugg-chip-visas svg{color:var(--brand)}
+.sugg-fortsatt{padding:12px 12px 4px;font-size:var(--text-sm);color:var(--soft)}
 /* Tangentraden: bara där det finns ett tangentbord och en pekare. */
 .sugg-tangenter{display:none}
 @media(hover:hover) and (pointer:fine){
@@ -3625,7 +3632,10 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
 .a-odo-col{position:relative;display:inline-block;width:.62em;height:1em;overflow:hidden;transition:width .45s cubic-bezier(.2,.7,.2,1)}
 .a-odo-col.blank{width:0}
 .a-odo-stack{display:flex;flex-direction:column;transition:transform .8s cubic-bezier(.16,.9,.24,1)}
-.a-odo-stack span{height:1em;display:flex;align-items:flex-start;justify-content:center}
+/* overflow:hidden på varje siffra: siffrorna är högre än sin rad (line-height 1),
+   så toppen av NÄSTA siffra i rullen stack fram som ett par prickar under
+   priset (uppmätt på /fyndauktion 2026-11-19, tredubbel skärm). */
+.a-odo-stack span{height:1em;display:flex;align-items:flex-start;justify-content:center;overflow:hidden}
 .a-odo-sep{display:inline-block;width:.22em;height:1em;transition:width .45s}
 .a-odo-sep.hide{width:0}
 .a-odo-unit{margin-left:.18em;font-size:.42em;font-weight:700;align-self:flex-end;line-height:1.15}

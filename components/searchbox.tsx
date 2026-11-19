@@ -91,6 +91,12 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   // Sökningarna kunden är på väg att skriva, och exemplen för en tom ruta.
   const [forslag, setForslag] = useState<string[]>([]);
   const [exempel, setExempel] = useState<string[]>([]);
+  // Ordet vars varor listan visar när det skrivna är för kort eller inte gav
+  // något ("få" → fåtölj), och om rutan väntar på fler bokstäver. Se onType.
+  // Båda bär texten de räknades för: rutan kan få ett nytt ord utan att
+  // förslagen räknas om (ur adressen på resultatsidan), och då gäller de inte.
+  const [visarFor, setVisarFor] = useState<{ q: string; ord: string } | null>(null);
+  const [fortsattFor, setFortsattFor] = useState<string | null>(null);
   const uid = useId();
   const [popular, setPopular] = useState<Hit[]>([]);
   const [open, setOpen] = useState(false);
@@ -176,9 +182,14 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     // Kategorierna först: de finns redan i sidan, också medan indexet hämtas.
     // De behöver bara motorn, som är liten och kommer långt före indexet.
     const kategorierFor = (m: Motor) => m.matchaKategorier(pris.fraga, registreradeKategorier(), KATEGORIFORSLAG);
+    // Två bokstäver är början på ett ord: kategorierna räknas för ordet som
+    // listan visar, när det är känt (längre ner), inte för bokstäverna.
+    const kort = term.length <= 2 && !/\s/.test(term);
     if (term.length < KORTASTE_SOKNING) setKat([]);
-    else if (motor) setKat(kategorierFor(motor));
-    else void laddaMotor().then((m) => { if (m && senaste.current === val) setKat(kategorierFor(m)); });
+    else if (!kort) {
+      if (motor) setKat(kategorierFor(motor));
+      else void laddaMotor().then((m) => { if (m && senaste.current === val) setKat(kategorierFor(m)); });
+    }
     if (!sokIndexHamtat() || !motor) setLaddar(true);
     const [idx, m] = await Promise.all([laddaSokIndex(), laddaMotor()]);
     if (senaste.current !== val) return; // en nyare tangent tar över
@@ -188,6 +199,8 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
       setHits([]);
       setTotalt(0);
       setForslag([]);
+      setVisarFor(null);
+      setFortsattFor(null);
       return;
     }
     if (term.length < KORTASTE_SOKNING) {
@@ -195,17 +208,43 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
       setHits([]);
       setTotalt(0);
       setForslag([]);
+      setVisarFor(null);
+      setFortsattFor(null);
       setExempel(m.sokexempelFor(idx, SOKEXEMPEL));
       setPopular(inStockOnly(idx).slice(0, SUGGESTION_COUNT));
       return;
     }
     // Med ett pris i sökningen är det sista ordet ett tal, inget att fylla i.
-    setForslag(harPris(pris) ? [] : m.sokforslagFor(idx, term, SOKFORSLAG));
+    const forslagen = harPris(pris) ? [] : m.sokforslagFor(idx, term, SOKFORSLAG);
+    setForslag(forslagen);
     // De mest relevanta, slutsålda sist (ordningen förklaras i lib/sok-index.ts).
     // Med ett pris i sökningen gallras träffarna före klippet.
-    const svar = m.rankaForslagMedAntal(idx, pris.fraga, SUGGESTION_COUNT, harPris(pris) ? (h) => inomPris(pris, prisTal(h.p)) : undefined);
+    let svar = m.rankaForslagMedAntal(idx, pris.fraga, SUGGESTION_COUNT, harPris(pris) ? (h) => inomPris(pris, prisTal(h.p)) : undefined);
+    // ☠️ TVÅ BOKSTÄVER SA "Inga produkter matchade" (Leonard 2026-11-19, "få"
+    // och "bi"). Den som skrivit två bokstäver är på väg mot ett ord: listan
+    // visar varorna för det första sökförslaget, och säger vilket ord det är.
+    // Samma sak när ett längre ord inte gav någon träff men har ett förslag.
+    // Regeln står i lib/search.ts (visaVarorFor).
+    let visar = "";
+    const mal = m.visaVarorFor(term, forslagen, svar.totalt);
+    if (mal) {
+      const forMalet = m.rankaForslagMedAntal(idx, mal, SUGGESTION_COUNT);
+      if (forMalet.totalt > 0) { svar = forMalet; visar = mal; }
+    }
+    const kategorier = m.matchaKategorier(visar || pris.fraga, registreradeKategorier(), KATEGORIFORSLAG);
+    setKat(kategorier);
+    setVisarFor(visar ? { q: val, ord: visar } : null);
     setHits(svar.traffar);
     setTotalt(svar.totalt);
+    // Två bokstäver som inget börjar på ("xq"): inget "inga träffar" om ett
+    // ord som inte är skrivet än. Rutan visar det tomma lägets förslag och ber
+    // om lite till.
+    const vantar = m.kortOrd(term) && svar.totalt === 0 && forslagen.length === 0 && kategorier.length === 0;
+    setFortsattFor(vantar ? val : null);
+    if (vantar) {
+      setExempel(m.sokexempelFor(idx, SOKEXEMPEL));
+      setPopular(inStockOnly(idx).slice(0, SUGGESTION_COUNT));
+    }
   };
 
   // Fokus med tomt fält → visa populära produkter som förslag.
@@ -266,8 +305,13 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
 
   // Det som faktiskt renderas i listan: sökträffar om man skrivit ≥2 tecken,
   // annars populära produkter.
-  const isPopular = q.trim().length < 2;
+  // `fortsatt`: två bokstäver som inget börjar på. Då gäller det tomma lägets
+  // förslag, med en rad som ber om lite till (se onType).
+  const fortsatt = fortsattFor !== null && fortsattFor === q;
+  const isPopular = q.trim().length < 2 || fortsatt;
   const kategorier = isPopular ? [] : kat;
+  // Ordet som listan visar varor för, när det inte är det som står i rutan.
+  const visar = !isPopular && visarFor && visarFor.q === q ? visarFor.ord : "";
   const pris = tolkaPris(q.trim());
   const visaTidigare = isPopular && tidigare.length > 0;
   const visaExempel = isPopular && exempel.length > 0;
@@ -327,7 +371,8 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     e.preventDefault();
     if (visas && active >= 0 && active < kategorier.length) goKategori(kategorier[active].slug);
     else if (visas && active >= kategorier.length && showing[active - kategorier.length]) goProduct(showing[active - kategorier.length].s);
-    else goSearch();
+    // Enter gör det foten säger: visar listan varorna för "fåtölj" är det den sökningen.
+    else goSearch(visar || undefined);
   };
 
   const onKeyDown = (e: React.KeyboardEvent) => {
@@ -348,9 +393,9 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   // laddar kvar är svaret ännu inte känt, och har hämtningen fallit vet vi
   // ingenting. I båda fallen går det att söka på /sok, som inte behöver indexet.
   const fot = () => {
-    const term = q.trim();
+    const term = visar || q.trim();
     const alla = (text: React.ReactNode) => (
-      <button type="button" className="sugg-all" onClick={() => goSearch()} disabled={soker}>
+      <button type="button" className="sugg-all" onClick={() => goSearch(visar || undefined)} disabled={soker}>
         {soker ? "Söker…" : text}
       </button>
     );
@@ -384,7 +429,7 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
 
   // VARJE sökord i fetstil. Förut bara hela frasen, så "svart tv-bänk" och
   // "hundbur xl" markerade ingenting. Priset i sökningen räknas inte som ord.
-  const ord = pris.fraga.split(/\s+/).filter((t) => t.length >= 2).sort((a, b) => b.length - a.length).map(regexSakert);
+  const ord = (visar || pris.fraga).split(/\s+/).filter((t) => t.length >= 2).sort((a, b) => b.length - a.length).map(regexSakert);
   const ordRe = ord.length > 0 ? new RegExp(`(${ord.join("|")})`, "gi") : null;
   // I ett sökförslag är det tvärtom: det kunden redan skrivit står som det är,
   // och det förslaget LÄGGER TILL står i fetstil ("sof" → sof**fbord**).
@@ -444,6 +489,7 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
 
       {visas && (showing.length > 0 || laddar || soker || indexFel || visaTidigare || visaExempel || q.trim().length >= 2) && (
         <div className="sugg" id="search-suggestions" role="listbox">
+          {fortsatt && q.trim().length >= 2 && <div className="sugg-fortsatt" role="status">Skriv lite till, så visar vi förslag.</div>}
           {visaTidigare && (
             <>
               <div className="sugg-head sugg-head-rad">
@@ -470,7 +516,7 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
           {visaForslag && (
             <div className="sugg-forslag sugg-chiprad" role="group" aria-label="Sökförslag">
               {forslag.map((t) => (
-                <button type="button" className="sugg-chip sugg-chip-sok" key={t} onClick={() => goSearch(t)}><Lupp /><span>{tillagg(t)}</span></button>
+                <button type="button" className={`sugg-chip sugg-chip-sok${t === visar ? " sugg-chip-visas" : ""}`} key={t} onClick={() => goSearch(t)}><Lupp /><span>{tillagg(t)}</span></button>
               ))}
             </div>
           )}
@@ -496,8 +542,8 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
               <span className="sugg-kat-pil" aria-hidden="true">→</span>
             </a>
           ))}
-          {!isPopular && showing.length > 0 && (kategorier.length > 0 || harPris(pris)) && (
-            <div className="sugg-head">{harPris(pris) ? `Varor ${prisText(pris)}` : "Varor"}</div>
+          {!isPopular && showing.length > 0 && (kategorier.length > 0 || harPris(pris) || visar) && (
+            <div className="sugg-head">{visar ? `Visar “${visar}”` : harPris(pris) ? `Varor ${prisText(pris)}` : "Varor"}</div>
           )}
           {showing.map((h, hi) => { const i = hi + kategorier.length; return (
             <a

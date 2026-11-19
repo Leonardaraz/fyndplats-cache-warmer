@@ -8,7 +8,7 @@ import { populartNu } from "../../lib/sok-tom";
 import { sidhuvudsdata } from "../../lib/sidhuvud-data";
 import { populara } from "../../lib/sidhuvud-val";
 import { attachRatings } from "../../lib/review-aggregates";
-import { matchaKategorier, normalize, rankaMedInfo } from "../../lib/search";
+import { kortOrd, matchaKategorier, normalize, rankaMedForslag } from "../../lib/search";
 import { plattaKategorier, type SokKategori } from "../../lib/sok-kategorier";
 import { harPris, tolkaPris } from "../../lib/sok-pris";
 
@@ -34,9 +34,11 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
   // det här kostar ingen egen hämtning.
   let kategorier: SokKategori[] = [];
   let popularaKategorier: SokKategori[] = [];
+  let allaKategorier: SokKategori[] = [];
   try {
     const { tree } = await sidhuvudsdata();
-    if (term) kategorier = matchaKategorier(fraga, plattaKategorier(tree), 3);
+    allaKategorier = plattaKategorier(tree);
+    if (term) kategorier = matchaKategorier(fraga, allaKategorier, 3);
     popularaKategorier = populara(tree, MAIN_ORDER).map((c) => ({ name: c.name, slug: c.slug }));
   } catch {
     // hellre inga kategorier än en trasig söksida
@@ -72,12 +74,18 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
   let strukna: string[] = [];
   let utan: string[] | undefined;
   let hela: number | undefined;
+  // Ordet som sidan visar varor för, när sökningen är två bokstäver ("få" →
+  // fåtölj). Regeln står i lib/search.ts (rankaMedForslag), och sökrutan har samma.
+  let visar = "";
   if (term) {
-    const utfall = rankaMedInfo(all, (p) => p.name, fraga);
+    const { utfall, visar: ordet } = rankaMedForslag(all, (p) => p.name, fraga);
+    visar = ordet;
+    if (visar) kategorier = matchaKategorier(visar, allaKategorier, 3);
     if (utfall.traffar.length > 0) {
       results = utfall.traffar;
       ({ strukna, utan, hela } = utfall);
-    } else if (kategorier.length === 0) {
+    } else if (kategorier.length === 0 && !kortOrd(fraga)) {
+      // ☠️ Aldrig för två bokstäver: de står i nästan varje beskrivning.
       // Reserven i beskrivningarna, bara när varken ett namn eller en kategori
       // matchar. "trädgårdsmöbler" gav förut en presenning, en högtryckstvätt
       // och en plåtbod härifrån, fast kategorin Utemöbler fanns.
@@ -103,7 +111,7 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
     <SokVy
       q={q}
       data={{
-        traffar: forListClient(results), strukna, utan, hela, kategorier, pris,
+        traffar: forListClient(results), strukna, utan, hela, kategorier, pris, visar,
         populart: forListClient(populart), popularaKategorier,
       }}
     />

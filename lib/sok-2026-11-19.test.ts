@@ -6,7 +6,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  byggOrdforrad, expandSynonyms, fuzzyOrdslut, FYLL_PA_UNDER, kategoriPoang, matchaKategorier, nameMatch, nameScore, rankaMedInfo, rankByName, sokforslag,
+  byggOrdforrad, expandSynonyms, fuzzyOrdslut, FYLL_PA_UNDER, kategoriPoang, kortOrd, matchaKategorier, menadeDu, nameMatch, nameScore, rankaMedForslag, rankaMedInfo, rankByName, sokforslag, visaVarorFor,
 } from "./search.ts";
 
 const sok = (namn: string[], q: string) => rankByName(namn, (n) => n, q);
@@ -500,10 +500,12 @@ test("sökförslag: adjektiv, färger och småord föreslås inte, och exemplen 
 test("sökrutan visar sökförslagen och exemplen som chips som söker", async () => {
   const { readFileSync } = await import("node:fs");
   const ruta = readFileSync(new URL("../components/searchbox.tsx", import.meta.url), "utf8");
-  assert.match(ruta, /setForslag\(harPris\(pris\) \? \[\] : m\.sokforslagFor\(idx, term, SOKFORSLAG\)\)/);
+  assert.match(ruta, /const forslagen = harPris\(pris\) \? \[\] : m\.sokforslagFor\(idx, term, SOKFORSLAG\);\s+setForslag\(forslagen\);/);
   assert.match(ruta, /className="sugg-forslag sugg-chiprad" role="group" aria-label="Sökförslag"/);
   assert.match(ruta, /className="sugg-exempel sugg-chiprad"/);
-  assert.equal(ruta.split('className="sugg-chip sugg-chip-sok" key={t} onClick={() => goSearch(t)}').length, 3);
+  // Exemplens chips och sökförslagens: båda söker på sitt ord.
+  assert.equal(ruta.split('className="sugg-chip sugg-chip-sok" key={t} onClick={() => goSearch(t)}').length, 2);
+  assert.match(ruta, /className=\{`sugg-chip sugg-chip-sok\$\{t === visar \? " sugg-chip-visas" : ""\}`\} key=\{t\} onClick=\{\(\) => goSearch\(t\)\}/);
   assert.match(ruta, /className="sugg-tangenter" aria-hidden="true"/);
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
   assert.match(css, /\.sugg-tangenter\{display:none\}\n@media\(hover:hover\) and \(pointer:fine\)/);
@@ -562,4 +564,185 @@ test("filterlådan är vit som de andra lådorna, och auktionens viloläge är b
   const scen = readFileSync(new URL("../components/auction-stage.tsx", import.meta.url), "utf8");
   assert.match(scen, /\{ t: 0, bg1: "#FFFFFF", bg2: "#FFF6EF", /);
   assert.doesNotMatch(css + scen, /FCEFE0/i);
+});
+
+// ── Två bokstäver: början på ett ord, inte en sökning (Leonard 2026-11-19) ───
+// Skärmbilderna: "få" och "bi" gav "Inga produkter matchade", och förslagen var
+// fack, fälls och bitar.
+const KORTA = [
+  ...KATALOG,
+  "Sängram 160 cm i ek", "Sängram 180 cm med gavel", "Sängbord i valnöt", "Sängbord med låda", "Skåp med två dörrar", "Skåp i vitt",
+  "Badrumsskåp med spegel", "Badrumsskåp 60 cm", "Skoskåp med tre fack", "Skoskåp i ek", "Fågelbur med ställning", "Fågelbur i metall",
+  "Hylla med fyra fack", "Väggskåp med sex fack", "Lådhurts med fem fack", "Vitrin i sammet", "Pall i sammet", "Puff i sammet", "Bänk i sammet",
+  "Skärm för balkong", "Vindskydd med skärm", "Insynsskydd med skärm", "Sandlåda med lock", "Sandlåda i trä", "Leksaker för sand",
+  "Upphöjd odlingslåda 120 cm", "Upphöjd odlingslåda i trä", "Upphöjd rabatt i metall", "Bord med höjd 75 cm", "Stativ med höjd 2 m",
+  "Blandare för kök", "Blandare med dusch", "Karta över ett land", "Flagga för ett land",
+  "Fåtölj i bouclé", "Sängram 140 cm i furu",
+];
+
+test("två bokstäver föreslår varor, inte egenskaper: \"få\" → fåtölj, aldrig fack", () => {
+  const f = byggOrdforrad(KORTA);
+  assert.deepEqual(sokforslag(f, "få", 3), ["fåtölj", "fågelbur"]);
+  // "fack" står i fyra namn men inleder inget: det är en egenskap.
+  assert.ok(f.ord.some((o) => o.text === "fack" && o.varu === 0));
+  assert.ok(!sokforslag(f, "fa", 5).includes("fack"));
+  // Huvudordet i namnets första ord räknas: tvåsitssoffa, bäddsoffa och
+  // hörnsoffa gör "soffa" till den vanligaste varan på "so".
+  assert.equal(sokforslag(f, "so", 3)[0], "soffa");
+  assert.deepEqual(sokforslag(f, "so", 3), ["soffa", "soffbord", "soptunna"]);
+  // skåp är huvudet i badrumsskåp, skoskåp och väggskåp.
+  assert.equal(sokforslag(f, "sk", 3)[0], "skåp");
+});
+
+test("☠️ prickarna gäller när kunden har skrivit dem: \"sä\" är sängram, inte sammet eller sand", () => {
+  const f = byggOrdforrad(KORTA);
+  assert.deepEqual(sokforslag(f, "sä", 3), ["sängram", "sängbord"]);
+  // Utan prickar räknas båda, de vanligaste varorna först.
+  assert.deepEqual(sokforslag(f, "sa", 3), ["sängram", "sandlåda", "sängbord"]);
+  // Samma regel för längre ord: "sän" och "skå" drar inte in sand och skärm.
+  assert.deepEqual(sokforslag(f, "sän", 3), ["sängram", "sängbord"]);
+  assert.ok(!sokforslag(f, "skå", 5).includes("skärm"));
+  assert.equal(sokforslag(f, "skå", 5)[0], "skåp");
+  // Utan prickar går ordet som börjar precis så först, det andra sist.
+  assert.equal(sokforslag(f, "san", 3)[0], "sandlåda");
+  assert.ok(sokforslag(f, "san", 3).includes("sängram"));
+  assert.deepEqual(sokforslag(f, "fatol", 3), ["fåtölj"]);
+  // Börjar ingen vara så med prickarna föreslås ingenting.
+  assert.deepEqual(sokforslag(f, "sö", 3), []);
+});
+
+test("två bokstäver: inget förslag hellre än ett dåligt", () => {
+  const f = byggOrdforrad(KORTA);
+  // "Upphöjd odlingslåda" gör inte "höjd" till en vara, och "blandare" inte "land".
+  assert.ok(f.ord.some((o) => o.text === "höjd"));
+  assert.deepEqual(sokforslag(f, "hö", 3), ["hörnsoffa"]);
+  assert.ok(f.ord.some((o) => o.text === "land" && o.varu === 0));
+  assert.deepEqual(sokforslag(f, "la", 3), []);
+  // Inget börjar så.
+  assert.deepEqual(sokforslag(f, "xq", 3), []);
+  // Efter ett annat ord är två bokstäver oftast en färg eller ett mått.
+  assert.deepEqual(sokforslag(f, "soffa gr", 3), []);
+  assert.deepEqual(sokforslag(f, "svart so", 3), []);
+  // "tv" står för sig och är varan: tv-bänk, som förut.
+  assert.deepEqual(sokforslag(f, "tv", 3), ["tv-bänk"]);
+  assert.deepEqual(sokforslag(f, "svart tv", 3), ["svart tv-bänk"]);
+});
+
+test("längre ord: varorna går före egenskaperna bland dem som börjar så", () => {
+  const f = byggOrdforrad(KORTA);
+  // "sammet" står i sex namn och "sammetsfåtölj" i inget: varan först ändå.
+  const medSam = byggOrdforrad([...KORTA, "Sammetsgardin 2-pack", "Sammetsgardin 240 cm"]);
+  assert.equal(sokforslag(medSam, "sam", 3)[0], "sammetsgardin");
+  assert.ok(sokforslag(medSam, "sam", 3).includes("sammet"));
+  // Det som gällde förut gäller kvar.
+  assert.deepEqual(sokforslag(f, "sof", 3), ["soffbord", "soffa"]);
+  assert.equal(sokforslag(f, "matt", 3)[0], "matta");
+  assert.deepEqual(sokforslag(f, "julgr", 3), ["julgran", "talljulgran"]);
+});
+
+test("vilket ords varor listan visar: förslagets, när det skrivna är två bokstäver eller inte gav något", () => {
+  // Två bokstäver: förslagets varor.
+  assert.equal(visaVarorFor("få", ["fåtölj", "fågelbur"], 0), "fåtölj");
+  // Också när det korta ordet råkar stå i namn ("2 st" i 107 namn).
+  assert.equal(visaVarorFor("st", ["stolar", "ställ"], 107), "stolar");
+  assert.equal(visaVarorFor(" Få ", ["fåtölj"], 0), "fåtölj");
+  // ☠️ "tv" är varan: tv-bänk är samma ord med bindestreck.
+  assert.equal(visaVarorFor("tv", ["tv-bänk", "tv-stativ"], 35), null);
+  // Inget förslag: det skrivna gäller ("xl" står i namn).
+  assert.equal(visaVarorFor("xl", [], 4), null);
+  assert.equal(visaVarorFor("xq", [], 0), null);
+  // Längre ord med träffar rörs inte.
+  assert.equal(visaVarorFor("soffa", ["bäddsoffa"], 137), null);
+  assert.equal(visaVarorFor("sof", ["soffbord"], 196), null);
+  // Längre ord utan träff men med ett förslag: förslagets varor.
+  assert.equal(visaVarorFor("soffb", ["soffbord"], 0), "soffbord");
+  // Två ord är en sökning, hur korta de än är.
+  assert.equal(visaVarorFor("tv xl", ["tv xl-bänk"], 3), null);
+  assert.equal(kortOrd("få"), true);
+  assert.equal(kortOrd(" bi "), true);
+  assert.equal(kortOrd("f"), true);
+  assert.equal(kortOrd(""), false);
+  assert.equal(kortOrd("fåt"), false);
+  assert.equal(kortOrd("a b"), false);
+});
+
+test("orden kunden var på väg att skriva, ur varornas namn: bara för ett enda ord", () => {
+  const varor = KORTA.map((n) => ({ name: n }));
+  assert.deepEqual(menadeDu(varor, (v) => v.name, "få"), ["fåtölj", "fågelbur"]);
+  assert.deepEqual(menadeDu(varor, (v) => v.name, " bä "), ["bäddsoffa"]);
+  assert.deepEqual(menadeDu(varor, (v) => v.name, "soffa gr"), []);
+  assert.deepEqual(menadeDu(varor, (v) => v.name, "xq"), []);
+  assert.deepEqual(menadeDu(varor, (v) => v.name, ""), []);
+  assert.deepEqual(menadeDu([], (v: { name: string }) => v.name, "få"), []);
+});
+
+test("☠️ söksidan för två bokstäver: varorna för ordet, inte 605 varor ur beskrivningarna", () => {
+  const varor = KORTA.map((n) => ({ name: n }));
+  const fa = rankaMedForslag(varor, (v) => v.name, "få");
+  assert.equal(fa.visar, "fåtölj");
+  assert.ok(fa.utfall.traffar.length >= 3);
+  assert.ok(fa.utfall.traffar.every((v) => /fåtölj/i.test(v.name)));
+  // "tv" är varan, och ett längre ord rankas som förut.
+  const tv = rankaMedForslag(varor, (v) => v.name, "tv");
+  assert.equal(tv.visar, "");
+  assert.deepEqual(tv.utfall.traffar.map((v) => v.name), rankaMedInfo(varor, (v) => v.name, "tv").traffar.map((v) => v.name));
+  const soffa = rankaMedForslag(varor, (v) => v.name, "soffa");
+  assert.equal(soffa.visar, "");
+  assert.deepEqual(soffa.utfall.traffar.map((v) => v.name), rankaMedInfo(varor, (v) => v.name, "soffa").traffar.map((v) => v.name));
+  // Två bokstäver som inget börjar på: ingenting, ärligt.
+  const xq = rankaMedForslag(varor, (v) => v.name, "xq");
+  assert.equal(xq.visar, "");
+  assert.equal(xq.utfall.traffar.length, 0);
+  // Två ord är en sökning.
+  assert.equal(rankaMedForslag(varor, (v) => v.name, "få so").visar, "");
+});
+
+test("sökrutan visar förslagets varor och säger vilket ord det gäller", async () => {
+  const { readFileSync } = await import("node:fs");
+  const ruta = readFileSync(new URL("../components/searchbox.tsx", import.meta.url), "utf8");
+  // Regeln avgör, och förslagets varor används bara när det finns några.
+  assert.match(ruta, /const mal = m\.visaVarorFor\(term, forslagen, svar\.totalt\);\s+if \(mal\) \{\s+const forMalet = m\.rankaForslagMedAntal\(idx, mal, SUGGESTION_COUNT\);\s+if \(forMalet\.totalt > 0\) \{ svar = forMalet; visar = mal; \}/);
+  // Kategorierna räknas för samma ord som varorna.
+  assert.match(ruta, /m\.matchaKategorier\(visar \|\| pris\.fraga, registreradeKategorier\(\), KATEGORIFORSLAG\)/);
+  // Rubriken, foten och Enter gäller ordet som visas.
+  assert.match(ruta, /\{visar \? `Visar “\$\{visar\}”` : harPris\(pris\)/);
+  assert.match(ruta, /const term = visar \|\| q\.trim\(\);/);
+  assert.match(ruta, /onClick=\{\(\) => goSearch\(visar \|\| undefined\)\} disabled=\{soker\}/);
+  assert.match(ruta, /else goSearch\(visar \|\| undefined\);/);
+  // ☠️ Två bokstäver som inget börjar på: det tomma lägets förslag och en rad
+  // som ber om lite till, aldrig "Inga produkter matchade".
+  assert.match(ruta, /const vantar = m\.kortOrd\(term\) && svar\.totalt === 0 && forslagen\.length === 0 && kategorier\.length === 0;/);
+  assert.match(ruta, /const isPopular = q\.trim\(\)\.length < 2 \|\| fortsatt;/);
+  // ☠️ Båda lägena gäller bara texten de räknades för: rutan kan få ett nytt
+  // ord ur adressen utan att förslagen räknas om.
+  assert.match(ruta, /const fortsatt = fortsattFor !== null && fortsattFor === q;/);
+  assert.match(ruta, /const visar = !isPopular && visarFor && visarFor\.q === q \? visarFor\.ord : "";/);
+  assert.match(ruta, /setVisarFor\(visar \? \{ q: val, ord: visar \} : null\);/);
+  assert.match(ruta, /setFortsattFor\(vantar \? val : null\);/);
+  assert.match(ruta, /\{fortsatt && q\.trim\(\)\.length >= 2 && <div className="sugg-fortsatt" role="status">/);
+  // Varje gren i onType nollställer båda lägena.
+  assert.equal(ruta.split("setVisarFor(").length - 1, 3);
+  assert.equal(ruta.split("setFortsattFor(").length - 1, 3);
+  const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(css, /\.sugg-chip-visas\{background:#fff;border-color:var\(--brand\);color:var\(--brand\)\}/);
+  assert.match(css, /\.sugg-fortsatt\{/);
+  const sida = readFileSync(new URL("../app/sok/page.tsx", import.meta.url), "utf8");
+  const kall = readFileSync(new URL("../components/sok-kall.tsx", import.meta.url), "utf8");
+  // ☠️ Söksidan rankar med samma regel, och två bokstäver letar aldrig i beskrivningarna.
+  assert.match(sida, /const \{ utfall, visar: ordet \} = rankaMedForslag\(all, \(p\) => p\.name, fraga\);/);
+  assert.match(sida, /else if \(kategorier\.length === 0 && !kortOrd\(fraga\)\) \{/);
+  assert.match(sida, /if \(visar\) kategorier = matchaKategorier\(visar, allaKategorier, 3\);/);
+  assert.match(kall, /const \{ utfall: u, visar \} = rankaMedForslag\(kandidater\(lista, slutsalda\), \(p\) => p\.name, prisfraga\.fraga\);/);
+  // Sidan säger vilket ord träffarna gäller.
+  const vy = readFileSync(new URL("../components/sok-vy.tsx", import.meta.url), "utf8");
+  assert.match(vy, /\{klar\.visar && \(\s+<p className="sok-besked">\s+Du skrev “\{term\}”\. Här är träffarna för <b>“\{klar\.visar\}”<\/b>\./);
+  assert.match(kall, /kategorier: visar \? matchaKategorier\(visar, registreradeKategorier\(\), 3\) : kategorier,/);
+});
+
+test("auktionens räkneverk klipper varje siffra: nästa siffra sticker inte fram under priset", async () => {
+  const { readFileSync } = await import("node:fs");
+  const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(css, /\.a-odo-stack span\{height:1em;display:flex;align-items:flex-start;justify-content:center;overflow:hidden\}/);
+  // Panelens fotknapp nollställer webbläsarens ram före sin egen överkant.
+  assert.match(css, /\.sugg-all\{[^}]*;border:0;border-top:1px solid var\(--line\);/);
 });

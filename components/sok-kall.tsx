@@ -21,12 +21,12 @@
 // bildkartan (/api/kort-bilder), som den gör på listsidorna.
 import { useEffect, useState } from "react";
 import type { ListProduct } from "../lib/products";
-import { rankaMedInfo } from "../lib/search";
+import { matchaKategorier, rankaMedForslag } from "../lib/search";
 import { laddaSokIndex } from "../lib/sok-index";
 import { kandidater } from "../lib/sok-kall";
 import { harPris, tolkaPris } from "../lib/sok-pris";
 import { populartNu } from "../lib/sok-tom";
-import type { SokKategori } from "../lib/sok-kategorier";
+import { registreradeKategorier, type SokKategori } from "../lib/sok-kategorier";
 import { SokVy, type SokData } from "./sok-vy";
 
 /** Så länge väntar vi på listan. Den är ~0,5 MB över nätet; se lib/sok-index.ts för mätningen bakom 20 s. */
@@ -52,13 +52,16 @@ export function SokKall({ q, kategorier, popularaKategorier }: { q: string; kate
         if (avbruten) return;
         // Priset i sökningen läses som på servern (app/sok/page.tsx).
         const prisfraga = tolkaPris(q.trim());
-        const u = rankaMedInfo(kandidater(lista, slutsalda), (p) => p.name, prisfraga.fraga);
+        // Två bokstäver visar varorna för ordet kunden var på väg att skriva (lib/search.ts).
+        const { utfall: u, visar } = rankaMedForslag(kandidater(lista, slutsalda), (p) => p.name, prisfraga.fraga);
         // De köpbara först, relevansordningen kvar inom varje grupp (som på servern).
         const traffar = [...u.traffar.filter((p) => p.inStock), ...u.traffar.filter((p) => !p.inStock)];
         setSvar({
           q,
           data: {
-            traffar, strukna: u.strukna, utan: u.utan, hela: u.hela, kategorier,
+            traffar, strukna: u.strukna, utan: u.utan, hela: u.hela, visar,
+            // Kategorierna gäller ordet som visas; sidhuvudet har registrerat menyns.
+            kategorier: visar ? matchaKategorier(visar, registreradeKategorier(), 3) : kategorier,
             pris: harPris(prisfraga) ? { max: prisfraga.max, min: prisfraga.min } : undefined,
             populart: traffar.length === 0 ? populartNu(lista, 4) : [],
             popularaKategorier,
