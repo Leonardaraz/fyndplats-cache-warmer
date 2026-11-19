@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger måtten som egna rader utan namn på axlarna: *Artikelmått* (585 x 455 x 365 mm, 400 x 350 x 280 mm, 413 x 395 x 255 mm och 450 x 230 x 210 mm på de fyra stenskydden) och *Bredd* med två intervall (1100 - 1200 x 500 - 600 mm på ormbunken); måtten skrivs i källans form som egna rader

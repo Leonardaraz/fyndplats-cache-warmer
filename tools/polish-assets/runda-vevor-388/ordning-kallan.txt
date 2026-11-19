@@ -1,0 +1,4 @@
+# <kort> <skäl> — se bygg-media.py
+305bca4a källposition 3 är ett vanligt foto (stenskyddet med markstag från ett annat håll), inte en måttbild; alla sex bilder är foton och galleriet behåller källordningen
+fd80d161 källposition 3 är ett vanligt foto (stenskyddet med markstag från ett annat håll), inte en måttbild; alla sex bilder är foton och galleriet behåller källordningen
+6aa03325 källposition 3 är ett vanligt foto (stenskyddet med markstag i övre högra hörnet), inte en måttbild; alla sex bilder är foton och galleriet behåller källordningen
