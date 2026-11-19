@@ -72,7 +72,11 @@ with cf.ThreadPoolExecutor(6) as ex:
     res = list(ex.map(lambda a: hamta(*a), jobb))
 print(f'{sum(res)} av {len(res)} bilder hämtade')
 for k, mapp, nd, nv in poster:
-    ark([(i, f'{mapp}/d{i}.jpg') for i in range(1, nd + 1)], f'{mapp}/sheet_d_{k}.jpg', 3)
-    ark([(i, f'{mapp}/v{i:02d}.jpg') for i in range(1, nv + 1)], f'{mapp}/sheet_v_{k}.jpg', 4, 330)
+    if nd:
+        ark([(i, f'{mapp}/d{i}.jpg') for i in range(1, nd + 1)], f'{mapp}/sheet_d_{k}.jpg', 3)
+    if nv:
+        ark([(i, f'{mapp}/v{i:02d}.jpg') for i in range(1, nv + 1)], f'{mapp}/sheet_v_{k}.jpg', 4, 330)
+    else:
+        print(k, 'har ingen VEVOR-avläsning (inga bilder i ut.json): produkten kan inte verifieras och väljs inte')
     saknas = [n for n in range(1, nv + 1) if not os.path.exists(f'{mapp}/v{n:02d}.jpg')] + [f'd{n}' for n in range(1, nd + 1) if not os.path.exists(f'{mapp}/d{n}.jpg')]
     print(k, 'utkastbilder', nd, 'VEVOR-bilder', nv, 'saknas', saknas)
