@@ -1,0 +1,84 @@
+{
+  "d1702a15": {
+    "productId": "d1702a15-c7a9-470e-a0c4-2dc43841d493",
+    "synliga": 0,
+    "dolda": 7,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": []
+  },
+  "305bca4a": {
+    "productId": "305bca4a-5b75-4dab-876d-3b7e9a53db1c",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 4,
+    "attBesluta": [
+      {
+        "id": "gen-1lwnsom",
+        "betyg": 5,
+        "datum": "2026-10-13",
+        "foton": 0,
+        "text": "Great cover for 2 watter pumps I have in a low area of my yard"
+      }
+    ]
+  },
+  "fd80d161": {
+    "productId": "fd80d161-e6ce-4e22-b350-6a70f5c45740",
+    "synliga": 0,
+    "dolda": 7,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 3,
+    "attBesluta": []
+  },
+  "6aa03325": {
+    "productId": "6aa03325-7cea-49bc-afcc-879735d9f831",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "7534e9d3": {
+    "productId": "7534e9d3-1bb8-4ede-8d7a-b374a9a035ce",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-ats0m7",
+        "betyg": 5,
+        "datum": "2026-10-14",
+        "foton": 3,
+        "text": "Thank you, I absolutely love it. Better than I thought it would be. Great quality for price."
+      },
+      {
+        "id": "gen-mye3w0",
+        "betyg": 5,
+        "datum": "2026-09-18",
+        "foton": 0,
+        "text": "Fabulous product, would 100% buy again if I need more, they are full & lush"
+      },
+      {
+        "id": "gen-1kg7ghb",
+        "betyg": 5,
+        "datum": "2026-05-14",
+        "foton": 0,
+        "text": "Corresponde exactamente con la descripción. Es de buena calidad. Vienen bien empaquetado para que las hojas lleguen en perfectas condiciones. Espero que resista bien en exterior."
+      },
+      {
+        "id": "gen-1215zee",
+        "betyg": 5,
+        "datum": "2025-06-02",
+        "foton": 0,
+        "text": "Product is very good. Full looks real from a distance but even better it looks real up close."
+      }
+    ]
+  }
+}
