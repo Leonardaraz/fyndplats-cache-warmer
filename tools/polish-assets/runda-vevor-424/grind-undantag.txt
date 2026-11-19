@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py sidornas mått står i källans måttbilder, som ritar axlarna med pilar (skärarna: bredd, djup och höjd respektive längd, bredd och höjd, och köttblandaren: längd, bredd och höjd), medan specifikationernas måttrader saknar axelord eller saknas
