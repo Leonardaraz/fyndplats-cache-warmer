@@ -1,0 +1,2 @@
+# <kort> <skäl> — se bygg-media.py
+d631169c galleriet behåller ordningen från sammanslagningen: 1-6 är värdens foton (ljusgrå, 50 st) och 7-11 givarens foton (mörkgrå, 100 st); position 2 stryks eftersom den bär märkningen AI-Generated Character and Scene och position 3 eftersom den är samma stapel från samma vinkel som position 1; länkade till färgvalen är bara position 1 (Ljusgrå) och 7 (Mörkgrå); inget foto är en måttbild (VEVOR:s måttbild ligger inte i utkastets galleri)

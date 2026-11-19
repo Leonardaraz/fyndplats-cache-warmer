@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py måttbilden för mattorna har bara siffror och inga axelord (295 mm i båda riktningar utan flikar, 310 mm med flikar), så plattan skrivs som 295 × 295 mm utan flikar och 310 × 310 mm med flikar utan axelord
