@@ -1,0 +1,5 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+d046d67c 2 bilden visar att två gånger genom maskinen ger strimlor (cut twice into strips)
+d046d67c 3 bilden visar att tre gånger genom maskinen ger finhackat (cut three times into minces)
+4a74815c 2 måttbilden listar två platta mejslar på 260 × 40 × 14 mm
