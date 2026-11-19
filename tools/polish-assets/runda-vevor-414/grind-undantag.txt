@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py diskbänkens källrad (Produktmått 550x450x190 mm) saknar axelord och måttbilden ritar 55 cm, 45 cm och 19 cm utan axelord, så sidan skriver 55 × 45 cm och djupet 19 cm som källtextens yttermått och djup, och produktmåtten som källans rad; vinylplattornas källrader har längd och bredd med axelord (914 mm och 152 mm) och tjocklek som höjd (2,5 mm)
