@@ -1,0 +1,5 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+7c6078ad 14 33 lb × 0,4536 = 14,97 kg, avrundat nedåt
+7c6078ad 59 132 lb × 0,4536 = 59,87 kg, avrundat nedåt
+104bd9c1 3 tre lådor per rad, räknade på foto 1 och 2 i utkastet (sex rader med tre lådor är 18 lådor)

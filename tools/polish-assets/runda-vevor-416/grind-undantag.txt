@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py verktygsställets källrader (antal nivåer, antal platser, färg, spårdjup och vikt) och lådskåpets källrader (skåpdjup 16 cm och vikt) saknar axelord för bredd och höjd, men båda sidornas måttbilder ritar måtten med axlarna utmärkta, och sidorna skriver bredd, djup och höjd som ritningarna visar (490 × 200 × 370 mm respektive 38 × 16 × 47 cm); förvaringslådornas måttrad och ritning (525 × 355 × 295 mm) saknar axelord, så sidan skriver de tre talen utan axelord
