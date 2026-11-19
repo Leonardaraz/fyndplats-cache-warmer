@@ -1,0 +1,86 @@
+{
+  "d6ab2fe9": {
+    "productId": "d6ab2fe9-b92e-417c-9201-ec404748b3ad",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "7a430237": {
+    "productId": "7a430237-60a8-48b6-bddf-5302401156b5",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "e6f19e26": {
+    "productId": "e6f19e26-42e1-4c06-b557-c9badb4b02ce",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "b926aed7": {
+    "productId": "b926aed7-023e-45b1-bcd0-489095442ce1",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "ea4f9b23": {
+    "productId": "ea4f9b23-d398-407f-a052-08b79ef70107",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1psgw9d",
+        "betyg": 5,
+        "datum": "2026-07-22",
+        "foton": 0,
+        "text": "Super price / quality ratio, it is almost impossible to get similar product in this price level from other provider in my country."
+      },
+      {
+        "id": "gen-1m47etn",
+        "betyg": 4,
+        "datum": "2026-07-17",
+        "foton": 0,
+        "text": "Armoire utilisée dans notre laboratoire pour les produits inflammables. Conforme au descriptif, bon rapport qualité/prix. Longtemps en rupture de stock mais avec de la patience elle est bien arrivée."
+      }
+    ]
+  },
+  "dafa60a3": {
+    "productId": "dafa60a3-3ec2-45c1-ba11-7b4a64d75c74",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1sojy0a",
+        "betyg": 5,
+        "datum": "2026-10-26",
+        "foton": 0,
+        "text": "Super. je l'ai utilisé d'une part, pour le bricolage: cartouches de colle pour pose des plinthes, joint silicone de salle de bains... et d'autre part, pour mon métier de céramiste, pour confectionner des colombins de terre. C'est bien plus efficace qu'un extrudeur à main, car il n'y a pas de marque d'à-coup que l'on laisse obligatoirement sur les boudins d'argile. Seul petit bémol: cette version longue est de fait bien lourde pour le bricolage."
+      },
+      {
+        "id": "gen-5fh252",
+        "betyg": 5,
+        "datum": "2026-10-18",
+        "foton": 0,
+        "text": "Alles bestens, Preis Leistung top, sehr zufrieden."
+      }
+    ]
+  }
+}
