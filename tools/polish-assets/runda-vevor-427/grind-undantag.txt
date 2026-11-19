@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py sidornas mått står i källans måttbilder, som ritar måtten med pilar (kaminen: bredd, djup och höjd, cykeln: längd och höjd, skåpet: bredd, djup och höjd), medan specifikationsraderna i källan saknar axelord eller har bara siffror, och sidorna skriver axelorden bara där bilden ritar dem

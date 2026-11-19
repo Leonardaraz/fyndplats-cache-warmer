@@ -1,0 +1,5 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+e6f19e26 160 omräknat från 5'3'' i bilden
+e6f19e26 175 omräknat från 5'9'' i bilden
+e6f19e26 170 omräknat från 5'7'' i bilden
