@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py handfatets källrader och måttbild (460 × 330 × 185 mm, överloppshål, avloppshål och utskärning) saknar axelord och ritar bara siffror, så sidan skriver måtten utan axelord; svarvverktygens källrader (största längd, produktmått) och biljardköns källrader (kölängd, produktmått) saknar axelord, så sidorna skriver längd och produktmått utan att namnge axlarna; hyllpilastrarnas måttrad (1536 × 27 × 16 mm) saknar axelord, så sidan skriver de tre talen utan axelord
