@@ -3410,6 +3410,43 @@ Det här lades till (`components/searchbox.tsx`, prov i
    rullas fram när listan är högre än panelen.
 7. **Utan träff**: ett tips och länkar till kategorierna och kontaktsidan.
 
+**Sökförslag och exempel** (samma natt, efter Leonards "det känns fortfarande
+inte som att det är världens bästa e-handel sökfält"). Det som saknades var
+det de bästa rutorna gör först: föreslå SÖKNINGEN, inte bara varorna.
+
+- Medan man skriver står högst tre sökförslag som chips överst: "sof" →
+  soffbord, soffa; "soffa" → tvåsitssoffa, bäddsoffa, hörnsoffa; "tv" →
+  tv-bänk; "fatol" → fåtölj. Det förslaget lägger till står i fetstil. Ett
+  tryck gör sökningen.
+- En tom ruta visar "Sök till exempel" med katalogens sex vanligaste varuord
+  (kontorsstol, klösträd, golvlampa …). Rubriken säger inte "populära": det
+  är vad butiken har mest av, inte vad kunderna söker mest.
+- På datorn står en rad med vad piltangenterna, Enter och Esc gör.
+
+Orden kommer ur katalogens egna namn (`byggOrdforrad` och `sokforslag` i
+`lib/search.ts`, cachat per hämtat index i `lib/sok-index.ts`): varje förslag
+ger träffar, ingen sökstatistik behövs och inget nytt hämtas. Mätt på 7 617
+namn: 2 916 ord, 52 ms att bygga en gång, under en millisekund per tangent.
+Reglerna, var och en med ett prov:
+
+- **Adjektiv föreslås inte.** De känns igen på böjningen: finns ordet också
+  med -t ("manuell", "manuellt"; "konstgjord", "konstgjort") är det inget
+  varuord. Utan regeln var "konstgjord", "smalt" och "manuell" bland de
+  vanligaste exemplen.
+- **Ett kort ord står för sig**, som i sökningen: "tv" är tv-bänk och
+  tv-stativ, inte tvåsitssoffa och tvättkorg.
+- **Vilken sorts ord är det?** "soffa", "bord" och "stol" är huvudet i många
+  sammansättningar, så de smalare formerna går först (bäddsoffa). "barn",
+  "hund" och "jul" inleder många, så de går först (barnbord). Avgörs av vilken
+  grupp som har flest namn.
+- ☠️ **Stammen är inte ordet.** "julgr" har samma stam som "julgran", och
+  "matt" samma som "matta", så en regel som hoppade över "samma ord" tog bort
+  just det kunden var på väg att skriva. Bara en ren böjning av ett
+  färdigskrivet ord hoppas över ("stol" → "stolar").
+
+Chipsen tar plats från varorna (en rad), så panelen är inte högre på mobilen:
+561 px mot 573 förut.
+
 ☠️ **Listan börjar om när varorna byts** (`key` på `ShopBrowser` i
 `components/sok-vy.tsx`). `ShopBrowser` håller prisreglagets läge som
 tillstånd, satt efter varorna den först fick. Efter "Visa alla 137" stod

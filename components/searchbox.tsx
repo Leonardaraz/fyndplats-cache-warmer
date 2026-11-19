@@ -2,7 +2,7 @@
 import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { KORTASTE_SOKNING, laddaSokIndex, rankaForslagMedAntal, sokIndexHamtat, type SokTraff as Hit } from "../lib/sok-index";
+import { KORTASTE_SOKNING, laddaSokIndex, rankaForslagMedAntal, sokexempelFor, sokforslagFor, sokIndexHamtat, type SokTraff as Hit } from "../lib/sok-index";
 import { matchaKategorier } from "../lib/search";
 import { registreradeKategorier, rentNamn, type SokKategori } from "../lib/sok-kategorier";
 import { harPris, inomPris, prisTal, prisText, tolkaPris } from "../lib/sok-pris";
@@ -32,8 +32,23 @@ const KATEGORIFORSLAG = 2;
 //   • Varje sökord står i fetstil i namnen, inte bara hela frasen.
 //   • Piltangenterna läses upp (aria-activedescendant) och raden rullas fram.
 //   • Utan träff: vägar vidare i stället för en återvändsgränd.
-// Senaste sökningar tar plats från de populära varorna, så panelen blir inte högre.
-const POPULARA_MED_SENASTE = 5;
+//   • Sökförslag medan man skriver ("sof" → soffa, soffbord, bäddsoffa) och
+//     exempel i den tomma rutan, ur katalogens egna ord (sokforslag i
+//     lib/search.ts). Det de bästa sökrutorna gör först: föreslå SÖKNINGEN.
+//   • På datorn en rad som säger vad piltangenterna, Enter och Esc gör.
+// Senaste sökningar, exemplen och sökförslagen tar plats från varorna, så
+// panelen blir inte högre.
+const RADER_SENASTE = 2;
+const RADER_CHIPS = 1;
+const SOKFORSLAG = 3;
+const SOKEXEMPEL = 6;
+
+const Lupp = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2.4" />
+    <path d="M21 21l-4-4" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
+  </svg>
+);
 
 const regexSakert = (t: string) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -50,6 +65,9 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   // Hur många varor som matchar, också de som inte får plats i listan.
   const [totalt, setTotalt] = useState(0);
   const [tidigare, setTidigare] = useState<string[]>([]);
+  // Sökningarna kunden är på väg att skriva, och exemplen för en tom ruta.
+  const [forslag, setForslag] = useState<string[]>([]);
+  const [exempel, setExempel] = useState<string[]>([]);
   const uid = useId();
   const [popular, setPopular] = useState<Hit[]>([]);
   const [open, setOpen] = useState(false);
@@ -118,15 +136,20 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     if (!idx) {
       setHits([]);
       setTotalt(0);
+      setForslag([]);
       return;
     }
     if (term.length < KORTASTE_SOKNING) {
       // < 2 tecken: visa populära förslag i stället för att filtrera på en bokstav.
       setHits([]);
       setTotalt(0);
+      setForslag([]);
+      setExempel(sokexempelFor(idx, SOKEXEMPEL));
       setPopular(inStockOnly(idx).slice(0, SUGGESTION_COUNT));
       return;
     }
+    // Med ett pris i sökningen är det sista ordet ett tal, inget att fylla i.
+    setForslag(harPris(pris) ? [] : sokforslagFor(idx, term, SOKFORSLAG));
     // De mest relevanta, slutsålda sist (ordningen förklaras i lib/sok-index.ts).
     // Med ett pris i sökningen gallras träffarna före klippet.
     const svar = rankaForslagMedAntal(idx, pris.fraga, SUGGESTION_COUNT, harPris(pris) ? (h) => inomPris(pris, prisTal(h.p)) : undefined);
@@ -149,7 +172,10 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     setLaddar(false);
     setIndexFel(!idx);
     // Populära visas bara med tomt fält (showing), så de kan sättas oavsett.
-    if (idx) setPopular(inStockOnly(idx).slice(0, SUGGESTION_COUNT));
+    if (idx) {
+      setPopular(inStockOnly(idx).slice(0, SUGGESTION_COUNT));
+      setExempel(sokexempelFor(idx, SOKEXEMPEL));
+    }
   };
 
   // ☠️ TEXT SOM SKREVS FÖRE HYDRERINGEN (2026-10-14). React skriver inte över
@@ -179,10 +205,12 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   const kategorier = isPopular ? [] : kat;
   const pris = tolkaPris(q.trim());
   const visaTidigare = isPopular && tidigare.length > 0;
-  // Kategoriraderna tar plats från varorna: listan är lika hög som förut.
+  const visaExempel = isPopular && exempel.length > 0;
+  const visaForslag = !isPopular && forslag.length > 0;
+  // Kategoriraderna och chipsen tar plats från varorna: listan är lika hög som förut.
   const showing: Hit[] = isPopular
-    ? popular.slice(0, visaTidigare ? POPULARA_MED_SENASTE : SUGGESTION_COUNT)
-    : hits.slice(0, SUGGESTION_COUNT - kategorier.length);
+    ? popular.slice(0, SUGGESTION_COUNT - (visaTidigare ? RADER_SENASTE : 0) - (visaExempel ? RADER_CHIPS : 0))
+    : hits.slice(0, SUGGESTION_COUNT - kategorier.length - (visaForslag ? RADER_CHIPS : 0));
   // Piltangenterna går över kategorierna först, sedan varorna.
   const rader = kategorier.length + showing.length;
 
@@ -284,6 +312,15 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   // "hundbur xl" markerade ingenting. Priset i sökningen räknas inte som ord.
   const ord = pris.fraga.split(/\s+/).filter((t) => t.length >= 2).sort((a, b) => b.length - a.length).map(regexSakert);
   const ordRe = ord.length > 0 ? new RegExp(`(${ord.join("|")})`, "gi") : null;
+  // I ett sökförslag är det tvärtom: det kunden redan skrivit står som det är,
+  // och det förslaget LÄGGER TILL står i fetstil ("sof" → sof**fbord**).
+  const sistaOrdet = q.trim().toLowerCase().split(/\s+/).pop() ?? "";
+  const tillagg = (f: string) => {
+    const start = f.lastIndexOf(" ") + 1;
+    const i = sistaOrdet ? f.toLowerCase().indexOf(sistaOrdet, start) : -1;
+    if (i < 0) return <>{f.slice(0, start)}<b>{f.slice(start)}</b></>;
+    return <>{f.slice(0, start)}{i > start && <b>{f.slice(start, i)}</b>}{f.slice(i, i + sistaOrdet.length)}<b>{f.slice(i + sistaOrdet.length)}</b></>;
+  };
   const highlight = (name: string) => {
     if (!ordRe) return name;
     const delar = name.split(ordRe);
@@ -331,7 +368,7 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
         )}
       </form>
 
-      {visas && (showing.length > 0 || laddar || soker || indexFel || visaTidigare || q.trim().length >= 2) && (
+      {visas && (showing.length > 0 || laddar || soker || indexFel || visaTidigare || visaExempel || q.trim().length >= 2) && (
         <div className="sugg" id="search-suggestions" role="listbox">
           {visaTidigare && (
             <>
@@ -345,6 +382,23 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
                 ))}
               </div>
             </>
+          )}
+          {visaExempel && (
+            <>
+              <div className="sugg-head">Sök till exempel</div>
+              <div className="sugg-exempel sugg-chiprad">
+                {exempel.map((t) => (
+                  <button type="button" className="sugg-chip sugg-chip-sok" key={t} onClick={() => goSearch(t)}><Lupp />{t}</button>
+                ))}
+              </div>
+            </>
+          )}
+          {visaForslag && (
+            <div className="sugg-forslag sugg-chiprad" role="group" aria-label="Sökförslag">
+              {forslag.map((t) => (
+                <button type="button" className="sugg-chip sugg-chip-sok" key={t} onClick={() => goSearch(t)}><Lupp /><span>{tillagg(t)}</span></button>
+              ))}
+            </div>
           )}
           {isPopular && showing.length > 0 && (
             <div className="sugg-head">Populära produkter</div>
@@ -393,6 +447,11 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
               {h.p && <span className="sugg-price">{h.p}</span>}
             </a>
           ); })}
+          {rader > 0 && (
+            <div className="sugg-tangenter" aria-hidden="true">
+              <span><kbd>↑</kbd><kbd>↓</kbd> bläddra</span><span><kbd>Enter</kbd> välj</span><span><kbd>Esc</kbd> stäng</span>
+            </div>
+          )}
           {fot()}
         </div>
       )}

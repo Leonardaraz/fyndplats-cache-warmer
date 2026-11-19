@@ -5,7 +5,7 @@
 // produktväljare (components/kontakt-produkt.tsx), tillsammans med rankningen
 // av förslagen. Utbrutet ur searchbox.tsx 2026-11-07, med skälen kvar nedan.
 
-import { normalize, rankByName } from "./search";
+import { byggOrdforrad, normalize, rankByName, sokforslag, type Ordforrad } from "./search";
 
 // o = slutsåld (sätts bara på slutsålda produkter, se /api/search-index).
 export type SokTraff = { n: string; s: string; i: string; p: string; o?: 1 };
@@ -59,6 +59,29 @@ export function rankaForslagMedAntal(
     traffar: kvar.slice(0, antal).sort((a, b) => (a.o ? 1 : 0) - (b.o ? 1 : 0)),
     totalt: kvar.length,
   };
+}
+
+// Katalogens ordförråd byggs en gång per hämtat index (lib/search.ts,
+// byggOrdforrad): några millisekunder för 7 600 namn, sedan är varje förslag
+// en genomgång av ett par tusen ord.
+const ordforrad = new WeakMap<SokTraff[], Ordforrad>();
+function ordforradFor(idx: SokTraff[]): Ordforrad {
+  let f = ordforrad.get(idx);
+  if (!f) {
+    f = byggOrdforrad(idx.map((h) => h.n));
+    ordforrad.set(idx, f);
+  }
+  return f;
+}
+
+/** Sökningarna kunden är på väg att skriva ("sof" → soffa, soffbord). */
+export function sokforslagFor(idx: SokTraff[], skrivet: string, max: number): string[] {
+  return sokforslag(ordforradFor(idx), skrivet, max);
+}
+
+/** Vad man kan söka på, för den tomma rutan: katalogens vanligaste varuord. */
+export function sokexempelFor(idx: SokTraff[], max: number): string[] {
+  return ordforradFor(idx).exempel.slice(0, max);
 }
 
 // Module-level cache so the header + mobile SearchBox share ONE fetch of the index.

@@ -1073,3 +1073,148 @@ export function matchaKategorier<K extends { name: string }>(query: string, kate
     .slice(0, max)
     .map((r) => r.k);
 }
+
+// ── Sökförslag: orden kunden är på väg att skriva (2026-11-19) ──────────────
+//
+// Leonard efter första genomgången: "det känns fortfarande inte som att det är
+// världens bästa e-handel sökfält". Det som saknades var det de bästa rutorna
+// gör först: föreslå SÖKNINGEN, inte bara varorna. "sof" ger soffa, soffbord
+// och bäddsoffa, och en tom ruta visar vad man kan söka på.
+//
+// Orden kommer ur katalogens egna namn, så varje förslag ger träffar. Ingen
+// sökstatistik behövs, och inget nytt hämtas: namnen ligger redan i sökindexet.
+
+/** Katalogens ord: vilka som finns, hur många namn de står i, och vilka som inleder namn. */
+export type Ordforrad = {
+  /** Varje ord som går att föreslå, med antal namn det står i, vanligast först. */
+  ord: { text: string; vikt: string; nyckel: string; antal: number }[];
+  /** De vanligaste varuorden (namnens första ord), för den tomma rutan. */
+  exempel: string[];
+  /** Varje ord som står i något namn, utan prickar: säger om ett ord är färdigskrivet. */
+  former: ReadonlySet<string>;
+};
+
+const ORD_RE = /[a-zåäöé]+(?:-[a-zåäöé]+)*/g;
+/** Kortaste ord som föreslås. "bord" och "säng" är fyra. */
+const KORTASTE_FORSLAG = 4;
+/** Ändelser som nästan bara adjektiv har: justerbar, elektrisk, vattentät, rostfri. */
+const ADJEKTIVSLUT = /(?:bar|bara|bart|lig|liga|ligt|isk|iska|iskt|ande|ende|fri|fria|fritt|tät|täta|tätt)$/;
+
+/**
+ * Ett adjektiv känns igen på sin böjning: finns ordet också med -t ("manuell",
+ * "manuellt"; "konstgjord", "konstgjort"; "smal", "smalt") är det inget
+ * varuord. Substantiv böjs inte så ("bord" men aldrig "bordt").
+ */
+function arAdjektiv(o: string, alla: ReadonlySet<string>): boolean {
+  if (ADJEKTIVSLUT.test(o)) return true;
+  if (alla.has(`${o}t`)) return true;
+  if (o.endsWith("d") && alla.has(`${o.slice(0, -1)}t`)) return true;
+  if (o.endsWith("t") && (alla.has(o.slice(0, -1)) || alla.has(`${o.slice(0, -1)}a`) || alla.has(`${o.slice(0, -1)}d`))) return true;
+  if (o.endsWith("a") && (alla.has(`${o.slice(0, -1)}t`) || (alla.has(o.slice(0, -1)) && alla.has(`${o.slice(0, -1)}t`)))) return true;
+  if (o.endsWith("da") && alla.has(`${o.slice(0, -2)}t`)) return true;
+  return false;
+}
+
+/** Ändelser som bara böjer ordet. Inte "a": "matt" → "matta" är ett annat ord. */
+const BOJNINGSSLUT = new Set(["ar", "er", "or", "r", "n", "en", "et", "na", "arna", "erna", "orna", "s", "t", "e"]);
+
+/** Bygger ordförrådet ur katalogens namn. Görs en gång per hämtat sökindex. */
+export function byggOrdforrad(namn: readonly string[]): Ordforrad {
+  const antal = new Map<string, number>();
+  const forst = new Map<string, number>();
+  for (const n of namn) {
+    const ordINamnet = (n || "").toLowerCase().match(ORD_RE);
+    if (!ordINamnet) continue;
+    for (const o of new Set(ordINamnet)) antal.set(o, (antal.get(o) ?? 0) + 1);
+    forst.set(ordINamnet[0], (forst.get(ordINamnet[0]) ?? 0) + 1);
+  }
+  const alla: ReadonlySet<string> = new Set(antal.keys());
+  const duger = (o: string) =>
+    o.length >= KORTASTE_FORSLAG && !STOPWORDS.has(o) && !arEgenskap(o) && !arAdjektiv(o, alla);
+  // Ental och flertal är samma förslag: den vanligaste formen står för båda.
+  const perNyckel = new Map<string, { text: string; antal: number; storst: number }>();
+  for (const [o, n] of antal) {
+    if (n < 2 || !duger(o)) continue;
+    const nyckel = canon(o);
+    const har = perNyckel.get(nyckel);
+    if (!har) perNyckel.set(nyckel, { text: o, antal: n, storst: n });
+    else {
+      har.antal += n;
+      if (n > har.storst) { har.text = o; har.storst = n; }
+    }
+  }
+  const ord = [...perNyckel.entries()]
+    .map(([nyckel, v]) => ({ text: v.text, vikt: vik(v.text), nyckel, antal: v.antal }))
+    .sort((a, b) => b.antal - a.antal || a.text.localeCompare(b.text, "sv"));
+  // Den tomma rutans exempel: orden som oftast INLEDER ett namn är varutyper.
+  const sedda = new Set<string>();
+  const exempel: string[] = [];
+  for (const [o] of [...forst.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "sv"))) {
+    if (o.length < 5 || !duger(o) || (forst.get(o) ?? 0) < 5) continue;
+    const nyckel = canon(o);
+    if (sedda.has(nyckel)) continue;
+    sedda.add(nyckel);
+    exempel.push(perNyckel.get(nyckel)?.text ?? o);
+    if (exempel.length >= 12) break;
+  }
+  return { ord, exempel, former: new Set([...alla].map(vik)) };
+}
+
+/**
+ * Sökningarna kunden är på väg att skriva, högst `max`. Det sista ordet i
+ * rutan fylls i: först ord som BÖRJAR så ("sof" → soffa, soffbord), sedan,
+ * när minst fyra bokstäver står där, sammansättningar som SLUTAR så ("soffa"
+ * → bäddsoffa, hörnsoffa): huvudet står sist i svenska ord, så de är samma
+ * vara i en smalare form. Prickarna får saknas ("fatol" → fåtölj). Ordet som
+ * redan står i rutan föreslås inte.
+ */
+export function sokforslag(forrad: Ordforrad, skrivet: string, max = 3): string[] {
+  const delar = (skrivet || "").toLowerCase().replace(/\s+/g, " ").trimStart().split(" ");
+  const sist = delar[delar.length - 1] ?? "";
+  if (sist.length < 2 || max <= 0) return [];
+  const fore = delar.slice(0, -1).join(" ");
+  const p = vik(sist);
+  const pNyckel = canon(sist);
+  const kort = sist.length <= 2 || FORKORTNINGAR.has(sist);
+  const helt = forrad.former.has(p);
+  const medStreck: string[] = [];
+  const nara: string[] = [];
+  const borjar: string[] = [];
+  const slutar: string[] = [];
+  let borjarVikt = 0;
+  let slutarVikt = 0;
+  const tagna = new Set(delar.slice(0, -1).map((d) => canon(d)));
+  for (const o of forrad.ord) {
+    if (o.vikt === p || tagna.has(o.nyckel)) continue;
+    // En böjning av ordet som redan står i rutan för inte sökningen vidare:
+    // "soffor" → "soffa", "stol" → "stolar". Är ordet inte färdigskrivet gör
+    // den det: "julgr" → "julgran", "lamp" → "lampor".
+    if (o.nyckel === pNyckel && (!o.vikt.startsWith(p) || (helt && BOJNINGSSLUT.has(o.vikt.slice(p.length))))) continue;
+    // Ett kort ord eller en förkortning står för sig (helord, se ovan): "tv"
+    // är tv-bänk och tv-stativ, inte tvåsitssoffa och tvättkorg.
+    if (kort && o.vikt.startsWith(`${p}-`) && medStreck.length < max) medStreck.push(o.text);
+    if (o.vikt.startsWith(p)) {
+      // Ordet kunden nästan har skrivit färdigt går först, när det också är
+      // det vanligaste som börjar så: "matt" → matta före hängmatta.
+      if (borjarVikt === 0 && o.vikt.length <= p.length + 2) nara.push(o.text);
+      else if (borjar.length < max) borjar.push(o.text);
+      borjarVikt += o.antal;
+    } else if (p.length >= 4 && o.vikt.length > p.length + 1 && (o.vikt.endsWith(p) || o.nyckel.endsWith(pNyckel))) {
+      slutarVikt += o.antal;
+      if (slutar.length < max) slutar.push(o.text);
+    }
+  }
+  if (kort && medStreck.length > 0) return medStreck.map((o) => (fore ? `${fore} ${o}` : o));
+  // Vilken sorts ord är det? "soffa", "bord" och "stol" är huvudet i många
+  // sammansättningar (bäddsoffa, matbord): de smalare formerna går först.
+  // "barn", "hund" och "jul" inleder många (barnbord, hundbur): de går först.
+  const ordning = [...nara, ...(slutarVikt > borjarVikt ? [...slutar, ...borjar] : [...borjar, ...slutar])];
+  const valda: string[] = [];
+  for (const o of ordning) {
+    // "julgran" och "julgranar" är samma förslag.
+    if (valda.some((v) => (o.startsWith(v) && o.length - v.length <= 3) || (v.startsWith(o) && v.length - o.length <= 3))) continue;
+    valda.push(o);
+    if (valda.length >= max) break;
+  }
+  return valda.map((o) => (fore ? `${fore} ${o}` : o));
+}

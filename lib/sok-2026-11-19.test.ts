@@ -6,7 +6,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  expandSynonyms, fuzzyOrdslut, FYLL_PA_UNDER, kategoriPoang, matchaKategorier, nameMatch, nameScore, rankaMedInfo, rankByName,
+  byggOrdforrad, expandSynonyms, fuzzyOrdslut, FYLL_PA_UNDER, kategoriPoang, matchaKategorier, nameMatch, nameScore, rankaMedInfo, rankByName, sokforslag,
 } from "./search.ts";
 
 const sok = (namn: string[], q: string) => rankByName(namn, (n) => n, q);
@@ -414,8 +414,9 @@ test("sökrutan: antal i knappen, kryss, alla sökord i fetstil och uppläst rad
   assert.match(ruta, /aria-activedescendant=\{visas && active >= 0 && active < rader \? radId\(active\) : undefined\}/);
   assert.match(ruta, /rankaForslagMedAntal\(idx, pris\.fraga, SUGGESTION_COUNT, harPris\(pris\) \?/);
   assert.match(ruta, /className="sugg-chip" key=\{t\} onClick=\{\(\) => goSearch\(t\)\}/);
-  // Senaste sökningar tar plats från de populära: panelen blir inte högre.
-  assert.match(ruta, /popular\.slice\(0, visaTidigare \? POPULARA_MED_SENASTE : SUGGESTION_COUNT\)/);
+  // Senaste sökningar, exemplen och sökförslagen tar plats från varorna: panelen blir inte högre.
+  assert.match(ruta, /popular\.slice\(0, SUGGESTION_COUNT - \(visaTidigare \? RADER_SENASTE : 0\) - \(visaExempel \? RADER_CHIPS : 0\)\)/);
+  assert.match(ruta, /hits\.slice\(0, SUGGESTION_COUNT - kategorier\.length - \(visaForslag \? RADER_CHIPS : 0\)\)/);
 });
 
 test("☠️ listan börjar om när varorna byts: prisreglaget blev ett filter ingen valt", async () => {
@@ -443,4 +444,67 @@ test("förslagen med antal: gallringen görs före klippet", async () => {
   const index = readFileSync(new URL("./sok-index.ts", import.meta.url), "utf8");
   assert.match(index, /const kvar = behall \? alla\.filter\(behall\) : alla;[\s\S]{0,120}kvar\.slice\(0, antal\)/);
   assert.match(index, /totalt: kvar\.length/);
+});
+
+// ── Sökförslag: orden kunden är på väg att skriva ───────────────────────────
+const KATALOG = [
+  "Tvåsitssoffa i manchester", "Tvåsitssoffa i grå chenille", "Bäddsoffa med förvaring", "Bäddsoffa i sammet", "Hörnsoffa 240 cm",
+  "Hörnsoffa med divan", "Soffbord i ek", "Soffbord med glasskiva", "Soffbord i marmorlook", "Soptunna 30 liter", "Soptunna med pedal",
+  "Julgran 180 cm med LED", "Julgran 210 cm", "Julgranar 2-pack", "Talljulgran 150 cm", "Talljulgran 180 cm", "Hundbur 100 cm", "Hundbur i metall",
+  "Hundgrind 76 cm", "Hundgrind i trä", "Hundgrind med dörr", "TV-bänk 160 cm", "TV-bänk i valnöt", "Tvättkorg i bambu", "Tvättkorg med lock",
+  "Matta 160 × 230 cm", "Matta i jute", "Hängmatta med ställning", "Hängmatta i bomull", "Manuell gräsklippare", "Manuellt stansverktyg",
+  "Justerbar hantelbänk", "Justerbar skrivbordsstol", "Konstgjord växt 120 cm", "Konstgjort gräs 2 × 5 m", "Kontorsstol i nät", "Kontorsstol med nackstöd",
+  "Kontorsstol i svart", "Kontorsstol med fotstöd", "Kontorsstol i manchester", "Fåtölj i sammet", "Fåtölj med fotpall", "Soffa i grått tyg", "Soffa med schäslong",
+];
+
+test('sökförslag: "sof" fylls i, "soffa" blir smalare, och prickarna får saknas', () => {
+  const f = byggOrdforrad(KATALOG);
+  assert.deepEqual(sokforslag(f, "sof", 3), ["soffbord", "soffa"]);
+  // Lika vanliga ord står i bokstavsordning: samma svar varje gång.
+  assert.deepEqual(sokforslag(f, "soffa", 3), ["bäddsoffa", "hörnsoffa", "tvåsitssoffa"]);
+  assert.deepEqual(sokforslag(f, "fatol", 3), ["fåtölj"]);
+  assert.deepEqual(sokforslag(f, "hund", 3), ["hundgrind", "hundbur"]);
+  // Det sista ordet fylls i, resten står kvar.
+  assert.deepEqual(sokforslag(f, "grå sof", 2), ["grå soffbord", "grå soffa"]);
+  // Inget att föreslå: tomt, inte en gissning.
+  assert.deepEqual(sokforslag(f, "pulk", 3), []);
+  assert.deepEqual(sokforslag(f, "s", 3), []);
+  assert.deepEqual(sokforslag(f, "", 3), []);
+});
+
+test('☠️ sökförslag: "tv" är tv-bänk och inte tvåsitssoffa, och "matt" är matta före hängmatta', () => {
+  const f = byggOrdforrad(KATALOG);
+  assert.deepEqual(sokforslag(f, "tv", 3), ["tv-bänk"]);
+  assert.deepEqual(sokforslag(f, "svart tv", 3), ["svart tv-bänk"]);
+  assert.equal(sokforslag(f, "matt", 3)[0], "matta");
+  assert.ok(sokforslag(f, "matt", 3).includes("hängmatta"));
+  // "julgr" är inte färdigskrivet: julgran föreslås, en gång (inte också "julgranar").
+  assert.deepEqual(sokforslag(f, "julgr", 3), ["julgran", "talljulgran"]);
+  // Ordet som redan står i rutan, och dess böjningar, föreslås inte.
+  assert.ok(!sokforslag(f, "soffa", 5).includes("soffa"));
+  assert.ok(!sokforslag(f, "hundbur", 5).some((x) => /^hundbur/.test(x)));
+});
+
+test("sökförslag: adjektiv, färger och småord föreslås inte, och exemplen är varuord", () => {
+  const f = byggOrdforrad(KATALOG);
+  const ord = new Set(f.ord.map((o) => o.text));
+  for (const o of ["manuell", "manuellt", "justerbar", "konstgjord", "konstgjort", "grått", "svart", "med"]) assert.ok(!ord.has(o), o);
+  for (const o of ["kontorsstol", "soffbord", "julgran", "hundgrind"]) assert.ok(ord.has(o), o);
+  // Ental och flertal är ett förslag.
+  assert.equal(f.ord.filter((o) => /^julgran/.test(o.text)).length, 1);
+  // Den tomma rutans exempel: det som oftast inleder ett namn, minst fem gånger.
+  assert.deepEqual(f.exempel, ["kontorsstol"]);
+  assert.deepEqual(byggOrdforrad([]), { ord: [], exempel: [], former: new Set() });
+});
+
+test("sökrutan visar sökförslagen och exemplen som chips som söker", async () => {
+  const { readFileSync } = await import("node:fs");
+  const ruta = readFileSync(new URL("../components/searchbox.tsx", import.meta.url), "utf8");
+  assert.match(ruta, /setForslag\(harPris\(pris\) \? \[\] : sokforslagFor\(idx, term, SOKFORSLAG\)\)/);
+  assert.match(ruta, /className="sugg-forslag sugg-chiprad" role="group" aria-label="Sökförslag"/);
+  assert.match(ruta, /className="sugg-exempel sugg-chiprad"/);
+  assert.equal(ruta.split('className="sugg-chip sugg-chip-sok" key={t} onClick={() => goSearch(t)}').length, 3);
+  assert.match(ruta, /className="sugg-tangenter" aria-hidden="true"/);
+  const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(css, /\.sugg-tangenter\{display:none\}\n@media\(hover:hover\) and \(pointer:fine\)/);
 });
