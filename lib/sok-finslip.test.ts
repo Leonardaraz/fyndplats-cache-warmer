@@ -11,7 +11,8 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { byggOrdforrad, normalize, rankaMedForslag, rankaMedInfo, rankByName, sokforslagINamn } from "./search.ts";
+import { readFileSync } from "node:fs";
+import { byggOrdforrad, kategoriPoang, markeringsord, matchaKategorier, normalize, rankaMedForslag, rankaMedInfo, rankByName, sokforslagINamn } from "./search.ts";
 
 const sok = (namn: string[], q: string) => rankByName(namn, (n) => n, q);
 const utfall = (namn: string[], q: string) => rankaMedInfo(namn, (n) => n, q);
@@ -309,4 +310,70 @@ test("förslag: särskrivet föreslås ihopskrivet, och flera ord ska finnas i n
   assert.equal(forslag("fotb")[0], "fotbollsmål");
   // ☠️ "smal" är inte slutet av "fotbollsmål": prickarna gäller när ordet finns.
   assert.equal(forslag("smal").includes("fotbollsmål"), false);
+});
+
+// ── Kategorierna som matchar sökningen ───────────────────────────────────────
+test("kategorier: ett kort ord är huvudet i kategorins ord, inte bokstäver i slutet", () => {
+  // ☠️ "bar" gav "Baby & Småbarn", "tyg" gav Verktyg och "ring" Förvaring.
+  assert.equal(kategoriPoang("Baby & Småbarn", "bar"), 0);
+  assert.equal(kategoriPoang("Verktyg", "tyg"), 0);
+  assert.equal(kategoriPoang("Förvaring & Organisering", "ring"), 0);
+  assert.equal(kategoriPoang("Badrumsrenovering", "ring"), 0);
+  // Huvudet i en sammansättning hittas, också efter en kort förled och i flertal.
+  assert.equal(kategoriPoang("Växthus & Odling", "hus") > 0, true);
+  assert.equal(kategoriPoang("Elbilar för barn", "bil") > 0, true);
+  assert.equal(kategoriPoang("Uppresningsfåtöljer", "fåtölj") > 0, true);
+  assert.equal(kategoriPoang("Soffor & bäddsoffor", "soffa") > 0, true);
+  assert.equal(kategoriPoang("Badrumsspeglar", "spegel") > 0, true);
+  const kat = [{ name: "Baby & Småbarn" }, { name: "Barbord" }, { name: "Speglar" }, { name: "Badrumsspeglar" }];
+  assert.deepEqual(matchaKategorier("speglar", kat, 3).map((k) => k.name), ["Speglar", "Badrumsspeglar"]);
+  assert.deepEqual(matchaKategorier("bar", kat, 3), []);
+});
+
+// ── Sökrutan ─────────────────────────────────────────────────────────────────
+test("markering: böjda former markeras, småord inte", () => {
+  const speglar = markeringsord("speglar");
+  assert.equal(speglar[0], "speglar");
+  assert.equal(speglar.includes("spegel"), true);
+  assert.equal(markeringsord("stolar").includes("stol"), true);
+  assert.equal(markeringsord("fåtölj med fotpall").includes("med"), false);
+  // Längst först: "bordslampa" ska inte markeras som bara "bord".
+  const ord = markeringsord("bord bordslampa");
+  assert.equal(ord.indexOf("bordslampa") < ord.indexOf("bord"), true);
+});
+
+test("sökrutan: listboxen bär bara raderna, och har ett eget id per ruta", () => {
+  const ruta = readFileSync(new URL("../components/searchbox.tsx", import.meta.url), "utf8");
+  // Tre sökrutor finns i sidan (sidhuvudet, mobilraden, mobilmenyn): ett fast id vore dubblerat.
+  assert.equal(ruta.includes('id="search-suggestions"'), false);
+  assert.match(ruta, /const listaId = `\$\{uid\}-lista`;/);
+  assert.match(ruta, /aria-controls=\{listaId\}/);
+  assert.match(ruta, /<div role="listbox" id=\{listaId\} aria-label="Förslag">/);
+  // Panelen själv är ingen listbox: den bär chips, rubriker och en fot.
+  assert.match(ruta, /<div className="sugg">/);
+  assert.equal(/className="sugg"[^>]*role="listbox"/.test(ruta), false);
+  // Rubrikerna inne i listboxen är presentation, och antalet läses upp.
+  assert.equal((ruta.match(/className="sugg-head" role="presentation"/g) ?? []).length, 3);
+  assert.match(ruta, /<div className="sr-only" role="status" aria-live="polite">\{upplast\}<\/div>/);
+});
+
+test("sökrutan: tabb ut stänger panelen, men ett tryck på iPhone gör det inte", () => {
+  const ruta = readFileSync(new URL("../components/searchbox.tsx", import.meta.url), "utf8");
+  // ☠️ relatedTarget är null när ett förslag trycks på iPhone: då får panelen inte stängas.
+  assert.match(ruta, /const till = e\.relatedTarget as Node \| null;\s+if \(till && wrapRef\.current && !wrapRef\.current\.contains\(till\)\) setOpen\(false\);/);
+  assert.match(ruta, /<div className="searchwrap" ref=\{wrapRef\} onBlur=\{onBlur\}>/);
+});
+
+test("sökrutan: panelen slutar ovanför tangentbordet, och bokstaven ritas före rankningen", () => {
+  const ruta = readFileSync(new URL("../components/searchbox.tsx", import.meta.url), "utf8");
+  const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(ruta, /const vv = window\.visualViewport;/);
+  assert.match(ruta, /wrap\.style\.setProperty\("--sok-max"/);
+  // Utan variabeln (ingen visualViewport) gäller den gamla höjden.
+  assert.match(css, /\.sugg\{[^}]*max-height:min\(640px,var\(--sok-max,calc\(100dvh - 200px\)\)\)/);
+  // ☠️ Turen lämnas tillbaka innan rankningen, och en nyare tangent tar över efteråt.
+  assert.match(ruta, /await new Promise<void>\(\(klar\) => setTimeout\(klar, 0\)\);\s+if \(senaste\.current !== val\) return;/);
+  // Krysset är 44 px att träffa, och fotens knapp högre på pekskärm.
+  assert.match(css, /\.search-rensa::after\{content:"";position:absolute;inset:-8px\}/);
+  assert.match(css, /@media \(pointer:coarse\)\{[^}]*\}\.sugg-all\{padding-top:14px;padding-bottom:14px\}\}/);
 });

@@ -286,7 +286,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 /* Krysset är 28 px att se på och 44 px att träffa (2026-11-19). */
 .search-rensa{position:relative}
 .search-rensa::after{content:"";position:absolute;inset:-8px}
-@media (pointer:coarse){.sugg-chip{padding-top:10px;padding-bottom:10px}}
+@media (pointer:coarse){.sugg-chip{padding-top:10px;padding-bottom:10px}.sugg-all{padding-top:14px;padding-bottom:14px}}
 .sugg-head-rad{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .sugg-rensa{background:none;border:0;font-family:inherit;font-size:var(--text-xs);font-weight:700;letter-spacing:0;text-transform:none;color:var(--brand);cursor:pointer;padding:4px 2px}
 .sugg-senaste{display:flex;flex-wrap:wrap;gap:8px;padding:2px 10px 10px}

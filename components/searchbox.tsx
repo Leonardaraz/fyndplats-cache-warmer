@@ -206,6 +206,15 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     if (!sokIndexHamtat() || !motor) setLaddar(true);
     const [idx, m] = await Promise.all([laddaSokIndex(), laddaMotor()]);
     if (senaste.current !== val) return; // en nyare tangent tar över
+    // ☠️ BOKSTAVEN SKA SYNAS INNAN RANKNINGEN BÖRJAR (2026-11-19). Är indexet
+    // redan hämtat är löftet ovan klart, och allt nedanför körde i samma
+    // uppgift som tangenten: på en strypt telefon (4× långsammare processor)
+    // höll ett felstavat ord kvar tangenten i 350 ms innan bokstaven ritades.
+    // Nu lämnas turen tillbaka till webbläsaren först. Den som skriver fort
+    // slipper dessutom rankningen för bokstäverna däremellan: när turen
+    // kommer har en nyare tangent tagit över.
+    await new Promise<void>((klar) => setTimeout(klar, 0));
+    if (senaste.current !== val) return;
     setLaddar(false);
     setIndexFel(!idx || !m);
     if (!idx || !m) {

@@ -1611,23 +1611,35 @@ function formerFor(namn: readonly string[]): ListFormer {
 // står inte i "soffor". Här jämförs orden i sin kanoniska form (canon), som är
 // densamma för "soffa" och "soffor".
 
+/** Är sökordet, i någon av sina former, huvudet i ordet (sist, med högst en böjningsändelse)? */
+function huvudI(ord: string, u: Unit): boolean {
+  if (ord.length <= u.stem.length) return false;
+  return ordStar(ord, u.stem) || (u.tok !== u.stem && ordStar(ord, u.tok)) || (u.former ?? []).some((f) => ordStar(ord, f));
+}
+
 /** Poäng för hur väl ett kategorinamn matchar sökningen. 0 = inte alls. */
 export function kategoriPoang(kategoriNamn: string, query: string): number {
   // Mjuka bindestreck (U+00AD) står i långa kategorinamn för radbrytningen.
   const namn = normalize(kategoriNamn.replace(/\u00ad/g, ""));
   // Orden som de står, och med bindestrecken borta: "TV-bänkar" är både
   // "tv" + "bänkar" och "tvbänkar".
-  const ord = [...new Set([...tokenize(namn), ...tokenize(utanBindestreck(namn))])].map(canon);
+  const raa = [...new Set([...tokenize(namn), ...tokenize(utanBindestreck(namn))])];
+  const ord = raa.map(canon);
   // Färg, storlek och mått säger inget om kategorin: "svart tv-bänk" är TV-bänkar.
   const units = prepare(query).units.filter((u) => !u.egenskap);
   if (units.length === 0 || ord.length === 0) return 0;
   let summa = 0;
   for (const u of units) {
     let bast = 0;
-    for (const o of ord) {
+    for (let i = 0; i < ord.length; i++) {
+      const o = ord[i];
       if (o === u.key) bast = Math.max(bast, 3);
       // Huvudet i en sammansättning: "fåtölj" i "uppresningsfåtöljer".
-      else if (!u.helord && u.key.length >= 3 && o.endsWith(u.key)) bast = Math.max(bast, 2);
+      // ☠️ Som ett ORD sist i kategorins ord (ordStar), inte som bokstäver i
+      // slutet (2026-11-19): "bar" gav "Baby & Småbarn", "tyg" gav Verktyg och
+      // "ring" Badrumsrenovering och Förvaring. Samma spärrar som för
+      // varunamnen gäller (BARARE), och "hus" hittar nu Växthus.
+      else if (!u.helord && u.key.length >= 3 && huvudI(raa[i], u)) bast = Math.max(bast, 2);
       // Förledet: "kontor" i "kontorsstolar" och "hund" i "hundburar", och
       // sökordet som börjar med kategorins ord: "trädgårdsmöbler" och
       // "Trädgård". Förledet jämförs som kunden skrev det, inte i kanonisk
