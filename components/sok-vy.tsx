@@ -25,6 +25,8 @@ export type SokData = {
   /** Det tomma läget: varor som säljer just nu, och butikens största kategorier. */
   populart: ListProduct[];
   popularaKategorier: SokKategori[];
+  /** Ordet träffarna gäller när sökningen var två bokstäver (lib/search.ts, rankaMedForslag). */
+  visar?: string;
 };
 
 const citat = (ord: string[]) => ord.map((o) => `“${o}”`).join(" och ");
@@ -90,6 +92,11 @@ export function SokVy({ q, data }: { q: string; data: SokData | "laddar" | "fel"
           {klar && klar.traffar.length > 0 && (
             <>
               <Kategorier lista={klar.kategorier} etikett="Kategorier" />
+              {klar.visar && (
+                <p className="sok-besked">
+                  Du skrev “{term}”. Här är träffarna för <b>“{klar.visar}”</b>.
+                </p>
+              )}
               {klar.strukna.length > 0 && (
                 <p className="sok-besked">
                   Ingen vara har alla sökord i namnet. Här är träffarna utan <b>{citat(klar.strukna)}</b>.

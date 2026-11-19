@@ -1087,7 +1087,7 @@ export function matchaKategorier<K extends { name: string }>(query: string, kate
 /** Katalogens ord: vilka som finns, hur många namn de står i, och vilka som inleder namn. */
 export type Ordforrad = {
   /** Varje ord som går att föreslå, med antal namn det står i, vanligast först. */
-  ord: { text: string; vikt: string; nyckel: string; antal: number }[];
+  ord: { text: string; vikt: string; nyckel: string; antal: number; varu: number }[];
   /** De vanligaste varuorden (namnens första ord), för den tomma rutan. */
   exempel: string[];
   /** Varje ord som står i något namn, utan prickar: säger om ett ord är färdigskrivet. */
@@ -1114,6 +1114,21 @@ function arAdjektiv(o: string, alla: ReadonlySet<string>): boolean {
   if (o.endsWith("da") && alla.has(`${o.slice(0, -2)}t`)) return true;
   return false;
 }
+
+/** Så få bokstäver är början på ett ord, och förslagen är varor (se sokforslag). */
+const KORT_PREFIX = 2;
+/** Ett ord är en vara när det är varan i minst så många namn. */
+const MINST_VARA = 2;
+/**
+ * Ord som inleder namn utan att vara varan, och som böjningsprovet (arAdjektiv)
+ * inte fångar: oregelbundna adjektiv, räkneord, mått och material. Bara för
+ * tvåbokstavsförslagen, där det första förslaget också bestämmer vilka varor
+ * som visas.
+ */
+const INGEN_VARA = new Set([
+  "bred", "armlös", "täckt", "yttre", "inre", "övre", "nedre", "främre", "bakre", "själv", "åtta",
+  "kilo", "linne", "aluminium", "höjd", "bredd", "längd", "djup", "allt-i-ett",
+]);
 
 /** Ändelser som bara böjer ordet. Inte "a": "matt" → "matta" är ett annat ord. */
 const BOJNINGSSLUT = new Set(["ar", "er", "or", "r", "n", "en", "et", "na", "arna", "erna", "orna", "s", "t", "e"]);
@@ -1143,8 +1158,29 @@ export function byggOrdforrad(namn: readonly string[]): Ordforrad {
       if (n > har.storst) { har.text = o; har.storst = n; }
     }
   }
+  // Hur ofta ordet ÄR VARAN: det inleder ett namn, eller är huvudet i namnets
+  // första ord ("Matstolar 2-pack …" räknas för stolar, "Hörnskrivbord …" för
+  // skrivbord och bord). "fack", "bitar", "stål" och "månader" står i hundratals
+  // namn men inleder aldrig något: de är egenskaper, inte varor (se sokforslag).
+  //
+  // Två spärrar, båda mätta på katalogen 2026-11-19. Namnets första ord ska
+  // självt vara ett varuord: "Upphöjd odlingslåda" gjorde annars "höjd" till
+  // en vara. Och slutet ska stå som ett eget ord i något namn: stammen av en
+  // godtycklig ändelse ("blandare" → "landare" → land) är ingen sammansättning.
+  const varu = new Map<string, number>();
+  for (const [w, n] of forst) {
+    if (!duger(w)) continue;
+    const egen = canon(w);
+    if (perNyckel.has(egen)) varu.set(egen, (varu.get(egen) ?? 0) + n);
+    for (let i = 2; i <= w.length - KORTASTE_FORSLAG; i++) {
+      const slut = w.slice(i);
+      if (!alla.has(slut)) continue;
+      const huvud = canon(slut);
+      if (huvud !== egen && perNyckel.has(huvud)) varu.set(huvud, (varu.get(huvud) ?? 0) + n);
+    }
+  }
   const ord = [...perNyckel.entries()]
-    .map(([nyckel, v]) => ({ text: v.text, vikt: vik(v.text), nyckel, antal: v.antal }))
+    .map(([nyckel, v]) => ({ text: v.text, vikt: vik(v.text), nyckel, antal: v.antal, varu: varu.get(nyckel) ?? 0 }))
     .sort((a, b) => b.antal - a.antal || a.text.localeCompare(b.text, "sv"));
   // Den tomma rutans exempel: orden som oftast INLEDER ett namn är varutyper.
   const sedda = new Set<string>();
@@ -1177,11 +1213,19 @@ export function sokforslag(forrad: Ordforrad, skrivet: string, max = 3): string[
   const pNyckel = canon(sist);
   const kort = sist.length <= 2 || FORKORTNINGAR.has(sist);
   const helt = forrad.former.has(p);
+  // Har kunden skrivit prickarna gäller de: "sän" är sängram, inte sand, och
+  // "skå" är skåp, inte skärm. Utan prickar går ordet som börjar precis så
+  // först ("bad" → badrumsskåp före bädd), och det utan prickar sist ("fatol"
+  // → fåtölj).
+  const harPrickar = /[åäöé]/.test(sist);
+  type Ord = Ordforrad["ord"][number];
   const medStreck: string[] = [];
   const nara: string[] = [];
-  const borjar: string[] = [];
+  const exakta: Ord[] = [];
+  const vikta: Ord[] = [];
   const slutar: string[] = [];
-  let borjarVikt = 0;
+  let exaktVikt = 0;
+  let viktaVikt = 0;
   let slutarVikt = 0;
   const tagna = new Set(delar.slice(0, -1).map((d) => canon(d)));
   for (const o of forrad.ord) {
@@ -1194,20 +1238,59 @@ export function sokforslag(forrad: Ordforrad, skrivet: string, max = 3): string[
     // är tv-bänk och tv-stativ, inte tvåsitssoffa och tvättkorg.
     if (kort && o.vikt.startsWith(`${p}-`) && medStreck.length < max) medStreck.push(o.text);
     if (o.vikt.startsWith(p)) {
+      if (!o.text.startsWith(sist)) {
+        vikta.push(o);
+        viktaVikt += o.antal;
+        continue;
+      }
       // Ordet kunden nästan har skrivit färdigt går först, när det också är
       // det vanligaste som börjar så: "matt" → matta före hängmatta.
-      if (borjarVikt === 0 && o.vikt.length <= p.length + 2) nara.push(o.text);
-      else if (borjar.length < max) borjar.push(o.text);
-      borjarVikt += o.antal;
+      if (exaktVikt === 0 && o.vikt.length <= p.length + 2) nara.push(o.text);
+      else exakta.push(o);
+      exaktVikt += o.antal;
     } else if (p.length >= 4 && o.vikt.length > p.length + 1 && (o.vikt.endsWith(p) || o.nyckel.endsWith(pNyckel))) {
       slutarVikt += o.antal;
       if (slutar.length < max) slutar.push(o.text);
     }
   }
   if (kort && medStreck.length > 0) return medStreck.map((o) => (fore ? `${fore} ${o}` : o));
+  // ☠️ TVÅ BOKSTÄVER ÄR BÖRJAN PÅ EN VARA, INTE PÅ VILKET ORD SOM HELST
+  // (2026-11-19). Rankat på hur många namn ordet står i gav "få" fack,
+  // fåtölj, fälls och "bi" biking, bistroset, bitar: egenskaper och verb som
+  // ingen söker på. Nu rankas de på hur ofta ordet är varan (varu, se
+  // byggOrdforrad): "få" → fåtölj, fågelbur, fågelmatare; "st" → stolar,
+  // ställ, stativ. Har kunden skrivit prickarna gäller de: "sä" är säng och
+  // sängram, inte sammet, och "kö" är köksskåp, inte kontorsstol.
+  if (sist.length <= KORT_PREFIX) {
+    // Efter ett annat ord är två bokstäver oftast en färg eller ett mått på
+    // väg ("soffa gr" → grå), och de står inte i ordförrådet: hellre inget
+    // förslag än "soffa gran".
+    if (fore) return [];
+    let varor = forrad.ord.filter((o) => o.varu >= MINST_VARA && o.vikt !== p && o.vikt.startsWith(p) && !INGEN_VARA.has(o.text));
+    if (/[åäöé]/.test(sist)) {
+      // Börjar ingen vara så MED prickarna föreslås ingenting: "vå" är inte "vagn".
+      varor = varor.filter((o) => o.text.startsWith(sist));
+    }
+    varor.sort((a, b) => b.varu - a.varu || b.antal - a.antal || a.text.localeCompare(b.text, "sv"));
+    const korta: string[] = [];
+    for (const o of varor) {
+      if (korta.some((v) => (o.text.startsWith(v) && o.text.length - v.length <= 3) || (v.startsWith(o.text) && v.length - o.text.length <= 3))) continue;
+      korta.push(o.text);
+      if (korta.length >= max) break;
+    }
+    // Börjar ingen vara så föreslås ingenting: "ne" → nedre och "yt" → yttre
+    // är inga sökningar. Rutan ber då kunden skriva lite till.
+    return korta;
+  }
   // Vilken sorts ord är det? "soffa", "bord" och "stol" är huvudet i många
   // sammansättningar (bäddsoffa, matbord): de smalare formerna går först.
   // "barn", "hund" och "jul" inleder många (barnbord, hundbur): de går först.
+  // Varorna först bland dem som börjar så ("sof" → soffbord, soffa före soft;
+  // "sto" → stolar före storlekar), i övrigt de vanligaste först.
+  const varorForst = (lista: Ord[]) => [...lista.filter((o) => o.varu > 0), ...lista.filter((o) => o.varu === 0)].map((o) => o.text);
+  const medVikta = !harPrickar || exaktVikt === 0;
+  const borjar = [...varorForst(exakta), ...(medVikta ? varorForst(vikta) : [])];
+  const borjarVikt = exaktVikt + (medVikta ? viktaVikt : 0);
   const ordning = [...nara, ...(slutarVikt > borjarVikt ? [...slutar, ...borjar] : [...borjar, ...slutar])];
   const valda: string[] = [];
   for (const o of ordning) {
@@ -1217,4 +1300,75 @@ export function sokforslag(forrad: Ordforrad, skrivet: string, max = 3): string[
     if (valda.length >= max) break;
   }
   return valda.map((o) => (fore ? `${fore} ${o}` : o));
+}
+
+/**
+ * Ordet vars varor listan visar när det skrivna inte räcker till en sökning,
+ * eller null när det skrivna gäller som det står.
+ *
+ * ☠️ TVÅ BOKSTÄVER GAV "Inga produkter matchade" (Leonards skärmbilder
+ * 2026-11-19, "få" och "bi"). Ett så kort ord ska stå för sig i namnet
+ * (lib/search.ts, helord), så "få" hittade ingenting och "st" hittade 107
+ * varor med "2 st" i namnet. Men den som skrivit två bokstäver är på väg mot
+ * ett ord. Nu visas varorna för det första sökförslaget ("få" → fåtölj), som
+ * sökmotorer gör medan man skriver, och rutan säger vilket ord det gäller.
+ *
+ * Tre fall:
+ *  - ett enda ord på högst två bokstäver: förslagets varor, också när det
+ *    korta ordet råkar stå i några namn ("st", "ut"). Undantag: förslaget är
+ *    samma ord med bindestreck ("tv" → tv-bänk). Då är det korta ordet varan.
+ *  - ingen träff alls men ett förslag ("julgr" hade träffar, "fatö" inte
+ *    alltid): förslagets varor i stället för en återvändsgränd.
+ *  - annars null.
+ */
+export function visaVarorFor(skrivet: string, forslag: readonly string[], traffar: number): string | null {
+  const forsta = forslag[0];
+  if (!forsta) return null;
+  const t = skrivet.trim().toLowerCase();
+  if (kortOrd(t)) return forsta.toLowerCase().startsWith(`${t}-`) ? null : forsta;
+  return traffar === 0 ? forsta : null;
+}
+
+/** Ett enda ord på högst två bokstäver: början på ett ord, ingen sökning än. */
+export function kortOrd(skrivet: string): boolean {
+  const t = skrivet.trim();
+  return t.length > 0 && t.length <= 2 && !/\s/.test(t);
+}
+
+// Ordförrådet per katalog, för söksidan. Byggs första gången någon söker på
+// två bokstäver (runt 60 ms för 7 600 namn) och delas sedan av alla.
+const menadeForrad = new WeakMap<object, Ordforrad>();
+
+/**
+ * Orden kunden var på väg att skriva ("få" → fåtölj, fågelbur), ur varornas
+ * namn. Bara för ett enda ord: efter flera ord är det sista ofta en färg eller
+ * ett mått, och de står inte i ordförrådet.
+ */
+export function menadeDu<T>(varor: readonly T[], namn: (v: T) => string, fraga: string, max = 3): string[] {
+  const t = (fraga || "").trim();
+  if (!t || /\s/.test(t)) return [];
+  let f = menadeForrad.get(varor);
+  if (!f) {
+    f = byggOrdforrad(varor.map(namn));
+    menadeForrad.set(varor, f);
+  }
+  return sokforslag(f, t, max);
+}
+
+/**
+ * Söksidans rankning, med samma regel för två bokstäver som sökrutan har.
+ *
+ * ☠️ "få" GAV 605 VAROR OCH "so" 3 795 (mätt 2026-11-19): inget namn har ett
+ * så kort ord för sig, så söksidan föll till reserven i beskrivningarna, där
+ * två bokstäver står i nästan varje text. Nu visar sidan varorna för ordet
+ * kunden var på väg att skriva ("få" → fåtölj) och säger det (`visar`).
+ * Längre ord rankas som förut.
+ */
+export function rankaMedForslag<T>(items: T[], nameOf: (item: T) => string, query: string): { utfall: Sokutfall<T>; visar: string } {
+  const utfall = rankaMedInfo(items, nameOf, query);
+  if (!kortOrd(query)) return { utfall, visar: "" };
+  const mal = visaVarorFor(query, menadeDu(items, nameOf, query), utfall.traffar.length);
+  if (!mal) return { utfall, visar: "" };
+  const forMalet = rankaMedInfo(items, nameOf, mal);
+  return forMalet.traffar.length > 0 ? { utfall: forMalet, visar: mal } : { utfall, visar: "" };
 }

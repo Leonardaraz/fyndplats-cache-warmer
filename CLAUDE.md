@@ -3525,6 +3525,61 @@ i `app/globals.css` och `LIGHT[0]` i `components/auction-stage.tsx`. Värmen
 under dagen (07 till 19, och glöden sista timmen) är kvar: det är auktionens
 egen dramaturgi, och den börjar nu från butikens kräm.
 
+## Sökrutan: två bokstäver är början på ett ord (2026-11-19)
+
+Leonards skärmbilder kl 04:45: "få" och "bi" gav "Inga produkter matchade", och
+förslagen var fack, fåtölj, fälls och biking, bistroset, bitar.
+
+**Orsaken.** Ett ord på högst två bokstäver ska stå för sig i namnet
+(`helord` i `lib/search.ts`, så att "tv" inte är "två"). "få" står inte för sig
+i något namn. "st" gör det i 107 ("2 st"), och det är inte heller vad kunden
+letar efter. Förslagen rankades på hur många namn ordet står i, och då vinner
+egenskaper ("med 3 fack", "7 bitar") över varor.
+
+**Regeln nu** (`visaVarorFor` och `sokforslag` i `lib/search.ts`):
+
+- **Förslagen för två bokstäver är varor.** `byggOrdforrad` räknar `varu` per
+  ord: hur ofta ordet inleder ett namn, eller är huvudet i namnets första ord
+  ("Matstolar 2-pack" räknas för stolar, "Hörnskrivbord" för skrivbord och
+  bord). "få" → fåtölj, fågelbur, fågelmatare. "st" → stolar, ställ, staffli.
+  "so" → soffa, soptunna, soffbord. Börjar ingen vara så föreslås ingenting.
+- **Två spärrar i `varu`.** Namnets första ord ska självt vara ett varuord
+  ("Upphöjd odlingslåda" gjorde annars "höjd" till en vara), och slutet ska stå
+  som ett eget ord i något namn ("blandare" gav annars "land").
+- **Prickarna gäller när kunden har skrivit dem**, i alla längder: "sä" och
+  "sän" är sängram, inte sammet och sand. Utan prickar räknas båda ("fatol" →
+  fåtölj), med ordet som börjar precis så först ("bad" → badrumsskåp före bädd).
+- **Listan visar varorna för det första förslaget** och säger det: rubriken
+  "Visar “fåtölj”", förslaget är markerat, och foten och Enter söker på det
+  ordet. Samma sak när ett längre ord inte gav någon träff men har ett förslag.
+- **Undantaget är "tv":** är förslaget samma ord med bindestreck (tv-bänk) är
+  det korta ordet varan, och dess egna träffar visas som förut.
+- **Två bokstäver som inget börjar på ("xq")** visar det tomma lägets exempel
+  och populära varor, med raden "Skriv lite till, så visar vi förslag".
+- **Efter ett annat ord föreslås inget för två bokstäver** ("soffa gr" är
+  oftast en färg på väg).
+
+**☠️ Söksidan hade samma fel, värre.** `/sok?q=få` gav 605 varor och
+`/sok?q=so` 3 795: utan namnträff föll sidan till reserven i beskrivningarna,
+där två bokstäver står i nästan varje text. Sidan rankar nu med
+`rankaMedForslag` (samma regel), säger "Du skrev “få”. Här är träffarna för
+“fåtölj”", och letar aldrig i beskrivningarna för två bokstäver. Den kalla
+vägen (`components/sok-kall.tsx`) gör likadant.
+
+Mätt på katalogens 7 617 namn och i webbläsare (mobil och dator, lokalt bygge):
+"få" 295 fåtöljer, "bi" 15 bistroset, "st" 628 stolar, "so" 137 soffor, "kö"
+köksskåp, "tv" 35 som förut, "xl" 4 som förut. Värsta tangent 75 ms.
+Ordförrådet tar 60 ms att bygga (30–50 förut).
+
+Två saker till i samma ändring:
+
+- **Auktionens räkneverk** (`.a-odo-stack span`) klipper varje siffra. Siffrorna
+  är högre än sin rad, så toppen av nästa siffra i rullen stack fram som ett
+  par prickar under priset. Mätt på /fyndauktion med regeln pålagd i
+  webbläsaren: 7 respektive 21 färgade bildpunkter under baslinjen före, 0 efter.
+- **Panelens fotknapp** (`.sugg-all`) bar webbläsarens egen ram på sidorna och
+  i nederkanten. Nu `border:0` före `border-top`.
+
 ## Köpguiderna på startsidan: en rad med alla inlägg (2026-11-19)
 
 Leonard: "kan du göra så det går att bläddra mellan alla blogginlägg där inte
