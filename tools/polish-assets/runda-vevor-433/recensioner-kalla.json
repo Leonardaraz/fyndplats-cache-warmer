@@ -1,0 +1,120 @@
+{
+  "62644e72": {
+    "productId": "62644e72-147d-4df2-b425-ca3890512c6b",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "5382379f": {
+    "productId": "5382379f-b56b-432b-97e8-e3020574af8a",
+    "synliga": 0,
+    "dolda": 6,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": []
+  },
+  "b518e061": {
+    "productId": "b518e061-9001-4625-b585-27b4c236595d",
+    "synliga": 0,
+    "dolda": 3,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-1aso4z5",
+        "betyg": 5,
+        "datum": "2025-04-16",
+        "foton": 0,
+        "text": "As a hobbyist metalworker, this brake is a game-changer. Bends metal sheets cleanly without warping. Compact size fits in my garage workshop without taking too much space."
+      }
+    ]
+  },
+  "191d8e61": {
+    "productId": "191d8e61-81bf-4773-814c-9885bc39c0c4",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-m2j3ya",
+        "betyg": 5,
+        "datum": "2026-10-17",
+        "foton": 0,
+        "text": "It is a really nice product. Perfect fit for Envirude outboard engine 90hp. Smooth and easy to use. User friendly if you want to set up by yourself."
+      },
+      {
+        "id": "gen-1q6m5jy",
+        "betyg": 5,
+        "datum": "2026-10-05",
+        "foton": 0,
+        "text": "As described, there was a minor issue with a broken plastic part, VEVOR replaced it with no hassles, very happy with the transaction,"
+      },
+      {
+        "id": "gen-1x1xc75",
+        "betyg": 5,
+        "datum": "2026-06-25",
+        "foton": 0,
+        "text": "Nice unit, Only draw back is you have to splice the wiring. Haven't had time to install it, weather and other things more important at this time."
+      },
+      {
+        "id": "gen-fi2pat",
+        "betyg": 5,
+        "datum": "2026-04-13",
+        "foton": 0,
+        "text": "Kwaliteit voelt als orgineel aan. Erg tevreden en kost een stuk minder als orgineel."
+      }
+    ]
+  },
+  "43e79d82": {
+    "productId": "43e79d82-8df9-48c6-8b0e-a1c0822aa56b",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-fgcv3n",
+        "betyg": 5,
+        "datum": "2026-03-11",
+        "foton": 0,
+        "text": "Reliable and industry-certified, meets all professional laboratory calibration requirements fully."
+      },
+      {
+        "id": "gen-5o4mbe",
+        "betyg": 5,
+        "datum": "2026-03-10",
+        "foton": 0,
+        "text": "This polymer calibration solution enables highly precise instrument calibration, performs consistently for lab devices."
+      },
+      {
+        "id": "gen-c4gjo",
+        "betyg": 5,
+        "datum": "2026-03-09",
+        "foton": 0,
+        "text": "Premium-quality, precisely dosed formula, fully complies with laboratory testing and instrument standards."
+      },
+      {
+        "id": "gen-wn64aa",
+        "betyg": 5,
+        "datum": "2026-02-12",
+        "foton": 0,
+        "text": "Perfect for calibrating lab testing devices, ensures stable, repeatable, and accurate measurements always."
+      },
+      {
+        "id": "gen-jznq4b",
+        "betyg": 5,
+        "datum": "2026-01-08",
+        "foton": 0,
+        "text": "Easy and safe to use during calibration, does not damage or corrode sensitive testing equipment."
+      }
+    ]
+  }
+}
