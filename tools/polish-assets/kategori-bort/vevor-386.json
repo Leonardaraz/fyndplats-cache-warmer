@@ -1,0 +1,38 @@
+{
+  "namn": "vevor-386",
+  "rader": [
+    {
+      "kort": "e9a1ec3a",
+      "pid": "e9a1ec3a-4f73-4215-954e-c7dd12599537",
+      "bort": [
+        "Husdjur > Valphagar & hundhagar"
+      ],
+      "behall": [
+        "Husdjur",
+        "Husdjur > Katthus"
+      ]
+    },
+    {
+      "kort": "4ced27ed",
+      "pid": "4ced27ed-5935-462f-9596-5214d341af45",
+      "bort": [
+        "Kök & Husgeråd > Serveringsvagnar & rullvagnar"
+      ],
+      "behall": [
+        "Kök & Husgeråd",
+        "Kök & Husgeråd > Köksöar & köksvagnar"
+      ]
+    },
+    {
+      "kort": "b651061e",
+      "pid": "b651061e-c238-45ec-b16e-eb3fa905a9b5",
+      "bort": [
+        "Kök & Husgeråd > Matförvaring & köksorganisering"
+      ],
+      "behall": [
+        "Kök & Husgeråd",
+        "Kök & Husgeråd > Soptunnor"
+      ]
+    }
+  ]
+}
