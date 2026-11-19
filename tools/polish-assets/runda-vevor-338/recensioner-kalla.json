@@ -1,0 +1,51 @@
+{
+  "2ce02bcb": {
+    "productId": "2ce02bcb-3867-42fd-8abf-f53f3527e2f4",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": []
+  },
+  "458336d3": {
+    "productId": "458336d3-2670-4b31-9e36-e969a5fde628",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-19cock6",
+        "betyg": 5,
+        "datum": "2026-09-20",
+        "foton": 0,
+        "text": "I have had this about a month, it has been of great use! Love the extra room it has given us without having to spend a ton of money. You can also leave out the middle section if you don’t need the extra room. My only wish is that the front panel wasn’t slanted so much. It leaves about 1-3” of room that could have been used."
+      },
+      {
+        "id": "gen-1dzxo01",
+        "betyg": 5,
+        "datum": "2026-09-17",
+        "foton": 0,
+        "text": "Great product for the price Easy to assemble and secure to travel with."
+      },
+      {
+        "id": "gen-5wma1k",
+        "betyg": 5,
+        "datum": "2026-09-02",
+        "foton": 0,
+        "text": "Well made rack! Easy to put together and install on the car's cross bars. Very solid fit when all bolted on. As you can see it really does hold 200 lbs"
+      }
+    ]
+  },
+  "6784e0c5": {
+    "productId": "6784e0c5-520c-4813-adbe-43cdbe9166df",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  }
+}

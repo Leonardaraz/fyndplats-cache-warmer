@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktstorlek saknar axelord: sidan skriver måttet som i källan, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktstorlek saknar axelord: sidan skriver måttet som i källan, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rader Delvis expanderad storlek och Helt utfälld storlek bär axelorden (L x B x H) i raden men grinden känner inte igen de etiketterna som måttrad, och måttritningen visar samma tal: sidan skriver måtten i källans ordning med längd, bredd och höjd
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rader Storlek (halvutökad) och L/B/H bär axelorden i raden men grinden känner inte igen de etiketterna som måttrad, och måttritningen visar samma tal: sidan skriver måtten i källans ordning med längd, bredd och höjd
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktstorlek saknar axelord: sidan skriver måttet som i källan, utan axelord

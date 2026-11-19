@@ -1,0 +1,53 @@
+{
+ "namn": "vevor-250",
+ "rader": [
+  {
+   "kort": "e6e7d9a3",
+   "pid": "e6e7d9a3-cf0c-40e4-bbd7-764b8fd51bdb",
+   "bort": [
+    "Trädgård & Utemöbler > Grill & Utekök",
+    "Trädgård & Utemöbler"
+   ],
+   "behall": [
+    "Företag & Proffs",
+    "Företag & Proffs > Butik, evenemang & trafik"
+   ]
+  },
+  {
+   "kort": "16ba894e",
+   "pid": "16ba894e-01c2-49eb-b406-f3403f84a760",
+   "bort": [
+    "Husdjur > Lek & Tillbehör för husdjur",
+    "Husdjur"
+   ],
+   "behall": [
+    "Sport & Fritid",
+    "Sport & Fritid > Hobby & musik"
+   ]
+  },
+  {
+   "kort": "96a5d9a8",
+   "pid": "96a5d9a8-aedb-4758-9e5d-3e25e130048a",
+   "bort": [
+    "Husdjur > Lek & Tillbehör för husdjur",
+    "Husdjur"
+   ],
+   "behall": [
+    "Sport & Fritid",
+    "Sport & Fritid > Hobby & musik"
+   ]
+  },
+  {
+   "kort": "e700e1bf",
+   "pid": "e700e1bf-8bec-4d5a-bdcc-bd8764f54f7c",
+   "bort": [
+    "Husdjur > Lek & Tillbehör för husdjur",
+    "Husdjur"
+   ],
+   "behall": [
+    "Sport & Fritid",
+    "Sport & Fritid > Hobby & musik"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,8 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+72b9beed 80 3.2 in / 80 mm på infografiken (rörets bredd)
+72b9beed 40 1.6 in / 40 mm på infografiken (rörets tjocklek)
+72b9beed 120 4.7 in / 120 mm på infografiken (monteringsplattans bredd)
+72b9beed 1,5 0.06 in / 1.5 mm på infografiken (monteringsplattans tjocklek)
+72b9beed 16 16 x Phillips Semi-Countersunk Self-Tapping Screws på specifikationsbilden
+72b9beed 4 4 x Foot Pads på specifikationsbilden

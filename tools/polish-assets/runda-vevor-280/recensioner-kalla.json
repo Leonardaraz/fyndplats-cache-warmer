@@ -1,0 +1,43 @@
+{
+  "77480ac7": {
+    "productId": "77480ac7-b73a-470f-bab7-98263ba6967b",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-194xlnm",
+        "betyg": 4,
+        "datum": "2026-05-12",
+        "foton": 1,
+        "text": "Perfect ruler, although I thought the way the numbers were printed was a bit confusing. But besides that, it is good quality! The added picture is just a suggestion on an improvement."
+      }
+    ]
+  },
+  "fa6922ed": {
+    "productId": "fa6922ed-31bf-4205-81e0-5e10d4975ee0",
+    "synliga": 0,
+    "dolda": 3,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 3,
+    "attBesluta": [
+      {
+        "id": "gen-2bkbdm",
+        "betyg": 5,
+        "datum": "2026-10-06",
+        "foton": 0,
+        "text": "Came well packaged and works perfectly. Its obviously not as tight fitting with the tolerances in the crank and adjustment handle. But the rollers are tight and do not move around. I have been able to roll out quite a few feet of silver wire with not issue at all."
+      },
+      {
+        "id": "gen-n5oc2s",
+        "betyg": 4,
+        "datum": "2026-09-17",
+        "foton": 1,
+        "text": "Great value, it's not a durston and doesn't perform like one but works well for the money. I've made square wire, round wire and sheet successfully. I printed some little dials and stuck them on the cogs to make incremental adjustments easier"
+      }
+    ]
+  }
+}

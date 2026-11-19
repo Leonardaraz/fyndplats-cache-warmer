@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad med axelord (bredd, djup, höjd): längden står som en egen rad (Längd: 16 fot / 4,8 m, 20 fot / 6 m respektive 3 meter) och är sidans enda axel (Längd, 3 m, 4,8 m och 6 m), och siffrorna ur källan kvitteras i foto-tal.txt

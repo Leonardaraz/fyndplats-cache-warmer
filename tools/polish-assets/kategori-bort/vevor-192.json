@@ -1,0 +1,28 @@
+{
+  "namn": "vevor-192",
+  "rader": [
+    {
+      "kort": "062230f2",
+      "pid": "062230f2-2cff-4643-9408-861aa75b6c7c",
+      "bort": [
+        "Trädgård & Utemöbler > Grill & Utekök",
+        "Trädgård & Utemöbler"
+      ],
+      "behall": [
+        "Företag & Proffs",
+        "Företag & Proffs > Butik, evenemang & trafik"
+      ]
+    },
+    {
+      "kort": "31bcc1f9",
+      "pid": "31bcc1f9-9d97-4d4f-86f2-81bb2bb9c44a",
+      "bort": [
+        "Sport & Fritid > Jakt & fiske"
+      ],
+      "behall": [
+        "Sport & Fritid",
+        "Sport & Fritid > Friluftsliv & Resa"
+      ]
+    }
+  ]
+}

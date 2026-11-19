@@ -1,0 +1,14 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+2ce02bcb 33 330 mm i källans spec och på måttbilden, 33 cm
+2ce02bcb 20 200 mm i källans spec och på måttbilden, 20 cm
+2ce02bcb 49 490 mm i källans spec och på måttbilden, 49 cm
+6784e0c5 6 6 surrningsband på måttbilden, räknade där
+6784e0c5 2 2 spännband med spärr på måttbilden
+6784e0c5 4 4 fästen och 4 fixeringsblock på måttbilden
+6784e0c5 8 8 rörhylsor på måttbilden
+6784e0c5 2,5 2,5 m längd på surrningsbanden på måttbilden
+6784e0c5 1075 42,32 tum / 1075 mm lastväskans mått på måttbilden
+6784e0c5 1980 77,95 tum / 1980 mm lastväskans mått på måttbilden
+6784e0c5 520 20,47 tum / 520 mm lastväskans mått på måttbilden
+6784e0c5 28,7 28,70 kg (63,27 lbs) på måttbilden

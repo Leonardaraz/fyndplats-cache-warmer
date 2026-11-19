@@ -1,0 +1,6 @@
+# kort pos1 pos2 skäl (inom en sida) och kort1:pos1 kort2:pos2 skäl (mellan sidor): par som gate-bilddubblett.py flaggar men som ses med ögonen vara olika
+140b6151 2 8 samma pose i två färger (blå och vita prickar): varje färgval visar bara sina egna bilder
+140b6151:1 43d2acf4:1 samma vinkel på 14 mm och 10 mm: plattans framkant är tydligt tjockare i 14 mm-bilden, och varje sida visar sin egen vara
+140b6151:1 43d2acf4:7 samma vinkel på 14 mm (blå prickar) och 10 mm (grå prickar): framkanten är tjockare i 14 mm-bilden, och varje sida visar sin egen vara
+140b6151:5 43d2acf4:5 samma vinkel på 14 mm och 10 mm: framkanten är tjockare i 14 mm-bilden, och varje sida visar sin egen vara
+140b6151:6 43d2acf4:6 samma vinkel på 14 mm och 10 mm: framkanten är tjockare i 14 mm-bilden, och varje sida visar sin egen vara

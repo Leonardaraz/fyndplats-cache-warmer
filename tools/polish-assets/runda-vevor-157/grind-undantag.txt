@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans mått står under en etikett som grinden inte känner igen, och sidan skriver axelorden efter måttritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans mått saknar axelord och sidan skriver måtten som i källan, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans mått saknar axelord och sidan skriver måtten som i källan, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans mått saknar axelord och sidan skriver måtten som i källan, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans mått saknar axelord och sidan skriver måtten som i källan, utan axelord

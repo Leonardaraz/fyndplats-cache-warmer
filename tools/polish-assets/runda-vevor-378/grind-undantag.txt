@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger måtten som egna rader utan namn på axlarna: köksöarnas *Storlek på överdel* (900x450x27 mm, 900x390x15 mm, 900x395x15 mm och 900x450x27 mm), *Vikbar tavla Storlek* (900x290x15 mm) och *Produktstorlek* (1107 x 688 x 890 mm respektive 1110 x 450 x 825 mm), och stolsvagnarnas *Maxmått* (1080 x 535 x 1080 mm respektive 1080 x 508 x 1090 mm); måtten skrivs i källans form som egna rader

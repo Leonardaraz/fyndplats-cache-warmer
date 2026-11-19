@@ -1,0 +1,109 @@
+{
+  "345dc53c": {
+    "productId": "345dc53c-21c4-4795-ae52-dac2d6bfbefe",
+    "synliga": 0,
+    "dolda": 1,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "750b22a2": {
+    "productId": "750b22a2-0fe2-468b-a2d6-7c8cc0b244eb",
+    "synliga": 0,
+    "dolda": 6,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-f96zhk",
+        "betyg": 5,
+        "datum": "2026-10-01",
+        "foton": 1,
+        "text": "I bought this for my new house that we are building. It functions as a replacement for my old hutch. It looks modern and beachy, which was the look I was going for in this spot. I put it together myself without difficulty."
+      },
+      {
+        "id": "gen-14yfqn2",
+        "betyg": 5,
+        "datum": "2026-04-20",
+        "foton": 0,
+        "text": "Love it! Perfect for housing, larger kitchen appliances that I don’t want out on the counter"
+      },
+      {
+        "id": "gen-bauo5x",
+        "betyg": 4,
+        "datum": "2026-02-02",
+        "foton": 0,
+        "text": "Broke while screwing. Had ti use wood glue. Otherwise strong. Would recommend for houses where no kids touching and running around. Can last longer in house without kids"
+      }
+    ]
+  },
+  "8307b158": {
+    "productId": "8307b158-6328-4013-8a7b-a47657c1c704",
+    "synliga": 0,
+    "dolda": 3,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-1ao9dux",
+        "betyg": 5,
+        "datum": "2026-10-26",
+        "foton": 0,
+        "text": "Heavy duty material that I expect will last for a good while. Fits my Weber Genesis well. I’m very happy with it."
+      }
+    ]
+  },
+  "4f668489": {
+    "productId": "4f668489-6786-4993-a2fb-3bc912e599cb",
+    "synliga": 0,
+    "dolda": 6,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": []
+  },
+  "0882d5dd": {
+    "productId": "0882d5dd-f8e7-4aff-8655-fedae72dea48",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-jihryp",
+        "betyg": 5,
+        "datum": "2026-08-01",
+        "foton": 0,
+        "text": "The pool cues I purchased are of good quality. They are perfect for first timers playing pool. I would buy more if needed. Shipping was fast and tracking was accurate."
+      },
+      {
+        "id": "gen-ctly7f",
+        "betyg": 4,
+        "datum": "2026-07-25",
+        "foton": 0,
+        "text": "De keu ligt lekker in de hand, ook goed te gebruiken bij libre. Enige klein minpuntje is de kartonnen koffer, maar gezien de uitstekende prijs wel te verwachten."
+      }
+    ]
+  },
+  "8482926e": {
+    "productId": "8482926e-553f-40f3-94c6-e9b08e8a76bd",
+    "synliga": 0,
+    "dolda": 6,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": [
+      {
+        "id": "gen-1i5mps8",
+        "betyg": 4,
+        "datum": "2026-10-16",
+        "foton": 0,
+        "text": "It’s good for the price, the plastic is thick enough and frame is sturdy; just have to have patients putting it together."
+      }
+    ]
+  }
+}

@@ -1,0 +1,2 @@
+# kort pos1 pos2 skäl (kvitterar ett par som gate-bilddubblett.py flaggar som misstänkt men som visar något olika)
+999a2e39 1 3 olika vinkel: tältet är vridet så att benen och sidopartierna ser olika ut, och tillbehören ligger likadant i båda

@@ -1,0 +1,29 @@
+{
+ "namn": "vevor-243",
+ "rader": [
+  {
+   "kort": "69590eaa",
+   "pid": "69590eaa-9e1f-4824-96f2-6e858f2b4f2c",
+   "bort": [
+    "Företag & Proffs > Storkök & restaurang",
+    "Företag & Proffs"
+   ],
+   "behall": [
+    "Kök & Husgeråd",
+    "Kök & Husgeråd > Köksredskap & Tillbehör"
+   ]
+  },
+  {
+   "kort": "070d06dd",
+   "pid": "070d06dd-ea86-4df9-b0a3-e95f9df7f911",
+   "bort": [
+    "Verktyg & Maskiner > Lyft & transport",
+    "Verktyg & Maskiner"
+   ],
+   "behall": [
+    "Företag & Proffs",
+    "Företag & Proffs > Butik, evenemang & trafik"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader saknar axelord som skriptet läser. Måtten skrivs som bredd × djup × höjd: soffbordssetets mått följer källans spec (mm omräknade till cm enligt foto-tal.txt), linjärmodulens mått följer ritningen, och svetskabelvindans ytterdimension följer ritningen (430 mm) där källans spec säger 415 mm i ena måttet

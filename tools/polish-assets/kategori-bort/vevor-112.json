@@ -1,0 +1,29 @@
+{
+  "namn": "vevor-112",
+  "rader": [
+    {
+      "kort": "d4a2978c",
+      "pid": "d4a2978c-8951-4f3e-9254-1ad5e6f4bcb7",
+      "bort": [
+        "Möbler > Skrivbord",
+        "Möbler"
+      ],
+      "behall": [
+        "Företag & Proffs",
+        "Företag & Proffs > Butik, evenemang & trafik"
+      ]
+    },
+    {
+      "kort": "a1de0853",
+      "pid": "a1de0853-9dac-4272-aff0-9a94b798452c",
+      "bort": [
+        "Bygg & Renovering > Badrumsrenovering",
+        "Bygg & Renovering"
+      ],
+      "behall": [
+        "Sport & Fritid",
+        "Sport & Fritid > Camping & kylboxar"
+      ]
+    }
+  ]
+}

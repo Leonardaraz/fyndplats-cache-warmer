@@ -1,0 +1,4 @@
+b823eebc	6	samma bild från samma vinkel som position 4 (gate-bilddubblett.py), så position 4 behålls
+cf5bdddc	5	samma bild från samma vinkel som position 1 (gate-bilddubblett.py 0,001), så position 1 behålls
+3d38760f	3	samma bild som position 1 med en grå kant (gate-bilddubblett.py), så position 1 behålls
+fef11978	2	bär en liten AI-etikett (Al-Generated Character and Scene) i nedre högra hörnet, så bilden stryks

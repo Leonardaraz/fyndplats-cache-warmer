@@ -1,0 +1,20 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (Förvaringsmått och Mått upplyft, L x B x H) hittas inte av grinden, och sidan skriver längd, bredd och höjd med skivan nere och lyft efter dem och måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord, och sidan skriver rumsavdelarens bredd, höjd och djup efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger plankans tjocklek under etiketten Höjd, och sidan skriver 0,62 mm som tjocklek efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation saknar måttrad, och sidan skriver skärarens längd, bredd och höjd samt utfälld storlek efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) anger bara den stora piedestalens diameter och höjd, och sidan skriver alla tre piedestalernas diameter och höjd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord, och sidan skriver vedställets längd, djup och höjd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord, och sidan skriver hyllans bredd, djup och höjd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått L x B x H) stämmer inte med måttbildens ritning, där måtten är bredd 2180 mm och höjd 2500 mm, och sidan skriver bredd, höjd och djup efter ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen måttrad med axelord (bara höjd, medellängd och installationsbredder), och sidan skriver höjden och installationsbredderna som i källan
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen måttrad med axelord (bara längd, rörtjocklek och diameter), och sidan skriver längden och rörtjockleken som i källan

@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktstorlek saknar axelord, och måttritningen visar 2400 mm som längd, 380 mm som bredd och 72 mm som höjd: sidan skriver längd, bredd och höjd
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktstorlek saknar axelord, och måttritningen visar 2745 mm som längd, 380 mm som bredd och 82 mm som höjd: sidan skriver längd, bredd och höjd
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad i specifikationen, och måttritningen visar längderna 120, 300, 600 och 1000 mm, bredden 51 mm och tjockleken 20 mm: sidan skriver längd, bredd och tjocklek
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad i specifikationen, och måttritningen visar längderna 225, 400 och 600 mm, bredden 46,5 mm och tjockleken 24,5 mm: sidan skriver längd, bredd och tjocklek
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad i specifikationen och ingen bild visar yttermått: sidan skriver bara kolvarnas volymer, skarvstorleken och vikten, inga yttermått

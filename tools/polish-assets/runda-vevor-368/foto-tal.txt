@@ -1,0 +1,29 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+c7e5b4fa 63 storlekstabellen för kvinnor på infografiken (cm), storlek S
+c7e5b4fa 52 storlekstabellen för kvinnor på infografiken (cm), storlek S
+c7e5b4fa 50,8 storlekstabellen för kvinnor på infografiken (cm), storlek S
+c7e5b4fa 55 storlekstabellen för kvinnor på infografiken (cm), storlek S
+c7e5b4fa 65 storlekstabellen för kvinnor på infografiken (cm), storlek M
+c7e5b4fa 54 storlekstabellen för kvinnor på infografiken (cm), storlek M
+c7e5b4fa 56 storlekstabellen för kvinnor på infografiken (cm), storlek M
+c7e5b4fa 67 storlekstabellen för kvinnor på infografiken (cm), storlek L
+c7e5b4fa 53,2 storlekstabellen för kvinnor på infografiken (cm), storlek L
+c7e5b4fa 57 storlekstabellen för kvinnor på infografiken (cm), storlek L
+c7e5b4fa 69 storlekstabellen för kvinnor på infografiken (cm), storlek XL
+c7e5b4fa 58 storlekstabellen för kvinnor på infografiken (cm), storlek XL
+c7e5b4fa 54,4 storlekstabellen för kvinnor på infografiken (cm), storlek XL
+c7e5b4fa 71 storlekstabellen för kvinnor på infografiken (cm), storlek XXL
+c7e5b4fa 60 storlekstabellen för kvinnor på infografiken (cm), storlek XXL
+c7e5b4fa 55,6 storlekstabellen för kvinnor på infografiken (cm), storlek XXL
+c7e5b4fa 59 storlekstabellen för kvinnor på infografiken (cm), storlek XXL
+c7e5b4fa 73 storlekstabellen för kvinnor på infografiken (cm), storlek XXXL
+c7e5b4fa 62 storlekstabellen för kvinnor på infografiken (cm), storlek XXXL
+c7e5b4fa 56,8 storlekstabellen för kvinnor på infografiken (cm), storlek XXXL
+c7e5b4fa 0,61 Nettovikt i specifikationen på listningen för storlek S
+c7e5b4fa 0,65 Nettovikt i specifikationen på listningen för storlek M
+c7e5b4fa 0,68 Nettovikt i specifikationen på listningen för storlek L
+c7e5b4fa 0,72 Nettovikt i specifikationen på listningen för storlek XL
+c7e5b4fa 0,76 Nettovikt i specifikationen på listningen för storlek XXL
+c7e5b4fa 0,8 Nettovikt i specifikationen på listningen för storlek XXXL
+c7e5b4fa 6 antalet storlekar på de sex listningarna: S, M, L, XL, XXL och XXXL

@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad saknar axelord, och sidan skriver längd, djup och höjd efter måttbildernas ritningar (längd 120, 140 och 160 cm, djup 37,5 cm och höjd 98 cm)

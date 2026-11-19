@@ -1,0 +1,23 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+e8b2d3b1 72,6 160 lbs omräknat till kilo
+e8b2d3b1 102 4 tum (101,6 mm) avrundat till millimeter
+e8b2d3b1 152 6 tum (152,4 mm) avrundat till millimeter
+e8b2d3b1 101,6 4 tum omräknat till millimeter
+e8b2d3b1 108 4,25 tum (107,95 mm) avrundat till millimeter
+e8b2d3b1 114,3 4,5 tum omräknat till millimeter
+e8b2d3b1 120,7 4,75 tum (120,65 mm) avrundat till millimeter
+e8b2d3b1 127 5 tum omräknat till millimeter
+e8b2d3b1 139,7 5,5 tum omräknat till millimeter
+e8b2d3b1 152,4 6 tum omräknat till millimeter
+e8b2d3b1 165,1 6,5 tum omräknat till millimeter
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>

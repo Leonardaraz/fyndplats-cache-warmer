@@ -1,0 +1,28 @@
+{
+ "namn": "vevor-248",
+ "rader": [
+  {
+   "kort": "c2d9869d",
+   "pid": "c2d9869d-7057-42bc-8e6f-a19719935895",
+   "bort": [
+    "Bygg & Renovering > VVS & vatten",
+    "Bygg & Renovering"
+   ],
+   "behall": [
+    "Bil & Garage",
+    "Bil & Garage > Bilverktyg"
+   ]
+  },
+  {
+   "kort": "502bd21e",
+   "pid": "502bd21e-5dff-41b4-909a-6a55136bb146",
+   "bort": [
+    "Trädgård & Utemöbler > Trädgårdsmaskiner"
+   ],
+   "behall": [
+    "Trädgård & Utemöbler",
+    "Trädgård & Utemöbler > Trädgårdsskötsel & Bevattning"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,68 @@
+{
+  "39c2f6a9": {
+    "productId": "39c2f6a9-917f-420c-ae53-4edd1fc6cb01",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "cf7b1759": {
+    "productId": "cf7b1759-868a-4c8b-8f50-17a329426a61",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "e6fec8bf": {
+    "productId": "e6fec8bf-44f9-41f4-842a-7370d81df0ab",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1f9ejw8",
+        "betyg": 5,
+        "datum": "2026-05-23",
+        "foton": 0,
+        "text": "tres bon coupe,tube grands facile meme pour l'acier"
+      },
+      {
+        "id": "gen-1mbgqpx",
+        "betyg": 5,
+        "datum": "2026-01-18",
+        "foton": 0,
+        "text": "Works as expected and can actually cut a 2\" diameter tube. Well made. Finding a replacement cutting wheel might be a challenge but I will cross that bridge when it gets dull."
+      },
+      {
+        "id": "gen-11kcx3o",
+        "betyg": 5,
+        "datum": "2025-10-23",
+        "foton": 0,
+        "text": "Consistent clean cuts over time. Essential tool for plumbers."
+      }
+    ]
+  },
+  "28da838f": {
+    "productId": "28da838f-d11b-4d3d-b512-7ad7ad1799bb",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1kqg5oe",
+        "betyg": 5,
+        "datum": "2026-08-19",
+        "foton": 0,
+        "text": "Amazing quality slicer have purchased 2 so far and am going to purchase another"
+      }
+    ]
+  }
+}

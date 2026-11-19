@@ -1,0 +1,7 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Tray Dimensions saknar axelord och sidan skriver brickans mått som i källan, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått saknar axelord men måttritningen visar bredd, djup och höjd: sidan skriver axelorden efter måttritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans text saknar väskans mått och sidan skriver bredd, djup och höjd efter måttritningen

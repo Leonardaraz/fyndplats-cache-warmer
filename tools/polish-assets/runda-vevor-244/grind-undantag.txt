@@ -1,0 +1,18 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Skiftnyckelmått) saknar axelord, och sidan skriver måtten som längd × bredd × höjd efter nyckelns egen måttritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord, och sidan skriver måtten som bredd × djup × höjd efter pallens egen måttritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen måttrad, och sidan skriver plattformens mått som längd × bredd × höjd efter ställets egen måttritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Mått) saknar axelord, och sidan skriver måtten som bredd × djup × höjd efter tältets egen måttbild
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen måttrad, och sidan skriver höjden och den övre plattans bredd efter spisens egen måttritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Mått för enskilda produkter) saknar axelord, och sidan skriver måtten som diameter × höjd efter stolpens egen måttritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktstorlek) saknar axelord, och sidan skriver måtten som längd × bredd × höjd efter tvärbalkens egen måttritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (Längd, Sittdynans storlek och Produktmått) saknar axelord, och sidan skriver längden och dynans längd × bredd efter brädans egen måttritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord, och sidan skriver måtten som bredd × djup × höjd efter ögonduschens egen måttritning

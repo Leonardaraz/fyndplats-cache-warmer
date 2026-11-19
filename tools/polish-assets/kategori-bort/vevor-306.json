@@ -1,0 +1,53 @@
+{
+ "namn": "vevor-306",
+ "rader": [
+  {
+   "kort": "d44def97",
+   "pid": "d44def97-77a2-4a05-b97e-a8955f6a66ce",
+   "bort": [
+    "Hem & Inredning > Tvätt & städ",
+    "Hem & Inredning"
+   ],
+   "behall": [
+    "Trädgård & Utemöbler",
+    "Trädgård & Utemöbler > Trädgårdsskötsel & Bevattning"
+   ]
+  },
+  {
+   "kort": "a69d27b3",
+   "pid": "a69d27b3-d2f8-41ab-bee6-374217c3ab4a",
+   "bort": [
+    "Hem & Inredning > Konstväxter"
+   ],
+   "behall": [
+    "Jul & Högtider",
+    "Jul & Högtider > Kalas & Fest",
+    "Hem & Inredning",
+    "Hem & Inredning > Dekoration & Prydnad"
+   ]
+  },
+  {
+   "kort": "5e8051ab",
+   "pid": "5e8051ab-8f40-497e-95bd-0f733695bead",
+   "bort": [
+    "Sport & Fritid > Bollsport",
+    "Sport & Fritid"
+   ],
+   "behall": [
+    "Bil & Garage",
+    "Bil & Garage > Biltillbehör"
+   ]
+  },
+  {
+   "kort": "7b28c74a",
+   "pid": "7b28c74a-33b5-4929-85e0-04eddbce2b72",
+   "bort": [
+    "Bygg & Renovering > Beslag & järnvaror"
+   ],
+   "behall": [
+    "Bygg & Renovering",
+    "Bygg & Renovering > Dörrar & dörrbeslag"
+   ]
+  }
+ ]
+}

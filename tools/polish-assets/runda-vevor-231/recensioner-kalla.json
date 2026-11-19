@@ -1,0 +1,38 @@
+{
+  "e02b1738": {
+    "productId": "e02b1738-a6dc-41ea-8c95-e65d54b99bbe",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1wz44mh",
+        "betyg": 5,
+        "datum": "2026-10-02",
+        "kopt": "Vit",
+        "foton": 0,
+        "text": "Easy to set up. Works well and does the job. High enough to deter cats from either direction. Only the most athletic of cats even bother to get over."
+      }
+    ]
+  },
+  "7c09a467": {
+    "productId": "7c09a467-d839-4acb-b346-a5ee90f15d5b",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "a0961436": {
+    "productId": "a0961436-dc53-4348-968a-b7e90202f634",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  }
+}

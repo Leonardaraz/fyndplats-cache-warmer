@@ -1,0 +1,46 @@
+{
+  "ad716229": {
+    "productId": "ad716229-14ad-4f12-a7f9-08075ed867db",
+    "synliga": 1,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "933b885d": {
+    "productId": "933b885d-7642-49b3-8d7f-5af65dfb2b88",
+    "synliga": 0,
+    "dolda": 1,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "e7092b5e": {
+    "productId": "e7092b5e-ae11-405c-b21b-be084dc5a101",
+    "synliga": 3,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-qmkohb",
+        "betyg": 5,
+        "datum": "2026-10-21",
+        "kopt": "3 st",
+        "foton": 0,
+        "text": "Used to put together a small swing set for my grandson. The pieces are certainly heavy duty and look like they will last a long time. I would recommend using a long drill bit so your drill head doesn’t eat into the powder coating. Besides that everything was great."
+      },
+      {
+        "id": "gen-ri17e6",
+        "betyg": 5,
+        "datum": "2026-10-01",
+        "kopt": "3 st",
+        "foton": 0,
+        "text": "These are a quality made product. They will easily support my project."
+      }
+    ]
+  }
+}

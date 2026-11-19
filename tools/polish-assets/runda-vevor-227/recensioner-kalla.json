@@ -1,0 +1,65 @@
+{
+  "d0deb2b7": {
+    "productId": "d0deb2b7-137f-4e6c-9a8d-56f776e69061",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "d8ddb408": {
+    "productId": "d8ddb408-ad5f-4fb1-92bb-52c9b8ef308c",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1to149e",
+        "betyg": 5,
+        "datum": "2026-10-17",
+        "kopt": "46 x 91 x 183 cm",
+        "foton": 0,
+        "text": "Use for my shop shelving. I will get more!!! and my grandkids love the little hammers included!"
+      }
+    ]
+  },
+  "cae3c97d": {
+    "productId": "cae3c97d-dbbe-4115-858b-5d251ae52d73",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "48c56bf9": {
+    "productId": "48c56bf9-845d-4147-a0dc-53716b9d66c1",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1734m7c",
+        "betyg": 4,
+        "datum": "2026-07-20",
+        "kopt": "64x39 tum",
+        "foton": 0,
+        "text": "Groot en stevige dakdrager. Hierdoor heb je extra ruimte voor de bagage. De waterdichte hoes erbij is ook uitstekend. Prijs/kwaliteit is prima"
+      }
+    ]
+  },
+  "243032b6": {
+    "productId": "243032b6-5a0e-4a41-853d-98e2251493e6",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  }
+}

@@ -1,0 +1,14 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord, och sidan skriver måtten som höjd × djup × tjocklek efter ställets egen måttritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Mått) saknar axelord, och sidan skriver måtten som bredd × djup × höjd efter bänkens egen måttbild
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Mått) saknar axelord, och sidan skriver måtten som bredd × djup × höjd efter bänkens egen måttbild
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Storlek) saknar axelord, och sidan skriver måtten som bredd × längd efter måttbilden
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått rätvinkliga) saknar axelord, och sidan skriver måtten som djup × bredd × höjd efter fåtöljens egen måttbild
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (Produktmått) saknar måtten, och sidan skriver måtten som bredd × djup × höjd efter soffans egen måttbild
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått rätvinkliga) saknar axelord, och sidan skriver måtten som bredd × djup × höjd efter soffans egen måttbild

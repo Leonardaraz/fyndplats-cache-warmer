@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader saknar axelord som skriptet läser. Skenans längd och måtten för de två längderna respektive dörrens storlek, skenans längd och vikten för de två storlekarna skrivs som egna rader per val, och källans specifikationer anger dem utan axelord

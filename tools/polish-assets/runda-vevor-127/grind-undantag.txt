@@ -1,0 +1,12 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rader Produktmått (390 x 285 x 345 mm) och Storlek på matränna (185 x 100 x 130 mm) saknar axelord, och måttritningarna visar längden 390 mm, djupet 285 mm och höjden 345 mm samt rännans längd 185 mm, bredd 100 mm och höjd 130 mm: sidan skriver längd, bredd och höjd efter ritningarna
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (907 x 28 x 1060 mm) saknar axelord, och måttritningen visar bredden 907 mm, tjockleken 28 mm och höjden 1060 mm: sidan skriver bredd, tjocklek och höjd efter ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (715 x 1045 x 1480 mm) saknar axelord, och måttritningen visar bredden 715 mm, djupet 1045 mm och höjden 1480 mm: sidan skriver bredd, djup och höjd efter ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (L x B x H) 279 x 178 x 3 mm bär axelbokstäverna bara i etiketten, och måttritningen visar basens längd 279 mm, bredd 178 mm och tjocklek 3 mm: sidan skriver längd, bredd och tjocklek efter ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (365 x 140 x 62 mm) saknar axelord, och måttritningen visar längden 365 mm, bredden 140 mm över hela pistolen och diametern 62 mm för pipan: sidan skriver längd, bredd och diameter efter ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (450 x 800 x 750 mm) saknar axelord, och måttritningen visar bredden 450 mm, längden 800 mm och höjden 750 mm: sidan skriver längd, bredd och höjd efter ritningen

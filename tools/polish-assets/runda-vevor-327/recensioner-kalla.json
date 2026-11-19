@@ -1,0 +1,37 @@
+{
+  "e5ff6a73": {
+    "productId": "e5ff6a73-99b5-4508-8712-44b878a04506",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 3,
+    "attBesluta": [
+      {
+        "id": "gen-1v3a63o",
+        "betyg": 5,
+        "datum": "2026-03-03",
+        "kopt": "40 x 85 x 75 cm",
+        "foton": 0,
+        "text": "Ottimo prodotto! Arrivato in pochi giorni, facile da montare, bello e funzionale."
+      },
+      {
+        "id": "gen-1g0cvho",
+        "betyg": 5,
+        "datum": "2025-11-15",
+        "kopt": "30 x 40 x 50 cm",
+        "foton": 0,
+        "text": "Alle notwendigen Montageteile und Werkzeuge sind im Lieferumfang enthalten. Ich habe den Tisch in 10 Minuten allein aufgebaut, ohne Schwierigkeiten. Das Acryl ist dick und belastbar, resistent gegen Kratzer und Stöße im Alltag."
+      }
+    ]
+  },
+  "7a208082": {
+    "productId": "7a208082-121c-4d3b-975d-ef10da2f6fc6",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  }
+}

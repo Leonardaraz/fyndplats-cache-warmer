@@ -1,0 +1,50 @@
+{
+ "namn": "vevor-315",
+ "rader": [
+  {
+   "kort": "2aaa9e71",
+   "pid": "2aaa9e71-c434-4449-85be-1f4fe38e2537",
+   "bort": [
+    "Verktyg & Maskiner > Lyft & transport",
+    "Verktyg & Maskiner"
+   ],
+   "behall": [
+    "Företag & Proffs",
+    "Företag & Proffs > Butik, evenemang & trafik"
+   ]
+  },
+  {
+   "kort": "faec1e72",
+   "pid": "faec1e72-0cf3-4110-89fc-61c517aee7f7",
+   "bort": [
+    "Hem & Inredning > Konstväxter"
+   ],
+   "behall": [
+    "Hem & Inredning",
+    "Hem & Inredning > Dekoration & Prydnad"
+   ]
+  },
+  {
+   "kort": "d39eca8c",
+   "pid": "d39eca8c-c66e-4203-8f50-5e9a1734367b",
+   "bort": [
+    "Husdjur > Lek & Tillbehör för husdjur"
+   ],
+   "behall": [
+    "Husdjur",
+    "Husdjur > Burar, Kläder & Tillbehör"
+   ]
+  },
+  {
+   "kort": "6467b7d3",
+   "pid": "6467b7d3-350a-47b8-a957-8a723d08d9d8",
+   "bort": [
+    "Sport & Fritid > Hantverk & sömnad"
+   ],
+   "behall": [
+    "Sport & Fritid",
+    "Sport & Fritid > Hobby & musik"
+   ]
+  }
+ ]
+}

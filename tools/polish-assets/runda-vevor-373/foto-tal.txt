@@ -1,0 +1,11 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+e86357a9 304,8 Mått i specifikationen (Produktmått: 12 tum x 25 fot / 304,8 x 7260 mm och 12 tum x 50 fot / 304,8 x 15240 mm); bredden bekräftas av punkten Maskinkompatibel design (30 cm breda)
+e86357a9 7260 Längd i specifikationen på listningen med 25 fot (304,8 x 7260 mm); 25 fot är 7620 mm, så siffran kan vara en omkastning, och det mindre talet skrivs (steg 4, regel 3)
+e86357a9 15240 Längd i specifikationen på listningen med 50 fot (304,8 x 15240 mm)
+e86357a9 0,71 Nettovikt i specifikationen på listningen med längden 7260 mm: 0,71 kg
+e86357a9 1,43 Nettovikt i specifikationen på listningen med längden 15240 mm: 1,43 kg
+e86357a9 0,23 Tjocklek i specifikationen: 9,06 mil / 0,23 mm
+e86357a9 0,12 Baslagret i punkten Lätt att använda: 0,12 mm baslager
+e86357a9 2 Antalet längder på de två listningarna: 7260 mm och 15240 mm
+e86357a9 4 Antalet lager i punkten Lätt att använda (fyralagerskonstruktion: klar film, klibbigt silikonlager, baslager och värmeaktiverat lim)

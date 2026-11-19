@@ -1,0 +1,71 @@
+{
+  "13e3a805": {
+    "productId": "13e3a805-0538-4621-b112-684ef7020f24",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "1813ed92": {
+    "productId": "1813ed92-26b9-4f6c-8513-5a3a12d47cb2",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "a42dc16a": {
+    "productId": "a42dc16a-83cf-4a22-8b54-9f614334a0db",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1inudic",
+        "betyg": 5,
+        "datum": "2026-09-16",
+        "foton": 0,
+        "text": "Pressed a few bushels of grated apples through the press. It works well. The juice was fantastic. Perfect if you have a few apple trees."
+      }
+    ]
+  },
+  "4ad2f0b1": {
+    "productId": "4ad2f0b1-9255-438d-aa1f-a92eaafad360",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-54too",
+        "betyg": 5,
+        "datum": "2026-09-25",
+        "foton": 0,
+        "text": "Perfect condition, we'll built, works flawlessly."
+      }
+    ]
+  },
+  "5cfa41ad": {
+    "productId": "5cfa41ad-cf0e-459b-810a-f686d73d3fa2",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1m0o114",
+        "betyg": 5,
+        "datum": "2026-10-18",
+        "foton": 0,
+        "text": "The pots & pans are amazing!! There was some damage (a few dings & dents plus a broken/unusable spatula). But all in all, amazing product so far!! No issues wirh anything sticking, even cooking & perfect size!! Definitely will recommend!!"
+      }
+    ]
+  }
+}

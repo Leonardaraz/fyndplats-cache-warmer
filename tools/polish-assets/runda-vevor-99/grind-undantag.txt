@@ -1,0 +1,12 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara raderna Spänning, Effekt och de två anslutningsdiametrarna och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar längden 178 mm, djupet 100 mm och höjden 65 mm: texten skriver dem i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Artikelmått 20,47 x 13,98 x 13,78 tum / 520 x 355 x 350 mm utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar bredden 520 mm, djupet 355 mm och höjden 350 mm: texten skriver dem i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 70,87 x 31,5 x 26,77 tum / 1800 x 800 x 680 mm utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar bordet som 1830 mm långt, 760 mm brett och 740 mm högt: texten skriver bordets mått i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Maximal bredd, Maximal arbetsyta och Justerbart höjdområde och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar längden 1635 mm, djupet 460 mm och höjden 290 mm: texten skriver dem i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek (L x B x H) 19 x 47 x 60 cm och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar bredden 19 cm, djupet 47 cm och höjden 60 cm: texten skriver dem i den ordningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Spisens storlek 460 x 250 x 270 mm och Produktstorlek 575 x 650 x 2465 mm utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, och måttritningen ritar spisens längd 460 mm, djup 250 mm och höjd 270 mm: texten skriver spisens mått i den ordningen

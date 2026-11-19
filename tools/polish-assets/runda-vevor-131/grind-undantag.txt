@@ -1,0 +1,5 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rader Produktstorlek (95,3 x 66,9 x 0,7 tum / 2420 x 1700 x 18,5 mm) och Vikt storlek (66,9 x 15,7 x 4,3 tum / 1700 x 400 x 110 mm) saknar axelord, och måttritningen visar 95,3 tum som bredd och 66,9 tum som höjd på den utfällda skärmen samt 15,7 och 4,3 tum på den hopfällda: sidan skriver måtten som de står
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Mått (880 x 510 x 1310 mm) saknar axelord, och måttritningen visar 1310 mm som höjd med ledstängerna, 880 mm längs stegen och 510 mm som djup: sidan skriver 880 mm som bredd och 510 mm som djup

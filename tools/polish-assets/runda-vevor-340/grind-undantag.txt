@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader saknar axelord som skriptet läser. Måtten skrivs som bredd × höjd × djup (duschdörren) och bredd × djup × höjd (skjulet) ur specifikationen och måttbilderna

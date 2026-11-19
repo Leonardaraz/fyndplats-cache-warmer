@@ -1,0 +1,4 @@
+# kort pos1 pos2 skäl: par som gate-bilddubblett.py flaggar men som ses med ögonen vara olika (positionerna är etiketterna i bilder.tsv)
+bd83b84d 3 5 etikett 3 (VEVOR:s position 12, de tre piedestalerna utan lock i en rad framifrån) och etikett 5 (position 10, piedestalerna i en diagonal sedda från sidan) är olika uppställning och vinkel
+bd83b84d 3 6 etikett 3 (position 12, i en rad framifrån) och etikett 6 (position 11, piedestalerna sedda snett uppifrån med den högsta bakom) är olika uppställning och vinkel
+bd83b84d 5 6 etikett 5 (position 10, i en diagonal från sidan) och etikett 6 (position 11, snett uppifrån med den högsta bakom) är olika uppställning och vinkel

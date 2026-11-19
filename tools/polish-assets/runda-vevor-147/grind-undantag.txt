@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad i specifikationen, och måttritningen visar glidhammarens längd och sugkopparnas diameter med pilar: sidan skriver bara längd för glidhammaren och diameter för sugkopparna
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rader Bucklelyftarens mått och Hammarens mått saknar axelord: sidan skriver måtten som i källan, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Hammarens mått saknar axelord: sidan skriver måttet som i källan, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Hammarens mått saknar axelord: sidan skriver måttet som i källan, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rader Kedjelängd och Kedjediameter har axelord medan produktstorleken saknar dem: sidan skriver bara kedjelängd och kedjediameter

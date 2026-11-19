@@ -1,0 +1,40 @@
+{
+  "namn": "vevor-181",
+  "rader": [
+    {
+      "kort": "6d11ca28",
+      "pid": "6d11ca28-5acd-46b6-8e1a-b9f14fb7bded",
+      "bort": [
+        "Bil & Garage > Takräcken & lastbärare"
+      ],
+      "behall": [
+        "Bil & Garage",
+        "Bil & Garage > Verkstadsutrustning"
+      ]
+    },
+    {
+      "kort": "a283de51",
+      "pid": "a283de51-f6d5-47c9-ba21-754f99921e36",
+      "bort": [
+        "Bil & Garage > Bildelar"
+      ],
+      "behall": [
+        "Bil & Garage",
+        "Bil & Garage > Verkstadsutrustning"
+      ]
+    },
+    {
+      "kort": "7b3d26c0",
+      "pid": "7b3d26c0-3f94-41ac-be90-dec0465ac635",
+      "bort": [
+        "Bil & Garage > Takräcken & lastbärare",
+        "Verktyg & Maskiner > Verkstadsmaskiner",
+        "Verktyg & Maskiner"
+      ],
+      "behall": [
+        "Bil & Garage",
+        "Bil & Garage > Verkstadsutrustning"
+      ]
+    }
+  ]
+}

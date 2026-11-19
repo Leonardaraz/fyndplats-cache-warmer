@@ -1,0 +1,13 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+7f8a8adf 4 4 x Ground Stakes på specifikationsbilden (markspett)
+7f8a8adf 300 Insert depth ≈ 11.8 in (300 mm) på infografiken Easy One-Person Setup (stångens djup i sanden)
+7f8a8adf 2 + 1 Accommodates 2 + 1 på infografiken Spacious Beach Shade Space (två vuxna och ett barn)
+72b9beed 80 3.2 in / 80 mm på infografiken (rörets bredd)
+72b9beed 40 1.6 in / 40 mm på infografiken (rörets tjocklek)
+72b9beed 120 4.7 in / 120 mm på infografiken (monteringsplattans bredd)
+72b9beed 1,5 0.06 in / 1.5 mm på infografiken (monteringsplattans tjocklek)
+72b9beed 16 16 x Phillips Semi-Countersunk Self-Tapping Screws på specifikationsbilden
+72b9beed 4 4 x Foot Pads på specifikationsbilden
+72b9beed 900 35.4 in / 900 mm på specifikationsbilden (benets bredd på 900 mm)
+72b9beed 15,35 33.8 lbs / 15.35 kg på specifikationsbilden (nettovikten på 900 mm)

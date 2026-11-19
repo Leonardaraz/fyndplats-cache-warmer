@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans mått (höjd, rördiameter, basdiameter, väggtjocklek och replängd) står som egna rader i specifikationen utan axelord, och sidan skriver varje mått med sitt eget namn
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans mått (storlek, tjocklek och brickans mått) saknar axelord i specifikationen, och sidan skriver måtten som i källan, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans mått (längd, remsbredd och tjocklek) står som egna rader i specifikationen, och sidan skriver varje mått med sitt eget namn
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad saknar axelord i specifikationen; axelorden längd, bredd och höjd är lästa ur VEVOR:s måttbild (L, W och H) och gäller alla tre storlekarna
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans mått (trummornas diameter och djup) står i VEVOR:s måttbild utan axelord, och sidan skriver måtten som diameter × djup enligt bilden

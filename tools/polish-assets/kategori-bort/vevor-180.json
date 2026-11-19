@@ -1,0 +1,16 @@
+{
+  "namn": "vevor-180",
+  "rader": [
+    {
+      "kort": "fe60e602",
+      "pid": "fe60e602-6b2e-4daa-8037-645975505c72",
+      "bort": [
+        "Bil & Garage > Bildelar"
+      ],
+      "behall": [
+        "Bil & Garage",
+        "Bil & Garage > Verkstadsutrustning"
+      ]
+    }
+  ]
+}

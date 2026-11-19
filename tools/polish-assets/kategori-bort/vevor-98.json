@@ -1,0 +1,16 @@
+{
+  "namn": "vevor-98",
+  "rader": [
+    {
+      "kort": "0d8d6cd4",
+      "pid": "0d8d6cd4-0716-4b10-9594-7d470b55f893",
+      "bort": [
+        "Verktyg & Maskiner > Elverktyg"
+      ],
+      "behall": [
+        "Verktyg & Maskiner",
+        "Verktyg & Maskiner > Handverktyg"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Förpackningsstorlek) saknar axelord, och sidan skriver förpackningens mått utan axelord som i källan
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Dragkrokens mått anger L x B men tre mått, och sidan skriver dragstångens mått utan axelord som i källan, och de andra raderna anger L x B x H
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord, och sidan skriver måtten som längd × bredd × höjd efter luftarens egen måttbild
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (Innermått, Växthusets mått och Dörrmått) saknar axelord, och sidan skriver måtten som längd × bredd × höjd (dörren som bredd × höjd) efter växthusets egen måttbild
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (Innermått, Växthusets mått och Dörrmått) saknar axelord, och sidan skriver måtten som längd × bredd × höjd (dörren som bredd × höjd) efter växthusets egen måttbild
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen måttrad, och sidan skriver längd, bredd och höjd efter vagnens egen måttbild
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen måttrad, och sidan skriver längd, bredd och höjd efter kärrans egen måttbild
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord, och sidan skriver måtten som längd × djup × höjd efter skivans egen måttbild

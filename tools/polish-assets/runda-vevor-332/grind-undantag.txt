@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader saknar axelord som skriptet läser. Måtten skrivs som längd × djup × höjd (släpvagnslådan) och som längd (fisknätet) ur specifikationen och måttbilden

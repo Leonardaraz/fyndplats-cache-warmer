@@ -1,0 +1,24 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "192d88a2": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "41891072": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "5a93f2e1": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "6467b7d3": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Image, dimensions: the compressor is 8,46 in / 215 mm high, 10,43 in / 265 mm wide and 5,51 in / 140 mm deep; airflow 23 L/min; ratings 220–240 V, 50 Hz; power 1/6 HP / 120 W; nozzle dimensions 0,2, 0,3 and 0,5 mm; volume of the cup 5 mL and 9 mL | Source text: the specification says voltage 220–240 V, 50 Hz, power 1/6 HP / 120 W, airflow 23 L/min, nozzle dimensions 0,2, 0,3 and 0,5 mm and cup volume 5 mL / 9 mL; the draft says a kit with a compressor, a double-action airbrush, 3 nozzles, paints, a thinner, a cleaner, a hose, a cleaning brush and a color wheel card, an anti-slip base, a polished inner chamber that prevents paint buildup and adjustable pressure with a push button"
+ },
+ "c65defce": {
+  "tyska": "",
+  "svenska": ""
+ }
+}

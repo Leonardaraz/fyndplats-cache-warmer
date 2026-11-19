@@ -1,0 +1,12 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (L x B x H) men måttritningen ritar bredd, höjd och djup med andra axelord än raden, och ingen tysk totalmåttrad finns att bygga ett facit ur: texten skriver måtten utan axelord i den ordning specifikationen ger
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek (höjd och längd i en rad utan axelord) och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver höjd och längd i den ordning ritningen visar
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Maskinstorlek (37 x 19 x 57 cm) utan axelord och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver måtten i den ordning specifikationen ger
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Enkelsidig installationsmått utan axelord och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver måtten per sida i den ordning specifikationen ger
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (förpackningens längd, bredd och höjd utan axelord) och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver förpackningens mått i den ordning specifikationen ger
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Produktionsmått och Väskans storlek utan axelord och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver väskans mått i den ordning specifikationen ger

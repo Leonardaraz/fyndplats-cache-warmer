@@ -1,0 +1,12 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek (15,8 x 4,6 x 10,7 tum / 401 x 116 x 271 mm) utan axelord, men måttritningen visar höjd 10,7 tum, bredd 15,8 tum och djup 4,6 tum: texten skriver måtten i den ordning specifikationen ger med axelorden ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger Produktmått 69,9 x 43,8 x 43,9 cm (L x B x H) och punkten 74 x 43 x 43 cm, medan måttritningen och specifikationsbilden anger 76 x 46 x 45,5 cm (29,9 x 18,1 x 17,9 tum), och ingen tysk totalmåttrad finns att bygga ett facit ur: texten skriver måtten ur specifikationsbilden med axelorden L × B × H
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger Produktstorlek 860 x 535 x 560 mm utan axelord, medan korgarna anges som L x B x H och skåpet som B x D x H, och ingen tysk totalmåttrad finns att bygga ett facit ur: texten skriver axelorden ur specifikationen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (3500 x 660 x 2400–2920 mm) utan axelord och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver bredd och höjd med ord och produktmåttet med axelorden B × D × H
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (660 × 210 × 120 mm) utan axelord och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver måtten i den ordning specifikationen ger
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Artikelhöjd, Bottenbredd och Toppbredd utan axelord och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver höjd och bredder med ord

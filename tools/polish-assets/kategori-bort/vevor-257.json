@@ -1,0 +1,28 @@
+{
+ "namn": "vevor-257",
+ "rader": [
+  {
+   "kort": "bd0e47bc",
+   "pid": "bd0e47bc-aaeb-4203-a811-544a7f2ff7f9",
+   "bort": [
+    "Husdjur > Lek & Tillbehör för husdjur"
+   ],
+   "behall": [
+    "Husdjur",
+    "Husdjur > Hundvagnar"
+   ]
+  },
+  {
+   "kort": "c81ab8df",
+   "pid": "c81ab8df-d3a3-457d-8699-4f7bfa454baa",
+   "bort": [
+    "Bil & Garage > Takräcken & lastbärare",
+    "Bil & Garage"
+   ],
+   "behall": [
+    "Sport & Fritid",
+    "Sport & Fritid > Bil & Cykel"
+   ]
+  }
+ ]
+}

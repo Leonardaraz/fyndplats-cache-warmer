@@ -1,0 +1,2 @@
+# kort:pos kort:pos skäl (kvitterar par mellan sidor som gate-bilddubblett.py flaggar men som visar olika varor)
+565d7d22:2 f9f6ec9f:2 olika varor: samma lastarskopa och samma miljö, men tandstången är en annan: nio tänder på den ena och åtta på den andra, så bilderna skiljer sig i just det som skiljer de två varorna åt (sedda sida vid sida 2026-11-12)

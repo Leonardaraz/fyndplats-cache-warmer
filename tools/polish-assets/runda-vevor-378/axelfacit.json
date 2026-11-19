@@ -1,0 +1,29 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "021637c1": {
+  "tyska": "the first bullet gives 112 x 51 x 112 cm for both carts, the specification gives each cart its own max dimensions; the specification's are written (the bullet's are the same on both pages and do not fit the specification)",
+  "svenska": "",
+  "axelkalla": "engelska raden 'Dimensions' (källan är engelsk)"
+ },
+ "27a28cf8": {
+  "tyska": "the first bullet gives 112 x 51 x 112 cm for both carts, the specification gives each cart its own max dimensions; the specification's are written (the bullet's are the same on both pages and do not fit the specification)",
+  "svenska": "",
+  "axelkalla": "engelska raden 'Dimensions' (källan är engelsk)"
+ },
+ "4fd4171f": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "63a4fbd2": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "9d94e4d6": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "ef415e0e": {
+  "tyska": "",
+  "svenska": ""
+ }
+}

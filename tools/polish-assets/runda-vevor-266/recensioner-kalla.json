@@ -1,0 +1,37 @@
+{
+  "d628b95f": {
+    "productId": "d628b95f-93bc-4bd7-92f4-300207e25701",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "fa67c445": {
+    "productId": "fa67c445-f3be-4926-b317-fdfbc769137f",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "68ffc194": {
+    "productId": "68ffc194-d137-408e-82e0-ecf2a6d2cab9",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-zvuie2",
+        "betyg": 5,
+        "datum": "2026-08-24",
+        "foton": 0,
+        "text": "Good fit and a easy to install"
+      }
+    ]
+  }
+}

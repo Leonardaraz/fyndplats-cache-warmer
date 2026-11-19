@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger måtten som egna rader utan namn på axlarna: skåpens *Produktmått* (850,1 x 490,2 x 1490 mm), *Skåphöjd*, *Storlek på järnram (HxB)* och *Dörrpanelens mått*, och kattskåpens *Högerfönster* (225 x 250 mm på det gröna skåpet); måtten skrivs i källans form som egna rader

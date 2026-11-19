@@ -1,0 +1,6 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (Produktmått) saknar axelord, och sidan skriver bredd × djup × höjd efter måttbildernas ritningar
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (Dörrhöjd, Dörrbredd, Topphöjd och Produktdiameter) har egna axelord, och sidan skriver dörrens bredd och höjd med sina namn och tältets diameter och topphöjd var för sig
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord, och sidan skriver måtten efter måttbildens ritning

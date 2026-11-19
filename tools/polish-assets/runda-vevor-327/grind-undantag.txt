@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader saknar axelord som skriptet läser. Måtten skrivs som djup × bredd × höjd efter källans specifikation (större storlek 40 × 85 × 75 cm, mindre 30 × 40 × 50 cm), och borrhuvudets mått anges i tum som i källan

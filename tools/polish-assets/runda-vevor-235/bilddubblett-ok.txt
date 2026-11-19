@@ -1,0 +1,8 @@
+# kort pos1 pos2 skäl: par som gate-bilddubblett.py flaggar men som inte visas tillsammans (olika längdval)
+b91a4d05 1 7 samma vinkel på stången i längderna 6,06 och 7,365 m: varje längdval visar bara sina egna bilder
+b91a4d05 1 13 samma vinkel på stången i längderna 6,06 och 10,02 m: varje längdval visar bara sina egna bilder
+b91a4d05 5 11 samma vinkel på stången i längderna 6,06 och 7,365 m: varje längdval visar bara sina egna bilder
+b91a4d05 5 17 samma vinkel på stången i längderna 6,06 och 10,02 m: varje längdval visar bara sina egna bilder
+b91a4d05 6 12 samma vinkel på stången i längderna 6,06 och 7,365 m: varje längdval visar bara sina egna bilder
+b91a4d05 11 17 samma vinkel på stången i längderna 7,365 och 10,02 m: varje längdval visar bara sina egna bilder
+b91a4d05 15 20 samma närbild i längderna 10,02 och 12,03 m: varje längdval visar bara sina egna bilder

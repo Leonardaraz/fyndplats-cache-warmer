@@ -1,0 +1,65 @@
+{
+  "94220375": {
+    "productId": "94220375-7b32-431c-9f84-369e6c3953dd",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "83eb52e5": {
+    "productId": "83eb52e5-808e-4dac-a7ad-81902ca6a82f",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "aa612c06": {
+    "productId": "aa612c06-bfd8-4574-b7c3-9eb62954bce2",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": [
+      {
+        "id": "gen-1li1vrt",
+        "betyg": 5,
+        "datum": "2026-10-28",
+        "foton": 0,
+        "text": "Vraiment content! Facile à monter et démonter. Qualité au top!"
+      },
+      {
+        "id": "gen-jpbz3o",
+        "betyg": 5,
+        "datum": "2026-10-17",
+        "foton": 0,
+        "text": "So I had a chin-up bar for the door frame before this. Now that I have this it is so great. I can do so much more with it and it folds up if I need the space. If you do proper form it is very stable. If you swing a lot then it becomes unstable but proper chin-ups, pull-ups, dips or leg raises should have very little to no swing. So it is very stable. Folding it up is really easy and quick. Setting it up was a breeze. As someone said, use a proper wrench or socket set works best instead of the tools provided. It is a great addition to my workout area. I love it and it’s worth the price."
+      },
+      {
+        "id": "gen-1tpua15",
+        "betyg": 5,
+        "datum": "2026-09-10",
+        "foton": 1,
+        "text": "Nice and sturdy pull-up bar. The footprint is huge, I hung a yoga hammock off it and keep it permanently unfolded for lounging. As long as you are aware of the laws of physics, it is very stable and feels safe. Easy to assemble, all tools provided. The dip bar attachments are useful for the expanding the range of exercises you can do and also for climbing to the top position if you are doing negative pull-ups. The close grip is not very comfortable (slim bar with no foam), so I am limited to the wide grip and neutral grip when hanging for a longer time."
+      },
+      {
+        "id": "gen-jltbvz",
+        "betyg": 4,
+        "datum": "2026-10-09",
+        "foton": 0,
+        "text": "Item is solid and heavy. Just as described. For the price it’s worthy."
+      },
+      {
+        "id": "gen-llxb06",
+        "betyg": 4,
+        "datum": "2026-05-05",
+        "foton": 0,
+        "text": "Excellent equipment, easy to put together and very easy a to use and very well built, have moved my exercise upn a notch."
+      }
+    ]
+  }
+}

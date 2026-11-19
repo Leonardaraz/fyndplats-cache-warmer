@@ -1,0 +1,84 @@
+{
+  "5e1e65c4": {
+    "productId": "5e1e65c4-f72e-45ea-ba7b-596517631d85",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-15nzlnm",
+        "betyg": 5,
+        "datum": "2026-10-11",
+        "foton": 0,
+        "text": "Super! Facile a installer, roule très bien sur la dalle en beton du garage 👌"
+      },
+      {
+        "id": "gen-pikub6",
+        "betyg": 5,
+        "datum": "2026-09-26",
+        "foton": 0,
+        "text": "ottimo prodotto sono il secondo set che compro:) cho messo un auto d epoca di quasi 2500kg!"
+      },
+      {
+        "id": "gen-1marhy9",
+        "betyg": 4,
+        "datum": "2026-10-12",
+        "foton": 1,
+        "text": "Réception carton déchiré et percé. apparemment il ne manque aucune pièce. Produit monté. semble être un bon produit."
+      }
+    ]
+  },
+  "94983cdc": {
+    "productId": "94983cdc-c9e0-4d72-bac1-a1f4dc944560",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-sn63ar",
+        "betyg": 5,
+        "datum": "2026-05-31",
+        "foton": 0,
+        "text": "Parfait comme système, seul ou entre amis on se pratique et le ballon reviens tout près!"
+      }
+    ]
+  },
+  "a56a6290": {
+    "productId": "a56a6290-2d8d-43f5-8842-b25b0a972a97",
+    "synliga": 0,
+    "dolda": 1,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 5,
+    "attBesluta": [
+      {
+        "id": "gen-10f9ihp",
+        "betyg": 5,
+        "datum": "2026-07-16",
+        "foton": 0,
+        "text": "Great gas can, great price works like it should will buy more really recommend if you’re looking for a long lasting can and good funnel grab it do recommend"
+      }
+    ]
+  },
+  "85432a20": {
+    "productId": "85432a20-2dfd-4623-8641-58af5c1b44c6",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-4vg1ww",
+        "betyg": 5,
+        "datum": "2023-04-13",
+        "foton": 0,
+        "text": "The performance stays consistent, no efficiency reduction no matter how long it’s used. Reliable for daily needs."
+      }
+    ]
+  }
+}

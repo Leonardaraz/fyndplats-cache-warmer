@@ -1,0 +1,7 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+edfe6c12 4 Accommodates 4-5 People på infografiken Adjustable Height for Comfortable Standing (fyra till fem personer)
+edfe6c12 5 Accommodates 4-5 People på infografiken Adjustable Height for Comfortable Standing (fyra till fem personer)
+edfe6c12 300 Insert depth ≈ 11.8 in (300 mm) på infografiken Easy One-Person Setup (stångens djup i sanden)
+edfe6c12 6 6 x Ground Stakes på specifikationsbilden (markpinnar)
+edfe6c12 2 2 x Metal Poles och 2 x Sand Shovels på specifikationsbilden

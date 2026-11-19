@@ -1,0 +1,16 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "14fe6f9f": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "29e35570": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Image, specification: capacity 9 Gal / 34.1 L; lid 0.75 in / 19 mm; leakage rate 5% / 12H; vacuum pressure -29.9 inHg; rubber hose 1.5 m vacuum wire hose, 1/4 in SAE female on both ends; product dimensions 17.52 x 15.16 x 14.57 in / 445 x 385 x 370 mm; product weight 22.27 lbs / 10.1 kg; accessories 1 x 5 ft 1/4 in steel wire hose, 1 x air filter for replacement, 2 x rubber gaskets, 1 x silicone gasket (7.9 x 7.9 in), 1 x gauge assembly (includes 1 x air filter), 1 x large chamber lid seal ring, 1 x wrench, 1 x screwdriver; no vacuum pump included in the package, it needs to be bought separately | Image, features: 9 gallon stainless steel vacuum chamber, capacity 9 gallon / 34.1 L, material 201 stainless steel, weight 22.27 lbs / 10.1 kg; precise vacuum gauge, air exhausting valve, air intake valve, air filter, +-2.5% accuracy, scale -30 to 0 inHg; tempered glass lid, 0.75 in / 19 mm thickened glass lid and rubber seal design; steel wire corrugated hose; wide applications: degassing silicone & urethanes, resin casting, wood stabilizing, essential oil extraction"
+ },
+ "5693f9a4": {
+  "tyska": "",
+  "svenska": ""
+ }
+}

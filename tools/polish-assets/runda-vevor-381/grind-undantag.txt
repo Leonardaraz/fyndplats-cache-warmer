@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger måtten som egna rader utan namn på axlarna: *Produktmått* (620 x 400 x 210 mm på den smala vagnen, 1630 x 620 x 1055 mm och 1320 x 420 x 850 mm på sit-up-bänkarna) och *Mått på dynan*; måtten skrivs i källans form som egna rader

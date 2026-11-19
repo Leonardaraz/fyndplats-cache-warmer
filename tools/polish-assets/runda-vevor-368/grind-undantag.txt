@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py plagget har ingen måttrad i källan: storlek anges med bokstäver (S till XXXL) och vikt per storlek, och måtten per storlek står bara i storlekstabellen på en infografik. Siffrorna ur tabellen kvitteras i foto-tal.txt och skrivs som en egen rubrik, och sidans axel (Storlek) har bokstavsvärden utan mått

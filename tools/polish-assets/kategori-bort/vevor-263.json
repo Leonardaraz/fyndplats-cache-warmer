@@ -1,0 +1,40 @@
+{
+ "namn": "vevor-263",
+ "rader": [
+  {
+   "kort": "327c9d82",
+   "pid": "327c9d82-aae9-424d-896c-5ebe85391f93",
+   "bort": [
+    "Bygg & Renovering > Färg & tapet",
+    "Bygg & Renovering"
+   ],
+   "behall": [
+    "Verktyg & Maskiner",
+    "Verktyg & Maskiner > Verktygstillbehör"
+   ]
+  },
+  {
+   "kort": "924880e2",
+   "pid": "924880e2-5261-4cbf-9404-4344d5d1d794",
+   "bort": [
+    "Bygg & Renovering > Färg & tapet",
+    "Bygg & Renovering"
+   ],
+   "behall": [
+    "Verktyg & Maskiner",
+    "Verktyg & Maskiner > Verktygstillbehör"
+   ]
+  },
+  {
+   "kort": "d19fbd12",
+   "pid": "d19fbd12-dd73-4183-8a72-c9ef93caf776",
+   "bort": [
+    "Bil & Garage > Bildelar"
+   ],
+   "behall": [
+    "Bil & Garage",
+    "Bil & Garage > Bilverktyg"
+   ]
+  }
+ ]
+}

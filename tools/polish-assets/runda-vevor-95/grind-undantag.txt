@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Mått 305 x 305 x 686 mm utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, men måttbilden ritar 686 mm som höjd och basen som 305 mm gånger 305 mm: texten skriver höjd ur ritningen och basens två mått utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Mått utfälld (L x B x H) 80 x 40 x 75 cm och Mått hopfälld (L x B x H) 80 x 7 x 75 cm med axelbokstäver i etiketten och ingen tysk totalmåttrad att bygga ett facit ur, men måttbilden ritar 80 cm som bredd, 40 cm som djup och 75 cm som höjd (hopfälld 7 cm tjock): texten skriver bredd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad; måtten 105 × 105 × 130 mm står på VEVOR:s måttbild (bredden 105 mm i både fram- och sidovyn och höjden 130 mm) och skrivs utan axelord i tabellen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad; måtten står på VEVOR:s måttbild (den långa kudden 830 mm lång, 280 mm bred och 160 mm tjock, och de två kilformade kuddarna med bandet 680 mm långa, 330 mm breda och 130 mm tjocka) och skrivs utan axelord i tabellen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 790 x 265 x 135 mm utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar 790 mm som längd, 265 mm som bredd och 135 mm som djup: texten skriver måtten som i källan utan axelord

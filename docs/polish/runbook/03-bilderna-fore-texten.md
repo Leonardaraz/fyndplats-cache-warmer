@@ -90,7 +90,14 @@ den ena. `gate-bilddubblett.py` mäter det sedan runda 31 (2026-11-04): grinden 
 mot varje bild på de andra sidorna i rundan, miljöbilder ingår, och under 0,02 är samma foto.
 Det behövdes, för två ledningssatser bar samma foto av två händer vid en utomhusenhet (mått
 0,000) och grinden såg tidigare bara inom en sida. Är bilderna olika kvitterar du paret i
-`bilddubblett-ok.txt` som `kort1:pos1 kort2:pos2 skäl`.
+`bilddubblett-ok.txt` som `kort1:pos1 kort2:pos2 skäl`. Dubblettgrinden ser inte en SPEGELVÄND kopia, en
+FÖRSTORAD kopia där bara en del av varan syns eller samma bild utan de tillbehör som ligger bredvid varan
+(hörnskydden `9e135f38`: position 11 var position 9 spegelvänd och 1,8 gånger förstorad, och degdelaren
+`8e72043f`: position 12 var position 9 utan bricka och verktyg, runda 294, 2026-11-15, och båda gav 0 fynd).
+`gate-bildspegel.py` listar sådana par, men den **fäller inte**: en symmetrisk silhuett (en svart,
+avsmalnande planteringskruka i två vyer) ger också 0,93, så ingen gräns skiljer de äkta dubbletterna
+(0,90 till 0,94) från de olika vyerna. Se varje listad rad med ögonen, spegla den ena bilden och jämför
+ytans detaljer, och stryk den ena om det är samma foto.
 
 Rundan bearbetar inga bilder utom beskärningen i undantaget ovan, den väljer bland dem som
 finns. Metoderna står i [`polish/bildmetoder.md`](../bildmetoder.md).
@@ -122,8 +129,9 @@ ovan), så position 10 är nästan alltid användbar.
 
 ⚠️ **Position 10 är inte alltid en ny bild (N337, 2026-11-03).** På barbordet `653f8098` var position 5, 9 och 10 samma bistrobild
 från samma vinkel, och på barbordet `9a7ec41a` var position 10 samma packshot som position 1 i en annan rendering. Lägg bara till
-position 10 när den visar något som inte redan ligger i galleriet, och kör `gate-bilddubblett.py` före pushen (inom en sida jämför den bara
-bilder på vit botten, så miljöbilder ser du med ögonen; mellan sidor i rundan ingår de). Räcker de rena bilderna ändå inte till fem är nästa steg ett utsnitt enligt
+position 10 när den visar något som inte redan ligger i galleriet, och kör `gate-bilddubblett.py` före pushen (inom en sida jämför den bilder på vit botten, filer med identiska byte och, sedan 2026-11-11, två bilder som fyller rutan
+eller är miljöbilder, hela bilden mot hela bilden. Två vyer av en smal vara på vit botten och en miljöbild mot en vitbottenbild ser du med
+ögonen; mellan sidor i rundan ingår alla). Räcker de rena bilderna ändå inte till fem är nästa steg ett utsnitt enligt
 undantaget ovan: på `653f8098` bar position 4 och 8 (samma detaljbild), 6 (rubriker och en pil under y 1474) och 7 (storleksguide) tysk
 text, och ett utsnitt ur position 6 (`x_267,y_0,w_1465,h_1465`, ovanför pilen) blev position 11 (`UploadImageToWixSite` med
 `imageUrls`, md5 mot Wix beskärningsadress, se `bildmetoder.md`).

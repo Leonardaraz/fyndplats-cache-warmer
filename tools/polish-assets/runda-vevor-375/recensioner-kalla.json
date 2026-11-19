@@ -1,0 +1,55 @@
+{
+  "3071748c": {
+    "productId": "3071748c-f165-43f1-8270-ffd633a571c6",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 4,
+    "attBesluta": []
+  },
+  "cbb5e963": {
+    "productId": "cbb5e963-c351-48b8-b775-69ec7c26ebbc",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "98807ee7": {
+    "productId": "98807ee7-26fc-4e2c-8c2c-e0e652f91e64",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 4,
+    "attBesluta": [
+      {
+        "id": "gen-1ohj7ic",
+        "betyg": 4,
+        "datum": "2026-09-22",
+        "foton": 0,
+        "text": "Shipping was good, UPS. I have not set it up yet, that’s the only reason for the 4 star review at this point."
+      }
+    ]
+  },
+  "82772641": {
+    "productId": "82772641-abdd-4c11-a960-b426f1301005",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "1c401fab": {
+    "productId": "1c401fab-ab6b-4334-bd1f-4f9cd0f01546",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  }
+}

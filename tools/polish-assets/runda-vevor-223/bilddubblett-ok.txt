@@ -1,0 +1,2 @@
+# kort pos1 pos2 skäl (kvitterar ett par som gate-bilddubblett.py flaggar)
+6747ee29 2 8 position 2 hör till storleken 610 mm × 7,62 m och position 8 till storleken 1220 mm × 15,24 m: samma hönsgård i båda, men den inzoomade cirkeln visar olika rullar; butiken visar bara vald storleks bilder, så de visas aldrig tillsammans (0,013)

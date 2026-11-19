@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktstorlek (49,7 cm L x 30,6 cm B x 10,3 cm H/50 x 32 x 11 cm) har axelbokstäverna L, B och H, och måttritningen visar längden 50 cm, bredden 32 cm och höjden 11 cm: sidan skriver längd, bredd och höjd efter bokstäverna
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (51,2 x 43,3 x 108,3 tum / 1300 x 1100 x 2750 mm) saknar axelord, och måttritningen visar höjden 2750 mm och bredden 1300 mm vid fötterna men anger 1100 mm vid mittstången utan axel: sidan skriver måtten som de står och namnger bara höjden
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktstorlek (9,5 x 8,3 x 11,4 tum / 240 x 210 x 290 mm) saknar axelord, och måttritningen visar basen som 240 mm gånger 210 mm och höjden 290 mm: sidan skriver basen som 240 × 210 mm och höjden 290 mm
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktstorlek (D x H) 38,5 × 12,6 cm anger diameter före höjd, men måttritningen visar höjden 38,5 cm och diametern 12,6 cm för hela behållaren: sidan skriver höjd och diameter efter ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Artikelmått (φ500 x 1100 mm) anger diameter och höjd med symbol och inga axelord: sidan skriver diametern 500 mm och höjden 1100 mm

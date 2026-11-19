@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (26,77 x 27,91 x 14,48 tum / 680 x 709 x 368 mm) saknar axelord, och titelns mått (686 mm B x 366 mm H) säger emot specifikationen: sidan skriver specifikationens mått som de står
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktstorlek (115 x 115 x 507 mm) saknar axelord, och måttritningen visar 115 mm som bredd och 507 mm som höjd: sidan skriver måtten som de står
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktstorlek (85 x 58 x 48 tum / 2154 x 1474 x 1230 mm) saknar axelord, och måttritningen visar 2154 mm som längd, 1230 mm som bredd och 1474 mm som höjd: sidan skriver måtten i måttritningens ordning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktstorlek (83,9 x 6,0 x 2,2 tum / 2130 x 152 x 56 mm) saknar axelord, och måttritningen visar 2130 mm som längd, 152 mm som bredd och 56 mm som höjd: sidan skriver måtten i måttritningens ordning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (9,05 x 8,07 x 1,97 tum / 230 x 205 x 50 mm) saknar axelord, och måttritningen visar måtten utan axelnamn: sidan skriver måtten som de står

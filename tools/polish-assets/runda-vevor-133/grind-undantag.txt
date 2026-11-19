@@ -1,0 +1,6 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (40 x 40 x 183,5 mm) saknar axelord, och måttritningen visar 40 mm på två sidor och 183,5 mm som längd: sidan skriver måtten som de står
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py grinden hittar ingen måttrad i källan (raden Produktmått (L x B x H) har måtten 170 x 140 x 80 mm), och måttritningen visar 170 mm som bredd, 140 mm som djup och 80 mm som höjd: sidan skriver måtten som de står
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (9,1 x 1,44 x 1,22 tum / 230 x 36,7 x 31 mm) saknar axelord, och måttritningen visar 230 mm som längd och 36,7 mm och 31 mm som de två andra sidorna: sidan skriver måtten som de står

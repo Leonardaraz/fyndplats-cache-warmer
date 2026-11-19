@@ -1,0 +1,4 @@
+# <kort> <tal> <vad som räknades på bilden>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+3d38760f 2 avdelaren delar nischen i två nivåer på position 1 och 4, och två fack syns på position 5

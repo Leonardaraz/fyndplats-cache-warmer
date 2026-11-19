@@ -1,0 +1,37 @@
+{
+  "1543014b": {
+    "productId": "1543014b-6d9a-4954-a76f-2e0a8e3fe052",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-19cwc0z",
+        "betyg": 5,
+        "datum": "2026-02-23",
+        "kopt": "Svart",
+        "foton": 0,
+        "text": "Decent size, no sharp corners, extra seating when a lot of people gather, good weight limit. I use it for extra pillow and blanket storage mostly."
+      },
+      {
+        "id": "gen-vpzj4r",
+        "betyg": 5,
+        "datum": "2026-02-03",
+        "kopt": "Svart",
+        "foton": 0,
+        "text": "Easy to put together, holds a lot of sheets or clothes, soft carpet material comfortable to sit on, easy to lint roll hair off of it, looks nice, very sturdy when full and covered with lid."
+      }
+    ]
+  },
+  "152bd5e0": {
+    "productId": "152bd5e0-f5ff-4f1d-8c9b-1b40fa964018",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 7,
+    "attBesluta": []
+  }
+}

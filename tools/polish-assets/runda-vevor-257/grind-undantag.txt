@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktstorlek) saknar axelord, och sidan skriver korgens längd, bredd och höjd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktstorlek) saknar axelord, och sidan skriver väskans längd, bredd och höjd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (Produktstorlek som släp och Storlek för husdjursfack) saknar axelord, och sidan skriver längd, bredd och höjd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktstorlek) saknar axelord, och sidan skriver väskans längd, djup och höjd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktstorlek) saknar axelord, och sidan skriver ställningens bredd, djup och höjd efter måttbildens ritning

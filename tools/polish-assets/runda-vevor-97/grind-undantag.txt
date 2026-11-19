@@ -1,0 +1,16 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (15,8–20,9) x 5,2 x 8,9 tum / (400–530) x 132 x 225 mm utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar 400–530 mm som höjd, 225 mm som bredd vid basen och 132 mm som djup: texten skriver måtten som i källan, med axelorden ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Produktmått 270 x 290 x 145 mm, Mått vikta 270 x 290 x 35 mm och Ramplängd 270 mm utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar 270 mm som längd, 290 mm som bredd och 35 mm som tjocklek vikt: texten skriver måtten som i källan
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 39×3,3×2,4 tum/995×85×60 mm utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar bara kuddens 3,3, 2,5 och 0,5 tum: texten skriver måtten som i källan, och rördiametern som källans punkt säger den
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Produktstorlek 78 x 35 x 118 mm och Stjälkstorlek Φ0,43 x 0,86 tum/Φ11 x 22 mm utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar bara 118, 78 och 35 mm: texten skriver måtten som i källan utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Artikelmått 500 x 240 x 90 mm utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar 508 mm som bredd, 240 mm som djup och 90 mm som höjd: texten skriver 508 mm ur ritningen och titelns tal, medan specifikationens rad säger 500 mm
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 380 x 285 x 115 mm utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar fodralet som 380, 285 och 115 mm: texten skriver måtten som i källan utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Behållarens mått 345 x 310 x 160 mm och Produktmått 570 x 510 x 260 mm utan axelord och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver måtten som i källan utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Produktstorlek 12,2 x 12,6 x 17,32 tum / 310 x 320 x 440 mm och Vikt storlek 410 x 310 x 80 mm utan axelord och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver måtten som i källan utan axelord

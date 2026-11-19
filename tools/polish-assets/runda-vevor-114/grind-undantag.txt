@@ -1,0 +1,11 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Verktygslådans mått (13,8 x 11 x 3,5 tum / 350 x 280 x 88 mm) utan axelord och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver lådans tre mått i specifikationens ordning utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara raden Produktvikt (6,8 kg) och måttritningen anger delarnas längd, öppning, djup och bredd med siffror per del, så ingen totalmåttrad och ingen tysk totalmåttrad finns att bygga ett facit ur: texten skriver delarnas mått med ord (längd, öppning, djup och bredd) ur måttritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek (71,65 x 15,16 x 7,09 tum / 1820 x 385 x 180 mm) utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, men måttritningen visar höjd 1820 mm, bredd 385 mm och djup 180 mm: texten skriver måtten med axelorden H × B × D ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (90,1 x 3,07 x 1,18 tum / 2288 x 78 x 30 mm) utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, men måttritningen visar längd 2288 mm, bredd 78 mm och tjocklek 30 mm: texten skriver måtten med axelorden L × B × T ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger rullens diameter, kärnans diameter, längd och bredd som separata rader utan någon totalmåttrad (artikelmåttet 5,12 x 5,91 tum / 130 x 150 mm står bara på infografiken), och ingen tysk totalmåttrad finns att bygga ett facit ur: texten skriver rullens mått med ord (diameter, längd och bredd)

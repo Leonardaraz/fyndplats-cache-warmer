@@ -1,0 +1,37 @@
+{
+  "5442bd1d": {
+    "productId": "5442bd1d-ffad-47ea-b0c4-c9347c42235c",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "8d43fd8f": {
+    "productId": "8d43fd8f-bd2e-42fc-bd21-0af68f474ae7",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "7f9d875c": {
+    "productId": "7f9d875c-c889-45be-843e-2f5907bfef2b",
+    "synliga": 0,
+    "dolda": 7,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-1q52koc",
+        "betyg": 4,
+        "datum": "2025-03-24",
+        "foton": 0,
+        "text": "I wanted the one with the window in it and they sent me this one now I got to try to make up a window for"
+      }
+    ]
+  }
+}

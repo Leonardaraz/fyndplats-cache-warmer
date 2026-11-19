@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader har inga axelord som skriptet läser. Mätklockans och valsverkets mått skrivs utan axelord, och nattduksbordet följer specifikationens D × B × H och måttbildens ritning (djup 300, bredd 391 och höjd 430 mm)

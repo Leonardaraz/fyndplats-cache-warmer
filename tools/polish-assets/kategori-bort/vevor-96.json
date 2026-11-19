@@ -1,0 +1,18 @@
+{
+  "namn": "vevor-96",
+  "rader": [
+    {
+      "kort": "0e4fb9ed",
+      "pid": "0e4fb9ed-5d8c-4bb1-b4a4-8caf1bd6faf2",
+      "bort": [
+        "Bygg & Renovering > Trall & räcken",
+        "Bygg & Renovering"
+      ],
+      "behall": [
+        "Verktyg & Maskiner",
+        "Verktyg & Maskiner > Handverktyg",
+        "Verktyg & Maskiner > Lyft & transport"
+      ]
+    }
+  ]
+}

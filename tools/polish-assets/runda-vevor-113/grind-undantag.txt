@@ -1,0 +1,12 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek (25,98 x 16,14 x 3,14 tum / 660 x 410 x 80 mm) utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, men måttritningen visar längd 660 mm, bredd 410 mm och höjd 80 mm: texten skriver måtten med axelorden L × B × H ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger Produktstorlek 24 x 9,7 x 13 tum / 610 x 247 x 327 mm utan axelord, medan måttritningen anger 20,6 x 10,6 x 12,6 tum / 525 x 270 x 320 mm, och ingen tysk totalmåttrad finns att bygga ett facit ur: måtten står i konflikt och skrivs inte på sidan
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek (18,1 x 15 x 37 tum / 460 x 380 x 940 mm) utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, och måttritningen anger bara höjden 940 mm säkert (basens kanter står som 940 mm i ritningen): texten skriver de tre måtten i specifikationens ordning och nämner bara höjden 940 mm med ord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara raden Produktvikt (10,4 kg) och måttbilden anger ytterdiameter och tjocklek eller höjd för delarna, så ingen totalmåttrad och ingen tysk totalmåttrad finns att bygga ett facit ur: texten skriver delarnas mått med ord (ytterdiameter, tjocklek och höjd) ur måttbilden
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek 310 x 170 x 175 mm utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, men måttritningen visar längd 31 cm (12,2 tum), bredd 17 cm (6,7 tum) och höjd 17,5 cm (6,9 tum): texten skriver måtten med axelorden L × B × H ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Hjuldiam. och Hjultjocklek (före och efter uppblåsning) utan någon totalmåttrad, och ingen tysk totalmåttrad finns att bygga ett facit ur: texten skriver diameter och bredd med ord, i samma ordning som specifikationen och måttritningen

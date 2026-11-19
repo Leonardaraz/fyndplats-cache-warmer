@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader saknar axelord som skriptet läser. Dörrens storlek skrivs som bredd × höjd efter specifikationen (Dörrstorlek (bredd x höjd)), och skenans längd och vikten står som egna rader per storlek

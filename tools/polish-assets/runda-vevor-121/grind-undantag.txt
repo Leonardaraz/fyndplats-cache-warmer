@@ -1,0 +1,12 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raderna Stödfotens mått och Produktmått med tre mått vardera utan axelord, och måttritningen visar bara höjderna 2900 mm och 1160 mm: texten skriver måtten som de står, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (400 × 235 × 280 mm) saknar axelord; måttritningen visar bredd 400 mm, djup 235 mm och höjd 280 mm och fackens mått: texten skriver fackens bredd, djup och höjd efter ritningen och helhetsmåtten som de står
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rader Mått på husdjurslucka (192 × 262 mm) och Produktmått (813 × 388 × 40 mm) saknar axelord, och måttbilden visar höjden 15,3 tum och öppningens höjd 10,3 och bredd 7,6 tum: texten skriver öppningens bredd och höjd efter bilden och helhetsmåtten som de står
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation saknar måttrad; måttritningen visar höjden 3300 mm och basen 1120 × 680 mm utan axelord: texten skriver höjden och basens mått som de står
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (1540 × 1000 × 600 mm) saknar axelord; måttritningen visar 1540 mm längs långsidan, 1000 mm längs kortsidan och 600 mm i höjd: texten skriver längd, bredd och höjd efter ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktstorlek (440 × 100 × 75 mm) saknar axelord och det finns ingen måttbild med axlar: texten skriver måtten som de står

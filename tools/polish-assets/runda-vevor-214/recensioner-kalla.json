@@ -1,0 +1,84 @@
+{
+  "4ca6a109": {
+    "productId": "4ca6a109-be9f-4e02-ac03-8acf7361a783",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1dln1f9",
+        "betyg": 5,
+        "datum": "2026-09-06",
+        "foton": 0,
+        "text": "Utilizzata diverse volte e mai avuto un problema. Ottima"
+      },
+      {
+        "id": "gen-1cc8msi",
+        "betyg": 5,
+        "datum": "2026-07-25",
+        "foton": 0,
+        "text": "ottima tavola molto stabile.. ho effettuato il reso a causa di una piccola perdita d'aria"
+      }
+    ]
+  },
+  "f54f0e24": {
+    "productId": "f54f0e24-7797-42c9-a6f0-3ac5f5e422e5",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-2p49i5",
+        "betyg": 5,
+        "datum": "2026-08-28",
+        "foton": 0,
+        "text": "Acquistato a Luglio per le vacanze è stata la spesa migliore che potessi fare: la mattina mi facevo un'ora di pagaia in piedi ed era il mio allenamento preferito! le mie figlie lo prendevano e non volevano più scendere, leggero da trasportare sia nella sacca che anche gonfiato. Ottimo prodotto."
+      },
+      {
+        "id": "gen-viwwt7",
+        "betyg": 4,
+        "datum": "2026-09-25",
+        "foton": 0,
+        "text": "Bon matériel facile à mettre en action. Bon rapport qualité prix."
+      },
+      {
+        "id": "gen-19bfhnk",
+        "betyg": 4,
+        "datum": "2026-07-29",
+        "foton": 0,
+        "text": "bella tavola, funziona bene ed è molto stabile. Plastiche e gomma resistente"
+      }
+    ]
+  },
+  "0ebb1baa": {
+    "productId": "0ebb1baa-2e69-4dda-bff6-16c79e2100de",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "83fb7ad6": {
+    "productId": "83fb7ad6-eb19-45d2-a784-2e559babb8a0",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "5763f73d": {
+    "productId": "5763f73d-7371-4ed8-a4ba-12681802bcf1",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  }
+}

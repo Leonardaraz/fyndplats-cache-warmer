@@ -89,7 +89,7 @@ raden *Artikelmodellnummer* (och ibland *Modell*, *Artikelnummer*, *Produktmodel
 Importen tar bort raderna sedan samma dag, och **"VEVOR — specifikationen på utkast som saknar
 den"** byter ut fliken på äldre utkast som har dem. Står raden ändå i källan skriver du inte
 in den i `kallor.json` (repot är publikt) och inte i texten. Grinden `MODELLNUMMER` i
-`gatelib.py` och skrivplanen fäller etiketten. Vårt eget artikelnummer (`FP-…`) och en
+`gatelib.py` och skrivplanen fäller etiketten. ☠️ Men modellen kan stå på en rad med ett annat namn än *Modell*: runda 108 bar en rad *Maskintyp* (och en rad *Spännemodell*) med ett modellnummer i utkastets text, och `leak.py` såg det inte förrän den fick ett `MODELL`-mönster (1–4 stora bokstäver, bindestreck, siffror; runda 106 hade en modellbeteckning i utkastets namn på samma sätt). `bygg_data`-skriptets `sanera()` tar bort raderna *Maskintyp*, *Spännemodell*, *Artikelmodellnummer* och *Modellnummer* ur utkastets text, och rundans filer ska ge 0 träffar i `tools/polish-kedja/leak.py` före första pushen: en push av en modellbeteckning till det publika repot går inte att ta tillbaka utan att skriva om historiken. Vårt eget artikelnummer (`FP-…`) och en
 modell med ord (*Modell: Premium*) får stå. Ett nummer i löpande text ser grinden inte: leta
 efter det med ögonen.
 
@@ -145,6 +145,37 @@ Planen visade 0 att rätta 2026-10-31.
   vevor-leksak-1): slutposition i får etikett 1, 2, 4, 5, 6 och den sista etikett 3.
   `bilddubblett-ok.txt` använder etiketterna efter flytten, inte VEVOR:s positioner
   (`FLAGGADE-VEVOR.md` (he)).
+- **`gate-bilddubblett.py` jämför bara rundans egna sidor, aldrig mot publicerade sidor**
+  *(runda 291)*. Två syskonmodeller ur samma källa kan dela ett foto med olika fil-id:
+  fyrfackstvättkorgens närbild på kardborrebandet var samma foto som bild 5 på den publicerade
+  tvåfackskorgen (dHash 16 × 16 på Wix-miniatyrer, 256 bitar: avstånd 2, och samma foto ger
+  högst 5), och grinden sa 0 fynd. Kör tvillingkontrollen mot de publicerade sidorna med samma
+  varuslag (läs deras adresser, hämta sidorna och jämför varje utkastsbild) **innan** planen
+  byggs, och stryk en delad bild. Ett miljöfoto där samma vardagsrum visar en annan ram
+  (avstånd 35) är en annan bild.
+- **Samma foto kommer tillbaka i en annan skala, och två mått säger olika** *(runda 293)*.
+  Rörställets position 1, 8 och 9 var samma foto i olika beskärning, så med måttritningen
+  (inbrända tal) som enda andra bild fanns bara fyra olika bilder och utkastet hölls.
+  Flodankarets position 1 och 10 är samma uppställning i olika skala: dHash 16 × 16 gav 45
+  men `gate-bilddubblett.py` gav 0,001 och stoppade bygget. Bestickens position 1 och 9 är samma
+  uppställning i olika skala och med skugga: dHash gav 61 och grinden sa 0 fynd, och bara
+  kontaktarket visade det. Titta på alla utkastets bilder sida vid sida även när båda måtten
+  är tysta, och stryk den mindre eller mer beskurna av två lika uppställningar.
+- **Spegelvända kopior, förstoringar och bilder utan tillbehör går igenom båda grindarna** *(runda 294)*.
+  Hörnskyddens position 11 var position 9 spegelvänd och förstorad 1,8 gånger (korskorrelation
+  0,97 på hela bilden, 0,90 på kantbilder), och degdelarens position 12 var position 9 utan bricka
+  och verktyg (0,98 över maskinen, 0,94 på kantbilder). `gate-bilddubblett.py` sa 0 fynd för båda,
+  eftersom den beskär varan till sin ruta och inte speglar, och dHash ser inte heller en spegling.
+  Det syntes när bilderna lades bredvid varandra och den ena speglades. `gate-bildspegel.py` listar
+  sådana par (kantbild, mittutsnitt, skalor 1,0 till 2,8, rak och spegelvänd) men **fäller inte**:
+  två olika vyer av samma svarta, avsmalnande planteringskruka låg på 0,93, eftersom en silhuett
+  ger hög korrelation hur man än vrider den. Se varje listad rad med ögonen. Efter strykningen
+  höll hörnskydden bara fyra olika rena bilder (position 1 är dessutom ett montage), och de hålls
+  (se (86) i *Öppet för Leonard* i (szzj)).
+- **Tvillingkontrollen hämtar publicerade sidor en i taget** *(runda 293)*. Fem `twin16.py` i
+  parallell gav 403 från butiken och "0 bilder" för sex av sexton adresser. En tom träff är
+  inget kvitto: kör om de adresser som gav noll, en och en, och kontrollera att antalet bilder
+  är över noll innan du litar på avståndet.
 - **VEVOR:s säljpunkter (`punkter`) bär fakta som beskrivningen saknar** (installationsguide,
   rengöring, material och målgrupp). De ligger i avläsningen (`FyndplatsVevorAvlasningar`,
   nyckel artikeln) och går att läsa privat i ett ExecuteWixAPI-anrop utan att skriva ut
@@ -201,9 +232,17 @@ Sammanslagningsverktyget i *Syskon blir val på sidan* tar bara Aosom-artiklar
 färg, ett annat mönster, en annan storlek, längd eller förpackning, läggs i stället på sidan med
 **"VEVOR — lägg ett syskon som färg, storlek, längd eller förpackning på en annan VEVOR-sida"**
 (`vevor-sammanslagning.yml`, `plan` och sedan `byt`), en givare per körning, innan sidan poleras.
-Sidan vi behåller får vara ett utkast. Verktyget håller familjeregeln själv och vägrar syskon med
+Sidan vi behåller får vara ett utkast. En publicerad sida går också, men först efter att dess namn gjorts
+utan sidans värde (`namnet_bar_varde`), och texten och adressen skrivs om efteråt. Verktyget håller familjeregeln själv och vägrar syskon med
 olika effekt, kapacitet eller modell: de får egna sidor och poleras var för sig. Se *Syskon som
 importen inte slog ihop* i `docs/claude/11-vevor-steg-8-syskon-betyg-recensioner.md`.
+
+**Säkra familjer är gjorda (2026-11-08, `FLAGGADE-VEVOR.md` (mu)).** 23 värdar och 28 givare blev
+sammanslagna sidor i runda vevor-87 till 94. Det som återstår är grupperna som klassningen
+stoppar: barnkonstbord, konsolbord och skrivbordsavdelare (samma vara i annan färg, prisgap på 600
+till 1 840 kr), stegen (annan modell), mattorna (två axlar på fyra sidor), BBQ-dörrarna (nio sidor,
+tre av dem med samma mått) och 13 små familjer vars axel eller pris är oklar. De slås inte ihop
+utan Leonards besked.
 
 **Paketstorlekar som importen inte slog ihop** *(Leonard 2026-11-02, bordsdukarna: "ja slå ihop
 proffsigt", via Wix API)*. VEVOR säljer samma vara som ett 3-, 6- och 10-pack, men varje paket

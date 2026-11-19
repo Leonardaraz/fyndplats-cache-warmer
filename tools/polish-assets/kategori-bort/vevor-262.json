@@ -1,0 +1,18 @@
+{
+ "namn": "vevor-262",
+ "rader": [
+  {
+   "kort": "97a342f5",
+   "pid": "97a342f5-5e6e-4a8a-a119-f90d6f664180",
+   "bort": [
+    "Bil & Garage > Bilverktyg"
+   ],
+   "behall": [
+    "Verktyg & Maskiner",
+    "Verktyg & Maskiner > Handverktyg",
+    "Bil & Garage",
+    "Bil & Garage > Verkstadsutrustning"
+   ]
+  }
+ ]
+}

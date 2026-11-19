@@ -1,0 +1,9 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans mått saknar axelord och sidan skriver måtten som i källan, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har längd och diameter men ingen rad med yttermått i flera axlar
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rader för flakets mått och produktens mått saknar axelord och sidan skriver måtten som i källan, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har listornas bredd, höjd och längd som enskilda mått och ingen rad med yttermått i flera axlar

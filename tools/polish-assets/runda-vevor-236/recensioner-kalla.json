@@ -1,0 +1,37 @@
+{
+  "50a3709d": {
+    "productId": "50a3709d-dec7-4419-ad0a-e02637d12e8a",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "920bc363": {
+    "productId": "920bc363-36ec-4723-8f18-a40dc352378b",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "2668b405": {
+    "productId": "2668b405-62ef-4956-bca6-e41410387d05",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1tiso45",
+        "betyg": 5,
+        "datum": "2026-10-16",
+        "foton": 0,
+        "text": "Great Product, recommended to another business as well!"
+      }
+    ]
+  }
+}

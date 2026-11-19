@@ -29,6 +29,12 @@ python3 ../../polish-gates/livekoll.py       # InStock, brödsmula, <title> och 
   alt-attribut i HTML:en. De andra färgernas alt-texter ligger i sidans data, i en karta
   fil → alt. `livekoll.py` letar där också och skriver i summeringen hur många alt-texter
   som bara sågs där (T1: 46 av 84). En alt-text som saknas på båda ställena är ett fel.
+- ☠️ På en sammanslagen sida (färg, storlek eller längd): räkna bilderna per val i butiken
+  (`node tools/polish-gates/live-galleri.mjs <slug>`, eller Playwright och `rakna.js` i
+  arbetskatalogen), minst fem per val. Ett val vars foton sidan redan hade (`fanns redan` i
+  sammanslagningens plan) kan ha en enda bild, och antalet syns inte i någon grind. Lagning och
+  skäl: *Ett val vars foton sidan redan har får för få bilder* i
+  `docs/claude/11-vevor-steg-8-syskon-betyg-recensioner.md` (runda vevor-235: 12,03 m hade en).
 - Recensionerna: varje produkt ska visa de som steg 7 översatte. Saknas de, läs raden
   `recensioner: butiken` i steg 9:s körning. Föll anropet till butiken syns de först när dess cache gått ut,
   efter sex timmar.

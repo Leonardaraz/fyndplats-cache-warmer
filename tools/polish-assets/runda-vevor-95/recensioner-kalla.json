@@ -1,0 +1,98 @@
+{
+  "4ed9c5f1": {
+    "productId": "4ed9c5f1-bc43-40e4-a1fa-7cbaf6aebcae",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "8e22081b": {
+    "productId": "8e22081b-aa03-458b-b4d3-2871e65a53f5",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-w41mms",
+        "betyg": 5,
+        "datum": "2026-09-07",
+        "foton": 0,
+        "text": "Trés satisfaite de cet article et du service vevor incroyablement gentil Merci"
+      },
+      {
+        "id": "gen-11ughh3",
+        "betyg": 5,
+        "datum": "2026-07-12",
+        "foton": 0,
+        "text": "Great solution for small spaces! I move it constantly between rooms because of my living arrangement, works perfectly."
+      },
+      {
+        "id": "gen-hjwwg8",
+        "betyg": 5,
+        "datum": "2026-05-07",
+        "foton": 0,
+        "text": "Es una mesa plegable pequeña y cómoda para un espacio reducido. Estoy satisfecha con la compra."
+      },
+      {
+        "id": "gen-mlfypr",
+        "betyg": 4,
+        "datum": "2026-09-15",
+        "foton": 1,
+        "text": "Begin september gekocht. Vlot bezorgd. Mooi compact formaat voor als je weinig ruimte hebt. Kleuren bevallen goed (wit frame, lichtbruin bureaublad). Geschijnde poten geven net even meer sierlijkheid. Vooral belangrijk: Staat inderdaad stevig, ook tijdens schrijfwerkzaamheden. Alleen, de plastic houdertjes voor de inklappoten lijken mij wat kwetsbaar"
+      }
+    ]
+  },
+  "0337d2d9": {
+    "productId": "0337d2d9-24a3-4374-9126-de2c71b62a79",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "6fbe4a4d": {
+    "productId": "6fbe4a4d-e2f6-4508-85e8-ffd52e844343",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "3f89a7f9": {
+    "productId": "3f89a7f9-aedd-4522-aaa3-a143d3df2702",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-x3uub4",
+        "betyg": 5,
+        "datum": "2026-08-28",
+        "foton": 0,
+        "text": "Glad I finally picked this one up. Feels like it will last a good while. Good quality at a fair price."
+      },
+      {
+        "id": "gen-opvgx6",
+        "betyg": 5,
+        "datum": "2026-03-17",
+        "foton": 0,
+        "text": "A wonderful violin case—very lightweight, convenient, and compact. It can even be carried like a backpack. I bought it for my daughter; her previous case was so heavy that, when empty, it weighed more than this new case does with the violin inside! She is absolutely delighted with her new case! Thank you!"
+      },
+      {
+        "id": "gen-xf3jpq",
+        "betyg": 5,
+        "datum": "2024-03-25",
+        "foton": 0,
+        "text": "Looks beautiful, excellent condition, and fits my 4/4 violin very well."
+      }
+    ]
+  }
+}

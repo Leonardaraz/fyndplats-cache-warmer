@@ -1,0 +1,36 @@
+{
+  "a740febc": {
+    "productId": "a740febc-43aa-471d-853a-f2e711c5506a",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-16b22d1",
+        "betyg": 5,
+        "datum": "2026-11-01",
+        "foton": 0,
+        "text": "Többször használtam már, a legjobb megoldás a világon."
+      }
+    ]
+  },
+  "c4e719f8": {
+    "productId": "c4e719f8-2648-4fe3-9839-7bf5b94a26fc",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1iurau7",
+        "betyg": 4,
+        "datum": "2026-10-06",
+        "foton": 0,
+        "text": "Ottimo prodotto, da tenere sotto peso per adattare correttamente la forma."
+      }
+    ]
+  }
+}

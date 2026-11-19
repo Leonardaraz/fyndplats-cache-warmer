@@ -1,0 +1,38 @@
+{
+  "7f8a8adf": {
+    "productId": "7f8a8adf-a78a-4958-8793-220c8194324f",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-9tglb3",
+        "betyg": 5,
+        "datum": "2026-03-29",
+        "kopt": "Blå ränder",
+        "foton": 0,
+        "text": "Sombrilla muy grande, con toldo lateral con una rejilla que hace de ventana, mas las las mangas para llenarla de tierra y que el aire nose la lleve la idea es muy buena pero las calidades de la tela que es fina y los remates y terminaciones de las costuras no son buenas, pierde hilos por todas partes, no se cuantas temporadas durará."
+      }
+    ]
+  },
+  "72b9beed": {
+    "productId": "72b9beed-3936-4cbc-ac8f-8eac293e599a",
+    "synliga": 1,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 4,
+    "attBesluta": [
+      {
+        "id": "gen-69pqj2",
+        "betyg": 4,
+        "datum": "2026-07-08",
+        "kopt": "900 × 120 × 750 mm",
+        "foton": 3,
+        "text": "Top pour le prix! avec quelque modification pour ma part (ajout d'un châssis)"
+      }
+    ]
+  }
+}

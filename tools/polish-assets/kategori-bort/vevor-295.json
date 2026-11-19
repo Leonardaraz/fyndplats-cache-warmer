@@ -1,0 +1,39 @@
+{
+ "namn": "vevor-295",
+ "rader": [
+  {
+   "kort": "791df387",
+   "pid": "791df387-047c-426a-a520-b916291cd0cf",
+   "bort": [
+    "Kök & Husgeråd > Miniugnar & airfryers"
+   ],
+   "behall": [
+    "Kök & Husgeråd",
+    "Kök & Husgeråd > Köksmaskiner & Apparater"
+   ]
+  },
+  {
+   "kort": "0326d964",
+   "pid": "0326d964-5abf-4d55-b1ef-5aa1078a2dc1",
+   "bort": [
+    "Kök & Husgeråd > Glass-, is- & dessertmaskiner"
+   ],
+   "behall": [
+    "Kök & Husgeråd",
+    "Kök & Husgeråd > Köksmaskiner & Apparater"
+   ]
+  },
+  {
+   "kort": "3c833563",
+   "pid": "3c833563-68e9-43c2-a555-c4cc624885e7",
+   "bort": [
+    "Företag & Proffs > Storkök & restaurang",
+    "Företag & Proffs"
+   ],
+   "behall": [
+    "Kök & Husgeråd",
+    "Kök & Husgeråd > Köksmaskiner & Apparater"
+   ]
+  }
+ ]
+}

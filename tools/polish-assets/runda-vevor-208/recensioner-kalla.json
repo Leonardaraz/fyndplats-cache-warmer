@@ -1,0 +1,91 @@
+{
+  "c5b4a8f2": {
+    "productId": "c5b4a8f2-99ac-4637-b009-5b4e35c8ce8d",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "2c6aa4e0": {
+    "productId": "2c6aa4e0-4493-44f7-b947-39fec28646f9",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "dbf94246": {
+    "productId": "dbf94246-64ee-45d7-b91c-def305498581",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-2178ql",
+        "betyg": 5,
+        "datum": "2026-08-04",
+        "foton": 0,
+        "text": "Perfetto per riparare attrezzi con saldature a punto è molto utile per preparare scatolati. Lo consiglio funziona molto bene"
+      },
+      {
+        "id": "gen-1td474w",
+        "betyg": 4,
+        "datum": "2026-03-02",
+        "foton": 0,
+        "text": "Aufgrund eines positiven Tests bei Weldinger habe ich mir das Teil bestellt. Die Lieferung erfolgte schnell und die Verpackung war gut. Das Gerät macht einen wertigen Eindruck und der Zubehör ist sinnvoll. Wenn ich das Gerät in Betrieb nehme kann Ich mehr berichten. Der Preis ist jedenfalls angemessen und für Hobby Gebrauch ideal."
+      }
+    ]
+  },
+  "54aaeda3": {
+    "productId": "54aaeda3-9240-4669-8347-03fcced2242b",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "117804ee": {
+    "productId": "117804ee-8f12-49eb-8d4f-79874efb8b02",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1r4954m",
+        "betyg": 5,
+        "datum": "2026-10-27",
+        "foton": 0,
+        "text": "Love this portable bath tub for my pup. Makes it so much easier and less strain on my back"
+      },
+      {
+        "id": "gen-1or75y5",
+        "betyg": 5,
+        "datum": "2026-03-16",
+        "foton": 0,
+        "text": "Tolle Hundebadewanne. Da mir beim Baden meiner Hunde in der normalen Badewanne immer der Rücken weh tat, musste etwas hohes her. Es funktioniert gut und die Wanne ist hochwertig verarbeitet. Sie riecht nicht nach Plastik und steht stabil."
+      },
+      {
+        "id": "gen-h4m5oo",
+        "betyg": 5,
+        "datum": "2026-03-11",
+        "foton": 0,
+        "text": "It made my life easier to bathe my senior dog. He felt at ease being in this rather than the tub."
+      },
+      {
+        "id": "gen-12ks1a8",
+        "betyg": 5,
+        "datum": "2026-03-03",
+        "foton": 0,
+        "text": "Love this It the right height I just sit it in the shower And it makes it so easy to wash my dogs"
+      }
+    ]
+  }
+}

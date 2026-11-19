@@ -1,0 +1,12 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara en diameter och en höjd per cymbal (φ × höjd) utan axelord, och ingen tysk totalmåttrad finns att bygga ett facit ur: texten skriver måtten i den ordning specifikationen ger
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Storlek för förvaringslådan (380 × 225 × 80 mm) utan axelord och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver väskans mått i den ordning specifikationen ger
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger Produktstorlek med axelorden B × D × H (460 × 590 × 590 mm) och måttritningen visar samma tal, men ingen tysk totalmåttrad finns att bygga ett facit ur: texten skriver måtten med axelorden ur specifikationen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (648 x 430 x 450 mm) utan axelord och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver måtten i den ordning specifikationen ger
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger inre mått per väska med tum- och mm-värden som inte stämmer med varandra, och ingen tysk totalmåttrad finns att bygga ett facit ur: texten skriver vilka trummor väskorna passar och yttermåtten ur måttritningen (diameter och höjd)
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara nettovikt och färg och inga måttrader, och kärlens storlekar är diametrar utan axelord: ingen tysk totalmåttrad finns att bygga ett facit ur

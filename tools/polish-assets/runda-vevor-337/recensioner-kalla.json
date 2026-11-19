@@ -1,0 +1,96 @@
+{
+  "592a3e47": {
+    "productId": "592a3e47-dc32-4c2d-9918-251d16e43502",
+    "synliga": 0,
+    "dolda": 7,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-18dl2qx",
+        "betyg": 5,
+        "datum": "2026-05-30",
+        "kopt": "1219 mm",
+        "foton": 1,
+        "text": "Fast delivery, came the next day. Material is durable and this set is in excellent condition and no damage during shipping"
+      },
+      {
+        "id": "gen-l7rkmn",
+        "betyg": 5,
+        "datum": "2026-05-20",
+        "kopt": "1219 mm",
+        "foton": 0,
+        "text": "Es gab zwar hier und da kleine Schwierigkeiten bei der Montage, aber die Qualität der Tür ist top. Lieferung sehr schnell. Ich schreibe aus Erfahrung. Meine letzte Schiebetür, die ich bei einem anderen Versandhandel bestellt hatte, brauchte 4 Monate."
+      }
+    ]
+  },
+  "50df890c": {
+    "productId": "50df890c-e531-475b-b914-49f1c3cdaf59",
+    "synliga": 0,
+    "dolda": 9,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": []
+  },
+  "aff094da": {
+    "productId": "aff094da-0c66-4032-b412-109e3545c157",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-3lfivb",
+        "betyg": 5,
+        "datum": "2026-03-11",
+        "foton": 0,
+        "text": "Simple to install and fits standard openings, enhances interior look with natural wooden style."
+      },
+      {
+        "id": "gen-x0s47f",
+        "betyg": 5,
+        "datum": "2026-02-12",
+        "foton": 0,
+        "text": "Stylish and long-lasting, combines wood warmth with glass clarity for high-quality home use."
+      },
+      {
+        "id": "gen-hj2psg",
+        "betyg": 5,
+        "datum": "2026-02-12",
+        "foton": 0,
+        "text": "Strong wooden frame and stable glass panel, durable, safe, and suitable for home and furniture use."
+      },
+      {
+        "id": "gen-y67c3x",
+        "betyg": 5,
+        "datum": "2026-01-08",
+        "foton": 0,
+        "text": "This wooden-framed glass features a beautiful natural wood finish, offers an elegant and warm appearance."
+      },
+      {
+        "id": "gen-1o82q0y",
+        "betyg": 5,
+        "datum": "2026-01-08",
+        "foton": 0,
+        "text": "Perfect for upgrading doors, cabinets, and interiors, adds a natural premium touch to rooms."
+      },
+      {
+        "id": "gen-1enlddo",
+        "betyg": 5,
+        "datum": "2025-11-19",
+        "foton": 0,
+        "text": "This door perfectly combines aesthetics and functionality. It's stable, easy to open and close, and the tempered glass ensures maximum safety. It brings light into the room without sacrificing privacy, an excellent addition to my home interior."
+      },
+      {
+        "id": "gen-1an41oy",
+        "betyg": 5,
+        "datum": "2025-11-18",
+        "foton": 0,
+        "text": "This wooden glass folding barn door is wonderful. It allows plenty of natural light to pass through, brightens up the room and has a modern and elegant design. The installation is simple, the glass is durable and the wood has a flawless finish."
+      }
+    ]
+  }
+}

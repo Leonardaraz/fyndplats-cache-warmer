@@ -1,0 +1,16 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktstorlek 590x186x55 mm utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar 590 mm som längd, 186 mm som bredd när tången är sluten och 508 mm som bredd när den är öppen: texten skriver måtten som i källan utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Artikelmått 430 x 308 x 165,5 mm utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, men måttbilden ritar 308 mm som höjd och som bredd över handtagen och 165,5 mm som rörets ytterdiameter: texten skriver höjd och diameter ur ritningen, och 430 mm står bara i tabellen utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (L x B x H) 800 x 935 x 940 mm med axelbokstäver i etiketten och ingen tysk totalmåttrad att bygga ett facit ur, men måttbilden ritar 940 mm som höjd, 800 mm som benens längd och 935 mm som avståndet mellan fötterna: texten skriver höjden och benens mått ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad i specifikationen; måtten 150 × 150 × 100 mm per ställ står på VEVOR:s måttbild (100 mm högt, 150 mm brett och 150 mm djupt) och skrivs utan axelord i tabellen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 165 x 60 x 25 mm utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar 165 mm som längd och 60 mm som höjd: texten skriver måtten som i källan utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 200 x 150 x 70 mm utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar 200 mm och 150 mm utan axelord: texten skriver måtten som i källan utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått 73 x 73 x 310 mm utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar 310 mm som längd och 73 mm som bredd: texten skriver måtten som i källan för det hopfällda ankaret
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått Ø4,53 x 5,91 tum / 115 x 150 mm där Ø anger rullens diameter, och ingen tysk totalmåttrad att bygga ett facit ur, och måttbilden ritar 115 mm som diameter och 150 mm som bredd: texten skriver diameter och bredd ur ritningen

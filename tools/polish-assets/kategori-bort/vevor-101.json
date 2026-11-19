@@ -1,0 +1,29 @@
+{
+  "namn": "vevor-101",
+  "rader": [
+    {
+      "kort": "19286b8c",
+      "pid": "19286b8c-fc48-48fb-a4ad-336ff80b5d75",
+      "bort": [
+        "Trädgård & Utemöbler > Trädgårdsdekor & Belysning",
+        "Trädgård & Utemöbler"
+      ],
+      "behall": [
+        "Företag & Proffs",
+        "Företag & Proffs > Butik, evenemang & trafik"
+      ]
+    },
+    {
+      "kort": "d10ad7bf",
+      "pid": "d10ad7bf-0e17-48a1-b9c0-b1e9284353c3",
+      "bort": [
+        "Möbler > Skrivbord"
+      ],
+      "behall": [
+        "Möbler",
+        "Företag & Proffs",
+        "Företag & Proffs > Butik, evenemang & trafik"
+      ]
+    }
+  ]
+}

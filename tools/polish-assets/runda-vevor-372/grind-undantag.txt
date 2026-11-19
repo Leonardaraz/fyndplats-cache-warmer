@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har ingen måttrad med axelord (bredd, djup, höjd): måtten står som en enda rad (Produktmått med tre tal, ibland med fot före mm) utan namn på axlarna, och texterna anger därför måtten som tre tal utan att säga vilket som är längd, bredd och höjd; siffrorna ur källan kvitteras i foto-tal.txt

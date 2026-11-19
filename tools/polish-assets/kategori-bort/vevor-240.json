@@ -1,0 +1,28 @@
+{
+ "namn": "vevor-240",
+ "rader": [
+  {
+   "kort": "bf195fd4",
+   "pid": "bf195fd4-ff2a-4150-9db1-bacea126a094",
+   "bort": [
+    "Möbler > Skrivbord",
+    "Möbler"
+   ],
+   "behall": [
+    "Företag & Proffs",
+    "Företag & Proffs > Butik, evenemang & trafik"
+   ]
+  },
+  {
+   "kort": "6a5d0989",
+   "pid": "6a5d0989-5264-48da-a171-dc1cfea9d474",
+   "bort": [
+    "Husdjur > Lek & Tillbehör för husdjur"
+   ],
+   "behall": [
+    "Husdjur",
+    "Husdjur > Kattlådor"
+   ]
+  }
+ ]
+}

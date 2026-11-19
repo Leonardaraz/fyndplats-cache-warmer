@@ -1,0 +1,21 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+a8558ae2 3660 Mått i specifikationen på listningen med två bågar (3660 x 3100 x 2330 mm) och på listningen med fyra bågar (10058 x 3660 x 3000 mm)
+a8558ae2 3100 Mått i specifikationen på listningen med två bågar (3660 x 3100 x 2330 mm)
+a8558ae2 2330 Mått i specifikationen på listningen med två bågar (3660 x 3100 x 2330 mm)
+a8558ae2 6780 Mått i specifikationen på listningen med tre bågar (6780 x 3700 x 2400 mm)
+a8558ae2 3700 Mått i specifikationen på listningen med tre bågar (6780 x 3700 x 2400 mm) och på listningen med fem bågar (12200 x 3700 x 3050 mm)
+a8558ae2 2400 Mått i specifikationen på listningen med tre bågar (6780 x 3700 x 2400 mm)
+a8558ae2 10058 Mått i specifikationen på listningen med fyra bågar (33,0 x 12,0 x 9,8 fot/10058 x 3660 x 3000 mm)
+a8558ae2 3000 Mått i specifikationen på listningen med fyra bågar (10058 x 3660 x 3000 mm)
+a8558ae2 12200 Mått i specifikationen på listningen med fem bågar (40,0 x 12,1 x 10,0 fot/12200 x 3700 x 3050 mm)
+a8558ae2 3050 Mått i specifikationen på listningen med fem bågar (12200 x 3700 x 3050 mm)
+a8558ae2 7,85 Nettovikt i specifikationen på listningen med två bågar: 7,85 kg
+a8558ae2 12,3 Nettovikt i specifikationen på listningen med tre bågar: 12,3 kg
+a8558ae2 20,52 Nettovikt i specifikationen på listningen med fyra bågar: 20,52 kg
+a8558ae2 25,8 Nettovikt i specifikationen på listningen med fem bågar: 25,8 kg
+a8558ae2 600 Kanttyget i punkten Förstärkt nät: 600D nylonkanttyg med förstärkta hörn
+a8558ae2 2 Antal bågar i specifikationen på listningen med mått 3660 x 3100 x 2330 mm (Antal bågar: 2)
+a8558ae2 3 Antal bågar i specifikationen på listningen med mått 6780 x 3700 x 2400 mm (Antal bågar: 3)
+a8558ae2 4 Antal valv (bågar) i specifikationen på listningen med mått 10058 x 3660 x 3000 mm (Antal valv: 4), antalet storlekar (fyra listningar) och antalet lager i nätet (4-lagers förstärkt nät)
+a8558ae2 5 Antal valv (bågar) i specifikationen på listningen med mått 12200 x 3700 x 3050 mm (Antal valv: 5)

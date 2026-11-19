@@ -1,0 +1,125 @@
+{
+  "36dfa35e": {
+    "productId": "36dfa35e-c3d0-4a38-af04-e13216c41cfe",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "281e365d": {
+    "productId": "281e365d-d3d7-4fff-a20b-81b8617f229b",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1k8orv0",
+        "betyg": 5,
+        "datum": "2026-09-03",
+        "foton": 1,
+        "text": "I can't believe the quality of this unit! I tried Milwaukee and Ridged cordless and both worked perfectly (multiple threaded adapters included). I would recommend this to anyone! Another great quality product!"
+      },
+      {
+        "id": "gen-1leq8q3",
+        "betyg": 5,
+        "datum": "2026-09-02",
+        "foton": 0,
+        "text": "Commandé le 02/08/2026, l'affûteur de lame de tondeuse à gazon VEVOR est utile pour l'affûtage de lame à gazon. De sa petite taille, il n'est pas trop encombrant."
+      },
+      {
+        "id": "gen-qvm50s",
+        "betyg": 5,
+        "datum": "2026-08-20",
+        "foton": 0,
+        "text": "Kræver en smule tilvænning. men det fungerer super godt 👍 Zero vibration og en behagelig og rolig klipning…"
+      },
+      {
+        "id": "gen-871nrc",
+        "betyg": 5,
+        "datum": "2026-08-05",
+        "foton": 3,
+        "text": "It works great! Getting the correct angle your looking for is super easy to adjust, holds blades really tight, and very easy to install and operate."
+      },
+      {
+        "id": "gen-1xh2hw",
+        "betyg": 4,
+        "datum": "2026-08-11",
+        "foton": 3,
+        "text": "It was let down by a manufacturing defect which rendered it inoperable out-of-the-box. The two arms which pivot, allowing the angle grinder to travel at the correct height and angle along the blade edge to be sharpened, did not pivot freely. They were very stiff, and not moving freely at all. After undoing the pivot bolts, it was obvious those two bolts had been over-torqued during the assembly process. Of the six bearings, two were still OK (rotating freely), but two were grossly deformed, and the last two had shattered and fell apart. Vevor compensated me for the set of six new Japanese bearings I fitted, and the sharpening jig is now operating as it should - very smooth and precise. If it weren't for this little repair job, I would have rated it 5 stars all round! The balancer is also very smooth and precise. All up, a nice machine!"
+      },
+      {
+        "id": "gen-hrpx0s",
+        "betyg": 4,
+        "datum": "2026-08-07",
+        "foton": 0,
+        "text": "Overall not bad for the price.The arms on the grinder guide were very stiff."
+      }
+    ]
+  },
+  "b3dad4d7": {
+    "productId": "b3dad4d7-704a-45be-acd8-f9b99bb314e5",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1tyrdqg",
+        "betyg": 5,
+        "datum": "2026-09-13",
+        "foton": 0,
+        "text": "Missing a hold down strap is my only complaint. Other than that they are great"
+      },
+      {
+        "id": "gen-632rwk",
+        "betyg": 4,
+        "datum": "2026-08-06",
+        "foton": 1,
+        "text": "Ihan ok veneistuin ja hinta/laatu suhde hyvä. Käytössä uistelukumiveneessä 2 kpl. Ainoa miinus, kiinnityspultit lyhyitä ja kierre ei normi. Toinen penkki varustettu pyörivällä alustalla."
+      },
+      {
+        "id": "gen-1y75sqn",
+        "betyg": 4,
+        "datum": "2026-08-06",
+        "foton": 1,
+        "text": "Ihan ok veneistuin ja hinta/laatu suhde hyvä. Käytössä uistelukumiveneessä 2 kpl. Ainoa miinus, kiinnityspultit lyhyitä ja kierre ei normi."
+      }
+    ]
+  },
+  "50005d9f": {
+    "productId": "50005d9f-a92a-4acb-96df-6d53bc66f16e",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-18objn8",
+        "betyg": 5,
+        "datum": "2026-10-07",
+        "foton": 0,
+        "text": "Great product, exactly as described. Super easy to order and fast delivery"
+      },
+      {
+        "id": "gen-1oyenza",
+        "betyg": 5,
+        "datum": "2026-10-01",
+        "foton": 0,
+        "text": "Perfect. Strong material. Should last long. Great price too."
+      },
+      {
+        "id": "gen-8i7psq",
+        "betyg": 5,
+        "datum": "2026-08-31",
+        "foton": 0,
+        "text": "This landscaping fabric is great! I was worried about it being lower quality because the price is so low, but it honestly performs better and seems to be more durable than the more expensive options....with free shipping, high quality, and low price point I would suggest this product to everyone. I will be buying more in the future for upcoming projects"
+      }
+    ]
+  }
+}

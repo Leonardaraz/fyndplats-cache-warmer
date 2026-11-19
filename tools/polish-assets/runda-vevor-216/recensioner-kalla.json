@@ -1,0 +1,63 @@
+{
+  "76725d81": {
+    "productId": "76725d81-4cd9-4971-9b7a-fa0ed97801a2",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "32de7da9": {
+    "productId": "32de7da9-d072-4737-b3c2-ed87008a8d9d",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "7f60aa97": {
+    "productId": "7f60aa97-7ff6-4e41-9e4a-a36b933a7162",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-z0vd8g",
+        "betyg": 4,
+        "datum": "2026-04-02",
+        "foton": 0,
+        "text": "Easy to install. Just what I needed."
+      }
+    ]
+  },
+  "ccd65f22": {
+    "productId": "ccd65f22-0f8e-4879-b3c7-d2f0f646cb34",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-bd2cbe",
+        "betyg": 5,
+        "datum": "2026-03-30",
+        "foton": 0,
+        "text": "erg chique, heel effectief, aanrader"
+      }
+    ]
+  },
+  "3f0ec4ba": {
+    "productId": "3f0ec4ba-afee-4421-9152-36aa801c14f2",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  }
+}

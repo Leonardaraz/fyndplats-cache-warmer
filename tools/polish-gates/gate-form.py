@@ -39,7 +39,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gatelib import ARTNR  # noqa: E402
 
 # Speglar FORM och TILLATEN_FORM i lib/polish/skrivplan.ts.
-BRED_FORM = re.compile(r"\b[0-9A-Za-z]{3}-[0-9A-Za-z]{3,}\b")
+# ☠️ JavaScripts \b är en ASCII-ordgräns (å, ä och ö räknas som icke-ordtecken), men Pythons \b är Unicode-medveten.
+# Med Pythons \b släppte den här grinden "G80-manganstål" (runda vevor-128, 2026-11-11): i rutten slutar ordet efter "mangan",
+# så träffen är "G80-mangan", och torrkörningen vägrade planen med "html har artikelnummerform". ASCII-lookarounds ger JS:s gräns.
+BRED_FORM = re.compile(r"(?<![0-9A-Za-z_])[0-9A-Za-z]{3}-[0-9A-Za-z]{3,}(?![0-9A-Za-z_])")
 TILLATEN_FORM = re.compile(r"^\d{2,4}-\d{2,4}(V|W|HZ|MM|CM)?$", re.I)
 
 

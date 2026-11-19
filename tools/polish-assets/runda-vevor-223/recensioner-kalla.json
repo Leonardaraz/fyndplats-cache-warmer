@@ -1,0 +1,103 @@
+{
+  "6747ee29": {
+    "productId": "6747ee29-27a8-40b8-92cc-2be650339eec",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "d0e38b59": {
+    "productId": "d0e38b59-5be1-44e5-995e-80b9e5a0f60f",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-4jk66w",
+        "betyg": 5,
+        "datum": "2024-10-27",
+        "kopt": "1650 x 558 mm",
+        "foton": 0,
+        "text": "Would recommend, item as described and fast delivery with live updates. Very happy with the product."
+      },
+      {
+        "id": "gen-4xwhrg",
+        "betyg": 5,
+        "datum": "2024-10-01",
+        "kopt": "1800 x 810 mm",
+        "foton": 0,
+        "text": "Todo fenomenal, me llegó totalmente partido y me lo han repuesto rápidamente. Totalmente recomendable"
+      },
+      {
+        "id": "gen-1hvt5wm",
+        "betyg": 4,
+        "datum": "2026-10-12",
+        "kopt": "1800 x 810 mm",
+        "foton": 0,
+        "text": "Buon prodotto!!! Acquistato più di un anno fa E ha soddisfatto i miei requisiti"
+      },
+      {
+        "id": "gen-q2dp2x",
+        "betyg": 4,
+        "datum": "2024-03-17",
+        "kopt": "1800 x 810 mm",
+        "foton": 0,
+        "text": "This came to my house today I was so excited to open it up. It's absolutely magnificent and it's such a large mirror.Super fancy Love it! Period!"
+      },
+      {
+        "id": "gen-1sovkcn",
+        "betyg": 4,
+        "datum": "2024-02-07",
+        "kopt": "1800 x 810 mm",
+        "foton": 0,
+        "text": "I love this mirror! I was worried it could be warped but it's perfectly clear! A sturdy and quality mirror. Very impressed and happy with my purchase!"
+      }
+    ]
+  },
+  "ba078ce1": {
+    "productId": "ba078ce1-4789-4058-9b8f-24176cc1a3d7",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1xq1ozr",
+        "betyg": 5,
+        "datum": "2026-10-20",
+        "kopt": "Ljusgrå",
+        "foton": 0,
+        "text": "Grand volume, très adapté aux vieux chats. Produit de qualité."
+      },
+      {
+        "id": "gen-1enmal1",
+        "betyg": 5,
+        "datum": "2026-09-30",
+        "kopt": "Ljusgrå",
+        "foton": 0,
+        "text": "Maravilloso arenero, amplio e higiénico Vevor ha estado pendiente en todo momento de mi pedido. Estoy encantada, sin duda lo recomiendo"
+      },
+      {
+        "id": "gen-14njzvu",
+        "betyg": 5,
+        "datum": "2026-09-07",
+        "kopt": "Ljusgrå",
+        "foton": 0,
+        "text": "An exceptional litter box. Features sid in both clean-up and access for the cat. Top eliminates scatter of litter. Well designed and easy to assemble."
+      },
+      {
+        "id": "gen-xf5rln",
+        "betyg": 4,
+        "datum": "2026-10-25",
+        "kopt": "Ljusgrå",
+        "foton": 0,
+        "text": "Avevo bisogno di una lettiera grande perché ho un gatto maschio che fa la pipì in alto e tutte le altre lettiere si sporcano le pareti laterali ho voluto provare con questa per ora dopo un mese abbondante che c'è l'ho non si sporca, non trovo più la pipì di fuori, ne fare altre prossimamente,.... Bisogna avere molto spazio in casa. E fortunatamente ce"
+      }
+    ]
+  }
+}

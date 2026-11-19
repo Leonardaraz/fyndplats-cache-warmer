@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktstorlek saknar axelord och måttritningen visar bredd, djup och höjd utan axelord: sidan skriver måtten som i källan, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktstorlek saknar axelord och måttritningen visar bredd, djup och höjd utan axelord: sidan skriver måtten som i källan, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Artikelmått saknar axelord och måttritningen visar bredd, djup och höjd utan axelord: sidan skriver måtten som i källan, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Artikelmått saknar axelord och måttritningen visar bredd, djup och höjd utan axelord: sidan skriver måtten som i källan, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått saknar axelord och motsäger måttritningen på bredd och höjd: sidan skriver bara längden 490 mm och inga axelord

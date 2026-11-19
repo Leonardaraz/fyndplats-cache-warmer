@@ -1,0 +1,26 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+29e35570 445 17,52 tum / 445 mm på måttbilden
+29e35570 385 15,16 tum / 385 mm på måttbilden
+29e35570 370 14,57 tum / 370 mm på måttbilden
+29e35570 10,1 22,27 lbs / 10,1 kg på måttbilden
+29e35570 2,5 noggrannhet ±2,5 % på bilden med mätaren
+29e35570 2 2 x gummipackningar i tillbehörslistan på måttbilden
+14fe6f9f 663 26,1 tum / 663 mm på måttbilden
+14fe6f9f 475 18,7 tum / 475 mm på måttbilden
+14fe6f9f 219 8,6 tum / 219 mm på måttbilden
+14fe6f9f 2 två vred med indikatorlampor, räknade på bilderna (position 1, 3, 4 och 6)
+14fe6f9f 4 fyra små svarta delar bredvid tillbehören, räknade på bild 3
+5693f9a4 690 27,2 tum / 690 mm på måttbilden
+5693f9a4 510 20 tum / 510 mm på måttbilden
+5693f9a4 875 34,45 tum / 875 mm på måttbilden
+5693f9a4 740 29,13 tum / 740 mm på måttbilden
+5693f9a4 1925 75,79 tum / 1925 mm på måttbilden
+5693f9a4 184,7 407,28 lbs / 184,74 kg på måttbilden, avrundat till en decimal
+5693f9a4 10,3 10,3 A märkström på måttbilden
+5693f9a4 2,5 2,5 A tomgångsström på måttbilden
+5693f9a4 540 540 W tomgångseffekt på måttbilden
+5693f9a4 230 AC 220-230V 50Hz på måttbilden
+5693f9a4 15 bordet lutar 15° åt vänster på bilden med lutande bord
+5693f9a4 45 bordet lutar 45° åt höger på bilden med lutande bord
+5693f9a4 360 LED-arbetslampa som kan vridas 360° på bilden med lampan

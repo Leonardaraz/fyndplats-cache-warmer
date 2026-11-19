@@ -1,0 +1,7 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans mått saknar axelord och sidan skriver måtten som i källan, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans mått saknar axelord och sidan skriver måtten som i källan, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans mått saknar axelord och sidan skriver måtten som i källan, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py

@@ -1,0 +1,8 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rader Produktmått (39,8 x 17,7 x 32,1 tum / 1010 x 450 x 815 mm) och Plattformstorlek (700 x 450 mm) saknar axelord, och måttritningen visar plattformen som 700 mm gånger 450 mm och produktmåtten utan axlar för helheten: sidan skriver måtten som de står
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Mått för enkelskärm (6 x 8 FT / 1,74 x 2,34 m) saknar axelord, och bilderna visar måtten utan axlar: sidan skriver måtten som de står
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (7,20 x 1,97 x 11,61 tum / 183 x 50 x 295 mm) saknar axelord, och måttritningen visar höjden 295 mm, längden 183 mm och bredden 50 mm: sidan skriver måtten som de står och namnger bara höjden
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (25,98 × 6,50 × 17,52 tum / 660 × 165 × 445 mm) saknar axelord, och måttritningen visar 660 mm längs den nedre balken, 445 mm som höjd och 165 mm som bredd: sidan skriver måtten som de står

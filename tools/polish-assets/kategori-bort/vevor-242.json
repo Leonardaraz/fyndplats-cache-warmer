@@ -1,0 +1,29 @@
+{
+ "namn": "vevor-242",
+ "rader": [
+  {
+   "kort": "4a8b1a28",
+   "pid": "4a8b1a28-5de7-4cf3-b036-59eaeb65e65f",
+   "bort": [
+    "Kök & Husgeråd > Vinställ & vinkylar",
+    "Kök & Husgeråd"
+   ],
+   "behall": [
+    "Möbler",
+    "Möbler > Sideboards & vitrinskåp"
+   ]
+  },
+  {
+   "kort": "ed7f5890",
+   "pid": "ed7f5890-8249-469d-b651-512b0fc157e1",
+   "bort": [
+    "Bil & Garage > Garageinredning",
+    "Bil & Garage"
+   ],
+   "behall": [
+    "Möbler",
+    "Möbler > Skrivbord"
+   ]
+  }
+ ]
+}

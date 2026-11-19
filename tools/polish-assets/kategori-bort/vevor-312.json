@@ -1,0 +1,30 @@
+{
+ "namn": "vevor-312",
+ "rader": [
+  {
+   "kort": "37c92648",
+   "pid": "37c92648-ee71-4e9d-8153-a0163453c97b",
+   "bort": [
+    "Verktyg & Maskiner > Lyft & transport"
+   ],
+   "behall": [
+    "Verktyg & Maskiner",
+    "Verktyg & Maskiner > Verktygsvagnar & verktygslådor",
+    "Bil & Garage",
+    "Bil & Garage > Garageinredning"
+   ]
+  },
+  {
+   "kort": "21965832",
+   "pid": "21965832-437f-4494-8a5d-ffb967bc05dc",
+   "bort": [
+    "Möbler > Skrivbord",
+    "Möbler"
+   ],
+   "behall": [
+    "Företag & Proffs",
+    "Företag & Proffs > Butik, evenemang & trafik"
+   ]
+  }
+ ]
+}

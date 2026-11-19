@@ -1,0 +1,94 @@
+{
+  "1c9122b3": {
+    "productId": "1c9122b3-b2db-4257-8b42-db08f5d95975",
+    "synliga": 0,
+    "dolda": 3,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1tedrtq",
+        "betyg": 5,
+        "datum": "2026-02-22",
+        "foton": 0,
+        "text": "I purchased chairs that are high quality at a great price and I am very satisfied."
+      }
+    ]
+  },
+  "86ba24b8": {
+    "productId": "86ba24b8-b22b-4435-8f26-0be62e59ec57",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "ec4ec83a": {
+    "productId": "ec4ec83a-7ca6-46ce-9f2e-7e29bb40b561",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": [
+      {
+        "id": "gen-sm7707",
+        "betyg": 5,
+        "datum": "2025-08-24",
+        "foton": 1,
+        "text": "I was ihappy with how sturdy this file cabinet is. The drawer slides are excellent. Assembly was easy Overall, very pleased with it"
+      },
+      {
+        "id": "gen-xxr8m",
+        "betyg": 5,
+        "datum": "2025-02-04",
+        "foton": 0,
+        "text": "Está muy bien terminado, parece de material correcto, se monta facil. De hecho también he comprado otro similar porque este me gustó"
+      },
+      {
+        "id": "gen-13bnmu3",
+        "betyg": 5,
+        "datum": "2024-10-23",
+        "foton": 0,
+        "text": "Honnêtement, pour le prix, rien à redire. Pratique. J'ai cherché partout et c'est celui qui correspondait le plus au critère qualité prix 😀"
+      }
+    ]
+  },
+  "b4d5a134": {
+    "productId": "b4d5a134-591c-4c23-a59e-875e06b8b817",
+    "synliga": 0,
+    "dolda": 8,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "61853b21": {
+    "productId": "61853b21-2665-4e24-88de-4e268360b9b7",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-4gsucp",
+        "betyg": 5,
+        "datum": "2024-07-31",
+        "kopt": "Vit / 6 m",
+        "foton": 0,
+        "text": "We just got this for my daughter as she does Ariel Silks - and she's only 8 and the height it great for the back yard. She love's it and so do her siblings. Great quality and durability!"
+      },
+      {
+        "id": "gen-17pkn7i",
+        "betyg": 4,
+        "datum": "2026-02-09",
+        "kopt": "Grön / 6 m",
+        "foton": 0,
+        "text": "Easy to set up. Relatively short for a lot of things."
+      }
+    ]
+  }
+}

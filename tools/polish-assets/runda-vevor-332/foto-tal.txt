@@ -1,0 +1,9 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+a3479a74 238 2380 mm i källans spec och på måttbilden, 238 cm
+a3479a74 66 660 mm i källans spec och på måttbilden, 66 cm
+a3479a74 58 580 mm i källans spec och på måttbilden, 58 cm
+a3479a74 9 22 lbs i källans punkt och på bilden, 9,98 kg avrundat ned till 9 kg (Leonard 2026-11-03)
+b97313dc 91,4 914 mm i källans spec och på måttbilden, 91,4 cm
+b97313dc 31,4 314 mm på måttbilden, 31,4 cm
+b97313dc 30,5 305 mm i källans spec och på måttbilden, 30,5 cm

@@ -1,0 +1,3 @@
+# kort pos1 pos2 skäl: par som gate-bilddubblett.py flaggar men som ses med ögonen vara olika, eller som inte visas tillsammans (olika färgval)
+89738307 2 8 samma miljöfoto med en grå och en brun bänk: varje färgval visar bara sin egen bild (grå 1 till 6, brun 7 till 12)
+89738307 5 11 samma vinkel med öppet lock på den grå och den bruna bänken: varje färgval visar bara sin egen bild

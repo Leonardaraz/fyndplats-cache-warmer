@@ -1,0 +1,15 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+a001c355 120 120 Kraft Paper Labels på infografiken Efficient Categorization (etiketter av kraftpapper)
+17805d8b 49,5 19.5 in / 49.5 cm på specifikationsbilden (bredd)
+17805d8b 25,5 10 in / 25.5 cm på samma bild (höjd)
+17805d8b 1,95 4.3 lbs / 1.95 kg på samma bild (nettovikt)
+17805d8b 0,23 0.05 gal / 0.23 L på samma bild (liten låda)
+17805d8b 0,89 0.2 gal / 0.89 L på samma bild (medelstor låda)
+17805d8b 4 4 x Screw Holes på infografiken Deformation-Resistant Frame (fyra skruvhål)
+d00a842d 32 φ 32 mm på infografiken Always Put Through Powerful Shots (rörets diameter)
+d00a842d 0,8 0.8 mm Thickened Tube på samma infografik (rörets tjocklek)
+d00a842d 26 26 x Stay-in-Place Hook-and-Loop Straps på samma infografik (kardborreband)
+d00a842d 30 30-Ply Knotted PE Netting på infografiken Tear- & Impact-Resistant Net
+d00a842d 2 2 mm Thick Wear-Resistant Netting på samma infografik (nättjocklek)
+d00a842d 6 6 x Stable Fixed Ground Stakes på infografiken Always Put Through Powerful Shots (markpinnar)

@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader saknar axelord som skriptet läser. Ramens mått skrivs som bredd × djup × höjd ur måttbilden (mm omräknade till cm enligt foto-tal.txt)

@@ -1,0 +1,16 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+1d10937a 27 viktkapaciteten 60 lbs på måttbilden omräknad till kg (60 lbs är 27 kg)
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+06906cdc 390 sprutans modellnummer på kompatibilitetsbilden
+06906cdc 395 sprutans modellnummer på kompatibilitetsbilden
+06906cdc 490 sprutans modellnummer på kompatibilitetsbilden
+06906cdc 495 sprutans modellnummer på kompatibilitetsbilden
+06906cdc 300 sprutans modellnummer (T300) på kompatibilitetsbilden

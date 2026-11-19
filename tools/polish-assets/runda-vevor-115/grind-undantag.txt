@@ -1,0 +1,12 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (55 x 18,5 x 64 cm) utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, men måttritningen visar bredd 55 cm, djup 18,5 cm och höjd 64 cm: texten skriver måtten med axelorden B × D × H ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (68,31 x 1,38 x 1,38 tum / 1735 x 35 x 35 mm) utan axelord, och infografiken anger 55 mm i stället för 35 mm som sista siffra (fotens höjd), så ingen tysk totalmåttrad finns att bygga ett facit ur: texten skriver bara längsta längd (1735 mm) och längd per sektion (381 mm), båda ur måttritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Ytmått på föremålet (610 x 1219 mm) och en separat rad Tjocklek (13 mm) utan axelord och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver ytmåttet och tjockleken var för sig, i specifikationens ordning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Förvaringsfodralets storlek (275 x 170 x 56 mm) utan axelord och ingen tysk totalmåttrad att bygga ett facit ur: texten skriver fodralets tre mått i specifikationens ordning utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara raden Produktvikt (5,5 kg) och måttritningen anger delarnas längd, bredd och höjd med siffror per del, så ingen totalmåttrad och ingen tysk totalmåttrad finns att bygga ett facit ur: texten skriver delarnas mått med ord ur måttritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (830 x 820 x 300 mm) utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, men måttritningen visar bredd 820 mm, höjd 300 mm och längd 830 mm: texten skriver måtten med orden bredd, höjd och längd ur ritningen

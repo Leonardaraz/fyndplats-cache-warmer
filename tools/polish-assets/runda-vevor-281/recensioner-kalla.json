@@ -1,0 +1,91 @@
+{
+  "b24c7a4c": {
+    "productId": "b24c7a4c-879d-443f-9867-92183802e92e",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "7f1fa91b": {
+    "productId": "7f1fa91b-d3fa-4867-9526-cfe2e21785e2",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-hqcyai",
+        "betyg": 5,
+        "datum": "2026-10-28",
+        "foton": 0,
+        "text": "Mache Bratwurst nach Familienrezept und ersetzt jetzt meine selbst gebaute Füllmaschine."
+      },
+      {
+        "id": "gen-157wcif",
+        "betyg": 5,
+        "datum": "2026-10-05",
+        "foton": 1,
+        "text": "I would highly recommend this snag making machine, I make snags every year and for the price I do recommend."
+      },
+      {
+        "id": "gen-g8z1fw",
+        "betyg": 5,
+        "datum": "2026-09-30",
+        "foton": 0,
+        "text": "J’ai choisi le modèle de 7 L, mais il est finalement beaucoup trop grand pour mon utilisation. Un modèle de 5 L maximum aurait largement suffi, car il est très facile à remplir. Mais c’est mon erreur. Réfléchissez donc bien à la capacité dont vous avez réellement besoin avant de choisir. En revanche, le produit en lui-même est excellent."
+      },
+      {
+        "id": "gen-3aydu6",
+        "betyg": 4,
+        "datum": "2026-10-05",
+        "foton": 0,
+        "text": "Bought was delivered on time very good product 💯 satisfied"
+      },
+      {
+        "id": "gen-bpfmfs",
+        "betyg": 4,
+        "datum": "2026-09-23",
+        "foton": 0,
+        "text": "I bought this item for high quantity production and while it gets the job done, the hand crank gets stuck sometimes and the stuffer isn't very stable and tips sideways when this happens. It's ok for now, but might consider getting a different one in the future."
+      }
+    ]
+  },
+  "9a866e87": {
+    "productId": "9a866e87-77b2-4130-aaeb-5b6b95980806",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": []
+  },
+  "397ce543": {
+    "productId": "397ce543-5952-4d14-a7d8-87c48c10e9cc",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-h0puak",
+        "betyg": 5,
+        "datum": "2026-09-27",
+        "foton": 0,
+        "text": "Problem solved, my mistake! Excited to try out the machine but the handle was not included with the machine. Please supply the handle!"
+      }
+    ]
+  },
+  "0801bdbc": {
+    "productId": "0801bdbc-a918-461d-b495-9aad64a944f0",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  }
+}

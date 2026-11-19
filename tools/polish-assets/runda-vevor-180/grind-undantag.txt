@@ -1,0 +1,9 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans mått saknar axelord och sidan skriver måtten som i källan, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har inget yttermått i längd, bredd och höjd: kabelns längd, hela glödstiftets längd och verktygets längd och bredd står med egna etiketter, och sidan skriver dem med de etiketterna
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har inget yttermått i längd, bredd och höjd: kabelns längd, linsens diameter och brännvidden står med egna etiketter, och sidan skriver dem med de etiketterna
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans mått saknar axelord i texten, och sidan skriver måtten som i källan och anger bara höjden 1040 mm, som ritningens måttpil längs pelaren visar
+# <skript> <skäl> — se bygg-skrivplan.py

@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger produktmåtten som en enda rad (Produktmått: 96 x 96 x 85 tum / 2,43 x 2,43 x 2,15 m, 137 x 69 x 91 tum / 3,47 x 1,74 x 2,3 m och 162 x 91 x 91 tum / 4,11 x 2,3 x 2,3 m) utan namn på axlarna, och måtten skrivs därför i källans form som en rad (Mått) per tält; de två första tälten är sexkantiga, så talen är inte bredd, djup och höjd

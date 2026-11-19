@@ -1,0 +1,28 @@
+{
+  "namn": "vevor-168",
+  "rader": [
+    {
+      "kort": "76bc3b3f",
+      "pid": "76bc3b3f-7950-4fb3-928a-3f30d5185267",
+      "bort": [
+        "Verktyg & Maskiner > Elverktyg"
+      ],
+      "behall": [
+        "Verktyg & Maskiner",
+        "Verktyg & Maskiner > Handverktyg"
+      ]
+    },
+    {
+      "kort": "9d3aa4c2",
+      "pid": "9d3aa4c2-ee05-4481-a1ed-d2e921639759",
+      "bort": [
+        "Bil & Garage > Domkrafter & billyftar",
+        "Bil & Garage"
+      ],
+      "behall": [
+        "Verktyg & Maskiner",
+        "Verktyg & Maskiner > Lyft & transport"
+      ]
+    }
+  ]
+}

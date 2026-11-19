@@ -1,0 +1,9 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan har inget totalmått med tre axlar: höjden, rördiametern och basdiametern står med egna etiketter, och sidan skriver dem med de etiketterna
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans mått står som (L x B x H) med axelorden i etiketten, vilket facit-generatorn inte läser, och sidan skriver längd, bredd och höjd i samma ordning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py sidan skriver inga yttermått, eftersom källans två måttuppgifter (520 x 424 x 105 mm och 340 x 220 x 68 mm) säger olika
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans mått saknar axelord och sidan skriver måtten som i källan, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py

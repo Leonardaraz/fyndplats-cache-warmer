@@ -1,0 +1,55 @@
+{
+  "1fe67692": {
+    "productId": "1fe67692-073e-434f-8e79-fc6c987c5e91",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "9a439367": {
+    "productId": "9a439367-46dc-457e-b26e-e1d6d2aad41a",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-101rw30",
+        "betyg": 4,
+        "datum": "2026-09-08",
+        "foton": 0,
+        "text": "Preis/Leistung OK etwas laut (Flugzeugpropeller)- dafür mehr Leistung als die typischen 40-er Modelle Hat bis jetzt gute Dienst geleistet"
+      }
+    ]
+  },
+  "53763abb": {
+    "productId": "53763abb-9f50-4a8b-9d6f-ed58b209d2ca",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "c84a8a52": {
+    "productId": "c84a8a52-87e1-443e-b5a1-68782b07e983",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "5f20d5b5": {
+    "productId": "5f20d5b5-8e6f-40a6-a647-8c04c5917e58",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  }
+}

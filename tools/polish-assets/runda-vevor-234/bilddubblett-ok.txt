@@ -1,0 +1,4 @@
+# kort pos1 pos2 skäl: par som gate-bilddubblett.py flaggar men som inte visas tillsammans
+d0811e7c 2 8 samma foto i storlekarna 1880 × 1016 och 1626 × 1016 mm (samma höjd): varje storleksval visar bara sina egna bilder
+d0811e7c 4 10 samma bild av den stängda luckan i storlekarna 1880 × 1016 och 1626 × 1016 mm: varje storleksval visar bara sina egna bilder
+d0811e7c 5 11 samma vinkel i storlekarna 1880 × 1016 och 1626 × 1016 mm: varje storleksval visar bara sina egna bilder

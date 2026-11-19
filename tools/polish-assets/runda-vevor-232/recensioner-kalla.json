@@ -1,0 +1,38 @@
+{
+  "d68e75f7": {
+    "productId": "d68e75f7-72fa-4f70-9f12-c83be7b11111",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1f30v83",
+        "betyg": 5,
+        "datum": "2026-08-29",
+        "kopt": "Grå",
+        "foton": 0,
+        "text": "Easy to assemble, but leg makes it little weird to position"
+      }
+    ]
+  },
+  "86fe21a9": {
+    "productId": "86fe21a9-a17a-42f4-b87a-f5c5bccc9c6f",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1tucvnu",
+        "betyg": 5,
+        "datum": "2026-10-15",
+        "kopt": "Svart",
+        "foton": 0,
+        "text": "Excellent value for money, I was positively surprised. Good quality structure and canvas. Easy assembly and dismantling."
+      }
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation saknar måttrad, och måttritningen anger längd 300 mm och bredd 110 mm: texten skriver bara de två måtten med orden längd och bredd ur ritningen och utelämnar det tredje måttet (55 mm vid huvudet)
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har bara längden 2 m och förpackningen 10 st, men måttritningen visar längd 2000 mm och bredd 58 mm: texten skriver längd och bredd ur ritningen och utelämnar det tredje måttet (19 mm)
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (D x B x H): 50 x 80 x 88 cm med bara bokstäver som axlar, och måttritningen visar bredd 80 cm, djup 50 cm och höjd 88 cm: texten skriver bredd 80, djup 50 och höjd 88 enligt både raden och ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Produktmått (62,99 x 15,67 x 36,02 tum/1600 x 398 x 915 mm) utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, men måttritningen visar längd 1600 mm, djup 398 mm och höjd 915 mm: texten skriver måtten med orden längd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har raden Kubstorlek (1220×330×600 mm/48×13×24 tum) utan axelord och ingen tysk totalmåttrad att bygga ett facit ur, men måttritningen visar längd 1220 mm, djup 330 mm och höjd 600 mm: texten skriver måtten med orden längd, djup och höjd ur ritningen
+# <skript> <skäl> — se bygg-skrivplan.py

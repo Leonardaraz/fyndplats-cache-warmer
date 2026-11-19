@@ -1,0 +1,6 @@
+# Par som grinden mäter som samma form men som visar olika längder av samma hylla (varje längd har sitt eget foto på en vit botten med hyllorna i full bredd): kontrollerat med ögonen på kontaktark 2026-11-14.
+ba2688be 4 9 olika längd: 762 mm och 610 mm, sedd rakt framifrån
+ba2688be 4 10 olika längd: 762 mm och 610 mm, sedd rakt framifrån
+# Par som stryks efter skrivningen med Bilder bort (länkade bilder kan inte tas bort i själva skrivningen): se u290a.py, LANKAD.
+ba2688be 9 10 stryks efter skrivningen: samma foto från samma vinkel och i annan skala
+ba2688be 12 16 stryks efter skrivningen: samma foto från samma vinkel med en annan bakgrundston

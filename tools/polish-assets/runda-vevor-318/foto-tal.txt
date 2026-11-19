@@ -1,0 +1,4 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+a66c15b4 90 höjden 900 mm ur specifikationen omräknad till 90 cm
+88f5f77c 2 två skjutdörrar i mitten räknade på bild 1 och 2

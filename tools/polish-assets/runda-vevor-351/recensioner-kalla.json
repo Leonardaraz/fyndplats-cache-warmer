@@ -1,0 +1,55 @@
+{
+  "af6d9c39": {
+    "productId": "af6d9c39-7b38-4029-a9f2-068644961445",
+    "synliga": 0,
+    "dolda": 3,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 16,
+    "attBesluta": []
+  },
+  "7c893eb2": {
+    "productId": "7c893eb2-9520-4e65-98a4-236ec20b3bd9",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 1,
+    "okandArtikel": 2,
+    "attBesluta": [
+      {
+        "id": "gen-3l6keu",
+        "betyg": 5,
+        "datum": "2026-01-11",
+        "kopt": "Grå",
+        "foton": 1,
+        "text": "This was way better than I expected it to be, arrived on time and I ordered a few weeks before Christmas so I didn't think it would, my partner absolutely loves it, I bought it for her reading nook but we're half tempted to replace our current couches with a few more of these 😅"
+      },
+      {
+        "id": "gen-pp3kyt",
+        "betyg": 5,
+        "datum": "2026-01-01",
+        "kopt": "Grå",
+        "foton": 0,
+        "namn": true,
+        "text": "This ‹NAMN› is ‹NAMN›, filled out quickly and has been a ‹NAMN› addition. Size was exactly as described and shipped to us quickly."
+      },
+      {
+        "id": "gen-1lvtx87",
+        "betyg": 4,
+        "datum": "2026-03-05",
+        "kopt": "Kräm",
+        "foton": 0,
+        "text": "So far so good! Just unwrapped it and it came quickly. Only issue is a stain on it that we noticed immediately that feels almost like makeup."
+      }
+    ]
+  },
+  "94f92d3f": {
+    "productId": "94f92d3f-00d5-4eaa-81c4-dacb293314cf",
+    "synliga": 0,
+    "dolda": 8,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": []
+  }
+}

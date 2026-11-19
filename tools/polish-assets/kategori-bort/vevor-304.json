@@ -1,0 +1,29 @@
+{
+ "namn": "vevor-304",
+ "rader": [
+  {
+   "kort": "1509ccc3",
+   "pid": "1509ccc3-450e-41e9-92a9-cbb7db77e0fb",
+   "bort": [
+    "Verktyg & Maskiner > Verktygsvagnar & verktygslådor",
+    "Verktyg & Maskiner"
+   ],
+   "behall": [
+    "Hem & Inredning",
+    "Hem & Inredning > Förvaring & Organisering"
+   ]
+  },
+  {
+   "kort": "7e71c327",
+   "pid": "7e71c327-79fd-4332-86ae-d8fe707da0b8",
+   "bort": [
+    "Sport & Fritid > Hantverk & sömnad",
+    "Sport & Fritid"
+   ],
+   "behall": [
+    "Möbler",
+    "Möbler > Kontorstillbehör"
+   ]
+  }
+ ]
+}

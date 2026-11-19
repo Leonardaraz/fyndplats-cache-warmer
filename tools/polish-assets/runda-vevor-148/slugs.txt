@@ -1,0 +1,5 @@
+39a0597f vandhake-stockar-gummigrepp-kort
+039fd221 vandhake-stockar-gummigrepp-lang
+defc1f6b vandhake-spets-stockar-metallhandtag
+36978178 vandhake-spets-stockar-trahandtag
+4f25cff1 stocklyfttang-fyra-klor-roterande-lyftogla

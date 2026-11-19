@@ -1,0 +1,4 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+f7978fac 5 svänghjul räknade på fotot av vagnens undersida (fem hjul, ett vid varje kant och ett i mitten av nedre kanten); titeln säger 4 hjul men punkten säger 5 x 7,5 cm svänghjul
+f7978fac 455 diameter, avläst på måttbilden (Φ 455 mm), som även står i specifikationen som 455 x 155 mm

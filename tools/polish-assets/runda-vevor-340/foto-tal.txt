@@ -1,0 +1,6 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+f1a77982 14 14 monteringspaneler i tillbehörslistan på måttbilden
+f1a77982 17 17 järnstänger i tillbehörslistan på måttbilden
+f1a77982 216 216 skruvar i tillbehörslistan på måttbilden
+f1a77982 13 13 andra tillbehör i tillbehörslistan på måttbilden

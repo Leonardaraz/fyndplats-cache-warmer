@@ -1,0 +1,94 @@
+{
+  "d1a714f8": {
+    "productId": "d1a714f8-cbcb-42a6-8ef7-bc7291c2eacc",
+    "synliga": 0,
+    "dolda": 3,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": []
+  },
+  "92605cd8": {
+    "productId": "92605cd8-10f9-4068-8178-159df190cdc2",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": [
+      {
+        "id": "gen-1h6dgl7",
+        "betyg": 5,
+        "datum": "2026-10-04",
+        "foton": 0,
+        "text": "Kit perfetto, come da descrizione. Foto e prodotto uguali, anzi da vicino ancora meglio. Consiglio a tutti i prodotti VEVOR 👍👍👍👍👍👍 10 stelle su 5"
+      }
+    ]
+  },
+  "176bcc66": {
+    "productId": "176bcc66-3a1b-45f1-9f1f-9bc557503546",
+    "synliga": 0,
+    "dolda": 3,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": []
+  },
+  "7389ad55": {
+    "productId": "7389ad55-3e8f-4150-a641-6011d1e5e9f4",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-lc5p04",
+        "betyg": 5,
+        "datum": "2026-09-11",
+        "foton": 0,
+        "text": "Can't say enough about these wrenches. They are stylish, sturdy and action is smooth as glass. I can say they are just as good as my gear wrenches and the cost a lot better. Could nt be happier with my Vevor wrenches!"
+      },
+      {
+        "id": "gen-p6tpzm",
+        "betyg": 5,
+        "datum": "2026-09-10",
+        "foton": 0,
+        "text": "I was super impressed, the craftsmanship is excellent operation of the swivel rachet end was top notch, lets face it I had my doubts, was very very surprised, will continue to purchase vevor products"
+      },
+      {
+        "id": "gen-dbugwq",
+        "betyg": 4,
+        "datum": "2026-10-05",
+        "foton": 0,
+        "text": "Działaja calkiem dobrze chociaz orzegub moglby chodzic troche ciężej"
+      }
+    ]
+  },
+  "9f39624f": {
+    "productId": "9f39624f-36be-4fe8-8d73-778716365e92",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1ocivg6",
+        "betyg": 5,
+        "datum": "2026-09-03",
+        "foton": 0,
+        "text": "It's a great kit for everyone to have at home. Works well and seems robust. No complaints so far. Great purchase"
+      }
+    ]
+  },
+  "dc481ea8": {
+    "productId": "dc481ea8-af9f-4cbc-818a-32c7038318dc",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  }
+}

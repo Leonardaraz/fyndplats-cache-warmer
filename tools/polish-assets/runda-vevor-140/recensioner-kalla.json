@@ -1,0 +1,85 @@
+{
+  "083f50d7": {
+    "productId": "083f50d7-c655-4da2-abe6-e9c1e317162a",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "91b81047": {
+    "productId": "91b81047-7cfb-4094-9700-82ad8dd403be",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-qg1r2q",
+        "betyg": 5,
+        "datum": "2026-08-27",
+        "foton": 1,
+        "text": "Above my expectations, sturdy, solid, feels great to use"
+      },
+      {
+        "id": "gen-1rqp08s",
+        "betyg": 5,
+        "datum": "2026-07-09",
+        "foton": 0,
+        "text": "Works great, good value over other brands. No knurling."
+      }
+    ]
+  },
+  "9f408f3a": {
+    "productId": "9f408f3a-ce04-48d4-8030-bb149ff8f9d1",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1dfvbqr",
+        "betyg": 5,
+        "datum": "2026-10-21",
+        "foton": 0,
+        "text": "This is a perfect product for what I need for toppings for mini donuts. The size containers are also perfect."
+      }
+    ]
+  },
+  "58267452": {
+    "productId": "58267452-4547-4833-8f7b-46748091faff",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "edf0be65": {
+    "productId": "edf0be65-88b9-467f-9dd8-398b74f0e69a",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-7x3arf",
+        "betyg": 5,
+        "datum": "2026-10-29",
+        "foton": 0,
+        "text": "This stuff is absolutely amazing very easy to use and very durable I used it in my shop to cover my concrete floor to cut down on the Dust and I run an automotive shop highly recommend"
+      },
+      {
+        "id": "gen-1e4rpsr",
+        "betyg": 5,
+        "datum": "2026-09-24",
+        "foton": 0,
+        "text": "Used to protect garage shed wood floor from ZTR mower. Works well would of liked it to be thicker. Does buckle some at the area of the garage door when open and hot sun shining in."
+      }
+    ]
+  }
+}

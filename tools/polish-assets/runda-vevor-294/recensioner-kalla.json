@@ -1,0 +1,69 @@
+{
+  "8e72043f": {
+    "productId": "8e72043f-be65-44b1-aa00-8ed4b61f2dd3",
+    "synliga": 0,
+    "dolda": 9,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "4332f49a": {
+    "productId": "4332f49a-019e-410d-80ed-5baab1fa7c6f",
+    "synliga": 0,
+    "dolda": 3,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-t2w77m",
+        "betyg": 5,
+        "datum": "2026-05-25",
+        "foton": 0,
+        "text": "I have purchased these planters twice for my garden. They are very high end looking without the high end price. The planter on top is smart. I like that you don't have to fill the entire planter with dirt. I placed some rock in the bottom and sat the top inside. The handles are out of sight until you need to pick up the top."
+      },
+      {
+        "id": "gen-ndv1ln",
+        "betyg": 4,
+        "datum": "2026-06-26",
+        "foton": 0,
+        "text": "These look good and the price is right. One critique is that there are no drainage holes in the bottom of the planter! The insertbasket has great drainage holes, but why make your customers drill their own holes?"
+      }
+    ]
+  },
+  "8c10d20d": {
+    "productId": "8c10d20d-ed55-41d2-86d7-74c35837fda3",
+    "synliga": 0,
+    "dolda": 7,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-wb2y8u",
+        "betyg": 5,
+        "datum": "2026-03-30",
+        "foton": 0,
+        "text": "Fantastic train set! Makes a great gift for a young child that loves trains! Easy to put together and you can create your own track over and over again! Very good quality materials and very durable for those strong willed children! Very nice in appearance and colors of the trains are great! Awesome value for the money and great for all ages to play with!! Pieces fit snuggly together but can be moved around over and over when needed!"
+      }
+    ]
+  },
+  "11898f9e": {
+    "productId": "11898f9e-0042-434e-94c8-17585b1d7df9",
+    "synliga": 0,
+    "dolda": 1,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-8p6939",
+        "betyg": 3,
+        "datum": "2026-06-12",
+        "foton": 0,
+        "text": "It is not bad, but it is not great. The handles to open for the wood get hot as expected, so you need gloves to add wood. You need large pieces of wood to keep the entire grill hot. Small chunks will require a lot of adding. The powder coat started to bubble where it got hot. The installation instructions could have been better. The lifting mechanism will be trouble to install if you do not see the fine details in the image of the instructions. But once you figure it out, everything else is easy to assemble. It works. It's a grill and a smoker. It is large. Nothing feels premium, but it also feels fine for the price. The arms fold down, which is nice. It has wheels to move forward and back, but it is terrible to slide on its side. Overall, it is a wood grill if you want one. The cleaning tray is easy to use, but you have to push all the ashes through the holes to get to the cleaning tray. It is not the most durable grill."
+      }
+    ]
+  }
+}

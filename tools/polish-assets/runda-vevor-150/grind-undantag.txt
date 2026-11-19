@@ -1,0 +1,8 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rader Längd, Bredd och Höjd har axelord men grinden känner inte igen dem som måttrad, och måttbilden visar längden, bredden vid utsvängningen och höjden utan axelord: sidan skriver måtten med axelorden ur specifikationen och den hopfällda storleken som på måttbilden, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rader Hopfälld storlek och Utökad storlek har axelorden H och B men talen säger emot titeln och måttbilden: sidan skriver bredd och höjd ur titeln och måttbilden, med höjden med hjul angiven för sig
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktstorlek saknar axelord och måttbilden visar höjden och basens kanter: sidan skriver måtten som i källan, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått saknar axelord och måttbilden visar höjd, bredd och djup utan axelord: sidan skriver måtten som i källan, utan axelord

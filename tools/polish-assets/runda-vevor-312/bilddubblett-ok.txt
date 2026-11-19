@@ -1,0 +1,5 @@
+21965832 1 4 olika håll: position 1 är talarstolen sedd snett från höger och position 4 snett från vänster, och likheten kommer av den genomskinliga akrylen mot vit botten
+21965832 1 5 olika håll: position 1 är talarstolen sedd snett framifrån med hyllan och position 5 rakt framifrån, mot vit botten
+21965832 4 5 olika håll: position 4 är talarstolen sedd snett framifrån och position 5 rakt framifrån, och likheten kommer av den genomskinliga akrylen mot vit botten
+21965832 4 6 olika håll: position 4 är talarstolen sedd snett framifrån och position 6 från sidan med den vinklade läsytan, mot vit botten
+21965832 5 6 olika håll: position 5 är talarstolen sedd rakt framifrån och position 6 från sidan med den vinklade läsytan, mot vit botten

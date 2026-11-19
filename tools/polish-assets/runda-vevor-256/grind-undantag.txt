@@ -1,0 +1,20 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord, och sidan skriver vagnens längd, bredd och höjd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord, och sidan skriver skärarens mått som i källan utan axelord samt höjden med spaken uppfälld efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Passar stolens mått, B x D x H) hittas inte av grinden, och sidan skriver bredd, djup och höjd efter källan och måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord, och sidan skriver pistolens längd, bredd och höjd efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord, och sidan skriver höjden 130 mm och grundytan 100 × 90 mm efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation har ingen måttrad (bara material, vikt och antal), och sidan skriver fästets och basernas mått efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått, L x B x H) hittas inte av grinden, och sidan skriver längd, bredd och höjd efter källan
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått, L x B x H) hittas inte av grinden, och sidan skriver längd, bredd och höjd efter källan och måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (Min och Max, utan axelord) hittas inte av grinden, och sidan skriver sitsens bredd och djup och höjden efter måttbildens ritning
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (Produktmått) saknar axelord, och sidan skriver hyllans grundyta och höjd efter måttbildens ritning

@@ -1,0 +1,10 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+6b8f1de3 4,8 Längd i specifikationen på listningen med 16 fot (4,8 m)
+6b8f1de3 6 Längd i specifikationen på listningen med 20 fot (6 m)
+6b8f1de3 100 Gummibredd i specifikationen: 3-3/4 tum / 100 mm
+6b8f1de3 8 Gummigavlar bredd i specifikationen: 5/16 tum / 8 mm
+6b8f1de3 2,29 Vikt i specifikationen på 4,8 m-listningen: 2,29 kg
+6b8f1de3 3,1 Vikt i specifikationen på 6 m-listningen: 3,1 kg
+6b8f1de3 2 antalet längder på de två listningarna: 4,8 m och 6 m
+6b8f1de3 4 antalet monteringssteg i källans punkt (Följ dessa 4 enkla steg)

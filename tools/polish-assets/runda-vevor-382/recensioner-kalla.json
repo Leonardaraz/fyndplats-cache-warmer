@@ -1,0 +1,29 @@
+{
+  "d44def97": {
+    "productId": "d44def97-77a2-4a05-b97e-a8955f6a66ce",
+    "synliga": 2,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-9ox33j",
+        "betyg": 5,
+        "datum": "2026-10-30",
+        "kopt": "2-pack",
+        "foton": 0,
+        "text": "Ottimo prodotto. Plastiche dure, ruote scorrevoli e buon blocco sia delle ruote che delle barre estensibili."
+      }
+    ]
+  },
+  "f7978fac": {
+    "productId": "f7978fac-be6c-42b5-941b-490528d2e005",
+    "synliga": 0,
+    "dolda": 3,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": []
+  }
+}

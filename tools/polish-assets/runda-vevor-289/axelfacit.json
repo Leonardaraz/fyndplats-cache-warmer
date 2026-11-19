@@ -1,0 +1,12 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "59691368": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "f9641a18": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Specification rows: material stainless steel; net weight including all accessories 3,7 kg and 2,55 kg; top plate 580 x 580 x 0,6 mm and 460 x 460 x 0,6 mm; the other panel rows (panel A 610 x 610 x 85 mm and 485 x 485 x 85 mm, panel B 432 x 250 x 0,6 mm and 305 x 250 x 0,6 mm) are not used because the drawing does not show them"
+ }
+}

@@ -1,0 +1,27 @@
+{
+ "namn": "vevor-272",
+ "rader": [
+  {
+   "kort": "5e6e836b",
+   "pid": "5e6e836b-ac74-4f58-b20b-ec42376cb98d",
+   "bort": [
+    "Kök & Husgeråd > Matförvaring & köksorganisering"
+   ],
+   "behall": [
+    "Kök & Husgeråd"
+   ]
+  },
+  {
+   "kort": "1fdb49e4",
+   "pid": "1fdb49e4-5406-4437-acd2-34ab19d24326",
+   "bort": [
+    "Bil & Garage > Flakboxar & pickuptillbehör"
+   ],
+   "behall": [
+    "Verktyg & Maskiner",
+    "Bil & Garage",
+    "Bil & Garage > Biltillbehör"
+   ]
+  }
+ ]
+}

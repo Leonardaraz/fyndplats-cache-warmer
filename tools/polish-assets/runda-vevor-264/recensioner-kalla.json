@@ -1,0 +1,90 @@
+{
+  "ad38c425": {
+    "productId": "ad38c425-ab91-4692-bc70-7c4ab2bd1650",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "4e5c1da2": {
+    "productId": "4e5c1da2-f0f1-4df9-a983-9ee42ace215d",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "19509f5a": {
+    "productId": "19509f5a-19f0-480e-b0e2-3f2971e48868",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "6acadcb8": {
+    "productId": "6acadcb8-118b-4673-bb03-52b4d065c0b0",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "533f30fa": {
+    "productId": "533f30fa-9963-436c-b4de-3d8cbe92a93a",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1urprkw",
+        "betyg": 5,
+        "datum": "2026-10-30",
+        "foton": 0,
+        "text": "High quality, easy installation, very happy with purchase. Get the extra large pack for best price per piece."
+      },
+      {
+        "id": "gen-sf9glb",
+        "betyg": 5,
+        "datum": "2026-10-17",
+        "foton": 1,
+        "text": "Parfaitement adaptée à mes gouttières,le produit est de bonne qualité"
+      },
+      {
+        "id": "gen-kusw2b",
+        "betyg": 5,
+        "datum": "2026-10-08",
+        "foton": 0,
+        "text": "De qualité, elles font 4 pieds de long. Elles s'instalent facilement. Son prix est raisonnable."
+      },
+      {
+        "id": "gen-1bzb2i5",
+        "betyg": 5,
+        "datum": "2026-10-07",
+        "foton": 1,
+        "text": "This is an excellent product. It comes with ample extra screws (it's easy to drop them when you are working up high), and a bit for screwing them in. The delivery was rapid and the gutter guard strips were all in immaculate condition. I now have the smartest gutters on the block. Highly recommended."
+      },
+      {
+        "id": "gen-1qepktn",
+        "betyg": 5,
+        "datum": "2026-09-22",
+        "foton": 0,
+        "text": "Installed these last year and they worked great. Previous gutter guards had holes that were too large and debris would get stuck in them. These ones have stayed clear. Comes with tons of screws, I highly recommend."
+      },
+      {
+        "id": "gen-ju60yb",
+        "betyg": 4,
+        "datum": "2026-07-11",
+        "foton": 0,
+        "text": "Overall decent product,two issues, package came pretty beat up and a number of panels were bent, second the hex bit's magnetic properties leave much to desire. Ended up switching out and using my own"
+      }
+    ]
+  }
+}

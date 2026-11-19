@@ -1,0 +1,42 @@
+{
+ "namn": "vevor-270",
+ "rader": [
+  {
+   "kort": "efd5857d",
+   "pid": "efd5857d-deb3-4840-91cd-592e95bbd7a9",
+   "bort": [
+    "Kök & Husgeråd > Köksredskap & Tillbehör",
+    "Kök & Husgeråd"
+   ],
+   "behall": [
+    "Sport & Fritid",
+    "Sport & Fritid > Hobby & musik"
+   ]
+  },
+  {
+   "kort": "efb7e11d",
+   "pid": "efb7e11d-8be4-4109-b4ff-e1db447c7167",
+   "bort": [
+    "Kök & Husgeråd > Köttkvarnar & charkuteri"
+   ],
+   "behall": [
+    "Kök & Husgeråd",
+    "Kök & Husgeråd > Köksredskap & Tillbehör"
+   ]
+  },
+  {
+   "kort": "ca2eabf1",
+   "pid": "ca2eabf1-6b6a-4ace-bc8c-87bfc02fe126",
+   "bort": [
+    "Verktyg & Maskiner > Verktygsvagnar & verktygslådor",
+    "Verktyg & Maskiner"
+   ],
+   "behall": [
+    "Hem & Inredning",
+    "Hem & Inredning > Förvaring & Organisering",
+    "Bil & Garage",
+    "Bil & Garage > Garageinredning"
+   ]
+  }
+ ]
+}

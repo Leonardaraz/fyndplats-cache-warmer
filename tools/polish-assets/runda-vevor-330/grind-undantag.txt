@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader saknar axelord som skriptet läser. Måtten skrivs som längd × bredd × höjd ur specifikationen och måttbilden (mm omräknade till cm enligt foto-tal.txt), och pull-up-ställets djup följer specifikationen och tumvärdet på ritningen (1125 mm) där ritningens mm-siffra säger 1440 mm

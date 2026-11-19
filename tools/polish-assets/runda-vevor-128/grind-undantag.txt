@@ -1,0 +1,12 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (300 x 275 x 181 mm) saknar axelord, och måttritningen visar delarna var för sig utan axlar för helheten: sidan skriver måtten som de står
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Basstorlek (20 x 20 cm) saknar axelord, och måttritningen visar bottenplattan som 7,9 tum (20 cm) gånger 7,9 tum (20 cm): sidan skriver bredd och djup efter ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (72,4 x 29,9 x 46,5 tum / 1840 x 760 x 1180 mm) saknar axelord, och måttritningen visar längden 1840 mm, djupet 760 mm och höjden 1180 mm: sidan skriver längd, djup och höjd efter ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (51,42 x 13,39 x 26,38 tum / 1306 x 340 x 670 mm) saknar axelord, och måttritningen visar bredden 340 mm och längden 670 mm: sidan skriver bredd och längd efter ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (640 x 445 x 70 mm) anger bara bindaren i en pärm och skrivs inte in på sidan, och måttritningen visar avståndet mellan krokarna 590 till 780 mm: sidan skriver bara det
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rader Produktmått (utökad) 740 x 640 x 990 mm och (vikta) 1240 x 640 x 205 mm saknar axelord, och måttritningen visar längden 740 mm, bredden 640 mm och höjden 990 mm samt hopfälld höjd 1240 mm och tjocklek 205 mm: sidan skriver efter ritningen

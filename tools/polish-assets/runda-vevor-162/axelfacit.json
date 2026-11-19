@@ -1,0 +1,25 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "559b3bf5": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "65224c91": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Image: dimension drawing and table: 13.1 in / 334 mm, 5.9 in / 150 mm and 8.8 in / 224 mm; Input Voltage DC12V to DC13.8V; Maximum Working Pressure 150 PSI; Maximum Airflow 185 L / MIN (the title and the draft say 7.06 CFM, which is about 200 L per minute, so the lower 185 L / MIN is written); Charging Current MAX 45A; Main Material Iron + Aluminum Alloy; Net Weight 19.2 lbs / 8.7 kg; Product Dimensions 13.1 x 5.9 x 8.8 inch / 334 x 150 x 224 mm; Accessories: 1 x Tool Bag, 1 x Power Cord, 1 x Rubber Air Hose, 3 x Nozzle Adapters, 1 x Thumb Lock Adapter (the model number row is left out on purpose; the draft gives the cord as 1,8 m and the hose as 7,2 m while the title gives 6.5 FT and 26 FT, so the shorter metric lengths are written). Unit conversions: 150 PSI is 10.3 bar; 19.2 lbs is 8.7 kg; 7.06 CFM is 200 L / min"
+ },
+ "684929bb": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "7c0304e6": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Byggd tuff: Med en rejäl kapacitet på 14,53 gal/55L är vår båtbränsletank gjord av högdensitetspolyeten, resistent mot åldring, stötar och korrosion. Den behåller sin form även efter långvarig användning, vilket garanterar säkerhet och lång livslängd. (Obs: Undvik långvarig exponering för direkt solljus för att förhindra produktens åldrande och risken för expansion.) | Image: 12 GAL (EU) or 14.53 GAL (US) / 55 L Capacity; Power assurance for outdoor boating (claim, not used); Equipped with a level gauge for clear fuel level monitoring (the part shown is a black two-pin plug, so the page does not claim a level gauge); icons for Diesel, Gasoline and Aviation Kerosene (the page names no fuel, as the text does); a man fishing from a boat | Image: PRODUCT PARAMETERS: Tank Capacity 12 gal (EU) or 14.53 gal (US) / 55 L; Material High-Density Polyethylene (a plastic designation, not written); Product Weight 13.4 lbs / 6.1 kg; Product Size 24.8 in x 18.3 in x 12.2 in / 630 x 465 x 310 mm; the tank with the hose and a user manual (the model number row is left out on purpose). Unit conversions: 13.4 lbs is 6.1 kg; 14.53 gal is 55 L"
+ },
+ "87ec9fd6": {
+  "tyska": "",
+  "svenska": ""
+ }
+}

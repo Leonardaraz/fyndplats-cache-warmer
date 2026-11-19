@@ -1,0 +1,128 @@
+{
+  "4aff512e": {
+    "productId": "4aff512e-a56d-4fcc-b967-a19ea4f8064a",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "1e694c1f": {
+    "productId": "1e694c1f-3dc6-4977-8fc5-0f4b679582a7",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-pbckvj",
+        "betyg": 5,
+        "datum": "2026-10-28",
+        "foton": 0,
+        "text": "Article conforme à la description, expédition très rapide. Je recommande."
+      },
+      {
+        "id": "gen-1j7rv36",
+        "betyg": 4,
+        "datum": "2026-01-14",
+        "foton": 1,
+        "text": "Il prodotto sembra molto robusto anche il gancio, quando arriverà il verricello e le carrucole, farò un test complessivo e magari anche un video."
+      }
+    ]
+  },
+  "9c76abeb": {
+    "productId": "9c76abeb-7706-49be-a0ad-eeaa57da74b6",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1lv9n3d",
+        "betyg": 5,
+        "datum": "2026-10-21",
+        "foton": 0,
+        "text": "Looks as description add pictures. Hope will work as well as looks:) Well packed, fast delivery! Well done Vevor!"
+      },
+      {
+        "id": "gen-1xn9uqo",
+        "betyg": 5,
+        "datum": "2026-09-26",
+        "foton": 0,
+        "text": "Bin sehr mit dem Bandschleifer zufrieden. Vielen Dank"
+      },
+      {
+        "id": "gen-v070h6",
+        "betyg": 4,
+        "datum": "2026-10-16",
+        "foton": 0,
+        "text": "È molto rumorosa, se non la attacchi ad un aspiratore in officina cala una nebbia polverulenta, i materiali con cui è costruita sono economici. TUTTAVIA È arrivata in quattro e quatt'otto, tra i prodotti di questa fascia il suo prezzo è il più basso e, per adesso, dopo averla usata circa una settimana per lavori di sgrossatura pesante con carta 40 va come un treno. Unica accortezza pet chi non ha esperienza di questa levigatrice e di andarci piano perché se non la si tiene ben salda e non si sta attenti Lei ci va giù pesante. La ricomprerei"
+      }
+    ]
+  },
+  "00753794": {
+    "productId": "00753794-7b1b-404b-b4d9-6163a17b053c",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1wb49as",
+        "betyg": 4,
+        "datum": "2026-08-03",
+        "foton": 0,
+        "text": "Great 16 gallon Brew Kettle at an amazing price quality is definitely there. Plenty of features included"
+      }
+    ]
+  },
+  "113f76e1": {
+    "productId": "113f76e1-3663-4c00-b710-8182da753c54",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1mly6zg",
+        "betyg": 5,
+        "datum": "2026-10-30",
+        "foton": 0,
+        "text": "Alles zoals omschreven. Netjes en snel bezorgt, heel tevreden!"
+      },
+      {
+        "id": "gen-1oc96kz",
+        "betyg": 5,
+        "datum": "2026-10-03",
+        "foton": 0,
+        "text": "conforme à mes attentes. Bon rapport qualité prix. je recommande."
+      },
+      {
+        "id": "gen-cpak8w",
+        "betyg": 5,
+        "datum": "2026-09-25",
+        "foton": 0,
+        "text": "Balance précise et assez facile d'utilisation compte tenu de ses multiples possibilités."
+      },
+      {
+        "id": "gen-1ggrlik",
+        "betyg": 4,
+        "datum": "2026-10-01",
+        "foton": 0,
+        "text": "Buen producto y de calidad. Una cosa recomiendo encender un rato antes de utilizar ya que si enciendes y usas te va dar un peso,si 15 minutos de estar encendido le pones lo que ya has pesado te va a dar diferente al primer pesaje. Por lo demás es buen artículo"
+      },
+      {
+        "id": "gen-vlwyls",
+        "betyg": 4,
+        "datum": "2026-08-31",
+        "foton": 0,
+        "text": "After a use of approx. 5 months, I can say that it is a very good and reliable product. It has a small fluctuations of 0.01 - 0.02 g, but it stabilizes quickly. I am very satisfied considering the price / quality ratio."
+      }
+    ]
+  }
+}

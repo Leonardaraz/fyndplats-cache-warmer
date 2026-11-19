@@ -1,0 +1,8 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+9ae4f523 204 6,7 fot / 204 × 165 cm för den inre nätdelen på måttbilden, 204 cm
+9ae4f523 165 6,7 × 5,4 fot / 204 × 165 cm för den inre nätdelen på måttbilden, 165 cm
+9f717ee6 178 7 tum / 178 mm största spoldiameter och stångavstånd på måttbilden
+9f717ee6 67 67 kg i källans text, lägst av 67 och 68 kg (150 lbs)
+9f717ee6 8 åtta trådrullar räknade på bild 1, två på varje stång
+9f717ee6 2 två trådrullar på varje stång, räknade på bild 1

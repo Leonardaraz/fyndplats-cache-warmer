@@ -1,0 +1,10 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rader Utökad storlek (635 × 3200 mm) och Vikt storlek (356 × 1194 mm) har två mått utan axelord, och sidan skriver måtten som de står, utan axelord
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (diameter 12,91 tum × 35,04 tum / 320 × 890 mm) har diameter och höjd utan axelord, och måttritningen visar höjden 890 mm och basens diameter 320 mm: texten skriver höjd och basdiameter efter ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (800 × 300 × 1800 mm) saknar axelord, och måttritningen visar höjden 1800 mm, bredden 800 mm, djupet 300 mm och sitthöjden 480 mm: texten skriver helhetsmåtten som de står och sitthöjden efter ritningen
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rader Produktmått (445 × 300 × 245 mm) och Matningsportens storlek (148 × 50 mm) saknar axelord, och sidan skriver måtten som de står
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans rad Produktmått (370 × 355 × 410 mm) saknar axelord, och måttritningen visar 665 mm i höjd och 370 × 355 mm vid basen utan axelord: texten skriver måtten som de står, och fatens mått som diameter och höjd

@@ -1,0 +1,21 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+ff317617 795 31.30 in / 795 mm på infografiken (höjden på 15U)
+ff317617 660 25.98 in / 660 mm på infografiken (höjden på 12U)
+ff317617 530 20.87 in / 530 mm på infografiken (bredden)
+ff317617 9,7 21.38 lbs / 9.7 kg på specifikationsbilden (nettovikten på 15U)
+ff317617 9 19.84 lbs / 9 kg på specifikationsbilden (nettovikten på 12U)
+ff317617 12 12 x Cage Nuts & Bolts på specifikationsbilden
+ff317617 4 4 x Expansion Bolts på specifikationsbilden
+ff317617 30 30 x Self-tapping Screws på specifikationsbilden
+16d6912f 120 120 Kraft Paper Labels på infografiken Efficient Categorization (etiketter av kraftpapper)
+16d6912f 31,80 70.11 lbs / 31.80 kg på specifikationsbilden (nettovikten)
+7f8a8adf 4 4 x Ground Stakes på specifikationsbilden (markspett)
+7f8a8adf 300 Insert depth ≈ 11.8 in (300 mm) på infografiken Easy One-Person Setup (stångens djup i sanden)
+7f8a8adf 2 + 1 Accommodates 2 + 1 på infografiken Spacious Beach Shade Space (två vuxna och ett barn)
+72b9beed 80 3.2 in / 80 mm på infografiken (rörets bredd)
+72b9beed 40 1.6 in / 40 mm på infografiken (rörets tjocklek)
+72b9beed 120 4.7 in / 120 mm på infografiken (monteringsplattans bredd)
+72b9beed 1,5 0.06 in / 1.5 mm på infografiken (monteringsplattans tjocklek)
+72b9beed 16 16 x Phillips Semi-Countersunk Self-Tapping Screws på specifikationsbilden
+72b9beed 4 4 x Foot Pads på specifikationsbilden

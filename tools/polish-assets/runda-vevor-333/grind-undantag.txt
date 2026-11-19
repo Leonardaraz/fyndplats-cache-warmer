@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader saknar axelord som skriptet läser. Måtten skrivs som bredd × djup × höjd (ryggsäcken) och längd × bredd × höjd (biljardbordet) ur specifikationen och måttbilden (mm omräknade till cm enligt foto-tal.txt)

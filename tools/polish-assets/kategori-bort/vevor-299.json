@@ -1,0 +1,40 @@
+{
+ "namn": "vevor-299",
+ "rader": [
+  {
+   "kort": "a44d0401",
+   "pid": "a44d0401-d089-4bee-8975-2f2b091e7761",
+   "bort": [
+    "Bil & Garage > Bilverktyg"
+   ],
+   "behall": [
+    "Bil & Garage",
+    "Bil & Garage > Vinschar",
+    "Bil & Garage > Biltillbehör"
+   ]
+  },
+  {
+   "kort": "7819c44c",
+   "pid": "7819c44c-8c7c-46cf-94ef-67d9ba3b4ee3",
+   "bort": [
+    "Kök & Husgeråd > Köksmaskiner & Apparater",
+    "Kök & Husgeråd"
+   ],
+   "behall": [
+    "Företag & Proffs",
+    "Företag & Proffs > Butik, evenemang & trafik"
+   ]
+  },
+  {
+   "kort": "2963accb",
+   "pid": "2963accb-90d6-491d-a6cc-48665d928421",
+   "bort": [
+    "Kök & Husgeråd > Miniugnar & airfryers"
+   ],
+   "behall": [
+    "Kök & Husgeråd",
+    "Kök & Husgeråd > Köksmaskiner & Apparater"
+   ]
+  }
+ ]
+}

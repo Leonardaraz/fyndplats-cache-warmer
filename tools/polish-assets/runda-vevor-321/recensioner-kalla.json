@@ -1,0 +1,28 @@
+{
+  "a4364eed": {
+    "productId": "a4364eed-12ae-472a-9b27-0773e8ab8e5a",
+    "synliga": 0,
+    "dolda": 6,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "673cff78": {
+    "productId": "673cff78-6281-4001-973f-306ab0e5b1ea",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-snvfyt",
+        "betyg": 5,
+        "datum": "2026-04-02",
+        "foton": 0,
+        "text": "This fir wood garden cabinet is well-treated against rain. Sloped roof drains water perfectly, lockable door keeps tools safe. Clear assembly guide, no extra drilling needed. Delivery arrived fast with zero damage!"
+      }
+    ]
+  }
+}

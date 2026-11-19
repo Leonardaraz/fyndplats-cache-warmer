@@ -1,0 +1,5 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+31ff6619 145 lägsta värdet: 145 kg står i punkten för längden 1830 mm (147 kg för de andra längderna och 150 kg i specifikationen), och det lägre värdet gäller för alla längder
+31ff6619 1000 100 cm i punkten för längden 2000 mm, skrivet i mm som övriga mått (cm till mm): snävaste värdet av punkten (90 till 100 cm) och måttritningen (914,4 till 1016 mm)
+9b1332de 136 300 lbs på infografiken, avrundat nedåt till 136 kg (lb till kg), lägre än specifikationens 150 kg

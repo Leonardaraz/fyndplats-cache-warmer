@@ -1,0 +1,55 @@
+{
+  "ff317617": {
+    "productId": "ff317617-b0f3-48c9-9445-dcf91e5e6086",
+    "synliga": 0,
+    "dolda": 8,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "16d6912f": {
+    "productId": "16d6912f-2948-4415-846f-634e929132ec",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": []
+  },
+  "7f8a8adf": {
+    "productId": "7f8a8adf-a78a-4958-8793-220c8194324f",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "72b9beed": {
+    "productId": "72b9beed-3936-4cbc-ac8f-8eac293e599a",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-kcq53y",
+        "betyg": 5,
+        "datum": "2026-08-06",
+        "foton": 1,
+        "text": "Easy to assemble, super sturdy. Holding my custom made computer desk nicely."
+      }
+    ]
+  },
+  "c7f09445": {
+    "productId": "c7f09445-2aea-4ef0-8d99-f7ba57153451",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  }
+}
