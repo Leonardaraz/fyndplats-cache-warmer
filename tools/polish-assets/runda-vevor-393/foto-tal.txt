@@ -1,0 +1,5 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+5643e83d 12 markpinnar räknade på tredje fotot och enligt packbildens etikett x12
+f3ce6cec 2 stålrör och remmar enligt packbildens etiketter x2 i källans bilder
+f3ce6cec 1 luftpump och bruksanvisning enligt packbildens etiketter x1 i källans bilder

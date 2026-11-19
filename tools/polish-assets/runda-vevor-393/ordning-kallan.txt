@@ -1,0 +1,5 @@
+# <kort> <skäl> — se bygg-media.py
+0c643f23 källposition 3 stryks (engelsk måttetikett inbränd över bilden); övriga positioner behåller källordningen
+5643e83d källposition 3 är ett vanligt foto (tältet med en bärväska, en batterilåda och en rad markpinnar nedanför), inte en måttbild; galleriet behåller källordningen
+f3ce6cec källposition 3 är ett vanligt foto (en man som pumpar luft i tältet med en handpump), inte en måttbild; galleriet behåller källordningen
+b95fd483 källposition 3 är ett vanligt foto (campingköket med mat och köksredskap och en bärväska ovanför), inte en måttbild; galleriet behåller källordningen

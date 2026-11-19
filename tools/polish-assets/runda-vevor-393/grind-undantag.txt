@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger måtten som en egen rad (*Produktmått (L x B x H)*, *Tältets huvudstorlek* och *Tältets totala storlek*) eller bara i titeln (3030 x 2650 x 2300 mm); måtten skrivs i källans form som en egen rad
