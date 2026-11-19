@@ -1,0 +1,91 @@
+{
+  "5f733704": {
+    "productId": "5f733704-191a-4212-aa2b-8b63a8227753",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 5,
+    "attBesluta": []
+  },
+  "60870c04": {
+    "productId": "60870c04-67aa-4af4-bddf-67a37a3d369b",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1kvxjba",
+        "betyg": 5,
+        "datum": "2026-07-23",
+        "foton": 0,
+        "text": "Macchina arrivata in perfette condizion. Messa in produzionep er ore di lavoro con temperature estreme si è comportata egregiamente. Customer service impeccabile."
+      },
+      {
+        "id": "gen-1pka28p",
+        "betyg": 5,
+        "datum": "2025-08-11",
+        "foton": 0,
+        "text": "“Solid build, stainless steel feels premium and it’s easy to clean. Only issue is the machine is a bit heavy to move, but otherwise works great.”"
+      },
+      {
+        "id": "gen-ftd19b",
+        "betyg": 5,
+        "datum": "2025-08-08",
+        "foton": 0,
+        "text": "“This hard-serve ice cream machine is amazing! The texture is super creamy and smooth, and production speed is faster than I expected. Perfect for my café.”"
+      },
+      {
+        "id": "gen-5rp9b4",
+        "betyg": 5,
+        "datum": "2024-09-02",
+        "foton": 0,
+        "text": "pour avoir exercé pendant 28 années dans la pâtisserie-glaces, j'ai travaillé avec des machine à glaces diverses (trittico,carpigiani ), A la retraite, je ne pouvais investir dans ces machine qui coûtent plus de 15 fois le prix de celle - ci et j'ai,été agréablement surpris.Ça fonctionne très très bien.Bien sûr, manque quelques fonctions et facilités mais pour le prix, c'est formidable. J'espère quand même ne pas avoir de soucis avec.Pour l'heure,ça me va!!.MERCI"
+      }
+    ]
+  },
+  "e5ae401d": {
+    "productId": "e5ae401d-6923-4ed3-bf15-f18856607446",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "9ee26868": {
+    "productId": "9ee26868-b258-40ba-b87d-b2211719a024",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "8f9b31fa": {
+    "productId": "8f9b31fa-ba62-4d5b-8c84-83090634ba40",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-a5l2sp",
+        "betyg": 5,
+        "datum": "2026-10-21",
+        "foton": 0,
+        "text": "Entspricht der Angabe, funktioniert gut, sehr guter Preis, Kaufempfehlung"
+      },
+      {
+        "id": "gen-y6y6ak",
+        "betyg": 4,
+        "datum": "2026-10-02",
+        "foton": 0,
+        "text": "dobrý panel, aj akceptovateľný výkon pri nízkom svetle, výborný pri dobrom svetle"
+      }
+    ]
+  }
+}
