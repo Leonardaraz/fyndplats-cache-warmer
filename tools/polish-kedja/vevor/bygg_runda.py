@@ -98,6 +98,8 @@ def main():
                 sys.exit(f'{k}: måttrad {i} bär modellnumrets etikett eller börjar på === och nekas')
         if matt:
             txt += RUB_MATT + '\n' + '\n'.join(matt) + '\n'
+        # Ett tillbehörs modellkod i källtexten (till exempel drivmotorns XZ-12B) fäller leak.py (MODELL) i kallor.json, och en spärr man måste komma ihåg glöms bort
+        txt = re.sub(r'\b[A-Z]{1,4}-\d{1,4}[A-Z]?\b', '[modellkod]', txt)
         kallor[k] = txt
     for fil, rader in ut.items():
         if fil == 'sammanslagna.tsv' and not rader:
