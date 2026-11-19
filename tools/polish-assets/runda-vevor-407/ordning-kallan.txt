@@ -1,0 +1,5 @@
+# <kort> <skäl> — se bygg-media.py
+b6524468 ordningen från källan hålls: inget av de sex fotona är en måttbild (VEVOR:s måttbild ligger inte i utkastets galleri)
+fd046337 ordningen från källan hålls: inget av de sex fotona är en måttbild (VEVOR:s måttbild ligger inte i utkastets galleri)
+e6c78bff ordningen från källan hålls: inget av de sex fotona är en måttbild (VEVOR:s måttbild ligger inte i utkastets galleri)
+0379d60e ordningen från källan hålls: inget av de sex fotona är en måttbild (VEVOR:s måttbild ligger inte i utkastets galleri), och position 6 stryks eftersom den är en spegelvänd kopia av position 5

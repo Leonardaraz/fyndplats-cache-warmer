@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrader (*Produktmått (LxBxH)* för ledstången, *Bänkskivans storlek* och *Produktmått* för arbetsbänken och *Produktmått* för skyltstolpen och cypresserna) har inga axelord utom bokstäverna L, B och H, så sidorna skriver ledstångens mått som källans rad (längd, bredd och höjd i den ordningen), bänkens mått som bänkskivans storlek och höjdintervallet, och skyltstolpens och cypressernas mått utan axelord, och skyltstolpens bas som diametern 290 mm efter måttbilden
