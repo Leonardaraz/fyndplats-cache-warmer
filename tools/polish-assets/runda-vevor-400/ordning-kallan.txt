@@ -1,0 +1,2 @@
+# <kort> <skäl> — se bygg-media.py
+7c3a388f galleriet behåller ordningen från sammanslagningarna: 1-5 hör till 24 x 96 tum, 6-11 till 14 x 24 tum, 12-16 till 30 x 60 tum och 17-18 till 54 x 54 tum; position 3 är ett vanligt foto (bordsskyddet i S-form), inte en måttbild; inga positioner stryks

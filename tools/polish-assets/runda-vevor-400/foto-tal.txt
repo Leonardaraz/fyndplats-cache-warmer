@@ -1,0 +1,5 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+7c3a388f 1371,6 Storleksvärdet i väljaren och i texten för 36 x 54 tum (långsidan) och 54 x 54 tum: tumvärdet 54 × 25,4 = 1371,6 mm, exakt omräknat; källan skriver samma mått avrundat till 1372 mm
+7c3a388f 1219,2 Storleksvärdet i väljaren och i texten för 36 x 48 tum (långsidan) och 48 x 48 tum: tumvärdet 48 × 25,4 = 1219,2 mm, exakt omräknat; källan skriver 1219,0 respektive 1219 mm
+7c3a388f 9 antalet storlekar på sidan efter sammanslagningarna (nio varianter: 14 x 24, 16 x 32, 24 x 96, 30 x 60, 36 x 48, 36 x 54, 40 x 60, 48 x 48 och 54 x 54 tum)
