@@ -10,7 +10,7 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { nameScore, nameMatch, rankByName, fuzzyContains, expandSynonyms, stem } from "./search.ts";
+import { nameScore, nameMatch, normalize, rankaMedInfo, rankByName, fuzzyContains, expandSynonyms, stem } from "./search.ts";
 
 // ── Oförändrat beteende: exakt, stemming, compound ──────────────────────────
 test("exakt fras → 100", () => {
@@ -287,8 +287,17 @@ test("ordgränsen ordnar likvärdiga träffar: ordets huvud, sedan ordets börja
 //   3. Bland stavfelsträffar: de med ett fel per ord, om någon finns.
 //   4. Finns bara träffar med två fel, eller inga alls: ett ensamt sökord
 //      delat i två kända ord, om varor med båda finns (delatSokord nedan).
+//
+// Sedan 2026-11-19 prövas sökordet mot katalogen (böjda former som finns, och
+// vilka ord som står för sig), så nameMatch får namnlistan med.
+const KATALOG = new WeakMap<string[], string[]>();
+function katalogFor(namn: string[]): string[] {
+  let k = KATALOG.get(namn);
+  if (!k) KATALOG.set(namn, (k = namn.map(normalize)));
+  return k;
+}
 function ettVarv(namn: string[], q: string): string[] {
-  const scored = namn.map((n) => ({ n, ...nameMatch(n, q) })).filter((r) => r.score > 0);
+  const scored = namn.map((n) => ({ n, ...nameMatch(n, q, katalogFor(namn)) })).filter((r) => r.score > 0);
   const hela = scored.filter((r) => r.full);
   let kept = scored;
   if (hela.length > 0) {
@@ -333,7 +342,7 @@ function delatSokord(namn: string[], q: string): string[] | null {
   }
   delar.sort((x, y) => Math.min(y[0].length, y[1].length) - Math.min(x[0].length, x[1].length));
   for (const [a, b] of delar) {
-    const hela = namn.map((n) => ({ n, ...nameMatch(n, `${a} ${b}`) })).filter((r) => r.full && !r.stavfel);
+    const hela = namn.map((n) => ({ n, ...nameMatch(n, `${a} ${b}`, katalogFor(namn)) })).filter((r) => r.full && !r.stavfel);
     const exakta = hela.filter((r) => !r.vikt);
     const kvar = exakta.length > 0 ? exakta : hela;
     if (kvar.length > 0) return kvar.sort((x, y) => y.score - x.score || (y.kant ?? 0) - (x.kant ?? 0)).map((r) => r.n);
@@ -361,7 +370,10 @@ test("rankByName i tre varv ger samma lista som ett varv med reserverna pålagda
   for (const q of fragor) {
     for (let k = 2; k <= q.length; k++) {
       const p = q.slice(0, k);
-      assert.deepEqual(rankByName(namn, (n) => n, p), ettVarv(namn, p), p);
+      // En rättad stavning ("lyftf" → "lyft") söks som det rättade ordet: då
+      // ska listan vara den som ett varv ger för det.
+      const utfall = rankaMedInfo(namn, (n) => n, p);
+      assert.deepEqual(utfall.traffar, ettVarv(namn, utfall.rattat ?? p), p);
     }
   }
 });
@@ -386,9 +398,11 @@ test("sammanskrivet: flera sökord hittar ordet som ett, före ordträffarna", (
     "Lasertag 4 spelare med USB-laddning – pistoler och västar",
     "VATOS lasertag-set med träffsensorer – 2-pack eller 4-pack",
   ];
-  // "laser" stammas till "las" och står i "glasfiber", "tag" i "handtag".
-  assert.equal(nameMatch(namn[0], "laser tag").full, true);
-  assert.deepEqual(rankByName(namn, (n) => n, "laser tag"), [namn[1], namn[2], namn[0]]);
+  // "laser" stammas till "las". Förut stod det i "glasfiber", och bredgaffeln
+  // var en hel träff. Sedan 2026-11-19 är ett tecken före träffen inget ord
+  // ("g|las"), så gaffeln träffar bara "tag" i "handtag" och faller bort.
+  assert.equal(nameMatch(namn[0], "laser tag").full, false);
+  assert.deepEqual(rankByName(namn, (n) => n, "laser tag"), [namn[1], namn[2]]);
   assert.equal(nameScore(namn[1], "laser tag"), 95);
   assert.equal(nameScore("Hundbur på hjul med två lådor", "hund bur"), 95);
   // Bara i namnets tillägg: 88, under frasen i tillägget (90).
@@ -444,15 +458,18 @@ test("ett stavfel före två: elkammin hittar elkaminer, inte melamin och kammar
     "Fladdermusholk med tre kammare och svart tak",
     "Elkamin med mantel och vedhylla – tresidigt glas",
   ];
-  // "melamin" ligger två fel från "elkammin". "kammare" gjorde det förut bara
-  // över ett mellanslag ("tre kammare"), och ett stavfel ligger sedan
-  // 2026-11-19 i ETT ord.
-  assert.equal(nameMatch(namn[0], "elkammin").fel, 2);
+  // "melamin" låg förr två fel från "elkammin" ("m|elamin"). Sedan 2026-11-19
+  // ska träffen börja där ett ord kan börja, så den räknas inte alls.
+  // "kammare" gjorde det förut bara över ett mellanslag ("tre kammare"), och
+  // ett stavfel ligger sedan samma dag i ETT ord.
+  assert.equal(nameMatch(namn[0], "elkammin").score, 0);
   assert.equal(nameMatch(namn[1], "elkammin").score, 0);
   assert.equal(nameMatch(namn[2], "elkammin").fel, 1);
   assert.deepEqual(rankByName(namn, (n) => n, "elkammin"), [namn[2]]);
-  // Utan någon träff med ett fel visas den med två, som förut.
-  assert.deepEqual(rankByName(namn.slice(0, 2), (n) => n, "elkammin"), [namn[0]]);
+  // Stavningen rättas mot katalogens ord, och utfallet säger det.
+  assert.equal(rankaMedInfo(namn, (n) => n, "elkammin").rattat, "elkamin");
+  // Utan elkaminen finns inget att visa: hyllplanen är inget svar.
+  assert.deepEqual(rankByName(namn.slice(0, 2), (n) => n, "elkammin"), []);
 });
 
 test("sammansatt sökord: barnbil hittar bilarna för barn, inte barnbokhyllan", () => {

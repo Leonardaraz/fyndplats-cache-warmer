@@ -715,6 +715,21 @@ h1,h2,h3{text-wrap:balance}
   .prod:not(.auction-card):hover .pimg::after,.prod:not(.auction-card):focus-visible .pimg::after{opacity:1;transform:none}
 }
 @media (prefers-reduced-motion:reduce){.prod .pimg,.prod .pimg::after{transition:none}.prod:not(.auction-card):hover .pimg{transform:none}}
+/* PÅ DATORN STÅR FOTONA PÅ VITT I LISTORNA (Leonard 2026-11-19: "det va
+   finare"). Före 2026-11-18 var listornas kort vitt och startsidans bricka
+   varmgrå; när brickan blev kortet överallt följde den varmgrå plattan med till
+   kategorierna, söket, rean och resten. På en bred skärm blev tolv varmgrå
+   rutor i bredd tyngre än fotona tålde. Nu är plattan vit med en tunn ram:
+   ramen håller formen åt vita möbler på vit sida (tv-bänkar, byråer), provat
+   mot en ramlös vit platta på /kategori/mobler samma dag. Skyltfönstren som
+   hade brickan redan före 2026-11-18 behåller den: startsidan (.hem2) och
+   /butik med prissidorna (.butik2). Mobilen är orörd. */
+@media(min-width:881px){
+  .prod:not(.auction-card):not(.blogg-kort) .pimg{background:#fff;border:1px solid var(--line)}
+  .prod:not(.auction-card):not(.blogg-kort) .pimg img{mix-blend-mode:normal}
+  :is(.hem2,.butik2) .prod:not(.auction-card):not(.blogg-kort) .pimg{background:#F4EEE8;border:0}
+  :is(.hem2,.butik2) .prod:not(.auction-card):not(.blogg-kort) .pimg img{mix-blend-mode:multiply}
+}
 /* Fyndauktionens kort: vitt kort med ram som lyfter som helhet, fotot kant i
    kant utan platta. Samma värden som kortets grund hade före 2026-11-18. */
 .prod.auction-card{border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;background:#fff;transition:transform .25s,box-shadow .25s;box-shadow:var(--e1)}

@@ -96,6 +96,9 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   // Båda bär texten de räknades för: rutan kan få ett nytt ord utan att
   // förslagen räknas om (ur adressen på resultatsidan), och då gäller de inte.
   const [visarFor, setVisarFor] = useState<{ q: string; ord: string } | null>(null);
+  // Sökningen (texten i rutan) vars träffar bara ligger nära i stavning: inget
+  // namn har ordet, och listan säger det (lib/search.ts, `liknande`).
+  const [liknandeFor, setLiknandeFor] = useState<string | null>(null);
   const [fortsattFor, setFortsattFor] = useState<string | null>(null);
   const uid = useId();
   const [popular, setPopular] = useState<Hit[]>([]);
@@ -231,9 +234,12 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
       const forMalet = m.rankaForslagMedAntal(idx, mal, SUGGESTION_COUNT);
       if (forMalet.totalt > 0) { svar = forMalet; visar = mal; }
     }
+    // En rättad stavning ("ellamin" → "elkamin") sägs på samma sätt.
+    if (!visar && svar.rattat) visar = svar.rattat;
     const kategorier = m.matchaKategorier(visar || pris.fraga, registreradeKategorier(), KATEGORIFORSLAG);
     setKat(kategorier);
     setVisarFor(visar ? { q: val, ord: visar } : null);
+    setLiknandeFor(!visar && svar.liknande ? val : null);
     setHits(svar.traffar);
     setTotalt(svar.totalt);
     // Två bokstäver som inget börjar på ("xq"): inget "inga träffar" om ett
@@ -312,6 +318,7 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   const kategorier = isPopular ? [] : kat;
   // Ordet som listan visar varor för, när det inte är det som står i rutan.
   const visar = !isPopular && visarFor && visarFor.q === q ? visarFor.ord : "";
+  const liknande = !isPopular && liknandeFor !== null && liknandeFor === q;
   const pris = tolkaPris(q.trim());
   const visaTidigare = isPopular && tidigare.length > 0;
   const visaExempel = isPopular && exempel.length > 0;
@@ -542,8 +549,8 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
               <span className="sugg-kat-pil" aria-hidden="true">→</span>
             </a>
           ))}
-          {!isPopular && showing.length > 0 && (kategorier.length > 0 || harPris(pris) || visar) && (
-            <div className="sugg-head">{visar ? `Visar “${visar}”` : harPris(pris) ? `Varor ${prisText(pris)}` : "Varor"}</div>
+          {!isPopular && showing.length > 0 && (kategorier.length > 0 || harPris(pris) || visar || liknande) && (
+            <div className="sugg-head">{visar ? `Visar “${visar}”` : liknande ? "Närmast i stavning" : harPris(pris) ? `Varor ${prisText(pris)}` : "Varor"}</div>
           )}
           {showing.map((h, hi) => { const i = hi + kategorier.length; return (
             <a

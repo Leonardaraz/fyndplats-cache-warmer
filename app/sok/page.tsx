@@ -77,6 +77,7 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
   // Ordet som sidan visar varor för, när sökningen är två bokstäver ("få" →
   // fåtölj). Regeln står i lib/search.ts (rankaMedForslag), och sökrutan har samma.
   let visar = "";
+  let liknande = false;
   if (term) {
     const { utfall, visar: ordet } = rankaMedForslag(all, (p) => p.name, fraga);
     visar = ordet;
@@ -84,6 +85,7 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
     if (utfall.traffar.length > 0) {
       results = utfall.traffar;
       ({ strukna, utan, hela } = utfall);
+      liknande = utfall.liknande === true;
     } else if (kategorier.length === 0 && !kortOrd(fraga)) {
       // ☠️ Aldrig för två bokstäver: de står i nästan varje beskrivning.
       // Reserven i beskrivningarna, bara när varken ett namn eller en kategori
@@ -111,7 +113,7 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
     <SokVy
       q={q}
       data={{
-        traffar: forListClient(results), strukna, utan, hela, kategorier, pris, visar,
+        traffar: forListClient(results), strukna, utan, hela, kategorier, pris, visar, liknande,
         populart: forListClient(populart), popularaKategorier,
       }}
     />

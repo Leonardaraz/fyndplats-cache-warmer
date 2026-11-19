@@ -11,7 +11,7 @@
 // aldrig. Kontaktformulärets produktväljare importerar den som vanligt: den
 // sidan söker alltid.
 
-import { byggOrdforrad, kortOrd, matchaKategorier, normalize, rankByName, sokforslag, visaVarorFor, type Ordforrad } from "./search";
+import { byggOrdforrad, kortOrd, matchaKategorier, normalize, rankaMedInfo, rankByName, sokforslagINamn, visaVarorFor, type Ordforrad } from "./search";
 import type { SokTraff } from "./sok-index";
 
 export { kortOrd, matchaKategorier, visaVarorFor };
@@ -20,6 +20,14 @@ export { kortOrd, matchaKategorier, visaVarorFor };
 // namn tog 2–6 ms per tangent på en dator och runt 8 ms på en strypt telefon
 // (mätt 2026-11-07), plus 6 000 nya strängar för skräpsamlaren varje gång.
 const normNamn = new WeakMap<SokTraff[], string[]>();
+function namnFor(idx: SokTraff[]): string[] {
+  let namn = normNamn.get(idx);
+  if (!namn) {
+    namn = idx.map((h) => normalize(h.n));
+    normNamn.set(idx, namn);
+  }
+  return namn;
+}
 
 /**
  * Förslagen för en sökning: de `antal` mest relevanta, slutsålda sist.
@@ -32,12 +40,7 @@ const normNamn = new WeakMap<SokTraff[], string[]>();
  * så relevansordningen består inom varje grupp.)
  */
 export function rankaForslag(idx: SokTraff[], term: string, antal: number): SokTraff[] {
-  let namn = normNamn.get(idx);
-  if (!namn) {
-    namn = idx.map((h) => normalize(h.n));
-    normNamn.set(idx, namn);
-  }
-  return rankByName(idx, (h) => h.n, term, namn)
+  return rankByName(idx, (h) => h.n, term, namnFor(idx))
     .slice(0, antal)
     .sort((a, b) => (a.o ? 1 : 0) - (b.o ? 1 : 0));
 }
@@ -47,20 +50,21 @@ export function rankaForslag(idx: SokTraff[], term: string, antal: number): SokT
  * knappen kan säga "Visa alla 89 resultat". `behall` gallrar träffarna FÖRE
  * klippet (priset i sökningen, lib/sok-pris.ts): annars kunde sju dyra varor
  * fylla listan fast det fanns billiga längre ner.
+ *
+ * `rattat` är sökningen med stavningen rättad, när träffarna gäller den
+ * ("ellamin" → "elkamin", lib/search.ts): rutan säger då vilket ord den visar.
+ * `liknande` är satt när inget namn har sökordet och träffarna bara ligger nära.
  */
 export function rankaForslagMedAntal(
   idx: SokTraff[], term: string, antal: number, behall?: (h: SokTraff) => boolean,
-): { traffar: SokTraff[]; totalt: number } {
-  let namn = normNamn.get(idx);
-  if (!namn) {
-    namn = idx.map((h) => normalize(h.n));
-    normNamn.set(idx, namn);
-  }
-  const alla = rankByName(idx, (h) => h.n, term, namn);
-  const kvar = behall ? alla.filter(behall) : alla;
+): { traffar: SokTraff[]; totalt: number; rattat?: string; liknande?: true } {
+  const utfall = rankaMedInfo(idx, (h) => h.n, term, namnFor(idx));
+  const kvar = behall ? utfall.traffar.filter(behall) : utfall.traffar;
   return {
     traffar: kvar.slice(0, antal).sort((a, b) => (a.o ? 1 : 0) - (b.o ? 1 : 0)),
     totalt: kvar.length,
+    ...(utfall.rattat && kvar.length > 0 ? { rattat: utfall.rattat } : {}),
+    ...(utfall.liknande && kvar.length > 0 ? { liknande: true as const } : {}),
   };
 }
 
@@ -77,9 +81,12 @@ function ordforradFor(idx: SokTraff[]): Ordforrad {
   return f;
 }
 
-/** Sökningarna kunden är på väg att skriva ("sof" → soffa, soffbord). */
+/**
+ * Sökningarna kunden är på väg att skriva ("sof" → soffa, soffbord). Förslag
+ * på flera ord prövas mot namnen, så att de leder till varor (sokforslagINamn).
+ */
 export function sokforslagFor(idx: SokTraff[], skrivet: string, max: number): string[] {
-  return sokforslag(ordforradFor(idx), skrivet, max);
+  return sokforslagINamn(ordforradFor(idx), namnFor(idx), skrivet, max);
 }
 
 /** Vad man kan söka på, för den tomma rutan: katalogens vanligaste varuord. */

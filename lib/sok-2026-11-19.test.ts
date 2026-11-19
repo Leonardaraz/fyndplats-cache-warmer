@@ -442,7 +442,7 @@ test("förslagen med antal: gallringen görs före klippet", async () => {
   assert.equal(alla.slice(0, 3).filter((v) => inomPris({ max: 2000 }, prisTal(v.p))).length <= 3, true);
   const { readFileSync } = await import("node:fs");
   const index = readFileSync(new URL("./sok-rankning.ts", import.meta.url), "utf8");
-  assert.match(index, /const kvar = behall \? alla\.filter\(behall\) : alla;[\s\S]{0,120}kvar\.slice\(0, antal\)/);
+  assert.match(index, /const kvar = behall \? utfall\.traffar\.filter\(behall\) : utfall\.traffar;[\s\S]{0,120}kvar\.slice\(0, antal\)/);
   assert.match(index, /totalt: kvar\.length/);
 });
 
@@ -613,8 +613,9 @@ test("☠️ prickarna gäller när kunden har skrivit dem: \"sä\" är sängram
 
 test("två bokstäver: inget förslag hellre än ett dåligt", () => {
   const f = byggOrdforrad(KORTA);
-  // "Upphöjd odlingslåda" gör inte "höjd" till en vara, och "blandare" inte "land".
-  assert.ok(f.ord.some((o) => o.text === "höjd"));
+  // Måttens ord ("höjd", "bred") är egenskaper och står inte i ordförrådet
+  // alls, och "blandare" gör inte "land" till en vara.
+  assert.ok(!f.ord.some((o) => o.text === "höjd"));
   assert.deepEqual(sokforslag(f, "hö", 3), ["hörnsoffa"]);
   assert.ok(f.ord.some((o) => o.text === "land" && o.varu === 0));
   assert.deepEqual(sokforslag(f, "la", 3), []);
@@ -705,7 +706,10 @@ test("sökrutan visar förslagets varor och säger vilket ord det gäller", asyn
   // Kategorierna räknas för samma ord som varorna.
   assert.match(ruta, /m\.matchaKategorier\(visar \|\| pris\.fraga, registreradeKategorier\(\), KATEGORIFORSLAG\)/);
   // Rubriken, foten och Enter gäller ordet som visas.
-  assert.match(ruta, /\{visar \? `Visar “\$\{visar\}”` : harPris\(pris\)/);
+  assert.match(ruta, /\{visar \? `Visar “\$\{visar\}”` : liknande \? "Närmast i stavning" : harPris\(pris\)/);
+  // En rättad stavning sägs på samma sätt, och bara stavningsnära träffar får sin egen rubrik.
+  assert.match(ruta, /if \(!visar && svar\.rattat\) visar = svar\.rattat;/);
+  assert.match(ruta, /setLiknandeFor\(!visar && svar\.liknande \? val : null\);/);
   assert.match(ruta, /const term = visar \|\| q\.trim\(\);/);
   assert.match(ruta, /onClick=\{\(\) => goSearch\(visar \|\| undefined\)\} disabled=\{soker\}/);
   assert.match(ruta, /else goSearch\(visar \|\| undefined\);/);
