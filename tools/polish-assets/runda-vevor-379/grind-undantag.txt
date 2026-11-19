@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger måtten som egna rader utan namn på axlarna: köksöarnas *Storlek på översta kortet* (640 x 380 x 15 mm respektive 600 x 380 x 15 mm), *Produktstorlek* (795 x 397 x 870 mm respektive 631 x 397 x 870 mm) och *Produktmått* (1170 x 560 x 910 mm; punkten säger 112 x 51 x 91 cm och texten skriver det mindre måttet); måtten skrivs i källans form som egna rader
