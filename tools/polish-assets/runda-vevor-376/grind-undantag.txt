@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger måtten som egna rader utan namn på axlarna: markisens 'Specifikationer' (350 x 300 cm), 'Mått på tak' (337 x 300 cm) och 'Produktmått' (350 x 300 x 25 cm), och för 400-listningen 400 x 300 cm, 387 x 300 cm och 400 x 300 x 25 cm; på duschsetet är panelstorleken (185 x 140 mm) en rad utan axelord; måtten skrivs i källans form som egna rader
