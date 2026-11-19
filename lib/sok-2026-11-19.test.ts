@@ -412,7 +412,7 @@ test("sökrutan: antal i knappen, kryss, alla sökord i fetstil och uppläst rad
   assert.match(ruta, /aria-label="Rensa sökfältet"/);
   assert.match(ruta, /enterKeyHint="search"/);
   assert.match(ruta, /aria-activedescendant=\{visas && active >= 0 && active < rader \? radId\(active\) : undefined\}/);
-  assert.match(ruta, /rankaForslagMedAntal\(idx, pris\.fraga, SUGGESTION_COUNT, harPris\(pris\) \?/);
+  assert.match(ruta, /m\.rankaForslagMedAntal\(idx, pris\.fraga, SUGGESTION_COUNT, harPris\(pris\) \?/);
   assert.match(ruta, /className="sugg-chip" key=\{t\} onClick=\{\(\) => goSearch\(t\)\}/);
   // Senaste sökningar, exemplen och sökförslagen tar plats från varorna: panelen blir inte högre.
   assert.match(ruta, /popular\.slice\(0, SUGGESTION_COUNT - \(visaTidigare \? RADER_SENASTE : 0\) - \(visaExempel \? RADER_CHIPS : 0\)\)/);
@@ -432,7 +432,7 @@ test("☠️ listan börjar om när varorna byts: prisreglaget blev ett filter i
 });
 
 test("förslagen med antal: gallringen görs före klippet", async () => {
-  // rankaForslagMedAntal ligger i lib/sok-index.ts, som inte går att ladda här
+  // rankaForslagMedAntal ligger i lib/sok-rankning.ts, som inte går att ladda här
   // (importerar utan ändelse). Regeln prövas på samma steg: ranka, gallra, klipp.
   const { inomPris, prisTal } = await import("./sok-pris.ts");
   const varor = Array.from({ length: 12 }, (_, i) => ({ n: `Soffa modell ${i + 1}`, p: `${(i + 1) * 500} kr` }));
@@ -441,7 +441,7 @@ test("förslagen med antal: gallringen görs före klippet", async () => {
   assert.equal(kvar.length, 4);
   assert.equal(alla.slice(0, 3).filter((v) => inomPris({ max: 2000 }, prisTal(v.p))).length <= 3, true);
   const { readFileSync } = await import("node:fs");
-  const index = readFileSync(new URL("./sok-index.ts", import.meta.url), "utf8");
+  const index = readFileSync(new URL("./sok-rankning.ts", import.meta.url), "utf8");
   assert.match(index, /const kvar = behall \? alla\.filter\(behall\) : alla;[\s\S]{0,120}kvar\.slice\(0, antal\)/);
   assert.match(index, /totalt: kvar\.length/);
 });
@@ -500,11 +500,66 @@ test("sökförslag: adjektiv, färger och småord föreslås inte, och exemplen 
 test("sökrutan visar sökförslagen och exemplen som chips som söker", async () => {
   const { readFileSync } = await import("node:fs");
   const ruta = readFileSync(new URL("../components/searchbox.tsx", import.meta.url), "utf8");
-  assert.match(ruta, /setForslag\(harPris\(pris\) \? \[\] : sokforslagFor\(idx, term, SOKFORSLAG\)\)/);
+  assert.match(ruta, /setForslag\(harPris\(pris\) \? \[\] : m\.sokforslagFor\(idx, term, SOKFORSLAG\)\)/);
   assert.match(ruta, /className="sugg-forslag sugg-chiprad" role="group" aria-label="Sökförslag"/);
   assert.match(ruta, /className="sugg-exempel sugg-chiprad"/);
   assert.equal(ruta.split('className="sugg-chip sugg-chip-sok" key={t} onClick={() => goSearch(t)}').length, 3);
   assert.match(ruta, /className="sugg-tangenter" aria-hidden="true"/);
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
   assert.match(css, /\.sugg-tangenter\{display:none\}\n@media\(hover:hover\) and \(pointer:fine\)/);
+});
+
+// ── Sista kontrollen: inget buggar, och sidan bär inte sökmotorn ────────────
+test("☠️ sökmotorn laddas vid avsikt: sidhuvudet på varje sida bär den inte", async () => {
+  const { readFileSync } = await import("node:fs");
+  const las = (f: string) => readFileSync(new URL(f, import.meta.url), "utf8");
+  const ruta = las("../components/searchbox.tsx");
+  const importer = ruta.split("\n").filter((r) => /^import /.test(r)).join("\n");
+  // Varken motorn eller rankningen får importeras överst i sökrutan …
+  assert.doesNotMatch(importer, /lib\/search"|lib\/sok-rankning"/);
+  // … och inte heller i något sökrutan importerar överst.
+  for (const f of ["./sok-index.ts", "./sok-kategorier.ts", "./sok-pris.ts", "./sok-senaste.ts"]) {
+    assert.doesNotMatch(las(f), /^import [^\n]*from "\.\/(search|sok-rankning)"/m, f);
+  }
+  assert.match(ruta, /motorLofte = import\("\.\.\/lib\/sok-rankning"\)/);
+  // Ett fall får inte bli permanent, och avsikten hämtar båda.
+  assert.match(ruta, /\(\) => \{ motorLofte = null; return null; \}/);
+  assert.match(ruta, /void Promise\.all\(\[laddaSokIndex\(\), laddaMotor\(\)\]\)\.then\(\(\[idx, m\]\) => \{ if \(idx && m\) m\.varmUpp\(idx\); \}\);/);
+  // Menyerna, som också ligger på varje sida, bär bara kategorilistan.
+  for (const f of ["../components/meganav.tsx", "../components/mobilenav.tsx"]) assert.doesNotMatch(las(f), /lib\/search"|lib\/sok-rankning"/, f);
+});
+
+test("☠️ rutan räknar om förslagen för ordet som står i den", async () => {
+  const { readFileSync } = await import("node:fs");
+  const ruta = readFileSync(new URL("../components/searchbox.tsx", import.meta.url), "utf8");
+  // Fokus med ett ord i rutan: förslagen för det ordet, inte en tom lista.
+  assert.match(ruta, /if \(skrivet\.trim\(\)\.length >= KORTASTE_SOKNING\) \{\s+setTidigare\(senasteSokningar\(\)\);\s+await onType\(skrivet\);\s+return;/);
+  // Ett valt förslag räknas om, så att listan inte står kvar för det gamla ordet.
+  assert.match(ruta, /if \(vald\) void onType\(vald\);/);
+  // ☠️ Krysset tömmer rutan i DOM innan fokus sätts: fokus läser rutans värde.
+  assert.match(ruta, /const rensa = \(\) => \{\s+const el = inputRef\.current;\s+if \(el\) el\.value = "";\s+void onType\(""\);/);
+  // Lämnar man resultatsidan töms rutan, också med fokus kvar i den.
+  assert.match(ruta, /else if \(fran === "\/sok"\) \{ if \(el\) el\.value = ""; setQ\(""\); \}/);
+  // Sökordet läses ur adressen på resultatsidan, utan useSearchParams.
+  assert.match(ruta, /if \(pathname === "\/sok"\) \{ const t = iAdressen\(\); if \(t && el && !el\.value\) setQ\(t\); \}/);
+  assert.doesNotMatch(ruta, /^import [^\n]*useSearchParams/m);
+});
+
+test("filterlådan är vit som de andra lådorna, och auktionens viloläge är butikens egen kräm", async () => {
+  const { readFileSync } = await import("node:fs");
+  const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  const regel = (borjan: string) => css.slice(css.indexOf(borjan), css.indexOf("}", css.indexOf(borjan)));
+  for (const b of ["  .shopbar-panel{display:none", "  .shopbar.open .shopbar-panel{position:fixed", "  .panel-huvud{display:flex"]) {
+    assert.ok(css.includes(b), b);
+    assert.match(regel(b), /background:#fff/, b);
+    assert.doesNotMatch(regel(b), /var\(--warm\)/, b);
+  }
+  // Auktionsscenens första steg står på två ställen och måste vara samma färger:
+  // vitt överst som tonar till butikens kräm (--warm), inte den gamla persikan
+  // och inte helt vitt (prövat och förkastat samma natt).
+  assert.match(css, /--a-bg1:#FFFFFF; --a-bg2:#FFF6EF;/);
+  assert.match(css, /--warm:#FFF6EF;/);
+  const scen = readFileSync(new URL("../components/auction-stage.tsx", import.meta.url), "utf8");
+  assert.match(scen, /\{ t: 0, bg1: "#FFFFFF", bg2: "#FFF6EF", /);
+  assert.doesNotMatch(css + scen, /FCEFE0/i);
 });

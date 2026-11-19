@@ -2679,7 +2679,11 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
 @media(max-width:700px){
   .shopbar-toggle{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1.5px solid var(--line);border-radius:var(--r-sm);padding:10px 16px;font:inherit;font-size:var(--text-sm);font-weight:600;color:var(--ink);cursor:pointer;margin-bottom:12px}
   .shopbar-toggle:hover{border-color:var(--ink)}
-  .shopbar-panel{display:none;flex-direction:column;align-items:stretch;background:var(--warm);border-radius:var(--r-md);padding:16px;margin-bottom:16px;flex-basis:100%}
+  /* VIT, som sidan och de andra lådorna (2026-11-19). Panelen, dess huvud och
+     lagret stod i --warm, krämfärgat, medan kroppen, kundvagnslådan och
+     mobilmenyn är vita. Leonard: "det känns inte som att bakgrundsfärgen
+     passar in om man jämför med våra andra sidor". */
+  .shopbar-panel{display:none;flex-direction:column;align-items:stretch;background:#fff;border-radius:var(--r-md);padding:16px;margin-bottom:16px;flex-basis:100%}
   .shopbar.open .shopbar-panel{display:flex}
   .filter-group{align-items:flex-start}
   /* Hela panelens bredd. Innan underkategorierna flyttade ut ur panelen var
@@ -2694,7 +2698,7 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
      Chilli och JYSK. Inline sköt panelen ner produkterna nästan 3 000 px. */
   /* nowrap: med fast höjd hade flex-wrap lagt grupperna i en andra kolumn. */
   .shopbar.open .shopbar-panel{position:fixed;inset:0;z-index:1300;display:flex;flex-wrap:nowrap;margin:0;padding:0 16px;
-    gap:22px;border-radius:0;overflow-y:auto;overscroll-behavior:contain;background:var(--warm);
+    gap:22px;border-radius:0;overflow-y:auto;overscroll-behavior:contain;background:#fff;
     animation:panel-in .22s cubic-bezier(.2,.7,.2,1)}
   .shopbar.open .shopbar-panel>*{flex-shrink:0}
   /* flex-basis:100 % är bredd på dator men höjd i en kolumn: raden sträckte
@@ -2702,7 +2706,7 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
   .shopbar.open .specrad{flex-basis:auto}
   /* z-index över reglagens handtag (.pr-hi har 4). */
   .panel-huvud{display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20;
-    margin:0 -16px;padding:12px 16px;background:var(--warm);border-bottom:1px solid var(--line)}
+    margin:0 -16px;padding:12px 16px;background:#fff;border-bottom:1px solid var(--line)}
   .panel-titel{font-family:var(--font-display),Georgia,serif;font-size:22px;font-weight:600;letter-spacing:-.01em;color:var(--ink)}
   .panel-stang{width:40px;height:40px;display:grid;place-items:center;border:1px solid var(--line);
     border-radius:50%;background:#fff;color:var(--ink);cursor:pointer}
@@ -3535,7 +3539,16 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
   /* clip-path (inte overflow): klipper även de FASTA lagren nedan (glödcanvasen)
      och glödblobbarna, så inget läcker ut på nyhetsbrevet under scenen. */
   clip-path:inset(0);
-  --a-bg1:#FFF9F3; --a-bg2:#FCEFE0; --a-ink:#241c16; --a-soft:#6b6157;
+  /* VILOLÄGET ÄR BUTIKENS EGEN KRÄM (2026-11-19): vitt överst som tonar till
+     --warm (#FFF6EF), samma ton som köpguidernas sektion på startsidan. Det var
+     kräm till en gulbeige persika (#FFF9F3 → #FCEFE0) som inte finns någon
+     annanstans i butiken. Helt vitt prövades samma natt och föll: korten är
+     vita och tappade kontrasten, och scenen blev platt (Leonard: "tycker vit
+     passar för fyndauktionen??"). Värmen kommer fortfarande under dagen:
+     klienten blandar härifrån mot de varmare stegen
+     (components/auction-stage.tsx, där första steget måste vara samma färger
+     som här). */
+  --a-bg1:#FFFFFF; --a-bg2:#FFF6EF; --a-ink:#241c16; --a-soft:#6b6157;
   --a-accent:var(--brand); --a-accent2:#F47A35; --a-gold:#FFB300;
   --a-card:#ffffff; --a-cardink:#241c16; --a-line:var(--line); --a-heat:0;
   position:relative;

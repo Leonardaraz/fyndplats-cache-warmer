@@ -13,7 +13,8 @@
 import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { flushSync } from "react-dom";
 import Image from "next/image";
-import { KORTASTE_SOKNING, laddaSokIndex, rankaForslag, sokIndexHamtat, type SokTraff } from "../lib/sok-index";
+import { KORTASTE_SOKNING, laddaSokIndex, sokIndexHamtat, type SokTraff } from "../lib/sok-index";
+import { rankaForslag } from "../lib/sok-rankning";
 import { KONTAKT_ANKARE, lasKontaktAdress, medValt, produktUrl, type KontaktProdukt } from "../lib/kontakt/kontakt";
 
 /** Så många träffar visas. Färre än sidhuvudets sju: formuläret står ofta långt ner på skärmen. */

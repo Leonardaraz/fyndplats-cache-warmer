@@ -3465,6 +3465,66 @@ alla tv-bänkar och säger att färgen ofta står bland valen; `colors` finns i
 listkortet men inte i sökindexet), "menade du" vid stavfel, och genvägarna
 till frakt, retur och spårning (Leonards punkt 5, som han valde bort).
 
+## Sökrutan: sista kontrollen, sökmotorn vid avsikt och vita bakgrunder (2026-11-19)
+
+Leonard, sista vändan samma natt: "finslipa en sista gång sökfältet nu när du
+lagt till mycket, kontrollera att inget buggar och att det är optimerat", och
+om Fyndauktionen och filterlådan: "det känns inte som att bakgrundsfärgen
+passar in om man jämför med våra andra sidor".
+
+**☠️ Sökmotorn laddas vid avsikt, inte med sidan.** Sökrutan ligger i
+sidhuvudet på varje sida, och rankningen (`lib/search.ts`) följde med i varje
+sidas JavaScript: 18 kB minifierat, 7,6 kB gzip, och nattens synonymer hade
+gjort den större. Nu ligger rankningen av förslagen i `lib/sok-rankning.ts`,
+som sökrutan hämtar med `import()` när pekaren eller fingret når rutan,
+samtidigt som sökindexet (`laddaMotor` i `components/searchbox.tsx`).
+`lib/sok-index.ts` har bara hämtningen kvar. Mätt i bygget: startsidans
+JavaScript 846 → 831 kB, 267,4 → 261,0 kB gzip, på varje sida. Mätt i
+webbläsare (`bf/sok-kontroll.cjs`): ingen fil med sökmotorn laddas med sidan,
+från tryck till första förslagen 0,2 s lokalt, och högst 74 ms per tangent.
+**Importera aldrig `lib/search` eller `lib/sok-rankning` överst i sökrutan,
+i `lib/sok-index.ts` eller i menyerna**: `lib/sok-2026-11-19.test.ts` fäller.
+Ordförrådet för sökförslagen (30–50 ms) byggs i en ledig stund efter avsikten
+(`varmUpp`).
+
+**Tre lägen runt rutan som var fel, alla hittade i webbläsaren:**
+
+- ☠️ **Fokus med ett ord i rutan** visade "Inga produkter matchade" om ett ord
+  med hundratals träffar, när rutan fått ordet utan att förslagen räknats
+  (ur adressen, eller skrivet före hydreringen). Fokus räknar nu om
+  förslagen för ordet som står där.
+- ☠️ **Det gjorde att krysset slutade fungera.** `focus()` anropas innan React
+  har skrivit det tömda värdet, så fokus läste det gamla ordet och skrev
+  tillbaka det. Krysset tömmer nu rutan i DOM först. Lärdomen: den som läser
+  rutans värde i en händelse måste veta att tillståndet kan ligga ett steg
+  efter.
+- ☠️ **Ett valt sökförslag** bytte rutans ord men inte listan: nästa gång rutan
+  öppnades stod förslagen för det gamla ordet. Valet räknar nu om.
+
+**Sökordet står kvar i rutan på resultatsidan**, också efter en omladdning,
+en delad länk och bakåtknappen, och rutan töms när man lämnar sidan. Ordet
+läses ur adressen i en effekt (`usePathname` och `popstate`). ☠️ Inte med
+`useSearchParams`: i sidhuvudet tvingar den varje statisk sida att vänta på
+webbläsaren.
+
+**Bakgrunderna.** Kroppen, kundvagnslådan och mobilmenyn är vita. Filterlådan
+på mobilen stod i `--warm` (krämfärgad) på tre ställen och är nu vit, som de
+andra lådorna.
+
+Fyndauktionens scen gick i sitt viloläge från kräm till en gulbeige persika
+(`#FFF9F3` → `#FCEFE0`) som inte finns någon annanstans i butiken. Nu går den
+från vitt till butikens egen kräm (`--warm`, `#FFF6EF`, samma ton som
+köpguidernas sektion på startsidan). ☠️ **Helt vitt prövades först och föll**
+(Leonard: "Stopp, tycker vit passar för fyndauktionen??"): korten är vita och
+tappade kontrasten, och scenen blev platt. Jag hade läst "passar inte in
+jämfört med våra andra sidor" som "gör den vit som de andra", utan att fråga.
+Frågan var tonen, inte att sidan har en egen värme.
+
+Auktionens första färgsteg står på två ställen som måste vara lika: `.a-stage`
+i `app/globals.css` och `LIGHT[0]` i `components/auction-stage.tsx`. Värmen
+under dagen (07 till 19, och glöden sista timmen) är kvar: det är auktionens
+egen dramaturgi, och den börjar nu från butikens kräm.
+
 ## Köpguiderna på startsidan: en rad med alla inlägg (2026-11-19)
 
 Leonard: "kan du göra så det går att bläddra mellan alla blogginlägg där inte

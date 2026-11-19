@@ -1,9 +1,8 @@
 "use client";
 import { useEffect, useId, useRef, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
-import { KORTASTE_SOKNING, laddaSokIndex, rankaForslagMedAntal, sokexempelFor, sokforslagFor, sokIndexHamtat, type SokTraff as Hit } from "../lib/sok-index";
-import { matchaKategorier } from "../lib/search";
+import { KORTASTE_SOKNING, laddaSokIndex, sokIndexHamtat, type SokTraff as Hit } from "../lib/sok-index";
 import { registreradeKategorier, rentNamn, type SokKategori } from "../lib/sok-kategorier";
 import { harPris, inomPris, prisTal, prisText, tolkaPris } from "../lib/sok-pris";
 import { glomSokningar, kommIhagSokning, senasteSokningar } from "../lib/sok-senaste";
@@ -42,6 +41,30 @@ const RADER_SENASTE = 2;
 const RADER_CHIPS = 1;
 const SOKFORSLAG = 3;
 const SOKEXEMPEL = 6;
+
+// ☠️ SÖKMOTORN LADDAS VID AVSIKT, INTE MED SIDAN (2026-11-19). Rutan ligger i
+// sidhuvudet på varje sida, och rankningen (lib/sok-rankning.ts, som drar in
+// lib/search.ts) var 18 kB minifierat och 7,6 kB gzip i varje sidas
+// JavaScript, för alla besökare, fast de flesta aldrig söker. Nu hämtas den
+// med import() när pekaren eller fingret når rutan, samtidigt som sökindexet,
+// som är mycket större: väntan blir ingen annan än förut.
+//
+// Importera ALDRIG ../lib/search eller ../lib/sok-rankning överst i den här
+// filen. lib/sok-2026-11-19.test.ts fäller om det händer.
+type Motor = typeof import("../lib/sok-rankning");
+let motor: Motor | null = null;
+let motorLofte: Promise<Motor | null> | null = null;
+function laddaMotor(): Promise<Motor | null> {
+  if (motor) return Promise.resolve(motor);
+  if (!motorLofte) {
+    motorLofte = import("../lib/sok-rankning").then(
+      (m) => { motor = m; return m; },
+      // Ett fall (tappat nät) får inte bli permanent: nästa tangent försöker igen.
+      () => { motorLofte = null; return null; },
+    );
+  }
+  return motorLofte;
+}
 
 const Lupp = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -85,6 +108,8 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   // och under de 0,5–0,8 s /sok tar att svara syntes ingenting alls.
   const [skickad, setSkickad] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
+  const forraSida = useRef<string | null>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   // Värdet från den SENASTE tangenten. Se onType.
@@ -99,6 +124,28 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     document.addEventListener("keydown", onKey);
     return () => { document.removeEventListener("mousedown", onDoc); document.removeEventListener("keydown", onKey); };
   }, []);
+
+  // SÖKORDET STÅR KVAR I RUTAN PÅ RESULTATSIDAN (2026-11-19), också efter en
+  // omladdning, en delad länk eller bakåtknappen: där vill man kunna ändra sin
+  // sökning. Lämnar man resultatsidan börjar rutan om. Värdet läses ur
+  // adressen i en effekt, inte med useSearchParams: den hade tvingat varje
+  // statisk sida att vänta på webbläsaren för att rita sidhuvudet.
+  useEffect(() => {
+    const el = inputRef.current;
+    const iAdressen = () => (window.location.pathname === "/sok" ? (new URLSearchParams(window.location.search).get("q") ?? "").trim() : "");
+    const fran = forraSida.current;
+    forraSida.current = pathname;
+    const harFokus = () => document.activeElement === el;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- adressen finns bara i webbläsaren
+    // Bara när rutan är tom: det kunden själv skriver skrivs aldrig över.
+    if (pathname === "/sok") { const t = iAdressen(); if (t && el && !el.value) setQ(t); }
+    // Också med fokus kvar i rutan: ordet hörde till sidan man lämnade.
+    else if (fran === "/sok") { if (el) el.value = ""; setQ(""); }
+    // Bakåt och framåt mellan två sökningar byter adress men inte sida.
+    const onPop = () => window.setTimeout(() => { const t = iAdressen(); if (t && !harFokus()) setQ(t); }, 0);
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [pathname]);
 
   // Tokeniserad, stam-medveten matchning (lib/search): "knivset" → knivhållare,
   // "halsband" → kedjehalsband. Sorteras på relevans (namn-score), inte katalogordning.
@@ -127,13 +174,17 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     // Priset läses ur sökningen och sökorden rankas utan det (lib/sok-pris.ts).
     const pris = tolkaPris(term);
     // Kategorierna först: de finns redan i sidan, också medan indexet hämtas.
-    setKat(term.length >= KORTASTE_SOKNING ? matchaKategorier(pris.fraga, registreradeKategorier(), KATEGORIFORSLAG) : []);
-    if (!sokIndexHamtat()) setLaddar(true);
-    const idx = await laddaSokIndex();
+    // De behöver bara motorn, som är liten och kommer långt före indexet.
+    const kategorierFor = (m: Motor) => m.matchaKategorier(pris.fraga, registreradeKategorier(), KATEGORIFORSLAG);
+    if (term.length < KORTASTE_SOKNING) setKat([]);
+    else if (motor) setKat(kategorierFor(motor));
+    else void laddaMotor().then((m) => { if (m && senaste.current === val) setKat(kategorierFor(m)); });
+    if (!sokIndexHamtat() || !motor) setLaddar(true);
+    const [idx, m] = await Promise.all([laddaSokIndex(), laddaMotor()]);
     if (senaste.current !== val) return; // en nyare tangent tar över
     setLaddar(false);
-    setIndexFel(!idx);
-    if (!idx) {
+    setIndexFel(!idx || !m);
+    if (!idx || !m) {
       setHits([]);
       setTotalt(0);
       setForslag([]);
@@ -144,15 +195,15 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
       setHits([]);
       setTotalt(0);
       setForslag([]);
-      setExempel(sokexempelFor(idx, SOKEXEMPEL));
+      setExempel(m.sokexempelFor(idx, SOKEXEMPEL));
       setPopular(inStockOnly(idx).slice(0, SUGGESTION_COUNT));
       return;
     }
     // Med ett pris i sökningen är det sista ordet ett tal, inget att fylla i.
-    setForslag(harPris(pris) ? [] : sokforslagFor(idx, term, SOKFORSLAG));
+    setForslag(harPris(pris) ? [] : m.sokforslagFor(idx, term, SOKFORSLAG));
     // De mest relevanta, slutsålda sist (ordningen förklaras i lib/sok-index.ts).
     // Med ett pris i sökningen gallras träffarna före klippet.
-    const svar = rankaForslagMedAntal(idx, pris.fraga, SUGGESTION_COUNT, harPris(pris) ? (h) => inomPris(pris, prisTal(h.p)) : undefined);
+    const svar = m.rankaForslagMedAntal(idx, pris.fraga, SUGGESTION_COUNT, harPris(pris) ? (h) => inomPris(pris, prisTal(h.p)) : undefined);
     setHits(svar.traffar);
     setTotalt(svar.totalt);
   };
@@ -164,17 +215,27 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   // väntade. Nu öppnas den direkt; är indexet redan hämtat (vanligt, tack vare
   // förhämtningen nedan) fylls den i samma andetag, annars när svaret kommer.
   const onFocus = async () => {
+    // ☠️ STÅR DET REDAN ETT ORD I RUTAN ska förslagen gälla det ordet. Rutan
+    // kan ha fått sitt ord utan att förslagen räknats: ur adressen på
+    // resultatsidan, eller skrivet före hydreringen. Då visade panelen "Inga
+    // produkter matchade" om ett ord med hundratals träffar.
+    const skrivet = inputRef.current?.value ?? "";
+    if (skrivet.trim().length >= KORTASTE_SOKNING) {
+      setTidigare(senasteSokningar());
+      await onType(skrivet);
+      return;
+    }
     setOpen(true);
     setSkickad(false);
     setTidigare(senasteSokningar());
-    if (!sokIndexHamtat()) setLaddar(true);
-    const idx = await laddaSokIndex();
+    if (!sokIndexHamtat() || !motor) setLaddar(true);
+    const [idx, m] = await Promise.all([laddaSokIndex(), laddaMotor()]);
     setLaddar(false);
-    setIndexFel(!idx);
+    setIndexFel(!idx || !m);
     // Populära visas bara med tomt fält (showing), så de kan sättas oavsett.
-    if (idx) {
+    if (idx && m) {
       setPopular(inStockOnly(idx).slice(0, SUGGESTION_COUNT));
-      setExempel(sokexempelFor(idx, SOKEXEMPEL));
+      setExempel(m.sokexempelFor(idx, SOKEXEMPEL));
     }
   };
 
@@ -197,7 +258,11 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   // når rutan (desktop, ofta hundratals ms före klicket) och touchstart när
   // fingret landar (mobil, före focus). laddaSokIndex() är idempotent — flera
   // anrop delar samma inflight-löfte.
-  const onIntent = () => { void laddaSokIndex(); };
+  // Motorn hämtas samtidigt, och ordförrådet byggs när webbläsaren har en ledig
+  // stund, så att det oftast är klart före första tangenten.
+  const onIntent = () => {
+    void Promise.all([laddaSokIndex(), laddaMotor()]).then(([idx, m]) => { if (idx && m) m.varmUpp(idx); });
+  };
 
   // Det som faktiskt renderas i listan: sökträffar om man skrivit ≥2 tecken,
   // annars populära produkter.
@@ -230,7 +295,9 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   const goSearch = (vald?: string) => {
     const t = (vald ?? inputRef.current?.value ?? q).trim();
     if (!t) return;
-    if (vald) setQ(vald);
+    // Ett valt förslag (chip) blir rutans ord, och förslagen räknas om för
+    // det: annars stod listan för det gamla ordet kvar nästa gång rutan öppnades.
+    if (vald) void onType(vald);
     setTidigare(kommIhagSokning(t));
     setSkickad(true);
     onNavigate?.();
@@ -238,10 +305,17 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   };
 
   // Krysset: töm rutan och visa det tomma lägets förslag, med fokus kvar.
+  //
+  // ☠️ RUTAN TÖMS I DOM FÖRST. Fokus läser rutans värde (se onFocus), och React
+  // har inte hunnit skriva det tömda värdet när focus() anropas här: utan
+  // raden räknade fokus om förslagen för det gamla ordet och skrev tillbaka
+  // det, så krysset gjorde ingenting. Provet i webbläsaren fångade det.
   const rensa = () => {
+    const el = inputRef.current;
+    if (el) el.value = "";
     void onType("");
     setTidigare(senasteSokningar());
-    inputRef.current?.focus();
+    el?.focus();
   };
 
   // Panelen syns när den är öppen, utom när en skickad sökning har landat.
