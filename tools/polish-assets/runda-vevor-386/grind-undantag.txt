@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger måtten som egna rader utan namn på axlarna: *Produktmått* (84 x 60,5 x 163,5 cm på kattburen och 762 x 457 x 914 mm på köksvagnen); måtten skrivs i källans form som egna rader

@@ -1,0 +1,3 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+b651061e 2 två behållare: räknade på fotona (två grå behållare på ramen), och källan skriver 35QT+35QT och dubbel soptunna
