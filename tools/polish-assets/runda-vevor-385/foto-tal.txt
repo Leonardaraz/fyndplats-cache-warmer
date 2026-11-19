@@ -1,0 +1,3 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+0f83fb74 5 fack räknade på fotona: tre fack överst och två i sidokolonnen; källan anger antal hyllor 2 och titeln 2-vånings
