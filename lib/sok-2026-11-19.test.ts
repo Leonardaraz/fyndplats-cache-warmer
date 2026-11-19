@@ -194,11 +194,11 @@ test('ett sökord skrivet ihop träffar över bindestrecket, också bredvid andr
 
 // ── Kategorier ───────────────────────────────────────────────────────────────
 const KATEGORIER = [
-  "Möbler", "Soffor & bäddsoffor", "Fåtöljer", "Snurr­fåtöljer", "Soffbord & småbord", "TV-bänkar", "Byråer", "Speglar",
+  "Möbler", "Soffor & bäddsoffor", "Fåtöljer", "Snurr\u00adfåtöljer", "Soffbord & småbord", "TV-bänkar", "Byråer", "Speglar",
   "Belysning", "Golvlampor", "Utemöbler", "Trädgård", "Soptunnor", "Odlingslådor", "Klösträd", "Hundburar", "Hundkojor",
-  "Kontors­stolar", "Julgranar", "Jul­dekoration", "Leksaker & Spel", "Barn", "Elbilar för barn",
+  "Kontors\u00adstolar", "Julgranar", "Jul\u00addekoration", "Leksaker & Spel", "Barn", "Elbilar för barn",
 ].map((name) => ({ name, slug: name.toLowerCase() }));
-const kat = (q: string) => matchaKategorier(q, KATEGORIER).map((k) => k.name.replace(/­/g, ""));
+const kat = (q: string) => matchaKategorier(q, KATEGORIER).map((k) => k.name.replace(/\u00ad/g, ""));
 
 test("kategorinamnen står i plural: soffa, fåtölj, spegel och byrå hittar sina", () => {
   assert.deepEqual(kat("soffa"), ["Soffor & bäddsoffor"]);

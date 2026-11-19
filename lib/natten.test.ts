@@ -422,7 +422,9 @@ describe("studiobandet på listsidorna", () => {
   });
 
   it("/sok och /blogg har rubriken i bandet", () => {
-    for (const f of ["app/sok/page.tsx", "app/blogg/page.tsx"]) {
+    // Söksidans band står i components/sok-vy.tsx sedan 2026-11-19: sidan har två
+    // vägar (varm och kall katalog) som ritar samma vy.
+    for (const f of ["components/sok-vy.tsx", "app/blogg/page.tsx"]) {
       assert.match(las(f), /<section className="sidtopp">\s*<div className="container">\s*<div className="sechead">/, f);
     }
   });

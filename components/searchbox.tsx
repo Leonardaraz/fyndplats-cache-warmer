@@ -3,12 +3,21 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { KORTASTE_SOKNING, laddaSokIndex, rankaForslag, sokIndexHamtat, type SokTraff as Hit } from "../lib/sok-index";
+import { matchaKategorier } from "../lib/search";
+import { registreradeKategorier, rentNamn, type SokKategori } from "../lib/sok-kategorier";
 
 // Hur många förslag vi visar (sökträffar + tomt-fält-lägets populära). 7, inte
 // 8: på mobil täckte Safaris bottenmeny "Visa alla resultat"-knappen när listan
 // blev för hög. Bältet+hängslen: .sugg är dessutom max-height-cappad (dvh) med
 // knappen sticky i botten, så den är klickbar även på låga skärmar.
 const SUGGESTION_COUNT = 7;
+
+// KATEGORIER I FÖRSLAGEN (2026-11-19). "utemöbler" gav sju varor, fyra av dem
+// skyddsöverdrag, och ingen väg till kategorin med hundratals. Kategorierna
+// vars namn matchar står nu överst, högst två, och tar plats från varorna så
+// att listan inte blir högre än förut (se SUGGESTION_COUNT). De kommer ur
+// menyns träd (lib/sok-kategorier.ts) och behöver inte vänta på sökindexet.
+const KATEGORIFORSLAG = 2;
 
 // "Populära produkter" (tomt sökfält) är BLÄDDRING, inte sökning — där ska
 // slutsålt aldrig med, precis som i kategorierna. Skrivna sökningar behåller dem
@@ -19,6 +28,7 @@ const inStockOnly = (hits: Hit[]) => hits.filter((h) => !h.o);
 export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<Hit[]>([]);
+  const [kat, setKat] = useState<SokKategori[]>([]);
   const [popular, setPopular] = useState<Hit[]>([]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
@@ -74,6 +84,8 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     setOpen(true);
     setSkickad(false);
     const term = val.trim();
+    // Kategorierna först: de finns redan i sidan, också medan indexet hämtas.
+    setKat(term.length >= KORTASTE_SOKNING ? matchaKategorier(term, registreradeKategorier(), KATEGORIFORSLAG) : []);
     if (!sokIndexHamtat()) setLaddar(true);
     const idx = await laddaSokIndex();
     if (senaste.current !== val) return; // en nyare tangent tar över
@@ -89,7 +101,7 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
       setPopular(inStockOnly(idx).slice(0, SUGGESTION_COUNT));
       return;
     }
-    // De 7 mest relevanta, slutsålda sist (ordningen förklaras i lib/sok-index.ts).
+    // De mest relevanta, slutsålda sist (ordningen förklaras i lib/sok-index.ts).
     setHits(rankaForslag(idx, term, SUGGESTION_COUNT));
   };
 
@@ -133,11 +145,16 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
 
   // Det som faktiskt renderas i listan: sökträffar om man skrivit ≥2 tecken,
   // annars populära produkter.
-  const showing: Hit[] = q.trim().length >= 2 ? hits : popular;
   const isPopular = q.trim().length < 2;
+  const kategorier = isPopular ? [] : kat;
+  // Kategoriraderna tar plats från varorna: listan är lika hög som förut.
+  const showing: Hit[] = isPopular ? popular : hits.slice(0, SUGGESTION_COUNT - kategorier.length);
+  // Piltangenterna går över kategorierna först, sedan varorna.
+  const rader = kategorier.length + showing.length;
 
   // onNavigate stänger ev. förälder (mobilmenyn) när vi navigerar bort.
   const goProduct = (slug: string) => { setOpen(false); setQ(""); onNavigate?.(); router.push(`/produkt/${slug}`); };
+  const goKategori = (slug: string) => { setOpen(false); setQ(""); onNavigate?.(); router.push(`/kategori/${slug}`); };
   // BLÅ "GÅ"-KNAPPEN SÅG DÖD UT. /sok är en dynamisk route utan cache — uppmätt
   // i produktion 2026-08-29: cache-control "private, no-cache, no-store",
   // x-vercel-cache MISS varje gång, TTFB 0,50–0,78 s. Under den halvsekunden
@@ -163,14 +180,15 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (visas && active >= 0 && showing[active]) goProduct(showing[active].s);
+    if (visas && active >= 0 && active < kategorier.length) goKategori(kategorier[active].slug);
+    else if (visas && active >= kategorier.length && showing[active - kategorier.length]) goProduct(showing[active - kategorier.length].s);
     else goSearch();
   };
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") { setOpen(false); return; }
-    if (!visas || showing.length === 0) return;
-    if (e.key === "ArrowDown") { e.preventDefault(); setActive((a) => Math.min(a + 1, showing.length - 1)); }
+    if (!visas || rader === 0) return;
+    if (e.key === "ArrowDown") { e.preventDefault(); setActive((a) => Math.min(a + 1, rader - 1)); }
     else if (e.key === "ArrowUp") { e.preventDefault(); setActive((a) => Math.max(a - 1, -1)); }
   };
 
@@ -193,6 +211,8 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     }
     if (showing.length > 0) return alla(<>Visa alla resultat för “{term}” →</>);
     if (soker) return <div className="sugg-empty">Söker…</div>;
+    // Inga varor i namnet, men en kategori ovanför: säg det utan att låta som en återvändsgränd.
+    if (!laddar && !indexFel && kategorier.length > 0) return <div className="sugg-empty">Inga varor har “{term}” i namnet. Titta i kategorin ovan.</div>;
     if (laddar) return <><div className="sugg-empty">Söker…</div>{alla(<>Visa alla resultat för “{term}” →</>)}</>;
     if (indexFel) {
       return <><div className="sugg-empty">Förslagen kunde inte laddas just nu.</div>{alla(<>Sök efter “{term}” i hela butiken →</>)}</>;
@@ -241,7 +261,26 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
           {isPopular && showing.length > 0 && (
             <div className="sugg-head">Populära produkter</div>
           )}
-          {showing.map((h, i) => (
+          {kategorier.length > 0 && <div className="sugg-head">Kategorier</div>}
+          {kategorier.map((k, j) => (
+            <a
+              key={k.slug}
+              href={`/kategori/${k.slug}`}
+              className={`sugg-item sugg-kat ${j === active ? "active" : ""}`}
+              onClick={(e) => { e.preventDefault(); goKategori(k.slug); }}
+              onMouseEnter={() => setActive(j)}
+              role="option"
+              aria-selected={j === active}
+            >
+              <span className="sugg-kat-ikon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg>
+              </span>
+              <span className="sugg-name">{rentNamn(k.name)}</span>
+              <span className="sugg-kat-pil" aria-hidden="true">→</span>
+            </a>
+          ))}
+          {kategorier.length > 0 && showing.length > 0 && <div className="sugg-head">Varor</div>}
+          {showing.map((h, hi) => { const i = hi + kategorier.length; return (
             <a
               key={h.s}
               href={`/produkt/${h.s}`}
@@ -261,7 +300,7 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
               </span>
               {h.p && <span className="sugg-price">{h.p}</span>}
             </a>
-          ))}
+          ); })}
           {fot()}
         </div>
       )}

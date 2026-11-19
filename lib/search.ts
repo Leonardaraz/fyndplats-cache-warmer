@@ -350,49 +350,77 @@ export function fuzzyOrdslut(pattern: string, text: string, maxDist: number): nu
   const m = pattern.length;
   const n = text.length;
   if (m === 0) return 0;
-  const bokstav: boolean[] = new Array(n);
-  for (let j = 0; j < n; j++) bokstav[j] = BOKSTAV.test(text[j]);
-  let prevPrev: number[] = new Array(n + 1).fill(0);
-  let prev: number[] = new Array(n + 1).fill(0); // rad 0: fri start överallt
+  let best = Infinity;
+  // Ett ord i taget. De flesta ord faller på längden eller på att de delar
+  // för få teckenpar med sökordet, och får aldrig någon tabell: stavfelsledet
+  // körs vid varje tangent i sökrutan (☠️ 2026-10-14: ~300 ms på en telefon).
+  for (let a = 0; a < n; ) {
+    if (!BOKSTAV.test(text[a])) { a++; continue; }
+    let b = a + 1;
+    while (b < n && BOKSTAV.test(text[b])) b++;
+    if (b - a >= m - maxDist && b - a < RAD_MAX) {
+      const d = ordslutAvstand(pattern, text, a, b, maxDist);
+      if (d < best) best = d;
+      if (best === 0) return 0;
+    }
+    a = b;
+  }
+  return best <= maxDist ? best : Infinity;
+}
+
+// Tabellens rader, återanvända mellan anropen (ett ord är aldrig så långt).
+const RAD_MAX = 96;
+let radA = new Int32Array(RAD_MAX + 1);
+let radB = new Int32Array(RAD_MAX + 1);
+let radC = new Int32Array(RAD_MAX + 1);
+
+/** fuzzyOrdslut för ETT ord, text[a..b). */
+function ordslutAvstand(pattern: string, text: string, a: number, b: number, maxDist: number): number {
+  const m = pattern.length;
+  const L = b - a;
+  // Ett fel kan förstöra högst tre teckenpar (en omkastning). Delar ordet
+  // färre par med sökordet än så lämnar kvar finns ingen träff att hitta.
+  const kravPar = m - 1 - 3 * maxDist;
+  if (kravPar > 0) {
+    let par = 0;
+    for (let i = 0; i + 1 < m && par < kravPar; i++) {
+      const j = text.indexOf(pattern[i] + pattern[i + 1], a);
+      if (j >= 0 && j + 1 < b) par++;
+    }
+    if (par < kravPar) return Infinity;
+  }
+  let prevPrev = radA, prev = radB, cur = radC;
+  for (let j = 0; j <= L; j++) prev[j] = 0; // rad 0: fri start var som helst i ordet
   for (let i = 1; i <= m; i++) {
-    const cur: number[] = new Array(n + 1);
     cur[0] = i;
-    for (let j = 1; j <= n; j++) {
-      // Väggen: en träff som slutar på ett skiljetecken har inte tagit något
-      // av texten, alltså i infogningar.
-      if (!bokstav[j - 1]) {
-        cur[j] = i;
-        continue;
-      }
-      const cost = pattern[i - 1] === text[j - 1] ? 0 : 1;
-      let v = Math.min(prev[j - 1] + cost, prev[j] + 1, cur[j - 1] + 1);
-      if (i > 1 && j > 1 && bokstav[j - 2] && pattern[i - 1] === text[j - 2] && pattern[i - 2] === text[j - 1]) {
-        v = Math.min(v, prevPrev[j - 2] + 1); // transposition
-      }
+    const pc = pattern[i - 1];
+    for (let j = 1; j <= L; j++) {
+      const tc = text[a + j - 1];
+      let v = prev[j - 1] + (pc === tc ? 0 : 1);
+      if (prev[j] + 1 < v) v = prev[j] + 1;
+      if (cur[j - 1] + 1 < v) v = cur[j - 1] + 1;
+      if (i > 1 && j > 1 && pc === text[a + j - 2] && pattern[i - 2] === tc && prevPrev[j - 2] + 1 < v) v = prevPrev[j - 2] + 1; // omkastning
       cur[j] = v;
     }
-    prevPrev = prev;
-    prev = cur;
+    const t = prevPrev; prevPrev = prev; prev = cur; cur = t;
   }
   let best = Infinity;
-  for (let j = 1; j <= n; j++) {
-    if (prev[j] >= best || !bokstav[j - 1]) continue;
+  for (let j = 1; j <= L; j++) {
+    if (prev[j] >= best || prev[j] > maxDist) continue;
     // Resten av ordet efter träffen: tomt, en böjningsändelse, eller högst två
     // bokstäver ("konstgjor|da", "justerbar|t"). Mätt på 592 felstavningar av
     // katalogens vanligaste första ord 2026-11-19.
-    let slut = j;
-    while (slut < n && bokstav[slut]) slut++;
-    if (slut - j > 2 && !BOJNING.has(text.slice(j, slut))) continue;
+    if (L - j > 2 && !BOJNING.has(text.slice(a + j, b))) continue;
     // Första bokstaven ska stämma. "cyckel" låg lika nära "nyckel" i
     // "momentnyckel" som "cykel" i "motionscykel". Träffen är m tecken lång,
     // plus eller minus felen, så början ligger inom maxDist från j − m.
     let borjanStammer = false;
     for (let st = Math.max(0, j - m - maxDist); st <= j - m + maxDist && st < j; st++) {
-      if (text[st] === pattern[0] && bokstav[st]) { borjanStammer = true; break; }
+      if (text[a + st] === pattern[0]) { borjanStammer = true; break; }
     }
     if (borjanStammer) best = prev[j];
   }
-  return best <= maxDist ? best : Infinity;
+  return best;
 }
 
 // ── Utan prickar och sammanskrivet ───────────────────────────────────────────

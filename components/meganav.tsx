@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { registreraKategorier } from "../lib/sok-kategorier";
 import type { CategoryNode } from "../lib/category-groups";
 import { AuctionDot } from "./auction-dot";
 import { productCountLabel } from "../lib/rating";
@@ -48,6 +49,8 @@ function shortLabel(name: string): string {
 const FOTO_BREDD = 496;
 
 export function MegaNav({ tree, hasBlog, hasSale }: { tree: CategoryNode[]; hasBlog?: boolean; hasSale?: boolean }) {
+  // Sökrutan föreslår kategorier ur samma träd (lib/sok-kategorier.ts).
+  registreraKategorier(tree);
   const [active, setActive] = useState<number | null>(null);
   // Sant när man flyttar från en öppen panel till en annan. Då ska panelen inte
   // glida in igen: förut bytte samma element bara innehåll, och animationen
