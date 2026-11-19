@@ -58,8 +58,11 @@ test("synonym: flerord (kids + stol) — exakt + synonym viktas ihop", () => {
 
 // ── Stavfelstolerans ─────────────────────────────────────────────────────────
 test("stavfel: cyckel → cykel (~36, under synonym)", () => {
-  const s = nameScore("Elektrisk cykelpump 150 PSI", "cyckel");
+  const s = nameScore("Elcykel 250 W med avtagbart batteri", "cyckel");
   assert.equal(s, 36);
+  // Ett stavfel träffar ordets SLUT (2026-11-19): "cykel" är huvudet i
+  // "elcykel", men i "cykelpump" är det pumpen som är varan.
+  assert.equal(nameScore("Elektrisk cykelpump 150 PSI", "cyckel"), 0);
 });
 
 test("stavfel: transposition sdael → sadel", () => {
@@ -67,7 +70,7 @@ test("stavfel: transposition sdael → sadel", () => {
 });
 
 test("stavfel: insättning förvaering → förvaring", () => {
-  assert.ok(nameScore("Förvaringsbox med lock", "förvaering") > 0);
+  assert.ok(nameScore("Sittbänk med förvaring och lock", "förvaering") > 0);
 });
 
 test("stavfel gäller inte för korta tokens (<5)", () => {
@@ -101,7 +104,7 @@ test("precision: hund matchar inte orelaterat via kort engelsk synonym", () => {
 test("rankning: exakt (100) > synonym (51) > stavfel (36)", () => {
   const exact = nameScore("MTB cykelhjälm", "mtb");     // "mtb" som delsträng → 100
   const synonym = nameScore("Cykelhjul 20 tum", "mtb"); // via synonym → 51
-  const typo = nameScore("Elektrisk cykelpump", "cyckel"); // via stavfel → 36
+  const typo = nameScore("Elcykel med 250 W motor", "cyckel"); // via stavfel → 36
   assert.equal(exact, 100);
   assert.equal(synonym, 51);
   assert.equal(typo, 36);
@@ -262,14 +265,16 @@ test("småord krävs inte i namnet, men 'utan' gör det", () => {
 
 test("ordgränsen ordnar likvärdiga träffar: ordets huvud, sedan ordets början", () => {
   const tv = ["Viktväst 30 kg med 35 avtagbara viktpåsar", "Två viktskivor på 5 kg", "TV-bänk 160 cm med RGB-LED"];
-  assert.deepEqual(rankByName(tv, (n) => n, "tv"), [tv[2], tv[1], tv[0]]);
+  // Ett kort ord står för sig (2026-11-19): "tv" är inte "två" eller "viktväst".
+  assert.deepEqual(rankByName(tv, (n) => n, "tv"), [tv[2]]);
   const bord = ["Bordslampa med keramikfot", "Matbord 110 × 70 cm för fyra"];
   assert.deepEqual(rankByName(bord, (n) => n, "bord"), [bord[1], bord[0]]);
   // Ett kort sökord är huvud bara som eget ord: "grupp" slutar på "upp".
   const upp = ["Loungegrupp i konstrotting", "Hundvagn upp till 4 kg", "Uppblåsbar jultomte 120 cm"];
   assert.deepEqual(rankByName(upp, (n) => n, "upp"), [upp[1], upp[2], upp[0]]);
-  // Mängden ändras aldrig, bara ordningen.
-  assert.equal(rankByName(tv, (n) => n, "tv").length, 3);
+  // Ordgränsen ändrar aldrig mängden, bara ordningen.
+  assert.equal(rankByName(upp, (n) => n, "upp").length, 3);
+  assert.equal(rankByName(bord, (n) => n, "bord").length, 2);
 });
 
 // Definitionen i ett varv: allt räknas med stavfelstolerans (nameMatch), och
@@ -439,12 +444,15 @@ test("ett stavfel före två: elkammin hittar elkaminer, inte melamin och kammar
     "Fladdermusholk med tre kammare och svart tak",
     "Elkamin med mantel och vedhylla – tresidigt glas",
   ];
-  // Alla tre ligger inom två fel från "elkammin".
-  for (const n of namn) assert.equal(nameMatch(n, "elkammin").stavfel, true, n);
+  // "melamin" ligger två fel från "elkammin". "kammare" gjorde det förut bara
+  // över ett mellanslag ("tre kammare"), och ett stavfel ligger sedan
+  // 2026-11-19 i ETT ord.
+  assert.equal(nameMatch(namn[0], "elkammin").fel, 2);
+  assert.equal(nameMatch(namn[1], "elkammin").score, 0);
   assert.equal(nameMatch(namn[2], "elkammin").fel, 1);
   assert.deepEqual(rankByName(namn, (n) => n, "elkammin"), [namn[2]]);
-  // Utan någon träff med ett fel visas de med två, som förut.
-  assert.deepEqual(rankByName(namn.slice(0, 2), (n) => n, "elkammin").length, 2);
+  // Utan någon träff med ett fel visas den med två, som förut.
+  assert.deepEqual(rankByName(namn.slice(0, 2), (n) => n, "elkammin"), [namn[0]]);
 });
 
 test("sammansatt sökord: barnbil hittar bilarna för barn, inte barnbokhyllan", () => {
@@ -460,10 +468,12 @@ test("sammansatt sökord: barnbil hittar bilarna för barn, inte barnbokhyllan",
   // Utan prickar också: "barnsang" är barn och säng.
   assert.deepEqual(rankByName(["Säng för barn 140 cm", namn[0]], (n) => n, "barnsang"), ["Säng för barn 140 cm"]);
   // En del som inte är ett eget ord i något namn är inte känd ("barn" står
-  // här bara i "barnbokhylla"): stavfelsledet svarar som förut.
-  assert.deepEqual(rankByName([namn[0], namn[1], namn[4]], (n) => n, "barnbil"), [namn[0], namn[1]]);
-  // Båda orden är kända, men ingen vara har båda: också som förut.
-  assert.deepEqual(rankByName([namn[0], namn[1], namn[4], "Pall för barn"], (n) => n, "barnbil"), [namn[0], namn[1]]);
+  // här bara i "barnbokhylla"), så ordet delas inte. Förut svarade
+  // stavfelsledet då med barnbokhyllan och viltvagnen; sedan 2026-11-19 ska
+  // ett stavfel träffa ordets slut, och svaret är ärligt tomt.
+  assert.deepEqual(rankByName([namn[0], namn[1], namn[4]], (n) => n, "barnbil"), []);
+  // Båda orden är kända, men ingen vara har båda: också tomt.
+  assert.deepEqual(rankByName([namn[0], namn[1], namn[4], "Pall för barn"], (n) => n, "barnbil"), []);
 });
 
 test("sammansatt sökord: ett ord med ett stavfel delas aldrig", () => {
