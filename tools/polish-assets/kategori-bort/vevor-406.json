@@ -1,0 +1,41 @@
+{
+ "namn": "vevor-406",
+ "rader": [
+  {
+   "kort": "3bcf1ae4",
+   "pid": "3bcf1ae4-e652-4484-ac22-35387c19b85a",
+   "bort": [
+    "Husdjur > Hundbäddar & hundsoffor"
+   ],
+   "behall": [
+    "Husdjur",
+    "Husdjur > Klösträd",
+    "Husdjur > Katthus"
+   ]
+  },
+  {
+   "kort": "b5d582d5",
+   "pid": "b5d582d5-94a9-4fb9-aa0a-ea5094d9b76c",
+   "bort": [
+    "Husdjur > Hundbäddar & hundsoffor"
+   ],
+   "behall": [
+    "Husdjur",
+    "Husdjur > Klösträd",
+    "Husdjur > Katthus"
+   ]
+  },
+  {
+   "kort": "b40d4d3d",
+   "pid": "b40d4d3d-0c32-42e8-8164-aeadb9562af6",
+   "bort": [
+    "Husdjur > Hundbäddar & hundsoffor"
+   ],
+   "behall": [
+    "Husdjur",
+    "Husdjur > Klösträd",
+    "Husdjur > Katthus"
+   ]
+  }
+ ]
+}
