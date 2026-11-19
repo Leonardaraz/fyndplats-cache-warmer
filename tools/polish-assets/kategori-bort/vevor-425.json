@@ -1,0 +1,31 @@
+{
+  "namn": "vevor-425",
+  "rader": [
+    {
+      "kort": "94cd649a",
+      "pid": "94cd649a-e921-4e06-93d2-daaa858c36f1",
+      "bort": [
+        "Bil & Garage > Bilverktyg",
+        "Bil & Garage"
+      ],
+      "behall": [
+        "Verktyg & Maskiner",
+        "Verktyg & Maskiner > Handverktyg",
+        "Bygg & Renovering",
+        "Bygg & Renovering > VVS & vatten"
+      ]
+    },
+    {
+      "kort": "85d93d55",
+      "pid": "85d93d55-f253-41ed-897a-7a8f5972f128",
+      "bort": [
+        "Trädgård & Utemöbler > Trädgårdsmaskiner",
+        "Trädgård & Utemöbler"
+      ],
+      "behall": [
+        "Bil & Garage",
+        "Bil & Garage > Elbilsladdning & solenergi"
+      ]
+    }
+  ]
+}

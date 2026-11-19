@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py sidornas mått står i källans måttbilder, som ritar måtten med pilar (solpanelen: höjd, bredd och tjocklek, de andra med mått utan axelord), medan specifikationsraderna i källan saknar axelord eller saknar måttrader, och sidorna skriver axelorden bara där bilden ritar dem
