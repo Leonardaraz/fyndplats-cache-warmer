@@ -1,0 +1,6 @@
+# <kort> <skäl> — se bygg-media.py
+61c87adc källposition 3 är ett vanligt foto (byrån med en tavla, en liten högtalare, böcker och en vas ovanpå), inte en måttbild; galleriet behåller källordningen
+f40c51b0 källposition 3 är ett vanligt foto (byrån snett framifrån med en lampa, böcker, en kopp och en kalender ovanpå), inte en måttbild; galleriet behåller källordningen
+120965e1 källposition 3 är ett vanligt foto (terrängbilen med uppfällt taktält och en teleskopstege), inte en måttbild; galleriet behåller källordningen
+69305f4c källposition 3 är ett vanligt foto (terrängbilen med öppet taktält, utfällda markiser och en stege), inte en måttbild; position 5 stryks (samma foto som på de två andra taktältssidorna); övriga positioner behåller källordningen
+aad32f77 källposition 3 är ett vanligt foto (terrängbilen med kilformat taktält och en teleskopstege), inte en måttbild; position 5 stryks (samma foto som på de två andra taktältssidorna); övriga positioner behåller källordningen

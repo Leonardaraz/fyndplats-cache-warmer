@@ -1,0 +1,18 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+120965e1 8 skjutblock, långa skruvar och låsmuttrar enligt tabellen i källans bild
+120965e1 4 ändlock, monteringsfästen och stödstänger enligt tabellen i källans bild
+120965e1 2 blocknycklar enligt tabellen i källans bild
+120965e1 1 verktygsväska, stege, insexnyckel, sats slitdelar och bruksanvisning enligt tabellen i källans bild
+120965e1 50 mm tjocklek på madrassen enligt källans bild
+69305f4c 8 skjutblock, långa skruvar, låsmuttrar och stödstänger enligt tabellen i källans bild
+69305f4c 4 ändlock och monteringsfästen enligt tabellen i källans bild
+69305f4c 2 blocknycklar enligt tabellen i källans bild
+69305f4c 1 verktygsväska, stege, insexnyckel, sats slitdelar och bruksanvisning enligt tabellen i källans bild
+69305f4c 50 mm tjocklek på madrassen enligt källans bild
+69305f4c 73 kg vikt enligt tabellen i källans bild (160,9 lb), specifikationens rad säger 50 kg
+aad32f77 8 skjutblock, långa skruvar och låsmuttrar enligt tabellen i källans bild
+aad32f77 4 ändlock och monteringsfästen enligt tabellen i källans bild
+aad32f77 2 stödstänger och blocknycklar enligt tabellen i källans bild
+aad32f77 1 sats slitdelar, bruksanvisning, verktygsväska, stege och insexnyckel enligt tabellen i källans bild
+aad32f77 50 mm tjocklek på madrassen enligt källans bild

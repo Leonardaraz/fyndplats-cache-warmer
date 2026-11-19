@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger måtten som en egen rad utan namn på axlarna (*Produktmått 15,7 x 47,2 x 31 tum / 39,9 x 119,9 x 78,7 cm* i ordningen djup, bredd, höjd, och *Öppna mått* och *Stängda mått* på taktälten); byrornas axlar avgörs av måttritningen i källans bilder och skrivs som bredd, djup och höjd, och taktältens mått skrivs i källans form som egna rader
