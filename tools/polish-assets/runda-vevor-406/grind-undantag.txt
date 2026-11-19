@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad (*Produktmått*, *Hoppplattformens storlek* och de andra raderna) har inga axelord, så sidan skriver TV-bänkarnas bredd, djup och höjd efter måttbildens ritning (bredd 1470 respektive 1480 mm, djup 370 respektive 350 mm och höjd 685 respektive 525 mm) och katthyllornas delmått som källan, utan axelord
