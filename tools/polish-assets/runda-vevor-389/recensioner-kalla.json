@@ -1,0 +1,44 @@
+{
+  "dd9ace1b": {
+    "productId": "dd9ace1b-ea96-4cb5-ab46-1569a62968ae",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "46b6db31": {
+    "productId": "46b6db31-584b-4394-9556-6755ec011387",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "5531d504": {
+    "productId": "5531d504-1915-4bcf-b4a0-677714146ef1",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1tbh7a5",
+        "betyg": 5,
+        "datum": "2026-09-30",
+        "foton": 0,
+        "text": "Très beau et beau son pour le prix et pour une première approche musicale J aurai aimé avoir des partitions de musiques récentes Aus grâce a internet c est assez facile d en trouver"
+      },
+      {
+        "id": "gen-z37azo",
+        "betyg": 5,
+        "datum": "2026-08-29",
+        "foton": 0,
+        "text": "Amazing instrument to buy to play with your kids. The booklet that comes with it makes it easy to follow and sounds beautiful."
+      }
+    ]
+  }
+}
