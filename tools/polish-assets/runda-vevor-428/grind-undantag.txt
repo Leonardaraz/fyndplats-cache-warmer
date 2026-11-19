@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py sidornas mått står som siffror utan axelord i källans specifikationsrader (produktmått med tre tal, hopfälld storlek, panelens, batteriets och regulatorns mått), medan måttbilderna ritar dem med pilar utan att alltid ange axelord, och sidorna skriver dem likadant, utan axelord, så ingen axel påstås

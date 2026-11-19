@@ -1,0 +1,27 @@
+{
+  "namn": "vevor-428",
+  "rader": [
+    {
+      "kort": "7eddc54a",
+      "pid": "7eddc54a-6031-4cbb-8683-ec7a212c8dbe",
+      "bort": [
+        "Verktyg & Maskiner > Elverktyg"
+      ],
+      "behall": [
+        "Verktyg & Maskiner",
+        "Verktyg & Maskiner > Kompressorer & tryckluft"
+      ]
+    },
+    {
+      "kort": "08fc3070",
+      "pid": "08fc3070-645d-4b64-9d0e-4998ec56a4d6",
+      "bort": [
+        "Bil & Garage > Verkstadsutrustning"
+      ],
+      "behall": [
+        "Bil & Garage",
+        "Bil & Garage > Bil & släp"
+      ]
+    }
+  ]
+}
