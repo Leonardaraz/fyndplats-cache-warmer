@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger måtten som en egen rad (*Produktmått*, *Tresitssoffa*, *Tvåsitssoffa* eller *Schäslongens mått*) eller i en måttritning i källans bilder: tresitssoffan och fotpallen skrivs som bredd × djup × höjd i den ordning raderna visar, och den L-formade soffan som längd × bredd × höjd efter måttritningen (2680 × 1650 × 570 mm, där ritningen avgör)

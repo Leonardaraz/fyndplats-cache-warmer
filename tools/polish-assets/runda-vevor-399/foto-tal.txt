@@ -1,0 +1,6 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+65400b1d 2680 mm, produktens längd enligt måttritningen i källans bilder (specifikationsraden säger 2650)
+65400b1d 520 mm, sittdjup med kudde enligt måttritningen i källans bilder (specifikationsraden säger 570)
+65400b1d 720 mm, sittdjup utan kudde enligt måttritningen i källans bilder (specifikationsraden säger 770)
+65400b1d 72 timmar, tiden som soffan kan behöva för att återfå sin form enligt specifikationsbilden

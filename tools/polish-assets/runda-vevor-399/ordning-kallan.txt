@@ -1,0 +1,4 @@
+# <kort> <skäl> — se bygg-media.py
+0867b5a6 källposition 3 är ett vanligt foto (tresitssoffan och tvåsitssoffan bredvid varandra), inte en måttbild; galleriet behåller källordningen
+dd2695e9 källposition 4 stryks (samma foto som position 3); källposition 3 är ett vanligt foto (soffan snett från sidan med fotpallen till höger), inte en måttbild; övriga positioner behåller källordningen
+65400b1d källposition 3 är ett vanligt foto (soffan i två uppställningar), inte en måttbild; galleriet behåller källordningen
