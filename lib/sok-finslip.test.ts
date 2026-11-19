@@ -12,7 +12,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { byggOrdforrad, kategoriPoang, markeringsord, matchaKategorier, normalize, rankaMedForslag, rankaMedInfo, rankByName, sokforslagINamn } from "./search.ts";
+import { byggOrdforrad, kategoriPoang, markeraTraffar, markeringsord, matchaKategorier, normalize, rankaMedForslag, rankaMedInfo, rankByName, sokforslagINamn } from "./search.ts";
 
 const sok = (namn: string[], q: string) => rankByName(namn, (n) => n, q);
 const utfall = (namn: string[], q: string) => rankaMedInfo(namn, (n) => n, q);
@@ -340,6 +340,17 @@ test("markering: böjda former markeras, småord inte", () => {
   // Längst först: "bordslampa" ska inte markeras som bara "bord".
   const ord = markeringsord("bord bordslampa");
   assert.equal(ord.indexOf("bordslampa") < ord.indexOf("bord"), true);
+  // Bitarna på udda platser är träffarna, med sökningens egna spärrar:
+  // ☠️ förr markerades "bar" i "Hopfällbar" och "sänkbara".
+  const bar = markeraTraffar("Hopfällbar bardisk med bärväska – portabel bar", markeringsord("bar"));
+  assert.deepEqual(bar.filter((_, i) => i % 2 === 1), ["bar", "bar"]);
+  assert.equal(bar.join(""), "Hopfällbar bardisk med bärväska – portabel bar");
+  assert.deepEqual(markeraTraffar("Trap bar (hexbar) i svart stål", ["bar"]).filter((_, i) => i % 2 === 1), ["bar", "bar"]);
+  assert.deepEqual(markeraTraffar("Rund spegel med belysning", markeringsord("speglar")).filter((_, i) => i % 2 === 1), ["spegel"]);
+  assert.deepEqual(markeraTraffar("Verktygsvagn i tyg", ["tyg"]).filter((_, i) => i % 2 === 1), ["tyg"]);
+  // Versalerna i namnet står kvar.
+  assert.deepEqual(markeraTraffar("Elkamin med mantel", ["elkamin"]), ["", "Elkamin", " med mantel"]);
+  assert.deepEqual(markeraTraffar("Soffa", []), ["Soffa"]);
 });
 
 test("sökrutan: listboxen bär bara raderna, och har ett eget id per ruta", () => {

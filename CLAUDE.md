@@ -3689,6 +3689,40 @@ dem ("70 × 70", "150 cm", "12 v"). "bred", "djup", "hög" och deras former är
 egenskapsord, och "rea" hör till frågan, inte till varan ("barnkök rea" gav
 julgirlanger med REAlistiska barrgrenar).
 
+**Sökrutan i webbläsaren** (`components/searchbox.tsx`), granskad på dator
+1440 px och mobil 393 px i det lokala bygget:
+- **Listboxen bär bara raderna.** Panelen var en `role="listbox"` med knappar,
+  rubriker och foten i sig, och ett fast id som tre sökrutor delade. Nu har
+  varje ruta sitt eget id, listboxen omsluter bara alternativen (rubrikerna
+  är `presentation`), och antalet träffar läses upp ("35 träffar för elkamin").
+- **Tabb ut ur rutan stänger panelen.** ☠️ Bara när fokus faktiskt landat
+  utanför: på iPhone får ett tryckt förslag inget fokus (`relatedTarget` är
+  null), och stängde vi då försvann förslaget före klicket.
+- **Panelen slutar ovanför telefonens tangentbord.** `100dvh` krymper inte när
+  tangentbordet kommer upp, så foten ("Visa alla 89 resultat") hamnade bakom
+  det. Höjden sätts ur `visualViewport` som `--sok-max`. Mätt med skärmen
+  krympt till 460 px: panelen slutar vid 452 px med foten synlig. ☠️ Inte
+  mätt med ett riktigt tangentbord: det går inte att öppna i provmiljön.
+- **Bokstaven ritas före rankningen.** Var indexet redan hämtat körde
+  rankningen i samma uppgift som tangenten. Med fyrdubbelt strypt processor
+  tog tangentens egen hantering 40–122 ms i snitt och 354 ms som värst (ett
+  felstavat ord); nu 11–13 ms i snitt och 25 ms som värst. Rankningen själv
+  är inte snabbare: ett felstavat ord ger fortfarande långa uppgifter (upp
+  till 390 ms strypt), men de ligger efter att bokstaven ritats, och den som
+  skriver fort slipper rankningen för bokstäverna däremellan.
+- **Markeringen följer sökningen** (`markeraTraffar`): "speglar" markerar
+  "spegel", och "bar" markeras i "bardisk" men inte i "hopfällbar".
+- **Träffytor på pekskärm:** krysset 44 px (28 px att se på), raderna 64 px,
+  foten 45 px.
+- **Kategorierna i panelen** (`kategoriPoang`) hade samma slumpträffar som
+  varorna: "bar" gav Baby & Småbarn, "tyg" Verktyg och "ring" Förvaring.
+  Huvudet i kategorins ord prövas nu med `ordStar`, och "hus" hittar Växthus.
+
+Genomgången är ett skript som går att köra om (61 kontroller: roller,
+tangentbord, tryck, rubriker, söksidans besked). Det ligger inte i grenen:
+det startar en webbläsare mot ett bygge, och butiken har inga sådana prov i
+sin svit.
+
 **Inte gjort, med flit:**
 - Ett sökord på tre bokstäver träffar fortfarande början av längre ord ("bar"
   hittar "barn", men sist). En regel som kräver att resten är ett ord prövades
@@ -4047,6 +4081,24 @@ varor inom två skärmar 0 → 4. Layoutskift och rulltid är oförändrade.
   `mix-blend-mode:normal`, för blandningen är gjord för produktfoton på vit
   botten. Den som ändrar `.prod` ska leta upp ALLA som bär klassen
   (`grep -rn '"prod' app components`), inte bara `ProductCard`.
+
+**På datorn står fotona på vitt i listorna (Leonard 2026-11-19: "bakgrunden
+blir vit igen … det va finare").** När brickan blev grunden fick också
+kategorierna, söket, rean och alla-produkter den varma plattan; före det stod
+deras foton på vitt. Från 881 px har `.pimg` i listorna vit botten och en
+hårfin ram (`var(--line)`), och bilden ritas utan `mix-blend-mode`, för mot
+vitt gör blandningen ingenting. Startsidan (`.hem2`) och /butik med prissidornas
+översikt (`.butik2`) behåller den beige brickan som de alltid haft, liksom
+mobilen (880 px och smalare). Blocket står i `app/globals.css` före
+"Fyndauktionens kort", och `lib/produktkortet.test.ts` vaktar det.
+
+Mätt i det lokala bygget, beräknad stil på varje kort: vitt med ram och
+`normal` på /kategori/…, /sok, /rea, /alla-produkter, /under-1000-kr/mobler
+och i raden med liknande varor på produktsidan (1440 och 1024 px); beige och
+`multiply` på /, /butik och /under-500-kr; beige överallt på 880 och 393 px.
+Lyftet och pilen vid hovring är oförändrade. ☠️ /under-1000-kr/mobler är en
+lista (ShopBrowser) och blev vit, fast översikten /under-500-kr är beige: det
+är samma skillnad som mellan /butik och en kategorisida.
 
 **Rubriktypsnittet på infosidorna.** Sidans huvudrubrik är serif på varje sida
 utom produktsidan och kassan: `.om-hero h1` (tio infosidor) och `.pagehero h1`

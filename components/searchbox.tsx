@@ -480,8 +480,11 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   // VARJE sökord i fetstil. Förut bara hela frasen, så "svart tv-bänk" och
   // "hundbur xl" markerade ingenting. Priset i sökningen räknas inte som ord.
   // Också ordets andra böjningar: "speglar" markerar "spegel" (lib/search.ts,
-  // markeringsord). Motorn är laddad när det finns träffar att markera.
-  const ord = (motor ? motor.markeringsord(visar || pris.fraga) : (visar || pris.fraga).split(/\s+/).filter((t) => t.length >= 2).sort((a, b) => b.length - a.length)).map(regexSakert);
+  // markeringsord). Motorn är laddad när det finns träffar att markera, och
+  // den markerar med sökningens egna spärrar (markeraTraffar): "bar" i
+  // "bardisk" men inte i "hopfällbar". Utan motorn markeras orden som de står.
+  const markOrd = motor ? motor.markeringsord(visar || pris.fraga) : [];
+  const ord = (visar || pris.fraga).split(/\s+/).filter((t) => t.length >= 2).sort((a, b) => b.length - a.length).map(regexSakert);
   const ordRe = ord.length > 0 ? new RegExp(`(${ord.join("|")})`, "gi") : null;
   // I ett sökförslag är det tvärtom: det kunden redan skrivit står som det är,
   // och det förslaget LÄGGER TILL står i fetstil ("sof" → sof**fbord**).
@@ -494,7 +497,7 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   };
   const highlight = (name: string) => {
     if (!ordRe) return name;
-    const delar = name.split(ordRe);
+    const delar = motor && markOrd.length > 0 ? motor.markeraTraffar(name, markOrd) : name.split(ordRe);
     if (delar.length === 1) return name;
     // split med en fångande grupp lägger träffarna på udda platser.
     return <>{delar.map((d, i) => (i % 2 === 1 ? <b key={i}>{d}</b> : d))}</>;

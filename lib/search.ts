@@ -1186,6 +1186,28 @@ export function markeringsord(query: string): string[] {
   return [...ord].filter((o) => o.length >= 2).sort((a, b) => b.length - a.length);
 }
 
+/**
+ * Namnet delat i bitar för markering: bitarna på udda platser är träffar.
+ * Samma spärrar som sökningen har: "bar" markeras inte i "hopfällBAR" och
+ * "tyg" inte i "verkTYG", för där träffar sökningen inte heller. Förr
+ * markerades bokstäverna var de än stod ("Hopfäll**bar** **bar**disk").
+ */
+export function markeraTraffar(namn: string, ord: readonly string[]): string[] {
+  const text = namn.toLowerCase();
+  if (text.length !== namn.length || ord.length === 0) return [namn];
+  const bitar: string[] = [];
+  let fran = 0;
+  for (let i = 0; i < text.length; ) {
+    const o = ord.find((x) => text.startsWith(x, i) && forledOk(text, x, i) && !barAdjektiv(text, x, i));
+    if (!o) { i++; continue; }
+    bitar.push(namn.slice(fran, i), namn.slice(i, i + o.length));
+    i += o.length;
+    fran = i;
+  }
+  bitar.push(namn.slice(fran));
+  return bitar;
+}
+
 // rankByName med besked. `strukna` är sökord som inget namn har tillsammans
 // med de andra: sökningen visar då träffarna för resten, och sidan säger det.
 //
