@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger måtten som egna rader utan namn på axlarna: fåtöljens *101°-position* (56,5 x 51,5 x 65,5 cm) och *121° Position* (56,5 x 86,5 x 58,5 cm), och byråernas *Produktmått* (39,9 x 137,2 x 81,3 cm respektive 39,9 x 119,9 x 78,7 cm) samt *Lådans yttermått* och *Lådans innermått*; måtten skrivs i källans form som egna rader
