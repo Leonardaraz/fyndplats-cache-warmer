@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py sidornas axelord kommer från måttbilderna, som ritar axlarna med pilar (skafferihyllan: bredd 420, djup 180 och höjd 1950 mm; konstgräset: höjd 1194 och bredd 350 mm; kastrullen: bredd med handtag 380 och höjd med lock 360 mm), medan specifikationens måttrader saknar axelord eller saknas helt
