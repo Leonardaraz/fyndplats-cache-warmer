@@ -1,0 +1,59 @@
+{
+  "175a98ad": {
+    "productId": "175a98ad-4304-4947-9e32-dc0b39bfe41a",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 3,
+    "attBesluta": []
+  },
+  "7c6078ad": {
+    "productId": "7c6078ad-e766-4fb0-989f-d2842af8e2a7",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-iq2ooi",
+        "betyg": 5,
+        "datum": "2026-10-11",
+        "foton": 0,
+        "text": "Bought for my husband and he loves it keeps him organized!!"
+      },
+      {
+        "id": "gen-1eqlogt",
+        "betyg": 5,
+        "datum": "2026-09-16",
+        "foton": 0,
+        "text": "This is great garage tool organizers. Will buy again soon"
+      }
+    ]
+  },
+  "104bd9c1": {
+    "productId": "104bd9c1-37f9-4b59-80d7-4562dc9931be",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-wss3po",
+        "betyg": 5,
+        "datum": "2026-06-28",
+        "foton": 0,
+        "text": "I like the design and heavy-duty plastic construction. I plan to buy more for my jewelry and scrapbooking materials."
+      },
+      {
+        "id": "gen-r3q9s7",
+        "betyg": 5,
+        "datum": "2026-06-27",
+        "foton": 0,
+        "text": "It is well-made and durable. Drawers will not slide out accidentally and it is easy to install."
+      }
+    ]
+  }
+}
