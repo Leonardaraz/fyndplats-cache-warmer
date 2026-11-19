@@ -1,0 +1,87 @@
+{
+  "344a45e8": {
+    "productId": "344a45e8-135a-4361-9fac-4b7c0388f0f5",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-1tptqui",
+        "betyg": 4,
+        "datum": "2026-05-25",
+        "foton": 0,
+        "text": "The bumper quality is actually high, the ropes are good and long enough. The pump is garbage and broke withing 5 minutes."
+      }
+    ]
+  },
+  "a6cae3b0": {
+    "productId": "a6cae3b0-44d2-4a10-9efe-dc35f34c9bdf",
+    "synliga": 0,
+    "dolda": 3,
+    "kundVantar": 0,
+    "annanArtikel": 1,
+    "okandArtikel": 3,
+    "attBesluta": []
+  },
+  "dee1ca8f": {
+    "productId": "dee1ca8f-3d2b-4036-9478-a5ddc024e70d",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1ptr7dh",
+        "betyg": 5,
+        "datum": "2026-03-10",
+        "foton": 0,
+        "text": "Easy to use with full visual access, items are always visible, saving time during operation."
+      },
+      {
+        "id": "gen-go4g7a",
+        "betyg": 5,
+        "datum": "2026-03-09",
+        "foton": 0,
+        "text": "Strong basic frame with no complex parts, durable, impact-resistant, and long-lasting."
+      },
+      {
+        "id": "gen-st018l",
+        "betyg": 5,
+        "datum": "2026-02-12",
+        "foton": 0,
+        "text": "Open-style design allows instant access to contents, very convenient for daily use and quick retrieval."
+      },
+      {
+        "id": "gen-kwspbd",
+        "betyg": 5,
+        "datum": "2026-02-12",
+        "foton": 0,
+        "text": "Basic dependable open design, performs consistently, easy to clean and maintain long-term."
+      },
+      {
+        "id": "gen-16qxhjb",
+        "betyg": 5,
+        "datum": "2026-01-08",
+        "foton": 0,
+        "text": "Great for situations needing quick, unrestricted access, functional design enhances daily usability."
+      },
+      {
+        "id": "gen-fu1lae",
+        "betyg": 5,
+        "datum": "2025-11-17",
+        "foton": 0,
+        "text": "I chose this open storage solution for my kitchen to store spices and utensils, and it exceeded my expectations. Its compact size fits perfectly in my small kitchen, while the open design allows quick access to what I need. The surface is smooth and easy to clean, which is essential in a kitchen environment. It was easy to assemble, and the quality is excellent for the price."
+      },
+      {
+        "id": "gen-1b2mj0v",
+        "betyg": 5,
+        "datum": "2025-11-16",
+        "foton": 0,
+        "text": "This open shelving unit is perfect for my living room, displaying my books, decorative items and photo albums beautifully. Its modern design blends perfectly with my existing furniture and adds a touch of elegance to the room. It’s easy to assemble with all necessary accessories included, and its structure is stable without wobbling. The open shelves allow easy access to frequently used items."
+      }
+    ]
+  }
+}
