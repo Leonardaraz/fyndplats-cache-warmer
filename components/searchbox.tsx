@@ -1,10 +1,12 @@
 "use client";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { KORTASTE_SOKNING, laddaSokIndex, rankaForslag, sokIndexHamtat, type SokTraff as Hit } from "../lib/sok-index";
+import { KORTASTE_SOKNING, laddaSokIndex, rankaForslagMedAntal, sokIndexHamtat, type SokTraff as Hit } from "../lib/sok-index";
 import { matchaKategorier } from "../lib/search";
 import { registreradeKategorier, rentNamn, type SokKategori } from "../lib/sok-kategorier";
+import { harPris, inomPris, prisTal, prisText, tolkaPris } from "../lib/sok-pris";
+import { glomSokningar, kommIhagSokning, senasteSokningar } from "../lib/sok-senaste";
 
 // Hur många förslag vi visar (sökträffar + tomt-fält-lägets populära). 7, inte
 // 8: på mobil täckte Safaris bottenmeny "Visa alla resultat"-knappen när listan
@@ -19,6 +21,22 @@ const SUGGESTION_COUNT = 7;
 // menyns träd (lib/sok-kategorier.ts) och behöver inte vänta på sökindexet.
 const KATEGORIFORSLAG = 2;
 
+// SISTA GENOMGÅNGEN (2026-11-19, Leonard: "saknas det något mer för att göra
+// detta till världens bästa e-handel sökfält, och fixa det"):
+//   • Priset i sökningen: "soffa under 2000" visar soffor under 2 000 kr
+//     (lib/sok-pris.ts), här och på söksidan.
+//   • Senaste sökningar när rutan är tom (lib/sok-senaste.ts, sparas bara med
+//     kundens ja till kakor).
+//   • Knappen säger hur många träffarna är: "Visa alla 89 resultat".
+//   • Ett kryss som tömmer rutan, och "Sök" på telefonens tangentbord.
+//   • Varje sökord står i fetstil i namnen, inte bara hela frasen.
+//   • Piltangenterna läses upp (aria-activedescendant) och raden rullas fram.
+//   • Utan träff: vägar vidare i stället för en återvändsgränd.
+// Senaste sökningar tar plats från de populära varorna, så panelen blir inte högre.
+const POPULARA_MED_SENASTE = 5;
+
+const regexSakert = (t: string) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 // "Populära produkter" (tomt sökfält) är BLÄDDRING, inte sökning — där ska
 // slutsålt aldrig med, precis som i kategorierna. Skrivna sökningar behåller dem
 // (avsikt), men sist. Fail-open: saknar indexet o-fältet (äldre cache) filtreras
@@ -29,6 +47,10 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<Hit[]>([]);
   const [kat, setKat] = useState<SokKategori[]>([]);
+  // Hur många varor som matchar, också de som inte får plats i listan.
+  const [totalt, setTotalt] = useState(0);
+  const [tidigare, setTidigare] = useState<string[]>([]);
+  const uid = useId();
   const [popular, setPopular] = useState<Hit[]>([]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
@@ -84,8 +106,10 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     setOpen(true);
     setSkickad(false);
     const term = val.trim();
+    // Priset läses ur sökningen och sökorden rankas utan det (lib/sok-pris.ts).
+    const pris = tolkaPris(term);
     // Kategorierna först: de finns redan i sidan, också medan indexet hämtas.
-    setKat(term.length >= KORTASTE_SOKNING ? matchaKategorier(term, registreradeKategorier(), KATEGORIFORSLAG) : []);
+    setKat(term.length >= KORTASTE_SOKNING ? matchaKategorier(pris.fraga, registreradeKategorier(), KATEGORIFORSLAG) : []);
     if (!sokIndexHamtat()) setLaddar(true);
     const idx = await laddaSokIndex();
     if (senaste.current !== val) return; // en nyare tangent tar över
@@ -93,16 +117,21 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     setIndexFel(!idx);
     if (!idx) {
       setHits([]);
+      setTotalt(0);
       return;
     }
     if (term.length < KORTASTE_SOKNING) {
       // < 2 tecken: visa populära förslag i stället för att filtrera på en bokstav.
       setHits([]);
+      setTotalt(0);
       setPopular(inStockOnly(idx).slice(0, SUGGESTION_COUNT));
       return;
     }
     // De mest relevanta, slutsålda sist (ordningen förklaras i lib/sok-index.ts).
-    setHits(rankaForslag(idx, term, SUGGESTION_COUNT));
+    // Med ett pris i sökningen gallras träffarna före klippet.
+    const svar = rankaForslagMedAntal(idx, pris.fraga, SUGGESTION_COUNT, harPris(pris) ? (h) => inomPris(pris, prisTal(h.p)) : undefined);
+    setHits(svar.traffar);
+    setTotalt(svar.totalt);
   };
 
   // Fokus med tomt fält → visa populära produkter som förslag.
@@ -114,6 +143,7 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   const onFocus = async () => {
     setOpen(true);
     setSkickad(false);
+    setTidigare(senasteSokningar());
     if (!sokIndexHamtat()) setLaddar(true);
     const idx = await laddaSokIndex();
     setLaddar(false);
@@ -147,8 +177,12 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   // annars populära produkter.
   const isPopular = q.trim().length < 2;
   const kategorier = isPopular ? [] : kat;
+  const pris = tolkaPris(q.trim());
+  const visaTidigare = isPopular && tidigare.length > 0;
   // Kategoriraderna tar plats från varorna: listan är lika hög som förut.
-  const showing: Hit[] = isPopular ? popular : hits.slice(0, SUGGESTION_COUNT - kategorier.length);
+  const showing: Hit[] = isPopular
+    ? popular.slice(0, visaTidigare ? POPULARA_MED_SENASTE : SUGGESTION_COUNT)
+    : hits.slice(0, SUGGESTION_COUNT - kategorier.length);
   // Piltangenterna går över kategorierna först, sedan varorna.
   const rader = kategorier.length + showing.length;
 
@@ -165,12 +199,21 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   // Nu står den kvar och säger "Söker…" tills /sok har bytt sida (se `visas`).
   // Sökordet läses ur rutan, inte ur q: text skriven före hydreringen kan
   // finnas där innan q fått den.
-  const goSearch = () => {
-    const t = (inputRef.current?.value ?? q).trim();
+  const goSearch = (vald?: string) => {
+    const t = (vald ?? inputRef.current?.value ?? q).trim();
     if (!t) return;
+    if (vald) setQ(vald);
+    setTidigare(kommIhagSokning(t));
     setSkickad(true);
     onNavigate?.();
     startaSok(() => router.push(`/sok?q=${encodeURIComponent(t)}`));
+  };
+
+  // Krysset: töm rutan och visa det tomma lägets förslag, med fokus kvar.
+  const rensa = () => {
+    void onType("");
+    setTidigare(senasteSokningar());
+    inputRef.current?.focus();
   };
 
   // Panelen syns när den är öppen, utom när en skickad sökning har landat.
@@ -192,6 +235,12 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     else if (e.key === "ArrowUp") { e.preventDefault(); setActive((a) => Math.max(a - 1, -1)); }
   };
 
+  // Raden som piltangenterna står på ska synas: listan har en högsta höjd och rullar.
+  const radId = (i: number) => `${uid}-rad-${i}`;
+  useEffect(() => {
+    if (active >= 0) document.getElementById(`${uid}-rad-${active}`)?.scrollIntoView({ block: "nearest" });
+  }, [active, uid]);
+
   // Panelens fot. ORDNINGEN ÄR VIKTIG. Panelen öppnas innan indexet finns, så
   // "Inga produkter matchade" får BARA visas när vi faktiskt har letat: står
   // laddar kvar är svaret ännu inte känt, och har hämtningen fallit vet vi
@@ -199,7 +248,7 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   const fot = () => {
     const term = q.trim();
     const alla = (text: React.ReactNode) => (
-      <button type="button" className="sugg-all" onClick={goSearch} disabled={soker}>
+      <button type="button" className="sugg-all" onClick={() => goSearch()} disabled={soker}>
         {soker ? "Söker…" : text}
       </button>
     );
@@ -209,7 +258,8 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
       if (indexFel) return <div className="sugg-empty">Förslagen kunde inte laddas just nu.</div>;
       return null;
     }
-    if (showing.length > 0) return alla(<>Visa alla resultat för “{term}” →</>);
+    // Antalet står med när det finns fler träffar än listan visar.
+    if (showing.length > 0) return alla(totalt > showing.length ? <>Visa alla {totalt} resultat för “{term}” →</> : <>Visa alla resultat för “{term}” →</>);
     if (soker) return <div className="sugg-empty">Söker…</div>;
     // Inga varor i namnet, men en kategori ovanför: säg det utan att låta som en återvändsgränd.
     if (!laddar && !indexFel && kategorier.length > 0) return <div className="sugg-empty">Inga varor har “{term}” i namnet. Titta i kategorin ovan.</div>;
@@ -217,15 +267,29 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     if (indexFel) {
       return <><div className="sugg-empty">Förslagen kunde inte laddas just nu.</div>{alla(<>Sök efter “{term}” i hela butiken →</>)}</>;
     }
-    return <div className="sugg-empty">Inga produkter matchade “{term}”.</div>;
+    // Utan träff: säg vad som gick att göra i stället, och visa vägarna vidare.
+    return (
+      <div className="sugg-empty">
+        {harPris(pris) ? <>Inga produkter {prisText(pris)} matchade “{pris.fraga}”.</> : <>Inga produkter matchade “{term}”.</>}
+        <span className="sugg-tips">{harPris(pris) ? "Sök utan priset för att se alla." : "Prova ett kortare ord eller varans typ, till exempel “fåtölj”."}</span>
+        <span className="sugg-vagar">
+          <a href="/butik">Se alla kategorier</a>
+          <a href="/kontaktaoss">Fråga oss om varan</a>
+        </span>
+      </div>
+    );
   };
 
-  // Bold the matched substring in a suggestion's name.
+  // VARJE sökord i fetstil. Förut bara hela frasen, så "svart tv-bänk" och
+  // "hundbur xl" markerade ingenting. Priset i sökningen räknas inte som ord.
+  const ord = pris.fraga.split(/\s+/).filter((t) => t.length >= 2).sort((a, b) => b.length - a.length).map(regexSakert);
+  const ordRe = ord.length > 0 ? new RegExp(`(${ord.join("|")})`, "gi") : null;
   const highlight = (name: string) => {
-    const term = q.trim();
-    const i = term ? name.toLowerCase().indexOf(term.toLowerCase()) : -1;
-    if (i < 0) return name;
-    return (<>{name.slice(0, i)}<b>{name.slice(i, i + term.length)}</b>{name.slice(i + term.length)}</>);
+    if (!ordRe) return name;
+    const delar = name.split(ordRe);
+    if (delar.length === 1) return name;
+    // split med en fångande grupp lägger träffarna på udda platser.
+    return <>{delar.map((d, i) => (i % 2 === 1 ? <b key={i}>{d}</b> : d))}</>;
   };
 
   return (
@@ -250,14 +314,38 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
           placeholder="Sök efter produkter…"
           aria-label="Sök efter produkter"
           autoComplete="off"
+          autoCapitalize="off"
+          autoCorrect="off"
+          spellCheck={false}
+          enterKeyHint="search"
           role="combobox"
           aria-expanded={visas}
           aria-controls="search-suggestions"
+          aria-autocomplete="list"
+          aria-activedescendant={visas && active >= 0 && active < rader ? radId(active) : undefined}
         />
+        {q && (
+          <button type="button" className="search-rensa" aria-label="Rensa sökfältet" onClick={rensa}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+          </button>
+        )}
       </form>
 
-      {visas && (showing.length > 0 || laddar || soker || indexFel || q.trim().length >= 2) && (
+      {visas && (showing.length > 0 || laddar || soker || indexFel || visaTidigare || q.trim().length >= 2) && (
         <div className="sugg" id="search-suggestions" role="listbox">
+          {visaTidigare && (
+            <>
+              <div className="sugg-head sugg-head-rad">
+                Senaste sökningar
+                <button type="button" className="sugg-rensa" onClick={() => setTidigare(glomSokningar())}>Rensa</button>
+              </div>
+              <div className="sugg-senaste">
+                {tidigare.map((t) => (
+                  <button type="button" className="sugg-chip" key={t} onClick={() => goSearch(t)}>{t}</button>
+                ))}
+              </div>
+            </>
+          )}
           {isPopular && showing.length > 0 && (
             <div className="sugg-head">Populära produkter</div>
           )}
@@ -265,6 +353,7 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
           {kategorier.map((k, j) => (
             <a
               key={k.slug}
+              id={radId(j)}
               href={`/kategori/${k.slug}`}
               className={`sugg-item sugg-kat ${j === active ? "active" : ""}`}
               onClick={(e) => { e.preventDefault(); goKategori(k.slug); }}
@@ -279,10 +368,13 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
               <span className="sugg-kat-pil" aria-hidden="true">→</span>
             </a>
           ))}
-          {kategorier.length > 0 && showing.length > 0 && <div className="sugg-head">Varor</div>}
+          {!isPopular && showing.length > 0 && (kategorier.length > 0 || harPris(pris)) && (
+            <div className="sugg-head">{harPris(pris) ? `Varor ${prisText(pris)}` : "Varor"}</div>
+          )}
           {showing.map((h, hi) => { const i = hi + kategorier.length; return (
             <a
               key={h.s}
+              id={radId(i)}
               href={`/produkt/${h.s}`}
               className={`sugg-item ${i === active ? "active" : ""}`}
               onClick={(e) => { e.preventDefault(); goProduct(h.s); }}

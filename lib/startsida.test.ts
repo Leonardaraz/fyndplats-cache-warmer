@@ -77,8 +77,9 @@ describe("rader som rullar i sidled", () => {
 });
 
 describe("startsidans sektioner", () => {
-  it("guider och omdömen visas bara när det finns tre", () => {
-    assert.match(sida, /\{guider\.length === 3 && \(/);
+  it("guider visas när det finns minst tre, omdömen när det finns tre", () => {
+    // Guiderna är en rad man bläddrar i sedan 2026-11-19: alla inlägg, inte tre.
+    assert.match(sida, /\{guider\.length >= 3 && \(/);
     assert.match(sida, /\{roster\.length === 3 && \(/);
   });
 
@@ -96,9 +97,55 @@ describe("startsidans sektioner", () => {
   });
 
   it("guidens bild är tyst, rubriken bär länkens namn", () => {
-    const kort = sida.slice(sida.indexOf('className="guide"'), sida.indexOf("</PrefetchLink>", sida.indexOf('className="guide"')));
+    // Kortet ritas av raden (components/guide-karusell.tsx) sedan 2026-11-19.
+    const rad = las("components", "guide-karusell.tsx");
+    const kort = rad.slice(rad.indexOf('className="guide"'), rad.indexOf("</PrefetchLink>", rad.indexOf('className="guide"')));
     assert.match(kort, /<Image src=\{g\.cover\} alt="" fill /);
     assert.match(kort, /className="guide-titel"/);
+  });
+});
+
+describe("köpguiderna: en rad med alla inlägg, lika lätt som förut", () => {
+  const rad = las("components", "guide-karusell.tsx");
+
+  it("startsidan skickar alla inlägg till raden och klipper inte vid tre", () => {
+    assert.match(sida, /const guider = guideKort\(await getPosts\(\)\.catch\(\(\) => \[\]\)\);/);
+    assert.match(sida, /<GuideKarusell guider=\{guider\} \/>/);
+    assert.doesNotMatch(sida, /guider[\s\S]{0,200}\.slice\(0, 3\)/);
+  });
+
+  it("☠️ bara de första korten ritas: ett kort som inte är ritat hämtar ingen bild", () => {
+    assert.match(rad, /useState\(Math\.min\(GUIDER_FORST, guider\.length\)\)/);
+    assert.match(rad, /guider\.slice\(0, antal\)\.map\(/);
+    // Inget omslag får hämtas i förväg: ingen priority och inget eager.
+    assert.doesNotMatch(rad, /priority|loading="eager"|fetchPriority/);
+  });
+
+  it("pilarna är knappar med namn, och dolda på pekskärm", () => {
+    assert.match(rad, /aria-label="Föregående guider"/);
+    assert.match(rad, /aria-label="Fler guider"/);
+    assert.match(css, /@media\(max-width:880px\)\{[\s\S]*?\.hem2 \.guide-pil\{display:none\}/);
+  });
+
+  it("korten: nyast först, utan omslag hoppas över, ingressen kortad vid ett ordslut", async () => {
+    const { guideKort, kortIngress, flerKort, GUIDER_FORST, GUIDER_STEG } = await import("./guide-kort.ts");
+    const poster = [
+      { slug: "a", title: "A", excerpt: "kort", cover: "a.jpg", date: "2026-01-01" },
+      { slug: "b", title: "B", excerpt: "", cover: "b.jpg", date: "2026-03-01" },
+      { slug: "c", title: "C", excerpt: "x", cover: "", date: "2026-09-01" },
+      { slug: "d", title: "D", excerpt: "x", cover: "d.jpg", date: "2025-01-01", updated: "2026-10-01" },
+    ];
+    assert.deepEqual(guideKort(poster).map((g) => g.slug), ["d", "b", "a"]);
+    assert.deepEqual(Object.keys(guideKort(poster)[0]).sort(), ["cover", "excerpt", "slug", "title"]);
+    const lang = "Köpguide till leksakskök: storlek, höjd, trä eller många delar, vatten, ljus och ljud. Se alla 23 kök, grillar och diskbänkar för barn som finns i butiken just nu.";
+    const kort = kortIngress(lang);
+    assert.ok(kort.length <= 131 && kort.endsWith("…"), kort);
+    assert.ok(lang.startsWith(kort.slice(0, -1)));
+    assert.doesNotMatch(kort, /[\s,]…$/);
+    assert.equal(kortIngress("En kort ingress."), "En kort ingress.");
+    assert.equal(GUIDER_FORST, 4);
+    assert.equal(flerKort(4, 44), 4 + GUIDER_STEG);
+    assert.equal(flerKort(40, 44), 44);
   });
 });
 

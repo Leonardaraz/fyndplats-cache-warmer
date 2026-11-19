@@ -24,6 +24,7 @@ import type { ListProduct } from "../lib/products";
 import { rankaMedInfo } from "../lib/search";
 import { laddaSokIndex } from "../lib/sok-index";
 import { kandidater } from "../lib/sok-kall";
+import { harPris, tolkaPris } from "../lib/sok-pris";
 import { populartNu } from "../lib/sok-tom";
 import type { SokKategori } from "../lib/sok-kategorier";
 import { SokVy, type SokData } from "./sok-vy";
@@ -49,13 +50,16 @@ export function SokKall({ q, kategorier, popularaKategorier }: { q: string; kate
         if (!Array.isArray(lista) || lista.length === 0) throw new Error("tom lista");
         const slutsalda = await Promise.race([index, new Promise<null>((klar) => setTimeout(() => klar(null), INDEX_VANTAN_MS))]);
         if (avbruten) return;
-        const u = rankaMedInfo(kandidater(lista, slutsalda), (p) => p.name, q.trim());
+        // Priset i sökningen läses som på servern (app/sok/page.tsx).
+        const prisfraga = tolkaPris(q.trim());
+        const u = rankaMedInfo(kandidater(lista, slutsalda), (p) => p.name, prisfraga.fraga);
         // De köpbara först, relevansordningen kvar inom varje grupp (som på servern).
         const traffar = [...u.traffar.filter((p) => p.inStock), ...u.traffar.filter((p) => !p.inStock)];
         setSvar({
           q,
           data: {
             traffar, strukna: u.strukna, utan: u.utan, hela: u.hela, kategorier,
+            pris: harPris(prisfraga) ? { max: prisfraga.max, min: prisfraga.min } : undefined,
             populart: traffar.length === 0 ? populartNu(lista, 4) : [],
             popularaKategorier,
           },

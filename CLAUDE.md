@@ -3377,6 +3377,80 @@ Kvar: "öppen spis el" ger gnistskydd för öppen spis (nu med beskedet att "el"
 ströks). Att "öppen spis" med "el" är en elkamin behöver synonymer för hela
 fraser, och sådana finns inte.
 
+## Sökfältets sista genomgång (2026-11-19)
+
+Leonard samma natt: "gör en sista kill på sökfältet och tänker saknas det något
+mer för att göra detta till världens bästa e-handel sökfält, och fixa det."
+Det här lades till (`components/searchbox.tsx`, prov i
+`lib/sok-2026-11-19.test.ts`):
+
+1. **Priset i sökningen** (`lib/sok-pris.ts`). "soffa under 2000" gav 137
+   soffor med beskedet att "2000" ströks. Nu läses priset ur sökningen
+   (`tolkaPris`), sökorden rankas utan det, och träffarna gallras på priset:
+   36 soffor under 2 000 kr, samma antal i sökrutan och på söksidan. Söksidan
+   säger "Du ser 36 varor under 2 000 kr" med knappen "Visa alla 137".
+   Finns ingen träff inom priset visas alla, med besked. ☠️ Ett tal efter
+   "under" är inte alltid ett pris: det måste stå direkt efter ett prisord,
+   får inte följas av en enhet ("under 3 år", "under 120 cm"), och måste utan
+   "kr" vara minst 300 ("tv-bänk max 160" är ett mått). Bara ett pris utan
+   sökord ("under 500") lämnas som det är.
+2. **Senaste sökningar** när rutan är tom (`lib/sok-senaste.ts`), högst fem,
+   med "Rensa". ☠️ **Sparas bara med kundens ja till kakor.** Sökhistorik i
+   webbläsarens lagring är inte nödvändig för att butiken ska fungera. Listan
+   ligger alltid i minnet under sidbesöket, och skrivs till `localStorage`
+   bara när kakvalet är "all". De tar plats från de populära varorna (fem i
+   stället för sju), så panelen blir inte högre.
+3. **Antalet i knappen**: "Visa alla 89 resultat för …" (`rankaForslagMedAntal`
+   i `lib/sok-index.ts`). Priset gallrar FÖRE klippet till sju rader.
+4. **Krysset** som tömmer rutan med fokus kvar, och `enterKeyHint="search"` så
+   att telefonens tangentbord säger Sök.
+5. **Varje sökord i fetstil** i namnen. Förut bara hela frasen, så "svart
+   tv-bänk" markerade ingenting.
+6. **Uppläst rad**: `aria-activedescendant` följer piltangenterna, och raden
+   rullas fram när listan är högre än panelen.
+7. **Utan träff**: ett tips och länkar till kategorierna och kontaktsidan.
+
+☠️ **Listan börjar om när varorna byts** (`key` på `ShopBrowser` i
+`components/sok-vy.tsx`). `ShopBrowser` håller prisreglagets läge som
+tillstånd, satt efter varorna den först fick. Efter "Visa alla 137" stod
+reglaget kvar på de 36 varornas gränser och blev ett filter ingen hade valt:
+sidan sa 137 träffar och listan visade 36 med märket "1" på Filter. Felet syntes
+bara på en skärmbild, alla prov var gröna. Samma sak gällde två sökningar i
+rad, redan före den här ändringen. Nyckeln är sökningen plus läget.
+
+☠️ **En ny `<button>` får webbläsarens grå ram.** Butiken har ingen global
+nollställning av knappar, så varje ny knappklass behöver `background:none;
+border:0` (och `font-family:inherit`). "Rensa" stod med grå ruta på första
+skärmbilden.
+
+Inte byggt: färgen i sökningen läst ur varans färgval ("svart tv-bänk" visar
+alla tv-bänkar och säger att färgen ofta står bland valen; `colors` finns i
+listkortet men inte i sökindexet), "menade du" vid stavfel, och genvägarna
+till frakt, retur och spårning (Leonards punkt 5, som han valde bort).
+
+## Köpguiderna på startsidan: en rad med alla inlägg (2026-11-19)
+
+Leonard: "kan du göra så det går att bläddra mellan alla blogginlägg där inte
+bara 3. Jag vill att det ska vara optimerad hastighet fortfarande super snabb."
+
+Startsidan visade de tre senaste inläggen. Nu är det en rad med alla (44),
+nyast först: tre i bredd på datorn med pilar mitt för omslagen, och svep på
+mobilen som förut (`components/guide-karusell.tsx`, `lib/guide-kort.ts`,
+`.hem2 .guider` i `app/startsida.css`).
+
+**Så hålls sidan lika lätt.** Alla inlägg följer med som data (rubrik, adress,
+omslag och ingressen kortad till 130 tecken, kortet visar ändå bara två
+rader), men bara fyra kort ritas i sidans HTML, mot tre förut. Resten ritas
+när man bläddrar, sex åt gången, en och en halv radbredd innan de behövs. Ett
+kort som inte är ritat har inget `<img>`, så ingen bild hämtas för det. Mätt i
+webbläsare 2026-11-19 (`bf/blogg-karusell.cjs`): före bläddring fyra kort
+ritade och två omslag hämtade på mobilen, fyra på datorn; efter bläddring 44
+av 44 inlägg, och ingen sidledsrullning på sidan.
+
+☠️ `lib/startsida.test.ts` räknar raderna som rullar i sidled, en regel per
+rad. Radens `overflow-x:auto` står därför bara i grundregeln; mobilens regel
+ändrar mått och kant, inte rullningen.
+
 ## Natten: butikens mörka ton, hjältens entré och tre rättelser (2026-11-16)
 
 Leonard: "vår design för single week var super snygg men nu är den borta, vårt

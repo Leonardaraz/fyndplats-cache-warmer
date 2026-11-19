@@ -326,3 +326,121 @@ test("söksidans kalla väg lägger till de slutsålda ur sökindexet", async ()
   assert.match(kalla, /kandidater\(lista, slutsalda\)/);
   assert.match(kalla, /laddaSokIndex\(\)/);
 });
+
+// ── Sista genomgången av sökfältet (2026-11-19) ─────────────────────────────
+test('priset i sökningen: "soffa under 2000" är soffor under 2 000 kr', async () => {
+  const { tolkaPris, inomPris, prisTal, lagstaPris, prisText, harPris } = await import("./sok-pris.ts");
+  assert.deepEqual(tolkaPris("soffa under 2000"), { fraga: "soffa", max: 2000 });
+  assert.deepEqual(tolkaPris("soffa under 2 000 kr"), { fraga: "soffa", max: 2000 });
+  assert.deepEqual(tolkaPris("Soffa Under 2000kr"), { fraga: "Soffa", max: 2000 });
+  assert.deepEqual(tolkaPris("billig soffa max 1500:-"), { fraga: "billig soffa", max: 1500 });
+  assert.deepEqual(tolkaPris("fåtölj över 5000"), { fraga: "fåtölj", min: 5000 });
+  assert.deepEqual(tolkaPris("säng upp till 3.500 kr med madrass"), { fraga: "säng med madrass", max: 3500 });
+  assert.deepEqual(tolkaPris("hylla under 200 kr"), { fraga: "hylla", max: 200 });
+  assert.equal(harPris(tolkaPris("soffa under 2000")), true);
+  assert.equal(harPris(tolkaPris("soffa")), false);
+
+  assert.equal(inomPris({ max: 2000 }, 1999), true);
+  assert.equal(inomPris({ max: 2000 }, 2000), true);
+  assert.equal(inomPris({ max: 2000 }, 2001), false);
+  assert.equal(inomPris({ min: 5000 }, 4999), false);
+  assert.equal(inomPris({ min: 5000 }, 5000), true);
+  assert.equal(inomPris({ max: 2000 }, 0), false, "ett pris som inte gick att läsa räknas inte som billigt");
+  assert.equal(prisTal("Från 1 259 kr"), 1259);
+  assert.equal(prisTal("12 999 kr"), 12999);
+  assert.equal(prisTal(""), 0);
+  assert.equal(lagstaPris({ priceNum: 2499, priceFromNum: 1899, hasRange: true }), 1899);
+  assert.equal(lagstaPris({ priceNum: 2499 }), 2499);
+  assert.equal(prisText({ max: 2000 }), "under 2 000 kr");
+  assert.equal(prisText({ min: 12500 }), "över 12 500 kr");
+});
+
+test("☠️ ett tal efter “under” är inte alltid ett pris: ålder, mått och små tal", async () => {
+  const { tolkaPris } = await import("./sok-pris.ts");
+  for (const q of [
+    "leksak under 3 år", "skrivbord under 120 cm", "tv-bänk max 160", "tält över 4 personer", "pool över 300 cm",
+    "skåp under diskbänk", "förvaring under säng", "hantlar max 20 kg", "soffa", "",
+  ]) assert.deepEqual(tolkaPris(q), { fraga: q }, q);
+  // Bara ett pris och inga sökord: inget att ranka, så sökningen lämnas som den är.
+  assert.deepEqual(tolkaPris("under 500"), { fraga: "under 500" });
+  assert.deepEqual(tolkaPris("max 1000 kr"), { fraga: "max 1000 kr" });
+});
+
+test("priset gallrar träffarna, sökorden rankas utan det", async () => {
+  const { tolkaPris, inomPris, prisTal } = await import("./sok-pris.ts");
+  const varor = [
+    { n: "Tvåsitssoffa i manchester", p: "2 499 kr" }, { n: "Bäddsoffa i grå chenille", p: "Från 1 899 kr" },
+    { n: "Barnsoffa med kuddar", p: "799 kr" }, { n: "Soffbord i ek", p: "999 kr" },
+  ];
+  const pris = tolkaPris("soffa under 2000");
+  const traffar = rankByName(varor, (v) => v.n, pris.fraga).filter((v) => inomPris(pris, prisTal(v.p)));
+  assert.deepEqual(traffar.map((v) => v.n).sort(), ["Barnsoffa med kuddar", "Bäddsoffa i grå chenille"]);
+  // "2000" stryks inte längre som ett sökord som saknas: det är inget sökord.
+  assert.deepEqual(info(varor.map((v) => v.n), pris.fraga).strukna, []);
+});
+
+test("senaste sökningar: nyast först, en gång var, högst fem", async () => {
+  const { medSokning, tolkaSparade, SENASTE_MAX } = await import("./sok-senaste.ts");
+  let l: string[] = [];
+  for (const s of ["hundbur", "soffa", "  Hundbur  ", "tv-bänk", "a", "matta", "lampa", "säng"]) l = medSokning(l, s);
+  assert.deepEqual(l, ["säng", "lampa", "matta", "tv-bänk", "Hundbur"]);
+  assert.equal(l.length, SENASTE_MAX);
+  assert.deepEqual(medSokning(["soffa"], "x".repeat(61)), ["soffa"], "en orimligt lång sökning sparas inte");
+  assert.deepEqual(tolkaSparade('["soffa",3,null,"",  "tv-bänk"]'), ["soffa", "tv-bänk"]);
+  assert.deepEqual(tolkaSparade("inte json"), []);
+  assert.deepEqual(tolkaSparade('{"a":1}'), []);
+  assert.deepEqual(tolkaSparade(null), []);
+});
+
+test("☠️ sökhistoriken sparas bara med kundens ja till kakor", async () => {
+  const { readFileSync } = await import("node:fs");
+  const kalla = readFileSync(new URL("./sok-senaste.ts", import.meta.url), "utf8");
+  // Varje skrivning och läsning av listan i lagringen står bakom farSpara().
+  assert.match(kalla, /getItem\(SAMTYCKE_NYCKEL\) === "all"/);
+  assert.match(kalla, /if \(farSpara\(\)\) sparade = tolkaSparade\(window\.localStorage\.getItem\(SENASTE_NYCKEL\)\)/);
+  assert.match(kalla, /if \(farSpara\(\)\) window\.localStorage\.setItem\(SENASTE_NYCKEL/);
+  assert.equal(kalla.split("localStorage.setItem").length, 2, "en enda skrivning");
+  // Nyckeln och värdet är samma som i lib/consent.ts.
+  const samtycke = readFileSync(new URL("./consent.ts", import.meta.url), "utf8");
+  assert.match(samtycke, /export const CONSENT_KEY = "fp_cookie_consent";/);
+});
+
+test("sökrutan: antal i knappen, kryss, alla sökord i fetstil och uppläst rad", async () => {
+  const { readFileSync } = await import("node:fs");
+  const ruta = readFileSync(new URL("../components/searchbox.tsx", import.meta.url), "utf8");
+  assert.match(ruta, /Visa alla \{totalt\} resultat för/);
+  assert.match(ruta, /aria-label="Rensa sökfältet"/);
+  assert.match(ruta, /enterKeyHint="search"/);
+  assert.match(ruta, /aria-activedescendant=\{visas && active >= 0 && active < rader \? radId\(active\) : undefined\}/);
+  assert.match(ruta, /rankaForslagMedAntal\(idx, pris\.fraga, SUGGESTION_COUNT, harPris\(pris\) \?/);
+  assert.match(ruta, /className="sugg-chip" key=\{t\} onClick=\{\(\) => goSearch\(t\)\}/);
+  // Senaste sökningar tar plats från de populära: panelen blir inte högre.
+  assert.match(ruta, /popular\.slice\(0, visaTidigare \? POPULARA_MED_SENASTE : SUGGESTION_COUNT\)/);
+});
+
+test("☠️ listan börjar om när varorna byts: prisreglaget blev ett filter ingen valt", async () => {
+  const { readFileSync } = await import("node:fs");
+  const vy = readFileSync(new URL("../components/sok-vy.tsx", import.meta.url), "utf8");
+  assert.match(vy, /<ShopBrowser key=\{`\$\{q\}\|\$\{visaAlla \? "alla" : "inom"\}`\} products=\{visade\} defaultSort="rel" \/>/);
+  // Knapparna i beskeden och i sökrutan ska inte få webbläsarens grå ram.
+  const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+  for (const k of [".search-rensa", ".sugg-rensa", ".sok-besked-knapp"]) {
+    const regel = css.slice(css.indexOf(`${k}{`), css.indexOf("}", css.indexOf(`${k}{`)));
+    assert.match(regel, /background:none;border:0/, k);
+  }
+});
+
+test("förslagen med antal: gallringen görs före klippet", async () => {
+  // rankaForslagMedAntal ligger i lib/sok-index.ts, som inte går att ladda här
+  // (importerar utan ändelse). Regeln prövas på samma steg: ranka, gallra, klipp.
+  const { inomPris, prisTal } = await import("./sok-pris.ts");
+  const varor = Array.from({ length: 12 }, (_, i) => ({ n: `Soffa modell ${i + 1}`, p: `${(i + 1) * 500} kr` }));
+  const alla = rankByName(varor, (v) => v.n, "soffa");
+  const kvar = alla.filter((v) => inomPris({ max: 2000 }, prisTal(v.p)));
+  assert.equal(kvar.length, 4);
+  assert.equal(alla.slice(0, 3).filter((v) => inomPris({ max: 2000 }, prisTal(v.p))).length <= 3, true);
+  const { readFileSync } = await import("node:fs");
+  const index = readFileSync(new URL("./sok-index.ts", import.meta.url), "utf8");
+  assert.match(index, /const kvar = behall \? alla\.filter\(behall\) : alla;[\s\S]{0,120}kvar\.slice\(0, antal\)/);
+  assert.match(index, /totalt: kvar\.length/);
+});

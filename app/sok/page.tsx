@@ -10,6 +10,7 @@ import { populara } from "../../lib/sidhuvud-val";
 import { attachRatings } from "../../lib/review-aggregates";
 import { matchaKategorier, normalize, rankaMedInfo } from "../../lib/search";
 import { plattaKategorier, type SokKategori } from "../../lib/sok-kategorier";
+import { harPris, tolkaPris } from "../../lib/sok-pris";
 
 export const metadata: Metadata = {
   title: "Sök",
@@ -22,6 +23,11 @@ export const metadata: Metadata = {
 export default async function Sok({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const { q = "" } = await searchParams;
   const term = q.trim();
+  // PRISET I SÖKNINGEN (lib/sok-pris.ts): "soffa under 2000" rankas som "soffa",
+  // och vyn visar träffarna inom priset med en knapp för alla.
+  const prisfraga = tolkaPris(term);
+  const fraga = prisfraga.fraga;
+  const pris = harPris(prisfraga) ? { max: prisfraga.max, min: prisfraga.min } : undefined;
 
   // KATEGORIERNA SOM MATCHAR, ur menyns träd. sidhuvudsdata väntar aldrig in en
   // kall katalog (lib/sidhuvud-data.ts), och sidhuvudet läser samma data, så
@@ -30,7 +36,7 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
   let popularaKategorier: SokKategori[] = [];
   try {
     const { tree } = await sidhuvudsdata();
-    if (term) kategorier = matchaKategorier(term, plattaKategorier(tree), 3);
+    if (term) kategorier = matchaKategorier(fraga, plattaKategorier(tree), 3);
     popularaKategorier = populara(tree, MAIN_ORDER).map((c) => ({ name: c.name, slug: c.slug }));
   } catch {
     // hellre inga kategorier än en trasig söksida
@@ -67,7 +73,7 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
   let utan: string[] | undefined;
   let hela: number | undefined;
   if (term) {
-    const utfall = rankaMedInfo(all, (p) => p.name, term);
+    const utfall = rankaMedInfo(all, (p) => p.name, fraga);
     if (utfall.traffar.length > 0) {
       results = utfall.traffar;
       ({ strukna, utan, hela } = utfall);
@@ -75,7 +81,7 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
       // Reserven i beskrivningarna, bara när varken ett namn eller en kategori
       // matchar. "trädgårdsmöbler" gav förut en presenning, en högtryckstvätt
       // och en plåtbod härifrån, fast kategorin Utemöbler fanns.
-      const phrase = normalize(term);
+      const phrase = normalize(fraga);
       results = all.filter(
         (p) => normalize(p.blurb || "").includes(phrase) || normalize(p.specs || "").includes(phrase)
       );
@@ -97,7 +103,7 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
     <SokVy
       q={q}
       data={{
-        traffar: forListClient(results), strukna, utan, hela, kategorier,
+        traffar: forListClient(results), strukna, utan, hela, kategorier, pris,
         populart: forListClient(populart), popularaKategorier,
       }}
     />

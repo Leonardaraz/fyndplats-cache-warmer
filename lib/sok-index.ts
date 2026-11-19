@@ -39,6 +39,28 @@ export function rankaForslag(idx: SokTraff[], term: string, antal: number): SokT
     .sort((a, b) => (a.o ? 1 : 0) - (b.o ? 1 : 0));
 }
 
+/**
+ * Som rankaForslag, men säger också hur många varor som matchar, så att
+ * knappen kan säga "Visa alla 89 resultat". `behall` gallrar träffarna FÖRE
+ * klippet (priset i sökningen, lib/sok-pris.ts): annars kunde sju dyra varor
+ * fylla listan fast det fanns billiga längre ner.
+ */
+export function rankaForslagMedAntal(
+  idx: SokTraff[], term: string, antal: number, behall?: (h: SokTraff) => boolean,
+): { traffar: SokTraff[]; totalt: number } {
+  let namn = normNamn.get(idx);
+  if (!namn) {
+    namn = idx.map((h) => normalize(h.n));
+    normNamn.set(idx, namn);
+  }
+  const alla = rankByName(idx, (h) => h.n, term, namn);
+  const kvar = behall ? alla.filter(behall) : alla;
+  return {
+    traffar: kvar.slice(0, antal).sort((a, b) => (a.o ? 1 : 0) - (b.o ? 1 : 0)),
+    totalt: kvar.length,
+  };
+}
+
 // Module-level cache so the header + mobile SearchBox share ONE fetch of the index.
 //
 // HÄMTNINGEN STARTAR PÅ AVSIKT, INTE PÅ FOKUS. Förr kallades laddaSokIndex() först

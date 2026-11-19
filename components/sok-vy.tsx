@@ -3,11 +3,13 @@
 // och det tomma läget. Delas av de två vägar sidan har (app/sok/page.tsx):
 // servern när katalogen redan ligger i minnet, och webbläsaren när den inte
 // gör det (components/sok-kall.tsx).
+import { useState } from "react";
 import { ShopBrowser } from "./shopbrowser";
 import { ProductCard } from "./productcard";
 import type { ListProduct } from "../lib/products";
 import { productCountLabel } from "../lib/rating";
 import { rentNamn, type SokKategori } from "../lib/sok-kategorier";
+import { inomPris, lagstaPris, prisText } from "../lib/sok-pris";
 
 export type SokData = {
   traffar: ListProduct[];
@@ -18,6 +20,8 @@ export type SokData = {
   hela?: number;
   /** Kategorier vars namn matchar sökningen. */
   kategorier: SokKategori[];
+  /** Priset ur sökningen ("under 2000"), när det fanns ett (lib/sok-pris.ts). */
+  pris?: { max?: number; min?: number };
   /** Det tomma läget: varor som säljer just nu, och butikens största kategorier. */
   populart: ListProduct[];
   popularaKategorier: SokKategori[];
@@ -40,7 +44,16 @@ function Kategorier({ lista, etikett }: { lista: SokKategori[]; etikett: string 
 export function SokVy({ q, data }: { q: string; data: SokData | "laddar" | "fel" }) {
   const term = q.trim();
   const klar = typeof data === "object" ? data : null;
-  const antal = klar ? klar.traffar.length : 0;
+  // PRISET I SÖKNINGEN. Träffarna inom priset visas, och en knapp visar alla.
+  // Finns ingen träff inom priset visas alla, med besked: hellre det än en tom
+  // sida för den som skrev en för snål budget. Valet gäller sökningen det
+  // gjordes för (vyn lever kvar när man söker igen).
+  const [allaFor, setAllaFor] = useState<string | null>(null);
+  const pris = klar?.pris;
+  const inom = klar && pris ? klar.traffar.filter((p) => inomPris(pris, lagstaPris(p))) : null;
+  const visaAlla = allaFor === q;
+  const visade = klar ? (inom && inom.length > 0 && !visaAlla ? inom : klar.traffar) : [];
+  const antal = visade.length;
   const tom = Boolean(term) && klar !== null && antal === 0;
   const rad = !term
     ? "Skriv i sökrutan ovan för att hitta produkter."
@@ -74,12 +87,27 @@ export function SokVy({ q, data }: { q: string; data: SokData | "laddar" | "fel"
               </div>
             </div>
           )}
-          {klar && antal > 0 && (
+          {klar && klar.traffar.length > 0 && (
             <>
               <Kategorier lista={klar.kategorier} etikett="Kategorier" />
               {klar.strukna.length > 0 && (
                 <p className="sok-besked">
                   Ingen vara har alla sökord i namnet. Här är träffarna utan <b>{citat(klar.strukna)}</b>.
+                </p>
+              )}
+              {pris && inom && (
+                <p className="sok-besked">
+                  {inom.length === 0 ? (
+                    <>Ingen träff kostar {prisText(pris)}. Här är alla <b>{klar.traffar.length}</b>.</>
+                  ) : visaAlla ? (
+                    <>Du ser alla <b>{klar.traffar.length}</b> träffar.{" "}
+                      <button type="button" className="sok-besked-knapp" onClick={() => setAllaFor(null)}>Visa bara {prisText(pris)}</button></>
+                  ) : (
+                    <>Du ser <b>{inom.length === 1 ? "1 vara" : `${inom.length} varor`} {prisText(pris)}</b>.
+                      {inom.length < klar.traffar.length && (
+                        <>{" "}<button type="button" className="sok-besked-knapp" onClick={() => setAllaFor(q)}>Visa alla {klar.traffar.length}</button></>
+                      )}</>
+                  )}
                 </p>
               )}
               {klar.utan && klar.utan.length > 0 && (
@@ -92,7 +120,13 @@ export function SokVy({ q, data }: { q: string; data: SokData | "laddar" | "fel"
                   träffarna om efter Rekommenderat (samma mix som kategorisidorna),
                   så "soffa" gav "Sidobord för soffan" på plats två och en
                   hängmatta i ett klösträd före riktiga mattor. */}
-              <ShopBrowser products={klar.traffar} defaultSort="rel" />
+              {/* ☠️ NYCKELN. Listan håller prisreglagets läge som tillstånd, satt
+                  efter varorna den först fick. Byts varorna (en ny sökning, eller
+                  "Visa alla" efter ett pris i sökningen) stod reglaget kvar på de
+                  gamla gränserna och blev ett filter ingen hade valt: sidan sa
+                  137 träffar och listan visade 36. Med en nyckel per sökning och
+                  läge börjar listan om. */}
+              <ShopBrowser key={`${q}|${visaAlla ? "alla" : "inom"}`} products={visade} defaultSort="rel" />
             </>
           )}
           {tom && klar && (
