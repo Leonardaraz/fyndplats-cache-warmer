@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py rännskyddets (mått per skydd 1534 × 128 × 13,8 mm), markankarnas (längd 304,8 mm och diameter 10 mm) och säckvävens (355 mm × 45,7 m) källrader saknar axelord för bredd och djup, så sidorna skriver måtten utan att namnge axlarna
