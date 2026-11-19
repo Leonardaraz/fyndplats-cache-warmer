@@ -1,0 +1,52 @@
+{
+  "0867b5a6": {
+    "productId": "0867b5a6-cdee-47e8-9de4-5fe961652756",
+    "synliga": 0,
+    "dolda": 1,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "dd2695e9": {
+    "productId": "dd2695e9-1633-4e1b-a277-42c58bb1bff9",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-165std4",
+        "betyg": 5,
+        "datum": "2026-08-26",
+        "foton": 0,
+        "text": "Achat canapé réalisé en août 2026. Livraison rapide. Petit problème à la livraison sur les dates mais pris en compte très rapidement et avec beaucoup de professionnalisme. Canapé conforme aux attentes. Bravo"
+      }
+    ]
+  },
+  "65400b1d": {
+    "productId": "65400b1d-9ab3-4c0f-8bcf-a7f1270308d2",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1deuhw",
+        "betyg": 5,
+        "datum": "2026-09-27",
+        "foton": 1,
+        "text": "Nos ha gustado mucho el sofá. Aunque las esquinas se hunden un poco y no se puede sentar uno en ellas, solo se puede usar la parte central del asiento. En general es muy cómodo, elegante, grande y muy agradable al tacto. En cuanto a los cojines, son demasiado blandos y no dan suficiente soporte a la espalda al apoyarse, pero encontramos la solución: compramos una espuma de firmeza media para rellenarlos y quedó perfecto."
+      },
+      {
+        "id": "gen-1gq58mn",
+        "betyg": 4,
+        "datum": "2026-01-22",
+        "foton": 0,
+        "text": "As 3 partes do sofá vieram em transportes diferentes, pelo que recebi as 2 pontas no mesmo dia e a parte do meio passado uma semana. As almofadas grandes podiam estar mais cheias. É um pouco difícil conseguir juntar as partes do sofá no sistema com a fivela. Mas o sofá é confortável e macio e até agora tem mantido a estrutura."
+      }
+    ]
+  }
+}
