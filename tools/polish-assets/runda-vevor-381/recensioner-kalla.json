@@ -1,0 +1,51 @@
+{
+  "287a52cd": {
+    "productId": "287a52cd-4c4a-49a9-8465-255d8084d631",
+    "synliga": 0,
+    "dolda": 3,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": []
+  },
+  "488916bd": {
+    "productId": "488916bd-5e65-4cea-ac39-8e2a2fd53123",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1taf09j",
+        "betyg": 5,
+        "datum": "2026-09-01",
+        "foton": 0,
+        "text": "A # 1 company..Excellent purchase.big bench! Adjustable too. VEVOR solid products. Excellent customer service. They care about their customers. 100%. Every purchase I got from VEVOR i still have! Always shop VEVOR FIRST!!! thank you VEVOR for handling the shipping error! Sent items to old address. 3 days later I received my order at my new address!! Lightning fast! Truly unbelievable!!! 😁😁😁😁😍 Awesome company!! REAL TALK!"
+      },
+      {
+        "id": "gen-18slg0w",
+        "betyg": 5,
+        "datum": "2026-07-19",
+        "foton": 0,
+        "text": "Parfaitement dimensionné et de bonne facture ce banc autorise un travail des abdominaux très efficace."
+      },
+      {
+        "id": "gen-9taieg",
+        "betyg": 5,
+        "datum": "2026-06-08",
+        "foton": 0,
+        "text": "Está muy bien no está nada mal para el precio. Parece material duro fuerte. Qué es muy funcional. Buena construcción muy agradable de manejar. He notado los resultados rápidamente"
+      }
+    ]
+  },
+  "4c41cb4c": {
+    "productId": "4c41cb4c-8b17-4a39-ba0d-4e08dbafd9f5",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  }
+}
