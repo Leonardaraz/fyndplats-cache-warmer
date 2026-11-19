@@ -3593,7 +3593,9 @@ Console) och en lista på 7 482 frågor byggd ur katalogens 7 724 namn. Allt i
 bytte antal träffar och 1 422 bytte de fem första. Ingen fråga gick från träff
 till noll. Felstavningar (592 st): täckning 90,6 → 98,6 %, renhet 97,6 →
 99,1 %, tomma svar 3 → 0. Tiden per tangent i Node, 360 tangenter: medel 12,1
-→ 10,7 ms, p95 54 → 36 ms. Inte mätt: tiden på en riktig telefon.
+→ 10,7 ms, p95 54 → 36 ms. Inte mätt: tiden på en riktig telefon. Motorns bit
+av JavaScripten (hämtas först när någon rör sökrutan) växte från 18 till
+27,6 kB minifierat, 7,6 till 10,7 kB gzip.
 
 **☠️ Svenskans böjningar nådde inte fram.** Stammen tar bort EN ändelse, och
 då hittade "speglar" 6 av butikens 126 speglar ("spegl" står inte i "spegel"),

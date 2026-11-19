@@ -5,7 +5,8 @@
 //
 // ☠️ LADDAS VID AVSIKT, INTE MED SIDAN. Sökrutan ligger i sidhuvudet på varje
 // sida, och den här modulen drar in hela sökmotorn (lib/search.ts: 18 kB
-// minifierat, 7,6 kB gzip, mätt i bygget 2026-11-19). Sökrutan hämtar den med
+// minifierat och 7,6 kB gzip på morgonen 2026-11-19, 27,6 kB och 10,7 kB
+// efter kvällens genomgång, mätt i bygget). Sökrutan hämtar den med
 // import() när pekaren eller fingret når rutan, samtidigt som sökindexet
 // (components/searchbox.tsx, laddaMotor). Den som aldrig söker laddar den
 // aldrig. Kontaktformulärets produktväljare importerar den som vanligt: den
