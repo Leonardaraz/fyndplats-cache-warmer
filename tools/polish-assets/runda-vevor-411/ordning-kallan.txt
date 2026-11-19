@@ -1,0 +1,6 @@
+# <kort> <skäl> — se bygg-media.py
+c2fa4c75 galleriet behåller ordningen från sammanslagningarna: 1-6 är värdens foton (60 × 80 cm), 7-11 den första givarens foton (50 × 70 cm, positionerna 2 till 6; dess framifrånfoto utelämnades eftersom det är samma foto som värdens position 1, 0,014) och 12-17 den andra givarens foton (70 × 100 cm); inget foto är en måttbild (VEVOR:s måttbilder ligger inte i utkastens gallerier)
+ce6dbaa9 galleriet behåller källordningen: inget foto är en måttbild (VEVOR:s måttbild ligger inte i utkastets galleri)
+180ac86e galleriet behåller källordningen: inget foto är en måttbild (VEVOR:s måttbild ligger inte i utkastets galleri)
+344a45e8 galleriet behåller ordningen från runda 409: inget foto är en måttbild (VEVOR:s måttbild ligger inte i galleriet)
+dee1ca8f galleriet behåller ordningen från runda 409: inget foto är en måttbild (VEVOR:s måttbild ligger inte i galleriet)
