@@ -1,0 +1,24 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "15c05688": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Specification picture of the source images: embossing plate size 11 x 5.5 in / 280 x 140 mm; max load-bearing capacity 3306 lb / 1.5T; max adjustable pressure stroke 0.47 in / 12 mm; max product size 14.9 x 12.6 x 18.7 in / 380 x 320 x 475 mm (the drawing labels 14.9 in / 380 mm, 12.6 in / 320 mm and 18.7 in / 475 mm); net weight (including all accessories) 60 lb / 27.25 kg; accessories handle, user manual, nut wrench (open end 30mm), die pad, hex wrench (opposite side 4mm) and screws M5*25mm; the model code is not copied; the bullet text starts with 1680 kg, which contradicts the 3306 lb / 1.5T of the specification picture (3306 lb is about 1500 kg), so the page writes 1,5 ton, the specification value"
+ },
+ "314cc212": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "3f984a75": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "a8d7abc8": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "f6f6ebdf": {
+  "tyska": "",
+  "svenska": ""
+ }
+}

@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py läderskärmaskinens (produktmått 380 × 320 × 475 mm), valsverkets (345 × 140 × 300 mm), klockuppdragarens (330 × 205 × 194 mm), pommes frites-skärarens (376 × 117 × 131 mm) och handpumpens (230 × 180 × 400 mm) källrader saknar axelord för bredd och djup, så sidorna skriver måtten utan att namnge axlarna
