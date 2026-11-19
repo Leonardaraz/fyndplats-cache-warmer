@@ -1,0 +1,2 @@
+# <kort> <skäl> — se bygg-media.py
+bb40f93c galleriet och ordningen är oförändrade sedan runda vevor-270 (sju bilder, inga positioner stryks); bara namnet och adressen byts så att sidan kan få fler höjder

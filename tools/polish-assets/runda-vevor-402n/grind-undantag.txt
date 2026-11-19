@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py texten är oförändrad sedan runda vevor-270 och rörs inte i den här rundan, där bara namn och adress byts; källans höjdrad ligger i avläsningen av syskonartiklarna och inte i rundans källblock, så skriptet hittar ingen måttrad

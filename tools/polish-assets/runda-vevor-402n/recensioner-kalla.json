@@ -1,0 +1,36 @@
+{
+ "bb40f93c": {
+  "productId": "bb40f93c-5003-4de2-9b85-a0e6e08f74ae",
+  "synliga": 0,
+  "dolda": 0,
+  "kundVantar": 0,
+  "annanArtikel": 0,
+  "okandArtikel": 0,
+  "attBesluta": [
+   {
+    "id": "gen-3t85s3",
+    "betyg": 5,
+    "datum": "2026-10-24",
+    "kopt": "71,1 cm",
+    "foton": 0,
+    "text": "Snelle levering, goed verpakt en top kwaliteit voor een nette prijs!"
+   },
+   {
+    "id": "gen-100y5g9",
+    "betyg": 5,
+    "datum": "2026-10-10",
+    "kopt": "45,7 cm",
+    "foton": 2,
+    "text": "Worked for my woodworking project. I would buy again. A little expensive but great customer service."
+   },
+   {
+    "id": "gen-qp8vbo",
+    "betyg": 4,
+    "datum": "2024-11-24",
+    "kopt": "71,1 cm",
+    "foton": 1,
+    "text": "Great quality Easy to assemble Used them to convert a coffe table to a Home Office computer desk Looks really good and feels sturdy enough"
+   }
+  ]
+ }
+}
