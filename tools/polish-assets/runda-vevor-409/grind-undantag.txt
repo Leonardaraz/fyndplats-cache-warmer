@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py måttbilden för fendrarna har bara siffror (16 tum på den lodräta måttlinjen och 8,6 tum på den vågräta), så fendrarna skrivs som 8,6 tum breda och 16 tum höga efter ritningen, och måttbilden för äppelkrossen ritar bara höjden 1050 mm på en lodrät måttlinje, så krossen skrivs som 1050 mm hög och med källans rad för produktmåtten
