@@ -23,7 +23,7 @@ import { PrefetchLink } from "../components/prefetch-link";
 import { categoryHero } from "../lib/category-groups";
 import { unsplashIForm } from "../lib/bildformat";
 import { getPosts } from "../lib/blog";
-import { guideKort } from "../lib/guide-kort";
+import { guideKort, GUIDER_FORST } from "../lib/guide-kort";
 import { GuideKarusell } from "../components/guide-karusell";
 import { CURATED_RESULT } from "../lib/curated-reviews";
 import { initialer } from "../lib/initialer";
@@ -288,11 +288,13 @@ export default async function Home() {
   // som /butik visar). Datorn visar de åtta största, mobilens rad visar alla.
   const homeCats = [...allGroups].sort((a, b) => b.count - a.count).slice(0, 12);
 
-  // Köpguiderna, nyast först, ALLA (2026-11-19: förut de tre senaste). Raden
-  // ritar bara de första korten och resten när man bläddrar (lib/guide-kort.ts).
+  // Köpguiderna, nyast först. Raden går att bläddra i genom ALLA inlägg
+  // (2026-11-19: förut de tre senaste), men sidan bär bara de fyra första:
+  // resten hämtas när någon rör raden (lib/guide-kort.ts, /api/guider).
   // Bloggen läses redan av sidhuvudet och sidfoten (samma modul-cache), så
   // startsidan gör ingen ny hämtning.
-  const guider = guideKort(await getPosts().catch(() => []));
+  const allaGuider = guideKort(await getPosts().catch(() => []));
+  const guider = allaGuider.slice(0, GUIDER_FORST);
 
   // Tre riktiga Google-omdömen ur samma lista som /omdomen visar. Bara
   // femstjärniga med en text som ryms på ett kort utan att kapas.
@@ -533,7 +535,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {guider.length >= 3 && (
+      {allaGuider.length >= 3 && (
         <section className="sec guidesek">
           <div className="container">
             <div className="h2rad">
@@ -543,7 +545,7 @@ export default async function Home() {
               </div>
               <PrefetchLink className="h2lank" href="/blogg">Alla guider <span aria-hidden="true">→</span></PrefetchLink>
             </div>
-            <GuideKarusell guider={guider} />
+            <GuideKarusell guider={guider} totalt={allaGuider.length} />
           </div>
         </section>
       )}

@@ -3438,14 +3438,24 @@ nyast först: tre i bredd på datorn med pilar mitt för omslagen, och svep på
 mobilen som förut (`components/guide-karusell.tsx`, `lib/guide-kort.ts`,
 `.hem2 .guider` i `app/startsida.css`).
 
-**Så hålls sidan lika lätt.** Alla inlägg följer med som data (rubrik, adress,
-omslag och ingressen kortad till 130 tecken, kortet visar ändå bara två
-rader), men bara fyra kort ritas i sidans HTML, mot tre förut. Resten ritas
-när man bläddrar, sex åt gången, en och en halv radbredd innan de behövs. Ett
-kort som inte är ritat har inget `<img>`, så ingen bild hämtas för det. Mätt i
-webbläsare 2026-11-19 (`bf/blogg-karusell.cjs`): före bläddring fyra kort
-ritade och två omslag hämtade på mobilen, fyra på datorn; efter bläddring 44
-av 44 inlägg, och ingen sidledsrullning på sidan.
+**Så hålls sidan lika lätt.** Startsidan bär fyra kort, mot tre förut, och
+inget mer. De andra inläggen (rubrik, adress, omslag och ingressen kortad till
+130 tecken, kortet visar ändå bara två rader) ligger i EN cachad fil,
+`/api/guider`, som hämtas först när någon rör raden: pekaren eller fingret
+når den, eller en pil trycks. Sedan ritas korten sex åt gången, en och en halv
+radbredd innan de behövs. Ett kort som inte är ritat har inget `<img>`, så
+ingen bild hämtas för det.
+
+☠️ **Första bygget lät alla inläggs data följa med i sidan.** Mätt mot live
+samma natt: 33,2 → 37,4 kB brotli, alltså 4,2 kB mer för varje besökare, fast
+de flesta aldrig bläddrar. ☠️ Och att bara föra pekaren över raden får inte
+rita fler kort: då hämtas deras omslag. Filen hämtas vid avsikt, korten ritas
+vid bläddring (`rort` i komponenten).
+
+Mätt i webbläsare 2026-11-19 (`bf/blogg-karusell.cjs`): när sidan laddas hämtas
+filen inte alls; före bläddring fyra kort ritade och två omslag hämtade på
+mobilen, fyra på datorn; efter bläddring 44 av 44 inlägg med filen hämtad en
+gång, och ingen sidledsrullning på sidan.
 
 ☠️ `lib/startsida.test.ts` räknar raderna som rullar i sidled, en regel per
 rad. Radens `overflow-x:auto` står därför bara i grundregeln; mobilens regel

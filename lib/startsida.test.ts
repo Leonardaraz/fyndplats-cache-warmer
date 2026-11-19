@@ -79,7 +79,7 @@ describe("rader som rullar i sidled", () => {
 describe("startsidans sektioner", () => {
   it("guider visas när det finns minst tre, omdömen när det finns tre", () => {
     // Guiderna är en rad man bläddrar i sedan 2026-11-19: alla inlägg, inte tre.
-    assert.match(sida, /\{guider\.length >= 3 && \(/);
+    assert.match(sida, /\{allaGuider\.length >= 3 && \(/);
     assert.match(sida, /\{roster\.length === 3 && \(/);
   });
 
@@ -108,15 +108,24 @@ describe("startsidans sektioner", () => {
 describe("köpguiderna: en rad med alla inlägg, lika lätt som förut", () => {
   const rad = las("components", "guide-karusell.tsx");
 
-  it("startsidan skickar alla inlägg till raden och klipper inte vid tre", () => {
-    assert.match(sida, /const guider = guideKort\(await getPosts\(\)\.catch\(\(\) => \[\]\)\);/);
-    assert.match(sida, /<GuideKarusell guider=\{guider\} \/>/);
-    assert.doesNotMatch(sida, /guider[\s\S]{0,200}\.slice\(0, 3\)/);
+  it("☠️ startsidan bär bara de första korten: resten hämtas när någon rör raden", () => {
+    // Alla inläggs data i sidan vägde 4,2 kB mer över nätet för varje besökare.
+    assert.match(sida, /const allaGuider = guideKort\(await getPosts\(\)\.catch\(\(\) => \[\]\)\);/);
+    assert.match(sida, /const guider = allaGuider\.slice\(0, GUIDER_FORST\);/);
+    assert.match(sida, /<GuideKarusell guider=\{guider\} totalt=\{allaGuider\.length\} \/>/);
+    assert.match(rad, /fetch\("\/api\/guider"/);
+    // Hämtningen startar vid avsikt, aldrig när sidan laddas.
+    assert.match(rad, /onPointerEnter=\{avsikt\} onTouchStart=\{avsikt\} onFocus=\{avsikt\}/);
+    assert.doesNotMatch(rad, /useEffect\(\(\) => \{[^}]*hamta\(/);
+    const rutt = las("app", "api", "guider", "route.ts");
+    assert.match(rutt, /export const revalidate = 3600;/);
+    assert.match(rutt, /s-maxage=3600, stale-while-revalidate=86400/);
+    assert.match(rutt, /guider\.length \? CACHE : "public, s-maxage=60"/);
   });
 
   it("☠️ bara de första korten ritas: ett kort som inte är ritat hämtar ingen bild", () => {
-    assert.match(rad, /useState\(Math\.min\(GUIDER_FORST, guider\.length\)\)/);
-    assert.match(rad, /guider\.slice\(0, antal\)\.map\(/);
+    assert.match(rad, /const \[antal, setAntal\] = useState\(guider\.length\);/);
+    assert.match(rad, /alla\.slice\(0, antal\)\.map\(/);
     // Inget omslag får hämtas i förväg: ingen priority och inget eager.
     assert.doesNotMatch(rad, /priority|loading="eager"|fetchPriority/);
   });
@@ -128,7 +137,7 @@ describe("köpguiderna: en rad med alla inlägg, lika lätt som förut", () => {
   });
 
   it("korten: nyast först, utan omslag hoppas över, ingressen kortad vid ett ordslut", async () => {
-    const { guideKort, kortIngress, flerKort, GUIDER_FORST, GUIDER_STEG } = await import("./guide-kort.ts");
+    const { guideKort, kortIngress, flerKort, medResten, GUIDER_FORST, GUIDER_STEG } = await import("./guide-kort.ts");
     const poster = [
       { slug: "a", title: "A", excerpt: "kort", cover: "a.jpg", date: "2026-01-01" },
       { slug: "b", title: "B", excerpt: "", cover: "b.jpg", date: "2026-03-01" },
@@ -146,6 +155,14 @@ describe("köpguiderna: en rad med alla inlägg, lika lätt som förut", () => {
     assert.equal(GUIDER_FORST, 4);
     assert.equal(flerKort(4, 44), 4 + GUIDER_STEG);
     assert.equal(flerKort(40, 44), 44);
+    // Resten läggs efter de ritade: inget kort två gånger, skräp hoppas över,
+    // och ett kort som står i sidan men inte i filen står kvar.
+    const ritade = [{ slug: "a", title: "A", excerpt: "", cover: "a.jpg" }, { slug: "gammal", title: "G", excerpt: "", cover: "g.jpg" }];
+    const fil = [{ slug: "a", title: "A2", excerpt: "x", cover: "a.jpg" }, { slug: "b", title: "B", cover: "b.jpg" }, { slug: "", title: "x", cover: "x" }, null, { slug: "c", title: "C", excerpt: "y", cover: "" }, { slug: "b", title: "B igen", cover: "b.jpg" }];
+    assert.deepEqual(medResten(ritade, fil).map((g) => g.slug), ["a", "gammal", "b"]);
+    assert.equal(medResten(ritade, fil)[0].title, "A");
+    assert.equal(medResten(ritade, fil)[2].excerpt, "");
+    assert.deepEqual(medResten(ritade, { fel: true }), ritade);
   });
 });
 

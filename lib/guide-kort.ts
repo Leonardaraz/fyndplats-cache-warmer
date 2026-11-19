@@ -5,11 +5,14 @@
 // blogginlägg där inte bara 3. Jag vill att det ska vara optimerad hastighet
 // fortfarande super snabb."
 //
-// SÅ HÅLLS SIDAN LIKA LÄTT. Alla inlägg följer med som data (rubrik, adress,
-// ingress, omslag), men bara de första ritas: fyra kort i sidans HTML, mot tre
-// förut. Resten ritas när man bläddrar, sex åt gången. Ett kort som inte är
-// ritat har inget <img>, så ingen bild hämtas för det: startsidan hämtar lika
-// många omslag som förut tills kunden själv bläddrar.
+// SÅ HÅLLS SIDAN LIKA LÄTT. Startsidan bär fyra kort, mot tre förut, och inget
+// mer. De andra inläggen hämtas som EN cachad fil (/api/guider) först när
+// någon rör raden, och ritas sedan sex åt gången. Ett kort som inte är ritat
+// har inget <img>, så ingen bild hämtas för det.
+//
+// ☠️ Första bygget lät alla inlägg följa med som data i sidan. Mätt mot live
+// 2026-11-19: 33,2 → 37,4 kB brotli, alltså 4,2 kB mer för varje besökare, fast
+// de flesta aldrig bläddrar.
 //
 // LÖVMODUL: inga importer, så att `node --test` kan ladda den.
 
@@ -43,6 +46,24 @@ export function guideKort(
     .slice()
     .sort((a, b) => (b.updated || b.date).localeCompare(a.updated || a.date))
     .map((p) => ({ slug: p.slug, title: p.title, excerpt: kortIngress(p.excerpt), cover: p.cover }));
+}
+
+/**
+ * De ritade korten först, i samma ordning, och resten efter. Startsidan kan
+ * vara byggd före filen (båda cachas var för sig), så ett kort som står i
+ * sidan men inte i filen står kvar, och inget kort står två gånger.
+ */
+export function medResten(ritade: readonly GuideKort[], alla: unknown): GuideKort[] {
+  if (!Array.isArray(alla)) return [...ritade];
+  const finns = new Set(ritade.map((g) => g.slug));
+  const nya: GuideKort[] = [];
+  for (const g of alla as Partial<GuideKort>[]) {
+    if (!g || typeof g.slug !== "string" || typeof g.title !== "string" || typeof g.cover !== "string") continue;
+    if (!g.slug || !g.title || !g.cover || finns.has(g.slug)) continue;
+    finns.add(g.slug);
+    nya.push({ slug: g.slug, title: g.title, excerpt: typeof g.excerpt === "string" ? g.excerpt : "", cover: g.cover });
+  }
+  return [...ritade, ...nya];
 }
 
 /** Hur många kort som ska vara ritade efter en bläddring. */
