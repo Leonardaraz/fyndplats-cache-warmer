@@ -1,0 +1,36 @@
+{
+  "47072b43": {
+    "productId": "47072b43-c0b3-4747-9988-c01c7eb216b1",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-u3d1uv",
+        "betyg": 5,
+        "datum": "2026-10-30",
+        "kopt": "Blå",
+        "foton": 0,
+        "text": "Nice Dutch Oven! Great for baking loaves of sourdough. This same item is labeled and sold for twice the price on other websites. I ended up buying 3 more for my adult children's Christmas presents. Fast shipping! I highly recommend this product for your kitchen."
+      },
+      {
+        "id": "gen-15u9ew2",
+        "betyg": 5,
+        "datum": "2026-10-13",
+        "kopt": "Röd",
+        "foton": 2,
+        "text": "This is my jam making pot! It works amazing, gets up to heat nice and quickly and doesn’t burn (as long as you stir with wooden or silicone utensils)! Love it and have told hubby he’s not allowed to use it 🤣"
+      },
+      {
+        "id": "gen-8utg7b",
+        "betyg": 5,
+        "datum": "2026-10-01",
+        "kopt": "Blå",
+        "foton": 0,
+        "text": "Well-made and beautifully coloured, I can't wait to start making stews!"
+      }
+    ]
+  }
+}
