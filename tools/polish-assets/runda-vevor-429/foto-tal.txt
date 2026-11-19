@@ -1,0 +1,3 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+838de128 2 tillbehörslistan på måttbilden anger en insexnyckel S4 och en S6, alltså två insexnycklar
