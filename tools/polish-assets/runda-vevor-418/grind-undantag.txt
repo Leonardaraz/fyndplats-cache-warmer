@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py lådskenornas källrader (skenlängd, produktmått 453 × 45 × 12,7 mm) och backspolningsslangens (längd, diameter, tjocklek), dammfodrets (4,6 × 6 m) och talarpulpetens (produktmått 600 × 320 × 1215 mm, höjd 1090–1178 mm) saknar axelord för bredd och djup, så sidorna skriver måtten utan att namnge axlarna
