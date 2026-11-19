@@ -315,3 +315,57 @@ val och att Storlek låg på ~97. Uppmätt 2026-09-27: `Färg` (TEXT_CHOICES) ha
 **293** val och `Storlek` **203**, och importerna fungerar. Taket på 100 per
 delad option gäller alltså inte i dag. Nya storleksvärden tar ändå en plats var i
 den delade listan, så välj korta, återanvändbara etiketter där det går.
+
+#### En färg vars artikel Aosom bytt ut står slut: peka om varianten (2026-11-19)
+
+Leonards fråga med en skärmbild (lyftfåtöljen `d34f6bab`): *"Varför står det att
+grå är slut i lager när det står på leverantörens sida att det finns 15 st?"* och
+sedan *"Om grå har en som är annan artikel men är rätt så fixa det förfan bara va
+säker att det är helt rätt"*.
+
+**Orsaken.** Varje färg på en sammanslagen sida bär sin egen Aosom-artikel
+(`variants[].supplierVariantId`). Byter Aosom version på artikeln försvinner den
+gamla raden ur flödet och samma vara kommer tillbaka som en ny rad. Lagersynken
+nollar en variant vars rad saknas (en rad som försvinner är ett lagerbesked, se
+*Aosom-synken: ett anrop ger hela sanningen*), så färgen står slut i butiken tills
+någon pekar om den. En sida i den här situationen syns inte som ett fel någonstans:
+räknarna *okända varianter* och *tvetydiga* är noll, för varianten är känd, bara
+raden den pekar på finns inte längre.
+
+**Så ser man det.** `leverantorslankar.yml` (krypterat) ger ingen länk för en
+variant vars artikel saknas i flödet. `aosom-feed-search.yml` med `kuvert` och ord
+ur titeln (`alla_rader=true`) visar flödets rader med saldo, vikt och Sverige-frakt:
+finns det en rad med samma titel utom färgen, samma vikt och samma frakt som
+syskonfärgerna är det samma vara i en ny version.
+
+**Så gör man.** Det finns inget verktyg för det (`aosom-remap.yml` vägrar
+flervariantssidor), så ingreppet görs som en villkorad patch på mappningsraden.
+
+1. ☠️ **Bevisa att det är samma vara före allt annat.** Samma titel utom färg, samma
+   vikt och frakt som syskonfärgerna, samma mått som sidans, och inga ordrar på
+   färgen (`ecom/v1/orders/search`, de senaste hundra räcker för en färg som varit slut).
+2. ☠️ **Aldrig i Aosoms synkfönster** (:12–:29 UTC var tredje timme). Raden skrivs
+   av synken också.
+3. **Wix Data PATCH** (`PATCH /wix-data/v2/items/<wix-id>`, samlingen
+   `FyndplatsMappings`) som sätter fältet `variants` ensamt. Hela fältet ersätts, så
+   läs raden först och lägg tillbaka varje variant som den lästes; ändra bara den
+   berörda variantens `supplierVariantId`, `landedCostSek` (ur flödet) och
+   `costUsd` (landad kostnad / 10,5, som på de andra varianterna). `grossSek` är
+   priset kunden ser och rörs inte.
+4. ☠️ **`condition` är obligatorisk:** `supplierProductId` och `aosomSyncedAt` som
+   de lästes. Synken stämplar samma rad, och en patch som ersätter hela
+   `variants` utan villkor tar tillbaka dess värden. Slår villkoret fel (428), läs
+   om och försök igen.
+5. **Läs tillbaka** (ett svar utan fel är inget kvitto): artikeln på varianten, att
+   de andra varianterna är oförändrade, och att priset ligger kvar.
+6. **Riktad lagersynk:** `aosom-sync.yml` med `feed_sok` (orden ska ge EXAKT en rad;
+   artikelnumret skrivs aldrig ut) först i läget `torr` och sedan `lager`, som bara
+   skriver saldon. Kontrollera lagerposterna i Wix och sidan i butiken (variantens
+   vals *Slut* ska vara borta).
+
+⚠️ **Priset rörs inte av ingreppet, men prissynken gör det vid nästa priskörning.**
+Den räknar varje färgs pris efter feedens inköpskostnad (1,20 × landad kostnad,
+`charm99`), och en billigare ny artikel ger ett lägre pris. Säg det till Leonard
+innan skrivningen; torrkörningens räknare *priser* visar att en ändring väntar.
+Sidans text kan dessutom bära uppgifter om den gamla versionen (vikt och
+paketmått per färg): läs specifikationen efteråt.
