@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans specifikation anger måtten i en rad med axelbokstäver (*Produktmått (L x B x H)*, 1200 x 600 x 300 mm och 1800 x 900 x 300 mm); sidorna skriver måttet i samma ordning (längd, bredd, höjd) i millimeter
