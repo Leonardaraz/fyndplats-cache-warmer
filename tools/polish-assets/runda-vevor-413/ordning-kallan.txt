@@ -1,0 +1,2 @@
+# <kort> <skäl> — se bygg-media.py
+4dca0dcf galleriet behåller källordningen: båda storlekarnas utkast hade samma sex foton i samma ordning, så sammanslagningen lade inga nya; inget foto är en måttbild (VEVOR:s måttbilder ligger inte i galleriet)

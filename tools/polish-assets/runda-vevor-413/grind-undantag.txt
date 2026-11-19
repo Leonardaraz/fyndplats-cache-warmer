@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad saknar axelord, och måttbilderna för de två storlekarna ritar bara siffror (6,6 fot och 8,2 fot, 4,6 fot och 6,6 fot och stolphöjden 4 till 7 fot) utan axelord, så sidan skriver storlekarna som 6,6 × 8,2 fot och 4,6 × 6,6 fot utan axelord; källtextens metertal (1,8 × 2,4 m och 1,2 × 1,8 m) säger emot bildernas fot och skrivs inte
