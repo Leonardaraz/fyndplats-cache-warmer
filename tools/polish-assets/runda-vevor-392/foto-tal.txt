@@ -1,0 +1,6 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+9961b076 15 pinnar enligt packbildens etikett x15 (första fotot)
+9961b076 8 staglinor enligt packbildens etikett x8 (första fotot)
+27c7b37a 13 pinnar enligt packbildens etikett x13 (första fotot)
+27c7b37a 7 staglinor enligt packbildens etikett x7 (första fotot)

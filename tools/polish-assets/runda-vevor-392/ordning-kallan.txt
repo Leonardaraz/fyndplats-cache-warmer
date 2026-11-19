@@ -1,0 +1,6 @@
+# <kort> <skäl> — se bygg-media.py
+0e114b0d källposition 3 är ett vanligt foto (tavlan med röda och blå pilar vid kanterna), inte en måttbild; position 4 stryks (samma tavlbild utan pilarna); galleriet behåller källordningen
+4fbb0181 källposition 3 är ett vanligt foto (närbild på gräset med den upprullade mattan nedanför), inte en måttbild; galleriet behåller källordningen
+cb5fb692 källposition 3 är ett vanligt foto (campingköket med en bärväska ovanför), inte en måttbild; galleriet behåller källordningen
+9961b076 källposition 3 är ett vanligt foto (tältet framifrån med små bilder nedanför), inte en måttbild; galleriet behåller källordningen
+27c7b37a källposition 3 stryks (engelsk måttetikett inbränd över bilden); övriga positioner behåller källordningen
