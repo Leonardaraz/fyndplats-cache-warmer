@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py sidornas mått står som tal ur specifikationsraderna och måttbilderna i källans ordning, utan axelord där källan inte har några (aktivitetsbordet, dryckesdispensern, båtgolvet, kontorsstolens produktmått och sadelväskorna), så ingen axel påstås utan stöd; buxbompanelerna och kontorsstolens ryggstöd och sits bär sina axelord ur specifikationsraderna

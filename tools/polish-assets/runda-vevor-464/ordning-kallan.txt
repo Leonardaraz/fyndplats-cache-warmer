@@ -1,0 +1,7 @@
+# <kort> <skäl> — se bygg-media.py
+f6f65c39 galleriet behåller källordningen: position 1 är ett produktfoto med måttpilar och ingen måttritning, så den behåller första platsen (VEVOR:s måttbild ligger inte i utkastets galleri)
+eaa254a2 galleriet behåller källordningen: inget foto är en måttbild (VEVOR:s måttbild ligger inte i utkastets galleri)
+6372d9bf galleriet behåller källordningen: inget foto är en måttbild (VEVOR:s måttbild ligger inte i utkastets galleri)
+bd8071ce galleriet behåller källordningen: inget foto är en måttbild (VEVOR:s måttbild ligger inte i utkastets galleri)
+58dda19e galleriet behåller källordningen: inget foto är en måttbild (VEVOR:s måttbild ligger inte i utkastets galleri)
+0a78d196 galleriet behåller källordningen: inget foto är en måttbild (VEVOR:s måttbild ligger inte i utkastets galleri)
