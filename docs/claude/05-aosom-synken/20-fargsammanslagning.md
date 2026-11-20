@@ -368,7 +368,11 @@ Den räknar varje färgs pris efter feedens inköpskostnad (1,20 × landad kostn
 `charm99`), och en billigare ny artikel ger ett lägre pris. Säg det till Leonard
 innan skrivningen; torrkörningens räknare *priser* visar att en ändring väntar.
 Sidans text kan dessutom bära uppgifter om den gamla versionen (vikt och
-paketmått per färg): läs specifikationen efteråt.
+paketmått per färg): läs specifikationen efteråt. På lyftfåtöljen `d34f6bab` stod
+*Fraktvikt: 46,5 kg, den grå 55 kg* kvar efter ompekningen, tills T127
+(2026-11-20) rättade den. Den nya artikelns paketmått går inte att läsa ur
+flödet (`aosom-feed-search.yml` visar bara namn, saldo, vikt och frakt), så sidan
+nämner inget paketmått för just den färgen i stället för att gissa.
 
 **Svepet efter fler fall (2026-11-20).** Leonards fråga: *"Har vi fler fall som är
 fel som den grå soffan?"* Svar: nej, inget fall till av exakt det felet.
@@ -378,7 +382,10 @@ fel som den grå soffan?"* Svar: nej, inget fall till av exakt det felet.
   (`leverantorslankar.yml` ger ingen länk). I flödet (`aosom-feed-search.yml`
   med `kuvert`) fanns ingen ersättare för 57 av dem: färgen eller storleken har
   utgått hos Aosom och syskonfärgerna ligger kvar på sidan. En träff var en
-  annan modell i samma familj. 10 val på 8 sidor gick inte att slå upp.
+  annan modell i samma familj. 10 val på 8 sidor gick inte att slå upp vid första
+  svepet. Vid dubbelkontrollen samma dag slogs de upp en gång till mot flödet, och
+  det blev inget nytt fel av den grå soffans sort. Ett val, på `5f2bd483`, går
+  fortfarande inte att verifiera mot flödet och ligger kvar orört.
 - ☠️ **Sök med ord, aldrig med artikelnummer.** En workflow-input på ett publikt
   repo syns i körningen; `Maskera`-steget döljer bara loggen. Orden hämtas ur
   syskonens länkar. Sökningen matchar flödets titel, som inte alltid är den som
@@ -389,10 +396,15 @@ fel som den grå soffan?"* Svar: nej, inget fall till av exakt det felet.
 - **Från Wix-sidan** (en läsning av `FyndplatsMappings` med `ExecuteWixAPI`):
   slutsålda artiklar där en annan artikel i samma familj och med samma färgkod
   har lager gav 20 par. Alla var andra storlekar eller modeller, jämfört på
-  sidornas titlar och mått, utom en massagefåtölj: samma stol ligger på två
-  publicerade sidor, och svart finns bara på den ena. Versionsnumret i
-  artikelnumrets slut (`V00`, `V01` …) är oftast storlek eller modell, inte
-  version, så "samma färgkod, annat nummer" bevisar ingenting.
+  sidornas titlar och mått. Ett par såg först ut som samma massagefåtölj på två
+  publicerade sidor, där svart bara fanns på den ena, men ☠️ **det var ett
+  felslut**: dubbelkontrollen (2026-11-20) visade att de är olika modeller. Flödets
+  titlar säger konstläder på den ena och polyester på den andra, och fotona visar
+  två olika stolar. Det fanns inget att slå ihop. Samma titel utom färgen och samma
+  mått räcker alltså inte som bevis: läs materialet i flödets titel och titta på
+  fotona innan en sida kallas dubblett. Versionsnumret i artikelnumrets slut
+  (`V00`, `V01` …) är oftast storlek eller modell, inte version, så "samma
+  färgkod, annat nummer" bevisar ingenting.
 - **Inte kontrollerat.** De 538 slutsålda enkelsidorna går inte att jämföra mot
   flödet med dagens verktyg, och en flödesrad som inte ligger på någon sida syns
   inte från Wix. `aosom-familjer` räknar ensamma sidor med syskon i feeden som vi
