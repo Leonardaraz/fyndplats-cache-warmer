@@ -11,7 +11,9 @@
 // Svaret `{ data, ut, fel, pad }` läses av en `ingest`-fil (jfr `ingest9.py` i en poleringssession): `data` är utkasten
 // (fullid, name, slug, visible, revision, html, items [{id, alt}], variants [{sku, id, pris, vis, lager}], options, katNamn,
 // lager) och `ut` är VEVOR-avläsningen per utkast: namn, punkter, spec, bilder [{url, egen}], status, saldo, borta,
-// levererasTillSe, betyg och mappningsradens status.
+// levererasTillSe, betyg och mappningsradens status. `variants[].lager` är variantens EGET saldo (null om lagerraden saknas)
+// och `lager` produktens summa: bedöm en sida med flera storlekar efter det förra (runda 448: summan 116 dolde att en
+// storlek hade saldo 0 och en annan 4).
 //
 // ☠️ Artikelnumret (`supplierProductId`, `vevorArtiklar`, avläsningens `sku`) och bildadresserna (de bär artikelnumret)
 // skrivs aldrig i en fil i repot, i en commit eller i ett svar till Leonard. Bildadresserna hämtas av `ingest` med `curl` till
@@ -47,9 +49,11 @@ async function () {
   }
   const inv = await wix.request({ method: "POST", url: "https://www.wixapis.com/stores/v3/inventory-items/query", body: { query: { filter: { productId: { $in: PIDS } }, cursorPaging: { limit: 100 } } } });
   const lager = {};
+  const lagerVar = {};   // variantens eget saldo (☠️ runda 448: summan per produkt dolde en slutsåld storlek)
   ((inv.data || inv).inventoryItems || []).forEach(function (x) {
     const k = String(x.productId);
     lager[k] = (lager[k] || 0) + (x.quantity || 0);
+    lagerVar[String(x.variantId)] = x.quantity || 0;
   });
   const mq = await wix.request({ method: "POST", url: "https://www.wixapis.com/wix-data/v2/items/query", body: { dataCollectionId: "FyndplatsMappings", query: { filter: { wixProductId: { $in: PIDS } }, paging: { limit: 20 } } } });
   const mrader = {};
@@ -81,7 +85,7 @@ async function () {
         }),
         variants: vs.map(function (x) {
           const a = x.price && x.price.actualPrice && x.price.actualPrice.amount;
-          return { sku: x.sku, id: x.id, pris: a === undefined || a === null ? null : String(a), vis: x.visible, lager: lager[pid] || 0, ch: (x.choices || []).map(function (c) { return c.optionChoiceNames && c.optionChoiceNames.choiceName; }) };
+          return { sku: x.sku, id: x.id, pris: a === undefined || a === null ? null : String(a), vis: x.visible, lager: lagerVar[String(x.id)] === undefined ? null : lagerVar[String(x.id)], ch: (x.choices || []).map(function (c) { return c.optionChoiceNames && c.optionChoiceNames.choiceName; }) };
         }),
         options: (p.options || []).map(function (o) { return { n: o.name, v: (o.choicesSettings && o.choicesSettings.choices || []).map(function (c) { return c.name; }) }; }),
         katNamn: catIds.map(function (id) { return kmap[id] || ("OKAND:" + id); }),
