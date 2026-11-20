@@ -1,0 +1,6 @@
+# <kort> <skäl> — se bygg-media.py
+0974e240 galleriet behåller källordningen: inget foto är en måttbild (VEVOR:s måttbild ligger inte i utkastets galleri)
+3bf57c95 galleriet behåller källordningen: inget foto är en måttbild (VEVOR:s måttbild ligger inte i utkastets galleri)
+7956f9db galleriet behåller källordningen: inget foto är en måttbild (VEVOR:s måttbild ligger inte i utkastets galleri)
+9aa27418 galleriet behåller källordningen: inget foto är en måttbild (VEVOR:s måttbild ligger inte i utkastets galleri)
+06ead20b galleriet behåller källordningen: inget foto är en måttbild (VEVOR:s måttbild ligger inte i utkastets galleri)
