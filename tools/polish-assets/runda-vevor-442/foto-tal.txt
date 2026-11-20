@@ -1,0 +1,8 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+e4b40a1b 2 bilden av anslutningen visar två anslutningar (inlopp och utlopp) på pumphuvudet
+3352c15c 6 innehållsbilden anger Cam Lock (6 x Keys), och nyckelbilden visar tre par nycklar
+3352c15c 4 innehållsbilden anger 4 x Plastic Hole Plugs, och bilden visar fyra pluggar
+3352c15c 2 innehållsbilden anger 2 x Wrenches, och bilden visar två skruvnycklar
+31f3f762 2 bilderna visar två hyllor och två maskiner (en tvättmaskin och en torktumlare) på stativet
+31f3f762 4 innehållsbilden anger 4 justerbara fötter och 4 expanderbultar, och bilden visar fyra fötter
