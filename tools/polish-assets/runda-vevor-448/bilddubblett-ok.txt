@@ -1,6 +1,0 @@
-60acb16b 1 31 paret stryks direkt efter skrivningen med Bilder bort, eftersom bilden är länkad till ett val och planen inte får tappa den
-60acb16b 4 34 paret stryks direkt efter skrivningen med Bilder bort, eftersom bilden är länkad till ett val och planen inte får tappa den
-60acb16b 7 13 paret stryks direkt efter skrivningen med Bilder bort, eftersom bilden är länkad till ett val och planen inte får tappa den
-60acb16b 10 16 paret stryks direkt efter skrivningen med Bilder bort, eftersom bilden är länkad till ett val och planen inte får tappa den
-60acb16b 11 17 paret stryks direkt efter skrivningen med Bilder bort, eftersom bilden är länkad till ett val och planen inte får tappa den
-60acb16b 12 18 paret stryks direkt efter skrivningen med Bilder bort, eftersom bilden är länkad till ett val och planen inte får tappa den
