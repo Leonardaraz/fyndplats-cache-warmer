@@ -4102,6 +4102,18 @@ Lyftet och pilen vid hovring är oförändrade. ☠️ /under-1000-kr/mobler är
 lista (ShopBrowser) och blev vit, fast översikten /under-500-kr är beige: det
 är samma skillnad som mellan /butik och en kategorisida.
 
+☠️ **"Beige på mobilen" är beräknad stil i Chromium. I Safari på iPhone är
+brickan vit.** Mätt på riktiga telefoner 2026-11-20, pixlar i skärmbilden:
+iPhone 15 med iOS 27 visade (255, 255, 255) i kategorin, och iPhone 17 med
+iOS 26 visade vitt på startsidan ("Veckans fynd") och i söket, där samma kort
+i Chromium med mobilvy och i Samsung Internet på en Galaxy S24 är beige
+(244, 238, 232). På mobilen ligger fotot i den svepbara bildraden
+(`.pimg-track-swipe`), och Safari blandar det då inte mot brickans färg: det
+vita i fotot täcker brickan. Orsaken är inte bekräftad i kod. I Safari på Mac
+(26.4) fungerar blandningen: startsidan beige, listorna vita. Inte ändrat:
+om mobilens kort ska vara vita i alla webbläsare, eller beige också på
+iPhone, är Leonards beslut.
+
 **Rubriktypsnittet på infosidorna.** Sidans huvudrubrik är serif på varje sida
 utom produktsidan och kassan: `.om-hero h1` (tio infosidor) och `.pagehero h1`
 (villkorssidorna och köpguiderna) hade sans i 800. Sektionsrubrikerna under en
@@ -4547,3 +4559,62 @@ Datorns meny och mobilmenyn visar en bild per avdelning och underkategori.
   fotovisarna för omdömen) låser via `lasSidan()`, som räknar samtidiga lås
   och håller rullningslistens plats på datorn. `lib/las-sidan.test.ts` fäller
   `document.body.style.overflow` var som helst i koden.
+
+## Riktiga telefoner: Safari före iOS 16 visade felsidan på varje sida (2026-11-20)
+
+Leonard kopplade BrowserStack 2026-11-20, och butiken provades för första
+gången på riktiga telefoner. Allt före det var provat i Chromium.
+
+☠️ **`AbortSignal.timeout` finns först i Safari 16.0. I äldre Safari kastar ett
+anrop synkront.** `lib/use-klarna-ruta.ts`, som kom med Stripe-kassan
+2026-11-06, anropade den i en effekt som körs på varje sida, och då byttes
+hela sidan mot "Något gick fel". Mätt mot www:
+
+| Telefon | iOS | Startsidan och produktsidan |
+| :-- | :-- | :-- |
+| iPhone 12 | 14.1 | felsidan |
+| iPhone 13 | 15.4 | felsidan (bara produktsidan provad) |
+| iPhone 14 | 16.5 | butiken |
+| iPhone 17 | 26 | butiken |
+| iPhone 15 | 27 | butiken |
+
+Servern svarade 200 med hela sidan också för en gammal Safari, så felet syntes
+inte i någon logg på vår sida. Återskapat i Chromium genom att köra
+`delete AbortSignal.timeout` före sidans skript: startsidan, kategorin,
+produktsidan, söket, auktionen och kontot föll alla, med felet i
+`useKlarnaRuta`.
+
+- **All kod som kan hamna i webbläsaren använder `tidsgransSignal(ms)`**
+  (`lib/tidsgrans-signal.ts`): webbläsarens egen signal när den finns, annars
+  `AbortController` med `setTimeout`, och aldrig ett kast.
+- `lib/tidsgrans-signal.test.ts` går importerna från varje fil med
+  `"use client"` och fäller om en nåbar fil anropar `AbortSignal.timeout(`.
+  ☠️ Felet stod redan antecknat i `components/card-gallery.tsx` och kom ändå
+  tillbaka i tolv filer: en spärr man måste komma ihåg glöms bort.
+- Serverkod (API-rutter och serverbibliotek) får använda `AbortSignal.timeout`.
+- ☠️ Inte mätt: hur många besökare som drabbades. Vercels besöksstatistik
+  delar inte på iOS-version, och GA4 gick inte att läsa den natten.
+- ☠️ Inte mätt på riktig telefon efter rättelsen. Förhandsbyggen ligger bakom
+  Vercels skydd, så iOS 15 går att prova först på www efter mergen. Annat i
+  sidan kan fortfarande fälla iOS 14 och 15.
+
+### Så provas butiken på riktiga telefoner
+
+BrowserStack-kopplingens `devicecontrol` öppnar en riktig telefon, eller
+Safari på en Mac, och styr sidan: `create_session` (Safari på iPhone heter
+`iphone`, Samsung Internet `samsung`), `navigate_to`, `find_element`,
+`click_element`, `send_keys`, `scroll_to_element` och `take_screenshot`.
+Sessionen drar minuter tills den avslutas: sluta alltid med
+`set_session_status` och `delete_session`.
+
+- Bara publika sidor går att öppna. Delningslänken till ett förhandsbygge
+  lämnas inte ut till en yttre tjänst.
+- Skärmbilden är hela telefonens skärm, med Safaris egen verktygsrad.
+- ☠️ Tangentbordet visas inte när text skrivs via kopplingen, och Safaris zoom,
+  svep och nyp går inte att styra. Rörelse går inte att bedöma i stillbilder.
+- ☠️ `clear_element` tömmer inte ett fält som React styr: texten står kvar och
+  nästa text läggs efter den. Tryck på fältets eget kryss.
+- Beräknad stil går inte att läsa. Mät pixlar i skärmbilden.
+- Webbläsarens fellogg kom tillbaka tom från iPhone, också när sidan föll:
+  återskapa felet i Chromium för att se var det kastas.
+- Kontot stod på gratisplanen 2026-11-20.
