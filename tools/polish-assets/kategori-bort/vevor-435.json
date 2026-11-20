@@ -1,0 +1,19 @@
+{
+  "namn": "vevor-435",
+  "rader": [
+    {
+      "kort": "b5aa1386",
+      "pid": "b5aa1386-0aa8-4345-9c6d-8fa66b9d1236",
+      "bort": [
+        "Bil & Garage > Bilverktyg",
+        "Bil & Garage"
+      ],
+      "behall": [
+        "Verktyg & Maskiner",
+        "Verktyg & Maskiner > Handverktyg",
+        "Bygg & Renovering",
+        "Bygg & Renovering > VVS & vatten"
+      ]
+    }
+  ]
+}
