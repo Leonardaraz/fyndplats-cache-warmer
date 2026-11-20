@@ -287,10 +287,11 @@
 
 /* ── Reservhöjd för Safari före 15 (aspect-ratio saknas) ──────────────
    Se "Reservhöjd" sist i app/globals.css. Blocket står här, före nattens
-   avsnitt: lib/natten.test.ts letar upp filens SISTA mediefrågor. Bildrutorna här har bara absolut
-   placerade barn, så en ::before med padding-top ger samma höjd. Hjältens
-   bildruta får sin bredd av höjden via aspect-ratio; utan den fyller rutan
-   brickans bredd, och fotot står centrerat i den (object-fit:contain). */
+   avsnitt: lib/natten.test.ts letar upp filens SISTA mediefrågor.
+   Bildrutorna här har bara absolut placerade barn, så en ::before med
+   padding-top ger samma höjd. Hjältens bildruta får sin bredd av höjden via
+   aspect-ratio; utan den fyller rutan brickans bredd, och fotot står
+   centrerat i den (object-fit:contain). */
 @supports not (aspect-ratio:1/1){
   .hem2 .kat-bild::before,.hem2 .guide-bild::before{content:"";display:block;padding-top:75%}
   .hem2 .hbild{justify-self:stretch}

@@ -659,13 +659,17 @@ export function ProductView({
   // det aldrig står två köpknappar i samma skärm (mätt på en riktig iPhone
   // 2026-11-20). Raden täcker skärmens nederkant: en knapp som ligger bakom
   // den räknas som synlig, raden glider undan och knappen kommer fram.
-  // Utan IntersectionObserver står raden kvar som förut.
+  // Sidhuvudet ligger fast överst och täcker knappen när den rullar in
+  // uppifrån, så den delen av skärmen räknas inte (rootMargin).
+  // intersectionRatio, inte isIntersecting: webbläsarna är inte överens om
+  // isIntersecting under tröskeln. Utan IntersectionObserver står raden kvar.
   const kopKnapp = useRef<HTMLButtonElement>(null);
   const [kopSyns, setKopSyns] = useState(false);
   useEffect(() => {
     const knapp = kopKnapp.current;
     if (!knapp || typeof IntersectionObserver !== "function") return;
-    const io = new IntersectionObserver(([e]) => setKopSyns(e.isIntersecting), { threshold: 0.6 });
+    const huvud = Math.round(document.querySelector("header.sidhuvud")?.getBoundingClientRect().height ?? 0);
+    const io = new IntersectionObserver(([e]) => setKopSyns(e.intersectionRatio >= 0.6), { threshold: 0.6, rootMargin: `-${huvud}px 0px 0px 0px` });
     io.observe(knapp);
     return () => io.disconnect();
   }, []);

@@ -36,7 +36,13 @@ describe("mobilens fasta köprad glider undan medan köpknappen syns", () => {
   it("sidans köpknapp bevakas, och utan IntersectionObserver står raden kvar", () => {
     assert.match(vy, /const kopKnapp = useRef<HTMLButtonElement>\(null\);/);
     assert.match(vy, /if \(!knapp \|\| typeof IntersectionObserver !== "function"\) return;/);
-    assert.match(vy, /new IntersectionObserver\(\(\[e\]\) => setKopSyns\(e\.isIntersecting\), \{ threshold: 0\.6 \}\)/);
+    // Kvoten, inte isIntersecting: den är sann under tröskeln i en del webbläsare.
+    assert.match(vy, /new IntersectionObserver\(\(\[e\]\) => setKopSyns\(e\.intersectionRatio >= 0\.6\), \{ threshold: 0\.6, rootMargin: `-\$\{huvud\}px 0px 0px 0px` \}\)/);
+    assert.doesNotMatch(vy, /setKopSyns\(e\.isIntersecting\)/);
+    // Det fasta sidhuvudet täcker knappen när den rullar in uppifrån.
+    assert.match(vy, /const huvud = Math\.round\(document\.querySelector\("header\.sidhuvud"\)\?\.getBoundingClientRect\(\)\.height \?\? 0\);/);
+    assert.match(las("components", "site.tsx"), /<header className="sidhuvud">/);
+    assert.match(css, /(^|\})header\{position:sticky;top:0;/m);
     assert.match(vy, /<button\s+ref=\{kopKnapp\}\s+className="buy"/);
   });
 
