@@ -1,0 +1,9 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+d60839af 4 bilderna visar hyllan med fyra hyllplan och fyra hjul, och måttbilden anger 4 shelves
+d60839af 2 måttbilden visar fyra hjul varav två har lås
+70224c25 2 bilden på baksidan visar två hjul
+3cf73196 3 titeln anger 3 delar, och bilderna visar ett ställ, en tång och en eldgaffel
+6c7d3c0c 2 bilden på arbetsplatsen visar två personer i bakgrunden
+9b696965 5 närbilden visar fem håligheter i käften, och måttbilden anger 5-Cavity
+9b696965 2 bilden visar två wirelinor med pressade hylsor

@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py sidornas mått står som tal ur källans specifikationsrader och måttbilder (hyllans, dunkens, eldstadssetets och pressarens mått och längder, kulledssatsens vikt), och sidorna skriver dem likadant, utan axelord, så ingen axel påstås
