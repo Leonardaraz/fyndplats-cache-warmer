@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py sidans mått står som tal ur källans måttbild (längd, bredd och höjd i centimeter), och sidan skriver dem likadant, utan axelord, så ingen axel påstås
