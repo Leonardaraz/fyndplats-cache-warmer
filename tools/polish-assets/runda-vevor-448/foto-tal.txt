@@ -1,0 +1,3 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+c27ad49f 5 bilden med hylsorna i en rad visar fem hylsor och en framaxelavdragare, och bilden med storlekarna anger fem hylsstorlekar
