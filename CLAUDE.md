@@ -3580,6 +3580,160 @@ Två saker till i samma ändring:
 - **Panelens fotknapp** (`.sugg-all`) bar webbläsarens egen ram på sidorna och
   i nederkanten. Nu `border:0` före `border-top`.
 
+## Sökmotorns genomgång mot kundernas egna sökningar (Leonard 2026-11-19)
+
+Leonards ord: "gör en djup analys och tester att den är 10/10 funktionellt och
+visuellt, som bästa e handel i världen". Underlaget var kundernas 56 sökningar
+i butiken (söktermerna i GA4), 163 varufrågor från Google (Search
+Console) och en lista på 7 482 frågor byggd ur katalogens 7 724 namn. Allt i
+`lib/search.ts`; proven står i `lib/sok-finslip.test.ts`, mätverktygen i
+`tools/sok-matning/` (läs README där innan motorn ändras).
+
+**Mätt före och efter** (samma sökindex, 2026-11-19): 520 av 7 482 frågor
+bytte antal träffar och 1 422 bytte de fem första. Ingen fråga gick från träff
+till noll. Felstavningar (592 st): täckning 90,6 → 98,6 %, renhet 97,6 →
+99,1 %, tomma svar 3 → 0. Tiden per tangent i Node, 360 tangenter: medel 12,1
+→ 10,7 ms, p95 54 → 36 ms. Inte mätt: tiden på en riktig telefon. Motorns bit
+av JavaScripten (hämtas först när någon rör sökrutan) växte från 18 till
+27,6 kB minifierat, 7,6 till 10,7 kB gzip.
+
+**☠️ Svenskans böjningar nådde inte fram.** Stammen tar bort EN ändelse, och
+då hittade "speglar" 6 av butikens 126 speglar ("spegl" står inte i "spegel"),
+"cyklar" 2 av 103, och "möbler" ingen av de 18 varor som heter något på
+"-möbel". Åt andra hållet hittade
+"bordslampa" inte "Bordslampor 2-pack". `bojdaFormer` lägger till de tre
+klasserna stammen inte når: hylla ↔ hyllor, kudde ↔ kuddar, spegel ↔ speglar
+och möbel ↔ möbler, plus lådan → låda. Formerna prövas mot katalogen
+(`forberedSokning`): "inne" blir annars "innar", som står i "sittPINNAR".
+
+**Ett ensamt sökord är samma ord i alla böjningar** (`ensamtOrdsFormer`).
+"stolar" gav matgrupper "… och fyra stolar" före varenda kontorsstol, och
+"växter" en spaljé för klätterväxter före de konstgjorda växterna: ordet som
+kunden skrev fick frasens 100 eller 90, entalet bara 60. Nu räknas formerna
+lika. Entalet tas med när katalogen har det, aldrig en färg eller ett småord
+("rosor" är inte "rosa"), och inte för orden i `INTE_BOJT` och `INTE_ENTAL`:
+ett filter är ingen filt, en racket inget rack, och "stegar" inte "steg".
+
+**☠️ Stammen är inte alltid ordet** (`sokstam`). "träning" hade stammen "trä"
+och gav 910 träffar, "matare" 437 (mat-), "rosor" 351 (rosa och rostfritt),
+"krona" 167 (krokar och krom). Tre regler:
+- en stam på högst tre tecken gäller bara efter en riktig böjningsändelse, och
+  ska då stå som ett ord eller sist i ett ord (`ordStar`): "bilar" hittar
+  "Elbil" men inte "Bilbana", "burar" inte "Burk",
+- efter en avledning ("-ning", "-are", "-het") stammas ordet inte när stammen
+  blir fyra tecken eller kortare: en laddare är ingen laddbar lampa,
+- orden i `INTE_BOJT` stammas inte alls ("laser" blev "las" och träffade
+  "TSA-lås", "vinter" blev "vint" och träffade "vintage").
+
+**☠️ Slumpträffar inne i andra ord** (`BARARE`, `barAdjektiv`). Mätt i
+katalogen: "lås" gav 94 uppBLÅSbara varor, "tyg" 86 VERKTYG, "ring" 250 varor
+med förvaRING och monteRING, "ask" 118 MASKiner, "hus" 31 för inomHUSbruk,
+"stol" varenda limPISTOL och "bar" 2 206 träffar, de flesta hopfällBARA.
+Bärarorden står i `BARARE` (också utan prickar, för varvet utan prickar), och
+"-bar" efter andra bokstäver är en ändelse utom för barerna i `BARER`.
+☠️ Listan är handgjord ur dagens katalog. En ny slumpträff syns inte förrän
+någon letar: `tools/sok-matning/` har ingen automatik för det.
+
+**Ordningen inom samma poäng** (`kant`, sju steg). Huvuddelen av namnet (före
+"med", "för", "i", "på", komma och tankstreck) säger vad varan ÄR. Eget ord i
+huvuddelen går först ("Bord i ek"), sedan sist i ett ord i huvuddelen
+("Matbord"), eget ord efter huvuddelen ("duk för rektangulärt bord"), sist i
+ett ord efter huvuddelen, början av en sammansättning vars rest står för sig i
+katalogen ("Barstol", "Skohylla"), början av ett annat ord ("Barn", "Skopa")
+och sist mitt i ett ord. "sko" visar skoskåp och skohyllor före skopor, "bar"
+barstolar före barnbord, "kruka" krukor före "Konstgjord växt i kruka".
+- Bara böjningar räknas som ordets slut, inte avledningar eller ett ensamt s:
+  en rörbockare är ingen bock och en dörrkrans ingen kran.
+- Ett tal före ordet gör det till en enhet ("Högtryckstvätt 135 bar").
+- I en sökning på flera ord räknas ordgränsen på varuorden, inte på färg och
+  mått.
+- ☠️ "Ramväska cykel" går först på "cykel" och "Trollkarlskatt byggsats" på
+  "katt": namnet har ordet som huvud utan att vara varan. Motorn kan inte se
+  det. Inte rättat.
+
+**Inget namn har alla sökord: de viktigaste blir kvar** (slutet av
+`rankaMedInfo`). Förr ströks det vanligaste ordet först, och det ovanligaste
+blev kvar hur lite det än sa: "dieselvärmare husvagn" visade stödben för
+husvagnar, "ihopfällbar stegpall" en campingtoalett, "laser tag 4 player set"
+en bakverksdisplay. Nu väljs den uppsättning ord som något namn har och som
+väger mest: varuord efter hur ovanliga de är (sökningens första hälften mer),
+färg, mått, tal och beskrivande ord ("hopfällbar", "golvstående") lite, ord
+som inget namn har ingenting. Ett ord som bara BÖRJAR ett annat ord i namnet
+väger hälften, så en skrivbordsstol som är "55 cm bred" inte går före
+skrivborden på "skrivbord 85 cm bred".
+
+**Stavningen rättas mot katalogens ord, och sidan säger det**
+(`rattaStavning`, före det gamla stavfelsledet). "Ellamin" (en kunds sökning)
+gav 39 träffar med pendellampor och melamin. Ligger ett okänt sökord ett fel
+från ett ord som står för sig i katalogen (två fel när båda är minst åtta
+tecken, samma första bokstav) söks det ordet, och utfallet bär `rattat`.
+Rutan säger "Visar “elkamin”" och söksidan "Du skrev “ellamin”. Här är
+träffarna för “elkamin”" (samma väg som ordet för två bokstäver). En tappad
+bokstav går före en bytt, en bytt vokal före en bytt konsonant, och bland
+ungefär lika nära vinner ordet i flest namn.
+- Det gamla stavfelsledet finns kvar för ord katalogen inte har som eget ord.
+  Träffen ska nu börja där ett ord kan börja: "örhängen" låg ett fel från
+  "r|örgäng|or" och gav en rörutdragare. Nu ger den ingenting, och det är
+  rätt: butiken säljer inga örhängen.
+- Träffar som bara ligger nära i stavning bär `liknande`. Söksidan säger
+  "Ingen vara heter “formanden”. Här är de som ligger närmast i stavning", och
+  rutans rubrik blir "Närmast i stavning".
+
+**Sökförslag på flera ord prövas mot namnen** (`sokforslagINamn`).
+`sokforslag` fyller i det sista ordet utan att se på de andra, och föreslog
+"golvlampa fotbollsmål" och "kattlåda med taklampa". Ett förslag på flera ord
+visas bara när något namn har orden tillsammans. Särskrivna ord föreslås
+ihopskrivna först: butikens vanligaste egna sökning är "Vägg hylla", som nu
+föreslår "vägghylla" (och "tv bänk" → "tv-bänk", "el bil" → "elbil").
+
+**Mått** (`normalize`): "70x70", "150cm" och "12v" skrivs som namnen skriver
+dem ("70 × 70", "150 cm", "12 v"). "bred", "djup", "hög" och deras former är
+egenskapsord, och "rea" hör till frågan, inte till varan ("barnkök rea" gav
+julgirlanger med REAlistiska barrgrenar).
+
+**Sökrutan i webbläsaren** (`components/searchbox.tsx`), granskad på dator
+1440 px och mobil 393 px i det lokala bygget:
+- **Listboxen bär bara raderna.** Panelen var en `role="listbox"` med knappar,
+  rubriker och foten i sig, och ett fast id som tre sökrutor delade. Nu har
+  varje ruta sitt eget id, listboxen omsluter bara alternativen (rubrikerna
+  är `presentation`), och antalet träffar läses upp ("35 träffar för elkamin").
+- **Tabb ut ur rutan stänger panelen.** ☠️ Bara när fokus faktiskt landat
+  utanför: på iPhone får ett tryckt förslag inget fokus (`relatedTarget` är
+  null), och stängde vi då försvann förslaget före klicket.
+- **Panelen slutar ovanför telefonens tangentbord.** `100dvh` krymper inte när
+  tangentbordet kommer upp, så foten ("Visa alla 89 resultat") hamnade bakom
+  det. Höjden sätts ur `visualViewport` som `--sok-max`. Mätt med skärmen
+  krympt till 460 px: panelen slutar vid 452 px med foten synlig. ☠️ Inte
+  mätt med ett riktigt tangentbord: det går inte att öppna i provmiljön.
+- **Bokstaven ritas före rankningen.** Var indexet redan hämtat körde
+  rankningen i samma uppgift som tangenten. Med fyrdubbelt strypt processor
+  tog tangentens egen hantering 40–122 ms i snitt och 354 ms som värst (ett
+  felstavat ord); nu 11–13 ms i snitt och 25 ms som värst. Rankningen själv
+  är inte snabbare: ett felstavat ord ger fortfarande långa uppgifter (upp
+  till 390 ms strypt), men de ligger efter att bokstaven ritats, och den som
+  skriver fort slipper rankningen för bokstäverna däremellan.
+- **Markeringen följer sökningen** (`markeraTraffar`): "speglar" markerar
+  "spegel", och "bar" markeras i "bardisk" men inte i "hopfällbar".
+- **Träffytor på pekskärm:** krysset 44 px (28 px att se på), raderna 64 px,
+  foten 45 px.
+- **Kategorierna i panelen** (`kategoriPoang`) hade samma slumpträffar som
+  varorna: "bar" gav Baby & Småbarn, "tyg" Verktyg och "ring" Förvaring.
+  Huvudet i kategorins ord prövas nu med `ordStar`, och "hus" hittar Växthus.
+
+Genomgången är ett skript som går att köra om (61 kontroller: roller,
+tangentbord, tryck, rubriker, söksidans besked). Det ligger inte i grenen:
+det startar en webbläsare mot ett bygge, och butiken har inga sådana prov i
+sin svit.
+
+**Inte gjort, med flit:**
+- Ett sökord på tre bokstäver träffar fortfarande början av längre ord ("bar"
+  hittar "barn", men sist). En regel som kräver att resten är ett ord prövades
+  mot katalogen och tappade riktiga varor ("köksö", "badkar", "solcellslampa"),
+  så den används bara för ordningen.
+- Märken (HOMCOM, Grouw) ger noll träffar. Det är husregeln, inte ett fel.
+- Motorn vet inte vad som säljer. Ordningen bland likvärdiga träffar är
+  katalogens.
+
 ## Köpguiderna på startsidan: en rad med alla inlägg (2026-11-19)
 
 Leonard: "kan du göra så det går att bläddra mellan alla blogginlägg där inte
@@ -3929,6 +4083,24 @@ varor inom två skärmar 0 → 4. Layoutskift och rulltid är oförändrade.
   `mix-blend-mode:normal`, för blandningen är gjord för produktfoton på vit
   botten. Den som ändrar `.prod` ska leta upp ALLA som bär klassen
   (`grep -rn '"prod' app components`), inte bara `ProductCard`.
+
+**På datorn står fotona på vitt i listorna (Leonard 2026-11-19: "bakgrunden
+blir vit igen … det va finare").** När brickan blev grunden fick också
+kategorierna, söket, rean och alla-produkter den varma plattan; före det stod
+deras foton på vitt. Från 881 px har `.pimg` i listorna vit botten och en
+hårfin ram (`var(--line)`), och bilden ritas utan `mix-blend-mode`, för mot
+vitt gör blandningen ingenting. Startsidan (`.hem2`) och /butik med prissidornas
+översikt (`.butik2`) behåller den beige brickan som de alltid haft, liksom
+mobilen (880 px och smalare). Blocket står i `app/globals.css` före
+"Fyndauktionens kort", och `lib/produktkortet.test.ts` vaktar det.
+
+Mätt i det lokala bygget, beräknad stil på varje kort: vitt med ram och
+`normal` på /kategori/…, /sok, /rea, /alla-produkter, /under-1000-kr/mobler
+och i raden med liknande varor på produktsidan (1440 och 1024 px); beige och
+`multiply` på /, /butik och /under-500-kr; beige överallt på 880 och 393 px.
+Lyftet och pilen vid hovring är oförändrade. ☠️ /under-1000-kr/mobler är en
+lista (ShopBrowser) och blev vit, fast översikten /under-500-kr är beige: det
+är samma skillnad som mellan /butik och en kategorisida.
 
 **Rubriktypsnittet på infosidorna.** Sidans huvudrubrik är serif på varje sida
 utom produktsidan och kassan: `.om-hero h1` (tio infosidor) och `.pagehero h1`

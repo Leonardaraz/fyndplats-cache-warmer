@@ -74,8 +74,19 @@ const SUFFIXES = [
   "en", "et", "ar", "er", "or", "na", "an", "n", "t", "s",
 ];
 
+// ☠️ MÅTT SKRIVS PÅ FLERA SÄTT (2026-11-19, Googles frågor mot butiken).
+// Kunden skriver "matbord 70x70", "matta 160x120", "150cm" och "pump 12v";
+// namnen skriver "70 × 70 cm", "140x200", "12 V" och "4800W". Som ETT ord blev
+// "70x70" ett sällsynt sökord som överlevde strykningen medan "matbord" ströks,
+// och sökningen visade två badrumsspeglar. Båda sidor skrivs därför likadant:
+// tal × tal med mellanslag, och talet skilt från sin enhet. Bara där en siffra
+// står intill, så "g310", "500fg" och "3d" rörs inte.
+const MATT_GANGER = /(\d)\s*[x×]\s*(?=\d)/g;
+const MATT_ENHET = /(\d)(cm|mm|kg|tum|liter|w|v|l|m)(?![a-zåäö0-9])/g;
+
 export function normalize(s: string): string {
-  return (s || "").toLowerCase().trim();
+  const t = (s || "").toLowerCase().trim();
+  return /\d/.test(t) ? t.replace(MATT_GANGER, "$1 × ").replace(MATT_ENHET, "$1 $2") : t;
 }
 
 // Dela på allt som inte är bokstav/siffra (bindestreck, mellanslag, "&", "/").
@@ -245,6 +256,13 @@ const ENVAGS: Record<string, string[]> = {
   julpynt: ["juldekoration", "julgirlang", "julkrans", "julstjärn"],
   // "eldfat" som grupp hade gett nålen "eldf", som också står i "eldfast".
   eldfat: ["eldkorg"],
+  // Googles frågor mot butiken (2026-11-19): ord som inget namn har.
+  hallbyrå: ["byrå"],
+  klätterblock: ["skumkloss", "klätterset"],
+  busy: ["aktivitetstavla", "aktivitetsbräda"],
+  busyboard: ["aktivitetstavla", "aktivitetsbräda"],
+  laserpistol: ["lasertag"],
+  laserspel: ["lasertag"],
 };
 
 // Släpp en kvarvarande ändelsevokal efter stemming så böjningar kollapsar till en
@@ -414,9 +432,14 @@ function ordslutAvstand(pattern: string, text: string, a: number, b: number, max
     // Första bokstaven ska stämma. "cyckel" låg lika nära "nyckel" i
     // "momentnyckel" som "cykel" i "motionscykel". Träffen är m tecken lång,
     // plus eller minus felen, så början ligger inom maxDist från j − m.
+    //
+    // Och den ska börja där ett ord kan börja (2026-11-19): först i ordet,
+    // eller med ett helt ord före sig ("barn|cykel", "el|kamin"). "örhängen"
+    // låg ett fel från "r|örgäng|or" och gav en rörutdragare.
     let borjanStammer = false;
     for (let st = Math.max(0, j - m - maxDist); st <= j - m + maxDist && st < j; st++) {
-      if (text[a + st] === pattern[0]) { borjanStammer = true; break; }
+      if (text[a + st] !== pattern[0]) continue;
+      if (st === 0 || st >= 3 || (st === 2 && KORTA_FORLED.has(text.slice(a, a + 2)))) { borjanStammer = true; break; }
     }
     if (borjanStammer) best = prev[j];
   }
@@ -493,7 +516,12 @@ function sammanskrivet(fogat: string, re: RegExp, flerOrd: boolean): { var: 0 | 
 // (starSomOrd). `egenskap`: färg, storlek eller mått, som stryks först när
 // inget namn har alla sökord (rankaMedInfo).
 // `fogRe`: ordet som mönster med valfri fog mellan tecknen (se tokenQuality).
-type Unit = { stem: string; key: string; vikt: string; tok: string; helord: boolean; egenskap: boolean; fogRe: RegExp | null };
+// `ihopNasta`: ett kort ord av bokstäver ("el", "sy") skrivet ihop med ordet
+// efter ("elbil"), för den som särskriver (se tokenQuality).
+// `former`: ordets andra böjningar som stammen inte når (se bojdaFormer).
+// `kortStam`: stammen är högst tre tecken och kortare än ordet kunden skrev
+// ("rosor" → "ros"), och ska då stå som ett ord i namnet (se ordStar).
+type Unit = { stem: string; key: string; vikt: string; tok: string; helord: boolean; egenskap: boolean; fogRe: RegExp | null; ihopNasta?: string; former?: string[]; kortStam?: boolean };
 const EXAKT = 0, VIKT = 1, STAVFEL = 2;
 type Lage = typeof EXAKT | typeof VIKT | typeof STAVFEL;
 
@@ -516,6 +544,14 @@ const TVA_FEL: Ordtraff = { qual: 0.5, fel: 2, vikt: false };
 // "husbilstrappa" och "led" i "ledstång".
 const FORKORTNINGAR = new Set(["usb", "led", "rgb", "pvc", "lcd", "gps", "mdf", "abs", "hdmi", "wifi"]);
 const helord = (tok: string): boolean => tok.length <= 2 || /^\d+$/.test(tok) || FORKORTNINGAR.has(tok);
+
+/** Börjar något ord i namnet med `s`? */
+function ordBorjar(nameNorm: string, s: string): boolean {
+  for (let i = nameNorm.indexOf(s); i >= 0; i = nameNorm.indexOf(s, i + 1)) {
+    if (i === 0 || !BOKSTAV.test(nameNorm[i - 1])) return true;
+  }
+  return false;
+}
 
 /** Står `s` i namnet med skiljetecken (eller namnets kant) på båda sidor? */
 function starSomOrd(nameNorm: string, s: string): boolean {
@@ -546,8 +582,24 @@ const EGENSKAPSORD = new Set([
   "guld", "krämvit", "cremevit", "antracit", "mörkgrå", "ljusgrå", "turkos", "transparent",
   "xs", "xl", "xxl", "xxxl", "liten", "litet", "små", "stor", "stort", "stora", "mini", "maxi",
   "cm", "mm", "kg", "liter", "st", "pack", "tum",
+  // Måttens ord (2026-11-19). "byrå 60 cm bred" och "skrivbord 85 cm bred"
+  // ströks ner till "byrå bred" och "skrivbord bred": en byrå och en
+  // skrivbordsstol "55 cm bred". Orden säger något om måttet, inte om varan.
+  "bred", "breda", "brett", "bredd", "djup", "djupt", "djupa", "hög", "högt", "höga", "höjd",
+  "lång", "långt", "långa", "längd", "smal", "smalt", "smala", "låg", "lågt", "låga", "rund", "runt", "runda",
 ]);
-const arEgenskap = (tok: string): boolean => EGENSKAPSORD.has(tok) || /^\d+([.,]\d+)?(cm|mm|m|kg|l|w|v)?$/.test(tok);
+// Också med sista bokstaven dubblad: "gråå" och "svartt" är färgen felskriven,
+// inte ett ovanligt varuord som ska överleva strykningen ("soffa gråå").
+const arEgenskap = (tok: string): boolean =>
+  EGENSKAPSORD.has(tok) || /^\d+([.,]\d+)?(cm|mm|m|kg|l|w|v)?$/.test(tok) || (tok.length >= 4 && EGENSKAPSORD.has(tok.replace(/(.)\1+$/, "$1")));
+
+// Ord som beskriver varan utan att säga vad den är: "hopfällbar", "golvstående",
+// "elektrisk", "vägghängd", "justerad", "sladdlös". Känns igen på ändelsen.
+// Bara för valet av vilka sökord som stryks (rankaMedInfo).
+const BESKRIVNING = /(?:bar|bart|bara|ande|ende|isk|iskt|iska|lig|ligt|liga|ig|igt|iga|hängd|hängt|hängda|erad|erat|erade|formad|formade|klädd|klätt|klädda|fri|fritt|fria|lös|löst|lösa)$/;
+// Inte varorna som råkar sluta likadant: en bardisk är ingen "-isk", och en
+// kaffebar ingen "-bar" (BARER).
+const arBeskrivning = (tok: string): boolean => tok.length >= 6 && BESKRIVNING.test(tok) && !tok.endsWith("disk") && !BARER.includes(tok);
 
 // Namnet med bindestrecken inne i ord borttagna: "tv-bänkar" blir "tvbänkar".
 // Bara för kategorinamnen (kategoriPoang); i varunamnen går samma sak genom
@@ -575,10 +627,112 @@ function envagsI(unit: Unit, text: string): boolean {
   return false;
 }
 
+// ☠️ EN DELSTRÄNG ÄR INTE ALLTID EN DEL AV ORDET (2026-11-19). "tall" stod i
+// 284 namn med "metall", "last" i 98 med "plast", "skor" i "väskor", "sand" i
+// "lysande", "torn" i "datorn" och "bil" i "mobil": den som sökte "El bil vit"
+// fick en mobil bokvagn överst. Ett svenskt ord sätts ihop av hela ord, så
+// det som står FÖRE träffen i samma ord ska vara ett ord. Ett eller två
+// tecken är det nästan aldrig. Undantagen är de tvåbokstavsord som faktiskt
+// bildar sammansättningar i katalogen (elbil, isbitar, gåvagn, sybord,
+// ölkorg, ekskiva, höställ, åkbil), uttagna ur namnen samma dag. Tre tecken
+// eller fler före träffen släpps igenom som förut: där är det oftast ett ord
+// ("fotpall", "matbord", "julgran"). En siffra före räknas inte som bokstav.
+const KORTA_FORLED = new Set(["el", "is", "gå", "sy", "öl", "ek", "hö", "åk", "rå", "så", "tv", "mc", "bi", "av"]);
+
+// Samma slumpträff längre in i ett ord: "last" i "växthusPLAST", "tång" i
+// "skivSTÅNG", "skor" i "sadelVÄSKOR". Där står tre tecken eller fler före,
+// så regeln ovan släpper igenom dem. Orden här är de vanligaste i katalogen
+// som slutar på (eller rymmer) ett annat sökbart ord utan att vara sammansatta
+// av det. Står sökordet inne i ett av dem är det inte en träff.
+//
+// Påfyllt 2026-11-19 efter en genomgång av katalogens ord: "lås" gav 94
+// uppBLÅSbara varor, "tyg" 86 VERKTYG, "ring" 250 varor med förvaRING och
+// monteRING, "ask" 118 MASKiner, "hus" 31 varor för inomHUS- och utomHUSbruk
+// och "stol" varenda limPISTOL. De fem sista är ändelser, inte ord: "ring"
+// efter dem är slutet på ett verb ("montera" → "montering").
+const BARARE = [
+  "plast", "metall", "stång", "stall", "väska", "väskor", "flaska", "flaskor", "grenar", "klocka", "klockor", "linne",
+  "blås", "verktyg", "fartyg", "mask", "vask", "inomhus", "utomhus", "pistol", "block", "plattform", "format",
+  "transport", "stopp", "knapp", "klapp", "papp", "larm", "karm", "beslag", "fästen", "bassäng", "pingvin",
+  "tratt", "grep", "stabil", "canvas", "program", "diagram", "kilogram", "makram", "badminton", "vätskor", "storlek",
+  "ering", "varing", "öring", "ädring", "odring", "ådring", "ankring",
+];
+
+// Varvet utan prickar jämför "las" mot "uppblasbar": bärarorden gäller där
+// också, skrivna på samma sätt.
+let bararAlla: string[] | null = null;
+
+/** Står träffen på plats `i` inne i ett av bärarorden (se BARARE)? */
+function iBarare(text: string, s: string, i: number): boolean {
+  bararAlla ??= [...new Set([...BARARE, ...BARARE.map(vik)])];
+  for (const b of bararAlla) {
+    const d = b.indexOf(s);
+    if (d > 0 && i >= d && text.startsWith(b, i - d)) return true;
+  }
+  return false;
+}
+
+/** Står `s` i texten som ett ord, i början av ett ord eller efter ett helt förled? */
+/** Får `s` börja på plats `i` i texten, med de bokstäver som står före? */
+function forledOk(text: string, s: string, i: number): boolean {
+  let j = i;
+  while (j > 0 && i - j < 3 && BOKSTAV.test(text[j - 1])) j--;
+  const fore = i - j;
+  if (fore === 0) return true;
+  const forled = text.slice(j, i);
+  if (/\d/.test(forled)) return true;
+  if (fore >= 3) return !iBarare(text, s, i);
+  return fore === 2 && KORTA_FORLED.has(forled);
+}
+
+// ☠️ "-BAR" ÄR EN ÄNDELSE, INGEN BAR (2026-11-19). "bar" gav 2 206 träffar:
+// varje hopfällBAR, justerBAR och uppblåsBAR vara i butiken. Efter andra
+// bokstäver, och med högst "t" eller "a" efter sig, är "bar" slutet på ett
+// adjektiv. De riktiga barerna i katalogen står här. Åt andra hållet får
+// "lås" fortfarande träffa "låsbar" (den som skriver "bär" är oftast på väg
+// mot "bärbar"), men sist i ordningen: se restArOrd.
+const BARER = ["frukostbar", "hexbar", "hemmabar", "kaffebar", "minibar", "vinbar", "poolbar", "cocktailbar", "soundbar", "snackbar", "salladsbar", "juicebar", "utebar"];
+const BAR_SLUT = /^(?:bar[ta]?)(?![a-zåäö0-9])/;
+function barAdjektiv(text: string, s: string, i: number): boolean {
+  if (s !== "bar" || i === 0 || !BOKSTAV.test(text[i - 1]) || !BAR_SLUT.test(text.slice(i, i + 5))) return false;
+  return !BARER.some((b) => i + 3 >= b.length && text.startsWith(b, i + 3 - b.length));
+}
+
+function starIOrd(text: string, s: string): boolean {
+  for (let i = text.indexOf(s); i >= 0; i = text.indexOf(s, i + 1)) {
+    if (forledOk(text, s, i) && !barAdjektiv(text, s, i)) return true;
+  }
+  return false;
+}
+
+// ☠️ EN KORT STAM ÄR INGET SÖKORD (2026-11-19). "rosor" har stammen "ros", och
+// den står i "rosa" och "rostfritt": 351 träffar, de flesta rostfria bänkar.
+// "vaser" gav tvättVASKar, "burar" BURKar, "ramar" RAMPer och "pilar"
+// PILATESringar. Kunden skrev ett helt böjt ord, så grundformen är känd: den
+// ska stå som ett ord eller sist i ett ("Konstgjord ros", "Elbil"), med högst
+// en ändelse efter ("bilar", "bilen"). För en grundform på högst tre tecken
+// inte ett ensamt a, e, n, s eller t: "ros" + "a" är en färg och "ros" + "t"
+// är rost.
+/** Står grundformen `s` som ett ord eller sist i ett ord, med högst en böjningsändelse efter? */
+function ordStar(text: string, s: string): boolean {
+  const kort = s.length <= 3;
+  for (let i = text.indexOf(s); i >= 0; i = text.indexOf(s, i + 1)) {
+    const efter = /^[a-zåäö0-9]*/.exec(text.slice(i + s.length))![0];
+    if ((efter === "" || (BOJNING.has(efter) && (!kort || efter.length > 1))) && forledOk(text, s, i)) return true;
+  }
+  return false;
+}
+
 function tokenQuality(unit: Unit, nameNorm: string, lage: Lage, namnVikt: string, stavfelOk = true, fogat = ""): Ordtraff {
   const { stem: s, key } = unit;
-  if (unit.helord) return starSomOrd(nameNorm, s) ? HEL : INGEN;
-  if (nameNorm.includes(s)) return HEL;
+  if (unit.helord) {
+    if (starSomOrd(nameNorm, s)) return HEL;
+    // "el bil" är "elbil", "sy bord" är "sybord": ett kort ord som kunden
+    // särskrivit får stå ihop med ordet efter, i början av ett ord i namnet.
+    return unit.ihopNasta && ordBorjar(nameNorm, unit.ihopNasta) ? HEL : INGEN;
+  }
+  if (unit.kortStam ? starIOrd(nameNorm, unit.tok) || ordStar(nameNorm, s) : starIOrd(nameNorm, s)) return HEL;
+  if (unit.former) for (const f of unit.former) if (starIOrd(nameNorm, f)) return HEL;
   if (unit.fogRe && fogat && sammanskrivet(fogat, unit.fogRe, false).var) return HEL;
   const needles = SYN.get(key);
   if (needles) {
@@ -588,7 +742,7 @@ function tokenQuality(unit: Unit, nameNorm: string, lage: Lage, namnVikt: string
   if (envags) {
     for (const nd of envags) if (nameNorm.includes(nd)) return SYNONYM;
   }
-  if (lage >= VIKT && namnVikt.includes(unit.vikt)) return UTAN_PRICKAR;
+  if (lage >= VIKT && starIOrd(namnVikt, unit.vikt)) return UTAN_PRICKAR;
   if (lage >= STAVFEL && stavfelOk && s.length >= 5) {
     const fel = fuzzyOrdslut(s, nameNorm, s.length >= 7 ? 2 : 1);
     if (fel === 1) return ETT_FEL;
@@ -609,6 +763,9 @@ function tokenQuality(unit: Unit, nameNorm: string, lage: Lage, namnVikt: string
 const STOPWORDS = new Set([
   "med", "och", "för", "till", "på", "av", "en", "ett", "som", "från",
   "under", "över", "billig", "billiga", "billigt", "bra", "bästa", "köp", "köpa", "kr", "kronor",
+  // "barnkök rea" och "massagebänk rea" gav julgirlanger med REAlistiska
+  // barrgrenar (2026-11-19): ordet hör till frågan, inte till varan.
+  "rea", "rean", "billigast", "billigaste", "erbjudande",
 ]);
 
 // `ihop` är sökorden skrivna som ett ord ("laser tag" → "lasertag") som
@@ -617,20 +774,63 @@ type Ihop = { re: RegExp; reVikt: RegExp; flerOrd: boolean };
 // `kantFore` och `kantEfter`: sökningens första respektive sista ord är ett
 // kort ord eller ett tal (helord), så hela frasen ska börja respektive sluta
 // vid en ordgräns i namnet. "skrivbord 120" står inte i "Skrivbord 1200 mm".
-type Prepared = { q: string; units: Unit[]; ihop: Ihop | null; kantFore: boolean; kantEfter: boolean };
+// `former`: ett ENSAMT sökord i alla sina böjningar, ordet som kunden skrev
+// först ("stolar" → "stolar", "stol"). Sätts av rankaMedInfo, som vet vilka
+// former katalogen har (se ensamtOrdsFormer).
+// `egna`: orden som står för sig i katalogens namn, för ordningen (se kant).
+type Prepared = { q: string; units: Unit[]; ihop: Ihop | null; kantFore: boolean; kantEfter: boolean; former?: string[]; egna?: () => Set<string> };
+
+// ☠️ STAMMEN ÄR INTE ALLTID ORDET (2026-11-19). "träning" har stammen "trä" och
+// gav 910 träffar, de flesta möbler i trä. "matare" blev "mat" (437 träffar
+// med matbord), "krona" blev "kro" (krokar och krom) och "höger" blev "hög".
+// Ändelsen som togs bort var ingen böjning utan en avledning ("-ning",
+// "-are") eller en del av ordet. En stam på högst tre tecken gäller därför
+// bara efter en riktig böjningsändelse ("bilar" → "bil", "huset" → "hus"),
+// och orden i INTE_BOJT stammas inte alls.
+//
+// Efter en avledning gäller det också stammar på fyra tecken: en "laddare" är
+// ingen "laddbar lampa", en "hängare" ingen "hängmatta", och "packning" gav
+// varenda vara i "2-pack".
+const BOJDA_SLUT = new Set(["ar", "er", "or", "en", "et", "arna", "erna", "orna"]);
+const AVLEDNING = new Set(["andet", "ningen", "heten", "ande", "else", "ning", "het", "are", "ast"]);
+function sokstam(tok: string): string {
+  if (INTE_BOJT.has(tok)) return tok;
+  const s = stem(tok);
+  if (s === tok) return s;
+  const andelse = tok.slice(s.length);
+  // En lång stam bär ordet även efter en avledning: "basketställning" och
+  // "basketställ" är samma vara, "upphängning" hör ihop med "upphängd".
+  if (AVLEDNING.has(andelse)) return s.length <= 4 ? tok : s;
+  return s.length <= 3 && !BOJDA_SLUT.has(andelse) ? tok : s;
+}
 
 // Sökordet tolkas EN gång per sökning. nameMatch gjorde det förr per vara, alltså
 // 4 184 gånger per tangent.
 function prepare(query: string): Prepared {
   const q = normalize(query);
   const alla = tokenize(q)
-    .map((t) => ({ tok: t, stem: stem(t), key: canon(t) }))
+    .map((t) => ({ tok: t, stem: sokstam(t), key: canon(t) }))
     .filter((u) => u.stem.length >= 2);
   const innehall = alla.filter((u) => !STOPWORDS.has(u.tok));
-  const units = (innehall.length > 0 ? innehall : alla).map(({ tok, stem: s, key }) => ({
-    stem: s, key, vikt: vik(s), tok, helord: helord(tok), egenskap: arEgenskap(tok),
-    fogRe: s.length >= KORTASTE_SAMMANSKRIVET ? ihopMonster(s) : null,
-  }));
+  const units: Unit[] = (innehall.length > 0 ? innehall : alla).map(({ tok, stem: s, key }) => {
+    const u: Unit = {
+      stem: s, key, vikt: vik(s), tok, helord: helord(tok), egenskap: arEgenskap(tok),
+      fogRe: s.length >= KORTASTE_SAMMANSKRIVET ? ihopMonster(s) : null,
+    };
+    if (!u.helord && !u.egenskap) {
+      // "rosor" är inte "rosa": en form som är en färg, ett mått eller ett
+      // småord är ett annat ord.
+      const former = INTE_BOJT.has(tok) ? [] : bojdaFormer(tok).filter((f) => !arEgenskap(f) && !STOPWORDS.has(f));
+      if (former.length > 0) u.former = former;
+      if (s.length <= 3 && s !== tok) u.kortStam = true;
+    }
+    return u;
+  });
+  for (let i = 0; i < units.length - 1; i++) {
+    const u = units[i];
+    const nasta = units[i + 1];
+    if (u.helord && !u.egenskap && /^[a-zåäö]+$/.test(u.tok) && /^[a-zåäö]/.test(nasta.tok) && nasta.stem.length >= 3) u.ihopNasta = u.tok + nasta.stem;
+  }
   const ord = tokenize(q);
   const ihop = ord.join("");
   return {
@@ -649,8 +849,14 @@ function prepare(query: string): Prepared {
 // tankstreck, komma eller " med "/" för "/" till ". En fras som bara finns i
 // resten beskriver ett tillbehör eller en egenskap, inte varan: "matta" i
 // "…och hängmatta" eller "soffa" i "Sidobord för soffan".
+// Sedan 2026-11-19 slutar huvuddelen också vid "i", "på", "som", "under",
+// "över", "av", "mot", "vid", "från" och en parentes: efter dem står material,
+// plats och användning. "kruka" ska visa krukor före "Konstgjord växt i
+// kruka", och "säng" sängar före "Förvaring under sängen". Kommat ska följas
+// av ett mellanslag: "1,5 m" är ett tal, inget skiljetecken.
+const HUVUDDEL_SLUT = / [–—-] |[,:] | \(| (?:med|för|till|utan|i|på|som|under|över|av|mot|vid|från) /;
 function mainPart(nameNorm: string): string {
-  const cut = nameNorm.search(/ [–-] |,| med | för | till /);
+  const cut = nameNorm.search(HUVUDDEL_SLUT);
   return cut >= 0 ? nameNorm.slice(0, cut) : nameNorm;
 }
 
@@ -664,20 +870,92 @@ function mainPart(nameNorm: string): string {
 // som eget ord, utan ändelse: "upp" är inte huvudet i "grupp", och "bar" varken
 // i "hopfällbar" eller i "barn".
 // Det ändrar bara ordningen, aldrig vilka varor som visas.
-const BOJNING = new Set<string>([...SUFFIXES, "a", "e"]);
+//
+// Sedan 2026-11-19 bara BÖJNINGAR, inte avledningar och inte ett ensamt s:
+// en "bockare" är ingen bock, en "laddare" ingen ladd och en "krans" ingen
+// kran. Förut gick rörbockaren före sågbockarna och dörrkransen före kranarna.
+const BOJNING = new Set<string>(["erna", "arna", "orna", "en", "et", "ar", "er", "or", "na", "an", "n", "t", "a", "e", "set"]);
 const BOKSTAV = /[a-zåäö0-9]/;
 
-/** 2 = sökordet slutar ett ord, 1 = ett ord börjar med det, 0 = mitt i ett ord. */
-function kant(nameNorm: string, s: string): number {
+//
+// Sedan 2026-11-19 räknas också VAR i namnet ordet står. Huvuddelen (före
+// "med", "för", komma och tankstreck) säger vad varan ÄR, resten vad den har:
+// "Star" gav en bollkastare ("kaSTARe") före tältet Star River, "bord" en
+// bordsduk "för rektangulärt bord" före matborden, och "stolar" fyra
+// matgrupper "… och fyra stolar" före varenda kontorsstol.
+/**
+ * Hur sökordet står i namnet, bara för ordningen inom samma poäng:
+ * 6 = eget ord i huvuddelen ("Bord i ek"), 5 = slutar ett ord i huvuddelen
+ * ("Matbord"), 4 = eget ord efter huvuddelen ("… för barn"), 3 = slutar ett
+ * ord efter huvuddelen ("… med soffbord"), 2 = börjar en sammansättning vars
+ * rest är ett ord i katalogen ("Barstol", "Skohylla"), 1 = börjar ett annat
+ * ord ("Barn", "Skopa") eller står som enhet efter ett tal ("135 bar"),
+ * 0 = mitt i ett ord.
+ */
+function kant(nameNorm: string, s: string, egna?: () => Set<string>): number {
   let bast = 0;
-  for (let i = nameNorm.indexOf(s); i >= 0 && bast < 2; i = nameNorm.indexOf(s, i + 1)) {
+  let huvudSlut = -2;
+  const kort = s.length <= 3;
+  for (let i = nameNorm.indexOf(s); i >= 0 && bast < 6; i = nameNorm.indexOf(s, i + 1)) {
     const borjar = i === 0 || !BOKSTAV.test(nameNorm[i - 1]);
     const efter = /^[a-zåäö0-9]*/.exec(nameNorm.slice(i + s.length))![0];
-    const kort = s.length <= 3;
     const slutar = efter === "" || (!kort && BOJNING.has(efter));
-    if (slutar && (borjar || !kort)) bast = 2;
-    else if (borjar) bast = 1;
+    let k = borjar ? 1 : 0;
+    if (slutar && (borjar || !kort)) {
+      if (!(borjar && ENHETSORD.has(s) && /\d ?$/.test(nameNorm.slice(Math.max(0, i - 2), i)))) {
+        if (huvudSlut === -2) huvudSlut = nameNorm.search(HUVUDDEL_SLUT);
+        k += huvudSlut < 0 || i < huvudSlut ? 5 : 3;
+      }
+    } else if (borjar && egna && efter.length >= 3 && restArOrd(efter, egna())) k = 2;
+    if (k > bast) bast = k;
   }
+  return bast;
+}
+
+// Ord som efter ett tal är en enhet och ingen vara: "Högtryckstvätt 135 bar"
+// är ingen bar, och "Domkraft 3 ton" ingen färgton.
+const ENHETSORD = new Set(["bar", "ton", "tum", "liter", "watt", "volt", "grader", "varv", "gram", "lux", "lumen", "psi"]);
+
+/** Börjar resten av en sammansättning med ett ord som står för sig i katalogen (med eller utan foge-s)? */
+function restArOrd(rest: string, egna: Set<string>): boolean {
+  // "låsbar" är inget lås med en bar: "-bar" är adjektivets ändelse.
+  if (/^bar[ta]?$/.test(rest)) return false;
+  for (const r of rest.startsWith("s") ? [rest, rest.slice(1)] : [rest]) {
+    for (let n = Math.min(r.length, 14); n >= 3; n--) if (egna.has(r.slice(0, n))) return true;
+  }
+  return false;
+}
+
+/** Orden på tre tecken eller fler som står för sig i något namn. */
+function egnaOrd(namn: readonly string[]): Set<string> {
+  const ord = new Set<string>();
+  for (const n of namn) for (const t of tokenize(n)) if (t.length >= 3 && /^[a-zåäö]+$/.test(t)) ord.add(t);
+  return ord;
+}
+
+/**
+ * Sista ledet i katalogens sammansättningar: resten av ett ord vars början
+ * står för sig ("möbel" i "hallmöbel", för "hall" är ett eget ord; "innar" i
+ * "sittpinnar" är det inte, för "sittp" är inget ord). Foge-s räknas:
+ * "kontors|stol". Bara för att pröva böjda former (forberedSokning): början
+ * kan vara ett annat ord än det ser ut ("bar|nbord"), så leden säger inte
+ * vad som är en sammansättning.
+ */
+function sistaLed(egna: ReadonlySet<string>): Set<string> {
+  const led = new Set<string>();
+  for (const t of egna) {
+    for (let k = 3; k <= t.length - 3; k++) {
+      if (egna.has(t.slice(0, k)) || (t[k - 1] === "s" && k >= 4 && egna.has(t.slice(0, k - 1)))) led.add(t.slice(k));
+    }
+  }
+  return led;
+}
+
+/** Sökordets bästa ordgräns i namnet, över stammen och de böjda formerna. */
+function kantFor(nameNorm: string, u: Unit, egna?: () => Set<string>): number {
+  let bast = kant(nameNorm, u.stem, egna);
+  if (u.tok !== u.stem && bast < 6) bast = Math.max(bast, kant(nameNorm, u.tok, egna));
+  if (u.former) for (const f of u.former) if (bast < 6) bast = Math.max(bast, kant(nameNorm, f, egna));
   return bast;
 }
 
@@ -694,6 +972,8 @@ export type NameMatch = {
   vikt?: boolean;
   /** Sämsta ordgränsen bland de exakta träffarna (se kant). Bara för ordningen. */
   kant?: number;
+  /** Vilka sökord (bitar som i `mask`) som står som ord eller sist i ett ord, eller träffade på annat sätt än ordagrant. */
+  stark?: number;
   /** Vilka sökord som träffade, en bit per ord i sökningens ordning. Saknas
    *  när hela frasen eller de sammanskrivna orden träffade (då är alla med). */
   mask?: number;
@@ -712,8 +992,38 @@ export type NameMatch = {
 //   ~36 — alla söktermer matchar men minst en via stavfelstolerans ("cyckel"→cykel),
 //         ~30 när ordet har två fel
 //   1–59 — bara några termer matchade (delvis), proportionellt & kvalitetsviktat
-export function nameMatch(name: string, query: string): NameMatch {
-  return matchPrepared(normalize(name), prepare(query), STAVFEL);
+//
+// `katalog` är alla namn, normaliserade (normalize). Med den prövas sökordet
+// mot katalogen som i rankByName: böjda former som finns, och vilka ord som
+// står för sig (se forberedSokning). Utan den jämförs namnet för sig.
+export function nameMatch(name: string, query: string, katalog?: readonly string[]): NameMatch {
+  return matchPrepared(normalize(name), katalog ? forberedSokning(query, katalog) : prepare(query), STAVFEL);
+}
+
+/**
+ * Sökningen tolkad och prövad mot katalogens namn: de böjda formerna som
+ * något namn har som eget ord, alla former av ett ensamt sökord, och orden
+ * som står för sig (för ordningen, se kant).
+ */
+function forberedSokning(query: string, namn: readonly string[]): Prepared {
+  const sparat = formerFor(namn);
+  const egna = () => (sparat.egna ??= egnaOrd(namn));
+  const p = prepare(query);
+  // "inne" blir annars "innar", som står i "sittPINNAR". En form som inget
+  // namn har som eget ord eller som sista led är inget ord.
+  const led = () => (sparat.led ??= sistaLed(egna()));
+  for (const u of p.units) if (u.former) u.former = u.former.filter((f) => egna().has(f) || led().has(f));
+  p.egna = egna;
+  // Entalet av ett ensamt sökord finns när det står för sig, är ett sista led,
+  // eller (fyra tecken och uppåt) avslutar något ord: "stol" i "kontorsstol".
+  if (p.units.length === 1) {
+    p.former = ensamtOrdsFormer(p.units[0], () => {
+      const ord = egna();
+      const slut = (sparat.slut ??= [...ord].filter((t) => t.length >= 7));
+      return (e: string) => ord.has(e) || (e.length >= 4 && slut.some((t) => t.endsWith(e)));
+    });
+  }
+  return p;
 }
 
 // `fogatNamn` och `viktNamn` är namnet med fogar (medFogar) och utan prickar
@@ -728,28 +1038,57 @@ function matchPrepared(
   const none = { score: 0, full: false };
   const { q, units, ihop } = p;
   if (!q || !nameNorm) return none;
-  if (nameNorm.includes(q) && ((!p.kantFore && !p.kantEfter) || frasStar(nameNorm, q, p.kantFore, p.kantEfter))) {
-    return { score: mainPart(nameNorm).includes(q) ? 100 : 90, full: true, kant: kant(nameNorm, q) };
+  const fras = starIOrd(nameNorm, q) && ((!p.kantFore && !p.kantEfter) || frasStar(nameNorm, q, p.kantFore, p.kantEfter));
+  if (fras && !p.former) {
+    return { score: starIOrd(mainPart(nameNorm), q) ? 100 : 90, full: true, kant: kant(nameNorm, q, p.egna) };
+  }
+  // ETT ENSAMT SÖKORD ÄR SAMMA ORD I ALLA BÖJNINGAR (2026-11-19). "växter"
+  // gav frasens 90 åt "spaljé för klätterväxter", där bokstäverna råkar stå,
+  // och ordträffens 60 åt "Konstgjord växt": kunden fick spaljéer före
+  // växterna. "stolar" gav matgrupper "… och fyra stolar" före varenda
+  // kontorsstol. Formerna räknas därför som frasen, var och en för sig.
+  if (p.former) {
+    let k = -1;
+    let iHuvud = false;
+    // Ordet som kunden skrev får börja ett ord ("stol" → "Stolsdyna": hon kan
+    // vara på väg dit). De andra formerna är härledda ur ett helt ord och ska
+    // stå som ord: "pilar" är inte "Pilatesboll" och "dukar" inte
+    // "Nattduksbord".
+    for (let n = 0; n < p.former.length; n++) {
+      const f = p.former[n];
+      const star = n === 0 ? starIOrd : ordStar;
+      if (!star(nameNorm, f)) continue;
+      k = Math.max(k, kant(nameNorm, f, p.egna));
+      iHuvud ||= star(mainPart(nameNorm), f);
+    }
+    // Står sökningen med sina småord i namnet ("fåtölj med" i "Fåtölj med
+    // fotpall") går det namnet först: kunden skriver sig mot just de varorna.
+    if (k >= 0) return { score: (iHuvud ? 100 : 90) + (fras && q !== p.former[0] ? 1 : 0), full: true, kant: k };
   }
   // Sammanskrivet: flera sökord som ett ord i namnet, eller ett sökord över
   // ett bindestreck i namnet.
   const fogat = ihop ? (fogatNamn ?? medFogar(nameNorm)) : "";
   if (ihop && (ihop.flerOrd || fogat !== nameNorm)) {
     const t = sammanskrivet(fogat, ihop.re, ihop.flerOrd);
-    if (t.var) return { score: t.var === 2 ? 95 : 88, full: true, kant: t.slutarOrd ? 2 : 1 };
+    if (t.var) return { score: t.var === 2 ? 95 : 88, full: true, kant: t.slutarOrd ? 5 : 1 };
   }
   const vikt = lage >= VIKT ? (viktNamn ?? vik(nameNorm)) : "";
   if (ihop && lage >= VIKT && (ihop.flerOrd || fogat !== nameNorm)) {
     const t = sammanskrivet(vik(fogat), ihop.reVikt, ihop.flerOrd);
-    if (t.var) return { score: t.var === 2 ? 93 : 86, full: true, kant: t.slutarOrd ? 2 : 1, vikt: true };
+    if (t.var) return { score: t.var === 2 ? 93 : 86, full: true, kant: t.slutarOrd ? 5 : 1, vikt: true };
   }
   if (units.length === 0) return none;
   let sum = 0;
   let hit = 0;
   let fel = 0;
   let utanPrickar = false;
-  let kanter = 2;
+  // Ordgränsen räknas på orden som säger vad varan ÄR. Färg och mått ska
+  // bara finnas: "soffa grå" ska inte sätta "Hörnsoffa i grått tyg" före
+  // "Soffa 3-sits, grå" för att färgen står efter kommat.
+  const baraEgenskaper = units.every((u) => u.egenskap);
+  let kanter = 6;
   let mask = 0;
+  let stark = 0;
   const fogatU = nameNorm.includes("-") ? (fogat || medFogar(nameNorm)) : "";
   const fogatOrd = fogatU !== nameNorm ? fogatU : "";
   for (let i = 0; i < units.length; i++) {
@@ -763,7 +1102,11 @@ function matchPrepared(
     }
     if (t.fel > fel) fel = t.fel;
     if (t.vikt) utanPrickar = true;
-    if (t.qual === 1) kanter = Math.min(kanter, kant(nameNorm, u.stem));
+    if (t.qual === 1 && (baraEgenskaper || !u.egenskap)) {
+      const k = kantFor(nameNorm, u, p.egna);
+      kanter = Math.min(kanter, k);
+      if (k >= 3 && i < 31) stark |= 1 << i;
+    } else if (t.qual > 0 && i < 31) stark |= 1 << i;
   }
   if (sum === 0) return none;
   // ETT ENVÄGSORD, OCH VARAN HETER NÅGOT ANNAT (2026-11-19). "utemöbler" gav
@@ -772,11 +1115,11 @@ function matchPrepared(
   // i namnets HUVUDDEL (före "för", "med", "till", komma och tankstreck) är
   // varan det kunden söker, och den går före ett tillbehör som nämner ordet.
   if (units.length === 1 && sum === SYNONYM.qual && envagsI(units[0], mainPart(nameNorm))) {
-    return { score: ENVAGS_I_HUVUDDELEN, full: true, kant: 2, mask };
+    return { score: ENVAGS_I_HUVUDDELEN, full: true, kant: 5, mask };
   }
   // Perfekt täckning (alla exakta) → 60, samma tak som förr. Synonym-/stavfel-
   // tokens bidrar <1 så de landar strax under en likvärdig exakt träff.
-  const m: NameMatch = { score: Math.max(1, Math.round((sum / units.length) * 60)), full: hit === units.length, stavfel: fel > 0, kant: kanter, mask };
+  const m: NameMatch = { score: Math.max(1, Math.round((sum / units.length) * 60)), full: hit === units.length, stavfel: fel > 0, kant: kanter, mask, stark };
   if (fel > 0) m.fel = fel;
   if (utanPrickar) m.vikt = true;
   return m;
@@ -820,11 +1163,52 @@ export function rankByName<T>(items: T[], nameOf: (item: T) => string, query: st
  *   `strukna` är sökord som ströks för att få någon träff alls (tomt annars).
  *   `utan` och `hela` är satta när listan fyllts på: de första `hela`
  *     träffarna har alla sökord, resten saknar färgen eller måttet i `utan`.
+ *   `rattat` är sökningen med stavningen rättad, när träffarna gäller den
+ *     ("ellamin" → "elkamin"). Sidan säger då vad den visar.
+ *   `liknande` är satt när inget namn har sökordet och träffarna bara ligger
+ *     nära det i stavning. Sidan säger det, i stället för att låtsas.
  */
-export type Sokutfall<T> = { traffar: T[]; strukna: string[]; utan?: string[]; hela?: number };
+export type Sokutfall<T> = { traffar: T[]; strukna: string[]; utan?: string[]; hela?: number; rattat?: string; liknande?: true };
 
 /** Färre hela träffar än så, och sökningen har en färg eller ett mått: fyll på. */
 export const FYLL_PA_UNDER = 24;
+
+/**
+ * Orden att markera i en träff: sökorden som de skrevs, deras stammar och
+ * böjda former, längst först. "speglar" markerar "spegel" i "Rund spegel",
+ * och "stolar" markerar "stol" i "Kontorsstol". Småorden markeras inte.
+ */
+export function markeringsord(query: string): string[] {
+  const ord = new Set<string>();
+  for (const u of prepare(query).units) {
+    ord.add(u.tok);
+    if (u.stem.length >= 3) ord.add(u.stem);
+    for (const f of u.former ?? []) ord.add(f);
+  }
+  return [...ord].filter((o) => o.length >= 2).sort((a, b) => b.length - a.length);
+}
+
+/**
+ * Namnet delat i bitar för markering: bitarna på udda platser är träffar.
+ * Samma spärrar som sökningen har: "bar" markeras inte i "hopfällBAR" och
+ * "tyg" inte i "verkTYG", för där träffar sökningen inte heller. Förr
+ * markerades bokstäverna var de än stod ("Hopfäll**bar** **bar**disk").
+ */
+export function markeraTraffar(namn: string, ord: readonly string[]): string[] {
+  const text = namn.toLowerCase();
+  if (text.length !== namn.length || ord.length === 0) return [namn];
+  const bitar: string[] = [];
+  let fran = 0;
+  for (let i = 0; i < text.length; ) {
+    const o = ord.find((x) => text.startsWith(x, i) && forledOk(text, x, i) && !barAdjektiv(text, x, i));
+    if (!o) { i++; continue; }
+    bitar.push(namn.slice(fran, i), namn.slice(i, i + o.length));
+    i += o.length;
+    fran = i;
+  }
+  bitar.push(namn.slice(fran));
+  return bitar;
+}
 
 // rankByName med besked. `strukna` är sökord som inget namn har tillsammans
 // med de andra: sökningen visar då träffarna för resten, och sidan säger det.
@@ -845,8 +1229,8 @@ export const FYLL_PA_UNDER = 24;
 //   3. det vanligaste ordet (det säger minst).
 // Kvar blir det som säger mest om vad kunden letar efter.
 export function rankaMedInfo<T>(items: T[], nameOf: (item: T) => string, query: string, normNamn?: readonly string[]): Sokutfall<T> {
-  const p = prepare(query);
   const namn = normNamn ?? items.map((item) => normalize(nameOf(item)));
+  const p = forberedSokning(query, namn);
   // Namnens övriga former räknas en gång per namnlista (sökrutorna skickar
   // samma lista vid varje tangent), och formen utan prickar först när första
   // varvet inte gett en hel träff.
@@ -896,6 +1280,18 @@ export function rankaMedInfo<T>(items: T[], nameOf: (item: T) => string, query: 
   // Stavfelsledet, bara för ord som inget namn har. Är alla ord kända finns
   // inget att prova, och andra varvets rader gäller.
   const stavfelOk = kanda.map((k) => !k);
+  // RÄTTA STAVNINGEN MOT KATALOGENS ORD, och säg det (2026-11-19). "Ellamin"
+  // (en kunds sökning) gav 39 träffar med pendellampor och hyllplan i melamin:
+  // stavfelsledet letar inne i namnen, och där ligger "pendELLAMPa" lika nära
+  // som "elkamin". Ligger sökordet ett fel från ett ord som står för sig i
+  // katalogen söks det ordet i stället, och utfallet säger vilket (`rattat`).
+  if (stavfelOk.some(Boolean)) {
+    const rattad = rattaStavning(p, stavfelOk, () => (sparat.antal ??= ordAntal(namn)));
+    if (rattad && rattad !== p.q) {
+      const u = rankaMedInfo(items, nameOf, rattad, namn);
+      if (u.traffar.length > 0) return { ...u, rattat: u.rattat ?? rattad };
+    }
+  }
   const scored = stavfelOk.some(Boolean) ? varv(STAVFEL, p, stavfelOk) : andra;
   const medAlla = scored.filter((r) => r.full);
   if (medAlla.length > 0) {
@@ -904,7 +1300,10 @@ export function rankaMedInfo<T>(items: T[], nameOf: (item: T) => string, query: 
     // då låg "elkammin" lika nära "melamin" och "kammare" som "elkamin": 39
     // träffar med hyllplan och en fladdermusholk överst. Finns en träff där
     // inget ord har mer än ett fel visas bara sådana.
-    if (kept.some((r) => r.fel !== 2)) return hela(kept.filter((r) => r.fel !== 2));
+    if (kept.some((r) => r.fel !== 2)) {
+      const visas = kept.filter((r) => r.fel !== 2);
+      return visas.every((r) => r.stavfel) ? { ...hela(visas), liknande: true } : hela(visas);
+    }
   }
 
   // ETT SAMMANSATT SÖKORD SOM RESERV, före träffarna med två stavfel
@@ -922,35 +1321,79 @@ export function rankaMedInfo<T>(items: T[], nameOf: (item: T) => string, query: 
   // till det sämre. Ett ord med ETT fel har nästan alltid sin rätta träff i
   // raden ovan, och kommer aldrig hit.
   for (const delad of delningar(p, () => (sparat.ord ??= kandaOrd(namn)))) {
-    const sokning = prepare(delad);
+    const sokning = forberedSokning(delad, namn);
     for (const lage of [EXAKT, VIKT] as const) {
       const rader = varv(lage, sokning);
       if (rader.some((r) => r.full)) return hela(rader.filter((r) => r.full));
     }
   }
   // Träffar där något ord har två stavfel (bara de är kvar av medAlla här).
-  if (medAlla.length > 0) return hela(medAlla);
+  if (medAlla.length > 0) return { ...hela(medAlla), liknande: true };
 
-  // INGET NAMN HAR ALLA SÖKORD. Stryk ord tills något namn har de som är kvar.
+  // INGET NAMN HAR ALLA SÖKORD. Visa varorna som har de VIKTIGASTE orden, och
+  // säg vilka som ströks.
+  //
+  // ☠️ Förr ströks det vanligaste ordet först, tills något namn hade resten
+  // (2026-11-19, Googles frågor mot butiken). "dieselvärmare husvagn" visade
+  // stödben för husvagnar, "ihopfällbar stegpall" en campingtoalett och
+  // "laser tag 4 player set" en bakverksdisplay ("disPLAY"): det ovanligaste
+  // ordet blev kvar, hur lite det än sa om varan. Nu väljs den uppsättning ord
+  // som något namn faktiskt har och som säger mest:
+  //   - ett ord som säger vad varan är väger efter hur ovanligt det är i
+  //     katalogen, och sökningens första sådana ord hälften mer
+  //     ("dieselvärmare husvagn" är en värmare, "sängbord med laddare" ett
+  //     sängbord). Ett mycket ovanligare ord vinner ändå: "elbil brandbil
+  //     barn" visar brandbilarna,
+  //   - färg, mått, tal, korta ord och beskrivande ord ("hopfällbar",
+  //     "golvstående", "elektrisk") väger lite, men aldrig mer än varan,
+  //   - ett ord som inget namn har väger ingenting.
+  // Ett ord som bara BÖRJAR ett annat ord i namnet väger hälften:
+  // "skrivbord 85 cm bred" ska inte välja "cm" och "bred" för att en
+  // skrivbordsSTOL är 55 cm bred. Den hamnar sist bland skrivborden.
   const n = p.units.length;
   if (n < 2 || scored.length === 0) return { traffar: [], strukna: [] };
   const antal: number[] = new Array(n).fill(0);
-  for (const r of scored) for (let i = 0; i < n; i++) if ((r.mask ?? 0) & (1 << i)) antal[i]++;
-  // Korta ord ("el", "xl") räknas som egenskaper här: de är sällsynta som
-  // egna ord, och hade annars blivit kvar som det "ovanligaste" ordet. "öppen
-  // spis el" gav tre varor "utan el" i stället för det som har med öppen spis
-  // att göra.
-  const rang = (i: number) => (antal[i] === 0 ? 0 : p.units[i].egenskap || p.units[i].helord ? 1 : 2);
-  const ordning = p.units.map((_, i) => i).sort((a, b) => rang(a) - rang(b) || antal[b] - antal[a]);
-  let kvar = n < 31 ? (1 << n) - 1 : 0x7fffffff;
-  for (let k = 0; k < n - 1; k++) {
-    kvar &= ~(1 << ordning[k]);
-    const rader = scored.filter((r) => ((r.mask ?? 0) & kvar) === kvar);
-    if (rader.length > 0) {
-      return { traffar: sortera(rader), strukna: ordning.slice(0, k + 1).sort((a, b) => a - b).map((i) => p.units[i].tok) };
+  for (const r of scored) for (let i = 0; i < n && i < 31; i++) if ((r.mask ?? 0) & (1 << i)) antal[i]++;
+  let forstaVaruordet = true;
+  const vikter = p.units.map((u, i) => {
+    if (antal[i] === 0 || i >= 31) return 0;
+    if (u.egenskap || u.helord || arBeskrivning(u.tok)) return /^\d/.test(u.tok) ? 1.5 : 1;
+    const ovanlighet = Math.max(1, Math.log(namn.length / antal[i]));
+    const vikt = 2 + (forstaVaruordet ? ovanlighet * 1.5 : ovanlighet);
+    forstaVaruordet = false;
+    return vikt;
+  });
+  const varde = (r: { mask?: number; stark?: number }, bland: number): number => {
+    const m = (r.mask ?? 0) & bland;
+    let v = 0;
+    for (let i = 0; i < n && i < 31; i++) if (m & (1 << i)) v += vikter[i] * ((r.stark ?? 0) & (1 << i) ? 1 : 0.5);
+    return v;
+  };
+  const alla = n < 31 ? (1 << n) - 1 : 0x7fffffff;
+  const masker = new Map<number, { varde: number; rader: number }>();
+  for (const r of scored) {
+    const m = r.mask ?? 0;
+    if (m === 0) continue;
+    const v = varde(r, alla);
+    const f = masker.get(m);
+    if (f) {
+      f.rader++;
+      if (v > f.varde) f.varde = v;
+    } else masker.set(m, { varde: v, rader: 1 });
+  }
+  let behall = 0;
+  let bast = { varde: 0, rader: 0 };
+  for (const [m, f] of masker) {
+    if (f.varde > bast.varde + 1e-9 || (Math.abs(f.varde - bast.varde) <= 1e-9 && f.rader > bast.rader)) {
+      behall = m;
+      bast = f;
     }
   }
-  return { traffar: [], strukna: [] };
+  if (behall === 0) return { traffar: [], strukna: [] };
+  const rader = scored
+    .filter((r) => ((r.mask ?? 0) & behall) === behall)
+    .sort((a, b) => varde(b, behall) - varde(a, behall) || b.score - a.score || (b.kant ?? 0) - (a.kant ?? 0));
+  return { traffar: rader.map((r) => r.item), strukna: p.units.filter((_, i) => i >= 31 || !(behall & (1 << i))).map((u) => u.tok) };
 }
 
 // ── Ett sammansatt sökord delat i två ─────────────────────────────────────────
@@ -965,6 +1408,174 @@ const KORTASTE_DEL = 3;
 // "nbil" gör det inte. Ordet ska stå för sig i något namn: "bil" är känt för
 // att 22 namn har ordet, inte för att "Elbil" slutar så. Mätt på 749
 // felstavningar med två fel bytte en enda lista.
+/**
+ * Sökningen med de okända orden bytta mot katalogens närmaste ord, eller null
+ * när något av dem inte har ett trovärdigt sådant. Trovärdigt: samma första
+ * bokstav, ett fel (två när både sökordet och katalogordet är minst åtta
+ * tecken), och bland lika nära det ord som står i flest namn. Korta ord,
+ * tal, färger och mått rättas inte: där är ett fel lika ofta ett annat ord.
+ */
+function rattaStavning(p: Prepared, okanda: readonly boolean[], antal: () => Map<string, number>): string | null {
+  const byten = new Map<string, string>();
+  for (let i = 0; i < p.units.length; i++) {
+    if (!okanda[i]) continue;
+    const u = p.units[i];
+    if (u.helord || u.egenskap || u.tok.length < 5 || !/^[a-zåäö]+$/.test(u.tok)) return null;
+    const forsta = vik(u.tok[0]);
+    let bast = "";
+    let bastFel = 3;
+    for (const [w, n] of antal()) {
+      const skillnad = Math.abs(w.length - u.tok.length);
+      if (skillnad > 2 || w.length < 4 || vik(w[0]) !== forsta || !/^[a-zåäö]+$/.test(w)) continue;
+      const tak = u.tok.length >= 8 && w.length >= 8 ? 2 : 1;
+      if (skillnad > tak) continue;
+      // En tappad, dubblad eller omkastad bokstav är vanligare än en bytt:
+      // "barnord" är "barnbord" (ett b saknas) hellre än "barbord" (n bytt
+      // mot b). Bytet räknas därför som ett halvt fel till, en bytt vokal som
+      // ett kvarts ("setsbord" är "satsbord"). Bland ungefär lika nära vinner
+      // ordet som står i flest namn.
+      const steg = ordAvstand(u.tok, w, tak);
+      if (steg > tak || steg === 0) continue;
+      const fel = steg + (skillnad === 0 && !sammaBokstaver(u.tok, w) ? (bytVokal(u.tok, w) ? 0.25 : 0.5) : 0) - 0.15 * Math.log(n);
+      if (fel < bastFel) { bast = w; bastFel = fel; }
+    }
+    if (!bast) return null;
+    byten.set(u.tok, bast);
+  }
+  if (byten.size === 0) return null;
+  return tokenize(p.q).map((t) => byten.get(t) ?? t).join(" ");
+}
+
+/** Är första stället där två lika långa ord skiljer sig en vokal i båda? */
+function bytVokal(a: string, b: string): boolean {
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return /[aeiouyåäö]/.test(a[i]) && /[aeiouyåäö]/.test(b[i]);
+  return false;
+}
+
+/** Har orden samma bokstäver, bara i annan ordning? */
+function sammaBokstaver(a: string, b: string): boolean {
+  return a.length === b.length && [...a].sort().join("") === [...b].sort().join("");
+}
+
+/** Redigeringsavståndet mellan två ord (byte, tillägg, borttag, omkastning). Över `tak`: tak + 1. */
+function ordAvstand(a: string, b: string, tak: number): number {
+  const m = a.length;
+  const n = b.length;
+  if (Math.abs(m - n) > tak) return tak + 1;
+  let fore2: number[] = [];
+  let fore: number[] = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    const rad: number[] = [i];
+    let minst = i;
+    for (let j = 1; j <= n; j++) {
+      let v = Math.min(fore[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1), fore[j] + 1, rad[j - 1] + 1);
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) v = Math.min(v, fore2[j - 2] + 1);
+      rad.push(v);
+      if (v < minst) minst = v;
+    }
+    if (minst > tak) return tak + 1;
+    fore2 = fore;
+    fore = rad;
+  }
+  return fore[n];
+}
+
+/** I hur många namn varje ord står för sig. */
+function ordAntal(namn: readonly string[]): Map<string, number> {
+  const antal = new Map<string, number>();
+  for (const n of namn) for (const t of new Set(tokenize(n))) antal.set(t, (antal.get(t) ?? 0) + 1);
+  return antal;
+}
+
+// ── Böjningar som stammen inte når ──────────────────────────────────────────
+// ☠️ "speglar" gav 6 träffar av butikens 126 speglar, "cyklar" 2 av 103 och
+// "möbler" inga möbler alls (2026-11-19): stammen tar bort EN ändelse, och
+// "spegl" står inte i "spegel". Åt andra hållet hittade "bordslampa" inte
+// "Bordslampor 2-pack" och "matta" inte "Dräneringsmattor", för stammen rör
+// inte ett slutande a. Tre av svenskans vanligaste böjningsklasser:
+//   hylla → hyllor, kudde → kuddar, och spegel → speglar / möbel → möbler.
+// Formerna är så egna att de inte behöver prövas mot katalogen: ett ord som
+// inte finns ("stoel" och "stole" ur "stolar") står inte i något namn.
+function bojdaFormer(tok: string): string[] {
+  if (!/^[a-zåäö]{4,}$/.test(tok)) return [];
+  if (tok.endsWith("a")) return [`${tok.slice(0, -1)}or`];
+  if (tok.endsWith("e")) return [`${tok.slice(0, -1)}ar`];
+  if (tok.length >= 5 && tok.endsWith("el")) return [`${tok.slice(0, -2)}lar`, `${tok.slice(0, -2)}ler`];
+  const ut: string[] = [];
+  const flertal = /^(.{2,})l(?:ar|er)(?:na)?$/.exec(tok);
+  if (flertal) ut.push(`${flertal[1]}el`);
+  // Åt andra hållet: lådor → låda, påsar → påse. Stammen ("låd", "pås") når
+  // dem bara som en del av ett ord, och en kort stam får inte det.
+  const or = /^(.{3,})or(?:na)?$/.exec(tok);
+  if (or) ut.push(`${or[1]}a`);
+  const ar = /^(.{3,})ar(?:na)?$/.exec(tok);
+  if (ar) ut.push(`${ar[1]}e`);
+  // Bestämd form: lådan → låda, soffan → soffa.
+  if (/^.{3,}an$/.test(tok)) ut.push(tok.slice(0, -1));
+  return ut;
+}
+
+/**
+ * Entalen ett böjt ord kan komma av, efter svenskans vanliga mönster:
+ * mattor → matta, stolar → stol, kuddar → kudde, växter → växt, och de
+ * bestämda formerna (lampan → lampa, bordet → bord). Bara kandidater:
+ * ensamtOrdsFormer behåller dem som katalogen har.
+ */
+function entalAv(ord: string): string[] {
+  const ut: string[] = [];
+  const prova = (slut: string, minst: number, ...nya: string[]) => {
+    if (ord.endsWith(slut) && ord.length - slut.length >= minst) for (const n of nya) ut.push(ord.slice(0, -slut.length) + n);
+  };
+  prova("orna", 3, "a");
+  prova("arna", 3, "", "e");
+  prova("erna", 3, "");
+  prova("or", 3, "a");
+  prova("ar", 3, "", "e");
+  prova("er", 3, "");
+  prova("an", 3, "a");
+  prova("en", 3, "", "e");
+  prova("et", 3, "", "e");
+  prova("n", 4, "");
+  prova("t", 4, "");
+  return ut;
+}
+
+// Ord som SER böjda ut men är sin egen grundform, och vars "ental" är en
+// annan vara i butiken: ett filter är ingen filt, en racket inget rack och en
+// raket inget rakt. Prövat mot katalogens ord 2026-11-19 (415 par, de här föll).
+const INTE_BOJT = new Set([
+  "filter", "racket", "raket", "paket", "staket", "planet", "poster", "lager", "master", "start",
+  "medar", "håller", "höjer", "klarar", "sitter", "spelar", "banan",
+  "höger", "vänster", "motor", "rotor", "dator", "meter", "liter", "timer", "ingen", "eller", "efter",
+  // "laser" blev "las" och träffade "TSA-lås" och "säker last"; "player" blev
+  // "play" och träffade "display"; "vinter" blev "vint" och träffade "vintage".
+  "laser", "player", "locker", "grinder", "vinter", "center", "roller", "cooler", "speaker", "printer", "router",
+  "burner", "heater", "washer", "tower", "power", "cover", "super", "poker", "fiber", "tiger", "läder", "väder",
+  "finger", "pulver", "hammer", "mixer", "dimmer", "trimmer", "stepper", "spinner", "trainer", "holder", "cutter",
+  "scanner", "radar", "sommar", "hammar",
+]);
+
+// "stegar" är stegen man klättrar på, inte stegen man tar: entalet "steg" är
+// ett annat ord, och "stege" kommer ändå med som böjd form.
+const INTE_ENTAL = new Set(["steg", "rak", "rack", "filt"]);
+
+/**
+ * Ett ensamt sökord i alla sina former, ordet som kunden skrev först. Entalet
+ * tas bara med när katalogen har det (`antal` svarar), och aldrig ett småord,
+ * en färg eller ett mått ("rosor" är inte "rosa", "medar" inte "med").
+ */
+function ensamtOrdsFormer(u: Unit, antal: () => (ord: string) => boolean): string[] | undefined {
+  if (u.helord || u.egenskap || !/^[a-zåäö]+$/.test(u.tok)) return undefined;
+  const former = [u.tok, ...(u.former ?? [])];
+  if (!INTE_BOJT.has(u.tok)) {
+    const finns = antal();
+    for (const e of entalAv(u.tok)) {
+      if (!former.includes(e) && finns(e) && !INTE_ENTAL.has(e) && !STOPWORDS.has(e) && !helord(e) && !arEgenskap(e)) former.push(e);
+    }
+  }
+  return former;
+}
+
 function kandaOrd(namn: readonly string[]): Set<string> {
   const ord = new Set<string>();
   for (const n of namn) {
@@ -1002,7 +1613,7 @@ function delningar(p: Prepared, kanda: () => Set<string>): string[] {
 
 // Namnlistans övriga former, sparade per lista: sökrutorna skickar samma
 // normaliserade lista vid varje tangent (rankaForslag i lib/sok-index.ts).
-type ListFormer = { fogat?: string[]; vikt?: string[]; ord?: Set<string> };
+type ListFormer = { fogat?: string[]; vikt?: string[]; ord?: Set<string>; antal?: Map<string, number>; egna?: Set<string>; led?: Set<string>; slut?: string[] };
 const formCache = new WeakMap<readonly string[], ListFormer>();
 function formerFor(namn: readonly string[]): ListFormer {
   let f = formCache.get(namn);
@@ -1024,23 +1635,35 @@ function formerFor(namn: readonly string[]): ListFormer {
 // står inte i "soffor". Här jämförs orden i sin kanoniska form (canon), som är
 // densamma för "soffa" och "soffor".
 
+/** Är sökordet, i någon av sina former, huvudet i ordet (sist, med högst en böjningsändelse)? */
+function huvudI(ord: string, u: Unit): boolean {
+  if (ord.length <= u.stem.length) return false;
+  return ordStar(ord, u.stem) || (u.tok !== u.stem && ordStar(ord, u.tok)) || (u.former ?? []).some((f) => ordStar(ord, f));
+}
+
 /** Poäng för hur väl ett kategorinamn matchar sökningen. 0 = inte alls. */
 export function kategoriPoang(kategoriNamn: string, query: string): number {
   // Mjuka bindestreck (U+00AD) står i långa kategorinamn för radbrytningen.
   const namn = normalize(kategoriNamn.replace(/\u00ad/g, ""));
   // Orden som de står, och med bindestrecken borta: "TV-bänkar" är både
   // "tv" + "bänkar" och "tvbänkar".
-  const ord = [...new Set([...tokenize(namn), ...tokenize(utanBindestreck(namn))])].map(canon);
+  const raa = [...new Set([...tokenize(namn), ...tokenize(utanBindestreck(namn))])];
+  const ord = raa.map(canon);
   // Färg, storlek och mått säger inget om kategorin: "svart tv-bänk" är TV-bänkar.
   const units = prepare(query).units.filter((u) => !u.egenskap);
   if (units.length === 0 || ord.length === 0) return 0;
   let summa = 0;
   for (const u of units) {
     let bast = 0;
-    for (const o of ord) {
+    for (let i = 0; i < ord.length; i++) {
+      const o = ord[i];
       if (o === u.key) bast = Math.max(bast, 3);
       // Huvudet i en sammansättning: "fåtölj" i "uppresningsfåtöljer".
-      else if (!u.helord && u.key.length >= 3 && o.endsWith(u.key)) bast = Math.max(bast, 2);
+      // ☠️ Som ett ORD sist i kategorins ord (ordStar), inte som bokstäver i
+      // slutet (2026-11-19): "bar" gav "Baby & Småbarn", "tyg" gav Verktyg och
+      // "ring" Badrumsrenovering och Förvaring. Samma spärrar som för
+      // varunamnen gäller (BARARE), och "hus" hittar nu Växthus.
+      else if (!u.helord && u.key.length >= 3 && huvudI(raa[i], u)) bast = Math.max(bast, 2);
       // Förledet: "kontor" i "kontorsstolar" och "hund" i "hundburar", och
       // sökordet som börjar med kategorins ord: "trädgårdsmöbler" och
       // "Trädgård". Förledet jämförs som kunden skrev det, inte i kanonisk
@@ -1126,8 +1749,8 @@ const MINST_VARA = 2;
  * som visas.
  */
 const INGEN_VARA = new Set([
-  "bred", "armlös", "täckt", "yttre", "inre", "övre", "nedre", "främre", "bakre", "själv", "åtta",
-  "kilo", "linne", "aluminium", "höjd", "bredd", "längd", "djup", "allt-i-ett",
+  "armlös", "täckt", "yttre", "inre", "övre", "nedre", "främre", "bakre", "själv", "åtta",
+  "kilo", "linne", "aluminium", "allt-i-ett",
 ]);
 
 /** Ändelser som bara böjer ordet. Inte "a": "matt" → "matta" är ett annat ord. */
@@ -1248,7 +1871,10 @@ export function sokforslag(forrad: Ordforrad, skrivet: string, max = 3): string[
       if (exaktVikt === 0 && o.vikt.length <= p.length + 2) nara.push(o.text);
       else exakta.push(o);
       exaktVikt += o.antal;
-    } else if (p.length >= 4 && o.vikt.length > p.length + 1 && (o.vikt.endsWith(p) || o.nyckel.endsWith(pNyckel))) {
+    } else if (p.length >= 4 && o.vikt.length > p.length + 1 && ((helt ? o.text.endsWith(sist) : o.vikt.endsWith(p)) || o.nyckel.endsWith(pNyckel))) {
+      // ☠️ Är det skrivna ett eget ord gäller prickarna: "smal" är inte slutet
+      // av "fotbollsmål" (2026-11-19). Den som skriver "fatolj" har inget ord
+      // i katalogen och får fortfarande "massagefåtölj".
       slutarVikt += o.antal;
       if (slutar.length < max) slutar.push(o.text);
     }
@@ -1300,6 +1926,52 @@ export function sokforslag(forrad: Ordforrad, skrivet: string, max = 3): string[
     if (valda.length >= max) break;
   }
   return valda.map((o) => (fore ? `${fore} ${o}` : o));
+}
+
+/**
+ * Sökförslagen prövade mot katalogens namn (2026-11-19).
+ *
+ * ☠️ sokforslag fyller i det sista ordet utan att se på de andra: "golvlampa
+ * fot" blev "golvlampa fotbollsmål", "kattlåda med tak" blev "kattlåda med
+ * taklampa" och "hundsoffa stor hund" blev "hundsoffa stor hundgrind". Ett
+ * förslag på flera ord ska leda till varor, så det föreslås bara när något
+ * namn har ordet tillsammans med de andra.
+ *
+ * Särskrivet: butikens vanligaste egna sökning är "Vägg hylla" (GA4). Står
+ * orden ihopskrivna i ordförrådet föreslås det ordet först ("vägghylla").
+ *
+ * `namn` är katalogens namn, normaliserade (normalize).
+ */
+export function sokforslagINamn(forrad: Ordforrad, namn: readonly string[], skrivet: string, max = 3): string[] {
+  const delar = (skrivet || "").toLowerCase().replace(/\s+/g, " ").trim().split(" ");
+  if (delar.length < 2) return sokforslag(forrad, skrivet, max);
+  const ut: string[] = [];
+  if (!/\s$/.test(skrivet) && delar.every((d) => /^[a-zåäöé]+$/.test(d))) {
+    // Ihop, eller med bindestreck som i "tv-bänk".
+    const ihop = vik(delar.join(""));
+    const medStreck = vik(delar.join("-"));
+    const ord = forrad.ord.find((o) => o.vikt === ihop || o.vikt === medStreck)
+      ?? forrad.ord.find((o) => o.varu > 0 && o.vikt.startsWith(ihop) && o.vikt.length <= ihop.length + 2);
+    if (ord) ut.push(ord.text);
+  }
+  // De andra orden ska stå i samma namn. Ett kort ord ("tv", "el") som eget
+  // ord eller i början av ett: som delsträng står "tv" i "två" och "tvätt".
+  const ovriga = delar.slice(0, -1).filter((d) => d.length >= 2 && !STOPWORDS.has(d)).map((d) => {
+    const st = sokstam(d);
+    return st.length > 3 ? (n: string) => n.includes(st) : (n: string) => starSomOrd(n, st) || (st.length === 3 && ordBorjar(n, st));
+  });
+  // Namnen med de andra orden plockas fram en gång, inte en gång per förslag:
+  // rutan räknar förslagen vid varje tangent.
+  let medOvriga: string[] | null = null;
+  for (const f of sokforslag(forrad, skrivet, max * 4)) {
+    if (ut.length >= max) break;
+    const ord = f.slice(f.lastIndexOf(" ") + 1);
+    // "tv bänk" har redan fått "tv-bänk": inte "tv tv-bänk" också.
+    if (ut.includes(ord)) continue;
+    medOvriga ??= namn.filter((n) => ovriga.every((star) => star(n)));
+    if (medOvriga.some((n) => n.includes(ord))) ut.push(f);
+  }
+  return ut;
 }
 
 /**
@@ -1366,7 +2038,9 @@ export function menadeDu<T>(varor: readonly T[], namn: (v: T) => string, fraga: 
  */
 export function rankaMedForslag<T>(items: T[], nameOf: (item: T) => string, query: string): { utfall: Sokutfall<T>; visar: string } {
   const utfall = rankaMedInfo(items, nameOf, query);
-  if (!kortOrd(query)) return { utfall, visar: "" };
+  // En rättad stavning visas på samma sätt som ordet för två bokstäver:
+  // sidan säger vilket ord träffarna gäller.
+  if (!kortOrd(query)) return { utfall, visar: utfall.rattat ?? "" };
   const mal = visaVarorFor(query, menadeDu(items, nameOf, query), utfall.traffar.length);
   if (!mal) return { utfall, visar: "" };
   const forMalet = rankaMedInfo(items, nameOf, mal);

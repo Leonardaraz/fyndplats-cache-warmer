@@ -82,6 +82,31 @@ describe("produktkortet är en bricka utan ram och utan knapp", () => {
   });
 });
 
+describe("på datorn står fotona på vitt i listorna (Leonard 2026-11-19)", () => {
+  const regel = css.slice(css.indexOf("@media(min-width:881px){\n  .prod:not(.auction-card):not(.blogg-kort) .pimg{"));
+  const block = regel.slice(0, regel.indexOf("\n}") + 2);
+
+  it("plattan är vit med en tunn ram, och fotot blandas inte", () => {
+    assert.match(block, /^@media\(min-width:881px\)\{\n  \.prod:not\(\.auction-card\):not\(\.blogg-kort\) \.pimg\{background:#fff;border:1px solid var\(--line\)\}/);
+    assert.match(block, /\n  \.prod:not\(\.auction-card\):not\(\.blogg-kort\) \.pimg img\{mix-blend-mode:normal\}/);
+  });
+
+  it("skyltfönstren som hade brickan förut behåller den: startsidan, /butik och prissidorna", () => {
+    assert.match(block, /\n  :is\(\.hem2,\.butik2\) \.prod:not\(\.auction-card\):not\(\.blogg-kort\) \.pimg\{background:#F4EEE8;border:0\}/);
+    assert.match(block, /\n  :is\(\.hem2,\.butik2\) \.prod:not\(\.auction-card\):not\(\.blogg-kort\) \.pimg img\{mix-blend-mode:multiply\}/);
+    assert.match(las("app", "page.tsx"), /className="hem2"/);
+    assert.match(las("app", "butik", "page.tsx"), /className="butik2"/);
+    assert.match(las("components", "price-hub-page.tsx"), /className="butik2 pris2"/);
+  });
+
+  it("mobilen är orörd: regeln står bara i den breda mediefrågan, efter grundens", () => {
+    // Grundregeln (varmgrå platta, multiply) gäller oförändrad utanför mediefrågan.
+    assert.equal(css.split("background:#fff;border:1px solid var(--line)}").length - 1 >= 1, true);
+    assert.ok(css.indexOf(block) > css.indexOf(".prod .pimg img{mix-blend-mode:multiply}"));
+    assert.equal(block.split(".pimg").length - 1, 4);
+  });
+});
+
 describe("Fyndauktionens kort är kvar som kort med ram", () => {
   it("har grundens gamla värden under en egen väljare", () => {
     assert.match(css, /\.prod\.auction-card\{border:1px solid var\(--line\);border-radius:var\(--r-lg\);overflow:hidden;background:#fff;transition:transform \.25s,box-shadow \.25s;box-shadow:var\(--e1\)\}/);
