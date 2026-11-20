@@ -87,7 +87,12 @@ redan publicerad sida ska inte flytta några bilder**: numrera då bilderna 101,
 dem 1–10 flyttas bilden på plats 3 sist även när den är en miljöbild, och sidans bildordning
 ändras utan att något fel syns (T127, 2026-11-20: bilden med handkontrollen på `e5be35a4`; en
 sammanslagen sida med en måttbild får den sist i alla fall, och det är husets ordning). Läs
-galleriets ordning i Wix efter skrivningen. Plats 1 blir huvudbild och delningsbild. Produktsidans
+galleriets ordning i Wix efter skrivningen. ☠️ **Och en BEFINTLIG alt-text som börjar på *Måttbild*, *Måttskiss* eller
+*Måttritning* flyttar sin bild sist även när alla nya texter är rena och bilderna är numrerade 101+** (alt-rundan 2026-11-20:
+olivträdet `654d3653` hade en befintlig *Måttskiss …* på plats 4 av 7, och rundan hade lagt den sist och flyttat tre bilder på en
+sida med bildval). Kör `python3 ../../polish-gates/kontroll-galleriordning.py` i rundans katalog före `bygg-bildplan.py`: den
+simulerar `bygg-media.py` mot positionerna i `bilder.tsv` och skriver varje sida vars ordning skulle ändras. Är bilden redan
+sist ändras inget; annars skriver du om inledningen på den befintliga texten (och dokumenterar det) eller godtar flytten. Plats 1 blir huvudbild och delningsbild. Produktsidans
 galleri visar varje bild som en kvadrat beskuren från mitten (bara förstoringen visar hela
 bilden), så en liggande bild tappar sina kanter och en liggande måttritning sina yttersta
 mått. Polerar du syskon samtidigt ska två sidor inte dela samma miljöfoto, så stryk det på
@@ -146,4 +151,6 @@ först.
 bilden, på svenska och olika för varje bild, med sökordet där det faller sig naturligt.
 Beskriv varan, inte rekvisitan: djuret, barnet eller kaffekoppen i miljöbilden hör inte till
 produkten. Samma förbjudna ord gäller som i texten. En struken position får ingen rad, och
-`gate-alt.py` fäller en som får det.
+`gate-alt.py` fäller en som får det. Kör också `python3 ../../polish-gates/kontroll-alt-extra.py` i rundans katalog: den kontrollerar
+formen som grinden inte ser (längd 28–200, samma text två gånger på en sida eller på flera, *bild N*, slutpunkt, engelska ord) och
+byggdes för alt-rundan 2026-11-20, där 889 bilder på 153 publicerade sidor fick alt-text (FLAGGADE 360, `runda-alt-1` till `-4`).
