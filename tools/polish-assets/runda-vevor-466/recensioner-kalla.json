@@ -1,0 +1,93 @@
+{
+  "6db903d8": {
+    "productId": "6db903d8-9ae3-466b-96a5-3d82e67a87ca",
+    "synliga": 0,
+    "dolda": 7,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": []
+  },
+  "00bfebde": {
+    "productId": "00bfebde-5ba0-4fe3-b947-62c4f0802ec2",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-115c8el",
+        "betyg": 5,
+        "datum": "2026-10-10",
+        "foton": 0,
+        "text": "Okay this doggy door option for sliding doors is a lifesaver. I have a screened in porch but no fenced backyard and I hate that my dog can't go in and out without assistance. This door solves that problem. It fits snugly in my sliding glass door, allows her to venture onto our porch, and gives her the freedom to move about without me worrying that she'll run off or that my door has to be open and air-conditioning the neighborhood. A great solution. Fits most smaller to medium doggies with no issue. Super simple to install. I will caution you, it's a fairly heavy door, so maybe try setting it up with a buddy so that it doesn't break or hurt you while managing its unwieldiness. Would highly recommend, good construction."
+      },
+      {
+        "id": "gen-6wt4ge",
+        "betyg": 5,
+        "datum": "2026-09-28",
+        "foton": 0,
+        "text": "Bon rapport qualité/prix. Elle semble solide et est très bien pensée. Le haut est monté sur ressorts pour s'adapter à la bonne hauteur et se bloque ensuite avec des verrous pour éviter qu'on ne puisse l'enlever. Attention cependant, pour une baie vitrée avec des rails de 15mm, elle se rentre ni dans le dormant ni dans la porte. Une petite adaptation est préférable si vous souhaitez sécuriser la fenêtre."
+      }
+    ]
+  },
+  "71eb832a": {
+    "productId": "71eb832a-e9f3-4df3-b095-fcf9cca8018d",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": [
+      {
+        "id": "gen-j856yo",
+        "betyg": 5,
+        "datum": "2026-10-03",
+        "foton": 0,
+        "text": "Easy to install, allows a better view when backing up and strong to help guide the boat on."
+      },
+      {
+        "id": "gen-1vu6k32",
+        "betyg": 5,
+        "datum": "2026-10-01",
+        "foton": 0,
+        "text": "Well made!! Functions as it should!! Great price!!"
+      }
+    ]
+  },
+  "74a1e85c": {
+    "productId": "74a1e85c-7161-442f-9917-f56cbf963d4f",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": [
+      {
+        "id": "gen-1qogu6j",
+        "betyg": 5,
+        "datum": "2026-08-16",
+        "foton": 1,
+        "text": "Modello 4,5m, è veramente UNA FIGATA! Io cercavo una tenda per andare in campeggio coi miei due pappagalli calopsitta che non sono abituati a stare in gabbia. Questa è fenomenale! Cronometrato 2 minuti apertura e 2 chiusura da solo e con facilità! Resistente, solida e comoda! La zanzariera è robusta e mi fa stare tranquillo coi miei due pappy liberi. Una cosa molto apprezzabile è il tetto anch'esso trasparente e traspirante!"
+      }
+    ]
+  },
+  "4c0c4169": {
+    "productId": "4c0c4169-f737-48ee-8acb-387cac3c21ca",
+    "synliga": 0,
+    "dolda": 3,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 4,
+    "attBesluta": [
+      {
+        "id": "gen-ta1qtg",
+        "betyg": 5,
+        "datum": "2026-10-01",
+        "foton": 0,
+        "text": "Had a 4 day Nor’easter storm blew in and these awnings held up with no problems! I’m purchasing another one for other my garage!"
+      }
+    ]
+  }
+}
