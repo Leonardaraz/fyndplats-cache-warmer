@@ -1,9 +1,10 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import Image, { type ImageLoaderProps } from "next/image";
+import Image from "next/image";
 import { SHIMMER_BLUR } from "../lib/lqip";
 import { tightFillUrl } from "../lib/wix-image";
+import { wixMainLoader } from "../lib/hjalte-loader";
 import { altForImage } from "../lib/image-alt";
 import { kandidatBredd, nearWindow, prefersDataSaving } from "../lib/gallery-preload";
 import { langdTal, langdText, valjKalla, type ProduktVideo } from "../lib/produkt-video";
@@ -17,23 +18,14 @@ import { lasSidan } from "../lib/las-sidan";
 // transform-URL (samma mekanism som blur-miniatyren i lib/lqip). Genom att peka
 // huvudbildens loader dit hämtas LCP-elementet direkt från Wix globala CDN,
 // redan webp och rätt storlek — ingen optimerar-kallstart i kritiska vägen.
-// Galleriets huvudbild visas i aspect-ratio:1 med object-fit:cover, så en
-// kvadratisk fill (w=h) matchar exakt utan dubbelbeskärning.
+// Huvudbildens laddare står i lib/hjalte-loader.ts: förhämtningen vid tryck
+// på ett produktkort (lib/hjaltebild-varm.ts) måste bygga exakt samma adress.
 // `preload` på initiala lagret (LCP-bilden) genererar <link rel=preload> i
 // <head> via SAMMA loader → webbläsaren förladdar rätt URL. fetchPriority
 // sätts SEPARAT: next/image härleder den inte ur preload/priority, så utan
 // den saknade både länken och <img> fetchpriority=high (SEO-granskningen
 // 2026-07-31). OBS: `priority` är utfasad i Next 16 till förmån för `preload`
 // — och de två får inte kombineras (get-img-props kastar).
-function wixMainLoader({ src, width, quality }: ImageLoaderProps): string {
-  if (!(src || "").includes("static.wixstatic.com")) return src; // icke-Wix (ska inte hända för katalogbilder) → orört
-  // q_72 i stället för 82: hjältebilden var en PNG-sourcad produktbild som
-  // komprimerade dåligt → 114 KB webp och ~6 s LCP på 4G (mätt på prod). Vid 72
-  // sparas ~25–30 % utan synlig kvalitetsförlust i webp → snabbare första paint.
-  // tightFillUrl: när crop-data finns i image-crops.json byggs en /v1/crop-URL
-  // (bbox i original-pixlar); annars samma fill-URL som tidigare. Säker fallback.
-  return tightFillUrl(src, width, width, quality || 72);
-}
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
