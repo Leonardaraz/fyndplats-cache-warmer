@@ -4,6 +4,7 @@
 # Kör efter livekollen, inte parallellt med hamta-live.sh: Vercels edge strypar (403) när sidorna hämtas för tätt.
 R=/home/user/fyndplats-cache-warmer/tools/polish-assets/$1
 A=${2:-/tmp}
+mkdir -p "$A"
 cd "$R" || exit 1
 python3 - "$A" <<'PY'
 import json, sys
