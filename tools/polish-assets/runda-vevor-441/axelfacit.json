@@ -1,0 +1,16 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "bfbb733b": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "c5ac70e7": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "de81fa98": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Bred kompatibilitet: Vår AC-återvinningsmaskin fungerar med köldmedier av klasserna A1 (R12, R401A, R404A, R134a, R22, R407C, R407A, R407B, R410A, R507) och A2L (R32, R1234yf). Den är idealisk för VVS-system i bostäder och luftkonditioneringssystem i bilar. | Pictures of the source images: Compatible with Most Common Refrigerants, Recovers refrigerant from cars, HVAC systems, and refrigerators (A1: R12, R134a, R401C, R406A, R500, R22, R401A, R401B, R402B, R407C, R407D, R408A, R409A, R502, R509, R402A, R404A, R407A, R407B, R410A, R507, etc; A2L: R32, R1234yf, etc); Dual-Cylinder Power, 2x Faster Recovery (Compressor 1 HP, Motor Speed 1750 rpm (60Hz) 1450 rpm (50Hz), 6.9 lbs/min, 8 lbs/min and 8.2 lbs/min liquid recovery rates by refrigerant category, Notice: The vapor flow rate is directly proportional to the inlet pressure); 3 Independent Knobs, Precise Control (Select Refrigerant Intake Mode, Mode Selection, Output Control); Stay Cool, Keep Running (Shuts Down Under Continuous Load, 4-Row Condenser Improves Heat Dissipation); Self-Cleaning, Pure Recovery, Purges remaining refrigerant from hoses to avoid internal damage (Mesh Screen + Sealing Ring, Captures large particles, Dryer, Limits water vapor entry); Auto Shut-Off for Secure Operation (-5 to -14 inHg Low-Pressure Protection, Avoid dry run, 38.5 bar and above High-Pressure Protection, Avoid overload, Low/High-Pressure Warning Light, PURGE mode: The OUTPUT connection pipeline must be unblocked, otherwise the high-pressure gauge will be damaged!) | Specification rows of the product page: power 1 HP; compressor type dual-cylinder; inlet/outlet port size 1/4 in SAE; operating temperature 0-40 ℃; net weight 15 kg; product dimensions 430 x 250 x 345 mm; title: portable refrigerant recovery machine, 1 HP 220V 50Hz dual-cylinder AC recovery machine for liquid vapor refrigerant, 1450 RPM recovery unit HVAC for automotive and household air conditioning; bullets: 8.2 lbs/min high-efficiency recovery, a portable 1 HP dual-cylinder recovery machine for vapor and liquid refrigerant with a liquid recovery rate of up to 8.2 lbs/min (3.7 kg/min); compatible with class A1 (R12, R401A, R404A, R134a, R22, R407C, R407A, R407B, R410A, R507) and A2L (R32, R1234yf) refrigerants, for residential HVAC systems and automotive air conditioning; precision gauges to monitor the pressure, high-pressure protection (automatic shut-off at 38.5 bar and above), low-pressure protection (-5 to -14 inHg) and overcurrent protection, with a condenser and a fan that prevent overheating; a self-cleaning function with the knob in the PURGE position that cleans the remaining refrigerant from the internal lines, which reduces manual cleaning and cross-contamination; a dryer filter and a filter mesh in a dual filtration system that remove impurities and water vapor from the refrigerant"
+ }
+}

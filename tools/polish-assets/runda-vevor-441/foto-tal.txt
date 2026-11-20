@@ -1,0 +1,10 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+c5ac70e7 4 innehållsbilden anger fyra fjäderbrickor, fyra plana brickor och fyra sexkantsskruvar, och fotot med tillbehören visar fyra skruvar
+c5ac70e7 3 fotot visar tre silverfärgade kolvlock på pumphuvudet (triplexkolv)
+c5ac70e7 6 innehållsbilden anger sex O-ringar och fotot med tillbehören visar sex ringar
+bfbb733b 6 innehållsbilden anger sex O-ringar, och bilderna visar sex slangändar (två 90°, två 45° och två raka) och sex ringar
+bfbb733b 2 bilden med sju delar visar två av varje sorts slangände (rak, 45° och 90°)
+de81fa98 2 fotot med slangarna visar en blå och en svart slang, och bilden av vreden visar två manometrar på manöverpanelen
+de81fa98 3 bilden av reglagen visar tre vred (blått, gult och rött)
+de81fa98 4 bilden av kondensorn anger en kondensor med fyra rader
