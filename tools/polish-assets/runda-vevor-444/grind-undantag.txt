@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py sidornas mått står som tal ur källans specifikationsrader och måttbilder (tankens 33,0 × 24,0 × 51,0 cm, skötbordets 755 × 510 × 1000–1075 mm, däckjärnens 970 × 40 × 40 mm och stansmaskinens 310 × 380 × 210 mm), och sidorna skriver dem likadant, utan axelord, så ingen axel påstås. Däckjärnens längd 970 mm står med ordet lång, vilket titeln och måttbilden anger

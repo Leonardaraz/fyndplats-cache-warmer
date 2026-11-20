@@ -1,0 +1,8 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+3846bb0f 2 punkten och bilden anger en luftslang och en vätskeslang på 3 m, och bilden visar två slangar
+15ee0265 3 specifikationsraden anger 3 lådor, och bilden visar tre tyglådor
+15ee0265 4 punkten och bilden om hjulen anger 4 svänghjul, och bilden visar fyra hjul
+15ee0265 2 bilden visar två öppna hyllor på ena sidan
+4a336fa8 2 titeln anger 2 st, och bilden visar två däckjärn
+e7100d49 2 innehållsbilden anger 2 x Cutting Pads och 1 x Plate, och sprängbilden visar plattorna som ligger ovanpå varandra
