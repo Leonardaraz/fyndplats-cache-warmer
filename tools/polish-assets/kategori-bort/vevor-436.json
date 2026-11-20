@@ -1,0 +1,30 @@
+{
+  "namn": "vevor-436",
+  "rader": [
+    {
+      "kort": "03b32425",
+      "pid": "03b32425-dcfe-460a-a9ea-c912a6ee5a50",
+      "bort": [
+        "Kök & Husgeråd > Köksredskap & Tillbehör",
+        "Kök & Husgeråd"
+      ],
+      "behall": [
+        "Verktyg & Maskiner",
+        "Verktyg & Maskiner > Verktygstillbehör"
+      ]
+    },
+    {
+      "kort": "707073fe",
+      "pid": "707073fe-f87d-40b1-8baa-0de4f1dd7179",
+      "bort": [
+        "Bil & Garage > Verkstadsutrustning",
+        "Bil & Garage"
+      ],
+      "behall": [
+        "Bygg & Renovering",
+        "Bygg & Renovering > Pumpar",
+        "Verktyg & Maskiner"
+      ]
+    }
+  ]
+}
