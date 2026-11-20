@@ -31,13 +31,17 @@ när den bär:
 
 - inbränd text i grafiken, alltså rubriker, bildtexter eller en webbadress, oftast på tyska
   eller engelska (`Family-size`, `7 Cups`)
-- leverantörens logotyp, oftast i ett övre hörn (`HOMCOM by Aosom`). Misstänker du en ljus
+- leverantörens logotyp, oftast i ett övre hörn (`HOMCOM by Aosom`, en blå `PGST`-bricka
+  tillsammans med `Wi-Fi`- och `4G`-brickor). Misstänker du en ljus
   logotyp på ljus vägg eller himmel kör du `bygg-ghost.py`, som gör den synlig.
 - en annan färgvariant, modell, storlek eller konfiguration än den som säljs
 - samma scen från samma vinkel som en annan bild i galleriet, eller en miljöscen som ett
-  publicerat syskon redan bär
+  publicerat syskon redan bär. Ett vidare eller snävare utsnitt av samma render är samma
+  scen *(`d3fea27c` 2026-11-20: leverantörens position 7 var galleriets bild 3 sedd bredare)*
 
-**Behåll** text som sitter fysiskt på varan (knappar, märket på godset), en måttritning som
+**Behåll** text som sitter fysiskt på varan (knappar, märket på godset: `Vinsetto` broderat
+på kuddarna, `PawHut` på buren, `VEVOR` tryckt på överdraget *(39 bilder granskade en och en
+2026-11-20, `FLAGGADE.md` 361: det enda pålagda märket var `PGST`-brickorna)*), en måttritning som
 bara har siffror och enheter, och text och märken på rekvisitan i en miljöbild: förpackningar,
 burkar, böcker och liknande i eller runt varan. Stryk bara det listan ovan tar upp: så många
 användbara bilder som möjligt *(Leonard 2026-07-10)*. Ett barn i bilden som är yngre än sidans
@@ -58,6 +62,12 @@ undantaget nedan eller ersätts av en annan av leverantörens bilder, och finns 
 användbart flaggar du det till Leonard i `FLAGGADE.md`. Hur korten byggdes står i
 [`arkiv/fyndplats-kort.md`](../../arkiv/fyndplats-kort.md). De kort som redan ligger på
 publicerade sidor ligger kvar *(Leonard 2026-10-27: "låt de som är gjort ligga kvar")*.
+**Undantag:** ett kort som säger *leverantör* eller *tillverkaren* i fotraden, eller vars
+rubrik jämför varan med resten av sortimentet, stryks även när det redan ligger live, och
+ersätts av en ren leverantörsbild om sidan annars får färre än fem bilder *(Leonard
+2026-11-20, "11 fyndplatsskort: ta bort bilderna helt", tolv kort i `runda-fix-kort`)*.
+Textgrindarna ser inte text som är inbränd i en bild, så sådana kort hittas bara genom att
+se bilderna. Fotradens text sparas inte i `kort.tsv`.
 
 **Undantag: sidor med färre än fem bilder** *(Leonard 2026-09-30 för två eller tre bilder, utvidgat
 2026-10-07 till varje sida som annars får färre än fem)*. Där får en leverantörsbild
@@ -114,7 +124,10 @@ Ett utsnitt som bara går att göra genom att skära i varan förkastas.
 **För få bilder kvar?** (Aosom; för VEVOR, se VEVOR-avsnittet.) Importen hämtar bara feedens
 position 1, 2, 3, 8 och 9. Workflowen **"Bilder — hämta leverantörens övriga bilder för
 granskning"** laddar upp position 4–7 till Media Manager utan att röra produkten, men bara med
-`skarp` påslagen (standard är torrkörning) och position 4–7 om du inte anger andra. Granska dem med samma strykregler som ovan och lägg de
+`skarp` påslagen (standard är torrkörning) och position 4–7 om du inte anger andra. **Börja med position 10:** mätt 2026-11-20 på 14 sidor var den ren på 11 av 14, medan
+position 4–7 bara var rena på 2 av 56 (nästan alla är tyska infografiker med rubrik och
+bildtexter). Feeden har högst tio bilder per vara (uppmätt 2026-09-30, se `MAX_POSITION` i
+`lib/aosom/bildkandidater.ts`). Granska dem med samma strykregler som ovan och lägg de
 rena i `bilder.tsv` med sina fil-id. Leverantörens rena bilder är det som används, och
 inget Fyndplats-kort byggs *(Leonard 2026-09-30, skärpt 2026-10-27)*. Det gäller också
 måttbilder: en variants egen måttbild lämnas kvar och länkas till färg OCH storlek. Saknar
