@@ -1,0 +1,91 @@
+{
+  "c7e5a7c3": {
+    "productId": "c7e5a7c3-d492-4399-9875-16da44b40e23",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 3,
+    "attBesluta": []
+  },
+  "f1ae7528": {
+    "productId": "f1ae7528-84c4-405e-b821-e2e08a92146d",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": []
+  },
+  "5f7951cc": {
+    "productId": "5f7951cc-d56f-4f71-ae46-711cbb355912",
+    "synliga": 0,
+    "dolda": 6,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": []
+  },
+  "dedc72be": {
+    "productId": "dedc72be-589f-4c68-a510-8726a60f5762",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-15l1nc7",
+        "betyg": 4,
+        "datum": "2026-03-05",
+        "foton": 0,
+        "text": "Un peu petit.sinon tres joli a voir dans le temps."
+      },
+      {
+        "id": "gen-19x2drf",
+        "betyg": 4,
+        "datum": "2025-05-11",
+        "foton": 0,
+        "text": "I orders 2.of these as my lawn is over 20 feet long..might have to order another one as it runs short. Needed it for a walkway to the washing line instead of constantly trending on grass. I like the ideas of these as you can lift them.up easily and move it to area. Looks like good quality wood. Easy to assemble. Hope it lasts through all weather's. Not too heavy to.manage."
+      }
+    ]
+  },
+  "64cf1d1c": {
+    "productId": "64cf1d1c-60a1-4f54-9bf7-dbd108c79d06",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-o5ouvj",
+        "betyg": 5,
+        "datum": "2026-09-08",
+        "foton": 0,
+        "text": "Bought this setup to fit an empty, small walk-in closet space. Set up was simple and instructions were easy to follow. I could configure the setup based on my needs and it worked beautifully. Very pleased with my purchase. The setup seems strong and sturdy. I hope it’ll hold up well long term. *There was a missing attachment. Instructions indicated 2pcs but I only received 1. Thankfully I only needed one of those."
+      },
+      {
+        "id": "gen-1pyhgbl",
+        "betyg": 5,
+        "datum": "2026-08-19",
+        "foton": 0,
+        "text": "Ottimo prodotto per qualità/prezzo. Ottimo anche il servizio di assistenza. Grazie"
+      },
+      {
+        "id": "gen-szmt4c",
+        "betyg": 5,
+        "datum": "2026-05-25",
+        "foton": 0,
+        "text": "Pelo preço é uma excelente solução, não vi outro produto que tivesse o mesmo nível de qualidade. O único ponto menos positivo é os cabides que estão a meia altura que não se consegue fixar com o set-up recebido."
+      },
+      {
+        "id": "gen-16zky5w",
+        "betyg": 5,
+        "datum": "2026-02-02",
+        "foton": 0,
+        "text": "The unit is easily assembled and well constructed. Highly recommend. We are able to store all types and sizes of our clothing"
+      }
+    ]
+  }
+}
