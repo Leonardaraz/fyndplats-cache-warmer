@@ -17,7 +17,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { forberedKatalog, forberedKatalogSteg, forfilterProv, kategoriPoang, matchaKategorier, normalize, ordlistansOrd, rankaMedForslag, rankaMedInfo, tokenize, type Kategoridata, type SokKat, type Sokutfall } from "./search.ts";
+import { byggOrdforrad, byggOrdforradSteg, forberedKatalog, forberedKatalogSteg, forfilterProv, kategoriPoang, matchaKategorier, normalize, ordlistansOrd, rankaMedForslag, rankaMedInfo, tokenize, type Kategoridata, type SokKat, type Sokutfall } from "./search.ts";
 import { kategoriRad, lasKategoriRad, lasSokexempel, sokKategorier, varansKategorier } from "./sok-begrepp.ts";
 import { medForsok } from "./sok-kall.ts";
 
@@ -607,16 +607,17 @@ test("uppvärmningen i steg, i vilken ordning som helst, ändrar inga svar", () 
   const facit = new Map(fragor.map((q) => [q, somText(rankaMedInfo(VAROR, (v) => v.n, q, VAROR.map((v) => normalize(v.n)), kd))]));
   assert.match(facit.get("speglar") ?? "", /Badrumsspegel/);
   assert.match(facit.get("2pack") ?? "", /2-pack/);
-  for (const ordning of [(s: (() => void)[]) => s, (s: (() => void)[]) => [...s].reverse(), (s: (() => void)[]) => s.slice(2), (s: (() => void)[]) => s.slice(0, 1)]) {
+  for (const ordning of [(s: (() => void)[]) => s, (s: (() => void)[]) => [...s].reverse(), (s: (() => void)[]) => s.slice(3), (s: (() => void)[]) => s.slice(0, 2), (s: (() => void)[]) => [s[4], s[2]]]) {
     const namn = VAROR.map((v) => normalize(v.n));
     const steg = forberedKatalogSteg(VAROR, namn, kd);
-    assert.equal(steg.length, 4);
+    assert.equal(steg.length, 6);
     for (const gor of ordning(steg)) gor();
     for (const [q, svar] of facit) assert.equal(somText(rankaMedInfo(VAROR, (v) => v.n, q, namn, kd)), svar, q);
   }
   // Sökrutan gör ett steg per ledig stund, och bara en gång per hämtat index.
   const rankning = readFileSync(new URL("./sok-rankning.ts", import.meta.url), "utf8");
-  assert.match(rankning, /steg \?\?= \[\(\) => \{ ordforradFor\(idx\); \}, \.\.\.forberedKatalogSteg\(idx, namnFor\(idx\), kategoridata\(\)\)\];/);
+  assert.match(rankning, /\.\.\.\(ordforrad\.has\(idx\) \? \[\] : byggOrdforradSteg\(idx\.map\(\(h\) => h\.n\), \(f\) => \{ if \(!ordforrad\.has\(idx\)\) ordforrad\.set\(idx, f\); \}\)\),/);
+  assert.match(rankning, /\(\) => \{ steg\?\.push\(\.\.\.forberedKatalogSteg\(idx, namnFor\(idx\), kategoridata\(\)\)\); \},/);
   assert.match(rankning, /steg\.shift\(\)\?\.\(\);\n    if \(steg\.length > 0\) vanta\(false\);/);
   assert.match(rankning, /if \(uppvarmda\.has\(idx\)\) return;/);
 });
@@ -689,4 +690,31 @@ test("☠️ sökläget byggde ordförrådet innan det kunde öppnas: indexet b�
   assert.match(las("../app/api/search-index/route.ts"), /kategoriRad\(kategorier\.kat, byggOrdforrad\(products\.map\(\(p\) => p\.name\)\)\.exempel\)/);
   assert.match(las("./sok-index.ts"), /exempel = lasSokexempel\(d\[d\.length - 1\]\);\n\s+d\.pop\(\);/);
   assert.match(las("./sok-rankning.ts"), /const fardiga = sokExempelHamtade\(\);\n  return \(fardiga\.length > 0 \? fardiga : ordforradFor\(idx\)\.exempel\)\.slice\(0, max\);/);
+});
+
+test("ordförrådet byggt i steg är samma ordförråd", () => {
+  const namn = VAROR.map((v) => v.n);
+  const helt = byggOrdforrad(namn);
+  for (const delar of [1, 3, 4, 7, 1000]) {
+    let klart: ReturnType<typeof byggOrdforrad> | null = null;
+    const steg = byggOrdforradSteg(namn, (f) => { klart = f; }, delar);
+    assert.equal(steg.length, Math.ceil(namn.length / Math.max(1, Math.ceil(namn.length / delar))) + 1, `${delar} delar`);
+    // Inget är klart förrän sista steget.
+    for (const gor of steg.slice(0, -1)) gor();
+    assert.equal(klart, null);
+    steg[steg.length - 1]();
+    assert.ok(klart);
+    const f = klart as ReturnType<typeof byggOrdforrad>;
+    assert.deepEqual(f.ord, helt.ord, `${delar} delar`);
+    assert.deepEqual(f.exempel, helt.exempel);
+    assert.deepEqual([...f.former], [...helt.former]);
+  }
+  // Provet är inte tomt: butiken har ord att föreslå.
+  assert.ok(helt.ord.length > 20);
+  // En tom katalog: bara avslutningen.
+  let tomt: ReturnType<typeof byggOrdforrad> | null = null;
+  const steg = byggOrdforradSteg([], (f) => { tomt = f; });
+  assert.equal(steg.length, 1);
+  steg[0]();
+  assert.deepEqual((tomt as unknown as ReturnType<typeof byggOrdforrad>).ord, []);
 });

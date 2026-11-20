@@ -12,7 +12,7 @@
 // aldrig. Kontaktformulärets produktväljare importerar den som vanligt: den
 // sidan söker alltid.
 
-import { byggOrdforrad, forberedKatalogSteg, kortOrd, markeraTraffar, markeringsord, matchaKategorier, normalize, rankaMedInfo, rankByName, sokforslagINamn, visaVarorFor, type Kategoridata, type Ordforrad } from "./search";
+import { byggOrdforrad, byggOrdforradSteg, forberedKatalogSteg, kortOrd, markeraTraffar, markeringsord, matchaKategorier, normalize, rankaMedInfo, rankByName, sokforslagINamn, visaVarorFor, type Kategoridata, type Ordforrad } from "./search";
 import { sokExempelHamtade, sokKategorierHamtade, type SokTraff } from "./sok-index";
 import { kopbaraForst } from "./sok-ordning";
 
@@ -132,8 +132,10 @@ export function sokexempelFor(idx: SokTraff[], max: number): string[] {
  *
  * ☠️ ETT STEG PER LEDIG STUND (2026-11-20). Allt i en uppgift höll skärmen
  * låst i upp till 390 ms på en strypt telefon, och tangenten som trycktes
- * under tiden fick vänta. Nu lämnas turen tillbaka mellan stegen (ordförrådet
- * och de fyra i forberedKatalogSteg), så att en tangent hinner emellan.
+ * under tiden fick vänta. Nu lämnas turen tillbaka mellan stegen (namnen,
+ * ordförrådet i fem omgångar och de sex i forberedKatalogSteg), så att en
+ * tangent hinner emellan. Söker kunden innan ordförrådet är klart byggs det i
+ * ett stycke då (ordforradFor), och stegens arbete kastas.
  */
 const uppvarmda = new WeakSet<SokTraff[]>();
 export function varmUpp(idx: SokTraff[]): void {
@@ -147,8 +149,13 @@ export function varmUpp(idx: SokTraff[]): void {
     else setTimeout(nasta, 60);
   };
   const nasta = () => {
-    // Stegen skapas först här: namnen normaliseras då i den lediga stunden.
-    steg ??= [() => { ordforradFor(idx); }, ...forberedKatalogSteg(idx, namnFor(idx), kategoridata())];
+    // Stegen skapas först här, i den lediga stunden. Motorns egna steg läggs
+    // till sist, när namnen är normaliserade.
+    steg ??= [
+      () => { namnFor(idx); },
+      ...(ordforrad.has(idx) ? [] : byggOrdforradSteg(idx.map((h) => h.n), (f) => { if (!ordforrad.has(idx)) ordforrad.set(idx, f); })),
+      () => { steg?.push(...forberedKatalogSteg(idx, namnFor(idx), kategoridata())); },
+    ];
     steg.shift()?.();
     if (steg.length > 0) vanta(false);
   };

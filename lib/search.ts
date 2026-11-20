@@ -3554,12 +3554,38 @@ const BOJNINGSSLUT = new Set(["ar", "er", "or", "r", "n", "en", "et", "na", "arn
 export function byggOrdforrad(namn: readonly string[]): Ordforrad {
   const antal = new Map<string, number>();
   const forst = new Map<string, number>();
-  for (const n of namn) {
-    const ordINamnet = (n || "").toLowerCase().match(ORD_RE);
+  raknaOrdforrad(namn, 0, namn.length, antal, forst);
+  return fardigtOrdforrad(antal, forst);
+}
+
+/**
+ * Samma ordförråd, byggt i steg: `delar` omgångar över namnen och en
+ * avslutning som lämnar det färdiga ordförrådet till `klart`. Ordförrådet är
+ * uppvärmningens tyngsta del (runt 60 ms på en dator när koden är kall, mätt
+ * 2026-11-20), och sökrutan gör ett steg per ledig stund (se
+ * forberedKatalogSteg).
+ */
+export function byggOrdforradSteg(namn: readonly string[], klart: (forrad: Ordforrad) => void, delar = 4): (() => void)[] {
+  const antal = new Map<string, number>();
+  const forst = new Map<string, number>();
+  const per = Math.max(1, Math.ceil(namn.length / delar));
+  const steg: (() => void)[] = [];
+  for (let fran = 0; fran < namn.length; fran += per) steg.push(() => raknaOrdforrad(namn, fran, Math.min(namn.length, fran + per), antal, forst));
+  steg.push(() => klart(fardigtOrdforrad(antal, forst)));
+  return steg;
+}
+
+/** Orden i namnen `fran` till `till`: i hur många namn de står, och vilka som inleder ett namn. */
+function raknaOrdforrad(namn: readonly string[], fran: number, till: number, antal: Map<string, number>, forst: Map<string, number>): void {
+  for (let i = fran; i < till; i++) {
+    const ordINamnet = (namn[i] || "").toLowerCase().match(ORD_RE);
     if (!ordINamnet) continue;
     for (const o of new Set(ordINamnet)) antal.set(o, (antal.get(o) ?? 0) + 1);
     forst.set(ordINamnet[0], (forst.get(ordINamnet[0]) ?? 0) + 1);
   }
+}
+
+function fardigtOrdforrad(antal: Map<string, number>, forst: Map<string, number>): Ordforrad {
   const alla: ReadonlySet<string> = new Set(antal.keys());
   const duger = (o: string) =>
     o.length >= KORTASTE_FORSLAG && !STOPWORDS.has(o) && !arEgenskap(o) && !arAdjektiv(o, alla);
@@ -3863,11 +3889,14 @@ export function forberedKatalog<T>(items: T[], normNamn: readonly string[], kd?:
  * tangent som trycktes under tiden fick vänta på den. Sökrutan gör nu ett
  * steg per ledig stund (lib/sok-rankning.ts, varmUpp), så att en tangent
  * hinner emellan. Det som inte hunnit byggas byggs vid första sökningen.
+ * Stegen är sex, vart och ett under 25 ms på en dator med kall kod.
  */
 export function forberedKatalogSteg<T>(items: T[], normNamn: readonly string[], kd?: Kategoridata<T>): (() => void)[] {
   const sparat = formerFor(normNamn);
   return [
-    // Namnens ord och katalogens ordbok (rättningen).
+    // Namnens ord (stavfelsledet, och allt nedan räknas ur dem).
+    () => { listaFor(normNamn, sparat); },
+    // Katalogens ordbok (rättningen).
     () => { ordbokFor(normNamn, sparat); },
     // Orden som står för sig, sista leden och de kända delarna (böjningar och delade ord).
     () => {
@@ -3876,13 +3905,16 @@ export function forberedKatalogSteg<T>(items: T[], normNamn: readonly string[], 
       sparat.led ??= sistaLed(egna);
       sparat.ord ??= kandaOrd(lista);
     },
-    // Namnen utan prickar och med fogar, och teckenmaskerna (varven).
+    // Namnen utan prickar, och deras teckenmasker (varven).
     () => {
       const vikta = (sparat.vikt ??= normNamn.map(vik));
-      const fogade = (sparat.fogat ??= normNamn.map(medFogar));
-      sparat.fogatVikt ??= fogade.map(vik);
       sparat.mask ??= Int32Array.from(normNamn, stavmask);
       sparat.maskVikt ??= Int32Array.from(vikta, stavmask);
+    },
+    // Namnen med fogar, med och utan prickar (sammanskrivna sökord).
+    () => {
+      const fogade = (sparat.fogat ??= normNamn.map(medFogar));
+      sparat.fogatVikt ??= fogade.map(vik);
     },
     // Kategorierna och varornas medlemskap (begreppsorden).
     () => {
