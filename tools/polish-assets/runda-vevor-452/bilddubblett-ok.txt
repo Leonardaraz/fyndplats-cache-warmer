@@ -1,2 +1,0 @@
-cf976db4 1 6 paret stryks direkt efter skrivningen med Bilder bort, eftersom bilden är länkad till ett val och planen inte får tappa den
-cf976db4 7 12 paret stryks direkt efter skrivningen med Bilder bort, eftersom bilden är länkad till ett val och planen inte får tappa den
