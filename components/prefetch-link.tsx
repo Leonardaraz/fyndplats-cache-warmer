@@ -101,9 +101,9 @@ export function PrefetchLink({
       // klicket, för en beröring kan vara början på en rullning.
       onPointerDown={(e) => {
         medlem();
-        if (e.pointerType === "mouse") varmHjaltebild(hjaltebild);
+        if (e.pointerType === "mouse") varmHjaltebild(hjaltebild, e.currentTarget);
       }}
-      onClick={() => varmHjaltebild(hjaltebild)}
+      onClick={(e) => varmHjaltebild(hjaltebild, e.currentTarget)}
       onTouchStart={() => {
         forhamta();
         medlem();

@@ -17,8 +17,46 @@ import { getImageProps } from "next/image";
 import { HERO_SIZES } from "./bild-sizes";
 import { prefersDataSaving } from "./gallery-preload";
 import { wixMainLoader } from "./hjalte-loader";
+import { wixMediaKey } from "./wix-media-key";
 
 const varmade = new Set<string>();
+
+// KORTETS BILD VISAS MEDAN HUVUDBILDEN HÄMTAS (2026-11-20). Kortet man tryckte
+// på har redan samma foto i webbläsarens minne, i kortets storlek och med
+// samma kvadratiska beskärning. Galleriet lägger den som bakgrund i sitt
+// första lager (components/gallery.tsx), så bildrutan är aldrig tom efter ett
+// tryck: först kortets bild, sedan samma bild skarp när huvudbilden kommit.
+//
+// Bara samma foto (samma fil-id), bara en bild som faktiskt är hämtad och
+// minst 300 px bred (sökförslagens 46 px-ruta duger inte i en bildruta på
+// 544 px), och bara en stund efter trycket.
+const KORTBILD_GALLER_MS = 15_000;
+const KORTBILD_MINSTA_BREDD = 300;
+let kortbild: { nyckel: string; url: string; nar: number } | null = null;
+
+/** Utdatabredden i en Wix-adress: sista w_ (en crop-del har sin egen w_ före). */
+export function wixUtbredd(url: string): number {
+  const alla = [...url.matchAll(/[/,]w_(\d+)/g)];
+  return alla.length ? Number(alla[alla.length - 1][1]) : 0;
+}
+
+function kommIhagKortbild(bild: string, kortet: Element | null | undefined): void {
+  const nyckel = wixMediaKey(bild);
+  if (!nyckel || !kortet) return;
+  for (const img of kortet.querySelectorAll("img")) {
+    const url = img.currentSrc;
+    if (!url || !img.complete || img.naturalWidth === 0) continue;
+    if (wixMediaKey(url) !== nyckel || wixUtbredd(url) < KORTBILD_MINSTA_BREDD) continue;
+    kortbild = { nyckel, url, nar: Date.now() };
+    return;
+  }
+}
+
+/** Kortets redan hämtade bild för samma foto, om man nyss tryckte på kortet. Annars null. */
+export function kortbildFor(bild: string | null | undefined): string | null {
+  if (!bild || !kortbild || Date.now() - kortbild.nar > KORTBILD_GALLER_MS) return null;
+  return wixMediaKey(bild) === kortbild.nyckel ? kortbild.url : null;
+}
 
 /** srcset och sizes som galleriets huvudbild får för den här bilden. */
 export function hjaltebildKandidater(bild: string): { src: string; srcSet?: string; sizes?: string } {
@@ -28,15 +66,26 @@ export function hjaltebildKandidater(bild: string): { src: string; srcSet?: stri
   return { src: props.src, srcSet: props.srcSet, sizes: props.sizes };
 }
 
-/** Börja hämta produktsidans huvudbild. Gör ingenting utan webbläsare, för andra källor än Wix eller i datasparläge. */
-export function varmHjaltebild(bild: string | null | undefined): void {
+/**
+ * Börja hämta produktsidans huvudbild. Gör ingenting utan webbläsare, för andra
+ * källor än Wix eller i datasparläge. `kortet` är elementet man tryckte på: dess
+ * bild visas på produktsidan medan huvudbilden hämtas (kortbildFor).
+ *
+ * ☠️ Listsidorna skickar bilden som en NAKEN nyckel, utan värddelen
+ * (lib/wix-media-key.ts). Adressen byggs därför om från nyckeln: annars gjorde
+ * förhämtningen ingenting just där den behövs mest, på korten i listorna.
+ */
+export function varmHjaltebild(bild: string | null | undefined, kortet?: Element | null): void {
   if (!bild || typeof window === "undefined" || typeof Image !== "function") return;
-  if (!bild.includes("static.wixstatic.com") || varmade.has(bild)) return;
+  const nyckel = wixMediaKey(bild);
+  if (!nyckel) return;
+  kommIhagKortbild(bild, kortet);
+  if (varmade.has(nyckel)) return;
   const nat = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
   if (prefersDataSaving(nat)) return;
-  varmade.add(bild);
+  varmade.add(nyckel);
   try {
-    const k = hjaltebildKandidater(bild);
+    const k = hjaltebildKandidater(`https://static.wixstatic.com/media/${nyckel}`);
     const im = new Image();
     im.decoding = "async";
     // sizes FÖRE srcset: annars väljer webbläsaren kandidat för 100vw.
@@ -45,6 +94,6 @@ export function varmHjaltebild(bild: string | null | undefined): void {
     im.src = k.src;
   } catch {
     // En bild som inte gick att förhämta hämtas av galleriet som förut.
-    varmade.delete(bild);
+    varmade.delete(nyckel);
   }
 }

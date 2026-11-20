@@ -5,6 +5,7 @@ import Image from "next/image";
 import { SHIMMER_BLUR } from "../lib/lqip";
 import { tightFillUrl } from "../lib/wix-image";
 import { wixMainLoader } from "../lib/hjalte-loader";
+import { kortbildFor } from "../lib/hjaltebild-varm";
 import { altForImage } from "../lib/image-alt";
 import { kandidatBredd, nearWindow, prefersDataSaving } from "../lib/gallery-preload";
 import { langdTal, langdText, valjKalla, type ProduktVideo } from "../lib/produkt-video";
@@ -231,6 +232,11 @@ export function Gallery({
   // bildrutan blev tom i upp till en halv sekund på dator, och på mobil föll
   // galleriet ihop så att sidan hoppade ~400 px (2026-10-01).
   const [initialSrc] = useState(main);
+  // Kom man hit med ett tryck på ett produktkort ligger kortets bild av samma
+  // foto redan i webbläsarens minne. Den läggs under det första lagret, så
+  // bildrutan visar varan direkt och blir skarp när huvudbilden kommit
+  // (lib/hjaltebild-varm.ts). null på servern och vid en vanlig landning.
+  const [kortbild] = useState(() => kortbildFor(main));
   const gmainRef = useRef<HTMLButtonElement>(null);
   const tilesRef = useRef<HTMLDivElement>(null);
   const galleryRef = useRef<HTMLDivElement>(null);
@@ -249,6 +255,15 @@ export function Gallery({
   // När den nya bilden visas gäller vanlig övertoning igen; annars blinkade
   // varje senare bildbyte för den som kom via en annonslänk.
   if (glomt && shown) setGlomt(false);
+  // Sidans tidiga skript visar valets bild i rutan medan sidans egna bilder är
+  // dolda (lib/pdp-val-bild.ts). Den tas bort när galleriets eget lager visas,
+  // inte vid monteringen: då står förvalets bild fortfarande som visad, och
+  // rutan hade blinkat tom innan valets lager hunnit fram.
+  const forstaVisad = useRef(true);
+  useEffect(() => {
+    if (forstaVisad.current) { forstaVisad.current = false; return; }
+    if (shown) document.getElementById("pdp-val-bild")?.remove();
+  }, [shown]);
 
   // Identitetsstabil mount-union: returnerar SAMMA referens när inget nytt
   // tillkommer (mounted är dep i complete-scan-effekten nedan — en ny array per
@@ -693,8 +708,9 @@ export function Gallery({
                       | "auto"
                       | "low",
                   })}
-              placeholder="blur"
+              placeholder={isInitial && kortbild ? "empty" : "blur"}
               blurDataURL={isInitial ? (mainBlur || SHIMMER_BLUR) : SHIMMER_BLUR}
+              style={isInitial && kortbild ? { backgroundImage: `url("${kortbild.replace(/"/g, "%22")}")`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
               sizes={HERO_SIZES}
               className={`ghero-layer ${isInitial ? "ghero-base" : ""} ${src === shown ? "is-shown" : ""}`}
               draggable={false}

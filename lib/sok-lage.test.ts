@@ -229,14 +229,17 @@ describe("produktsidans huvudbild börjar hämtas i trycket", () => {
   it("sizes sätts före srcset, och en bild hämtas bara en gång", () => {
     assert.ok(varm.indexOf("im.sizes = k.sizes") < varm.indexOf("im.srcset = k.srcSet"));
     assert.ok(varm.indexOf("im.srcset = k.srcSet") < varm.indexOf("im.src = k.src"));
-    assert.match(varm, /if \(!bild\.includes\("static\.wixstatic\.com"\) \|\| varmade\.has\(bild\)\) return;/);
+    assert.match(varm, /const nyckel = wixMediaKey\(bild\);\s+if \(!nyckel\) return;\s+kommIhagKortbild\(bild, kortet\);\s+if \(varmade\.has\(nyckel\)\) return;/);
+    // ☠️ Listsidorna skickar bilden som en naken nyckel: adressen byggs om från den.
+    assert.match(varm, /hjaltebildKandidater\(`https:\/\/static\.wixstatic\.com\/media\/\$\{nyckel\}`\)/);
+    assert.match(las("lib", "wix-media-key.ts"), /if \(!url\.includes\("\/"\) && !url\.includes\(":"\)\) return url;/);
     assert.match(varm, /if \(prefersDataSaving\(nat\)\) return;/);
   });
 
   it("produktkortet: musen vid knapptrycket, fingret först vid klicket", () => {
     const lank = las("components", "prefetch-link.tsx");
-    assert.match(lank, /if \(e\.pointerType === "mouse"\) varmHjaltebild\(hjaltebild\);/);
-    assert.match(lank, /onClick=\{\(\) => varmHjaltebild\(hjaltebild\)\}/);
+    assert.match(lank, /if \(e\.pointerType === "mouse"\) varmHjaltebild\(hjaltebild, e\.currentTarget\);/);
+    assert.match(lank, /onClick=\{\(e\) => varmHjaltebild\(hjaltebild, e\.currentTarget\)\}/);
     // En beröring kan vara början på en rullning: där hämtas ingen bild.
     const beroring = /onTouchStart=\{\(\) => \{([\s\S]*?)\}\}/.exec(lank)?.[1] ?? "";
     assert.doesNotMatch(beroring, /varmHjaltebild/);
@@ -244,8 +247,18 @@ describe("produktsidans huvudbild börjar hämtas i trycket", () => {
   });
 
   it("sökförslagen: både raden och kortet", () => {
-    assert.match(ruta, /const goProduct = \(slug: string, bild\?: string\) => \{ varmHjaltebild\(bild\); setOpen\(false\);/);
-    assert.equal(ruta.split("goProduct(h.s, h.i)").length - 1, 2);
+    assert.match(ruta, /const goProduct = \(slug: string, bild\?: string, kortet\?: Element\) => \{ varmHjaltebild\(bild, kortet\); setOpen\(false\);/);
+    assert.equal(ruta.split("goProduct(h.s, h.i, e.currentTarget)").length - 1, 2);
+  });
+
+  it("kortets bild visas medan huvudbilden hämtas: samma foto, hämtad, stor nog och nyss", () => {
+    assert.match(varm, /if \(!url \|\| !img\.complete \|\| img\.naturalWidth === 0\) continue;\s+if \(wixMediaKey\(url\) !== nyckel \|\| wixUtbredd\(url\) < KORTBILD_MINSTA_BREDD\) continue;/);
+    assert.match(varm, /const KORTBILD_MINSTA_BREDD = 300;/);
+    assert.match(varm, /if \(!bild \|\| !kortbild \|\| Date\.now\(\) - kortbild\.nar > KORTBILD_GALLER_MS\) return null;\s+return wixMediaKey\(bild\) === kortbild\.nyckel \? kortbild\.url : null;/);
+    // Galleriet: bara det första lagret, och utan kortbild är allt som förut.
+    assert.match(galleri, /const \[kortbild\] = useState\(\(\) => kortbildFor\(main\)\);/);
+    assert.match(galleri, /placeholder=\{isInitial && kortbild \? "empty" : "blur"\}/);
+    assert.match(galleri, /style=\{isInitial && kortbild \? \{ backgroundImage: `url\("\$\{kortbild\.replace\(\/"\/g, "%22"\)\}"\)`, backgroundSize: "cover", backgroundPosition: "center" \} : undefined\}/);
   });
 
   it("☠️ anslutningen till Wix bildserver öppnas utan crossOrigin: bilder hämtas utan CORS", () => {

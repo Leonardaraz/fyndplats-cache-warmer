@@ -517,6 +517,9 @@ export function ProductView({
       return false;
     };
     const bytt = vid ? valjId(vid) : farg ? valjFarg(farg) : false;
+    // Sidans tidiga skript kan ha lagt valets bild i bildrutan (lib/pdp-val-bild.ts).
+    // Galleriet tar bort den när dess eget lager visas; blev det inget byte gör vi det här.
+    if (!bytt) document.getElementById("pdp-val-bild")?.remove();
     // eslint-disable-next-line react-hooks/set-state-in-effect -- engångsval ur adressen, före första målningen
     if (bytt) setGlomVisad((n) => n + 1);
     // Ett setState i en layout-effekt renderas om synkront, före målningen;

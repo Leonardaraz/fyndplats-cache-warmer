@@ -361,6 +361,9 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
   html[data-sok-lage] body::before{content:"";position:fixed;inset:0;z-index:249;background:#fff}
   html[data-sok-lage] .hsearch-mobile{padding-top:10px}
   html[data-sok-lage] .hsearch-mobile .container{padding:0 16px}
+  /* Fältet krymper så att Stäng ryms: ett textfält har annars en minsta bredd
+     på runt 20 tecken, och på en 320 px bred telefon sköt det knappen ur bild. */
+  .hsearch-mobile .search,.hsearch-mobile .search input{min-width:0}
   .hsearch-mobile .sugg{top:calc(100% + 12px);left:calc(-1 * var(--sok-kant,16px));right:calc(-1 * var(--sok-kant,16px));height:var(--sok-max,calc(100dvh - 70px));max-height:none;padding:6px 0 calc(28px + env(safe-area-inset-bottom));border:0;border-radius:0;box-shadow:none;animation:none}
   .hsearch-mobile .sugg-head{padding:10px 16px 6px}
   .hsearch-mobile .sugg-senaste{padding:2px 16px 10px}

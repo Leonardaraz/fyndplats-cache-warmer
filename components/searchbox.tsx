@@ -409,7 +409,7 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
 
   // onNavigate stänger ev. förälder (mobilmenyn) när vi navigerar bort.
   // Produktsidans huvudbild börjar hämtas i samma tryck (lib/hjaltebild-varm.ts).
-  const goProduct = (slug: string, bild?: string) => { varmHjaltebild(bild); setOpen(false); setQ(""); onNavigate?.(); router.push(`/produkt/${slug}`); };
+  const goProduct = (slug: string, bild?: string, kortet?: Element) => { varmHjaltebild(bild, kortet); setOpen(false); setQ(""); onNavigate?.(); router.push(`/produkt/${slug}`); };
   const goKategori = (slug: string) => { setOpen(false); setQ(""); onNavigate?.(); router.push(`/kategori/${slug}`); };
   // BLÅ "GÅ"-KNAPPEN SÅG DÖD UT. /sok är en dynamisk route utan cache — uppmätt
   // i produktion 2026-08-29: cache-control "private, no-cache, no-store",
@@ -730,7 +730,7 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
               id={radId(i)}
               href={`/produkt/${h.s}`}
               className={`sugg-kort${i === active ? " active" : ""}`}
-              onClick={(e) => { e.preventDefault(); goProduct(h.s, h.i); }}
+              onClick={(e) => { e.preventDefault(); goProduct(h.s, h.i, e.currentTarget); }}
               role="option"
               aria-selected={i === active}
               aria-label={[h.n, h.p, h.o ? "slutsåld" : ""].filter(Boolean).join(", ")}
@@ -748,7 +748,7 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
               id={radId(i)}
               href={`/produkt/${h.s}`}
               className={`sugg-item ${i === active ? "active" : ""}`}
-              onClick={(e) => { e.preventDefault(); goProduct(h.s, h.i); }}
+              onClick={(e) => { e.preventDefault(); goProduct(h.s, h.i, e.currentTarget); }}
               onMouseEnter={() => setActive(i)}
               role="option"
               aria-selected={i === active}
