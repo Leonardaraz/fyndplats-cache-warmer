@@ -9,6 +9,7 @@ import { glomSokningar, kommIhagSokning, senasteSokningar } from "../lib/sok-sen
 import { tightFillUrl } from "../lib/wix-image";
 import { varmHjaltebild } from "../lib/hjaltebild-varm";
 import { lasSidan } from "../lib/las-sidan";
+import { gorBakomInert } from "../lib/bakom-inert";
 
 // Hur många förslag vi visar (sökträffar + tomt-fält-lägets populära). 7, inte
 // 8: på mobil täckte Safaris bottenmeny "Visa alla resultat"-knappen när listan
@@ -488,7 +489,10 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
     const rot = document.documentElement;
     rot.setAttribute("data-sok-lage", "");
     const slapp = lasSidan();
-    return () => { rot.removeAttribute("data-sok-lage"); slapp(); };
+    // Sidan under syns inte: den ska inte heller gå att tabba till eller läsas upp.
+    const huvud = wrapRef.current?.closest("header");
+    const tillbaka = huvud ? gorBakomInert(huvud, document.body) : null;
+    return () => { rot.removeAttribute("data-sok-lage"); slapp(); tillbaka?.(); };
   }, [sokLage]);
 
   useLayoutEffect(() => {
@@ -725,6 +729,9 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
           )}
           {showing.map((h, hi) => { const i = hi + katRader.length; return rutnat ? (
             // Sökläget: ett kort med stor bild, priset på bilden och namnet under.
+            // Ordningen här är den som läses upp: namn, pris, slutsåld. Priset
+            // och märket läggs på bilden av kortets rutnät (.sugg-kort i
+            // app/globals.css), så att det upplästa namnet är den synliga texten.
             <a
               key={h.s}
               id={radId(i)}
@@ -733,14 +740,13 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
               onClick={(e) => { e.preventDefault(); goProduct(h.s, h.i, e.currentTarget); }}
               role="option"
               aria-selected={i === active}
-              aria-label={[h.n, h.p, h.o ? "slutsåld" : ""].filter(Boolean).join(", ")}
             >
               <span className="sugg-kort-bild">
                 {h.i && <Image src={tightFillUrl(h.i, 600, 600)} alt="" fill sizes={RUTNAT_SIZES} />}
-                {h.o && <span className="sugg-kort-slut">Slutsåld</span>}
-                {h.p && <span className="sugg-kort-pris">{h.p}</span>}
               </span>
               <span className="sugg-kort-namn">{highlight(h.n)}</span>
+              {h.p && <span className="sugg-kort-pris">{h.p}</span>}
+              {h.o && <span className="sugg-kort-slut">Slutsåld</span>}
             </a>
           ) : (
             <a

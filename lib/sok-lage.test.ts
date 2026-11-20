@@ -61,7 +61,12 @@ describe("sökläget gäller bara mobilens sökrad, under 900 px", () => {
 
 describe("sökläget tar över skärmen och släpper den igen", () => {
   it("html bär data-sok-lage och sidan låses, före första ritningen", () => {
-    assert.match(ruta, /useLayoutEffect\(\(\) => \{\s+if \(!sokLage\) return;\s+const rot = document\.documentElement;\s+rot\.setAttribute\("data-sok-lage", ""\);\s+const slapp = lasSidan\(\);\s+return \(\) => \{ rot\.removeAttribute\("data-sok-lage"\); slapp\(\); \};\s+\}, \[sokLage\]\);/);
+    assert.match(ruta, /useLayoutEffect\(\(\) => \{\s+if \(!sokLage\) return;\s+const rot = document\.documentElement;\s+rot\.setAttribute\("data-sok-lage", ""\);\s+const slapp = lasSidan\(\);/);
+    assert.match(ruta, /return \(\) => \{ rot\.removeAttribute\("data-sok-lage"\); slapp\(\); tillbaka\?\.\(\); \};\s+\}, \[sokLage\]\);/);
+  });
+
+  it("sidan under går inte att tabba till eller läsa upp medan sökläget är öppet", () => {
+    assert.match(ruta, /const huvud = wrapRef\.current\?\.closest\("header"\);\s+const tillbaka = huvud \? gorBakomInert\(huvud, document\.body\) : null;/);
   });
 
   it("☠️ läget sätts före mätningen: rutan mäts där den står i sökläget", () => {
@@ -123,11 +128,22 @@ describe("varorna står i ett rutnät med stora bilder", () => {
     assert.doesNotMatch(ruta, /rankaForslagMedAntal\([^)]*RUTNAT/);
   });
 
-  it("kortet: bild, pris på bilden, slutsåld-märke och namn, uppläst i den ordningen", () => {
+  it("kortet: bild, och sedan namn, pris och slutsåld i den ordning de läses upp", () => {
     assert.match(ruta, /className=\{`sugg-kort\$\{i === active \? " active" : ""\}`\}/);
-    assert.match(ruta, /aria-label=\{\[h\.n, h\.p, h\.o \? "slutsåld" : ""\]\.filter\(Boolean\)\.join\(", "\)\}/);
-    assert.match(ruta, /<span className="sugg-kort-bild">\s+\{h\.i && <Image src=\{tightFillUrl\(h\.i, 600, 600\)\} alt="" fill sizes=\{RUTNAT_SIZES\} \/>\}\s+\{h\.o && <span className="sugg-kort-slut">Slutsåld<\/span>\}\s+\{h\.p && <span className="sugg-kort-pris">\{h\.p\}<\/span>\}\s+<\/span>\s+<span className="sugg-kort-namn">\{highlight\(h\.n\)\}<\/span>/);
+    assert.match(ruta, /<span className="sugg-kort-bild">\s+\{h\.i && <Image src=\{tightFillUrl\(h\.i, 600, 600\)\} alt="" fill sizes=\{RUTNAT_SIZES\} \/>\}\s+<\/span>\s+<span className="sugg-kort-namn">\{highlight\(h\.n\)\}<\/span>\s+\{h\.p && <span className="sugg-kort-pris">\{h\.p\}<\/span>\}\s+\{h\.o && <span className="sugg-kort-slut">Slutsåld<\/span>\}/);
     assert.match(css, /\.sugg-kort-bild\{position:relative;display:block;aspect-ratio:1;/);
+  });
+
+  it("☠️ det upplästa namnet är den synliga texten: ingen aria-label på kortet", () => {
+    // axe (label-content-name-mismatch) fällde tolv kort när kortet bar en
+    // aria-label i annan ordning än texten. Priset ligger på bilden genom
+    // kortets rutnät, inte genom sin plats i källan.
+    const kort = ruta.slice(ruta.indexOf('className={`sugg-kort${'), ruta.indexOf('<span className="sugg-kort-bild">'));
+    assert.doesNotMatch(kort, /aria-label/);
+    assert.match(css, /\.sugg-kort\{display:grid;grid-template-columns:minmax\(0,1fr\);grid-template-rows:auto auto;row-gap:8px;/);
+    assert.match(css, /\.sugg-kort-bild\{grid-area:1\/1\}\s*\.sugg-kort-namn\{grid-area:2\/1\}/);
+    assert.match(css, /\.sugg-kort-pris\{grid-area:1\/1;align-self:end;justify-self:start;z-index:1;/);
+    assert.match(css, /\.sugg-kort-slut\{grid-area:1\/1;align-self:start;justify-self:start;z-index:1;/);
   });
 
   it("samma bildadress som produktkorten i listorna, så att filen återanvänds", () => {
