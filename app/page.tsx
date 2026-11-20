@@ -560,7 +560,10 @@ export default async function Home() {
               </div>
               <PrefetchLink className="h2lank" href="/omdomen">Alla omdömen <span aria-hidden="true">→</span></PrefetchLink>
             </div>
-            <div className="roster">
+            {/* På mobilen (och i en inzoomad webbläsare) rullar raden i sidled.
+                Utan tabIndex når tangentbordet aldrig det andra och tredje
+                omdömet (axe: scrollable-region-focusable, 2026-11-20). */}
+            <div className="roster" tabIndex={0} role="group" aria-label="Omdömen från kunder">
               {roster.map((r) => (
                 <figure className="rost" key={r.id}>
                   <Stars rating={r.rating} aria-hidden />

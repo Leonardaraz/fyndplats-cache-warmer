@@ -191,3 +191,10 @@
 /* Avdelningens namn i registret är en länk på 23 px höjd (mätt 2026-11-18).
    Luft in och lika mycket marginal ut: raden står kvar, ytan blir 45 px. */
 .butik2 .b2-grupp-rubrik a{display:inline-block;padding:11px 0;margin:-11px 0}
+
+/* Reservhöjd för Safari före 15 (aspect-ratio saknas): se "Reservhöjd" sist i
+   app/globals.css. Bildrutan har bara absolut placerade barn. Rutan "Hela
+   sortimentet" (.b2-alla-yta) har text i flödet och får sin höjd av den. */
+@supports not (aspect-ratio:1/1){
+  .butik2 .b2-avd-bild:not(.b2-alla-yta)::before{content:"";display:block;padding-top:75%}
+}

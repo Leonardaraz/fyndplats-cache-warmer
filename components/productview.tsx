@@ -655,6 +655,20 @@ export function ProductView({
     const liten = visad ? tightFillUrl(visad, 160, 160) : "";
     if (liten && liten !== visad) new Image().src = liten;
   };
+  // Mobilens fasta köprad glider undan medan sidans egen köpknapp syns, så att
+  // det aldrig står två köpknappar i samma skärm (mätt på en riktig iPhone
+  // 2026-11-20). Raden täcker skärmens nederkant: en knapp som ligger bakom
+  // den räknas som synlig, raden glider undan och knappen kommer fram.
+  // Utan IntersectionObserver står raden kvar som förut.
+  const kopKnapp = useRef<HTMLButtonElement>(null);
+  const [kopSyns, setKopSyns] = useState(false);
+  useEffect(() => {
+    const knapp = kopKnapp.current;
+    if (!knapp || typeof IntersectionObserver !== "function") return;
+    const io = new IntersectionObserver(([e]) => setKopSyns(e.isIntersecting), { threshold: 0.6 });
+    io.observe(knapp);
+    return () => io.disconnect();
+  }, []);
 
   // De galleribilder som tillhör den VALDA varianten → markeras i galleriet (ram).
   // En variant kan ha FLERA bilder: imageOwners (mediaKey → variant-etikett) är läst
@@ -887,13 +901,14 @@ export function ProductView({
               varan saknar val, annars visar lådan "Från …" ur butikens svar. */}
           <div className="buy-rad">
             <button
+              ref={kopKnapp}
               className="buy"
               disabled={busy || !productId || !buyable || (needsVariant && !variantId)}
               onClick={onAdd}
               onPointerDown={avsiktAttKopa}
               onTouchStart={avsiktAttKopa}
             >
-              {!buyable ? (variantOnlyOOS ? "Slut i denna variant" : "Slutsåld") : added ? "✓ Tillagd i varukorgen" : busy ? "Lägger till…" : "Lägg i kundvagn"}
+              {!buyable ? (variantOnlyOOS ? "Slut i denna variant" : "Slutsåld") : added ? "✓ Tillagd i varukorgen" : busy ? "Lägger till…" : "Lägg i varukorgen"}
             </button>
             <FavoritKnapp
               slug={slug}
@@ -1007,8 +1022,9 @@ export function ProductView({
         </div>
       </div>
     </div>
-    {/* Sticky köp-knapp på mobil — visas bara på små skärmar (CSS) */}
-    <div className="sticky-buy-mobile" aria-hidden={!buyable}>
+    {/* Sticky köp-knapp på mobil — visas bara på små skärmar (CSS), och inte
+        medan sidans egen köpknapp syns (kopSyns ovan). */}
+    <div className={`sticky-buy-mobile${kopSyns ? " is-gomd" : ""}`} aria-hidden={!buyable || kopSyns}>
       <div className="sticky-buy-inner">
         <div className="sticky-buy-info">
           <div className="sticky-buy-price">{displayPrice}</div>
@@ -1021,7 +1037,7 @@ export function ProductView({
           onPointerDown={avsiktAttKopa}
           onTouchStart={avsiktAttKopa}
         >
-          {!buyable ? "Slut" : added ? "✓" : busy ? "..." : "Lägg i kundvagn"}
+          {!buyable ? "Slut" : added ? "✓" : busy ? "..." : "Lägg i varukorgen"}
         </button>
       </div>
     </div>

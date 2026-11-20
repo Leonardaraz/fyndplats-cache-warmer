@@ -99,11 +99,39 @@ describe("på datorn står fotona på vitt i listorna (Leonard 2026-11-19)", () 
     assert.match(las("components", "price-hub-page.tsx"), /className="butik2 pris2"/);
   });
 
-  it("mobilen är orörd: regeln står bara i den breda mediefrågan, efter grundens", () => {
-    // Grundregeln (varmgrå platta, multiply) gäller oförändrad utanför mediefrågan.
+  it("regeln med ram står bara i den breda mediefrågan, efter grundens", () => {
     assert.equal(css.split("background:#fff;border:1px solid var(--line)}").length - 1 >= 1, true);
     assert.ok(css.indexOf(block) > css.indexOf(".prod .pimg img{mix-blend-mode:multiply}"));
     assert.equal(block.split(".pimg").length - 1, 4);
+  });
+});
+
+// Mätt på riktiga telefoner 2026-11-20: Safari på iPhone visade plattan vit,
+// också på startsidan, där Chromium och Samsung Internet visade den beige.
+// Fotot ligger i den svepbara bildraden, och där blandar Safari det inte mot
+// plattans färg. Nu är plattan vit på mobilen i alla webbläsare, utan ram:
+// det är så iPhone redan visade korten.
+describe("på mobilen är plattan vit i alla webbläsare (2026-11-20)", () => {
+  const start = "@media(max-width:880px){\n  .prod:not(.auction-card):not(.blogg-kort) .pimg{";
+  const regel = css.slice(css.indexOf(start));
+  const block = regel.slice(0, regel.indexOf("\n}") + 2);
+
+  it("vit platta utan ram och utan blandning, 880 px och smalare", () => {
+    assert.equal(css.split(start).length - 1, 1);
+    assert.equal(
+      block,
+      "@media(max-width:880px){\n  .prod:not(.auction-card):not(.blogg-kort) .pimg{background:#fff}\n  .prod:not(.auction-card):not(.blogg-kort) .pimg img{mix-blend-mode:normal}\n}",
+    );
+  });
+
+  it("gäller också skyltfönstren: startsidan och /butik har ingen egen platta på mobilen", () => {
+    assert.doesNotMatch(block, /hem2|butik2|border/);
+    for (const fil of [las("app", "startsida.css"), las("app", "butik", "butik.css")]) assert.doesNotMatch(utanKommentarer(fil), /\.pimg\b/);
+  });
+
+  it("gränsen möter datorns: 880 och 881, och regeln står efter grundens", () => {
+    assert.ok(css.indexOf(block) > css.indexOf("@media(min-width:881px){\n  .prod:not(.auction-card):not(.blogg-kort) .pimg{"));
+    assert.ok(css.indexOf(block) < css.indexOf(".prod.auction-card{"));
   });
 });
 
