@@ -1,0 +1,6 @@
+19f5192a 10 18 paret stryks direkt efter skrivningen med Bilder bort, eftersom bilderna är länkade till val och planen inte får tappa dem
+19f5192a 11 19 paret stryks direkt efter skrivningen med Bilder bort, eftersom bilderna är länkade till val och planen inte får tappa dem
+19f5192a 12 20 paret stryks direkt efter skrivningen med Bilder bort, eftersom bilderna är länkade till val och planen inte får tappa dem
+19f5192a 13 21 paret stryks direkt efter skrivningen med Bilder bort, eftersom bilderna är länkade till val och planen inte får tappa dem
+19f5192a 7 16 båda är enda bild för sin storlek efter strykningen av informationsbilderna och kan inte strykas, eftersom ett val inte får lämnas utan bild
+19f5192a 3 8 båda är enda bild för sin storlek (6,6 × 8,5 fot och 4,9 × 6 fot) efter strykningen av informationsbilderna, och vinkeln skiljer i måttet på mattan
