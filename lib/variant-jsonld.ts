@@ -19,6 +19,11 @@
 //    mönster). Andra axlar (Förpackning, Effekt, Längd) står i variantens namn.
 // 3. Ett val utan eget pris får produktens pris, och ett val utan bild
 //    produktens huvudbild.
+// 4. ☠️ Varje variant bär en egen beskrivning (2026-11-20). Search Console
+//    (Säljaruppgifter) räknar varje variant som ett eget objekt, och
+//    beskrivningen stod bara på gruppen: "Fältet description saknas" på
+//    1 434 objekt, alla varianter (60 sidor på www, 32 varianter av 32).
+//    Beskrivningen är produktens, följd av variantens val.
 
 type Val = { label: string; image: string; variantId: string; priceNum: number; inStock?: boolean };
 type Rad = { choices: Record<string, string>; variantId: string; priceNum: number; inStock: boolean; image: string };
@@ -95,17 +100,31 @@ export function variesBy(axlar: readonly string[]): string[] {
 }
 
 /**
- * Variantens namn och egenskaper. Namnet är produktens namn och valen, så att
- * varje variant heter något eget även när axeln inte är en Schema.org-egenskap.
+ * Variantens namn, beskrivning och egenskaper. Namnet är produktens namn och
+ * valen, så att varje variant heter något eget även när axeln inte är en
+ * Schema.org-egenskap.
+ *
+ * `beskrivning` är produktens beskrivning (den som står på gruppen). Variantens
+ * blir samma text följd av valen: "… Färg: Svart, Antal: 4 st." Utan
+ * argumentet skrivs ingen beskrivning, och en produkt utan egen text får bara
+ * valen.
  */
 export function variantBeskrivning(
   produktnamn: string,
   v: JsonLdVariant,
   visaEtikett: (etikett: string) => string = (e) => e,
-): { name: string } & Partial<Record<Schemaegenskap, string>> {
-  const ut: { name: string } & Partial<Record<Schemaegenskap, string>> = {
+  beskrivning?: string,
+): { name: string; description?: string } & Partial<Record<Schemaegenskap, string>> {
+  const ut: { name: string; description?: string } & Partial<Record<Schemaegenskap, string>> = {
     name: `${produktnamn} – ${v.val.map((x) => visaEtikett(x.etikett)).join(", ")}`,
   };
+  if (beskrivning !== undefined) {
+    const text = beskrivning.trim();
+    // Valen står som en egen mening, så texten före ska vara avslutad.
+    const bas = text && !/[.!?…]$/.test(text) ? `${text}.` : text;
+    const valen = v.val.map((x) => `${x.axel.trim()}: ${visaEtikett(x.etikett)}`).join(", ");
+    ut.description = bas ? `${bas} ${valen}.` : `${valen}.`;
+  }
   for (const x of v.val) {
     const e = schemaegenskap(x.axel);
     if (e && !ut[e]) ut[e] = visaEtikett(x.etikett);
