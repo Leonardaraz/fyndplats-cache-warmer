@@ -4651,7 +4651,11 @@ bara har absolut placerade barn (next/image med `fill`) faller ihop till noll.
   av 41 har exakt samma mått som i en webbläsare med `aspect-ratio`. De fyra
   som skiljer är hjältens bildruta (med flit), en avrundning på 1 px och
   kategorins hjältebild (2 px, ramen).
+- Mot förhandsbygget, med butikens riktiga data: 0 av 45 mätta ytor faller
+  ihop, och auktionens hjältebild på mobilen är 336 × 189 (16:9).
 - ☠️ Inte mätt: reserven på en riktig iPhone med iOS 14 (går först på www),
+  menyernas bildrutor (`.mm-alla-bild` och `.meganav-feature-bild` fanns inte i
+  sidan när menyn öppnades i provet, så där vaktar bara stilprovet),
   produktvideons ruta (`.gvideo`, undantagen i provet), kontots kort
   (`konto.module.css`) och iOS 14.0–14.4, som också saknar `gap` i flexrader.
   BrowserStack hade bara 14.7.
@@ -4719,8 +4723,11 @@ vaktar dem.
   `scrollable-region-focusable`). Raden bär `tabIndex={0}`, `role="group"` och
   ett namn. På datorn blir det ett tabbstopp till.
 
-axe mot det lokala bygget efteråt: inga fel på startsidan och produktsidan på
-mobilen, där www hade ett och två. ☠️ Kvar: kortens svepbara bildrad
+Mot förhandsbygget, med butikens riktiga data: 47 av 47 kontroller av
+rättelserna (ett riktigt slutsålt val mätte 6,05:1 och 5,91:1), 36 av 36 för
+plattan och sökningens 61. axe efteråt: inga fel på datorns sex sidlägen eller
+på mobilens startsida, kategori, sök, produktsida och kassa, där www hade ett
+fel på startsidan och två på produktsidan. ☠️ Kvar: kortens svepbara bildrad
 (`.pimg-track-swipe`) flaggas medan menyn eller varukorgen är öppen (åtta och
 fyra träffar). Då är sidan bakom med flit onåbar, och utan öppen låda flaggas
 raderna inte.
