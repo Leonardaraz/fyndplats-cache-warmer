@@ -1,0 +1,17 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "29352132": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Specification rows of the product page: voltage 12V, 9.2A; flow 17 l/min; inlet size 3/4 inch hose barb, thread; outlet size 3/4 inch hose barb, thread; type 3-chamber diaphragm; self-priming 6 ft [within 2 m]; inlet pressure max 40 PSI [2.76 bar]; dry running yes; net weight 2.4 kg; title: water pressure diaphragm pump, 12V, high-pressure diaphragm water pump, 2.7 bar (40 PSI) automatic self-priming water pump, 17 L/MIN mist-spraying diaphragm pump for caravan, boat, motorhome, garden; bullets: a diaphragm water pump made of high-strength cast iron with a powder coating that is waterproof and rustproof; a fully automatic self-priming pump with a max flow of 17 L/min, an inlet pressure set to max 40 PSI (2.76 bar) and a pump power of DC 12V; a built-in thermal protection and automatic pressure protection; a small size and light weight for quick installation"
+ },
+ "6291eeb6": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "7a1ae675": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Pictures of the source images: 5T Electric Car Jack (Jack up your car at the key moment; Suitable for cars under 5 Tons / 11023 lbs; a chart with Sedan, SUV and Pick-up against 0T, 1.5T, 2T, 3T and 5T); One-button lifting (Suitable for most vehicles: Sedan, SUV, MPV, Truck; Min 6.1 in / 155 mm; Max 17.7 in / 450 mm; Up, Down, Close, Inflation, lift); Built-in tire inflate pump (Inflate tires within minutes; Precise Tire Pressure Display; 3 Extra Nozzles; 33 L/min Air Flow Rate); High stability and safety (Non-slip Saddle, Stabilize the jacked car; LED Light, Convenient for the night use; Upgraded Hydraulic Seals, No oil leakage; Self-locking Function, Protect car from fallen-down); 2 ways power supply (Car Battery, Cigarette Lighter; 2 x 12A Extra Fuses to Replace; UL Approved and TUV Approved marks); 10 in 1 electric car jack (Power Line 12ft, Battery Clip, Six-angle Spanner, Safety Rescue Hammer, 2 x Glove, Air Filling Nozzle, 2 x Fuse Wires, Carrying Case, User Manual; size 6.1 in / 155 mm and 12.2 in / 310 mm) | Claims that are not written: the TUV and UL certification claims of the bullet and the picture, the number of spare fuses (the bullet says three and the picture says two of 12 A), the length of the power cable (the specification row and the bullet say 4 m and the contents picture says 12 ft, so the sources disagree), the 33 L/min of the inflation picture (the specification row says 31 ± 2 l/min), the claim that anyone can easily lift a vehicle out of trouble, the roadside lifesaver wording, the CE and 3IN1 print on the unit, and the review that describes lying under the vehicle, which is hidden"
+ }
+}

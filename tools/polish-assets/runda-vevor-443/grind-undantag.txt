@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py transformatorns och pumpens mått står som tal utan axelord i källans specifikationsrader och måttbilder, och sidorna skriver dem likadant, utan axelord. Domkraftens längd och höjd står med axelord på innehållsbildens måttritning (310 mm och 155 mm), och sidan återger dem likadant, så ingen axel påstås utöver källans

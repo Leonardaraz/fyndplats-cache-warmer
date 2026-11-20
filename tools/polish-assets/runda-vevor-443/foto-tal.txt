@@ -1,0 +1,6 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+6291eeb6 3 titeln anger 4 extra säkringar, och bilden visar fyra säkringar
+6291eeb6 1 bilden visar två metallhandtag, ett på vardera sidan om vredet
+7a1ae675 3 innehållsbilden anger nödhammare, 2 x handskar och en bärlåda, och bilden visar en nödhammare, ett par handskar och en bärlåda
+29352132 3 bilden visar en vinkelkoppling, två raka kopplingar och ett filter
