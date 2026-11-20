@@ -369,3 +369,32 @@ Den räknar varje färgs pris efter feedens inköpskostnad (1,20 × landad kostn
 innan skrivningen; torrkörningens räknare *priser* visar att en ändring väntar.
 Sidans text kan dessutom bära uppgifter om den gamla versionen (vikt och
 paketmått per färg): läs specifikationen efteråt.
+
+**Svepet efter fler fall (2026-11-20).** Leonards fråga: *"Har vi fler fall som är
+fel som den grå soffan?"* Svar: nej, inget fall till av exakt det felet.
+
+- **Vad som söktes.** Av 1 063 sammanslagna publicerade sidor hade 178 någon färg
+  på 0 och någon på lager. På 65 av dem saknade 68 val sin artikel i flödet
+  (`leverantorslankar.yml` ger ingen länk). I flödet (`aosom-feed-search.yml`
+  med `kuvert`) fanns ingen ersättare för 57 av dem: färgen eller storleken har
+  utgått hos Aosom och syskonfärgerna ligger kvar på sidan. En träff var en
+  annan modell i samma familj. 10 val på 8 sidor gick inte att slå upp.
+- ☠️ **Sök med ord, aldrig med artikelnummer.** En workflow-input på ett publikt
+  repo syns i körningen; `Maskera`-steget döljer bara loggen. Orden hämtas ur
+  syskonens länkar. Sökningen matchar flödets titel, som inte alltid är den som
+  står på aosom.de (en rumsavdelare matchade inte ordet *Raumteiler*), så *inga
+  träffar* betyder "inte hittad", inte "borta". Kör om med `alla_rader=true`:
+  raden kan finnas men inte gå att skicka till Sverige, och så var det för både
+  177-cm-överdragen och 20-kg-hantelsetet.
+- **Från Wix-sidan** (en läsning av `FyndplatsMappings` med `ExecuteWixAPI`):
+  slutsålda artiklar där en annan artikel i samma familj och med samma färgkod
+  har lager gav 20 par. Alla var andra storlekar eller modeller, jämfört på
+  sidornas titlar och mått, utom en massagefåtölj: samma stol ligger på två
+  publicerade sidor, och svart finns bara på den ena. Versionsnumret i
+  artikelnumrets slut (`V00`, `V01` …) är oftast storlek eller modell, inte
+  version, så "samma färgkod, annat nummer" bevisar ingenting.
+- **Inte kontrollerat.** De 538 slutsålda enkelsidorna går inte att jämföra mot
+  flödet med dagens verktyg, och en flödesrad som inte ligger på någon sida syns
+  inte från Wix. `aosom-familjer` räknar ensamma sidor med syskon i feeden som vi
+  inte har (47 den här dagen) men listar dem inte. Nästa steg vore en skrivskyddad
+  route som listar flödesrader utan sida per familj.
