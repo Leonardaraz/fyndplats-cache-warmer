@@ -33,6 +33,8 @@ ANVÄNDNING (från rundans katalog):  python3 ../../polish-gates/bygg-media.py
   bilder.tsv       "kort  position  wix-fil-id"
   alt.tsv          "kort  position  alt-text"  (position = KÄLLposition)
   bilder-bort.tsv  VALFRI: "kort  position  skäl"
+  ordning-kallan.txt  VALFRI: "kort  skäl"  — källordningen behålls (se nedan)
+  ordning-sist.txt    VALFRI: "kort  pos[,pos]  skäl"  — källpositioner som läggs sist i galleriet, så att de kan strykas efteråt
   -> nyttolast-media.json
 """
 import json, os, re, sys, collections
@@ -113,6 +115,22 @@ if os.path.exists("ordning-kallan.txt"):
                 print(f"ordning-kallan.txt: raden {r.strip()!r} saknar skäl")
                 sys.exit(1)
 
+# ☠️ BILDER SOM STRYKS EFTERÅT LÄGGS SIST (runda vevor-455, 2026-11-20). Galleriets första bild är huvudbilden, och *Bilder bort* tar aldrig bort
+# huvudbilden (`huvudbilden_far_inte_tas_bort`, torrkörningen 11:33). En bild med engelsk säljtext på källposition 1 kan alltså inte strykas
+# i efterhand, och galleriet följer visningsordningen i den här filen. Valfri fil i rundans katalog:
+#   ordning-sist.txt   "kort  pos[,pos]  skäl"  — de källpositionerna läggs sist i galleriet, i den ordningen, efter måttbildsregeln.
+#                      Skälet är obligatoriskt. En position som står i bilder-bort.tsv (redan struken) hoppas över, så att slutplanen går att bygga.
+sist = {}
+if os.path.exists("ordning-sist.txt"):
+    for r in open("ordning-sist.txt", encoding="utf-8"):
+        if r.strip() and not r.lstrip().startswith("#"):
+            d = r.rstrip("\n").split(None, 2)
+            if len(d) == 3 and d[2].strip():
+                sist[d[0]] = [p for p in d[1].split(",") if p.strip()]
+            else:
+                print(f"ordning-sist.txt: raden {r.strip()!r} saknar skäl")
+                sys.exit(1)
+
 ut = collections.OrderedDict()
 for kort, rader in vis.items():
     # ☠️ MÅTTBILDEN SIST — avgjord på alt-texten, inte på position 3 (2026-10-21). Regeln "källposition 3 sist" stämmer
@@ -124,6 +142,14 @@ for kort, rader in vis.items():
         rader.sort(key=lambda t: int(t[0]))   # källordningen, med skäl i ordning-kallan.txt
     else:
         rader.sort(key=lambda t: ((ar_mattbild(t[2]) if har_matt else t[0] == "3"), int(t[0])))   # måttbilden sist
+    if kort in sist:
+        pp = [p for p in sist[kort] if (kort, p) not in struken]
+        for p in pp:
+            if not any(t[0] == p for t in rader):
+                print(f"ordning-sist.txt: {kort} saknar källposition {p} i alt.tsv")
+                sys.exit(1)
+        rader = [t for t in rader if t[0] not in pp] + [t for p in pp for t in rader if t[0] == p]
+        vis[kort] = rader
     ut[kort] = [{"id": f, "altText": a} for _, f, a in rader]
 
 json.dump(ut, open("nyttolast-media.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)

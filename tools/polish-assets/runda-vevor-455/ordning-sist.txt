@@ -1,0 +1,2 @@
+# <kort> <positioner> <skäl> — se bygg-media.py
+6f904332 1,7 bilderna bär engelsk säljtext och stryks efteråt med Bilder bort, och huvudbilden (position 1) kan inte strykas, så de ligger sist i galleriet

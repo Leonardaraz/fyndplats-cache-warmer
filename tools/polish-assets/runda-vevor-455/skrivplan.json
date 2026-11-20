@@ -77,10 +77,6 @@
    "seoBesk": "Bänkmixer på 1600 W med kanna på 2 liter, ljudisolerande lock, fyra blad i rostfritt stål och sex program. Finns i vit eller svart.",
    "media": [
     {
-     "id": "b379ce_ef5e5e7af5ee42a0a61d8d3bc471210c~mv2.jpg",
-     "altText": "Färg Vit: mixern sedd framifrån med en receptbok och en bruksanvisning bredvid, på vit botten"
-    },
-    {
      "id": "b379ce_1de673ed04f842d3bf6fae5046bc9822~mv2.jpg",
      "altText": "Färg Vit: mixern på en köksbänk framför ett fönster med frukt, glass och drycker"
     },
@@ -101,10 +97,6 @@
      "altText": "Färg Vit: mixern med locket uppfällt och kannan på plats, på vit botten"
     },
     {
-     "id": "b379ce_2fadc0973df544ad9f50b19b69651032~mv2.jpg",
-     "altText": "Färg Svart: mixern sedd framifrån med en receptbok och en bruksanvisning bredvid, på vit botten"
-    },
-    {
      "id": "b379ce_2f2464da06ed471d969a637439c3c2da~mv2.jpg",
      "altText": "Färg Svart: mixern på en köksbänk framför ett fönster med frukt, glass och drycker"
     },
@@ -123,6 +115,14 @@
     {
      "id": "b379ce_59602c1cc9f8468db283982ddf2b5019~mv2.jpg",
      "altText": "Färg Svart: mixern med locket uppfällt och utan kanna, på vit botten"
+    },
+    {
+     "id": "b379ce_ef5e5e7af5ee42a0a61d8d3bc471210c~mv2.jpg",
+     "altText": "Färg Vit: mixern sedd framifrån med en receptbok och en bruksanvisning bredvid, på vit botten"
+    },
+    {
+     "id": "b379ce_2fadc0973df544ad9f50b19b69651032~mv2.jpg",
+     "altText": "Färg Svart: mixern sedd framifrån med en receptbok och en bruksanvisning bredvid, på vit botten"
     }
    ],
    "kat": [
