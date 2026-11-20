@@ -29,6 +29,7 @@ import { kronorText } from "../lib/medlem/kronor";
 import { nivaNyckel } from "../lib/medlem/niva-nyckel";
 import { VANTAN_MAX_MS } from "../lib/medlem/tidig";
 import { FARSKT_MS, hallPlats, hamtaMedlemspris, slappPlats, sparaVy, sparatSvar, tecken } from "../lib/medlem/medlemspris-klient";
+import { tidsgransSignal } from "../lib/tidsgrans-signal";
 
 // useLayoutEffect varnar på servern; där finns ingen ruta att rita.
 const useForeRitning = typeof window === "undefined" ? useEffect : useLayoutEffect;
@@ -260,7 +261,7 @@ export async function medlemskassa(cartId: string): Promise<string | null> {
       credentials: "same-origin",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ cartId }),
-      signal: AbortSignal.timeout(15_000),
+      signal: tidsgransSignal(15_000),
     });
     if (!r.ok) return null;
     const s = (await r.json()) as Kassasvar;

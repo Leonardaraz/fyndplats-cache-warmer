@@ -5,6 +5,8 @@
 // produktväljare (components/kontakt-produkt.tsx). Utbrutet ur searchbox.tsx
 // 2026-11-07, med skälen kvar nedan. Rankningen av förslagen: lib/sok-rankning.ts.
 
+import { tidsgransSignal } from "./tidsgrans-signal";
+
 // o = slutsåld (sätts bara på slutsålda produkter, se /api/search-index).
 export type SokTraff = { n: string; s: string; i: string; p: string; o?: 1 };
 
@@ -56,7 +58,7 @@ const TIMEOUT_MS = 20_000;
 export function laddaSokIndex(): Promise<SokTraff[] | null> {
   if (cache) return Promise.resolve(cache);
   if (!inflight) {
-    inflight = fetch("/api/search-index", { signal: AbortSignal.timeout(TIMEOUT_MS) })
+    inflight = fetch("/api/search-index", { signal: tidsgransSignal(TIMEOUT_MS) })
       .then((r) => {
         if (!r.ok) throw new Error(String(r.status));
         return r.json();

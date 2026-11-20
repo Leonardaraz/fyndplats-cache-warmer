@@ -5,6 +5,7 @@
 // och ett valfritt meddelande.
 
 import { useState } from "react";
+import { tidsgransSignal } from "../lib/tidsgrans-signal";
 
 const SKAL: Record<string, string> = {
   "for-manga": "Du har redan tre förfrågningar som väntar på svar. Vi hör av oss.",
@@ -29,7 +30,7 @@ export function OffertForfragan({ cartId }: { cartId: string }) {
         credentials: "same-origin",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ cartId, meddelande: text }),
-        signal: AbortSignal.timeout(20_000),
+        signal: tidsgransSignal(20_000),
       });
       const s = (await r.json().catch(() => null)) as { ok?: boolean; skal?: string } | null;
       if (s?.ok) setKlar(true);

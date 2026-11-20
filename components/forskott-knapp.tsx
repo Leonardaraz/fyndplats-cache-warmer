@@ -6,6 +6,7 @@
 // (/api/medlem/forskott). Kortet och Klarna i kassan finns alltid kvar.
 
 import { useState } from "react";
+import { tidsgransSignal } from "../lib/tidsgrans-signal";
 
 const SKAL: Record<string, string> = {
   pagar: "Ordern är redan lagd. Fakturan kommer med e-post; hör av dig om den inte kommer.",
@@ -34,7 +35,7 @@ export function ForskottKnapp({ cartId, onLagd }: { cartId: string; onLagd: (lag
         credentials: "same-origin",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ cartId }),
-        signal: AbortSignal.timeout(30_000),
+        signal: tidsgransSignal(30_000),
       });
       const s = (await r.json().catch(() => null)) as Svar | null;
       if (s?.ok) {

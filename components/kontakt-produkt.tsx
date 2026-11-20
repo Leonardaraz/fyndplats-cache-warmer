@@ -16,6 +16,7 @@ import Image from "next/image";
 import { KORTASTE_SOKNING, laddaSokIndex, sokIndexHamtat, type SokTraff } from "../lib/sok-index";
 import { rankaForslag } from "../lib/sok-rankning";
 import { KONTAKT_ANKARE, lasKontaktAdress, medValt, produktUrl, type KontaktProdukt } from "../lib/kontakt/kontakt";
+import { tidsgransSignal } from "../lib/tidsgrans-signal";
 
 /** Så många träffar visas. Färre än sidhuvudets sju: formuläret står ofta långt ner på skärmen. */
 const ANTAL_TRAFFAR = 6;
@@ -23,7 +24,7 @@ const ANTAL_TRAFFAR = 6;
 /** Produkten för formuläret, ur /api/kontakt/produkt. Null när den inte finns eller inte svarar. */
 async function hamtaValdProdukt(slug: string): Promise<KontaktProdukt | null> {
   try {
-    const r = await fetch(`/api/kontakt/produkt?p=${encodeURIComponent(slug)}`, { signal: AbortSignal.timeout(10_000) });
+    const r = await fetch(`/api/kontakt/produkt?p=${encodeURIComponent(slug)}`, { signal: tidsgransSignal(10_000) });
     if (!r.ok) return null;
     const d = (await r.json()) as { ok?: boolean; produkt?: KontaktProdukt };
     return d.ok && d.produkt ? d.produkt : null;

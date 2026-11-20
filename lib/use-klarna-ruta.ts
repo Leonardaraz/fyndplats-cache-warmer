@@ -10,13 +10,14 @@
 
 import { useEffect, useState } from "react";
 import type { KlarnaRuta } from "./kassa/stripe-klient";
+import { tidsgransSignal } from "./tidsgrans-signal";
 
 const STRIPE_BYGGD = Boolean(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
 let fraga: Promise<KlarnaRuta> | null = null;
 
 function hamtaRuta(): Promise<KlarnaRuta> {
-  fraga ??= fetch("/api/kassa/klarna", { signal: AbortSignal.timeout(4000) })
+  fraga ??= fetch("/api/kassa/klarna", { signal: tidsgransSignal(4000) })
     .then((r) => (r.ok ? r.json() : null))
     .then((j: { ruta?: unknown } | null): KlarnaRuta => (j?.ruta === "osm" ? "osm" : "statisk"))
     .catch((): KlarnaRuta => "statisk");
