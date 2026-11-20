@@ -1,0 +1,80 @@
+{
+  "3c1cba0c": {
+    "productId": "3c1cba0c-ddd9-4b39-9f27-13e8f455e9b4",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "572a91fb": {
+    "productId": "572a91fb-0bd8-4b12-a17f-9c731db878a8",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1d83gsr",
+        "betyg": 5,
+        "datum": "2026-02-17",
+        "foton": 0,
+        "text": "As described and sturdy case to keep everything organized"
+      },
+      {
+        "id": "gen-1k4fk23",
+        "betyg": 5,
+        "datum": "2026-02-01",
+        "foton": 0,
+        "text": "perfect kit, and cheaper than any I can find at this price. makes matching hoses easy, and great to have to blovk off hoses while working on equipment"
+      },
+      {
+        "id": "gen-l8qu5p",
+        "betyg": 5,
+        "datum": "2025-11-27",
+        "foton": 0,
+        "text": "Very good product and a very attractive price tag. Would buy again."
+      },
+      {
+        "id": "gen-1g1x9ee",
+        "betyg": 4,
+        "datum": "2026-02-18",
+        "foton": 0,
+        "text": "Good selection of sizes for Chinese mini digger. Fits hoses and fittings on machine for capping off or plugging."
+      }
+    ]
+  },
+  "b34d963a": {
+    "productId": "b34d963a-e0c6-4104-b6fa-234e771d5fb5",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-j8vh6h",
+        "betyg": 5,
+        "datum": "2025-07-16",
+        "foton": 0,
+        "text": "These work great and are pretty precise. Some end mills are a bit tight, but they all work and thread in the mill smooth."
+      },
+      {
+        "id": "gen-1d1hkqb",
+        "betyg": 5,
+        "datum": "2025-06-17",
+        "foton": 0,
+        "text": "Got the T8 cullet’s for my shop. Look to be of good quality and the price was great."
+      },
+      {
+        "id": "gen-1v447bc",
+        "betyg": 4,
+        "datum": "2026-04-21",
+        "foton": 0,
+        "text": "Great value camp beat the price.Pretty nice quality. Used them a few times in my mill.They fit well and again impressed with the quality.I purchased a lot of ever products in different departments"
+      }
+    ]
+  }
+}
