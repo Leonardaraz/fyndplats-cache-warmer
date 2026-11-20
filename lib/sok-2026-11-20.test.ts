@@ -618,7 +618,11 @@ test("uppvärmningen i steg, i vilken ordning som helst, ändrar inga svar", () 
   const rankning = readFileSync(new URL("./sok-rankning.ts", import.meta.url), "utf8");
   assert.match(rankning, /\.\.\.\(ordforrad\.has\(idx\) \? \[\] : byggOrdforradSteg\(idx\.map\(\(h\) => h\.n\), \(f\) => \{ if \(!ordforrad\.has\(idx\)\) ordforrad\.set\(idx, f\); \}\)\),/);
   assert.match(rankning, /\(\) => \{ steg\?\.push\(\.\.\.forberedKatalogSteg\(idx, namnFor\(idx\), kategoridata\(\)\)\); \},/);
-  assert.match(rankning, /steg\.shift\(\)\?\.\(\);\n    if \(steg\.length > 0\) vanta\(false\);/);
+  assert.match(rankning, /steg\.shift\(\)\?\.\(\);\n    if \(steg\.length > 0\) vanta\(\);/);
+  // Varje steg väntar på nästa bild, det första på två: ett steg som börjar
+  // innan webbläsaren ritat håller kvar bilden med de populära varorna.
+  assert.match(rankning, /const vanta = \(\) => \{\n    if \(g\.requestAnimationFrame\) g\.requestAnimationFrame\(iLedigStund\);/);
+  assert.match(rankning, /if \(g\.requestAnimationFrame\) g\.requestAnimationFrame\(vanta\);\n  else vanta\(\);/);
   assert.match(rankning, /if \(uppvarmda\.has\(idx\)\) return;/);
 });
 

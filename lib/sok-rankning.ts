@@ -136,6 +136,15 @@ export function sokexempelFor(idx: SokTraff[], max: number): string[] {
  * ordförrådet i fem omgångar och de sex i forberedKatalogSteg), så att en
  * tangent hinner emellan. Söker kunden innan ordförrådet är klart byggs det i
  * ett stycke då (ordforradFor), och stegens arbete kastas.
+ *
+ * ☠️ VARJE STEG VÄNTAR PÅ NÄSTA BILD (2026-11-20). En ledig stund kan komma
+ * mellan att React har skrivit de populära varorna (eller en nyss tryckt
+ * bokstav) till sidan och att webbläsaren ritar dem, och ett steg som börjar
+ * då håller kvar bilden tills det är klart: de populära varorna syntes 100 till
+ * 250 ms senare på en strypt telefon. Stegen begärs därför i nästa bildruta
+ * (requestAnimationFrame) och körs i den lediga stunden efter den, det första
+ * efter två bildrutor. En flik som inte syns ritar inga bilder och värmer
+ * inte upp: då byggs allt vid första sökningen, som förut.
  */
 const uppvarmda = new WeakSet<SokTraff[]>();
 export function varmUpp(idx: SokTraff[]): void {
@@ -143,10 +152,18 @@ export function varmUpp(idx: SokTraff[]): void {
   if (uppvarmda.has(idx)) return;
   uppvarmda.add(idx);
   let steg: (() => void)[] | null = null;
-  const ledig = (globalThis as { requestIdleCallback?: (f: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
-  const vanta = (forst: boolean) => {
-    if (ledig) ledig(nasta, { timeout: forst ? 600 : 300 });
-    else setTimeout(nasta, 60);
+  const g = globalThis as {
+    requestIdleCallback?: (f: () => void, o?: { timeout: number }) => number;
+    requestAnimationFrame?: (f: () => void) => number;
+  };
+  // Nästa steg: efter nästa bild, och då i en ledig stund.
+  const iLedigStund = () => {
+    if (g.requestIdleCallback) g.requestIdleCallback(nasta, { timeout: 300 });
+    else setTimeout(nasta, 30);
+  };
+  const vanta = () => {
+    if (g.requestAnimationFrame) g.requestAnimationFrame(iLedigStund);
+    else setTimeout(iLedigStund, 30);
   };
   const nasta = () => {
     // Stegen skapas först här, i den lediga stunden. Motorns egna steg läggs
@@ -157,7 +174,10 @@ export function varmUpp(idx: SokTraff[]): void {
       () => { steg?.push(...forberedKatalogSteg(idx, namnFor(idx), kategoridata())); },
     ];
     steg.shift()?.();
-    if (steg.length > 0) vanta(false);
+    if (steg.length > 0) vanta();
   };
-  vanta(true);
+  // Det första steget efter två bildrutor: den första kan komma innan React
+  // har hunnit skriva något.
+  if (g.requestAnimationFrame) g.requestAnimationFrame(vanta);
+  else vanta();
 }
