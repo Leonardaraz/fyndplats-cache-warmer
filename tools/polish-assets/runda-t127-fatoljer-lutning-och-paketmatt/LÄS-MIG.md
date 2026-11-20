@@ -2,8 +2,9 @@
 
 Leonard 2026-11-20: "dubbelkolla felen du hittade så du är helt säker på dom, och fixa alla".
 Två publicerade, sammanslagna sidor hade uppgifter som inte stämmer med varan. Ögonblicksbilden i
-`fore/` är hämtad direkt ur Wix före bygget. Allt som inte står här är orört. Namn, adresser,
-titlar, bilder, kategorier och varianter är oförändrade.
+`fore/` är hämtad direkt ur Wix före bygget. Allt som inte står här är orört: namn, adresser,
+titlar, kategorier, varianter, priser och lager är oförändrade. Bilderna är oförändrade utom i
+ordningen på `d34f6bab` (se *Att veta*) och alt-texten på bild 3 på `e5be35a4`.
 
 ## Vad som ändrades
 
@@ -32,13 +33,33 @@ För hand (`handrattelser.tsv`, före och efter ordagrant): html × 15, SEO-besk
   avbröts bygget, så ingen text är avskriven för hand.
 - De nya talen i texten ur bruksanvisningen (nätadapterns 100–240 V, 50–60 Hz, 12 V och 1 A, de
   fem lägena och 72 timmar) står i `foto-tal.txt` med sida.
+- Efter skrivningen lästes båda sidorna tillbaka ur Wix (revision, text, SEO, galleriets
+  ordning, kategorier, varianternas pris, SKU och bild, och lagret) och jämfördes med läget före.
+
+## Att veta
+
+1. ☠️ **Första skrivningen (körning 2382, 04:20 UTC) flyttade en bild och lade till en
+   kategori som rundan inte skulle röra.** Bilderna var numrerade 1–10, och `bygg-media.py` lägger
+   källposition 3 sist när ingen alt-text börjar på *Måttbild*. På `e5be35a4` hamnade därför bilden
+   med handkontrollen i sidofickan sist i galleriet. Planen hade dessutom med Skönhet & Hälsa i
+   `kategori.tsv`, en direktlänk som sidan inte hade före rundan (den bar Möbler och löven Fåtöljer,
+   Massagestolar, Snurrfåtöljer och Massage & Återhämtning, men inte Skönhet & Hälsa själv). Brödsmulan
+   påverkades inte (Hem > Möbler > Snurrfåtöljer). Rättat: bilderna på `e5be35a4` numreras nu 101–110, som
+   städrundorna gör, så att ingen flyttas, och Skönhet & Hälsa är struket ur `kategori.tsv`. Rundan
+   skrevs om (torr 2383, skrivning 2384, 04:30 UTC) och länken togs bort med
+   `kategori-bort.yml` (plan `t127`).
+2. **Måttbilden på `d34f6bab` ligger nu sist i galleriet**, som husets regel säger och som den låg
+   i rundorna n73 och b88. Den hade hamnat som bild 6 av 16 när sammanslagningarna lade givarnas
+   bilder efter varandra. Bara gråbrun-vyn berörs, eftersom måttbilden hör till gråbrun: där ligger
+   den sist (femte av fem) i stället för fjärde, bakom bilden med växten. Beige och grå är oförändrade.
+3. Runbooken steg 3 säger nu hur en rättelse på en publicerad sida ska numrera bilderna (101, 102 …).
 
 ## Så körs den
 
 Workflowen **"Polering — skriv en runda till Wix"** med `ref` satt till poleringsgrenen:
 
 - `runda`: `runda-t127-fatoljer-lutning-och-paketmatt`
-- `plan_sha256`: se `FLAGGADE.md` (358), eller kör `bygg-skrivplan.py` igen
+- `plan_sha256`: `961f7599899348a085a67c3831ae4e9c1a1a8fdd81f6bf6e7ff8c8734a8c1726`
 - lägen i ordning: `torr` → `skriv` → `verifiera` → `stampla`
 
 Aldrig inne i Aosoms synkfönster (:12–:29 UTC var tredje timme).

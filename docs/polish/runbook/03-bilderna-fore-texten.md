@@ -81,8 +81,13 @@ varje färgad del.
 **Galleriet:** `bygg-media.py` behåller källordningen och lägger måttbilden sist: en bild
 vars alt-text börjar på *Måttbild*, *Måttskiss* eller *Måttritning* (sedan 2026-10-21; förut
 alltid källposition 3, vilket lade fel bild sist när måttbilden låg på 4 eller 5). Har ingen
-alt-text det ordet gäller den gamla regeln, källposition 3 sist. Plats 1 blir huvudbild och
-delningsbild. Produktsidans
+alt-text det ordet gäller den gamla regeln, källposition 3 sist. ☠️ **En rättelse av text på en
+redan publicerad sida ska inte flytta några bilder**: numrera då bilderna 101, 102 … i
+`bilder.tsv` och `alt.tsv` (som städrundorna gör), så att ingen bild har position 3. Numrerade du
+dem 1–10 flyttas bilden på plats 3 sist även när den är en miljöbild, och sidans bildordning
+ändras utan att något fel syns (T127, 2026-11-20: bilden med handkontrollen på `e5be35a4`; en
+sammanslagen sida med en måttbild får den sist i alla fall, och det är husets ordning). Läs
+galleriets ordning i Wix efter skrivningen. Plats 1 blir huvudbild och delningsbild. Produktsidans
 galleri visar varje bild som en kvadrat beskuren från mitten (bara förstoringen visar hela
 bilden), så en liggande bild tappar sina kanter och en liggande måttritning sina yttersta
 mått. Polerar du syskon samtidigt ska två sidor inte dela samma miljöfoto, så stryk det på
