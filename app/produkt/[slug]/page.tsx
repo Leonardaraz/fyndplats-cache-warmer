@@ -31,7 +31,10 @@ import { HANDLING_MIN_DAYS, HANDLING_MAX_DAYS, TRANSIT_MIN_DAYS, TRANSIT_MAX_DAY
 import { medlemsprisSkript, sidansVarianter } from "../../../lib/medlem/tidig";
 import { prisGiltigFran, prisGiltigTill } from "../../../lib/pris-giltig";
 import { jsonLdVarianter, variantBeskrivning, variantUrl, variesBy } from "../../../lib/variant-jsonld";
-import { visaValnamn } from "../../../lib/variant-lage";
+import { flestaHarBild, visaValnamn } from "../../../lib/variant-lage";
+import { valBilder, valBildSkript } from "../../../lib/pdp-val-bild";
+import { hjaltebildKandidater } from "../../../lib/hjaltebild-varm";
+import { HERO_SIZES } from "../../../lib/bild-sizes";
 
 // ISR: produktsidan cachas i SEX TIMMAR, och det är ett säkerhetsnät — inte
 // färskheten. En ändring på produkten (pris, lager, synlighet, text, bilder,
@@ -430,6 +433,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   // bild, pris och väljare (platsen behålls) när adressen avser ett annat val.
   // ProductView tar bort döljningen när valet gjorts; senast efter 4 s gör
   // skriptet det själv.
+  //
+  // RÄTT BILD HÄMTAS DIREKT (2026-11-20). Bilden var dold tills sidan hydrerat,
+  // och valets bild började hämtas först då: mätt mot www syntes den efter
+  // 2,4–2,9 s på en strypt mobil, mot 0,8 s för en landning på förvalet. Nu
+  // hämtar skriptet valets bild medan sidan läses och visar den i bildrutan
+  // tills väljaren tagit över (lib/pdp-val-bild.ts, med väljarens egna regler).
   const medlemsVarianter = sidansVarianter([
     ...p.variants.map((v) => v.id),
     ...(p.variantTable ?? []).map((r) => r.variantId),
@@ -442,11 +451,19 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     const farger = Array.from(new Set(etiketter.flatMap((e) => Array.from(colorKeysOf(e)))));
     const css =
       ".pdp .gmain img,.pdp .gtiles,.pdp-price,.klarna-osm-wrap,.pdp-variants,.sticky-buy-mobile{visibility:hidden}";
+    const vb = valBilder(p, colorKeysOf, flestaHarBild);
+    const bildSkript = valBildSkript(
+      vb,
+      vb.bilder.map((b) => { const k = hjaltebildKandidater(b); return [k.src, k.srcSet ?? ""] as const; }),
+      HERO_SIZES,
+    );
     return (
       "(function(){try{var q=new URLSearchParams(location.search),v=q.get('variant'),f=q.get('farg');" +
       `if(v?v!==${JSON.stringify(id)}:f?${JSON.stringify(farger)}.indexOf(f)<0:false){` +
       `var s=document.createElement('style');s.id='pdp-val-vantar';s.textContent=${JSON.stringify(css)};` +
-      "document.head.appendChild(s);setTimeout(function(){s.remove()},4000)}}catch(e){}})()"
+      "document.head.appendChild(s);setTimeout(function(){s.remove()},4000);" +
+      bildSkript +
+      "}}catch(e){}})()"
     );
   })();
 

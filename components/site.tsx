@@ -85,9 +85,11 @@ export async function SiteHeader() {
           <CartButton />
           <MobileNav tree={tree} hasBlog={hasBlog} hasSale={hasSale} />
         </div>
-        {/* Egen sökrad på mobil — alltid synlig högt upp, utan att öppna menyn */}
+        {/* Egen sökrad på mobil — alltid synlig högt upp, utan att öppna menyn.
+            `helskarm`: sökningen tar över skärmen medan man söker, med varorna
+            i ett rutnät (components/searchbox.tsx, RUTNAT). */}
         <div className="hsearch-mobile">
-          <div className="container"><SearchBox /></div>
+          <div className="container"><SearchBox helskarm /></div>
         </div>
         <div className="container hnav">
           {/* Trädet utan antal: siffrorna hämtas i webbläsaren, annars blir varje

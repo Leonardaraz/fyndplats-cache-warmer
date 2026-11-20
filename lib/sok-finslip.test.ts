@@ -364,7 +364,7 @@ test("sökrutan: listboxen bär bara raderna, och har ett eget id per ruta", () 
   assert.match(ruta, /aria-controls=\{listaId\}/);
   assert.match(ruta, /<div role="listbox" id=\{listaId\} aria-label="Förslag">/);
   // Panelen själv är ingen listbox: den bär chips, rubriker och en fot.
-  assert.match(ruta, /<div className="sugg">/);
+  assert.match(ruta, /<div className="sugg" ref=\{panelRef\}/);
   assert.equal(/className="sugg"[^>]*role="listbox"/.test(ruta), false);
   // Rubrikerna inne i listboxen är presentation, och antalet läses upp.
   assert.equal((ruta.match(/className="sugg-head" role="presentation"/g) ?? []).length, 3);

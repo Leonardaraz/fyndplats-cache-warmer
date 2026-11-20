@@ -38,6 +38,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, type ReactNode } from "react";
 import { hamtaMedlemspris, sparatSvar } from "../lib/medlem/medlemspris-klient";
+import { varmHjaltebild } from "../lib/hjaltebild-varm";
 
 /** Så länge pekaren ska vila på kortet innan medlemspriset hämtas. */
 const MEDLEM_VILA_MS = 120;
@@ -48,6 +49,7 @@ export function PrefetchLink({
   children,
   "aria-label": ariaLabel,
   medlemspris,
+  hjaltebild,
 }: {
   href: string;
   className?: string;
@@ -55,6 +57,8 @@ export function PrefetchLink({
   "aria-label"?: string;
   /** Produktens id: kortet förhämtar också medlemspriset för en inloggad medlem. */
   medlemspris?: string;
+  /** Produktens första bild: produktsidans huvudbild börjar hämtas vid tryck (lib/hjaltebild-varm.ts). */
+  hjaltebild?: string;
 }) {
   const router = useRouter();
   const hamtat = useRef(false);
@@ -93,7 +97,13 @@ export function PrefetchLink({
         if (vila.current !== null) window.clearTimeout(vila.current);
         vila.current = null;
       }}
-      onPointerDown={medlem}
+      // Musen: knappen går ner ett ögonblick före klicket. Fingret: först vid
+      // klicket, för en beröring kan vara början på en rullning.
+      onPointerDown={(e) => {
+        medlem();
+        if (e.pointerType === "mouse") varmHjaltebild(hjaltebild, e.currentTarget);
+      }}
+      onClick={(e) => varmHjaltebild(hjaltebild, e.currentTarget)}
       onTouchStart={() => {
         forhamta();
         medlem();

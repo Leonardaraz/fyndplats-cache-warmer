@@ -517,6 +517,9 @@ export function ProductView({
       return false;
     };
     const bytt = vid ? valjId(vid) : farg ? valjFarg(farg) : false;
+    // Sidans tidiga skript kan ha lagt valets bild i bildrutan (lib/pdp-val-bild.ts).
+    // Galleriet tar bort den när dess eget lager visas; blev det inget byte gör vi det här.
+    if (!bytt) document.getElementById("pdp-val-bild")?.remove();
     // eslint-disable-next-line react-hooks/set-state-in-effect -- engångsval ur adressen, före första målningen
     if (bytt) setGlomVisad((n) => n + 1);
     // Ett setState i en layout-effekt renderas om synkront, före målningen;
@@ -655,6 +658,24 @@ export function ProductView({
     const liten = visad ? tightFillUrl(visad, 160, 160) : "";
     if (liten && liten !== visad) new Image().src = liten;
   };
+  // Mobilens fasta köprad glider undan medan sidans egen köpknapp syns, så att
+  // det aldrig står två köpknappar i samma skärm (mätt på en riktig iPhone
+  // 2026-11-20). Raden täcker skärmens nederkant: en knapp som ligger bakom
+  // den räknas som synlig, raden glider undan och knappen kommer fram.
+  // Sidhuvudet ligger fast överst och täcker knappen när den rullar in
+  // uppifrån, så den delen av skärmen räknas inte (rootMargin).
+  // intersectionRatio, inte isIntersecting: webbläsarna är inte överens om
+  // isIntersecting under tröskeln. Utan IntersectionObserver står raden kvar.
+  const kopKnapp = useRef<HTMLButtonElement>(null);
+  const [kopSyns, setKopSyns] = useState(false);
+  useEffect(() => {
+    const knapp = kopKnapp.current;
+    if (!knapp || typeof IntersectionObserver !== "function") return;
+    const huvud = Math.round(document.querySelector("header.sidhuvud")?.getBoundingClientRect().height ?? 0);
+    const io = new IntersectionObserver(([e]) => setKopSyns(e.intersectionRatio >= 0.6), { threshold: 0.6, rootMargin: `-${huvud}px 0px 0px 0px` });
+    io.observe(knapp);
+    return () => io.disconnect();
+  }, []);
 
   // De galleribilder som tillhör den VALDA varianten → markeras i galleriet (ram).
   // En variant kan ha FLERA bilder: imageOwners (mediaKey → variant-etikett) är läst
@@ -887,13 +908,14 @@ export function ProductView({
               varan saknar val, annars visar lådan "Från …" ur butikens svar. */}
           <div className="buy-rad">
             <button
+              ref={kopKnapp}
               className="buy"
               disabled={busy || !productId || !buyable || (needsVariant && !variantId)}
               onClick={onAdd}
               onPointerDown={avsiktAttKopa}
               onTouchStart={avsiktAttKopa}
             >
-              {!buyable ? (variantOnlyOOS ? "Slut i denna variant" : "Slutsåld") : added ? "✓ Tillagd i varukorgen" : busy ? "Lägger till…" : "Lägg i kundvagn"}
+              {!buyable ? (variantOnlyOOS ? "Slut i denna variant" : "Slutsåld") : added ? "✓ Tillagd i varukorgen" : busy ? "Lägger till…" : "Lägg i varukorgen"}
             </button>
             <FavoritKnapp
               slug={slug}
@@ -1007,8 +1029,9 @@ export function ProductView({
         </div>
       </div>
     </div>
-    {/* Sticky köp-knapp på mobil — visas bara på små skärmar (CSS) */}
-    <div className="sticky-buy-mobile" aria-hidden={!buyable}>
+    {/* Sticky köp-knapp på mobil — visas bara på små skärmar (CSS), och inte
+        medan sidans egen köpknapp syns (kopSyns ovan). */}
+    <div className={`sticky-buy-mobile${kopSyns ? " is-gomd" : ""}`} aria-hidden={!buyable || kopSyns}>
       <div className="sticky-buy-inner">
         <div className="sticky-buy-info">
           <div className="sticky-buy-price">{displayPrice}</div>
@@ -1021,7 +1044,7 @@ export function ProductView({
           onPointerDown={avsiktAttKopa}
           onTouchStart={avsiktAttKopa}
         >
-          {!buyable ? "Slut" : added ? "✓" : busy ? "..." : "Lägg i kundvagn"}
+          {!buyable ? "Slut" : added ? "✓" : busy ? "..." : "Lägg i varukorgen"}
         </button>
       </div>
     </div>

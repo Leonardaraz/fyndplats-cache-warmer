@@ -412,7 +412,9 @@ test("sökrutan: antal i knappen, kryss, alla sökord i fetstil och uppläst rad
   assert.match(ruta, /aria-label="Rensa sökfältet"/);
   assert.match(ruta, /enterKeyHint="search"/);
   assert.match(ruta, /aria-activedescendant=\{visas && active >= 0 && active < rader \? radId\(active\) : undefined\}/);
-  assert.match(ruta, /m\.rankaForslagMedAntal\(idx, pris\.fraga, SUGGESTION_COUNT, harPris\(pris\) \?/);
+  // Antalet är listans sju, eller rutnätets tolv i mobilens sökläge (lib/sok-lage.test.ts).
+  assert.match(ruta, /const antal = rutnat \? RUTNAT : SUGGESTION_COUNT;/);
+  assert.match(ruta, /m\.rankaForslagMedAntal\(idx, pris\.fraga, antal, harPris\(pris\) \?/);
   assert.match(ruta, /className="sugg-chip" key=\{t\} onClick=\{\(\) => goSearch\(t\)\}/);
   // Senaste sökningar, exemplen och sökförslagen tar plats från varorna: panelen blir inte högre.
   assert.match(ruta, /popular\.slice\(0, SUGGESTION_COUNT - \(visaTidigare \? RADER_SENASTE : 0\) - \(visaExempel \? RADER_CHIPS : 0\)\)/);
@@ -702,11 +704,12 @@ test("sökrutan visar förslagets varor och säger vilket ord det gäller", asyn
   const { readFileSync } = await import("node:fs");
   const ruta = readFileSync(new URL("../components/searchbox.tsx", import.meta.url), "utf8");
   // Regeln avgör, och förslagets varor används bara när det finns några.
-  assert.match(ruta, /const mal = m\.visaVarorFor\(term, forslagen, svar\.totalt\);\s+if \(mal\) \{\s+const forMalet = m\.rankaForslagMedAntal\(idx, mal, SUGGESTION_COUNT\);\s+if \(forMalet\.totalt > 0\) \{ svar = forMalet; visar = mal; \}/);
+  assert.match(ruta, /const mal = m\.visaVarorFor\(term, forslagen, svar\.totalt\);\s+if \(mal\) \{\s+const forMalet = m\.rankaForslagMedAntal\(idx, mal, antal\);\s+if \(forMalet\.totalt > 0\) \{ svar = forMalet; visar = mal; \}/);
   // Kategorierna räknas för samma ord som varorna.
   assert.match(ruta, /m\.matchaKategorier\(visar \|\| pris\.fraga, registreradeKategorier\(\), KATEGORIFORSLAG\)/);
   // Rubriken, foten och Enter gäller ordet som visas.
-  assert.match(ruta, /\{visar \? `Visar “\$\{visar\}”` : liknande \? "Närmast i stavning" : harPris\(pris\)/);
+  assert.match(ruta, /const varuRubrik = visar \? `Visar “\$\{visar\}”` : liknande \? "Närmast i stavning" : harPris\(pris\)/);
+  assert.equal(ruta.split("varuRubrik}").length - 1, 2, "listans rubrik och söklägets");
   // En rättad stavning sägs på samma sätt, och bara stavningsnära träffar får sin egen rubrik.
   assert.match(ruta, /if \(!visar && svar\.rattat\) visar = svar\.rattat;/);
   assert.match(ruta, /setLiknandeFor\(!visar && svar\.liknande \? val : null\);/);

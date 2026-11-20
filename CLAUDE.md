@@ -4090,15 +4090,16 @@ kategorierna, söket, rean och alla-produkter den varma plattan; före det stod
 deras foton på vitt. Från 881 px har `.pimg` i listorna vit botten och en
 hårfin ram (`var(--line)`), och bilden ritas utan `mix-blend-mode`, för mot
 vitt gör blandningen ingenting. Startsidan (`.hem2`) och /butik med prissidornas
-översikt (`.butik2`) behåller den beige brickan som de alltid haft, liksom
-mobilen (880 px och smalare). Blocket står i `app/globals.css` före
-"Fyndauktionens kort", och `lib/produktkortet.test.ts` vaktar det.
+översikt (`.butik2`) behåller den beige brickan som de alltid haft. Mobilen
+(880 px och smalare) har vit platta överallt sedan 2026-11-20, se nedan.
+Blocket står i `app/globals.css` före "Fyndauktionens kort", och
+`lib/produktkortet.test.ts` vaktar det.
 
 Mätt i det lokala bygget, beräknad stil på varje kort: vitt med ram och
 `normal` på /kategori/…, /sok, /rea, /alla-produkter, /under-1000-kr/mobler
 och i raden med liknande varor på produktsidan (1440 och 1024 px); beige och
-`multiply` på /, /butik och /under-500-kr; beige överallt på 880 och 393 px.
-Lyftet och pilen vid hovring är oförändrade. ☠️ /under-1000-kr/mobler är en
+`multiply` på /, /butik och /under-500-kr; beige överallt på 880 och 393 px
+(vitt där sedan 2026-11-20). Lyftet och pilen vid hovring är oförändrade. ☠️ /under-1000-kr/mobler är en
 lista (ShopBrowser) och blev vit, fast översikten /under-500-kr är beige: det
 är samma skillnad som mellan /butik och en kategorisida.
 
@@ -4110,9 +4111,22 @@ i Chromium med mobilvy och i Samsung Internet på en Galaxy S24 är beige
 (244, 238, 232). På mobilen ligger fotot i den svepbara bildraden
 (`.pimg-track-swipe`), och Safari blandar det då inte mot brickans färg: det
 vita i fotot täcker brickan. Orsaken är inte bekräftad i kod. I Safari på Mac
-(26.4) fungerar blandningen: startsidan beige, listorna vita. Inte ändrat:
-om mobilens kort ska vara vita i alla webbläsare, eller beige också på
-iPhone, är Leonards beslut.
+(26.4) fungerar blandningen: startsidan beige, listorna vita.
+
+**På mobilen är plattan vit i alla webbläsare (2026-11-20).** Samma kort hade
+två utseenden: vitt på iPhone, beige i Chromium och Samsung Internet. Nu har
+`.pimg` vit botten och fotot ritas utan `mix-blend-mode` på 880 px och
+smalare, på varje sida, också startsidan och /butik. Ingen ram: det är så
+iPhone redan visade korten, så den som handlar på iPhone ser ingen skillnad.
+Blocket `@media(max-width:880px)` står direkt efter datorns block. Mätt i det
+lokala bygget, beräknad stil på varje kort: vitt, 0 px ram och `normal` på nio
+sidtyper vid 880 och 393 px (36 av 36 med datorns två bredder), och pixlarna
+i plattans övre vänstra hörn är (255, 255, 255) på startsidan, i kategorin och
+i söket. ☠️ Leonard fick frågan vitt eller beige och svarade "gör fixarna": vitt
+valdes för att det är det han ser på sin egen telefon och det han ville ha på
+datorn. Vill han ha beige på mobilen räcker det inte att ta bort blocket:
+Safari på iPhone visar ändå vitt tills blandningen i den svepbara raden är
+löst.
 
 **Rubriktypsnittet på infosidorna.** Sidans huvudrubrik är serif på varje sida
 utom produktsidan och kassan: `.om-hero h1` (tio infosidor) och `.pagehero h1`
@@ -4594,9 +4608,57 @@ produktsidan, söket, auktionen och kontot föll alla, med felet i
 - Serverkod (API-rutter och serverbibliotek) får använda `AbortSignal.timeout`.
 - ☠️ Inte mätt: hur många besökare som drabbades. Vercels besöksstatistik
   delar inte på iOS-version, och GA4 gick inte att läsa den natten.
-- ☠️ Inte mätt på riktig telefon efter rättelsen. Förhandsbyggen ligger bakom
-  Vercels skydd, så iOS 15 går att prova först på www efter mergen. Annat i
-  sidan kan fortfarande fälla iOS 14 och 15.
+- **Mätt på riktiga telefoner efter rättelsen** (www, bygget från #930,
+  2026-11-20 02:22–02:27 UTC). iPhone 12 med iOS 14.7: startsidan,
+  produktsidan, köpknappen med varukorgens låda, kategorin och sökrutan
+  ("speglar", 154 träffar) visas. iPhone 13 med iOS 15.5: produktsidan, lådan,
+  kategorin med bilder, sökrutan ("ellamin" visar elkaminer) och kassan med
+  Apple Pay-knappen visas. Ingen betalknapp trycktes.
+- Förhandsbyggen ligger bakom Vercels skydd, så en riktig telefon når en
+  rättelse först på www efter mergen. Före mergen: härma felet i Chromium.
+
+### Safari före 15 kan inte `aspect-ratio`: listorna stod utan bilder
+
+Samma prov på iPhone 12 med iOS 14.7 visade nästa fel. Produktkortens platta
+(`.prod .pimg`) hade höjden 0, mätt med `scroll_to_element` (överkant och
+nederkant på samma tal) och `is_element_displayed` (falskt). "Veckans fynd" och
+kategorin visade namn, betyg och pris utan en enda bild, och produktsidans
+miniatyrer var streck. På iOS 15.5 var plattan 163 px hög.
+
+`aspect-ratio` finns först i Safari 15.0. En ruta som får höjden av den och
+bara har absolut placerade barn (next/image med `fill`) faller ihop till noll.
+
+- **Reserven** står i `@supports not (aspect-ratio:1/1)`: en `::before` med
+  `padding-top` i procent av rutans egen bredd. Ett block sist i
+  `app/globals.css` (kortets platta, miniatyrerna, kategorins hjältebild,
+  om-sidans bilder, auktionens hjältebild på mobilen och menyernas bildrutor),
+  ett i `app/startsida.css` och ett i `app/butik/butik.css`.
+- `lib/reservhojd.test.ts` läser de tre stilfilerna och fäller om en väljare
+  med `aspect-ratio` varken har en reserv med rätt höjd eller står bland
+  undantagen med skälet utskrivet.
+- ☠️ Startsidans block står FÖRE nattens avsnitt. `lib/natten.test.ts` letar
+  upp filens sista `@media(min-width:881px)`, och ett block sist i filen blev
+  det.
+- ☠️ Rutan "Hela sortimentet" på /butik (`.b2-alla-yta`) har text i flödet. En
+  `::before` med höjd hade lagt texten under bilden, så väljaren undantar den.
+- Hjältens bildruta (`.hem2 .hbild`) får bredden av höjden. Reserven låter den
+  fylla brickans bredd, och fotot står centrerat (`object-fit:contain`).
+- **Så provas det utan en gammal telefon:** skriv om stilfilerna på vägen in i
+  Chromium (Playwright `route` på `.css`): ta bort varje `aspect-ratio` och gör
+  `@supports not (aspect-ratio:…)` sann. Mot www före rättelsen föll 35 av 45
+  mätta ytor ihop, med samma mått som på telefonen (plattan 163 × 0,
+  miniatyrerna 122 × 2). Mot det lokala bygget med reserven: 0 av 41, och 37
+  av 41 har exakt samma mått som i en webbläsare med `aspect-ratio`. De fyra
+  som skiljer är hjältens bildruta (med flit), en avrundning på 1 px och
+  kategorins hjältebild (2 px, ramen).
+- Mot förhandsbygget, med butikens riktiga data: 0 av 45 mätta ytor faller
+  ihop, och auktionens hjältebild på mobilen är 336 × 189 (16:9).
+- ☠️ Inte mätt: reserven på en riktig iPhone med iOS 14 (går först på www),
+  menyernas bildrutor (`.mm-alla-bild` och `.meganav-feature-bild` fanns inte i
+  sidan när menyn öppnades i provet, så där vaktar bara stilprovet),
+  produktvideons ruta (`.gvideo`, undantagen i provet), kontots kort
+  (`konto.module.css`) och iOS 14.0–14.4, som också saknar `gap` i flexrader.
+  BrowserStack hade bara 14.7.
 
 ### Så provas butiken på riktiga telefoner
 
@@ -4618,3 +4680,191 @@ Sessionen drar minuter tills den avslutas: sluta alltid med
 - Webbläsarens fellogg kom tillbaka tom från iPhone, också när sidan föll:
   återskapa felet i Chromium för att se var det kastas.
 - Kontot stod på gratisplanen 2026-11-20.
+- Måtten går att läsa utan skärmbild: `scroll_to_element` svarar med rutans
+  överkant och nederkant, och `is_element_displayed` är falskt för en ruta
+  utan höjd. `set_session_status` svarar med telefonens exakta iOS-version.
+- Sessionerna 2026-11-20 efter #930: två, ungefär fem minuter.
+
+### Fem rättelser ur samma prov (2026-11-20)
+
+Leonard fick listan och svarade "gör fixarna". `lib/mobil-finslip.test.ts`
+vaktar dem.
+
+- **Mobilens fasta köprad glider undan medan sidans egen köpknapp syns.** Förut
+  stod två köpknappar i samma skärm. `components/productview.tsx` bevakar
+  knappen med `IntersectionObserver` (60 %) och sätter `is-gomd` på raden;
+  utan `IntersectionObserver` står raden kvar. Raden täcker skärmens nederkant,
+  så en knapp bakom den räknas som synlig och kommer fram när raden glider.
+  `visibility` byts efter glidet, så den gömda knappen går inte att fokusera.
+  Sidans utrymme för raden (78 px) ändras inte, så inget hoppar. Mätt lokalt
+  på 390, 360 och 320 px: överst syns raden, med knappen i skärmen är den
+  borta, förbi knappen är den tillbaka.
+- **Ett ord för korgen.** Köpknapparna sa "Lägg i kundvagn" medan lådan heter
+  Varukorg, favoriterna säger "Lägg i varukorgen" och bekräftelsen "Tillagd i
+  varukorgen". Båda knapparna säger nu "Lägg i varukorgen". Radens knapp är
+  163 × 47 px och ryms på en rad också vid 320 px.
+- **Slutsålda val håller kontrastkravet.** Hela knappen låg på 50 %
+  genomskinlighet (kortvalen på 64 %), så texten tonades med: namnet mätte
+  3,3:1 och "Slut" 2,4:1 mot kravet 4,5:1 (axe mot www). Nu dämpas bara bilden,
+  pricken och radion. Namnet står i `--soft` (6,0:1) och "Slut" i rött på
+  ljusrött (5,9:1). ☠️ Streckad ram betyder fortfarande bara att kombinationen
+  inte finns (`.na`); ge inte ett slutsålt val streckad ram.
+- **Surfplattan på högkant har filtren bakom knappen** (701–880 px). En iPad
+  har mobilens sidhuvud men fick datorns utfällda filter före varorna. Nu
+  visas filterknappen där, och panelen fälls ut på sin plats, som på
+  /alla-produkter. Mätt lokalt på /kategori/soffor-baddsoffor: första kortet
+  börjar 632 px ner vid 820 px bredd (1 369 px med panelen utfälld) och 519 px
+  ner vid 744 px. Lagret över hela sidan är kvar för 700 px och smalare
+  (`matchMedia` i `components/shopbrowser.tsx` är orörd), och datorn från
+  881 px är orörd: där står filtren utfällda, som Leonard bestämde 2026-09-25.
+- **Omdömesraden på startsidan nås med tangentbordet.** På mobilen, och i en
+  inzoomad webbläsare, rullar raden i sidled, och utan `tabIndex` nådde
+  tangentbordet aldrig det andra och tredje omdömet (axe:
+  `scrollable-region-focusable`). Raden bär `tabIndex={0}`, `role="group"` och
+  ett namn. På datorn blir det ett tabbstopp till.
+
+Mot förhandsbygget, med butikens riktiga data: 47 av 47 kontroller av
+rättelserna (ett riktigt slutsålt val mätte 6,05:1 och 5,91:1), 36 av 36 för
+plattan och sökningens 61. axe efteråt: inga fel på datorns sex sidlägen eller
+på mobilens startsida, kategori, sök, produktsida och kassa, där www hade ett
+fel på startsidan och två på produktsidan. ☠️ Kvar: kortens svepbara bildrad
+(`.pimg-track-swipe`) flaggas medan menyn eller varukorgen är öppen (åtta och
+fyra träffar). Då är sidan bakom med flit onåbar, och utan öppen låda flaggas
+raderna inte.
+
+**Sett men inte ändrat:** varukorgens låda på en telefon visar rubriken
+"Komplettera ditt köp" men förslagen hamnar under lådans fasta fot, och man
+måste rulla i den lilla ytan för att se dem (iPhone 12 och 13). Kategorierna
+har två kort i bredd upp till 900 px, så en iPad visar två stora kort per
+skärm medan /alla-produkter har tre från 761 px; bildernas `sizes` följer
+kolumnerna och måste ändras samtidigt.
+
+## Mobilens sökläge: varorna i ett rutnät direkt under fältet (Leonard 2026-11-20)
+
+Leonard sökte "bilar" på sin iPhone och skickade skärmbilden: med
+tangentbordet uppe rymde panelen ordförslagen, två kategorirader och rubriken
+"Varor", och inte en enda vara. "Dealproffsen visar produkter direkt när man
+söker." Panelen hängde under hela sidhuvudet (remsan, loggans rad och
+sökraden, 170 px), varje kategori tog en egen rad, och knappen "Visa alla"
+satt fäst i nederkanten.
+
+Nu tar sökningen över skärmen på mobilen medan man söker
+(`components/searchbox.tsx`, `RUTNAT`; stilen står under "MOBILENS SÖKLÄGE" i
+`app/globals.css`). `lib/sok-lage.test.ts` vaktar det.
+
+- **Bara rutan i mobilens sökrad**, den som bär `helskarm` i
+  `components/site.tsx`, och bara under 900 px, där sidhuvudet byter till
+  mobilens. Datorns lista och mobilmenyns ruta är som förut.
+- **Sidhuvudet.** Medan panelen är öppen bär `<html>` `data-sok-lage`: remsan
+  och loggans rad göms, sidan täcks av en vit yta och fältet står överst med
+  knappen Stäng bredvid. Sidan under låses (`lib/las-sidan.ts`) och får
+  `inert` (`lib/bakom-inert.ts`), så att varken fingret, tabben eller en
+  skärmläsare når den. ☠️ Attributet sätts i en `useLayoutEffect` som står
+  FÖRE den som mäter panelens höjd: annars mäts rutan där den stod i det gamla
+  sidhuvudet, och panelen ritas en bildruta på fel plats.
+- **Panelen** går kant i kant från sidhuvudet ner till tangentbordet
+  (`--sok-max` mäts mot `visualViewport`, som förut). Kategorierna står som
+  chips på samma rad som ordförslagen. Rubrikraden bär "Visa alla 147 →".
+  Varorna står tolv i taget i ett rutnät: två i bredd under 600 px, tre under
+  800 och fyra upp till 900. Fotens knapp är en vanlig knapp sist i listan.
+- **Kortet**: kvadratisk bild med tunn ram, priset i en vit bricka på bilden,
+  namnet på två rader med sökorden i fetstil, och "Slutsåld" i grått. I källan
+  står namn, pris och slutsåld i den ordningen och utan `aria-label`, så att
+  det upplästa namnet är den synliga texten; priset läggs på bilden av kortets
+  rutnät (`grid-area:1/1`). ☠️ Med en `aria-label` i annan ordning än texten
+  fällde axe alla tolv kort (`label-content-name-mismatch`).
+- **Bilden** är samma adress som produktkortens (`tightFillUrl(…, 600, 600)`
+  genom den globala laddaren), och `RUTNAT_SIZES` säger 128 px på skärmar med
+  2,5 pixlar per punkt eller fler: en iPhone hämtar då 384 px-filen (2,2
+  pixlar per punkt) i stället för 640. Den väger hälften och är samma fil som
+  kortet i listorna hämtar på en dator.
+- **Tangentbordet.** Ett drag uppåt eller nedåt i listan fäller tangentbordet
+  (fältet tappar fokus), ett drag i sidled på chipsen gör det inte. En skickad
+  sökning fäller det också. Bakåt och framåt stänger panelen.
+- **Antalet.** Rutnätet ber rankningen om tolv, listan om sju. ☠️ Datorn får
+  inte be om tolv och visa sju: rankningen klipper på relevans och sänker
+  slutsålda EFTERÅT, så en slutsåld exakt träff hade kunnat falla ur listan.
+- **Safari före 15** kan inte `aspect-ratio`: kortets bildruta står i
+  reservblocket i `app/globals.css` (`lib/reservhojd.test.ts`).
+
+Mätt i Chromium mot det lokala bygget (393 × 852, tre pixlar per punkt, med
+`visualViewport` bytt mot en som krymper till 395 px som när tangentbordet är
+uppe): "bilar" visar chipsen, rubriken och två hela kort med bild, pris och
+två rader namn; utan tangentbord sex hela kort. Fältet står 10 px från
+toppen, panelen slutar vid tangentbordet, sidan under rullar inte och står
+kvar på samma plats efter Stäng (provat överst och 1 400 px ner). 320, 430,
+600 och 820 px: två, två, tre och fyra kort i bredd, inget sticker ut. Utan
+`aspect-ratio`: alla tolv bildrutor 174 × 174. axe: inga fel i sökläget.
+Datorn: sex rader som förut. 62 kontroller i sökläget, nio till (utan
+`aspect-ratio`, axe i tre lägen, piltangenterna, Esc och kakfrågan) och de
+äldre 61, alla gröna.
+
+☠️ **Inte provat på en riktig telefon före mergen.** Tangentbordet finns inte i
+Chromium, och BrowserStack visar det inte heller. Det som bara en riktig
+iPhone visar: att `visualViewport` krymper när tangentbordet kommer (det gör
+den i den gamla panelen, som Leonards skärmbild visade), och att sidan inte
+flyttar sig när fältet hoppar upp till toppen i samma ögonblick som det får
+fokus.
+
+**Sett men inte ändrat:** sökindexet väger 531 kB över nätet (7 830 varor,
+2,1 MB JSON). På ett svagt nät dröjer första förslagen 2–4 s efter att fingret
+landat i fältet; under tiden visar sökläget kortens platser. Ett svar från
+servern för de första bokstäverna medan indexet hämtas vore nästa steg.
+
+## Produktsidans huvudbild: tre fall där den syntes sent (Leonard 2026-11-20)
+
+"Upplever att huvudbilden laddas och syns långsamt ibland." Mätt mot www på
+en strypt mobil (390 × 844, 4 Mbit/s, 100 ms, processor ÷4):
+
+| Väg till sidan | Huvudbilden syns |
+|---|---|
+| Landning på förvalet | 0,8–1,7 s (bilden är förladdad i sidans huvud) |
+| Tryck på ett produktkort | 0–0,45 s EFTER sidbytet: bilden började hämtas först då |
+| Landning med `?variant=` på ett annat val än förvalet | 2,4–2,9 s |
+
+Det tredje fallet är varje klick från Google Shopping (flödet länkar varje
+färg med sin variant) och varje kort i en färgfiltrerad lista (`?farg=`).
+Sidan är ISR-cachad och ritas med förvalet; sidans tidiga skript dolde
+bilden, priset och väljaren tills sidan hydrerat, och valets bild började
+hämtas först då, 1,8–2,3 s in.
+
+Tre ändringar, alla vaktade av `lib/sok-lage.test.ts` och
+`lib/pdp-val-bild.test.ts`:
+
+- **Huvudbilden hämtas i trycket** (`lib/hjaltebild-varm.ts`). Produktkortet
+  (`components/prefetch-link.tsx`) och sökförslagen börjar hämta produktsidans
+  huvudbild när man trycker: musen vid knapptrycket, fingret först vid
+  klicket, för en beröring kan vara början på en rullning. Bilden begärs med
+  galleriets egen laddare (`lib/hjalte-loader.ts`), `HERO_SIZES` och samma
+  mått, genom `getImageProps`, så att webbläsaren väljer samma fil som
+  galleriet sedan begär. ☠️ Listsidorna skickar bilden som en naken nyckel
+  utan värddel: adressen byggs om från nyckeln, annars gjorde förhämtningen
+  ingenting just på korten i listorna. Mätt lokalt: bilden begärs 113–151 ms
+  efter klicket, en gång, och är klar när sidan byts.
+- **Kortets bild visas medan den stora hämtas.** Kortet man tryckte på har
+  samma foto i webbläsarens minne. Galleriet lägger det som bakgrund i sitt
+  första lager (`kortbildFor`), så bildrutan visar varan direkt och blir
+  skarp när huvudbilden kommit. Bara samma fil-id, bara en bild som är
+  hämtad och minst 300 px bred, och bara 15 s efter trycket. På servern och
+  vid en vanlig landning är allt som förut.
+- **Rätt bild direkt när länken pekar på ett annat val** (`lib/pdp-val-bild.ts`).
+  Sidans tidiga skript hämtar valets bild medan sidan läses och visar den som
+  bakgrund i bildrutan (`#pdp-val-bild`) tills väljaren tagit över. Galleriet
+  tar bort den när dess eget lager visas, inte vid monteringen: då står
+  förvalets bild fortfarande som visad och rutan hade blinkat tom. ☠️ Reglerna
+  för vilken bild ett val visar är väljarens egna (`valjId` och `valjFarg` i
+  `components/productview.tsx`), och provet läser väljarens rader: ändras
+  väljaren ska modulen ändras med den. Ett val utan egen bild får ingen bild
+  i förväg; då står rutan dold tills väljaren valt, som förut. Mätt lokalt
+  med samma strypning: rätt bild syns i rutan efter 1,0–1,3 s, galleriets
+  lager tar över vid 2,0 s med samma bild, och rutan är aldrig tom däremellan.
+
+Dessutom öppnas anslutningen till Wix bildserver utan `crossOrigin`
+(`app/layout.tsx`). Bilder hämtas utan CORS, och en anslutning som öppnats
+med `crossOrigin="anonymous"` ligger i en annan pott som bilderna inte får
+använda.
+
+**Produktsidans utseende** gicks igenom på mobil och dator samtidigt (390 och
+1 440 px, tre varor): inget sticker ut i sidled, köpdelens block har samma
+vänsterkant, och de enda träffytorna under 44 px är textlänkar i löpande
+text. Inget ändrades där utöver köpraden och ordvalet ovan.

@@ -1,11 +1,15 @@
 "use client";
-import { useEffect, useId, useRef, useState, useTransition } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { KORTASTE_SOKNING, laddaSokIndex, sokIndexHamtat, type SokTraff as Hit } from "../lib/sok-index";
 import { registreradeKategorier, rentNamn, type SokKategori } from "../lib/sok-kategorier";
 import { harPris, inomPris, prisTal, prisText, tolkaPris } from "../lib/sok-pris";
 import { glomSokningar, kommIhagSokning, senasteSokningar } from "../lib/sok-senaste";
+import { tightFillUrl } from "../lib/wix-image";
+import { varmHjaltebild } from "../lib/hjaltebild-varm";
+import { lasSidan } from "../lib/las-sidan";
+import { gorBakomInert } from "../lib/bakom-inert";
 
 // Hur många förslag vi visar (sökträffar + tomt-fält-lägets populära). 7, inte
 // 8: på mobil täckte Safaris bottenmeny "Visa alla resultat"-knappen när listan
@@ -42,6 +46,41 @@ const RADER_CHIPS = 1;
 const SOKFORSLAG = 3;
 const SOKEXEMPEL = 6;
 
+// MOBILENS SÖKLÄGE (2026-11-20). Leonard sökte "bilar" på sin iPhone: med
+// tangentbordet uppe rymde panelen ordförslagen, två kategorirader och
+// rubriken "Varor", och inte en enda vara. Panelen hängde under sidhuvudet
+// (remsan, loggans rad och sökraden, 170 px) och varje kategori tog en rad.
+//
+// Nu tar sökningen över hela skärmen på mobilen: fältet står överst, remsan
+// och loggans rad göms (html[data-sok-lage] i app/globals.css), kategorierna
+// står som chips på samma rad som ordförslagen, och varorna visas i ett
+// rutnät med stora bilder och priset på bilden. Med tangentbordet uppe syns
+// chipsen, rubriken och två varor med bild, pris och namn. Ett drag i listan
+// fäller tangentbordet, och då syns sex.
+//
+// Bara rutan i mobilens sökrad (`helskarm`, components/site.tsx), och bara
+// under 900 px, där sidhuvudet byter till mobilens. Datorns lista och
+// mobilmenyns ruta är som förut.
+//
+// 12 varor: jämna rader med två, tre och fyra kort i bredd.
+const RUTNAT = 12;
+const SOKLAGE_MEDIA = "(max-width: 900px)";
+// Kortets bild: två i bredd under 600 px, tre under 800, sedan fyra. På en
+// skärm med tre pixlar per punkt sägs bredden vara 128 px, så att webbläsaren
+// väljer 384 px-filen (2,2 pixlar per punkt på en iPhone) i stället för 640.
+// Den filen väger hälften, och det är samma fil som produktkorten i listorna
+// hämtar på en dator: den ligger oftast redan i Wix CDN och i webbläsaren.
+const RUTNAT_SIZES = "(-webkit-min-device-pixel-ratio:2.5) 128px, (min-resolution:2.5dppx) 128px, (max-width:599px) calc( 50vw - 21px), (max-width:799px) calc( 33vw - 18px), calc( 25vw - 16px)";
+
+const prenumereraSmal = (lyssnare: () => void) => {
+  const mq = window.matchMedia(SOKLAGE_MEDIA);
+  mq.addEventListener("change", lyssnare);
+  return () => mq.removeEventListener("change", lyssnare);
+};
+const arSmal = () => window.matchMedia(SOKLAGE_MEDIA).matches;
+/** På servern och under hydreringen: datorns lista. Läget börjar först vid fokus. */
+const inteSmal = () => false;
+
 // ☠️ SÖKMOTORN LADDAS VID AVSIKT, INTE MED SIDAN (2026-11-19). Rutan ligger i
 // sidhuvudet på varje sida, och rankningen (lib/sok-rankning.ts, som drar in
 // lib/search.ts) var 18 kB minifierat och 7,6 kB gzip i varje sidas
@@ -73,6 +112,10 @@ const Lupp = () => (
   </svg>
 );
 
+const Rutor = ({ storlek = 18 }: { storlek?: number }) => (
+  <svg width={storlek} height={storlek} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg>
+);
+
 const regexSakert = (t: string) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 // "Populära produkter" (tomt sökfält) är BLÄDDRING, inte sökning — där ska
@@ -81,8 +124,11 @@ const regexSakert = (t: string) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 // inget bort och listan ser ut som förut.
 const inStockOnly = (hits: Hit[]) => hits.filter((h) => !h.o);
 
-export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
+export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () => void; /** Mobilens sökrad: sökningen tar över skärmen (se RUTNAT ovan). */ helskarm?: boolean } = {}) {
   const [q, setQ] = useState("");
+  // Sant i mobilens sökrad under 900 px: förslagen ritas som ett rutnät.
+  const smal = useSyncExternalStore(prenumereraSmal, arSmal, inteSmal);
+  const rutnat = helskarm && smal;
   const [hits, setHits] = useState<Hit[]>([]);
   const [kat, setKat] = useState<SokKategori[]>([]);
   // Hur många varor som matchar, också de som inte får plats i listan.
@@ -121,11 +167,15 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   const forraSida = useRef<string | null>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   // Värdet från den SENASTE tangenten. Se onType.
   const senaste = useRef("");
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
+      // I mobilens sökläge täcker sökningen skärmen: ett tryck bredvid fältet
+      // är inget tryck utanför. Där stänger knappen Stäng.
+      if (document.documentElement.hasAttribute("data-sok-lage")) return;
       if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
     };
     document.addEventListener("mousedown", onDoc);
@@ -161,7 +211,8 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     // Också med fokus kvar i rutan: ordet hörde till sidan man lämnade.
     else if (fran === "/sok") { if (el) el.value = ""; setQ(""); }
     // Bakåt och framåt mellan två sökningar byter adress men inte sida.
-    const onPop = () => window.setTimeout(() => { const t = iAdressen(); if (t && !harFokus()) setQ(t); }, 0);
+    // Panelen stängs: i mobilens sökläge täcker den hela sidan man kom till.
+    const onPop = () => { setOpen(false); window.setTimeout(() => { const t = iAdressen(); if (t && !harFokus()) setQ(t); }, 0); };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, [pathname]);
@@ -189,6 +240,8 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     setActive(-1);
     setOpen(true);
     setSkickad(false);
+    // Nya förslag börjar överst, också om listan var rullad.
+    panelRef.current?.scrollTo(0, 0);
     const term = val.trim();
     // Priset läses ur sökningen och sökorden rankas utan det (lib/sok-pris.ts).
     const pris = tolkaPris(term);
@@ -204,6 +257,8 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
       else void laddaMotor().then((m) => { if (m && senaste.current === val) setKat(kategorierFor(m)); });
     }
     if (!sokIndexHamtat() || !motor) setLaddar(true);
+    // Rutnätet i mobilens sökläge rymmer fler varor än listan.
+    const antal = rutnat ? RUTNAT : SUGGESTION_COUNT;
     const [idx, m] = await Promise.all([laddaSokIndex(), laddaMotor()]);
     if (senaste.current !== val) return; // en nyare tangent tar över
     // ☠️ BOKSTAVEN SKA SYNAS INNAN RANKNINGEN BÖRJAR (2026-11-19). Är indexet
@@ -233,7 +288,7 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
       setVisarFor(null);
       setFortsattFor(null);
       setExempel(m.sokexempelFor(idx, SOKEXEMPEL));
-      setPopular(inStockOnly(idx).slice(0, SUGGESTION_COUNT));
+      setPopular(inStockOnly(idx).slice(0, antal));
       return;
     }
     // Med ett pris i sökningen är det sista ordet ett tal, inget att fylla i.
@@ -241,7 +296,7 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     setForslag(forslagen);
     // De mest relevanta, slutsålda sist (ordningen förklaras i lib/sok-index.ts).
     // Med ett pris i sökningen gallras träffarna före klippet.
-    let svar = m.rankaForslagMedAntal(idx, pris.fraga, SUGGESTION_COUNT, harPris(pris) ? (h) => inomPris(pris, prisTal(h.p)) : undefined);
+    let svar = m.rankaForslagMedAntal(idx, pris.fraga, antal, harPris(pris) ? (h) => inomPris(pris, prisTal(h.p)) : undefined);
     // ☠️ TVÅ BOKSTÄVER SA "Inga produkter matchade" (Leonard 2026-11-19, "få"
     // och "bi"). Den som skrivit två bokstäver är på väg mot ett ord: listan
     // visar varorna för det första sökförslaget, och säger vilket ord det är.
@@ -250,7 +305,7 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     let visar = "";
     const mal = m.visaVarorFor(term, forslagen, svar.totalt);
     if (mal) {
-      const forMalet = m.rankaForslagMedAntal(idx, mal, SUGGESTION_COUNT);
+      const forMalet = m.rankaForslagMedAntal(idx, mal, antal);
       if (forMalet.totalt > 0) { svar = forMalet; visar = mal; }
     }
     // En rättad stavning ("ellamin" → "elkamin") sägs på samma sätt.
@@ -268,7 +323,7 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     setFortsattFor(vantar ? val : null);
     if (vantar) {
       setExempel(m.sokexempelFor(idx, SOKEXEMPEL));
-      setPopular(inStockOnly(idx).slice(0, SUGGESTION_COUNT));
+      setPopular(inStockOnly(idx).slice(0, antal));
     }
   };
 
@@ -298,7 +353,7 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     setIndexFel(!idx || !m);
     // Populära visas bara med tomt fält (showing), så de kan sättas oavsett.
     if (idx && m) {
-      setPopular(inStockOnly(idx).slice(0, SUGGESTION_COUNT));
+      setPopular(inStockOnly(idx).slice(0, rutnat ? RUTNAT : SUGGESTION_COUNT));
       setExempel(m.sokexempelFor(idx, SOKEXEMPEL));
     }
   };
@@ -343,14 +398,19 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   const visaExempel = isPopular && exempel.length > 0;
   const visaForslag = !isPopular && forslag.length > 0;
   // Kategoriraderna och chipsen tar plats från varorna: listan är lika hög som förut.
-  const showing: Hit[] = isPopular
+  // I rutnätet rullar varorna, och kategorierna står som chips: där tar inget plats från dem.
+  const iListan: Hit[] = isPopular
     ? popular.slice(0, SUGGESTION_COUNT - (visaTidigare ? RADER_SENASTE : 0) - (visaExempel ? RADER_CHIPS : 0))
     : hits.slice(0, SUGGESTION_COUNT - kategorier.length - (visaForslag ? RADER_CHIPS : 0));
+  const showing: Hit[] = rutnat ? (isPopular ? popular : hits).slice(0, RUTNAT) : iListan;
+  // Kategorierna som rader i listan (datorn) eller som chips ovanför rutnätet (mobilens sökläge).
+  const katRader = rutnat ? [] : kategorier;
   // Piltangenterna går över kategorierna först, sedan varorna.
-  const rader = kategorier.length + showing.length;
+  const rader = katRader.length + showing.length;
 
   // onNavigate stänger ev. förälder (mobilmenyn) när vi navigerar bort.
-  const goProduct = (slug: string) => { setOpen(false); setQ(""); onNavigate?.(); router.push(`/produkt/${slug}`); };
+  // Produktsidans huvudbild börjar hämtas i samma tryck (lib/hjaltebild-varm.ts).
+  const goProduct = (slug: string, bild?: string, kortet?: Element) => { varmHjaltebild(bild, kortet); setOpen(false); setQ(""); onNavigate?.(); router.push(`/produkt/${slug}`); };
   const goKategori = (slug: string) => { setOpen(false); setQ(""); onNavigate?.(); router.push(`/kategori/${slug}`); };
   // BLÅ "GÅ"-KNAPPEN SÅG DÖD UT. /sok är en dynamisk route utan cache — uppmätt
   // i produktion 2026-08-29: cache-control "private, no-cache, no-store",
@@ -370,6 +430,8 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     if (vald) void onType(vald);
     setTidigare(kommIhagSokning(t));
     setSkickad(true);
+    // Sökläget: tangentbordet fälls, annars täcker det halva resultatsidan.
+    if (rutnat) inputRef.current?.blur();
     onNavigate?.();
     startaSok(() => router.push(`/sok?q=${encodeURIComponent(t)}`));
   };
@@ -392,11 +454,14 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   // Härlett i stället för en effekt som stänger: skickad och soker sätts i
   // samma rendering, så panelen blinkar inte.
   const visas = open && !(skickad && !soker);
+  // Mobilens sökläge: sökningen täcker skärmen så länge panelen är öppen.
+  const sokLage = rutnat && visas;
+  const stang = () => { setOpen(false); inputRef.current?.blur(); };
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (visas && active >= 0 && active < kategorier.length) goKategori(kategorier[active].slug);
-    else if (visas && active >= kategorier.length && showing[active - kategorier.length]) goProduct(showing[active - kategorier.length].s);
+    if (visas && active >= 0 && active < katRader.length) goKategori(katRader[active].slug);
+    else if (visas && active >= katRader.length && showing[active - katRader.length]) goProduct(showing[active - katRader.length].s, showing[active - katRader.length].i);
     // Enter gör det foten säger: visar listan varorna för "fåtölj" är det den sökningen.
     else goSearch(visar || undefined);
   };
@@ -413,13 +478,35 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
   // fot ("Visa alla 89 resultat") hamnade bakom det. visualViewport är det som
   // faktiskt syns. Höjden sätts som en CSS-variabel på rutan; utan den gäller
   // den gamla regeln i globals.css.
-  useEffect(() => {
+  //
+  // SÖKLÄGET SÄTTS PÅ html FÖRE MÄTNINGEN. Effekten nedan mäter var rutan
+  // står, och i sökläget står den överst på skärmen först när remsan och
+  // loggans rad är gömda. Effekterna körs i den ordning de står, och före
+  // första ritningen (useLayoutEffect): annars syns panelen en bildruta under
+  // det gamla sidhuvudet innan den hoppar upp.
+  useLayoutEffect(() => {
+    if (!sokLage) return;
+    const rot = document.documentElement;
+    rot.setAttribute("data-sok-lage", "");
+    const slapp = lasSidan();
+    // Sidan under syns inte: den ska inte heller gå att tabba till eller läsas upp.
+    const huvud = wrapRef.current?.closest("header");
+    const tillbaka = huvud ? gorBakomInert(huvud, document.body) : null;
+    return () => { rot.removeAttribute("data-sok-lage"); slapp(); tillbaka?.(); };
+  }, [sokLage]);
+
+  useLayoutEffect(() => {
     const vv = window.visualViewport;
     const wrap = wrapRef.current;
     if (!vv || !wrap || !visas) return;
     const satt = () => {
-      const topp = wrap.getBoundingClientRect().bottom + 8;
-      wrap.style.setProperty("--sok-max", `${Math.max(160, Math.round(vv.height + vv.offsetTop - topp - 8))}px`);
+      const ruta = wrap.getBoundingClientRect();
+      // Listan hänger 8 px under rutan och slutar 8 px över tangentbordet.
+      // Sökläget börjar vid sidhuvudets underkant (sökradens 12 px) och går
+      // ända ner, kant i kant med skärmen.
+      const topp = ruta.bottom + (sokLage ? 12 : 8);
+      wrap.style.setProperty("--sok-max", `${Math.max(160, Math.round(vv.height + vv.offsetTop - topp - (sokLage ? 0 : 8)))}px`);
+      if (sokLage) wrap.style.setProperty("--sok-kant", `${Math.max(0, Math.round(ruta.left))}px`);
     };
     satt();
     vv.addEventListener("resize", satt);
@@ -430,7 +517,19 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
       vv.removeEventListener("scroll", satt);
       window.removeEventListener("scroll", satt);
     };
-  }, [visas]);
+  }, [visas, sokLage]);
+
+  // ETT DRAG I LISTAN FÄLLER TANGENTBORDET (sökläget). Med det uppe syns två
+  // varor, utan det sex. Fingret som rullar listan vill se fler, inte skriva.
+  // Ett drag i sidled (chipsens rad) rör inte tangentbordet.
+  const dragFran = useRef<{ x: number; y: number } | null>(null);
+  const onDragStart = (e: React.TouchEvent) => { const t = e.touches[0]; dragFran.current = t ? { x: t.clientX, y: t.clientY } : null; };
+  const onDrag = (e: React.TouchEvent) => {
+    const fran = dragFran.current, t = e.touches[0];
+    if (!fran || !t || document.activeElement !== inputRef.current) return;
+    const dy = Math.abs(t.clientY - fran.y);
+    if (dy > 12 && dy > Math.abs(t.clientX - fran.x)) inputRef.current?.blur();
+  };
 
   // Raden som piltangenterna står på ska synas: listan har en högsta höjd och rullar.
   const radId = (i: number) => `${uid}-rad-${i}`;
@@ -503,6 +602,9 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
     return <>{delar.map((d, i) => (i % 2 === 1 ? <b key={i}>{d}</b> : d))}</>;
   };
 
+  // Rubriken över varorna: vilket ord de gäller, när det inte är det skrivna.
+  const varuRubrik = visar ? `Visar “${visar}”` : liknande ? "Närmast i stavning" : harPris(pris) ? `Varor ${prisText(pris)}` : "Varor";
+
   // Vad en skärmläsare får höra när listan ändras: antalet, och vilket ord
   // det gäller när det inte är det som står i rutan.
   const listaId = `${uid}-lista`;
@@ -549,9 +651,11 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
           </button>
         )}
       </form>
+      {/* Sökläget lämnas med knappen: där finns inget "utanför" att trycka på. */}
+      {sokLage && <button type="button" className="search-stang" onClick={stang}>Stäng</button>}
 
       {visas && (showing.length > 0 || laddar || soker || indexFel || visaTidigare || visaExempel || q.trim().length >= 2) && (
-        <div className="sugg">
+        <div className="sugg" ref={panelRef} onTouchStart={rutnat ? onDragStart : undefined} onTouchMove={rutnat ? onDrag : undefined}>
           {fortsatt && q.trim().length >= 2 && <div className="sugg-fortsatt" role="status">Skriv lite till, så visar vi förslag.</div>}
           {visaTidigare && (
             <>
@@ -576,22 +680,35 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
               </div>
             </>
           )}
-          {visaForslag && (
+          {(visaForslag || (rutnat && kategorier.length > 0)) && (
             <div className="sugg-forslag sugg-chiprad" role="group" aria-label="Sökförslag">
-              {forslag.map((t) => (
+              {visaForslag && forslag.map((t) => (
                 <button type="button" className={`sugg-chip sugg-chip-sok${t === visar ? " sugg-chip-visas" : ""}`} key={t} onClick={() => goSearch(t)}><Lupp /><span>{tillagg(t)}</span></button>
               ))}
+              {/* Sökläget: kategorierna står här som chips, så att varorna får raderna under. */}
+              {rutnat && kategorier.map((k) => (
+                <a key={k.slug} href={`/kategori/${k.slug}`} className="sugg-chip sugg-chip-kat" onClick={(e) => { e.preventDefault(); goKategori(k.slug); }}><Rutor storlek={14} />{rentNamn(k.name)}</a>
+              ))}
+            </div>
+          )}
+          {/* Sökläget: rubriken står utanför listboxen, för den bär en knapp. */}
+          {rutnat && showing.length > 0 && (
+            <div className="sugg-rubrik">
+              <span className="sugg-rubrik-text">{isPopular ? "Populära produkter" : varuRubrik}</span>
+              {!isPopular && totalt > showing.length && (
+                <button type="button" className="sugg-alla-lank" onClick={() => goSearch(visar || undefined)} disabled={soker}>Visa alla {totalt} →</button>
+              )}
             </div>
           )}
           {/* Listboxen bär bara raderna man väljer bland. Chipsen ovanför är
               knappar och foten en knapp: de hör inte hemma i en listbox, och en
               skärmläsare räknade dem förr som trasiga alternativ. */}
           <div role="listbox" id={listaId} aria-label="Förslag">
-          {isPopular && showing.length > 0 && (
+          {!rutnat && isPopular && showing.length > 0 && (
             <div className="sugg-head" role="presentation">Populära produkter</div>
           )}
-          {kategorier.length > 0 && <div className="sugg-head" role="presentation">Kategorier</div>}
-          {kategorier.map((k, j) => (
+          {katRader.length > 0 && <div className="sugg-head" role="presentation">Kategorier</div>}
+          {katRader.map((k, j) => (
             <a
               key={k.slug}
               id={radId(j)}
@@ -602,23 +719,42 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
               role="option"
               aria-selected={j === active}
             >
-              <span className="sugg-kat-ikon" aria-hidden="true">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg>
-              </span>
+              <span className="sugg-kat-ikon" aria-hidden="true"><Rutor /></span>
               <span className="sugg-name">{rentNamn(k.name)}</span>
               <span className="sugg-kat-pil" aria-hidden="true">→</span>
             </a>
           ))}
-          {!isPopular && showing.length > 0 && (kategorier.length > 0 || harPris(pris) || visar || liknande) && (
-            <div className="sugg-head" role="presentation">{visar ? `Visar “${visar}”` : liknande ? "Närmast i stavning" : harPris(pris) ? `Varor ${prisText(pris)}` : "Varor"}</div>
+          {!rutnat && !isPopular && showing.length > 0 && (kategorier.length > 0 || harPris(pris) || visar || liknande) && (
+            <div className="sugg-head" role="presentation">{varuRubrik}</div>
           )}
-          {showing.map((h, hi) => { const i = hi + kategorier.length; return (
+          {showing.map((h, hi) => { const i = hi + katRader.length; return rutnat ? (
+            // Sökläget: ett kort med stor bild, priset på bilden och namnet under.
+            // Ordningen här är den som läses upp: namn, pris, slutsåld. Priset
+            // och märket läggs på bilden av kortets rutnät (.sugg-kort i
+            // app/globals.css), så att det upplästa namnet är den synliga texten.
+            <a
+              key={h.s}
+              id={radId(i)}
+              href={`/produkt/${h.s}`}
+              className={`sugg-kort${i === active ? " active" : ""}`}
+              onClick={(e) => { e.preventDefault(); goProduct(h.s, h.i, e.currentTarget); }}
+              role="option"
+              aria-selected={i === active}
+            >
+              <span className="sugg-kort-bild">
+                {h.i && <Image src={tightFillUrl(h.i, 600, 600)} alt="" fill sizes={RUTNAT_SIZES} />}
+              </span>
+              <span className="sugg-kort-namn">{highlight(h.n)}</span>
+              {h.p && <span className="sugg-kort-pris">{h.p}</span>}
+              {h.o && <span className="sugg-kort-slut">Slutsåld</span>}
+            </a>
+          ) : (
             <a
               key={h.s}
               id={radId(i)}
               href={`/produkt/${h.s}`}
               className={`sugg-item ${i === active ? "active" : ""}`}
-              onClick={(e) => { e.preventDefault(); goProduct(h.s); }}
+              onClick={(e) => { e.preventDefault(); goProduct(h.s, h.i, e.currentTarget); }}
               onMouseEnter={() => setActive(i)}
               role="option"
               aria-selected={i === active}
@@ -636,7 +772,11 @@ export function SearchBox({ onNavigate }: { onNavigate?: () => void } = {}) {
           ); })}
           </div>
           <div className="sr-only" role="status" aria-live="polite">{upplast}</div>
-          {rader > 0 && (
+          {/* Sökläget medan indexet hämtas: kortens platser, så att sidan inte står tom. */}
+          {rutnat && laddar && showing.length === 0 && (
+            <div className="sugg-skelett" aria-hidden="true"><span /><span /><span /><span /></div>
+          )}
+          {!rutnat && rader > 0 && (
             <div className="sugg-tangenter" aria-hidden="true">
               <span><kbd>↑</kbd><kbd>↓</kbd> bläddra</span><span><kbd>Enter</kbd> välj</span><span><kbd>Esc</kbd> stäng</span>
             </div>

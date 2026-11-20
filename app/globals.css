@@ -315,6 +315,77 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .sugg-tips{display:block;margin-top:6px;font-size:var(--text-xs)}
 .sugg-vagar{display:flex;justify-content:center;flex-wrap:wrap;gap:8px 18px;margin-top:12px}
 .sugg-vagar a{font-size:var(--text-sm);font-weight:700;color:var(--brand);text-decoration:underline;text-underline-offset:3px}
+/* MOBILENS SÖKLÄGE (2026-11-20). Leonard sökte "bilar" på sin iPhone: med
+   tangentbordet uppe rymde panelen ordförslagen, två kategorirader och
+   rubriken "Varor", och ingen vara. Nu tar sökningen över skärmen medan man
+   söker, och varorna står i ett rutnät med stora bilder (components/searchbox.tsx,
+   RUTNAT). Två delar:
+     1. Sidhuvudet: remsan och loggans rad göms och sidan täcks, medan
+        html[data-sok-lage] är satt. Fältet står då överst på skärmen.
+     2. Panelen i mobilens sökrad (.hsearch-mobile .sugg): kant i kant, från
+        sidhuvudet ner till tangentbordet (--sok-max mäts i sökrutan).
+   Kortet och knapparna får sina regler här utanför mediafrågan: de ritas bara i
+   mobilens sökrad, och den finns bara under 900 px. */
+.search-stang{flex:none;margin:0 -6px 0 4px;padding:0 6px 0 10px;min-height:44px;border:0;background:none;font-family:inherit;font-size:var(--text-sm);font-weight:700;color:var(--ink);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.search-stang:focus-visible{outline:2px solid var(--brand);outline-offset:-2px;border-radius:var(--r-sm)}
+.sugg-chip-kat{flex:none;display:inline-flex;align-items:center;gap:7px;background:var(--warm);border-color:transparent;color:var(--brand);font-weight:700}
+.sugg-chip-kat svg{flex:none}
+.sugg-rubrik{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 16px 10px}
+.sugg-rubrik-text{min-width:0;font-size:var(--text-xs);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sugg-alla-lank{flex:none;position:relative;border:0;background:none;padding:0;font-family:inherit;font-size:var(--text-sm);font-weight:700;color:var(--brand);cursor:pointer;-webkit-tap-highlight-color:transparent}
+/* 44 px att träffa, utan att rubrikraden blir högre. */
+.sugg-alla-lank::after{content:"";position:absolute;inset:-13px -10px}
+/* Kortet är ett rutnät med bilden på rad 1 och namnet på rad 2. Priset och
+   slutsåld-märket ligger i samma ruta som bilden: i källan står de efter
+   namnet, så att kortet läses upp som "namn, pris". */
+.sugg-kort{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto;row-gap:8px;min-width:0;color:var(--ink);-webkit-tap-highlight-color:transparent}
+.sugg-kort-bild{grid-area:1/1}
+.sugg-kort-namn{grid-area:2/1}
+.sugg-kort-bild{position:relative;display:block;aspect-ratio:1;border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;background:#fff}
+.sugg-kort-bild img{object-fit:cover}
+.sugg-kort.active .sugg-kort-bild,.sugg-kort:focus-visible .sugg-kort-bild{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand)}
+.sugg-kort:focus-visible{outline:none}
+.sugg-kort:active .sugg-kort-bild{transform:scale(.98)}
+.sugg-kort-bild{transition:transform .12s ease}
+/* Priset på bilden: syns i samma ögonkast som varan, också när tangentbordet
+   skär av namnet under. Mörk text på vitt, 16:1. */
+.sugg-kort-pris{grid-area:1/1;align-self:end;justify-self:start;z-index:1;margin:0 7px 7px;max-width:calc(100% - 14px);padding:5px 10px 6px;border-radius:var(--r-pill);background:rgba(255,255,255,.96);color:var(--ink);font-size:var(--text-sm);font-weight:800;line-height:1.15;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 1px 3px rgba(28,28,28,.18),0 0 0 1px rgba(28,28,28,.06)}
+/* Slutsåld: grå som i listorna, aldrig röd (rött läser som rea). Vitt på #52606D är 6,6:1. */
+.sugg-kort-slut{grid-area:1/1;align-self:start;justify-self:start;z-index:1;margin:7px;padding:4px 8px;border-radius:var(--r-xs);background:#52606D;color:#fff;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;line-height:1.2}
+.sugg-kort:has(.sugg-kort-slut) img{opacity:.6;filter:grayscale(.2)}
+.sugg-kort-namn{font-size:var(--text-sm);font-weight:600;line-height:1.32;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.sugg-kort-namn b{color:var(--brand);font-weight:800}
+.sugg-skelett{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 10px;padding:10px 16px 0}
+.sugg-skelett span{display:block;aspect-ratio:1;border-radius:var(--r-md);background:linear-gradient(100deg,var(--surface-2) 30%,#fff 50%,var(--surface-2) 70%);animation:pimg-puls 1.4s ease-in-out infinite alternate}
+@media(max-width:900px){
+  html[data-sok-lage] .promo,html[data-sok-lage] .sidhuvud .hrow{display:none}
+  html[data-sok-lage] .sidhuvud{z-index:250;background:#fff;-webkit-backdrop-filter:none;backdrop-filter:none}
+  /* Sidan under täcks: när tangentbordet fälls ska den inte blänka fram under
+     panelen innan panelen hunnit växa. Under bildvisaren (300) och sidbytets
+     rand (2000), över kakfrågan (200) och köpraden (60). */
+  html[data-sok-lage] body::before{content:"";position:fixed;inset:0;z-index:249;background:#fff}
+  html[data-sok-lage] .hsearch-mobile{padding-top:10px}
+  html[data-sok-lage] .hsearch-mobile .container{padding:0 16px}
+  /* Fältet krymper så att Stäng ryms: ett textfält har annars en minsta bredd
+     på runt 20 tecken, och på en 320 px bred telefon sköt det knappen ur bild. */
+  .hsearch-mobile .search,.hsearch-mobile .search input{min-width:0}
+  .hsearch-mobile .sugg{top:calc(100% + 12px);left:calc(-1 * var(--sok-kant,16px));right:calc(-1 * var(--sok-kant,16px));height:var(--sok-max,calc(100dvh - 70px));max-height:none;padding:6px 0 calc(28px + env(safe-area-inset-bottom));border:0;border-radius:0;box-shadow:none;animation:none}
+  .hsearch-mobile .sugg-head{padding:10px 16px 6px}
+  .hsearch-mobile .sugg-senaste{padding:2px 16px 10px}
+  .hsearch-mobile .sugg-chiprad{padding:6px 16px 8px;scroll-padding-left:16px}
+  .hsearch-mobile .sugg-fortsatt,.hsearch-mobile .sugg-empty{padding-left:16px;padding-right:16px}
+  .hsearch-mobile .sugg [role="listbox"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 10px;padding:0 16px}
+  /* Fotens knapp: en vanlig knapp sist i listan, inte fäst i nederkanten.
+     Med tangentbordet uppe tog den en femtedel av höjden från varorna. */
+  .hsearch-mobile .sugg-all{position:static;width:auto;margin:22px 16px 0;padding:14px 16px;border:1px solid var(--line);border-radius:var(--r-pill);text-align:center;font-size:var(--text-sm);color:var(--ink);background:#fff}
+}
+@media(min-width:600px) and (max-width:900px){
+  .hsearch-mobile .sugg [role="listbox"],.hsearch-mobile .sugg-skelett{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(min-width:800px) and (max-width:900px){
+  .hsearch-mobile .sugg [role="listbox"],.hsearch-mobile .sugg-skelett{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media(prefers-reduced-motion:reduce){.sugg-skelett span{animation:none}.sugg-kort-bild{transition:none}}
 .nav{display:flex;gap:20px;font-size:var(--text-sm);font-weight:500;color:#3a352f;margin-left:auto;align-items:center}
 /* Tryckytan upp till 44px. Gapet på 20px är bredare än den vertikala
    utvidgningen, så grannlänkarnas ytor kan inte överlappa. */
@@ -733,6 +804,17 @@ h1,h2,h3{text-wrap:balance}
   .prod:not(.auction-card):not(.blogg-kort) .pimg img{mix-blend-mode:normal}
   :is(.hem2,.butik2) .prod:not(.auction-card):not(.blogg-kort) .pimg{background:#F4EEE8;border:0}
   :is(.hem2,.butik2) .prod:not(.auction-card):not(.blogg-kort) .pimg img{mix-blend-mode:multiply}
+}
+/* PÅ MOBILEN ÄR PLATTAN VIT I ALLA WEBBLÄSARE (2026-11-20). Safari på iPhone
+   visade den redan vit, också på startsidan: fotot ligger i den svepbara
+   bildraden, och där blandar Safari det inte mot plattans färg (mätt i
+   skärmbilder från riktiga telefoner, iOS 26 och 27). Chromium och Samsung
+   Internet blandade och visade beige, så samma kort hade två utseenden.
+   Nu är plattan vit och fotot ritas utan blandning på 880 px och smalare,
+   överallt. Ingen ram: det är så iPhone redan visar korten. */
+@media(max-width:880px){
+  .prod:not(.auction-card):not(.blogg-kort) .pimg{background:#fff}
+  .prod:not(.auction-card):not(.blogg-kort) .pimg img{mix-blend-mode:normal}
 }
 /* Fyndauktionens kort: vitt kort med ram som lyfter som helhet, fotot kant i
    kant utan platta. Samma värden som kortets grund hade före 2026-11-18. */
@@ -1903,9 +1985,12 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
 .varcard-label{font-size:var(--text-sm);font-weight:700;letter-spacing:-.01em;color:var(--ink);font-variant-numeric:tabular-nums}
 .varcard-price{font-size:var(--text-sm);font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap;flex:0 0 auto;margin-left:6px}
 .varcard-oos{font-size:var(--text-xs);font-weight:700;color:#b91c1c}
-.varcard.oos{opacity:.64}
+/* Slut i lager: bara bilden, pricken och radion dämpas. Hela kortet låg på
+   64 %, och då mätte "Slut i lager" 3,2:1 mot kravet 4,5:1 (2026-11-20).
+   Samma regel som .varswatch.oos längre ner. */
+.varcard.oos .varcard-thumb,.varcard.oos .varcard-dot,.varcard.oos .varcard-radio{opacity:.5}
+.varcard.oos .varcard-label,.varcard.oos .varcard-price{color:var(--soft)}
 .varcard.oos .varcard-label{text-decoration:line-through;text-decoration-color:#c9a9a2}
-.varcard.oos.active{opacity:.92}
 /* Miniatyr/färgprick i valkortet (variant har en bild/färg). Ersätter radion —
    markering visas då via kortets ram + bock-badgen till höger. */
 .varcard-thumb{width:46px;height:46px;border-radius:var(--r-sm);overflow:hidden;flex:0 0 auto;background:var(--surface-2);display:block}
@@ -1939,9 +2024,16 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
 .varswatch-thumb img{width:100%;height:100%;object-fit:cover;display:block}
 .varswatch-dot{width:24px;height:24px;border-radius:50%;flex:0 0 auto;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);margin-left:6px}
 .varswatch-name{white-space:nowrap}
-/* Slut-i-lager-variant: dämpad + genomstruken + liten "Slut"-tag (köp blockeras i JS) */
-.varswatch.oos{opacity:.5}
-.varswatch.oos:hover{opacity:.65}
+/* Slut-i-lager-variant: dämpad bild, genomstruket namn och en liten "Slut"-tagg
+   (köp blockeras i JS). ☠️ Hela knappen låg på 50 % genomskinlighet, och då
+   halverades också textens kontrast: namnet mätte 3,3:1 och "Slut" 2,4:1 mot
+   kravet 4,5:1 (axe mot www 2026-11-20). Nu dämpas bara bilden och färgpricken,
+   och texten har egna färger som håller kravet: namnet 6,0:1 (--soft på vitt),
+   "Slut" 5,9:1. Ingen streckad ram: den betyder "finns inte i den storleken"
+   (.varswatch.na nedan). */
+.varswatch.oos .varswatch-thumb,.varswatch.oos .varswatch-dot{opacity:.5}
+.varswatch.oos:hover .varswatch-thumb,.varswatch.oos:hover .varswatch-dot,
+.varswatch.oos.active .varswatch-thumb,.varswatch.oos.active .varswatch-dot{opacity:.8}
 /* Kombinationen finns inte (Svart görs inte i 177 cm): streckad ram, inget
    "Slut" och ingen genomstrykning — färgen finns, bara inte i den storleken.
    Klick väljer färgen och byter storlek, och det står då under väljaren. */
@@ -1962,8 +2054,7 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
 /* Raden som säger till när ett annat val fick bytas, och att ett val är slut. */
 .varnote{margin:12px 0 0;font-size:var(--text-sm);line-height:1.45;color:var(--ink);background:#FFF7ED;border:1px solid #FED7AA;border-radius:var(--r-md);padding:10px 14px}
 .buybox .varnote-slut{margin:0 0 12px;background:#FEF2F2;border-color:#FECACA;color:#7F1D1D}
-.varswatch.oos .varswatch-name{text-decoration:line-through;text-decoration-color:#9ca3af}
-.varswatch.oos.active{opacity:.8}
+.varswatch.oos .varswatch-name{color:var(--soft);text-decoration:line-through;text-decoration-color:#9ca3af}
 .varswatch-oos{font-size:var(--text-xs);font-weight:700;color:#b91c1c;background:#fef2f2;border-radius:var(--r-pill);padding:1px 7px;margin-left:2px;letter-spacing:.02em}
 /* Bouncy spring-in när en swatch väljs (premium-feel utan animationsbibliotek) */
 /* Klick-bounce: transient överskjutning, men landar på scale(1) så vilo-/vald-
@@ -2601,11 +2692,19 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
   .sticky-buy-price{font-size:var(--text-base);font-weight:800;color:var(--ink);line-height:1.1}
   .sticky-buy-name{font-size:var(--text-xs);color:var(--soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3;margin-top:2px}
   .sticky-buy-btn{flex:0 0 auto;width:auto;max-width:none;padding:13px 20px;font-size:var(--text-sm);border-radius:var(--r-sm)}
+  /* Raden glider undan medan sidans egen köpknapp syns (2026-11-20): då stod
+     två köpknappar i samma skärm. visibility byts sist, så att knappen inte
+     går att nå med tangentbordet när raden är borta. */
+  .sticky-buy-mobile{transition:transform .22s ease,visibility 0s linear 0s}
+  .sticky-buy-mobile.is-gomd{transform:translateY(110%);visibility:hidden;transition:transform .22s ease,visibility 0s linear .22s}
   /* Only reserve space / lift the cookie bar when the sticky buy bar is
      actually present (product pages). On the homepage and other pages the
      buy bar isn't rendered, so the cookie bar should hug the bottom. */
   body:has(.sticky-buy-mobile){padding-bottom:78px}
   body:has(.sticky-buy-mobile) .cookiebar{bottom:86px}
+}
+@media(max-width:760px) and (prefers-reduced-motion:reduce){
+  .sticky-buy-mobile,.sticky-buy-mobile.is-gomd{transition:none}
 }
 
 /* #1 Faceted filter — extended shopbar */
@@ -2748,6 +2847,19 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
 }
 @media(max-width:700px) and (prefers-reduced-motion:reduce){
   .shopbar.open .shopbar-panel{animation:none}
+}
+/* SURFPLATTAN PÅ HÖGKANT (701–880 px): filtren bakom knappen (2026-11-20).
+   En iPad på högkant har mobilens sidhuvud men fick datorns utfällda filter:
+   pris, färg, bredd, djup, sittplatser, klädsel och material stod före första
+   varan (mätt på en riktig iPad Air, 820 px bred). Nu visas filterknappen där
+   också, och panelen fälls ut på sin plats när man trycker, som på
+   /alla-produkter. Lagret över hela sidan är kvar för 700 px och smalare, och
+   datorn (881 px och bredare) är orörd. */
+@media(min-width:701px) and (max-width:880px){
+  .shopbar-toggle{display:inline-flex;align-items:center;gap:8px;min-height:44px;background:#fff;border:1.5px solid var(--line);border-radius:var(--r-sm);padding:9px 16px;font:inherit;font-size:var(--text-sm);font-weight:600;color:var(--ink);cursor:pointer}
+  .shopbar-toggle:hover{border-color:var(--ink)}
+  .shopbar-panel{display:none}
+  .shopbar.open .shopbar-panel{display:flex}
 }
 
 /* #7 Branded 404 */
@@ -4156,3 +4268,30 @@ body:has([data-kassa-sida]){background:var(--surface-1)}
 @media(max-width:768px){@container (max-width:326px){.fpay .paymarks{justify-content:center}}}
 /* "Tillbaka till bloggen" under en köpguide: 21 px hög. */
 .blogg-tillbaka{display:inline-block;padding:12px 0;margin:-12px 0}
+
+/* ── Reservhöjd för Safari före 15 (aspect-ratio saknas, 2026-11-20) ──
+   aspect-ratio finns först i Safari 15.0. På en riktig iPhone 12 med iOS 14.7
+   hade produktkortens platta höjden 0: listorna visade namn och pris men inga
+   bilder, och produktsidans miniatyrer var streck. Rutorna nedan har bara
+   absolut placerade barn (next/image med fill, märken, hjärtat), så en
+   ::before med padding-top ger samma höjd som aspect-ratio hade gett.
+   padding-top i procent räknas på rutans egen bredd, eftersom ::before är
+   rutans barn. Startsidans och /butiks rutor har sin reserv i app/startsida.css
+   och app/butik/butik.css. ☠️ En ny ruta med aspect-ratio och bara absolut
+   placerade barn behöver en rad här: lib/reservhojd.test.ts fäller annars.
+   Provas med stilfilerna omskrivna i Chromium (aspect-ratio borttagen), och
+   på en riktig telefon via BrowserStack. */
+@supports not (aspect-ratio:1/1){
+  .prod .pimg::before,.gtile::before,.kat-hero-img.is-product::before,.sugg-kort-bild::before,.sugg-skelett span::before{content:"";display:block;padding-top:100%}
+  .om-kat-bild::before{content:"";display:block;padding-top:75%}
+  .om-hero-bild::before{content:"";display:block;padding-top:80%}
+  .kat-hero-img::before{content:"";display:block;padding-top:66.667%}
+  @media(max-width:900px){.om-hero-bild::before{padding-top:62.5%}}
+  @media(max-width:600px){.a-hc-img::before{content:"";display:block;padding-top:56.25%}}
+  /* Menyernas bildrutor har bilden i flödet (höjd 100 %). Utan aspect-ratio
+     tog rutan bildfilens egen form. Här läggs bilden absolut i reservrutan. */
+  .mm-alla-bild,.meganav-feature-bild{position:relative}
+  .mm-alla-bild::before{content:"";display:block;padding-top:41.667%}
+  .meganav-feature-bild::before{content:"";display:block;padding-top:125%}
+  .mm-alla-bild img,.meganav-feature-bild img{position:absolute;top:0;left:0}
+}
