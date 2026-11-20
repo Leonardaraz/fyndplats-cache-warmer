@@ -7,7 +7,9 @@ push och en körning (runda vevor-455: *gen-1yi7g9e* var 39 tecken mot källans 
 Då ska omdömet få en längre mening som säger vad kunden faktiskt sa om varan, aldrig fyllnad: kan inget mer sägas om varan döljs omdömet.
 
 Skriver en rad per översatt omdöme (kvot, källans och översättningens längd) och slutar med kod 1 om någon kvot är under 0,45 (marginal mot spärren),
-och med kod 2 om ett omdöme som ska beslutas saknar beslut eller ett beslut saknar omdöme. Kör med python3.
+och med kod 2 om ett omdöme som ska beslutas saknar beslut eller ett beslut saknar omdöme. Den slutar också med kod 3 när ett omdöme som
+källan märkt `namn: true` (originalet bär ett namn) ligger bland de översatta i stället för bland de dolda: torrkörningen vägrar det
+(*originalet bär ett namn, dölj recensionen*, runda vevor-456), och en vägrad torrkörning kostar en push och en körning. Kör med python3.
 """
 import json
 import os
@@ -35,6 +37,9 @@ for k, v in kalla.items():
         n = len(att[rid]["text"])
         q = len(t) / n if n else 0
         flagga = ""
+        if att[rid].get("namn"):
+            flagga = "  <-- ORIGINALET BÄR ETT NAMN: dölj omdömet"
+            kod = max(kod, 3)
         if q < MIN:
             flagga = "  <-- FÖR KORT"
             kod = max(kod, 1)
