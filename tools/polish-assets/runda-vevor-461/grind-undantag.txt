@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py sidornas mått står som tal ur specifikationsraderna, måttbilderna, titlarna och källans punkter, och sidorna skriver dem likadant, utan axelord (utom trädgårdsvagnens bädd som raden anger med L, B och H och klocktältets dörr som måttbilden anger med höjd och bredd), så ingen axel påstås utan stöd
