@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py sidornas mått står som tal ur källans specifikationsrader och måttbilder (avdragarsatsens delar, slangsatsens längder, skridskornas 280 × 210 × 105 mm och 135 × 9 mm), och sidorna skriver dem likadant, utan axelord, så ingen axel påstås

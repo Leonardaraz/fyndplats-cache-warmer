@@ -1,0 +1,6 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+f35815e4 2 innehållsbilden anger 2 pcs separatorer och 2 pcs avdragarben, och bilden visar två separatorer
+7ce067c0 4 bullet och bild anger 4-fingrars avtryckare, och bilden visar en avtryckare för fyra fingrar
+7ce067c0 3 bilden anger Three-Layer Hose med nylonkärna, fiberflätning och nylonhölje
+a989f466 4 titeln anger 4-delars, och bilden visar fyra skridskor

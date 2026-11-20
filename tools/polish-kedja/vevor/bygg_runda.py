@@ -100,6 +100,7 @@ def main():
             txt += RUB_MATT + '\n' + '\n'.join(matt) + '\n'
         # Ett tillbehörs modellkod i källtexten (till exempel drivmotorns XZ-12B) fäller leak.py (MODELL) i kallor.json, och en spärr man måste komma ihåg glöms bort
         txt = re.sub(r'\b[A-Z]{1,4}-\d{1,4}[A-Z]?\b', '[modellkod]', txt)
+        txt = re.sub(r'<p>\s*Artikelnummer:\s*\[modellkod\]\s*</p>', '', txt)   # raden Artikelnummer med en borttagen modellkod bär bara etiketten, och leak.py nekar den
         kallor[k] = txt
     for fil, rader in ut.items():
         if fil == 'sammanslagna.tsv' and not rader:
