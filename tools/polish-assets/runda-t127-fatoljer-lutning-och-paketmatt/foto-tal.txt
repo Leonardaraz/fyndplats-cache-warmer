@@ -1,0 +1,9 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+e5be35a4 100 nätadapterns tabell i tillverkarens bruksanvisning, sidan 21: ingång 100–240 V
+e5be35a4 240 nätadapterns tabell i tillverkarens bruksanvisning, sidan 21: ingång 100–240 V
+e5be35a4 50 nätadapterns tabell i tillverkarens bruksanvisning, sidan 21: 50–60 Hz
+e5be35a4 12 nätadapterns tabell i tillverkarens bruksanvisning, sidan 21: utgång 12 V
+e5be35a4 1 nätadapterns tabell i tillverkarens bruksanvisning, sidan 21: utgång 1,0 A
+e5be35a4 5 fem lägen på handkontrollens knapp MODE: puls, tryck, våg, auto och normal (bruksanvisningen, sidan 14 och 17)
+e5be35a4 72 bruksanvisningens sida 9: skrynklor ska jämna ut sig inom 72 timmar
