@@ -1,0 +1,96 @@
+{
+  "16e28cb3": {
+    "productId": "16e28cb3-6332-4606-a7f9-49a143faa87a",
+    "synliga": 0,
+    "dolda": 3,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": [
+      {
+        "id": "gen-1lo8r11",
+        "betyg": 5,
+        "datum": "2026-10-03",
+        "foton": 0,
+        "text": "Great product and at over half the cost at box companys"
+      }
+    ]
+  },
+  "10f1830c": {
+    "productId": "10f1830c-f910-4bcb-a945-6d27f1434cd6",
+    "synliga": 0,
+    "dolda": 6,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-17q7ipm",
+        "betyg": 4,
+        "datum": "2026-07-22",
+        "foton": 0,
+        "namn": true,
+        "text": "Decent ‹NAMN› ‹NAMN› for the money spend. Definitely easy to use and easy to set up. Price could be a little better."
+      }
+    ]
+  },
+  "1a0edaa3": {
+    "productId": "1a0edaa3-3c91-418b-9491-18ac94e5f638",
+    "synliga": 0,
+    "dolda": 7,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": [
+      {
+        "id": "gen-1ymeyy6",
+        "betyg": 4,
+        "datum": "2025-11-01",
+        "foton": 0,
+        "text": "Chegou em boas condições, a embalagem é algo frágil para o transporte e entrega. Já testamos o reformer e preenche os nossos requisitos, estamos satisfeitos."
+      }
+    ]
+  },
+  "a11f2626": {
+    "productId": "a11f2626-5a51-434f-892e-b104ed836c3c",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 4,
+    "attBesluta": []
+  },
+  "ea20aa0c": {
+    "productId": "ea20aa0c-cc14-442d-9f22-3e1ae5eede0d",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1lxmhl1",
+        "betyg": 5,
+        "datum": "2026-10-30",
+        "foton": 0,
+        "text": "Entspricht voll den Erwartungen. Gute Qalität und einfache Montage."
+      },
+      {
+        "id": "gen-7fo2ni",
+        "betyg": 5,
+        "datum": "2026-09-14",
+        "foton": 0,
+        "text": "Ho istallato dopo alcune settimane dalla consegna, la porta per animali, devo dire ben fatta, con numerose viti, di varia lunghezza, per spessori porte diverse, punte da trapano accessorie. direi molto bene, funzionamento ottimo, rimane solo la durata nel tempo, spero buona."
+      }
+    ]
+  },
+  "182018ec": {
+    "productId": "182018ec-32d8-44e8-84d1-66869bef8a2f",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": []
+  }
+}
