@@ -128,7 +128,11 @@ granskning"** laddar upp position 4–7 till Media Manager utan att röra produk
 position 4–7 bara var rena på 2 av 56 (nästan alla är tyska infografiker med rubrik och
 bildtexter). Feeden har högst tio bilder per vara (uppmätt 2026-09-30, se `MAX_POSITION` i
 `lib/aosom/bildkandidater.ts`). Granska dem med samma strykregler som ovan och lägg de
-rena i `bilder.tsv` med sina fil-id. Leverantörens rena bilder är det som används, och
+rena i `bilder.tsv` med sina fil-id. **Ge en ny bild ett nummer strax före ritningen** och
+skjut ritningen ett steg: `bygg-media.py` känner bara igen en måttbild på alt-texten
+(`Måttbild`, `Måttskiss`, `Måttritning`), så en ritning vars alt-text börjar på *Ritning*
+stannar där positionen säger, och en ny bild med högre nummer hamnar efter den. Måttskissen
+ska vara sist *(`runda-fix-kort` 2026-11-20 byggdes om av det skälet)*. Leverantörens rena bilder är det som används, och
 inget Fyndplats-kort byggs *(Leonard 2026-09-30, skärpt 2026-10-27)*. Det gäller också
 måttbilder: en variants egen måttbild lämnas kvar och länkas till färg OCH storlek. Saknar
 leverantören måttbilden för varianten flaggar du varianten till Leonard i `FLAGGADE.md`. Bär
