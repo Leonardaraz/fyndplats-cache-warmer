@@ -1509,6 +1509,40 @@ Betygen (`aggregateRating`, `review`) skickas bara för omdömen från våra egn
 kunder (`lib/review-schema.ts`). Att Search Console saknar dem på nästan alla
 objekt är rätt: de flesta produkter har inga egna omdömen än.
 
+### Varje variant bär en egen beskrivning (Leonard 2026-11-20)
+
+Leonards skärmbild ur Search Console (Säljaruppgifter): "Fältet description
+saknas", 1 434 objekt, och valideringen misslyckad. "den där disciption är
+det något vi kan fixa?"
+
+Sedan 2026-10-30 är en vara med val en `ProductGroup` med en `Product` per
+variant (`lib/variant-jsonld.ts`), och beskrivningen stod bara på gruppen.
+Search Console räknar varje variant som ett eget objekt, och varianterna hade
+ingen. Mätt på 60 produktsidor på www samma dag: 48 varor utan val, alla med
+beskrivning, och 12 varor med val vars 32 varianter alla saknade den.
+
+Varje variant får nu gruppens beskrivning med sina egna val sist: "…
+Färg: Grå, Storlek: 120 cm." (`variantBeskrivning`, fjärde parametern).
+Valen står sist för att texten ska vara variantens egen och inte samma
+mening på varje variant. En vara utan val är oförändrad. Låst av
+`lib/variant-jsonld.test.ts` och `lib/produkt-jsonld.test.ts`. På det lokala
+bygget bär alla 80 objekt på samma 60 sidor varje fält rapporten nämner.
+
+De andra raderna i samma rapport (returavgiftens belopp, `validFrom`,
+returvillkor, fraktuppgifter och global identifierare, 414–416 objekt var,
+"Har inte startats") **går inte att återskapa på dagens sidor**: i
+stickprovet på www bar alla 80 objekt, varianterna med, varje sådant fält,
+med hänvisningarna (`@id`) följda inom sidan. Exporten har inga adresser, så
+vilka sidor raderna gäller är inte kontrollerat. Troligast är det objekt som
+Google läste före rättningarna 2026-10-22 och inte har läst om: raden om
+returavgiften var 472 objekt då och är 416 nu. Rapporten hade samma dag
+3 933 giltiga objekt och inget ogiltigt, och alla raderna är varningar, inga
+fel.
+
+☠️ **"Global identifierare" rättas inte med en GTIN.** Varorna har ingen egen
+(motorrepots `docs/claude/17-dealproffsen.md`), och en lånad kopplar varan
+till fel produkt. Märket räcker för Google, och det står på varje vara.
+
 ## Det överstrukna priset bär alltid Konsumentverkets ord (2026-11-01)
 
 Leonards fråga: måste produktsidan visa lägsta pris de senaste 30 dagarna? Ja,
@@ -5086,7 +5120,8 @@ Tre saker var fel, och de hänger ihop:
    gissning med besked om något annat.
 
 Allt ligger i `lib/search.ts`. Proven står i `lib/sok-2026-11-20.test.ts`, 36
-stycken mot en påhittad butik med kategorier, och varje ☠️ nedan har ett.
+stycken mot en påhittad butik med kategorier (och elva till om farten, se
+avsnittet om sökfältets fart), och varje ☠️ nedan har ett.
 Tolv av reglerna är dessutom prövade baklänges: regeln togs bort i en kopia,
 och minst ett prov föll varje gång.
 
@@ -5283,11 +5318,11 @@ varor överst, 69 med bara ett annat antal, och ingen som gick från träffar
 till noll. Skillnaderna är mest fler varor genom kategorierna med samma varor
 överst.
 
-Sökindexet växte från 2 107 708 till 2 194 919 byte, över nätet från 478 till
-496 kB (brotli, mätt på det lokala bygget). Det sökningen bygger vid första
-tangenten (ordboken och kategoriernas varor, runt 200 ms på en dator) byggs i
-förväg när webbläsaren är ledig (`forberedKatalog`, anropad av `varmUpp` i
-`lib/sok-rankning.ts`).
+Sökindexet växte från 2 104 929 till 2 194 919 byte, över nätet från 536 till
+558 kB (brotli, mätt på Vercel: www mot förhandsbygget). Det sökningen bygger
+vid första tangenten (ordboken och kategoriernas varor) byggs i förväg när
+webbläsaren är ledig, ett steg i taget (`forberedKatalogSteg`, anropad av
+`varmUpp` i `lib/sok-rankning.ts`; se avsnittet om sökfältets fart).
 
 **I en riktig webbläsare mot det lokala bygget** (Chromium, mobil 393 × 852
 och dator 1280 × 800): sökläget och resultatsidan visar samma tolv varor i
@@ -5302,10 +5337,10 @@ flödenas 14 och de tio om tangentbordet är gröna.
 
 - **Kundernas egna sökord för dagen.** GA4 och Search Console är anslutna men
   ingen egendom är vald i kopplingen, så frågelistorna är gårdagens.
-- **Räknetiden på en telefon.** Tiderna ovan är från en dator. En telefon är
-  flera gånger långsammare. De långsammaste sökningarna är ord som inte ger
-  någon träff alls: de går igenom varje led två gånger (strängt, och sedan
-  som förut).
+- **Räknetiden på en riktig telefon.** Tiderna i tabellen är från en dator och
+  gäller motorn som den var på morgonen. Samma kväll mättes den i Chromium
+  med fyrdubbelt strypt processor och gjordes snabbare: se avsnittet om
+  sökfältets fart.
 - **Den kalla söksidans nya försök i en webbläsare.** Lokalt läser servern
   katalogen innan första svaret, så den kalla vägen nås inte där. Regeln är
   prövad med låtsade fel (`medForsok`) och en kontroll av att sidan använder
@@ -5320,3 +5355,173 @@ flödenas 14 och de tio om tangentbordet är gröna.
 - En sökning på flera ord där ett av dem är ett sammansatt ord som inget
   namn har ("svart kontorsmöbler") delas inte. Bara ett ensamt sökord delas.
 - Lika bra träffar står fortfarande nyast först (se avsnittet ovan).
+
+## Sökfältets fart: samma svar, en fjärdedel av arbetet (Leonard 2026-11-20)
+
+"jag vill att du kollar hastigheten till sökfältet är så optimerad som
+möjligt". Sökläget söker vid varje tangent, och motorn som blev smartare
+samma dag (avsnittet ovan) gick igenom katalogen fler gånger per tangent än
+den gamla. Allt här ändrar HUR svaret räknas, aldrig svaret:
+
+- 13 933 provsökningar (kundernas egna, felstavningarna och orden skrivna
+  tangent för tangent) ger samma varor i samma ordning med samma besked som
+  morgonens motor, kontrollerat efter varje steg,
+- 7 694 frågor byggda ur katalogen (`tools/sok-matning/utfall.ts`) likaså.
+
+### Mätt
+
+Räknetid per tangent på en dator (`tools/sok-matning/tangenter.ts`, den
+riktiga katalogen med 7 886 varor, 182 tangenter i 21 ord, motorns minne tomt
+när varje ord börjar):
+
+| | www före | morgonens motor | nu |
+|---|---|---|---|
+| alla 182 tangenter | 4 245 ms | 3 544 ms | 904 ms |
+| en vanlig tangent (median) | 11 ms | 11 ms | 3 ms |
+| nio av tio under | 52 ms | 43 ms | 12 ms |
+| den tyngsta tangenten | 138 ms | 117 ms | 24 ms |
+
+I Chromium med fyrdubbelt strypt processor (mobil 393 × 852, tio ord skrivna
+med 110 ms mellan tangenterna, `tools/sok-matning/fart.cjs`). "www före" är
+mätt samma kväll, "morgonens motor" på förmiddagen med samma prov:
+
+| | www före | morgonens motor | nu |
+|---|---|---|---|
+| blockerad tid för de tio orden | 8 217 ms | 7 533 ms | 979 ms |
+| längsta uppgift | 601 ms | 766 ms | 167 ms |
+| längsta väntan innan en tangent behandlas | 513 ms | 378 ms | 58 ms |
+| längst från tangent till nästa bild | 544 ms | inte mätt | 120 ms |
+
+Öppningen (`tools/sok-matning/oppning.cjs`, åtta varv, median). www hämtar
+indexet över nätet och det lokala bygget inte, så tiden till korten är inte
+rättvis åt www: det som är blockerat är det.
+
+| | www före | nu |
+|---|---|---|
+| de populära varorna ritade efter fingret | 702 ms | 511 ms |
+| blockerat innan de syns | 243 ms | 102 ms |
+| blockerat efteråt (uppvärmningen) | 0 ms | 109 ms |
+| längsta uppgift efteråt | ingen | 110 ms (som mest 145) |
+
+www har ingen uppvärmning efteråt för att den gamla motorn bygger sitt
+ordförråd INNAN varorna visas och resten vid första tangenten.
+
+### Vad som räknades om i onödan
+
+1. **Stavfelsledet jämförde sökordet med varje namn.** Nu en gång per unikt
+   ord i katalogen (`felPerOrd`), och namnen slår upp svaret (`felINamn`).
+   Katalogens namn har runt 60 000 ord, och 9 000 olika.
+2. **Det som hör till namnet räknades om för varje namn i varje varv:** namnet
+   utan prickar och med fogar, huvuddelen, och huvuddelens slut i
+   `sammanskrivet` (också när ingen träff fanns). Nu en gång per namnlista
+   (`Listdata`), huvuddelen första gången den behövs.
+3. ☠️ **Förfiltret: ett namn som inte kan träffa jämförs inte alls.** Varje väg
+   till en träff går genom en text som ska stå i namnet (frasen, en böjd
+   form, stammen, en synonym). Varje namn och varje sådan text har en mask
+   med vilka tecken den har, och saknar namnet ett tecken hoppas hela
+   jämförelsen över (`kanTraffa`). Stavfelsledet får sakna så många tecken som
+   felen tillåter. Filtret får släppa igenom för mycket men aldrig hålla
+   tillbaka en träff: prövat mot den riktiga katalogen på 27,6 miljoner par av
+   sökning, namn och läge (662 587 träffar, ingen tillbakahållen), och i
+   provet mot den påhittade butiken (`forfilterProv`).
+4. ☠️ **Samma sökning räknades om vid varje tangent.** Den som skriver
+   "kontorsm", "kontorsmö", "kontorsmöb" får ordet färdigskrivet till
+   "kontorsmöbler" vid varje tangent, och varje försök var en hel sökning: 30 %
+   av tiden för de tyngsta tangenterna. De senaste 48 svaren sparas per
+   namnlista (`rankaInre`). Ett svar beror bara på varorna, namnen,
+   kategorierna, sökningen och djupet, och den som anropar får egna listor,
+   så att en sortering på plats aldrig ändrar nästa svar.
+5. **Rättningen gick igenom ordboken flera gånger per sökning** med samma ord
+   (`narmasteOrd`: omskrivningen, spärren för färdigskrivningen, rättningen),
+   och slog upp varje ords antal i en tabell vid varje varv. Svaret sparas,
+   och antalen ligger på ordens platser (`ordAntal`, `ordInte`).
+6. **Kategoriförslagen tolkade om varje kategorinamn och sökningen** för var
+   och en av de 172 kategorierna, två gånger per tangent: en sjundedel av
+   tiden. Kategorinamnen tolkas en gång (`kategoriformFor`), sökningen en gång
+   per anrop.
+7. **Uppvärmningen delade upp varje namn i ord tre gånger.** Ordräkningen,
+   orden som står för sig och de kända delarna räknas nu ur samma ordlista
+   (`listaFor`).
+
+### ☠️ Det byggda paketet är inte källkoden
+
+Webbläsaren kör det minifierade paketet, och där såg den hetaste slingan
+annorlunda ut. Bygget (Next:s swc) bakar in en funktion som anropas på ett
+enda ställe, som ett funktionsuttryck som anropas direkt. I slingan över
+katalogens namn blev det två nya funktionsobjekt per varunamn och varv
+(förfiltret och jämförelsen), och ett förvalt parametervärde blev en läsning
+ur `arguments`. I webbläsarens profil var de två inbakade funktionerna de
+tyngsta posterna, fast mätningarna i Node inte såg dem (där körs källkoden).
+
+Anropen i de heta slingorna bär därför `/*#__NOINLINE__*/`, och `tokenQuality`
+och `matchPrepared` har inga förvalda parametervärden.
+`lib/sok-minifierat.test.ts` minifierar `lib/search.ts` med byggets verktyg
+och ser efter att slingan anropar funktionerna i stället för att skapa dem.
+Kontrollerat i det riktiga bygget: markeringarna följs.
+
+### Öppningen
+
+- ☠️ **Sökläget byggde hela ordförrådet innan de populära varorna visades**,
+  bara för att kunna skriva "Sök till exempel" över dem: den största
+  uppgiften vid öppningen. Orden räknas nu på servern en gång i timmen, med
+  samma funktion på samma namn, och följer med i sökindexets sista rad (`ex`,
+  `lib/sok-begrepp.ts`). Ett index utan dem läses som förut, och rutan räknar
+  då själv. Indexet växte med 164 byte.
+- ☠️ **Uppvärmningen var en enda uppgift** på upp till 390 ms (strypt), och en
+  tangent som trycktes under tiden fick vänta på den. Den är nu ett dussin
+  steg med turen lämnad till webbläsaren emellan (`varmUpp` i
+  `lib/sok-rankning.ts`): namnen, ordförrådet i fyra omgångar och en
+  avslutning (`byggOrdforradSteg`), och motorns sex steg
+  (`forberedKatalogSteg`). Söker kunden innan något är byggt byggs det då,
+  som förut.
+- ☠️ **Varje steg väntar på nästa bild.** En ledig stund kan komma mellan att
+  React har skrivit de populära varorna (eller en nyss tryckt bokstav) till
+  sidan och att webbläsaren ritar dem, och ett steg som börjar då håller kvar
+  bilden. Stegen begärs i nästa bildruta och körs i den lediga stunden efter
+  den, det första efter två.
+
+### Proven
+
+`lib/sok-2026-11-20.test.ts` har elva prov om farten (minnet mot en ny
+räkning tangent för tangent och baklänges, reservvarvet, svar som ändras på
+plats, andra varor och kategorier på samma namnlista, förfiltret, ordlistan
+mot `tokenize`, uppvärmningens steg i vilken ordning som helst,
+kategoriförslagen, sökexemplen i indexet och ordförrådet i steg), och
+`lib/sok-minifierat.test.ts` ett. 45 felaktiga varianter av genvägarna
+prövades i en kopia: 41 fälls av proven. De fyra som inte fälls kan inte ge
+ett annat svar: två masker som alltid ryms i en annan, en nyckel där antalet
+fel följer av ordets längd, och en spärr mot färger bland begreppsorden, där
+inget begreppsord är en färg.
+
+I Chromium mot det lokala bygget: sökläget och resultatsidan visar samma
+varor i samma ordning, tangent för tangent ger "trägårdsmöbel", "barnmobel",
+"kontorsmöbler" och "tradgardsmobler" ingen tom lista från fjärde bokstaven,
+"Sök till exempel" visar indexets ord på mobil och dator, och söklägets 62
+kontroller, de nio extra, flödenas 14 och de tio om tangentbordet är gröna.
+
+☠️ **Inte mätt:**
+
+- **En riktig telefon.** Strypningen i Chromium gör processorn fyra gånger
+  långsammare men är ingen iPhone: Safari har en annan JavaScript-motor och
+  saknar `requestIdleCallback` (stegen går då på en timer, 30 ms efter varje
+  bild).
+- **www efter deployen.** Allt ovan är mätt mot det lokala bygget.
+- **Morgonens motor med kvällens noggrannare mått för öppningen.** Dess
+  öppning mättes på förmiddagen med det grövre provet: 720 ms blockerat och
+  393 ms som längsta uppgift.
+
+**Sett men inte ändrat:**
+
+- **Reservvarvet används aldrig på riktiga data.** När ett okänt ord söks
+  strängt och inget ger söks det en gång till som förut (`rankaMedInfo`).
+  Ingen av de 13 933 provsökningarna går den vägen: stavfelsledet hinner
+  före. Det är kvar som skyddsnät, och har nu ett prov ("ardsbar").
+- **En felstavad färg ger inga träffar.** "tukos" visar ingenting, fast 25
+  varor är turkosa: färger föreslås aldrig som rättning ("dlang" är "slang",
+  inte "lång"). Regeln är äldre än dagens arbete och gäller ett ensamt
+  sökord som bara är en färg.
+- **Nästa steg om det behövs:** räkna också de exakta ordträffarna per unikt
+  ord (som stavfelsledet), eller flytta rankningen till en egen tråd (Web
+  Worker), så att skrivandet aldrig väntar på den. Det första är uppskattat
+  till en sjättedel av det som är kvar per tangent, det andra är en större
+  ombyggnad av sökrutan.
