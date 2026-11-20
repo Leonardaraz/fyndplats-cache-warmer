@@ -14,6 +14,8 @@
 // levererasTillSe, betyg och mappningsradens status. `variants[].lager` är variantens EGET saldo (null om lagerraden saknas)
 // och `lager` produktens summa: bedöm en sida med flera storlekar efter det förra (runda 448: summan 116 dolde att en
 // storlek hade saldo 0 och en annan 4).
+// `options[].lm` är de länkade bilderna per val (listor av `items[].mid`): läs dem före bilderna, så att en strykning av en länkad bild
+// planeras som tvåstegsplan (runda 449 till 451) och ett val utan egen bild syns direkt.
 //
 // ☠️ Artikelnumret (`supplierProductId`, `vevorArtiklar`, avläsningens `sku`) och bildadresserna (de bär artikelnumret)
 // skrivs aldrig i en fil i repot, i en commit eller i ett svar till Leonard. Bildadresserna hämtas av `ingest` med `curl` till
@@ -81,13 +83,13 @@ async function () {
         items: items.map(function (m) {
           const u = (typeof m.image === "string" ? m.image : (m.image && m.image.url)) || "";
           const a = u.indexOf("/media/");
-          return { id: a >= 0 ? u.slice(a + 7).split("/")[0] : (m.id || ""), alt: m.altText || "" };
+          return { id: a >= 0 ? u.slice(a + 7).split("/")[0] : (m.id || ""), alt: m.altText || "", mid: m.id || "" };
         }),
         variants: vs.map(function (x) {
           const a = x.price && x.price.actualPrice && x.price.actualPrice.amount;
           return { sku: x.sku, id: x.id, pris: a === undefined || a === null ? null : String(a), vis: x.visible, lager: lagerVar[String(x.id)] === undefined ? null : lagerVar[String(x.id)], ch: (x.choices || []).map(function (c) { return c.optionChoiceNames && c.optionChoiceNames.choiceName; }) };
         }),
-        options: (p.options || []).map(function (o) { return { n: o.name, v: (o.choicesSettings && o.choicesSettings.choices || []).map(function (c) { return c.name; }) }; }),
+        options: (p.options || []).map(function (o) { const cs = (o.choicesSettings && o.choicesSettings.choices) || []; return { n: o.name, v: cs.map(function (c) { return c.name; }), lm: cs.map(function (c) { return (c.linkedMedia || []).map(function (l) { return l.id; }); }) }; }),
         katNamn: catIds.map(function (id) { return kmap[id] || ("OKAND:" + id); }),
         lager: lager[pid] || 0,
         alts_full: items.map(function (m) { return m.altText || ""; })
