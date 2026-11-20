@@ -1,0 +1,4 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+3e60c8a0 2 innehållsbilden visar två röda schackel
+f2fefc03 4 källans punkt skriver fyra svänghjul på 3 tum och bilderna visar fyra hjul
