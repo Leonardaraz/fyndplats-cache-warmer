@@ -40,12 +40,43 @@ export function kortUrIndex(h: IndexRad): ListProduct {
 }
 
 /**
- * Varorna den kalla vägen söker i: hela varulistan, och efter den de slutsålda
- * ur indexet som inte redan står i listan. Utan index (hämtningen föll) blir
- * det bara varulistan, alltså det som går att köpa.
+ * Varorna den kalla vägen söker i, i den ordning servern rankar dem.
+ *
+ * ☠️ ORDNINGEN ÄR EN DEL AV SVARET (2026-11-20). Lika bra träffar står i den
+ * ordning de kom in (lib/search.ts sorterar stabilt). Förr var det varulistans
+ * ordning med de slutsålda efter, och då började den kalla vägens resultatsida
+ * med andra varor än sökrutan och den varma vägen visade för samma ord
+ * (lib/sok-ordning.ts). Nu följer raderna sökindexet, som står i katalogens
+ * ordning, nyast först: varulistans kort där varan finns i listan, annars ett
+ * enkelt kort för den som är slutsåld.
+ *
+ * En vara i listan som indexet inte hunnit få är nyare än indexet och står
+ * först. En köpbar vara i indexet som saknas i listan läggs inte till: listan
+ * avgör vad som går att köpa. Utan index (hämtningen föll) blir det bara
+ * varulistan, alltså det som går att köpa, nyast först.
+ *
+ * ☠️ FOTOT KOMMER UR INDEXET (2026-11-20). Varulistan bär bara bild för de
+ * första korten i listsidornas ordning (147 av 7 071 rader, mätt samma dag),
+ * och en sökträff är nästan aldrig en av dem. Förr stod därför den kalla
+ * vägens kort med tomma fotorutor tills bildkartan (406 kB) hade hämtats.
+ * Indexet har varje varas bild, och det är redan hämtat när sökningen görs.
  */
 export function kandidater(lista: readonly ListProduct[], index: readonly IndexRad[] | null): ListProduct[] {
-  if (!index) return [...lista];
-  const iListan = new Set(lista.map((p) => p.slug));
-  return [...lista, ...index.filter((h) => h.o === 1 && h.s && h.n && !iListan.has(h.s)).map(kortUrIndex)];
+  // Samma regel som nyastForst i lib/sok-ordning.ts (den här modulen har inga
+  // importer); lib/sok-ordning.test.ts håller ihop de två.
+  const nyast = (a: ListProduct, b: ListProduct) => (b.createdAt || 0) - (a.createdAt || 0) || String(a.id ?? "").localeCompare(String(b.id ?? ""));
+  if (!index) return [...lista].sort(nyast);
+  const iListan = new Map(lista.map((p) => [p.slug, p]));
+  const med = new Set<string>();
+  const ordnade: ListProduct[] = [];
+  for (const h of index) {
+    if (!h.s || med.has(h.s)) continue;
+    const iLista = iListan.get(h.s);
+    const kort = iLista ? (iLista.img || !h.i ? iLista : { ...iLista, img: h.i }) : h.o === 1 && h.n ? kortUrIndex(h) : null;
+    if (!kort) continue;
+    med.add(h.s);
+    ordnade.push(kort);
+  }
+  const nya = lista.filter((p) => !med.has(p.slug)).sort(nyast);
+  return nya.length > 0 ? [...nya, ...ordnade] : ordnade;
 }

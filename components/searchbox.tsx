@@ -10,6 +10,8 @@ import { tightFillUrl } from "../lib/wix-image";
 import { varmHjaltebild } from "../lib/hjaltebild-varm";
 import { lasSidan } from "../lib/las-sidan";
 import { gorBakomInert } from "../lib/bakom-inert";
+import { prefersDataSaving } from "../lib/gallery-preload";
+import { rullaDirekt } from "./use-landa-vid-bilder";
 
 // Hur många förslag vi visar (sökträffar + tomt-fält-lägets populära). 7, inte
 // 8: på mobil täckte Safaris bottenmeny "Visa alla resultat"-knappen när listan
@@ -71,6 +73,22 @@ const SOKLAGE_MEDIA = "(max-width: 900px)";
 // Den filen väger hälften, och det är samma fil som produktkorten i listorna
 // hämtar på en dator: den ligger oftast redan i Wix CDN och i webbläsaren.
 const RUTNAT_SIZES = "(-webkit-min-device-pixel-ratio:2.5) 128px, (min-resolution:2.5dppx) 128px, (max-width:599px) calc( 50vw - 21px), (max-width:799px) calc( 33vw - 18px), calc( 25vw - 16px)";
+// ☠️ BILDERNA SKA STÅ DÄR NÄR RADEN SYNS (Leonard 2026-11-20: "När man sökt och
+// klickar på bocken måste bilder visas direkt inte ett tomt fält i några 100
+// ms"). Två saker låg bakom det tomma fältet:
+//   1. Panelen slutade vid tangentbordet, och höjden räknades om först när
+//      iPhone sa att tangentbordet var borta, alltså efter att det glidit ner.
+//      Under tiden syntes den vita ytan som täcker sidan. Nu går panelen ända
+//      ner till skärmens kant, bakom tangentbordet (app/globals.css,
+//      .hsearch-mobile .sugg): raderna står redan där när det fälls.
+//   2. Kortens bilder var lata, och i en lista som rullar för sig själv hämtar
+//      Safari en lat bild först när den syns. Nu hämtas de sex första (tre
+//      rader på en telefon) direkt, och resten när listan stått still en
+//      kvarts sekund: den som skriver vidare slipper hämta tolv bilder för
+//      varje bokstav, och den som tittar på träffarna har alla tolv hemma
+//      innan fingret hunnit till listan.
+const BILDER_DIREKT = 6;
+const ALLA_BILDER_EFTER_MS = 250;
 
 const prenumereraSmal = (lyssnare: () => void) => {
   const mq = window.matchMedia(SOKLAGE_MEDIA);
@@ -117,6 +135,13 @@ const Rutor = ({ storlek = 18 }: { storlek?: number }) => (
 );
 
 const regexSakert = (t: string) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/** Står resultatsidan för just den här sökningen redan framme, med sina träffar?
+ *  Utan träffar på sidan (den laddar, eller hämtningen föll) görs sökningen om. */
+const resultatsidanVisar = (t: string) =>
+  window.location.pathname === "/sok"
+  && (new URLSearchParams(window.location.search).get("q") ?? "").trim() === t
+  && document.querySelector("main .shoplista") !== null;
 
 // "Populära produkter" (tomt sökfält) är BLÄDDRING, inte sökning — där ska
 // slutsålt aldrig med, precis som i kategorierna. Skrivna sökningar behåller dem
@@ -429,6 +454,21 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
     // det: annars stod listan för det gamla ordet kvar nästa gång rutan öppnades.
     if (vald) void onType(vald);
     setTidigare(kommIhagSokning(t));
+    // ☠️ SAMMA SÖKNING IGEN, PÅ RESULTATSIDAN FÖR DEN (2026-11-20). Rutan behåller
+    // sitt ord på resultatsidan, så "Visa alla 178" och Enter leder ofta till
+    // sidan man redan står på. Förr hämtades den en gång till, och listan, som
+    // kunden rullat ner i efter ett par "Visa fler", började om med 24 kort:
+    // sidan blev kortare än platsen man stod på och webbläsaren ställde kunden
+    // vid sidfoten (mätt på www, audit/sok-samma.cjs: "kvar till botten 0").
+    // Leonard: "ibland kastas man längst ner på sidan". Nu hämtas ingenting:
+    // sökläget stängs och sidan visas från början, där träffarna står.
+    if (resultatsidanVisar(t)) {
+      setOpen(false);
+      inputRef.current?.blur();
+      onNavigate?.();
+      rullaDirekt(0);
+      return;
+    }
     setSkickad(true);
     // Sökläget: tangentbordet fälls, annars täcker det halva resultatsidan.
     if (rutnat) inputRef.current?.blur();
@@ -498,26 +538,61 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
   useLayoutEffect(() => {
     const vv = window.visualViewport;
     const wrap = wrapRef.current;
-    if (!vv || !wrap || !visas) return;
+    if (!wrap || !visas) return;
     const satt = () => {
       const ruta = wrap.getBoundingClientRect();
+      if (sokLage) {
+        // ☠️ SÖKLÄGET FÖLJER INTE TANGENTBORDET (2026-11-20). Panelen börjar vid
+        // sidhuvudets underkant (sökradens 12 px) och går ända ner till
+        // skärmens kant, också bakom tangentbordet. Höjden står i stilmallen
+        // (100dvh minus --sok-topp) och ändras inte när tangentbordet kommer
+        // eller går: förr räknades den om först när iPhone sa att
+        // tangentbordet var borta, och tills dess var ytan under panelen tom.
+        wrap.style.setProperty("--sok-topp", `${Math.max(0, Math.round(ruta.bottom + 12))}px`);
+        wrap.style.setProperty("--sok-kant", `${Math.max(0, Math.round(ruta.left))}px`);
+        return;
+      }
       // Listan hänger 8 px under rutan och slutar 8 px över tangentbordet.
-      // Sökläget börjar vid sidhuvudets underkant (sökradens 12 px) och går
-      // ända ner, kant i kant med skärmen.
-      const topp = ruta.bottom + (sokLage ? 12 : 8);
-      wrap.style.setProperty("--sok-max", `${Math.max(160, Math.round(vv.height + vv.offsetTop - topp - (sokLage ? 0 : 8)))}px`);
-      if (sokLage) wrap.style.setProperty("--sok-kant", `${Math.max(0, Math.round(ruta.left))}px`);
+      if (vv) wrap.style.setProperty("--sok-max", `${Math.max(160, Math.round(vv.height + vv.offsetTop - ruta.bottom - 16))}px`);
     };
+    // Skärmens höjd för webbläsare utan dvh (Safari före 15.4): mätt när
+    // sökläget öppnas, innan tangentbordet kommit, och sedan bara när rutan
+    // inte har fokus eller skärmens bredd ändrats (telefonen vreds). Ett
+    // tangentbord ändrar aldrig bredden, så då kan det inte räknas in.
+    let bredd = window.innerWidth;
+    const hojd = () => { if (sokLage) wrap.style.setProperty("--sok-vh", `${window.innerHeight}px`); };
+    const nyHojd = () => {
+      if (document.activeElement !== inputRef.current || window.innerWidth !== bredd) hojd();
+      bredd = window.innerWidth;
+      satt();
+    };
+    hojd();
     satt();
-    vv.addEventListener("resize", satt);
-    vv.addEventListener("scroll", satt);
+    vv?.addEventListener("resize", satt);
+    vv?.addEventListener("scroll", satt);
     window.addEventListener("scroll", satt, { passive: true });
+    window.addEventListener("resize", nyHojd);
     return () => {
-      vv.removeEventListener("resize", satt);
-      vv.removeEventListener("scroll", satt);
+      vv?.removeEventListener("resize", satt);
+      vv?.removeEventListener("scroll", satt);
       window.removeEventListener("scroll", satt);
+      window.removeEventListener("resize", nyHojd);
     };
   }, [visas, sokLage]);
+
+  // Kortens bilder: de första direkt, resten när listan stått still en stund
+  // (se BILDER_DIREKT). `allaBilderFor` är listan som har stått still: en ny
+  // lista börjar om, utan att något behöver nollställas.
+  const iRutnatet = isPopular ? popular : hits;
+  const [allaBilderFor, setAllaBilderFor] = useState<Hit[] | null>(null);
+  useEffect(() => {
+    if (!sokLage || iRutnatet.length <= BILDER_DIREKT) return;
+    // Den som sparar data hämtar bilderna när de syns, som förut.
+    if (prefersDataSaving((navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection)) return;
+    const t = window.setTimeout(() => setAllaBilderFor(iRutnatet), ALLA_BILDER_EFTER_MS);
+    return () => window.clearTimeout(t);
+  }, [sokLage, iRutnatet]);
+  const allaBilder = allaBilderFor === iRutnatet;
 
   // ETT DRAG I LISTAN FÄLLER TANGENTBORDET (sökläget). Med det uppe syns två
   // varor, utan det sex. Fingret som rullar listan vill se fler, inte skriva.
@@ -742,7 +817,7 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
               aria-selected={i === active}
             >
               <span className="sugg-kort-bild">
-                {h.i && <Image src={tightFillUrl(h.i, 600, 600)} alt="" fill sizes={RUTNAT_SIZES} />}
+                {h.i && <Image src={tightFillUrl(h.i, 600, 600)} alt="" fill sizes={RUTNAT_SIZES} loading={hi < BILDER_DIREKT || allaBilder ? "eager" : "lazy"} />}
               </span>
               <span className="sugg-kort-namn">{highlight(h.n)}</span>
               {h.p && <span className="sugg-kort-pris">{h.p}</span>}

@@ -224,6 +224,7 @@ export function CardGallery({
   priority,
   createdAt,
   tvaKolumner = false,
+  direkt = false,
 }: {
   slug: string;
   img: string;
@@ -235,6 +236,11 @@ export function CardGallery({
   /** Rutnätet har två kolumner på mobil (listsidorna), så bilden är halva
    *  skärmen bred. Annars hämtade mobilen en bild för hela bredden. */
   tvaKolumner?: boolean;
+  /** Hämta bilden nu, också om kortet står långt ner på sidan. Listorna sätter
+   *  den när sidan är färdig med sitt (components/shopbrowser.tsx,
+   *  bilderDirekt): en lat bild börjar hämtas först när kortet närmar sig
+   *  fönstret, och den som bläddrar fort hinner dit före bilden. */
+  direkt?: boolean;
 }) {
   const [aktiv, setAktiv] = useState(0);
   const [extra, setExtra] = useState<string[]>([]);
@@ -319,6 +325,7 @@ export function CardGallery({
             alt={name}
             fill
             priority={priority}
+            loading={priority ? undefined : direkt ? "eager" : "lazy"}
             // fetchPriority sätts SEPARAT, som i galleriet: next/image härleder
             // den inte ur priority. Utan den saknade både förladdningslänken och
             // <img> fetchpriority=high, och listsidornas största bild (första

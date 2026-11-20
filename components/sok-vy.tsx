@@ -29,6 +29,8 @@ export type SokData = {
   visar?: string;
   /** Inget namn har sökordet: träffarna ligger bara nära det i stavning (lib/search.ts, rankaMedInfo). */
   liknande?: boolean;
+  /** Den kalla vägen: korten bär bild ur sökindexet, och den andra bilden hämtas ur bildkartan (lib/sok-kall.ts). */
+  kall?: boolean;
 };
 
 const citat = (ord: string[]) => ord.map((o) => `“${o}”`).join(" och ");
@@ -140,7 +142,7 @@ export function SokVy({ q, data }: { q: string; data: SokData | "laddar" | "fel"
                   gamla gränserna och blev ett filter ingen hade valt: sidan sa
                   137 träffar och listan visade 36. Med en nyckel per sökning och
                   läge börjar listan om. */}
-              <ShopBrowser key={`${q}|${visaAlla ? "alla" : "inom"}`} products={visade} defaultSort="rel" />
+              <ShopBrowser key={`${q}|${visaAlla ? "alla" : "inom"}`} products={visade} defaultSort="rel" andraBilderUrKartan={klar.kall} />
             </>
           )}
           {tom && klar && (

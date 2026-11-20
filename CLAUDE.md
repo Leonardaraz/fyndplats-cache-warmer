@@ -4762,9 +4762,10 @@ Nu tar sökningen över skärmen på mobilen medan man söker
   skärmläsare når den. ☠️ Attributet sätts i en `useLayoutEffect` som står
   FÖRE den som mäter panelens höjd: annars mäts rutan där den stod i det gamla
   sidhuvudet, och panelen ritas en bildruta på fel plats.
-- **Panelen** går kant i kant från sidhuvudet ner till tangentbordet
-  (`--sok-max` mäts mot `visualViewport`, som förut). Kategorierna står som
-  chips på samma rad som ordförslagen. Rubrikraden bär "Visa alla 147 →".
+- **Panelen** går kant i kant från sidhuvudet ner till skärmens nederkant,
+  också bakom tangentbordet (`--sok-topp`; ändrat samma dag, se "Sökningen
+  svarar direkt" nedan: förr slutade den vid tangentbordet). Kategorierna står
+  som chips på samma rad som ordförslagen. Rubrikraden bär "Visa alla 147 →".
   Varorna står tolv i taget i ett rutnät: två i bredd under 600 px, tre under
   800 och fyra upp till 900. Fotens knapp är en vanlig knapp sist i listan.
 - **Kortet**: kvadratisk bild med tunn ram, priset i en vit bricka på bilden,
@@ -4781,9 +4782,11 @@ Nu tar sökningen över skärmen på mobilen medan man söker
 - **Tangentbordet.** Ett drag uppåt eller nedåt i listan fäller tangentbordet
   (fältet tappar fokus), ett drag i sidled på chipsen gör det inte. En skickad
   sökning fäller det också. Bakåt och framåt stänger panelen.
-- **Antalet.** Rutnätet ber rankningen om tolv, listan om sju. ☠️ Datorn får
-  inte be om tolv och visa sju: rankningen klipper på relevans och sänker
-  slutsålda EFTERÅT, så en slutsåld exakt träff hade kunnat falla ur listan.
+- **Antalet.** Rutnätet ber rankningen om tolv, listan om sju. Båda är
+  början på resultatsidans lista: det köpbara läggs först bland alla träffar
+  och sedan klipps listan (`lib/sok-ordning.ts`, se "Sökningen svarar direkt"
+  nedan). Förr klipptes de mest relevanta först och de slutsålda sänktes
+  bland dem, och då visade rutan varor som sidan hade längst ner.
 - **Safari före 15** kan inte `aspect-ratio`: kortets bildruta står i
   reservblocket i `app/globals.css` (`lib/reservhojd.test.ts`).
 
@@ -4791,7 +4794,7 @@ Mätt i Chromium mot det lokala bygget (393 × 852, tre pixlar per punkt, med
 `visualViewport` bytt mot en som krymper till 395 px som när tangentbordet är
 uppe): "bilar" visar chipsen, rubriken och två hela kort med bild, pris och
 två rader namn; utan tangentbord sex hela kort. Fältet står 10 px från
-toppen, panelen slutar vid tangentbordet, sidan under rullar inte och står
+toppen, panelen slutade då vid tangentbordet, sidan under rullar inte och står
 kvar på samma plats efter Stäng (provat överst och 1 400 px ner). 320, 430,
 600 och 820 px: två, två, tre och fyra kort i bredd, inget sticker ut. Utan
 `aspect-ratio`: alla tolv bildrutor 174 × 174. axe: inga fel i sökläget.
@@ -4868,3 +4871,198 @@ använda.
 1 440 px, tre varor): inget sticker ut i sidled, köpdelens block har samma
 vänsterkant, och de enda träffytorna under 44 px är textlänkar i löpande
 text. Inget ändrades där utöver köpraden och ordvalet ovan.
+
+## Sökningen svarar direkt: bilderna, ordningen och hoppet till sidfoten (Leonard 2026-11-20)
+
+Leonard provade sökläget på sin iPhone samma morgon som det gick ut: "Det blev
+väldigt snyggt men jag behöver att du får det mer responsivt." Fyra saker, och
+tre till som proven hittade på vägen.
+
+### 1. Tomt fält när tangentbordet fälls
+
+"När man sökt och klickar på bocken måste bilder visas direkt inte ett tomt
+fält i några 100 ms." Panelen slutade vid tangentbordet (`--sok-max`, räknad
+ur `visualViewport`), och en iPhone säger till om tangentbordets höjd först
+när det har glidit ner. Under tiden var ytan under panelen den vita yta som
+täcker sidan. Mätt mot www (`audit/sok-respons.cjs`, som härmar ordningen:
+fältet tappar fokus, `visualViewport` ändras 300 ms senare): panelens
+nederkant stod kvar på 395 px av 852, och under den låg `<body>`.
+
+- **Panelen följer inte tangentbordet.** Den går från sidhuvudet ner till
+  skärmens kant, också bakom tangentbordet: `height:calc(100dvh -
+  var(--sok-topp))` i `app/globals.css`. `dvh` ändras inte av tangentbordet.
+  Sökrutan mäter bara var panelen börjar (`--sok-topp`). ☠️ Räkna aldrig
+  söklägets höjd ur `visualViewport` igen: händelsen kommer för sent på en
+  iPhone. Datorns lista gör det fortfarande (`--sok-max`), och där finns
+  inget tangentbord som glider.
+- **Safari före 15.4** saknar `dvh`. Raden före i samma regel använder
+  `--sok-vh`, skärmens höjd mätt när sökläget öppnas (innan tangentbordet
+  kommit) och sedan bara när fältet inte har fokus eller telefonen vridits.
+  Lightning CSS behåller båda raderna (kontrollerat i den byggda filen).
+- **Bilderna.** Kortens bilder var lata, och i en lista som rullar för sig
+  själv hämtar Safari en lat bild först när den syns. Nu hämtas de sex första
+  direkt och resten när listan stått still 250 ms (`BILDER_DIREKT`,
+  `ALLA_BILDER_EFTER_MS`): den som skriver vidare hämtar inte tolv bilder per
+  bokstav. Med datasparläge eller 2G är resten lata som förut.
+
+### 2. Bilderna i listorna
+
+"När man trycker visa mer bilder o bläddrar så ska alla bilder dyka upp
+direkt, bläddrar man fort ser man vissa som saknas i några 100 ms." Korten
+efter de två första är lata. Safari på iPhone börjar hämta en lat bild
+ungefär en skärmhöjd i förväg, ett svep går fortare än så, och hämtningen tar
+100–300 ms. ☠️ Chromium hämtar 1 250 px i förväg och visar därför inte felet
+med sina egna inställningar: `audit/lista-bilder.cjs` ställer avståndet till
+850 px (`--blink-settings=lazyImageLoadingDistanceThresholdPx…`), nät 6 Mbit/s
+med 80 ms väntan. Mätt så på `/sok?q=cykel`, före och efter:
+
+| | www före | efter |
+|---|---|---|
+| kortbilder hemma efter 3,5 s utan rullning | 10 av 24 | 24 av 24 |
+| kort som sågs utan bild vid snabb bläddring | 14 | 0 |
+| nya kort i fönstret med bild direkt efter "Visa fler" | 0 av 6 (6 av 6 först efter 1 s) | 6 av 6 |
+| kort utan bild vid bläddring genom den nya omgången | 10 | 0 |
+
+`components/shopbrowser.tsx`, i den ordningen:
+
+- **`bilderDirekt`.** När sidan är färdigladdad och har fått 400 ms på sig,
+  eller så snart kunden rullar, får korten `loading="eager"` och hämtar sina
+  bilder oavsett var de står. ☠️ Bara som tillstånd i webbläsaren, aldrig på
+  servern: React lägger en förladdning i `<head>` för varje `<img>` som inte
+  är lat (mätt 2026-11-12, `lib/kortprioritet.test.ts`). Provet räknar
+  förladdningarna före och efter: 2 och 2.
+- **Nästa omgång förladdas** när knappen "Visa fler" kommer inom 2 400 px
+  från fönstret (`NARA_FLER_PX`, en IntersectionObserver på knappens rad):
+  de 24 bilderna hämtas med `forladdaKortbild`, samma `srcset` och `sizes`
+  som korten, så att trycket ritar kort vars bilder redan ligger i
+  webbläsaren. Saknas listan eller fotona hämtas de då, inte först vid
+  trycket.
+- **Datasparläge och 2G**: inget av det, lata bilder som förut.
+- Den som rullar 0,3 s efter att korten ritats och går igenom alla 24 på en
+  halv sekund hinner fortfarande före nätet (21 kort utan bild mot 23 förut).
+  Det går inte att lösa utan att bilderna ligger i sidan.
+
+**Söksidans bilder** (`lib/list-payload.ts`, `forSokClient`):
+
+- ☠️ **Slutsålda träffar långt ner fick aldrig någon bild.** Bildkartan
+  (`/api/kort-bilder`) har bara det som går att köpa, och söksidan visar också
+  det slutsålda, sist. Mätt på www: 9 av 16 slutsålda för "bil", 6 av 20 för
+  "soffa" och 68 av 80 för "bord" stod kvar med tom fotoruta. Nu bär varje
+  slutsåld träff sin bild i sidan.
+- **De första 240 träffarna bär sin bild i sidan.** Kartan väger 406 kB över
+  nätet (1,0 MB JSON, mätt samma dag) och behövdes förr från tredje omgången
+  kort. En sökning har sällan fler än ett par hundra träffar.
+- **Den kalla vägen tar fotot ur sökindexet** (`lib/sok-kall.ts`,
+  `kandidater`). Varulistan bär bild för 147 av 7 071 rader, så en sökträff
+  stod utan foto tills kartan hämtats. Indexet har varje varas bild och är
+  redan hämtat. Kortets andra bild (svepet) finns bara i kartan: listan hämtar
+  den i bakgrunden (`andraBilderUrKartan`) och fyller i den (`medBild`).
+
+### 3. Samma varor i sökläget och på resultatsidan
+
+"När man söker på saker så hoppar det till o kmr med lite andra produkter än
+de som syntes först." Två orsaker, mätta mot det riktiga indexet (7 853
+varor): lagerregeln var två (sidan lägger det köpbara först bland alla
+träffar, rutan klippte tolv och sänkte sedan de slutsålda bland dem), och den
+kalla vägen rankade i varulistans ordning medan indexet och servern står
+nyast först. Lika bra träffar står i den ordning de kom in.
+
+`lib/sok-ordning.ts` är nu den enda regeln: katalogen rankas nyast först
+(`katalogensSokordning`, i sökindexet och på söksidan; `kandidater` följer
+indexets ordning), det köpbara läggs först bland alla träffar (`kopbaraForst`)
+och sedan klipps listan. `lib/sok-ordning.test.ts` kör de tre vägarnas steg på
+samma katalog och kräver samma lista. Mätt: 40 sökord mot riktiga data, 0
+skillnader mellan rutans tolv och sidans tolv första och 0 mellan den kalla
+och den varma vägens hela lista; i webbläsaren 17 av 17 lika (förr skilde sig
+"bil" från plats 10).
+
+☠️ En slutsåld vara syns i sökrutan bara när de köpbara träffarna är färre än
+rutans platser. Det är sidans regel, och den som skriver varans namn får få
+träffar. Kontaktformulärets väljare (`rankaForslag`) klipper fortfarande på
+relevans först: där letar kunden efter en vara den redan köpt.
+
+### 4. "Kastas längst ner på sidan": fyra vägar till sidfoten
+
+Samma symtom varje gång: listan börjar om med 24 kort medan webbläsaren står
+kvar på en plats som låg längre ner än så, och sidan klipps till sin
+nederkant. ☠️ En lista som blir kortare under kunden ställer kunden vid
+sidfoten. Kontrollera `kvar till botten` i proven, inte bara antalet kort.
+
+1. **Samma sökning en gång till.** Rutan behåller sitt ord på resultatsidan,
+   så "Visa alla 178" och Enter leder ofta till sidan man redan står på. Den
+   hämtades igen, varorna kom i en ny array, och listan nollställde sitt
+   antal. Mätt på www (`audit/sok-samma.cjs`): 72 kort och y 7 236 blev 24
+   kort och "kvar till botten 0". Två rättelser: sökrutan hämtar ingenting
+   när resultatsidan för ordet redan står framme (`resultatsidanVisar`), den
+   stänger sökläget och visar sidan från början; och listan börjar om när
+   varorna byts, inte när samma varor kommer i en ny array (`produktNyckel`:
+   antalet och första och sista varan).
+2. **En sökning strax efter bakåt.** Sökrutan byter sida med `router.push`
+   från en knapp eller Enter, och det är inget tryck på en länk. Inom tio
+   sekunder efter ett bakåtsteg trodde resultatsidan att kunden kommit dit
+   med bakåt och ställde tillbaka ett gammalt sparat läge: 72 kort, 9 564 px
+   ner (`audit/sok-hopp.cjs`). Nu noterar sidhuvudets skript varje ny post i
+   historiken (`history.pushState` → `window.__fpNy`) och vilken adress ett
+   bakåtsteg landade på (`__fpTravTill`), och `komMedHistoriken` kräver båda.
+   ☠️ Signalen sitter på `pushState`, inte på varje `router.push`: en spärr
+   man måste komma ihåg glöms bort.
+3. **Bakåt efter att ha lämnat listan på annat sätt än via ett kort.** Läget
+   sparades bara när ett kort trycktes. En vara i sökläget, loggan, menyn
+   eller en vanlig länk, och sedan bakåt: 24 kort vid sidfoten, fyra vägar av
+   fyra på www (`audit/bakat-annan-vag.cjs`). Nu sparar listan sin plats vid
+   varje rullning (en kvarts sekund efter att sidan stannat, med kortet överst
+   i fönstret som ankare), när den lämnas och när sidan göms. ☠️ Lyssnaren
+   sitter i en `useLayoutEffect`: en passiv effekt städas efter att Next
+   rullat den nya sidan till toppen, och hade sparat y = 0 under den nya
+   sidans adress. Adressen noteras vid rullningen av samma skäl: när listan
+   tas bort är adressen redan den nya sidans. ☠️ Läget hör till besöket det
+   sparades under: en lista som ritas utan att kunden kommit med bakåt eller
+   en omladdning glömmer det gamla läget (`glomListlage`). Annars hade den som
+   var djupt nere för en kvart sedan, kom dit igen med en länk och gick bakåt
+   utan att ha rullat hamnat där den stod förra gången.
+4. **En omladdad sida.** En flik som legat i bakgrunden på telefonen laddas
+   om av sig själv, och webbläsaren ställer tillbaka sin plats på en sida med
+   24 kort. Listan ställer nu tillbaka sitt läge också efter en omladdning
+   (`laddadesOm` i `lib/sidminne.ts`), men bara på adressen dokumentet
+   laddades på och bara tills sidan bytts.
+
+5. **Webbläsaren gled mot sin gamla plats medan listan hoppade dit.** Sidan
+   har `scroll-behavior:smooth`, och efter en hel sidladdning med bakåt eller
+   en omladdning glider Chromium mjukt från sidans topp mot platsen den minns.
+   Listans hopp mitt i glidet hamnade 49–109 px fel
+   (`audit/loggan-spar.cjs`). Sidhuvudets skript stänger nu av glidet medan
+   platsen ställs tillbaka (`lugn()` i `SIDBYTE_SKRIPT`): 1,2 s efter ett steg
+   i historiken, och från att ett dokument laddats med bakåt eller om till
+   1,2 s efter att det är färdigladdat. Det gäller varje sida, inte bara
+   listorna: bakåt står på sin plats direkt i stället för att glida dit.
+
+☠️ **Proven ska trycka utan att rulla.** Sidan har mjuk rullning
+(`scroll-behavior:smooth`), och Playwrights `click()` rullar fram elementet
+först. Ett tryck mitt i den rullningen lämnar sidan på en annan plats än den
+uppmätta: tre varv gav 0, 19 och 126 px "fel" som var provets. `domKlick` i
+`audit/bakat-annan-vag.cjs` trycker i sidan utan att rulla.
+
+**Mätt mot det lokala bygget:** samma sökning igen y 0 med 72 kort kvar (fyra
+vägar); sökning efter bakåt y 0 med 24 kort; bakåt via loggan, en vara i
+sökläget, en vanlig länk och en omladdning ger samma antal kort med samma
+kort på samma pixel (72 kort, y 8 600 → 8 600); ett nytt besök utan rullning,
+bort och bakåt står överst med 24 kort; bakåt via ett kort som förut
+(kategori, sök och sorterad lista, också framåt och bakåt igen). Söklägets 62
+kontroller, de nio extra och de äldre 61, 47 och 36 är gröna, och
+produktsidans huvudbild begärs fortfarande en gång, 32–79 ms efter trycket.
+
+☠️ **Inte provat på en riktig telefon.** Tangentbordet finns inte i Chromium
+och visas inte på BrowserStack. Att `dvh` inte ändras av tangentbordet är
+webbläsarnas dokumenterade beteende, inte något mätt här: det är därför
+panelens höjd står i stilmallen och inte räknas i kod. Kvittot är Leonards
+telefon.
+
+**Sett men inte ändrat:**
+
+- Lika bra träffar står nyast först. "bilar" börjar därför med ett hundgaller
+  för bilen, som råkar vara nyast. Dyrast först gav rimligare listor i ett
+  prov mot indexet, men det är ett val om sortimentet och Leonards att göra.
+- Bildkartan väger 406 kB och hämtas av listsidorna från tredje omgången
+  kort. Varulistan (`/api/lista`) kunde bära bilderna för fler rader.
+- Den kalla söksidan hämtar varulistan (781 kB) och indexet (532 kB) innan
+  den kan svara.

@@ -300,7 +300,12 @@ test("☠️ den kalla vägen söker också bland de slutsålda: varulistan har 
     { n: "Hylla utan märke", s: "hylla", i: "d.jpg", p: "499 kr" },                // köpbar men inte i listan: läggs inte till
   ];
   const alla = kandidater(lista, index);
-  assert.deepEqual(alla.map((p) => p.slug), ["tv-bank-valnot", "sittbank", "tv-bank-svart"]);
+  // Raderna följer indexets ordning (lib/sok-ordning.ts), inte listans.
+  assert.deepEqual(alla.map((p) => p.slug), ["tv-bank-valnot", "tv-bank-svart", "sittbank"]);
+  // Listans kort vinner över indexets rad, men fotot som listan saknar tas ur indexet.
+  assert.equal(alla[2].inStock, true);
+  assert.equal(alla[2].price, "899 kr");
+  assert.deepEqual(alla.map((p) => p.img), ["a.jpg", "b.jpg", "c.jpg"]);
   // Med den slutsålda med har ett namn alla sökord, så "svart" stryks inte.
   const r = rankaMedInfo(alla, (p) => p.name, "svart tv-bänk");
   assert.deepEqual(r.strukna, []);
@@ -424,7 +429,7 @@ test("sökrutan: antal i knappen, kryss, alla sökord i fetstil och uppläst rad
 test("☠️ listan börjar om när varorna byts: prisreglaget blev ett filter ingen valt", async () => {
   const { readFileSync } = await import("node:fs");
   const vy = readFileSync(new URL("../components/sok-vy.tsx", import.meta.url), "utf8");
-  assert.match(vy, /<ShopBrowser key=\{`\$\{q\}\|\$\{visaAlla \? "alla" : "inom"\}`\} products=\{visade\} defaultSort="rel" \/>/);
+  assert.match(vy, /<ShopBrowser key=\{`\$\{q\}\|\$\{visaAlla \? "alla" : "inom"\}`\} products=\{visade\} defaultSort="rel" andraBilderUrKartan=\{klar\.kall\} \/>/);
   // Knapparna i beskeden och i sökrutan ska inte få webbläsarens grå ram.
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
   for (const k of [".search-rensa", ".sugg-rensa", ".sok-besked-knapp"]) {
@@ -444,7 +449,8 @@ test("förslagen med antal: gallringen görs före klippet", async () => {
   assert.equal(alla.slice(0, 3).filter((v) => inomPris({ max: 2000 }, prisTal(v.p))).length <= 3, true);
   const { readFileSync } = await import("node:fs");
   const index = readFileSync(new URL("./sok-rankning.ts", import.meta.url), "utf8");
-  assert.match(index, /const kvar = behall \? utfall\.traffar\.filter\(behall\) : utfall\.traffar;[\s\S]{0,120}kvar\.slice\(0, antal\)/);
+  // Gallra på priset, lägg det köpbara först, klipp: i den ordningen (lib/sok-ordning.ts).
+  assert.match(index, /const kvar = kopbaraForst\(behall \? utfall\.traffar\.filter\(behall\) : utfall\.traffar, \(h\) => h\.o === 1\);[\s\S]{0,60}traffar: kvar\.slice\(0, antal\),/);
   assert.match(index, /totalt: kvar\.length/);
 });
 
@@ -737,6 +743,8 @@ test("sökrutan visar förslagets varor och säger vilket ord det gäller", asyn
   const kall = readFileSync(new URL("../components/sok-kall.tsx", import.meta.url), "utf8");
   // ☠️ Söksidan rankar med samma regel, och två bokstäver letar aldrig i beskrivningarna.
   assert.match(sida, /const \{ utfall, visar: ordet \} = rankaMedForslag\(all, \(p\) => p\.name, fraga\);/);
+  // `all` är katalogen i sökningens ordning (lib/sok-ordning.test.ts).
+  assert.match(sida, /const all = term \? katalogensSokordning\(await getProducts\(\)\) : \[\];/);
   assert.match(sida, /else if \(kategorier\.length === 0 && !kortOrd\(fraga\)\) \{/);
   assert.match(sida, /if \(visar\) kategorier = matchaKategorier\(visar, allaKategorier, 3\);/);
   assert.match(kall, /const \{ utfall: u, visar \} = rankaMedForslag\(kandidater\(lista, slutsalda\), \(p\) => p\.name, prisfraga\.fraga\);/);

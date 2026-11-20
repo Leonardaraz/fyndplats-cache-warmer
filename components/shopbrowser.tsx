@@ -28,14 +28,39 @@ import type { ListaInfo } from "../lib/list-pages";
 import { productCountLabel, produktOrd, tusental } from "../lib/rating";
 import { spelaUppTidigaKlick } from "../lib/tidiga-klick";
 import { lasSidan } from "../lib/las-sidan";
+import { prefersDataSaving } from "../lib/gallery-preload";
 import { rullaDirekt } from "./use-landa-vid-bilder";
-import { komMedHistoriken, lasListlage, sparaListlage, type Fonster, type Listlage } from "../lib/sidminne";
+import { glomListlage, komMedHistoriken, laddadesOm, lasListlage, sparaListlage, type Fonster, type Listlage } from "../lib/sidminne";
 
 // Hur många kort vi renderar initialt + per "Visa fler"-klick. Re-audit
 // (2026-05-31): /alla-produkter renderade alla 207 produkter (≈411 <img>) på en
 // gång → layout-arbete för hundratals kort frös scrollen. Vi paginerar till en
 // hanterbar batch och håller DOM:en liten tills användaren ber om mer.
 const PAGE_SIZE = 24;
+
+// ☠️ BILDERNA SKA STÅ DÄR NÄR KORTET RULLAR IN (Leonard 2026-11-20: "när man
+// trycker visa mer bilder o bläddrar så ska alla bilder dyka upp direkt,
+// bläddrar man fort ser man vissa som saknas i några 100 ms").
+//
+// Korten efter de två första är lata: bilden börjar hämtas först när kortet
+// närmar sig fönstret. Safari på iPhone börjar ungefär en skärmhöjd i förväg,
+// ett svep med tummen går fortare än så, och hämtningen tar 100–300 ms på
+// mobilnät. Kunden hann dit före bilden. Tre saker, i den ordningen:
+//
+//   1. När sidan är färdigladdad (eller kunden börjar rulla) hämtas bilderna
+//      för ALLA kort som står i listan, inte bara dem nära fönstret
+//      (`bilderDirekt`). 24 kort är runt 0,3 MB på en telefon.
+//   2. Närmar sig knappen "Visa fler" förladdas nästa omgångs 24 bilder, med
+//      samma adress som korten sedan frågar efter (forladdaKortbild). Trycket
+//      ritar då kort vars bilder redan ligger i webbläsaren.
+//   3. Nya kort ritas med bilden satt att hämtas direkt.
+//
+// Den som sparar data, eller sitter på 2G, får allt som förut: lata bilder.
+// Inget av det här görs på servern: en bild som inte är lat får en
+// förladdning i <head> av React (se kommentaren vid rutnätet nedan).
+const BILDER_DIREKT_EFTER_MS = 400;
+/** Så långt före knappen "Visa fler" börjar nästa omgångs bilder hämtas. */
+const NARA_FLER_PX = 2400;
 // Underkategori-chips som syns på dator innan "Visa alla" — två rader på
 // 1200 px. Mobilen visar alla i en rad man sveper i sidled.
 const SUB_SYNLIGA = 10;
@@ -100,7 +125,7 @@ export type SubCategory = { name: string; slug: string; count: number; bild?: st
  * för filterpanelen, och resten hämtas från `lista.url` när kunden behöver den
  * (se lib/list-pages.ts). Listsidorna använder det senare; /sok det förra.
  */
-export function ShopBrowser({ products, defaultSort = "img", subs = [], dayMs, lista, facetter }: { products: ListProduct[]; defaultSort?: string; subs?: SubCategory[]; dayMs?: number; lista?: ListaInfo; facetter?: SpecFacett[] }) {
+export function ShopBrowser({ products, defaultSort = "img", subs = [], dayMs, lista, facetter, andraBilderUrKartan = false }: { products: ListProduct[]; defaultSort?: string; subs?: SubCategory[]; dayMs?: number; lista?: ListaInfo; facetter?: SpecFacett[]; /** Kortens andra bild står inte i listan och hämtas ur bildkartan när sidan är färdig (söksidans kalla väg, lib/sok-kall.ts). */ andraBilderUrKartan?: boolean }) {
   // Vyn ritas med en TOM adress både på servern och i webbläsarens första
   // rendering, så att sidan hydreras som den är. Adressen läses först efter
   // monteringen, och bara om den har parametrar ritas vyn om med dem.
@@ -123,7 +148,7 @@ export function ShopBrowser({ products, defaultSort = "img", subs = [], dayMs, l
   // två gånger, ett kort, bakåt. Uppmätt i produktion: 24 kort i stället för
   // 72 och y = 5 833 px, alltså sidfoten. Med standardsorteringen fanns ingen
   // parameter, ingen ommontering och inget fel.
-  const props = { products, defaultSort, dayMs, lista, facetter };
+  const props = { products, defaultSort, dayMs, lista, facetter, andraBilderUrKartan };
   const [adress, setAdress] = useState<{ sp: Adress; n: number }>({ sp: TOM_ADRESS, n: 0 });
   const bytsUt = useRef(false);
   useLayoutEffect(() => {
@@ -191,7 +216,7 @@ function SubNav({ subs }: { subs: SubCategory[] }) {
   );
 }
 
-function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facetter, sp, bytsUt }: { products: ListProduct[]; defaultSort: string; dayMs?: number; lista?: ListaInfo; facetter?: SpecFacett[]; sp: Adress; bytsUt?: { readonly current: boolean } }) {
+function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facetter, andraBilderUrKartan, sp, bytsUt }: { products: ListProduct[]; defaultSort: string; dayMs?: number; lista?: ListaInfo; facetter?: SpecFacett[]; andraBilderUrKartan: boolean; sp: Adress; bytsUt?: { readonly current: boolean } }) {
   const pathname = usePathname();
 
   // Initialt filter-/sorterings-tillstånd läses EN gång ur URL:en (delbar länk).
@@ -336,6 +361,11 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
     forsok(1);
   }, [listaUrl]);
 
+  // Var sidan stod när kunden senast rullade, och under vilken adress. Sparas
+  // som listans läge längre ner ("Bakåt till listan"). `href` och `top` är
+  // kortet överst i fönstret, mätt när sidan stannat.
+  const platsRef = useRef<{ adress: string; y: number; href: string; top: number } | null>(null);
+
   // Sync state → URL. Bygger på window.location.search så befintliga params
   // (t.ex. ?kategori på /alla-produkter) bevaras. Kör vid mount men skriver bara
   // om URL:en faktiskt skiljer sig → ingen onödig history-replace eller loop.
@@ -367,7 +397,11 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
     // tillbaka rullade sidan upp till innehållets topp trots scroll:false
     // (uppmätt: 747 → 180 px efter ett klick på "Rea"). Next 16 synkar
     // useSearchParams med den inbyggda historiken, så inget annat behöver ändras.
-    if (url !== current) window.history.replaceState(null, "", url);
+    if (url !== current) {
+      window.history.replaceState(null, "", url);
+      // Läget sparas under adressen listan har nu, också om kunden inte rullar mer.
+      if (platsRef.current) platsRef.current.adress = url;
+    }
   }, [bytsUt, sort, urlPrice, colorStr, onlyInStock, onlyOnSale, pathname, intervallF, specValt, valF, val]);
 
   // Prisfiltrets gränser. Handtagen filtrerar direkt (räknaren följer med under
@@ -667,9 +701,12 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
   // sätt vi inte förutsåg (delad länk med filter i URL:en, t.ex.) — hämta då.
   const saknarBild = (p: ListProduct) => !p.img && !bilder?.[p.slug];
   const medBild = (p: ListProduct): ListProduct => {
-    if (p.img) return p;
     const b = bilder?.[p.slug];
-    return b ? { ...p, img: b[0], altImg: b[1] ?? undefined } : p;
+    if (!b) return p;
+    if (!p.img) return { ...p, img: b[0], altImg: b[1] ?? undefined };
+    // Söksidans kalla väg: fotot kommer ur sökindexet, som inte har någon
+    // andra bild (lib/sok-kall.ts). Den fylls i när kartan kommit.
+    return !p.altImg && b[1] ? { ...p, altImg: b[1] } : p;
   };
   // FÄRGEN KUNDEN FILTRERAT PÅ. Väljs "Blå" visar kortet den blå varianten och
   // länkar till produktsidan med färgen vald (?farg=), i stället för
@@ -681,12 +718,21 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
     if (!k) return { p };
     return { p: { ...p, img: p.fargBild[k], altImg: undefined }, href: `/produkt/${p.slug}?farg=${encodeURIComponent(k)}` };
   };
+  // ☠️ INNEHÅLLET, INTE IDENTITETEN (2026-11-20). Förr stod `products` själv i
+  // listan nedan. Varje gång sidan ritades om från servern med samma varor
+  // (samma sökning skickad en gång till från sökrutan) var det en ny array, och
+  // listan krympte från 72 kort till 24. Sidan blev kortare än platsen kunden
+  // stod på, och webbläsaren flyttade kunden till sidfoten: "kvar till botten
+  // 0" på www (audit/sok-samma.cjs), Leonards "kastas man längst ner på sidan".
+  // Antalet och första och sista varan räcker: en annan lista skiljer sig där,
+  // och skulle den inte göra det står korten kvar, vilket inte skadar någon.
+  const produktNyckel = `${products.length}|${products[0]?.slug ?? ""}|${products[products.length - 1]?.slug ?? ""}`;
   useEffect(() => {
     // Hoppa över första körningen så en delad länk inte nollställer en ev.
     // bevarad scroll-position direkt vid mount.
     if (firstRender.current) { firstRender.current = false; return; }
     setShown(PAGE_SIZE);
-  }, [sort, urlPrice, colorStr, onlyInStock, onlyOnSale, products, specValtStr, valStr]);
+  }, [sort, urlPrice, colorStr, onlyInStock, onlyOnSale, produktNyckel, specValtStr, valStr]);
   const visible = list.slice(0, shown);
 
   // Innan hela listan kommit vet bara sammanfattningen hur många som finns —
@@ -702,19 +748,30 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
   const behoverLista = !!lista && !alla && shown > sidansKort;
   const vantar = behoverLista && !listaFel;
 
-  // ── Bakåt från en produkt: samma kort, på samma plats ─────────────────────
+  // ── Bakåt till listan: samma kort, på samma plats ─────────────────────────
   //
-  // Trycket sparar hur många kort som visades och var kortet stod i fönstret.
-  // Kommer kunden tillbaka med bakåt visas lika många kort igen, och sidan
-  // rullas så att kortet står där det stod. Allt före första målningen när
-  // listan redan är hämtad; annars när den kommit.
+  // Läget sparas på två sätt (lib/sidminne.ts): trycket på ett kort sparar hur
+  // många kort som visades och var kortet stod i fönstret, och varje rullning
+  // sparar hur många kort som visades och var sidan stod. Kommer kunden
+  // tillbaka med bakåt, eller laddas sidan om, visas lika många kort igen, och
+  // sidan rullas så att
+  // kortet står där det stod, eller till platsen när listan lämnades på annat
+  // sätt än via ett kort. Allt före första målningen när listan redan är
+  // hämtad; annars när den kommit.
   const aterstall = useRef<Listlage | null>(null);
   useLayoutEffect(() => {
     let l: Listlage | null = null;
     try {
       const nav = performance.getEntriesByType?.("navigation")[0] as PerformanceNavigationTiming | undefined;
-      if (!komMedHistoriken(window as unknown as Fonster, Date.now(), nav?.type)) return;
-      l = lasListlage(window.sessionStorage, location.pathname + location.search, Date.now());
+      const adress = location.pathname + location.search;
+      const w = window as unknown as Fonster;
+      // Bakåt och framåt, och en omladdning av sidan (lib/sidminne.ts). Ett
+      // nytt besök börjar om: läget från förra gången hör inte hit.
+      if (!komMedHistoriken(w, Date.now(), nav?.type, adress) && !laddadesOm(w, nav?.type, adress)) {
+        glomListlage(window.sessionStorage, adress);
+        return;
+      }
+      l = lasListlage(window.sessionStorage, adress, Date.now());
     } catch { return; }
     if (!l) return;
     aterstall.current = l;
@@ -733,19 +790,76 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
     if (!l || shown < l.shown) return;
     if (behoverLista && !listaFel) return;
     aterstall.current = null;
-    const a = document.querySelector<HTMLElement>(`.prodgrid a.prod[href="${CSS.escape(l.href)}"]`);
-    if (!a) return;
-    rullaDirekt(scrollY + a.getBoundingClientRect().top - l.top);
+    const a = l.href ? document.querySelector<HTMLElement>(`.prodgrid a.prod[href="${CSS.escape(l.href)}"]`) : null;
+    if (a) rullaDirekt(scrollY + a.getBoundingClientRect().top - l.top);
+    else if (typeof l.y === "number") rullaDirekt(l.y);
   });
   const sparaLage = (e: MouseEvent) => {
     const a = (e.target as HTMLElement).closest?.("a.prod");
     if (!a) return;
     try {
       sparaListlage(window.sessionStorage, location.pathname + location.search, {
-        shown, href: a.getAttribute("href") ?? "", top: Math.round(a.getBoundingClientRect().top), t: Date.now(),
+        shown, href: a.getAttribute("href") ?? "", top: Math.round(a.getBoundingClientRect().top), y: Math.round(window.scrollY), t: Date.now(),
       });
+      // Kortets läge är det färskaste tills kunden rullar igen.
+      platsRef.current = null;
     } catch { /* ingen lagring: bakåt beter sig som förut */ }
   };
+
+  // ☠️ LÄGET SPARAS HUR KUNDEN ÄN LÄMNAR LISTAN (2026-11-20, lib/sidminne.ts).
+  // Rullningen noteras när den sker, medan adressen ännu är listans egen, och
+  // skrivs en kvarts sekund efter att sidan stannat (då med kortet överst i
+  // fönstret som ankare), när listan lämnas och när sidan göms (en vanlig
+  // länk, en annan flik).
+  //
+  // useLayoutEffect, inte useEffect: städningen ska köras i samma andetag som
+  // listan tas bort. En passiv effekt städas senare, och då har Next redan
+  // rullat den nya sidan till toppen: lyssnaren hade noterat y = 0 under den
+  // NYA sidans adress.
+  const shownRef = useRef(shown);
+  useLayoutEffect(() => { shownRef.current = shown; });
+  useLayoutEffect(() => {
+    let klocka: number | undefined;
+    const spara = () => {
+      const plats = platsRef.current;
+      // Medan ett sparat läge väntar på att ställas tillbaka (listan hämtas)
+      // är sidans plats inte kundens: skriv inte över det.
+      if (!plats || aterstall.current) return;
+      try {
+        sparaListlage(window.sessionStorage, plats.adress, { shown: shownRef.current, href: plats.href, top: plats.top, y: plats.y, t: Date.now() });
+      } catch { /* ingen lagring: bakåt beter sig som förut */ }
+    };
+    // Kortet överst i fönstret, som ankare: efter en hel sidladdning kan
+    // raderna stå några pixlar annorlunda tills typsnitten kommit, och då
+    // träffar kortet rätt där ett rent y-värde hamnar bredvid. Mäts när sidan
+    // stannat, inte under rullningen, och bara medan sidan står där den mättes.
+    const stannat = () => {
+      klocka = undefined;
+      const plats = platsRef.current;
+      if (plats && Math.abs(window.scrollY - plats.y) <= 1) {
+        for (const a of document.querySelectorAll<HTMLElement>(".prodgrid.shoplista a.prod")) {
+          const topp = a.getBoundingClientRect().top;
+          if (topp < 0) continue;
+          if (topp < window.innerHeight) { plats.href = a.getAttribute("href") ?? ""; plats.top = Math.round(topp); }
+          break;
+        }
+      }
+      spara();
+    };
+    const rullat = () => {
+      platsRef.current = { adress: location.pathname + location.search, y: Math.max(0, Math.round(window.scrollY)), href: "", top: 0 };
+      if (klocka !== undefined) window.clearTimeout(klocka);
+      klocka = window.setTimeout(stannat, 250);
+    };
+    window.addEventListener("scroll", rullat, { passive: true });
+    window.addEventListener("pagehide", spara);
+    return () => {
+      window.removeEventListener("scroll", rullat);
+      window.removeEventListener("pagehide", spara);
+      if (klocka !== undefined) window.clearTimeout(klocka);
+      spara();
+    };
+  }, []);
 
   // Behövs listan och har den inte begärts, begär den. Täcker allt som inte
   // går via avsikts-signalerna nedan — framför allt prisreglaget, färgskenan
@@ -835,6 +949,62 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
   useEffect(() => {
     if (nagotKortSaknarBild) hamtaBilder();
   }, [nagotKortSaknarBild, hamtaBilder]);
+
+  // ── Bilderna hämtas före bläddringen (se BILDER_DIREKT_EFTER_MS) ──────────
+  //
+  // Sant när sidan är färdigladdad och har fått en stund på sig, eller så
+  // snart kunden rullar. Då hämtar korten sina bilder direkt i stället för
+  // när de närmar sig fönstret. Väntan finns för att sidans första bilder och
+  // skript inte ska dela bandbredd med kort som ingen ser än.
+  const [bilderDirekt, setBilderDirekt] = useState(false);
+  useEffect(() => {
+    const conn = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+    if (prefersDataSaving(conn)) return;
+    let klocka: number | undefined;
+    const nu = () => setBilderDirekt(true);
+    const start = () => { klocka = window.setTimeout(nu, BILDER_DIREKT_EFTER_MS); };
+    if (document.readyState === "complete") start();
+    else window.addEventListener("load", start, { once: true });
+    // Rullningen räknas först efter en stund: när sidan byts rullar Next den
+    // till toppen, och det är inte kunden som bläddrar.
+    const lyssna = window.setTimeout(() => window.addEventListener("scroll", nu, { once: true, passive: true }), 300);
+    return () => {
+      window.removeEventListener("load", start);
+      window.removeEventListener("scroll", nu);
+      window.clearTimeout(lyssna);
+      if (klocka !== undefined) window.clearTimeout(klocka);
+    };
+  }, []);
+
+  // Nästa omgång förladdas när knappen "Visa fler" närmar sig fönstret.
+  const visarFler = remaining > 0 && !(listaFel && behoverLista);
+  const flerRef = useRef<HTMLDivElement>(null);
+  const [narFler, setNarFler] = useState(false);
+  useEffect(() => {
+    const el = flerRef.current;
+    if (!visarFler || !el || typeof IntersectionObserver !== "function") return;
+    const io = new IntersectionObserver(([e]) => setNarFler(e.isIntersecting), { rootMargin: `${NARA_FLER_PX}px 0px` });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [visarFler]);
+  useEffect(() => {
+    if (!narFler || !bilderDirekt) return;
+    const nasta = list.slice(shown, shown + PAGE_SIZE);
+    // Saknas listan eller nästa omgångs foton hämtas de nu, inte först vid trycket.
+    if ((lista && !alla) || nasta.some(saknarBild)) hamta();
+    for (const p of nasta) {
+      const bild = iFarg(medBild(p)).p.img;
+      if (bild) forladdaKortbild(bild, true);
+    }
+    // saknarBild, medBild och iFarg följer bilder och colorStr.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [narFler, bilderDirekt, list, shown, bilder, colorStr, lista, alla, hamta]);
+
+  // Söksidans kalla väg: kortens andra bild (svepet på kortet) står i
+  // bildkartan. Den hämtas i bakgrunden; fotona väntar inte på den.
+  useEffect(() => {
+    if (andraBilderUrKartan && bilderDirekt) hamtaBilder();
+  }, [andraBilderUrKartan, bilderDirekt, hamtaBilder]);
 
   return (
     <>
@@ -1084,7 +1254,7 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
           {/* Väntar vi på hela listan står korten kvar, tonade, tills den kommer
               (se .prodgrid.is-vantar i globals.css) — hellre det än ett tomt
               rutnät eller kort som byts ut under fingret. */}
-          <div className={`prodgrid listgrid shoplista${vantar ? " is-vantar" : ""}`} aria-busy={vantar || undefined} onClickCapture={sparaLage}>{visible.map((p, i) => { const f = iFarg(medBild(p)); return <ProductCard p={f.p} href={f.href} key={p.slug} priority={i < 2} tvaKolumner />; })}</div>
+          <div className={`prodgrid listgrid shoplista${vantar ? " is-vantar" : ""}`} aria-busy={vantar || undefined} onClickCapture={sparaLage}>{visible.map((p, i) => { const f = iFarg(medBild(p)); return <ProductCard p={f.p} href={f.href} key={p.slug} priority={i < 2} tvaKolumner bildDirekt={bilderDirekt} />; })}</div>
           {listaFel && behoverLista && (
             <div className="loadmore-wrap">
               <button type="button" className="loadmore" onClick={hamtaLista}>
@@ -1092,10 +1262,11 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
               </button>
             </div>
           )}
-          {remaining > 0 && !(listaFel && behoverLista) && (
-            <div className="loadmore-wrap">
+          {visarFler && (
+            <div className="loadmore-wrap" ref={flerRef}>
               {/* onPointerEnter/onTouchStart: bildkartan är på väg innan klicket
-                  hinner registreras, så nästa 24 kort har sina foton direkt. */}
+                  hinner registreras, så nästa 24 kort har sina foton direkt.
+                  Bilderna själva förladdas när knappen närmar sig (narFler). */}
               <button type="button" className="loadmore"
                 onPointerEnter={hamta} onTouchStart={hamta}
                 disabled={vantar && shown > sidansKort}

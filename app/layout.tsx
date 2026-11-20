@@ -174,7 +174,17 @@ const SIDBYTE_SKRIPT =
   // Tillståndet ligger på linjen själv, inte på <html>: vid en mjuk navigering
   // skriver React om <html>-klassen och linjen släcktes innan den syntes.
   // Den släcks när adressen bytts (mjuk navigering) eller sidan visats (hel).
-  "(function(){var t,i,u0;function el(){return document.querySelector('.sidbyte')}" +
+  "(function(){var t,i,u0,lt;function el(){return document.querySelector('.sidbyte')}" +
+  // ☠️ BAKÅT OCH OMLADDNING STÄLLER PLATSEN DIREKT, UTAN GLID (2026-11-20). Sidan
+  // har scroll-behavior:smooth, och då glider webbläsaren mjukt mot platsen den
+  // minns, från sidans topp. Listan ställer tillbaka sina kort och hoppar till
+  // rätt plats under tiden (lib/sidminne.ts), och hoppet mitt i glidet hamnade
+  // 49–109 px fel (mätt i Chromium, audit/loggan-spar.cjs). Glidet stängs av
+  // medan platsen ställs tillbaka: 1,2 s efter ett steg i historiken, och från
+  // att ett dokument laddats med bakåt eller om till 1,2 s efter att det är
+  // färdigladdat. Fingrets rullning påverkas inte.
+  "function lugn(){var h=document.documentElement;h.style.scrollBehavior='auto';clearTimeout(lt);lt=setTimeout(function(){h.style.scrollBehavior=''},1200)}" +
+  "try{var nv=performance.getEntriesByType('navigation')[0];if(nv&&(nv.type==='back_forward'||nv.type==='reload')){lugn();addEventListener('load',lugn)}}catch(f){}" +
   "function av(){var b=el();if(b)b.removeAttribute('data-pa');clearTimeout(t);clearInterval(i)}" +
   "document.addEventListener('click',function(e){if(e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;" +
   "var a=e.target&&e.target.closest&&e.target.closest('a[href]');if(!a||a.target&&a.target!=='_self'||a.hasAttribute('download'))return;" +
@@ -190,7 +200,15 @@ const SIDBYTE_SKRIPT =
   "var b=el();if(!b)return;b.removeAttribute('data-pa');void b.offsetWidth;b.setAttribute('data-pa','1');" +
   "clearTimeout(t);clearInterval(i);u0=location.href;t=setTimeout(av,8000);" +
   "i=setInterval(function(){if(location.href!==u0)setTimeout(av,150)},100)});" +
-  "addEventListener('pageshow',av);addEventListener('popstate',function(){window.__fpTrav=Date.now();av()})})()";
+  // Bakåt och framåt: när, och vilken adress steget landade på.
+  "addEventListener('pageshow',av);addEventListener('popstate',function(){window.__fpTrav=Date.now();window.__fpTravTill=location.pathname+location.search;lugn();av()});" +
+  // En ny post i historiken: kunden har gått vidare, också när det inte var
+  // ett tryck på en länk (sökrutans knappar, chips och Enter). Next och Googles
+  // tagg lägger sig runt samma metod efter oss och anropar den här.
+  "try{var ps=history.pushState;history.pushState=function(){window.__fpNy=Date.now();return ps.apply(this,arguments)}}catch(f){}" +
+  // Sidan dokumentet laddades på: ett dokument som laddats med bakåt har
+  // kommit med historiken bara till den adressen.
+  "window.__fpStart=location.pathname+location.search})()";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.fyndplats.se"),

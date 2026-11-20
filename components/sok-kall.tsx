@@ -10,20 +10,23 @@
 // Listsidorna hämtar redan hela varulistan som EN CDN-cachad fil
 // (/api/lista?k=alla, app/api/lista/route.ts). Samma fil räcker för att söka:
 // rankningen (lib/search.ts) är ren kod och körs lika gärna här. Träffarna blir
-// de samma som servern ger, utom reserven som letar i beskrivningarna: den
-// texten finns inte i listan.
+// de samma som servern ger, i samma ordning (lib/sok-ordning.ts), utom reserven
+// som letar i beskrivningarna: den texten finns inte i listan.
 //
 // ☠️ Varulistan har bara det som går att köpa, och söksidan visar också det
 // slutsålda. De varorna läggs till ur sökindexet (lib/sok-kall.ts), annars ger
 // de två vägarna olika antal och olika besked.
 //
-// Korten långt ner i listan saknar foto i filen. ShopBrowser fyller i dem ur
-// bildkartan (/api/kort-bilder), som den gör på listsidorna.
+// Korten långt ner i listan saknar foto i filen. Fotot tas ur sökindexet
+// (lib/sok-kall.ts, kandidater), så att korten inte väntar på bildkartan
+// (/api/kort-bilder, 406 kB). Kortets andra bild finns bara i kartan:
+// ShopBrowser hämtar den i bakgrunden (andraBilderUrKartan).
 import { useEffect, useState } from "react";
 import type { ListProduct } from "../lib/products";
 import { matchaKategorier, rankaMedForslag } from "../lib/search";
 import { laddaSokIndex } from "../lib/sok-index";
 import { kandidater } from "../lib/sok-kall";
+import { kopbaraForst } from "../lib/sok-ordning";
 import { harPris, tolkaPris } from "../lib/sok-pris";
 import { populartNu } from "../lib/sok-tom";
 import { registreradeKategorier, type SokKategori } from "../lib/sok-kategorier";
@@ -54,8 +57,9 @@ export function SokKall({ q, kategorier, popularaKategorier }: { q: string; kate
         const prisfraga = tolkaPris(q.trim());
         // Två bokstäver visar varorna för ordet kunden var på väg att skriva (lib/search.ts).
         const { utfall: u, visar } = rankaMedForslag(kandidater(lista, slutsalda), (p) => p.name, prisfraga.fraga);
-        // De köpbara först, relevansordningen kvar inom varje grupp (som på servern).
-        const traffar = [...u.traffar.filter((p) => p.inStock), ...u.traffar.filter((p) => !p.inStock)];
+        // De köpbara först, relevansordningen kvar inom varje grupp: samma regel
+        // som servern och sökrutan (lib/sok-ordning.ts).
+        const traffar = kopbaraForst(u.traffar, (p) => !p.inStock);
         setSvar({
           q,
           data: {
@@ -65,6 +69,7 @@ export function SokKall({ q, kategorier, popularaKategorier }: { q: string; kate
             pris: harPris(prisfraga) ? { max: prisfraga.max, min: prisfraga.min } : undefined,
             populart: traffar.length === 0 ? populartNu(lista, 4) : [],
             popularaKategorier,
+            kall: true,
           },
         });
       })
