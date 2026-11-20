@@ -1,0 +1,97 @@
+{
+  "5429022b": {
+    "productId": "5429022b-b08d-4d88-ac62-eecb9d5fd675",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": []
+  },
+  "b4b6e37b": {
+    "productId": "b4b6e37b-9d70-47d8-b0fc-c73b74027467",
+    "synliga": 0,
+    "dolda": 3,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1v5pi1i",
+        "betyg": 5,
+        "datum": "2026-05-03",
+        "foton": 0,
+        "text": "Correspond parfaitement à mes besoins. Acheté poupée être utilisé avec une petite presse hydraulique"
+      },
+      {
+        "id": "gen-18nwnwn",
+        "betyg": 5,
+        "datum": "2026-01-22",
+        "foton": 0,
+        "text": "Works perfect! The puller worked perfectly for a steering wheel puller than what is sold on the tool trucks! Well packaged"
+      },
+      {
+        "id": "gen-mqaugl",
+        "betyg": 5,
+        "datum": "2025-10-11",
+        "foton": 0,
+        "text": "Practical solution! This product efficiently solves my repair problem. It's exactly what I needed."
+      },
+      {
+        "id": "gen-1gl0667",
+        "betyg": 4,
+        "datum": "2026-04-25",
+        "foton": 0,
+        "text": "Haven't used yet. But like everything else vevor. They look really well and are heavy duty. I'm sure they are going to work out to be great"
+      }
+    ]
+  },
+  "c92fed53": {
+    "productId": "c92fed53-f15a-4d87-b7b5-1b516177c9dc",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1nvrhpv",
+        "betyg": 5,
+        "datum": "2026-09-04",
+        "foton": 0,
+        "text": "Just like everything I have purchased from Vevor. Great price and great quality."
+      },
+      {
+        "id": "gen-12tvpym",
+        "betyg": 4,
+        "datum": "2026-09-23",
+        "foton": 0,
+        "text": "Great for the price but metal is damaged easier than professional brands"
+      }
+    ]
+  },
+  "f48f5fd2": {
+    "productId": "f48f5fd2-c3b4-4fa8-83d6-3a2cea008441",
+    "synliga": 0,
+    "dolda": 1,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1dpbfwg",
+        "betyg": 4,
+        "datum": "2026-10-26",
+        "foton": 0,
+        "text": "Das Werkzeug Set an sich ist hochwertig und durchaus gut zu benutzen einen Stern Abzug dafür dass es nur in der Hartwchaum Einlage ohne einen Koffer o.ä. Geliefert wird"
+      },
+      {
+        "id": "gen-1frjuyn",
+        "betyg": 4,
+        "datum": "2026-07-21",
+        "foton": 0,
+        "text": "Parecen de buena calidad, aunque también compré unos destornilladores para electricista que lo parecían y a la primera se me rompió uno y otro se me dobló... veremos a ver que tal estos vasos... Lo que no me ha gustado es que no venga con un maletín o caja, simplemente viene con un acolchado sin más, ahora a buscarse un maletín para guardarlos bien y que no se muevan."
+      }
+    ]
+  }
+}
