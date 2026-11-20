@@ -486,6 +486,235 @@ function ordslutAvstand(pattern: string, text: string, a: number, b: number, max
   return best;
 }
 
+// ── Stavfelsledet räknar per ORD, inte per namn (2026-11-20) ─────────────────
+// fuzzyOrdslut går ett ord i taget, och svaret beror bara på ordet. Katalogens
+// 7 900 namn har runt 80 000 ord, men bara 9 000 OLIKA: stavfelsledet räknade
+// samma ord om och om igen, vid varje tangent i ett ord som inget namn har.
+// Mätt med processorn strypt fyra gånger (som en telefon): en tangent i
+// "kontorsmöbler" höll skärmen i 766 ms. Nu räknas avståndet en gång per
+// unikt ord (felPerOrd), och namnet slår upp sina ord i tabellen. Svaren är
+// desamma, bokstav för bokstav (13 933 provsökningar, samma dag).
+
+/** Namnens ord: varje unikt ord en gång, och vilka ord varje namn har. */
+type Ordlista = {
+  ord: string[];
+  /** Vilka tecken ordet har, se stavmask. */
+  mask: Int32Array;
+  /** Namn i har orden ids[start[i] .. start[i + 1]). */
+  start: Int32Array;
+  ids: Int32Array;
+  /** Avstånden per sökord och antal fel, de senast använda. */
+  tabeller: Map<string, Uint8Array>;
+};
+
+/** Samma tecken som BOKSTAV, på teckenkoden. */
+function arBokstavskod(c: number): boolean {
+  return (c >= 97 && c <= 122) || (c >= 48 && c <= 57) || c === 229 || c === 228 || c === 246;
+}
+
+/**
+ * Vilka tecken ordet har, en bit per tecken: a–z, å, ä, ö, och en gemensam bit
+ * för siffror. Varje tecken i sökordet som ordet saknar kostar minst ett fel,
+ * så ett ord som saknar fler olika tecken än felen tillåter kan inte träffa.
+ */
+function stavmask(ord: string): number {
+  let m = 0;
+  for (let i = 0; i < ord.length; i++) {
+    const c = ord.charCodeAt(i);
+    if (c >= 97 && c <= 122) m |= 1 << (c - 97);
+    else if (c === 229) m |= 1 << 26;
+    else if (c === 228) m |= 1 << 27;
+    else if (c === 246) m |= 1 << 28;
+    else if (c >= 48 && c <= 57) m |= 1 << 29;
+  }
+  return m;
+}
+
+/**
+ * Namnlistans ord, byggda en gång. Stavfelsledet slår i dem (felPerOrd), och
+ * ordräkningen, orden som står för sig och de kända delarna räknas ur dem
+ * (ordAntal, egnaOrd, kandaOrd) i stället för att dela upp varje namn på nytt:
+ * det var en tredjedel av uppvärmningen (mätt 2026-11-20).
+ * Orden delas som tokenize delar ett normaliserat namn: följder av a–z, å, ä,
+ * ö och siffror (lib/sok-2026-11-20.test.ts jämför de två).
+ */
+function listaFor(namn: readonly string[], sparat: ListFormer): Ordlista {
+  return (sparat.ordlista ??= byggOrdlista(namn));
+}
+
+/**
+ * För testerna: orden som ordlistan ser i varje namn, i ordning, och i hur
+ * många namn varje ord står (se listaFor och ordAntal).
+ */
+export function ordlistansOrd(namn: readonly string[]): { ord: string[][]; antal: [string, number][] } {
+  const lista = byggOrdlista(namn);
+  return {
+    ord: namn.map((_, i) => Array.from(lista.ids.subarray(lista.start[i], lista.start[i + 1]), (id) => lista.ord[id])),
+    antal: [...ordAntal(lista)],
+  };
+}
+
+function byggOrdlista(namn: readonly string[]): Ordlista {
+  const plats = new Map<string, number>();
+  const ord: string[] = [];
+  const start = new Int32Array(namn.length + 1);
+  const ids: number[] = [];
+  for (let i = 0; i < namn.length; i++) {
+    start[i] = ids.length;
+    const text = namn[i];
+    const n = text.length;
+    // Orden som fuzzyOrdslut ser dem: följder av bokstäver och siffror.
+    for (let a = 0; a < n; ) {
+      if (!arBokstavskod(text.charCodeAt(a))) { a++; continue; }
+      let b = a + 1;
+      while (b < n && arBokstavskod(text.charCodeAt(b))) b++;
+      const w = text.slice(a, b);
+      let id = plats.get(w);
+      if (id === undefined) {
+        id = ord.length;
+        ord.push(w);
+        plats.set(w, id);
+      }
+      ids.push(id);
+      a = b;
+    }
+  }
+  start[namn.length] = ids.length;
+  const mask = new Int32Array(ord.length);
+  for (let w = 0; w < ord.length; w++) mask[w] = stavmask(ord[w]);
+  return { ord, mask, start, ids: Int32Array.from(ids), tabeller: new Map() };
+}
+
+/** Inget ord i tabellen ligger inom felen. */
+const INGET_FEL = 255;
+
+/** Avståndet från sökordet till slutet av varje ord i listan (som fuzzyOrdslut), INGET_FEL utanför `maxDist`. */
+function felPerOrd(lista: Ordlista, s: string, maxDist: number): Uint8Array {
+  const nyckel = `${maxDist}|${s}`;
+  const sparad = lista.tabeller.get(nyckel);
+  if (sparad) return sparad;
+  const ut = new Uint8Array(lista.ord.length).fill(INGET_FEL);
+  const m = s.length;
+  const sMask = stavmask(s);
+  for (let w = 0; w < lista.ord.length; w++) {
+    const o = lista.ord[w];
+    const L = o.length;
+    if (L < m - maxDist || L >= RAD_MAX) continue;
+    if (bitar(sMask & ~lista.mask[w]) > maxDist) continue;
+    const d = ordslutAvstand(s, o, 0, L, maxDist);
+    if (d <= maxDist) ut[w] = d;
+  }
+  // De senaste sökorden sparas: samma ord prövas i flera varv, och igen vid
+  // nästa tangent när sökningen skrivs om till samma ord.
+  if (lista.tabeller.size >= 24) lista.tabeller.delete(lista.tabeller.keys().next().value as string);
+  lista.tabeller.set(nyckel, ut);
+  return ut;
+}
+
+/** fuzzyOrdslut för namn `ni`, ur tabellen. */
+function felINamn(lista: Ordlista, ni: number, s: string, maxDist: number): number {
+  const tabell = felPerOrd(lista, s, maxDist);
+  let bast = INGET_FEL;
+  for (let k = lista.start[ni], slut = lista.start[ni + 1]; k < slut; k++) {
+    const d = tabell[lista.ids[k]];
+    if (d < bast) {
+      bast = d;
+      if (bast === 0) return 0;
+    }
+  }
+  return bast === INGET_FEL ? Infinity : bast;
+}
+
+// ── Teckenmasker: hoppa över namn som saknar ett tecken (2026-11-20) ─────────
+// Ett sökord kan bara stå i ett namn som har alla ordets tecken. Namnens
+// masker räknas en gång per lista, sökordens en gång per varv, och jämförelsen
+// är en enda bitoperation i stället för en genomsökning av namnet. Det ändrar
+// inga svar: masken säger bara "kan inte stå där".
+
+/** Sökordets masker: stammen, ordet som det skrevs, utan prickar, och de böjda formerna. */
+type Unitmasker = { s: number; tok: number; vikt: number; former: number[] };
+/**
+ * Sökningens masker: hela frasen, de sammanskrivna orden, det ensamma ordets
+ * former och varje sökord. `nagon` och `nagonVikt` är förfiltret (se nedan).
+ */
+type Sokmasker = { q: number; ihop: number; ihopVikt: number; former: number[]; units: Unitmasker[]; nagon: number[]; nagonVikt: number[]; baraEgenskaper: boolean };
+
+// FÖRFILTRET: ETT NAMN SOM INTE KAN TRÄFFA JÄMFÖRS INTE ALLS (2026-11-20).
+// Varje väg till en träff i matchPrepared går genom en text som ska stå i
+// namnet: frasen, en böjd form, orden sammanskrivna, ett sökords stam eller
+// synonym. `nagon` är maskerna för alla de texterna (`nagonVikt` för dem som
+// jämförs utan prickar). Har namnet inte alla tecken i någon av dem kan det
+// inte träffa, och hela jämförelsen hoppas över: för ett ord på fem bokstäver
+// eller fler är det de flesta av katalogens namn. Stavfelsledet har sin egen
+// regel (se stavfelsmasker). En mask som rymmer en annan stryks: har namnet
+// inte den mindre har det inte den större.
+function sokmasker(p: Prepared): Sokmasker {
+  const ihop = tokenize(p.q).join("");
+  const units = p.units.map((u) => ({ s: stavmask(u.stem), tok: stavmask(u.tok), vikt: stavmask(u.vikt), former: (u.former ?? []).map(stavmask) }));
+  const q = stavmask(p.q);
+  const ihopMask = stavmask(ihop);
+  const ihopVikt = stavmask(vik(ihop));
+  const former = (p.former ?? []).map(stavmask);
+  // De sammanskrivna orden har samma tecken som frasen (q), så de behöver
+  // ingen egen mask här. Utan prickar har de det: "tå bä" står i "tabard".
+  const nagon: number[] = [q, ...former];
+  const nagonVikt: number[] = p.ihop ? [ihopVikt] : [];
+  p.units.forEach((u, i) => {
+    const um = units[i];
+    nagon.push(um.s);
+    if (u.helord) {
+      if (u.ihopNasta) nagon.push(stavmask(u.ihopNasta));
+      return;
+    }
+    if (u.kortStam) nagon.push(um.tok);
+    nagon.push(...um.former);
+    for (const nd of SYN.get(u.key) ?? []) nagon.push(stavmask(nd));
+    for (const nd of ENVAGS_NALAR.get(u.key) ?? []) nagon.push(stavmask(nd));
+    nagonVikt.push(um.vikt);
+  });
+  return { q, ihop: ihopMask, ihopVikt, former, units, nagon: minstaMasker(nagon), nagonVikt: minstaMasker(nagonVikt), baraEgenskaper: p.units.every((u) => u.egenskap) };
+}
+
+/** Maskerna utan dubbletter och utan dem som rymmer en annan mask i listan. */
+function minstaMasker(masker: readonly number[]): number[] {
+  const unika = [...new Set(masker)];
+  return unika.filter((m) => !unika.some((x) => x !== m && (x & ~m) === 0));
+}
+
+/**
+ * Stavfelsledets förfilter: sökorden som får ha stavfel, med masken och hur
+ * många fel som tillåts. Ett fel byter högst ett tecken, så ett namn som
+ * saknar fler av sökordets tecken än felen tillåter kan inte träffa (samma
+ * regel som felPerOrd har per ord: namnets mask rymmer varje ords).
+ */
+type Stavfelsmasker = { mask: number[]; max: number[] };
+
+/** Förfiltret för ett namn med maskerna `nm` (och `nmv` utan prickar): kan det träffa? */
+function kanTraffa(nagon: readonly number[], nagonVikt: readonly number[], fel: Stavfelsmasker | null, nm: number, nmv: number): boolean {
+  for (let x = 0; x < nagon.length; x++) if ((nagon[x] & ~nm) === 0) return true;
+  for (let x = 0; x < nagonVikt.length; x++) if ((nagonVikt[x] & ~nmv) === 0) return true;
+  if (fel) for (let x = 0; x < fel.mask.length; x++) if (bitar(fel.mask[x] & ~nm) <= fel.max[x]) return true;
+  return false;
+}
+
+function stavfelsmasker(p: Prepared, pm: Sokmasker, stavfelOk?: readonly boolean[]): Stavfelsmasker {
+  const mask: number[] = [];
+  const max: number[] = [];
+  p.units.forEach((u, i) => {
+    if (u.helord || u.stem.length < 5 || (stavfelOk && !stavfelOk[i])) return;
+    mask.push(pm.units[i].s);
+    max.push(u.stem.length >= 7 ? 2 : 1);
+  });
+  return { mask, max };
+}
+
+/**
+ * Det som är räknat i förväg för namnlistan och som matchPrepared slår upp på
+ * namnets plats: maskerna, namnet med fogar utan prickar, huvuddelen (fylls i
+ * när den behövs) och ordlistan för stavfelsledet.
+ */
+type Listdata = { mask: Int32Array; maskVikt: Int32Array | null; fogatVikt: string[] | null; huvud: (string | undefined)[]; lista?: Ordlista };
+
 // ── Utan prickar och sammanskrivet ───────────────────────────────────────────
 // Den som skriver på ett tangentbord utan å, ä och ö skriver "fatolj" och
 // "sangbord". Båda sidor viks, så det gäller åt båda hållen.
@@ -522,7 +751,9 @@ function ihopMonster(ihop: string): RegExp {
 // det kan bara hända när sökningen har flera ord: ett ensamt sökord som står
 // i namnet utan fog har redan träffat som fras.
 function sammanskrivet(fogat: string, re: RegExp, flerOrd: boolean): { var: 0 | 1 | 2; slutarOrd: boolean } {
-  const huvudSlut = fogat.search(/ [–-] |,| med | för | till /);
+  // Räknas först när en träff finns: de flesta namn har ingen, och sökningen
+  // efter huvuddelens slut kostade mer än resten (mätt 2026-11-20).
+  let huvudSlut = -2;
   let bast: 0 | 1 | 2 = 0;
   let slutarOrd = false;
   re.lastIndex = 0;
@@ -533,6 +764,7 @@ function sammanskrivet(fogat: string, re: RegExp, flerOrd: boolean): { var: 0 | 
     const slutar = efter === undefined || efter === FOG || !BOKSTAV.test(efter);
     const overFog = m[0].includes(FOG);
     if (borjar && (overFog ? slutar : flerOrd)) {
+      if (huvudSlut === -2) huvudSlut = fogat.search(/ [–-] |,| med | för | till /);
       const har: 1 | 2 = huvudSlut < 0 || i < huvudSlut ? 2 : 1;
       if (har > bast) { bast = har; slutarOrd = slutar; }
       if (bast === 2) break;
@@ -765,7 +997,10 @@ function ordStar(text: string, s: string): boolean {
   return false;
 }
 
-function tokenQuality(unit: Unit, nameNorm: string, lage: Lage, namnVikt: string, stavfelOk = true, fogat = ""): Ordtraff {
+// `um`, `nm` och `nmv`: sökordets och namnets teckenmasker (se Sokmasker). Ett
+// ord kan bara stå i ett namn som har alla dess tecken, så jämförelsen hoppas
+// över när masken visar att något saknas. Utan masker (nm = -1) prövas allt.
+function tokenQuality(unit: Unit, nameNorm: string, lage: Lage, namnVikt: string, stavfelOk = true, fogat = "", lista?: Ordlista, ni = -1, um?: Unitmasker, nm = -1, nmv = -1): Ordtraff {
   const { stem: s, key } = unit;
   if (unit.helord) {
     if (starSomOrd(nameNorm, s)) return HEL;
@@ -773,9 +1008,15 @@ function tokenQuality(unit: Unit, nameNorm: string, lage: Lage, namnVikt: string
     // särskrivit får stå ihop med ordet efter, i början av ett ord i namnet.
     return unit.ihopNasta && ordBorjar(nameNorm, unit.ihopNasta) ? HEL : INGEN;
   }
-  if (unit.kortStam ? starIOrd(nameNorm, unit.tok) || ordStar(nameNorm, s) : starIOrd(nameNorm, s)) return HEL;
-  if (unit.former) for (const f of unit.former) if (starIOrd(nameNorm, f)) return HEL;
-  if (unit.fogRe && fogat && sammanskrivet(fogat, unit.fogRe, false).var) return HEL;
+  const kanS = !um || (um.s & ~nm) === 0;
+  if (unit.kortStam ? ((!um || (um.tok & ~nm) === 0) && starIOrd(nameNorm, unit.tok)) || (kanS && ordStar(nameNorm, s)) : kanS && starIOrd(nameNorm, s)) return HEL;
+  if (unit.former) {
+    for (let k = 0; k < unit.former.length; k++) {
+      if (um && (um.former[k] & ~nm) !== 0) continue;
+      if (starIOrd(nameNorm, unit.former[k])) return HEL;
+    }
+  }
+  if (unit.fogRe && fogat && kanS && sammanskrivet(fogat, unit.fogRe, false).var) return HEL;
   const needles = SYN.get(key);
   if (needles) {
     for (const nd of needles) if (nameNorm.includes(nd)) return SYNONYM;
@@ -784,9 +1025,11 @@ function tokenQuality(unit: Unit, nameNorm: string, lage: Lage, namnVikt: string
   if (envags) {
     for (const nd of envags) if (nameNorm.includes(nd)) return SYNONYM;
   }
-  if (lage >= VIKT && starIOrd(namnVikt, unit.vikt)) return UTAN_PRICKAR;
+  if (lage >= VIKT && (!um || (um.vikt & ~nmv) === 0) && starIOrd(namnVikt, unit.vikt)) return UTAN_PRICKAR;
   if (lage >= STAVFEL && stavfelOk && s.length >= 5) {
-    const fel = fuzzyOrdslut(s, nameNorm, s.length >= 7 ? 2 : 1);
+    const maxDist = s.length >= 7 ? 2 : 1;
+    // Med namnlistans ord räknade i förväg slås avståndet upp (se felPerOrd).
+    const fel = lista && ni >= 0 ? felINamn(lista, ni, s, maxDist) : fuzzyOrdslut(s, nameNorm, maxDist);
     if (fel === 1) return ETT_FEL;
     if (fel === 2) return TVA_FEL;
   }
@@ -970,9 +1213,9 @@ function restArOrd(rest: string, egna: Set<string>): boolean {
 }
 
 /** Orden på tre tecken eller fler som står för sig i något namn. */
-function egnaOrd(namn: readonly string[]): Set<string> {
+function egnaOrd(lista: Ordlista): Set<string> {
   const ord = new Set<string>();
-  for (const n of namn) for (const t of tokenize(n)) if (t.length >= 3 && /^[a-zåäö]+$/.test(t)) ord.add(t);
+  for (const t of lista.ord) if (t.length >= 3 && /^[a-zåäö]+$/.test(t)) ord.add(t);
   return ord;
 }
 
@@ -1044,13 +1287,29 @@ export function nameMatch(name: string, query: string, katalog?: readonly string
 }
 
 /**
+ * För testerna (lib/sok-2026-11-20.test.ts): träffar namnet sökningen i läget
+ * (0 = som det står, 1 = också utan prickar, 2 = också med stavfel), och
+ * släpper förfiltret igenom det? Förfiltret får släppa igenom för mycket men
+ * aldrig hålla tillbaka en träff. `okant`: orden söks som ord som inte finns
+ * i katalogen (se rankaInre), som stammen av ett okänt ord.
+ */
+export function forfilterProv(name: string, query: string, katalog: readonly string[], lage: 0 | 1 | 2, okant = false): { traffar: boolean; slapps: boolean } {
+  const p = forberedSokning(query, katalog);
+  if (okant) for (const u of p.units) { u.kortStam = true; u.vikt = vik(u.tok); }
+  const n = normalize(name);
+  const pm = sokmasker(p);
+  const slapps = kanTraffa(pm.nagon, lage >= VIKT ? pm.nagonVikt : INGA_MASKER, lage >= STAVFEL ? stavfelsmasker(p, pm) : null, stavmask(n), stavmask(vik(n)));
+  return { traffar: matchPrepared(n, p, lage).score > 0, slapps };
+}
+
+/**
  * Sökningen tolkad och prövad mot katalogens namn: de böjda formerna som
  * något namn har som eget ord, alla former av ett ensamt sökord, och orden
  * som står för sig (för ordningen, se kant).
  */
 function forberedSokning(query: string, namn: readonly string[]): Prepared {
   const sparat = formerFor(namn);
-  const egna = () => (sparat.egna ??= egnaOrd(namn));
+  const egna = () => (sparat.egna ??= egnaOrd(listaFor(namn, sparat)));
   const p = prepare(query);
   // "inne" blir annars "innar", som står i "sittPINNAR". En form som inget
   // namn har som eget ord eller som sista led är inget ord.
@@ -1074,16 +1333,30 @@ function forberedSokning(query: string, namn: readonly string[]): Prepared {
 // dem räknas de här.
 // `kanda` fylls i när den skickas med: sant för varje sökord som träffade
 // UTAN stavfel. `stavfelOk` säger per sökord om stavfelsledet får provas.
+// `ld`, `ni` och `pm`: det som är räknat i förväg för namnlistan, namnets plats
+// i den, och sökningens teckenmasker (se Listdata och Sokmasker). Utan dem
+// jämförs namnet för sig som förut.
+const INGEN_TRAFF: NameMatch = Object.freeze({ score: 0, full: false });
+const INGA_MASKER: readonly number[] = [];
+/** Namnets huvuddel, räknad en gång per namn och lista när listan är känd. */
+function huvudAv(nameNorm: string, ld: Listdata | undefined, ni: number): string {
+  return ld ? (ld.huvud[ni] ??= mainPart(nameNorm)) : mainPart(nameNorm);
+}
 function matchPrepared(
   nameNorm: string, p: Prepared, lage: Lage, fogatNamn?: string, viktNamn?: string,
-  kanda?: boolean[], stavfelOk?: readonly boolean[],
+  kanda?: boolean[], stavfelOk?: readonly boolean[], ld?: Listdata, ni = -1, pm?: Sokmasker,
 ): NameMatch {
-  const none = { score: 0, full: false };
+  // Ett och samma objekt för "ingen träff": ett varv går igenom 7 900 namn, och
+  // de flesta träffar inte.
+  const none = INGEN_TRAFF;
   const { q, units, ihop } = p;
   if (!q || !nameNorm) return none;
-  const fras = starIOrd(nameNorm, q) && ((!p.kantFore && !p.kantEfter) || frasStar(nameNorm, q, p.kantFore, p.kantEfter));
+  // Namnets tecken, med och utan prickar. -1 (alla bitar) när de inte är räknade.
+  const nm = ld && pm ? ld.mask[ni] : -1;
+  const nmv = ld && pm && ld.maskVikt ? ld.maskVikt[ni] : -1;
+  const fras = (!pm || (pm.q & ~nm) === 0) && starIOrd(nameNorm, q) && ((!p.kantFore && !p.kantEfter) || frasStar(nameNorm, q, p.kantFore, p.kantEfter));
   if (fras && !p.former) {
-    return { score: starIOrd(mainPart(nameNorm), q) ? 100 : 90, full: true, kant: kant(nameNorm, q, p.egna) };
+    return { score: starIOrd(huvudAv(nameNorm, ld, ni), q) ? 100 : 90, full: true, kant: kant(nameNorm, q, p.egna) };
   }
   // ETT ENSAMT SÖKORD ÄR SAMMA ORD I ALLA BÖJNINGAR (2026-11-19). "växter"
   // gav frasens 90 åt "spaljé för klätterväxter", där bokstäverna råkar stå,
@@ -1098,11 +1371,12 @@ function matchPrepared(
     // stå som ord: "pilar" är inte "Pilatesboll" och "dukar" inte
     // "Nattduksbord".
     for (let n = 0; n < p.former.length; n++) {
+      if (pm && (pm.former[n] & ~nm) !== 0) continue;
       const f = p.former[n];
       const star = n === 0 ? starIOrd : ordStar;
       if (!star(nameNorm, f)) continue;
       k = Math.max(k, kant(nameNorm, f, p.egna));
-      iHuvud ||= star(mainPart(nameNorm), f);
+      iHuvud ||= star(huvudAv(nameNorm, ld, ni), f);
     }
     // Står sökningen med sina småord i namnet ("fåtölj med" i "Fåtölj med
     // fotpall") går det namnet först: kunden skriver sig mot just de varorna.
@@ -1111,13 +1385,13 @@ function matchPrepared(
   // Sammanskrivet: flera sökord som ett ord i namnet, eller ett sökord över
   // ett bindestreck i namnet.
   const fogat = ihop ? (fogatNamn ?? medFogar(nameNorm)) : "";
-  if (ihop && (ihop.flerOrd || fogat !== nameNorm)) {
+  if (ihop && (ihop.flerOrd || fogat !== nameNorm) && (!pm || (pm.ihop & ~nm) === 0)) {
     const t = sammanskrivet(fogat, ihop.re, ihop.flerOrd);
     if (t.var) return { score: t.var === 2 ? 95 : 88, full: true, kant: t.slutarOrd ? 5 : 1 };
   }
   const vikt = lage >= VIKT ? (viktNamn ?? vik(nameNorm)) : "";
-  if (ihop && lage >= VIKT && (ihop.flerOrd || fogat !== nameNorm)) {
-    const t = sammanskrivet(vik(fogat), ihop.reVikt, ihop.flerOrd);
+  if (ihop && lage >= VIKT && (ihop.flerOrd || fogat !== nameNorm) && (!pm || (pm.ihopVikt & ~nmv) === 0)) {
+    const t = sammanskrivet(ld?.fogatVikt ? ld.fogatVikt[ni] : vik(fogat), ihop.reVikt, ihop.flerOrd);
     if (t.var) return { score: t.var === 2 ? 93 : 86, full: true, kant: t.slutarOrd ? 5 : 1, vikt: true };
   }
   if (units.length === 0) return none;
@@ -1128,7 +1402,7 @@ function matchPrepared(
   // Ordgränsen räknas på orden som säger vad varan ÄR. Färg och mått ska
   // bara finnas: "soffa grå" ska inte sätta "Hörnsoffa i grått tyg" före
   // "Soffa 3-sits, grå" för att färgen står efter kommat.
-  const baraEgenskaper = units.every((u) => u.egenskap);
+  const baraEgenskaper = pm ? pm.baraEgenskaper : units.every((u) => u.egenskap);
   let kanter = 6;
   let mask = 0;
   let stark = 0;
@@ -1136,7 +1410,7 @@ function matchPrepared(
   const fogatOrd = fogatU !== nameNorm ? fogatU : "";
   for (let i = 0; i < units.length; i++) {
     const u = units[i];
-    const t = tokenQuality(u, nameNorm, lage, vikt, stavfelOk ? stavfelOk[i] : true, fogatOrd);
+    const t = tokenQuality(u, nameNorm, lage, vikt, stavfelOk ? stavfelOk[i] : true, fogatOrd, ld?.lista, ni, pm?.units[i], nm, nmv);
     sum += t.qual;
     if (t.qual > 0) {
       hit++;
@@ -1157,7 +1431,7 @@ function matchPrepared(
   // loungegrupp: ordet i namnet gav 90 och envägsträffen 51. Står varans typ
   // i namnets HUVUDDEL (före "för", "med", "till", komma och tankstreck) är
   // varan det kunden söker, och den går före ett tillbehör som nämner ordet.
-  if (units.length === 1 && sum === SYNONYM.qual && envagsI(units[0], mainPart(nameNorm))) {
+  if (units.length === 1 && sum === SYNONYM.qual && envagsI(units[0], huvudAv(nameNorm, ld, ni))) {
     return { score: ENVAGS_I_HUVUDDELEN, full: true, kant: 5, mask };
   }
   // Perfekt täckning (alla exakta) → 60, samma tak som förr. Synonym-/stavfel-
@@ -1465,6 +1739,10 @@ type Ordbok = {
   ordVikt: string[];
   /** Vilka bokstäver ordet har (en bit per bokstav), på samma platser: se bokstavsmask. */
   ordMask: Int32Array;
+  /** I hur många namn ordet står, på samma platser. */
+  ordAntal: Int32Array;
+  /** 1 för småord, färger och mått, som aldrig föreslås (på samma platser). */
+  ordInte: Uint8Array;
   /** Ordet utan prickar → ordet som står i flest namn. */
   medPrickar: Map<string, string>;
   /** Namnens första ord, med antal: där står vad varan är. */
@@ -1473,7 +1751,7 @@ type Ordbok = {
 
 function ordbokFor(namn: readonly string[], sparat: ListFormer): Ordbok {
   if (sparat.bok) return sparat.bok;
-  const antal = (sparat.antal ??= ordAntal(namn));
+  const antal = (sparat.antal ??= ordAntal(listaFor(namn, sparat)));
   const ord = [...antal.keys()].filter((o) => o.length >= 3 && /^[a-zåäö]+$/.test(o)).sort();
   const ordVikt = ord.map(vik);
   const medPrickar = new Map<string, string>();
@@ -1486,9 +1764,16 @@ function ordbokFor(namn: readonly string[], sparat: ListFormer): Ordbok {
     const o = /^[a-zåäö]+/.exec(n)?.[0];
     if (o && o.length >= 4) forsta.set(o, (forsta.get(o) ?? 0) + 1);
   }
+  // Per plats, så att rättningen slipper slå upp varje ord vid varje tangent.
   const ordMask = new Int32Array(ord.length);
-  for (let i = 0; i < ord.length; i++) ordMask[i] = bokstavsmask(ordVikt[i]);
-  return (sparat.bok = { antal, ord, ordVikt, ordMask, medPrickar, forsta });
+  const antalet = new Int32Array(ord.length);
+  const ordInte = new Uint8Array(ord.length);
+  for (let i = 0; i < ord.length; i++) {
+    ordMask[i] = bokstavsmask(ordVikt[i]);
+    antalet[i] = antal.get(ord[i]) ?? 1;
+    ordInte[i] = STOPWORDS.has(ord[i]) || arEgenskap(ord[i]) ? 1 : 0;
+  }
+  return (sparat.bok = { antal, ord, ordVikt, ordMask, ordAntal: antalet, ordInte, medPrickar, forsta });
 }
 
 /**
@@ -1721,6 +2006,23 @@ const arGrannar = (a: string, b: string): boolean => (GRANNAR.get(a) ?? "").incl
  * så kort ord är lika ofta ett annat ord.
  */
 function narmasteOrd(t: string, tak: number, bok: Ordbok, begrepp: readonly string[]): string | null {
+  // Samma ord prövas flera gånger i en sökning (omskrivningen, spärren för
+  // färdigskrivningen, rättningen), och varje gång är en genomgång av hela
+  // ordboken: svaret sparas per ordbok och begreppslista.
+  let perBegrepp = narmastMinne.get(bok);
+  if (!perBegrepp) narmastMinne.set(bok, (perBegrepp = new WeakMap()));
+  let minne = perBegrepp.get(begrepp);
+  if (!minne) perBegrepp.set(begrepp, (minne = new Map()));
+  const nyckel = `${tak}|${t}`;
+  const sparad = minne.get(nyckel);
+  if (sparad !== undefined) return sparad;
+  const ut = narmasteOrdRaknat(t, tak, bok, begrepp);
+  if (minne.size >= 200) minne.clear();
+  minne.set(nyckel, ut);
+  return ut;
+}
+const narmastMinne = new WeakMap<Ordbok, WeakMap<readonly string[], Map<string, string | null>>>();
+function narmasteOrdRaknat(t: string, tak: number, bok: Ordbok, begrepp: readonly string[]): string | null {
   if (t.length < 4 || RATTAS_INTE.has(t) || !/^[a-zåäö]+$/.test(t)) return null;
   const tv = vik(t);
   const tMask = bokstavsmask(tv);
@@ -1752,7 +2054,7 @@ function narmasteOrd(t: string, tak: number, bok: Ordbok, begrepp: readonly stri
   for (let i = 0; i < bok.ord.length; i++) {
     const w = bok.ord[i];
     if (w.length < 4) continue;
-    prova(w, bok.ordVikt[i], bok.antal.get(w) ?? 1, w, bok.ordMask[i]);
+    prova(w, bok.ordVikt[i], bok.ordAntal[i], w, bok.ordMask[i]);
   }
   // Begreppsorden, i de former kunden kan ha menat ("trägårdsmöbel" är
   // entalet av "trädgårdsmöbler"). Rättningen blir begreppsordet som det står.
@@ -1782,14 +2084,14 @@ const BEGREPP_VIKT = 12;
 
 // Begreppsorden i sina former, räknade en gång per lista: rättningen går
 // igenom dem vid varje tangent i ett ord som inte finns.
-type Begreppsform = { form: string; vikt: string; mal: string; mask: number };
+type Begreppsform = { form: string; vikt: string; mal: string; mask: number; inte: boolean };
 const formerAvBegrepp = new WeakMap<readonly string[], Begreppsform[]>();
 function begreppsformer(begrepp: readonly string[]): Begreppsform[] {
   let ut = formerAvBegrepp.get(begrepp);
   if (!ut) {
     ut = [];
     for (const b of begrepp) {
-      for (const f of new Set([b, ...grundformer(b)])) if (f.length >= 4) ut.push({ form: f, vikt: vik(f), mal: b, mask: bokstavsmask(vik(f)) });
+      for (const f of new Set([b, ...grundformer(b)])) if (f.length >= 4) ut.push({ form: f, vikt: vik(f), mal: b, mask: bokstavsmask(vik(f)), inte: STOPWORDS.has(f) || arEgenskap(f) });
     }
     formerAvBegrepp.set(begrepp, ut);
   }
@@ -1823,8 +2125,8 @@ function felstavadBorjan(t: string, bok: Ordbok, begrepp: readonly string[]): { 
   };
   const forsta = tv.charCodeAt(0);
   const resten = tv.slice(1);
-  const prova = (w: string, wv: string, n: number) => {
-    if (wv.length <= tv.length || STOPWORDS.has(w) || arEgenskap(w)) return;
+  const prova = (w: string, wv: string, n: number, inte: boolean) => {
+    if (wv.length <= tv.length || inte) return;
     if (wv.charCodeAt(0) !== forsta) {
       // Fel första bokstav: bara en granne på tangentbordet, och resten ska
       // stå som det skrevs ("jyll" är "hyll", "dkjut" är "skjut").
@@ -1850,8 +2152,8 @@ function felstavadBorjan(t: string, bok: Ordbok, begrepp: readonly string[]): { 
       return;
     }
   };
-  for (let i = 0; i < bok.ord.length; i++) prova(bok.ord[i], bok.ordVikt[i], bok.antal.get(bok.ord[i]) ?? 1);
-  for (const b of begreppsformer(begrepp)) if (b.form === b.mal && !bok.antal.has(b.mal)) prova(b.mal, b.vikt, BEGREPP_VIKT);
+  for (let i = 0; i < bok.ord.length; i++) prova(bok.ord[i], bok.ordVikt[i], bok.ordAntal[i], bok.ordInte[i] === 1);
+  for (const b of begreppsformer(begrepp)) if (b.form === b.mal && !bok.antal.has(b.mal)) prova(b.mal, b.vikt, BEGREPP_VIKT, b.inte);
   let borjan = "";
   let vald: Grupp | null = null;
   let summa = 0;
@@ -2016,13 +2318,16 @@ function skrivOm(p: Prepared, bok: Ordbok, begrepp: readonly string[], arBegrepp
 export function rankaMedInfo<T>(items: T[], nameOf: (item: T) => string, query: string, normNamn?: readonly string[], kd?: Kategoridata<T>): Sokutfall<T> {
   const namn = normNamn ?? items.map((item) => normalize(nameOf(item)));
   const lage = { strangt: false };
-  const u = rankaInre(items, nameOf, query, namn, kd, 0, lage);
+  const forsta = rankaInre(items, nameOf, query, namn, kd, 0, lage);
   // Gav prövningen mot ordboken ingenting söks orden som de står, med stam
   // och allt, som före 2026-11-20: hellre en svag träff än ingen. Bara när
   // det första varvet faktiskt sökte strängare, annars blir svaret detsamma.
   // Andra varvet rättar och delar inte om (djup 2): de leden beror inte på hur
   // strängt orden söks, och gav redan ingenting.
-  return u.traffar.length > 0 || !lage.strangt ? u : rankaInre(items, nameOf, query, namn, kd, 2);
+  const u = forsta.traffar.length > 0 || !lage.strangt ? forsta : rankaInre(items, nameOf, query, namn, kd, 2);
+  // Svaret ligger kvar i minnet (se rankaInre): den som anropar får egna
+  // listor, så att en sortering på plats aldrig ändrar nästa svar.
+  return { ...u, traffar: u.traffar.slice(), strukna: u.strukna.slice(), ...(u.utan ? { utan: u.utan.slice() } : {}) };
 }
 
 /** Kategoriernas ord som rättningen får föreslå, sparade per kategorilista. */
@@ -2046,7 +2351,41 @@ function begreppFor(kat: readonly SokKat[] | undefined): string[] {
 // 2026-11-20: "värmefläktra" tog 553 ms på en dator, tre försök à 150 ms).
 // `lage.strangt` sätts när ett okänt ord söktes strängare än förut (se nedan).
 const STRIKT = 3;
+
+// ☠️ SAMMA SÖKNING RÄKNADES OM VID VARJE TANGENT (mätt 2026-11-20). Den som
+// skriver "kontorsm", "kontorsmö", "kontorsmöb" får vid varje tangent ordet
+// färdigskrivet till "kontorsmöbler" (ofardigtSammansatt), och varje försök
+// var en hel sökning: 30 % av tiden för de tyngsta tangenterna. Samma sak för
+// ordet som en rättning eller en omskrivning leder till, och för den som
+// suddar en bokstav. Svaren sparas därför per namnlista, de senaste
+// SVAR_I_MINNET. Ett svar beror bara på varorna, namnen, kategorierna,
+// sökningen och djupet, och inget led ändrar ett svar på plats (de bygger nya
+// listor), så minnet ger exakt det en ny räkning hade gett.
+// lib/sok-2026-11-20.test.ts jämför med och utan minne.
+const SVAR_I_MINNET = 48;
+type Svarsminne = { items: unknown; kat: unknown; av: unknown; svar: Map<string, { u: unknown; strangt: boolean }> };
+
 function rankaInre<T>(items: T[], nameOf: (item: T) => string, query: string, normNamn: readonly string[] | undefined, kd: Kategoridata<T> | undefined, djup: number, lage?: { strangt: boolean }): Sokutfall<T> {
+  if (!normNamn) return raknaInre(items, nameOf, query, normNamn, kd, djup, lage);
+  const sparat = formerFor(normNamn);
+  let minne = sparat.svar;
+  // Andra varor eller andra kategorier på samma namnlista: börja om.
+  if (!minne || minne.items !== items || minne.kat !== kd?.kat || minne.av !== kd?.av) minne = sparat.svar = { items, kat: kd?.kat, av: kd?.av, svar: new Map() };
+  const nyckel = `${djup}|${query}`;
+  const sparad = minne.svar.get(nyckel);
+  if (sparad) {
+    if (lage && sparad.strangt) lage.strangt = true;
+    return sparad.u as Sokutfall<T>;
+  }
+  const mitt = { strangt: false };
+  const u = raknaInre(items, nameOf, query, normNamn, kd, djup, mitt);
+  if (minne.svar.size >= SVAR_I_MINNET) minne.svar.delete(minne.svar.keys().next().value as string);
+  minne.svar.set(nyckel, { u, strangt: mitt.strangt });
+  if (lage && mitt.strangt) lage.strangt = true;
+  return u;
+}
+
+function raknaInre<T>(items: T[], nameOf: (item: T) => string, query: string, normNamn: readonly string[] | undefined, kd: Kategoridata<T> | undefined, djup: number, lage?: { strangt: boolean }): Sokutfall<T> {
   const namn = normNamn ?? items.map((item) => normalize(nameOf(item)));
   const p = forberedSokning(query, namn);
   // Namnens övriga former räknas en gång per namnlista (sökrutorna skickar
@@ -2078,7 +2417,7 @@ function rankaInre<T>(items: T[], nameOf: (item: T) => string, query: string, no
       // Högst tre försök sammanlagt: vart och ett är en sökning.
       let kvar = 3;
       const prova = (led: "allmanna" | "kategori" | "katalog"): Sokutfall<T> | null => {
-        for (const hel of ofardigtSammansatt(tok, led, () => (sparat.ord ??= kandaOrd(namn)), bok, namn, info, arBegrepp)) {
+        for (const hel of ofardigtSammansatt(tok, led, () => (sparat.ord ??= kandaOrd(listaFor(namn, sparat))), bok, namn, info, arBegrepp)) {
           if (kvar-- <= 0) return null;
           const u = rankaInre(items, nameOf, hel, namn, kd, STRIKT);
           if (u.traffar.length > 0 && !u.rattat && !u.liknande) return { ...u, sokt: u.sokt ?? hel };
@@ -2127,9 +2466,26 @@ function rankaInre<T>(items: T[], nameOf: (item: T) => string, query: string, no
     const fogade = sokning.ihop ? (sparat.fogat ??= namn.map(medFogar)) : null;
     const vikta = lage >= VIKT ? (sparat.vikt ??= namn.map(vik)) : null;
     const k = sokning === p ? kanda : undefined;
-    return items
-      .map((item, i) => ({ item, i, ...matchPrepared(namn[i], sokning, lage, fogade ? fogade[i] : undefined, vikta ? vikta[i] : undefined, k, stavfelOk) }))
-      .filter((r) => r.score > 0);
+    // Det som är räknat i förväg för listan (se Listdata), och sökningens masker.
+    const ld: Listdata = {
+      mask: (sparat.mask ??= Int32Array.from(namn, stavmask)),
+      maskVikt: vikta ? (sparat.maskVikt ??= Int32Array.from(vikta, stavmask)) : null,
+      fogatVikt: fogade && vikta ? (sparat.fogatVikt ??= fogade.map(vik)) : null,
+      huvud: (sparat.huvud ??= new Array<string | undefined>(namn.length)),
+      lista: lage >= STAVFEL ? (sparat.ordlista ??= byggOrdlista(namn)) : undefined,
+    };
+    const pm = sokmasker(sokning);
+    // Förfiltret (se sokmasker): namn som inte kan träffa hoppas över.
+    const utanPrickar = lage >= VIKT ? ld.maskVikt : null;
+    const nagonVikt = utanPrickar ? pm.nagonVikt : INGA_MASKER;
+    const fel = lage >= STAVFEL ? stavfelsmasker(sokning, pm, stavfelOk) : null;
+    const rader: Rad[] = [];
+    for (let i = 0; i < items.length; i++) {
+      if (!kanTraffa(pm.nagon, nagonVikt, fel, ld.mask[i], utanPrickar ? utanPrickar[i] : 0)) continue;
+      const m = matchPrepared(namn[i], sokning, lage, fogade ? fogade[i] : undefined, vikta ? vikta[i] : undefined, k, stavfelOk, ld, i, pm);
+      if (m.score > 0) rader.push({ item: items[i], i, ...m });
+    }
+    return rader;
   };
   // Poängen först, sedan ordgränsen (kant). Sorteringen är stabil, så
   // katalogens ordning gäller mellan likvärdiga träffar.
@@ -2420,7 +2776,7 @@ function rankaInre<T>(items: T[], nameOf: (item: T) => string, query: string, no
   // stavfelsledet letar inne i namnen, och där ligger "pendELLAMPa" lika nära
   // som "elkamin". Ligger sökordet ett fel från ett ord som står för sig i
   // katalogen söks det ordet i stället, och utfallet säger vilket (`rattat`).
-  const delningarna = delningar(p, () => (sparat.ord ??= kandaOrd(namn)), arBegrepp);
+  const delningarna = delningar(p, () => (sparat.ord ??= kandaOrd(listaFor(namn, sparat))), arBegrepp);
   if (stavfelOk.some(Boolean) && djup < 2) {
     const bok = ordbokFor(namn, sparat);
     const begrepp = begreppFor(kd?.kat);
@@ -2506,7 +2862,7 @@ function rankaInre<T>(items: T[], nameOf: (item: T) => string, query: string, no
   // något, men "trägårds" är "trädgård" och "belysning" finns. Den ena delen
   // ska vara ett känt ord som det står, den andra ligga ett fel från ett.
   if (djup < 2) {
-    for (const { delad, hel } of luddigaDelningar(p, () => (sparat.ord ??= kandaOrd(namn)), ordbokFor(namn, sparat), begreppFor(kd?.kat), arBegrepp)) {
+    for (const { delad, hel } of luddigaDelningar(p, () => (sparat.ord ??= kandaOrd(listaFor(namn, sparat))), ordbokFor(namn, sparat), begreppFor(kd?.kat), arBegrepp)) {
       // Det rättade ordet i ett stycke först: då blir svaret detsamma som för
       // den som stavade rätt.
       // ☠️ "trägårdsbelysning" gav två lampor och "trädgårdsbelysning" 110
@@ -2657,10 +3013,19 @@ function ordAvstand(a: string, b: string, tak: number): number {
   return fore[n];
 }
 
-/** I hur många namn varje ord står för sig. */
-function ordAntal(namn: readonly string[]): Map<string, number> {
+/** I hur många namn varje ord står för sig. Orden i den ordning de först står i namnen. */
+function ordAntal(lista: Ordlista): Map<string, number> {
+  const n = new Int32Array(lista.ord.length);
+  // Namnet där ordet senast räknades: ett ord som står två gånger i ett namn räknas en gång.
+  const sist = new Int32Array(lista.ord.length).fill(-1);
+  for (let i = 0; i + 1 < lista.start.length; i++) {
+    for (let k = lista.start[i], slut = lista.start[i + 1]; k < slut; k++) {
+      const w = lista.ids[k];
+      if (sist[w] !== i) { sist[w] = i; n[w]++; }
+    }
+  }
   const antal = new Map<string, number>();
-  for (const n of namn) for (const t of new Set(tokenize(n))) antal.set(t, (antal.get(t) ?? 0) + 1);
+  for (let w = 0; w < lista.ord.length; w++) antal.set(lista.ord[w], n[w]);
   return antal;
 }
 
@@ -2778,14 +3143,12 @@ function ensamtOrdsFormer(u: Unit, antal: () => (ord: string) => boolean): strin
   return former;
 }
 
-function kandaOrd(namn: readonly string[]): Set<string> {
+function kandaOrd(lista: Ordlista): Set<string> {
   const ord = new Set<string>();
-  for (const n of namn) {
-    for (const t of tokenize(n)) {
-      if (t.length < KORTASTE_DEL) continue;
-      const s = stem(t);
-      ord.add(t).add(s).add(vik(t)).add(vik(s));
-    }
+  for (const t of lista.ord) {
+    if (t.length < KORTASTE_DEL) continue;
+    const s = stem(t);
+    ord.add(t).add(s).add(vik(t)).add(vik(s));
   }
   return ord;
 }
@@ -2995,7 +3358,13 @@ function ofardigtSammansatt(
 
 // Namnlistans övriga former, sparade per lista: sökrutorna skickar samma
 // normaliserade lista vid varje tangent (rankaForslag i lib/sok-index.ts).
-type ListFormer = { fogat?: string[]; vikt?: string[]; ord?: Set<string>; antal?: Map<string, number>; egna?: Set<string>; led?: Set<string>; slut?: string[]; bok?: Ordbok };
+type ListFormer = {
+  fogat?: string[]; vikt?: string[]; ord?: Set<string>; antal?: Map<string, number>; egna?: Set<string>; led?: Set<string>; slut?: string[]; bok?: Ordbok;
+  // Räknat i förväg för varven (se Listdata): namnens ord, teckenmasker, fogade namn utan prickar och huvuddelar.
+  ordlista?: Ordlista; mask?: Int32Array; maskVikt?: Int32Array; fogatVikt?: string[]; huvud?: (string | undefined)[];
+  // De senaste svaren för den här namnlistan (se rankaInre).
+  svar?: Svarsminne;
+};
 const formCache = new WeakMap<readonly string[], ListFormer>();
 function formerFor(namn: readonly string[]): ListFormer {
   let f = formCache.get(namn);
@@ -3023,26 +3392,53 @@ function huvudI(ord: string, u: Unit): boolean {
   return ordStar(ord, u.stem) || (u.tok !== u.stem && ordStar(ord, u.tok)) || (u.former ?? []).some((f) => ordStar(ord, f));
 }
 
-/** Poäng för hur väl ett kategorinamn matchar sökningen. 0 = inte alls. */
-export function kategoriPoang(kategoriNamn: string, query: string): number {
-  // Mjuka bindestreck (U+00AD) står i långa kategorinamn för radbrytningen.
-  const namn = normalize(kategoriNamn.replace(/\u00ad/g, ""));
-  // Orden som de står, och med bindestrecken borta: "TV-bänkar" är både
-  // "tv" + "bänkar" och "tvbänkar".
-  const raa = [...new Set([...tokenize(namn), ...tokenize(utanBindestreck(namn))])];
-  const ord = raa.map(canon);
-  // Kategorins ord utan prickar och i sina böjningar: den som skriver
-  // "barnmobel" eller "fatoljer" ska få samma kategori som med prickarna
-  // (Leonards skärmbild 2026-11-20: ingen kategori för "barnmobel").
-  const vikta = raa.map(vik);
-  const former = raa.map(ordformer);
+/**
+ * Kategorinamnet tolkat för jämförelsen, räknat en gång per namn. Sökrutan
+ * frågar efter kategorier vid varje tangent, och förr tolkades både varje
+ * kategorinamn och sökningen om för var och en av de 170 kategorierna: en
+ * sjundedel av tiden per tangent (mätt 2026-11-20).
+ */
+type Kategoriform = { namn: string; raa: string[]; ord: string[]; vikta: string[]; former: string[][] };
+const kategoriformer = new Map<string, Kategoriform>();
+function kategoriformFor(kategoriNamn: string): Kategoriform {
+  let f = kategoriformer.get(kategoriNamn);
+  if (!f) {
+    // Mjuka bindestreck (U+00AD) står i långa kategorinamn för radbrytningen.
+    const namn = normalize(kategoriNamn.replace(/\u00ad/g, ""));
+    // Orden som de står, och med bindestrecken borta: "TV-bänkar" är både
+    // "tv" + "bänkar" och "tvbänkar".
+    const raa = [...new Set([...tokenize(namn), ...tokenize(utanBindestreck(namn))])];
+    // Kategorins ord utan prickar och i sina böjningar: den som skriver
+    // "barnmobel" eller "fatoljer" ska få samma kategori som med prickarna
+    // (Leonards skärmbild 2026-11-20: ingen kategori för "barnmobel").
+    f = { namn, raa, ord: raa.map(canon), vikta: raa.map(vik), former: raa.map(ordformer) };
+    if (kategoriformer.size >= 2000) kategoriformer.clear();
+    kategoriformer.set(kategoriNamn, f);
+  }
+  return f;
+}
+
+/** Sökningens ord för kategorijämförelsen, som de står och utan prickar. */
+type Kategorifraga = { units: Unit[]; vikta: Unit[] };
+function kategorifraga(query: string): Kategorifraga {
   // Färg, storlek och mått säger inget om kategorin: "svart tv-bänk" är TV-bänkar.
   const units = prepare(query).units.filter((u) => !u.egenskap);
+  return { units, vikta: units.map(utanPrickar) };
+}
+
+/** Poäng för hur väl ett kategorinamn matchar sökningen. 0 = inte alls. */
+export function kategoriPoang(kategoriNamn: string, query: string): number {
+  return poangFor(kategoriformFor(kategoriNamn), kategorifraga(query));
+}
+
+function poangFor({ namn, raa, ord, vikta, former }: Kategoriform, fraga: Kategorifraga): number {
+  const units = fraga.units;
   if (units.length === 0 || ord.length === 0) return 0;
   let summa = 0;
-  for (const u of units) {
+  for (let n = 0; n < units.length; n++) {
+    const u = units[n];
     let bast = 0;
-    const uVikt = utanPrickar(u);
+    const uVikt = fraga.vikta[n];
     for (let i = 0; i < ord.length; i++) {
       const o = ord[i];
       if (o === u.key || (!u.helord && delarForm(u.lem, former[i]))) bast = Math.max(bast, 3);
@@ -3077,8 +3473,9 @@ export function kategoriPoang(kategoriNamn: string, query: string): number {
  */
 export function matchaKategorier<K extends { name: string }>(query: string, kategorier: readonly K[], max = 3): K[] {
   if (normalize(query).length < 2) return [];
+  const fraga = kategorifraga(query);
   return kategorier
-    .map((k, i) => ({ k, i, poang: kategoriPoang(k.name, query) }))
+    .map((k, i) => ({ k, i, poang: poangFor(kategoriformFor(k.name), fraga) }))
     .filter((r) => r.poang > 0)
     .sort((a, b) => b.poang - a.poang || a.k.name.length - b.k.name.length || a.i - b.i)
     .slice(0, max)
@@ -3446,12 +3843,44 @@ export function rankaMedForslag<T>(items: T[], nameOf: (item: T) => string, quer
  * sedan skickar in: det är den som det sparade hänger på.
  */
 export function forberedKatalog<T>(items: T[], normNamn: readonly string[], kd?: Kategoridata<T>): void {
+  for (const steg of forberedKatalogSteg(items, normNamn, kd)) steg();
+}
+
+/**
+ * Samma arbete som forberedKatalog, i steg som kan göras ett i taget.
+ *
+ * ☠️ I ETT STYCKE LÅSTE DEN SKÄRMEN (mätt 2026-11-20 med fyrdubbelt strypt
+ * processor): uppvärmningen var en enda uppgift på upp till 390 ms, och en
+ * tangent som trycktes under tiden fick vänta på den. Sökrutan gör nu ett
+ * steg per ledig stund (lib/sok-rankning.ts, varmUpp), så att en tangent
+ * hinner emellan. Det som inte hunnit byggas byggs vid första sökningen.
+ */
+export function forberedKatalogSteg<T>(items: T[], normNamn: readonly string[], kd?: Kategoridata<T>): (() => void)[] {
   const sparat = formerFor(normNamn);
-  ordbokFor(normNamn, sparat);
-  sparat.egna ??= egnaOrd(normNamn);
-  sparat.vikt ??= normNamn.map(vik);
-  if (!kd) return;
-  katInfoFor(kd.kat);
-  medlemskapFor(items, kd);
-  begreppsformer(begreppFor(kd.kat));
+  return [
+    // Namnens ord och katalogens ordbok (rättningen).
+    () => { ordbokFor(normNamn, sparat); },
+    // Orden som står för sig, sista leden och de kända delarna (böjningar och delade ord).
+    () => {
+      const lista = listaFor(normNamn, sparat);
+      const egna = (sparat.egna ??= egnaOrd(lista));
+      sparat.led ??= sistaLed(egna);
+      sparat.ord ??= kandaOrd(lista);
+    },
+    // Namnen utan prickar och med fogar, och teckenmaskerna (varven).
+    () => {
+      const vikta = (sparat.vikt ??= normNamn.map(vik));
+      const fogade = (sparat.fogat ??= normNamn.map(medFogar));
+      sparat.fogatVikt ??= fogade.map(vik);
+      sparat.mask ??= Int32Array.from(normNamn, stavmask);
+      sparat.maskVikt ??= Int32Array.from(vikta, stavmask);
+    },
+    // Kategorierna och varornas medlemskap (begreppsorden).
+    () => {
+      if (!kd) return;
+      katInfoFor(kd.kat);
+      medlemskapFor(items, kd);
+      begreppsformer(begreppFor(kd.kat));
+    },
+  ];
 }

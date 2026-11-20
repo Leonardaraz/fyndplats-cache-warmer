@@ -8,6 +8,8 @@
 //   2. varje sökord prövas mot katalogens ord innan namnen genomsöks,
 //   3. halvskrivna ord skrivs färdigt, så att listan inte töms mitt i ordet.
 //
+// Samma kväll gjordes sökningen snabbare (avsnitt 6): samma svar, mindre arbete.
+//
 // Butiken nedan är påhittad men byggd som den riktiga: namnen bär varans ord
 // ("Barnbord", "Trädgårdsbänk"), kategorierna bär hyllans ("Barnmöbler",
 // "Utemöbler"). Siffrorna i kommentarerna är mätta mot den riktiga katalogen
@@ -15,7 +17,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { forberedKatalog, kategoriPoang, normalize, rankaMedForslag, rankaMedInfo, type Kategoridata, type SokKat } from "./search.ts";
+import { forberedKatalog, forberedKatalogSteg, forfilterProv, kategoriPoang, matchaKategorier, normalize, ordlistansOrd, rankaMedForslag, rankaMedInfo, tokenize, type Kategoridata, type SokKat, type Sokutfall } from "./search.ts";
 import { kategoriRad, lasKategoriRad, sokKategorier, varansKategorier } from "./sok-begrepp.ts";
 import { medForsok } from "./sok-kall.ts";
 
@@ -429,7 +431,7 @@ test("de tre vägarna skickar kategorierna till samma rankning", () => {
   assert.match(index, /export function sokKategorierHamtade\(\)/);
   const rankning = las("./sok-rankning.ts");
   assert.match(rankning, /rankaMedInfo\([^;]*kategoridata\(\)\)/);
-  assert.match(rankning, /forberedKatalog\(/);
+  assert.match(rankning, /forberedKatalogSteg\(/);
   // Söksidan, varm och kall.
   assert.match(las("../app/sok/page.tsx"), /rankaMedForslag\(all, \(p\) => p\.name, fraga, await kategoridata\(\)\)/);
   assert.match(las("../components/sok-kall.tsx"), /rankaMedForslag\(kandidater\(lista, slutsalda\), \(p\) => p\.name, prisfraga\.fraga, kategoridata\(slutsalda\)\)/);
@@ -461,4 +463,204 @@ test("☠️ första sökningen efter en deploy visade felrutan: listan hämtas 
   assert.match(sidan, /medForsok\(hamtaLista, FORSOK, /);
   assert.match(sidan, /const FORSOK = 3;/);
   assert.match(sidan, /setSvar\(\{ q, data: "fel" \}\)/);
+});
+
+// ── 6. Farten: samma svar, mindre arbete (Leonard 2026-11-20) ────────────────
+// "jag vill att du kollar hastigheten till sökfältet är så optimerad som
+// möjligt". Mätt på den riktiga katalogen (7 886 varor, 182 tangenter i 21
+// ord): 3 295 ms blev 918 ms på en dator, den tyngsta tangenten 114 ms blev
+// 19 ms, och 13 933 provsökningar gav samma svar som före. Proven här håller
+// det som gjorde det möjligt: varje genväg ska ge exakt det den långa vägen ger.
+
+/** Allt i ett svar som kunden kan se, som en text att jämföra. */
+const somText = (u: Sokutfall<Vara>): string =>
+  JSON.stringify([u.traffar.map((v) => v.n), u.rattat ?? null, u.sokt ?? null, u.liknande ?? null, u.strukna, u.utan ?? null, u.hela ?? null]);
+/** Ordet skrivet tangent för tangent, och suddat tillbaka. */
+const tangenter = (ord: string): string[] => {
+  const fram = [...ord].map((_, i) => ord.slice(0, i + 1));
+  return [...fram, ...fram.slice(0, -1).reverse()];
+};
+const SKRIVNA = ["trägårdsmöbel", "barnmobel", "kontorsmöbler", "hundkoppel", "kattprylar", "badrumsmöbler", "lekssaker", "trägårdsbelysning", "svart tv-bänk", "matbrod", "boxningssäk", "fatolj", "xtolar", "soffa 260 cm bred"];
+
+test("☠️ samma sökning räknades om vid varje tangent: minnet ger exakt det en ny räkning ger", () => {
+  // En namnlista för hela skrivandet, som i sökrutan: svaren ligger kvar i minnet.
+  const namn = VAROR.map((v) => normalize(v.n));
+  let antal = 0;
+  for (const ord of SKRIVNA) {
+    for (const q of tangenter(ord)) {
+      const medMinne = somText(rankaMedInfo(VAROR, (v) => v.n, q, namn, kd));
+      // En ny namnlista har inget minne: den långa vägen.
+      const utan = somText(rankaMedInfo(VAROR, (v) => v.n, q, VAROR.map((v) => normalize(v.n)), kd));
+      assert.equal(medMinne, utan, `"${q}" (i "${ord}")`);
+      antal++;
+    }
+  }
+  // Fler sökningar än minnet rymmer (48): de äldsta har fallit ur och räknats om.
+  assert.ok(antal > 250, `bara ${antal} sökningar`);
+  // Och provet är inte tomt: orden ger varor.
+  assert.ok(rankaMedInfo(VAROR, (v) => v.n, "kontorsmöb", namn, kd).traffar.length > 5);
+  // RESERVVARVET: ett okänt ord söks först strängt, och ger det ingenting söks
+  // stammen var som helst (stammen av "ardsbar" står utan prickar mitt i
+  // "trädgårdsbord"). Minnet minns att första varvet var strängt, annars blev
+  // andra svaret tomt. Inget i de 13 933 provsökningarna mot den riktiga
+  // katalogen går den här vägen, så provet är det enda som håller den.
+  const reserv = rankaMedInfo(VAROR, (v) => v.n, "ardsbar", namn, kd);
+  assert.ok(reserv.traffar.length > 5 && reserv.traffar.every((v) => /gårdsb/i.test(v.n)), `${reserv.traffar.length} träffar`);
+  assert.equal(somText(rankaMedInfo(VAROR, (v) => v.n, "ardsbar", namn, kd)), somText(reserv));
+  assert.equal(somText(rankaMedInfo(VAROR, (v) => v.n, "ardsbar", VAROR.map((v) => normalize(v.n)), kd)), somText(reserv));
+});
+
+test("den som ändrar ett svar på plats ändrar inte nästa svar", () => {
+  const namn = VAROR.map((v) => normalize(v.n));
+  for (const q of ["kontorsmöb", "svart tv-bänk", "barnmobel", "soffa 260 cm bred"]) {
+    const forsta = rankaMedInfo(VAROR, (v) => v.n, q, namn, kd);
+    const fore = somText(forsta);
+    forsta.traffar.reverse();
+    forsta.traffar.length = 0;
+    forsta.strukna.push("ändrat");
+    forsta.utan?.push("ändrat");
+    assert.equal(somText(rankaMedInfo(VAROR, (v) => v.n, q, namn, kd)), fore, q);
+  }
+});
+
+test("andra kategorier eller andra varor på samma namnlista börjar om", () => {
+  const namn = VAROR.map((v) => normalize(v.n));
+  const med = somText(rankaMedInfo(VAROR, (v) => v.n, "barnmöbler", namn, kd));
+  // Utan kategorier är svaret ett annat, också direkt efter svaret med.
+  const utan = somText(rankaMedInfo(VAROR, (v) => v.n, "barnmöbler", namn));
+  assert.notEqual(utan, med);
+  assert.equal(utan, somText(rankaMedInfo(VAROR, (v) => v.n, "barnmöbler", VAROR.map((v) => normalize(v.n)))));
+  // Andra kategorier (samma namn, en annan tabell): minnet gäller inte dem.
+  const annan: Kategoridata<Vara> = { kat: KAT.map((k) => ({ ...k })), av: () => undefined };
+  assert.equal(somText(rankaMedInfo(VAROR, (v) => v.n, "barnmöbler", namn, annan)), somText(rankaMedInfo(VAROR, (v) => v.n, "barnmöbler", VAROR.map((v) => normalize(v.n)), annan)));
+  // Och tillbaka: samma svar som först.
+  assert.equal(somText(rankaMedInfo(VAROR, (v) => v.n, "barnmöbler", namn, kd)), med);
+  // Andra varor med samma namn (sökrutan hämtar indexet på nytt): svaret bär
+  // de nya varorna, inte de som låg i minnet.
+  assert.equal(rankaMedInfo(VAROR, (v) => v.n, "fåtölj", namn, kd).traffar.includes(VAROR[0]), true);
+  const nya = VAROR.map((v) => ({ ...v }));
+  const efter = rankaMedInfo(nya, (v) => v.n, "fåtölj", namn, kd).traffar;
+  assert.equal(efter.includes(nya[0]), true);
+  assert.equal(efter.includes(VAROR[0]), false);
+});
+
+test("förfiltret håller aldrig tillbaka en träff", () => {
+  const namn = VAROR.map((v) => normalize(v.n));
+  const fragor = new Set<string>();
+  for (const ord of [...SKRIVNA, "el bil", "tv bänk", "usb", "rosor", "stolar", "70x140", "120 cm", "utemöbler", "bänk", "sängram med belysning", "fåtöljer", "hund bur", "led"]) for (let k = 2; k <= ord.length; k++) fragor.add(ord.slice(0, k));
+  let traffar = 0;
+  let stoppade = 0;
+  for (const q of fragor) {
+    for (const okant of [false, true]) {
+      for (const lage of [0, 1, 2] as const) {
+        for (const v of VAROR) {
+          const r = forfilterProv(v.n, q, namn, lage, okant);
+          if (r.traffar) {
+            traffar++;
+            assert.ok(r.slapps, `"${q}" träffar "${v.n}" (läge ${lage}${okant ? ", okänt ord" : ""}) men förfiltret höll tillbaka det`);
+          } else if (!r.slapps) stoppade++;
+        }
+      }
+    }
+  }
+  // Provet är inte tomt åt något håll: det finns träffar, och filtret stoppar namn.
+  assert.ok(traffar > 5000, `bara ${traffar} träffar`);
+  assert.ok(stoppade > 50_000, `filtret stoppade bara ${stoppade} namn`);
+  // Ett långt ord stoppar de flesta namn redan på tecknen.
+  const kontor = VAROR.filter((v) => forfilterProv(v.n, "kontorsstol", namn, 0).slapps).length;
+  assert.ok(kontor < VAROR.length / 2, `${kontor} av ${VAROR.length} släpptes igenom`);
+  assert.equal(forfilterProv("Väska i kanvas med axelrem", "kontorsstol", namn, 0).slapps, false);
+  // Stavfelsledet släpper igenom ett namn som saknar ett av tecknen ("kontorsstål"),
+  // och två i ett långt ord: där tillåts två fel.
+  assert.equal(forfilterProv("Kontorsstol i manchester", "kontorsstål", namn, 2).slapps, true);
+  assert.deepEqual(forfilterProv("Kontorsstol i manchester", "kontqrsszol", namn, 2), { traffar: true, slapps: true });
+  assert.deepEqual(forfilterProv("Kontorsstol i manchester", "kontqrsszol", namn, 1), { traffar: false, slapps: false });
+  // En böjd form med andra tecken än stammen: "stänger" är "stång", och
+  // namnet har varken ä, e eller r.
+  const stanger = ["stång för gardin 120 cm", "skivstång 20 kg", "tabard i bomull"];
+  assert.deepEqual(forfilterProv("Stång 120 cm", "stänger gardin", stanger, 0), { traffar: true, slapps: true });
+  assert.deepEqual(forfilterProv("Skivstång 20 kg", "stänger", stanger, 0), { traffar: true, slapps: true });
+  // Två korta ord sammanskrivna utan prickar: "tå bä" står i "tabard", och
+  // inget av orden har sina tecken i namnet.
+  assert.deepEqual(forfilterProv("Tabard i bomull", "tå bä", stanger, 1), { traffar: true, slapps: true });
+  assert.deepEqual(forfilterProv("Tabard i bomull", "tå bä", stanger, 0), { traffar: false, slapps: false });
+});
+
+test("ordlistan delar namnen i samma ord som tokenize", () => {
+  const prov = [...VAROR.map((v) => v.n), "TV-bänk 70x70 cm – i EK, 1,5 m", "3D-skrivare & tillbehör/filament", "Café-bord (2-pack)", "  ", "", "Å Ä Ö åäö é É", "120cm×60cm", "a_b+c=d", "Ställ\tmed\nradbrytning"].map(normalize);
+  const lista = ordlistansOrd(prov);
+  assert.deepEqual(lista.ord, prov.map((n) => tokenize(n)));
+  // Ordräkningen ur ordlistan: i hur många NAMN ordet står (ett ord som står
+  // två gånger i ett namn räknas en gång), i den ordning orden först står.
+  const antal = new Map<string, number>();
+  for (const n of prov) for (const t of new Set(tokenize(n))) antal.set(t, (antal.get(t) ?? 0) + 1);
+  assert.deepEqual(lista.antal, [...antal]);
+  // Provet har ord som står två gånger i samma namn ("mat" i matlådan, "cm" i måtten).
+  assert.ok(prov.some((n) => tokenize(n).length !== new Set(tokenize(n)).size));
+});
+
+test("uppvärmningen i steg, i vilken ordning som helst, ändrar inga svar", () => {
+  // "speglar" når "Badrumsspegel" bara genom sista ledet ("spegel" står aldrig
+  // för sig), och "2pack" bara genom namnen med fogar ("2-pack"): stegen som
+  // bygger dem ska bygga rätt.
+  const fragor = [...SKRIVNA.flatMap(tangenter), "speglar", "2pack", "stolar", "barnbil"];
+  const facit = new Map(fragor.map((q) => [q, somText(rankaMedInfo(VAROR, (v) => v.n, q, VAROR.map((v) => normalize(v.n)), kd))]));
+  assert.match(facit.get("speglar") ?? "", /Badrumsspegel/);
+  assert.match(facit.get("2pack") ?? "", /2-pack/);
+  for (const ordning of [(s: (() => void)[]) => s, (s: (() => void)[]) => [...s].reverse(), (s: (() => void)[]) => s.slice(2), (s: (() => void)[]) => s.slice(0, 1)]) {
+    const namn = VAROR.map((v) => normalize(v.n));
+    const steg = forberedKatalogSteg(VAROR, namn, kd);
+    assert.equal(steg.length, 4);
+    for (const gor of ordning(steg)) gor();
+    for (const [q, svar] of facit) assert.equal(somText(rankaMedInfo(VAROR, (v) => v.n, q, namn, kd)), svar, q);
+  }
+  // Sökrutan gör ett steg per ledig stund, och bara en gång per hämtat index.
+  const rankning = readFileSync(new URL("./sok-rankning.ts", import.meta.url), "utf8");
+  assert.match(rankning, /steg \?\?= \[\(\) => \{ ordforradFor\(idx\); \}, \.\.\.forberedKatalogSteg\(idx, namnFor\(idx\), kategoridata\(\)\)\];/);
+  assert.match(rankning, /steg\.shift\(\)\?\.\(\);\n    if \(steg\.length > 0\) vanta\(false\);/);
+  assert.match(rankning, /if \(uppvarmda\.has\(idx\)\) return;/);
+});
+
+test("kategoriförslagen: kategorins former räknas en gång, poängen är densamma", () => {
+  const kategorier = KAT.map((k, i) => ({ name: k.n, slug: String(i) }));
+  for (const q of ["barnmobel", "fatoljer", "tv-bänk", "svart kontorsstol", "trädgård", "pool och spa", "belysning", "zz", "leksaker spel"]) {
+    const forsta = matchaKategorier(q, kategorier, 5);
+    // Andra gången ligger kategorins former i minnet.
+    assert.deepEqual(matchaKategorier(q, kategorier, 5), forsta, q);
+    // Listan är poängen, bäst först, och bara kategorier med poäng.
+    const poang = (k: { name: string }) => kategoriPoang(k.name, q);
+    const vantat = kategorier.map((k, i) => ({ k, i, p: poang(k) })).filter((r) => r.p > 0).sort((a, b) => b.p - a.p || a.k.name.length - b.k.name.length || a.i - b.i).slice(0, 5).map((r) => r.k);
+    assert.deepEqual(forsta, vantat, q);
+  }
+  assert.deepEqual(matchaKategorier("barnmobel", kategorier, 3).map((k) => k.name), ["Barnmöbler"]);
+  // Mjuka bindestreck i namnet räknas inte, första gången eller sedan.
+  assert.ok(kategoriPoang("Barn\u00admöbler", "barnmöbler") > 0);
+  assert.equal(kategoriPoang("Barn\u00admöbler", "barnmöbler"), kategoriPoang("Barnmöbler", "barnmöbler"));
+});
+
+test("det som räknas en gång per namnlista hör till rätt namn", () => {
+  // Namnet utan prickar och med fogar: "tvbank" är "TV-bänk", och bara det namnet.
+  const varor = ["Soffbord i glas", "Sittpuff i sammet", "TV-bänk 120 cm i ek", "Matta 160 cm i ull", "Pall i trä"].map((n) => ({ n }));
+  const namn = varor.map((v) => normalize(v.n));
+  for (const q of ["tvbank", "tv bank", "tvbänk", "tv-bank"]) assert.deepEqual(rankaMedInfo(varor, (v) => v.n, q, namn).traffar.map((v) => v.n), ["TV-bänk 120 cm i ek"], q);
+  // Och när listan är uppvärmd i förväg (forberedKatalog bygger samma sak).
+  const varma = varor.map((v) => normalize(v.n));
+  forberedKatalog(varor, varma);
+  for (const q of ["tvbank", "tv bank", "tvbänk", "tv-bank"]) assert.deepEqual(rankaMedInfo(varor, (v) => v.n, q, varma).traffar.map((v) => v.n), ["TV-bänk 120 cm i ek"], q);
+  // Huvuddelen: "soffbord" är varan i det första namnet och ett tillbehör i det andra.
+  const bord = ["Underlägg för soffbord i filt", "Soffbord i glas", "Bricka till soffbord", "Soffbord med hylla"].map((n) => ({ n }));
+  const bordNamn = bord.map((v) => normalize(v.n));
+  assert.deepEqual(rankaMedInfo(bord, (v) => v.n, "soffbord", bordNamn).traffar.map((v) => v.n), ["Soffbord i glas", "Soffbord med hylla", "Underlägg för soffbord i filt", "Bricka till soffbord"]);
+});
+
+test("färger och småord föreslås aldrig som rättning, inte heller ur ordbokens förräknade fält", () => {
+  const varor = [...Array.from({ length: 25 }, (_, i) => ({ n: `Kudde ${40 + i} cm i turkos sammet` })), { n: "Soffbord i glas" }, { n: "Sittpuff i sammet" }];
+  const namn = varor.map((v) => normalize(v.n));
+  // "turjo" ligger ett fel från början på "turkos", som står i 25 namn: en
+  // färg är ändå inget ord att rätta till ("dlang" är "slang", inte "lång").
+  const u = rankaMedInfo(varor, (v) => v.n, "turjo", namn);
+  assert.equal(u.rattat, undefined);
+  assert.equal(u.sokt, undefined);
+  // Början på färgen som den står är inget fel: den skrivs färdigt utan besked.
+  assert.equal(rankaMedInfo(varor, (v) => v.n, "turko", namn).sokt, "turkos");
 });

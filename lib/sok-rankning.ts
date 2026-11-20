@@ -12,7 +12,7 @@
 // aldrig. Kontaktformulärets produktväljare importerar den som vanligt: den
 // sidan söker alltid.
 
-import { byggOrdforrad, forberedKatalog, kortOrd, markeraTraffar, markeringsord, matchaKategorier, normalize, rankaMedInfo, rankByName, sokforslagINamn, visaVarorFor, type Kategoridata, type Ordforrad } from "./search";
+import { byggOrdforrad, forberedKatalogSteg, kortOrd, markeraTraffar, markeringsord, matchaKategorier, normalize, rankaMedInfo, rankByName, sokforslagINamn, visaVarorFor, type Kategoridata, type Ordforrad } from "./search";
 import { sokKategorierHamtade, type SokTraff } from "./sok-index";
 import { kopbaraForst } from "./sok-ordning";
 
@@ -116,19 +116,33 @@ export function sokexempelFor(idx: SokTraff[], max: number): string[] {
 
 /**
  * Bygg ordförrådet, de normaliserade namnen och sökningens ordbok i förväg,
- * när webbläsaren har en ledig stund. Ordförrådet tar 30–50 ms på en dator (mätt 2026-11-19) och
- * flera gånger det på en telefon; görs det här hinner det oftast bli klart
- * mellan att pekaren når rutan och att första tangenten trycks. Hinner det
- * inte byggs det vid första användningen, som förut.
+ * när webbläsaren har en ledig stund. Ordförrådet tar runt 50 ms på en dator
+ * och resten runt 60 ms (mätt 2026-11-20 på 7 886 varor), flera gånger det på
+ * en telefon; görs det här hinner det oftast bli klart mellan att pekaren når
+ * rutan och att första tangenten trycks. Hinner det inte byggs det vid första
+ * användningen, som förut.
+ *
+ * ☠️ ETT STEG PER LEDIG STUND (2026-11-20). Allt i en uppgift höll skärmen
+ * låst i upp till 390 ms på en strypt telefon, och tangenten som trycktes
+ * under tiden fick vänta. Nu lämnas turen tillbaka mellan stegen (ordförrådet
+ * och de fyra i forberedKatalogSteg), så att en tangent hinner emellan.
  */
+const uppvarmda = new WeakSet<SokTraff[]>();
 export function varmUpp(idx: SokTraff[]): void {
-  const gor = () => {
-    ordforradFor(idx);
-    // Ordboken och kategorierna för rättningen och begreppsorden (lib/search.ts,
-    // forberedKatalog): runt 200 ms på en dator, mätt 2026-11-20.
-    forberedKatalog(idx, namnFor(idx), kategoridata());
-  };
+  // Rutan ber om uppvärmning varje gång pekaren eller fingret når den.
+  if (uppvarmda.has(idx)) return;
+  uppvarmda.add(idx);
+  let steg: (() => void)[] | null = null;
   const ledig = (globalThis as { requestIdleCallback?: (f: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
-  if (ledig) ledig(gor, { timeout: 600 });
-  else setTimeout(gor, 60);
+  const vanta = (forst: boolean) => {
+    if (ledig) ledig(nasta, { timeout: forst ? 600 : 300 });
+    else setTimeout(nasta, 60);
+  };
+  const nasta = () => {
+    // Stegen skapas först här: namnen normaliseras då i den lediga stunden.
+    steg ??= [() => { ordforradFor(idx); }, ...forberedKatalogSteg(idx, namnFor(idx), kategoridata())];
+    steg.shift()?.();
+    if (steg.length > 0) vanta(false);
+  };
+  vanta(true);
 }
