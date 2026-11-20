@@ -1,0 +1,117 @@
+{
+  "c2f1960e": {
+    "productId": "c2f1960e-42d1-40d8-b173-a20740899d2e",
+    "synliga": 0,
+    "dolda": 7,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": []
+  },
+  "b5aa1386": {
+    "productId": "b5aa1386-0aa8-4345-9c6d-8fa66b9d1236",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-160iy6z",
+        "betyg": 5,
+        "datum": "2026-02-03",
+        "foton": 1,
+        "text": "Customer Service was up to date and help me through all my needs Great job guys!!"
+      },
+      {
+        "id": "gen-1h3qkml",
+        "betyg": 4,
+        "datum": "2026-10-05",
+        "foton": 0,
+        "text": "Not as high quality as my YellowJacket one, but the heads match and for the price was exactly what I needed"
+      },
+      {
+        "id": "gen-110ftmb",
+        "betyg": 4,
+        "datum": "2026-04-20",
+        "foton": 0,
+        "text": "Took a couple of practice runs to get operation fully functioning. Have used 8-10 times so far with expected results."
+      }
+    ]
+  },
+  "c9452132": {
+    "productId": "c9452132-fb88-4d3b-b3ab-f835d957c73f",
+    "synliga": 0,
+    "dolda": 1,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-5t1u0s",
+        "betyg": 5,
+        "datum": "2026-06-17",
+        "foton": 0,
+        "text": "love this set am 72 yrs old these will out last myself and they didn't break the BANK for my bucket list projects"
+      },
+      {
+        "id": "gen-1am77v5",
+        "betyg": 5,
+        "datum": "2026-05-20",
+        "foton": 0,
+        "text": "Great product for the price. Works great and great quality"
+      }
+    ]
+  },
+  "f00e4984": {
+    "productId": "f00e4984-1698-442e-867e-980dc7244c31",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "3cac4eb5": {
+    "productId": "3cac4eb5-4e76-4a9d-9459-505022c6684c",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-kzn4km",
+        "betyg": 5,
+        "datum": "2026-07-28",
+        "foton": 0,
+        "text": "Rien à dire. Rapport qualité prix excellent et simple d'usage!"
+      },
+      {
+        "id": "gen-1hi0rlc",
+        "betyg": 4,
+        "datum": "2026-04-07",
+        "foton": 0,
+        "text": "This machine is great!! It heats up quickly and will beep at you when its at temp. The only thing I wish you could do is something with the beep it is so very LOUD and for someone who wears hearing aids it gets frustrating. That being said you can adjust the pressure, temp is great and the machine its self is sturdy. I would defiantly recommend this to anyone."
+      }
+    ]
+  },
+  "14026f29": {
+    "productId": "14026f29-aa41-4d4b-8d41-b8430e0d2367",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "f75e596f": {
+    "productId": "f75e596f-18e0-4939-b87f-0b7affbc1d85",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  }
+}
