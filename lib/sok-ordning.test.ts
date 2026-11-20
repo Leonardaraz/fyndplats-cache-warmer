@@ -157,7 +157,7 @@ describe("de tre vägarna använder regeln", () => {
   });
 
   it("sökindexet står i samma ordning", () => {
-    assert.match(las("app", "api", "search-index", "route.ts"), /const products = katalogensSokordning\(await getProductsFarska\(\)\);\s+const index = products\.map\(/);
+    assert.match(las("app", "api", "search-index", "route.ts"), /const products = katalogensSokordning\(await getProductsFarska\(\)\);[\s\S]{0,900}const index: object\[\] = products\.map\(/);
   });
 
   it("den kalla vägen lägger det köpbara först med samma funktion", () => {

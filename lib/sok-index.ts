@@ -5,10 +5,12 @@
 // produktväljare (components/kontakt-produkt.tsx). Utbrutet ur searchbox.tsx
 // 2026-11-07, med skälen kvar nedan. Rankningen av förslagen: lib/sok-rankning.ts.
 
+import { lasKategoriRad, type SokKat } from "./sok-begrepp";
 import { tidsgransSignal } from "./tidsgrans-signal";
 
 // o = slutsåld (sätts bara på slutsålda produkter, se /api/search-index).
-export type SokTraff = { n: string; s: string; i: string; p: string; o?: 1 };
+// k = varans kategorier, som platser i kategoritabellen (lib/sok-begrepp.ts).
+export type SokTraff = { n: string; s: string; i: string; p: string; o?: 1; k?: number[] };
 
 /** Kortare sökningar än så rankas inte (sidhuvudet visar populära, formuläret ingenting). */
 export const KORTASTE_SOKNING = 2;
@@ -32,6 +34,9 @@ export const KORTASTE_SOKNING = 2;
 // listan kan öppnas direkt. Kostar ingenting för den som aldrig går nära rutan.
 let cache: SokTraff[] | null = null;
 let inflight: Promise<SokTraff[] | null> | null = null;
+// Kategoritabellen, som står sist i indexet (app/api/search-index/route.ts).
+// Tom för ett index utan den: sökningen söker då bara i namnen.
+let kategorier: readonly SokKat[] = [];
 
 // ETT MISSLYCKANDE FICK INTE BLI PERMANENT. Förr satte .catch() inflight till
 // ett löst löfte om [] — och eftersom `cache` bara sätts i lyckade fallet var
@@ -63,7 +68,16 @@ export function laddaSokIndex(): Promise<SokTraff[] | null> {
         if (!r.ok) throw new Error(String(r.status));
         return r.json();
       })
-      .then((d: SokTraff[]) => { cache = d; return d; })
+      .then((d: SokTraff[]) => {
+        // Sista raden är kategoritabellen, ingen vara: den lyfts ur.
+        const tabell = Array.isArray(d) && d.length > 0 ? lasKategoriRad(d[d.length - 1]) : null;
+        if (tabell) {
+          d.pop();
+          kategorier = tabell;
+        }
+        cache = d;
+        return d;
+      })
       .catch(() => {
         inflight = null; // låt nästa anrop försöka igen
         return null; // ett fel, inte en tom katalog
@@ -75,4 +89,9 @@ export function laddaSokIndex(): Promise<SokTraff[] | null> {
 /** Indexet om det redan är hämtat, annars null. Hämtar inget. */
 export function sokIndexHamtat(): SokTraff[] | null {
   return cache;
+}
+
+/** Kategoritabellen ur det hämtade indexet. Tom tills indexet är hämtat, och för ett index utan tabell. */
+export function sokKategorierHamtade(): readonly SokKat[] {
+  return kategorier;
 }

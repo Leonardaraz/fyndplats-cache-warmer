@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { after } from "next/server";
-import { getProducts, katalogenLaddad, MAIN_ORDER } from "../../lib/products";
+import { getCollections, getProducts, katalogenLaddad, MAIN_ORDER, type Product } from "../../lib/products";
 import { forListClient, forSokClient } from "../../lib/list-payload";
 import { SokVy } from "../../components/sok-vy";
 import { SokKall } from "../../components/sok-kall";
@@ -8,7 +8,9 @@ import { populartNu } from "../../lib/sok-tom";
 import { sidhuvudsdata } from "../../lib/sidhuvud-data";
 import { populara } from "../../lib/sidhuvud-val";
 import { attachRatings } from "../../lib/review-aggregates";
-import { kortOrd, matchaKategorier, normalize, rankaMedForslag } from "../../lib/search";
+import { kortOrd, matchaKategorier, normalize, rankaMedForslag, type Kategoridata } from "../../lib/search";
+import { BARA_I_UNDERKATEGORIN } from "../../lib/bara-i-underkategorin";
+import { sokKategorier, varansKategorier, type Sokkategorier } from "../../lib/sok-begrepp";
 import { plattaKategorier, type SokKategori } from "../../lib/sok-kategorier";
 import { harPris, tolkaPris } from "../../lib/sok-pris";
 import { katalogensSokordning, kopbaraForst } from "../../lib/sok-ordning";
@@ -20,6 +22,28 @@ export const metadata: Metadata = {
   // noindexade söksidan en motsägelsefull "jag är startsidan"-signal.
   alternates: { canonical: "https://www.fyndplats.se/sok" },
 };
+
+// Kategorierna i sökningens form, en gång per kategorilista: sökningen sparar
+// varornas tillhörighet per tabell (lib/search.ts, medlemskapFor), så tabellen
+// ska vara samma objekt mellan sökningarna.
+const sokKat = new WeakMap<object, Sokkategorier>();
+
+/**
+ * Kategorierna för sökningen, med samma tillhörighet som sökindexet bär
+ * (lib/sok-begrepp.ts): sökrutan och sidan visar då samma varor. Undefined
+ * när kategorierna inte gick att läsa, och sökningen söker då i namnen.
+ */
+async function kategoridata(): Promise<Kategoridata<Product> | undefined> {
+  const kategorier = await getCollections().catch(() => []);
+  if (kategorier.length === 0) return undefined;
+  let k = sokKat.get(kategorier);
+  if (!k) {
+    k = sokKategorier(kategorier);
+    sokKat.set(kategorier, k);
+  }
+  const tabell = k;
+  return { kat: tabell.kat, av: (p) => varansKategorier(p, tabell, BARA_I_UNDERKATEGORIN) };
+}
 
 export default async function Sok({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const { q = "" } = await searchParams;
@@ -83,7 +107,7 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
   let visar = "";
   let liknande = false;
   if (term) {
-    const { utfall, visar: ordet } = rankaMedForslag(all, (p) => p.name, fraga);
+    const { utfall, visar: ordet } = rankaMedForslag(all, (p) => p.name, fraga, await kategoridata());
     visar = ordet;
     if (visar) kategorier = matchaKategorier(visar, allaKategorier, 3);
     if (utfall.traffar.length > 0) {

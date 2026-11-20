@@ -23,40 +23,82 @@
 // ShopBrowser hämtar den i bakgrunden (andraBilderUrKartan).
 import { useEffect, useState } from "react";
 import type { ListProduct } from "../lib/products";
-import { matchaKategorier, rankaMedForslag } from "../lib/search";
-import { laddaSokIndex } from "../lib/sok-index";
-import { kandidater } from "../lib/sok-kall";
+import { matchaKategorier, rankaMedForslag, type Kategoridata } from "../lib/search";
+import { laddaSokIndex, sokKategorierHamtade, type SokTraff } from "../lib/sok-index";
+import { kandidater, medForsok } from "../lib/sok-kall";
 import { kopbaraForst } from "../lib/sok-ordning";
 import { harPris, tolkaPris } from "../lib/sok-pris";
 import { populartNu } from "../lib/sok-tom";
 import { registreradeKategorier, type SokKategori } from "../lib/sok-kategorier";
 import { SokVy, type SokData } from "./sok-vy";
 
-/** Så länge väntar vi på listan. Den är ~0,5 MB över nätet; se lib/sok-index.ts för mätningen bakom 20 s. */
+/** Så länge väntar vi på listan, per försök. Den är ~0,5 MB över nätet; se lib/sok-index.ts för mätningen bakom 20 s. */
 const TIDSGRANS_MS = 20_000;
+/**
+ * Så många gånger hämtas listan innan felrutan visas, och pausen emellan.
+ * Direkt efter en deploy tar första svaret 25–28 sekunder (servern läser
+ * katalogen), längre än ett försök väntar: se medForsok i lib/sok-kall.ts.
+ */
+const FORSOK = 3;
+const PAUS_MS = 1_500;
 /** Så länge väntar vi på indexet EFTER att listan kommit. Sedan visas det som går att köpa. */
 const INDEX_VANTAN_MS = 5_000;
+
+// Varornas kategorier står i sökindexet (radens `k`), slagna upp på slug.
+// Sparade per index, så att de inte räknas om för varje sökning.
+const kategorierPerSlug = new WeakMap<object, Map<string, number[]>>();
+
+/**
+ * Kategorierna för sökningen, ur sökindexet: samma tillhörighet som sökrutan
+ * och servern räknar med (lib/sok-begrepp.ts). Undefined utan index eller utan
+ * kategoritabell, och sökningen söker då i namnen.
+ */
+function kategoridata(index: SokTraff[] | null): Kategoridata<ListProduct> | undefined {
+  const kat = sokKategorierHamtade();
+  if (!index || kat.length === 0) return undefined;
+  let perSlug = kategorierPerSlug.get(index);
+  if (!perSlug) {
+    perSlug = new Map();
+    for (const h of index) if (h.k) perSlug.set(h.s, h.k);
+    kategorierPerSlug.set(index, perSlug);
+  }
+  const uppslag = perSlug;
+  return { kat, av: (p) => uppslag.get(p.slug) };
+}
 
 export function SokKall({ q, kategorier, popularaKategorier }: { q: string; kategorier: SokKategori[]; popularaKategorier: SokKategori[] }) {
   const [svar, setSvar] = useState<{ q: string; data: SokData | "fel" } | null>(null);
 
   useEffect(() => {
     let avbruten = false;
-    const styr = new AbortController();
-    const klocka = setTimeout(() => styr.abort(), TIDSGRANS_MS);
+    let styr: AbortController | null = null;
+    let klocka: ReturnType<typeof setTimeout> | undefined;
     // Indexet hämtas samtidigt (sökrutan delar hämtningen), men det är listan
     // som krävs: faller indexet visas det som går att köpa.
     const index = laddaSokIndex().catch(() => null);
-    fetch("/api/lista?k=alla", { signal: styr.signal })
-      .then((r) => (r.ok ? (r.json() as Promise<ListProduct[]>) : Promise.reject(new Error(`HTTP ${r.status}`))))
-      .then(async (lista) => {
+    // Ett försök: en egen tidsgräns, så att ett som hänger inte äter nästa.
+    const hamtaLista = async (): Promise<ListProduct[]> => {
+      const denna = new AbortController();
+      styr = denna;
+      klocka = setTimeout(() => denna.abort(), TIDSGRANS_MS);
+      try {
+        const r = await fetch("/api/lista?k=alla", { signal: denna.signal });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const lista = (await r.json()) as ListProduct[];
         if (!Array.isArray(lista) || lista.length === 0) throw new Error("tom lista");
+        return lista;
+      } finally {
+        clearTimeout(klocka);
+      }
+    };
+    medForsok(hamtaLista, FORSOK, () => new Promise((klar) => setTimeout(klar, PAUS_MS)), () => avbruten)
+      .then(async (lista) => {
         const slutsalda = await Promise.race([index, new Promise<null>((klar) => setTimeout(() => klar(null), INDEX_VANTAN_MS))]);
         if (avbruten) return;
         // Priset i sökningen läses som på servern (app/sok/page.tsx).
         const prisfraga = tolkaPris(q.trim());
         // Två bokstäver visar varorna för ordet kunden var på väg att skriva (lib/search.ts).
-        const { utfall: u, visar } = rankaMedForslag(kandidater(lista, slutsalda), (p) => p.name, prisfraga.fraga);
+        const { utfall: u, visar } = rankaMedForslag(kandidater(lista, slutsalda), (p) => p.name, prisfraga.fraga, kategoridata(slutsalda));
         // De köpbara först, relevansordningen kvar inom varje grupp: samma regel
         // som servern och sökrutan (lib/sok-ordning.ts).
         const traffar = kopbaraForst(u.traffar, (p) => !p.inStock);
@@ -75,12 +117,11 @@ export function SokKall({ q, kategorier, popularaKategorier }: { q: string; kate
       })
       .catch(() => {
         if (!avbruten) setSvar({ q, data: "fel" });
-      })
-      .finally(() => clearTimeout(klocka));
+      });
     return () => {
       avbruten = true;
       clearTimeout(klocka);
-      styr.abort();
+      styr?.abort();
     };
   }, [q, kategorier, popularaKategorier]);
 

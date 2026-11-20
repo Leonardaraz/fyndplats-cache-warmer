@@ -280,6 +280,33 @@ function canon(term: string): string {
   return collapseVowel(stem(normalize(term)));
 }
 
+// ☠️ "trädgårdsmöbel" GAV NOLL OCH "trädgårdsmöbler" 89 (Leonard 2026-11-20).
+// canon tar bort EN ändelse, och "möbel" har ingen: flertalet "möbler" blir
+// "möbl", entalet står kvar som "möbel". Samma sak för spegel och speglar,
+// cykel och cyklar, nyckel och nycklar: ord på -el, -en och -er tappar e:et i
+// flertal. TAPPAR_E ger nyckeln utan det (se begreppsnyckel).
+const TAPPAR_E = /^(.{2,}[bcdfghjklmnpqrstvwxz])e([lnr])$/;
+
+/**
+ * Ordet i sina böjningar, utan prickar: som det står, stammen, entalet och de
+ * böjda formerna. Två ord är SAMMA ORD när de delar en form (delarForm):
+ * "barnmobel" och "Barnmöbler", "leksak" och "Leksaker", "fåtölj" och
+ * "Fåtöljer". Används där ett ord jämförs med ett annat ord (kategorinamn,
+ * begreppsord), aldrig mot namnen.
+ *
+ * ☠️ Formerna, inte canon. Den första versionen jämförde canon-nycklar, och
+ * canon skalar vad som helst: "kökös" blev "kök" (ändelsen s, sedan vokalen)
+ * och räknades som kategorin Kök, så felstavningen rättades aldrig.
+ */
+function ordformer(ord: string): string[] {
+  const st = sokstam(ord);
+  // ☠️ Ett avskalat s är ingen böjning: "byggs" är början på "byggsats", inte
+  // avdelningen Bygg (39 byggsatser blev 310 varor med pumpar och soffor).
+  const stam = st !== ord && ord !== `${st}s` ? [st] : [];
+  return [...new Set([ord, ...stam, ...entalAv(ord), ...bojdaFormer(ord)].map(vik))];
+}
+const delarForm = (a: readonly string[], b: readonly string[]): boolean => a.some((x) => b.includes(x));
+
 // Bygg: kanonisk nyckel → övriga gruppmedlemmars needles (kanoniska stammar,
 // ≥3 tecken). Enkelriktad iteration men grupperna är symmetriska → bidirektionellt.
 // Needles som stammen gör för korta och som därför träffar orelaterade namn.
@@ -307,9 +334,22 @@ const SYN: Map<string, string[]> = (() => {
 // Envägsnålarna under samma nyckel som SYN (canon av kundens ord).
 const ENVAGS_NALAR: Map<string, string[]> = new Map(Object.entries(ENVAGS).map(([ord, nalar]) => [canon(ord), nalar]));
 
+/**
+ * Nyckeln för synonymer och envägsord: canon, eller ordets andra grundform
+ * (TAPPAR_E) när bara den är känd. "trädgårdsmöbel" och "utemöbel" når då samma
+ * varor som "trädgårdsmöbler" och "utemöbler".
+ */
+function begreppsnyckel(term: string): string {
+  const k = canon(term);
+  if (SYN.has(k) || ENVAGS_NALAR.has(k)) return k;
+  const m = TAPPAR_E.exec(k);
+  if (m && (SYN.has(m[1] + m[2]) || ENVAGS_NALAR.has(m[1] + m[2]))) return m[1] + m[2];
+  return k;
+}
+
 // Synonym-needles för en originalterm (exporterad för test/insyn).
 export function expandSynonyms(term: string): string[] {
-  const k = canon(term);
+  const k = begreppsnyckel(term);
   return [...(SYN.get(k) || []), ...(ENVAGS_NALAR.get(k) || [])];
 }
 
@@ -521,7 +561,9 @@ function sammanskrivet(fogat: string, re: RegExp, flerOrd: boolean): { var: 0 | 
 // `former`: ordets andra böjningar som stammen inte når (se bojdaFormer).
 // `kortStam`: stammen är högst tre tecken och kortare än ordet kunden skrev
 // ("rosor" → "ros"), och ska då stå som ett ord i namnet (se ordStar).
-type Unit = { stem: string; key: string; vikt: string; tok: string; helord: boolean; egenskap: boolean; fogRe: RegExp | null; ihopNasta?: string; former?: string[]; kortStam?: boolean };
+// `lem`: ordet i sina böjningar utan prickar (ordformer), för jämförelsen med
+// kategoriernas ord.
+type Unit = { stem: string; key: string; vikt: string; tok: string; helord: boolean; egenskap: boolean; fogRe: RegExp | null; ihopNasta?: string; former?: string[]; kortStam?: boolean; lem: string[] };
 const EXAKT = 0, VIKT = 1, STAVFEL = 2;
 type Lage = typeof EXAKT | typeof VIKT | typeof STAVFEL;
 
@@ -809,13 +851,14 @@ function sokstam(tok: string): string {
 function prepare(query: string): Prepared {
   const q = normalize(query);
   const alla = tokenize(q)
-    .map((t) => ({ tok: t, stem: sokstam(t), key: canon(t) }))
+    .map((t) => ({ tok: t, stem: sokstam(t), key: begreppsnyckel(t) }))
     .filter((u) => u.stem.length >= 2);
   const innehall = alla.filter((u) => !STOPWORDS.has(u.tok));
   const units: Unit[] = (innehall.length > 0 ? innehall : alla).map(({ tok, stem: s, key }) => {
     const u: Unit = {
       stem: s, key, vikt: vik(s), tok, helord: helord(tok), egenskap: arEgenskap(tok),
       fogRe: s.length >= KORTASTE_SAMMANSKRIVET ? ihopMonster(s) : null,
+      lem: ordformer(tok),
     };
     if (!u.helord && !u.egenskap) {
       // "rosor" är inte "rosa": en form som är en färg, ett mått eller ett
@@ -1154,8 +1197,8 @@ export function nameScore(name: string, query: string): number {
 // `normNamn` är namnen redan normaliserade, i items ordning. Sökrutorna skickar
 // in dem (rankaForslag i lib/sok-index.ts), så att hela katalogens namn inte
 // görs om vid varje tangent.
-export function rankByName<T>(items: T[], nameOf: (item: T) => string, query: string, normNamn?: readonly string[]): T[] {
-  return rankaMedInfo(items, nameOf, query, normNamn).traffar;
+export function rankByName<T>(items: T[], nameOf: (item: T) => string, query: string, normNamn?: readonly string[], kd?: Kategoridata<T>): T[] {
+  return rankaMedInfo(items, nameOf, query, normNamn, kd).traffar;
 }
 
 /**
@@ -1167,8 +1210,11 @@ export function rankByName<T>(items: T[], nameOf: (item: T) => string, query: st
  *     ("ellamin" → "elkamin"). Sidan säger då vad den visar.
  *   `liknande` är satt när inget namn har sökordet och träffarna bara ligger
  *     nära det i stavning. Sidan säger det, i stället för att låtsas.
+ *   `sokt` är sökningen som den söktes, när ett ord skrevs om utan besked:
+ *     med prickarna ("fatolj" → "fåtölj") eller färdigskrivet ("stäl" →
+ *     "ställ"). Träffarna är de som det ordet ger.
  */
-export type Sokutfall<T> = { traffar: T[]; strukna: string[]; utan?: string[]; hela?: number; rattat?: string; liknande?: true };
+export type Sokutfall<T> = { traffar: T[]; strukna: string[]; utan?: string[]; hela?: number; rattat?: string; liknande?: true; sokt?: string };
 
 /** Färre hela träffar än så, och sökningen har en färg eller ett mått: fyll på. */
 export const FYLL_PA_UNDER = 24;
@@ -1210,6 +1256,742 @@ export function markeraTraffar(namn: string, ord: readonly string[]): string[] {
   return bitar;
 }
 
+// ── Kategorierna som begrepp (2026-11-20) ────────────────────────────────────
+//
+// ☠️ "barnmöbler" GAV TVÅ VAROR OCH "möbler" 42 (Leonards skärmbild samma dag,
+// "trägårdsmöbel" och "barnmobel"). Butiken har 132 barnmöbler och 1 521
+// möbler, men ordet står inte i namnen: en barnmöbel heter "Barnbord" och en
+// möbel "Soffa". Mätt mot katalogen samma dag gav 41 % av 674 kategoriord
+// kategorins varor, och 50 gav ingenting ("köksredskap", "hushållsapparater",
+// "garageinredning", "kontorsmöbler").
+//
+// Sökningen vet nu vilka kategorier varje vara hör till (sökindexet bär dem,
+// app/api/search-index/route.ts), och ett sökord kan träffa varan genom
+// kategorins namn:
+//
+//   LIKA    sökordet är ett av kategorins ord, i någon böjning och med eller
+//           utan prickar: "barnmobel" är Barnmöbler, "leksak" Leksaker & Spel.
+//   HUVUD   sökordet är huvudet i kategorins ord, eller en synonym står i
+//           namnet: "möbler" i Utemöbler, "lampa" och Belysning.
+//   FORLED  kategorins ord börjar med sökordet: "hund" i Hundburar. Säger vad
+//           varan är TILL, inte vad den är.
+//
+// En vara hör också till kategorins föräldrar: en barnmöbel är en vara i Barn
+// & Familj. Två ställen använder det:
+//
+//   1. SOM RESERV, när inget namn har alla sökord (kategoriVarv): varje sökord
+//      får träffa i namnet ELLER genom en kategori. "barnmöbler" visar
+//      kategorin, och "kontorsmöbler" (delat i "kontors möbler") visar
+//      möblerna med kontor i namnet. En sökning som redan har en hel träff i
+//      namnen ändras inte.
+//   2. FÖR ETT ENSAMT BEGREPPSORD som också står i några namn (medBegrepp):
+//      "belysning" visade en sängram, en pizzaugn och en kylmonter "med
+//      belysning" före varenda lampa, och "leksaker" 73 av butikens 485.
+const K_FORLED = 1, K_HUVUD = 2, K_LIKA = 3;
+const K_KVAL = [0, 0.5, 0.8, 0.9];
+
+/** En kategori i sökningen: namnet, och förälderns plats i listan (-1 för en avdelning). */
+export type SokKat = { n: string; f: number };
+
+/**
+ * Kategorierna, och vilka varje vara ligger i: platser i `kat`. Föräldrarna
+ * räknas in här, så varan behöver bara bära sina egna. En negativ plats,
+ * -(plats + 1), är en vara som bara hör till den kategorin och inte till
+ * föräldrarna (lib/bara-i-underkategorin.ts).
+ */
+export type Kategoridata<T> = { kat: readonly SokKat[]; av: (item: T) => readonly number[] | null | undefined };
+
+// `delar`: hur många sorters varor namnet räknar upp ("Selar, Koppel &
+// Transport" är tre). En kategori med tre eller fler är en samling, och ett
+// av orden säger inte vad resten av varorna är.
+type KatInfo = { namn: string; ord: string[]; vikta: string[]; lem: string[][]; delar: number };
+const katInfoCache = new WeakMap<readonly SokKat[], KatInfo[]>();
+function katInfoFor(kat: readonly SokKat[]): KatInfo[] {
+  let info = katInfoCache.get(kat);
+  if (!info) {
+    info = kat.map((k) => {
+      // Mjuka bindestreck (U+00AD) står i långa kategorinamn för radbrytningen.
+      const namn = normalize((k.n || "").replace(/­/g, ""));
+      const ord = [...new Set([...tokenize(namn), ...tokenize(utanBindestreck(namn))])]
+        .filter((o) => o.length >= 3 && !STOPWORDS.has(o) && /^[a-zåäö]+$/.test(o));
+      return { namn, ord, vikta: ord.map(vik), lem: ord.map(ordformer), delar: namn.split(/\s*[&,]\s*|\s+och\s+/).filter(Boolean).length };
+    });
+    katInfoCache.set(kat, info);
+  }
+  return info;
+}
+
+/** Sökordet utan prickar, för jämförelsen med kategoriernas ord (huvudI). */
+function utanPrickar(u: Unit): Unit {
+  const tok = vik(u.tok);
+  const stam = vik(u.stem);
+  if (tok === u.tok && stam === u.stem && !u.former?.some((f) => vik(f) !== f)) return u;
+  return { ...u, tok, stem: stam, former: u.former?.map(vik) };
+}
+
+/** Hur sökordet träffar kategorin: 0, K_FORLED, K_HUVUD eller K_LIKA. */
+function katSlag(u: Unit, uVikt: Unit, k: KatInfo): number {
+  let bast = 0;
+  for (let i = 0; i < k.ord.length; i++) {
+    if (delarForm(u.lem, k.lem[i])) return K_LIKA;
+    if (bast >= K_HUVUD) continue;
+    if (huvudI(k.ord[i], u) || (uVikt !== u && huvudI(k.vikta[i], uVikt))) bast = K_HUVUD;
+    else if (bast < K_FORLED && uVikt.stem.length >= 4 && k.vikta[i].length >= uVikt.stem.length + 3 && k.vikta[i].startsWith(uVikt.stem)) bast = K_FORLED;
+  }
+  if (bast < K_HUVUD) {
+    for (const nd of SYN.get(u.key) ?? []) if (k.namn.includes(nd)) return K_HUVUD;
+    for (const nd of ENVAGS_NALAR.get(u.key) ?? []) if (k.namn.includes(nd)) return K_HUVUD;
+  }
+  return bast;
+}
+
+/** Ord som står i kategorinamn utan att säga vad varorna är: "Köksredskap & Tillbehör", "Verkstadsutrustning". */
+const INGET_BEGREPP = new Set(["tillbehor", "utrustning", "sak", "saker", "pryl", "prylar", "produkt", "produkter", "artikel", "artiklar", "varor"]);
+
+/** Per sökord: hur varje kategori träffar. Null när ingen kategori träffar något sökord. */
+function katSlagFor(p: Prepared, info: readonly KatInfo[]): Uint8Array[] | null {
+  let nagon = false;
+  const ut = p.units.map((u) => {
+    const rad = new Uint8Array(info.length);
+    if (u.helord || u.egenskap || !/^[a-zåäö]+$/.test(u.tok) || INGET_BEGREPP.has(vik(u.tok))) return rad;
+    const uVikt = utanPrickar(u);
+    for (let c = 0; c < info.length; c++) {
+      const s = katSlag(u, uVikt, info[c]);
+      if (s) { rad[c] = s; nagon = true; }
+    }
+    return rad;
+  });
+  return nagon ? ut : null;
+}
+
+// Varornas kategorier, och kategoriernas varor med underkategoriernas
+// inräknade, sparade per varulista: sökrutorna skickar samma lista vid varje
+// tangent. Platserna i `medl` står i listans ordning.
+type Medlemskap = { kat: readonly SokKat[]; egna: (readonly number[] | null)[]; medl: number[][] };
+const medlemsCache = new WeakMap<object, Medlemskap>();
+function medlemskapFor<T>(items: readonly T[], kd: Kategoridata<T>): Medlemskap {
+  const sparat = medlemsCache.get(items);
+  if (sparat && sparat.kat === kd.kat) return sparat;
+  const antal = kd.kat.length;
+  const medl: number[][] = Array.from({ length: antal }, () => []);
+  const sedd = new Int32Array(antal).fill(-1);
+  const egna = items.map((item, i) => {
+    const ks = kd.av(item);
+    if (!ks || ks.length === 0) return null;
+    for (const k of ks) {
+      // En negativ plats ärver inte uppåt. Högst åtta led, mot en trasig tabell.
+      const start = k >= 0 ? k : -k - 1;
+      for (let c = start, led = 0; c >= 0 && c < antal && led < 8; c = k >= 0 ? kd.kat[c].f : -1, led++) {
+        if (sedd[c] === i) break;
+        sedd[c] = i;
+        medl[c].push(i);
+      }
+    }
+    return ks;
+  });
+  const ny = { kat: kd.kat, egna, medl };
+  medlemsCache.set(items, ny);
+  return ny;
+}
+
+/** Ligger kategorin `c` under kategorin `f` (högst åtta led)? */
+function arUnder(kat: readonly SokKat[], c: number, f: number): boolean {
+  for (let x = kat[c]?.f ?? -1, led = 0; x >= 0 && x < kat.length && led < 8; x = kat[x].f, led++) if (x === f) return true;
+  return false;
+}
+
+/** Antalet ettställda bitar. */
+function bitar(m: number): number {
+  let n = 0;
+  for (let x = m; x !== 0; x &= x - 1) n++;
+  return n;
+}
+
+/** Hur stor del av en begreppskategoris varor som högst får bära ordet i namnet. */
+const BEGREPP_UNDER = 0.35;
+
+/** Huvudord som bara säger "saker till": "badrumsmöbler", "hundsaker", "kattprylar". */
+const ALLMANNA_HUVUDORD = new Set([
+  "möbel", "möbler", "möblerna", "sak", "saker", "sakerna", "pryl", "prylar", "grej", "grejer", "produkt", "produkter",
+  "artikel", "artiklar", "varor", "tillbehör", "utrustning",
+]);
+const ALLMANNA_UTAN_PRICKAR = new Set([...ALLMANNA_HUVUDORD].map(vik));
+/**
+ * Är ordet ett allmänt huvudord, som det står eller skrivet utan prickar
+ * ("mobler")? ☠️ Inte med ANDRA prickar: första versionen jämförde utan
+ * prickar åt båda håll, och "boxningssäk" lästes som "boxnings" + "sak", ett
+ * rättstavat ord som aldrig blev "boxningssäck" (2026-11-20).
+ */
+function arAllmantHuvudord(x: string): boolean {
+  return ALLMANNA_HUVUDORD.has(x) || (vik(x) === x && ALLMANNA_UTAN_PRICKAR.has(x));
+}
+
+// ── Är sökordet ett ord? (2026-11-20) ────────────────────────────────────────
+//
+// ☠️ ETT ORD SOM INTE FINNS RÄTTADES ALDRIG NÄR BOKSTÄVERNA RÅKADE STÅ I ETT
+// NAMN. Stavningen rättades bara när inget namn träffade, och en delsträng
+// träffar nästan alltid något. Mätt mot katalogen 2026-11-20 (2 089
+// felstavningar av de 320 vanligaste varuorden, 79,5 % rätt):
+//
+//   "lapor"   stammen "lap" stod i "laptophållare": 28 träffar, ingen lampa.
+//   "klosar"  stammen "klos" stod i "klossar": rätt varor, fel ordning.
+//   "vaska"   stod i "guldVASKArsats": en guldvaskarsats, ingen väska.
+//   "sgäll"   utan prickar i "returluftSGALLer": sex galler, inget ställ.
+//   "stäl"    stod i "odlingSTÄLt": 365 tält före första stället.
+//   "xtolar"  fel första bokstav: noll (233 av 320 sådana gav ingenting).
+//
+// Nu prövas varje sökord mot katalogens ORD innan namnen genomsöks. Ett ord
+// som finns rörs inte. Ett ord som inte finns skrivs om:
+//
+//   med prickarna   "vaska" → "väska", utan besked (som "fatolj" förut).
+//   färdigskrivet   "stäl" → "ställ", när alla ord som börjar så är det ordet.
+//   rättstavat      "lapor" → "lampor", ett fel, med besked till kunden.
+//
+// Ger det omskrivna ordet inga varor gäller sökningen som den skrevs.
+//
+// ORDET FINNS när det står för sig i ett namn, är en böjning av ett sådant
+// ord, slutar ett sammansatt ord ("bank" i "powerbank") eller börjar ett
+// ("kläd" i "klädställ"), eller är ett begreppsord (synonym, envägsord,
+// kategori). Reglerna är generösa med flit: ett ord som felaktigt räknas som
+// känt söks som förut, men ett känt ord som räknas som okänt hade kunnat
+// "rättas" till något annat.
+
+/** Katalogens ordförråd för rättningen, sparat per namnlista. */
+type Ordbok = {
+  antal: Map<string, number>;
+  /** Orden av bokstäver, tre tecken och uppåt, sorterade. */
+  ord: string[];
+  /** Samma ord utan prickar, på samma platser. */
+  ordVikt: string[];
+  /** Vilka bokstäver ordet har (en bit per bokstav), på samma platser: se bokstavsmask. */
+  ordMask: Int32Array;
+  /** Ordet utan prickar → ordet som står i flest namn. */
+  medPrickar: Map<string, string>;
+  /** Namnens första ord, med antal: där står vad varan är. */
+  forsta: Map<string, number>;
+};
+
+function ordbokFor(namn: readonly string[], sparat: ListFormer): Ordbok {
+  if (sparat.bok) return sparat.bok;
+  const antal = (sparat.antal ??= ordAntal(namn));
+  const ord = [...antal.keys()].filter((o) => o.length >= 3 && /^[a-zåäö]+$/.test(o)).sort();
+  const ordVikt = ord.map(vik);
+  const medPrickar = new Map<string, string>();
+  for (let i = 0; i < ord.length; i++) {
+    const har = medPrickar.get(ordVikt[i]);
+    if (!har || (antal.get(ord[i]) ?? 0) > (antal.get(har) ?? 0)) medPrickar.set(ordVikt[i], ord[i]);
+  }
+  const forsta = new Map<string, number>();
+  for (const n of namn) {
+    const o = /^[a-zåäö]+/.exec(n)?.[0];
+    if (o && o.length >= 4) forsta.set(o, (forsta.get(o) ?? 0) + 1);
+  }
+  const ordMask = new Int32Array(ord.length);
+  for (let i = 0; i < ord.length; i++) ordMask[i] = bokstavsmask(ordVikt[i]);
+  return (sparat.bok = { antal, ord, ordVikt, ordMask, medPrickar, forsta });
+}
+
+/**
+ * Vilka bokstäver ordet har, en bit per bokstav (a–z, ordet utan prickar).
+ * Ett fel ändrar högst två bitar (en bokstav bort, en till), så två ord vars
+ * masker skiljer sig i fler än två bitar per tillåtet fel ligger för långt
+ * ifrån varandra. Rättningen går igenom hela ordförrådet vid varje tangent i
+ * ett okänt ord, och masken sparar nio av tio avståndsräkningar.
+ */
+function bokstavsmask(ordUtanPrickar: string): number {
+  let m = 0;
+  for (let i = 0; i < ordUtanPrickar.length; i++) {
+    const c = ordUtanPrickar.charCodeAt(i) - 97;
+    if (c >= 0 && c < 26) m |= 1 << c;
+  }
+  return m;
+}
+
+/** Första platsen i den sorterade listan där ordet inte är mindre än `t`. */
+function forstaPlats(ord: readonly string[], t: string): number {
+  let lo = 0;
+  let hi = ord.length;
+  while (lo < hi) {
+    const mitt = (lo + hi) >> 1;
+    if (ord[mitt] < t) lo = mitt + 1;
+    else hi = mitt;
+  }
+  return lo;
+}
+
+/** Ändelser som följer på ett helt ord sist i en sammansättning. Inte ett ensamt
+ *  n, t, a eller e: "stäl" + "t" är inget böjt ord i "odlingstält". */
+const HELA_ANDELSER = new Set(["ar", "er", "or", "en", "et", "arna", "erna", "orna", "na", "an"]);
+
+/**
+ * Står ordet sist i ett sammansatt ord, med minst tre bokstäver före?
+ * `slag`: 2 = som det står, 1 = med en ändelse efter, 0 = nej. `namn`: i hur
+ * många namn det står sist som det står (ordet för sig räknas med).
+ *
+ * ☠️ Det som står före ska vara ett ord, eller så ska ordet sluta minst två
+ * olika ord: "varbord" står sist i "skrivarbord" och "ianter" i "varianter",
+ * och inget av dem är ett ord. "bank" står i "hantelbank" efter "hantel".
+ */
+function slutarOrd(t: string, bok: Ordbok): { slag: 0 | 1 | 2; namn: number } {
+  let namn = bok.antal.get(t) ?? 0;
+  const kantForled = (o: string, i: number): boolean => {
+    const fore = o.slice(0, i);
+    return bok.antal.has(fore) || (fore.length >= 4 && fore.endsWith("s") && bok.antal.has(fore.slice(0, -1)));
+  };
+  let somDetStar = 0, somDetStarKant = false;
+  let medAndelse = 0, medAndelseKant = false;
+  for (const o of bok.ord) {
+    if (o.length < t.length + 2) continue;
+    const i = o.lastIndexOf(t);
+    // Tre bokstäver före, eller ett av de korta förleden ("el" i "elbil").
+    if (i < 3 && !(i === 2 && KORTA_FORLED.has(o.slice(0, 2)))) continue;
+    const rest = o.length - i - t.length;
+    if (rest === 0) {
+      somDetStar++;
+      namn += bok.antal.get(o) ?? 0;
+      somDetStarKant ||= kantForled(o, i);
+    } else if (rest <= 4 && HELA_ANDELSER.has(o.slice(i + t.length))) {
+      medAndelse++;
+      medAndelseKant ||= kantForled(o, i);
+    }
+  }
+  const slag = somDetStarKant || somDetStar >= 2 ? 2 : medAndelseKant || medAndelse >= 2 ? 1 : 0;
+  return { slag, namn };
+}
+
+/** Så många gånger vanligare ska ordet med prickar vara för att gå före bokstäverna som de står. */
+const PRICKAR_GANGER = 5;
+
+/**
+ * Grundformerna ett böjt ord kan komma av: stammen, entalet och de böjda
+ * formerna. Stammen som sökningen räknar den (sokstam): "hålare" har ingen
+ * stam "hål", och "skönhet" ingen stam "skön".
+ */
+function grundformer(t: string): string[] {
+  const s = sokstam(t);
+  return [...(s !== t && s.length >= 3 ? [s] : []), ...entalAv(t), ...bojdaFormer(t)];
+}
+
+/**
+ * Är `skrivet` ordet `ord` med prickar som saknas, och inget annat? "vaska" är
+ * "väska" utan prickar, men "stäl" är inte "stål": där står en annan prick, och
+ * det är ett stavfel som ska rättas med besked (eller ett annat ord).
+ */
+function saknarBaraPrickar(skrivet: string, ord: string): boolean {
+  if (skrivet.length !== ord.length) return false;
+  for (let i = 0; i < ord.length; i++) if (skrivet[i] !== ord[i] && skrivet[i] !== vik(ord[i])) return false;
+  return true;
+}
+
+const ARORD = 0, BORJAN = 1, OKANT = 2;
+/** `byt`: ordet att söka på i stället. `tyst`: bytet behöver inget besked. */
+type Ordstatus = { slag: 0 | 1 | 2; byt?: string; tyst?: boolean };
+const KANT_ORD: Ordstatus = { slag: ARORD };
+
+/** Finns sökordet i katalogen, är det början på ett ord, eller är det okänt? */
+function ordstatus(u: Unit, bok: Ordbok, arBegrepp: (u: Unit) => boolean, begrepp: readonly string[]): Ordstatus {
+  const t = u.tok;
+  if (bok.antal.has(t) || SYN.has(u.key) || ENVAGS_NALAR.has(u.key)) return KANT_ORD;
+  const slut = slutarOrd(t, bok);
+  // Samma bokstäver med prickar: "vaska" är "väska", "stang" är "stång".
+  const funnen = bok.medPrickar.get(vik(t));
+  const medPrickar = funnen && funnen !== t && saknarBaraPrickar(t, funnen) ? funnen : null;
+  if (slut.slag === 2) {
+    // ☠️ "skap" står sist i "redskap" och "trädgårdsredskap", så det fanns,
+    // och den som skrev utan prickar fick redskap i stället för skåp. Är
+    // ordet med prickar många gånger vanligare gäller det, med besked: den
+    // som faktiskt menade bokstäverna ser vad som hände.
+    if (medPrickar && slutarOrd(medPrickar, bok).namn >= PRICKAR_GANGER * slut.namn) return { slag: ARORD, byt: medPrickar };
+    return KANT_ORD;
+  }
+  if (medPrickar) return { slag: ARORD, byt: medPrickar, tyst: true };
+  if (arBegrepp(u)) return KANT_ORD;
+  const former = grundformer(t);
+  for (const f of former) if (bok.antal.has(f)) return KANT_ORD;
+  for (const e of HELA_ANDELSER) if (bok.antal.has(t + e)) return KANT_ORD;
+  if (bok.antal.has(`${t}a`) || bok.antal.has(`${t}e`)) return KANT_ORD;
+  if (slut.slag === 1) return KANT_ORD;
+  // En böjning av ett ord med prickar: "bankar" är "bänk". Riktiga ental,
+  // inte stammen: "plator" är inte "plåt" (det hade hetat "platar").
+  // Minst fyra bokstäver, och inte ord som bara ser böjda ut: "laser" är inte
+  // "las" + "er", och blev annars "lås".
+  if (!INTE_BOJT.has(t)) {
+    for (const f of [...entalAv(t), ...bojdaFormer(t)]) {
+      if (f.length < 4) continue;
+      const m = bok.medPrickar.get(vik(f));
+      if (m && saknarBaraPrickar(f, m)) return { slag: ARORD, byt: m, tyst: true };
+    }
+  }
+  // En böjning av ett ord som bara står sist i sammansättningar.
+  for (const f of former) if (f.length >= 3 && slutarOrd(f, bok).slag > 0) return KANT_ORD;
+  // Orden som börjar så.
+  const fran = forstaPlats(bok.ord, t);
+  let kortast = "";
+  let alla = true;
+  let antal = 0;
+  for (let i = fran; i < bok.ord.length && bok.ord[i].startsWith(t); i++) {
+    const o = bok.ord[i];
+    antal++;
+    // Förled: resten är ett eget ord, med eller utan foge-s ("kläd|ställ",
+    // "kontor|s|stol").
+    const rest = o.slice(t.length);
+    for (const r of rest.startsWith("s") ? [rest, rest.slice(1)] : [rest]) {
+      if (r.length >= 3 && (bok.antal.has(r) || bok.antal.has(stem(r)))) return KANT_ORD;
+    }
+    if (!kortast) kortast = o;
+    else if (!o.startsWith(kortast)) {
+      if (kortast.startsWith(o)) kortast = o;
+      else alla = false;
+    }
+  }
+  if (antal === 0) {
+    // Början på ett begreppsord som inget namn har: "barnm" är på väg mot
+    // "barnmöbler" och "tradgardsmo" mot "trädgårdsmöbler". Ordet skrivs
+    // färdigt, så att listan visar samma varor som när det är klart.
+    // ☠️ Förut stod början kvar som den var (2026-11-20): "tradgardsmo" gick
+    // vidare till rättningen och blev "trädgårdsbro", två broar.
+    //
+    // Bara när inget namn har ett ord som börjar så, med eller utan prickar:
+    // "tradgards" är början på 157 varors "trädgårds…" och söks som det står.
+    const tv = vik(t);
+    for (const w of bok.ordVikt) if (w.length > tv.length && w.startsWith(tv)) return { slag: BORJAN };
+    let mal = "";
+    let annat = false;
+    for (const b of begreppsformer(begrepp)) {
+      if (!b.vikt.startsWith(tv)) continue;
+      // Prickarna som skrevs ska stå där: "trödg" är inte början på "trädgård".
+      if (!saknarBaraPrickar(t, b.form.slice(0, t.length))) { annat = true; continue; }
+      // Hela begreppsordet utan prickar ("tradgardsmobler") är ordet självt.
+      if (b.vikt.length === tv.length) return { slag: ARORD, byt: b.mal, tyst: true };
+      if (!mal || b.mal.length < mal.length || (b.mal.length === mal.length && b.mal < mal)) mal = b.mal;
+    }
+    if (mal) return { slag: BORJAN, byt: mal, tyst: true };
+    return { slag: annat ? BORJAN : OKANT };
+  }
+  // Färdigskrivet: alla ord som börjar så är samma ord ("stäl" → "ställ",
+  // "verkty" → "verktyg"). "hundb" är både hundbur och hundbädd och står kvar.
+  if (alla && kortast.length - t.length <= 2) return { slag: BORJAN, byt: kortast, tyst: true };
+  return { slag: BORJAN };
+}
+
+// Begreppsorden som rättningen känner utöver katalogens ord: synonymerna och
+// envägsorden. "trägårdsmöbler" ska bli "trädgårdsmöbler" fast inget namn har
+// ordet.
+let fastaBegrepp: string[] | null = null;
+function begreppsord(): string[] {
+  return (fastaBegrepp ??= [...new Set([...SYNONYM_GROUPS.flat(), ...Object.keys(ENVAGS)])].filter((o) => /^[a-zåäö]{5,}$/.test(o)));
+}
+
+/** Ord som aldrig ska rättas till något annat: de är inte felstavade, butiken saknar dem bara. */
+const RATTAS_INTE = new Set(["ikea", "jysk", "rusta", "biltema", "jula", "clas", "ohlson", "homcom", "outsunny", "vevor", "aosom", "pawhut", "vinsetto", "kleankin", "durhand", "zonekiz", "aiyaplay", "sportnow", "soozier"]);
+
+// Tangenterna som ligger intill varandra på ett svenskt tangentbord. Mobilens
+// tangenter är små, och ett fel landar oftast på grannen: "fläkg" är "fläkt"
+// (g ligger under t), inte "flak".
+const GRANNAR: ReadonlyMap<string, string> = (() => {
+  const rader = ["qwertyuiopå", "asdfghjklöä", "zxcvbnm"];
+  const forskjutning = [0, 0.3, 0.8];
+  const plats: [string, number, number][] = [];
+  rader.forEach((rad, r) => [...rad].forEach((c, i) => plats.push([c, r, i + forskjutning[r]])));
+  const ut = new Map<string, string>();
+  for (const [c, r, x] of plats) ut.set(c, plats.filter(([d, r2, x2]) => d !== c && Math.abs(r2 - r) <= 1 && Math.abs(x2 - x) <= 1.1).map(([d]) => d).join(""));
+  return ut;
+})();
+const arGrannar = (a: string, b: string): boolean => (GRANNAR.get(a) ?? "").includes(b);
+
+/**
+ * Katalogens närmaste ord till ett ord som inte finns, eller null när inget
+ * ligger trovärdigt nära. Högst `tak` fel, räknat utan prickar: "fotolj" är
+ * ett fel från "fåtölj". Två fel bara när båda orden är minst åtta tecken,
+ * tre när båda är minst tolv.
+ *
+ * Bland lika nära vinner den troligaste rättningen (mätt på 2 089
+ * felstavningar av katalogens varuord 2026-11-20):
+ *   - en tappad eller omkastad bokstav är vanligast, sedan en granne på
+ *     tangentbordet, en bytt vokal, och sist en annan bytt bokstav,
+ *   - första bokstaven slår man sällan fel på, men "xtolar" finns: en granne
+ *     där kostar lite, allt annat ett helt fel till ("jatta" är "matta",
+ *     inte "åtta"),
+ *   - ordet som oftast ÄR varan går före ("myckel" är "nyckel", som inleder
+ *     40 namn, inte "mycket"), och färger, mått och småord föreslås aldrig
+ *     ("dlang" är "slang", inte "lång").
+ *
+ * Fyra bokstäver rättas bara när en bokstav saknas eller två bytt plats
+ * ("kmin", "sotl"), och bara när rättningen är entydig: en bytt bokstav i ett
+ * så kort ord är lika ofta ett annat ord.
+ */
+function narmasteOrd(t: string, tak: number, bok: Ordbok, begrepp: readonly string[]): string | null {
+  if (t.length < 4 || RATTAS_INTE.has(t) || !/^[a-zåäö]+$/.test(t)) return null;
+  const tv = vik(t);
+  const tMask = bokstavsmask(tv);
+  const forsta = tv[0];
+  const funna: { mal: string; ord: string; fel: number; n: number }[] = [];
+  const fyra = new Set<string>();
+  const prova = (w: string, wv: string, n: number, mal: string, wMask: number) => {
+    const skillnad = Math.abs(wv.length - tv.length);
+    if (skillnad > tak || wv.length < 4) return;
+    const kortast = Math.min(tv.length, wv.length);
+    const lokalt = Math.min(tak, kortast >= 12 ? 3 : kortast >= 8 ? 2 : 1);
+    if (skillnad > lokalt || bitar(tMask ^ wMask) > 2 * lokalt) return;
+    const sammaForsta = wv[0] === forsta;
+    if (!sammaForsta && tv.length < 5) return;
+    const steg = ordAvstand(tv, wv, lokalt);
+    if (steg > lokalt || steg === 0) return;
+    if (STOPWORDS.has(w) || arEgenskap(w)) return;
+    const omkastat = skillnad === 0 && sammaBokstaver(tv, wv);
+    if (tv.length === 4) {
+      if (!(omkastat || wv.length === 5)) return;
+      fyra.add(canon(w));
+    }
+    let fel = steg;
+    if (skillnad === 0) fel += omkastat ? -0.1 : bytetKostar(t, w);
+    else if (wv.length < tv.length) fel += 0.15; // en bokstav för mycket är ovanligare än en för lite
+    if (!sammaForsta) fel += skillnad === 0 && arGrannar(t[0], w[0]) ? 0.4 : 1;
+    funna.push({ mal, ord: w, fel, n });
+  };
+  for (let i = 0; i < bok.ord.length; i++) {
+    const w = bok.ord[i];
+    if (w.length < 4) continue;
+    prova(w, bok.ordVikt[i], bok.antal.get(w) ?? 1, w, bok.ordMask[i]);
+  }
+  // Begreppsorden, i de former kunden kan ha menat ("trägårdsmöbel" är
+  // entalet av "trädgårdsmöbler"). Rättningen blir begreppsordet som det står.
+  for (const b of begreppsformer(begrepp)) if (!bok.antal.has(b.mal)) prova(b.form, b.vikt, 3, b.mal, b.mask);
+  if (funna.length === 0 || (tv.length === 4 && fyra.size > 2)) return null;
+  // De närmaste vägs mot hur vanligt ordet är, och mest mot hur ofta det är
+  // varan (står sist i namnets första ord). Det räknas bara för de bästa.
+  funna.sort((a, b) => a.fel - 0.15 * Math.log(1 + a.n) - (b.fel - 0.15 * Math.log(1 + b.n)));
+  let bast = "";
+  let bastFel = Infinity;
+  for (const k of funna.slice(0, 8)) {
+    const fel = k.fel - 0.15 * Math.log(1 + k.n + 4 * varuAntal(k.ord, bok));
+    if (fel < bastFel) { bast = k.mal; bastFel = fel; }
+  }
+  return bast || null;
+}
+
+/**
+ * Vad ett begreppsord som inget namn har väger mot katalogens ord, räknat i
+ * varor. Ett begreppsord står för en hel hylla i butiken, så den som är på
+ * väg att skriva det ska komma dit.
+ * ☠️ Med vikten 3 gav "trägårdsmö" en tom lista mitt i ordet (2026-11-20),
+ * mellan "trägårdsm" och "trägårdsmöb" som båda visade trädgårdsmöblerna:
+ * ett ensamt begreppsord nådde inte gränsen för en tappad bokstav.
+ */
+const BEGREPP_VIKT = 12;
+
+// Begreppsorden i sina former, räknade en gång per lista: rättningen går
+// igenom dem vid varje tangent i ett ord som inte finns.
+type Begreppsform = { form: string; vikt: string; mal: string; mask: number };
+const formerAvBegrepp = new WeakMap<readonly string[], Begreppsform[]>();
+function begreppsformer(begrepp: readonly string[]): Begreppsform[] {
+  let ut = formerAvBegrepp.get(begrepp);
+  if (!ut) {
+    ut = [];
+    for (const b of begrepp) {
+      for (const f of new Set([b, ...grundformer(b)])) if (f.length >= 4) ut.push({ form: f, vikt: vik(f), mal: b, mask: bokstavsmask(vik(f)) });
+    }
+    formerAvBegrepp.set(begrepp, ut);
+  }
+  return ut;
+}
+
+/**
+ * Ordet kunden är på väg att skriva, när det skrivna är BÖRJAN på ett ord med
+ * ett fel i: "trägå" är början på "trädgård", "fotöl" på "fåtölj". Svarar med
+ * ordet och hur vanliga orden som börjar så är tillsammans, eller null.
+ *
+ * ☠️ Utan den rättades halvskrivna ord som om de vore färdiga (2026-11-20):
+ * "trägå" blev "tråg" och visade fodertråg, "trägår" blev "trådar" och "fotöl"
+ * "foto", med besked om det, medan kunden skrev vidare mot trädgårdsmöbler.
+ *
+ * Ett fel, och första bokstaven rätt eller grannen på tangentbordet. Svaret är
+ * ordet de flesta av dem börjar med, eller den rättade början själv när de går
+ * åt olika håll.
+ */
+function felstavadBorjan(t: string, bok: Ordbok, begrepp: readonly string[]): { ord: string; vikt: number } | null {
+  if (t.length < 4 || RATTAS_INTE.has(t) || !/^[a-zåäö]+$/.test(t)) return null;
+  const tv = vik(t);
+  // Per rättad början: orden som börjar så, hur vanliga de är tillsammans, och
+  // hur många varor felet kräver för att vara trovärdigt (`minst`).
+  type Grupp = { ord: { ord: string; vikt: number }[]; minst: number };
+  const grupper = new Map<string, Grupp>();
+  const lagg = (borjan: string, w: string, vikt: number, minst: number) => {
+    const g = grupper.get(borjan);
+    if (g) g.ord.push({ ord: w, vikt });
+    else grupper.set(borjan, { ord: [{ ord: w, vikt }], minst });
+  };
+  const forsta = tv.charCodeAt(0);
+  const resten = tv.slice(1);
+  const prova = (w: string, wv: string, n: number) => {
+    if (wv.length <= tv.length || STOPWORDS.has(w) || arEgenskap(w)) return;
+    if (wv.charCodeAt(0) !== forsta) {
+      // Fel första bokstav: bara en granne på tangentbordet, och resten ska
+      // stå som det skrevs ("jyll" är "hyll", "dkjut" är "skjut").
+      if (t.length >= 4 && arGrannar(t[0], w[0]) && wv.startsWith(resten, 1)) lagg(w.slice(0, tv.length), w, n * 0.7, 8);
+      return;
+    }
+    // En tappad bokstav först (början är då en bokstav längre), sedan en bytt
+    // eller omkastad, sist en för mycket: "hunb" är "hundb", inte "hun".
+    for (let L = Math.min(tv.length + 1, wv.length); L >= tv.length - 1; L--) {
+      if (ordAvstand(tv, wv.slice(0, L), 1) > 1) continue;
+      const borjan = w.slice(0, L);
+      // Hur troligt felet är, och hur många varor det kräver. En tappad eller
+      // omkastad bokstav är vanligast. En bytt bokstav gäller lättast när den
+      // är grannen på tangentbordet ("garfer" är "garder"), och svårast när
+      // den ligger långt bort ("klosa" är "klossa" hellre än "klöst").
+      if (L > tv.length) lagg(borjan, w, n, 5);
+      else if (L < tv.length) lagg(borjan, w, n * 0.6, 8);
+      else if (sammaBokstaver(tv, wv.slice(0, L))) lagg(borjan, w, n * 0.8, 5);
+      else {
+        const kostar = bytetKostar(t, borjan);
+        lagg(borjan, w, n * Math.max(0.05, 1 - kostar * 1.9), kostar <= 0.15 ? 8 : 20);
+      }
+      return;
+    }
+  };
+  for (let i = 0; i < bok.ord.length; i++) prova(bok.ord[i], bok.ordVikt[i], bok.antal.get(bok.ord[i]) ?? 1);
+  for (const b of begreppsformer(begrepp)) if (b.form === b.mal && !bok.antal.has(b.mal)) prova(b.mal, b.vikt, BEGREPP_VIKT);
+  let borjan = "";
+  let vald: Grupp | null = null;
+  let summa = 0;
+  for (const [b, g] of grupper) {
+    const v = g.ord.reduce((x, f) => x + f.vikt, 0);
+    // ☠️ "pulka" är inte början på "polkagris" (2026-11-19, nio tomtar blev
+    // svaret): felet ska vara trovärdigt för så många varor som börjar så.
+    if (v >= g.minst && v > summa) { borjan = b; vald = g; summa = v; }
+  }
+  // Fyra bokstäver ligger ett fel från början på mycket: bara när många varor börjar så.
+  if (!vald || (t.length === 4 && summa < 20)) return null;
+  // Ordet de flesta av dem börjar med ("trädgård" för trädgårdsbord och
+  // trädgårdsbänk). Finns inget sådant gäller början som den är: "trägårds"
+  // söks som "trädgårds", och visar allt som börjar så.
+  const funna = vald.ord.sort((a, b) => a.ord.length - b.ord.length || b.vikt - a.vikt);
+  for (const f of funna) {
+    let familj = 0;
+    for (const g of funna) if (g.ord.startsWith(f.ord)) familj += g.vikt;
+    if (familj * 2 >= summa) return { ord: f.ord, vikt: summa };
+  }
+  return { ord: borjan, vikt: summa };
+}
+
+/**
+ * Vad bytta bokstäver kostar utöver felen, för två lika långa ord: en granne
+ * på tangentbordet minst, sedan en vokal mot en vokal, mest en annan bokstav.
+ * Varje bytt bokstav räknas: "avdrqare" är "avdragare" (en bokstav saknas, en
+ * är grannen) hellre än "avdelare" (två bytta, den ena långt bort).
+ */
+function bytetKostar(a: string, b: string): number {
+  let kostnad = 0;
+  for (let i = 0; i < a.length && i < b.length; i++) {
+    // En prick som skiljer är inget byte: "lapor" och "lådor" skiljer i p och d.
+    if (a[i] === b[i] || vik(a[i]) === vik(b[i])) continue;
+    kostnad += arGrannar(a[i], b[i]) ? 0.15 : /[aeiouyåäö]/.test(a[i]) && /[aeiouyåäö]/.test(b[i]) ? 0.2 : 0.5;
+  }
+  return kostnad || 0.5;
+}
+
+/** I hur många namn ordet är varan: det första ordet slutar så (med eller utan en ändelse). */
+function varuAntal(w: string, bok: Ordbok): number {
+  let n = 0;
+  for (const [o, antal] of bok.forsta) {
+    const i = o.lastIndexOf(w);
+    if (i >= 0 && (i + w.length === o.length || HELA_ANDELSER.has(o.slice(i + w.length)))) n += antal;
+  }
+  return n;
+}
+
+/** Får ordet prövas mot ordboken? Korta ord, tal, färger och mått rörs inte. */
+function provas(u: Unit): boolean {
+  return !u.helord && !u.egenskap && u.tok.length >= 4 && /^[a-zåäö]+$/.test(u.tok);
+}
+
+/**
+ * Ett känt ord följt av ett allmänt huvudord: "barnsaker", "hundprylar",
+ * "badrumsmöbler". Rättstavat, fast inget namn har ordet, och ska delas (se
+ * medForledet), inte rättas: "barnsaker" låg ett fel från "barnsäkert".
+ * Svarar med förledet som det står i katalogen ("barn", "badrum"), eller null.
+ */
+function allmantForled(t: string, bok: Ordbok): string | null {
+  for (let i = 3; i <= t.length - 3; i++) {
+    if (!arAllmantHuvudord(t.slice(i))) continue;
+    const forled = t.slice(0, i);
+    if (bok.antal.has(forled)) return forled;
+    if (forled.endsWith("s") && forled.length >= 4 && bok.antal.has(forled.slice(0, -1))) return forled.slice(0, -1);
+  }
+  return null;
+}
+const allmantSammansatt = (t: string, bok: Ordbok): boolean => allmantForled(t, bok) !== null;
+
+/**
+ * Sökningen med orden som inte finns i katalogen omskrivna (se ovan).
+ * `q` är null när inget ord skrevs om. `besked`: kunden ska få veta vad
+ * träffarna gäller (en rättad stavning). `okanda`: sökorden som varken finns
+ * eller är början på ett ord, och som inte fick någon omskrivning.
+ * `finnsInte`: sökorden som varken finns eller är början på ett ord, med
+ * eller utan omskrivning (se ofardigtSammansatt).
+ */
+function skrivOm(p: Prepared, bok: Ordbok, begrepp: readonly string[], arBegrepp: (u: Unit) => boolean): { q: string | null; besked: boolean; okanda: boolean[]; finnsInte: boolean[] } {
+  const byten = new Map<string, string>();
+  const okanda: boolean[] = new Array(p.units.length).fill(false);
+  // Orden som varken finns i katalogen eller är början på ett ord där.
+  const finnsInte: boolean[] = new Array(p.units.length).fill(false);
+  let besked = false;
+  // Hur vanligt ordet är, och mest hur ofta det är varan (se narmasteOrd). Ett
+  // begreppsord som inget namn har väger som en hylla i butiken.
+  const vikt = (w: string): number => (bok.antal.has(w) ? (bok.antal.get(w) ?? 0) + 4 * varuAntal(w, bok) : begrepp.includes(w) ? BEGREPP_VIKT : 0);
+  p.units.forEach((u, i) => {
+    if (!provas(u) || byten.has(u.tok)) return;
+    const st = ordstatus(u, bok, arBegrepp, begrepp);
+    if (st.slag === ARORD) {
+      if (st.byt) {
+        byten.set(u.tok, st.byt);
+        if (!st.tyst) besked = true;
+      }
+      return;
+    }
+    const forled = allmantForled(u.tok, bok);
+    if (forled !== null) {
+      // ☠️ "lekssaker" är "leksaker" med ett s för mycket, inte "leks" +
+      // "saker" (2026-11-20: 61 lekmattor i stället för leksakerna). Ligger
+      // ordet ett fel från ett katalogord som är vanligare än förledet gäller
+      // rättningen: 73 namn har "leksaker", färre har "lek" för sig.
+      // "barnsaker" står kvar: "barn" står i hundratals namn, "barnsäkert" i få.
+      const nara = narmasteOrd(u.tok, 1, bok, begrepp);
+      if (!(nara && bok.antal.has(nara) && (bok.antal.get(nara) ?? 0) > (bok.antal.get(forled) ?? 0))) return;
+    }
+    // Början på flera olika ord: inget att skriva om, och inget att räkna.
+    if (st.slag === BORJAN && !st.byt) return;
+    if (st.slag === OKANT) finnsInte[i] = true;
+    const rattat = narmasteOrd(u.tok, 1, bok, begrepp);
+    if (st.slag === BORJAN) {
+      // ☠️ "hundbr" är början på "hundbro" (ett agilityhinder) och ett fel
+      // från "hundbur" (19 varor). Det färdigskrivna ordet gäller, utom när
+      // rättningen är många gånger vanligare.
+      // Den som skrivit en bokstav till har inte skrivit fel: "barnm" är på
+      // väg mot "barnmöbler", inte ett "barn" med ett m för mycket.
+      if (st.byt && !(rattat && rattat !== st.byt && !u.tok.startsWith(rattat) && vikt(rattat) >= 5 * Math.max(1, vikt(st.byt)))) byten.set(u.tok, st.byt);
+      else if (st.byt && rattat) { byten.set(u.tok, rattat); besked = true; }
+      return;
+    }
+    // Färdigt ord med ett fel, eller början på ett ord med ett fel? Början
+    // gäller när orden som börjar så är minst tre gånger vanligare än
+    // rättningen ("trägå": 8 tråg mot över tusen varor med trädgård).
+    const borjan = felstavadBorjan(u.tok, bok, begrepp);
+    if (borjan && borjan.ord !== rattat && (!rattat || borjan.vikt >= 3 * Math.max(1, vikt(rattat)))) {
+      byten.set(u.tok, borjan.ord);
+      besked = true;
+      return;
+    }
+    if (rattat) { byten.set(u.tok, rattat); besked = true; }
+    // Börjar något ord med stammen kan kunden vara på väg dit ("kontorst" är
+    // snart "kontorstol", och stammen "kontors" inleder "kontorsstol"): då
+    // söks ordet som förut.
+    else okanda[i] = !(bok.ord[forstaPlats(bok.ord, u.stem)] ?? "").startsWith(u.stem);
+  });
+  return { q: byten.size === 0 ? null : p.q.replace(/[a-zåäö0-9]+/g, (t) => byten.get(t) ?? t), besked, okanda, finnsInte };
+}
+
 // rankByName med besked. `strukna` är sökord som inget namn har tillsammans
 // med de andra: sökningen visar då träffarna för resten, och sidan säger det.
 //
@@ -1228,27 +2010,132 @@ export function markeraTraffar(namn: string, ord: readonly string[]): string[] {
 //   2. färg, storlek och mått (EGENSKAPSORD) och korta ord som "el",
 //   3. det vanligaste ordet (det säger minst).
 // Kvar blir det som säger mest om vad kunden letar efter.
-export function rankaMedInfo<T>(items: T[], nameOf: (item: T) => string, query: string, normNamn?: readonly string[]): Sokutfall<T> {
+//
+// `kd` är kategorierna och vilka varje vara hör till (se Kategoridata). Utan
+// den söks bara namnen, som förut.
+export function rankaMedInfo<T>(items: T[], nameOf: (item: T) => string, query: string, normNamn?: readonly string[], kd?: Kategoridata<T>): Sokutfall<T> {
+  const namn = normNamn ?? items.map((item) => normalize(nameOf(item)));
+  const lage = { strangt: false };
+  const u = rankaInre(items, nameOf, query, namn, kd, 0, lage);
+  // Gav prövningen mot ordboken ingenting söks orden som de står, med stam
+  // och allt, som före 2026-11-20: hellre en svag träff än ingen. Bara när
+  // det första varvet faktiskt sökte strängare, annars blir svaret detsamma.
+  // Andra varvet rättar och delar inte om (djup 2): de leden beror inte på hur
+  // strängt orden söks, och gav redan ingenting.
+  return u.traffar.length > 0 || !lage.strangt ? u : rankaInre(items, nameOf, query, namn, kd, 2);
+}
+
+/** Kategoriernas ord som rättningen får föreslå, sparade per kategorilista. */
+const katBegrepp = new WeakMap<readonly SokKat[], string[]>();
+function begreppFor(kat: readonly SokKat[] | undefined): string[] {
+  if (!kat) return begreppsord();
+  let ut = katBegrepp.get(kat);
+  if (!ut) {
+    ut = [...new Set([...begreppsord(), ...katInfoFor(kat).flatMap((k) => k.ord).filter((o) => o.length >= 5)])];
+    katBegrepp.set(kat, ut);
+  }
+  return ut;
+}
+
+// `djup` räknar omskrivningarna: en sökning skrivs om högst två gånger (ett
+// okänt ord, och sedan en rättad stavning eller ett delat ord). Djup 3
+// (STRIKT) är ett försök med ett färdigskrivet eller rättat ord: det ska
+// träffa som det står, i namnen, genom kategorierna eller delat, utan
+// stavfelsled och fler rättningar. Träffar av det slaget hade ändå förkastats,
+// och varje försök kostade en hel sökning med alla reservled (mätt
+// 2026-11-20: "värmefläktra" tog 553 ms på en dator, tre försök à 150 ms).
+// `lage.strangt` sätts när ett okänt ord söktes strängare än förut (se nedan).
+const STRIKT = 3;
+function rankaInre<T>(items: T[], nameOf: (item: T) => string, query: string, normNamn: readonly string[] | undefined, kd: Kategoridata<T> | undefined, djup: number, lage?: { strangt: boolean }): Sokutfall<T> {
   const namn = normNamn ?? items.map((item) => normalize(nameOf(item)));
   const p = forberedSokning(query, namn);
   // Namnens övriga former räknas en gång per namnlista (sökrutorna skickar
   // samma lista vid varje tangent), och formen utan prickar först när första
   // varvet inte gett en hel träff.
   const sparat = formerFor(namn);
+  const info = kd ? katInfoFor(kd.kat) : null;
+  // Ett av kategoriernas ord, i någon böjning: aldrig felstavat.
+  const arBegrepp = (u: Unit): boolean => info !== null && info.some((k) => k.lem.some((l) => delarForm(u.lem, l)));
+
+  // ORD SOM INTE FINNS SKRIVS OM FÖRST (se "Är sökordet ett ord?" ovan). Ger
+  // det omskrivna inga varor gäller sökningen som den skrevs.
+  // Sant när orden prövats mot ordboken i det här varvet (se rattaStavning).
+  const provade = djup === 0 && p.units.some(provas);
+  if (provade) {
+    const om = skrivOm(p, ordbokFor(namn, sparat), begreppFor(kd?.kat), arBegrepp);
+    // ETT HALVSKRIVET SAMMANSATT ORD skrivs färdigt (se ofardigtSammansatt):
+    // "kontorsmöb" visar samma varor som "kontorsmöbler".
+    // ☠️ Bara när ordet inte ligger nära ett ord som står i namnen. Första
+    // versionen prövade alltid (2026-11-20), och "matbrod" blev "mat" +
+    // "brödrostar" i stället för "matbord", "förvaringsskö" blev "förvarings"
+    // + "skönhet" i stället för "förvaringsskåp" och "gungstil" blev "gungs" +
+    // "tillbehör" i stället för "gungstol". En sökning som skickas iväg är
+    // oftare ett färdigt ord med ett fel än ett halvt ord utan, och en
+    // gissning mitt i ordet rättar sig vid nästa tangent.
+    if (p.units.length === 1 && om.finnsInte[0] && info) {
+      const tok = p.units[0].tok;
+      const bok = ordbokFor(namn, sparat);
+      // Högst tre försök sammanlagt: vart och ett är en sökning.
+      let kvar = 3;
+      const prova = (led: "allmanna" | "kategori" | "katalog"): Sokutfall<T> | null => {
+        for (const hel of ofardigtSammansatt(tok, led, () => (sparat.ord ??= kandaOrd(namn)), bok, namn, info, arBegrepp)) {
+          if (kvar-- <= 0) return null;
+          const u = rankaInre(items, nameOf, hel, namn, kd, STRIKT);
+          if (u.traffar.length > 0 && !u.rattat && !u.liknande) return { ...u, sokt: u.sokt ?? hel };
+        }
+        return null;
+      };
+      // Ett fel från ett ord spärrar allt: ett katalogord, eller ett
+      // begreppsord av samma längd ("värmefläktra" är "värmefläktar"). Ett
+      // begreppsord som är längre spärrar inte: "hundkop" ligger ett fel från
+      // stammen i "hundkojor" men är på väg mot "hundkoppel". Två fel (i ord
+      // på åtta tecken och uppåt) spärrar inte de allmänna huvudorden:
+      // "kattsake" är en bokstav från "kattsaker" och två fel från "kattsäng".
+      const begrepp = begreppFor(kd?.kat);
+      const ettOrd = (w: string | null): boolean => w !== null && (bok.antal.has(w) || Math.abs(w.length - tok.length) <= 1);
+      if (!ettOrd(narmasteOrd(tok, 1, bok, begrepp))) {
+        const u = prova("allmanna") ?? (ettOrd(narmasteOrd(tok, 2, bok, begrepp)) ? null : (prova("kategori") ?? prova("katalog")));
+        if (u) return u;
+      }
+    }
+    if (om.q !== null && om.q !== p.q) {
+      const u = rankaInre(items, nameOf, om.q, namn, kd, 1);
+      // I en sökning på flera ord gäller omskrivningen bara när någon vara
+      // har alla orden: "spåra paket" blev "spår paket", som inget namn har,
+      // och visade 110 varor med T-spår.
+      if (u.traffar.length > 0 && (p.units.length === 1 || u.strukna.length === 0)) return om.besked ? { ...u, rattat: u.rattat ?? om.q } : { ...u, sokt: u.sokt ?? om.q };
+    }
+    // ☠️ STAMMEN AV ETT OKÄNT ORD ÄR INGET ATT LETA EFTER VAR SOM HELST.
+    // "gungstölning" blev stammen "gungstöl", som utan prickar står i varenda
+    // gungstol: 33 gungstolar, ingen gungställning, och stavningen rättades
+    // aldrig. Ett ord som inte finns söks som det står, stammen bara som ett
+    // helt ord, och sedan går ordet till rättningen med fler fel.
+    om.okanda.forEach((okant, i) => {
+      if (!okant) return;
+      const u = p.units[i];
+      // Stammen ska stå som ett ord eller sist i ett (som för korta stammar,
+      // se ordStar), och utan prickar gäller ordet som det skrevs.
+      u.kortStam = true;
+      u.vikt = vik(u.tok);
+      if (lage) lage.strangt = true;
+    });
+  }
+
   const kanda: boolean[] = new Array(p.units.length).fill(false);
-  const varv = (lage: Lage, sokning: Prepared = p, stavfelOk?: readonly boolean[]) => {
+  type Rad = { item: T; i: number } & NameMatch;
+  const varv = (lage: Lage, sokning: Prepared = p, stavfelOk?: readonly boolean[]): Rad[] => {
     const fogade = sokning.ihop ? (sparat.fogat ??= namn.map(medFogar)) : null;
     const vikta = lage >= VIKT ? (sparat.vikt ??= namn.map(vik)) : null;
     const k = sokning === p ? kanda : undefined;
     return items
-      .map((item, i) => ({ item, ...matchPrepared(namn[i], sokning, lage, fogade ? fogade[i] : undefined, vikta ? vikta[i] : undefined, k, stavfelOk) }))
+      .map((item, i) => ({ item, i, ...matchPrepared(namn[i], sokning, lage, fogade ? fogade[i] : undefined, vikta ? vikta[i] : undefined, k, stavfelOk) }))
       .filter((r) => r.score > 0);
   };
   // Poängen först, sedan ordgränsen (kant). Sorteringen är stabil, så
   // katalogens ordning gäller mellan likvärdiga träffar.
-  const sortera = (rader: ReturnType<typeof varv>) =>
-    rader.sort((a, b) => b.score - a.score || (b.kant ?? 0) - (a.kant ?? 0)).map((r) => r.item);
-  const hela = (rader: ReturnType<typeof varv>): Sokutfall<T> => ({ traffar: sortera(rader), strukna: [] });
+  const ordna = (rader: Rad[]): Rad[] => rader.sort((a, b) => b.score - a.score || (b.kant ?? 0) - (a.kant ?? 0));
+  const sortera = (rader: Rad[]) => ordna(rader).map((r) => r.item);
+  const hela = (rader: Rad[]): Sokutfall<T> => ({ traffar: sortera(rader), strukna: [] });
 
   // FÄRG OCH MÅTT STÅR OFTA INTE I NAMNET. "svart tv-bänk" hade en enda hel
   // träff, en slutsåld bänk, fast butiken har 63 tv-bänkar och flera svarta:
@@ -1257,15 +2144,250 @@ export function rankaMedInfo<T>(items: T[], nameOf: (item: T) => string, query: 
   // som då saknas i de påfyllda står i `utan`, så att sidan kan säga det.
   const karna = p.units.reduce((m, u, i) => (u.egenskap || i >= 31 ? m : m | (1 << i)), 0);
   const harEgenskap = p.units.some((u) => u.egenskap) && karna !== 0;
-  const fyllPa = (rader: ReturnType<typeof varv>): Sokutfall<T> => {
+  const fyllPa = (rader: Rad[]): Sokutfall<T> => {
     const fulla = rader.filter((r) => r.full);
-    if (!harEgenskap || fulla.length >= FYLL_PA_UNDER) return hela(fulla);
+    if (!harEgenskap || fulla.length >= FYLL_PA_UNDER) return medBegrepp(fulla);
     const ovriga = rader.filter((r) => !r.full && r.mask !== undefined && (r.mask & karna) === karna);
     if (ovriga.length === 0) return hela(fulla);
     return { traffar: [...sortera(fulla), ...sortera(ovriga)], strukna: [], utan: p.units.filter((u) => u.egenskap).map((u) => u.tok), hela: fulla.length };
   };
 
+  // ETT ENSAMT BEGREPPSORD: KATEGORIN GÅR FÖRE EN BISATS I NAMNET (2026-11-20).
+  // "belysning" visade en sängram, en pizzaugn och en kylmonter "med
+  // belysning" före varenda lampa, och "leksaker" 73 av butikens 485. Är
+  // sökordet en kategoris ord delas träffarna i tre led:
+  //   1. namnträffar som ligger i kategorin, eller där ordet är varan
+  //      ("Julbelysning …", "Hallmöbel …"),
+  //   2. namnträffarna utanför kategorin, där ordet bara nämns,
+  //   3. kategorins övriga varor, när namnen inte bär ordet (BEGREPP_UNDER):
+  //      en barnmöbel heter "Barnbord", en leksak "Dockvagn".
+  // Ordningen inom varje led är den vanliga. För ett varuord som "soffa"
+  // eller "spegel" bär namnen ordet, led 3 är tomt, och listan är som förut
+  // så när som på att en bisats utanför kategorin går efter varorna i den.
+  // Kategorins varor går sist för att ett ord i namnet väger tyngre än en
+  // hylla i butiken: "småbarn" visar "Åkbil för småbarn" före resten av Baby
+  // & Småbarn.
+  function medBegrepp(fulla: Rad[]): Sokutfall<T> {
+    const u = p.units[0];
+    if (!kd || !info || p.units.length !== 1 || u.helord || u.egenskap) return hela(fulla);
+    const slag = katSlagFor(p, info)?.[0];
+    if (!slag) return hela(fulla);
+    const m = medlemskapFor(items, kd);
+    const iNamn = new Uint8Array(items.length);
+    for (const r of fulla) iNamn[r.i] = 1;
+    // Kategorierna ordet står för. Fyller på gör bara de där ordet är
+    // kategorins eget ord, eller huvudet i en kategori med ett enda ord:
+    // "Matbord & stolar" är två sorters varor, och "stolar" är bara den ena.
+    const valda: { c: number; slag: number; fyller: boolean }[] = [];
+    let lika = false;
+    for (let c = 0; c < slag.length; c++) {
+      const antal = m.medl[c].length;
+      if (slag[c] < K_HUVUD || antal === 0) continue;
+      let med = 0;
+      for (const i of m.medl[c]) med += iNamn[i];
+      if (slag[c] === K_LIKA) lika = true;
+      valda.push({ c, slag: slag[c], fyller: med / antal < BEGREPP_UNDER && (slag[c] === K_LIKA ? info[c].delar <= 2 : info[c].ord.length === 1) });
+    }
+    // ☠️ "utemöbler" står i avdelningen Trädgård & Utemöbler OCH i dess
+    // underkategori Utemöbler. Avdelningen har också växthus och grillar: när
+    // en underkategori bär samma ord är det den som fyller på.
+    for (const v of valda) {
+      if (v.slag !== K_LIKA || !v.fyller) continue;
+      if (valda.some((x) => x !== v && x.slag === K_LIKA && arUnder(kd.kat, x.c, v.c))) v.fyller = false;
+    }
+    if (!lika && !valda.some((v) => v.fyller)) return hela(fulla);
+    // En vara utan kända kategorier (ett äldre index) räknas som i kategorin:
+    // den ska inte hamna sist för att vi inte vet.
+    const iKategorin = new Uint8Array(items.length);
+    for (let i = 0; i < items.length; i++) if (!m.egna[i]) iKategorin[i] = 1;
+    for (const v of valda) for (const i of m.medl[v.c]) iKategorin[i] = 1;
+    // Ordet är varan: det står som ord, eller sist i ett ord, i namnets huvuddel.
+    const arVaran = (r: Rad): boolean => r.score >= 100 && (r.kant ?? 0) >= 5;
+    const ordnade = ordna(fulla);
+    const forst = ordnade.filter((r) => iKategorin[r.i] === 1 || arVaran(r));
+    const sist = ordnade.filter((r) => iKategorin[r.i] !== 1 && !arVaran(r));
+    // Led 2: kategorins eget ord före huvudet, den smala kategorin före den breda.
+    const tagna = new Uint8Array(items.length);
+    const fyllda: T[] = [];
+    const ettOrd = (c: number): number => (info[c].ord.length === 1 ? 0 : 1);
+    for (const v of valda.filter((x) => x.fyller).sort((a, b) => b.slag - a.slag || ettOrd(a.c) - ettOrd(b.c) || m.medl[a.c].length - m.medl[b.c].length)) {
+      // ☠️ "Matbord & stolar": den som söker matbord ska inte få stolarna. Ett
+      // annat ord i kategorins namn som är en egen sorts vara (står i minst
+      // var femte varas namn) håller sina varor utanför.
+      const syskon = info[v.c].ord
+        .filter((o) => !delarForm(u.lem, ordformer(o)))
+        .map((o) => sokstam(o))
+        .filter((st) => st.length >= 4 && m.medl[v.c].filter((i) => starIOrd(namn[i], st)).length >= m.medl[v.c].length * 0.2);
+      for (const i of m.medl[v.c]) {
+        if (iNamn[i] || tagna[i]) continue;
+        if (syskon.some((st) => starIOrd(namn[i], st))) continue;
+        tagna[i] = 1;
+        fyllda.push(items[i]);
+      }
+    }
+    if (fyllda.length === 0 && sist.length === 0) return hela(fulla);
+    return { traffar: [...forst.map((r) => r.item), ...sist.map((r) => r.item), ...fyllda], strukna: [] };
+  }
+
+  // VARJE SÖKORD I NAMNET ELLER GENOM EN KATEGORI, när inget namn har alla
+  // (se "Kategorierna som begrepp" ovan). `rader` är namnträffarna för samma
+  // sökning. Finns ingen vara med alla sökord men väl med alla utom färgen
+  // eller måttet visas de, med besked (`utan`), som i fyllPa.
+  //
+  // ☠️ BARA BEGREPPSORD FÅR TRÄFFA GENOM KATEGORIN i en sökning på flera ord
+  // (`fritt` falskt). Första versionen lät varje ord göra det, och "skänk 120
+  // cm bred" gick från fyra skänkar på 120 cm till 69 varor ur Sideboards &
+  // vitrinskåp, "soffa 260 cm bred" från två soffor till 95. Ett ord som
+  // namnen bär ("skänk", "soffa", "byrå") ska stå i namnet. Ett begreppsord är
+  // kategorins eget ord (eller huvudet i en kategori med ett enda ord) som
+  // färre än BEGREPP_UNDER av kategorins varor har i namnet: "möbler",
+  // "barnmöbler", "leksaker". Ett ensamt sökord utan någon namnträff, och
+  // delarna av ett delat ord, träffar fritt.
+  function kategoriVarv(sokning: Prepared, rader: Rad[], fritt: boolean): Sokutfall<T> | null {
+    const antalOrd = sokning.units.length;
+    if (!kd || !info || antalOrd === 0 || antalOrd > 30) return null;
+    const slag = katSlagFor(sokning, info);
+    if (!slag) return null;
+    const allaOrd = (1 << antalOrd) - 1;
+    const karnan = sokning.units.reduce((mm, u, i) => (u.egenskap ? mm : mm | (1 << i)), 0);
+    if (karnan === 0) return null;
+    const m = medlemskapFor(items, kd);
+    const C = info.length;
+    const radAv: (Rad | undefined)[] = new Array(items.length);
+    for (const r of rader) radAv[r.i] = r;
+    if (!fritt) {
+      let kvar = false;
+      for (let i = 0; i < antalOrd; i++) {
+        for (let c = 0; c < C; c++) {
+          if (!slag[i][c]) continue;
+          const antal = m.medl[c].length;
+          let iNamn = 0;
+          for (const v of m.medl[c]) {
+            const r = radAv[v];
+            if (r && (r.mask ?? allaOrd) & (1 << i)) iNamn++;
+          }
+          const begrepp = antal > 0 && iNamn / antal < BEGREPP_UNDER && (slag[i][c] === K_LIKA ? info[c].delar <= 2 : slag[i][c] === K_HUVUD && info[c].ord.length === 1);
+          if (begrepp) kvar = true;
+          else slag[i][c] = 0;
+        }
+      }
+      if (!kvar) return null;
+    }
+    // Per kategori: sökorden den uppfyller och hur väl. `egen` är kategorin
+    // själv, `arvd` har föräldrarnas med.
+    const egen = new Int32Array(C);
+    const egenKval = new Float32Array(C * antalOrd);
+    for (let c = 0; c < C; c++) {
+      // Den smala kategorin före den breda: "spel" visar Spel & bordsspel
+      // före hela Leksaker & Spel.
+      const smal = 0.05 * (1 - m.medl[c].length / Math.max(1, items.length));
+      for (let i = 0; i < antalOrd; i++) {
+        if (!slag[i][c]) continue;
+        egen[c] |= 1 << i;
+        egenKval[c * antalOrd + i] = K_KVAL[slag[i][c]] + smal;
+      }
+    }
+    const arvd = new Int32Array(C);
+    const arvdKval = new Float32Array(egenKval);
+    const klar = new Uint8Array(C);
+    const arv = (c: number, led: number): void => {
+      if (klar[c]) return;
+      klar[c] = 1;
+      arvd[c] = egen[c];
+      const f = kd.kat[c].f;
+      if (f < 0 || f >= C || f === c || led >= 8) return;
+      arv(f, led + 1);
+      arvd[c] |= arvd[f];
+      for (let i = 0; i < antalOrd; i++) if (arvdKval[f * antalOrd + i] > arvdKval[c * antalOrd + i]) arvdKval[c * antalOrd + i] = arvdKval[f * antalOrd + i];
+    };
+    for (let c = 0; c < C; c++) arv(c, 0);
+    const fulla: Rad[] = [];
+    const karnor: Rad[] = [];
+    for (let i = 0; i < items.length; i++) {
+      const ks = m.egna[i];
+      if (!ks) continue;
+      let viaKat = 0;
+      for (const k of ks) {
+        const c = k >= 0 ? k : -k - 1;
+        if (c < C) viaKat |= k >= 0 ? arvd[c] : egen[c];
+      }
+      if (viaKat === 0) continue;
+      const r = radAv[i];
+      const iNamnet = r ? (r.mask ?? allaOrd) : 0;
+      const tillsammans = iNamnet | viaKat;
+      if ((tillsammans & karnan) !== karnan) continue;
+      let summa = bitar(iNamnet);
+      for (let j = 0; j < antalOrd; j++) {
+        if (iNamnet & (1 << j) || !(viaKat & (1 << j))) continue;
+        let bast = 0;
+        for (const k of ks) {
+          const c = k >= 0 ? k : -k - 1;
+          if (c >= C) continue;
+          const v = (k >= 0 ? arvdKval : egenKval)[c * antalOrd + j];
+          if (v > bast) bast = v;
+        }
+        summa += bast;
+      }
+      const rad: Rad = { item: items[i], i, score: (summa / antalOrd) * 60, full: tillsammans === allaOrd, kant: r?.kant ?? 0 };
+      (rad.full ? fulla : karnor).push(rad);
+    }
+    if (fulla.length > 0) return hela(fulla);
+    if (karnor.length === 0 || karnan === allaOrd) return null;
+    return { traffar: sortera(karnor), strukna: [], utan: sokning.units.filter((u) => u.egenskap).map((u) => u.tok), hela: 0 };
+  }
+
+  /** Varorna i kategorin vars namn sökningen är, ord för ord (minst två ord), eller null. */
+  function kategoriMedNamnet(): number[] | null {
+    if (!kd || !info || p.units.length < 2 || p.units.some((u) => u.helord || u.egenskap)) return null;
+    // Bara kategorins ord, och högst ett "och" emellan: "matbord med stolar"
+    // är en matgrupp, inte kategorin Matbord & stolar.
+    if (tokenize(p.q).filter((t) => t !== "och").length !== p.units.length) return null;
+    for (let c = 0; c < info.length; c++) {
+      const k = info[c];
+      if (k.ord.length !== p.units.length) continue;
+      if (!p.units.every((u) => k.lem.some((l) => delarForm(u.lem, l)))) continue;
+      if (!k.lem.every((l) => p.units.some((u) => delarForm(u.lem, l)))) continue;
+      const medl = medlemskapFor(items, kd).medl[c];
+      if (medl.length > 0) return medl;
+    }
+    return null;
+  }
+
+  // ETT ALLMÄNT HUVUDORD KRÄVS INTE (2026-11-20). "badrumsmöbler" delas i
+  // "badrums" och "möbler", men badrumsskåpen ligger i Hem & Inredning och
+  // inte i Möbler: fyra träffar. "hundmöbler" gav en hundbur "som möbel".
+  // Huvudordet säger bara "saker till", så när delningen ger få träffar fylls
+  // listan på med förledets egna varor, efter dem som har båda delarna.
+  function medForledet(sokning: Prepared, utfall: Sokutfall<T>): Sokutfall<T> {
+    if (utfall.traffar.length >= FYLL_PA_UNDER || sokning.units.length !== 2 || !arAllmantHuvudord(sokning.units[1].tok)) return utfall;
+    const tok = sokning.units[0].tok;
+    const med = new Set(utfall.traffar);
+    const traffar = [...utfall.traffar];
+    const fyll = (ord: string): void => {
+      const forled = rankaInre(items, nameOf, ord, namn, kd, 2);
+      if (forled.rattat || forled.liknande) return;
+      for (const x of forled.traffar) if (!med.has(x)) { med.add(x); traffar.push(x); }
+    };
+    fyll(tok);
+    // ☠️ "sovrumsmöbler" gav sex varor (2026-11-20): bara de har "sovrums" i
+    // namnet. Ger förledet med foge-s få varor fylls listan på med förledet
+    // utan: "sovrum" står i fler namn, och är en kategori.
+    if (traffar.length < FYLL_PA_UNDER && tok.length > 4 && tok.endsWith("s")) fyll(tok.slice(0, -1));
+    return traffar.length === utfall.traffar.length ? utfall : { ...utfall, traffar };
+  }
+
   const forsta = varv(EXAKT);
+  // HELA KATEGORINS NAMN SOM SÖKNING: "träning & gym", "pool och spa",
+  // "matbord stolar". Orden står sällan i samma namn ("träning gym" gav fyra
+  // varor av kategorins 268), men kunden har skrivit vad hyllan heter. Varje
+  // sökord ska vara ett av kategorins ord, och varje ord i namnet ett sökord.
+  // Varorna med alla orden i namnet först, sedan resten av kategorin.
+  const helKategori = kategoriMedNamnet();
+  if (helKategori) {
+    const fulla = ordna(forsta.filter((r) => r.full));
+    const med = new Set(fulla.map((r) => r.i));
+    return { traffar: [...fulla.map((r) => r.item), ...helKategori.filter((i) => !med.has(i)).map((i) => items[i])], strukna: [] };
+  }
   if (forsta.some((r) => r.full)) return fyllPa(forsta);
 
   // UTAN PRICKAR SOM RESERV, före stavfelsledet (2026-11-10). "fatolj" är två
@@ -1275,25 +2397,47 @@ export function rankaMedInfo<T>(items: T[], nameOf: (item: T) => string, query: 
   // bara de. Varvet är billigt (en delsträngsjämförelse per ord), så den som
   // skriver "fato…" slipper dessutom stavfelsledet vid varje tangent.
   const andra = varv(VIKT);
-  if (andra.some((r) => r.full)) return fyllPa(andra);
+  // ☠️ "barnsaker" GAV ETT FÖNSTERHANDTAG (2026-11-20): utan prickar står
+  // ordet i "barnsäkert". Ett känt ord följt av ett allmänt huvudord är
+  // rättstavat som det står och ska delas (nedan). Träffarna utan prickar
+  // gäller först om delningen inte ger något.
+  const sammansatt = p.units.length === 1 && provas(p.units[0]) && allmantSammansatt(p.units[0].tok, ordbokFor(namn, sparat));
+  if (!sammansatt && andra.some((r) => r.full)) return fyllPa(andra);
+
+  // KATEGORIERNA SOM RESERV, före stavfelsledet: "barnmöbler" är rättstavat
+  // och står i 132 varors kategori, och ska inte bli något annat.
+  const viaKategori = kategoriVarv(p, andra, p.units.length === 1);
+  if (viaKategori) return viaKategori;
 
   // Stavfelsledet, bara för ord som inget namn har. Är alla ord kända finns
   // inget att prova, och andra varvets rader gäller.
-  const stavfelOk = kanda.map((k) => !k);
+  // ☠️ Ett känt ord följt av ett allmänt huvudord ("köksprylar") är rättstavat
+  // fast inget namn har det, och ska delas, inte letas med stavfel:
+  // "köksprylar" gav två kökshyllor "som liknar", och "kattprylar" ingenting.
+  const stavfelOk = kanda.map((k) => !k && !sammansatt);
   // RÄTTA STAVNINGEN MOT KATALOGENS ORD, och säg det (2026-11-19). "Ellamin"
   // (en kunds sökning) gav 39 träffar med pendellampor och hyllplan i melamin:
   // stavfelsledet letar inne i namnen, och där ligger "pendELLAMPa" lika nära
   // som "elkamin". Ligger sökordet ett fel från ett ord som står för sig i
   // katalogen söks det ordet i stället, och utfallet säger vilket (`rattat`).
-  if (stavfelOk.some(Boolean)) {
-    const rattad = rattaStavning(p, stavfelOk, () => (sparat.antal ??= ordAntal(namn)));
+  const delningarna = delningar(p, () => (sparat.ord ??= kandaOrd(namn)), arBegrepp);
+  if (stavfelOk.some(Boolean) && djup < 2) {
+    const bok = ordbokFor(namn, sparat);
+    const begrepp = begreppFor(kd?.kat);
+    let rattad = rattaStavning(p, stavfelOk, bok, begrepp, provade);
+    // Ett ord som går att dela i två vanliga ord rättas bara när ETT fel
+    // räcker (se starkDelning).
+    if (rattad && p.units.length === 1 && starkDelning(delningarna, bok, arBegrepp) && narmasteOrd(p.units[0].tok, 1, bok, begrepp) !== rattad) rattad = null;
     if (rattad && rattad !== p.q) {
-      const u = rankaMedInfo(items, nameOf, rattad, namn);
-      if (u.traffar.length > 0) return { ...u, rattat: u.rattat ?? rattad };
+      const u = rankaInre(items, nameOf, rattad, namn, kd, djup + 1);
+      // I en sökning på flera ord gäller rättningen bara när någon vara har
+      // alla orden. Annars stryks ord ur sökningen som den skrevs (nedan), och
+      // beskedet nämner kundens ord, inte ett rättat ("ihopfällbar stegpall").
+      if (u.traffar.length > 0 && (p.units.length === 1 || u.strukna.length === 0)) return { ...u, rattat: u.rattat ?? rattad };
     }
   }
-  const scored = stavfelOk.some(Boolean) ? varv(STAVFEL, p, stavfelOk) : andra;
-  const medAlla = scored.filter((r) => r.full);
+  const scored = stavfelOk.some(Boolean) && djup < STRIKT ? varv(STAVFEL, p, stavfelOk) : andra;
+  const medAlla = sammansatt ? [] : scored.filter((r) => r.full);
   if (medAlla.length > 0) {
     const kept = medAlla.some((r) => !r.stavfel) ? medAlla.filter((r) => !r.stavfel) : medAlla;
     // ETT STAVFEL FÖRE TVÅ. Två fel tillåts i ord på sju tecken eller fler, och
@@ -1320,11 +2464,62 @@ export function rankaMedInfo<T>(items: T[], nameOf: (item: T) => string, query: 
   // felstavningar ur katalogen bytte 55 lista med delningen först, de flesta
   // till det sämre. Ett ord med ETT fel har nästan alltid sin rätta träff i
   // raden ovan, och kommer aldrig hit.
-  for (const delad of delningar(p, () => (sparat.ord ??= kandaOrd(namn)))) {
-    const sokning = forberedSokning(delad, namn);
+  const delade = delningarna.map((delad) => forberedSokning(delad, namn));
+  for (const sokning of delade) {
     for (const lage of [EXAKT, VIKT] as const) {
+      // ☠️ Ett allmänt huvudord letas inte utan prickar: "barn" och "saker"
+      // står båda i "barnsäkert", och fönsterhandtaget hamnade först.
+      if (lage === VIKT && sokning.units.length === 2 && arAllmantHuvudord(sokning.units[1].tok)) continue;
       const rader = varv(lage, sokning);
-      if (rader.some((r) => r.full)) return hela(rader.filter((r) => r.full));
+      if (!rader.some((r) => r.full)) continue;
+      const iNamnen = hela(rader.filter((r) => r.full));
+      // Få träffar i namnen: delarna får också träffa genom kategorierna.
+      // "trädgårdsbelysning" stod i två namn, och kategorin Trädgårdsdekor &
+      // Belysning har 98 varor.
+      if (iNamnen.traffar.length >= FYLL_PA_UNDER) return iNamnen;
+      const viaKat = kategoriVarv(sokning, varv(VIKT, sokning), true);
+      if (!viaKat || viaKat.utan) return medForledet(sokning, iNamnen);
+      const med = new Set(iNamnen.traffar);
+      return medForledet(sokning, { traffar: [...iNamnen.traffar, ...viaKat.traffar.filter((x) => !med.has(x))], strukna: [] });
+    }
+  }
+  // Delarna genom kategorierna: "kontorsmöbler" är möblerna med kontor i
+  // namnet. Efter delningarna som träffar i namnen, så att "barnbil"
+  // fortfarande är elbilarna för barn.
+  if (kd) {
+    for (const sokning of delade) {
+      const u = kategoriVarv(sokning, varv(VIKT, sokning), true);
+      if (u && !u.utan) return medForledet(sokning, u);
+    }
+  }
+  // ☠️ "kattprylar" GAV INGENTING (2026-11-20), fast "hundsaker" visade 313
+  // varor: inget namn har "katt" och "prylar", och "prylar" är ingen kategori,
+  // så delningen föll bort. Ett allmänt huvudord säger bara "saker till":
+  // förledets egna varor är svaret också när ingenting har båda delarna.
+  for (const sokning of delade) {
+    const u = medForledet(sokning, { traffar: [], strukna: [] });
+    if (u.traffar.length > 0) return u;
+  }
+  if (sammansatt && andra.some((r) => r.full)) return fyllPa(andra);
+  // ETT SAMMANSATT ORD MED ETT STAVFEL I ENA DELEN (2026-11-20).
+  // "trägårdsbelysning" är inget ord i katalogen och ligger inte ett fel från
+  // något, men "trägårds" är "trädgård" och "belysning" finns. Den ena delen
+  // ska vara ett känt ord som det står, den andra ligga ett fel från ett.
+  if (djup < 2) {
+    for (const { delad, hel } of luddigaDelningar(p, () => (sparat.ord ??= kandaOrd(namn)), ordbokFor(namn, sparat), begreppFor(kd?.kat), arBegrepp)) {
+      // Det rättade ordet i ett stycke först: då blir svaret detsamma som för
+      // den som stavade rätt.
+      // ☠️ "trägårdsbelysning" gav två lampor och "trädgårdsbelysning" 110
+      // (2026-11-20): den rättade delningen fylldes aldrig på ur kategorierna.
+      const somOrd = rankaInre(items, nameOf, hel, namn, kd, STRIKT);
+      if (somOrd.traffar.length > 0 && !somOrd.rattat && !somOrd.liknande) return { ...somOrd, rattat: hel };
+      const sokning = forberedSokning(delad, namn);
+      // Namnen först, sedan kategorierna: samma två led som för en vanlig
+      // delning, utan stavfelsled och strykning (delarna är redan rättade).
+      const rader = varv(VIKT, sokning);
+      if (rader.some((r) => r.full)) return { ...medForledet(sokning, hela(rader.filter((r) => r.full))), rattat: delad };
+      const u = kategoriVarv(sokning, rader, true);
+      if (u && !u.utan) return { ...medForledet(sokning, u), rattat: delad };
     }
   }
   // Träffar där något ord har två stavfel (bara de är kvar av medAlla här).
@@ -1410,46 +2605,28 @@ const KORTASTE_DEL = 3;
 // felstavningar med två fel bytte en enda lista.
 /**
  * Sökningen med de okända orden bytta mot katalogens närmaste ord, eller null
- * när något av dem inte har ett trovärdigt sådant. Trovärdigt: samma första
- * bokstav, ett fel (två när både sökordet och katalogordet är minst åtta
- * tecken), och bland lika nära det ord som står i flest namn. Korta ord,
- * tal, färger och mått rättas inte: där är ett fel lika ofta ett annat ord.
+ * när något av dem inte har ett trovärdigt sådant. Trovärdigt avgörs av
+ * narmasteOrd: ett fel, två när både sökordet och katalogordet är minst åtta
+ * tecken och tre när båda är minst tolv ("upresningsfatoj"), och bland lika
+ * nära det ord som står i flest namn. Korta ord, tal, färger och mått rättas
+ * inte: där är ett fel lika ofta ett annat ord.
  */
-function rattaStavning(p: Prepared, okanda: readonly boolean[], antal: () => Map<string, number>): string | null {
+function rattaStavning(p: Prepared, okanda: readonly boolean[], bok: Ordbok, begrepp: readonly string[], provat: boolean): string | null {
   const byten = new Map<string, string>();
   for (let i = 0; i < p.units.length; i++) {
     if (!okanda[i]) continue;
     const u = p.units[i];
-    if (u.helord || u.egenskap || u.tok.length < 5 || !/^[a-zåäö]+$/.test(u.tok)) return null;
-    const forsta = vik(u.tok[0]);
-    let bast = "";
-    let bastFel = 3;
-    for (const [w, n] of antal()) {
-      const skillnad = Math.abs(w.length - u.tok.length);
-      if (skillnad > 2 || w.length < 4 || vik(w[0]) !== forsta || !/^[a-zåäö]+$/.test(w)) continue;
-      const tak = u.tok.length >= 8 && w.length >= 8 ? 2 : 1;
-      if (skillnad > tak) continue;
-      // En tappad, dubblad eller omkastad bokstav är vanligare än en bytt:
-      // "barnord" är "barnbord" (ett b saknas) hellre än "barbord" (n bytt
-      // mot b). Bytet räknas därför som ett halvt fel till, en bytt vokal som
-      // ett kvarts ("setsbord" är "satsbord"). Bland ungefär lika nära vinner
-      // ordet som står i flest namn.
-      const steg = ordAvstand(u.tok, w, tak);
-      if (steg > tak || steg === 0) continue;
-      const fel = steg + (skillnad === 0 && !sammaBokstaver(u.tok, w) ? (bytVokal(u.tok, w) ? 0.25 : 0.5) : 0) - 0.15 * Math.log(n);
-      if (fel < bastFel) { bast = w; bastFel = fel; }
-    }
+    if (u.helord || u.egenskap || u.tok.length < 5 || !/^[a-zåäö]+$/.test(u.tok) || allmantSammansatt(u.tok, bok)) return null;
+    // Tre fel i ord på tolv tecken och uppåt, två från åtta (narmasteOrd).
+    // Ett kortare ord som prövningen mot ordboken redan lämnat utan rättning
+    // har ingen här heller: samma regler, samma svar.
+    if (provat && u.tok.length < 8) return null;
+    const bast = narmasteOrd(u.tok, 3, bok, begrepp);
     if (!bast) return null;
     byten.set(u.tok, bast);
   }
   if (byten.size === 0) return null;
-  return tokenize(p.q).map((t) => byten.get(t) ?? t).join(" ");
-}
-
-/** Är första stället där två lika långa ord skiljer sig en vokal i båda? */
-function bytVokal(a: string, b: string): boolean {
-  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return /[aeiouyåäö]/.test(a[i]) && /[aeiouyåäö]/.test(b[i]);
-  return false;
+  return p.q.replace(/[a-zåäö0-9]+/g, (t) => byten.get(t) ?? t);
 }
 
 /** Har orden samma bokstäver, bara i annan ordning? */
@@ -1497,6 +2674,31 @@ function ordAntal(namn: readonly string[]): Map<string, number> {
 // Formerna är så egna att de inte behöver prövas mot katalogen: ett ord som
 // inte finns ("stoel" och "stole" ur "stolar") står inte i något namn.
 function bojdaFormer(tok: string): string[] {
+  const omljud = omljudsformer(tok);
+  return omljud.length > 0 ? [...regelbundnaFormer(tok), ...omljud] : regelbundnaFormer(tok);
+}
+
+// Flertal med omljud: "tänger" hittade ingen tång och "skivstänger" ingen
+// skivstång (2026-11-20), för inget av dem är det andra med en ändelse. Ordet
+// byts i slutet, så sammansättningarna följer med ("klädstänger" → "klädstång").
+// ☠️ Bara de två: provat med fler 2026-11-20 gav "böcker" 97 fåtöljer "med
+// ben i bok" (träslaget), "fötter" dörrbeslag på "8 fot" (måttet) och
+// "händer" 323 varor med handtag och handvev.
+const OMLJUD: readonly (readonly [string, string])[] = [
+  ["stång", "stänger"], ["tång", "tänger"],
+];
+function omljudsformer(tok: string): string[] {
+  for (const [ental, flertal] of OMLJUD) {
+    if (tok.endsWith(flertal)) return [tok.slice(0, -flertal.length) + ental];
+    if (tok.endsWith(`${flertal}na`)) return [tok.slice(0, -flertal.length - 2) + ental];
+    // Entalet ska vara hela ordet eller följa på ett helt led: "stång" i
+    // "skivstång".
+    if (tok.endsWith(ental) && (tok.length === ental.length || tok.length >= ental.length + 3)) return [tok.slice(0, -ental.length) + flertal];
+  }
+  return [];
+}
+
+function regelbundnaFormer(tok: string): string[] {
   if (!/^[a-zåäö]{4,}$/.test(tok)) return [];
   if (tok.endsWith("a")) return [`${tok.slice(0, -1)}or`];
   if (tok.endsWith("e")) return [`${tok.slice(0, -1)}ar`];
@@ -1592,28 +2794,208 @@ function kandaOrd(namn: readonly string[]): Set<string> {
 // ett ensamt sökord delas, och bara där båda delarna är kända ord och inget av
 // dem är ett småord ("till" i "tillbehör"). Den jämnaste delningen först: ju
 // längre den kortaste delen är, desto mindre slump i träffen.
-function delningar(p: Prepared, kanda: () => Set<string>): string[] {
+/** Är delen ett känt ord: står det för sig i något namn (också stammat och utan prickar)? */
+function arKandDel(x: string, k: ReadonlySet<string>): boolean {
+  const s = stem(x);
+  return !STOPWORDS.has(x) && (k.has(x) || k.has(s) || k.has(vik(x)) || k.has(vik(s)));
+}
+
+function delningar(p: Prepared, kanda: () => Set<string>, arBegrepp?: (u: Unit) => boolean): string[] {
   const ord = tokenize(p.q);
   if (ord.length !== 1 || ord[0].length < 2 * KORTASTE_DEL) return [];
   const t = ord[0];
-  const ar = (x: string, k: Set<string>) => {
-    const s = stem(x);
-    return !STOPWORDS.has(x) && (k.has(x) || k.has(s) || k.has(vik(x)) || k.has(vik(s)));
-  };
+  // En del får också vara ett av kategoriernas ord: "möbler" står för sig i
+  // få namn men är en hel avdelning.
+  const ar = (x: string, k: Set<string>) =>
+    arKandDel(x, k) || (x.length >= 3 && arAllmantHuvudord(x)) || (x.length >= 4 && arBegrepp !== undefined && arBegrepp(delSomOrd(x)));
   const k = kanda();
   const ut: { a: string; b: string }[] = [];
   for (let i = KORTASTE_DEL; i <= t.length - KORTASTE_DEL; i++) {
     const a = t.slice(0, i);
     const b = t.slice(i);
-    if (ar(a, k) && ar(b, k)) ut.push({ a, b });
+    if (!ar(b, k)) continue;
+    // ☠️ Första delen får bära ett foge-s: "köks" står inte för sig i något
+    // namn, och "köksprylar" gick inte att dela (2026-11-20). Delningen prövas
+    // med s:et ("köks" står i köksvagn och köksö), och sedan utan: inget namn
+    // har "kontors" och "belysning", men 24 lampor är till för "kontor".
+    const foge = medFogeS(a, (x) => ar(x, k));
+    if (ar(a, k) || foge) ut.push({ a, b });
+    if (foge) ut.push({ a: a.slice(0, -1), b });
   }
   const kortast = (d: { a: string; b: string }) => Math.min(d.a.length, d.b.length);
-  return ut.sort((x, y) => kortast(y) - kortast(x)).map((d) => `${d.a} ${d.b}`);
+  return [...new Set(ut.sort((x, y) => kortast(y) - kortast(x)).map((d) => `${d.a} ${d.b}`))];
+}
+
+/**
+ * Går sökordet att dela i två ord som båda är vanliga i katalogen? Då är det
+ * ett sammansatt ord, inte ett ord med flera stavfel. Vanligt: minst fyra
+ * bokstäver, och ordet inleder ord i minst fem namn ("hall" i hallmöbel och
+ * hallbänk) eller är ett begreppsord.
+ *
+ * ☠️ "hundförvaring" BLEV "vedförvaring" (2026-11-20): tre fel räcker för ord
+ * på tolv tecken, och rättningen gick före delningen. "hund" står i 313 namn
+ * och "förvaring" i 300.
+ * ☠️ Inte ord på tre bokstäver: provat samma dag, och "julförvaring" blev
+ * sex förvaringsSKJUL.
+ */
+function starkDelning(delade: readonly string[], bok: Ordbok, arBegrepp: (u: Unit) => boolean): boolean {
+  const inleder = (x: string): number => {
+    let n = 0;
+    for (let i = forstaPlats(bok.ord, x); i < bok.ord.length && bok.ord[i].startsWith(x); i++) n += bok.antal.get(bok.ord[i]) ?? 0;
+    return n;
+  };
+  const stark = (x: string): boolean => x.length >= 4 && (arAllmantHuvudord(x) || arBegrepp(delSomOrd(x)) || inleder(x) >= 5);
+  return delade.some((d) => {
+    const [a, b] = d.split(" ");
+    return stark(a) && stark(b);
+  });
+}
+
+/** Är delen ett känt ord följt av ett foge-s ("köks", "badrums")? */
+function medFogeS(a: string, kand: (x: string) => boolean): boolean {
+  return a.length > KORTASTE_DEL && a.endsWith("s") && kand(a.slice(0, -1));
+}
+
+/** En del av ett delat sökord som ett sökord, för jämförelsen med kategoriernas ord. */
+function delSomOrd(x: string): Unit {
+  return { stem: sokstam(x), key: begreppsnyckel(x), vikt: vik(x), tok: x, helord: false, egenskap: false, fogRe: null, lem: ordformer(x) };
+}
+
+/**
+ * Ett ensamt sökord delat i två, där den ena delen är ett känt ord som det
+ * står och den andra ligger ETT fel från ett ord i katalogen ("trägårds" +
+ * "belysning"). Ett foge-s efter första delen hör inte till ordet. Bara ord
+ * på åtta tecken och uppåt, och den rättade delen minst fem: kortare delar
+ * ligger ett fel från nästan vad som helst. Den jämnaste delningen först.
+ */
+function luddigaDelningar(p: Prepared, kanda: () => Set<string>, bok: Ordbok, begrepp: readonly string[], arBegrepp: (u: Unit) => boolean): { delad: string; hel: string }[] {
+  const ord = tokenize(p.q);
+  if (ord.length !== 1 || ord[0].length < 8 || !/^[a-zåäö]+$/.test(ord[0])) return [];
+  const t = ord[0];
+  const k = kanda();
+  const kand = (x: string) => x.length >= 3 && (arKandDel(x, k) || (x.length >= 4 && arBegrepp(delSomOrd(x))));
+  const rattad = new Map<string, string | null>();
+  const ratta = (x: string): string | null => {
+    if (x.length < 5) return null;
+    let r = rattad.get(x);
+    if (r === undefined) {
+      r = narmasteOrd(x, 1, bok, begrepp);
+      rattad.set(x, r);
+    }
+    return r;
+  };
+  const ut: { a: string; b: string; s: string; kortast: number }[] = [];
+  for (let i = KORTASTE_DEL; i <= t.length - KORTASTE_DEL; i++) {
+    const b = t.slice(i);
+    // Första delen som den står, och utan ett foge-s.
+    for (const a of t[i - 1] === "s" && i - 1 >= KORTASTE_DEL ? [t.slice(0, i), t.slice(0, i - 1)] : [t.slice(0, i)]) {
+      const aKand = kand(a);
+      const bKand = kand(b);
+      if (aKand && bKand) continue; // en vanlig delning, redan prövad
+      const a2 = aKand ? a : bKand ? ratta(a) : null;
+      const b2 = bKand ? b : aKand ? ratta(b) : null;
+      if (a2 && b2) ut.push({ a: a2, b: b2, s: a.length < i ? "s" : "", kortast: Math.min(a.length, b.length) });
+    }
+  }
+  // `hel` är ordet i ett stycke med delen rättad ("trädgårdsbelysning"), med
+  // foge-s:et tillbaka där det stod.
+  const sedda = new Set<string>();
+  return ut
+    .sort((x, y) => y.kortast - x.kortast)
+    .map((d) => ({ delad: `${d.a} ${d.b}`, hel: `${d.a}${d.s}${d.b}` }))
+    .filter((d) => (sedda.has(d.delad) ? false : (sedda.add(d.delad), true)))
+    .slice(0, 4);
+}
+
+/** De allmänna huvudorden (ALLMANNA_HUVUDORD) som en halvskriven sammansättning skrivs färdig till. */
+const ALLMANNA_HELA = ["möbler", "saker", "prylar", "tillbehör", "grejer", "produkter", "utrustning"];
+
+/**
+ * Ett halvskrivet sammansatt ord, färdigskrivet: första delen är ett känt ord
+ * och resten (minst två bokstäver) är början på ett huvudord. Högst tre
+ * förslag, den längsta första delen först. Tre led (se rankaInre för när de
+ * prövas):
+ *
+ *   allmanna   "kontorsmöb" är på väg mot "kontorsmöbler", "kattpr" mot
+ *              "kattprylar". De allmänna huvudorden säger bara "saker till",
+ *              och två bokstäver av dem räcker.
+ *   kategori   kategoriernas ord, från tre bokstäver: "trädgårdsbel" →
+ *              "trädgårdsbelysning", "hundkop" → "hundkoppel".
+ *   katalog    ord som står i samma namn som första delen: "barnbi" →
+ *              "barnbil" (elbilar och åkbilar för barn). Första delen ska
+ *              vara minst fyra bokstäver, och minst tre namn ha båda.
+ *
+ * ☠️ Utan den var listan TOM mitt i ordet (2026-11-20): "kontorsmö" visade
+ * 124 kontorsstolar, "kontorsmöb" ingenting, "kontorsmöbl" 225 varor, och
+ * "kontorsmöble" blev "kontorsstolar" med besked (tre fel från en böjning).
+ * "barnbi" blev "barnbord" med besked, ett tangenttryck före 86 elbilar för
+ * barn. Det hela ordet står inte i något namn, så ingen början på det gör
+ * det heller. Bara för ord som varken finns eller är början på ett ord i
+ * katalogen.
+ */
+function ofardigtSammansatt(
+  t: string,
+  led: "allmanna" | "kategori" | "katalog",
+  kanda: () => Set<string>,
+  bok: Ordbok,
+  namn: readonly string[],
+  info: readonly KatInfo[],
+  arBegrepp: (u: Unit) => boolean,
+): string[] {
+  if (t.length < 2 * KORTASTE_DEL - 1 || !/^[a-zåäö]+$/.test(t)) return [];
+  const k = kanda();
+  const kand = (x: string) => x.length >= KORTASTE_DEL && (arKandDel(x, k) || (x.length >= 4 && arBegrepp(delSomOrd(x))));
+  const borjarPa = (b: string, h: string): boolean => h.length > b.length && saknarBaraPrickar(b, h.slice(0, b.length));
+  const ut: string[] = [];
+  const lagg = (hel: string) => { if (ut.length < 3 && !ut.includes(hel)) ut.push(hel); };
+  for (let i = t.length - 2; i >= KORTASTE_DEL && ut.length < 3; i--) {
+    const a = t.slice(0, i);
+    const b = t.slice(i);
+    const foge = !kand(a) && medFogeS(a, kand);
+    if (!foge && !kand(a)) continue;
+    // Står resten som ett ord för sig i något namn är det en vanlig delning:
+    // "barnbil" är "barn" och "bil", inte början på "barnbiltillbehör". En
+    // stam får det vara: "belys" är på väg mot "belysning".
+    const arOrd = b.length >= KORTASTE_DEL && bok.antal.has(b);
+    if (led === "allmanna") {
+      for (const h of ALLMANNA_HELA) if (borjarPa(b, h)) lagg(a + h);
+      continue;
+    }
+    if (arOrd) continue;
+    if (led === "kategori") {
+      // ☠️ Från tre bokstäver: med två blev "kontorsm" till "kontor" + "småbord".
+      if (b.length >= 3) for (const c of info) for (const o of c.ord) if (o.length >= 5 && !ALLMANNA_HELA.includes(o) && borjarPa(b, o)) lagg(a + o);
+      continue;
+    }
+    if (a.length < 4) continue;
+    // Orden som står i samma namn som första delen, för sig eller sist i ett
+    // sammansatt ord ("bil" i "elbil"), det vanligaste först.
+    const forled = foge ? a.slice(0, -1) : a;
+    const bVikt = vik(b);
+    const antal = new Map<string, number>();
+    for (const n of namn) {
+      const plats = n.indexOf(forled);
+      if (plats < 0 || (plats > 0 && BOKSTAV.test(n[plats - 1]))) continue;
+      const sedda = new Set<string>();
+      for (const o of tokenize(n)) {
+        if (!/^[a-zåäö]+$/.test(o)) continue;
+        const oVikt = vik(o);
+        for (let j = oVikt.indexOf(bVikt); j >= 0; j = oVikt.indexOf(bVikt, j + 1)) {
+          const h = o.slice(j);
+          if (sedda.has(h) || !borjarPa(b, h) || !bok.antal.has(h) || STOPWORDS.has(h) || arEgenskap(h)) continue;
+          sedda.add(h);
+          antal.set(h, (antal.get(h) ?? 0) + 1);
+        }
+      }
+    }
+    for (const [o, n] of [...antal].sort((x, y) => y[1] - x[1]).slice(0, 2)) if (n >= 3) lagg(a + o);
+  }
+  return ut;
 }
 
 // Namnlistans övriga former, sparade per lista: sökrutorna skickar samma
 // normaliserade lista vid varje tangent (rankaForslag i lib/sok-index.ts).
-type ListFormer = { fogat?: string[]; vikt?: string[]; ord?: Set<string>; antal?: Map<string, number>; egna?: Set<string>; led?: Set<string>; slut?: string[] };
+type ListFormer = { fogat?: string[]; vikt?: string[]; ord?: Set<string>; antal?: Map<string, number>; egna?: Set<string>; led?: Set<string>; slut?: string[]; bok?: Ordbok };
 const formCache = new WeakMap<readonly string[], ListFormer>();
 function formerFor(namn: readonly string[]): ListFormer {
   let f = formCache.get(namn);
@@ -1649,26 +3031,32 @@ export function kategoriPoang(kategoriNamn: string, query: string): number {
   // "tv" + "bänkar" och "tvbänkar".
   const raa = [...new Set([...tokenize(namn), ...tokenize(utanBindestreck(namn))])];
   const ord = raa.map(canon);
+  // Kategorins ord utan prickar och i sina böjningar: den som skriver
+  // "barnmobel" eller "fatoljer" ska få samma kategori som med prickarna
+  // (Leonards skärmbild 2026-11-20: ingen kategori för "barnmobel").
+  const vikta = raa.map(vik);
+  const former = raa.map(ordformer);
   // Färg, storlek och mått säger inget om kategorin: "svart tv-bänk" är TV-bänkar.
   const units = prepare(query).units.filter((u) => !u.egenskap);
   if (units.length === 0 || ord.length === 0) return 0;
   let summa = 0;
   for (const u of units) {
     let bast = 0;
+    const uVikt = utanPrickar(u);
     for (let i = 0; i < ord.length; i++) {
       const o = ord[i];
-      if (o === u.key) bast = Math.max(bast, 3);
+      if (o === u.key || (!u.helord && delarForm(u.lem, former[i]))) bast = Math.max(bast, 3);
       // Huvudet i en sammansättning: "fåtölj" i "uppresningsfåtöljer".
       // ☠️ Som ett ORD sist i kategorins ord (ordStar), inte som bokstäver i
       // slutet (2026-11-19): "bar" gav "Baby & Småbarn", "tyg" gav Verktyg och
       // "ring" Badrumsrenovering och Förvaring. Samma spärrar som för
       // varunamnen gäller (BARARE), och "hus" hittar nu Växthus.
-      else if (!u.helord && u.key.length >= 3 && huvudI(raa[i], u)) bast = Math.max(bast, 2);
+      else if (!u.helord && u.key.length >= 3 && (huvudI(raa[i], u) || (uVikt !== u && huvudI(vikta[i], uVikt)))) bast = Math.max(bast, 2);
       // Förledet: "kontor" i "kontorsstolar" och "hund" i "hundburar", och
       // sökordet som börjar med kategorins ord: "trädgårdsmöbler" och
       // "Trädgård". Förledet jämförs som kunden skrev det, inte i kanonisk
       // form: "soffa" blir kanoniskt "soff", som också inleder "soffbord".
-      else if (!u.helord && u.tok.length >= 4 && (o.startsWith(u.tok) || (o.length >= 5 && u.key.startsWith(o)))) bast = Math.max(bast, 1);
+      else if (!u.helord && u.tok.length >= 4 && (o.startsWith(u.tok) || (uVikt !== u && vikta[i].startsWith(uVikt.tok)) || (o.length >= 5 && u.key.startsWith(o)))) bast = Math.max(bast, 1);
       // "spegel" och "speglar" (canon "spegl") skiljer ett tecken.
       else if (!u.helord && u.key.length >= 5 && o.length >= 5 && Math.abs(o.length - u.key.length) <= 1 && fuzzyOrdslut(u.key, o, 1) === 1 && o[0] === u.key[0]) bast = Math.max(bast, 1);
     }
@@ -2036,13 +3424,34 @@ export function menadeDu<T>(varor: readonly T[], namn: (v: T) => string, fraga: 
  * kunden var på väg att skriva ("få" → fåtölj) och säger det (`visar`).
  * Längre ord rankas som förut.
  */
-export function rankaMedForslag<T>(items: T[], nameOf: (item: T) => string, query: string): { utfall: Sokutfall<T>; visar: string } {
-  const utfall = rankaMedInfo(items, nameOf, query);
+export function rankaMedForslag<T>(items: T[], nameOf: (item: T) => string, query: string, kd?: Kategoridata<T>): { utfall: Sokutfall<T>; visar: string } {
+  const utfall = rankaMedInfo(items, nameOf, query, undefined, kd);
   // En rättad stavning visas på samma sätt som ordet för två bokstäver:
   // sidan säger vilket ord träffarna gäller.
   if (!kortOrd(query)) return { utfall, visar: utfall.rattat ?? "" };
   const mal = visaVarorFor(query, menadeDu(items, nameOf, query), utfall.traffar.length);
   if (!mal) return { utfall, visar: "" };
-  const forMalet = rankaMedInfo(items, nameOf, mal);
+  const forMalet = rankaMedInfo(items, nameOf, mal, undefined, kd);
   return forMalet.traffar.length > 0 ? { utfall: forMalet, visar: mal } : { utfall, visar: "" };
+}
+
+/**
+ * Bygger i förväg det sökningen annars bygger vid första tangenten: katalogens
+ * ordbok (ordbokFor), orden som står för sig, och varornas kategorier. Mätt
+ * 2026-11-20 på 7 886 varor: runt 200 ms på en dator, flera gånger det på en
+ * telefon. Sökrutan anropar den när webbläsaren är ledig (lib/sok-rankning.ts,
+ * varmUpp). Hinner den inte byggs allt vid första sökningen, som förut.
+ *
+ * `normNamn` är namnen normaliserade (normalize), samma lista som sökningarna
+ * sedan skickar in: det är den som det sparade hänger på.
+ */
+export function forberedKatalog<T>(items: T[], normNamn: readonly string[], kd?: Kategoridata<T>): void {
+  const sparat = formerFor(normNamn);
+  ordbokFor(normNamn, sparat);
+  sparat.egna ??= egnaOrd(normNamn);
+  sparat.vikt ??= normNamn.map(vik);
+  if (!kd) return;
+  katInfoFor(kd.kat);
+  medlemskapFor(items, kd);
+  begreppsformer(begreppFor(kd.kat));
 }

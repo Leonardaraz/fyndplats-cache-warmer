@@ -80,3 +80,30 @@ export function kandidater(lista: readonly ListProduct[], index: readonly IndexR
   const nya = lista.filter((p) => !med.has(p.slug)).sort(nyast);
   return nya.length > 0 ? [...nya, ...ordnade] : ordnade;
 }
+
+/**
+ * Kör `hamta` tills den lyckas, högst `forsok` gånger, med `paus` emellan.
+ * Kastar det sista felet när alla försök gått åt. `avbruten` svarar sant när
+ * ingen längre väntar på svaret (kunden har sökt på något annat): då görs
+ * inga fler försök.
+ *
+ * ☠️ FÖRSTA SÖKNINGEN EFTER EN DEPLOY VISADE FELRUTAN (2026-11-20). Varulistan
+ * ligger inte i CDN:t direkt efter ett bygge, och en ny serverinstans läser
+ * katalogen i 25–28 sekunder innan den kan svara. Söksidan väntar 20 och gav
+ * upp, med "Sökningen kunde inte läsas in" och en knapp som ingen trycker på.
+ * Den som laddade om fick svar direkt, för servern läste klart ändå. Nu gör
+ * sidan det själv: ett avbrutet försök följs av ett nytt, och felrutan visas
+ * först när alla har misslyckats.
+ */
+export async function medForsok<T>(hamta: (nr: number) => Promise<T>, forsok: number, paus: (nr: number) => Promise<void>, avbruten: () => boolean = () => false): Promise<T> {
+  let sista: unknown = new Error("avbruten");
+  for (let nr = 1; nr <= forsok && !avbruten(); nr++) {
+    try {
+      return await hamta(nr);
+    } catch (fel) {
+      sista = fel;
+      if (nr < forsok && !avbruten()) await paus(nr);
+    }
+  }
+  throw sista;
+}

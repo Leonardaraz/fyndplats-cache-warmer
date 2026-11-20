@@ -12,8 +12,8 @@
 // aldrig. Kontaktformulärets produktväljare importerar den som vanligt: den
 // sidan söker alltid.
 
-import { byggOrdforrad, kortOrd, markeraTraffar, markeringsord, matchaKategorier, normalize, rankaMedInfo, rankByName, sokforslagINamn, visaVarorFor, type Ordforrad } from "./search";
-import type { SokTraff } from "./sok-index";
+import { byggOrdforrad, forberedKatalog, kortOrd, markeraTraffar, markeringsord, matchaKategorier, normalize, rankaMedInfo, rankByName, sokforslagINamn, visaVarorFor, type Kategoridata, type Ordforrad } from "./search";
+import { sokKategorierHamtade, type SokTraff } from "./sok-index";
 import { kopbaraForst } from "./sok-ordning";
 
 export { kortOrd, markeraTraffar, markeringsord, matchaKategorier, visaVarorFor };
@@ -30,6 +30,16 @@ function namnFor(idx: SokTraff[]): string[] {
   }
   return namn;
 }
+
+/**
+ * Kategorierna för sökningen: tabellen som kom med indexet, och radens `k`.
+ * Undefined för ett index utan tabell (sökningen söker då bara i namnen).
+ */
+function kategoridata(): Kategoridata<SokTraff> | undefined {
+  const kat = sokKategorierHamtade();
+  return kat.length > 0 ? { kat, av: radensKategorier } : undefined;
+}
+const radensKategorier = (h: SokTraff) => h.k;
 
 /**
  * Förslagen för en sökning: de `antal` mest relevanta, slutsålda sist.
@@ -68,7 +78,7 @@ export function rankaForslag(idx: SokTraff[], term: string, antal: number): SokT
 export function rankaForslagMedAntal(
   idx: SokTraff[], term: string, antal: number, behall?: (h: SokTraff) => boolean,
 ): { traffar: SokTraff[]; totalt: number; rattat?: string; liknande?: true } {
-  const utfall = rankaMedInfo(idx, (h) => h.n, term, namnFor(idx));
+  const utfall = rankaMedInfo(idx, (h) => h.n, term, namnFor(idx), kategoridata());
   const kvar = kopbaraForst(behall ? utfall.traffar.filter(behall) : utfall.traffar, (h) => h.o === 1);
   return {
     traffar: kvar.slice(0, antal),
@@ -105,8 +115,8 @@ export function sokexempelFor(idx: SokTraff[], max: number): string[] {
 }
 
 /**
- * Bygg ordförrådet och de normaliserade namnen i förväg, när webbläsaren har
- * en ledig stund. Ordförrådet tar 30–50 ms på en dator (mätt 2026-11-19) och
+ * Bygg ordförrådet, de normaliserade namnen och sökningens ordbok i förväg,
+ * när webbläsaren har en ledig stund. Ordförrådet tar 30–50 ms på en dator (mätt 2026-11-19) och
  * flera gånger det på en telefon; görs det här hinner det oftast bli klart
  * mellan att pekaren når rutan och att första tangenten trycks. Hinner det
  * inte byggs det vid första användningen, som förut.
@@ -114,7 +124,9 @@ export function sokexempelFor(idx: SokTraff[], max: number): string[] {
 export function varmUpp(idx: SokTraff[]): void {
   const gor = () => {
     ordforradFor(idx);
-    if (!normNamn.get(idx)) normNamn.set(idx, idx.map((h) => normalize(h.n)));
+    // Ordboken och kategorierna för rättningen och begreppsorden (lib/search.ts,
+    // forberedKatalog): runt 200 ms på en dator, mätt 2026-11-20.
+    forberedKatalog(idx, namnFor(idx), kategoridata());
   };
   const ledig = (globalThis as { requestIdleCallback?: (f: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
   if (ledig) ledig(gor, { timeout: 600 });
