@@ -12,6 +12,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { productCountLabel } from "../lib/rating";
 import { forvarmFavoriter } from "./favoriter-hamtning";
+import { tidsgransSignal } from "../lib/tidsgrans-signal";
 import {
   FAVORIT_NYCKLAR as N,
   MAX_KO,
@@ -134,7 +135,7 @@ async function stamAv(l: Lager, spara: () => void, maxAlderMs: number): Promise<
   try {
     const r = await fetch(KONTO, {
       credentials: "same-origin",
-      signal: AbortSignal.timeout(15_000),
+      signal: tidsgransSignal(15_000),
       ...(plan.typ === "skicka" ? { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(plan.andring) } : {}),
     });
     if (r.status === 401) {

@@ -7,6 +7,7 @@ import { flushSync } from "react-dom";
 import Image from "next/image";
 import { PrefetchLink } from "./prefetch-link";
 import { flerKort, medResten, type GuideKort } from "../lib/guide-kort";
+import { tidsgransSignal } from "../lib/tidsgrans-signal";
 
 /** Så länge väntar en bläddring på resten av inläggen innan den rullar ändå. */
 const VANTA_PA_RESTEN_MS = 700;
@@ -32,7 +33,7 @@ export function GuideKarusell({ guider, totalt }: { guider: GuideKort[]; totalt:
   const hamta = useCallback((): Promise<void> => {
     if (kanda.current.length >= totalt) return Promise.resolve();
     if (!hamtning.current) {
-      hamtning.current = fetch("/api/guider", { signal: AbortSignal.timeout(15_000) })
+      hamtning.current = fetch("/api/guider", { signal: tidsgransSignal(15_000) })
         .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
         .then((d: unknown) => {
           kanda.current = medResten(guider, d);

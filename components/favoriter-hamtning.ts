@@ -7,6 +7,7 @@
 // bara hämtningen och det senaste svaret.
 
 import { favoritFraga, type FavoritProdukt, type Favoritsvar } from "../lib/favoriter";
+import { tidsgransSignal } from "../lib/tidsgrans-signal";
 
 const FARSK_MS = 60_000;
 
@@ -26,7 +27,7 @@ export const farsktSvar = (lista: readonly string[]): boolean => !!senaste && ta
 export function hamtaFavoriter(lista: readonly string[]): Promise<Favoritsvar | "fel"> {
   const adress = favoritFraga(lista);
   if (pagaende?.adress === adress) return pagaende.lofte;
-  const lofte = fetch(adress, { signal: AbortSignal.timeout(15_000) })
+  const lofte = fetch(adress, { signal: tidsgransSignal(15_000) })
     .then((r) => (r.ok ? r.json() : null))
     .then((j: { ok?: boolean; produkter?: Record<string, FavoritProdukt>; saknas?: string[] } | null): Favoritsvar | "fel" => {
       if (!j?.ok || !j.produkter || !Array.isArray(j.saknas)) return "fel";

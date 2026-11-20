@@ -7,6 +7,7 @@
 import { useState } from "react";
 import { useCart } from "@/components/cart";
 import { kopIgenBesked, type KopIgenRad } from "@/lib/medlem/kop-igen";
+import { tidsgransSignal } from "@/lib/tidsgrans-signal";
 import s from "./konto.module.css";
 
 type Svar = ({ ok: true; rader: KopIgenRad[]; slut: number; borta: number }) | { ok: false; skal?: string };
@@ -27,7 +28,7 @@ export function KopIgen({ ordernummer }: { ordernummer: string }) {
         credentials: "same-origin",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ ordernummer }),
-        signal: AbortSignal.timeout(20_000),
+        signal: tidsgransSignal(20_000),
       });
       const svar = (await r.json().catch(() => null)) as Svar | null;
       if (!svar?.ok) {

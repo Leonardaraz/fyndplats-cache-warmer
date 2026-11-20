@@ -3,6 +3,7 @@
 // priser (/api/medlem/offert/kassa) och svarar med Wix-kassans adress.
 
 import { useState } from "react";
+import { tidsgransSignal } from "@/lib/tidsgrans-signal";
 
 const SKAL: Record<string, string> = {
   "inte-giltig": "Offerten gäller inte längre. Begär en ny från varukorgen.",
@@ -22,7 +23,7 @@ export function OffertKassaKnapp({ id, klass }: { id: string; klass: string }) {
         credentials: "same-origin",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ id }),
-        signal: AbortSignal.timeout(20_000),
+        signal: tidsgransSignal(20_000),
       });
       const s = (await r.json().catch(() => null)) as { ok?: boolean; adress?: string; skal?: string } | null;
       if (s?.ok && typeof s.adress === "string") {

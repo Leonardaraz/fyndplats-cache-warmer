@@ -13,6 +13,7 @@ import { useState, type FormEvent } from "react";
 import { useCart } from "@/components/cart";
 import { kopIgenBesked, type KopIgenRad } from "@/lib/medlem/kop-igen";
 import { MAX_KORGAR, NAMN_MAX, sparaFelText, synligaKorgar, type SparadKorgVy } from "@/lib/medlem/sparade";
+import { tidsgransSignal } from "@/lib/tidsgrans-signal";
 import s from "./konto.module.css";
 
 const INTE_NU = "Det gick inte just nu. Försök igen om en stund.";
@@ -45,7 +46,7 @@ export function SparadeKorgar({ korgar: franServern, kanSpara }: { korgar: Spara
         credentials: "same-origin",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ cartId: cart._id, namn }),
-        signal: AbortSignal.timeout(20_000),
+        signal: tidsgransSignal(20_000),
       });
       const svar = (await r.json().catch(() => null)) as { ok?: boolean; skal?: string; korg?: SparadKorgVy } | null;
       if (svar?.ok) {
@@ -72,7 +73,7 @@ export function SparadeKorgar({ korgar: franServern, kanSpara }: { korgar: Spara
         credentials: "same-origin",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ id }),
-        signal: AbortSignal.timeout(20_000),
+        signal: tidsgransSignal(20_000),
       });
       const svar = (await r.json().catch(() => null)) as Kopsvar | null;
       if (!svar?.ok) {
@@ -100,7 +101,7 @@ export function SparadeKorgar({ korgar: franServern, kanSpara }: { korgar: Spara
       const r = await fetch(`/api/konto/sparade?id=${encodeURIComponent(id)}`, {
         method: "DELETE",
         credentials: "same-origin",
-        signal: AbortSignal.timeout(20_000),
+        signal: tidsgransSignal(20_000),
       });
       if (r.ok) {
         setBekrafta(null);
