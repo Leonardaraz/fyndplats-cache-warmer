@@ -1,0 +1,72 @@
+{
+  "f6f65c39": {
+    "productId": "f6f65c39-7dc2-4525-8043-d1915cb7bdc9",
+    "synliga": 0,
+    "dolda": 6,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": []
+  },
+  "eaa254a2": {
+    "productId": "eaa254a2-f79b-464b-8a8c-a5af692f4d7e",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1if0aov",
+        "betyg": 5,
+        "datum": "2026-06-13",
+        "foton": 0,
+        "text": "Fácil de montar y muy resistente. Numerosas y adecuadas las piezas de juego que acompañan. Gracias"
+      }
+    ]
+  },
+  "6372d9bf": {
+    "productId": "6372d9bf-eb1b-4c3f-a755-ed22987d7190",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 3,
+    "attBesluta": []
+  },
+  "bd8071ce": {
+    "productId": "bd8071ce-f6f4-47df-8963-22917362180a",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-wll8pk",
+        "betyg": 5,
+        "datum": "2026-08-11",
+        "foton": 1,
+        "text": "Easy to use. Looks great in our 14 foot fishing boat. Took a full 2 rolls. Added spray on heavy duty adhesive. Use a heat gun when applying helps it be more flexible and sticks better."
+      }
+    ]
+  },
+  "58dda19e": {
+    "productId": "58dda19e-0e9e-43a6-a7aa-9c742962d2a4",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": []
+  },
+  "0a78d196": {
+    "productId": "0a78d196-8c6f-4862-b69e-7fee18e87ba8",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  }
+}
