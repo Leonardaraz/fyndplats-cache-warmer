@@ -8,16 +8,24 @@ kontroll-galleriordning.py), "bild N"-mönster, inledningar som "Bild på" eller
 engelska ord och rader för bilder som inte finns. gate-alt.py kontrollerar ord, siffror och märken; den här kontrollerar
 formen. En BEFINTLIG rad som fäller här går inte att rätta utan att ändra en text som redan är publicerad: bedöm den.
 """
-import collections, io, re, sys
+import collections, io, os, re, sys
 
 MIN, MAX = 28, 200
 fel = []
+
+# Strukna positioner (bilder-bort.tsv) ska inte ha någon alt-rad.
+struken = set()
+if os.path.exists("bilder-bort.tsv"):
+    for r in io.open("bilder-bort.tsv", encoding="utf-8"):
+        if r.strip():
+            struken.add(tuple(r.split("\t")[:2]))
 
 bilder = collections.OrderedDict()
 for r in io.open("bilder.tsv", encoding="utf-8"):
     if r.strip():
         k, n, f = r.rstrip("\n").split("\t")
-        bilder[(k, n)] = f
+        if (k, n) not in struken:
+            bilder[(k, n)] = f
 
 alt = {}
 for nr, r in enumerate(io.open("alt.tsv", encoding="utf-8"), 1):
@@ -28,7 +36,9 @@ for nr, r in enumerate(io.open("alt.tsv", encoding="utf-8"), 1):
         fel.append(f"alt.tsv:{nr}: {len(d)} kolumner, väntade 3")
         continue
     k, n, a = d
-    if (k, n) not in bilder:
+    if (k, n) in struken:
+        fel.append(f"alt.tsv:{nr}: {k} bild {n} är struken i bilder-bort.tsv men har en alt-rad")
+    elif (k, n) not in bilder:
         fel.append(f"alt.tsv:{nr}: {k} bild {n} finns inte i bilder.tsv")
     if (k, n) in alt:
         fel.append(f"alt.tsv:{nr}: {k} bild {n} står två gånger")

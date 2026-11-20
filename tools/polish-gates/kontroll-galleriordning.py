@@ -3,7 +3,7 @@
 
 ANVÄNDNING (från rundans katalog, före bygg-bildplan.py):  python3 ../../polish-gates/kontroll-galleriordning.py
 
-Läser bilder.tsv och alt.tsv, sorterar som bygg-media.py gör och jämför med galleriets nuvarande ordning, som är
+Läser bilder.tsv, alt.tsv och bilder-bort.tsv (strukna bilder räknas inte), sorterar som bygg-media.py gör och jämför med galleriets nuvarande ordning, som är
 positionsordningen i bilder.tsv (en runda som BARA rättar alt-texter listar bilderna i den ordning de ligger i Wix).
 Skriver de sidor där ordningen skulle ändras och slutar med felkod 1 om det finns någon.
 
@@ -13,7 +13,7 @@ som inte numrerats om till 101+, flyttar bilden utan att något fel syns (T127 o
 `654d3653` hade en befintlig "Måttskiss …" på plats 4 av 7). Lösningen är att numrera om till 101+ och att skriva om
 inledningen på en befintlig alt-text som annars flyttar bilden. Läs galleriets ordning i Wix efter skrivningen.
 """
-import collections, io, re, sys
+import collections, io, os, re, sys
 
 alt = {}
 for r in io.open("alt.tsv", encoding="utf-8"):
@@ -21,11 +21,20 @@ for r in io.open("alt.tsv", encoding="utf-8"):
         k, p, a = r.rstrip("\n").split("\t")
         alt[(k, int(p))] = a
 
+# Strukna positioner (bilder-bort.tsv) är inte kvar efter skrivningen och räknas inte med.
+struken = set()
+if os.path.exists("bilder-bort.tsv"):
+    for r in io.open("bilder-bort.tsv", encoding="utf-8"):
+        if r.strip():
+            k, p = r.split("\t")[:2]
+            struken.add((k, int(p)))
+
 per = collections.defaultdict(list)
 for r in io.open("bilder.tsv", encoding="utf-8"):
     if r.strip():
         k, p, f = r.rstrip("\n").split("\t")
-        per[k].append((int(p), f))
+        if (k, int(p)) not in struken:
+            per[k].append((int(p), f))
 
 
 def ar_matt(a):
