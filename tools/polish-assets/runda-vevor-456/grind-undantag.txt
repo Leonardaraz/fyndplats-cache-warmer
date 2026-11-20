@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py sidornas mått står som tal ur specifikationsraderna och källans punkter, och sidorna skriver dem likadant, utan axelord (utom kastrullernas invändiga mått, där specifikationsraden anger diametertecknet för diametern och det andra måttet är djupet, vilket stämmer med kapaciteten), så ingen axel påstås utan stöd
