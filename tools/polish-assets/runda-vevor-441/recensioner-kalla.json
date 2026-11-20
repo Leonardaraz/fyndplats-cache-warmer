@@ -1,0 +1,73 @@
+{
+  "c5ac70e7": {
+    "productId": "c5ac70e7-274a-4805-bea0-54edcdf6a997",
+    "synliga": 0,
+    "dolda": 1,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 3,
+    "attBesluta": [
+      {
+        "id": "gen-pi5qft",
+        "betyg": 5,
+        "datum": "2026-10-22",
+        "foton": 0,
+        "text": "Refreshed my well used PW to like new at a fraction of replacement."
+      },
+      {
+        "id": "gen-648qtd",
+        "betyg": 5,
+        "datum": "2026-10-10",
+        "foton": 0,
+        "text": "Pump mounted perfectly to my pressure washer. Works great."
+      },
+      {
+        "id": "gen-y8ekjh",
+        "betyg": 5,
+        "datum": "2026-10-04",
+        "foton": 0,
+        "text": "Its a mean beast. Perfect for cleaning equipment. Recommend this 100%"
+      }
+    ]
+  },
+  "bfbb733b": {
+    "productId": "bfbb733b-3158-449c-b33c-93f2fca573ed",
+    "synliga": 0,
+    "dolda": 3,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-qtp439",
+        "betyg": 5,
+        "datum": "2025-10-09",
+        "foton": 0,
+        "text": "Bought this to replace the fuel lines on my 379 with a E Model cat. Worked good, no complaints."
+      },
+      {
+        "id": "gen-8bgkz4",
+        "betyg": 5,
+        "datum": "2025-10-09",
+        "foton": 0,
+        "text": "Used to replace the fuel lines on my E model Cat. Worked good."
+      },
+      {
+        "id": "gen-94mvpk",
+        "betyg": 5,
+        "datum": "2025-09-13",
+        "foton": 0,
+        "text": "This fit my diesel 1985 Ford. The fittings were aluminum and they fit well. The braided fuel line was higher quality than a typical auto parts store has."
+      }
+    ]
+  },
+  "de81fa98": {
+    "productId": "de81fa98-d32c-4563-ac31-1f978d047771",
+    "synliga": 0,
+    "dolda": 1,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": []
+  }
+}
