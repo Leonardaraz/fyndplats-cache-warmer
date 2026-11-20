@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py sidornas mått står som tal ur specifikationsraderna och källans punkter, och sidorna skriver dem likadant, utan axelord (utom organisatörens djup, som punkten anger som djup), så ingen axel påstås utan stöd
