@@ -15,5 +15,5 @@ PY
 while read -r kort slug; do
   [ -z "$kort" ] && continue
   echo "== $kort $slug"
-  (cd /home/user/fyndplats-cache-warmer && node tools/polish-gates/live-galleri.mjs "$slug" "$A/galleri-$kort.json") 2>&1 | tail -4
+  (cd /home/user/fyndplats-cache-warmer && node tools/polish-gates/live-galleri.mjs "$slug" "$A/galleri-$kort.json") 2>&1 | tail -40
 done < slugs.txt
