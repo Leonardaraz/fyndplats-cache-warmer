@@ -1,0 +1,96 @@
+{
+  "889f1f9d": {
+    "productId": "889f1f9d-9e32-4559-9bdf-31923aca9ffa",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "43f6fccf": {
+    "productId": "43f6fccf-d4fb-4a01-a6f7-e27e6036588f",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "a5427084": {
+    "productId": "a5427084-42a2-4043-bd72-f9ea1fb22e44",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "78f64c06": {
+    "productId": "78f64c06-b57b-4eba-8343-9083d894c311",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "9a24ef47": {
+    "productId": "9a24ef47-b5cb-4e6c-921e-24d78ef59cd0",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-ehekle",
+        "betyg": 5,
+        "datum": "2025-06-07",
+        "foton": 0,
+        "text": "Takes up little space but melts snow like a pro. The single - cylinder design is easy to clean, and the European plug fits right in. Great for my small café!"
+      },
+      {
+        "id": "gen-1szk57m",
+        "betyg": 5,
+        "datum": "2025-06-06",
+        "foton": 0,
+        "text": "This snow melter is a beast! 3L capacity handles ice fast, and the digital controls are foolproof. 220V power keeps it running steady during rush hours."
+      },
+      {
+        "id": "gen-7rr9lc",
+        "betyg": 5,
+        "datum": "2025-03-14",
+        "foton": 1,
+        "text": "arrived today. not tested yet. shipping speed ok. tracking ok. super packed in wooden case, no breakage. I am satisfied."
+      }
+    ]
+  },
+  "a805b685": {
+    "productId": "a805b685-1bf2-4fc4-9127-a21dab001f9c",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": []
+  },
+  "0a88915a": {
+    "productId": "0a88915a-6503-429a-ab76-5f209493d1f9",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "9eb764a2": {
+    "productId": "9eb764a2-70cc-41d6-baf5-8d75ea936fdc",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 4,
+    "attBesluta": []
+  }
+}
