@@ -18,7 +18,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { forberedKatalog, forberedKatalogSteg, forfilterProv, kategoriPoang, matchaKategorier, normalize, ordlistansOrd, rankaMedForslag, rankaMedInfo, tokenize, type Kategoridata, type SokKat, type Sokutfall } from "./search.ts";
-import { kategoriRad, lasKategoriRad, sokKategorier, varansKategorier } from "./sok-begrepp.ts";
+import { kategoriRad, lasKategoriRad, lasSokexempel, sokKategorier, varansKategorier } from "./sok-begrepp.ts";
 import { medForsok } from "./sok-kall.ts";
 
 type Vara = { n: string; k?: number[] };
@@ -424,7 +424,7 @@ test("de tre vägarna skickar kategorierna till samma rankning", () => {
   // Sökindexet: varans platser på varje rad, och tabellen sist.
   const rutt = las("../app/api/search-index/route.ts");
   assert.match(rutt, /\.\.\.kategorierFor\(p, kategorier\)/);
-  assert.match(rutt, /index\.push\(kategoriRad\(kategorier\.kat\)\)/);
+  assert.match(rutt, /index\.push\(kategoriRad\(kategorier\.kat, byggOrdforrad\(products\.map\(\(p\) => p\.name\)\)\.exempel\)\)/);
   // Sökrutan: tabellen lyfts av indexet och följer med till rankningen.
   const index = las("./sok-index.ts");
   assert.match(index, /lasKategoriRad\(/);
@@ -663,4 +663,30 @@ test("färger och småord föreslås aldrig som rättning, inte heller ur ordbok
   assert.equal(u.sokt, undefined);
   // Början på färgen som den står är inget fel: den skrivs färdigt utan besked.
   assert.equal(rankaMedInfo(varor, (v) => v.n, "turko", namn).sokt, "turkos");
+});
+
+test("☠️ sökläget byggde ordförrådet innan det kunde öppnas: indexet bär sökexemplen färdiga", () => {
+  // Raden fram och tillbaka, med och utan exempel. Tabellen läses som förut.
+  const kat = [{ n: "Möbler", f: -1 }];
+  assert.deepEqual(kategoriRad(kat), { kat: [["Möbler", -1]] });
+  assert.deepEqual(kategoriRad(kat, []), { kat: [["Möbler", -1]] });
+  const rad = JSON.parse(JSON.stringify(kategoriRad(kat, ["fåtölj", "soffa"])));
+  assert.deepEqual(rad, { kat: [["Möbler", -1]], ex: ["fåtölj", "soffa"] });
+  assert.deepEqual(lasKategoriRad(rad), kat);
+  assert.deepEqual(lasSokexempel(rad), ["fåtölj", "soffa"]);
+  // Ett äldre index, eller en rad som inte är vad den ska vara: inga exempel,
+  // och rutan räknar dem själv som förut.
+  assert.deepEqual(lasSokexempel({ kat: [["Möbler", -1]] }), []);
+  assert.deepEqual(lasSokexempel({ ex: ["soffa", 7] }), []);
+  assert.deepEqual(lasSokexempel({ ex: "soffa" }), []);
+  assert.deepEqual(lasSokexempel({ ex: [""] }), []);
+  assert.deepEqual(lasSokexempel({ ex: ["x".repeat(41)] }), []);
+  assert.deepEqual(lasSokexempel(null), []);
+  assert.equal(lasSokexempel({ ex: Array.from({ length: 40 }, (_, i) => `ord${i}`) }).length, 24);
+  // Servern räknar dem med samma funktion på samma namn som rutan gjorde, och
+  // rutan tar de färdiga när de finns.
+  const las = (f: string) => readFileSync(new URL(f, import.meta.url), "utf8");
+  assert.match(las("../app/api/search-index/route.ts"), /kategoriRad\(kategorier\.kat, byggOrdforrad\(products\.map\(\(p\) => p\.name\)\)\.exempel\)/);
+  assert.match(las("./sok-index.ts"), /exempel = lasSokexempel\(d\[d\.length - 1\]\);\n\s+d\.pop\(\);/);
+  assert.match(las("./sok-rankning.ts"), /const fardiga = sokExempelHamtade\(\);\n  return \(fardiga\.length > 0 \? fardiga : ordforradFor\(idx\)\.exempel\)\.slice\(0, max\);/);
 });

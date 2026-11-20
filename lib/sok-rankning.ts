@@ -13,7 +13,7 @@
 // sidan söker alltid.
 
 import { byggOrdforrad, forberedKatalogSteg, kortOrd, markeraTraffar, markeringsord, matchaKategorier, normalize, rankaMedInfo, rankByName, sokforslagINamn, visaVarorFor, type Kategoridata, type Ordforrad } from "./search";
-import { sokKategorierHamtade, type SokTraff } from "./sok-index";
+import { sokExempelHamtade, sokKategorierHamtade, type SokTraff } from "./sok-index";
 import { kopbaraForst } from "./sok-ordning";
 
 export { kortOrd, markeraTraffar, markeringsord, matchaKategorier, visaVarorFor };
@@ -109,9 +109,17 @@ export function sokforslagFor(idx: SokTraff[], skrivet: string, max: number): st
   return sokforslagINamn(ordforradFor(idx), namnFor(idx), skrivet, max);
 }
 
-/** Vad man kan söka på, för den tomma rutan: katalogens vanligaste varuord. */
+/**
+ * Vad man kan söka på, för den tomma rutan: katalogens vanligaste varuord.
+ *
+ * ☠️ INDEXET BÄR DEM FÄRDIGA (2026-11-20, app/api/search-index/route.ts). Förr
+ * byggdes hela ordförrådet här, i samma uppgift som de populära varorna
+ * ritades: den största uppgiften när sökläget öppnades. Utan färdiga exempel
+ * (ett äldre index, eller ett utan kategoritabell) räknas de som förut.
+ */
 export function sokexempelFor(idx: SokTraff[], max: number): string[] {
-  return ordforradFor(idx).exempel.slice(0, max);
+  const fardiga = sokExempelHamtade();
+  return (fardiga.length > 0 ? fardiga : ordforradFor(idx).exempel).slice(0, max);
 }
 
 /**

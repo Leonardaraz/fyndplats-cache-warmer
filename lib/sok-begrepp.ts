@@ -15,7 +15,7 @@
 //   k     varans kategorier som platser i `kat`
 // Föräldrarna räknas in av sökningen, så en vara i Barnmöbler bär inte också
 // Barn & Familj. Mätt på katalogen 2026-11-20: 1,3 platser per vara, och
-// indexet växte från 478 till 496 kB över nätet (brotli).
+// indexet växte från 536 till 558 kB över nätet (brotli, mätt på Vercel).
 //
 // LÖVMODUL utan importer, så att `node --test` kan ladda den. Listan över varor
 // som bara hör till sin underkategori skickas därför in av anroparen
@@ -77,10 +77,22 @@ export function varansKategorier(
  * Sökindexets sista rad: kategoritabellen, så tätt den går. Raden har inget
  * namn och ingen slug, så en äldre sida som hämtar indexet går förbi den.
  */
-export type KategoriRad = { kat: [string, number][] };
+export type KategoriRad = { kat: [string, number][]; ex?: string[] };
 
-export function kategoriRad(kat: readonly SokKat[]): KategoriRad {
-  return { kat: kat.map((c) => [c.n, c.f]) };
+/**
+ * `exempel` är den tomma sökrutans "Sök till exempel": katalogens vanligaste
+ * varuord, räknade på servern (se rutten). De följer med i samma rad, så att
+ * rutan inte behöver bygga hela ordförrådet innan den kan öppnas.
+ */
+export function kategoriRad(kat: readonly SokKat[], exempel?: readonly string[]): KategoriRad {
+  return { kat: kat.map((c) => [c.n, c.f]), ...(exempel && exempel.length > 0 ? { ex: [...exempel] } : {}) };
+}
+
+/** Sökexemplen ur indexets sista rad, eller en tom lista när raden inte bär några. */
+export function lasSokexempel(rad: unknown): string[] {
+  const ex = (rad as { ex?: unknown } | null)?.ex;
+  if (!Array.isArray(ex)) return [];
+  return ex.every((x) => typeof x === "string" && x.length > 0 && x.length <= 40) ? (ex as string[]).slice(0, 24) : [];
 }
 
 /** Kategoritabellen ur indexets sista rad, eller null när raden inte är en sådan. */

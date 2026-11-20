@@ -5,7 +5,7 @@
 // produktväljare (components/kontakt-produkt.tsx). Utbrutet ur searchbox.tsx
 // 2026-11-07, med skälen kvar nedan. Rankningen av förslagen: lib/sok-rankning.ts.
 
-import { lasKategoriRad, type SokKat } from "./sok-begrepp";
+import { lasKategoriRad, lasSokexempel, type SokKat } from "./sok-begrepp";
 import { tidsgransSignal } from "./tidsgrans-signal";
 
 // o = slutsåld (sätts bara på slutsålda produkter, se /api/search-index).
@@ -37,6 +37,8 @@ let inflight: Promise<SokTraff[] | null> | null = null;
 // Kategoritabellen, som står sist i indexet (app/api/search-index/route.ts).
 // Tom för ett index utan den: sökningen söker då bara i namnen.
 let kategorier: readonly SokKat[] = [];
+// Den tomma rutans sökexempel, som står i samma rad. Tom för ett index utan dem.
+let exempel: readonly string[] = [];
 
 // ETT MISSLYCKANDE FICK INTE BLI PERMANENT. Förr satte .catch() inflight till
 // ett löst löfte om [] — och eftersom `cache` bara sätts i lyckade fallet var
@@ -72,6 +74,7 @@ export function laddaSokIndex(): Promise<SokTraff[] | null> {
         // Sista raden är kategoritabellen, ingen vara: den lyfts ur.
         const tabell = Array.isArray(d) && d.length > 0 ? lasKategoriRad(d[d.length - 1]) : null;
         if (tabell) {
+          exempel = lasSokexempel(d[d.length - 1]);
           d.pop();
           kategorier = tabell;
         }
@@ -89,6 +92,11 @@ export function laddaSokIndex(): Promise<SokTraff[] | null> {
 /** Indexet om det redan är hämtat, annars null. Hämtar inget. */
 export function sokIndexHamtat(): SokTraff[] | null {
   return cache;
+}
+
+/** Sökexemplen ur det hämtade indexet. Tom tills indexet är hämtat, och för ett index utan dem. */
+export function sokExempelHamtade(): readonly string[] {
+  return exempel;
 }
 
 /** Kategoritabellen ur det hämtade indexet. Tom tills indexet är hämtat, och för ett index utan tabell. */

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCollections, getProductsFarska } from "../../../lib/products";
 import { listPris } from "../../../lib/price-range";
 import { BARA_I_UNDERKATEGORIN } from "../../../lib/bara-i-underkategorin";
+import { byggOrdforrad } from "../../../lib/search";
 import { kategoriRad, sokKategorier, varansKategorier } from "../../../lib/sok-begrepp";
 import { katalogensSokordning } from "../../../lib/sok-ordning";
 
@@ -74,7 +75,13 @@ export async function GET() {
     ...(p.inStock ? {} : { o: 1 }),
     ...kategorierFor(p, kategorier),
   }));
-  if (kategorier.kat.length > 0) index.push(kategoriRad(kategorier.kat));
+  // DEN TOMMA RUTANS SÖKEXEMPEL FÖLJER MED I SAMMA RAD (2026-11-20). Rutan
+  // visar "Sök till exempel" över de populära varorna, och orden kommer ur
+  // katalogens ordförråd. Webbläsaren byggde det innan sökläget kunde öppnas:
+  // 130–160 ms på en strypt telefon, mätt i den största uppgiften vid
+  // öppningen. Här räknas de en gång i timmen i stället, med samma funktion
+  // på samma namn, så orden är desamma. Utan dem räknar rutan själv som förut.
+  if (kategorier.kat.length > 0) index.push(kategoriRad(kategorier.kat, byggOrdforrad(products.map((p) => p.name)).exempel));
   return NextResponse.json(index, { headers: { "Cache-Control": CACHE } });
 }
 
