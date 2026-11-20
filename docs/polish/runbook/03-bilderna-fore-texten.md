@@ -51,7 +51,11 @@ grillbild med ett barn på ungefär två år och åldersgränsen tre år)*.
 ⚠️ **Text på rekvisitan är okej sedan 2026-09-30** *(Leonard, om köksskåpet `fbcf5899`: "text
 som är på produkter på det viset är okej")*. Fram till dess ströks en miljöbild när text på
 rekvisitan gick att läsa i full upplösning, till exempel "dorset cereals" på ett flingpaket i
-vitrinen. Bilder som ströks bara av det skälet får läggas tillbaka.
+vitrinen. Bilder som ströks bara av det skälet får läggas tillbaka. Ett genereringsfel i
+rekvisitan, till exempel `[Kein Text erkannt]` i en tavla, stryks bara om det är *jätte
+synligt* vid vanlig storlek *(Leonard 2026-11-20, om `fbddd5b6` bild 5, där tavlan är liten
+och texten läses först vid zoom: "är jätte synlig ta bort den annars låt den va")*. Titta på
+bilden i 700 och 420 px, inte bara i full storlek.
 
 **Redigera aldrig en bild.** Den behålls eller stryks hel. Ingen beskärning, retuschering
 eller maskning av varan *(Leonard 2026-09-27)*, utom beskärningen i undantaget nedan.
