@@ -4738,3 +4738,133 @@ måste rulla i den lilla ytan för att se dem (iPhone 12 och 13). Kategorierna
 har två kort i bredd upp till 900 px, så en iPad visar två stora kort per
 skärm medan /alla-produkter har tre från 761 px; bildernas `sizes` följer
 kolumnerna och måste ändras samtidigt.
+
+## Mobilens sökläge: varorna i ett rutnät direkt under fältet (Leonard 2026-11-20)
+
+Leonard sökte "bilar" på sin iPhone och skickade skärmbilden: med
+tangentbordet uppe rymde panelen ordförslagen, två kategorirader och rubriken
+"Varor", och inte en enda vara. "Dealproffsen visar produkter direkt när man
+söker." Panelen hängde under hela sidhuvudet (remsan, loggans rad och
+sökraden, 170 px), varje kategori tog en egen rad, och knappen "Visa alla"
+satt fäst i nederkanten.
+
+Nu tar sökningen över skärmen på mobilen medan man söker
+(`components/searchbox.tsx`, `RUTNAT`; stilen står under "MOBILENS SÖKLÄGE" i
+`app/globals.css`). `lib/sok-lage.test.ts` vaktar det.
+
+- **Bara rutan i mobilens sökrad**, den som bär `helskarm` i
+  `components/site.tsx`, och bara under 900 px, där sidhuvudet byter till
+  mobilens. Datorns lista och mobilmenyns ruta är som förut.
+- **Sidhuvudet.** Medan panelen är öppen bär `<html>` `data-sok-lage`: remsan
+  och loggans rad göms, sidan täcks av en vit yta och fältet står överst med
+  knappen Stäng bredvid. Sidan under låses (`lib/las-sidan.ts`) och får
+  `inert` (`lib/bakom-inert.ts`), så att varken fingret, tabben eller en
+  skärmläsare når den. ☠️ Attributet sätts i en `useLayoutEffect` som står
+  FÖRE den som mäter panelens höjd: annars mäts rutan där den stod i det gamla
+  sidhuvudet, och panelen ritas en bildruta på fel plats.
+- **Panelen** går kant i kant från sidhuvudet ner till tangentbordet
+  (`--sok-max` mäts mot `visualViewport`, som förut). Kategorierna står som
+  chips på samma rad som ordförslagen. Rubrikraden bär "Visa alla 147 →".
+  Varorna står tolv i taget i ett rutnät: två i bredd under 600 px, tre under
+  800 och fyra upp till 900. Fotens knapp är en vanlig knapp sist i listan.
+- **Kortet**: kvadratisk bild med tunn ram, priset i en vit bricka på bilden,
+  namnet på två rader med sökorden i fetstil, och "Slutsåld" i grått. I källan
+  står namn, pris och slutsåld i den ordningen och utan `aria-label`, så att
+  det upplästa namnet är den synliga texten; priset läggs på bilden av kortets
+  rutnät (`grid-area:1/1`). ☠️ Med en `aria-label` i annan ordning än texten
+  fällde axe alla tolv kort (`label-content-name-mismatch`).
+- **Bilden** är samma adress som produktkortens (`tightFillUrl(…, 600, 600)`
+  genom den globala laddaren), och `RUTNAT_SIZES` säger 128 px på skärmar med
+  2,5 pixlar per punkt eller fler: en iPhone hämtar då 384 px-filen (2,2
+  pixlar per punkt) i stället för 640. Den väger hälften och är samma fil som
+  kortet i listorna hämtar på en dator.
+- **Tangentbordet.** Ett drag uppåt eller nedåt i listan fäller tangentbordet
+  (fältet tappar fokus), ett drag i sidled på chipsen gör det inte. En skickad
+  sökning fäller det också. Bakåt och framåt stänger panelen.
+- **Antalet.** Rutnätet ber rankningen om tolv, listan om sju. ☠️ Datorn får
+  inte be om tolv och visa sju: rankningen klipper på relevans och sänker
+  slutsålda EFTERÅT, så en slutsåld exakt träff hade kunnat falla ur listan.
+- **Safari före 15** kan inte `aspect-ratio`: kortets bildruta står i
+  reservblocket i `app/globals.css` (`lib/reservhojd.test.ts`).
+
+Mätt i Chromium mot det lokala bygget (393 × 852, tre pixlar per punkt, med
+`visualViewport` bytt mot en som krymper till 395 px som när tangentbordet är
+uppe): "bilar" visar chipsen, rubriken och två hela kort med bild, pris och
+två rader namn; utan tangentbord sex hela kort. Fältet står 10 px från
+toppen, panelen slutar vid tangentbordet, sidan under rullar inte och står
+kvar på samma plats efter Stäng (provat överst och 1 400 px ner). 320, 430,
+600 och 820 px: två, två, tre och fyra kort i bredd, inget sticker ut. Utan
+`aspect-ratio`: alla tolv bildrutor 174 × 174. axe: inga fel i sökläget.
+Datorn: sex rader som förut. 62 kontroller i sökläget, nio till (utan
+`aspect-ratio`, axe i tre lägen, piltangenterna, Esc och kakfrågan) och de
+äldre 61, alla gröna.
+
+☠️ **Inte provat på en riktig telefon före mergen.** Tangentbordet finns inte i
+Chromium, och BrowserStack visar det inte heller. Det som bara en riktig
+iPhone visar: att `visualViewport` krymper när tangentbordet kommer (det gör
+den i den gamla panelen, som Leonards skärmbild visade), och att sidan inte
+flyttar sig när fältet hoppar upp till toppen i samma ögonblick som det får
+fokus.
+
+**Sett men inte ändrat:** sökindexet väger 531 kB över nätet (7 830 varor,
+2,1 MB JSON). På ett svagt nät dröjer första förslagen 2–4 s efter att fingret
+landat i fältet; under tiden visar sökläget kortens platser. Ett svar från
+servern för de första bokstäverna medan indexet hämtas vore nästa steg.
+
+## Produktsidans huvudbild: tre fall där den syntes sent (Leonard 2026-11-20)
+
+"Upplever att huvudbilden laddas och syns långsamt ibland." Mätt mot www på
+en strypt mobil (390 × 844, 4 Mbit/s, 100 ms, processor ÷4):
+
+| Väg till sidan | Huvudbilden syns |
+|---|---|
+| Landning på förvalet | 0,8–1,7 s (bilden är förladdad i sidans huvud) |
+| Tryck på ett produktkort | 0–0,45 s EFTER sidbytet: bilden började hämtas först då |
+| Landning med `?variant=` på ett annat val än förvalet | 2,4–2,9 s |
+
+Det tredje fallet är varje klick från Google Shopping (flödet länkar varje
+färg med sin variant) och varje kort i en färgfiltrerad lista (`?farg=`).
+Sidan är ISR-cachad och ritas med förvalet; sidans tidiga skript dolde
+bilden, priset och väljaren tills sidan hydrerat, och valets bild började
+hämtas först då, 1,8–2,3 s in.
+
+Tre ändringar, alla vaktade av `lib/sok-lage.test.ts` och
+`lib/pdp-val-bild.test.ts`:
+
+- **Huvudbilden hämtas i trycket** (`lib/hjaltebild-varm.ts`). Produktkortet
+  (`components/prefetch-link.tsx`) och sökförslagen börjar hämta produktsidans
+  huvudbild när man trycker: musen vid knapptrycket, fingret först vid
+  klicket, för en beröring kan vara början på en rullning. Bilden begärs med
+  galleriets egen laddare (`lib/hjalte-loader.ts`), `HERO_SIZES` och samma
+  mått, genom `getImageProps`, så att webbläsaren väljer samma fil som
+  galleriet sedan begär. ☠️ Listsidorna skickar bilden som en naken nyckel
+  utan värddel: adressen byggs om från nyckeln, annars gjorde förhämtningen
+  ingenting just på korten i listorna. Mätt lokalt: bilden begärs 113–151 ms
+  efter klicket, en gång, och är klar när sidan byts.
+- **Kortets bild visas medan den stora hämtas.** Kortet man tryckte på har
+  samma foto i webbläsarens minne. Galleriet lägger det som bakgrund i sitt
+  första lager (`kortbildFor`), så bildrutan visar varan direkt och blir
+  skarp när huvudbilden kommit. Bara samma fil-id, bara en bild som är
+  hämtad och minst 300 px bred, och bara 15 s efter trycket. På servern och
+  vid en vanlig landning är allt som förut.
+- **Rätt bild direkt när länken pekar på ett annat val** (`lib/pdp-val-bild.ts`).
+  Sidans tidiga skript hämtar valets bild medan sidan läses och visar den som
+  bakgrund i bildrutan (`#pdp-val-bild`) tills väljaren tagit över. Galleriet
+  tar bort den när dess eget lager visas, inte vid monteringen: då står
+  förvalets bild fortfarande som visad och rutan hade blinkat tom. ☠️ Reglerna
+  för vilken bild ett val visar är väljarens egna (`valjId` och `valjFarg` i
+  `components/productview.tsx`), och provet läser väljarens rader: ändras
+  väljaren ska modulen ändras med den. Ett val utan egen bild får ingen bild
+  i förväg; då står rutan dold tills väljaren valt, som förut. Mätt lokalt
+  med samma strypning: rätt bild syns i rutan efter 1,0–1,3 s, galleriets
+  lager tar över vid 2,0 s med samma bild, och rutan är aldrig tom däremellan.
+
+Dessutom öppnas anslutningen till Wix bildserver utan `crossOrigin`
+(`app/layout.tsx`). Bilder hämtas utan CORS, och en anslutning som öppnats
+med `crossOrigin="anonymous"` ligger i en annan pott som bilderna inte får
+använda.
+
+**Produktsidans utseende** gicks igenom på mobil och dator samtidigt (390 och
+1 440 px, tre varor): inget sticker ut i sidled, köpdelens block har samma
+vänsterkant, och de enda träffytorna under 44 px är textlänkar i löpande
+text. Inget ändrades där utöver köpraden och ordvalet ovan.
