@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { after } from "next/server";
 import { getProducts, katalogenLaddad, MAIN_ORDER } from "../../lib/products";
-import { forListClient } from "../../lib/list-payload";
+import { forListClient, forSokClient } from "../../lib/list-payload";
 import { SokVy } from "../../components/sok-vy";
 import { SokKall } from "../../components/sok-kall";
 import { populartNu } from "../../lib/sok-tom";
@@ -11,6 +11,7 @@ import { attachRatings } from "../../lib/review-aggregates";
 import { kortOrd, matchaKategorier, normalize, rankaMedForslag } from "../../lib/search";
 import { plattaKategorier, type SokKategori } from "../../lib/sok-kategorier";
 import { harPris, tolkaPris } from "../../lib/sok-pris";
+import { katalogensSokordning, kopbaraForst } from "../../lib/sok-ordning";
 
 export const metadata: Metadata = {
   title: "Sök",
@@ -55,7 +56,9 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
     return <SokKall kategorier={kategorier} popularaKategorier={popularaKategorier} q={q} />;
   }
 
-  const all = term ? await getProducts() : [];
+  // Katalogen i sökningens ordning, nyast först: lika bra träffar står då i
+  // samma ordning här som i sökrutan och på den kalla vägen (lib/sok-ordning.ts).
+  const all = term ? katalogensSokordning(await getProducts()) : [];
   // Tokeniserad, stam-medveten matchning (lib/search) — samma som autocomplete:
   // NAMN-träffar först, rankade på relevans-score ("knivset" → knivhållare,
   // "halsband" → kedjehalsband). Beskrivning/specs-matchning används BARA som
@@ -69,7 +72,8 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
   // just sett ska varan hittas, med "Slutsåld"-badge + bevakningsformulär på
   // produktsidan. Att svara "inga resultat" på en vara som finns vore sämre. Men
   // de köpbara går alltid först (stabil partition, relevansordningen behålls inom
-  // varje grupp) så det man faktiskt kan handla möter ögat överst.
+  // varje grupp) så det man faktiskt kan handla möter ögat överst. Sökrutan och
+  // den kalla vägen använder samma regel (kopbaraForst i lib/sok-ordning.ts).
   let results: typeof all = [];
   let strukna: string[] = [];
   let utan: string[] | undefined;
@@ -96,7 +100,7 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
         (p) => normalize(p.blurb || "").includes(phrase) || normalize(p.specs || "").includes(phrase)
       );
     }
-    results = await attachRatings([...results.filter((p) => p.inStock), ...results.filter((p) => !p.inStock)]);
+    results = await attachRatings(kopbaraForst(results, (p) => !p.inStock));
   }
 
   // UTAN TRÄFF: samma vägar vidare som 404-sidan, och fyra varor som säljer
@@ -104,7 +108,7 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
   const tom = Boolean(term) && results.length === 0;
   const populart = tom ? await attachRatings(populartNu(all, 4)) : [];
 
-  // forListClient, inte results rakt av. Product är strukturellt
+  // forSokClient, inte results rakt av. Product är strukturellt
   // tilldelningsbar till ListProduct, så det HAR kompilerat — men då
   // serialiserades hela Product-objektet in i klient-nyttolasten: gallery,
   // imageAlts, blurb, specs, variants, descriptionHtml. Mätt på skarp sajt
@@ -113,7 +117,7 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
     <SokVy
       q={q}
       data={{
-        traffar: forListClient(results), strukna, utan, hela, kategorier, pris, visar, liknande,
+        traffar: forSokClient(results), strukna, utan, hela, kategorier, pris, visar, liknande,
         populart: forListClient(populart), popularaKategorier,
       }}
     />

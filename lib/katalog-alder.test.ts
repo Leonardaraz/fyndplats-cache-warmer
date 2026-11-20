@@ -60,7 +60,7 @@ describe("katalogen i minnet förnyas för flödena", () => {
 
   it("sitemapen, sökindexet och timjobbet börjar med en färsk katalog", () => {
     assert.match(las("lib", "site-urls.ts"), /export async function getSiteUrls\(\)[^{]*\{[\s\S]{0,700}await getProductsFarska\(\);\s*const \[prodEntries/);
-    assert.match(las("app", "api", "search-index", "route.ts"), /const products = await getProductsFarska\(\);/);
+    assert.match(las("app", "api", "search-index", "route.ts"), /const products = katalogensSokordning\(await getProductsFarska\(\)\);/);
     assert.match(las("app", "api", "cron", "warm-and-ping", "route.ts"), /await getProductsFarska\(\);\s*const entries = await getProductSitemapEntries\(\);/);
   });
 

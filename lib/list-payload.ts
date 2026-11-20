@@ -77,6 +77,31 @@ export function slugarMedBild(list: readonly Product[], dayMs = currentDayMs()):
   return ut;
 }
 
+/** Hur många av söksidans träffar som bär bild direkt: tio omgångar "Visa fler". */
+export const SOK_MED_BILD = 240;
+
+/**
+ * Söksidans träffar till webbläsaren (app/sok/page.tsx).
+ *
+ * ☠️ TVÅ SAKER SKILJER SÖKSIDAN FRÅN LISTSIDORNA (2026-11-20):
+ *
+ *  1. DE SLUTSÅLDA BÄR ALLTID SIN BILD. Bildkartan (/api/kort-bilder) har bara
+ *     det som går att köpa, och söksidan visar också det slutsålda, sist. En
+ *     slutsåld träff bortom de första 48 fick därför aldrig någon bild: mätt
+ *     på www samma dag stod 9 av 16 slutsålda för "bil", 6 av 20 för "soffa"
+ *     och 68 av 80 för "bord" kvar med en tom fotoruta.
+ *  2. DE FÖRSTA 240 TRÄFFARNA BÄR SIN BILD. Kartan väger 406 kB över nätet, och
+ *     kunden väntade på den innan tredje omgången kort fick sina foton. En
+ *     sökning har sällan fler än ett par hundra träffar ("bil" 204, "cykel"
+ *     178, "soffa" 140), och bilderna för dem väger några kB i sidan. Bara
+ *     det som ligger längre ner än så hämtas ur kartan.
+ */
+export function forSokClient(list: Product[], dayMs?: number): ListProduct[] {
+  const medBild = slugarMedBild(list, dayMs);
+  list.forEach((p, i) => { if (i < SOK_MED_BILD || !p.inStock) medBild.add(p.slug); });
+  return forClient(list, medBild);
+}
+
 /** forClient, men med bilder bara för de produkter som kan stå i vyn direkt.
  *  `specNycklar` = kategorins måttfilter (lib/spec-config.ts); utan dem
  *  följer inga mått med. */

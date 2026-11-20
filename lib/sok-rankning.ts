@@ -14,6 +14,7 @@
 
 import { byggOrdforrad, kortOrd, markeraTraffar, markeringsord, matchaKategorier, normalize, rankaMedInfo, rankByName, sokforslagINamn, visaVarorFor, type Ordforrad } from "./search";
 import type { SokTraff } from "./sok-index";
+import { kopbaraForst } from "./sok-ordning";
 
 export { kortOrd, markeraTraffar, markeringsord, matchaKategorier, visaVarorFor };
 
@@ -47,10 +48,18 @@ export function rankaForslag(idx: SokTraff[], term: string, antal: number): SokT
 }
 
 /**
- * Som rankaForslag, men säger också hur många varor som matchar, så att
- * knappen kan säga "Visa alla 89 resultat". `behall` gallrar träffarna FÖRE
- * klippet (priset i sökningen, lib/sok-pris.ts): annars kunde sju dyra varor
- * fylla listan fast det fanns billiga längre ner.
+ * Sökrutans förslag: resultatsidans första `antal` varor, och hur många som
+ * matchar, så att knappen kan säga "Visa alla 89 resultat".
+ *
+ * ☠️ SAMMA ORDNING SOM RESULTATSIDAN (2026-11-20, lib/sok-ordning.ts). Det
+ * köpbara läggs först bland ALLA träffar och sedan klipps listan, precis som
+ * sidan gör. Förr klipptes de mest relevanta först och de slutsålda sänktes
+ * bland dem (som i rankaForslag ovan), och då visade rutan varor som sidan
+ * hade längst ner: "bil" skilde sig från plats 10 på www. En slutsåld vara
+ * syns här när de köpbara träffarna är färre än `antal`.
+ *
+ * `behall` gallrar träffarna FÖRE klippet (priset i sökningen, lib/sok-pris.ts):
+ * annars kunde sju dyra varor fylla listan fast det fanns billiga längre ner.
  *
  * `rattat` är sökningen med stavningen rättad, när träffarna gäller den
  * ("ellamin" → "elkamin", lib/search.ts): rutan säger då vilket ord den visar.
@@ -60,9 +69,9 @@ export function rankaForslagMedAntal(
   idx: SokTraff[], term: string, antal: number, behall?: (h: SokTraff) => boolean,
 ): { traffar: SokTraff[]; totalt: number; rattat?: string; liknande?: true } {
   const utfall = rankaMedInfo(idx, (h) => h.n, term, namnFor(idx));
-  const kvar = behall ? utfall.traffar.filter(behall) : utfall.traffar;
+  const kvar = kopbaraForst(behall ? utfall.traffar.filter(behall) : utfall.traffar, (h) => h.o === 1);
   return {
-    traffar: kvar.slice(0, antal).sort((a, b) => (a.o ? 1 : 0) - (b.o ? 1 : 0)),
+    traffar: kvar.slice(0, antal),
     totalt: kvar.length,
     ...(utfall.rattat && kvar.length > 0 ? { rattat: utfall.rattat } : {}),
     ...(utfall.liknande && kvar.length > 0 ? { liknande: true as const } : {}),

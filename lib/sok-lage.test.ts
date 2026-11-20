@@ -75,10 +75,26 @@ describe("sökläget tar över skärmen och släpper den igen", () => {
     assert.ok(lage > 0 && matning > lage, "effekten som sätter läget ska stå före den som mäter");
     assert.match(ruta, /useLayoutEffect\(\(\) => \{\s+const vv = window\.visualViewport;/);
     assert.match(ruta, /\}, \[visas, sokLage\]\);/);
-    // Sökläget börjar vid sidhuvudets underkant och går ända ner.
-    assert.match(ruta, /const topp = ruta\.bottom \+ \(sokLage \? 12 : 8\);/);
-    assert.match(ruta, /vv\.height \+ vv\.offsetTop - topp - \(sokLage \? 0 : 8\)/);
-    assert.match(ruta, /if \(sokLage\) wrap\.style\.setProperty\("--sok-kant"/);
+    // Sökläget börjar vid sidhuvudets underkant (sökradens 12 px) och går ända ner.
+    assert.match(ruta, /if \(sokLage\) \{[\s\S]{0,700}wrap\.style\.setProperty\("--sok-topp", `\$\{Math\.max\(0, Math\.round\(ruta\.bottom \+ 12\)\)\}px`\);\s+wrap\.style\.setProperty\("--sok-kant", `\$\{Math\.max\(0, Math\.round\(ruta\.left\)\)\}px`\);\s+return;/);
+    // Datorns lista hänger 8 px under rutan och slutar 8 px över tangentbordet, som förut.
+    assert.match(ruta, /if \(vv\) wrap\.style\.setProperty\("--sok-max", `\$\{Math\.max\(160, Math\.round\(vv\.height \+ vv\.offsetTop - ruta\.bottom - 16\)\)\}px`\);/);
+  });
+
+  it("☠️ sökläget följer inte tangentbordet: höjden räknas aldrig ur visualViewport", () => {
+    // Leonard 2026-11-20: "När man sökt och klickar på bocken måste bilder
+    // visas direkt inte ett tomt fält i några 100 ms". Panelen slutade vid
+    // tangentbordet, och iPhone säger till först när det har glidit ner.
+    const lage = ruta.slice(ruta.indexOf("if (sokLage) {", ruta.indexOf("const vv = window.visualViewport;")), ruta.indexOf("// Listan hänger 8 px under rutan"));
+    assert.ok(lage.length > 100);
+    assert.doesNotMatch(lage.replace(/\/\/[^\n]*/g, ""), /vv\.|--sok-max/);
+    // Utan visualViewport (Safari före 13) fungerar sökläget ändå.
+    assert.match(ruta, /if \(!wrap \|\| !visas\) return;/);
+    assert.match(ruta, /vv\?\.addEventListener\("resize", satt\);/);
+    // Skärmens höjd för webbläsare utan dvh mäts inte medan rutan har fokus:
+    // då kan tangentbordet vara uppe. En vridning ändrar bredden och mäts alltid.
+    assert.match(ruta, /const hojd = \(\) => \{ if \(sokLage\) wrap\.style\.setProperty\("--sok-vh", `\$\{window\.innerHeight\}px`\); \};/);
+    assert.match(ruta, /if \(document\.activeElement !== inputRef\.current \|\| window\.innerWidth !== bredd\) hojd\(\);\s+bredd = window\.innerWidth;\s+satt\(\);/);
   });
 
   it("sidhuvudet ligger över sidan, kakfrågan och köpraden, men under bildvisaren och sidbytets rand", () => {
@@ -121,16 +137,16 @@ describe("varorna står i ett rutnät med stora bilder", () => {
     assert.match(css, /@media\(min-width:800px\) and \(max-width:900px\)\{\s*\.hsearch-mobile \.sugg \[role="listbox"\],\.hsearch-mobile \.sugg-skelett\{grid-template-columns:repeat\(4,minmax\(0,1fr\)\)\}/);
   });
 
-  it("☠️ datorns lista klipper fortfarande på relevans vid sju, före slutsålda sänks", () => {
-    // Rankningen klipper på `antal` och sänker slutsålda efteråt (lib/sok-rankning.ts).
-    // Bad datorn om tolv och visade sju kunde en slutsåld exakt träff falla ur listan.
+  it("datorns lista ber om sju och sökläget om tolv: båda är början på resultatsidans lista", () => {
+    // Det köpbara läggs först bland alla träffar och sedan klipps listan
+    // (lib/sok-ordning.ts), så de sju är de tolvs första sju.
     assert.match(ruta, /const antal = rutnat \? RUTNAT : SUGGESTION_COUNT;/);
     assert.doesNotMatch(ruta, /rankaForslagMedAntal\([^)]*RUTNAT/);
   });
 
   it("kortet: bild, och sedan namn, pris och slutsåld i den ordning de läses upp", () => {
     assert.match(ruta, /className=\{`sugg-kort\$\{i === active \? " active" : ""\}`\}/);
-    assert.match(ruta, /<span className="sugg-kort-bild">\s+\{h\.i && <Image src=\{tightFillUrl\(h\.i, 600, 600\)\} alt="" fill sizes=\{RUTNAT_SIZES\} \/>\}\s+<\/span>\s+<span className="sugg-kort-namn">\{highlight\(h\.n\)\}<\/span>\s+\{h\.p && <span className="sugg-kort-pris">\{h\.p\}<\/span>\}\s+\{h\.o && <span className="sugg-kort-slut">Slutsåld<\/span>\}/);
+    assert.match(ruta, /<span className="sugg-kort-bild">\s+\{h\.i && <Image src=\{tightFillUrl\(h\.i, 600, 600\)\} alt="" fill sizes=\{RUTNAT_SIZES\} loading=\{hi < BILDER_DIREKT \|\| allaBilder \? "eager" : "lazy"\} \/>\}\s+<\/span>\s+<span className="sugg-kort-namn">\{highlight\(h\.n\)\}<\/span>\s+\{h\.p && <span className="sugg-kort-pris">\{h\.p\}<\/span>\}\s+\{h\.o && <span className="sugg-kort-slut">Slutsåld<\/span>\}/);
     assert.match(css, /\.sugg-kort-bild\{position:relative;display:block;aspect-ratio:1;/);
   });
 
@@ -208,9 +224,42 @@ describe("sökläget: tangentbordet och fingret", () => {
     assert.match(ruta, /panelRef\.current\?\.scrollTo\(0, 0\);/);
   });
 
-  it("panelen går kant i kant från sidhuvudet ner till tangentbordet", () => {
-    assert.match(css, /\.hsearch-mobile \.sugg\{top:calc\(100% \+ 12px\);left:calc\(-1 \* var\(--sok-kant,16px\)\);right:calc\(-1 \* var\(--sok-kant,16px\)\);height:var\(--sok-max,calc\(100dvh - 70px\)\);max-height:none;/);
+  it("☠️ panelen går kant i kant från sidhuvudet ner till skärmens kant, också bakom tangentbordet", () => {
+    // dvh ändras inte av tangentbordet. Raden före är för Safari före 15.4.
+    assert.match(css, /\.hsearch-mobile \.sugg\{top:calc\(100% \+ 12px\);left:calc\(-1 \* var\(--sok-kant,16px\)\);right:calc\(-1 \* var\(--sok-kant,16px\)\);height:calc\(var\(--sok-vh,100vh\) - var\(--sok-topp,70px\)\);height:calc\(100dvh - var\(--sok-topp,70px\)\);max-height:none;/);
+    const regel = /\.hsearch-mobile \.sugg\{[^}]*\}/.exec(css)?.[0] ?? "";
+    assert.doesNotMatch(regel, /--sok-max/, "höjden får inte hänga på tangentbordets mått");
     assert.match(css, /html\[data-sok-lage\] \.hsearch-mobile \.container\{padding:0 16px\}/);
+  });
+
+  it("☠️ kortens bilder väntar inte på att raden syns: sex direkt, resten när listan stått still", () => {
+    assert.match(ruta, /const BILDER_DIREKT = 6;/);
+    assert.match(ruta, /const ALLA_BILDER_EFTER_MS = 250;/);
+    assert.match(ruta, /const iRutnatet = isPopular \? popular : hits;/);
+    assert.match(ruta, /if \(!sokLage \|\| iRutnatet\.length <= BILDER_DIREKT\) return;/);
+    assert.match(ruta, /const t = window\.setTimeout\(\(\) => setAllaBilderFor\(iRutnatet\), ALLA_BILDER_EFTER_MS\);\s+return \(\) => window\.clearTimeout\(t\);/);
+    // En ny lista börjar om utan att något nollställs: jämförelsen är på listan själv.
+    assert.match(ruta, /const allaBilder = allaBilderFor === iRutnatet;/);
+    // Den som sparar data hämtar bilderna när de syns, som förut.
+    assert.match(ruta, /if \(prefersDataSaving\(\(navigator as Navigator & \{ connection\?: \{ saveData\?: boolean; effectiveType\?: string \} \}\)\.connection\)\) return;/);
+  });
+});
+
+describe("☠️ samma sökning igen på resultatsidan hämtar ingen ny sida", () => {
+  // Mätt på www 2026-11-20 (audit/sok-samma.cjs): /sok?q=cykel, två "Visa
+  // fler", rullat 7 236 px ner, sökläget öppnat och "Visa alla" tryckt. Sidan
+  // hämtades igen, listan började om med 24 kort och kunden stod vid sidfoten
+  // ("kvar till botten 0"). Leonard: "ibland kastas man längst ner på sidan".
+  it("står träffarna för sökningen redan framme stängs sökläget och sidan visas från början", () => {
+    assert.match(ruta, /const resultatsidanVisar = \(t: string\) =>\s+window\.location\.pathname === "\/sok"\s+&& \(new URLSearchParams\(window\.location\.search\)\.get\("q"\) \?\? ""\)\.trim\(\) === t\s+&& document\.querySelector\("main \.shoplista"\) !== null;/);
+    assert.match(ruta, /if \(resultatsidanVisar\(t\)\) \{\s+setOpen\(false\);\s+inputRef\.current\?\.blur\(\);\s+onNavigate\?\.\(\);\s+rullaDirekt\(0\);\s+return;\s+\}\s+setSkickad\(true\);/);
+    // Sökningen sparas bland de senaste också då.
+    const go = ruta.slice(ruta.indexOf("const goSearch = "), ruta.indexOf("startaSok(() => router.push(`/sok?q="));
+    assert.ok(go.indexOf("setTidigare(kommIhagSokning(t));") < go.indexOf("if (resultatsidanVisar(t))"));
+  });
+
+  it("resultatlistan bär klassen som sökrutan letar efter", () => {
+    assert.match(las("components", "shopbrowser.tsx"), /<div className=\{`prodgrid listgrid shoplista\$\{vantar \? " is-vantar" : ""\}`\}/);
   });
 });
 

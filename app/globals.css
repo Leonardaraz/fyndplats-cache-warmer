@@ -323,7 +323,8 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
      1. Sidhuvudet: remsan och loggans rad göms och sidan täcks, medan
         html[data-sok-lage] är satt. Fältet står då överst på skärmen.
      2. Panelen i mobilens sökrad (.hsearch-mobile .sugg): kant i kant, från
-        sidhuvudet ner till tangentbordet (--sok-max mäts i sökrutan).
+        sidhuvudet ner till skärmens nederkant, också bakom tangentbordet
+        (--sok-topp mäts i sökrutan).
    Kortet och knapparna får sina regler här utanför mediafrågan: de ritas bara i
    mobilens sökrad, och den finns bara under 900 px. */
 .search-stang{flex:none;margin:0 -6px 0 4px;padding:0 6px 0 10px;min-height:44px;border:0;background:none;font-family:inherit;font-size:var(--text-sm);font-weight:700;color:var(--ink);cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -360,16 +361,23 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 @media(max-width:900px){
   html[data-sok-lage] .promo,html[data-sok-lage] .sidhuvud .hrow{display:none}
   html[data-sok-lage] .sidhuvud{z-index:250;background:#fff;-webkit-backdrop-filter:none;backdrop-filter:none}
-  /* Sidan under täcks: när tangentbordet fälls ska den inte blänka fram under
-     panelen innan panelen hunnit växa. Under bildvisaren (300) och sidbytets
-     rand (2000), över kakfrågan (200) och köpraden (60). */
+  /* Sidan under täcks, så att den inte syns bredvid eller under panelen. Under
+     bildvisaren (300) och sidbytets rand (2000), över kakfrågan (200) och
+     köpraden (60). */
   html[data-sok-lage] body::before{content:"";position:fixed;inset:0;z-index:249;background:#fff}
   html[data-sok-lage] .hsearch-mobile{padding-top:10px}
   html[data-sok-lage] .hsearch-mobile .container{padding:0 16px}
   /* Fältet krymper så att Stäng ryms: ett textfält har annars en minsta bredd
      på runt 20 tecken, och på en 320 px bred telefon sköt det knappen ur bild. */
   .hsearch-mobile .search,.hsearch-mobile .search input{min-width:0}
-  .hsearch-mobile .sugg{top:calc(100% + 12px);left:calc(-1 * var(--sok-kant,16px));right:calc(-1 * var(--sok-kant,16px));height:var(--sok-max,calc(100dvh - 70px));max-height:none;padding:6px 0 calc(28px + env(safe-area-inset-bottom));border:0;border-radius:0;box-shadow:none;animation:none}
+  /* ☠️ HÖJDEN FÖLJER INTE TANGENTBORDET (Leonard 2026-11-20: "ett tomt fält i
+     några 100 ms"). Förr slutade panelen vid tangentbordet (--sok-max), och
+     höjden räknades om först när iPhone sa att tangentbordet var borta. Under
+     tiden var ytan under panelen vit. Nu går panelen ända ner till skärmens
+     kant: tangentbordet ligger över de nedre raderna, och när det fälls står
+     de redan där. dvh ändras inte av tangentbordet. Raden före är för Safari
+     före 15.4, som saknar dvh: --sok-vh är skärmens höjd, mätt i sökrutan. */
+  .hsearch-mobile .sugg{top:calc(100% + 12px);left:calc(-1 * var(--sok-kant,16px));right:calc(-1 * var(--sok-kant,16px));height:calc(var(--sok-vh,100vh) - var(--sok-topp,70px));height:calc(100dvh - var(--sok-topp,70px));max-height:none;padding:6px 0 calc(28px + env(safe-area-inset-bottom));border:0;border-radius:0;box-shadow:none;animation:none}
   .hsearch-mobile .sugg-head{padding:10px 16px 6px}
   .hsearch-mobile .sugg-senaste{padding:2px 16px 10px}
   .hsearch-mobile .sugg-chiprad{padding:6px 16px 8px;scroll-padding-left:16px}

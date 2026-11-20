@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getProductsFarska } from "../../../lib/products";
 import { listPris } from "../../../lib/price-range";
+import { katalogensSokordning } from "../../../lib/sok-ordning";
 
 // Lightweight product index for the search autocomplete: name / slug / image / price.
 // Cached and revalidated hourly so the dropdown filters instantly client-side after a
@@ -33,7 +34,11 @@ export async function GET() {
   // Högst en timme gammal katalog: indexet byggs om i bakgrunden, och utan
   // förnyelsen fick sökrutan aldrig se en vara som publicerats efter att
   // instansen startade (lib/katalog-alder.ts).
-  const products = await getProductsFarska();
+  //
+  // ORDNINGEN ÄR EN DEL AV SVARET: lika bra träffar står i indexets ordning, i
+  // sökrutan och på söksidans kalla väg. Nyast först, uttalat, och samma som
+  // söksidan rankar i (lib/sok-ordning.ts).
+  const products = katalogensSokordning(await getProductsFarska());
   const index = products.map((p) => ({
     n: p.name,
     s: p.slug,
