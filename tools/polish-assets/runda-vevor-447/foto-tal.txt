@@ -1,0 +1,4 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+1779500b 2 bilderna visar två guider med en dyna var, och måttbilden anger 2 st
+d74fc26a 5 bilderna visar fem knivar och en knivhållare, och måttbilden anger 1 × för var och en av de fem knivarna
