@@ -1,0 +1,7 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+af608afa 4 fyra fack per våning räknade på bild 1 och 5
+d4c7cfe3 4 fyra staglinor räknade på bild 1
+d4c7cfe3 8 åtta tältpinnar räknade på bild 1
+28519d26 2 två hjul i ena änden räknade på bild 4
+28519d26 4 fyra pelare räknade på bild 1
