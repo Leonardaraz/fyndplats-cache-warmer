@@ -29,7 +29,7 @@ type Swc = {
 
 // Det sökrutan använder (lib/sok-rankning.ts). Resten skakas bort ur paketet,
 // och det är därför de heta funktionerna anropas på ett enda ställe.
-const SOKRUTANS = ["byggOrdforrad", "forberedKatalogSteg", "kortOrd", "markeraTraffar", "markeringsord", "matchaKategorier", "normalize", "rankaMedInfo", "rankByName", "sokforslagINamn", "visaVarorFor"];
+const SOKRUTANS = ["byggOrdforrad", "forberedKatalogSteg", "kortOrd", "markeraTraffar", "markeringsord", "matchaKategorier", "normalize", "rankaMedInfo", "rankByName", "sokforslagINamn", "varanHeterSa", "visaVarorFor"];
 
 async function minifierad(): Promise<string> {
   const swc = createRequire(import.meta.url)("next/dist/build/swc") as Swc;
@@ -50,11 +50,14 @@ async function minifierad(): Promise<string> {
 test("☠️ den byggda sökmotorn skapar inga funktioner i slingan över namnen", async () => {
   const kod = await minifierad();
   // Slingan över katalogens namn: förfiltret och jämförelsen är anrop.
-  const slinga = /for\(let (\w+)=0;\1<\w+\.length;\1\+\+\)\{if\(!(\w+)\(\w+\.nagon,[^)]*\)\)continue;let \w+=([\w$]+)\(/.exec(kod);
+  // Minifieraren döper om variablerna, och "$" är ett av namnen den delar ut:
+  // mönstret godtar det överallt där ett namn står (2026-11-21, då listan med
+  // sökord råkade få just det namnet och provet inte hittade slingan).
+  const slinga = /for\(let ([\w$]+)=0;\1<[\w$]+\.length;\1\+\+\)\{if\(!([\w$]+)\([\w$]+\.nagon,[^)]*\)\)continue;let [\w$]+=([\w$]+)\(/.exec(kod);
   assert.ok(slinga, "hittar inte slingan över namnen i den minifierade koden");
   // Inget funktionsuttryck som anropas direkt efter förfiltrets villkor.
   assert.doesNotMatch(kod, /if\(!function\(/);
-  assert.doesNotMatch(kod, /continue;let \w+=function\(/);
+  assert.doesNotMatch(kod, /continue;let [\w$]+=function\(/);
   // Jämförelsen per namn läser inte ur `arguments` (inga förvalda värden).
   const jamforelse = slinga[3].replace(/\$/g, "\\$");
   const kropp = new RegExp(`function ${jamforelse}\\(([^)]*)\\)\\{(.{0,400})`).exec(kod);
@@ -62,10 +65,10 @@ test("☠️ den byggda sökmotorn skapar inga funktioner i slingan över namnen
   assert.equal(kropp[1].split(",").length, 10, "jämförelsen ska ta alla tio parametrarna som vanliga parametrar");
   assert.doesNotMatch(kropp[2], /arguments/);
   // Ordjämförelsen (tokenQuality) och stavfelstabellen anropas, de skapas inte per sökord.
-  assert.doesNotMatch(kod, /\?function\(\w+,\w+,\w+,\w+\)\{let \w+=function\(/);
+  assert.doesNotMatch(kod, /\?function\([\w$]+,[\w$]+,[\w$]+,[\w$]+\)\{let [\w$]+=function\(/);
   // Källan bär markeringarna (det är de som håller bygget ifrån inbakningen).
   const kalla = readFileSync(new URL("./search.ts", import.meta.url), "utf8");
-  for (const anrop of ["kanTraffa(pm.nagon", "matchPrepared(namn[i]", "tokenQuality(u, nameNorm", "felINamn(lista, ni", "felPerOrd(lista, s", "kantFor(nameNorm, u", "iBarare(text, s, i)", "katSlag(u, uVikt", "poangFor(", "kategoriformFor(k.name)"]) {
+  for (const anrop of ["kanTraffa(pm.nagon", "matchPrepared(namn[i]", "tokenQuality(u, nameNorm", "felINamn(lista, ni", "felPerOrd(lista, s", "kantFor(nameNorm, u", "iBarare(text, s, i)", "katSlag(u, uVikt", "poangFor(", "kategoriformFor(k.name)", "synonymStar(nameNorm, f", "stamStar(nameNorm, s"]) {
     assert.ok(kalla.includes(`/*#__NOINLINE__*/ ${anrop}`), `anropet ${anrop} saknar /*#__NOINLINE__*/`);
   }
   assert.doesNotMatch(kalla, /^function tokenQuality\([^)]*=[^)]*\)/m);

@@ -26,12 +26,16 @@ export const revalidate = 3600;
 // Det spelar roll för känslan i sökrutan: indexet hämtas när fältet får fokus,
 // så den där sekunden är precis vad besökaren väntar på innan förslagen syns.
 //
-// max-age (webbläsaren) är kortare än s-maxage (CDN) med flit. Feed-rutterna
-// kör 3600 på båda, men de läses av maskiner. Här ser en människa resultatet:
-// 5 min räcker för att slippa nya hämtningar under samma besök, medan CDN:t
-// bär timmen — så en produkt som tar slut syns som slutsåld i dropdownen inom
-// minuter i stället för inom en timme.
-const CACHE = "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400";
+// ☠️ max-age SKA VARA LIKA LÅNG SOM s-maxage (2026-11-21). Här stod 300 s för
+// webbläsaren och 3 600 s för CDN:t, med tanken att fem minuter räcker under
+// ett besök. Men CDN:t skickar med svarets ålder (`age`), och webbläsaren
+// räknar från den: mätt på www samma dag kom indexet med `age: 2356` och
+// `max-age=300`, alltså redan för gammalt när det kom fram. Det har ingen ETag,
+// så nästa sidladdning hämtade om alla 561 kB. Bara de första fem minuterna
+// av varje timme gick svaret att återanvända. Med samma tid på båda håller
+// webbläsarens kopia precis så länge som CDN:ts: tills den är en timme gammal.
+// Varan som tar slut syns lika fort som förut, för CDN:t bar redan timmen.
+const CACHE = "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400";
 
 export async function GET() {
   // Högst en timme gammal katalog: indexet byggs om i bakgrunden, och utan

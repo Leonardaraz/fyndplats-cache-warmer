@@ -12,9 +12,10 @@
 // aldrig. Kontaktformulärets produktväljare importerar den som vanligt: den
 // sidan söker alltid.
 
-import { byggOrdforrad, byggOrdforradSteg, forberedKatalogSteg, kortOrd, markeraTraffar, markeringsord, matchaKategorier, normalize, rankaMedInfo, rankByName, sokforslagINamn, visaVarorFor, type Kategoridata, type Ordforrad } from "./search";
+import { byggOrdforrad, byggOrdforradSteg, forberedKatalogSteg, kortOrd, markeraTraffar, markeringsord, matchaKategorier, normalize, rankaMedInfo, rankByName, sokforslagINamn, varanHeterSa, visaVarorFor, type Kategoridata, type Ordforrad } from "./search";
 import { sokExempelHamtade, sokKategorierHamtade, type SokTraff } from "./sok-index";
-import { kopbaraForst } from "./sok-ordning";
+import { billigastForst, kopbaraForst } from "./sok-ordning";
+import { prisTal, villHaBilligast } from "./sok-pris";
 
 export { kortOrd, markeraTraffar, markeringsord, matchaKategorier, visaVarorFor };
 
@@ -79,7 +80,12 @@ export function rankaForslagMedAntal(
   idx: SokTraff[], term: string, antal: number, behall?: (h: SokTraff) => boolean,
 ): { traffar: SokTraff[]; totalt: number; rattat?: string; liknande?: true } {
   const utfall = rankaMedInfo(idx, (h) => h.n, term, namnFor(idx), kategoridata());
-  const kvar = kopbaraForst(behall ? utfall.traffar.filter(behall) : utfall.traffar, (h) => h.o === 1);
+  // "soffa billigast": varorna som heter så, billigast först, som på resultatsidan
+  // (billigastForst i lib/sok-ordning.ts). En påfylld lista har sin egen ordning.
+  const ordnade = villHaBilligast(term) && utfall.hela === undefined
+    ? billigastForst(utfall.traffar, (h) => varanHeterSa(h.n, term), (h) => prisTal(h.p), utfall.hemma)
+    : utfall.traffar;
+  const kvar = kopbaraForst(behall ? ordnade.filter(behall) : ordnade, (h) => h.o === 1);
   return {
     traffar: kvar.slice(0, antal),
     totalt: kvar.length,
