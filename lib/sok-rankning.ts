@@ -12,8 +12,8 @@
 // aldrig. Kontaktformulärets produktväljare importerar den som vanligt: den
 // sidan söker alltid.
 
-import { byggOrdforrad, kortOrd, markeraTraffar, markeringsord, matchaKategorier, normalize, rankaMedInfo, rankByName, sokforslagINamn, visaVarorFor, type Ordforrad } from "./search";
-import type { SokTraff } from "./sok-index";
+import { byggOrdforrad, byggOrdforradSteg, forberedKatalogSteg, kortOrd, markeraTraffar, markeringsord, matchaKategorier, normalize, rankaMedInfo, rankByName, sokforslagINamn, visaVarorFor, type Kategoridata, type Ordforrad } from "./search";
+import { sokExempelHamtade, sokKategorierHamtade, type SokTraff } from "./sok-index";
 import { kopbaraForst } from "./sok-ordning";
 
 export { kortOrd, markeraTraffar, markeringsord, matchaKategorier, visaVarorFor };
@@ -30,6 +30,16 @@ function namnFor(idx: SokTraff[]): string[] {
   }
   return namn;
 }
+
+/**
+ * Kategorierna för sökningen: tabellen som kom med indexet, och radens `k`.
+ * Undefined för ett index utan tabell (sökningen söker då bara i namnen).
+ */
+function kategoridata(): Kategoridata<SokTraff> | undefined {
+  const kat = sokKategorierHamtade();
+  return kat.length > 0 ? { kat, av: radensKategorier } : undefined;
+}
+const radensKategorier = (h: SokTraff) => h.k;
 
 /**
  * Förslagen för en sökning: de `antal` mest relevanta, slutsålda sist.
@@ -68,7 +78,7 @@ export function rankaForslag(idx: SokTraff[], term: string, antal: number): SokT
 export function rankaForslagMedAntal(
   idx: SokTraff[], term: string, antal: number, behall?: (h: SokTraff) => boolean,
 ): { traffar: SokTraff[]; totalt: number; rattat?: string; liknande?: true } {
-  const utfall = rankaMedInfo(idx, (h) => h.n, term, namnFor(idx));
+  const utfall = rankaMedInfo(idx, (h) => h.n, term, namnFor(idx), kategoridata());
   const kvar = kopbaraForst(behall ? utfall.traffar.filter(behall) : utfall.traffar, (h) => h.o === 1);
   return {
     traffar: kvar.slice(0, antal),
@@ -99,24 +109,75 @@ export function sokforslagFor(idx: SokTraff[], skrivet: string, max: number): st
   return sokforslagINamn(ordforradFor(idx), namnFor(idx), skrivet, max);
 }
 
-/** Vad man kan söka på, för den tomma rutan: katalogens vanligaste varuord. */
+/**
+ * Vad man kan söka på, för den tomma rutan: katalogens vanligaste varuord.
+ *
+ * ☠️ INDEXET BÄR DEM FÄRDIGA (2026-11-20, app/api/search-index/route.ts). Förr
+ * byggdes hela ordförrådet här, i samma uppgift som de populära varorna
+ * ritades: den största uppgiften när sökläget öppnades. Utan färdiga exempel
+ * (ett äldre index, eller ett utan kategoritabell) räknas de som förut.
+ */
 export function sokexempelFor(idx: SokTraff[], max: number): string[] {
-  return ordforradFor(idx).exempel.slice(0, max);
+  const fardiga = sokExempelHamtade();
+  return (fardiga.length > 0 ? fardiga : ordforradFor(idx).exempel).slice(0, max);
 }
 
 /**
- * Bygg ordförrådet och de normaliserade namnen i förväg, när webbläsaren har
- * en ledig stund. Ordförrådet tar 30–50 ms på en dator (mätt 2026-11-19) och
- * flera gånger det på en telefon; görs det här hinner det oftast bli klart
- * mellan att pekaren når rutan och att första tangenten trycks. Hinner det
- * inte byggs det vid första användningen, som förut.
+ * Bygg ordförrådet, de normaliserade namnen och sökningens ordbok i förväg,
+ * när webbläsaren har en ledig stund. Ordförrådet tar runt 50 ms på en dator
+ * och resten runt 60 ms (mätt 2026-11-20 på 7 886 varor), flera gånger det på
+ * en telefon; görs det här hinner det oftast bli klart mellan att pekaren når
+ * rutan och att första tangenten trycks. Hinner det inte byggs det vid första
+ * användningen, som förut.
+ *
+ * ☠️ ETT STEG PER LEDIG STUND (2026-11-20). Allt i en uppgift höll skärmen
+ * låst i upp till 390 ms på en strypt telefon, och tangenten som trycktes
+ * under tiden fick vänta. Nu lämnas turen tillbaka mellan stegen (namnen,
+ * ordförrådet i fem omgångar och de sex i forberedKatalogSteg), så att en
+ * tangent hinner emellan. Söker kunden innan ordförrådet är klart byggs det i
+ * ett stycke då (ordforradFor), och stegens arbete kastas.
+ *
+ * ☠️ VARJE STEG VÄNTAR PÅ NÄSTA BILD (2026-11-20). En ledig stund kan komma
+ * mellan att React har skrivit de populära varorna (eller en nyss tryckt
+ * bokstav) till sidan och att webbläsaren ritar dem, och ett steg som börjar
+ * då håller kvar bilden tills det är klart: de populära varorna syntes 100 till
+ * 250 ms senare på en strypt telefon. Stegen begärs därför i nästa bildruta
+ * (requestAnimationFrame) och körs i den lediga stunden efter den, det första
+ * efter två bildrutor. En flik som inte syns ritar inga bilder och värmer
+ * inte upp: då byggs allt vid första sökningen, som förut.
  */
+const uppvarmda = new WeakSet<SokTraff[]>();
 export function varmUpp(idx: SokTraff[]): void {
-  const gor = () => {
-    ordforradFor(idx);
-    if (!normNamn.get(idx)) normNamn.set(idx, idx.map((h) => normalize(h.n)));
+  // Rutan ber om uppvärmning varje gång pekaren eller fingret når den.
+  if (uppvarmda.has(idx)) return;
+  uppvarmda.add(idx);
+  let steg: (() => void)[] | null = null;
+  const g = globalThis as {
+    requestIdleCallback?: (f: () => void, o?: { timeout: number }) => number;
+    requestAnimationFrame?: (f: () => void) => number;
   };
-  const ledig = (globalThis as { requestIdleCallback?: (f: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
-  if (ledig) ledig(gor, { timeout: 600 });
-  else setTimeout(gor, 60);
+  // Nästa steg: efter nästa bild, och då i en ledig stund.
+  const iLedigStund = () => {
+    if (g.requestIdleCallback) g.requestIdleCallback(nasta, { timeout: 300 });
+    else setTimeout(nasta, 30);
+  };
+  const vanta = () => {
+    if (g.requestAnimationFrame) g.requestAnimationFrame(iLedigStund);
+    else setTimeout(iLedigStund, 30);
+  };
+  const nasta = () => {
+    // Stegen skapas först här, i den lediga stunden. Motorns egna steg läggs
+    // till sist, när namnen är normaliserade.
+    steg ??= [
+      () => { namnFor(idx); },
+      ...(ordforrad.has(idx) ? [] : byggOrdforradSteg(idx.map((h) => h.n), (f) => { if (!ordforrad.has(idx)) ordforrad.set(idx, f); })),
+      () => { steg?.push(...forberedKatalogSteg(idx, namnFor(idx), kategoridata())); },
+    ];
+    steg.shift()?.();
+    if (steg.length > 0) vanta();
+  };
+  // Det första steget efter två bildrutor: den första kan komma innan React
+  // har hunnit skriva något.
+  if (g.requestAnimationFrame) g.requestAnimationFrame(vanta);
+  else vanta();
 }

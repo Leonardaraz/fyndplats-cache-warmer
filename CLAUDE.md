@@ -1509,6 +1509,40 @@ Betygen (`aggregateRating`, `review`) skickas bara för omdömen från våra egn
 kunder (`lib/review-schema.ts`). Att Search Console saknar dem på nästan alla
 objekt är rätt: de flesta produkter har inga egna omdömen än.
 
+### Varje variant bär en egen beskrivning (Leonard 2026-11-20)
+
+Leonards skärmbild ur Search Console (Säljaruppgifter): "Fältet description
+saknas", 1 434 objekt, och valideringen misslyckad. "den där disciption är
+det något vi kan fixa?"
+
+Sedan 2026-10-30 är en vara med val en `ProductGroup` med en `Product` per
+variant (`lib/variant-jsonld.ts`), och beskrivningen stod bara på gruppen.
+Search Console räknar varje variant som ett eget objekt, och varianterna hade
+ingen. Mätt på 60 produktsidor på www samma dag: 48 varor utan val, alla med
+beskrivning, och 12 varor med val vars 32 varianter alla saknade den.
+
+Varje variant får nu gruppens beskrivning med sina egna val sist: "…
+Färg: Grå, Storlek: 120 cm." (`variantBeskrivning`, fjärde parametern).
+Valen står sist för att texten ska vara variantens egen och inte samma
+mening på varje variant. En vara utan val är oförändrad. Låst av
+`lib/variant-jsonld.test.ts` och `lib/produkt-jsonld.test.ts`. På det lokala
+bygget bär alla 80 objekt på samma 60 sidor varje fält rapporten nämner.
+
+De andra raderna i samma rapport (returavgiftens belopp, `validFrom`,
+returvillkor, fraktuppgifter och global identifierare, 414–416 objekt var,
+"Har inte startats") **går inte att återskapa på dagens sidor**: i
+stickprovet på www bar alla 80 objekt, varianterna med, varje sådant fält,
+med hänvisningarna (`@id`) följda inom sidan. Exporten har inga adresser, så
+vilka sidor raderna gäller är inte kontrollerat. Troligast är det objekt som
+Google läste före rättningarna 2026-10-22 och inte har läst om: raden om
+returavgiften var 472 objekt då och är 416 nu. Rapporten hade samma dag
+3 933 giltiga objekt och inget ogiltigt, och alla raderna är varningar, inga
+fel.
+
+☠️ **"Global identifierare" rättas inte med en GTIN.** Varorna har ingen egen
+(motorrepots `docs/claude/17-dealproffsen.md`), och en lånad kopplar varan
+till fel produkt. Märket räcker för Google, och det står på varje vara.
+
 ## Det överstrukna priset bär alltid Konsumentverkets ord (2026-11-01)
 
 Leonards fråga: måste produktsidan visa lägsta pris de senaste 30 dagarna? Ja,
@@ -5066,3 +5100,428 @@ telefon.
   kort. Varulistan (`/api/lista`) kunde bära bilderna för fler rader.
 - Den kalla söksidan hämtar varulistan (781 kB) och indexet (532 kB) innan
   den kan svara.
+
+## Sökningen förstår begrepp, felstavningar och halvskrivna ord (Leonard 2026-11-20)
+
+Leonards skärmbild från telefonen: "trägårdsmöbel" i sökläget, och under
+fältet "Inga produkter matchade". "Barnmobel samma, kan du göra sökfältet
+ännu smartare". Butiken har 254 trädgårdsmöbler och 140 barnmöbler.
+
+Tre saker var fel, och de hänger ihop:
+
+1. **Hyllans ord står inte i namnen.** En barnmöbel heter "Barnbord", en
+   leksak "Dockvagn". Sökningen läste bara namnen, så "barnmöbler" gav två
+   varor av kategorins 140 och "leksaker" 73 av 536.
+2. **Ett ord som inte finns rättades bara när ingenting träffade.** Och en
+   delsträng träffar nästan alltid något: "lapor" stod i "LAPtophållare",
+   "vaska" i "guldVASKArsats", "stäl" i "odlingSTÄLt".
+3. **Mitt i ett ord tömdes listan.** Sökläget söker vid varje tangent, och
+   ett halvskrivet ord som inget namn börjar med gav ingenting, eller en
+   gissning med besked om något annat.
+
+Allt ligger i `lib/search.ts`. Proven står i `lib/sok-2026-11-20.test.ts`, 36
+stycken mot en påhittad butik med kategorier (och elva till om farten, se
+avsnittet om sökfältets fart), och varje ☠️ nedan har ett.
+Tolv av reglerna är dessutom prövade baklänges: regeln togs bort i en kopia,
+och minst ett prov föll varje gång.
+
+### 1. Kategorierna som begrepp
+
+Sökningen får nu veta vilka kategorier varje vara ligger i (`Kategoridata`),
+och ett sökord får träffa en vara genom kategorins namn:
+
+| Slag | När | Exempel |
+|---|---|---|
+| LIKA | sökordet är ett av kategorins ord, i någon böjning, med eller utan prickar | "barnmobel" är Barnmöbler, "leksak" Leksaker & Spel |
+| HUVUD | sökordet är huvudet i kategorins ord, eller en synonym står i namnet | "möbler" i Utemöbler, "lampa" och Belysning |
+| FÖRLED | kategorins ord börjar med sökordet | "hund" i Hundburar |
+
+En vara hör också till kategorins föräldrar. Det används på två ställen:
+
+- **Som reserv**, när inget namn har alla sökord (`kategoriVarv`): varje
+  sökord får stå i namnet eller träffa genom en kategori.
+- **För ett ensamt begreppsord** som också står i några namn (`medBegrepp`).
+  Träffarna läggs i tre led: namnträffar i kategorin eller där ordet är varan
+  ("Julbelysning …"), sedan namnträffar utanför där ordet bara nämns ("Sängram
+  med belysning"), sist kategorins övriga varor.
+
+☠️ **Fällorna, var och en mätt mot katalogen samma dag:**
+
+- **Bara begreppsord får träffa genom kategorin i en sökning på flera ord.**
+  Första versionen lät varje ord göra det: "skänk 120 cm bred" gick från fyra
+  skänkar till 69 varor ur Sideboards & vitrinskåp, "soffa 260 cm bred" från
+  två till 95. Ett begreppsord är kategorins eget ord som färre än 35 % av
+  kategorins varor har i namnet (`BEGREPP_UNDER`).
+- **En kategori som räknar upp tre sorters varor fyller inte på.** "koppel"
+  gav selar och transportburar ur Selar, Koppel & Transport.
+- **Underkategorin går före avdelningen.** "utemöbler" står i Trädgård &
+  Utemöbler och i Utemöbler. Avdelningen har också växthus och grillar.
+- **Syskonen hålls utanför.** "Matbord & stolar": den som söker matbord får
+  inte stolarna.
+- **Formerna, inte `canon`.** `canon` skalar vad som helst: "kökös" blev
+  "kök" och räknades som kategorin Kök. Jämförelsen görs på riktiga böjningar
+  (`ordformer`), och ett avskalat s är ingen böjning ("byggs" är början på
+  "byggsats", inte avdelningen Bygg).
+- **Omljud bara för stång och tång.** Med fler gav "böcker" fåtöljer "med ben
+  i bok" och "fötter" dörrbeslag på "8 fot".
+- **En vara som bara hör till sin underkategori** (`BARA_I_UNDERKATEGORIN`)
+  bär en negativ plats och ärver inte uppåt, varken i reserven eller när
+  kategorin fyller på.
+
+**Så når kategorierna sökningen.** `lib/sok-begrepp.ts` gör om butikens
+kategorier till en tabell (namn och förälderns plats) och varje varas
+kategorier till platser i den, bara den djupaste. Samma modul används av
+sökindexet och söksidan, så att de tre vägarna får samma tillhörighet:
+
+| Väg | Var kategorierna kommer ifrån |
+|---|---|
+| Sökrutan och sökläget | sökindexet: `k` på varje rad, tabellen som sista rad |
+| Söksidan, varm (`app/sok/page.tsx`) | `getCollections()` och varans `collectionIds` |
+| Söksidan, kall (`components/sok-kall.tsx`) | sökindexet, slaget upp på varans adress |
+
+Tabellen ligger SIST i indexet och saknar namn och adress, så en sida som
+laddades före bygget går förbi raden. Utan kategorier söker motorn i namnen
+som förut.
+
+### 2. Är sökordet ett ord?
+
+Varje sökord prövas mot katalogens ord innan namnen genomsöks (`ordstatus`).
+Ett ord som finns rörs inte. Ett ord som inte finns skrivs om, och ger det
+omskrivna inga varor gäller sökningen som den skrevs:
+
+| Omskrivning | Exempel | Besked till kunden |
+|---|---|---|
+| med prickarna | "vaska" → "väska" | nej |
+| färdigskrivet | "stäl" → "ställ" | nej |
+| rättstavat, ett fel | "lapor" → "lampor", "xtolar" → "stolar" | ja |
+| början på ett ord, med ett fel | "trägå" → "trädgård", "fotöl" → "fåtölj" | ja |
+
+Ordet FINNS när det står för sig i ett namn, är en böjning av ett sådant ord,
+slutar eller börjar ett sammansatt ord, eller är ett begreppsord (synonym,
+envägsord, kategori). Reglerna är generösa med flit: ett ord som felaktigt
+räknas som känt söks som förut, men ett känt ord som räknas som okänt hade
+kunnat rättas till något annat.
+
+Rättningen (`narmasteOrd`) väljer bland lika nära ord det troligaste felet:
+en tappad eller omkastad bokstav före en granne på tangentbordet, en bytt
+vokal och sist en annan bokstav. Ordet som oftast ÄR varan går före ("myckel"
+är "nyckel", som inleder 40 namn, inte "mycket"). Fyra bokstäver rättas bara
+när en bokstav saknas eller två bytt plats, och butiker och märken rättas
+aldrig (`RATTAS_INTE`).
+
+☠️ **Ett halvskrivet ord rättades som om det vore färdigt.** "trägå" blev
+"tråg" och visade fodertråg, medan kunden skrev vidare mot trädgårdsmöbler.
+`felstavadBorjan` frågar i stället vilka ord som BÖRJAR så med ett fel, och
+gäller när de är minst tre gånger vanligare än rättningen. ☠️ "pulka" är
+inte början på "polkagris": felet ska vara trovärdigt för så många varor som
+börjar så.
+
+### 3. Halvskrivna ord: listan ska inte tömmas mitt i ordet
+
+Mätt per tangent på 493 rättstavade begreppsord och sammansatta ord: med
+förmiddagens version (avsnitt 1 och 2) var listan tom vid 14,5 % av
+tangenterna, och de tre sista tangenterna före det färdiga ordet visade dess
+varor i 70 % av fallen. Reglerna som fyllde luckan:
+
+- **Ett begreppsord väger som en hylla** (`BEGREPP_VIKT`). ☠️ Med den gamla
+  vikten gav "trägårdsmö" en tom lista mellan "trägårdsm" och "trägårdsmöb",
+  som båda visade trädgårdsmöblerna.
+- **Början på ett begreppsord skrivs färdigt.** ☠️ "tradgardsmo" gick vidare
+  till rättningen och blev "trädgårdsbro", två broar. Bara när inget namn har
+  ett ord som börjar så: "tradgards" är början på 157 varors "trädgårds…".
+- **Den som skrivit en bokstav till har inte skrivit fel.** "barnm" är på väg
+  mot "barnmöbler", inte ett "barn" med ett m för mycket.
+- **Ett halvskrivet sammansatt ord skrivs färdigt** (`ofardigtSammansatt`):
+  första delen är ett känt ord, resten är början på ett huvudord. Tre led:
+  de allmänna huvudorden från två bokstäver ("kontorsmö" → "kontorsmöbler"),
+  kategoriernas ord från tre ("hundkop" → "hundkoppel"), och ord som står i
+  samma namn som första delen ("barnbi" → "barnbil"). Svaret är detsamma som
+  för det färdiga ordet, utan besked.
+- **Ett allmänt huvudord krävs aldrig** ("möbler", "saker", "prylar",
+  "tillbehör"). Det säger bara "saker till": förledets egna varor är svaret
+  också när ingenting har båda delarna. ☠️ "kattprylar" gav ingenting, fast
+  "hundsaker" visade 313 varor.
+- **Förledet får bära ett foge-s**, och söks utan det när det med s ger få
+  varor. ☠️ "köksprylar" gick inte att dela, "sovrumsmöbler" gav sex varor
+  och "kontorsbelysning" ingenting.
+- **Två vanliga ord delas före en rättning med flera fel** (`starkDelning`).
+  ☠️ "hundförvaring" blev "vedförvaring": tre fel räcker för ord på tolv
+  tecken.
+- **En rättad delning svarar som det rättstavade ordet.** ☠️
+  "trägårdsbelysning" gav två lampor och "trädgårdsbelysning" 110.
+
+☠️ **Det som gick fel under bygget, och spärren som kom av det:**
+
+- **Ett försök är en strikt sökning, och högst tre görs** (`STRIKT`). Varje
+  färdigskrivet eller rättat ord som prövas är en sökning till. Första
+  versionen körde alla reservled i var och en: "värmefläktra" tog 553 ms på
+  en dator, tre försök à 150 ms. Ett försök ska träffa som det står (i
+  namnen, genom kategorierna eller delat), utan stavfelsled och fler
+  rättningar. Sådana träffar hade ändå förkastats.
+- **Ett ord nära ett katalogord skrivs inte färdigt.** Första versionen
+  prövade alltid, och "matbrod" blev "mat" + "brödrostar" i stället för
+  "matbord", "gungstil" "gungs" + "tillbehör" i stället för "gungstol". En
+  sökning som skickas iväg är oftare ett färdigt ord med ett fel än ett halvt
+  ord utan, och en gissning mitt i ordet rättar sig vid nästa tangent. Ett
+  begreppsord av samma längd spärrar också ("värmefläktra" är
+  "värmefläktar"), men inte ett som är längre: "hundkop" ligger ett fel från
+  stammen i "hundkojor" och är på väg mot "hundkoppel".
+- **Prickarna ska stämma i ett allmänt huvudord.** "boxningssäk" lästes som
+  "boxnings" + "sak", ett rättstavat ord som aldrig blev "boxningssäck".
+  `arAllmantHuvudord` tar ordet som det står eller helt utan prickar.
+- **En stark rättning går före en allmän sammansättning.** "lekssaker" är
+  "leksaker" med ett s för mycket, inte "leks" + "saker". "barnsaker" står
+  kvar: "barn" står i hundratals namn, "barnsäkert" i få.
+- **Kategoriernas ord från tre bokstäver.** Med två blev "kontorsm" till
+  "kontor" + "småbord".
+- **Inga ord på tre bokstäver i en stark delning.** "julförvaring" blev sex
+  förvaringsSKJUL.
+- **Ett allmänt huvudord letas inte utan prickar.** "barn" och "saker" står
+  båda i "barnsäkert", och ett fönsterhandtag hamnade först.
+
+### 4. Söksidan försöker igen själv
+
+☠️ Första sökningen efter en deploy visade "Sökningen kunde inte läsas in".
+Varulistan ligger inte i CDN:t direkt efter ett bygge, och en ny
+serverinstans läser katalogen i 25–28 sekunder innan den kan svara. Den kalla
+söksidan väntade 20 och gav upp. Den som laddade om fick svar direkt, för
+servern läste klart ändå. Nu hämtas listan upp till tre gånger, med en och en
+halv sekund emellan (`medForsok` i `lib/sok-kall.ts`), och felrutan visas
+först när alla försök har misslyckats. Ett försök som avbryts för att kunden
+sökt på något annat följs inte av fler.
+
+### Mätt
+
+Mot det riktiga sökindexet (7 886 varor, 172 kategorier), gamla motorn (det
+som låg på www på förmiddagen) mot den nya:
+
+| Prov | Gamla | Nya |
+|---|---|---|
+| 2 089 felstavningar av de 320 vanligaste varuorden: rätt varor | 79,5 % | 98,6 % |
+| samma: ingen träff alls | 262 | 0 |
+| 700 felstavningar av kategoriernas ord: rätt varor | 81,7 % | 98,6 % |
+| 694 sökningar på kategoriernas ord: kategorins varor överst | 40 % | 85 % |
+| samma: ingen träff alls | 52 | 0 |
+| medan ett felstavat ord skrivs (1 788 tangenter): rätt varor | 67,0 % | 82,0 % |
+| samma: tom lista | 16,3 % | 3,4 % |
+| medan ett rättstavat begreppsord eller sammansatt ord skrivs (493 ord, 3 757 tangenter): tom lista | 27,8 % | 1,1 % |
+| samma: de tre sista tangenterna visar det färdiga ordets varor | 48,1 % | 96,0 % |
+| samma: det färdiga ordet ger ingen träff | 180 | 0 |
+| räknetid per sökning på en dator (5 516 felstavade ord och tangenter): median | 16 ms | 9 ms |
+| samma: nio av tio under | 47 ms | 20 ms |
+| samma: 99 av 100 under | 72 ms | 83 ms |
+| samma: den långsammaste | 105 ms | 187 ms |
+
+Gårdagens fyra frågelistor (7 819 sökningar, bland dem kundernas egna ur GA4
+och Search Console) mot den gamla motorn: 7 701 oförändrade, 49 med andra
+varor överst, 69 med bara ett annat antal, och ingen som gick från träffar
+till noll. Skillnaderna är mest fler varor genom kategorierna med samma varor
+överst.
+
+Sökindexet växte från 2 104 929 till 2 194 919 byte, över nätet från 536 till
+558 kB (brotli, mätt på Vercel: www mot förhandsbygget). Det sökningen bygger
+vid första tangenten (ordboken och kategoriernas varor) byggs i förväg när
+webbläsaren är ledig, ett steg i taget (`forberedKatalogSteg`, anropad av
+`varmUpp` i `lib/sok-rankning.ts`; se avsnittet om sökfältets fart).
+
+**I en riktig webbläsare mot det lokala bygget** (Chromium, mobil 393 × 852
+och dator 1280 × 800): sökläget och resultatsidan visar samma tolv varor i
+samma ordning för 20 sökningar, bland dem "trägårdsmöbel", "barnmobel",
+"kontorsmöbler", "kattprylar", "hundförvaring", "lapor" och "pool och spa",
+med samma besked om vilket ord träffarna gäller. Tangent för tangent ger
+"trägårdsmöbel", "barnmobel", "kontorsmöbler" och "tradgardsmobler" ingen
+tom lista från fjärde bokstaven. Söklägets 62 kontroller, de nio extra,
+flödenas 14 och de tio om tangentbordet är gröna.
+
+☠️ **Inte mätt:**
+
+- **Kundernas egna sökord för dagen.** GA4 och Search Console är anslutna men
+  ingen egendom är vald i kopplingen, så frågelistorna är gårdagens.
+- **Räknetiden på en riktig telefon.** Tiderna i tabellen är från en dator och
+  gäller motorn som den var på morgonen. Samma kväll mättes den i Chromium
+  med fyrdubbelt strypt processor och gjordes snabbare: se avsnittet om
+  sökfältets fart.
+- **Den kalla söksidans nya försök i en webbläsare.** Lokalt läser servern
+  katalogen innan första svaret, så den kalla vägen nås inte där. Regeln är
+  prövad med låtsade fel (`medForsok`) och en kontroll av att sidan använder
+  den, inte mot en server som just har byggts.
+
+**Sett men inte ändrat:**
+
+- "kattleksaker" ger en vara, den som heter så. Leksakerna för husdjur ligger
+  i Lek & Tillbehör för husdjur, som inte har ordet "leksaker".
+- "hallbyrå" medan det skrivs ("hallb") visar hallbänkar: orden börjar lika,
+  och det går inte att veta.
+- En sökning på flera ord där ett av dem är ett sammansatt ord som inget
+  namn har ("svart kontorsmöbler") delas inte. Bara ett ensamt sökord delas.
+- Lika bra träffar står fortfarande nyast först (se avsnittet ovan).
+
+## Sökfältets fart: samma svar, en fjärdedel av arbetet (Leonard 2026-11-20)
+
+"jag vill att du kollar hastigheten till sökfältet är så optimerad som
+möjligt". Sökläget söker vid varje tangent, och motorn som blev smartare
+samma dag (avsnittet ovan) gick igenom katalogen fler gånger per tangent än
+den gamla. Allt här ändrar HUR svaret räknas, aldrig svaret:
+
+- 13 933 provsökningar (kundernas egna, felstavningarna och orden skrivna
+  tangent för tangent) ger samma varor i samma ordning med samma besked som
+  morgonens motor, kontrollerat efter varje steg,
+- 7 694 frågor byggda ur katalogen (`tools/sok-matning/utfall.ts`) likaså.
+
+### Mätt
+
+Räknetid per tangent på en dator (`tools/sok-matning/tangenter.ts`, den
+riktiga katalogen med 7 886 varor, 182 tangenter i 21 ord, motorns minne tomt
+när varje ord börjar):
+
+| | www före | morgonens motor | nu |
+|---|---|---|---|
+| alla 182 tangenter | 4 245 ms | 3 544 ms | 904 ms |
+| en vanlig tangent (median) | 11 ms | 11 ms | 3 ms |
+| nio av tio under | 52 ms | 43 ms | 12 ms |
+| den tyngsta tangenten | 138 ms | 117 ms | 24 ms |
+
+I Chromium med fyrdubbelt strypt processor (mobil 393 × 852, tio ord skrivna
+med 110 ms mellan tangenterna, `tools/sok-matning/fart.cjs`). "www före" är
+mätt samma kväll, "morgonens motor" på förmiddagen med samma prov:
+
+| | www före | morgonens motor | nu |
+|---|---|---|---|
+| blockerad tid för de tio orden | 8 217 ms | 7 533 ms | 979 ms |
+| längsta uppgift | 601 ms | 766 ms | 167 ms |
+| längsta väntan innan en tangent behandlas | 513 ms | 378 ms | 58 ms |
+| längst från tangent till nästa bild | 544 ms | inte mätt | 120 ms |
+
+Öppningen (`tools/sok-matning/oppning.cjs`, åtta varv, median). www hämtar
+indexet över nätet och det lokala bygget inte, så tiden till korten är inte
+rättvis åt www: det som är blockerat är det.
+
+| | www före | nu |
+|---|---|---|
+| de populära varorna ritade efter fingret | 702 ms | 511 ms |
+| blockerat innan de syns | 243 ms | 102 ms |
+| blockerat efteråt (uppvärmningen) | 0 ms | 109 ms |
+| längsta uppgift efteråt | ingen | 110 ms (som mest 145) |
+
+www har ingen uppvärmning efteråt för att den gamla motorn bygger sitt
+ordförråd INNAN varorna visas och resten vid första tangenten.
+
+### Vad som räknades om i onödan
+
+1. **Stavfelsledet jämförde sökordet med varje namn.** Nu en gång per unikt
+   ord i katalogen (`felPerOrd`), och namnen slår upp svaret (`felINamn`).
+   Katalogens namn har runt 60 000 ord, och 9 000 olika.
+2. **Det som hör till namnet räknades om för varje namn i varje varv:** namnet
+   utan prickar och med fogar, huvuddelen, och huvuddelens slut i
+   `sammanskrivet` (också när ingen träff fanns). Nu en gång per namnlista
+   (`Listdata`), huvuddelen första gången den behövs.
+3. ☠️ **Förfiltret: ett namn som inte kan träffa jämförs inte alls.** Varje väg
+   till en träff går genom en text som ska stå i namnet (frasen, en böjd
+   form, stammen, en synonym). Varje namn och varje sådan text har en mask
+   med vilka tecken den har, och saknar namnet ett tecken hoppas hela
+   jämförelsen över (`kanTraffa`). Stavfelsledet får sakna så många tecken som
+   felen tillåter. Filtret får släppa igenom för mycket men aldrig hålla
+   tillbaka en träff: prövat mot den riktiga katalogen på 27,6 miljoner par av
+   sökning, namn och läge (662 587 träffar, ingen tillbakahållen), och i
+   provet mot den påhittade butiken (`forfilterProv`).
+4. ☠️ **Samma sökning räknades om vid varje tangent.** Den som skriver
+   "kontorsm", "kontorsmö", "kontorsmöb" får ordet färdigskrivet till
+   "kontorsmöbler" vid varje tangent, och varje försök var en hel sökning: 30 %
+   av tiden för de tyngsta tangenterna. De senaste 48 svaren sparas per
+   namnlista (`rankaInre`). Ett svar beror bara på varorna, namnen,
+   kategorierna, sökningen och djupet, och den som anropar får egna listor,
+   så att en sortering på plats aldrig ändrar nästa svar.
+5. **Rättningen gick igenom ordboken flera gånger per sökning** med samma ord
+   (`narmasteOrd`: omskrivningen, spärren för färdigskrivningen, rättningen),
+   och slog upp varje ords antal i en tabell vid varje varv. Svaret sparas,
+   och antalen ligger på ordens platser (`ordAntal`, `ordInte`).
+6. **Kategoriförslagen tolkade om varje kategorinamn och sökningen** för var
+   och en av de 172 kategorierna, två gånger per tangent: en sjundedel av
+   tiden. Kategorinamnen tolkas en gång (`kategoriformFor`), sökningen en gång
+   per anrop.
+7. **Uppvärmningen delade upp varje namn i ord tre gånger.** Ordräkningen,
+   orden som står för sig och de kända delarna räknas nu ur samma ordlista
+   (`listaFor`).
+
+### ☠️ Det byggda paketet är inte källkoden
+
+Webbläsaren kör det minifierade paketet, och där såg den hetaste slingan
+annorlunda ut. Bygget (Next:s swc) bakar in en funktion som anropas på ett
+enda ställe, som ett funktionsuttryck som anropas direkt. I slingan över
+katalogens namn blev det två nya funktionsobjekt per varunamn och varv
+(förfiltret och jämförelsen), och ett förvalt parametervärde blev en läsning
+ur `arguments`. I webbläsarens profil var de två inbakade funktionerna de
+tyngsta posterna, fast mätningarna i Node inte såg dem (där körs källkoden).
+
+Anropen i de heta slingorna bär därför `/*#__NOINLINE__*/`, och `tokenQuality`
+och `matchPrepared` har inga förvalda parametervärden.
+`lib/sok-minifierat.test.ts` minifierar `lib/search.ts` med byggets verktyg
+och ser efter att slingan anropar funktionerna i stället för att skapa dem.
+Kontrollerat i det riktiga bygget: markeringarna följs.
+
+### Öppningen
+
+- ☠️ **Sökläget byggde hela ordförrådet innan de populära varorna visades**,
+  bara för att kunna skriva "Sök till exempel" över dem: den största
+  uppgiften vid öppningen. Orden räknas nu på servern en gång i timmen, med
+  samma funktion på samma namn, och följer med i sökindexets sista rad (`ex`,
+  `lib/sok-begrepp.ts`). Ett index utan dem läses som förut, och rutan räknar
+  då själv. Indexet växte med 164 byte.
+- ☠️ **Uppvärmningen var en enda uppgift** på upp till 390 ms (strypt), och en
+  tangent som trycktes under tiden fick vänta på den. Den är nu ett dussin
+  steg med turen lämnad till webbläsaren emellan (`varmUpp` i
+  `lib/sok-rankning.ts`): namnen, ordförrådet i fyra omgångar och en
+  avslutning (`byggOrdforradSteg`), och motorns sex steg
+  (`forberedKatalogSteg`). Söker kunden innan något är byggt byggs det då,
+  som förut.
+- ☠️ **Varje steg väntar på nästa bild.** En ledig stund kan komma mellan att
+  React har skrivit de populära varorna (eller en nyss tryckt bokstav) till
+  sidan och att webbläsaren ritar dem, och ett steg som börjar då håller kvar
+  bilden. Stegen begärs i nästa bildruta och körs i den lediga stunden efter
+  den, det första efter två.
+
+### Proven
+
+`lib/sok-2026-11-20.test.ts` har elva prov om farten (minnet mot en ny
+räkning tangent för tangent och baklänges, reservvarvet, svar som ändras på
+plats, andra varor och kategorier på samma namnlista, förfiltret, ordlistan
+mot `tokenize`, uppvärmningens steg i vilken ordning som helst,
+kategoriförslagen, sökexemplen i indexet och ordförrådet i steg), och
+`lib/sok-minifierat.test.ts` ett. 45 felaktiga varianter av genvägarna
+prövades i en kopia: 41 fälls av proven. De fyra som inte fälls kan inte ge
+ett annat svar: två masker som alltid ryms i en annan, en nyckel där antalet
+fel följer av ordets längd, och en spärr mot färger bland begreppsorden, där
+inget begreppsord är en färg.
+
+I Chromium mot det lokala bygget: sökläget och resultatsidan visar samma
+varor i samma ordning, tangent för tangent ger "trägårdsmöbel", "barnmobel",
+"kontorsmöbler" och "tradgardsmobler" ingen tom lista från fjärde bokstaven,
+"Sök till exempel" visar indexets ord på mobil och dator, och söklägets 62
+kontroller, de nio extra, flödenas 14 och de tio om tangentbordet är gröna.
+
+☠️ **Inte mätt:**
+
+- **En riktig telefon.** Strypningen i Chromium gör processorn fyra gånger
+  långsammare men är ingen iPhone: Safari har en annan JavaScript-motor och
+  saknar `requestIdleCallback` (stegen går då på en timer, 30 ms efter varje
+  bild).
+- **www efter deployen.** Allt ovan är mätt mot det lokala bygget.
+- **Morgonens motor med kvällens noggrannare mått för öppningen.** Dess
+  öppning mättes på förmiddagen med det grövre provet: 720 ms blockerat och
+  393 ms som längsta uppgift.
+
+**Sett men inte ändrat:**
+
+- **Reservvarvet används aldrig på riktiga data.** När ett okänt ord söks
+  strängt och inget ger söks det en gång till som förut (`rankaMedInfo`).
+  Ingen av de 13 933 provsökningarna går den vägen: stavfelsledet hinner
+  före. Det är kvar som skyddsnät, och har nu ett prov ("ardsbar").
+- **En felstavad färg ger inga träffar.** "tukos" visar ingenting, fast 25
+  varor är turkosa: färger föreslås aldrig som rättning ("dlang" är "slang",
+  inte "lång"). Regeln är äldre än dagens arbete och gäller ett ensamt
+  sökord som bara är en färg.
+- **Nästa steg om det behövs:** räkna också de exakta ordträffarna per unikt
+  ord (som stavfelsledet), eller flytta rankningen till en egen tråd (Web
+  Worker), så att skrivandet aldrig väntar på den. Det första är uppskattat
+  till en sjättedel av det som är kvar per tangent, det andra är en större
+  ombyggnad av sökrutan.

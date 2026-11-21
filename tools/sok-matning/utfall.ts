@@ -10,8 +10,13 @@
 // ordpar och ordtrippel ur vart fjärde namn (runt 7 500 frågor för 7 700 namn).
 // `rot` är en annan utcheckning av butiken, när dess motor ska mätas.
 
+import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+
+// Hjälparen laddas som motorn nedan, med en uträknad sökväg: en vanlig import
+// av en .ts-fil fäller butikens bygge (typkontrollen läser också tools/).
+const { lasIndex } = (await import(new URL("./las-index.ts", import.meta.url).href)) as typeof import("./las-index");
 
 const [indexFil, utFil, fragefil, rot] = process.argv.slice(2);
 if (!indexFil || !utFil) {
@@ -19,7 +24,9 @@ if (!indexFil || !utFil) {
   process.exit(1);
 }
 const m = await import(resolve(rot ?? ".", "lib/search.ts"));
-const idx: { n: string }[] = JSON.parse(readFileSync(indexFil, "utf8"));
+// Indexets sista rad är kategoritabellen: den lyfts av, och sökningen får
+// kategorierna som sökrutan ger den.
+const { idx, kd } = lasIndex(indexFil);
 const namn = idx.map((h) => m.normalize(h.n));
 
 function fragorUrKatalogen(): string[] {
@@ -41,11 +48,15 @@ function fragorUrKatalogen(): string[] {
 const fragor = fragefil
   ? readFileSync(fragefil, "utf8").split("\n").map((s) => s.replace(/\s+#.*$/, "").trim()).filter((s) => s && !s.startsWith("#"))
   : fragorUrKatalogen();
-const ut: Record<string, { n: number; s: string[]; t: string[]; v?: string }> = {};
+// `h` är hela svaret som ett fingeravtryck: varje träff i ordning och alla
+// besked. En ändring som bara ska göra sökningen snabbare ska lämna det orört
+// för varje fråga (jamfor.cjs räknar dem).
+const ut: Record<string, { n: number; s: string[]; t: string[]; v?: string; h: string }> = {};
 const t0 = performance.now();
 for (const q of fragor) {
-  const u = m.rankaMedInfo(idx, (h: { n: string }) => h.n, q, namn);
-  ut[q] = { n: u.traffar.length, s: u.strukna, t: u.traffar.slice(0, 5).map((x: { n: string }) => x.n), v: u.rattat };
+  const u = m.rankaMedInfo(idx, (h: { n: string }) => h.n, q, namn, kd);
+  const allt = [u.traffar.map((x: { n: string; s?: string }) => x.s ?? x.n).join("|"), u.rattat ?? "", u.sokt ?? "", u.liknande ? 1 : 0, (u.strukna ?? []).join(","), (u.utan ?? []).join(","), u.hela ?? ""].join("§");
+  ut[q] = { n: u.traffar.length, s: u.strukna, t: u.traffar.slice(0, 5).map((x: { n: string }) => x.n), v: u.rattat, h: createHash("sha1").update(allt).digest("hex").slice(0, 16) };
 }
 writeFileSync(utFil, JSON.stringify(ut));
 console.log(`${fragor.length} frågor på ${Math.round(performance.now() - t0)} ms → ${utFil}`);

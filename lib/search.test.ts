@@ -371,9 +371,11 @@ test("rankByName i tre varv ger samma lista som ett varv med reserverna pålagda
     for (let k = 2; k <= q.length; k++) {
       const p = q.slice(0, k);
       // En rättad stavning ("lyftf" → "lyft") söks som det rättade ordet: då
-      // ska listan vara den som ett varv ger för det.
+      // ska listan vara den som ett varv ger för det. Likadant när ordet
+      // skrevs om utan besked (2026-11-20): med prickarna ("fatolj" →
+      // "fåtölj") eller färdigskrivet ("uppresningsfåtö" → "uppresningsfåtölj").
       const utfall = rankaMedInfo(namn, (n) => n, p);
-      assert.deepEqual(utfall.traffar, ettVarv(namn, utfall.rattat ?? p), p);
+      assert.deepEqual(utfall.traffar, ettVarv(namn, utfall.rattat ?? utfall.sokt ?? p), p);
     }
   }
 });

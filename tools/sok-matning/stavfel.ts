@@ -7,18 +7,22 @@
 //
 //   node --experimental-strip-types tools/sok-matning/stavfel.ts <index.json> [rot att jämföra med]
 
-import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+
+// Hjälparen laddas som motorn nedan, med en uträknad sökväg: en vanlig import
+// av en .ts-fil fäller butikens bygge (typkontrollen läser också tools/).
+const { lasIndex } = (await import(new URL("./las-index.ts", import.meta.url).href)) as typeof import("./las-index");
 
 const [indexFil, annanRot] = process.argv.slice(2);
 if (!indexFil) {
   console.error("Användning: stavfel.ts <index.json> [rot att jämföra med]");
   process.exit(1);
 }
-type Motor = { rankByName: (items: unknown[], namn: (h: { n: string }) => string, q: string) => { n: string }[] };
+type Motor = { rankByName: (items: unknown[], namn: (h: { n: string }) => string, q: string, normNamn?: readonly string[], kd?: unknown) => { n: string }[] };
 const har: Motor = await import(resolve("lib/search.ts"));
 const dar: Motor | null = annanRot ? await import(resolve(annanRot, "lib/search.ts")) : null;
-const idx: { n: string }[] = JSON.parse(readFileSync(indexFil, "utf8"));
+// Indexets sista rad är kategoritabellen: den lyfts av, och sökningen får kategorierna.
+const { idx, kd } = lasIndex(indexFil);
 
 const antal = new Map<string, number>();
 for (const h of idx) {
@@ -36,7 +40,7 @@ const fel = (o: string): string[] => {
     o.slice(0, m) + o[m] + o.slice(m),
   ].filter((x) => x !== o);
 };
-const kor = (lib: Motor, q: string) => new Set(lib.rankByName(idx, (h) => h.n, q).map((x) => x.n));
+const kor = (lib: Motor, q: string) => new Set(lib.rankByName(idx, (h) => h.n, q, undefined, kd).map((x) => x.n));
 const mat = (lib: Motor, etikett: string) => {
   let prov = 0, tomma = 0, tackning = 0, renhet = 0;
   for (const o of ord) {

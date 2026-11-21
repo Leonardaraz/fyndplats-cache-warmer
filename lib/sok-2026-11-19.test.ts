@@ -742,12 +742,12 @@ test("sökrutan visar förslagets varor och säger vilket ord det gäller", asyn
   const sida = readFileSync(new URL("../app/sok/page.tsx", import.meta.url), "utf8");
   const kall = readFileSync(new URL("../components/sok-kall.tsx", import.meta.url), "utf8");
   // ☠️ Söksidan rankar med samma regel, och två bokstäver letar aldrig i beskrivningarna.
-  assert.match(sida, /const \{ utfall, visar: ordet \} = rankaMedForslag\(all, \(p\) => p\.name, fraga\);/);
+  assert.match(sida, /const \{ utfall, visar: ordet \} = rankaMedForslag\(all, \(p\) => p\.name, fraga, await kategoridata\(\)\);/);
   // `all` är katalogen i sökningens ordning (lib/sok-ordning.test.ts).
   assert.match(sida, /const all = term \? katalogensSokordning\(await getProducts\(\)\) : \[\];/);
   assert.match(sida, /else if \(kategorier\.length === 0 && !kortOrd\(fraga\)\) \{/);
   assert.match(sida, /if \(visar\) kategorier = matchaKategorier\(visar, allaKategorier, 3\);/);
-  assert.match(kall, /const \{ utfall: u, visar \} = rankaMedForslag\(kandidater\(lista, slutsalda\), \(p\) => p\.name, prisfraga\.fraga\);/);
+  assert.match(kall, /const \{ utfall: u, visar \} = rankaMedForslag\(kandidater\(lista, slutsalda\), \(p\) => p\.name, prisfraga\.fraga, kategoridata\(slutsalda\)\);/);
   // Sidan säger vilket ord träffarna gäller.
   const vy = readFileSync(new URL("../components/sok-vy.tsx", import.meta.url), "utf8");
   assert.match(vy, /\{klar\.visar && \(\s+<p className="sok-besked">\s+Du skrev “\{term\}”\. Här är träffarna för <b>“\{klar\.visar\}”<\/b>\./);

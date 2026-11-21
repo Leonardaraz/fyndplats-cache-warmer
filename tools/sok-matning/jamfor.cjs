@@ -8,12 +8,14 @@ const fs = require("fs");
 const [a, b, visa = "25", filter = ""] = process.argv.slice(2);
 const A = JSON.parse(fs.readFileSync(a, "utf8"));
 const B = JSON.parse(fs.readFileSync(b, "utf8"));
-let antal = 0, topp = 0, nollTillTraff = 0, traffTillNoll = 0;
+let antal = 0, topp = 0, nollTillTraff = 0, traffTillNoll = 0, annatSvar = 0, medAvtryck = 0;
 const rader = [];
 for (const q of Object.keys(A)) {
   const x = A[q], y = B[q];
   if (!y) continue;
   const nAndrat = x.n !== y.n, tAndrat = x.t.join("|") !== y.t.join("|");
+  // Hela svaret (alla träffar i ordning och alla besked), när båda filerna bär det.
+  if (x.h && y.h) { medAvtryck++; if (x.h !== y.h) annatSvar++; }
   if (nAndrat) antal++;
   if (tAndrat) topp++;
   if (x.n === 0 && y.n > 0) nollTillTraff++;
@@ -21,6 +23,7 @@ for (const q of Object.keys(A)) {
   if ((nAndrat || tAndrat) && (!filter || new RegExp(filter).test(q))) rader.push({ q, x, y });
 }
 console.log(`${Object.keys(A).length} frågor: ${antal} bytte antal, ${topp} bytte de fem första, ${nollTillTraff} gick från 0 till träff, ${traffTillNoll} från träff till 0`);
+if (medAvtryck > 0) console.log(`hela svaret (alla träffar i ordning och alla besked): ${annatSvar} av ${medAvtryck} frågor fick ett annat`);
 const n = Number(visa);
 const steg = Math.max(1, Math.floor(rader.length / Math.max(1, n)));
 for (let i = 0; i < rader.length && i / steg < n; i += steg) {

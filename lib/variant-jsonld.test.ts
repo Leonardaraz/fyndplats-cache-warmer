@@ -66,6 +66,23 @@ test("variantens namn bär alla val, egenskaperna bara de stödda", () => {
   assert.deepEqual(variantBeskrivning("Hink", v, stor), { name: "Hink – Svart, 4 st", color: "Svart" });
 });
 
+test("☠️ varje variant bär en egen beskrivning: Search Console saknade den på 1 434 objekt", () => {
+  const v = { variantId: "a", val: [{ axel: "Färg", etikett: "svart" }, { axel: "Antal", etikett: "4 st" }], priceNum: 1, inStock: true, image: "" };
+  const stor = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+  // Produktens beskrivning, följd av variantens val som en egen mening.
+  assert.equal(variantBeskrivning("Hink", v, stor, "Hink i plast med lock.").description, "Hink i plast med lock. Färg: Svart, Antal: 4 st.");
+  // En text utan punkt avslutas, och en avkortad text (…) lämnas som den är.
+  assert.equal(variantBeskrivning("Hink", v, stor, "Hink i plast med lock").description, "Hink i plast med lock. Färg: Svart, Antal: 4 st.");
+  assert.equal(variantBeskrivning("Hink", v, stor, " Hink i plast med… ").description, "Hink i plast med… Färg: Svart, Antal: 4 st.");
+  // En produkt utan egen text får valen: hellre det än ingen beskrivning.
+  assert.equal(variantBeskrivning("Hink", v, stor, "").description, "Färg: Svart, Antal: 4 st.");
+  // Två varianter av samma produkt får olika beskrivningar.
+  const vit = { ...v, variantId: "b", val: [{ axel: "Färg", etikett: "vit" }, { axel: "Antal", etikett: "4 st" }] };
+  assert.notEqual(variantBeskrivning("Hink", v, stor, "Hink.").description, variantBeskrivning("Hink", vit, stor, "Hink.").description);
+  // Utan argumentet skrivs ingen beskrivning (som före 2026-11-20).
+  assert.equal("description" in variantBeskrivning("Hink", v, stor), false);
+});
+
 test("variantUrl förväljer varianten med ?variant=", () => {
   assert.equal(variantUrl("https://www.fyndplats.se/produkt/hink", "a b"), "https://www.fyndplats.se/produkt/hink?variant=a%20b");
 });

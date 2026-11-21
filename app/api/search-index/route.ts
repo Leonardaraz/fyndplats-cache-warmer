@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
-import { getProductsFarska } from "../../../lib/products";
+import { getCollections, getProductsFarska } from "../../../lib/products";
 import { listPris } from "../../../lib/price-range";
+import { BARA_I_UNDERKATEGORIN } from "../../../lib/bara-i-underkategorin";
+import { byggOrdforrad } from "../../../lib/search";
+import { kategoriRad, sokKategorier, varansKategorier } from "../../../lib/sok-begrepp";
 import { katalogensSokordning } from "../../../lib/sok-ordning";
 
 // Lightweight product index for the search autocomplete: name / slug / image / price.
@@ -39,7 +42,18 @@ export async function GET() {
   // sökrutan och på söksidans kalla väg. Nyast först, uttalat, och samma som
   // söksidan rankar i (lib/sok-ordning.ts).
   const products = katalogensSokordning(await getProductsFarska());
-  const index = products.map((p) => ({
+  // KATEGORIERNA FÖLJER MED (2026-11-20). "barnmöbler" gav två varor, för ordet
+  // står inte i namnen: sökningen läser nu också vilka kategorier varan ligger
+  // i (lib/search.ts, "Kategorierna som begrepp"). Varje rad bär sina
+  // kategorier som platser i tabellen (`k`), och tabellen står som indexets
+  // SISTA rad. I samma svar, så att platserna aldrig pekar i en annan version
+  // av tabellen, och som en rad utan namn och slug, så att en äldre sida som
+  // hämtar indexet går förbi den (lib/sok-index.ts tar bort den).
+  //
+  // Faller kategoriläsningen skickas indexet utan dem, och sökningen söker i
+  // namnen som förut.
+  const kategorier = sokKategorier(await getCollections().catch(() => []));
+  const index: object[] = products.map((p) => ({
     n: p.name,
     s: p.slug,
     i: p.img,
@@ -59,6 +73,20 @@ export async function GET() {
     // lib/price-range.ts, som kontaktformulärets produktkort också använder).
     p: listPris(p),
     ...(p.inStock ? {} : { o: 1 }),
+    ...kategorierFor(p, kategorier),
   }));
+  // DEN TOMMA RUTANS SÖKEXEMPEL FÖLJER MED I SAMMA RAD (2026-11-20). Rutan
+  // visar "Sök till exempel" över de populära varorna, och orden kommer ur
+  // katalogens ordförråd. Webbläsaren byggde det innan sökläget kunde öppnas:
+  // 130–160 ms på en strypt telefon, mätt i den största uppgiften vid
+  // öppningen. Här räknas de en gång i timmen i stället, med samma funktion
+  // på samma namn, så orden är desamma. Utan dem räknar rutan själv som förut.
+  if (kategorier.kat.length > 0) index.push(kategoriRad(kategorier.kat, byggOrdforrad(products.map((p) => p.name)).exempel));
   return NextResponse.json(index, { headers: { "Cache-Control": CACHE } });
+}
+
+/** Radens `k`, eller ingenting när varan inte ligger i någon känd kategori. */
+function kategorierFor(p: { id: string; collectionIds: string[] }, kategorier: ReturnType<typeof sokKategorier>): { k?: number[] } {
+  const k = varansKategorier(p, kategorier, BARA_I_UNDERKATEGORIN);
+  return k ? { k } : {};
 }

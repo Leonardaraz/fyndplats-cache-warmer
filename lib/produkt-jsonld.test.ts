@@ -26,6 +26,14 @@ test("produktsidan anger hanteringstid, startdatum för priset och att kunden be
   assert.ok(!sida.includes("schema.org/ReturnShippingFees"));
 });
 
+test("☠️ produktsidan ger varje variant gruppens beskrivning (Search Console 2026-11-20, 1 434 objekt)", () => {
+  const sida = kod("app/produkt/[slug]/page.tsx");
+  // Gruppen och den enkla produkten bär beskrivningen som förut.
+  assert.match(sida, /description:\s*p\.seoDescription \|\| p\.blurb/);
+  // Varianterna får den genom variantBeskrivning, med valen efter.
+  assert.match(sida, /\.\.\.variantBeskrivning\(p\.name, v, visaValnamn, gemensamt\.description\)/);
+});
+
 test("listsidorna märker inte upp produkterna som varor", () => {
   const listor = kod("lib/seo/programmatic.ts");
   assert.ok(listor.includes("listsidansItemList("));

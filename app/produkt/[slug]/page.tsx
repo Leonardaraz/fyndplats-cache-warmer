@@ -284,7 +284,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       hasVariant: grupp.varianter.map((v) => ({
         "@type": "Product",
         sku: v.variantId,
-        ...variantBeskrivning(p.name, v, visaValnamn),
+        // Varje variant är ett eget objekt i Search Console och ska ha en egen
+        // beskrivning: gruppens, följd av variantens val (lib/variant-jsonld.ts).
+        ...variantBeskrivning(p.name, v, visaValnamn, gemensamt.description),
         image: v.image,
         offers: erbjudande(v.priceNum, v.inStock, variantUrl(produktUrl, v.variantId), fraktRef(v.priceNum), { "@id": returId }),
       })),
