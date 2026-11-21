@@ -101,7 +101,7 @@ export function SokKall({ q, kategorier, popularaKategorier }: { q: string; kate
         const { utfall: u, visar } = rankaMedForslag(kandidater(lista, slutsalda), (p) => p.name, prisfraga.fraga, kategoridata(slutsalda));
         // "soffa billigast": varorna som heter så, billigast först (som på servern).
         const billigast = villHaBilligast(prisfraga.fraga) && u.hela === undefined;
-        const ordnade = billigast ? billigastForst(u.traffar, (p) => varanHeterSa(p.name, prisfraga.fraga), lagstaPris) : u.traffar;
+        const ordnade = billigast ? billigastForst(u.traffar, (p) => varanHeterSa(p.name, prisfraga.fraga), lagstaPris, u.hemma) : u.traffar;
         // De köpbara först, relevansordningen kvar inom varje grupp: samma regel
         // som servern och sökrutan (lib/sok-ordning.ts).
         const traffar = kopbaraForst(ordnade, (p) => !p.inStock);

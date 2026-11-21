@@ -147,7 +147,7 @@ describe("de tre vägarna använder regeln", () => {
     assert.match(k, /import \{ billigastForst, kopbaraForst \} from "\.\/sok-ordning";/);
     // `ordnade` är träffarna som de rankades, eller med de billigaste först för "soffa billigast" (2026-11-21).
     assert.match(k, /const kvar = kopbaraForst\(behall \? ordnade\.filter\(behall\) : ordnade, \(h\) => h\.o === 1\);\s+return \{\s+traffar: kvar\.slice\(0, antal\),\s+totalt: kvar\.length,/);
-    assert.match(k, /const ordnade = villHaBilligast\(term\) && utfall\.hela === undefined\s+\? billigastForst\(utfall\.traffar, \(h\) => varanHeterSa\(h\.n, term\), \(h\) => prisTal\(h\.p\)\)\s+: utfall\.traffar;/);
+    assert.match(k, /const ordnade = villHaBilligast\(term\) && utfall\.hela === undefined\s+\? billigastForst\(utfall\.traffar, \(h\) => varanHeterSa\(h\.n, term\), \(h\) => prisTal\(h\.p\), utfall\.hemma\)\s+: utfall\.traffar;/);
     // Kontaktformulärets väljare klipper på relevans först: där letar kunden efter en vara den redan köpt.
     assert.match(k, /export function rankaForslag\(idx: SokTraff\[\], term: string, antal: number\): SokTraff\[\] \{\s+return rankByName\(idx, \(h\) => h\.n, term, namnFor\(idx\)\)\s+\.slice\(0, antal\)\s+\.sort\(/);
   });
@@ -156,7 +156,7 @@ describe("de tre vägarna använder regeln", () => {
     const sida = las("app", "sok", "page.tsx");
     assert.match(sida, /const all = term \? katalogensSokordning\(await getProducts\(\)\) : \[\];/);
     assert.match(sida, /results = await attachRatings\(kopbaraForst\(results, \(p\) => !p\.inStock\)\);/);
-    assert.match(sida, /if \(billigast && hela === undefined\) results = billigastForst\(results, \(p\) => varanHeterSa\(p\.name, fraga\), lagstaPris\);/);
+    assert.match(sida, /if \(billigast && hela === undefined\) results = billigastForst\(results, \(p\) => varanHeterSa\(p\.name, fraga\), lagstaPris, utfall\.hemma\);/);
   });
 
   it("sökindexet står i samma ordning", () => {
@@ -167,7 +167,7 @@ describe("de tre vägarna använder regeln", () => {
     const kalla = las("components", "sok-kall.tsx");
     assert.match(kalla, /const traffar = kopbaraForst\(ordnade, \(p\) => !p\.inStock\);/);
     // Samma "billigast"-ordning som servern och sökrutan, före lagerregeln.
-    assert.match(kalla, /const ordnade = billigast \? billigastForst\(u\.traffar, \(p\) => varanHeterSa\(p\.name, prisfraga\.fraga\), lagstaPris\) : u\.traffar;/);
+    assert.match(kalla, /const ordnade = billigast \? billigastForst\(u\.traffar, \(p\) => varanHeterSa\(p\.name, prisfraga\.fraga\), lagstaPris, u\.hemma\) : u\.traffar;/);
     assert.match(kalla, /kall: true,/);
   });
 });

@@ -83,7 +83,7 @@ export function rankaForslagMedAntal(
   // "soffa billigast": varorna som heter så, billigast först, som på resultatsidan
   // (billigastForst i lib/sok-ordning.ts). En påfylld lista har sin egen ordning.
   const ordnade = villHaBilligast(term) && utfall.hela === undefined
-    ? billigastForst(utfall.traffar, (h) => varanHeterSa(h.n, term), (h) => prisTal(h.p))
+    ? billigastForst(utfall.traffar, (h) => varanHeterSa(h.n, term), (h) => prisTal(h.p), utfall.hemma)
     : utfall.traffar;
   const kvar = kopbaraForst(behall ? ordnade.filter(behall) : ordnade, (h) => h.o === 1);
   return {

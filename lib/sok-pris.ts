@@ -71,6 +71,22 @@ export function baraPrisgrans(sokning: string): number | null {
   return m[4] || tal >= MINSTA_PRIS_UTAN_KR ? tal : null;
 }
 
+/**
+ * Sidan för en sökning som bara är ett pristak, annars null. Har gränsen en
+ * egen sida går kunden dit ("/under-500-kr"). Annars till alla varor med
+ * taket som filter: listans prisreglage läser `?pris=under-300`
+ * (parsePriceSlug i lib/price-range.ts), mätt i webbläsaren 2026-11-21.
+ *
+ * ☠️ Bara tak. Ett golv ("över 5000 kr") går inte samma väg: listan ställer
+ * reglaget efter de varor den fick med sidan, och ett golv över deras
+ * dyraste räknas som inget filter (handlesFromSlug i components/shopbrowser.tsx).
+ */
+export function sidaForPristak(sokning: string): string | null {
+  const grans = baraPrisgrans(sokning);
+  if (grans === null) return null;
+  return PRISSIDOR.includes(grans) ? `/under-${grans}-kr` : `/alla-produkter?pris=under-${grans}`;
+}
+
 const BILLIGAST = /(?:^|\s)(?:billigast|billigaste|lägst pris|lägsta pris|lägsta priset)(?=\s|$)/i;
 /** "soffa billigast": kunden vill se det billigaste först (se billigastForst i lib/sok-ordning.ts). */
 export function villHaBilligast(sokning: string): boolean {

@@ -13,7 +13,7 @@ import { kortOrd, matchaKategorier, normalize, rankaMedForslag, varanHeterSa, ty
 import { BARA_I_UNDERKATEGORIN } from "../../lib/bara-i-underkategorin";
 import { sokKategorier, varansKategorier, type Sokkategorier } from "../../lib/sok-begrepp";
 import { plattaKategorier, type SokKategori } from "../../lib/sok-kategorier";
-import { baraPrisgrans, harPris, lagstaPris, PRISSIDOR, tolkaPris, villHaBilligast } from "../../lib/sok-pris";
+import { harPris, lagstaPris, sidaForPristak, tolkaPris, villHaBilligast } from "../../lib/sok-pris";
 import { sidaForSokning } from "../../lib/sok-sidor";
 import { billigastForst, katalogensSokordning, kopbaraForst } from "../../lib/sok-ordning";
 
@@ -50,11 +50,12 @@ async function kategoridata(): Promise<Kategoridata<Product> | undefined> {
 export default async function Sok({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const { q = "" } = await searchParams;
   const term = q.trim();
-  // EN ENSAM PRISGRÄNS ("under 500", "under 500 kr") är ingen sökning på ord:
-  // förut söktes talet, och svaret var 26 varor med "500" i namnet. De tre
-  // gränser som har en egen sida skickas dit (2026-11-21).
-  const grans = baraPrisgrans(term);
-  if (grans !== null && PRISSIDOR.includes(grans)) redirect(`/under-${grans}-kr`);
+  // ETT ENSAMT PRISTAK ("under 500", "under 300 kr") är ingen sökning på ord:
+  // förut söktes talet, och svaret var 26 varor med "500" i namnet. Gränserna
+  // med en egen sida skickas dit, de andra till alla varor med taket som
+  // filter (2026-11-21, sidaForPristak i lib/sok-pris.ts).
+  const prissida = sidaForPristak(term);
+  if (prissida) redirect(prissida);
   // PRISET I SÖKNINGEN (lib/sok-pris.ts): "soffa under 2000" rankas som "soffa",
   // och vyn visar träffarna inom priset med en knapp för alla.
   const prisfraga = tolkaPris(term);
@@ -134,7 +135,7 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
       ({ strukna, utan, hela, inte } = utfall);
       liknande = utfall.liknande === true;
       // Påfyllda listor (`hela`) har en egen ordning som beskedet beskriver: de rörs inte.
-      if (billigast && hela === undefined) results = billigastForst(results, (p) => varanHeterSa(p.name, fraga), lagstaPris);
+      if (billigast && hela === undefined) results = billigastForst(results, (p) => varanHeterSa(p.name, fraga), lagstaPris, utfall.hemma);
     } else if (kategorier.length === 0 && !kortOrd(fraga)) {
       // ☠️ Aldrig för två bokstäver: de står i nästan varje beskrivning.
       // Reserven i beskrivningarna, bara när varken ett namn eller en kategori

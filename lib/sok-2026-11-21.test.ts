@@ -22,7 +22,8 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { hopskrivetBegrepp, nameMatch, normalize, rankaMedInfo, tolkaUtan, varanHeterSa, type Kategoridata, type SokKat } from "./search.ts";
 import { billigastForst } from "./sok-ordning.ts";
-import { baraPrisgrans, lagstaPris, prisTal, PRISSIDOR, tolkaPris, villHaBilligast } from "./sok-pris.ts";
+import { baraPrisgrans, lagstaPris, prisTal, PRISSIDOR, sidaForPristak, tolkaPris, villHaBilligast } from "./sok-pris.ts";
+import { parsePriceSlug } from "./price-range.ts";
 import { sidaForSokning } from "./sok-sidor.ts";
 
 type Vara = { n: string; k: number[]; kr?: number };
@@ -417,6 +418,43 @@ test('"soffa billigast": varorna som heter soffa, billigast först', () => {
   assert.equal(varanHeterSa("Hörnsoffa i beige manchester", "soffa"), true);
   assert.equal(varanHeterSa("Sidobord för soffan i svart metall", "soffa"), false);
   assert.equal(varanHeterSa("LED-golvlampa med fyra hyllfack", "led lampa"), true);
+  // ☠️ Med ordet som begär ordningen KVAR i sökningen: det är så sidan frågar.
+  // Första versionen svarade nej på allt då, och ingenting sorterades.
+  for (const q of ["soffa billigast", "billigaste soffa", "soffa lägsta pris", "soffa lägst pris"]) {
+    assert.equal(varanHeterSa("Hörnsoffa i beige manchester", q), true, q);
+    assert.equal(varanHeterSa("Sidobord för soffan i svart metall", q), false, q);
+  }
+  assert.equal(varanHeterSa("Julgran 150 cm med 1 724 grenspetsar", "billigaste julgranen"), true);
+  // Bara ord som hör till frågan: ingen vara heter så, inte heller den som har ordet i namnet.
+  assert.equal(varanHeterSa("Hörnsoffa i beige manchester", "billigast"), false);
+  assert.equal(varanHeterSa("Billig julgran 180 cm i grönt", "billig"), false);
+  assert.equal(varanHeterSa("Billig julgran 180 cm i grönt", "billig julgran"), true);
+  // Hela vägen som sidan går: motorns träffar för sökningen, ordnade med samma tre funktioner.
+  const pris: Record<string, number> = { "Soffa 3-sits i grå sammet": 4999, "Hörnsoffa i beige manchester": 7999, "Bäddsoffa med förvaring i chenille": 2999, "Hundsoffa XL med ryggstöd": 899, "Sidobord för soffan i svart metall": 399 };
+  const svar = sok("soffa billigast");
+  // ☠️ Ordets egen kategori för sig. Motorn säger hur många av de första
+  // träffarna som ligger i Soffor & bäddsoffor (`hemma`), och de ordnas efter
+  // pris först. Mätt mot katalogen: utan det stod barnsoffor och hundsoffor
+  // före varenda soffa, och en leksaksgrill före kolgrillarna.
+  assert.equal(svar.hemma, medl(8).length);
+  const pa = billigastForst(svar.traffar, (v) => varanHeterSa(v.n, "soffa billigast"), (v) => pris[v.n] ?? 0, svar.hemma).map((v) => v.n);
+  assert.deepEqual(pa.slice(0, 3), ["Bäddsoffa med förvaring i chenille", "Soffa 3-sits i grå sammet", "Hörnsoffa i beige manchester"]);
+  // Hundsoffan heter soffa och är billigast av alla, men står på en annan hylla: efter sofforna.
+  assert.equal(pa.indexOf("Hundsoffa XL med ryggstöd"), medl(8).length);
+  // Sidobordet är billigare än allt men heter inte soffa.
+  assert.ok(pa.indexOf("Sidobord för soffan i svart metall") > pa.indexOf("Trädgårdssoffa i grå polyrotting"));
+  // Utan besked om hemmet ordnas alla som heter så tillsammans (sökningar på flera ord).
+  const utanHem = billigastForst(svar.traffar, (v) => varanHeterSa(v.n, "soffa billigast"), (v) => pris[v.n] ?? 0).map((v) => v.n);
+  assert.equal(utanHem[0], "Hundsoffa XL med ryggstöd");
+  // "utan" behåller hemmet: sofforna i sin kategori först, den som heter "utan armstöd" överst.
+  const utan = sok("soffa utan armstöd");
+  assert.equal(utan.traffar[0].n, "Tvåsitssoffa i manchester utan armstöd");
+  assert.ok(utan.hemma !== undefined && utan.hemma > 0 && utan.hemma <= medl(8).length);
+  assert.deepEqual(new Set(utan.traffar.slice(0, utan.hemma).map((v) => v.n)).size, utan.hemma);
+  for (const v of utan.traffar.slice(0, utan.hemma)) assert.ok(medl(8).includes(v.n), v.n);
+  assert.equal(varanHeterSa("Tvåsitssoffa i manchester utan armstöd", "soffa utan armstöd billigast"), true);
+  // En sökning utan egen kategori bär inget `hemma`.
+  assert.equal(sok("stolar").hemma, undefined);
   // ☠️ Inte hela listan efter pris: överdraget är billigast och är ingen soffa.
   const t = [{ n: "Soffa A", kr: 4999 }, { n: "Överdrag till soffa", kr: 199 }, { n: "Soffa B", kr: 2999 }, { n: "Soffa utan pris", kr: 0 }, { n: "Soffa C", kr: 2999 }];
   const ordnade = billigastForst(t, (x) => x.n.startsWith("Soffa"), (x) => x.kr).map((x) => x.n);
@@ -455,7 +493,7 @@ test("billigast: sökrutan och resultatsidan ger samma ordning", () => {
   assert.equal(lagstaPris({ hasRange: true, priceFromNum: 1659, priceNum: 1899 }), 1659);
   // Rutan ordnar med samma tre funktioner som sidan (lib/sok-rankning.ts går inte att ladda här).
   const rutansKod = readFileSync(new URL("./sok-rankning.ts", import.meta.url), "utf8");
-  assert.match(rutansKod, /billigastForst\(utfall\.traffar, \(h\) => varanHeterSa\(h\.n, term\), \(h\) => prisTal\(h\.p\)\)/);
+  assert.match(rutansKod, /billigastForst\(utfall\.traffar, \(h\) => varanHeterSa\(h\.n, term\), \(h\) => prisTal\(h\.p\), utfall\.hemma\)/);
 });
 
 test('"rea" och "fyndauktion" namnger en sida, inte en vara', () => {
@@ -500,7 +538,16 @@ test('"under 500": en ensam prisgräns är ingen sökning på ord', () => {
   const sidor = /export const PRICE_TIERS = \[([^\]]+)\]/.exec(readFileSync(new URL("./seo/programmatic.ts", import.meta.url), "utf8"));
   assert.deepEqual(sidor![1].split(",").map((x) => Number(x.trim())), [...PRISSIDOR]);
   const sida = readFileSync(new URL("../app/sok/page.tsx", import.meta.url), "utf8");
-  assert.match(sida, /if \(grans !== null && PRISSIDOR\.includes\(grans\)\) redirect\(`\/under-\$\{grans\}-kr`\)/);
+  // Gränser med en sida går dit, andra tak till alla varor med taket som filter.
+  assert.equal(sidaForPristak("under 500"), "/under-500-kr");
+  assert.equal(sidaForPristak("max 1 000 kr"), "/under-1000-kr");
+  assert.equal(sidaForPristak("under 300 kr"), "/alla-produkter?pris=under-300");
+  assert.equal(sidaForPristak("högst 750 kr"), "/alla-produkter?pris=under-750");
+  // Listans prisreglage läser just den adressen.
+  assert.deepEqual(parsePriceSlug("under-300"), { min: 0, max: 300 });
+  // Ett golv, ett litet tal utan "kr" och en sökning med ord går inte dit.
+  for (const q of ["över 5000 kr", "under 200", "soffa under 500", ""]) assert.equal(sidaForPristak(q), null, q);
+  assert.match(sida, /const prissida = sidaForPristak\(term\);\s+if \(prissida\) redirect\(prissida\);/);
 });
 
 test("söksidan säger vad den valt bort och hur den ordnat", () => {

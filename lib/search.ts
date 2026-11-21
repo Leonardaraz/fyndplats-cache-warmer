@@ -1737,7 +1737,19 @@ function matchPrepared(
  * söksidans "billigast"-ordning (lib/sok-ordning.ts).
  */
 export function varanHeterSa(name: string, query: string): boolean {
-  return nameMatch(name, query).score >= ALLA_I_HUVUDDELEN;
+  // ☠️ Utan orden som hör till frågan ("billigast", "lägsta pris"). Med dem
+  // kvar är "soffa" inte längre sökningens enda ord: varje soffa fick 60 i
+  // stället för 100, ingen vara "hette" soffa, och "soffa billigast" visade
+  // beskedet om prisordning över en lista i den vanliga ordningen (sett i
+  // webbläsaren 2026-11-21, proven jämförde bara med "soffa").
+  // Och utan det kunden nekade: "soffa utan armstöd" frågar om varan är en soffa.
+  const ord = tokenize(tolkaUtan(query)?.fraga ?? query).filter((t) => !STOPWORDS.has(t));
+  if (ord.length === 0) return false;
+  // Varje sökord som ett ord, eller sist i ett ord, i namnets huvuddel
+  // (`kant` 5 och 6), utan stavfel. Inte poängen: en böjd sökning
+  // ("julgranen", "soffor") ger 60 också för varan som heter så.
+  const t = nameMatch(name, ord.join(" "));
+  return t.full && !t.stavfel && (t.kant ?? 0) >= 5;
 }
 
 export function nameScore(name: string, query: string): number {
@@ -1788,7 +1800,15 @@ export function rankByName<T>(items: T[], nameOf: (item: T) => string, query: st
  *   `inte` är orden kunden nekade ("julgran utan belysning"): varor som
  *     nämner dem är bortvalda, och sidan säger det.
  */
-export type Sokutfall<T> = { traffar: T[]; strukna: string[]; utan?: string[]; hela?: number; rattat?: string; liknande?: true; sokt?: string; inte?: string[] };
+export type Sokutfall<T> = {
+  traffar: T[]; strukna: string[]; utan?: string[]; hela?: number; rattat?: string; liknande?: true; sokt?: string; inte?: string[];
+  /**
+   * Så många av de första träffarna är varor som heter som sökordet OCH ligger
+   * i ordets egen kategori (se "ordets egen kategori först" i medBegrepp).
+   * Söksidans "billigast"-ordning sorterar dem för sig (lib/sok-ordning.ts).
+   */
+  hemma?: number;
+};
 
 /** Färre hela träffar än så, och sökningen har en färg eller ett mått: fyll på. */
 export const FYLL_PA_UNDER = 24;
@@ -2680,6 +2700,12 @@ function rankaUtan<T>(items: T[], nameOf: (item: T) => string, query: string, na
     if (bas.traffar.length > 0) {
       const plats = new Map<T, number>();
       for (let i = 0; i < items.length; i++) plats.set(items[i], i);
+      // Ordets egen kategori står först i `bas` (`hemma`) och gör det här
+      // också: varorna som heter "utan X" går först inom den, och sedan inom
+      // resten. Utan en sådan kategori är det en enda grupp, som förut.
+      const iHemmet = bas.hemma ?? 0;
+      const hemHeter: T[] = [];
+      const hemOvriga: T[] = [];
       const heter: T[] = [];
       const ovriga: T[] = [];
       let hela = 0;
@@ -2687,13 +2713,15 @@ function rankaUtan<T>(items: T[], nameOf: (item: T) => string, query: string, na
         const n = namn[plats.get(x) ?? -1] ?? normalize(nameOf(x));
         const uttryckligt = nekad.inte.some((o) => heterUtan(n, o));
         if (!uttryckligt && nekad.inte.some((o) => namnerOrdet(n, o))) return;
-        (uttryckligt ? heter : ovriga).push(x);
+        if (k < iHemmet) (uttryckligt ? hemHeter : hemOvriga).push(x);
+        else (uttryckligt ? heter : ovriga).push(x);
         if (bas.hela !== undefined && k < bas.hela) hela++;
       });
+      const hemma = hemHeter.length + hemOvriga.length;
       // Nämner varje träff det nekade ordet finns inget att välja bort till:
       // då gäller sökningen som den skrevs (nedan), med sina vanliga besked.
-      if (heter.length + ovriga.length > 0) {
-        return { ...bas, traffar: [...heter, ...ovriga], inte: nekad.inte, ...(bas.hela !== undefined ? { hela } : {}) };
+      if (hemma + heter.length + ovriga.length > 0) {
+        return { ...bas, hemma: hemma > 0 ? hemma : undefined, traffar: [...hemHeter, ...hemOvriga, ...heter, ...ovriga], inte: nekad.inte, ...(bas.hela !== undefined ? { hela } : {}) };
       }
     }
   }
@@ -2987,7 +3015,7 @@ function raknaInre<T>(items: T[], nameOf: (item: T) => string, query: string, no
       }
     }
     if (fyllda.length === 0 && sist.length === 0 && !harHem) return hela(fulla);
-    return { traffar: [...forst.map((r) => r.item), ...sist.map((r) => r.item), ...fyllda], strukna: [] };
+    return { traffar: [...forst.map((r) => r.item), ...sist.map((r) => r.item), ...fyllda], strukna: [], ...(harHem ? { hemma } : {}) };
   }
 
   // VARJE SÖKORD I NAMNET ELLER GENOM EN KATEGORI, när inget namn har alla

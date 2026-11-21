@@ -47,22 +47,35 @@ export function kopbaraForst<T>(traffar: readonly T[], slutsald: (t: T) => boole
  * ☠️ Inte hela listan efter pris. Träffarna rymmer också varor som bara
  * nämner ordet ("Sidobord för soffan", "Överdrag till hörnsoffa"), och de är
  * billigast: en ren prissortering hade visat dem före varenda soffa. En vara
- * utan läsbart pris går sist bland dem som heter så.
+ * utan läsbart pris går sist i sin grupp.
+ *
+ * ☠️ Ordets egen kategori för sig. `hemma` är hur många av de första
+ * träffarna som ligger i sökordets egen kategori (Sokutfall.hemma i
+ * lib/search.ts). De ordnas efter pris först, och sedan de som heter så på
+ * andra hyllor. Utan det stod barnsoffor och hundsoffor före varenda soffa,
+ * och en raclettegrill och en leksaksgrill före kolgrillarna: de heter soffa
+ * och grill, och de är billigast (mätt mot katalogen samma dag).
  *
  * Priset jämförs i HELA KRONOR, som det står på kortet. Sökrutan läser priset
  * ur indexets text ("1 599 kr") och resultatsidan ur varans tal: med ören i
  * jämförelsen hade två varor som båda visar 1 599 kr kunnat stå i olika
  * ordning i rutan och på sidan, och rutans förslag ska vara sidans första.
  */
-export function billigastForst<T>(traffar: readonly T[], heterSa: (t: T) => boolean, pris: (t: T) => number): T[] {
-  const varor: { t: T; kr: number; plats: number }[] = [];
+export function billigastForst<T>(traffar: readonly T[], heterSa: (t: T) => boolean, pris: (t: T) => number, hemma?: number): T[] {
+  type Rad = { t: T; kr: number; plats: number };
+  const hem: Rad[] = [];
+  const andra: Rad[] = [];
   const ovriga: T[] = [];
+  const iHemmet = hemma ?? 0;
   traffar.forEach((t, plats) => {
-    if (heterSa(t)) varor.push({ t, kr: Math.round(pris(t)), plats });
+    if (plats < iHemmet) hem.push({ t, kr: Math.round(pris(t)), plats });
+    else if (heterSa(t)) andra.push({ t, kr: Math.round(pris(t)), plats });
     else ovriga.push(t);
   });
-  varor.sort((a, b) => (a.kr > 0 ? a.kr : Infinity) - (b.kr > 0 ? b.kr : Infinity) || a.plats - b.plats);
-  return [...varor.map((v) => v.t), ...ovriga];
+  const efterPris = (a: Rad, b: Rad): number => (a.kr > 0 ? a.kr : Infinity) - (b.kr > 0 ? b.kr : Infinity) || a.plats - b.plats;
+  hem.sort(efterPris);
+  andra.sort(efterPris);
+  return [...hem.map((v) => v.t), ...andra.map((v) => v.t), ...ovriga];
 }
 
 type MedAlder = { createdAt?: number; id?: string };
