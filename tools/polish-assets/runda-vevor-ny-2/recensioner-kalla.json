@@ -173,20 +173,34 @@
       }
     ]
   },
-  "763652e8": {
-    "productId": "763652e8-ba99-4664-88ff-5a87038dd0f5",
+  "bf802c89": {
+    "productId": "bf802c89-84be-488e-9481-2be40faa062e",
     "synliga": 0,
-    "dolda": 3,
+    "dolda": 0,
     "kundVantar": 0,
     "annanArtikel": 0,
-    "okandArtikel": 3,
+    "okandArtikel": 0,
     "attBesluta": [
       {
-        "id": "gen-s2tfy6",
+        "id": "gen-1pmdfc4",
         "betyg": 5,
-        "datum": "2025-10-16",
+        "datum": "2026-08-30",
         "foton": 0,
-        "text": "This through-wall drop box has completely solved my mail security issues. The heavy-duty steel construction feels sturdy and durable, with a clean dark gray finish that resists scratches and weathering. The combination lock is easy to set and operate, no more worrying about lost keys. The anti-theft baffle inside prevents fishing, and the rainproof design keeps all mail dry even during heavy downpours. Installation was straightforward with clear instructions, and it fits perfectly into my exterior wall. Great for home and small business use."
+        "text": "Soddisfatti dell'acquisto, rete facile da montare, mia figlia si e' divertita molto con gli amici, sembra resistente e duratura. Spedizione veloce e pacco ben preparato."
+      },
+      {
+        "id": "gen-1100d5x",
+        "betyg": 5,
+        "datum": "2026-01-11",
+        "foton": 0,
+        "text": "The volleyball net is the right height, making it easy to practice spiking, and it's durable."
+      },
+      {
+        "id": "gen-1k6w0k8",
+        "betyg": 5,
+        "datum": "2025-05-19",
+        "foton": 0,
+        "text": "Verrassend stevig net, zeer fijn om te volleyballen. Kan op elke hoogte gehangen worden tot 2, 43. Net hangt strak genoeg. Gemakkelijk op te bouwen en af te breken (5 minuten). Enige aandachtspuntje is de ijzeren constructie: een beetje oppassen met springen aan het net, zeker met blote voeten."
       }
     ]
   }
