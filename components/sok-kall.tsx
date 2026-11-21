@@ -23,11 +23,11 @@
 // ShopBrowser hämtar den i bakgrunden (andraBilderUrKartan).
 import { useEffect, useState } from "react";
 import type { ListProduct } from "../lib/products";
-import { matchaKategorier, rankaMedForslag, type Kategoridata } from "../lib/search";
+import { matchaKategorier, rankaMedForslag, varanHeterSa, type Kategoridata } from "../lib/search";
 import { laddaSokIndex, sokKategorierHamtade, type SokTraff } from "../lib/sok-index";
 import { kandidater, medForsok } from "../lib/sok-kall";
-import { kopbaraForst } from "../lib/sok-ordning";
-import { harPris, tolkaPris } from "../lib/sok-pris";
+import { billigastForst, kopbaraForst } from "../lib/sok-ordning";
+import { harPris, lagstaPris, tolkaPris, villHaBilligast } from "../lib/sok-pris";
 import { populartNu } from "../lib/sok-tom";
 import { registreradeKategorier, type SokKategori } from "../lib/sok-kategorier";
 import { SokVy, type SokData } from "./sok-vy";
@@ -99,13 +99,17 @@ export function SokKall({ q, kategorier, popularaKategorier }: { q: string; kate
         const prisfraga = tolkaPris(q.trim());
         // Två bokstäver visar varorna för ordet kunden var på väg att skriva (lib/search.ts).
         const { utfall: u, visar } = rankaMedForslag(kandidater(lista, slutsalda), (p) => p.name, prisfraga.fraga, kategoridata(slutsalda));
+        // "soffa billigast": varorna som heter så, billigast först (som på servern).
+        const billigast = villHaBilligast(prisfraga.fraga) && u.hela === undefined;
+        const ordnade = billigast ? billigastForst(u.traffar, (p) => varanHeterSa(p.name, prisfraga.fraga), lagstaPris) : u.traffar;
         // De köpbara först, relevansordningen kvar inom varje grupp: samma regel
         // som servern och sökrutan (lib/sok-ordning.ts).
-        const traffar = kopbaraForst(u.traffar, (p) => !p.inStock);
+        const traffar = kopbaraForst(ordnade, (p) => !p.inStock);
         setSvar({
           q,
           data: {
-            traffar, strukna: u.strukna, utan: u.utan, hela: u.hela, visar, liknande: u.liknande === true,
+            traffar, strukna: u.strukna, utan: u.utan, hela: u.hela, visar, liknande: u.liknande === true, inte: u.inte,
+            billigast: billigast && traffar.length > 1,
             // Kategorierna gäller ordet som visas; sidhuvudet har registrerat menyns.
             kategorier: visar ? matchaKategorier(visar, registreradeKategorier(), 3) : kategorier,
             pris: harPris(prisfraga) ? { max: prisfraga.max, min: prisfraga.min } : undefined,

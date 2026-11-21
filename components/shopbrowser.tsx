@@ -125,7 +125,7 @@ export type SubCategory = { name: string; slug: string; count: number; bild?: st
  * för filterpanelen, och resten hämtas från `lista.url` när kunden behöver den
  * (se lib/list-pages.ts). Listsidorna använder det senare; /sok det förra.
  */
-export function ShopBrowser({ products, defaultSort = "img", subs = [], dayMs, lista, facetter, andraBilderUrKartan = false }: { products: ListProduct[]; defaultSort?: string; subs?: SubCategory[]; dayMs?: number; lista?: ListaInfo; facetter?: SpecFacett[]; /** Kortens andra bild står inte i listan och hämtas ur bildkartan när sidan är färdig (söksidans kalla väg, lib/sok-kall.ts). */ andraBilderUrKartan?: boolean }) {
+export function ShopBrowser({ products, defaultSort = "img", subs = [], dayMs, lista, facetter, andraBilderUrKartan = false, onAntal }: { products: ListProduct[]; defaultSort?: string; subs?: SubCategory[]; dayMs?: number; lista?: ListaInfo; facetter?: SpecFacett[]; /** Får veta hur många varor listan visar efter filtren (null = räknar), och hur många filter som är valda. Söksidans rubrik följer med (components/sok-vy.tsx). */ onAntal?: (visas: number | null, filter: number) => void; /** Kortens andra bild står inte i listan och hämtas ur bildkartan när sidan är färdig (söksidans kalla väg, lib/sok-kall.ts). */ andraBilderUrKartan?: boolean }) {
   // Vyn ritas med en TOM adress både på servern och i webbläsarens första
   // rendering, så att sidan hydreras som den är. Adressen läses först efter
   // monteringen, och bara om den har parametrar ritas vyn om med dem.
@@ -148,7 +148,7 @@ export function ShopBrowser({ products, defaultSort = "img", subs = [], dayMs, l
   // två gånger, ett kort, bakåt. Uppmätt i produktion: 24 kort i stället för
   // 72 och y = 5 833 px, alltså sidfoten. Med standardsorteringen fanns ingen
   // parameter, ingen ommontering och inget fel.
-  const props = { products, defaultSort, dayMs, lista, facetter, andraBilderUrKartan };
+  const props = { products, defaultSort, dayMs, lista, facetter, andraBilderUrKartan, onAntal };
   const [adress, setAdress] = useState<{ sp: Adress; n: number }>({ sp: TOM_ADRESS, n: 0 });
   const bytsUt = useRef(false);
   useLayoutEffect(() => {
@@ -216,7 +216,7 @@ function SubNav({ subs }: { subs: SubCategory[] }) {
   );
 }
 
-function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facetter, andraBilderUrKartan, sp, bytsUt }: { products: ListProduct[]; defaultSort: string; dayMs?: number; lista?: ListaInfo; facetter?: SpecFacett[]; andraBilderUrKartan: boolean; sp: Adress; bytsUt?: { readonly current: boolean } }) {
+function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facetter, andraBilderUrKartan, onAntal, sp, bytsUt }: { products: ListProduct[]; defaultSort: string; dayMs?: number; lista?: ListaInfo; facetter?: SpecFacett[]; andraBilderUrKartan: boolean; onAntal?: (visas: number | null, filter: number) => void; sp: Adress; bytsUt?: { readonly current: boolean } }) {
   const pathname = usePathname();
 
   // Initialt filter-/sorterings-tillstånd läses EN gång ur URL:en (delbar länk).
@@ -597,6 +597,10 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
   // något syns) om en gammal delad länk bär ?lager=1.
   const activeFilters = (priceActive ? 1 : 0) + (colors.length ? 1 : 0) + (onlyInStock && hasOos ? 1 : 0) + (onlyOnSale ? 1 : 0)
     + specLive.length + valAktiva;
+  // Den som ritar rubriken över listan (söksidan) får veta vad listan visar.
+  useEffect(() => {
+    onAntal?.(liveCount, activeFilters);
+  }, [onAntal, liveCount, activeFilters]);
   const reset = () => {
     const hela = Object.fromEntries(intervallF.map((f): [string, [number, number]] => [f.nyckel, [f.skala.min, f.skala.max]]));
     specHandtagRef.current = hela;

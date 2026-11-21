@@ -29,7 +29,7 @@ type Swc = {
 
 // Det sökrutan använder (lib/sok-rankning.ts). Resten skakas bort ur paketet,
 // och det är därför de heta funktionerna anropas på ett enda ställe.
-const SOKRUTANS = ["byggOrdforrad", "forberedKatalogSteg", "kortOrd", "markeraTraffar", "markeringsord", "matchaKategorier", "normalize", "rankaMedInfo", "rankByName", "sokforslagINamn", "visaVarorFor"];
+const SOKRUTANS = ["byggOrdforrad", "forberedKatalogSteg", "kortOrd", "markeraTraffar", "markeringsord", "matchaKategorier", "normalize", "rankaMedInfo", "rankByName", "sokforslagINamn", "varanHeterSa", "visaVarorFor"];
 
 async function minifierad(): Promise<string> {
   const swc = createRequire(import.meta.url)("next/dist/build/swc") as Swc;

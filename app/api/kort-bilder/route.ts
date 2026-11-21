@@ -23,7 +23,11 @@ export const revalidate = 3600;
 // Uppmätt i produktion 2026-08-28 på /api/search-index: utan huvudet svarade
 // Vercel x-vercel-cache: MISS med age=0 sex hämtningar i rad. Samma huvud som
 // den rutten använder, och av samma skäl: en människa väntar på resultatet.
-const CACHE = "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400";
+// ☠️ max-age lika lång som s-maxage sedan 2026-11-21: CDN:t skickar med
+// svarets ålder, så med 300 s var kopian för gammal redan när den kom fram
+// (mätt: `age: 1433`), och varje sidladdning hämtade om filen. Skälet står i
+// app/api/search-index/route.ts.
+const CACHE = "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400";
 
 /** slug → [huvudbild, hover-bild] som media-nycklar. null = ingen hover-bild. */
 export type KortBilder = Record<string, [string, string | null]>;

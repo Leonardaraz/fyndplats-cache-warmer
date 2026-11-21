@@ -492,9 +492,9 @@ export function fuzzyOrdslut(pattern: string, text: string, maxDist: number): nu
 
 // Tabellens rader, återanvända mellan anropen (ett ord är aldrig så långt).
 const RAD_MAX = 96;
-let radA = new Int32Array(RAD_MAX + 1);
-let radB = new Int32Array(RAD_MAX + 1);
-let radC = new Int32Array(RAD_MAX + 1);
+const radA = new Int32Array(RAD_MAX + 1);
+const radB = new Int32Array(RAD_MAX + 1);
+const radC = new Int32Array(RAD_MAX + 1);
 
 /** fuzzyOrdslut för ETT ord, text[a..b). */
 function ordslutAvstand(pattern: string, text: string, a: number, b: number, maxDist: number): number {
@@ -1177,6 +1177,12 @@ const STOPWORDS = new Set([
   // "barnkök rea" och "massagebänk rea" gav julgirlanger med REAlistiska
   // barrgrenar (2026-11-19): ordet hör till frågan, inte till varan.
   "rea", "rean", "billigast", "billigaste", "erbjudande",
+  // ☠️ "soffa lägsta pris" STRÖK "soffa" (2026-11-21) och svarade med tre
+  // anslagstavlor: "lägsta" lästes som ett varuord och stod mitt i
+  // "ansLAGSTAvla". Orden står inte i något varunamn (prövat mot 7 948 namn),
+  // och söksidan läser dem som en önskan om ordning (villHaBilligast i
+  // lib/sok-pris.ts).
+  "lägst", "lägsta",
   // ☠️ "har ni dieselvärmare" GAV 50 SKRÄPTRÄFFAR (2026-11-21), fast butiken
   // har 33 dieselvärmare. "har" räknades som sökningens första varuord, stod
   // i en massagefåtölj som "har värme", och "dieselvärmare" ströks. Orden här
@@ -1723,6 +1729,15 @@ function matchPrepared(
   if (fel > 0) m.fel = fel;
   if (utanPrickar) m.vikt = true;
   return m;
+}
+
+/**
+ * Heter varan som sökningen: står sökorden i namnets huvuddel (poäng 92 och
+ * uppåt, se skalan ovan)? "Sidobord för soffan" heter inte soffa. För
+ * söksidans "billigast"-ordning (lib/sok-ordning.ts).
+ */
+export function varanHeterSa(name: string, query: string): boolean {
+  return nameMatch(name, query).score >= ALLA_I_HUVUDDELEN;
 }
 
 export function nameScore(name: string, query: string): number {

@@ -53,6 +53,30 @@ export function tolkaPris(sokning: string): Prisfraga {
   return TAK_RE.test(m[2]) ? { fraga, max: tal } : { fraga, min: tal };
 }
 
+/** Prisgränserna som har en egen sida (/under-500-kr). Samma tal som PRICE_TIERS i lib/seo/programmatic.ts. */
+export const PRISSIDOR: readonly number[] = [200, 500, 1000];
+
+/**
+ * En sökning som BARA är en prisgräns ("under 500", "under 500 kr", "max 1000
+ * kr"): beloppet, annars null. Regel 4 ovan gör att tolkaPris lämnar den
+ * orörd, och då söktes "500" som ett ord: 26 varor med talet i namnet
+ * (2026-11-21). Har gränsen en egen sida skickas kunden dit (app/sok/page.tsx).
+ */
+export function baraPrisgrans(sokning: string): number | null {
+  const hel = (sokning || "").replace(/\s+/g, " ").trim();
+  const m = PRIS_RE.exec(hel);
+  if (!m || m.index !== 0 || m[0].trim().length !== hel.length || !TAK_RE.test(m[2])) return null;
+  const tal = Number(m[3].replace(/[ \u00a0.]/g, ""));
+  if (!Number.isFinite(tal) || tal <= 0) return null;
+  return m[4] || tal >= MINSTA_PRIS_UTAN_KR ? tal : null;
+}
+
+const BILLIGAST = /(?:^|\s)(?:billigast|billigaste|lägst pris|lägsta pris|lägsta priset)(?=\s|$)/i;
+/** "soffa billigast": kunden vill se det billigaste först (se billigastForst i lib/sok-ordning.ts). */
+export function villHaBilligast(sokning: string): boolean {
+  return BILLIGAST.test(sokning || "");
+}
+
 /** Har sökningen ett pris? */
 export const harPris = (p: { max?: number; min?: number }): boolean => p.max !== undefined || p.min !== undefined;
 

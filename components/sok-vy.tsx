@@ -3,11 +3,11 @@
 // och det tomma läget. Delas av de två vägar sidan har (app/sok/page.tsx):
 // servern när katalogen redan ligger i minnet, och webbläsaren när den inte
 // gör det (components/sok-kall.tsx).
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { ShopBrowser } from "./shopbrowser";
 import { ProductCard } from "./productcard";
 import type { ListProduct } from "../lib/products";
-import { productCountLabel } from "../lib/rating";
+import { productCountLabel, tusental } from "../lib/rating";
 import { rentNamn, type SokKategori } from "../lib/sok-kategorier";
 import { inomPris, lagstaPris, prisText } from "../lib/sok-pris";
 
@@ -29,6 +29,10 @@ export type SokData = {
   visar?: string;
   /** Inget namn har sökordet: träffarna ligger bara nära det i stavning (lib/search.ts, rankaMedInfo). */
   liknande?: boolean;
+  /** Orden kunden nekade med "utan": varor som nämner dem är bortvalda (lib/search.ts, tolkaUtan). */
+  inte?: string[];
+  /** "soffa billigast": varorna som heter som sökningen står billigast först (lib/sok-ordning.ts). */
+  billigast?: boolean;
   /** Den kalla vägen: korten bär bild ur sökindexet, och den andra bilden hämtas ur bildkartan (lib/sok-kall.ts). */
   kall?: boolean;
 };
@@ -61,13 +65,27 @@ export function SokVy({ q, data }: { q: string; data: SokData | "laddar" | "fel"
   const visade = klar ? (inom && inom.length > 0 && !visaAlla ? inom : klar.traffar) : [];
   const antal = visade.length;
   const tom = Boolean(term) && klar !== null && antal === 0;
+  // ANTALET FÖLJER LISTANS FILTER (2026-11-21). Rubriken sa "123 produkter
+  // hittades" också när prisreglaget i listan släppte igenom 64. Listan säger
+  // nu hur många den visar, och rubriken säger "Visar 64 av 123 produkter".
+  // Svaret gäller den lista det kom från (nyckeln), inte nästa sökning.
+  const listnyckel = `${q}|${visaAlla ? "alla" : "inom"}`;
+  const [listan, setListan] = useState<{ nyckel: string; antal: number | null; filter: number } | null>(null);
+  const omAntal = useCallback(
+    (visas: number | null, filter: number) =>
+      setListan((f) => (f && f.nyckel === listnyckel && f.antal === visas && f.filter === filter ? f : { nyckel: listnyckel, antal: visas, filter })),
+    [listnyckel],
+  );
+  const filtrerat = listan !== null && listan.nyckel === listnyckel && listan.filter > 0 && listan.antal !== null && listan.antal !== antal ? listan.antal : null;
   const rad = !term
     ? "Skriv i sökrutan ovan för att hitta produkter."
     : data === "laddar"
       ? "Söker…"
       : data === "fel"
         ? "Sökningen gick inte att göra just nu."
-        : `${productCountLabel(antal)} hittades`;
+        : filtrerat !== null
+          ? `Visar ${tusental(filtrerat)} av ${productCountLabel(antal)}`
+          : `${productCountLabel(antal)} hittades`;
   return (
     <>
       {/* Rubriken står i studiobandet (.sidtopp i globals.css), som på de andra listsidorna. */}
@@ -111,6 +129,16 @@ export function SokVy({ q, data }: { q: string; data: SokData | "laddar" | "fel"
                   Ingen vara har alla sökord i namnet. Här är träffarna utan <b>{citat(klar.strukna)}</b>.
                 </p>
               )}
+              {klar.inte && klar.inte.length > 0 && (
+                <p className="sok-besked">
+                  Du sökte utan <b>{citat(klar.inte)}</b>. Varor som har {klar.inte.length === 1 ? "ordet" : "orden"} i namnet är bortvalda.
+                </p>
+              )}
+              {klar.billigast && (
+                <p className="sok-besked">
+                  Billigast först bland varorna som heter så. Övriga träffar följer efter dem.
+                </p>
+              )}
               {pris && inom && (
                 <p className="sok-besked">
                   {inom.length === 0 ? (
@@ -142,7 +170,7 @@ export function SokVy({ q, data }: { q: string; data: SokData | "laddar" | "fel"
                   gamla gränserna och blev ett filter ingen hade valt: sidan sa
                   137 träffar och listan visade 36. Med en nyckel per sökning och
                   läge börjar listan om. */}
-              <ShopBrowser key={`${q}|${visaAlla ? "alla" : "inom"}`} products={visade} defaultSort="rel" andraBilderUrKartan={klar.kall} />
+              <ShopBrowser key={listnyckel} products={visade} defaultSort="rel" andraBilderUrKartan={klar.kall} onAntal={omAntal} />
             </>
           )}
           {tom && klar && (

@@ -40,6 +40,31 @@ export function kopbaraForst<T>(traffar: readonly T[], slutsald: (t: T) => boole
   return slut.length === 0 ? kopbara : kopbara.concat(slut);
 }
 
+/**
+ * "soffa billigast": varorna som HETER som sökningen först, billigast överst,
+ * och resten i sin vanliga ordning efter dem (2026-11-21).
+ *
+ * ☠️ Inte hela listan efter pris. Träffarna rymmer också varor som bara
+ * nämner ordet ("Sidobord för soffan", "Överdrag till hörnsoffa"), och de är
+ * billigast: en ren prissortering hade visat dem före varenda soffa. En vara
+ * utan läsbart pris går sist bland dem som heter så.
+ *
+ * Priset jämförs i HELA KRONOR, som det står på kortet. Sökrutan läser priset
+ * ur indexets text ("1 599 kr") och resultatsidan ur varans tal: med ören i
+ * jämförelsen hade två varor som båda visar 1 599 kr kunnat stå i olika
+ * ordning i rutan och på sidan, och rutans förslag ska vara sidans första.
+ */
+export function billigastForst<T>(traffar: readonly T[], heterSa: (t: T) => boolean, pris: (t: T) => number): T[] {
+  const varor: { t: T; kr: number; plats: number }[] = [];
+  const ovriga: T[] = [];
+  traffar.forEach((t, plats) => {
+    if (heterSa(t)) varor.push({ t, kr: Math.round(pris(t)), plats });
+    else ovriga.push(t);
+  });
+  varor.sort((a, b) => (a.kr > 0 ? a.kr : Infinity) - (b.kr > 0 ? b.kr : Infinity) || a.plats - b.plats);
+  return [...varor.map((v) => v.t), ...ovriga];
+}
+
 type MedAlder = { createdAt?: number; id?: string };
 
 /** Nyast först; id skiljer varor med samma eller okänd ålder, så att ordningen

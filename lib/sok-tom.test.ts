@@ -61,7 +61,8 @@ describe("söksidan utan träff", () => {
   });
 
   it("läser menyn som 404-sidan, utan att fälla sidan om den saknas", () => {
-    assert.match(sida, /try \{\s*const \{ tree \} = await sidhuvudsdata\(\);/);
+    // `hasSale` följer med sedan 2026-11-21: "rea" skickas till reasidan när den har varor (lib/sok-sidor.ts).
+    assert.match(sida, /try \{\s*const \{ tree, hasSale \} = await sidhuvudsdata\(\);/);
     assert.match(sida, /\} catch \{/);
   });
 

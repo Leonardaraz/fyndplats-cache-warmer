@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { after } from "next/server";
+import { redirect } from "next/navigation";
 import { getCollections, getProducts, katalogenLaddad, MAIN_ORDER, type Product } from "../../lib/products";
 import { forListClient, forSokClient } from "../../lib/list-payload";
 import { SokVy } from "../../components/sok-vy";
@@ -8,12 +9,13 @@ import { populartNu } from "../../lib/sok-tom";
 import { sidhuvudsdata } from "../../lib/sidhuvud-data";
 import { populara } from "../../lib/sidhuvud-val";
 import { attachRatings } from "../../lib/review-aggregates";
-import { kortOrd, matchaKategorier, normalize, rankaMedForslag, type Kategoridata } from "../../lib/search";
+import { kortOrd, matchaKategorier, normalize, rankaMedForslag, varanHeterSa, type Kategoridata } from "../../lib/search";
 import { BARA_I_UNDERKATEGORIN } from "../../lib/bara-i-underkategorin";
 import { sokKategorier, varansKategorier, type Sokkategorier } from "../../lib/sok-begrepp";
 import { plattaKategorier, type SokKategori } from "../../lib/sok-kategorier";
-import { harPris, tolkaPris } from "../../lib/sok-pris";
-import { katalogensSokordning, kopbaraForst } from "../../lib/sok-ordning";
+import { baraPrisgrans, harPris, lagstaPris, PRISSIDOR, tolkaPris, villHaBilligast } from "../../lib/sok-pris";
+import { sidaForSokning } from "../../lib/sok-sidor";
+import { billigastForst, katalogensSokordning, kopbaraForst } from "../../lib/sok-ordning";
 
 export const metadata: Metadata = {
   title: "Sök",
@@ -48,6 +50,11 @@ async function kategoridata(): Promise<Kategoridata<Product> | undefined> {
 export default async function Sok({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const { q = "" } = await searchParams;
   const term = q.trim();
+  // EN ENSAM PRISGRÄNS ("under 500", "under 500 kr") är ingen sökning på ord:
+  // förut söktes talet, och svaret var 26 varor med "500" i namnet. De tre
+  // gränser som har en egen sida skickas dit (2026-11-21).
+  const grans = baraPrisgrans(term);
+  if (grans !== null && PRISSIDOR.includes(grans)) redirect(`/under-${grans}-kr`);
   // PRISET I SÖKNINGEN (lib/sok-pris.ts): "soffa under 2000" rankas som "soffa",
   // och vyn visar träffarna inom priset med en knapp för alla.
   const prisfraga = tolkaPris(term);
@@ -60,14 +67,22 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
   let kategorier: SokKategori[] = [];
   let popularaKategorier: SokKategori[] = [];
   let allaKategorier: SokKategori[] = [];
+  // Har butiken reavaror? Samma svar som menyernas REA-länk.
+  let harRea = false;
   try {
-    const { tree } = await sidhuvudsdata();
+    const { tree, hasSale } = await sidhuvudsdata();
+    harRea = hasSale;
     allaKategorier = plattaKategorier(tree);
     if (term) kategorier = matchaKategorier(fraga, allaKategorier, 3);
     popularaKategorier = populara(tree, MAIN_ORDER).map((c) => ({ name: c.name, slug: c.slug }));
   } catch {
     // hellre inga kategorier än en trasig söksida
   }
+  // EN SÖKNING SOM NAMNGER EN SIDA ("rea", "fyndauktion") skickas dit: "rea"
+  // gav fem julgirlanger med REAlistiska barrgrenar, och "fyndauktion" noll
+  // träffar (2026-11-21, lib/sok-sidor.ts). ☠️ Utanför try: redirect kastar.
+  const sida = sidaForSokning(term, harRea);
+  if (sida) redirect(sida);
 
   // ☠️ VÄNTA ALDRIG PÅ EN KALL KATALOG (2026-11-19). En ny instans läser hela
   // katalogen innan getProducts svarar: 7 617 varor, 25–28 sekunder. Två av 125
@@ -102,6 +117,10 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
   let strukna: string[] = [];
   let utan: string[] | undefined;
   let hela: number | undefined;
+  // Orden kunden nekade ("julgran utan belysning", lib/search.ts).
+  let inte: string[] | undefined;
+  // "soffa billigast": varorna som heter som sökningen står billigast först.
+  const billigast = villHaBilligast(fraga);
   // Ordet som sidan visar varor för, när sökningen är två bokstäver ("få" →
   // fåtölj). Regeln står i lib/search.ts (rankaMedForslag), och sökrutan har samma.
   let visar = "";
@@ -112,8 +131,10 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
     if (visar) kategorier = matchaKategorier(visar, allaKategorier, 3);
     if (utfall.traffar.length > 0) {
       results = utfall.traffar;
-      ({ strukna, utan, hela } = utfall);
+      ({ strukna, utan, hela, inte } = utfall);
       liknande = utfall.liknande === true;
+      // Påfyllda listor (`hela`) har en egen ordning som beskedet beskriver: de rörs inte.
+      if (billigast && hela === undefined) results = billigastForst(results, (p) => varanHeterSa(p.name, fraga), lagstaPris);
     } else if (kategorier.length === 0 && !kortOrd(fraga)) {
       // ☠️ Aldrig för två bokstäver: de står i nästan varje beskrivning.
       // Reserven i beskrivningarna, bara när varken ett namn eller en kategori
@@ -141,7 +162,8 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
     <SokVy
       q={q}
       data={{
-        traffar: forSokClient(results), strukna, utan, hela, kategorier, pris, visar, liknande,
+        traffar: forSokClient(results), strukna, utan, hela, kategorier, pris, visar, liknande, inte,
+        billigast: billigast && hela === undefined && results.length > 1,
         populart: forListClient(populart), popularaKategorier,
       }}
     />
