@@ -2627,7 +2627,49 @@ export function rankaMedInfo<T>(items: T[], nameOf: (item: T) => string, query: 
     const u = rankaUtan(items, nameOf, oversatt, namn, kd);
     if (u.traffar.length > 0) return { ...u, rattat: u.rattat ?? oversatt };
   }
-  return rankaUtan(items, nameOf, query, namn, kd);
+  const u = rankaUtan(items, nameOf, query, namn, kd);
+  // ☠️ "katt träd" GAV 13 VAROR OCH "kattträd" 96, "ute möbler" 12 och
+  // "utemöbler" 254, "soff bord" 54 och "soffbord" 123 (2026-11-21). Skrivna
+  // isär söktes orden var för sig: bara varor som nämner både katt och träd
+  // kom med, och loungeset "med soffa och bord" stod bland soffborden. Är
+  // orden ihop ett ord (i synonymtabellen, i katalogens namn eller i en
+  // kategoris namn: "barn möbler") är det ordet kunden menar: dess varor
+  // först, och efter dem det som bara orden isär gav, så att ingen träff
+  // försvinner.
+  const ihop = hopskrivetBegrepp(query, (o) => ordbokFor(namn, formerFor(namn)).antal.has(o) || begreppFor(kd?.kat).includes(o));
+  if (ihop) {
+    const v = rankaUtan(items, nameOf, ihop, namn, kd);
+    if (v.traffar.length > 0 && v.strukna.length === 0 && !v.rattat && !v.liknande) {
+      // Bara riktiga träffar följer med: ströks ett ord, eller rättades
+      // stavningen, gällde svaret en annan sökning ("katt träd" med "träd"
+      // struket är varenda kattlåda).
+      const riktiga = u.strukna.length === 0 && !u.rattat && !u.liknande;
+      const med = new Set(v.traffar);
+      const resten = riktiga ? u.traffar.filter((x) => !med.has(x)) : [];
+      return { ...v, traffar: resten.length > 0 ? [...v.traffar, ...resten] : v.traffar, sokt: v.sokt ?? ihop };
+    }
+  }
+  return u;
+}
+
+/**
+ * Två ord som kunden särskrivit och som ihop är ETT ord: sökningen med orden
+ * hopskrivna, annars null. Ordet ska stå i synonymtabellen ("katt träd" →
+ * "kattträd", som är butikens klösträd), eller vara ett ord i katalogens namn
+ * eller i en kategoris namn ("soff bord" → "soffbord", "barn möbler" →
+ * "barnmöbler": `iKatalogen`).
+ */
+export function hopskrivetBegrepp(query: string, iKatalogen?: (ord: string) => boolean): string | null {
+  const ord = normalize(query).split(/\s+/).filter(Boolean);
+  for (let k = 0; k < ord.length - 1; k++) {
+    const a = ord[k];
+    const b = ord[k + 1];
+    if (!/^[a-zåäö]{2,}$/.test(a) || !/^[a-zåäö]{3,}$/.test(b) || STOPWORDS.has(a) || STOPWORDS.has(b) || NEKAR.has(a) || NEKAR.has(b)) continue;
+    const nyckel = begreppsnyckel(a + b);
+    if (!SYN.has(nyckel) && !ENVAGS_NALAR.has(nyckel) && !(iKatalogen && iKatalogen(a + b))) continue;
+    return [...ord.slice(0, k), a + b, ...ord.slice(k + 2)].join(" ");
+  }
+  return null;
 }
 
 /** Sökningen, med "utan X" tolkat som att varan inte ska ha X (se tolkaUtan). */
@@ -3060,12 +3102,22 @@ function raknaInre<T>(items: T[], nameOf: (item: T) => string, query: string, no
     if (!kd || !info || p.units.length < 2 || p.units.some((u) => u.helord || u.egenskap)) return null;
     // Bara kategorins ord, och högst ett "och" emellan: "matbord med stolar"
     // är en matgrupp, inte kategorin Matbord & stolar.
-    if (tokenize(p.q).filter((t) => t !== "och").length !== p.units.length) return null;
+    //
+    // ☠️ "elbilar för barn" GAV 52 VAROR OCH "elbil barn" 126 (2026-11-21), fast
+    // den första ÄR kategorins namn: "för" räknades som ett ord kategorin inte
+    // har. Ett småord i sökningen ska stå i kategorins eget namn ("Elbilar för
+    // barn", "Sparkcyklar för barn"). "med" står inte i "Matbord & stolar".
+    const smaord = tokenize(p.q).filter((t) => t !== "och" && STOPWORDS.has(t));
+    if (tokenize(p.q).filter((t) => t !== "och").length !== p.units.length + smaord.length) return null;
     for (let c = 0; c < info.length; c++) {
       const k = info[c];
       if (k.ord.length !== p.units.length) continue;
       if (!p.units.every((u) => k.lem.some((l) => delarForm(u.lem, l)))) continue;
       if (!k.lem.every((l) => p.units.some((u) => delarForm(u.lem, l)))) continue;
+      if (smaord.length > 0) {
+        const iNamnet = tokenize(kd.kat[c].n);
+        if (!smaord.every((t) => iNamnet.includes(t))) continue;
+      }
       const medl = medlemskapFor(items, kd).medl[c];
       if (medl.length > 0) return medl;
     }

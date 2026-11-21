@@ -20,7 +20,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
-import { nameMatch, normalize, rankaMedInfo, tolkaUtan, varanHeterSa, type Kategoridata, type SokKat } from "./search.ts";
+import { hopskrivetBegrepp, nameMatch, normalize, rankaMedInfo, tolkaUtan, varanHeterSa, type Kategoridata, type SokKat } from "./search.ts";
 import { billigastForst } from "./sok-ordning.ts";
 import { baraPrisgrans, lagstaPris, prisTal, PRISSIDOR, tolkaPris, villHaBilligast } from "./sok-pris.ts";
 import { sidaForSokning } from "./sok-sidor.ts";
@@ -47,6 +47,7 @@ const KAT: SokKat[] = [
   { n: "Skrivbord", f: 7 }, // 16
   { n: "Barn & Baby", f: -1 }, // 17
   { n: "Förvaring & Organisering", f: 5 }, // 18
+  { n: "Elbilar för barn", f: 4 }, // 19
 ];
 
 const VAROR: Vara[] = [];
@@ -105,6 +106,11 @@ lagg(5, "Anslagstavla med linneyta och vit ram, 900 × 600 mm");
 // Barn: ordet står efter varan, aldrig först.
 lagg(17, "Sparkcykel barn 3–8 år med lysande hjul", "Aktivitetsbord för barn med tågbana", "Gunga för barn med sele", "Röd sparkbil för barn 1–3 år", "Röd brandbil för barn med stege");
 
+// Kategorin heter "Elbilar för barn", och hälften av varorna i den heter något annat.
+lagg(19, "Elbil för barn 12 V med fjärrkontroll och mjukstart", "Elbil Audi TT RS för barn 2–3 år", "Elgokart för barn 3–8 år i orange", "Elfyrhjuling för barn 12 V med två motorer", "Eltraktor för barn 1–3 år med avtagbart släp");
+// Soffa och bord som två ord i samma namn.
+lagg(0, "Loungeset med soffa, två fåtöljer och bord i aluminium");
+
 const kd: Kategoridata<Vara> = { kat: KAT, av: (v) => v.k };
 const namn = VAROR.map((v) => normalize(v.n));
 const sok = (q: string) => rankaMedInfo(VAROR, (v) => v.n, q, namn, kd);
@@ -161,8 +167,8 @@ test('"soffa": sofforna i Soffor & bäddsoffor först, hundsoffan och trädgård
   const hemma = medl(8).length;
   assert.deepEqual(new Set(t.slice(0, hemma)), new Set(medl(8)));
   assert.ok(plats(t, "Hundsoffa") >= hemma && plats(t, "Trädgårdssoffa") >= hemma);
-  // "Sidobord för soffan" heter inte soffa och går sist.
-  assert.equal(plats(t, "Sidobord för soffan"), t.length - 1);
+  // "Sidobord för soffan" och "Loungeset med soffa" heter inte soffa och går sist.
+  assert.deepEqual(new Set(t.slice(-2)), new Set(["Sidobord för soffan i svart metall", "Loungeset med soffa, två fåtöljer och bord i aluminium"]));
 });
 
 // ── 2. Flertal och ental ────────────────────────────────────────────────────
@@ -349,6 +355,55 @@ test("engelska ord i grupperna", () => {
   // Eldstäderna heter eldstad, eldkorg och eldskål om vartannat.
   assert.equal(traffar("eldkorg").length, 4);
   assert.equal(traffar("eldkorg")[0], "Eldkorg Ø59 cm med vedhylla under");
+});
+
+// ── 7b. Samma svar på nästan samma sökning ──────────────────────────────────
+
+test('"elbilar för barn" är kategorins namn och ger samma varor som "elbil barn"', () => {
+  // www: 52 varor för "elbilar för barn" och 126 för "elbil barn". Småordet
+  // "för" räknades som ett ord kategorin inte har, fast den heter så.
+  const utan = traffar("elbil barn");
+  assert.equal(utan.length, 5);
+  assert.deepEqual(utan.slice(0, 2).sort(), ["Elbil Audi TT RS för barn 2–3 år", "Elbil för barn 12 V med fjärrkontroll och mjukstart"]);
+  for (const q of ["elbilar för barn", "elbil för barn", "Elbilar för barn", "elbilar barn"]) assert.deepEqual(traffar(q), utan, q);
+  // ☠️ Småordet ska stå i kategorins EGET namn: "matbord med stolar" är en
+  // matgrupp, inte kategorin Matbord & stolar.
+  assert.ok(traffar("matbord stolar").includes("Barpall i massivt trä"));
+  assert.equal(traffar("matbord med stolar").includes("Barpall i massivt trä"), false);
+  // "till" står inte i kategorins namn: bara varorna som heter så.
+  assert.deepEqual(traffar("elbilar till barn").sort(), ["Elbil Audi TT RS för barn 2–3 år", "Elbil för barn 12 V med fjärrkontroll och mjukstart"]);
+});
+
+test('"katt träd" och "soff bord": två ord som ihop är ett ord söks som det ordet', () => {
+  // www: "katt träd" 13 varor och "kattträd" 96, "ute möbler" 12 och "utemöbler" 254.
+  assert.equal(hopskrivetBegrepp("katt träd"), "kattträd");
+  assert.equal(hopskrivetBegrepp("svart katt träd 120 cm"), "svart kattträd 120 cm");
+  // Ett ord ur katalogen eller en kategori räknas när den som anropar säger att det finns.
+  assert.equal(hopskrivetBegrepp("soff bord"), null);
+  assert.equal(hopskrivetBegrepp("soff bord", (o) => o === "soffbord"), "soffbord");
+  assert.equal(hopskrivetBegrepp("barn möbler", (o) => o === "barnmöbler"), "barnmöbler");
+  // Aldrig småord, nekningar, tal eller ett halvskrivet andra ord.
+  for (const q of ["för varing", "utan lock", "120 cm", "soff bo", "soffbord", ""]) assert.equal(hopskrivetBegrepp(q, () => true), null, q);
+
+  const trad = sok("katt träd");
+  assert.equal(trad.sokt, "kattträd");
+  assert.deepEqual(trad.strukna, []);
+  assert.deepEqual(trad.traffar.map((v) => v.n), traffar("kattträd"));
+  assert.ok(traffar("katt träd").includes("Klösträd 120 cm med grotta"));
+
+  // Ordets varor först, och efter dem det som bara orden isär gav: ingen träff försvinner.
+  const bord = traffar("soff bord");
+  const ihop = traffar("soffbord");
+  assert.ok(ihop.length >= 2);
+  assert.deepEqual(bord.slice(0, ihop.length), ihop);
+  assert.equal(ihop.includes("Loungeset med soffa, två fåtöljer och bord i aluminium"), false);
+  assert.ok(bord.indexOf("Loungeset med soffa, två fåtöljer och bord i aluminium") >= ihop.length);
+  // Måste ett ord strykas för att det hopskrivna ska ge något gäller sökningen som den skrevs.
+  assert.ok(sok("kattträd dieselvärmare").strukna.length > 0);
+  assert.equal(sok("katt träd dieselvärmare").sokt, undefined);
+  // Ord som inte är ett ord ihop söks som de står.
+  assert.equal(sok("led lampa").sokt, undefined);
+  assert.equal(sok("grå matta").sokt, undefined);
 });
 
 // ── 8. Söksidan ─────────────────────────────────────────────────────────────
