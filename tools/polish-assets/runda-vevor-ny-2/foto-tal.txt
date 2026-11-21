@@ -1,0 +1,3 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+f209abee 2 två hängstänger och två hyllplan räknade på bild 1 och 5, de står som ord i källan
