@@ -71,7 +71,8 @@ export type SoldAuctionView = {
 // sig ören som vi inte vill visa här).
 const fmtKr = (n: number) => `${Math.round(n).toLocaleString("sv-SE")} kr`;
 
-/** Live-auktioner (max 5), joinade mot katalogen. Fail-open: tom lista.
+/** Live-auktioner, joinade mot katalogen. Antalet bestämmer motorn (tio en
+ *  vanlig dag, 50 och 100 under Black Week), aldrig butiken. Fail-open: tom lista.
  *  `sida: "fyndauktion"` ger auktionssidan en egen cachepost, som töms varje
  *  timme när motorn bytt priserna (se hämtaAuktionsrader). `sida: "startsidan"`
  *  ger startsidan sin egen, som lever en timme som sidan själv. */

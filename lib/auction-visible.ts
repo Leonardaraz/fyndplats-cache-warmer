@@ -13,7 +13,7 @@
 // hände där. (Uppmätt 2026-08-24: satsbordet sålde 12:49:40, svängbilen stod i
 // dess slot 12:49:41.)
 //
-// VARFÖR INTE BARA DÖLJA ALLT OSTARTAT. Mellan 19:00 och 07:00 är ALLA fem
+// VARFÖR INTE BARA DÖLJA ALLT OSTARTAT. Mellan 19:00 och 07:00 är ALLA fynd
 // schemalagda för nästa morgon. Då ska de synas med nedräkning — det är
 // "pre"-läget i lib/auction-day.ts. Att dölja dem hade tömt sidan varje natt,
 // vilket är värre än problemet vi löser.

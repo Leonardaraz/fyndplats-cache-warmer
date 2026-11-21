@@ -182,6 +182,40 @@ export function tickerStepMs(phase: AuctionPhase): number {
 export function isActivelyDropping(phase: AuctionPhase): boolean {
   return phase === "countdown" || phase === "stale";
 }
+
+/**
+ * Hela listans läge: hur många fynd erbjuds just nu, och har de startat?
+ *
+ *   pagar — minst ett fynd går att köpa till auktionspris (nedräkning, sen
+ *           sänkning eller golvet). `antal` är de fynden.
+ *   fore  — inget har startat, men nästa omgång ligger ute med nedräkning
+ *           till kl 07. `antal` är de kommande fynden.
+ *   tomt  — listan är tom, eller dagen är slut (≥ 19:00) och korten säger
+ *           "Stängt". Då erbjuds inget, och `antal` är 0.
+ *
+ * Ett fynd vars dag är slut räknas aldrig: priset är återställt. Ligger både
+ * startade och kommande i listan vinner de startade, samma regel som
+ * lib/auction-visible.ts. Texter som nämner ett antal fynd (sidans
+ * beskrivning, lib/auction-beskrivning.ts) ska ta talet härifrån.
+ */
+export type Fyndlage = { lage: "pagar" | "fore" | "tomt"; antal: number };
+
+export function fyndlage(
+  fynd: readonly { startsAt: string | null; startAt: string | null; nextDropAt: string | null }[],
+  nowMs: number,
+): Fyndlage {
+  let pagar = 0;
+  let fore = 0;
+  for (const f of fynd) {
+    const fas = phaseOf(f, nowMs).phase;
+    if (fas === "pre") fore++;
+    else if (fas !== "ended") pagar++;
+  }
+  if (pagar > 0) return { lage: "pagar", antal: pagar };
+  if (fore > 0) return { lage: "fore", antal: fore };
+  return { lage: "tomt", antal: 0 };
+}
+
 export function auctionPhase(
   nowMs: number,
   t: { startsAtMs: number | null; dayStartMs: number | null; nextDropAtMs: number | null },
