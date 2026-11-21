@@ -1058,6 +1058,34 @@ gav en timer per takt och en omritning i sekunden.
 - Kort, luntan och "Sista timmen" får ingen egen `setInterval`
   (`lib/delad-klocka.test.ts`).
 
+## Fyndauktionen: texten nämner det antal fynd som visas (Leonard 2026-11-21)
+
+Sidans beskrivning (den Google visar under länken) sa "Fem fynd varje dag" medan sidan hade
+tio, och motorn kör 50 om dagen och 100 på fredagen under Black Week. Blogginlägget
+`content/blog/fyndauktionen-sa-funkar-det.md` sa "fem" på sju ställen. Leonard: "gör så det
+matchar antalet som erbjuds hela tiden".
+
+- ☠️ **Ett antal fynd skrivs aldrig in i en text.** Antalet bestämmer motorn
+  (`lib/auction/antal.ts` på `main`), 30-dagarsspärren kan ge färre, och under dagen säljs
+  fynd bort. `fyndlage` (`lib/auction-day.ts`) räknar samma rader som korten ritas av, med
+  samma fasmaskin: `pagar` (går att köpa nu), `fore` (nästa omgång ligger ute med
+  nedräkning) eller `tomt` (inga fynd, eller dagen är slut och korten säger "Stängt").
+- **Beskrivningen** byggs i `generateMetadata` av `auktionsbeskrivning`
+  (`lib/auction-beskrivning.ts`): "10 fynd just nu – nya varje dag kl 07–19. …",
+  "50 fynd startar kl 07 – …", och utan antal när inget erbjuds.
+- ☠️ **Talet står aldrig ihop med "varje dag", och texten säger aldrig "i morgon".** Google
+  sparar sin kopia och visar den i dagar. "Just nu" och "startar kl 07" tål det. Av samma
+  skäl har delningstexten (Open Graph) inget antal: chattappar sparar den i veckor.
+- ☠️ **`visadeFynd` (React `cache`) delar hämtningen mellan beskrivningen och sidan.** Utan
+  den frågas Wix två gånger per fynd vid varje ombyggnad (`getFreshPrices` ställer en fråga
+  per fynd). Mätt i ett lokalt bygge mot en låtsasmotor: nio fynd gav nio prisfrågor per
+  ombyggnad, och 10, 50, 100, 7 och 0 fynd gav rätt text.
+- Blogginlägget nämner inget antal, och meningen om "över 60 % under ordinarie pris" är
+  borta: motorn sänker högst 15 % (`MAX_DISCOUNT`).
+- `lib/auction-beskrivning.test.ts` låser talet i varje läge, längden (högst 155 tecken,
+  också med tre siffror) och att inget fast antal står i sidan, korten eller blogginlägget.
+  Elva inlagda fel fälldes alla.
+
 ## Googles ?srsltid= tas bort ur adressfältet (2026-09-30)
 
 Merchant Centers automatiska taggning lägger `?srsltid=…` på varje länk från
