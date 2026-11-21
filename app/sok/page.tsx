@@ -122,6 +122,8 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
   let inte: string[] | undefined;
   // "soffa billigast": varorna som heter som sökningen står billigast först.
   const billigast = villHaBilligast(fraga);
+  // Satt när listan faktiskt ordnats efter pris, och hur: beskedet säger det.
+  let prisordning: "kategori" | "namn" | undefined;
   // Ordet som sidan visar varor för, när sökningen är två bokstäver ("få" →
   // fåtölj). Regeln står i lib/search.ts (rankaMedForslag), och sökrutan har samma.
   let visar = "";
@@ -135,7 +137,10 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
       ({ strukna, utan, hela, inte } = utfall);
       liknande = utfall.liknande === true;
       // Påfyllda listor (`hela`) har en egen ordning som beskedet beskriver: de rörs inte.
-      if (billigast && hela === undefined) results = billigastForst(results, (p) => varanHeterSa(p.name, fraga), lagstaPris, utfall.hemma);
+      if (billigast && hela === undefined && results.length > 1) {
+        results = billigastForst(results, (p) => varanHeterSa(p.name, fraga), lagstaPris, utfall.hemma);
+        prisordning = utfall.hemma ? "kategori" : "namn";
+      }
     } else if (kategorier.length === 0 && !kortOrd(fraga)) {
       // ☠️ Aldrig för två bokstäver: de står i nästan varje beskrivning.
       // Reserven i beskrivningarna, bara när varken ett namn eller en kategori
@@ -164,7 +169,7 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
       q={q}
       data={{
         traffar: forSokClient(results), strukna, utan, hela, kategorier, pris, visar, liknande, inte,
-        billigast: billigast && hela === undefined && results.length > 1,
+        billigast: prisordning,
         populart: forListClient(populart), popularaKategorier,
       }}
     />

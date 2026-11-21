@@ -31,8 +31,12 @@ export type SokData = {
   liknande?: boolean;
   /** Orden kunden nekade med "utan": varor som nämner dem är bortvalda (lib/search.ts, tolkaUtan). */
   inte?: string[];
-  /** "soffa billigast": varorna som heter som sökningen står billigast först (lib/sok-ordning.ts). */
-  billigast?: boolean;
+  /**
+   * "soffa billigast": listan är ordnad efter pris (lib/sok-ordning.ts).
+   * "kategori" när sökordets egen kategori står för sig överst, "namn" när
+   * alla varor som heter som sökningen ordnats tillsammans.
+   */
+  billigast?: "kategori" | "namn";
   /** Den kalla vägen: korten bär bild ur sökindexet, och den andra bilden hämtas ur bildkartan (lib/sok-kall.ts). */
   kall?: boolean;
 };
@@ -136,7 +140,9 @@ export function SokVy({ q, data }: { q: string; data: SokData | "laddar" | "fel"
               )}
               {klar.billigast && (
                 <p className="sok-besked">
-                  Billigast först bland varorna som heter så. Övriga träffar följer efter dem.
+                  {klar.billigast === "kategori"
+                    ? "Billigast först. Varorna i sökordets egen kategori står överst, sedan andra som heter så."
+                    : "Billigast först bland varorna som heter så. Övriga träffar följer efter dem."}
                 </p>
               )}
               {pris && inom && (

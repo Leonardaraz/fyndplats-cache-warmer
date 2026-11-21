@@ -109,7 +109,7 @@ export function SokKall({ q, kategorier, popularaKategorier }: { q: string; kate
           q,
           data: {
             traffar, strukna: u.strukna, utan: u.utan, hela: u.hela, visar, liknande: u.liknande === true, inte: u.inte,
-            billigast: billigast && traffar.length > 1,
+            billigast: billigast && traffar.length > 1 ? (u.hemma ? "kategori" : "namn") : undefined,
             // Kategorierna gäller ordet som visas; sidhuvudet har registrerat menyns.
             kategorier: visar ? matchaKategorier(visar, registreradeKategorier(), 3) : kategorier,
             pris: harPris(prisfraga) ? { max: prisfraga.max, min: prisfraga.min } : undefined,

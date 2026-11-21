@@ -156,7 +156,9 @@ describe("de tre vägarna använder regeln", () => {
     const sida = las("app", "sok", "page.tsx");
     assert.match(sida, /const all = term \? katalogensSokordning\(await getProducts\(\)\) : \[\];/);
     assert.match(sida, /results = await attachRatings\(kopbaraForst\(results, \(p\) => !p\.inStock\)\);/);
-    assert.match(sida, /if \(billigast && hela === undefined\) results = billigastForst\(results, \(p\) => varanHeterSa\(p\.name, fraga\), lagstaPris, utfall\.hemma\);/);
+    assert.match(sida, /if \(billigast && hela === undefined && results\.length > 1\) \{\s+results = billigastForst\(results, \(p\) => varanHeterSa\(p\.name, fraga\), lagstaPris, utfall\.hemma\);\s+prisordning = utfall\.hemma \? "kategori" : "namn";/);
+    // Beskedet visas bara när listan ordnats: det bär samma variabel.
+    assert.match(sida, /billigast: prisordning,/);
   });
 
   it("sökindexet står i samma ordning", () => {
