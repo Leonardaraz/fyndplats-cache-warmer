@@ -75,6 +75,14 @@ De två sista behöver ett bygge som svarar (`npx next build && npx next start
 979 ms blockerat och 58 ms som längsta väntan för en tangent (www samma kväll:
 8 217 ms och 513 ms).
 
+☠️ **Jämför aldrig ett lokalt bygge med www, och aldrig med en mätning från
+en annan dag** (2026-11-21). Ett lokalt bygge av dagens kod gav 86–99 ms som
+längsta väntan för en tangent och www 41–63 ms: det såg ut som en försämring.
+Gårdagens kod byggd lokalt och mätt direkt efteråt gav 69–123 ms. Skillnaden
+var mätmiljön. Bygg båda versionerna och mät dem efter varandra, tre
+körningar var: spridningen mellan två körningar är flera hundra millisekunder
+i summan.
+
 ☠️ **Node kör källkoden, webbläsaren det minifierade paketet.** Det som bara
 finns i det byggda paketet (en funktion inbakad i en slinga, ett förvalt
 parametervärde som blivit en läsning ur `arguments`) syns inte i

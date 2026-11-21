@@ -5553,3 +5553,305 @@ kontroller, de nio extra, flödenas 14 och de tio om tangentbordet är gröna.
   Worker), så att skrivandet aldrig väntar på den. Det första är uppskattat
   till en sjättedel av det som är kvar per tangent, det andra är en större
   ombyggnad av sökrutan.
+
+## Sökningen efter en extern granskning i tolv punkter (Leonard 2026-11-21)
+
+Leonard klistrade in en granskning av sökningen gjord av en annan AI, tolv
+punkter med exempel. ☠️ **En granskning är påståenden, inte mätvärden.** Varje
+exempel prövades först mot dagens index (7 948 varor, 173 kategorier) i motorn
+som låg på www, och mot www. De flesta stämde. Fyra gjorde det inte:
+"hängmatta" (de två hängmattorna låg redan först), "gazebo" (40 träffar, inte
+noll), "bilbatteri" (8 träffar, inte 280) och "mobilskal" (0, inte 121).
+Indexet hämtas inte heller när sidan öppnas, utan när kunden rör sökrutan, och
+"senaste sökningar" finns redan. Kundernas egna sökningar (56 i butiken och
+163 från Google) innehåller ingen engelska: de engelska orden är en
+försäkring, inte ett mätt behov.
+
+### Mätt före och efter
+
+Samma index, motorn på www mot motorn efter genomgången:
+
+| sökning | före | nu |
+|---|---|---|
+| grill | stekplattan "grill- och stekplatta" först, första kolgrillen på plats 6 | 29 grillar ur Grill & Utekök först |
+| led lampa | en bilkretsprovare "med LED-lampa" först | LED-lamporna först |
+| soffor / soffan / soffa | 181 / 181 / 140 | 142 / 141 / 140 |
+| lampor / lampa | 225 / 216 | 206 / 206 |
+| mattor / matta | 190 / 164 | 164 / 164 |
+| hyllor / hylla | 616 / 534 | 534 / 534 |
+| bokhylla | 616 (63 heter så) | 63 |
+| elcykel | 179 | 2 (butiken har två varor till elcyklar) |
+| pläd | 62, vattenfilter först | 14: tre filtar, sedan varor med filt i (butiken har ingen pläd) |
+| airfryer | 2 | 6 |
+| snöflockad julgran | 2 | 32 |
+| julren | 1 | 13 |
+| greenhouse / bike / desk | 0 / 2 / 4 kattlådeskåp | 105 / 160 / 103 skrivbord |
+| christmas tree / fire pit / dog bed | 0 / 0 / 2 skräp | 87 / 33 / 19, med besked |
+| julgran utan belysning | 7, alla med belysning | 60 utan |
+| kattlåda utan lock | 12 | 25 |
+| barstol utan ryggstöd | 12 | 37 |
+| har ni dieselvärmare | 50 skräp ("har värme") | 33 dieselvärmare |
+| cykelhjälm barn | 562 (allt för barn) | 0 |
+| röd cykelhjälm | 89 (allt rött) | 0 |
+| katt träd / kattträd | 13 / 96 | 96 / 96 |
+| ute möbler / utemöbler | 12 / 254 | 254 / 254 |
+| soff bord / soffbord | 54 / 123 | 135 / 123 |
+| elbilar för barn / elbil barn | 52 / 126 | 126 / 126 |
+| soffa lägsta pris | 3 anslagstavlor, "soffa" struket | 140 soffor |
+| `<script>alert(1)</script>` | 35, "script" struket två gånger | 0 |
+
+13 972 provsökningar (kundernas egna, felstavningarna, orden tangent för
+tangent och granskningens exempel) mot www-motorn: 12 745 svar är oförändrade,
+1 227 ändrade. 508 har en annan ordning bland de tio första, 411 längre ner,
+247 har färre träffar, 51 fler, 4 bara ett annat besked, 3 går från noll
+till träffar ("christmas tree", "greenhouse", "fire pit") och 3 från träffar
+till noll ("cykelhjälm barn", skriptet och "dog crate", som förut gav en
+"bulldog-koppling" och en "kamadogrill").
+
+### Motorns regler (`lib/search.ts`)
+
+1. ☠️ **Ett hängande bindestreck gör ordet till ett förled.** "Vändbar grill-
+   och stekplatta" är en grillplatta, ingen grill. Förut räknades "grill-" som
+   ett eget ord i huvuddelen. Nu är det första ledet i en sammansättning
+   (`kant` 2).
+2. **Alla sökord som ord i namnets huvuddel ger 92** (`ALLA_I_HUVUDDELEN`),
+   mellan frasen (100/95/93) och frasen efter huvuddelen (90). "LED-golvlampa"
+   går före "Bilkretsprovare … och LED-lampa".
+3. **Ordets egen kategori först** (`harHem` i `medBegrepp`). Heter en kategori
+   som sökordet ("Soffor & bäddsoffor", "Grill & Utekök") och ligger de flesta
+   varor som heter så där, går de varorna först, sedan de som heter så på
+   andra hyllor (hundsoffan, leksaksgrillen), sist de som bara nämner ordet.
+   Minst tre varor i kategorin (`HEM_MINST`), och fler där än utanför.
+4. ☠️ **En stam som inte är en grundform gäller bara med en böjningsändelse**
+   (`stamMedAndelse`, `stamStar`). "soffor" har stammen "soff", som står först
+   i varje soffbord: 181 träffar mot 140 för "soffa". Har katalogen ordets
+   grundform ("soffa") och är stammen inte den, ska stammen följas av en
+   ändelse: "soffa", "soffan", "soffor". "stolar" har stammen "stol", som är
+   grundformen, och är som förut.
+5. ☠️ **Synonymer jämförs som ord, inte som bokstäver** (`synonymStar`).
+   Nålarna låg förut som delsträngar: "pläd" hittade "filt" i varje "filter",
+   "julren" hade hittat "renar" i "barrgrenar". Ordet ska stå som ett ord,
+   sist i ett ord (med böjning, utom orden i `INTE_BOJT`) eller först i en
+   sammansättning vars rest är ett ord i katalogen. Står det efter namnets
+   huvuddel ("… med studsmatta") väger träffen mindre (`SYNONYM_NAMND`, 0,75
+   mot 0,85).
+   - Formerna byggs vid första sökningen (`synonymformer`), inte när modulen
+     laddas: `bojdaFormer` läser `OMLJUD`, som står längre ner i filen, och
+     modulen föll annars på "Cannot access 'OMLJUD' before initialization".
+   - ☠️ **Det smala ordet drar inte in det breda** (`arSorten`). "elcykel"
+     hade nålen "cykel" och gav 179 cyklar, "bokhylla" nålen "hylla" och 616
+     hyllor. Ett gruppord som innehåller ett annat gruppord på fyra bokstäver
+     eller fler får inte det som nål. Åt andra hållet gäller det: "cykel"
+     hittar elcykeln.
+   - Nya ord i grupperna: bike, greenhouse, desk, bag, airfryer och
+     varmluftsfritös, eldstad med eldkorg, eldskål och firepit. Envägsord
+     (`ENVAGS`): snöflockad och flockad (snöflock, konstsnö, snötäck, "med
+     snö" …), julren (" renar" med mellanslag, "lysande ren", "ren och
+     släde"), bookshelf. "eldfat" är kvar som envägsord: som gruppord hade
+     det gett nålen "eldf", som står i "eldfast".
+6. ☠️ **Ett ord som bara står mitt i andra ord är inget ord** (`baraMitt`).
+   "desk" gav fyra "kattlåDESKåp". Börjar eller slutar inget ord i katalogen
+   med sökordet söks det bara genom synonymer och stavfel. Ord med en böjd
+   form som katalogen har ("motorcyklar" → "motorcykel") är undantagna:
+   första versionen strök dem, och "panler" gick från 163 träffar till 0.
+7. **"utan", "ej", "inte" väljer bort** (`tolkaUtan`, `rankaUtan`). Resten av
+   orden söks, varor som nämner det nekade ordet tas bort, och varor som
+   själva heter "… utan armstöd" går först (`heterUtan`). `NEKAS_OCKSA` bär
+   orden som betyder samma sak i ett namn: lock = huv, täckt; ryggstöd =
+   rygg; belysning = LED, ljusslinga, lampor. Nämner varje träff det nekade
+   ordet gäller sökningen som den skrevs. Sidan säger vad som valts bort
+   (`inte`).
+8. **Frågeord hör inte till varan** (`STOPWORDS`): har, ni, finns, jag,
+   söker, letar, vilken, bäst, pris, kostar, lägst, lägsta med flera. Prövade
+   mot alla namn: inget av dem står som varuord. "typ" är inte med
+   ("elbilsladdare typ 2").
+9. ☠️ **Ett ärligt noll** (`okantStruket`, `arVarutyp`). "cykelhjälm barn" gav
+   562 träffar: butiken har ingen cykelhjälm, ordet ströks, och kvar blev
+   allt för barn. När ett struket ord inte finns i katalogen alls ska det som
+   blir kvar vara en vara: ett ord som minst 15 % av de träffade namnen
+   börjar med (`VARUTYP_MINST`). "chesterfield soffa" visar fortfarande
+   sofforna, med besked.
+10. **Engelska fraser** (`FRASER`, `oversattFras`): christmas tree, fire pit,
+    dog bed, cat tree, air fryer, bar stool, office chair, coffee table med
+    flera byts mot katalogens ord, och sidan säger vilket.
+11. ☠️ **En sökning som är en kategoris namn får hela kategorin, också med
+    småordet** (`kategoriMedNamnet`). "elbilar för barn" är kategorins namn
+    men gav 52 varor, medan "elbil barn" gav 126: "för" räknades som ett ord
+    kategorin inte har. Ett småord i sökningen ska stå i kategorins eget
+    namn. "matbord med stolar" är fortfarande en matgrupp och inte kategorin
+    Matbord & stolar.
+12. **Två ord som ihop är ett ord söks som det ordet** (`hopskrivetBegrepp`).
+    Ordet ska stå i synonymtabellen, i katalogens namn eller i en kategoris
+    namn. Dess varor går först, och efter dem det som bara orden isär gav, så
+    att ingen träff försvinner. Gäller inte när det hopskrivna svaret kräver
+    en strykning eller en rättning, och ett svar med ett struket ord följer
+    inte med ("katt träd" med "träd" struket är varenda kattlåda).
+
+### Söksidan
+
+- **"soffa billigast"** (`villHaBilligast` i `lib/sok-pris.ts`,
+  `billigastForst` i `lib/sok-ordning.ts`): varorna som heter som sökningen
+  står billigast först, resten efter i sin vanliga ordning, med besked.
+  Samma funktioner på servern (`app/sok/page.tsx`), i den kalla vägen
+  (`components/sok-kall.tsx`) och i sökrutan (`lib/sok-rankning.ts`), så
+  rutans förslag är sidans första. "billig" är ett önskemål och sorterar
+  inte.
+  - ☠️ **Inte hela listan efter pris.** Överdragen och sidoborden är
+    billigast och hade stått före varenda soffa.
+  - ☠️ **Ordets egen kategori för sig.** De som heter soffa och är billigast
+    är barnsofforna och hundsofforna, och en raclettegrill och en
+    leksaksgrill är billigare än kolgrillarna. Motorn säger hur många av de
+    första träffarna som ligger i ordets egen kategori (`Sokutfall.hemma`,
+    regel 3 ovan): de ordnas efter pris först, sedan de som heter så på
+    andra hyllor. "utan"-sökningar behåller indelningen (`rankaUtan`).
+  - ☠️ **`varanHeterSa` räknar på ordens plats, inte på poängen.** Första
+    versionen krävde 92 poäng för sökningen som den skrevs. Med "billigast"
+    kvar i sökningen är "soffa" inte dess enda ord, varje soffa fick 60, och
+    ingenting sorterades: sidan visade beskedet om prisordning över en lista
+    i den vanliga ordningen. Det syntes först i webbläsaren, för proven
+    frågade `varanHeterSa(namn, "soffa")` och sidan frågar med "soffa
+    billigast". Nu: varje sökord som ord, eller sist i ett ord, i namnets
+    huvuddel (`kant` 5–6), utan frågeorden och utan det kunden nekade.
+    Provet går samma väg som sidan.
+  - ☠️ **Priset jämförs i hela kronor.** Rutan läser indexets text ("1 599
+    kr") och sidan varans tal, och med ören hade två varor som båda visar
+    1 599 kr kunnat byta plats.
+- **Ett ensamt pristak** ("under 500", "under 300 kr") är ingen sökning på
+  ord (`sidaForPristak`). Förut söktes talet: 26 varor med "500" i namnet.
+  Gränser med en egen sida går dit (`PRISSIDOR`, samma tal som
+  `PRICE_TIERS`), andra tak till `/alla-produkter?pris=under-300`: listans
+  prisreglage läser den adressen, och sidan pekar ut sin adress utan sökdel
+  som original (granskat undantag i `lib/interna-lankar-fragestrang.test.ts`).
+  ☠️ Golv ("över 5000 kr") går inte samma väg: listan ställer reglaget efter
+  varorna som följde med sidan, och ett golv över deras dyraste räknas som
+  inget filter (mätt i webbläsaren). De söks som förut.
+- **"rea" och "fyndauktion" som hel sökning** skickas till sin sida
+  (`lib/sok-sidor.ts`). "rea" gav fem julgirlanger med "REAlistiska
+  barrgrenar", "fyndauktion" noll träffar. Rean bara när butiken har
+  reavaror (`hasSale`, som menyernas länk). ☠️ `redirect` står utanför `try`:
+  den kastar. "black friday" och "black week" är inte med: vart de ska leda
+  är Leonards beslut.
+- **Rubriken följer listans filter**: "Visar 119 av 140 produkter".
+  `ShopBrowser` säger hur många den visar (`onAntal`), och svaret gäller
+  listan det kom från (`listnyckel`).
+- **Besked** för "utan" och för "billigast" (`inte`, `billigast` i `SokData`).
+
+### De stora listorna hämtades om varje gång
+
+☠️ **Vercels CDN skickar `age` och tar bort `s-maxage` ur svaret till
+webbläsaren.** Sökindexet (561 kB), varulistan (792 kB) och bildkartan (410
+kB) hade `max-age=300, s-maxage=3600`. Mätt på www: indexet kom med `age:
+2356` och `max-age=300`, alltså för gammalt redan när det kom fram, utan
+ETag. Varje sidladdning där kunden rörde sökrutan hämtade om det. Nu är
+`max-age` lika med `s-maxage` (3 600) i de tre rutterna
+(`app/api/search-index`, `app/api/lista`, `app/api/kort-bilder`). En kopia är
+då som mest en timme äldre än CDN:ts, och slutsålt rättas ändå på
+produktsidan. Inte mätt på www än: det syns först efter en deploy.
+
+### Prov
+
+`lib/sok-2026-11-21.test.ts`: 31 prov på en påhittad butik byggd som den
+riktiga (namnen ur katalogens mönster, kategorierna ur menyn), ett per fel
+ovan med vad www svarade den dagen. 84 avsiktliga fel i reglerna (varje regel
+avstängd eller förvrängd, en i taget) fälls alla. Tre överlevde första
+gången, och proven skärptes: en gran vars belysning bara heter "LED", en
+särskriven sökning där det hopskrivna svaret kräver en strykning, och
+`varanHeterSa` för en sökning som bara är ett frågeord.
+
+☠️ **Proven var gröna och sidan fel.** "soffa billigast" hade prov för varje
+del (ordet känns igen, listan ordnas, beskedet visas) men inget som gick
+hela vägen med sökningen som kunden skriver den. Ett lokalt bygge och en
+riktig webbläsare visade det på första försöket. En regel som syns för
+kunden provas i ett bygge innan den kallas klar.
+
+I ett lokalt bygge, i Chromium: beskeden för "utan" och "billigast",
+hänvisningarna ("under 500", "under 300 kr", "rea", "fyndauktion"), rubriken
+efter ett filter ("Visar 119 av 140 produkter"), det tomma läget, och
+sökrutans tolv förslag mot sidans tolv första för sex sökningar (alla lika).
+Efter "under 300 kr" visar listan bara varor under taket inom en sekund (0,45
+till 0,96 s, dator och mobil). Den kalla vägen provades i ett bygge där
+villkoret i `app/sok/page.tsx` var framtvingat (aldrig committat): samma
+varor, ordning och besked som servern för sex sökningar.
+
+☠️ **`lib/sok-minifierat.test.ts` letar upp slingan över namnen i den
+minifierade koden, och minifieraren döper om variablerna.** När listan med
+sökord råkade få namnet `$` hittade provet inte slingan (`\w` godtar inte
+`$`). Mönstren godtar nu `[\w$]` där ett namn står.
+
+### Farten
+
+Reglerna lägger till jämförelser per namn (synonymerna som ord, stammen med
+ändelse), så farten mättes om med gårdagens verktyg (`tools/sok-matning/`).
+
+Räknetid per tangent på en dator (`tangenter.ts`, 182 tangenter i 21 ord, två
+körningar var): 850 och 877 ms med motorn på www, 883 och 951 ms nu. En vanlig
+tangent 3,0–3,4 ms mot 3,2–3,6 ms, den tyngsta 19–20 ms mot 23–27 ms. Det är
+inom spridningen mellan två körningar, eller som mest en tiondel långsammare.
+
+En profil visar var det ligger: jämförelsen per namn (`matchPrepared`,
+`tokenQuality`) gör något mer arbete, och ingen enskild funktion sticker ut.
+Sex körningar var, den snabbaste: 425 ms för 80 tangenter med motorn på www,
+455 ms nu, alltså 7 % mer.
+
+I Chromium med fyrdubbelt strypt processor (`fart.cjs`, tio ord, tre
+körningar var, samma dator och samma timme):
+
+| | www (gårdagens motor) | dagens kod, lokalt bygge |
+|---|---|---|
+| blockerat för de tio orden | 1 063, 1 175, 1 278 ms | 1 106, 1 301, 1 384 ms |
+| längsta uppgift | 144–172 ms | 157–199 ms |
+| längsta väntan för en tangent | 41–63 ms | 86–99 ms |
+
+Det lokala bygget hade längre väntan per tangent än www i alla tre
+körningarna. För att skilja koden från mätmiljön byggdes gårdagens kod
+(`1238472f`) lokalt och mättes på samma sätt, rygg mot rygg med dagens:
+
+| | gårdagens kod, lokalt bygge | dagens kod, lokalt bygge |
+|---|---|---|
+| blockerat för de tio orden | 1 307, 1 794, 1 795 ms | 1 310, 1 522, 1 583 ms |
+| längsta uppgift | 172–244 ms | 171–189 ms |
+| längsta väntan för en tangent | 69–123 ms | 63–79 ms |
+
+Spridningen mellan två körningar är större än skillnaden mellan motorerna: i
+webbläsaren går dagens regler inte att skilja från gårdagens. Skillnaden mot
+www kom från mätmiljön. Det lokala bygget får index och sidor från samma
+dator, och datorn var långsammare än dagen före, då gårdagens bygge gav 979
+ms.
+
+☠️ **Jämför aldrig ett lokalt bygge med www, och aldrig med en mätning från
+en annan dag.** Första jämförelsen såg ut som en försämring på 40 ms per
+tangent. Bygg båda versionerna och mät dem efter varandra.
+
+### Inte gjort
+
+- **Rankning efter försäljning eller klick** (granskningens punkt 1). Butiken
+  samlar inte in vad som söks och klickas. Det är Leonards beslut om det ska
+  mätas.
+- **Artikelnummer i sökningen** (punkt 12). Leverantörernas artikelnummer får
+  aldrig synas, och egna nummer finns inte i indexet.
+- **Sökordet markerat i resultatsidans kort.** Korten är gemensamma för hela
+  butiken.
+- **Servern svarar på de första tangenterna medan indexet laddas** (punkt 11).
+  Det är den riktiga lösningen för första sökningen på ett långsamt nät, och
+  en större ombyggnad. Cachetiden ovan tar bort omhämtningen, inte den första
+  hämtningen.
+- **Material som egenskap** (punkt 2). "ek" och "rotting" är fortfarande ord
+  som ska stå i namnet. Färg och mått är redan egenskaper som får strykas med
+  besked.
+- **Sökrutan visar inte hänvisningarna.** För "rea", "fyndauktion" och ett
+  ensamt pristak är förslagen i rutan de gamla (julgirlangerna, varor med
+  "300" i namnet) tills kunden trycker på sök: då skickar sidan vidare. Mätt
+  i webbläsaren med Enter i rutan, dator och mobil.
+- ☠️ **Lokalt väntar söksidan in katalogen före en hänvisning till "rea"**
+  (menyn finns inte sparad lokalt, se den kalla vägen ovan). Första sökningen
+  mot en nystartad lokal server står därför kvar på sidan i tjugo sekunder.
+  I produktion läser sidhuvudet den färdiga menyn.
+- **Prisgolv utan varuord** ("över 5000 kr") söks fortfarande som ett tal.
+  Se "Ett ensamt pristak" ovan.
+- **Kvar av olikheterna:** "soffa" 140, "soffan" 141, "soffor" 142 (en
+  trädgårdsgrupp med "två tvåsitssoffor" och en klösmöbel "i sofform"),
+  "kontors möbler" 126 mot "kontorsmöbler" 228, och "elbilar till barn" 52
+  ("till" står inte i kategorins namn).
+- **"husdjur" gick från 156 till 116.** Nålen "djur" räknas inte längre
+  (regel 5): gungdjuren är borta, men också smådjursburarna. Kategorin
+  Husdjur står överst på sidan.
