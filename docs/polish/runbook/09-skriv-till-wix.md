@@ -22,7 +22,10 @@
 redan publicerat dem, med importens bilder tills bildsteget körts. Rätta och kör `skriv`
 igen direkt; alla steg tål omkörning. Faller bara återläsningen, stämpeln eller
 recensionerna kör du läget `stampla`, som också skriver recensionerna. Kontrollera att körningen slutade `success` och inte `cancelled`: workflowen har
-en gemensam kö, och en väntande körning avbryts när en annan session startar sin.
+en gemensam kö, och en väntande körning avbryts när en annan session startar sin. ☠️ Det gäller också dina egna körningar: köa aldrig två skrivningar
+åt gången. GitHub behåller bara en väntande körning per kö, så fem skrivningar som startades inom åtta
+sekunder gav en som körde och fyra som avbröts (2026-11-13, de korrigerande skrivningarna för N367–N371).
+Starta nästa först när den förra har börjat köra.
 
 ☠️ `ref` är `main` om du inte anger något, och där finns inte planen, så körningen stoppar
 innan något skrivs. Flera sessioner kör samma workflow, så känn igen din körning på gren

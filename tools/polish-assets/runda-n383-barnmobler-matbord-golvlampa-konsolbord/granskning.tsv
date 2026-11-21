@@ -1,0 +1,33 @@
+2b18b21e	3	struken	feedens position 3: måttbild med tysk text inbränd (Empfohlenes Alter, Gewichtslimit)
+2b18b21e	10	används	feedens position 10: ren miljöbild med ett litet barn bredvid hyllan, ingen text på bilden; visar hyllan från en annan vinkel än position 2, 8 och 9
+78d8419f	3	struken	feedens position 3: måttbild med engelsk text inbränd (Recommended Age, Weight Limit)
+78d8419f	4	förkastad	feedens position 4: tysk säljgrafik med inbränd text (Geräumiger Stauraum, Bücherregal, Offene Regale, 8 Stoffboxen, 2 Rollschubladen); texten ligger på varan och går inte att skära bort
+78d8419f	5	förkastad	feedens position 5: tysk säljgrafik med inbränd text (Kinderfreundliche Höhe, 80 cm Höhe); etiketten ligger på hyllan och går inte att skära bort utan att skära i varan
+78d8419f	6	förkastad	feedens position 6: tysk säljgrafik med inbränd text (Überall leicht zu bewegen, Mit vier Rädern); inzoomningsrutan ligger över varan
+78d8419f	7	förkastad	feedens position 7: tysk säljgrafik med inbränd text (Sichere und stabile Konstruktion, Kippsicherung) och en lysande streckgrafik längs hyllans sida
+78d8419f	10	förkastad	feedens position 10: fabriksfoto av hyllan i en verkstad med personer och kartonger i bakgrunden
+ec34a0fa	3	struken	feedens position 3: måttbild med tysk text inbränd (Empfohlenes Alter)
+ec34a0fa	4	förkastad	feedens position 4: tysk säljgrafik med inbränd text (3-in-1 Kunststaffelei, Kreidetafel, Whiteboard, Austauschbare Papierrolle); texten ligger på varan
+ec34a0fa	5	förkastad	feedens position 5: tysk säljgrafik med inbränd text (Viel Stauraum, Ablage unter der Tafel, Zwei Aufbewahrungsboxen); texten ligger på varan
+ec34a0fa	6	förkastad	feedens position 6: tysk säljgrafik med inbränd text (Verbessertes Sicherheitsdesign, Kiefernholz, Abgerundete Kanten, MDF, A-Form) och tre inzoomningsrutor
+ec34a0fa	7	förkastad	feedens position 7: tysk rubrik och underrubrik överst (Süsser Stil fürs Zimmer); utsnittet position 11 ur den undre delen
+ec34a0fa	10	förkastad	feedens position 10: fabriksfoto uppifrån av staffliet liggande på en tygduk
+ec34a0fa	11	används	utsnitt 1 600 × 1 600 px (x 150, y 400) ur feedens position 7: rutan ligger under rubriken och underrubriken och har ingen text utom omslag på böcker i rummet, staffliet syns helt; md5 lika med adressens svar
+54b23911	4	används	feedens position 4: ren miljöbild med bordet runt och fyra stolar, ingen text; visar bordet i det runda läget som inget annat foto i galleriet gör
+54b23911	5	används	feedens position 5: ren miljöbild med bordet utdraget till oval och sex stolar i ett kök, ingen text
+54b23911	6	förkastad	feedens position 6: ren miljöbild men samma ovala läge och sex stolar från samma vinkel som position 5
+54b23911	7	förkastad	feedens position 7: ren bild mot vit botten med dukat bord, samma motiv som position 8
+5d7a2c11	4	används	feedens position 4: ren miljöbild med lampan tänd i ett sovrum bredvid en säng, ingen text
+5d7a2c11	5	används	feedens position 5: ren miljöbild med lampan tänd i ett vardagsrum i skymning, ingen text
+5d7a2c11	6	förkastad	feedens position 6: ren miljöbild men liknar position 2 (vardagsrum med fåtölj och tänd lampa)
+5d7a2c11	7	förkastad	feedens position 7: ren bild mot vit botten, samma motiv som position 8
+8ba14f3c	2	struken	feedens position 2: fabriksfoto av varan på ett betonggolv i en lagerlokal
+8ba14f3c	3	struken	feedens position 3: samma fabriksfoto som position 2
+8ba14f3c	4	förkastad	feedens position 4: tysk säljgrafik med inbränd text (Massiver visueller Effekt) och en förstoringsruta med skjutmått över benet
+8ba14f3c	5	förkastad	feedens position 5: tysk rubrik och ikon överst (Sichere abgerundete Ecken); utsnittet position 11 ur den undre delen
+8ba14f3c	6	förkastad	feedens position 6: tysk säljgrafik med inbränd text (Vielseitiger Stauraum, Tischplatte, Schubladen) med etiketter på varan
+8ba14f3c	7	förkastad	feedens position 7: tysk säljgrafik med inbränd text (Kippsicherung) och en förstoringsruta över varan
+8ba14f3c	10	förkastad	feedens position 10: foto av en bruksanvisning på ett trägolv, inte varan
+8ba14f3c	11	används	utsnitt 1 450 × 1 450 px (x 550, y 550) ur feedens position 5: rutan ligger under rubriken och ikonen och har ingen text, en detalj på bordsskivans rundade hörn med en hand; md5 lika med adressens svar
+55ba90f4	3	struken	feedens position 3: måttbild med tysk text inbränd (Empfohlenes Alter, Gewichtslimit)
+55ba90f4	10	används	feedens position 10: ren miljöbild med ett barn som läser vid bänken, ingen text på bilden; visar bänken i bordsläget

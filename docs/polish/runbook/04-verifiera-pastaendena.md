@@ -57,3 +57,18 @@ leverantören som inte stämmer.
     fungerar och låt kunden dra slutsatsen.
 17. **Mallar är inga mätningar.** Oifyllda platshållare (`-XX-XXcm`) och tal i en
     marknadsbild som återkommer på olika modeller säger ingenting om just den här varan.
+
+18. **En måttbild kan säga emot leverantörens egen text** (T117, hundburen `8207dbc8`, 2026-11-07).
+    Bilden är inte säkrare än texten bara för att den är en bild. Måttbilden för 90 cm visade
+    91 × 62 × 68 cm medan feedtiteln, texten och Aosoms nordamerikanska katalog sa 90 × 57,5 × 62 cm.
+    Avgör med fyra belägg: (1) feedtiteln, som ofta bär måtten, (2) vad oberoende återförsäljare skriver
+    om samma vara (`WebSearch` hittar dem, `WebFetch` läser Staples.ca; aosom-sajterna svarar 403),
+    (3) paketmåttet mot varans mått (en hopfälld bur ska rymmas i kartongen, och kudden är i regel
+    basens längd minus 4 cm och djup minus 1,5 cm), och (4) proportionerna på samma bild, till exempel
+    dörrens höjd mot varans (0,77 på 75 cm, 0,76 på 90 cm med texten och 0,69 med bildens tal).
+    Två regionala datamängder kan båda vara riktiga för samma vara (EU 106 × 71,5 × 76 cm mot Nordamerika
+    105 × 70 × 75 cm): sidan följer då EU-texten, eftersom det är EU-lagret som skickas, och en uppgift som
+    uppsättningarna inte kan enas om (dörrmåtten på 106 cm, tre olika) utelämnas. Är det bilden som har
+    fel stryks den, och ett utsnitt går inte att göra när felet sitter i bildens egna tal. Storleken
+    flaggas då i `FLAGGADE.md`, och avvikelsen från regel 3 (det större yttermåttet) står i
+    commitmeddelandet.

@@ -1,0 +1,8 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+afd44734 20 tallrikar och skålar upp till 20 cm i diameter, avläst i feedens bild 9 (Max diameter for bowls and plates: 20 cm)
+afd44734 99 programtid för intensiv, avläst i feedens bild 5
+afd44734 139 programtid för ECO, avläst i feedens bild 5
+afd44734 79 programtid för normal, avläst i feedens bild 5
+afd44734 29 programtid för snabb, avläst i feedens bild 5
+afd44734 18 programtid för frukt, avläst i feedens bild 5

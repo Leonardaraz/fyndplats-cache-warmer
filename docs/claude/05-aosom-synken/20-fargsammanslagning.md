@@ -315,3 +315,98 @@ val och att Storlek låg på ~97. Uppmätt 2026-09-27: `Färg` (TEXT_CHOICES) ha
 **293** val och `Storlek` **203**, och importerna fungerar. Taket på 100 per
 delad option gäller alltså inte i dag. Nya storleksvärden tar ändå en plats var i
 den delade listan, så välj korta, återanvändbara etiketter där det går.
+
+#### En färg vars artikel Aosom bytt ut står slut: peka om varianten (2026-11-19)
+
+Leonards fråga med en skärmbild (lyftfåtöljen `d34f6bab`): *"Varför står det att
+grå är slut i lager när det står på leverantörens sida att det finns 15 st?"* och
+sedan *"Om grå har en som är annan artikel men är rätt så fixa det förfan bara va
+säker att det är helt rätt"*.
+
+**Orsaken.** Varje färg på en sammanslagen sida bär sin egen Aosom-artikel
+(`variants[].supplierVariantId`). Byter Aosom version på artikeln försvinner den
+gamla raden ur flödet och samma vara kommer tillbaka som en ny rad. Lagersynken
+nollar en variant vars rad saknas (en rad som försvinner är ett lagerbesked, se
+*Aosom-synken: ett anrop ger hela sanningen*), så färgen står slut i butiken tills
+någon pekar om den. En sida i den här situationen syns inte som ett fel någonstans:
+räknarna *okända varianter* och *tvetydiga* är noll, för varianten är känd, bara
+raden den pekar på finns inte längre.
+
+**Så ser man det.** `leverantorslankar.yml` (krypterat) ger ingen länk för en
+variant vars artikel saknas i flödet. `aosom-feed-search.yml` med `kuvert` och ord
+ur titeln (`alla_rader=true`) visar flödets rader med saldo, vikt och Sverige-frakt:
+finns det en rad med samma titel utom färgen, samma vikt och samma frakt som
+syskonfärgerna är det samma vara i en ny version.
+
+**Så gör man.** Det finns inget verktyg för det (`aosom-remap.yml` vägrar
+flervariantssidor), så ingreppet görs som en villkorad patch på mappningsraden.
+
+1. ☠️ **Bevisa att det är samma vara före allt annat.** Samma titel utom färg, samma
+   vikt och frakt som syskonfärgerna, samma mått som sidans, och inga ordrar på
+   färgen (`ecom/v1/orders/search`, de senaste hundra räcker för en färg som varit slut).
+2. ☠️ **Aldrig i Aosoms synkfönster** (:12–:29 UTC var tredje timme). Raden skrivs
+   av synken också.
+3. **Wix Data PATCH** (`PATCH /wix-data/v2/items/<wix-id>`, samlingen
+   `FyndplatsMappings`) som sätter fältet `variants` ensamt. Hela fältet ersätts, så
+   läs raden först och lägg tillbaka varje variant som den lästes; ändra bara den
+   berörda variantens `supplierVariantId`, `landedCostSek` (ur flödet) och
+   `costUsd` (landad kostnad / 10,5, som på de andra varianterna). `grossSek` är
+   priset kunden ser och rörs inte.
+4. ☠️ **`condition` är obligatorisk:** `supplierProductId` och `aosomSyncedAt` som
+   de lästes. Synken stämplar samma rad, och en patch som ersätter hela
+   `variants` utan villkor tar tillbaka dess värden. Slår villkoret fel (428), läs
+   om och försök igen.
+5. **Läs tillbaka** (ett svar utan fel är inget kvitto): artikeln på varianten, att
+   de andra varianterna är oförändrade, och att priset ligger kvar.
+6. **Riktad lagersynk:** `aosom-sync.yml` med `feed_sok` (orden ska ge EXAKT en rad;
+   artikelnumret skrivs aldrig ut) först i läget `torr` och sedan `lager`, som bara
+   skriver saldon. Kontrollera lagerposterna i Wix och sidan i butiken (variantens
+   vals *Slut* ska vara borta).
+
+⚠️ **Priset rörs inte av ingreppet, men prissynken gör det vid nästa priskörning.**
+Den räknar varje färgs pris efter feedens inköpskostnad (1,20 × landad kostnad,
+`charm99`), och en billigare ny artikel ger ett lägre pris. Säg det till Leonard
+innan skrivningen; torrkörningens räknare *priser* visar att en ändring väntar.
+Sidans text kan dessutom bära uppgifter om den gamla versionen (vikt och
+paketmått per färg): läs specifikationen efteråt. På lyftfåtöljen `d34f6bab` stod
+*Fraktvikt: 46,5 kg, den grå 55 kg* kvar efter ompekningen, tills T127
+(2026-11-20) rättade den. Den nya artikelns paketmått går inte att läsa ur
+flödet (`aosom-feed-search.yml` visar bara namn, saldo, vikt och frakt), så sidan
+nämner inget paketmått för just den färgen i stället för att gissa.
+
+**Svepet efter fler fall (2026-11-20).** Leonards fråga: *"Har vi fler fall som är
+fel som den grå soffan?"* Svar: nej, inget fall till av exakt det felet.
+
+- **Vad som söktes.** Av 1 063 sammanslagna publicerade sidor hade 178 någon färg
+  på 0 och någon på lager. På 65 av dem saknade 68 val sin artikel i flödet
+  (`leverantorslankar.yml` ger ingen länk). I flödet (`aosom-feed-search.yml`
+  med `kuvert`) fanns ingen ersättare för 57 av dem: färgen eller storleken har
+  utgått hos Aosom och syskonfärgerna ligger kvar på sidan. En träff var en
+  annan modell i samma familj. 10 val på 8 sidor gick inte att slå upp vid första
+  svepet. Vid dubbelkontrollen samma dag slogs de upp en gång till mot flödet, och
+  det blev inget nytt fel av den grå soffans sort. Ett val, på `5f2bd483`, går
+  fortfarande inte att verifiera mot flödet och ligger kvar orört.
+- ☠️ **Sök med ord, aldrig med artikelnummer.** En workflow-input på ett publikt
+  repo syns i körningen; `Maskera`-steget döljer bara loggen. Orden hämtas ur
+  syskonens länkar. Sökningen matchar flödets titel, som inte alltid är den som
+  står på aosom.de (en rumsavdelare matchade inte ordet *Raumteiler*), så *inga
+  träffar* betyder "inte hittad", inte "borta". Kör om med `alla_rader=true`:
+  raden kan finnas men inte gå att skicka till Sverige, och så var det för både
+  177-cm-överdragen och 20-kg-hantelsetet.
+- **Från Wix-sidan** (en läsning av `FyndplatsMappings` med `ExecuteWixAPI`):
+  slutsålda artiklar där en annan artikel i samma familj och med samma färgkod
+  har lager gav 20 par. Alla var andra storlekar eller modeller, jämfört på
+  sidornas titlar och mått. Ett par såg först ut som samma massagefåtölj på två
+  publicerade sidor, där svart bara fanns på den ena, men ☠️ **det var ett
+  felslut**: dubbelkontrollen (2026-11-20) visade att de är olika modeller. Flödets
+  titlar säger konstläder på den ena och polyester på den andra, och fotona visar
+  två olika stolar. Det fanns inget att slå ihop. Samma titel utom färgen och samma
+  mått räcker alltså inte som bevis: läs materialet i flödets titel och titta på
+  fotona innan en sida kallas dubblett. Versionsnumret i artikelnumrets slut
+  (`V00`, `V01` …) är oftast storlek eller modell, inte version, så "samma
+  färgkod, annat nummer" bevisar ingenting.
+- **Inte kontrollerat.** De 538 slutsålda enkelsidorna går inte att jämföra mot
+  flödet med dagens verktyg, och en flödesrad som inte ligger på någon sida syns
+  inte från Wix. `aosom-familjer` räknar ensamma sidor med syskon i feeden som vi
+  inte har (47 den här dagen) men listar dem inte. Nästa steg vore en skrivskyddad
+  route som listar flödesrader utan sida per familj.

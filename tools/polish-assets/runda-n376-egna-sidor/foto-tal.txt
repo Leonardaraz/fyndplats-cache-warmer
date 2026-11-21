@@ -1,0 +1,3 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+5898c995 4 räknat på produktfotot (position 1 och 8): fyra hyllor på varje dörr, åtta dörrhyllor på de två dörrarna enligt källan

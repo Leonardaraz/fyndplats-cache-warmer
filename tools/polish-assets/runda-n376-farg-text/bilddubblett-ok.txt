@@ -1,0 +1,3 @@
+00d6458f 5 8 måttbilderna för tre och fyra paneler är olika ritningar med olika antal paneler och olika mått (155 mot 207,5 cm), inte samma bild
+00d6458f 5 12 måttbilderna för tre och fem paneler är olika ritningar med olika antal paneler och olika mått (155 mot 258 cm), inte samma bild
+00d6458f 8 12 måttbilderna för fyra och fem paneler är olika ritningar med olika antal paneler och olika mått (207,5 mot 258 cm), inte samma bild

@@ -1,0 +1,8 @@
+0575a33b baglampa-190-cm-fem-led-huvuden-fotbrytare
+7ee7a245 golvlampa-156-cm-inbyggd-laslampa-tygskarm
+0ef9e2e9 golvlampa-150-cm-rektangular-skarm-fotbrytare
+167421f7 golvlampa-150-cm-hyllor-usb-fjarrkontroll
+18c8f063 led-badrumsspegel-100x70-rektangular-bluetooth
+66a747cd led-badrumsspegel-oval-100x70-svart-ram-bluetooth
+050a4699 led-badrumsspegel-120x70-antiimma-minne
+64b8efab led-badrumsspegel-100x70-rundade-horn-antiimma

@@ -1,0 +1,49 @@
+6d1546fc	1	används	feedens position 1: vit studiobild, ren; OCR läste bara dekalerna OFFROAD och SUPER, som sitter på bilen; bilden visar en UTV med fast lastflak och inget separat släp, fast titeln och Lieferumfang säger Traktor och Anhänger, så sidan följer bilden
+6d1546fc	2	används	feedens position 2: miljöbild med barn på en skogsväg, ren; dekalerna sitter på bilen
+6d1546fc	3	struken	feedens position 3: måttbild med tysk text (Empfohlenes Alter, Gewichtslimit); utsnitt gjordes inte, eftersom bilden redan har fem rena
+6d1546fc	4	används	feedens position 8: närbild på framhjulet, ren
+6d1546fc	5	används	feedens position 9: miljöbild i ett klipplandskap, ren; dekalerna CAR SUPER och MAX sitter på bilen
+6d1546fc	10	används	feedens position 10: miljöbild med barn på en skogsstig, ren; hämtad med aosom-bildkandidater
+9a23cbbe	1	används	feedens position 1: vit studiobild, ren; OCR läste bara skylten MINI COOPER, som sitter på bilen
+9a23cbbe	2	struken	feedens position 2: lagerfoto från ett fabriksgolv med kartonger och etiketter i bakgrunden (amatörfoto)
+9a23cbbe	3	struken	feedens position 3: måttbild med tysk text (Altersempfehlung, Max. Belastung); utsnittet på position 11 ersätter den
+9a23cbbe	4	används	utsnitt ur feedens position 5 (1 420 × 1 420 px, x 205, y 70): vuxen, barn och bil på en gata; rubriken, ikonerna och märket i hörnet ligger utanför; i nederkanten syns en röd kant ur rubrikbandet men ingen text; OCR REN; får plats 4 så att miljöbilden blir andra bild
+9a23cbbe	8	används	feedens position 8: närbild på framhjulet, ren
+9a23cbbe	9	används	feedens position 9: närbild på transporthjulen, ren
+9a23cbbe	10	struken	feedens position 10: amatörfoto från fabriksgolvet, samma scen som position 2
+9a23cbbe	11	används	utsnitt ur feedens position 3 (1 380 × 1 380 px, x 620, y 620): bilen med måtten 55, 96 och 47 cm; åldersrutan, vikten, barnet och infällningen med sitsmåtten ligger utanför; OCR läste bara skylten MINI COOPER på bilen; alla tal står i källtexten; läggs sist
+bff715ee	1	används	feedens position 1: vit studiobild, ren
+bff715ee	2	struken	feedens position 2: lagerfoto från en fabrikshall med etiketter på kinesiska och engelska i bakgrunden (amatörfoto)
+bff715ee	3	används	feedens position 3: måttbild med bara tal och enheter (100, 80, 115, 60, 40, 49,5, 23,8 och 24,3 cm); alla tal står i källtexten; läggs sist
+bff715ee	4	används	feedens position 8: miljöbild med flicka vid staffliet, ren; text på bokomslag och pennor är rekvisita
+bff715ee	5	används	feedens position 9: miljöbild i ett barnrum, ren
+bff715ee	10	används	feedens position 10: miljöbild med två barn vid bordet, ren; hämtad med aosom-bildkandidater
+8a2ca170	1	används	feedens position 1: vit studiobild, ren
+8a2ca170	2	används	feedens position 2: miljöbild med barn, ren; text på bokomslagen är rekvisita
+8a2ca170	3	struken	feedens position 3: måttbild med tysk text (Empfohlenes Alter: 3-8 Jahre) längst ned; ett utsnitt går inte att göra utan att skära i hyllan
+8a2ca170	4	används	feedens position 8: miljöbild i ett barnrum, ren; text på bokomslagen är rekvisita
+8a2ca170	5	används	feedens position 9: närbild på hörnet, ren
+8a2ca170	10	struken	feedens position 10: amatörfoto av hyllan på ett kontorsgolv med ett bordtennisbord
+8a2ca170	11	används	utsnitt ur feedens position 7 (787 × 787 px, x 1149, y 1087): hand som torkar hyllans ovansida med en trasa; rubriken Lackierte Oberfläche ligger utanför; OCR REN
+72aa9292	1	används	feedens position 1: vit studiobild med alla sex skivorna, ren; OCR läste bara märkningen på skivorna
+72aa9292	2	används	feedens position 2: miljöbild i ett gym, ren
+72aa9292	3	används	feedens position 3: måttbild med bara tal och enheter (2,5, 7,5 och 10 kg, 24, 31 och 34 cm, 8, 12 och 13 cm, 3, 5,5 och 6 cm och 2,5 cm); alla tal står i källtexten; läggs sist
+72aa9292	4	används	feedens position 8: miljöbild med kvinna och två skivor, ren
+72aa9292	5	struken	feedens position 9: amatörfoto av en skiva i en kartong med skumplast och en etikett på engelska
+72aa9292	10	används	feedens position 10: vit studiobild med skivorna i tre storlekar, ren; hämtad med aosom-bildkandidater
+d34dd7b7	1	används	feedens position 1: vit studiobild, ren
+d34dd7b7	2	används	feedens position 2: miljöbild med löpare, ren; märket på västen sitter på varan och nämns inte i texten
+d34dd7b7	3	används	feedens position 3: måttbild med bara 35 och 40 cm; märket sitter på västen; läggs sist
+d34dd7b7	4	används	feedens position 8: närbild på nätfickan, ren
+d34dd7b7	5	används	feedens position 9: närbild på axelbandet, ren
+feab43a1	1	används	feedens position 1: vit studiobild, ren; märket på kontrollpanelen sitter på varan och nämns inte i texten
+feab43a1	2	används	feedens position 2: miljöbild med två katter, ren
+feab43a1	3	struken	feedens position 3: tysk säljgrafik (NIEDRIGER EINSTIEG, MEHR PLATZ med mått och Empfohlen für Katzen); utsnitt gjordes inte, eftersom bilden redan har fem rena
+feab43a1	4	används	feedens position 8: miljöbild med katt, ren
+feab43a1	5	används	feedens position 9: miljöbild med katt, ren
+feab43a1	10	används	feedens position 10: miljöbild med två katter, ren; hämtad med aosom-bildkandidater
+951efffd	1	används	feedens position 1: vit studiobild, ren
+951efffd	2	används	feedens position 2: miljöbild, ren; OCR läste bara brus
+951efffd	3	används	feedens position 3: måttbild med bara tal och enheter (88, 175, 57, 150, 42, 20, 204 och 250 cm), en ruta med 240 kg och en ikon med två kartonger (X2); alla tal står i källtexten; läggs sist
+951efffd	4	används	feedens position 8: miljöbild med soffan som tvåsitssoffa, ren
+951efffd	5	används	feedens position 9: miljöbild med soffan som bädd, ren

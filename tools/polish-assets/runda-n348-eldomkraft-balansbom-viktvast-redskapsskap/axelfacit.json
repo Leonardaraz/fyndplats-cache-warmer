@@ -1,0 +1,29 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "1b3286c6": {
+  "tyska": "48L x 40B cm",
+  "svenska": "48 x 40 x 3 cm",
+  "axellos": "totalraden har tva tal utan H eller T (48L x 40B cm) — vilken axel det andra talet ar gar inte att avgora ur raden"
+ },
+ "3e0bb499": {
+  "tyska": "77B x 55T x 72H cm",
+  "svenska": "77L x 55B x 72H cm",
+  "bokstaver": "BTH",
+  "djup": 55,
+  "hojd": 72,
+  "bredd": 77
+ },
+ "86f26882": {
+  "tyska": "240L x 15B x 6,5H cm",
+  "svenska": "240L x 15B x 6,5H cm",
+  "bokstaver": "LBH",
+  "hojd": 6.5,
+  "bredd": 240,
+  "djup": 15
+ },
+ "b09e7a32": {
+  "tyska": "",
+  "svenska": "36 x 35 x 17,5 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Koffermaße: 36L x 35B x 17,5H cm | ✔ Wagenhebermaße: 29,7L x 15B x 14,3-45H cm | ✔ Maße des elektrischen Schraubenschlüssels: 25,9L x 10,92B x 14,8H cm | ✔ Max. Belastung: 5 T"
+ }
+}

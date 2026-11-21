@@ -1,0 +1,7 @@
+8c57a142 serveringsvagn-vit-tralook-lada-tva-hyllor
+fc27507b rullvagn-vit-tre-korgar-hangboxar-krokar
+df03d377 smal-rullvagn-tre-natkorgar-bricka-vit
+b68c4b34 ergonomisk-kontorsstol-hog-rygg-nackstod-vipp-180-kg
+4dcd452d ergonomisk-kontorsstol-nat-3d-nackstod-160-kg
+74533368 kontorsstol-nat-delad-rygg-nackstod-landstod-180-kg
+27ae43b2 kladstallning-tornform-fyra-hyllor-atta-krokar

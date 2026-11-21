@@ -1,0 +1,16 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "47d08429": {
+  "tyska": "251L x 192B x 103H cm",
+  "svenska": "251cm x 192cm x 103cm",
+  "bokstaver": "LBH",
+  "hojd": 103,
+  "bredd": 251,
+  "djup": 192
+ },
+ "c8f3d3ea": {
+  "tyska": "",
+  "svenska": "204x204x80cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Quadrat: 204L x 204B x 80H cm | ✔ Rechteck: 272L x 136B x 80H cm | ✔ Einzelpaneel: 68B x 80H x 1,5T cm | ✔ Tür: 39B x 52,5H cm | ✔ Bodenpfahl: 90L cm | ✔ Faltgröße: 80L x 70B x 18,5H cm | ✔ Stangenabstand: 5B x 15H cm"
+ }
+}

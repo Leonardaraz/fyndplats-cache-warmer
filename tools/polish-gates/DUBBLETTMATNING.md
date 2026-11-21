@@ -242,6 +242,15 @@ trippel, färre än två nära och färre än fyra delade symboler mot någon pu
 trippel, 151 med minst två nära och 12 med minst fyra delade symboler. En träff på en enda nära trippel utan något annat är
 ett måttsammanträffande i en katalog med 4 300 sidor.
 
+☠️ **Svepet går i delar sedan 2026-11-14.** Katalogen har över 18 000 produkter, och ett ExecuteWixAPI-anrop hinner bara läsa
+ungefär 40–48 sidor om 100 med beskrivningen (60 s-taket). Verktyget stannade förut tyst vid 120 sidor, och eftersom standardordningen
+har de nyaste produkterna sist fanns nattens utkast inte med, medan svaret såg klart ut. Nu läser varje del utkasten själv
+(`UTKAST_IDN`, de hela Wix-id:n), jämför dem mot de publicerade sidorna i delen och svarar med `nasta` (markör), `klart` och en
+`varning` om svepet inte är slut. Kör om med `START = nasta` tills `klart` är true; resultatet är unionen av `rader` över delarna.
+Med tom `UTKAST_IDN` är beteendet som förut, men `klart` och `varning` säger då om svepet blev avkapat. Provkört 2026-11-14 på sju
+kända utkast (två delar om 40 sidor, den andra startad med markören från den första): `4a59ad45` träffade de publicerade
+klappstolarna `8d8debb2` och `12a25c63` med fyra exakta tripplar var.
+
 **Tre blinda fläckar som måtten och bilderna delar, och vad som fångar dem:**
 
 - *Intervall i tredje måttet* (`65 × 48 × 73–110 cm`) tolkas inte som trippel. Ståbordet `7859405b` var tredje färgen till

@@ -34,5 +34,9 @@ Fem saker som inte ska tas bort:
 4. ☠️ **Mät en kombination i taget, med valen uppslagna på namnet.** `live-galleri.mjs` letade upp valen på etiketten som stod när listan lästes, och den ändras med det andra valet (*Beige – finns inte i
    100 cm*, *150 cm – slut i lager*). Klicket missade då varje färg som saknades i den storlek som var vald, och raden visade föregående färgs galleri (buxbomsklotten Olivgrön och bänkdynan Ljusgrå).
    Lagat 2026-10-23: valet letas upp på namnet före ` – `, i den färska sidan, vid varje klick.
+   Samma lucka fanns kvar för en sida med storlekskort och en färgaxel (växthuset `e891b752`, 2026-11-10): kortgrenen klickade bara korten och mätte
+   bara den förvalda färgen, och 180 cm-kortet gick inte att klicka med Vit vald (etiketten blev *180 × 90 × 90 cm – finns inte i Vit*), så raden visade
+   förra kombinationens galleri. Lagat samma dag: skriptet börjar varje kort på första färgen som finns, letar upp kort och färger på namnet före ` – `
+   och går igenom varje färg i varje storlek (`KOMBO`, och *finns inte* för en kombination som saknas).
 5. ☠️ **En ny test kräver en dold testprodukt som raderas direkt.** De tre testerna ovan gjordes mot `products-with-inventory` (POST, tre PATCH och DELETE, 11–15 s per körning), med bilder som redan låg
    i Media Manager. Produkten raderades i en `finally`, och en läsning efteråt gav 404.

@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py 58c5bc3a är ett AliExpress-set vars källa är sidans tidigare publicerade svenska text, som saknar tysk totalmåttrad: totalmåttet står där som 188 × 120 × 61 cm (L×B×H), och måttskissen på bild 9 och 10 visar uppställt 188 × 120 × 61 cm, så texten skriver måtten som 188 × 120 × 61 cm med (L × B × H) som i den raden

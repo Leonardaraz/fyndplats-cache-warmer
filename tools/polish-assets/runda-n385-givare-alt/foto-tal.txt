@@ -1,0 +1,3 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+b8ad50c9 116 lägsta höjden avläst på måttbilden (bild 3): 116–126 cm

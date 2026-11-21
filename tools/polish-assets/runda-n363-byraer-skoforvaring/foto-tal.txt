@@ -1,0 +1,4 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+08c98eea 25 maxlasten totalt (25 kg) avläst på måttbilden (feedens position 3), där källan bara anger 3 kg per låda och 15 kg överst
+dff95aba 30 maxlasten totalt (30 kg) och de små lådornas bredd (30 cm) avlästa på måttbilden (feedens position 3), där källan bara anger 3 kg per låda och 15 kg överst

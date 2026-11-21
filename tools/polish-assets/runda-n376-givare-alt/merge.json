@@ -1,0 +1,92 @@
+[
+ {
+  "host": "825c12a2",
+  "donor": "e653105b",
+  "bilder": "1,2,3,4",
+  "kallpositioner": [
+   "1",
+   "2",
+   "4",
+   "5"
+  ]
+ },
+ {
+  "host": "7b2212d5",
+  "donor": "1113c096",
+  "bilder": "1,2,3,4",
+  "kallpositioner": [
+   "1",
+   "2",
+   "4",
+   "5"
+  ]
+ },
+ {
+  "host": "4d930264",
+  "donor": "8ee6fb96",
+  "bilder": "1,2,3,4",
+  "kallpositioner": [
+   "1",
+   "2",
+   "4",
+   "5"
+  ]
+ },
+ {
+  "host": "4caae7b4",
+  "donor": "53ef4a28",
+  "bilder": "1,2,3,4",
+  "kallpositioner": [
+   "1",
+   "2",
+   "4",
+   "5"
+  ]
+ },
+ {
+  "host": "4caae7b4",
+  "donor": "da3eb18c",
+  "bilder": "1,2,3,4",
+  "kallpositioner": [
+   "1",
+   "2",
+   "4",
+   "5"
+  ]
+ },
+ {
+  "host": "00d6458f",
+  "donor": "e2e7edb5",
+  "bilder": "1,2,3,4",
+  "kallpositioner": [
+   "1",
+   "2",
+   "3",
+   "5"
+  ]
+ },
+ {
+  "host": "00d6458f",
+  "donor": "a6fa9258",
+  "bilder": "1,2,3,4,5",
+  "kallpositioner": [
+   "1",
+   "2",
+   "3",
+   "4",
+   "5"
+  ]
+ },
+ {
+  "host": "adef1330",
+  "donor": "09a6c92c",
+  "bilder": "1,2,3,4,5",
+  "kallpositioner": [
+   "1",
+   "2",
+   "3",
+   "4",
+   "5"
+  ]
+ }
+]

@@ -1,0 +1,53 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "13b6c20b": {
+  "tyska": "",
+  "svenska": "137 x 80 x 80 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maße des Bodensofas: 137B x 80T x 80H cm | ✔ Bettmaße: 137B x 260T x 10H cm | ✔ Sitzmaße: 137B x 60T x 30H cm | ✔ Maße der Rückenlehne: 137B x 70H x 30T cm | ✔ Maße der Seitenkissen: 137B x 60T x 20H cm | ✔ Maße der mittleren Kissen: 137B x 70T x 10H cm"
+ },
+ "19fa9e02": {
+  "tyska": "56L x 39,5B x 56H cm",
+  "svenska": "56cm x 39,5cm x 56cm",
+  "bokstaver": "LBH",
+  "hojd": 56,
+  "bredd": 56,
+  "djup": 39.5
+ },
+ "2082f566": {
+  "tyska": "190L x 170B x 103H cm",
+  "svenska": "190 x 170 x 103 cm",
+  "bokstaver": "LBH",
+  "hojd": 103,
+  "bredd": 190,
+  "djup": 170
+ },
+ "4f60d781": {
+  "tyska": "143L x 77B x 60H cm",
+  "svenska": "143L x 77B x 60H cm",
+  "bokstaver": "LBH",
+  "hojd": 60,
+  "bredd": 143,
+  "djup": 77
+ },
+ "7c2030c7": {
+  "tyska": "105L x 30B x 80H cm",
+  "svenska": "105L x 30B x 80H cm",
+  "bokstaver": "LBH",
+  "hojd": 80,
+  "bredd": 105,
+  "djup": 30
+ },
+ "8b7be3a1": {
+  "tyska": "",
+  "svenska": "166L x 90B x 84H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Sofa-Abmessungen: 166B x 90T x 84H cm | ✔ Bett-Abmessungen: 141B x 180T x 45H cm | ✔ Sitzgröße: 141B x 59T x 45H cm | ✔ Rückenlehnen-Größe: 141B x 45H cm | ✔ Armlehnengröße: 90L x 12B cm | ✔ Kissengröße: 54L x 27B x 14H cm | ✔ Seitentaschengröße: 36B x 22H cm | ✔ Couchtischgröße: 28B x 40T x 11H cm | ✔ Becherhaltergröße: Ø8,5 x 3,5H cm"
+ },
+ "e9b4e64e": {
+  "tyska": "131,5L x 76,5B x 53,5H cm",
+  "svenska": "131,5 x 76,5 x 53,5 cm",
+  "bokstaver": "LBH",
+  "hojd": 53.5,
+  "bredd": 131.5,
+  "djup": 76.5
+ }
+}

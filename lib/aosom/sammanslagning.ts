@@ -71,6 +71,7 @@ import { synligtSaldo } from "./sync";
 import { aosomArtikelbild, aosomArtiklarPaRaden, radensArtikel } from "./artiklar";
 import { pensioneraDubblett } from "./remap";
 import { WIX_BILDTAK, altFor, givarensBilder, harSvenskAlt, olankadeAgare, type TabellRad } from "./fargbilder";
+import { valPar, valPlats } from "./valordning";
 import type { FargbildLager } from "../store/fargbilder";
 
 type Obj = Record<string, unknown>;
@@ -934,6 +935,16 @@ function nyOption(axel: Axel, varden: string[]): Obj {
   return { name: axel, optionRenderType: RENDER, choicesSettings: { choices: varden.map(valBody) } };
 }
 
+/**
+ * Det nya valet på sin plats bland optionens befintliga val: storlekarna i
+ * storleksordning, allt annat sist (`valordning.ts`). De befintliga valen flyttas
+ * aldrig och behåller sina id och sina kopplade bilder.
+ */
+function medNyttVal(val: Obj[], axel: Axel, nytt: string): Obj[] {
+  const plats = valPlats(axel, val.map((c) => String(c.name ?? "")), nytt);
+  return [...val.slice(0, plats), valBody(nytt), ...val.slice(plats)];
+}
+
 /** Variantens val, ett per axel, i den form V3 tar emot. */
 function valReferenser(axlar: Axel[], val: Koordinat): Obj[] {
   return axlar.map((a) => ({ optionChoiceNames: { optionName: a, choiceName: val[a] ?? "", renderType: RENDER } }));
@@ -1260,7 +1271,7 @@ export async function korSammanslagning(
       // koppling i samma skrivning kan falla på 404 PRODUCT_MEDIA_NOT_EXIST
       // (uppmätt vid import 2026-06-01). Då hade hela sammanslagningen fallit
       // för en bildfråga. Kopplingen görs i återläsningen, med försök.
-      options = plan.axlar.map((a) => nyOption(a, [plan.sidansVal[a]!, plan.nyttVal[a]!]));
+      options = plan.axlar.map((a) => nyOption(a, valPar(a, plan.sidansVal[a]!, plan.nyttVal[a]!)));
       variants = [
         {
           ...utanLasfalt(v1),
@@ -1288,11 +1299,11 @@ export async function korSammanslagning(
             ...o,
             choicesSettings: {
               ...((o.choicesSettings as Obj | undefined) ?? {}),
-              choices: [...valAv(o), valBody(plan.nyttVal[a]!)],
+              choices: medNyttVal(valAv(o), a, plan.nyttVal[a]!),
             },
           };
         }),
-        ...plan.nyaAxlar.map((a) => nyOption(a, [plan.sidansVal[a]!, plan.nyttVal[a]!])),
+        ...plan.nyaAxlar.map((a) => nyOption(a, valPar(a, plan.sidansVal[a]!, plan.nyttVal[a]!))),
       ];
       variants = [
         ...variantFore.map((v, i) => {

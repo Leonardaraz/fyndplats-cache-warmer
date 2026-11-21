@@ -1,0 +1,10 @@
+# kort	lager	art	typ	A	L	K	H	beslut	not
+# Skärmning 2026-11-13 av nya dolda djurbostadsutkast (N375). Måtten är markplanets innermått (cm², cm) där höjden räcker för arten.
+47d08429	20	-	hons	-	-	-	-	PASS	hönshus med hage; huvudhus 60 x 64 cm, 0,38 m² golvyta; utrymmet under huset är 36,5 cm högt; leverantörens antal höns utlovas inte
+c8f3d3ea	200	-	hund	-	-	-	-	PASS	valpgrind, tillfällig vistelse; ersätter inte hundens förvaringsutrymme
+4f9da1c2	200	-	hund	-	-	-	-	PASS	samma valpgrind i den mindre storleken, tillfällig vistelse; läggs som storlek på c8f3d3ea
+497f341e	37	dvkanin	bostad	3276	72	45.5	63	FAIL	kaninstall: sidohagen är 72 x 45,5 cm och 63 cm hög (3 276 cm²), kortaste sidan 45,5 cm mot kravet 50 cm för en dvärgkanin; utrymmet under huset är bara 35 cm högt. Skulle klara marsvin (golvyta 0,66 m², kortaste sida 45,5 cm) men säljs som kaninstall
+cbe4e749	18	dvkanin	bostad	3276	72	45.5	64	FAIL	kaninstall: sidohagen är 72 x 45,5 cm och 64 cm hög (3 276 cm²), kortaste sidan 45,5 cm mot kravet 50 cm; utrymmet under huset är 35,5 cm högt. Leverantören skriver två kaniner
+ce9d198c	11	dvkanin	bostad	3276	72	45.5	64	FAIL	samma stall som cbe4e749 i annan färg: kortaste sidan 45,5 cm mot kravet 50 cm
+52704c29	97	finkar,undulater	fagel	3237	78	41.5	162	HOLD	innerbredden 41,5 cm mot kravet 45 cm för små fåglar (bilaga 1:1), golvytan 0,32 m² är knapp mot 0,31 m²; leverantören skriver finkar och undulater
+6445e19e	116	finkar,undulater	fagel	3237	78	41.5	162	HOLD	samma voljär som 52704c29 i annan färg: innerbredden 41,5 cm mot kravet 45 cm
