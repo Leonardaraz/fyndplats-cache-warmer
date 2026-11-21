@@ -192,8 +192,15 @@ test("rankByName: delträffar bara när inget matchar alla sökord", () => {
     "Solcellslampa 177 cm – trädgårdslykta med sex lysdioder",
     "Solcellslyktor 2-pack i konstrotting",
   ]);
-  // Ingen vara har både "solcell" och "kudde" → delträffarna visas som reserv.
-  assert.deepEqual(rankByName(names, (n) => n, "solcell kudde").length, 2);
+  // Ingen vara har både "golvlampa" och "solcell" → delträffarna visas som
+  // reserv: golvlampan, för den är vad sökningen heter först.
+  assert.deepEqual(rankByName(names, (n) => n, "golvlampa solcell"), ["Golvlampa med två glaskulor 170 cm"]);
+  // ☠️ Sedan 2026-11-21: ett ord som inte finns alls ("kudde") får inte lämna
+  // kvar ett ord som bara är ett sammanhang. "solcell" börjar namnen men är
+  // ingen vara, så svaret är ett ärligt noll i stället för två solcellslampor.
+  assert.deepEqual(rankByName(names, (n) => n, "solcell kudde"), []);
+  // Är det som blir kvar en vara ("Golvlampa …") visas den, som förut.
+  assert.deepEqual(rankByName(names, (n) => n, "golvlampa kudde"), ["Golvlampa med två glaskulor 170 cm"]);
 });
 
 test("rankByName: sorterar på relevans", () => {

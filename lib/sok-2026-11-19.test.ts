@@ -192,7 +192,10 @@ test("envägsorden gäller bara från kundens ord", () => {
   assert.equal(nameScore("Labyrintspel i trä", "kommod"), 0);
   // "eldfat" som gruppmedlem hade gett nålen "eldf", som står i "eldfast".
   assert.deepEqual(expandSynonyms("eldfat"), ["eldkorg"]);
-  assert.deepEqual(expandSynonyms("eldkorg"), []);
+  // Sedan 2026-11-21 står eldkorg i en grupp med eldstad och eldskål, men
+  // "eldfat" är fortfarande bara kundens ord: det blir ingen nål åt andra hållet.
+  assert.ok(expandSynonyms("eldkorg").includes("eldstad"));
+  assert.equal(expandSynonyms("eldkorg").some((n) => n.startsWith("eldf")), false);
 });
 
 test('kategoriord ger varor som hör dit: "trädgårdsmöbler" gav en presenning', () => {

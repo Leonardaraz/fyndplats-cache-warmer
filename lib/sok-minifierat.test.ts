@@ -65,7 +65,7 @@ test("☠️ den byggda sökmotorn skapar inga funktioner i slingan över namnen
   assert.doesNotMatch(kod, /\?function\(\w+,\w+,\w+,\w+\)\{let \w+=function\(/);
   // Källan bär markeringarna (det är de som håller bygget ifrån inbakningen).
   const kalla = readFileSync(new URL("./search.ts", import.meta.url), "utf8");
-  for (const anrop of ["kanTraffa(pm.nagon", "matchPrepared(namn[i]", "tokenQuality(u, nameNorm", "felINamn(lista, ni", "felPerOrd(lista, s", "kantFor(nameNorm, u", "iBarare(text, s, i)", "katSlag(u, uVikt", "poangFor(", "kategoriformFor(k.name)"]) {
+  for (const anrop of ["kanTraffa(pm.nagon", "matchPrepared(namn[i]", "tokenQuality(u, nameNorm", "felINamn(lista, ni", "felPerOrd(lista, s", "kantFor(nameNorm, u", "iBarare(text, s, i)", "katSlag(u, uVikt", "poangFor(", "kategoriformFor(k.name)", "synonymStar(nameNorm, f", "stamStar(nameNorm, s"]) {
     assert.ok(kalla.includes(`/*#__NOINLINE__*/ ${anrop}`), `anropet ${anrop} saknar /*#__NOINLINE__*/`);
   }
   assert.doesNotMatch(kalla, /^function tokenQuality\([^)]*=[^)]*\)/m);
