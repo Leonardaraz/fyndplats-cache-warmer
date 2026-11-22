@@ -2685,16 +2685,28 @@ export function rankaMedInfo<T>(items: T[], nameOf: (item: T) => string, query: 
   }
   // ETT OKÄNT SAMMANSATT ORD I EN SÖKNING PÅ FLERA ORD delas (se
   // medDeladeOrd), men bara när sökningen som den skrevs inte räckte: den gav
-  // ingenting, eller ett ord fick strykas. Det delade svaret gäller när det
-  // har träffar utan stavningsrättning och stryker färre ord.
+  // ingenting, eller ett ord fick strykas.
+  //
+  // Svaret är detsamma som när kunden skriver orden isär, med stavningen
+  // rättad och med besked som vanligt. Det gäller när det har träffar, stryker
+  // färre ord än sökningen som den skrevs, och BÅDA DELARNA STÅR KVAR.
+  // ☠️ Första versionen krävde bara färre strukna ord (2026-11-22), och
+  // "trädgårdssoffa 3-sits" blev "trädgårds soffa 3-sits" med "soffa" struket:
+  // gungbänkar och en knäpall. Varutypen är ordet som delades, och stryks en
+  // del av det är svaret en annan sökning. Formen utan foge-s provas därför
+  // också ("trädgård soffa 3-sits" ger sofforna), och den som stryker minst
+  // gäller. Andra ord får strykas som vanligt, med besked: "barnelbil röd" är
+  // elbilarna för barn, och sidan säger att ingen av dem heter röd.
   if (u.traffar.length === 0 || u.strukna.length > 0) {
-    const delad = medDeladeOrd(query, namn, kd?.kat);
-    if (delad) {
-      const v = rankaUtan(items, nameOf, delad, namn, kd);
-      if (v.traffar.length > 0 && !v.rattat && !v.liknande && (u.traffar.length === 0 || v.strukna.length < u.strukna.length)) {
-        return { ...v, sokt: v.sokt ?? delad };
-      }
+    let bast: Sokutfall<T> | null = null;
+    for (const { q, delar } of medDeladeOrd(query, namn, kd?.kat)) {
+      const v = rankaUtan(items, nameOf, q, namn, kd);
+      if (v.traffar.length === 0 || v.strukna.some((t) => delar.includes(t))) continue;
+      if (u.traffar.length > 0 && v.strukna.length >= u.strukna.length) continue;
+      if (!bast || v.strukna.length < bast.strukna.length) bast = { ...v, sokt: v.sokt ?? q };
+      if (v.strukna.length === 0) break;
     }
+    if (bast) return bast;
   }
   return u;
 }
@@ -3710,10 +3722,18 @@ function starkDelning(delade: readonly string[], bok: Ordbok, arBegrepp: (u: Uni
   });
 }
 
+/** Sökningen med de okända sammansatta orden delade, och delarna (se medDeladeOrd). */
+export type DeladSokning = { q: string; delar: string[] };
+
+/** Så många delningar av samma ord provas: var och en är en sökning. */
+const FLEST_DELNINGAR = 2;
+
 /**
  * En sökning på FLERA ord där ett okänt ord går att dela i två vanliga ord,
  * med ordet delat: "barnelbil med fjärrkontroll" → "barn elbil med
- * fjärrkontroll". Null när inget ord delas.
+ * fjärrkontroll". Sökningarna att prova i tur och ordning (ordets jämnaste
+ * delning först, och formen med foge-s före den utan: "trädgårds soffa", sedan
+ * "trädgård soffa"), var och en med ordens delar. Tom när inget ord delas.
  *
  * ☠️ Förut delades bara ett ENSAMT sökord (delningar). "barnelbil" gav 52
  * elbilar för barn, men "barnelbil med fjärrkontroll" och jämförelsesajternas
@@ -3727,27 +3747,49 @@ function starkDelning(delade: readonly string[], bok: Ordbok, arBegrepp: (u: Uni
  * starkDelning): båda delarna minst fyra bokstäver och vanliga i katalogen.
  * "cykelhjälm" delas inte, för butiken har ingen hjälm.
  */
-export function medDeladeOrd(query: string, namn: readonly string[], kat: readonly SokKat[] | undefined): string | null {
+export function medDeladeOrd(query: string, namn: readonly string[], kat: readonly SokKat[] | undefined): DeladSokning[] {
   const ord = normalize(query).split(/\s+/).filter(Boolean);
-  if (ord.length < 2) return null;
+  if (ord.length < 2) return [];
   const sparat = formerFor(namn);
   const kanda = () => (sparat.ord ??= kandaOrd(listaFor(namn, sparat)));
   const bok = ordbokFor(namn, sparat);
   const begrepp = begreppFor(kat);
-  let bytt = false;
-  const ut = ord.map((t) => {
-    if (t.length < 2 * KORTASTE_DEL || !/^[a-zåäö]+$/.test(t) || STOPWORDS.has(t) || NEKAR.has(t)) return t;
-    if (arKandDel(t, kanda()) || begrepp.includes(t)) return t;
-    const nyckel = begreppsnyckel(t);
-    if (SYN.has(nyckel) || ENVAGS_NALAR.has(nyckel)) return t;
+  // ☠️ Huvudordet får vara böjt. "barnelbil med fjärrkontroll" delades, men
+  // "barnelbilar med fjärrkontroll" och "barnelbilen …" gav noll: inget ord i
+  // namnen börjar på "elbilar". Entalet räknas när katalogen har det, men
+  // inte för ord som bara ser böjda ut (INTE_BOJT: ett filter är ingen filt).
+  const stark = (d: string): boolean => {
+    if (starkDelning([d], bok, ALDRIG_BEGREPP)) return true;
+    const [a, b] = d.split(" ");
+    return !INTE_BOJT.has(b) && entalAv(b).some((e) => bok.antal.has(e) && starkDelning([`${a} ${e}`], bok, ALDRIG_BEGREPP));
+  };
+  const iTabellen = (x: string): boolean => {
+    const nyckel = begreppsnyckel(x);
+    return SYN.has(nyckel) || ENVAGS_NALAR.has(nyckel);
+  };
+  const val = ord.map((t): string[] => {
+    if (t.length < 2 * KORTASTE_DEL || !/^[a-zåäö]+$/.test(t) || STOPWORDS.has(t)) return [];
+    if (arKandDel(t, kanda()) || begrepp.includes(t)) return [];
+    // Ett ord i synonymtabellen har sin betydelse därifrån, också böjt
+    // ("cykelvagnen" är en cykelkärra).
+    if (iTabellen(t) || entalAv(t).some(iTabellen)) return [];
     const i = forstaPlats(bok.ord, t);
-    if (i < bok.ord.length && bok.ord[i].startsWith(t)) return t;
-    const stark = delningar(prepare(t), kanda).find((d) => starkDelning([d], bok, ALDRIG_BEGREPP));
-    if (!stark) return t;
-    bytt = true;
-    return stark;
+    if (i < bok.ord.length && bok.ord[i].startsWith(t)) return [];
+    return delningar(prepare(t), kanda).filter(stark).slice(0, FLEST_DELNINGAR);
   });
-  return bytt ? ut.join(" ") : null;
+  const antal = Math.max(...val.map((v) => v.length));
+  const ut: DeladSokning[] = [];
+  for (let k = 0; k < antal; k++) {
+    const delar: string[] = [];
+    const q = ord.map((t, i) => {
+      if (val[i].length === 0) return t;
+      const d = val[i][Math.min(k, val[i].length - 1)];
+      delar.push(...d.split(" "));
+      return d;
+    });
+    ut.push({ q: q.join(" "), delar });
+  }
+  return ut;
 }
 /** Här räknas bara ord som står i namnen: kategoriernas begreppsord går en annan väg (kategoriVarv). */
 const ALDRIG_BEGREPP = (): boolean => false;

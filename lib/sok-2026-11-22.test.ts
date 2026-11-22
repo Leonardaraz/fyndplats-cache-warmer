@@ -6,7 +6,9 @@
 // varan heter "Elbil barn SUV 12V – svart åkbil med fjärrkontroll" här.
 //
 //   1. Leverantörens märke står först i namnet och hör inte till varan.
-//   2. Ett okänt sammansatt ord delas också när sökningen har flera ord.
+//   2. Ett okänt sammansatt ord delas också när sökningen har flera ord, och
+//      svaret är detsamma som när kunden skriver orden isär, så länge båda
+//      delarna står kvar.
 //
 // Butiken nedan är påhittad men byggd som den riktiga: namnen är tagna ur
 // katalogens mönster.
@@ -24,6 +26,9 @@ const KAT: SokKat[] = [
   { n: "Bil & släp", f: -1 }, // 3
   { n: "Hem & Inredning", f: -1 }, // 4
   { n: "Bil & Cykel", f: -1 }, // 5
+  { n: "Trädgård & Utemöbler", f: -1 }, // 6
+  { n: "Soffor", f: 4 }, // 7
+  { n: "Trädgårdsskötsel", f: -1 }, // 8
 ];
 
 const VAROR: Vara[] = [];
@@ -45,6 +50,18 @@ lagg(2, "Barncykel 16 tum med stödhjul", "Barnstol i trä med bricka", "Barnsof
 lagg(3, "Dieselvärmare 8 kW med fjärrkontroll och LCD-panel", "Dieselvärmare 5 kW 12 V med fjärrkontroll");
 lagg(4, "Takfläkt med lampa och fjärrkontroll, 132 cm", "Elkamin med fjärrkontroll och timer", "Paviljong 3 × 3 m med sidoväggar", "Kontorsstol i nät med nackstöd");
 lagg(5, "Cykelställ för golv, 2-pack", "Cykelkärra 170 liter med kapell");
+// Utesofforna heter inte "trädgårdssoffa", och bara en nämner trädgården: de
+// andra ligger i kategorin Trädgård & Utemöbler. Innesofforna ligger i Soffor.
+lagg(6,
+  "Utesoffa i konstrotting, 3-sits med dynor", "Hängsoffa 3-sits med stativ och tak", "Soffa i akacia för uteplatsen, 2-sits",
+  "Loungefåtölj i konstrotting, grå dynor", "Solstol i aluminium, hopfällbar", "Parasoll 3 m med vev", "Hammock 3-sits med tak, beige",
+  "Soffa för trädgård och balkong, grå dynor", "Loungesoffa med parasoll, grå",
+);
+lagg(7, "Soffa i sammet, grön", "Soffa med schäslong, ljusgrå", "Soffa i tyg med förvaring, beige", "Soffa 3-sits i manchester, brun");
+lagg(8,
+  "Trädgårdsslang 30 m med munstycke", "Trädgårdsvagn 75 liter", "Trädgårdssax med teleskopskaft", "Trädgårdsskjul 2 × 3 m i stål",
+  "Trädgårdshandskar i läder", "Kompostkvarn för trädgård, 2 800 W",
+);
 
 const kd: Kategoridata<Vara> = { kat: KAT, av: (v) => v.k };
 const namn = VAROR.map((v) => normalize(v.n));
@@ -100,6 +117,12 @@ test("☠️ PriceRunners namn: ett okänt sammansatt ord delas också i en sök
   assert.equal(t.some((n) => n.startsWith("Dieselvärmare") || n.startsWith("Takfläkt")), false);
   // Samma svar som för den som skriver orden isär.
   assert.deepEqual(new Set(traffar("barnelbil med fjärrkontroll")), new Set(traffar("barn elbil med fjärrkontroll")));
+  // ☠️ Också när ordet är böjt: "barnelbilar" och "barnelbilen" gav noll fast
+  // "barnelbil" delades, för inget ord i namnen börjar på "elbilar".
+  for (const q of ["barnelbilar med fjärrkontroll", "barnelbilen med fjärrkontroll", "homcom barnelbilar med fjärrkontroll"]) {
+    assert.deepEqual(traffar(q).sort(), ELBILAR_MED_FJARR, q);
+    assert.deepEqual(sok(q).strukna, [], q);
+  }
 });
 
 test("delningen gäller bara ord som katalogen inte har, och bara när sökningen inte räckte", () => {
@@ -114,24 +137,149 @@ test("delningen gäller bara ord som katalogen inte har, och bara när sökninge
   // Ett halvskrivet ord delas inte: "barnelb" är på väg mot något.
   assert.equal(sok("barnelb med fjärrkontroll").sokt, undefined);
   // En del på tre bokstäver är för kort för att vara säker: "trä" står för sig
-  // i ett namn, men "träelbil" delas inte, och svaret är ett ärligt noll i
-  // stället för elbilarna med beskedet att "trä" strukits.
+  // i ett namn, men "träelbil" delas inte, och svaret är ett ärligt noll.
   assert.equal(sok("träelbil med fjärrkontroll").sokt, undefined);
   assert.deepEqual(traffar("träelbil med fjärrkontroll"), []);
 });
 
+test("☠️ båda delarna av det delade ordet ska stå kvar", () => {
+  // Skrivet isär stryker sökningen "elbil" och visar barncykeln. Ordet som
+  // delades är varutypen, och stryks en del av det är svaret en annan sökning:
+  // hellre ett ärligt noll, som förut.
+  const isar = sok("barn elbil med stödhjul");
+  assert.deepEqual(isar.strukna, ["elbil"]);
+  assert.deepEqual(isar.traffar.map((v) => v.n), ["Barncykel 16 tum med stödhjul"]);
+  assert.deepEqual(traffar("barnelbil med stödhjul"), []);
+  assert.equal(sok("barnelbil med stödhjul").sokt, undefined);
+  // Ett delat svar utan träffar gäller inte heller: sökningen är som den skrevs.
+  assert.deepEqual(sok("barn elbil med stödhjul zzzz"), { traffar: [], strukna: [] });
+  assert.deepEqual(sok("barnelbil med stödhjul zzzz"), { traffar: [], strukna: [] });
+});
+
+test("andra ord stryks som vanligt, med besked", () => {
+  // Ingen elbil heter rosa. Skrivet isär ger "barn elbil rosa" elbilarna med
+  // beskedet att "rosa" strukits, och det sammansatta ordet ger samma svar.
+  // Förut: noll.
+  const u = sok("barnelbil rosa");
+  assert.deepEqual(u.strukna, ["rosa"]);
+  assert.equal(u.sokt, "barn elbil rosa");
+  assert.deepEqual(u.traffar.map((v) => v.n), traffar("barn elbil rosa"));
+  assert.equal(u.traffar.length, 7);
+  assert.equal(u.traffar.every((v) => v.n.startsWith("Elbil")), true);
+  // Stavningen rättas också som vanligt, och sidan säger vad den visar.
+  const fel = sok("barnelbil med fjärkontroll");
+  assert.equal(fel.rattat, "barn elbil med fjärrkontroll");
+  assert.deepEqual(fel.strukna, []);
+  assert.deepEqual(fel.traffar.map((v) => v.n).sort(), ELBILAR_MED_FJARR);
+});
+
+test("sökningen som den skrevs gäller när delningen inte stryker färre ord", () => {
+  // "barnelbil" stryks som okänt och dieselvärmarna visas, med besked. Delad
+  // skulle sökningen stryka "dieselvärmare" i stället och visa elbilarna: lika
+  // många strukna ord, och då gäller det kunden skrev.
+  const u = sok("barnelbil dieselvärmare");
+  assert.deepEqual(u.strukna, ["barnelbil"]);
+  assert.equal(u.sokt, undefined);
+  assert.equal(u.traffar.length, 2);
+  assert.equal(u.traffar.every((v) => v.n.startsWith("Dieselvärmare")), true);
+  assert.deepEqual(sok("barn elbil dieselvärmare").strukna, ["dieselvärmare"]);
+});
+
+test("delningen gäller också när sökningen som den skrevs strök ordet och visade resten", () => {
+  // "zzzzsoffa" går inte att dela: ordet stryks, och parasollerna visas med
+  // besked. Så svarade också "trädgårdssoffa parasoll" förut. Delad har en
+  // vara alla orden, och ingenting stryks.
+  const okant = sok("zzzzsoffa parasoll");
+  assert.deepEqual(okant.strukna, ["zzzzsoffa"]);
+  assert.deepEqual(okant.traffar.map((v) => v.n).sort(), ["Loungesoffa med parasoll, grå", "Parasoll 3 m med vev"]);
+  const u = sok("trädgårdssoffa parasoll");
+  assert.deepEqual(u.strukna, []);
+  assert.equal(u.sokt, "trädgård soffa parasoll");
+  assert.deepEqual(u.traffar.map((v) => v.n), ["Loungesoffa med parasoll, grå"]);
+});
+
+test("☠️ ett foge-s: formen utan s provas också, och den som stryker minst gäller", () => {
+  // "trädgårdssoffa" står inte i något namn. Delat med s:et kvar ("trädgårds
+  // soffa 3-sits") finns bara soffan som nämner trädgården, och "sits" stryks.
+  // Utan s:et är "trädgård" kategorins ord, och utesofforna med tre sitsar
+  // kommer med utan att något stryks.
+  assert.deepEqual(traffar("trädgårdssoffa 3-sits"), traffar("trädgård soffa 3-sits"));
+  const u = sok("trädgårdssoffa 3-sits");
+  assert.equal(u.sokt, "trädgård soffa 3-sits");
+  assert.deepEqual(u.strukna, []);
+  assert.deepEqual(u.traffar.slice(0, 2).map((v) => v.n).sort(), ["Hängsoffa 3-sits med stativ och tak", "Utesoffa i konstrotting, 3-sits med dynor"]);
+  // Innesoffan med tre sitsar hör inte till trädgården.
+  assert.equal(u.traffar.some((v) => v.n === "Soffa 3-sits i manchester, brun"), false);
+  const medS = sok("trädgårds soffa 3-sits");
+  assert.deepEqual(medS.strukna, ["sits"]);
+  assert.deepEqual(medS.traffar.map((v) => v.n), ["Soffa för trädgård och balkong, grå dynor"]);
+  // Stryker formen med s en del av ordet gäller den inte alls.
+  assert.deepEqual(sok("trädgårds soffa konstrotting").strukna, ["trädgårds"]);
+  assert.deepEqual(traffar("trädgårdssoffa konstrotting"), ["Utesoffa i konstrotting, 3-sits med dynor"]);
+  assert.deepEqual(sok("trädgårdssoffa konstrotting").strukna, []);
+});
+
 test("medDeladeOrd: vilka ord som delas", () => {
   const dela = (q: string, lista: readonly string[] = namn) => medDeladeOrd(q, lista, KAT);
-  assert.equal(dela("barnelbil med fjärrkontroll"), "barn elbil med fjärrkontroll");
-  assert.equal(dela("Homcom Barnelbil Med 2.4 G Fjärrkontroll"), "homcom barn elbil med 2.4 g fjärrkontroll");
+  assert.deepEqual(dela("barnelbil med fjärrkontroll"), [{ q: "barn elbil med fjärrkontroll", delar: ["barn", "elbil"] }]);
+  assert.deepEqual(dela("Homcom Barnelbil Med 2.4 G Fjärrkontroll"), [{ q: "homcom barn elbil med 2.4 g fjärrkontroll", delar: ["barn", "elbil"] }]);
+  // Med foge-s: båda formerna, den med s:et först.
+  assert.deepEqual(dela("trädgårdssoffa 3-sits"), [
+    { q: "trädgårds soffa 3-sits", delar: ["trädgårds", "soffa"] },
+    { q: "trädgård soffa 3-sits", delar: ["trädgård", "soffa"] },
+  ]);
+  // Huvudordet får vara böjt, när katalogen har entalet.
+  assert.deepEqual(dela("barnelbilar med fjärrkontroll"), [{ q: "barn elbilar med fjärrkontroll", delar: ["barn", "elbilar"] }]);
+  assert.deepEqual(dela("barnelbilen med fjärrkontroll"), [{ q: "barn elbilen med fjärrkontroll", delar: ["barn", "elbilen"] }]);
+  // Två ord att dela: det med färre former står kvar i sin sista.
+  assert.deepEqual(dela("barnelbil trädgårdssoffa"), [
+    { q: "barn elbil trädgårds soffa", delar: ["barn", "elbil", "trädgårds", "soffa"] },
+    { q: "barn elbil trädgård soffa", delar: ["barn", "elbil", "trädgård", "soffa"] },
+  ]);
   // Ett ensamt ord går den gamla vägen (delningar), inte den här.
-  assert.equal(dela("barnelbil"), null);
-  // Ord som namnen har, småord, märken och tal rörs inte.
-  for (const q of ["barncykel med stödhjul", "elbil barn fjärrkontroll", "homcom elbil", "för barn", "120 cm bred"]) assert.equal(dela(q), null, q);
+  assert.deepEqual(dela("barnelbil"), []);
+  // Ord som namnen har, småord, märken och tal rörs inte. "barnsoffa" står i
+  // ett namn, fast både "barn" och "soffa" är vanliga ord här.
+  for (const q of ["barncykel med stödhjul", "barnsoffa 77 cm", "elbil barn fjärrkontroll", "homcom elbil", "för barn", "120 cm bred"]) assert.deepEqual(dela(q), [], q);
+  // Också i en annan böjning: "barnstolar" är namnets "barnstol", hur vanliga
+  // "barn" och "stol" än är. Utan barnstolen i katalogen delas ordet.
+  const medStolar = [...namn, ...["Stol i ek", "Stol i bok", "Stol med armstöd", "Stol i sammet, grön", "Stol för matbordet"].map(normalize)];
+  assert.deepEqual(dela("barnstolar i trä", medStolar), []);
+  assert.deepEqual(dela("barnstolar i trä", medStolar.filter((n) => !n.startsWith("barnstol"))), [{ q: "barn stolar i trä", delar: ["barn", "stolar"] }]);
+  // En del på tre bokstäver, eller en som står i för få namn, räcker inte.
+  assert.deepEqual(dela("träelbil med fjärrkontroll"), []);
+  assert.deepEqual(dela("barngunga med sele"), []);
   // ☠️ Kunden kan vara mitt i ett ord som katalogen har: finns ett ord som
   // börjar så delas det inte.
   const medLangtOrd = [...namn, normalize("Barnelbilsskydd i plast, 2-pack")];
-  assert.equal(dela("barnelbil med fjärrkontroll", medLangtOrd), null);
-  // Ett begreppsord (synonymtabellen) eller ett kategoriord är känt fast inget namn har det.
-  assert.equal(dela("kattträd med grotta"), null);
+  assert.deepEqual(dela("barnelbil med fjärrkontroll", medLangtOrd), []);
+});
+
+test("medDeladeOrd: ord som butiken redan förstår delas inte", () => {
+  const fler = (...nya: string[]) => [...namn, ...nya.map(normalize)];
+  // Ett ord i synonymtabellen har sin betydelse därifrån ("cykelvagn" är en
+  // cykelkärra), också när båda delarna är vanliga ord i katalogen.
+  const medVagnar = fler("Cykel 24 tum", "Cykel 26 tum", "Cykel 28 tum", "Vagn för ved", "Vagn med flak", "Vagn i stål", "Vagn 75 liter", "Vagn med hjul");
+  assert.deepEqual(medDeladeOrd("cykelvagn för två barn", medVagnar, KAT), []);
+  assert.deepEqual(medDeladeOrd("cykelvagnen för två barn", medVagnar, KAT), []);
+  // Samma delar i ett ord som tabellen inte har delas.
+  assert.deepEqual(medDeladeOrd("vagncykel för två barn", medVagnar, KAT), [{ q: "vagn cykel för två barn", delar: ["vagn", "cykel"] }]);
+  // En kategoris ord har sin betydelse från kategorin.
+  const medKategori = [...KAT, { n: "Barnelbilar", f: 0 }];
+  assert.deepEqual(medDeladeOrd("barnelbilar med fjärrkontroll", namn, medKategori), []);
+  assert.deepEqual(medDeladeOrd("barnelbilar med fjärrkontroll", namn, KAT), [{ q: "barn elbilar med fjärrkontroll", delar: ["barn", "elbilar"] }]);
+  // ☠️ Ett filter är ingen filt (INTE_BOJT): "filter" står i ett enda namn här
+  // och är inget vanligt ord, hur många filtar butiken än har.
+  const medFiltar = fler("Filt i ull, grå", "Filt i ull, beige", "Filt i fleece, blå", "Filt i bomull, vit", "Filt med fransar, rosa", "Filter till dammsugare, 2-pack");
+  assert.deepEqual(medDeladeOrd("barnfilter till dammsugare", medFiltar, KAT), []);
+  assert.deepEqual(medDeladeOrd("barnfiltar i ull", medFiltar, KAT), [{ q: "barn filtar i ull", delar: ["barn", "filtar"] }]);
+  // Entalet ska vara ett ord i katalogen: "spor" är inget, fast sex namn har
+  // ord som börjar så.
+  const medSporrar = fler("Sport och lek, set för tre", "Sporre i stål, storlek 1", "Sporre i stål, storlek 2", "Sporre i stål, storlek 3", "Sporre i mässing", "Sporre med rem");
+  assert.deepEqual(medDeladeOrd("barnsport i skolan", medSporrar, KAT), []);
+  // Butikens eget namn och leverantörernas märken är småord, hur de än går
+  // att dela ("fynd" och "plats").
+  const medFynd = fler("Fynd i låda 1", "Fynd i låda 2", "Fynd i låda 3", "Fynd i låda 4", "Fynd i låda 5", "Plats för skor 1", "Plats för skor 2", "Plats för skor 3", "Plats för skor 4", "Plats för skor 5");
+  assert.deepEqual(medDeladeOrd("fyndplats soffa", medFynd, KAT), []);
+  assert.deepEqual(medDeladeOrd("fyndplatsen soffa", medFynd, KAT), [{ q: "fynd platsen soffa", delar: ["fynd", "platsen"] }]);
 });
