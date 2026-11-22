@@ -18,7 +18,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { LEVERANTORSMARKEN, medDeladeOrd, normalize, rankaMedInfo, type Kategoridata, type SokKat } from "./search.ts";
+import { LEVERANTORSMARKEN, matchaKategorier, medDeladeOrd, normalize, rankaMedInfo, utanMarken, type Kategoridata, type SokKat } from "./search.ts";
 
 type Vara = { n: string; k: number[] };
 
@@ -88,6 +88,53 @@ test("leverantörens märke hör till frågan, inte till varan", () => {
   assert.deepEqual(sok("zzbrand elbil").strukna, ["zzbrand"]);
 });
 
+test("☠️ med och utan märket: samma varor, samma ordning och samma besked", () => {
+  // Första versionen gjorde märket till ett småord och lät det stå kvar i
+  // sökningen. Mätt mot katalogen: av 2 795 sökningar ändrade "homcom" svaret
+  // för 844 (ordningen, för frasen i namnet räknas med småorden kvar, och
+  // beskedet, som sa "träffarna för homcom fåtölj").
+  const fragor = [
+    "elbil", "elbil för barn 12 v", "elbilar för barn", "soffa i sammet", "barnelbil med fjärrkontroll", "barnelbil med fjärkontroll",
+    "barnelbil rosa", "trädgårdssoffa 3-sits", "cykelhjälm barn", "ikea cykelvagn", "soffa utan schäslong",
+  ];
+  for (const q of fragor) {
+    const utan = sok(q);
+    for (const medMarke of [`homcom ${q}`, `HOMCOM ${q}`, `Outsunny ${q}`, `${q} vevor`, `Homcom: ${q}`, `pawhut® ${q}`]) assert.deepEqual(sok(medMarke), utan, medMarke);
+  }
+  // Rättningen nämner inte märket.
+  assert.equal(sok("homcom barnelbil med fjärkontroll").rattat, "barn elbil med fjärrkontroll");
+  // Märket mitt i sökningen.
+  assert.deepEqual(sok("elbil homcom för barn"), sok("elbil för barn"));
+});
+
+test("utanMarken: märket tas bort som ord, och står kvar när det är hela sökningen", () => {
+  assert.equal(utanMarken("Homcom Barnelbil Med 2.4 G Fjärrkontroll"), "Barnelbil Med 2.4 G Fjärrkontroll");
+  assert.equal(utanMarken("Outsunny PawHut hundkoja"), "hundkoja");
+  assert.equal(utanMarken("soffa VEVOR"), "soffa");
+  // Skiljetecknen intill märket följer med det.
+  assert.equal(utanMarken("Homcom, soffa"), "soffa");
+  assert.equal(utanMarken("Homcom: soffa"), "soffa");
+  assert.equal(utanMarken("HOMCOM® Barnelbil - 12V"), "Barnelbil - 12V");
+  assert.equal(utanMarken("soffa, Homcom"), "soffa");
+  assert.equal(utanMarken("soffa - VEVOR"), "soffa");
+  assert.equal(utanMarken("2-pack homcom-stolar"), "2-pack stolar");
+  // Ingenting att ta bort: sökningen är orörd, tecken för tecken.
+  for (const q of ["vit byrå", "  soffa   grå ", "elbil för barn"]) assert.equal(utanMarken(q), q);
+  // Märket ensamt ger noll som förut, och står därför kvar.
+  for (const q of ["homcom", "Homcom Outsunny", " vevor "]) assert.equal(utanMarken(q), q);
+  // Bara som eget ord.
+  for (const q of ["homcomsoffa grå", "xhomcom soffa", "vevor2 soffa"]) assert.equal(utanMarken(q), q);
+  // Efter ett nekande ord är märket det kunden väljer bort.
+  assert.equal(utanMarken("soffa utan homcom"), "soffa utan homcom");
+});
+
+test("kategoriförslagen läser inte märket som ett ord", () => {
+  const katalog = KAT.map((k, i) => ({ name: k.n, slug: String(i) }));
+  const utan = matchaKategorier("elbilar", katalog, 3);
+  assert.deepEqual(utan.map((k) => k.name), ["Elbilar för barn"]);
+  for (const q of ["homcom elbilar", "Aiyaplay elbilar", "elbilar homcom"]) assert.deepEqual(matchaKategorier(q, katalog, 3), utan, q);
+});
+
 test("märkeslistan är densamma som den som döljer märkena i flödena", () => {
   // lib/varumarke.ts gör leverantörens märken till butikens eget i strukturerad
   // data och flöden. Sökningen känner samma märken, plus VEVOR.
@@ -121,6 +168,11 @@ test("☠️ PriceRunners namn: ett okänt sammansatt ord delas också i en sök
   assert.equal(t.some((n) => n.startsWith("Dieselvärmare") || n.startsWith("Takfläkt")), false);
   // Samma svar som för den som skriver orden isär.
   assert.deepEqual(new Set(traffar("barnelbil med fjärrkontroll")), new Set(traffar("barn elbil med fjärrkontroll")));
+  // ☠️ Också med skiljetecken intill ordet: första versionen delade sökningen
+  // vid blanktecken, och "Barnelbil," var inget ord.
+  for (const q of ["Homcom Barnelbil, med fjärrkontroll", "barnelbil/fjärrkontroll", "Barnelbil. Fjärrkontroll.", "HOMCOM Barnelbil - med fjärrkontroll"]) {
+    assert.deepEqual(traffar(q).sort(), ELBILAR_MED_FJARR, q);
+  }
   // ☠️ Också när ordet är böjt: "barnelbilar" och "barnelbilen" gav noll fast
   // "barnelbil" delades, för inget ord i namnen börjar på "elbilar".
   for (const q of ["barnelbilar med fjärrkontroll", "barnelbilen med fjärrkontroll", "homcom barnelbilar med fjärrkontroll"]) {
@@ -227,6 +279,9 @@ test("medDeladeOrd: vilka ord som delas", () => {
   const dela = (q: string, lista: readonly string[] = namn) => medDeladeOrd(q, lista, KAT);
   assert.deepEqual(dela("barnelbil med fjärrkontroll"), [{ q: "barn elbil med fjärrkontroll", delar: ["barn", "elbil"] }]);
   assert.deepEqual(dela("Homcom Barnelbil Med 2.4 G Fjärrkontroll"), [{ q: "homcom barn elbil med 2.4 g fjärrkontroll", delar: ["barn", "elbil"] }]);
+  // Skiljetecknen står kvar där de stod.
+  assert.deepEqual(dela("Barnelbil, med fjärrkontroll"), [{ q: "barn elbil, med fjärrkontroll", delar: ["barn", "elbil"] }]);
+  assert.deepEqual(dela("barnelbil/fjärrkontroll"), [{ q: "barn elbil/fjärrkontroll", delar: ["barn", "elbil"] }]);
   // Med foge-s: båda formerna, den med s:et först.
   assert.deepEqual(dela("trädgårdssoffa 3-sits"), [
     { q: "trädgårds soffa 3-sits", delar: ["trädgårds", "soffa"] },

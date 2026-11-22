@@ -1176,6 +1176,29 @@ export const LEVERANTORSMARKEN: readonly string[] = [
   "homcom", "outsunny", "pawhut", "aiyaplay", "sportnow", "vinsetto", "kleankin", "durhand", "zonekiz", "aosom",
   "vevor", "fyndplats",
 ];
+// Märket som eget ord, med skiljetecknen som hör till det: "Homcom:", "HOMCOM®", "Pawhut -".
+// ☠️ Utan bakåtblick ((?<!…)): Safari före 16.4 kan inte läsa en sådan, och då laddas inte sökningen alls.
+// Blanktecknet efter märket lämnas därför kvar, så att nästa märke i raden har sin gräns ("Outsunny PawHut").
+const MARKE_RE = new RegExp(`(^|[^a-zåäö0-9])(?:${LEVERANTORSMARKEN.join("|")})(?![a-zåäö0-9])(?:\\s*[:;,.®™©–—|/-]+)*`, "gi");
+
+/**
+ * Sökningen utan leverantörernas märken: "Homcom Barnelbil" → "Barnelbil".
+ * Svaret ska vara detsamma med och utan märket, också ordningen.
+ *
+ * ☠️ Första versionen gjorde bara märket till ett småord (2026-11-22). Då fick
+ * "homcom vit byrå" samma varor som "vit byrå" men i en annan ordning (frasen
+ * i namnet räknas med småorden kvar), rättningen sa "träffarna för homcom
+ * fåtölj", och "homcom elbilar för barn" var inte längre kategorins namn. Av
+ * 2 795 provsökningar ändrade märket svaret för 844.
+ *
+ * Märket står kvar när det är hela sökningen ("homcom" ger noll som förut),
+ * och efter ett nekande ord ("soffa utan homcom").
+ */
+export function utanMarken(query: string): string {
+  const kvar = query.replace(MARKE_RE, "$1 ");
+  if (kvar === query || !/[a-zåäö0-9]/i.test(kvar) || tokenize(normalize(query)).some((t) => NEKAR.has(t))) return query;
+  return kvar.replace(/[\s:;,.–—|/-]+$/, "").replace(/\s+/g, " ").trim();
+}
 
 const STOPWORDS = new Set([
   "med", "och", "för", "till", "på", "av", "en", "ett", "som", "från",
@@ -1194,8 +1217,11 @@ const STOPWORDS = new Set([
   // 2.4 G Fjärrkontroll", utan länk, och kunden som söker det namnet här fick
   // noll träffar. Varorna säljs under butikens eget märke, så märkesordet står
   // inte i något varunamn (prövat mot 7 972 namn): det hör till frågan, inte
-  // till varan, och stryks utan besked. Listan är densamma som i
-  // lib/varumarke.ts (provet håller dem lika), plus VEVOR och butikens namn.
+  // till varan. Rankningen tar bort det ur sökningen (utanMarken). Här är det
+  // ett småord för allt annat som läser sökningen: kategoriförslagen,
+  // "billigast"-ordningen och delningen av sammansatta ord. Listan är
+  // densamma som i lib/varumarke.ts (provet håller dem lika), plus VEVOR och
+  // butikens namn.
   ...LEVERANTORSMARKEN,
   // ☠️ "har ni dieselvärmare" GAV 50 SKRÄPTRÄFFAR (2026-11-21), fast butiken
   // har 33 dieselvärmare. "har" räknades som sökningens första varuord, stod
@@ -2653,8 +2679,10 @@ function skrivOm(p: Prepared, bok: Ordbok, begrepp: readonly string[], arBegrepp
 //
 // `kd` är kategorierna och vilka varje vara hör till (se Kategoridata). Utan
 // den söks bara namnen, som förut.
-export function rankaMedInfo<T>(items: T[], nameOf: (item: T) => string, query: string, normNamn?: readonly string[], kd?: Kategoridata<T>): Sokutfall<T> {
+export function rankaMedInfo<T>(items: T[], nameOf: (item: T) => string, skrivet: string, normNamn?: readonly string[], kd?: Kategoridata<T>): Sokutfall<T> {
   const namn = normNamn ?? items.map((item) => normalize(nameOf(item)));
+  // Leverantörens märke hör till frågan, inte till varan (se utanMarken).
+  const query = utanMarken(skrivet);
   // En engelsk fras byts mot katalogens ord (se FRASER), med besked.
   const oversatt = oversattFras(query);
   if (oversatt) {
@@ -3755,7 +3783,11 @@ const FLEST_DELNINGAR = 2;
  * "cykelhjälm" delas inte, för butiken har ingen hjälm.
  */
 export function medDeladeOrd(query: string, namn: readonly string[], kat: readonly SokKat[] | undefined): DeladSokning[] {
-  const ord = normalize(query).split(/\s+/).filter(Boolean);
+  // ☠️ Ord för ord, inte blanktecken för blanktecken: "Barnelbil, med
+  // fjärrkontroll" och "barnelbil/fjärrkontroll" gav noll, för kommat och
+  // snedstrecket satt ihop med ordet.
+  const hel = normalize(query);
+  const ord = hel.match(SOKORD_RE) ?? [];
   if (ord.length < 2) return [];
   const sparat = formerFor(namn);
   const kanda = () => (sparat.ord ??= kandaOrd(listaFor(namn, sparat)));
@@ -3788,16 +3820,19 @@ export function medDeladeOrd(query: string, namn: readonly string[], kat: readon
   const ut: DeladSokning[] = [];
   for (let k = 0; k < antal; k++) {
     const delar: string[] = [];
-    const q = ord.map((t, i) => {
-      if (val[i].length === 0) return t;
-      const d = val[i][Math.min(k, val[i].length - 1)];
+    let i = 0;
+    const q = hel.replace(SOKORD_RE, (t) => {
+      const v = val[i++];
+      if (v.length === 0) return t;
+      const d = v[Math.min(k, v.length - 1)];
       delar.push(...d.split(" "));
       return d;
     });
-    ut.push({ q: q.join(" "), delar });
+    ut.push({ q, delar });
   }
   return ut;
 }
+const SOKORD_RE = /[a-zåäö0-9]+/g;
 /** Här räknas bara ord som står i namnen: kategoriernas begreppsord går en annan väg (kategoriVarv). */
 const ALDRIG_BEGREPP = (): boolean => false;
 
@@ -4434,10 +4469,11 @@ export function menadeDu<T>(varor: readonly T[], namn: (v: T) => string, fraga: 
  * kunden var på väg att skriva ("få" → fåtölj) och säger det (`visar`).
  * Längre ord rankas som förut.
  */
-export function rankaMedForslag<T>(items: T[], nameOf: (item: T) => string, query: string, kd?: Kategoridata<T>): { utfall: Sokutfall<T>; visar: string } {
-  const utfall = rankaMedInfo(items, nameOf, query, undefined, kd);
+export function rankaMedForslag<T>(items: T[], nameOf: (item: T) => string, skrivet: string, kd?: Kategoridata<T>): { utfall: Sokutfall<T>; visar: string } {
+  const utfall = rankaMedInfo(items, nameOf, skrivet, undefined, kd);
   // En rättad stavning visas på samma sätt som ordet för två bokstäver:
   // sidan säger vilket ord träffarna gäller.
+  const query = utanMarken(skrivet);
   if (!kortOrd(query)) return { utfall, visar: utfall.rattat ?? "" };
   const mal = visaVarorFor(query, menadeDu(items, nameOf, query), utfall.traffar.length);
   if (!mal) return { utfall, visar: "" };
