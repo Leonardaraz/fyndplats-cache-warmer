@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py gaten känner bara tyska och engelska måttetiketter medan VEVOR-källorna anger måtten som Produktmått, Produktstorlek, Artikelmått och Yttermått, så sidorna skriver talen i källans ordning och påstår ingen axel som källan eller en måttritning inte anger
