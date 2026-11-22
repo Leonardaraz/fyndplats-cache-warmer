@@ -9,6 +9,9 @@
 //   2. Ett okänt sammansatt ord delas också när sökningen har flera ord, och
 //      svaret är detsamma som när kunden skriver orden isär, så länge båda
 //      delarna står kvar.
+//   3. Ett okänt märke följt av ett ord ur synonymtabellen ("trixie kattträd")
+//      gav noll sedan regeln om ärligt noll (2026-11-21). Hittat i samma
+//      mätning, och rättat här.
 //
 // Butiken nedan är påhittad men byggd som den riktiga: namnen är tagna ur
 // katalogens mönster.
@@ -56,6 +59,7 @@ lagg(6,
   "Utesoffa i konstrotting, 3-sits med dynor", "Hängsoffa 3-sits med stativ och tak", "Soffa i akacia för uteplatsen, 2-sits",
   "Loungefåtölj i konstrotting, grå dynor", "Solstol i aluminium, hopfällbar", "Parasoll 3 m med vev", "Hammock 3-sits med tak, beige",
   "Soffa för trädgård och balkong, grå dynor", "Loungesoffa med parasoll, grå",
+  "Loungeset i aluminium med bord, grått", "Bistroset i metall med två stolar och bord",
 );
 lagg(7, "Soffa i sammet, grön", "Soffa med schäslong, ljusgrå", "Soffa i tyg med förvaring, beige", "Soffa 3-sits i manchester, brun");
 lagg(8,
@@ -282,4 +286,26 @@ test("medDeladeOrd: ord som butiken redan förstår delas inte", () => {
   const medFynd = fler("Fynd i låda 1", "Fynd i låda 2", "Fynd i låda 3", "Fynd i låda 4", "Fynd i låda 5", "Plats för skor 1", "Plats för skor 2", "Plats för skor 3", "Plats för skor 4", "Plats för skor 5");
   assert.deepEqual(medDeladeOrd("fyndplats soffa", medFynd, KAT), []);
   assert.deepEqual(medDeladeOrd("fyndplatsen soffa", medFynd, KAT), [{ q: "fynd platsen soffa", delar: ["fynd", "platsen"] }]);
+});
+
+test("☠️ ärligt noll: ett ord ur synonymtabellen är en varutyp, också när varorna heter något annat", () => {
+  // Mätt på www 2026-11-22: "trixie kattträd", "ikea barpall", "jysk solstol"
+  // och "ikea köksbord" gav noll, fast "ikea soffa" gav sofforna utan "ikea".
+  // Butiken här har en cykelkärra, och tabellen säger att en cykelvagn är en.
+  assert.deepEqual(traffar("cykelvagn"), ["Cykelkärra 170 liter med kapell"]);
+  for (const marke of ["ikea", "jysk", "trixie"]) {
+    const u = sok(`${marke} cykelvagn`);
+    assert.deepEqual(u.strukna, [marke], marke);
+    assert.deepEqual(u.traffar.map((v) => v.n), ["Cykelkärra 170 liter med kapell"], marke);
+  }
+  // Envägsorden likaså: "utemöbler" är loungeset och bistroset, och inget namn
+  // har ordet.
+  const ute = sok("jysk utemöbler");
+  assert.deepEqual(ute.strukna, ["jysk"]);
+  assert.deepEqual(ute.traffar.map((v) => v.n).sort(), ["Bistroset i metall med två stolar och bord", "Loungeset i aluminium med bord, grått"]);
+  // Det ärliga nollet står kvar där det hör hemma: "barn" och "fjärrkontroll"
+  // är inga varutyper, och butiken har ingen hjälm.
+  assert.deepEqual(traffar("cykelhjälm barn"), []);
+  assert.deepEqual(traffar("cykelhjälm med fjärrkontroll"), []);
+  assert.deepEqual(traffar("ikea kids"), []);
 });

@@ -3400,9 +3400,16 @@ function raknaInre<T>(items: T[], nameOf: (item: T) => string, query: string, no
   // namnets första ord (eller sist i det) i 61 % av namnen som har ordet,
   // "stol" i 56 %, "lampa" i 76 % och "bil" i 36 %; "barn", "hund", "kontor"
   // och "trädgård" i 0 %. Gränsen ligger emellan.
+  //
+  // ☠️ ORDETS SYNONYMER RÄKNAS MED (2026-11-22). Första versionen letade bara
+  // efter ordet som det skrevs, och "trixie kattträd", "ikea barpall", "jysk
+  // solstol" och "jysk utemöbler" gav noll: varorna heter Klösträd, Barstol,
+  // Solsäng och Loungeset, så ordet stod först i för få namn (eller inget).
+  // Ordet träffar dem genom synonymtabellen, och är lika mycket en varutyp
+  // som de. Mätt: 399 av 825 sökningar "okänt ord + ord ur tabellen" gav noll.
   const arVarutyp = (u: Unit, i: number): boolean => {
     if (u.egenskap || u.helord) return false;
-    const former = [u.tok, u.stem, ...(u.former ?? [])];
+    const former = [u.tok, u.stem, ...(u.former ?? []), ...(u.syn ?? []), ...(ENVAGS_NALAR.get(u.key) ?? [])];
     let med = 0;
     let forst = 0;
     for (const r of scored) {
