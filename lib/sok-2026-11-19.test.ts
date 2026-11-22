@@ -192,7 +192,10 @@ test("envägsorden gäller bara från kundens ord", () => {
   assert.equal(nameScore("Labyrintspel i trä", "kommod"), 0);
   // "eldfat" som gruppmedlem hade gett nålen "eldf", som står i "eldfast".
   assert.deepEqual(expandSynonyms("eldfat"), ["eldkorg"]);
-  assert.deepEqual(expandSynonyms("eldkorg"), []);
+  // Sedan 2026-11-21 står eldkorg i en grupp med eldstad och eldskål, men
+  // "eldfat" är fortfarande bara kundens ord: det blir ingen nål åt andra hållet.
+  assert.ok(expandSynonyms("eldkorg").includes("eldstad"));
+  assert.equal(expandSynonyms("eldkorg").some((n) => n.startsWith("eldf")), false);
 });
 
 test('kategoriord ger varor som hör dit: "trädgårdsmöbler" gav en presenning', () => {
@@ -429,7 +432,10 @@ test("sökrutan: antal i knappen, kryss, alla sökord i fetstil och uppläst rad
 test("☠️ listan börjar om när varorna byts: prisreglaget blev ett filter ingen valt", async () => {
   const { readFileSync } = await import("node:fs");
   const vy = readFileSync(new URL("../components/sok-vy.tsx", import.meta.url), "utf8");
-  assert.match(vy, /<ShopBrowser key=\{`\$\{q\}\|\$\{visaAlla \? "alla" : "inom"\}`\} products=\{visade\} defaultSort="rel" andraBilderUrKartan=\{klar\.kall\} \/>/);
+  // Nyckeln bär sökningen och läget. Sedan 2026-11-21 har den ett namn, för
+  // rubrikens antal hör till samma lista (onAntal).
+  assert.match(vy, /const listnyckel = `\$\{q\}\|\$\{visaAlla \? "alla" : "inom"\}`;/);
+  assert.match(vy, /<ShopBrowser key=\{listnyckel\} products=\{visade\} defaultSort="rel" andraBilderUrKartan=\{klar\.kall\} onAntal=\{omAntal\} \/>/);
   // Knapparna i beskeden och i sökrutan ska inte få webbläsarens grå ram.
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
   for (const k of [".search-rensa", ".sugg-rensa", ".sok-besked-knapp"]) {
@@ -450,7 +456,8 @@ test("förslagen med antal: gallringen görs före klippet", async () => {
   const { readFileSync } = await import("node:fs");
   const index = readFileSync(new URL("./sok-rankning.ts", import.meta.url), "utf8");
   // Gallra på priset, lägg det köpbara först, klipp: i den ordningen (lib/sok-ordning.ts).
-  assert.match(index, /const kvar = kopbaraForst\(behall \? utfall\.traffar\.filter\(behall\) : utfall\.traffar, \(h\) => h\.o === 1\);[\s\S]{0,60}traffar: kvar\.slice\(0, antal\),/);
+  // `ordnade` är träffarna som de rankades, eller billigast först för "soffa billigast" (2026-11-21).
+  assert.match(index, /const kvar = kopbaraForst\(behall \? ordnade\.filter\(behall\) : ordnade, \(h\) => h\.o === 1\);[\s\S]{0,60}traffar: kvar\.slice\(0, antal\),/);
   assert.match(index, /totalt: kvar\.length/);
 });
 

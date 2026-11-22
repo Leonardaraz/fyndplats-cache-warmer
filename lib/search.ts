@@ -123,13 +123,19 @@ export function stem(tok: string): string {
 // exakta träffar, så en felaktig synonym aldrig kan tränga undan en riktig träff.
 const SYNONYM_GROUPS: string[][] = [
   // Cyklar — "mtb"/"mountainbike" ska nå hela cykelsortimentet.
-  ["cykel", "mtb", "mountainbike", "racercykel", "elcykel"],
+  // ☠️ "elcykel" och "racercykel" stod här till 2026-11-21, och "elcykel" gav
+  // 179 träffar: två displayer till elcyklar och sedan varenda cykelkärra och
+  // motionscykel. En SORTS cykel är ingen synonym till cykel. Den som söker
+  // det smala ordet ska få det, eller ett ärligt "inget".
+  ["cykel", "mtb", "mountainbike", "bike"],
   // Belysning (INTE "ljus"/"led" som needle — krockar med "ljud" resp. otaliga ord).
-  ["lampa", "belysning", "lykta", "ficklampa"],
+  // "ficklampa" stod här och gav 225 golvlampor (2026-11-21, se ovan).
+  ["lampa", "belysning", "lykta"],
   // Trådlöst = sladdlöst = wireless (äkta synonymer).
   ["trådlös", "sladdlös", "wireless", "bluetooth"],
   // Väskor (+ engelska "bag"). "kasse" bortvalt (→"kass" krockar med kassaskåp).
-  ["väska", "bag", "necessär"],
+  // "necessär" stod här och gav 209 varor med någon väska på (2026-11-21).
+  ["väska", "bag"],
   ["ryggsäck", "backpack"],
   // Barn — engelsktalande söker "kids"/"children".
   ["barn", "kids", "children"],
@@ -194,13 +200,13 @@ const SYNONYM_GROUPS: string[][] = [
   ["hundbädd", "hundsäng", "hundkorg"],
   ["odlingslåda", "pallkrage", "odlingsbädd", "planteringslåda"],
   ["kattlåda", "kattoalett", "katttoalett"],
-  ["skrivbord", "datorbord"],
+  ["skrivbord", "datorbord", "desk"],
   ["sideboard", "skänk"],
   ["matbord", "köksbord", "matsalsbord"],
   ["matstol", "köksstol"],
   ["barstol", "barpall"],
   ["vedställ", "vedförvaring", "vedhylla"],
-  ["växthus", "drivhus"],
+  ["växthus", "drivhus", "greenhouse"],
   ["partytält", "festtält"],
   ["paviljong", "lusthus", "gazebo"],
   ["hönshus", "hönsgård", "hönsbur"],
@@ -236,6 +242,11 @@ const SYNONYM_GROUPS: string[][] = [
   ["hundtrappa", "husdjurstrappa"],
   ["foderautomat", "matautomat"],
   ["dockhus", "dockskåp"],
+  // ── 2026-11-21 (Groks genomgång): "airfryer" hittade två av sex, för de
+  // andra heter varmluftsfritös. Eldstäderna heter eldstad, eldkorg och
+  // eldskål om vartannat ("eldfat" står kvar som envägsord nedan).
+  ["varmluftsfritös", "airfryer"],
+  ["eldstad", "eldkorg", "eldskål", "firepit"],
 ];
 
 // ── Kundens ord → katalogens ord, åt ETT håll ───────────────────────────────
@@ -263,6 +274,22 @@ const ENVAGS: Record<string, string[]> = {
   busyboard: ["aktivitetstavla", "aktivitetsbräda"],
   laserpistol: ["lasertag"],
   laserspel: ["lasertag"],
+  // Uppresningsfåtöljerna (Leonard 2026-10-14): fyra heter "Massagefåtölj med
+  // uppresning" eller "…uppresningshjälp". Synonymerna jämförs sedan
+  // 2026-11-21 som ord i namnets huvuddel, så nålen "uppres" står här i
+  // stället: den ska träffa var som helst i namnet, som förut.
+  uppresningsfåtölj: ["uppres"],
+  lyftfåtölj: ["uppres"],
+  lyftstol: ["uppres"],
+  uppresningsstol: ["uppres"],
+  // 2026-11-21 (Groks genomgång). Granarna med snö heter "med konstsnö",
+  // "snöade", "snötäckt" och "med snö": två av dem heter snöflockad.
+  snöflockad: ["snöflock", "konstsnö", "snöad", "snötäck", "snökläd", "med snö", "snötopp", "snöeffekt"],
+  flockad: ["snöflock", "konstsnö", "snöad", "snötäck", "snökläd", "med snö", "snötopp", "snöeffekt"],
+  // Renarna heter "Lysande ren", "Ren och släde" och "… med två renar".
+  // ☠️ Mellanslaget först: "renar" står i varje julgirlang med "barrgrenar".
+  julren: [" renar", "ren och släde", "lysande ren", "med ren "],
+  bookshelf: ["bokhyll"],
 };
 
 // Släpp en kvarvarande ändelsevokal efter stemming så böjningar kollapsar till en
@@ -317,19 +344,56 @@ const delarForm = (a: readonly string[], b: readonly string[]): boolean => a.som
 // hållet ("soffa" → needle "sof") den stängs av.
 const AMBIGUOUS_NEEDLES = new Set(["sof", "carp", "tent", "bag"]);
 
+// ☠️ ETT SMALARE ORD DRAR INTE IN DET BREDARE (2026-11-21). "bokhylla" stod i
+// gruppen med "hylla" och gav 616 träffar, varav 63 bokhyllor: resten var
+// varenda vara med "hyll" i namnet, blomställ "med tre hyllplan" och
+// badrumshyllor. Samma sak för "förvaringsbox" (302, alla med förvaring),
+// "ficklampa" (225 golvlampor) och "borrmaskin". Ett ord som innehåller ett
+// annat ord i gruppen är en sorts sådan, och får inte det ordet som nål. Åt
+// andra hållet behövs ingenting: den som söker "hylla" hittar bokhyllorna
+// ändå, för ordet står i dem.
+const arSorten = (smalt: string, brett: string): boolean => smalt !== brett && brett.length >= 4 && smalt.includes(brett);
+
+// ☠️ SYNONYMERNA JÄMFÖRS SOM ORD, INTE SOM DELSTRÄNGAR (2026-11-21). "pläd"
+// gav 62 filter: gruppen har "filt", och nålen "filt" står i varje "filter".
+// "täcke" gav en "snötäckt julgran", "laddkabel" en fladdermusholk
+// ("fLADDermus") och "lampa" en pizzaugn "med LED-belysning". Namnen jämförs
+// nu mot synonymens ORDFORMER (SYN_FORMER: ordet och dess böjningar), som ska
+// stå som ord, sist i ett ord eller först i en sammansättning, i namnets
+// huvuddel (se synonymStar). SYN, med de kanoniska stammarna, finns kvar för
+// det som jämförs mot kategoriernas namn.
 const SYN: Map<string, string[]> = (() => {
   const map = new Map<string, string[]>();
   for (const group of SYNONYM_GROUPS) {
-    const needles = [...new Set(group.map(canon))].filter((x) => x.length >= 3 && !AMBIGUOUS_NEEDLES.has(x));
     for (const term of group) {
       const key = canon(term);
-      const others = needles.filter((nd) => nd !== key);
-      const prev = map.get(key) || [];
-      map.set(key, [...new Set([...prev, ...others])]);
+      const nalar = group.filter((o) => o !== term && !arSorten(term, o)).map(canon).filter((x) => x.length >= 3 && x !== key && !AMBIGUOUS_NEEDLES.has(x));
+      map.set(key, [...new Set([...(map.get(key) ?? []), ...nalar])]);
     }
   }
   return map;
 })();
+
+// Ordformerna byggs vid första sökningen, inte när modulen laddas: böjningarna
+// (bojdaFormer) står längre ner i filen.
+let synFormer: Map<string, string[]> | null = null;
+/** Synonymernas ordformer för ett sökords nyckel (se SYN ovan), eller undefined. */
+function synonymformer(key: string): string[] | undefined {
+  if (!synFormer) {
+    synFormer = new Map();
+    for (const group of SYNONYM_GROUPS) {
+      for (const term of group) {
+        const k = canon(term);
+        const ord = group
+          .filter((o) => o !== term && !arSorten(term, o) && !AMBIGUOUS_NEEDLES.has(canon(o)))
+          .flatMap((o) => [normalize(o), ...bojdaFormer(normalize(o))])
+          .filter((x) => x.length >= 3);
+        synFormer.set(k, [...new Set([...(synFormer.get(k) ?? []), ...ord])]);
+      }
+    }
+  }
+  return synFormer.get(key);
+}
 
 // Envägsnålarna under samma nyckel som SYN (canon av kundens ord).
 const ENVAGS_NALAR: Map<string, string[]> = new Map(Object.entries(ENVAGS).map(([ord, nalar]) => [canon(ord), nalar]));
@@ -428,9 +492,9 @@ export function fuzzyOrdslut(pattern: string, text: string, maxDist: number): nu
 
 // Tabellens rader, återanvända mellan anropen (ett ord är aldrig så långt).
 const RAD_MAX = 96;
-let radA = new Int32Array(RAD_MAX + 1);
-let radB = new Int32Array(RAD_MAX + 1);
-let radC = new Int32Array(RAD_MAX + 1);
+const radA = new Int32Array(RAD_MAX + 1);
+const radB = new Int32Array(RAD_MAX + 1);
+const radC = new Int32Array(RAD_MAX + 1);
 
 /** fuzzyOrdslut för ETT ord, text[a..b). */
 function ordslutAvstand(pattern: string, text: string, a: number, b: number, maxDist: number): number {
@@ -668,7 +732,7 @@ function sokmasker(p: Prepared): Sokmasker {
     }
     if (u.kortStam) nagon.push(um.tok);
     nagon.push(...um.former);
-    for (const nd of SYN.get(u.key) ?? []) nagon.push(stavmask(nd));
+    for (const f of u.syn ?? []) nagon.push(stavmask(f));
     for (const nd of ENVAGS_NALAR.get(u.key) ?? []) nagon.push(stavmask(nd));
     nagonVikt.push(um.vikt);
   });
@@ -795,7 +859,13 @@ function sammanskrivet(fogat: string, re: RegExp, flerOrd: boolean): { var: 0 | 
 // ("rosor" → "ros"), och ska då stå som ett ord i namnet (se ordStar).
 // `lem`: ordet i sina böjningar utan prickar (ordformer), för jämförelsen med
 // kategoriernas ord.
-type Unit = { stem: string; key: string; vikt: string; tok: string; helord: boolean; egenskap: boolean; fogRe: RegExp | null; ihopNasta?: string; former?: string[]; kortStam?: boolean; lem: string[] };
+// `stamMedAndelse`: stammen är inget ord för sig ("soff" ur "soffor") och
+// gäller bara med en böjningsändelse efter (se forberedSokning).
+// `syn`: synonymernas ordformer (se synonymformer), slagna upp en gång per sökning.
+// `baraMitt`: ordet står inte vid någon ordgräns i hela katalogen, bara mitt
+// inne i andra ord ("desk" i "kattlådeskåp"), och träffar därför inte som
+// det står (se forberedSokning).
+type Unit = { stem: string; key: string; vikt: string; tok: string; helord: boolean; egenskap: boolean; fogRe: RegExp | null; ihopNasta?: string; former?: string[]; kortStam?: boolean; stamMedAndelse?: boolean; syn?: string[]; baraMitt?: boolean; lem: string[] };
 const EXAKT = 0, VIKT = 1, STAVFEL = 2;
 type Lage = typeof EXAKT | typeof VIKT | typeof STAVFEL;
 
@@ -804,6 +874,8 @@ type Ordtraff = { qual: number; fel: number; vikt: boolean };
 const INGEN: Ordtraff = { qual: 0, fel: 0, vikt: false };
 const HEL: Ordtraff = { qual: 1, fel: 0, vikt: false };
 const SYNONYM: Ordtraff = { qual: 0.85, fel: 0, vikt: false };
+/** Synonymen står i namnet, men bara efter huvuddelen (se synonymStar). */
+const SYNONYM_NAMND: Ordtraff = { qual: 0.75, fel: 0, vikt: false };
 const UTAN_PRICKAR: Ordtraff = { qual: 0.95, fel: 0, vikt: true };
 const ETT_FEL: Ordtraff = { qual: 0.6, fel: 1, vikt: false };
 const TVA_FEL: Ordtraff = { qual: 0.5, fel: 2, vikt: false };
@@ -888,6 +960,8 @@ const utanBindestreck = (n: string): string => (n.includes("-") ? n.replace(/([a
 // som där: "topp" är inte "top-p…" i "Hardtop-paviljong".
 /** Över ordet utanför huvuddelen (90), under ordet i huvuddelen (100). */
 const ENVAGS_I_HUVUDDELEN = 92;
+/** Flera sökord som alla står i namnets huvuddel: över frasen efter huvuddelen (90), under de sammanskrivna i den (93). */
+const ALLA_I_HUVUDDELEN = 92;
 
 /**
  * Står något av det envägsordet pekar på i texten? BARA `ENVAGS`, inte
@@ -997,6 +1071,41 @@ function ordStar(text: string, s: string): boolean {
   return false;
 }
 
+/**
+ * Hur synonymens ordform `f` står i namnet: 2 = i huvuddelen, 1 = efter den
+ * ("… med studsmatta"), 0 = inte alls. Den ska stå som ett ord ("Filt 130 ×
+ * 170"), sist i ett ord ("Fleecefilt", "Golvlampor") eller först i en
+ * sammansättning vars rest är ett ord i katalogen ("Valphage"). Ett ord som
+ * bara ser böjt ut är ett annat ord: ett "filter" är ingen filt (INTE_BOJT).
+ * Utan katalogens ord (`egna`) godtas varje sammansättning.
+ */
+function synonymStar(nameNorm: string, f: string, egna: (() => Set<string>) | undefined): number {
+  let huvudSlut = -2;
+  for (let i = nameNorm.indexOf(f); i >= 0; i = nameNorm.indexOf(f, i + 1)) {
+    if (!forledOk(nameNorm, f, i)) continue;
+    const efter = /^[a-zåäö0-9]*/.exec(nameNorm.slice(i + f.length))![0];
+    const star = efter === ""
+      || (BOJNING.has(efter) ? !INTE_BOJT.has(f + efter) : efter.length >= 3 && (!egna || restArOrd(efter, egna())));
+    if (!star) continue;
+    if (huvudSlut === -2) {
+      const c = nameNorm.search(HUVUDDEL_SLUT);
+      huvudSlut = c < 0 ? nameNorm.length : c;
+    }
+    // Namnen läses från vänster: står ordet inte i huvuddelen här gör det inte det längre fram heller.
+    return i < huvudSlut ? 2 : 1;
+  }
+  return 0;
+}
+
+/** Står stammen `s` i ett ord med en böjningsändelse efter ("soff" i "soffa", "soffor" och "hörnsoffan")? */
+function stamStar(text: string, s: string): boolean {
+  for (let i = text.indexOf(s); i >= 0; i = text.indexOf(s, i + 1)) {
+    const efter = /^[a-zåäö0-9]*/.exec(text.slice(i + s.length))![0];
+    if (efter !== "" && BOJNING.has(efter) && forledOk(text, s, i)) return true;
+  }
+  return false;
+}
+
 // `um`, `nm` och `nmv`: sökordets och namnets teckenmasker (se Sokmasker). Ett
 // ord kan bara stå i ett namn som har alla dess tecken, så jämförelsen hoppas
 // över när masken visar att något saknas. Utan masker (nm = -1) prövas allt.
@@ -1008,7 +1117,7 @@ function ordStar(text: string, s: string): boolean {
 // nytt funktionsobjekt i varje varv av slingan: ett per varunamn och varv. I
 // Node syns det inte (där körs källkoden), men i webbläsaren var det de två
 // tyngsta posterna i profilen. lib/sok-minifierat.test.ts håller det.
-function tokenQuality(unit: Unit, nameNorm: string, lage: Lage, namnVikt: string, stavfelOk: boolean, fogat: string, lista: Ordlista | undefined, ni: number, um: Unitmasker | undefined, nm: number, nmv: number): Ordtraff {
+function tokenQuality(unit: Unit, nameNorm: string, lage: Lage, namnVikt: string, stavfelOk: boolean, fogat: string, lista: Ordlista | undefined, ni: number, um: Unitmasker | undefined, nm: number, nmv: number, egna: (() => Set<string>) | undefined): Ordtraff {
   const { stem: s, key } = unit;
   if (unit.helord) {
     if (starSomOrd(nameNorm, s)) return HEL;
@@ -1017,22 +1126,31 @@ function tokenQuality(unit: Unit, nameNorm: string, lage: Lage, namnVikt: string
     return unit.ihopNasta && ordBorjar(nameNorm, unit.ihopNasta) ? HEL : INGEN;
   }
   const kanS = !um || (um.s & ~nm) === 0;
-  if (unit.kortStam ? ((!um || (um.tok & ~nm) === 0) && starIOrd(nameNorm, unit.tok)) || (kanS && ordStar(nameNorm, s)) : kanS && starIOrd(nameNorm, s)) return HEL;
-  if (unit.former) {
+  if (unit.baraMitt ? false : unit.kortStam ? ((!um || (um.tok & ~nm) === 0) && starIOrd(nameNorm, unit.tok)) || (kanS && (unit.stamMedAndelse ? /*#__NOINLINE__*/ stamStar(nameNorm, s) : ordStar(nameNorm, s))) : kanS && starIOrd(nameNorm, s)) return HEL;
+  if (unit.former && !unit.baraMitt) {
     for (let k = 0; k < unit.former.length; k++) {
       if (um && (um.former[k] & ~nm) !== 0) continue;
       if (starIOrd(nameNorm, unit.former[k])) return HEL;
     }
   }
   if (unit.fogRe && fogat && kanS && sammanskrivet(fogat, unit.fogRe, false).var) return HEL;
-  const needles = SYN.get(key);
-  if (needles) {
-    for (const nd of needles) if (nameNorm.includes(nd)) return SYNONYM;
+  const synonymer = unit.syn;
+  let namnd = false;
+  if (synonymer) {
+    for (const f of synonymer) {
+      if (!nameNorm.includes(f)) continue;
+      const hur = /*#__NOINLINE__*/ synonymStar(nameNorm, f, egna);
+      if (hur === 2) return SYNONYM;
+      if (hur === 1) namnd = true;
+    }
   }
   const envags = ENVAGS_NALAR.get(key);
   if (envags) {
     for (const nd of envags) if (nameNorm.includes(nd)) return SYNONYM;
   }
+  // Synonymen står bara efter huvuddelen ("Lekcenter med rutschkana" för
+  // "rutschbana"): en träff, men efter varorna som heter så.
+  if (namnd) return SYNONYM_NAMND;
   if (lage >= VIKT && (!um || (um.vikt & ~nmv) === 0) && starIOrd(namnVikt, unit.vikt)) return UTAN_PRICKAR;
   if (lage >= STAVFEL && stavfelOk && s.length >= 5) {
     const maxDist = s.length >= 7 ? 2 : 1;
@@ -1059,7 +1177,106 @@ const STOPWORDS = new Set([
   // "barnkök rea" och "massagebänk rea" gav julgirlanger med REAlistiska
   // barrgrenar (2026-11-19): ordet hör till frågan, inte till varan.
   "rea", "rean", "billigast", "billigaste", "erbjudande",
+  // ☠️ "soffa lägsta pris" STRÖK "soffa" (2026-11-21) och svarade med tre
+  // anslagstavlor: "lägsta" lästes som ett varuord och stod mitt i
+  // "ansLAGSTAvla". Orden står inte i något varunamn (prövat mot 7 948 namn),
+  // och söksidan läser dem som en önskan om ordning (villHaBilligast i
+  // lib/sok-pris.ts).
+  "lägst", "lägsta",
+  // ☠️ "har ni dieselvärmare" GAV 50 SKRÄPTRÄFFAR (2026-11-21), fast butiken
+  // har 33 dieselvärmare. "har" räknades som sökningens första varuord, stod
+  // i en massagefåtölj som "har värme", och "dieselvärmare" ströks. Orden här
+  // hör till frågan och står inte som varuord i något namn (prövat mot 7 948
+  // namn). "typ" är INTE med: "elbilsladdare typ 2".
+  "har", "ni", "finns", "det", "jag", "söker", "letar", "efter", "vill", "ha", "vilken", "vilket", "vilka",
+  "bäst", "någon", "något", "några", "säljer", "kan", "man", "hitta", "hittar", "behöver", "är", "den", "de",
+  "vad", "hur", "var", "ska", "hej", "tack", "tips", "pris", "priset", "kostar", "köper", "ny", "nya", "nytt",
 ]);
+
+// ── Engelska fraser → katalogens ord (2026-11-21) ────────────────────────────
+// "christmas tree", "fire pit" och "dog bed" gav noll träffar eller skräp
+// ("dog" stod i "bulldog-koppling" och "kamadogrill"). Enstaka engelska ord
+// står i synonymgrupperna; en fras på två ord byts här mot ordet varorna
+// heter, och sidan säger vilket ord den visar (`rattat`). Varje mål är ett
+// ord som katalogen har.
+const FRASER: readonly (readonly [string, string])[] = [
+  ["christmas tree", "julgran"], ["christmas trees", "julgran"], ["fire pit", "eldstad"], ["dog bed", "hundbädd"],
+  ["cat tree", "klösträd"], ["air fryer", "airfryer"], ["bar stool", "barstol"], ["office chair", "kontorsstol"],
+  ["coffee table", "soffbord"], ["dining table", "matbord"], ["garden furniture", "utemöbler"], ["book shelf", "bokhylla"],
+  ["gaming chair", "gamingstol"], ["bunk bed", "våningssäng"], ["kids toys", "leksaker"],
+];
+
+/** Sökningen med en engelsk fras bytt mot katalogens ord, eller null när ingen fras står i den. */
+function oversattFras(query: string): string | null {
+  const q = ` ${normalize(query).replace(/\s+/g, " ")} `;
+  for (const [fras, ord] of FRASER) {
+    const i = q.indexOf(` ${fras} `);
+    if (i >= 0) return `${q.slice(0, i)} ${ord} ${q.slice(i + fras.length + 2)}`.replace(/\s+/g, " ").trim();
+  }
+  return null;
+}
+
+// ── "utan": varan ska INTE ha ordet (2026-11-21) ─────────────────────────────
+// "julgran utan belysning" visade granar MED belysning, "kattlåda utan lock"
+// lådor med lock och "barstol utan ryggstöd" stolar med ryggstöd: "utan"
+// ströks, och ordet efter räknades som ett sökord. Nu söks resten av orden,
+// och varor som nämner det nekade ordet väljs bort. Varor som själva heter
+// "… utan ryggstöd" går först. Sidan säger vad som valts bort (`inte`).
+const NEKAR = new Set(["utan", "ej", "inte"]);
+// Ord som betyder samma sak som det nekade i ett namn. "julgran utan
+// belysning" ska också välja bort "med 250 LED" och "med ljusslinga".
+const NEKAS_OCKSA: Record<string, string[]> = {
+  // En kattlåda "med huv" eller "täckt" har lock, och en barstol med "svängd
+  // rygg" har ryggstöd (mätt 2026-11-21: 6 respektive 13 träffar blev kvar).
+  lock: ["huv", "täckt", "täckta"],
+  ryggstöd: ["rygg"],
+  belysning: ["led", "ljus", "ljusslinga", "ljusslingor", "lampor", "lampa"],
+  lampor: ["led", "ljus", "ljusslinga", "ljusslingor", "belysning"],
+  ljus: ["led", "ljusslinga", "ljusslingor", "belysning", "lampor"],
+};
+
+/** Sökningen utan "utan X" (och "… och Y"), och orden som nekas. Null när sökningen inte nekar något. */
+export function tolkaUtan(query: string): { fraga: string; inte: string[] } | null {
+  const ord = normalize(query).split(/\s+/).filter(Boolean);
+  const arOrd = (t: string | undefined): t is string => !!t && /^[a-zåäö][a-zåäö-]{2,}$/.test(t) && !STOPWORDS.has(t) && !NEKAR.has(t);
+  for (let k = 0; k < ord.length - 1; k++) {
+    if (!NEKAR.has(ord[k]) || !arOrd(ord[k + 1])) continue;
+    const inte = [ord[k + 1]];
+    let slut = k + 2;
+    if ((ord[slut] === "och" || ord[slut] === "eller") && arOrd(ord[slut + 1])) {
+      inte.push(ord[slut + 1]);
+      slut += 2;
+    }
+    const kvar = [...ord.slice(0, k), ...ord.slice(slut)];
+    // Något ska sökas: "utan lock" för sig nekar ingenting.
+    if (!kvar.some((t) => t.length >= 3 && !STOPWORDS.has(t))) return null;
+    return { fraga: kvar.join(" "), inte };
+  }
+  return null;
+}
+
+/** Nämner namnet det nekade ordet: ordet självt, en böjning, en synonym eller ett ord som betyder samma sak? */
+function namnerOrdet(nameNorm: string, ord: string): boolean {
+  const st = sokstam(ord);
+  if (starIOrd(nameNorm, st) || (st !== ord && starIOrd(nameNorm, ord))) return true;
+  for (const f of bojdaFormer(ord)) if (starIOrd(nameNorm, f)) return true;
+  const nyckel = begreppsnyckel(ord);
+  for (const nd of SYN.get(nyckel) ?? []) if (nameNorm.includes(nd)) return true;
+  for (const nd of ENVAGS_NALAR.get(nyckel) ?? []) if (nameNorm.includes(nd)) return true;
+  for (const o of NEKAS_OCKSA[ord] ?? []) if (o.length <= 4 ? starSomOrd(nameNorm, o) : starIOrd(nameNorm, o)) return true;
+  return false;
+}
+
+/** Står "utan" och det nekade ordet i namnet, med högst två ord emellan ("utan armstöd", "utan lock och botten")? */
+function heterUtan(nameNorm: string, ord: string): boolean {
+  const st = sokstam(ord);
+  for (let i = nameNorm.indexOf("utan "); i >= 0; i = nameNorm.indexOf("utan ", i + 1)) {
+    if (i > 0 && BOKSTAV.test(nameNorm[i - 1])) continue;
+    const efter = nameNorm.slice(i + 5).split(" ").slice(0, 3);
+    if (efter.some((t) => t.includes(st))) return true;
+  }
+  return false;
+}
 
 // `ihop` är sökorden skrivna som ett ord ("laser tag" → "lasertag") som
 // mönster, med prickarna kvar och utan. Null när det blir för kort.
@@ -1071,7 +1288,9 @@ type Ihop = { re: RegExp; reVikt: RegExp; flerOrd: boolean };
 // först ("stolar" → "stolar", "stol"). Sätts av rankaMedInfo, som vet vilka
 // former katalogen har (se ensamtOrdsFormer).
 // `egna`: orden som står för sig i katalogens namn, för ordningen (se kant).
-type Prepared = { q: string; units: Unit[]; ihop: Ihop | null; kantFore: boolean; kantEfter: boolean; former?: string[]; egna?: () => Set<string> };
+// `baraMitt`: sökningen är ett enda ord som bara står mitt inne i andra ord
+// (se Unit.baraMitt): varken frasen eller formerna träffar som de står.
+type Prepared = { q: string; units: Unit[]; ihop: Ihop | null; kantFore: boolean; kantEfter: boolean; former?: string[]; egna?: () => Set<string>; baraMitt?: boolean };
 
 // ☠️ STAMMEN ÄR INTE ALLTID ORDET (2026-11-19). "träning" har stammen "trä" och
 // gav 910 träffar, de flesta möbler i trä. "matare" blev "mat" (437 träffar
@@ -1111,6 +1330,10 @@ function prepare(query: string): Prepared {
       fogRe: s.length >= KORTASTE_SAMMANSKRIVET ? ihopMonster(s) : null,
       lem: ordformer(tok),
     };
+    if (!u.helord) {
+      const syn = synonymformer(key);
+      if (syn && syn.length > 0) u.syn = syn;
+    }
     if (!u.helord && !u.egenskap) {
       // "rosor" är inte "rosa": en form som är en färg, ett mått eller ett
       // småord är ett annat ord.
@@ -1195,7 +1418,13 @@ function kant(nameNorm: string, s: string, egna?: () => Set<string>): number {
     const efter = /^[a-zåäö0-9]*/.exec(nameNorm.slice(i + s.length))![0];
     const slutar = efter === "" || (!kort && BOJNING.has(efter));
     let k = borjar ? 1 : 0;
-    if (slutar && (borjar || !kort)) {
+    // ☠️ "grill- och stekplatta" ÄR EN GRILLPLATTA, INGEN GRILL (2026-11-21).
+    // Ett bindestreck som hänger före ett mellanslag säger att ordet är första
+    // ledet i en sammansättning vars huvud står längre fram. Förut räknades
+    // det som ett eget ord, och "grill" visade stekplattan före varenda grill.
+    if (efter === "" && nameNorm.charCodeAt(i + s.length) === 45 && (i + s.length + 1 >= nameNorm.length || nameNorm.charCodeAt(i + s.length + 1) === 32)) {
+      if (borjar) k = 2;
+    } else if (slutar && (borjar || !kort)) {
       if (!(borjar && ENHETSORD.has(s) && /\d ?$/.test(nameNorm.slice(Math.max(0, i - 2), i)))) {
         if (huvudSlut === -2) huvudSlut = nameNorm.search(HUVUDDEL_SLUT);
         k += huvudSlut < 0 || i < huvudSlut ? 5 : 3;
@@ -1277,6 +1506,8 @@ export type NameMatch = {
 //   100 — hela söksträngen finns i namnets huvuddel ("vinöppnare")
 //    95 — sökorden finns sammanskrivna i huvuddelen ("laser tag" → "Lasertag-set",
 //         "tvbänk" → "TV-bänk"); 93 när det dessutom krävde att prickarna veks
+//    92 — flera sökord som alla står som ord, eller sist i ett ord, i
+//         huvuddelen ("led lampa" → "LED-golvlampa med fyra hyllfack")
 //    90 — hela söksträngen finns, men bara efter huvuddelen ("…med hängmatta")
 //    88 — sammanskrivet, men bara efter huvuddelen; 86 med prickarna vikta
 //    60 — alla söktermer matchar exakt (compound-aware: "knivset"→"kniv" i
@@ -1323,6 +1554,47 @@ function forberedSokning(query: string, namn: readonly string[]): Prepared {
   // namn har som eget ord eller som sista led är inget ord.
   const led = () => (sparat.led ??= sistaLed(egna()));
   for (const u of p.units) if (u.former) u.former = u.former.filter((f) => egna().has(f) || led().has(f));
+  // ☠️ EN STAM SOM INTE ÄR ETT ORD ÄR INGET SÖKORD (2026-11-21). "soffor" gav
+  // 181 träffar och "soffa" 140: stammen "soff" står i "soffbord", så flertalet
+  // drog in 41 soffbord som entalet inte visade. Samma sak för "lampor"
+  // (lampskärmar), "kuddar" (kuddfodral), "hyllor" (hyllplan) och "mattor"
+  // (mattsvart). Har katalogen ordets grundform ("soffa"), och är stammen inte
+  // den, gäller stammen bara med en böjningsändelse efter: "soffa", "soffan",
+  // "soffor". "stolar" har stammen "stol", som ÄR grundformen, och är som
+  // förut. Samma regel som för korta stammar (se ordStar).
+  for (const u of p.units) {
+    if (u.helord || u.egenskap || u.kortStam || u.stem === u.tok || INTE_BOJT.has(u.tok)) continue;
+    const grundformer = [...(u.former ?? []), ...entalAv(u.tok).filter((e) => egna().has(e) || led().has(e))];
+    if (grundformer.length === 0 || grundformer.includes(u.stem)) continue;
+    u.kortStam = true;
+    u.stamMedAndelse = true;
+    u.vikt = vik(u.tok);
+  }
+  // ☠️ ETT ORD SOM BARA STÅR MITT I ANDRA ORD ÄR INGET ORD (2026-11-21). "desk"
+  // gav fyra "kattlåDESKåp": bokstäverna råkar stå där, över fogen mellan
+  // "kattlåde" och "skåp". Regeln om förled (forledOk) släpper igenom det,
+  // för tre bokstäver före är oftast ett ord. Börjar eller slutar INGET ord i
+  // hela katalogen med sökordet finns det ingen vara som heter så, och
+  // träffarna mitt i ord är slump. Ordet söks då bara genom synonymer, utan
+  // prickar och med stavfel, som ett ord som inte finns.
+  const ordlista = listaFor(namn, sparat).ord;
+  for (const u of p.units) {
+    // En böjd form som katalogen har ("motorcykel" för "motorcyklar") är ett ord vid en kant.
+    if (u.helord || u.egenskap || u.tok.length < 4 || !/^[a-zåäö]+$/.test(u.tok) || (u.former && u.former.length > 0)) continue;
+    const st = u.stem.length >= 3 ? u.stem : u.tok;
+    let vidKant = false;
+    for (let k = 0; k < ordlista.length && !vidKant; k++) {
+      const w = ordlista[k];
+      if (w.length < st.length) continue;
+      if (w.startsWith(st)) vidKant = true;
+      else {
+        const i = w.lastIndexOf(st);
+        if (i > 0 && (i + st.length === w.length || BOJNING.has(w.slice(i + st.length)))) vidKant = true;
+      }
+    }
+    if (!vidKant) u.baraMitt = true;
+  }
+  if (p.units.length === 1 && p.units[0].baraMitt) p.baraMitt = true;
   p.egna = egna;
   // Entalet av ett ensamt sökord finns när det står för sig, är ett sista led,
   // eller (fyra tecken och uppåt) avslutar något ord: "stol" i "kontorsstol".
@@ -1363,7 +1635,7 @@ function matchPrepared(
   const plats = ni ?? -1;
   const nm = ld && pm ? ld.mask[plats] : -1;
   const nmv = ld && pm && ld.maskVikt ? ld.maskVikt[plats] : -1;
-  const fras = (!pm || (pm.q & ~nm) === 0) && starIOrd(nameNorm, q) && ((!p.kantFore && !p.kantEfter) || frasStar(nameNorm, q, p.kantFore, p.kantEfter));
+  const fras = !p.baraMitt && (!pm || (pm.q & ~nm) === 0) && starIOrd(nameNorm, q) && ((!p.kantFore && !p.kantEfter) || frasStar(nameNorm, q, p.kantFore, p.kantEfter));
   if (fras && !p.former) {
     return { score: starIOrd(huvudAv(nameNorm, ld, plats), q) ? 100 : 90, full: true, kant: kant(nameNorm, q, p.egna) };
   }
@@ -1372,7 +1644,7 @@ function matchPrepared(
   // och ordträffens 60 åt "Konstgjord växt": kunden fick spaljéer före
   // växterna. "stolar" gav matgrupper "… och fyra stolar" före varenda
   // kontorsstol. Formerna räknas därför som frasen, var och en för sig.
-  if (p.former) {
+  if (p.former && !p.baraMitt) {
     let k = -1;
     let iHuvud = false;
     // Ordet som kunden skrev får börja ett ord ("stol" → "Stolsdyna": hon kan
@@ -1419,7 +1691,7 @@ function matchPrepared(
   const fogatOrd = fogatU !== nameNorm ? fogatU : "";
   for (let i = 0; i < units.length; i++) {
     const u = units[i];
-    const t = /*#__NOINLINE__*/ tokenQuality(u, nameNorm, lage, vikt, stavfelOk ? stavfelOk[i] : true, fogatOrd, ld?.lista, plats, pm?.units[i], nm, nmv);
+    const t = /*#__NOINLINE__*/ tokenQuality(u, nameNorm, lage, vikt, stavfelOk ? stavfelOk[i] : true, fogatOrd, ld?.lista, plats, pm?.units[i], nm, nmv, p.egna);
     sum += t.qual;
     if (t.qual > 0) {
       hit++;
@@ -1443,12 +1715,41 @@ function matchPrepared(
   if (units.length === 1 && sum === SYNONYM.qual && envagsI(units[0], huvudAv(nameNorm, ld, plats))) {
     return { score: ENVAGS_I_HUVUDDELEN, full: true, kant: 5, mask };
   }
+  // ☠️ VARAN SJÄLV FÖRE VARAN SOM HAR DEN (2026-11-21). "led lampa" visade en
+  // bilkretsprovare och en domkraft "med LED-lampa" (88, orden sammanskrivna
+  // efter huvuddelen) före varenda "LED-golvlampa" (60, orden var för sig).
+  // Står vart och ett av sökorden som ord, eller sist i ett ord, i namnets
+  // huvuddel är varan det kunden söker. Färg och mått får stå var som helst.
+  if (units.length >= 2 && hit === units.length && sum === units.length && kanter >= 5 && !baraEgenskaper) {
+    return { score: ALLA_I_HUVUDDELEN, full: true, kant: kanter, mask, stark };
+  }
   // Perfekt täckning (alla exakta) → 60, samma tak som förr. Synonym-/stavfel-
   // tokens bidrar <1 så de landar strax under en likvärdig exakt träff.
   const m: NameMatch = { score: Math.max(1, Math.round((sum / units.length) * 60)), full: hit === units.length, stavfel: fel > 0, kant: kanter, mask, stark };
   if (fel > 0) m.fel = fel;
   if (utanPrickar) m.vikt = true;
   return m;
+}
+
+/**
+ * Heter varan som sökningen: står sökorden i namnets huvuddel (poäng 92 och
+ * uppåt, se skalan ovan)? "Sidobord för soffan" heter inte soffa. För
+ * söksidans "billigast"-ordning (lib/sok-ordning.ts).
+ */
+export function varanHeterSa(name: string, query: string): boolean {
+  // ☠️ Utan orden som hör till frågan ("billigast", "lägsta pris"). Med dem
+  // kvar är "soffa" inte längre sökningens enda ord: varje soffa fick 60 i
+  // stället för 100, ingen vara "hette" soffa, och "soffa billigast" visade
+  // beskedet om prisordning över en lista i den vanliga ordningen (sett i
+  // webbläsaren 2026-11-21, proven jämförde bara med "soffa").
+  // Och utan det kunden nekade: "soffa utan armstöd" frågar om varan är en soffa.
+  const ord = tokenize(tolkaUtan(query)?.fraga ?? query).filter((t) => !STOPWORDS.has(t));
+  if (ord.length === 0) return false;
+  // Varje sökord som ett ord, eller sist i ett ord, i namnets huvuddel
+  // (`kant` 5 och 6), utan stavfel. Inte poängen: en böjd sökning
+  // ("julgranen", "soffor") ger 60 också för varan som heter så.
+  const t = nameMatch(name, ord.join(" "));
+  return t.full && !t.stavfel && (t.kant ?? 0) >= 5;
 }
 
 export function nameScore(name: string, query: string): number {
@@ -1496,8 +1797,18 @@ export function rankByName<T>(items: T[], nameOf: (item: T) => string, query: st
  *   `sokt` är sökningen som den söktes, när ett ord skrevs om utan besked:
  *     med prickarna ("fatolj" → "fåtölj") eller färdigskrivet ("stäl" →
  *     "ställ"). Träffarna är de som det ordet ger.
+ *   `inte` är orden kunden nekade ("julgran utan belysning"): varor som
+ *     nämner dem är bortvalda, och sidan säger det.
  */
-export type Sokutfall<T> = { traffar: T[]; strukna: string[]; utan?: string[]; hela?: number; rattat?: string; liknande?: true; sokt?: string };
+export type Sokutfall<T> = {
+  traffar: T[]; strukna: string[]; utan?: string[]; hela?: number; rattat?: string; liknande?: true; sokt?: string; inte?: string[];
+  /**
+   * Så många av de första träffarna är varor som heter som sökordet OCH ligger
+   * i ordets egen kategori (se "ordets egen kategori först" i medBegrepp).
+   * Söksidans "billigast"-ordning sorterar dem för sig (lib/sok-ordning.ts).
+   */
+  hemma?: number;
+};
 
 /** Färre hela träffar än så, och sökningen har en färg eller ett mått: fyll på. */
 export const FYLL_PA_UNDER = 24;
@@ -1692,6 +2003,10 @@ function bitar(m: number): number {
 
 /** Hur stor del av en begreppskategoris varor som högst får bära ordet i namnet. */
 const BEGREPP_UNDER = 0.35;
+/** Andelen namn som ska börja med ordet för att det ska räknas som en sorts vara (se arVarutyp). */
+const VARUTYP_MINST = 0.15;
+/** Så många varor som heter som sökordet ska ligga i ordets egen kategori för att den ska gå först (se medBegrepp). */
+const HEM_MINST = 3;
 
 /** Huvudord som bara säger "saker till": "badrumsmöbler", "hundsaker", "kattprylar". */
 const ALLMANNA_HUVUDORD = new Set([
@@ -2326,6 +2641,94 @@ function skrivOm(p: Prepared, bok: Ordbok, begrepp: readonly string[], arBegrepp
 // den söks bara namnen, som förut.
 export function rankaMedInfo<T>(items: T[], nameOf: (item: T) => string, query: string, normNamn?: readonly string[], kd?: Kategoridata<T>): Sokutfall<T> {
   const namn = normNamn ?? items.map((item) => normalize(nameOf(item)));
+  // En engelsk fras byts mot katalogens ord (se FRASER), med besked.
+  const oversatt = oversattFras(query);
+  if (oversatt) {
+    const u = rankaUtan(items, nameOf, oversatt, namn, kd);
+    if (u.traffar.length > 0) return { ...u, rattat: u.rattat ?? oversatt };
+  }
+  const u = rankaUtan(items, nameOf, query, namn, kd);
+  // ☠️ "katt träd" GAV 13 VAROR OCH "kattträd" 96, "ute möbler" 12 och
+  // "utemöbler" 254, "soff bord" 54 och "soffbord" 123 (2026-11-21). Skrivna
+  // isär söktes orden var för sig: bara varor som nämner både katt och träd
+  // kom med, och loungeset "med soffa och bord" stod bland soffborden. Är
+  // orden ihop ett ord (i synonymtabellen, i katalogens namn eller i en
+  // kategoris namn: "barn möbler") är det ordet kunden menar: dess varor
+  // först, och efter dem det som bara orden isär gav, så att ingen träff
+  // försvinner.
+  const ihop = hopskrivetBegrepp(query, (o) => ordbokFor(namn, formerFor(namn)).antal.has(o) || begreppFor(kd?.kat).includes(o));
+  if (ihop) {
+    const v = rankaUtan(items, nameOf, ihop, namn, kd);
+    if (v.traffar.length > 0 && v.strukna.length === 0 && !v.rattat && !v.liknande) {
+      // Bara riktiga träffar följer med: ströks ett ord, eller rättades
+      // stavningen, gällde svaret en annan sökning ("katt träd" med "träd"
+      // struket är varenda kattlåda).
+      const riktiga = u.strukna.length === 0 && !u.rattat && !u.liknande;
+      const med = new Set(v.traffar);
+      const resten = riktiga ? u.traffar.filter((x) => !med.has(x)) : [];
+      return { ...v, traffar: resten.length > 0 ? [...v.traffar, ...resten] : v.traffar, sokt: v.sokt ?? ihop };
+    }
+  }
+  return u;
+}
+
+/**
+ * Två ord som kunden särskrivit och som ihop är ETT ord: sökningen med orden
+ * hopskrivna, annars null. Ordet ska stå i synonymtabellen ("katt träd" →
+ * "kattträd", som är butikens klösträd), eller vara ett ord i katalogens namn
+ * eller i en kategoris namn ("soff bord" → "soffbord", "barn möbler" →
+ * "barnmöbler": `iKatalogen`).
+ */
+export function hopskrivetBegrepp(query: string, iKatalogen?: (ord: string) => boolean): string | null {
+  const ord = normalize(query).split(/\s+/).filter(Boolean);
+  for (let k = 0; k < ord.length - 1; k++) {
+    const a = ord[k];
+    const b = ord[k + 1];
+    if (!/^[a-zåäö]{2,}$/.test(a) || !/^[a-zåäö]{3,}$/.test(b) || STOPWORDS.has(a) || STOPWORDS.has(b) || NEKAR.has(a) || NEKAR.has(b)) continue;
+    const nyckel = begreppsnyckel(a + b);
+    if (!SYN.has(nyckel) && !ENVAGS_NALAR.has(nyckel) && !(iKatalogen && iKatalogen(a + b))) continue;
+    return [...ord.slice(0, k), a + b, ...ord.slice(k + 2)].join(" ");
+  }
+  return null;
+}
+
+/** Sökningen, med "utan X" tolkat som att varan inte ska ha X (se tolkaUtan). */
+function rankaUtan<T>(items: T[], nameOf: (item: T) => string, query: string, namn: readonly string[], kd: Kategoridata<T> | undefined): Sokutfall<T> {
+  const nekad = tolkaUtan(query);
+  if (nekad) {
+    const bas = rankaSomSkrivet(items, nameOf, nekad.fraga, namn, kd);
+    if (bas.traffar.length > 0) {
+      const plats = new Map<T, number>();
+      for (let i = 0; i < items.length; i++) plats.set(items[i], i);
+      // Ordets egen kategori står först i `bas` (`hemma`) och gör det här
+      // också: varorna som heter "utan X" går först inom den, och sedan inom
+      // resten. Utan en sådan kategori är det en enda grupp, som förut.
+      const iHemmet = bas.hemma ?? 0;
+      const hemHeter: T[] = [];
+      const hemOvriga: T[] = [];
+      const heter: T[] = [];
+      const ovriga: T[] = [];
+      let hela = 0;
+      bas.traffar.forEach((x, k) => {
+        const n = namn[plats.get(x) ?? -1] ?? normalize(nameOf(x));
+        const uttryckligt = nekad.inte.some((o) => heterUtan(n, o));
+        if (!uttryckligt && nekad.inte.some((o) => namnerOrdet(n, o))) return;
+        if (k < iHemmet) (uttryckligt ? hemHeter : hemOvriga).push(x);
+        else (uttryckligt ? heter : ovriga).push(x);
+        if (bas.hela !== undefined && k < bas.hela) hela++;
+      });
+      const hemma = hemHeter.length + hemOvriga.length;
+      // Nämner varje träff det nekade ordet finns inget att välja bort till:
+      // då gäller sökningen som den skrevs (nedan), med sina vanliga besked.
+      if (hemma + heter.length + ovriga.length > 0) {
+        return { ...bas, hemma: hemma > 0 ? hemma : undefined, traffar: [...hemHeter, ...hemOvriga, ...heter, ...ovriga], inte: nekad.inte, ...(bas.hela !== undefined ? { hela } : {}) };
+      }
+    }
+  }
+  return rankaSomSkrivet(items, nameOf, query, namn, kd);
+}
+
+function rankaSomSkrivet<T>(items: T[], nameOf: (item: T) => string, query: string, namn: readonly string[], kd: Kategoridata<T> | undefined): Sokutfall<T> {
   const lage = { strangt: false };
   const forsta = rankaInre(items, nameOf, query, namn, kd, 0, lage);
   // Gav prövningen mot ordboken ingenting söks orden som de står, med stam
@@ -2569,7 +2972,28 @@ function raknaInre<T>(items: T[], nameOf: (item: T) => string, query: string, no
     // Ordet är varan: det står som ord, eller sist i ett ord, i namnets huvuddel.
     const arVaran = (r: Rad): boolean => r.score >= 100 && (r.kant ?? 0) >= 5;
     const ordnade = ordna(fulla);
-    const forst = ordnade.filter((r) => iKategorin[r.i] === 1 || arVaran(r));
+    // ☠️ ORDETS EGEN KATEGORI FÖRST (2026-11-21). "grill" visade en keramikhäll,
+    // en raclettegrill och en paninigrill före första kolgrillen: alla heter
+    // grill, och då avgjorde katalogens ordning (nyast först). När sökordet är
+    // kategorins eget ord (K_LIKA) och de flesta varor som heter så ligger
+    // där, går kategorins varor först, sedan de som heter så på andra hyllor
+    // (leksaksgrillen, hundsoffan), sedan kategorins varor som bara nämner
+    // ordet (grillgallret). "stolar" har inget sådant hem: Matbord & stolar
+    // har en bråkdel av butikens stolar, och ordningen är som förut.
+    const iHemmet = new Uint8Array(items.length);
+    for (let i = 0; i < items.length; i++) if (!m.egna[i]) iHemmet[i] = 1;
+    for (const v of valda) if (v.slag === K_LIKA) for (const i of m.medl[v.c]) iHemmet[i] = 1;
+    let hemma = 0;
+    let ute = 0;
+    for (const r of ordnade) if (arVaran(r)) { if (iHemmet[r.i] === 1) hemma++; else ute++; }
+    const harHem = hemma >= HEM_MINST && hemma > ute && ute > 0;
+    const forst = harHem
+      ? [
+          ...ordnade.filter((r) => iHemmet[r.i] === 1 && arVaran(r)),
+          ...ordnade.filter((r) => iHemmet[r.i] !== 1 && arVaran(r)),
+          ...ordnade.filter((r) => iKategorin[r.i] === 1 && !arVaran(r)),
+        ]
+      : ordnade.filter((r) => iKategorin[r.i] === 1 || arVaran(r));
     const sist = ordnade.filter((r) => iKategorin[r.i] !== 1 && !arVaran(r));
     // Led 2: kategorins eget ord före huvudet, den smala kategorin före den breda.
     const tagna = new Uint8Array(items.length);
@@ -2590,8 +3014,8 @@ function raknaInre<T>(items: T[], nameOf: (item: T) => string, query: string, no
         fyllda.push(items[i]);
       }
     }
-    if (fyllda.length === 0 && sist.length === 0) return hela(fulla);
-    return { traffar: [...forst.map((r) => r.item), ...sist.map((r) => r.item), ...fyllda], strukna: [] };
+    if (fyllda.length === 0 && sist.length === 0 && !harHem) return hela(fulla);
+    return { traffar: [...forst.map((r) => r.item), ...sist.map((r) => r.item), ...fyllda], strukna: [], ...(harHem ? { hemma } : {}) };
   }
 
   // VARJE SÖKORD I NAMNET ELLER GENOM EN KATEGORI, när inget namn har alla
@@ -2706,12 +3130,22 @@ function raknaInre<T>(items: T[], nameOf: (item: T) => string, query: string, no
     if (!kd || !info || p.units.length < 2 || p.units.some((u) => u.helord || u.egenskap)) return null;
     // Bara kategorins ord, och högst ett "och" emellan: "matbord med stolar"
     // är en matgrupp, inte kategorin Matbord & stolar.
-    if (tokenize(p.q).filter((t) => t !== "och").length !== p.units.length) return null;
+    //
+    // ☠️ "elbilar för barn" GAV 52 VAROR OCH "elbil barn" 126 (2026-11-21), fast
+    // den första ÄR kategorins namn: "för" räknades som ett ord kategorin inte
+    // har. Ett småord i sökningen ska stå i kategorins eget namn ("Elbilar för
+    // barn", "Sparkcyklar för barn"). "med" står inte i "Matbord & stolar".
+    const smaord = tokenize(p.q).filter((t) => t !== "och" && STOPWORDS.has(t));
+    if (tokenize(p.q).filter((t) => t !== "och").length !== p.units.length + smaord.length) return null;
     for (let c = 0; c < info.length; c++) {
       const k = info[c];
       if (k.ord.length !== p.units.length) continue;
       if (!p.units.every((u) => k.lem.some((l) => delarForm(u.lem, l)))) continue;
       if (!k.lem.every((l) => p.units.some((u) => delarForm(u.lem, l)))) continue;
+      if (smaord.length > 0) {
+        const iNamnet = tokenize(kd.kat[c].n);
+        if (!smaord.every((t) => iNamnet.includes(t))) continue;
+      }
       const medl = medlemskapFor(items, kd).medl[c];
       if (medl.length > 0) return medl;
     }
@@ -2923,6 +3357,23 @@ function raknaInre<T>(items: T[], nameOf: (item: T) => string, query: string, no
     forstaVaruordet = false;
     return vikt;
   });
+  // Är sökordet vad varor ÄR? Mätt 2026-11-21 på 7 948 namn: "soffa" står som
+  // namnets första ord (eller sist i det) i 61 % av namnen som har ordet,
+  // "stol" i 56 %, "lampa" i 76 % och "bil" i 36 %; "barn", "hund", "kontor"
+  // och "trädgård" i 0 %. Gränsen ligger emellan.
+  const arVarutyp = (u: Unit, i: number): boolean => {
+    if (u.egenskap || u.helord) return false;
+    const former = [u.tok, u.stem, ...(u.former ?? [])];
+    let med = 0;
+    let forst = 0;
+    for (const r of scored) {
+      if (!((r.mask ?? 0) & (1 << i))) continue;
+      med++;
+      const forstaOrdet = /^[a-zåäö0-9-]*/.exec(namn[r.i])![0];
+      if (former.some((f) => ordStar(forstaOrdet, f))) forst++;
+    }
+    return med > 0 && forst >= VARUTYP_MINST * med;
+  };
   const varde = (r: { mask?: number; stark?: number }, bland: number): number => {
     const m = (r.mask ?? 0) & bland;
     let v = 0;
@@ -2950,6 +3401,15 @@ function raknaInre<T>(items: T[], nameOf: (item: T) => string, query: string, no
     }
   }
   if (behall === 0) return { traffar: [], strukna: [] };
+  // ☠️ ETT ÄRLIGT NOLL (2026-11-21). "cykelhjälm barn" gav 562 träffar: butiken
+  // har ingen cykelhjälm, ordet ströks, och kvar blev varenda vara för barn.
+  // "röd cykelhjälm" hade på samma sätt visat allt som är rött. När ett
+  // struket ord inte finns i katalogen alls ska det som blir kvar vara en
+  // VARA: ett ord som namnen börjar med ("Soffa …", "Kontorsstol …"), inte
+  // bara ett sammanhang ("… för barn", "Hund…") eller en färg. "chesterfield
+  // soffa" visar fortfarande sofforna, för soffa är vad varan är.
+  const okantStruket = p.units.some((u, i) => i < 31 && !(behall & (1 << i)) && antal[i] === 0 && !u.egenskap && !u.helord && u.tok.length >= 4);
+  if (okantStruket && !p.units.some((u, i) => i < 31 && (behall & (1 << i)) !== 0 && arVarutyp(u, i))) return { traffar: [], strukna: [] };
   const rader = scored
     .filter((r) => ((r.mask ?? 0) & behall) === behall)
     .sort((a, b) => varde(b, behall) - varde(a, behall) || b.score - a.score || (b.kant ?? 0) - (a.kant ?? 0));

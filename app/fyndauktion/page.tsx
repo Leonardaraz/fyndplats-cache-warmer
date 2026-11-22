@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { cache } from "react";
 import { AuctionCard } from "../../components/auction-card";
 import { AuctionHeroCard } from "../../components/auction-hero-card";
 import { AuctionStage } from "../../components/auction-stage";
@@ -11,6 +12,8 @@ import { AuctionSteps } from "../../components/auction-steps";
 import { nastaStartMs, startDagText, tomtLage } from "../../components/auction-next-start";
 import { Newsletter } from "../../components/newsletter";
 import { getLiveAuctions, getSoldAuctions, type SoldAuctionView } from "../../lib/auction-view";
+import { fyndlage } from "../../lib/auction-day";
+import { auktionsbeskrivning } from "../../lib/auction-beskrivning";
 import { tightFillUrl } from "../../lib/wix-image";
 import styles from "./fyndauktion.module.css";
 
@@ -25,33 +28,52 @@ import styles from "./fyndauktion.module.css";
 // app/api/admin/uppdatera-produkter.
 export const revalidate = 30;
 
-export const metadata: Metadata = {
-  // Titeln får INTE innehålla "| Fyndplats" — layoutens mall lägger på det, och
-  // summan måste rymmas under Googles ~60 tecken. Förra titeln var 59 tecken
-  // och blev 72 med suffixet, alltså kapad i sökresultatet.
-  title: "Fyndauktionen – priset sjunker varje timme",
-  // ~155 tecken: Google klipper snippeten runt 160 och den gamla var 198, så
-  // sista meningen syntes aldrig. Uppmaningen ligger nu tidigt i stället.
-  description:
-    "Fem fynd varje dag kl 07–19. Priset sjunker varje timme tills någon slår till – vänta för ett bättre pris, eller köp innan någon hinner före.",
-  alternates: { canonical: "https://www.fyndplats.se/fyndauktion" },
-  openGraph: {
-    title: "Fyndauktionen – priset sjunker varje timme tills någon köper",
-    description:
-      "Nya fynd varje dag kl 07–19. Priset faller varje timme – vänta för ett bättre pris, eller köp innan någon annan hinner före.",
-    url: "https://www.fyndplats.se/fyndauktion",
-    // v2: allt innehåll i bildens mittkvadrat — chattappar (Snapchat/WhatsApp/
-    // iMessage) visar og-bilden som LITEN KVADRAT, mittbeskuren, och v1:s
-    // fullbredds-rubrik kapades. Nytt filnamn medvetet: delnings-scrapers
-    // cachear per URL, gamla URL:en hade fortsatt servera den beskurna.
-    images: [{ url: "https://www.fyndplats.se/og-fyndauktion2.jpg", width: 1200, height: 630, alt: "Fyndauktionen – priset sjunker varje timme" }],
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    images: ["https://www.fyndplats.se/og-fyndauktion2.jpg"],
-  },
-};
+/**
+ * Fynden sidan visar, hämtade EN gång per sidbygge. Både beskrivningen
+ * (generateMetadata) och sidan läser dem, och utan `cache` hade varje bygge
+ * frågat motorn och Wix två gånger (getFreshPrices ställer en fråga per fynd).
+ */
+const visadeFynd = cache(() => getLiveAuctions({ sida: "fyndauktion" }));
+
+// ☠️ BESKRIVNINGEN NÄMNER DET ANTAL FYND SOM VISAS, ALDRIG ETT FAST TAL (Leonard
+// 2026-11-21). Här stod "Fem fynd varje dag" medan sidan hade tio, och Black
+// Week har 50 och 100. Talet räknas ur samma rader som korten ritas av
+// (fyndlage i lib/auction-day.ts), och reglerna för orden står i
+// lib/auction-beskrivning.ts. Därför generateMetadata och inte en konstant.
+export async function generateMetadata(): Promise<Metadata> {
+  // Faller läsningen får beskrivningen texten utan antal. Sidan själv läser
+  // samma (sparade) svar och hanterar felet som förut.
+  const live = await visadeFynd().catch(() => []);
+  return {
+    // Titeln får INTE innehålla "| Fyndplats" — layoutens mall lägger på det, och
+    // summan måste rymmas under Googles ~60 tecken. Förra titeln var 59 tecken
+    // och blev 72 med suffixet, alltså kapad i sökresultatet.
+    title: "Fyndauktionen – priset sjunker varje timme",
+    // Högst ~155 tecken: Google klipper snippeten runt 160 och en äldre text var
+    // 198, så sista meningen syntes aldrig. Längden är låst i
+    // lib/auction-beskrivning.test.ts för upp till 999 fynd.
+    description: auktionsbeskrivning(fyndlage(live, live[0]?.serverNowMs ?? Date.now())),
+    alternates: { canonical: "https://www.fyndplats.se/fyndauktion" },
+    openGraph: {
+      title: "Fyndauktionen – priset sjunker varje timme tills någon köper",
+      // Utan antal med flit: chattappar och Facebook sparar delningstexten per
+      // adress i veckor, så ett tal här hade varit fel långt efter dagen.
+      description:
+        "Nya fynd varje dag kl 07–19. Priset faller varje timme – vänta för ett bättre pris, eller köp innan någon annan hinner före.",
+      url: "https://www.fyndplats.se/fyndauktion",
+      // v2: allt innehåll i bildens mittkvadrat — chattappar (Snapchat/WhatsApp/
+      // iMessage) visar og-bilden som LITEN KVADRAT, mittbeskuren, och v1:s
+      // fullbredds-rubrik kapades. Nytt filnamn medvetet: delnings-scrapers
+      // cachear per URL, gamla URL:en hade fortsatt servera den beskurna.
+      images: [{ url: "https://www.fyndplats.se/og-fyndauktion2.jpg", width: 1200, height: 630, alt: "Fyndauktionen – priset sjunker varje timme" }],
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      images: ["https://www.fyndplats.se/og-fyndauktion2.jpg"],
+    },
+  };
+}
 
 /** Foten i det tomma kortet: de tre senast sålda fynden, som bevis på att
  *  auktionen lever även när dagens lista är tom. Hela listan ligger längre ned. */
@@ -95,7 +117,7 @@ function tomtLageNu() {
 }
 
 export default async function Fyndauktion() {
-  const [live, sold] = await Promise.all([getLiveAuctions({ sida: "fyndauktion" }), getSoldAuctions(6)]);
+  const [live, sold] = await Promise.all([visadeFynd(), getSoldAuctions(6)]);
 
   // Flaggskeppet (störst rabatt just nu) blir hjältekort; resten i rutnätet.
   // Före första sänkningen (alla 0 %) leder första platsen (kurerad ordning).

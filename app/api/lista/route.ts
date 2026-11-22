@@ -29,7 +29,11 @@ export const revalidate = 3600;
 // CACHE-CONTROL EXPLICIT — `revalidate` ensam räcker inte för en route handler
 // (uppmätt på /api/search-index 2026-08-28: MISS med age=0 sex gånger i rad).
 // Samma huvud som /api/kort-bilder.
-const CACHE = "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400";
+// ☠️ max-age lika lång som s-maxage sedan 2026-11-21: CDN:t skickar med
+// svarets ålder, så med 300 s var kopian för gammal redan när den kom fram
+// (mätt: `age: 1433`), och varje sidladdning hämtade om filen. Skälet står i
+// app/api/search-index/route.ts.
+const CACHE = "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400";
 
 export async function GET(req: NextRequest) {
   // Bara ?k= — varje annan parameter hade blivit en egen CDN-nyckel, alltså en

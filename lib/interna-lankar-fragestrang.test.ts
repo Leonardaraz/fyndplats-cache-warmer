@@ -54,6 +54,7 @@ const GRANSKADE: Granskad[] = [
   { fil: "components/searchbox.tsx", adress: "/sok?q=", skal: "router.push när kunden söker. Ingen länk i HTML, och söksidan är noindex." },
   { fil: "lib/kassa/stripe-klient.ts", adress: "/kassa?stripe=", skal: "Omdirigering tillbaka till kassan vid fel. Kassan är noindex." },
   { fil: "lib/kassa/aterta-korg.ts", adress: "/kassa?kod=", skal: "Målet för länken i mejlet om en övergiven varukorg. Kassan är noindex." },
+  { fil: "lib/sok-pris.ts", adress: "/alla-produkter?pris=", skal: "Målet för söksidans omdirigering när kunden sökt på ett ensamt pristak (\"under 300 kr\"). Ingen länk i HTML, söksidan är noindex, och /alla-produkter pekar ut sin adress utan sökdel som original (mätt 2026-11-21)." },
   { fil: "lib/kundvagn-lank.ts", adress: "/produkt/${slug}?variant=", skal: "?variant= i varukorgens rad, som ritas i webbläsaren. Produktsidan pekar ut sin adress utan sökdel som original." },
   { fil: "lib/wix-client.ts", adress: "/stores/v3/products/${encodeURIComponent(productId)}?fields=", skal: "En sökväg i Wix API, som läggs efter Wix adress. Ingen sida hos oss." },
   { fil: "lib/wix-lager.ts", adress: "/items/${encodeURIComponent(id)}?dataCollectionId=", skal: "En sökväg i Wix Data API, som läggs efter Wix adress. Ingen sida hos oss." },
