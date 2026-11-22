@@ -1171,6 +1171,12 @@ function tokenQuality(unit: Unit, nameNorm: string, lage: Lage, namnVikt: string
 // Sedan 2026-11-19 också ord som hör till frågan och inte till varan: "billig
 // soffa", "soffa under 2000 kr", "köp julgran". Förut räknades "under" som ett
 // sökord och gav 692 träffar med "förvaring under sitsen" överst.
+/** Märken som jämförelsesajterna skriver först i varans namn, och butikens eget. Aldrig i ett varunamn här. */
+export const LEVERANTORSMARKEN: readonly string[] = [
+  "homcom", "outsunny", "pawhut", "aiyaplay", "sportnow", "vinsetto", "kleankin", "durhand", "zonekiz", "aosom",
+  "vevor", "fyndplats",
+];
+
 const STOPWORDS = new Set([
   "med", "och", "för", "till", "på", "av", "en", "ett", "som", "från",
   "under", "över", "billig", "billiga", "billigt", "bra", "bästa", "köp", "köpa", "kr", "kronor",
@@ -1183,6 +1189,14 @@ const STOPWORDS = new Set([
   // och söksidan läser dem som en önskan om ordning (villHaBilligast i
   // lib/sok-pris.ts).
   "lägst", "lägsta",
+  // ☠️ LEVERANTÖRENS MÄRKE STÅR FÖRST I JÄMFÖRELSESAJTERNAS NAMN (Leonard
+  // 2026-11-22). PriceRunner visar oss som säljare av "Homcom Barnelbil Med
+  // 2.4 G Fjärrkontroll", utan länk, och kunden som söker det namnet här fick
+  // noll träffar. Varorna säljs under butikens eget märke, så märkesordet står
+  // inte i något varunamn (prövat mot 7 972 namn): det hör till frågan, inte
+  // till varan, och stryks utan besked. Listan är densamma som i
+  // lib/varumarke.ts (provet håller dem lika), plus VEVOR och butikens namn.
+  ...LEVERANTORSMARKEN,
   // ☠️ "har ni dieselvärmare" GAV 50 SKRÄPTRÄFFAR (2026-11-21), fast butiken
   // har 33 dieselvärmare. "har" räknades som sökningens första varuord, stod
   // i en massagefåtölj som "har värme", och "dieselvärmare" ströks. Orden här
@@ -2669,6 +2683,19 @@ export function rankaMedInfo<T>(items: T[], nameOf: (item: T) => string, query: 
       return { ...v, traffar: resten.length > 0 ? [...v.traffar, ...resten] : v.traffar, sokt: v.sokt ?? ihop };
     }
   }
+  // ETT OKÄNT SAMMANSATT ORD I EN SÖKNING PÅ FLERA ORD delas (se
+  // medDeladeOrd), men bara när sökningen som den skrevs inte räckte: den gav
+  // ingenting, eller ett ord fick strykas. Det delade svaret gäller när det
+  // har träffar utan stavningsrättning och stryker färre ord.
+  if (u.traffar.length === 0 || u.strukna.length > 0) {
+    const delad = medDeladeOrd(query, namn, kd?.kat);
+    if (delad) {
+      const v = rankaUtan(items, nameOf, delad, namn, kd);
+      if (v.traffar.length > 0 && !v.rattat && !v.liknande && (u.traffar.length === 0 || v.strukna.length < u.strukna.length)) {
+        return { ...v, sokt: v.sokt ?? delad };
+      }
+    }
+  }
   return u;
 }
 
@@ -3682,6 +3709,48 @@ function starkDelning(delade: readonly string[], bok: Ordbok, arBegrepp: (u: Uni
     return stark(a) && stark(b);
   });
 }
+
+/**
+ * En sökning på FLERA ord där ett okänt ord går att dela i två vanliga ord,
+ * med ordet delat: "barnelbil med fjärrkontroll" → "barn elbil med
+ * fjärrkontroll". Null när inget ord delas.
+ *
+ * ☠️ Förut delades bara ett ENSAMT sökord (delningar). "barnelbil" gav 52
+ * elbilar för barn, men "barnelbil med fjärrkontroll" och jämförelsesajternas
+ * "Homcom Barnelbil Med 2.4 G Fjärrkontroll" gav noll: ordet står inte i något
+ * namn (varorna heter "Elbil barn …"), ströks som okänt, och kvar blev bara
+ * "fjärrkontroll" (2026-11-22).
+ *
+ * Bara ord som katalogen inte har: inget namn har ordet, inget ord i
+ * katalogen börjar så (kunden kan vara mitt i ordet), och det är varken ett
+ * begreppsord eller ett kategoriord. Och bara en STARK delning (se
+ * starkDelning): båda delarna minst fyra bokstäver och vanliga i katalogen.
+ * "cykelhjälm" delas inte, för butiken har ingen hjälm.
+ */
+export function medDeladeOrd(query: string, namn: readonly string[], kat: readonly SokKat[] | undefined): string | null {
+  const ord = normalize(query).split(/\s+/).filter(Boolean);
+  if (ord.length < 2) return null;
+  const sparat = formerFor(namn);
+  const kanda = () => (sparat.ord ??= kandaOrd(listaFor(namn, sparat)));
+  const bok = ordbokFor(namn, sparat);
+  const begrepp = begreppFor(kat);
+  let bytt = false;
+  const ut = ord.map((t) => {
+    if (t.length < 2 * KORTASTE_DEL || !/^[a-zåäö]+$/.test(t) || STOPWORDS.has(t) || NEKAR.has(t)) return t;
+    if (arKandDel(t, kanda()) || begrepp.includes(t)) return t;
+    const nyckel = begreppsnyckel(t);
+    if (SYN.has(nyckel) || ENVAGS_NALAR.has(nyckel)) return t;
+    const i = forstaPlats(bok.ord, t);
+    if (i < bok.ord.length && bok.ord[i].startsWith(t)) return t;
+    const stark = delningar(prepare(t), kanda).find((d) => starkDelning([d], bok, ALDRIG_BEGREPP));
+    if (!stark) return t;
+    bytt = true;
+    return stark;
+  });
+  return bytt ? ut.join(" ") : null;
+}
+/** Här räknas bara ord som står i namnen: kategoriernas begreppsord går en annan väg (kategoriVarv). */
+const ALDRIG_BEGREPP = (): boolean => false;
 
 /** Är delen ett känt ord följt av ett foge-s ("köks", "badrums")? */
 function medFogeS(a: string, kand: (x: string) => boolean): boolean {
