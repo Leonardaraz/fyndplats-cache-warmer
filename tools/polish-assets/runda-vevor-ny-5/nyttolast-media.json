@@ -47,28 +47,6 @@
    "altText": "En hund ligger i bilens bagageutrymme vid hundtrappans topp, med en förvaringsväska och den hopfällda trappan bredvid"
   }
  ],
- "99ef5ca7": [
-  {
-   "id": "b379ce_a444dd87b18944aaa7f4ab693979ce6a~mv2.jpg",
-   "altText": "Svart cykelkärra med två hjul, ett räcke runt lastytan och en dragstång, sedd från sidan på vit botten"
-  },
-  {
-   "id": "b379ce_ca536419de824e51ace039d153f0a316~mv2.jpg",
-   "altText": "Cykelkärran med last på en våt väg i regn i skymning"
-  },
-  {
-   "id": "b379ce_83b90e10f2b24b17ae174364c43b1048~mv2.jpg",
-   "altText": "Cykelkärran snett från sidan med räcken, två hjul och dragstång, på vit botten"
-  },
-  {
-   "id": "b379ce_8f273e38e2344ecdbee9083aa3e0743f~mv2.jpg",
-   "altText": "Cykelkärran snett framifrån med de två hjulen och räckena, på vit botten"
-  },
-  {
-   "id": "b379ce_f8b04d02f0d64c96b74e6bca435f2b24~mv2.jpg",
-   "altText": "Cykelkärran snett uppifrån med den platta lastytan, räckena och ena hjulet, på vit botten"
-  }
- ],
  "4a16d464": [
   {
    "id": "b379ce_be7a4748a97f4d318a7b6b50c05448c6~mv2.jpg",
@@ -173,26 +151,52 @@
    "altText": "Två konstgjorda cederträd i svarta krukor sedda framifrån på vit botten"
   }
  ],
- "088d885b": [
+ "61a79cfb": [
   {
-   "id": "b379ce_905086b09acb4a209fe2d0a2818797a6~mv2.jpg",
-   "altText": "Rullande mekanikerpall med svart sits, röd bas med verktygsfack och fyra hjul, sedd framifrån på vit botten"
+   "id": "b379ce_811b1e13674e49faa0cc6fdb5c86667f~mv2.jpg",
+   "altText": "Orange trappvagn med svart ram och bottenplatta på ett trehjulssystem av hjul, sedd snett från sidan på vit botten"
   },
   {
-   "id": "b379ce_d0197989ad8c47cdaa248ef9a2618ebb~mv2.jpg",
-   "altText": "En mekaniker sitter på pallen vid ett bilhjul i ett garage"
+   "id": "b379ce_26e5d835a48442b48c4ddb18fa01cebd~mv2.jpg",
+   "altText": "En man drar trappvagnen med en fastsurrad kartong längs en gångväg vid en gräsmatta"
   },
   {
-   "id": "b379ce_7a23cefa585848d2a70a16fac00e7278~mv2.jpg",
-   "altText": "Pallen snett uppifrån med sitsen, den pneumatiska cylindern och den röda basen med tomma verktygsfack, på vit botten"
+   "id": "b379ce_611819981d364ce481a9f2b5b8423837~mv2.jpg",
+   "altText": "Trappvagnen med utdraget handtag och utfälld bottenplatta, snett från sidan på vit botten"
   },
   {
-   "id": "b379ce_c394960a5a4248fc95a4ff31a5278c07~mv2.jpg",
-   "altText": "Pallen med verktyg i facken, snett framifrån från andra hållet, på vit botten"
+   "id": "b379ce_e3e9e862dbf641d196f8f316900dfb9a~mv2.jpg",
+   "altText": "Trappvagnen hopfälld och sedd framifrån med hjulsystemen och bottenplattan hopfällda, på vit botten"
   },
   {
-   "id": "b379ce_d167335a2d6040f09abd1ace38fe6348~mv2.jpg",
-   "altText": "Pallen med en skruvmejsel, en tång och hylsnycklar i verktygsfacken i den röda basen, på vit botten"
+   "id": "b379ce_b2968e01845940278026171556aa4a05~mv2.jpg",
+   "altText": "Närbild på den hopfällda trappvagnen med handtaget och hjulsystemen, på vit botten"
+  },
+  {
+   "id": "b379ce_2192d052eaf64713ad419a9bbfda8d33~mv2.jpg",
+   "altText": "Trappvagnen från två håll med surrningssnören med krokar, en nyckel och ett hjulsystem bredvid, på vit botten"
+  }
+ ],
+ "15c274b3": [
+  {
+   "id": "b379ce_ac1b05cdc8cf4a778edc1e8ad5362457~mv2.jpg",
+   "altText": "Fyra möbelvagnar staplade på varandra med en förvaringsväska, handskar, dynor och ett brytjärn med block bredvid, på vit botten"
+  },
+  {
+   "id": "b379ce_2e3243bebe8e47448eb8004eef717221~mv2.jpg",
+   "altText": "En möbelvagn med hjul under en träskiva på ett trägolv bredvid en matta"
+  },
+  {
+   "id": "b379ce_3f2e788e3ab94f9c8f3f566ecf3eef95~mv2.jpg",
+   "altText": "En möbelvagn med svarta hjul och bromsar sedd från sidan på vit botten"
+  },
+  {
+   "id": "b379ce_c6464a0319454fffbd3b3aca069d979b~mv2.jpg",
+   "altText": "En möbelvagn sedd snett uppifrån med den svarta ytan, fyra dynor och en broms på ett hjul, på vit botten"
+  },
+  {
+   "id": "b379ce_bdfe38411f764d6ebff1390219d1afee~mv2.jpg",
+   "altText": "Fyra möbelvagnar staplade med en förvaringsväska, handskar, runda dynor, förhöjningsblock och ett långt brytjärn, på vit botten"
   }
  ]
 }

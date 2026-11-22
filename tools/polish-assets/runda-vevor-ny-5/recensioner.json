@@ -15,16 +15,6 @@
       "gen-h40d81": "originalet bär ett namn och handlar om kundtjänst, inte om varan"
     }
   },
-  "99ef5ca7": {
-    "oversatt": {
-      "gen-19lg2uz": "Jag köpte den här lilla kärran för att dra efter min elcykel, främst för jakt, men jag kommer säkert att få fler användningsområden. Den kom väl förpackad och det tog mindre än 10 minuter att sätta ihop. Om jag behöver packa ihop den på mindre utrymme går hjulen snabbt av, räckena fälls ner och draget går att ta av. Jag har inte lastat den ordentligt än, men den verkar vara en stabil liten kärra som är väl byggd, och priset går inte att slå. Jag rekommenderar den definitivt.",
-      "gen-1wtfdx0": "Utmärkt cykelkärra! Den har varit i bruk i fyra månader, mest för transporter i trädgården och inköp, och klarar även tunga laster utan problem. Mycket bra och robust tillverkad, användarvänlig att fälla ihop, med stabila och tystgående hjul. Rekommenderas absolut, och tack!",
-      "gen-sx5nf0": "Mycket nöjd med mitt köp. Snabb leverans, lätt att sätta ihop och mycket enkel att använda.",
-      "gen-75vhpa": "Kärran är av mycket god kvalitet och uppfyller alla mina krav. Jag använder den för mina kitefoils, kitesurfbrädor och wingfoil.",
-      "gen-hy8osk": "Plus: Robust kärra. Plus: för transport av kärran i bilen är den klar med några få steg (hjulen av, dragstången av, kanten hopfälld).",
-      "gen-1ygsfcd": "Nyss köpt, en fin liten kärra, men synd att den inte har en vanlig knappkoppling, bara en axelstång. Det är den enda nackdelen."
-    }
-  },
   "4a16d464": {
     "oversatt": {
       "gen-1pd94xy": "Fin kärra. Det blev ett problem med armarna på traktorns kraftuttag som slog i kärran, så kärrans dragstång fick förlängas. Jag klädde lådans insida med plywood och målade den i sidenmatt svart. Den ser bra ut och fungerar ännu bättre.",
@@ -45,17 +35,19 @@
       "gen-114o0g0": "Köpte i slutet av augusti och det blev ändå lite av en besvikelse. Jag hade väntat mig lite fylligare träd, men de såg ganska magra ut till storleken. Några grenar lossnar ganska lätt när man sätter ihop dem."
     },
     "dolj": {
-      "gen-1tfhlfh": "nämner leverantören och en återbetalning och handlar inte om varan"
+      "gen-1tfhlfh": "nämner märket och en återbetalning och handlar inte om varan"
     }
   },
-  "088d885b": {
+  "61a79cfb": {
     "oversatt": {
-      "gen-gsxwbb": "Perfekt för verkstaden, mycket bekväm och den rullar jättebra.",
-      "gen-48d5pz": "Perfekt för att byta bildäck eftersom den också är höjdjusterbar, med fack för skruvar och verktyg vid foten. Ett bra redskap.",
-      "gen-5eufc": "Hittills okej, hur stabil pallen är får tiden utvisa."
+      "gen-syqsck": "Mycket bra för att bära min diskmaskin som väger 46 kg, jag tog den lätt upp för tre våningar trappor. Jag rekommenderar tålamod och uthållighet!",
+      "gen-1fu50fb": "Mycket bra för trappor. Och jag som är dålig på att montera något lyckades enkelt sätta ihop hjulen (de små).",
+      "gen-kfcfk4": "Kvaliteten är utmärkt, den känns stabil och hållbar. Det är enkelt att använda vagnen och den gör det lätt att ta sig fram i trappor och över ojämna ytor. Mitt enda lilla problem är att vänner och familj hela tiden lånar den! Den verkar ha blivit lösningen för alla. Jag rekommenderar den här handvagnen starkt.",
+      "gen-tcwb2q": "Vi älskar den här vagnen! Den är lätt och bär en last på cirka 118 kg. Den fungerar utmärkt för att flytta saker upp och ner för trappor. Jag har använt den för att flytta fönstermonterade luftkonditioneringsaggregat, tegel och cementblock. Det här är ett av de mest praktiska verktygen i mitt garage, och för priset kan man inte göra fel.",
+      "gen-1lv8lyc": "Utmärkt produkt till ett bra pris. Lastkapaciteten är som utlovat och det är en bra vagn för att ta sig uppför trappor."
     },
     "dolj": {
-      "gen-3aj3oj": "handlar bara om kundtjänst och inte om varan"
+      "gen-qonogp": "beskriver en egen ändring och en last som kan överstiga vagnens maxlast i trappor"
     }
   }
 }
