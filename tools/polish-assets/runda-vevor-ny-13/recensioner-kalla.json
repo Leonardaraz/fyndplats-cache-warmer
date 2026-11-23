@@ -109,22 +109,28 @@
     "okandArtikel": 2,
     "attBesluta": []
   },
-  "44602c0a": {
-    "productId": "44602c0a-1f89-4de7-8947-94f503769cc5",
+  "4b6d8088": {
+    "productId": "4b6d8088-39cb-4de2-b99c-31bc4587388b",
     "synliga": 0,
     "dolda": 0,
     "kundVantar": 0,
     "annanArtikel": 0,
     "okandArtikel": 0,
-    "attBesluta": []
-  },
-  "510f8ca4": {
-    "productId": "510f8ca4-b89f-4756-ab70-932f54625a71",
-    "synliga": 0,
-    "dolda": 0,
-    "kundVantar": 0,
-    "annanArtikel": 0,
-    "okandArtikel": 0,
-    "attBesluta": []
+    "attBesluta": [
+      {
+        "id": "gen-152wzmz",
+        "betyg": 5,
+        "datum": "2026-10-20",
+        "foton": 0,
+        "text": "Set this winch up in my cattle yard. I used a temporary mounting design, as it is not needed all the time. I used it when one of my cattle could not successfully give birth to her calf. It works extremely well, and mother and calf are doing just fine."
+      },
+      {
+        "id": "gen-jo4aj2",
+        "betyg": 5,
+        "datum": "2026-10-06",
+        "foton": 0,
+        "text": "Todo correcto, solo falta probarlo pero parece fuerte"
+      }
+    ]
   }
 }
