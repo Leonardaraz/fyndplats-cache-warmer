@@ -1,0 +1,6 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+3640254c 0,2 golvytan inuti buren, räknad ur källans yttermått 605 × 405 mm minus väggarna
+3640254c tre tre fönster räknade på bild 4 och 5: framsidan och båda kortsidorna
+3ae6309b två två pilotborrar, en självmatande och en i HSS, räknade ur satsens innehållslista
+68191b5a två två orange fästplattor räknade på bild 1
