@@ -63,7 +63,7 @@
     "dolda": 2,
     "kundVantar": 0,
     "annanArtikel": 0,
-    "okandArtikel": 1,
+    "okandArtikel": 0,
     "attBesluta": [
       {
         "id": "gen-7y6j63",
@@ -78,6 +78,13 @@
         "datum": "2026-09-17",
         "foton": 0,
         "text": "Great heavy duty folding miter saw table. Very well built and a very good price. Saves me a lot of shop space when folded and saw is not in use!!"
+      },
+      {
+        "id": "gen-1r62t7a",
+        "betyg": 5,
+        "datum": "2026-09-09",
+        "foton": 0,
+        "text": "Sturdy and easy to use. Instructions are a little tough to follow but still a great unit"
       },
       {
         "id": "gen-1ez3w51",
