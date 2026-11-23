@@ -82,6 +82,12 @@
     "Trädgård & Utemöbler",
     "Utemöbler"
    ],
+   "katUndantag": [
+    {
+     "kat": "Fåtöljer",
+     "skal": "utomhusfåtölj som hör hemma bland utemöblerna, inte en vardagsrumsfåtölj"
+    }
+   ],
    "sku": "FP-zero-gravity-fatolj-kudde",
    "variantId": "e679d76a-f1d4-432e-af55-3437e02c64f0",
    "textHash": "f9352e717278f83e",
