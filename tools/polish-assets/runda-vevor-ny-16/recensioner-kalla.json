@@ -1,0 +1,68 @@
+{
+  "e7e7d9ba": {
+    "productId": "e7e7d9ba-81b7-40d4-b8fd-7be28d16ed3e",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-valwhk",
+        "betyg": 5,
+        "datum": "2026-09-23",
+        "foton": 0,
+        "text": "Great quality live the fact that you just slide 4x4 in nor cuts needed."
+      },
+      {
+        "id": "gen-19t8wk2",
+        "betyg": 4,
+        "datum": "2026-08-02",
+        "foton": 0,
+        "text": "Bought in combo with another set says one is 3.5 and other 3.6 I saw no diff went together all the same. Same comments as other package really!"
+      }
+    ]
+  },
+  "05ca778c": {
+    "productId": "05ca778c-9a02-4d45-8291-73aee19978ac",
+    "synliga": 0,
+    "dolda": 3,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-14jro5i",
+        "betyg": 5,
+        "datum": "2026-08-16",
+        "foton": 3,
+        "text": "De momento el producto es tal y como se describe la calidad se ve muy bien ahora falta probar"
+      },
+      {
+        "id": "gen-1x02fd2",
+        "betyg": 4,
+        "datum": "2023-06-16",
+        "foton": 0,
+        "text": "I like the tire can’t use them because I need and axle that you don’t supply Should be able to buy and axle if you are selling the tires"
+      }
+    ]
+  },
+  "f4cd6578": {
+    "productId": "f4cd6578-7b30-4def-a16e-5ea26921cc26",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": []
+  },
+  "99589591": {
+    "productId": "99589591-cdf6-437c-9932-23b61ad771d0",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  }
+}
