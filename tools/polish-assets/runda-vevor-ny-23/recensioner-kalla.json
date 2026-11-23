@@ -118,22 +118,5 @@
     "annanArtikel": 0,
     "okandArtikel": 1,
     "attBesluta": []
-  },
-  "4fdc8201": {
-    "productId": "4fdc8201-2245-4f67-83ed-6bfdef656290",
-    "synliga": 0,
-    "dolda": 0,
-    "kundVantar": 0,
-    "annanArtikel": 0,
-    "okandArtikel": 0,
-    "attBesluta": [
-      {
-        "id": "gen-1st6pjq",
-        "betyg": 5,
-        "datum": "2026-10-29",
-        "foton": 0,
-        "text": "Very sturdy platform. I use it to mount a vice on and it works perfectly."
-      }
-    ]
   }
 }
