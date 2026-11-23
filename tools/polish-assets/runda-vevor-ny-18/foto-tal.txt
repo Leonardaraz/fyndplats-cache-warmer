@@ -1,0 +1,4 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+ec24389f 8,2 18 lb × 0,4536 = 8,16 kg, avrundat till 8,2 (specifikationens lämpliga kattvikt är 18–30 lb)
+ec24389f 13,6 30 lb × 0,4536 = 13,61 kg, avrundat nedåt (specifikationen anger 18–30 lb och punkten upp till 14,5 kg, det lägre gäller)
