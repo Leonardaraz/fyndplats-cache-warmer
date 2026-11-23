@@ -32,5 +32,14 @@ python3 ../../polish-gates/livekoll.py       # InStock, brödsmula, <title> och 
 - Recensionerna: varje produkt ska visa de som steg 7 översatte. Saknas de, läs raden
   `recensioner: butiken` i steg 9:s körning. Föll anropet till butiken syns de först när dess cache gått ut,
   efter sex timmar.
+- ☠️ **Starta live-hämtningen först fem minuter efter att skrivningens körning är klar.** Första
+  renderingen efter butikens meddelande fyller omdömescachen (taggen `recensioner-<id>`, sex timmar),
+  och motorns `/api/reviews/<id>` svarar med `s-maxage=60, stale-while-revalidate=60`. En rendering
+  inom ungefär två minuter efter ett tidigare svar kan därför få det gamla, tomma svaret och
+  cacha det i sex timmar (orsaken är en tolkning, inte bevisad). Mätt 2026-11-23: runda vevor-ny-21
+  hämtades 20 sekunder efter skrivningen, och två av sex sidor (sju omdömen) visade 0 omdömen live.
+  Runda 22 och 23 hämtades sex minuter efter skrivningen, och alla deras omdömen syntes. Ett
+  omkört `skriv` meddelar inte butiken igen (bara omdömen som ändras i anropet meddelas), så det
+  enda som hjälper efteråt är att vänta ut cachen.
 - Öppna till sist en av rundans sidor och läs den som kund. Var avsnitten och bilderna
   hamnar syns bara där.

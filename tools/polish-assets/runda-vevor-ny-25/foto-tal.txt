@@ -1,0 +1,5 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+e1195e87 108 240 lbs totalt i en punkt = 108,86 kg, avrundat ned
+e1195e87 27 60 lbs per våning i en punkt = 27,2 kg, avrundat ned
+020f6029 226 500 lbs / 226,8 kg i specifikationen, avrundat ned

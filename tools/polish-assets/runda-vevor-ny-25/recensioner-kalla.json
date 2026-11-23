@@ -97,46 +97,5 @@
         "text": "Qualités et confort sont aux rendez-vous!"
       }
     ]
-  },
-  "32f5cfeb": {
-    "productId": "32f5cfeb-981f-4be1-8a28-7d8944a47c34",
-    "synliga": 0,
-    "dolda": 5,
-    "kundVantar": 0,
-    "annanArtikel": 0,
-    "okandArtikel": 2,
-    "attBesluta": [
-      {
-        "id": "gen-1gu342l",
-        "betyg": 5,
-        "datum": "2026-10-12",
-        "foton": 0,
-        "text": "Fonctionnal, strudy and light. I love it for ma garage!"
-      }
-    ]
-  },
-  "8c0679e7": {
-    "productId": "8c0679e7-bc4d-4071-b979-ed85dc045221",
-    "synliga": 0,
-    "dolda": 6,
-    "kundVantar": 0,
-    "annanArtikel": 0,
-    "okandArtikel": 0,
-    "attBesluta": [
-      {
-        "id": "gen-ufedgs",
-        "betyg": 5,
-        "datum": "2025-08-07",
-        "foton": 0,
-        "text": "Hello, I would like to receive an invoice...thank you"
-      },
-      {
-        "id": "gen-1l9vxfx",
-        "betyg": 4,
-        "datum": "2025-11-07",
-        "foton": 0,
-        "text": "I need to get the brackets to install and wish to purchase please help!"
-      }
-    ]
   }
 }
