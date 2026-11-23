@@ -1,0 +1,125 @@
+{
+  "3fe6e99e": {
+    "productId": "3fe6e99e-acec-4d0a-b2ef-c84ec39e9a7b",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "0d85e6a9": {
+    "productId": "0d85e6a9-986c-422a-8737-e16a08be2b3b",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-7v5oqi",
+        "betyg": 5,
+        "datum": "2026-07-15",
+        "foton": 0,
+        "text": "Ik heb deze VEVOR Pocket Hole Jig gekocht voor de bouw van een freestafel en ben er bijzonder tevreden over. De kwaliteit is veel beter dan ik had verwacht voor deze prijs. De instellingen zijn eenvoudig aan te passen aan verschillende materiaaldiktes en de boorgaten zijn telkens perfect en nauwkeurig. Hierdoor sluiten de verbindingen mooi aan en wordt het monteren van een project echt kinderspel. De grootste verbetering ten opzichte van eenvoudige pocket hole jigs is zonder twijfel de grote klem aan de voorzijde. Die houdt het werkstuk stevig vast, waardoor alles veel stabieler werkt en je veel sneller kunt doorwerken. Je hoeft het hout niet voortdurend opnieuw te positioneren of extra vast te klemmen De set wordt bovendien compleet geleverd met de nodige accessoires en zit netjes opgeborgen in een stevige koffer. Voor doe-het-zelvers die regelmatig meubels, werkbanken of kasten bouwen, is dit een absolute aanrader. Een uitstekende prijs-kwaliteitverhouding."
+      },
+      {
+        "id": "gen-6yhnp3",
+        "betyg": 5,
+        "datum": "2026-05-20",
+        "foton": 0,
+        "text": "Overall a nice kit at a fraction of the kreg jig price, all good."
+      },
+      {
+        "id": "gen-1ftlze",
+        "betyg": 5,
+        "datum": "2026-03-11",
+        "foton": 0,
+        "text": "Works anywhere without power, fits in tool bags, ready for immediate use at remote work sites."
+      },
+      {
+        "id": "gen-14bwz6m",
+        "betyg": 5,
+        "datum": "2026-03-10",
+        "foton": 0,
+        "text": "Remains steady and delivers accurate holes even in mobile conditions, built tough for long life."
+      },
+      {
+        "id": "gen-3zkfw7",
+        "betyg": 5,
+        "datum": "2026-03-09",
+        "foton": 0,
+        "text": "Perfect for technicians, carpenters, and off-site jobs, enables angled drilling without fixed equipment."
+      }
+    ]
+  },
+  "c387489e": {
+    "productId": "c387489e-90d4-49bd-9bec-22212473fcac",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 5,
+    "attBesluta": [
+      {
+        "id": "gen-cs3ton",
+        "betyg": 5,
+        "datum": "2026-09-29",
+        "foton": 0,
+        "text": "Acheté il y a 1 mois; très bon produit pour la plage et le jardinage. Très satisfait"
+      },
+      {
+        "id": "gen-i8ee6p",
+        "betyg": 4,
+        "datum": "2026-07-26",
+        "foton": 0,
+        "text": "I cannot stop showing off my little wagon. Great for picnics, beach day or just hauling groceries in and out of the home. I used it like a seat as well, I just wish it had a little more cushion for sitting on it. But I love it just the same."
+      }
+    ]
+  },
+  "18a7c821": {
+    "productId": "18a7c821-fb94-491b-bca6-002f66d6f4c3",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-vmhuc7",
+        "betyg": 5,
+        "datum": "2026-10-17",
+        "foton": 0,
+        "text": "The thumb lock can fix the tape position while pulling cables. I don't need to grip tightly all the time, which reduces arm fatigue."
+      },
+      {
+        "id": "gen-u1l9gc",
+        "betyg": 5,
+        "datum": "2026-10-15",
+        "foton": 0,
+        "text": "Wunderbar, funktioniert super. Eigener Fehler - next time dünneres Kabel"
+      },
+      {
+        "id": "gen-j6bdi0",
+        "betyg": 5,
+        "datum": "2026-09-30",
+        "foton": 0,
+        "text": "Reçu très rapidement et une aiguille de qualité satisfaisant"
+      },
+      {
+        "id": "gen-gzc90r",
+        "betyg": 4,
+        "datum": "2027-07-10",
+        "foton": 0,
+        "text": "The whole device takes little room in my tool bag, convenient to take to customers' houses every day."
+      },
+      {
+        "id": "gen-1qj3sin",
+        "betyg": 4,
+        "datum": "2026-08-05",
+        "foton": 0,
+        "text": "El cable está muy bien pero el plastico es un poco endeble."
+      }
+    ]
+  }
+}
