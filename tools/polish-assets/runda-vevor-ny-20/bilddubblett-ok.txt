@@ -1,0 +1,2 @@
+ac09f93c 4 6 olika bilder: position 4 är en närbild av toppplattan och position 6 hela stången sedd rakt framifrån (0,039)
+ac09f93c 1 6 olika bilder: position 1 är en närbild av foten med skruven och bottenplattan, och position 6 hela stången där foten är en liten platta längst ned (bildspegelgrinden: 0,886 vid förstoring 2,8, se med ögonen)
