@@ -1,0 +1,94 @@
+{
+  "3f7fc0c8": {
+    "productId": "3f7fc0c8-8727-4dd5-a70c-688337ae6833",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "937e3251": {
+    "productId": "937e3251-6e3a-4ab4-8da7-27e531bff96f",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 4,
+    "attBesluta": []
+  },
+  "97cc99f0": {
+    "productId": "97cc99f0-8ac9-44e0-8912-8ac92e03ca80",
+    "synliga": 0,
+    "dolda": 3,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": []
+  },
+  "e0bdd806": {
+    "productId": "e0bdd806-d093-45f3-a2f0-e6fc7cbe9cb1",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-35laim",
+        "betyg": 5,
+        "datum": "2026-10-18",
+        "foton": 0,
+        "text": "Ușor de montat,e nevoie de o punga de stripsuri mici pentru a prinde sarma"
+      }
+    ]
+  },
+  "e3abe572": {
+    "productId": "e3abe572-34f8-4ea0-922d-98f9de1ac699",
+    "synliga": 0,
+    "dolda": 1,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1bd90y5",
+        "betyg": 5,
+        "datum": "2026-07-29",
+        "foton": 0,
+        "text": "The logistics were fast, the packaging was intact, and the charcoal grill is small and exquisite, suitable for small families to use for outdoor barbecues."
+      }
+    ]
+  },
+  "05309101": {
+    "productId": "05309101-997f-4ef6-822d-d64c011a97e0",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1dit4le",
+        "betyg": 5,
+        "datum": "2026-10-03",
+        "foton": 0,
+        "text": "Super handy for a laptop and sitting on a sofa or love seat. Folds away quickly and doesn't need much space."
+      },
+      {
+        "id": "gen-xmvdfj",
+        "betyg": 5,
+        "datum": "2026-06-07",
+        "foton": 0,
+        "text": "Love the table! Easy to set up, difficult to store. When the table top folds down and the legs fold up, difficult to move around. Would be great if there was a way to temporarily, lock the top and the legs somehow."
+      },
+      {
+        "id": "gen-47ng53",
+        "betyg": 4,
+        "datum": "2026-01-28",
+        "foton": 1,
+        "text": "Was er eeest beetje scheptich over. Maar werkt zoals het hoort en te vreden mee."
+      }
+    ]
+  }
+}
