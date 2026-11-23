@@ -1,28 +1,4 @@
 {
-  "e7e7d9ba": {
-    "productId": "e7e7d9ba-81b7-40d4-b8fd-7be28d16ed3e",
-    "synliga": 0,
-    "dolda": 5,
-    "kundVantar": 0,
-    "annanArtikel": 0,
-    "okandArtikel": 1,
-    "attBesluta": [
-      {
-        "id": "gen-valwhk",
-        "betyg": 5,
-        "datum": "2026-09-23",
-        "foton": 0,
-        "text": "Great quality live the fact that you just slide 4x4 in nor cuts needed."
-      },
-      {
-        "id": "gen-19t8wk2",
-        "betyg": 4,
-        "datum": "2026-08-02",
-        "foton": 0,
-        "text": "Bought in combo with another set says one is 3.5 and other 3.6 I saw no diff went together all the same. Same comments as other package really!"
-      }
-    ]
-  },
   "05ca778c": {
     "productId": "05ca778c-9a02-4d45-8291-73aee19978ac",
     "synliga": 0,
@@ -47,22 +23,75 @@
       }
     ]
   },
-  "f4cd6578": {
-    "productId": "f4cd6578-7b30-4def-a16e-5ea26921cc26",
-    "synliga": 0,
-    "dolda": 5,
-    "kundVantar": 0,
-    "annanArtikel": 0,
-    "okandArtikel": 1,
-    "attBesluta": []
-  },
-  "99589591": {
-    "productId": "99589591-cdf6-437c-9932-23b61ad771d0",
+  "5f05c77f": {
+    "productId": "5f05c77f-e6ec-4ec6-920f-f3a4691ee507",
     "synliga": 0,
     "dolda": 0,
     "kundVantar": 0,
     "annanArtikel": 0,
     "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1xa4o8l",
+        "betyg": 5,
+        "datum": "2026-09-15",
+        "foton": 0,
+        "text": "Très satisfait du produit. Il m'a permis de venir à bout de racines dans une vieille canalisation."
+      },
+      {
+        "id": "gen-17ekvv1",
+        "betyg": 5,
+        "datum": "2026-03-27",
+        "foton": 0,
+        "text": "Très facile d'utilisation. Convient pour déboucher les décharges."
+      },
+      {
+        "id": "gen-sl636s",
+        "betyg": 5,
+        "datum": "2026-02-14",
+        "foton": 0,
+        "text": "very good quality at an excellent price perfect replacement cable for my sewer drain electric tool. I would recommend this over the more expensive cables"
+      },
+      {
+        "id": "gen-itgqvw",
+        "betyg": 4,
+        "datum": "2026-06-07",
+        "foton": 0,
+        "text": "Super 👍 macht was es machen soll Rohre frei mit langen Versand rechnen"
+      },
+      {
+        "id": "gen-frelur",
+        "betyg": 4,
+        "datum": "2025-10-16",
+        "foton": 2,
+        "text": "Il prodotto è valido purtroppo la consegna ha provocato una deformazione della custodia in ferro"
+      }
+    ]
+  },
+  "ca7b754a": {
+    "productId": "ca7b754a-3bc5-4444-8691-786ef48bfe62",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
     "attBesluta": []
+  },
+  "de79750d": {
+    "productId": "de79750d-2a21-4978-8c71-b6fa3a4e841c",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-77nu89",
+        "betyg": 5,
+        "datum": "2026-10-29",
+        "foton": 0,
+        "text": "plutôt bien mais je vais changé les brins qui ne sont pas assez rigide,"
+      }
+    ]
   }
 }
