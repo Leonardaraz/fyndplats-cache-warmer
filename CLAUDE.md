@@ -5865,9 +5865,9 @@ matchade". Frågan: kan kunden söka på PriceRunners namn här och hitta varan?
 
 PriceRunner känner oss genom det publika flödet (`/feed/pricerunner.xml`) och
 parar ihop varorna på GTIN med sina egna produktsidor. Namnet på sidan är
-PriceRunners, och det börjar med leverantörens märke. Våra namn är omskrivna
-och märket är Fyndplats: varan heter "Elbil barn SUV 12V – svart åkbil med
-fjärrkontroll, MP3 och bälte, 3–6 år" här.
+PriceRunners, och det börjar med leverantörens märke. Våra namn är omskrivna:
+varan heter "Elbil barn SUV 12V – svart åkbil med fjärrkontroll, MP3 och
+bälte, 3–6 år" här.
 
 Tre saker gav noll, mätt i motorn som låg på www:
 
@@ -5879,58 +5879,100 @@ Tre saker gav noll, mätt i motorn som låg på www:
 3. Kvar blev "fjärrkontroll", som inte är en varutyp, och regeln om ärligt
    noll (2026-11-21) svarade noll.
 
+Mätningen av märkesord visade mer än frågan gällde, och det står med här:
+märkesord gav rena felträffar, och regeln om ärligt noll hade en miss.
+
+### Två sorters märken
+
+- **Aosoms märken** (HOMCOM, Outsunny, PawHut med flera) säljs som Fyndplats.
+  Märket står aldrig i ett varunamn, och produktsidan anger Fyndplats.
+- **VEVOR är ett märke butiken visar.** Produktsidornas strukturerade data
+  anger VEVOR (mätt på www 2026-11-24: en dieselvärmare och en knappform), och
+  fyra varunamn nämner det ("utbytbar form för VEVOR knappmaskin"). Första
+  versionen av regeln nedan antog att inget namn bär ett märke. Det stämde
+  för 7 972 namn den 22 november och inte för 8 448 två dagar senare.
+
 ### Mätt före och efter
 
-Samma index (7 972 varor), motorn på www mot grenen. Bara det första namnet är
-hämtat från PriceRunner (Leonards skärmbild). De andra är byggda på samma
-mönster: ☠️ **PriceRunner svarar en automatisk läsare med 202 och en tom
-sida.** Det är deras spärr, och den går vi inte runt.
+Dagens index (2026-11-24, 8 448 varor), motorn på www mot grenen. Bara det
+första namnet är hämtat från PriceRunner (Leonards skärmbild). De andra är
+byggda på samma mönster: ☠️ **PriceRunner svarar en automatisk läsare med 202
+och en tom sida.** Det är deras spärr, och den går vi inte runt.
 
-| sökning | www 2026-11-22 | grenen |
+| sökning | www 2026-11-24 | grenen |
 |---|---|---|
 | Homcom Barnelbil Med 2.4 G Fjärrkontroll | 0 | 52 elbilar för barn med fjärrkontroll |
 | homcom barnelbil | 0 | 52 |
 | HOMCOM Barnelbilar med fjärrkontroll | 0 | 52 |
 | homcom elbil | 57, med beskedet att "homcom" strukits | 57, utan besked |
 | Aiyaplay Elbil för barn 12V | 1: en CarPlay-adapter, med "elbil", "barn" och "12" strukna | 26 elbilar |
-| VEVOR Dieselvärmare 8 kW | 27: markiser och kabelskalare "med vev", "dieselvärmare" och "kw" strukna | 31 dieselvärmare |
-| Vevor Vinsch 12V | 27, samma markiser | 16 vinschar |
-| Durhand Verktygsvagn | 10: matstolar "med handtag", "verktygsvagn" struket | 26 verktygsvagnar |
+| vevor dieselvärmare | 37: en fatpump "med vev", knappformar och markiser, med "dieselvärmare" struket | 42 dieselvärmare |
+| VEVOR Dieselvärmare 8 kW | 37, samma varor | 38, de på 8 kW först |
+| Vevor Vinsch 12V | 37, samma varor | 17 vinschar |
+| vevor knappmaskin | 4 tillbehör, ingen maskin | 7: de tre maskinerna först |
+| vevor | 29: de fyra varor som nämner märket, sedan varor "med vev" | 4 |
+| Durhand Verktygsvagn | 10: matstolar "med handtag", med "verktygsvagn" struket | 29 verktygsvagnar |
+| durhand / aiyaplay / sportnow | 10 / 1 / 3 som "ligger närmast i stavning" | 0 / 0 / 0 |
 | Pawhut Kattträd 180 cm | 0 | 96 klösträd, det på 180 cm först |
 | Pawhut Hundbur 106 cm | 1 | 19 hundburar, den på 106 cm först |
-| Kleankin Badrumsskåp vitt | 16 | 49 |
+| Kleankin Badrumsskåp vitt | 16 | 49, "Badrumsskåp vitt …" först |
+| Outsunny Paviljong 3x3 m | 41, en paviljong på 390 × 300 cm först | 41, popup-paviljongen på 3 × 3 m först |
 | Homcom Barnmotorcykel 6V | 0 | 31 |
 | Outsunny Trädgårdssoffa 3-sits | 0 | 7 |
 | trixie kattträd | 0 | 96, med beskedet att "trixie" strukits |
-| ikea barpall / jysk solstol / ikea köksbord | 0 / 0 / 0 | 58 / 16 / 60, med besked |
+| ikea barpall | 0 | 58, med besked |
 
-På www i en webbläsare samma dag: PriceRunner-namnet (0), "vevor
-dieselvärmare 8 kw" (27 markiser), "durhand verktygsvagn" (10),
-"aiyaplay elbil för barn 12v" (1), "homcom elbil" (57 med besked), "ikea
-barpall", "jysk solstol", "trixie kattträd" och "ikea köksbord" (0) och "ikea
-soffa" (140 med besked).
+På www i en webbläsare 2026-11-24: PriceRunner-namnet (0), "vevor
+dieselvärmare" och "vevor dieselvärmare 8 kw" (37, fatpumpen först), "vevor
+knappmaskin" (4), "vevor" (29), "ikea barpall" och "trixie kattträd" (0) och
+"durhand verktygsvagn" (10). Den 22 november dessutom "jysk solstol" och "ikea
+köksbord" (0, på grenen 16 och 60), "aiyaplay elbil för barn 12v" (1) och
+"ikea soffa" (140 med besked, som det ska vara).
 
 ### Reglerna (`lib/search.ts`)
 
-1. **Leverantörens märke är ett småord** (`LEVERANTORSMARKEN`, i
-   `STOPWORDS`). Märkena är de som `lib/varumarke.ts` gör om till butikens
-   eget i flöden och strukturerad data, plus VEVOR och butikens namn. Provet
-   håller listorna lika. Inget varunamn bär något av dem (prövat mot 7 972
-   namn), så ordet hör till frågan och stryks utan besked. Märket ensamt
-   ("homcom") ger noll som förut.
+1. **Leverantörens märke hör till frågan, inte till varan**
+   (`LEVERANTORSMARKEN`). Märkena är de som `lib/varumarke.ts` gör om till
+   butikens eget i flöden och strukturerad data, plus VEVOR och butikens
+   namn. Provet håller listorna lika. Fyra saker följer av det:
+
+   - **Märket tas bort ur sökningen innan något räknas** (`utanMarken`, först
+     i `rankaMedInfo`). "Homcom Barnelbil" söks som "Barnelbil", och svaret
+     är detsamma med och utan märket: samma varor, samma ordning, samma
+     besked. Skiljetecknen intill märket följer med ("Homcom:", "HOMCOM®"),
+     och ett nekande ord framför det ("soffa utan homcom" är sofforna: ingen
+     vara heter så, så det finns inget att välja bort).
+   - **Märket är ett småord** (`STOPWORDS`) för allt annat som läser
+     sökningen: kategoriförslagen, "billigast"-ordningen och delningen
+     nedan.
+   - **Märket är aldrig en böjning** (`INTE_BOJT`). "vevor" lästes som
+     flertalet av "vev".
+   - **Märket ensamt är inget stavfel** (`baraMarken`). Sökningen på bara
+     märket ger varorna som nämner det (fyra för "vevor"), annars noll.
+     Aldrig varor som "ligger närmast i stavning".
 
    ☠️ **Att låta märket strykas med besked räckte inte: det ströks inte
-   alltid.** "vevor" lästes som flertalet av "vev", "durhand" låg nära
-   "handtag" och "aiyaplay" nära "carplay". Då var märket ett känt ord, och
-   det som ströks var varuordet: "VEVOR Dieselvärmare 8 kW" visade markiser
-   med vev.
+   alltid.** "vevor" var "vev" i flertal, "durhand" låg nära "handtag" och
+   "aiyaplay" nära "airplay". Då var märket ett känt ord, och det som ströks
+   var varuordet: "vevor dieselvärmare" visade en fatpump med vev.
+
+   ☠️ **Att bara göra märket till ett småord räckte inte heller.** Det var
+   första versionen. "homcom vit byrå" fick samma varor som "vit byrå" men i
+   en annan ordning (frasen i namnet räknas med småorden kvar), rättningen sa
+   "träffarna för homcom fåtölj", och "homcom elbilar för barn" var inte
+   längre kategorins namn. Av 2 795 provsökningar ändrade märket svaret för
+   844. Nu för ingen, mätt mot båda dagarnas index.
+
+   ☠️ **Mönstret är skrivet utan bakåtblick** (`(?<!…)`). Safari före 16.4
+   kan inte läsa en sådan, och då laddas inte sökningen alls på äldre
+   telefoner.
 
 2. **Ett okänt sammansatt ord delas också i en sökning på flera ord**
    (`medDeladeOrd`, och sista steget i `rankaMedInfo`). "barnelbil med
    fjärrkontroll" söks som "barn elbil med fjärrkontroll". Svaret är detsamma
    som när kunden skriver orden isär: andra ord stryks eller fylls på som
-   vanligt, med besked ("barnelbil rosa" är de två rosa elbilarna och sedan de
-   andra), och stavningen rättas som vanligt, med besked ("barnelbil med
+   vanligt, med besked ("barnelbil rosa" är de två rosa elbilarna och sedan
+   de andra), och stavningen rättas som vanligt, med besked ("barnelbil med
    fjärkontroll").
 
    Vilka ord som delas:
@@ -5939,10 +5981,12 @@ soffa" (140 med besked).
      är varken ett ord i synonymtabellen (också böjt: "cykelvagnen"), ett
      kategoriord eller ett småord.
    - Bara en stark delning (`starkDelning`): båda delarna minst fyra
-     bokstäver och vanliga i katalogen. "cykelhjälm barn" är fortfarande
-     noll, för butiken har ingen hjälm. Huvudordet får vara böjt när
+     bokstäver och vanliga i katalogen. Huvudordet får vara böjt när
      katalogen har entalet ("barnelbilar", "barnelbilen"), men inte ord som
      bara ser böjda ut (`INTE_BOJT`: ett filter är ingen filt).
+   - Ord för ord, inte blanktecken för blanktecken. ☠️ "Barnelbil, med
+     fjärrkontroll" och "barnelbil/fjärrkontroll" gav noll i första
+     versionen: kommat satt ihop med ordet.
 
    När det delade svaret gäller:
    - Bara när sökningen som den skrevs inte räckte: den gav noll, eller ett
@@ -5958,23 +6002,27 @@ soffa" (140 med besked).
      är kategorins ord, "trädgårds" är det inte.
 
 3. ☠️ **Ärligt noll: ett ord ur synonymtabellen är en varutyp** (`arVarutyp`).
-   Hittat i samma mätning, och en miss i regeln från 2026-11-21. Regeln frågar
-   om något kvarvarande sökord är vad varor ÄR (ordet står först i minst 15 %
-   av namnen som har det), och letade bara efter ordet som det skrevs. "trixie
-   kattträd", "ikea barpall", "jysk solstol", "ikea köksbord" och "jysk
-   utemöbler" gav noll: de flesta varorna heter Klösträd, Barstol, Solsäng,
-   Matbord och Loungeset, så ordet stod först i för få namn (eller inget).
-   Ordet träffar dem genom tabellen och är lika mycket en varutyp som de, så
-   tabellens former räknas med (synonymerna och envägsorden). "ikea soffa"
-   gick hela tiden, för sofforna heter Soffa. "cykelhjälm barn" är
-   fortfarande noll.
+   En miss i regeln från 2026-11-21, som låg på www i fyra dygn. Regeln
+   frågar om något kvarvarande sökord är vad varor ÄR (ordet står först i
+   minst 15 % av namnen som har det), och letade bara efter ordet som det
+   skrevs. "trixie kattträd", "ikea barpall", "jysk solstol", "ikea köksbord"
+   och "jysk utemöbler" gav noll: de flesta varorna heter Klösträd, Barstol,
+   Solsäng, Matbord och Loungeset, så ordet stod först i för få namn (eller
+   inget). Ordet träffar dem genom tabellen och är lika mycket en varutyp som
+   de, så tabellens former räknas med (synonymerna och envägsorden). "ikea
+   soffa" gick hela tiden, för sofforna heter Soffa.
 
 ### Mätt brett
 
-- **13 972 provsökningar** (samma som 2026-11-21) mot motorn på www: inget
-  svar ändras. Mängden har nästan inga märkesord och inga okända sammansatta
-  ord i sökningar på flera ord, så den säger bara att inget annat rubbats.
-  Därför två riktade mängder:
+- **13 972 provsökningar** (samma som 2026-11-21) mot motorn på www. Ett
+  svar ändras, "vevor" ensamt: 23 → 0 med indexet från den 22 november (då
+  nämnde inget namn märket, och träffarna var varor "med vev"), 29 → 4 med
+  dagens. Mängden har nästan inga märkesord och inga okända sammansatta ord i
+  sökningar på flera ord, så den säger bara att inget annat rubbats. Därför
+  tre riktade mängder (indexet från den 22 november, slutlig kod):
+- **Märket framför var femte provsökning** (2 795 stycken, "homcom " +
+  sökningen): svaret är detsamma som utan märket för alla, mätt mot båda
+  indexen.
 - **6 006 sökningar med okända sammansatta ord**, byggda ur 1 202 ordpar som
   står i samma varunamn ("stål" och "hylla" blir "stålhylla"), vart och ett
   ensamt, med ett tredje ord ur namnen, med märke, med en färg och med ett
@@ -5992,36 +6040,44 @@ soffa" (140 med besked).
 
 ### Prov
 
-`lib/sok-2026-11-22.test.ts`: tolv prov på en påhittad butik (elbilar som
+`lib/sok-2026-11-22.test.ts`: sjutton prov på en påhittad butik (elbilar som
 heter "Elbil … barn", utesoffor som bara kategorin säger hör till
-trädgården, en cykelkärra). 26 avsiktliga fel i reglerna fälls alla. Tre
-överlevde första gången, och proven skärptes: delningen när sökningen som
-den skrevs gav träffar med ett struket ord ("trädgårdssoffa parasoll"), ett
-känt ord i en annan böjning ("barnstolar" när katalogen har "barnstol"), och
-ett kontrollfall som var fel uttänkt. Provet "rankByName i tre varv ger samma
-lista som ett varv" (`lib/search.test.ts`) fångar också en för svag delning.
+trädgården, en cykelkärra, en knappform som nämner VEVOR och en adapter med
+AirPlay i namnet). 37 avsiktliga fel i reglerna fälls alla. Fem överlevde
+första gången, och proven skärptes: delningen när sökningen som den skrevs
+gav träffar med ett struket ord ("trädgårdssoffa parasoll"), ett känt ord i
+en annan böjning ("barnstolar" när katalogen har "barnstol"), ett
+kontrollfall som var fel uttänkt, och märket ensamt, där provbutiken inte
+hade något varunamn som låg nära märket i stavning. En var likvärdig med
+originalet och ströks. Provet "rankByName i tre varv ger samma lista som ett
+varv" (`lib/search.test.ts`) fångar också en för svag delning.
 
-I ett lokalt bygge, i Chromium: söksidan för elva sökningar (namnet från
-PriceRunner 52 utan besked, "vevor dieselvärmare 8 kw" 31, "homcom elbil" 57
-utan besked, "barnelbil med fjärkontroll" med beskedet "Här är träffarna för
-barn elbil med fjärrkontroll", "trixie kattträd" och "ikea barpall" med
-beskedet om det strukna ordet, "cykelhjälm barn" och "homcom" noll). Namnet
-skrivet i sökrutan med Enter, dator och mobil, leder till sidan med de 52.
-Rutans tolv förslag är sidans tolv första för sex sökningar. Den kalla vägen
-provades inte: ändringen ligger i motorn, och söksidans kod är orörd.
+I ett lokalt bygge av den slutliga koden, i Chromium (2026-11-24): söksidan
+för femton sökningar (namnet från PriceRunner 52 utan besked, också med
+komma; "vevor dieselvärmare" 42 och med "8 kw" 38; "vevor knappmaskin" 7;
+"vevor" 4; "homcom elbil" 57 utan besked; "homcom barnelbil med fjärkontroll"
+med beskedet "Här är träffarna för barn elbil med fjärrkontroll"; "trixie
+kattträd" och "ikea barpall" med beskedet om det strukna ordet; "durhand
+verktygsvagn" 29; "durhand" och "homcom" noll; "soffa utan homcom" 141).
+Namnet skrivet i sökrutan med Enter, dator och mobil, leder till sidan med de
+52. Rutans tolv förslag är sidans tolv första för tio sökningar. Den kalla
+vägen provades inte: ändringen ligger i motorn, och söksidans kod är orörd.
 
 ### Farten
 
-Räknetid per tangent på en dator (`tangenter.ts`, 182 tangenter i 21 ord, tre
-körningar var, varannan): 1 383, 1 679 och 1 362 ms med motorn på www, 1 280,
-1 377 och 1 525 ms på grenen. Ingen skillnad utöver spridningen.
+Räknetid per tangent på en dator, dagens index, utlagd och ny motor
+varannan gång (`tangenter.ts`, 182 tangenter i 21 ord): 1 341, 1 322 och
+1 311 ms med motorn på www, 1 307, 1 271 och 1 263 ms på grenen. Ingen
+skillnad utöver spridningen.
 
-För fem av namnen ovan (128 tangenter, två körningar var): 3 038 och 3 377 ms
-på www, 2 278 och 2 314 ms på grenen. Märkesorden kostar mindre som småord än
-som strukna ord. Tangenterna EFTER ett delat ord kostar däremot en sökning
-till: "barnelbil med fjärrkontroll" tar 613–741 ms för sina 27 tangenter mot
-505–566 ms, och den tyngsta tangenten 56–76 ms mot 34–38 ms. Det gäller bara
-sökningar med ett okänt sammansatt ord, och bara där delningen är stark.
+För fem av namnen ovan (128 tangenter, två körningar var): 2 887 och 2 648 ms
+på www, 2 171 och 2 018 ms på grenen. Märkesorden kostar ingenting när de
+tas bort, mot en hel strykning förut ("homcom barnelbil med 2.4 g
+fjärrkontroll" 717 ms mot 1 207 ms). Tangenterna EFTER ett delat ord kostar
+däremot en sökning till: "barnelbil med fjärrkontroll" tar 608 ms för sina
+27 tangenter mot 519 ms, och den tyngsta tangenten 52 ms mot 38 ms. Det
+gäller bara sökningar med ett okänt sammansatt ord, och bara där delningen
+är stark.
 
 ### Varan kommer inte först
 
@@ -6046,6 +6102,11 @@ repot.
 
 ### Inte gjort
 
+- **"vevor" ensamt visar bara de fyra varor som nämner märket**, inte alla
+  VEVOR-varor. Sökindexet bär inget märke. VEVOR är ett märke butiken visar,
+  så det går att lägga till. Det är Leonards beslut.
+- **Aosoms märken ensamma ("homcom") ger noll.** Att visa leverantörens varor
+  för ordet skulle säga vilka de är.
 - **Andra butikers och tillverkares märken som liknar ett katalogord.**
   "biltema dieselvärmare" ger två biltillbehör med "dieselvärmare" struket,
   "rusta julgran" 50 varor "i rustik stil", "outwell tält", "tectake pall" och
@@ -6053,15 +6114,18 @@ repot.
   namn har båda stryks det vanligaste ordet, som är varuordet. Det är samma
   fel som regel 1 rättar för våra egna märken, men lösningen för främmande
   märken ligger i valet av vilket ord som stryks, och det rör varje sökning
-  där något stryks. Av 25 provade främmande märken gav 5 sådana felträffar.
-  Märken som inte liknar något ("ikea", "weber", "bosch") stryks med besked
-  som de ska.
+  där något stryks. Av 25 provade främmande märken gav 5 sådana felträffar
+  (2026-11-22). Märken som inte liknar något ("ikea", "weber", "bosch")
+  stryks med besked som de ska.
 - **Ett okänt ord följt av ett kategoriord som inget namn har**
   ("zzzz barnmöbler", "zzzz kontorsmöbler") ger fortfarande noll. Ordet
   träffar genom kategorin, och strykningen räknar bara namnen.
-- **Det riktiga märket per vara i sökindexet.** Indexet är publikt, och
-  märket står med flit bara i det hemliga Prisjakt-flödet.
+- ☠️ **"cykelhjälm barn" är inte längre noll.** Katalogen fick en
+  hundcykelkärra "för cykelhjul" efter den 22 november, och "cykelhjälm"
+  ligger två fel från "cykelhjul": sidan visar kärran med beskedet att "barn"
+  strukits, och nämner inte rättningen. Samma svar i motorn på www och på
+  grenen. Rättningen med två fel i en sökning på flera ord är inte ändrad.
+- **Det riktiga märket per vara i sökindexet för Aosoms varor.** Indexet är
+  publikt, och märket står med flit bara i det hemliga Prisjakt-flödet.
 - **En text om att leverantörens märken säljs under butikens namn.** Det är
   Leonards beslut.
-- **Märket ensamt ("homcom") ger noll.** Att visa leverantörens varor för
-  ordet skulle säga vilka de är.
