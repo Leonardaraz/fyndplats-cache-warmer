@@ -36,6 +36,7 @@ import {
   TYPSNITT_FIL,
   UTSEENDE,
   vantaPaOrder,
+  webblasarsort,
   type KlarSvar,
 } from "./stripe-klient.ts";
 import { avsiktParametrar, faktureringAv } from "./flode.ts";
@@ -447,6 +448,40 @@ test("loggraden för returen: hur kunden kom tillbaka, aldrig betalningens id", 
   assert.equal(returLage(new URLSearchParams({ payment_intent: "pi_3Abc", redirect_status: "pi_3Abc_secret_x" })), "utan status");
   assert.equal(returLage(new URLSearchParams({ payment_intent: "pi_3Abc", redirect_status: "failed\nny rad" })), "utan status");
   assert.equal(returLage(new URLSearchParams({ payment_intent: "pi_3Abc", redirect_status: "a".repeat(80) })).length, 30);
+});
+
+test("loggraden säger vilken sorts webbläsare kunden satt i, aldrig hela User-Agent", () => {
+  const IOS = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko)";
+  const ANDROID = "Mozilla/5.0 (Linux; Android 14; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko)";
+  const fall: [string, string][] = [
+    [`${IOS} Version/18.1 Mobile/15E148 Safari/604.1`, "ios-safari"],
+    [`${IOS} CriOS/131.0.6778.73 Mobile/15E148 Safari/604.1`, "ios-chrome"],
+    [`${IOS} FxiOS/133.0 Mobile/15E148 Safari/605.1.15`, "ios-firefox"],
+    [`${IOS} EdgiOS/131.0.2903.68 Version/18.0 Mobile/15E148 Safari/604.1`, "ios-edge"],
+    // Appar som visar sidan själva: där kommer kunden inte tillbaka från Klarnas app som i Safari.
+    [`${IOS} Mobile/15E148 Instagram 357.0.0.25.73 (iPhone15,3; iOS 18_1; sv_SE; sv; scale=3.00; 1290x2796; 668054211)`, "ios-instagram"],
+    [`${IOS} Mobile/15E148 [FBAN/FBIOS;FBAV/489.0.0.56.103;FBBV/668054211;FBDV/iPhone15,3]`, "ios-facebook"],
+    [`${IOS} GSA/343.0.695551749 Mobile/15E148 Safari/604.1`, "ios-googleappen"],
+    [`${IOS} Mobile/15E148`, "ios-webbvy"],
+    [`${ANDROID} Chrome/131.0.0.0 Mobile Safari/537.36`, "android-chrome"],
+    [`${ANDROID} SamsungBrowser/26.0 Chrome/122.0.0.0 Mobile Safari/537.36`, "android-samsung"],
+    ["Mozilla/5.0 (Linux; Android 14; SM-S918B Build/UP1A.231005.007; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/131.0.6778.81 Mobile Safari/537.36", "android-webbvy"],
+    ["Mozilla/5.0 (Linux; Android 14; SM-S918B Build/UP1A.231005.007; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/131.0.6778.81 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/489.0.0.56.103;]", "android-facebook"],
+    ["Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Safari/605.1.15", "dator-safari"],
+    ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36", "dator-chrome"],
+    ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0", "dator-edge"],
+    ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 OPR/115.0.0.0", "dator-opera"],
+    ["Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0", "dator-firefox"],
+    ["curl/8.5.0", "okant-annan"],
+    ["", "okant-annan"],
+  ];
+  for (const [ua, sort] of fall) assert.equal(webblasarsort(ua), sort, ua.slice(0, 90));
+  assert.equal(webblasarsort(null), "okant-annan");
+  assert.equal(webblasarsort(undefined), "okant-annan");
+  // Bara ord ur en fast lista når loggen, vad webbläsaren än säger sig heta.
+  for (const elak of ["kund@exempel.se\n[kassa] falsk rad", `${IOS} Safari/604.1 pi_3Abc_secret_x`, "x".repeat(5000), "Instagram\nny rad"]) {
+    assert.match(webblasarsort(elak), /^(ios|android|dator|okant)-[a-z]+$/, elak.slice(0, 40));
+  }
 });
 
 test("Klarna-rutan på produktsidan: Klarnas egen bara när kunden får Wix kassa", () => {

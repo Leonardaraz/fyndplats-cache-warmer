@@ -13,14 +13,14 @@
 // tillbaka den här vägen (2026-11-24).
 
 import { NextResponse } from "next/server";
-import { AVSIKT_KAKA, AVSIKT_KAKA_SEK, AVSIKT_KAKA_SOKVAG, returLage, returMal } from "@/lib/kassa/stripe-klient";
+import { AVSIKT_KAKA, AVSIKT_KAKA_SEK, AVSIKT_KAKA_SOKVAG, returLage, returMal, webblasarsort } from "@/lib/kassa/stripe-klient";
 
 export const dynamic = "force-dynamic";
 
 export function GET(req: Request) {
   const url = new URL(req.url);
   const { mal, avsikt } = returMal(url.searchParams);
-  console.info(`[kassa] stripe retur: ${returLage(url.searchParams)}`);
+  console.info(`[kassa] stripe retur: ${returLage(url.searchParams)} [${webblasarsort(req.headers.get("user-agent"))}]`);
   const svar = NextResponse.redirect(new URL(mal, url.origin), {
     status: 303,
     headers: { "Cache-Control": "private, no-store", "Referrer-Policy": "no-referrer" },

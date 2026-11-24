@@ -6319,7 +6319,12 @@ han fick börja om. På datorn gick samma köp igenom.
    `[kassa] stripe slutför vantar_kund (requires_action/redirect_to_url)`,
    `… ej_betald (requires_payment_method/payment_method_provider_decline)`
    och `[kassa] stripe retur: succeeded` eller `failed`. Läget skickas inte
-   till webbläsaren.
+   till webbläsaren. Sist på raderna för förbered, slutför och retur står
+   webbläsarens sort inom hakar (`webblasarsort`: `[ios-safari]`,
+   `[ios-instagram]`, `[android-webbvy]`, `[dator-chrome]`), aldrig hela
+   User-Agent: en betalning som ska fram och tillbaka mellan butiken och
+   Klarnas eller bankens app beter sig olika i Safari och i en app med egen
+   webbvy, och det gick inte att se i loggen 2026-11-24.
 10. `hamtaAvsikt` bygger också ut `payment_method`, så att rutan säger
     "Klarna" bara när det pågående försöket är Klarna.
 
@@ -6328,7 +6333,8 @@ han fick börja om. På datorn gick samma köp igenom.
 - `lib/kassa/stripe-flode.test.ts`: öppen betalning, bankens verifiering,
   orsakerna, loggordet. `lib/kassa/stripe-klient.test.ts`: adressen, serverns
   svar, väntan, det sparade försöket, beslutet, rutans texter, returens
-  loggord. 29 avsiktliga fel i reglerna fäller proven.
+  loggord, webbläsarens sort (19 riktiga User-Agent-strängar). 29 avsiktliga
+  fel i reglerna fäller proven.
 - **I webbläsaren** (lokalt bygge, telefonstorlek, serverns svar utbytt i
   webbläsaren, ingen betalning skapad och ingen betalknapp tryckt): rutan
   med knappen står i första skärmbilden; fem frågor på 35 s och sedan tyst;

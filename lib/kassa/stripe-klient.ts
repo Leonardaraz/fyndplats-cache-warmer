@@ -385,6 +385,55 @@ export function returLage(sok: URLSearchParams): string {
   return /^[a-z_]+$/.test(status) ? status : "utan status";
 }
 
+/**
+ * Webbläsarens sort som ett ord för loggen: systemet och webbläsaren, eller
+ * appen som visar sidan själv (Instagram, Facebook, Google-appen). Aldrig hela
+ * User-Agent, som kan peka ut en enskild telefon.
+ *
+ * En betalning som ska fram och tillbaka mellan butiken och Klarnas eller
+ * bankens app beter sig olika i en vanlig webbläsare och i en app med egen
+ * webbvy. ☠️ När en kund fick börja om efter Klarna-appen (2026-11-24) gick
+ * det inte att se i loggen vilken sorts webbläsare han satt i.
+ */
+export function webblasarsort(ua: string | null | undefined): string {
+  const u = typeof ua === "string" ? ua.slice(0, 600) : "";
+  const system = /iPhone|iPad|iPod/.test(u) ? "ios" : /Android/.test(u) ? "android" : /Macintosh|Windows NT|X11|CrOS/.test(u) ? "dator" : "okant";
+  const app = /FBAN|FBAV|FB_IAB/.test(u)
+    ? "facebook"
+    : /Instagram/.test(u)
+      ? "instagram"
+      : /TikTok|musical_ly|BytedanceWebview/.test(u)
+        ? "tiktok"
+        : /Snapchat/.test(u)
+          ? "snapchat"
+          : /\bGSA\//.test(u)
+            ? "googleappen"
+            : /Klarna/.test(u)
+              ? "klarnaappen"
+              : /; wv\)/.test(u)
+                ? "webbvy"
+                : null;
+  if (app) return `${system}-${app}`;
+  // Ordningen spelar roll: Edge och Opera säger också "Chrome", och Chrome säger också "Safari".
+  const webblasare = /EdgiOS|EdgA|Edg\//.test(u)
+    ? "edge"
+    : /OPR\/|OPT\//.test(u)
+      ? "opera"
+      : /SamsungBrowser/.test(u)
+        ? "samsung"
+        : /FxiOS|Firefox\//.test(u)
+          ? "firefox"
+          : /CriOS|Chrome\//.test(u)
+            ? "chrome"
+            : /Safari\//.test(u)
+              ? "safari"
+              : // På iOS är en sida utan "Safari" i sin User-Agent en webbvy i någon app.
+                system === "ios" && /AppleWebKit/.test(u)
+                ? "webbvy"
+                : "annan";
+  return `${system}-${webblasare}`;
+}
+
 /** Betalningens id ur kakorna (document.cookie), om det är ett giltigt id. */
 export function avsiktUrKakor(kakor: string): string | null {
   for (const del of kakor.split(";")) {

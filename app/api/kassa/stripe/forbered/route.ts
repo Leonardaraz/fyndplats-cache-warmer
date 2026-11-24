@@ -11,6 +11,7 @@ import { provaKassa } from "@/lib/kassa/formular";
 import { forberedStripe, medForsprang, medTider, tidrad } from "@/lib/kassa/flode";
 import { stripeKassa } from "@/lib/kassa/stripe-kassa";
 import { harStripe, StripeFel } from "@/lib/kassa/stripe";
+import { webblasarsort } from "@/lib/kassa/stripe-klient";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -49,7 +50,7 @@ export async function POST(req: Request) {
 
   try {
     const utfall = await forberedStripe(deps, { cartId, kund: prov.varden, avsiktId });
-    console.info(`[kassa] stripe förbered ${utfall.ok ? "ok" : `stopp ${utfall.kod}`} på ${Date.now() - start} ms: ${tidrad(tider)}`);
+    console.info(`[kassa] stripe förbered ${utfall.ok ? "ok" : `stopp ${utfall.kod}`} på ${Date.now() - start} ms: ${tidrad(tider)} [${webblasarsort(req.headers.get("user-agent"))}]`);
     return svar(utfall, utfall.ok ? 200 : 409);
   } catch (e) {
     // Ingen kunddata i loggen: bara anropens tider och Wix/Stripes felkod.

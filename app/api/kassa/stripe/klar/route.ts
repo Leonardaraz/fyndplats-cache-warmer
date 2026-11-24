@@ -13,6 +13,7 @@ import { NextResponse } from "next/server";
 import { slutforStripe, utfallLage } from "@/lib/kassa/flode";
 import { stripeKassa } from "@/lib/kassa/stripe-kassa";
 import { harStripe } from "@/lib/kassa/stripe";
+import { webblasarsort } from "@/lib/kassa/stripe-klient";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -34,7 +35,8 @@ export async function POST(req: Request) {
   const start = Date.now();
   try {
     const utfall = await slutforStripe(stripeKassa, avsiktId, new Date());
-    console.info(`[kassa] stripe slutför ${utfallLage(utfall)} på ${Date.now() - start} ms`);
+    // Webbläsarens sort (aldrig hela User-Agent): Klarna i en app med egen webbvy beter sig inte som i Safari.
+    console.info(`[kassa] stripe slutför ${utfallLage(utfall)} på ${Date.now() - start} ms [${webblasarsort(req.headers.get("user-agent"))}]`);
     // "pagar" och "behandlas" är inga fel: sidan frågar igen om en stund.
     // "vantar_kund" (betalningen står öppen hos Klarna) är 409 som "ej_betald":
     // sidan slutar vänta och låter kunden fortsätta betalningen (klarBeslut).
