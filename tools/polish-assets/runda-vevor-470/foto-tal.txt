@@ -1,0 +1,3 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+a0e2754f 5 fem glasrutor per dörrpanel, räknade på produktfotona 1, 4, 5 och 6
