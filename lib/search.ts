@@ -1171,7 +1171,12 @@ function tokenQuality(unit: Unit, nameNorm: string, lage: Lage, namnVikt: string
 // Sedan 2026-11-19 också ord som hör till frågan och inte till varan: "billig
 // soffa", "soffa under 2000 kr", "köp julgran". Förut räknades "under" som ett
 // sökord och gav 692 träffar med "förvaring under sitsen" överst.
-/** Märken som jämförelsesajterna skriver först i varans namn, och butikens eget. Aldrig i ett varunamn här. */
+/**
+ * Märken som jämförelsesajterna skriver först i varans namn, och butikens eget.
+ * Aosoms märken står aldrig i ett varunamn här (varorna säljs som Fyndplats).
+ * VEVOR är ett märke butiken visar, och ett fåtal namn nämner det ("utbytbar
+ * form för VEVOR knappmaskin"): ordet säger ändå inte vad varan är.
+ */
 export const LEVERANTORSMARKEN: readonly string[] = [
   "homcom", "outsunny", "pawhut", "aiyaplay", "sportnow", "vinsetto", "kleankin", "durhand", "zonekiz", "aosom",
   "vevor", "fyndplats",
@@ -1194,6 +1199,13 @@ const MARKE_RE = new RegExp(`(^|[^a-zåäö0-9])(?:(?:utan|ej|inte)\\s+)?(?:${LE
  *
  * Märket står kvar när det är hela sökningen ("homcom" ger noll som förut).
  */
+const MARKEN: ReadonlySet<string> = new Set(LEVERANTORSMARKEN);
+/** Är sökningen bara märken, och inget annat? */
+function baraMarken(query: string): boolean {
+  const ord = tokenize(normalize(query));
+  return ord.length > 0 && ord.every((t) => MARKEN.has(t));
+}
+
 export function utanMarken(query: string): string {
   const kvar = query.replace(MARKE_RE, "$1 ");
   if (kvar === query || !/[a-zåäö0-9]/i.test(kvar)) return query;
@@ -1215,9 +1227,10 @@ const STOPWORDS = new Set([
   // ☠️ LEVERANTÖRENS MÄRKE STÅR FÖRST I JÄMFÖRELSESAJTERNAS NAMN (Leonard
   // 2026-11-22). PriceRunner visar oss som säljare av "Homcom Barnelbil Med
   // 2.4 G Fjärrkontroll", utan länk, och kunden som söker det namnet här fick
-  // noll träffar. Varorna säljs under butikens eget märke, så märkesordet står
-  // inte i något varunamn (prövat mot 7 972 namn): det hör till frågan, inte
-  // till varan. Rankningen tar bort det ur sökningen (utanMarken). Här är det
+  // noll träffar. Märkesordet säger inte vad varan är, och står i nästan inget
+  // varunamn (fyra av 8 448 den 24 november, alla "för VEVOR knappmaskin"): det
+  // hör till frågan, inte till varan. Rankningen tar bort det ur sökningen
+  // (utanMarken). Här är det
   // ett småord för allt annat som läser sökningen: kategoriförslagen,
   // "billigast"-ordningen och delningen av sammansatta ord. Listan är
   // densamma som i lib/varumarke.ts (provet håller dem lika), plus VEVOR och
@@ -2690,6 +2703,11 @@ export function rankaMedInfo<T>(items: T[], nameOf: (item: T) => string, skrivet
     if (u.traffar.length > 0) return { ...u, rattat: u.rattat ?? oversatt };
   }
   const u = rankaUtan(items, nameOf, query, namn, kd);
+  // ☠️ ETT MÄRKE ÄR INGET STAVFEL. Sökningen på bara märket gav varor som
+  // "ligger närmast i stavning": "durhand" tio varor med handtag och fjädrar,
+  // "aiyaplay" en CarPlay-adapter och "sportnow" tre ramar för sportkort
+  // (2026-11-24). Märket ensamt ger varorna som nämner det, annars noll.
+  if ((u.liknande || u.rattat) && baraMarken(query)) return { traffar: [], strukna: [] };
   // ☠️ "katt träd" GAV 13 VAROR OCH "kattträd" 96, "ute möbler" 12 och
   // "utemöbler" 254, "soff bord" 54 och "soffbord" 123 (2026-11-21). Skrivna
   // isär söktes orden var för sig: bara varor som nämner både katt och träd
@@ -3654,6 +3672,10 @@ function entalAv(ord: string): string[] {
 // annan vara i butiken: ett filter är ingen filt, en racket inget rack och en
 // raket inget rakt. Prövat mot katalogens ord 2026-11-19 (415 par, de här föll).
 const INTE_BOJT = new Set([
+  // ☠️ Ett märke är aldrig en böjning av ett annat ord. "vevor" lästes som
+  // flertalet av "vev", och sökningen på märket gav fatpumpar och markiser
+  // "med vev" efter de fyra varor som nämner VEVOR (2026-11-24).
+  ...LEVERANTORSMARKEN,
   "filter", "racket", "raket", "paket", "staket", "planet", "poster", "lager", "master", "start",
   "medar", "håller", "höjer", "klarar", "sitter", "spelar", "banan",
   "höger", "vänster", "motor", "rotor", "dator", "meter", "liter", "timer", "ingen", "eller", "efter",

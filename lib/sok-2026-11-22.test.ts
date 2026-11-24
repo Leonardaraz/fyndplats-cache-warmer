@@ -50,9 +50,13 @@ lagg(1,
 );
 // Annat för barn, och annat med fjärrkontroll.
 lagg(2, "Barncykel 16 tum med stödhjul", "Barnstol i trä med bricka", "Barnsoffa 77 cm för två barn", "Barngrind 76 cm med dörr", "Barnbord med två stolar", "Gunga för barn med sele");
-lagg(3, "Dieselvärmare 8 kW med fjärrkontroll och LCD-panel", "Dieselvärmare 5 kW 12 V med fjärrkontroll");
+lagg(3, "Dieselvärmare 8 kW med fjärrkontroll och LCD-panel", "Dieselvärmare 5 kW 12 V med fjärrkontroll", "Trådlös CarPlay-adapter 4-i-1 för bilen");
 lagg(4, "Takfläkt med lampa och fjärrkontroll, 132 cm", "Elkamin med fjärrkontroll och timer", "Paviljong 3 × 3 m med sidoväggar", "Kontorsstol i nät med nackstöd");
 lagg(5, "Cykelställ för golv, 2-pack", "Cykelkärra 170 liter med kapell");
+// VEVOR är ett märke butiken visar, och ett tillbehör får nämna det i namnet
+// (fyra sådana namn på www 2026-11-24).
+const MED_MARKET_I_NAMNET = "Knappform 58 mm med material, utbytbar form för VEVOR knappmaskin";
+lagg(4, "Knappmaskin för runda märken, 58 mm", MED_MARKET_I_NAMNET);
 // Utesofforna heter inte "trädgårdssoffa", och bara en nämner trädgården: de
 // andra ligger i kategorin Trädgård & Utemöbler. Innesofforna ligger i Soffor.
 lagg(6,
@@ -152,8 +156,34 @@ test("märkeslistan är densamma som den som döljer märkena i flödena", () =>
   assert.ok(whiteLabel.length >= 10);
   for (const m of whiteLabel) assert.ok(LEVERANTORSMARKEN.includes(m), `${m} saknas i LEVERANTORSMARKEN`);
   for (const m of LEVERANTORSMARKEN) assert.ok(whiteLabel.includes(m) || m === "vevor", `${m} står inte i lib/varumarke.ts`);
-  // Inget varunamn bär ett av dem: då vore ordet ett sökord.
-  for (const v of VAROR) for (const m of LEVERANTORSMARKEN) assert.equal(normalize(v.n).split(/[^a-zåäö0-9]+/).includes(m), false, `${v.n}: ${m}`);
+  // Aosoms märken och butikens eget står aldrig i ett varunamn.
+  for (const v of VAROR) for (const m of LEVERANTORSMARKEN) assert.equal(normalize(v.n).split(/[^a-zåäö0-9]+/).includes(m), v.n === MED_MARKET_I_NAMNET && m === "vevor", `${v.n}: ${m}`);
+});
+
+test("en vara som nämner märket i namnet hittas som de andra", () => {
+  // Märket tas bort ur sökningen också här: maskinen heter Knappmaskin, och
+  // tillbehöret som nämner den kommer efter. På www gav "vevor knappmaskin"
+  // bara de fyra tillbehören.
+  assert.deepEqual(traffar("vevor knappmaskin"), ["Knappmaskin för runda märken, 58 mm", MED_MARKET_I_NAMNET]);
+  assert.deepEqual(sok("vevor knappmaskin"), sok("knappmaskin"));
+  assert.deepEqual(traffar("knappform vevor"), [MED_MARKET_I_NAMNET]);
+  // Märket ensamt söks som det står, och varan som nämner det hittas.
+  // ☠️ Bara den: "vevor" lästes som flertalet av "vev", och parasollet "med
+  // vev" kom med (på www fatpumpar och markiser).
+  assert.deepEqual(traffar("vevor"), [MED_MARKET_I_NAMNET]);
+  assert.equal(traffar("vev")[0], "Parasoll 3 m med vev");
+});
+
+test("☠️ ett märke är inget stavfel: märket ensamt ger inga varor som bara liknar det", () => {
+  // Ett annat okänt ord nära "carplay" rättas som vanligt, med besked.
+  const fel = sok("carplau");
+  assert.equal(fel.traffar.length, 1);
+  assert.ok(fel.rattat || fel.liknande);
+  // "aiyaplay" ligger lika nära, men är leverantörens märke: på www gav det en
+  // CarPlay-adapter som "ligger närmast i stavning".
+  assert.deepEqual(sok("aiyaplay"), { traffar: [], strukna: [] });
+  assert.deepEqual(sok("Aiyaplay Homcom"), { traffar: [], strukna: [] });
+  for (const marke of LEVERANTORSMARKEN) if (marke !== "vevor") assert.deepEqual(traffar(marke), [], marke);
 });
 
 test("☠️ PriceRunners namn: ett okänt sammansatt ord delas också i en sökning på flera ord", () => {
