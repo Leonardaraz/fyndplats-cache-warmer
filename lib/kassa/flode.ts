@@ -649,6 +649,12 @@ export interface Avsikt {
   payment_method_types?: string[];
   /** Unix-sekunder. */
   created?: number;
+  /** Det kunden har kvar att göra (status requires_action): omdirigeringen till Klarna, eller bankens verifiering i Stripes eget fönster. */
+  next_action?: { type?: string; redirect_to_url?: { url?: string | null } | null } | null;
+  /** Varför det senaste försöket föll: Stripes felkod och betalsättets typ. */
+  last_payment_error?: { code?: string | null; payment_method?: { type?: string } | null } | null;
+  /** Försökets betalsätt: ett id, eller objektet när det är utbyggt (hamtaAvsikt). Null när försöket fallit. */
+  payment_method?: string | { type?: string } | null;
 }
 
 export interface AvsiktParametrar {
@@ -879,7 +885,54 @@ export type SlutforUtfall =
   /** ofullstandig: pengarna är dragna och ordern finns, men betalningen står inte på ordern än. Tas om (webhooken och nätet). */
   | { ok: true; orderId: string; ofullstandig?: true }
   /** ostadad: ingen order, men reservationen släpptes inte (eller den dragna betalningen gick inte tillbaka). Tas om. */
-  | { ok: false; kod: "okand" | "ej_betald" | "behandlas" | "pagar" | "pris_andrat" | "slut" | "fel"; meddelanden: string[]; ostadad?: true };
+  | {
+      ok: false;
+      kod: "okand" | "ej_betald" | "vantar_kund" | "behandlas" | "pagar" | "pris_andrat" | "slut" | "fel";
+      meddelanden: string[];
+      ostadad?: true;
+      /** vantar_kund: adressen där kunden fortsätter SAMMA betalning (Stripes omdirigering till Klarna). Saknas för bankens verifiering, som bara Stripe.js kan ta om. */
+      fortsatt?: string;
+      /** vantar_kund: betalsättets typ ("klarna") och beloppet i öre, så att kassan bara erbjuder fortsättningen för den summa kunden ser. */
+      metod?: string;
+      totalOre?: number;
+      /** ej_betald efter Klarna: varför (OBETALD_ORSAK), så att kunden får veta det i stället för ett tomt formulär. */
+      orsak?: ObetaldOrsak;
+      /** Stripes status och felkod för loggraden (utfallLage). Aldrig till kunden, och aldrig kunduppgifter. */
+      stripe?: string;
+    };
+
+/** Varför en Klarna-betalning inte blev av, med kundens ord i lib/kassa/stripe-klient.ts (STRIPE_MEDDELANDE). */
+export type ObetaldOrsak = "nekad" | "avbruten" | "utgangen";
+
+/** Stripes felkoder för Klarna (docs.stripe.com/payments/klarna, "Failed payments") → kassans orsak. */
+const OBETALD_ORSAK: Record<string, ObetaldOrsak> = {
+  payment_method_provider_decline: "nekad",
+  payment_method_customer_decline: "avbruten",
+  payment_intent_payment_attempt_expired: "utgangen",
+};
+
+/** Bara bokstäver, siffror och understreck ur ett av Stripes ord, så att inget annat hamnar i en loggrad. */
+const loggord = (v: unknown): string => (typeof v === "string" ? v.replace(/[^A-Za-z0-9_]/g, "").slice(0, 60) : "");
+
+/**
+ * Betalningens läge hos Stripe som ett ord för loggen: statusen, och efter ett
+ * snedstreck det som förklarar den (felkoden, eller vad kunden har kvar att
+ * göra). ☠️ Utan den stod det bara "ej_betald" när en kund kom tillbaka från
+ * Klarna-appen utan order (2026-11-24): det gick inte att se om Klarna nekat,
+ * om kunden avbrutit eller om betalningen stod öppen.
+ */
+export function stripeLage(a: Pick<Avsikt, "status" | "next_action" | "last_payment_error">): string {
+  const mer = a.status === "requires_action" ? loggord(a.next_action?.type) : loggord(a.last_payment_error?.code);
+  return mer ? `${a.status}/${mer}` : a.status;
+}
+
+/** Varför Klarna-försöket föll, om Stripe säger det. Andra betalsätt (kort) får sitt fel direkt i betalfältet. */
+function obetaldOrsak(a: Pick<Avsikt, "last_payment_error">): ObetaldOrsak | undefined {
+  const fel = a.last_payment_error;
+  const kod = fel?.code ?? "";
+  // Egen egenskap, inte en vanlig uppslagning: "constructor" finns på varje objekt.
+  return fel?.payment_method?.type === "klarna" && Object.prototype.hasOwnProperty.call(OBETALD_ORSAK, kod) ? OBETALD_ORSAK[kod] : undefined;
+}
 
 /**
  * Inget mer finns att göra för betalningen: ordern är klar med betalningen på,
@@ -905,7 +958,8 @@ export function webhookStatus(u: SlutforUtfall): number {
 /** Utfallet som ett ord för loggen (inga id, belopp eller kunduppgifter). */
 export function utfallLage(u: SlutforUtfall): string {
   if (u.ok) return u.ofullstandig ? "ofullstandig" : "ok";
-  return u.ostadad ? `${u.kod}-ostadad` : u.kod;
+  const lage = u.ostadad ? `${u.kod}-ostadad` : u.kod;
+  return u.stripe ? `${lage} (${u.stripe})` : lage;
 }
 
 /** Nätet tar betalningar som legat godkända utan order så här länge (det vanliga flödet tar sekunder). */
@@ -955,8 +1009,35 @@ export async function slutforStripe(deps: StripeKassaDeps, avsiktId: string, nu:
   if (!a || !cartId || a.metadata?.kalla !== STRIPE_KALLA) return { ok: false, kod: "okand", meddelanden: ["Betalningen hittades inte."] };
   if (a.metadata.wixOrderId) return { ok: true, orderId: a.metadata.wixOrderId };
   if (a.status === "processing") return { ok: false, kod: "behandlas", meddelanden: ["Betalningen behandlas. Ett ögonblick."] };
+  if (a.status === "requires_action") {
+    // Kunden har betalningen öppen (hos Klarna i upp till tre timmar): det är
+    // inte en avbruten betalning. ☠️ Förut svarade det här "ej_betald", och en
+    // kund som kom tillbaka från Klarna-appen fick formuläret igen utan ett ord
+    // och började om från början (2026-11-24). Nu får sidan adressen där
+    // samma betalning fortsätter. Adressen prövas av sidan (fortsattAdress i
+    // stripe-klient.ts) innan kunden skickas dit.
+    const url = a.next_action?.type === "redirect_to_url" ? a.next_action.redirect_to_url?.url : null;
+    // Bara det pågående försökets betalsätt (utbyggt av hamtaAvsikt): felet från ett tidigare försök säger inget om det här.
+    const metod = loggord(a.payment_method && typeof a.payment_method === "object" ? a.payment_method.type : "");
+    return {
+      ok: false,
+      kod: "vantar_kund",
+      meddelanden: ["Betalningen är inte slutförd, och inget har dragits."],
+      ...(typeof url === "string" && url ? { fortsatt: url } : {}),
+      ...(metod ? { metod } : {}),
+      totalOre: a.amount,
+      stripe: stripeLage(a),
+    };
+  }
   if (a.status !== "requires_capture" && a.status !== "succeeded") {
-    return { ok: false, kod: "ej_betald", meddelanden: ["Betalningen är inte genomförd. Välj ett betalsätt och försök igen."] };
+    const orsak = obetaldOrsak(a);
+    return {
+      ok: false,
+      kod: "ej_betald",
+      meddelanden: ["Betalningen är inte genomförd. Välj ett betalsätt och försök igen."],
+      ...(orsak ? { orsak } : {}),
+      stripe: stripeLage(a),
+    };
   }
   const dragenFran = a.status === "succeeded";
   const nuMs = nu.getTime();

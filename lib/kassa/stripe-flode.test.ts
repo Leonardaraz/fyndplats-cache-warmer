@@ -12,6 +12,7 @@ import {
   arKlart,
   attSlutfora,
   utfallLage,
+  stripeLage,
   webhookStatus,
   NAT_EFTER_SEK,
   NAT_LARM_SEK,
@@ -599,6 +600,101 @@ test("slutför: främmande, obetalda och pågående betalningar", async () => {
   assert.equal(saknas.ok === false && saknas.kod, "okand");
 });
 
+// ─── kunden kom tillbaka utan en godkänd betalning (2026-11-24) ─────────────
+
+const KLARNA_ADRESS = "https://pm-redirects.stripe.com/authorize/acct_1/pa_nonce_1";
+
+test("slutför: en betalning som står öppen hos Klarna är inte avbruten, och kunden får adressen dit", async () => {
+  // ☠️ Förut svarade det här "ej_betald": en kund som kom tillbaka från
+  // Klarna-appen fick formuläret igen utan ett ord och började om.
+  const oppen = avsikt({
+    status: "requires_action",
+    next_action: { type: "redirect_to_url", redirect_to_url: { url: KLARNA_ADRESS } },
+    payment_method: { type: "klarna" },
+  });
+  const f = fejk({ avsikt: oppen });
+  assert.deepEqual(await slutforStripe(f.deps, "pi_1", NU), {
+    ok: false,
+    kod: "vantar_kund",
+    meddelanden: ["Betalningen är inte slutförd, och inget har dragits."],
+    fortsatt: KLARNA_ADRESS,
+    metod: "klarna",
+    totalOre: 65900,
+    stripe: "requires_action/redirect_to_url",
+  });
+  // Betalningen är kundens tills den är godkänd: inget lås, ingen order, inget släpps.
+  assert.deepEqual(f.anrop, ["hamtaAvsikt:pi_1"]);
+  assert.equal(f.las.size, 0);
+});
+
+test("slutför: bankens verifiering (Stripes eget fönster) går inte att fortsätta från en adress", async () => {
+  // Kort med 3D Secure: Stripe.js äger fönstret. Sidan får ingen adress, och säger inte "Klarna".
+  const kort = avsikt({ status: "requires_action", next_action: { type: "use_stripe_sdk" }, payment_method: { type: "card" } });
+  const r = await slutforStripe(fejk({ avsikt: kort }).deps, "pi_1", NU);
+  assert.equal(r.ok === false && r.kod, "vantar_kund");
+  assert.equal(r.ok === false && "fortsatt" in r, false);
+  assert.equal(r.ok === false && r.metod, "card");
+  assert.equal(r.ok === false && r.stripe, "requires_action/use_stripe_sdk");
+  // Också om Stripe skulle skicka med en adress: bara en omdirigering går att fortsätta från den.
+  const medAdress = avsikt({ status: "requires_action", next_action: { type: "use_stripe_sdk", redirect_to_url: { url: KLARNA_ADRESS } }, payment_method: { type: "card" } });
+  const ma = await slutforStripe(fejk({ avsikt: medAdress }).deps, "pi_1", NU);
+  assert.equal(ma.ok === false && "fortsatt" in ma, false);
+  // En omdirigering utan adress ger ingen adress, och ett betalsätt som inte är utbyggt inget namn.
+  const tom = avsikt({ status: "requires_action", next_action: { type: "redirect_to_url", redirect_to_url: { url: null } }, payment_method: "pm_1" });
+  const t = await slutforStripe(fejk({ avsikt: tom }).deps, "pi_1", NU);
+  assert.equal(t.ok === false && "fortsatt" in t, false);
+  assert.equal(t.ok === false && "metod" in t, false);
+  // ☠️ Felet från ett TIDIGARE försök säger inget om det pågående: Klarna nekade
+  // först, och nu verifierar banken ett kort. Det är inte "hos Klarna".
+  const efterNej = avsikt({
+    status: "requires_action",
+    next_action: { type: "use_stripe_sdk" },
+    payment_method: "pm_1",
+    last_payment_error: { code: "payment_method_provider_decline", payment_method: { type: "klarna" } },
+  });
+  const e = await slutforStripe(fejk({ avsikt: efterNej }).deps, "pi_1", NU);
+  assert.equal(e.ok === false && "metod" in e, false);
+});
+
+test("slutför: en fallen Klarna-betalning säger varför, och loggraden bär Stripes läge", async () => {
+  const fall: [string, string | undefined][] = [
+    ["payment_method_provider_decline", "nekad"],
+    ["payment_method_customer_decline", "avbruten"],
+    ["payment_intent_payment_attempt_expired", "utgangen"],
+    ["payment_method_not_available", undefined],
+    // ☠️ "constructor" finns på varje objekt: en vanlig uppslagning hade gett en funktion som orsak.
+    ["constructor", undefined],
+  ];
+  for (const [code, orsak] of fall) {
+    const a = avsikt({ status: "requires_payment_method", payment_method: null, last_payment_error: { code, payment_method: { type: "klarna" } } });
+    const r = await slutforStripe(fejk({ avsikt: a }).deps, "pi_1", NU);
+    assert.equal(r.ok === false && r.kod, "ej_betald", code);
+    assert.equal(r.ok === false ? r.orsak : "?", orsak, code);
+    assert.equal(r.ok === false && r.stripe, `requires_payment_method/${code}`);
+    assert.equal(utfallLage(r), `ej_betald (requires_payment_method/${code})`);
+  }
+  // Ett nekat kort har sitt fel i betalfältet: ingen orsak härifrån, inte ens med en kod som Klarnas.
+  for (const code of ["card_declined", "payment_method_provider_decline"]) {
+    const kort = avsikt({ status: "requires_payment_method", last_payment_error: { code, payment_method: { type: "card" } } });
+    const k = await slutforStripe(fejk({ avsikt: kort }).deps, "pi_1", NU);
+    assert.equal(k.ok === false && "orsak" in k, false, code);
+  }
+  // Utan fel: bara statusen.
+  const ren = await slutforStripe(fejk({ avsikt: avsikt({ status: "requires_payment_method" }) }).deps, "pi_1", NU);
+  assert.equal(utfallLage(ren), "ej_betald (requires_payment_method)");
+});
+
+test("stripeLage: bara Stripes egna ord når loggraden", () => {
+  assert.equal(stripeLage({ status: "requires_action", next_action: { type: "redirect_to_url" } }), "requires_action/redirect_to_url");
+  assert.equal(stripeLage({ status: "requires_action", next_action: null }), "requires_action");
+  // Felkoden hör till ett fallet försök, inte till det som pågår.
+  assert.equal(stripeLage({ status: "requires_action", next_action: { type: "use_stripe_sdk" }, last_payment_error: { code: "card_declined" } }), "requires_action/use_stripe_sdk");
+  assert.equal(stripeLage({ status: "canceled", last_payment_error: { code: "payment_intent_payment_attempt_expired" } }), "canceled/payment_intent_payment_attempt_expired");
+  // Ett ord som inte är ett av Stripes (radbrytning, mejladress) kommer aldrig med som det står.
+  assert.equal(stripeLage({ status: "requires_payment_method", last_payment_error: { code: "a\nb kund@exempel.se" } }), "requires_payment_method/abkundexempelse");
+  assert.equal(stripeLage({ status: "requires_payment_method", last_payment_error: { code: "x".repeat(200) } }).length, "requires_payment_method/".length + 60);
+});
+
 test("kronorAv skriver belopp som Wix", () => {
   assert.equal(kronorAv(65900), "659.00");
   assert.equal(kronorAv(1), "0.01");
@@ -627,6 +723,8 @@ test("arKlart och webhookStatus: bara det som inte har något kvar att göra sva
     [{ ok: false, kod: "slut", meddelanden: [] }, true, 200, "slut"],
     [{ ok: false, kod: "okand", meddelanden: [] }, true, 200, "okand"],
     [{ ok: false, kod: "ej_betald", meddelanden: [] }, true, 200, "ej_betald"],
+    // Öppen hos Klarna: webhooken har inget att ta om (nästa händelse kommer när kunden godkänt).
+    [{ ok: false, kod: "vantar_kund", meddelanden: [], stripe: "requires_action/redirect_to_url" }, true, 200, "vantar_kund (requires_action/redirect_to_url)"],
   ];
   for (const [u, klart, status, lage] of fall) {
     assert.equal(arKlart(u), klart, JSON.stringify(u));

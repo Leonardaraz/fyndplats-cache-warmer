@@ -15,7 +15,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AVSIKT_KAKA, AVSIKT_KAKA_SOKVAG, STRIPE_NYCKEL, avsiktUrKakor, tillbakaKod, vantaPaOrder } from "../../../lib/kassa/stripe-klient";
+import { AVSIKT_KAKA, AVSIKT_KAKA_SOKVAG, STRIPE_NYCKEL, avsiktUrKakor, oppenText, tillbakaKod, vantaPaOrder } from "../../../lib/kassa/stripe-klient";
 import { KassaFot, KassaHuvud, Las } from "../kassa-ram";
 import s from "../kassa.module.css";
 
@@ -40,15 +40,36 @@ function tagAvsikt(): string | null {
   }
 }
 
+const oppenRuta = (hosKlarna: boolean) => oppenText({ hosKlarna, kanFortsatta: true, plats: "retur" });
+
 export function Tillbaka() {
-  const [stripeLage, setStripeLage] = useState<"nej" | "slutfor" | "vantar_mejl">("nej");
+  const [stripeLage, setStripeLage] = useState<"nej" | "slutfor" | "vantar_mejl" | "oppen">("nej");
+  // Betalningen står öppen hos Klarna: adressen där kunden fortsätter den, och om det är Klarna.
+  const [oppen, setOppen] = useState<{ adress: string; hosKlarna: boolean } | null>(null);
 
   useEffect(() => {
     const avsikt = tagAvsikt();
     if (avsikt) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- betalningens id finns bara i webbläsarens kaka
       setStripeLage("slutfor");
-      void vantaPaOrder(avsikt).then((b) => {
+      let lamnad = false;
+      // Rutan för en öppen betalning visas: bara då frågas servern igen när sidan blir synlig.
+      let oppnad = false;
+      const fraga = () => vantaPaOrder(avsikt).then((b) => {
+        if (lamnad) return;
+        if (b.gor === "fortsatt") {
+          // Inte godkänd, men öppen hos Klarna (kunden kom hit innan betalningen
+          // blev klar): ☠️ aldrig "Betalningen är mottagen" här. Kunden fortsätter
+          // samma betalning härifrån, i vilken webbläsare returen än öppnades.
+          if (b.adress) {
+            oppnad = true;
+            setOppen({ adress: b.adress, hosKlarna: b.hosKlarna });
+            setStripeLage("oppen");
+          } else {
+            window.location.replace("/kassa?stripe=avbruten");
+          }
+          return;
+        }
         if (b.gor === "tack") {
           glom(STRIPE_NYCKEL, "local");
           // Var det en medlemskorg tas de köpta varorna bort ur besökarens korg
@@ -61,12 +82,24 @@ export function Tillbaka() {
           }).catch(() => {});
           window.location.replace(`/tack?orderId=${encodeURIComponent(b.orderId)}`);
         } else if (b.gor === "fel") {
-          window.location.replace(`/kassa?stripe=${tillbakaKod(b.kod)}`);
+          window.location.replace(`/kassa?stripe=${tillbakaKod(b.kod, b.orsak)}`);
         } else {
           setStripeLage("vantar_mejl");
         }
       });
-      return;
+      void fraga();
+      // Kunden kan godkänna betalningen i Klarnas app medan rutan visas: när
+      // sidan blir synlig igen frågas servern på nytt.
+      const synlig = () => {
+        if (!oppnad || document.visibilityState !== "visible") return;
+        oppnad = false;
+        void fraga();
+      };
+      document.addEventListener("visibilitychange", synlig);
+      return () => {
+        lamnad = true;
+        document.removeEventListener("visibilitychange", synlig);
+      };
     }
 
     let v: { orderId?: string; betalningId?: string } | null = null;
@@ -120,6 +153,19 @@ export function Tillbaka() {
               </div>
               <p className={s.vantanRubrik}>Vi slutför din beställning</p>
               <p className={s.vantanUnder}>Betalningen kontrolleras och ordern skapas. Stäng inte sidan.</p>
+            </>
+          ) : stripeLage === "oppen" && oppen ? (
+            <>
+              <p className={s.vantanRubrik}>{oppenRuta(oppen.hosKlarna).rubrik}</p>
+              <p className={s.vantanUnder}>{oppenRuta(oppen.hosKlarna).text}</p>
+              <p className={s.vantanUnder} style={{ marginTop: 16 }}>
+                <a className={s.vantarKnapp} href={oppen.adress} data-kassa-oppen="">
+                  {oppenRuta(oppen.hosKlarna).knapp} <span aria-hidden="true">→</span>
+                </a>
+              </p>
+              <p className={s.vantanUnder} style={{ marginTop: 14 }}>
+                <Link href="/kassa">Tillbaka till kassan</Link>
+              </p>
             </>
           ) : (
             <>

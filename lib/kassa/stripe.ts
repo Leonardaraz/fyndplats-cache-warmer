@@ -157,6 +157,8 @@ export function provaWebhook(kropp: string, rubrik: string | null, hemlighet: st
 // ─────────────────────────────────────────────────────────────────────────────
 
 const UTBYGGD = { expand: ["latest_charge"] };
+/** Läsningen bygger också ut försökets betalsätt: flödet säger "hos Klarna" bara när det är Klarna (slutforStripe, vantar_kund). */
+const UTBYGGD_LAST = { expand: ["latest_charge", "payment_method"] };
 
 export async function skapaAvsikt(p: AvsiktParametrar, idempotens: string): Promise<Avsikt> {
   return stripeAnrop<Avsikt>("POST", "/payment_intents", { ...p }, idempotens);
@@ -170,7 +172,7 @@ export async function uppdateraAvsikt(id: string, p: Omit<AvsiktParametrar, "cur
 export async function hamtaAvsikt(id: string): Promise<Avsikt | null> {
   if (!/^pi_[A-Za-z0-9]+$/.test(id)) return null;
   try {
-    return await stripeAnrop<Avsikt>("GET", `/payment_intents/${encodeURIComponent(id)}`, UTBYGGD);
+    return await stripeAnrop<Avsikt>("GET", `/payment_intents/${encodeURIComponent(id)}`, UTBYGGD_LAST);
   } catch (e) {
     if (e instanceof StripeFel && e.status === 404) return null;
     throw e;

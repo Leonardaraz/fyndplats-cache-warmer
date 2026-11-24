@@ -6,15 +6,21 @@
 // utan spårning: betalningens id läggs i en kort kaka som bara /kassa/klar
 // ser, och kunden skickas vidare utan något i adressen (lib/kassa/stripe-klient.ts).
 // Ingen växelkoll: en betalning som redan gjorts ska alltid kunna slutföras.
+//
+// Loggraden säger bara HUR kunden kom tillbaka (Stripes redirect_status:
+// succeeded eller failed), aldrig betalningens id. ☠️ Utan den gick det inte
+// att se om en kund som fick formuläret igen efter Klarna-appen alls kommit
+// tillbaka den här vägen (2026-11-24).
 
 import { NextResponse } from "next/server";
-import { AVSIKT_KAKA, AVSIKT_KAKA_SEK, AVSIKT_KAKA_SOKVAG, returMal } from "@/lib/kassa/stripe-klient";
+import { AVSIKT_KAKA, AVSIKT_KAKA_SEK, AVSIKT_KAKA_SOKVAG, returLage, returMal } from "@/lib/kassa/stripe-klient";
 
 export const dynamic = "force-dynamic";
 
 export function GET(req: Request) {
   const url = new URL(req.url);
   const { mal, avsikt } = returMal(url.searchParams);
+  console.info(`[kassa] stripe retur: ${returLage(url.searchParams)}`);
   const svar = NextResponse.redirect(new URL(mal, url.origin), {
     status: 303,
     headers: { "Cache-Control": "private, no-store", "Referrer-Policy": "no-referrer" },

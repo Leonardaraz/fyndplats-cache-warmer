@@ -17,14 +17,20 @@ import {
   STRIPE_JS,
   STRIPE_MEDDELANDE,
   TEXT_VERIFIERING,
+  FARSKT_FORSOK_MS,
   avsiktUrKakor,
   betalfelText,
   elementsInstallningar,
+  fortsattAdress,
   klarBeslut,
   klarnaRuta,
+  oppenText,
   ramenStilla,
+  returLage,
   returMal,
   sparadAvsikt,
+  sparatBeslut,
+  sparatForsok,
   stripeMeddelande,
   tillbakaKod,
   TYPSNITT_FIL,
@@ -290,10 +296,157 @@ test("tillbaka till kassan: varje kod har en text, och okända blir fel", () => 
   // Koden kommer ur adressen: ärvda namn på objektet är inga koder.
   assert.equal(tillbakaKod("constructor"), "fel");
   assert.equal(tillbakaKod("__proto__"), "fel");
-  for (const kod of ["avbruten", "pris_andrat", "slut", "fel"]) assert.ok(STRIPE_MEDDELANDE[kod], kod);
+  for (const kod of ["avbruten", "nekad", "utgangen", "pris_andrat", "slut", "fel"]) assert.ok(STRIPE_MEDDELANDE[kod], kod);
+  // Servern vet ibland varför betalningen inte blev av (Klarna nekade, eller den gick ut).
+  assert.equal(tillbakaKod("ej_betald", "nekad"), "nekad");
+  assert.equal(tillbakaKod("ej_betald", "utgangen"), "utgangen");
+  assert.equal(tillbakaKod("ej_betald", "avbruten"), "avbruten");
+  assert.equal(tillbakaKod("ej_betald", "constructor"), "avbruten");
+  assert.equal(tillbakaKod("ej_betald", { a: 1 }), "avbruten");
+  // Orsaken gäller bara en obetald betalning: ett annat fel byter inte text.
+  assert.equal(tillbakaKod("pris_andrat", "nekad"), "pris_andrat");
+  assert.equal(stripeMeddelande("nekad"), STRIPE_MEDDELANDE.nekad);
+  assert.equal(stripeMeddelande("utgangen"), STRIPE_MEDDELANDE.utgangen);
+  for (const text of Object.values(STRIPE_MEDDELANDE)) assert.ok(/inget har dragits|Ingen betalning drogs/.test(text), text);
   assert.equal(stripeMeddelande("avbruten"), STRIPE_MEDDELANDE.avbruten);
   assert.equal(stripeMeddelande("toString"), STRIPE_MEDDELANDE.fel);
   assert.equal(stripeMeddelande(null), null);
+});
+
+// ─── kunden kom tillbaka utan en godkänd betalning (2026-11-24) ─────────────
+
+const KLARNA_ADRESS = "https://pm-redirects.stripe.com/authorize/acct_1/pa_nonce_1";
+const OPPEN_SVAR: KlarSvar = { status: 409, j: { ok: false, kod: "vantar_kund", meddelanden: ["x"], fortsatt: KLARNA_ADRESS, metod: "klarna", totalOre: 65900 } };
+
+test("adressen där en öppen betalning fortsätter: bara https hos Stripe eller Klarna", () => {
+  assert.equal(fortsattAdress(KLARNA_ADRESS), KLARNA_ADRESS);
+  assert.equal(fortsattAdress("https://hooks.stripe.com/redirect/authenticate/src_1?client_secret=x"), "https://hooks.stripe.com/redirect/authenticate/src_1?client_secret=x");
+  assert.equal(fortsattAdress("https://pay.klarna.com/eu/hpp/payments/abc"), "https://pay.klarna.com/eu/hpp/payments/abc");
+  for (const nej of [
+    "http://pm-redirects.stripe.com/authorize/x",
+    "https://stripe.com.exempel.se/authorize/x",
+    "https://exempel.se/?till=https://pm-redirects.stripe.com/",
+    "https://inte-stripe.com/x",
+    "https://kund:losen@pm-redirects.stripe.com/x",
+    "javascript:alert(1)",
+    "//pm-redirects.stripe.com/x",
+    "/kassa",
+    "",
+    "x".repeat(2100),
+    // En riktig värd, men orimligt lång: ingen sådan adress kommer från Stripe.
+    `https://pm-redirects.stripe.com/authorize/${"a".repeat(2100)}`,
+    null,
+    undefined,
+    42,
+    { url: KLARNA_ADRESS },
+  ]) {
+    assert.equal(fortsattAdress(nej), null, String(nej).slice(0, 60));
+  }
+});
+
+test("serverns svar: en betalning som står öppen hos Klarna är varken ett fel eller en väntan", () => {
+  assert.deepEqual(klarBeslut(OPPEN_SVAR.status, OPPEN_SVAR.j), { gor: "fortsatt", adress: KLARNA_ADRESS, hosKlarna: true, totalOre: 65900 });
+  // En adress sidan inte känner igen ger ingen knapp, och ett annat betalsätt heter inte Klarna.
+  assert.deepEqual(klarBeslut(409, { ok: false, kod: "vantar_kund", fortsatt: "https://exempel.se/x", metod: "card", totalOre: "65900" }), {
+    gor: "fortsatt",
+    adress: null,
+    hosKlarna: false,
+    totalOre: null,
+  });
+  assert.deepEqual(klarBeslut(409, { ok: false, kod: "vantar_kund" }), { gor: "fortsatt", adress: null, hosKlarna: false, totalOre: null });
+  // Orsaken följer med ett fel, men bara som text.
+  assert.deepEqual(klarBeslut(409, { ok: false, kod: "ej_betald", meddelanden: ["x"], orsak: "nekad" }), { gor: "fel", kod: "ej_betald", meddelanden: ["x"], orsak: "nekad" });
+  assert.equal("orsak" in klarBeslut(409, { ok: false, kod: "ej_betald", meddelanden: ["x"], orsak: { a: 1 } }), false);
+});
+
+test("väntan på ordern slutar direkt när betalningen står öppen: sidan säger aldrig att den är mottagen", async () => {
+  // ☠️ Hade svaret räknats som "vänta" hade sidan efter en minut sagt
+  // "Betalningen är mottagen" om en betalning som aldrig godkändes.
+  const n = natet([OPPEN_SVAR]);
+  assert.deepEqual(await vantaPaOrder("pi_1", n.v), { gor: "fortsatt", adress: KLARNA_ADRESS, hosKlarna: true, totalOre: 65900 });
+  assert.equal(n.fragor(), 1);
+});
+
+test("det sparade försöket: ålder och om kunden redan fått beskedet", () => {
+  const nu = 1_800_000_000_000;
+  assert.deepEqual(sparatForsok({ avsiktId: "pi_1", cartId: "korg-1", at: nu - 5000 }, "korg-1", nu), { avsiktId: "pi_1", alderMs: 5000, sagt: false });
+  assert.deepEqual(sparatForsok({ avsiktId: "pi_1", cartId: "korg-1", at: nu - 5000, sagt: true }, "korg-1", nu), { avsiktId: "pi_1", alderMs: 5000, sagt: true });
+  // Bara true räknas: en sparad text eller etta är inte ett kvitto på att beskedet visats.
+  assert.equal(sparatForsok({ avsiktId: "pi_1", cartId: "korg-1", at: nu, sagt: "ja" }, "korg-1", nu)?.sagt, false);
+  // En klocka som går lite före ger aldrig en negativ ålder.
+  assert.equal(sparatForsok({ avsiktId: "pi_1", cartId: "korg-1", at: nu + 30_000 }, "korg-1", nu)?.alderMs, 0);
+  // Samma spärrar som förut: en annan korg, ett för gammalt försök, ett påhittat id.
+  assert.equal(sparatForsok({ avsiktId: "pi_1", cartId: "korg-2", at: nu }, "korg-1", nu), null);
+  assert.equal(sparatForsok({ avsiktId: "pi_1", cartId: "korg-1", at: nu - SPARAD_MS - 1 }, "korg-1", nu), null);
+  assert.equal(sparatForsok({ avsiktId: "pi_1;x", cartId: "korg-1", at: nu }, "korg-1", nu), null);
+  assert.equal(sparadAvsikt({ avsiktId: "pi_1", cartId: "korg-1", at: nu - 5000, sagt: true }, "korg-1", nu), "pi_1");
+});
+
+test("kassan visas med ett sparat försök: godkänt slutförs, öppet fortsätts, nekat förklaras en gång", () => {
+  const farskt = { alderMs: 60_000, sagt: false };
+  assert.deepEqual(sparatBeslut({ status: 200, j: { ok: true, orderId: "order-1" } }, farskt), { gor: "tack", orderId: "order-1" });
+  assert.deepEqual(sparatBeslut({ status: 202, j: { ok: false, kod: "pagar" } }, farskt), { gor: "slutfor" });
+  assert.deepEqual(sparatBeslut(OPPEN_SVAR, farskt), { gor: "oppen", adress: KLARNA_ADRESS, hosKlarna: true, totalOre: 65900 });
+  // Öppet är öppet också efter två timmar (Klarna håller betalningen i tre) och efter ett visat besked.
+  assert.equal(sparatBeslut(OPPEN_SVAR, { alderMs: 2 * 60 * 60 * 1000, sagt: true }).gor, "oppen");
+
+  const nekad: KlarSvar = { status: 409, j: { ok: false, kod: "ej_betald", meddelanden: ["x"], orsak: "nekad" } };
+  assert.deepEqual(sparatBeslut(nekad, farskt), { gor: "sag", text: STRIPE_MEDDELANDE.nekad });
+  assert.deepEqual(sparatBeslut({ status: 409, j: { ok: false, kod: "ej_betald", orsak: "utgangen" } }, farskt), { gor: "sag", text: STRIPE_MEDDELANDE.utgangen });
+  assert.deepEqual(sparatBeslut({ status: 409, j: { ok: false, kod: "ej_betald", orsak: "avbruten" } }, farskt), { gor: "sag", text: STRIPE_MEDDELANDE.avbruten });
+  // En okänd orsak får den vanliga texten, aldrig en tom ruta.
+  assert.deepEqual(sparatBeslut({ status: 409, j: { ok: false, kod: "ej_betald", orsak: "constructor" } }, farskt), { gor: "sag", text: STRIPE_MEDDELANDE.avbruten });
+  // En gång: inte vid nästa omladdning, och inte för ett försök kunden lämnat sedan länge.
+  assert.deepEqual(sparatBeslut(nekad, { alderMs: 60_000, sagt: true }), { gor: "inget" });
+  assert.deepEqual(sparatBeslut(nekad, { alderMs: FARSKT_FORSOK_MS + 1, sagt: false }), { gor: "inget" });
+  assert.equal(sparatBeslut(nekad, { alderMs: FARSKT_FORSOK_MS, sagt: false }).gor, "sag");
+
+  // Utan orsak (ett kort, eller ett försök som aldrig lämnade kassan): som förut, ingenting.
+  assert.deepEqual(sparatBeslut({ status: 409, j: { ok: false, kod: "ej_betald", meddelanden: ["x"] } }, farskt), { gor: "inget" });
+  // Andra fel och ett tappat nät: kunden betalar som vanligt. Bara 202 väntar.
+  assert.deepEqual(sparatBeslut({ status: 409, j: { ok: false, kod: "fel", orsak: "nekad" } }, farskt), { gor: "inget" });
+  assert.deepEqual(sparatBeslut({ status: 0, j: null }, farskt), { gor: "inget" });
+  assert.deepEqual(sparatBeslut({ status: 502, j: null }, farskt), { gor: "inget" });
+  assert.deepEqual(sparatBeslut({ status: 400, j: { ok: false, kod: "okand" } }, farskt), { gor: "inget" });
+});
+
+test("rutan för en öppen betalning: säger att inget dragits, och knappen heter aldrig Fortsätt till Klarna", () => {
+  const kassa = oppenText({ hosKlarna: true, kanFortsatta: true, plats: "kassa" });
+  assert.deepEqual(kassa, {
+    rubrik: "Din Klarna-betalning är inte klar",
+    text: "Inget har dragits. Fortsätt där du var hos Klarna, eller välj ett betalsätt längre ner och betala på nytt.",
+    knapp: "Slutför betalningen hos Klarna",
+  });
+  const retur = oppenText({ hosKlarna: true, kanFortsatta: true, plats: "retur" });
+  assert.equal(retur.text, "Inget har dragits. Fortsätt där du var hos Klarna, eller gå tillbaka till kassan och välj ett annat betalsätt.");
+  // Utan adress att fortsätta på (ett annat belopp, eller bankens verifiering): bara vad kunden gör härnäst.
+  assert.equal(oppenText({ hosKlarna: true, kanFortsatta: false, plats: "kassa" }).text, "Inget har dragits. Välj ett betalsätt längre ner och betala på nytt.");
+  // Ett betalsätt sidan inte känner säger inte "Klarna".
+  const okant = oppenText({ hosKlarna: false, kanFortsatta: true, plats: "kassa" });
+  assert.equal(okant.rubrik, "Din betalning är inte klar");
+  assert.equal(okant.knapp, "Slutför betalningen");
+  assert.ok(!okant.text.includes("Klarna"));
+  for (const hosKlarna of [true, false]) {
+    for (const kanFortsatta of [true, false]) {
+      for (const plats of ["kassa", "retur"] as const) {
+        const t = oppenText({ hosKlarna, kanFortsatta, plats });
+        assert.ok(t.text.startsWith("Inget har dragits. "), t.text);
+        assert.ok(!/fortsätt till klarna/i.test(`${t.rubrik} ${t.text} ${t.knapp}`));
+        assert.ok(t.knapp.startsWith("Slutför betalningen"));
+      }
+    }
+  }
+});
+
+test("loggraden för returen: hur kunden kom tillbaka, aldrig betalningens id", () => {
+  assert.equal(returLage(new URLSearchParams({ payment_intent: "pi_3Abc", payment_intent_client_secret: "pi_3Abc_secret_x", redirect_status: "succeeded" })), "succeeded");
+  assert.equal(returLage(new URLSearchParams({ payment_intent: "pi_3Abc", redirect_status: "failed" })), "failed");
+  assert.equal(returLage(new URLSearchParams({ payment_intent: "pi_3Abc" })), "utan status");
+  assert.equal(returLage(new URLSearchParams({ redirect_status: "succeeded" })), "utan betalning");
+  // Det som står i adressen är kundens att skriva: bara små bokstäver och understreck kommer med.
+  assert.equal(returLage(new URLSearchParams({ payment_intent: "pi_3Abc", redirect_status: "pi_3Abc_secret_x" })), "utan status");
+  assert.equal(returLage(new URLSearchParams({ payment_intent: "pi_3Abc", redirect_status: "failed\nny rad" })), "utan status");
+  assert.equal(returLage(new URLSearchParams({ payment_intent: "pi_3Abc", redirect_status: "a".repeat(80) })).length, 30);
 });
 
 test("Klarna-rutan på produktsidan: Klarnas egen bara när kunden får Wix kassa", () => {

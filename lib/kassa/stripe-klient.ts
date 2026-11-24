@@ -239,19 +239,51 @@ export interface SparadAvsikt {
   avsiktId: string;
   cartId: string;
   at: number;
+  /** Kunden har fått veta varför försöket föll (sparatBeslut, "sag"): samma besked visas inte vid varje omladdning. */
+  sagt?: true;
 }
 
-/** Betalningens id ur kundens sparade försök, om det gäller den här korgen och inte är för gammalt. */
-export function sparadAvsikt(v: unknown, cartId: string, nuMs: number): string | null {
+/** Kundens sparade försök, om det gäller den här korgen och inte är för gammalt: betalningens id, försökets ålder och om kunden redan fått veta varför det föll. */
+export function sparatForsok(v: unknown, cartId: string, nuMs: number): { avsiktId: string; alderMs: number; sagt: boolean } | null {
   if (!v || typeof v !== "object" || !cartId) return null;
   const s = v as Partial<SparadAvsikt>;
   if (typeof s.avsiktId !== "string" || !AVSIKT_ID.test(s.avsiktId)) return null;
   if (s.cartId !== cartId || typeof s.at !== "number" || !Number.isFinite(s.at)) return null;
   if (nuMs - s.at > SPARAD_MS || s.at - nuMs > 60_000) return null;
-  return s.avsiktId;
+  return { avsiktId: s.avsiktId, alderMs: Math.max(0, nuMs - s.at), sagt: s.sagt === true };
 }
 
-export type KlarBeslut = { gor: "tack"; orderId: string } | { gor: "vanta" } | { gor: "fel"; kod: string; meddelanden: string[] };
+/** Betalningens id ur kundens sparade försök, om det gäller den här korgen och inte är för gammalt. */
+export function sparadAvsikt(v: unknown, cartId: string, nuMs: number): string | null {
+  return sparatForsok(v, cartId, nuMs)?.avsiktId ?? null;
+}
+
+export type KlarBeslut =
+  | { gor: "tack"; orderId: string }
+  | { gor: "vanta" }
+  /** Kunden har betalningen öppen hos Klarna: `adress` är där samma betalning fortsätter (null när den inte går att fortsätta härifrån). */
+  | { gor: "fortsatt"; adress: string | null; hosKlarna: boolean; totalOre: number | null }
+  | { gor: "fel"; kod: string; meddelanden: string[]; orsak?: string };
+
+/** Dit kunden får skickas för att fortsätta en påbörjad betalning: Stripes omdirigering, och Klarna. */
+const FORTSATT_VARD = /(^|\.)(stripe\.com|klarna\.com)$/;
+
+/**
+ * Adressen där en öppen betalning fortsätter (next_action.redirect_to_url ur
+ * serverns svar), om den är https hos Stripe eller Klarna. Annars null: sidan
+ * skickar aldrig kunden till en adress den inte känner igen.
+ */
+export function fortsattAdress(v: unknown): string | null {
+  if (typeof v !== "string" || v.length > 2000) return null;
+  let u: URL;
+  try {
+    u = new URL(v);
+  } catch {
+    return null;
+  }
+  if (u.protocol !== "https:" || u.username || u.password) return null;
+  return FORTSATT_VARD.test(u.hostname) ? u.href : null;
+}
 
 const TEXT_FEL = "Beställningen kunde inte slutföras. Ingen betalning drogs. Försök igen, eller kontakta oss om det inte går.";
 
@@ -266,8 +298,23 @@ export function klarBeslut(status: number, j: unknown): KlarBeslut {
   if (status === 200 && s.ok === true && typeof s.orderId === "string" && s.orderId) return { gor: "tack", orderId: s.orderId };
   // 503 är "kassan är stängd" (nycklarna saknas): att fråga igen hjälper inte.
   if (status === 0 || status === 200 || status === 202 || (status >= 500 && status !== 503)) return { gor: "vanta" };
+  if (s.kod === "vantar_kund") {
+    const t = s as { fortsatt?: unknown; metod?: unknown; totalOre?: unknown };
+    return {
+      gor: "fortsatt",
+      adress: fortsattAdress(t.fortsatt),
+      hosKlarna: t.metod === "klarna",
+      totalOre: typeof t.totalOre === "number" && Number.isSafeInteger(t.totalOre) && t.totalOre > 0 ? t.totalOre : null,
+    };
+  }
   const meddelanden = Array.isArray(s.meddelanden) ? s.meddelanden.filter((m): m is string => typeof m === "string" && m.length > 0) : [];
-  return { gor: "fel", kod: typeof s.kod === "string" ? s.kod : "fel", meddelanden: meddelanden.length ? meddelanden : [TEXT_FEL] };
+  const orsak = (s as { orsak?: unknown }).orsak;
+  return {
+    gor: "fel",
+    kod: typeof s.kod === "string" ? s.kod : "fel",
+    meddelanden: meddelanden.length ? meddelanden : [TEXT_FEL],
+    ...(typeof orsak === "string" ? { orsak } : {}),
+  };
 }
 
 /** Ett svar från /api/kassa/stripe/klar: status 0 när nätet felade. */
@@ -327,6 +374,17 @@ export function returMal(sok: URLSearchParams): { mal: string; avsikt: string | 
   return AVSIKT_ID.test(pi) ? { mal: AVSIKT_KAKA_SOKVAG, avsikt: pi } : { mal: "/kassa?stripe=fel", avsikt: null };
 }
 
+/**
+ * Hur kunden kom tillbaka, som ett ord för loggen: Stripes redirect_status
+ * ("succeeded", "failed"), eller att den eller betalningens id saknades.
+ * Bara små bokstäver och understreck ur adressen, aldrig ett id.
+ */
+export function returLage(sok: URLSearchParams): string {
+  if (!AVSIKT_ID.test(sok.get("payment_intent") ?? "")) return "utan betalning";
+  const status = (sok.get("redirect_status") ?? "").slice(0, 30);
+  return /^[a-z_]+$/.test(status) ? status : "utan status";
+}
+
 /** Betalningens id ur kakorna (document.cookie), om det är ett giltigt id. */
 export function avsiktUrKakor(kakor: string): string | null {
   for (const del of kakor.split(";")) {
@@ -341,14 +399,20 @@ export function avsiktUrKakor(kakor: string): string | null {
 /** Texterna för /kassa?stripe=<kod>, när kunden skickas tillbaka till kassan. */
 export const STRIPE_MEDDELANDE: Record<string, string> = {
   avbruten: "Betalningen avbröts eller godkändes inte, och inget har dragits. Välj ett betalsätt och försök igen.",
+  nekad: "Klarna godkände inte betalningen, och inget har dragits. Välj ett annat betalsätt eller försök igen.",
+  utgangen: "Betalningen hos Klarna hann gå ut innan den blev klar, och inget har dragits. Välj ett betalsätt och försök igen.",
   pris_andrat: "Priset ändrades medan du betalade. Ingen betalning drogs. Kontrollera beställningen och försök igen.",
   slut: "En vara tog slut medan du betalade. Ingen betalning drogs. Kontrollera varukorgen och försök igen.",
   fel: TEXT_FEL,
 };
 
-/** Kassans kod för en betalning som inte blev en order: ej_betald betyder att kunden avbröt. */
-export function tillbakaKod(kod: string): string {
-  if (kod === "ej_betald") return "avbruten";
+/**
+ * Kassans kod för en betalning som inte blev en order. ej_betald betyder att
+ * kunden avbröt, om inte servern vet bättre (`orsak`: Klarna nekade, eller
+ * betalningen gick ut).
+ */
+export function tillbakaKod(kod: string, orsak?: unknown): string {
+  if (kod === "ej_betald") return orsak === "nekad" || orsak === "utgangen" ? orsak : "avbruten";
   // Egen egenskap, inte `in`: "constructor" och "__proto__" finns på varje objekt.
   // hasOwnProperty.call och inte Object.hasOwn, som saknas i Safari före 15.4 (butiken stöder iOS 14).
   return Object.prototype.hasOwnProperty.call(STRIPE_MEDDELANDE, kod) ? kod : "fel";
@@ -358,6 +422,58 @@ export function tillbakaKod(kod: string): string {
 export function stripeMeddelande(kod: string | null): string | null {
   if (!kod) return null;
   return STRIPE_MEDDELANDE[tillbakaKod(kod)];
+}
+
+/** Ett försök som föll för så här länge sedan förklaras inte längre: kunden har gått vidare. */
+export const FARSKT_FORSOK_MS = 30 * 60 * 1000;
+
+/** Vad kassan gör med kundens sparade försök när sidan visas. */
+export type SparatBeslut =
+  | { gor: "tack"; orderId: string }
+  /** Betald och på väg att bli en order (webhooken håller på): sidan väntar på den. */
+  | { gor: "slutfor" }
+  /** Öppen hos Klarna: kassan säger det och låter kunden fortsätta samma betalning. */
+  | { gor: "oppen"; adress: string | null; hosKlarna: boolean; totalOre: number | null }
+  /** Klarna-försöket föll nyss: säg varför, en gång. */
+  | { gor: "sag"; text: string }
+  | { gor: "inget" };
+
+/**
+ * Kundens sparade försök mot serverns svar (/api/kassa/stripe/klar), när
+ * kassan laddas, kommer tillbaka ur webbläsarens minne eller blir synlig igen.
+ *
+ * ☠️ Förut gjorde kassan ingenting med ett försök som inte var betalt. En kund
+ * som godkänt med BankID i Klarna-appen och gick tillbaka till butiken fick
+ * formuläret igen utan ett ord, tre gånger i rad, och köpte till slut från
+ * datorn (2026-11-24). Nu säger kassan vad som gäller: betalningen står öppen
+ * hos Klarna och går att fortsätta ("oppen"), eller Klarna sa nej ("sag").
+ */
+export function sparatBeslut(svar: KlarSvar, forsok: { alderMs: number; sagt: boolean }): SparatBeslut {
+  const b = klarBeslut(svar.status, svar.j);
+  if (b.gor === "tack") return b;
+  if (svar.status === 202) return { gor: "slutfor" };
+  if (b.gor === "fortsatt") return { gor: "oppen", adress: b.adress, hosKlarna: b.hosKlarna, totalOre: b.totalOre };
+  if (b.gor === "fel" && b.kod === "ej_betald" && b.orsak && !forsok.sagt && forsok.alderMs <= FARSKT_FORSOK_MS) {
+    return { gor: "sag", text: STRIPE_MEDDELANDE[tillbakaKod(b.kod, b.orsak)] };
+  }
+  return { gor: "inget" };
+}
+
+/**
+ * Rutan för en betalning som står öppen hos Klarna: i kassan ("kassa", med
+ * betalsätten under) och på sidan kunden kommer tillbaka till ("retur").
+ * ☠️ Knappen heter aldrig "Fortsätt till Klarna" (CLAUDE.md, Stripe-kassan):
+ * den säger att det är betalningen som slutförs.
+ */
+export function oppenText(o: { hosKlarna: boolean; kanFortsatta: boolean; plats: "kassa" | "retur" }): { rubrik: string; text: string; knapp: string } {
+  const annat = o.plats === "kassa" ? "välj ett betalsätt längre ner och betala på nytt" : "gå tillbaka till kassan och välj ett annat betalsätt";
+  return {
+    rubrik: o.hosKlarna ? "Din Klarna-betalning är inte klar" : "Din betalning är inte klar",
+    text: o.kanFortsatta
+      ? `Inget har dragits. Fortsätt där du var${o.hosKlarna ? " hos Klarna" : ""}, eller ${annat}.`
+      : `Inget har dragits. ${annat.charAt(0).toUpperCase()}${annat.slice(1)}.`,
+    knapp: o.hosKlarna ? "Slutför betalningen hos Klarna" : "Slutför betalningen",
+  };
 }
 
 /** Text när bankens verifiering (3D Secure, BankID) inte godkändes: kunden kan göra något åt den. */

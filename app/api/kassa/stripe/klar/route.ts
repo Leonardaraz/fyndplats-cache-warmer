@@ -36,8 +36,13 @@ export async function POST(req: Request) {
     const utfall = await slutforStripe(stripeKassa, avsiktId, new Date());
     console.info(`[kassa] stripe slutför ${utfallLage(utfall)} på ${Date.now() - start} ms`);
     // "pagar" och "behandlas" är inga fel: sidan frågar igen om en stund.
+    // "vantar_kund" (betalningen står öppen hos Klarna) är 409 som "ej_betald":
+    // sidan slutar vänta och låter kunden fortsätta betalningen (klarBeslut).
     const status = utfall.ok ? 200 : utfall.kod === "pagar" || utfall.kod === "behandlas" ? 202 : 409;
-    return svar(utfall, status);
+    // Stripes läge är loggradens (utfallLage), inte kundens.
+    const ut: Record<string, unknown> = { ...utfall };
+    delete ut.stripe;
+    return svar(ut, status);
   } catch (e) {
     console.error(`[kassa] stripe slutför föll efter ${Date.now() - start} ms: ${e instanceof Error ? e.message.slice(0, 300) : e}`);
     return svar({ ok: false, kod: "tjanst", meddelanden: ["Vi slutför din beställning. Ladda om sidan om en liten stund."] }, 502);
