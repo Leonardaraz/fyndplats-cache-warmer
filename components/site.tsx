@@ -4,6 +4,7 @@ import { ProfilRemsa } from "./profil-remsa";
 import { HemLank } from "./hem-lank";
 import { WishlistButton } from "./wishlist";
 import { SearchBox } from "./searchbox";
+import { HuvudGom } from "./huvud-gom";
 import { CookieSettingsLink } from "./cookie-settings-link";
 import { TillToppenLank } from "./till-toppen-lank";
 import { MobileNav } from "./mobilenav";
@@ -71,6 +72,9 @@ export async function SiteHeader() {
           <Social className="promo-social" />
         </div>
       </aside>
+      {/* Mobilens sidhuvud glider undan när man scrollar ner och kommer tillbaka
+          när man scrollar upp (components/huvud-gom.tsx). */}
+      <HuvudGom />
       <header className="sidhuvud">
         {/* Datorn: loggan, sökrutan, hjärtat och kundvagnen på första raden, och
             menyn på en egen rad under (.hnav). Mobilen: loggan, hjärtat,

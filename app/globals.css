@@ -236,6 +236,23 @@ img{display:block;max-width:100%}
 .promo b.klarna-mark{color:#FFB3C7}
 
 header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+/* Sidhuvudet glider undan (Leonard 2026-11-24): mobilens sidhuvud med sökraden
+   är 133 px av skärmen. Scrollar man ner glider det upp ur bild, och så fort
+   man scrollar upp kommer det tillbaka (components/huvud-gom.tsx sätter
+   data-huvud på <html>, regeln står i lib/huvud-gom.ts). Bara transform, så
+   att sidan under aldrig flyttar sig. Framme står det utan transform: en
+   transform hade gjort sidhuvudet till ram för allt som är fäst mot skärmen
+   inuti det. 3 px extra tar med kanten och den glödande linjen under. Glidet
+   in är lite längre än glidet ut, och bromsar in mjukt.
+   Datorns sidhuvud står kvar: där fäster produktsidans bildgalleri under det,
+   och menyn ska gå att nå med musen utan att först scrolla upp. */
+@media(max-width:900px){
+  .sidhuvud{transition:transform .32s cubic-bezier(.2,.8,.2,1)}
+  html[data-huvud="gomt"] .sidhuvud{transform:translateY(calc(-100% - 3px));transition:transform .26s cubic-bezier(.4,0,.7,.2)}
+  /* Aldrig gömt medan det används: sökläget, och tangentbordets fokus i sidhuvudet. */
+  html[data-huvud="gomt"][data-sok-lage] .sidhuvud,html[data-huvud="gomt"] .sidhuvud:focus-within{transform:none}
+}
+@media(max-width:900px) and (prefers-reduced-motion:reduce){.sidhuvud{transition:none}}
 .hrow{display:flex;align-items:center;gap:20px;padding:15px 0}
 .brand{display:flex;align-items:center;gap:10px;min-height:44px;font-weight:800;font-size:var(--text-xl);letter-spacing:-.02em}
 .mark{width:34px;height:34px;flex:0 0 auto}
