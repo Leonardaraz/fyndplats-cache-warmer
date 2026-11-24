@@ -6129,3 +6129,225 @@ repot.
   publikt, och märket står med flit bara i det hemliga Prisjakt-flödet.
 - **En text om att leverantörens märken säljs under butikens namn.** Det är
   Leonards beslut.
+
+## Sökläget: trycket går direkt till varan (Leonard 2026-11-24)
+
+Leonard: "Om jag söker på nått dyker förslag upp direkt sen när jag trycker
+Kmr jag inte direkt till produkten utan till bild 2 först i några hundra ms
+sen till produkten, det känns inte premium." Bild 2 var sidan som låg UNDER
+sökläget, i hans fall "Sökresultat för renar".
+
+**Orsaken.** `goProduct` i `components/searchbox.tsx` stängde sökläget i
+trycket (`setOpen(false)`) och bytte sida efteråt. Mobilens sökläge täcker
+skärmen, så när det stängdes syntes sidan under tills produktsidan var
+hämtad: två sidbyten för ett tryck.
+
+**Mätt** (Chromium i telefonstorlek 390 × 844, sidbytets data fördröjd 0,6 s
+som på ett trögt mobilnät, sidans läge läst varje bildruta,
+2026-11-24):
+
+| | www (18e25500) | grenen |
+| --- | --- | --- |
+| Bildrutor där sidan under syntes efter trycket | 57 (från 44 ms till sidbytet, 1 035 ms) | 0 |
+| Det tryckta kortet markerat medan sidan hämtas | nej | ja |
+| Sökläget kvar efter sidbytet | 0 bildrutor | 0 bildrutor |
+| Sökfälten tomma efteråt, sidan olåst | ja | ja |
+
+Utan fördröjningen är tiden lika lång som sidbytet tar, alltså de "några
+hundra ms" Leonard såg.
+
+**Reglerna:**
+
+1. ☠️ **Trycket stänger ingenting.** `ga(href)` sätter `pavag` och byter sida
+   i en övergång (`startaGa(() => router.push(href))`). Sökläget står kvar med
+   det tryckta kortet markerat (klassen `pavag`: bilden trycks in en aning och
+   får märkesfärgens kant, resten tonas till 45 %).
+2. **Sökläget är borta i samma rendering som den nya sidan ritas:**
+   `framme = pavag !== null && !gar`, och `visas` är falskt när `framme` är
+   sant. En effekt tömmer sedan rutan och säger till mobilmenyn (`onNavigate`).
+   Det är samma mönster som sökningen har sedan 2026-08-29 (`skickad`).
+3. **Sidan hämtas vid avsikt** (`forhamta`): när fingret landar på kortet, och
+   när muspekaren når raden i datorns lista. En gång per vara, som
+   `components/prefetch-link.tsx` gör på korten i listorna.
+4. **I sökläget fälls tangentbordet i trycket**, så att kortet syns.
+5. Varor, kategorirader och kategorichips går alla genom `ga`. Provet fäller
+   om någon av dem byter sida på egen hand.
+
+**Prov:** `lib/sok-lage.test.ts` ("trycket på en vara går direkt till varan",
+sex prov, plus fyra äldre som låste den gamla koden). Fyra avsiktliga fel i
+`ga`, `framme` och `visas` fäller proven. I webbläsaren på den byggda grenen:
+musen och tangentbordet (pil ner och Enter) på datorn, kategorirad,
+kategorichip i sökläget, en vara som är sidan man redan står på (sökläget
+stängs ändå) och bakåtknappen efteråt. Inga sidfel.
+
+**Inte provat:** Safari på en riktig iPhone. Chromium i telefonstorlek är
+inte Safari, och övergången bygger på Reacts `useTransition`, som Safari har
+samma stöd för. Leonard ser det direkt efter deployen.
+
+## Mobilens sidhuvud glider undan när man scrollar ner (Leonard 2026-11-24)
+
+Leonard: "det är effektivare om man låter sök huvudet inte följa med när man
+scrollar ner utan den försvinner så man ser mer, men så fort man scrollar upp
+så dyker den upp på ett smidigt premium sätt".
+
+Mobilens sidhuvud med sökraden är 133 px av skärmen (16 % av en iPhone 14).
+
+- **Regeln** står i `lib/huvud-gom.ts` (ren funktion, `huvudSteg`):
+  sidhuvudet göms efter ett svep ner på 28 px (`GOM_EFTER_PX`), visas igen
+  efter 6 px uppåt (`VISA_EFTER_PX`) och visas alltid inom 140 px från sidans
+  topp (`ALLTID_OVAN_PX`). Rörelsen mäts från där det pågående svepet började,
+  så en darrning med tummen ändrar ingenting.
+- ☠️ **Läget hålls inom sidan.** iOS låter sidan dras förbi toppen och botten
+  och studsa tillbaka. Utan det hade studsen i botten räknats som att kunden
+  scrollade upp, och sidhuvudet hade glidit fram av sig självt.
+- **Komponenten** `components/huvud-gom.tsx` (i `SiteHeader`) lyssnar passivt
+  på sidans rörelse, räknar en gång per bildruta och skriver
+  `data-huvud="gomt"` på `<html>` bara när läget ändras. Ingen React-rendering
+  när sidan rör sig. En ny sida börjar med sidhuvudet framme.
+- **Stilen** (`app/globals.css`, "Sidhuvudet glider undan"): bara `transform`,
+  så sidan under flyttar sig aldrig, och bara upp till 900 px bredd. Framme
+  står sidhuvudet utan transform, för en transform hade gjort det till ram
+  för allt som är fäst mot skärmen inuti det.
+- **Aldrig gömt medan det används:** i sökläget (`data-sok-lage`) och när
+  tangentbordets fokus står i sidhuvudet (`:focus-within`).
+- **Minskad rörelse:** inget glid, sidhuvudet byter läge direkt.
+- **Datorn är oförändrad.** Där fäster produktsidans bildgalleri under
+  sidhuvudet (`--ankare`), och menyn ska gå att nå med musen utan att först
+  scrolla upp. Vill Leonard ha det där också är det en egen ändring.
+
+**Mätt** i Chromium, 390 × 844 (2026-11-24): gömt efter ett svep ner
+(sidhuvudets underkant 3 px ovanför skärmen), framme igen efter 8 px uppåt,
+oförändrat av en darrning på 1–3 px, alltid framme vid toppen och på en ny
+sida, sidans höjd oförändrad. Glidet in tar 0,29 s och bromsar in mjukt
+(−136, −107, −57, −30, −16, −9, −5, −2, 0 px), glidet ut 0,31 s. Attributet
+skrevs 9 gånger under ett helt prov med tusentals bildrutor. Surfplatta på
+högkant (820 px) följer samma regel, och datorn (1 280 px) står kvar.
+
+**Prov:** `lib/huvud-gom.test.ts` (11 prov, bland dem studsen i botten och
+dragningen förbi toppen). Tio avsiktliga fel i regeln, stilen och komponenten
+fäller proven.
+
+**Inte provat:** en riktig iPhone. Studsen och Safaris adressfält som fälls
+ihop går inte att göra i Chromium; regeln för dem är provad som räkning.
+
+## Klarna på telefonen: kunden kom tillbaka utan godkänd betalning och fick börja om (2026-11-24)
+
+En kund ringde Leonard: han signerade med BankID i Klarna-appen, appen bad
+honom gå tillbaka till butikens webbplats, och där "avbröts det bara" så att
+han fick börja om. På datorn gick samma köp igenom.
+
+### Mätt i produktionsloggarna (2026-11-24, UTC)
+
+| Tid | Rad | Betyder |
+| --- | --- | --- |
+| 14:49:28 | förbered ok, `skapaAvsikt` | ny betalning, kunden trycker "Betala med Klarna" |
+| 14:50:21 | slutför `ej_betald` | kunden är tillbaka i kassan, betalningen inte godkänd |
+| 14:51:32 | slutför `ej_betald` | tillbaka igen, utan nytt tryck emellan |
+| 14:52:33 | förbered ok, `uppdateraAvsikt` | nytt tryck, samma betalning återanvänds |
+| 14:59:00 | slutför `ej_betald` | tillbaka en tredje gång |
+| 14:59:37 | förbered ok, `uppdateraAvsikt` | nytt tryck, sedan inget mer |
+| 15:09:01 | förbered ok, `skapaAvsikt` | en annan webbläsare (inget sparat försök) |
+| 15:10:02–08 | slutför `pagar` ×3, `ok` | köpet går igenom |
+
+- Varje `ej_betald` kom ENSAM. En retur genom Stripe (`/kassa/klar`) ger två
+  frågor inom någon sekund: retursidans, och kassans egen när kunden skickats
+  dit. Kunden kom alltså tre gånger till en nyladdad `/kassa`, inte genom
+  returen.
+- Kassan frågade servern, fick "inte betald" och gjorde ingenting. Formuläret
+  stod tomt, för uppgifterna sparas bara om kunden kryssat i "Spara mina
+  uppgifter". Det är "avbröts bara" och "börja om".
+- **Inte mätt:** vad Klarna och Stripe såg. Stripe-kopplingen i Claude var
+  inte inloggad, retur-rutten loggade ingenting, och Vercels förfrågningslogg
+  kräver Observability Plus (avstängt). Varför Klarnas flöde inte blev klart
+  i telefonen är alltså inte fastställt.
+
+### Vad Stripe säger (docs.stripe.com/payments/klarna/accept-a-payment, läst 2026-11-24)
+
+- Kunden har tre timmar på sig hos Klarna. Under tiden står betalningen i
+  `requires_action`, med adressen dit i `next_action.redirect_to_url.url`.
+- Faller den går den till `requires_payment_method`, med orsaken i
+  `last_payment_error.code`: `payment_method_customer_decline` (kunden
+  avbröt hos Klarna), `payment_method_provider_decline` (Klarna nekade),
+  `payment_intent_payment_attempt_expired` (tiden gick ut) och
+  `payment_method_not_available`.
+
+### Det som var fel hos oss
+
+1. ☠️ `slutforStripe` svarade `ej_betald` för allt som inte var godkänt,
+   också en betalning som stod öppen hos Klarna.
+2. ☠️ Kassan gjorde ingenting med ett sparat försök som inte var betalt, och
+   prövade det bara när sidan laddades: inte när den kom tillbaka ur
+   webbläsarens minne och inte när den blev synlig igen efter en annan app.
+3. Loggraden sa `ej_betald` utan Stripes status, och returen loggade inget.
+
+### Reglerna nu
+
+1. **Öppen är inte avbruten.** `slutforStripe` (lib/kassa/flode.ts) svarar
+   `vantar_kund` för `requires_action`, med `fortsatt` (Stripes adress, bara
+   för en omdirigering), `metod` och `totalOre`. Ingenting låses, släpps
+   eller dras. Bankens verifiering av ett kort (`use_stripe_sdk`) får ingen
+   adress: den äger Stripe.js.
+2. **Kassan säger det och låter kunden fortsätta samma betalning.** Rutan
+   överst: "Din Klarna-betalning är inte klar. Inget har dragits. …" med
+   knappen "Slutför betalningen hos Klarna" (`oppenText`). ☠️ Aldrig
+   "Fortsätt till Klarna" (regeln för beställningsknappen gäller här också).
+3. **Knappen finns bara när betalningen gäller summan kunden ser.** Annars
+   hade kunden slutfört ett annat belopp, som servern sedan släpper
+   (`pris_andrat`). Då står bara beskedet.
+4. **Adressen prövas innan kunden skickas dit** (`fortsattAdress`): bara
+   https hos stripe.com eller klarna.com, utan användarnamn, högst 2 000
+   tecken.
+5. **Det sparade försöket prövas** (`kollaSparat` i kassa.tsx,
+   `sparatBeslut` i stripe-klient.ts) när korgen blir känd, när sidan kommer
+   tillbaka ur webbläsarens minne (`pageshow`) och när den blir synlig igen
+   (`visibilitychange`). Står betalningen öppen frågar kassan fyra gånger
+   till (efter 3, 5, 8 och 12 s): har kunden godkänt i appen går köpet vidare
+   till tacksidan av sig självt.
+6. ☠️ **Mitt i en betalning i samma flik** (bankens verifiering, eller på
+   väg till Klarna) gör kollen bara en sak: slutför det som redan är
+   godkänt. Allt annat äger Stripe.js. Väntar sidan redan på ordern frågar
+   ingen annan om samma betalning.
+7. **Klarna nekade, eller betalningen gick ut:** kassan säger det en gång
+   (`STRIPE_MEDDELANDE.nekad`, `.utgangen`), om försöket är högst 30 minuter
+   gammalt, och märker det sparade försöket (`sagt`) så att beskedet inte
+   står kvar vid varje omladdning. Ett nekat kort har sitt fel i betalfältet
+   och får ingen orsak härifrån.
+8. **Retursidan** (`/kassa/klar`) visar samma ruta om betalningen står
+   öppen. ☠️ Aldrig "Betalningen är mottagen" för en betalning som inte är
+   godkänd: `vantaPaOrder` slutar vänta direkt på `vantar_kund`.
+9. **Loggraderna** bär Stripes läge, aldrig ett id:
+   `[kassa] stripe slutför vantar_kund (requires_action/redirect_to_url)`,
+   `… ej_betald (requires_payment_method/payment_method_provider_decline)`
+   och `[kassa] stripe retur: succeeded` eller `failed`. Läget skickas inte
+   till webbläsaren.
+10. `hamtaAvsikt` bygger också ut `payment_method`, så att rutan säger
+    "Klarna" bara när det pågående försöket är Klarna.
+
+### Prov
+
+- `lib/kassa/stripe-flode.test.ts`: öppen betalning, bankens verifiering,
+  orsakerna, loggordet. `lib/kassa/stripe-klient.test.ts`: adressen, serverns
+  svar, väntan, det sparade försöket, beslutet, rutans texter, returens
+  loggord. 29 avsiktliga fel i reglerna fäller proven.
+- **I webbläsaren** (lokalt bygge, telefonstorlek, serverns svar utbytt i
+  webbläsaren, ingen betalning skapad och ingen betalknapp tryckt): rutan
+  med knappen står i första skärmbilden; fem frågor på 35 s och sedan tyst;
+  en ny fråga när sidan blir synlig och när den kommer ur minnet; ingen
+  knapp vid annat belopp eller okänd adress; tredje svaret "ordern finns"
+  tar sidan till tacksidan; "Klarna godkände inte betalningen" en gång och
+  inte efter omladdning; retursidan visar rutan och aldrig "mottagen".
+
+### Inte provat, och inte gjort
+
+- ☠️ **Att knappen tar kunden tillbaka till SAMMA Klarna-session med
+  inloggningen kvar är inte provat.** Klarnas testmiljö har ett låtsat
+  BankID och ingen app, och ingen betalknapp trycks i prov. Leonard provar
+  på en riktig telefon efter deployen. Fungerar inte adressen skickar Stripe
+  kunden tillbaka med ett fel, och kassan säger då varför: sämst blir det som
+  i dag.
+- **Formulärets uppgifter** sparas inte över en omladdning utan "Spara mina
+  uppgifter" (Leonards regel, "utan det sparas ingenting i webbläsaren"). Med
+  knappen behöver kunden inte formuläret.
+- **Stripes sida av de tre försöken** är inte läst. När Stripe-kopplingen är
+  inloggad igen syns de under Betalningar, ofullständiga, 24 november
+  15:49–15:59 svensk tid.
