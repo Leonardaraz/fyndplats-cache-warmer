@@ -1176,10 +1176,11 @@ export const LEVERANTORSMARKEN: readonly string[] = [
   "homcom", "outsunny", "pawhut", "aiyaplay", "sportnow", "vinsetto", "kleankin", "durhand", "zonekiz", "aosom",
   "vevor", "fyndplats",
 ];
-// Märket som eget ord, med skiljetecknen som hör till det: "Homcom:", "HOMCOM®", "Pawhut -".
+// Märket som eget ord, med skiljetecknen som hör till det ("Homcom:", "HOMCOM®", "Pawhut -") och med
+// ett nekande ord framför ("utan homcom"): ingen vara heter så, så det finns inget att välja bort.
 // ☠️ Utan bakåtblick ((?<!…)): Safari före 16.4 kan inte läsa en sådan, och då laddas inte sökningen alls.
 // Blanktecknet efter märket lämnas därför kvar, så att nästa märke i raden har sin gräns ("Outsunny PawHut").
-const MARKE_RE = new RegExp(`(^|[^a-zåäö0-9])(?:${LEVERANTORSMARKEN.join("|")})(?![a-zåäö0-9])(?:\\s*[:;,.®™©–—|/-]+)*`, "gi");
+const MARKE_RE = new RegExp(`(^|[^a-zåäö0-9])(?:(?:utan|ej|inte)\\s+)?(?:${LEVERANTORSMARKEN.join("|")})(?![a-zåäö0-9])(?:\\s*[:;,.®™©–—|/-]+)*`, "gi");
 
 /**
  * Sökningen utan leverantörernas märken: "Homcom Barnelbil" → "Barnelbil".
@@ -1191,12 +1192,11 @@ const MARKE_RE = new RegExp(`(^|[^a-zåäö0-9])(?:${LEVERANTORSMARKEN.join("|")
  * fåtölj", och "homcom elbilar för barn" var inte längre kategorins namn. Av
  * 2 795 provsökningar ändrade märket svaret för 844.
  *
- * Märket står kvar när det är hela sökningen ("homcom" ger noll som förut),
- * och efter ett nekande ord ("soffa utan homcom").
+ * Märket står kvar när det är hela sökningen ("homcom" ger noll som förut).
  */
 export function utanMarken(query: string): string {
   const kvar = query.replace(MARKE_RE, "$1 ");
-  if (kvar === query || !/[a-zåäö0-9]/i.test(kvar) || tokenize(normalize(query)).some((t) => NEKAR.has(t))) return query;
+  if (kvar === query || !/[a-zåäö0-9]/i.test(kvar)) return query;
   return kvar.replace(/[\s:;,.–—|/-]+$/, "").replace(/\s+/g, " ").trim();
 }
 

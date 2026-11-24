@@ -124,8 +124,15 @@ test("utanMarken: märket tas bort som ord, och står kvar när det är hela sö
   for (const q of ["homcom", "Homcom Outsunny", " vevor "]) assert.equal(utanMarken(q), q);
   // Bara som eget ord.
   for (const q of ["homcomsoffa grå", "xhomcom soffa", "vevor2 soffa"]) assert.equal(utanMarken(q), q);
-  // Efter ett nekande ord är märket det kunden väljer bort.
-  assert.equal(utanMarken("soffa utan homcom"), "soffa utan homcom");
+  // ☠️ "soffa utan homcom" gav sex soffor med ordet "utan" i namnet: märket är
+  // ett småord, och ett småord går inte att välja bort. Ingen vara heter
+  // Homcom, så märket tas bort med sitt "utan".
+  assert.equal(utanMarken("soffa utan homcom"), "soffa");
+  assert.equal(utanMarken("soffa ej Vevor"), "soffa");
+  assert.equal(utanMarken("soffa utan schäslong homcom"), "soffa utan schäslong");
+  assert.deepEqual(sok("soffa utan homcom"), sok("soffa"));
+  // "utan" som inte står framför märket rörs inte.
+  assert.equal(utanMarken("homcom soffa utan schäslong"), "soffa utan schäslong");
 });
 
 test("kategoriförslagen läser inte märket som ett ord", () => {
