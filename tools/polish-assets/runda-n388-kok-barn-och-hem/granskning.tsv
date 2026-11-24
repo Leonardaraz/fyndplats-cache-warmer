@@ -1,0 +1,19 @@
+754fbf7e	3	struken	original position 3: måttbild med engelsk text (Adjustable Temperature Range, Voltage, Power)
+754fbf7e	4	förkastad	feedens position 4: säljgrafik med tysk rubrik (1800W Elektro-Grillplatte, 5 Stufen) och text inbränd
+754fbf7e	5	utsnitt	feedens position 5: tysk rubrik (Antihaft, leicht zu reinigen) i övre fjärdedelen; utsnitt x_300,y_440,w_1560,h_1560 under texten blir position 11, rent, md5 lika med Wix utsnitt
+754fbf7e	6	förkastad	feedens position 6: tysk rubrik och vita pilar över själva grillen (grafik på varan går inte att skära bort)
+754fbf7e	7	förkastad	feedens position 7: tysk rubrik (Sicher und stabil) och förstoringscirkel över fotot
+754fbf7e	10	använd	feedens position 10: miljöfoto utan text, ny scen mot bild 2, används som position 10
+10196ab8	3	struken	original position 3: måttbild med engelsk rubrik (1,7 L Capacity)
+10196ab8	4	förkastad	feedens position 4: tysk rubrik (Heisses Wasser für tägliche Momente) och grafik inbränd
+10196ab8	5	förkastad	feedens position 5: tysk rubrik (Wählen Sie Ihren Bräunungsgrad) och sex rostbilder inbrända
+10196ab8	6	förkastad	feedens position 6: tysk rubrik, mörk grafik och en vattenkokare i glas som inte är varan
+10196ab8	7	utsnitt	feedens position 7: tysk rubrik i övre femtedelen; utsnitt x_0,y_340,w_1660,h_1660 under texten blir position 11, rent, md5 lika med Wix utsnitt
+10196ab8	10	förkastad	feedens position 10: samma scen som bild 2 (kokare som hälls upp bredvid brödrosten), ingen ny information
+87b31333	4	utsnitt	original position 4: tysk bildtext (Lagerfächer) nederst; utsnitt x_90,y_0,w_1680,h_1680 ovanför texten blir position 11, rent, md5 lika med Wix utsnitt
+87b31333	5	struken	original position 5: tysk rubrik (Abnehmbar Design) och förklarande bild över fotot
+87b31333	4b	förkastad	feedens position 4: collage med tyska bildtexter (Kühles Licht, Warmes Licht)
+87b31333	5b	förkastad	feedens position 5: tysk rubrik (Einstellbare Helligkeit) och reglage inbrända
+87b31333	6	förkastad	feedens position 6: tysk rubrik (Wiederaufladbar) och en text på laddningsfacket
+87b31333	7	förkastad	feedens position 7: tysk rubrik (180°-Drehung) som ligger över spegelns överkant, går inte att skära bort utan att skära i varan
+87b31333	10	använd	feedens position 10: miljöfoto utan text med kvinna vid spegeln, används som position 10

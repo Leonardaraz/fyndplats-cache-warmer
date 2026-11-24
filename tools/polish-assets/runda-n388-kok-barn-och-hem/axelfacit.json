@@ -1,0 +1,61 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "0c27adb9": {
+  "tyska": "40L x 33B x 24H cm",
+  "svenska": "40 x 33 x 24 cm",
+  "bokstaver": "LBH",
+  "hojd": 24,
+  "bredd": 40,
+  "djup": 33
+ },
+ "10196ab8": {
+  "tyska": "",
+  "svenska": "30 x 17 x 19 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maße des Wasserkochers: 22L x 16B x 26H cm | ✔ Maße des Toasters: 30L x 17B x 19H cm | ✔ Maße je Schlitz: 13L x 3,75B cm"
+ },
+ "1de2e6f6": {
+  "tyska": "49L x 25,5B x 12,5H cm",
+  "svenska": "49 x 25,5 x 12,5 cm",
+  "bokstaver": "LBH",
+  "hojd": 12.5,
+  "bredd": 49,
+  "djup": 25.5
+ },
+ "4387858a": {
+  "tyska": "",
+  "svenska": "110L x 44B x 98H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischmaße: 110B x 44T x 98H cm | ✔ Maße der Tischplatte: 110B x 29,5T cm | ✔ Verstellbarer Bereich der Tischplatte: 65,5B x 29,5T cm | ✔ Stuhlmaße: 35B x 42T x 70H cm | ✔ Sitzmaße: 32B x 33T cm | ✔ Maße des seitlichen Regals: 40B x 8T x 16/18H cm"
+ },
+ "4a5b6f01": {
+  "tyska": "60B x 42T x 134,5H cm",
+  "svenska": "60L x 42B x 134,5H cm",
+  "bokstaver": "BTH",
+  "djup": 42,
+  "hojd": 134.5,
+  "bredd": 60
+ },
+ "71ca8e8f": {
+  "tyska": "24L x 22B x 150H cm",
+  "svenska": "24 x 22 x 150 cm",
+  "bokstaver": "LBH",
+  "hojd": 150,
+  "bredd": 24,
+  "djup": 22
+ },
+ "754fbf7e": {
+  "tyska": "82L x 27,5B x 10H cm",
+  "svenska": "82 x 27,5 x 10 cm",
+  "bokstaver": "LBH",
+  "hojd": 10,
+  "bredd": 82,
+  "djup": 27.5
+ },
+ "87b31333": {
+  "tyska": "22B x 13,8T x 38H cm",
+  "svenska": "22L x 13,8B x 38H cm",
+  "bokstaver": "BTH",
+  "djup": 13.8,
+  "hojd": 38,
+  "bredd": 22
+ }
+}
