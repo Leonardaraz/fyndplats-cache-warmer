@@ -50,7 +50,7 @@ lagg(1,
 );
 // Annat för barn, och annat med fjärrkontroll.
 lagg(2, "Barncykel 16 tum med stödhjul", "Barnstol i trä med bricka", "Barnsoffa 77 cm för två barn", "Barngrind 76 cm med dörr", "Barnbord med två stolar", "Gunga för barn med sele");
-lagg(3, "Dieselvärmare 8 kW med fjärrkontroll och LCD-panel", "Dieselvärmare 5 kW 12 V med fjärrkontroll", "Trådlös CarPlay-adapter 4-i-1 för bilen");
+lagg(3, "Dieselvärmare 8 kW med fjärrkontroll och LCD-panel", "Dieselvärmare 5 kW 12 V med fjärrkontroll", "Trådlös CarPlay-adapter 4-i-1 – Android Auto, AirPlay och Miracast");
 lagg(4, "Takfläkt med lampa och fjärrkontroll, 132 cm", "Elkamin med fjärrkontroll och timer", "Paviljong 3 × 3 m med sidoväggar", "Kontorsstol i nät med nackstöd");
 lagg(5, "Cykelställ för golv, 2-pack", "Cykelkärra 170 liter med kapell");
 // VEVOR är ett märke butiken visar, och ett tillbehör får nämna det i namnet
@@ -179,8 +179,8 @@ test("☠️ ett märke är inget stavfel: märket ensamt ger inga varor som bar
   const fel = sok("carplau");
   assert.equal(fel.traffar.length, 1);
   assert.ok(fel.rattat || fel.liknande);
-  // "aiyaplay" ligger lika nära, men är leverantörens märke: på www gav det en
-  // CarPlay-adapter som "ligger närmast i stavning".
+  // "aiyaplay" ligger två fel från "airplay", men är leverantörens märke: på
+  // www gav det adaptern som "ligger närmast i stavning".
   assert.deepEqual(sok("aiyaplay"), { traffar: [], strukna: [] });
   assert.deepEqual(sok("Aiyaplay Homcom"), { traffar: [], strukna: [] });
   for (const marke of LEVERANTORSMARKEN) if (marke !== "vevor") assert.deepEqual(traffar(marke), [], marke);
