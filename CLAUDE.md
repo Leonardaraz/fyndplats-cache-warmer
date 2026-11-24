@@ -6142,19 +6142,26 @@ trycket (`setOpen(false)`) och bytte sida efteråt. Mobilens sökläge täcker
 skärmen, så när det stängdes syntes sidan under tills produktsidan var
 hämtad: två sidbyten för ett tryck.
 
-**Mätt** (Chromium i telefonstorlek 390 × 844, sidbytets data fördröjd 0,6 s
-som på ett trögt mobilnät, sidans läge läst varje bildruta,
-2026-11-24):
+**Mätt** (Chromium i telefonstorlek 390 × 844, sidans läge läst varje
+bildruta, 2026-11-24). Sidbytets data hämtades dels som den kom, dels
+fördröjd 0,6 s som på ett trögt mobilnät:
 
 | | www (18e25500) | grenen |
 | --- | --- | --- |
-| Bildrutor där sidan under syntes efter trycket | 57 (från 44 ms till sidbytet, 1 035 ms) | 0 |
+| Sidan under syntes efter trycket, utan fördröjning | 19 bildrutor (296 ms) | 0 (två körningar) |
+| Sidan under syntes efter trycket, 0,6 s fördröjning | 47 och 57 bildrutor (772 och 1 035 ms) | 0 (två körningar) |
 | Det tryckta kortet markerat medan sidan hämtas | nej | ja |
 | Sökläget kvar efter sidbytet | 0 bildrutor | 0 bildrutor |
 | Sökfälten tomma efteråt, sidan olåst | ja | ja |
 
-Utan fördröjningen är tiden lika lång som sidbytet tar, alltså de "några
-hundra ms" Leonard såg.
+De 296 ms är de "några hundra ms" Leonard såg: tiden är lika lång som
+sidbytet tar.
+
+**Trycket blir inte långsammare av förhämtningen.** Sidans egen hämtning går
+iväg 18–35 ms efter trycket, samtidigt med förhämtningen och inte efter den
+(mätt på grenen). Med 0,6 s fördröjning var produktsidan framme efter 731 ms
+på grenen och 886 ms på www. På en riktig telefon ligger fingret 100–200 ms
+på kortet innan det släpper, och då har förhämtningen det försprånget.
 
 **Reglerna:**
 
