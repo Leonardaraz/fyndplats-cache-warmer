@@ -6191,51 +6191,176 @@ stängs ändå) och bakåtknappen efteråt. Inga sidfel.
 inte Safari, och övergången bygger på Reacts `useTransition`, som Safari har
 samma stöd för. Leonard ser det direkt efter deployen.
 
-## Mobilens sidhuvud glider undan när man scrollar ner (Leonard 2026-11-24)
+## Telefonens sidhuvud följer fingret (Leonard 2026-11-24)
 
 Leonard: "det är effektivare om man låter sök huvudet inte följa med när man
 scrollar ner utan den försvinner så man ser mer, men så fort man scrollar upp
-så dyker den upp på ett smidigt premium sätt".
+så dyker den upp på ett smidigt premium sätt". Och samma kväll, efter första
+versionen på sin iPhone: "jag tyckte inte sökfältet dykte upp sådär smooth
+utan det kom sådär tillbaka som ett hopp".
 
-Mobilens sidhuvud med sökraden är 133 px av skärmen (16 % av en iPhone 14).
+Telefonens sidhuvud med sökraden är 133 px av skärmen (16 % av en iPhone 14).
 
-- **Regeln** står i `lib/huvud-gom.ts` (ren funktion, `huvudSteg`):
-  sidhuvudet göms efter ett svep ner på 28 px (`GOM_EFTER_PX`), visas igen
-  efter 6 px uppåt (`VISA_EFTER_PX`) och visas alltid inom 140 px från sidans
-  topp (`ALLTID_OVAN_PX`). Rörelsen mäts från där det pågående svepet började,
-  så en darrning med tummen ändrar ingenting.
+### ☠️ Första versionen: ett läge och en övergång
+
+Den bytte läge vid en gräns (28 px ner, 6 px upp, `data-huvud="gomt"` på
+`<html>`) och lät en CSS-övergång göra rörelsen. I Chromium mättes den till
+0,29 s och "bromsar in mjukt". På Leonards iPhone var det ett hopp: en
+övergång har sin egen fart och den är aldrig fingrets, och kurvan gick 60 %
+av vägen på de första 75 ms.
+
+**Läxan: en uppmätt tid i Chromium säger att övergången körs, inte hur den
+känns under ett finger.** Mät i stället hur långt det går per bildruta, och
+jämför med hur långt sidan gick i samma bildruta.
+
+### Nu gör webbläsarens egen scrollning rörelsen
+
+Sidhuvudet (`position:sticky`) ligger i omslaget `.huvudspar`
+(`components/site.tsx`). Ett fäst element kan inte lämna sitt omslag: när
+omslagets nederkant når sidhuvudets följer sidhuvudet med sidan, pixel för
+pixel, i webbläsarens egen scrolltråd. `components/huvud-gom.tsx` sätter
+omslagets höjd, och lika mycket negativ `margin-bottom`, så att sidan under
+aldrig flyttar sig. Räkningen står i `lib/huvud-gom.ts` (rena funktioner):
+
+- **`sparSteg`**, när rörelsen vänder: står sidhuvudet helt framme och sidan
+  går ner läggs nederkanten vid sidhuvudets nederkant, och är det helt borta
+  och sidan går upp läggs den strax ovanför skärmens kant. Däremellan skrivs
+  ingenting.
+- ☠️ **`sparRast`, när sidan står still** (130 ms utan rörelse): nederkanten
+  läggs där sidhuvudet står. Inget syns av det. På iPhone scrollar skärmen i
+  en egen tråd, och sidans kod får veta det en eller ett par bildrutor
+  senare: en skrivning i vändningen kommer för sent med just de bildrutorna.
+  Efter en vila behövs ingen skrivning alls, och sidhuvudet följer med från
+  första pixeln. `sparSteg` är kvar för den som vänder utan att stanna.
+- ☠️ **Aldrig längre bort än det redan ligger** (`Math.max` i `sparSteg`).
+  Utan det sköts ett sidhuvud som vilade strax ovanför kanten undan igen för
+  varje bildruta av ett långsamt drag, och kom aldrig in.
+- **`sparVila`, när rörelsen stannat med sidhuvudet till hälften framme:** det
+  glider den sista biten. Fram efter en rörelse uppåt med minst 16 px framme
+  (`VISA_MINST_PX`), undan efter en rörelse nedåt med minst 28 px borta
+  (`GOM_MINST_PX`), och alltid fram inom 273 px från sidans topp. Glidet
+  väntar tills fingret släppt, och prövas då inom 70 ms.
+- ☠️ **Glidet börjar stilla** (`GLIDKURVA`, `cubic-bezier(.4,0,.2,1)`, 190 ms
+  plus en ms per px, högst 340: `glidMs`). Sidhuvudet har stått still när det
+  börjar. Med en kurva som börjar i full fart gick det 16–21 px i första
+  bildrutan: samma hopp som i första versionen.
+- **Ett avbrutet glid** (`sparFran`): rör kunden sidan mitt i glidet står
+  sidhuvudet kvar där det syns och följer fingret därifrån.
+- **Nära sidans topp** (140 px, `ALLTID_OVAN_PX`) står sidhuvudet på sin plats
+  i sidan. Produktsidan landar 88 px ner med bilden under sidhuvudet.
+- **Ett gömt sidhuvud ligger 2 px ovanför kanten** (`UR_BILD_PX`): precis i
+  kanten kan linjen i dess nederkant synas som en hårfin rand.
 - ☠️ **Läget hålls inom sidan.** iOS låter sidan dras förbi toppen och botten
   och studsa tillbaka. Utan det hade studsen i botten räknats som att kunden
-  scrollade upp, och sidhuvudet hade glidit fram av sig självt.
-- **Komponenten** `components/huvud-gom.tsx` (i `SiteHeader`) lyssnar passivt
-  på sidans rörelse, räknar en gång per bildruta och skriver
-  `data-huvud="gomt"` på `<html>` bara när läget ändras. Ingen React-rendering
-  när sidan rör sig. En ny sida börjar med sidhuvudet framme.
-- **Stilen** (`app/globals.css`, "Sidhuvudet glider undan"): bara `transform`,
-  så sidan under flyttar sig aldrig, och bara upp till 900 px bredd. Framme
-  står sidhuvudet utan transform, för en transform hade gjort det till ram
-  för allt som är fäst mot skärmen inuti det.
-- **Aldrig gömt medan det används:** i sökläget (`data-sok-lage`) och när
-  tangentbordets fokus står i sidhuvudet (`:focus-within`).
+  scrollade upp.
+
+Komponenten, utöver räkningen:
+
+- ☠️ **Sidan landar.** Från sidbytet tills kunden själv rör sidan (finger,
+  hjul, tangent, rullningslist) står sidhuvudet framme där sidan är, vad som
+  än flyttar den: webbläsaren som ställer tillbaka läget efter bakåtknappen,
+  eller produktsidan som ställer bilden under sidhuvudet. Utan det avgjorde
+  ordningen mellan den flytten och effekten om sidhuvudet var framme.
+- ☠️ **Sökläget stängs: sidan landar på nytt.** Remsan och loggans rad kommer
+  tillbaka ovanför, Chrome flyttar sidan lika mycket (110 px) för att det
+  kunden ser ska stå still, och den flytten räknades som ett svep ner:
+  sidhuvudet gled undan i samma stund som sökläget stängdes.
+- **I sökläget** är omslaget `display:contents` och sidhuvudet sitter fäst
+  överst som förut. Fokus i sidhuvudet (tangentbord, skärmläsare) tar fram det.
+- ☠️ **Omslagets överkant mäts med decimaler** (`getBoundingClientRect`, inte
+  `offsetTop`). Kampanjremsan ovanför är 46,4 px hög, och med 46 hamnade
+  sidhuvudet 0,4 px fel när glidet var klart.
 - **Minskad rörelse:** inget glid, sidhuvudet byter läge direkt.
-- **Datorn är oförändrad.** Där fäster produktsidans bildgalleri under
-  sidhuvudet (`--ankare`), och menyn ska gå att nå med musen utan att först
-  scrolla upp. Vill Leonard ha det där också är det en egen ändring.
+- **Går något fel**, eller körs skriptet inte, är omslaget `display:contents`
+  och sidhuvudet sitter fäst överst som före 2026-11-24.
 
-**Mätt** i Chromium, 390 × 844 (2026-11-24): gömt efter ett svep ner
-(sidhuvudets underkant 3 px ovanför skärmen), framme igen efter 8 px uppåt,
-oförändrat av en darrning på 1–3 px, alltid framme vid toppen och på en ny
-sida, sidans höjd oförändrad. Glidet in tar 0,29 s och bromsar in mjukt
-(−136, −107, −57, −30, −16, −9, −5, −2, 0 px), glidet ut 0,31 s. Attributet
-skrevs 9 gånger under ett helt prov med tusentals bildrutor. Surfplatta på
-högkant (820 px) följer samma regel, och datorn (1 280 px) står kvar.
+Stilen (`app/globals.css`, "Sidhuvudet följer fingret"):
 
-**Prov:** `lib/huvud-gom.test.ts` (11 prov, bland dem studsen i botten och
-dragningen förbi toppen). Tio avsiktliga fel i regeln, stilen och komponenten
-fäller proven.
+- ☠️ **Bara telefonen, 760 px**, samma gräns som produktsidans mobilläge.
+  Första versionen gällde upp till 900 px. Mellan 761 och 900 px fäster
+  produktsidans bildgalleri under sidhuvudet (`--ankare`), och ett sidhuvud
+  som försvann lämnade en tom remsa ovanför bilden. Surfplattan och datorn
+  är som förut.
+- På telefonen är sidhuvudet ogenomskinligt: den suddiga bakgrunden ritades
+  om för varje bildruta medan sidhuvudet rörde sig.
+- Omslaget tar inga tryck (`pointer-events:none`, sidhuvudet `auto`) och är
+  aldrig det webbläsaren håller sidan still mot (`overflow-anchor:none`).
+- ☠️ **Kassan** gömmer butikens sidhuvud med `body:has([data-kassa-sida])`.
+  Regeln pekade på `body>.sidhuvud`. Med omslaget emellan hade butikens meny
+  stått överst i kassan, så regeln gömmer nu omslaget också.
 
-**Inte provat:** en riktig iPhone. Studsen och Safaris adressfält som fälls
-ihop går inte att göra i Chromium; regeln för dem är provad som räkning.
+### ☠️ Produktsidans köprad vet när sidhuvudet är borta
+
+Köpraden i nederkant göms medan sidans egen köpknapp syns ("aldrig två
+köpknappar i samma skärm", mätt på en riktig iPhone 2026-11-20). Den räknade
+skärmens översta 133 px som täckta av sidhuvudet. När sidhuvudet följt med
+sidan ur bild syns knappen där, och knappen och köpraden stod i samma skärm i
+160 px av rörelsen. Det felet fanns redan i första versionen.
+
+Nu sätter `components/huvud-gom.tsx` `data-huvud-borta` på `<html>` medan
+sidhuvudet är helt ur bild, och `components/productview.tsx` har två
+mätningar av knappen (under sidhuvudet, och hela skärmen) och väljer efter
+märket.
+
+### Mätt
+
+Chromium, 390 × 844, lokalt bygge, riktiga pekhändelser (fingret ner, dras
+en bildruta i taget, släpps), 2026-11-24:
+
+- **Ner från sidans topp:** sidhuvudet står fäst till 140 px och följer sedan
+  med sidan upp ur bild. Ingenting skrivs på vägen.
+- **Upp efter en vila:** fingret drog sidan 55 px, och sidhuvudet var 53 px
+  framme när fingret släppte (2 px är marginalen ovanför kanten). Ingenting
+  skrevs under draget. Bildruta för bildruta är sidans läge plus det som
+  syns av sidhuvudet konstant (1 783 + 12, 1 769 + 26 … 1 669 + 126, alla
+  1 795): sidhuvudet rör sig exakt som sidan.
+- **Ett mycket långsamt drag** (30 px/s, en halv pixel per bildruta):
+  sidhuvudet kom in, 28 px framme efter 30 px, och ingenting skrevs.
+- **Vila till hälften framme:** 53 px framme efter ett drag uppåt, glider
+  fram. 10 px borta efter ett ryck neråt, glider tillbaka fram. 55 px borta,
+  glider undan. 11 px framme efter en darrning uppåt, glider undan igen.
+- **Glidet:** 80 px på 267 ms, med stegen 0,7 2,6 5,5 9,5 13 12,6 10 7,5 5,6
+  4,1 3,1 2,3 1,6 1 0,7 0,2 px per bildruta. Det börjar 130 ms efter
+  sidans sista rörelse, eller 70 ms efter att fingret släppt en sida som
+  redan stod still (`SLAPP_MS`).
+- **Avbrutet glid:** ett nytt drag 110 ms in i glidet. Sidhuvudet stod kvar
+  där det var (52 px framme) och följde fingret ner, 24 px per bildruta,
+  lika som sidan.
+- **Vändning utan vila** (ett kast neråt och direkt ett drag uppåt):
+  sidhuvudet kom in från vändningen. Största steget utöver sidans eget: 2 px.
+- **Sidan under:** första kortet på samma plats i sidan (548,4 px) och sidans
+  höjd oförändrad (5 532 px) genom hela provet. Inga layoutskift av rörelsen
+  eller glidet.
+- **Sökläget:** öppnat med sidhuvudet borta står fältet överst. Stängt står
+  sidhuvudet framme och sidan på samma plats.
+- **Sidbyte:** produktsidan landar 88 px ner med sidhuvudet framme och bilden
+  14 px under det. Bakåt: listan på 870 px med sidhuvudet framme, och nästa
+  drag ner tar det med sig.
+- **Köpraden:** köpknappen 55–111 px från skärmens överkant med sidhuvudet
+  borta, köpraden gömd. Sidhuvudet tillbaka över knappen, köpraden visas.
+  Knappen ur bild, köpraden visas.
+- **Kassan:** butikens sidhuvud och omslag gömda. **820 px och 1 280 px:**
+  sidhuvudet fäst överst som förut, med suddig bakgrund.
+- **Minskad rörelse:** inget glid, läget byts direkt.
+- 21 skrivningar under hela provet, alla i en vändning utan vila, vid en vila
+  eller när ett glid var klart. Ingen i takt med fingret.
+
+**Prov:** `lib/huvud-gom.test.ts` (28 prov) och köpradens prov i
+`lib/mobil-finslip.test.ts`. 43 avsiktliga fel i räkningen, komponenten,
+stilen och produktsidan fäller proven.
+
+### Inte provat
+
+- ☠️ **En riktig iPhone.** Det är där första versionen föll. Sättet är valt
+  för att inte bero på sidans kod i farten, men det är ett resonemang och
+  ingen mätning: studsen, Safaris adressfält som fälls ihop och fördröjningen
+  mellan skärmens scrolltråd och sidans kod går inte att göra i Chromium.
+  BrowserStacks riktiga iPhone kan öppna www efter deployen, men bara ta
+  stillbilder: mjukheten måste Leonard se själv.
+- Att glidet den sista biten känns rätt (130 ms vila, sedan 0,2–0,34 s) är
+  ett val, inte ett mätvärde.
+- Chrome på Android och Samsungs webbläsare är inte provade på riktiga
+  telefoner.
 
 ## Klarna på telefonen: kunden kom tillbaka utan godkänd betalning och fick börja om (2026-11-24)
 
@@ -6263,10 +6388,46 @@ han fick börja om. På datorn gick samma köp igenom.
 - Kassan frågade servern, fick "inte betald" och gjorde ingenting. Formuläret
   stod tomt, för uppgifterna sparas bara om kunden kryssat i "Spara mina
   uppgifter". Det är "avbröts bara" och "börja om".
-- **Inte mätt:** vad Klarna och Stripe såg. Stripe-kopplingen i Claude var
+- **Inte mätt då:** vad Klarna och Stripe såg. Stripe-kopplingen i Claude var
   inte inloggad, retur-rutten loggade ingenting, och Vercels förfrågningslogg
-  kräver Observability Plus (avstängt). Varför Klarnas flöde inte blev klart
-  i telefonen är alltså inte fastställt.
+  kräver Observability Plus (avstängt). Stripes sida lästes samma kväll, se
+  nästa avsnitt.
+
+### En kund till samma kväll, och Stripes sida (läst 2026-11-24, sent)
+
+Leonard kopplade in Stripe och pekade på en kund till, 22:05 svensk tid.
+Loggen visar samma mönster: förbered 21:05:46 UTC (ny betalning), tre
+ensamma `ej_betald` 21:07:24, 21:08:39 och 21:09:08, ett nytt tryck 21:10:14
+på samma betalning, och sedan inget mer.
+
+Stripe, läst med kopplingen (inga uppgifter om kunderna står här):
+
+- **Tre betalningar står i `requires_action` med Klarna:** en från 23
+  november och två från 24 november (den första kunden, som sedan köpte på
+  datorn, och kvällens kund). Alla tre har adressen till Klarna i
+  `next_action.redirect_to_url.url` (hos `pm-redirects.stripe.com`, som
+  `fortsattAdress` släpper igenom), vår retur som `return_url`, och ett
+  betalsätt som skapats flera minuter efter betalningen. Kunden har alltså
+  tryckt på betalknappen igen, precis som loggen säger.
+- ☠️ **Stripe stänger inte en sådan betalning efter tre timmar.** Den från
+  23 november stod kvar i `requires_action` ett och ett halvt dygn senare.
+  Tre timmar är kundens tid hos Klarna, inte betalningens livslängd hos
+  Stripe. Därför regel 11 nedan.
+- **Det är ett läckage, inte ett stopp.** Sedan 14 november har 47
+  Klarna-köp gått igenom (27 från telefon, 14 från dator, 6 där Stripe inte
+  vet), och 6 betalningar utan kortförsök slutade som misslyckade (4 telefon,
+  2 dator). Med de tre öppna blir det ungefär fyra av fem telefonköp med
+  Klarna som går hela vägen.
+- **Fler den här veckan.** Stripes rapport över misslyckade försök som inte
+  är kort, per vecka och med varje nytt försök räknat: veckan från 1 november
+  1 (kunden avbröt), från 8 november 3 (2 nekade utan angiven orsak, 1 session
+  som gick ut), från 15 november 3 (1 avbröt, 2 gick ut), och från 22 november
+  7 på tre dagar (6 nekade utan angiven orsak, 1 gick ut). Black Week ger
+  fler köp, så antalet säger inte att andelen har stigit.
+- **Inte fastställt:** varför Klarnas flöde inte blev klart i telefonen.
+  Stripe ser bara att kunden skickades till Klarna och inte kom tillbaka
+  genom returen. Webbläsarens sort står i loggraderna först efter den här
+  deployen (regel 9).
 
 ### Vad Stripe säger (docs.stripe.com/payments/klarna/accept-a-payment, läst 2026-11-24)
 
@@ -6334,6 +6495,12 @@ han fick börja om. På datorn gick samma köp igenom.
    webbvy, och det gick inte att se i loggen 2026-11-24.
 10. `hamtaAvsikt` bygger också ut `payment_method`, så att rutan säger
     "Klarna" bara när det pågående försöket är Klarna.
+11. ☠️ **Rutan visas bara för ett försök som är högst tre timmar gammalt**
+    (`OPPET_FORSOK_MS` i stripe-klient.ts, prövat i `sparatBeslut`). Stripe
+    låter betalningen stå öppen i dagar, och kunden har tre timmar hos
+    Klarna. Utan gränsen hade den som kom tillbaka dagen efter mötts av "Din
+    Klarna-betalning är inte klar" och en knapp till en session som Klarna
+    redan stängt.
 
 ### Prov
 
@@ -6361,6 +6528,6 @@ han fick börja om. På datorn gick samma köp igenom.
 - **Formulärets uppgifter** sparas inte över en omladdning utan "Spara mina
   uppgifter" (Leonards regel, "utan det sparas ingenting i webbläsaren"). Med
   knappen behöver kunden inte formuläret.
-- **Stripes sida av de tre försöken** är inte läst. När Stripe-kopplingen är
-  inloggad igen syns de under Betalningar, ofullständiga, 24 november
-  15:49–15:59 svensk tid.
+- **De tre öppna betalningarna** rör ingen kod. De står under Betalningar,
+  ofullständiga, i Stripe (23 och 24 november). Två av de tre kunderna har
+  inte köpt. Om någon ska höra av sig till dem är det Leonards sak.
