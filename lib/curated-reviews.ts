@@ -18,6 +18,12 @@
 // 2026-10-07: två nya (George Galush, David Erdinc) överst; Stefan Gajics
 // äldre omdöme utan bild (musikboxen) borttaget på Leonards begäran.
 //
+// 2026-11-25: fem nya (Felix Michel, Johannes Deniz, Maikel Sharro, Balanz,
+// rami123123) överst, ur Leonards skärmdumpar samma dag. De tre utförligaste
+// står först, så att sidans översta rad på datorn har tre kort av samma tyngd;
+// hos Google stod de i datumordning. Profilen visade 4,9 av 5
+// (lib/social-proof.ts). Saad Saids omdöme stod redan här.
+//
 // 2026-10-22: tre nya (Saad Said, Albert, Kevin Stenroos) överst, ur Leonards
 // skärmdumpar samma dag. George Galushs omdöme visades nu helt och står med
 // hela texten. Stefan Gajics och Orlandos texter var kapade mitt i en mening,
@@ -32,7 +38,7 @@
 //
 // Snittbetyget kommer INTE härifrån utan från getSocialProof()
 // (lib/social-proof-live.ts): Googles eget när API:t svarar, annars reserven i
-// lib/social-proof.ts. Korten nedan (26 st med text, 2026-10-22) är ett urval — "Se alla på
+// lib/social-proof.ts. Korten nedan (31 st med text, 2026-11-25) är ett urval — "Se alla på
 // Google" länkar till samtliga. Resten av profilens omdömen är stjärn-bara utan
 // text och har inget att visa här. Något TOTALANTAL visas inte längre någonstans;
 // se noten överst i lib/social-proof.ts för varför.
@@ -72,6 +78,48 @@ import type { GoogleReview, GoogleReviewsResult } from "./google-reviews";
 import { GOOGLE_RATING } from "./social-proof";
 
 export const CURATED_REVIEWS: GoogleReview[] = [
+  {
+    id: "felix-michel",
+    rating: 5,
+    author: "Felix Michel",
+    // Google visade "för 3 dagar sedan" 2026-11-25. De fem stjärnorna sist i
+    // texten skrev kunden själv; de är kundens ord och står kvar.
+    date: "2026-11-22",
+    text: "Riktigt nöjd med Fyndplats! Prylarna jag beställt har hållit riktigt bra kvalitet, och jag handlar gärna här igen. Kan varmt rekommendera! ⭐⭐⭐⭐⭐",
+  },
+  {
+    id: "johannes-deniz",
+    rating: 5,
+    author: "Johannes Deniz",
+    // Google visade "för 2 veckor sedan" 2026-11-25.
+    date: "2026-11-11",
+    text: "Fick precis hem min order. Smidigt och enkelt att handla via fyndplats. Blir betydligt fler köp i framtiden!",
+  },
+  {
+    id: "maikel-sharro",
+    rating: 5,
+    author: "Maikel Sharro",
+    // Google visade "för 3 veckor sedan" 2026-11-25.
+    date: "2026-11-04",
+    text: "Väldigt nöjd! Bra utbud, smidig beställning och bra service. Kommer definitivt handla här igen och rekommenderar varmt!",
+  },
+  {
+    id: "balanz",
+    rating: 5,
+    author: "Balanz",
+    // Google visade "för en vecka sedan" 2026-11-25.
+    date: "2026-11-18",
+    text: "Supernöjd med Fyndplats! Bra utbud, smidig beställning och snabb leverans.",
+  },
+  {
+    id: "rami123123",
+    rating: 5,
+    author: "rami123123",
+    // Google visade "för 4 dagar sedan" 2026-11-25. Liten bokstav först och
+    // tummen direkt efter ordet, som kunden skrev.
+    date: "2026-11-21",
+    text: "snabb leverans och allt som enligt bilder👍",
+  },
   {
     id: "saad-said",
     rating: 5,

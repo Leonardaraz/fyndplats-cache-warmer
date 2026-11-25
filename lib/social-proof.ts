@@ -26,7 +26,8 @@
 //
 // Den här filen hålls REN (inga fetch-anrop, inga next-beroenden) så urvals-
 // regeln går att testa med `node --test`. Hämtningen bor i social-proof-live.ts.
-// Avläst på Google-profilen 2026-09-04. Handavläst tills Business Profile-API:t
+// Avläst på Google-profilen 2026-09-04, och samma värde 2026-11-25 (Leonards
+// skärmbild: 4,9 av 5). Handavläst tills Business Profile-API:t
 // får credentials (lib/google-reviews.ts) — då tar det riktiga betyget över
 // automatiskt och den här konstanten blir reserv.
 export const GOOGLE_RATING = "4,9";

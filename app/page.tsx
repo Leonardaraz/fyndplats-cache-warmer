@@ -566,8 +566,12 @@ export default async function Home() {
                 Utan tabIndex når tangentbordet aldrig det andra och tredje
                 omdömet (axe: scrollable-region-focusable, 2026-11-20). */}
             <div className="roster" tabIndex={0} role="group" aria-label="Omdömen från kunder">
-              {roster.map((r) => (
-                <figure className="rost" key={r.id}>
+              {/* Nyckeln är ett löpnummer, inte r.id: id:t i lib/curated-reviews.ts
+                  är kundens namn som slug ("saad-said"), och en nyckel på ett
+                  element i en serverkomponent följer med i sidans React-data.
+                  Tre namn stod så i startsidans HTML till 2026-11-25. */}
+              {roster.map((r, i) => (
+                <figure className="rost" key={`omdome-${i}`}>
                   <Stars rating={r.rating} aria-hidden />
                   <blockquote className="rost-text">{r.text}</blockquote>
                   <figcaption className="rost-fot">
