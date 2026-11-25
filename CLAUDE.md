@@ -4427,7 +4427,10 @@ alltså snabba i verkligheten, och det som fanns att hämta var tre saker:
   kortbilden 384w i stället för 640w på telefoner i 2x och breda datorskärmar.
   Mätt i Chromium på åtta skärmar: ingen fil har färre pixlar än sin ruta
   (lägsta kvot 1,02). Wix AVIF är större än webp i samma kvalitet (121 mot
-  83 kB i 750 px), så formatet är kvar.
+  83 kB i 750 px), så formatet är kvar. ☠️ "Minst så många pixlar som rutan"
+  räckte inte: en fil som är några procent för bred ritas suddigt på datorn.
+  Sedan 2026-11-25 är kortets och huvudbildens fil exakt rutans bredd där, se
+  "Bildernas skärpa på datorn".
 - **De två första korten hämtas med `fetchpriority=high`, resten är lazy**
   (`components/shopbrowser.tsx`, 2026-11-12; förut fyra). `priority` på
   `<Image>` ger förladdning men inte attributet, så listsidornas största bild
@@ -6838,6 +6841,164 @@ sidans React-data, så tre namn stod i startsidans HTML fast korten visar
 initialer. Nyckeln är nu ett löpnummer, som på `/omdomen`.
 `lib/initialer.test.ts` fäller om id:t eller namnet når startsidans kort, och
 om listan får dubbletter, tomma fält eller ett datum i framtiden.
+
+## Bildernas skärpa på datorn: filen är exakt så bred som rutan (Leonard 2026-11-25)
+
+Leonard: "kolla … om bilder på hemsidan på datorn alltså produktbilder o så om
+de är i sämre upplösning för det ser suddigare ut på dator".
+
+**Upplösningen var inte felet.** Originalen är 1 600–2 000 px, och varje fil
+hade fler pixlar än rutan den ritades i. Felet var att den aldrig hade RÄTT
+antal, så att webbläsaren fick skala om den, och att Wix lämnar en förminskad
+bild mjuk. Mätt mot www samma dag:
+
+| Yta på datorn | Ruta | Fil på vanlig skärm (1x) | Fil på dubbel täthet (2x) |
+|---|---|---|---|
+| Produktkortets bild | 265 px (259 på /alla-produkter och /rea) | 384 px | 640 px |
+| Produktsidans huvudbild | 542 px | 640 px | 1 200 px |
+| Guidekortet på startsidan | 361 × 271 px | 640 × 336 px | 750 × 394 px, **förstorad 1,38 gånger** |
+| Bloggkortet på /blogg | 267 × 267 px | 640 × 279 px | 828 × 435 px, **förstorad 1,23–1,48 gånger** |
+
+På telefonen syns det inte: där är pixlarna en tredjedel så stora.
+
+### Mätningen som styr lösningen
+
+Kantskärpan (Laplace-varians) i en skärmbild av rutan, åtta produktbilder,
+Chromium, vanlig skärm. 100 % är dagens kortbild (384 px i en ruta på 265):
+
+| Filens bredd mot rutan | Utan skärpning | Med Wix skärpning |
+|---|---|---|
+| exakt rutans bredd | 111 % | **205 %** |
+| 2 % bredare | 58 % | 97 % |
+| 5–10 % bredare | 63–64 % | 104–106 % |
+| 20–30 % bredare | 75–84 % | 121–133 % |
+| 44 % bredare (dagens kort) | 100 % | 149 % |
+| 60 % bredare | 121 % | 173 % |
+| dubbelt så bred | 127 % | 164 % |
+| 2,4 gånger så bred | 91 % | 116 % |
+
+☠️ **En fil som nästan passar är det sämsta som finns.** Två procent för bred
+är hälften så skarp som exakt rätt, och sämre än en fil som är klart för stor.
+Huvudbilden låg just där: 640 px i 542 (18 % för bred) och 1 200 i 1 084
+(11 %). Vikten följer bredden: den exakta kortbilden väger 5,5 kB mot 8,1.
+
+Tre saker som INTE var felet, alla mätta: Chrome väljer aldrig en för liten
+fil vid 125, 150 eller 175 % skalning i Windows; en bild i exakt storlek ritas
+lika skarpt när sidan står på en halv pixel (centrerad sida i ett fönster med
+udda bredd, sju lägen provade, samma värde); och JPEG-kvaliteten (q_85 i
+stället för q_72 gav 24–60 % tyngre filer utan mätbar skillnad i skärpa).
+
+### Lösningen, fem delar
+
+1. **Skärpning i laddarna.** `medSkarpning` i `lib/wix-crop.ts` lägger Wix
+   oskarpa mask (`usm_0.66_1.00_0.01`, Wix egna standardvärden) sist i fill-
+   eller fit-delen. Den anropas av den globala laddaren (`lib/image-loader.ts`)
+   och av huvudbildens (`lib/hjalte-loader.ts`), och av förstoringens
+   högupplösta lager i `components/gallery.tsx`. ☠️ INTE i `tightFillUrl`: den
+   adressen används också i flödena, mejlen, delningsbilderna och kassans
+   småbilder, och de ska inte byta adress.
+2. **Exakta bredder för kortet och huvudbilden.** `lib/bild-sizes.ts` bär
+   rutornas mått (`KORT_DATOR` 265, `HJALTE_DATOR` 542), `sizes` säger dem
+   från 1 180 px fönsterbredd, och `next.config.ts` har dem i srcset i 1x och
+   2x (265, 530, 542, 1 084) i stället för Nexts 256 och 1 080. Kortets bilder
+   har huvudbildens laddare (`wixMainLoader`), också i förladdningen.
+3. **Alla andra bilder får de filstorlekar de alltid haft.** Den globala
+   laddaren ger 640 px för 530w och 542w (`SOM_FORR`). Utan det fick en bild
+   som beskärs i sin ruta en för låg fil (bloggkorten förstorades 1,16
+   gånger i första bygget), och Unsplash-fotona, som inte har någon
+   skärpning, färre pixlar att skala ned från.
+4. **Ingen zoom vid hover på en bild i exakt storlek.** `scale(1.045)` på
+   kortets bild och `scale(1.07)` på huvudbilden skalade om filen, och bilden
+   blev suddigare än sina grannar så länge pekaren låg kvar (205 → 86 % och
+   226 → 96 %). Reglerna är borta ur `app/globals.css`. Kortet lyfter
+   fortfarande och byter till sin andra bild, och huvudbilden visar ⤢.
+5. **Omslagen i rutans form.** `iRutansForm` i `lib/bildformat.ts` ber Wix
+   beskära guidekortens omslag till 4:3 och bloggkortens till en kvadrat, så
+   att filen är lika hög som rutan. Bloggkortets `sizes` är rutans bredd i
+   rutnätet (267 px) i stället för en fjärdedel av fönstret.
+
+☠️ **Rutnätet på /alla-produkter och /rea har samma mellanrum i sidled som
+alla andra, 20 px.** Det var 28, och kortets bild blev 259 px. Första bygget
+gav de sidorna en egen bredd, och mätningen fällde det: Chrome återanvänder
+en bredare fil som redan ligger i minnet i stället för att hämta den som
+passar, så ett kort man sett på en kategorisida (265 px) ritades med den
+filen i en ruta på 259. Just en sådan fil som nästan passar: 93 % av den
+gamla bildens skärpa, mot 205 % för grannarna. Två nästan lika breda rutor
+för samma foto går inte ihop. Mellanrummet på höjden (38 px) är kvar.
+
+### Regler
+
+- ☠️ Ändras rutnätets mellanrum, kortets ram, produktsidans spalter eller
+  sidans bredd i `app/globals.css` ändras rutornas mått. `lib/bild-sizes.test.ts`
+  läser talen ur CSS-filen och fäller. Rätta `lib/bild-sizes.ts` och
+  `next.config.ts` samtidigt.
+- ☠️ Lägg inte till en bredd i `imageSizes` eller `deviceSizes` utan att mäta.
+  Varje bredd skrivs ut i varje bilds srcset, och en bredd strax över en
+  annan rutas behov gör den rutans bilder suddiga.
+- ☠️ En ny yta med produktkort ska ha `.prodgrid` med grundens mellanrum.
+  Provet fäller om en regel utanför `@media(max-width:…)` ger rutnätet ett
+  eget.
+- ☠️ Ingen `transform:scale` vid hover på kortets bild eller huvudbilden.
+- En bild som beskärs i en ruta med annan form ska gå genom `iRutansForm`.
+- Provet mot en körande butik: `skarpa/prov-skarpa.cjs` i sessionens
+  arbetsmapp (läser bara sidor): kortens och huvudbildens fil är exakt rutans
+  bredd i 1x och 2x, adresserna bär skärpningen, ingenting zoomar vid hover
+  och ingen Wix-bild förstoras på /butik, /blogg, /kopguider och
+  /under-500-kr.
+
+### Mätt efter, mot ett lokalt bygge av grenen
+
+`skarpa/prov-skarpa.cjs`: 38 av 38 gröna. Samma bilder på www och i bygget,
+kantskärpa i det som ritas och filens vikt, båda i procent av dagens:
+
+| Skärm | Kortets bild | Huvudbilden |
+|---|---|---|
+| Dator 1 920 px, 1x | 211–213 % skärpa, 73 % vikt (13 bilder) | 279 %, 86 % (6 produkter) |
+| Bärbar 1 512 px, 2x | 264–292 %, 84–85 % | 390 %, 93 % (6 produkter) |
+| 1 280 px med 150 % skalning | 117 %, 86 % | 179 %, 104 % (1 produkt) |
+| Telefon 393 px, 3x | 121 %, 86 % | 177 %, 104 % (1 produkt) |
+
+Granskningen av varje bildyta (`skarpa/mat.cjs`, sex skärmtyper, tolv sidor):
+ingen yta på dator eller surfplatta förstoras. På telefonen förstoras
+kategorirutornas stämningsfoton 1,16–1,29 gånger, som förut och med flit
+(`sizes` säger 128 px för att hålla filen nere). Bloggkorten är 640 × 640 i en
+ruta på 534 × 534 på dubbel täthet, mot 828 × 435 förut.
+
+De tidigare proven mot samma bygge: sök-återvänd grön, bildfönstret 27, vita
+plattor 27, registret 27, menyn, GoWish 32 och 19, Heylink 34. ☠️ Bildfönstrets
+prov fällde en kontroll första gången: bilderna var nya för Wix och hann inte
+fram innan provet tittade. Andra gången gick det igenom (se nedan).
+
+### Kostnaden, och vad som inte är mätt
+
+- **Varje bildadress är ny.** Första gången en ny adress begärs gör Wix filen
+  (0,4–0,6 s, mätt), sedan ligger den i deras CDN i 30 dagar (0,06 s). Ber
+  man om den från en annan plats i världen innan den platsens CDN har den tar
+  det 0,15–0,3 s. Det märks: provet för listornas bildfönster fällde en
+  kontroll första gången mot det lokala bygget, för att bilderna inte hunnit
+  fram när provet tittade.
+- **Därför är bilderna värmda före mergen.** Varje produkts huvudbild (10 947
+  foton ur Google-flödet) begärdes en gång i bredderna 265, 530, 542 och
+  1 084: 43 788 adresser, alla svarade, och 41 823 av filerna var nya hos Wix.
+  Mellanbredderna 384, 640, 750 och 828 värmdes efteråt (utfallet står i PR
+  #937). Det räcker att be om första byten (`Range: bytes=0-0`): Wix gör då
+  hela filen, och nästa hämtning svarade ur deras CDN på 0,07 s. Galleriets
+  övriga bilder och kortens andra bild är inte värmda och blir till vid
+  första besöket. ☠️ Byter laddarna adressform igen (en ny bredd, en annan
+  kvalitet eller skärpning) är varje fil ny på nytt.
+- Bara Chromium är mätt. Safari och Firefox väljer fil på samma sätt enligt
+  standarden, men ingen av dem har körts här.
+- Vid 125, 150 och 175 % skalning kan rutan inte träffas exakt (265 × 1,25 är
+  inte ett heltal). Där väljs närmaste större fil, som förut, nu skärpt.
+- Ett fönster som är 1 181–1 197 px brett med synlig rullningslist har en
+  sida som är några pixlar smalare än 1 180, och då passar inte filen exakt.
+- Bildrutorna under huvudbilden (172,67 px) och kategorirutorna (268,5 px)
+  går inte jämnt ut och kan inte bli exakta. Bildrutorna är skärpta men i
+  övrigt som förut, och kategorirutornas stämningsfoton (Unsplash) är orörda.
+- Kundernas foton i omdömena hämtas fortfarande som original (375 × 500 px i
+  en ruta på 91 × 120). Det är tyngd, inte suddighet, och är inte rört.
+- Bloggomslagen som ligger i `/public` (`blog-*.jpg`) skickas i full storlek
+  (1 800 × 945 px) till en ruta på 267 px. Inte rört.
 
 ## Klarna på telefonen: kunden kom tillbaka utan godkänd betalning och fick börja om (2026-11-24)
 

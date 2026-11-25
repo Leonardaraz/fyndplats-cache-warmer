@@ -28,10 +28,12 @@ const varmade = new Set<string>();
 // tryck: först kortets bild, sedan samma bild skarp när huvudbilden kommit.
 //
 // Bara samma foto (samma fil-id), bara en bild som faktiskt är hämtad och
-// minst 300 px bred (sökförslagens 46 px-ruta duger inte i en bildruta på
-// 544 px), och bara en stund efter trycket.
+// minst 250 px bred (sökförslagens 46 px-ruta duger inte i en bildruta på
+// 544 px), och bara en stund efter trycket. Gränsen var 300 px tills kortets
+// bild på datorn började hämtas i exakt rutans bredd, 259 eller 265 px
+// (lib/bild-sizes.ts, 2026-11-25): med 300 hade datorn tappat kortets bild.
 const KORTBILD_GALLER_MS = 15_000;
-const KORTBILD_MINSTA_BREDD = 300;
+const KORTBILD_MINSTA_BREDD = 250;
 let kortbild: { nyckel: string; url: string; nar: number } | null = null;
 
 /** Utdatabredden i en Wix-adress: sista w_ (en crop-del har sin egen w_ före). */

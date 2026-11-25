@@ -20,7 +20,8 @@
 //      gravity (al_c), kvalitet (q_*) och format som anroparen redan valt — vi
 //      ändrar bara pixelstorleken för srcset:en. I crop-URL:er (/v1/crop/x,y,w,h)
 //      är w_/h_ en beskärningsregion, inte utdatastorlek: bara en efterföljande
-//      /fill/-del skalas (lib/wix-crop.ts).
+//      /fill/-del skalas (lib/wix-crop.ts). Sedan 2026-11-25 får fill- och
+//      fit-delen dessutom Wix skärpning (usm), se medSkarpning i samma fil.
 //      Saknas en transform (rå media-URL, t.ex. blogg-cover) använder vi `fit`
 //      som bevarar bildens naturliga aspect — aldrig kvadratisk fill.
 //   2. Unsplash (images.unsplash.com) → använd Unsplashs egen resizing/format-
@@ -33,9 +34,30 @@
 
 import type { ImageLoaderProps } from "next/image";
 import { wixMediaKey } from "./wix-image";
-import { skalaWixSvans } from "./wix-crop";
+import { medSkarpning, skalaWixSvans, WIX_SKARPNING } from "./wix-crop";
 
-export default function fyndImageLoader({ src, width, quality }: ImageLoaderProps): string {
+// ☠️ BREDDERNA 530 OCH 542 ÄR KORTETS OCH HUVUDBILDENS, INTE ALLAS (2026-11-25).
+//
+// De står i srcset för att produktkortet (265 px, 530 i dubbel täthet) och
+// produktsidans huvudbild (542 px) ska få en fil som är exakt så bred som
+// rutan (lib/bild-sizes.ts). De två har sin egen laddare (lib/hjalte-loader.ts).
+// Varje ANNAN bild går genom laddaren här, och för dem betyder 530w och 542w
+// samma fil som förut, 640 px:
+//
+// - En bild som beskärs i sin ruta (object-fit:cover i en ruta med annan form)
+//   behöver fler pixlar än `sizes` säger. Bloggkorten på /blogg och /kopguider
+//   fick 530 × 231 i en ruta på 267 × 267 och förstorades 1,16 gånger, mot
+//   640 × 279 förut (mätt mot ett lokalt bygge samma dag).
+// - Unsplash-fotona har ingen skärpning att lägga på, och färre pixlar att
+//   skala ned från gör dem mjukare.
+//
+// Bredden i srcset (530w) stämmer då inte med filen (640 px), men den styr
+// bara VALET av fil. 265 och 1084 står inte här: de har tagit över efter
+// Nexts 256 och 1080 och är aldrig mindre än dem.
+const SOM_FORR: Record<number, number> = { 530: 640, 542: 640 };
+
+export default function fyndImageLoader({ src, width: begard, quality }: ImageLoaderProps): string {
+  const width = SOM_FORR[begard] ?? begard;
   // ── Wix CDN ────────────────────────────────────────────────────────────────
   if (src.includes("static.wixstatic.com")) {
     const i = src.indexOf("/v1/");
@@ -45,8 +67,10 @@ export default function fyndImageLoader({ src, width, quality }: ImageLoaderProp
       // råkar matchas. En crop-rektangel (/v1/crop/x_,y_,w_,h_) är
       // originalpixlar, inte utdatastorlek: följs den av /fill/ skalas bara
       // fill-delen, annars lämnas adressen orörd.
+      // Skärpningen läggs på samtidigt (lib/wix-crop, medSkarpning): Wix lämnar
+      // annars den förminskade bilden mjuk.
       const svans = skalaWixSvans(src.slice(i), width);
-      return svans === null ? src : src.slice(0, i) + svans;
+      return svans === null ? src : src.slice(0, i) + medSkarpning(svans);
     }
     // Rå Wix media-URL utan transform (t.ex. blogg-cover via wixImageToUrl i
     // lib/blog.ts) → använd `fit` (bevarar bildens naturliga aspect inom en
@@ -54,7 +78,7 @@ export default function fyndImageLoader({ src, width, quality }: ImageLoaderProp
     // förvränger banner-bilder som visas med object-fit:fill/cover).
     const key = wixMediaKey(src);
     if (key) {
-      return `https://static.wixstatic.com/media/${key}/v1/fit/w_${width},h_${width},q_${quality || 72}/file.webp`;
+      return `https://static.wixstatic.com/media/${key}/v1/fit/w_${width},h_${width},q_${quality || 72},${WIX_SKARPNING}/file.webp`;
     }
     return src;
   }

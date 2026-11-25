@@ -13,9 +13,13 @@
 // EXAKT samma adress som galleriet. Skiljer de sig åt hämtas bilden två
 // gånger, och förhämtningen kostar i stället för att hjälpa.
 import type { ImageLoaderProps } from "next/image";
+import { medSkarpning } from "./wix-crop";
 import { tightFillUrl } from "./wix-image";
 
 export function wixMainLoader({ src, width, quality }: ImageLoaderProps): string {
   if (!(src || "").includes("static.wixstatic.com")) return src; // icke-Wix (ska inte hända för katalogbilder) → orört
-  return tightFillUrl(src, width, width, quality || 72);
+  // Skärpningen (lib/wix-crop.ts) står i laddaren och inte i tightFillUrl:
+  // den adressen används också i flöden, mejl och delningsbilder, som inte ska
+  // byta adress.
+  return medSkarpning(tightFillUrl(src, width, width, quality || 72));
 }

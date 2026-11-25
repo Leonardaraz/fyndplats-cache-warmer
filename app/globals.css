@@ -1369,7 +1369,11 @@ a.grat:hover,a.grat:focus-visible{background:rgba(255,255,255,.10);border-color:
 .gallery .gmain img.ghero-layer.ghero-base{position:relative;inset:auto;width:100%;height:auto;aspect-ratio:1}
 .gallery .gmain img.ghero-layer.is-shown{opacity:1;z-index:2}
 .gallery .gmain.ghero-glomt img.ghero-layer:not(.is-shown){transition:none}
-.gallery .gmain:hover img{transform:scale(1.07)}
+/* ☠️ Huvudbilden zoomar inte vid hover (2026-11-25). Den hämtas i exakt rutans
+   bredd (542 px, lib/bild-sizes.ts), och scale(1.07), som stod här, skalade om
+   den så att den blev suddig medan pekaren låg på den: 226 % → 96 % av den
+   gamla bildens kantskärpa. Pekaren (zoom-in) och ⤢-märket säger att bilden
+   går att förstora; förstoringsläget har sin egen högupplösta fil. */
 /* Variant-swap-spinner: visas bara om man bytt till en bild som ännu inte
    dekodats (efter den ivriga förladdningen normalt aldrig). Mjuk, centrerad,
    ovanpå det gamla bildlagret så det syns att något händer. */
@@ -2531,7 +2535,7 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
 @media(prefers-reduced-motion:reduce){.backtotop{transition:opacity .2s,visibility .2s}}
 
 /* #6 Hover-alt-image on product cards */
-.pimg-main,.pimg-alt{transition:opacity .35s ease,transform .55s cubic-bezier(.2,.7,.2,1)}
+.pimg-main,.pimg-alt{transition:opacity .35s ease}
 .pimg-alt{opacity:0}
 /* Fotorutan medan bild-URL:en är på väg (se lib/list-payload.ts). Ett lugnt
    svep i samma varmgrå som rutan själv — inte ett hål, och inte en spinner som
@@ -2574,9 +2578,13 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
      :has() (äldre webbläsare) står huvudbilden kvar under, och bytet ser likadant ut. */
   .prod:hover .pimg-alt[data-klar]{opacity:1}
   .prod:hover .pimg:has(.pimg-alt[data-klar]) .pimg-main{opacity:0}
-  /* Mjuk zoom på hover (.pimg har overflow:hidden → beskärs rent). GPU-only,
-     ingen reflow. */
-  .prod:hover .pimg-main,.prod:hover .pimg-alt{transform:scale(1.045)}
+  /* ☠️ INGEN ZOOM PÅ BILDEN VID HOVER (2026-11-25). Bilden hämtas i exakt
+     rutans bredd och ritas pixel för pixel (lib/bild-sizes.ts). En zoom på
+     4,5 % (transform:scale(1.045), som stod här) skalade om den, och den
+     blev suddigare än sina grannar så länge pekaren låg kvar: kantskärpan
+     föll från 205 % till 86 % av den gamla bildens, mätt samma dag. Kortet
+     svarar ändå på pekaren: plattan lyfter (.prod:hover .pimg) och andra
+     bilden tonas in. */
 }
 @media (hover:none){
   .pimg-track-swipe{display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch}
@@ -3043,9 +3051,19 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
 .alla-prod .pchip:hover{border-color:var(--brand);color:var(--brand)}
 .alla-prod .pchip.active{background:#fff;border-color:var(--brand);color:var(--brand);font-weight:700}
 
-/* Produktrutnät: lite mer luft i sidled än kategorisidorna. Kortets utseende
-   är grundens (.prod); de egna ramreglerna här är borta. */
-.alla-prod .prodgrid{gap:38px 28px}
+/* Produktrutnät: lite mer luft på höjden än kategorisidorna. Kortets utseende
+   är grundens (.prod); de egna ramreglerna här är borta.
+   ☠️ MELLANRUMMET I SIDLED ÄR GRUNDENS, 20 px (2026-11-25). Det var 28 px, och
+   kortets bildruta blev då 259 px bred på datorn mot 265 px på alla andra
+   sidor. Bilden hämtas i exakt rutans bredd (lib/bild-sizes.ts), och två
+   nästan lika breda filer av samma foto ställer till det: Chrome återanvänder
+   en större fil som redan ligger i minnet, så ett kort man sett på en
+   kategorisida (265 px) ritades här med den filen i en ruta på 259, och en
+   fil som är 2 % för bred är det suddigaste som finns (mätt samma dag: 93 %
+   av den gamla bildens kantskärpa, mot 205 % för grannarna). Med samma
+   mellanrum är rutan 265 px överallt och en och samma fil räcker.
+   lib/bild-sizes.test.ts fäller om talet ändras. */
+.alla-prod .prodgrid{gap:38px 20px}
 @media(max-width:900px){.alla-prod .prodgrid{grid-template-columns:repeat(3,1fr);gap:28px 20px}}
 @media(max-width:760px){.alla-prod .prodgrid{grid-template-columns:repeat(2,1fr);gap:24px 16px}}
 /* Mobil: listsidornas rutnät (ShopBrowser: kategorier, sök, Alla produkter,

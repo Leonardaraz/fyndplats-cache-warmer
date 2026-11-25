@@ -102,7 +102,7 @@ describe("startsidans sektioner", () => {
     // Kortet ritas av raden (components/guide-karusell.tsx) sedan 2026-11-19.
     const rad = las("components", "guide-karusell.tsx");
     const kort = rad.slice(rad.indexOf('className="guide"'), rad.indexOf("</PrefetchLink>", rad.indexOf('className="guide"')));
-    assert.match(kort, /<Image src=\{g\.cover\} alt="" fill /);
+    assert.match(kort, /<Image src=\{iRutansForm\(g\.cover, "4:3"\)\} alt="" fill /);
     assert.match(kort, /className="guide-titel"/);
   });
 });

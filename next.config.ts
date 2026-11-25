@@ -83,6 +83,17 @@ const nextConfig: NextConfig = {
     // Vercels /_next/image-optimerare (kallstart + extra hop). remotePatterns
     // behålls som dokumentation av tillåtna värdar; optimeraren är förbikopplad.
     loaderFile: "./lib/image-loader.ts",
+    // ☠️ Bredderna i srcset är butikens egna, inte Nexts (2026-11-25). På datorn
+    // är kortets bildruta 265 px och produktsidans huvudbild 542 px. Finns
+    // exakt de bredderna, och det dubbla för skärmar med dubbel täthet, ritas
+    // filen pixel för pixel i stället för att skalas om, och det är skillnaden
+    // mellan en mjuk och en skarp bild (lib/bild-sizes.ts har mätningen).
+    // Nexts 256 och 1080 är utbytta, inte kompletterade: varje bredd här
+    // skrivs ut i varje bilds srcset, och en bredd strax över en annan ruta
+    // gör den rutans bilder suddiga. Lägg inte till en bredd utan att mäta.
+    // lib/bild-sizes.test.ts jämför talen med BILD_BREDDER_SMA och _STORA.
+    imageSizes: [32, 48, 64, 96, 128, 265, 384, 530, 542],
+    deviceSizes: [640, 750, 828, 1084, 1200, 1920, 2048, 3840],
     // Kvaliteter som <Image quality> får be om. Laddaren ovan skickar talet
     // vidare till bildens egen CDN; utan raden varnar Next i utvecklingsläget.
     qualities: [60, 75],

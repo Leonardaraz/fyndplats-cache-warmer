@@ -349,7 +349,8 @@ describe("produktsidans huvudbild börjar hämtas i trycket", () => {
     assert.match(galleri, /sizes=\{HERO_SIZES\}/);
     assert.match(galleri, /import \{ wixMainLoader \} from "\.\.\/lib\/hjalte-loader";/);
     assert.doesNotMatch(galleri, /function wixMainLoader/);
-    assert.match(las("lib", "hjalte-loader.ts"), /return tightFillUrl\(src, width, width, quality \|\| 72\);/);
+    // Skärpningen (lib/wix-crop.ts) ligger i laddaren, så att båda får den.
+    assert.match(las("lib", "hjalte-loader.ts"), /return medSkarpning\(tightFillUrl\(src, width, width, quality \|\| 72\)\);/);
   });
 
   it("sizes sätts före srcset, och en bild hämtas bara en gång", () => {
@@ -379,7 +380,7 @@ describe("produktsidans huvudbild börjar hämtas i trycket", () => {
 
   it("kortets bild visas medan huvudbilden hämtas: samma foto, hämtad, stor nog och nyss", () => {
     assert.match(varm, /if \(!url \|\| !img\.complete \|\| img\.naturalWidth === 0\) continue;\s+if \(wixMediaKey\(url\) !== nyckel \|\| wixUtbredd\(url\) < KORTBILD_MINSTA_BREDD\) continue;/);
-    assert.match(varm, /const KORTBILD_MINSTA_BREDD = 300;/);
+    assert.match(varm, /const KORTBILD_MINSTA_BREDD = 250;/);
     assert.match(varm, /if \(!bild \|\| !kortbild \|\| Date\.now\(\) - kortbild\.nar > KORTBILD_GALLER_MS\) return null;\s+return wixMediaKey\(bild\) === kortbild\.nyckel \? kortbild\.url : null;/);
     // Galleriet: bara det första lagret, och utan kortbild är allt som förut.
     assert.match(galleri, /const \[kortbild\] = useState\(\(\) => kortbildFor\(main\)\);/);

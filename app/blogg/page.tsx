@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { getPosts, fmtDate, absolutCover } from "../../lib/blog";
+import { iRutansForm } from "../../lib/bildformat";
 import { pageMeta, jsonLdString } from "../../lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -82,7 +83,12 @@ export default async function Blogg() {
               {posts.map((p) => (
                 <a className="prod blogg-kort" key={p.slug} href={`/blogg/${p.slug}`}>
                   <div className="pimg" style={p.cover ? undefined : { background: "linear-gradient(135deg,#FFB078,#F47A35)" }}>
-                    {p.cover && <Image src={p.cover} alt={p.alt || p.title} fill sizes="(max-width:540px) 100vw, (max-width:900px) 50vw, 25vw" style={{ objectFit: "cover" }} />}
+                    {/* Omslaget är brett och rutan kvadratisk: iRutansForm ber Wix om en
+                        kvadrat, annars blev filen för låg och förstorades på skärmar
+                        med dubbel täthet (lib/bildformat.ts). `sizes` är rutans bredd i
+                        rutnätet (.prodgrid: 267 px på datorn, utan kortets ram), inte
+                        en fjärdedel av fönstret som förut. */}
+                    {p.cover && <Image src={iRutansForm(p.cover, "1:1")} alt={p.alt || p.title} fill sizes="(max-width:540px) calc( 100vw - 52px), (max-width:900px) calc( 50vw - 36px), (max-width:1179px) calc( 25vw - 28px), 267px" style={{ objectFit: "cover" }} />}
                   </div>
                   <div className="pbody">
                     {p.date && <div style={{ fontSize: 12, color: "var(--soft)", marginBottom: 6 }}>{fmtDate(p.date)}</div>}
