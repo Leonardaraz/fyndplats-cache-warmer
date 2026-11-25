@@ -6945,7 +6945,9 @@ Kartlagt på www samma dag, i varje bild frågat vad som står bakom den
 - **Stämningsbilderna blev en ton mörkare av blandningen.** De ligger kant i
   kant i rutan, så plattan syntes aldrig, men multiply mot en varm platta
   färgade hela fotot. Nu ritas de som de är.
-- **En avdelning utan stämningsbild visar en vara** (i dag Bil & Garage).
+- **En avdelning utan stämningsbild visar en vara.** Ingen avdelning är utan
+  i dag (se "Stämningsfoto på de tre sista avdelningarna" nedan), så regeln
+  gäller en ny avdelning tills den har fått sitt foto.
   Rutan bär då `.kat-produkt` eller `.b2-avd-produkt` och får en tunn ram:
   varans vita botten går ihop med den vita sidan, och utan ram syns rutan
   inte. Bilden är densamma som förut, i rutans form. ☠️ Ett första försök
@@ -7017,6 +7019,53 @@ Mätt i det lokala produktionsbygget: registret 2 006 → 1 082 px vid 1 440 px
 (1 039 vid 881, 1 044 vid 1 024), hela /butik 5 323 → 4 381 px. Telefonens
 register är 1 257 px, som förut.
 
+### Stämningsfoto på de tre sista avdelningarna
+
+Leonard samma dag, när han fått se att Bil & Garage visade en vara: "ändra så
+de har stämingsfoto". Tre avdelningar saknade nyckel i `CATEGORY_HERO_IMAGES`
+(`lib/category-groups.ts`): Bil & Garage, Bygg & Renovering och Företag &
+Proffs. De visade en vara i menyns stora ruta, ingen banderoll i mobilmenyn och
+en produktbild överst på sin kategorisida; Bil & Garage också i rutan på
+startsidan och /butik.
+
+| Avdelning | Foto | Id |
+|---|---|---|
+| Bil & Garage | mutterdragare med hylsa på en hjulmutter, lättmetallfälg i dagsljus | `1593699199342-59b40e08f0ac` |
+| Bygg & Renovering | roller som målar en vit vägg blå | `1562259949-e8e7689d7828` |
+| Företag & Proffs | kock som lägger upp på vita tallrikar: händer, vit rock, svart förkläde | `1577106263724-2c8e03bfe9cf` |
+
+- **Granskade i bild, ett och ett**, på exakt den adress `UNSPLASH()` bygger
+  (1 600 × 1 280): äkta foto, inga läsbara varumärken, inget ansikte.
+  Mutterdragarens präglade märke och rollerskaftets etikett är förstorade ur
+  originalet i 2 400 px och går inte att läsa.
+- **Sedda i butikens fyra utsnitt.** Varje yta klipper mitt ur ORIGINALET,
+  inte ur 5:4-bilden: rutan 4:3 (`unsplashIForm`), kategorisidan 5:4,
+  datorns meny 4:5 och mobilmenyns banderoll 12:5 (`hjalteAdress`). Ett foto
+  med motivet i ett hörn klarar inte alla fyra. De här tre har det i mitten.
+- ☠️ **unsplash.com går inte att öppna från byggmiljön** (robotspärr, och den
+  ska inte kringgås). Kandidaterna är därför prövade direkt mot
+  `images.unsplash.com`: cirka 300 id, sedda som kontaktark. Fotosidorna är
+  inte lästa. Adresser som börjar `photo-` på den värden är Unsplashs fria
+  bilder; betalbilderna (Unsplash+) heter `premium_photo-` och ligger på
+  `plus.unsplash.com`, och går inte att skriva med `UNSPLASH()`.
+- ☠️ **Unsplashs licens täcker inte varumärken och igenkännbara personer i
+  bilden.** Därför föll de annars bästa kandidaterna: en verkstad med
+  märkesskylt på bilen och däckmärket läsbart, en verktygsvägg med
+  sprejburkens märke i förgrunden, en kapsåg och en borrmaskin med
+  tillverkarens namn, en rörvägg med skylt på polska, ett restaurangkök med
+  grossistens namn på kartongerna, och en uppläggning där kockens ansikte
+  syntes i menyns stående utsnitt (i 4:3 och 5:4 var det bortklippt).
+- **`KATEGORI_HERO_PRODUKT["bil-garage"]` är borttagen.** Kategorisidan tar
+  fotot först, så raden lästes aldrig längre.
+- `lib/meny-bild-val.ts` har kvar sina val för de tre avdelningarna: de är
+  miniatyren på avdelningens rad i mobilmenyn, och menyns reserv om fotot
+  skulle saknas.
+
+Provet `lib/stamningsfoto.test.ts` (10 prov) fäller om en avdelning i
+`AVDELNINGSORDNING` saknar foto, om två avdelningar delar foto, om ett foto inte
+går att klippa till menyns former och om en avdelning med foto får en rad i
+`KATEGORI_HERO_PRODUKT`.
+
 ### Proven
 
 - `lib/vit-platta.test.ts` (14 prov) och `lib/register-rader.test.ts` (19).
@@ -7042,9 +7091,6 @@ register är 1 257 px, som förut.
   det som skilde webbläsarna åt (2026-11-20), och det är borta nu.
 - **En webbläsare utan `:has`** är inte körd: reserven (alla knappar, ingen
   "Alla N") är läst ur stilen, inte sedd.
-- **Bil & Garage har ingen stämningsbild** och visar en vara i sin ruta. En
-  rad i `CATEGORY_HERO_IMAGES` (`lib/category-groups.ts`) ger den samma slags
-  foto som de andra.
 - **Startsidans undre del på datorn** fick de vita plattorna och fotona utan
   toning, inget mer: kategorierna, veckans fynd, köpguiderna och omdömena har
   samma form som förut.

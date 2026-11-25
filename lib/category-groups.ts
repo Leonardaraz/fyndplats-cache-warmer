@@ -253,10 +253,36 @@ export const CATEGORY_HERO_IMAGES: Record<string, string> = {
   // De nya avdelningarna 2026-09-30 lånar sin mest typiska underkategoris bild,
   // granskad samma dag i UNSPLASH()-beskärningen: julgranen vid den öppna spisen
   // och verktygsväggen. Verktyg & Maskiner hette Verktyg & Fordon och behåller
-  // verktygsväggen (svarade 200 2026-10-31). Bil & Garage har ingen egen bild
-  // här: sidan visar en vald produkt (KATEGORI_HERO_PRODUKT nedan).
+  // verktygsväggen (svarade 200 2026-10-31).
   "Jul & Högtider": UNSPLASH("1642335911245-238e13dcabf2"), // pyntad gran och krans vid öppen spis
   "Verktyg & Maskiner": UNSPLASH("1426927308491-6380b6a9936f"), // organiserad verktygsvägg
+
+  // ── De tre sista avdelningarna (Leonard 2026-11-25) ─────────────────────
+  // "ändra så de har stämingsfoto". Bil & Garage, Bygg & Renovering och
+  // Företag & Proffs var de enda avdelningarna utan nyckel här och visade en
+  // vara: i rutan på startsidan och /butik (Bil & Garage), i menyns stora
+  // ruta, i mobilmenyns banderoll och överst på sin kategorisida.
+  //
+  // Samma granskning som trädgårds- och möbelgrenen: varje bild hämtad på
+  // exakt den URL UNSPLASH() bygger (1600×1280), äkta foto, inga läsbara
+  // varumärken och inget ansikte. Dessutom sedd i de fyra utsnitt butiken
+  // klipper mitt ur originalet: 4:3 (rutan), 5:4 (kategorisidan), 4:5 (datorns
+  // meny) och 12:5 (mobilmenyns banderoll). Motivet ligger mitt i bilden i alla
+  // tre, så inget utsnitt tappar det.
+  //
+  // ☠️ unsplash.com gick inte att öppna från byggmiljön (robotspärr), så
+  // fotosidorna är inte lästa. Bilderna är sedda på images.unsplash.com, och
+  // adresser som börjar photo- där är Unsplashs fria bilder: betalbilderna
+  // (Unsplash+) ligger på plus.unsplash.com/premium_photo-.
+  //
+  // Kandidater som föll: en verkstad med märkesskylt på bilen och däckmärket
+  // läsbart, en verktygsvägg med sprejburkens märke i förgrunden, en kapsåg
+  // och en borrmaskin med tillverkarens namn, en rörvägg med skylt på polska,
+  // ett restaurangkök med grossistens namn på kartongerna och en uppläggning
+  // där kockens ansikte syntes i menyns stående utsnitt.
+  "Bil & Garage": UNSPLASH("1593699199342-59b40e08f0ac"), // mutterdragare med hylsa på en hjulmutter, lättmetallfälg
+  "Bygg & Renovering": UNSPLASH("1562259949-e8e7689d7828"), // roller som målar en vit vägg blå
+  "Företag & Proffs": UNSPLASH("1577106263724-2c8e03bfe9cf"), // kock lägger upp på vita tallrikar: händer och förkläde
 
   // Husdjur
   "Pälsvård & Skötsel": UNSPLASH("1675430426271-d74b542f21e4"), // hund som borstas
@@ -327,10 +353,9 @@ export const KATEGORI_HERO_PRODUKT: Record<string, string> = {
   "elbilsladdning-solenergi": "portabel-elbilsladdare-typ-2-schuko",
   // Runda S15 2026-10-03: den klassiska formen, sits och knädyna på medar.
   "knastolar": "gungande-knastol-gra",
-  // VEVOR-trädet 2026-10-31. Bil & Garage har ingen granskad Unsplash-bild.
-  // Garagedomkraften på vit botten, sedd i full storlek samma dag: texten på
-  // den gula etiketten sitter på själva varan.
-  "bil-garage": "garagedomkraft-2-5-ton-lag-profil",
+  // "bil-garage" stod här 2026-10-31 till 2026-11-25, med en garagedomkraft.
+  // Avdelningen har ett stämningsfoto nu (CATEGORY_HERO_IMAGES ovan), och det
+  // går före: en rad här för en kategori med foto läses aldrig.
 };
 
 // Returnerar curated Unsplash-hero för en huvudkategori, annars "" (→ sidan
