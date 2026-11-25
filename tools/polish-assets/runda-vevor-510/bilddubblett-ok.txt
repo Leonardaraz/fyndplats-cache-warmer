@@ -1,3 +1,0 @@
-e4d9e6fd 3 6 samma foto: position 6 är position 3 (0,003 rakt mot 0,217 spegelvänt) och stryks i fas 2
-05b41aff 4 6 spegelvänd kopia: position 6 är position 4 spegelvänd (0,006 spegelvänt mot 0,285 rakt) och stryks i fas 2
-d573747f 1 3 samma foto: position 3 är position 1 (0,000 rakt mot 0,107 spegelvänt) och stryks i fas 2
