@@ -1,0 +1,77 @@
+{
+  "eb528a7e": {
+    "productId": "eb528a7e-1e39-4e8a-bef6-2a80d9f037ce",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-78bhk1",
+        "betyg": 5,
+        "datum": "2026-09-30",
+        "foton": 0,
+        "text": "Der Tisch entspricht meiner Erwartung. Erfüllt seine Zweck. Er ist vielseitig einsetzbar."
+      },
+      {
+        "id": "gen-b6zyl",
+        "betyg": 4,
+        "datum": "2026-07-12",
+        "foton": 1,
+        "text": "The shipping and delivery were OK but there is part missing. How do I secure the top panel to the legs? There were nó bolts or hardware to do so. Please see the image."
+      }
+    ]
+  },
+  "5a425fad": {
+    "productId": "5a425fad-0016-43f6-9326-8d6d897dca50",
+    "synliga": 0,
+    "dolda": 3,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 3,
+    "attBesluta": [
+      {
+        "id": "gen-npdv4k",
+        "betyg": 5,
+        "datum": "2026-08-11",
+        "foton": 0,
+        "text": "Es exactamente lo que necesitaba para perder llebar el agua de la fosa séptica al estercolero para fomentar el estiercol"
+      }
+    ]
+  },
+  "cf716a34": {
+    "productId": "cf716a34-b3df-47b1-906a-e7a63c04a1ec",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-13it7xq",
+        "betyg": 5,
+        "datum": "2026-10-14",
+        "foton": 1,
+        "text": "In september gekocht, na korte termijn geleverd, als particulier betaalbaar om grote verpakkingen veilig te verzenden. Gemakkelijk in gebruik, met stevige clips sluitingen."
+      }
+    ]
+  },
+  "e92f9a29": {
+    "productId": "e92f9a29-f794-40bd-babb-a8f7fdf11c02",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-4wru9s",
+        "betyg": 5,
+        "datum": "2026-10-24",
+        "foton": 0,
+        "text": "Todo perfecto cumple todas las expectativas"
+      }
+    ]
+  }
+}
