@@ -66,9 +66,12 @@ osynliga utkastet syns inte för någon kund, men dess bilder tar plats i Wix.
 
 **Leonards beslut 2026-11-04: AliExpress-sidor vars vara finns hos Aosom mappas om, och blir
 regelpriset efter ommappningen mer än 40 % lägre än butikspriset sänks priset så att
-prissynken tar raden.** Annars stoppar `MAX_PRISANDRING_PCT = 40` (`lib/aosom/sync.ts`) den,
-och den ligger i `varningar` varje varv utan att något skrivs. Sänk priset för hand, eller
-godkänn hoppet med `godkann_pris` (Wix-id) i en riktad `aosom-sync` utanför synkfönstret.
+prissynken tar raden.** Fram till 2026-11-25 stoppade `MAX_PRISANDRING_PCT = 40`
+(`lib/aosom/sync.ts`) den annars: raden låg i `varningar` varje varv utan att något skrevs,
+och priset sänktes för hand eller godkändes med `godkann_pris`. ☠️ Taket är borta sedan
+2026-11-25 (`01-sex-egenskaper.md`, punkt 5). Nästa priskörning skriver regelpriset av sig
+själv, hur stort hoppet än är, och hoppet står i körningens `storaHopp`. Läs därför
+regelpriset FÖRE ommappningen: det som står där är vad kunden möter efter nästa priskörning.
 Ta regelpriset ur `roundPrice(1,2 × landad kostnad, "charm99")` i en privat läsning av
 mappningsraden och skriv aldrig kostnaden i en logg. Mätt samma dag på Mercedes-sidan
 `973743f8`, som ommappades till Aosom: regelpriset 1 369 kr mot butikens 1 399 kr (−2 %),

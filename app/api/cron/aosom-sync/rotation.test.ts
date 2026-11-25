@@ -14,12 +14,15 @@ const FORSTA = ["111", "111ZZ"].join("-");
 const ANDRA = ["222", "222ZZ"].join("-");
 
 const syncMock = vi.fn();
+const auditMock = vi.fn(async (..._a: unknown[]) => {});
 
 vi.mock("@/lib/auth", () => ({ isAuthorized: () => false }));
-vi.mock("@/lib/audit", () => ({ audit: async () => {} }));
+vi.mock("@/lib/audit", () => ({ audit: (...a: unknown[]) => auditMock(...a) }));
 vi.mock("@/lib/aosom/sync", () => ({
   runAosomSync: (...a: unknown[]) => syncMock(...a),
   liveDeps: async () => ({}),
+  // Rutten skriver gränsen i sin rad om stora prishopp (2026-11-25).
+  STORT_PRISHOPP_PCT: 40,
 }));
 
 import { POST } from "./route";
@@ -35,7 +38,7 @@ function req(fraga: string) {
 const SVAR = {
   granskade: 0, lagerUppdaterade: 0, prisUppdaterade: 0, utanWixPris: 0, utanLagerrader: 0,
   misslyckade: 0, okandaVarianter: 0, tvetydiga: 0, prislistaFel: null, urFeeden: 0,
-  slutsalda: 0, ejSkeppbara: 0, varningar: [], godkandaHopp: [], prisLasta: 0, konkurrentMal: 0,
+  slutsalda: 0, ejSkeppbara: 0, varningar: [], godkandaHopp: [], storaHopp: [], prisLasta: 0, konkurrentMal: 0,
   konkurrentTak: 0, konkurrentGolv: 0, konkurrentFrysta: 0, lagerDrift: 0,
   lagerDriftRattade: 0, lagerDriftProdukter: [], stampelHoppade: 0,
   saldaAvdragna: 0, saldaAvdragnaProdukter: [],
@@ -51,6 +54,7 @@ beforeEach(() => {
   delete process.env.STORE_BACKEND;
   lager.markorer.clear();
   syncMock.mockReset();
+  auditMock.mockClear();
 });
 
 describe("markörernas namn", () => {
@@ -268,6 +272,77 @@ describe("en priskörning om dagen: ?fortsatt=1, ?budget= och varvet", () => {
         expect(iSynkfonster(new Date(start))).toBe(true);
         expect(iSynkfonster(new Date(start + 705_000))).toBe(true);
       }
+    }
+  });
+});
+
+// Leonard 2026-11-25: "ta bort aosoms tak också". Ingen godkänner ett hopp
+// längre, så raden är det enda stället där ett stort hopp syns.
+describe("prishopp över 40 % utan tak: kvittoraden och loggen", () => {
+  const HOPP = { wixProductId: "aaaa1111-0000-4000-8000-000000000001", fran: 5179, till: 2899, andringPct: -44 };
+
+  it("☠️ ett hopp ensamt ger en kvittorad, med Wix-id och belopp", async () => {
+    const logg = vi.spyOn(console, "log").mockImplementation(() => {});
+    try {
+      // Inget annat hände i körningen: utan villkoret på `storaHopp` skrivs ingen rad alls.
+      syncMock.mockResolvedValue({ ...SVAR, stoppedBy: "klart", cursor: null, kvar: 0, storaHopp: [HOPP] });
+      const res = await POST(req("dryRun=false"));
+      expect(res.status).toBe(200);
+      expect(auditMock).toHaveBeenCalledTimes(1);
+      const rad = String(auditMock.mock.calls[0][2]);
+      expect(rad).toContain(`1 prishopp över 40 % (${HOPP.wixProductId} 5179→2899), `);
+      const rader = logg.mock.calls.map((c) => String(c[0]));
+      expect(rader.some((r) => r.includes("1 prishopp över 40 %, "))).toBe(true);
+      expect(rader).toContain(`[aosom-sync] prishopp över 40 %: ${HOPP.wixProductId} 5179 → 2899 kr (-44 %)`);
+    } finally {
+      logg.mockRestore();
+    }
+  });
+
+  it("utan hopp och utan annat: ingen kvittorad, och raden säger 0", async () => {
+    const logg = vi.spyOn(console, "log").mockImplementation(() => {});
+    try {
+      syncMock.mockResolvedValue({ ...SVAR, stoppedBy: "klart", cursor: null, kvar: 0 });
+      const res = await POST(req("dryRun=false"));
+      expect(res.status).toBe(200);
+      expect(auditMock).not.toHaveBeenCalled();
+      const rader = logg.mock.calls.map((c) => String(c[0]));
+      expect(rader.some((r) => r.includes("0 prishopp över 40 %, "))).toBe(true);
+      expect(rader.some((r) => r.startsWith("[aosom-sync] prishopp över 40 %"))).toBe(false);
+    } finally {
+      logg.mockRestore();
+    }
+  });
+
+  it("torrkörningen skriver ingen kvittorad men säger i loggen att den är en torrkörning", async () => {
+    const logg = vi.spyOn(console, "log").mockImplementation(() => {});
+    try {
+      syncMock.mockResolvedValue({ ...SVAR, stoppedBy: "klart", cursor: null, kvar: 0, storaHopp: [HOPP] });
+      const res = await POST(req("dryRun=true"));
+      expect(res.status).toBe(200);
+      expect(auditMock).not.toHaveBeenCalled();
+      const rader = logg.mock.calls.map((c) => String(c[0]));
+      expect(rader).toContain(`[aosom-sync] prishopp över 40 % (torrkörning): ${HOPP.wixProductId} 5179 → 2899 kr (-44 %)`);
+      expect((await res.json()).storaHopp).toEqual([HOPP]);
+    } finally {
+      logg.mockRestore();
+    }
+  });
+
+  it("fler än tjugo hopp: de tjugo första står i raden och resten räknas", async () => {
+    const logg = vi.spyOn(console, "log").mockImplementation(() => {});
+    try {
+      const manga = Array.from({ length: 23 }, (_, i) => ({ ...HOPP, wixProductId: `id-${i}` }));
+      syncMock.mockResolvedValue({ ...SVAR, stoppedBy: "klart", cursor: null, kvar: 0, storaHopp: manga });
+      await POST(req("dryRun=false"));
+      const rad = String(auditMock.mock.calls[0][2]);
+      expect(rad).toContain("23 prishopp över 40 % (id-0 5179→2899, ");
+      expect(rad).toContain("id-19 5179→2899 … 3 till), ");
+      expect(rad).not.toContain("id-20 ");
+      const hopprader = logg.mock.calls.map((c) => String(c[0])).filter((r) => r.startsWith("[aosom-sync] prishopp över 40 %:"));
+      expect(hopprader).toHaveLength(20);
+    } finally {
+      logg.mockRestore();
     }
   });
 });

@@ -70,6 +70,9 @@ Tre egenskaper i den fixen som inte ska tas bort:
 2. ☠️ **Taket (`MAX_PRISANDRING_PCT`) räknas mot butikens pris.** Räknat mot
    mappningen hade en rad som redan drivit isär sett ut som en liten ändring och
    sluppit förbi spärren — spärren ska mäta hoppet kunden faktiskt utsätts för.
+   Taket togs bort 2026-11-25 (`01-sex-egenskaper.md`, punkt 5). Regeln gäller
+   det som kom i stället: ett hopp räknas som stort (`storaHopp`, över 40 %)
+   mot butikens pris, och en profil som får ett tak igen mäter på samma sätt.
 3. **`MIN_WIX_PRODUKTER = 500` spärrar**, av samma skäl som `MIN_FEED_RADER`:
    en halvläst prislista ser ut som "alla priser har ändrats", och en körning som
    tror det skriver om hela katalogen.

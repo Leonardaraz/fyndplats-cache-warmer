@@ -70,7 +70,9 @@ priser och hann 50–100 produkter, och ett varv tog fyra dygn.
 - **Stoppade prishopp syns.** Loggen och raden i `FyndplatsAudit` säger nu
   vilka produkter 40 %-taket höll kvar (Wix-id och butikspriset före och
   efter). Förut stod bara antalet, och fem synliga varor i lager stod 40–54 %
-  från regelpriset utan att någon såg vilka.
+  från regelpriset utan att någon såg vilka. ☠️ Taket togs bort 2026-11-25
+  (`01-sex-egenskaper.md`, punkt 5). Raden säger sedan dess vilka priser som
+  skrevs med ett hopp över 40 %.
 
 #### ☠️ Wix stryper på tempo: tre skydd
 

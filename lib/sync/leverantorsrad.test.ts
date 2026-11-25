@@ -74,7 +74,7 @@ describe("lagerbesked", () => {
 const TIMME = 3_600_000;
 
 describe("PROFILER", () => {
-  it("Aosom: samma tal som före steg 5 — saknad rad är slut, buffert 0, 2 000 rader, tolv timmar", () => {
+  it("Aosom: saknad rad är slut, buffert 0, 2 000 rader, tolv timmar, nytt pris direkt, inget tak", () => {
     expect(PROFILER.aosom).toEqual({
       saknadRad: "slut",
       konkurrentregel: true,
@@ -83,7 +83,7 @@ describe("PROFILER", () => {
       minRader: 2000,
       bestalldOsynligMs: 12 * TIMME,
       prisKraverTvaAvlasningar: false,
-      maxPrisandringPct: 40,
+      maxPrisandringPct: null,
     });
   });
 
@@ -100,13 +100,14 @@ describe("PROFILER", () => {
     });
   });
 
-  it("☠️ taket på prisändringen är Aosoms: VEVOR har inget (Leonard 2026-11-25), och utan tak ska två avläsningar krävas", () => {
-    expect(PROFILER.aosom?.maxPrisandringPct).toBe(40);
-    expect(PROFILER.vevor?.maxPrisandringPct).toBeNull();
-    // En leverantör utan tak skriver vilket pris som helst: då ska ett enstaka felläst besked inte räcka.
-    for (const profil of Object.values(SYNKPROFILER)) {
-      if (profil.maxPrisandringPct === null) expect(profil.prisKraverTvaAvlasningar).toBe(true);
-    }
+  it("☠️ ingen leverantör har ett tak på prisändringen (Leonard 2026-11-25, först VEVOR och sedan Aosom)", () => {
+    // "ta bort 40% taket som håller kvar priserna och jag behöver godkänna" och
+    // "ta bort aosoms tak också". Ett tak som kommer tillbaka ska vara ett
+    // beslut, inte en rest: det här provet fäller då.
+    for (const profil of Object.values(SYNKPROFILER)) expect(profil.maxPrisandringPct).toBeNull();
+    // Det som är kvar mot en trasig siffra, per leverantör.
+    expect(PROFILER.aosom?.minRader).toBe(2000);
+    expect(PROFILER.vevor?.prisKraverTvaAvlasningar).toBe(true);
   });
 
   it("föregående avläsnings kostnad följer med ett känt besked, aldrig ett okänt", () => {

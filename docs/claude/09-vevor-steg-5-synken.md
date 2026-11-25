@@ -6,7 +6,7 @@ läsarens avläsningar som källa. Motorn är `korSynk` i `lib/aosom/sync.ts`.
 avläsningar (`vevorKalla`). Allt efter källan är gemensamt: avdraget för sålda
 enheter, rättelsen mot butikens saldo, prislåset, auktionslåset, att Wix skrivs
 före mappningen, stämpeln på den färska raden och restock-mejlen. Taket på 40 %
-på en prisändring är Aosoms. VEVOR har inget sedan 2026-11-25 (se "Taket på
+på en prisändring togs bort 2026-11-25, för båda leverantörerna (se "Taket på
 40 % är borta för VEVOR" nedan).
 
 Cron `/api/cron/vevor-synk` minut 50 varje timme, efter Aosom-synken (minut 20).
@@ -23,7 +23,7 @@ Läget i `/api/admin/vevor-synk`, workflowen **"VEVOR — synken"** (`status` ·
 | minsta antal rader | 2 000 | ingen, en saknad rad är redan okänd |
 | beställda enheter dras av | 12 timmar | 12 timmar |
 | nytt pris | direkt | när två avläsningar i rad ger samma regelpris |
-| tak på en prisändring | 40 %, sedan godkännande | inget (Leonard 2026-11-25) |
+| tak på en prisändring | inget (Leonard 2026-11-25) | inget (Leonard 2026-11-25) |
 
 Aosoms tal är desamma som förut. `MIN_FEED_RADER`, `LAGER_BUFFERT` och
 `NYSS_BESTALLD_MS` läser Aosoms profil, och Aosom-synkens tester går igenom
@@ -247,28 +247,29 @@ stod stoppad såldes varan under regelpriset, och de 14 hade stått så i dagar.
 
 Leonard, samma dag: "sänk och ta bort 40% taket som håller kvar priserna och jag
 behöver godkänna". Taket står nu i leverantörens profil (`maxPrisandringPct` i
-`lib/sync/leverantorsrad.ts`): 40 för Aosom, inget för VEVOR. Ett stabilt
-VEVOR-pris skrivs hur stort hoppet än är, av schemat, utan godkännande. De tre
+`lib/sync/leverantorsrad.ts`), och VEVOR har inget. Ett stabilt VEVOR-pris
+skrivs hur stort hoppet än är, av schemat, utan godkännande. De tre
 sänkningarna skrivs därmed av den första timkörningen efter deployen.
 
 Tre saker som ska stå kvar:
 
-1. ☠️ **Utan tak är två lika avläsningar spärren som är kvar.** Ett prov fäller
-   om en profil utan tak inte kräver två avläsningar för ett nytt pris. Kvar mot
-   en felläst sida finns också läsarens egna kontroller (pris, valuta och språk
-   ska stämma på sidan, `lib/vevor/sida.ts`) och golvet för ett rimligt pris
-   (under 20 kr skrivs aldrig).
+1. ☠️ **Utan tak är två lika avläsningar spärren som är kvar** (provet "utan
+   tak är två lika avläsningar spärren som är kvar" i `lib/vevor/synk.test.ts`).
+   Kvar mot en felläst sida finns också läsarens egna kontroller (pris, valuta
+   och språk ska stämma på sidan, `lib/vevor/sida.ts`) och golvet för ett
+   rimligt pris (under 20 kr skrivs aldrig).
 2. ☠️ **Ett hopp över 40 % står i raden** (`storaHopp`, "N prishopp över 40 %"
    med Wix-id och butikspriset före och efter, i Vercels logg, i
    `FyndplatsAudit` och i workflowens utskrift, märkt ↕️). Ingen godkänner dem
    längre, så det ska gå att se i efterhand vilka priser som flyttade sig mest.
-3. **Aosoms tak är oförändrat.** Aosom-synken skriver ett nytt pris direkt ur
-   feeden, utan en andra avläsning, och en trasig feed-rad hade slagit igenom
-   samma timme.
+3. **Aosoms tak togs bort samma dag** (Leonard: "ta bort aosoms tak också").
+   Aosom-synken skriver ett nytt pris direkt ur feeden, utan en andra
+   avläsning. Vad som är kvar där står i
+   `05-aosom-synken/01-sex-egenskaper.md`, punkt 5.
 
 `godkann_pris` i workflowen och `?godkannPris=` på rutten finns kvar och gör
-ingenting för VEVOR så länge profilen saknar tak. De släpper taket för en
-leverantör som har ett.
+ingenting så länge profilen saknar tak. Grenen prövas direkt mot `planeraPris`
+(`lib/aosom/sync.test.ts`), med en profil som har ett.
 
 **Inte mätt:** hur ofta VEVOR:s pris hoppar mer än 40 % och tillbaka. 20–23
 november stoppade taket runt 100 hopp per varv. De skrivs nu när deras två

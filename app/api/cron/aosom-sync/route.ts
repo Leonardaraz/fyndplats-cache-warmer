@@ -42,9 +42,12 @@
 //                        lib/aosom/markor.ts (klartext tas emot vid en körning för hand)
 //   ?sku=<artikel>,…   kör bara dessa (riktad omkörning)
 //   ?skipPrices=1        synka bara lager
-//   ?godkannPris=<wix-id>,…  släpp 40 %-taket för just dessa produkter i den
-//                        här körningen (en människas godkännande, se
-//                        `godkannPrisandring` i lib/aosom/sync.ts)
+//   ?godkannPris=<wix-id>,…  släpp profilens tak för just dessa produkter i
+//                        den här körningen (en människas godkännande, se
+//                        `godkannPrisandring` i lib/aosom/sync.ts).
+//                        ☠️ Aosom har inget tak sedan 2026-11-25 (Leonard), så
+//                        valet gör ingenting förrän profilen får ett igen. Ett
+//                        hopp över 40 % skrivs och står i svarets `storaHopp`.
 //   ?rotation=lager|pris  fortsätt där förra schemalagda körningen med samma
 //                        namn slutade, och spara var den här slutar
 //                        (lib/aosom/sync-markor.ts). Bara skarpa körningar
@@ -72,9 +75,12 @@ import { type NextRequest, NextResponse } from "next/server";
 import { isAuthorized } from "@/lib/auth";
 import { forseglaMarkor, MarkorFel, oppnaMarkor } from "@/lib/aosom/markor";
 import { audit } from "@/lib/audit";
-import { runAosomSync, liveDeps } from "@/lib/aosom/sync";
+import { runAosomSync, liveDeps, STORT_PRISHOPP_PCT } from "@/lib/aosom/sync";
 import { arRotation, getSyncMarkorLager, nastaMarkor } from "@/lib/aosom/sync-markor";
 import { beskrivUtskick } from "@/lib/restock/notify";
+
+/** Så många prishopp över 40 % ryms i kvittoraden och loggen. Resten räknas ("… N till"). */
+const STORA_HOPP_I_RADEN = 20;
 
 export const runtime = "nodejs";
 export const maxDuration = 800;
@@ -251,7 +257,7 @@ async function handle(req: NextRequest) {
       || summary.okandaVarianter > 0 || summary.tvetydiga > 0 || summary.stampelHoppade > 0
       || summary.okantBesked > 0
       || summary.restockMejl > 0 || summary.restockEjSkickade > 0 || summary.restockFel
-      || summary.prisUppskjutna > 0 || summary.varningar.length > 0
+      || summary.prisUppskjutna > 0 || summary.varningar.length > 0 || summary.storaHopp.length > 0
       || summary.prislistaFel)) {
       await audit(
         "aosom-sync",
@@ -272,6 +278,15 @@ async function handle(req: NextRequest) {
           + (summary.godkandaHopp.length
             ? `${summary.godkandaHopp.length} godkända prishopp (`
               + summary.godkandaHopp.map((h) => `${h.wixProductId} ${h.fran}→${h.till}`).join(", ") + "), "
+            : "")
+          // ☠️ HOPPEN ÖVER 40 % SOM SKREVS UTAN TAK (2026-11-25). Ingen godkänner
+          // dem längre, så kvittoraden ska säga vilka priser som flyttade sig
+          // mest. Wix-id, aldrig artikelnummer.
+          + (summary.storaHopp.length
+            ? `${summary.storaHopp.length} prishopp över ${STORT_PRISHOPP_PCT} % (`
+              + summary.storaHopp.slice(0, STORA_HOPP_I_RADEN).map((h) => `${h.wixProductId} ${h.fran}→${h.till}`).join(", ")
+              + (summary.storaHopp.length > STORA_HOPP_I_RADEN ? ` … ${summary.storaHopp.length - STORA_HOPP_I_RADEN} till` : "")
+              + "), "
             : "")
           + `${summary.utanWixPris} utan butikspris, ${summary.prisLasta} prislåsta, `
           + `${summary.iAuktion} i fyndauktion (pris orört), `
@@ -319,6 +334,7 @@ async function handle(req: NextRequest) {
         // Okänt besked rörs inte (steg 3, 2026-10-21). Alltid 0 för Aosom.
         + (summary.okantBesked ? `${summary.okantBesked} med OKÄNT BESKED (rördes inte), ` : "")
         + `${summary.varningar.length} varningar, ${summary.godkandaHopp.length} godkända prishopp, `
+        + `${summary.storaHopp.length} prishopp över ${STORT_PRISHOPP_PCT} %, `
         + `${summary.utanLagerrader} utan lagerrader, `
         // Lagerdrift (2026-09-30): butikens saldo mot stämpeln. "rättade" är
         // skrivningar som kom till BARA för driften — se motButikensSaldo.
@@ -353,12 +369,19 @@ async function handle(req: NextRequest) {
         + (summary.prislistaFel ? ` — PRISDELEN FÖLL: ${summary.prislistaFel}` : "")
         + (summary.restockFel ? ` — BEVAKARNA GICK INTE ATT LÄSA: ${summary.restockFel}` : ""),
     );
-    // Prishoppen som taket stoppade, med Wix-id och belopp. De skrivs aldrig
-    // utan en människas godkännande (`godkannPris`), så de ska gå att se.
+    // Priserna som stoppades, med Wix-id och belopp: ett pris under golvet för
+    // ett rimligt pris, eller ett hopp över taket hos en leverantör som har ett.
     for (const v of summary.varningar.slice(0, 20)) {
       console.warn(
         `[aosom-sync] prishopp stoppat${dryRun ? " (torrkörning)" : ""}: ${v.wixProductId ?? "okänd produkt"} `
           + `${v.fran} → ${v.till} kr (${v.andringPct} %)`,
+      );
+    }
+    // Hoppen över 40 % som skrivs utan tak (2026-11-25), med Wix-id och belopp.
+    for (const h of summary.storaHopp.slice(0, STORA_HOPP_I_RADEN)) {
+      console.log(
+        `[aosom-sync] prishopp över ${STORT_PRISHOPP_PCT} %${dryRun ? " (torrkörning)" : ""}: ${h.wixProductId} `
+          + `${h.fran} → ${h.till} kr (${h.andringPct} %)`,
       );
     }
     // Produkterna som skrevs bara för att butiken drivit från stämpeln. Wix-id

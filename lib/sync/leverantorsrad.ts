@@ -92,6 +92,10 @@ export interface Leverantorsprofil {
    * hoppet (`godkannPrisandring` i lib/aosom/sync.ts). null: inget tak, priset
    * följer regelpriset hur stort hoppet än är, och ett hopp över
    * `STORT_PRISHOPP_PCT` står i körningens `storaHopp`.
+   *
+   * Ingen leverantör har ett tak sedan 2026-11-25 (Leonard). Fältet och
+   * godkännandet står kvar, prövade direkt mot `planeraPris`, så att ett tak
+   * är ett tal i en profil den dag det behövs igen.
    */
   maxPrisandringPct: number | null;
 }
@@ -111,9 +115,12 @@ const TIMME = 60 * 60 * 1000;
  *     exporteras tre gånger per dygn, högst åtta timmar emellan, plus fyra
  *     timmars marginal.
  *   - Ett nytt pris skrivs direkt. Feeden är Aosoms egen prislista i euro.
- *   - Ett prishopp över 40 % skrivs inte utan godkännande
- *     (`MAX_PRISANDRING_PCT`): en feed-rad med en trasig siffra slår annars
- *     igenom direkt, eftersom inget andra besked väntas in.
+ *   - Inget tak på prisändringen (Leonard 2026-11-25: "ta bort aosoms tak
+ *     också"). Fram till dess skrevs ett hopp över 40 % inte utan godkännande.
+ *     ☠️ Aosom har ingen andra avläsning: en feed-rad med en trasig siffra slår
+ *     igenom vid nästa priskörning. Kvar finns gränsen för en trasig feed
+ *     (`minRader`), golvet för ett rimligt pris, att en rad som inte skickas
+ *     till Sverige aldrig prissätts, och att varje hopp över 40 % står i raden.
  */
 export const AOSOM_PROFIL = {
   saknadRad: "slut",
@@ -123,7 +130,7 @@ export const AOSOM_PROFIL = {
   minRader: 2000,
   bestalldOsynligMs: 12 * TIMME,
   prisKraverTvaAvlasningar: false,
-  maxPrisandringPct: 40,
+  maxPrisandringPct: null,
 } satisfies Leverantorsprofil;
 
 /**

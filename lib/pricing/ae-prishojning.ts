@@ -50,9 +50,10 @@ export function entydigtButikspris(wix: WixProduktPris | undefined): number | nu
  * Tak på höjningen.
  *
  * ☠️ Spärren finns mot fettfingret, inte mot beslutet. `pct=100` i stället för
- * `pct=10` är en tangenttryckning, och utfallet når kund. Samma hållning som
- * `MAX_PRISANDRING_PCT` i Aosom-synken: en spärr mot det som inte kan vara
- * menat, inte mot det som är ovanligt.
+ * `pct=10` är en tangenttryckning, och utfallet når kund. En spärr mot det
+ * som inte kan vara menat, inte mot det som är ovanligt. (Synkens tak på 40 %
+ * per körning, som den här hållningen delades med, togs bort 2026-11-25. Det
+ * här taket gäller en höjning en människa knappar in, och står kvar.)
  */
 export const MAX_HOJNING_PCT = 25;
 

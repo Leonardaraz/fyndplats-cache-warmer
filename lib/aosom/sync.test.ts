@@ -11,7 +11,8 @@ import {
   planeraFlerartikel,
   LAGER_BUFFERT,
   MIN_FEED_RADER,
-  MAX_PRISANDRING_PCT,
+  STORT_PRISHOPP_PCT,
+  planeraPris,
   jamforelsePris,
   aterkomnaLagerrader,
   PRIS_SAMTIDIGA,
@@ -27,7 +28,7 @@ import type { AosomRow } from "./feed";
 import type { ProductMappingRecord } from "../store";
 import type { PricingRules } from "../import/types";
 import { computePriceWithRules } from "../import/pricing";
-import type { Leverantorsrad } from "../sync/leverantorsrad";
+import { AOSOM_PROFIL, type Leverantorsprofil, type Leverantorsrad } from "../sync/leverantorsrad";
 import { aosomArtikelbild } from "./artiklar";
 
 const FX = { eurToSek: 11.1, usdToSek: 10.5 };
@@ -324,69 +325,131 @@ describe("runAosomSync", () => {
     expect(priser[0].variant.wixVariantId).not.toBe("A-1");
   });
 
-  it("ett prishopp över taket BLOCKERAS och rapporteras", async () => {
-    // En frakt som råkat bli 0 eller ett grossistpris med fel decimal får aldrig
-    // nå kund. Automatiken är tvåvägs, inte blind.
-    const { d, priser } = deps({
+  it("☠️ Aosom har inget tak (Leonard 2026-11-25): ett prishopp över 40 % SKRIVS, och står i storaHopp", async () => {
+    // Fram till 2026-11-25 stoppades hoppet och väntade på ett godkännande. Nu
+    // följer priset regelpriset, och raden säger vilka priser som hoppade.
+    const { d, priser, sparade } = deps({
       fetchFeed: async () => feedMed(rad("A-1", { wholesaleEur: 400 })),
       listAosom: async () => [mappning("A-1")],
     });
     const s = await runAosomSync(d, { dryRun: false });
-    expect(priser).toHaveLength(0);
-    expect(s.varningar).toHaveLength(1);
-    expect(s.varningar[0].sku).toBe("A-1");
-    // ☠️ Det publika id:t följer med — det är vad workflowen skriver ut.
-    // Artikelnumret stannar i svaret och når aldrig den publika loggen.
-    expect(s.varningar[0].wixProductId).toBe("wix-A-1");
-    expect(Math.abs(s.varningar[0].andringPct)).toBeGreaterThan(MAX_PRISANDRING_PCT);
+    expect(priser).toHaveLength(1);
+    expect(s.varningar).toEqual([]);
+    expect(s.godkandaHopp).toEqual([]);
+    expect(s.storaHopp).toEqual([expect.objectContaining({ wixProductId: "wix-A-1", fran: BASPRIS, till: priser[0].pris })]);
+    expect(Math.abs(s.storaHopp[0].andringPct)).toBeGreaterThan(STORT_PRISHOPP_PCT);
+    // ☠️ Bara det publika id:t och beloppen: raden skrivs i en publik logg.
+    expect(Object.values(s.storaHopp[0])).not.toContain("A-1");
+    expect(Object.keys(s.storaHopp[0]).sort()).toEqual(["andringPct", "fran", "till", "wixProductId"]);
+    // Samma skrivväg som ett vanligt pris: mappningen följer butiken.
+    expect(sparade[0].variants[0].grossSek).toBe(priser[0].pris);
   });
 
-  describe("godkannPrisandring — en människa släpper taket för en produkt (2026-09-30)", () => {
-    // Gunghästens rosa: 1 199 kr i butiken, 699 kr enligt husets regel. Hoppet
-    // är −42 %, taket stoppar det, och Leonard godkände sänkningen.
-    const hopp = () =>
-      deps({
+  it("en torrkörning skriver inget men säger vilka stora hopp den skulle skriva", async () => {
+    const { d, priser } = deps({
+      fetchFeed: async () => feedMed(rad("A-1", { wholesaleEur: 400 })),
+      listAosom: async () => [mappning("A-1")],
+    });
+    const s = await runAosomSync(d, { dryRun: true });
+    expect(priser).toHaveLength(0);
+    expect(s.storaHopp.map((h) => h.wixProductId)).toEqual(["wix-A-1"]);
+  });
+
+  it("ett hopp på högst 40 % skrivs utan att stå i storaHopp", async () => {
+    const { d, priser } = deps({
+      fetchFeed: async () => feedMed(rad("A-1", { wholesaleEur: 45 })),
+      listAosom: async () => [mappning("A-1")],
+    });
+    const s = await runAosomSync(d, { dryRun: false });
+    expect(priser).toHaveLength(1);
+    expect(s.storaHopp).toEqual([]);
+  });
+
+  it("godkannPrisandring gör ingenting utan tak: hoppet skrivs och räknas som stort, inte som godkänt", async () => {
+    for (const godkannPrisandring of [new Set(["wix-A-1"]), new Set(["wix-B-2"])]) {
+      const { d, priser } = deps({
         fetchFeed: async () => feedMed(rad("A-1", { wholesaleEur: 400 })),
         listAosom: async () => [mappning("A-1")],
       });
-
-    it("ett godkänt hopp skrivs och räknas för sig", async () => {
-      const { d, priser, sparade } = hopp();
-      const s = await runAosomSync(d, { dryRun: false, godkannPrisandring: new Set(["wix-A-1"]) });
-      expect(priser).toHaveLength(1);
-      expect(s.varningar).toHaveLength(0);
-      expect(s.godkandaHopp).toEqual([
-        expect.objectContaining({ wixProductId: "wix-A-1", fran: BASPRIS, till: priser[0].pris }),
-      ]);
-      expect(Math.abs(s.godkandaHopp[0].andringPct)).toBeGreaterThan(MAX_PRISANDRING_PCT);
-      // Samma skrivväg som ett vanligt pris: mappningen följer butiken.
-      expect(sparade[0].variants[0].grossSek).toBe(priser[0].pris);
-    });
-
-    it("☠️ KONTROLL: ett godkännande för en ANNAN produkt släpper inte taket", async () => {
-      const { d, priser } = hopp();
-      const s = await runAosomSync(d, { dryRun: false, godkannPrisandring: new Set(["wix-B-2"]) });
-      expect(priser).toHaveLength(0);
-      expect(s.varningar).toHaveLength(1);
-      expect(s.godkandaHopp).toEqual([]);
-    });
-
-    it("☠️ ett godkänt hopp bär aldrig artikelnumret — raden skrivs i en publik logg", async () => {
-      const { d } = hopp();
-      const s = await runAosomSync(d, { dryRun: true, godkannPrisandring: new Set(["wix-A-1"]) });
-      expect(s.godkandaHopp).toHaveLength(1);
-      expect(Object.values(s.godkandaHopp[0])).not.toContain("A-1");
-      expect(Object.keys(s.godkandaHopp[0]).sort()).toEqual(["andringPct", "fran", "till", "wixProductId"]);
-    });
-
-    it("ett hopp under taket räknas inte som godkänt, även när produkten är godkänd", async () => {
-      const { d, priser } = deps({
-        fetchFeed: async () => feedMed(rad("A-1", { wholesaleEur: 45 })),
-        listAosom: async () => [mappning("A-1")],
-      });
-      const s = await runAosomSync(d, { dryRun: false, godkannPrisandring: new Set(["wix-A-1"]) });
+      const s = await runAosomSync(d, { dryRun: false, godkannPrisandring });
       expect(priser).toHaveLength(1);
       expect(s.godkandaHopp).toEqual([]);
+      expect(s.storaHopp).toHaveLength(1);
+    }
+  });
+
+  describe("taket och godkännandet står kvar i motorn, för en profil som har ett tak", () => {
+    // Ingen leverantör har ett tak sedan 2026-11-25. Grenen prövas direkt mot
+    // `planeraPris` med Aosoms profil och det gamla taket på 40 %, så att ett
+    // tak är ett tal i en profil den dag det behövs igen. Gunghästens rosa
+    // (2026-09-30): 1 199 kr i butiken, 699 kr enligt regeln, och Leonard
+    // godkände sänkningen.
+    const MED_TAK: Leverantorsprofil = { ...AOSOM_PROFIL, maxPrisandringPct: 40 };
+    const pdeps = { fx: FX, rules: REGLER, now: () => Date.parse("2026-11-25T12:00:00.000Z") };
+    const dyr = landadKostnadSek(rad("A-1", { wholesaleEur: 400 }), FX.eurToSek);
+    const nagotDyrare = landadKostnadSek(rad("A-1", { wholesaleEur: 45 }), FX.eurToSek);
+    const plan = (landad: number, profil: Leverantorsprofil, tillat = false) =>
+      planeraPris(landad, null, profil, undefined, undefined, { pris: BASPRIS }, "A-1", pdeps, tillat);
+
+    it("över taket utan godkännande: inget pris, och raden står i varningar", () => {
+      const ut = plan(dyr, MED_TAK);
+      expect(ut.nyttPris).toBeNull();
+      expect(ut.varning).toMatchObject({ sku: "A-1", fran: BASPRIS });
+      expect(Math.abs(ut.varning!.andringPct)).toBeGreaterThan(40);
+      expect(ut.godkantHopp).toBeNull();
+      expect(ut.stortHopp).toBeNull();
+    });
+
+    it("över taket med godkännande: priset skrivs och räknas som godkänt, inte som stort", () => {
+      const ut = plan(dyr, MED_TAK, true);
+      expect(ut.nyttPris).toBeGreaterThan(BASPRIS);
+      expect(ut.varning).toBeNull();
+      expect(ut.godkantHopp).toEqual({ fran: BASPRIS, till: ut.nyttPris, andringPct: expect.any(Number) });
+      expect(ut.stortHopp).toBeNull();
+    });
+
+    it("☠️ taket gäller åt båda hållen: en sänkning över taket stoppas också (gunghästens rosa)", () => {
+      // Butiken står på det dubbla, regeln ger baspriset: −50 %.
+      const vanlig = landadKostnadSek(rad("A-1"), FX.eurToSek);
+      const butik = BASPRIS * 2;
+      const sank = (tillat: boolean) =>
+        planeraPris(vanlig, null, MED_TAK, undefined, undefined, { pris: butik }, "A-1", pdeps, tillat);
+
+      const utan = sank(false);
+      expect(utan.nyttPris).toBeNull();
+      expect(utan.varning).toEqual({ sku: "A-1", fran: butik, till: BASPRIS, andringPct: -50 });
+      expect(utan.godkantHopp).toBeNull();
+
+      const med = sank(true);
+      expect(med.nyttPris).toBe(BASPRIS);
+      expect(med.varning).toBeNull();
+      expect(med.godkantHopp).toEqual({ fran: butik, till: BASPRIS, andringPct: -50 });
+      expect(med.stortHopp).toBeNull();
+    });
+
+    it("under taket: priset skrivs, och ett godkännande räknas inte", () => {
+      const ut = plan(nagotDyrare, MED_TAK, true);
+      expect(ut.nyttPris).not.toBeNull();
+      expect(ut.godkantHopp).toBeNull();
+      expect(ut.stortHopp).toBeNull();
+    });
+
+    it("☠️ utan tak (profilerna i drift): samma hopp skrivs och står som stort", () => {
+      expect(AOSOM_PROFIL.maxPrisandringPct).toBeNull();
+      const ut = plan(dyr, AOSOM_PROFIL);
+      expect(ut.nyttPris).toBeGreaterThan(BASPRIS);
+      expect(ut.varning).toBeNull();
+      expect(ut.godkantHopp).toBeNull();
+      expect(ut.stortHopp).toEqual({ fran: BASPRIS, till: ut.nyttPris, andringPct: expect.any(Number) });
+    });
+
+    it("☠️ golvet för ett rimligt pris gäller med och utan tak: under 20 kr skrivs aldrig", () => {
+      for (const profil of [MED_TAK, AOSOM_PROFIL]) {
+        const ut = plan(1, profil, true);
+        expect(ut.nyttPris).toBeNull();
+        expect(ut.varning).toMatchObject({ sku: "A-1", fran: BASPRIS });
+        expect(ut.stortHopp).toBeNull();
+      }
     });
   });
 
@@ -550,20 +613,19 @@ describe("☠️ prissynken jämför mot Wix, inte mot mappningen", () => {
     expect(s.oforandrade).toBe(2);
   });
 
-  it("☠️ taket räknas mot BUTIKENS pris, inte mappningens", async () => {
+  it("☠️ hoppet räknas mot BUTIKENS pris, inte mappningens", async () => {
     // Butiken ligger så lågt att vägen tillbaka till regelpriset är ett stort
-    // hopp. Det ska hamna i varningar för mänskligt öga, inte skrivas rakt av.
+    // hopp. Sedan 2026-11-25 skrivs det, och raden säger vad kunden såg före.
     const lagt = Math.round(BASPRIS * 0.5);
     const { d, priser } = deps({
       listWixPriser: async () => wixPriser({ "wix-A-1": lagt }),
     });
     const s = await runAosomSync(d, { dryRun: false });
 
-    expect(priser).toHaveLength(0);
-    expect(s.varningar).toHaveLength(1);
-    expect(s.varningar[0].sku).toBe("A-1");
-    expect(s.varningar[0].fran).toBe(lagt);
-    expect(Math.abs(s.varningar[0].andringPct)).toBeGreaterThan(MAX_PRISANDRING_PCT);
+    expect(priser).toEqual([expect.objectContaining({ id: "wix-A-1", pris: BASPRIS })]);
+    expect(s.varningar).toEqual([]);
+    expect(s.storaHopp).toEqual([expect.objectContaining({ wixProductId: "wix-A-1", fran: lagt, till: BASPRIS })]);
+    expect(s.storaHopp[0].andringPct).toBeGreaterThan(STORT_PRISHOPP_PCT);
   });
 
   it("☠️ en produkt som saknas i butiken får INGET pris skrivet", async () => {
@@ -581,8 +643,8 @@ describe("☠️ prissynken jämför mot Wix, inte mot mappningen", () => {
     // sakna butikspris, och prissynken hade tystnat helt utan att någon märkte.
     const { d, priser } = deps({
       // Priset avviker 10 % från det synken räknar fram — utan spärren hade
-      // den här produkten definitivt fått ett nytt pris skrivet (10 % ligger
-      // under MAX_PRISANDRING_PCT). Med spärren skrivs ingenting.
+      // den här produkten definitivt fått ett nytt pris skrivet. Med spärren
+      // skrivs ingenting.
       listWixPriser: async () =>
         new Map([["wix-A-1", { priceSek: Math.round(BASPRIS * 1.1), variantCount: 1 }]]),
       listAosom: async () => [mappning("A-1", { aosomSyncedQty: 0 })],
@@ -923,28 +985,30 @@ describe("prisLast — låst pris", () => {
     expect(s.granskade).toBe(2);
   });
 
-  it("☠️ en låst rad hamnar ALDRIG i varningar", async () => {
-    // Grinden ligger FÖRE uträkningen med flit. Ett pris vi ändå inte tänker
-    // skriva ska inte kunna larma för ett hopp som aldrig skulle blivit av —
-    // ett falsklarm som alltid fyrar lär mottagaren att sluta läsa, och då är
-    // även det äkta larmet borta.
-    const LÅNGT_BORT = BASPRIS * 3; // > MAX_PRISANDRING_PCT åt endera hållet
+  it("☠️ en låst rad skrivs ALDRIG, hur långt priset än ligger från regeln, och står inte bland hoppen", async () => {
+    // Grinden ligger FÖRE uträkningen med flit. Sedan taket togs bort
+    // (2026-11-25) är låset det enda som håller ett pris kvar där Leonard satt
+    // det: ett pris vi inte tänker skriva ska varken skrivas eller stå i raden.
+    const LÅNGT_BORT = BASPRIS * 3;
     const låst = deps({
       listAosom: async () => [mappning("A-1", { prisLast: true })],
       listWixPriser: async () => wixPriser({ "wix-A-1": LÅNGT_BORT }),
     });
     const s = await runAosomSync(låst.d, { dryRun: false });
+    expect(låst.priser).toEqual([]);
     expect(s.varningar).toEqual([]);
+    expect(s.storaHopp).toEqual([]);
     expect(s.prisLasta).toBe(1);
 
-    // KONTROLL: utan låset ÄR det en varning — annars mäter testet ingenting.
+    // KONTROLL: utan låset skrivs regelpriset — annars mäter testet ingenting.
     const olåst = deps({
       listAosom: async () => [mappning("A-1")],
       listWixPriser: async () => wixPriser({ "wix-A-1": LÅNGT_BORT }),
     });
     const s2 = await runAosomSync(olåst.d, { dryRun: false });
-    expect(s2.varningar).toHaveLength(1);
-    expect(Math.abs(s2.varningar[0].andringPct)).toBeGreaterThan(MAX_PRISANDRING_PCT);
+    expect(olåst.priser).toEqual([expect.objectContaining({ id: "wix-A-1", pris: BASPRIS })]);
+    expect(s2.storaHopp).toEqual([expect.objectContaining({ wixProductId: "wix-A-1", fran: LÅNGT_BORT, till: BASPRIS })]);
+    expect(s2.storaHopp[0].andringPct).toBeLessThan(-STORT_PRISHOPP_PCT);
   });
 
   it("låset gäller BARA sin egen rad", async () => {
@@ -1003,7 +1067,9 @@ describe("☠️ en levande fyndauktion äger priset (2026-10-13)", () => {
     expect(lager).toEqual([{ id: "wix-A-1", antal: S50 }]);
   });
 
-  it("☠️ en produkt i auktion hamnar ALDRIG i varningar", async () => {
+  it("☠️ en produkt i auktion får ALDRIG sitt pris skrivet, hur långt det än ligger från regeln", async () => {
+    // Sedan taket togs bort (2026-11-25) är auktionslåset det enda som håller
+    // synken borta från auktionens pris.
     const LÅNGT_BORT = BASPRIS * 3;
     const iAuktion = deps({
       lasAuktionsprodukter: async () => new Set(["wix-A-1"]),
@@ -1011,16 +1077,19 @@ describe("☠️ en levande fyndauktion äger priset (2026-10-13)", () => {
       listWixPriser: async () => wixPriser({ "wix-A-1": LÅNGT_BORT }),
     });
     const s = await runAosomSync(iAuktion.d, { dryRun: false });
+    expect(iAuktion.priser).toEqual([]);
     expect(s.varningar).toEqual([]);
+    expect(s.storaHopp).toEqual([]);
     expect(s.iAuktion).toBe(1);
 
-    // KONTROLL: utan auktion ÄR det en varning.
+    // KONTROLL: utan auktion skrivs regelpriset.
     const utan = deps({
       listAosom: async () => [mappning("A-1")],
       listWixPriser: async () => wixPriser({ "wix-A-1": LÅNGT_BORT }),
     });
     const s2 = await runAosomSync(utan.d, { dryRun: false });
-    expect(s2.varningar).toHaveLength(1);
+    expect(utan.priser).toEqual([expect.objectContaining({ id: "wix-A-1", pris: BASPRIS })]);
+    expect(s2.storaHopp).toHaveLength(1);
   });
 
   it("☠️ en sammanslagen sida i auktion får inget pris på NÅGON färg", async () => {
@@ -1150,16 +1219,18 @@ describe("☠️ ej skeppbar rad — fraktsentinelen gatas i SYNKEN, inte bara v
 
   it("☠️ hamnar INTE i `varningar` — det är ett känt tillstånd, inte ett larm", async () => {
     // Det här är testet som fäller om grinden tas bort: utan den räknas
-    // sentinelfrakten in, hoppet spränger MAX_PRISANDRING_PCT och raden dyker
-    // upp som en varning varje natt. Ett falsklarm som alltid fyrar lär
-    // mottagaren att sluta läsa — samma argument som bakom `regelGäller`.
-    const { d } = deps({
+    // sentinelfrakten in. Före 2026-11-25 stoppade taket det hoppet och raden
+    // fyrade en varning varje natt. ☠️ Sedan taket togs bort är grinden den
+    // ENDA spärren: utan den skrivs ett pris på tiotusentals kronor.
+    const { d, priser } = deps({
       fetchFeed: async () => feedMed(rad("A-1", { seFreightEur: SENTINEL }), rad("B-2")),
     });
 
     const s = await runAosomSync(d, { dryRun: false });
 
     expect(s.varningar).toHaveLength(0);
+    expect(s.storaHopp).toEqual([]);
+    expect(priser.map((p) => p.id)).not.toContain("wix-A-1");
   });
 
   it("☠️ räknas INTE som slutsåld — 'Aosom har slut' och 'skickas inte hit' är olika besked", async () => {
@@ -1281,7 +1352,7 @@ describe("konkurrentregeln — pris mot dealproffsen (2026-09-15)", () => {
     expect(s.konkurrentGolv).toBe(1);
   });
 
-  it("målet över taket → taket gäller, och hoppet håller sig under MAX_PRISANDRING_PCT", async () => {
+  it("målet över taket → konkurrentregelns tak gäller, och hoppet blir inget stort hopp", async () => {
     // Landad 832,50 → tak 1 248,75 → charm9 nedåt 1 239. Deras 2 000 hade gett 1 960.
     const { d, priser } = deps({
       listAosom: async () => [mappning("A-1", { prisgrupp: "A", konkurrent: farskt(2000) })],
@@ -1291,7 +1362,8 @@ describe("konkurrentregeln — pris mot dealproffsen (2026-09-15)", () => {
     expect(priser).toEqual([expect.objectContaining({ id: "wix-A-1", pris: 1239 })]);
     expect(s.konkurrentTak).toBe(1);
     expect(s.varningar).toEqual([]);
-    expect((1239 - BASPRIS) / BASPRIS * 100).toBeLessThan(MAX_PRISANDRING_PCT);
+    expect(s.storaHopp).toEqual([]);
+    expect((1239 - BASPRIS) / BASPRIS * 100).toBeLessThan(STORT_PRISHOPP_PCT);
   });
 
   it("grupp B ligger längre under än grupp A", async () => {
@@ -1442,22 +1514,19 @@ describe("färgsammanslagna sidor — en artikel per variant", () => {
     expect(sparade[0].variants[0].grossSek).toBe(BASPRIS);
   });
 
-  it("☠️ ett godkänt hopp sänker den ENA färgen — och utan godkännande står taket kvar", async () => {
-    // Samma form som gunghästen: en färg ligger långt över husets regel.
+  it("☠️ ett stort hopp sänker den ENA färgen, utan godkännande, och står i storaHopp", async () => {
+    // Samma form som gunghästen: en färg ligger långt över husets regel. Före
+    // 2026-11-25 stoppade taket sänkningen tills Leonard godkänt den.
     const billig = rad("G-7", { qty: 13, wholesaleEur: 5, seFreightEur: 5 });
-    const utan = stolDeps({}, [rad("A-1"), billig]);
-    const s1 = await runAosomSync(utan.d, { dryRun: false });
-    expect(utan.priser).toHaveLength(0);
-    expect(s1.varningar).toEqual([expect.objectContaining({ wixProductId: "wix-stol" })]);
-    expect(s1.varningar[0].andringPct).toBeLessThan(-MAX_PRISANDRING_PCT);
-
     const med = stolDeps({}, [rad("A-1"), billig]);
-    const s2 = await runAosomSync(med.d, { dryRun: false, godkannPrisandring: new Set(["wix-stol"]) });
+    const s2 = await runAosomSync(med.d, { dryRun: false });
     expect(med.priser).toEqual([
       expect.objectContaining({ id: "wix-stol", variant: { wixVariantId: "wixvar-gra", sku: "FP-stol-gra" } }),
     ]);
     expect(s2.varningar).toEqual([]);
-    expect(s2.godkandaHopp).toEqual([expect.objectContaining({ wixProductId: "wix-stol", fran: BASPRIS })]);
+    expect(s2.godkandaHopp).toEqual([]);
+    expect(s2.storaHopp).toEqual([expect.objectContaining({ wixProductId: "wix-stol", fran: BASPRIS })]);
+    expect(s2.storaHopp[0].andringPct).toBeLessThan(-STORT_PRISHOPP_PCT);
     // Den svarta färgen rörs inte.
     expect(med.sparade[0].variants[0].grossSek).toBe(BASPRIS);
   });
@@ -2991,9 +3060,9 @@ describe("☠️ en priskörning om dagen: per tugga, flera åt gången, ett hel
     return { ...x, fragor: b.fragor };
   }
 
-  it("förutsättningen: det nya priset skiljer sig och ligger under taket", () => {
+  it("förutsättningen: det nya priset skiljer sig och är inget stort hopp", () => {
     expect(NYTT).not.toBe(BASPRIS);
-    expect(Math.abs((NYTT - BASPRIS) / BASPRIS) * 100).toBeLessThan(MAX_PRISANDRING_PCT);
+    expect(Math.abs((NYTT - BASPRIS) / BASPRIS) * 100).toBeLessThan(STORT_PRISHOPP_PCT);
   });
 
   describe("priserna läses per tugga", () => {

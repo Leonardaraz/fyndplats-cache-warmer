@@ -33,10 +33,10 @@
 //   4. ☠️ TAKET FINNS FÖR ATT VI INTE VET VAR AMAZON LIGGER. Gapet mot
 //      dealproffsen är 30–40 % på över hundra varor (mätt 2026-09-15: taket
 //      binder på 136 av 972), och 2 % under dem hade lyft oss långt över vad
-//      marknaden tål. 1,50 × landad är +25 % mot dagens regelpris, vilket
-//      också håller varje ändring under synkens spärr MAX_PRISANDRING_PCT = 40
-//      — spärren behöver inte röras, och 34 rader som annars fastnat i den
-//      gör det inte.
+//      marknaden tål. 1,50 × landad är +25 % mot dagens regelpris. Det höll
+//      också varje ändring under synkens dåvarande tak på 40 % per körning
+//      (borttaget 2026-11-25), så 34 rader som annars fastnat i det gjorde
+//      det inte.
 //
 // AVRUNDNINGEN GÅR NEDÅT, med flit. Husets charmavrundning rundar UPP (charm9,
 // charm99): 2 % under 2 495 kr är 2 445, och charm99 hade gett 2 499 — alltså

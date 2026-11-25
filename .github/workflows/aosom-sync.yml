@@ -85,11 +85,14 @@ on:
         default: ""
         type: string
       godkann_pris:
-        # En människas godkännande av ett känt prishopp över 40 %-taket, för
-        # den här körningen (Leonard 2026-09-30, gunghästens rosa). Bara taket
-        # släpps; regelpriset och resten av spärrarna gäller. Wix-id är
-        # publika, så inputen behöver ingen maskering.
-        description: "Wix-produkt-id, kommaseparerat, vars prisändring får gå förbi 40 %-taket i den här körningen. Tomt = taket gäller alla."
+        # En människas godkännande av ett känt prishopp över taket, för den här
+        # körningen (Leonard 2026-09-30, gunghästens rosa). Wix-id är publika,
+        # så inputen behöver ingen maskering.
+        # ☠️ Aosom har inget tak sedan 2026-11-25 (Leonard: "ta bort aosoms tak
+        # också"). Ett pris följer regelpriset hur stort hoppet än är, och varje
+        # hopp över 40 % skrivs ut nedan (↕️). Inputen gör ingenting förrän
+        # profilen får ett tak igen (lib/sync/leverantorsrad.ts).
+        description: "Gör ingenting sedan 2026-11-25: Aosom har inget tak. Wix-produkt-id, kommaseparerat."
         required: false
         default: ""
         type: string
@@ -233,7 +236,7 @@ jobs:
           fi
 
           granskade=0; lager=0; priser=0; utan=0
-          urfeeden=0; slutsalda=0; misslyckade=0; varningar=0
+          urfeeden=0; slutsalda=0; misslyckade=0; varningar=0; stora=0
           utanrader=0; drift=0; rattade=0; vantar=0; prislasta=0; iauktion=0; ejskeppbara=0
           salda=0
           kmal=0; ktak=0; kgolv=0; kfrysta=0
@@ -269,6 +272,7 @@ jobs:
             sl=$(printf '%s' "$svar" | jq -r '.slutsalda')
             mi=$(printf '%s' "$svar" | jq -r '.misslyckade')
             va=$(printf '%s' "$svar" | jq -r '.varningar | length')
+            sh=$(printf '%s' "$svar" | jq -r '(.storaHopp // []) | length')
             ul=$(printf '%s' "$svar" | jq -r '.utanLagerrader // 0')
             dr=$(printf '%s' "$svar" | jq -r '.lagerDrift // 0')
             rt=$(printf '%s' "$svar" | jq -r '.lagerDriftRattade // 0')
@@ -295,7 +299,7 @@ jobs:
             granskade=$(( granskade + g )); lager=$(( lager + l ))
             priser=$(( priser + p ));       utan=$(( utan + u ))
             urfeeden=$(( urfeeden + uf ));  slutsalda=$(( slutsalda + sl ))
-            misslyckade=$(( misslyckade + mi )); varningar=$(( varningar + va ))
+            misslyckade=$(( misslyckade + mi )); varningar=$(( varningar + va )); stora=$(( stora + sh ))
             utanrader=$(( utanrader + ul )); drift=$(( drift + dr )); rattade=$(( rattade + rt ))
             vantar=$(( vantar + sv ))
             salda=$(( salda + sa ))
@@ -363,6 +367,8 @@ jobs:
             # och 113 av dem stod i den här raden i loggarna fram till 2026-09-27.
             printf '%s' "$svar" | jq -r '.varningar[]? | "  ⚠️  \(.wixProductId // "okänd produkt"): \(.fran) → \(.till) kr (\(.andringPct) %)"' || true
             printf '%s' "$svar" | jq -r '.godkandaHopp[]? | "  ✅ godkänt hopp \(.wixProductId): \(.fran) → \(.till) kr (\(.andringPct) %)"' || true
+            # Hopp över 40 % som skrivs utan tak (2026-11-25). Wix-id och belopp.
+            printf '%s' "$svar" | jq -r '.storaHopp[]? | "  ↕️  över 40 %: \(.wixProductId): \(.fran) → \(.till) kr (\(.andringPct) %)"' || true
 
             # ☠️ FELEN SKA SYNAS, INTE BARA RÄKNAS. En räknare som säger "1190
             # misslyckade" utan att säga VARFÖR är samma tysta fel som huset
@@ -409,6 +415,7 @@ jobs:
             echo "| Ur feeden (saldo nollat) | ${urfeeden} |"
             echo "| Slutsålda | ${slutsalda} |"
             echo "| Blockerade prishopp | ${varningar} |"
+            echo "| Prishopp över 40 % (inget tak sedan 2026-11-25) | ${stora} |"
             echo "| Utan lagerrader i Wix | ${utanrader} |"
             echo "| Lagerdrift (butiken ≠ stämpeln när körningen kom) | ${drift} |"
             echo "| **Lagerdrift rättad — extra lagerskrivningar** | **${rattade}** |"
