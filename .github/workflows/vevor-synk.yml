@@ -17,6 +17,12 @@ name: VEVOR — synken
 # Ett okänt besked är inget fel här: en avläsning som är äldre än tolv timmar
 # är okänd, och utkasten läses en gång per dygn. Okänt rör aldrig lagret.
 #
+# Ett prishopp över 40 % skrivs aldrig av sig självt. Varje varv skriver ut
+# vilka produkter taket höll kvar (⚠️, Wix-id och butikspriset före och efter).
+# Efter att en människa tittat på en av dem släpper `godkann_pris` taket för
+# just de Wix-id:na, i lägena torr och skarp. Prova med torr först: raden
+# "godkänt" visar vad skarp skulle skriva. Godkännandet sparas ingenstans.
+#
 # Skriver bara antal, tider och Wix-id. Rutten tar bort artikelnumren ur fel och
 # varningar och förseglar markören, och repot är publikt.
 #
@@ -39,6 +45,10 @@ on:
         description: "Högst så många varv (torr och skarp)"
         required: false
         default: "30"
+      godkann_pris:
+        description: "Wix-produkt-id, kommaseparerade: släpp 40 %-taket för just dessa (torr och skarp)"
+        required: false
+        default: ""
 
 jobs:
   kor:
@@ -52,6 +62,7 @@ jobs:
           LAGE: ${{ inputs.lage }}
           LIMIT: ${{ inputs.limit }}
           MAX_VARV: ${{ inputs.max_varv }}
+          GODKANN: ${{ inputs.godkann_pris }}
         run: |
           set -euo pipefail
 
@@ -79,6 +90,13 @@ jobs:
               return 1
             fi
           }
+
+          # ☠️ Ett godkännande i ett läge som inte kör synken hade tyst betytt
+          # "ingenting godkänt". Det vägras i stället.
+          if [ -n "${GODKANN:-}" ] && [ "$LAGE" != "torr" ] && [ "$LAGE" != "skarp" ]; then
+            echo "::error::godkann_pris gäller bara lägena torr och skarp" >&2
+            exit 1
+          fi
 
           case "$LAGE" in
             status)
@@ -109,7 +127,7 @@ jobs:
           fi
 
           granskade=0; lager=0; priser=0; vantar=0; okant=0; oense=0; utan=0; utanrader=0
-          drift=0; salda=0; okanda=0; tvetydiga=0; misslyckade=0; varningar=0
+          drift=0; salda=0; okanda=0; tvetydiga=0; misslyckade=0; varningar=0; godkanda=0
           after=""; varv=0; prisfel=""
 
           while [ "$varv" -lt "$MAX_VARV" ]; do
@@ -117,6 +135,9 @@ jobs:
             url="${rot}/api/cron/vevor-synk?manuell=1&dryRun=${torr}&limit=${LIMIT}"
             if [ -n "$after" ]; then
               url="${url}&after=$(printf '%s' "$after" | jq -sRr @uri)"
+            fi
+            if [ -n "${GODKANN:-}" ]; then
+              url="${url}&godkannPris=$(printf '%s' "$GODKANN" | tr -d '[:space:]' | jq -sRr @uri)"
             fi
             # ☠️ URL:EN SKRIVS INTE UT. Den bär markören.
             svar=$(curl -sS --max-time 320 -X POST -H "Authorization: Bearer ${CRON_SECRET}" "$url") || {
@@ -143,6 +164,7 @@ jobs:
             tv=$(printf '%s' "$svar" | jq -r '.tvetydiga // 0')
             mi=$(printf '%s' "$svar" | jq -r '.misslyckade // 0')
             va=$(printf '%s' "$svar" | jq -r '.varningar | length')
+            gk=$(printf '%s' "$svar" | jq -r '(.godkandaHopp // []) | length')
             avl=$(printf '%s' "$svar" | jq -r '.feedRader // 0')
             stopp=$(printf '%s' "$svar" | jq -r '.stoppedBy // "okänt"')
             kvar=$(printf '%s' "$svar" | jq -r '.kvar // 0')
@@ -152,6 +174,7 @@ jobs:
             utan=$(( utan + u )); utanrader=$(( utanrader + ul )); drift=$(( drift + dr ))
             salda=$(( salda + sa )); okanda=$(( okanda + ok )); tvetydiga=$(( tvetydiga + tv ))
             misslyckade=$(( misslyckade + mi )); varningar=$(( varningar + va ))
+            godkanda=$(( godkanda + gk ))
 
             pf=$(printf '%s' "$svar" | jq -r '.prislistaFel // ""')
             if [ -n "$pf" ]; then
@@ -167,6 +190,8 @@ jobs:
 
             # Varningar är blockerade prishopp. Bara Wix-id och belopp.
             printf '%s' "$svar" | jq -r '.varningar[]? | "  ⚠️  \(.wixProductId // "okänd produkt"): \(.fran) → \(.till) kr (\(.andringPct) %)"' || true
+            # Hopp som godkändes med godkann_pris i den här körningen.
+            printf '%s' "$svar" | jq -r '.godkandaHopp[]? | "  ✅ godkänt: \(.wixProductId // "okänd produkt"): \(.fran) → \(.till) kr (\(.andringPct) %)"' || true
             printf '%s' "$svar" | jq -r '
               (.errors // []) as $e
               | if ($e | length) > 0 then
@@ -208,6 +233,7 @@ jobs:
             echo "| **Okända varianter (lagret nollat)** | **${okanda}** |"
             echo "| **Tvetydiga rader (lagret nollat)** | **${tvetydiga}** |"
             echo "| Blockerade prishopp | ${varningar} |"
+            echo "| Godkända prishopp (godkann_pris) | ${godkanda} |"
             echo "| Misslyckade | ${misslyckade} |"
             if [ -n "$prisfel" ]; then
               echo ""
@@ -221,6 +247,16 @@ jobs:
 
           echo "OK: ${granskade} granskade, ${lager} lager, ${priser} priser, ${vantar} väntar," \
                "${okant} okänt besked, ${misslyckade} misslyckade."
+
+          # ☠️ ETT GODKÄNNANDE SOM INTE TRÄFFADE NÅGOT HOPP SKA SYNAS. Produkten
+          # kan ha okänt besked just nu, priset kan vänta på sin andra avläsning,
+          # eller så ligger hoppet inte längre över taket.
+          if [ -n "${GODKANN:-}" ]; then
+            angivna=$(printf '%s' "$GODKANN" | tr -d '[:space:]' | tr ',' '\n' | grep -c . || true)
+            if [ "$godkanda" -lt "$angivna" ]; then
+              echo "::warning::${angivna} produkter angavs i godkann_pris, ${godkanda} prishopp godkändes. Resten hade inget stoppat hopp i den här körningen."
+            fi
+          fi
 
           # ☠️ MASSFEL FÄLLER JOBBET, inte en enstaka miss. Samma regel som
           # aosom-sync.yml: minst 10 misslyckade och minst 2 % av skrivningarna.

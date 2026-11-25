@@ -10,6 +10,7 @@ import type { SynkAvlasning } from "./lager";
 import { RabattFel, vevorLandadKostnadSek } from "./pris";
 import { MAX_ALDER_MS } from "./rad";
 import {
+  HOPP_I_RADEN,
   korVevorSynk,
   MinnesVevorSynkLager,
   runVevorSync,
@@ -417,6 +418,45 @@ describe("korVevorSynk: strömbrytaren, låset och markören", () => {
     expect(await k.markorer.las("lager")).toBe("AOSOM-MARKOR");
   });
 
+  // Två rader vars pris tredubblats hos VEVOR, i två avläsningar i rad: taket stoppar båda.
+  const tvaHopp = (): Miljoval => ({
+    avlasningar: [avl(1, { prisSek: BAS * 3, forraPrisSek: BAS * 3 }), avl(2, { prisSek: BAS * 3, forraPrisSek: BAS * 3 })],
+    mappningar: [mappning(1), mappning(2)],
+  });
+
+  it("ett godkänt prishopp skrivs för hand, och bara för den godkända produkten", async () => {
+    const k = korDeps(tvaHopp());
+    const u = await korVevorSynk(k.deps, { ...val, manuell: true, dryRun: false, godkannPrisandring: new Set(["wix-1"]) });
+    expect(k.m.priser.map((p) => [p.id, p.pris])).toEqual([["wix-1", regelpris(BAS * 3)]]);
+    expect(u.summary?.godkandaHopp.map((h) => h.wixProductId)).toEqual(["wix-1"]);
+    expect(u.summary?.varningar.map((v) => v.wixProductId)).toEqual(["wix-2"]);
+  });
+
+  it("utan godkännande skriver körningen för hand inget av hoppen", async () => {
+    const k = korDeps(tvaHopp());
+    const u = await korVevorSynk(k.deps, { ...val, manuell: true, dryRun: false });
+    expect(k.m.priser).toEqual([]);
+    expect(u.summary?.varningar).toHaveLength(2);
+    expect(u.summary?.godkandaHopp).toEqual([]);
+  });
+
+  it("☠️ schemat godkänner aldrig ett prishopp, vad valet än säger", async () => {
+    const k = korDeps(tvaHopp());
+    k.lager.tillstand.aktiv = true;
+    const u = await korVevorSynk(k.deps, { ...val, manuell: false, dryRun: false, godkannPrisandring: new Set(["wix-1", "wix-2"]) });
+    expect(k.m.priser).toEqual([]);
+    expect(u.summary?.varningar).toHaveLength(2);
+    expect(u.summary?.godkandaHopp).toEqual([]);
+  });
+
+  it("☠️ godkännandet släpper bara taket: ett pris som väntar på sin andra avläsning skrivs inte", async () => {
+    const k = korDeps({ avlasningar: [avl(1, { prisSek: BAS * 3, forraPrisSek: BAS })] });
+    const u = await korVevorSynk(k.deps, { ...val, manuell: true, dryRun: false, godkannPrisandring: new Set(["wix-1"]) });
+    expect(k.m.priser).toEqual([]);
+    expect(u.summary?.prisVantar).toBe(1);
+    expect(u.summary?.godkandaHopp).toEqual([]);
+  });
+
   it("ett upptaget lås ger upptagen, och ingen körning", async () => {
     const k = korDeps();
     await k.lager.tagLas("annan", NU, 300_000);
@@ -444,6 +484,47 @@ describe("☠️ svaret och loggen bär inga artikelnummer", () => {
     const text = JSON.stringify(utanArtikelnummer(s));
     expect(text).not.toContain(sku(1));
     expect(text).toContain("wix-1");
+  });
+
+  it("☠️ loggraden säger vilka produkter taket höll kvar: Wix-id och butikspriset före och efter", async () => {
+    const m = miljo({ avlasningar: [avl(1, { prisSek: BAS * 3, forraPrisSek: BAS * 3 })] });
+    const s = await runVevorSync(m.synk, m.kalla, { dryRun: true });
+    const rad = synkloggrad({ utfall: "klar", summary: s, markor: null, markorFel: null });
+    expect(rad).toContain(`1 varningar (wix-1 ${regelpris(BAS)}→${regelpris(BAS * 3)}), `);
+    expect(rad).not.toMatch(/TESTSKUSYNK/);
+    expect(rad).not.toMatch(/godkända prishopp/);
+  });
+
+  it("loggraden säger vilka hopp som godkändes", async () => {
+    const m = miljo({ avlasningar: [avl(1, { prisSek: BAS * 3, forraPrisSek: BAS * 3 })] });
+    const s = await runVevorSync(m.synk, m.kalla, { dryRun: false, godkannPrisandring: new Set(["wix-1"]) });
+    const rad = synkloggrad({ utfall: "klar", summary: s, markor: null, markorFel: null });
+    expect(rad).toContain(`0 varningar, 1 godkända prishopp (wix-1 ${regelpris(BAS)}→${regelpris(BAS * 3)}), `);
+    expect(rad).not.toMatch(/TESTSKUSYNK/);
+  });
+
+  it("fler stoppade hopp än raden rymmer räknas, de försvinner inte", async () => {
+    const m = miljo();
+    const s = await runVevorSync(m.synk, m.kalla, { dryRun: true });
+    s.varningar = Array.from({ length: HOPP_I_RADEN + 7 }, (_, i) => ({
+      sku: sku(i + 1),
+      wixProductId: `wix-${i + 1}`,
+      fran: 100,
+      till: 200,
+      andringPct: 100,
+    }));
+    const rad = synkloggrad({ utfall: "klar", summary: s, markor: null, markorFel: null });
+    expect(rad).toContain(`${HOPP_I_RADEN + 7} varningar (wix-1 100→200, `);
+    expect(rad).toContain(`wix-${HOPP_I_RADEN} 100→200 … 7 till), `);
+    expect(rad).not.toContain(`wix-${HOPP_I_RADEN + 1} `);
+    expect(rad).not.toMatch(/TESTSKUSYNK/);
+  });
+
+  it("utan stoppade hopp är raden som förut", async () => {
+    const m = miljo();
+    const s = await runVevorSync(m.synk, m.kalla, { dryRun: true });
+    const rad = synkloggrad({ utfall: "klar", summary: s, markor: null, markorFel: null });
+    expect(rad).toContain("0 varningar, 0 misslyckade, ");
   });
 
   it("loggraden bär bara antal", async () => {

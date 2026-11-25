@@ -16,6 +16,9 @@
 //   ?limit=1200       tak på antal produkter som skrivs
 //   ?after=<markör>   fortsätt efter förra svarets `cursor` (förseglad, se
 //                     lib/aosom/markor.ts)
+//   ?godkannPris=<wix-id>,…  släpp 40 %-taket för just dessa produkter i den
+//                     här körningen (motorns `godkannPrisandring`). Bara för
+//                     hand: schemat godkänner aldrig ett prishopp.
 //
 // ☠️ SVARET BÄR BARA ANTAL OCH WIX-ID. Motorns fel och varningar bär
 // artikelnumret, och det tas bort här (`utanArtikelnummer`). Markören går ut
@@ -33,6 +36,7 @@ export const maxDuration = 300;
 /** Under maxDuration med marginal. Källan och mappningarna läses före loopen och räknas in. */
 const BUDGET_MS = 240_000;
 const LIMIT_STANDARD = 1200;
+const WIX_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function auktoriserad(req: NextRequest): boolean {
   if (isAuthorized(req)) return true;
@@ -50,6 +54,28 @@ async function handle(req: NextRequest) {
   const n = Number(p.get("limit"));
   const limit = Number.isInteger(n) && n > 0 ? n : LIMIT_STANDARD;
 
+  // ☠️ ETT GODKÄNNANDE SOM INTE GÅR ATT FÖLJA VÄGRAS. Ett id som inte ser ut
+  // som ett Wix-id, eller ett godkännande utan `manuell=1`, hade annars tyst
+  // betytt "ingenting godkänt": körningen hade sett lyckad ut medan priset
+  // stod kvar. Samma regel som Aosom-ruttens `godkannPris`.
+  const godkannPris = (p.get("godkannPris") ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (godkannPris.length > 0 && !manuell) {
+    return NextResponse.json(
+      { ok: false, error: "godkannPris gäller bara en körning för hand (manuell=1)" },
+      { status: 400 },
+    );
+  }
+  const ogiltiga = godkannPris.filter((id) => !WIX_ID.test(id));
+  if (ogiltiga.length > 0) {
+    return NextResponse.json(
+      { ok: false, error: `godkannPris tar Wix-produkt-id: ${ogiltiga.join(", ").slice(0, 200)}` },
+      { status: 400 },
+    );
+  }
+
   // ☠️ Markören är ett artikelnummer. Den kommer tillbaka förseglad; en som
   // inte går att öppna är 400, aldrig "börja om från början".
   const hemlighet = process.env.CRON_SECRET ?? "";
@@ -62,7 +88,14 @@ async function handle(req: NextRequest) {
   }
 
   try {
-    const u = await korVevorSynk(await liveSynkKorDeps(), { manuell, dryRun, limit, budgetMs: BUDGET_MS, after });
+    const u = await korVevorSynk(await liveSynkKorDeps(), {
+      manuell,
+      dryRun,
+      limit,
+      budgetMs: BUDGET_MS,
+      after,
+      godkannPrisandring: godkannPris.length ? new Set(godkannPris) : undefined,
+    });
     // En avstängd körning loggar ingenting: 24 rader om dygnet om ingenting
     // hade dränkt de rader som betyder något.
     if (u.utfall !== "avstangd") console.log(synkloggrad(u));
@@ -73,6 +106,7 @@ async function handle(req: NextRequest) {
     // inte gick att avgöra ska gå att hitta i efterhand.
     if (!s.dryRun && (s.lagerUppdaterade > 0 || s.prisUppdaterade > 0 || s.misslyckade > 0
       || s.okandaVarianter > 0 || s.tvetydiga > 0 || s.leverantorOense > 0 || s.stampelHoppade > 0
+      || s.varningar.length > 0 || s.godkandaHopp.length > 0
       || s.restockMejl > 0 || s.restockEjSkickade > 0 || s.restockFel || s.prislistaFel)) {
       await audit("vevor-sync", "batch", synkloggrad(u).replace(/^\[vevor-synk\] /, ""));
     }

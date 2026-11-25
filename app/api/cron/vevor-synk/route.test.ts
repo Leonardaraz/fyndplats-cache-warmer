@@ -10,9 +10,10 @@ import type { AosomSyncSummary } from "@/lib/aosom/sync";
 
 const SKU = ["TESTSKU", "RUTT", "000001"].join("");
 const korMock = vi.fn();
+const auditMock = vi.fn(async (..._a: unknown[]) => {});
 
 vi.mock("@/lib/auth", () => ({ isAuthorized: () => false }));
-vi.mock("@/lib/audit", () => ({ audit: async () => {} }));
+vi.mock("@/lib/audit", () => ({ audit: (...a: unknown[]) => auditMock(...a) }));
 vi.mock("@/lib/vevor/synk", async () => {
   const riktig = await vi.importActual<typeof import("@/lib/vevor/synk")>("@/lib/vevor/synk");
   return {
@@ -51,6 +52,7 @@ function summary(over: Partial<AosomSyncSummary> = {}): AosomSyncSummary {
 beforeEach(() => {
   process.env.CRON_SECRET = "hemlig";
   korMock.mockReset();
+  auditMock.mockClear();
 });
 
 describe("/api/cron/vevor-synk", () => {
@@ -93,6 +95,65 @@ describe("/api/cron/vevor-synk", () => {
     korMock.mockResolvedValueOnce({ utfall: "klar", summary: summary({ cursor: null }), markor: null, markorFel: null });
     await POST(req(`manuell=1&after=${encodeURIComponent(forsta.cursor)}`));
     expect(korMock.mock.calls[1][1].after).toBe(SKU);
+  });
+
+  const ID1 = "a3d627ec-b3d9-4b82-adef-000000000001";
+  const ID2 = "ca96b824-550b-4d30-99ef-000000000002";
+
+  it("godkannPris går vidare till körningen för hand, som en mängd Wix-id", async () => {
+    korMock.mockResolvedValue({ utfall: "klar", summary: summary(), markor: null, markorFel: null });
+    await POST(req(`manuell=1&dryRun=false&godkannPris=${ID1},%20${ID2}`));
+    const val = korMock.mock.calls[0][1];
+    expect([...val.godkannPrisandring]).toEqual([ID1, ID2]);
+    await POST(req("manuell=1"));
+    expect(korMock.mock.calls[1][1].godkannPrisandring).toBeUndefined();
+  });
+
+  it("☠️ ett id som inte är ett Wix-id vägras, och ingenting körs", async () => {
+    const svar = await POST(req(`manuell=1&godkannPris=${ID1},inte-ett-id`));
+    expect(svar.status).toBe(400);
+    expect((await svar.json()).error).toMatch(/inte-ett-id/);
+    expect(korMock).not.toHaveBeenCalled();
+  });
+
+  it("☠️ schemat tar inget godkännande: utan manuell=1 vägras frågan", async () => {
+    const svar = await POST(req(`godkannPris=${ID1}`));
+    expect(svar.status).toBe(400);
+    expect(korMock).not.toHaveBeenCalled();
+  });
+
+  it("svaret bär de godkända hoppen, utan artikelnummer", async () => {
+    korMock.mockResolvedValueOnce({
+      utfall: "klar",
+      summary: summary({ godkandaHopp: [{ wixProductId: ID1, fran: 100, till: 300, andringPct: 200 }] }),
+      markor: null,
+      markorFel: null,
+    });
+    const svar = await POST(req(`manuell=1&dryRun=false&godkannPris=${ID1}`));
+    const text = await svar.text();
+    expect(text).not.toContain(SKU);
+    expect(JSON.parse(text).godkandaHopp).toEqual([{ wixProductId: ID1, fran: 100, till: 300, andringPct: 200 }]);
+  });
+
+  it("☠️ en skarp körning som bara stoppade ett prishopp skriver ändå sin kvittorad, med produkten", async () => {
+    const tyst = { dryRun: false, lagerUppdaterade: 0, prisUppdaterade: 0, misslyckade: 0, errors: [] };
+    korMock.mockResolvedValueOnce({ utfall: "klar", summary: summary(tyst), markor: "fortsatte", markorFel: null });
+    await POST(req(""));
+    expect(auditMock).toHaveBeenCalledTimes(1);
+    expect(auditMock.mock.calls[0][0]).toBe("vevor-sync");
+    expect(String(auditMock.mock.calls[0][2])).toContain("1 varningar (wix-2 100→300)");
+    expect(String(auditMock.mock.calls[0][2])).not.toContain(SKU);
+
+    // Utan stoppat hopp och utan skrivningar finns inget att kvittera.
+    auditMock.mockClear();
+    korMock.mockResolvedValueOnce({ utfall: "klar", summary: summary({ ...tyst, varningar: [] }), markor: "fortsatte", markorFel: null });
+    await POST(req(""));
+    expect(auditMock).not.toHaveBeenCalled();
+
+    // En torrkörning kvitterar aldrig.
+    korMock.mockResolvedValueOnce({ utfall: "klar", summary: summary(), markor: null, markorFel: null });
+    await POST(req("manuell=1"));
+    expect(auditMock).not.toHaveBeenCalled();
   });
 
   it("utan CRON_SECRET är rutten stängd", async () => {
