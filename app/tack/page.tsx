@@ -11,6 +11,8 @@ import { leveransIntervallForDag } from "../../lib/leveransdatum";
 import { idagISO } from "../../lib/price-history";
 import { DELIVERY_MAX_DAYS, DELIVERY_MIN_DAYS } from "../../lib/shipping";
 import { TackKonto } from "./tack-konto";
+import { heylinkKop } from "../../lib/heylink";
+import { HeylinkKop } from "../../components/heylink-kop";
 
 export const metadata: Metadata = {
   title: "Tack för din beställning",
@@ -69,6 +71,15 @@ export default async function Tack({
       )
     : null;
 
+  // Ordern till Heylink, åt GoWish (lib/heylink.ts). Byggs HÄR och bara med
+  // samtycke i kakan, av samma skäl som Googles enkät ovan: en prop till en
+  // klientkomponent hamnar i sidans HTML. Bara i produktion: ett förhandsbygges
+  // kassa går mot skarpa betalnycklar, och ett prov där ska inte bli ett köp
+  // hos GoWish. Klientkomponenten lämnar ordern vidare bara när besökaren har
+  // ett sparat klick från GoWish.
+  const produktion = (process.env.VERCEL_ENV || process.env.NODE_ENV || "").trim() === "production";
+  const heylink = samtycke && produktion ? heylinkKop(info, orderId) : null;
+
   // Samma intervall som kassan visade när ordern lades (lib/kassans-leveranstid),
   // räknat från orderns svenska dag. Utan datum på ordern gäller dagens.
   const lagd = info.createdDate ? new Date(info.createdDate) : new Date();
@@ -89,6 +100,7 @@ export default async function Tack({
         <TackKonto orderId={orderId} />
       </div>
       <GoogleCustomerReviewsOptIn config={gcr} />
+      <HeylinkKop kop={heylink} />
     </section>
   );
 }

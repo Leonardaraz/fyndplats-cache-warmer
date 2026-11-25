@@ -21,6 +21,7 @@ import {
   WishlistDrawer,
 } from "../components/deferred";
 import { MetaPixel } from "../components/metapixel";
+import { HeylinkKlick } from "../components/heylink-klick";
 import { KlarnaSDK } from "../components/klarna-sdk";
 import { consentBootstrapScript, taggLaddare } from "../lib/consent";
 import { TIDIGA_KLICK_SKRIPT } from "../lib/tidiga-klick";
@@ -375,6 +376,13 @@ export default async function RootLayout({
           mätningen blir densamma. Se lib/srsltid.ts.
         */}
         {IS_PRODUCTION && <RensaSrsltid />}
+        {/*
+          Heylink, åt GoWish (Leonard 2026-11-25): fångar klick-id:t (?hltid=…)
+          när någon landar från GoWish. Sparar bara med samtycke, och hämtar
+          ingenting från Heylink. Deras skript laddas bara på tacksidan
+          (components/heylink-kop.tsx). Se lib/heylink.ts.
+        */}
+        {IS_PRODUCTION && <HeylinkKlick />}
         {/*
           Vercel Web Analytics (cookie-free, privacy-friendly) — no consent gate
           needed, so it sits outside <CookieConsent />. Beacons to

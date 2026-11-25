@@ -18,6 +18,7 @@ import {
   orderNumber,
   orderRader,
   orderSumma,
+  orderValuta,
   type OrderRad,
 } from "./wix-order-fields";
 
@@ -37,6 +38,9 @@ export interface WixOrderInfo {
   readonly frakt?: number;
   readonly totalt?: number;
   readonly moms?: number;
+  /** Frakten exklusive moms och orderns valuta. Till Heylink (lib/heylink.ts). */
+  readonly fraktExMoms?: number;
+  readonly valuta?: string;
 }
 
 // Ny literal per anrop, aldrig en delad konstant: WixOrderInfo returneras från
@@ -107,6 +111,7 @@ export async function fetchWixOrderInfo(orderId: string): Promise<WixOrderInfo> 
       createdDate: orderCreatedDate(order) ?? null,
       rader: orderRader(order),
       ...orderSumma(order),
+      valuta: orderValuta(order),
     };
   } catch (err) {
     console.warn(`[tack] fetchWixOrderInfo(${orderId}) fel`, err);
