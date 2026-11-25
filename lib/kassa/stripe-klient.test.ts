@@ -18,6 +18,7 @@ import {
   STRIPE_MEDDELANDE,
   TEXT_VERIFIERING,
   FARSKT_FORSOK_MS,
+  OPPET_FORSOK_MS,
   avsiktUrKakor,
   betalfelText,
   elementsInstallningar,
@@ -390,6 +391,11 @@ test("kassan visas med ett sparat försök: godkänt slutförs, öppet fortsätt
   assert.deepEqual(sparatBeslut(OPPEN_SVAR, farskt), { gor: "oppen", adress: KLARNA_ADRESS, hosKlarna: true, totalOre: 65900 });
   // Öppet är öppet också efter två timmar (Klarna håller betalningen i tre) och efter ett visat besked.
   assert.equal(sparatBeslut(OPPEN_SVAR, { alderMs: 2 * 60 * 60 * 1000, sagt: true }).gor, "oppen");
+  // ☠️ Men inte längre än Klarnas tre timmar: Stripe låter betalningen stå öppen i dygn
+  // (en från 23 november var öppen 36 timmar senare), och då har Klarna släppt den.
+  assert.equal(sparatBeslut(OPPEN_SVAR, { alderMs: OPPET_FORSOK_MS, sagt: false }).gor, "oppen");
+  assert.deepEqual(sparatBeslut(OPPEN_SVAR, { alderMs: OPPET_FORSOK_MS + 1, sagt: false }), { gor: "inget" });
+  assert.equal(OPPET_FORSOK_MS, 3 * 60 * 60 * 1000);
 
   const nekad: KlarSvar = { status: 409, j: { ok: false, kod: "ej_betald", meddelanden: ["x"], orsak: "nekad" } };
   assert.deepEqual(sparatBeslut(nekad, farskt), { gor: "sag", text: STRIPE_MEDDELANDE.nekad });

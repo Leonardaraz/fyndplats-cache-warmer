@@ -476,6 +476,16 @@ export function stripeMeddelande(kod: string | null): string | null {
 /** Ett försök som föll för så här länge sedan förklaras inte längre: kunden har gått vidare. */
 export const FARSKT_FORSOK_MS = 30 * 60 * 1000;
 
+/**
+ * Så länge erbjuder kassan kunden att fortsätta en öppen Klarna-betalning.
+ * Stripes dokumentation ger kunden tre timmar hos Klarna. ☠️ Betalningen står
+ * ändå kvar som öppen hos Stripe långt efter det: en från 23 november var
+ * fortfarande `requires_action` 36 timmar senare (läst i Stripe 2026-11-24).
+ * Utan gränsen hade kassan dagen efter erbjudit en betalning som Klarna
+ * släppt för länge sedan.
+ */
+export const OPPET_FORSOK_MS = 3 * 60 * 60 * 1000;
+
 /** Vad kassan gör med kundens sparade försök när sidan visas. */
 export type SparatBeslut =
   | { gor: "tack"; orderId: string }
@@ -501,7 +511,9 @@ export function sparatBeslut(svar: KlarSvar, forsok: { alderMs: number; sagt: bo
   const b = klarBeslut(svar.status, svar.j);
   if (b.gor === "tack") return b;
   if (svar.status === 202) return { gor: "slutfor" };
-  if (b.gor === "fortsatt") return { gor: "oppen", adress: b.adress, hosKlarna: b.hosKlarna, totalOre: b.totalOre };
+  if (b.gor === "fortsatt") {
+    return forsok.alderMs <= OPPET_FORSOK_MS ? { gor: "oppen", adress: b.adress, hosKlarna: b.hosKlarna, totalOre: b.totalOre } : { gor: "inget" };
+  }
   if (b.gor === "fel" && b.kod === "ej_betald" && b.orsak && !forsok.sagt && forsok.alderMs <= FARSKT_FORSOK_MS) {
     return { gor: "sag", text: STRIPE_MEDDELANDE[tillbakaKod(b.kod, b.orsak)] };
   }
