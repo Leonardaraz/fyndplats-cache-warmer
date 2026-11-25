@@ -672,9 +672,26 @@ export function ProductView({
     const knapp = kopKnapp.current;
     if (!knapp || typeof IntersectionObserver !== "function") return;
     const huvud = Math.round(document.querySelector("header.sidhuvud")?.getBoundingClientRect().height ?? 0);
-    const io = new IntersectionObserver(([e]) => setKopSyns(e.intersectionRatio >= 0.6), { threshold: 0.6, rootMargin: `-${huvud}px 0px 0px 0px` });
-    io.observe(knapp);
-    return () => io.disconnect();
+    // ☠️ Telefonens sidhuvud följer med sidan ur bild (components/huvud-gom.tsx,
+    // 2026-11-24). Är det borta täcker det ingenting, och knappen syns ända upp
+    // till skärmens kant: med bara mätningen under sidhuvudet stod sidans
+    // köpknapp och köpraden i samma skärm i 160 px av rörelsen. Därför två
+    // mätningar, och sidhuvudets läge (data-huvud-borta på <html>) väljer.
+    const rot = document.documentElement;
+    let under = false;
+    let hela = false;
+    const valj = () => setKopSyns(rot.hasAttribute("data-huvud-borta") ? hela : under);
+    const ioUnder = new IntersectionObserver(([e]) => { under = e.intersectionRatio >= 0.6; valj(); }, { threshold: 0.6, rootMargin: `-${huvud}px 0px 0px 0px` });
+    const ioHela = new IntersectionObserver(([e]) => { hela = e.intersectionRatio >= 0.6; valj(); }, { threshold: 0.6 });
+    ioUnder.observe(knapp);
+    ioHela.observe(knapp);
+    const huvudLage = new MutationObserver(valj);
+    huvudLage.observe(rot, { attributes: true, attributeFilter: ["data-huvud-borta"] });
+    return () => {
+      ioUnder.disconnect();
+      ioHela.disconnect();
+      huvudLage.disconnect();
+    };
   }, []);
 
   // De galleribilder som tillhör den VALDA varianten → markeras i galleriet (ram).

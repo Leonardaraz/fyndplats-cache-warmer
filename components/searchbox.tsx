@@ -187,6 +187,10 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
   // byts och stängs när den bytts (se `visas`). Förr stängdes panelen direkt,
   // och under de 0,5–0,8 s /sok tar att svara syntes ingenting alls.
   const [skickad, setSkickad] = useState(false);
+  // Varan eller kategorin kunden tryckt på, medan sidan hämtas (se `ga`).
+  const [pavag, setPavag] = useState<string | null>(null);
+  const [gar, startaGa] = useTransition();
+  const forhamtade = useRef(new Set<string>());
   const router = useRouter();
   const pathname = usePathname();
   const forraSida = useRef<string | null>(null);
@@ -433,10 +437,34 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
   // Piltangenterna går över kategorierna först, sedan varorna.
   const rader = katRader.length + showing.length;
 
-  // onNavigate stänger ev. förälder (mobilmenyn) när vi navigerar bort.
-  // Produktsidans huvudbild börjar hämtas i samma tryck (lib/hjaltebild-varm.ts).
-  const goProduct = (slug: string, bild?: string, kortet?: Element) => { varmHjaltebild(bild, kortet); setOpen(false); setQ(""); onNavigate?.(); router.push(`/produkt/${slug}`); };
-  const goKategori = (slug: string) => { setOpen(false); setQ(""); onNavigate?.(); router.push(`/kategori/${slug}`); };
+  // ☠️ SÖKLÄGET STÅR KVAR TILLS SIDAN ÄR FRAMME (Leonard 2026-11-24). Förr
+  // stängdes det i trycket, före sidbytet. I mobilens sökläge täcker sökningen
+  // skärmen, så när den stängdes syntes sidan som låg under ("Sökresultat för
+  // renar") i några hundra millisekunder innan produktsidan kom: två sidbyten
+  // för ett tryck. Nu står listan kvar med det tryckta kortet markerat, och
+  // byts mot produktsidan i samma bildruta som den ritas (`visas` nedan).
+  // Sidbytet görs i en övergång, som sökningen gör sedan 2026-08-29.
+  //
+  // Produktsidans huvudbild börjar hämtas i samma tryck (lib/hjaltebild-varm.ts),
+  // och sidan själv redan när fingret landar på kortet (`forhamta`).
+  const ga = (href: string) => {
+    // Sökläget: tangentbordet fälls, så att kunden ser kortet hen tryckte på.
+    if (rutnat) inputRef.current?.blur();
+    setPavag(href);
+    startaGa(() => router.push(href));
+  };
+  const goProduct = (slug: string, bild?: string, kortet?: Element) => { varmHjaltebild(bild, kortet); ga(`/produkt/${slug}`); };
+  const goKategori = (slug: string) => ga(`/kategori/${slug}`);
+  // Sidan hämtas vid AVSIKT: fingret landar på kortet 100–200 ms innan det
+  // släpper, och muspekaren når raden ännu tidigare. Produktsidorna är
+  // statiska, så hela sidan hinner oftast fram före trycket. En gång per vara,
+  // som components/prefetch-link.tsx gör på korten i listorna.
+  const forhamta = (href: string) => {
+    if (forhamtade.current.has(href)) return;
+    forhamtade.current.add(href);
+    // router.prefetch kastar aldrig; faller hämtningen hämtar trycket som förut.
+    try { router.prefetch(href); } catch { forhamtade.current.delete(href); }
+  };
   // BLÅ "GÅ"-KNAPPEN SÅG DÖD UT. /sok är en dynamisk route utan cache — uppmätt
   // i produktion 2026-08-29: cache-control "private, no-cache, no-store",
   // x-vercel-cache MISS varje gång, TTFB 0,50–0,78 s. Under den halvsekunden
@@ -493,10 +521,25 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
   // Panelen syns när den är öppen, utom när en skickad sökning har landat.
   // Härlett i stället för en effekt som stänger: skickad och soker sätts i
   // samma rendering, så panelen blinkar inte.
-  const visas = open && !(skickad && !soker);
+  // Detsamma för en tryckt vara: panelen står kvar medan sidan hämtas (`gar`)
+  // och är borta i samma rendering som den nya sidan ritas.
+  const framme = pavag !== null && !gar;
+  const visas = open && !(skickad && !soker) && !framme;
   // Mobilens sökläge: sökningen täcker skärmen så länge panelen är öppen.
   const sokLage = rutnat && visas;
   const stang = () => { setOpen(false); inputRef.current?.blur(); };
+
+  // Sidan är framme: rutan töms, och en förälder (mobilmenyn) får veta att vi
+  // har lämnat sidan. Panelen är redan borta i den här renderingen (`visas`),
+  // så ingenting blinkar.
+  useEffect(() => {
+    if (!framme) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- städning efter ett sidbyte som gjordes i en övergång
+    setOpen(false);
+    setQ("");
+    setPavag(null);
+    onNavigate?.();
+  }, [framme, onNavigate]);
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -730,7 +773,7 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
       {sokLage && <button type="button" className="search-stang" onClick={stang}>Stäng</button>}
 
       {visas && (showing.length > 0 || laddar || soker || indexFel || visaTidigare || visaExempel || q.trim().length >= 2) && (
-        <div className="sugg" ref={panelRef} onTouchStart={rutnat ? onDragStart : undefined} onTouchMove={rutnat ? onDrag : undefined}>
+        <div className="sugg" ref={panelRef} data-pavag={pavag ? "" : undefined} aria-busy={pavag ? true : undefined} onTouchStart={rutnat ? onDragStart : undefined} onTouchMove={rutnat ? onDrag : undefined}>
           {fortsatt && q.trim().length >= 2 && <div className="sugg-fortsatt" role="status">Skriv lite till, så visar vi förslag.</div>}
           {visaTidigare && (
             <>
@@ -762,7 +805,7 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
               ))}
               {/* Sökläget: kategorierna står här som chips, så att varorna får raderna under. */}
               {rutnat && kategorier.map((k) => (
-                <a key={k.slug} href={`/kategori/${k.slug}`} className="sugg-chip sugg-chip-kat" onClick={(e) => { e.preventDefault(); goKategori(k.slug); }}><Rutor storlek={14} />{rentNamn(k.name)}</a>
+                <a key={k.slug} href={`/kategori/${k.slug}`} className={`sugg-chip sugg-chip-kat${pavag === `/kategori/${k.slug}` ? " pavag" : ""}`} onTouchStart={() => forhamta(`/kategori/${k.slug}`)} onClick={(e) => { e.preventDefault(); goKategori(k.slug); }}><Rutor storlek={14} />{rentNamn(k.name)}</a>
               ))}
             </div>
           )}
@@ -788,9 +831,11 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
               key={k.slug}
               id={radId(j)}
               href={`/kategori/${k.slug}`}
-              className={`sugg-item sugg-kat ${j === active ? "active" : ""}`}
+              className={`sugg-item sugg-kat ${j === active ? "active" : ""}${pavag === `/kategori/${k.slug}` ? " pavag" : ""}`}
               onClick={(e) => { e.preventDefault(); goKategori(k.slug); }}
               onMouseEnter={() => setActive(j)}
+              onPointerEnter={() => forhamta(`/kategori/${k.slug}`)}
+              onTouchStart={() => forhamta(`/kategori/${k.slug}`)}
               role="option"
               aria-selected={j === active}
             >
@@ -811,8 +856,10 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
               key={h.s}
               id={radId(i)}
               href={`/produkt/${h.s}`}
-              className={`sugg-kort${i === active ? " active" : ""}`}
+              className={`sugg-kort${i === active ? " active" : ""}${pavag === `/produkt/${h.s}` ? " pavag" : ""}`}
               onClick={(e) => { e.preventDefault(); goProduct(h.s, h.i, e.currentTarget); }}
+              onTouchStart={() => forhamta(`/produkt/${h.s}`)}
+              onPointerEnter={(e) => { if (e.pointerType === "mouse") forhamta(`/produkt/${h.s}`); }}
               role="option"
               aria-selected={i === active}
             >
@@ -828,9 +875,11 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
               key={h.s}
               id={radId(i)}
               href={`/produkt/${h.s}`}
-              className={`sugg-item ${i === active ? "active" : ""}`}
+              className={`sugg-item ${i === active ? "active" : ""}${pavag === `/produkt/${h.s}` ? " pavag" : ""}`}
               onClick={(e) => { e.preventDefault(); goProduct(h.s, h.i, e.currentTarget); }}
               onMouseEnter={() => setActive(i)}
+              onPointerEnter={() => forhamta(`/produkt/${h.s}`)}
+              onTouchStart={() => forhamta(`/produkt/${h.s}`)}
               role="option"
               aria-selected={i === active}
             >

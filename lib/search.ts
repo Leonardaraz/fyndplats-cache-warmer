@@ -1171,6 +1171,47 @@ function tokenQuality(unit: Unit, nameNorm: string, lage: Lage, namnVikt: string
 // Sedan 2026-11-19 också ord som hör till frågan och inte till varan: "billig
 // soffa", "soffa under 2000 kr", "köp julgran". Förut räknades "under" som ett
 // sökord och gav 692 träffar med "förvaring under sitsen" överst.
+/**
+ * Märken som jämförelsesajterna skriver först i varans namn, och butikens eget.
+ * Aosoms märken står aldrig i ett varunamn här (varorna säljs som Fyndplats).
+ * VEVOR är ett märke butiken visar, och ett fåtal namn nämner det ("utbytbar
+ * form för VEVOR knappmaskin"): ordet säger ändå inte vad varan är.
+ */
+export const LEVERANTORSMARKEN: readonly string[] = [
+  "homcom", "outsunny", "pawhut", "aiyaplay", "sportnow", "vinsetto", "kleankin", "durhand", "zonekiz", "aosom",
+  "vevor", "fyndplats",
+];
+// Märket som eget ord, med skiljetecknen som hör till det ("Homcom:", "HOMCOM®", "Pawhut -") och med
+// ett nekande ord framför ("utan homcom"): ingen vara heter så, så det finns inget att välja bort.
+// ☠️ Utan bakåtblick ((?<!…)): Safari före 16.4 kan inte läsa en sådan, och då laddas inte sökningen alls.
+// Blanktecknet efter märket lämnas därför kvar, så att nästa märke i raden har sin gräns ("Outsunny PawHut").
+const MARKE_RE = new RegExp(`(^|[^a-zåäö0-9])(?:(?:utan|ej|inte)\\s+)?(?:${LEVERANTORSMARKEN.join("|")})(?![a-zåäö0-9])(?:\\s*[:;,.®™©–—|/-]+)*`, "gi");
+
+/**
+ * Sökningen utan leverantörernas märken: "Homcom Barnelbil" → "Barnelbil".
+ * Svaret ska vara detsamma med och utan märket, också ordningen.
+ *
+ * ☠️ Första versionen gjorde bara märket till ett småord (2026-11-22). Då fick
+ * "homcom vit byrå" samma varor som "vit byrå" men i en annan ordning (frasen
+ * i namnet räknas med småorden kvar), rättningen sa "träffarna för homcom
+ * fåtölj", och "homcom elbilar för barn" var inte längre kategorins namn. Av
+ * 2 795 provsökningar ändrade märket svaret för 844.
+ *
+ * Märket står kvar när det är hela sökningen ("homcom" ger noll som förut).
+ */
+const MARKEN: ReadonlySet<string> = new Set(LEVERANTORSMARKEN);
+/** Är sökningen bara märken, och inget annat? */
+function baraMarken(query: string): boolean {
+  const ord = tokenize(normalize(query));
+  return ord.length > 0 && ord.every((t) => MARKEN.has(t));
+}
+
+export function utanMarken(query: string): string {
+  const kvar = query.replace(MARKE_RE, "$1 ");
+  if (kvar === query || !/[a-zåäö0-9]/i.test(kvar)) return query;
+  return kvar.replace(/[\s:;,.–—|/-]+$/, "").replace(/\s+/g, " ").trim();
+}
+
 const STOPWORDS = new Set([
   "med", "och", "för", "till", "på", "av", "en", "ett", "som", "från",
   "under", "över", "billig", "billiga", "billigt", "bra", "bästa", "köp", "köpa", "kr", "kronor",
@@ -1183,6 +1224,18 @@ const STOPWORDS = new Set([
   // och söksidan läser dem som en önskan om ordning (villHaBilligast i
   // lib/sok-pris.ts).
   "lägst", "lägsta",
+  // ☠️ LEVERANTÖRENS MÄRKE STÅR FÖRST I JÄMFÖRELSESAJTERNAS NAMN (Leonard
+  // 2026-11-22). PriceRunner visar oss som säljare av "Homcom Barnelbil Med
+  // 2.4 G Fjärrkontroll", utan länk, och kunden som söker det namnet här fick
+  // noll träffar. Märkesordet säger inte vad varan är, och står i nästan inget
+  // varunamn (fyra av 8 448 den 24 november, alla "för VEVOR knappmaskin"): det
+  // hör till frågan, inte till varan. Rankningen tar bort det ur sökningen
+  // (utanMarken). Här är det
+  // ett småord för allt annat som läser sökningen: kategoriförslagen,
+  // "billigast"-ordningen och delningen av sammansatta ord. Listan är
+  // densamma som i lib/varumarke.ts (provet håller dem lika), plus VEVOR och
+  // butikens namn.
+  ...LEVERANTORSMARKEN,
   // ☠️ "har ni dieselvärmare" GAV 50 SKRÄPTRÄFFAR (2026-11-21), fast butiken
   // har 33 dieselvärmare. "har" räknades som sökningens första varuord, stod
   // i en massagefåtölj som "har värme", och "dieselvärmare" ströks. Orden här
@@ -2639,8 +2692,10 @@ function skrivOm(p: Prepared, bok: Ordbok, begrepp: readonly string[], arBegrepp
 //
 // `kd` är kategorierna och vilka varje vara hör till (se Kategoridata). Utan
 // den söks bara namnen, som förut.
-export function rankaMedInfo<T>(items: T[], nameOf: (item: T) => string, query: string, normNamn?: readonly string[], kd?: Kategoridata<T>): Sokutfall<T> {
+export function rankaMedInfo<T>(items: T[], nameOf: (item: T) => string, skrivet: string, normNamn?: readonly string[], kd?: Kategoridata<T>): Sokutfall<T> {
   const namn = normNamn ?? items.map((item) => normalize(nameOf(item)));
+  // Leverantörens märke hör till frågan, inte till varan (se utanMarken).
+  const query = utanMarken(skrivet);
   // En engelsk fras byts mot katalogens ord (se FRASER), med besked.
   const oversatt = oversattFras(query);
   if (oversatt) {
@@ -2648,6 +2703,11 @@ export function rankaMedInfo<T>(items: T[], nameOf: (item: T) => string, query: 
     if (u.traffar.length > 0) return { ...u, rattat: u.rattat ?? oversatt };
   }
   const u = rankaUtan(items, nameOf, query, namn, kd);
+  // ☠️ ETT MÄRKE ÄR INGET STAVFEL. Sökningen på bara märket gav varor som
+  // "ligger närmast i stavning": "durhand" tio varor med handtag och fjädrar,
+  // "aiyaplay" en CarPlay-adapter och "sportnow" tre ramar för sportkort
+  // (2026-11-24). Märket ensamt ger varorna som nämner det, annars noll.
+  if ((u.liknande || u.rattat) && baraMarken(query)) return { traffar: [], strukna: [] };
   // ☠️ "katt träd" GAV 13 VAROR OCH "kattträd" 96, "ute möbler" 12 och
   // "utemöbler" 254, "soff bord" 54 och "soffbord" 123 (2026-11-21). Skrivna
   // isär söktes orden var för sig: bara varor som nämner både katt och träd
@@ -2668,6 +2728,31 @@ export function rankaMedInfo<T>(items: T[], nameOf: (item: T) => string, query: 
       const resten = riktiga ? u.traffar.filter((x) => !med.has(x)) : [];
       return { ...v, traffar: resten.length > 0 ? [...v.traffar, ...resten] : v.traffar, sokt: v.sokt ?? ihop };
     }
+  }
+  // ETT OKÄNT SAMMANSATT ORD I EN SÖKNING PÅ FLERA ORD delas (se
+  // medDeladeOrd), men bara när sökningen som den skrevs inte räckte: den gav
+  // ingenting, eller ett ord fick strykas.
+  //
+  // Svaret är detsamma som när kunden skriver orden isär, med stavningen
+  // rättad och med besked som vanligt. Det gäller när det har träffar, stryker
+  // färre ord än sökningen som den skrevs, och BÅDA DELARNA STÅR KVAR.
+  // ☠️ Första versionen krävde bara färre strukna ord (2026-11-22), och
+  // "trädgårdssoffa 3-sits" blev "trädgårds soffa 3-sits" med "soffa" struket:
+  // gungbänkar och en knäpall. Varutypen är ordet som delades, och stryks en
+  // del av det är svaret en annan sökning. Formen utan foge-s provas därför
+  // också ("trädgård soffa 3-sits" ger sofforna), och den som stryker minst
+  // gäller. Andra ord får strykas som vanligt, med besked: "barnelbil röd" är
+  // elbilarna för barn, och sidan säger att ingen av dem heter röd.
+  if (u.traffar.length === 0 || u.strukna.length > 0) {
+    let bast: Sokutfall<T> | null = null;
+    for (const { q, delar } of medDeladeOrd(query, namn, kd?.kat)) {
+      const v = rankaUtan(items, nameOf, q, namn, kd);
+      if (v.traffar.length === 0 || v.strukna.some((t) => delar.includes(t))) continue;
+      if (u.traffar.length > 0 && v.strukna.length >= u.strukna.length) continue;
+      if (!bast || v.strukna.length < bast.strukna.length) bast = { ...v, sokt: v.sokt ?? q };
+      if (v.strukna.length === 0) break;
+    }
+    if (bast) return bast;
   }
   return u;
 }
@@ -3361,9 +3446,16 @@ function raknaInre<T>(items: T[], nameOf: (item: T) => string, query: string, no
   // namnets första ord (eller sist i det) i 61 % av namnen som har ordet,
   // "stol" i 56 %, "lampa" i 76 % och "bil" i 36 %; "barn", "hund", "kontor"
   // och "trädgård" i 0 %. Gränsen ligger emellan.
+  //
+  // ☠️ ORDETS SYNONYMER RÄKNAS MED (2026-11-22). Första versionen letade bara
+  // efter ordet som det skrevs, och "trixie kattträd", "ikea barpall", "jysk
+  // solstol" och "jysk utemöbler" gav noll: varorna heter Klösträd, Barstol,
+  // Solsäng och Loungeset, så ordet stod först i för få namn (eller inget).
+  // Ordet träffar dem genom synonymtabellen, och är lika mycket en varutyp
+  // som de. Mätt: 399 av 825 sökningar "okänt ord + ord ur tabellen" gav noll.
   const arVarutyp = (u: Unit, i: number): boolean => {
     if (u.egenskap || u.helord) return false;
-    const former = [u.tok, u.stem, ...(u.former ?? [])];
+    const former = [u.tok, u.stem, ...(u.former ?? []), ...(u.syn ?? []), ...(ENVAGS_NALAR.get(u.key) ?? [])];
     let med = 0;
     let forst = 0;
     for (const r of scored) {
@@ -3580,6 +3672,10 @@ function entalAv(ord: string): string[] {
 // annan vara i butiken: ett filter är ingen filt, en racket inget rack och en
 // raket inget rakt. Prövat mot katalogens ord 2026-11-19 (415 par, de här föll).
 const INTE_BOJT = new Set([
+  // ☠️ Ett märke är aldrig en böjning av ett annat ord. "vevor" lästes som
+  // flertalet av "vev", och sökningen på märket gav fatpumpar och markiser
+  // "med vev" efter de fyra varor som nämner VEVOR (2026-11-24).
+  ...LEVERANTORSMARKEN,
   "filter", "racket", "raket", "paket", "staket", "planet", "poster", "lager", "master", "start",
   "medar", "håller", "höjer", "klarar", "sitter", "spelar", "banan",
   "höger", "vänster", "motor", "rotor", "dator", "meter", "liter", "timer", "ingen", "eller", "efter",
@@ -3682,6 +3778,85 @@ function starkDelning(delade: readonly string[], bok: Ordbok, arBegrepp: (u: Uni
     return stark(a) && stark(b);
   });
 }
+
+/** Sökningen med de okända sammansatta orden delade, och delarna (se medDeladeOrd). */
+export type DeladSokning = { q: string; delar: string[] };
+
+/** Så många delningar av samma ord provas: var och en är en sökning. */
+const FLEST_DELNINGAR = 2;
+
+/**
+ * En sökning på FLERA ord där ett okänt ord går att dela i två vanliga ord,
+ * med ordet delat: "barnelbil med fjärrkontroll" → "barn elbil med
+ * fjärrkontroll". Sökningarna att prova i tur och ordning (ordets jämnaste
+ * delning först, och formen med foge-s före den utan: "trädgårds soffa", sedan
+ * "trädgård soffa"), var och en med ordens delar. Tom när inget ord delas.
+ *
+ * ☠️ Förut delades bara ett ENSAMT sökord (delningar). "barnelbil" gav 52
+ * elbilar för barn, men "barnelbil med fjärrkontroll" och jämförelsesajternas
+ * "Homcom Barnelbil Med 2.4 G Fjärrkontroll" gav noll: ordet står inte i något
+ * namn (varorna heter "Elbil barn …"), ströks som okänt, och kvar blev bara
+ * "fjärrkontroll" (2026-11-22).
+ *
+ * Bara ord som katalogen inte har: inget namn har ordet, inget ord i
+ * katalogen börjar så (kunden kan vara mitt i ordet), och det är varken ett
+ * begreppsord eller ett kategoriord. Och bara en STARK delning (se
+ * starkDelning): båda delarna minst fyra bokstäver och vanliga i katalogen.
+ * "cykelhjälm" delas inte, för butiken har ingen hjälm.
+ */
+export function medDeladeOrd(query: string, namn: readonly string[], kat: readonly SokKat[] | undefined): DeladSokning[] {
+  // ☠️ Ord för ord, inte blanktecken för blanktecken: "Barnelbil, med
+  // fjärrkontroll" och "barnelbil/fjärrkontroll" gav noll, för kommat och
+  // snedstrecket satt ihop med ordet.
+  const hel = normalize(query);
+  const ord = hel.match(SOKORD_RE) ?? [];
+  if (ord.length < 2) return [];
+  const sparat = formerFor(namn);
+  const kanda = () => (sparat.ord ??= kandaOrd(listaFor(namn, sparat)));
+  const bok = ordbokFor(namn, sparat);
+  const begrepp = begreppFor(kat);
+  // ☠️ Huvudordet får vara böjt. "barnelbil med fjärrkontroll" delades, men
+  // "barnelbilar med fjärrkontroll" och "barnelbilen …" gav noll: inget ord i
+  // namnen börjar på "elbilar". Entalet räknas när katalogen har det, men
+  // inte för ord som bara ser böjda ut (INTE_BOJT: ett filter är ingen filt).
+  const stark = (d: string): boolean => {
+    if (starkDelning([d], bok, ALDRIG_BEGREPP)) return true;
+    const [a, b] = d.split(" ");
+    return !INTE_BOJT.has(b) && entalAv(b).some((e) => bok.antal.has(e) && starkDelning([`${a} ${e}`], bok, ALDRIG_BEGREPP));
+  };
+  const iTabellen = (x: string): boolean => {
+    const nyckel = begreppsnyckel(x);
+    return SYN.has(nyckel) || ENVAGS_NALAR.has(nyckel);
+  };
+  const val = ord.map((t): string[] => {
+    if (t.length < 2 * KORTASTE_DEL || !/^[a-zåäö]+$/.test(t) || STOPWORDS.has(t)) return [];
+    if (arKandDel(t, kanda()) || begrepp.includes(t)) return [];
+    // Ett ord i synonymtabellen har sin betydelse därifrån, också böjt
+    // ("cykelvagnen" är en cykelkärra).
+    if (iTabellen(t) || entalAv(t).some(iTabellen)) return [];
+    const i = forstaPlats(bok.ord, t);
+    if (i < bok.ord.length && bok.ord[i].startsWith(t)) return [];
+    return delningar(prepare(t), kanda).filter(stark).slice(0, FLEST_DELNINGAR);
+  });
+  const antal = Math.max(...val.map((v) => v.length));
+  const ut: DeladSokning[] = [];
+  for (let k = 0; k < antal; k++) {
+    const delar: string[] = [];
+    let i = 0;
+    const q = hel.replace(SOKORD_RE, (t) => {
+      const v = val[i++];
+      if (v.length === 0) return t;
+      const d = v[Math.min(k, v.length - 1)];
+      delar.push(...d.split(" "));
+      return d;
+    });
+    ut.push({ q, delar });
+  }
+  return ut;
+}
+const SOKORD_RE = /[a-zåäö0-9]+/g;
+/** Här räknas bara ord som står i namnen: kategoriernas begreppsord går en annan väg (kategoriVarv). */
+const ALDRIG_BEGREPP = (): boolean => false;
 
 /** Är delen ett känt ord följt av ett foge-s ("köks", "badrums")? */
 function medFogeS(a: string, kand: (x: string) => boolean): boolean {
@@ -4316,10 +4491,11 @@ export function menadeDu<T>(varor: readonly T[], namn: (v: T) => string, fraga: 
  * kunden var på väg att skriva ("få" → fåtölj) och säger det (`visar`).
  * Längre ord rankas som förut.
  */
-export function rankaMedForslag<T>(items: T[], nameOf: (item: T) => string, query: string, kd?: Kategoridata<T>): { utfall: Sokutfall<T>; visar: string } {
-  const utfall = rankaMedInfo(items, nameOf, query, undefined, kd);
+export function rankaMedForslag<T>(items: T[], nameOf: (item: T) => string, skrivet: string, kd?: Kategoridata<T>): { utfall: Sokutfall<T>; visar: string } {
+  const utfall = rankaMedInfo(items, nameOf, skrivet, undefined, kd);
   // En rättad stavning visas på samma sätt som ordet för två bokstäver:
   // sidan säger vilket ord träffarna gäller.
+  const query = utanMarken(skrivet);
   if (!kortOrd(query)) return { utfall, visar: utfall.rattat ?? "" };
   const mal = visaVarorFor(query, menadeDu(items, nameOf, query), utfall.traffar.length);
   if (!mal) return { utfall, visar: "" };

@@ -236,6 +236,35 @@ img{display:block;max-width:100%}
 .promo b.klarna-mark{color:#FFB3C7}
 
 header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+/* Sidhuvudet följer fingret (Leonard 2026-11-24): mobilens sidhuvud med sökraden
+   är 133 px av skärmen. Scrollar man ner följer det med sidan upp ur bild, och
+   så fort man scrollar upp följer det med tillbaka.
+   ☠️ Första försöket bytte läge vid en gräns och lät en övergång göra resten.
+   På Leonards iPhone såg det ut som ett hopp: en övergång har sin egen fart,
+   och den är aldrig fingrets. Nu gör webbläsarens scrollning rörelsen.
+   Sidhuvudet (position:sticky) ligger i omslaget .huvudspar, och ett fäst
+   element kan inte lämna sitt omslag: när omslagets nederkant når sidhuvudets
+   följer det med sidan. components/huvud-gom.tsx sätter omslagets höjd när
+   rörelsen vänder, och lika mycket negativ marginal, så att sidan under aldrig
+   flyttar sig (räkningen: lib/huvud-gom.ts).
+   Utan skriptet, över 760 px och i sökläget är omslaget display:contents: då
+   finns det inte för layouten, och sidhuvudet sitter fäst överst som förut.
+   Bara telefonen (760 px, samma gräns som produktsidans mobilläge): över den
+   fäster produktsidans bildgalleri under sidhuvudet (--ankare), och ett
+   sidhuvud som försvann lämnade en tom remsa ovanför bilden.
+   På telefonen är sidhuvudet ogenomskinligt: den suddiga bakgrunden ritades
+   om för varje bildruta medan sidhuvudet rörde sig över sidan.
+   overflow-anchor: omslaget ändrar höjd, och ska aldrig vara det webbläsaren
+   håller sidan still mot. */
+.huvudspar{display:contents}
+@media(max-width:760px){
+  .sidhuvud{background:#fff;-webkit-backdrop-filter:none;backdrop-filter:none}
+  .huvudspar[data-spar]{display:block;pointer-events:none;overflow-anchor:none}
+  .huvudspar[data-spar]>.sidhuvud{pointer-events:auto;will-change:transform}
+  /* Sökläget: sidhuvudet står fäst överst som förut, och inget glid pågår. */
+  html[data-sok-lage] .huvudspar[data-spar]{display:contents}
+  html[data-sok-lage] .huvudspar>.sidhuvud{transform:none!important;transition:none!important}
+}
 .hrow{display:flex;align-items:center;gap:20px;padding:15px 0}
 .brand{display:flex;align-items:center;gap:10px;min-height:44px;font-weight:800;font-size:var(--text-xl);letter-spacing:-.02em}
 .mark{width:34px;height:34px;flex:0 0 auto}
@@ -348,6 +377,14 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .sugg-kort:focus-visible{outline:none}
 .sugg-kort:active .sugg-kort-bild{transform:scale(.98)}
 .sugg-kort-bild{transition:transform .12s ease}
+/* Det tryckta kortet medan produktsidan hämtas (components/searchbox.tsx, `ga`):
+   sökläget står kvar, kortet hålls nedtryckt och de andra tonas ner, så att
+   trycket syns direkt. Laddningslinjen överst (.sidbyte) visar att sidan är
+   på väg. */
+.sugg-kort,.sugg-item,.sugg-chip-kat{transition:opacity .18s ease}
+.sugg-kort.pavag .sugg-kort-bild{transform:scale(.97);border-color:var(--brand);box-shadow:0 0 0 1px var(--brand)}
+.sugg[data-pavag] .sugg-kort:not(.pavag),.sugg[data-pavag] .sugg-item:not(.pavag),.sugg[data-pavag] .sugg-chip:not(.pavag){opacity:.45}
+.sugg-item.pavag{background:var(--warm)}
 /* Priset på bilden: syns i samma ögonkast som varan, också när tangentbordet
    skär av namnet under. Mörk text på vitt, 16:1. */
 .sugg-kort-pris{grid-area:1/1;align-self:end;justify-self:start;z-index:1;margin:0 7px 7px;max-width:calc(100% - 14px);padding:5px 10px 6px;border-radius:var(--r-pill);background:rgba(255,255,255,.96);color:var(--ink);font-size:var(--text-sm);font-weight:800;line-height:1.15;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 1px 3px rgba(28,28,28,.18),0 0 0 1px rgba(28,28,28,.06)}
@@ -393,7 +430,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 @media(min-width:800px) and (max-width:900px){
   .hsearch-mobile .sugg [role="listbox"],.hsearch-mobile .sugg-skelett{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
-@media(prefers-reduced-motion:reduce){.sugg-skelett span{animation:none}.sugg-kort-bild{transition:none}}
+@media(prefers-reduced-motion:reduce){.sugg-skelett span{animation:none}.sugg-kort-bild,.sugg-kort,.sugg-item,.sugg-chip-kat{transition:none}}
 .nav{display:flex;gap:20px;font-size:var(--text-sm);font-weight:500;color:#3a352f;margin-left:auto;align-items:center}
 /* Tryckytan upp till 44px. Gapet på 20px är bredare än den vertikala
    utvidgningen, så grannlänkarnas ytor kan inte överlappa. */
@@ -4196,7 +4233,8 @@ a.om-fakta-kort:hover b,a.om-fakta-kort:focus-visible b{color:var(--brand)}
    tagit över. En webbläsare utan :has() (äldre än 2022) visar butikens delar
    som förut, och kassan fungerar ändå. */
 body:has([data-kassa-sida])>.promo,
-body:has([data-kassa-sida])>.sidhuvud,
+body:has([data-kassa-sida])>.huvudspar,
+body:has([data-kassa-sida])>.huvudspar>.sidhuvud,
 body:has([data-kassa-sida])>footer,
 body:has([data-kassa-sida])>.backtotop{display:none}
 body:has([data-kassa-sida]){background:var(--surface-1)}

@@ -37,8 +37,11 @@ describe("mobilens fasta köprad glider undan medan köpknappen syns", () => {
     assert.match(vy, /const kopKnapp = useRef<HTMLButtonElement>\(null\);/);
     assert.match(vy, /if \(!knapp \|\| typeof IntersectionObserver !== "function"\) return;/);
     // Kvoten, inte isIntersecting: den är sann under tröskeln i en del webbläsare.
-    assert.match(vy, /new IntersectionObserver\(\(\[e\]\) => setKopSyns\(e\.intersectionRatio >= 0\.6\), \{ threshold: 0\.6, rootMargin: `-\$\{huvud\}px 0px 0px 0px` \}\)/);
-    assert.doesNotMatch(vy, /setKopSyns\(e\.isIntersecting\)/);
+    // Två mätningar sedan 2026-11-24: under sidhuvudet, och hela skärmen när telefonens sidhuvud
+    // följt med sidan ur bild (lib/huvud-gom.test.ts har regeln för valet mellan dem).
+    assert.match(vy, /new IntersectionObserver\(\(\[e\]\) => \{ under = e\.intersectionRatio >= 0\.6; valj\(\); \}, \{ threshold: 0\.6, rootMargin: `-\$\{huvud\}px 0px 0px 0px` \}\)/);
+    assert.match(vy, /new IntersectionObserver\(\(\[e\]\) => \{ hela = e\.intersectionRatio >= 0\.6; valj\(\); \}, \{ threshold: 0\.6 \}\)/);
+    assert.doesNotMatch(vy, /isIntersecting\)/);
     // Det fasta sidhuvudet täcker knappen när den rullar in uppifrån.
     assert.match(vy, /const huvud = Math\.round\(document\.querySelector\("header\.sidhuvud"\)\?\.getBoundingClientRect\(\)\.height \?\? 0\);/);
     assert.match(las("components", "site.tsx"), /<header className="sidhuvud">/);

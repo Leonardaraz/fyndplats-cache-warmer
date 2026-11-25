@@ -145,7 +145,7 @@ describe("varorna står i ett rutnät med stora bilder", () => {
   });
 
   it("kortet: bild, och sedan namn, pris och slutsåld i den ordning de läses upp", () => {
-    assert.match(ruta, /className=\{`sugg-kort\$\{i === active \? " active" : ""\}`\}/);
+    assert.match(ruta, /className=\{`sugg-kort\$\{i === active \? " active" : ""\}\$\{pavag === `\/produkt\/\$\{h\.s\}` \? " pavag" : ""\}`\}/);
     assert.match(ruta, /<span className="sugg-kort-bild">\s+\{h\.i && <Image src=\{tightFillUrl\(h\.i, 600, 600\)\} alt="" fill sizes=\{RUTNAT_SIZES\} loading=\{hi < BILDER_DIREKT \|\| allaBilder \? "eager" : "lazy"\} \/>\}\s+<\/span>\s+<span className="sugg-kort-namn">\{highlight\(h\.n\)\}<\/span>\s+\{h\.p && <span className="sugg-kort-pris">\{h\.p\}<\/span>\}\s+\{h\.o && <span className="sugg-kort-slut">Slutsåld<\/span>\}/);
     assert.match(css, /\.sugg-kort-bild\{position:relative;display:block;aspect-ratio:1;/);
   });
@@ -188,7 +188,7 @@ describe("varorna står i ett rutnät med stora bilder", () => {
   it("kategorierna står som chips i sökläget, och som rader i datorns lista", () => {
     assert.match(ruta, /const katRader = rutnat \? \[\] : kategorier;/);
     assert.match(ruta, /const rader = katRader\.length \+ showing\.length;/);
-    assert.match(ruta, /\{rutnat && kategorier\.map\(\(k\) => \(\s+<a key=\{k\.slug\} href=\{`\/kategori\/\$\{k\.slug\}`\} className="sugg-chip sugg-chip-kat"/);
+    assert.match(ruta, /\{rutnat && kategorier\.map\(\(k\) => \(\s+<a key=\{k\.slug\} href=\{`\/kategori\/\$\{k\.slug\}`\} className=\{`sugg-chip sugg-chip-kat\$\{pavag === `\/kategori\/\$\{k\.slug\}` \? " pavag" : ""\}`\}/);
     assert.match(ruta, /\{\(visaForslag \|\| \(rutnat && kategorier\.length > 0\)\) && \(/);
   });
 
@@ -213,11 +213,64 @@ describe("varorna står i ett rutnät med stora bilder", () => {
   });
 });
 
+describe("☠️ trycket på en vara går direkt till varan, inte via sidan under (Leonard 2026-11-24)", () => {
+  // Uppmätt på www 2026-11-24 i en telefonstor webbläsare, med sidbytets data
+  // fördröjd 0,6 s: efter trycket syntes sidan under sökläget ("Sökresultat
+  // för renar") i 57 bildrutor innan produktsidan kom. Sökläget stängdes i
+  // trycket, före sidbytet. Med den här koden: 0 bildrutor.
+  const ga = /const ga = \(href: string\) => \{([\s\S]*?)\n  \};/.exec(ruta)?.[1] ?? "";
+
+  it("trycket stänger ingenting: det markerar varan och byter sida i en övergång", () => {
+    assert.ok(ga, "ga finns");
+    assert.doesNotMatch(ga, /setOpen\(false\)|setQ\(""\)|onNavigate/, "sökläget stängs inte i trycket");
+    assert.match(ga, /setPavag\(href\);\s+startaGa\(\(\) => router\.push\(href\)\);/);
+    assert.match(ruta, /const \[gar, startaGa\] = useTransition\(\);/);
+    assert.match(ruta, /const goKategori = \(slug: string\) => ga\(`\/kategori\/\$\{slug\}`\);/);
+    // Ingen väg förbi: varken varorna eller kategorierna byter sida på egen hand.
+    assert.doesNotMatch(ruta, /router\.push\(`\/(produkt|kategori)\//);
+  });
+
+  it("sökläget är borta i samma rendering som den nya sidan ritas", () => {
+    assert.match(ruta, /const framme = pavag !== null && !gar;\s+const visas = open && !\(skickad && !soker\) && !framme;/);
+    // Sökläget (och låset på sidan under) följer `visas`, inte en effekt som stänger efteråt.
+    assert.match(ruta, /const sokLage = rutnat && visas;/);
+  });
+
+  it("efter sidbytet töms rutan, och mobilmenyn får veta att sidan lämnats", () => {
+    const stad = /useEffect\(\(\) => \{\s+if \(!framme\) return;([\s\S]*?)\}, \[framme, onNavigate\]\);/.exec(ruta)?.[1] ?? "";
+    assert.match(stad, /setOpen\(false\);\s+setQ\(""\);\s+setPavag\(null\);\s+onNavigate\?\.\(\);/);
+  });
+
+  it("i sökläget fälls tangentbordet i trycket, så att det tryckta kortet syns", () => {
+    assert.match(ga, /if \(rutnat\) inputRef\.current\?\.blur\(\);/);
+  });
+
+  it("sidan hämtas redan när fingret landar, en gång per vara", () => {
+    const forhamta = /const forhamta = \(href: string\) => \{([\s\S]*?)\n  \};/.exec(ruta)?.[1] ?? "";
+    assert.match(forhamta, /if \(forhamtade\.current\.has\(href\)\) return;\s+forhamtade\.current\.add\(href\);/);
+    assert.match(forhamta, /router\.prefetch\(href\)/);
+    // Kortet i sökläget: fingret, och musen (en surfplatta med mus). Raden i datorns lista: pekaren.
+    assert.match(ruta, /onTouchStart=\{\(\) => forhamta\(`\/produkt\/\$\{h\.s\}`\)\}\s+onPointerEnter=\{\(e\) => \{ if \(e\.pointerType === "mouse"\) forhamta\(`\/produkt\/\$\{h\.s\}`\); \}\}/);
+    assert.match(ruta, /onPointerEnter=\{\(\) => forhamta\(`\/produkt\/\$\{h\.s\}`\)\}\s+onTouchStart=\{\(\) => forhamta\(`\/produkt\/\$\{h\.s\}`\)\}/);
+    assert.equal(ruta.split("forhamta(`/kategori/${k.slug}`)").length - 1, 3);
+  });
+
+  it("det tryckta kortet syns som tryckt medan sidan hämtas, och resten tonas ner", () => {
+    assert.match(css, /\.sugg-kort\.pavag \.sugg-kort-bild\{transform:scale\(\.97\);border-color:var\(--brand\);box-shadow:0 0 0 1px var\(--brand\)\}/);
+    assert.match(css, /\.sugg\[data-pavag\] \.sugg-kort:not\(\.pavag\),\.sugg\[data-pavag\] \.sugg-item:not\(\.pavag\),\.sugg\[data-pavag\] \.sugg-chip:not\(\.pavag\)\{opacity:\.45\}/);
+    assert.match(css, /\.sugg-item\.pavag\{background:var\(--warm\)\}/);
+    // Färgen finns: --bg-soft fanns aldrig, och en okänd variabel ger ingen bakgrund alls.
+    assert.match(css, /--warm:#[0-9A-Fa-f]{6}/);
+    // Den som bett om mindre rörelse får ingen toning.
+    assert.match(css, /@media\(prefers-reduced-motion:reduce\)\{[^@]*\.sugg-kort-bild,\.sugg-kort,\.sugg-item,\.sugg-chip-kat\{transition:none\}\}/);
+  });
+});
+
 describe("sökläget: tangentbordet och fingret", () => {
   it("ett drag uppåt eller nedåt i listan fäller tangentbordet, ett drag i sidled gör det inte", () => {
     assert.match(ruta, /if \(dy > 12 && dy > Math\.abs\(t\.clientX - fran\.x\)\) inputRef\.current\?\.blur\(\);/);
     assert.match(ruta, /if \(!fran \|\| !t \|\| document\.activeElement !== inputRef\.current\) return;/);
-    assert.match(ruta, /<div className="sugg" ref=\{panelRef\} onTouchStart=\{rutnat \? onDragStart : undefined\} onTouchMove=\{rutnat \? onDrag : undefined\}>/);
+    assert.match(ruta, /<div className="sugg" ref=\{panelRef\} data-pavag=\{pavag \? "" : undefined\} aria-busy=\{pavag \? true : undefined\} onTouchStart=\{rutnat \? onDragStart : undefined\} onTouchMove=\{rutnat \? onDrag : undefined\}>/);
   });
 
   it("nya förslag börjar överst i listan", () => {
@@ -312,7 +365,7 @@ describe("produktsidans huvudbild börjar hämtas i trycket", () => {
   });
 
   it("sökförslagen: både raden och kortet", () => {
-    assert.match(ruta, /const goProduct = \(slug: string, bild\?: string, kortet\?: Element\) => \{ varmHjaltebild\(bild, kortet\); setOpen\(false\);/);
+    assert.match(ruta, /const goProduct = \(slug: string, bild\?: string, kortet\?: Element\) => \{ varmHjaltebild\(bild, kortet\); ga\(`\/produkt\/\$\{slug\}`\); \};/);
     assert.equal(ruta.split("goProduct(h.s, h.i, e.currentTarget)").length - 1, 2);
   });
 

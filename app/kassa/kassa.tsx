@@ -50,10 +50,13 @@ import {
   STRIPE_NYCKEL,
   betalfelText,
   fragaKlar,
-  klarBeslut,
+  oppenText,
   sparadAvsikt,
+  sparatBeslut,
+  sparatForsok,
   stripeMeddelande,
   vantaPaOrder,
+  type SparadAvsikt,
 } from "../../lib/kassa/stripe-klient";
 import { klickSvar, planbokNamn, snabbBekrafta, webblasarensPlanbokPlats, type Sammandrag } from "../../lib/kassa/snabbkassa";
 import type { StripeAddressElementChangeEvent, StripeExpressCheckoutElementClickEvent, StripeExpressCheckoutElementConfirmEvent } from "@stripe/stripe-js";
@@ -96,6 +99,18 @@ interface Betalbar {
   url: string;
   utgar: string | null;
 }
+
+/** En betalning som står öppen hos Klarna för korgen: betalningens id, adressen där den fortsätter och beloppet den gäller. */
+interface OppenBetalning {
+  avsiktId: string;
+  cartId: string;
+  adress: string | null;
+  hosKlarna: boolean;
+  totalOre: number | null;
+}
+
+/** Uppföljningen av en öppen betalning: så här länge efter varje koll frågar kassan igen (fyra gånger, en knapp halvminut). */
+const OPPEN_UPPFOLJ_MS = [3000, 5000, 8000, 12000];
 
 const ADRESS_NYCKEL = "fp_kassa_adress";
 const VANTAR_NYCKEL = "fp_kassa_vantar";
@@ -237,6 +252,15 @@ export function Kassa({
   const [betalFel, setBetalFel] = useState<string | null>(null);
   const [klarVantar, setKlarVantar] = useState(false);
   const pagar = useRef(false);
+  // En betalning som står öppen hos Klarna för den här korgen (kollaSparat):
+  // kassan säger det och låter kunden fortsätta samma betalning.
+  const [oppen, setOppen] = useState<OppenBetalning | null>(null);
+  // Den färska kollaSparat åt lyssnarna (sidan visas igen), och nästa uppföljning.
+  const kollaSparatRef = useRef<(varv?: number) => void>(() => {});
+  const uppfoljning = useRef<number | null>(null);
+  const senastKoll = useRef(0);
+  // Sidan väntar redan på ordern (slutforStripe): då frågar ingen annan om samma betalning.
+  const slutfors = useRef(false);
   // Fält kunden lämnat minst en gång: först då visas bocken och e-postförslaget.
   const [rorda, setRorda] = useState<ReadonlySet<FormFalt>>(() => new Set());
   const [coOppen, setCoOppen] = useState(false);
@@ -476,7 +500,9 @@ export function Kassa({
         setSkickar(false);
         setSteg(0);
         pagar.current = false;
-        if (!stripeNyckel) kollaVantande();
+        // Med Stripe: det sparade försöket prövas (kunden backade från Klarna, och betalningen står öppen där).
+        if (stripeNyckel) kollaSparatRef.current();
+        else kollaVantande();
       }
     };
     window.addEventListener("pageshow", visa);
@@ -766,12 +792,14 @@ export function Kassa({
    * kan inte betala igen.
    */
   const slutforStripe = async (avsiktId: string): Promise<string[]> => {
+    slutfors.current = true;
     stegTill(2);
     const b = await vantaPaOrder(avsiktId);
     if (b.gor === "tack") {
       tillTack(b.orderId);
       return [];
     }
+    slutfors.current = false;
     if (b.gor === "fel") {
       // Ingen order: reservationen är släppt. Kunden kan försöka igen med en ny betalning.
       skrivJson("local", STRIPE_NYCKEL, null);
@@ -780,6 +808,14 @@ export function Kassa({
       pagar.current = false;
       rakna();
       return b.meddelanden;
+    }
+    if (b.gor === "fortsatt") {
+      // Inte godkänd, men öppen hos Klarna: ☠️ aldrig "Betalningen är godkänd" här.
+      // Försöket står kvar, och rutan låter kunden fortsätta det eller betala på nytt.
+      setOppen({ avsiktId, cartId, adress: b.adress, hosKlarna: b.hosKlarna, totalOre: b.totalOre });
+      doljVantan();
+      pagar.current = false;
+      return [oppenText({ hosKlarna: b.hosKlarna, kanFortsatta: false, plats: "kassa" }).rubrik];
     }
     setKlarVantar(true);
     doljVantan();
@@ -803,31 +839,87 @@ export function Kassa({
     }
   }, [stripeNyckel]);
 
+  // ── Kundens sparade försök ──────────────────────────────────────────────
   // En betalning som redan godkänts för den här korgen (sidan laddades om mitt
   // i, eller kunden kom tillbaka): servern slutför den i stället för att kunden
-  // betalar igen. En obetald betalning återanvänds vid nästa tryck.
+  // betalar igen. Står den öppen hos Klarna säger kassan det, och kunden kan
+  // fortsätta samma betalning (sparatBeslut i lib/kassa/stripe-klient.ts). En
+  // obetald betalning återanvänds vid nästa tryck.
+  //
+  // Prövas när korgen blir känd, när sidan kommer tillbaka ur webbläsarens minne
+  // (pageshow) och när den blir synlig igen efter en annan app (Klarna, BankID).
+  // ☠️ Mitt i en betalning i den här fliken (pagar: bankens verifiering, eller på
+  // väg till Klarna) gör kollen bara en sak: slutför det som redan är godkänt.
+  // Allt annat äger Stripe.js.
+  const kollaSparat = async (varv = 0) => {
+    if (uppfoljning.current !== null) {
+      window.clearTimeout(uppfoljning.current);
+      uppfoljning.current = null;
+    }
+    if (!stripeNyckel || !cartId || klarVantar || slutfors.current) return;
+    const sparad = lasJson("local", STRIPE_NYCKEL);
+    const forsok = sparatForsok(sparad, cartId, Date.now());
+    if (!forsok) {
+      setOppen(null);
+      return;
+    }
+    const nr = ++senastKoll.current;
+    const mitt = pagar.current;
+    const b = sparatBeslut(await fragaKlar(forsok.avsiktId), forsok);
+    // Ett nyare svar är på väg, eller sidan har lämnats.
+    if (nr !== senastKoll.current) return;
+    if (b.gor === "tack") {
+      tillTack(b.orderId);
+      return;
+    }
+    if (b.gor === "slutfor") {
+      // Betald och på väg att bli en order (webhooken håller på): vänta på den.
+      pagar.current = true;
+      setOppen(null);
+      await slutforStripe(forsok.avsiktId);
+      return;
+    }
+    if (mitt || pagar.current) return;
+    if (b.gor !== "oppen") {
+      setOppen(null);
+      if (b.gor === "sag") {
+        // Klarna sa nej, eller betalningen gick ut: säg det en gång, inte vid varje omladdning.
+        setMeddelanden([b.text]);
+        skrivJson("local", STRIPE_NYCKEL, { ...(sparad as SparadAvsikt), sagt: true });
+      }
+      return;
+    }
+    setOppen({ avsiktId: forsok.avsiktId, cartId, adress: b.adress, hosKlarna: b.hosKlarna, totalOre: b.totalOre });
+    // Kunden kan ha godkänt betalningen i Klarnas app: fråga några gånger till
+    // medan rutan visas, så att köpet går vidare av sig självt.
+    if (varv < OPPEN_UPPFOLJ_MS.length) {
+      uppfoljning.current = window.setTimeout(() => {
+        uppfoljning.current = null;
+        if (document.visibilityState === "visible") kollaSparatRef.current(varv + 1);
+      }, OPPEN_UPPFOLJ_MS[varv]);
+    }
+  };
+  useEffect(() => {
+    kollaSparatRef.current = (varv) => void kollaSparat(varv);
+  });
+  /** Sidan lämnas eller korgen byts: svar som är på väg gäller inte längre, och ingen uppföljning. */
+  const stoppaKoll = useCallback(() => {
+    senastKoll.current++;
+    if (uppfoljning.current !== null) window.clearTimeout(uppfoljning.current);
+    uppfoljning.current = null;
+  }, []);
   useEffect(() => {
     if (!stripeNyckel || !cartId) return;
-    const id = sparadAvsikt(lasJson("local", STRIPE_NYCKEL), cartId, Date.now());
-    if (!id) return;
-    let avbruten = false;
-    void fragaKlar(id).then(async ({ status, j }) => {
-      if (avbruten || pagar.current) return;
-      const b = klarBeslut(status, j);
-      if (b.gor === "tack") tillTack(b.orderId);
-      else if (status === 202) {
-        // Betald och på väg att bli en order (webhooken håller på): vänta på den.
-        pagar.current = true;
-        await slutforStripe(id);
-      }
-      // Annars: obetald eller släppt. Kunden betalar som vanligt.
-    });
-    return () => {
-      avbruten = true;
+    kollaSparatRef.current();
+    const synlig = () => {
+      if (document.visibilityState === "visible") kollaSparatRef.current();
     };
-    // Bara när korgen blir känd; slutforStripe är en vanlig funktion i komponenten.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stripeNyckel, cartId]);
+    document.addEventListener("visibilitychange", synlig);
+    return () => {
+      document.removeEventListener("visibilitychange", synlig);
+      stoppaKoll();
+    };
+  }, [stripeNyckel, cartId, stoppaKoll]);
 
   const skickaStripe = async () => {
     if (pagar.current || klarVantar) return;
@@ -900,6 +992,8 @@ export function Kassa({
         return;
       }
       skrivJson("local", STRIPE_NYCKEL, { avsiktId: j.avsiktId, cartId, at: Date.now() });
+      // Kunden betalar på nytt: det öppna försöket hos Klarna ersätts av det här.
+      setOppen(null);
       if (j.redanBetald) {
         await slutforStripe(j.avsiktId);
         return;
@@ -998,7 +1092,10 @@ export function Kassa({
             return { status: 0, j: null };
           }
         },
-        spara: (avsiktId) => skrivJson("local", STRIPE_NYCKEL, { avsiktId, cartId, at: Date.now() }),
+        spara: (avsiktId) => {
+          skrivJson("local", STRIPE_NYCKEL, { avsiktId, cartId, at: Date.now() });
+          setOppen(null);
+        },
         visat: () => snabbVisatRef.current,
         bekrafta: async (clientSecret) => {
           // Plånboken ger fakturering och leveransadress; servern sätter ingen (avsiktParametrar).
@@ -1124,6 +1221,28 @@ export function Kassa({
     await rakna({ kupong: "" });
     setKupongOppen(false);
   };
+
+  // Rutan för en öppen betalning: bara för den här korgen, och inte medan något
+  // pågår. Knappen finns bara när betalningen gäller den summa kunden ser: annars
+  // hade kunden slutfört en betalning på ett annat belopp, som servern sedan
+  // släpper (pris_andrat).
+  const oppenAdress = oppen && oppen.totalOre === totalOre ? oppen.adress : null;
+  const oppenRuta =
+    oppen && oppen.cartId === cartId && !skickar && !klarVantar
+      ? { ...oppenText({ hosKlarna: oppen.hosKlarna, kanFortsatta: oppenAdress !== null, plats: "kassa" }), adress: oppenAdress }
+      : null;
+  // Rutan står överst. Kommer sidan tillbaka ur webbläsarens minne står kunden
+  // längst ner vid knappen: då rullas rutan fram, annars syns den aldrig.
+  const oppenRef = useRef<HTMLDivElement>(null);
+  const oppenVisas = oppenRuta !== null;
+  useEffect(() => {
+    const el = oppenRef.current;
+    if (!oppenVisas || !el) return;
+    const r = el.getBoundingClientRect();
+    if (r.top >= 0 && r.bottom <= window.innerHeight) return;
+    const lugn = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.scrollIntoView({ block: "center", behavior: lugn ? "auto" : "smooth" });
+  }, [oppenVisas]);
 
   if (visaTomKorg({ rader: rader.length, korgVantas, kollar, skickar, klarVantar })) {
     return (
@@ -1384,6 +1503,20 @@ export function Kassa({
               <strong>Betalningen är godkänd</strong>
               <span>Vi slutför din beställning. Orderbekräftelsen kommer till din e-post inom några minuter, och du behöver inte betala igen.</span>
             </span>
+          </div>
+        ) : null}
+
+        {oppenRuta ? (
+          <div ref={oppenRef} className={s.vantar} role="status" data-kassa-oppen="">
+            <div className={s.vantarText}>
+              <strong>{oppenRuta.rubrik}</strong>
+              <span>{oppenRuta.text}</span>
+            </div>
+            {oppenRuta.adress ? (
+              <a className={s.vantarKnapp} href={oppenRuta.adress}>
+                {oppenRuta.knapp} <span aria-hidden="true">→</span>
+              </a>
+            ) : null}
           </div>
         ) : null}
 

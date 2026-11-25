@@ -4,6 +4,7 @@ import { ProfilRemsa } from "./profil-remsa";
 import { HemLank } from "./hem-lank";
 import { WishlistButton } from "./wishlist";
 import { SearchBox } from "./searchbox";
+import { HuvudGom } from "./huvud-gom";
 import { CookieSettingsLink } from "./cookie-settings-link";
 import { TillToppenLank } from "./till-toppen-lank";
 import { MobileNav } from "./mobilenav";
@@ -71,6 +72,12 @@ export async function SiteHeader() {
           <Social className="promo-social" />
         </div>
       </aside>
+      {/* Mobilens sidhuvud följer fingret: ner med sidan när man scrollar ner,
+          tillbaka när man scrollar upp (components/huvud-gom.tsx). Omslaget
+          .huvudspar är det sidhuvudet sitter fast i; på datorn och utan
+          skript finns det inte för layouten (display:contents). */}
+      <HuvudGom />
+      <div className="huvudspar">
       <header className="sidhuvud">
         {/* Datorn: loggan, sökrutan, hjärtat och kundvagnen på första raden, och
             menyn på en egen rad under (.hnav). Mobilen: loggan, hjärtat,
@@ -97,6 +104,7 @@ export async function SiteHeader() {
           <MegaNav tree={tree} hasBlog={hasBlog} hasSale={hasSale} />
         </div>
       </header>
+      </div>
     </>
   );
 }

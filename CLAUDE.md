@@ -5855,3 +5855,714 @@ tangent. Bygg båda versionerna och mät dem efter varandra.
 - **"husdjur" gick från 156 till 116.** Nålen "djur" räknas inte längre
   (regel 5): gungdjuren är borta, men också smådjursburarna. Kategorin
   Husdjur står överst på sidan.
+
+## Jämförelsesajternas produktnamn i sökningen (Leonard 2026-11-22)
+
+PriceRunner visar butiken som säljare av "Homcom Barnelbil Med 2.4 G
+Fjärrkontroll" (2 419 kr, "Ingen direktlänk till produkten": vi betalar inte
+för länken). Leonard skrev namnet i butikens sökruta och fick "Inga produkter
+matchade". Frågan: kan kunden söka på PriceRunners namn här och hitta varan?
+
+PriceRunner känner oss genom det publika flödet (`/feed/pricerunner.xml`) och
+parar ihop varorna på GTIN med sina egna produktsidor. Namnet på sidan är
+PriceRunners, och det börjar med leverantörens märke. Våra namn är omskrivna:
+varan heter "Elbil barn SUV 12V – svart åkbil med fjärrkontroll, MP3 och
+bälte, 3–6 år" här.
+
+Tre saker gav noll, mätt i motorn som låg på www:
+
+1. "homcom" står inte i något varunamn och ströks som okänt.
+2. "barnelbil" står inte heller i något namn (varorna heter "Elbil barn …"
+   och "Elbil för barn"). Ett okänt sammansatt ord delades bara när det var
+   sökningens enda ord: "barnelbil" gav 52 elbilar, "barnelbil med
+   fjärrkontroll" ingenting.
+3. Kvar blev "fjärrkontroll", som inte är en varutyp, och regeln om ärligt
+   noll (2026-11-21) svarade noll.
+
+Mätningen av märkesord visade mer än frågan gällde, och det står med här:
+märkesord gav rena felträffar, och regeln om ärligt noll hade en miss.
+
+### Två sorters märken
+
+- **Aosoms märken** (HOMCOM, Outsunny, PawHut med flera) säljs som Fyndplats.
+  Märket står aldrig i ett varunamn, och produktsidan anger Fyndplats.
+- **VEVOR är ett märke butiken visar.** Produktsidornas strukturerade data
+  anger VEVOR (mätt på www 2026-11-24: en dieselvärmare och en knappform), och
+  fyra varunamn nämner det ("utbytbar form för VEVOR knappmaskin"). Första
+  versionen av regeln nedan antog att inget namn bär ett märke. Det stämde
+  för 7 972 namn den 22 november och inte för 8 448 två dagar senare.
+
+### Mätt före och efter
+
+Dagens index (2026-11-24, 8 448 varor), motorn på www mot grenen. Bara det
+första namnet är hämtat från PriceRunner (Leonards skärmbild). De andra är
+byggda på samma mönster: ☠️ **PriceRunner svarar en automatisk läsare med 202
+och en tom sida.** Det är deras spärr, och den går vi inte runt.
+
+| sökning | www 2026-11-24 | grenen |
+|---|---|---|
+| Homcom Barnelbil Med 2.4 G Fjärrkontroll | 0 | 52 elbilar för barn med fjärrkontroll |
+| homcom barnelbil | 0 | 52 |
+| HOMCOM Barnelbilar med fjärrkontroll | 0 | 52 |
+| homcom elbil | 57, med beskedet att "homcom" strukits | 57, utan besked |
+| Aiyaplay Elbil för barn 12V | 1: en CarPlay-adapter, med "elbil", "barn" och "12" strukna | 26 elbilar |
+| vevor dieselvärmare | 37: en fatpump "med vev", knappformar och markiser, med "dieselvärmare" struket | 42 dieselvärmare |
+| VEVOR Dieselvärmare 8 kW | 37, samma varor | 38, de på 8 kW först |
+| Vevor Vinsch 12V | 37, samma varor | 17 vinschar |
+| vevor knappmaskin | 4 tillbehör, ingen maskin | 7: de tre maskinerna först |
+| vevor | 29: de fyra varor som nämner märket, sedan varor "med vev" | 4 |
+| Durhand Verktygsvagn | 10: matstolar "med handtag", med "verktygsvagn" struket | 29 verktygsvagnar |
+| durhand / aiyaplay / sportnow | 10 / 1 / 3 som "ligger närmast i stavning" | 0 / 0 / 0 |
+| Pawhut Kattträd 180 cm | 0 | 96 klösträd, det på 180 cm först |
+| Pawhut Hundbur 106 cm | 1 | 19 hundburar, den på 106 cm först |
+| Kleankin Badrumsskåp vitt | 16 | 49, "Badrumsskåp vitt …" först |
+| Outsunny Paviljong 3x3 m | 41, en paviljong på 390 × 300 cm först | 41, popup-paviljongen på 3 × 3 m först |
+| Homcom Barnmotorcykel 6V | 0 | 31 |
+| Outsunny Trädgårdssoffa 3-sits | 0 | 7 |
+| trixie kattträd | 0 | 96, med beskedet att "trixie" strukits |
+| ikea barpall | 0 | 58, med besked |
+
+På www i en webbläsare 2026-11-24: PriceRunner-namnet (0), "vevor
+dieselvärmare" och "vevor dieselvärmare 8 kw" (37, fatpumpen först), "vevor
+knappmaskin" (4), "vevor" (29), "ikea barpall" och "trixie kattträd" (0) och
+"durhand verktygsvagn" (10). Den 22 november dessutom "jysk solstol" och "ikea
+köksbord" (0, på grenen 16 och 60), "aiyaplay elbil för barn 12v" (1) och
+"ikea soffa" (140 med besked, som det ska vara).
+
+### Reglerna (`lib/search.ts`)
+
+1. **Leverantörens märke hör till frågan, inte till varan**
+   (`LEVERANTORSMARKEN`). Märkena är de som `lib/varumarke.ts` gör om till
+   butikens eget i flöden och strukturerad data, plus VEVOR och butikens
+   namn. Provet håller listorna lika. Fyra saker följer av det:
+
+   - **Märket tas bort ur sökningen innan något räknas** (`utanMarken`, först
+     i `rankaMedInfo`). "Homcom Barnelbil" söks som "Barnelbil", och svaret
+     är detsamma med och utan märket: samma varor, samma ordning, samma
+     besked. Skiljetecknen intill märket följer med ("Homcom:", "HOMCOM®"),
+     och ett nekande ord framför det ("soffa utan homcom" är sofforna: ingen
+     vara heter så, så det finns inget att välja bort).
+   - **Märket är ett småord** (`STOPWORDS`) för allt annat som läser
+     sökningen: kategoriförslagen, "billigast"-ordningen och delningen
+     nedan.
+   - **Märket är aldrig en böjning** (`INTE_BOJT`). "vevor" lästes som
+     flertalet av "vev".
+   - **Märket ensamt är inget stavfel** (`baraMarken`). Sökningen på bara
+     märket ger varorna som nämner det (fyra för "vevor"), annars noll.
+     Aldrig varor som "ligger närmast i stavning".
+
+   ☠️ **Att låta märket strykas med besked räckte inte: det ströks inte
+   alltid.** "vevor" var "vev" i flertal, "durhand" låg nära "handtag" och
+   "aiyaplay" nära "airplay". Då var märket ett känt ord, och det som ströks
+   var varuordet: "vevor dieselvärmare" visade en fatpump med vev.
+
+   ☠️ **Att bara göra märket till ett småord räckte inte heller.** Det var
+   första versionen. "homcom vit byrå" fick samma varor som "vit byrå" men i
+   en annan ordning (frasen i namnet räknas med småorden kvar), rättningen sa
+   "träffarna för homcom fåtölj", och "homcom elbilar för barn" var inte
+   längre kategorins namn. Av 2 795 provsökningar ändrade märket svaret för
+   844. Nu för ingen, mätt mot båda dagarnas index.
+
+   ☠️ **Mönstret är skrivet utan bakåtblick** (`(?<!…)`). Safari före 16.4
+   kan inte läsa en sådan, och då laddas inte sökningen alls på äldre
+   telefoner.
+
+2. **Ett okänt sammansatt ord delas också i en sökning på flera ord**
+   (`medDeladeOrd`, och sista steget i `rankaMedInfo`). "barnelbil med
+   fjärrkontroll" söks som "barn elbil med fjärrkontroll". Svaret är detsamma
+   som när kunden skriver orden isär: andra ord stryks eller fylls på som
+   vanligt, med besked ("barnelbil rosa" är de två rosa elbilarna och sedan
+   de andra), och stavningen rättas som vanligt, med besked ("barnelbil med
+   fjärkontroll").
+
+   Vilka ord som delas:
+   - Bara ord som katalogen inte har: inget namn har ordet (i någon böjning),
+     inget ord i katalogen börjar så (kunden kan vara mitt i ordet), och det
+     är varken ett ord i synonymtabellen (också böjt: "cykelvagnen"), ett
+     kategoriord eller ett småord.
+   - Bara en stark delning (`starkDelning`): båda delarna minst fyra
+     bokstäver och vanliga i katalogen. Huvudordet får vara böjt när
+     katalogen har entalet ("barnelbilar", "barnelbilen"), men inte ord som
+     bara ser böjda ut (`INTE_BOJT`: ett filter är ingen filt).
+   - Ord för ord, inte blanktecken för blanktecken. ☠️ "Barnelbil, med
+     fjärrkontroll" och "barnelbil/fjärrkontroll" gav noll i första
+     versionen: kommat satt ihop med ordet.
+
+   När det delade svaret gäller:
+   - Bara när sökningen som den skrevs inte räckte: den gav noll, eller ett
+     ord fick strykas. Då ska delningen stryka färre ord, annars gäller det
+     kunden skrev ("barnelbil dieselvärmare" visar dieselvärmarna).
+   - ☠️ **Båda delarna ska stå kvar.** Första versionen krävde bara färre
+     strukna ord, och "trädgårdssoffa 3-sits" blev "trädgårds soffa 3-sits"
+     med "soffa" struket: gungbänkar och en knäpall. Ordet som delades är
+     varutypen. Stryks en del av det är svaret en annan sökning, och då är
+     ett ärligt noll bättre.
+   - Formen utan foge-s provas också ("trädgårds soffa", sedan "trädgård
+     soffa"), högst två former, och den som stryker minst gäller. "trädgård"
+     är kategorins ord, "trädgårds" är det inte.
+
+3. ☠️ **Ärligt noll: ett ord ur synonymtabellen är en varutyp** (`arVarutyp`).
+   En miss i regeln från 2026-11-21, som låg på www i fyra dygn. Regeln
+   frågar om något kvarvarande sökord är vad varor ÄR (ordet står först i
+   minst 15 % av namnen som har det), och letade bara efter ordet som det
+   skrevs. "trixie kattträd", "ikea barpall", "jysk solstol", "ikea köksbord"
+   och "jysk utemöbler" gav noll: de flesta varorna heter Klösträd, Barstol,
+   Solsäng, Matbord och Loungeset, så ordet stod först i för få namn (eller
+   inget). Ordet träffar dem genom tabellen och är lika mycket en varutyp som
+   de, så tabellens former räknas med (synonymerna och envägsorden). "ikea
+   soffa" gick hela tiden, för sofforna heter Soffa.
+
+### Mätt brett
+
+- **13 972 provsökningar** (samma som 2026-11-21) mot motorn på www. Ett
+  svar ändras, "vevor" ensamt: 23 → 0 med indexet från den 22 november (då
+  nämnde inget namn märket, och träffarna var varor "med vev"), 29 → 4 med
+  dagens. Mängden har nästan inga märkesord och inga okända sammansatta ord i
+  sökningar på flera ord, så den säger bara att inget annat rubbats. Därför
+  tre riktade mängder (indexet från den 22 november, slutlig kod):
+- **Märket framför var femte provsökning** (2 795 stycken, "homcom " +
+  sökningen): svaret är detsamma som utan märket för alla, mätt mot båda
+  indexen.
+- **6 006 sökningar med okända sammansatta ord**, byggda ur 1 202 ordpar som
+  står i samma varunamn ("stål" och "hylla" blir "stålhylla"), vart och ett
+  ensamt, med ett tredje ord ur namnen, med märke, med en färg och med ett
+  mått. 1 626 svar är oförändrade (de ensamma orden delades redan), 3 469 går
+  från noll till träffar, 905 från träffar till andra träffar, 6 får bara ett
+  annat besked och ingen går från träffar till noll. De 905 var förut svaret
+  utan det sammansatta ordet, eller en felgissning: "stålhylla 120 cm" gav en
+  blomsterhylla i trä med "120" struket, nu 58 hyllor i stål. Av de tio
+  första träffarna i de nya svaren har 36 085 båda delarna i namnet och 2 525
+  inte: där är delen en färg eller ett mått som fylls på efter varorna som
+  har den (`hela`), som i andra sökningar.
+- **825 sökningar "okänt ord + ord ur synonymtabellen"** (275 ord efter
+  "zzqqxx", "trixie" och "cykelhjälm"): 399 gick från noll till sina varor
+  med regel 3, inga andra ändrades.
+
+### Prov
+
+`lib/sok-2026-11-22.test.ts`: sjutton prov på en påhittad butik (elbilar som
+heter "Elbil … barn", utesoffor som bara kategorin säger hör till
+trädgården, en cykelkärra, en knappform som nämner VEVOR och en adapter med
+AirPlay i namnet). 37 avsiktliga fel i reglerna fälls alla. Fem överlevde
+första gången, och proven skärptes: delningen när sökningen som den skrevs
+gav träffar med ett struket ord ("trädgårdssoffa parasoll"), ett känt ord i
+en annan böjning ("barnstolar" när katalogen har "barnstol"), ett
+kontrollfall som var fel uttänkt, och märket ensamt, där provbutiken inte
+hade något varunamn som låg nära märket i stavning. En var likvärdig med
+originalet och ströks. Provet "rankByName i tre varv ger samma lista som ett
+varv" (`lib/search.test.ts`) fångar också en för svag delning.
+
+I ett lokalt bygge av den slutliga koden, i Chromium (2026-11-24): söksidan
+för femton sökningar (namnet från PriceRunner 52 utan besked, också med
+komma; "vevor dieselvärmare" 42 och med "8 kw" 38; "vevor knappmaskin" 7;
+"vevor" 4; "homcom elbil" 57 utan besked; "homcom barnelbil med fjärkontroll"
+med beskedet "Här är träffarna för barn elbil med fjärrkontroll"; "trixie
+kattträd" och "ikea barpall" med beskedet om det strukna ordet; "durhand
+verktygsvagn" 29; "durhand" och "homcom" noll; "soffa utan homcom" 141).
+Namnet skrivet i sökrutan med Enter, dator och mobil, leder till sidan med de
+52. Rutans tolv förslag är sidans tolv första för tio sökningar. Den kalla
+vägen provades inte: ändringen ligger i motorn, och söksidans kod är orörd.
+
+### Farten
+
+Räknetid per tangent på en dator, dagens index, utlagd och ny motor
+varannan gång (`tangenter.ts`, 182 tangenter i 21 ord): 1 341, 1 322 och
+1 311 ms med motorn på www, 1 307, 1 271 och 1 263 ms på grenen. Ingen
+skillnad utöver spridningen.
+
+För fem av namnen ovan (128 tangenter, två körningar var): 2 887 och 2 648 ms
+på www, 2 171 och 2 018 ms på grenen. Märkesorden kostar ingenting när de
+tas bort, mot en hel strykning förut ("homcom barnelbil med 2.4 g
+fjärrkontroll" 717 ms mot 1 207 ms). Tangenterna EFTER ett delat ord kostar
+däremot en sökning till: "barnelbil med fjärrkontroll" tar 608 ms för sina
+27 tangenter mot 519 ms, och den tyngsta tangenten 52 ms mot 38 ms. Det
+gäller bara sökningar med ett okänt sammansatt ord, och bara där delningen
+är stark.
+
+### Varan kommer inte först
+
+Varan från skärmbilden står på plats 46 av 52 för hela namnet (plats 3 för
+"homcom barnelbil", plats 1 med "svart" eller "suv" i sökningen). PriceRunners
+namn säger ingenting som skiljer den här bilen från de andra elbilarna med
+fjärrkontroll, och våra namn är omskrivna.
+
+För att samma vara ska komma först behövs PriceRunners namn per vara, och det
+har vi inte: PriceRunner släpper inte in en automatisk läsare, leverantörens
+flöde har tyska namn, och Leonards GTIN-lista är konfidentiell och finns inte
+i repot. Tre källor som Leonard kan ta fram: en lista över matchade produkter
+ur PriceRunner Business, CDON-listan om den har svenska titlar, eller
+leverantörens svenska titlar (antaget, inte kontrollerat: PriceRunners namn
+ser ut som början på en sådan titel).
+
+Formen när listan finns, inte byggd: en tabell namn → vara som ligger UTANFÖR
+det publika repot och utanför det publika sökindexet (som kartan för
+Prisjakt-flödet), och söksidan på servern som skickar en sökning på exakt det
+namnet direkt till varans sida. Namn som bär artikelnummer får aldrig in i
+repot.
+
+### Inte gjort
+
+- **"vevor" ensamt visar bara de fyra varor som nämner märket**, inte alla
+  VEVOR-varor. Sökindexet bär inget märke. VEVOR är ett märke butiken visar,
+  så det går att lägga till. Det är Leonards beslut.
+- **Aosoms märken ensamma ("homcom") ger noll.** Att visa leverantörens varor
+  för ordet skulle säga vilka de är.
+- **Andra butikers och tillverkares märken som liknar ett katalogord.**
+  "biltema dieselvärmare" ger två biltillbehör med "dieselvärmare" struket,
+  "rusta julgran" 50 varor "i rustik stil", "outwell tält", "tectake pall" och
+  "dewalt verktygsvagn" likaså. Märket läses som ett känt ord, och när inget
+  namn har båda stryks det vanligaste ordet, som är varuordet. Det är samma
+  fel som regel 1 rättar för våra egna märken, men lösningen för främmande
+  märken ligger i valet av vilket ord som stryks, och det rör varje sökning
+  där något stryks. Av 25 provade främmande märken gav 5 sådana felträffar
+  (2026-11-22). Märken som inte liknar något ("ikea", "weber", "bosch")
+  stryks med besked som de ska.
+- **Ett okänt ord följt av ett kategoriord som inget namn har**
+  ("zzzz barnmöbler", "zzzz kontorsmöbler") ger fortfarande noll. Ordet
+  träffar genom kategorin, och strykningen räknar bara namnen.
+- ☠️ **"cykelhjälm barn" är inte längre noll.** Katalogen fick en
+  hundcykelkärra "för cykelhjul" efter den 22 november, och "cykelhjälm"
+  ligger två fel från "cykelhjul": sidan visar kärran med beskedet att "barn"
+  strukits, och nämner inte rättningen. Samma svar i motorn på www och på
+  grenen. Rättningen med två fel i en sökning på flera ord är inte ändrad.
+- **Det riktiga märket per vara i sökindexet för Aosoms varor.** Indexet är
+  publikt, och märket står med flit bara i det hemliga Prisjakt-flödet.
+- **En text om att leverantörens märken säljs under butikens namn.** Det är
+  Leonards beslut.
+
+## Sökläget: trycket går direkt till varan (Leonard 2026-11-24)
+
+Leonard: "Om jag söker på nått dyker förslag upp direkt sen när jag trycker
+Kmr jag inte direkt till produkten utan till bild 2 först i några hundra ms
+sen till produkten, det känns inte premium." Bild 2 var sidan som låg UNDER
+sökläget, i hans fall "Sökresultat för renar".
+
+**Orsaken.** `goProduct` i `components/searchbox.tsx` stängde sökläget i
+trycket (`setOpen(false)`) och bytte sida efteråt. Mobilens sökläge täcker
+skärmen, så när det stängdes syntes sidan under tills produktsidan var
+hämtad: två sidbyten för ett tryck.
+
+**Mätt** (Chromium i telefonstorlek 390 × 844, sidans läge läst varje
+bildruta, 2026-11-24). Sidbytets data hämtades dels som den kom, dels
+fördröjd 0,6 s som på ett trögt mobilnät:
+
+| | www (18e25500) | grenen |
+| --- | --- | --- |
+| Sidan under syntes efter trycket, utan fördröjning | 19 bildrutor (296 ms) | 0 (två körningar) |
+| Sidan under syntes efter trycket, 0,6 s fördröjning | 47 och 57 bildrutor (772 och 1 035 ms) | 0 (två körningar) |
+| Det tryckta kortet markerat medan sidan hämtas | nej | ja |
+| Sökläget kvar efter sidbytet | 0 bildrutor | 0 bildrutor |
+| Sökfälten tomma efteråt, sidan olåst | ja | ja |
+
+De 296 ms är de "några hundra ms" Leonard såg: tiden är lika lång som
+sidbytet tar.
+
+**Trycket blir inte långsammare av förhämtningen.** Sidans egen hämtning går
+iväg 18–35 ms efter trycket, samtidigt med förhämtningen och inte efter den
+(mätt på grenen). Med 0,6 s fördröjning var produktsidan framme efter 731 ms
+på grenen och 886 ms på www. På en riktig telefon ligger fingret 100–200 ms
+på kortet innan det släpper, och då har förhämtningen det försprånget.
+
+**Reglerna:**
+
+1. ☠️ **Trycket stänger ingenting.** `ga(href)` sätter `pavag` och byter sida
+   i en övergång (`startaGa(() => router.push(href))`). Sökläget står kvar med
+   det tryckta kortet markerat (klassen `pavag`: bilden trycks in en aning och
+   får märkesfärgens kant, resten tonas till 45 %).
+2. **Sökläget är borta i samma rendering som den nya sidan ritas:**
+   `framme = pavag !== null && !gar`, och `visas` är falskt när `framme` är
+   sant. En effekt tömmer sedan rutan och säger till mobilmenyn (`onNavigate`).
+   Det är samma mönster som sökningen har sedan 2026-08-29 (`skickad`).
+3. **Sidan hämtas vid avsikt** (`forhamta`): när fingret landar på kortet, och
+   när muspekaren når raden i datorns lista. En gång per vara, som
+   `components/prefetch-link.tsx` gör på korten i listorna.
+4. **I sökläget fälls tangentbordet i trycket**, så att kortet syns.
+5. Varor, kategorirader och kategorichips går alla genom `ga`. Provet fäller
+   om någon av dem byter sida på egen hand.
+
+**Prov:** `lib/sok-lage.test.ts` ("trycket på en vara går direkt till varan",
+sex prov, plus fyra äldre som låste den gamla koden). Fyra avsiktliga fel i
+`ga`, `framme` och `visas` fäller proven. I webbläsaren på den byggda grenen:
+musen och tangentbordet (pil ner och Enter) på datorn, kategorirad,
+kategorichip i sökläget, en vara som är sidan man redan står på (sökläget
+stängs ändå) och bakåtknappen efteråt. Inga sidfel.
+
+**Inte provat:** Safari på en riktig iPhone. Chromium i telefonstorlek är
+inte Safari, och övergången bygger på Reacts `useTransition`, som Safari har
+samma stöd för. Leonard ser det direkt efter deployen.
+
+## Telefonens sidhuvud följer fingret (Leonard 2026-11-24)
+
+Leonard: "det är effektivare om man låter sök huvudet inte följa med när man
+scrollar ner utan den försvinner så man ser mer, men så fort man scrollar upp
+så dyker den upp på ett smidigt premium sätt". Och samma kväll, efter första
+versionen på sin iPhone: "jag tyckte inte sökfältet dykte upp sådär smooth
+utan det kom sådär tillbaka som ett hopp".
+
+Telefonens sidhuvud med sökraden är 133 px av skärmen (16 % av en iPhone 14).
+
+### ☠️ Första versionen: ett läge och en övergång
+
+Den bytte läge vid en gräns (28 px ner, 6 px upp, `data-huvud="gomt"` på
+`<html>`) och lät en CSS-övergång göra rörelsen. I Chromium mättes den till
+0,29 s och "bromsar in mjukt". På Leonards iPhone var det ett hopp: en
+övergång har sin egen fart och den är aldrig fingrets, och kurvan gick 60 %
+av vägen på de första 75 ms.
+
+**Läxan: en uppmätt tid i Chromium säger att övergången körs, inte hur den
+känns under ett finger.** Mät i stället hur långt det går per bildruta, och
+jämför med hur långt sidan gick i samma bildruta.
+
+### Nu gör webbläsarens egen scrollning rörelsen
+
+Sidhuvudet (`position:sticky`) ligger i omslaget `.huvudspar`
+(`components/site.tsx`). Ett fäst element kan inte lämna sitt omslag: när
+omslagets nederkant når sidhuvudets följer sidhuvudet med sidan, pixel för
+pixel, i webbläsarens egen scrolltråd. `components/huvud-gom.tsx` sätter
+omslagets höjd, och lika mycket negativ `margin-bottom`, så att sidan under
+aldrig flyttar sig. Räkningen står i `lib/huvud-gom.ts` (rena funktioner):
+
+- **`sparSteg`**, när rörelsen vänder: står sidhuvudet helt framme och sidan
+  går ner läggs nederkanten vid sidhuvudets nederkant, och är det helt borta
+  och sidan går upp läggs den strax ovanför skärmens kant. Däremellan skrivs
+  ingenting.
+- ☠️ **`sparRast`, när sidan står still** (130 ms utan rörelse): nederkanten
+  läggs där sidhuvudet står. Inget syns av det. På iPhone scrollar skärmen i
+  en egen tråd, och sidans kod får veta det en eller ett par bildrutor
+  senare: en skrivning i vändningen kommer för sent med just de bildrutorna.
+  Efter en vila behövs ingen skrivning alls, och sidhuvudet följer med från
+  första pixeln. `sparSteg` är kvar för den som vänder utan att stanna.
+- ☠️ **Aldrig längre bort än det redan ligger** (`Math.max` i `sparSteg`).
+  Utan det sköts ett sidhuvud som vilade strax ovanför kanten undan igen för
+  varje bildruta av ett långsamt drag, och kom aldrig in.
+- **`sparVila`, när rörelsen stannat med sidhuvudet till hälften framme:** det
+  glider den sista biten. Fram efter en rörelse uppåt med minst 16 px framme
+  (`VISA_MINST_PX`), undan efter en rörelse nedåt med minst 28 px borta
+  (`GOM_MINST_PX`), och alltid fram inom 273 px från sidans topp. Glidet
+  väntar tills fingret släppt, och prövas då inom 70 ms.
+- ☠️ **Glidet börjar stilla** (`GLIDKURVA`, `cubic-bezier(.4,0,.2,1)`, 190 ms
+  plus en ms per px, högst 340: `glidMs`). Sidhuvudet har stått still när det
+  börjar. Med en kurva som börjar i full fart gick det 16–21 px i första
+  bildrutan: samma hopp som i första versionen.
+- **Ett avbrutet glid** (`sparAvbrutet`): rör kunden sidan mitt i glidet står
+  sidhuvudet kvar där det syns och följer fingret därifrån.
+- **Nära sidans topp** (140 px, `ALLTID_OVAN_PX`) står sidhuvudet på sin plats
+  i sidan. Produktsidan landar 88 px ner med bilden under sidhuvudet.
+- **Ett gömt sidhuvud ligger 2 px ovanför kanten** (`UR_BILD_PX`): precis i
+  kanten kan linjen i dess nederkant synas som en hårfin rand.
+- ☠️ **Läget hålls inom sidan.** iOS låter sidan dras förbi toppen och botten
+  och studsa tillbaka. Utan det hade studsen i botten räknats som att kunden
+  scrollade upp.
+
+Komponenten, utöver räkningen:
+
+- ☠️ **Sidan landar.** Från sidbytet tills kunden själv rör sidan (finger,
+  hjul, tangent, rullningslist) står sidhuvudet framme där sidan är, vad som
+  än flyttar den: webbläsaren som ställer tillbaka läget efter bakåtknappen,
+  eller produktsidan som ställer bilden under sidhuvudet. Utan det avgjorde
+  ordningen mellan den flytten och effekten om sidhuvudet var framme.
+- ☠️ **Sökläget stängs: sidan landar på nytt.** Remsan och loggans rad kommer
+  tillbaka ovanför, Chrome flyttar sidan lika mycket (110 px) för att det
+  kunden ser ska stå still, och den flytten räknades som ett svep ner:
+  sidhuvudet gled undan i samma stund som sökläget stängdes.
+- **I sökläget** är omslaget `display:contents` och sidhuvudet sitter fäst
+  överst som förut. Fokus i sidhuvudet (tangentbord, skärmläsare) tar fram det.
+- ☠️ **Omslagets överkant mäts med decimaler** (`getBoundingClientRect`, inte
+  `offsetTop`). Kampanjremsan ovanför är 46,4 px hög, och med 46 hamnade
+  sidhuvudet 0,4 px fel när glidet var klart.
+- **Minskad rörelse:** inget glid, sidhuvudet byter läge direkt.
+- **Går något fel**, eller körs skriptet inte, är omslaget `display:contents`
+  och sidhuvudet sitter fäst överst som före 2026-11-24.
+
+Stilen (`app/globals.css`, "Sidhuvudet följer fingret"):
+
+- ☠️ **Bara telefonen, 760 px**, samma gräns som produktsidans mobilläge.
+  Första versionen gällde upp till 900 px. Mellan 761 och 900 px fäster
+  produktsidans bildgalleri under sidhuvudet (`--ankare`), och ett sidhuvud
+  som försvann lämnade en tom remsa ovanför bilden. Surfplattan och datorn
+  är som förut.
+- På telefonen är sidhuvudet ogenomskinligt: den suddiga bakgrunden ritades
+  om för varje bildruta medan sidhuvudet rörde sig.
+- Omslaget tar inga tryck (`pointer-events:none`, sidhuvudet `auto`) och är
+  aldrig det webbläsaren håller sidan still mot (`overflow-anchor:none`).
+- ☠️ **Kassan** gömmer butikens sidhuvud med `body:has([data-kassa-sida])`.
+  Regeln pekade på `body>.sidhuvud`. Med omslaget emellan hade butikens meny
+  stått överst i kassan, så regeln gömmer nu omslaget också.
+
+### ☠️ Produktsidans köprad vet när sidhuvudet är borta
+
+Köpraden i nederkant göms medan sidans egen köpknapp syns ("aldrig två
+köpknappar i samma skärm", mätt på en riktig iPhone 2026-11-20). Den räknade
+skärmens översta 133 px som täckta av sidhuvudet. När sidhuvudet följt med
+sidan ur bild syns knappen där, och knappen och köpraden stod i samma skärm i
+160 px av rörelsen. Det felet fanns redan i första versionen.
+
+Nu sätter `components/huvud-gom.tsx` `data-huvud-borta` på `<html>` medan
+sidhuvudet är helt ur bild, och `components/productview.tsx` har två
+mätningar av knappen (under sidhuvudet, och hela skärmen) och väljer efter
+märket.
+
+### Mätt
+
+Chromium, 390 × 844, lokalt bygge, riktiga pekhändelser (fingret ner, dras
+en bildruta i taget, släpps), 2026-11-24:
+
+- **Ner från sidans topp:** sidhuvudet står fäst till 140 px och följer sedan
+  med sidan upp ur bild. Ingenting skrivs på vägen.
+- **Upp efter en vila:** fingret drog sidan 55 px, och sidhuvudet var 53 px
+  framme när fingret släppte (2 px är marginalen ovanför kanten). Ingenting
+  skrevs under draget. Bildruta för bildruta är sidans läge plus det som
+  syns av sidhuvudet konstant (1 783 + 12, 1 769 + 26 … 1 669 + 126, alla
+  1 795): sidhuvudet rör sig exakt som sidan.
+- **Ett mycket långsamt drag** (30 px/s, en halv pixel per bildruta):
+  sidhuvudet kom in, 28 px framme efter 30 px, och ingenting skrevs.
+- **Vila till hälften framme:** 53 px framme efter ett drag uppåt, glider
+  fram. 10 px borta efter ett ryck neråt, glider tillbaka fram. 55 px borta,
+  glider undan. 11 px framme efter en darrning uppåt, glider undan igen.
+- **Glidet:** 80 px på 267 ms, med stegen 0,7 2,6 5,5 9,5 13 12,6 10 7,5 5,6
+  4,1 3,1 2,3 1,6 1 0,7 0,2 px per bildruta. Det börjar 130 ms efter
+  sidans sista rörelse, eller 70 ms efter att fingret släppt en sida som
+  redan stod still (`SLAPP_MS`).
+- **Avbrutet glid:** ett nytt drag 110 ms in i glidet. Sidhuvudet stod kvar
+  där det var (52 px framme) och följde fingret ner, 24 px per bildruta,
+  lika som sidan.
+- **Vändning utan vila** (ett kast neråt och direkt ett drag uppåt):
+  sidhuvudet kom in från vändningen. Största steget utöver sidans eget: 2 px.
+- **Sidan under:** första kortet på samma plats i sidan (548,4 px) och sidans
+  höjd oförändrad (5 532 px) genom hela provet. Inga layoutskift av rörelsen
+  eller glidet.
+- **Sökläget:** öppnat med sidhuvudet borta står fältet överst. Stängt står
+  sidhuvudet framme och sidan på samma plats.
+- **Sidbyte:** produktsidan landar 88 px ner med sidhuvudet framme och bilden
+  14 px under det. Bakåt: listan på 870 px med sidhuvudet framme, och nästa
+  drag ner tar det med sig.
+- **Köpraden:** köpknappen 55–111 px från skärmens överkant med sidhuvudet
+  borta, köpraden gömd. Sidhuvudet tillbaka över knappen, köpraden visas.
+  Knappen ur bild, köpraden visas.
+- **Kassan:** butikens sidhuvud och omslag gömda. **820 px och 1 280 px:**
+  sidhuvudet fäst överst som förut, med suddig bakgrund.
+- **Minskad rörelse:** inget glid, läget byts direkt.
+- 21 skrivningar under hela provet, alla i en vändning utan vila, vid en vila
+  eller när ett glid var klart. Ingen i takt med fingret.
+
+**Prov:** `lib/huvud-gom.test.ts` (29 prov) och köpradens prov i
+`lib/mobil-finslip.test.ts`. 47 avsiktliga fel i räkningen, komponenten,
+stilen och produktsidan fäller proven.
+
+### Mekanismen i Safari på riktiga iPhone (2026-11-25)
+
+`tools/sidhuvud-prov/` bygger en fristående sida med samma räkning (läst ur
+`lib/huvud-gom.ts`) och ett självprov i nitton delar. Den kördes i Safari på
+tre riktiga telefoner hos BrowserStack, före mergen, utan att
+förhandsvisningens länk lämnades ut: `tools/sidhuvud-prov/README.md` säger hur.
+
+| | iPhone 15, Safari 27 | iPhone 16, iOS 18.6 | iPhone 14, iOS 16.4 |
+|---|---|---|---|
+| Delprov | 19 av 19 | 18 av 19 (första provsidan) | 19 av 19 |
+| Upp efter en vila: läget plus det synliga, bildruta för bildruta | konstant, inget skrivet | konstant, inget skrivet | konstant, inget skrivet |
+| Ner från sidans topp | fäst överst inom 140 px, sedan ur bild, inget skrivet | samma | samma |
+| Glidets första steg per bildruta | 0,8 2,6 5,7 9,8 12,1 | 0,7 2,7 5,3 9,6 12,7 | 0,7 2,5 5,4 9,3 12 |
+| Vila till hälften framme: fram, tillbaka fram, undan, undan igen | rätt i alla fyra | rätt i alla fyra | rätt i alla fyra |
+| Vändning utan vila: största egna steg | 2 px | 2 px | 2 px |
+| Avbrutet glid, långsamt drag | följer sidan | följer sidan | följer sidan |
+| Sidan under | står still | står still | står still |
+
+☠️ **Provsidan hade själv fel två gånger, och bara telefonerna visade det.**
+Den räknade med att sidan hunnit flytta sig så långt som den ombetts: iOS 18.6
+låg en bildruta efter, och iOS 16.4 utförde bara två tredjedelar av de små
+förflyttningarna (272 px av 400). Ett prov som räknar med ett avstånd ska mäta
+avståndet, inte anta det.
+
+☠️ **Safari 27: det fästa sidhuvudets AVLÄSTA läge står en bildruta efter
+sidans** medan sidan flyttas med `scrollTo` (125 i stället för 133 vid 8 px per
+bildruta, i varje bildruta, och 133 så fort sidan stannar). Inte i iOS 16.4
+eller 18.6. Om det också gäller under ett finger är inte fastställt.
+Komponenten läste sidhuvudets läge på ett enda ställe, när ett glid avbryts.
+Det räknas nu ur det koden själv vet (`sparAvbrutet`: där det stod, plus så
+långt glidet hunnit enligt transformen, minus så långt sidan gått), och
+`getBoundingClientRect` är bara reserv. Läs aldrig ett fäst elements läge i
+farten och lita på det.
+
+### Inte provat
+
+- ☠️ **Ett finger på en riktig iPhone.** Självprovet flyttar sidan med
+  `scrollBy`, som går genom sidans egen tråd. Ett finger scrollar i skärmens
+  tråd, och sidans kod får veta det en eller ett par bildrutor senare. Provet
+  säger alltså att Safaris layout gör det räkningen väntar sig, inte hur det
+  känns. Sättet är valt för att inte bero på sidans kod i farten (efter en
+  vila skrivs ingenting), men det är ett resonemang: mjukheten, studsen och
+  Safaris adressfält måste Leonard se själv.
+- Att glidet den sista biten känns rätt (130 ms vila, sedan 0,2–0,34 s) är
+  ett val, inte ett mätvärde.
+- Chrome på Android och Samsungs webbläsare är inte provade på riktiga
+  telefoner, och inte Safari före 16.4 (laddsidan i provet kräver 16.4).
+
+## Klarna på telefonen: kunden kom tillbaka utan godkänd betalning och fick börja om (2026-11-24)
+
+En kund ringde Leonard: han signerade med BankID i Klarna-appen, appen bad
+honom gå tillbaka till butikens webbplats, och där "avbröts det bara" så att
+han fick börja om. På datorn gick samma köp igenom.
+
+### Mätt i produktionsloggarna (2026-11-24, UTC)
+
+| Tid | Rad | Betyder |
+| --- | --- | --- |
+| 14:49:28 | förbered ok, `skapaAvsikt` | ny betalning, kunden trycker "Betala med Klarna" |
+| 14:50:21 | slutför `ej_betald` | kunden är tillbaka i kassan, betalningen inte godkänd |
+| 14:51:32 | slutför `ej_betald` | tillbaka igen, utan nytt tryck emellan |
+| 14:52:33 | förbered ok, `uppdateraAvsikt` | nytt tryck, samma betalning återanvänds |
+| 14:59:00 | slutför `ej_betald` | tillbaka en tredje gång |
+| 14:59:37 | förbered ok, `uppdateraAvsikt` | nytt tryck, sedan inget mer |
+| 15:09:01 | förbered ok, `skapaAvsikt` | en annan webbläsare (inget sparat försök) |
+| 15:10:02–08 | slutför `pagar` ×3, `ok` | köpet går igenom |
+
+- Varje `ej_betald` kom ENSAM. En retur genom Stripe (`/kassa/klar`) ger två
+  frågor inom någon sekund: retursidans, och kassans egen när kunden skickats
+  dit. Kunden kom alltså tre gånger till en nyladdad `/kassa`, inte genom
+  returen.
+- Kassan frågade servern, fick "inte betald" och gjorde ingenting. Formuläret
+  stod tomt, för uppgifterna sparas bara om kunden kryssat i "Spara mina
+  uppgifter". Det är "avbröts bara" och "börja om".
+- **Inte mätt då:** vad Klarna och Stripe såg. Stripe-kopplingen i Claude var
+  inte inloggad, retur-rutten loggade ingenting, och Vercels förfrågningslogg
+  kräver Observability Plus (avstängt). Stripes sida lästes samma kväll, se
+  nästa avsnitt.
+
+### En kund till samma kväll, och Stripes sida (läst 2026-11-24, sent)
+
+Leonard kopplade in Stripe och pekade på en kund till, 22:05 svensk tid.
+Loggen visar samma mönster: förbered 21:05:46 UTC (ny betalning), tre
+ensamma `ej_betald` 21:07:24, 21:08:39 och 21:09:08, ett nytt tryck 21:10:14
+på samma betalning, och sedan inget mer.
+
+Stripe, läst med kopplingen (inga uppgifter om kunderna står här):
+
+- **Tre betalningar står i `requires_action` med Klarna:** en från 23
+  november och två från 24 november (den första kunden, som sedan köpte på
+  datorn, och kvällens kund). Alla tre har adressen till Klarna i
+  `next_action.redirect_to_url.url` (hos `pm-redirects.stripe.com`, som
+  `fortsattAdress` släpper igenom), vår retur som `return_url`, och ett
+  betalsätt som skapats flera minuter efter betalningen. Kunden har alltså
+  tryckt på betalknappen igen, precis som loggen säger.
+- ☠️ **Stripe stänger inte en sådan betalning efter tre timmar.** Den från
+  23 november stod kvar i `requires_action` ett och ett halvt dygn senare.
+  Tre timmar är kundens tid hos Klarna, inte betalningens livslängd hos
+  Stripe. Därför regel 11 nedan.
+- **Det är ett läckage, inte ett stopp.** Sedan 14 november har 47
+  Klarna-köp gått igenom (27 från telefon, 14 från dator, 6 där Stripe inte
+  vet), och 6 betalningar utan kortförsök slutade som misslyckade (4 telefon,
+  2 dator). Med de tre öppna blir det ungefär fyra av fem telefonköp med
+  Klarna som går hela vägen.
+- **Fler den här veckan.** Stripes rapport över misslyckade försök som inte
+  är kort, per vecka och med varje nytt försök räknat: veckan från 1 november
+  1 (kunden avbröt), från 8 november 3 (2 nekade utan angiven orsak, 1 session
+  som gick ut), från 15 november 3 (1 avbröt, 2 gick ut), och från 22 november
+  7 på tre dagar (6 nekade utan angiven orsak, 1 gick ut). Black Week ger
+  fler köp, så antalet säger inte att andelen har stigit.
+- **Inte fastställt:** varför Klarnas flöde inte blev klart i telefonen.
+  Stripe ser bara att kunden skickades till Klarna och inte kom tillbaka
+  genom returen. Webbläsarens sort står i loggraderna först efter den här
+  deployen (regel 9).
+
+### Vad Stripe säger (docs.stripe.com/payments/klarna/accept-a-payment, läst 2026-11-24)
+
+- Kunden har tre timmar på sig hos Klarna. Under tiden står betalningen i
+  `requires_action`, med adressen dit i `next_action.redirect_to_url.url`.
+- Faller den går den till `requires_payment_method`, med orsaken i
+  `last_payment_error.code`: `payment_method_customer_decline` (kunden
+  avbröt hos Klarna), `payment_method_provider_decline` (Klarna nekade),
+  `payment_intent_payment_attempt_expired` (tiden gick ut) och
+  `payment_method_not_available`.
+
+### Det som var fel hos oss
+
+1. ☠️ `slutforStripe` svarade `ej_betald` för allt som inte var godkänt,
+   också en betalning som stod öppen hos Klarna.
+2. ☠️ Kassan gjorde ingenting med ett sparat försök som inte var betalt, och
+   prövade det bara när sidan laddades: inte när den kom tillbaka ur
+   webbläsarens minne och inte när den blev synlig igen efter en annan app.
+3. Loggraden sa `ej_betald` utan Stripes status, och returen loggade inget.
+
+### Reglerna nu
+
+1. **Öppen är inte avbruten.** `slutforStripe` (lib/kassa/flode.ts) svarar
+   `vantar_kund` för `requires_action`, med `fortsatt` (Stripes adress, bara
+   för en omdirigering), `metod` och `totalOre`. Ingenting låses, släpps
+   eller dras. Bankens verifiering av ett kort (`use_stripe_sdk`) får ingen
+   adress: den äger Stripe.js.
+2. **Kassan säger det och låter kunden fortsätta samma betalning.** Rutan
+   överst: "Din Klarna-betalning är inte klar. Inget har dragits. …" med
+   knappen "Slutför betalningen hos Klarna" (`oppenText`). ☠️ Aldrig
+   "Fortsätt till Klarna" (regeln för beställningsknappen gäller här också).
+3. **Knappen finns bara när betalningen gäller summan kunden ser.** Annars
+   hade kunden slutfört ett annat belopp, som servern sedan släpper
+   (`pris_andrat`). Då står bara beskedet.
+4. **Adressen prövas innan kunden skickas dit** (`fortsattAdress`): bara
+   https hos stripe.com eller klarna.com, utan användarnamn, högst 2 000
+   tecken.
+5. **Det sparade försöket prövas** (`kollaSparat` i kassa.tsx,
+   `sparatBeslut` i stripe-klient.ts) när korgen blir känd, när sidan kommer
+   tillbaka ur webbläsarens minne (`pageshow`) och när den blir synlig igen
+   (`visibilitychange`). Står betalningen öppen frågar kassan fyra gånger
+   till (efter 3, 5, 8 och 12 s): har kunden godkänt i appen går köpet vidare
+   till tacksidan av sig självt.
+6. ☠️ **Mitt i en betalning i samma flik** (bankens verifiering, eller på
+   väg till Klarna) gör kollen bara en sak: slutför det som redan är
+   godkänt. Allt annat äger Stripe.js. Väntar sidan redan på ordern frågar
+   ingen annan om samma betalning.
+7. **Klarna nekade, eller betalningen gick ut:** kassan säger det en gång
+   (`STRIPE_MEDDELANDE.nekad`, `.utgangen`), om försöket är högst 30 minuter
+   gammalt, och märker det sparade försöket (`sagt`) så att beskedet inte
+   står kvar vid varje omladdning. Ett nekat kort har sitt fel i betalfältet
+   och får ingen orsak härifrån.
+8. **Retursidan** (`/kassa/klar`) visar samma ruta om betalningen står
+   öppen. ☠️ Aldrig "Betalningen är mottagen" för en betalning som inte är
+   godkänd: `vantaPaOrder` slutar vänta direkt på `vantar_kund`.
+9. **Loggraderna** bär Stripes läge, aldrig ett id:
+   `[kassa] stripe slutför vantar_kund (requires_action/redirect_to_url)`,
+   `… ej_betald (requires_payment_method/payment_method_provider_decline)`
+   och `[kassa] stripe retur: succeeded` eller `failed`. Läget skickas inte
+   till webbläsaren. Sist på raderna för förbered, slutför och retur står
+   webbläsarens sort inom hakar (`webblasarsort`: `[ios-safari]`,
+   `[ios-instagram]`, `[android-webbvy]`, `[dator-chrome]`), aldrig hela
+   User-Agent: en betalning som ska fram och tillbaka mellan butiken och
+   Klarnas eller bankens app beter sig olika i Safari och i en app med egen
+   webbvy, och det gick inte att se i loggen 2026-11-24.
+10. `hamtaAvsikt` bygger också ut `payment_method`, så att rutan säger
+    "Klarna" bara när det pågående försöket är Klarna.
+11. ☠️ **Rutan visas bara för ett försök som är högst tre timmar gammalt**
+    (`OPPET_FORSOK_MS` i stripe-klient.ts, prövat i `sparatBeslut`). Stripe
+    låter betalningen stå öppen i dagar, och kunden har tre timmar hos
+    Klarna. Utan gränsen hade den som kom tillbaka dagen efter mötts av "Din
+    Klarna-betalning är inte klar" och en knapp till en session som Klarna
+    redan stängt.
+
+### Prov
+
+- `lib/kassa/stripe-flode.test.ts`: öppen betalning, bankens verifiering,
+  orsakerna, loggordet. `lib/kassa/stripe-klient.test.ts`: adressen, serverns
+  svar, väntan, det sparade försöket, beslutet, rutans texter, returens
+  loggord, webbläsarens sort (19 riktiga User-Agent-strängar). 29 avsiktliga
+  fel i reglerna fäller proven.
+- **I webbläsaren** (lokalt bygge, telefonstorlek, serverns svar utbytt i
+  webbläsaren, ingen betalning skapad och ingen betalknapp tryckt): rutan
+  med knappen står i första skärmbilden; fem frågor på 35 s och sedan tyst;
+  en ny fråga när sidan blir synlig och när den kommer ur minnet; ingen
+  knapp vid annat belopp eller okänd adress; tredje svaret "ordern finns"
+  tar sidan till tacksidan; "Klarna godkände inte betalningen" en gång och
+  inte efter omladdning; retursidan visar rutan och aldrig "mottagen".
+
+### Inte provat, och inte gjort
+
+- ☠️ **Att knappen tar kunden tillbaka till SAMMA Klarna-session med
+  inloggningen kvar är inte provat.** Klarnas testmiljö har ett låtsat
+  BankID och ingen app, och ingen betalknapp trycks i prov. Leonard provar
+  på en riktig telefon efter deployen. Fungerar inte adressen skickar Stripe
+  kunden tillbaka med ett fel, och kassan säger då varför: sämst blir det som
+  i dag.
+- **Formulärets uppgifter** sparas inte över en omladdning utan "Spara mina
+  uppgifter" (Leonards regel, "utan det sparas ingenting i webbläsaren"). Med
+  knappen behöver kunden inte formuläret.
+- **De tre öppna betalningarna** rör ingen kod. De står under Betalningar,
+  ofullständiga, i Stripe (23 och 24 november). Två av de tre kunderna har
+  inte köpt. Om någon ska höra av sig till dem är det Leonards sak.
