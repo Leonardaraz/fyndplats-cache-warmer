@@ -45,12 +45,15 @@
 // app/globals.css ändras måtten. lib/bild-sizes.test.ts räknar ut dem ur
 // CSS-filen och fäller då. Rätta talen HÄR och i next.config.ts samtidigt.
 //
-// ☠️ Två nästan lika breda rutor för samma foto går inte ihop. Chrome
+// ☠️ Två nästan lika breda FILER av samma foto går inte ihop. Chrome
 // återanvänder en bredare fil som redan ligger i minnet i stället för att
 // hämta den som passar, och 265 px i en ruta på 259 är just den fil som nästan
-// passar. Därför har ALLA rutnät med produktkort samma mellanrum i sidled
-// (också /alla-produkter och /rea, som förut hade 28 px), och därför finns
-// bara en kortbredd i listan.
+// passar. Därför finns bara EN kortbredd i listan, 265 px, också för
+// /alla-produkter och /rea, där rutnätet är luftigare (28 px mellanrum) och
+// bildrutan 259 px bred. Där skalas bilden inte ned till rutan: den ritas i
+// sin egen storlek, 265 × 265, och rutan skär bort 3 px i varje kant
+// (.alla-prod .prodgrid i app/globals.css). `sizes` är därför samma sträng på
+// de sidorna, och den säger exakt hur brett bilden ritas.
 //
 // Ingen bild som har exakt storlek får förstoras vid hover: en zoom på 4,5 %
 // tog skärpan från 205 % till 86 %. Kortets och huvudbildens hover-zoom är
@@ -92,9 +95,11 @@ export const TILE_SIZES = `(max-width:760px) calc(( 100vw - ${MARGINAL}px) * 0.3
  *   upp till 1179 px  fyra kort, 20 px mellanrum, ram på 1 px
  *   bredare           fyra kort i den 1180 px breda sidan: 265 px
  *
- * /alla-produkter och /rea har tre kort i bredd mellan 761 och 900 px, och
- * rutan är då smalare än strängen säger. Där väljs en något större fil än
- * rutan behöver, som förut; det viktiga är att den aldrig blir för liten.
+ * /alla-produkter och /rea har tre kort i bredd mellan 761 och 900 px och 28 px
+ * mellanrum mellan fyra kort från 901 px, och rutan är då några pixlar smalare
+ * än strängen säger. Där väljs en något större fil än rutan behöver; det
+ * viktiga är att den aldrig blir för liten. Från 1180 px ritas bilden där i
+ * exakt 265 px och beskärs av rutan (se ovan), så strängen stämmer på pixeln.
  */
 export function kortSizes(tvaKolumner: boolean): string {
   const mobil = tvaKolumner ? "calc( 50vw - 32px)" : `calc( 100vw - ${MARGINAL}px)`;

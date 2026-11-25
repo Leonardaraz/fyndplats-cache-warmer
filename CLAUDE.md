@@ -2677,6 +2677,35 @@ loggen. Utan HMAC hade ett id som läckt räckt för att se en annan kunds varor
 ☠️ Mejl som köades före ändringen har kvar Wix länk; de fungerar, men leder till
 Wix kassa.
 
+**Leonards fråga 2026-11-25: "så vi inte har en bugg att folk hamnar på gamla
+checkout".** Han såg fler övergivna kundvagnar i Wix-appen, och länken där
+(`…/abandoned-checkout/<id>/redirect-to-checkout`) svarar 302 till
+`checkout.fyndplats.se/checkout`. Mätt samma kväll:
+
+- **Länken i Wix-appen är Wix egen** och pekar alltid på Wix kassa. Kunden ser
+  den aldrig: Wix eget mejl står som "Inte skickat" på varje rad, för
+  påminnelserna är våra.
+- **Våra påminnelser bär vår länk.** De 30 senaste raderna i
+  `FyndplatsKundvagnar` (16–25 november) har alla
+  `https://www.fyndplats.se/kassa/aterta?k=…`. Fem mejl gick ut den dagen.
+- **Varje övergiven kassa i listan kommer ur vår egen kassa**: Wix skapar den
+  en timme efter att kunden skrivit sin e-post där. Tre av dagens sex hör till
+  de två Klarna-försöken ovan (samma belopp, en timme efter Stripes tid).
+- **Ingen order har betalats i Wix kassa.** 23, 24 och 25 november: 7, 5 och
+  12 ordrar i `FyndplatsOrdrar`, och 7, 5 och 12 betalda betalningar i Stripe,
+  med samma summa per dygn på öret (7 761, 8 355 och 14 927 kr).
+- Växeln svarade `{"egen":true}`, och loggen hade inget "kunde inte läsa växeln".
+
+☠️ **Det som fanns var en väg utan spår.** Går växeln inte att läsa skickar
+varukorgen kunden till Wix kassa (`fragaEgenKassa`: "ett fel betyder nej"), och
+det syntes ingenstans. Reservvägen är kvar med flit: kan vi inte läsa Wix är
+Wix egen kassa den som säkrast fungerar. Nu säger varukorgen till
+(`sagWixKassa` i `components/cart.tsx`, sendBeacon före navigeringen, också på
+medlemskassans väg), och `POST /api/kassa/lage` skriver
+`[kassa] varukorgen öppnar Wix kassa [ios-safari]` som varning: webbläsarens
+sort och ingenting annat. **Varje sådan rad är en kund i gamla kassan.** Inte
+provat: att Wix kassa fortfarande kan ta betalt.
+
 Integritetstexten säger att vi kan påminna om en varukorg du inte slutförde
 (berättigat intresse, högst tre mejl på tre dagar och en påminnelse per 30
 dagar, avregistrering i mejlet).
@@ -6917,14 +6946,30 @@ stället för q_72 gav 24–60 % tyngre filer utan mätbar skillnad i skärpa).
    att filen är lika hög som rutan. Bloggkortets `sizes` är rutans bredd i
    rutnätet (267 px) i stället för en fjärdedel av fönstret.
 
-☠️ **Rutnätet på /alla-produkter och /rea har samma mellanrum i sidled som
-alla andra, 20 px.** Det var 28, och kortets bild blev 259 px. Första bygget
-gav de sidorna en egen bredd, och mätningen fällde det: Chrome återanvänder
-en bredare fil som redan ligger i minnet i stället för att hämta den som
-passar, så ett kort man sett på en kategorisida (265 px) ritades med den
-filen i en ruta på 259. Just en sådan fil som nästan passar: 93 % av den
-gamla bildens skärpa, mot 205 % för grannarna. Två nästan lika breda rutor
-för samma foto går inte ihop. Mellanrummet på höjden (38 px) är kvar.
+☠️ **Rutnätet på /alla-produkter och /rea är luftigare, 28 px i sidled, och
+bilden ritas ändå i kortets vanliga fil** (Leonard 2026-11-25, sent: de två
+sidorna ska ha sitt mellanrum kvar). Med 28 px är bildrutan 259 px bred på
+datorn, mot 265 på alla andra sidor. Tre sätt prövades:
+
+1. En egen bildbredd för de sidorna (259 px). Mätningen fällde det: Chrome
+   återanvänder en bredare fil som redan ligger i minnet i stället för att
+   hämta den som passar, så ett kort man sett på en kategorisida (265 px)
+   ritades med den filen i en ruta på 259. Just en sådan fil som nästan
+   passar: 93 % av den gamla bildens skärpa, mot 205 % för grannarna.
+2. Samma mellanrum överallt (20 px). Skarpt, men Leonard ville ha luften kvar.
+3. **Det som gäller:** bilden skalas inte ned till rutan. Den ritas i sin egen
+   storlek, 265 × 265 px, mitt i rutan, och rutan skär bort 3 px i varje kant
+   (`.alla-prod .prodgrid … .pimg img` i `app/globals.css`, från 1 180 px
+   fönsterbredd). Samma fil som på alla andra sidor, pixel för pixel: ingen ny
+   bildbredd, inget nytt att värma hos Wix och ingenting som kan gå fel i
+   webbläsarens minne. `sizes` är samma sträng på alla sidor.
+
+☠️ Tre saker i den regeln är inte kosmetik. `!important`: next/image sätter
+bredd, höjd och läge som inline-stil. `max-width:none`: grundregeln
+`img{max-width:100%}` höll annars kvar bilden på 259 px, förskjuten 3 px
+(provet mot första bygget fällde det, 12 kontroller röda). Och
+`.pimg-slide{overflow:hidden}`: på en pekskärm står kortets bilder sida vid
+sida i svepet, och utan den täcker nästa bilds kant 3 px av den som visas.
 
 ### Regler
 
@@ -6935,21 +6980,29 @@ för samma foto går inte ihop. Mellanrummet på höjden (38 px) är kvar.
 - ☠️ Lägg inte till en bredd i `imageSizes` eller `deviceSizes` utan att mäta.
   Varje bredd skrivs ut i varje bilds srcset, och en bredd strax över en
   annan rutas behov gör den rutans bilder suddiga.
-- ☠️ En ny yta med produktkort ska ha `.prodgrid` med grundens mellanrum.
-  Provet fäller om en regel utanför `@media(max-width:…)` ger rutnätet ett
-  eget.
+- ☠️ En ny yta med produktkort ska ha `.prodgrid` med grundens mellanrum
+  (20 px). Provet fäller om en regel utanför `@media(max-width:…)` ger
+  rutnätet ett eget, utom `.alla-prod .prodgrid` (28 px), som har sin regel
+  för att rita bilden i 265 px. Ett rutnät med en annan kortbredd ska lösas på
+  samma sätt (rita filen i sin storlek och låt rutan skära), aldrig med en
+  egen bildbredd som ligger nära 265.
 - ☠️ Ingen `transform:scale` vid hover på kortets bild eller huvudbilden.
 - En bild som beskärs i en ruta med annan form ska gå genom `iRutansForm`.
 - Provet mot en körande butik: `skarpa/prov-skarpa.cjs` i sessionens
-  arbetsmapp (läser bara sidor): kortens och huvudbildens fil är exakt rutans
-  bredd i 1x och 2x, adresserna bär skärpningen, ingenting zoomar vid hover
-  och ingen Wix-bild förstoras på /butik, /blogg, /kopguider och
-  /under-500-kr.
+  arbetsmapp (läser bara sidor): kortens och huvudbildens fil är exakt så
+  bred som bilden ritas i 1x och 2x, adresserna bär skärpningen, ingenting
+  zoomar vid hover och ingen Wix-bild förstoras på /butik, /blogg, /kopguider
+  och /under-500-kr. Rutnätet har 20 px och en ruta på 265 px på
+  kategorisidan, 28 px och 259 px på /alla-produkter och /rea, där bilden
+  ändå är 265 × 265 och ligger 3 px utanför rutan runt om. Och två sidtyper
+  efter varandra i samma webbläsare (kategori och sedan /alla-produkter, och
+  tvärtom): varje kort ritas pixel för pixel.
 
 ### Mätt efter, mot ett lokalt bygge av grenen
 
-`skarpa/prov-skarpa.cjs`: 38 av 38 gröna. Samma bilder på www och i bygget,
-kantskärpa i det som ritas och filens vikt, båda i procent av dagens:
+`skarpa/prov-skarpa.cjs`: 56 av 56 gröna (38 före rutnätets kontroller).
+Samma bilder på www och i bygget, kantskärpa i det som ritas och filens vikt,
+båda i procent av dagens:
 
 | Skärm | Kortets bild | Huvudbilden |
 |---|---|---|
@@ -6957,6 +7010,10 @@ kantskärpa i det som ritas och filens vikt, båda i procent av dagens:
 | Bärbar 1 512 px, 2x | 264–292 %, 84–85 % | 390 %, 93 % (6 produkter) |
 | 1 280 px med 150 % skalning | 117 %, 86 % | 179 %, 104 % (1 produkt) |
 | Telefon 393 px, 3x | 121 %, 86 % | 177 %, 104 % (1 produkt) |
+
+Med 28 px-rutnätet och bilden ritad i 265 px (sent 2026-11-25), kortets bild:
+/alla-produkter 211 % skärpa och 73 % vikt på 1 920 px i 1x (5 bilder), 293 %
+och 84 % på 1 512 px i 2x; /rea 189 % och 72 % (8 bilder), 248 % och 88 %.
 
 Granskningen av varje bildyta (`skarpa/mat.cjs`, sex skärmtyper, tolv sidor):
 ingen yta på dator eller surfplatta förstoras. På telefonen förstoras
@@ -7169,6 +7226,62 @@ Stripe, läst med kopplingen (inga uppgifter om kunderna står här):
 - **De tre öppna betalningarna** rör ingen kod. De står under Betalningar,
   ofullständiga, i Stripe (23 och 24 november). Två av de tre kunderna har
   inte köpt. Om någon ska höra av sig till dem är det Leonards sak.
+
+### Två försök till utan köp, och länken erbjuds en gång (2026-11-25)
+
+Leonard såg två Klarna-betalningar till i Stripe som inte blev köp och bad om
+en dubbelkoll. Läst i Stripe och i produktionsloggen samma kväll (UTC):
+
+- **Hela dagen efter deployen 02:39:** sju Klarna-köp gick igenom (`stripe
+  retur: succeeded`: Android Chrome två gånger, iOS Chrome, dator Chrome,
+  dator Edge, Googles app på iOS och iOS Safari), ett avbröts hos Klarna och
+  två betalningar står öppna. Kassans rutter skrev inga fel och inga varningar.
+- **1 999 kr, iOS Safari.** 16:04 ett första försök som kunden lämnade hos
+  Klarna. 16:05 ett nytt försök från en NY varukorg, och därför utan ruta: det
+  sparade försöket hör till den gamla korgen. 16:10 kom kunden tillbaka med
+  `failed`: `requires_payment_method/payment_method_customer_decline`, Stripes
+  text "Customer cancelled checkout on Klarna" med tillägget
+  `klarna_payment_declined`. Kunden var hos Klarna i 4 min 44 s. Kassan visade
+  "Betalningen avbröts eller godkändes inte" en gång, och kunden försökte inte
+  igen. Det första försöket står kvar som öppet i Stripe.
+- **999 kr, iOS Safari.** 20:31:02 till Klarna. 20:31:47 var kunden tillbaka i
+  kassan med betalningen öppen (`vantar_kund (requires_action/redirect_to_url)`),
+  en fråga till efter 3 s, och sedan lämnades sidan. 20:32:16 tillbaka igen, en
+  fråga till efter 3 s, och sedan ingenting mer. Rutan "Din Klarna-betalning är
+  inte klar" visades alltså två gånger på en halv minut, och kunden köpte inte.
+- ☠️ **Loggen sa inte om kunden tryckt på länken** eller bara bytt app. Samma
+  lucka som 24 november, ett steg längre fram.
+- **Stripes hopp håller.** Adressen i `next_action.redirect_to_url` för det
+  övergivna försöket från 16:04 svarade fem timmar senare 302 till
+  `pay.klarna.com/…/requests/…`. Bara Stripes svar lästes; Klarnas sida
+  öppnades inte, för det är kundens session. Länken är alltså ingen
+  engångslänk hos Stripe. ☠️ Om KLARNAS sida släpper in kunden i samma
+  betalning en gång till är fortfarande inte provat.
+
+Inget av detta är ett fel i kassan som går att peka ut: båda kunderna kom
+fram till Klarna, och det var där det tog stopp. Det som ändrades samma kväll
+gör den oprövade delen ofarlig och synlig:
+
+- **Länken erbjuds en gång per försök.** Trycket märker det sparade försöket
+  (`fortsatt`, `medFortsatt` i `lib/kassa/stripe-klient.ts`), och `sparatBeslut`
+  ger sedan rutan utan adress: "Inget har dragits. Välj ett betalsätt längre
+  ner och betala på nytt." Att betala på nytt ger en ny betalning hos Klarna
+  på samma PaymentIntent, den väg alla dagens sju köp gick. Samma länk en
+  gång till är en återvändsgränd om det var hos Klarna det tog stopp. En ny
+  betalning sparas utan märket och får sin egen länk.
+- **Trycket loggas.** `POST /api/kassa/stripe/fortsatt` (sendBeacon i trycket)
+  skriver `[kassa] stripe fortsätter öppen betalning [ios-safari]`: webbläsarens
+  sort och ingenting annat, och kroppen läses inte. Följs raden av `stripe
+  retur: succeeded` tog länken kunden hela vägen. Följs den av `vantar_kund`
+  kom kunden tillbaka utan köp.
+- ☠️ Trycket stoppas aldrig (ingen `preventDefault`) och rutan ändras inte i
+  trycket: länken ska alltid ta kunden till Klarna. Provet i
+  `lib/kassa/stripe-klient.test.ts` läser hanteraren och fäller annars.
+
+Inte gjort: en kund som börjar om med en ny varukorg (som 16:05) får ingen
+ruta för det gamla försöket. Det kostar ingenting, inget är draget, och
+försöket går ut hos Klarna. Och fortfarande: bara ett riktigt köp på en
+telefon visar vad Klarnas sida gör när kunden kommer tillbaka till den.
 
 ## Bakåt landar i sökläget (Leonard 2026-11-25)
 

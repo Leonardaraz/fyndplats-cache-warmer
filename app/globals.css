@@ -3051,19 +3051,35 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
 .alla-prod .pchip:hover{border-color:var(--brand);color:var(--brand)}
 .alla-prod .pchip.active{background:#fff;border-color:var(--brand);color:var(--brand);font-weight:700}
 
-/* Produktrutnät: lite mer luft på höjden än kategorisidorna. Kortets utseende
-   är grundens (.prod); de egna ramreglerna här är borta.
-   ☠️ MELLANRUMMET I SIDLED ÄR GRUNDENS, 20 px (2026-11-25). Det var 28 px, och
-   kortets bildruta blev då 259 px bred på datorn mot 265 px på alla andra
-   sidor. Bilden hämtas i exakt rutans bredd (lib/bild-sizes.ts), och två
-   nästan lika breda filer av samma foto ställer till det: Chrome återanvänder
-   en större fil som redan ligger i minnet, så ett kort man sett på en
-   kategorisida (265 px) ritades här med den filen i en ruta på 259, och en
-   fil som är 2 % för bred är det suddigaste som finns (mätt samma dag: 93 %
-   av den gamla bildens kantskärpa, mot 205 % för grannarna). Med samma
-   mellanrum är rutan 265 px överallt och en och samma fil räcker.
-   lib/bild-sizes.test.ts fäller om talet ändras. */
-.alla-prod .prodgrid{gap:38px 20px}
+/* Produktrutnät: mer luft än kategorisidorna, 28 px i sidled och 38 px på
+   höjden (Leonard 2026-11-25: de två sidorna ska vara luftiga). Kortets
+   utseende är grundens (.prod); de egna ramreglerna här är borta.
+   ☠️ BILDEN RITAS ÄNDÅ I GRUNDENS STORLEK, 265 × 265 px, OCH BESKÄRS 3 px I
+   VARJE KANT. Med 28 px mellanrum är bildrutan 259 px bred på datorn, mot
+   265 px på alla andra sidor, och bilden hämtas i exakt 265 px
+   (lib/bild-sizes.ts). Skalas den filen ned till 259 blir den suddig: en fil
+   som är 2 % för bred är det suddigaste som finns (mätt 2026-11-25: 93 % av
+   den gamla bildens kantskärpa, mot 205 % för en fil som ritas pixel för
+   pixel). En egen fil på 259 px hjälper inte heller: Chrome återanvänder en
+   bredare fil som redan ligger i minnet, så ett kort man sett på en
+   kategorisida ritades med 265-filen ändå. Därför ritas bilden här i sin egen
+   storlek mitt i rutan, och rutan (.pimg och .pimg-slide, overflow:hidden)
+   skär bort det som sticker ut. Samma fil som överallt annars, pixel för
+   pixel, och ingen ny bildbredd att hämta eller värma.
+   - !important behövs: next/image sätter bredd, höjd och läge som inline-stil.
+   - max-width:none behövs: grundregeln för img (max-width 100 %) höll annars
+     kvar bilden på rutans 259 px (provet mot det första bygget fällde just det).
+   - .pimg-slide får overflow:hidden för pekskärmar, där rutorna står sida vid
+     sida i svepet: annars täcker nästa bilds kant 3 px av den som visas.
+   - Regeln gäller från 1180 px, där sidan är fast bred (samma gräns som
+     `sizes` i lib/bild-sizes.ts). I smalare fönster följer rutan fönstret.
+   lib/bild-sizes.test.ts räknar talen (265, 259 och 3) ur den här filen och
+   fäller om mellanrummet, ramen eller sidans bredd ändras utan att de följer med. */
+.alla-prod .prodgrid{gap:38px 28px}
+@media(min-width:1180px){
+  .alla-prod .prodgrid .pimg-slide{overflow:hidden}
+  .alla-prod .prodgrid .prod:not(.auction-card):not(.blogg-kort) .pimg img{width:265px!important;height:265px!important;max-width:none!important;left:calc((100% - 265px)/2)!important;top:calc((100% - 265px)/2)!important;right:auto!important;bottom:auto!important}
+}
 @media(max-width:900px){.alla-prod .prodgrid{grid-template-columns:repeat(3,1fr);gap:28px 20px}}
 @media(max-width:760px){.alla-prod .prodgrid{grid-template-columns:repeat(2,1fr);gap:24px 16px}}
 /* Mobil: listsidornas rutnät (ShopBrowser: kategorier, sök, Alla produkter,

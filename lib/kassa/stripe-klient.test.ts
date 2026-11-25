@@ -12,6 +12,7 @@ import {
   BETALFALT,
   KLAR_VANTA_MS,
   RAM_VANTA_MS,
+  FORTSATT_SOKVAG,
   RETUR_SOKVAG,
   SPARAD_MS,
   STRIPE_JS,
@@ -25,6 +26,7 @@ import {
   fortsattAdress,
   klarBeslut,
   klarnaRuta,
+  medFortsatt,
   oppenText,
   ramenStilla,
   returLage,
@@ -371,8 +373,10 @@ test("väntan på ordern slutar direkt när betalningen står öppen: sidan säg
 
 test("det sparade försöket: ålder och om kunden redan fått beskedet", () => {
   const nu = 1_800_000_000_000;
-  assert.deepEqual(sparatForsok({ avsiktId: "pi_1", cartId: "korg-1", at: nu - 5000 }, "korg-1", nu), { avsiktId: "pi_1", alderMs: 5000, sagt: false });
-  assert.deepEqual(sparatForsok({ avsiktId: "pi_1", cartId: "korg-1", at: nu - 5000, sagt: true }, "korg-1", nu), { avsiktId: "pi_1", alderMs: 5000, sagt: true });
+  assert.deepEqual(sparatForsok({ avsiktId: "pi_1", cartId: "korg-1", at: nu - 5000 }, "korg-1", nu), { avsiktId: "pi_1", alderMs: 5000, sagt: false, fortsatt: false });
+  assert.deepEqual(sparatForsok({ avsiktId: "pi_1", cartId: "korg-1", at: nu - 5000, sagt: true }, "korg-1", nu), { avsiktId: "pi_1", alderMs: 5000, sagt: true, fortsatt: false });
+  assert.deepEqual(sparatForsok({ avsiktId: "pi_1", cartId: "korg-1", at: nu - 5000, fortsatt: true }, "korg-1", nu), { avsiktId: "pi_1", alderMs: 5000, sagt: false, fortsatt: true });
+  assert.equal(sparatForsok({ avsiktId: "pi_1", cartId: "korg-1", at: nu, fortsatt: 1 }, "korg-1", nu)?.fortsatt, false);
   // Bara true räknas: en sparad text eller etta är inte ett kvitto på att beskedet visats.
   assert.equal(sparatForsok({ avsiktId: "pi_1", cartId: "korg-1", at: nu, sagt: "ja" }, "korg-1", nu)?.sagt, false);
   // En klocka som går lite före ger aldrig en negativ ålder.
@@ -415,6 +419,51 @@ test("kassan visas med ett sparat försök: godkänt slutförs, öppet fortsätt
   assert.deepEqual(sparatBeslut({ status: 0, j: null }, farskt), { gor: "inget" });
   assert.deepEqual(sparatBeslut({ status: 502, j: null }, farskt), { gor: "inget" });
   assert.deepEqual(sparatBeslut({ status: 400, j: { ok: false, kod: "okand" } }, farskt), { gor: "inget" });
+});
+
+test("☠️ länken till Klarna erbjuds en gång per försök: efter ett tryck visar rutan bara betala på nytt (2026-11-25)", () => {
+  // En kund kom tillbaka till kassan två gånger på en halv minut med betalningen
+  // öppen hos Klarna och köpte aldrig. Samma länk en gång till är en återvändsgränd.
+  const oprovat = { alderMs: 60_000, sagt: false, fortsatt: false };
+  const provat = { alderMs: 60_000, sagt: false, fortsatt: true };
+  assert.deepEqual(sparatBeslut(OPPEN_SVAR, oprovat), { gor: "oppen", adress: KLARNA_ADRESS, hosKlarna: true, totalOre: 65900 });
+  assert.deepEqual(sparatBeslut(OPPEN_SVAR, provat), { gor: "oppen", adress: null, hosKlarna: true, totalOre: 65900 });
+  // Rutan står kvar (kunden ska veta att inget dragits), utan knapp och med vägen framåt.
+  assert.equal(oppenText({ hosKlarna: true, kanFortsatta: false, plats: "kassa" }).text, "Inget har dragits. Välj ett betalsätt längre ner och betala på nytt.");
+  // Allt annat är som förut: en godkänd betalning slutförs, och tre timmar är tre timmar.
+  assert.deepEqual(sparatBeslut({ status: 200, j: { ok: true, orderId: "order-1" } }, provat), { gor: "tack", orderId: "order-1" });
+  assert.deepEqual(sparatBeslut({ status: 202, j: { ok: false, kod: "pagar" } }, provat), { gor: "slutfor" });
+  assert.deepEqual(sparatBeslut(OPPEN_SVAR, { ...provat, alderMs: OPPET_FORSOK_MS + 1 }), { gor: "inget" });
+
+  // Märket sätts på just det försöket, och allt annat i det sparade står kvar.
+  const nu = 1_800_000_000_000;
+  const sparad = { avsiktId: "pi_1", cartId: "korg-1", at: nu, sagt: true as const };
+  assert.deepEqual(medFortsatt(sparad, "pi_1"), { avsiktId: "pi_1", cartId: "korg-1", at: nu, sagt: true, fortsatt: true });
+  assert.equal(sparatForsok(medFortsatt(sparad, "pi_1"), "korg-1", nu)?.fortsatt, true);
+  // Ett annat försök, inget sparat eller skräp: inget att märka.
+  for (const v of [null, undefined, "pi_1", 7, {}, { avsiktId: "pi_2", cartId: "korg-1", at: nu }, { avsiktId: "pi_1", at: nu }, { avsiktId: "pi_1", cartId: "korg-1" }]) {
+    assert.equal(medFortsatt(v, "pi_1"), null, JSON.stringify(v));
+  }
+  assert.equal(medFortsatt({ avsiktId: "pi_1;x", cartId: "korg-1", at: nu }, "pi_1;x"), null);
+
+  // Kassan: trycket märker försöket och säger till servern, och stoppar aldrig länken.
+  const kassa = readFileSync(new URL("../../app/kassa/kassa.tsx", import.meta.url), "utf8");
+  assert.match(kassa, /<a className=\{s\.vantarKnapp\} href=\{oppenRuta\.adress\} onClick=\{fortsattTryckt\}>/);
+  const tryck = kassa.slice(kassa.indexOf("const fortsattTryckt = () => {"), kassa.indexOf("// Rutan står överst."));
+  assert.ok(tryck.length > 100, "fortsattTryckt hittades inte");
+  assert.match(tryck, /medFortsatt\(lasJson\("local", STRIPE_NYCKEL\), oppen\.avsiktId\)/);
+  assert.match(tryck, /skrivJson\("local", STRIPE_NYCKEL, marke\)/);
+  assert.match(tryck, /navigator\.sendBeacon\?\.\(FORTSATT_SOKVAG\)/);
+  assert.doesNotMatch(tryck, /preventDefault|stopPropagation|setOppen|await /);
+  // En ny betalning börjar utan märket: den får sin egen länk.
+  assert.match(kassa, /skrivJson\("local", STRIPE_NYCKEL, \{ avsiktId: j\.avsiktId, cartId, at: Date\.now\(\) \}\);/);
+
+  // Rutten skriver en loggrad med webbläsarens sort, och rör varken kroppen eller betalningen.
+  assert.equal(FORTSATT_SOKVAG, "/api/kassa/stripe/fortsatt");
+  const rutt = readFileSync(new URL("../../app/api/kassa/stripe/fortsatt/route.ts", import.meta.url), "utf8").replace(/^\s*\/\/.*$/gm, "");
+  assert.match(rutt, /console\.info\(`\[kassa\] stripe fortsätter öppen betalning \[\$\{webblasarsort\(req\.headers\.get\("user-agent"\)\)\}\]`\)/);
+  assert.match(rutt, /status: 204/);
+  assert.doesNotMatch(rutt, /req\.json|req\.text|avsikt|pi_|stripeKassa|cookies/);
 });
 
 test("rutan för en öppen betalning: säger att inget dragits, och knappen heter aldrig Fortsätt till Klarna", () => {

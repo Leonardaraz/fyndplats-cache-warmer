@@ -84,22 +84,59 @@ test("☠️ rutornas mått på datorn är layoutens: ändras CSS:en ska bildbre
   for (const b of [KORT_DATOR, HJALTE_DATOR]) assert.ok(Number.isInteger(b), `${b} är inte ett heltal: då kan filen aldrig bli exakt`);
 });
 
-test("☠️ varje rutnät med produktkort har samma mellanrum i sidled på datorn", () => {
-  // /alla-produkter och /rea hade 28 px, och kortets bild blev 259 px i stället
-  // för 265. Chrome återanvänder en bredare fil som redan ligger i minnet, så
-  // ett kort man sett på en kategorisida ritades med 265 px i en ruta på 259:
-  // en fil som nästan passar, det suddigaste som finns (mätt 2026-11-25).
-  assert.equal(KORT_GAP_LUFTIG, KORT_GAP, ".alla-prod .prodgrid ska ha grundens mellanrum i sidled");
+test("☠️ /alla-produkter och /rea: luftigt rutnät, och bilden ritas ändå pixel för pixel i kortets fil", () => {
+  // Leonard 2026-11-25: de två sidorna ska ha sina 28 px i sidled. Bildrutan är
+  // då 259 px, och kortets fil 265. Skalas filen ned till rutan blir den
+  // suddig (2 % för bred: 93 % av den gamla bildens kantskärpa), och en egen
+  // fil på 259 px återanvänds inte av Chrome när 265-filen redan ligger i
+  // minnet. Därför ritas bilden i sin egen storlek och rutan skär bort kanten.
+  assert.equal(KORT_GAP_LUFTIG, 28, ".alla-prod .prodgrid ska ha 28 px i sidled");
+  const ruta = (SIDA - MARGINAL - 3 * KORT_GAP_LUFTIG) / 4 - 2 * KORT_RAM;
+  assert.equal(ruta, 259);
+  // Kanten som skärs bort är ett helt antal pixlar på var sida: annars hamnar
+  // bilden mellan två pixlar, och en halv pixel fel är också en omskalning.
+  const kant = (KORT_DATOR - ruta) / 2;
+  assert.equal(kant, 3);
+  assert.ok(Number.isInteger(kant) && kant > 0 && kant / KORT_DATOR < 0.02, "högst 2 % av bilden skärs bort i en kant");
+  const regler = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  const m = regler.match(/@media\(min-width:(\d+)px\)\{\s*\.alla-prod \.prodgrid \.pimg-slide\{overflow:hidden\}\s*\.alla-prod \.prodgrid \.prod:not\(\.auction-card\):not\(\.blogg-kort\) \.pimg img\{([^}]*)\}\s*\}/);
+  assert.ok(m, "regeln som ritar bilden i sin egen storlek saknas i app/globals.css");
+  // Samma gräns som `sizes`: där sidan blir fast bred.
+  assert.equal(Number(m[1]), FAST_FRAN);
+  // next/image sätter bredd, höjd och läge som inline-stil: allt måste vara !important.
+  assert.equal(
+    m[2],
+    `width:${KORT_DATOR}px!important;height:${KORT_DATOR}px!important;max-width:none!important;left:calc((100% - ${KORT_DATOR}px)/2)!important;top:calc((100% - ${KORT_DATOR}px)/2)!important;right:auto!important;bottom:auto!important`,
+  );
+  // ☠️ max-width:none: grundregeln img{max-width:100%} höll annars bilden på rutans bredd,
+  // och den ritades 259 px bred, förskjuten 3 px (provet mot det första bygget fällde det).
+  assert.match(regler, /\nimg\{display:block;max-width:100%\}/);
+  // Rutan skär: utan overflow:hidden hade bilden stuckit ut över ramen.
+  assert.match(regler, /\n\.prod \.pimg\{aspect-ratio:1;position:relative;overflow:hidden;/);
+  // Bara de två sidorna har klassen, och bara de får regeln.
+  const sidor: string[] = [];
+  const ga = (mapp: string) => {
+    for (const namn of readdirSync(join(ROT, mapp))) {
+      const rel = join(mapp, namn);
+      if (statSync(join(ROT, rel)).isDirectory()) ga(rel);
+      else if (/\.tsx$/.test(namn) && /className="alla-prod"/.test(las(rel))) sidor.push(rel.replace(/\\/g, "/"));
+    }
+  };
+  ga("app");
+  ga("components");
+  assert.deepEqual(sidor.sort(), ["app/alla-produkter/page.tsx", "app/rea/page.tsx"]);
   // Ingen annan regel ger rutnätet ett eget mellanrum på datorn. Reglerna för
   // smala fönster står inne i @media(max-width:…) och får ha sina egna.
-  const utanMedia = css.replace(/\/\*[\s\S]*?\*\//g, "").replace(/@media\([^)]*max-width[^{]*\{(?:[^{}]|\{[^{}]*\})*\}/g, "");
+  const utanMedia = regler.replace(/@media\([^)]*max-width[^{]*\{(?:[^{}]|\{[^{}]*\})*\}/g, "");
   const egna = [...utanMedia.matchAll(/([^{}]*\.prodgrid[^{}]*)\{([^}]*)\}/g)]
-    .filter((m) => /(?:^|;)\s*(?:gap|column-gap|grid-template-columns)\s*:/.test(m[2]))
-    .map((m) => `${m[1].trim()}{${m[2]}}`);
+    .filter((x) => /(?:^|;)\s*(?:gap|column-gap|grid-template-columns)\s*:/.test(x[2]))
+    .map((x) => `${x[1].trim()}{${x[2]}}`);
   assert.deepEqual(egna, [
     ".prodgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:34px 20px}",
-    ".alla-prod .prodgrid{gap:38px 20px}",
+    ".alla-prod .prodgrid{gap:38px 28px}",
   ]);
+  // Kortet har en enda sizes-sträng: den luftiga sidan ber om samma fil som alla andra.
+  assert.equal(kortSizes.length, 1);
 });
 
 test("☠️ srcset har rutornas bredder i 1x och 2x, och next.config.ts har samma listor", () => {
@@ -183,8 +220,12 @@ test("/alla-produkter och /rea: samma kort, men tre i bredd mellan 761 och 900 p
   for (const vw of [761, 800, 900]) assert.ok(visad(s, vw) >= (vw - MARGINAL - 2 * 20) / 3, `tre kort ${vw}`);
   // Två kort med 16 px mellanrum: rutan är 2 px bredare än strängen säger (0,7 %).
   for (const vw of [600, 760]) assert.ok((vw - MARGINAL - 16) / 2 - visad(s, vw) <= 2, `två kort ${vw}`);
-  // Fyra kort från 901 px: samma ruta som på alla andra sidor.
-  for (const vw of [901, 1000, 1179]) nara(visad(s, vw), (vw - MARGINAL - 3 * KORT_GAP_LUFTIG) / 4 - 2 * KORT_RAM, `fyra kort ${vw}`);
+  // Fyra kort från 901 px, med 28 px mellanrum: rutan är 6 px smalare än
+  // strängen säger. Filen blir aldrig för liten, och högst 6 px för stor.
+  for (const vw of [901, 1000, 1179]) {
+    const ruta = (vw - MARGINAL - 3 * KORT_GAP_LUFTIG) / 4 - 2 * KORT_RAM;
+    assert.ok(visad(s, vw) >= ruta && visad(s, vw) - ruta <= 6.01, `fyra kort ${vw}: ${visad(s, vw)} mot ${ruta}`);
+  }
 });
 
 test("telefonen får aldrig en för liten fil, och en lättare än förut", () => {

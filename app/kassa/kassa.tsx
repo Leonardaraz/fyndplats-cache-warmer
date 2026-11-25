@@ -46,10 +46,12 @@ import { ADRESS_FALT, LAN, adressFranStripe, epostDoman, epostFelText, epostFelU
 import { visaTomKorg } from "../../lib/kassa/vy";
 import { epostForslag } from "../../lib/kassa/epost-forslag";
 import {
+  FORTSATT_SOKVAG,
   RETUR_SOKVAG,
   STRIPE_NYCKEL,
   betalfelText,
   fragaKlar,
+  medFortsatt,
   oppenText,
   sparadAvsikt,
   sparatBeslut,
@@ -1231,6 +1233,21 @@ export function Kassa({
     oppen && oppen.cartId === cartId && !skickar && !klarVantar
       ? { ...oppenText({ hosKlarna: oppen.hosKlarna, kanFortsatta: oppenAdress !== null, plats: "kassa" }), adress: oppenAdress }
       : null;
+  // Trycket på länken till Klarna. Försöket märks, så att länken erbjuds en gång
+  // (sparatBeslut): kommer kunden tillbaka med betalningen fortfarande öppen
+  // visar rutan bara "betala på nytt". Servern får en loggrad utan betalningens
+  // id, så att det går att se efteråt om kunder trycker och vad som händer sedan.
+  // ☠️ Trycket stoppas aldrig här: länken ska alltid ta kunden till Klarna.
+  const fortsattTryckt = () => {
+    if (!oppen) return;
+    const marke = medFortsatt(lasJson("local", STRIPE_NYCKEL), oppen.avsiktId);
+    if (marke) skrivJson("local", STRIPE_NYCKEL, marke);
+    try {
+      navigator.sendBeacon?.(FORTSATT_SOKVAG);
+    } catch {
+      /* loggraden är inte värd ett fel */
+    }
+  };
   // Rutan står överst. Kommer sidan tillbaka ur webbläsarens minne står kunden
   // längst ner vid knappen: då rullas rutan fram, annars syns den aldrig.
   const oppenRef = useRef<HTMLDivElement>(null);
@@ -1513,7 +1530,7 @@ export function Kassa({
               <span>{oppenRuta.text}</span>
             </div>
             {oppenRuta.adress ? (
-              <a className={s.vantarKnapp} href={oppenRuta.adress}>
+              <a className={s.vantarKnapp} href={oppenRuta.adress} onClick={fortsattTryckt}>
                 {oppenRuta.knapp} <span aria-hidden="true">→</span>
               </a>
             ) : null}
