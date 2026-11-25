@@ -236,23 +236,35 @@ img{display:block;max-width:100%}
 .promo b.klarna-mark{color:#FFB3C7}
 
 header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-/* Sidhuvudet glider undan (Leonard 2026-11-24): mobilens sidhuvud med sökraden
-   är 133 px av skärmen. Scrollar man ner glider det upp ur bild, och så fort
-   man scrollar upp kommer det tillbaka (components/huvud-gom.tsx sätter
-   data-huvud på <html>, regeln står i lib/huvud-gom.ts). Bara transform, så
-   att sidan under aldrig flyttar sig. Framme står det utan transform: en
-   transform hade gjort sidhuvudet till ram för allt som är fäst mot skärmen
-   inuti det. 3 px extra tar med kanten och den glödande linjen under. Glidet
-   in är lite längre än glidet ut, och bromsar in mjukt.
-   Datorns sidhuvud står kvar: där fäster produktsidans bildgalleri under det,
-   och menyn ska gå att nå med musen utan att först scrolla upp. */
-@media(max-width:900px){
-  .sidhuvud{transition:transform .32s cubic-bezier(.2,.8,.2,1)}
-  html[data-huvud="gomt"] .sidhuvud{transform:translateY(calc(-100% - 3px));transition:transform .26s cubic-bezier(.4,0,.7,.2)}
-  /* Aldrig gömt medan det används: sökläget, och tangentbordets fokus i sidhuvudet. */
-  html[data-huvud="gomt"][data-sok-lage] .sidhuvud,html[data-huvud="gomt"] .sidhuvud:focus-within{transform:none}
+/* Sidhuvudet följer fingret (Leonard 2026-11-24): mobilens sidhuvud med sökraden
+   är 133 px av skärmen. Scrollar man ner följer det med sidan upp ur bild, och
+   så fort man scrollar upp följer det med tillbaka.
+   ☠️ Första försöket bytte läge vid en gräns och lät en övergång göra resten.
+   På Leonards iPhone såg det ut som ett hopp: en övergång har sin egen fart,
+   och den är aldrig fingrets. Nu gör webbläsarens scrollning rörelsen.
+   Sidhuvudet (position:sticky) ligger i omslaget .huvudspar, och ett fäst
+   element kan inte lämna sitt omslag: när omslagets nederkant når sidhuvudets
+   följer det med sidan. components/huvud-gom.tsx sätter omslagets höjd när
+   rörelsen vänder, och lika mycket negativ marginal, så att sidan under aldrig
+   flyttar sig (räkningen: lib/huvud-gom.ts).
+   Utan skriptet, över 760 px och i sökläget är omslaget display:contents: då
+   finns det inte för layouten, och sidhuvudet sitter fäst överst som förut.
+   Bara telefonen (760 px, samma gräns som produktsidans mobilläge): över den
+   fäster produktsidans bildgalleri under sidhuvudet (--ankare), och ett
+   sidhuvud som försvann lämnade en tom remsa ovanför bilden.
+   På telefonen är sidhuvudet ogenomskinligt: den suddiga bakgrunden ritades
+   om för varje bildruta medan sidhuvudet rörde sig över sidan.
+   overflow-anchor: omslaget ändrar höjd, och ska aldrig vara det webbläsaren
+   håller sidan still mot. */
+.huvudspar{display:contents}
+@media(max-width:760px){
+  .sidhuvud{background:#fff;-webkit-backdrop-filter:none;backdrop-filter:none}
+  .huvudspar[data-spar]{display:block;pointer-events:none;overflow-anchor:none}
+  .huvudspar[data-spar]>.sidhuvud{pointer-events:auto;will-change:transform}
+  /* Sökläget: sidhuvudet står fäst överst som förut, och inget glid pågår. */
+  html[data-sok-lage] .huvudspar[data-spar]{display:contents}
+  html[data-sok-lage] .huvudspar>.sidhuvud{transform:none!important;transition:none!important}
 }
-@media(max-width:900px) and (prefers-reduced-motion:reduce){.sidhuvud{transition:none}}
 .hrow{display:flex;align-items:center;gap:20px;padding:15px 0}
 .brand{display:flex;align-items:center;gap:10px;min-height:44px;font-weight:800;font-size:var(--text-xl);letter-spacing:-.02em}
 .mark{width:34px;height:34px;flex:0 0 auto}
@@ -4221,7 +4233,8 @@ a.om-fakta-kort:hover b,a.om-fakta-kort:focus-visible b{color:var(--brand)}
    tagit över. En webbläsare utan :has() (äldre än 2022) visar butikens delar
    som förut, och kassan fungerar ändå. */
 body:has([data-kassa-sida])>.promo,
-body:has([data-kassa-sida])>.sidhuvud,
+body:has([data-kassa-sida])>.huvudspar,
+body:has([data-kassa-sida])>.huvudspar>.sidhuvud,
 body:has([data-kassa-sida])>footer,
 body:has([data-kassa-sida])>.backtotop{display:none}
 body:has([data-kassa-sida]){background:var(--surface-1)}
