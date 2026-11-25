@@ -1,0 +1,68 @@
+/* GoWish önskelistknapp under köpraden (components/gowish-knapp.tsx, Leonard
+   2026-11-25). GoWish egen stilmall laddas inte: den hämtar ett typsnitt från
+   en fjärde part och ikoner från deras lagring på varje sidvisning
+   (lib/gowish.ts). Knappen är den grå varianten i deras guide, ritad i
+   butikens form: samma ram, hörn och höjd som hjärtat bredvid köpknappen.
+
+   Samma klass sitter på en länk (utan samtycke till alla cookies, och i
+   serverns HTML) och på en knapp (med samtycke). De har samma mått, och höjden
+   finns från början (min-height), så sidan flyttar sig varken när de byts
+   eller när skriptet kommer. */
+.pdp-gowish{margin-top:10px}
+.pdp-gowish .gowish-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;max-width:404px;min-height:46px;margin:0;padding:0 18px;
+  border:1.5px solid #D8CFC5;border-radius:var(--r-md);background:#fff;color:var(--ink);
+  font:inherit;font-size:var(--text-sm);font-weight:600;line-height:1.2;text-align:center;text-decoration:none;cursor:pointer;
+  transition:border-color .15s,background .15s}
+.pdp-gowish .gowish-btn svg{flex:none;display:block;color:#0D1E33}
+.pdp-gowish .gowish-btn:hover{border-color:#0D1E33;background:#F6F8FB}
+.pdp-gowish .gowish-btn:active{background:#EEF2F7}
+.pdp-gowish .gowish-btn:focus-visible{outline:none;box-shadow:var(--e-ring)}
+/* Telefonen: köpknappen går kant i kant där, och knappen följer den. 48 px för tummen. */
+@media(max-width:760px){
+  .pdp-gowish .gowish-btn{max-width:none;min-height:48px}
+}
+
+/* GoWish ruta. Skriptet lägger själv in en grundstil när rutan öppnas
+   (#gowish-iframe-style). Reglerna här är resten av deras stilmall, ordagrant:
+   på telefon sitter rutan i skärmens nederkant, och på en låg skärm blir den
+   lägre. Ordningen är densamma som hos dem: de här först, skriptets efter. */
+.gowish-dialog{display:flex;justify-content:center;align-items:center;background-color:rgba(23,34,50,.25);border-width:0}
+.gowish-iframe{height:615px;border:none;margin:0 auto;overflow:hidden;border-radius:30px}
+@media screen and (max-width:767px){
+  .gowish-dialog{border-width:5px;border-color:rgba(0,153,187,0);border-bottom-width:5px;background-color:rgba(0,153,187,0);height:auto;margin-top:0}
+  .gowish-modal-container{width:100vw;padding-top:20px}
+  .gowish-iframe{position:fixed;bottom:0;left:50%;transform:translateX(-50%);margin:0;border-radius:0}
+}
+@media screen and (min-width:768px){
+  .gowish-dialog{min-width:100%;min-height:100%;height:100%;text-align:center}
+  .gowish-iframe{border-radius:30px;max-width:824px}
+}
+@media screen and (max-height:770px){.gowish-iframe{max-height:600px}}
+@media screen and (max-height:630px){.gowish-iframe{max-height:520px}}
+@media screen and (max-height:570px){.gowish-iframe{max-height:450px}}
+@media screen and (max-height:500px){.gowish-iframe{max-height:400px}}
+@media screen and (max-height:430px){.gowish-iframe{max-height:380px}}
+@media screen and (max-height:370px){.gowish-iframe{max-height:330px}}
+
+/* ☠️ Två egna rättelser, för skärmar som rutan inte ryms på.
+
+   LÅG SKÄRM. Skriptets grundstil sätter min-height:615px på rutan, och då
+   biter inte deras max-height ovan: på en skärm lägre än 665 px hamnade rutans
+   topp, med krysset, ovanför skärmen (mätt 2026-11-25 i 375 × 600, där krysset
+   låg 13 px ovanför kanten). Bakåt stänger inte heller rutan, så kunden hade
+   bara en remsa nedtill att trycka på. Här släpps golvet och rutan får ett tak:
+   skärmens höjd minus 50 px (20 upptill och 30 nedtill, som i deras stil).
+   GoWish sida sätter själv rutans höjd med ett meddelande (400 px för
+   inloggningen); taket gäller också den höjden, och innehållet rullar inuti.
+
+   SMAL SKÄRM. Rutan är 370 px bred på telefon, också på en skärm som är 360
+   eller 320. Den får högst skärmens bredd minus 16 px.
+
+   Två klasser i väljaren, så att reglerna vinner över skriptets stil, som
+   läggs in i sidan efter den här filen. */
+@media screen and (max-height:665px){
+  .gowish-dialog .gowish-iframe{min-height:0;max-height:calc(100vh - 50px);max-height:calc(100dvh - 50px)}
+}
+@media screen and (max-width:400px){
+  .gowish-dialog .gowish-iframe{min-width:0;max-width:calc(100vw - 16px)}
+}

@@ -2,6 +2,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { forvarmKundvagn, useCart } from "./cart";
 import { FavoritKnapp } from "./wishlist";
+import { GowishKnapp } from "./gowish-knapp";
 import { FAVORITBILD_KANT } from "../lib/favoriter";
 import { Gallery } from "./gallery";
 import type { ProduktVideo } from "../lib/produkt-video";
@@ -941,6 +942,12 @@ export function ProductView({
               bild={images[0] ? tightFillUrl(images[0], FAVORITBILD_KANT, FAVORITBILD_KANT) : undefined}
             />
           </div>
+
+          {/* GoWish önskelista (components/gowish-knapp.tsx). Bara när varan
+              finns i lager: en önskan om en slutsåld vara skickar den som ska
+              köpa presenten till en sida utan köpknapp. Är bara det valda
+              alternativet slut står knappen kvar, varan går att köpa. */}
+          {inStock && <GowishKnapp slug={slug} />}
 
           {!buyable && productId && <RestockForm productId={productId} />}
 

@@ -6397,6 +6397,163 @@ farten och lita på det.
 - Chrome på Android och Samsungs webbläsare är inte provade på riktiga
   telefoner, och inte Safari före 16.4 (laddsidan i provet kräver 16.4).
 
+## GoWish: önskelistknappen på produktsidan (Leonard 2026-11-25)
+
+Leonard har skrivit på ett samarbetsavtal med GoWish, en tjänst för
+önskelistor. Första steget i deras onboarding är knappen ("Wishbutton") på
+produktsidan. Guiden är https://gowish.com/sv/button-installation: ett skript,
+en stilmall och en knapp med ett av deras id:n. Uppdraget kom som en färdig
+text ur en annan chatt: knappen bara på produktsidor, nära köpknappen, på
+svenska; skript och stil bara där, utan att sidan blir långsammare eller
+hoppar; rätt vara och en ren länk; besked om kakor; ingen spårning och inget
+produktflöde än.
+
+Koden: `lib/gowish.ts` (värdena och adresserna), `components/gowish-knapp.tsx`
+(knappen), `app/produkt/[slug]/gowish.css` (stilen) och en rad i
+`components/productview.tsx`. Prov: `lib/gowish.test.ts` (24).
+
+### Vad GoWish skript gör (läst 2026-11-25)
+
+`gowish-iframe.js`, 19 811 tecken, ändrat hos dem 2026-11-12 (sha256
+`42d3ab66…e7f9`). Det ligger i deras lagring med 60 sekunders cache och ändras
+utan förvarning.
+
+- **När det laddas** lägger det lyssnare på dokumentet (klick, meddelanden,
+  synlighet, bakåt, Escape) och sätter `window.GoWish`. Det läser ingenting ur
+  sidan, gör inga anrop och sätter inga kakor.
+- **Vid klick** på en `<button>` med ett av fem id:n (också med en siffra
+  efter) läser det `data-region` ur skript-taggen, som det hittar på id:t
+  `gowish-iframescript`, och `data-producturl` ur knappen.
+- ☠️ **Utan `data-producturl` skickar det hela `window.location.href`**, med
+  utm, gclid och `?variant=`. Knappen bär därför alltid varans kanoniska adress
+  (`gowishProduktadress`), samma som sidans canonical och og:url.
+- ☠️ **Utan `data-region="global"` väljer det Danmark**: onskeskyen.dk och
+  appens schema `onskeskyen://`.
+- **Det skickar bara adressen.** Namn, bild och pris hämtar GoWish egna
+  servrar från sidan på den adressen, och resultatet visas först när kunden
+  loggat in hos dem. Skriptet läser varken og-taggar eller JSON-LD.
+- **På dator** öppnar det en `<dialog>` med en iframe till
+  `gowish.com/quick-add?source=button&crawlerTarget=<adressen>` och lägger en
+  egen post i historiken. **På telefon** försöker det först öppna appen
+  (`gowish://quick-add…`) och laddar sedan samma ruta om appen inte tog över.
+
+### Två lägen, efter samtycket
+
+Butikens regel för det som hämtas från en tredje part gäller här också, som
+för Trustpilots knapp (`components/trustpilot-insamling.tsx`) och Klarnas
+modul:
+
+| | Utan samtycke till alla cookies | Med samtycke |
+|---|---|---|
+| Elementet | en länk, `<a class="gowish-btn">`, till GoWish egen sida i en ny flik | GoWish knapp, `<button id="gowishWhiteButton" class="gowish-btn">` |
+| Hämtas från GoWish före klick | ingenting | skriptet, efter att sidan laddat klart (`strategy="lazyOnload"`) |
+| Klicket | GoWish sida med varan öppnas i en ny flik | GoWish ruta ovanpå sidan, på telefon först appen |
+
+- **Servern skickar länken till alla.** Samtycket läses i webbläsaren
+  (`useMarketingConsent`), så sidan är densamma i ISR-cachen för varje besökare.
+  Länken och knappen delar klass och mått: bytet flyttar ingenting.
+- **Godkänner kunden alla cookies medan sidan är öppen** blir länken GoWish
+  knapp och skriptet hämtas, utan omladdning. Ändras valet tillbaka blir det
+  en länk igen, och ingen knapp med GoWish id finns kvar för skriptet.
+- ☠️ **Anropa aldrig `window.GoWish.createIframe` när skriptet finns.** Det
+  lyssnar själv på klicket; ett eget anrop öppnar rutan och skriptets lyssnare
+  stänger den i samma klick. Knappens egen `onClick` gör bara något när
+  skriptet saknas (blockerat av ett tillägg, eller klick före laddningen): då
+  öppnas samma sida som länken, så att knappen aldrig är död.
+- **Sekretesspolicyn** (`app/sekretesspolicy/page.tsx`) har en punkt om GoWish
+  med båda lägena, intill Trustpilots.
+
+### Knappen och rutan
+
+- **Under köpraden**, lika bred som köpknappen och hjärtat tillsammans, med
+  butikens ram, hörn och typsnitt. Det är den grå varianten i GoWish guide
+  (`gowishWhiteButton`) med deras moln, texten "Lägg till i GoWish". Bara när
+  varan finns i lager (`inStock`): en önskan om en slutsåld vara skickar den
+  som ska köpa presenten till en sida utan köpknapp.
+- ☠️ **GoWish stilmall laddas inte.** `gowish-iframe.css` börjar med
+  `@import` av typsnittet Geist från en fjärde part (fonts.cdnfonts.com) och
+  pekar ut ikoner i deras lagring, på varje sidvisning och i vägen för
+  sidans rendering. Knappens stil är butikens egen, och molnet står i
+  komponenten.
+- **Rutans regler är GoWish egna**, ordagrant ur deras stilmall: på telefon
+  sitter rutan i skärmens nederkant. Skriptet lägger dessutom in en egen
+  grundstil när rutan öppnas (`#gowish-iframe-style`).
+- ☠️ **Två egna rättelser för skärmar som rutan inte ryms på.** Skriptets
+  grundstil sätter `min-height:615px`, och då biter inte deras `max-height`:
+  i 375 × 600 låg rutans topp, med krysset, 13 px ovanför skärmen. Under
+  665 px höjd släpps golvet och rutan får taket skärmens höjd minus 50 px.
+  Under 400 px bredd får den högst skärmens bredd minus 16 px (den är annars
+  370 px bred också på en skärm som är 360 eller 320). Reglerna har två
+  klasser i väljaren, för skriptets stil läggs in efter sidans.
+
+### Mätt i Chromium
+
+Mot det lokala bygget, med GoWish riktiga skript och riktiga ruta:
+
+- **Före klick, utan samtycke:** inget anrop till GoWish och inga kakor.
+  **Med samtycke:** ett anrop (skriptet, efter sidans load), inga kakor och
+  ingen lagring.
+- **Efter klick** (rutan öppen i tolv sekunder, inget tryck i den): GoWish
+  sätter tre egna kakor på `.gowish.com` (`referer`, `source`, `session`) och
+  anropar sina egna tjänster. Butikens kakor är orörda. ☠️ Mätt från en
+  adress i USA: GoWish väljer regler för samtycke efter besökarens land, så
+  en svensk besökare kan mötas av deras egen ruta om kakor.
+- **Rutan** får varans kanoniska adress från en sida öppnad med
+  `?utm_source=…&gclid=…`, och från en vara med ett val gjort (`?variant=`
+  i adressfältet). Escape, klick utanför och krysset stänger den; sidans
+  adress, rullning och val står kvar.
+- **Sidbyte mellan varor utan omladdning:** skriptet hämtas en gång, en
+  skript-tagg, en knapp, och knappen bär den nya varans adress.
+- **Tio skärmstorlekar** från 320 × 568 till 1 440 × 900: rutans topp syns och
+  rutan ryms i alla.
+- **Förskjutning vid laddning** (CLS): 0 på datorn i båda lägena, 0,0015 på
+  telefonen i båda (kom från en annan del av sidan). Länken och knappen har
+  samma mått och samma plats under köpraden.
+- axe (WCAG 2.1 A och AA) på knappen i båda lägena: inga fel.
+
+### ☠️ Tre saker i GoWish eget skript, som inte går att rätta härifrån
+
+- **Bakåt stänger inte rutan.** Skriptet lägger en post i historiken för att
+  bakåt ska stänga, men GoWish sida i rutan lägger egna poster ovanpå och
+  skickar sig själv vidare till inloggningen varje gång. Mätt: sex tryck på
+  bakåt, rutan öppen efter alla, och sidan under orörd. Krysset, Escape och
+  ett tryck utanför fungerar.
+- **På iPhone utan GoWish app** visar Safari en ruta om ogiltig adress innan
+  GoWish ruta laddas. Det står i skriptets egna kommentarer; det är följden av
+  att appen provas först. Inte sett här: det kräver en riktig iPhone.
+- **Rutans iframe har ingen titel**, vilket axe anmärker på när rutan är
+  öppen. Den skapas av skriptet.
+
+### Vad GoWish robot får av produktsidan
+
+Bara läst ur sidans HTML, inte sett hos GoWish (deras ruta visar varan först
+efter inloggning):
+
+- `og:title`, `og:image`, `og:url` (kanonisk) och `og:description` finns på
+  varje vara. ☠️ Ingen pristagg (`product:price:amount`) finns.
+- JSON-LD: en vara utan val är `Product` med `offers.price` och
+  `priceCurrency` SEK. ☠️ En vara med val är `ProductGroup` med en `Product`
+  per variant under `hasVariant`, och gruppen har inget eget pris. Visar
+  GoWish inget pris för varor med val är det här skälet, och en pristagg i
+  `<head>` är rättelsen.
+- Sidan är densamma för roboten vilket val kunden än gjort: valet görs i
+  webbläsaren, sidan är ISR-cachad.
+
+### Inte gjort
+
+- **Spårning och produktflöde.** GoWish tekniska team kommer med kraven.
+  Ordern bekräftas på `/tack?orderId=…` (`app/tack/page.tsx`), dit kassan
+  (`/kassa`) skickar kunden. Sidan hämtar ordern från Wix
+  (`lib/wix-orders.ts`): ordernummer, rader med namn, antal och summa, frakt,
+  total och moms, e-post, leveransland och datum. Köpet mäts i dag därifrån
+  (`trackPurchase` i `components/thankyou.tsx`, med samtycke) och från motorns
+  order-webhook.
+- **Valet följer inte med i länken.** Länken är varans kanoniska, som
+  uppdraget säger. Butikens egna länkar bär valet (`?variant=`), så att en
+  kopierad länk öppnar samma val; en fråga till GoWish är om önskan ska göra
+  det också.
+- **Safari**, på iPhone och Mac, och appens väg på en riktig telefon.
+
 ## Klarna på telefonen: kunden kom tillbaka utan godkänd betalning och fick börja om (2026-11-24)
 
 En kund ringde Leonard: han signerade med BankID i Klarna-appen, appen bad
