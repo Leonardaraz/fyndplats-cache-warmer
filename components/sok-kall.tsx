@@ -26,7 +26,7 @@ import type { ListProduct } from "../lib/products";
 import { matchaKategorier, rankaMedForslag, varanHeterSa, type Kategoridata } from "../lib/search";
 import { laddaSokIndex, sokKategorierHamtade, type SokTraff } from "../lib/sok-index";
 import { kandidater, medForsok } from "../lib/sok-kall";
-import { billigastForst, kopbaraForst } from "../lib/sok-ordning";
+import { billigastForst, kopbaraForst, namnForst } from "../lib/sok-ordning";
 import { harPris, lagstaPris, tolkaPris, villHaBilligast } from "../lib/sok-pris";
 import { populartNu } from "../lib/sok-tom";
 import { registreradeKategorier, type SokKategori } from "../lib/sok-kategorier";
@@ -47,6 +47,7 @@ const INDEX_VANTAN_MS = 5_000;
 // Varornas kategorier står i sökindexet (radens `k`), slagna upp på slug.
 // Sparade per index, så att de inte räknas om för varje sökning.
 const kategorierPerSlug = new WeakMap<object, Map<string, number[]>>();
+const nycklarPerSlug = new WeakMap<object, Map<string, string[]>>();
 
 /**
  * Kategorierna för sökningen, ur sökindexet: samma tillhörighet som sökrutan
@@ -63,7 +64,16 @@ function kategoridata(index: SokTraff[] | null): Kategoridata<ListProduct> | und
     kategorierPerSlug.set(index, perSlug);
   }
   const uppslag = perSlug;
-  return { kat, av: (p) => uppslag.get(p.slug) };
+  // Namnnycklarna står också i indexet (radens `x`), på de varor som har ett
+  // namn hos en prisjämförelsesajt (lib/search.ts, namnnyckel).
+  let nycklar = nycklarPerSlug.get(index);
+  if (!nycklar) {
+    nycklar = new Map();
+    for (const h of index) if (h.x) nycklar.set(h.s, h.x);
+    nycklarPerSlug.set(index, nycklar);
+  }
+  const namnuppslag = nycklar;
+  return { kat, av: (p) => uppslag.get(p.slug), nycklar: (p) => namnuppslag.get(p.slug) };
 }
 
 export function SokKall({ q, kategorier, popularaKategorier }: { q: string; kategorier: SokKategori[]; popularaKategorier: SokKategori[] }) {
@@ -101,14 +111,18 @@ export function SokKall({ q, kategorier, popularaKategorier }: { q: string; kate
         const { utfall: u, visar } = rankaMedForslag(kandidater(lista, slutsalda), (p) => p.name, prisfraga.fraga, kategoridata(slutsalda));
         // "soffa billigast": varorna som heter så, billigast först (som på servern).
         const billigast = villHaBilligast(prisfraga.fraga) && u.hela === undefined;
-        const ordnade = billigast ? billigastForst(u.traffar, (p) => varanHeterSa(p.name, prisfraga.fraga), lagstaPris, u.hemma) : u.traffar;
         // De köpbara först, relevansordningen kvar inom varje grupp: samma regel
-        // som servern och sökrutan (lib/sok-ordning.ts).
-        const traffar = kopbaraForst(ordnade, (p) => !p.inStock);
+        // som servern och sökrutan (lib/sok-ordning.ts). Varan som heter som
+        // sökningen hos en prisjämförelsesajt står kvar först (namnForst).
+        const { traffar, namn } = namnForst(u.traffar, u.namn, (resten) => kopbaraForst(
+          billigast ? billigastForst(resten, (p) => varanHeterSa(p.name, prisfraga.fraga), lagstaPris, u.hemma) : resten,
+          (p) => !p.inStock,
+        ));
         setSvar({
           q,
           data: {
             traffar, strukna: u.strukna, utan: u.utan, hela: u.hela, visar, liknande: u.liknande === true, inte: u.inte,
+            ...(namn > 0 ? { namn } : {}),
             billigast: billigast && traffar.length > 1 ? (u.hemma ? "kategori" : "namn") : undefined,
             // Kategorierna gäller ordet som visas; sidhuvudet har registrerat menyns.
             kategorier: visar ? matchaKategorier(visar, registreradeKategorier(), 3) : kategorier,

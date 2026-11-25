@@ -99,3 +99,25 @@ export function katalogensSokordning<T extends MedAlder>(katalog: readonly T[]):
   }
   return ut;
 }
+
+/**
+ * Varan som heter som sökningen hos en prisjämförelsesajt står kvar först
+ * (lib/search.ts, medNamntraff), också när den är slutsåld. `namn` är hur många
+ * av de första träffarna det gäller, och `ordna` är ordningen för resten (det
+ * köpbara först, eller billigast först).
+ *
+ * ☠️ DEN SOM SÖKER EN VARA PÅ DESS NAMN SKA SE DEN, också slutsåld: annars
+ * tror kunden att butiken inte har den. Märket "Slutsåld" säger resten.
+ * Regeln om det köpbara först gäller träffarna under.
+ *
+ * `behall` gallrar alla träffar (priset i sökningen). Svaret säger hur många
+ * av namnets varor som står kvar först.
+ */
+export function namnForst<T>(
+  traffar: readonly T[], namn: number | undefined, ordna: (resten: T[]) => T[], behall?: (x: T) => boolean,
+): { traffar: T[]; namn: number } {
+  const n = namn !== undefined && namn > 0 ? namn : 0;
+  const kvar = (lista: readonly T[]) => (behall ? lista.filter(behall) : [...lista]);
+  const forst = kvar(traffar.slice(0, n));
+  return { traffar: [...forst, ...ordna(kvar(traffar.slice(n)))], namn: forst.length };
+}

@@ -5,6 +5,7 @@ import { BARA_I_UNDERKATEGORIN } from "../../../lib/bara-i-underkategorin";
 import { byggOrdforrad } from "../../../lib/search";
 import { kategoriRad, sokKategorier, varansKategorier } from "../../../lib/sok-begrepp";
 import { katalogensSokordning } from "../../../lib/sok-ordning";
+import { NAMNNYCKLAR } from "../../../lib/namnnycklar-data";
 
 // Lightweight product index for the search autocomplete: name / slug / image / price.
 // Cached and revalidated hourly so the dropdown filters instantly client-side after a
@@ -78,6 +79,11 @@ export async function GET() {
     p: listPris(p),
     ...(p.inStock ? {} : { o: 1 }),
     ...kategorierFor(p, kategorier),
+    // JÄMFÖRELSESAJTENS NAMN PÅ VARAN, SOM NYCKLAR (2026-11-25). Kunden som
+    // söker på det namn PriceRunner eller Prisjakt visar ska få varan först
+    // (lib/search.ts, namnnyckel). Raden bär bara enkelriktade summor, aldrig
+    // namnet, och bara de varor som har ett sådant namn får fältet.
+    ...(NAMNNYCKLAR[p.slug] ? { x: NAMNNYCKLAR[p.slug] } : {}),
   }));
   // DEN TOMMA RUTANS SÖKEXEMPEL FÖLJER MED I SAMMA RAD (2026-11-20). Rutan
   // visar "Sök till exempel" över de populära varorna, och orden kommer ur

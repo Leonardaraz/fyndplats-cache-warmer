@@ -170,6 +170,9 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
   // Sökningen (texten i rutan) vars träffar bara ligger nära i stavning: inget
   // namn har ordet, och listan säger det (lib/search.ts, `liknande`).
   const [liknandeFor, setLiknandeFor] = useState<string | null>(null);
+  // Sökningen vars första träffar är varan som heter så hos en
+  // prisjämförelsesajt, och hur många de är (lib/search.ts, medNamntraff).
+  const [namnFor, setNamnFor] = useState<{ q: string; antal: number } | null>(null);
   const [fortsattFor, setFortsattFor] = useState<string | null>(null);
   const uid = useId();
   const [popular, setPopular] = useState<Hit[]>([]);
@@ -306,6 +309,7 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
       setTotalt(0);
       setForslag([]);
       setVisarFor(null);
+      setNamnFor(null);
       setFortsattFor(null);
       return;
     }
@@ -315,6 +319,7 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
       setTotalt(0);
       setForslag([]);
       setVisarFor(null);
+      setNamnFor(null);
       setFortsattFor(null);
       setExempel(m.sokexempelFor(idx, SOKEXEMPEL));
       setPopular(inStockOnly(idx).slice(0, antal));
@@ -343,6 +348,7 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
     setKat(kategorier);
     setVisarFor(visar ? { q: val, ord: visar } : null);
     setLiknandeFor(!visar && svar.liknande ? val : null);
+    setNamnFor(!visar && svar.namn ? { q: val, antal: svar.namn } : null);
     setHits(svar.traffar);
     setTotalt(svar.totalt);
     // Två bokstäver som inget börjar på ("xq"): inget "inga träffar" om ett
@@ -422,6 +428,8 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
   // Ordet som listan visar varor för, när det inte är det som står i rutan.
   const visar = !isPopular && visarFor && visarFor.q === q ? visarFor.ord : "";
   const liknande = !isPopular && liknandeFor !== null && liknandeFor === q;
+  // Så många av de första korten är varan kunden sökte på namn.
+  const soktaVaror = !isPopular && namnFor !== null && namnFor.q === q ? namnFor.antal : 0;
   const pris = tolkaPris(q.trim());
   const visaTidigare = isPopular && tidigare.length > 0;
   const visaExempel = isPopular && exempel.length > 0;
@@ -869,6 +877,9 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
               <span className="sugg-kort-namn">{highlight(h.n)}</span>
               {h.p && <span className="sugg-kort-pris">{h.p}</span>}
               {h.o && <span className="sugg-kort-slut">Slutsåld</span>}
+              {/* Vårt namn på varan är ett annat än jämförelsesajtens: märket
+                  säger att kortet är varan kunden sökte. Slutsåld går före. */}
+              {hi < soktaVaror && !h.o && <span className="sugg-kort-sokt">Varan du sökte</span>}
             </a>
           ) : (
             <a
@@ -890,6 +901,7 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
                 {highlight(h.n)}
                 {/* Slutsålt syns FÖRE klicket — annars är förslaget en fälla. */}
                 {h.o && <span className="sugg-oos">Slutsåld</span>}
+                {hi < soktaVaror && <span className="sugg-sokt">Varan du sökte</span>}
               </span>
               {h.p && <span className="sugg-price">{h.p}</span>}
             </a>

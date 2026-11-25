@@ -457,7 +457,9 @@ test("förslagen med antal: gallringen görs före klippet", async () => {
   const index = readFileSync(new URL("./sok-rankning.ts", import.meta.url), "utf8");
   // Gallra på priset, lägg det köpbara först, klipp: i den ordningen (lib/sok-ordning.ts).
   // `ordnade` är träffarna som de rankades, eller billigast först för "soffa billigast" (2026-11-21).
-  assert.match(index, /const kvar = kopbaraForst\(behall \? ordnade\.filter\(behall\) : ordnade, \(h\) => h\.o === 1\);[\s\S]{0,60}traffar: kvar\.slice\(0, antal\),/);
+  // Sedan 2026-11-25 går stegen genom namnForst (lib/sok-ordning.ts): varan som heter som
+  // sökningen hos en prisjämförelsesajt står kvar först, och gallringen (`behall`) gäller alla.
+  assert.match(index, /const \{ traffar: kvar, namn \} = namnForst\(\s+utfall\.traffar,\s+utfall\.namn,\s+\(resten\) => kopbaraForst\([\s\S]{0,220}\(h\) => h\.o === 1,\s+\),\s+behall,\s+\);\s+return \{\s+traffar: kvar\.slice\(0, antal\),/);
   assert.match(index, /totalt: kvar\.length/);
 });
 

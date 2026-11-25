@@ -391,6 +391,9 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 /* Slutsåld: grå som i listorna, aldrig röd (rött läser som rea). Vitt på #52606D är 6,6:1. */
 .sugg-kort-slut{grid-area:1/1;align-self:start;justify-self:start;z-index:1;margin:7px;padding:4px 8px;border-radius:var(--r-xs);background:#52606D;color:#fff;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;line-height:1.2}
 .sugg-kort:has(.sugg-kort-slut) img{opacity:.6;filter:grayscale(.2)}
+/* Varan kunden sökte på jämförelsesajtens namn (components/searchbox.tsx). */
+.sugg-kort-sokt{grid-area:1/1;align-self:start;justify-self:start;z-index:1;margin:7px;padding:4px 8px;border-radius:var(--r-xs);background:var(--brand);color:#fff;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;line-height:1.2}
+.sugg-sokt{display:inline-block;margin-left:7px;padding:1px 6px;border-radius:var(--r-xs);background:var(--brand);color:#fff;font-size:var(--text-xs);font-weight:700;letter-spacing:.02em;vertical-align:1px}
 .sugg-kort-namn{font-size:var(--text-sm);font-weight:600;line-height:1.32;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
 .sugg-kort-namn b{color:var(--brand);font-weight:800}
 .sugg-skelett{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 10px;padding:10px 16px 0}

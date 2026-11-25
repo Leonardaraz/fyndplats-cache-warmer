@@ -29,6 +29,11 @@ export type SokData = {
   visar?: string;
   /** Inget namn har sökordet: träffarna ligger bara nära det i stavning (lib/search.ts, rankaMedInfo). */
   liknande?: boolean;
+  /**
+   * Så många av de första träffarna står först för att de heter som sökningen
+   * hos en prisjämförelsesajt (lib/search.ts, medNamntraff).
+   */
+  namn?: number;
   /** Orden kunden nekade med "utan": varor som nämner dem är bortvalda (lib/search.ts, tolkaUtan). */
   inte?: string[];
   /**
@@ -121,6 +126,18 @@ export function SokVy({ q, data }: { q: string; data: SokData | "laddar" | "fel"
               {klar.visar && (
                 <p className="sok-besked">
                   Du skrev “{term}”. Här är träffarna för <b>“{klar.visar}”</b>.
+                </p>
+              )}
+              {/* VARAN HETER ANNORLUNDA HÄR (2026-11-25). Kunden sökte på det namn
+                  en prisjämförelsesajt visar, och vårt namn på samma vara är ett
+                  annat: utan raden syns det inte att första kortet är varan. */}
+              {klar.namn !== undefined && klar.namn > 0 && (
+                <p className="sok-besked">
+                  {klar.traffar.length === 1
+                    ? <>Den här varan heter <b>“{term}”</b> hos prisjämförelsesajterna.</>
+                    : klar.namn === 1
+                      ? <><b>Den första varan</b> heter så hos prisjämförelsesajterna. Under den står träffarna som ligger närmast din sökning.</>
+                      : <><b>De {klar.namn} första varorna</b> heter så hos prisjämförelsesajterna. Under dem står träffarna som ligger närmast din sökning.</>}
                 </p>
               )}
               {klar.liknande && !klar.visar && (

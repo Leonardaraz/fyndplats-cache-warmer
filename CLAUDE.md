@@ -6130,6 +6130,121 @@ repot.
 - **En text om att leverantörens märken säljs under butikens namn.** Det är
   Leonards beslut.
 
+## Jämförelsesajtens namn på varan: nycklar (Leonard 2026-11-25)
+
+Leonard skickade en fil med PriceRunners namn på våra varor och bad om att
+kunderna ska kunna söka på dem: "så du kan göra så kunderna kan söka efter
+produkterna i vår butik med deras namn". Avsnittet ovan gjorde att märket och
+sammansatta ord inte längre ger noll. Det här gör att **varan som heter så står
+först**, fast den heter något annat hos oss.
+
+### Vad filen är
+
+2 631 rader: PriceRunners namn, vår vara, och hur säker parningen är. Paren är
+gjorda på sannolikhet (bild, text, tal och pris), **inte på GTIN**: 463 i klass
+A (poäng 4,5–9,5), 563 i B och 1 605 i C. I klass A har 332 av 463 samma pris på
+båda sidor. Alla 463 varor fanns i sökindexet den 25 november.
+
+☠️ **Filen checkas aldrig in.** Namnen är jämförelsesajtens, och 55 av dem bär
+något som liknar ett artikelnummer (8 i klass A). Sökindexet hämtas av varje
+webbläsare och är alltså publikt, så namnen kan inte ligga där heller.
+
+### Mätt före och efter
+
+Namnet som sökning, mot sökindexet på www 2026-11-25 (8 541 varor), med motorn
+som gick ut samma natt:
+
+| klass A, 463 namn | före | med nycklar |
+|---|---:|---:|
+| varan först | 94 | 427 |
+| plats 2–4 | 35 | 4 |
+| plats 5–12 | 15 | 1 |
+| längre ner | 6 | 1 |
+| träffar, men inte varan | 149 | 6 |
+| noll träffar | 164 | 24 |
+
+De 36 som inte står först: 33 namn har färre än tre ord när märket är borta
+och får ingen nyckel, och 3 namn delas av flera varor (alla står först, i
+katalogens ordning). Av 8 336 vanliga sökningar (`tools/sok-matning/utfall.ts`)
+ändrades ingen, varken träffarna, ordningen eller beskeden. Sökindexet växte
+med 8 372 byte, 5 623 byte packat (0,9 %).
+
+### Så fungerar det
+
+- **En nyckel är en enkelriktad summa av namnets ord** (`namnnyckel` i
+  `lib/search.ts`): märket bort med `utanMarken`, gemener, skiljetecken bort,
+  tal och bokstäver var för sig ("2.4 G" och "2,4g" är samma två ord).
+- **`lib/namnnycklar-data.ts`** bär vår adress → nycklarna, 421 varor och 427
+  nycklar. Filen byggs av `tools/namnnycklar/bygg.ts` ur filen med namnen, som
+  ligger utanför repot (`tools/namnnycklar/README.md`).
+- **Sökindexet skickar nycklarna med varans rad** (`x`, bara på de rader som
+  har några), och söksidan läser samma data på servern. De tre vägarna
+  (sökrutan, söksidan och söksidans kalla väg) ger sökningen nycklarna genom
+  kategoridatans `nycklar`.
+- **`rankaMedInfo` räknar sökningens nyckel** och ställer varorna som har den
+  först (`medNamntraff`, `namnetsSvar`). Under dem står sökningens egna träffar,
+  i samma ordning.
+- **Vyerna säger det.** Vårt namn på varan är ett annat, så utan besked syns
+  det inte att första kortet är varan kunden sökte. Sökrutan sätter märket
+  "Varan du sökte" på kortet, och söksidan skriver "Den första varan heter så
+  hos prisjämförelsesajterna."
+
+Nio regler som inte ska tas bort:
+
+1. ☠️ **Namnen står aldrig i repot, i indexet eller i en logg.** Bara
+   nycklarna. Provet läser datafilen rad för rad och fäller på allt som inte är
+   en adress och nycklar, och verktyget skriver bara ut antal.
+2. ☠️ **Ett ord som liknar ett artikelnummer räknas inte** (`artikelnummerlikt`),
+   varken i namnet eller i sökningen. En nyckel som tog med det hade gjort
+   sökrutan till ett uppslag från leverantörens artikelnummer till vår vara.
+   Med ordet struket på båda sidor ger ett artikelnummer ensamt ingen nyckel.
+   Mått och enheter ("120x60cm", "12v", "3-sits") är inga artikelnummer.
+3. **En nyckel kräver minst tre ord** (`MINST_ORD`). "Barnelbil" är ingen
+   vara, det är femtio.
+4. **Sökningens egna träffar står kvar under varan.** Parningen är gjord på
+   sannolikhet, och har den fel ska de vanliga träffarna finnas där.
+5. ☠️ **Namnets svar bär bara sina egna fält** (`namnetsSvar`): varorna, antalet
+   och orden kunden nekade. Beskeden om strukna ord, rättad stavning och
+   påfyllda listor beskrev en sökning på ord och följer inte med. Träffar som
+   bara låg nära i stavning (`liknande`) står inte kvar under varan: utan sitt
+   besked hade gissningarna sett ut som svar.
+6. ☠️ **En slutsåld vara står också först** (`namnForst` i `lib/sok-ordning.ts`).
+   Den som söker en vara på dess namn ska se den, med märket Slutsåld: annars
+   tror kunden att butiken inte har den. Regeln om det köpbara först gäller
+   träffarna under. Söksidan lägger därför inte någon ordning på efteråt.
+7. **Ett namn som fler än tre varor delar stryks** (`FLEST_VAROR_PER_NYCKEL`),
+   och delar två eller tre varor ett namn står alla först.
+8. ☠️ **Bara servern läser datafilen** (`app/api/search-index` och `app/sok`).
+   Sökrutan får nycklarna med indexet, för de varor som finns.
+9. ☠️ **Uppslaget minns vem som läste nycklarna** (`varorForNyckel`). Det sparas
+   per varulista, och sparat utan källan gav en andra källa den förstas svar:
+   mätningen körde först utan nycklar, och sedan hade ingen vara någon.
+
+### Kontrollerat
+
+- 3 491 prov går igenom, och typkontrollen är ren. 36 avsiktliga fel i
+  nycklarna, ordningen, verktyget och vyerna, ett i taget: alla fälls. Första
+  rundan överlevde fem, och proven skärptes.
+- Slutkoden byggd lokalt och körd i Chromium, 390 × 844 och 1 280 px, med fyra
+  namn ur filen: ett där sökningen i dag ger noll, ett där varan inte fanns
+  bland 30 träffar, ett som två varor delar och ett på en slutsåld vara. Rätt
+  vara stod först i sökläget, i listan under rutan och på söksidan, med märket
+  och beskedet. En vanlig sökning fick inget märke. Inga fel på sidan.
+
+### Inte gjort, och inte mätt
+
+- **Klass B och C är inte byggda.** B har 563 par med svagare stöd (ofta bara
+  tal och pris, eller bara bild). Verktyget tar klasserna som argument.
+- **Om paren i klass A stämmer är inte kontrollerat.** Klassen är filens eget
+  mått. Ett fel par ställer fel vara först för just det namnet, med de vanliga
+  träffarna under.
+- **Bara hela namnet ger en nyckel.** Den som skriver början av namnet får
+  sökningens vanliga svar tills hela namnet står där.
+- **Prisjakts namn** finns inte i filen. Nycklarna är desamma för varje sajt
+  vars namn läggs till.
+- **En riktig telefon.** Koden är skriven utan bakåtblick i mönstren (Safari
+  före 16.4), och provet håller det, men ingen iPhone har kört den.
+
 ## Sökläget: trycket går direkt till varan (Leonard 2026-11-24)
 
 Leonard: "Om jag söker på nått dyker förslag upp direkt sen när jag trycker
