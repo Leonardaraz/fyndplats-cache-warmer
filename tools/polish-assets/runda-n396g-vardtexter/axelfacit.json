@@ -1,0 +1,94 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "04f305ad": {
+  "tyska": "249L x 121B x 166/183H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": [
+   166,
+   183
+  ],
+  "bredd": 249,
+  "djup": 121
+ },
+ "120f3d62": {
+  "tyska": "Ø70 x 75H cm",
+  "svenska": "",
+  "bokstaver": "H",
+  "hojd": 75
+ },
+ "1d23b7a3": {
+  "tyska": "100L x 110B x 70H cm",
+  "svenska": "100L X 110B x 70H cm",
+  "bokstaver": "LBH",
+  "hojd": 70,
+  "bredd": 100,
+  "djup": 110
+ },
+ "25901957": {
+  "tyska": "240L x 112,5B x 76H cm",
+  "svenska": "240cm x 112,5cm x 76cm",
+  "bokstaver": "LBH",
+  "hojd": 76,
+  "bredd": 240,
+  "djup": 112.5
+ },
+ "5b2164f3": {
+  "tyska": "400L x 120B x 170H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 170,
+  "bredd": 400,
+  "djup": 120
+ },
+ "6d35a04f": {
+  "tyska": "",
+  "svenska": "6-teilig",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Jede Größe: 80L x 22,5B x 30H cm | ✔ Querstange: 40L cm | ✔ Höhenverstellbar: 6, 13,5, 20,5H cm | ✔ Gerades Rohrmaß: Ø25 x 1,9T cm"
+ },
+ "728b3c07": {
+  "tyska": "69B x 93T x 104H cm",
+  "svenska": "69 x 93 x 104 cm",
+  "bokstaver": "BTH",
+  "djup": 93,
+  "hojd": 104,
+  "bredd": 69
+ },
+ "7778fa66": {
+  "tyska": "193B x 136T x 85H cm",
+  "svenska": "193 x 136 x 85 cm",
+  "bokstaver": "BTH",
+  "djup": 136,
+  "hojd": 85,
+  "bredd": 193
+ },
+ "887cf2a3": {
+  "tyska": "46,5L x 36B x 59H cm",
+  "svenska": "",
+  "bokstaver": "LBH",
+  "hojd": 59,
+  "bredd": 46.5,
+  "djup": 36
+ },
+ "89fead7d": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Mått: 80 × 86 × 99 cm (B × D × H)"
+ },
+ "b5cf7ec6": {
+  "tyska": "196L x 76B x 97H cm",
+  "svenska": "L 196 x B 76 x H 97 cm",
+  "bokstaver": "LBH",
+  "hojd": 97,
+  "bredd": 196,
+  "djup": 76
+ },
+ "f5a39919": {
+  "tyska": "70B x 70T x 75H cm",
+  "svenska": "",
+  "bokstaver": "BTH",
+  "djup": 70,
+  "hojd": 75,
+  "bredd": 70
+ }
+}

@@ -1,0 +1,670 @@
+{
+ "7778fa66": [
+  {
+   "id": "b379ce_08cdc78cdc964a2e8f718e640e7b201d~mv2.jpg",
+   "altText": "Ljusgrå hörnsoffa med knappad rygg, schäslong och ben i ljust trä, sedd snett framifrån och frilagd på vit bakgrund"
+  },
+  {
+   "id": "b379ce_680672d5cfad4242bddd1b1a548d4d6d~mv2.jpg",
+   "altText": "Den ljusgrå hörnsoffan i ett vardagsrum med en bokhylla, en palm och en matta med mönster"
+  },
+  {
+   "id": "b379ce_7aa8d3b4a9b44003afdc48e2356ceda2~mv2.jpg",
+   "altText": "Kvinna med en valp i knät i hörnsoffan, med en rutig pläd över armstödet och en bokhylla bakom"
+  },
+  {
+   "id": "b379ce_d155bf341601453cab2151e7f5321c47~mv2.jpg",
+   "altText": "Den ljusgrå hörnsoffan framför en byrå av mörkt trä med en fotoram och en klocka i ett ljust vardagsrum"
+  },
+  {
+   "id": "b379ce_353874881d5c4a938512cdd1ce1fb79f~mv2.jpg",
+   "altText": "Hörnsoffa med tre sitsar i mörkgrått tyg med knappad rygg, vändbar schäslong och träben, mot vit bakgrund"
+  },
+  {
+   "id": "b379ce_964c69e55ca64b3a9fcd33c9e3f069df~mv2.jpg",
+   "altText": "Den mörkgrå hörnsoffan i ett vardagsrum med bokhylla, växter och en matta"
+  },
+  {
+   "id": "b379ce_66a6d9eb0128408ebde39520a1a3780d~mv2.jpg",
+   "altText": "En familj som sitter i den mörkgrå hörnsoffan, med ett barn som håller en nallebjörn"
+  },
+  {
+   "id": "b379ce_414a88661c9342019138a3247ff23acf~mv2.jpg",
+   "altText": "Kvinna som sitter med en hund i den mörkgrå hörnsoffan, med en filt över armstödet"
+  },
+  {
+   "id": "b379ce_1abd1427004f4e278312bb5b7ee1e261~mv2.jpg",
+   "altText": "Familj med två vuxna och ett barn med en nallebjörn i hörnsoffan, med en pläd över schäslongen och kaffe på soffbordet framför"
+  }
+ ],
+ "728b3c07": [
+  {
+   "id": "b379ce_0c00a3bded69476d91c68eb7b859e7c9~mv2.jpg",
+   "altText": "Gräddvit relaxfåtölj med tuftad rygg och en fjärrkontroll i sidofickan, snett framifrån mot vit bakgrund"
+  },
+  {
+   "id": "b379ce_c6c264c1ccef49b59c9ae43cd2ee3ffc~mv2.jpg",
+   "altText": "En kvinna ligger tillbakalutad i fåtöljen med fotstödet utfällt och en tidning i sidofickan, i ett ljust rum med ett litet bord och en matta"
+  },
+  {
+   "id": "b379ce_1b75de3314ab498c9582e0b99a81465a~mv2.jpg",
+   "altText": "En kvinna i stickad tröja vilar tillbakalutad i fåtöljen i ett vardagsrum med en soffa och en växt"
+  },
+  {
+   "id": "b379ce_5a7b2e9d7f374347b3d9379d2a2d82f1~mv2.jpg",
+   "altText": "Fåtöljen i upprätt läge i ett vardagsrum med en golvlampa, ett litet bord och en soffa"
+  },
+  {
+   "id": "b379ce_722a34527c61468abf4ae93e64e251d7~mv2.jpg",
+   "altText": "Fåtöljen i upprätt läge bredvid ett litet bord med en kopp och en filt över armstödet, vid ett fönster"
+  },
+  {
+   "id": "b379ce_eb5e1f465ccc4bc7b3ed778bb9a7b36d~mv2.jpg",
+   "altText": "Relaxfåtölj i mörkgrått tyg med knappad rygg och fjärrkontroll i sidofickan, mot vit bakgrund"
+  },
+  {
+   "id": "b379ce_337701855d184afdb25e70571b727313~mv2.jpg",
+   "altText": "Kvinna som vilar i den mörkgrå relaxfåtöljen med fotstödet uppfällt, i ett rum med stora fönster"
+  },
+  {
+   "id": "b379ce_e8ff5e918cff4cbab04e16b1b320a820~mv2.jpg",
+   "altText": "Den mörkgrå relaxfåtöljen i upprätt läge bredvid ett litet träbord och en kruka med en växt"
+  },
+  {
+   "id": "b379ce_8cc55274510f4cebafae2f82d3abaf49~mv2.jpg",
+   "altText": "Kvinna i blå klänning som ligger tillbakalutad i den mörkgrå relaxfåtöljen med fotstödet uppfällt"
+  },
+  {
+   "id": "b379ce_e2ca7ef7e8304619a92dcbbf7b1492b2~mv2.jpg",
+   "altText": "Relaxfåtölj i ljusgrått tyg med knappad rygg och fjärrkontroll i sidofickan, mot vit bakgrund"
+  },
+  {
+   "id": "b379ce_13287055e17c43039fc4cffffaf31258~mv2.jpg",
+   "altText": "Kvinna som vilar i den ljusgrå relaxfåtöljen med fotstödet uppfällt, vid ett fönster med trägolv"
+  },
+  {
+   "id": "b379ce_8d29a81319b44c1eb37dac27f14f8d0a~mv2.jpg",
+   "altText": "Den ljusgrå relaxfåtöljen i upprätt läge bredvid ett litet sidobord med en kopp och en vas"
+  },
+  {
+   "id": "b379ce_081f1baa406948d8a35bf102f7b9a327~mv2.jpg",
+   "altText": "Måttbild: fåtöljen är 69 cm bred, 93 cm djup och 104 cm hög, 161 cm djup i liggläge med 160° lutning, och den tål 150 kg"
+  },
+  {
+   "id": "b379ce_a19e2476badc4a77aa8f9b0955c98904~mv2.jpg",
+   "altText": "Måttbild: den mörkgrå relaxfåtöljen sedd framifrån, från sidan och i liggläge med måtten utritade"
+  },
+  {
+   "id": "b379ce_0ac8d52d3c834282818390bee9651ae1~mv2.jpg",
+   "altText": "Måttbild: den ljusgrå relaxfåtöljen sedd framifrån, från sidan och i liggläge med måtten utritade"
+  }
+ ],
+ "f5a39919": [
+  {
+   "id": "b379ce_58fc7edc78a84431bb0c484bcefafc21~mv2.jpg",
+   "altText": "Kvadratiskt bord med ekfärgad skiva och rundade hörn på en svart fyrkantig stålpelare med pyramidformad fot, mot vit bakgrund"
+  },
+  {
+   "id": "b379ce_5268842f86404b1a94af84c794f1a1c1~mv2.jpg",
+   "altText": "Det ekfärgade bordet med svart pelare vid en träskänk och ett fönster, med böcker, en kopp och en vas på skivan och två trästolar som inte ingår"
+  },
+  {
+   "id": "b379ce_14950935d29546ecb920933dd011f105~mv2.jpg",
+   "altText": "Närbild på bordets svarta fyrkantiga pelare framför krukväxter och trämöbler i ett ljust rum"
+  },
+  {
+   "id": "b379ce_72bb9ab2360f4d5ba3449e1b1f629320~mv2.jpg",
+   "altText": "Det ekfärgade bordet med svart pelare och fot under en hänglampa, med två glas och en vas på skivan och två trästolar som inte ingår"
+  },
+  {
+   "id": "b379ce_a8010c952c7c4cb7b6609b9572bfde24~mv2.jpg",
+   "altText": "Ekfärgat kvadratiskt bord på svart pelare med måtten 70 × 70 × 75 cm och en fot på 45 × 45 cm"
+  },
+  {
+   "id": "b379ce_62bd203a64504cc6bc2c0aaa4c1be89d~mv2.jpg",
+   "altText": "Kvadratiskt matbord med mörk valnötsskiva och svart pelarfot med kvadratisk fot, mot vit bakgrund"
+  },
+  {
+   "id": "b379ce_cfa4723d00384feabfc4c313df0818f0~mv2.jpg",
+   "altText": "Matbordet med valnötsskiva dukat för två i ett ljust rum, med två ljusa stolar med träben"
+  },
+  {
+   "id": "b379ce_64d5602e4d5449c59de54732ea323e02~mv2.jpg",
+   "altText": "Bordet med valnötsskiva i ett lantligt rum med två trästolar och ett skänkskåp i bakgrunden"
+  },
+  {
+   "id": "b379ce_09da557ee0304d6a96a345ff8a7156dd~mv2.jpg",
+   "altText": "Matbordet med valnötsskiva i ett ljust rum med två trästolar med flätad sits och en växt på bordet"
+  },
+  {
+   "id": "b379ce_8cff750131cb4779bf8a5d649c27f151~mv2.jpg",
+   "altText": "Måttbild: matbordet med valnötsskiva och måtten för skiva, höjd och fot utritade"
+  }
+ ],
+ "25901957": [
+  {
+   "id": "b379ce_d034595a8caa4a83a9287e5a62784c46~mv2.jpg",
+   "altText": "Lång hönshage av orange trä och galler med ett värpbo med grönt tak i vänstra änden och ett tak med en gallerdel, på vit bakgrund"
+  },
+  {
+   "id": "b379ce_d070f636eed04271b1505f954e9c99cf~mv2.jpg",
+   "altText": "Hagen på en gräsmatta framför ett plank med slingerväxter, med en kvinna som lyfter värpboets lock och två hönor inne i hagen"
+  },
+  {
+   "id": "b379ce_ebc08c15b9a742019ee5f4a5e9d4fdf1~mv2.jpg",
+   "altText": "Närbild på det uppfällda taket med galler på hagens övre del"
+  },
+  {
+   "id": "b379ce_a64b5f028c1b4fe0aa673b027cd621fc~mv2.jpg",
+   "altText": "Närbild på ett gångjärn av metall med skruvar på hagens tak"
+  },
+  {
+   "id": "b379ce_bbd51663165644bc86fbbd26fb1d3260~mv2.jpg",
+   "altText": "Hönshage i vitt trä och galler med mörkgrått tak och värpbo, sedd från sidan mot vit bakgrund"
+  },
+  {
+   "id": "b379ce_59fffd6946e24905a155e574b8e71b54~mv2.jpg",
+   "altText": "Den vita hönshagen i en trädgård, med en kvinna som lyfter värpbons tak och höns i hagen"
+  },
+  {
+   "id": "b379ce_7208a07658774766a38a5196b15b488f~mv2.jpg",
+   "altText": "Den vita hönshagen på en gräsmatta med höns i hagen och ett hus i bakgrunden"
+  },
+  {
+   "id": "b379ce_83abe3aa88d54e778763fa54761bb013~mv2.jpg",
+   "altText": "Måttbild på hagen med måtten 240 cm, 112,5 cm och 76 cm samt värpboets 93 cm"
+  },
+  {
+   "id": "b379ce_6101136448604cfc9fb98950934bb1b9~mv2.jpg",
+   "altText": "Måttbild: den vita hönshagen med längd, höjd, bredd och värpbons mått utritade bredvid en människa"
+  }
+ ],
+ "1d23b7a3": [
+  {
+   "id": "b379ce_b2e853c6f0c64a2e91e9c706f8028e80~mv2.jpg",
+   "altText": "Hönsgym i gult granträ med stege, två gungor och plattform, på vit bakgrund"
+  },
+  {
+   "id": "b379ce_37b1473bc9c14de4a53906bed36d2240~mv2.jpg",
+   "altText": "Två höns vid hönsgymmet i en rastgård med nät"
+  },
+  {
+   "id": "b379ce_492df2ab18954551971a9b3a0186335f~mv2.jpg",
+   "altText": "Närbild på en gunga i rep bredvid hönsgymmets ben"
+  },
+  {
+   "id": "b379ce_01b96b3895a54d10bed6030477e87cd8~mv2.jpg",
+   "altText": "Närbild på plattformen och gungorna på hönsgymmet i gräset"
+  },
+  {
+   "id": "b379ce_d2d5dc67f29d4f2eb80ec41f4f6fe966~mv2.jpg",
+   "altText": "Hönsgym i grått granträ med två gungor och en stege, mot vit bakgrund"
+  },
+  {
+   "id": "b379ce_b69111b13c2a4a9b802ff903feb07ba4~mv2.jpg",
+   "altText": "Det grå hönsgymmet mot en tegelvägg, med en tupp ovanpå och en höna vid foten"
+  },
+  {
+   "id": "b379ce_18193514a4b4400a8a3f7d815fd10ad2~mv2.jpg",
+   "altText": "Närbild på det grå hönsgymmets stege på konstgräs, med gungans rep i bakgrunden"
+  },
+  {
+   "id": "b379ce_4e4422b52be04c93a4ba2db8b0bdabf9~mv2.jpg",
+   "altText": "Måttbild på hönsgymmet, 100 × 110 × 70 cm, med stege och gungor"
+  },
+  {
+   "id": "b379ce_9833733e136243fcbfb7466f3dcf5a18~mv2.jpg",
+   "altText": "Måttbild: det grå hönsgymmet med höjd, bredd, djup, gungans bredd och stegens längd utritade"
+  }
+ ],
+ "b5cf7ec6": [
+  {
+   "id": "b379ce_915edfe4543141bd8830ed53da3b28e2~mv2.jpg",
+   "altText": "Hönshus i grått och vitt med grönt tak, ett värpbo med lock till vänster och en gallerhage till höger, på vit bakgrund"
+  },
+  {
+   "id": "b379ce_4d5f876d2d6643d08c532a8de18a6c3a~mv2.jpg",
+   "altText": "Hönshuset med hagen på en gräsmatta framför ett trästaket och buskar"
+  },
+  {
+   "id": "b379ce_227d6f1e0fdc465a8ad9a35844031f02~mv2.jpg",
+   "altText": "Närbild på husets dörr med en nedfälld ramp av grått och vitt trä på gräset"
+  },
+  {
+   "id": "b379ce_aa293ede7a96423890c7c90a24748b00~mv2.jpg",
+   "altText": "Närbild på en dörr med lås och gallret i hagen, med vita träpaneler till vänster"
+  },
+  {
+   "id": "b379ce_6619cc6863c94aec90810b928110d083~mv2.jpg",
+   "altText": "Hönshus i naturträ med grönt tak, ett värpbo med uppfällt lock och en gallerhage, på vit bakgrund"
+  },
+  {
+   "id": "b379ce_e42fab98b6294518adda35493915e5fd~mv2.jpg",
+   "altText": "Hönshuset i naturträ framför ett vitt staket och en häck, med två hönor i hagen"
+  },
+  {
+   "id": "b379ce_df9c71fb1b0d4b8aa97e01ff7cd515fd~mv2.jpg",
+   "altText": "Värpboet i naturträ med uppfällt lock och en mellanvägg som delar det i två fack"
+  },
+  {
+   "id": "b379ce_11fe66e347d24b1c8abb434de33d6b91~mv2.jpg",
+   "altText": "Hönshus i naturträ med grönt tak och inbyggd hage där två höns går, på en gräsmatta framför buskar"
+  },
+  {
+   "id": "b379ce_676343fe72ee48c1a1541840ddc0da3b~mv2.jpg",
+   "altText": "Hönshus i orange lackerat trä med grönt tak, värpbo och inbyggd hage, mot vit bakgrund"
+  },
+  {
+   "id": "b379ce_2bbea17b53374f5e970918764b08887d~mv2.jpg",
+   "altText": "Det orangea hönshuset på en gräsmatta med höns i hagen och en röd lada i bakgrunden"
+  },
+  {
+   "id": "b379ce_b4dcbf562e1549ffac803164e07c0b59~mv2.jpg",
+   "altText": "Närbild på rampen till det orangea hönshuset, nedfälld mot gräsmattan"
+  },
+  {
+   "id": "b379ce_3f347586d5b94758bc081b4b53a04ea3~mv2.jpg",
+   "altText": "Närbild på rampen till det orangea hönshuset med en blank botten, nedfälld mot gräset"
+  },
+  {
+   "id": "b379ce_c20f5cae7b28453886d1fe2f0b09c6c6~mv2.jpg",
+   "altText": "Måttbild på hönshuset med måtten 196 cm, 76 cm och 97 cm samt husets 64 cm och hagens 96,5 cm"
+  },
+  {
+   "id": "b379ce_a7b87b237ffd4483974a4fa05634a2a9~mv2.jpg",
+   "altText": "Måttbild: det orangea hönshuset med längd, djup, höjd och värpbons mått utritade"
+  }
+ ],
+ "887cf2a3": [
+  {
+   "id": "b379ce_3439f57e2f584cb1a56657e16c28f100~mv2.jpg",
+   "altText": "Vit fågelbur med blå bottenbricka, två sittpinnar och två matskålar, snett framifrån mot vit bakgrund"
+  },
+  {
+   "id": "b379ce_21a05cc57000479793e8880d3a15664d~mv2.jpg",
+   "altText": "Den vita buren med blå bottenbricka står på en träbyrå, med en gul och en blå fågel på sittpinnarna"
+  },
+  {
+   "id": "b379ce_7b8022efd74f43a7b6f3014b8ee4b0cb~mv2.jpg",
+   "altText": "Ett barn sträcker armarna uppåt bredvid en byrå där den vita buren med blå bottenbricka står"
+  },
+  {
+   "id": "b379ce_5e2c37a6ef3348e28550744c1002093a~mv2.jpg",
+   "altText": "Närbild på burens galler och handtaget uppe på taket"
+  },
+  {
+   "id": "b379ce_97547a1077e248f2838c766a1fb23862~mv2.jpg",
+   "altText": "Vit fågelbur med grön bottenbricka, två sittpinnar och två matskålar, snett framifrån mot vit bakgrund"
+  },
+  {
+   "id": "b379ce_b777fa7615524f9e9e8b18eb641eceb5~mv2.jpg",
+   "altText": "Den vita buren med grön bottenbricka står på en träbyrå, med en gul och en blå fågel på sittpinnarna"
+  },
+  {
+   "id": "b379ce_060689d6d7094979b0903ab6d87599ff~mv2.jpg",
+   "altText": "Ett barn sträcker armarna uppåt bredvid en byrå där den vita buren med grön bottenbricka står"
+  },
+  {
+   "id": "b379ce_15d6a0f10ad54c369c174760e044f1ef~mv2.jpg",
+   "altText": "Helt vit fågelbur med vit bottenbricka, två sittpinnar och två matskålar, snett framifrån mot vit bakgrund"
+  },
+  {
+   "id": "b379ce_d200ada88ec4428da35723f1eaf8d099~mv2.jpg",
+   "altText": "Den helt vita buren står på en träbyrå, med en gul och en blå fågel på sittpinnarna"
+  },
+  {
+   "id": "b379ce_803b27f247984909ae2bc6d861547a6b~mv2.jpg",
+   "altText": "Ett barn sträcker armarna uppåt bredvid en byrå där den helt vita buren står"
+  },
+  {
+   "id": "b379ce_803d6582918045f18ae7a593d5a63224~mv2.jpg",
+   "altText": "Fågelbur i svart metall med sittpinnar i trä och två matskålar, mot vit bakgrund"
+  },
+  {
+   "id": "b379ce_a577aef1b9ac49cfa742faff1c4965ef~mv2.jpg",
+   "altText": "Den svarta fågelburen på ett sidobord i ett vardagsrum, med två fåglar på sittpinnarna"
+  },
+  {
+   "id": "b379ce_309c180e79454041bc48d34e327bfb3c~mv2.jpg",
+   "altText": "Svart fågelbur på ett lågt skåp i ett ljust vardagsrum, med två undulater på sittpinnarna"
+  },
+  {
+   "id": "b379ce_c94cd968ce96417c92af7d9d72a5c387~mv2.jpg",
+   "altText": "Närbild på den svarta fågelburens öppna dörr och utdragbara botten, med en fågel på sittpinnen"
+  },
+  {
+   "id": "b379ce_b141f864432a4626858c15217ea65d32~mv2.jpg",
+   "altText": "Måttbild: buren är 59 cm hög, 46,5 cm lång och 36 cm bred, med en stor dörr på 31 × 31,5 cm och en liten dörr på 8,5 × 11,5 cm"
+  },
+  {
+   "id": "b379ce_44d4f376330145868fe3d3202ac3a299~mv2.jpg",
+   "altText": "Måttbild: buren är 59 cm hög, 46,5 cm lång och 36 cm bred, med en stor dörr på 31 × 31,5 cm och en liten dörr på 8,5 × 11,5 cm"
+  },
+  {
+   "id": "b379ce_b02c431f6fac458e83ca16957983b8c1~mv2.jpg",
+   "altText": "Måttbild: buren är 59 cm hög, 46,5 cm lång och 36 cm bred, med en stor dörr på 31 × 31,5 cm och en liten dörr på 8,5 × 11,5 cm"
+  },
+  {
+   "id": "b379ce_643a9d4e5fd746668c9c00f15d5319a0~mv2.jpg",
+   "altText": "Måttbild: den svarta fågelburen med öppen sidodörr och måtten för höjd, djup och bredd utritade"
+  }
+ ],
+ "6d35a04f": [
+  {
+   "id": "b379ce_8521956f8203477f9326720a1de320eb~mv2.jpg",
+   "altText": "Sex hinder av blå koner och gula stänger på rad, på vit bakgrund"
+  },
+  {
+   "id": "b379ce_4765a7e8da844b80a656f2f802f58f69~mv2.jpg",
+   "altText": "Blå koner och gula stänger uppställda som hinder på en gräsmatta framför ett pergola, med en flicka, en man och två hundar"
+  },
+  {
+   "id": "b379ce_1281da59990b4b3e8dea2553dc4e09b5~mv2.jpg",
+   "altText": "Hinderset på en gräsmatta där en beagle hoppar över en gul stång medan en kvinna och en familj tittar på"
+  },
+  {
+   "id": "b379ce_79ad39c1337e409d84a8abbc9ca63d97~mv2.jpg",
+   "altText": "Två små hundar hoppar över gula stänger mellan blå koner, frilagt på vit bakgrund"
+  },
+  {
+   "id": "b379ce_83ea1c1884434678b7155096440fc473~mv2.jpg",
+   "altText": "Blå koner och gula stänger uppställda i en slinga av hinder i olika längder, frilagda på vit bakgrund"
+  },
+  {
+   "id": "b379ce_64a1629f16e848b8a2a4f4c36d0b9443~mv2.jpg",
+   "altText": "Tre hinder av orange koner och gula stänger, på vit bakgrund"
+  },
+  {
+   "id": "b379ce_e26ef751154b44abac1b884e55b7ecea~mv2.jpg",
+   "altText": "En flicka, en man och tre hundar på en gräsmatta där en liten hund hoppar över en gul stång mellan orange koner"
+  },
+  {
+   "id": "b379ce_b510da57dd9345bca4a50bd46a21cfeb~mv2.jpg",
+   "altText": "En kvinna och en familj tränar hundar som hoppar över låga hinder av orange koner och gula stänger på en gräsmatta"
+  },
+  {
+   "id": "b379ce_a478d3173d2247c29bd1e1b606ead698~mv2.jpg",
+   "altText": "En pojke och en liten hund vid två hinder av orange koner och gula stänger på en altan"
+  },
+  {
+   "id": "b379ce_3df995be6df740608d60a480cfc72ded~mv2.jpg",
+   "altText": "Sex hinder av orange koner och gula stänger på rad, på vit bakgrund"
+  },
+  {
+   "id": "b379ce_bf2a4402353e49348d58385a30ea33d2~mv2.jpg",
+   "altText": "Orange koner och gula stänger uppställda som hinder på en gräsmatta framför ett pergola, med en flicka, en man och tre hundar"
+  },
+  {
+   "id": "b379ce_858c06aede0c421896ee15d36fb729f2~mv2.jpg",
+   "altText": "En pojke och en liten hund vid hinder av orange koner och gula stänger på en altan"
+  },
+  {
+   "id": "b379ce_2526025c4a65497e970e1ec2518ee6c0~mv2.jpg",
+   "altText": "Hundar som hoppar över hinder av orange koner och gula stänger på en gräsmatta i en trädgård, med en kvinna och en familj i bakgrunden"
+  },
+  {
+   "id": "b379ce_86bb76a213ed48b7ba0c77d08448c789~mv2.jpg",
+   "altText": "Hinderset med tre hinder av orange koner och gula stänger mot vit bakgrund"
+  },
+  {
+   "id": "b379ce_0164b273e29645778d60e77dff2aff96~mv2.jpg",
+   "altText": "Hinderset med sex hinder av orange koner och gula stänger, utlagda som en bana mot vit bakgrund"
+  },
+  {
+   "id": "b379ce_8bc68c3b41374647adbdd974d0b3849b~mv2.jpg",
+   "altText": "Hinderset med tre hinder av orange koner och gula stänger där två hundar hoppar över stängerna, mot vit bakgrund"
+  },
+  {
+   "id": "b379ce_abf6ceca25f54acd964c5a1835c33ff0~mv2.jpg",
+   "altText": "Hinderset med sex hinder av orange koner och gula stänger där två hundar hoppar över stängerna, mot vit bakgrund"
+  },
+  {
+   "id": "b379ce_b8de15ddb5ba4e829da49078e041b723~mv2.jpg",
+   "altText": "Måttbild: konen är 30 cm hög och 22,5 cm bred vid foten, och stången är 80 cm lång"
+  }
+ ],
+ "04f305ad": [
+  {
+   "id": "b379ce_b53aed1cbedd487f8030ee05040a47db~mv2.jpg",
+   "altText": "Antracitgrått stålskjul med dubbeldörr på framsidan, horisontella väggpaneler på sidan och två ventilationsöppningar, mot vit bakgrund"
+  },
+  {
+   "id": "b379ce_8ed41d576d96456783473a15b5eca973~mv2.jpg",
+   "altText": "Det antracitgrå stålskjulet på en trätrall med öppna dörrar, hyllor med verktygslådor och krukor inuti, en stege invid och en trädgårdsbänk med hjul bredvid"
+  },
+  {
+   "id": "b379ce_c3af60cccffd46558a09368baeb4d1ed~mv2.jpg",
+   "altText": "Det antracitgrå stålskjulet snett från sidan med en dörr öppen mot hyllor med verktyg och lådor inuti"
+  },
+  {
+   "id": "b379ce_7be8e4a9c50f48f094ab039bc391a272~mv2.jpg",
+   "altText": "Antracitgrått förrådsskjul med öppna dörrar, hyllor med verktyg och en gräsklippare, omgivet av blommor i en trädgård"
+  },
+  {
+   "id": "b379ce_2c8884b03bd747818e20458ec4ece9f3~mv2.jpg",
+   "altText": "Mörkgrönt stålskjul med dubbeldörr på framsidan, horisontella väggpaneler på sidan och två ventilationsöppningar, mot vit bakgrund"
+  },
+  {
+   "id": "b379ce_18d2b9ca934e48aeb8057792d5516460~mv2.jpg",
+   "altText": "Det mörkgröna stålskjulet på en trätrall med öppna dörrar, hyllor med verktygslådor och krukor inuti, en stege invid och en trädgårdsbänk med hjul bredvid"
+  },
+  {
+   "id": "b379ce_0a0afc9d1e6e4c8bbbee0417c88ecc76~mv2.jpg",
+   "altText": "Det mörkgröna stålskjulet sett framifrån med öppna dörrar, hyllor med verktyg, bollar, en slangvinda och en stege inuti"
+  },
+  {
+   "id": "b379ce_aac7ef07ff2948569543a7f5927cac13~mv2.jpg",
+   "altText": "Det mörkgröna stålskjulet snett från sidan med en dörr öppen mot hyllor med verktyg och lådor inuti"
+  },
+  {
+   "id": "b379ce_8690d65a5c174ac3b0fa1aa51ca222fb~mv2.jpg",
+   "altText": "Mörkgrönt förrådsskjul med öppna dörrar, hyllor med verktyg och en gräsklippare, omgivet av blommor i en trädgård"
+  },
+  {
+   "id": "b379ce_d03d0c528393429cb9a155bdaa025578~mv2.jpg",
+   "altText": "Gråbeige stålskjul med dubbeldörr på framsidan, horisontella väggpaneler på sidan och två ventilationsöppningar, mot vit bakgrund"
+  },
+  {
+   "id": "b379ce_4bb99a9f89634a7da1d22aec93a7e9ec~mv2.jpg",
+   "altText": "Det gråbeiga stålskjulet på en trätrall med öppna dörrar, hyllor med verktygslådor och krukor inuti, en stege invid och ett litet grönt bord med krukväxter bredvid"
+  },
+  {
+   "id": "b379ce_67279a54d48b4e748e7c8ee90a5d289d~mv2.jpg",
+   "altText": "Det gråbeiga stålskjulet sett framifrån med öppna dörrar, hyllor med verktyg, bollar, en slangvinda och en stege inuti"
+  },
+  {
+   "id": "b379ce_db0b236df0bc4ef686ec0e4ec192778d~mv2.jpg",
+   "altText": "Det gråbeiga stålskjulet snett från sidan med en dörr öppen mot hyllor med verktyg och lådor inuti"
+  },
+  {
+   "id": "b379ce_bd65176612264f2f8640b2e5f89def87~mv2.jpg",
+   "altText": "Gråbeige förrådsskjul med öppna dörrar, hyllor med verktyg och en gräsklippare, omgivet av blommor i en trädgård"
+  },
+  {
+   "id": "b379ce_da3bb459deda4bf98dbd04b827252192~mv2.jpg",
+   "altText": "Stålskjul i ljusgrått med dubbeldörr och två ventilationsöppningar, sett snett från sidan, mot vit bakgrund"
+  },
+  {
+   "id": "b379ce_1fa3207b85e14286abbcf3d94cf1c761~mv2.jpg",
+   "altText": "Det ljusgrå stålskjulet med öppna dörrar och hyllor med verktyg och lådor på ett trädäck"
+  },
+  {
+   "id": "b379ce_ccfc1970085c44ff9ddae531061454d9~mv2.jpg",
+   "altText": "Ljusgrått stålskjul med öppen framsida, hyllor, en stege och en slangvagn på en terrass"
+  },
+  {
+   "id": "b379ce_c297674c5ac44eb2bf4707a103335068~mv2.jpg",
+   "altText": "Det ljusgrå stålskjulet med en öppen och en stängd dörr, intill blommor och en trädgårdsgång"
+  },
+  {
+   "id": "b379ce_6485fd829607416fb8bca4d4dacc4bb8~mv2.jpg",
+   "altText": "Det antracitgrå stålskjulet sett framifrån med öppna dörrar, hyllor med verktyg, bollar, en slangvinda och en stege inuti"
+  }
+ ],
+ "5b2164f3": [
+  {
+   "id": "b379ce_92ab48e26d9945d0b7b40deb9d23aed8~mv2.jpg",
+   "altText": "Långt grönt tomatväxthus med välvt tak av presenning på smala stålben, mot vit bakgrund"
+  },
+  {
+   "id": "b379ce_1c294876b7b94d139fe238e1aded7fbb~mv2.jpg",
+   "altText": "Växthuset framför ett trästaket i en trädgård, med höga tomatplantor fulla av röda tomater under taket"
+  },
+  {
+   "id": "b379ce_ed8f014d75ac4e8b97019409df49c7a1~mv2.jpg",
+   "altText": "Växthuset över en upphöjd odlingslåda av metall med rosa blommor, med krukor på en pall och en vattenkanna bredvid"
+  },
+  {
+   "id": "b379ce_5a2a758955e24a5a8d0421a925c39628~mv2.jpg",
+   "altText": "Växthuset på en gräsmatta framför ett trästaket, med sallat i en odlingsrad under taket"
+  },
+  {
+   "id": "b379ce_98f9af793c944a3bb3e6e5dfa34277f6~mv2.jpg",
+   "altText": "Tomatväxthus med välvt tak av vit presenning och mörkgrön stålram, mot vit bakgrund"
+  },
+  {
+   "id": "b379ce_14c03e745af44ea29d86e5b21af3324b~mv2.jpg",
+   "altText": "Det vita tomatväxthuset i en trädgård, med tomatplantor med röda och gula tomater under taket"
+  },
+  {
+   "id": "b379ce_e99cea71d6d64101a270a4fa11f13cc8~mv2.jpg",
+   "altText": "Närbild på det vita tomatväxthusets välvda tak av presenning och stålbågarna, mot vit bakgrund"
+  },
+  {
+   "id": "b379ce_d18210fa1c2d473bba63322d645c993f~mv2.jpg",
+   "altText": "Måttbild med växthuset på en gräsmatta och måtten 170 cm, 100 cm, 400 cm och 120 cm utsatta på bilden"
+  },
+  {
+   "id": "b379ce_2123217412424034a5e821ef399827db~mv2.jpg",
+   "altText": "Måttbild: det vita tomatväxthuset med längd, bredd och höjd utritade"
+  }
+ ],
+ "120f3d62": [
+  {
+   "id": "b379ce_7d87610937f84ec184c999843e775dd7~mv2.jpg",
+   "altText": "Svart runt matbord för två med pelare och rund fot"
+  },
+  {
+   "id": "b379ce_700aebca38754b3cb364e292573465ca~mv2.jpg",
+   "altText": "Det svarta runda bordet med två stolar, två vaser och en bok"
+  },
+  {
+   "id": "b379ce_e9567e43b4ef45fcbd9e7c58050b7e98~mv2.jpg",
+   "altText": "Närbild på den svarta skivans kant med två tallrikar"
+  },
+  {
+   "id": "b379ce_41e7dd8b9723478abd2a6d293fe645f1~mv2.jpg",
+   "altText": "Närbild på bordets svarta pelare"
+  },
+  {
+   "id": "b379ce_c8c930502ac44a0faae325431077ed5d~mv2.jpg",
+   "altText": "Runt matbord för två, Ø70 cm – pelarfot i pulverlackerat stål i färgen vit"
+  },
+  {
+   "id": "b379ce_ee10e0cc2c454d01a1eb8909b5f1d300~mv2.jpg",
+   "altText": "Runt matbord för två, Ø70 cm – pelarfot i pulverlackerat stål i färgen vit, bild 2"
+  },
+  {
+   "id": "b379ce_5cbf3bd93ef040c7a12d85f12fbb35f0~mv2.jpg",
+   "altText": "Runt matbord för två, Ø70 cm – pelarfot i pulverlackerat stål i färgen vit, bild 3"
+  },
+  {
+   "id": "b379ce_cc47255995eb4ad5ba077efd456ba2b0~mv2.jpg",
+   "altText": "Runt matbord för två, Ø70 cm – pelarfot i pulverlackerat stål i färgen vit, bild 4"
+  },
+  {
+   "id": "b379ce_ddaea8d860df415b850b9fce15cf7e77~mv2.jpg",
+   "altText": "Runt matbord för två, Ø70 cm – pelarfot i pulverlackerat stål i färgen vit, bild 5"
+  },
+  {
+   "id": "b379ce_7dd21102e38f48119763f9ed2ddee2f2~mv2.jpg",
+   "altText": "Runt matbord med beige skiva och beige pelarfot på rund fot, mot vit bakgrund"
+  },
+  {
+   "id": "b379ce_f51be0e8b1d4417a92c13e874756d66b~mv2.jpg",
+   "altText": "Det beige runda bordet dukat för två i ett kök, med två gula stolar"
+  },
+  {
+   "id": "b379ce_37e5e6e7ac9f4d6ebf432825dafea148~mv2.jpg",
+   "altText": "Beige runt matbord vid ett fönster med två ljusa stolar, en kopp kaffe och ett croissantfat"
+  },
+  {
+   "id": "b379ce_e6dc5fd408c04e828ca2bc71891b0319~mv2.jpg",
+   "altText": "Det beige runda bordet i ett vardagsrum med en laptop och en kopp, intill ett lågt skåp"
+  },
+  {
+   "id": "b379ce_6047ba214071456d8b8c0562bd0b9fe2~mv2.jpg",
+   "altText": "Måttbild: bordet är Ø70 cm och 75 cm högt, foten Ø50 cm"
+  },
+  {
+   "id": "b379ce_f24ed7d2a41b46338ad02cb5b2afed10~mv2.jpg",
+   "altText": "Måttbild: det beige runda bordet med skivans diameter, bordets höjd och fotens diameter utritade"
+  }
+ ],
+ "89fead7d": [
+  {
+   "id": "b379ce_c5410a5b1cdb4d628251dde70db2b8b4~mv2.jpg",
+   "altText": "Svart massagefåtölj i tyg med fotpall på korsformad fot i trä, på vit bakgrund"
+  },
+  {
+   "id": "b379ce_8cc28f335bea4614a43052adc5c902cf~mv2.jpg",
+   "altText": "Den svarta massagefåtöljen och fotpallen i ett vardagsrum bredvid ett runt bord"
+  },
+  {
+   "id": "b379ce_aeb75886d10c40b097e79ccb3f119f49~mv2.jpg",
+   "altText": "En hand trycker på den svarta sitsen"
+  },
+  {
+   "id": "b379ce_70782cd5bfbd4978af11661cb1dcdf28~mv2.jpg",
+   "altText": "Närbild på den korsformade foten i trä"
+  },
+  {
+   "id": "b379ce_91a94c31053d4ed3a83384ef51482c8b~mv2.jpg",
+   "altText": "Faktakort: fåtöljen är 80 × 86 × 99 cm och fotpallen 47 × 42 × 45 cm med förvaring, maxlast 120 kg och 100 kg"
+  },
+  {
+   "id": "b379ce_91ecf4936d94473094853479423c1b3d~mv2.jpg",
+   "altText": "Massagefåtölj med fotpall och förvaring – tio massagepunkter, rygg till 145° i färgen mörkgrå"
+  },
+  {
+   "id": "b379ce_5c44ce7ebb28466583989224de15d79c~mv2.jpg",
+   "altText": "Mörkgrå massagefåtölj med fotpall i ett vardagsrum, fjärrkontrollen i sidofickan"
+  },
+  {
+   "id": "b379ce_a34aef3276a2490abd71c63af7676dc5~mv2.jpg",
+   "altText": "Närbild på ett ben på den korsformade foten i trä, med två svarta skruvar"
+  },
+  {
+   "id": "b379ce_70c85f0bfd054001bf69759507c05516~mv2.jpg",
+   "altText": "Närbild på armstödet och sidofickan med fjärrkontrollen på den mörkgrå massagefåtöljen"
+  },
+  {
+   "id": "b379ce_18a18f5dd18542068a3b9f90f84319f4~mv2.jpg",
+   "altText": "Massagefåtölj i brunt tyg med fotpall och ben i trä, sedd snett framifrån mot vit bakgrund"
+  },
+  {
+   "id": "b379ce_395baac855854092890917adf2d77286~mv2.jpg",
+   "altText": "Den bruna massagefåtöljen med fotpall på en grå matta i ett vardagsrum med mörk vägg"
+  },
+  {
+   "id": "b379ce_63ba4b8d2e194e0fb8e98e829b41facc~mv2.jpg",
+   "altText": "Närbild på den bruna fotpallens stoppade sits där en hand trycker ner tyget"
+  },
+  {
+   "id": "b379ce_37d5f2c9d7a244019fd9c46f2618be26~mv2.jpg",
+   "altText": "Fotpallens förvaringsutrymme öppet med metallbeslag i locket och en bok i facket, i brunt tyg"
+  },
+  {
+   "id": "b379ce_68883fb4301a4973be34a2d95a8f1fa0~mv2.jpg",
+   "altText": "Måttbild: fåtöljen är 80 × 86 × 99 cm med sits 50 × 52 cm och sitthöjd 43 cm, och fotpallen 47 × 42 × 45 cm"
+  },
+  {
+   "id": "b379ce_a04cd1ea075e473da4b4fdd34e29a8a3~mv2.jpg",
+   "altText": "Måttskiss över den mörkgrå massagefåtöljen med fotpall"
+  },
+  {
+   "id": "b379ce_00b6201bcc264b3eb5b784e72ec176fa~mv2.jpg",
+   "altText": "Måttbild: den bruna massagefåtöljen och fotpallen med mått för sits, bredd, djup och höjd i upprätt och liggande läge"
+  }
+ ]
+}
