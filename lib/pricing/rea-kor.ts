@@ -32,8 +32,10 @@ import {
 } from "../wix/jamforpris";
 import type { VariantbildStatus } from "../wix/variant-media";
 import {
+  AVLASNING_KLOCKAN,
   DAG_MS,
   MAX_GLAPP_MS,
+  TIMHISTORIK_FRAN,
   auktionIFonstret,
   fullstandigaDagar,
   laggTill,
@@ -111,7 +113,7 @@ export function auktionslagen(auktioner: readonly AuctionDoc[]): Map<string, Auk
 
 export type Beslut =
   | { rorInte: true }
-  | { rorInte: false; jamforOre: number | null; skal: ReaSkal | "rea"; sankningar?: number };
+  | { rorInte: false; jamforOre: number | null; skal: ReaSkal | "rea"; sankningar?: number; nyVara?: true };
 
 /** Vad variantens jämförpris ska vara, givet historiken (rea.ts) och auktionerna. */
 export function beslutaVariant(
@@ -129,7 +131,13 @@ export function beslutaVariant(
     return { rorInte: false, jamforOre: null, skal: "auktion" };
   }
   if (luckaIFonstret(luckor, r.fonsterFran, nuMs)) return { rorInte: false, jamforOre: null, skal: "lucka" };
-  return { rorInte: false, jamforOre: r.tidigareOre, skal: "rea", sankningar: r.sankningar };
+  return {
+    rorInte: false,
+    jamforOre: r.tidigareOre,
+    skal: "rea",
+    sankningar: r.sankningar,
+    ...(r.nyVara ? { nyVara: true as const } : {}),
+  };
 }
 
 // ── Historiken ───────────────────────────────────────────────────────────
@@ -156,6 +164,18 @@ export interface Historikutfall {
  * Lägger den här körningens avläsning till förloppen. En produkt som aldrig gått
  * att köpa får ingen rad; en variant som inte längre finns får punkten "gick
  * inte att köpa".
+ *
+ * ☠️ EN PRODUKT SOM FÅR SIN FÖRSTA RAD BÖRJAR MED "GICK INTE ATT KÖPA". Jobbet
+ * har läst varje variant varje timme sedan `TIMHISTORIK_FRAN`, och en produkt
+ * utan rad har inte gått att köpa vid någon av körningarna (en rad tas bara
+ * bort när den varit tom längre än historiken sparas). Punkten säger det, så
+ * att regeln kan se att varan är ny och inte bara att historiken är kort
+ * (rea.ts, "EN NY VARA"). Den dateras till timhistorikens början, eller till
+ * så långt bak som historiken sparas.
+ *
+ * Bara produktens första rad. En ny variant på en produkt som redan har en rad
+ * får ingen sådan punkt: Wix byter variant-id när valen ändras, och då är den
+ * "nya" varianten samma vara som såldes under det gamla id:t.
  */
 export function lasIn(
   befintliga: readonly Prisforlopp[],
@@ -178,6 +198,9 @@ export function lasIn(
   }
 
   const ut: Historikutfall = { forlopp: new Map(), attSpara: [], attTaBort: [], nyaPunkter: 0 };
+  // Så långt bak räcker beviset att en produkt utan rad inte gått att köpa.
+  const utanRadSedan = Math.max(Date.parse(TIMHISTORIK_FRAN), nuMs - sparMs);
+  const nyProduktFore: Prispunkt[] = utanRadSedan < nuMs ? [{ t: new Date(utanRadSedan).toISOString(), p: null }] : [];
   const produkter = new Set<string>([...perProdukt.keys(), ...hist.keys()]);
   for (const pid of [...produkter].sort()) {
     const katalogens = perProdukt.get(pid) ?? [];
@@ -188,8 +211,9 @@ export function lasIn(
     const sedda = new Set<string>();
     const lagg = (id: string, p: number | null) => {
       sedda.add(id);
-      const fore = gamla?.get(id) ?? [];
-      if (fore.length === 0 && p === null) return; // en variant som aldrig gått att köpa
+      const sedan = gamla?.get(id) ?? [];
+      if (sedan.length === 0 && p === null) return; // en variant som aldrig gått att köpa
+      const fore = gamla ? sedan : nyProduktFore;
       const efter = laggTill(fore, nuIso, p);
       if (efter.andrad) {
         andrad = true;
@@ -265,6 +289,8 @@ export interface ReaRapport {
   beslut: {
     /** Varianter som har (eller ska få) rea efter den här körningen. */
     rea: number;
+    /** Hur många av dem som är nya varor: rea mot det lägsta priset sedan de började säljas. */
+    nyaVaror: number;
     /** Varianter i en levande auktion: rörs inte. */
     auktionLevande: number;
     perSkal: Record<string, number>;
@@ -308,7 +334,7 @@ function tomRapport(torr: boolean): ReaRapport {
     varianter: 0,
     erbjudna: 0,
     historik: { produkter: 0, nyaPunkter: 0, sparade: 0, borttagna: 0, fel: 0, luckor: 0 },
-    beslut: { rea: 0, auktionLevande: 0, perSkal: {} },
+    beslut: { rea: 0, nyaVaror: 0, auktionLevande: 0, perSkal: {} },
     plan: { nya: 0, byten: 0, borttagningar: 0, produkter: 0, nyaSparrade: false },
     skrivet: { produkter: 0, satta: 0, borttagna: 0, redan: 0, prisAndrat: 0, fel: 0, avvikelser: 0 },
     stoppad: false,
@@ -378,6 +404,7 @@ export async function korRea(deps: ReaDeps, opts: ReaKorOpts): Promise<ReaRappor
       rapport.beslut.perSkal[b.skal] = (rapport.beslut.perSkal[b.skal] ?? 0) + 1;
       if (b.jamforOre !== null) {
         rapport.beslut.rea++;
+        if (b.nyVara) rapport.beslut.nyaVaror++;
         medRea.add(v.productId);
       }
       if (b.jamforOre === v.jamforOre) continue;
@@ -632,6 +659,172 @@ export async function seedaHistorik(deps: ReaDeps, opts: SeedOpts = {}): Promise
       seedAt: new Date(nuMs).toISOString(),
       luckor: trimmaLuckor([...(tillstand.luckor ?? []), ...nyaLuckor], nuMs),
     });
+    return rapport;
+  } finally {
+    if (!torr) await deps.lager.slappLas(agare).catch(() => undefined);
+  }
+}
+
+// ── Beviset att en ny vara inte såldes före: butikens dagliga avläsning ──
+
+/** Så många produkter frågas butikens avläsning om i taget. */
+const NARVARO_BUNT = 100;
+
+export interface NarvaroRapport {
+  torr: boolean;
+  stoppadAv?: "las" | "inget_underlag" | "ofullstandig_dag";
+  /** Dagen beviset börjar: dagen efter den tidigaste butikens avläsning har kvar. */
+  bevisFran?: string;
+  /** Dagarna från `bevisFran` till timhistorikens början, och de av dem som inte är fullständigt avlästa. */
+  dagar: number;
+  ofullstandigaDagar: string[];
+  /** Produkter med historik. */
+  produkter: number;
+  /** Produkter vars historik börjar med ett pris, efter `bevisFran`. */
+  kandidater: number;
+  /** De av dem som stod i butikens avläsning före sin första punkt: de såldes före, och rörs inte. */
+  fannsFore: number;
+  /** Produkter och varianter som fick punkten "gick inte att köpa". */
+  markta: number;
+  marktaVarianter: number;
+  sparadeFel: number;
+}
+
+const plusDagar = (dag: string, n: number) => new Date(Date.parse(`${dag}T00:00:00.000Z`) + n * DAG_MS).toISOString().slice(0, 10);
+
+/**
+ * Ger de produkter som började säljas efter att historiken började punkten "gick
+ * inte att köpa" före sitt första pris, när butikens dagliga avläsning visar att
+ * de inte såldes då. Regeln (rea.ts, "EN NY VARA") ger en ny vara rea bara när
+ * historiken säger att den inte såldes före.
+ *
+ * VARFÖR DET BEHÖVS. `lasIn` sätter punkten på varje produkt som får sin första
+ * rad från och med 2026-11-26. De som fick sin rad före det börjar med ett pris,
+ * och då säger historiken ingenting om tiden före. Timjobbet vet att de inte
+ * såldes från `TIMHISTORIK_FRAN` till sin första punkt. För dagarna före det
+ * finns bara butikens dagliga avläsning (02:30 UTC, synliga produkter), och den
+ * gallras efter 45 dagar: beviset måste hämtas medan det finns kvar.
+ *
+ * ☠️ PRODUKTENS FÖRSTA PUNKT, INTE VARIANTENS. Bara varianter vars första punkt
+ * är produktens första får punkten. En variant som kommit till senare kan vara
+ * samma vara under ett nytt variant-id.
+ *
+ * ☠️ EN PRODUKT SOM STOD I BUTIKENS AVLÄSNING FÖRE SIN FÖRSTA PUNKT RÖRS INTE.
+ * Den såldes före historiken började (flervariantsprodukterna som inte fylldes
+ * bakåt, och en produkt som var dold när timjobbet startade).
+ *
+ * ☠️ VARJE DAG FRÅN BEVISETS BÖRJAN TILL TIMHISTORIKENS SKA VARA FULLSTÄNDIGT
+ * AVLÄST. En dag där butikens avläsning föll bevisar ingenting, och då görs
+ * ingenting alls. Den tidigaste dagen räknas inte: gallringen kan ha tagit
+ * rader ur den.
+ *
+ * Går att köra om: en produkt som fått punkten börjar inte längre med ett pris.
+ */
+export async function seedaNarvaro(deps: Pick<ReaDeps, "lager" | "nu">, opts: { torr?: boolean } = {}): Promise<NarvaroRapport> {
+  const torr = opts.torr !== false;
+  const nu = deps.nu ?? Date.now;
+  const nuMs = nu();
+  const agare = agareId();
+  const rapport: NarvaroRapport = {
+    torr,
+    dagar: 0,
+    ofullstandigaDagar: [],
+    produkter: 0,
+    kandidater: 0,
+    fannsFore: 0,
+    markta: 0,
+    marktaVarianter: 0,
+    sparadeFel: 0,
+  };
+  if (!torr && !(await deps.lager.tagLas(agare, nuMs, LAS_TTL_MS))) {
+    rapport.stoppadAv = "las";
+    return rapport;
+  }
+  try {
+    const tidigaste = await deps.lager.butikensTidigasteDag();
+    const timDag = TIMHISTORIK_FRAN.slice(0, 10);
+    const bevisDag = tidigaste ? plusDagar(tidigaste, 1) : null;
+    // Når butikens avläsning inte bak till före timhistoriken finns inget att hämta.
+    if (!bevisDag || bevisDag > timDag) {
+      rapport.stoppadAv = "inget_underlag";
+      return rapport;
+    }
+    rapport.bevisFran = bevisDag;
+    const dagar: string[] = [];
+    for (let dag = bevisDag; dag <= timDag; dag = plusDagar(dag, 1)) dagar.push(dag);
+    rapport.dagar = dagar.length;
+    const fullstandiga = fullstandigaDagar(await deps.lager.butikensAntalPerDag(dagar));
+    rapport.ofullstandigaDagar = dagar.filter((dag) => !fullstandiga.has(dag));
+    if (rapport.ofullstandigaDagar.length > 0) {
+      rapport.stoppadAv = "ofullstandig_dag";
+      return rapport;
+    }
+    const bevisIso = `${bevisDag}${AVLASNING_KLOCKAN}`;
+    const bevisMs = Date.parse(bevisIso);
+
+    // Kandidaterna: historiken börjar med ett pris, senare än beviset.
+    const befintliga = await deps.lager.allaForlopp();
+    rapport.produkter = befintliga.length;
+    const kandidater: { rad: Prisforlopp; start: number; varianter: Set<string> }[] = [];
+    for (const rad of befintliga) {
+      let start = Infinity;
+      let borjarMedPris = true;
+      const forsta = new Map<string, Prispunkt>();
+      for (const v of rad.varianter) {
+        const p = sortera(v.punkter)[0];
+        if (!p) continue;
+        const t = Date.parse(p.t);
+        if (!Number.isFinite(t)) continue;
+        forsta.set(v.id, p);
+        if (t < start) {
+          start = t;
+          borjarMedPris = p.p !== null;
+        } else if (t === start && p.p === null) {
+          borjarMedPris = false;
+        }
+      }
+      if (!Number.isFinite(start) || !borjarMedPris || start <= bevisMs) continue;
+      const varianter = new Set<string>();
+      for (const [id, p] of forsta) if (Date.parse(p.t) === start && p.p !== null) varianter.add(id);
+      kandidater.push({ rad, start, varianter });
+    }
+    rapport.kandidater = kandidater.length;
+
+    // Stod produkten i butikens avläsning före sin första punkt såldes den före.
+    // En avläsning under timmarna närmast före räknas inte: timjobbet ser en ny
+    // produkt upp till en körning sent. Sorterade efter första punkten, så att
+    // en bunt bara frågar om de dagar dess produkter behöver.
+    kandidater.sort((a, b) => a.start - b.start);
+    const fannsFore = new Set<string>();
+    for (let i = 0; i < kandidater.length; i += NARVARO_BUNT) {
+      const bunt = kandidater.slice(i, i + NARVARO_BUNT);
+      const start = new Map(bunt.map((k) => [k.rad.productId, k.start]));
+      // Till och med buntens SENASTE första punkt: annars missas avläsningar för de produkter som började senare.
+      const till = new Date(Math.max(...bunt.map((k) => k.start))).toISOString().slice(0, 10);
+      const rader = await deps.lager.butikensNarvaro([...start.keys()], bevisDag, till);
+      for (const r of rader) {
+        const s = start.get(r.productId);
+        const last = Date.parse(`${r.datum}${AVLASNING_KLOCKAN}`);
+        if (s === undefined || !Number.isFinite(last)) continue;
+        if (last >= bevisMs && last <= s - MAX_GLAPP_MS) fannsFore.add(r.productId);
+      }
+    }
+    rapport.fannsFore = fannsFore.size;
+
+    const attSpara: Prisforlopp[] = [];
+    for (const k of kandidater) {
+      if (fannsFore.has(k.rad.productId)) continue;
+      rapport.markta++;
+      rapport.marktaVarianter += k.varianter.size;
+      attSpara.push({
+        productId: k.rad.productId,
+        varianter: k.rad.varianter.map((v) =>
+          k.varianter.has(v.id) ? { id: v.id, punkter: [{ t: bevisIso, p: null }, ...sortera(v.punkter)] } : v,
+        ),
+      });
+    }
+    if (torr) return rapport;
+    rapport.sparadeFel = (await deps.lager.sparaForlopp(attSpara)).length;
     return rapport;
   } finally {
     if (!torr) await deps.lager.slappLas(agare).catch(() => undefined);

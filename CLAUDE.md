@@ -222,6 +222,7 @@ underrubrik.
   - ☠️ En tappad stämpel gör omkörningen till 499 → 549 → 609
   - Kvittot
 - `16-automatisk-rea.md`: Automatisk rea: jämförpriset följer lagen (`lib/pricing/rea.ts`, 2026-11-01)
+  - Nya varor får rea (Leonard 2026-11-25)
 - `17-dealproffsen.md`: Dealproffsen: vi jämför inte med dem (Leonard 2026-10-21)
   - ☠️ Och den hittade ett tyst tak som redan var passerat (2026-09-14)
   - ☠️ Familjer med många publicerade sidor ger krockar (2026-09-15)

@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   DAG_MS,
   MARGINAL_MS,
+  MIN_KOPBAR_MS,
   MIN_SANKNING_PROCENT,
   SPAR_MS,
+  TIMHISTORIK_FRAN,
   auktionIFonstret,
   fonsterStartFor,
   fullstandigaDagar,
@@ -118,9 +120,9 @@ describe("reaFor — historiken måste täcka fönstret", () => {
     expect(fonsterStartFor(1_000_000_000_000)).toBe(1_000_000_000_000 - 30 * DAG_MS - MARGINAL_MS);
   });
 
-  it("☠️ en ny produkt (inte till salu när fönstret började) har ingen rea", () => {
-    const r = reaFor([pt(60, null), pt(32, 100_000), pt(5, 80_000)], 80_000, NU);
-    expect(r).toMatchObject({ rea: false, skal: "ny" });
+  it("☠️ en historik som bara börjar med ett pris säger inget om tiden före, hur länge varan än sålts", () => {
+    // 30 dygn till salu före sänkningen, men ingenting säger att den inte såldes billigare innan.
+    expect(reaFor([pt(35, 100_000), pt(5, 80_000)], 80_000, NU)).toMatchObject({ rea: false, skal: "ofullstandig" });
   });
 
   it("☠️ en tid då varianten inte gick att köpa räknas inte som ett pris", () => {
@@ -137,6 +139,84 @@ describe("reaFor — historiken måste täcka fönstret", () => {
   it("☠️ en paus i försäljningen med samma pris efteråt är ingen sänkning", () => {
     const r = reaFor([pt(60, 100_000), pt(10, null), pt(5, 100_000)], 100_000, NU);
     expect(r).toMatchObject({ rea: false, skal: "ingen_sankning" });
+  });
+});
+
+describe("reaFor — en ny vara (Leonard 2026-11-25)", () => {
+  // Förarbetena till 7 a §: en vara som sålts kortare tid än 30 dagar jämförs
+  // med det lägsta priset sedan den började säljas. Historiken ska säga att
+  // den inte såldes före: en punkt "gick inte att köpa" när fönstret började.
+  it("inte till salu när fönstret började, till salu i 27 dygn, sänkt 20 %: rea mot priset den såldes för", () => {
+    const r = reaFor([pt(60, null), pt(32, 100_000), pt(5, 80_000)], 80_000, NU);
+    expect(r).toMatchObject({ rea: true, tidigareOre: 100_000, sankningar: 1, nyVara: true, forstaSankning: d(5) });
+  });
+
+  it("☠️ jämförpriset är det LÄGSTA priset sedan varan började säljas, inte det senaste", () => {
+    const r = reaFor([pt(60, null), pt(25, 90_000), pt(20, 100_000), pt(5, 80_000)], 80_000, NU);
+    expect(r).toMatchObject({ rea: true, tidigareOre: 90_000, nyVara: true });
+  });
+
+  it("☠️ under sju dygn till salu före sänkningen ger ingen rea, sju dygn precis gör det", () => {
+    expect(MIN_KOPBAR_MS).toBe(7 * DAG_MS);
+    expect(reaFor([pt(60, null), pt(11.9, 100_000), pt(5, 80_000)], 80_000, NU)).toMatchObject({ rea: false, skal: "ny" });
+    expect(reaFor([pt(60, null), pt(12, 100_000), pt(5, 80_000)], 80_000, NU)).toMatchObject({ rea: true, tidigareOre: 100_000 });
+  });
+
+  it("☠️ sju dygn räknas på tiden varan gick att köpa, inte på kalendern", () => {
+    // Till salu ett dygn, dold elva, till salu tre: fyra dygn, fast femton har gått.
+    const r = reaFor([pt(60, null), pt(20, 100_000), pt(19, null), pt(8, 100_000), pt(5, 80_000)], 80_000, NU);
+    expect(r).toMatchObject({ rea: false, skal: "ny" });
+    // Samma förlopp med sex dygn till i den andra perioden: sju dygn sammanlagt.
+    const r2 = reaFor([pt(60, null), pt(20, 100_000), pt(19, null), pt(11, 100_000), pt(5, 80_000)], 80_000, NU);
+    expect(r2).toMatchObject({ rea: true, tidigareOre: 100_000, nyVara: true });
+  });
+
+  it("☠️ vid en gradvis sänkning räknas de sju dygnen före den FÖRSTA sänkningen", () => {
+    // Till salu fyra dygn före den första sänkningen, femton före den andra.
+    const r = reaFor([pt(60, null), pt(20, 100_000), pt(16, 90_000), pt(5, 80_000)], 80_000, NU);
+    expect(r).toMatchObject({ rea: false, skal: "ny" });
+    const r2 = reaFor([pt(60, null), pt(24, 100_000), pt(16, 90_000), pt(5, 80_000)], 80_000, NU);
+    expect(r2).toMatchObject({ rea: true, tidigareOre: 100_000, sankningar: 2, nyVara: true, forstaSankning: d(16) });
+  });
+
+  it("☠️ de sju dygnen räknas före den TIDIGASTE sänkning lagen kan räkna, även när skylten räknas från en senare", () => {
+    // Sänkningarna ligger 30 dygn isär: för långt för följden vi använder (29), inom den lagen kan räkna (31).
+    // Till salu fem dygn före den tidigaste, 35 före den senaste.
+    const r = reaFor([pt(80, null), pt(40, 100_000), pt(35, 90_000), pt(5, 80_000)], 80_000, NU);
+    expect(r).toMatchObject({ rea: false, skal: "ny" });
+    // Åtta dygn före den tidigaste: rea, mot det lägsta priset sedan varan började säljas.
+    const r2 = reaFor([pt(80, null), pt(43, 100_000), pt(35, 90_000), pt(5, 80_000)], 80_000, NU);
+    expect(r2).toMatchObject({ rea: true, tidigareOre: 90_000, sankningar: 1, nyVara: true, forstaSankning: d(5) });
+  });
+
+  it("gränsen på 5 % och de 30 dagarna gäller en ny vara som alla andra", () => {
+    expect(reaFor([pt(80, null), pt(50, 100_000), pt(29, 96_000)], 96_000, NU)).toMatchObject({ rea: false, skal: "under_grans" });
+    expect(reaFor([pt(80, null), pt(50, 100_000), pt(29, 80_000)], 80_000, NU)).toMatchObject({ rea: true, nyVara: true });
+    expect(reaFor([pt(80, null), pt(50, 100_000), pt(31, 80_000)], 80_000, NU)).toMatchObject({ rea: false, skal: "for_gammal" });
+  });
+
+  it("en vara som såldes före fönstret, doldes och visades igen jämförs med priserna i fönstret", () => {
+    // 700 kr för 90 dygn sedan ligger utanför fönstret. I fönstret: 1000 kr i 20 dygn.
+    const r = reaFor([pt(90, 70_000), pt(70, null), pt(25, 100_000), pt(5, 80_000)], 80_000, NU);
+    expect(r).toMatchObject({ rea: true, tidigareOre: 100_000, nyVara: true });
+  });
+
+  it("en vara som gick att köpa när fönstret började bär inte märket nyVara, och sjudygnsregeln gäller den inte", () => {
+    // Till salu när fönstret började (36 dygn sedan), dold i 27 dygn, tillbaka två dygn före sänkningen:
+    // fyra dygn till salu i fönstret, och ändå rea, som före 2026-11-25.
+    const r = reaFor([pt(50, 100_000), pt(34, null), pt(7, 100_000), pt(5, 80_000)], 80_000, NU);
+    expect(r).toMatchObject({ rea: true, tidigareOre: 100_000 });
+    expect(r).not.toHaveProperty("nyVara");
+  });
+
+  it("fönstret som reaFor svarar med är detsamma för en ny vara: luckor och auktioner prövas från det", () => {
+    const r = reaFor([pt(60, null), pt(32, 100_000), pt(5, 80_000)], 80_000, NU);
+    expect(r).toMatchObject({ rea: true, fonsterFran: d(36) });
+  });
+
+  it("den första timkörningen: från den har jobbet läst varje variant varje timme", () => {
+    expect(TIMHISTORIK_FRAN).toBe("2026-11-01T14:40:09.185Z");
+    expect(Number.isFinite(Date.parse(TIMHISTORIK_FRAN))).toBe(true);
   });
 });
 
@@ -203,16 +283,20 @@ describe("☠️ jämförpriset blir aldrig högre än lagens, i den strängaste
   it("20 000 slumpade förlopp, med och utan gradvisa sänkningar", () => {
     let medRea = 0;
     let gradvisa = 0;
+    let nyaVaror = 0;
     for (let fall = 0; fall < 20_000; fall++) {
       const { verkligt, b } = kor(fall, fall % 2 === 0 ? 0.3 : 0.12);
       if (!b.rea) continue;
       medRea++;
       if (b.sankningar > 1) gradvisa++;
+      if (b.nyVara) nyaVaror++;
       expect(b.tidigareOre, `fall ${fall}`).toBeLessThanOrEqual(hogstaTillatna(verkligt));
     }
-    // Provet ska pröva något: många fall med rea, och gradvisa bland dem.
+    // Provet ska pröva något: många fall med rea, gradvisa bland dem, och nya
+    // varor (inte till salu när fönstret började) bland dem.
     expect(medRea).toBeGreaterThan(500);
     expect(gradvisa).toBeGreaterThan(50);
+    expect(nyaVaror).toBeGreaterThan(50);
   });
 });
 

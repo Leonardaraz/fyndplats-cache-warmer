@@ -8,10 +8,13 @@
 // Lägen (`?lage=`):
 //   kor     (default) avläsningen, besluten och skrivningen.
 //   seed    fyller historiken bakåt ur butikens dagliga avläsning, en gång.
+//   narvaro ger nya varor punkten "gick inte att köpa" före sitt första pris,
+//           när butikens dagliga avläsning visar att de inte såldes då
+//           (`seedaNarvaro`). Utan den ger regeln en ny vara ingen rea.
 //   status  tillståndet: strömbrytaren, bakåtfyllningen, senaste körningen.
 //   pa, av  strömbrytaren för skrivningen av jämförpriser.
 //
-// TORRKÖRNING ÄR DEFAULT för `kor` och `seed`. Cronen i vercel.json kör skarpt
+// TORRKÖRNING ÄR DEFAULT för `kor`, `seed` och `narvaro`. Cronen i vercel.json kör skarpt
 // (`?dryRun=false`) varje timme, minut 40, utanför Aosoms synkfönster
 // (:12–:29) och före VEVOR-synken (:50). Workflowen "Rea — automatisk
 // reaskylt" kör samma rutt för hand.
@@ -24,7 +27,7 @@ import { isAuthorized } from "@/lib/auth";
 import { audit } from "@/lib/audit";
 import { queryAuctions } from "@/lib/auction/store";
 import { skapaWixAnrop } from "@/lib/polish/skrivplan-wix";
-import { korRea, seedaHistorik, type ReaDeps } from "@/lib/pricing/rea-kor";
+import { korRea, seedaHistorik, seedaNarvaro, type ReaDeps } from "@/lib/pricing/rea-kor";
 import { WixReaLager } from "@/lib/pricing/rea-lager";
 import { lasVariantpriser } from "@/lib/wix/jamforpris";
 import { redigeraFeltext } from "@/lib/wix/variant-svep";
@@ -96,6 +99,19 @@ async function kor(req: NextRequest) {
       return NextResponse.json({ ok: r.sparadeFel === 0 && !r.stoppadAv, lage, ...r });
     }
 
+    if (lage === "narvaro") {
+      const r = await seedaNarvaro(d, { torr });
+      const rad =
+        `[rea] närvaro ${torr ? "torr" : "skarp"}: beviset från ${r.bevisFran ?? "ingen dag"}, ` +
+        `${r.dagar - r.ofullstandigaDagar.length} av ${r.dagar} dagar fullständiga, ${r.produkter} produkter med historik, ` +
+        `${r.kandidater} börjar med ett pris, ${r.fannsFore} av dem stod i butikens avläsning före, ` +
+        `${r.markta} produkter (${r.marktaVarianter} varianter) fick punkten, ${r.sparadeFel} fel` +
+        (r.stoppadAv ? `, stoppad av ${r.stoppadAv}` : "");
+      console.log(rad);
+      if (!torr) await audit("rea", "admin", rad.slice(0, 900)).catch(() => undefined);
+      return NextResponse.json({ ok: r.sparadeFel === 0 && !r.stoppadAv, lage, ...r });
+    }
+
     if (lage !== "kor") return NextResponse.json({ ok: false, error: `okänt läge "${lage}"` }, { status: 400 });
 
     const limit = heltal(q.get("limit"));
@@ -117,7 +133,7 @@ async function kor(req: NextRequest) {
       `[rea] ${torr ? "torr" : "skarp"}: ${r.varianter} varianter (${r.erbjudna} köpbara), ` +
       `historik ${r.historik.produkter} produkter, ${r.historik.nyaPunkter} nya punkter, ${r.historik.fel} fel` +
       (r.historik.nyLucka ? `, ny lucka sedan ${r.historik.nyLucka.fran}` : "") +
-      `; rea på ${r.beslut.rea} varianter (${r.medRea.length} produkter), ${r.beslut.auktionLevande} i levande auktion; ` +
+      `; rea på ${r.beslut.rea} varianter (${r.beslut.nyaVaror} av dem nya varor), ${r.beslut.auktionLevande} i levande auktion; ` +
       `plan ${r.plan.nya} nya, ${r.plan.byten} byten, ${r.plan.borttagningar} borttagna på ${r.plan.produkter} produkter` +
       (r.plan.nyaSparrade ? " (masspärren: inga nya)" : "") +
       `; skrivet ${r.skrivet.satta} satta, ${r.skrivet.borttagna} borttagna på ${r.skrivet.produkter} produkter, ` +

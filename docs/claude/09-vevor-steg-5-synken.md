@@ -208,10 +208,8 @@ låtsasrutt: godkännandet kommer med i adressen, och fel läge fäller.
 
 **Inte mätt, och inte gjort:**
 
-- **Varför de 17 står så långt från regelpriset.** Antingen har VEVOR ändrat
-  priset, eller så gäller avläsningen en annan variant eller förpackning än
-  sidan. Taket finns för att en människa ska titta på just det, produkt för
-  produkt.
+- **Varför de 17 stod så långt från regelpriset** var inte mätt när det här
+  skrevs. Det mättes dagen efter, se "De 17 hoppen" nedan.
 - **De hopp som väntar på en andra avläsning syns inte som stoppade.** Väntan
   prövas före taket. Av de runt 100 som stoppades per varv 20–23 november
   syntes 17 natten mot 25 november. Resten väntas komma tillbaka när deras
@@ -219,3 +217,26 @@ låtsasrutt: godkännandet kommer med i adressen, och fel läge fäller.
 - **Varvet på åtta timmar under en prisvåg** är inte ändrat. Budgeten är 240
   sekunder en gång i timmen, och det räckte: torrkörningen ville skriva 4
   priser.
+
+**De 17 hoppen (Leonard 2026-11-25: "Fixa 17 priserba").** Kontrollen före
+godkännandet, produkt för produkt i mappningen och `FyndplatsVevorAvlasningar`:
+
+- varje artikel i mappningen hade sin egen avläsning, läst samma dag på samma
+  adress som mappningens källa, utan misslyckat försök efteråt;
+- `prisSek` och `forraPrisSek` var lika på alla 17 (två avläsningar i rad);
+- på sidor med två varianter hade varje variant sin egen artikel och sin egen
+  avläsning.
+
+Det var alltså VEVOR som hade ändrat priserna, inte läsaren som läst en annan
+variant. De 14 höjningarna (42–95 %) godkändes och skrevs 07:55–07:58 UTC, och
+alla 14 priser lästes tillbaka ur Wix. Torrkörningen efteråt visade 0
+misslyckade och bara de tre sänkningarna kvar som stoppade.
+
+☠️ **En godkänd sänkning fastnar på vägen upp.** De tre sänkningarna (51–54 %,
+två byråer och ett konsolbord) skrevs inte: VEVOR hade halverat priserna under
+Black Week, och det är inte mätt om det är tillfälligt. Godkänns en sådan
+sänkning och VEVOR sedan höjer igen är höjningen över 100 %, taket håller kvar
+det låga priset, och varan säljs under regelpriset tills någon godkänner
+höjningen. Raden säger det varje timme, men ingen får ett larm. Leonard hade
+frågan när det här skrevs. Samma sak gäller åt andra hållet för varje stoppad
+HÖJNING: så länge den står stoppad säljs varan under regelpriset.

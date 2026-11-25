@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { AuctionDoc } from "../auction/engine";
 import type { WixAnrop } from "../polish/skrivplan";
 import type { JamforUtfall, OnskatJamforpris, VariantPris } from "../wix/jamforpris";
-import { DAG_MS, type Prispunkt } from "./rea";
+import { DAG_MS, MAX_GLAPP_MS, TIMHISTORIK_FRAN, reaFor, type Prispunkt } from "./rea";
 import {
   MAX_NYA,
   auktionslagen,
@@ -10,6 +10,7 @@ import {
   korRea,
   lasIn,
   seedaHistorik,
+  seedaNarvaro,
   type ReaDeps,
 } from "./rea-kor";
 import { TOMT_TILLSTAND, type Dagsavlasning, type Prisforlopp, type ReaLager, type ReaTillstand } from "./rea-lager";
@@ -70,6 +71,19 @@ class MinnesLager implements ReaLager {
   }
   async butikensHistorik() {
     return this.butik;
+  }
+  narvaroFragor: { ids: string[]; fran: string; till: string }[] = [];
+  async butikensTidigasteDag() {
+    return this.butik.map((r) => r.datum).sort()[0] ?? null;
+  }
+  async butikensAntalPerDag(dagar: readonly string[]) {
+    return new Map(dagar.map((dag) => [dag, this.butik.filter((r) => r.datum === dag).length]));
+  }
+  async butikensNarvaro(ids: readonly string[], fran: string, till: string) {
+    this.narvaroFragor.push({ ids: [...ids], fran, till });
+    return this.butik
+      .filter((r) => ids.includes(r.productId) && r.datum >= fran && r.datum <= till)
+      .map((r) => ({ productId: r.productId, datum: r.datum }));
   }
   satt(pid: string, vid: string, punkter: Prispunkt[]) {
     const f = this.forlopp.get(pid) ?? { productId: pid, varianter: [] };
@@ -153,6 +167,79 @@ describe("lasIn", () => {
   });
 });
 
+describe("lasIn — en produkt som får sin första rad (2026-11-25)", () => {
+  // Efter timhistorikens början: jobbet har läst varje variant varje timme, så
+  // en produkt utan rad har inte gått att köpa sedan dess.
+  const SENARE = Date.parse("2026-11-26T08:40:00.000Z");
+  const iso = (ms: number) => new Date(ms).toISOString();
+
+  it("☠️ börjar med 'gick inte att köpa' från timhistorikens början, före sitt första pris", () => {
+    const h = lasIn([], [vp("ny", "v1", 100), vp("ny", "v2", 200), vp("ny", "v3", 300, null, false)], SENARE, SPAR);
+    expect(h.attSpara).toEqual([
+      {
+        productId: "ny",
+        varianter: [
+          { id: "v1", punkter: [{ t: TIMHISTORIK_FRAN, p: null }, { t: iso(SENARE), p: 100 }] },
+          { id: "v2", punkter: [{ t: TIMHISTORIK_FRAN, p: null }, { t: iso(SENARE), p: 200 }] },
+        ],
+      },
+    ]);
+    // En punkt per variant räknas: priset. Beviset är ingen avläsning.
+    expect(h.nyaPunkter).toBe(2);
+  });
+
+  it("☠️ en ny variant på en produkt som redan har en rad får INTE punkten: den kan vara samma vara under nytt id", () => {
+    const fore: Prisforlopp[] = [{ productId: "p1", varianter: [{ id: "gammal", punkter: [{ t: "2026-11-10T08:40:00.000Z", p: 100 }] }] }];
+    const h = lasIn(fore, [vp("p1", "nytt-id", 120)], SENARE, SPAR);
+    const v = h.attSpara[0].varianter;
+    expect(v.find((x) => x.id === "nytt-id")!.punkter).toEqual([{ t: iso(SENARE), p: 120 }]);
+    expect(v.find((x) => x.id === "gammal")!.punkter.at(-1)).toEqual({ t: iso(SENARE), p: null });
+  });
+
+  it("långt efter timhistorikens början dateras punkten så långt bak som historiken sparas", () => {
+    const langtSenare = Date.parse("2027-03-01T08:40:00.000Z");
+    const h = lasIn([], [vp("ny", "v1", 100)], langtSenare, SPAR);
+    expect(h.attSpara[0].varianter[0].punkter).toEqual([{ t: iso(langtSenare - SPAR), p: null }, { t: iso(langtSenare), p: 100 }]);
+  });
+
+  it("före timhistorikens början finns inget bevis, och raden börjar med priset", () => {
+    const fore = Date.parse(TIMHISTORIK_FRAN) - 3_600_000;
+    const h = lasIn([], [vp("ny", "v1", 100)], fore, SPAR);
+    expect(h.attSpara[0].varianter[0].punkter).toEqual([{ t: iso(fore), p: 100 }]);
+  });
+
+  /** Varan får sin första rad vid `forst`, och priset sänks 20 % `dygn` dygn senare. */
+  const sanktEfter = (forst: number, dygn: number) => {
+    const start = lasIn([], [vp("ny", "v1", 100_000)], forst, SPAR).attSpara;
+    const t = forst + dygn * DAG_MS;
+    const h = lasIn(start, [vp("ny", "v1", 80_000)], t, SPAR);
+    return beslutaVariant(vp("ny", "v1", 80_000), h.forlopp.get("ny")!.get("v1")!, undefined, [], t);
+  };
+
+  it("raden som skapas ger rea efter sju dygn till salu, inte efter sex", () => {
+    const forst = Date.parse("2026-12-10T08:40:00.000Z");
+    expect(sanktEfter(forst, 6)).toMatchObject({ jamforOre: null, skal: "ny" });
+    expect(sanktEfter(forst, 8)).toMatchObject({ jamforOre: 100_000, skal: "rea", nyVara: true });
+  });
+
+  it("☠️ beviset räcker bara bak till timhistorikens början: ett fönster som börjar före den ger ingen rea", () => {
+    // Första raden 26 november. Sänkt 2 december börjar fönstret 1 november 08:40, sex timmar före
+    // timhistoriken; sänkt 4 december börjar det 3 november.
+    expect(sanktEfter(SENARE, 6)).toMatchObject({ jamforOre: null, skal: "ofullstandig" });
+    expect(sanktEfter(SENARE, 8)).toMatchObject({ jamforOre: 100_000, skal: "rea", nyVara: true });
+  });
+
+  it("☠️ en lucka i fönstret ger ingen rea för en ny vara heller: under den kan varan ha sålts", () => {
+    const start = lasIn([], [vp("ny", "v1", 100_000)], SENARE, SPAR).attSpara;
+    const t = SENARE + 8 * DAG_MS;
+    const h = lasIn(start, [vp("ny", "v1", 80_000)], t, SPAR);
+    // En lucka FÖRE varans första rad: under den kan den ha börjat säljas till ett annat pris.
+    const lucka = [{ fran: iso(SENARE - 3 * DAG_MS), till: iso(SENARE - 2 * DAG_MS) }];
+    expect(beslutaVariant(vp("ny", "v1", 80_000), h.forlopp.get("ny")!.get("v1")!, undefined, lucka, t)).toMatchObject({ jamforOre: null, skal: "lucka" });
+    expect(beslutaVariant(vp("ny", "v1", 80_000), h.forlopp.get("ny")!.get("v1")!, undefined, [], t)).toMatchObject({ skal: "rea" });
+  });
+});
+
 // ── Beslutet ──────────────────────────────────────────────────────────────
 
 describe("beslutaVariant", () => {
@@ -180,6 +267,16 @@ describe("beslutaVariant", () => {
   it("en variant som inte går att köpa ska inte ha något jämförpris", () => {
     expect(beslutaVariant(vp("p1", "v1", 80_000, 100_000, false), historik, undefined, [], NU)).toMatchObject({ jamforOre: null, skal: "inte_utbjuden" });
   });
+  it("en ny vara bär märket nyVara, en vara med priser över hela fönstret gör det inte", () => {
+    const ny = [pt(60, null), pt(32, 100_000), pt(5, 80_000)];
+    expect(beslutaVariant(vp("p1", "v1", 80_000), ny, undefined, [], NU)).toMatchObject({ jamforOre: 100_000, skal: "rea", nyVara: true });
+    expect(beslutaVariant(vp("p1", "v1", 80_000), historik, undefined, [], NU)).not.toHaveProperty("nyVara");
+  });
+  it("☠️ en auktion sedan en ny vara började säljas ger ingen automatisk rea", () => {
+    const ny = [pt(60, null), pt(32, 100_000), pt(5, 80_000)];
+    const lage = auktionslagen([auktion("p1", "sold", 20, 19.5)]).get("p1");
+    expect(beslutaVariant(vp("p1", "v1", 80_000), ny, lage, [], NU)).toMatchObject({ jamforOre: null, skal: "auktion" });
+  });
 });
 
 // ── Körningen ─────────────────────────────────────────────────────────────
@@ -202,6 +299,15 @@ describe("korRea", () => {
     expect(l.sparade).toHaveLength(0);
     expect(skrivningar).toHaveLength(0);
     expect(l.las).toBeNull();
+  });
+
+  it("rapporten säger hur många av reaskyltarna som är nya varor", async () => {
+    const l = medHistorik({ seedKlar: true, skriv: true });
+    l.satt("nyvara", "v1", [pt(60, null), pt(32, 100_000), pt(5, 80_000)]);
+    const { dep } = deps(l, [...katalog(), vp("nyvara", "v1", 80_000)]);
+    const r = await korRea(dep, { torr: true, deadline: NU + 60_000 });
+    expect(r.beslut).toMatchObject({ rea: 2, nyaVaror: 1 });
+    expect(r.medRea).toEqual(["nyvara", "rea"]);
   });
 
   it("☠️ före bakåtfyllningen förs historiken, men inga jämförpriser skrivs", async () => {
@@ -395,5 +501,180 @@ describe("seedaHistorik", () => {
     const r = await seedaHistorik(dep, { torr: false });
     expect(r.luckor).toBe(1);
     expect(l.tillstand.luckor).toEqual([{ fran: "2026-10-24T02:30:00.000Z", till: "2026-10-26T02:30:00.000Z" }]);
+  });
+});
+
+// ── Beviset ur butikens dagliga avläsning ────────────────────────────────
+
+describe("seedaNarvaro (2026-11-25)", () => {
+  // Körs efter timhistorikens början. Butikens avläsning har kvar 2026-10-11 och
+  // framåt, så beviset börjar dagen efter: 2026-10-12 02:30 UTC.
+  const NU2 = Date.parse("2026-11-26T02:10:00.000Z");
+  const BEVIS = "2026-10-12T02:30:00.000Z";
+  const dagarna = (fran: string, till: string) => {
+    const ut: string[] = [];
+    for (let t = Date.parse(`${fran}T00:00:00.000Z`); t <= Date.parse(`${till}T00:00:00.000Z`); t += DAG_MS) ut.push(new Date(t).toISOString().slice(0, 10));
+    return ut;
+  };
+  /** Butikens avläsning: tio andra produkter varje dag, så att dagarna är fullständiga. */
+  function lager(extra: Dagsavlasning[] = [], utanDag?: string) {
+    const l = new MinnesLager({ seedKlar: true, skriv: true });
+    for (const dag of dagarna("2026-10-11", "2026-11-25")) {
+      if (dag === utanDag) continue;
+      for (let i = 0; i < 10; i++) l.butik.push({ productId: `fyllnad-${i}`, datum: dag, prisOre: 1000 });
+    }
+    l.butik.push(...extra);
+    return l;
+  }
+  const dep = (l: MinnesLager) => ({ lager: l, nu: () => NU2 });
+  const P = (t: string, p: number | null): Prispunkt => ({ t, p });
+
+  it("☠️ en vara som började säljas efter timhistorikens början får punkten, daterad till bevisets början", async () => {
+    const l = lager([{ productId: "ny", datum: "2026-11-14", prisOre: 100_000 }]);
+    l.satt("ny", "v1", [P("2026-11-13T14:40:09.000Z", 100_000), P("2026-11-24T16:40:09.000Z", 92_000)]);
+    const r = await seedaNarvaro(dep(l), { torr: false });
+    expect(r).toMatchObject({ torr: false, bevisFran: "2026-10-12", dagar: 21, ofullstandigaDagar: [], kandidater: 1, fannsFore: 0, markta: 1, marktaVarianter: 1, sparadeFel: 0 });
+    expect(l.forlopp.get("ny")!.varianter[0].punkter).toEqual([P(BEVIS, null), P("2026-11-13T14:40:09.000Z", 100_000), P("2026-11-24T16:40:09.000Z", 92_000)]);
+    expect(l.las).toBeNull();
+    // Och regeln ger nu varan rea mot priset den såldes för i elva dygn.
+    const b = reaFor(l.forlopp.get("ny")!.varianter[0].punkter, 92_000, NU2);
+    expect(b).toMatchObject({ rea: true, tidigareOre: 100_000, nyVara: true });
+  });
+
+  it("torrt: räknar men sparar ingenting och tar inget lås", async () => {
+    const l = lager();
+    l.satt("ny", "v1", [P("2026-11-13T14:40:09.000Z", 100_000)]);
+    const r = await seedaNarvaro(dep(l));
+    expect(r).toMatchObject({ torr: true, kandidater: 1, markta: 1 });
+    expect(l.sparade).toHaveLength(0);
+    expect(l.forlopp.get("ny")!.varianter[0].punkter).toHaveLength(1);
+  });
+
+  it("☠️ en produkt som stod i butikens avläsning före sin första punkt såldes före, och rörs inte", async () => {
+    // En flervariantsprodukt som fanns när timjobbet startade: första punkten vid timhistorikens början.
+    const l = lager(dagarna("2026-10-12", "2026-11-25").map((datum) => ({ productId: "gammal", datum, prisOre: 50_000 })));
+    l.satt("gammal", "v1", [P(TIMHISTORIK_FRAN, 50_000)]);
+    l.satt("gammal", "v2", [P(TIMHISTORIK_FRAN, 60_000)]);
+    // Och en som var dold när timjobbet startade men såldes en dag i oktober.
+    l.butik.push({ productId: "dold", datum: "2026-10-20", prisOre: 70_000 });
+    l.satt("dold", "v1", [P("2026-11-10T09:40:09.000Z", 90_000)]);
+    const r = await seedaNarvaro(dep(l), { torr: false });
+    expect(r).toMatchObject({ kandidater: 2, fannsFore: 2, markta: 0 });
+    expect(l.sparade).toHaveLength(0);
+    expect(l.forlopp.get("dold")!.varianter[0].punkter).toEqual([P("2026-11-10T09:40:09.000Z", 90_000)]);
+  });
+
+  it("☠️ en avläsning högst tre timmar före den första punkten räknas inte: timjobbet ser en ny produkt en körning sent", async () => {
+    // Publicerad 01:50, butikens avläsning 02:30 ser den, timjobbet 02:40.
+    const l = lager([{ productId: "natt", datum: "2026-11-13", prisOre: 100_000 }]);
+    l.satt("natt", "v1", [P("2026-11-13T02:40:09.000Z", 100_000)]);
+    // Samma sak med mer än tre timmar emellan är en vara som såldes före.
+    l.butik.push({ productId: "fore", datum: "2026-11-13", prisOre: 100_000 });
+    l.satt("fore", "v1", [P(new Date(Date.parse("2026-11-13T02:30:00.000Z") + MAX_GLAPP_MS + 60_000).toISOString(), 100_000)]);
+    const r = await seedaNarvaro(dep(l), { torr: false });
+    expect(r).toMatchObject({ kandidater: 2, fannsFore: 1, markta: 1 });
+    expect(l.forlopp.get("natt")!.varianter[0].punkter[0]).toEqual(P(BEVIS, null));
+    expect(l.forlopp.get("fore")!.varianter[0].punkter[0].p).toBe(100_000);
+  });
+
+  it("☠️ bara varianter vars första punkt är produktens första får punkten", async () => {
+    const l = lager();
+    l.satt("ny", "v1", [P("2026-11-13T14:40:09.000Z", 100_000)]);
+    l.satt("ny", "senare", [P("2026-11-20T10:40:09.000Z", 120_000)]);
+    l.satt("ny", "aldrig", []);
+    const r = await seedaNarvaro(dep(l), { torr: false });
+    expect(r).toMatchObject({ markta: 1, marktaVarianter: 1 });
+    const v = l.forlopp.get("ny")!.varianter;
+    expect(v.find((x) => x.id === "v1")!.punkter[0]).toEqual(P(BEVIS, null));
+    expect(v.find((x) => x.id === "senare")!.punkter).toEqual([P("2026-11-20T10:40:09.000Z", 120_000)]);
+    expect(v.find((x) => x.id === "aldrig")!.punkter).toEqual([]);
+  });
+
+  it("☠️ en historik som redan börjar med 'gick inte att köpa', eller före beviset, rörs inte: körningen går att göra om", async () => {
+    const l = lager();
+    l.satt("ny", "v1", [P("2026-11-13T14:40:09.000Z", 100_000)]);
+    l.satt("seedad", "v1", [P("2026-09-17T02:30:00.000Z", null), P("2026-10-20T02:30:00.000Z", 80_000)]);
+    l.satt("gammal", "v1", [P("2026-09-17T02:30:00.000Z", 80_000)]);
+    l.satt("blandad", "v1", [P("2026-11-13T14:40:09.000Z", 100_000)]);
+    l.satt("blandad", "v2", [P("2026-11-13T14:40:09.000Z", null), P("2026-11-14T14:40:09.000Z", 100_000)]);
+    const forsta = await seedaNarvaro(dep(l), { torr: false });
+    expect(forsta).toMatchObject({ produkter: 4, kandidater: 1, markta: 1 });
+    const igen = await seedaNarvaro(dep(l), { torr: false });
+    expect(igen).toMatchObject({ kandidater: 0, markta: 0 });
+    expect(l.forlopp.get("ny")!.varianter[0].punkter).toHaveLength(2);
+  });
+
+  it("☠️ en dag där butikens avläsning föll bevisar ingenting: då görs ingenting alls", async () => {
+    const l = lager([], "2026-10-20");
+    l.satt("ny", "v1", [P("2026-11-13T14:40:09.000Z", 100_000)]);
+    const r = await seedaNarvaro(dep(l), { torr: false });
+    expect(r).toMatchObject({ stoppadAv: "ofullstandig_dag", ofullstandigaDagar: ["2026-10-20"], markta: 0 });
+    expect(l.sparade).toHaveLength(0);
+    expect(l.las).toBeNull();
+  });
+
+  it("☠️ den tidigaste dagen räknas inte: gallringen kan ha tagit rader ur den", async () => {
+    const l = lager();
+    // Varan stod bara i den tidigaste dagen: det säger ingenting om dagen efter.
+    l.butik.push({ productId: "ny", datum: "2026-10-11", prisOre: 100_000 });
+    l.satt("ny", "v1", [P("2026-11-13T14:40:09.000Z", 100_000)]);
+    const r = await seedaNarvaro(dep(l), { torr: false });
+    expect(r).toMatchObject({ bevisFran: "2026-10-12", markta: 1 });
+    expect(l.narvaroFragor[0]).toMatchObject({ fran: "2026-10-12", till: "2026-11-13" });
+  });
+
+  it("☠️ när butikens avläsning inte når bak till före timhistoriken finns inget att hämta", async () => {
+    const l = new MinnesLager();
+    for (const dag of dagarna("2026-11-05", "2026-11-25")) l.butik.push({ productId: "x", datum: dag, prisOre: 1000 });
+    l.satt("ny", "v1", [P("2026-11-13T14:40:09.000Z", 100_000)]);
+    expect(await seedaNarvaro(dep(l), { torr: false })).toMatchObject({ stoppadAv: "inget_underlag", markta: 0 });
+    expect(await seedaNarvaro(dep(new MinnesLager()), { torr: false })).toMatchObject({ stoppadAv: "inget_underlag" });
+  });
+
+  it("☠️ fönstret får inte nå före beviset: en sänkning vars fönster börjar före 12 oktober ger ingen rea", async () => {
+    const l = lager();
+    l.satt("tidig", "v1", [P("2026-11-02T10:40:09.000Z", 100_000), P("2026-11-10T10:40:09.000Z", 90_000)]);
+    await seedaNarvaro(dep(l), { torr: false });
+    // Sänkt 10 november: fönstret börjar 10 oktober, två dygn före beviset.
+    expect(reaFor(l.forlopp.get("tidig")!.varianter[0].punkter, 90_000, NU2)).toMatchObject({ rea: false, skal: "ofullstandig" });
+  });
+
+  it("frågar butikens avläsning i buntar om hundra, sorterade efter första punkten", async () => {
+    const l = lager();
+    for (let i = 0; i < 150; i++) {
+      const dag = 10 + (i % 15);
+      l.satt(`p${String(i).padStart(3, "0")}`, "v1", [P(`2026-11-${dag}T10:40:09.000Z`, 100_000)]);
+    }
+    const r = await seedaNarvaro(dep(l));
+    expect(r).toMatchObject({ kandidater: 150, markta: 150 });
+    expect(l.narvaroFragor.map((f) => f.ids.length)).toEqual([100, 50]);
+    // Tio produkter per dag 10–24 november: de hundra första slutar 19 november.
+    expect(l.narvaroFragor.map((f) => f.till)).toEqual(["2026-11-19", "2026-11-24"]);
+  });
+
+  it("☠️ en bunt frågar till och med sin SENASTE första punkt, i vilken ordning produkterna än kommer", async () => {
+    // "sen" började 20 november men stod i butikens avläsning 15 november: den såldes före.
+    const l = lager([{ productId: "sen", datum: "2026-11-15", prisOre: 100_000 }]);
+    l.satt("sen", "v1", [P("2026-11-20T10:40:09.000Z", 100_000)]);
+    l.satt("tidig", "v1", [P("2026-11-05T10:40:09.000Z", 100_000)]);
+    const r = await seedaNarvaro(dep(l), { torr: false });
+    expect(l.narvaroFragor).toEqual([{ ids: ["tidig", "sen"], fran: "2026-10-12", till: "2026-11-20" }]);
+    expect(r).toMatchObject({ kandidater: 2, fannsFore: 1, markta: 1 });
+    expect(l.forlopp.get("sen")!.varianter[0].punkter[0].p).toBe(100_000);
+  });
+
+  it("☠️ ett upptaget lås stoppar den skarpa körningen innan något läses", async () => {
+    const l = lager();
+    l.las = "annan";
+    l.satt("ny", "v1", [P("2026-11-13T14:40:09.000Z", 100_000)]);
+    expect(await seedaNarvaro(dep(l), { torr: false })).toMatchObject({ stoppadAv: "las", produkter: 0 });
+    expect(l.sparade).toHaveLength(0);
+  });
+
+  it("ett fel när raderna sparas syns i rapporten", async () => {
+    const l = lager();
+    l.sparaFel = true;
+    l.satt("ny", "v1", [P("2026-11-13T14:40:09.000Z", 100_000)]);
+    expect(await seedaNarvaro(dep(l), { torr: false })).toMatchObject({ markta: 1, sparadeFel: 1 });
   });
 });

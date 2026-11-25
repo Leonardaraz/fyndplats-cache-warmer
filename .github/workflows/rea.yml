@@ -3,7 +3,9 @@ name: Rea — automatisk reaskylt vid verklig prissänkning
 # Rea-jobbet för hand (lib/pricing/rea-kor.ts, regeln i lib/pricing/rea.ts).
 # Cronen kör det skarpt varje timme, minut 40. Ett jämförpris sätts bara när
 # priset sänkts med minst 5 % mot det lägsta priset de 30 dagarna före
-# sänkningen (7 a § prisinformationslagen), och tas bort efter 30 dagar.
+# sänkningen (7 a § prisinformationslagen), och tas bort efter 30 dagar. En ny
+# vara jämförs med det lägsta priset sedan den började säljas, när den gått att
+# köpa i minst sju dygn (Leonard 2026-11-25).
 #
 #   status     strömbrytaren, bakåtfyllningen, senaste körningen och luckorna
 #   torr       läser och räknar: vad som skulle sättas och tas bort. Sparar ingenting.
@@ -11,10 +13,18 @@ name: Rea — automatisk reaskylt vid verklig prissänkning
 #              (bara när bakåtfyllningen är gjord och strömbrytaren är på)
 #   seed-torr  vad bakåtfyllningen ur butikens dagliga avläsning skulle göra
 #   seed       fyller historiken bakåt, en gång
+#   narvaro-torr  vilka nya varor som skulle få punkten "gick inte att köpa" före
+#                 sitt första pris (butikens dagliga avläsning visar att de inte
+#                 såldes då). Sparar ingenting.
+#   narvaro    sätter punkten. Går att köra om.
 #   pa         strömbrytaren på: jobbet börjar skriva jämförpriser
 #   av         strömbrytaren av: historiken förs, inga jämförpriser skrivs
 #
 # Ordningen första gången: seed-torr, seed, torr (läs planen), pa, skarp.
+#
+# Nya varor (2026-11-25): narvaro-torr, narvaro, torr (läs planen: `nyaVaror`),
+# sedan skarp med max_nya tills ingenting är kvar. Masspärren håller annars
+# timjobbet från att sätta fler än 200 nya skyltar i en körning.
 #
 # Skriver bara antal och Wix-id, aldrig priser. Repot är publikt.
 #
@@ -24,11 +34,11 @@ on:
   workflow_dispatch:
     inputs:
       lage:
-        description: "status, torr, skarp, seed-torr, seed, pa eller av"
+        description: "status, torr, skarp, seed-torr, seed, narvaro-torr, narvaro, pa eller av"
         required: true
         default: status
         type: choice
-        options: [status, torr, skarp, seed-torr, seed, pa, av]
+        options: [status, torr, skarp, seed-torr, seed, narvaro-torr, narvaro, pa, av]
       max_nya:
         description: "Masspärren: högst så många nya reaskyltar (torr och skarp). Tomt = 200."
         required: false
@@ -69,6 +79,8 @@ jobs:
             skarp)     fraga="lage=kor&dryRun=false" ;;
             seed-torr) fraga="lage=seed&dryRun=true" ;;
             seed)      fraga="lage=seed&dryRun=false" ;;
+            narvaro-torr) fraga="lage=narvaro&dryRun=true" ;;
+            narvaro)   fraga="lage=narvaro&dryRun=false" ;;
             pa)        fraga="lage=pa" ;;
             av)        fraga="lage=av" ;;
             *) echo "::error::okänt läge $LAGE" >&2; exit 1 ;;
@@ -96,7 +108,7 @@ jobs:
           case "$LAGE" in
             status|pa|av)
               printf '%s' "$svar" | jq '{ok, lage, skriv, seedKlar, seedAt, senast, luckor, senasteLucka}' ;;
-            seed-torr|seed)
+            seed-torr|seed|narvaro-torr|narvaro)
               printf '%s' "$svar" | jq 'del(.ok)' ;;
             *)
               printf '%s' "$svar" | jq '{ok, torr, skriv, seedKlar, varianter, erbjudna, historik, beslut, plan, skrivet, skrevInte, stoppad, stoppadAv, ejNadda, medRea: (.medRea | length)}'
