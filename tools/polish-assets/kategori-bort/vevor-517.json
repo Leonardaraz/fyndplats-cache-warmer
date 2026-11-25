@@ -1,0 +1,30 @@
+{
+ "namn": "vevor-517",
+ "rader": [
+  {
+   "kort": "3af1a773",
+   "pid": "3af1a773-5ba7-45f3-91b9-698573ffbc4e",
+   "bort": [
+    "Sport & Fritid > Bollsport"
+   ],
+   "behall": [
+    "Sport & Fritid",
+    "Sport & Fritid > Bil & Cykel",
+    "Barn & Familj",
+    "Barn & Familj > Sparkcyklar för barn"
+   ]
+  },
+  {
+   "kort": "3b106a66",
+   "pid": "3b106a66-6ff6-4c50-81c7-2b985b6f89c6",
+   "bort": [
+    "Verktyg & Maskiner > Verktygstillbehör",
+    "Verktyg & Maskiner"
+   ],
+   "behall": [
+    "Bygg & Renovering",
+    "Bygg & Renovering > Byggmaterial & byggverktyg"
+   ]
+  }
+ ]
+}
