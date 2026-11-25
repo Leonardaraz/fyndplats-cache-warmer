@@ -1,0 +1,29 @@
+{
+  "namn": "vevor-487",
+  "rader": [
+    {
+      "kort": "be1bfc82",
+      "pid": "be1bfc82-7a49-430b-a08f-bd2a6d40a32e",
+      "bort": [
+        "Verktyg & Maskiner > Lyft & transport",
+        "Verktyg & Maskiner"
+      ],
+      "behall": [
+        "Hem & Inredning",
+        "Hem & Inredning > Förvaring & Organisering"
+      ]
+    },
+    {
+      "kort": "d9b6b0f9",
+      "pid": "d9b6b0f9-fc94-41de-9986-5723e821c138",
+      "bort": [
+        "Trädgård & Utemöbler > Trädgårdsskötsel & Bevattning",
+        "Trädgård & Utemöbler"
+      ],
+      "behall": [
+        "Sport & Fritid",
+        "Sport & Fritid > Friluftsliv & Resa"
+      ]
+    }
+  ]
+}
