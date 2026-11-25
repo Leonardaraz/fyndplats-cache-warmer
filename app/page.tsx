@@ -456,11 +456,13 @@ export default async function Home() {
             </div>
             <div className="katrad">
               {homeCats.map((c) => {
-                // Samma bild som /butik visar för avdelningen.
-                const bild = unsplashIForm(categoryHero(c.main.name), "4:3") || c.heroImg || c.thumbs[0];
+                // Samma bild som /butik visar för avdelningen. Saknas stämningsbild
+                // visas en vara, på vitt i en tunn ram (.kat-produkt i app/startsida.css).
+                const stamning = unsplashIForm(categoryHero(c.main.name), "4:3");
+                const bild = stamning || c.heroImg || c.thumbs[0];
                 return (
                   <PrefetchLink className="kat" key={c.main.id} href={`/kategori/${c.main.slug}`}>
-                    <span className="kat-bild" aria-hidden="true">
+                    <span className={stamning ? "kat-bild" : "kat-bild kat-produkt"} aria-hidden="true">
                       {bild && (
                         <Image
                           src={tightFillUrl(bild, 560, 420)}

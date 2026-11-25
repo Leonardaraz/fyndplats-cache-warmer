@@ -4099,9 +4099,11 @@ vaktar alltihop.
 komponent. De två utseendena kom av att `app/startsida.css` (`.hem2 .prod`) och
 `app/butik/butik.css` (`.butik2 .prod`) skrev över grunden med samma femton
 rader var. Nu är brickan grunden (`.prod` i `app/globals.css`) och de två
-kopiorna är borta: fotot på en varm platta (`#F4EEE8`, 18 px hörn,
-`mix-blend-mode:multiply` så att fotonas vita botten tar plattans ton), namnet,
-betyget och priset under, ingen ram och ingen knapp. `.pbtn` finns inte längre,
+kopiorna är borta: fotot på en platta med 18 px hörn, namnet, betyget och
+priset under, ingen ram och ingen knapp. Plattan var varm (`#F4EEE8`, med
+`mix-blend-mode:multiply` så att fotonas vita botten tog plattans ton) till
+2026-11-25; nu är den vit överallt, se "Vit bakgrund bakom varje bild" sist i
+filen. `.pbtn` finns inte längre,
 varken i komponenten eller i stilen. Listorna (ShopBrowser, `.shoplista`) kapar
 namnet vid tre rader, och vid fyra på mobilen (≤ 540 px). Övriga ytor kapar
 vid två, som startsidans brickor alltid har gjort.
@@ -4152,10 +4154,11 @@ kategorierna, söket, rean och alla-produkter den varma plattan; före det stod
 deras foton på vitt. Från 881 px har `.pimg` i listorna vit botten och en
 hårfin ram (`var(--line)`), och bilden ritas utan `mix-blend-mode`, för mot
 vitt gör blandningen ingenting. Startsidan (`.hem2`) och /butik med prissidornas
-översikt (`.butik2`) behåller den beige brickan som de alltid haft. Mobilen
-(880 px och smalare) har vit platta överallt sedan 2026-11-20, se nedan.
-Blocket står i `app/globals.css` före "Fyndauktionens kort", och
-`lib/produktkortet.test.ts` vaktar det.
+översikt (`.butik2`) behöll den beige brickan till 2026-11-25; sedan dess har
+de samma vita platta med ram som listorna ("Vit bakgrund bakom varje bild",
+sist i filen). Mobilen (880 px och smalare) har vit platta överallt sedan
+2026-11-20, se nedan. Blocket står i `app/globals.css` före "Fyndauktionens
+kort", och `lib/produktkortet.test.ts` vaktar det.
 
 Mätt i det lokala bygget, beräknad stil på varje kort: vitt med ram och
 `normal` på /kategori/…, /sok, /rea, /alla-produkter, /under-1000-kr/mobler
@@ -4180,7 +4183,8 @@ två utseenden: vitt på iPhone, beige i Chromium och Samsung Internet. Nu har
 `.pimg` vit botten och fotot ritas utan `mix-blend-mode` på 880 px och
 smalare, på varje sida, också startsidan och /butik. Ingen ram: det är så
 iPhone redan visade korten, så den som handlar på iPhone ser ingen skillnad.
-Blocket `@media(max-width:880px)` står direkt efter datorns block. Mätt i det
+Blocket `@media(max-width:880px)` stod direkt efter datorns block till
+2026-11-25, då plattan blev vit i grunden och blocket togs bort. Mätt i det
 lokala bygget, beräknad stil på varje kort: vitt, 0 px ram och `normal` på nio
 sidtyper vid 880 och 393 px (36 av 36 med datorns två bredder), och pixlarna
 i plattans övre vänstra hörn är (255, 255, 255) på startsidan, i kategorin och
@@ -6908,3 +6912,139 @@ DOM-noderna (4 197) och lyssnarna (1 101) stilla efter skräpsamling.
   mot tomma ytor med samma höjd.
 - **Produktsidan** mättes inte för sig. Varje besök hämtar stora bilder, och
   Chromium släpper dem när sidan lämnas.
+
+## Vit bakgrund bakom varje bild, och /butiks register som rader (Leonard 2026-11-25)
+
+Leonard, med tre foton av /butik på datorn och en skärmbild av telefonens meny:
+"Det är inte vit bakgrund överallt på produkt och kategori bilder, jag vill att
+det ska vara det och startsidan på datorn ser inte alls premium ut och matchar
+inte startsidan på telefon, fixa så hela undre delen också är 10/10 design och
+optimerad". Fotona visade "Populärt just nu" med beige plattor, registret "Alla
+kategorier" som fyra spalter text, och mobilmenyns miniatyrer på beige rutor.
+☠️ Sidan på fotona är /butik, fast han säger startsidan. Båda sidorna är
+ändrade.
+
+### Vit platta, överallt
+
+Kartlagt på www samma dag, i varje bild frågat vad som står bakom den
+(`audit/vita-plattor.cjs`): en varm platta med fotot blandat mot den
+(`mix-blend-mode:multiply`) stod kvar på sju slags ytor. Alla är vita nu.
+
+| Yta | Förut | Nu |
+|---|---|---|
+| Produktkortet på datorns startsida, /butik och prissidornas översikt | `#F4EEE8`, multiply, ingen ram | vit, tunn ram (`var(--line)`), som listorna |
+| Avdelningsrutorna på startsidan och /butik (`.kat-bild`, `.b2-avd-bild`) | `#F4EEE8`, multiply | vit, fotot som det är |
+| Miniatyrerna i datorns och mobilens meny och i prissidornas register (`.mn-bild`) | `#F4EEE6`, multiply | vit, tunn ram |
+| Menyns stora ruta för en avdelning utan stämningsbild (`.meganav-feature-produkt`) | `#F3ECE4`, multiply | vit, tunn ram |
+| Favoritlådans rader (`.fav-bild`) | `var(--surface-2)`, multiply | vit, tunn ram |
+
+- **Kortets platta är vit i grunden** (`.prod .pimg` i `app/globals.css`), utan
+  blandningsläge. Datorn (från 881 px) lägger bara till ramen. Undantaget
+  `:is(.hem2,.butik2)` och mobilens eget block är borta: kortet har en
+  uppsättning regler, på varje sida.
+- **Stämningsbilderna blev en ton mörkare av blandningen.** De ligger kant i
+  kant i rutan, så plattan syntes aldrig, men multiply mot en varm platta
+  färgade hela fotot. Nu ritas de som de är.
+- **En avdelning utan stämningsbild visar en vara** (i dag Bil & Garage).
+  Rutan bär då `.kat-produkt` eller `.b2-avd-produkt` och får en tunn ram:
+  varans vita botten går ihop med den vita sidan, och utan ram syns rutan
+  inte. Bilden är densamma som förut, i rutans form. ☠️ Ett första försök
+  hämtade varan kvadratisk och visade den hel (`object-fit:contain`): varan
+  blev en fjärdedel mindre än grannrutornas foton och rutan såg tom ut.
+- ☠️ **Rutan "Hela sortimentet" bär också `.b2-avd-bild`.** Dess mörka botten
+  (`.b2-alla-yta`) har samma vikt som rutans vita och vinner för att den står
+  sist. I ett första prov med den vita regeln sist blev rutan vit med vit text.
+- ☠️ **Hjältens fyra brickor är undantaget, med flit.** De har kvar studions
+  ljusa ton (`--studio-bricka`, nästan vit upptill och varmare nedtill) och
+  multiply, som Leonard valde 2026-11-17. Vill han ha dem helvita är det en
+  rad: `--studio-bricka` i `app/globals.css` och i `app/sasongstema.css`.
+- Ytor där bilden täcker sin ruta helt (produktsidans galleri, sökrutans
+  förslag, varukorgen, bloggens omslag) har kvar en varmgrå botten som bara
+  syns medan bilden laddar.
+
+Mätt i Chromium, 1 440 och 393 px, www mot det lokala produktionsbygget.
+Skärmbilden läses av i åtta punkter längs varje plattas kant, och en platta
+räknas som varm när minst tre har plattans ton:
+
+| Yta | www | bygget |
+|---|---|---|
+| Datorn: startsidans kort, /butiks kort, prissidans kort | 8 av 8 varma, på var och en | 0 av 8 |
+| Datorn: prissidans miniatyrer | 10 av 10 | 0 av 10 |
+| Datorn: menyn Möbler | 7 av 12 | 0 av 12 |
+| Datorn: menyns stora ruta (Bil), favoritlådan | 1 av 1, 3 av 3 | 0 |
+| Telefonen: menyns avdelningar, menyn Möbler | 8 av 8, 5 av 8 | 0 |
+
+Bilder med blandningsläge: datorns startsida 23 → 4 (hjältens brickor), /butik
+19 → 0; telefonen 28 → 4 och 24 → 0.
+
+☠️ **En enstaka varm pixel är varans egen färg.** Första versionen av provet
+fällde på en pixel av 96: en gungstols träben (240, 238, 227) och en
+rumsavdelare som fyller hela miniatyren. Därför räknas plattor, inte pixlar.
+
+### /butiks register: en rad per avdelning
+
+På datorn var "Alla kategorier" fyra spalter text, 2 006 px högt (www, 1 440
+px): Möbler ensamt 30 rader, sista spalten nästan tom. På telefonen var samma
+register redan en rad per avdelning med kategorierna som knappar.
+
+Nu har datorn samma form (`.b2-rader`, från 881 px): avdelningens namn och
+antal till vänster, kategorierna som knappar till höger, och "Alla N" som
+fäller ut resten. Raden visar så många knappar som ryms på en rad.
+
+- **Störst först** (`lib/register-rader.ts`, `storstForst`), på båda skärmarna:
+  bara de första syns utan att kunden gör något, och då ska det vara de
+  kategorier flest letar efter. Lika stora i svensk bokstavsordning. Menyerna
+  har kvar sin egen ordning (`MAIN_GROUPS`).
+- **Alla länkarna står kvar i sidans HTML**, lika många som hjälten säger (149
+  i provet). Raden klipps i stilen, inte i markupen.
+- **Knappen är en kryssruta** (`.b2-vaxla`) med etiketten som synlig yta
+  (`.b2-fler`): inget skript, och webbläsaren minns läget. Mätt: Möbler utfälld,
+  ett klick på radens sista kategori och bakåt gav samma rad utfälld (357 px)
+  på samma plats i sidan.
+- **En avdelning med fem kategorier eller färre** har ingen knapp och visas
+  hel (`RAD_UTAN_KNAPP`).
+- ☠️ **Det klippta går att nå med tangentbordet.** Utan åtgärd rullade
+  webbläsaren den klippta rutan för att visa länken i fokus, och första raden
+  försvann. Raden fälls därför ut när fokus står i den
+  (`:has(a:focus-visible)`), och klipps BARA i en webbläsare som kan `:has`.
+  Safari före 15.4 och Firefox före 121 visar alla knappar och ingen "Alla N".
+- ☠️ **Listan har 6 px luft och lika mycket marginal ut.** Den klipper, och
+  utan luften kapades knapparnas fokusring (2 px ring, 2 px avstånd).
+- **Prissidornas register är orört** (få kategorier, en miniatyr per rad). De
+  delar `.b2-register` med /butik men bär inte `.b2-rader`.
+
+Mätt i det lokala produktionsbygget: registret 2 006 → 1 082 px vid 1 440 px
+(1 039 vid 881, 1 044 vid 1 024), hela /butik 5 323 → 4 381 px. Telefonens
+register är 1 257 px, som förut.
+
+### Proven
+
+- `lib/vit-platta.test.ts` (14 prov) och `lib/register-rader.test.ts` (19).
+  `lib/produktkortet.test.ts`, `lib/butiksidan.test.ts`,
+  `lib/startsida.test.ts`, `lib/mobil-finslip.test.ts` och
+  `lib/audit-2026-11-11.test.ts` följer med. 50 avsiktliga fel i stilen,
+  markupen och regeln fäller proven, alla 50.
+- **I webbläsaren** mot det lokala produktionsbygget:
+  `audit/vita-plattor.cjs` (30 kontroller: beräknad stil och pixlar på 15
+  ytor) och `audit/register-rader.cjs` (27: raderna, klicket, tangentbordet,
+  fokusringen, 881 till 1 920 px utan sidrullning, och telefonen orörd).
+- axe (WCAG 2.1 A och AA) på startsidan, /butik med en rad utfälld,
+  /under-500-kr, menyerna och favoritlådan i 1 440, 1 024 och 393 px: inga fel
+  på de ändrade sidorna. Med mobilmenyn öppen anmärker axe på kortens
+  bildrader under menyn (`scrollable-region-focusable`, 8 element); samma
+  anmärkning finns på www före ändringen.
+- `audit/sok-atervand.cjs` och `audit/lista-fonster.cjs` ger samma svar som
+  före ändringen.
+
+### Inte provat, och inte gjort
+
+- **Safari**, på iPhone och Mac. Allt ovan är Chromium. Blandningsläget var
+  det som skilde webbläsarna åt (2026-11-20), och det är borta nu.
+- **En webbläsare utan `:has`** är inte körd: reserven (alla knappar, ingen
+  "Alla N") är läst ur stilen, inte sedd.
+- **Bil & Garage har ingen stämningsbild** och visar en vara i sin ruta. En
+  rad i `CATEGORY_HERO_IMAGES` (`lib/category-groups.ts`) ger den samma slags
+  foto som de andra.
+- **Startsidans undre del på datorn** fick de vita plattorna och fotona utan
+  toning, inget mer: kategorierna, veckans fynd, köpguiderna och omdömena har
+  samma form som förut.

@@ -464,11 +464,13 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
    bild i spalter till höger. Bilderna kommer från /api/meny-bilder. */
 .meganav-panel-inner{display:grid;grid-template-columns:232px minmax(0,1fr);gap:36px;align-items:start;padding-top:24px;padding-bottom:28px}
 .meganav-feature{display:flex;flex-direction:column;gap:5px;color:var(--ink)}
-.meganav-feature-bild{display:block;aspect-ratio:4/5;margin-bottom:9px;border-radius:16px;overflow:hidden;background:#F3ECE4}
+.meganav-feature-bild{display:block;aspect-ratio:4/5;margin-bottom:9px;border-radius:16px;overflow:hidden;background:#fff}
 .meganav-feature-bild img{display:block;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .25s ease,transform .6s cubic-bezier(.2,.7,.2,1)}
 .meganav-feature-bild img[data-ok]{opacity:1}
 .meganav-feature:hover .meganav-feature-bild img{transform:scale(1.04)}
-.meganav-feature-produkt img{object-fit:contain;padding:16%;mix-blend-mode:multiply}
+/* En avdelning utan stämningsbild visar en vara: hel, på vitt, i en tunn ram. */
+.meganav-feature-produkt{border:1px solid var(--line)}
+.meganav-feature-produkt img{object-fit:contain;padding:16%}
 .meganav-feature-namn{font-family:var(--font-display),Georgia,serif;font-size:var(--text-xl);font-weight:600;letter-spacing:-.015em;line-height:1.15;transition:color .15s}
 .meganav-feature:hover .meganav-feature-namn{color:var(--brand)}
 .meganav-feature-cta{display:inline-flex;align-items:center;gap:6px;font-size:var(--text-sm);font-weight:700;color:var(--brand);transition:gap .2s}
@@ -486,12 +488,15 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .meganav-sub-count{margin-left:2px;font-size:11px;font-weight:600;color:var(--soft);font-variant-numeric:tabular-nums;white-space:nowrap}
 .meganav-sub:hover .meganav-sub-count{color:var(--brand)}
 .meganav-empty{color:var(--soft);font-size:var(--text-base);padding:4px 2px}
-/* Menybilden (components/use-meny-bilder.tsx): en fast ruta i varm ton, och
-   produkten tonar in när den laddats. Vit botten smälter in i rutan (multiply). */
-.mn-bild{flex:none;display:block;width:42px;height:42px;border-radius:10px;background:#F4EEE6;overflow:hidden;transition:background .15s}
-.mn-bild img{display:block;width:100%;height:100%;object-fit:contain;mix-blend-mode:multiply;opacity:0;transition:opacity .25s ease}
+/* Menybilden (components/use-meny-bilder.tsx): en fast vit ruta med tunn ram,
+   och produkten tonar in när den laddats. Rutan var varm (#F4EEE6) och fotot
+   blandades mot den (multiply) till 2026-11-25, då Leonard ville ha vit
+   bakgrund bakom varje produkt- och kategoribild. Ramen håller rutans form åt
+   vita varor på vit meny, som på produktkortet. */
+.mn-bild{flex:none;display:block;width:42px;height:42px;border:1px solid var(--line);border-radius:10px;background:#fff;overflow:hidden;transition:border-color .15s}
+.mn-bild img{display:block;width:100%;height:100%;object-fit:contain;opacity:0;transition:opacity .25s ease}
 .mn-bild img[data-ok]{opacity:1}
-.meganav-sub:hover .mn-bild{background:#EFE3D6}
+.meganav-sub:hover .mn-bild{border-color:#E7C3A7}
 @media (prefers-reduced-motion:reduce){.mn-bild img,.meganav-feature-bild img{transition:none}.meganav-feature:hover .meganav-feature-bild img{transform:none}}
 /* ── Sidhuvudet: menyn på en egen rad (2026-10-31) ────────────────────────────
    .container är kapad till 1180 px på ALLA skärmar (1128 px innehåll), så en
@@ -810,12 +815,14 @@ h1,h2,h3{text-wrap:balance}
 /* Tangentbordet ser var det står: kortet hade knappens fyllning som enda
    fokusmarkering. */
 .prod:focus-visible{outline:2px solid var(--brand);outline-offset:6px;border-radius:var(--r-lg)}
-/* Plattan. Produktfotona har vit botten, och multiply låter den vita ytan ta
-   plattans ton i stället för att stå som en vit ruta på den. isolation håller
-   blandningen inne i plattan (annars blandas fotot mot allt som ligger under),
-   och gör att de runda hörnen klipper även medan fotot zoomar i Safari. */
-.prod .pimg{aspect-ratio:1;position:relative;overflow:hidden;isolation:isolate;border-radius:var(--r-lg);background:#F4EEE8;transition:transform .35s cubic-bezier(.2,.7,.2,1),box-shadow .35s ease}
-.prod .pimg img{mix-blend-mode:multiply}
+/* Plattan är VIT, överallt (Leonard 2026-11-25: "Det är inte vit bakgrund
+   överallt på produkt och kategori bilder, jag vill att det ska vara det").
+   Produktfotona har vit botten och står på vitt, utan blandningsläge: den
+   varma plattan (#F4EEE8 med multiply) som startsidan, /butik och prissidornas
+   översikt bar på datorn är borta, och kortet ser likadant ut på varje sida
+   och i varje webbläsare. isolation gör att de runda hörnen klipper även
+   medan fotot zoomar i Safari. */
+.prod .pimg{aspect-ratio:1;position:relative;overflow:hidden;isolation:isolate;border-radius:var(--r-lg);background:#fff;transition:transform .35s cubic-bezier(.2,.7,.2,1),box-shadow .35s ease}
 .prod .pbody{flex:1;display:flex;flex-direction:column;padding:12px 2px 0}
 /* Två rader i skyltfönstren. Listorna (.shoplista, ShopBrowser) får tre: där
    jämför man, och måtten står sist i namnet. På mobilen är kortet 161 px brett
@@ -838,31 +845,16 @@ h1,h2,h3{text-wrap:balance}
   .prod:not(.auction-card):hover .pimg::after,.prod:not(.auction-card):focus-visible .pimg::after{opacity:1;transform:none}
 }
 @media (prefers-reduced-motion:reduce){.prod .pimg,.prod .pimg::after{transition:none}.prod:not(.auction-card):hover .pimg{transform:none}}
-/* PÅ DATORN STÅR FOTONA PÅ VITT I LISTORNA (Leonard 2026-11-19: "det va
-   finare"). Före 2026-11-18 var listornas kort vitt och startsidans bricka
-   varmgrå; när brickan blev kortet överallt följde den varmgrå plattan med till
-   kategorierna, söket, rean och resten. På en bred skärm blev tolv varmgrå
-   rutor i bredd tyngre än fotona tålde. Nu är plattan vit med en tunn ram:
-   ramen håller formen åt vita möbler på vit sida (tv-bänkar, byråer), provat
-   mot en ramlös vit platta på /kategori/mobler samma dag. Skyltfönstren som
-   hade brickan redan före 2026-11-18 behåller den: startsidan (.hem2) och
-   /butik med prissidorna (.butik2). Mobilen är orörd. */
+/* PÅ DATORN HAR PLATTAN EN TUNN RAM (Leonard 2026-11-19: "det va finare").
+   Ramen håller formen åt vita möbler på vit sida (tv-bänkar, byråer), provat
+   mot en ramlös vit platta på /kategori/mobler samma dag. Sedan 2026-11-25
+   gäller den varje sida: startsidan (.hem2) och /butik med prissidorna
+   (.butik2) hade den varma plattan kvar, och på datorn såg samma kort ut på
+   två sätt. Mobilen (880 px och smalare) har vit platta utan ram: det är så
+   Safari på iPhone alltid har visat korten (mätt på riktiga telefoner
+   2026-11-20). */
 @media(min-width:881px){
-  .prod:not(.auction-card):not(.blogg-kort) .pimg{background:#fff;border:1px solid var(--line)}
-  .prod:not(.auction-card):not(.blogg-kort) .pimg img{mix-blend-mode:normal}
-  :is(.hem2,.butik2) .prod:not(.auction-card):not(.blogg-kort) .pimg{background:#F4EEE8;border:0}
-  :is(.hem2,.butik2) .prod:not(.auction-card):not(.blogg-kort) .pimg img{mix-blend-mode:multiply}
-}
-/* PÅ MOBILEN ÄR PLATTAN VIT I ALLA WEBBLÄSARE (2026-11-20). Safari på iPhone
-   visade den redan vit, också på startsidan: fotot ligger i den svepbara
-   bildraden, och där blandar Safari det inte mot plattans färg (mätt i
-   skärmbilder från riktiga telefoner, iOS 26 och 27). Chromium och Samsung
-   Internet blandade och visade beige, så samma kort hade två utseenden.
-   Nu är plattan vit och fotot ritas utan blandning på 880 px och smalare,
-   överallt. Ingen ram: det är så iPhone redan visar korten. */
-@media(max-width:880px){
-  .prod:not(.auction-card):not(.blogg-kort) .pimg{background:#fff}
-  .prod:not(.auction-card):not(.blogg-kort) .pimg img{mix-blend-mode:normal}
+  .prod:not(.auction-card):not(.blogg-kort) .pimg{border:1px solid var(--line)}
 }
 /* Fyndauktionens kort: vitt kort med ram som lyfter som helhet, fotot kant i
    kant utan platta. Samma värden som kortets grund hade före 2026-11-18. */
@@ -870,15 +862,12 @@ h1,h2,h3{text-wrap:balance}
 @media (hover:hover){.prod.auction-card:hover{transform:translateY(-5px);box-shadow:var(--e3)}}
 .prod.auction-card:focus-visible{outline-offset:2px}
 .prod.auction-card .pimg{border-radius:0;background:var(--surface-2);isolation:auto;transition:none}
-.prod.auction-card .pimg img{mix-blend-mode:normal}
 .prod.auction-card .pbody{padding:16px}
 /* Bloggens artikelkort delar brickan men är inget produktkort. Rubriken får
    tre rader: då ryms varje rubrik hel på alla bredder (två rader kapade 18 av
-   44 på 1024 px, mätt 2026-11-18). Fotot visas som det är: blandningsläget är
-   gjort för produktfoton på vit botten, och ett redaktionellt foto blir bara
-   mörkare av det. */
+   44 på 1024 px, mätt 2026-11-18). Omslaget fyller plattan kant i kant, utan
+   ram. */
 .prod.blogg-kort .pname{-webkit-line-clamp:3}
-.prod.blogg-kort .pimg img{mix-blend-mode:normal}
 /* Pris OVANFÖR, "Köp"-knapp UNDER (vertikal stack). På smala kort fanns tidigare
    en horisontell space-between-layout, men priset (nowrap "Från X" + ev. överstruket
    gammalt pris) kunde då flöda ut ur sitt flex-utrymme och hamna OVANPÅ knappen.
@@ -2629,9 +2618,9 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
 .fav-lista{list-style:none;margin:0;padding:0}
 .fav-rad{display:grid;grid-template-columns:84px minmax(0,1fr) 32px;column-gap:14px;row-gap:10px;padding:16px 0;border-bottom:1px solid var(--line)}
 .fav-lista>.fav-rad:last-child{border-bottom:0}
-.fav-bild{grid-column:1;grid-row:1 / span 2;align-self:start;display:block;width:84px;height:84px;border-radius:var(--r-md);overflow:hidden;background:var(--surface-2)}
-/* Vit produktbakgrund smälter in i brickans varmgrå (multiply), så att varje bild står på samma bricka. */
-.fav-bild-img{display:block;width:100%;height:100%;object-fit:cover;mix-blend-mode:multiply}
+.fav-bild{grid-column:1;grid-row:1 / span 2;align-self:start;display:block;width:84px;height:84px;border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;background:#fff}
+/* Vit ruta med tunn ram, som produktkortet: fotot står på vitt utan blandning (2026-11-25). */
+.fav-bild-img{display:block;width:100%;height:100%;object-fit:cover}
 .fav-text{grid-column:2;grid-row:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
 .fav-namn{font-size:var(--text-sm);font-weight:600;line-height:1.35;color:var(--ink);text-decoration:none;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere}
 .fav-namn:hover,.fav-namn:focus-visible{text-decoration:underline}

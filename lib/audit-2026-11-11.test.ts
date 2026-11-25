@@ -30,7 +30,7 @@ describe("uppläst namn innehåller texten som syns (WCAG 2.5.3)", () => {
   it("startsidans kategorirutor har inget aria-label och en tyst bild", () => {
     const rad = start.slice(start.indexOf('<PrefetchLink className="kat"'), start.indexOf("</PrefetchLink>", start.indexOf('<PrefetchLink className="kat"')));
     assert.doesNotMatch(rad.split("\n")[0], /aria-label/);
-    assert.match(rad, /<span className="kat-bild" aria-hidden="true">/);
+    assert.match(rad, /<span className=\{stamning \? "kat-bild" : "kat-bild kat-produkt"\} aria-hidden="true">/);
     assert.match(rad, /alt=""/);
     assert.match(rad, /<span className="kat-antal">\{tusental\(c\.count\)\} st<span className="sr-only"> i kategorin<\/span><\/span>/);
   });

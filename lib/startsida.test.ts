@@ -29,9 +29,11 @@ describe("startsidans stilar rör bara startsidan", () => {
     assert.equal(sida.split('<div className="hem2">').length, 2);
   });
 
-  it("inga nya färger: bara butikens tokens och brickans ton", () => {
+  // Brickans varma ton (#F4EEE8) stod här till 2026-11-25. Nu är varje platta
+  // vit (lib/vit-platta.test.ts), och filen har inga egna färger utöver vitt.
+  it("inga nya färger: bara butikens tokens och vitt", () => {
     const farger = new Set(css.match(/#[0-9a-fA-F]{3,8}\b/g) ?? []);
-    assert.deepEqual([...farger].sort(), ["#F4EEE8", "#fff"]);
+    assert.deepEqual([...farger].sort(), ["#fff"]);
   });
 });
 
