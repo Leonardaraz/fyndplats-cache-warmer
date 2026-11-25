@@ -1372,7 +1372,8 @@ produktflöde" i katalogen "Fyndplats" i Pinterest Business (Kataloger →
 Fyndplats → Datakälla; Sverige, svenska, SEK, hämtas var 24:e timme). Flödet
 byggs ur Google-flödet i `lib/feed/pinterest.ts`, som PriceRunner- och
 Prisjakt-flödena, och skickas komprimerat via `/feed/gz/pinterest.xml`. Det står
-sist i listorna (omskrivningen, gz-rutten och `/api/cron/farska-floden`).
+näst sist i listorna (omskrivningen, gz-rutten och `/api/cron/farska-floden`),
+före GoWish-flödet (2026-11-25).
 
 Skillnaderna mot Google-flödet, alla mätta i Pinterests "Testa din datakälla"
 2026-11-15:
@@ -6660,18 +6661,169 @@ efter inloggning):
 
 ### Inte gjort
 
-- **Spårning och produktflöde.** GoWish tekniska team kommer med kraven.
-  Ordern bekräftas på `/tack?orderId=…` (`app/tack/page.tsx`), dit kassan
-  (`/kassa`) skickar kunden. Sidan hämtar ordern från Wix
-  (`lib/wix-orders.ts`): ordernummer, rader med namn, antal och summa, frakt,
-  total och moms, e-post, leveransland och datum. Köpet mäts i dag därifrån
-  (`trackPurchase` i `components/thankyou.tsx`, med samtycke) och från motorns
-  order-webhook.
+- **Spårning och produktflöde** stod här. De är byggda sedan samma kväll, se
+  "Heylink" och "GoWish-flödet" nedan.
 - **Valet följer inte med i länken.** Länken är varans kanoniska, som
   uppdraget säger. Butikens egna länkar bär valet (`?variant=`), så att en
   kopierad länk öppnar samma val; en fråga till GoWish är om önskan ska göra
   det också.
 - **Safari**, på iPhone och Mac, och appens väg på en riktig telefon.
+
+### GoWish ruta på svenska (Leonard 2026-11-25: "Allt med go wish … ska stå på svenska")
+
+☠️ **GoWish ruta står på engelska om adressen inte börjar med `/sv/`.**
+Skriptet öppnar `gowish.com/quick-add?…` utan språk. Mätt samma kväll mot
+GoWish egen sida:
+
+| Webbläsare | Adress som öppnas | Hamnar på | Texten |
+|---|---|---|---|
+| svensk | `/quick-add` (skriptets) | `/sv/login` | engelska: "Sign in to add the wish" |
+| engelsk | `/quick-add` | `/login` | engelska |
+| engelsk | `/sv/quick-add` | `/login` | svenska: "Logga in för att lägga till önskningen" |
+
+Texten följer alltså adressen som öppnas först, inte webbläsaren och inte
+sidan man hamnar på. Skriptet har inget språkval (bara region: `global`,
+`denmark`, `norway`). Därför:
+
+- Länken utan samtycke, och reservvägen, går till `/sv/quick-add`
+  (`gowishReservadress`).
+- Med samtycke byter knappen ramens adress till `/sv/quick-add` när skriptet
+  har satt den (`svenskRuta` i `components/gowish-knapp.tsx`,
+  `gowishSvenskRuta` i `lib/gowish.ts`). Bevakningen startar vid klicket och
+  lever medan rutan är öppen, högst 20 sekunder: på telefon får appen först upp
+  till tio sekunder på sig, sedan sätts adressen.
+- ☠️ Byter GoWish id på ramen (`gowish-iframe`) eller rutan
+  (`gowish-iframe-dialog`), eller adressens början, händer ingenting: rutan
+  öppnas då på engelska igen, och inget går sönder. Provet i webbläsaren
+  (nedan) är det som märker det, inte `npm test`.
+- Appen på telefonen har sitt eget språk och berörs inte.
+
+## Heylink: GoWish spårning, bara på tacksidan (Leonard 2026-11-25)
+
+GoWish mäter köpen som deras besökare gör hos oss genom Heylink. Deras mejl
+bad om två saker ur guiden (docs.heylink.com/inbound/tracking-guide): skriptet
+`tag.heylink.com/<kontots id>/script.js` på varje sida, och ordern i
+`window.hlconversion` på tacksidan. Leonard: "Fixa det dom bad om".
+
+**Skriptet är läst i sin helhet** (23 181 tecken 2026-11-25, serveras med
+`no-store` och byggs per konto, så det kan ändras hos dem när som helst):
+
+- En besökare från GoWish landar med `?hltid=<klick-id>`. Skriptet sparar id:t
+  i localStorage (`_hey`). Kontots inställning är utan kakor
+  (`disable_cookies`) och med 30 dagars giltighet (`cookie_lifetime`).
+- ☠️ Det sparar också `gclid`, `fbclid`, `msclkid`, `utm_source`, `utm_medium`,
+  `utm_campaign` och sidan besökaren kom från, för **varje** besökare, och
+  lägger en MutationObserver på hela sidan som kör insamlingen vid varje
+  ändring i DOM:en.
+- ☠️ **När `window.hlconversion` sätts skickas ordern utan att skriptet ser
+  efter om besökaren har ett klick-id.** Gör man som guiden säger får Heylink
+  varje order i butiken, med belopp och varor.
+- ☠️ Sätts objektet **efter** att skriptet startat går det genom en sättare som
+  skriptet lagt upp till fem lyssnare på (en per omstart av dess loop), och
+  ordern skickas lika många gånger. Sätts det **före** skickas den en gång.
+- Anropet går till `heylinkapi.com/connect/v1/callbacks/advertisers` med sidans
+  hela adress som `pageUrl`.
+
+**Så är det byggt**, med samma resultat för GoWish (`lib/heylink.ts`):
+
+1. **Klick-id:t fångas av butikens egen kod** (`components/heylink-klick.tsx`,
+   i layouten). Med samtycke till alla cookies sparas det i localStorage
+   (`fp_heylink`, id och tid) i 30 dagar. Utan samtycke finns det bara i
+   minnet så länge fliken lever, och sparas om besökaren samtycker senare
+   under besöket. Den som har valt bara nödvändiga får ett sparat klick
+   borttaget. Inget hämtas från Heylink här.
+2. **Heylinks skript laddas bara på tacksidan**, och bara när servern gett en
+   order, besökaren har samtyckt, det finns ett sparat klick som inte gått ut
+   och ordern inte redan lämnats (`components/heylink-kop.tsx`). Ordern sätts i
+   `window.hlconversion` med klick-id:t före skriptet.
+3. **Ordern byggs på servern**, bara med samtycke i kakan och bara i
+   produktion (`app/tack/page.tsx`, `heylinkKop`), som Googles enkät: en prop
+   till en klientkomponent hamnar i sidans HTML. Ett förhandsbygges kassa går
+   mot skarpa betalnycklar, och ett prov där ska inte bli ett köp hos GoWish.
+4. **Efter skriptets händelse `heylink:conversion`** glöms klicket och
+   ordernumret sparas (`fp_heylink_order`), så att F5 inte skickar igen. Ett
+   klick ger ett köp, som i Heylinks eget skript.
+
+Vad Heylink får, mätt i webbläsaren mot det lokala bygget: `hltid`, `orderId`
+(det läsbara numret), `orderSubTotal` (varorna utan moms och frakt, efter
+rabatt), `orderTotal`, `orderTax`, `orderShippingSubTotal` (frakten utan moms,
+när den finns), `orderCurrencyCode`, `orderItems` (namn, antal, styckpris utan
+moms, val, bild och Wix variant-id, som är flödenas `g:id`) och skriptets eget
+`consentStatus`. Aldrig namn, adress eller e-post.
+
+- ☠️ **Beloppen är tal, inte text.** Skriptet tolkar en text som `"1234.500"`
+  som tusentalsavgränsad.
+- ☠️ **Tacksidans adress är ren.** Kassan landar alltid på `/tack?orderId=…`
+  med en hel sidladdning (`window.location.replace` i `app/kassa/kassa.tsx`),
+  och Stripes parametrar stannar i returvägen. Ändras det får skriptet en
+  adress med betalningens id i `pageUrl`. Det är också skälet till att skriptet
+  inte finns på sidan förrän då: en hel sidladdning, ingen tidigare kopia.
+- **Varorna utan moms** räknas som totalen minus momsen minus frakten utan
+  moms (`priceSummary.shipping`). Saknar ordern momsen räknas den som 25 %.
+
+☠️ **Det som inte når Heylink** är vilka andra annonsklick kunden gjort
+(`gclid`, `utm`). Vill GoWish räkna bort köp där en annan kanal var sista
+klicket måste deras skript ligga på varje sida, och det är Leonards beslut.
+Ett köp där tacksidan öppnas i en annan webbläsare än den kunden landade i
+(Klarnas app som går tillbaka till Safari från en app-webbläsare) rapporteras
+inte heller: klicket ligger i den första webbläsarens lagring. Det kräver
+Heylinks server-till-server-anrop, och till det en nyckel från dem.
+
+Sekretesspolicyn har en punkt om Heylink, och cookie-stycket nämner dem.
+Prov: `lib/heylink.test.ts` (25). I webbläsaren, mot det lokala bygget med en
+påhittad order och med anropen till Heylink besvarade lokalt (34 kontroller):
+landning utan val, med samtycke och med bara nödvändiga; tacksidan med och
+utan klick, med frakt, med gammalt klick, med redan lämnad order och F5.
+☠️ Provet får aldrig gå mot Heylinks riktiga adress: det vore ett påhittat köp
+hos GoWish. **Inte provat:** ett riktigt köp via en länk från GoWish. Heylinks
+kontaktperson gör ett provköp när mejlet är besvarat.
+
+## GoWish-flödet: Google-flödet med EAN (Leonard 2026-11-25)
+
+GoWish bad om butikens Google Shopping-flöde i XML. Leonard: "feeden vi
+skickar ska va som pricerunner att den har med alla ean/gtin nummer".
+`https://www.fyndplats.se/feed/gowish.xml` byggs ur Google-flödet i
+`lib/feed/gowish.ts`, som PriceRunner-, Prisjakt- och Pinterest-flödena, och
+skickas komprimerat via `/feed/gz/gowish.xml`. Det står sist i listorna
+(omskrivningen i `next.config.ts`, `KOMPRIMERADE_FLODEN`, `LAGRADE_FLODEN`,
+`BYGGARE`, värmningen och `/api/cron/farska-floden`).
+
+Skillnaderna mot Google-flödet:
+
+- **`g:gtin`** på de varor som `FLODE_GTIN` pekar ut, samma urval som
+  PriceRunner och Prisjakt (`gtinUrval`). Raden `g:identifier_exists=no` tas
+  bort på dem. ☠️ Google-flödet får fortfarande aldrig koderna.
+- **`g:shipping`** per vara, med kassans regel räknad på priset kunden betalar.
+- **Googles kampanjetiketter** (`g:custom_label_*`) tas bort.
+
+Det som **inte** ändras, och som skiljer flödet från PriceRunners:
+
+- `g:price` är ordinarie pris och `g:sale_price` reapriset. En önskelista kan
+  då visa att varan är nedsatt.
+- Slutsålda varor står kvar med sin `g:availability`. GoWish får betalt per
+  köp och inte per klick, så PriceRunners skäl för att ta bort dem gäller inte.
+
+Märket är Fyndplats och ingen `g:mpn` finns, som i alla öppna flöden. Byggt ur
+produktionens Google-flöde 2026-11-25: 11 517 varor, 10 280 i lager, 174 med
+reapris, `g:gtin` på minst 3 639 (de som PriceRunner-flödet hade samma stund;
+slutsålda varor med kod kommer till), 27 MB och 3,5 MB som gzip.
+`lib/feed/gowish.test.ts` fäller om byggaren tappar `FLODE_GTIN` eller om
+flödet saknas i någon av listorna.
+
+## Google-omdömena: fem nya, och namn som stod i startsidans HTML (2026-11-25)
+
+Leonard skickade skärmbilder av profilen (4,9 av 5). Fem nya omdömen med text
+står överst i `lib/curated-reviews.ts`, de tre utförligaste först, så att
+sidans översta rad på datorn har tre kort av samma tyngd. Texterna är
+ordagranna, också stjärnorna och tummen som kunderna själva skrev. Antalet
+omdömen visas fortfarande ingenstans (`lib/social-proof.ts`).
+
+☠️ **Startsidans kort hade listans id som React-nyckel**, och id:t är kundens
+namn som slug. En nyckel på ett element i en serverkomponent följer med i
+sidans React-data, så tre namn stod i startsidans HTML fast korten visar
+initialer. Nyckeln är nu ett löpnummer, som på `/omdomen`.
+`lib/initialer.test.ts` fäller om id:t eller namnet når startsidans kort, och
+om listan får dubbletter, tomma fält eller ett datum i framtiden.
 
 ## Klarna på telefonen: kunden kom tillbaka utan godkänd betalning och fick börja om (2026-11-24)
 
