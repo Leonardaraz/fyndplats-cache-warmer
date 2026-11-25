@@ -1,0 +1,84 @@
+{
+  "079e3169": {
+    "productId": "079e3169-f016-4a42-b7da-ac2fe8d937d9",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 3,
+    "attBesluta": []
+  },
+  "6c0d8c3f": {
+    "productId": "6c0d8c3f-afd8-4c54-9a7a-d5e1289a5eea",
+    "synliga": 0,
+    "dolda": 3,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-13lyf9n",
+        "betyg": 5,
+        "datum": "2026-10-14",
+        "foton": 0,
+        "text": "Woow très surpris de la qualité, première commande et une autre qui s'en vien tres vite"
+      },
+      {
+        "id": "gen-1mmtdc3",
+        "betyg": 5,
+        "datum": "2026-09-10",
+        "foton": 3,
+        "text": "product received in great condition well built and will definitely suit for the purpose of my trade delivery proces is on point ease of purchase and payment method great tracking method"
+      },
+      {
+        "id": "gen-umn01y",
+        "betyg": 5,
+        "datum": "2026-08-22",
+        "foton": 0,
+        "text": "Great bag for carrying all my service tools, so much space and storage compartments,"
+      }
+    ]
+  },
+  "84a9b522": {
+    "productId": "84a9b522-dd59-4b6a-a22d-b014f0aeec51",
+    "synliga": 0,
+    "dolda": 6,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": []
+  },
+  "f7d6e1f3": {
+    "productId": "f7d6e1f3-28c2-4a9c-acfe-1b81334f6f9a",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "568e060c": {
+    "productId": "568e060c-0a2d-45d3-8ed7-f562b60f73ae",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-l6rkfr",
+        "betyg": 5,
+        "datum": "2026-10-10",
+        "foton": 0,
+        "text": "Also ich bin sehr zufrieden. Hab heute mein ersten Einsatz gehabt 1x17m und 1x19m und ich lebe noch😅 scherz. Die Eisen sind perfekt und sehr stabil. Selbst die Passform und das einstellen ist top. Die Dornen sind schön scharf und gingen in den Stamm rein wie Butter. Der halt ist top und es gab kein rutschen. Mach den Justieren der Größe hat nichts gedrückt und war zu eng. Also von mir ein klare Empfehlung."
+      },
+      {
+        "id": "gen-1uxhu0i",
+        "betyg": 5,
+        "datum": "2026-09-03",
+        "foton": 0,
+        "text": "Comfortable easy to use! Great price! I have about seven vevor products! Have an issue with my pole saw right now!"
+      }
+    ]
+  }
+}
