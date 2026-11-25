@@ -1,0 +1,77 @@
+{
+  "e2a5bc17": {
+    "productId": "e2a5bc17-b43b-44ff-b03f-f7e19b0348a8",
+    "synliga": 0,
+    "dolda": 3,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "4173a2ca": {
+    "productId": "4173a2ca-dde4-4b0a-8758-52ebdb130177",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "c5af1092": {
+    "productId": "c5af1092-b149-4ff5-8716-cdce5401e1aa",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-1uwwakh",
+        "betyg": 5,
+        "datum": "2026-06-25",
+        "foton": 0,
+        "text": "Hydraulic rods work great, gentle pull brings it down, no heavy lifting needed."
+      },
+      {
+        "id": "gen-op12hl",
+        "betyg": 5,
+        "datum": "2026-02-18",
+        "foton": 0,
+        "text": "Todos preguntan dónde la compré. Excelente calidad, muy fuerte y segura"
+      },
+      {
+        "id": "gen-pkd64u",
+        "betyg": 5,
+        "datum": "2025-07-26",
+        "foton": 0,
+        "text": "Great product, we installed in a closet. Customer loves it."
+      }
+    ]
+  },
+  "851dcdfc": {
+    "productId": "851dcdfc-d17e-4863-9a45-c0179ea3d8a3",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-f3vhg2",
+        "betyg": 5,
+        "datum": "2026-09-25",
+        "foton": 0,
+        "text": "Good quality spikes. The paint held up well. Works great for hauling hay"
+      }
+    ]
+  },
+  "261bf0a9": {
+    "productId": "261bf0a9-6f1a-427f-9020-a1c0e6b5f2d9",
+    "synliga": 0,
+    "dolda": 7,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": []
+  }
+}
