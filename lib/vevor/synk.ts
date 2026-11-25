@@ -28,7 +28,11 @@
 //
 // ☠️ ARTIKELNUMREN SKRIVS ALDRIG UT. Motorns fel och varningar bär `sku`, och
 // rutten tar bort det innan svaret lämnar den. Loggen, svaret och tillståndet
-// bär antal och Wix-id.
+// bär antal och Wix-id, och för prishoppen butikspriset före och efter.
+//
+// ETT STOPPAT PRISHOPP (över 40 %) skrivs aldrig av sig självt. Loggraden säger
+// vilka produkter det gäller, och en körning för hand kan släppa taket för
+// uttryckligt angivna Wix-id (`godkannPrisandring`, ruttens `godkannPris`).
 
 import {
   gemensammaSynkDeps,
@@ -238,6 +242,12 @@ export interface Synkval {
   budgetMs: number;
   /** För hand: fortsätt efter den här markören (ur förra svaret). */
   after?: string;
+  /**
+   * För hand: Wix-produkter vars prisändring får gå förbi 40 %-taket i den här
+   * körningen (motorns `godkannPrisandring`). En människa har tittat på hoppet.
+   * ☠️ Schemat godkänner aldrig: valet släpps bara igenom när `manuell` är satt.
+   */
+  godkannPrisandring?: ReadonlySet<string>;
 }
 
 export interface Synkutfall {
@@ -285,6 +295,7 @@ export async function korVevorSynk(deps: SynkKorDeps, val: Synkval): Promise<Syn
       limit: val.limit,
       timeBudgetMs: val.budgetMs,
       after: val.manuell ? val.after : (sparad ?? undefined),
+      godkannPrisandring: val.manuell ? val.godkannPrisandring : undefined,
     });
     if (!val.manuell && !val.dryRun) {
       try {
@@ -318,7 +329,27 @@ export function utanArtikelnummer(s: AosomSyncSummary): Omit<AosomSyncSummary, "
   };
 }
 
-/** Loggraden. Bara antal, aldrig ett artikelnummer eller ett pris. */
+/** Så många prishopp ryms i loggraden. Resten räknas ("… N till"). */
+export const HOPP_I_RADEN = 60;
+
+/** Prishopp i loggraden: Wix-id och butikspriset före och efter. Aldrig artikelnumret. */
+function hoppText(hopp: readonly { wixProductId?: string; fran: number; till: number }[]): string {
+  if (hopp.length === 0) return "";
+  const visade = hopp.slice(0, HOPP_I_RADEN).map((v) => `${v.wixProductId ?? "okänd"} ${v.fran}→${v.till}`);
+  const fler = hopp.length - visade.length;
+  return ` (${visade.join(", ")}${fler > 0 ? ` … ${fler} till` : ""})`;
+}
+
+/**
+ * Loggraden. Antal, och för prishoppen Wix-id och butikspriset före och efter.
+ * Aldrig ett artikelnummer.
+ *
+ * ☠️ DE STOPPADE PRISHOPPEN STÅR MED PRODUKT OCH BELOPP (2026-11-25). Raden bar
+ * bara antalet, och rutten hade inget godkännande: 17 publicerade varor i lager
+ * stod 42–95 % från regelpriset utan att någon såg vilka, och runt 100 hopp per
+ * varv hade stoppats varje dygn sedan minst 20 november. Samma lärdom som
+ * Aosom-synkens rad 2026-11-11. Ett stoppat hopp skrivs aldrig av sig självt.
+ */
 export function synkloggrad(u: Synkutfall): string {
   const s = u.summary;
   if (!s) return `[vevor-synk] ${u.utfall}`;
@@ -328,7 +359,9 @@ export function synkloggrad(u: Synkutfall): string {
     + `${s.okantBesked} med okänt besked (rördes inte), ${s.leverantorOense} med oense leverantör, `
     + `${s.utanWixPris} utan butikspris, ${s.utanLagerrader} utan lagerrader, ${s.lagerDrift} lagerdrift, `
     + `${s.saldaAvdragna} sålda avdragna, ${s.okandaVarianter} okända varianter, ${s.tvetydiga} tvetydiga, `
-    + `${s.varningar.length} varningar, ${s.misslyckade} misslyckade, `
+    + `${s.varningar.length} varningar${hoppText(s.varningar)}, `
+    + (s.godkandaHopp.length ? `${s.godkandaHopp.length} godkända prishopp${hoppText(s.godkandaHopp)}, ` : "")
+    + `${s.misslyckade} misslyckade, `
     + `stoppade på ${s.stoppedBy}, ${s.kvar} kvar${s.dryRun ? " (TORRKÖRNING — inget skrevs)" : ""}`
     + (u.markor ? `, ${u.markor === "fortsatte" ? "fortsatte från sparad markör" : "började från början"}` : "")
     + (u.markorFel ? ` (${u.markorFel})` : "")

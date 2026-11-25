@@ -57,8 +57,9 @@ Sju egenskaper som inte ska tas bort:
 6. **Schemat gör ingenting förrän synken slagits på** och läser då inte ens
    källan. En avstängd körning loggar ingenting.
 7. ☠️ **Svaret, loggraden, tillståndet och audit-raden bär bara antal och
-   Wix-id.** Motorns fel och varningar bär artikelnumret. Rutten tar bort det
-   (`utanArtikelnummer`) och förseglar markören.
+   Wix-id,** och för prishoppen butikspriset före och efter (2026-11-25, se
+   sist i filen). Motorns fel och varningar bär artikelnumret. Rutten tar bort
+   det (`utanArtikelnummer`) och förseglar markören.
 
 **Fönstret för beställda enheter är lika långt som en avläsning lever.** En
 order som markerats beställd dras av i tolv timmar. En avläsning från före
@@ -139,3 +140,82 @@ få granskade är ett fel, inte en lugn timme.
 
 Klart när torrkörningen efter den skarpa vill skriva 0 och provet visar orört
 lager.
+
+### Stoppade prishopp: syns i raden och godkänns för hand (2026-11-25)
+
+Leonards fråga 2026-11-25: "kolla att vevors prissynk också funkar som det
+ska". Synken gick som den ska. Det som inte fungerade var att ingen såg vad
+40 %-taket höll kvar.
+
+Mätt samma natt:
+
+- **Vercels logg, 23 timmar:** 23 av 23 timkörningar, 0 misslyckade
+  skrivningar, och prisdelen föll aldrig. `FyndplatsAudit` 20–23 november: 24
+  rader om dygnet, inga luckor.
+- **Varvet:** två timmar så länge få priser ändrades (0–11 prisskrivningar per
+  körning). Under 24 november, från omkring 08 UTC i loggen, sänkte VEVOR sina
+  priser brett: av 15 531 avläsningar gjorda inom 26 timmar låg 9 070 under 10 %
+  lägre än avläsningen före (107 låg 10–28 % lägre, 23 högre). Då skrev varje
+  körning 150–300 priser och hann 1 200–1 600 rader, och ett varv tog upp till
+  åtta timmar.
+  Prisskrivningarna går en i taget, cirka 300 på budgetens 240 sekunder.
+- **Torrkörningen 01:06 UTC:** 11 375 granskade, 4 priser och 496 lagersaldon
+  att skriva, 3 249 priser som väntar på en andra avläsning och 5 569 med okänt
+  besked. Synken var alltså ikapp med allt som gick att skriva.
+- **Läsaren:** 2 848 publicerade sidor, 221 av dem heta, och 5 utan avläsning
+  på tolv timmar.
+
+☠️ **17 prishopp stod stoppade, alla på publicerade varor i lager.** 14 stod
+42–95 % under regelpriset och 3 stod 51–54 % över. 20–23 november stoppades
+runt 100 hopp per varv (97–102), dygn efter dygn. Timraden och audit-raden bar
+bara antalet
+("3 varningar"), bara en körning för hand skrev ut vilka produkter det gällde,
+och rutten hade inget godkännande. Aosom-synken fick båda 2026-11-11
+(`41-en-priskorning-om-dagen.md`), VEVOR-synken fick dem inte.
+
+**Ändrat:**
+
+- **Raden säger vilka** (`synkloggrad`, alltså både Vercels logg och raden i
+  `FyndplatsAudit`): Wix-id och butikspriset före och efter, högst
+  `HOPP_I_RADEN` (60). Resten räknas ("… 7 till").
+- **En skarp körning som bara stoppade ett hopp skriver sin audit-rad.** Förut
+  skrevs raden bara när något skrivits eller fallit.
+- **`?godkannPris=<wix-id>,…` på rutten** och inputen `godkann_pris` i
+  workflowen, i lägena `torr` och `skarp`. Motorn hade redan valet
+  (`godkannPrisandring`, Leonards beslut 2026-09-30), VEVOR-rutten skickade det
+  bara inte vidare.
+
+Fyra egenskaper som inte ska tas bort:
+
+1. ☠️ **Schemat godkänner aldrig.** `korVevorSynk` släpper bara igenom valet när
+   `manuell` är satt, och rutten vägrar `godkannPris` utan `manuell=1`.
+2. ☠️ **Bara taket släpps.** Ett pris som väntar på sin andra avläsning skrivs
+   inte av ett godkännande, och en produkt med okänt besked rörs inte.
+3. ☠️ **Ett godkännande som inte går att följa vägras eller syns.** Ett id som
+   inte är ett Wix-id ger 400, `godkann_pris` i läget `status`, `pa` eller `av`
+   fäller workflowen, och anges fler produkter än de hopp som godkändes säger
+   workflowen det. Ett skrivfel hade annars tyst betytt "ingenting godkänt".
+4. **Godkännandet sparas ingenstans.** Nästa hopp på samma produkt fångas av
+   taket igen.
+
+**Så körs det:** `torr` med `godkann_pris` (raden "✅ godkänt" visar vad som
+skulle skrivas), sedan `skarp` med samma id. En körning för hand går hela
+katalogen och skriver också de lagersaldon och priser som väntar.
+
+Verifierat: 48 prov i `lib/vevor/synk.test.ts` och ruttens prov, och tolv
+avsiktliga fel, ett i taget, som alla fälls. Workflowens skript är kört mot en
+låtsasrutt: godkännandet kommer med i adressen, och fel läge fäller.
+
+**Inte mätt, och inte gjort:**
+
+- **Varför de 17 står så långt från regelpriset.** Antingen har VEVOR ändrat
+  priset, eller så gäller avläsningen en annan variant eller förpackning än
+  sidan. Taket finns för att en människa ska titta på just det, produkt för
+  produkt.
+- **De hopp som väntar på en andra avläsning syns inte som stoppade.** Väntan
+  prövas före taket. Av de runt 100 som stoppades per varv 20–23 november
+  syntes 17 natten mot 25 november. Resten väntas komma tillbaka när deras
+  andra avläsning är gjord.
+- **Varvet på åtta timmar under en prisvåg** är inte ändrat. Budgeten är 240
+  sekunder en gång i timmen, och det räckte: torrkörningen ville skriva 4
+  priser.
