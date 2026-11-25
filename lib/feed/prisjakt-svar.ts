@@ -79,7 +79,7 @@ function strommadeByte(byte: Uint8Array): ReadableStream<Uint8Array> {
  * /feed/<fil> till /feed/gz/<fil> för just de här, och app/feed/gz/[fil]
  * bygger just de här. lib/feed/prisjakt-svar.test.ts håller ihop de tre listorna.
  */
-export const KOMPRIMERADE_FLODEN = ["google.xml", "products.xml", "pricerunner.xml", "pinterest.xml"] as const;
+export const KOMPRIMERADE_FLODEN = ["google.xml", "products.xml", "pricerunner.xml", "pinterest.xml", "gowish.xml"] as const;
 
 /**
  * Sant när flödet saknar varor. Ett tomt flöde är aldrig rätt: det betyder att
@@ -293,7 +293,7 @@ export function lasare(request?: Request): string {
   // och vem som helst kan skicka tiotals kB (32 kB: 2,3 s CPU per anrop, mätt
   // 2026-11-15). Robotarnas namn står långt före tecken 512.
   const ua = (request?.headers.get("user-agent") ?? "").slice(0, 512);
-  const robot = ua.match(/[\w.-]*(?:bot|pinterest|google|facebook|meta|pricerunner|crawler|spider)[\w./-]*/i)?.[0];
+  const robot = ua.match(/[\w.-]*(?:bot|pinterest|google|facebook|meta|pricerunner|gowish|onskeskyen|heylink|crawler|spider)[\w./-]*/i)?.[0];
   const namn = (robot ?? ua.split(/[\s(;]/)[0] ?? "").slice(0, 40) || "okänd";
   return `${ae}; ${namn}`;
 }

@@ -98,7 +98,7 @@ const nextConfig: NextConfig = {
     // varierar på rubriken, så variationen görs HÄR, före CDN:en, och blir två
     // adresser med var sin kopia (lib/feed/prisjakt-svar.ts, mätt 2026-11-11).
     // beforeFiles: /feed/<fil> är en riktig rutt och hade annars gått före.
-    const komprimeradeFloden = ["google.xml", "products.xml", "pricerunner.xml", "pinterest.xml"].map((fil) => ({
+    const komprimeradeFloden = ["google.xml", "products.xml", "pricerunner.xml", "pinterest.xml", "gowish.xml"].map((fil) => ({
       source: `/feed/${fil}`,
       has: [{ type: "header" as const, key: "accept-encoding", value: "(.*[, ])?gzip([,; ].*)?" }],
       destination: `/feed/gz/${fil}`,

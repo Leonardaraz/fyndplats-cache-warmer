@@ -48,7 +48,7 @@ import { getCache } from "@vercel/functions";
  * (lib/feed/prisjakt-hemlig.ts). Produktflödet sparas inte: det hämtas ofta
  * nog för att CDN:en ska behålla det (HIT och STALE i varje körning).
  */
-export const LAGRADE_FLODEN = ["google.xml", "pricerunner.xml", "pinterest.xml"] as const;
+export const LAGRADE_FLODEN = ["google.xml", "pricerunner.xml", "pinterest.xml", "gowish.xml"] as const;
 
 export type LagratFlode = (typeof LAGRADE_FLODEN)[number];
 

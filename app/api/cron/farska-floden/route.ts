@@ -23,7 +23,7 @@ import { NextResponse } from "next/server";
 import { GET as googleFeed } from "../../../feed/google.xml/route";
 import { SITE } from "../../../../lib/site-urls";
 import { flodesrad, hamtaFloden } from "../../../../lib/flodesvarmning";
-import { pinterestXml, pricerunnerXml } from "../../../../lib/feed/harledda";
+import { gowishXml, pinterestXml, pricerunnerXml } from "../../../../lib/feed/harledda";
 import { PRISJAKT_HEMLIG_KOPIA, prisjaktHemligXml } from "../../../../lib/feed/prisjakt-hemlig";
 import { hamtaPrisjaktArtiklar } from "../../../../lib/feed/prisjakt-motor";
 import { type LagratFlode, arVercelsLager, sparaKopia } from "../../../../lib/feed/flodeslager";
@@ -46,6 +46,7 @@ const UR_GOOGLE: Record<LagratFlode, (googleXml: string) => string> = {
   "google.xml": (googleXml) => googleXml,
   "pricerunner.xml": pricerunnerXml,
   "pinterest.xml": pinterestXml,
+  "gowish.xml": gowishXml,
 };
 
 const sek = (ms: number) => `${(ms / 1000).toFixed(1).replace(".", ",")} s`;
