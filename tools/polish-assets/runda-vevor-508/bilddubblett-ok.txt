@@ -1,1 +1,0 @@
-346b9471 4 6 spegelvänd kopia: position 6 är position 4 spegelvänd (0,003 spegelvänt mot 0,140 rakt) och stryks i fas 2
