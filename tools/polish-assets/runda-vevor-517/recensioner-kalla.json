@@ -1,0 +1,77 @@
+{
+  "19168d1d": {
+    "productId": "19168d1d-d84f-40af-9a12-078e86759c57",
+    "synliga": 0,
+    "dolda": 3,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 3,
+    "attBesluta": []
+  },
+  "38ce7c63": {
+    "productId": "38ce7c63-3bb4-4799-98e5-3df54d6ce4fb",
+    "synliga": 0,
+    "dolda": 1,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-xi06jc",
+        "betyg": 5,
+        "datum": "2026-08-29",
+        "foton": 0,
+        "text": "Made a workshop press with these, it works very well. Solid and reliable."
+      },
+      {
+        "id": "gen-wr6c4h",
+        "betyg": 5,
+        "datum": "2026-06-12",
+        "foton": 0,
+        "text": "I am pleasantly impressed with the build quality. After around 250–300 cycles at 4000 PSI, I can say that I am very satisfied, with no issues so far."
+      },
+      {
+        "id": "gen-1xhs6cj",
+        "betyg": 4,
+        "datum": "2026-02-21",
+        "foton": 0,
+        "text": "Un gato de buena calidad, sin fugas de hidráulico y resistente, apto para las toneladas que esta diseñado"
+      }
+    ]
+  },
+  "3af1a773": {
+    "productId": "3af1a773-5ba7-45f3-91b9-698573ffbc4e",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": [
+      {
+        "id": "gen-1miw8yy",
+        "betyg": 5,
+        "datum": "2026-09-20",
+        "foton": 0,
+        "text": "Köptr denna från Vevor för en månad sedan och har sedan använts dagligen av min dotter. Nra kvalitet, det är viktigt att justera styrstammen för att minimera glapp. Speciellt uppskattas handbromsen, inte många sparkcyklar har en sådan och denna fungerar mycket bra!"
+      }
+    ]
+  },
+  "3b106a66": {
+    "productId": "3b106a66-6ff6-4c50-81c7-2b985b6f89c6",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "d478560d": {
+    "productId": "d478560d-eb58-4c40-88c9-f0bf66d4b9d9",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  }
+}
