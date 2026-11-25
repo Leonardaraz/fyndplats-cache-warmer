@@ -6730,8 +6730,8 @@ bad om två saker ur guiden (docs.heylink.com/inbound/tracking-guide): skriptet
    i layouten). Med samtycke till alla cookies sparas det i localStorage
    (`fp_heylink`, id och tid) i 30 dagar. Utan samtycke finns det bara i
    minnet så länge fliken lever, och sparas om besökaren samtycker senare
-   under besöket. Den som har valt bara nödvändiga får ett sparat klick
-   borttaget. Inget hämtas från Heylink här.
+   under besöket. Den som har valt bara nödvändiga får ett sparat klick och
+   det ihågkomna ordernumret borttagna. Inget hämtas från Heylink här.
 2. **Heylinks skript laddas bara på tacksidan**, och bara när servern gett en
    order, besökaren har samtyckt, det finns ett sparat klick som inte gått ut
    och ordern inte redan lämnats (`components/heylink-kop.tsx`). Ordern sätts i
@@ -6775,7 +6775,8 @@ påhittad order och med anropen till Heylink besvarade lokalt (34 kontroller):
 landning utan val, med samtycke och med bara nödvändiga; tacksidan med och
 utan klick, med frakt, med gammalt klick, med redan lämnad order och F5.
 ☠️ Provet får aldrig gå mot Heylinks riktiga adress: det vore ett påhittat köp
-hos GoWish. **Inte provat:** ett riktigt köp via en länk från GoWish. Heylinks
+hos GoWish. Det enda som frågats hos Heylink är om adressen tar emot anrop från
+butikens domän (en förfrågan utan innehåll: 204, alla ursprung tillåtna). **Inte provat:** ett riktigt köp via en länk från GoWish. Heylinks
 kontaktperson gör ett provköp när mejlet är besvarat.
 
 ## GoWish-flödet: Google-flödet med EAN (Leonard 2026-11-25)
@@ -6803,10 +6804,13 @@ Det som **inte** ändras, och som skiljer flödet från PriceRunners:
 - Slutsålda varor står kvar med sin `g:availability`. GoWish får betalt per
   köp och inte per klick, så PriceRunners skäl för att ta bort dem gäller inte.
 
-Märket är Fyndplats och ingen `g:mpn` finns, som i alla öppna flöden. Byggt ur
-produktionens Google-flöde 2026-11-25: 11 517 varor, 10 280 i lager, 174 med
-reapris, `g:gtin` på minst 3 639 (de som PriceRunner-flödet hade samma stund;
-slutsålda varor med kod kommer till), 27 MB och 3,5 MB som gzip.
+Märket är Google-flödets (Fyndplats på Aosoms varor, VEVOR på VEVOR:s och
+några få egna märken), och ingen `g:mpn` finns, som i alla öppna flöden. Mätt
+på förhandsbygget 2026-11-25, som har katalogen: 11 537 varor, 10 311 i lager,
+179 med reapris, `g:gtin` på 3 840 (198 av dem slutsålda, ingen kod på två
+varor), 27,2 MB och 3,5 MB som gzip, XML som går att tolka. Första hämtningen
+byggde flödet på 104 s, den andra kom ur kopian på 0,6 s. Google-flödet på
+samma bygge hade 0 koder.
 `lib/feed/gowish.test.ts` fäller om byggaren tappar `FLODE_GTIN` eller om
 flödet saknas i någon av listorna.
 

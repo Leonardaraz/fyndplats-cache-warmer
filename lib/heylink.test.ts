@@ -230,7 +230,7 @@ describe("☠️ Heylinks skript laddas bara på tacksidan, efter samtycke och b
     assert.match(kod("app/layout.tsx"), /\{IS_PRODUCTION && <HeylinkKlick \/>\}/);
     const t = kod("components/heylink-klick.tsx");
     assert.match(t, /klick = klickIdUrSokdel\(window\.location\.search\) \?\? klick;/);
-    assert.match(t, /if \(hasMarketingConsent\(\)\) return;\s*try \{\s*window\.localStorage\.removeItem\(HEYLINK_NYCKEL\);/);
+    assert.match(t, /if \(hasMarketingConsent\(\)\) return;\s*try \{\s*window\.localStorage\.removeItem\(HEYLINK_NYCKEL\);\s*window\.localStorage\.removeItem\(HEYLINK_SKICKAD\);/);
     assert.match(t, /if \(!samtycke \|\| !klick\) return;\s*try \{\s*window\.localStorage\.setItem\(HEYLINK_NYCKEL, nyttMarke\(klick, Date\.now\(\)\)\);/);
     assert.doesNotMatch(t, /createElement|<Script|fetch\(|sendBeacon/, "landningen hämtar och skickar ingenting");
   });

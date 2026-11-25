@@ -12,15 +12,16 @@
 //   senare under besöket.
 // - Med samtycke sparas id:t i localStorage (HEYLINK_NYCKEL) med tiden, och
 //   gäller i HEYLINK_DAGAR. Ett nytt klick skriver över det gamla.
-// - Har besökaren INTE samtyckt tas ett sparat klick bort: det får inte ligga
-//   kvar efter att någon bytt till "bara nödvändiga".
+// - Har besökaren INTE samtyckt tas ett sparat klick bort, och ordernumret som
+//   tacksidan kom ihåg: de får inte ligga kvar efter att någon bytt till "bara
+//   nödvändiga".
 //
 // Inget hämtas från Heylink här, och inget skickas dit. Det gör bara tacksidan
 // (components/heylink-kop.tsx).
 import { useEffect } from "react";
 import { hasMarketingConsent } from "../lib/consent";
 import { useMarketingConsent } from "../lib/use-marketing-consent";
-import { HEYLINK_NYCKEL, klickIdUrSokdel, nyttMarke } from "../lib/heylink";
+import { HEYLINK_NYCKEL, HEYLINK_SKICKAD, klickIdUrSokdel, nyttMarke } from "../lib/heylink";
 
 /** Klick-id:t från landningen. Lever med fliken och lämnar aldrig webbläsaren härifrån. */
 let klick: string | null = null;
@@ -33,6 +34,7 @@ export function HeylinkKlick() {
     if (hasMarketingConsent()) return;
     try {
       window.localStorage.removeItem(HEYLINK_NYCKEL);
+      window.localStorage.removeItem(HEYLINK_SKICKAD);
     } catch {
       // lagringen är avstängd: då finns inget att ta bort
     }
