@@ -1,0 +1,106 @@
+{
+  "db7407e0": {
+    "productId": "db7407e0-ee46-44af-b236-601987e1a863",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": []
+  },
+  "b8c070f7": {
+    "productId": "b8c070f7-efd7-4fef-b015-f49bcddfcf04",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": []
+  },
+  "1085f2ee": {
+    "productId": "1085f2ee-edf0-4ae2-9272-78c7c69baf53",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-5937u0",
+        "betyg": 5,
+        "datum": "2026-09-05",
+        "foton": 0,
+        "text": "Tapis qui semble de bonne qualité, à voir dans la durée, dommage qu'il n'existe pas en bleu"
+      }
+    ]
+  },
+  "4fe8d3db": {
+    "productId": "4fe8d3db-1f09-4649-bf01-439f76ef4698",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-da34s8",
+        "betyg": 5,
+        "datum": "2026-10-04",
+        "foton": 0,
+        "text": "Alles top, tun was sie sollen, leider bei einer der stützen der Sicherungsbolzen schon am rosten, die anderen sind trotz Regen einwandfrei 👍🏽"
+      },
+      {
+        "id": "gen-giim1h",
+        "betyg": 5,
+        "datum": "2026-10-01",
+        "foton": 1,
+        "text": "Very good lift. At a lift of almost 1m it is stable enough that my wife and I can sleep in a tent on the roof of the trailer. I recommend it."
+      },
+      {
+        "id": "gen-187n3oq",
+        "betyg": 5,
+        "datum": "2026-09-17",
+        "foton": 0,
+        "text": "Actually more impressed with it than I had anticipated. Feels pretty heavy duty, the mounting plate is thick and looks pretty robust. I am using it on an older car trailer so I figure (hope) it serves very well. I figure keep it greased and it'll last well enough."
+      },
+      {
+        "id": "gen-114g5y8",
+        "betyg": 5,
+        "datum": "2026-09-06",
+        "foton": 0,
+        "text": "heavy duty low profile jack for my center console. combined with the drop leg this is perfect. 2022 Seapro 228."
+      }
+    ]
+  },
+  "9c32b82b": {
+    "productId": "9c32b82b-8c5b-43e3-bf43-357ed2a92ff4",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-sw4yl9",
+        "betyg": 5,
+        "datum": "2026-10-10",
+        "foton": 0,
+        "text": "Ottimo prodotto ottima qualità/prezzo già usato e adempiere perfettamente al suo lavoro"
+      },
+      {
+        "id": "gen-1adozp7",
+        "betyg": 5,
+        "datum": "2026-10-01",
+        "foton": 0,
+        "text": "Excellent. Pleasantly surprised by the apparent quality given the low price point. But it works very well."
+      },
+      {
+        "id": "gen-e84w77",
+        "betyg": 4,
+        "datum": "2026-08-27",
+        "foton": 0,
+        "text": "Sehr schnelle Lieferung. Der Kettenzug funktioniert. Bin etwas enttäuscht, dass die Ketten nicht verzinkt sind, sondern geölte Stahlketten. Da wird man immer schmutzig. Am Artikelbild sieht man eine verzinkte Kette."
+      }
+    ]
+  }
+}
