@@ -1,1 +1,0 @@
-6381a9ea 1 5 spegelvänd kopia: position 5 är position 1 spegelvänd (0,001 spegelvänt mot 0,135 rakt) och stryks i fas 2
