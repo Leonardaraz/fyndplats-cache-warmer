@@ -158,3 +158,21 @@ export function sparFran(syns: number, m: SparMatt): number {
   const y = inomSidan(m);
   return Math.max(minst(m), y + Math.min(m.h, Math.max(-UR_BILD_PX, syns)) - m.topp);
 }
+
+/**
+ * Ett glid avbryts av att sidan rör sig. Omslagets höjd som låter sidhuvudet
+ * stå kvar där det syns: där det stod i sidan när glidet började, plus så
+ * långt glidet hunnit (`ty`, transformens förflyttning), minus så långt sidan
+ * rört sig sedan dess.
+ *
+ * ☠️ Sidhuvudets läge läses inte ur getBoundingClientRect. I Safari 27 står
+ * det fästa sidhuvudets avlästa läge en bildruta efter sidans medan sidan
+ * flyttas (mätt på en riktig iPhone 2026-11-25: 125 i stället för 133 vid 8 px
+ * per bildruta), och sidhuvudet hade hamnat lika mycket fel i just den
+ * bildruta där fingret tar över.
+ */
+export function sparAvbrutet(l: SparLage, m: SparMatt, ty: number): number {
+  const y = inomSidan(m);
+  const stod = synligt(l.hb, { ...m, y: l.y });
+  return sparFran(stod + ty - (y - l.y), m);
+}

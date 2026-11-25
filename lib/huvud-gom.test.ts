@@ -3,7 +3,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { ALLTID_OVAN_PX, GOM_MINST_PX, UR_BILD_PX, VISA_MINST_PX, glidMs, sparFran, sparRast, sparStart, sparSteg, sparVila, synligt, type SparLage } from "./huvud-gom.ts";
+import { ALLTID_OVAN_PX, GOM_MINST_PX, UR_BILD_PX, VISA_MINST_PX, glidMs, sparAvbrutet, sparFran, sparRast, sparStart, sparSteg, sparVila, synligt, type SparLage } from "./huvud-gom.ts";
 
 const UR = UR_BILD_PX;
 
@@ -380,4 +380,27 @@ test("☠️ glidet den sista biten börjar stilla: ingen kurva som går i full 
   assert.equal(glidMs(135), 325);
   assert.equal(glidMs(400), 340);
   assert.ok(glidMs(1) >= 180);
+});
+
+test("☠️ ett avbrutet glid räknas ur glidets förflyttning och sidans rörelse, inte ur sidhuvudets avlästa läge", () => {
+  // I Safari 27 står det fästa sidhuvudets avlästa läge en bildruta efter sidans medan sidan flyttas
+  // (riktig iPhone 2026-11-25: 125 i stället för 133). Läget räknas därför ur det koden själv vet.
+  const nere = kor(svep(0, 1200)).slut;
+  const vilat = { ...nere, hb: sparRast(nere, m(1200)) };
+  const upp = kor([1150], vilat).slut; // 48 px framme (50 minus marginalen), sidan står på 1150
+  assert.equal(synligt(upp.hb, m(1150)), 50 - UR);
+  // Glidet fram har hunnit 30 px när sidan går 10 px ner: 48 + 30 - 10 = 68 px framme.
+  assert.equal(synligt(sparAvbrutet(upp, m(1160), 30), m(1160)), 50 - UR + 30 - 10);
+  // Sidan går upp i stället: 48 + 30 + 10.
+  assert.equal(synligt(sparAvbrutet(upp, m(1140), 30), m(1140)), 50 - UR + 30 + 10);
+  // Glidet undan (förflyttningen är negativ) har hunnit 20 px när sidan går 5 px ner.
+  assert.equal(synligt(sparAvbrutet(upp, m(1155), -20), m(1155)), 50 - UR - 20 - 5);
+  // Aldrig mer än hela sidhuvudet, och aldrig längre bort än marginalen ovanför kanten.
+  assert.equal(synligt(sparAvbrutet(upp, m(1100), 80), m(1100)), H);
+  assert.equal(sparAvbrutet(upp, m(1190), -40), sparFran(-UR, m(1190)));
+  // Glidet har inte hunnit röra sig alls: sidhuvudet följer bara sidan.
+  assert.equal(synligt(sparAvbrutet(upp, m(1152), 0), m(1152)), 50 - UR - 2);
+  // Komponenten: förflyttningen ur transformen, sidhuvudets läge bara som reserv.
+  assert.match(komponent, /sparAvbrutet\(lage, m, new DOMMatrixReadOnly\(getComputedStyle\(huvud\)\.transform\)\.m42\)/);
+  assert.match(komponent, /typeof DOMMatrixReadOnly === "function"\s+\? sparAvbrutet[\s\S]{0,120}: sparFran\(huvud\.getBoundingClientRect\(\)\.bottom, m\);/);
 });

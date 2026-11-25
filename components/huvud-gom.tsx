@@ -12,7 +12,7 @@
 
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { glidMs, sparFran, sparRast, sparStart, sparSteg, sparVila, synligt, type SparLage, type SparMatt, type Vila } from "../lib/huvud-gom";
+import { glidMs, sparAvbrutet, sparFran, sparRast, sparStart, sparSteg, sparVila, synligt, type SparLage, type SparMatt, type Vila } from "../lib/huvud-gom";
 
 /** Telefonen, samma gräns som i app/globals.css. Över 760 px fäster produktsidans
  *  bildgalleri under sidhuvudet (--ankare), och där står sidhuvudet kvar. */
@@ -85,13 +85,18 @@ export function HuvudGom() {
       huvud.style.transform = "";
       glid = null;
     };
-    /** Sidhuvudet står kvar där det syns just nu, utan glid: ett avbrutet glid hoppar inte. */
+    /** Sidhuvudet står kvar där det syns just nu, utan glid: ett avbrutet glid hoppar inte.
+     *  Hur långt glidet hunnit läses ur transformen. Sidhuvudets läge läses inte: det kan
+     *  stå en bildruta efter sidans (sparAvbrutet). Utan DOMMatrixReadOnly läses det ändå. */
     const stanna = () => {
       if (!glid) return;
       const m = matt();
-      const syns = huvud.getBoundingClientRect().bottom;
+      const hb =
+        typeof DOMMatrixReadOnly === "function"
+          ? sparAvbrutet(lage, m, new DOMMatrixReadOnly(getComputedStyle(huvud).transform).m42)
+          : sparFran(huvud.getBoundingClientRect().bottom, m);
       utanGlid();
-      lage = { ...lage, hb: sparFran(syns, m) };
+      lage = { ...lage, hb };
       skriv(lage.hb, m.h);
       markera(m);
     };
