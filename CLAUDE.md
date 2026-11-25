@@ -198,6 +198,7 @@ underrubrik.
   - Katalogtaken
   - Vad en körning läser
   - Stoppade prishopp: syns i raden och godkänns för hand (2026-11-25)
+  - Taket på 40 % är borta för VEVOR (Leonard 2026-11-25)
 - `10-vevor-steg-7-gpsr.md`: VEVOR: steg 7, publiceringsspärren och produktsäkerheten (2026-10-29)
 - `11-vevor-steg-8-syskon-betyg-recensioner.md`: VEVOR: steg 8, syskon, betyg och recensioner vid importen (2026-10-29)
   - Familjeregeln: bara färg, storlek, längd och förpackning delar en sida (2026-10-30)

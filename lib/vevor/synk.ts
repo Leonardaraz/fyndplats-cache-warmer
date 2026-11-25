@@ -30,11 +30,16 @@
 // rutten tar bort det innan svaret lämnar den. Loggen, svaret och tillståndet
 // bär antal och Wix-id, och för prishoppen butikspriset före och efter.
 //
-// ETT STOPPAT PRISHOPP (över 40 %) skrivs aldrig av sig självt. Loggraden säger
-// vilka produkter det gäller, och en körning för hand kan släppa taket för
-// uttryckligt angivna Wix-id (`godkannPrisandring`, ruttens `godkannPris`).
+// VEVOR HAR INGET TAK PÅ PRISÄNDRINGEN sedan 2026-11-25 (Leonard: "ta bort 40%
+// taket som håller kvar priserna och jag behöver godkänna"; `VEVOR_PROFIL` i
+// lib/sync/leverantorsrad.ts). Ett stabilt pris skrivs hur stort hoppet än är.
+// Loggraden säger vilka produkter som hoppade mer än 40 %, med Wix-id och
+// butikspriset före och efter. Godkännandet (`godkannPrisandring`, ruttens
+// `godkannPris`) finns kvar i motorn för en leverantör med tak, och gör
+// ingenting här så länge profilen saknar ett.
 
 import {
+  STORT_PRISHOPP_PCT,
   gemensammaSynkDeps,
   korSynk,
   type AosomSyncOptions,
@@ -243,8 +248,9 @@ export interface Synkval {
   /** För hand: fortsätt efter den här markören (ur förra svaret). */
   after?: string;
   /**
-   * För hand: Wix-produkter vars prisändring får gå förbi 40 %-taket i den här
-   * körningen (motorns `godkannPrisandring`). En människa har tittat på hoppet.
+   * För hand: Wix-produkter vars prisändring får gå förbi profilens tak i den
+   * här körningen (motorns `godkannPrisandring`). VEVOR har inget tak sedan
+   * 2026-11-25, så valet gör ingenting förrän profilen får ett igen.
    * ☠️ Schemat godkänner aldrig: valet släpps bara igenom när `manuell` är satt.
    */
   godkannPrisandring?: ReadonlySet<string>;
@@ -344,11 +350,15 @@ function hoppText(hopp: readonly { wixProductId?: string; fran: number; till: nu
  * Loggraden. Antal, och för prishoppen Wix-id och butikspriset före och efter.
  * Aldrig ett artikelnummer.
  *
- * ☠️ DE STOPPADE PRISHOPPEN STÅR MED PRODUKT OCH BELOPP (2026-11-25). Raden bar
- * bara antalet, och rutten hade inget godkännande: 17 publicerade varor i lager
- * stod 42–95 % från regelpriset utan att någon såg vilka, och runt 100 hopp per
- * varv hade stoppats varje dygn sedan minst 20 november. Samma lärdom som
- * Aosom-synkens rad 2026-11-11. Ett stoppat hopp skrivs aldrig av sig självt.
+ * ☠️ PRISHOPPEN STÅR MED PRODUKT OCH BELOPP (2026-11-25). Raden bar bara
+ * antalet stoppade, och rutten hade inget godkännande: 17 publicerade varor i
+ * lager stod 42–95 % från regelpriset utan att någon såg vilka, och runt 100
+ * hopp per varv hade stoppats varje dygn sedan minst 20 november. Samma lärdom
+ * som Aosom-synkens rad 2026-11-11.
+ *
+ * Samma dag tog Leonard bort taket för VEVOR. Ett hopp över 40 % skrivs nu, och
+ * raden säger vilka ("prishopp över 40 %"): ingen godkänner dem längre, så det
+ * ska gå att se i efterhand vilka priser som flyttade sig mest.
  */
 export function synkloggrad(u: Synkutfall): string {
   const s = u.summary;
@@ -361,6 +371,7 @@ export function synkloggrad(u: Synkutfall): string {
     + `${s.saldaAvdragna} sålda avdragna, ${s.okandaVarianter} okända varianter, ${s.tvetydiga} tvetydiga, `
     + `${s.varningar.length} varningar${hoppText(s.varningar)}, `
     + (s.godkandaHopp.length ? `${s.godkandaHopp.length} godkända prishopp${hoppText(s.godkandaHopp)}, ` : "")
+    + (s.storaHopp.length ? `${s.storaHopp.length} prishopp över ${STORT_PRISHOPP_PCT} %${hoppText(s.storaHopp)}, ` : "")
     + `${s.misslyckade} misslyckade, `
     + `stoppade på ${s.stoppedBy}, ${s.kvar} kvar${s.dryRun ? " (TORRKÖRNING — inget skrevs)" : ""}`
     + (u.markor ? `, ${u.markor === "fortsatte" ? "fortsatte från sparad markör" : "började från början"}` : "")

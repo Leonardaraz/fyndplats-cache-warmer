@@ -3,6 +3,7 @@ import {
   AOSOM_PROFIL,
   lagerbesked,
   PROFILER,
+  SYNKPROFILER,
   VEVOR_PROFIL,
   type Leverantorsprofil,
   type Leverantorsrad,
@@ -82,10 +83,11 @@ describe("PROFILER", () => {
       minRader: 2000,
       bestalldOsynligMs: 12 * TIMME,
       prisKraverTvaAvlasningar: false,
+      maxPrisandringPct: 40,
     });
   });
 
-  it("☠️ VEVOR: saknad avläsning är okänd, ingen konkurrentregel, ingen buffert, två avläsningar för ett nytt pris", () => {
+  it("☠️ VEVOR: saknad avläsning är okänd, ingen konkurrentregel, ingen buffert, två avläsningar för ett nytt pris, inget tak", () => {
     expect(PROFILER.vevor).toEqual({
       saknadRad: "okand",
       konkurrentregel: false,
@@ -94,7 +96,17 @@ describe("PROFILER", () => {
       minRader: null,
       bestalldOsynligMs: 12 * TIMME,
       prisKraverTvaAvlasningar: true,
+      maxPrisandringPct: null,
     });
+  });
+
+  it("☠️ taket på prisändringen är Aosoms: VEVOR har inget (Leonard 2026-11-25), och utan tak ska två avläsningar krävas", () => {
+    expect(PROFILER.aosom?.maxPrisandringPct).toBe(40);
+    expect(PROFILER.vevor?.maxPrisandringPct).toBeNull();
+    // En leverantör utan tak skriver vilket pris som helst: då ska ett enstaka felläst besked inte räcka.
+    for (const profil of Object.values(SYNKPROFILER)) {
+      if (profil.maxPrisandringPct === null) expect(profil.prisKraverTvaAvlasningar).toBe(true);
+    }
   });
 
   it("föregående avläsnings kostnad följer med ett känt besked, aldrig ett okänt", () => {

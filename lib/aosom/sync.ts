@@ -149,8 +149,18 @@ export interface AosomLagerUtfall {
  * en trasig siffra — en frakt som råkar bli 0, ett grossistpris med fel decimal —
  * får inte slå igenom till kund. Över taket skrivs ingenting och raden hamnar i
  * `varningar` för en människa att titta på.
+ *
+ * Taket är Aosoms (`AOSOM_PROFIL.maxPrisandringPct`). VEVOR har inget sedan
+ * 2026-11-25: se `VEVOR_PROFIL` i lib/sync/leverantorsrad.ts.
  */
-export const MAX_PRISANDRING_PCT = 40;
+export const MAX_PRISANDRING_PCT = AOSOM_PROFIL.maxPrisandringPct;
+
+/**
+ * Ett prishopp större än så, i procent, som skrivs för en leverantör UTAN tak
+ * står i körningens `storaHopp`: ingen har godkänt det, så det ska gå att se
+ * i efterhand vilka priser som flyttade sig mest.
+ */
+export const STORT_PRISHOPP_PCT = 40;
 
 /** Priser under detta är alltid fel. Skyddar mot en tom eller nollad feed-rad. */
 const MIN_RIMLIGT_PRIS_SEK = 20;
@@ -477,6 +487,11 @@ export interface AosomSyncSummary {
    * skrivs ut i en publik Actions-logg.
    */
   godkandaHopp: { wixProductId: string; fran: number; till: number; andringPct: number }[];
+  /**
+   * Prishopp över `STORT_PRISHOPP_PCT` som planen skriver utan godkännande,
+   * för att leverantören inte har något tak (VEVOR). Bara wix-id och belopp.
+   */
+  storaHopp: { wixProductId: string; fran: number; till: number; andringPct: number }[];
 }
 
 /**
@@ -806,6 +821,8 @@ export interface Produktplan {
   fleraVarningar?: NonNullable<Produktplan["varning"]>[];
   /** Hopp över taket som skrivs för att produkten är godkänd, per variant. */
   godkandaHopp?: GodkantHopp[];
+  /** Hopp över `STORT_PRISHOPP_PCT` som skrivs för att leverantören saknar tak, per variant. */
+  storaHopp?: GodkantHopp[];
   /**
    * Butikens saldo skiljer sig från stämpeln, för produkten eller för minst en
    * variant på en sammanslagen sida. Sätts av `motButikensSaldo` efter
@@ -910,7 +927,10 @@ export function vantarPaFlodet(
   return Number.isFinite(t) && nuMs - t < fonsterMs;
 }
 
-/** Ett prishopp över taket som en människa godkänt för den här körningen. */
+/**
+ * Ett prishopp som skrivs: över taket och godkänt av en människa för den här
+ * körningen (`godkandaHopp`), eller stort hos en leverantör utan tak (`storaHopp`).
+ */
 export interface GodkantHopp {
   fran: number;
   till: number;
@@ -939,6 +959,8 @@ interface Prisutfall {
   utanWixPris: boolean;
   varning: Produktplan["varning"];
   godkantHopp: GodkantHopp | null;
+  /** Ett hopp över `STORT_PRISHOPP_PCT` som skrivs för att leverantören saknar tak. */
+  stortHopp: GodkantHopp | null;
   /** Ett nytt pris väntar på en andra avläsning med samma regelpris. */
   prisVantar: boolean;
 }
@@ -1013,6 +1035,7 @@ function planeraPris(
     utanWixPris: false,
     varning: null,
     godkantHopp: null,
+    stortHopp: null,
     prisVantar: false,
   };
   if (regel.typ === "fryst") return ut;
@@ -1047,7 +1070,8 @@ function planeraPris(
   }
   if (gammalt > 0) {
     const andringPct = ((pris - gammalt) / gammalt) * 100;
-    if (Math.abs(andringPct) > MAX_PRISANDRING_PCT) {
+    const tak = profil.maxPrisandringPct;
+    if (tak !== null && Math.abs(andringPct) > tak) {
       // Tvåvägssynken är medvetet automatisk, men ett hopp av den här
       // storleken är oftare en trasig feed-rad än en verklig prisändring.
       if (!tillatHopp) {
@@ -1057,6 +1081,10 @@ function planeraPris(
       // Godkänt av en människa för den här körningen: skrivs som vilket pris
       // som helst, men räknas för sig så att det syns i loggen.
       ut.godkantHopp = { fran: gammalt, till: pris, andringPct: Math.round(andringPct) };
+    } else if (tak === null && Math.abs(andringPct) > STORT_PRISHOPP_PCT) {
+      // Leverantören har inget tak (VEVOR, Leonard 2026-11-25): hoppet skrivs
+      // som vilket pris som helst. Ingen har godkänt det, så det står i raden.
+      ut.stortHopp = { fran: gammalt, till: pris, andringPct: Math.round(andringPct) };
     }
     if (pris !== gammalt) {
       ut.nyttPris = pris;
@@ -1197,6 +1225,7 @@ export function planeraProdukt(
   plan.nyLandad = pr.nyLandad;
   if (pr.prisVantar) plan.prisVantar = true;
   if (pr.godkantHopp) plan.godkandaHopp = [pr.godkantHopp];
+  if (pr.stortHopp) plan.storaHopp = [pr.stortHopp];
   return plan;
 }
 
@@ -1237,6 +1266,7 @@ export function planeraFlerartikel(
   if (!profil) return planeraOkand(m, bild.artikel);
   const varianter: VariantPlan[] = [];
   const godkanda: GodkantHopp[] = [];
+  const stora: GodkantHopp[] = [];
   const tillatHopp = opts.godkannPrisandring?.has(m.wixProductId) ?? false;
   const varningar: NonNullable<Produktplan["varning"]>[] = [];
   const plan: Produktplan = {
@@ -1313,6 +1343,7 @@ export function planeraFlerartikel(
     if (pr.prisVantar) plan.prisVantar = true;
     if (pr.varning) varningar.push(pr.varning);
     if (pr.godkantHopp) godkanda.push(pr.godkantHopp);
+    if (pr.stortHopp) stora.push(pr.stortHopp);
     vp.nyttPris = pr.nyttPris;
     vp.nyLandad = pr.nyLandad;
   }
@@ -1322,6 +1353,7 @@ export function planeraFlerartikel(
   plan.varning = varningar[0] ?? null;
   if (varningar.length > 1) plan.fleraVarningar = varningar.slice(1);
   if (godkanda.length > 0) plan.godkandaHopp = godkanda;
+  if (stora.length > 0) plan.storaHopp = stora;
   return plan;
 }
 
@@ -2040,6 +2072,7 @@ export async function korSynk(
     errors: [],
     varningar: [],
     godkandaHopp: [],
+    storaHopp: [],
   };
 
   /** Antal produkter vi FAKTISKT skrivit. Det är den här `limit` gäller. */
@@ -2144,6 +2177,7 @@ export async function korSynk(
       if (p.varning) summary.varningar.push({ ...p.varning, wixProductId: p.m.wixProductId });
       for (const v of p.fleraVarningar ?? []) summary.varningar.push({ ...v, wixProductId: p.m.wixProductId });
       for (const h of p.godkandaHopp ?? []) summary.godkandaHopp.push({ ...h, wixProductId: p.m.wixProductId });
+      for (const h of p.storaHopp ?? []) summary.storaHopp.push({ ...h, wixProductId: p.m.wixProductId });
     }
 
     // ── FAS 2: LÄS LAGERPOSTERNA FÖR HELA TUGGAN, I ETT ANROP ────────────

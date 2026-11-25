@@ -16,9 +16,12 @@
 //   ?limit=1200       tak på antal produkter som skrivs
 //   ?after=<markör>   fortsätt efter förra svarets `cursor` (förseglad, se
 //                     lib/aosom/markor.ts)
-//   ?godkannPris=<wix-id>,…  släpp 40 %-taket för just dessa produkter i den
-//                     här körningen (motorns `godkannPrisandring`). Bara för
-//                     hand: schemat godkänner aldrig ett prishopp.
+//   ?godkannPris=<wix-id>,…  släpp profilens tak för just dessa produkter i
+//                     den här körningen (motorns `godkannPrisandring`). Bara
+//                     för hand: schemat godkänner aldrig ett prishopp.
+//                     ☠️ VEVOR har inget tak sedan 2026-11-25 (Leonard), så
+//                     valet gör ingenting förrän profilen får ett igen. Ett
+//                     hopp över 40 % skrivs och står i svarets `storaHopp`.
 //
 // ☠️ SVARET BÄR BARA ANTAL OCH WIX-ID. Motorns fel och varningar bär
 // artikelnumret, och det tas bort här (`utanArtikelnummer`). Markören går ut
@@ -106,7 +109,7 @@ async function handle(req: NextRequest) {
     // inte gick att avgöra ska gå att hitta i efterhand.
     if (!s.dryRun && (s.lagerUppdaterade > 0 || s.prisUppdaterade > 0 || s.misslyckade > 0
       || s.okandaVarianter > 0 || s.tvetydiga > 0 || s.leverantorOense > 0 || s.stampelHoppade > 0
-      || s.varningar.length > 0 || s.godkandaHopp.length > 0
+      || s.varningar.length > 0 || s.godkandaHopp.length > 0 || s.storaHopp.length > 0
       || s.restockMejl > 0 || s.restockEjSkickade > 0 || s.restockFel || s.prislistaFel)) {
       await audit("vevor-sync", "batch", synkloggrad(u).replace(/^\[vevor-synk\] /, ""));
     }

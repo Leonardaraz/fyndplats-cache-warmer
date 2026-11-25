@@ -86,6 +86,14 @@ export interface Leverantorsprofil {
    * Raden bär då föregående avläsnings kostnad (`forraLandadKostnadSek`).
    */
   prisKraverTvaAvlasningar: boolean;
+  /**
+   * Tak på hur mycket ett pris får ändras i en körning, i procent. Över taket
+   * skrivs ingenting, och raden står i `varningar` tills en människa godkänt
+   * hoppet (`godkannPrisandring` i lib/aosom/sync.ts). null: inget tak, priset
+   * följer regelpriset hur stort hoppet än är, och ett hopp över
+   * `STORT_PRISHOPP_PCT` står i körningens `storaHopp`.
+   */
+  maxPrisandringPct: number | null;
 }
 
 const TIMME = 60 * 60 * 1000;
@@ -103,6 +111,9 @@ const TIMME = 60 * 60 * 1000;
  *     exporteras tre gånger per dygn, högst åtta timmar emellan, plus fyra
  *     timmars marginal.
  *   - Ett nytt pris skrivs direkt. Feeden är Aosoms egen prislista i euro.
+ *   - Ett prishopp över 40 % skrivs inte utan godkännande
+ *     (`MAX_PRISANDRING_PCT`): en feed-rad med en trasig siffra slår annars
+ *     igenom direkt, eftersom inget andra besked väntas in.
  */
 export const AOSOM_PROFIL = {
   saknadRad: "slut",
@@ -112,6 +123,7 @@ export const AOSOM_PROFIL = {
   minRader: 2000,
   bestalldOsynligMs: 12 * TIMME,
   prisKraverTvaAvlasningar: false,
+  maxPrisandringPct: 40,
 } satisfies Leverantorsprofil;
 
 /**
@@ -133,6 +145,13 @@ export const AOSOM_PROFIL = {
  *   - Ett nytt pris skrivs först när två avläsningar i rad ger samma regelpris.
  *     VEVOR räknar om sina priser från euro, och ett pris som hoppar fram och
  *     tillbaka ska inte nå kunden.
+ *   - Inget tak på prisändringen (Leonard 2026-11-25: "ta bort 40% taket som
+ *     håller kvar priserna och jag behöver godkänna"). Taket höll 14 varor
+ *     42–95 % UNDER regelpriset i dagar utan att någon såg det, och en godkänd
+ *     sänkning hade fastnat på vägen upp igen. Kvar mot en felläst sida: två
+ *     avläsningar i rad med samma regelpris, läsarens egna kontroller (pris,
+ *     valuta och språk ska stämma på sidan, lib/vevor/sida.ts) och golvet för
+ *     ett rimligt pris. Ett hopp över 40 % skrivs, och står i raden.
  */
 export const VEVOR_PROFIL = {
   saknadRad: "okand",
@@ -142,6 +161,7 @@ export const VEVOR_PROFIL = {
   minRader: null,
   bestalldOsynligMs: 12 * TIMME,
   prisKraverTvaAvlasningar: true,
+  maxPrisandringPct: null,
 } satisfies Leverantorsprofil;
 
 /** Leverantörerna som synkas här, alltså de med en profil. */
