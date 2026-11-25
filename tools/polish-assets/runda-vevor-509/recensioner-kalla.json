@@ -1,0 +1,93 @@
+{
+  "209d200a": {
+    "productId": "209d200a-873c-4815-9040-f69b9e40d07b",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "cf9c9d27": {
+    "productId": "cf9c9d27-663e-44a8-b35f-e0c9cd9ccd7e",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 3,
+    "attBesluta": [
+      {
+        "id": "gen-btew6s",
+        "betyg": 5,
+        "datum": "2026-10-23",
+        "foton": 0,
+        "text": "Bought these shelving racks to put some gear up off the floor works great. Good quality nice and sturdy."
+      }
+    ]
+  },
+  "9cae0773": {
+    "productId": "9cae0773-bfe4-400e-bf8a-852891c3352b",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1pywf5u",
+        "betyg": 5,
+        "datum": "2026-07-23",
+        "foton": 0,
+        "text": "Paintable surface, easy to assemble, strong and sturdy. Holds 5 gallon jugs perfectly. Solved a ton of issues."
+      }
+    ]
+  },
+  "8cd7a9c5": {
+    "productId": "8cd7a9c5-8bce-411a-9ba0-277dc867dde6",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 3,
+    "attBesluta": [
+      {
+        "id": "gen-fm9qtf",
+        "betyg": 5,
+        "datum": "2026-01-18",
+        "foton": 0,
+        "text": "Should have measured more carefully. The griddle was not the tight size for my grill. Had to return. It was heavy and good quality. Would definitely recommend. Measure your grill length and width interior before ordering to insure a good fit."
+      },
+      {
+        "id": "gen-ceb7y",
+        "betyg": 4,
+        "datum": "2026-08-30",
+        "foton": 0,
+        "text": "It is a perfect fit to replace a neglected old 4 burner plate. It required a bit of imagination to securely fit it securely and it works even better than I hoped. Very happy"
+      }
+    ]
+  },
+  "99510380": {
+    "productId": "99510380-0f74-4cdd-804a-76c7ddfbf1d1",
+    "synliga": 0,
+    "dolda": 1,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 3,
+    "attBesluta": [
+      {
+        "id": "gen-ryzxvd",
+        "betyg": 5,
+        "datum": "2026-09-25",
+        "foton": 0,
+        "text": "Great sink. It's of high quality. Shipping was lightning fast. Will definitely use Vevor again."
+      },
+      {
+        "id": "gen-1hyevri",
+        "betyg": 4,
+        "datum": "2026-09-09",
+        "foton": 0,
+        "text": "Excellent produit facile de montage peut-être un petit problème au niveau des raccordements de plomberie à l'arrière du meuble, il est peut-être préférable d'assembler les pièces de plomberie au niveau du raccordement de l'eau chaude et de l'eau froide avec du silicone au lieu du ruban Téflon"
+      }
+    ]
+  }
+}
