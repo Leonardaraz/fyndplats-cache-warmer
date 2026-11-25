@@ -1,0 +1,100 @@
+{
+  "b96cd3e7": {
+    "productId": "b96cd3e7-bf95-4e51-ab6d-5774d8ef3ced",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "63f4526d": {
+    "productId": "63f4526d-137b-4506-a4b8-1a3fd3465f68",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-1b788sd",
+        "betyg": 5,
+        "datum": "2025-04-25",
+        "foton": 0,
+        "text": "J'ai acheté ce bac a glaçons pour l'intégrer dans un plan de travail il est Conforme à la description et plutôt quali,"
+      }
+    ]
+  },
+  "9bb114c5": {
+    "productId": "9bb114c5-ca1c-4f04-a0bf-ff6024677d44",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-k53jny",
+        "betyg": 5,
+        "datum": "2026-10-18",
+        "foton": 0,
+        "text": "Excellent bladder for refilling my camper while dry camping."
+      }
+    ]
+  },
+  "3d1669ba": {
+    "productId": "3d1669ba-b888-46ee-a45a-dcec00fbd423",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-ha43dj",
+        "betyg": 5,
+        "datum": "2026-04-14",
+        "foton": 1,
+        "text": "Wszystko ok działa jak należy.łączenie dyszla z miękkiej blachy moim zdaniem za miękka a reszta ok."
+      }
+    ]
+  },
+  "7f6c8776": {
+    "productId": "7f6c8776-1dfe-4c92-9d2c-8c91f426be7d",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": [
+      {
+        "id": "gen-1yd63lg",
+        "betyg": 5,
+        "datum": "2026-10-01",
+        "foton": 0,
+        "text": "It worked great in the idaho mountains for our bear hunt for myself,buddy and son. I weigh 210lbs and it held up great and worked as it should."
+      },
+      {
+        "id": "gen-5ab8au",
+        "betyg": 5,
+        "datum": "2026-09-19",
+        "foton": 0,
+        "text": "Jeg er fuldt tilfreds - det fylder ikke meget i mikrocamperen og er fint at bruge."
+      },
+      {
+        "id": "gen-jx7oca",
+        "betyg": 5,
+        "datum": "2026-08-27",
+        "foton": 0,
+        "text": "Je recommande vevor livraison rapide et colis en bonne état"
+      },
+      {
+        "id": "gen-1ijb5pv",
+        "betyg": 5,
+        "datum": "2026-08-19",
+        "foton": 0,
+        "text": "Plutôt robuste, très pratique, manque peut-être juste une petite housse pour le transport, sinon rien à dire"
+      }
+    ]
+  }
+}
