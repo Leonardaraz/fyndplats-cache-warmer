@@ -1,0 +1,4 @@
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i källtexten.
+57c8b5fd 242 omräkning av 2420 mm till cm
+2de99da9 900 omräkning av 90 cm till mm
