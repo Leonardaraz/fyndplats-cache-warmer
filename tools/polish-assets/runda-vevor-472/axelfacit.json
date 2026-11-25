@@ -1,0 +1,20 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "35fb9fdb": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "7c14955d": {
+  "tyska": "",
+  "svenska": ""
+ },
+ "e740e784": {
+  "tyska": "",
+  "svenska": "",
+  "axellos": "inget totalmått i källan; bara delmått: Specification rows (Swedish, from the source reading): screen size 80 inch; aspect ratio 16; projection area (L x H) 70.1 x 39.4 in / 1780 x 1000 mm; height adjustment range 68.5 - 39.0 in / 1740 - 990 mm; screen material Gain 1.2, viewing angle 160 degrees; colour black; net weight 3.7 kg."
+ },
+ "f60a5195": {
+  "tyska": "",
+  "svenska": ""
+ }
+}
