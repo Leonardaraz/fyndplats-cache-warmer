@@ -1,0 +1,106 @@
+{
+  "b71ba4d6": {
+    "productId": "b71ba4d6-122c-4040-ad7a-776678f4dd5c",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "c3ec362c": {
+    "productId": "c3ec362c-ec57-4439-91a4-066fe405fb9d",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-15fla42",
+        "betyg": 5,
+        "datum": "2026-10-03",
+        "foton": 0,
+        "text": "Väldigt fint katthus som stämmer väl med bilderna. Lätt att montera och det har en behaglig doft av trä"
+      },
+      {
+        "id": "gen-1wl3q74",
+        "betyg": 4,
+        "datum": "2026-02-18",
+        "foton": 0,
+        "text": "Es bueno, lo malo fue la entrega, te dicen que no estás en casa y resulta que es mentira,y para saber dónde lo dejaron, es lo ultimo"
+      }
+    ]
+  },
+  "caa9daf1": {
+    "productId": "caa9daf1-984f-4ecd-be06-d67898c10fdb",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-qjtx4",
+        "betyg": 5,
+        "datum": "2026-10-22",
+        "foton": 0,
+        "text": "This landscape rake is well built and a great buy for the price and quality. Works very well cleaning up pine needles, leaves, and small branches."
+      },
+      {
+        "id": "gen-sot3ic",
+        "betyg": 5,
+        "datum": "2026-10-20",
+        "foton": 0,
+        "text": "Enjoyed the rake for leaves and need to plant some grass so the tines made a nice bed for seed. Now the problem is I have one outside tine that snapped and broke and looked for parts to no avail on web site. Need one outside tine."
+      },
+      {
+        "id": "gen-14j9woa",
+        "betyg": 5,
+        "datum": "2026-10-15",
+        "foton": 0,
+        "text": "Worked great for bushogged field and pine forest for a great price."
+      },
+      {
+        "id": "gen-l5hpyh",
+        "betyg": 5,
+        "datum": "2026-10-14",
+        "foton": 0,
+        "text": "Easy to assemble and Mount exactly what I was looking for. I use it behind a John Deere 4100 to break up grass clumps after mowing when the grass was very wet and to rake leaves into a central location. 5 stars would buy again."
+      },
+      {
+        "id": "gen-1604nn5",
+        "betyg": 4,
+        "datum": "2026-07-25",
+        "foton": 0,
+        "text": "Overall- great product. Took a bit of time to put together, but the equipment itself is very durable. The attachment can be difficult to put onto the tractor if alone, but luckily it's not too heavy to lift."
+      }
+    ]
+  },
+  "1bd175ba": {
+    "productId": "1bd175ba-0677-47ff-87da-13501762d675",
+    "synliga": 0,
+    "dolda": 7,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": []
+  },
+  "6381a9ea": {
+    "productId": "6381a9ea-ce51-4853-832c-d3f389d319f6",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-vqp3ib",
+        "betyg": 5,
+        "datum": "2026-06-13",
+        "foton": 0,
+        "text": "Very pleased with this. It's got a good thickness to it, and the roll sizes are easy to handle. I'm using some of it for a ceiling, where it has an interesting and welcome acoustic effect. Noises are dampened quite a bit. The white vinyl side is visually neutral, which is just fine for my uses. Price was excellent."
+      }
+    ]
+  }
+}
