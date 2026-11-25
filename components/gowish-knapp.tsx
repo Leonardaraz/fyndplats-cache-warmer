@@ -23,13 +23,17 @@
 import Script from "next/script";
 import { useMarketingConsent } from "../lib/use-marketing-consent";
 import {
+  GOWISH_DIALOG_ID,
   GOWISH_KNAPP_ID,
   GOWISH_KNAPP_TEXT,
+  GOWISH_RAM_ID,
   GOWISH_REGION,
   GOWISH_SKRIPT,
   GOWISH_SKRIPT_ID,
+  GOWISH_VANTA_MS,
   gowishProduktadress,
   gowishReservadress,
+  gowishSvenskRuta,
 } from "../lib/gowish";
 
 declare global {
@@ -51,6 +55,35 @@ function Moln() {
       />
     </svg>
   );
+}
+
+/**
+ * GoWish ruta på svenska. Skriptet ger sin ram adressen gowish.com/quick-add,
+ * och den sidan står på engelska (se lib/gowish.ts). Här byts ramens adress
+ * till /sv/quick-add så fort skriptet har satt den: direkt på datorn, och på
+ * telefon efter att appen fått sin chans.
+ *
+ * Bevakningen startas vid klicket och lever bara medan rutan är öppen, högst
+ * GOWISH_VANTA_MS. Sidan har alltså ingen bevakning när ingen tryckt.
+ */
+function svenskRuta() {
+  if (typeof MutationObserver === "undefined") return;
+  let settRutan = false;
+  const bevakning = new MutationObserver(se);
+  const tid = window.setTimeout(sluta, GOWISH_VANTA_MS);
+  function sluta() {
+    bevakning.disconnect();
+    window.clearTimeout(tid);
+  }
+  function se() {
+    if (document.getElementById(GOWISH_DIALOG_ID)) settRutan = true;
+    else if (settRutan) return sluta();
+    const ram = document.getElementById(GOWISH_RAM_ID);
+    const svensk = ram instanceof HTMLIFrameElement ? gowishSvenskRuta(ram.getAttribute("src")) : null;
+    if (ram instanceof HTMLIFrameElement && svensk) ram.src = svensk;
+  }
+  bevakning.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["src"] });
+  se();
 }
 
 export function GowishKnapp({ slug }: { slug: string }) {
@@ -77,7 +110,7 @@ export function GowishKnapp({ slug }: { slug: string }) {
   // härifrån när skriptet finns: det öppnar rutan, och skriptets egen lyssnare
   // stänger den igen i samma klick.
   const tryck = () => {
-    if (window.GoWish) return;
+    if (window.GoWish) return svenskRuta();
     window.open(reserv, "_blank", "noopener,noreferrer");
   };
 

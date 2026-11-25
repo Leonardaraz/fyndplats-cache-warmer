@@ -67,12 +67,54 @@ export function gowishProduktadress(slug: string): string {
   return `${SAJT}/produkt/${slug}`;
 }
 
+// ☠️ GOWISH RUTA VISAR ENGELSKA OM ADRESSEN INTE BÖRJAR MED /sv/ (mätt
+// 2026-11-25, Leonard: "Allt med go wish … ska stå på svenska"). Skriptet
+// öppnar gowish.com/quick-add utan språk i adressen. En svensk webbläsare
+// skickas då vidare till /sv/login, men texten på sidan står kvar på
+// engelska ("Sign in to add the wish"). Med /sv/quick-add från början står
+// den på svenska ("Logga in för att lägga till önskningen"), också i en
+// engelsk webbläsare. Skriptet har inget språkval (bara region: global,
+// denmark, norway), så butiken byter adressen själv:
+//
+// - länken utan samtycke, och reservvägen, går direkt till /sv/quick-add,
+// - och när skriptet har skapat sin ruta byter knappen ramens adress till
+//   /sv/quick-add (components/gowish-knapp.tsx).
+//
+// Byter GoWish namn på ramen eller adressen händer ingenting: rutan öppnas
+// då som deras skript vill, på engelska.
+
+/** Början på adressen som GoWish skript ger sin ruta med regionen global. */
+export const GOWISH_RUTA = "https://gowish.com/quick-add?";
+
+/** Samma sida på svenska. */
+export const GOWISH_RUTA_SV = "https://gowish.com/sv/quick-add?";
+
+/** Id på ramen och rutan som GoWish skript skapar (GOWISH_IFRAME_ID och GOWISH_DIALOG_ID hos dem). */
+export const GOWISH_RAM_ID = "gowish-iframe";
+export const GOWISH_DIALOG_ID = "gowish-iframe-dialog";
+
 /**
- * GoWish egen sida med samma vara, för en ny flik. Det är länkens mål utan
- * samtycke, och reservvägen med samtycke när skriptet inte finns vid klicket
- * (blockerat av ett tillägg, eller kunden hann före laddningen), så att
- * knappen aldrig är död. Samma adress som skriptet själv lägger i sin iframe.
+ * Så länge väntar knappen på att skriptet ska ge ramen en adress. På telefon
+ * får appen först upp till tio sekunder på sig att ta över (APP_OPEN_MAX_WAIT_MS
+ * i skriptet), sedan laddas rutan.
+ */
+export const GOWISH_VANTA_MS = 20_000;
+
+/**
+ * Rutans adress på svenska, eller null när adressen inte är den engelska
+ * rutans (redan svensk, en annan region, tom eller något skriptet börjat
+ * skriva på ett nytt sätt). Allt efter frågetecknet behålls tecken för tecken.
+ */
+export function gowishSvenskRuta(src: string | null | undefined): string | null {
+  return typeof src === "string" && src.startsWith(GOWISH_RUTA) ? GOWISH_RUTA_SV + src.slice(GOWISH_RUTA.length) : null;
+}
+
+/**
+ * GoWish egen sida med samma vara, på svenska, för en ny flik. Det är länkens
+ * mål utan samtycke, och reservvägen med samtycke när skriptet inte finns vid
+ * klicket (blockerat av ett tillägg, eller kunden hann före laddningen), så
+ * att knappen aldrig är död. Samma adress som rutan får.
  */
 export function gowishReservadress(produktadress: string): string {
-  return `https://gowish.com/quick-add?source=button&crawlerTarget=${encodeURIComponent(produktadress)}`;
+  return `${GOWISH_RUTA_SV}source=button&crawlerTarget=${encodeURIComponent(produktadress)}`;
 }

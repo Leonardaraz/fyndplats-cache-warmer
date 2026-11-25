@@ -16,6 +16,12 @@ import {
   GOWISH_SKRIPT_ID,
   gowishProduktadress,
   gowishReservadress,
+  gowishSvenskRuta,
+  GOWISH_DIALOG_ID,
+  GOWISH_RAM_ID,
+  GOWISH_RUTA,
+  GOWISH_RUTA_SV,
+  GOWISH_VANTA_MS,
 } from "./gowish.ts";
 
 const rot = join(import.meta.dirname, "..");
@@ -73,7 +79,7 @@ describe("adressen GoWish får är varans kanoniska", () => {
   it("reservadressen är den skriptet själv lägger i sin iframe, med adressen kodad", () => {
     assert.equal(
       gowishReservadress("https://www.fyndplats.se/produkt/soffa"),
-      "https://gowish.com/quick-add?source=button&crawlerTarget=https%3A%2F%2Fwww.fyndplats.se%2Fprodukt%2Fsoffa",
+      "https://gowish.com/sv/quick-add?source=button&crawlerTarget=https%3A%2F%2Fwww.fyndplats.se%2Fprodukt%2Fsoffa",
     );
     // Ett tecken som hade brutit frågesträngen kodas.
     assert.match(gowishReservadress("https://www.fyndplats.se/produkt/a&b=c"), /crawlerTarget=https%3A%2F%2Fwww\.fyndplats\.se%2Fprodukt%2Fa%26b%3Dc$/);
@@ -123,7 +129,7 @@ describe("två lägen: en länk utan samtycke, GoWish ruta med", () => {
   // ☠️ Skriptet lyssnar själv på klicket. Ett eget anrop till createIframe när
   // skriptet finns öppnar rutan, och skriptets lyssnare stänger den igen.
   it("☠️ klicket gör ingenting eget när skriptet finns, och öppnar länkens sida när det saknas", () => {
-    assert.match(med, /const tryck = \(\) => \{\n\s+if \(window\.GoWish\) return;\n\s+window\.open\(reserv, "_blank", "noopener,noreferrer"\);\n\s+\};/);
+    assert.match(med, /const tryck = \(\) => \{\n\s+if \(window\.GoWish\) return svenskRuta\(\);\n\s+window\.open\(reserv, "_blank", "noopener,noreferrer"\);\n\s+\};/);
     assert.doesNotMatch(knapp.replace(RADKOMMENTAR, ""), /createIframe\(/);
   });
 });
@@ -143,7 +149,10 @@ describe("skriptet: efter laddningen, och bara där knappen finns", () => {
   it("knappen används bara av produktvyn, och sidans layout bär varken knapp eller skript", () => {
     const anvandare = [...filer("app"), ...filer("components")].filter((f) => /GowishKnapp/.test(readFileSync(join(rot, f), "utf8")));
     assert.deepEqual(anvandare.sort(), ["components/gowish-knapp.tsx", "components/productview.tsx"]);
-    assert.doesNotMatch(las("app", "layout.tsx"), /gowish/i);
+    // Kommentarer får nämna GoWish (Heylinks klick-id fångas i layouten, åt
+    // GoWish, se lib/heylink.ts). Koden får inte bära knappen eller skriptet.
+    const layout = las("app", "layout.tsx").replace(/\/\*[\s\S]*?\*\//g, "").replace(RADKOMMENTAR, "");
+    assert.doesNotMatch(layout, /gowish/i);
   });
 });
 
@@ -165,7 +174,11 @@ describe("produktsidan: knappen står under köpraden", () => {
 
   it("stilen följer med produktsidan, inte med varje sida", () => {
     assert.match(sida, /import "\.\/gowish\.css";/);
-    for (const f of ["app/globals.css", "app/layout.tsx"]) assert.doesNotMatch(readFileSync(join(rot, f), "utf8"), /gowish/i, f);
+    // Kommentarer i layouten får nämna GoWish (se provet ovan om layoutens kod).
+    for (const f of ["app/globals.css", "app/layout.tsx"]) {
+      const kod = readFileSync(join(rot, f), "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(RADKOMMENTAR, "");
+      assert.doesNotMatch(kod, /gowish/i, f);
+    }
   });
 });
 
@@ -223,5 +236,61 @@ describe("stilen: knappen har sin plats från början, och inget hämtas utifrå
     assert.match(stil, /@media screen and \(max-width:400px\)\{\s*\.gowish-dialog \.gowish-iframe\{min-width:0;max-width:calc\(100vw - 16px\)\}\s*\}/);
     // 100vh först: en webbläsare utan dvh tar den raden.
     assert.ok(stil.indexOf("max-height:calc(100vh - 50px)") < stil.indexOf("max-height:calc(100dvh - 50px)"));
+  });
+});
+
+// ☠️ GoWish ruta står på engelska om adressen inte börjar med /sv/ (mätt
+// 2026-11-25 med svensk webbläsare: "Sign in to add the wish"). Leonard: "Allt
+// med go wish … ska stå på svenska". Skriptet har inget språkval.
+describe("GoWish på svenska", () => {
+  const KNAPP = readFileSync(new URL("../components/gowish-knapp.tsx", import.meta.url), "utf8");
+  const SKRIPTET = "https://gowish.com/quick-add?source=button&crawlerTarget=https%3A%2F%2Fwww.fyndplats.se%2Fprodukt%2Fsoffa";
+
+  it("länken utan samtycke och reservvägen går till den svenska sidan", () => {
+    assert.ok(gowishReservadress("https://www.fyndplats.se/produkt/soffa").startsWith("https://gowish.com/sv/quick-add?source=button&crawlerTarget="));
+  });
+
+  it("adressen som skriptet ger rutan blir den svenska, tecken för tecken i övrigt", () => {
+    assert.equal(GOWISH_RUTA, "https://gowish.com/quick-add?");
+    assert.equal(GOWISH_RUTA_SV, "https://gowish.com/sv/quick-add?");
+    assert.equal(gowishSvenskRuta(SKRIPTET), SKRIPTET.replace("gowish.com/quick-add?", "gowish.com/sv/quick-add?"));
+    assert.equal(gowishSvenskRuta(`${SKRIPTET}&metadataSource=x`), `${SKRIPTET}&metadataSource=x`.replace("gowish.com/quick-add?", "gowish.com/sv/quick-add?"));
+    assert.equal(gowishSvenskRuta(SKRIPTET), gowishReservadress("https://www.fyndplats.se/produkt/soffa"), "rutan och länken får samma adress");
+  });
+
+  it("en adress som redan är svensk, en annan region eller något annat lämnas", () => {
+    for (const annan of [
+      null,
+      undefined,
+      "",
+      "about:blank",
+      gowishSvenskRuta(SKRIPTET),
+      "https://onskeskyen.dk/quick-add?source=button&crawlerTarget=x",
+      "https://gowish.com/da/quick-add?source=button&crawlerTarget=x",
+      "https://gowish.com/sv/login?source=button",
+      "https://gowish.com.example.org/quick-add?x",
+      "https://example.org/?u=https://gowish.com/quick-add?x",
+    ]) {
+      assert.equal(gowishSvenskRuta(annan), null, String(annan));
+    }
+  });
+
+  it("id:na är de som GoWish skript ger sin ram och sin ruta", () => {
+    assert.equal(GOWISH_RAM_ID, "gowish-iframe");
+    assert.equal(GOWISH_DIALOG_ID, "gowish-iframe-dialog");
+  });
+
+  it("bevakningen startar vid klicket, byter bara ramens adress och slutar när rutan stängts", () => {
+    const t = KNAPP.replace(/\/\*[\s\S]*?\*\//g, "").replace(RADKOMMENTAR, "");
+    const f = t.slice(t.indexOf("function svenskRuta()"), t.indexOf("export function GowishKnapp"));
+    assert.match(f, /const bevakning = new MutationObserver\(se\);/);
+    assert.match(f, /const tid = window\.setTimeout\(sluta, GOWISH_VANTA_MS\);/);
+    assert.match(f, /if \(document\.getElementById\(GOWISH_DIALOG_ID\)\) settRutan = true;\s*else if \(settRutan\) return sluta\(\);/);
+    assert.match(f, /const svensk = ram instanceof HTMLIFrameElement \? gowishSvenskRuta\(ram\.getAttribute\("src"\)\) : null;/);
+    assert.match(f, /if \(ram instanceof HTMLIFrameElement && svensk\) ram\.src = svensk;/);
+    assert.match(f, /bevakning\.observe\(document\.body, \{ childList: true, subtree: true, attributes: true, attributeFilter: \["src"\] \}\);\s*se\(\);/);
+    assert.equal(t.match(/new MutationObserver\(/g)?.length, 1);
+    assert.equal(t.match(/svenskRuta\(\)/g)?.length, 2, "definitionen och anropet i klicket, inget annat");
+    assert.ok(GOWISH_VANTA_MS >= 15_000, "appen får upp till tio sekunder på sig på telefon innan rutan laddas");
   });
 });
