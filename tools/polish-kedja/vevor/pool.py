@@ -13,7 +13,7 @@ filer = [a for a in sys.argv[1:] if not a.startswith('--') and not a.isdigit()]
 rader, d = [], {}
 for fil in filer:
     d = las(fil)
-    rader += [r.split('|') for r in d['rader']]
+    rader += [r.split('|', 4) for r in d['rader']]
 klara = set()
 for rot in ('tools/polish-assets',):
     for kat in os.listdir(f'{REPO}/{rot}'):
