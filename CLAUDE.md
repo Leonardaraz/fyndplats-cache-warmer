@@ -6244,7 +6244,7 @@ aldrig flyttar sig. Räkningen står i `lib/huvud-gom.ts` (rena funktioner):
   plus en ms per px, högst 340: `glidMs`). Sidhuvudet har stått still när det
   börjar. Med en kurva som börjar i full fart gick det 16–21 px i första
   bildrutan: samma hopp som i första versionen.
-- **Ett avbrutet glid** (`sparFran`): rör kunden sidan mitt i glidet står
+- **Ett avbrutet glid** (`sparAvbrutet`): rör kunden sidan mitt i glidet står
   sidhuvudet kvar där det syns och följer fingret därifrån.
 - **Nära sidans topp** (140 px, `ALLTID_OVAN_PX`) står sidhuvudet på sin plats
   i sidan. Produktsidan landar 88 px ner med bilden under sidhuvudet.
@@ -6345,22 +6345,57 @@ en bildruta i taget, släpps), 2026-11-24:
 - 21 skrivningar under hela provet, alla i en vändning utan vila, vid en vila
   eller när ett glid var klart. Ingen i takt med fingret.
 
-**Prov:** `lib/huvud-gom.test.ts` (28 prov) och köpradens prov i
-`lib/mobil-finslip.test.ts`. 43 avsiktliga fel i räkningen, komponenten,
+**Prov:** `lib/huvud-gom.test.ts` (29 prov) och köpradens prov i
+`lib/mobil-finslip.test.ts`. 47 avsiktliga fel i räkningen, komponenten,
 stilen och produktsidan fäller proven.
+
+### Mekanismen i Safari på riktiga iPhone (2026-11-25)
+
+`tools/sidhuvud-prov/` bygger en fristående sida med samma räkning (läst ur
+`lib/huvud-gom.ts`) och ett självprov i nitton delar. Den kördes i Safari på
+tre riktiga telefoner hos BrowserStack, före mergen, utan att
+förhandsvisningens länk lämnades ut: `tools/sidhuvud-prov/README.md` säger hur.
+
+| | iPhone 15, Safari 27 | iPhone 16, iOS 18.6 | iPhone 14, iOS 16.4 |
+|---|---|---|---|
+| Delprov | 19 av 19 | 18 av 19 (första provsidan) | 19 av 19 |
+| Upp efter en vila: läget plus det synliga, bildruta för bildruta | konstant, inget skrivet | konstant, inget skrivet | konstant, inget skrivet |
+| Ner från sidans topp | fäst överst inom 140 px, sedan ur bild, inget skrivet | samma | samma |
+| Glidets första steg per bildruta | 0,8 2,6 5,7 9,8 12,1 | 0,7 2,7 5,3 9,6 12,7 | 0,7 2,5 5,4 9,3 12 |
+| Vila till hälften framme: fram, tillbaka fram, undan, undan igen | rätt i alla fyra | rätt i alla fyra | rätt i alla fyra |
+| Vändning utan vila: största egna steg | 2 px | 2 px | 2 px |
+| Avbrutet glid, långsamt drag | följer sidan | följer sidan | följer sidan |
+| Sidan under | står still | står still | står still |
+
+☠️ **Provsidan hade själv fel två gånger, och bara telefonerna visade det.**
+Den räknade med att sidan hunnit flytta sig så långt som den ombetts: iOS 18.6
+låg en bildruta efter, och iOS 16.4 utförde bara två tredjedelar av de små
+förflyttningarna (272 px av 400). Ett prov som räknar med ett avstånd ska mäta
+avståndet, inte anta det.
+
+☠️ **Safari 27: det fästa sidhuvudets AVLÄSTA läge står en bildruta efter
+sidans** medan sidan flyttas med `scrollTo` (125 i stället för 133 vid 8 px per
+bildruta, i varje bildruta, och 133 så fort sidan stannar). Inte i iOS 16.4
+eller 18.6. Om det också gäller under ett finger är inte fastställt.
+Komponenten läste sidhuvudets läge på ett enda ställe, när ett glid avbryts.
+Det räknas nu ur det koden själv vet (`sparAvbrutet`: där det stod, plus så
+långt glidet hunnit enligt transformen, minus så långt sidan gått), och
+`getBoundingClientRect` är bara reserv. Läs aldrig ett fäst elements läge i
+farten och lita på det.
 
 ### Inte provat
 
-- ☠️ **En riktig iPhone.** Det är där första versionen föll. Sättet är valt
-  för att inte bero på sidans kod i farten, men det är ett resonemang och
-  ingen mätning: studsen, Safaris adressfält som fälls ihop och fördröjningen
-  mellan skärmens scrolltråd och sidans kod går inte att göra i Chromium.
-  BrowserStacks riktiga iPhone kan öppna www efter deployen, men bara ta
-  stillbilder: mjukheten måste Leonard se själv.
+- ☠️ **Ett finger på en riktig iPhone.** Självprovet flyttar sidan med
+  `scrollBy`, som går genom sidans egen tråd. Ett finger scrollar i skärmens
+  tråd, och sidans kod får veta det en eller ett par bildrutor senare. Provet
+  säger alltså att Safaris layout gör det räkningen väntar sig, inte hur det
+  känns. Sättet är valt för att inte bero på sidans kod i farten (efter en
+  vila skrivs ingenting), men det är ett resonemang: mjukheten, studsen och
+  Safaris adressfält måste Leonard se själv.
 - Att glidet den sista biten känns rätt (130 ms vila, sedan 0,2–0,34 s) är
   ett val, inte ett mätvärde.
 - Chrome på Android och Samsungs webbläsare är inte provade på riktiga
-  telefoner.
+  telefoner, och inte Safari före 16.4 (laddsidan i provet kräver 16.4).
 
 ## Klarna på telefonen: kunden kom tillbaka utan godkänd betalning och fick börja om (2026-11-24)
 
