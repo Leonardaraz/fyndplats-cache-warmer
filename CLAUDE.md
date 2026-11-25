@@ -6810,6 +6810,16 @@ slutsålda varor med kod kommer till), 27 MB och 3,5 MB som gzip.
 `lib/feed/gowish.test.ts` fäller om byggaren tappar `FLODE_GTIN` eller om
 flödet saknas i någon av listorna.
 
+Kopian i Runtime Cache kostar som de andra: 3,5 MB som gzip är omkring 600
+skrivenheter per körning av jobbet, tolv gånger om dygnet, ungefär en dollar i
+månaden till (se "Flödena svarar direkt"). Jobbet bygger fortfarande
+Google-flödet en enda gång per körning.
+
+☠️ **Lokalt går flödet inte att se.** Utan katalog är Google-flödet tomt, och
+rutten svarar 503 som de andra flödena ("byggdes utan en enda vara"). Byggaren
+är prövad mot produktionens Google-flöde utanför servern, och rutten mot
+förhandsbygget, som har katalogen.
+
 ## Google-omdömena: fem nya, och namn som stod i startsidans HTML (2026-11-25)
 
 Leonard skickade skärmbilder av profilen (4,9 av 5). Fem nya omdömen med text
