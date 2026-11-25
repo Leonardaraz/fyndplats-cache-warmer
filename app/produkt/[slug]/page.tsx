@@ -35,6 +35,7 @@ import { flestaHarBild, visaValnamn } from "../../../lib/variant-lage";
 import { valBilder, valBildSkript } from "../../../lib/pdp-val-bild";
 import { hjaltebildKandidater } from "../../../lib/hjaltebild-varm";
 import { HERO_SIZES } from "../../../lib/bild-sizes";
+import "./gowish.css";
 
 // ISR: produktsidan cachas i SEX TIMMAR, och det är ett säkerhetsnät — inte
 // färskheten. En ändring på produkten (pris, lager, synlighet, text, bilder,
