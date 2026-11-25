@@ -6681,3 +6681,230 @@ Stripe, läst med kopplingen (inga uppgifter om kunderna står här):
 - **De tre öppna betalningarna** rör ingen kod. De står under Betalningar,
   ofullständiga, i Stripe (23 och 24 november). Två av de tre kunderna har
   inte köpt. Om någon ska höra av sig till dem är det Leonards sak.
+
+## Bakåt landar i sökläget (Leonard 2026-11-25)
+
+Leonard, med skärmbilder från sin iPhone: "Om jag skriver i sökfältet på något
+och trycker på produkten och sen backar borde jag komma tillbaka till där jag
+var sist i sökfältet inte helt annan plats, fixa det noggrant." Han hade sökt
+"dörr", tryckt på en vara och gått bakåt, och stod då på en golvlampa: sidan
+som låg UNDER sökläget.
+
+Mobilens sökläge täcker skärmen men är ingen egen sida. Det var ett läge i
+sökrutan, och historiken visste ingenting om det.
+
+**Mätt** (Chromium i telefonstorlek 393 × 852, `audit/sok-atervand.cjs`,
+2026-11-25): "dörr" i sökläget, listan rullad 420 px, ett tryck på en vara
+och bakåt.
+
+| | www (9c9e95b1) | grenen |
+| --- | --- | --- |
+| Sökläget framme efter bakåt | nej, sidan under med tomt fält | ja, "dörr" och 12 kort |
+| Bildrutor efter bakåt utan sökläge (av 40) | 40 | 0 |
+| Kortet överst i listan | finns inte | samma kort på samma pixel (222 mot 222) |
+| Listan rullad | finns inte | 420 px, från första bildrutan |
+| Fältet har fokus (tangentbordet upp) | nej | nej |
+
+### Så fungerar det
+
+`lib/sok-atervand.ts` och `components/searchbox.tsx`.
+
+1. **Märket skrivs i trycket.** `ga(href)` anropar `markUt(href)` före
+   sidbytet: ordet i fältet och hur långt listan var rullad läggs i
+   historikpostens eget tillstånd (`history.state.__fpSok`), bredvid Nexts
+   nycklar. Bara i mobilens sökläge, och inte när varan är sidan man redan
+   står på. Varor, kategorirader och kategorichips går alla genom `ga`.
+2. ☠️ **`history.state`, inte sessionStorage med adressen.** Märket hör till
+   POSTEN: samma adress kan stå flera gånger i historiken, och bara den post
+   kunden lämnade genom sökläget ska öppna det. Webbläsaren sparar tillståndet
+   med posten, också över en hel sidladdning.
+3. ☠️ **Next skriver om postens tillstånd vid ett sidbyte** och tar då bara med
+   sina egna nycklar (`HistoryUpdater`). Märket skrivs därför omedelbart före
+   `router.push`: Next lägger sedan en NY post och rör inte den gamla. Vid ett
+   steg i historiken behåller Next det som står i tillståndet
+   (`preserveCustomHistoryState`). Mätt med alla skrivningar loggade: märket
+   står kvar i posten efter bakåt.
+4. **Ett steg i historiken till en post med märket öppnar sökläget**
+   (`aterstall`). Står listan för ordet kvar i rutan (`rankadFor`) visas den
+   som den var, i samma rendering. Har rutan använts till ett annat ord, eller
+   har sidan laddats om, räknas listan om och kortens platser visas under
+   tiden. Platsen i listan sätts i en `useLayoutEffect`, före första
+   ritningen.
+5. **Fältet får inget fokus.** Kunden lämnade sökläget med ett tryck på en
+   vara, och då var tangentbordet fällt.
+6. ☠️ **Sökläget stängs på sidan man står på: märket tas bort** (städningen i
+   effekten som sätter `data-sok-lage`). Stäng, Esc och allt annat: ett senare
+   bakåtsteg hit öppnar inget. Undantaget är märket som skrevs i samma tryck
+   som lämnar sidan (`lamnadMed`).
+7. **Resultatsidan är sökningen i sin helhet.** "Visa alla" och Enter
+   (`goSearch`) skriver inget märke och tar bort ett gammalt: bakåt från
+   `/sok` visar sidan under, som förut.
+8. **Märket gäller en halvtimme** (`SOKMARKE_MAX_MS`, samma som listans läge),
+   bara rutan i mobilens sökrad och bara i telefonbredd. På datorn är
+   förslagen en lista under rutan: där skrivs inget märke.
+9. **Ett dokument som laddats med bakåt** (fliken hade lämnat minnet) öppnar
+   också sökläget: tillståndet följer posten. En omladdning tar bort märket.
+
+### ☠️ Lyssnaren på popstate togs bort innan den hann köras
+
+Första versionen fungerade inte i bygget, och felet fanns redan på www.
+Sökrutans `popstate`-lyssnare satt i effekten som följer sidans adress och
+byttes ut vid varje sidbyte. Efter första sidbytet stod den därför EFTER Nexts
+egen lyssnare. React ritar ett steg i historiken direkt, mellan två lyssnare
+(mikrouppgiften körs när den första lyssnaren är klar): sökrutans effekt
+städades, lyssnaren togs bort innan den körts, och den nya gäller inte
+händelsen som pågår. Mätt i bygget med loggrader: `aterstall` anropades aldrig.
+
+Samma fel gällde regeln "bakåt och framåt stänger panelen". Mätt på www
+(`audit/bakat-oppet.cjs`): två sidbyten, sökläget öppet med "stol", bakåt.
+Sökläget stod kvar med tolv kort över sidan man kom till, och sidan var låst.
+På grenen stängs det.
+
+**Regeln:** lyssnaren läggs en gång (`[helskarm]`) och läser allt ur
+referenser (`aterstallRef`, `inputRef`). `lib/sok-atervand.test.ts` fäller om
+en `popstate`-lyssnare hänger på `pathname` igen.
+
+☠️ **En lyssnare på `popstate` som läggs om när sidan byts körs inte för steget
+som byter sida.** Det gäller varje komponent i sidhuvudet, inte bara sökrutan.
+
+### Prov
+
+- `lib/sok-atervand.test.ts`: märket (8 prov) och sökrutans regler (9 prov).
+  `lib/sok-lage.test.ts` och `lib/sok-2026-11-19.test.ts` följer med i de
+  rader som ändrats. 20 avsiktliga fel i sökrutan och märket fäller proven.
+- **I webbläsaren** (`audit/sok-atervand.cjs` mot det lokala bygget, 32
+  kontroller): varan och bakåt; Stäng och sedan en länk bort och bakåt (inget
+  sökläge); en andra vara ur det tillbakaställda sökläget (den nya platsen);
+  framåt och bakåt igen; kategorichipset; "Visa alla" och bakåt (sidan under);
+  det tomma fältets populära produkter; ett annat ord sökt på varans sida
+  under tiden (listan räknas om för rätt ord); två steg bakåt; bakåt med
+  sökläget öppet; fliken omladdad på varans sida; ett dokument laddat med
+  bakåt; omladdning (märket borta); datorn (ingen lista, inget märke). Inga
+  sidfel.
+- Söklägets äldre 62 och 9 kontroller och de tio i
+  `audit/bakat-annan-vag.cjs` är gröna mot samma bygge.
+
+### Inte provat, och inte gjort
+
+- ☠️ **Safari på en riktig iPhone.** Svepet från skärmens kant visar en bild av
+  sidan som den såg ut när den lämnades, alltså sökläget med det tryckta
+  kortet, och släpper sedan fram sidan. Att sökläget då står där utan hopp är
+  rimligt men inte mätt: Chromium har inget sådant svep. Leonard ser det efter
+  deployen.
+- **En hel sidladdning ur sökläget** (Next faller tillbaka på det efter en ny
+  deploy) och bakåt ur webbläsarens minne: sidan kommer tillbaka som den
+  lämnades, Next ställer om sig, och sökläget stängs som förut.
+- **Bakåt från resultatsidan** öppnar inte sökläget. Det är ett val: sidan
+  visar samma träffar och fler. Vill Leonard ha det andra är det en rad i
+  `goSearch`.
+
+## Listornas bilder finns bara nära fönstret (Leonard 2026-11-25)
+
+Leonard: "när man scrollar i alla produkter sidan och backar och går in i nya
+produkter o backar craschar det tillslut och man hamnar på sidan jag skicka
+till dig." Skärmbilden (00:26 natten mot 2026-11-25) var Safaris egen:
+"Ett problem inträffade flera gånger på
+https://www.fyndplats.se/alla-produkter?sortera=new". Safari visar den när
+fliken dött, laddats om och dött igen.
+
+### Vad som mättes
+
+Chromium i telefonstorlek (393 × 852, tre pixlar per punkt) mot www,
+2026-11-25. Åtta varv: "Visa fler" två gånger, rulla till listans slut, in på
+en vara, bakåt (`audit/lista-minne.cjs`).
+
+| Efter åtta varv, 408 kort | www | grenen |
+| --- | --- | --- |
+| Bildelement i sidan | 426 | 52 |
+| Element i sidan | 11 732 | 6 738 |
+| JavaScript-minne | 57 MB | 23 MB |
+| DOM-noder i minnet, med skräp som väntar | 47 899 | 11 690 |
+| Lyssnare | 15 498 | 2 850 |
+| Flikens minne (började på 295 och 272 MB) | 924 MB | 766 MB |
+| Flikens minne efter varv fyra till åtta (MB) | 806, 809, 853, 860, 924 | 758, 771, 735, 736, 766 |
+
+Listan växer med 24 kort per "Visa fler" och krymper aldrig, och bakåt från en
+vara ritar upp alla korten igen (`lib/sidminne.ts`). Varje kort bar sin bild,
+hämtad direkt (`bilderDirekt`), och en egen rad att svepa i
+(`.pimg-track-swipe`: en rullande yta per kort), hur långt från skärmen det än
+stod. Efter en krasch laddar Safari om sidan, listan ställde tillbaka alla
+korten med alla bilder på en gång (`laddadesOm`), och fliken dog igen: därav
+"flera gånger".
+
+Samma lista utan besök på varor (16 "Visa fler", `audit/lang-lista.cjs`): 426
+bildelement och 408 rullande ytor på www, 70 och 52 på grenen.
+
+☠️ **Det som INTE är mätt: Safaris minne, och själva kraschen.** Chromium dog
+aldrig, och dess eget minne skiljer bara 6–17 % mellan www och grenen: de stora
+skillnaderna är antalen. Vad en bild och en rullande yta kostar i Safari på en
+iPhone går inte att mäta här. Slutsatsen att det var korten långt från skärmen
+som fällde fliken bygger på vad som växte med listan, inte på en återskapad
+krasch. Kvittot är Leonards telefon.
+
+Ingen läcka hittades: med 24 kort och tio varv in på en vara och bakåt stod
+DOM-noderna (4 197) och lyssnarna (1 101) stilla efter skräpsamling.
+
+### Rättelsen
+
+`components/kort-bildfonster.tsx` och `lib/bildfonster.ts`.
+
+1. **Ett kort i en lista som växer bär sina bilder bara inom 4 000 px från
+   fönstret** (`BILDFONSTER_PX`, drygt fyra telefonskärmar åt varje håll).
+   Längre bort står kortet kvar med namn, betyg och pris, men utan
+   `CardGallery`: ingen bild, ingen rullande yta, inga prickar.
+2. ☠️ **Bildrutan behåller sin höjd** (`.prod .pimg` har `aspect-ratio`, med
+   reserven för Safari före 15). Sidan flyttar sig inte en pixel när bilderna
+   kommer och går. Mätt: 38 331 px före och efter, och kort 31 på samma y.
+3. **EN bevakare för alla kort** (`IntersectionObserver` med fönstret som
+   marginal), ingen lyssnare på rullningen. Ytan den bevakar är `.pimg-vakt`,
+   som alltid står kvar i bildrutan. Utan `IntersectionObserver` bär korten
+   sina bilder som förut.
+4. **Kortet börjar med sina bilder** (`naraForst`) där kunden står: sidans
+   första kort och en ny omgång "Visa fler". Mätt: de 24 nya korten ritas med
+   bild i samma bildruta som förut.
+5. ☠️ **En lång lista som ställs tillbaka** (bakåt eller omladdning) låter bara
+   korten runt det sparade kortet börja med bilder: 24 åt varje håll
+   (`borjarMedBilder`, `BILDER_RUNT_ANKARET`). Sidans egna 24 kort hinner
+   ritas med bild en bildruta innan läget ställs tillbaka. Mätt med 240 kort:
+   73 kort med bilder i första bildrutan, 58 därefter, alla sex i fönstret med
+   bild; en omladdning hämtade 119 bilder i stället för en per kort.
+   Läget gäller bara listan det sparades för (`listNyckel`): efter en ny
+   sortering eller ett filter börjar korten med sina bilder.
+6. **Listsidorna och prissidornas "Visa fler"** (`components/shopbrowser.tsx`,
+   `components/pris-fler.tsx`) använder fönstret. Startsidan, raderna på
+   produktsidan och de andra korten bär alltid sina bilder: de listorna växer
+   inte.
+7. **Servern ritar bilderna som förut**: 24 kort, 24 huvudbilder i sidans HTML.
+
+### Prov
+
+- `lib/bildfonster.test.ts`: regeln för vilka kort som börjar med bilder (8
+  prov) och det som inte får glida isär i komponenterna (9 prov).
+  `lib/kortprioritet.test.ts` följer med. 16 avsiktliga fel i fönstret och
+  listan fäller proven.
+- **I webbläsaren** (`audit/lista-fonster.cjs` mot det lokala bygget, 27
+  kontroller): serverns HTML; första sidan; "Visa fler"; 240 kort med 28
+  bärande bilder vid listans slut; sidan lika hög; hopp till toppen (sex av
+  sex kort utan bild i första bildrutan, noll av sex efter 50 ms); bakåt från
+  en vara (samma 240 kort, samma kort på samma pixel); "Visa fler" efter
+  bakåt; omladdning djupt i listan; `/under-500-kr`; datorn i 1 440 px. Inga
+  sidfel.
+- `audit/lista-bilder.cjs` (bilderna vid snabb bläddring) och
+  `audit/bakat-annan-vag.cjs` (bakåt på tio vägar) ger samma svar som före
+  ändringen.
+
+### Inte provat, och inte gjort
+
+- ☠️ **Kraschen på en riktig iPhone**, se ovan.
+- **Ett hopp över hela listan** (trycket på telefonens statusrad) visar korten
+  utan bild i en till tre bildrutor innan bevakaren svarat. Bilderna ligger i
+  webbläsarens cache och är framme inom 50 ms i provet.
+- **Ett kort som svepts till sin tredje bild** börjar om på den första när det
+  varit långt från fönstret.
+- **Korten själva tas inte bort.** Ett kort utan bilder är 11 element med text
+  (25 med bilder). Tusen kort är 11 000 element, och det har inte fällt någon
+  flik i proven.
+  Blir listorna mycket längre är nästa steg att också byta korten långt bort
+  mot tomma ytor med samma höjd.
+- **Produktsidan** mättes inte för sig. Varje besök hämtar stora bilder, och
+  Chromium släpper dem när sidan lämnas.

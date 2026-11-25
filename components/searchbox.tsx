@@ -12,6 +12,8 @@ import { lasSidan } from "../lib/las-sidan";
 import { gorBakomInert } from "../lib/bakom-inert";
 import { prefersDataSaving } from "../lib/gallery-preload";
 import { rullaDirekt } from "./use-landa-vid-bilder";
+import { lasSokmarke, medSokmarke, utanSokmarke, type Sokmarke } from "../lib/sok-atervand";
+import type { Fonster } from "../lib/sidminne";
 
 // Hur många förslag vi visar (sökträffar + tomt-fält-lägets populära). 7, inte
 // 8: på mobil täckte Safaris bottenmeny "Visa alla resultat"-knappen när listan
@@ -143,6 +145,34 @@ const resultatsidanVisar = (t: string) =>
   && (new URLSearchParams(window.location.search).get("q") ?? "").trim() === t
   && document.querySelector("main .shoplista") !== null;
 
+/** Sökordet i adressen, på resultatsidan. Tomt på alla andra sidor. */
+const sokordIAdressen = () => (window.location.pathname === "/sok" ? (new URLSearchParams(window.location.search).get("q") ?? "").trim() : "");
+
+// ── Sökläget i historikposten (lib/sok-atervand.ts) ──────────────────────────
+/** Tar bort märket ur posten man står på: sökläget stängdes utan att sidan
+ *  byttes, eller posten bär ett märke som inte ska öppna något. */
+function glomMarke(): void {
+  try {
+    const utan = utanSokmarke(window.history.state);
+    if (utan) window.history.replaceState(utan, "");
+  } catch { /* en webbläsare som vägrar: märket blir för gammalt av sig självt */ }
+}
+/** Skriver märket i posten man står på. Svarar med märkets tid, eller null om det inte gick. */
+function skrivMarke(q: string, y: number): number | null {
+  const t = Date.now();
+  try {
+    window.history.replaceState(medSokmarke(window.history.state, { q, y, t }), "");
+    return t;
+  } catch {
+    // Utan märke beter sig bakåt som förut.
+    return null;
+  }
+}
+/** Märket i posten man står på, om det går att läsa och inte är för gammalt. */
+function markeHar(): Sokmarke | null {
+  try { return lasSokmarke(window.history.state, Date.now()); } catch { return null; }
+}
+
 // "Populära produkter" (tomt sökfält) är BLÄDDRING, inte sökning — där ska
 // slutsålt aldrig med, precis som i kategorierna. Skrivna sökningar behåller dem
 // (avsikt), men sist. Fail-open: saknar indexet o-fältet (äldre cache) filtreras
@@ -202,6 +232,24 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
   const panelRef = useRef<HTMLDivElement>(null);
   // Värdet från den SENASTE tangenten. Se onType.
   const senaste = useRef("");
+  // ☠️ BAKÅT LANDAR I SÖKLÄGET (Leonard 2026-11-25, lib/sok-atervand.ts). "Om jag
+  // skriver i sökfältet på något och trycker på produkten och sen backar borde
+  // jag komma tillbaka till där jag var sist i sökfältet inte helt annan plats."
+  // Förr gav bakåt sidan som låg UNDER sökläget, med tomt fält.
+  //   • `rankadFor`: texten som `hits` är räknad för. Står listan för ordet kvar
+  //     när kunden kommer tillbaka visas den som den var, utan omräkning.
+  //   • `platsAtt`: platsen i listan som ska ställas tillbaka när listan för
+  //     ordet står ritad.
+  //   • `aterAdress`: adressen sökläget ställdes tillbaka på (se effekten som
+  //     tömmer rutan när resultatsidan lämnas).
+  //   • `lamnadMed`: tiden i märket som skrevs när kunden senast lämnade
+  //     sökläget för en annan sida. Det märket ska stå kvar när sökläget
+  //     stängs av sidbytet; alla andra stängningar tar bort märket.
+  const rankadFor = useRef<string | null>(null);
+  const platsAtt = useRef<{ q: string; y: number } | null>(null);
+  const aterAdress = useRef<string | null>(null);
+  const lamnadMed = useRef<number | null>(null);
+  const aterstallRef = useRef<(m: Sokmarke) => void>(() => {});
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
@@ -233,21 +281,44 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
   // statisk sida att vänta på webbläsaren för att rita sidhuvudet.
   useEffect(() => {
     const el = inputRef.current;
-    const iAdressen = () => (window.location.pathname === "/sok" ? (new URLSearchParams(window.location.search).get("q") ?? "").trim() : "");
     const fran = forraSida.current;
     forraSida.current = pathname;
-    const harFokus = () => document.activeElement === el;
+    // Ställdes sökläget nyss tillbaka på just den här adressen (ett steg i
+    // historiken, se onPop) är ordet i rutan söklägets: det töms inte.
+    const aterstalld = aterAdress.current === window.location.pathname + window.location.search;
+    aterAdress.current = null;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- adressen finns bara i webbläsaren
     // Bara när rutan är tom: det kunden själv skriver skrivs aldrig över.
-    if (pathname === "/sok") { const t = iAdressen(); if (t && el && !el.value) setQ(t); }
+    if (pathname === "/sok") { const t = sokordIAdressen(); if (t && el && !el.value) setQ(t); }
     // Också med fokus kvar i rutan: ordet hörde till sidan man lämnade.
-    else if (fran === "/sok") { if (el) el.value = ""; setQ(""); }
-    // Bakåt och framåt mellan två sökningar byter adress men inte sida.
-    // Panelen stängs: i mobilens sökläge täcker den hela sidan man kom till.
-    const onPop = () => { setOpen(false); window.setTimeout(() => { const t = iAdressen(); if (t && !harFokus()) setQ(t); }, 0); };
+    else if (fran === "/sok" && !aterstalld) { if (el) el.value = ""; setQ(""); }
+  }, [pathname]);
+
+  // Bakåt och framåt mellan två sökningar byter adress men inte sida.
+  // Panelen stängs: i mobilens sökläge täcker den hela sidan man kom till.
+  // ☠️ UTOM NÄR POSTEN BÄR SÖKLÄGETS MÄRKE: då lämnade kunden den här sidan
+  // genom sökläget, och steget tillbaka öppnar det igen med samma ord på
+  // samma plats (aterstall). Bara rutan i mobilens sökrad, och bara i
+  // telefonbredd: på datorn är förslagen en lista under rutan, ingen sida.
+  //
+  // ☠️ LYSSNAREN SITTER KVAR SÅ LÄNGE RUTAN FINNS (2026-11-25). Förr satt den i
+  // effekten ovan och byttes ut vid varje sidbyte. Efter första sidbytet stod
+  // den därför EFTER Nexts egen popstate-lyssnare, och React ritar ett steg i
+  // historiken direkt, mellan två lyssnare: effekten städades, lyssnaren togs
+  // bort innan den hunnit köras, och den nya gäller inte händelsen som pågår.
+  // Mätt i bygget: bakåt till en post med märket anropade aldrig lyssnaren.
+  // Samma sak gällde stängningen: panelen stängdes bara vid sessionens första
+  // steg i historiken. Därför läser lyssnaren allt den behöver ur referenser.
+  useEffect(() => {
+    const onPop = (e: PopStateEvent) => {
+      const marke = helskarm ? lasSokmarke(e.state, Date.now()) : null;
+      if (marke && arSmal()) { aterstallRef.current(marke); return; }
+      if (marke) glomMarke();
+      setOpen(false); window.setTimeout(() => { const t = sokordIAdressen(); if (t && document.activeElement !== inputRef.current) setQ(t); }, 0);
+    };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
-  }, [pathname]);
+  }, [helskarm]);
 
   // Tokeniserad, stam-medveten matchning (lib/search): "knivset" → knivhållare,
   // "halsband" → kedjehalsband. Sorteras på relevans (namn-score), inte katalogordning.
@@ -266,14 +337,16 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
   // 14 rankningar i rad och en frusen skärm i 2,3–2,6 s (uppmätt med
   // fyrdubbelt strypt processor, Leonards "det buggade"). Nu returnerar en
   // väntande tangent direkt om en nyare har tryckts.
-  const onType = async (val: string) => {
+  const onType = async (val: string, aterstaller = false) => {
     senaste.current = val;
     setQ(val);
     setActive(-1);
     setOpen(true);
     setSkickad(false);
-    // Nya förslag börjar överst, också om listan var rullad.
-    panelRef.current?.scrollTo(0, 0);
+    // Nya förslag börjar överst, också om listan var rullad. Ställs sökläget
+    // tillbaka efter ett bakåtsteg (aterstall) är det tvärtom: listan ska stå
+    // där kunden lämnade den. Skriver kunden själv gäller den platsen inte längre.
+    if (!aterstaller) { platsAtt.current = null; panelRef.current?.scrollTo(0, 0); }
     const term = val.trim();
     // Priset läses ur sökningen och sökorden rankas utan det (lib/sok-pris.ts).
     const pris = tolkaPris(term);
@@ -289,8 +362,10 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
       else void laddaMotor().then((m) => { if (m && senaste.current === val) setKat(kategorierFor(m)); });
     }
     if (!sokIndexHamtat() || !motor) setLaddar(true);
-    // Rutnätet i mobilens sökläge rymmer fler varor än listan.
-    const antal = rutnat ? RUTNAT : SUGGESTION_COUNT;
+    // Rutnätet i mobilens sökläge rymmer fler varor än listan. Bredden läses
+    // nu, inte ur renderingen: sökläget kan ställas tillbaka från en lyssnare
+    // som skapades när skärmen var en annan (onPop, och effekten vid start).
+    const antal = helskarm && arSmal() ? RUTNAT : SUGGESTION_COUNT;
     const [idx, m] = await Promise.all([laddaSokIndex(), laddaMotor()]);
     if (senaste.current !== val) return; // en nyare tangent tar över
     // ☠️ BOKSTAVEN SKA SYNAS INNAN RANKNINGEN BÖRJAR (2026-11-19). Är indexet
@@ -305,6 +380,7 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
     setLaddar(false);
     setIndexFel(!idx || !m);
     if (!idx || !m) {
+      rankadFor.current = null;
       setHits([]);
       setTotalt(0);
       setForslag([]);
@@ -315,6 +391,7 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
     }
     if (term.length < KORTASTE_SOKNING) {
       // < 2 tecken: visa populära förslag i stället för att filtrera på en bokstav.
+      rankadFor.current = null;
       setHits([]);
       setTotalt(0);
       setForslag([]);
@@ -349,6 +426,7 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
     setVisarFor(visar ? { q: val, ord: visar } : null);
     setLiknandeFor(!visar && svar.liknande ? val : null);
     setNamnFor(!visar && svar.namn ? { q: val, antal: svar.namn } : null);
+    rankadFor.current = val;
     setHits(svar.traffar);
     setTotalt(svar.totalt);
     // Två bokstäver som inget börjar på ("xq"): inget "inga träffar" om ett
@@ -379,6 +457,10 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
       await onType(skrivet);
       return;
     }
+    await oppnaTomt();
+  };
+  // Det tomma lägets förslag: populära produkter, senaste sökningar och exempel.
+  const oppnaTomt = async () => {
     setOpen(true);
     setSkickad(false);
     setTidigare(senasteSokningar());
@@ -388,10 +470,58 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
     setIndexFel(!idx || !m);
     // Populära visas bara med tomt fält (showing), så de kan sättas oavsett.
     if (idx && m) {
-      setPopular(inStockOnly(idx).slice(0, rutnat ? RUTNAT : SUGGESTION_COUNT));
+      setPopular(inStockOnly(idx).slice(0, helskarm && arSmal() ? RUTNAT : SUGGESTION_COUNT));
       setExempel(m.sokexempelFor(idx, SOKEXEMPEL));
     }
   };
+
+  // ── Bakåt landar i sökläget (lib/sok-atervand.ts) ──────────────────────────
+  // Kunden lämnar sökläget för sidan `till`: ordet i fältet och listans plats
+  // skrivs i posten man står på, omedelbart före sidbytet.
+  const markUt = (till: string) => {
+    lamnadMed.current = null;
+    if (!rutnat || !document.documentElement.hasAttribute("data-sok-lage")) return;
+    // Sidan man redan står på: ingen ny post läggs, så det finns inget att komma tillbaka från.
+    if (till === window.location.pathname + window.location.search) return;
+    lamnadMed.current = skrivMarke(inputRef.current?.value ?? q, panelRef.current?.scrollTop ?? 0);
+  };
+  // Ett steg i historiken landade på en post med märket: sökläget öppnas igen.
+  // Fältet får inget fokus, så tangentbordet kommer inte upp: kunden lämnade
+  // sökläget med ett tryck på en vara, och då var tangentbordet redan fällt.
+  const aterstall = (m: Sokmarke) => {
+    lamnadMed.current = null;
+    platsAtt.current = { q: m.q, y: m.y };
+    aterAdress.current = window.location.pathname + window.location.search;
+    senaste.current = m.q;
+    setPavag(null);
+    setActive(-1);
+    if (m.q.trim().length < KORTASTE_SOKNING) { setQ(m.q); void oppnaTomt(); return; }
+    // Listan för ordet står kvar sedan kunden lämnade sökläget: den visas som den var.
+    if (rankadFor.current === m.q) { setQ(m.q); setOpen(true); setSkickad(false); return; }
+    // Annars räknas den om (rutan har använts till något annat, eller sidan har
+    // laddats om), och kortens platser visas under tiden.
+    setHits([]);
+    setTotalt(0);
+    setLaddar(true);
+    void onType(m.q, true);
+  };
+  useLayoutEffect(() => { aterstallRef.current = aterstall; });
+  // Dokumentet laddades med bakåt eller framåt (fliken hade lämnat minnet, eller
+  // sidbytet var en hel sidladdning): webbläsaren har kvar postens tillstånd, så
+  // sökläget öppnas också då. Efter en omladdning eller i datorbredd tas märket
+  // bort i stället: annars hade det öppnat sökläget vid ett senare bakåtsteg.
+  useEffect(() => {
+    if (!helskarm) return;
+    const marke = markeHar();
+    if (!marke) return;
+    const w = window as Fonster;
+    let typ: string | undefined;
+    try { typ = (performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined)?.type; } catch { /* äldre webbläsare */ }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- postens tillstånd finns bara i webbläsaren
+    if (arSmal() && typ === "back_forward" && !w.__fpNy && !w.__fpTrav && !w.__fpKlick) aterstall(marke);
+    else glomMarke();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- bara när rutan monteras
+  }, []);
 
   // ☠️ TEXT SOM SKREVS FÖRE HYDRERINGEN (2026-10-14). React skriver inte över
   // rutans värde när sidan hydreras (initInput med isHydrating), men q är tomt.
@@ -458,6 +588,8 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
   const ga = (href: string) => {
     // Sökläget: tangentbordet fälls, så att kunden ser kortet hen tryckte på.
     if (rutnat) inputRef.current?.blur();
+    // Bakåt från sidan ska landa i sökläget igen (lib/sok-atervand.ts).
+    markUt(href);
     setPavag(href);
     startaGa(() => router.push(href));
   };
@@ -508,6 +640,10 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
     setSkickad(true);
     // Sökläget: tangentbordet fälls, annars täcker det halva resultatsidan.
     if (rutnat) inputRef.current?.blur();
+    // Resultatsidan är sökningen i sin helhet: bakåt därifrån öppnar inte
+    // sökläget igen. Ett märke från ett tidigare besök i posten tas bort.
+    lamnadMed.current = null;
+    if (rutnat) glomMarke();
     onNavigate?.();
     startaSok(() => router.push(`/sok?q=${encodeURIComponent(t)}`));
   };
@@ -583,8 +719,28 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
     // Sidan under syns inte: den ska inte heller gå att tabba till eller läsas upp.
     const huvud = wrapRef.current?.closest("header");
     const tillbaka = huvud ? gorBakomInert(huvud, document.body) : null;
-    return () => { rot.removeAttribute("data-sok-lage"); slapp(); tillbaka?.(); };
+    return () => {
+      rot.removeAttribute("data-sok-lage"); slapp(); tillbaka?.();
+      // ☠️ SÖKLÄGET STÄNGS: MÄRKET I POSTEN TAS BORT (lib/sok-atervand.ts). Stäng,
+      // Esc och allt annat som stänger sökläget på sidan man står på: ett
+      // senare bakåtsteg hit ska inte öppna det igen. Undantaget är märket som
+      // skrevs i samma tryck som lämnar sidan (`lamnadMed`): det ska stå kvar.
+      // Vid ett sidbyte har Next oftast redan lagt den nya posten när
+      // städningen körs, och då finns inget märke att ta bort i den.
+      const marke = markeHar();
+      if (marke && marke.t !== lamnadMed.current) glomMarke();
+    };
   }, [sokLage]);
+
+  // Platsen i listan ställs tillbaka i samma rendering som listan för ordet
+  // ritas: kunden ser aldrig listan från början först. Väntar medan listan
+  // räknas om (`laddar`).
+  useLayoutEffect(() => {
+    const plats = platsAtt.current, panel = panelRef.current;
+    if (!plats || !panel || !sokLage || q !== plats.q || laddar) return;
+    panel.scrollTop = plats.y;
+    platsAtt.current = null;
+  });
 
   useLayoutEffect(() => {
     const vv = window.visualViewport;

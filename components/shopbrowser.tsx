@@ -31,6 +31,7 @@ import { lasSidan } from "../lib/las-sidan";
 import { prefersDataSaving } from "../lib/gallery-preload";
 import { rullaDirekt } from "./use-landa-vid-bilder";
 import { glomListlage, komMedHistoriken, laddadesOm, lasListlage, sparaListlage, type Fonster, type Listlage } from "../lib/sidminne";
+import { borjarMedBilder, slugUrLank } from "../lib/bildfonster";
 
 // Hur många kort vi renderar initialt + per "Visa fler"-klick. Re-audit
 // (2026-05-31): /alla-produkter renderade alla 207 produkter (≈411 <img>) på en
@@ -676,6 +677,17 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
   // ny lista ärva ett stort "shown"-värde och rendera allt på en gång igen).
   const [shown, setShown] = useState(PAGE_SIZE);
   const firstRender = useRef(true);
+  // ☠️ EN LÅNG LISTA STÄLLS TILLBAKA UTAN ATT VARJE KORT HÄMTAR SIN BILD
+  // (Leonard 2026-11-25, components/kort-bildfonster.tsx). Bakåt ritar upp alla
+  // korten kunden hade, och efter några "Visa fler" är de hundratals. Kortens
+  // bilder finns bara nära fönstret, och medan läget ställs tillbaka börjar
+  // bara korten runt det sparade kortet med sina bilder: de andra får dem när
+  // de närmar sig fönstret. `ankare` är det sparade kortet, hur många kort
+  // läget gällde och vilken lista det gällde (`listNyckel`); null när inget
+  // läge ställts tillbaka. Kort som kommer till senare ("Visa fler") ritas där
+  // kunden står och börjar med sina bilder, och detsamma gäller en annan lista
+  // (ny sortering eller ett filter): läget hör inte dit.
+  const [ankare, setAnkare] = useState<{ slug: string; antal: number; lista: string } | null>(null);
 
   // ── Bilderna som inte fick plats i sidans HTML ────────────────────────────
   //
@@ -738,6 +750,8 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
     setShown(PAGE_SIZE);
   }, [sort, urlPrice, colorStr, onlyInStock, onlyOnSale, produktNyckel, specValtStr, valStr]);
   const visible = list.slice(0, shown);
+  // Listan som korten hör till: allt som får listan att börja om (effekten ovan).
+  const listNyckel = [sort, urlPrice, colorStr, onlyInStock, onlyOnSale, produktNyckel, specValtStr, valStr].join("\u0001");
 
   // Innan hela listan kommit vet bara sammanfattningen hur många som finns —
   // och bara i standardläget, som är det sidans kort visar. Med ett filter
@@ -783,7 +797,7 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
     // eslint-disable-next-line react-hooks/set-state-in-effect -- tillståndet finns bara i webbläsaren; före första målningen
     if (sparad) { listaBegard.current = true; setHamtad(sparad); }
     if (BILDKARTA) { bilderBegarda.current = true; setBilder(BILDKARTA); }
-    if (l.shown > PAGE_SIZE) setShown(l.shown);
+    if (l.shown > PAGE_SIZE) { setAnkare({ slug: slugUrLank(l.href), antal: l.shown, lista: listNyckel }); setShown(l.shown); }
     // Bara vid montering.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -798,6 +812,12 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
     if (a) rullaDirekt(scrollY + a.getBoundingClientRect().top - l.top);
     else if (typeof l.y === "number") rullaDirekt(l.y);
   });
+  // Läget gäller bara listan det sparades för.
+  const lage = ankare && ankare.lista === listNyckel ? ankare : null;
+  // Det sparade kortets plats i listan. -1: inget kort att utgå från.
+  const ankareIndex = lage?.slug ? visible.findIndex((p) => p.slug === lage.slug) : -1;
+  // Börjar kortet med sina bilder? Regeln står i lib/bildfonster.ts.
+  const bildNara = (i: number) => borjarMedBilder(i, lage ? { index: ankareIndex, antal: lage.antal } : null);
   const sparaLage = (e: MouseEvent) => {
     const a = (e.target as HTMLElement).closest?.("a.prod");
     if (!a) return;
@@ -1258,7 +1278,7 @@ function ShopBrowserVy({ products, defaultSort, dayMs: dayMsProp, lista, facette
           {/* Väntar vi på hela listan står korten kvar, tonade, tills den kommer
               (se .prodgrid.is-vantar i globals.css) — hellre det än ett tomt
               rutnät eller kort som byts ut under fingret. */}
-          <div className={`prodgrid listgrid shoplista${vantar ? " is-vantar" : ""}`} aria-busy={vantar || undefined} onClickCapture={sparaLage}>{visible.map((p, i) => { const f = iFarg(medBild(p)); return <ProductCard p={f.p} href={f.href} key={p.slug} priority={i < 2} tvaKolumner bildDirekt={bilderDirekt} />; })}</div>
+          <div className={`prodgrid listgrid shoplista${vantar ? " is-vantar" : ""}`} aria-busy={vantar || undefined} onClickCapture={sparaLage}>{visible.map((p, i) => { const f = iFarg(medBild(p)); return <ProductCard p={f.p} href={f.href} key={p.slug} priority={i < 2} tvaKolumner bildDirekt={bilderDirekt} bildFonster={bildNara(i)} />; })}</div>
           {listaFel && behoverLista && (
             <div className="loadmore-wrap">
               <button type="button" className="loadmore" onClick={hamtaLista}>

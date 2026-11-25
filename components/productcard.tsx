@@ -2,6 +2,7 @@ import { PrefetchLink } from "./prefetch-link";
 import type { ListProduct } from "../lib/products";
 import { WishlistHeart } from "./wishlist";
 import { CardGallery } from "./card-gallery";
+import { KortBildfonster } from "./kort-bildfonster";
 import { Stars } from "./stars";
 import { reviewCountLabel } from "../lib/rating";
 import { formatPrice } from "../lib/price-range";
@@ -17,7 +18,12 @@ import { TidigarePris } from "./tidigare-pris";
  *  (?farg=, se components/shopbrowser). */
 /** `bildDirekt` = hämta kortets bild utan att vänta på att kortet närmar sig
  *  fönstret (components/card-gallery.tsx, `direkt`). */
-export function ProductCard({ p, priority = false, href, tvaKolumner = false, bildDirekt = false }: { p: ListProduct; priority?: boolean; href?: string; tvaKolumner?: boolean; bildDirekt?: boolean }) {
+/** `bildFonster` = kortet står i en lista som växer ("Visa fler"): bilderna
+ *  finns bara medan kortet står nära fönstret (components/kort-bildfonster.tsx).
+ *  Värdet är läget innan bevakaren svarat: sant där kunden står, falskt för
+ *  kort långt bort när en lång lista ställs tillbaka. Utan den bär kortet
+ *  alltid sina bilder, som på startsidan och i raderna på produktsidan. */
+export function ProductCard({ p, priority = false, href, tvaKolumner = false, bildDirekt = false, bildFonster }: { p: ListProduct; priority?: boolean; href?: string; tvaKolumner?: boolean; bildDirekt?: boolean; bildFonster?: boolean }) {
   // Hover-alt-image. Listsidorna skickar den förberäknad (altImg) — att skicka
   // hela gallery[] för 787 produkter kostade 364 kB i klient-payloaden. Övriga
   // ytor skickar fortfarande hela Product, och då plockas den ut här som förut.
@@ -55,7 +61,9 @@ export function ProductCard({ p, priority = false, href, tvaKolumner = false, bi
         {!p.img && <span className="pimg-vantar" aria-hidden="true" />}
         {/* Bilderna: svep på pekskärm, hover-växling på dator. Se
             components/card-gallery.tsx. */}
-        {p.img && <CardGallery slug={p.slug} img={p.img} altImg={altImg} name={p.name} priority={priority} createdAt={p.createdAt} tvaKolumner={tvaKolumner} direkt={bildDirekt} />}
+        {p.img && (bildFonster === undefined
+          ? <CardGallery slug={p.slug} img={p.img} altImg={altImg} name={p.name} priority={priority} createdAt={p.createdAt} tvaKolumner={tvaKolumner} direkt={bildDirekt} />
+          : <KortBildfonster naraForst={bildFonster} slug={p.slug} img={p.img} altImg={altImg} name={p.name} priority={priority} createdAt={p.createdAt} tvaKolumner={tvaKolumner} direkt={bildDirekt} />)}
       </div>
       <div className="pbody">
         <div className="pname">{p.name}</div>

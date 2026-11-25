@@ -2565,6 +2565,9 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
  * Hover-växlingen gäller bara enheter med hovrande pekare, så iOS får aldrig
  * den klibbiga :hover-växlingen ovanpå svepet. */
 .pimg-track,.pimg-slide{position:absolute;inset:0}
+/* Bevakarens yta: säger till när kortet närmar sig fönstret, så att bilderna
+   bara finns där (components/kort-bildfonster.tsx). Ritar ingenting. */
+.pimg-vakt{position:absolute;inset:0;pointer-events:none}
 /* Ingen orange hinna vid tryck. Sajtens markeringsfärg (::selection, peach)
    lade sig över hela bildytan när iOS tolkade ett långt tryck på svepraden som
    markering, och trycket i sig fick Safaris egen tryckfärg. Bilderna är inget

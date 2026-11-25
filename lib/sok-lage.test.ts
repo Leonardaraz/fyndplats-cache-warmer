@@ -62,7 +62,10 @@ describe("sökläget gäller bara mobilens sökrad, under 900 px", () => {
 describe("sökläget tar över skärmen och släpper den igen", () => {
   it("html bär data-sok-lage och sidan låses, före första ritningen", () => {
     assert.match(ruta, /useLayoutEffect\(\(\) => \{\s+if \(!sokLage\) return;\s+const rot = document\.documentElement;\s+rot\.setAttribute\("data-sok-lage", ""\);\s+const slapp = lasSidan\(\);/);
-    assert.match(ruta, /return \(\) => \{ rot\.removeAttribute\("data-sok-lage"\); slapp\(\); tillbaka\?\.\(\); \};\s+\}, \[sokLage\]\);/);
+    // Städningen släpper sidan, och tar bort söklägets märke ur historikposten
+    // (se "bakåt landar i sökläget" nedan).
+    assert.match(ruta, /return \(\) => \{\s+rot\.removeAttribute\("data-sok-lage"\); slapp\(\); tillbaka\?\.\(\);/);
+    assert.match(ruta, /if \(marke && marke\.t !== lamnadMed\.current\) glomMarke\(\);\s+\};\s+\}, \[sokLage\]\);/);
   });
 
   it("sidan under går inte att tabba till eller läsa upp medan sökläget är öppet", () => {
@@ -118,7 +121,9 @@ describe("sökläget tar över skärmen och släpper den igen", () => {
   });
 
   it("bakåt och framåt stänger panelen: annars täcker läget sidan man kom till", () => {
-    assert.match(ruta, /const onPop = \(\) => \{ setOpen\(false\); window\.setTimeout\(/);
+    // Undantaget är en post som bär söklägets märke: se "bakåt landar i sökläget" nedan.
+    const pop = /const onPop = \(e: PopStateEvent\) => \{([\s\S]*?)\n    \};/.exec(ruta)?.[1] ?? "";
+    assert.match(pop, /setOpen\(false\); window\.setTimeout\(/);
   });
 
   it("en skickad sökning fäller tangentbordet", () => {
@@ -130,7 +135,7 @@ describe("varorna står i ett rutnät med stora bilder", () => {
   it("tolv varor: jämna rader med två, tre och fyra kort", () => {
     assert.match(ruta, /const RUTNAT = 12;/);
     assert.equal(12 % 2 + 12 % 3 + 12 % 4, 0);
-    assert.match(ruta, /const antal = rutnat \? RUTNAT : SUGGESTION_COUNT;/);
+    assert.match(ruta, /const antal = helskarm && arSmal\(\) \? RUTNAT : SUGGESTION_COUNT;/);
     assert.match(ruta, /const showing: Hit\[\] = rutnat \? \(isPopular \? popular : hits\)\.slice\(0, RUTNAT\) : iListan;/);
     assert.match(css, /\.hsearch-mobile \.sugg \[role="listbox"\]\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\);gap:20px 10px;padding:0 16px\}/);
     assert.match(css, /@media\(min-width:600px\) and \(max-width:900px\)\{\s*\.hsearch-mobile \.sugg \[role="listbox"\],\.hsearch-mobile \.sugg-skelett\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\)\}/);
@@ -140,7 +145,10 @@ describe("varorna står i ett rutnät med stora bilder", () => {
   it("datorns lista ber om sju och sökläget om tolv: båda är början på resultatsidans lista", () => {
     // Det köpbara läggs först bland alla träffar och sedan klipps listan
     // (lib/sok-ordning.ts), så de sju är de tolvs första sju.
-    assert.match(ruta, /const antal = rutnat \? RUTNAT : SUGGESTION_COUNT;/);
+    // Bredden läses när sökningen görs, inte ur renderingen: sökläget kan
+    // ställas tillbaka från en lyssnare som skapades med en annan bredd.
+    assert.match(ruta, /const antal = helskarm && arSmal\(\) \? RUTNAT : SUGGESTION_COUNT;/);
+    assert.doesNotMatch(ruta, /const antal = rutnat \?/);
     assert.doesNotMatch(ruta, /rankaForslagMedAntal\([^)]*RUTNAT/);
   });
 

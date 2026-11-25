@@ -421,7 +421,7 @@ test("sökrutan: antal i knappen, kryss, alla sökord i fetstil och uppläst rad
   assert.match(ruta, /enterKeyHint="search"/);
   assert.match(ruta, /aria-activedescendant=\{visas && active >= 0 && active < rader \? radId\(active\) : undefined\}/);
   // Antalet är listans sju, eller rutnätets tolv i mobilens sökläge (lib/sok-lage.test.ts).
-  assert.match(ruta, /const antal = rutnat \? RUTNAT : SUGGESTION_COUNT;/);
+  assert.match(ruta, /const antal = helskarm && arSmal\(\) \? RUTNAT : SUGGESTION_COUNT;/);
   assert.match(ruta, /m\.rankaForslagMedAntal\(idx, pris\.fraga, antal, harPris\(pris\) \?/);
   assert.match(ruta, /className="sugg-chip" key=\{t\} onClick=\{\(\) => goSearch\(t\)\}/);
   // Senaste sökningar, exemplen och sökförslagen tar plats från varorna: panelen blir inte högre.
@@ -558,9 +558,11 @@ test("☠️ rutan räknar om förslagen för ordet som står i den", async () =
   // ☠️ Krysset tömmer rutan i DOM innan fokus sätts: fokus läser rutans värde.
   assert.match(ruta, /const rensa = \(\) => \{\s+const el = inputRef\.current;\s+if \(el\) el\.value = "";\s+void onType\(""\);/);
   // Lämnar man resultatsidan töms rutan, också med fokus kvar i den.
-  assert.match(ruta, /else if \(fran === "\/sok"\) \{ if \(el\) el\.value = ""; setQ\(""\); \}/);
+  // Undantaget (2026-11-25): sökläget ställdes nyss tillbaka på den här adressen
+  // efter ett bakåtsteg, och då är ordet söklägets (lib/sok-atervand.ts).
+  assert.match(ruta, /else if \(fran === "\/sok" && !aterstalld\) \{ if \(el\) el\.value = ""; setQ\(""\); \}/);
   // Sökordet läses ur adressen på resultatsidan, utan useSearchParams.
-  assert.match(ruta, /if \(pathname === "\/sok"\) \{ const t = iAdressen\(\); if \(t && el && !el\.value\) setQ\(t\); \}/);
+  assert.match(ruta, /if \(pathname === "\/sok"\) \{ const t = sokordIAdressen\(\); if \(t && el && !el\.value\) setQ\(t\); \}/);
   assert.doesNotMatch(ruta, /^import [^\n]*useSearchParams/m);
 });
 
