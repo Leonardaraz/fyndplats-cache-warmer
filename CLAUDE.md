@@ -4516,6 +4516,42 @@ produkter o sånt i sidan, den borde inte ha det".
   inte ur minnet: 3 euro per vara sedan 1 juli 2026, 2 euro i hanteringsavgift
   per vara från 1 november 2026, och procenttull i stället från 1 juli 2028.
 
+## Bloggen: inlägget om önskelistan och GoWish-knappen (Leonard 2026-11-25)
+
+Leonard: "gör en nytt blogg inlägg om något som passar in som ska följa med
+nattens merge". Samma natt gick GoWish-knappen ut på produktsidorna, så
+inlägget (`content/blog/onskelista-till-jul-2026.md`) presenterar den och ger
+sju regler för en önskelista inför julen.
+
+- Det förklarar något, och länkar därför till sortimentet (kategorier,
+  prissidorna, rean och julklappsguiden), inte till enskilda varor.
+  Kategorilänkarna är tagna ur sitemapen samma kväll.
+- **Omslaget** (`/blog-onskelista-jul-2026.jpg`) är 1 800 × 945 px, formen
+  sidan reserverar, i husstilen från tullinlägget. Allt viktigt står i
+  mittkvadraten (x 427–1 372): bloggkortet beskär till 1:1 och startsidans
+  kort till 4:3, och båda tar bara mitten. **Bilden i texten**
+  (`/blog-onskelista-steg.webp`) är 1 200 × 1 200, eftersom inläggets
+  bildrutor visas kvadratiska.
+- ☠️ **Inget står efter sista svaret under "## Vanliga frågor".** `extractFaq`
+  (`lib/local-blog.ts`) lägger varje rad efter sista frågan i sista svaret
+  tills nästa `##`, så en avslutande länkrad hamnar i FAQPage. Inlägget slutar
+  därför med frågorna. `medlemskap-sa-funkar-det.md` har två sådana rader
+  efter sista svaret; inte rättat här.
+- **Det som sägs om GoWish** (app och webbläsare, gratis att ladda ner, dela
+  listan, reservera en önskning) är läst på gowish.com 2026-11-25 och har en
+  källrad före frågorna. Vad GoWish visar för varan efter inloggning sägs
+  inte: det är inte mätt. Att länken går till varan och inte till vald färg
+  eller storlek står i texten, eftersom knappen skickar varans kanoniska
+  adress (`lib/gowish.ts`).
+- **Svaret på "Vilka uppgifter får GoWish av er?"** säger samma sak som
+  sekretesspolicyn (`app/sekretesspolicy/page.tsx`): knappen ger varans adress
+  och teknisk information om besöket, och ett köp från en önskelista mäts av
+  Heylink när den som handlar har samtyckt. Första utkastet nämnde bara
+  knappen, och var alltså ofullständigt. Ändras policyn ska svaret ändras med
+  den.
+- Inlägget säger "från och med i dag" och är daterat 2026-11-26, dagen knappen
+  går ut. Flyttas mergen ska datumet flyttas med.
+
 ## Produkttextens länkar till syskon som flyttat, och slutsålda sidors länk (2026-11-11)
 
 Två notiser i Semrush hade en riktig orsak i butiken. Båda är lösta vid visningen,
