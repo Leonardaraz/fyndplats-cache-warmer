@@ -1,0 +1,90 @@
+{
+  "b29f7bfa": {
+    "productId": "b29f7bfa-fe75-4b97-a91b-baaa1b0d1b2b",
+    "synliga": 0,
+    "dolda": 3,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 3,
+    "attBesluta": []
+  },
+  "d548cbbc": {
+    "productId": "d548cbbc-fe8b-4100-9970-48af29c522a8",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-s53vw9",
+        "betyg": 5,
+        "datum": "2026-10-06",
+        "foton": 0,
+        "text": "Ho acquistato questo prodotto come compensazione di un altro prodotto. Non l'ho ancora testato ma guardandolo sembra essere fatto di un' altra pasta."
+      },
+      {
+        "id": "gen-mt6e71",
+        "betyg": 5,
+        "datum": "2026-09-17",
+        "foton": 0,
+        "text": "Ottimo articolo molto utile per lavori fai da te. Lo Consiglio"
+      }
+    ]
+  },
+  "2d682419": {
+    "productId": "2d682419-75da-429d-afb4-953583a5165d",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-4mit56",
+        "betyg": 5,
+        "datum": "2026-08-11",
+        "foton": 1,
+        "text": "Parfait livraison très rapide dommage, bac inox profond"
+      },
+      {
+        "id": "gen-1ypkxhy",
+        "betyg": 5,
+        "datum": "2026-06-18",
+        "foton": 0,
+        "text": "Super bac gastro Arriver en très bon état et bien protégé comme toujour. Je recommanderais chez vevor!! 🙂"
+      },
+      {
+        "id": "gen-olgnpr",
+        "betyg": 5,
+        "datum": "2026-04-14",
+        "foton": 0,
+        "text": "La qualité et top arriver bien emballé et rapidement"
+      },
+      {
+        "id": "gen-5pd8wh",
+        "betyg": 5,
+        "datum": "2024-11-05",
+        "foton": 0,
+        "text": "Works great. no complaints. works for our cafe. great for catering and for our daily use. stainless steel. cheaper than name brands like winco. wish it came with lids"
+      }
+    ]
+  },
+  "6fda793e": {
+    "productId": "6fda793e-95c6-4151-9624-5b710e1b2773",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-11fonrr",
+        "betyg": 5,
+        "datum": "2026-10-28",
+        "foton": 0,
+        "text": "How can you go wrong? Nice sink and cheaper than Costco!"
+      }
+    ]
+  }
+}
