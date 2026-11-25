@@ -1,0 +1,60 @@
+{
+  "8bfe8612": {
+    "productId": "8bfe8612-9aa6-4d25-98f6-f627145d83bd",
+    "synliga": 0,
+    "dolda": 6,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": []
+  },
+  "46358e00": {
+    "productId": "46358e00-f010-446a-a3f9-6f5f130e8aa3",
+    "synliga": 0,
+    "dolda": 6,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 3,
+    "attBesluta": []
+  },
+  "0898f69a": {
+    "productId": "0898f69a-d2fc-4488-ab48-659117819883",
+    "synliga": 0,
+    "dolda": 1,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-cf2t4f",
+        "betyg": 5,
+        "datum": "2026-08-21",
+        "foton": 0,
+        "text": "Prodotto davvero ottimo e servizio di assistenza (anche alla spedizione) super efficiente! Complimenti!!"
+      },
+      {
+        "id": "gen-paoacl",
+        "betyg": 5,
+        "datum": "2026-04-22",
+        "foton": 0,
+        "text": "Le panneau de basket est super, bien solide, facile à monter et mes enfants ont bien profité de jouer."
+      },
+      {
+        "id": "gen-obrbj0",
+        "betyg": 5,
+        "datum": "2026-03-29",
+        "foton": 0,
+        "text": "Kontakt ze sprzedającym bardzo szybki. Sprzedający bardzo szybko rozwiązał mój problem za co jestem bardzo wdzieczny. Super przedmiot. Polecam."
+      }
+    ]
+  },
+  "29e5de16": {
+    "productId": "29e5de16-5126-468d-b7e5-de904580c405",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  }
+}
