@@ -62,7 +62,8 @@ def main():
         assert set(p['alt']) | set(p.get('bort', {})) == {str(i) for i in range(1, n + 1)}, (k, 'alt och bort täcker inte alla positioner')
         assert not (set(p['alt']) & set(p.get('bort', {}))), (k, 'en position både behålls och stryks')
         status = p.get('status', 'utkast, publiceras')
-        ut['ids.tsv'] += [rad(k, d['fullid'], f"{v['pris']} kr {d['name'][:60]} ({status})")]
+        namn60 = re.sub(r'\b(\d{3})-(\d{3})\b', r'\1 till \2', d['name'][:60])   # utkastets namn med 100-600 lbf-ft blir 100 till 600: leak.py läser annars intervallet som en artikelnummerform
+        ut['ids.tsv'] += [rad(k, d['fullid'], f"{v['pris']} kr {namn60} ({status})")]
         ut['lager.tsv'] += [rad(k, d['lager'])]
         if sam:
             ut['sammanslagna.tsv'] += [rad(k, sam)]
@@ -88,7 +89,7 @@ def main():
         t = re.sub(r'\b(\d{3})-(\d{3})\b', r'\1 till \2', t)   # 240-100 N (gasdämparens kraft) blir 240 till 100 N: leak.py läser annars intervallet som en artikelnummerform
         txt = f'=== källa: sidans utkast {k}, hela texten ===\n' + t.rstrip('\n') + '\n'
         txt += '=== vevor-källa: Vikt i specifikationen är varans egen ===\n'
-        txt += '=== källa: utkastets namn ===\n' + d['name'] + '\n'
+        txt += '=== källa: utkastets namn ===\n' + re.sub(r'\b(\d{3})-(\d{3})\b', r'\1 till \2', d['name']) + '\n'
         pk = [x for x in (u.get('punkter') or []) if not MODELL.search(x)]
         if pk:
             txt += '=== källa: punkter på VEVOR:s sida ===\n' + '\n'.join(pk) + '\n'
@@ -98,6 +99,7 @@ def main():
                 sys.exit(f'{k}: måttrad {i} bär modellnumrets etikett eller börjar på === och nekas')
         if matt:
             txt += RUB_MATT + '\n' + '\n'.join(matt) + '\n'
+        txt = re.sub(r'\b(\d{3})-(\d{3})\b', r'\1 till \2', txt)   # samma sak för intervall i punkter och måttrader: 100-600 lbf-ft blir 100 till 600 lbf-ft
         txt = re.sub(r'(?<=\d)x(?=\d)', ' x ', txt)   # samma sak i VEVOR:s punkter och i måttraderna: 2x4-tums nät blir 2 x 4-tums nät, annars läser leak.py 2x4 som en artikelnummerform
         # Ett tillbehörs modellkod i källtexten (till exempel drivmotorns XZ-12B) fäller leak.py (MODELL) i kallor.json, och en spärr man måste komma ihåg glöms bort
         txt = re.sub(r'\b[A-Z]{1,4}-\d{1,4}[A-Z]?\b', '[modellkod]', txt)
