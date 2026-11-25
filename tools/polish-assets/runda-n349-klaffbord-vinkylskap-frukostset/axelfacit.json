@@ -1,0 +1,21 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "4d69d229": {
+  "tyska": "",
+  "svenska": "29,1 x 27,3 x 18,9 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maße des Wasserkochers: 21,4L x 15,6B x 23,3H cm | ✔ Maße des Toasters: 29,1L x 27,3B x 18,9H cm | ✔ Maße des Eierkochers: 19,6L x 15,1B x 15,3H cm | ✔ Schlitzgröße des Toasters: 13,5L x 3,5B x 13,5H cm | ✔ Fassungsvermögen des Wasserkochers: 1,7 L"
+ },
+ "5177371b": {
+  "tyska": "",
+  "svenska": "100 x 100 x 75 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Vollständig ausgeklappte Größe: 100B x 100T x 75H cm | ✔ Zusammengeklappte Größe: 33B x 100T x 75H cm | ✔ Größe offenes Fach: 80B x 20T x 54H cm"
+ },
+ "d92a8efd": {
+  "tyska": "43L x 46B x 74H cm",
+  "svenska": "43cm x 46cm x 74 cm",
+  "bokstaver": "LBH",
+  "hojd": 74,
+  "bredd": 43,
+  "djup": 46
+ }
+}

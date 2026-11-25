@@ -1,0 +1,6 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+f5a39919 45 måttbilden (bild 3): basplattans båda sidor är märkta 45 cm
+25901957 2,7 räknat ur källans mått på hagen, 240 × 112,5 cm
+b5cf7ec6 0,4 räknat ur källans mått på huset, 64 × 64 cm
+b5cf7ec6 0,6 räknat ur källans mått på hagen, 96,5 × 63,5 cm

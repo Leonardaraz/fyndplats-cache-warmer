@@ -1,0 +1,48 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "383d8de2": {
+  "tyska": "45B x 41T x 38H cm",
+  "svenska": "45 × 41 × 38 cm",
+  "bokstaver": "BTH",
+  "djup": 41,
+  "hojd": 38,
+  "bredd": 45
+ },
+ "6a5e861d": {
+  "tyska": "75T x 75B x 76H cm",
+  "svenska": "75 × 75 × 76 cm",
+  "bokstaver": "TBH",
+  "djup": 75,
+  "hojd": 76,
+  "bredd": 75
+ },
+ "7a2daede": {
+  "tyska": "94B x 78T x 80H cm (Sofa), 94B x 190T x 27H cm (Bett)",
+  "svenska": "94L x 78B x 80H cm",
+  "bokstaver": "BTHBTH",
+  "djup": 78,
+  "hojd": 80,
+  "bredd": 94
+ },
+ "b6922dc8": {
+  "tyska": "76,2L x 101,6H cm",
+  "svenska": "70 × 90 cm, 2 cm djup",
+  "bokstaver": "LH",
+  "hojd": 101.6,
+  "bredd": 76.2
+ },
+ "e58ca1e0": {
+  "tyska": "334L x 190B cm",
+  "svenska": "280 × 190 × 197 cm (L × B × H)",
+  "axelkalla": "tyska raden 'derAbdeckung' (etiketten bar ett bestämningsord)",
+  "axellos": "totalraden har tva tal utan H eller T (334L x 190B cm) — vilken axel det andra talet ar gar inte att avgora ur raden"
+ },
+ "e891b752": {
+  "tyska": "180L x 90B x 90H cm",
+  "svenska": "270 × 90 × 90 cm (bredd × djup × höjd)",
+  "bokstaver": "LBH",
+  "hojd": 90,
+  "bredd": 180,
+  "djup": 90
+ }
+}

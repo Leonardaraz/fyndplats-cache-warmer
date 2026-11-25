@@ -1,0 +1,48 @@
+0561b9ea	1	används	feedens position 1: vit studiobild, ren
+0561b9ea	2	används	feedens position 2: miljöbild med en bil under presenningen, ren
+0561b9ea	3	används	feedens position 3: måttbild med bara tal och enheter (6 M och 4 M); talen står i källtexten; läggs sist
+0561b9ea	4	används	feedens position 8: miljöbild med höns under presenningen, ren
+0561b9ea	5	används	feedens position 9: miljöbild med en hund, en man och ett barn, ren; OCR läste bara en liten etikett på hundgården
+0a8d565b	1	används	feedens position 1: vit studiobild, ren; fyra upprullade dörrar räknade på bilden, antalet står också i källtexten
+0a8d565b	2	används	feedens position 2: miljöbild i en köksträdgård, ren
+0a8d565b	3	används	feedens position 3: måttbild med bara tal och enheter (395, 100, 80, 78 och 10 cm); talen står i källtexten; OCR läste bara en etikett på en kruka, som är rekvisita; läggs sist
+0a8d565b	4	används	feedens position 8: miljöbild vid en husvägg, ren
+0a8d565b	5	används	feedens position 9: miljöbild på en gräsmatta, ren; det stora växthuset i bakgrunden är rekvisita
+f5990304	1	används	feedens position 1: vit studiobild, ren; OCR läste bara märket på luckorna, som sitter på varan och inte nämns i texten
+f5990304	2	används	feedens position 2: miljöbild med kvinna, ren
+f5990304	3	används	feedens position 3: måttbild med bara tal och enheter (77, 60, 67, 23,5, 18,5 och 26 cm); 77, 60 och 67 står i källtexten, luckmåtten används inte eftersom de två luckorna har olika mått på bilden; läggs sist
+f5990304	4	används	feedens position 8: miljöbild i en trädgård, ren
+f5990304	5	används	feedens position 9: miljöbild vid en odlingslåda, ren
+66a47b55	1	används	feedens position 1: vit studiobild, ren; OCR läste bara märket på framsidan, som sitter på varan och inte nämns i texten
+66a47b55	2	används	feedens position 2: miljöbild vid en glasdörr, ren
+66a47b55	3	används	feedens position 3: måttbild med bara tal och enheter (51,5, 26,5, 17 och 39 cm); 51,5 och 39 står i källtexten, 26,5 och 17 används inte; läggs sist
+66a47b55	4	används	feedens position 8: miljöbild bland växter, ren
+66a47b55	5	används	feedens position 9: miljöbild vid en odlingslåda, ren
+5e2a5488	1	används	feedens position 1: vit studiobild, ren
+5e2a5488	2	används	feedens position 2: miljöbild på en terrass, ren
+5e2a5488	3	används	feedens position 3: måttbild med bara tal och enheter (80 cm, 74 cm och 50 kg); talen står i källtexten; OCR läste bara brus; läggs sist
+5e2a5488	4	används	feedens position 8: miljöbild på en uteplats, ren
+5e2a5488	5	används	feedens position 9: miljöbild på ett trädäck, ren
+babef816	1	används	feedens position 1: vit studiobild, ren; tre hyllplan räknade på bilden, antalet står också i källtexten
+babef816	2	används	feedens position 2: miljöbild på en veranda, ren
+babef816	3	används	feedens position 3: måttbild med bara tal och enheter (50, 47, 70, 100, 48 och 143 cm); talen står i källtexten; läggs sist
+babef816	4	används	feedens position 8: miljöbild inomhus, ren; text på bokryggarna är rekvisita
+babef816	5	används	feedens position 9: miljöbild på en terrass, ren
+e1b26dda	1	används	feedens position 1: vit studiobild, ren
+e1b26dda	2	används	feedens position 2: miljöbild i en trädgård, ren
+e1b26dda	3	används	feedens position 3: måttbild med bara tal och enheter (120, 46, 66, 104 och 50 cm); talen står i källtexten; läggs sist
+e1b26dda	4	struken	feedens position 8: detaljbild med tysk text (Entwässerungslöcher, Geschnitten unteres Regal); sidan har fem bilder och behöver inget utsnitt
+e1b26dda	5	används	feedens position 9: miljöbild framför en häck, ren
+e1b26dda	10	används	feedens position 10 (aosom-bildkandidater): miljöbild på ett trädäck, ren
+393084d4	1	används	feedens position 1: vit studiobild med tre vyer av skåpet, ren; OCR läste bara texten på en säck i det öppna skåpet, som är rekvisita
+393084d4	2	används	feedens position 2: miljöbild vid en husvägg, ren; text på en säck och lådor är rekvisita
+393084d4	3	används	feedens position 3: måttbild med bara tal och enheter (85, 58, 213, 50, 75, 199, 70 och 44 cm); talen står i källtexten; läggs sist
+393084d4	4	struken	feedens position 8: närbild på träytan med inbränd tysk text (Elegante Präge-Oberfläche) längst ned; utsnittet på position 12 ersätter den
+393084d4	5	struken	feedens position 9: inbränd tysk text (Magnettür) och infällda bilder över skåpet; går inte att beskära utan att skära i skåpet
+393084d4	f4	förkastad	feedens position 4 (aosom-bildkandidater): inbränd tysk text (Die Innenregale abnehmen) och en infälld bild; laddades upp men används inte
+393084d4	f5	förkastad	feedens position 5 (aosom-bildkandidater): inbränd tysk text (Verstellbare Regale); laddades upp men används inte
+393084d4	f6	förkastad	feedens position 6 (aosom-bildkandidater): inbränd tysk text (Dach aus verzinktem Metall) över taket; laddades upp men används inte
+393084d4	f7	förkastad	feedens position 7 (aosom-bildkandidater): inbränd tysk text (Kippsicherung); utsnittet på position 11 används
+393084d4	10	används	feedens position 10 (aosom-bildkandidater): miljöbild vid ett vitt staket, ren; OCR läste bara texten på en kartong i skåpet, som är rekvisita
+393084d4	11	används	utsnitt ur feedens position 7 (830 × 830 px, x 540, y 315): det svarta L-formade antitippbeslaget vid skåpets ben; rubriken, bildtexterna och spikarna ligger utanför; OCR REN; foten på beslaget kapas några hundra pixlar från änden
+393084d4	12	används	utsnitt ur feedens position 8 (1 480 × 1 480 px, x 260, y 0): träytan med kvistar; rubriken ligger utanför; OCR REN

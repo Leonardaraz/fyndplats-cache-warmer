@@ -842,6 +842,77 @@ describe("sammanslagning — storlek", () => {
   });
 });
 
+describe("sammanslagning — valens ordning (2026-11-11)", () => {
+  // Hantlarna 2026-11-06 och växthuset 2026-11-10: givarens val lades sist i optionen, och
+  // butiken visar valen i Wix ordning. Nu hamnar det nya valet på sin plats i storleksordning
+  // (`valordning.ts`), och de befintliga valen och varianterna rörs inte.
+  const MINDRE: SammanslagningInput = {
+    behall: "sida", utkast: "utkast", storlekBehall: "110 × 85 cm", storlekUtkast: "90 × 70 cm",
+  };
+
+  function tre() {
+    const w = fejkWix();
+    laggTillUtkast2(w);
+    const m = miljo({
+      wix: w,
+      feed: TRE,
+      mappningar: [
+        mappning("A-1", "sida"),
+        mappning("G-7", "utkast", { draftStatus: "pending_review", needsAiPolish: true }),
+        mappningUtkast2(),
+      ],
+    });
+    return { ...m, w };
+  }
+
+  it("☠️ en mindre storlek än sidans blir optionens FÖRSTA val, och varje variant behåller sitt val", async () => {
+    const { deps, rader, w } = miljo();
+    const svar = await korSammanslagning(MINDRE, deps, { apply: true });
+    expect(svar.ok).toBe(true);
+    expect(valPa(w).map((c) => c.name)).toEqual(["90 × 70 cm", "110 × 85 cm"]);
+    // Varianterna står kvar i samma ordning som förut (sidans först, den nya sist) och bär sina egna val.
+    expect(varianterPa(w).map((v) => [v.id, v.sku])).toEqual([["var-sida", "FP-stol"], ["var-ny-1", "FP-stol-90-70-cm"]]);
+    const valAvVariant = (v: Obj) => ((v.choices as Obj[])[0].optionChoiceNames as Obj).choiceName;
+    expect(varianterPa(w).map(valAvVariant)).toEqual(["110 × 85 cm", "90 × 70 cm"]);
+    expect(rader.get("sida")!.variants.map((v) => v.choices)).toEqual([
+      { Storlek: "110 × 85 cm" },
+      { Storlek: "90 × 70 cm" },
+    ]);
+  });
+
+  it("en större storlek än sidans blir kvar sist, som förut", async () => {
+    const { deps, w } = miljo();
+    await korSammanslagning({ ...MINDRE, storlekBehall: "90 × 70 cm", storlekUtkast: "110 × 85 cm" }, deps, { apply: true });
+    expect(valPa(w).map((c) => c.name)).toEqual(["90 × 70 cm", "110 × 85 cm"]);
+  });
+
+  it("☠️ en storlek till på en sida som redan har två: den hamnar mitt emellan, och de två första rörs inte", async () => {
+    const { deps, rader, w } = tre();
+    await korSammanslagning({ behall: "sida", utkast: "utkast", storlekBehall: "90 × 70 cm", storlekUtkast: "110 × 85 cm" }, deps, { apply: true });
+    const fore = valPa(w).map((c) => [c.name, c.choiceId]);
+
+    const svar = await korSammanslagning({ behall: "sida", utkast: "utkast2", storlekUtkast: "100 × 80 cm" }, deps, { apply: true });
+    expect(svar.ok).toBe(true);
+    expect(valPa(w).map((c) => c.name)).toEqual(["90 × 70 cm", "100 × 80 cm", "110 × 85 cm"]);
+    // De två befintliga valen behåller sina id.
+    expect(valPa(w).filter((c) => c.name !== "100 × 80 cm").map((c) => [c.name, c.choiceId])).toEqual(fore);
+    // Varianterna: de gamla behåller id och SKU, den nya läggs sist.
+    expect(varianterPa(w).map((v) => [v.id, v.sku])).toEqual([
+      ["var-sida", "FP-stol"], ["var-ny-1", "FP-stol-110-85-cm"], ["var-ny-2", "FP-stol-100-80-cm"],
+    ]);
+    expect(rader.get("sida")!.variants.map((v) => v.choices)).toEqual([
+      { Storlek: "90 × 70 cm" }, { Storlek: "110 × 85 cm" }, { Storlek: "100 × 80 cm" },
+    ]);
+  });
+
+  it("färg bedöms aldrig: en ny färg hamnar sist, inte i bokstavsordning", async () => {
+    const { deps, w } = tre();
+    const svar = await korSammanslagning({ ...PAR, fargBehall: "Svart", fargUtkast: "Blå" }, deps, { apply: true });
+    expect(svar.ok).toBe(true);
+    expect(valPa(w).map((c) => c.name)).toEqual(["Svart", "Blå"]);
+  });
+});
+
 describe("sammanslagning — en publicerad givare", () => {
   const PUBLICERAD: SammanslagningInput = { ...PAR, omdirigera: true };
 

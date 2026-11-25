@@ -1,0 +1,50 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "325eb0a4": {
+  "tyska": "99L x 33B x 89,5H cm",
+  "svenska": "99L x 33B x 89,5H cm",
+  "bokstaver": "LBH",
+  "hojd": 89.5,
+  "bredd": 99,
+  "djup": 33
+ },
+ "46d37df4": {
+  "tyska": "",
+  "svenska": "88,5L x 40B x 102H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Maße des Schminktischs: 88,5L x 40B x 102H cm | ✔ Maße des Stuhls: 35,6B x 32,5T x 55,6H cm | ✔ Maße der Tischplatte: 88,5B x 39,6T cm | ✔ Maße der Sitzfläche: 32,6B x 26T cm | ✔ Spiegelmaße: 33B x 39H cm, 13,5B x 32,5H cm"
+ },
+ "a80bfad3": {
+  "tyska": "55L x 52,5B x 87,5H cm",
+  "svenska": "55L x 52,5B x 87,5H cm",
+  "bokstaver": "LBH",
+  "hojd": 87.5,
+  "bredd": 55,
+  "djup": 52.5
+ },
+ "d9e86240": {
+  "tyska": "69L x 34,5B x 59H cm",
+  "svenska": "69cm x 34,5cm x 59cm",
+  "bokstaver": "LBH",
+  "hojd": 59,
+  "bredd": 69,
+  "djup": 34.5
+ },
+ "e128f090": {
+  "tyska": "",
+  "svenska": "59 x 34 x 87 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Schminktischmaße: 59L x 34B x 87H cm | ✔ Hockermaße: 29,5L x 29,5B x 38H cm | ✔ Sitzmaße des Hockers: 22,5L x 22,5B cm, Höhe vom Boden 23,5 cm | ✔ Maße der Spiegelfläche: 25,5B x 31,5H cm | ✔ Aufbewahrungsschublade: (außen) 30B x 24,7T x 8H cm, (innen) 23B x 22,5T x 6,5H cm"
+ },
+ "e6fa7cf7": {
+  "tyska": "56,5L x 42B x 88H cm",
+  "svenska": "56,5 x 42 x 88 cm",
+  "bokstaver": "LBH",
+  "hojd": 88,
+  "bredd": 56.5,
+  "djup": 42
+ },
+ "f69ed4a3": {
+  "tyska": "",
+  "svenska": "93,6L x 55,5B x 50,5H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Tischmaße: 93,6L x 55,5B x 50,5H cm | ✔ Tischplattengröße: 78,6L x 51,8B cm | ✔ Tischplattenhöhe: 50,5H cm (vom Boden) | ✔ Stuhlmaße: 29L x 30B x 47H cm | ✔ Sitzfläche: 25,6L x 23,8B cm | ✔ Sitzhöhe: 24H cm | ✔ Fächer auf der Tischplatte: 3 x 16,5L x 10,8B x 6,8H cm | ✔ Untere Fächer: 4 x 26L x 26B x 16,5H cm | ✔ Stauraum unter der Tischplatte: 2 x 78L x 25,5B x 7H cm"
+ }
+}

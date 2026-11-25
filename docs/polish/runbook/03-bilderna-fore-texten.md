@@ -31,13 +31,17 @@ när den bär:
 
 - inbränd text i grafiken, alltså rubriker, bildtexter eller en webbadress, oftast på tyska
   eller engelska (`Family-size`, `7 Cups`)
-- leverantörens logotyp, oftast i ett övre hörn (`HOMCOM by Aosom`). Misstänker du en ljus
+- leverantörens logotyp, oftast i ett övre hörn (`HOMCOM by Aosom`, en blå `PGST`-bricka
+  tillsammans med `Wi-Fi`- och `4G`-brickor). Misstänker du en ljus
   logotyp på ljus vägg eller himmel kör du `bygg-ghost.py`, som gör den synlig.
 - en annan färgvariant, modell, storlek eller konfiguration än den som säljs
 - samma scen från samma vinkel som en annan bild i galleriet, eller en miljöscen som ett
-  publicerat syskon redan bär
+  publicerat syskon redan bär. Ett vidare eller snävare utsnitt av samma render är samma
+  scen *(`d3fea27c` 2026-11-20: leverantörens position 7 var galleriets bild 3 sedd bredare)*
 
-**Behåll** text som sitter fysiskt på varan (knappar, märket på godset), en måttritning som
+**Behåll** text som sitter fysiskt på varan (knappar, märket på godset: `Vinsetto` broderat
+på kuddarna, `PawHut` på buren, `VEVOR` tryckt på överdraget *(39 bilder granskade en och en
+2026-11-20, `FLAGGADE.md` 361: det enda pålagda märket var `PGST`-brickorna)*), en måttritning som
 bara har siffror och enheter, och text och märken på rekvisitan i en miljöbild: förpackningar,
 burkar, böcker och liknande i eller runt varan. Stryk bara det listan ovan tar upp: så många
 användbara bilder som möjligt *(Leonard 2026-07-10)*. Ett barn i bilden som är yngre än sidans
@@ -47,7 +51,11 @@ grillbild med ett barn på ungefär två år och åldersgränsen tre år)*.
 ⚠️ **Text på rekvisitan är okej sedan 2026-09-30** *(Leonard, om köksskåpet `fbcf5899`: "text
 som är på produkter på det viset är okej")*. Fram till dess ströks en miljöbild när text på
 rekvisitan gick att läsa i full upplösning, till exempel "dorset cereals" på ett flingpaket i
-vitrinen. Bilder som ströks bara av det skälet får läggas tillbaka.
+vitrinen. Bilder som ströks bara av det skälet får läggas tillbaka. Ett genereringsfel i
+rekvisitan, till exempel `[Kein Text erkannt]` i en tavla, stryks bara om det är *jätte
+synligt* vid vanlig storlek *(Leonard 2026-11-20, om `fbddd5b6` bild 5, där tavlan är liten
+och texten läses först vid zoom: "är jätte synlig ta bort den annars låt den va")*. Titta på
+bilden i 700 och 420 px, inte bara i full storlek.
 
 **Redigera aldrig en bild.** Den behålls eller stryks hel. Ingen beskärning, retuschering
 eller maskning av varan *(Leonard 2026-09-27)*, utom beskärningen i undantaget nedan.
@@ -58,6 +66,12 @@ undantaget nedan eller ersätts av en annan av leverantörens bilder, och finns 
 användbart flaggar du det till Leonard i `FLAGGADE.md`. Hur korten byggdes står i
 [`arkiv/fyndplats-kort.md`](../../arkiv/fyndplats-kort.md). De kort som redan ligger på
 publicerade sidor ligger kvar *(Leonard 2026-10-27: "låt de som är gjort ligga kvar")*.
+**Undantag:** ett kort som säger *leverantör* eller *tillverkaren* i fotraden, eller vars
+rubrik jämför varan med resten av sortimentet, stryks även när det redan ligger live, och
+ersätts av en ren leverantörsbild om sidan annars får färre än fem bilder *(Leonard
+2026-11-20, "11 fyndplatsskort: ta bort bilderna helt", tolv kort i `runda-fix-kort`)*.
+Textgrindarna ser inte text som är inbränd i en bild, så sådana kort hittas bara genom att
+se bilderna. Fotradens text sparas inte i `kort.tsv`.
 
 **Undantag: sidor med färre än fem bilder** *(Leonard 2026-09-30 för två eller tre bilder, utvidgat
 2026-10-07 till varje sida som annars får färre än fem)*. Där får en leverantörsbild
@@ -81,8 +95,18 @@ varje färgad del.
 **Galleriet:** `bygg-media.py` behåller källordningen och lägger måttbilden sist: en bild
 vars alt-text börjar på *Måttbild*, *Måttskiss* eller *Måttritning* (sedan 2026-10-21; förut
 alltid källposition 3, vilket lade fel bild sist när måttbilden låg på 4 eller 5). Har ingen
-alt-text det ordet gäller den gamla regeln, källposition 3 sist. Plats 1 blir huvudbild och
-delningsbild. Produktsidans
+alt-text det ordet gäller den gamla regeln, källposition 3 sist. ☠️ **En rättelse av text på en
+redan publicerad sida ska inte flytta några bilder**: numrera då bilderna 101, 102 … i
+`bilder.tsv` och `alt.tsv` (som städrundorna gör), så att ingen bild har position 3. Numrerade du
+dem 1–10 flyttas bilden på plats 3 sist även när den är en miljöbild, och sidans bildordning
+ändras utan att något fel syns (T127, 2026-11-20: bilden med handkontrollen på `e5be35a4`; en
+sammanslagen sida med en måttbild får den sist i alla fall, och det är husets ordning). Läs
+galleriets ordning i Wix efter skrivningen. ☠️ **Och en BEFINTLIG alt-text som börjar på *Måttbild*, *Måttskiss* eller
+*Måttritning* flyttar sin bild sist även när alla nya texter är rena och bilderna är numrerade 101+** (alt-rundan 2026-11-20:
+olivträdet `654d3653` hade en befintlig *Måttskiss …* på plats 4 av 7, och rundan hade lagt den sist och flyttat tre bilder på en
+sida med bildval). Kör `python3 ../../polish-gates/kontroll-galleriordning.py` i rundans katalog före `bygg-bildplan.py`: den
+simulerar `bygg-media.py` mot positionerna i `bilder.tsv` och skriver varje sida vars ordning skulle ändras. Är bilden redan
+sist ändras inget; annars skriver du om inledningen på den befintliga texten (och dokumenterar det) eller godtar flytten. Plats 1 blir huvudbild och delningsbild. Produktsidans
 galleri visar varje bild som en kvadrat beskuren från mitten (bara förstoringen visar hela
 bilden), så en liggande bild tappar sina kanter och en liggande måttritning sina yttersta
 mått. Polerar du syskon samtidigt ska två sidor inte dela samma miljöfoto, så stryk det på
@@ -104,8 +128,15 @@ Ett utsnitt som bara går att göra genom att skära i varan förkastas.
 **För få bilder kvar?** (Aosom; för VEVOR, se VEVOR-avsnittet.) Importen hämtar bara feedens
 position 1, 2, 3, 8 och 9. Workflowen **"Bilder — hämta leverantörens övriga bilder för
 granskning"** laddar upp position 4–7 till Media Manager utan att röra produkten, men bara med
-`skarp` påslagen (standard är torrkörning) och position 4–7 om du inte anger andra. Granska dem med samma strykregler som ovan och lägg de
-rena i `bilder.tsv` med sina fil-id. Leverantörens rena bilder är det som används, och
+`skarp` påslagen (standard är torrkörning) och position 4–7 om du inte anger andra. **Börja med position 10:** mätt 2026-11-20 på 14 sidor var den ren på 11 av 14, medan
+position 4–7 bara var rena på 2 av 56 (nästan alla är tyska infografiker med rubrik och
+bildtexter). Feeden har högst tio bilder per vara (uppmätt 2026-09-30, se `MAX_POSITION` i
+`lib/aosom/bildkandidater.ts`). Granska dem med samma strykregler som ovan och lägg de
+rena i `bilder.tsv` med sina fil-id. **Ge en ny bild ett nummer strax före ritningen** och
+skjut ritningen ett steg: `bygg-media.py` känner bara igen en måttbild på alt-texten
+(`Måttbild`, `Måttskiss`, `Måttritning`), så en ritning vars alt-text börjar på *Ritning*
+stannar där positionen säger, och en ny bild med högre nummer hamnar efter den. Måttskissen
+ska vara sist *(`runda-fix-kort` 2026-11-20 byggdes om av det skälet)*. Leverantörens rena bilder är det som används, och
 inget Fyndplats-kort byggs *(Leonard 2026-09-30, skärpt 2026-10-27)*. Det gäller också
 måttbilder: en variants egen måttbild lämnas kvar och länkas till färg OCH storlek. Saknar
 leverantören måttbilden för varianten flaggar du varianten till Leonard i `FLAGGADE.md`. Bär
@@ -141,4 +172,6 @@ först.
 bilden, på svenska och olika för varje bild, med sökordet där det faller sig naturligt.
 Beskriv varan, inte rekvisitan: djuret, barnet eller kaffekoppen i miljöbilden hör inte till
 produkten. Samma förbjudna ord gäller som i texten. En struken position får ingen rad, och
-`gate-alt.py` fäller en som får det.
+`gate-alt.py` fäller en som får det. Kör också `python3 ../../polish-gates/kontroll-alt-extra.py` i rundans katalog: den kontrollerar
+formen som grinden inte ser (längd 28–200, samma text två gånger på en sida eller på flera, *bild N*, slutpunkt, engelska ord) och
+byggdes för alt-rundan 2026-11-20, där 889 bilder på 153 publicerade sidor fick alt-text (FLAGGADE 360, `runda-alt-1` till `-4`).

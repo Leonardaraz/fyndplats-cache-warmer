@@ -80,16 +80,83 @@ const rad = (t, val) => ({ val, galleri: t.galleri.map(pos).join(','), pris: t.p
 const start = await las();
 const axSel = (await sida.locator('.pdp-axis').count()) > 0 ? '.pdp-axis' : '.pdp-variants';
 const antalSynliga = start.axlar.length + (start.kort.length ? 1 : 0);
+// ☠️ Ett vals etikett ändras med det andra valet ("Beige – finns inte i 100 cm", "150 cm – slut i
+// lager"). Listan läses en gång, så en exakt etikett missade klicket för varje färg som saknades i
+// den storlek som var vald vid läsningen, och raden visade då föregående färgs galleri (konstgjorda
+// buxbomsklot 7d1fb82b och bänkdynan a7aa9370, 2026-10-23). Valet letas därför upp på namnet före
+// " – ", i den färska sidan, vid varje klick.
+const bas = (l) => (l || '').replace(/ – .*$/, '').trim();
+const valj = (axel, namn) =>
+  sida.evaluate(
+    ([ax, n, sel]) => {
+      const axelEl = document.querySelectorAll(sel)[ax];
+      const sw = [...(axelEl?.querySelectorAll('.varswatch') || [])].find((s) => {
+        const l = (s.getAttribute('aria-label') || '').trim();
+        return l === n || l.startsWith(n + ' – ');
+      });
+      if (!sw) return false;
+      sw.click();
+      return true;
+    },
+    [axel, namn, axSel],
+  );
+
+// Samma sak för ett storlekskort: etiketten blir "180 × 90 × 90 cm – finns inte i Vit" när en färg som
+// saknas i storleken är vald, så ett klick på den exakta etiketten missar (växthuset e891b752, 2026-11-10:
+// 180 cm-kortet gick inte att klicka med Vit vald, och raderna visade den förra kombinationens galleri).
+const valjKort = (namn) =>
+  sida.evaluate(
+    ([n]) => {
+      const k = [...document.querySelectorAll('.varcard')].find((c) => {
+        const l = (c.getAttribute('aria-label') || '').trim();
+        return l === n || l.startsWith(n + ' – ');
+      });
+      if (!k) return false;
+      k.click();
+      return true;
+    },
+    [namn],
+  );
+
 console.log('VÄLJARE', start.axlar.length ? `${start.axlar.length} axel/axlar` : start.kort.length ? `${start.kort.length} kort` : 'ingen');
 if (!antalSynliga) {
   console.log('START', JSON.stringify(rad(start, '')));
 } else if (start.kort.length) {
   console.log('KORT', JSON.stringify(start.kort.map((k) => `${k.l}${k.akt ? '*' : ''} [${pos(k.bild)}] ${k.pris}`)));
+  // Storlekskort + en axel med färgrutor (växthuset e891b752, 2026-11-10): korten är en axel i
+  // `.pdp-axis` och färgerna en annan. Förut klickades bara korten, och bara den förvalda färgen
+  // mättes i varje storlek. Nu mäts varje kombination, och en färg som saknas i en storlek skrivs
+  // som "finns inte".
+  const fargAxel = start.axlar.findIndex((a) => a.sw.length);
   for (const k of start.kort) {
-    await sida.locator(`.varcard[aria-label="${citera(k.l)}"]`).first().click({ force: true }).catch(() => {});
+    if (fargAxel >= 0) {
+      // börja varje kort på första färgen som finns, så att kortet inte är spärrat av förra kortets sista färg
+      const forsta = (await las()).axlar[fargAxel].sw.find((x) => !x.na);
+      if (forsta) await valj(fargAxel, bas(forsta.l));
+      await sida.waitForTimeout(500);
+    }
+    if (!(await valjKort(bas(k.l)))) console.log('KORT', k.l, '– hittade inte kortet');
     await sida.waitForTimeout(600);
     const nu = await las();
-    console.log('VAL', k.l, JSON.stringify(rad(nu, nu.kortVal)));
+    if (fargAxel < 0) {
+      console.log('VAL', k.l, JSON.stringify(rad(nu, nu.kortVal)));
+      continue;
+    }
+    for (const s of nu.axlar[fargAxel].sw) {
+      if (s.na) {
+        console.log('KOMBO', k.l, '×', s.l, 'finns inte');
+        continue;
+      }
+      if (!(await valj(fargAxel, bas(s.l)))) console.log('KOMBO', k.l, '×', s.l, '– hittade inte valet');
+      await sida.waitForTimeout(600);
+      let nu2 = await las();
+      if (nu2.galleri.map(pos).join(',') === (globalThis.__forra || '')) {
+        await sida.waitForTimeout(1200);
+        nu2 = await las();
+      }
+      globalThis.__forra = nu2.galleri.map(pos).join(',');
+      console.log('KOMBO', k.l, '×', s.l, JSON.stringify(rad(nu2, nu2.axlar.map((x) => `${x.nyckel}=${x.val}`).join(' | '))));
+    }
   }
 } else if (start.axlar.length === 1) {
   for (const s of start.axlar[0].sw) {
@@ -99,26 +166,6 @@ if (!antalSynliga) {
     console.log('VAL', s.l, JSON.stringify(rad(nu, nu.axlar[0].val)));
   }
 } else {
-  // ☠️ Ett vals etikett ändras med det andra valet ("Beige – finns inte i 100 cm", "150 cm – slut i
-  // lager"). Listan läses en gång, så en exakt etikett missade klicket för varje färg som saknades i
-  // den storlek som var vald vid läsningen, och raden visade då föregående färgs galleri (konstgjorda
-  // buxbomsklot 7d1fb82b och bänkdynan a7aa9370, 2026-10-23). Valet letas därför upp på namnet före
-  // " – ", i den färska sidan, vid varje klick.
-  const bas = (l) => (l || '').replace(/ – .*$/, '').trim();
-  const valj = (axel, namn) =>
-    sida.evaluate(
-      ([ax, n, sel]) => {
-        const axelEl = document.querySelectorAll(sel)[ax];
-        const sw = [...(axelEl?.querySelectorAll('.varswatch') || [])].find((s) => {
-          const l = (s.getAttribute('aria-label') || '').trim();
-          return l === n || l.startsWith(n + ' – ');
-        });
-        if (!sw) return false;
-        sw.click();
-        return true;
-      },
-      [axel, namn, axSel],
-    );
   for (const a of start.axlar[0].sw) {
     if (!(await valj(0, bas(a.l)))) console.log('KOMBO', a.l, '– hittade inte valet');
     await sida.waitForTimeout(500);

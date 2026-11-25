@@ -236,3 +236,15 @@ den i samma vända som övriga variantändringar så du bara betalar följdskado
 **Hitta buggen i hela katalogen:** för varje produkt med >1 variantval, GET:a `fields=MEDIA_ITEMS_INFO` och jämför `choices[].linkedMedia[].id` — **samma id på 2+ val = merge-bugg** (åtgärda), **tomma** = omappad storleks-/spec-variant (oftast ofarlig). Den fulla katalog-svepen (417 produkter, 2026-07-09) hittade bara cykelvagnen med den äkta buggen.
 
 ⚠️ **`variantsInfo.variants[].media` är `readOnly` och är en ÖGONBLICKSBILD — inte samma sak som `linkedMedia` (2026-08-17).** Fältet härleds när optionens val skapas. Kopplas `linkedMedia` på i efterhand (som i 11B ovan) uppdateras det INTE, utan blir kvar på det som gällde då — oftast produktens hjältebild. En PATCH som försöker sätta `media` på en befintlig variant går igenom med 200 men ändrar ingenting; schemat säger `readOnly: true`. Enda vägen är att **bygga om optionen** (nya val utan id:n, `linkedMedia` inline, varianterna identifierade med `optionChoiceNames`) — då räknas den om.
+
+## Valens ordning (2026-11-06)
+
+Valen i en storleksoption ska ligga från minst till störst, eftersom butiken visar dem i den ordning Wix har dem. En sammanslagning (`aosom-sammanslagning`)
+lade givarens val SIST, så en sida som fått en ny storlek låg ofta fel (hantlarna: 4, 5, 10 och sedan 6 kg). Motorn placerar valet i storleksordning sedan
+`lib/aosom/valordning.ts` (2026-11-11), men bara efter att fixen är mergad och byggd, och den kan inte bedöma val utan tal, olika antal tal eller blandade enheter.
+
+- Kör `tools/polish-gates/sortera-val-svep.js` via ExecuteWixAPI (torrt, 30 s för alla publicerade sidor) efter en sammanslagning och i kontrollen live, och
+  rätta det som flaggas med `tools/polish-gates/sortera-val.js` (torrt först, högst åtta sidor per körning).
+- ☠️ Skrivningen nollar varukorgens bild på varje variant. Kör `variantbild.yml` (skarp, `ids`) direkt efter.
+- Dolda utkast rörs inte. De sorteras när de publiceras.
+- Reglerna, utfallet och det som lämnades står i [*Valens ordning*](../claude/05-aosom-synken/31-storleksvyer.md).

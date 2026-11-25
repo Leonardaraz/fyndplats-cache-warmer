@@ -1,0 +1,56 @@
+5177371b	1	används	Vit: studiobild, ren (värdens egen)
+5177371b	2	används	Vit: miljöbild, ren
+5177371b	3	används	Vit: miljöbild med kaffemaskin; en inramad affisch i bakgrunden är rekvisita
+5177371b	4	används	Vit: miljöbilder, rena
+5177371b	5	används	Vit: feedens position 10, miljöbild utan grafik; boken på bordet och föremålen på skänken är rekvisita
+5177371b	6	används	Vit: måttbild med bara tal och enheter; läggs sist bland färgens bilder
+5177371b	7	används	Ek: studiobild, ren; givarens engelska standardtext ersatt
+5177371b	8	används	Ek: miljöbild, ren
+5177371b	9	används	Ek: miljöbild med kaffemaskin; affischen i bakgrunden är rekvisita
+5177371b	10	används	Ek: miljöbilder, rena
+5177371b	11	används	Ek: feedens position 10, miljöbild utan grafik
+5177371b	12	används	Ek: måttbild med bara tal och enheter, samma tal som värdens; läggs sist bland färgens bilder
+5177371b	13	används	Naturträ: studiobild, ren
+5177371b	14	används	Naturträ: miljöbild, ren
+5177371b	15	används	Naturträ: miljöbilder, rena
+5177371b	16	används	Naturträ: feedens position 10, miljöbild utan grafik
+5177371b	17	används	Naturträ: måttbild med bara tal och enheter, samma tal som värdens; läggs sist bland färgens bilder
+d92a8efd	1	används	Silver: studiobild, ren (värdens egen)
+d92a8efd	2	används	Silver: miljöbild, ren
+d92a8efd	3	används	Silver: miljöbild med en man; skåpet har silverfärgad ram
+d92a8efd	4	används	Silver: feedens position 10, miljöbild utan grafik; böcker och flaskor är rekvisita
+d92a8efd	5	används	Svart: studiobild, ren; givarens engelska standardtext ersatt
+d92a8efd	6	används	Svart: miljöbild, ren
+d92a8efd	7	används	☠️ visar det SVARTA skåpet (svart ram), men låg länkad till Silver efter sammanslagningen; flyttad till Svart
+d92a8efd	8	används	Svart: feedens position 10, miljöbild utan grafik
+4d69d229	1	används	Vit: studiobild, ren; märket på varan syns
+4d69d229	2	används	Vit: miljöbild, ren
+4d69d229	3	används	Vit: miljöbild med en person, ren
+4d69d229	4	används	Vit: miljöbild med en familj, ren
+4d69d229	5	används	Vit: feedens position 10, miljöbild utan grafik; flaskan och tidningen i bakgrunden är rekvisita
+4d69d229	6	används	Rosa: studiobild, ren; givarens engelska standardtext ersatt
+4d69d229	7	används	Rosa: miljöbild, ren
+4d69d229	8	används	Rosa: studiobild, ren
+4d69d229	9	används	Rosa: feedens position 4, miljöbild utan grafik
+4d69d229	10	används	Rosa: feedens position 5, miljöbild utan grafik
+4d69d229	11	används	Rosa: feedens position 6, miljöbild utan grafik; flaskan och tidningen i bakgrunden är rekvisita
+bee125c5	1	används	Svart 36 liter: vit studiobild, ren
+bee125c5	2	används	Svart 36 liter: miljöbild, ren
+bee125c5	3	används	Svart 48 liter: vit studiobild, ren
+bee125c5	4	används	Svart 48 liter: miljöbild, ren
+bee125c5	5	används	Svart 36 liter: feedens position 10, miljöbild utan grafik
+bee125c5	6	används	Svart 48 liter: feedens position 10, miljöbild utan grafik
+bee125c5	7	används	Svart 36 liter: utsnitt ur feedens position 4
+bee125c5	8	används	Svart 48 liter: utsnitt ur feedens position 4
+bee125c5	9	används	☠️ visar det SVARTA 36-litersskåpet (svart ram), men kom med Silver-givaren; flyttad till Svart 36 liter
+bee125c5	10	används	Svart 36 liter: utsnitt ur måttbilden; delas av båda färgerna (länkad bara till storleken); läggs sist
+bee125c5	11	används	Svart 48 liter: utsnitt ur måttbilden; delas av båda färgerna (länkad bara till storleken); läggs sist
+bee125c5	12	används	Silver 48 liter: vit studiobild, ren; givarens engelska standardtext ersatt
+bee125c5	13	används	Silver 48 liter: miljöbild, ren
+bee125c5	14	används	Silver 48 liter: miljöbild med en person, ren
+bee125c5	15	används	Silver 48 liter: miljöbild med tre personer, ren; böckerna på skänken är rekvisita
+bee125c5	16	används	Silver 48 liter: feedens position 10, miljöbild utan grafik
+bee125c5	17	används	Silver 36 liter: vit studiobild, ren; givarens engelska standardtext ersatt
+bee125c5	18	används	Silver 36 liter: miljöbild, ren
+bee125c5	19	används	Silver 36 liter: miljöbild med en person, ren
+bee125c5	20	används	Silver 36 liter: feedens position 10, miljöbild utan grafik

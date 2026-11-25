@@ -1,0 +1,24 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "2c1d652d": {
+  "tyska": "",
+  "svenska": "2 x 15kg",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Hantelkopf: 15,5B x 15,5T x 10,4H cm | ✔ Hantelkopf: 15,5B x 15,5T x 10,4H cm"
+ },
+ "35396d28": {
+  "tyska": "Ø32 x 4,5T cm",
+  "svenska": "2 x 10 kg",
+  "bokstaver": "T",
+  "djup": 4.5
+ },
+ "43b0de34": {
+  "tyska": "",
+  "svenska": "2 x 17,5kg",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Hantelkopf: 16,2B x 16,2T x 11H cm | ✔ Hantelkopf: 16,2B x 16,2T x 11H cm"
+ },
+ "72aa9292": {
+  "tyska": "",
+  "svenska": "34 x 34 x 6 cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Abmessungen: 10-kg-Scheiben: Ø34 x 6T cm | 7,5-kg-Scheiben: Ø31 x 5,5T cm | 2,5-kg-Scheiben: Ø24 x 3T cm | ✔ Grifföffnung: 10-kg-Scheiben: 13L x 5B cm | 7,5-kg-Scheiben: 12L x 5B cm | 2,5-kg-Scheiben: 8L x 4B cm | ✔ Abmessungen: 10-kg-Scheiben: Ø34 x 6T cm | 5-kg-Scheiben: Ø28.5 x 4T cm | ✔ Grifföffnung: 10-kg-Scheiben: 13L x 5B cm | 5-kg-Scheiben: 10L x 4B cm | ✔ Abmessungen: 5-kg-Scheiben: Ø28,5 x 4T cm | 2,5-kg-Scheiben: Ø24 x 3T cm | ✔ Grifföffnung: 5-kg-Scheiben: 10L x 4B cm | 2,5-kg-Scheiben: 8L x 4B cm"
+ }
+}

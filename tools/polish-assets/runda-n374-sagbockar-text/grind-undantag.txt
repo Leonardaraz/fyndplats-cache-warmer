@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källan är sidans egen, tidigare verifierade svenska text, och den har ingen tysk måttrad att bygga facit ur

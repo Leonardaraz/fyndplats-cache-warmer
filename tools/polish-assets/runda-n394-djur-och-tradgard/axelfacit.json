@@ -1,0 +1,63 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "004ffc51": {
+  "tyska": "40L x 34,5l x 188H cm",
+  "svenska": "40 x 34,5 x 188 cm",
+  "bokstaver": "LH",
+  "hojd": 188,
+  "bredd": 40
+ },
+ "36d619cf": {
+  "tyska": "133L x 62B x 65H cm",
+  "svenska": "133 x 62 x 65 cm",
+  "bokstaver": "LBH",
+  "hojd": 65,
+  "bredd": 133,
+  "djup": 62
+ },
+ "4ae2d80c": {
+  "tyska": "84L x 60B x 116H cm",
+  "svenska": "84 x 60 x 116 cm",
+  "bokstaver": "LBH",
+  "hojd": 116,
+  "bredd": 84,
+  "djup": 60
+ },
+ "6109a4d8": {
+  "tyska": "60B x 30T x 24H cm",
+  "svenska": "60L x 30B x 24H cm",
+  "bokstaver": "BTH",
+  "djup": 30,
+  "hojd": 24,
+  "bredd": 60
+ },
+ "7d11424e": {
+  "tyska": "115L x 76H cm",
+  "svenska": "115L x 3B x 76H cm",
+  "bokstaver": "LH",
+  "hojd": 76,
+  "bredd": 115
+ },
+ "95336fa4": {
+  "tyska": "Ø 18 x 78H cm (vorgeschlagene Maße im ausgefaltetem Zustand)",
+  "svenska": "18 x 18 x 78 cm",
+  "bokstaver": "H",
+  "hojd": 78
+ },
+ "b38d5319": {
+  "tyska": "49L x 32B x 31H cm",
+  "svenska": "49cm x 32cm x 31cm",
+  "bokstaver": "LBH",
+  "hojd": 31,
+  "bredd": 49,
+  "djup": 32
+ },
+ "f7f48b68": {
+  "tyska": "160L x 140B x 180H cm",
+  "svenska": "160L x 140B x 180H cm",
+  "bokstaver": "LBH",
+  "hojd": 180,
+  "bredd": 160,
+  "djup": 140
+ }
+}

@@ -1,0 +1,4 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+eb7c19cc 0,74 grundytan 0,74 m² avläst på måttbilden (position 3: Grundfläche = 0,74 m²) och står i leverantörens titel; 98 × 76 cm i källtexten ger samma yta
+00def435 3,6 grundytan 3,6 m² avläst på måttbilden (position 3: Grundfläche = 39 ft² (3,6 m²)) och står i leverantörens titel

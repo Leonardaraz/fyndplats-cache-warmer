@@ -1,0 +1,60 @@
+{
+ "_om": "Genererad mekaniskt av polish-gates/bygg-axelfacit.py ur kallor.json. POSITIONELL: tal 1 = frontvänd horisontal, tal 2 = bortre, tal 3 = höjd. Bokstäverna är källans, inte facit — se skriptets docstring.",
+ "3f437894": {
+  "tyska": "(aufrecht) 92L x 95B x 107H cm",
+  "svenska": "92L x 95B x 107H cm",
+  "bokstaver": "LBH",
+  "hojd": 107,
+  "bredd": 92,
+  "djup": 95
+ },
+ "640676ef": {
+  "tyska": "(aufrecht) 85L x 94B x 107H cm",
+  "svenska": "Polyester, Metall",
+  "bokstaver": "LBH",
+  "hojd": 107,
+  "bredd": 85,
+  "djup": 94
+ },
+ "8a45270a": {
+  "tyska": "80L x 80B x 43,8H cm",
+  "svenska": "80 x 80 x 43,8 cm",
+  "bokstaver": "LBH",
+  "hojd": 43.8,
+  "bredd": 80,
+  "djup": 80
+ },
+ "8f3aecb9": {
+  "tyska": "45L x 21,5B x 85H cm",
+  "svenska": "45L x 21,5B x 85H cm",
+  "bokstaver": "LBH",
+  "hojd": 85,
+  "bredd": 45,
+  "djup": 21.5
+ },
+ "b536fdf9": {
+  "tyska": "182L x 82B x 68H cm",
+  "svenska": "182 x 82 x 68 cm",
+  "bokstaver": "LBH",
+  "hojd": 68,
+  "bredd": 182,
+  "djup": 82
+ },
+ "c3bb2ce8": {
+  "tyska": "75 x 48 x 67 cm",
+  "svenska": "75cm x 48cm x 67cm"
+ },
+ "d41b8a4b": {
+  "tyska": "75x75x42 cm und 65x65x36 cm. Montage erforderlich.",
+  "svenska": "75L x 75B x 42H cm",
+  "axellos": "inget totalmått i källan; bara delmått: ✔ Gesamtabmessungen: 75L x 75B x 42H cm, 65L x 65B x 36H cm"
+ },
+ "f655c4ce": {
+  "tyska": "70L x 19,5B x 7,8H cm",
+  "svenska": "70L x 19,5B x 7,8H cm",
+  "bokstaver": "LBH",
+  "hojd": 7.8,
+  "bredd": 70,
+  "djup": 19.5
+ }
+}

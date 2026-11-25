@@ -1,0 +1,509 @@
+{
+ "runda": "runda-fix-kort",
+ "produkter": [
+  {
+   "kort": "056b68d4",
+   "pid": "056b68d4-f11f-44a6-aa52-0b7f7ad937b3",
+   "media": [
+    {
+     "id": "b379ce_5aeed678d0ef4288b0d50892e26b3466~mv2.jpg",
+     "altText": "Gnagarbur med tre plan på ett svart ställ med hjul, glasunderdel, löphjul, gul hydda och ramper, frilagd på vit bakgrund"
+    },
+    {
+     "id": "b379ce_bdb4a190eafd4b86b19bc178da0b6e67~mv2.jpg",
+     "altText": "Gnagarburen med grävmaterial i glasunderdelen och foder och tillbehör på hyllan under, bredvid en soffa där en kvinna sitter"
+    },
+    {
+     "id": "b379ce_b751a0d970c742038e4a8edf9d134266~mv2.jpg",
+     "altText": "Kort med gnagarburen på vit bakgrund och en tabell med totalmått, glasunderdel, bottenyta, burdel, löphjul och galleravstånd"
+    },
+    {
+     "id": "b379ce_472c933696544ba68df64c3121a0ccd6~mv2.jpg",
+     "altText": "Gnagarbur med glasunderdel, ramper och flera plan på svart underrede med hjul och nedre hylla, i rum med vit kubhylla och korgar"
+    },
+    {
+     "id": "b379ce_96aaf52eeb43405c891297f6f42b3c99~mv2.jpg",
+     "altText": "Ritning av gnagarburen framifrån och från sidan med mått för höjd, bredd och djup och en detalj som visar avståndet mellan gallerstavarna"
+    }
+   ]
+  },
+  {
+   "kort": "170f7e0a",
+   "pid": "170f7e0a-e0e9-429d-94ed-81527eeb737a",
+   "media": [
+    {
+     "id": "b379ce_90ae5da54d724e49906520f19ed67d93~mv2.jpg",
+     "altText": "Sminkspegel med svart kant, rundade hörn och en ljusring innanför kanten, med reglage nere till höger, frilagd på vit bakgrund"
+    },
+    {
+     "id": "b379ce_3e6d58856244422fa54f3ee73f805503~mv2.jpg",
+     "altText": "Sminkspegeln med svart ram på en beige vägg ovanför ett handfat med guldfärgad kran, med gröna kvistar i en vas och handdukar bredvid"
+    },
+    {
+     "id": "b379ce_722d325d11064719800fd414bbd31e88~mv2.jpg",
+     "altText": "Sminkspegeln hängd liggande med lysande kant ovanför ett vitt handfat på en svävande träbänk, med beige kakel och en svart hänglampa"
+    },
+    {
+     "id": "b379ce_872e888ef6a34a3487131464569ec489~mv2.jpg",
+     "altText": "Liggande spegel med svart ram och lysande LED-kant på en beige kakelvägg ovanför en vit handfatsskål med svart väggkran i ett badrum"
+    },
+    {
+     "id": "b379ce_7c16a96fede7429dadc3ab0617579fea~mv2.jpg",
+     "altText": "Ritning av den upplysta sminkspegeln stående med måtten 80 cm i höjd och 60 cm i bredd och en sidovy som visar hur tunn den är"
+    }
+   ]
+  },
+  {
+   "kort": "1d7bb50d",
+   "pid": "1d7bb50d-5261-4190-9618-9636dbb3a620",
+   "media": [
+    {
+     "id": "b379ce_e008129dc98f4d03bbd2fb80e1567a54~mv2.jpg",
+     "altText": "Svart spegelskåp med rektangulär spegeldörr, sett snett framifrån så att skåpets djup syns, frilagt på vit bakgrund"
+    },
+    {
+     "id": "b379ce_1297b282dfe943fe80c419a9c20f3581~mv2.png",
+     "altText": "Kort med spegelskåpet med öppen dörr på en beige vägg ovanför en guldfärgad kran, fyllt med flaskor, och en rubrik om att det kommer färdigmonterat"
+    },
+    {
+     "id": "b379ce_985bb46bc4fa4eeb919e47076be5a685~mv2.jpg",
+     "altText": "Spegelskåpet med öppen dörr på en beige badrumsvägg, med tre fack fyllda av flaskor och burkar, ovanför ett handfat med guldfärgad kran"
+    },
+    {
+     "id": "b379ce_54677e2f0b5842e99ba07f96e446dce9~mv2.jpg",
+     "altText": "Det stängda spegelskåpet med svart ram på en vägg ovanför en skänk i ljust trä med flätade dörrar, bredvid en grön växt i en vas"
+    },
+    {
+     "id": "b379ce_697c5dc1e516495f968997484489171a~mv2.jpg",
+     "altText": "Svart spegelskåp med ram på en ljus vägg ovanför en vit tvättbänk med blommor, brickor och flaskor, ett fönster speglas i glaset"
+    },
+    {
+     "id": "b379ce_bf27320e95414d06abbc81ac0344f9e1~mv2.jpg",
+     "altText": "Ritning av spegelskåpet med mått för bredd, höjd och djup, tre fack med lika fri höjd, spegelns mått och en märkning för 15 kg"
+    }
+   ]
+  },
+  {
+   "kort": "22b37fb4",
+   "pid": "22b37fb4-af16-4e8e-944e-84e56812c01c",
+   "media": [
+    {
+     "id": "b379ce_9fb0b2c956fd4ad4a1e73c769eb22d7b~mv2.jpg",
+     "altText": "Svart spegelskåp med en spegeldörr och ett öppet fack under, sett snett framifrån och frilagt på vit bakgrund"
+    },
+    {
+     "id": "b379ce_6afc4e438de448668e63a5e9411598d8~mv2.png",
+     "altText": "Kort med spegelskåpet på en grå badrumsvägg ovanför en kran och en rubrik om att det man använder varje morgon står framme"
+    },
+    {
+     "id": "b379ce_883b1bea4bc644ea88272f3a05cab025~mv2.jpg",
+     "altText": "Spegelskåpet på en grå vägg ovanför en vit marmorerad bänk med kran, med flaskor och tuber i det öppna facket och en vas med vita blommor bredvid"
+    },
+    {
+     "id": "b379ce_cd149a929b804a028bccf3efaf27c238~mv2.jpg",
+     "altText": "Närbild på insidan av det svarta skåpet med ett hyllplan och ett litet runt hål i bakstycket"
+    },
+    {
+     "id": "b379ce_f6769f6cebb543c48b42ca4c5fb89c93~mv2.jpg",
+     "altText": "Svart spegelskåp med öppen hylla fylld med flaskor, uppsatt på en grå marmorvägg ovanför ett handfat med vit stenbänk"
+    },
+    {
+     "id": "b379ce_35459c524ffa4e11bc1660eaa58ebefa~mv2.jpg",
+     "altText": "Ritning av spegelskåpet med öppen spegeldörr och mått för bredd, höjd och djup, de fria höjderna mellan hyllplanen och det öppna facket"
+    }
+   ]
+  },
+  {
+   "kort": "2ccf1182",
+   "pid": "2ccf1182-90fc-4ed9-abde-4c9090dc9fa7",
+   "media": [
+    {
+     "id": "b379ce_dc46fb8f2ee04fedb7ac4ce17409af47~mv2.jpg",
+     "altText": "Vit byrå med tre släta lådor utan handtag, sedd snett framifrån från vänster och frilagd på vit bakgrund"
+    },
+    {
+     "id": "b379ce_89d760ea5c1246d1be51ac2a697b89dd~mv2.jpg",
+     "altText": "Vit byrå med tre lådor bredvid en mjuk grå stol och en växt i ett ljust rum, med en handväska och en suckulent på skivan"
+    },
+    {
+     "id": "b379ce_fe0693bc5e384555a722ffeecfc6b68c~mv2.jpg",
+     "altText": "Byrån med alla lådor utdragna och fyllda med hopvikta kläder och handdukar, intill en säng, med en radio och tavelramar på skivan"
+    },
+    {
+     "id": "b379ce_4f6adccaf6d6453593f192cf830e45bd~mv2.jpg",
+     "altText": "Vit byrå med stängda lådor i ett hörn vid en dörrkarm, med en vas med gula blommor och böcker på skivan och en rund matta framför"
+    },
+    {
+     "id": "b379ce_1745afa197844db985eb6a18b4372b03~mv2.jpg",
+     "altText": "Vit byrå med lådor sedd framifrån i ett vardagsrum med krukväxt, grå soffa och rutig matta på golvet"
+    },
+    {
+     "id": "b379ce_67f239b5174a48a2802581b74b2093fd~mv2.jpg",
+     "altText": "Ritning av byrån med mått för bredd, djup och höjd och en utdragen låda på golvet med lådans invändiga mått"
+    }
+   ]
+  },
+  {
+   "kort": "49a2d0e4",
+   "pid": "49a2d0e4-8b59-439d-b4db-a0bd132ac023",
+   "media": [
+    {
+     "id": "b379ce_d258ca5ac09a46f7906e7aed332fb5cf~mv2.jpg",
+     "altText": "Svart byrå med fyra tyglådor i mörkgrå träådring, två smala överst och två breda under, med öppen hylla på toppen, på vit bakgrund"
+    },
+    {
+     "id": "b379ce_8cf044eb24ec404fa904f2f8c8638b44~mv2.png",
+     "altText": "Kort med en miljöbild på byrån i en hall bredvid en bänk och en rubrik om att den tar lite plats från väggen"
+    },
+    {
+     "id": "b379ce_d40c6e42e40044c4a4c9e0cbcd54ad8a~mv2.jpg",
+     "altText": "Byrån med en skivspelare på toppen i ett rum med mönstrad grå tapet, en golvlampa med silverfärgad skärm och en soffa i ljusbrunt läder"
+    },
+    {
+     "id": "b379ce_ffedb576f79e439baf8d3bd8fb8c543c~mv2.jpg",
+     "altText": "Byrån sedd snett framifrån med en vas och böcker på toppen, mellan två klädda bänkar, den ena med en blå pläd, under en tavla"
+    },
+    {
+     "id": "b379ce_76f50496439846729cded664f898c5fe~mv2.jpg",
+     "altText": "Ritning av byrån med måtten 60 × 29 × 85 cm, lådornas innermått och hyllans mått, med en pil för maxlast"
+    }
+   ]
+  },
+  {
+   "kort": "5352bb04",
+   "pid": "5352bb04-ae5e-4452-8d3f-3bb4b120d530",
+   "media": [
+    {
+     "id": "b379ce_8cda9c20f5a0475887c48455c2feece1~mv2.jpg",
+     "altText": "Larmpanel med pekskärm, siren, SOS-knapp, brickor, fjärrkontroller och sensorer i hemlarmet, uppställda i rader på vit bakgrund"
+    },
+    {
+     "id": "b379ce_0777bb3f9a8f4a4f8dbb884bdf44843a~mv2.jpg",
+     "altText": "Kort med larmpanelen och sensorerna i paketet med 3 rörelsesensorer och 6 dörrsensorer, över en tabell med antal delar"
+    },
+    {
+     "id": "b379ce_9b9bd0e810924f54ac995890a29ede2d~mv2.jpg",
+     "altText": "Kort med larmpanelen och sensorerna i paketet med 4 rörelsesensorer och 8 dörrsensorer, över en tabell med antal delar"
+    },
+    {
+     "id": "b379ce_fe911166a7b24888b42c035495e0ecbb~mv2.png",
+     "altText": "Kort med hemlarmet på vit bakgrund, en rubrik om hemlarm och specifikationer för skärm, uppkoppling, batteri och siren"
+    },
+    {
+     "id": "b379ce_4978a0252eb440dcb69d5993814f8b98~mv2.png",
+     "altText": "Kort med hemlarmets delar på vit bakgrund och en rubrik om ett smart larm för hemmet, med rutor om appstyrning, uppkoppling och siren"
+    }
+   ]
+  },
+  {
+   "kort": "6299104d",
+   "pid": "6299104d-351d-44bf-94c7-fd948c31544b",
+   "media": [
+    {
+     "id": "b379ce_0b5c410357d34b2b8e1350daff25dbb8~mv2.jpg",
+     "altText": "Vit dörrgrind med lodräta spjälor och en kattlucka med lås nedtill, frilagd på vit bakgrund sedd rakt framifrån"
+    },
+    {
+     "id": "b379ce_7025da80046346f8bbaeb9353d40345c~mv2.jpg",
+     "altText": "Vit dörrgrind med kattlucka monterad i en trappa, med en hund på trappsteget bakom grinden och en katt på golvet framför"
+    },
+    {
+     "id": "b379ce_fa3767c33d984f7b8d3930ee6992e004~mv2.jpg",
+     "altText": "Kort med dörrgrinden med kattlucka i en trappa, med en hund bakom grinden, och en tabell över passande öppning, höjd och kattluckans mått"
+    },
+    {
+     "id": "b379ce_b942b59beaa045eab99ac133d2f37d45~mv2.jpg",
+     "altText": "Vit dörrgrind med kattlucka i en dörröppning, där en katt går genom luckan och en hund sitter bredvid på trägolvet"
+    },
+    {
+     "id": "b379ce_8a825ab787be4d548631cd5309000154~mv2.jpg",
+     "altText": "Ritning av dörrgrinden med inritade mått för bredd, höjd, grindöppning, spjälavstånd och kattluckans storlek, med en tass som dekor"
+    }
+   ]
+  },
+  {
+   "kort": "9cf9a28d",
+   "pid": "9cf9a28d-e827-4c22-a44d-ea14e31acf45",
+   "media": [
+    {
+     "id": "b379ce_beda4fb0090d40edb0f7c60abadb0f82~mv2.jpg",
+     "altText": "Ljusgrå kontorsstol i mjukt tyg med nackstöd och stoppade armstöd på blank metallfot med hjul, sedd snett framifrån på vit bakgrund"
+    },
+    {
+     "id": "b379ce_fc21ece5df0e4506a137d48b8d23c291~mv2.jpg",
+     "altText": "Kontorsstolen med bakåtlutad rygg och utdraget fotstöd vid ett skrivbord med träskiva, bärbar dator och bordslampa framför ett stort fönster"
+    },
+    {
+     "id": "b379ce_ef03c1b6a6bf46c6a4f0a714b5a57049~mv2.jpg",
+     "altText": "Kort med en miljöbild på kontorsstolen vid skrivbordet, en rubrik om att stolen går in under bordet och en liten tabell med mått"
+    },
+    {
+     "id": "b379ce_07c8d83e6c8b4e1eadb9d8d4321b7ba3~mv2.jpg",
+     "altText": "Ljusgrå kontorsstol i mjukt tyg med utfällt fotstöd, sedd snett framifrån, vid ett vitt skrivbord med pärmar i ett kontor"
+    },
+    {
+     "id": "b379ce_51ea9e0343fa4485b4fdba71af05aedd~mv2.jpg",
+     "altText": "Ritning av kontorsstolen framifrån och från sidan med mått för bredd, djup, höjd och sitthöjd"
+    }
+   ]
+  },
+  {
+   "kort": "b9c3c384",
+   "pid": "b9c3c384-568b-415d-826c-e84c9595aa3c",
+   "media": [
+    {
+     "id": "b379ce_d417bf5a84214fb6b10b81fd7e8d66ab~mv2.jpg",
+     "altText": "Svart hörnskrivbord med skärmställ, eluttag i kanten, tre lådor i grått tyg och öppna hyllor, frilagt på vit bakgrund sett snett uppifrån"
+    },
+    {
+     "id": "b379ce_e550848fb520452a8f63380aba2c15d0~mv2.jpg",
+     "altText": "Hörnskrivbordet i en spelhörna med skärm, tangentbord, hörlurar och en dator med belysning, och en vit kontorsstol i förgrunden"
+    },
+    {
+     "id": "b379ce_6cdc753117b64e52a9a678b47ee80f74~mv2.png",
+     "altText": "Kort med en miljöbild på hörnskrivbordet med lådor, hyllor och skärmställ och en rubrik om att förvaringen sitter i bordet"
+    },
+    {
+     "id": "b379ce_663a0e4408d74125a04815a0b62e9f7f~mv2.jpg",
+     "altText": "Hörnskrivbordet i ett ljust hemmakontor med skärm på skärmstället, pärmar i hyllorna och en vit kontorsstol på en jutematta"
+    },
+    {
+     "id": "b379ce_91b3a8b47fe64b59bc5cf2452aa65b60~mv2.jpg",
+     "altText": "Hörnskrivbordet i en spelhörna med böjd skärm på skärmstället, tangentbord och hörlurar och en glödande ljusslinga längs väggen"
+    },
+    {
+     "id": "b379ce_09e9fe4c0c9c4b30b5ee9ccff055dce8~mv2.jpg",
+     "altText": "Ritning av hörnskrivbordet med mått för skivor, höjd, hyllor och skärmställ och två lösa lådor med egna mått"
+    }
+   ]
+  },
+  {
+   "kort": "bbe221e6",
+   "pid": "bbe221e6-6247-42a1-8a95-9d9dfd92f20c",
+   "media": [
+    {
+     "id": "b379ce_f68147af0a2940e1959ace8acca4e7a9~mv2.jpg",
+     "altText": "Bågformat spegelskåp med tunn svart metallram och en synlig skåpsida, frilagt på vit bakgrund sett snett framifrån"
+    },
+    {
+     "id": "b379ce_d97fce8c736b44969899febe36456403~mv2.png",
+     "altText": "Kort med en miljöbild på spegelskåpet på väggen över en träkommod och en rubrik om spegel på väggen med tre hyllplan bakom"
+    },
+    {
+     "id": "b379ce_859455c958f64b0cbfaba3481d600337~mv2.jpg",
+     "altText": "Spegelskåpet med dörren öppen så att de svarta hyllplanen med flaskor syns, på en beige kakelvägg ovanför ett handfat"
+    },
+    {
+     "id": "b379ce_91c16de498aa4d9db401d3e779a90981~mv2.jpg",
+     "altText": "Spegelskåpet stängt på en beige vägg ovanför en hängande träkommod med lådor, tandborstar, tvål och en handduk"
+    },
+    {
+     "id": "b379ce_99d02989d1af497091b9394296cd55c1~mv2.jpg",
+     "altText": "Spegelskåpet på en ljus vägg ovanför ett vitt tvättställ med guldfärgade kranar i ett badrum med fönster och växter"
+    },
+    {
+     "id": "b379ce_53e4735da43c43f9b0f53e89bce07e61~mv2.jpg",
+     "altText": "Svart bågformat spegelskåp på en ljus vägg mellan två vägglampar, ovanför en vit tvättbänk med svart kran, vas och flaskor"
+    },
+    {
+     "id": "b379ce_a6b2349427ad4900b0feaba6fa0c9379~mv2.jpg",
+     "altText": "Ritning av spegelskåpet öppet med tre hyllplan och stängt, med mått för bredd, höjd, djup och fackens höjd, och en symbol för bärförmåga"
+    }
+   ]
+  },
+  {
+   "kort": "c30b626a",
+   "pid": "c30b626a-61d3-41e0-ae7b-fc8efd2f467c",
+   "media": [
+    {
+     "id": "b379ce_e2149ce707c24165bc5b03132e5acf86~mv2.jpg",
+     "altText": "Vit dörrgrind med lodräta spjälor och fästen i hörnen, frilagd på vit bakgrund sedd rakt framifrån"
+    },
+    {
+     "id": "b379ce_80dbcda215fc4254a79eef41cc1f4a04~mv2.jpg",
+     "altText": "Den vita dörrgrinden monterad i en dörröppning, med en kvinna som läser i en orange soffa bakom och en svartvit hund framför"
+    },
+    {
+     "id": "b379ce_9adc1fb030cb460fbda9793972815df0~mv2.jpg",
+     "altText": "Kort med dörrgrinden i ett vardagsrum och en tabell över passande öppning, höjd, montering och vikt"
+    },
+    {
+     "id": "b379ce_34f4474a14b24ec4a813a16240aef856~mv2.jpg",
+     "altText": "Vit dörrgrind monterad i en dörröppning med en hund som sitter intill, ljust vardagsrum med soffa och trägolv bakom"
+    },
+    {
+     "id": "b379ce_2e930848ae2540f8b4b8a7eb1f14a145~mv2.jpg",
+     "altText": "Ritning av dörrgrinden rakt framifrån med gula måttlinjer för bredd och höjden 74,5 cm, på ljus bakgrund med en gul tass"
+    }
+   ]
+  },
+  {
+   "kort": "c4497ca9",
+   "pid": "c4497ca9-0608-4dc3-8a01-c8f1eb31c274",
+   "media": [
+    {
+     "id": "b379ce_943fc189b27e4f3d957d58f13540bde9~mv2.jpg",
+     "altText": "Svart skoskåp i högglans med guldfärgade ben och ena dörren öppen mot fem tomma fack, frilagt på vit bakgrund"
+    },
+    {
+     "id": "b379ce_391ba345d83c4c1797589a92ff1a006b~mv2.png",
+     "altText": "Kort med en miljöbild på skoskåpet fyllt med skor och en rubrik om att femton till tjugo par får plats"
+    },
+    {
+     "id": "b379ce_fb45cb71e22b4fdc9c7aeb7d72418997~mv2.jpg",
+     "altText": "Det svarta skoskåpet med ena dörren öppen och skor i facken, i en ljus hall med krokhylla, krukväxt och paraply"
+    },
+    {
+     "id": "b379ce_248fbc145c6c499cb69f6bb171d229a4~mv2.jpg",
+     "altText": "Skoskåpet med stängda dörrar i en hall, med en tavla, en liten radio ovanpå och en färgglad golvlampa bredvid"
+    },
+    {
+     "id": "b379ce_d839591ddcd84f84a30dbc9d7235851d~mv2.jpg",
+     "altText": "Skoskåpet snett framifrån med öppen dörr och måttlinjer för höjd 95 cm, bredd 72 cm, djup 31,5 cm och varje fack"
+    }
+   ]
+  },
+  {
+   "kort": "ca09bab9",
+   "pid": "ca09bab9-937b-4144-ba2c-7ae8db566f4d",
+   "media": [
+    {
+     "id": "b379ce_2892614180db4729bf72e2eb52b8e044~mv2.jpg",
+     "altText": "Svart kontorsstol i PU-läder med hög rygg, nackstöd, ländkudde, armstöd och fotstöd, på en kromad fot med hjul, frilagd på vit bakgrund"
+    },
+    {
+     "id": "b379ce_e967ebb59dd04f86b058315d91d57d41~mv2.jpg",
+     "altText": "Den svarta kontorsstolen där en kvinna i ljusa kläder sitter och läser, vid ett mörkt skrivbord med datorskärm och pärmar"
+    },
+    {
+     "id": "b379ce_1672cca8e0fd42c2b6748bb97a49b01a~mv2.jpg",
+     "altText": "Kort med en miljöbild på kontorsstolen och en rubrik om hur mycket stolen bär jämfört med vanliga kontorsstolar"
+    },
+    {
+     "id": "b379ce_3b10d650dd36401c8fb3e18f0aa47b65~mv2.jpg",
+     "altText": "Svart kontorsstol i konstläder med hög nackkudde, ländkudde och utfällt fotstöd vid ett mörkt skrivbord i trä"
+    },
+    {
+     "id": "b379ce_452b807ba168452891d15e55441152dc~mv2.jpg",
+     "altText": "Kontorsstolen framifrån och från sidan på grå bakgrund med måttlinjer för bredd, djup, ryggens höjd, sitthöjd och total höjd"
+    }
+   ]
+  },
+  {
+   "kort": "cfab9c4e",
+   "pid": "cfab9c4e-77a3-46d4-bd40-2a426f24a9ef",
+   "media": [
+    {
+     "id": "b379ce_dcbd3742ffcb460d81b39cc5801b421c~mv2.jpg",
+     "altText": "Hörnskrivbord i ljus ekton med svart stålram, skärmställ, hyllor och en mörkgrå förvaringsficka i tyg, uppställt som ett L på vit bakgrund"
+    },
+    {
+     "id": "b379ce_4b2750b8d28944e8846f5f89b99f7e23~mv2.png",
+     "altText": "Kort med en miljöbild på det ljusa hörnskrivbordet i ett arbetsrum och en rubrik om samma stomme i ljus ekton"
+    },
+    {
+     "id": "b379ce_a8c80cf4f750490791d5624fe85f438a~mv2.jpg",
+     "altText": "Hörnskrivbordet uppställt som ett L i ett arbetsrum med skärm på ställ, skrivare, laptop, brun kontorsstol och mönstrad matta"
+    },
+    {
+     "id": "b379ce_837fc56886654fb99e1542c786c99900~mv2.jpg",
+     "altText": "Hörnskrivbordet i ett arbetsrum där en kvinna arbetar med laptop och en skärm på ställ vid ett fönster, sett uppifrån"
+    },
+    {
+     "id": "b379ce_e9ab618dd18b41ed8d97fa5d40d002fd~mv2.jpg",
+     "altText": "Hörnskrivbordet i ett ljust rum med bokhyllor, krukväxt, golvlampa och vägghyllor, med skärm på ställ och skrivare på bordet"
+    },
+    {
+     "id": "b379ce_3b86420cfe564086b124a9c3feae4ceb~mv2.jpg",
+     "altText": "Ljust ekfärgat hörnskrivbord med svart stålställning, skärmhylla och förvaringspåse, sett snett uppifrån vid en tegelvägg"
+    },
+    {
+     "id": "b379ce_c7c2e8b5d1254c07a1faeec0577e10b9~mv2.jpg",
+     "altText": "Hörnskrivbordet i L-läge på ett trägolv med måttlinjer för längd, djup och höjd samt symboler för bärförmåga och antal skärmar"
+    }
+   ]
+  },
+  {
+   "kort": "d3fea27c",
+   "pid": "d3fea27c-3d98-43f7-b869-8fe008279288",
+   "media": [
+    {
+     "id": "b379ce_3f7babdf1c114ddabd4455ce7e0c5952~mv2.jpg",
+     "altText": "Svart spegelskåp med spegeldörr, sett snett framifrån och frilagt på vit bakgrund"
+    },
+    {
+     "id": "b379ce_9246488323094791b5551615d88ea5c5~mv2.png",
+     "altText": "Kort med en miljöbild på spegelskåpet ovanför ett handfat och en rubrik om skåpets extra djup"
+    },
+    {
+     "id": "b379ce_45bd06acfe174d93a19aecfe595707d2~mv2.jpg",
+     "altText": "Spegelskåpet på en grå vägg ovanför ett handfat, intill en hylla med krokar och badborstar och en vas med blommor"
+    },
+    {
+     "id": "b379ce_194c534713664ecbaa710dcb2d2b41a7~mv2.jpg",
+     "altText": "Närbild på gångjärnet och en hylla inuti det svarta spegelskåpet"
+    },
+    {
+     "id": "b379ce_e431cc16f11b44629cc934e230bf848b~mv2.jpg",
+     "altText": "Det öppna spegelskåpet med tre fack och måttlinjer för bredd 40 cm, höjd 60 cm, djup 15 cm och fackens fria höjd 19 cm"
+    }
+   ]
+  },
+  {
+   "kort": "d49a557a",
+   "pid": "d49a557a-79f3-4721-b912-c2574b7e5c67",
+   "media": [
+    {
+     "id": "b379ce_93034dcaf380453c9e926ed1393fe05f~mv2.jpg",
+     "altText": "Byrå med fyra tyglådor i rustik brun träton på en svart stålram och en öppen hylla överst, frilagd på vit bakgrund"
+    },
+    {
+     "id": "b379ce_b7de30d49c664e74bb39e5222e8fb2d5~mv2.png",
+     "altText": "Kort med en miljöbild på byrån i ett mörkt vardagsrum bredvid en soffa i brunt läder och en rubrik om rustik brun mot svart stål"
+    },
+    {
+     "id": "b379ce_a93b59c55980417ab8bee1653c6a295b~mv2.jpg",
+     "altText": "Byrån med en skivspelare och en vas med blommor på toppen, bredvid en golvlampa med guldfärgad stång och en soffa i brunt läder"
+    },
+    {
+     "id": "b379ce_4a8c670b4cda47dbb9fa2f547d1c74a0~mv2.jpg",
+     "altText": "Byrån i ett mörkt vardagsrum med perforerad väggpanel, golvlampa på marmorfot, skinnsoffa och ett soffbord med bricka"
+    },
+    {
+     "id": "b379ce_e691951575d2454b9a64c2636e8d04ce~mv2.jpg",
+     "altText": "Rustik brun byrå med tyglådor och svart stålställning, sedd snett uppifrån i ett rum med bänkar och fiskbensparkett"
+    },
+    {
+     "id": "b379ce_8c6012f65f5e4a9eaa66891c8f7ad308~mv2.jpg",
+     "altText": "Byrån med måttlinjer för bredd, djup, höjd, lådornas mått och hyllans mått samt en symbol för belastning"
+    }
+   ]
+  },
+  {
+   "kort": "efc86836",
+   "pid": "efc86836-1143-4fe5-a3a4-6f254c6911fa",
+   "media": [
+    {
+     "id": "b379ce_5069add41a0a4f369ec08f1f3cc02817~mv2.jpg",
+     "altText": "L-format gamingbord i svart med blå LED-belysning, skärmhylla, två lådor, öppna hyllor och eluttag, snett uppifrån på vit bakgrund"
+    },
+    {
+     "id": "b379ce_d54a3803f74745d98f6e22988378c369~mv2.png",
+     "altText": "Kort med bordet i ett rum med blått ljus och skärmar på skärmhyllan och en rubrik om belysningen och bärförmågan"
+    },
+    {
+     "id": "b379ce_2c8a5752fa7f49e8bd30eea441251ca6~mv2.jpg",
+     "altText": "Gamingbordet snett uppifrån i ett rum med blå LED-belysning, skärmar på skärmhyllan, tangentbord och perforerade väggpaneler med hyllor"
+    },
+    {
+     "id": "b379ce_68c5952c076241e7bc1ca39dd9427ceb~mv2.jpg",
+     "altText": "Bordet i ett ljust rum med tegelvägg och stora fönster, med en skrivare på den vänstra lådenheten, den undre lådan utdragen och en brun stol bredvid"
+    },
+    {
+     "id": "b379ce_0f06c8c7b6f7463a8e7dccace6b12a2a~mv2.jpg",
+     "altText": "Gamingbordet på blå sexkantsbakgrund med måttlinjer för bredd, höjd och bordsdelar, bärförmågan 120 kg och lådorna med invändiga mått"
+    }
+   ]
+  }
+ ]
+}

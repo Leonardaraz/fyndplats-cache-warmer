@@ -1,0 +1,4 @@
+# Tal som är AVLÄSTA ELLER RÄKNADE PÅ PRODUKTFOTOT, inte skrivna i den tyska källtexten.
+# Form: <kort> <tal> <vad som lästes av eller räknades>
+d58cdd74 163,5 djup i liggande läge, avläst på måttbilden (bild 3); texten säger 159 cm och det större yttermåttet gäller
+d58cdd74 79 höjd i liggande läge, avläst på måttbilden (bild 3); texten säger 78 cm och det större yttermåttet gäller

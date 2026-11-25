@@ -1,0 +1,3 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+bygg-axelfacit.py källans måttrad för tvättkorgen anger 75 x 48 x 67 cm utan axelbokstäver (Gesamtmaße och Mått), så ingen facitrad med axlar går att bygga; måttbilden visar bredd 75 cm, djup 48 cm och höjd 67 cm och texten binder talen därefter
+gate-axel.py källans 182L x 82B x 68H gäller en bänk där L är längden och B bredden: liggytan är 182 cm lång och 62 cm bred, och måttbilden (bild 3) visar 182 cm längs bänken och 82 cm tvärs över den, så texten binder 182 till lång och 82 till bred

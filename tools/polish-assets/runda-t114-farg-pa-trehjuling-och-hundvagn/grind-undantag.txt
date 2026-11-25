@@ -1,0 +1,2 @@
+# <skript> <skäl> — se bygg-skrivplan.py
+gate-axel.py 3bc2f3f7: tyska blocket är 111L x 70B x 97,5H cm och måttritningen (galleriets Måttbild) visar 70 cm som vagnens bredd (frontvyn) och 111 cm som längden (sidovyn); axelfacit läser position 2 som djup, och texten, namnet och adressen säger rätt: 70 cm bred. Sidan var publicerad med den formuleringen före rundan.
