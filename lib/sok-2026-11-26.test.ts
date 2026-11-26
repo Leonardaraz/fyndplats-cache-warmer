@@ -222,7 +222,8 @@ test("datafilen bär märkesnycklarna, och inget märke i klartext", () => {
 test("vyerna säger vilket märke listan gäller", () => {
   const ruta = las("components", "searchbox.tsx");
   assert.match(ruta, /setMarkeFor\(!visar && svar\.marke \? \{ q: val, marke: svar\.marke \} : null\);/);
-  assert.match(ruta, /marke \? `Säljs som \$\{marke\} hos prisjämförelsesajterna`/);
+  // Sökläget på en telefon har den korta rubriken: den långa kapades bredvid "Visa alla".
+  assert.match(ruta, /marke \? \(rutnat \? `Säljs som \$\{marke\}` : `Säljs som \$\{marke\} hos prisjämförelsesajterna`\)/);
   assert.match(ruta, /\(kategorier\.length > 0 \|\| harPris\(pris\) \|\| visar \|\| marke \|\| liknande\)/);
   assert.equal((ruta.match(/setMarkeFor\(null\);/g) ?? []).length, 2);
   // Sökrutans rankning och de två vägarna till söksidan skickar märket vidare, skrivet för kunden.

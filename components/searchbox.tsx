@@ -893,7 +893,10 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
   };
 
   // Rubriken över varorna: vilket ord de gäller, när det inte är det skrivna.
-  const varuRubrik = visar ? `Visar “${visar}”` : marke ? `Säljs som ${marke} hos prisjämförelsesajterna` : liknande ? "Närmast i stavning" : harPris(pris) ? `Varor ${prisText(pris)}` : "Varor";
+  // ☠️ Märkets rubrik är kortare i sökläget: där delar den rad med "Visa alla",
+  // och den långa kapades till "Säljs som Homcom hos prisjä…" på en telefon
+  // (mätt på förhandsbygget 2026-11-26, 393 px).
+  const varuRubrik = visar ? `Visar “${visar}”` : marke ? (rutnat ? `Säljs som ${marke}` : `Säljs som ${marke} hos prisjämförelsesajterna`) : liknande ? "Närmast i stavning" : harPris(pris) ? `Varor ${prisText(pris)}` : "Varor";
 
   // Vad en skärmläsare får höra när listan ändras: antalet, och vilket ord
   // det gäller när det inte är det som står i rutan.

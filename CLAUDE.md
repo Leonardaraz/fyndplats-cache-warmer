@@ -6415,7 +6415,9 @@ Vilka varor som hör till ett märke står bland namnnycklarna, som en
 märkesnyckel (`markesnyckel`): en summa som de andra, så att varken ett namn
 eller ett märke står i klartext i datafilen eller i sökindexet. Verktyget läser
 märket ur namnets första ord (`markeForstINamn`). Vyerna säger vilket märke
-listan gäller: sökrutans rubrik, och en rad på söksidan.
+listan gäller: sökrutans rubrik, och en rad på söksidan. ☠️ I sökläget på en
+telefon är rubriken den korta, "Säljs som Homcom": den delar rad med "Visa
+alla", och den långa kapades till "… hos prisjä…" (mätt på förhandsbygget).
 
 Mätt 2026-11-26, klass A (463 namn, sökindexet från www med 8 742 varor):
 

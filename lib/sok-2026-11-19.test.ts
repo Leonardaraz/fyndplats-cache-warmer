@@ -726,7 +726,7 @@ test("sökrutan visar förslagets varor och säger vilket ord det gäller", asyn
   assert.match(ruta, /m\.matchaKategorier\(visar \|\| pris\.fraga, registreradeKategorier\(\), KATEGORIFORSLAG\)/);
   // Rubriken, foten och Enter gäller ordet som visas.
   // Sedan 2026-11-26 också märket, när sökningen bara var det (lib/sok-2026-11-26.test.ts).
-  assert.match(ruta, /const varuRubrik = visar \? `Visar “\$\{visar\}”` : marke \? `Säljs som \$\{marke\} hos prisjämförelsesajterna` : liknande \? "Närmast i stavning" : harPris\(pris\)/);
+  assert.match(ruta, /const varuRubrik = visar \? `Visar “\$\{visar\}”` : marke \? \(rutnat \? `Säljs som \$\{marke\}` : `Säljs som \$\{marke\} hos prisjämförelsesajterna`\) : liknande \? "Närmast i stavning" : harPris\(pris\)/);
   assert.equal(ruta.split("varuRubrik}").length - 1, 2, "listans rubrik och söklägets");
   // En rättad stavning sägs på samma sätt, och bara stavningsnära träffar får sin egen rubrik.
   assert.match(ruta, /if \(!visar && svar\.rattat\) visar = svar\.rattat;/);
