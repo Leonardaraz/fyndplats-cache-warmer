@@ -1,14 +1,14 @@
 // app/api/cron/farska-floden/route.ts
 // Vercel Cron: GET /api/cron/farska-floden, varannan timme (vercel.json).
 //
-// 1. Bygger Google-flödet EN gång och gör PriceRunner-, Pinterest- och det
-//    hemliga Prisjakt-flödet ur det, med samma byggare som rutterna
-//    (lib/feed/harledda.ts, lib/feed/prisjakt-hemlig.ts). Alla fyra sparas i
+// 1. Bygger Google-flödet EN gång och gör PriceRunner-, Pinterest-, GoWish- och
+//    det hemliga Prisjakt-flödet ur det, med samma byggare som rutterna
+//    (lib/feed/harledda.ts, lib/feed/prisjakt-hemlig.ts). Alla sparas i
 //    Vercels Runtime Cache (lib/feed/flodeslager.ts), och läsarna får kopian
 //    direkt i stället för att vänta på ett bygge: CDN:en behåller inte ett
 //    flöde som hämtas en gång om dygnet (mätt 2026-11-15). Förut byggdes
 //    Google-flödet tre gånger per körning, en gång per flöde.
-// 2. Hämtar sitemapen och de fyra öppna flödena en gång, så att CDN:ens kopia
+// 2. Hämtar sitemapen och de tre öppna flödena en gång, så att CDN:ens kopia
 //    förnyas varannan timme. De sparade flödena kommer då ur kopian, och raden
 //    visar vad läsaren får. Skälet och mätningen står i lib/flodesvarmning.ts.
 //
@@ -17,7 +17,7 @@
 // (PRISJAKT_HEMLIG_KOPIA); bara rutten på adressen läser kopian.
 //
 // AUTH som /api/cron/warm-and-ping: med CRON_SECRET satt krävs den, utan den
-// kör rutten ändå. Ett obehörigt anrop bygger flödena och hämtar fem av våra
+// kör rutten ändå. Ett obehörigt anrop bygger flödena och hämtar fyra av våra
 // egna öppna adresser.
 import { NextResponse } from "next/server";
 import { GET as googleFeed } from "../../../feed/google.xml/route";

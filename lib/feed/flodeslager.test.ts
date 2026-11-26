@@ -222,7 +222,7 @@ describe("åldern", () => {
 
 describe("listorna", () => {
   it("bara komprimerade och hemliga flöden sparas: Google, PriceRunner, Pinterest och GoWish, inte produktflödet", () => {
-    // GoWish-flödet har bara sin hemliga adress sedan 2026-11-26.
+    // PriceRunner- och GoWish-flödet har bara sina hemliga adresser sedan 2026-11-26.
     for (const fil of LAGRADE_FLODEN) assert.ok((KOMPRIMERADE_FLODEN as readonly string[]).includes(fil) || Object.hasOwn(HEMLIGA_FLODEN, fil), fil);
     assert.deepEqual([...LAGRADE_FLODEN], ["google.xml", "pricerunner.xml", "pinterest.xml", "gowish.xml"]);
     for (const fil of LAGRADE_FLODEN) assert.ok(arLagratFlode(fil), fil);
@@ -252,7 +252,7 @@ describe("listorna", () => {
   });
 
   it("rutterna läser kopian bara åt en läsare utifrån, och sparar det de bygger", () => {
-    for (const fil of ["google.xml", "pricerunner.xml", "pinterest.xml"]) {
+    for (const fil of ["google.xml", "pinterest.xml"]) {
       const rutt = las("app", "feed", fil, "route.ts");
       assert.match(rutt, /if \(request\) \{\n    const kopia = await anvandbarKopia\(/, `${fil}: utan anrop byggs flödet alltid`);
       assert.match(rutt, /if \(request && !arTomtFlode\(xml\)\) sparaEfterSvaret\(/, fil);

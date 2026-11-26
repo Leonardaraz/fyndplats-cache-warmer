@@ -42,9 +42,10 @@ import { getCache } from "@vercel/functions";
 
 /**
  * Flödena som sparas. Var och ett står också i KOMPRIMERADE_FLODEN
- * (lib/feed/prisjakt-svar.ts), utom GoWish-flödet, som sedan 2026-11-26 bara
- * har sin hemliga adress (lib/feed/hemlig-adress.ts); provet håller ihop
- * listorna. Alla tre byggs ur Google-flödet, så jobbet bygger Google en gång.
+ * (lib/feed/prisjakt-svar.ts), utom PriceRunner- och GoWish-flödet, som sedan
+ * 2026-11-26 bara har sina hemliga adresser (lib/feed/hemlig-adress.ts);
+ * provet håller ihop listorna. Alla byggs ur Google-flödet, så jobbet bygger
+ * Google en gång.
  * Det hemliga Prisjakt-flödet sparas också, under PRISJAKT_HEMLIG_KOPIA
  * (lib/feed/prisjakt-hemlig.ts). Produktflödet sparas inte: det hämtas ofta
  * nog för att CDN:en ska behålla det (HIT och STALE i varje körning).

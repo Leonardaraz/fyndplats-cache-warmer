@@ -1,5 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { fraktFor, pricerunnerItem, tillPricerunner, type PricerunnerShipping } from "./pricerunner.ts";
 
 const S: PricerunnerShipping = {
@@ -143,5 +145,28 @@ describe("tillPricerunner", () => {
     const out = tillPricerunner(feed([]), S);
     assert.match(out, /<channel>[\s\S]*<\/channel>\n<\/rss>$/);
     assert.equal(out.match(/<item>/g), null);
+  });
+});
+
+// ☠️ Den öppna adressen /feed/pricerunner.xml är stängd sedan 2026-11-26:
+// PriceRunner läser den hemliga adressen (lib/feed/hemlig-adress.ts, hämtad
+// 10:08 UTC) och skrev "Nu har vi bytt till den nya feeden". Flödet byggs bara
+// av den hemliga rutten och jobbet, och sparas så att adressen svarar direkt.
+describe("☠️ PriceRunner-flödet har bara den hemliga adressen", () => {
+  const ROT = join(import.meta.dirname, "..", "..");
+  const kod = (rel: string) => readFileSync(join(ROT, rel), "utf8");
+
+  it("den öppna adressen är stängd: ingen rutt, ingen komprimerad tvilling, ingen värmning", () => {
+    assert.equal(existsSync(join(ROT, "app/feed/pricerunner.xml")), false);
+    assert.doesNotMatch(kod("lib/feed/prisjakt-svar.ts"), /KOMPRIMERADE_FLODEN = \[[^\]]*"pricerunner\.xml"/);
+    assert.doesNotMatch(kod("next.config.ts"), /komprimeradeFloden = \[[^\]]*"pricerunner\.xml"/);
+    assert.doesNotMatch(kod("lib/flodesvarmning.ts"), /\/feed\/pricerunner\.xml/);
+    assert.doesNotMatch(kod("lib/feed/byggare.ts"), /pricerunner/);
+  });
+
+  it("flödet byggs och sparas av jobbet och byggs av den hemliga rutten, med samma byggare", () => {
+    assert.match(kod("lib/feed/flodeslager.ts"), /LAGRADE_FLODEN = \[[^\]]*"pricerunner\.xml"[^\]]*\] as const/);
+    assert.match(kod("app/api/cron/farska-floden/route.ts"), /"pricerunner\.xml": pricerunnerXml,/);
+    assert.match(kod("app/feed/[fil]/route.ts"), /"pricerunner\.xml": pricerunnerXml,/);
   });
 });

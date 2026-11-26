@@ -18,9 +18,9 @@
 // Saknas en variabel, eller är koden kortare än 32 tecken, finns ingen hemlig
 // adress för det flödet: filnamnet svarar 404 som alla andra.
 //
-// Den öppna /feed/pricerunner.xml står kvar tills PriceRunner har bytt. Den
-// öppna /feed/gowish.xml stängdes 2026-11-26, när GoWish läsare hämtade den
-// hemliga. Hur det görs står i CLAUDE.md, "Flödenas hemliga adresser".
+// De öppna /feed/gowish.xml och /feed/pricerunner.xml stängdes 2026-11-26,
+// när läsarna hämtade de hemliga (GoWish 09:12 UTC, PriceRunner 10:08 UTC).
+// Hur det gjordes står i CLAUDE.md, "Flödenas hemliga adresser".
 //
 // LÖVMODUL med flit: bara node:crypto, så att `node --test` kan ladda den.
 

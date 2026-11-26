@@ -24,12 +24,12 @@ export const FLODEN_ATT_HALLA_FARSKA = [
   "/sitemap.xml",
   "/feed/google.xml",
   "/feed/products.xml",
-  "/feed/pricerunner.xml",
-  // Jobbet har redan byggt och sparat Google-, PriceRunner- och Pinterest-
-  // flödet (lib/feed/flodeslager.ts), så de hämtningarna läser kopian.
+  // Jobbet har redan byggt och sparat Google- och Pinterest-flödet
+  // (lib/feed/flodeslager.ts), så de hämtningarna läser kopian.
   "/feed/pinterest.xml",
-  // GoWish-flödet har bara sin hemliga adress sedan 2026-11-26 och står inte
-  // här: adressen får aldrig stå i repot. Jobbet bygger och sparar det ändå.
+  // PriceRunner- och GoWish-flödet har bara sina hemliga adresser sedan
+  // 2026-11-26 och står inte här: adresserna får aldrig stå i repot. Jobbet
+  // bygger och sparar dem ändå.
 ] as const;
 
 export type Flodesutfall = {

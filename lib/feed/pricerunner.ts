@@ -1,6 +1,7 @@
 // lib/feed/pricerunner.ts
 //
-// PriceRunner-feeden (/feed/pricerunner.xml) byggs OVANPÅ Google-feeden i
+// PriceRunner-feeden (sedan 2026-11-26 bara på den hemliga adressen,
+// lib/feed/hemlig-adress.ts) byggs OVANPÅ Google-feeden i
 // stället för att hämta katalogen från Wix en gång till. PriceRunner läser
 // Googles format (RSS 2.0 + g:-namespace), så nästan allt kan gå rakt igenom —
 // men tre saker skiljer sig och görs här:

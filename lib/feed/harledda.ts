@@ -1,9 +1,8 @@
 // lib/feed/harledda.ts
 //
 // PriceRunner-, Pinterest- och GoWish-flödet ur Google-flödets XML. En enda
-// byggare per flöde: rutterna (app/feed/pricerunner.xml, app/feed/pinterest.xml,
-// och de hemliga adresserna i app/feed/[fil]) och /api/cron/farska-floden
-// använder samma funktioner.
+// byggare per flöde: rutterna (app/feed/pinterest.xml och de hemliga adresserna
+// i app/feed/[fil]) och /api/cron/farska-floden använder samma funktioner.
 //
 // Jobbet bygger Google-flödet EN gång och gör de andra ur det. Förut byggdes
 // det tre gånger varannan timme, en gång per flöde (2026-11-15).

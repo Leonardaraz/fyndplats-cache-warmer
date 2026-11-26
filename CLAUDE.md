@@ -1413,30 +1413,37 @@ Regler som har prov (`lib/feed/hemlig-adress.test.ts`):
   och med samma byggare. Artikelnumren hämtas bara för Prisjakts adress.
 - Ingen fil i repot bär en adress på formen `pricerunner-<lång kod>.xml`.
 
-### ☠️ De öppna adresserna står kvar tills läsarna har bytt
+### ☠️ De öppna adresserna stängdes när läsarna hade bytt (2026-11-26)
 
-`/feed/pricerunner.xml` svarar som förut: PriceRunner läser sin, och Leonard
-ska be dem byta. Att stänga den i samma deploy hade tagit flödet från dem.
+De öppna adresserna fick stå kvar tills läsaren hämtade den hemliga: att
+stänga dem i samma deploy som de hemliga kom hade tagit flödet från läsarna.
+Båda är stängda nu och svarar 404 (från `app/feed/[fil]`):
 
-**`/feed/gowish.xml` är stängd sedan 2026-11-26** och svarar 404 (från
-`app/feed/[fil]`). GoWish läsare (`onskeskyen-import/1.0.0`) hämtade den
-hemliga adressen 09:12 UTC samma dag, och GoWish skrev "The new feed has been
-implemented as well". Rutten, den komprimerade tvillingen, omskrivningen och
-värmningen är borta. Flödet byggs och sparas fortfarande av jobbet
-(`LAGRADE_FLODEN`, `UR_GOOGLE`), och den hemliga rutten bygger med samma
-funktion. `LAGRADE_FLODEN` får därför bära ett flöde som inte står i
-`KOMPRIMERADE_FLODEN`, när det är ett hemligt (`HEMLIGA_FLODEN`).
+- **`/feed/gowish.xml`**: GoWish läsare (`onskeskyen-import/1.0.0`) hämtade
+  den hemliga adressen 09:12 UTC, och GoWish skrev "The new feed has been
+  implemented as well".
+- **`/feed/pricerunner.xml`**: PriceRunners läsare hämtade den hemliga
+  adressen 10:08 UTC (Mozilla/5.0, Dublin, som deras läsare av den öppna), och
+  PriceRunner skrev "Nu har vi bytt till den nya feeden".
 
-Så stängs PriceRunners, när Leonard har bytt adress hos dem:
+Rutterna, de komprimerade tvillingarna, omskrivningen och värmningen är borta.
+Flödena byggs och sparas fortfarande av jobbet (`LAGRADE_FLODEN`,
+`UR_GOOGLE`), och den hemliga rutten bygger med samma funktioner.
+`LAGRADE_FLODEN` får därför bära ett flöde som inte står i
+`KOMPRIMERADE_FLODEN`, när det är ett hemligt (`HEMLIGA_FLODEN`). Prov:
+`lib/feed/gowish.test.ts` och `lib/feed/pricerunner.test.ts` fäller om en
+öppen rutt, tvilling, omskrivning eller värmning kommer tillbaka.
 
-1. Läs butikens logg efter `det hemliga PriceRunner-flödet` och `det hemliga
-   GoWish-flödet`: raden ska bära läsarens eget namn, inte vårt.
-2. Ta bort rutterna `app/feed/pricerunner.xml` och `app/feed/gowish.xml`, och
-   namnen ur `KOMPRIMERADE_FLODEN`, omskrivningen i `next.config.ts` och
-   `BYGGARE`. Kopiorna byggs fortfarande av `/api/cron/farska-floden`
-   (`UR_GOOGLE`), och den hemliga rutten bygger med samma funktioner.
+Så stängs ett öppet flöde när läsaren har bytt till en hemlig adress:
+
+1. Läs butikens logg efter flödets namn (`det hemliga PriceRunner-flödet`):
+   raden ska bära läsarens eget namn, inte vårt (`fyndplats-flodesvarmning`)
+   och inte en länkförhandsvisning (`Slackbot-LinkExpanding`).
+2. Ta bort rutten under `app/feed/`, och namnet ur `KOMPRIMERADE_FLODEN`,
+   omskrivningen i `next.config.ts` och `BYGGARE`. Låt det stå kvar i
+   `LAGRADE_FLODEN` och jobbets `UR_GOOGLE`.
 3. `lib/flodesvarmning.ts` hämtar de öppna adresserna för att värma CDN:en:
-   ta bort dem där också.
+   ta bort det där också.
 
 ### Inte gjort, och inte mätt
 
@@ -6021,7 +6028,8 @@ Fjärrkontroll" (2 419 kr, "Ingen direktlänk till produkten": vi betalar inte
 för länken). Leonard skrev namnet i butikens sökruta och fick "Inga produkter
 matchade". Frågan: kan kunden söka på PriceRunners namn här och hitta varan?
 
-PriceRunner känner oss genom det publika flödet (`/feed/pricerunner.xml`) och
+PriceRunner känner oss genom vårt flöde (sedan 2026-11-26 bara på den hemliga
+adressen) och
 parar ihop varorna på GTIN med sina egna produktsidor. Namnet på sidan är
 PriceRunners, och det börjar med leverantörens märke. Våra namn är omskrivna:
 varan heter "Elbil barn SUV 12V – svart åkbil med fjärrkontroll, MP3 och
