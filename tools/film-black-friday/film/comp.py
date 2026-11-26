@@ -206,7 +206,7 @@ def _stoftlager(tagning: str, t: float, w: int, h: int, lager: dict, styrka: flo
     return _stoft[uppsattning].lager(t, _kamera(tagning, t), w, h, lager.get("pos"), lager.get("z"), styrka)
 
 
-def korn(h: int, w: int, fro: int, styrka: float = 0.014) -> np.ndarray:
+def korn(h: int, w: int, fro: int, styrka: float = 0.011) -> np.ndarray:
     rng = np.random.default_rng(1000 + fro)
     g = rng.standard_normal((h, w), dtype=np.float32)
     g = cv2.GaussianBlur(g, (0, 0), 0.55) * 1.6
@@ -247,6 +247,9 @@ def komponera(f: int, kvalitet: str, skala: float = 1.0, titlar: Path | None = N
     rgb = glod(rgb, g["glod"])
     rgb = rgb * vinjett(h, w)
     skarm = agx(rgb) if ton == "agx" else filmkurva(srgb_oetf(neutral(rgb)), 1.10, 1.06)
+    # kornet laggs i bilden fore texterna: texten ska vara skarp och ren, som i en riktig efterbearbetning
+    if med_korn:
+        skarm = skarm + korn(h, w, f) * (0.35 + 0.65 * (1 - np.clip(skarm @ LUMA, 0, 1))[..., None])
     if titlar is not None:
         fil = titlar / f"t_{f:04d}.png"
         if fil.exists():
@@ -261,8 +264,6 @@ def komponera(f: int, kvalitet: str, skala: float = 1.0, titlar: Path | None = N
                 sken = cv2.GaussianBlur(ljus, (0, 0), 16 * skala) * 0.30
                 skarm = skarm * (1 - alfa) + farg * alfa
                 skarm = 1 - (1 - skarm) * (1 - np.clip(sken, 0, 1))
-    if med_korn:
-        skarm = skarm + korn(h, w, f) * (0.35 + 0.65 * (1 - np.clip(skarm @ LUMA, 0, 1))[..., None])
     return np.clip(skarm, 0, 1)
 
 
@@ -287,10 +288,12 @@ def gor_film(kvalitet: str, mal: Path, skala: float = 1.0, fran: int = 0, till: 
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{w}x{h}", "-r", "30", "-i", "-"]
     if ljud is not None:
         cmd += ["-ss", f"{fran / 30:.4f}", "-i", str(ljud)]
-    cmd += ["-vf", "scale=out_color_matrix=bt709:out_range=tv", "-c:v", "libx264", "-preset", "slow", "-crf", str(crf), "-pix_fmt", "yuv420p",
+    cmd += ["-vf", "scale=out_color_matrix=bt709:out_range=tv", "-c:v", "libx264", "-preset", "slow", "-crf", str(crf),
+            "-maxrate", "16M", "-bufsize", "32M", "-profile:v", "high", "-level:v", "4.2", "-g", "30", "-keyint_min", "30",
+            "-sc_threshold", "0", "-bf", "2", "-pix_fmt", "yuv420p",
             "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709", "-color_range", "tv", "-movflags", "+faststart"]
     if ljud is not None:
-        cmd += ["-c:a", "aac", "-b:a", "256k", "-shortest"]
+        cmd += ["-c:a", "aac", "-b:a", "256k", "-ar", "48000", "-shortest"]
     cmd += [str(mal)]
     ff = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     uppgifter = [(f, kvalitet, skala, str(titlar) if titlar else None, ton) for f in range(fran, till + 1)]
