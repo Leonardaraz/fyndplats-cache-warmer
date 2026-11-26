@@ -4503,16 +4503,17 @@ Han valde Studio bland fyra förslag och svart och guld bland två.
 
 - Väggen tonar över i ett golv, en ljuskägla faller uppifrån mot varorna och
   en ljuspöl ligger på golvet under dem.
-- Varuväggen står rak och speglas i golvet (`-webkit-box-reflect`). På mobilen
-  står brickorna upprätt och var och en bär sin egen spegling.
-  ☠️ På dator stod den först vinklad mot texten i perspektiv och följde
-  muspekaren några grader. Det gjorde bilderna och priserna suddiga och är
-  borttaget sedan 2026-11-26 (se "Startsidans hjälte: varuväggen står rak").
+- Varuväggen står vinklad mot texten i riktigt perspektiv på dator och speglas
+  i golvet (`-webkit-box-reflect`). På mobilen står brickorna upprätt och var
+  och en bär sin egen spegling.
+  ☠️ Sedan 2026-11-26 sitter vinkeln som en 2D-matris på varje bricka, inte
+  som 3D på väggen, för skarpa bilder (se "Startsidans hjälte: samma vinklade
+  vägg, skarpa bilder").
 - Brickorna har ljus kant upptill och varmare ton nedtill, siffrorna ligger på
   en glasskiva, knappen har ljus ovankant och mörk underkant, och orden
   "tryggt köp" glöder svagt.
-- Rörelse: ett ljussvep över knappen en gång, och entrén där brickorna reser
-  sig i djupled och landar raka.
+- Rörelse: ett ljussvep över knappen en gång, och varuväggen följer
+  muspekaren några grader på dator (`components/hero-lutning.tsx`).
 
 ☠️ **Ljuset sitter på `.herogrid`, inte på `.hero`.** Varuväggens mitt står på
 en fast andel av rutnätets bredd (76 % + 15 px), men inte av hjältens: på en
@@ -7494,41 +7495,82 @@ fram innan provet tittade. Andra gången gick det igenom (se nedan).
 - Bloggomslagen som ligger i `/public` (`blog-*.jpg`) skickas i full storlek
   (1 800 × 945 px) till en ruta på 267 px. Inte rört.
 
-## Startsidans hjälte: varuväggen står rak, för skarpa bilder (Leonard 2026-11-26)
+## Startsidans hjälte: samma vinklade vägg, skarpa bilder (Leonard 2026-11-26)
 
 Leonard, med en skärmbild av hjältens tre brickor inringade: "vi gjorde
 bilderna skarpare på dator igår men det känns som att bilderna på startsidans
-hero sektion är fortfarande inte skarpa kan du kolla?"
+hero sektion är fortfarande inte skarpa kan du kolla?" Och när väggen först
+rätades upp: "jag vill ha allt med samma utseende premium deluxe men bara
+bilderna skarpare".
 
-**Filerna var inte felet, lutningen var det.** Varuväggen stod vinklad i
-perspektiv på dator (`rotateY(-8deg) rotateX(2deg)`, plus några grader efter
-muspekaren). En vägg i perspektiv ritas om av grafikkortet, och då skalas
-varje bild och varje pris om. Kantskärpa (Laplace-varians, som i "Bildernas
-skärpa på datorn") i en skärmbild av varje bricka på www, rak vägg mot lutad,
-efter entrén och med pekaren utanför hjälten:
+**Filerna var inte felet, 3D-väggen var det.** Väggen stod vinklad som en yta
+i 3D (`perspective(1500px) rotateY(-8deg) rotateX(2deg)` kring 50 % 55 %).
+En sådan yta ritas först som en bild och skalas sedan om av grafikkortet, och
+Chrome ritade dessutom ytan i för låg upplösning: på dubbel täthet förlorade
+bilderna mer än lutningen ensam förklarar. Kantskärpa (Laplace-varians, som i
+"Bildernas skärpa på datorn") i en skärmbild av varje bricka.
 
-| Skärm | Bilderna | Priserna och texten |
+Prövat på www, i procent av dagens skärpa (bilder):
+
+| Sätt | 1x | 2x |
 |---|---|---|
-| 1 440 px, 1x | 1,9–3,0 gånger skarpare | 1,7–2,3 gånger |
-| 1 512 px, 2x | 5,9–9,7 gånger | 5,2–6,1 gånger |
+| Rak vägg (ingen vinkel) | 186–298 % | 594–966 % |
+| Halva vinkeln (4 grader) | 93–108 % | 93–120 % |
+| Vinkel utan övergång, eller med `will-change` | 100 % | 100 % |
+| 3D per bricka med väggens vridpunkt (exakt samma form) | 99–101 % | 328–466 % |
+| Dessutom `will-change` på bilderna | 100 % | 132–170 % |
+| Spegling på varje bricka i stället för väggen | 99–100 % | 100 % |
+| Starkare skärpning hos Wix (usm 1,2–2,0) | 113–130 % | inte mätt |
+| **2D-matris per bricka (det som gäller)** | **186–291 %** | **623–904 %** |
 
-Fyra sätt att behålla lutningen prövades, och inget hjälpte: halva lutningen
-(4 grader) gav 93–120 % av dagens skärpa, och utan övergång eller med
-`will-change:transform` gav 100 %. `mix-blend-mode:multiply` på bilderna
-kostar ingenting (rak med och utan: samma skärpa inom 10 %).
+**Det som gäller:** varje bricka har den 2D-matris som bäst följer väggens
+projektion, kring väggens vridpunkt (`lib/hero-vagg.ts`, minsta kvadrat över
+hörn, kantmitter och mitt). En 2D-matris ritas direkt med bilden ur filen,
+utan en omskalad mellanbild. Muspekarens lutning (`--hx`, `--hy` från
+`components/hero-lutning.tsx`) ingår linjärt i matrisens tal, och entrén
+reser brickan kring dess nederkant inne i väggens vinkel (`brickaResVagg`) och
+landar på matrisen utan hopp. CSS:en i `app/startsida.css` är utskriven ur
+`lib/hero-vagg.ts` (`node --experimental-strip-types lib/hero-vagg.ts`), och
+`lib/hero-vagg.test.ts` fäller om de går isär.
 
-**Därför står väggen rak**, och `components/hero-lutning.tsx` (väggen efter
-muspekaren) är borttagen: varje grad lutning ger samma suddighet, och
-pekaren ligger ofta över hjälten just när man tittar på varorna. Djupet bärs
-av entrén (brickorna reser sig i djupled med `brickaRes` och landar raka),
-ljuskäglan, ljuspölen och speglingen i golvet. `lib/natten.test.ts` fäller om
-en regel lutar väggen i vila eller om komponenten kommer tillbaka.
+Mätt mot ett lokalt bygge, samma sida med 3D-väggen pålagd som jämförelse
+(`hero-skarpa/lokalt2.cjs` i sessionens arbetsmapp, 37 av 37):
 
-**Filstorleken är inte rörd.** Med rak vägg prövades filer i exakt brickans
-storlek (243 och 163 px på dator, 486 och 326 i 2x) mot dagens (384 och 265,
-640 och 384): på vanlig skärm 92, 132 och 113 % av dagens skärpa, i 2x 113,
-168 och 173 %. Det kräver bredder som inte finns i srcset (`imageSizes`), och
-en ny bredd skrivs i varje bilds srcset (se reglerna ovan). Inte gjort.
+| Skärm | Bilderna | Priserna och texten | Avvikelse i utseende |
+|---|---|---|---|
+| 1 440 px, 1x | 2,0–2,8 gånger skarpare | 1,6–2,3 gånger | 2,6 av 255 |
+| 1 440 px, 125 % | 2,2–2,7 gånger | 2,2–3,2 gånger | 3,0 av 255 |
+| 1 440 px, 2x | 6,2–9,4 gånger | 5,1–6,5 gånger | 3,3 av 255 |
+
+Avvikelsen är medelskillnaden per pixel i en nedskalad bild av hjältens högra
+halva; rak vägg gav 7–8. Hover, muspekaren och entrén fungerar, brickan är
+skarp när pekaren står still (94–104 % av viloläget) och mobilen är orörd.
+
+☠️ **Formen är nästan, inte exakt, densamma.** En 2D-matris kan inte göra en
+bricka till ett trapets. Den stora brickans vänsterkant är 12 px kortare än
+högerkanten i 3D men lika lång här, och hörnen hamnar som mest 3,7 px fel (de
+små brickorna 1,5 px). Vill man ha trapetset tillbaka kostar det skärpan på
+vanliga skärmar och i 125 %, där 3D per bricka inte hjälper alls.
+
+Regler:
+
+- ☠️ Ingen `will-change`, ingen `translate3d` och ingen egen spegling på
+  brickorna på dator. Alla tre gör brickan till en egen yta, och då är
+  suddigheten tillbaka (mätt). Under en övergång (hover, muspekaren) är
+  brickan en egen yta en stund, och skarp igen när den står still.
+- ☠️ Speglingen sitter kvar på väggen, och väggen har en genomskinlig kant på
+  24 px i sidled som tas tillbaka med negativ marginal. Speglingen och dess
+  mask slutar vid väggens kant, och utan kanten kapades speglingen av brickan
+  längst till höger rakt av.
+- Ändras väggens vinkel, vridpunkt, rutnät eller mått: ändra `VAGG` eller
+  `brickor()` i `lib/hero-vagg.ts`, kör filen och klistra in CSS:en.
+- Matriserna är räknade för väggens stora mått (511 × 468 px, från 1 265 px
+  fönsterbredd). I smalare fönster avviker de under 2 px från en exakt
+  räkning, vilket inte syns.
+- Halloween-temats dekor på `.heromosaic::before` och `::after` lutade förr
+  med väggen och står nu rak. Temat är inte aktivt nu; titta på det före
+  nästa oktober.
+- Inte provat: Safari och Firefox, och en riktig skärm. Bara Chromium är mätt.
 
 ## Klarna på telefonen: kunden kom tillbaka utan godkänd betalning och fick börja om (2026-11-24)
 

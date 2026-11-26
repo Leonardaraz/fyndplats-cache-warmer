@@ -307,25 +307,43 @@ describe("studion: hjälten som en fotostudio", () => {
     assert.doesNotMatch(mobil, /\.heromosaic\{[^}]*box-reflect/);
   });
 
-  // Leonard 2026-11-26: "bilderna på startsidans hero sektion är fortfarande
-  // inte skarpa". En vägg i perspektiv skalar om varje bild och pris: mätt på
-  // www var rak vägg 1,9–3,0 gånger skarpare på vanlig skärm och 5,9–9,7 på
-  // dubbel täthet, och halva lutningen var lika suddig som hela.
-  it("datorns vägg står rak, utan lutning efter muspekaren, och speglas", () => {
+  // Leonard 2026-11-26: "jag vill ha allt med samma utseende premium deluxe men
+  // bara bilderna skarpare". Vinkeln sitter som en 2D-matris på varje bricka
+  // (lib/hero-vagg.ts, lib/hero-vagg.test.ts), inte som 3D på väggen: en vägg i
+  // 3D ritades som en bild och skalades om, och bilderna blev mjuka.
+  it("datorns vägg står vinklad som en 2D-matris per bricka, följer --hx och --hy och speglas", () => {
     const dator = utan.slice(utan.lastIndexOf("@media(min-width:881px){"), utan.lastIndexOf("@media(max-width:880px){"));
-    const vagg = dator.slice(dator.indexOf(".hem2 .hero .heromosaic{"), dator.indexOf("}", dator.indexOf(".hem2 .hero .heromosaic{")));
-    assert.ok(vagg.length > 0, "väggens regel för datorn saknas");
-    assert.doesNotMatch(vagg, /transform|rotate|perspective|transition|--hx|--hy/);
+    const regel = (v: string) => { const i = dator.indexOf(`${v}{`); assert.ok(i >= 0, `${v} saknas`); return dator.slice(i, dator.indexOf("}", i)); };
+    const vagg = regel(".hem2 .hero .heromosaic");
+    assert.doesNotMatch(vagg, /transform|perspective|rotate/);
     assert.match(vagg, /-webkit-box-reflect:below 14px/);
-    // Ingen regel i startsidans eller sidans stil lutar väggen i vila.
-    for (const [namn, text] of [["startsida.css", utan], ["globals.css", css.replace(/\/\*[\s\S]*?\*\//g, "")]] as const) {
-      for (const m of text.matchAll(/([^{}]*\.heromosaic[^{}]*)\{([^{}]*)\}/g)) {
-        if (/data-entre/.test(m[1])) continue; // entrén slutar rak (radRes och brickaRes)
-        assert.doesNotMatch(m[2], /rotate|perspective\(/, `${namn}: ${m[1].trim()}`);
-      }
+    // speglingens plats i sidled: en genomskinlig kant som tas tillbaka, så att ingenting flyttar sig
+    assert.match(vagg, /border-inline:24px solid transparent;margin-inline:-24px;/);
+    const bricka = regel(".hem2 .hero .herotile");
+    assert.match(bricka, /transform:var\(--m\);transform-origin:var\(--vx\) var\(--vy\);transition:transform \.7s cubic-bezier\(\.2,\.8,\.2,1\),box-shadow \.3s/);
+    // ingen egen yta i vila: will-change eller en egen spegling på brickan tar tillbaka suddigheten (mätt)
+    assert.doesNotMatch(bricka, /will-change|box-reflect|translate3d|perspective/);
+    assert.match(regel(".hem2 .hero .herotile:hover"), /transform:var\(--m\) translateY\(-4px\)/);
+    for (const v of [".hem2 .hero .herotile-stor", ".hem2 .hero .mcol:first-child .herotile:nth-child(2)", ".hem2 .hero .mcol-offset .herotile:first-child"]) {
+      const m = regel(v);
+      assert.match(m, /--m:matrix\(/, v);
+      assert.doesNotMatch(m, /matrix3d|perspective|rotate/, v);
+      assert.match(m, /var\(--hx,0\)/, v);
+      assert.match(m, /var\(--hy,0\)/, v);
     }
-    assert.doesNotMatch(las("app/page.tsx"), /HeroLutning|hero-lutning/);
-    assert.throws(() => las("components/hero-lutning.tsx"), /ENOENT/);
+    // entrén (i globals.css, hos de andra entréreglerna): brickan reser sig kring
+    // sin nederkant inne i väggens vinkel och landar på sin matris
+    const glob = css.replace(/\/\*[\s\S]*?\*\//g, "");
+    assert.match(glob, /@media\(min-width:881px\)\{\s*html\[data-entre="gar"\] \.hem2 \.hero \.herotile\{animation-name:framTona,brickaResVagg\}/);
+    const nyckel = glob.slice(glob.indexOf("@keyframes brickaResVagg{"), glob.indexOf("}}", glob.indexOf("@keyframes brickaResVagg{")));
+    assert.match(nyckel, /from\{transform:var\(--m\) translate\(calc\(50% - var\(--vx\)\),calc\(100% - var\(--vy\)\)\) perspective\(1000px\) translate3d\(0,44px,-120px\) rotateX\(18deg\) rotateY\(-12deg\) translate\(calc\(var\(--vx\) - 50%\),calc\(var\(--vy\) - 100%\)\)\}/);
+    assert.match(nyckel, /to\{transform:var\(--m\) translate\(calc\(50% - var\(--vx\)\),calc\(100% - var\(--vy\)\)\) perspective\(1000px\) translate3d\(0,0,0\) rotateX\(0deg\) rotateY\(0deg\) translate\(calc\(var\(--vx\) - 50%\),calc\(var\(--vy\) - 100%\)\)/);
+    const komponent = las("components/hero-lutning.tsx");
+    assert.match(komponent, /vagg\.style\.setProperty\("--hx"/);
+    assert.doesNotMatch(komponent, /hjalte\.style\.setProperty/);
+    assert.match(komponent, /prefers-reduced-motion:reduce/);
+    assert.match(komponent, /\(hover:hover\) and \(pointer:fine\) and \(min-width:881px\)/);
+    assert.match(las("app/page.tsx"), /<HeroLutning \/>/);
   });
 });
 
