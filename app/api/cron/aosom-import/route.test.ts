@@ -26,6 +26,8 @@ vi.mock("@/lib/aosom/import-run", () => ({
 vi.mock("@/lib/aosom/sync", () => ({
   runAosomSync: (...a: unknown[]) => syncMock(...a),
   liveDeps: async () => ({}),
+  // Rutten skriver gränsen i sin rad om stora prishopp (2026-11-25).
+  STORT_PRISHOPP_PCT: 40,
 }));
 vi.mock("@/lib/aosom/image-repair", () => ({
   runImageRepair: (...a: unknown[]) => bildMock(...a),
@@ -47,7 +49,7 @@ function req(fraga: string, hemlighet = "hemlig") {
 const SYNK_TOM = {
   granskade: 0, lagerUppdaterade: 0, prisUppdaterade: 0, utanWixPris: 0, utanLagerrader: 0,
   misslyckade: 0, okandaVarianter: 0, tvetydiga: 0, prislistaFel: null, urFeeden: 0,
-  slutsalda: 0, ejSkeppbara: 0, varningar: [], godkandaHopp: [], prisLasta: 0, konkurrentMal: 0,
+  slutsalda: 0, ejSkeppbara: 0, varningar: [], godkandaHopp: [], storaHopp: [], prisLasta: 0, konkurrentMal: 0,
   konkurrentTak: 0, konkurrentGolv: 0, konkurrentFrysta: 0, lagerDrift: 0,
   lagerDriftRattade: 0, lagerDriftProdukter: [], stampelHoppade: 0,
   saldaAvdragna: 0, saldaAvdragnaProdukter: [],

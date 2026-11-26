@@ -45,6 +45,7 @@ function summary(over: Partial<AosomSyncSummary> = {}): AosomSyncSummary {
     errors: [{ sku: SKU, wixProductId: "wix-1", error: "ett fel" }],
     varningar: [{ sku: SKU, wixProductId: "wix-2", fran: 100, till: 300, andringPct: 200 }],
     godkandaHopp: [],
+    storaHopp: [],
     ...over,
   };
 }
@@ -154,6 +155,18 @@ describe("/api/cron/vevor-synk", () => {
     korMock.mockResolvedValueOnce({ utfall: "klar", summary: summary(), markor: null, markorFel: null });
     await POST(req("manuell=1"));
     expect(auditMock).not.toHaveBeenCalled();
+  });
+
+  it("☠️ ett prishopp över 40 % som skrivs utan tak står i svaret och i kvittoraden, utan artikelnummer", async () => {
+    const hopp = [{ wixProductId: ID1, fran: 4299, till: 2099, andringPct: -51 }];
+    const tyst = { dryRun: false, lagerUppdaterade: 0, prisUppdaterade: 0, misslyckade: 0, errors: [], varningar: [] };
+    korMock.mockResolvedValueOnce({ utfall: "klar", summary: summary({ ...tyst, storaHopp: hopp }), markor: "fortsatte", markorFel: null });
+    const svar = await POST(req(""));
+    const text = await svar.text();
+    expect(text).not.toContain(SKU);
+    expect(JSON.parse(text).storaHopp).toEqual(hopp);
+    expect(auditMock).toHaveBeenCalledTimes(1);
+    expect(String(auditMock.mock.calls[0][2])).toContain(`1 prishopp över 40 % (${ID1} 4299→2099)`);
   });
 
   it("utan CRON_SECRET är rutten stängd", async () => {

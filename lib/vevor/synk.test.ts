@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import type { SaldOrderrad, SynkDeps } from "@/lib/aosom/sync";
+import { planeraFlerartikel, type SaldOrderrad, type SynkDeps } from "@/lib/aosom/sync";
 import { MinnesSyncMarkorLager } from "@/lib/aosom/sync-markor";
 import { computePriceWithRules } from "@/lib/import/pricing";
 import type { PricingRules } from "@/lib/import/types";
 import type { ProductMappingRecord } from "@/lib/store";
-import { VEVOR_PROFIL } from "@/lib/sync/leverantorsrad";
+import { VEVOR_PROFIL, type Leverantorsrad } from "@/lib/sync/leverantorsrad";
 import { MIN_WIX_PRODUKTER, type WixProduktPris } from "@/lib/wix/v3-products";
 import type { SynkAvlasning } from "./lager";
 import { RabattFel, vevorLandadKostnadSek } from "./pris";
@@ -335,11 +335,90 @@ describe("VEVOR-synken: priset", () => {
     expect(s.konkurrentMal + s.konkurrentTak + s.konkurrentGolv + s.konkurrentFrysta).toBe(0);
   });
 
-  it("ett stabilt hopp över taket blockeras som för Aosom", async () => {
+  it("☠️ VEVOR har inget tak (Leonard 2026-11-25): ett stabilt hopp på 200 % skrivs, och står i storaHopp", async () => {
     const m = miljo({ avlasningar: [avl(1, { prisSek: BAS * 3, forraPrisSek: BAS * 3 })] });
     const s = await runVevorSync(m.synk, m.kalla, skarp);
+    expect(m.priser.map((p) => [p.id, p.pris])).toEqual([["wix-1", regelpris(BAS * 3)]]);
+    expect(s.varningar).toEqual([]);
+    expect(s.godkandaHopp).toEqual([]);
+    expect(s.storaHopp).toEqual([
+      { wixProductId: "wix-1", fran: regelpris(BAS), till: regelpris(BAS * 3), andringPct: Math.round(((regelpris(BAS * 3) - regelpris(BAS)) / regelpris(BAS)) * 100) },
+    ]);
+  });
+
+  it("en halvering skrivs också, och står i storaHopp med minustecken", async () => {
+    const m = miljo({ avlasningar: [avl(1, { prisSek: BAS / 2, forraPrisSek: BAS / 2 })] });
+    const s = await runVevorSync(m.synk, m.kalla, skarp);
+    expect(m.priser.map((p) => p.pris)).toEqual([regelpris(BAS / 2)]);
+    expect(s.storaHopp).toHaveLength(1);
+    expect(s.storaHopp[0].andringPct).toBeLessThan(-40);
+  });
+
+  it("ett hopp på högst 40 % skrivs utan att stå i storaHopp", async () => {
+    const m = miljo({ avlasningar: [avl(1, { prisSek: BAS * 1.2, forraPrisSek: BAS * 1.2 })] });
+    const s = await runVevorSync(m.synk, m.kalla, skarp);
+    expect(m.priser.map((p) => p.pris)).toEqual([regelpris(BAS * 1.2)]);
+    expect(s.storaHopp).toEqual([]);
+  });
+
+  it("☠️ utan tak är två lika avläsningar spärren som är kvar: ett hopp i EN avläsning skrivs inte och står inte i storaHopp", async () => {
+    const m = miljo({ avlasningar: [avl(1, { prisSek: BAS * 3, forraPrisSek: BAS })] });
+    const s = await runVevorSync(m.synk, m.kalla, skarp);
     expect(m.priser).toEqual([]);
-    expect(s.varningar).toHaveLength(1);
+    expect(s.prisVantar).toBe(1);
+    expect(s.storaHopp).toEqual([]);
+  });
+});
+
+describe("en VEVOR-sida med två artiklar: varje variant för sig, utan tak", () => {
+  const landad = (prisSek: number) => vevorLandadKostnadSek(prisSek, RABATT);
+  const variant = (n: number, farg: string) => ({
+    supplierVariantId: sku(n),
+    sku: `FP-testvara-${n}`,
+    wixVariantId: `wixvar-${n}`,
+    choices: { Färg: farg },
+    costUsd: landad(BAS) / USD,
+    landedCostSek: landad(BAS),
+    grossSek: regelpris(BAS),
+  });
+  const m = mappning(1, { variants: [variant(1, "Grå"), variant(2, "Brun")] });
+  const bild = {
+    typ: "flera" as const,
+    artikel: sku(1),
+    varianter: [1, 2].map((n, index) => ({
+      index,
+      artikel: sku(n),
+      wixVariantId: `wixvar-${n}`,
+      sku: `FP-testvara-${n}`,
+      choices: { Färg: index === 0 ? "Grå" : "Brun" },
+    })),
+  };
+  const rad = (n: number, prisSek: number, forraSek: number): Leverantorsrad => ({
+    leverantor: "vevor",
+    artikel: sku(n),
+    status: "i_lager",
+    saldo: 5,
+    landadKostnadSek: landad(prisSek),
+    forraLandadKostnadSek: landad(forraSek),
+    lastAt: new Date(NU - TIMME).toISOString(),
+  });
+  const butik = new Map([["wixvar-1", regelpris(BAS)], ["wixvar-2", regelpris(BAS)]]);
+  const deps = { fx: { usdToSek: USD }, rules: REGLER, now: () => NU };
+
+  it("☠️ den ena färgens pris tredubblas och skrivs, och hoppet står i planens storaHopp", () => {
+    const perSku = new Map([[sku(1), rad(1, BAS, BAS)], [sku(2), rad(2, BAS * 3, BAS * 3)]]);
+    const plan = planeraFlerartikel(m, bild, perSku, butik, deps, {});
+    expect(plan.varning).toBeNull();
+    expect(plan.varianter?.map((v) => v.nyttPris)).toEqual([null, regelpris(BAS * 3)]);
+    expect(plan.storaHopp).toEqual([expect.objectContaining({ fran: regelpris(BAS), till: regelpris(BAS * 3) })]);
+    expect(plan.godkandaHopp).toBeUndefined();
+  });
+
+  it("utan stora hopp bär planen inget storaHopp", () => {
+    const perSku = new Map([[sku(1), rad(1, BAS, BAS)], [sku(2), rad(2, BAS * 1.1, BAS * 1.1)]]);
+    const plan = planeraFlerartikel(m, bild, perSku, butik, deps, {});
+    expect(plan.varianter?.map((v) => v.nyttPris)).toEqual([null, regelpris(BAS * 1.1)]);
+    expect(plan.storaHopp).toBeUndefined();
   });
 });
 
@@ -418,43 +497,48 @@ describe("korVevorSynk: strömbrytaren, låset och markören", () => {
     expect(await k.markorer.las("lager")).toBe("AOSOM-MARKOR");
   });
 
-  // Två rader vars pris tredubblats hos VEVOR, i två avläsningar i rad: taket stoppar båda.
+  // Två rader vars pris tredubblats hos VEVOR, i två avläsningar i rad. Före 2026-11-25 stoppade taket båda.
   const tvaHopp = (): Miljoval => ({
     avlasningar: [avl(1, { prisSek: BAS * 3, forraPrisSek: BAS * 3 }), avl(2, { prisSek: BAS * 3, forraPrisSek: BAS * 3 })],
     mappningar: [mappning(1), mappning(2)],
   });
+  const badaSkrivna = [["wix-1", regelpris(BAS * 3)], ["wix-2", regelpris(BAS * 3)]];
 
-  it("ett godkänt prishopp skrivs för hand, och bara för den godkända produkten", async () => {
-    const k = korDeps(tvaHopp());
-    const u = await korVevorSynk(k.deps, { ...val, manuell: true, dryRun: false, godkannPrisandring: new Set(["wix-1"]) });
-    expect(k.m.priser.map((p) => [p.id, p.pris])).toEqual([["wix-1", regelpris(BAS * 3)]]);
-    expect(u.summary?.godkandaHopp.map((h) => h.wixProductId)).toEqual(["wix-1"]);
-    expect(u.summary?.varningar.map((v) => v.wixProductId)).toEqual(["wix-2"]);
-  });
-
-  it("utan godkännande skriver körningen för hand inget av hoppen", async () => {
-    const k = korDeps(tvaHopp());
-    const u = await korVevorSynk(k.deps, { ...val, manuell: true, dryRun: false });
-    expect(k.m.priser).toEqual([]);
-    expect(u.summary?.varningar).toHaveLength(2);
-    expect(u.summary?.godkandaHopp).toEqual([]);
-  });
-
-  it("☠️ schemat godkänner aldrig ett prishopp, vad valet än säger", async () => {
+  it("☠️ schemat skriver hoppen av sig självt: ingen behöver godkänna", async () => {
     const k = korDeps(tvaHopp());
     k.lager.tillstand.aktiv = true;
-    const u = await korVevorSynk(k.deps, { ...val, manuell: false, dryRun: false, godkannPrisandring: new Set(["wix-1", "wix-2"]) });
-    expect(k.m.priser).toEqual([]);
-    expect(u.summary?.varningar).toHaveLength(2);
+    const u = await korVevorSynk(k.deps, { ...val, manuell: false, dryRun: false });
+    expect(k.m.priser.map((p) => [p.id, p.pris])).toEqual(badaSkrivna);
+    expect(u.summary?.varningar).toEqual([]);
+    expect(u.summary?.storaHopp.map((h) => h.wixProductId)).toEqual(["wix-1", "wix-2"]);
     expect(u.summary?.godkandaHopp).toEqual([]);
   });
 
-  it("☠️ godkännandet släpper bara taket: ett pris som väntar på sin andra avläsning skrivs inte", async () => {
+  it("en körning för hand skriver dem också, med eller utan godkannPrisandring: utan tak finns inget att godkänna", async () => {
+    for (const godkannPrisandring of [undefined, new Set(["wix-1"])]) {
+      const k = korDeps(tvaHopp());
+      const u = await korVevorSynk(k.deps, { ...val, manuell: true, dryRun: false, godkannPrisandring });
+      expect(k.m.priser.map((p) => [p.id, p.pris])).toEqual(badaSkrivna);
+      expect(u.summary?.varningar).toEqual([]);
+      expect(u.summary?.godkandaHopp).toEqual([]);
+      expect(u.summary?.storaHopp).toHaveLength(2);
+    }
+  });
+
+  it("en torrkörning skriver ingenting men säger vilka hopp den skulle skriva", async () => {
+    const k = korDeps(tvaHopp());
+    const u = await korVevorSynk(k.deps, { ...val, manuell: true, dryRun: true });
+    expect(k.m.priser).toEqual([]);
+    expect(u.summary?.storaHopp.map((h) => h.wixProductId)).toEqual(["wix-1", "wix-2"]);
+  });
+
+  it("☠️ ett pris som väntar på sin andra avläsning skrivs inte, inte heller med ett godkännande", async () => {
     const k = korDeps({ avlasningar: [avl(1, { prisSek: BAS * 3, forraPrisSek: BAS })] });
     const u = await korVevorSynk(k.deps, { ...val, manuell: true, dryRun: false, godkannPrisandring: new Set(["wix-1"]) });
     expect(k.m.priser).toEqual([]);
     expect(u.summary?.prisVantar).toBe(1);
     expect(u.summary?.godkandaHopp).toEqual([]);
+    expect(u.summary?.storaHopp).toEqual([]);
   });
 
   it("ett upptaget lås ger upptagen, och ingen körning", async () => {
@@ -480,27 +564,35 @@ describe("☠️ svaret och loggen bär inga artikelnummer", () => {
     const m = miljo({ avlasningar: [avl(1, { prisSek: BAS * 3, forraPrisSek: BAS * 3 })] });
     const s = await runVevorSync(m.synk, m.kalla, { dryRun: true });
     s.errors.push({ sku: sku(1), wixProductId: "wix-1", error: "ett fel" });
+    s.varningar.push({ sku: sku(1), wixProductId: "wix-1", fran: 10, till: 5, andringPct: 0 });
     s.cursor = sku(1);
-    const text = JSON.stringify(utanArtikelnummer(s));
+    const ut = utanArtikelnummer(s);
+    const text = JSON.stringify(ut);
     expect(text).not.toContain(sku(1));
     expect(text).toContain("wix-1");
+    // De stora hoppen följer med ut, utan artikelnummer.
+    expect(ut.storaHopp).toEqual(s.storaHopp);
+    expect(Object.keys(ut.storaHopp[0]).sort()).toEqual(["andringPct", "fran", "till", "wixProductId"]);
   });
 
-  it("☠️ loggraden säger vilka produkter taket höll kvar: Wix-id och butikspriset före och efter", async () => {
+  it("☠️ loggraden säger vilka priser som hoppade mer än 40 %: Wix-id och butikspriset före och efter", async () => {
     const m = miljo({ avlasningar: [avl(1, { prisSek: BAS * 3, forraPrisSek: BAS * 3 })] });
-    const s = await runVevorSync(m.synk, m.kalla, { dryRun: true });
+    const s = await runVevorSync(m.synk, m.kalla, { dryRun: false });
     const rad = synkloggrad({ utfall: "klar", summary: s, markor: null, markorFel: null });
-    expect(rad).toContain(`1 varningar (wix-1 ${regelpris(BAS)}→${regelpris(BAS * 3)}), `);
+    expect(rad).toContain(`0 varningar, 1 prishopp över 40 % (wix-1 ${regelpris(BAS)}→${regelpris(BAS * 3)}), `);
     expect(rad).not.toMatch(/TESTSKUSYNK/);
     expect(rad).not.toMatch(/godkända prishopp/);
   });
 
-  it("loggraden säger vilka hopp som godkändes", async () => {
-    const m = miljo({ avlasningar: [avl(1, { prisSek: BAS * 3, forraPrisSek: BAS * 3 })] });
-    const s = await runVevorSync(m.synk, m.kalla, { dryRun: false, godkannPrisandring: new Set(["wix-1"]) });
+  it("loggraden säger vilka hopp taket höll kvar och vilka som godkändes, för en leverantör som har ett tak", async () => {
+    const m = miljo();
+    const s = await runVevorSync(m.synk, m.kalla, { dryRun: true });
+    s.varningar = [{ sku: sku(1), wixProductId: "wix-1", fran: 100, till: 300, andringPct: 200 }];
+    s.godkandaHopp = [{ wixProductId: "wix-2", fran: 100, till: 300, andringPct: 200 }];
     const rad = synkloggrad({ utfall: "klar", summary: s, markor: null, markorFel: null });
-    expect(rad).toContain(`0 varningar, 1 godkända prishopp (wix-1 ${regelpris(BAS)}→${regelpris(BAS * 3)}), `);
+    expect(rad).toContain("1 varningar (wix-1 100→300), 1 godkända prishopp (wix-2 100→300), ");
     expect(rad).not.toMatch(/TESTSKUSYNK/);
+    expect(rad).not.toMatch(/prishopp över/);
   });
 
   it("fler stoppade hopp än raden rymmer räknas, de försvinner inte", async () => {

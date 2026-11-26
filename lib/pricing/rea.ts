@@ -26,9 +26,20 @@
 //     säger lagen "det pris som gällde före den första prissänkningen"; det
 //     lägsta priset i fönstret är aldrig högre än det, och det är också
 //     EU-direktivets lägsta krav (art. 6a.5).
-//   - Historiken måste täcka hela fönstret. Vet vi inte vad priset var 30 dagar
-//     före sänkningen får ingen sänkning påstås: en ny produkt har ingen rea.
-//     En tid då ingen körning läste priserna (en lucka) täcker ingenting.
+//   - Historiken måste täcka hela fönstret. Vet vi inte vad som gällde 30
+//     dagar före sänkningen får ingen sänkning påstås. En tid då ingen körning
+//     läste priserna (en lucka) täcker ingenting.
+//   - EN NY VARA (Leonard 2026-11-25). Vet vi att varianten INTE gick att köpa
+//     när fönstret började är det lägsta priset i fönstret det lägsta sedan
+//     den började säljas, och det är lagens tidigare pris. Förarbetena (prop.
+//     2021/22:174, författningskommentaren till 7 a §): "Det kan i praktiken
+//     vara så att en produkt har funnits till försäljning under en kortare tid
+//     än 30 dagar. Näringsidkaren ska då ange det lägsta pris som
+//     näringsidkaren har tillämpat på produkten sedan den började säljas."
+//     Det kräver att historiken SÄGER att varan inte såldes: en punkt "gick
+//     inte att köpa" före det första priset (`seedPunkter`, och rea-kor.ts,
+//     `lasIn` och `seedaNarvaro`). En historik som bara börjar med ett pris
+//     säger ingenting om tiden före, och ger ingen rea.
 //   - En tid då varianten inte gick att köpa (dold produkt eller variant) är
 //     inget pris vi tillämpat, och räknas inte. En slutsåld variant som visas
 //     med sitt pris räknas: att ta med ett pris kan bara sänka det lägsta.
@@ -49,6 +60,10 @@
 //   - En produkt som varit med i fyndauktionen under fönstret får ingen
 //     automatisk rea: auktionens lägsta pris är ett pris vi tillämpat, och det
 //     står inte i en historik som byggts av dagliga avläsningar.
+//   - En ny vara ska ha gått att köpa i minst sju dygn före sänkningen
+//     (`MIN_KOPBAR_MS`, Leonard 2026-11-25). Lagen kräver det inte. Ett pris
+//     som stått en dag och sedan stryks över är ett tidigare pris bara till
+//     namnet.
 //
 // ÖREN, INTE KRONOR. Alla belopp är heltal i öre, som i butikens prishistorik
 // (headless-site lib/price-history.ts).
@@ -74,6 +89,21 @@ export const MARGINAL_MS = DAG_MS;
  */
 export const SPAR_MS = 65 * DAG_MS;
 
+/**
+ * Husets regel: så länge ska en NY vara ha gått att köpa före sänkningen
+ * (Leonard 2026-11-25). Räknas på tiden varianten gick att köpa i fönstret,
+ * inte på kalendern: en vara som visats en dag, dolts en vecka och visats igen
+ * har gått att köpa en dag.
+ */
+export const MIN_KOPBAR_MS = 7 * DAG_MS;
+/**
+ * Den första timkörningen som sparade historiken (läst ur FyndplatsPrisforlopp
+ * 2026-11-25: de första raderna som inte kom ur bakåtfyllningen). Från den
+ * stunden har jobbet läst varje variant varje timme, så en produkt utan rad
+ * har inte gått att köpa sedan dess (rea-kor.ts, `lasIn`).
+ */
+export const TIMHISTORIK_FRAN = "2026-11-01T14:40:09.185Z";
+
 /** Var fönstret börjar för en första sänkning vid `tForsta` (ms). */
 export function fonsterStartFor(tForsta: number): number {
   return tForsta - FONSTER_MS - MARGINAL_MS;
@@ -90,7 +120,7 @@ export type ReaSkal =
   | "ingen_sankning" // dagens pris kom inte genom en sänkning
   | "for_gammal" // den första sänkningen är mer än 30 dagar gammal
   | "ofullstandig" // historiken täcker inte fönstret före den första sänkningen
-  | "ny" // varianten gick inte att köpa när fönstret började
+  | "ny" // en ny vara som gått att köpa kortare tid än MIN_KOPBAR_MS före sänkningen
   | "inget_pris_i_fonstret" // varianten gick inte att köpa någon gång i fönstret
   | "under_grans" // mindre än MIN_SANKNING_PROCENT
   | "auktion" // en auktion i fönstret (avgörs av körningen)
@@ -107,6 +137,11 @@ export type ReaBeslut =
       fonsterFran: string;
       /** Sänkningar i följden: 1 är en sänkning, 2 eller fler en gradvis. */
       sankningar: number;
+      /**
+       * Varianten gick inte att köpa när fönstret började: jämförpriset är det
+       * lägsta sedan den började säljas. Saknas fältet täcker priserna hela fönstret.
+       */
+      nyVara?: true;
     }
   | { rea: false; skal: ReaSkal; forstaSankning?: string; fonsterFran?: string };
 
@@ -209,26 +244,41 @@ export function reaFor(punkter: readonly Prispunkt[], aktuelltOre: number | null
 
   const fonsterStart = fonsterStartFor(erbjudna[tidigast].start);
   const fonsterFran = new Date(fonsterStart).toISOString();
+  // ☠️ Historiken ska SÄGA vad som gällde när fönstret började. En historik som
+  // börjar senare, med ett pris, säger ingenting om tiden före: varan kan ha
+  // sålts billigare då.
   if (seg[0].start > fonsterStart) return { rea: false, skal: "ofullstandig", forstaSankning, fonsterFran };
-  // Gick varianten inte att köpa när fönstret börjar är den ny i butiken, och
-  // en ny produkt har ingen rea förrän den kan beläggas (samma hållning som
-  // butikens lib/price-history.ts: kravet gäller per produkt).
+  // Gick varianten inte att köpa när fönstret började är den ny i butiken. Då
+  // är det lägsta priset i fönstret det lägsta sedan den började säljas, och
+  // det är lagens tidigare pris (förarbetena, se huvudkommentaren).
   let vidStart: number | null = null;
   for (const s of seg) if (s.start <= fonsterStart) vidStart = s.p;
-  if (vidStart === null) return { rea: false, skal: "ny", forstaSankning, fonsterFran };
+  const nyVara = vidStart === null;
 
+  const tTidigast = erbjudna[tidigast].start;
   let lagsta = Infinity;
+  let kopbarMs = 0;
   for (let j = 0; j < seg.length; j++) {
     const p = seg[j].p;
     if (p === null) continue;
     const slut = j + 1 < seg.length ? seg[j + 1].start : Infinity;
     if (slut > fonsterStart && seg[j].start < tForsta && p < lagsta) lagsta = p;
+    // Tiden varianten gick att köpa i fönstret före den tidigaste sänkningen.
+    kopbarMs += Math.max(0, Math.min(slut, tTidigast) - Math.max(seg[j].start, fonsterStart));
   }
   if (!Number.isFinite(lagsta)) return { rea: false, skal: "inget_pris_i_fonstret", forstaSankning, fonsterFran };
+  if (nyVara && kopbarMs < MIN_KOPBAR_MS) return { rea: false, skal: "ny", forstaSankning, fonsterFran };
   if (100 * (lagsta - aktuelltOre) < MIN_SANKNING_PROCENT * lagsta) {
     return { rea: false, skal: "under_grans", forstaSankning, fonsterFran };
   }
-  return { rea: true, tidigareOre: lagsta, forstaSankning, fonsterFran, sankningar: i - forsta + 1 };
+  return {
+    rea: true,
+    tidigareOre: lagsta,
+    forstaSankning,
+    fonsterFran,
+    sankningar: i - forsta + 1,
+    ...(nyVara ? { nyVara: true as const } : {}),
+  };
 }
 
 /** En auktion: från start till slut (`slut` saknas medan den pågår). */

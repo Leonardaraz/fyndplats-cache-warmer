@@ -86,6 +86,18 @@ export interface Leverantorsprofil {
    * Raden bär då föregående avläsnings kostnad (`forraLandadKostnadSek`).
    */
   prisKraverTvaAvlasningar: boolean;
+  /**
+   * Tak på hur mycket ett pris får ändras i en körning, i procent. Över taket
+   * skrivs ingenting, och raden står i `varningar` tills en människa godkänt
+   * hoppet (`godkannPrisandring` i lib/aosom/sync.ts). null: inget tak, priset
+   * följer regelpriset hur stort hoppet än är, och ett hopp över
+   * `STORT_PRISHOPP_PCT` står i körningens `storaHopp`.
+   *
+   * Ingen leverantör har ett tak sedan 2026-11-25 (Leonard). Fältet och
+   * godkännandet står kvar, prövade direkt mot `planeraPris`, så att ett tak
+   * är ett tal i en profil den dag det behövs igen.
+   */
+  maxPrisandringPct: number | null;
 }
 
 const TIMME = 60 * 60 * 1000;
@@ -103,6 +115,12 @@ const TIMME = 60 * 60 * 1000;
  *     exporteras tre gånger per dygn, högst åtta timmar emellan, plus fyra
  *     timmars marginal.
  *   - Ett nytt pris skrivs direkt. Feeden är Aosoms egen prislista i euro.
+ *   - Inget tak på prisändringen (Leonard 2026-11-25: "ta bort aosoms tak
+ *     också"). Fram till dess skrevs ett hopp över 40 % inte utan godkännande.
+ *     ☠️ Aosom har ingen andra avläsning: en feed-rad med en trasig siffra slår
+ *     igenom vid nästa priskörning. Kvar finns gränsen för en trasig feed
+ *     (`minRader`), golvet för ett rimligt pris, att en rad som inte skickas
+ *     till Sverige aldrig prissätts, och att varje hopp över 40 % står i raden.
  */
 export const AOSOM_PROFIL = {
   saknadRad: "slut",
@@ -112,6 +130,7 @@ export const AOSOM_PROFIL = {
   minRader: 2000,
   bestalldOsynligMs: 12 * TIMME,
   prisKraverTvaAvlasningar: false,
+  maxPrisandringPct: null,
 } satisfies Leverantorsprofil;
 
 /**
@@ -133,6 +152,13 @@ export const AOSOM_PROFIL = {
  *   - Ett nytt pris skrivs först när två avläsningar i rad ger samma regelpris.
  *     VEVOR räknar om sina priser från euro, och ett pris som hoppar fram och
  *     tillbaka ska inte nå kunden.
+ *   - Inget tak på prisändringen (Leonard 2026-11-25: "ta bort 40% taket som
+ *     håller kvar priserna och jag behöver godkänna"). Taket höll 14 varor
+ *     42–95 % UNDER regelpriset i dagar utan att någon såg det, och en godkänd
+ *     sänkning hade fastnat på vägen upp igen. Kvar mot en felläst sida: två
+ *     avläsningar i rad med samma regelpris, läsarens egna kontroller (pris,
+ *     valuta och språk ska stämma på sidan, lib/vevor/sida.ts) och golvet för
+ *     ett rimligt pris. Ett hopp över 40 % skrivs, och står i raden.
  */
 export const VEVOR_PROFIL = {
   saknadRad: "okand",
@@ -142,6 +168,7 @@ export const VEVOR_PROFIL = {
   minRader: null,
   bestalldOsynligMs: 12 * TIMME,
   prisKraverTvaAvlasningar: true,
+  maxPrisandringPct: null,
 } satisfies Leverantorsprofil;
 
 /** Leverantörerna som synkas här, alltså de med en profil. */

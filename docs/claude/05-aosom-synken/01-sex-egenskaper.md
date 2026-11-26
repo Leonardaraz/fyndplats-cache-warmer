@@ -20,18 +20,44 @@
    sparad markör höll inte (2026-10-13): Aosoms saldon rör sig hela tiden, så
    huvudet av katalogen blev aldrig klart och svansen nåddes aldrig. De
    schemalagda körningarna sparar sedan dess var de slutade (`?rotation=`).
-5. **`MAX_PRISANDRING_PCT = 40`.** Prissynken är tvåvägs och helautomatisk
-   (Leonards beslut 2026-08-28: "synka oavsett om det går upp eller ner"), men
-   en frakt som råkat bli 0 eller ett grossistpris med fel decimal får inte nå
-   kund. Över taket skrivs ingenting och raden hamnar i `varningar`.
+5. ☠️ **Inget tak på prisändringen sedan 2026-11-25** (Leonard: "ta bort aosoms
+   tak också"). Prissynken är tvåvägs och helautomatisk (Leonards beslut
+   2026-08-28: "synka oavsett om det går upp eller ner"), och priset följer nu
+   regelpriset hur stort hoppet än är. Från 2026-08-28 till 2026-11-25 skrevs
+   ett hopp över 40 % inte (`MAX_PRISANDRING_PCT`): raden hamnade i
+   `varningar` tills en människa godkänt den (`godkannPrisandring`, byggt
+   2026-09-30 för gunghästens rosa, 1 199 → 699 kr). Taket höll kvar priser i
+   dagar utan att någon såg det, och Leonard tog bort det.
 
-   **Ett känt hopp kan godkännas för en körning** (`godkannPrisandring`, sedan
-   2026-09-30). Workflowens input `godkann_pris` tar Wix-produkt-id, och för
-   dem släpps bara taket: regelpriset, golvet, prislåset och skrivordningen
-   gäller som vanligt. Godkännandet sparas ingenstans, så nästa trasiga
-   feed-rad på samma produkt stoppas igen. Hoppen står i `godkandaHopp` med
-   wix-id och belopp, aldrig artikelnummer. Byggt för gunghästens rosa, som
-   taket stoppade vid varje körning (1 199 → 699 kr, Leonards beslut).
+   Det som är kvar mot en trasig feed-rad, och inget av det får tas bort:
+
+   - ☠️ **En enstaka rad med fel decimal eller en frakt som blivit 0 skrivs vid
+     nästa priskörning.** Aosom har ingen andra avläsning.
+   - `MIN_FEED_RADER` (2 000): en halvhämtad feed avbryter körningen.
+   - `MIN_RIMLIGT_PRIS_SEK` (20 kr): ett lägre pris skrivs aldrig.
+   - ☠️ **En rad som inte skickas till Sverige prissätts aldrig**
+     (`planeraProdukt`). Sentinelfrakten ger annars ett regelpris på
+     tiotusentals kronor, och sedan taket togs bort är det här den enda
+     spärren mot det.
+   - Prislåset (`prisLast`) och auktionslåset: en låst rad och en produkt i en
+     levande auktion skrivs aldrig.
+   - **Varje hopp över 40 % står i raden** (`storaHopp`: loggen, kvittoraden i
+     `FyndplatsAudit` och workflowens utskrift, märkt ↕️), med Wix-id och
+     butikspriset före och efter. Ingen godkänner dem längre, så det ska gå
+     att se i efterhand vilka priser som flyttade sig mest.
+
+   Taket står som ett fält i leverantörens profil (`maxPrisandringPct` i
+   `lib/sync/leverantorsrad.ts`, null för Aosom och VEVOR). Grenen och
+   godkännandet finns kvar i motorn och prövas direkt mot `planeraPris`.
+   Workflowens `godkann_pris` gör ingenting förrän profilen får ett tak igen.
+
+   Mätt samma dag (torrkörning 09:32 UTC, före deployen): taket höll ett enda
+   pris. Massagefåtöljen `297d8979`, färgen svart, 5 179 → 2 899 kr (−44 %),
+   medan de tre andra färgerna står på 4 699–4 879 kr. Taket stoppade den
+   första gången 03:24 UTC samma dag (då 5 179 → 2 999), så två körningar sex
+   timmar isär gav nästan samma pris. Det skrivs av den första priskörningen
+   efter deployen. **Inte mätt:** om Aosom sänkt just den färgen med flit eller
+   om raden är fel. Feeden säger bara priset.
 6. ☠️ **Facit för priset är BUTIKEN, inte mappningen** (`jamforelsePris`,
    sedan 2026-09-02). Mappningens `grossSek` är vad vi TROR att kunden ser;
    Wix är vad kunden faktiskt ser, och en trasig skrivning får de två att glida

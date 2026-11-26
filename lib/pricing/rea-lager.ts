@@ -14,7 +14,7 @@
 // historiken fylls bakåt (`seed`). Den ägs av butiken (headless-site
 // lib/price-snapshot.ts) och skrivs aldrig härifrån.
 
-import { allaRader, hamta, sparaManga, taBortManga } from "../db/wix-data-klient";
+import { allaRader, fraga, hamta, rakna, sparaManga, taBortManga } from "../db/wix-data-klient";
 import { slappLasIKollektion, tagLasIKollektion, uppdateraRadIKollektion } from "../db/kontrollrader";
 import { PRIS_KOL } from "../db/wix-kollektioner";
 import type { Lucka, Prispunkt } from "./rea";
@@ -24,6 +24,7 @@ export const BUTIKENS_PRISHISTORIK = "FyndplatsPrishistorik";
 
 const TILLSTAND = "tillstand";
 const LAS = "las";
+const DATUM = /^\d{4}-\d{2}-\d{2}$/;
 
 export interface Variantforlopp {
   id: string;
@@ -73,6 +74,27 @@ export interface ReaLager {
   taBortForlopp(productIds: string[]): Promise<string[]>;
   /** Butikens dagliga avläsning, alla rader. */
   butikensHistorik(): Promise<Dagsavlasning[]>;
+  /**
+   * Den tidigaste dagen butikens avläsning har kvar ("2026-10-11"), eller null
+   * när den är tom. Butiken gallrar raderna efter 45 dagar (headless-site
+   * lib/price-snapshot.ts, `SPAR_DAGAR`).
+   */
+  butikensTidigasteDag(): Promise<string | null>;
+  /** Antalet rader i butikens avläsning för var och en av dagarna. */
+  butikensAntalPerDag(dagar: readonly string[]): Promise<Map<string, number>>;
+  /**
+   * Vilka av produkterna som står i butikens avläsning någon dag från `fran`
+   * till och med `till`, och vilka dagar. Bara närvaron: priset är produktens
+   * lägsta bland varianterna och läses inte här.
+   */
+  butikensNarvaro(productIds: readonly string[], fran: string, till: string): Promise<Narvarorad[]>;
+}
+
+/** En produkt stod i butikens avläsning den dagen: den gick att köpa då. */
+export interface Narvarorad {
+  productId: string;
+  /** "2026-10-31" */
+  datum: string;
 }
 
 /** En rad ur kollektionen som förlopp, eller null för tillståndet, låset och trasiga rader. */
@@ -151,6 +173,37 @@ export class WixReaLager implements ReaLager {
       const prisOre = typeof r.priceMinor === "number" ? r.priceMinor : Number(r.priceMinor);
       if (!productId || !/^\d{4}-\d{2}-\d{2}$/.test(datum) || !Number.isInteger(prisOre) || prisOre <= 0) continue;
       ut.push({ productId, datum, prisOre });
+    }
+    return ut;
+  }
+
+  async butikensTidigasteDag(): Promise<string | null> {
+    const rader = await fraga<Record<string, unknown>>(BUTIKENS_PRISHISTORIK, {
+      sort: [{ fieldName: "observedOn", order: "ASC" }],
+      limit: 1,
+    });
+    const dag = typeof rader[0]?.observedOn === "string" ? rader[0].observedOn.slice(0, 10) : "";
+    return DATUM.test(dag) ? dag : null;
+  }
+
+  async butikensAntalPerDag(dagar: readonly string[]): Promise<Map<string, number>> {
+    const ut = new Map<string, number>();
+    // En dag i taget: högst ett par tiotal dagar, och en räkning läser inga rader.
+    for (const dag of dagar) ut.set(dag, await rakna(BUTIKENS_PRISHISTORIK, { observedOn: dag }));
+    return ut;
+  }
+
+  async butikensNarvaro(productIds: readonly string[], fran: string, till: string): Promise<Narvarorad[]> {
+    if (productIds.length === 0) return [];
+    const rader = await allaRader<Record<string, unknown>>(BUTIKENS_PRISHISTORIK, {
+      filter: { productId: { $in: [...productIds] }, observedOn: { $gte: fran, $lte: till } },
+      falt: ["productId", "observedOn"],
+    });
+    const ut: Narvarorad[] = [];
+    for (const r of rader) {
+      const productId = typeof r.productId === "string" ? r.productId : "";
+      const datum = typeof r.observedOn === "string" ? r.observedOn.slice(0, 10) : "";
+      if (productId && DATUM.test(datum)) ut.push({ productId, datum });
     }
     return ut;
   }

@@ -3,6 +3,7 @@ import {
   AOSOM_PROFIL,
   lagerbesked,
   PROFILER,
+  SYNKPROFILER,
   VEVOR_PROFIL,
   type Leverantorsprofil,
   type Leverantorsrad,
@@ -73,7 +74,7 @@ describe("lagerbesked", () => {
 const TIMME = 3_600_000;
 
 describe("PROFILER", () => {
-  it("Aosom: samma tal som före steg 5 — saknad rad är slut, buffert 0, 2 000 rader, tolv timmar", () => {
+  it("Aosom: saknad rad är slut, buffert 0, 2 000 rader, tolv timmar, nytt pris direkt, inget tak", () => {
     expect(PROFILER.aosom).toEqual({
       saknadRad: "slut",
       konkurrentregel: true,
@@ -82,10 +83,11 @@ describe("PROFILER", () => {
       minRader: 2000,
       bestalldOsynligMs: 12 * TIMME,
       prisKraverTvaAvlasningar: false,
+      maxPrisandringPct: null,
     });
   });
 
-  it("☠️ VEVOR: saknad avläsning är okänd, ingen konkurrentregel, ingen buffert, två avläsningar för ett nytt pris", () => {
+  it("☠️ VEVOR: saknad avläsning är okänd, ingen konkurrentregel, ingen buffert, två avläsningar för ett nytt pris, inget tak", () => {
     expect(PROFILER.vevor).toEqual({
       saknadRad: "okand",
       konkurrentregel: false,
@@ -94,7 +96,18 @@ describe("PROFILER", () => {
       minRader: null,
       bestalldOsynligMs: 12 * TIMME,
       prisKraverTvaAvlasningar: true,
+      maxPrisandringPct: null,
     });
+  });
+
+  it("☠️ ingen leverantör har ett tak på prisändringen (Leonard 2026-11-25, först VEVOR och sedan Aosom)", () => {
+    // "ta bort 40% taket som håller kvar priserna och jag behöver godkänna" och
+    // "ta bort aosoms tak också". Ett tak som kommer tillbaka ska vara ett
+    // beslut, inte en rest: det här provet fäller då.
+    for (const profil of Object.values(SYNKPROFILER)) expect(profil.maxPrisandringPct).toBeNull();
+    // Det som är kvar mot en trasig siffra, per leverantör.
+    expect(PROFILER.aosom?.minRader).toBe(2000);
+    expect(PROFILER.vevor?.prisKraverTvaAvlasningar).toBe(true);
   });
 
   it("föregående avläsnings kostnad följer med ett känt besked, aldrig ett okänt", () => {

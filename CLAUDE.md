@@ -198,6 +198,7 @@ underrubrik.
   - Katalogtaken
   - Vad en körning läser
   - Stoppade prishopp: syns i raden och godkänns för hand (2026-11-25)
+  - Taket på 40 % är borta för VEVOR (Leonard 2026-11-25)
 - `10-vevor-steg-7-gpsr.md`: VEVOR: steg 7, publiceringsspärren och produktsäkerheten (2026-10-29)
 - `11-vevor-steg-8-syskon-betyg-recensioner.md`: VEVOR: steg 8, syskon, betyg och recensioner vid importen (2026-10-29)
   - Familjeregeln: bara färg, storlek, längd och förpackning delar en sida (2026-10-30)
@@ -222,6 +223,7 @@ underrubrik.
   - ☠️ En tappad stämpel gör omkörningen till 499 → 549 → 609
   - Kvittot
 - `16-automatisk-rea.md`: Automatisk rea: jämförpriset följer lagen (`lib/pricing/rea.ts`, 2026-11-01)
+  - Nya varor får rea (Leonard 2026-11-25)
 - `17-dealproffsen.md`: Dealproffsen: vi jämför inte med dem (Leonard 2026-10-21)
   - ☠️ Och den hittade ett tyst tak som redan var passerat (2026-09-14)
   - ☠️ Familjer med många publicerade sidor ger krockar (2026-09-15)

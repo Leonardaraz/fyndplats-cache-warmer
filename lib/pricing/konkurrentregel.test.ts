@@ -83,7 +83,7 @@ describe("tillampaKonkurrentregel", () => {
     expect(u.typ).toBe("tak");
     if (u.typ !== "tak") return;
     expect(u.pris).toBeLessThanOrEqual(i.landadInklMoms * TAK_MULTIPEL);
-    // Under synkens spärr MAX_PRISANDRING_PCT = 40 med marginal.
+    // Under 40 % med marginal: inget stort hopp (synkens tak på 40 % togs bort 2026-11-25).
     expect((u.pris - i.regelPris) / i.regelPris).toBeLessThan(0.3);
     expect(u.pris).toBe(3749);
   });
