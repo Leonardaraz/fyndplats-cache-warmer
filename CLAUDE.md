@@ -1208,7 +1208,11 @@ laddningen (TBT) var 1,7–2,3 s. Orsakerna och vad som gjordes:
    minuten).
 8. Blobbarna var oskärpade med `filter: blur()` och drev dygnet runt fast de bara syns
    sista timmen. Nu är mjukheten en toning, och de rör sig bara sista timmen.
-9. Knappens ljussvep sista timmen flyttas med transform i stället för `left`.
+9. Knappens ljussvep sista timmen flyttas med transform i stället för `left`, och
+   knappens glöd är en skugga i ett omslag (`.a-hc-cta::before`) som tonas med
+   opacity. Den pulserande `box-shadow` på knappen stod ensam för två tredjedelar av
+   huvudtrådens tid sista timmen (förhandsbygget, 834 ms/s med och 233 ms/s utan).
+   `lib/prestanda-css.test.ts` har inga undantag kvar.
 10. ☠️ **Fyndens färska priser hämtas i en fråga per hundra fynd** (`getFreshPrices`
     genom favoriternas `getProdukterForSluggar`), inte en fråga per fynd. Med Black
     Weeks 100 fynd ställde varje sidbygge 100 frågor till Wix samtidigt. En fråga som
@@ -1216,8 +1220,13 @@ laddningen (TBT) var 1,7–2,3 s. Orsakerna och vad som gjordes:
     Kontrollerat mot butiken: tre fynd och en påhittad adress i samma fråga gav exakt de
     tre.
 
-`lib/hallen.test.ts` håller reglerna. `lib/prestanda-css.test.ts` undantar nu bara
-knappens glöd sista timmen.
+11. Sista timmens banner och luntan ritas av servern med sidans tid (`nuMs`), och
+    första renderingen i webbläsaren använder samma tid. Förut ritades de först efter
+    mount: sista timmen fälldes bannern ut när sidan redan stod, och dagens fynd
+    hoppade ner 129 px på en telefon (CLS 0,13). Utanför sista timmen står bannern
+    tom i HTML:en.
+
+`lib/hallen.test.ts` håller reglerna.
 
 ## Googles ?srsltid= tas bort ur adressfältet (2026-09-30)
 

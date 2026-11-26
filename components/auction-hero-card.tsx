@@ -90,12 +90,17 @@ export function AuctionHeroCard({ a }: { a: LiveAuctionView }) {
         )}
         {/* Brådske-CTA:n hör hemma under pågående dag. Före start och efter
             stängning finns inget att hinna före — då säljer lugnet bättre. */}
-        <span className="a-hc-btn">
-          {preStart
-            ? "Se fyndet – priset faller från kl 07 →"
-            : ended
-              ? "Se produkten →"
-              : "Köp nu – innan någon annan gör det →"}
+        {/* Glöden runt knappen sista timmen ligger i omslaget (.a-hc-cta::before):
+            knappen klipper sitt ljussvep (overflow:hidden), och glöden pulserar
+            med opacity i stället för att måla om en skugga i varje bildruta. */}
+        <span className="a-hc-cta">
+          <span className="a-hc-btn">
+            {preStart
+              ? "Se fyndet – priset faller från kl 07 →"
+              : ended
+                ? "Se produkten →"
+                : "Köp nu – innan någon annan gör det →"}
+          </span>
         </span>
       </div>
     </a>

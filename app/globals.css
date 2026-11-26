@@ -3940,17 +3940,25 @@ main:has(.a-stage)+footer{margin-top:0}
 .a-hc-btn{position:relative;overflow:hidden;display:inline-flex;align-items:center;gap:10px;width:fit-content;
   font-weight:800;font-size:var(--text-base);color:#fff;background:linear-gradient(180deg,var(--a-accent2),var(--a-accent));
   padding:14px 26px;border-radius:var(--r-md);box-shadow:var(--e3);
-  transition:transform .15s, box-shadow .2s, filter .2s;margin-top:4px}
+  transition:transform .15s, box-shadow .2s, filter .2s}
 .a-hero-card:hover .a-hc-btn{transform:translateY(-2px);filter:brightness(1.06)}
 .a-hc-btn::after{content:"";position:absolute;top:-40%;bottom:-40%;width:32%;left:-60%;transform:skewX(-18deg);
   background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);pointer-events:none}
 .a-stage.a-final .a-hc-btn::after{animation:aShine 2.3s ease-in-out infinite}
-.a-stage.a-final .a-hc-btn{animation:aBtnGlow 1.6s ease-in-out infinite}
+/* Knappens glöd sista timmen: en skugga i omslaget som tonas in och ut
+   (opacity, sköts av grafikkortet). Förut pulserade knappens egen box-shadow,
+   och hjältekortet målades om i varje bildruta: två tredjedelar av
+   huvudtrådens tid sista timmen (mätt på förhandsbygget 2026-11-26, iPhone 13
+   i Chromium strypt 4×: 834 ms/s med, 233 ms/s utan). */
+.a-hc-cta{position:relative;display:inline-flex;width:fit-content;margin-top:4px}
+.a-hc-cta::before{content:"";position:absolute;inset:0;border-radius:var(--r-md);pointer-events:none;opacity:0;
+  box-shadow:0 0 0 5px rgba(255,122,47,.22),0 0 30px rgba(255,122,47,.55)}
+.a-stage.a-final .a-hc-cta::before{animation:aBtnGlow 1.6s ease-in-out infinite}
 /* Svepet flyttas med transform, inte left: left lägger om sidan i varje
    bildruta. 610 % av svepets bredd (32 % av knappen) är 195 % av knappen,
    samma väg som förut från −60 % till 135 %. */
 @keyframes aShine{0%,52%{transform:translateX(0) skewX(-18deg)}100%{transform:translateX(610%) skewX(-18deg)}}
-@keyframes aBtnGlow{0%,100%{box-shadow:var(--e3)}50%{box-shadow:var(--e3),0 0 0 5px rgba(255,122,47,.22),0 0 30px rgba(255,122,47,.55)}}
+@keyframes aBtnGlow{0%,100%{opacity:0}50%{opacity:1}}
 
 /* Småkorten följer temperaturen + glöder sista timmen */
 .a-stage .a-card{background:var(--a-card);border-color:var(--a-line);transition:background 1.1s,border-color 1.1s,transform .25s,box-shadow .25s}
@@ -4066,6 +4074,7 @@ main:has(.a-stage)+footer{margin-top:0}
   .a-hc-name{font-size:var(--text-base)}
   .a-hc-old{font-size:var(--text-sm)}
   .a-hc-timer{font-size:var(--text-xs);padding:7px 11px}
+  .a-hc-cta{width:100%}
   .a-hc-btn{width:100%;justify-content:center;font-size:var(--text-sm);padding:13px 18px}
 
   /* Småkorten: kompakt 2-kolumnsgrid i stället för en kolumn jättekort */

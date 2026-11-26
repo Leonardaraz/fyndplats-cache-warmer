@@ -134,7 +134,9 @@ describe("☠️ snabbheten: scenen står still när ingen rör den", () => {
     assert.doesNotMatch(regel(css, ".a-climax-badge"), /animation/);
     assert.match(css, /\.a-climax\.show \.a-climax-badge\{animation:aPulseBadge /);
     assert.match(css, /\.a-climax\.show \.a-climax-badge::after\{animation:aBadgeRing /);
-    for (const namn of ["aPulseBadge", "aBadgeRing", "aShine"]) {
+    assert.match(css, /\.a-stage\.a-final \.a-hc-cta::before\{animation:aBtnGlow /);
+    assert.doesNotMatch(css, /\.a-hc-btn\{[^}]*animation/, "knappens egen skugga pulserar inte");
+    for (const namn of ["aPulseBadge", "aBadgeRing", "aShine", "aBtnGlow"]) {
       const kf = css.match(new RegExp(`@keyframes ${namn}\\{((?:[^{}]*\\{[^{}]*\\})*)\\}`))?.[1];
       assert.ok(kf, namn);
       const props = new Set([...kf.matchAll(/([a-z-]+)\s*:/g)].map((m) => m[1]));
@@ -146,7 +148,7 @@ describe("☠️ snabbheten: scenen står still när ingen rör den", () => {
     assert.match(las("components/auction-live-bar.tsx"), /style=\{\{ transform: `scaleX\(\$\{progress \/ 100\}\)` \}\}/);
     assert.doesNotMatch(regel(css, ".a-lb-progress"), /transition|width:\s*\d+%;?\s*$/);
     assert.doesNotMatch(css, /\.a-live-bar\{[^}]*backdrop-filter/);
-    assert.match(las("components/auction-fuse.tsx"), /useClientNow\(0, 30_000\)/);
+    assert.match(las("components/auction-fuse.tsx"), /useClientNow\(nuMs, 30_000\)/);
   });
 
   it("auktionssidans moduler: oändliga animationer rör bara transform och opacity", () => {
@@ -180,5 +182,23 @@ describe("☠️ färska priser: en fråga till Wix per hundra fynd, inte en per
   it("en fråga som fallerar prövas en gång till, och bara efterfrågade adresser med pris tas med", () => {
     assert.match(fn, /hittade = await fraga\(\)\.catch\(fraga\);/);
     assert.match(fn, /if \(efterfragade\.has\(p\.slug\) && p\.priceNum > 0\) out\.set\(p\.slug, \{ priceNum: p\.priceNum, inStock: p\.inStock \}\);/);
+  });
+});
+
+describe("☠️ inget hoppar när sidan hydreras", () => {
+  it("bannern och luntan ritas av servern med sidans tid, inte först efter mount", () => {
+    const climax = utanKommentarer(las("components/auction-climax.tsx"));
+    const lunta = utanKommentarer(las("components/auction-fuse.tsx"));
+    assert.match(climax, /const \{ nowMs: now \} = useClientNow\(nuMs, 1000\);/);
+    assert.match(lunta, /const \{ nowMs: now \} = useClientNow\(nuMs, 30_000\);/);
+    assert.doesNotMatch(climax + lunta, /mounted/);
+    const sida = utanKommentarer(las("app/fyndauktion/page.tsx"));
+    assert.match(sida, /<AuctionClimax startAt=\{startAt\} nuMs=\{nu\} \/>/);
+    assert.match(sida, /<AuctionFuse startAt=\{startAt\} nuMs=\{nu\} \/>/);
+  });
+
+  it("utanför sista timmen står bannern tom i HTML:en", () => {
+    const climax = utanKommentarer(las("components/auction-climax.tsx"));
+    assert.match(climax, /\{show && \(\s*<div className="a-climax-inner">/);
   });
 });

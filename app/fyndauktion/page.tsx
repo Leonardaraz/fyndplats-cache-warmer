@@ -170,8 +170,10 @@ export default async function Fyndauktion() {
             </p>
             {film && <FyndFilm film={film} lage="studio" nuMs={nu} />}
 
-            <AuctionClimax startAt={startAt} />
-            <AuctionFuse startAt={startAt} />
+            {/* Bannern och luntan ritas av servern med samma tid som filmen
+                (nu), så att inget hoppar när sidan hydreras. */}
+            <AuctionClimax startAt={startAt} nuMs={nu} />
+            <AuctionFuse startAt={startAt} nuMs={nu} />
 
             {hero ? (
               <AuctionHeroCard a={hero} />
