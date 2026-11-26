@@ -65,6 +65,8 @@ import type { StripeAddressElementChangeEvent, StripeExpressCheckoutElementClick
 import { useStripeBetalning } from "./use-stripe-betalning";
 import { hasMarketingConsent } from "../../lib/consent";
 import { HEYLINK_NYCKEL, klickForKassan } from "../../lib/heylink";
+import { KassaFot, KassaHuvud, Las } from "./kassa-ram";
+import s from "./kassa.module.css";
 
 /**
  * Heylinks klick-id till betalningen, åt GoWish (lib/heylink-s2s.ts): bara med
@@ -78,8 +80,6 @@ function heylinkKlick(): string | undefined {
     return undefined;
   }
 }
-import { KassaFot, KassaHuvud, Las } from "./kassa-ram";
-import s from "./kassa.module.css";
 
 type Varden = Record<"epost" | "fornamn" | "efternamn" | "telefon" | "gata" | "rad2" | "co" | "postnr" | "ort" | "lan", string>;
 const TOMT: Varden = { epost: "", fornamn: "", efternamn: "", telefon: "", gata: "", rad2: "", co: "", postnr: "", ort: "", lan: "" };
