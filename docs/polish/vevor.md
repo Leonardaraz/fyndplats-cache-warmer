@@ -63,7 +63,10 @@ till 300 kr i runda 70–72 gäller inte längre)*. Sålla bort varje id8 som re
 `FLAGGADE-VEVOR.md` (polerade och hållna), och sök på varje kvarvarande kandidats enskilda
 substantiv i hela registret (tvillingskärmen nedan) innan du väljer. ☠️ Sökningen på VEVOR-rader
 hör till urvalet, inte bara sökningen på de andra feedarna: popcornmaskinen i runda 49 hade ett
-svart syskonutkast med samma titel, och det såg jag först efter skrivningen. Vill du ha
+svart syskonutkast med samma titel, och det såg jag först efter skrivningen. ☠️ **Tvillingfotona kontrolleras före
+bildgranskningen** *(runda 525)*: kör `tools/polish-kedja/vevor/syskon_foton.js` (alla syskonrader per sökord, utan tak) och
+`syskon_twin.py` på alla kandidater direkt efter inläsningen. Den gamla syskonlistan stannade på cirka hundra rader och missade i runda 524
+att kanalslangen `dfcd07b2` delar alla fem foton med den publicerade `5826436c` (`FLAGGADE-VEVOR.md`, runda 525). Vill du ha
 konsumentvaror först sorterar du kandidaterna på `saldo` och stryker rader vars kategori börjar
 på *Bil*, *Elektrisk*, *VVS*, *Byggnadsmaterial* eller *Vitvaror* och vars titel har elektriska
 ord (volt eller watt, *batteri*, *pump*, *LED*, *värme*, *kyl*, *digital*, *kommersiell*): 14:09
