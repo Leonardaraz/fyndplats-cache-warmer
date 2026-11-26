@@ -15,6 +15,8 @@ import { formatPrice } from "../lib/price-range";
 import { TidigarePris } from "../components/tidigare-pris";
 import { getLiveAuctions } from "../lib/auction-view";
 import { AuctionBannerText } from "../components/auction-banner-text";
+import { FyndFilm } from "../components/fyndfilm";
+import { aktivFilm } from "../lib/fyndfilm";
 import { HeroLutning } from "../components/hero-lutning";
 import { HeroEntre } from "../components/hero-entre";
 import { tightFillUrl } from "../lib/wix-image";
@@ -86,11 +88,20 @@ const websiteJsonLd = {
 // "5,0 (1)": det ska vara blandat.
 const MIN_MED_OMDOMEN = 2;
 
+/** Reklamfilmen (lib/fyndfilm.ts), om den gäller vid renderingen, och tiden den prövades mot. */
+function filmenNu() {
+  const nu = Date.now();
+  return { nu, film: aktivFilm(nu) };
+}
+
 export default async function Home() {
   // sida: "startsidan" ger raderna en timmes cache. Utan den gäller auktionssidans
   // 15 sekunder, och då byggs HELA startsidan om var femtonde sekund (se
   // hämtaAuktionsrader i lib/auction-motor.ts).
   const [allProductsRaw, cols, liveAuctions] = await Promise.all([getHelaKatalogen(), getCollections(), getLiveAuctions({ sida: "startsidan" })]);
+  // Reklamfilmen i auktionsbandet. Sidan lever en timme i cachen, så filmen
+  // släcker sig själv i webbläsaren när den slutar gälla (components/fyndfilm.tsx).
+  const { nu: filmNu, film } = filmenNu();
   // Bannerns "pågår"-läge avgörs i AuctionBannerText (klientkomponent): den här
   // sidan har ISR-fönster på en timme och auktionsrotationen kl 19 invaliderar
   // den inte, så en serverberäknad flagga frös in och kunde påstå "sjunker just
@@ -497,9 +508,17 @@ export default async function Home() {
           tom lista → ingen banner, startsidan opåverkad). Data hämtas server-side
           via lib/auction-view och lever en timme, som sidan. */}
       {liveAuctions.length > 0 && (
-        <section className="auktionsrad">
+        <section className={`auktionsrad${film ? " med-film" : ""}`}>
           <div className="container">
             <a className="auction-banner" href="/fyndauktion">
+              {/* Reklamfilmen (lib/fyndfilm.ts) spelar utan ljud i bandet tills
+                  den slutar gälla. Länkens text är bandets egen. */}
+              {film && <FyndFilm film={film} lage="band" nuMs={filmNu} />}
+              {film && (
+                <span className="auction-banner-rubrik">
+                  Priset sjunker <em>varje timme</em>
+                </span>
+              )}
               <AuctionBannerText
                 // Bara fälten bannern läser — hela vyn (bild-URL:er, namn,
                 // priser) hamnade annars i flight-payloaden på startsidans

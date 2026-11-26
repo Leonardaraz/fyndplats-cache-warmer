@@ -1086,6 +1086,74 @@ matchar antalet som erbjuds hela tiden".
   också med tre siffror) och att inget fast antal står i sidan, korten eller blogginlägget.
   Elva inlagda fel fälldes alla.
 
+## Fyndauktionen: studion och reklamfilmen (Leonard 2026-11-26)
+
+Leonard laddade upp en reklamfilm i Wix Media ("fyndplats-black-friday-torsdag.mp4",
+25 s, stående 9:16, svart och guld) och frågade var den kan göra reklam för auktionen,
+och om auktionssidan kan få "en mer premium 3d kodad studio look". Båda kom med i
+mergen natten mot fredag 27 november.
+
+**Filmen** (`lib/fyndfilm.ts`, `components/fyndfilm.tsx`) står på två ställen:
+
+- **Startsidans auktionsband**, där den gör reklam: en vinklad skärm som sticker upp
+  ur bandet och spelar utan ljud, med rubriken "Priset sjunker varje timme" och en
+  guldknapp (`app/startsida.css`, "Auktionsbandet med reklamfilmen"). Skärmen är dekor
+  i bandets länk (`aria-hidden`).
+- **Auktionssidans studio**: till höger om rubriken på dator och surfplatta, i
+  rubrikens övre högra hörn på mobilen (utanför flödet, så att dagens fynd står lika
+  högt som utan film). Ett tryck spelar filmen med ljud i ett lager över sidan.
+
+☠️ **Filmen nämner "fredag 27 november" och "100 fynd", och har därför ett slut**
+(`FYNDFILM.slutarMs`, fredag kl 19 svensk tid). Efter det ritas den ingenstans:
+servern låter bli, och en sida som ligger kvar i cachen (startsidan lever en timme)
+släcker filmen själv med klientens klocka (`useClientNow`). Butikens egna texter runt
+filmen nämner aldrig antalet fynd (regeln ovan). En ny film läggs in genom att byta
+`FYNDFILM`: fil-id ur Wix Media, längd, stillbild och slut.
+
+☠️ **Stillbilden är f000**, filmens första bild (rubriken och trappan). f002 är
+räkneverket mitt i en siffra ("64 fynd").
+
+Hur skärmen hämtar (mätt 2026-11-26: 360p 1,5 MB, 480p 2,0 MB, 720p 3,4 MB, 1080p
+19 MB; Wix "720p" är 406×720 för en stående film):
+
+- Ingenting förrän skärmen syns: ingen `src` i sidan, `preload="none"`, stillbilden lat
+  i bandet.
+- Utan ljud, bara medan skärmen och fliken syns, den minsta fil som räcker och aldrig
+  1080p (`skarmKalla`): 360p på en telefon, 480p eller 720p på en dator.
+- Aldrig för den som bett om mindre rörelse eller sparar data: då står stillbilden kvar.
+- Filmen tonas in först när den spelar (`playing`). Med strömspar på en iPhone spelar
+  den inte, och då står stillbilden kvar i stället för en svart ruta.
+- Lagret med ljud läggs i sidan med `flushSync` innan `play()` anropas, i samma tryck
+  (samma regel som produktvideon), och ligger i `<body>` (`createPortal`). Det tar
+  `valjKalla` (1080p på en telefon och på en dator, 720p i sparläge), stänger på Stäng,
+  Escape, ett klick utanför och när filmen är slut, och Tab stannar i det.
+
+**Studion** (`app/fyndauktion/fyndauktion.module.css`, "Studion"): toppen av sidan
+är en fotostudio som startsidans hjälte, i ren CSS: väggen, en ljuskägla från taket
+(ett andra ljus på filmen), golvet med en ljuspöl, och dagens hetaste fynd (eller
+kortet i tomt läge) står på golvet med studions skugga och glöd. Färgerna är nattens
+och studions variabler, så Black Week-temat gör den svart och guld. Dagen syns i
+ljuset: käglan blir starkare ju närmare kl 19 (`--a-heat`), och sista timmen glöder
+orden i ember-lägets färger. Rutnätet, stegen och de sålda står under studion i
+scenens egna färger (krämen från 2026-11-19 står kvar där).
+
+- ☠️ **Studion är en egen sektion, och mobilens fasta pill (`AuctionLiveBar`) ligger i
+  sektionen under.** Studions innehåll ligger över ljuset och golvet (`z-index: 1`), och
+  i den staplingsordningen hade pillen hamnat under rutnätet.
+- ☠️ **Ett rutnätsbarn med auto-marginaler krymper till sitt innehåll.** Kortet i tomt
+  läge och sista timmens banner fick `width: 100%` i studion med film (surfplattan
+  visade kortet 578 px brett).
+- Glödpartiklarna ritas bakom sidans innehåll och syns därför inte i studion, bara i
+  scenen under. Blixtarna vid timslaget och sista timmens vinjett syns som förut.
+
+Mätt 2026-11-26 mot ett lokalt bygge (tomt läge, utan auktionsdata): skärmen spelar 360p
+på mobil och surfplatta och 480p på dator, lagret spelar 1080p med ljud, Escape och
+klick utanför stänger och fokus går tillbaka, mindre rörelse hämtar ingen video, ingen
+sidscroll på 19 bredder (320–1 920 px), axe-core utan fel i studion på mobil och dator.
+Startsidans band och studion med dagens fynd provades i förhandsbygget (riktig data).
+**Inte provat:** Safari och en riktig iPhone (perspektivet, inline-spelningen och
+ljudet i lagret).
+
 ## Googles ?srsltid= tas bort ur adressfältet (2026-09-30)
 
 Merchant Centers automatiska taggning lägger `?srsltid=…` på varje länk från

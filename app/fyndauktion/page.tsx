@@ -9,12 +9,14 @@ import { AuctionClimax } from "../../components/auction-climax";
 import { AuctionLiveBar } from "../../components/auction-live-bar";
 import { AuctionEmpty } from "../../components/auction-empty";
 import { AuctionSteps } from "../../components/auction-steps";
+import { FyndFilm } from "../../components/fyndfilm";
 import { nastaStartMs, startDagText, tomtLage } from "../../components/auction-next-start";
 import { Newsletter } from "../../components/newsletter";
 import { getLiveAuctions, getSoldAuctions, type SoldAuctionView } from "../../lib/auction-view";
 import { fyndlage } from "../../lib/auction-day";
 import { auktionsbeskrivning } from "../../lib/auction-beskrivning";
 import { tightFillUrl } from "../../lib/wix-image";
+import { aktivFilm } from "../../lib/fyndfilm";
 import styles from "./fyndauktion.module.css";
 
 // Auktionssidan behöver kort ISR-fönster: priserna stegar (cron på timmen) och
@@ -110,6 +112,12 @@ function SenastSalda({ sold }: { sold: SoldAuctionView[] }) {
   );
 }
 
+/** Reklamfilmen (lib/fyndfilm.ts), om den gäller vid renderingen, och tiden den prövades mot. */
+function filmNu() {
+  const nu = Date.now();
+  return { nu, film: aktivFilm(nu) };
+}
+
 /** Det tomma läget och startdagen enligt serverns klocka vid renderingen. */
 function tomtLageNu() {
   const nu = Date.now();
@@ -131,10 +139,21 @@ export default async function Fyndauktion() {
   // klocka efter mount (components/auction-empty.tsx).
   const { lage, dagText } = tomtLageNu();
 
+  // Reklamfilmen står i studion tills den slutar gälla.
+  const { nu, film } = filmNu();
+
   return (
     <>
       <AuctionStage startAt={startAt}>
-        <section className={`sec auction-hero ${styles.hero}${hero ? "" : " " + styles.isEmpty}`}>
+        {/* STUDION (Leonard 2026-11-26): rubriken, filmen, stubinen och dagens
+            hetaste fynd står i en fotostudio med ljuskägla och golv
+            (fyndauktion.module.css, "Studion"). Rutnätet, stegen och de sålda
+            står under den, i scenens egna färger. */}
+        <section
+          className={`sec auction-hero ${styles.hero} ${styles.studio}${film ? " " + styles.medFilm : ""}${hero ? "" : " " + styles.isEmpty}`}
+        >
+          <div className={styles.ljus} aria-hidden="true" />
+          <div className={styles.golv} aria-hidden="true" />
           <div className="container">
             {/* Lede-texten ligger som SYSKON till sechead så mobilen kan
                 komponera om ordningen med flex-order (produkten först). */}
@@ -149,28 +168,34 @@ export default async function Fyndauktion() {
               timme fram till kl 19. Väntar du blir det billigare – väntar du för länge hinner
               någon annan före.
             </p>
+            {film && <FyndFilm film={film} lage="studio" nuMs={nu} />}
 
             <AuctionClimax startAt={startAt} />
             <AuctionFuse startAt={startAt} />
 
             {hero ? (
-              <>
-                <AuctionHeroCard a={hero} />
-                <AuctionLiveBar a={hero} />
-                {rest.length > 0 && (
-                  <div className="grid auction-grid a-grid">
-                    {rest.map((a) => (
-                      <AuctionCard a={a} key={a.slug} />
-                    ))}
-                  </div>
-                )}
-              </>
+              <AuctionHeroCard a={hero} />
             ) : (
               <AuctionEmpty lage={lage} dagText={dagText}>
                 {sold.length > 0 && <SenastSalda sold={sold} />}
               </AuctionEmpty>
             )}
+          </div>
+        </section>
 
+        <section className={`sec ${styles.utbud}`}>
+          <div className="container">
+            {/* Pillen är fast placerad på mobilen och ligger utanför studion:
+                studions innehåll är en egen staplingsordning, och pillen hade
+                hamnat under rutnätet. */}
+            {hero && <AuctionLiveBar a={hero} />}
+            {rest.length > 0 && (
+              <div className="grid auction-grid a-grid">
+                {rest.map((a) => (
+                  <AuctionCard a={a} key={a.slug} />
+                ))}
+              </div>
+            )}
             <AuctionSteps />
           </div>
         </section>
