@@ -843,8 +843,10 @@
     padding-right: 112px;
     text-align: left;
   }
+  /* 30 px på en vanlig telefon, och mindre på en smal (320 px gav sex
+     rader bredvid filmen). */
   .medFilm.medFilm :global(.a-title) {
-    font-size: 30px;
+    font-size: clamp(25px, 7.6vw, 30px);
     margin: 0;
   }
   .medFilm.medFilm :global(.a-lede) {
