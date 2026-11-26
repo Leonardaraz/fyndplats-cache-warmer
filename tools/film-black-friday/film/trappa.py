@@ -354,8 +354,10 @@ def _andas(t: float, styrka: float = 0.012) -> tuple[float, float, float]:
 # Oppningen: lang lins lagt fran golvet, brickan stor i kaglan. Sedan lyfter kameran och trappan visar sig.
 A_NARA_POS = ((1.95, -17.6, 0.55), (1.80, -16.2, 0.66))
 A_NARA_MAL = ((0.16, -0.3, 3.36), (0.16, -0.3, 3.30))
-A_VID_POS = ((3.3, -12.9, 4.25), (2.1, -11.7, 3.35))
-A_VID_MAL = ((0.08, -2.5, 2.42), (0.14, -3.4, 1.72))
+# Slutet av kranakningen haller trappans topp med prisskylten under rubriken (y >= 540),
+# och brickan hel och mitt i bild langst ner.
+A_VID_POS = ((3.3, -12.9, 4.25), (2.0, -12.4, 2.95))
+A_VID_MAL = ((0.08, -2.5, 2.42), (0.12, -3.2, 2.00))
 A_LYFT = (2.35, 3.80)
 
 
