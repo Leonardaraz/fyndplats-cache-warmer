@@ -1,0 +1,2 @@
+d390baaf 2 6 samma bild från samma vinkel: position 6 är position 2 igen och stryks i fas 2
+354f12b0 4 6 samma bild från samma vinkel: position 6 är position 4 igen i något annat utsnitt och stryks i fas 2
