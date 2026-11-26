@@ -102,6 +102,7 @@ def main():
             txt += RUB_MATT + '\n' + '\n'.join(matt) + '\n'
         txt = re.sub(r'\b(\d{3})-(\d{3})\b', r'\1 till \2', txt)   # samma sak för intervall i punkter och måttrader: 100-600 lbf-ft blir 100 till 600 lbf-ft
         txt = re.sub(r'(?<=\d)x(?=\d)', ' x ', txt)   # samma sak i VEVOR:s punkter och i måttraderna: 2x4-tums nät blir 2 x 4-tums nät, annars läser leak.py 2x4 som en artikelnummerform
+        txt = re.sub(r'\b(\d)([A-Za-z])(\d)\b', r'\1 \2 \3', txt)   # runda 527: en skrivarmodell som 3V2 eller 3S1 i punkternas kompatibilitetslista läses av leak.py som en artikelnummerform
         # Ett tillbehörs modellkod i källtexten (till exempel drivmotorns XZ-12B) fäller leak.py (MODELL) i kallor.json, och en spärr man måste komma ihåg glöms bort
         txt = re.sub(r'\b[A-Z]{1,4}-\d{1,4}[A-Z]?\b', '[modellkod]', txt)
         txt = re.sub(r'<p>\s*Artikelnummer:\s*\[modellkod\]\s*</p>', '', txt)   # raden Artikelnummer med en borttagen modellkod bär bara etiketten, och leak.py nekar den
