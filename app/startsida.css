@@ -464,14 +464,19 @@
 .hem2 .uspitem svg{color:var(--glod-a)}
 .hem2 a.uspitem:hover,.hem2 a.uspitem:focus-visible{color:var(--glod-ljus)}
 @media(min-width:881px){
-  /* Varuväggen står vinklad mot texten, i riktigt perspektiv, och speglas i
-     golvet. --hx och --hy sätts av components/hero-lutning.tsx när muspekaren
-     rör sig över hjälten (−1 till 1); utan dem står väggen i sitt viloläge.
-     Speglingen (-webkit-box-reflect) finns i Safari och Chrome. Firefox ritar
-     ingen spegling, och allt annat ser likadant ut. */
-  .hem2 .hero .heromosaic{transform:perspective(1500px) rotateY(calc(-8deg + var(--hx,0)*3deg)) rotateX(calc(2deg - var(--hy,0)*2deg));
-    transform-origin:50% 55%;transition:transform .7s cubic-bezier(.2,.8,.2,1);
-    -webkit-box-reflect:below 14px linear-gradient(180deg,transparent 0%,transparent 78%,rgba(0,0,0,.06) 86%,rgba(0,0,0,.34) 100%)}
+  /* Varuväggen står rak och speglas i golvet. Speglingen (-webkit-box-reflect)
+     finns i Safari och Chrome; Firefox ritar ingen, och allt annat ser
+     likadant ut.
+     ☠️ Ingen lutning, varken i vila eller efter muspekaren (Leonard
+     2026-11-26: "bilderna på startsidans hero sektion är fortfarande inte
+     skarpa"). En vägg i perspektiv ritas om av grafikkortet, och då skalas
+     varje bild och varje pris om. Mätt på www samma dag, kantskärpa med rak
+     vägg mot lutad: bilderna 1,9–3,0 gånger skarpare på en vanlig skärm och
+     5,9–9,7 gånger på dubbel täthet, priserna 1,7–2,3 och 5,2–6,1 gånger.
+     Halva lutningen (4 grader), lutning utan övergång och lutning med
+     will-change var lika suddiga som hela. Djupet bärs av entrén (brickorna
+     reser sig i djupled och landar raka), ljuset och speglingen. */
+  .hem2 .hero .heromosaic{-webkit-box-reflect:below 14px linear-gradient(180deg,transparent 0%,transparent 78%,rgba(0,0,0,.06) 86%,rgba(0,0,0,.34) 100%)}
 }
 @media(min-width:881px) and (max-width:1099px){
   /* Textspalten är under 512 px här, och de långa etiketterna ("i tull – allt

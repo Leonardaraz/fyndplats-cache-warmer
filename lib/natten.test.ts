@@ -307,16 +307,25 @@ describe("studion: hjälten som en fotostudio", () => {
     assert.doesNotMatch(mobil, /\.heromosaic\{[^}]*box-reflect/);
   });
 
-  it("datorns vägg står vinklad, följer --hx och --hy och speglas", () => {
+  // Leonard 2026-11-26: "bilderna på startsidans hero sektion är fortfarande
+  // inte skarpa". En vägg i perspektiv skalar om varje bild och pris: mätt på
+  // www var rak vägg 1,9–3,0 gånger skarpare på vanlig skärm och 5,9–9,7 på
+  // dubbel täthet, och halva lutningen var lika suddig som hela.
+  it("datorns vägg står rak, utan lutning efter muspekaren, och speglas", () => {
     const dator = utan.slice(utan.lastIndexOf("@media(min-width:881px){"), utan.lastIndexOf("@media(max-width:880px){"));
-    assert.match(dator, /\.hem2 \.hero \.heromosaic\{transform:perspective\(1500px\) rotateY\(calc\(-8deg \+ var\(--hx,0\)\*3deg\)\) rotateX\(calc\(2deg - var\(--hy,0\)\*2deg\)\)/);
-    assert.match(dator, /-webkit-box-reflect:below 14px/);
-    const komponent = las("components/hero-lutning.tsx");
-    assert.match(komponent, /vagg\.style\.setProperty\("--hx"/);
-    assert.doesNotMatch(komponent, /hjalte\.style\.setProperty/);
-    assert.match(komponent, /prefers-reduced-motion:reduce/);
-    assert.match(komponent, /\(hover:hover\) and \(pointer:fine\) and \(min-width:881px\)/);
-    assert.match(las("app/page.tsx"), /<HeroLutning \/>/);
+    const vagg = dator.slice(dator.indexOf(".hem2 .hero .heromosaic{"), dator.indexOf("}", dator.indexOf(".hem2 .hero .heromosaic{")));
+    assert.ok(vagg.length > 0, "väggens regel för datorn saknas");
+    assert.doesNotMatch(vagg, /transform|rotate|perspective|transition|--hx|--hy/);
+    assert.match(vagg, /-webkit-box-reflect:below 14px/);
+    // Ingen regel i startsidans eller sidans stil lutar väggen i vila.
+    for (const [namn, text] of [["startsida.css", utan], ["globals.css", css.replace(/\/\*[\s\S]*?\*\//g, "")]] as const) {
+      for (const m of text.matchAll(/([^{}]*\.heromosaic[^{}]*)\{([^{}]*)\}/g)) {
+        if (/data-entre/.test(m[1])) continue; // entrén slutar rak (radRes och brickaRes)
+        assert.doesNotMatch(m[2], /rotate|perspective\(/, `${namn}: ${m[1].trim()}`);
+      }
+    }
+    assert.doesNotMatch(las("app/page.tsx"), /HeroLutning|hero-lutning/);
+    assert.throws(() => las("components/hero-lutning.tsx"), /ENOENT/);
   });
 });
 

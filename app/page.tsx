@@ -17,7 +17,6 @@ import { getLiveAuctions } from "../lib/auction-view";
 import { AuctionBannerText } from "../components/auction-banner-text";
 import { FyndFilm } from "../components/fyndfilm";
 import { aktivFilm } from "../lib/fyndfilm";
-import { HeroLutning } from "../components/hero-lutning";
 import { HeroEntre } from "../components/hero-entre";
 import { tightFillUrl } from "../lib/wix-image";
 import { getSocialProof } from "../lib/social-proof-live";
@@ -375,10 +374,10 @@ export default async function Home() {
 
       <div className="hem2">
       <section className="hero">
-        {/* Entrén startar när sidan är lugn (components/hero-entre.tsx), och
-            varuväggen följer muspekaren några grader på dator (components/hero-lutning.tsx). */}
+        {/* Entrén startar när sidan är lugn (components/hero-entre.tsx).
+            Varuväggen står rak och följer inte muspekaren: en lutad vägg
+            ritade bilderna och priserna suddigt (app/startsida.css, "Studion"). */}
         <HeroEntre />
-        <HeroLutning />
         <div className="container">
           <div className="herogrid">
             <div className="heroinner">

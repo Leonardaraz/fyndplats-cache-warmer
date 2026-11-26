@@ -4503,14 +4503,16 @@ Han valde Studio bland fyra förslag och svart och guld bland två.
 
 - Väggen tonar över i ett golv, en ljuskägla faller uppifrån mot varorna och
   en ljuspöl ligger på golvet under dem.
-- Varuväggen står vinklad mot texten i riktigt perspektiv på dator och speglas
-  i golvet (`-webkit-box-reflect`). På mobilen står brickorna upprätt och var
-  och en bär sin egen spegling.
+- Varuväggen står rak och speglas i golvet (`-webkit-box-reflect`). På mobilen
+  står brickorna upprätt och var och en bär sin egen spegling.
+  ☠️ På dator stod den först vinklad mot texten i perspektiv och följde
+  muspekaren några grader. Det gjorde bilderna och priserna suddiga och är
+  borttaget sedan 2026-11-26 (se "Startsidans hjälte: varuväggen står rak").
 - Brickorna har ljus kant upptill och varmare ton nedtill, siffrorna ligger på
   en glasskiva, knappen har ljus ovankant och mörk underkant, och orden
   "tryggt köp" glöder svagt.
-- Rörelse: ett ljussvep över knappen en gång, och varuväggen följer
-  muspekaren några grader på dator (`components/hero-lutning.tsx`).
+- Rörelse: ett ljussvep över knappen en gång, och entrén där brickorna reser
+  sig i djupled och landar raka.
 
 ☠️ **Ljuset sitter på `.herogrid`, inte på `.hero`.** Varuväggens mitt står på
 en fast andel av rutnätets bredd (76 % + 15 px), men inte av hjältens: på en
@@ -7491,6 +7493,42 @@ fram innan provet tittade. Andra gången gick det igenom (se nedan).
   en ruta på 91 × 120). Det är tyngd, inte suddighet, och är inte rört.
 - Bloggomslagen som ligger i `/public` (`blog-*.jpg`) skickas i full storlek
   (1 800 × 945 px) till en ruta på 267 px. Inte rört.
+
+## Startsidans hjälte: varuväggen står rak, för skarpa bilder (Leonard 2026-11-26)
+
+Leonard, med en skärmbild av hjältens tre brickor inringade: "vi gjorde
+bilderna skarpare på dator igår men det känns som att bilderna på startsidans
+hero sektion är fortfarande inte skarpa kan du kolla?"
+
+**Filerna var inte felet, lutningen var det.** Varuväggen stod vinklad i
+perspektiv på dator (`rotateY(-8deg) rotateX(2deg)`, plus några grader efter
+muspekaren). En vägg i perspektiv ritas om av grafikkortet, och då skalas
+varje bild och varje pris om. Kantskärpa (Laplace-varians, som i "Bildernas
+skärpa på datorn") i en skärmbild av varje bricka på www, rak vägg mot lutad,
+efter entrén och med pekaren utanför hjälten:
+
+| Skärm | Bilderna | Priserna och texten |
+|---|---|---|
+| 1 440 px, 1x | 1,9–3,0 gånger skarpare | 1,7–2,3 gånger |
+| 1 512 px, 2x | 5,9–9,7 gånger | 5,2–6,1 gånger |
+
+Fyra sätt att behålla lutningen prövades, och inget hjälpte: halva lutningen
+(4 grader) gav 93–120 % av dagens skärpa, och utan övergång eller med
+`will-change:transform` gav 100 %. `mix-blend-mode:multiply` på bilderna
+kostar ingenting (rak med och utan: samma skärpa inom 10 %).
+
+**Därför står väggen rak**, och `components/hero-lutning.tsx` (väggen efter
+muspekaren) är borttagen: varje grad lutning ger samma suddighet, och
+pekaren ligger ofta över hjälten just när man tittar på varorna. Djupet bärs
+av entrén (brickorna reser sig i djupled med `brickaRes` och landar raka),
+ljuskäglan, ljuspölen och speglingen i golvet. `lib/natten.test.ts` fäller om
+en regel lutar väggen i vila eller om komponenten kommer tillbaka.
+
+**Filstorleken är inte rörd.** Med rak vägg prövades filer i exakt brickans
+storlek (243 och 163 px på dator, 486 och 326 i 2x) mot dagens (384 och 265,
+640 och 384): på vanlig skärm 92, 132 och 113 % av dagens skärpa, i 2x 113,
+168 och 173 %. Det kräver bredder som inte finns i srcset (`imageSizes`), och
+en ny bredd skrivs i varje bilds srcset (se reglerna ovan). Inte gjort.
 
 ## Klarna på telefonen: kunden kom tillbaka utan godkänd betalning och fick börja om (2026-11-24)
 
