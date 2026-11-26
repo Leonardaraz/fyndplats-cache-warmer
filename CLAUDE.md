@@ -6918,7 +6918,18 @@ sidan man hamnar på. Skriptet har inget språkval (bara region: `global`,
   (nedan) är det som märker det, inte `npm test`.
 - Appen på telefonen har sitt eget språk och berörs inte.
 
-## Heylink: GoWish spårning, bara på tacksidan (Leonard 2026-11-25)
+## Heylink: GoWish spårning (Leonard 2026-11-25; skriptet borttaget 2026-11-26)
+
+☠️ **Heylinks skript används inte längre, på någon sida (2026-11-26).** Köpet
+lämnas från servern (se "Köpet från servern" nedan). GoWish svarade samma dag:
+"If you have the server-to-server implementation active, the script isn't
+necessary at all. However, the standard guide with the script won't work
+unless the script is active on all pages." Tacksidans skript var alltså ingen
+reserv, och Leonard: "gör vi inte mer än det krävs för det ska fungera".
+`components/heylink-kop.tsx` är borttagen. Tacksidan glömmer bara klicket
+(`components/heylink-glom.tsx`), så att ett klick ger ett köp, och ingen order
+går längre till webbläsaren för Heylinks skull. Det som står nedan om
+tacksidans skript är historik från 2026-11-25.
 
 GoWish mäter köpen som deras besökare gör hos oss genom Heylink. Deras mejl
 bad om två saker ur guiden (docs.heylink.com/inbound/tracking-guide): skriptet
@@ -7015,7 +7026,9 @@ svarar 404 på en vanlig hämtning: läs dem i en webbläsare):
   session, in order to pass it back to the Heylink API." Deras skript behövs
   inte för anropet.
 - "Implementing both will not result in duplicates - only 1 purchase per
-  session will be approved." Tacksidans skript står därför kvar som reserv.
+  session will be approved." Tacksidans skript stod först kvar som reserv,
+  men GoWish skrev att det bara fungerar om det ligger på alla sidor, och det
+  togs bort samma dag (se början av Heylink-avsnittet).
 
 Så går det till (`lib/heylink-s2s.ts`):
 
@@ -7047,13 +7060,16 @@ hextecken), om nyckeln läses någon annanstans än i
 **Inte provat:** ett riktigt anrop till Heylink. Det vore ett påhittat köp hos
 GoWish, och dokumentationen har inget provläge. Kvittot är GoWish provköp, och
 raden `[heylink] köp … skickat` i loggen. Wix kassa (reservvägen) har inget
-anrop från servern: där är tacksidans skript det enda.
+anrop från servern, och sedan skriptet togs bort når ett köp där inte Heylink.
+Vägen används nästan aldrig (0 rader i loggen sedan 2026-11-25).
 
 **Leonards beslut, inte byggt:** GoWish skrev också "Our script needs to be
 active on all pages after consent is given for it to work as expected." Det
 gäller deras skript, inte anropet. Skriptet på varje sida samlar annonsklick
 (`gclid`, `fbclid`, `utm`) och sidan besökaren kom från för varje besökare med
 samtycke, och skickar varje order det ser, också utan klick från GoWish.
+GoWish svarade 2026-11-26 att skriptet inte behövs alls med anropet från
+servern. Det byggs alltså inte.
 
 ## GoWish-flödet: Google-flödet med EAN (Leonard 2026-11-25)
 

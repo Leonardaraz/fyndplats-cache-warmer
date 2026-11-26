@@ -379,8 +379,8 @@ export default async function RootLayout({
         {/*
           Heylink, åt GoWish (Leonard 2026-11-25): fångar klick-id:t (?hltid=…)
           när någon landar från GoWish. Sparar bara med samtycke, och hämtar
-          ingenting från Heylink. Deras skript laddas bara på tacksidan
-          (components/heylink-kop.tsx). Se lib/heylink.ts.
+          ingenting från Heylink. Köpet lämnas från servern (lib/heylink-s2s.ts);
+          Heylinks skript används inte. Se lib/heylink.ts.
         */}
         {IS_PRODUCTION && <HeylinkKlick />}
         {/*

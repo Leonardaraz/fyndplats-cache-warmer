@@ -22,9 +22,11 @@
 // (lib/kassa/flode.ts, avsiktParametrar). När ordern är klar skickar servern
 // köpet hit (lib/kassa/stripe-kassa.ts, rapporteraKop).
 //
-// "Implementing both will not result in duplicates - only 1 purchase per
-// session will be approved." Tacksidans skript (components/heylink-kop.tsx)
-// står därför kvar som reserv, bland annat för Wix kassa.
+// Heylinks skript används inte. GoWish skrev 2026-11-26: "If you have the
+// server-to-server implementation active, the script isn't necessary at all",
+// och skriptet fungerar som reserv bara om det ligger på alla sidor. Tacksidans
+// skript är därför borttaget; tacksidan glömmer bara klicket
+// (components/heylink-glom.tsx).
 //
 // ☠️ NYCKELN STÅR I ADRESSEN (secretKey). Den finns bara i Vercel, som känslig
 // variabel HEYLINK_SECRET_KEY i produktion. Adressen loggas aldrig, och varje
