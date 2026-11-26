@@ -184,6 +184,39 @@ omskrivna till en läsning genom Wix-kopplingen, inga skrivningar):
   dygn, 1 043 där historiken inte täcker fönstret och 865 under 5 %.
 - Auktionerna är inte med i simuleringen. Torrkörningen efter mergen är facit.
 
+**Kört efter mergen 2026-11-26** (#938, bygget READY 01:15 UTC, Leonard: "Du kan
+merga allt nu"):
+
+- `narvaro-torr` 01:24: `bevisFran` 2026-10-12, 21 dagar, inga ofullständiga,
+  8 842 produkter, 4 682 kandidater, 1 213 `fannsFore`, 3 469 märkta (3 731
+  varianter). `narvaro` 01:25: samma tal, `sparadeFel` 0. `narvaro-torr` igen:
+  1 213 kandidater, 0 märkta.
+- `torr` med `max_nya=3000` 01:28: rea på 1 976 varianter, 1 853 av dem nya
+  varor, 50 i levande auktion; plan 1 853 nya på 1 771 produkter, 0 byten, 0
+  borttagningar.
+- Stickprov för hand före första skrivningen, tre produkter ur `medRea`, raden
+  i `FyndplatsPrisforlopp` mot priset i Wix efteråt: `00753794` (ny vara,
+  1 819 → 1 679 kr efter 13 dygn till salu, jämförpris 1 819), `005e1c27` (ny
+  vara, 8 099 kr i 13 dygn före första sänkningen, nu 6 299, jämförpris 8 099)
+  och `003ace14` (gammal vara, lägsta 30 dagar före 2 099, nu 1 729, jämförpris
+  2 099). Alla tre stämde på kronan.
+- `skarp` med `max_nya=3000`, tio körningar 01:30–02:26: 1 852 jämförpriser på
+  1 770 produkter, 0 borttagna, 0 avvikelser. Varje körning hann ungefär 200
+  produkter innan tidsbudgeten. Timjobbet 01:40 skrev inget: masspärren höll
+  det, som den ska.
+- ☠️ **Den fjärde körningen (01:53) stoppades av `fel_i_foljd`: fem Wix 429 med
+  en HTML-sida**, alltså edge-spärren, inte API-strypningen
+  (`05-aosom-synken/39-bildstadningen.md`). Den gick samtidigt som
+  VEVOR-synkens timkörning (minut 50), som skrev 301 priser 01:50–01:54. De
+  fem produkterna skrevs inte och togs av nästa körning. Efter fem minuters
+  paus gick resten rent. Kör alltså inte rea-jobbet skarpt runt minut 50.
+- `torr` 02:27: plan 0 nya. Rea på 1 975 varianter, 1 852 av dem nya varor
+  (143 före).
+- På www 02:29: produktsidorna visade Rea och det överstrukna priset (1 819 och
+  8 099 kr). /rea sa fortfarande "111 varor": sidan har en timmes ISR
+  (`revalidate = 3600` i butikens `app/rea/page.tsx`) och var byggd före
+  skrivningarna.
+
 **Efter mergen av nya varor,** i den ordningen, utanför Aosoms synkfönster och
 inte runt minut 40 (timjobbet håller låset): `narvaro-torr` (läs `bevisFran`,
 `kandidater`, `fannsFore` och `markta`), `narvaro`, `torr` (läs `beslut.nyaVaror`

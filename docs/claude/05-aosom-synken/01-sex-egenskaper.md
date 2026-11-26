@@ -58,6 +58,12 @@
    timmar isär gav nästan samma pris. Det skrivs av den första priskörningen
    efter deployen. **Inte mätt:** om Aosom sänkt just den färgen med flit eller
    om raden är fel. Feeden säger bara priset.
+
+   **Första priskörningen utan tak, 2026-11-26 03:13 UTC** (#938, bygget READY
+   01:15): hela katalogen på ett varv (5 258 granskade, 612 priser, 0
+   misslyckade, "stoppade på klart, 0 kvar"), och ett enda hopp över 40 %:
+   massagefåtöljen `297d8979`, 5 179 → 2 899 kr (−44 %). Wix efteråt: prisspannet
+   2 899–4 879 kr, de andra tre färgerna orörda.
 6. ☠️ **Facit för priset är BUTIKEN, inte mappningen** (`jamforelsePris`,
    sedan 2026-09-02). Mappningens `grossSek` är vad vi TROR att kunden ser;
    Wix är vad kunden faktiskt ser, och en trasig skrivning får de två att glida

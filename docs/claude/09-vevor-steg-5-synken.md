@@ -274,3 +274,42 @@ ingenting så länge profilen saknar tak. Grenen prövas direkt mot `planeraPris
 **Inte mätt:** hur ofta VEVOR:s pris hoppar mer än 40 % och tillbaka. 20–23
 november stoppade taket runt 100 hopp per varv. De skrivs nu när deras två
 avläsningar stämmer, och varje sådant hopp står i raden.
+
+**Första körningen utan tak, 2026-11-26 01:50 UTC** (#938, bygget READY 01:15):
+2 000 granskade, 301 priser, 2 väntar på en andra avläsning, 973 med okänt
+besked, 0 misslyckade, stoppad på tidsbudget med 3 278 kvar. Sju prishopp över
+40 %, alla på sex dolda VEVOR-utkast (`visible: false`, råa importer), så ingen
+kund såg dem:
+
+| Wix-id | före → efter (kr) | varan |
+|---|---|---|
+| `108c01f7` | 2 269 → 4 399 | hallträd med bänk |
+| `16b02312` | 3 899 → 6 419 | pizzavärmare |
+| `bb501253` | 399 → 599 | växtskydd, fyrpack |
+| `445b4357` | 949 → 1 599 | sekretesslameller |
+| `e327c4d1` | 499 → 719 och 899 → 1 549 | sekretesslameller, två varianter |
+| `914d3083` | 16 199 → 8 399 | ismaskin |
+
+De tre sänkningarna som taket höll (`b869e889`, `31e2fcd8`, `61c87adc`) låg
+inte i den körningens 2 000 rader.
+
+**Andra körningen, 02:50 UTC:** 1 950 granskade, 309 priser, 1 328 kvar. Fem
+hopp över 40 %:
+
+| Wix-id | före → efter (kr) | varan |
+|---|---|---|
+| `61c87adc` | 4 799 → 2 199 | räfflad byrå, synlig: en av de tre som taket höll |
+| `f4cd6578` | 3 779 → 1 519 | farthinder i gummi 185 cm, synlig och polerad |
+| `b297c0ae` | 1 069 → 1 559 | TV-bänk i rotting, dolt utkast |
+| `214dedc0` | 2 899 → 4 729 | tatamimatta, dolt utkast |
+| `78f16d53` | 319 → 459 | hårnålsben, dolt utkast |
+
+Farthindret är den första synliga varan utan tak som sänktes mer än 60 %. Två
+avläsningar i rad gav samma regelpris; om VEVOR sänkt det med flit är inte
+kontrollerat på deras sida.
+
+☠️ **Rea-jobbet och VEVOR-synken ska inte skriva samtidigt.** Rea-jobbets
+skarpa körning 01:53 gick medan synken skrev sina 301 priser och stoppades av
+`fel_i_foljd`: fem Wix 429 med en HTML-sida (edge-spärren). Ingenting skrevs
+fel, och efter fem minuters paus gick resten rent
+(`16-automatisk-rea.md`, "Kört efter mergen 2026-11-26").
