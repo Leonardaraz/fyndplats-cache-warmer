@@ -1,0 +1,54 @@
+{
+  "0aa87eab": {
+    "productId": "0aa87eab-4ce7-4c37-a0f9-fb206bf8fb89",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "37299e7b": {
+    "productId": "37299e7b-4f33-4017-910d-a538b4132cce",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 4,
+    "attBesluta": [
+      {
+        "id": "gen-2aj7i6",
+        "betyg": 5,
+        "datum": "2026-10-19",
+        "foton": 0,
+        "text": "Works great wish chains were touch longer but over all great"
+      }
+    ]
+  },
+  "b32a9557": {
+    "productId": "b32a9557-98a9-44ff-a16b-c06ae244e746",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": []
+  },
+  "ed5f7464": {
+    "productId": "ed5f7464-a15d-4203-aec7-52f7a9546d5e",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-1qyuak1",
+        "betyg": 5,
+        "datum": "2026-07-26",
+        "foton": 0,
+        "text": "Tout métal, patins caoutchouc épais à chaque extrémité, faciles à mettre en œuvre, efficaces et pas trop chers Satisfait de cet article, j'en ai d'ailleurs racheté 2 de plus. A signaler la livraison dans les délais promis,et un transporteur parfait. Top"
+      }
+    ]
+  }
+}
