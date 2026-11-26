@@ -1,0 +1,13 @@
+# renderade bildrutor, filmer och ljud (gar att gora om)
+out/
+# produktbilder och valet av fynd hamtas infor varje film
+assets/products/
+# fasta typsnittsskarningar byggs av film/typsnitt.py ur de variabla filerna
+assets/fonts/Newsreader-Display-*.ttf
+assets/fonts/Geist-Medium.ttf
+assets/fonts/Geist-SemiBold.ttf
+assets/fonts/Geist-Bold.ttf
+assets/fonts/Geist-ExtraBold.ttf
+assets/fonts/Geist-Black.ttf
+__pycache__/
+leverans/
