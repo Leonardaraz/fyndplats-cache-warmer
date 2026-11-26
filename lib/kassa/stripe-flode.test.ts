@@ -777,3 +777,89 @@ test("attSlutfora: larmet gäller betalningar som passerat 30 minuter inom det s
     assert.equal(ganger, 1, `ålder ${alder}`);
   }
 });
+
+// ─── Heylink: köpet från servern (lib/heylink-s2s.ts) ───────────────────────
+
+const HLTID = "1022ea3e58444dac5cc144959c08029";
+
+test("forbered: klick-id:t följer med en ny betalning, och ett ogiltigt tas inte med", async () => {
+  const f = fejk({ avsikt: null });
+  await forberedStripe(f.deps, { cartId: "korg-1", kund: KUND, hltid: HLTID });
+  assert.equal(f.skapade[0].p.metadata.hltid, HLTID);
+  const g = fejk({ avsikt: null });
+  await forberedStripe(g.deps, { cartId: "korg-1", kund: KUND, hltid: "inte ett id" });
+  assert.equal("hltid" in g.skapade[0].p.metadata, false);
+});
+
+test("forbered: en uppdaterad betalning får klick-id:t, och ett gammalt tas bort när kunden inte längre har något", async () => {
+  const obetald = avsikt({ status: "requires_payment_method", metadata: { kalla: STRIPE_KALLA, cartId: "korg-1", hltid: HLTID } });
+  const f = fejk({ avsikt: obetald });
+  await forberedStripe(f.deps, { cartId: "korg-1", kund: KUND, avsiktId: "pi_1" });
+  assert.equal((await f.deps.hamtaAvsikt("pi_1"))?.metadata.hltid, "", "tom sträng tar bort nyckeln hos Stripe");
+  const g = fejk({ avsikt: avsikt({ status: "requires_payment_method" }) });
+  await forberedStripe(g.deps, { cartId: "korg-1", kund: KUND, avsiktId: "pi_1", hltid: HLTID });
+  assert.equal((await g.deps.hamtaAvsikt("pi_1"))?.metadata.hltid, HLTID);
+});
+
+function medRapport(f: Fejk): string[][] {
+  const rapporter: string[][] = [];
+  f.deps.rapporteraKop = async (orderId, hltid) => {
+    f.anrop.push(`rapportera:${orderId}`);
+    rapporter.push([orderId, hltid]);
+  };
+  return rapporter;
+}
+
+test("slutför: köpet lämnas till Heylink en gång, sist, när betalningen bär ett klick-id", async () => {
+  const f = fejk({ avsikt: avsikt({ metadata: { kalla: STRIPE_KALLA, cartId: "korg-1", hltid: HLTID } }) });
+  const rapporter = medRapport(f);
+  assert.deepEqual(await slutforStripe(f.deps, "pi_1", NU), { ok: true, orderId: "order-1" });
+  assert.deepEqual(rapporter, [["order-1", HLTID]]);
+  const i = (s: string) => f.anrop.findIndex((x) => x.startsWith(s));
+  assert.ok(i("sparaLas:klar") < i("rapportera:"), "efter att ordern är klar");
+  assert.ok(i("markera:") < i("rapportera:"));
+});
+
+test("slutför: utan klick-id, med ett ogiltigt eller utan beroendet lämnas inget köp", async () => {
+  const utan = fejk();
+  const r1 = medRapport(utan);
+  await slutforStripe(utan.deps, "pi_1", NU);
+  assert.deepEqual(r1, []);
+  const skrap = fejk({ avsikt: avsikt({ metadata: { kalla: STRIPE_KALLA, cartId: "korg-1", hltid: "a b" } }) });
+  const r2 = medRapport(skrap);
+  await slutforStripe(skrap.deps, "pi_1", NU);
+  assert.deepEqual(r2, []);
+  const utanBeroende = fejk({ avsikt: avsikt({ metadata: { kalla: STRIPE_KALLA, cartId: "korg-1", hltid: HLTID } }) });
+  assert.deepEqual(await slutforStripe(utanBeroende.deps, "pi_1", NU), { ok: true, orderId: "order-1" });
+});
+
+test("slutför: en betalning som redan har sin order lämnar inget köp igen", async () => {
+  const f = fejk({ avsikt: avsikt({ metadata: { kalla: STRIPE_KALLA, cartId: "korg-1", hltid: HLTID, wixOrderId: "order-1" } }) });
+  const rapporter = medRapport(f);
+  assert.deepEqual(await slutforStripe(f.deps, "pi_1", NU), { ok: true, orderId: "order-1" });
+  const g = fejk({ avsikt: avsikt({ metadata: { kalla: STRIPE_KALLA, cartId: "korg-1", hltid: HLTID } }), las: { cartId: "korg-1", steg: "klar", orderId: "order-1", at: NU.getTime() } });
+  const r2 = medRapport(g);
+  assert.deepEqual(await slutforStripe(g.deps, "pi_1", NU), { ok: true, orderId: "order-1" });
+  assert.deepEqual(rapporter, []);
+  assert.deepEqual(r2, []);
+});
+
+test("slutför: en betalning som inte hann registreras lämnar köpet först när den tas om och blir klar", async () => {
+  const f = fejk({ avsikt: avsikt({ metadata: { kalla: STRIPE_KALLA, cartId: "korg-1", hltid: HLTID } }), registreraFel: true });
+  const rapporter = medRapport(f);
+  const r = await slutforStripe(f.deps, "pi_1", NU);
+  assert.equal(r.ok && "ofullstandig" in r && r.ofullstandig, true);
+  assert.deepEqual(rapporter, []);
+});
+
+test("slutför: ett fel hos Heylink ändrar ingenting för kunden", async () => {
+  const loggar: string[] = [];
+  const f = fejk({ avsikt: avsikt({ metadata: { kalla: STRIPE_KALLA, cartId: "korg-1", hltid: HLTID } }) });
+  f.deps.logg = (rad) => loggar.push(rad);
+  f.deps.rapporteraKop = async () => {
+    throw new Error("Heylink 500");
+  };
+  assert.deepEqual(await slutforStripe(f.deps, "pi_1", NU), { ok: true, orderId: "order-1" });
+  assert.equal(f.las.get("pi_1")?.steg, "klar");
+  assert.ok(loggar.some((r) => r.startsWith("[heylink] köpet lämnades inte") && !r.includes("☠️")), loggar.join(" | "));
+});

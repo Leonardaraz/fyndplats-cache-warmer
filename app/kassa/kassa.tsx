@@ -63,6 +63,21 @@ import {
 import { klickSvar, planbokNamn, snabbBekrafta, webblasarensPlanbokPlats, type Sammandrag } from "../../lib/kassa/snabbkassa";
 import type { StripeAddressElementChangeEvent, StripeExpressCheckoutElementClickEvent, StripeExpressCheckoutElementConfirmEvent } from "@stripe/stripe-js";
 import { useStripeBetalning } from "./use-stripe-betalning";
+import { hasMarketingConsent } from "../../lib/consent";
+import { HEYLINK_NYCKEL, klickForKassan } from "../../lib/heylink";
+
+/**
+ * Heylinks klick-id till betalningen, åt GoWish (lib/heylink-s2s.ts): bara med
+ * samtycke till alla cookies och ett sparat klick som inte gått ut. Servern
+ * prövar samtycket en gång till mot kakan.
+ */
+function heylinkKlick(): string | undefined {
+  try {
+    return klickForKassan(window.localStorage.getItem(HEYLINK_NYCKEL), hasMarketingConsent(), Date.now()) ?? undefined;
+  } catch {
+    return undefined;
+  }
+}
 import { KassaFot, KassaHuvud, Las } from "./kassa-ram";
 import s from "./kassa.module.css";
 
@@ -977,7 +992,7 @@ export function Kassa({
       const r = await fetch("/api/kassa/stripe/forbered", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cartId, ...prov.varden, avsiktId: sparadAvsikt(lasJson("local", STRIPE_NYCKEL), cartId, Date.now()) }),
+        body: JSON.stringify({ cartId, ...prov.varden, avsiktId: sparadAvsikt(lasJson("local", STRIPE_NYCKEL), cartId, Date.now()), hltid: heylinkKlick() }),
       });
       const j = await r.json().catch(() => null);
       if (!r.ok || !j?.ok || typeof j.avsiktId !== "string") {
@@ -1087,7 +1102,7 @@ export function Kassa({
             const r = await fetch("/api/kassa/stripe/forbered", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ cartId, ...kund, avsiktId: sparadAvsikt(lasJson("local", STRIPE_NYCKEL), cartId, Date.now()) }),
+              body: JSON.stringify({ cartId, ...kund, avsiktId: sparadAvsikt(lasJson("local", STRIPE_NYCKEL), cartId, Date.now()), hltid: heylinkKlick() }),
             });
             return { status: r.status, j: await r.json().catch(() => null) };
           } catch {

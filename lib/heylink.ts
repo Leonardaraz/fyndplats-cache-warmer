@@ -125,6 +125,15 @@ export function tolkaMarke(ratt: string | null | undefined, nu: number): Heylink
   return { id, t };
 }
 
+/**
+ * Klick-id:t som kassan skickar med betalningen (lib/heylink-s2s.ts): bara med
+ * samtycke och bara ett sparat klick som inte gått ut. Annars null, och då
+ * skickas ingenting.
+ */
+export function klickForKassan(ratt: string | null | undefined, samtycke: boolean, nu: number): string | null {
+  return samtycke ? (tolkaMarke(ratt, nu)?.id ?? null) : null;
+}
+
 /** Det tacksidan vet om ordern (lib/wix-orders.ts). Alla belopp i kronor. */
 export interface HeylinkOrder {
   readonly number: string | null;

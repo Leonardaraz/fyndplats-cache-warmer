@@ -27,7 +27,6 @@ describe("hamtaFloden", () => {
       "https://www.fyndplats.se/feed/products.xml",
       "https://www.fyndplats.se/feed/pricerunner.xml",
       "https://www.fyndplats.se/feed/pinterest.xml",
-      "https://www.fyndplats.se/feed/gowish.xml",
     ]);
     assert.equal(mest, 1);
     assert.deepEqual(hoppade, []);
@@ -60,7 +59,7 @@ describe("hamtaFloden", () => {
       return svar(n === 3 ? 500 : 200, {});
     }) as unknown as typeof fetch;
     const { utfall } = await hamtaFloden("https://x", { hamta });
-    assert.deepEqual(utfall.map((u) => u.status), [200, 0, 500, 200, 200, 200]);
+    assert.deepEqual(utfall.map((u) => u.status), [200, 0, 500, 200, 200]);
     assert.equal(utfall[1].cache, "fel");
   });
 
@@ -72,7 +71,7 @@ describe("hamtaFloden", () => {
     }) as unknown as typeof fetch;
     const { utfall, hoppade } = await hamtaFloden("https://x", { hamta, nu: () => klocka, budgetMs: 240_000 });
     assert.equal(utfall.length, 3);
-    assert.deepEqual(hoppade, ["/feed/pricerunner.xml", "/feed/pinterest.xml", "/feed/gowish.xml"]);
+    assert.deepEqual(hoppade, ["/feed/pricerunner.xml", "/feed/pinterest.xml"]);
   });
 
   it("listan bär aldrig Prisjakts adresser", () => {

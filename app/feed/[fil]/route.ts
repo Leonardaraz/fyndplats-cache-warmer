@@ -1,8 +1,9 @@
 // GET och HEAD /feed/<fil>
 //
 // De hemliga adresserna. Varje annat filnamn svarar 404. De öppna flödena
-// (google.xml, pricerunner.xml, gowish.xml …) har egna rutter, och Next låter
-// dem gå före den här.
+// (google.xml, pricerunner.xml …) har egna rutter, och Next låter dem gå före
+// den här. GoWish-flödet har bara sin hemliga adress sedan 2026-11-26, så
+// /feed/gowish.xml svarar 404 härifrån.
 //
 //   /feed/prisjakt-<kod>.xml      Prisjakt-flödet MED märke och artikelnummer.
 //                                 Koden är PRISJAKT_FLODE_KOD i Vercel

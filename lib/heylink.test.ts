@@ -188,7 +188,7 @@ describe("☠️ Heylinks skript laddas bara på tacksidan, efter samtycke och b
     return ut;
   }
 
-  it("skriptets adress står på ett enda ställe, och ingen annan fil nämner Heylinks servrar", () => {
+  it("skriptets adress står på ett enda ställe, och bara de två Heylink-modulerna nämner Heylinks servrar", () => {
     assert.match(HEYLINK_TAGG, /^https:\/\/tag\.heylink\.com\/[0-9a-f-]{36}\/script\.js$/);
     const traffar: string[] = [];
     for (const dir of ["app", "components", "lib"]) {
@@ -196,7 +196,9 @@ describe("☠️ Heylinks skript laddas bara på tacksidan, efter samtycke och b
         if (/heylink\.com|heylinkapi\.com/.test(kod(fil.slice(ROT.length + 1)))) traffar.push(fil.slice(ROT.length + 1));
       }
     }
-    assert.deepEqual(traffar, ["lib/heylink.ts"]);
+    // lib/heylink-s2s.ts bär API-adressen för köpet från servern (2026-11-26), aldrig skriptet.
+    assert.deepEqual(traffar, ["lib/heylink-s2s.ts", "lib/heylink.ts"]);
+    assert.doesNotMatch(kod("lib/heylink-s2s.ts"), /tag\.heylink\.com/);
   });
 
   it("bara tacksidans komponent lägger in skriptet, och sätter ordern FÖRE det", () => {

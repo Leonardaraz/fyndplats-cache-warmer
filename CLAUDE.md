@@ -1415,11 +1415,19 @@ Regler som har prov (`lib/feed/hemlig-adress.test.ts`):
 
 ### ☠️ De öppna adresserna står kvar tills läsarna har bytt
 
-`/feed/pricerunner.xml` och `/feed/gowish.xml` svarar som förut. Leonard hade
-redan mejlat GoWish den öppna adressen, och PriceRunner läser sin. Att stänga
-dem i samma deploy hade tagit flödet från båda.
+`/feed/pricerunner.xml` svarar som förut: PriceRunner läser sin, och Leonard
+ska be dem byta. Att stänga den i samma deploy hade tagit flödet från dem.
 
-Så stängs de, när Leonard har bytt adress hos PriceRunner och GoWish:
+**`/feed/gowish.xml` är stängd sedan 2026-11-26** och svarar 404 (från
+`app/feed/[fil]`). GoWish läsare (`onskeskyen-import/1.0.0`) hämtade den
+hemliga adressen 09:12 UTC samma dag, och GoWish skrev "The new feed has been
+implemented as well". Rutten, den komprimerade tvillingen, omskrivningen och
+värmningen är borta. Flödet byggs och sparas fortfarande av jobbet
+(`LAGRADE_FLODEN`, `UR_GOOGLE`), och den hemliga rutten bygger med samma
+funktion. `LAGRADE_FLODEN` får därför bära ett flöde som inte står i
+`KOMPRIMERADE_FLODEN`, när det är ett hemligt (`HEMLIGA_FLODEN`).
+
+Så stängs PriceRunners, när Leonard har bytt adress hos dem:
 
 1. Läs butikens logg efter `det hemliga PriceRunner-flödet` och `det hemliga
    GoWish-flödet`: raden ska bära läsarens eget namn, inte vårt.
@@ -6971,7 +6979,8 @@ klicket måste deras skript ligga på varje sida, och det är Leonards beslut.
 Ett köp där tacksidan öppnas i en annan webbläsare än den kunden landade i
 (Klarnas app som går tillbaka till Safari från en app-webbläsare) rapporteras
 inte heller: klicket ligger i den första webbläsarens lagring. Det kräver
-Heylinks server-till-server-anrop, och till det en nyckel från dem.
+Heylinks server-till-server-anrop, och till det en nyckel från dem. Det är
+byggt sedan 2026-11-26: se nästa avsnitt.
 
 Sekretesspolicyn har en punkt om Heylink, och cookie-stycket nämner dem.
 Prov: `lib/heylink.test.ts` (25). I webbläsaren, mot det lokala bygget med en
@@ -6982,6 +6991,61 @@ utan klick, med frakt, med gammalt klick, med redan lämnad order och F5.
 hos GoWish. Det enda som frågats hos Heylink är om adressen tar emot anrop från
 butikens domän (en förfrågan utan innehåll: 204, alla ursprung tillåtna). **Inte provat:** ett riktigt köp via en länk från GoWish. Heylinks
 kontaktperson gör ett provköp när mejlet är besvarat.
+
+### Köpet från servern: Heylinks server-till-server-anrop (Leonard 2026-11-26)
+
+GoWish svarade 2026-11-26: "If possible, we would prefer the server-side
+solution", med en nyckel. Heylinks dokumentation (docs.heylink.com/inbound/
+advertiser-callback och /inbound/api-server2server, byggs med JavaScript och
+svarar 404 på en vanlig hämtning: läs dem i en webbläsare):
+
+- `POST https://heylinkapi.com/connect/v1/callbacks/advertisers?secretKey=…&pageUrl=…`
+  med köpet som JSON: `hltid`, `consentStatus`, `orderId`, `orderSubTotal`,
+  `orderTotal`, `orderTax`, `orderShippingSubTotal`, `orderTaxRate`,
+  `orderCurrencyCode`, `orderItems`. Svar 200 `{ data: { success: true } }`.
+- "You should save the value of the hltid parameter in a cookie or local
+  session, in order to pass it back to the Heylink API." Deras skript behövs
+  inte för anropet.
+- "Implementing both will not result in duplicates - only 1 purchase per
+  session will be approved." Tacksidans skript står därför kvar som reserv.
+
+Så går det till (`lib/heylink-s2s.ts`):
+
+1. **Kassan skickar klick-id:t med betalningen** (`hltid` till
+   `/api/kassa/stripe/forbered`, `heylinkKlick` i `app/kassa/kassa.tsx`): bara
+   med samtycke enligt webbläsaren och ett sparat klick som inte gått ut
+   (`klickForKassan`). Servern tar det bara när samtyckeskakan också säger ja,
+   och lägger det i PaymentIntentens `metadata.hltid` (`avsiktParametrar`). En
+   uppdaterad betalning utan klick får `hltid: ""`, som tar bort ett gammalt.
+2. **När ordern är klar** skickar servern köpet, sist i `slutforStripe`
+   (`rapporteraKop`), bara i det anrop som gjorde ordern klar: ett nytt anrop
+   för samma betalning svarar tidigare (wixOrderId, låset `klar`). Det gäller
+   också webhooken, så köpet kommer fram när kunden aldrig når tacksidan
+   (Klarna-appen) och när en annonsblockerare stoppar Heylinks skript.
+3. **Köpet räknas som på tacksidan**: ordern läses ur Wix
+   (`fetchWixOrderInfo`) och räknas med `heylinkKop`, plus `hltid`,
+   `consentStatus: "marketing"` och `orderTaxRate: 25`.
+4. **Efter svaret** (`after`), så att kassan aldrig väntar. Bara i produktion
+   (`arProduktion`): ett förhandsbygges kassa går mot skarpa nycklar.
+
+☠️ **Nyckeln står i adressen.** Den finns bara i Vercel, som känslig variabel
+`HEYLINK_SECRET_KEY` i produktion (inte i förhandsbyggen). Adressen loggas
+aldrig, varje felmeddelande tvättas från nyckeln (`tvatta`), och loggraden
+bär ordernumret och Heylinks status: `[heylink] köp 10234 skickat till
+Heylink (200)`. Ett prov fäller om något i repot liknar nyckeln (64
+hextecken), om nyckeln läses någon annanstans än i
+`lib/kassa/stripe-kassa.ts` eller om en loggrad där bär den.
+
+**Inte provat:** ett riktigt anrop till Heylink. Det vore ett påhittat köp hos
+GoWish, och dokumentationen har inget provläge. Kvittot är GoWish provköp, och
+raden `[heylink] köp … skickat` i loggen. Wix kassa (reservvägen) har inget
+anrop från servern: där är tacksidans skript det enda.
+
+**Leonards beslut, inte byggt:** GoWish skrev också "Our script needs to be
+active on all pages after consent is given for it to work as expected." Det
+gäller deras skript, inte anropet. Skriptet på varje sida samlar annonsklick
+(`gclid`, `fbclid`, `utm`) och sidan besökaren kom från för varje besökare med
+samtycke, och skickar varje order det ser, också utan klick från GoWish.
 
 ## GoWish-flödet: Google-flödet med EAN (Leonard 2026-11-25)
 

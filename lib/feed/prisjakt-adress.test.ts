@@ -79,7 +79,6 @@ describe("den hemliga adressen i repot", () => {
       "app/feed/pricerunner.xml/route.ts",
       "app/feed/products.xml/route.ts",
       "app/feed/pinterest.xml/route.ts",
-      "app/feed/gowish.xml/route.ts",
       "app/feed/gz/[fil]/route.ts",
       "lib/feed/harledda.ts",
     ]) {

@@ -28,8 +28,8 @@ export const FLODEN_ATT_HALLA_FARSKA = [
   // Jobbet har redan byggt och sparat Google-, PriceRunner- och Pinterest-
   // flödet (lib/feed/flodeslager.ts), så de hämtningarna läser kopian.
   "/feed/pinterest.xml",
-  // GoWish-flödet (2026-11-25) byggs och sparas av jobbet som de tre ovan.
-  "/feed/gowish.xml",
+  // GoWish-flödet har bara sin hemliga adress sedan 2026-11-26 och står inte
+  // här: adressen får aldrig stå i repot. Jobbet bygger och sparar det ändå.
 ] as const;
 
 export type Flodesutfall = {

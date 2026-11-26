@@ -663,7 +663,8 @@ export interface AvsiktParametrar {
   capture_method: "manual";
   automatic_payment_methods: { enabled: true };
   description: string;
-  metadata: { kalla: string; cartId: string };
+  /** hltid: Heylinks klick-id, när kunden kom från GoWish och har samtyckt (lib/heylink-s2s.ts). */
+  metadata: { kalla: string; cartId: string; hltid?: string };
   // ☠️ Ingen `shipping` här: se avsiktParametrar.
 }
 
@@ -713,6 +714,12 @@ export interface StripeKassaDeps {
    */
   taOverLas(avsiktId: string, forra: StripeLas, ny: StripeLas): Promise<boolean>;
   sparaLas(avsiktId: string, las: StripeLas): Promise<void>;
+  /**
+   * Lämnar köpet till Heylink åt GoWish (lib/heylink-s2s.ts). Anropas en gång,
+   * när ordern blivit klar i det här anropet och betalningen bär ett klick-id.
+   * Ska inte vänta på Heylink: den riktiga skickar efter svaret (after).
+   */
+  rapporteraKop?(orderId: string, hltid: string): Promise<void>;
   logg?(rad: string): void;
 }
 
@@ -795,15 +802,26 @@ export function faktureringAv(k: Kund): Fakturering {
  * adressfältet kom in (2b241635). Adressfältet måste ligga i samma Elements som
  * betalfältet för att Googles förslag ska vara gratis.
  */
-export function avsiktParametrar(cartId: string, totalOre: number, rader: KorgRad[]): AvsiktParametrar {
+export function avsiktParametrar(cartId: string, totalOre: number, rader: KorgRad[], hltid?: string | null): AvsiktParametrar {
+  const klick = klickId(hltid);
   return {
     amount: totalOre,
     currency: "sek",
     capture_method: "manual",
     automatic_payment_methods: { enabled: true },
     description: betalBeskrivning(rader).slice(0, 300),
-    metadata: { kalla: STRIPE_KALLA, cartId },
+    metadata: { kalla: STRIPE_KALLA, cartId, ...(klick ? { hltid: klick } : {}) },
   };
+}
+
+/**
+ * Heylinks klick-id, eller null. Samma regel som giltigtKlickId i
+ * lib/heylink.ts (bokstäver, siffror, punkt, bindestreck och understreck, 8
+ * till 128 tecken); den här filen har inga importer, och ett prov håller de två
+ * lika.
+ */
+export function klickId(v: unknown): string | null {
+  return typeof v === "string" && /^[A-Za-z0-9._-]{8,128}$/.test(v) ? v : null;
 }
 
 export type ForberedUtfall =
@@ -823,7 +841,7 @@ const OBETALD = new Set<Avsikt["status"]>(["requires_payment_method", "requires_
  */
 export async function forberedStripe(
   deps: StripeKassaDeps,
-  inn: { cartId: string; kund: Kund; avsiktId?: string | null },
+  inn: { cartId: string; kund: Kund; avsiktId?: string | null; hltid?: string | null },
 ): Promise<ForberedUtfall> {
   const { cartId, kund } = inn;
   const [korg, forra] = await Promise.all([
@@ -864,10 +882,14 @@ export async function forberedStripe(
     return { ok: false, kod: "total", meddelanden: ["Ordern kunde inte räknas. Försök igen, eller kontakta oss om det inte går."] };
   }
 
-  const p = avsiktParametrar(cartId, totalOre, rakning.cart?.lineItems ?? korg.lineItems ?? []);
+  const p = avsiktParametrar(cartId, totalOre, rakning.cart?.lineItems ?? korg.lineItems ?? [], inn.hltid);
   if (egen && OBETALD.has(egen.status)) {
     // Valuta, dragning och betalsätt går inte att ändra på en befintlig betalning.
-    const a = await deps.uppdateraAvsikt(egen.id, { amount: p.amount, description: p.description, metadata: p.metadata });
+    // Ett tomt hltid tar bort ett klick-id från ett tidigare försök (Stripe tar
+    // bort en nyckel som sätts till ""): kunden kan ha dragit tillbaka sitt
+    // samtycke sedan dess.
+    const metadata = { ...p.metadata, hltid: p.metadata.hltid ?? "" };
+    const a = await deps.uppdateraAvsikt(egen.id, { amount: p.amount, description: p.description, metadata });
     if (a.client_secret) return { ok: true, avsiktId: a.id, clientSecret: a.client_secret, totalOre, fakturering: faktureringAv(kund) };
   }
   // En ny betalning får en egen nyckel. ☠️ INTE en nyckel ur korgens innehåll:
@@ -1209,6 +1231,13 @@ export async function slutforStripe(deps: StripeKassaDeps, avsiktId: string, nu:
   }
   await deps.markeraAvsikt(a.id, orderId!).catch((e) => logg(`[kassa] metadata på betalningen: ${e instanceof Error ? e.message.slice(0, 120) : e}`));
   await deps.sparaLas(a.id, { ...las, steg: "klar" }).catch(() => {});
+  // Köpet till Heylink åt GoWish, en gång: bara här, där ordern blev klar i det
+  // här anropet. Ett nytt anrop för samma betalning svarar ovanför (wixOrderId
+  // eller låset "klar") och kommer aldrig hit. Ett fel stoppar ingenting.
+  const hltid = klickId(a.metadata?.hltid);
+  if (hltid && deps.rapporteraKop) {
+    await deps.rapporteraKop(orderId!, hltid).catch((e) => logg(`[heylink] köpet lämnades inte: ${e instanceof Error ? e.message.slice(0, 120) : e}`));
+  }
   return { ok: true, orderId: orderId! };
 }
 
