@@ -15,6 +15,8 @@ Allt görs i kod och renderas utan konton:
 | Guldstoft | `film/stoft.py` | numpy |
 | Sammansättning (dis, glöd, ton, texter, korn) | `film/comp.py` | numpy, OpenCV, ffmpeg |
 | Ljud | `film/audio.py`, `film/ljudkoll.py` | numpy, scipy |
+| Omslagsbilder (torsdag och fredag) | `film/omslag.py` | Chromium, numpy |
+| Leverans och kontroll av den färdiga filmen | `leverans.sh`, `film/koll.py` | ffmpeg |
 
 ## Det filmen påstår ska gå att belägga
 
@@ -38,10 +40,14 @@ $PY -m film.hamta_kandidater <slug> …   # eller: varor ur kön, hämtade från
 # assets/products/val.json säger vilken vara som står i trappan och vilka fyra som visas i hallen
 $PY -m film.texturer                    # prisskylt, kort och glasrader
 ./kor.sh final A B C D E                # alla tagningar (går att avbryta och fortsätta)
-node titles/rendera.js out/titlar/torsdag torsdag 100
-$PY -m film.audio
-$PY -m film.comp film --kvalitet final --titlar out/titlar/torsdag --ljud out/ljud.wav --ut out/pristrappan.mp4
+./leverans.sh 100                       # texter, ljud, fyra filmer och två omslag i leverans/
+$PY -m film.koll leverans/fyndplats-black-friday-torsdag.mp4
 ```
+
+`leverans.sh` gör filmen med och utan ljud i två versioner: torsdag (slutbild "fredag kl 07–19")
+och fredag (slutbild "i dag till kl 19"). Argumentet är antalet fynd som texterna visar.
+Under renderingen går en provfilm att göra med `--kvalitet final,skiss`: varje bildruta tas från
+den bästa rendering som finns.
 
 Kvalitetsnivåer i `film/render.py`: `skiss` (rörelseprov, ca 1 s per ruta), `utkast`, `prov` och
 `final` (ca 15–50 s per ruta på fyra kärnor; hela filmen ca 4,5 timmar).
@@ -67,6 +73,13 @@ Kvalitetsnivåer i `film/render.py`: `skiss` (rörelseprov, ca 1 s per ruta), `u
 | 21,0–25,0 s | Kuben sätts ihop och landar | E |
 
 Takten är 120 slag i minuten: varje steg, lampa och vara landar på ett slag (`film/common.py`).
+
+## Läsbarhet i apparna
+
+- Rubriken syns redan i första bildrutan, så att kroken syns i flödet och när filmen börjar om.
+- All text ligger mellan y 290 och y 1300, alltså utanför de delar av bilden som Instagram och
+  TikTok täcker med knappar och bildtext.
+- Omslagets text ligger inom 4:5-utsnittet (y 285–1635), som profilens rutnät visar.
 
 ## Typsnitt
 

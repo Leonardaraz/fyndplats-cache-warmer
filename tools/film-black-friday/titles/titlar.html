@@ -54,6 +54,7 @@ const VARIANT = P.get('variant') || 'torsdag';   // 'torsdag' = dagen fore, 'fre
 const ANTAL = parseInt(P.get('antal') || '100', 10);
 const TXT = {
   dag: VARIANT === 'fredag' ? 'Black Friday <span class="streck"></span> i dag' : 'Black Friday <span class="streck"></span> fredag 27 november',
+  start: VARIANT === 'fredag' ? 'kl 07–19' : 'start kl 07',
   slut: VARIANT === 'fredag' ? 'Fyndauktionen · <em>i dag till kl 19</em>' : 'Fyndauktionen · <em>fredag kl 07–19</em>',
 };
 
@@ -76,7 +77,7 @@ function el(tagg, klass, html, stil) {
 
 // ---- vanliga textblock: rader som glider upp ur en mask, en i taget
 const BLOCK = [
-  { id: 's1', in: 0.18, ut: 2.28, top: 296, glapp: 0.10, rader: [
+  { id: 's1', in: -0.9, ut: 2.28, top: 296, glapp: 0.10, rader: [
       { ogon: 'Black Friday <span class="streck"></span> Fyndauktionen', ner: 30 },
       { h: 'Priset sjunker', px: 112 }, { h: '<em>varje timme.</em>', px: 112 } ] },
   { id: 's2a', in: 3.05, ut: 5.18, top: 300, glapp: 0.10, rader: [
@@ -88,8 +89,8 @@ const BLOCK = [
   { id: 's3b', in: 10.82, ut: 11.86, top: 304, glapp: 0.09, skugga: [0, 760, 0.78], rader: [
       { h: 'Varje fynd finns', px: 88 }, { h: '<em>bara en gång.</em>', px: 88 } ] },
   { id: 's4b', in: 14.02, ut: 17.72, top: 300, glapp: 0.08, rader: [
-      { ogon: TXT.dag, ner: 14, px: 27 }, { h: `<em>${ANTAL} fynd</em> · start kl 07`, px: 60 } ] },
-  { id: 's5', in: 18.12, ut: 20.86, top: 318, glapp: 0.08, rader: [
+      { ogon: TXT.dag, ner: 14, px: 27 }, { h: `<em>${ANTAL} fynd</em> · ${TXT.start}`, px: 60 } ] },
+  { id: 's5', in: 18.12, ut: 20.62, top: 318, glapp: 0.08, rader: [
       { ogon: 'Tryggt köp på Fyndplats' } ] },
 ];
 

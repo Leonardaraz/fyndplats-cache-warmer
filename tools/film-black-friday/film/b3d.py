@@ -358,6 +358,19 @@ def text(namn: str, innehall: str, font: str, storlek: float, djup=0.0, fas=0.0,
     return obj
 
 
+def centrera(obj: bpy.types.Object) -> tuple[float, float]:
+    """Flyttar meshens punkter sa att glyfernas faktiska ram har sin mitt i origo (x och z). Ger bredd och hojd."""
+    me = obj.data
+    xs = [v.co.x for v in me.vertices]
+    zs = [v.co.z for v in me.vertices]
+    cx, cz = (min(xs) + max(xs)) / 2, (min(zs) + max(zs)) / 2
+    for v in me.vertices:
+        v.co.x -= cx
+        v.co.z -= cz
+    me.update()
+    return max(xs) - min(xs), max(zs) - min(zs)
+
+
 # ------------------------------------------------------------------ ljus och kamera
 def spot(namn: str, plats, effekt: float, vinkel_grader: float, mjukhet=0.3, radie=0.12, farg=(1, 1, 1), coll=None):
     ld = bpy.data.lights.new(namn, "SPOT")

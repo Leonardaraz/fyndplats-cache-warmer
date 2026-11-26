@@ -279,6 +279,11 @@ def bygg(tagning: str, look: dict | None = None) -> dict:
             rad.color[3] = min(a, 1.0) if t < T_RADER[n] else a
             rad.keyframe_insert("color", frame=f, index=3)
 
+    # i kubens tagning har glasskivan redan sjunkit: snett fran sidan blev dess text olaslig och bilden rorig
+    if tagning == "E":
+        for o in [glas_rot] + list(glas_rot.children_recursive):
+            o.hide_render = True
+
     # ---------- kuben: tre orange ytor som blir Fyndplats-kuben
     S, T = KUB_S, 0.03
     glod = look.get("kub_glod", 1.0)

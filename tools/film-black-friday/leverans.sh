@@ -1,6 +1,6 @@
 #!/bin/bash
 # Bygger leveransfilerna ur de renderade bildrutorna: ./leverans.sh [antal fynd]
-# Film med ljud, film utan ljud, fredagsversionen (slutbild "i dag till kl 19") och omslagsbild.
+# Film med ljud, film utan ljud, fredagsversionen (slutbild "i dag till kl 19") och omslagsbilder for bada.
 cd "$(dirname "$0")"
 PY=/opt/render-venv/bin/python
 ANTAL="${1:-100}"
@@ -13,4 +13,5 @@ $PY -m film.comp film --kvalitet "$KV" --titlar out/titlar/torsdag --ljud out/lj
 $PY -m film.comp film --kvalitet "$KV" --titlar out/titlar/torsdag --ut leverans/fyndplats-black-friday-torsdag-utan-ljud.mp4 | tail -1
 $PY -m film.comp film --kvalitet "$KV" --titlar out/titlar/fredag --ljud out/ljud.wav --ut leverans/fyndplats-black-friday-fredag.mp4 | tail -1
 $PY -m film.comp film --kvalitet "$KV" --titlar out/titlar/fredag --ut leverans/fyndplats-black-friday-fredag-utan-ljud.mp4 | tail -1
+$PY -m film.omslag --kvalitet "$KV" --ruta 50 | tail -2
 for f in leverans/*.mp4; do ffprobe -v error -show_entries format=duration,size -of csv=p=0 "$f" | sed "s|^|$f: |"; done

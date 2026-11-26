@@ -7,7 +7,7 @@ import math
 import bpy
 
 from . import b3d
-from .common import FPS, PRODUKTER, UT, blanda, dampad_svang, hex_lin, in_kub, led, mjuk, mjukare, ut_expo
+from .common import FPS, PRODUKTER, UT, blanda, brus1, dampad_svang, hex_lin, in_kub, led, mjuk, mjukare, ut_expo
 
 # ---- trappans matt (meter) ----
 N = 12            # steg, markta 07..18
@@ -33,6 +33,7 @@ STAMPEL_FLYG = 0.20
 T_SLOCKNAR = 11.5
 
 VILA = 0.05              # sa svagt gloder en timme som inte har tants
+SIFFROR_X = -BREDD / 2 + 0.50
 
 
 def steg_z(i: int) -> float:
@@ -106,7 +107,7 @@ def siffra_styrka(i: int, t: float) -> float:
 
 def ljusniva(t: float) -> float:
     """Studions ljus: tant fran forsta rutan, en blixt vid stampeln, slocknar sedan."""
-    upp = 0.6 + 0.4 * ut_expo(led(t, 0.0, 0.5))
+    upp = 0.85 + 0.15 * ut_expo(led(t, 0.0, 0.4))       # forsta bildrutan ar redan ljus (flodet)
     tau = t - T_STAMPEL
     blixt = 1.0 + (0.9 * math.exp(-tau * 14.0) if tau >= 0 else 0.0)
     ner = 1.0 - mjukare(led(t, T_SLOCKNAR, T_SLOCKNAR + 0.3))
@@ -146,6 +147,7 @@ def bygg(produkt: dict, look: dict | None = None) -> dict:
 
     # ---------- trappan
     siffror = []
+    pilar: dict[int, bpy.types.Object] = {}
     for i in range(N):
         z = steg_z(i)
         djup = DJUP + (AVSATS if i == 0 else 0)
@@ -154,9 +156,18 @@ def bygg(produkt: dict, look: dict | None = None) -> dict:
         b3d.lada(f"platta{i}", (BREDD + 0.03, djup + 0.022, PLATTA), (0, yc - 0.011, z - PLATTA / 2),
                  m_guld_borstat, fas=0.005, coll=fasta)
         s = b3d.text(f"timme{i}", f"{7 + i:02d}", "Newsreader-Display-SemiBold.ttf", 0.215, djup=0.004, material=m_siffra, coll=fasta)
-        s.location = (-BREDD / 2 + 0.50, -(i + 1) * DJUP - 0.003, z - PLATTA - (STIG - PLATTA) / 2 - 0.004)
+        bredd_siffror, _ = b3d.centrera(s)
+        zc = z - PLATTA - (STIG - PLATTA) / 2
+        s.location = (SIFFROR_X, -(i + 1) * DJUP - 0.003, zc)
         s.color = (1, 1, 1, VILA)
         siffror.append(s)
+        # pilen nedat: fran 08 och framat har priset gatt ner ett steg (planen: "timmar och pilar nedat")
+        if i >= 1:
+            pil = b3d.text(f"pil{i}", "\u2193", "Geist-Medium.ttf", 0.155, djup=0.004, material=m_siffra, coll=fasta)
+            bredd_pil, _ = b3d.centrera(pil)
+            pil.location = (SIFFROR_X + bredd_siffror / 2 + 0.05 + bredd_pil / 2, -(i + 1) * DJUP - 0.003, zc)
+            pil.color = (1, 1, 1, VILA)
+            pilar[i] = pil
 
     # ---------- brickan
     from .foton import forbered
@@ -176,12 +187,12 @@ def bygg(produkt: dict, look: dict | None = None) -> dict:
         o.parent = rot
 
     # ---------- prisskylten vid oversta steget
-    skylt_rot = b3d.tom("skylt_rot", (-0.60, steg_y(0) - 0.04, steg_z(0)), fasta)
-    sk_b, sk_h = 0.52, 0.30
+    skylt_rot = b3d.tom("skylt_rot", (-0.66, steg_y(0) - 0.04, steg_z(0)), fasta)
+    sk_b, sk_h = 0.80, 0.46
     sk = b3d.rundad_skiva("skylt", sk_b, sk_h, 0.02, 0.018, m_kram, fas=0.003, coll=fasta)
     sk_ram = b3d.rundad_skiva("skylt_ram", sk_b + 0.016, sk_h + 0.016, 0.028, 0.026, m_guld, fas=0.002, coll=fasta,
                               hal=(sk_b - 0.004, sk_h - 0.004, 0.016))
-    sk_fot = b3d.lada("skylt_fot", (0.22, 0.09, 0.022), (0, 0, 0.011), m_guld_borstat, fas=0.004, coll=fasta)
+    sk_fot = b3d.lada("skylt_fot", (0.32, 0.11, 0.022), (0, 0, 0.011), m_guld_borstat, fas=0.004, coll=fasta)
     for o in (sk, sk_ram):
         o.location = (0, 0, 0.022 + 0.008 + sk_h / 2)
     skylt_tex = UT / "tex" / "prisskylt.png"
@@ -252,7 +263,7 @@ def bygg(produkt: dict, look: dict | None = None) -> dict:
     mottagare = bpy.data.collections.new("bakljus_mottagare")
     trappdelar = bpy.data.collections.new("trappa_mottagare")
     for o in fasta.objects:
-        if o.name != "golv":
+        if o.name != "golv" and not o.name.startswith("kropp"):
             mottagare.objects.link(o)
         if o.name.startswith(("platta", "timme")):      # bara guldet: stenens sidor ska forbli morka
             trappdelar.objects.link(o)
@@ -296,6 +307,9 @@ def bygg(produkt: dict, look: dict | None = None) -> dict:
         for i, s in enumerate(siffror):
             s.color[3] = siffra_styrka(i, t) * slack
             s.keyframe_insert("color", frame=f, index=3)
+            if i in pilar:
+                pilar[i].color[3] = s.color[3]
+                pilar[i].keyframe_insert("color", frame=f, index=3)
 
     if look.get("utan_skylt"):
         for o in [skylt_rot] + list(skylt_rot.children):
@@ -331,6 +345,12 @@ def _skak(t: float) -> tuple[float, float, float]:
     return dx, 0.0, dz
 
 
+def _andas(t: float, styrka: float = 0.012) -> tuple[float, float, float]:
+    """Langsam, jamn drift i kamerans lage: nagra pixlar, sa att bilden lever utan att skaka."""
+    return (styrka * (brus1(t * 0.35, 11) + 0.35 * brus1(t * 0.9, 12)), 0.0,
+            styrka * 0.7 * (brus1(t * 0.31, 13) + 0.35 * brus1(t * 0.8, 14)))
+
+
 # Oppningen: lang lins lagt fran golvet, brickan stor i kaglan. Sedan lyfter kameran och trappan visar sig.
 A_NARA_POS = ((1.95, -17.6, 0.55), (1.80, -16.2, 0.66))
 A_NARA_MAL = ((0.16, -0.3, 3.36), (0.16, -0.3, 3.30))
@@ -354,17 +374,19 @@ def kam_A(t: float) -> dict:
     mal = blanda(nara_mal, vid_mal, w)
     lins = math.exp(blanda(math.log(118.0), math.log(58.0), w))
     sk = _skak(t)
-    return {"pos": tuple(a + b for a, b in zip(pos, sk)), "mal": mal, "lins": lins, "blandare": 2.2,
+    an = _andas(t, 0.010)
+    return {"pos": tuple(a + b + c for a, b, c in zip(pos, sk, an)), "mal": mal, "lins": lins, "blandare": 2.2,
             "fokus": (p["x"], p["y"] - 0.02, p["z"] + 0.55)}
 
 
-B_POS = ((1.50, -8.80, 1.92), (1.22, -8.15, 1.86))
-B_MAL = (-0.04, -3.74, 1.66)
+B_POS = ((1.10, -9.20, 1.68), (0.90, -8.65, 1.63))
+B_MAL = (-0.10, -3.92, 1.38)
 
 
 def kam_B(t: float) -> dict:
     k = led(t, T_NARBILD, 12.0)
     pos = blanda(*B_POS, mjuk(k) * 0.5 + k * 0.5)
     sk = _skak(t)
-    return {"pos": tuple(a + b for a, b in zip(pos, sk)), "mal": B_MAL, "lins": 60.0, "blandare": 2.0,
+    an = _andas(t, 0.008)
+    return {"pos": tuple(a + b + c for a, b, c in zip(pos, sk, an)), "mal": B_MAL, "lins": 50.0, "blandare": 2.0,
             "fokus": (BRICKA_X, steg_y(ANTAL_KLIV) - 0.03, steg_z(ANTAL_KLIV) + 0.55)}

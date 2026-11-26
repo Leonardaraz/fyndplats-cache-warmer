@@ -50,9 +50,9 @@ def spec() -> list[dict]:
     kort = [{
         "id": "prisskylt", "w": 1160, "h": 670, "bakgrund": "#ffffff",
         "html": f"""
-          <div style="font:600 60px Geist;letter-spacing:.2em;color:{GULDBRUN};text-transform:uppercase;margin-right:-.2em">Startpris kl 07</div>
-          <div style="width:140px;height:5px;background:{GULDBRUN};opacity:.5;margin:44px 0 30px"></div>
-          {_pris_html(hjalte, 250)}
+          <div style="font:650 80px Geist;letter-spacing:.16em;color:{GULDBRUN};text-transform:uppercase;margin-right:-.16em">Startpris kl 07</div>
+          <div style="width:150px;height:6px;background:{GULDBRUN};opacity:.5;margin:38px 0 22px"></div>
+          {_pris_html(hjalte, 262)}
         """,
     }]
     # brickornas kort i hallen: foto overst, namn och startpris under
