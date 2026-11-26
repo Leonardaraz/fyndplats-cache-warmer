@@ -6,7 +6,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { namnnyckel } from "./search.ts";
+import { markesnyckel, namnnyckel } from "./search.ts";
 import { FLEST_VAROR_PER_NYCKEL, byggNycklar, lasCsv, somModul } from "../tools/namnnycklar/bygg.ts";
 
 const rad = (pr_namn: string, sakerhet: string, slug: string) => ({ pr_namn, sakerhet, slug });
@@ -37,9 +37,10 @@ test("bara de valda klasserna byggs, och allt som faller bort räknas", () => {
   ];
   const { perVara, rakning } = byggNycklar(rader, new Set(["A"]), finns);
   assert.deepEqual(Object.keys(perVara).sort(), ["katttrad", "sittbank"]);
-  assert.deepEqual(perVara.sittbank, [namnnyckel("Homcom Sittbänk Med Förvaring Grå")]);
-  assert.deepEqual(perVara.katttrad, [namnnyckel("Pawhut Kattträd 180 cm Beige")]);
-  assert.deepEqual(rakning, { rader: 6, forFaOrd: 1, varanSaknas: 1, utanAdress: 1, nycklar: 2, flertydiga: 0, forMangaVaror: 0, varor: 2 });
+  // Namnets nyckel, och märket namnet börjar med som en egen summa (2026-11-26).
+  assert.deepEqual(perVara.sittbank, [namnnyckel("Homcom Sittbänk Med Förvaring Grå")!, markesnyckel("homcom")].sort());
+  assert.deepEqual(perVara.katttrad, [namnnyckel("Pawhut Kattträd 180 cm Beige")!, markesnyckel("pawhut")].sort());
+  assert.deepEqual(rakning, { rader: 6, forFaOrd: 1, varanSaknas: 1, utanAdress: 1, nycklar: 2, flertydiga: 0, forMangaVaror: 0, varor: 2, medMarke: 2, marke_homcom: 1, marke_pawhut: 1 });
   // Med klass B också.
   assert.deepEqual(Object.keys(byggNycklar(rader, new Set(["A", "B"]), finns).perVara).sort(), ["badrumsskap", "katttrad", "sittbank"]);
 });
@@ -51,7 +52,8 @@ test("ett namn som pekar på några få varor behålls, på för många stryks d
   assert.deepEqual(Object.keys(tre.perVara).sort(), ["a", "b", "c"]);
   assert.equal(tre.rakning.flertydiga, 1);
   const fyra = byggNycklar(["a", "b", "c", "d"].map((s) => rad(namn, "A", s)), new Set(["A"]), finns);
-  assert.deepEqual(fyra.perVara, {});
+  // Namnets nyckel stryks. Märket gäller varorna ändå: det säger inte vilken vara det är.
+  assert.deepEqual(fyra.perVara, Object.fromEntries(["a", "b", "c", "d"].map((s) => [s, [markesnyckel("homcom")]])));
   assert.equal(fyra.rakning.forMangaVaror, 1);
   // En vara med flera namn bär en nyckel per namn, sorterade: en ombyggnad
   // ska ge samma fil. Namnen står i en ordning där nycklarna inte redan är sorterade.
@@ -59,17 +61,23 @@ test("ett namn som pekar på några få varor behålls, på för många stryks d
   const iTur = namnen.map((n) => namnnyckel(n)!);
   assert.notDeepEqual(iTur, [...iTur].sort());
   const flera = byggNycklar(namnen.map((n) => rad(n, "A", "byra")), new Set(["A"]), finns);
-  assert.deepEqual(flera.perVara.byra, [...iTur].sort());
+  assert.deepEqual(flera.perVara.byra, [...iTur, markesnyckel("homcom")].sort());
 });
 
 test("☠️ det som byggs bär aldrig ett namn: varken svaret eller filen", () => {
   const rader = [rad("Homcom Zyxgrundbord Qvartell Brumbass", "A", "bord-ett"), rad("Outsunny Flimmerparasoll Snedställd Grafitgrå", "A", "parasoll")];
   const bygge = byggNycklar(rader, new Set(["A"]), finns);
   const modul = somModul(bygge.perVara, "2026-11-25", "A");
-  for (const text of [JSON.stringify(bygge), modul]) {
+  // Varornas nycklar och filen bär varken namnets ord eller märket. Räkningen
+  // (som verktyget skriver ut) säger hur många varor varje märke har, och
+  // nämner därför märket, men aldrig ett ord ur namnet.
+  for (const text of [JSON.stringify(bygge.perVara), modul]) {
     for (const ord of ["Zyxgrundbord", "Qvartell", "Brumbass", "Flimmerparasoll", "Snedställd", "Grafitgrå", "Homcom", "Outsunny"]) {
       assert.equal(text.toLowerCase().includes(ord.toLowerCase()), false, ord);
     }
+  }
+  for (const ord of ["Zyxgrundbord", "Qvartell", "Brumbass", "Flimmerparasoll", "Snedställd", "Grafitgrå"]) {
+    assert.equal(JSON.stringify(bygge.rakning).toLowerCase().includes(ord.toLowerCase()), false, ord);
   }
   // Filen: huvudet som kommentarer, sedan en rad per vara i bokstavsordning.
   const rad1 = modul.split("\n");

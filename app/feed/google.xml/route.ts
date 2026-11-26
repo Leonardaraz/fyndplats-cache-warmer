@@ -34,7 +34,7 @@ export const runtime = "nodejs";
 // ☠️ INGEN ROUTE-ISR HÄR (2026-11-11). Med `revalidate = 3600` byggdes flödet
 // vid deployen och sedan aldrig mer: svaret är större än vad Vercel bygger om i
 // bakgrunden, så CDN:en gav byggets kopia tills nästa deploy. Känt sedan
-// 2026-10-19 (se /feed/prisjakt.xml), mätt igen 2026-11-10: 151 varor med
+// 2026-10-19 (det öppna Prisjakt-flödet, borttaget 2026-11-26), mätt igen 2026-11-10: 151 varor med
 // gårdagens pris ett dygn efter bygget, och tre hämtningar efter att kopian gått
 // ut gav alla samma gamla fil. Nu körs rutten vid anrop, CDN:en håller svaret en
 // timme och ger det gamla medan nästa byggs, och /api/cron/farska-floden hämtar

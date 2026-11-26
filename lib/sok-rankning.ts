@@ -12,7 +12,7 @@
 // aldrig. Kontaktformulärets produktväljare importerar den som vanligt: den
 // sidan söker alltid.
 
-import { byggOrdforrad, byggOrdforradSteg, forberedKatalogSteg, kortOrd, markeraTraffar, markeringsord, matchaKategorier, normalize, rankaMedInfo, rankByName, sokforslagINamn, varanHeterSa, visaVarorFor, type Kategoridata, type Ordforrad } from "./search";
+import { byggOrdforrad, byggOrdforradSteg, forberedKatalogSteg, kortOrd, markeraTraffar, markeringsord, markesnamn, matchaKategorier, normalize, rankaMedInfo, rankByName, sokforslagINamn, varanHeterSa, visaVarorFor, type Kategoridata, type Ordforrad } from "./search";
 import { sokExempelHamtade, sokKategorierHamtade, type SokTraff } from "./sok-index";
 import { billigastForst, kopbaraForst, namnForst } from "./sok-ordning";
 import { prisTal, villHaBilligast } from "./sok-pris";
@@ -80,7 +80,7 @@ export function rankaForslag(idx: SokTraff[], term: string, antal: number): SokT
  */
 export function rankaForslagMedAntal(
   idx: SokTraff[], term: string, antal: number, behall?: (h: SokTraff) => boolean,
-): { traffar: SokTraff[]; totalt: number; rattat?: string; liknande?: true; namn?: number } {
+): { traffar: SokTraff[]; totalt: number; rattat?: string; liknande?: true; namn?: number; marke?: string } {
   const utfall = rankaMedInfo(idx, (h) => h.n, term, namnFor(idx), kategoridata());
   // "soffa billigast": varorna som heter så, billigast först, som på resultatsidan
   // (billigastForst i lib/sok-ordning.ts). En påfylld lista har sin egen ordning.
@@ -102,6 +102,8 @@ export function rankaForslagMedAntal(
     ...(utfall.rattat && kvar.length > 0 ? { rattat: utfall.rattat } : {}),
     ...(utfall.liknande && kvar.length > 0 ? { liknande: true as const } : {}),
     ...(namn > 0 ? { namn: Math.min(namn, antal) } : {}),
+    // Märket som sökningen var eller var på väg att bli, skrivet för kunden (lib/search.ts, medMarkesvaror).
+    ...(utfall.marke && kvar.length > 0 ? { marke: markesnamn(utfall.marke) } : {}),
   };
 }
 

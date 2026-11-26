@@ -1,6 +1,6 @@
 // lib/feed/prisjakt.ts
 //
-// Prisjakt-feeden (/feed/prisjakt.xml) byggs OVANPÅ Google-feeden, precis som
+// Prisjakt-feeden (den hemliga adressen, app/feed/[fil]/route.ts) byggs OVANPÅ Google-feeden, precis som
 // PriceRunner-feeden (lib/feed/pricerunner.ts). Prisjakts eget format ("Prisjakt
 // XML") är Googles spec plus några egna fält, så katalogen, länkarna och bilderna
 // går rakt igenom. Det som skiljer görs här, mot Prisjakts spec

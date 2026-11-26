@@ -164,6 +164,22 @@ const nextConfig: NextConfig = {
         source: "/payments/:fil*",
         headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }],
       },
+      {
+        // ☠️ Inget flöde ska hamna i ett sökindex (Leonard 2026-11-26). Flödena
+        // bär hela katalogen med pris, lager och EAN, och de öppna adresserna
+        // saknade rubriken: länkar någon till en flödesfil kan en sökmotor ta
+        // med den. Regeln gäller varje svar under /feed/, också 404 och de
+        // komprimerade adresserna. Den hindrar ingen läsare från att hämta
+        // filen. Bildsitemapen (/api/feed/image-sitemap.xml) är en sitemap som
+        // sökmotorerna ska läsa, och har ingen regel.
+        // lib/feed/hemlig-adress.test.ts håller regeln kvar.
+        source: "/feed/:fil*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex" }],
+      },
+      {
+        source: "/api/feed/products.xml",
+        headers: [{ key: "X-Robots-Tag", value: "noindex" }],
+      },
     ];
   },
   async redirects() {

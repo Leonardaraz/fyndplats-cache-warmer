@@ -9,6 +9,12 @@ namn på varan: nycklar", och koden i `lib/search.ts` (`namnnyckel`,
 Verktyget här bygger `lib/namnnycklar-data.ts`: vår adress → nycklarna för
 namnen som pekar på varan. En nyckel är en enkelriktad summa av namnets ord.
 
+Sedan 2026-11-26 får en vara tre sorters nycklar: en för hela namnet (minst tre
+ord), en för varje början på namnet från fyra ord (så att varan står först
+medan kunden ännu skriver), och en märkesnyckel för märket namnet börjar med
+(så att "hom" och "homcom" ger märkets varor). Alla är summor: varken ett namn
+eller ett märke står i klartext i filen.
+
 ## ☠️ Filen med namnen checkas aldrig in
 
 Namnen är jämförelsesajtens, och några bär leverantörens artikelnummer. Filen

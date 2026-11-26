@@ -1116,6 +1116,10 @@ Sidans canonical pekar redan på den rena adressen, så för Google är inget ny
 
 ## Prisjakt-flödet, och varför flödena måste vara under 10 MB (2026-10-19)
 
+☠️ Den öppna adressen i det här avsnittet togs bort 2026-11-26: Prisjakt läser
+den hemliga adressen (se "Prisjakt: märke och artikelnummer på en hemlig
+adress" och "Flödenas hemliga adresser och noindex").
+
 `https://www.fyndplats.se/feed/prisjakt.xml` läggs in i Prisjakts Business
 Center (Feedhantering → Lägg till feed, typ Produktfeed, format Prisjakt XML).
 Flödet byggs ur Google-flödet som PriceRunner-flödet, och skillnaderna ligger i
@@ -1351,10 +1355,10 @@ Google-, PriceRunner- och det öppna Prisjakt-flödet byggs utan numren.
   mappningens adress bara när den slutar på samma artikel, sist GPSR-datan.
   Utan säker källa står Fyndplats kvar, och ett märke skrivs bara på en vara som
   fått ett nummer.
-- **Den öppna adressen `/feed/prisjakt.xml`** byggs som förut, utan märke och
-  artikelnummer, men med färgtaket och utan kontorsstolens kod. ☠️ Den ska tas
-  bort i deployen efter att Leonard bytt till den hemliga adressen i Business
-  Center.
+- **Den öppna adressen `/feed/prisjakt.xml` är borttagen (2026-11-26).**
+  Prisjakts läsare (`prisjakt-feed-ingestion-service`) hämtade den hemliga
+  adressen tre gånger på 23 timmar (07:19, 15:20 och 23:21 UTC den 25
+  november), och ingen hämtade den öppna. Adressen svarar 404.
 
 ☠️ **Google- och PriceRunner-flödet förnyas inte, och är inte lagat.** De är
 route-ISR (`revalidate = 3600`) och ~15 MB. Uppmätt 2026-10-19: `/feed/google.xml`
@@ -1364,6 +1368,79 @@ ISR) förnyades. Flödena är alltså så gamla som senaste produktionsbygget. A
 dem vid anrop hjälper inte: då byggs de om vid varje hämtning. De går inte under
 10 MB utan att Google-flödet tappar extrabilderna (5,5 MB), och det är ett beslut
 för Leonard.
+
+## Flödenas hemliga adresser och noindex (Leonard 2026-11-26)
+
+Leonards fråga: "Kan vem som helst söka upp våran produktfeed enkelt för
+pricerunner, prisjakt och gowish?" Mätt mot www samma natt:
+
+- `/feed/pricerunner.xml` svarade 200 utan kod: 10 415 varor med namn, pris,
+  frakt, bilder och lager, och EAN på 3 655, på 0,7 s. `/feed/google.xml`, det
+  öppna `/feed/prisjakt.xml`, `/feed/products.xml`, `/feed/pinterest.xml` och
+  `/feed/gz/pricerunner.xml` svarade också 200 utan kod.
+- Ingen sida länkar till flödena, och de står varken i robots.txt eller i
+  sitemapen. Men namnen är standardnamn, repot är publikt (ruttens kod gick
+  att läsa på GitHub utan inloggning), och de öppna flödena saknade
+  `X-Robots-Tag`.
+- Det flödet bär utöver butikens sidor är EAN-koderna. Inga kunduppgifter,
+  inga inköpspriser och inga artikelnummer: de står bara i det hemliga
+  Prisjakt-flödet.
+
+Leonard: "Fixa alla 3". Tre ändringar:
+
+1. **Det öppna Prisjakt-flödet är borttaget** (se Prisjakt-avsnittet ovan).
+2. **Inget flöde i ett sökindex.** `next.config.ts` sätter `X-Robots-Tag:
+   noindex` på varje svar under `/feed/` och på `/api/feed/products.xml`.
+   Rubriken hindrar ingen läsare från att hämta filen. Bildsitemapen är en
+   sitemap och har ingen regel.
+3. **PriceRunner- och GoWish-flödet har hemliga adresser**, som Prisjakts:
+   `/feed/pricerunner-<kod>.xml` och `/feed/gowish-<kod>.xml`
+   (`lib/feed/hemlig-adress.ts`, `app/feed/[fil]/route.ts`). ☠️ Koderna står
+   bara i Vercel, i `PRICERUNNER_FLODE_KOD` och `GOWISH_FLODE_KOD` (minst 32
+   bokstäver och siffror, i produktion och i förhandsbyggen). Aldrig i repot,
+   i en PR, här eller i en loggrad. Leonard fick adresserna i chatten.
+
+Regler som har prov (`lib/feed/hemlig-adress.test.ts`):
+
+- Bara exakt `<namn>-<kod>.xml` är adressen, och varje flöde har sin egen kod.
+  Jämförelsen tar lika lång tid oavsett var ett fel namn skiljer sig, och
+  varje flöde prövas också efter en träff.
+- Utan kod, eller med en för kort, finns ingen hemlig adress för det flödet.
+- ☠️ Rutten läser aldrig anropets adress, och loggen bär ett namn ("det
+  hemliga PriceRunner-flödet"), aldrig adressen. Läsarens namn står i samma
+  rad (`lasare`), så loggen visar när PriceRunner och GoWish har bytt.
+- Den hemliga adressen ger samma flöde som den öppna, ur samma sparade kopia
+  och med samma byggare. Artikelnumren hämtas bara för Prisjakts adress.
+- Ingen fil i repot bär en adress på formen `pricerunner-<lång kod>.xml`.
+
+### ☠️ De öppna adresserna står kvar tills läsarna har bytt
+
+`/feed/pricerunner.xml` och `/feed/gowish.xml` svarar som förut. Leonard hade
+redan mejlat GoWish den öppna adressen, och PriceRunner läser sin. Att stänga
+dem i samma deploy hade tagit flödet från båda.
+
+Så stängs de, när Leonard har bytt adress hos PriceRunner och GoWish:
+
+1. Läs butikens logg efter `det hemliga PriceRunner-flödet` och `det hemliga
+   GoWish-flödet`: raden ska bära läsarens eget namn, inte vårt.
+2. Ta bort rutterna `app/feed/pricerunner.xml` och `app/feed/gowish.xml`, och
+   namnen ur `KOMPRIMERADE_FLODEN`, omskrivningen i `next.config.ts` och
+   `BYGGARE`. Kopiorna byggs fortfarande av `/api/cron/farska-floden`
+   (`UR_GOOGLE`), och den hemliga rutten bygger med samma funktioner.
+3. `lib/flodesvarmning.ts` hämtar de öppna adresserna för att värma CDN:en:
+   ta bort dem där också.
+
+### Inte gjort, och inte mätt
+
+- **Google-, Pinterest- och produktflödet ligger kvar på öppna adresser.**
+  Google-flödet bär ingen EAN.
+- **Vem som har hämtat flödena går inte att se.** Serverloggen visade bara vår
+  egen värmning: hämtningar som CDN:en svarar på syns inte, och det kräver
+  Observability Plus.
+- **Om Google Merchant Center bryr sig om `X-Robots-Tag` på flödesfilen är
+  inte mätt.** Rubriken gäller sökindexet, inte hämtningen, och Prisjakt läser
+  sitt flöde med samma rubrik. Kvittot är flödets status i Merchant Center
+  efter nästa hämtning.
 
 ## Pinterest: flödet och kontot (Leonard 2026-11-15)
 
@@ -1457,7 +1534,7 @@ Nu:
 
 - ☠️ **Varje flödesrutt har en egen HEAD som aldrig bygger** (`huvudsvar` i
   `lib/feed/prisjakt-svar.ts`): de fyra under `/feed/`, `/feed/gz/[fil]`, det
-  öppna Prisjakt-flödet och den hemliga adressen, där ett fel filnamn ger 404
+  öppna Prisjakt-flödet (borttaget 2026-11-26) och de hemliga adresserna, där ett fel filnamn ger 404
   också på HEAD. Svaret har samma rubriker som GET och `Cache-Control:
   no-store`, och längd och tid när det finns en sparad kopia. Provet fäller en
   rutt utan HEAD och en HEAD som bygger.
@@ -1511,8 +1588,8 @@ Nu:
   dollar i månaden.
 
 Produktflödet har bara fått HEAD: det hämtas ofta nog för att CDN:en ska
-behålla det. Det öppna `/feed/prisjakt.xml` har också bara fått HEAD; det ska
-bort (se Prisjakt-avsnittet) och hämtades en gång natten mot 2026-11-15.
+behålla det. Det öppna `/feed/prisjakt.xml` hade också bara fått HEAD; det
+togs bort 2026-11-26 (se Prisjakt-avsnittet).
 
 ## Strukturerad data för Google Shopping (2026-10-22)
 
@@ -6304,6 +6381,62 @@ Nio regler som inte ska tas bort:
   vara stod först i sökläget, i listan under rutan och på söksidan, med märket
   och beskedet. En vanlig sökning fick inget märke. Inga fel på sidan.
 
+### Märket ensamt, och namnet halvskrivet (Leonard 2026-11-26)
+
+Leonard skrev "hom", början på "Homcom Barnelbil Med 2.4 G Fjärrkontroll", och
+sökrutan sa "Inga produkter matchade". Mätt mot sökindexet på www samma natt,
+steg för steg:
+
+| Skrivet | Före | Nu |
+|---|---|---|
+| "hom", "homc", "homco", "homcom" | 0 träffar | 256 varor, med rubriken "Säljs som Homcom hos prisjämförelsesajterna" |
+| "outs", "outsunny", "paw", "pawhut" | 0 | 40 och 46 varor |
+| "homcom barnelbil" | 52 elbilar | samma |
+| "homcom barnelbil med 2.4 g" | 52, varan någonstans bland dem | varan först |
+| "… 2.4 g fjärr" (nästa ord påbörjat) | 52 | varan först |
+| hela namnet | varan först | varan först |
+
+Två regler, båda i `lib/search.ts`:
+
+- **Märket ensamt eller halvskrivet** (`medMarkesvaror`, `markeUrBorjan`): ett
+  enda ord på minst tre bokstäver som inleder exakt ett märke ger varorna som
+  säljs under märket hos jämförelsesajterna. ☠️ Sökningens egna träffar går
+  före: "vin" är vinställ och "spo" spolpumpar, inte Vinsetto och Sportnow. En
+  rättad stavning och träffar som bara ligger nära räknas inte som egna. Hela
+  märket ger märkets varor först och varorna som nämner märket under dem
+  ("vevor"). Det ersätter regeln från 2026-11-24 att märket ensamt ger noll.
+- **Namnet halvskrivet** (`namnetsNycklar`, `sokningensNycklar`): varje början
+  på namnet har en egen nyckel från fyra ord (`BORJAN_MINST_ORD`), och
+  sökningen prövas också utan sitt sista ord, det som håller på att skrivas.
+  Tre ord är en nyckel bara när de är hela namnet: en början på tre ord
+  ("soffbord med förvaring") är en vanlig sökning.
+
+Vilka varor som hör till ett märke står bland namnnycklarna, som en
+märkesnyckel (`markesnyckel`): en summa som de andra, så att varken ett namn
+eller ett märke står i klartext i datafilen eller i sökindexet. Verktyget läser
+märket ur namnets första ord (`markeForstINamn`). Vyerna säger vilket märke
+listan gäller: sökrutans rubrik, och en rad på söksidan.
+
+Mätt 2026-11-26, klass A (463 namn, sökindexet från www med 8 742 varor):
+
+- Varan står först innan hela namnet är skrivet för 365 namn, först vid hela
+  namnet för 65, och aldrig för 33 (namn med färre än tre ord, som förut). I
+  snitt tre ord tidigare, av 7,7. Med nästa ord halvskrivet står varan kvar
+  först för 364 av 365.
+- Alla 399 namn som börjar med ett märke: varan står bland märkets varor när
+  märket är skrivet, och för 291 redan efter tre bokstäver (resten delar sin
+  början med ett varuord).
+- Vanliga sökningar: 0 av 16 017 provfrågor ändrades (ordförrådet med par och
+  tripplar, och en lista på 7 482), och av 118 kundfrågor ändrades fyra, alla
+  ett märke ensamt (`tools/sok-matning`).
+- Datafilen växte från 25 till 52 kB (11 till 24 kB packad): 1 814 namnnycklar
+  för 454 varor, och en märkesnyckel på 424 av dem.
+
+☠️ "homcom b" ger fortfarande två saxofoner stämda i B: märket tas bort, och en
+ensam bokstav söks som ett ord. Inte rättat.
+
+Prov: `lib/sok-2026-11-26.test.ts`.
+
 ### Inte gjort, och inte mätt
 
 - **Klass B och C är inte byggda.** B har 563 par med svagare stöd (ofta bara
@@ -6311,8 +6444,9 @@ Nio regler som inte ska tas bort:
 - **Om paren i klass A stämmer är inte kontrollerat.** Klassen är filens eget
   mått. Ett fel par ställer fel vara först för just det namnet, med de vanliga
   träffarna under.
-- **Bara hela namnet ger en nyckel.** Den som skriver början av namnet får
-  sökningens vanliga svar tills hela namnet står där.
+- **De tre första orden ger ingen nyckel** om de inte är hela namnet. Den som
+  skriver början av namnet får sökningens vanliga svar tills fyra ord står
+  där (se "Märket ensamt, och namnet halvskrivet").
 - **Prisjakts namn** finns inte i filen. Nycklarna är desamma för varje sajt
   vars namn läggs till.
 - **En riktig telefon.** Koden är skriven utan bakåtblick i mönstren (Safari

@@ -34,6 +34,8 @@ export type SokData = {
    * hos en prisjämförelsesajt (lib/search.ts, medNamntraff).
    */
   namn?: number;
+  /** Leverantörens märke, när sökningen bara var märket eller början på det (lib/search.ts, medMarkesvaror). */
+  marke?: string;
   /** Orden kunden nekade med "utan": varor som nämner dem är bortvalda (lib/search.ts, tolkaUtan). */
   inte?: string[];
   /**
@@ -138,6 +140,13 @@ export function SokVy({ q, data }: { q: string; data: SokData | "laddar" | "fel"
                     : klar.namn === 1
                       ? <><b>Den första varan</b> heter så hos prisjämförelsesajterna. Under den står träffarna som ligger närmast din sökning.</>
                       : <><b>De {klar.namn} första varorna</b> heter så hos prisjämförelsesajterna. Under dem står träffarna som ligger närmast din sökning.</>}
+                </p>
+              )}
+              {/* MÄRKET ENSAMT (2026-11-26). Den som skriver av jämförelsesajtens
+                  namn börjar med märket, och ingen vara heter så här. */}
+              {klar.marke && (
+                <p className="sok-besked">
+                  De här varorna säljs som <b>{klar.marke}</b> hos prisjämförelsesajterna. Hos oss heter de något annat: skriv vad varan är, till exempel “fåtölj”, så hittar du den.
                 </p>
               )}
               {klar.liknande && !klar.visar && (

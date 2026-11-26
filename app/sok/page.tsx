@@ -9,7 +9,7 @@ import { populartNu } from "../../lib/sok-tom";
 import { sidhuvudsdata } from "../../lib/sidhuvud-data";
 import { populara } from "../../lib/sidhuvud-val";
 import { attachRatings } from "../../lib/review-aggregates";
-import { kortOrd, matchaKategorier, normalize, rankaMedForslag, varanHeterSa, type Kategoridata } from "../../lib/search";
+import { kortOrd, markesnamn, matchaKategorier, normalize, rankaMedForslag, varanHeterSa, type Kategoridata } from "../../lib/search";
 import { NAMNNYCKLAR } from "../../lib/namnnycklar-data";
 import { BARA_I_UNDERKATEGORIN } from "../../lib/bara-i-underkategorin";
 import { sokKategorier, varansKategorier, type Sokkategorier } from "../../lib/sok-begrepp";
@@ -134,6 +134,9 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
   // Så många av de första träffarna står där för att de heter som sökningen
   // hos en prisjämförelsesajt (lib/search.ts, medNamntraff).
   let namn = 0;
+  // Märket, när sökningen bara var leverantörens märke eller början på det
+  // (lib/search.ts, medMarkesvaror), skrivet för kunden.
+  let marke = "";
   if (term) {
     const { utfall, visar: ordet } = rankaMedForslag(all, (p) => p.name, fraga, await kategoridata());
     visar = ordet;
@@ -151,6 +154,7 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
       ));
       results = ordnat.traffar;
       namn = ordnat.namn;
+      if (utfall.marke) marke = markesnamn(utfall.marke);
       if (prisordna) prisordning = utfall.hemma ? "kategori" : "namn";
     } else if (kategorier.length === 0 && !kortOrd(fraga)) {
       // ☠️ Aldrig för två bokstäver: de står i nästan varje beskrivning.
@@ -182,6 +186,7 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
       data={{
         traffar: forSokClient(results), strukna, utan, hela, kategorier, pris, visar, liknande, inte,
         ...(namn > 0 ? { namn } : {}),
+        ...(marke ? { marke } : {}),
         billigast: prisordning,
         populart: forListClient(populart), popularaKategorier,
       }}

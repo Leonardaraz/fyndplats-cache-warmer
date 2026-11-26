@@ -18,7 +18,14 @@ import { readFileSync, writeFileSync } from "node:fs";
 
 // Sökmodulen laddas vid körning, som i tools/sok-matning: en statisk import
 // med filändelsen fäller typkontrollen, och utan den hittar Node inte filen.
-type Sokmodul = { MINST_ORD: number; namnnyckel: (text: string) => string | null };
+type Sokmodul = {
+  MINST_ORD: number;
+  BORJAN_MINST_ORD: number;
+  namnnyckel: (text: string) => string | null;
+  namnetsNycklar: (text: string) => string[];
+  markeForstINamn: (namn: string) => string | null;
+  markesnyckel: (marke: string) => string;
+};
 const sok = (await import(new URL("../../lib/search.ts", import.meta.url).href)) as Sokmodul;
 
 /** Fler varor än så på samma nyckel: namnet säger inte vilken vara det är. */
@@ -62,19 +69,31 @@ export interface Bygge {
  * i sökindexet. Svaret bär aldrig ett namn.
  */
 export function byggNycklar(rader: readonly Record<string, string>[], klasser: ReadonlySet<string>, finns: (slug: string) => boolean): Bygge {
-  const rakning: Record<string, number> = { rader: 0, forFaOrd: 0, varanSaknas: 0, utanAdress: 0, nycklar: 0, flertydiga: 0, forMangaVaror: 0, varor: 0 };
+  const rakning: Record<string, number> = { rader: 0, forFaOrd: 0, varanSaknas: 0, utanAdress: 0, nycklar: 0, flertydiga: 0, forMangaVaror: 0, varor: 0, medMarke: 0 };
   const perNyckel = new Map<string, Set<string>>();
+  // Märket namnet börjar med, per vara (lib/search.ts, medMarkesvaror). Också
+  // för ett namn med för få ord för en nyckel: märket gäller varan ändå.
+  const marken = new Map<string, Set<string>>();
   for (const r of rader) {
     if (!klasser.has((r.sakerhet || "").trim())) continue;
     rakning.rader++;
     const slug = (r.slug || "").trim();
     if (!slug) { rakning.utanAdress++; continue; }
     if (!finns(slug)) { rakning.varanSaknas++; continue; }
-    const nyckel = sok.namnnyckel(r.pr_namn || "");
-    if (!nyckel) { rakning.forFaOrd++; continue; }
-    let varor = perNyckel.get(nyckel);
-    if (!varor) perNyckel.set(nyckel, (varor = new Set()));
-    varor.add(slug);
+    const marke = sok.markeForstINamn(r.pr_namn || "");
+    if (marke) {
+      let m = marken.get(slug);
+      if (!m) marken.set(slug, (m = new Set()));
+      m.add(marke);
+    }
+    // Hela namnet, och varje början på minst fyra ord (namnetsNycklar).
+    const nycklar = sok.namnetsNycklar(r.pr_namn || "");
+    if (nycklar.length === 0) { rakning.forFaOrd++; continue; }
+    for (const nyckel of nycklar) {
+      let varor = perNyckel.get(nyckel);
+      if (!varor) perNyckel.set(nyckel, (varor = new Set()));
+      varor.add(slug);
+    }
   }
   const perVara: Record<string, string[]> = {};
   for (const [nyckel, varor] of perNyckel) {
@@ -83,7 +102,15 @@ export function byggNycklar(rader: readonly Record<string, string>[], klasser: R
     rakning.nycklar++;
     for (const slug of varor) (perVara[slug] ??= []).push(nyckel);
   }
-  for (const slug of Object.keys(perVara)) perVara[slug].sort();
+  // Märkesnyckeln sist i räkningen, så att `nycklar` är namnens: en summa som de andra.
+  for (const [slug, m] of marken) {
+    rakning.medMarke++;
+    for (const marke of m) {
+      (perVara[slug] ??= []).push(sok.markesnyckel(marke));
+      rakning[`marke_${marke}`] = (rakning[`marke_${marke}`] ?? 0) + 1;
+    }
+  }
+  for (const slug of Object.keys(perVara)) perVara[slug] = [...new Set(perVara[slug])].sort();
   rakning.varor = Object.keys(perVara).length;
   return { perVara, rakning };
 }
@@ -96,8 +123,10 @@ export function somModul(perVara: Record<string, string[]>, datum: string, klass
     "//",
     `// BYGGD AV tools/namnnycklar/bygg.ts ${datum}, klass ${klasser}. Ändra inte för hand.`,
     "//",
-    "// Vår adress → nycklarna för jämförelsesajtens namn på varan",
-    "// (namnnyckel i lib/search.ts). Här står inga namn, bara enkelriktade summor.",
+    "// Vår adress → nycklarna för jämförelsesajtens namn på varan: hela namnet,",
+    "// varje början på minst fyra ord, och märket namnet börjar med (namnetsNycklar",
+    "// och markesnyckel i lib/search.ts). Här står inga namn och inga märken, bara",
+    "// enkelriktade summor.",
     "//",
     "// ☠️ BARA SERVERN LÄSER DEN HÄR FILEN (app/api/search-index och app/sok).",
     "// Sökrutan får nycklarna med indexet, rad för rad, för de varor som finns.",

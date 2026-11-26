@@ -77,7 +77,6 @@ describe("den hemliga adressen i repot", () => {
     for (const p of [
       "app/feed/google.xml/route.ts",
       "app/feed/pricerunner.xml/route.ts",
-      "app/feed/prisjakt.xml/route.ts",
       "app/feed/products.xml/route.ts",
       "app/feed/pinterest.xml/route.ts",
       "app/feed/gowish.xml/route.ts",

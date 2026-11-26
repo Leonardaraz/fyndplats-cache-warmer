@@ -390,7 +390,6 @@ describe("huvudsvar: HEAD bygger aldrig", () => {
     const rutter = [
       ...KOMPRIMERADE_FLODEN.map((f) => join(f, "route.ts")),
       join("gz", "[fil]", "route.ts"),
-      join("prisjakt.xml", "route.ts"),
       join("[fil]", "route.ts"),
     ];
     for (const fil of rutter) {
@@ -407,7 +406,7 @@ describe("huvudsvar: HEAD bygger aldrig", () => {
     }
     const hemlig = readFileSync(join(rot, "[fil]", "route.ts"), "utf8");
     const head = hemlig.slice(hemlig.indexOf("export async function HEAD("));
-    assert.match(head, /^export async function HEAD\([^)]*\{ params \}[^)]*\) \{\n  const \{ fil \} = await params;\n  if \(!arHemligPrisjaktFil\(fil, prisjaktKod\(\)\)\) return ingenFil\(\);/, "fel filnamn ger 404 också på HEAD");
+    assert.match(head, /^export async function HEAD\([^)]*\{ params \}[^)]*\) \{\n  const \{ fil \} = await params;\n  const adress = hemligAdress\(fil\);\n  if \(!adress\) return ingenFil\(\);/, "fel filnamn ger 404 också på HEAD");
     assert.match(head, /rubriker: \{ \.\.\.NOINDEX \}/, "HEAD bär X-Robots-Tag som GET");
   });
 

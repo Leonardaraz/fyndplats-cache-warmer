@@ -203,6 +203,9 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
   // Sökningen vars första träffar är varan som heter så hos en
   // prisjämförelsesajt, och hur många de är (lib/search.ts, medNamntraff).
   const [namnFor, setNamnFor] = useState<{ q: string; antal: number } | null>(null);
+  // Sökningen som bara var leverantörens märke, eller början på det ("hom"),
+  // och märket som listan visar varor för (lib/search.ts, medMarkesvaror).
+  const [markeFor, setMarkeFor] = useState<{ q: string; marke: string } | null>(null);
   const [fortsattFor, setFortsattFor] = useState<string | null>(null);
   const uid = useId();
   const [popular, setPopular] = useState<Hit[]>([]);
@@ -386,6 +389,7 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
       setForslag([]);
       setVisarFor(null);
       setNamnFor(null);
+      setMarkeFor(null);
       setFortsattFor(null);
       return;
     }
@@ -397,6 +401,7 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
       setForslag([]);
       setVisarFor(null);
       setNamnFor(null);
+      setMarkeFor(null);
       setFortsattFor(null);
       setExempel(m.sokexempelFor(idx, SOKEXEMPEL));
       setPopular(inStockOnly(idx).slice(0, antal));
@@ -426,6 +431,7 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
     setVisarFor(visar ? { q: val, ord: visar } : null);
     setLiknandeFor(!visar && svar.liknande ? val : null);
     setNamnFor(!visar && svar.namn ? { q: val, antal: svar.namn } : null);
+    setMarkeFor(!visar && svar.marke ? { q: val, marke: svar.marke } : null);
     rankadFor.current = val;
     setHits(svar.traffar);
     setTotalt(svar.totalt);
@@ -560,6 +566,8 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
   const liknande = !isPopular && liknandeFor !== null && liknandeFor === q;
   // Så många av de första korten är varan kunden sökte på namn.
   const soktaVaror = !isPopular && namnFor !== null && namnFor.q === q ? namnFor.antal : 0;
+  // Märket som listan visar varor för, när sökningen bara var märket eller början på det.
+  const marke = !isPopular && markeFor !== null && markeFor.q === q ? markeFor.marke : "";
   const pris = tolkaPris(q.trim());
   const visaTidigare = isPopular && tidigare.length > 0;
   const visaExempel = isPopular && exempel.length > 0;
@@ -885,13 +893,13 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
   };
 
   // Rubriken över varorna: vilket ord de gäller, när det inte är det skrivna.
-  const varuRubrik = visar ? `Visar “${visar}”` : liknande ? "Närmast i stavning" : harPris(pris) ? `Varor ${prisText(pris)}` : "Varor";
+  const varuRubrik = visar ? `Visar “${visar}”` : marke ? `Säljs som ${marke} hos prisjämförelsesajterna` : liknande ? "Närmast i stavning" : harPris(pris) ? `Varor ${prisText(pris)}` : "Varor";
 
   // Vad en skärmläsare får höra när listan ändras: antalet, och vilket ord
   // det gäller när det inte är det som står i rutan.
   const listaId = `${uid}-lista`;
   const upplast = isPopular || laddar || soker ? ""
-    : showing.length > 0 ? `${totalt === 1 ? "1 träff" : `${totalt} träffar`}${visar ? ` för ${visar}` : liknande ? ", närmast i stavning" : ""}`
+    : showing.length > 0 ? `${totalt === 1 ? "1 träff" : `${totalt} träffar`}${visar ? ` för ${visar}` : marke ? `, säljs som ${marke} hos prisjämförelsesajterna` : liknande ? ", närmast i stavning" : ""}`
     : kategorier.length > 0 ? "Inga varor i namnet. Titta i kategorin ovan."
     : indexFel ? "" : "Inga träffar";
 
@@ -1008,7 +1016,7 @@ export function SearchBox({ onNavigate, helskarm = false }: { onNavigate?: () =>
               <span className="sugg-kat-pil" aria-hidden="true">→</span>
             </a>
           ))}
-          {!rutnat && !isPopular && showing.length > 0 && (kategorier.length > 0 || harPris(pris) || visar || liknande) && (
+          {!rutnat && !isPopular && showing.length > 0 && (kategorier.length > 0 || harPris(pris) || visar || marke || liknande) && (
             <div className="sugg-head" role="presentation">{varuRubrik}</div>
           )}
           {showing.map((h, hi) => { const i = hi + katRader.length; return rutnat ? (

@@ -23,7 +23,7 @@
 // ShopBrowser hämtar den i bakgrunden (andraBilderUrKartan).
 import { useEffect, useState } from "react";
 import type { ListProduct } from "../lib/products";
-import { matchaKategorier, rankaMedForslag, varanHeterSa, type Kategoridata } from "../lib/search";
+import { markesnamn, matchaKategorier, rankaMedForslag, varanHeterSa, type Kategoridata } from "../lib/search";
 import { laddaSokIndex, sokKategorierHamtade, type SokTraff } from "../lib/sok-index";
 import { kandidater, medForsok } from "../lib/sok-kall";
 import { billigastForst, kopbaraForst, namnForst } from "../lib/sok-ordning";
@@ -123,6 +123,7 @@ export function SokKall({ q, kategorier, popularaKategorier }: { q: string; kate
           data: {
             traffar, strukna: u.strukna, utan: u.utan, hela: u.hela, visar, liknande: u.liknande === true, inte: u.inte,
             ...(namn > 0 ? { namn } : {}),
+            ...(u.marke ? { marke: markesnamn(u.marke) } : {}),
             billigast: billigast && traffar.length > 1 ? (u.hemma ? "kategori" : "namn") : undefined,
             // Kategorierna gäller ordet som visas; sidhuvudet har registrerat menyns.
             kategorier: visar ? matchaKategorier(visar, registreradeKategorier(), 3) : kategorier,

@@ -47,9 +47,10 @@ describe("☠️ PriceRunner- och Prisjakt-flödena får FLODE_GTIN", () => {
     assert.match(t, /tillPrisjakt\([\s\S]*?\},\s*FLODE_GTIN,\s*motorn\.artiklar,?\s*\)/);
   });
 
-  it("det öppna Prisjakt-flödet byggs med FLODE_GTIN", () => {
-    const t = kod("app/feed/prisjakt.xml/route.ts");
-    assert.match(t, /tillPrisjakt\([\s\S]*?\},\s*FLODE_GTIN,?\s*\)/);
+  // Borttaget 2026-11-26: Prisjakt läser den hemliga adressen, och det öppna
+  // flödet bar samma EAN-koder för vem som helst.
+  it("☠️ det öppna Prisjakt-flödet finns inte längre", () => {
+    assert.throws(() => kod("app/feed/prisjakt.xml/route.ts"), /ENOENT/);
   });
 
   it("varje fil som bygger ett PriceRunner- eller Prisjakt-flöde skickar FLODE_GTIN", () => {
@@ -63,7 +64,7 @@ describe("☠️ PriceRunner- och Prisjakt-flödena får FLODE_GTIN", () => {
       byggare.push(rel);
       assert.match(t, /\bFLODE_GTIN\b/, `${rel} bygger ett flöde utan FLODE_GTIN`);
     }
-    assert.deepEqual(byggare.sort(), ["app/feed/prisjakt.xml/route.ts", "lib/feed/harledda.ts", "lib/feed/prisjakt-hemlig.ts"]);
+    assert.deepEqual(byggare.sort(), ["lib/feed/harledda.ts", "lib/feed/prisjakt-hemlig.ts"]);
   });
 
   it("dealproffsens karta läses bara genom FLODE_GTIN", () => {
