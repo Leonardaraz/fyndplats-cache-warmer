@@ -1,0 +1,92 @@
+{
+  "cccd0b69": {
+    "productId": "cccd0b69-01ca-4f16-a762-1b5eae011039",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 2,
+    "okandArtikel": 3,
+    "attBesluta": []
+  },
+  "9a4b7558": {
+    "productId": "9a4b7558-aeaf-448e-9f38-4b1e9830de5e",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1oyaw28",
+        "betyg": 5,
+        "datum": "2026-09-30",
+        "foton": 0,
+        "text": "Conforme à ce que j'attendais. Utilisé pour garde corps sur un balcon. Diamètre 4.8mm nickel. Le 3.2 aurait été esthétiquement trop petit."
+      }
+    ]
+  },
+  "af542351": {
+    "productId": "af542351-46a1-4873-8d48-50c112c2ad52",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": [
+      {
+        "id": "gen-labswh",
+        "betyg": 5,
+        "datum": "2026-08-31",
+        "foton": 1,
+        "text": "Sono molto soddisfatta dell'esperienza di acquisto su Vevor. Dal momento dell'acquisto ho potuto seguire la spedizione, che è stata puntualissima. I macchinari arrivano imballati meticolosamente e questo preserva la merce alla perfezione. I reformer sono solidi e confortevoli, curati nel dettaglio. Sono molto soddisfatta"
+      },
+      {
+        "id": "gen-1ltuj4w",
+        "betyg": 5,
+        "datum": "2026-03-06",
+        "foton": 0,
+        "text": "Estoy muy contenta con el producto se ajusta a la descripción y es de buena calidad. Es una máquina muy completa lo que permite gran versatilidad en los ejercicios. Llegó perfectamente empaquetada en una caja de madera."
+      }
+    ]
+  },
+  "3f9b3157": {
+    "productId": "3f9b3157-1397-4a90-9332-b8684633b8a7",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "779a786b": {
+    "productId": "779a786b-2d03-4262-802b-bc1b0d96b2a1",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-ycp3lm",
+        "betyg": 5,
+        "datum": "2026-10-16",
+        "foton": 0,
+        "text": "Har ikke fått prøvd denne enda, montert og satt opp, enkel montering med vingemuttere som gjorde jobben raskt. virker å være av meget god kvalitet"
+      },
+      {
+        "id": "gen-1ru10zw",
+        "betyg": 5,
+        "datum": "2026-09-27",
+        "foton": 0,
+        "text": "Went together easy. Looks like it will last. Alot cheeper than wood"
+      },
+      {
+        "id": "gen-1dbuxzf",
+        "betyg": 5,
+        "datum": "2026-09-12",
+        "foton": 0,
+        "text": "The raised bed is sturdy and easily assembled. I love it."
+      }
+    ]
+  }
+}
