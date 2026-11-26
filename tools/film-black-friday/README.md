@@ -29,17 +29,16 @@ Allt görs i kod och renderas utan konton:
 ## Så körs den
 
 ```bash
-python3 -m venv /opt/render-venv
-/opt/render-venv/bin/pip install bpy==5.2.5 numpy pillow fonttools opencv-python-headless OpenEXR scipy
 cd tools/film-black-friday
+./installera.sh                         # Blender (bpy), biblioteken och typsnitten, en gång per molnsession
 PY=/opt/render-venv/bin/python
 
-$PY -m film.typsnitt                    # fasta typsnittsskärningar ur de variabla filerna
 $PY -m film.fetch_fynd                  # fynden som auktionssidan visar just nu (namn, pris, bild)
 $PY -m film.hamta_kandidater <slug> …   # eller: varor ur kön, hämtade från sina produktsidor
 # assets/products/val.json säger vilken vara som står i trappan och vilka fyra som visas i hallen
 $PY -m film.texturer                    # prisskylt, kort och glasrader
 ./kor.sh final A B C D E                # alla tagningar (går att avbryta och fortsätta)
+./kor_del.sh final C 360 449 bada       # eller en del i taget: ett bakgrundsjobb stoppas efter 2 h
 ./leverans.sh 100                       # texter, ljud, fyra filmer och två omslag i leverans/
 $PY -m film.koll leverans/fyndplats-black-friday-torsdag.mp4
 ```
@@ -80,6 +79,67 @@ Takten är 120 slag i minuten: varje steg, lampa och vara landar på ett slag (`
 - All text ligger mellan y 290 och y 1300, alltså utanför de delar av bilden som Instagram och
   TikTok täcker med knappar och bildtext.
 - Omslagets text ligger inom 4:5-utsnittet (y 285–1635), som profilens rutnät visar.
+
+## Ny film från mallen
+
+Kopiera mappen till `tools/film-<namn>/` och låt Pristrappan stå kvar orörd som mall. Skillen
+`film-3d` (`.claude/skills/film-3d/SKILL.md`) beskriver arbetsgången.
+
+- **Följer med som de är:**
+  - `film/b3d.py`: material, former, ljus, kamera och `baka()`.
+  - Kontroll och priser: `film/koll.py` och `film/prisvakt.py`.
+  - Varor, bilder och typsnitt: `film/foton.py`, `film/fetch_fynd.py`, `film/hamta_kandidater.py` och `film/typsnitt.py`.
+  - Texternas renderare: `titles/tex.js` och `titles/rendera.js`.
+  - Installationen: `installera.sh`.
+- **Justeras:**
+  - `kor_del.sh`: renderingsinställningarna per tagning.
+  - `film/render.py`: vilken scen och kamera varje tagning bygger, i `bygg()`.
+  - `film/comp.py`: graderingen per tagning, i `GRAD`.
+  - `film/stoft.py`: stoftskurarnas tider och platser.
+  - `film/audio.py`: instrumenten följer med, men ljudens tider skrivs om.
+  - `film/omslag.py` och `leverans.sh`.
+- **Skrivs om:**
+  - Tider och tagningar i `film/common.py`.
+  - Scenerna `film/trappa.py` och `film/hall.py`.
+  - Skyltar och kort i `film/texturer.py`.
+  - Texterna och deras tider i `titles/titlar.html`.
+
+## Lärdomar från Pristrappan (2026-11-26)
+
+- **Ett bakgrundsjobb stoppas efter två timmar.** Hela filmen tar 4,5–7 timmar i slutkvalitet.
+  Rendera i delar med `kor_del.sh`. Färdiga rutor hoppas över, så en del som stoppas fortsätter
+  där den slutade.
+- **Ett byte mellan två föremål blir en spökbild i rörelseoskärpan.** Slutaren är öppen
+  f−0,25 till f+0,25. Kubens ytor göms när den hela kuben tar över. Förut hoppade de tillbaka
+  till sin startpunkt, och oskärpan drog ut hoppet till en orange strimma över ruta 659. Lägg
+  bytet mitt mellan två rutor med `baka(..., extra=...)` (se `KUB_BYTE_NYCKLAR` i
+  `film/hall.py`), och låt det som göms stanna där det är.
+- **Diset renderas i ett eget pass med bara de valda lamporna** (`volymljus`). Annars gör det
+  hela bilden grå.
+- **AgX förvränger orange och produktfoton.** Tonmappningen är PBR Neutral med en filmkurva
+  (`film/comp.py`). Då behåller kuben loggans färg och varorna sina egna färger.
+- **Typsnitten laddas bara om sidan öppnas som fil** (`file://`) i Chromium, inte med
+  `setContent`.
+- **Granska i slutkvalitet, inte bara i skiss.** Tre fel syntes först där:
+  - prisskylten steg upp i rubriken under kranåkningen
+  - räknaren visade en kort stund "189 fynd"
+  - en lampramp gled bakom "100 fynd".
+
+  Gör därför stillbilder av nyckelrutorna innan den långa renderingen.
+- **En räknare ska räkna på riktigt, med en fast plats per siffra.** Rullande siffror tonade in
+  hundratalets etta medan de andra siffrorna rullade.
+- **Ljus som passerar bakom en text:** mörka överkanten i takt med att lamporna dämpas i 3D, i
+  stället för att flytta texten.
+- **`film.koll` flaggar ljushopp, inte fel.** Stämpeln, klippen och kamerans svängar ger
+  flaggor som ska vara där. Titta på varje flaggad ruta och förklara den.
+- **Kodningen:** H.264 High med tak på 16 Mbit/s ger cirka 50 MB för 25 s. Det är under TikToks
+  gräns på 72 MB i Android-appen. Versionen utan ljud är samma videoström utan ljudspår
+  (`-an -c:v copy`).
+- **Ljudet är mätt, inte lyssnat på** (cirka −13 LUFS). Be Leonard lyssna innan han publicerar.
+- **Tider på fyra kärnor:**
+  - skiss: cirka 1 s per ruta
+  - slutkvalitet: 15–50 s per ruta (kubens tagning 28 s)
+  - sammansättning: cirka 6 minuter per version.
 
 ## Typsnitt
 
