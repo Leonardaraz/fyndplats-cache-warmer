@@ -1,0 +1,46 @@
+{
+  "8afc5fc0": {
+    "productId": "8afc5fc0-a0e7-4beb-8de2-890745d906f0",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "5ded6d8f": {
+    "productId": "5ded6d8f-674a-4eb6-8c3f-55e8441eee8a",
+    "synliga": 0,
+    "dolda": 6,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-1jxlqy7",
+        "betyg": 4,
+        "datum": "2025-09-26",
+        "foton": 0,
+        "text": "Machine came to me with a damaged arm that with not meet the other 3, The machine and quality are top notch. appears to be an issue with shipping regarding the damage. 3/4 arms print with no issue. 4th arm is slightly bent and has to be adjusted by.4 mm for spot on print. Hopeful for the next machine."
+      }
+    ]
+  },
+  "cb0774b5": {
+    "productId": "cb0774b5-f024-4e99-9833-91653c906b4a",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 2,
+    "attBesluta": []
+  },
+  "2ddb22ca": {
+    "productId": "2ddb22ca-f88b-4e4e-8e71-7cd9530defdc",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  }
+}
