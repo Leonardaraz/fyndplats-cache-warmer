@@ -61,9 +61,15 @@
 .butik2 .b2-avdsek{padding-bottom:28px}
 .butik2 .b2-avdrad{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:34px 18px}
 .butik2 .b2-avd{display:block;color:inherit;text-decoration:none;-webkit-tap-highlight-color:transparent}
-.butik2 .b2-avd-bild{position:relative;display:block;aspect-ratio:4/3;border-radius:var(--r-lg);overflow:hidden;background:#F4EEE8;
+/* Rutan är vit och fotot ritas som det är (Leonard 2026-11-25: vit bakgrund
+   bakom varje produkt- och kategoribild). Förut låg fotot med multiply på en
+   varm platta (#F4EEE8), som på startsidan (app/startsida.css, .kat-bild). */
+.butik2 .b2-avd-bild{position:relative;display:block;aspect-ratio:4/3;border-radius:var(--r-lg);overflow:hidden;background:#fff;
   -webkit-user-select:none;user-select:none}
-.butik2 .b2-avd-bild img{object-fit:cover;mix-blend-mode:multiply;-webkit-user-drag:none;transition:transform .55s cubic-bezier(.2,.7,.2,1)}
+.butik2 .b2-avd-bild img{object-fit:cover;-webkit-user-drag:none;transition:transform .55s cubic-bezier(.2,.7,.2,1)}
+/* En avdelning utan stämningsbild visar en vara: på vitt, i en tunn ram
+   (app/startsida.css, .kat-produkt). */
+.butik2 .b2-avd-produkt{border:1px solid var(--line)}
 .butik2 .b2-avd-text{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:13px 2px 0}
 .butik2 .b2-avd-namn{font-family:var(--font-display),Georgia,serif;font-size:var(--text-lg);font-weight:600;letter-spacing:-.012em;
   line-height:1.2;color:var(--ink);transition:color .2s}
@@ -88,8 +94,11 @@
 
 /* ── Registret: alla kategorier i text ───────────────────────────── */
 .butik2 .b2-registersek{background:var(--surface-1);border-top:1px solid var(--line)}
-/* Spalter i stället för rader: grupperna är olika långa (4 till 30
-   underkategorier), och en spaltlayout lägger dem tätt utan hål. */
+/* GRUNDEN: spalter med rader av text. Den gäller prissidornas register
+   (components/price-hub-page.tsx), som har få kategorier och en miniatyr på
+   varje rad. /butik har 138 kategorier och bär .b2-rader, se nedan.
+   Spalter i stället för rader: grupperna är olika långa, och en spaltlayout
+   lägger dem tätt utan hål. */
 .butik2 .b2-register{columns:4 220px;column-gap:44px}
 .butik2 .b2-grupp{break-inside:avoid;margin-bottom:36px}
 .butik2 .b2-grupp-rubrik{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:0 0 6px;padding-bottom:10px;
@@ -105,6 +114,68 @@
   font-size:var(--text-sm);line-height:1.35;color:var(--ink);text-decoration:none;transition:color .15s}
 .butik2 .b2-grupp-lista a:hover,.butik2 .b2-grupp-lista a:focus-visible{color:var(--brand)}
 .butik2 .b2-sub-antal{flex:0 0 auto;font-size:var(--text-xs);color:var(--soft);font-variant-numeric:tabular-nums}
+
+/* ── /butik: en rad per avdelning (Leonard 2026-11-25) ───────────────
+   "startsidan på datorn ser inte alls premium ut och matchar inte startsidan
+   på telefon". På datorn var registret fyra spalter text, 2 006 px högt
+   (mätt på www i 1 440 px): Möbler ensamt 30 rader, sista spalten nästan tom,
+   och det såg ut som en sidkarta. På telefonen var samma register redan en
+   rad per avdelning med kategorierna som knappar.
+
+   Nu har datorn samma form. Avdelningens namn och antal står till vänster,
+   kategorierna är knappar med de största först (app/butik/page.tsx,
+   storstForst), och raden visar så många som ryms på EN rad. "Alla N" fäller
+   ut resten. Alla länkarna står kvar i sidans HTML.
+
+   Rutan som fäller ut är en kryssruta (.b2-vaxla) och knappen dess etikett
+   (.b2-fler): inget skript, och webbläsaren minns läget när kunden backar
+   från en kategori. Kryssrutan ligger osynlig över etiketten, så att den tar
+   fokus och klick på samma yta.
+   ☠️ Kategorierna utanför första raden är klippta, inte borttagna: de går att
+   nå med tangentbordet. Raden fälls därför ut av sig själv när fokus står i
+   den (:has(a:focus-visible)); annars rullade webbläsaren den klippta rutan
+   för att visa länken, och första raden försvann. En webbläsare utan :has
+   (Safari före 15.4, Firefox före 121) klipper därför inte alls: den visar
+   alla knapparna och ingen "Alla N".
+   ☠️ Listan har 6 px luft åt alla håll och lika mycket marginal ut: den
+   klipper (overflow:hidden), och utan luften kapades knapparnas fokusring. */
+.butik2 .b2-vaxla,.butik2 .b2-fler,.butik2 .b2-grupp-ord{display:none}
+@media(min-width:881px){
+  .butik2 .b2-rader{columns:auto;border-top:1px solid var(--line)}
+  .butik2 .b2-rader .b2-grupp{position:relative;display:grid;grid-template-columns:minmax(0,236px) minmax(0,1fr) 96px;column-gap:24px;
+    align-items:start;margin:0;padding:14px 0;border-bottom:1px solid var(--line)}
+  .butik2 .b2-rader .b2-grupp-rubrik{grid-column:1;grid-row:1;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:3px;
+    margin:0;padding:4px 0 0;border-bottom:0;font-size:21px;line-height:1.15}
+  .butik2 .b2-rader .b2-grupp-ord{display:inline}
+  /* Knapparna: 40 px höga, som på telefonen. */
+  .butik2 .b2-rader .b2-grupp-lista{grid-column:2/-1;grid-row:1;display:flex;flex-wrap:wrap;gap:8px;margin:-6px;padding:6px}
+  .butik2 .b2-rader .b2-grupp-lista li{flex:0 0 auto;max-width:100%}
+  .butik2 .b2-rader .b2-grupp-lista a{justify-content:flex-start;gap:8px;min-height:40px;padding:0 15px;border:1px solid var(--line);
+    border-radius:var(--r-pill);background:#fff;font-weight:500;white-space:nowrap;transition:color .15s,border-color .15s}
+  .butik2 .b2-rader .b2-grupp-lista a:hover,.butik2 .b2-rader .b2-grupp-lista a:focus-visible{border-color:var(--brand)}
+  .butik2 .b2-rader .b2-sub-antal{font-weight:600}
+  @supports selector(:has(a)){
+    /* En rad syns (40 px och listans luft), resten är klippt. */
+    .butik2 .b2-rader .b2-vaxla~.b2-grupp-lista{grid-column:2;max-height:52px;overflow:hidden}
+    .butik2 .b2-rader .b2-vaxla:checked~.b2-grupp-lista,
+    .butik2 .b2-rader .b2-vaxla~.b2-grupp-lista:has(a:focus-visible){max-height:none}
+    /* "Alla N": etiketten syns, kryssrutan ligger osynlig över den. */
+    .butik2 .b2-rader .b2-fler{grid-column:3;grid-row:1;justify-self:end;display:inline-flex;align-items:center;gap:6px;min-height:40px;
+      padding:0 2px 0 10px;font-size:var(--text-sm);font-weight:700;color:var(--ink);white-space:nowrap;cursor:pointer;
+      transition:color .15s}
+    .butik2 .b2-rader .b2-fler svg{flex:none;transition:transform .2s}
+    .butik2 .b2-rader .b2-vaxla{display:block;position:absolute;top:14px;right:0;z-index:1;width:96px;height:40px;margin:0;opacity:0;cursor:pointer}
+    .butik2 .b2-rader .b2-vaxla:hover~.b2-fler{color:var(--brand)}
+    .butik2 .b2-rader .b2-vaxla:focus-visible~.b2-fler{outline:2px solid var(--brand);outline-offset:2px;border-radius:var(--r-sm)}
+    .butik2 .b2-rader .b2-vaxla:checked~.b2-fler svg{transform:rotate(180deg)}
+  }
+}
+@media(min-width:881px) and (max-width:1100px){
+  .butik2 .b2-rader .b2-grupp{grid-template-columns:minmax(0,190px) minmax(0,1fr) 88px;column-gap:18px}
+  .butik2 .b2-rader .b2-grupp-rubrik{font-size:var(--text-lg)}
+  .butik2 .b2-rader .b2-vaxla{width:88px}
+}
+@media(prefers-reduced-motion:reduce){.butik2 .b2-rader .b2-fler svg{transition:none}}
 
 /* ── Löftena, en gång, längst ner ────────────────────────────────── */
 .butik2 .b2-tryggt{border-top:1px solid var(--line);background:#fff}

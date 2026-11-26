@@ -12,6 +12,7 @@ import { GET as google } from "@/app/feed/google.xml/route";
 import { GET as produkter } from "@/app/feed/products.xml/route";
 import { GET as pricerunner } from "@/app/feed/pricerunner.xml/route";
 import { GET as pinterest } from "@/app/feed/pinterest.xml/route";
+import { GET as gowish } from "@/app/feed/gowish.xml/route";
 import type { KOMPRIMERADE_FLODEN } from "@/lib/feed/prisjakt-svar";
 
 export type KomprimeratFlode = (typeof KOMPRIMERADE_FLODEN)[number];
@@ -21,6 +22,7 @@ export const BYGGARE: Record<KomprimeratFlode, () => Promise<Response>> = {
   "products.xml": () => produkter(),
   "pricerunner.xml": () => pricerunner(),
   "pinterest.xml": () => pinterest(),
+  "gowish.xml": () => gowish(),
 };
 
 export function arKomprimeratFlode(fil: string): fil is KomprimeratFlode {

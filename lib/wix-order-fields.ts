@@ -122,6 +122,9 @@ export interface OrderRad {
   readonly antal: number;
   readonly bild?: string;
   readonly belopp?: number;
+  /** Wix produkt-id och variant-id (flödenas g:item_group_id och g:id). Till Heylink, lib/heylink.ts. */
+  readonly produktId?: string;
+  readonly variantId?: string;
 }
 
 /** Ett Wix-belopp ({ amount: "769.00" }, "769.00" eller 769) som tal. */
@@ -165,12 +168,17 @@ export function orderRader(order: Loose): OrderRad[] {
   return rader.map((r) => {
     const li = obj(r) ?? {};
     const antal = Number(li.quantity ?? 1);
+    // Samma vägar som webhookens extractItems och kassans varuNyckel
+    // (lib/kassa/lastkorg.ts): catalogReference.catalogItemId och options.variantId.
+    const ref = obj(li.catalogReference);
     return {
       namn: text(li.productName) ?? firstStr(li.name) ?? "Produkt",
       variant: radensVal(li),
       antal: Number.isFinite(antal) && antal > 0 ? antal : 1,
       bild: firstStr(obj(li.image)?.url, li.image, obj(li.productMedia)?.url),
       belopp: belopp(li.totalPriceAfterTax) ?? belopp(li.totalPrice) ?? belopp(li.lineItemPrice),
+      produktId: firstStr(ref?.catalogItemId),
+      variantId: firstStr(obj(ref?.options)?.variantId),
     };
   });
 }
@@ -179,12 +187,19 @@ export function orderRader(order: Loose): OrderRad[] {
  * Frakten och totalen inklusive moms, och momsen i totalen. Frakten tas ur
  * `shippingInfo.cost`, eftersom `priceSummary.shipping` står exklusive moms.
  */
-export function orderSumma(order: Loose): { frakt?: number; totalt?: number; moms?: number } {
+export function orderSumma(order: Loose): { frakt?: number; fraktExMoms?: number; totalt?: number; moms?: number } {
   const summa = obj(order?.priceSummary) ?? obj(order?.totals);
   const kostnad = obj(obj(order?.shippingInfo)?.cost);
   return {
     frakt: belopp(kostnad?.totalPriceAfterTax) ?? belopp(kostnad?.price),
+    // Frakten som Wix har den i summeringen, exklusive moms. Till Heylink.
+    fraktExMoms: belopp(summa?.shipping),
     totalt: belopp(summa?.total) ?? belopp(summa?.totalPrice),
     moms: belopp(summa?.tax) ?? belopp(obj(order?.taxInfo)?.totalTax),
   };
+}
+
+/** Orderns valuta ("SEK"), eller undefined när Wix inte gav någon. */
+export function orderValuta(order: Loose): string | undefined {
+  return firstStr(order?.currency);
 }

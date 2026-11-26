@@ -328,6 +328,22 @@ async function byggKassalank(client: any, forvantatId?: string): Promise<Kassala
   return { target, vag };
 }
 
+/**
+ * Kunden skickas till Wix kassa (checkout.fyndplats.se) i stället för vår egen:
+ * servern får en rad utan något om kunden eller korgen. ☠️ Vår kassa är på för
+ * alla sedan 2026-11-06, så hit kommer en kund bara när växeln inte gick att
+ * läsa eller är avstängd. Utan raden syntes det ingenstans (Leonards fråga
+ * 2026-11-25: "så vi inte har en bugg att folk hamnar på gamla checkout").
+ * Raden får aldrig stoppa kunden: kassan öppnas vad som än händer här.
+ */
+function sagWixKassa(): void {
+  try {
+    navigator.sendBeacon?.("/api/kassa/lage");
+  } catch {
+    /* raden är inte värd ett fel */
+  }
+}
+
 /** Ska "Till kassan" gå till vår egen kassa? Ett fel betyder nej (Wix kassa). */
 async function fragaEgenKassa(): Promise<boolean> {
   try {
@@ -542,6 +558,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const medlem = kassaId ? await medlemskassa(kassaId) : null;
       if (medlem) {
         console.info("[kassa] adress via medlemskassan");
+        // "/kassa" när vår kassa gäller; en hel adress är Wix kassa.
+        if (!medlem.startsWith("/")) sagWixKassa();
         window.location.href = medlem;
         return;
       }
@@ -573,6 +591,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       // Knappen står kvar i "Öppnar kassan" tills sidan byts. Den återställs
       // bara vid fel och när kunden kommer tillbaka (pageshow ovan).
+      sagWixKassa();
       window.location.href = lank.target;
     } catch (e: any) {
       console.warn("[kassa] kunde inte öppnas:", e?.message || e);

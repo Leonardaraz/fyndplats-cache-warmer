@@ -209,11 +209,20 @@
 /* ── Kategorierna: en bild var, åtta i stället för fyra ───────────── */
 .hem2 .katrad{display:grid;grid-template-columns:repeat(4,1fr);gap:26px 18px}
 .hem2 .kat{display:block;color:inherit;text-decoration:none;-webkit-tap-highlight-color:transparent}
-.hem2 .kat-bild{position:relative;display:block;aspect-ratio:4/3;border-radius:var(--r-lg);overflow:hidden;background:#F4EEE8;
+/* Rutan är vit och fotot ritas som det är (Leonard 2026-11-25: vit bakgrund
+   bakom varje produkt- och kategoribild). Förut låg fotot med multiply på en
+   varm platta (#F4EEE8): stämningsbilderna blev en ton mörkare och varmare
+   än de är, och en avdelning som visar en VARA fick varans vita botten
+   färgad. */
+.hem2 .kat-bild{position:relative;display:block;aspect-ratio:4/3;border-radius:var(--r-lg);overflow:hidden;background:#fff;
   -webkit-user-select:none;user-select:none}
-/* multiply: produktfotonas vita bakgrund tar brickans varma ton, så bilden
-   slutar mot brickan och inte mot en vit ruta inuti den. */
-.hem2 .kat-bild img{object-fit:cover;mix-blend-mode:multiply;-webkit-user-drag:none;transition:transform .55s cubic-bezier(.2,.7,.2,1)}
+.hem2 .kat-bild img{object-fit:cover;-webkit-user-drag:none;transition:transform .55s cubic-bezier(.2,.7,.2,1)}
+/* En avdelning utan stämningsbild visar en vara (app/page.tsx sätter
+   .kat-produkt). Varans vita botten går då ihop med den vita sidan, och utan
+   ram syns rutan inte: den får samma tunna ram som produktkortet. Bilden är
+   densamma som förut, i rutans form; en kvadratisk bild med hela varan gjorde
+   varan en fjärdedel mindre än grannrutornas foton (provat 2026-11-25). */
+.hem2 .kat-produkt{border:1px solid var(--line)}
 .hem2 .kat-text{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:12px 2px 0}
 .hem2 .kat-namn{font-family:var(--font-display),Georgia,serif;font-size:var(--text-lg);font-weight:600;letter-spacing:-.012em;
   line-height:1.2;color:var(--ink);transition:color .2s}

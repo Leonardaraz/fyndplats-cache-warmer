@@ -39,6 +39,32 @@ export function skalaWixSvans(svans: string, bredd: number): string | null {
   return skalaForsta(svans, bredd);
 }
 
+/**
+ * Wix oskarpa mask (usm_radie_styrka_tröskel), med Wix egna standardvärden för
+ * förminskade bilder. Utan den lämnar Wix en förminskad bild mjuk: mätt
+ * 2026-11-25 på åtta produktbilder blev kantskärpan 1,5 gånger så hög med
+ * samma fil, och filen 10 % tyngre (CLAUDE.md, "Bildernas skärpa på datorn").
+ */
+export const WIX_SKARPNING = "usm_0.66_1.00_0.01";
+
+/**
+ * Lägger skärpningen sist i fill- eller fit-delens parametrar. Tar en hel
+ * adress eller bara svansen från "/v1/".
+ *
+ * Orörd när adressen saknar "/v1/", när den bara beskär (crop utan fill), när
+ * skärpningen redan står där och när bilden är en suddad platshållare (blur_).
+ */
+export function medSkarpning(adress: string): string {
+  const v1 = adress.indexOf("/v1/");
+  if (v1 === -1) return adress;
+  const svans = adress
+    .slice(v1)
+    .replace(/(\/(?:fill|fit)\/)([^/]+)(?=\/)/, (hela, op: string, param: string) =>
+      /(?:^|,)(?:usm|blur)_/.test(param) ? hela : `${op}${param},${WIX_SKARPNING}`,
+    );
+  return adress.slice(0, v1) + svans;
+}
+
 function skalaForsta(del: string, bredd: number): string | null {
   const wm = del.match(/w_(\d+)/);
   const hm = del.match(/h_(\d+)/);

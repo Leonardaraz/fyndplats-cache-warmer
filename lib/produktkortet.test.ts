@@ -21,8 +21,10 @@ const kort = las("components", "productcard.tsx");
 describe("produktkortet är en bricka utan ram och utan knapp", () => {
   it("grunden har ingen ram, ingen bakgrund och ingen skugga", () => {
     assert.match(css, /(^|\})\s*\.prod\{display:flex;flex-direction:column\}/m);
-    assert.match(css, /\.prod \.pimg\{aspect-ratio:1;position:relative;overflow:hidden;isolation:isolate;border-radius:var\(--r-lg\);background:#F4EEE8;/);
-    assert.match(css, /\.prod \.pimg img\{mix-blend-mode:multiply\}/);
+    // Plattan är vit sedan 2026-11-25 (lib/vit-platta.test.ts): fotot står på
+    // vitt utan blandningsläge, på varje sida och i varje bredd.
+    assert.match(css, /\.prod \.pimg\{aspect-ratio:1;position:relative;overflow:hidden;isolation:isolate;border-radius:var\(--r-lg\);background:#fff;/);
+    assert.doesNotMatch(css, /\.pimg img\{[^}]*mix-blend-mode/);
     assert.match(css, /\.prod \.pbody\{flex:1;display:flex;flex-direction:column;padding:12px 2px 0\}/);
   });
 
@@ -82,56 +84,46 @@ describe("produktkortet är en bricka utan ram och utan knapp", () => {
   });
 });
 
-describe("på datorn står fotona på vitt i listorna (Leonard 2026-11-19)", () => {
-  const regel = css.slice(css.indexOf("@media(min-width:881px){\n  .prod:not(.auction-card):not(.blogg-kort) .pimg{"));
+describe("på datorn har plattan en tunn ram (Leonard 2026-11-19), på varje sida (2026-11-25)", () => {
+  const start = "@media(min-width:881px){\n  .prod:not(.auction-card):not(.blogg-kort) .pimg{";
+  const regel = css.slice(css.indexOf(start));
   const block = regel.slice(0, regel.indexOf("\n}") + 2);
 
-  it("plattan är vit med en tunn ram, och fotot blandas inte", () => {
-    assert.match(block, /^@media\(min-width:881px\)\{\n  \.prod:not\(\.auction-card\):not\(\.blogg-kort\) \.pimg\{background:#fff;border:1px solid var\(--line\)\}/);
-    assert.match(block, /\n  \.prod:not\(\.auction-card\):not\(\.blogg-kort\) \.pimg img\{mix-blend-mode:normal\}/);
+  it("ramen är blockets enda regel: plattan är redan vit i grunden", () => {
+    assert.equal(css.split(start).length - 1, 1);
+    assert.equal(block, "@media(min-width:881px){\n  .prod:not(.auction-card):not(.blogg-kort) .pimg{border:1px solid var(--line)}\n}");
   });
 
-  it("skyltfönstren som hade brickan förut behåller den: startsidan, /butik och prissidorna", () => {
-    assert.match(block, /\n  :is\(\.hem2,\.butik2\) \.prod:not\(\.auction-card\):not\(\.blogg-kort\) \.pimg\{background:#F4EEE8;border:0\}/);
-    assert.match(block, /\n  :is\(\.hem2,\.butik2\) \.prod:not\(\.auction-card\):not\(\.blogg-kort\) \.pimg img\{mix-blend-mode:multiply\}/);
+  // Startsidan (.hem2) och /butik med prissidorna (.butik2) bar den varma
+  // plattan (#F4EEE8 med multiply) på datorn till 2026-11-25. Samma kort hade
+  // då två utseenden på datorn, och ett tredje på mobilen.
+  it("skyltfönstren har inget undantag: startsidan, /butik och prissidorna visar samma kort", () => {
+    assert.doesNotMatch(css, /:is\(\.hem2,\.butik2\) \.prod/);
+    assert.doesNotMatch(css, /\.(hem2|butik2|pris2) [^{}]*\.pimg/);
+    for (const fil of [las("app", "startsida.css"), las("app", "butik", "butik.css"), las("app", "under-pris.css")]) assert.doesNotMatch(utanKommentarer(fil), /\.pimg\b/);
     assert.match(las("app", "page.tsx"), /className="hem2"/);
     assert.match(las("app", "butik", "page.tsx"), /className="butik2"/);
     assert.match(las("components", "price-hub-page.tsx"), /className="butik2 pris2"/);
   });
 
-  it("regeln med ram står bara i den breda mediefrågan, efter grundens", () => {
-    assert.equal(css.split("background:#fff;border:1px solid var(--line)}").length - 1 >= 1, true);
-    assert.ok(css.indexOf(block) > css.indexOf(".prod .pimg img{mix-blend-mode:multiply}"));
-    assert.equal(block.split(".pimg").length - 1, 4);
+  it("regeln med ram står efter grundens, och före auktionens kort", () => {
+    assert.ok(css.indexOf(block) > css.indexOf(".prod .pimg{aspect-ratio:1;"));
+    assert.ok(css.indexOf(block) < css.indexOf(".prod.auction-card{"));
   });
 });
 
 // Mätt på riktiga telefoner 2026-11-20: Safari på iPhone visade plattan vit,
 // också på startsidan, där Chromium och Samsung Internet visade den beige.
-// Fotot ligger i den svepbara bildraden, och där blandar Safari det inte mot
-// plattans färg. Nu är plattan vit på mobilen i alla webbläsare, utan ram:
-// det är så iPhone redan visade korten.
-describe("på mobilen är plattan vit i alla webbläsare (2026-11-20)", () => {
-  const start = "@media(max-width:880px){\n  .prod:not(.auction-card):not(.blogg-kort) .pimg{";
-  const regel = css.slice(css.indexOf(start));
-  const block = regel.slice(0, regel.indexOf("\n}") + 2);
-
-  it("vit platta utan ram och utan blandning, 880 px och smalare", () => {
-    assert.equal(css.split(start).length - 1, 1);
-    assert.equal(
-      block,
-      "@media(max-width:880px){\n  .prod:not(.auction-card):not(.blogg-kort) .pimg{background:#fff}\n  .prod:not(.auction-card):not(.blogg-kort) .pimg img{mix-blend-mode:normal}\n}",
-    );
+// Sedan 2026-11-25 är plattan vit i grunden, så mobilen behöver inget eget
+// block: 880 px och smalare har grundens vita platta, utan ram.
+describe("på mobilen är plattan vit utan ram, i alla webbläsare (2026-11-20)", () => {
+  it("mobilen har inget eget block för plattan: grunden är redan vit", () => {
+    assert.doesNotMatch(css, /@media\(max-width:880px\)\{\n  \.prod:not\(\.auction-card\):not\(\.blogg-kort\) \.pimg\{/);
   });
 
-  it("gäller också skyltfönstren: startsidan och /butik har ingen egen platta på mobilen", () => {
-    assert.doesNotMatch(block, /hem2|butik2|border/);
-    for (const fil of [las("app", "startsida.css"), las("app", "butik", "butik.css")]) assert.doesNotMatch(utanKommentarer(fil), /\.pimg\b/);
-  });
-
-  it("gränsen möter datorns: 880 och 881, och regeln står efter grundens", () => {
-    assert.ok(css.indexOf(block) > css.indexOf("@media(min-width:881px){\n  .prod:not(.auction-card):not(.blogg-kort) .pimg{"));
-    assert.ok(css.indexOf(block) < css.indexOf(".prod.auction-card{"));
+  it("ramen finns bara från 881 px: ingen annan regel ger plattan en ram", () => {
+    const ramar = css.match(/[^{}]*\.pimg\{[^}]*border:[^}]*\}/g) ?? [];
+    assert.deepEqual(ramar.map((r) => r.trim()), [".prod:not(.auction-card):not(.blogg-kort) .pimg{border:1px solid var(--line)}"]);
   });
 });
 
@@ -140,7 +132,6 @@ describe("Fyndauktionens kort är kvar som kort med ram", () => {
     assert.match(css, /\.prod\.auction-card\{border:1px solid var\(--line\);border-radius:var\(--r-lg\);overflow:hidden;background:#fff;transition:transform \.25s,box-shadow \.25s;box-shadow:var\(--e1\)\}/);
     assert.match(css, /@media \(hover:hover\)\{\.prod\.auction-card:hover\{transform:translateY\(-5px\);box-shadow:var\(--e3\)\}\}/);
     assert.match(css, /\.prod\.auction-card \.pimg\{border-radius:0;background:var\(--surface-2\);isolation:auto;transition:none\}/);
-    assert.match(css, /\.prod\.auction-card \.pimg img\{mix-blend-mode:normal\}/);
     assert.match(css, /\.prod\.auction-card \.pbody\{padding:16px\}/);
     assert.match(las("components", "auction-card.tsx"), /className=\{`prod auction-card a-card\$\{a\.img2 \? "" : " noswap"\}`\}/);
   });
@@ -154,13 +145,13 @@ describe("bloggens artikelkort delar brickan men har egna regler", () => {
     assert.match(las("app", "blogg", "page.tsx"), /<a className="prod blogg-kort" key=\{p\.slug\} href=\{`\/blogg\/\$\{p\.slug\}`\}>/);
   });
 
-  it("rubriken får tre rader och fotot visas utan blandningsläge", () => {
+  it("rubriken får tre rader, och omslaget har ingen ram", () => {
     assert.match(css, /\.prod\.blogg-kort \.pname\{-webkit-line-clamp:3\}/);
-    assert.match(css, /\.prod\.blogg-kort \.pimg img\{mix-blend-mode:normal\}/);
+    // Ramen på datorn gäller produktkortet, inte bloggens omslag.
+    assert.match(css, /\.prod:not\(\.auction-card\):not\(\.blogg-kort\) \.pimg\{border:1px solid var\(--line\)\}/);
   });
 
   it("reglerna står efter grundens, så de vinner även vid lika vikt", () => {
-    assert.ok(css.indexOf(".prod.blogg-kort .pimg img{") > css.indexOf(".prod .pimg img{mix-blend-mode:multiply}"));
     assert.ok(css.indexOf(".prod.blogg-kort .pname{") > css.indexOf(".shoplista .prod .pname{-webkit-line-clamp:3}"));
   });
 });

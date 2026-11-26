@@ -493,7 +493,8 @@ test("billigast: sökrutan och resultatsidan ger samma ordning", () => {
   assert.equal(lagstaPris({ hasRange: true, priceFromNum: 1659, priceNum: 1899 }), 1659);
   // Rutan ordnar med samma tre funktioner som sidan (lib/sok-rankning.ts går inte att ladda här).
   const rutansKod = readFileSync(new URL("./sok-rankning.ts", import.meta.url), "utf8");
-  assert.match(rutansKod, /billigastForst\(utfall\.traffar, \(h\) => varanHeterSa\(h\.n, term\), \(h\) => prisTal\(h\.p\), utfall\.hemma\)/);
+  // `resten` är träffarna under varan som heter som sökningen (namnForst, 2026-11-25): utan en sådan är det alla.
+  assert.match(rutansKod, /billigastForst\(resten, \(h\) => varanHeterSa\(h\.n, term\), \(h\) => prisTal\(h\.p\), utfall\.hemma\)/);
 });
 
 test('"rea" och "fyndauktion" namnger en sida, inte en vara', () => {

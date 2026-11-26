@@ -421,7 +421,7 @@ test("sökrutan: antal i knappen, kryss, alla sökord i fetstil och uppläst rad
   assert.match(ruta, /enterKeyHint="search"/);
   assert.match(ruta, /aria-activedescendant=\{visas && active >= 0 && active < rader \? radId\(active\) : undefined\}/);
   // Antalet är listans sju, eller rutnätets tolv i mobilens sökläge (lib/sok-lage.test.ts).
-  assert.match(ruta, /const antal = rutnat \? RUTNAT : SUGGESTION_COUNT;/);
+  assert.match(ruta, /const antal = helskarm && arSmal\(\) \? RUTNAT : SUGGESTION_COUNT;/);
   assert.match(ruta, /m\.rankaForslagMedAntal\(idx, pris\.fraga, antal, harPris\(pris\) \?/);
   assert.match(ruta, /className="sugg-chip" key=\{t\} onClick=\{\(\) => goSearch\(t\)\}/);
   // Senaste sökningar, exemplen och sökförslagen tar plats från varorna: panelen blir inte högre.
@@ -457,7 +457,9 @@ test("förslagen med antal: gallringen görs före klippet", async () => {
   const index = readFileSync(new URL("./sok-rankning.ts", import.meta.url), "utf8");
   // Gallra på priset, lägg det köpbara först, klipp: i den ordningen (lib/sok-ordning.ts).
   // `ordnade` är träffarna som de rankades, eller billigast först för "soffa billigast" (2026-11-21).
-  assert.match(index, /const kvar = kopbaraForst\(behall \? ordnade\.filter\(behall\) : ordnade, \(h\) => h\.o === 1\);[\s\S]{0,60}traffar: kvar\.slice\(0, antal\),/);
+  // Sedan 2026-11-25 går stegen genom namnForst (lib/sok-ordning.ts): varan som heter som
+  // sökningen hos en prisjämförelsesajt står kvar först, och gallringen (`behall`) gäller alla.
+  assert.match(index, /const \{ traffar: kvar, namn \} = namnForst\(\s+utfall\.traffar,\s+utfall\.namn,\s+\(resten\) => kopbaraForst\([\s\S]{0,220}\(h\) => h\.o === 1,\s+\),\s+behall,\s+\);\s+return \{\s+traffar: kvar\.slice\(0, antal\),/);
   assert.match(index, /totalt: kvar\.length/);
 });
 
@@ -556,9 +558,11 @@ test("☠️ rutan räknar om förslagen för ordet som står i den", async () =
   // ☠️ Krysset tömmer rutan i DOM innan fokus sätts: fokus läser rutans värde.
   assert.match(ruta, /const rensa = \(\) => \{\s+const el = inputRef\.current;\s+if \(el\) el\.value = "";\s+void onType\(""\);/);
   // Lämnar man resultatsidan töms rutan, också med fokus kvar i den.
-  assert.match(ruta, /else if \(fran === "\/sok"\) \{ if \(el\) el\.value = ""; setQ\(""\); \}/);
+  // Undantaget (2026-11-25): sökläget ställdes nyss tillbaka på den här adressen
+  // efter ett bakåtsteg, och då är ordet söklägets (lib/sok-atervand.ts).
+  assert.match(ruta, /else if \(fran === "\/sok" && !aterstalld\) \{ if \(el\) el\.value = ""; setQ\(""\); \}/);
   // Sökordet läses ur adressen på resultatsidan, utan useSearchParams.
-  assert.match(ruta, /if \(pathname === "\/sok"\) \{ const t = iAdressen\(\); if \(t && el && !el\.value\) setQ\(t\); \}/);
+  assert.match(ruta, /if \(pathname === "\/sok"\) \{ const t = sokordIAdressen\(\); if \(t && el && !el\.value\) setQ\(t\); \}/);
   assert.doesNotMatch(ruta, /^import [^\n]*useSearchParams/m);
 });
 
@@ -721,7 +725,8 @@ test("sökrutan visar förslagets varor och säger vilket ord det gäller", asyn
   // Kategorierna räknas för samma ord som varorna.
   assert.match(ruta, /m\.matchaKategorier\(visar \|\| pris\.fraga, registreradeKategorier\(\), KATEGORIFORSLAG\)/);
   // Rubriken, foten och Enter gäller ordet som visas.
-  assert.match(ruta, /const varuRubrik = visar \? `Visar “\$\{visar\}”` : liknande \? "Närmast i stavning" : harPris\(pris\)/);
+  // Sedan 2026-11-26 också märket, när sökningen bara var det (lib/sok-2026-11-26.test.ts).
+  assert.match(ruta, /const varuRubrik = visar \? `Visar “\$\{visar\}”` : marke \? \(rutnat \? `Säljs som \$\{marke\}` : `Säljs som \$\{marke\} hos prisjämförelsesajterna`\) : liknande \? "Närmast i stavning" : harPris\(pris\)/);
   assert.equal(ruta.split("varuRubrik}").length - 1, 2, "listans rubrik och söklägets");
   // En rättad stavning sägs på samma sätt, och bara stavningsnära träffar får sin egen rubrik.
   assert.match(ruta, /if \(!visar && svar\.rattat\) visar = svar\.rattat;/);

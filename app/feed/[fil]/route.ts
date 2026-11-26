@@ -1,42 +1,60 @@
 // GET och HEAD /feed/<fil>
 //
-// Prisjakt-flödet MED märke och artikelnummer, på en hemlig adress:
-// /feed/prisjakt-<kod>.xml, där koden är miljövariabeln PRISJAKT_FLODE_KOD i
-// Vercel (lib/feed/prisjakt-adress.ts). Varje annat filnamn svarar 404. De
-// andra flödena (google.xml, prisjakt.xml, pricerunner.xml …) har egna rutter,
-// och Next låter dem gå före den här.
+// De hemliga adresserna. Varje annat filnamn svarar 404. De öppna flödena
+// (google.xml, pricerunner.xml, gowish.xml …) har egna rutter, och Next låter
+// dem gå före den här.
 //
-// ☠️ LEONARDS BESLUT 2026-10-28, OCH BARA HÄR. Prisjakt matchade 9 av 6 818
-// erbjudanden, och deras sidor för Aosom-varor heter märke plus Aosoms
-// artikelnummer. Här får Aosom-varorna g:mpn = Aosoms artikelnummer och
+//   /feed/prisjakt-<kod>.xml      Prisjakt-flödet MED märke och artikelnummer.
+//                                 Koden är PRISJAKT_FLODE_KOD i Vercel
+//                                 (lib/feed/prisjakt-adress.ts).
+//   /feed/pricerunner-<kod>.xml   PriceRunner-flödet, samma som på den öppna
+//   /feed/gowish-<kod>.xml        adressen, och GoWish-flödet. Koderna är
+//                                 PRICERUNNER_FLODE_KOD och GOWISH_FLODE_KOD
+//                                 (lib/feed/hemlig-adress.ts, Leonard 2026-11-26).
+//
+// ☠️ LEONARDS BESLUT 2026-10-28, OCH BARA PÅ PRISJAKTS ADRESS. Prisjakt matchade
+// 9 av 6 818 erbjudanden, och deras sidor för Aosom-varor heter märke plus
+// Aosoms artikelnummer. Där får Aosom-varorna g:mpn = Aosoms artikelnummer och
 // g:brand = varans riktiga märke (motorns /api/prisjakt-artiklar). Det är ett
 // medvetet undantag från två husregler: att märket är Fyndplats och att
-// artikelnumret aldrig når kunden. Google-, PriceRunner- och det öppna
-// Prisjakt-flödet byggs utan numren.
+// artikelnumret aldrig når kunden. Google-, PriceRunner- och GoWish-flödet
+// byggs utan numren, också på sina hemliga adresser.
 //
-// ☠️ Loggraden bär bara antal. Aldrig koden, adressen, ett nummer eller ett
-// märke. Svaret bär X-Robots-Tag: noindex, så att en läckt adress inte hamnar
-// i ett sökindex.
+// ☠️ Det öppna /feed/prisjakt.xml är borttaget (2026-11-26): Prisjakts läsare
+// hämtade den hemliga adressen tre gånger på 23 timmar, och ingen hämtade den
+// öppna. Adressen svarar nu 404 härifrån.
 //
-// Når motorn inte fram svarar adressen 503, och CDN:en serverar förra flödet
-// (stale-if-error). Ett flöde där numren plötsligt saknas hade sett ut som
-// ett lyckat svar. Ett flöde utan en enda vara (Wix svarade inte) får också
+// ☠️ Loggraden bär ett namn och antal. Aldrig koden, adressen, ett nummer eller
+// ett märke. Den här filen läser därför aldrig anropets adress. Svaret bär
+// X-Robots-Tag: noindex, så att en läckt adress inte hamnar i ett sökindex.
+//
+// Når motorn inte fram svarar Prisjakts adress 503, och CDN:en serverar förra
+// flödet (stale-if-error). Ett flöde där numren plötsligt saknas hade sett ut
+// som ett lyckat svar. Ett flöde utan en enda vara (Wix svarade inte) får också
 // 503, som de andra flödena (`arTomtFlode`).
 //
-// ☠️ Prisjakt får den sparade kopian (lib/feed/flodeslager.ts, namnet
-// PRISJAKT_HEMLIG_KOPIA) när den är yngre än tre timmar. /api/cron/farska-floden
-// bygger den varannan timme med samma byggare (`prisjaktHemligXml` i
-// lib/feed/prisjakt-hemlig.ts), utan att känna till adressen. Prisjakt hämtar tre
-// gånger om dygnet och fick förut vänta på ett bygge varje gång. Bara när ingen
-// kopia duger byggs flödet här, och det som byggdes sparas efter svaret.
-// Loggen och kopian bär namnet, aldrig adressen.
+// ☠️ Läsaren får den sparade kopian (lib/feed/flodeslager.ts) när den är yngre
+// än tre timmar. /api/cron/farska-floden bygger kopiorna varannan timme med
+// samma byggare, utan att känna till någon adress. Bara när ingen kopia duger
+// byggs flödet här, och det som byggdes sparas efter svaret. PriceRunner- och
+// GoWish-flödet har samma kopia på den hemliga och den öppna adressen.
 
 import { GET as googleFeed } from "../google.xml/route";
 import { arHemligPrisjaktFil, prisjaktKod } from "@/lib/feed/prisjakt-adress";
+import { HEMLIGA_FLODEN, type HemligtFlode, hemligtFlode } from "@/lib/feed/hemlig-adress";
+import { gowishXml, pricerunnerXml } from "@/lib/feed/harledda";
 import { hamtaPrisjaktArtiklar } from "@/lib/feed/prisjakt-motor";
 import { PRISJAKT_HEMLIG_KOPIA, prisjaktHemligXml } from "@/lib/feed/prisjakt-hemlig";
 import { anvandbarKopia, anvandbartHuvud, sparaEfterSvaret } from "@/lib/feed/kopiesvar";
-import { arTomtFlode, flodessvarUrKopia, huvudsvar, kopiansCacheControl, lasare, strommatXml } from "@/lib/feed/prisjakt-svar";
+import {
+  arTomtFlode,
+  flodessvar,
+  flodessvarUrKopia,
+  huvudsvar,
+  kopiansCacheControl,
+  lasare,
+  strommatXml,
+} from "@/lib/feed/prisjakt-svar";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -47,6 +65,26 @@ const NOINDEX = { "X-Robots-Tag": "noindex" } as const;
 const NAMN = "det hemliga Prisjakt-flödet";
 /** CDN:en ger det gamla flödet i ett dygn om ett nytt bygge faller (503). */
 const VID_FEL = "stale-if-error=86400";
+
+/** PriceRunner- och GoWish-flödet ur Google-flödets XML: samma byggare som de öppna rutterna och jobbet. */
+const UR_GOOGLE: Record<HemligtFlode, (googleXml: string) => string> = {
+  "pricerunner.xml": pricerunnerXml,
+  "gowish.xml": gowishXml,
+};
+
+/** En hemlig adress: namnet för loggen, kopians namn och flödet (null för Prisjakts, som har en egen byggare). */
+type Adress = { namn: string; kopia: string; flode: HemligtFlode | null };
+
+/**
+ * Den hemliga adress filnamnet är, eller null. Båda prövningarna görs alltid,
+ * så att svarstiden inte säger vilken som stämde.
+ */
+function hemligAdress(fil: string): Adress | null {
+  const prisjakt = arHemligPrisjaktFil(fil, prisjaktKod());
+  const flode = hemligtFlode(fil);
+  if (prisjakt) return { namn: NAMN, kopia: PRISJAKT_HEMLIG_KOPIA, flode: null };
+  return flode ? { namn: HEMLIGA_FLODEN[flode].namn, kopia: flode, flode } : null;
+}
 
 function ingenFil(): Response {
   return new Response("Not Found", {
@@ -62,9 +100,37 @@ function kanInteByggas(): Response {
   });
 }
 
+/**
+ * PriceRunner- eller GoWish-flödet på sin hemliga adress: kopian när den duger,
+ * annars ett bygge som sparas efter svaret. Samma svar som den öppna adressen
+ * ger, med namnet i loggen i stället för adressen.
+ */
+async function harlettFlode(flode: HemligtFlode, namn: string, request: Request): Promise<Response> {
+  const kopia = await anvandbarKopia(flode, request, namn);
+  if (kopia) return flodessvarUrKopia(kopia, request, { rubriker: { ...NOINDEX } });
+
+  const byggd = Date.now();
+  let xml: string;
+  try {
+    xml = UR_GOOGLE[flode](await (await googleFeed()).text());
+  } catch (e) {
+    console.error(`[flode] ${namn} byggdes inte: ${e instanceof Error ? e.message.slice(0, 160) : "okänt fel"}`);
+    return kanInteByggas();
+  }
+  if (arTomtFlode(xml)) {
+    console.error(`[flode] ${namn} byggdes utan en enda vara och skickas inte. Läsaren får 503 och behåller förra inläsningen.`);
+    return kanInteByggas();
+  }
+  console.log(`[flode] ${namn} byggdes på ${((Date.now() - byggd) / 1000).toFixed(1)} s, ingen kopia dög (${lasare(request)})`);
+  sparaEfterSvaret(flode, namn, byggd, xml);
+  return flodessvar(xml, request, { rubriker: { ...NOINDEX } });
+}
+
 export async function GET(request: Request, { params }: { params: Promise<{ fil: string }> }) {
   const { fil } = await params;
-  if (!arHemligPrisjaktFil(fil, prisjaktKod())) return ingenFil();
+  const adress = hemligAdress(fil);
+  if (!adress) return ingenFil();
+  if (adress.flode) return harlettFlode(adress.flode, adress.namn, request);
 
   const kopia = await anvandbarKopia(PRISJAKT_HEMLIG_KOPIA, request, NAMN);
   if (kopia) {
@@ -106,7 +172,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ fil:
 // filnamn får 404 också här, så att HEAD inte avslöjar mer än GET.
 export async function HEAD(request: Request, { params }: { params: Promise<{ fil: string }> }) {
   const { fil } = await params;
-  if (!arHemligPrisjaktFil(fil, prisjaktKod())) return ingenFil();
-  console.log(`[flode] HEAD ${NAMN} (${lasare(request)})`);
-  return huvudsvar({ komprimerat: false, kopia: await anvandbartHuvud(PRISJAKT_HEMLIG_KOPIA), rubriker: { ...NOINDEX } });
+  const adress = hemligAdress(fil);
+  if (!adress) return ingenFil();
+  console.log(`[flode] HEAD ${adress.namn} (${lasare(request)})`);
+  return huvudsvar({ komprimerat: false, kopia: await anvandbartHuvud(adress.kopia), rubriker: { ...NOINDEX } });
 }

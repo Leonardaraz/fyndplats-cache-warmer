@@ -8,12 +8,13 @@ import { buildGroupCards, MOSAIC_DENYLIST, categoryHero } from "../../lib/catego
 import { antalKategorierIRegistret } from "../../lib/category-threshold";
 import { getHiddenFromFeatured } from "../../lib/image-scores";
 import { tightFillUrl } from "../../lib/wix-image";
-import { productCountLabel, categoryCountLabel, tusental } from "../../lib/rating";
+import { productCountLabel, categoryCountLabel, produktOrd, tusental } from "../../lib/rating";
 import { unsplashIForm } from "../../lib/bildformat";
 import { populartNu } from "../../lib/sok-tom";
 import { PrefetchLink } from "../../components/prefetch-link";
 import { SHIMMER_BLUR } from "../../lib/lqip";
 import { FREE_SHIPPING_OVER_KR, STANDARD_SHIPPING_KR } from "../../lib/shipping";
+import { radenFallsUt, storstForst } from "../../lib/register-rader";
 import "./butik.css";
 
 export const metadata = pageMeta(
@@ -146,11 +147,13 @@ export default async function Butik() {
           <div className="b2-avdrad">
             {groups.map((g, i) => {
               // Samma bild som avdelningens egen sida och startsidan, i rutans
-              // form (lib/bildformat.ts). Produktbilden bara om stämningsbild saknas.
-              const bild = unsplashIForm(categoryHero(g.main.name), "4:3") || g.heroImg || g.thumbs[0];
+              // form (lib/bildformat.ts). Produktbilden bara om stämningsbild saknas:
+              // då står varan på vitt i en tunn ram (.b2-avd-produkt).
+              const stamning = unsplashIForm(categoryHero(g.main.name), "4:3");
+              const bild = stamning || g.heroImg || g.thumbs[0];
               return (
                 <PrefetchLink className="b2-avd" key={g.main.id} href={`/kategori/${g.main.slug}`}>
-                  <span className="b2-avd-bild" aria-hidden="true">
+                  <span className={stamning ? "b2-avd-bild" : "b2-avd-bild b2-avd-produkt"} aria-hidden="true">
                     {bild && (
                       <Image
                         src={tightFillUrl(bild, 560, 420)}
@@ -229,28 +232,55 @@ export default async function Butik() {
             </div>
           </div>
           {/* Registret i text: varje underkategori en gång, utan bild. Förut bar varje
-              länk en egen tumnagel (127 bilder och 294 kB srcset). */}
-          <div className="b2-register">
-            {groups.map((g) => (
-              <div className="b2-grupp" key={g.main.id}>
-                <h3 className="b2-grupp-rubrik">
-                  <a href={`/kategori/${g.main.slug}`}>{g.main.name}</a>
-                  <span className="b2-grupp-antal">{tusental(g.count)}</span>
-                </h3>
-                {g.subs.length > 0 && (
-                  <ul className="b2-grupp-lista">
-                    {g.subs.map((s) => (
-                      <li key={s.id}>
-                        <a href={`/kategori/${s.slug}`}>
-                          <span>{s.name}</span>
-                          <span className="b2-sub-antal">{tusental(s.count)}</span>
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            ))}
+              länk en egen tumnagel (127 bilder och 294 kB srcset).
+              En rad per avdelning (2026-11-25, lib/register-rader.ts): namnet till
+              vänster, kategorierna som knappar med de största först, och resten bakom
+              "Alla N" (app/butik/butik.css, "/butik: en rad per avdelning"). Rutan som
+              fäller ut raden är en kryssruta: den behöver inget skript, och webbläsaren
+              minns den när kunden backar från en kategori. */}
+          <div className="b2-register b2-rader">
+            {groups.map((g) => {
+              const subs = storstForst(g.subs);
+              const falls = radenFallsUt(subs.length);
+              const vaxla = `b2-fler-${g.main.slug}`;
+              return (
+                <div className="b2-grupp" key={g.main.id}>
+                  <h3 className="b2-grupp-rubrik">
+                    <a href={`/kategori/${g.main.slug}`}>{g.main.name}</a>
+                    <span className="b2-grupp-antal">{tusental(g.count)}<span className="b2-grupp-ord"> {produktOrd(g.count)}</span></span>
+                  </h3>
+                  {falls && (
+                    <input
+                      className="b2-vaxla"
+                      type="checkbox"
+                      id={vaxla}
+                      aria-label={`Visa alla ${categoryCountLabel(subs.length)} i ${g.main.name}`}
+                    />
+                  )}
+                  {subs.length > 0 && (
+                    <ul className="b2-grupp-lista">
+                      {subs.map((s) => (
+                        <li key={s.id}>
+                          <a href={`/kategori/${s.slug}`}>
+                            <span>{s.name}</span>
+                            <span className="b2-sub-antal">{tusental(s.count)}</span>
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {falls && (
+                    // Kryssrutan bär namnet ("Visa alla 30 kategorier i Möbler"); etiketten
+                    // är den synliga knappen och läses inte en gång till. Texten är
+                    // densamma utfälld: pilen vänder, och namnet rymmer det som syns.
+                    <label className="b2-fler" htmlFor={vaxla} aria-hidden="true">
+                      Alla {subs.length}
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                    </label>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>

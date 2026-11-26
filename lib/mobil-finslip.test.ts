@@ -136,7 +136,9 @@ describe("surfplattan på högkant har filtren bakom knappen", () => {
   });
 
   it("gränsen 880 är sidhuvudets: där byter butiken till mobilens huvud", () => {
-    assert.match(css, /@media\(max-width:880px\)\{\n  \.prod:not\(\.auction-card\)/);
+    // Produktkortets ram börjar där datorns huvud börjar (881 px). Mobilens
+    // eget block för plattan togs bort 2026-11-25, när plattan blev vit i grunden.
+    assert.match(css, /@media\(min-width:881px\)\{\n  \.prod:not\(\.auction-card\)/);
     assert.doesNotMatch(block, /position:fixed/);
   });
 });

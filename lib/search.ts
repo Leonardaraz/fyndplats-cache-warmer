@@ -1197,7 +1197,8 @@ const MARKE_RE = new RegExp(`(^|[^a-zåäö0-9])(?:(?:utan|ej|inte)\\s+)?(?:${LE
  * fåtölj", och "homcom elbilar för barn" var inte längre kategorins namn. Av
  * 2 795 provsökningar ändrade märket svaret för 844.
  *
- * Märket står kvar när det är hela sökningen ("homcom" ger noll som förut).
+ * Märket står kvar när det är hela sökningen. Den sökningen gav noll till
+ * 2026-11-26; nu ger den märkets varor (medMarkesvaror).
  */
 const MARKEN: ReadonlySet<string> = new Set(LEVERANTORSMARKEN);
 /** Är sökningen bara märken, och inget annat? */
@@ -1861,6 +1862,18 @@ export type Sokutfall<T> = {
    * Söksidans "billigast"-ordning sorterar dem för sig (lib/sok-ordning.ts).
    */
   hemma?: number;
+  /**
+   * Så många av de första träffarna står först för att de heter som sökningen
+   * hos en prisjämförelsesajt (medNamntraff). Vyn säger det, i stället för att
+   * tala om strukna ord: kunden ska se att det är varan den sökte.
+   */
+  namn?: number;
+  /**
+   * Leverantörens märke, när sökningen bara var märket eller början på det
+   * ("hom" → "homcom") och träffarna är varorna som säljs under märket hos
+   * jämförelsesajterna (medMarkesvaror). Vyn säger det.
+   */
+  marke?: string;
 };
 
 /** Färre hela träffar än så, och sökningen har en färg eller ett mått: fyll på. */
@@ -1946,7 +1959,13 @@ export type SokKat = { n: string; f: number };
  * -(plats + 1), är en vara som bara hör till den kategorin och inte till
  * föräldrarna (lib/bara-i-underkategorin.ts).
  */
-export type Kategoridata<T> = { kat: readonly SokKat[]; av: (item: T) => readonly number[] | null | undefined };
+// `nycklar` är varans namnnycklar (jämförelsesajtens namn på varan, se
+// namnnyckel längre ner). Utelämnad söker sökningen som förut.
+export type Kategoridata<T> = {
+  kat: readonly SokKat[];
+  av: (item: T) => readonly number[] | null | undefined;
+  nycklar?: (item: T) => readonly string[] | null | undefined;
+};
 
 // `delar`: hur många sorters varor namnet räknar upp ("Selar, Koppel &
 // Transport" är tre). En kategori med tre eller fler är en samling, och ett
@@ -2671,6 +2690,135 @@ function skrivOm(p: Prepared, bok: Ordbok, begrepp: readonly string[], arBegrepp
   return { q: byten.size === 0 ? null : p.q.replace(/[a-zåäö0-9]+/g, (t) => byten.get(t) ?? t), besked, okanda, finnsInte };
 }
 
+// ── JÄMFÖRELSESAJTENS NAMN PÅ VARAN (Leonard 2026-11-25) ────────────────────
+//
+// PriceRunner och Prisjakt visar butiken som säljare under SITT namn på varan,
+// och kunden som skriver eller klistrar in det namnet i sökrutan ska få den
+// varan först. Namnen är jämförelsesajtens, och de börjar med leverantörens
+// märke. Här står därför bara NYCKLAR: en enkelriktad summa av namnets ord.
+// Kopplingen vara → nycklar ligger i lib/namnnycklar-data.ts, som byggs av
+// tools/namnnycklar ur en fil som aldrig checkas in.
+//
+// ☠️ TRE SAKER SOM INTE SKA TAS BORT:
+//
+//   1. NAMNEN STÅR ALDRIG I REPOT, i indexet eller i en logg. Bara nycklarna.
+//   2. ☠️ ETT ORD SOM LIKNAR ETT ARTIKELNUMMER RÄKNAS INTE, varken i namnet
+//      eller i sökningen. Jämförelsesajternas namn bär ibland leverantörens
+//      artikelnummer, och en nyckel som tog med det hade gjort sökrutan till
+//      ett uppslag från artikelnummer till vår vara. Med ordet struket på båda
+//      sidor ger ett artikelnummer ensamt ingen nyckel alls.
+//   3. EN NYCKEL KRÄVER MINST TRE ORD (`MINST_ORD`). "Barnelbil" är ingen vara,
+//      det är femtio.
+
+/** Färre ord än så ger ingen nyckel: namnet säger då inte vilken vara det är. */
+export const MINST_ORD = 3;
+
+// Aosoms artikelnummer ("831-123V00BK", "A91-123", "84G-123") och andra ord
+// som blandar siffror och bokstäver utan att vara ett mått.
+const AOSOM_ARTIKEL = /^(?:\d{2}[a-z]|[a-z]\d{2}|\d[a-z]\d|\d{3})-\d{3}[a-z0-9]*$/;
+const DELAT_ARTIKEL = /^[a-z0-9]+(?:[-_][a-z0-9]+)+$/;
+const MATT = /^\d+(?:[.,]\d+)?(?:x\d+(?:[.,]\d+)?)*[a-zåäö]{0,3}$/;
+
+/** Ordet ser ut som ett artikelnummer, inte som ett ord eller ett mått. */
+export function artikelnummerlikt(ord: string): boolean {
+  const o = ord.toLowerCase();
+  if (AOSOM_ARTIKEL.test(o)) return true;
+  const siffror = (o.match(/\d/g) ?? []).length;
+  const bokstaver = (o.match(/[a-z]/g) ?? []).length;
+  if (siffror === 0 || bokstaver === 0) return false;
+  // "120x60cm", "12v", "2.4g": ett mått är tal, gånger tal, och en kort enhet.
+  if (MATT.test(o)) return false;
+  // "d51-099", "b0c-12a4": delar med bindestreck där någon del bär tre siffror.
+  if (DELAT_ARTIKEL.test(o) && o.split(/[-_]/).some((d) => (d.match(/\d/g) ?? []).length >= 3)) return true;
+  // Långa ord där siffror och bokstäver växlar flera gånger ("b0cxyz1234").
+  if (o.length >= 8 && /^[a-z0-9]+$/.test(o)) {
+    const vaxlingar = (o.match(/\d(?=[a-z])|[a-z](?=\d)/g) ?? []).length;
+    if (vaxlingar >= 2) return true;
+  }
+  return false;
+}
+
+/**
+ * Namnets ord, som nyckeln räknas på: gemener, skiljetecken bort, tal och
+ * bokstäver var för sig ("2.4 G" och "2,4g" är samma två ord), och utan ord
+ * som liknar artikelnummer.
+ */
+export function namnord(text: string): string[] {
+  const ord: string[] = [];
+  for (const ra of (text || "").toLowerCase().split(/\s+/)) {
+    const o = ra.replace(/^[^a-zåäöéèüøæ0-9]+|[^a-zåäöéèüøæ0-9]+$/g, "");
+    if (!o || artikelnummerlikt(o)) continue;
+    for (const del of o.match(/[a-zåäöéèüøæ]+|\d+(?:[.,]\d+)?/g) ?? []) ord.push(del.replace(",", "."));
+  }
+  return ord;
+}
+
+// cyrb53 (bryc, public domain): 53 bitar, jämnt spridda, utan beroenden och
+// lika i Node och i varje webbläsare. Ingen hemlighet skyddas av summan: den
+// finns för att namnen inte ska stå i klartext.
+function summa(text: string): string {
+  let h1 = 0xdeadbeef ^ 0x9e3779b9;
+  let h2 = 0x41c6ce57 ^ 0x9e3779b9;
+  for (let i = 0; i < text.length; i++) {
+    const c = text.charCodeAt(i);
+    h1 = Math.imul(h1 ^ c, 2654435761);
+    h2 = Math.imul(h2 ^ c, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+}
+
+/** Nyckeln för en följd av ord, eller null när de är för få. */
+export function nyckelFor(ord: readonly string[]): string | null {
+  return ord.length >= MINST_ORD ? summa(ord.join(" ")) : null;
+}
+
+/**
+ * Nyckeln för ett namn eller en sökning: märket bort (utanMarken), sedan
+ * namnets ord. Null när det blir färre än tre ord.
+ */
+export function namnnyckel(text: string): string | null {
+  return nyckelFor(namnord(utanMarken(text)));
+}
+
+// ☠️ NAMNET HALVSKRIVET (Leonard 2026-11-26). Nyckeln gällde bara hela namnet:
+// mätt mot www stod varan först när sista bokstaven var skriven, och inte
+// förr ("homcom barnelbil med 2.4 g fjärr" gav 52 elbilar med varan någonstans
+// bland dem). Nu har varje början på namnet en egen nyckel, från fyra ord, och
+// sökningen prövas också utan sitt sista ord: det är ordet som håller på att
+// skrivas. Tre ord räcker bara när de är hela namnet: en början på tre ord
+// ("soffbord med förvaring") är en vanlig sökning, inte en vara.
+
+/** En början på namnet får en egen nyckel från så här många ord. */
+export const BORJAN_MINST_ORD = 4;
+
+/**
+ * Alla nycklar ett namn hos en jämförelsesajt ger: hela namnet (minst tre
+ * ord), och varje början på minst fyra. Verktyget som bygger datafilen läser den.
+ */
+export function namnetsNycklar(text: string): string[] {
+  const ord = namnord(utanMarken(text));
+  const ut: string[] = [];
+  const hela = nyckelFor(ord);
+  if (hela) ut.push(hela);
+  for (let n = BORJAN_MINST_ORD; n < ord.length; n++) ut.push(summa(ord.slice(0, n).join(" ")));
+  return ut;
+}
+
+/**
+ * Sökningens nycklar, den längsta först: alla orden, och orden utan det
+ * sista när minst fyra är kvar.
+ */
+export function sokningensNycklar(skrivet: string): string[] {
+  const ord = namnord(utanMarken(skrivet));
+  const ut: string[] = [];
+  const hela = nyckelFor(ord);
+  if (hela) ut.push(hela);
+  if (ord.length - 1 >= BORJAN_MINST_ORD) ut.push(summa(ord.slice(0, -1).join(" ")));
+  return ut;
+}
+
 // rankByName med besked. `strukna` är sökord som inget namn har tillsammans
 // med de andra: sökningen visar då träffarna för resten, och sidan säger det.
 //
@@ -2693,6 +2841,153 @@ function skrivOm(p: Prepared, bok: Ordbok, begrepp: readonly string[], arBegrepp
 // `kd` är kategorierna och vilka varje vara hör till (se Kategoridata). Utan
 // den söks bara namnen, som förut.
 export function rankaMedInfo<T>(items: T[], nameOf: (item: T) => string, skrivet: string, normNamn?: readonly string[], kd?: Kategoridata<T>): Sokutfall<T> {
+  return medMarkesvaror(medNamntraff(rankaSomVanligt(items, nameOf, skrivet, normNamn, kd), items, skrivet, kd), items, skrivet, kd);
+}
+
+// Varorna per namnnyckel, en gång per varulista. Sparat med funktionen som
+// läste nycklarna: samma lista med en annan källa till nycklar räknas om.
+const nyckeluppslag = new WeakMap<object, { las: unknown; varor: Map<string, unknown[]> }>();
+function varorForNyckel<T>(items: readonly T[], nycklar: NonNullable<Kategoridata<T>["nycklar"]>, nyckel: string): T[] {
+  let sparat = nyckeluppslag.get(items);
+  if (!sparat || sparat.las !== nycklar) {
+    const varor = new Map<string, unknown[]>();
+    for (const item of items) {
+      for (const n of nycklar(item) ?? []) {
+        const lista = varor.get(n);
+        if (lista) lista.push(item);
+        else varor.set(n, [item]);
+      }
+    }
+    sparat = { las: nycklar, varor };
+    nyckeluppslag.set(items, sparat);
+  }
+  return (sparat.varor.get(nyckel) ?? []) as T[];
+}
+
+/**
+ * Varan som heter som sökningen hos en prisjämförelsesajt står först.
+ *
+ * Efter den står sökningens egna träffar, i samma ordning: kopplingen mellan
+ * namnen är en parning på sannolikhet, och har den fel ska de vanliga
+ * träffarna stå kvar under. `namn` säger hur många av de första varorna som
+ * kom av namnet, så att vyn kan säga att det är varan kunden sökte.
+ *
+ * Beskeden följer inte med: strukna ord, rättad stavning och påfyllda listor
+ * beskrev en sökning på ord, och första varan är en träff på namnet. Svaret
+ * bär därför bara det som räknas upp nedan, så att ett nytt besked i
+ * sökningen inte följer med av sig självt. Träffar som bara låg nära i
+ * stavning (`liknande`) står inte kvar under varan: de är gissningar, och utan
+ * sitt besked hade de sett ut som svar.
+ *
+ * Ingen nyckel, eller en nyckel ingen vara har: svaret är orört.
+ */
+function medNamntraff<T>(u: Sokutfall<T>, items: T[], skrivet: string, kd: Kategoridata<T> | undefined): Sokutfall<T> {
+  if (!kd?.nycklar) return u;
+  // Den längsta nyckeln som någon vara har: hela sökningen, annars sökningen
+  // utan ordet som håller på att skrivas (sokningensNycklar).
+  for (const nyckel of sokningensNycklar(skrivet)) {
+    const varor = varorForNyckel(items, kd.nycklar, nyckel);
+    if (varor.length > 0) return namnetsSvar(u, varor);
+  }
+  return u;
+}
+
+/**
+ * Sökningens svar med namnets varor ställda först (se medNamntraff). Utan
+ * varor är svaret orört. Egen funktion, så att varje besked går att pröva.
+ */
+export function namnetsSvar<T>(u: Sokutfall<T>, varor: readonly T[]): Sokutfall<T> {
+  if (varor.length === 0) return u;
+  const forst = new Set(varor);
+  const under = u.liknande ? [] : u.traffar.filter((x) => !forst.has(x));
+  return {
+    traffar: [...varor, ...under],
+    strukna: [],
+    namn: varor.length,
+    // Orden kunden nekade ("utan …") och sökningen som den lästes gäller fortfarande träffarna under.
+    ...(u.inte ? { inte: u.inte } : {}),
+    ...(u.sokt ? { sokt: u.sokt } : {}),
+  };
+}
+
+// ── MÄRKET ENSAMT ELLER HALVSKRIVET (Leonard 2026-11-26) ────────────────────
+//
+// Den som skriver av jämförelsesajtens namn börjar med märket: "hom", "homc",
+// "homcom". Ingen vara heter så här, och sökrutan sa "Inga produkter matchade"
+// ända tills nästa ord var påbörjat (Leonards skärmbild; mätt mot www samma
+// natt gav "hom", "homc", "homco" och "homcom" noll, liksom "outs" och "paw").
+// Nu ger märket, och början på det, varorna som säljs under märket hos
+// jämförelsesajterna. Vilka de är står bland varans namnnycklar, som en
+// märkesnyckel: en summa, som de andra, så att inget märke står i klartext.
+//
+//   1. BARA ETT ORD, minst tre bokstäver, som inleder exakt ett märke. Med
+//      fler ord tas märket bort ur sökningen som förut (utanMarken).
+//   2. ☠️ SÖKNINGENS EGNA TRÄFFAR GÅR FÖRE. "vin" är vinställ och "spo" är
+//      spolpumpar, inte Vinsetto och Sportnow. En rättad stavning och träffar
+//      som bara ligger nära räknas inte som egna: ett märke är inget stavfel.
+//   3. Hela märket ger märkets varor först, och under dem varorna som nämner
+//      märket i sitt namn ("vevor").
+
+/** Märkena som jämförelsesajternas namn börjar med. Butikens eget namn är inget av dem. */
+const SOKBARA_MARKEN: readonly string[] = LEVERANTORSMARKEN.filter((m) => m !== "fyndplats");
+
+/** Kortare början än så säger inte vilket märke det är: "ho" är en diskho. */
+export const MARKE_MINST_BOKSTAVER = 3;
+
+/**
+ * Märkets nyckel bland varans namnnycklar. Två ord, och en namnnyckel kräver
+ * tre (MINST_ORD): inget namn kan ge samma summa.
+ */
+export function markesnyckel(marke: string): string {
+  return summa(`märke ${marke}`);
+}
+
+/**
+ * Märket som sökningen är, eller är på väg att bli: "hom" → "homcom",
+ * "Homcom:" → "homcom". Null för flera ord, för en kortare början och för en
+ * början som passar flera märken.
+ */
+export function markeUrBorjan(skrivet: string): string | null {
+  const ord = tokenize(skrivet);
+  if (ord.length !== 1 || ord[0].length < MARKE_MINST_BOKSTAVER) return null;
+  const passar = SOKBARA_MARKEN.filter((m) => m.startsWith(ord[0]));
+  return passar.length === 1 ? passar[0] : null;
+}
+
+/** Märket som ett namn hos en jämförelsesajt börjar med, eller null. Verktyget som bygger nycklarna läser det. */
+export function markeForstINamn(namn: string): string | null {
+  const forsta = tokenize(namn)[0];
+  return forsta !== undefined && SOKBARA_MARKEN.includes(forsta) ? forsta : null;
+}
+
+/** Märket som det skrivs för kunden: "Homcom", "PawHut", "VEVOR". */
+export function markesnamn(marke: string): string {
+  if (marke === "vevor") return "VEVOR";
+  if (marke === "pawhut") return "PawHut";
+  return marke.charAt(0).toUpperCase() + marke.slice(1);
+}
+
+function medMarkesvaror<T>(u: Sokutfall<T>, items: T[], skrivet: string, kd: Kategoridata<T> | undefined): Sokutfall<T> {
+  if (!kd?.nycklar) return u;
+  const marke = markeUrBorjan(skrivet);
+  if (!marke) return u;
+  return markesSvar(u, varorForNyckel(items, kd.nycklar, markesnyckel(marke)), marke, tokenize(skrivet)[0] === marke);
+}
+
+/**
+ * Sökningens svar när den är ett märke eller början på ett (se ovan). `hela`
+ * är sant när hela märket är skrivet. Egen funktion, så att reglerna går att
+ * pröva. Utan varor under märket är svaret orört.
+ */
+export function markesSvar<T>(u: Sokutfall<T>, varor: readonly T[], marke: string, hela: boolean): Sokutfall<T> {
+  if (varor.length === 0) return u;
+  const egna = u.liknande || u.rattat ? [] : u.traffar;
+  if (egna.length > 0 && !hela) return u;
+  const forst = new Set(varor);
+  return { traffar: [...varor, ...egna.filter((x) => !forst.has(x))], strukna: [], marke };
+}
+
+function rankaSomVanligt<T>(items: T[], nameOf: (item: T) => string, skrivet: string, normNamn?: readonly string[], kd?: Kategoridata<T>): Sokutfall<T> {
   const namn = normNamn ?? items.map((item) => normalize(nameOf(item)));
   // Leverantörens märke hör till frågan, inte till varan (se utanMarken).
   const query = utanMarken(skrivet);
@@ -2706,7 +3001,9 @@ export function rankaMedInfo<T>(items: T[], nameOf: (item: T) => string, skrivet
   // ☠️ ETT MÄRKE ÄR INGET STAVFEL. Sökningen på bara märket gav varor som
   // "ligger närmast i stavning": "durhand" tio varor med handtag och fjädrar,
   // "aiyaplay" en CarPlay-adapter och "sportnow" tre ramar för sportkort
-  // (2026-11-24). Märket ensamt ger varorna som nämner det, annars noll.
+  // (2026-11-24). Märket ensamt ger varorna som nämner det, annars noll härifrån.
+  // Varorna som säljs under märket hos jämförelsesajterna läggs till efteråt
+  // (medMarkesvaror, 2026-11-26).
   if ((u.liknande || u.rattat) && baraMarken(query)) return { traffar: [], strukna: [] };
   // ☠️ "katt träd" GAV 13 VAROR OCH "kattträd" 96, "ute möbler" 12 och
   // "utemöbler" 254, "soff bord" 54 och "soffbord" 123 (2026-11-21). Skrivna

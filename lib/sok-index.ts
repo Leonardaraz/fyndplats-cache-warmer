@@ -10,7 +10,9 @@ import { tidsgransSignal } from "./tidsgrans-signal";
 
 // o = slutsåld (sätts bara på slutsålda produkter, se /api/search-index).
 // k = varans kategorier, som platser i kategoritabellen (lib/sok-begrepp.ts).
-export type SokTraff = { n: string; s: string; i: string; p: string; o?: 1; k?: number[] };
+// x = varans namnnycklar: jämförelsesajtens namn på varan, som enkelriktade
+//     summor (lib/search.ts, namnnyckel). Bara på de rader som har några.
+export type SokTraff = { n: string; s: string; i: string; p: string; o?: 1; k?: number[]; x?: string[] };
 
 /** Kortare sökningar än så rankas inte (sidhuvudet visar populära, formuläret ingenting). */
 export const KORTASTE_SOKNING = 2;

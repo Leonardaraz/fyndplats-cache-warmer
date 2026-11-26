@@ -220,9 +220,9 @@ describe("åldern", () => {
 });
 
 describe("listorna", () => {
-  it("bara komprimerade flöden sparas: Google, PriceRunner och Pinterest, inte produktflödet", () => {
+  it("bara komprimerade flöden sparas: Google, PriceRunner, Pinterest och GoWish, inte produktflödet", () => {
     for (const fil of LAGRADE_FLODEN) assert.ok((KOMPRIMERADE_FLODEN as readonly string[]).includes(fil), fil);
-    assert.deepEqual([...LAGRADE_FLODEN], ["google.xml", "pricerunner.xml", "pinterest.xml"]);
+    assert.deepEqual([...LAGRADE_FLODEN], ["google.xml", "pricerunner.xml", "pinterest.xml", "gowish.xml"]);
     for (const fil of LAGRADE_FLODEN) assert.ok(arLagratFlode(fil), fil);
     assert.ok(!arLagratFlode("products.xml"));
     assert.ok(!arLagratFlode("prisjakt.xml"));
@@ -238,6 +238,7 @@ describe("listorna", () => {
     assert.match(jobb, /const UR_GOOGLE: Record<LagratFlode, \(googleXml: string\) => string> = \{/);
     assert.match(jobb, /"pricerunner\.xml": pricerunnerXml,/);
     assert.match(jobb, /"pinterest\.xml": pinterestXml,/);
+    assert.match(jobb, /"gowish\.xml": gowishXml,/);
     assert.match(jobb, /if \(arTomtFlode\(xml\)\) return \{ rad: `\$\{namn\} utan en enda vara, förra kopian behölls`, ok: false \};/, "ett tomt flöde sparas aldrig");
     assert.match(jobb, /await sparaKopia\(namn, gz, \{ byggd, xmlByte: Buffer\.byteLength\(xml\) \}\)/);
     assert.match(jobb, /await spara\(PRISJAKT_HEMLIG_KOPIA, prisjaktHemligXml\(googleXml, motorn\.value\), byggd\)/);
@@ -249,7 +250,7 @@ describe("listorna", () => {
   });
 
   it("rutterna läser kopian bara åt en läsare utifrån, och sparar det de bygger", () => {
-    for (const fil of ["google.xml", "pricerunner.xml", "pinterest.xml"]) {
+    for (const fil of ["google.xml", "pricerunner.xml", "pinterest.xml", "gowish.xml"]) {
       const rutt = las("app", "feed", fil, "route.ts");
       assert.match(rutt, /if \(request\) \{\n    const kopia = await anvandbarKopia\(/, `${fil}: utan anrop byggs flödet alltid`);
       assert.match(rutt, /if \(request && !arTomtFlode\(xml\)\) sparaEfterSvaret\(/, fil);

@@ -1116,6 +1116,10 @@ Sidans canonical pekar redan på den rena adressen, så för Google är inget ny
 
 ## Prisjakt-flödet, och varför flödena måste vara under 10 MB (2026-10-19)
 
+☠️ Den öppna adressen i det här avsnittet togs bort 2026-11-26: Prisjakt läser
+den hemliga adressen (se "Prisjakt: märke och artikelnummer på en hemlig
+adress" och "Flödenas hemliga adresser och noindex").
+
 `https://www.fyndplats.se/feed/prisjakt.xml` läggs in i Prisjakts Business
 Center (Feedhantering → Lägg till feed, typ Produktfeed, format Prisjakt XML).
 Flödet byggs ur Google-flödet som PriceRunner-flödet, och skillnaderna ligger i
@@ -1351,10 +1355,10 @@ Google-, PriceRunner- och det öppna Prisjakt-flödet byggs utan numren.
   mappningens adress bara när den slutar på samma artikel, sist GPSR-datan.
   Utan säker källa står Fyndplats kvar, och ett märke skrivs bara på en vara som
   fått ett nummer.
-- **Den öppna adressen `/feed/prisjakt.xml`** byggs som förut, utan märke och
-  artikelnummer, men med färgtaket och utan kontorsstolens kod. ☠️ Den ska tas
-  bort i deployen efter att Leonard bytt till den hemliga adressen i Business
-  Center.
+- **Den öppna adressen `/feed/prisjakt.xml` är borttagen (2026-11-26).**
+  Prisjakts läsare (`prisjakt-feed-ingestion-service`) hämtade den hemliga
+  adressen tre gånger på 23 timmar (07:19, 15:20 och 23:21 UTC den 25
+  november), och ingen hämtade den öppna. Adressen svarar 404.
 
 ☠️ **Google- och PriceRunner-flödet förnyas inte, och är inte lagat.** De är
 route-ISR (`revalidate = 3600`) och ~15 MB. Uppmätt 2026-10-19: `/feed/google.xml`
@@ -1365,6 +1369,79 @@ dem vid anrop hjälper inte: då byggs de om vid varje hämtning. De går inte u
 10 MB utan att Google-flödet tappar extrabilderna (5,5 MB), och det är ett beslut
 för Leonard.
 
+## Flödenas hemliga adresser och noindex (Leonard 2026-11-26)
+
+Leonards fråga: "Kan vem som helst söka upp våran produktfeed enkelt för
+pricerunner, prisjakt och gowish?" Mätt mot www samma natt:
+
+- `/feed/pricerunner.xml` svarade 200 utan kod: 10 415 varor med namn, pris,
+  frakt, bilder och lager, och EAN på 3 655, på 0,7 s. `/feed/google.xml`, det
+  öppna `/feed/prisjakt.xml`, `/feed/products.xml`, `/feed/pinterest.xml` och
+  `/feed/gz/pricerunner.xml` svarade också 200 utan kod.
+- Ingen sida länkar till flödena, och de står varken i robots.txt eller i
+  sitemapen. Men namnen är standardnamn, repot är publikt (ruttens kod gick
+  att läsa på GitHub utan inloggning), och de öppna flödena saknade
+  `X-Robots-Tag`.
+- Det flödet bär utöver butikens sidor är EAN-koderna. Inga kunduppgifter,
+  inga inköpspriser och inga artikelnummer: de står bara i det hemliga
+  Prisjakt-flödet.
+
+Leonard: "Fixa alla 3". Tre ändringar:
+
+1. **Det öppna Prisjakt-flödet är borttaget** (se Prisjakt-avsnittet ovan).
+2. **Inget flöde i ett sökindex.** `next.config.ts` sätter `X-Robots-Tag:
+   noindex` på varje svar under `/feed/` och på `/api/feed/products.xml`.
+   Rubriken hindrar ingen läsare från att hämta filen. Bildsitemapen är en
+   sitemap och har ingen regel.
+3. **PriceRunner- och GoWish-flödet har hemliga adresser**, som Prisjakts:
+   `/feed/pricerunner-<kod>.xml` och `/feed/gowish-<kod>.xml`
+   (`lib/feed/hemlig-adress.ts`, `app/feed/[fil]/route.ts`). ☠️ Koderna står
+   bara i Vercel, i `PRICERUNNER_FLODE_KOD` och `GOWISH_FLODE_KOD` (minst 32
+   bokstäver och siffror, i produktion och i förhandsbyggen). Aldrig i repot,
+   i en PR, här eller i en loggrad. Leonard fick adresserna i chatten.
+
+Regler som har prov (`lib/feed/hemlig-adress.test.ts`):
+
+- Bara exakt `<namn>-<kod>.xml` är adressen, och varje flöde har sin egen kod.
+  Jämförelsen tar lika lång tid oavsett var ett fel namn skiljer sig, och
+  varje flöde prövas också efter en träff.
+- Utan kod, eller med en för kort, finns ingen hemlig adress för det flödet.
+- ☠️ Rutten läser aldrig anropets adress, och loggen bär ett namn ("det
+  hemliga PriceRunner-flödet"), aldrig adressen. Läsarens namn står i samma
+  rad (`lasare`), så loggen visar när PriceRunner och GoWish har bytt.
+- Den hemliga adressen ger samma flöde som den öppna, ur samma sparade kopia
+  och med samma byggare. Artikelnumren hämtas bara för Prisjakts adress.
+- Ingen fil i repot bär en adress på formen `pricerunner-<lång kod>.xml`.
+
+### ☠️ De öppna adresserna står kvar tills läsarna har bytt
+
+`/feed/pricerunner.xml` och `/feed/gowish.xml` svarar som förut. Leonard hade
+redan mejlat GoWish den öppna adressen, och PriceRunner läser sin. Att stänga
+dem i samma deploy hade tagit flödet från båda.
+
+Så stängs de, när Leonard har bytt adress hos PriceRunner och GoWish:
+
+1. Läs butikens logg efter `det hemliga PriceRunner-flödet` och `det hemliga
+   GoWish-flödet`: raden ska bära läsarens eget namn, inte vårt.
+2. Ta bort rutterna `app/feed/pricerunner.xml` och `app/feed/gowish.xml`, och
+   namnen ur `KOMPRIMERADE_FLODEN`, omskrivningen i `next.config.ts` och
+   `BYGGARE`. Kopiorna byggs fortfarande av `/api/cron/farska-floden`
+   (`UR_GOOGLE`), och den hemliga rutten bygger med samma funktioner.
+3. `lib/flodesvarmning.ts` hämtar de öppna adresserna för att värma CDN:en:
+   ta bort dem där också.
+
+### Inte gjort, och inte mätt
+
+- **Google-, Pinterest- och produktflödet ligger kvar på öppna adresser.**
+  Google-flödet bär ingen EAN.
+- **Vem som har hämtat flödena går inte att se.** Serverloggen visade bara vår
+  egen värmning: hämtningar som CDN:en svarar på syns inte, och det kräver
+  Observability Plus.
+- **Om Google Merchant Center bryr sig om `X-Robots-Tag` på flödesfilen är
+  inte mätt.** Rubriken gäller sökindexet, inte hämtningen, och Prisjakt läser
+  sitt flöde med samma rubrik. Kvittot är flödets status i Merchant Center
+  efter nästa hämtning.
+
 ## Pinterest: flödet och kontot (Leonard 2026-11-15)
 
 `https://www.fyndplats.se/feed/pinterest.xml` är datakällan "Fyndplats
@@ -1372,7 +1449,8 @@ produktflöde" i katalogen "Fyndplats" i Pinterest Business (Kataloger →
 Fyndplats → Datakälla; Sverige, svenska, SEK, hämtas var 24:e timme). Flödet
 byggs ur Google-flödet i `lib/feed/pinterest.ts`, som PriceRunner- och
 Prisjakt-flödena, och skickas komprimerat via `/feed/gz/pinterest.xml`. Det står
-sist i listorna (omskrivningen, gz-rutten och `/api/cron/farska-floden`).
+näst sist i listorna (omskrivningen, gz-rutten och `/api/cron/farska-floden`),
+före GoWish-flödet (2026-11-25).
 
 Skillnaderna mot Google-flödet, alla mätta i Pinterests "Testa din datakälla"
 2026-11-15:
@@ -1456,7 +1534,7 @@ Nu:
 
 - ☠️ **Varje flödesrutt har en egen HEAD som aldrig bygger** (`huvudsvar` i
   `lib/feed/prisjakt-svar.ts`): de fyra under `/feed/`, `/feed/gz/[fil]`, det
-  öppna Prisjakt-flödet och den hemliga adressen, där ett fel filnamn ger 404
+  öppna Prisjakt-flödet (borttaget 2026-11-26) och de hemliga adresserna, där ett fel filnamn ger 404
   också på HEAD. Svaret har samma rubriker som GET och `Cache-Control:
   no-store`, och längd och tid när det finns en sparad kopia. Provet fäller en
   rutt utan HEAD och en HEAD som bygger.
@@ -1510,8 +1588,8 @@ Nu:
   dollar i månaden.
 
 Produktflödet har bara fått HEAD: det hämtas ofta nog för att CDN:en ska
-behålla det. Det öppna `/feed/prisjakt.xml` har också bara fått HEAD; det ska
-bort (se Prisjakt-avsnittet) och hämtades en gång natten mot 2026-11-15.
+behålla det. Det öppna `/feed/prisjakt.xml` hade också bara fått HEAD; det
+togs bort 2026-11-26 (se Prisjakt-avsnittet).
 
 ## Strukturerad data för Google Shopping (2026-10-22)
 
@@ -2675,6 +2753,35 @@ loggen. Utan HMAC hade ett id som läckt räckt för att se en annan kunds varor
 
 ☠️ Mejl som köades före ändringen har kvar Wix länk; de fungerar, men leder till
 Wix kassa.
+
+**Leonards fråga 2026-11-25: "så vi inte har en bugg att folk hamnar på gamla
+checkout".** Han såg fler övergivna kundvagnar i Wix-appen, och länken där
+(`…/abandoned-checkout/<id>/redirect-to-checkout`) svarar 302 till
+`checkout.fyndplats.se/checkout`. Mätt samma kväll:
+
+- **Länken i Wix-appen är Wix egen** och pekar alltid på Wix kassa. Kunden ser
+  den aldrig: Wix eget mejl står som "Inte skickat" på varje rad, för
+  påminnelserna är våra.
+- **Våra påminnelser bär vår länk.** De 30 senaste raderna i
+  `FyndplatsKundvagnar` (16–25 november) har alla
+  `https://www.fyndplats.se/kassa/aterta?k=…`. Fem mejl gick ut den dagen.
+- **Varje övergiven kassa i listan kommer ur vår egen kassa**: Wix skapar den
+  en timme efter att kunden skrivit sin e-post där. Tre av dagens sex hör till
+  de två Klarna-försöken ovan (samma belopp, en timme efter Stripes tid).
+- **Ingen order har betalats i Wix kassa.** 23, 24 och 25 november: 7, 5 och
+  12 ordrar i `FyndplatsOrdrar`, och 7, 5 och 12 betalda betalningar i Stripe,
+  med samma summa per dygn på öret (7 761, 8 355 och 14 927 kr).
+- Växeln svarade `{"egen":true}`, och loggen hade inget "kunde inte läsa växeln".
+
+☠️ **Det som fanns var en väg utan spår.** Går växeln inte att läsa skickar
+varukorgen kunden till Wix kassa (`fragaEgenKassa`: "ett fel betyder nej"), och
+det syntes ingenstans. Reservvägen är kvar med flit: kan vi inte läsa Wix är
+Wix egen kassa den som säkrast fungerar. Nu säger varukorgen till
+(`sagWixKassa` i `components/cart.tsx`, sendBeacon före navigeringen, också på
+medlemskassans väg), och `POST /api/kassa/lage` skriver
+`[kassa] varukorgen öppnar Wix kassa [ios-safari]` som varning: webbläsarens
+sort och ingenting annat. **Varje sådan rad är en kund i gamla kassan.** Inte
+provat: att Wix kassa fortfarande kan ta betalt.
 
 Integritetstexten säger att vi kan påminna om en varukorg du inte slutförde
 (berättigat intresse, högst tre mejl på tre dagar och en påminnelse per 30
@@ -4099,9 +4206,11 @@ vaktar alltihop.
 komponent. De två utseendena kom av att `app/startsida.css` (`.hem2 .prod`) och
 `app/butik/butik.css` (`.butik2 .prod`) skrev över grunden med samma femton
 rader var. Nu är brickan grunden (`.prod` i `app/globals.css`) och de två
-kopiorna är borta: fotot på en varm platta (`#F4EEE8`, 18 px hörn,
-`mix-blend-mode:multiply` så att fotonas vita botten tar plattans ton), namnet,
-betyget och priset under, ingen ram och ingen knapp. `.pbtn` finns inte längre,
+kopiorna är borta: fotot på en platta med 18 px hörn, namnet, betyget och
+priset under, ingen ram och ingen knapp. Plattan var varm (`#F4EEE8`, med
+`mix-blend-mode:multiply` så att fotonas vita botten tog plattans ton) till
+2026-11-25; nu är den vit överallt, se "Vit bakgrund bakom varje bild" sist i
+filen. `.pbtn` finns inte längre,
 varken i komponenten eller i stilen. Listorna (ShopBrowser, `.shoplista`) kapar
 namnet vid tre rader, och vid fyra på mobilen (≤ 540 px). Övriga ytor kapar
 vid två, som startsidans brickor alltid har gjort.
@@ -4152,10 +4261,11 @@ kategorierna, söket, rean och alla-produkter den varma plattan; före det stod
 deras foton på vitt. Från 881 px har `.pimg` i listorna vit botten och en
 hårfin ram (`var(--line)`), och bilden ritas utan `mix-blend-mode`, för mot
 vitt gör blandningen ingenting. Startsidan (`.hem2`) och /butik med prissidornas
-översikt (`.butik2`) behåller den beige brickan som de alltid haft. Mobilen
-(880 px och smalare) har vit platta överallt sedan 2026-11-20, se nedan.
-Blocket står i `app/globals.css` före "Fyndauktionens kort", och
-`lib/produktkortet.test.ts` vaktar det.
+översikt (`.butik2`) behöll den beige brickan till 2026-11-25; sedan dess har
+de samma vita platta med ram som listorna ("Vit bakgrund bakom varje bild",
+sist i filen). Mobilen (880 px och smalare) har vit platta överallt sedan
+2026-11-20, se nedan. Blocket står i `app/globals.css` före "Fyndauktionens
+kort", och `lib/produktkortet.test.ts` vaktar det.
 
 Mätt i det lokala bygget, beräknad stil på varje kort: vitt med ram och
 `normal` på /kategori/…, /sok, /rea, /alla-produkter, /under-1000-kr/mobler
@@ -4180,7 +4290,8 @@ två utseenden: vitt på iPhone, beige i Chromium och Samsung Internet. Nu har
 `.pimg` vit botten och fotot ritas utan `mix-blend-mode` på 880 px och
 smalare, på varje sida, också startsidan och /butik. Ingen ram: det är så
 iPhone redan visade korten, så den som handlar på iPhone ser ingen skillnad.
-Blocket `@media(max-width:880px)` står direkt efter datorns block. Mätt i det
+Blocket `@media(max-width:880px)` stod direkt efter datorns block till
+2026-11-25, då plattan blev vit i grunden och blocket togs bort. Mätt i det
 lokala bygget, beräknad stil på varje kort: vitt, 0 px ram och `normal` på nio
 sidtyper vid 880 och 393 px (36 av 36 med datorns två bredder), och pixlarna
 i plattans övre vänstra hörn är (255, 255, 255) på startsidan, i kategorin och
@@ -4422,7 +4533,10 @@ alltså snabba i verkligheten, och det som fanns att hämta var tre saker:
   kortbilden 384w i stället för 640w på telefoner i 2x och breda datorskärmar.
   Mätt i Chromium på åtta skärmar: ingen fil har färre pixlar än sin ruta
   (lägsta kvot 1,02). Wix AVIF är större än webp i samma kvalitet (121 mot
-  83 kB i 750 px), så formatet är kvar.
+  83 kB i 750 px), så formatet är kvar. ☠️ "Minst så många pixlar som rutan"
+  räckte inte: en fil som är några procent för bred ritas suddigt på datorn.
+  Sedan 2026-11-25 är kortets och huvudbildens fil exakt rutans bredd där, se
+  "Bildernas skärpa på datorn".
 - **De två första korten hämtas med `fetchpriority=high`, resten är lazy**
   (`components/shopbrowser.tsx`, 2026-11-12; förut fyra). `priority` på
   `<Image>` ger förladdning men inte attributet, så listsidornas största bild
@@ -4478,6 +4592,42 @@ produkter o sånt i sidan, den borde inte ha det".
 - Fakta om tull hämtas hos Tullverket ("Ny tullavgift från den 1 juli 2026"),
   inte ur minnet: 3 euro per vara sedan 1 juli 2026, 2 euro i hanteringsavgift
   per vara från 1 november 2026, och procenttull i stället från 1 juli 2028.
+
+## Bloggen: inlägget om önskelistan och GoWish-knappen (Leonard 2026-11-25)
+
+Leonard: "gör en nytt blogg inlägg om något som passar in som ska följa med
+nattens merge". Samma natt gick GoWish-knappen ut på produktsidorna, så
+inlägget (`content/blog/onskelista-till-jul-2026.md`) presenterar den och ger
+sju regler för en önskelista inför julen.
+
+- Det förklarar något, och länkar därför till sortimentet (kategorier,
+  prissidorna, rean och julklappsguiden), inte till enskilda varor.
+  Kategorilänkarna är tagna ur sitemapen samma kväll.
+- **Omslaget** (`/blog-onskelista-jul-2026.jpg`) är 1 800 × 945 px, formen
+  sidan reserverar, i husstilen från tullinlägget. Allt viktigt står i
+  mittkvadraten (x 427–1 372): bloggkortet beskär till 1:1 och startsidans
+  kort till 4:3, och båda tar bara mitten. **Bilden i texten**
+  (`/blog-onskelista-steg.webp`) är 1 200 × 1 200, eftersom inläggets
+  bildrutor visas kvadratiska.
+- ☠️ **Inget står efter sista svaret under "## Vanliga frågor".** `extractFaq`
+  (`lib/local-blog.ts`) lägger varje rad efter sista frågan i sista svaret
+  tills nästa `##`, så en avslutande länkrad hamnar i FAQPage. Inlägget slutar
+  därför med frågorna. `medlemskap-sa-funkar-det.md` har två sådana rader
+  efter sista svaret; inte rättat här.
+- **Det som sägs om GoWish** (app och webbläsare, gratis att ladda ner, dela
+  listan, reservera en önskning) är läst på gowish.com 2026-11-25 och har en
+  källrad före frågorna. Vad GoWish visar för varan efter inloggning sägs
+  inte: det är inte mätt. Att länken går till varan och inte till vald färg
+  eller storlek står i texten, eftersom knappen skickar varans kanoniska
+  adress (`lib/gowish.ts`).
+- **Svaret på "Vilka uppgifter får GoWish av er?"** säger samma sak som
+  sekretesspolicyn (`app/sekretesspolicy/page.tsx`): knappen ger varans adress
+  och teknisk information om besöket, och ett köp från en önskelista mäts av
+  Heylink när den som handlar har samtyckt. Första utkastet nämnde bara
+  knappen, och var alltså ofullständigt. Ändras policyn ska svaret ändras med
+  den.
+- Inlägget säger "från och med i dag" och är daterat 2026-11-26, dagen knappen
+  går ut. Flyttas mergen ska datumet flyttas med.
 
 ## Produkttextens länkar till syskon som flyttat, och slutsålda sidors länk (2026-11-11)
 
@@ -6130,6 +6280,180 @@ repot.
 - **En text om att leverantörens märken säljs under butikens namn.** Det är
   Leonards beslut.
 
+## Jämförelsesajtens namn på varan: nycklar (Leonard 2026-11-25)
+
+Leonard skickade en fil med PriceRunners namn på våra varor och bad om att
+kunderna ska kunna söka på dem: "så du kan göra så kunderna kan söka efter
+produkterna i vår butik med deras namn". Avsnittet ovan gjorde att märket och
+sammansatta ord inte längre ger noll. Det här gör att **varan som heter så står
+först**, fast den heter något annat hos oss.
+
+### Vad filen är
+
+2 631 rader: PriceRunners namn, vår vara, och hur säker parningen är. Paren är
+gjorda på sannolikhet (bild, text, tal och pris), **inte på GTIN**: 463 i klass
+A (poäng 4,5–9,5), 563 i B och 1 605 i C. I klass A har 332 av 463 samma pris på
+båda sidor. Alla 463 varor fanns i sökindexet den 25 november.
+
+☠️ **Filen checkas aldrig in.** Namnen är jämförelsesajtens, och 55 av dem bär
+något som liknar ett artikelnummer (8 i klass A). Sökindexet hämtas av varje
+webbläsare och är alltså publikt, så namnen kan inte ligga där heller.
+
+### Mätt före och efter
+
+Namnet som sökning, mot sökindexet på www 2026-11-25 (8 541 varor), med motorn
+som gick ut samma natt:
+
+| klass A, 463 namn | före | med nycklar |
+|---|---:|---:|
+| varan först | 94 | 427 |
+| plats 2–4 | 35 | 4 |
+| plats 5–12 | 15 | 1 |
+| längre ner | 6 | 1 |
+| träffar, men inte varan | 149 | 6 |
+| noll träffar | 164 | 24 |
+
+De 36 som inte står först: 33 namn har färre än tre ord när märket är borta
+och får ingen nyckel, och 3 namn delas av flera varor (alla står först, i
+katalogens ordning). Av 8 336 vanliga sökningar (`tools/sok-matning/utfall.ts`)
+ändrades ingen, varken träffarna, ordningen eller beskeden. Sökindexet växte
+med 8 372 byte, 5 623 byte packat (0,9 %).
+
+### Så fungerar det
+
+- **En nyckel är en enkelriktad summa av namnets ord** (`namnnyckel` i
+  `lib/search.ts`): märket bort med `utanMarken`, gemener, skiljetecken bort,
+  tal och bokstäver var för sig ("2.4 G" och "2,4g" är samma två ord).
+- **`lib/namnnycklar-data.ts`** bär vår adress → nycklarna, 421 varor och 427
+  nycklar. Filen byggs av `tools/namnnycklar/bygg.ts` ur filen med namnen, som
+  ligger utanför repot (`tools/namnnycklar/README.md`).
+- **Sökindexet skickar nycklarna med varans rad** (`x`, bara på de rader som
+  har några), och söksidan läser samma data på servern. De tre vägarna
+  (sökrutan, söksidan och söksidans kalla väg) ger sökningen nycklarna genom
+  kategoridatans `nycklar`.
+- **`rankaMedInfo` räknar sökningens nyckel** och ställer varorna som har den
+  först (`medNamntraff`, `namnetsSvar`). Under dem står sökningens egna träffar,
+  i samma ordning.
+- **Vyerna säger det.** Vårt namn på varan är ett annat, så utan besked syns
+  det inte att första kortet är varan kunden sökte. Sökrutan sätter märket
+  "Varan du sökte" på kortet, och söksidan skriver "Den första varan heter så
+  hos prisjämförelsesajterna."
+
+Nio regler som inte ska tas bort:
+
+1. ☠️ **Namnen står aldrig i repot, i indexet eller i en logg.** Bara
+   nycklarna. Provet läser datafilen rad för rad och fäller på allt som inte är
+   en adress och nycklar, och verktyget skriver bara ut antal.
+2. ☠️ **Ett ord som liknar ett artikelnummer räknas inte** (`artikelnummerlikt`),
+   varken i namnet eller i sökningen. En nyckel som tog med det hade gjort
+   sökrutan till ett uppslag från leverantörens artikelnummer till vår vara.
+   Med ordet struket på båda sidor ger ett artikelnummer ensamt ingen nyckel.
+   Mått och enheter ("120x60cm", "12v", "3-sits") är inga artikelnummer.
+3. **En nyckel kräver minst tre ord** (`MINST_ORD`). "Barnelbil" är ingen
+   vara, det är femtio.
+4. **Sökningens egna träffar står kvar under varan.** Parningen är gjord på
+   sannolikhet, och har den fel ska de vanliga träffarna finnas där.
+5. ☠️ **Namnets svar bär bara sina egna fält** (`namnetsSvar`): varorna, antalet
+   och orden kunden nekade. Beskeden om strukna ord, rättad stavning och
+   påfyllda listor beskrev en sökning på ord och följer inte med. Träffar som
+   bara låg nära i stavning (`liknande`) står inte kvar under varan: utan sitt
+   besked hade gissningarna sett ut som svar.
+6. ☠️ **En slutsåld vara står också först** (`namnForst` i `lib/sok-ordning.ts`).
+   Den som söker en vara på dess namn ska se den, med märket Slutsåld: annars
+   tror kunden att butiken inte har den. Regeln om det köpbara först gäller
+   träffarna under. Söksidan lägger därför inte någon ordning på efteråt.
+7. **Ett namn som fler än tre varor delar stryks** (`FLEST_VAROR_PER_NYCKEL`),
+   och delar två eller tre varor ett namn står alla först.
+8. ☠️ **Bara servern läser datafilen** (`app/api/search-index` och `app/sok`).
+   Sökrutan får nycklarna med indexet, för de varor som finns.
+9. ☠️ **Uppslaget minns vem som läste nycklarna** (`varorForNyckel`). Det sparas
+   per varulista, och sparat utan källan gav en andra källa den förstas svar:
+   mätningen körde först utan nycklar, och sedan hade ingen vara någon.
+
+### Kontrollerat
+
+- 3 491 prov går igenom, och typkontrollen är ren. 36 avsiktliga fel i
+  nycklarna, ordningen, verktyget och vyerna, ett i taget: alla fälls. Första
+  rundan överlevde fem, och proven skärptes.
+- Slutkoden byggd lokalt och körd i Chromium, 390 × 844 och 1 280 px, med fyra
+  namn ur filen: ett där sökningen i dag ger noll, ett där varan inte fanns
+  bland 30 träffar, ett som två varor delar och ett på en slutsåld vara. Rätt
+  vara stod först i sökläget, i listan under rutan och på söksidan, med märket
+  och beskedet. En vanlig sökning fick inget märke. Inga fel på sidan.
+
+### Märket ensamt, och namnet halvskrivet (Leonard 2026-11-26)
+
+Leonard skrev "hom", början på "Homcom Barnelbil Med 2.4 G Fjärrkontroll", och
+sökrutan sa "Inga produkter matchade". Mätt mot sökindexet på www samma natt,
+steg för steg:
+
+| Skrivet | Före | Nu |
+|---|---|---|
+| "hom", "homc", "homco", "homcom" | 0 träffar | 256 varor, med rubriken "Säljs som Homcom hos prisjämförelsesajterna" |
+| "outs", "outsunny", "paw", "pawhut" | 0 | 40 och 46 varor |
+| "homcom barnelbil" | 52 elbilar | samma |
+| "homcom barnelbil med 2.4 g" | 52, varan någonstans bland dem | varan först |
+| "… 2.4 g fjärr" (nästa ord påbörjat) | 52 | varan först |
+| hela namnet | varan först | varan först |
+
+Två regler, båda i `lib/search.ts`:
+
+- **Märket ensamt eller halvskrivet** (`medMarkesvaror`, `markeUrBorjan`): ett
+  enda ord på minst tre bokstäver som inleder exakt ett märke ger varorna som
+  säljs under märket hos jämförelsesajterna. ☠️ Sökningens egna träffar går
+  före: "vin" är vinställ och "spo" spolpumpar, inte Vinsetto och Sportnow. En
+  rättad stavning och träffar som bara ligger nära räknas inte som egna. Hela
+  märket ger märkets varor först och varorna som nämner märket under dem
+  ("vevor"). Det ersätter regeln från 2026-11-24 att märket ensamt ger noll.
+- **Namnet halvskrivet** (`namnetsNycklar`, `sokningensNycklar`): varje början
+  på namnet har en egen nyckel från fyra ord (`BORJAN_MINST_ORD`), och
+  sökningen prövas också utan sitt sista ord, det som håller på att skrivas.
+  Tre ord är en nyckel bara när de är hela namnet: en början på tre ord
+  ("soffbord med förvaring") är en vanlig sökning.
+
+Vilka varor som hör till ett märke står bland namnnycklarna, som en
+märkesnyckel (`markesnyckel`): en summa som de andra, så att varken ett namn
+eller ett märke står i klartext i datafilen eller i sökindexet. Verktyget läser
+märket ur namnets första ord (`markeForstINamn`). Vyerna säger vilket märke
+listan gäller: sökrutans rubrik, och en rad på söksidan. ☠️ I sökläget på en
+telefon är rubriken den korta, "Säljs som Homcom": den delar rad med "Visa
+alla", och den långa kapades till "… hos prisjä…" (mätt på förhandsbygget).
+
+Mätt 2026-11-26, klass A (463 namn, sökindexet från www med 8 742 varor):
+
+- Varan står först innan hela namnet är skrivet för 365 namn, först vid hela
+  namnet för 65, och aldrig för 33 (namn med färre än tre ord, som förut). I
+  snitt tre ord tidigare, av 7,7. Med nästa ord halvskrivet står varan kvar
+  först för 364 av 365.
+- Alla 399 namn som börjar med ett märke: varan står bland märkets varor när
+  märket är skrivet, och för 291 redan efter tre bokstäver (resten delar sin
+  början med ett varuord).
+- Vanliga sökningar: 0 av 16 017 provfrågor ändrades (ordförrådet med par och
+  tripplar, och en lista på 7 482), och av 118 kundfrågor ändrades fyra, alla
+  ett märke ensamt (`tools/sok-matning`).
+- Datafilen växte från 25 till 52 kB (11 till 24 kB packad): 1 814 namnnycklar
+  för 454 varor, och en märkesnyckel på 424 av dem.
+
+☠️ "homcom b" ger fortfarande två saxofoner stämda i B: märket tas bort, och en
+ensam bokstav söks som ett ord. Inte rättat.
+
+Prov: `lib/sok-2026-11-26.test.ts`.
+
+### Inte gjort, och inte mätt
+
+- **Klass B och C är inte byggda.** B har 563 par med svagare stöd (ofta bara
+  tal och pris, eller bara bild). Verktyget tar klasserna som argument.
+- **Om paren i klass A stämmer är inte kontrollerat.** Klassen är filens eget
+  mått. Ett fel par ställer fel vara först för just det namnet, med de vanliga
+  träffarna under.
+- **De tre första orden ger ingen nyckel** om de inte är hela namnet. Den som
+  skriver början av namnet får sökningens vanliga svar tills fyra ord står
+  där (se "Märket ensamt, och namnet halvskrivet").
+- **Prisjakts namn** finns inte i filen. Nycklarna är desamma för varje sajt
+  vars namn läggs till.
+- **En riktig telefon.** Koden är skriven utan bakåtblick i mönstren (Safari
+  före 16.4), och provet håller det, men ingen iPhone har kört den.
+
 ## Sökläget: trycket går direkt till varan (Leonard 2026-11-24)
 
 Leonard: "Om jag söker på nått dyker förslag upp direkt sen när jag trycker
@@ -6397,6 +6721,514 @@ farten och lita på det.
 - Chrome på Android och Samsungs webbläsare är inte provade på riktiga
   telefoner, och inte Safari före 16.4 (laddsidan i provet kräver 16.4).
 
+## GoWish: önskelistknappen på produktsidan (Leonard 2026-11-25)
+
+Leonard har skrivit på ett samarbetsavtal med GoWish, en tjänst för
+önskelistor. Första steget i deras onboarding är knappen ("Wishbutton") på
+produktsidan. Guiden är https://gowish.com/sv/button-installation: ett skript,
+en stilmall och en knapp med ett av deras id:n. Uppdraget kom som en färdig
+text ur en annan chatt: knappen bara på produktsidor, nära köpknappen, på
+svenska; skript och stil bara där, utan att sidan blir långsammare eller
+hoppar; rätt vara och en ren länk; besked om kakor; ingen spårning och inget
+produktflöde än.
+
+Koden: `lib/gowish.ts` (värdena och adresserna), `components/gowish-knapp.tsx`
+(knappen), `app/produkt/[slug]/gowish.css` (stilen) och en rad i
+`components/productview.tsx`. Prov: `lib/gowish.test.ts` (24).
+
+### Vad GoWish skript gör (läst 2026-11-25)
+
+`gowish-iframe.js`, 19 811 tecken, ändrat hos dem 2026-11-12 (sha256
+`42d3ab66…e7f9`). Det ligger i deras lagring med 60 sekunders cache och ändras
+utan förvarning.
+
+- **När det laddas** lägger det lyssnare på dokumentet (klick, meddelanden,
+  synlighet, bakåt, Escape) och sätter `window.GoWish`. Det läser ingenting ur
+  sidan, gör inga anrop och sätter inga kakor.
+- **Vid klick** på en `<button>` med ett av fem id:n (också med en siffra
+  efter) läser det `data-region` ur skript-taggen, som det hittar på id:t
+  `gowish-iframescript`, och `data-producturl` ur knappen.
+- ☠️ **Utan `data-producturl` skickar det hela `window.location.href`**, med
+  utm, gclid och `?variant=`. Knappen bär därför alltid varans kanoniska adress
+  (`gowishProduktadress`), samma som sidans canonical och og:url.
+- ☠️ **Utan `data-region="global"` väljer det Danmark**: onskeskyen.dk och
+  appens schema `onskeskyen://`.
+- **Det skickar bara adressen.** Namn, bild och pris hämtar GoWish egna
+  servrar från sidan på den adressen, och resultatet visas först när kunden
+  loggat in hos dem. Skriptet läser varken og-taggar eller JSON-LD.
+- **På dator** öppnar det en `<dialog>` med en iframe till
+  `gowish.com/quick-add?source=button&crawlerTarget=<adressen>` och lägger en
+  egen post i historiken. **På telefon** försöker det först öppna appen
+  (`gowish://quick-add…`) och laddar sedan samma ruta om appen inte tog över.
+
+### Två lägen, efter samtycket
+
+Butikens regel för det som hämtas från en tredje part gäller här också, som
+för Trustpilots knapp (`components/trustpilot-insamling.tsx`) och Klarnas
+modul:
+
+| | Utan samtycke till alla cookies | Med samtycke |
+|---|---|---|
+| Elementet | en länk, `<a class="gowish-btn">`, till GoWish egen sida i en ny flik | GoWish knapp, `<button id="gowishWhiteButton" class="gowish-btn">` |
+| Hämtas från GoWish före klick | ingenting | skriptet, efter att sidan laddat klart (`strategy="lazyOnload"`) |
+| Klicket | GoWish sida med varan öppnas i en ny flik | GoWish ruta ovanpå sidan, på telefon först appen |
+
+- **Servern skickar länken till alla.** Samtycket läses i webbläsaren
+  (`useMarketingConsent`), så sidan är densamma i ISR-cachen för varje besökare.
+  Länken och knappen delar klass och mått: bytet flyttar ingenting.
+- **Godkänner kunden alla cookies medan sidan är öppen** blir länken GoWish
+  knapp och skriptet hämtas, utan omladdning. Ändras valet tillbaka blir det
+  en länk igen, och ingen knapp med GoWish id finns kvar för skriptet.
+- ☠️ **Anropa aldrig `window.GoWish.createIframe` när skriptet finns.** Det
+  lyssnar själv på klicket; ett eget anrop öppnar rutan och skriptets lyssnare
+  stänger den i samma klick. Knappens egen `onClick` gör bara något när
+  skriptet saknas (blockerat av ett tillägg, eller klick före laddningen): då
+  öppnas samma sida som länken, så att knappen aldrig är död.
+- **Sekretesspolicyn** (`app/sekretesspolicy/page.tsx`) har en punkt om GoWish
+  med båda lägena, intill Trustpilots.
+
+### Knappen och rutan
+
+- **Under köpraden**, lika bred som köpknappen och hjärtat tillsammans, med
+  butikens ram, hörn och typsnitt. Det är den grå varianten i GoWish guide
+  (`gowishWhiteButton`) med deras moln, texten "Lägg till i GoWish". Bara när
+  varan finns i lager (`inStock`): en önskan om en slutsåld vara skickar den
+  som ska köpa presenten till en sida utan köpknapp.
+- ☠️ **GoWish stilmall laddas inte.** `gowish-iframe.css` börjar med
+  `@import` av typsnittet Geist från en fjärde part (fonts.cdnfonts.com) och
+  pekar ut ikoner i deras lagring, på varje sidvisning och i vägen för
+  sidans rendering. Knappens stil är butikens egen, och molnet står i
+  komponenten.
+- **Rutans regler är GoWish egna**, ordagrant ur deras stilmall: på telefon
+  sitter rutan i skärmens nederkant. Skriptet lägger dessutom in en egen
+  grundstil när rutan öppnas (`#gowish-iframe-style`).
+- ☠️ **Två egna rättelser för skärmar som rutan inte ryms på.** Skriptets
+  grundstil sätter `min-height:615px`, och då biter inte deras `max-height`:
+  i 375 × 600 låg rutans topp, med krysset, 13 px ovanför skärmen. Under
+  665 px höjd släpps golvet och rutan får taket skärmens höjd minus 50 px.
+  Under 400 px bredd får den högst skärmens bredd minus 16 px (den är annars
+  370 px bred också på en skärm som är 360 eller 320). Reglerna har två
+  klasser i väljaren, för skriptets stil läggs in efter sidans.
+
+### Mätt i Chromium
+
+Mot det lokala bygget, med GoWish riktiga skript och riktiga ruta:
+
+- **Före klick, utan samtycke:** inget anrop till GoWish och inga kakor.
+  **Med samtycke:** ett anrop (skriptet, efter sidans load), inga kakor och
+  ingen lagring.
+- **Efter klick** (rutan öppen i tolv sekunder, inget tryck i den): GoWish
+  sätter tre egna kakor på `.gowish.com` (`referer`, `source`, `session`) och
+  anropar sina egna tjänster. Butikens kakor är orörda. ☠️ Mätt från en
+  adress i USA: GoWish väljer regler för samtycke efter besökarens land, så
+  en svensk besökare kan mötas av deras egen ruta om kakor.
+- **Rutan** får varans kanoniska adress från en sida öppnad med
+  `?utm_source=…&gclid=…`, och från en vara med ett val gjort (`?variant=`
+  i adressfältet). Escape, klick utanför och krysset stänger den; sidans
+  adress, rullning och val står kvar.
+- **Sidbyte mellan varor utan omladdning:** skriptet hämtas en gång, en
+  skript-tagg, en knapp, och knappen bär den nya varans adress.
+- **Tio skärmstorlekar** från 320 × 568 till 1 440 × 900: rutans topp syns och
+  rutan ryms i alla.
+- **Förskjutning vid laddning** (CLS): 0 på datorn i båda lägena, 0,0015 på
+  telefonen i båda (kom från en annan del av sidan). Länken och knappen har
+  samma mått och samma plats under köpraden.
+- axe (WCAG 2.1 A och AA) på knappen i båda lägena: inga fel.
+
+### ☠️ Tre saker i GoWish eget skript, som inte går att rätta härifrån
+
+- **Bakåt stänger inte rutan.** Skriptet lägger en post i historiken för att
+  bakåt ska stänga, men GoWish sida i rutan lägger egna poster ovanpå och
+  skickar sig själv vidare till inloggningen varje gång. Mätt: sex tryck på
+  bakåt, rutan öppen efter alla, och sidan under orörd. Krysset, Escape och
+  ett tryck utanför fungerar.
+- **På iPhone utan GoWish app** visar Safari en ruta om ogiltig adress innan
+  GoWish ruta laddas. Det står i skriptets egna kommentarer; det är följden av
+  att appen provas först. Inte sett här: det kräver en riktig iPhone.
+- **Rutans iframe har ingen titel**, vilket axe anmärker på när rutan är
+  öppen. Den skapas av skriptet.
+
+### Vad GoWish robot får av produktsidan
+
+Bara läst ur sidans HTML, inte sett hos GoWish (deras ruta visar varan först
+efter inloggning):
+
+- `og:title`, `og:image`, `og:url` (kanonisk) och `og:description` finns på
+  varje vara. ☠️ Ingen pristagg (`product:price:amount`) finns.
+- JSON-LD: en vara utan val är `Product` med `offers.price` och
+  `priceCurrency` SEK. ☠️ En vara med val är `ProductGroup` med en `Product`
+  per variant under `hasVariant`, och gruppen har inget eget pris. Visar
+  GoWish inget pris för varor med val är det här skälet, och en pristagg i
+  `<head>` är rättelsen.
+- Sidan är densamma för roboten vilket val kunden än gjort: valet görs i
+  webbläsaren, sidan är ISR-cachad.
+
+### Inte gjort
+
+- **Spårning och produktflöde** stod här. De är byggda sedan samma kväll, se
+  "Heylink" och "GoWish-flödet" nedan.
+- **Valet följer inte med i länken.** Länken är varans kanoniska, som
+  uppdraget säger. Butikens egna länkar bär valet (`?variant=`), så att en
+  kopierad länk öppnar samma val; en fråga till GoWish är om önskan ska göra
+  det också.
+- **Safari**, på iPhone och Mac, och appens väg på en riktig telefon.
+
+### GoWish ruta på svenska (Leonard 2026-11-25: "Allt med go wish … ska stå på svenska")
+
+☠️ **GoWish ruta står på engelska om adressen inte börjar med `/sv/`.**
+Skriptet öppnar `gowish.com/quick-add?…` utan språk. Mätt samma kväll mot
+GoWish egen sida:
+
+| Webbläsare | Adress som öppnas | Hamnar på | Texten |
+|---|---|---|---|
+| svensk | `/quick-add` (skriptets) | `/sv/login` | engelska: "Sign in to add the wish" |
+| engelsk | `/quick-add` | `/login` | engelska |
+| engelsk | `/sv/quick-add` | `/login` | svenska: "Logga in för att lägga till önskningen" |
+
+Texten följer alltså adressen som öppnas först, inte webbläsaren och inte
+sidan man hamnar på. Skriptet har inget språkval (bara region: `global`,
+`denmark`, `norway`). Därför:
+
+- Länken utan samtycke, och reservvägen, går till `/sv/quick-add`
+  (`gowishReservadress`).
+- Med samtycke byter knappen ramens adress till `/sv/quick-add` när skriptet
+  har satt den (`svenskRuta` i `components/gowish-knapp.tsx`,
+  `gowishSvenskRuta` i `lib/gowish.ts`). Bevakningen startar vid klicket och
+  lever medan rutan är öppen, högst 20 sekunder: på telefon får appen först upp
+  till tio sekunder på sig, sedan sätts adressen.
+- ☠️ Byter GoWish id på ramen (`gowish-iframe`) eller rutan
+  (`gowish-iframe-dialog`), eller adressens början, händer ingenting: rutan
+  öppnas då på engelska igen, och inget går sönder. Provet i webbläsaren
+  (nedan) är det som märker det, inte `npm test`.
+- Appen på telefonen har sitt eget språk och berörs inte.
+
+## Heylink: GoWish spårning, bara på tacksidan (Leonard 2026-11-25)
+
+GoWish mäter köpen som deras besökare gör hos oss genom Heylink. Deras mejl
+bad om två saker ur guiden (docs.heylink.com/inbound/tracking-guide): skriptet
+`tag.heylink.com/<kontots id>/script.js` på varje sida, och ordern i
+`window.hlconversion` på tacksidan. Leonard: "Fixa det dom bad om".
+
+**Skriptet är läst i sin helhet** (23 181 tecken 2026-11-25, serveras med
+`no-store` och byggs per konto, så det kan ändras hos dem när som helst):
+
+- En besökare från GoWish landar med `?hltid=<klick-id>`. Skriptet sparar id:t
+  i localStorage (`_hey`). Kontots inställning är utan kakor
+  (`disable_cookies`) och med 30 dagars giltighet (`cookie_lifetime`).
+- ☠️ Det sparar också `gclid`, `fbclid`, `msclkid`, `utm_source`, `utm_medium`,
+  `utm_campaign` och sidan besökaren kom från, för **varje** besökare, och
+  lägger en MutationObserver på hela sidan som kör insamlingen vid varje
+  ändring i DOM:en.
+- ☠️ **När `window.hlconversion` sätts skickas ordern utan att skriptet ser
+  efter om besökaren har ett klick-id.** Gör man som guiden säger får Heylink
+  varje order i butiken, med belopp och varor.
+- ☠️ Sätts objektet **efter** att skriptet startat går det genom en sättare som
+  skriptet lagt upp till fem lyssnare på (en per omstart av dess loop), och
+  ordern skickas lika många gånger. Sätts det **före** skickas den en gång.
+- Anropet går till `heylinkapi.com/connect/v1/callbacks/advertisers` med sidans
+  hela adress som `pageUrl`.
+
+**Så är det byggt**, med samma resultat för GoWish (`lib/heylink.ts`):
+
+1. **Klick-id:t fångas av butikens egen kod** (`components/heylink-klick.tsx`,
+   i layouten). Med samtycke till alla cookies sparas det i localStorage
+   (`fp_heylink`, id och tid) i 30 dagar. Utan samtycke finns det bara i
+   minnet så länge fliken lever, och sparas om besökaren samtycker senare
+   under besöket. Den som har valt bara nödvändiga får ett sparat klick och
+   det ihågkomna ordernumret borttagna. Inget hämtas från Heylink här.
+2. **Heylinks skript laddas bara på tacksidan**, och bara när servern gett en
+   order, besökaren har samtyckt, det finns ett sparat klick som inte gått ut
+   och ordern inte redan lämnats (`components/heylink-kop.tsx`). Ordern sätts i
+   `window.hlconversion` med klick-id:t före skriptet.
+3. **Ordern byggs på servern**, bara med samtycke i kakan och bara i
+   produktion (`app/tack/page.tsx`, `heylinkKop`), som Googles enkät: en prop
+   till en klientkomponent hamnar i sidans HTML. Ett förhandsbygges kassa går
+   mot skarpa betalnycklar, och ett prov där ska inte bli ett köp hos GoWish.
+4. **Efter skriptets händelse `heylink:conversion`** glöms klicket och
+   ordernumret sparas (`fp_heylink_order`), så att F5 inte skickar igen. Ett
+   klick ger ett köp, som i Heylinks eget skript.
+
+Vad Heylink får, mätt i webbläsaren mot det lokala bygget: `hltid`, `orderId`
+(det läsbara numret), `orderSubTotal` (varorna utan moms och frakt, efter
+rabatt), `orderTotal`, `orderTax`, `orderShippingSubTotal` (frakten utan moms,
+när den finns), `orderCurrencyCode`, `orderItems` (namn, antal, styckpris utan
+moms, val, bild och Wix variant-id, som är flödenas `g:id`) och skriptets eget
+`consentStatus`. Aldrig namn, adress eller e-post.
+
+- ☠️ **Beloppen är tal, inte text.** Skriptet tolkar en text som `"1234.500"`
+  som tusentalsavgränsad.
+- ☠️ **Tacksidans adress är ren.** Kassan landar alltid på `/tack?orderId=…`
+  med en hel sidladdning (`window.location.replace` i `app/kassa/kassa.tsx`),
+  och Stripes parametrar stannar i returvägen. Ändras det får skriptet en
+  adress med betalningens id i `pageUrl`. Det är också skälet till att skriptet
+  inte finns på sidan förrän då: en hel sidladdning, ingen tidigare kopia.
+- **Varorna utan moms** räknas som totalen minus momsen minus frakten utan
+  moms (`priceSummary.shipping`). Saknar ordern momsen räknas den som 25 %.
+
+☠️ **Det som inte når Heylink** är vilka andra annonsklick kunden gjort
+(`gclid`, `utm`). Vill GoWish räkna bort köp där en annan kanal var sista
+klicket måste deras skript ligga på varje sida, och det är Leonards beslut.
+Ett köp där tacksidan öppnas i en annan webbläsare än den kunden landade i
+(Klarnas app som går tillbaka till Safari från en app-webbläsare) rapporteras
+inte heller: klicket ligger i den första webbläsarens lagring. Det kräver
+Heylinks server-till-server-anrop, och till det en nyckel från dem.
+
+Sekretesspolicyn har en punkt om Heylink, och cookie-stycket nämner dem.
+Prov: `lib/heylink.test.ts` (25). I webbläsaren, mot det lokala bygget med en
+påhittad order och med anropen till Heylink besvarade lokalt (34 kontroller):
+landning utan val, med samtycke och med bara nödvändiga; tacksidan med och
+utan klick, med frakt, med gammalt klick, med redan lämnad order och F5.
+☠️ Provet får aldrig gå mot Heylinks riktiga adress: det vore ett påhittat köp
+hos GoWish. Det enda som frågats hos Heylink är om adressen tar emot anrop från
+butikens domän (en förfrågan utan innehåll: 204, alla ursprung tillåtna). **Inte provat:** ett riktigt köp via en länk från GoWish. Heylinks
+kontaktperson gör ett provköp när mejlet är besvarat.
+
+## GoWish-flödet: Google-flödet med EAN (Leonard 2026-11-25)
+
+GoWish bad om butikens Google Shopping-flöde i XML. Leonard: "feeden vi
+skickar ska va som pricerunner att den har med alla ean/gtin nummer".
+`https://www.fyndplats.se/feed/gowish.xml` byggs ur Google-flödet i
+`lib/feed/gowish.ts`, som PriceRunner-, Prisjakt- och Pinterest-flödena, och
+skickas komprimerat via `/feed/gz/gowish.xml`. Det står sist i listorna
+(omskrivningen i `next.config.ts`, `KOMPRIMERADE_FLODEN`, `LAGRADE_FLODEN`,
+`BYGGARE`, värmningen och `/api/cron/farska-floden`).
+
+Skillnaderna mot Google-flödet:
+
+- **`g:gtin`** på de varor som `FLODE_GTIN` pekar ut, samma urval som
+  PriceRunner och Prisjakt (`gtinUrval`). Raden `g:identifier_exists=no` tas
+  bort på dem. ☠️ Google-flödet får fortfarande aldrig koderna.
+- **`g:shipping`** per vara, med kassans regel räknad på priset kunden betalar.
+- **Googles kampanjetiketter** (`g:custom_label_*`) tas bort.
+
+Det som **inte** ändras, och som skiljer flödet från PriceRunners:
+
+- `g:price` är ordinarie pris och `g:sale_price` reapriset. En önskelista kan
+  då visa att varan är nedsatt.
+- Slutsålda varor står kvar med sin `g:availability`. GoWish får betalt per
+  köp och inte per klick, så PriceRunners skäl för att ta bort dem gäller inte.
+
+Märket är Google-flödets (Fyndplats på Aosoms varor, VEVOR på VEVOR:s och
+några få egna märken), och ingen `g:mpn` finns, som i alla öppna flöden. Mätt
+på förhandsbygget 2026-11-25, som har katalogen: 11 537 varor, 10 311 i lager,
+179 med reapris, `g:gtin` på 3 840 (198 av dem slutsålda, ingen kod på två
+varor), 27,2 MB och 3,5 MB som gzip, XML som går att tolka. Första hämtningen
+byggde flödet på 104 s, den andra kom ur kopian på 0,6 s. Google-flödet på
+samma bygge hade 0 koder.
+`lib/feed/gowish.test.ts` fäller om byggaren tappar `FLODE_GTIN` eller om
+flödet saknas i någon av listorna.
+
+Kopian i Runtime Cache kostar som de andra: 3,5 MB som gzip är omkring 600
+skrivenheter per körning av jobbet, tolv gånger om dygnet, ungefär en dollar i
+månaden till (se "Flödena svarar direkt"). Jobbet bygger fortfarande
+Google-flödet en enda gång per körning.
+
+☠️ **Lokalt går flödet inte att se.** Utan katalog är Google-flödet tomt, och
+rutten svarar 503 som de andra flödena ("byggdes utan en enda vara"). Byggaren
+är prövad mot produktionens Google-flöde utanför servern, och rutten mot
+förhandsbygget, som har katalogen.
+
+## Google-omdömena: fem nya, och namn som stod i startsidans HTML (2026-11-25)
+
+Leonard skickade skärmbilder av profilen (4,9 av 5). Fem nya omdömen med text
+står överst i `lib/curated-reviews.ts`, de tre utförligaste först, så att
+sidans översta rad på datorn har tre kort av samma tyngd. Texterna är
+ordagranna, också stjärnorna och tummen som kunderna själva skrev. Antalet
+omdömen visas fortfarande ingenstans (`lib/social-proof.ts`).
+
+☠️ **Startsidans kort hade listans id som React-nyckel**, och id:t är kundens
+namn som slug. En nyckel på ett element i en serverkomponent följer med i
+sidans React-data, så tre namn stod i startsidans HTML fast korten visar
+initialer. Nyckeln är nu ett löpnummer, som på `/omdomen`.
+`lib/initialer.test.ts` fäller om id:t eller namnet når startsidans kort, och
+om listan får dubbletter, tomma fält eller ett datum i framtiden.
+
+## Bildernas skärpa på datorn: filen är exakt så bred som rutan (Leonard 2026-11-25)
+
+Leonard: "kolla … om bilder på hemsidan på datorn alltså produktbilder o så om
+de är i sämre upplösning för det ser suddigare ut på dator".
+
+**Upplösningen var inte felet.** Originalen är 1 600–2 000 px, och varje fil
+hade fler pixlar än rutan den ritades i. Felet var att den aldrig hade RÄTT
+antal, så att webbläsaren fick skala om den, och att Wix lämnar en förminskad
+bild mjuk. Mätt mot www samma dag:
+
+| Yta på datorn | Ruta | Fil på vanlig skärm (1x) | Fil på dubbel täthet (2x) |
+|---|---|---|---|
+| Produktkortets bild | 265 px (259 på /alla-produkter och /rea) | 384 px | 640 px |
+| Produktsidans huvudbild | 542 px | 640 px | 1 200 px |
+| Guidekortet på startsidan | 361 × 271 px | 640 × 336 px | 750 × 394 px, **förstorad 1,38 gånger** |
+| Bloggkortet på /blogg | 267 × 267 px | 640 × 279 px | 828 × 435 px, **förstorad 1,23–1,48 gånger** |
+
+På telefonen syns det inte: där är pixlarna en tredjedel så stora.
+
+### Mätningen som styr lösningen
+
+Kantskärpan (Laplace-varians) i en skärmbild av rutan, åtta produktbilder,
+Chromium, vanlig skärm. 100 % är dagens kortbild (384 px i en ruta på 265):
+
+| Filens bredd mot rutan | Utan skärpning | Med Wix skärpning |
+|---|---|---|
+| exakt rutans bredd | 111 % | **205 %** |
+| 2 % bredare | 58 % | 97 % |
+| 5–10 % bredare | 63–64 % | 104–106 % |
+| 20–30 % bredare | 75–84 % | 121–133 % |
+| 44 % bredare (dagens kort) | 100 % | 149 % |
+| 60 % bredare | 121 % | 173 % |
+| dubbelt så bred | 127 % | 164 % |
+| 2,4 gånger så bred | 91 % | 116 % |
+
+☠️ **En fil som nästan passar är det sämsta som finns.** Två procent för bred
+är hälften så skarp som exakt rätt, och sämre än en fil som är klart för stor.
+Huvudbilden låg just där: 640 px i 542 (18 % för bred) och 1 200 i 1 084
+(11 %). Vikten följer bredden: den exakta kortbilden väger 5,5 kB mot 8,1.
+
+Tre saker som INTE var felet, alla mätta: Chrome väljer aldrig en för liten
+fil vid 125, 150 eller 175 % skalning i Windows; en bild i exakt storlek ritas
+lika skarpt när sidan står på en halv pixel (centrerad sida i ett fönster med
+udda bredd, sju lägen provade, samma värde); och JPEG-kvaliteten (q_85 i
+stället för q_72 gav 24–60 % tyngre filer utan mätbar skillnad i skärpa).
+
+### Lösningen, fem delar
+
+1. **Skärpning i laddarna.** `medSkarpning` i `lib/wix-crop.ts` lägger Wix
+   oskarpa mask (`usm_0.66_1.00_0.01`, Wix egna standardvärden) sist i fill-
+   eller fit-delen. Den anropas av den globala laddaren (`lib/image-loader.ts`)
+   och av huvudbildens (`lib/hjalte-loader.ts`), och av förstoringens
+   högupplösta lager i `components/gallery.tsx`. ☠️ INTE i `tightFillUrl`: den
+   adressen används också i flödena, mejlen, delningsbilderna och kassans
+   småbilder, och de ska inte byta adress.
+2. **Exakta bredder för kortet och huvudbilden.** `lib/bild-sizes.ts` bär
+   rutornas mått (`KORT_DATOR` 265, `HJALTE_DATOR` 542), `sizes` säger dem
+   från 1 180 px fönsterbredd, och `next.config.ts` har dem i srcset i 1x och
+   2x (265, 530, 542, 1 084) i stället för Nexts 256 och 1 080. Kortets bilder
+   har huvudbildens laddare (`wixMainLoader`), också i förladdningen.
+3. **Alla andra bilder får de filstorlekar de alltid haft.** Den globala
+   laddaren ger 640 px för 530w och 542w (`SOM_FORR`). Utan det fick en bild
+   som beskärs i sin ruta en för låg fil (bloggkorten förstorades 1,16
+   gånger i första bygget), och Unsplash-fotona, som inte har någon
+   skärpning, färre pixlar att skala ned från.
+4. **Ingen zoom vid hover på en bild i exakt storlek.** `scale(1.045)` på
+   kortets bild och `scale(1.07)` på huvudbilden skalade om filen, och bilden
+   blev suddigare än sina grannar så länge pekaren låg kvar (205 → 86 % och
+   226 → 96 %). Reglerna är borta ur `app/globals.css`. Kortet lyfter
+   fortfarande och byter till sin andra bild, och huvudbilden visar ⤢.
+5. **Omslagen i rutans form.** `iRutansForm` i `lib/bildformat.ts` ber Wix
+   beskära guidekortens omslag till 4:3 och bloggkortens till en kvadrat, så
+   att filen är lika hög som rutan. Bloggkortets `sizes` är rutans bredd i
+   rutnätet (267 px) i stället för en fjärdedel av fönstret.
+
+☠️ **Rutnätet på /alla-produkter och /rea är luftigare, 28 px i sidled, och
+bilden ritas ändå i kortets vanliga fil** (Leonard 2026-11-25, sent: de två
+sidorna ska ha sitt mellanrum kvar). Med 28 px är bildrutan 259 px bred på
+datorn, mot 265 på alla andra sidor. Tre sätt prövades:
+
+1. En egen bildbredd för de sidorna (259 px). Mätningen fällde det: Chrome
+   återanvänder en bredare fil som redan ligger i minnet i stället för att
+   hämta den som passar, så ett kort man sett på en kategorisida (265 px)
+   ritades med den filen i en ruta på 259. Just en sådan fil som nästan
+   passar: 93 % av den gamla bildens skärpa, mot 205 % för grannarna.
+2. Samma mellanrum överallt (20 px). Skarpt, men Leonard ville ha luften kvar.
+3. **Det som gäller:** bilden skalas inte ned till rutan. Den ritas i sin egen
+   storlek, 265 × 265 px, mitt i rutan, och rutan skär bort 3 px i varje kant
+   (`.alla-prod .prodgrid … .pimg img` i `app/globals.css`, från 1 180 px
+   fönsterbredd). Samma fil som på alla andra sidor, pixel för pixel: ingen ny
+   bildbredd, inget nytt att värma hos Wix och ingenting som kan gå fel i
+   webbläsarens minne. `sizes` är samma sträng på alla sidor.
+
+☠️ Tre saker i den regeln är inte kosmetik. `!important`: next/image sätter
+bredd, höjd och läge som inline-stil. `max-width:none`: grundregeln
+`img{max-width:100%}` höll annars kvar bilden på 259 px, förskjuten 3 px
+(provet mot första bygget fällde det, 12 kontroller röda). Och
+`.pimg-slide{overflow:hidden}`: på en pekskärm står kortets bilder sida vid
+sida i svepet, och utan den täcker nästa bilds kant 3 px av den som visas.
+
+### Regler
+
+- ☠️ Ändras rutnätets mellanrum, kortets ram, produktsidans spalter eller
+  sidans bredd i `app/globals.css` ändras rutornas mått. `lib/bild-sizes.test.ts`
+  läser talen ur CSS-filen och fäller. Rätta `lib/bild-sizes.ts` och
+  `next.config.ts` samtidigt.
+- ☠️ Lägg inte till en bredd i `imageSizes` eller `deviceSizes` utan att mäta.
+  Varje bredd skrivs ut i varje bilds srcset, och en bredd strax över en
+  annan rutas behov gör den rutans bilder suddiga.
+- ☠️ En ny yta med produktkort ska ha `.prodgrid` med grundens mellanrum
+  (20 px). Provet fäller om en regel utanför `@media(max-width:…)` ger
+  rutnätet ett eget, utom `.alla-prod .prodgrid` (28 px), som har sin regel
+  för att rita bilden i 265 px. Ett rutnät med en annan kortbredd ska lösas på
+  samma sätt (rita filen i sin storlek och låt rutan skära), aldrig med en
+  egen bildbredd som ligger nära 265.
+- ☠️ Ingen `transform:scale` vid hover på kortets bild eller huvudbilden.
+- En bild som beskärs i en ruta med annan form ska gå genom `iRutansForm`.
+- Provet mot en körande butik: `skarpa/prov-skarpa.cjs` i sessionens
+  arbetsmapp (läser bara sidor): kortens och huvudbildens fil är exakt så
+  bred som bilden ritas i 1x och 2x, adresserna bär skärpningen, ingenting
+  zoomar vid hover och ingen Wix-bild förstoras på /butik, /blogg, /kopguider
+  och /under-500-kr. Rutnätet har 20 px och en ruta på 265 px på
+  kategorisidan, 28 px och 259 px på /alla-produkter och /rea, där bilden
+  ändå är 265 × 265 och ligger 3 px utanför rutan runt om. Och två sidtyper
+  efter varandra i samma webbläsare (kategori och sedan /alla-produkter, och
+  tvärtom): varje kort ritas pixel för pixel.
+
+### Mätt efter, mot ett lokalt bygge av grenen
+
+`skarpa/prov-skarpa.cjs`: 56 av 56 gröna (38 före rutnätets kontroller).
+Samma bilder på www och i bygget, kantskärpa i det som ritas och filens vikt,
+båda i procent av dagens:
+
+| Skärm | Kortets bild | Huvudbilden |
+|---|---|---|
+| Dator 1 920 px, 1x | 211–213 % skärpa, 73 % vikt (13 bilder) | 279 %, 86 % (6 produkter) |
+| Bärbar 1 512 px, 2x | 264–292 %, 84–85 % | 390 %, 93 % (6 produkter) |
+| 1 280 px med 150 % skalning | 117 %, 86 % | 179 %, 104 % (1 produkt) |
+| Telefon 393 px, 3x | 121 %, 86 % | 177 %, 104 % (1 produkt) |
+
+Med 28 px-rutnätet och bilden ritad i 265 px (sent 2026-11-25), kortets bild:
+/alla-produkter 211 % skärpa och 73 % vikt på 1 920 px i 1x (5 bilder), 293 %
+och 84 % på 1 512 px i 2x; /rea 189 % och 72 % (8 bilder), 248 % och 88 %.
+
+Granskningen av varje bildyta (`skarpa/mat.cjs`, sex skärmtyper, tolv sidor):
+ingen yta på dator eller surfplatta förstoras. På telefonen förstoras
+kategorirutornas stämningsfoton 1,16–1,29 gånger, som förut och med flit
+(`sizes` säger 128 px för att hålla filen nere). Bloggkorten är 640 × 640 i en
+ruta på 534 × 534 på dubbel täthet, mot 828 × 435 förut.
+
+De tidigare proven mot samma bygge: sök-återvänd grön, bildfönstret 27, vita
+plattor 27, registret 27, menyn, GoWish 32 och 19, Heylink 34. ☠️ Bildfönstrets
+prov fällde en kontroll första gången: bilderna var nya för Wix och hann inte
+fram innan provet tittade. Andra gången gick det igenom (se nedan).
+
+### Kostnaden, och vad som inte är mätt
+
+- **Varje bildadress är ny.** Första gången en ny adress begärs gör Wix filen
+  (0,4–0,6 s, mätt), sedan ligger den i deras CDN i 30 dagar (0,06 s). Ber
+  man om den från en annan plats i världen innan den platsens CDN har den tar
+  det 0,15–0,3 s. Det märks: provet för listornas bildfönster fällde en
+  kontroll första gången mot det lokala bygget, för att bilderna inte hunnit
+  fram när provet tittade.
+- **Därför är bilderna värmda före mergen.** Varje produkts huvudbild (10 947
+  foton ur Google-flödet) begärdes en gång i bredderna 265, 530, 542 och
+  1 084: 43 788 adresser, alla svarade, och 41 823 av filerna var nya hos Wix.
+  Mellanbredderna 384, 640, 750 och 828 värmdes efteråt (utfallet står i PR
+  #937). Det räcker att be om första byten (`Range: bytes=0-0`): Wix gör då
+  hela filen, och nästa hämtning svarade ur deras CDN på 0,07 s. Galleriets
+  övriga bilder och kortens andra bild är inte värmda och blir till vid
+  första besöket. ☠️ Byter laddarna adressform igen (en ny bredd, en annan
+  kvalitet eller skärpning) är varje fil ny på nytt.
+- Bara Chromium är mätt. Safari och Firefox väljer fil på samma sätt enligt
+  standarden, men ingen av dem har körts här.
+- Vid 125, 150 och 175 % skalning kan rutan inte träffas exakt (265 × 1,25 är
+  inte ett heltal). Där väljs närmaste större fil, som förut, nu skärpt.
+- Ett fönster som är 1 181–1 197 px brett med synlig rullningslist har en
+  sida som är några pixlar smalare än 1 180, och då passar inte filen exakt.
+- Bildrutorna under huvudbilden (172,67 px) och kategorirutorna (268,5 px)
+  går inte jämnt ut och kan inte bli exakta. Bildrutorna är skärpta men i
+  övrigt som förut, och kategorirutornas stämningsfoton (Unsplash) är orörda.
+- Kundernas foton i omdömena hämtas fortfarande som original (375 × 500 px i
+  en ruta på 91 × 120). Det är tyngd, inte suddighet, och är inte rört.
+- Bloggomslagen som ligger i `/public` (`blog-*.jpg`) skickas i full storlek
+  (1 800 × 945 px) till en ruta på 267 px. Inte rört.
+
 ## Klarna på telefonen: kunden kom tillbaka utan godkänd betalning och fick börja om (2026-11-24)
 
 En kund ringde Leonard: han signerade med BankID i Klarna-appen, appen bad
@@ -6566,3 +7398,468 @@ Stripe, läst med kopplingen (inga uppgifter om kunderna står här):
 - **De tre öppna betalningarna** rör ingen kod. De står under Betalningar,
   ofullständiga, i Stripe (23 och 24 november). Två av de tre kunderna har
   inte köpt. Om någon ska höra av sig till dem är det Leonards sak.
+
+### Två försök till utan köp, och länken erbjuds en gång (2026-11-25)
+
+Leonard såg två Klarna-betalningar till i Stripe som inte blev köp och bad om
+en dubbelkoll. Läst i Stripe och i produktionsloggen samma kväll (UTC):
+
+- **Hela dagen efter deployen 02:39:** sju Klarna-köp gick igenom (`stripe
+  retur: succeeded`: Android Chrome två gånger, iOS Chrome, dator Chrome,
+  dator Edge, Googles app på iOS och iOS Safari), ett avbröts hos Klarna och
+  två betalningar står öppna. Kassans rutter skrev inga fel och inga varningar.
+- **1 999 kr, iOS Safari.** 16:04 ett första försök som kunden lämnade hos
+  Klarna. 16:05 ett nytt försök från en NY varukorg, och därför utan ruta: det
+  sparade försöket hör till den gamla korgen. 16:10 kom kunden tillbaka med
+  `failed`: `requires_payment_method/payment_method_customer_decline`, Stripes
+  text "Customer cancelled checkout on Klarna" med tillägget
+  `klarna_payment_declined`. Kunden var hos Klarna i 4 min 44 s. Kassan visade
+  "Betalningen avbröts eller godkändes inte" en gång, och kunden försökte inte
+  igen. Det första försöket står kvar som öppet i Stripe.
+- **999 kr, iOS Safari.** 20:31:02 till Klarna. 20:31:47 var kunden tillbaka i
+  kassan med betalningen öppen (`vantar_kund (requires_action/redirect_to_url)`),
+  en fråga till efter 3 s, och sedan lämnades sidan. 20:32:16 tillbaka igen, en
+  fråga till efter 3 s, och sedan ingenting mer. Rutan "Din Klarna-betalning är
+  inte klar" visades alltså två gånger på en halv minut, och kunden köpte inte.
+- ☠️ **Loggen sa inte om kunden tryckt på länken** eller bara bytt app. Samma
+  lucka som 24 november, ett steg längre fram.
+- **Stripes hopp håller.** Adressen i `next_action.redirect_to_url` för det
+  övergivna försöket från 16:04 svarade fem timmar senare 302 till
+  `pay.klarna.com/…/requests/…`. Bara Stripes svar lästes; Klarnas sida
+  öppnades inte, för det är kundens session. Länken är alltså ingen
+  engångslänk hos Stripe. ☠️ Om KLARNAS sida släpper in kunden i samma
+  betalning en gång till är fortfarande inte provat.
+
+Inget av detta är ett fel i kassan som går att peka ut: båda kunderna kom
+fram till Klarna, och det var där det tog stopp. Det som ändrades samma kväll
+gör den oprövade delen ofarlig och synlig:
+
+- **Länken erbjuds en gång per försök.** Trycket märker det sparade försöket
+  (`fortsatt`, `medFortsatt` i `lib/kassa/stripe-klient.ts`), och `sparatBeslut`
+  ger sedan rutan utan adress: "Inget har dragits. Välj ett betalsätt längre
+  ner och betala på nytt." Att betala på nytt ger en ny betalning hos Klarna
+  på samma PaymentIntent, den väg alla dagens sju köp gick. Samma länk en
+  gång till är en återvändsgränd om det var hos Klarna det tog stopp. En ny
+  betalning sparas utan märket och får sin egen länk.
+- **Trycket loggas.** `POST /api/kassa/stripe/fortsatt` (sendBeacon i trycket)
+  skriver `[kassa] stripe fortsätter öppen betalning [ios-safari]`: webbläsarens
+  sort och ingenting annat, och kroppen läses inte. Följs raden av `stripe
+  retur: succeeded` tog länken kunden hela vägen. Följs den av `vantar_kund`
+  kom kunden tillbaka utan köp.
+- ☠️ Trycket stoppas aldrig (ingen `preventDefault`) och rutan ändras inte i
+  trycket: länken ska alltid ta kunden till Klarna. Provet i
+  `lib/kassa/stripe-klient.test.ts` läser hanteraren och fäller annars.
+
+Inte gjort: en kund som börjar om med en ny varukorg (som 16:05) får ingen
+ruta för det gamla försöket. Det kostar ingenting, inget är draget, och
+försöket går ut hos Klarna. Och fortfarande: bara ett riktigt köp på en
+telefon visar vad Klarnas sida gör när kunden kommer tillbaka till den.
+
+## Bakåt landar i sökläget (Leonard 2026-11-25)
+
+Leonard, med skärmbilder från sin iPhone: "Om jag skriver i sökfältet på något
+och trycker på produkten och sen backar borde jag komma tillbaka till där jag
+var sist i sökfältet inte helt annan plats, fixa det noggrant." Han hade sökt
+"dörr", tryckt på en vara och gått bakåt, och stod då på en golvlampa: sidan
+som låg UNDER sökläget.
+
+Mobilens sökläge täcker skärmen men är ingen egen sida. Det var ett läge i
+sökrutan, och historiken visste ingenting om det.
+
+**Mätt** (Chromium i telefonstorlek 393 × 852, `audit/sok-atervand.cjs`,
+2026-11-25): "dörr" i sökläget, listan rullad 420 px, ett tryck på en vara
+och bakåt.
+
+| | www (9c9e95b1) | grenen |
+| --- | --- | --- |
+| Sökläget framme efter bakåt | nej, sidan under med tomt fält | ja, "dörr" och 12 kort |
+| Bildrutor efter bakåt utan sökläge (av 40) | 40 | 0 |
+| Kortet överst i listan | finns inte | samma kort på samma pixel (222 mot 222) |
+| Listan rullad | finns inte | 420 px, från första bildrutan |
+| Fältet har fokus (tangentbordet upp) | nej | nej |
+
+### Så fungerar det
+
+`lib/sok-atervand.ts` och `components/searchbox.tsx`.
+
+1. **Märket skrivs i trycket.** `ga(href)` anropar `markUt(href)` före
+   sidbytet: ordet i fältet och hur långt listan var rullad läggs i
+   historikpostens eget tillstånd (`history.state.__fpSok`), bredvid Nexts
+   nycklar. Bara i mobilens sökläge, och inte när varan är sidan man redan
+   står på. Varor, kategorirader och kategorichips går alla genom `ga`.
+2. ☠️ **`history.state`, inte sessionStorage med adressen.** Märket hör till
+   POSTEN: samma adress kan stå flera gånger i historiken, och bara den post
+   kunden lämnade genom sökläget ska öppna det. Webbläsaren sparar tillståndet
+   med posten, också över en hel sidladdning.
+3. ☠️ **Next skriver om postens tillstånd vid ett sidbyte** och tar då bara med
+   sina egna nycklar (`HistoryUpdater`). Märket skrivs därför omedelbart före
+   `router.push`: Next lägger sedan en NY post och rör inte den gamla. Vid ett
+   steg i historiken behåller Next det som står i tillståndet
+   (`preserveCustomHistoryState`). Mätt med alla skrivningar loggade: märket
+   står kvar i posten efter bakåt.
+4. **Ett steg i historiken till en post med märket öppnar sökläget**
+   (`aterstall`). Står listan för ordet kvar i rutan (`rankadFor`) visas den
+   som den var, i samma rendering. Har rutan använts till ett annat ord, eller
+   har sidan laddats om, räknas listan om och kortens platser visas under
+   tiden. Platsen i listan sätts i en `useLayoutEffect`, före första
+   ritningen.
+5. **Fältet får inget fokus.** Kunden lämnade sökläget med ett tryck på en
+   vara, och då var tangentbordet fällt.
+6. ☠️ **Sökläget stängs på sidan man står på: märket tas bort** (städningen i
+   effekten som sätter `data-sok-lage`). Stäng, Esc och allt annat: ett senare
+   bakåtsteg hit öppnar inget. Undantaget är märket som skrevs i samma tryck
+   som lämnar sidan (`lamnadMed`).
+7. **Resultatsidan är sökningen i sin helhet.** "Visa alla" och Enter
+   (`goSearch`) skriver inget märke och tar bort ett gammalt: bakåt från
+   `/sok` visar sidan under, som förut.
+8. **Märket gäller en halvtimme** (`SOKMARKE_MAX_MS`, samma som listans läge),
+   bara rutan i mobilens sökrad och bara i telefonbredd. På datorn är
+   förslagen en lista under rutan: där skrivs inget märke.
+9. **Ett dokument som laddats med bakåt** (fliken hade lämnat minnet) öppnar
+   också sökläget: tillståndet följer posten. En omladdning tar bort märket.
+
+### ☠️ Lyssnaren på popstate togs bort innan den hann köras
+
+Första versionen fungerade inte i bygget, och felet fanns redan på www.
+Sökrutans `popstate`-lyssnare satt i effekten som följer sidans adress och
+byttes ut vid varje sidbyte. Efter första sidbytet stod den därför EFTER Nexts
+egen lyssnare. React ritar ett steg i historiken direkt, mellan två lyssnare
+(mikrouppgiften körs när den första lyssnaren är klar): sökrutans effekt
+städades, lyssnaren togs bort innan den körts, och den nya gäller inte
+händelsen som pågår. Mätt i bygget med loggrader: `aterstall` anropades aldrig.
+
+Samma fel gällde regeln "bakåt och framåt stänger panelen". Mätt på www
+(`audit/bakat-oppet.cjs`): två sidbyten, sökläget öppet med "stol", bakåt.
+Sökläget stod kvar med tolv kort över sidan man kom till, och sidan var låst.
+På grenen stängs det.
+
+**Regeln:** lyssnaren läggs en gång (`[helskarm]`) och läser allt ur
+referenser (`aterstallRef`, `inputRef`). `lib/sok-atervand.test.ts` fäller om
+en `popstate`-lyssnare hänger på `pathname` igen.
+
+☠️ **En lyssnare på `popstate` som läggs om när sidan byts körs inte för steget
+som byter sida.** Det gäller varje komponent i sidhuvudet, inte bara sökrutan.
+
+### Prov
+
+- `lib/sok-atervand.test.ts`: märket (8 prov) och sökrutans regler (9 prov).
+  `lib/sok-lage.test.ts` och `lib/sok-2026-11-19.test.ts` följer med i de
+  rader som ändrats. 20 avsiktliga fel i sökrutan och märket fäller proven.
+- **I webbläsaren** (`audit/sok-atervand.cjs` mot det lokala bygget, 32
+  kontroller): varan och bakåt; Stäng och sedan en länk bort och bakåt (inget
+  sökläge); en andra vara ur det tillbakaställda sökläget (den nya platsen);
+  framåt och bakåt igen; kategorichipset; "Visa alla" och bakåt (sidan under);
+  det tomma fältets populära produkter; ett annat ord sökt på varans sida
+  under tiden (listan räknas om för rätt ord); två steg bakåt; bakåt med
+  sökläget öppet; fliken omladdad på varans sida; ett dokument laddat med
+  bakåt; omladdning (märket borta); datorn (ingen lista, inget märke). Inga
+  sidfel.
+- Söklägets äldre 62 och 9 kontroller och de tio i
+  `audit/bakat-annan-vag.cjs` är gröna mot samma bygge.
+
+### Inte provat, och inte gjort
+
+- ☠️ **Safari på en riktig iPhone.** Svepet från skärmens kant visar en bild av
+  sidan som den såg ut när den lämnades, alltså sökläget med det tryckta
+  kortet, och släpper sedan fram sidan. Att sökläget då står där utan hopp är
+  rimligt men inte mätt: Chromium har inget sådant svep. Leonard ser det efter
+  deployen.
+- **En hel sidladdning ur sökläget** (Next faller tillbaka på det efter en ny
+  deploy) och bakåt ur webbläsarens minne: sidan kommer tillbaka som den
+  lämnades, Next ställer om sig, och sökläget stängs som förut.
+- **Bakåt från resultatsidan** öppnar inte sökläget. Det är ett val: sidan
+  visar samma träffar och fler. Vill Leonard ha det andra är det en rad i
+  `goSearch`.
+
+## Listornas bilder finns bara nära fönstret (Leonard 2026-11-25)
+
+Leonard: "när man scrollar i alla produkter sidan och backar och går in i nya
+produkter o backar craschar det tillslut och man hamnar på sidan jag skicka
+till dig." Skärmbilden (00:26 natten mot 2026-11-25) var Safaris egen:
+"Ett problem inträffade flera gånger på
+https://www.fyndplats.se/alla-produkter?sortera=new". Safari visar den när
+fliken dött, laddats om och dött igen.
+
+### Vad som mättes
+
+Chromium i telefonstorlek (393 × 852, tre pixlar per punkt) mot www,
+2026-11-25. Åtta varv: "Visa fler" två gånger, rulla till listans slut, in på
+en vara, bakåt (`audit/lista-minne.cjs`).
+
+| Efter åtta varv, 408 kort | www | grenen |
+| --- | --- | --- |
+| Bildelement i sidan | 426 | 52 |
+| Element i sidan | 11 732 | 6 738 |
+| JavaScript-minne | 57 MB | 23 MB |
+| DOM-noder i minnet, med skräp som väntar | 47 899 | 11 690 |
+| Lyssnare | 15 498 | 2 850 |
+| Flikens minne (började på 295 och 272 MB) | 924 MB | 766 MB |
+| Flikens minne efter varv fyra till åtta (MB) | 806, 809, 853, 860, 924 | 758, 771, 735, 736, 766 |
+
+Listan växer med 24 kort per "Visa fler" och krymper aldrig, och bakåt från en
+vara ritar upp alla korten igen (`lib/sidminne.ts`). Varje kort bar sin bild,
+hämtad direkt (`bilderDirekt`), och en egen rad att svepa i
+(`.pimg-track-swipe`: en rullande yta per kort), hur långt från skärmen det än
+stod. Efter en krasch laddar Safari om sidan, listan ställde tillbaka alla
+korten med alla bilder på en gång (`laddadesOm`), och fliken dog igen: därav
+"flera gånger".
+
+Samma lista utan besök på varor (16 "Visa fler", `audit/lang-lista.cjs`): 426
+bildelement och 408 rullande ytor på www, 70 och 52 på grenen.
+
+☠️ **Det som INTE är mätt: Safaris minne, och själva kraschen.** Chromium dog
+aldrig, och dess eget minne skiljer bara 6–17 % mellan www och grenen: de stora
+skillnaderna är antalen. Vad en bild och en rullande yta kostar i Safari på en
+iPhone går inte att mäta här. Slutsatsen att det var korten långt från skärmen
+som fällde fliken bygger på vad som växte med listan, inte på en återskapad
+krasch. Kvittot är Leonards telefon.
+
+Ingen läcka hittades: med 24 kort och tio varv in på en vara och bakåt stod
+DOM-noderna (4 197) och lyssnarna (1 101) stilla efter skräpsamling.
+
+### Rättelsen
+
+`components/kort-bildfonster.tsx` och `lib/bildfonster.ts`.
+
+1. **Ett kort i en lista som växer bär sina bilder bara inom 4 000 px från
+   fönstret** (`BILDFONSTER_PX`, drygt fyra telefonskärmar åt varje håll).
+   Längre bort står kortet kvar med namn, betyg och pris, men utan
+   `CardGallery`: ingen bild, ingen rullande yta, inga prickar.
+2. ☠️ **Bildrutan behåller sin höjd** (`.prod .pimg` har `aspect-ratio`, med
+   reserven för Safari före 15). Sidan flyttar sig inte en pixel när bilderna
+   kommer och går. Mätt: 38 331 px före och efter, och kort 31 på samma y.
+3. **EN bevakare för alla kort** (`IntersectionObserver` med fönstret som
+   marginal), ingen lyssnare på rullningen. Ytan den bevakar är `.pimg-vakt`,
+   som alltid står kvar i bildrutan. Utan `IntersectionObserver` bär korten
+   sina bilder som förut.
+4. **Kortet börjar med sina bilder** (`naraForst`) där kunden står: sidans
+   första kort och en ny omgång "Visa fler". Mätt: de 24 nya korten ritas med
+   bild i samma bildruta som förut.
+5. ☠️ **En lång lista som ställs tillbaka** (bakåt eller omladdning) låter bara
+   korten runt det sparade kortet börja med bilder: 24 åt varje håll
+   (`borjarMedBilder`, `BILDER_RUNT_ANKARET`). Sidans egna 24 kort hinner
+   ritas med bild en bildruta innan läget ställs tillbaka. Mätt med 240 kort:
+   73 kort med bilder i första bildrutan, 58 därefter, alla sex i fönstret med
+   bild; en omladdning hämtade 119 bilder i stället för en per kort.
+   Läget gäller bara listan det sparades för (`listNyckel`): efter en ny
+   sortering eller ett filter börjar korten med sina bilder.
+6. **Listsidorna och prissidornas "Visa fler"** (`components/shopbrowser.tsx`,
+   `components/pris-fler.tsx`) använder fönstret. Startsidan, raderna på
+   produktsidan och de andra korten bär alltid sina bilder: de listorna växer
+   inte.
+7. **Servern ritar bilderna som förut**: 24 kort, 24 huvudbilder i sidans HTML.
+
+### Prov
+
+- `lib/bildfonster.test.ts`: regeln för vilka kort som börjar med bilder (8
+  prov) och det som inte får glida isär i komponenterna (9 prov).
+  `lib/kortprioritet.test.ts` följer med. 16 avsiktliga fel i fönstret och
+  listan fäller proven.
+- **I webbläsaren** (`audit/lista-fonster.cjs` mot det lokala bygget, 27
+  kontroller): serverns HTML; första sidan; "Visa fler"; 240 kort med 28
+  bärande bilder vid listans slut; sidan lika hög; hopp till toppen (sex av
+  sex kort utan bild i första bildrutan, noll av sex efter 50 ms); bakåt från
+  en vara (samma 240 kort, samma kort på samma pixel); "Visa fler" efter
+  bakåt; omladdning djupt i listan; `/under-500-kr`; datorn i 1 440 px. Inga
+  sidfel.
+- `audit/lista-bilder.cjs` (bilderna vid snabb bläddring) och
+  `audit/bakat-annan-vag.cjs` (bakåt på tio vägar) ger samma svar som före
+  ändringen.
+
+### Inte provat, och inte gjort
+
+- ☠️ **Kraschen på en riktig iPhone**, se ovan.
+- **Ett hopp över hela listan** (trycket på telefonens statusrad) visar korten
+  utan bild i en till tre bildrutor innan bevakaren svarat. Bilderna ligger i
+  webbläsarens cache och är framme inom 50 ms i provet.
+- **Ett kort som svepts till sin tredje bild** börjar om på den första när det
+  varit långt från fönstret.
+- **Korten själva tas inte bort.** Ett kort utan bilder är 11 element med text
+  (25 med bilder). Tusen kort är 11 000 element, och det har inte fällt någon
+  flik i proven.
+  Blir listorna mycket längre är nästa steg att också byta korten långt bort
+  mot tomma ytor med samma höjd.
+- **Produktsidan** mättes inte för sig. Varje besök hämtar stora bilder, och
+  Chromium släpper dem när sidan lämnas.
+
+## Vit bakgrund bakom varje bild, och /butiks register som rader (Leonard 2026-11-25)
+
+Leonard, med tre foton av /butik på datorn och en skärmbild av telefonens meny:
+"Det är inte vit bakgrund överallt på produkt och kategori bilder, jag vill att
+det ska vara det och startsidan på datorn ser inte alls premium ut och matchar
+inte startsidan på telefon, fixa så hela undre delen också är 10/10 design och
+optimerad". Fotona visade "Populärt just nu" med beige plattor, registret "Alla
+kategorier" som fyra spalter text, och mobilmenyns miniatyrer på beige rutor.
+☠️ Sidan på fotona är /butik, fast han säger startsidan. Båda sidorna är
+ändrade.
+
+### Vit platta, överallt
+
+Kartlagt på www samma dag, i varje bild frågat vad som står bakom den
+(`audit/vita-plattor.cjs`): en varm platta med fotot blandat mot den
+(`mix-blend-mode:multiply`) stod kvar på sju slags ytor. Alla är vita nu.
+
+| Yta | Förut | Nu |
+|---|---|---|
+| Produktkortet på datorns startsida, /butik och prissidornas översikt | `#F4EEE8`, multiply, ingen ram | vit, tunn ram (`var(--line)`), som listorna |
+| Avdelningsrutorna på startsidan och /butik (`.kat-bild`, `.b2-avd-bild`) | `#F4EEE8`, multiply | vit, fotot som det är |
+| Miniatyrerna i datorns och mobilens meny och i prissidornas register (`.mn-bild`) | `#F4EEE6`, multiply | vit, tunn ram |
+| Menyns stora ruta för en avdelning utan stämningsbild (`.meganav-feature-produkt`) | `#F3ECE4`, multiply | vit, tunn ram |
+| Favoritlådans rader (`.fav-bild`) | `var(--surface-2)`, multiply | vit, tunn ram |
+
+- **Kortets platta är vit i grunden** (`.prod .pimg` i `app/globals.css`), utan
+  blandningsläge. Datorn (från 881 px) lägger bara till ramen. Undantaget
+  `:is(.hem2,.butik2)` och mobilens eget block är borta: kortet har en
+  uppsättning regler, på varje sida.
+- **Stämningsbilderna blev en ton mörkare av blandningen.** De ligger kant i
+  kant i rutan, så plattan syntes aldrig, men multiply mot en varm platta
+  färgade hela fotot. Nu ritas de som de är.
+- **En avdelning utan stämningsbild visar en vara.** Ingen avdelning är utan
+  i dag (se "Stämningsfoto på de tre sista avdelningarna" nedan), så regeln
+  gäller en ny avdelning tills den har fått sitt foto.
+  Rutan bär då `.kat-produkt` eller `.b2-avd-produkt` och får en tunn ram:
+  varans vita botten går ihop med den vita sidan, och utan ram syns rutan
+  inte. Bilden är densamma som förut, i rutans form. ☠️ Ett första försök
+  hämtade varan kvadratisk och visade den hel (`object-fit:contain`): varan
+  blev en fjärdedel mindre än grannrutornas foton och rutan såg tom ut.
+- ☠️ **Rutan "Hela sortimentet" bär också `.b2-avd-bild`.** Dess mörka botten
+  (`.b2-alla-yta`) har samma vikt som rutans vita och vinner för att den står
+  sist. I ett första prov med den vita regeln sist blev rutan vit med vit text.
+- ☠️ **Hjältens fyra brickor är undantaget, med flit.** De har kvar studions
+  ljusa ton (`--studio-bricka`, nästan vit upptill och varmare nedtill) och
+  multiply, som Leonard valde 2026-11-17. Vill han ha dem helvita är det en
+  rad: `--studio-bricka` i `app/globals.css` och i `app/sasongstema.css`.
+- Ytor där bilden täcker sin ruta helt (produktsidans galleri, sökrutans
+  förslag, varukorgen, bloggens omslag) har kvar en varmgrå botten som bara
+  syns medan bilden laddar.
+
+Mätt i Chromium, 1 440 och 393 px, www mot det lokala produktionsbygget.
+Skärmbilden läses av i åtta punkter längs varje plattas kant, och en platta
+räknas som varm när minst tre har plattans ton:
+
+| Yta | www | bygget |
+|---|---|---|
+| Datorn: startsidans kort, /butiks kort, prissidans kort | 8 av 8 varma, på var och en | 0 av 8 |
+| Datorn: prissidans miniatyrer | 10 av 10 | 0 av 10 |
+| Datorn: menyn Möbler | 7 av 12 | 0 av 12 |
+| Datorn: menyns stora ruta (Bil), favoritlådan | 1 av 1, 3 av 3 | 0 |
+| Telefonen: menyns avdelningar, menyn Möbler | 8 av 8, 5 av 8 | 0 |
+
+Bilder med blandningsläge: datorns startsida 23 → 4 (hjältens brickor), /butik
+19 → 0; telefonen 28 → 4 och 24 → 0.
+
+☠️ **En enstaka varm pixel är varans egen färg.** Första versionen av provet
+fällde på en pixel av 96: en gungstols träben (240, 238, 227) och en
+rumsavdelare som fyller hela miniatyren. Därför räknas plattor, inte pixlar.
+
+### /butiks register: en rad per avdelning
+
+På datorn var "Alla kategorier" fyra spalter text, 2 006 px högt (www, 1 440
+px): Möbler ensamt 30 rader, sista spalten nästan tom. På telefonen var samma
+register redan en rad per avdelning med kategorierna som knappar.
+
+Nu har datorn samma form (`.b2-rader`, från 881 px): avdelningens namn och
+antal till vänster, kategorierna som knappar till höger, och "Alla N" som
+fäller ut resten. Raden visar så många knappar som ryms på en rad.
+
+- **Störst först** (`lib/register-rader.ts`, `storstForst`), på båda skärmarna:
+  bara de första syns utan att kunden gör något, och då ska det vara de
+  kategorier flest letar efter. Lika stora i svensk bokstavsordning. Menyerna
+  har kvar sin egen ordning (`MAIN_GROUPS`).
+- **Alla länkarna står kvar i sidans HTML**, lika många som hjälten säger (149
+  i provet). Raden klipps i stilen, inte i markupen.
+- **Knappen är en kryssruta** (`.b2-vaxla`) med etiketten som synlig yta
+  (`.b2-fler`): inget skript, och webbläsaren minns läget. Mätt: Möbler utfälld,
+  ett klick på radens sista kategori och bakåt gav samma rad utfälld (357 px)
+  på samma plats i sidan.
+- **En avdelning med fem kategorier eller färre** har ingen knapp och visas
+  hel (`RAD_UTAN_KNAPP`).
+- ☠️ **Det klippta går att nå med tangentbordet.** Utan åtgärd rullade
+  webbläsaren den klippta rutan för att visa länken i fokus, och första raden
+  försvann. Raden fälls därför ut när fokus står i den
+  (`:has(a:focus-visible)`), och klipps BARA i en webbläsare som kan `:has`.
+  Safari före 15.4 och Firefox före 121 visar alla knappar och ingen "Alla N".
+- ☠️ **Listan har 6 px luft och lika mycket marginal ut.** Den klipper, och
+  utan luften kapades knapparnas fokusring (2 px ring, 2 px avstånd).
+- **Prissidornas register är orört** (få kategorier, en miniatyr per rad). De
+  delar `.b2-register` med /butik men bär inte `.b2-rader`.
+
+Mätt i det lokala produktionsbygget: registret 2 006 → 1 082 px vid 1 440 px
+(1 039 vid 881, 1 044 vid 1 024), hela /butik 5 323 → 4 381 px. Telefonens
+register är 1 257 px, som förut.
+
+### Stämningsfoto på de tre sista avdelningarna
+
+Leonard samma dag, när han fått se att Bil & Garage visade en vara: "ändra så
+de har stämingsfoto". Tre avdelningar saknade nyckel i `CATEGORY_HERO_IMAGES`
+(`lib/category-groups.ts`): Bil & Garage, Bygg & Renovering och Företag &
+Proffs. De visade en vara i menyns stora ruta, ingen banderoll i mobilmenyn och
+en produktbild överst på sin kategorisida; Bil & Garage också i rutan på
+startsidan och /butik.
+
+| Avdelning | Foto | Id |
+|---|---|---|
+| Bil & Garage | mutterdragare med hylsa på en hjulmutter, lättmetallfälg i dagsljus | `1593699199342-59b40e08f0ac` |
+| Bygg & Renovering | roller som målar en vit vägg blå | `1562259949-e8e7689d7828` |
+| Företag & Proffs | kock som lägger upp på vita tallrikar: händer, vit rock, svart förkläde | `1577106263724-2c8e03bfe9cf` |
+
+- **Granskade i bild, ett och ett**, på exakt den adress `UNSPLASH()` bygger
+  (1 600 × 1 280): äkta foto, inga läsbara varumärken, inget ansikte.
+  Mutterdragarens präglade märke och rollerskaftets etikett är förstorade ur
+  originalet i 2 400 px och går inte att läsa.
+- **Sedda i butikens fyra utsnitt.** Varje yta klipper mitt ur ORIGINALET,
+  inte ur 5:4-bilden: rutan 4:3 (`unsplashIForm`), kategorisidan 5:4,
+  datorns meny 4:5 och mobilmenyns banderoll 12:5 (`hjalteAdress`). Ett foto
+  med motivet i ett hörn klarar inte alla fyra. De här tre har det i mitten.
+- ☠️ **unsplash.com går inte att öppna från byggmiljön** (robotspärr, och den
+  ska inte kringgås). Kandidaterna är därför prövade direkt mot
+  `images.unsplash.com`: cirka 300 id, sedda som kontaktark. Fotosidorna är
+  inte lästa. Adresser som börjar `photo-` på den värden är Unsplashs fria
+  bilder; betalbilderna (Unsplash+) heter `premium_photo-` och ligger på
+  `plus.unsplash.com`, och går inte att skriva med `UNSPLASH()`.
+- ☠️ **Unsplashs licens täcker inte varumärken och igenkännbara personer i
+  bilden.** Därför föll de annars bästa kandidaterna: en verkstad med
+  märkesskylt på bilen och däckmärket läsbart, en verktygsvägg med
+  sprejburkens märke i förgrunden, en kapsåg och en borrmaskin med
+  tillverkarens namn, en rörvägg med skylt på polska, ett restaurangkök med
+  grossistens namn på kartongerna, och en uppläggning där kockens ansikte
+  syntes i menyns stående utsnitt (i 4:3 och 5:4 var det bortklippt).
+- **`KATEGORI_HERO_PRODUKT["bil-garage"]` är borttagen.** Kategorisidan tar
+  fotot först, så raden lästes aldrig längre.
+- `lib/meny-bild-val.ts` har kvar sina val för de tre avdelningarna: de är
+  miniatyren på avdelningens rad i mobilmenyn, och menyns reserv om fotot
+  skulle saknas.
+
+Provet `lib/stamningsfoto.test.ts` (10 prov) fäller om en avdelning i
+`AVDELNINGSORDNING` saknar foto, om två avdelningar delar foto, om ett foto inte
+går att klippa till menyns former och om en avdelning med foto får en rad i
+`KATEGORI_HERO_PRODUKT`.
+
+### Proven
+
+- `lib/vit-platta.test.ts` (14 prov) och `lib/register-rader.test.ts` (19).
+  `lib/produktkortet.test.ts`, `lib/butiksidan.test.ts`,
+  `lib/startsida.test.ts`, `lib/mobil-finslip.test.ts` och
+  `lib/audit-2026-11-11.test.ts` följer med. 50 avsiktliga fel i stilen,
+  markupen och regeln fäller proven, alla 50.
+- **I webbläsaren** mot det lokala produktionsbygget:
+  `audit/vita-plattor.cjs` (30 kontroller: beräknad stil och pixlar på 15
+  ytor) och `audit/register-rader.cjs` (27: raderna, klicket, tangentbordet,
+  fokusringen, 881 till 1 920 px utan sidrullning, och telefonen orörd).
+- axe (WCAG 2.1 A och AA) på startsidan, /butik med en rad utfälld,
+  /under-500-kr, menyerna och favoritlådan i 1 440, 1 024 och 393 px: inga fel
+  på de ändrade sidorna. Med mobilmenyn öppen anmärker axe på kortens
+  bildrader under menyn (`scrollable-region-focusable`, 8 element); samma
+  anmärkning finns på www före ändringen.
+- `audit/sok-atervand.cjs` och `audit/lista-fonster.cjs` ger samma svar som
+  före ändringen.
+
+### Inte provat, och inte gjort
+
+- **Safari**, på iPhone och Mac. Allt ovan är Chromium. Blandningsläget var
+  det som skilde webbläsarna åt (2026-11-20), och det är borta nu.
+- **En webbläsare utan `:has`** är inte körd: reserven (alla knappar, ingen
+  "Alla N") är läst ur stilen, inte sedd.
+- **Startsidans undre del på datorn** fick de vita plattorna och fotona utan
+  toning, inget mer: kategorierna, veckans fynd, köpguiderna och omdömena har
+  samma form som förut.

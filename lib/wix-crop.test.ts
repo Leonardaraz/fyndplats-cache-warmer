@@ -2,7 +2,7 @@
 // med vitt band i botten klipps med x_44,y_0,w_1512,h_1512 och skalas sedan.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { cropFillUrl, skalaWixSvans } from "./wix-crop.ts";
+import { cropFillUrl, medSkarpning, skalaWixSvans, WIX_SKARPNING } from "./wix-crop.ts";
 
 const NYCKEL = "b379ce_f18ccf613d55494a82d01731ab8bb772~mv2.png";
 const BAND = { x: 44, y: 0, w: 1512, h: 1512 };
@@ -40,4 +40,51 @@ test("listan över kort med vitt band är 16 hextecken per kort, utan dubbletter
   assert.equal(new Set(lista).size, lista.length);
   for (const id of lista) assert.match(id, /^[0-9a-f]{16}$/);
   assert.ok(lista.includes("f18ccf613d55494a"), "ultraljudstvättens 2 L-kort");
+});
+
+// Wix skärpning (2026-11-25): bildladdarna lägger den på varje förminskad bild.
+test("skärpningen läggs sist i fill-delen, också efter en beskärning", () => {
+  assert.equal(WIX_SKARPNING, "usm_0.66_1.00_0.01");
+  assert.equal(
+    medSkarpning("/v1/fill/w_265,h_265,al_c,q_72/file.webp"),
+    "/v1/fill/w_265,h_265,al_c,q_72,usm_0.66_1.00_0.01/file.webp",
+  );
+  assert.equal(
+    medSkarpning("/v1/crop/x_44,y_0,w_1512,h_1512/fill/w_384,h_384,al_c,q_72/file.webp"),
+    "/v1/crop/x_44,y_0,w_1512,h_1512/fill/w_384,h_384,al_c,q_72,usm_0.66_1.00_0.01/file.webp",
+  );
+});
+
+test("skärpningen gäller fit, en hel adress och en fil med eget namn", () => {
+  assert.equal(medSkarpning("/v1/fit/w_640,h_640,q_80/file.webp"), "/v1/fit/w_640,h_640,q_80,usm_0.66_1.00_0.01/file.webp");
+  assert.equal(
+    medSkarpning(`https://static.wixstatic.com/media/${NYCKEL}/v1/fill/w_640,h_336,al_c,q_85/leksakskok-kopguide.jpg`),
+    `https://static.wixstatic.com/media/${NYCKEL}/v1/fill/w_640,h_336,al_c,q_85,usm_0.66_1.00_0.01/leksakskok-kopguide.jpg`,
+  );
+});
+
+test("skärpningen läggs aldrig på två gånger, inte på en suddad platshållare och inte utan fill eller fit", () => {
+  const skarpt = "/v1/fill/w_265,h_265,al_c,q_72,usm_0.66_1.00_0.01/file.webp";
+  assert.equal(medSkarpning(skarpt), skarpt);
+  assert.equal(medSkarpning(medSkarpning("/v1/fill/w_265,h_265,al_c,q_72/file.webp")), skarpt);
+  // Platshållaren som visas medan bilden laddas (lib/lqip.ts).
+  const sudd = "/v1/fill/w_24,h_24,al_c,q_30,blur_2/file.webp";
+  assert.equal(medSkarpning(sudd), sudd);
+  // Ren beskärning: rektangeln är hela bilden, ingenting förminskas.
+  const klipp = "/v1/crop/x_44,y_0,w_1512,h_1512/file.webp";
+  assert.equal(medSkarpning(klipp), klipp);
+  // Utan transform finns inget att skärpa, och media-nyckeln rörs aldrig.
+  const naken = `https://static.wixstatic.com/media/${NYCKEL}`;
+  assert.equal(medSkarpning(naken), naken);
+  assert.equal(medSkarpning(""), "");
+});
+
+test("loaderns skalning och skärpningen går ihop: bredden byts, skärpningen står kvar", () => {
+  const svans = skalaWixSvans("/v1/fill/w_600,h_600,al_c,q_72/file.webp", 265)!;
+  assert.equal(medSkarpning(svans), "/v1/fill/w_265,h_265,al_c,q_72,usm_0.66_1.00_0.01/file.webp");
+  // En adress som redan är skärpt skalas som vanligt (usm rör inte w_/h_).
+  assert.equal(
+    skalaWixSvans("/v1/fill/w_600,h_600,al_c,q_72,usm_0.66_1.00_0.01/file.webp", 530),
+    "/v1/fill/w_530,h_530,al_c,q_72,usm_0.66_1.00_0.01/file.webp",
+  );
 });

@@ -3,6 +3,7 @@ import Image, { getImageProps } from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { SHIMMER_BLUR } from "../lib/lqip";
 import { tightFillUrl } from "../lib/wix-image";
+import { wixMainLoader } from "../lib/hjalte-loader";
 import { kortDel } from "../lib/kort-galleri";
 import { kortSizes } from "../lib/bild-sizes";
 import { KortAndraBild } from "./kort-andra-bild";
@@ -199,6 +200,14 @@ const arPekskarm = () =>
 
 // Kortets `sizes` (kortSizes, lib/bild-sizes.ts) delas med förladdningen nedan,
 // så att båda väljer samma bild.
+//
+// ☠️ KORTETS BILDER HAR HUVUDBILDENS LADDARE (wixMainLoader), inte den globala
+// (2026-11-25). På datorn är rutan 265 px bred, och filen ska vara exakt 265
+// eller 530 px: den globala laddaren ger 640 px för 530w, eftersom alla andra
+// bilder ska ha de filstorlekar de alltid haft (lib/image-loader.ts). Samma
+// laddare som huvudbilden ger dessutom samma adresser, så ett kort man tryckt
+// på har redan huvudbildens fil i minnet. Förladdningen nedan MÅSTE använda
+// samma laddare, annars hämtas bilden två gånger.
 
 const forladdade = new Set<string>();
 /** Hämtar kortets huvudbild till webbläsarens cache innan kortet visas: samma
@@ -208,7 +217,7 @@ export function forladdaKortbild(img: string, tvaKolumner = false): void {
   const src = tightFillUrl(img, 600, 600);
   if (forladdade.has(src)) return;
   forladdade.add(src);
-  const { props } = getImageProps({ src, alt: "", fill: true, sizes: kortSizes(tvaKolumner) });
+  const { props } = getImageProps({ src, alt: "", fill: true, sizes: kortSizes(tvaKolumner), loader: wixMainLoader });
   const bild = new window.Image();
   // sizes före srcset, annars hinner webbläsaren välja med fel bredd.
   if (props.sizes) bild.sizes = props.sizes;
@@ -322,6 +331,7 @@ export function CardGallery({
           <Image
             className="pimg-main"
             src={tightFillUrl(img, 600, 600)}
+            loader={wixMainLoader}
             alt={name}
             fill
             priority={priority}
@@ -343,7 +353,7 @@ export function CardGallery({
             läser den som en bild på den här sidan (components/kort-andra-bild.tsx). */}
         {altImg && (
           <div className="pimg-slide">
-            <KortAndraBild src={tightFillUrl(altImg, 600, 600)} sizes={sizes} />
+            <KortAndraBild src={tightFillUrl(altImg, 600, 600)} sizes={sizes} loader={wixMainLoader} />
           </div>
         )}
         {/* Rutorna finns direkt (prickarna stämmer och raden byggs aldrig om
@@ -355,6 +365,7 @@ export function CardGallery({
             {i + 2 <= aktiv + 1 && <Image
               className="pimg-extra"
               src={tightFillUrl(k, 600, 600)}
+              loader={wixMainLoader}
               alt=""
               fill
               sizes={sizes}

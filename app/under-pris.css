@@ -21,7 +21,7 @@
    Namnet tar bredden mellan bilden och antalet. */
 .pris2 .b2-grupp-lista a{justify-content:flex-start;gap:12px;min-height:50px}
 .pris2 .p2-namn{flex:1 1 auto;min-width:0}
-.pris2 .b2-grupp-lista a:hover .mn-bild,.pris2 .b2-grupp-lista a:focus-visible .mn-bild{background:#EFE3D6}
+.pris2 .b2-grupp-lista a:hover .mn-bild,.pris2 .b2-grupp-lista a:focus-visible .mn-bild{border-color:#E7C3A7}
 @media(max-width:880px){
   /* Mobilens register är rader av piller som rullas i sidled: bilden står
      först i pillret, rund som pillret. */

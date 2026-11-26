@@ -83,6 +83,17 @@ const nextConfig: NextConfig = {
     // Vercels /_next/image-optimerare (kallstart + extra hop). remotePatterns
     // behålls som dokumentation av tillåtna värdar; optimeraren är förbikopplad.
     loaderFile: "./lib/image-loader.ts",
+    // ☠️ Bredderna i srcset är butikens egna, inte Nexts (2026-11-25). På datorn
+    // är kortets bildruta 265 px och produktsidans huvudbild 542 px. Finns
+    // exakt de bredderna, och det dubbla för skärmar med dubbel täthet, ritas
+    // filen pixel för pixel i stället för att skalas om, och det är skillnaden
+    // mellan en mjuk och en skarp bild (lib/bild-sizes.ts har mätningen).
+    // Nexts 256 och 1080 är utbytta, inte kompletterade: varje bredd här
+    // skrivs ut i varje bilds srcset, och en bredd strax över en annan ruta
+    // gör den rutans bilder suddiga. Lägg inte till en bredd utan att mäta.
+    // lib/bild-sizes.test.ts jämför talen med BILD_BREDDER_SMA och _STORA.
+    imageSizes: [32, 48, 64, 96, 128, 265, 384, 530, 542],
+    deviceSizes: [640, 750, 828, 1084, 1200, 1920, 2048, 3840],
     // Kvaliteter som <Image quality> får be om. Laddaren ovan skickar talet
     // vidare till bildens egen CDN; utan raden varnar Next i utvecklingsläget.
     qualities: [60, 75],
@@ -98,7 +109,7 @@ const nextConfig: NextConfig = {
     // varierar på rubriken, så variationen görs HÄR, före CDN:en, och blir två
     // adresser med var sin kopia (lib/feed/prisjakt-svar.ts, mätt 2026-11-11).
     // beforeFiles: /feed/<fil> är en riktig rutt och hade annars gått före.
-    const komprimeradeFloden = ["google.xml", "products.xml", "pricerunner.xml", "pinterest.xml"].map((fil) => ({
+    const komprimeradeFloden = ["google.xml", "products.xml", "pricerunner.xml", "pinterest.xml", "gowish.xml"].map((fil) => ({
       source: `/feed/${fil}`,
       has: [{ type: "header" as const, key: "accept-encoding", value: "(.*[, ])?gzip([,; ].*)?" }],
       destination: `/feed/gz/${fil}`,
@@ -152,6 +163,22 @@ const nextConfig: NextConfig = {
         // sedan en vecka då den sparade visas medan en ny hämtas.
         source: "/payments/:fil*",
         headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }],
+      },
+      {
+        // ☠️ Inget flöde ska hamna i ett sökindex (Leonard 2026-11-26). Flödena
+        // bär hela katalogen med pris, lager och EAN, och de öppna adresserna
+        // saknade rubriken: länkar någon till en flödesfil kan en sökmotor ta
+        // med den. Regeln gäller varje svar under /feed/, också 404 och de
+        // komprimerade adresserna. Den hindrar ingen läsare från att hämta
+        // filen. Bildsitemapen (/api/feed/image-sitemap.xml) är en sitemap som
+        // sökmotorerna ska läsa, och har ingen regel.
+        // lib/feed/hemlig-adress.test.ts håller regeln kvar.
+        source: "/feed/:fil*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex" }],
+      },
+      {
+        source: "/api/feed/products.xml",
+        headers: [{ key: "X-Robots-Tag", value: "noindex" }],
       },
     ];
   },

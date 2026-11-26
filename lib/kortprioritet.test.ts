@@ -12,7 +12,8 @@ const las = (...delar: string[]) => readFileSync(join(import.meta.dirname, "..",
 describe("kortens bilder på listsidorna", () => {
   it("två kort förladdas, resten väntar", () => {
     const sb = las("components", "shopbrowser.tsx");
-    assert.match(sb, /<ProductCard p=\{f\.p\} href=\{f\.href\} key=\{p\.slug\} priority=\{i < 2\} tvaKolumner bildDirekt=\{bilderDirekt\} \/>/);
+    // `bildFonster`: kortets bilder finns bara nära fönstret (components/kort-bildfonster.tsx).
+    assert.match(sb, /<ProductCard p=\{f\.p\} href=\{f\.href\} key=\{p\.slug\} priority=\{i < 2\} tvaKolumner bildDirekt=\{bilderDirekt\} bildFonster=\{bildNara\(i\)\} \/>/);
     assert.doesNotMatch(sb, /priority=\{i < [3-9]\}/);
   });
 

@@ -241,17 +241,34 @@ export interface SparadAvsikt {
   at: number;
   /** Kunden har fått veta varför försöket föll (sparatBeslut, "sag"): samma besked visas inte vid varje omladdning. */
   sagt?: true;
+  /** Kunden har tryckt på "Slutför betalningen hos Klarna" för det här försöket (medFortsatt): länken erbjuds en gång (sparatBeslut). */
+  fortsatt?: true;
 }
 
-/** Kundens sparade försök, om det gäller den här korgen och inte är för gammalt: betalningens id, försökets ålder och om kunden redan fått veta varför det föll. */
-export function sparatForsok(v: unknown, cartId: string, nuMs: number): { avsiktId: string; alderMs: number; sagt: boolean } | null {
+/** Kundens sparade försök, om det gäller den här korgen och inte är för gammalt: betalningens id, försökets ålder, om kunden redan fått veta varför det föll och om kunden redan prövat att fortsätta det hos Klarna. */
+export function sparatForsok(v: unknown, cartId: string, nuMs: number): { avsiktId: string; alderMs: number; sagt: boolean; fortsatt: boolean } | null {
   if (!v || typeof v !== "object" || !cartId) return null;
   const s = v as Partial<SparadAvsikt>;
   if (typeof s.avsiktId !== "string" || !AVSIKT_ID.test(s.avsiktId)) return null;
   if (s.cartId !== cartId || typeof s.at !== "number" || !Number.isFinite(s.at)) return null;
   if (nuMs - s.at > SPARAD_MS || s.at - nuMs > 60_000) return null;
-  return { avsiktId: s.avsiktId, alderMs: Math.max(0, nuMs - s.at), sagt: s.sagt === true };
+  return { avsiktId: s.avsiktId, alderMs: Math.max(0, nuMs - s.at), sagt: s.sagt === true, fortsatt: s.fortsatt === true };
 }
+
+/**
+ * Det sparade försöket med märket att kunden tryckt på länken till Klarna, att
+ * skriva tillbaka i localStorage. Null när det sparade inte är just det
+ * försöket (då finns inget att märka).
+ */
+export function medFortsatt(v: unknown, avsiktId: string): SparadAvsikt | null {
+  if (!v || typeof v !== "object") return null;
+  const s = v as Partial<SparadAvsikt>;
+  if (s.avsiktId !== avsiktId || !AVSIKT_ID.test(avsiktId) || typeof s.cartId !== "string" || typeof s.at !== "number") return null;
+  return { ...(s as SparadAvsikt), fortsatt: true };
+}
+
+/** Dit kassan säger till när kunden trycker på länken till Klarna: en loggrad utan betalningens id (app/api/kassa/stripe/fortsatt). */
+export const FORTSATT_SOKVAG = "/api/kassa/stripe/fortsatt";
 
 /** Betalningens id ur kundens sparade försök, om det gäller den här korgen och inte är för gammalt. */
 export function sparadAvsikt(v: unknown, cartId: string, nuMs: number): string | null {
@@ -507,12 +524,18 @@ export type SparatBeslut =
  * datorn (2026-11-24). Nu säger kassan vad som gäller: betalningen står öppen
  * hos Klarna och går att fortsätta ("oppen"), eller Klarna sa nej ("sag").
  */
-export function sparatBeslut(svar: KlarSvar, forsok: { alderMs: number; sagt: boolean }): SparatBeslut {
+export function sparatBeslut(svar: KlarSvar, forsok: { alderMs: number; sagt: boolean; fortsatt?: boolean }): SparatBeslut {
   const b = klarBeslut(svar.status, svar.j);
   if (b.gor === "tack") return b;
   if (svar.status === 202) return { gor: "slutfor" };
   if (b.gor === "fortsatt") {
-    return forsok.alderMs <= OPPET_FORSOK_MS ? { gor: "oppen", adress: b.adress, hosKlarna: b.hosKlarna, totalOre: b.totalOre } : { gor: "inget" };
+    if (forsok.alderMs > OPPET_FORSOK_MS) return { gor: "inget" };
+    // ☠️ Länken till Klarna erbjuds EN gång per försök. En kund kom 2026-11-25
+    // tillbaka till kassan två gånger på en halv minut med betalningen
+    // fortfarande öppen, och betalade aldrig. Har länken redan prövats visar
+    // rutan bara vägen som alltid fungerar: betala på nytt, som ger en ny
+    // betalning hos Klarna (eller ett annat betalsätt).
+    return { gor: "oppen", adress: forsok.fortsatt ? null : b.adress, hosKlarna: b.hosKlarna, totalOre: b.totalOre };
   }
   if (b.gor === "fel" && b.kod === "ej_betald" && b.orsak && !forsok.sagt && forsok.alderMs <= FARSKT_FORSOK_MS) {
     return { gor: "sag", text: STRIPE_MEDDELANDE[tillbakaKod(b.kod, b.orsak)] };

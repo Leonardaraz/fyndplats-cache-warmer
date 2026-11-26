@@ -53,7 +53,7 @@ export function PrisFler({ pris, kvar: kvarFranBorjan }: { pris: number; kvar: n
   return (
     <>
       {kort.map((p) => (
-        <ProductCard p={p} key={p.slug} tvaKolumner />
+        <ProductCard p={p} key={p.slug} tvaKolumner bildFonster />
       ))}
       {kvar > 0 && (
         <div className="loadmore-wrap p2-fler">

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import { SHIMMER_BLUR } from "../lib/lqip";
+import { medSkarpning } from "../lib/wix-crop";
 import { tightFillUrl } from "../lib/wix-image";
 import { wixMainLoader } from "../lib/hjalte-loader";
 import { kortbildFor } from "../lib/hjaltebild-varm";
@@ -35,11 +36,13 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
 const LB_HI = 1600;
 
 // Hjältelagrens sizes (HERO_SIZES, lib/bild-sizes.ts) — desktopkolumnen är FAST
-// 544 px (.container 1180 − padding 52 − gap 40, ÷2; box-sizing:border-box), så
-// w_1200 räcker även på breda skärmar (544×DPR2=1088; hover-zoom 1.07× → 1164 <
-// 1200). Delas med lightboxens baslager så det VÄLJER SAMMA srcset-kandidat som
-// hjälten → öppning är en ren cache-träff. Bildrutorna under hjälten har
-// TILE_SIZES. Om calc() och Nexts regex: se lib/bild-sizes.ts.
+// 544 px (.container 1180 − padding 52 − gap 40, ÷2; box-sizing:border-box), och
+// bilden innanför ramen 542 px. Sedan 2026-11-25 hämtas den i EXAKT den bredden
+// (542 på en vanlig skärm, 1084 på en med dubbel täthet) och ritas pixel för
+// pixel; därför zoomar den inte längre vid hover (app/globals.css). Delas med
+// lightboxens baslager så det VÄLJER SAMMA srcset-kandidat som hjälten →
+// öppning är en ren cache-träff. Bildrutorna under hjälten har TILE_SIZES. Om
+// calc() och Nexts regex: se lib/bild-sizes.ts.
 const MAX_TILES = 12;
 
 // Spekulativ förladdning avstängd? (Data Saver / 2g — se lib/gallery-preload.)
@@ -882,7 +885,7 @@ export function Gallery({
               {lbHiFor === main && (
                 <Image
                   key={"h" + main}
-                  src={tightFillUrl(main, LB_HI, LB_HI)}
+                  src={medSkarpning(tightFillUrl(main, LB_HI, LB_HI))}
                   unoptimized
                   alt=""
                   fill

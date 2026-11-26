@@ -9,13 +9,14 @@ import { populartNu } from "../../lib/sok-tom";
 import { sidhuvudsdata } from "../../lib/sidhuvud-data";
 import { populara } from "../../lib/sidhuvud-val";
 import { attachRatings } from "../../lib/review-aggregates";
-import { kortOrd, matchaKategorier, normalize, rankaMedForslag, varanHeterSa, type Kategoridata } from "../../lib/search";
+import { kortOrd, markesnamn, matchaKategorier, normalize, rankaMedForslag, varanHeterSa, type Kategoridata } from "../../lib/search";
+import { NAMNNYCKLAR } from "../../lib/namnnycklar-data";
 import { BARA_I_UNDERKATEGORIN } from "../../lib/bara-i-underkategorin";
 import { sokKategorier, varansKategorier, type Sokkategorier } from "../../lib/sok-begrepp";
 import { plattaKategorier, type SokKategori } from "../../lib/sok-kategorier";
 import { harPris, lagstaPris, sidaForPristak, tolkaPris, villHaBilligast } from "../../lib/sok-pris";
 import { sidaForSokning } from "../../lib/sok-sidor";
-import { billigastForst, katalogensSokordning, kopbaraForst } from "../../lib/sok-ordning";
+import { billigastForst, katalogensSokordning, kopbaraForst, namnForst } from "../../lib/sok-ordning";
 
 export const metadata: Metadata = {
   title: "Sök",
@@ -44,7 +45,9 @@ async function kategoridata(): Promise<Kategoridata<Product> | undefined> {
     sokKat.set(kategorier, k);
   }
   const tabell = k;
-  return { kat: tabell.kat, av: (p) => varansKategorier(p, tabell, BARA_I_UNDERKATEGORIN) };
+  // Namnnycklarna: jämförelsesajtens namn på varan, som enkelriktade summor
+  // (lib/search.ts, namnnyckel). Samma data som sökindexet skickar till sökrutan.
+  return { kat: tabell.kat, av: (p) => varansKategorier(p, tabell, BARA_I_UNDERKATEGORIN), nycklar: (p) => NAMNNYCKLAR[p.slug] };
 }
 
 export default async function Sok({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
@@ -128,30 +131,43 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
   // fåtölj). Regeln står i lib/search.ts (rankaMedForslag), och sökrutan har samma.
   let visar = "";
   let liknande = false;
+  // Så många av de första träffarna står där för att de heter som sökningen
+  // hos en prisjämförelsesajt (lib/search.ts, medNamntraff).
+  let namn = 0;
+  // Märket, när sökningen bara var leverantörens märke eller början på det
+  // (lib/search.ts, medMarkesvaror), skrivet för kunden.
+  let marke = "";
   if (term) {
     const { utfall, visar: ordet } = rankaMedForslag(all, (p) => p.name, fraga, await kategoridata());
     visar = ordet;
     if (visar) kategorier = matchaKategorier(visar, allaKategorier, 3);
     if (utfall.traffar.length > 0) {
-      results = utfall.traffar;
       ({ strukna, utan, hela, inte } = utfall);
       liknande = utfall.liknande === true;
       // Påfyllda listor (`hela`) har en egen ordning som beskedet beskriver: de rörs inte.
-      if (billigast && hela === undefined && results.length > 1) {
-        results = billigastForst(results, (p) => varanHeterSa(p.name, fraga), lagstaPris, utfall.hemma);
-        prisordning = utfall.hemma ? "kategori" : "namn";
-      }
+      const prisordna = billigast && hela === undefined && utfall.traffar.length > 1;
+      // De köpbara först. Varan som heter som sökningen hos en
+      // prisjämförelsesajt står kvar först, också slutsåld (namnForst).
+      const ordnat = namnForst(utfall.traffar, utfall.namn, (resten) => kopbaraForst(
+        prisordna ? billigastForst(resten, (p) => varanHeterSa(p.name, fraga), lagstaPris, utfall.hemma) : resten,
+        (p) => !p.inStock,
+      ));
+      results = ordnat.traffar;
+      namn = ordnat.namn;
+      if (utfall.marke) marke = markesnamn(utfall.marke);
+      if (prisordna) prisordning = utfall.hemma ? "kategori" : "namn";
     } else if (kategorier.length === 0 && !kortOrd(fraga)) {
       // ☠️ Aldrig för två bokstäver: de står i nästan varje beskrivning.
       // Reserven i beskrivningarna, bara när varken ett namn eller en kategori
       // matchar. "trädgårdsmöbler" gav förut en presenning, en högtryckstvätt
       // och en plåtbod härifrån, fast kategorin Utemöbler fanns.
       const phrase = normalize(fraga);
-      results = all.filter(
-        (p) => normalize(p.blurb || "").includes(phrase) || normalize(p.specs || "").includes(phrase)
+      results = kopbaraForst(
+        all.filter((p) => normalize(p.blurb || "").includes(phrase) || normalize(p.specs || "").includes(phrase)),
+        (p) => !p.inStock,
       );
     }
-    results = await attachRatings(kopbaraForst(results, (p) => !p.inStock));
+    results = await attachRatings(results);
   }
 
   // UTAN TRÄFF: samma vägar vidare som 404-sidan, och fyra varor som säljer
@@ -169,6 +185,8 @@ export default async function Sok({ searchParams }: { searchParams: Promise<{ q?
       q={q}
       data={{
         traffar: forSokClient(results), strukna, utan, hela, kategorier, pris, visar, liknande, inte,
+        ...(namn > 0 ? { namn } : {}),
+        ...(marke ? { marke } : {}),
         billigast: prisordning,
         populart: forListClient(populart), popularaKategorier,
       }}

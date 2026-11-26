@@ -9,12 +9,14 @@
 // här bilden är laddad (data-klar, regeln i app/globals.css): förut fanns
 // bilden redan, men nu hämtas den först efter första rörelsen.
 
-import Image from "next/image";
+import Image, { type ImageLoader } from "next/image";
 import { useState, useSyncExternalStore } from "react";
 import { SHIMMER_BLUR } from "../lib/lqip";
 import { harRortSidan, harRortSidanServer, prenumereraPaRorelse } from "../lib/forsta-rorelse";
 
-export function KortAndraBild({ src, sizes }: { src: string; sizes: string }) {
+/** `loader`: produktkortet skickar sin egen (exakta bredder, components/card-gallery.tsx);
+ *  fyndauktionens kort gör det inte och får den globala. */
+export function KortAndraBild({ src, sizes, loader }: { src: string; sizes: string; loader?: ImageLoader }) {
   const rord = useSyncExternalStore(prenumereraPaRorelse, harRortSidan, harRortSidanServer);
   const [klar, setKlar] = useState(false);
   if (!rord) return null;
@@ -22,6 +24,7 @@ export function KortAndraBild({ src, sizes }: { src: string; sizes: string }) {
     <Image
       className="pimg-alt"
       src={src}
+      loader={loader}
       // Dekorativ: länken visar redan huvudbilden med produktens namn som alt,
       // och namnet står som text. Med alt här läste skärmläsare namnet två gånger.
       alt=""

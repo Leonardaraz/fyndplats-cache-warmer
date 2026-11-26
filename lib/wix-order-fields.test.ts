@@ -9,6 +9,7 @@ import {
   orderPostnummer,
   orderRader,
   orderSumma,
+  orderValuta,
   radensVal,
 } from "./wix-order-fields.ts";
 
@@ -261,7 +262,7 @@ describe("orderRader", () => {
 
 describe("orderSumma", () => {
   it("frakten tas inklusive moms ur shippingInfo.cost, inte ur priceSummary", () => {
-    assert.deepEqual(orderSumma(skarpOrder), { frakt: 19, totalt: 788, moms: 157.6 });
+    assert.deepEqual(orderSumma(skarpOrder), { frakt: 19, fraktExMoms: 15.2, totalt: 788, moms: 157.6 });
   });
 
   it("fri frakt är 0, inte saknad", () => {
@@ -270,7 +271,39 @@ describe("orderSumma", () => {
   });
 
   it("saknade belopp blir undefined, aldrig 0", () => {
-    assert.deepEqual(orderSumma({}), { frakt: undefined, totalt: undefined, moms: undefined });
+    assert.deepEqual(orderSumma({}), { frakt: undefined, fraktExMoms: undefined, totalt: undefined, moms: undefined });
+  });
+
+  // Till Heylink (lib/heylink.ts): varorna utan moms är totalen minus momsen
+  // minus frakten utan moms. 788 − 157,60 − 15,20 = 615,20, samma tal som Wix
+  // egen priceSummary.subtotal hade på den uppmätta ordern.
+  it("frakten utan moms är priceSummary.shipping, och går ihop med totalen och momsen", () => {
+    const s = orderSumma(skarpOrder);
+    assert.equal(s.fraktExMoms, 15.2);
+    assert.equal(Math.round((s.totalt! - s.moms! - s.fraktExMoms!) * 100) / 100, 615.2);
+  });
+});
+
+describe("orderns valuta och radernas id (till Heylink)", () => {
+  it("valutan läses ur order.currency", () => {
+    assert.equal(orderValuta({ currency: "SEK" }), "SEK");
+    assert.equal(orderValuta({}), undefined);
+    assert.equal(orderValuta(undefined), undefined);
+  });
+
+  // Samma vägar som webhookens extractItems och kassans varuNyckel
+  // (lib/kassa/lastkorg.ts).
+  it("raden bär Wix produkt-id och variant-id ur catalogReference", () => {
+    const [medVal, utanVal, utanRef] = orderRader({
+      lineItems: [
+        { productName: { original: "A" }, catalogReference: { catalogItemId: "p-1", options: { variantId: "v-1" } } },
+        { productName: { original: "B" }, catalogReference: { catalogItemId: "p-2" } },
+        { productName: { original: "C" } },
+      ],
+    });
+    assert.deepEqual([medVal.produktId, medVal.variantId], ["p-1", "v-1"]);
+    assert.deepEqual([utanVal.produktId, utanVal.variantId], ["p-2", undefined]);
+    assert.deepEqual([utanRef.produktId, utanRef.variantId], [undefined, undefined]);
   });
 });
 

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import Image from "next/image";
 import { PrefetchLink } from "./prefetch-link";
+import { iRutansForm } from "../lib/bildformat";
 import { flerKort, medResten, type GuideKort } from "../lib/guide-kort";
 import { tidsgransSignal } from "../lib/tidsgrans-signal";
 
@@ -90,7 +91,9 @@ export function GuideKarusell({ guider, totalt }: { guider: GuideKort[]; totalt:
         {alla.slice(0, antal).map((g) => (
           <PrefetchLink className="guide" key={g.slug} href={`/blogg/${g.slug}`}>
             <span className="guide-bild">
-              <Image src={g.cover} alt="" fill sizes="(max-width:880px) 78vw, 360px" />
+              {/* Omslaget är 1,9:1 och rutan 4:3: utan iRutansForm blev bilden
+                  för låg och förstorades (lib/bildformat.ts). */}
+              <Image src={iRutansForm(g.cover, "4:3")} alt="" fill sizes="(max-width:880px) 78vw, 362px" />
             </span>
             <span className="guide-titel">{g.title}</span>
             {g.excerpt && <span className="guide-text">{g.excerpt}</span>}

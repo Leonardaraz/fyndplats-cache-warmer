@@ -8,7 +8,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { katalogensSokordning, kopbaraForst, nyastForst } from "./sok-ordning.ts";
+import { katalogensSokordning, kopbaraForst, namnForst, nyastForst } from "./sok-ordning.ts";
 import { kandidater } from "./sok-kall.ts";
 import { rankaMedForslag, rankaMedInfo } from "./search.ts";
 
@@ -141,13 +141,60 @@ describe("den kalla vägens varor (lib/sok-kall.ts, kandidater)", () => {
   });
 });
 
+describe("namnForst: varan som heter som sökningen står kvar först", () => {
+  type V = { n: string; slut?: true; kr: number };
+  const A: V = { n: "A", kr: 900 };
+  const B: V = { n: "B", slut: true, kr: 100 };
+  const C: V = { n: "C", kr: 300 };
+  const D: V = { n: "D", slut: true, kr: 200 };
+  const kopbara = (resten: V[]) => kopbaraForst(resten, (v) => v.slut === true);
+
+  it("utan namnträff är svaret ordningen själv", () => {
+    for (const namn of [undefined, 0, -1]) {
+      const ut = namnForst([B, A, D, C], namn, kopbara);
+      assert.deepEqual(ut.traffar.map((v) => v.n), ["A", "C", "B", "D"]);
+      assert.equal(ut.namn, 0);
+    }
+  });
+
+  it("☠️ en slutsåld namnträff står kvar först, och resten ordnas som förut", () => {
+    const ut = namnForst([B, D, A, C], 1, kopbara);
+    assert.deepEqual(ut.traffar.map((v) => v.n), ["B", "A", "C", "D"]);
+    assert.equal(ut.namn, 1);
+  });
+
+  it("flera namnträffar behåller sin ordning", () => {
+    const ut = namnForst([D, A, B, C], 2, kopbara);
+    assert.deepEqual(ut.traffar.map((v) => v.n), ["D", "A", "C", "B"]);
+    assert.equal(ut.namn, 2);
+  });
+
+  it("gallringen gäller också namnträffen, och antalet säger vad som står kvar", () => {
+    const billiga = (v: V) => v.kr <= 300;
+    const ut = namnForst([A, B, C, D], 2, kopbara, billiga);
+    // A kostar för mycket och faller bort: bara B är kvar av namnets två.
+    assert.deepEqual(ut.traffar.map((v) => v.n), ["B", "C", "D"]);
+    assert.equal(ut.namn, 1);
+  });
+
+  it("ett antal större än listan kapas, och indatan rörs inte", () => {
+    const lista = [B, A];
+    const ut = namnForst(lista, 5, kopbara);
+    assert.deepEqual(ut.traffar.map((v) => v.n), ["B", "A"]);
+    assert.equal(ut.namn, 2);
+    assert.deepEqual(lista.map((v) => v.n), ["B", "A"]);
+  });
+});
+
 describe("de tre vägarna använder regeln", () => {
   it("sökrutan lägger det köpbara först FÖRE klippet", () => {
     const k = las("lib", "sok-rankning.ts");
-    assert.match(k, /import \{ billigastForst, kopbaraForst \} from "\.\/sok-ordning";/);
-    // `ordnade` är träffarna som de rankades, eller med de billigaste först för "soffa billigast" (2026-11-21).
-    assert.match(k, /const kvar = kopbaraForst\(behall \? ordnade\.filter\(behall\) : ordnade, \(h\) => h\.o === 1\);\s+return \{\s+traffar: kvar\.slice\(0, antal\),\s+totalt: kvar\.length,/);
-    assert.match(k, /const ordnade = villHaBilligast\(term\) && utfall\.hela === undefined\s+\? billigastForst\(utfall\.traffar, \(h\) => varanHeterSa\(h\.n, term\), \(h\) => prisTal\(h\.p\), utfall\.hemma\)\s+: utfall\.traffar;/);
+    assert.match(k, /import \{ billigastForst, kopbaraForst, namnForst \} from "\.\/sok-ordning";/);
+    // Träffarna som de rankades, eller med de billigaste först för "soffa billigast" (2026-11-21),
+    // sedan det köpbara först, sedan klippet. Varan som heter som sökningen hos en
+    // prisjämförelsesajt står kvar först (namnForst, 2026-11-25), och priset gallrar alla.
+    assert.match(k, /const billigast = villHaBilligast\(term\) && utfall\.hela === undefined;/);
+    assert.match(k, /const \{ traffar: kvar, namn \} = namnForst\(\s+utfall\.traffar,\s+utfall\.namn,\s+\(resten\) => kopbaraForst\(\s+billigast \? billigastForst\(resten, \(h\) => varanHeterSa\(h\.n, term\), \(h\) => prisTal\(h\.p\), utfall\.hemma\) : resten,\s+\(h\) => h\.o === 1,\s+\),\s+behall,\s+\);\s+return \{\s+traffar: kvar\.slice\(0, antal\),\s+totalt: kvar\.length,/);
     // Kontaktformulärets väljare klipper på relevans först: där letar kunden efter en vara den redan köpt.
     assert.match(k, /export function rankaForslag\(idx: SokTraff\[\], term: string, antal: number\): SokTraff\[\] \{\s+return rankByName\(idx, \(h\) => h\.n, term, namnFor\(idx\)\)\s+\.slice\(0, antal\)\s+\.sort\(/);
   });
@@ -155,8 +202,16 @@ describe("de tre vägarna använder regeln", () => {
   it("servern rankar katalogen i sökningens ordning och lägger det köpbara först", () => {
     const sida = las("app", "sok", "page.tsx");
     assert.match(sida, /const all = term \? katalogensSokordning\(await getProducts\(\)\) : \[\];/);
-    assert.match(sida, /results = await attachRatings\(kopbaraForst\(results, \(p\) => !p\.inStock\)\);/);
-    assert.match(sida, /if \(billigast && hela === undefined && results\.length > 1\) \{\s+results = billigastForst\(results, \(p\) => varanHeterSa\(p\.name, fraga\), lagstaPris, utfall\.hemma\);\s+prisordning = utfall\.hemma \? "kategori" : "namn";/);
+    // Namnens träffar: billigast först när sökningen ber om det, sedan det köpbara först,
+    // med varan som heter som sökningen kvar först (namnForst, 2026-11-25).
+    assert.match(sida, /const prisordna = billigast && hela === undefined && utfall\.traffar\.length > 1;/);
+    assert.match(sida, /const ordnat = namnForst\(utfall\.traffar, utfall\.namn, \(resten\) => kopbaraForst\(\s+prisordna \? billigastForst\(resten, \(p\) => varanHeterSa\(p\.name, fraga\), lagstaPris, utfall\.hemma\) : resten,\s+\(p\) => !p\.inStock,\s+\)\);\s+results = ordnat\.traffar;/);
+    assert.match(sida, /if \(prisordna\) prisordning = utfall\.hemma \? "kategori" : "namn";/);
+    // Reserven i beskrivningarna lägger också det köpbara först.
+    assert.match(sida, /results = kopbaraForst\(\s+all\.filter\(\(p\) => normalize\(p\.blurb \|\| ""\)\.includes\(phrase\) \|\| normalize\(p\.specs \|\| ""\)\.includes\(phrase\)\),\s+\(p\) => !p\.inStock,\s+\);/);
+    // Ingen ordning läggs på efteråt: den hade flyttat en slutsåld namnträff sist.
+    assert.match(sida, /results = await attachRatings\(results\);/);
+    assert.doesNotMatch(sida, /attachRatings\(kopbaraForst\(/);
     // Beskedet visas bara när listan ordnats: det bär samma variabel.
     assert.match(sida, /billigast: prisordning,/);
   });
@@ -167,9 +222,9 @@ describe("de tre vägarna använder regeln", () => {
 
   it("den kalla vägen lägger det köpbara först med samma funktion", () => {
     const kalla = las("components", "sok-kall.tsx");
-    assert.match(kalla, /const traffar = kopbaraForst\(ordnade, \(p\) => !p\.inStock\);/);
-    // Samma "billigast"-ordning som servern och sökrutan, före lagerregeln.
-    assert.match(kalla, /const ordnade = billigast \? billigastForst\(u\.traffar, \(p\) => varanHeterSa\(p\.name, prisfraga\.fraga\), lagstaPris, u\.hemma\) : u\.traffar;/);
+    // Samma "billigast"-ordning som servern och sökrutan, före lagerregeln, och
+    // varan som heter som sökningen kvar först (namnForst, 2026-11-25).
+    assert.match(kalla, /const \{ traffar, namn \} = namnForst\(u\.traffar, u\.namn, \(resten\) => kopbaraForst\(\s+billigast \? billigastForst\(resten, \(p\) => varanHeterSa\(p\.name, prisfraga\.fraga\), lagstaPris, u\.hemma\) : resten,\s+\(p\) => !p\.inStock,\s+\)\);/);
     assert.match(kalla, /kall: true,/);
   });
 });
