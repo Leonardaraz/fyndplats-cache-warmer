@@ -2709,9 +2709,19 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
 /* Hjärtat slår ett slag när det tänds. Bara efter ett tryck (data-nyss), aldrig när sidan laddas. */
 @keyframes hjartslag{0%{transform:scale(1)}40%{transform:scale(1.28)}100%{transform:scale(1)}}
 .wl-heart[data-nyss] svg,.fav-knapp[data-nyss] svg{animation:hjartslag .36s ease-out}
-/* Produktsidan: hjärtat står bredvid köpknappen, lika högt som den. */
+/* Produktsidan: hjärtat och GoWish-rutan står bredvid köpknappen, lika höga
+   som den (GoWish-rutan: app/produkt/[slug]/gowish.css). Med tre knappar i
+   raden fick "Lägg i varukorgen" inte plats på en rad i 375 px (mätt
+   2026-11-26). Köpknappen har därför mindre luft på sidorna i raden, och på
+   en smal telefon blir rutorna 48 px och mellanrummen 8 px. */
 .buy-rad{display:flex;align-items:stretch;gap:10px}
-.buy-rad .buy{flex:1 1 auto;min-width:0}
+.buy-rad .buy{flex:1 1 auto;min-width:0;padding-left:16px;padding-right:16px}
+@media(max-width:420px){
+  .buy-rad{gap:8px}
+  .buy-rad .buy{padding-left:12px;padding-right:12px}
+  .buy-rad .fav-knapp{width:48px}
+}
+@media(max-width:340px){.buy-rad .buy{font-size:var(--text-sm)}}
 .fav-knapp{flex:none;display:inline-flex;align-items:center;justify-content:center;width:54px;min-height:52px;border:1.5px solid #D8CFC5;border-radius:var(--r-md);background:#fff;color:var(--ink);cursor:pointer;transition:border-color .15s,color .15s,background .15s}
 .fav-knapp:hover{border-color:var(--brand);color:var(--brand)}
 .fav-knapp.on{border-color:rgba(194,65,12,.4);background:#FFF6F1;color:var(--brand)}

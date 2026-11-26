@@ -941,13 +941,13 @@ export function ProductView({
               pris={!options && !multiAxis && priceNum ? formatPrice(priceNum) : undefined}
               bild={images[0] ? tightFillUrl(images[0], FAVORITBILD_KANT, FAVORITBILD_KANT) : undefined}
             />
+            {/* GoWish önskelista, en ruta bredvid hjärtat
+                (components/gowish-knapp.tsx). Bara när varan finns i lager: en
+                önskan om en slutsåld vara skickar den som ska köpa presenten
+                till en sida utan köpknapp. Är bara det valda alternativet slut
+                står knappen kvar, varan går att köpa. */}
+            {inStock && <GowishKnapp slug={slug} />}
           </div>
-
-          {/* GoWish önskelista (components/gowish-knapp.tsx). Bara när varan
-              finns i lager: en önskan om en slutsåld vara skickar den som ska
-              köpa presenten till en sida utan köpknapp. Är bara det valda
-              alternativet slut står knappen kvar, varan går att köpa. */}
-          {inStock && <GowishKnapp slug={slug} />}
 
           {!buyable && productId && <RestockForm productId={productId} />}
 

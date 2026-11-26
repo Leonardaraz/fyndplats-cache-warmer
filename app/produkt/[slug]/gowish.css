@@ -1,26 +1,28 @@
-/* GoWish önskelistknapp under köpraden (components/gowish-knapp.tsx, Leonard
-   2026-11-25). GoWish egen stilmall laddas inte: den hämtar ett typsnitt från
-   en fjärde part och ikoner från deras lagring på varje sidvisning
-   (lib/gowish.ts). Knappen är den grå varianten i deras guide, ritad i
-   butikens form: samma ram, hörn och höjd som hjärtat bredvid köpknappen.
+/* GoWish önskelistknapp: en ruta i köpraden, bredvid hjärtat
+   (components/gowish-knapp.tsx, Leonard 2026-11-26: "den varianten som är
+   bara en ruta ... bredvid vår egen med gowish symbolen proffsigt"). Det är
+   GoWish variant utan text, ritad i butikens form: samma bredd, höjd, ram och
+   hörn som hjärtat (.fav-knapp i app/globals.css). GoWish egen stilmall laddas
+   inte: den hämtar ett typsnitt från en fjärde part och ikoner från deras
+   lagring på varje sidvisning (lib/gowish.ts).
+
+   Molnet står i GoWish blå, den mörkare tonen ur deras runda knapp (#387ED4,
+   4,1:1 mot vitt). Deras ljusa blå (#4397FF) ger 2,95:1 och klarar inte 3:1,
+   som en ikon behöver när den ensam säger vad knappen gör.
 
    Samma klass sitter på en länk (utan samtycke till alla cookies, och i
-   serverns HTML) och på en knapp (med samtycke). De har samma mått, och höjden
-   finns från början (min-height), så sidan flyttar sig varken när de byts
-   eller när skriptet kommer. */
-.pdp-gowish{margin-top:10px}
-.pdp-gowish .gowish-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;max-width:404px;min-height:46px;margin:0;padding:0 18px;
-  border:1.5px solid #D8CFC5;border-radius:var(--r-md);background:#fff;color:var(--ink);
-  font:inherit;font-size:var(--text-sm);font-weight:600;line-height:1.2;text-align:center;text-decoration:none;cursor:pointer;
-  transition:border-color .15s,background .15s}
-.pdp-gowish .gowish-btn svg{flex:none;display:block;color:#0D1E33}
-.pdp-gowish .gowish-btn:hover{border-color:#0D1E33;background:#F6F8FB}
-.pdp-gowish .gowish-btn:active{background:#EEF2F7}
-.pdp-gowish .gowish-btn:focus-visible{outline:none;box-shadow:var(--e-ring)}
-/* Telefonen: köpknappen går kant i kant där, och knappen följer den. 48 px för tummen. */
-@media(max-width:760px){
-  .pdp-gowish .gowish-btn{max-width:none;min-height:48px}
-}
+   serverns HTML) och på en knapp (med samtycke). De har samma mått, och
+   höjden finns från början (min-height), så sidan flyttar sig varken när de
+   byts eller när skriptet kommer. */
+.buy-rad .gowish-ikon{flex:none;display:inline-flex;align-items:center;justify-content:center;width:54px;min-height:52px;margin:0;padding:0;
+  border:1.5px solid #D8CFC5;border-radius:var(--r-md);background:#fff;color:#387ED4;
+  font:inherit;text-decoration:none;cursor:pointer;transition:border-color .15s,background .15s,color .15s}
+.buy-rad .gowish-ikon svg{flex:none;display:block}
+.buy-rad .gowish-ikon:hover{border-color:#387ED4;background:#F2F8FF;color:#2D69B5}
+.buy-rad .gowish-ikon:active{background:#E6F1FF}
+.buy-rad .gowish-ikon:focus-visible{outline:none;box-shadow:var(--e-ring)}
+/* Smal telefon: lika smal som hjärtat där (48 px, se .buy-rad i app/globals.css). */
+@media(max-width:420px){.buy-rad .gowish-ikon{width:48px}}
 
 /* GoWish ruta. Skriptet lägger själv in en grundstil när rutan öppnas
    (#gowish-iframe-style). Reglerna här är resten av deras stilmall, ordagrant:

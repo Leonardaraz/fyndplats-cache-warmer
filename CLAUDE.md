@@ -4766,8 +4766,11 @@ sju regler för en önskelista inför julen.
   sidan reserverar, i husstilen från tullinlägget. Allt viktigt står i
   mittkvadraten (x 427–1 372): bloggkortet beskär till 1:1 och startsidans
   kort till 4:3, och båda tar bara mitten. **Bilden i texten**
-  (`/blog-onskelista-steg.webp`) är 1 200 × 1 200, eftersom inläggets
-  bildrutor visas kvadratiska.
+  (`/blog-onskelista-steg-2.webp`) är 1 200 × 1 200, eftersom inläggets
+  bildrutor visas kvadratiska. Den ritades om 2026-11-26, när GoWish-knappen
+  blev en ruta bredvid hjärtat, och fick ett nytt namn så att ingen cache
+  visar den gamla. Texten säger var rutan sitter och att man trycker på
+  molnet.
 - ☠️ **Inget står efter sista svaret under "## Vanliga frågor".** `extractFaq`
   (`lib/local-blog.ts`) lägger varje rad efter sista frågan i sista svaret
   tills nästa `##`, så en avslutande länkrad hamnar i FAQPage. Inlägget slutar
@@ -6929,7 +6932,7 @@ modul:
 
 | | Utan samtycke till alla cookies | Med samtycke |
 |---|---|---|
-| Elementet | en länk, `<a class="gowish-btn">`, till GoWish egen sida i en ny flik | GoWish knapp, `<button id="gowishWhiteButton" class="gowish-btn">` |
+| Elementet | en länk, `<a class="gowish-ikon">`, till GoWish egen sida i en ny flik | GoWish knapp, `<button id="gowishRoundedButton" class="gowish-ikon">` |
 | Hämtas från GoWish före klick | ingenting | skriptet, efter att sidan laddat klart (`strategy="lazyOnload"`) |
 | Klicket | GoWish sida med varan öppnas i en ny flik | GoWish ruta ovanpå sidan, på telefon först appen |
 
@@ -6949,11 +6952,26 @@ modul:
 
 ### Knappen och rutan
 
-- **Under köpraden**, lika bred som köpknappen och hjärtat tillsammans, med
-  butikens ram, hörn och typsnitt. Det är den grå varianten i GoWish guide
-  (`gowishWhiteButton`) med deras moln, texten "Lägg till i GoWish". Bara när
-  varan finns i lager (`inStock`): en önskan om en slutsåld vara skickar den
-  som ska köpa presenten till en sida utan köpknapp.
+- **En ruta i köpraden, bredvid hjärtat** (Leonard 2026-11-26: "jag vill ha
+  den varianten som är bara en ruta tack som kan va bredvid vår egen med
+  gowish symbolen proffsigt"). Det är GoWish variant utan text
+  (`gowishRoundedButton`, "en rund knapp bredvid din produkt" i deras guide),
+  ritad som hjärtat: samma bredd, höjd, ram och hörn (`.fav-knapp`), och 48 px
+  bred på en telefon under 420 px. Deras moln står i GoWish mörkare blå
+  (`#387ED4`, 4,1:1 mot vitt); deras ljusa blå (`#4397FF`) ger 2,95:1 och
+  klarar inte 3:1 för en ikon som ensam säger vad knappen gör. Namnet "Lägg
+  till i GoWish" står i `aria-label` och i `title`. Bara när varan finns i
+  lager (`inStock`): en önskan om en slutsåld vara skickar den som ska köpa
+  presenten till en sida utan köpknapp.
+- **Köpknappen har plats för sin text.** Med tre knappar i raden bröts "Lägg i
+  varukorgen" på två rader i 320–375 px. Köpknappen har därför 16 px luft på
+  sidorna i raden (12 px under 420 px), rutorna och hjärtat är 48 px där och
+  mellanrummen 8 px, och under 340 px står texten i 14 px. Mätt på en
+  produktsida 2026-11-26: en rad i 320–1 440 px, också "✓ Tillagd i
+  varukorgen" utom i 320 px.
+- Skriptet behandlar alla fem id:n lika, och ett tryck på molnet inne i
+  knappen räknas som ett tryck på knappen (`closest("button")` i skriptet,
+  läst 2026-11-26, samma version som 2026-11-25).
 - ☠️ **GoWish stilmall laddas inte.** `gowish-iframe.css` börjar med
   `@import` av typsnittet Geist från en fjärde part (fonts.cdnfonts.com) och
   pekar ut ikoner i deras lagring, på varje sidvisning och i vägen för
@@ -6992,7 +7010,8 @@ Mot det lokala bygget, med GoWish riktiga skript och riktiga ruta:
   rutan ryms i alla.
 - **Förskjutning vid laddning** (CLS): 0 på datorn i båda lägena, 0,0015 på
   telefonen i båda (kom från en annan del av sidan). Länken och knappen har
-  samma mått och samma plats under köpraden.
+  samma mått och samma plats (mätt 2026-11-25, då under köpraden; sedan
+  2026-11-26 en ruta i köpraden, med samma regel).
 - axe (WCAG 2.1 A och AA) på knappen i båda lägena: inga fel.
 
 ### ☠️ Tre saker i GoWish eget skript, som inte går att rätta härifrån

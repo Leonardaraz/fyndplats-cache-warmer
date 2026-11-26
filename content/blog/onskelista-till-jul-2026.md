@@ -16,14 +16,14 @@ alt: "Önskelistan som faktiskt används. Spara fynden i GoWish. Under rubriken 
 
 # Önskelista till jul 2026 – så skriver du en som faktiskt används
 
-Från och med i dag finns en ny knapp på våra produktsidor: **Lägg till i GoWish**. Med den sparar du en vara i din önskelista med ett tryck, och den som ska köpa julklappen hamnar på rätt vara i stället för att gissa. Här går vi igenom hur knappen fungerar, och vad som skiljer en önskelista som blir läst från en som blir liggande.
+Från och med i dag finns en ny knapp på våra produktsidor: **Lägg till i GoWish**, rutan med GoWish moln bredvid köpknappen. Med den sparar du en vara i din önskelista med ett tryck, och den som ska köpa julklappen hamnar på rätt vara i stället för att gissa. Här går vi igenom hur knappen fungerar, och vad som skiljer en önskelista som blir läst från en som blir liggande.
 
-[![Så sparar du en vara i önskelistan i tre steg: öppna varan, tryck på Lägg till i GoWish under köpknappen, och dela listan med familj och vänner](/blog-onskelista-steg.webp)](/alla-produkter "Hitta något att önska dig")
+[![Så sparar du en vara i önskelistan i tre steg: öppna varan, tryck på GoWish-molnet bredvid köpknappen och hjärtat, och dela listan med familj och vänner](/blog-onskelista-steg-2.webp)](/alla-produkter "Hitta något att önska dig")
 
 ## Så sparar du en vara i önskelistan
 
-1. **Öppna varan du vill ha.** Knappen sitter under köpknappen. Den finns på varor som går att köpa just nu, inte på slutsålda.
-2. **Tryck på Lägg till i GoWish.** GoWish öppnas i en ruta på sidan, eller i GoWish-appen om du har den i telefonen. Första gången loggar du in eller skapar ett konto hos dem.
+1. **Öppna varan du vill ha.** Knappen är rutan med GoWish moln, bredvid köpknappen och hjärtat. Den finns på varor som går att köpa just nu, inte på slutsålda.
+2. **Tryck på GoWish-molnet.** GoWish öppnas i en ruta på sidan, eller i GoWish-appen om du har den i telefonen. Första gången loggar du in eller skapar ett konto hos dem.
 3. **Spara önskningen.** GoWish hämtar uppgifterna om varan från vår sida, och önskningen får en länk som leder rakt till varan hos oss.
 4. **Dela listan.** Det gör du i GoWish, med dem du vill.
 
