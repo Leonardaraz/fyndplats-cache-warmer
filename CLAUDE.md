@@ -1095,10 +1095,14 @@ mergen natten mot fredag 27 november.
 
 **Filmen** (`lib/fyndfilm.ts`, `components/fyndfilm.tsx`) står på två ställen:
 
-- **Startsidans auktionsband**, där den gör reklam: en vinklad skärm som sticker upp
-  ur bandet och spelar utan ljud, med rubriken "Priset sjunker varje timme" och en
-  guldknapp (`app/startsida.css`, "Auktionsbandet med reklamfilmen"). Skärmen är dekor
-  i bandets länk (`aria-hidden`).
+- **Startsidans auktionsband**, där den gör reklam: en vinklad skärm inne i bandet
+  som spelar utan ljud, med rubriken "Priset sjunker varje timme" och en guldknapp
+  (`app/startsida.css`, "Auktionsbandet med reklamfilmen"). Skärmen är dekor i bandets
+  länk (`aria-hidden`). ☠️ Den sticker inte ut ur bandet: först stack den upp ovanför
+  (och på datorn under) det mörka bandet, och Leonard såg det som ett fel
+  (2026-11-26). Nu har den 18 px luft runt om, bandet är så högt som skärmen kräver
+  (246 px på datorn, oförändrat på mobilen) och texten står samlad i mitten bredvid
+  den. `lib/fyndfilm.test.ts` fäller en marginal på skärmen.
 - **Auktionssidans studio**: till höger om rubriken på dator och surfplatta, i
   rubrikens övre högra hörn på mobilen (utanför flödet, så att dagens fynd står lika
   högt som utan film). Ett tryck spelar filmen med ljud i ett lager över sidan.

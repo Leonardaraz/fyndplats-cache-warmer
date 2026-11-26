@@ -247,21 +247,28 @@
 .hem2 .auktionsrad{padding:0 0 8px}
 
 /* ── Auktionsbandet med reklamfilmen (Leonard 2026-11-26) ──────────────
-   Filmen (components/fyndfilm.tsx, lib/fyndfilm.ts) står i bandet som en
-   vinklad skärm som sticker upp ur det, i ett eget ljus, med en rubrik och
-   en riktig knapp bredvid. Bandet och skärmen tar studions och nattens
-   färger, så Black Week-temat gör dem guld. Utan film (efter filmens slut)
-   är bandet som förut: klassen sätts av servern, och skärmen släcker sig
-   själv i webbläsaren om sidan legat kvar i cachen. Då står bara rubriken
-   kvar bredvid texten. */
-.hem2 .auktionsrad.med-film{padding:40px 0 30px}
+   Filmen (components/fyndfilm.tsx, lib/fyndfilm.ts) står inne i bandet som
+   en vinklad skärm i ett eget ljus, med en rubrik och en riktig knapp
+   bredvid. ☠️ Skärmen sticker inte ut ur bandet: med negativa marginaler
+   stack den upp ovanför (och på datorn under) det mörka bandet, och Leonard
+   såg det som ett fel (2026-11-26). Den har samma luft runt om som bandets
+   kant, 18 px, och bandet är så högt som skärmen kräver. De två tomma
+   raderna (1fr) ovanför och under texten tar upp skärmens höjd på datorn,
+   så att etiketten, rubriken och texten står samlade i mitten i stället för
+   att glesna. Bandet och skärmen tar studions och nattens färger, så Black
+   Week-temat gör dem guld. Utan film (efter filmens slut) är bandet som
+   förut: klassen sätts av servern, och skärmen släcker sig själv i
+   webbläsaren om sidan legat kvar i cachen. Då står bara rubriken kvar
+   bredvid texten. */
+.hem2 .auktionsrad.med-film{padding:24px 0 22px}
 .hem2 .med-film .auction-banner{display:grid;grid-template-columns:auto minmax(0,1fr) auto;
-  grid-template-areas:"film badge cta" "film rubrik cta" "film text cta";
-  column-gap:28px;row-gap:7px;align-items:center;padding:20px 30px 20px 34px;
+  grid-template-rows:1fr auto auto auto 1fr;
+  grid-template-areas:"film . cta" "film badge cta" "film rubrik cta" "film text cta" "film . cta";
+  column-gap:28px;row-gap:7px;align-items:center;padding:18px 30px 18px 18px;
   background:radial-gradient(64% 150% at 8% -40%,rgba(var(--studio-ljus),.17),rgba(var(--studio-ljus),0) 62%),
     radial-gradient(120% 150% at 100% 110%,var(--glod),transparent 62%),var(--natt-korn),var(--natt);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 26px 50px -30px rgba(0,0,0,.85),0 0 0 1px rgba(255,255,255,.05)}
-.hem2 .med-film .ff-band{grid-area:film;margin:-48px 0 -34px}
+.hem2 .med-film .ff-band{grid-area:film}
 .hem2 .med-film .auction-banner-badge{grid-area:badge;justify-self:start}
 .hem2 .med-film .auction-banner-rubrik{grid-area:rubrik;font-family:var(--font-display),Georgia,serif;font-weight:600;
   font-size:clamp(24px,2.5vw,32px);line-height:1.1;letter-spacing:-.016em;color:var(--natt-ljus);text-wrap:balance}
@@ -277,12 +284,13 @@
   box-shadow:0 16px 30px -14px var(--natt-knapp-skugga),0 2px 0 var(--natt-knapp-kant),inset 0 1px 0 rgba(255,255,255,.4)}
 .hem2 .med-film .auction-banner:hover .auction-banner-cta{transform:translateY(-2px)}
 @media(max-width:600px){
-  .hem2 .auktionsrad.med-film{padding:34px 0 10px}
-  /* Mobilen: texten till vänster, skärmen till höger och upp ur bandet. */
-  .hem2 .med-film .auction-banner{grid-template-columns:minmax(0,1fr) auto;
+  .hem2 .auktionsrad.med-film{padding:22px 0 10px}
+  /* Mobilen: texten till vänster, skärmen till höger, inne i bandet. Texten
+     är högre än skärmen, så raderna följer texten. */
+  .hem2 .med-film .auction-banner{grid-template-columns:minmax(0,1fr) auto;grid-template-rows:none;
     grid-template-areas:"badge film" "rubrik film" "text film" "cta film";
     column-gap:14px;row-gap:8px;align-items:start;padding:18px 16px 20px 20px}
-  .hem2 .med-film .ff-band{margin:-38px 0 0;align-self:start}
+  .hem2 .med-film .ff-band{align-self:start}
   .hem2 .med-film .auction-banner-rubrik{font-size:23px}
   .hem2 .med-film .auction-banner-cta{justify-self:start;margin-top:4px;padding:11px 16px}
 }

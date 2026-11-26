@@ -121,6 +121,17 @@ describe("sidorna", () => {
     assert.doesNotMatch(rubrik, /\d/, "☠️ butikens egna texter nämner aldrig antalet fynd");
   });
 
+  it("☠️ startsidans skärm står inne i bandet, inte upp ur det (Leonard 2026-11-26)", () => {
+    const css = utanKommentarer(kod("app/startsida.css"));
+    const skarm = [...css.matchAll(/\.med-film \.ff-band\{([^}]*)\}/g)].map((m) => m[1]);
+    assert.equal(skarm.length, 2, "skärmens regel för dator och för mobil");
+    for (const r of skarm) assert.doesNotMatch(r, /margin/, "en marginal lyfter skärmen ur bandet");
+    // Datorn: två tomma rader tar upp skärmens höjd, så att texten står samlad i mitten.
+    assert.match(css, /\.hem2 \.med-film \.auction-banner\{display:grid;grid-template-columns:auto minmax\(0,1fr\) auto;\s*grid-template-rows:1fr auto auto auto 1fr;\s*grid-template-areas:"film \. cta" "film badge cta" "film rubrik cta" "film text cta" "film \. cta";/);
+    // Mobilen: fyra rader som följer texten, utan datorns tomma rader.
+    assert.match(css, /grid-template-columns:minmax\(0,1fr\) auto;grid-template-rows:none;\s*grid-template-areas:"badge film" "rubrik film" "text film" "cta film";/);
+  });
+
   it("☠️ inget i filmens kod eller studion skriver ut ett antal fynd", () => {
     for (const rel of ["components/fyndfilm.tsx", "lib/fyndfilm.ts", "app/fyndauktion/fyndauktion.module.css"]) {
       assert.doesNotMatch(utanKommentarer(kod(rel)), /\d+\s*fynd/i, rel);
