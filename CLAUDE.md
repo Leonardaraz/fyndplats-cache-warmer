@@ -1134,8 +1134,9 @@ Hur skärmen hämtar (mätt 2026-11-26: 360p 1,5 MB, 480p 2,0 MB, 720p 3,4 MB, 1
 kortet i tomt läge) står på golvet med studions skugga och glöd. Färgerna är nattens
 och studions variabler, så Black Week-temat gör den svart och guld. Dagen syns i
 ljuset: käglan blir starkare ju närmare kl 19 (`--a-heat`), och sista timmen glöder
-orden i ember-lägets färger. Rutnätet, stegen och de sålda står under studion i
-scenens egna färger (krämen från 2026-11-19 står kvar där).
+orden i ember-lägets färger. Studion har ingen egen bakgrund sedan samma kväll: den står
+i hallen, scenens mörka rum, som fortsätter bakom rutnätet, stegen och de sålda (nästa
+avsnitt).
 
 - ☠️ **Studion är en egen sektion, och mobilens fasta pill (`AuctionLiveBar`) ligger i
   sektionen under.** Studions innehåll ligger över ljuset och golvet (`z-index: 1`), och
@@ -1143,8 +1144,8 @@ scenens egna färger (krämen från 2026-11-19 står kvar där).
 - ☠️ **Ett rutnätsbarn med auto-marginaler krymper till sitt innehåll.** Kortet i tomt
   läge och sista timmens banner fick `width: 100%` i studion med film (surfplattan
   visade kortet 578 px brett).
-- Glödpartiklarna ritas bakom sidans innehåll och syns därför inte i studion, bara i
-  scenen under. Blixtarna vid timslaget och sista timmens vinjett syns som förut.
+- Glödpartiklarna ritas bakom sidans innehåll. Sedan hallen kom syns de i hela scenen,
+  också i studion. Blixtarna vid timslaget och sista timmens vinjett syns som förut.
 
 Mätt 2026-11-26 mot ett lokalt bygge (tomt läge, utan auktionsdata): skärmen spelar 360p
 på mobil och surfplatta och 480p på dator, lagret spelar 1080p med ljud, Escape och
@@ -1153,6 +1154,70 @@ sidscroll på 19 bredder (320–1 920 px), axe-core utan fel i studion på mobil
 Startsidans band och studion med dagens fynd provades i förhandsbygget (riktig data).
 **Inte provat:** Safari och en riktig iPhone (perspektivet, inline-spelningen och
 ljudet i lagret).
+
+## Fyndauktionen: hallen och sidans snabbhet (Leonard 2026-11-26)
+
+Leonard samma kväll: "Kolla om du kan få bakrunden att bli 3d kodad premium loook och
+att sidan är hastighetsootimerad till nattens merge." Bakgrunden under studion var
+krämen från 2026-11-19, och sidan var tung på en telefon.
+
+**Hallen** (`.a-rum` i `app/globals.css`, ritad av `components/auction-stage.tsx`):
+hela scenen är ett mörkt rum i 3D, samma som studion överst. Väggen har två ljuskäglor
+från taket, en ljus linje där väggen möter golvet, ljuspölar på golvet och en varm glöd
+längst fram. Rummet står still medan fynden glider förbi, och det är rörelsen mellan dem
+som ger djupet. Glödpartiklarna stiger framför rummet och bakom korten. Färgerna är
+studions (`--natt`, `--studio-ljus`, `--studio-glod`), så Black Week gör rummet svart och
+guld. Rummets ljus blir starkare ju närmare kl 19 (`--a-heat`), och sista timmen glöder
+det orange. Korten står i studions ljus (ljus kant, tät skugga och glöd, som brickorna i
+startsidans hjälte) och följer dagens färger som förut. Texten i hallen är ljus, stegen
+står på en glasskiva, nyhetsbrevet står på hallens golv, och sidfoten tar vid direkt.
+
+- ☠️ **Rummet målas en gång.** Ingen animation, inget filter och ingen blandning i det:
+  en rörlig effekt i ett lager som täcker hela fönstret målas om i varje bildruta.
+- ☠️ **Rummet är `position: sticky` i ett lager lika stort som scenen, inte fixed.** Det
+  slutar där scenen slutar av sig självt. Det fungerar bara för att `html` och `body`
+  klipper med `overflow-x: clip`. Med `hidden` blir `body` en rullningsruta, och sticky
+  slutar fungera utan att något felar.
+- Scenens krämvariabler (`--a-bg1`, `--a-bg2`) och den oanvända `--a-ink` är borta, ur
+  CSS:en och ur skriptets färgsteg.
+
+**Snabbheten.** Mätt på www före ändringen (iPhone 13 i Chromium, processorn strypt
+fyra gånger, tre laddningar): huvudtråden var upptagen 1 000 ms per sekund när sidan
+bara låg öppen, stilen räknades om 80–120 ms per sekund, och blockeringen under
+laddningen (TBT) var 1,7–2,3 s. Orsakerna och vad som gjordes:
+
+1. `--a-heat` skrevs med full precision varje sekund på scenen. En variabel där ärvs av
+   hela sidan, så stilen räknades om för alla kort varje sekund. Nu avrundas den till
+   hundradelar och skrivs bara när den ändrats, liksom kortens färger.
+2. Glödloopen läste värmen med `getComputedStyle` i varje bildruta och ritade dygnet
+   runt, också före 07 och efter 19 då det inte fanns något att rita. Nu bor värmen i
+   skriptet, och loopen står still när det inte finns värme, partiklar eller blixtar,
+   när scenen inte syns och när fliken är dold. Klockan väcker den.
+3. Varje glödprick fick en ny radialgradient i varje bildruta. Nu är pricken en färdig
+   bild som ritas med `drawImage`.
+4. Glödcanvasen ritades i dubbel täthet med `mix-blend-mode: screen` över hela fönstret.
+   En telefon ritar nu i CSS-pixlar, och blandningen är borta (mot hallens mörker ger
+   vanlig blandning samma bild).
+5. SISTA TIMMEN-märket pulserade med `box-shadow` hela dagen, också de elva timmar då
+   bannern är dold. Nu pulserar det bara när bannern syns, med transform och opacity.
+   Samma sak med tomma lägets prick.
+6. Pillens linje på mobilen ändrade bredd varje sekund med en övergång på en sekund, så
+   pillen lades om i varje bildruta. Nu skalas den, utan övergång. Pillens oskärpa bakom
+   (`backdrop-filter`) syntes inte genom 97 % täckning och är borta.
+7. Luntan går i halvminutstakt i stället för sekundtakt (den flyttar sig en pixel i
+   minuten).
+8. Blobbarna var oskärpade med `filter: blur()` och drev dygnet runt fast de bara syns
+   sista timmen. Nu är mjukheten en toning, och de rör sig bara sista timmen.
+9. Knappens ljussvep sista timmen flyttas med transform i stället för `left`.
+10. ☠️ **Fyndens färska priser hämtas i en fråga per hundra fynd** (`getFreshPrices`
+    genom favoriternas `getProdukterForSluggar`), inte en fråga per fynd. Med Black
+    Weeks 100 fynd ställde varje sidbygge 100 frågor till Wix samtidigt. En fråga som
+    fallerar prövas en gång till; fallerar den igen visar kortet katalogens pris.
+    Kontrollerat mot butiken: tre fynd och en påhittad adress i samma fråga gav exakt de
+    tre.
+
+`lib/hallen.test.ts` håller reglerna. `lib/prestanda-css.test.ts` undantar nu bara
+knappens glöd sista timmen.
 
 ## Googles ?srsltid= tas bort ur adressfältet (2026-09-30)
 
@@ -3772,10 +3837,12 @@ tappade kontrasten, och scenen blev platt. Jag hade läst "passar inte in
 jämfört med våra andra sidor" som "gör den vit som de andra", utan att fråga.
 Frågan var tonen, inte att sidan har en egen värme.
 
-Auktionens första färgsteg står på två ställen som måste vara lika: `.a-stage`
+Auktionens första färgsteg stod på två ställen som måste vara lika: `.a-stage`
 i `app/globals.css` och `LIGHT[0]` i `components/auction-stage.tsx`. Värmen
 under dagen (07 till 19, och glöden sista timmen) är kvar: det är auktionens
-egen dramaturgi, och den börjar nu från butikens kräm.
+egen dramaturgi, och den började från butikens kräm. **Ersatt 2026-11-26:**
+scenen är hallen, ett mörkt rum ("Fyndauktionen: hallen och sidans snabbhet").
+Krämvariablerna är borta, och dagens värme syns i rummets ljus och i korten.
 
 ## Sökrutan: två bokstäver är början på ett ord (2026-11-19)
 

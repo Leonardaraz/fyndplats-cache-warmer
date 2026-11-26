@@ -7,9 +7,11 @@ import { useClientNow } from "./use-client-now";
 
 export function AuctionFuse({ startAt }: { startAt: string | null }) {
   // Renderas först efter mount: bredden beror på klockan och skulle annars
-  // ge server/klient-hydration-mismatch. Sekundtakten är sidans gemensamma
-  // klocka, samma slag som korten (lib/delad-klocka.ts).
-  const { nowMs: now, mounted } = useClientNow(0, 1000);
+  // ge server/klient-hydration-mismatch. Klockan är sidans gemensamma
+  // (lib/delad-klocka.ts), i halvminutstakt: luntan är tolv timmar lång och
+  // flyttar sig ungefär en pixel i minuten, så sekundtakten lade bara om den
+  // varje sekund utan att något syntes.
+  const { nowMs: now, mounted } = useClientNow(0, 30_000);
   if (!startAt || !mounted) return null;
   const p = Math.min(1, Math.max(0, (now - Date.parse(startAt)) / AUCTION_DAY_MS));
   return (

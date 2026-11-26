@@ -33,7 +33,7 @@ export const revalidate = 30;
 /**
  * Fynden sidan visar, hämtade EN gång per sidbygge. Både beskrivningen
  * (generateMetadata) och sidan läser dem, och utan `cache` hade varje bygge
- * frågat motorn och Wix två gånger (getFreshPrices ställer en fråga per fynd).
+ * frågat motorn och Wix två gånger (getFreshPrices frågar Wix om fyndens priser).
  */
 const visadeFynd = cache(() => getLiveAuctions({ sida: "fyndauktion" }));
 

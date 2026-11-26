@@ -3751,24 +3751,68 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
   /* clip-path (inte overflow): klipper även de FASTA lagren nedan (glödcanvasen)
      och glödblobbarna, så inget läcker ut på nyhetsbrevet under scenen. */
   clip-path:inset(0);
-  /* VILOLÄGET ÄR BUTIKENS EGEN KRÄM (2026-11-19): vitt överst som tonar till
-     --warm (#FFF6EF), samma ton som köpguidernas sektion på startsidan. Det var
-     kräm till en gulbeige persika (#FFF9F3 → #FCEFE0) som inte finns någon
-     annanstans i butiken. Helt vitt prövades samma natt och föll: korten är
-     vita och tappade kontrasten, och scenen blev platt (Leonard: "tycker vit
-     passar för fyndauktionen??"). Värmen kommer fortfarande under dagen:
-     klienten blandar härifrån mot de varmare stegen
-     (components/auction-stage.tsx, där första steget måste vara samma färger
-     som här). */
-  --a-bg1:#FFFFFF; --a-bg2:#FFF6EF; --a-ink:#241c16; --a-soft:#6b6157;
+  /* SCENEN ÄR EN HALL (Leonard 2026-11-26: "bakrunden ... 3d kodad premium
+     loook"). Krämen från 2026-11-19 är borta: hela scenen är samma mörka rum
+     som studion överst (.a-rum nedan), och korten står i studions ljus.
+     Dagen syns i ljuset och i korten: rummets ljus blir starkare ju närmare
+     kl 19 (--a-heat), korten värms från vitt mot bärnsten
+     (components/auction-stage.tsx), och sista timmen glöder allt i
+     ember-läget. Färgen här syns bara innan rummet hunnit ritas. */
+  --a-soft:#6b6157;
   --a-accent:var(--brand); --a-accent2:#F47A35; --a-gold:#FFB300;
   --a-card:#ffffff; --a-cardink:#241c16; --a-line:var(--line); --a-heat:0;
   position:relative;
-  background:radial-gradient(120% 80% at 50% -8%, var(--a-bg1), var(--a-bg2) 62%, var(--a-bg2));
-  transition:background 1.1s cubic-bezier(.4,0,.2,1);
+  background:#0B0A09;
 }
+/* ── HALLEN: rummet bakom fynden (Leonard 2026-11-26) ─────────────────────
+   Väggen med två ljuskäglor från taket, en ljus linje där väggen möter
+   golvet, ljuspölar på golvet och en varm glöd längst fram. Rummet står
+   STILLA medan fynden glider förbi, och det är rörelsen mellan dem som ger
+   djupet. Samma ljus som studion och startsidans hjälte (--natt,
+   --studio-ljus, --studio-glod), så Black Week-temat gör rummet svart och
+   guld utan egna regler.
+   ☠️ Allt i rummet är stillastående: det målas EN gång och flyttas sedan av
+   grafikkortet. Ingen animation, inget filter och ingen blandning här. En
+   rörlig effekt i ett lager som täcker hela fönstret målas om i varje
+   bildruta.
+   ☠️ Sticky i ett lager lika stort som scenen, inte fixed: rummet slutar där
+   scenen slutar av sig självt. html och body klipper med overflow-x:clip,
+   inte hidden. Med hidden hade body blivit en rullningsruta, och sticky hade
+   slutat fungera. */
+.a-rum{position:absolute;inset:0;z-index:0;pointer-events:none}
+.a-rum-vy{position:sticky;top:0;height:100vh;overflow:hidden;
+  background:var(--natt-korn),
+    radial-gradient(125% 92% at 50% 40%,rgba(0,0,0,0) 48%,rgba(0,0,0,.62) 100%),
+    linear-gradient(180deg,rgba(0,0,0,.4) 0%,rgba(0,0,0,0) 24%),
+    linear-gradient(180deg,rgba(var(--studio-ljus),0) 0%,rgba(var(--studio-ljus),.035) 64%,rgba(var(--studio-ljus),0) 64.6%,rgba(var(--studio-ljus),.06) 65.4%,rgba(var(--studio-ljus),.025) 86%,rgba(0,0,0,.22) 100%),
+    var(--natt)}
+/* Ljuset: linjen där väggen möter golvet, pölarna under käglorna, glöden
+   längst fram och skenet på väggen. Starkare ju närmare kl 19. */
+.a-rum-vy::before{content:"";position:absolute;inset:0;opacity:calc(.62 + var(--a-heat,0) * .38);
+  background:radial-gradient(46% 3px at 50% 65%,rgba(var(--studio-ljus),.34),rgba(var(--studio-ljus),0)),
+    radial-gradient(24% 8% at 16% 71%,rgba(var(--studio-ljus),.17),rgba(var(--studio-ljus),0) 74%),
+    radial-gradient(24% 8% at 84% 71%,rgba(var(--studio-ljus),.17),rgba(var(--studio-ljus),0) 74%),
+    radial-gradient(70% 26% at 50% 104%,rgba(var(--studio-glod),.24),rgba(var(--studio-glod),0) 74%),
+    radial-gradient(13% 44% at 16% 22%,rgba(var(--studio-ljus),.075),rgba(var(--studio-ljus),0) 72%),
+    radial-gradient(13% 44% at 84% 22%,rgba(var(--studio-ljus),.075),rgba(var(--studio-ljus),0) 72%)}
+/* Käglorna från taket. */
+.a-rum-vy::after{content:"";position:absolute;inset:0;
+  background:conic-gradient(from 165deg at 16% -8%,rgba(var(--studio-ljus),0) 0deg,rgba(var(--studio-ljus),.07) 9deg,rgba(var(--studio-ljus),.115) 15deg,rgba(var(--studio-ljus),.07) 21deg,rgba(var(--studio-ljus),0) 30deg,transparent 30deg 360deg),
+    conic-gradient(from 165deg at 84% -8%,rgba(var(--studio-ljus),0) 0deg,rgba(var(--studio-ljus),.07) 9deg,rgba(var(--studio-ljus),.115) 15deg,rgba(var(--studio-ljus),.07) 21deg,rgba(var(--studio-ljus),0) 30deg,transparent 30deg 360deg);
+  -webkit-mask-image:linear-gradient(180deg,#000 0%,rgba(0,0,0,.55) 46%,transparent 70%);mask-image:linear-gradient(180deg,#000 0%,rgba(0,0,0,.55) 46%,transparent 70%)}
+/* Sista timmen glöder rummet i ember-lägets färger. */
+.a-stage.a-final .a-rum-vy::before{opacity:1;
+  background:radial-gradient(46% 3px at 50% 65%,rgba(255,150,70,.45),rgba(255,150,70,0)),
+    radial-gradient(24% 8% at 16% 71%,rgba(255,110,30,.22),rgba(255,110,30,0) 74%),
+    radial-gradient(24% 8% at 84% 71%,rgba(255,110,30,.22),rgba(255,110,30,0) 74%),
+    radial-gradient(80% 34% at 50% 104%,rgba(255,90,20,.34),rgba(255,90,20,0) 74%),
+    radial-gradient(13% 44% at 16% 22%,rgba(255,140,60,.09),rgba(255,140,60,0) 72%),
+    radial-gradient(13% 44% at 84% 22%,rgba(255,140,60,.09),rgba(255,140,60,0) 72%)}
+/* Sidfoten tar vid direkt under hallen, utan ett vitt band emellan
+   (nyhetsbrevet står på hallens golv, app/fyndauktion/fyndauktion.module.css). */
+main:has(.a-stage)+footer{margin-top:0}
 .a-flow{position:relative;z-index:3}
-.a-embers{position:fixed;inset:0;pointer-events:none;z-index:1;mix-blend-mode:screen;width:100vw;height:100vh}
+.a-embers{position:fixed;inset:0;pointer-events:none;z-index:1;width:100vw;height:100vh}
 /* Canvasen var scenhög men bitmapen fönsterstor: partiklarna sträcktes till
    streck, och gnistorna vid 18 hamnade fel eftersom de räknas i fönstrets
    koordinater (getBoundingClientRect). Fast position = en pixel per pixel. */
@@ -3781,30 +3825,39 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
 .a-flash.zapf{animation:aZapGo .5s ease-out forwards}
 @keyframes aFlashGo{0%{opacity:0}12%{opacity:.85}100%{opacity:0}}
 @keyframes aZapGo{0%{opacity:0}10%{opacity:.45}100%{opacity:0}}
-.a-blob{position:absolute;width:44vw;height:44vw;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:1;opacity:0;transition:opacity 2s}
+/* Glödblobbarna syns och rör sig bara sista timmen. De var oskärpade med
+   filter:blur(90px) och drev dygnet runt fast de var osynliga: en oskärpa
+   på ett lager som rör sig räknas om av grafikkortet i varje bildruta. Nu
+   är mjukheten en toning i bakgrunden. */
+.a-blob{position:absolute;width:44vw;height:44vw;border-radius:50%;pointer-events:none;z-index:1;opacity:0;transition:opacity 2s}
 .a-stage.a-final .a-blob{opacity:.5}
-.a-b1{left:-12vw;bottom:-18vw;background:radial-gradient(circle,#ff6a1e,transparent 65%);animation:aDrift1 14s ease-in-out infinite alternate}
-.a-b2{right:-14vw;top:-10vw;background:radial-gradient(circle,#c23a06,transparent 65%);animation:aDrift2 17s ease-in-out infinite alternate}
+.a-b1{left:-12vw;bottom:-18vw;background:radial-gradient(circle,rgba(255,106,30,.9) 0%,rgba(255,106,30,.45) 26%,rgba(255,106,30,.14) 48%,rgba(255,106,30,0) 70%)}
+.a-b2{right:-14vw;top:-10vw;background:radial-gradient(circle,rgba(194,58,6,.9) 0%,rgba(194,58,6,.45) 26%,rgba(194,58,6,.14) 48%,rgba(194,58,6,0) 70%)}
+.a-stage.a-final .a-b1{animation:aDrift1 14s ease-in-out infinite alternate}
+.a-stage.a-final .a-b2{animation:aDrift2 17s ease-in-out infinite alternate}
 @keyframes aDrift1{to{transform:translate(6vw,-5vw) scale(1.15)}}
 @keyframes aDrift2{to{transform:translate(-5vw,6vw) scale(1.1)}}
 .a-flow.beat{animation:aBeat .55s cubic-bezier(.3,.6,.3,1)}
 @keyframes aBeat{0%{transform:scale(1)}30%{transform:scale(1.012)}100%{transform:scale(1)}}
 
-/* Text & rubriker följer temperaturen */
-.a-stage .a-title{color:var(--a-ink);transition:color 1.1s}
-.a-stage .a-hot{color:var(--a-accent);transition:color 1.1s}
-.a-stage .a-lede,.a-stage .sechead p{color:var(--a-soft);transition:color 1.1s}
-.a-stage .a-eyebrow{color:var(--a-accent);transition:color 1.1s}
+/* Texten i hallen är ljus på mörkt, som i studion. Korten har egna färger. */
+.a-stage .a-title{color:var(--natt-ljus);text-shadow:0 2px 24px rgba(0,0,0,.45)}
+.a-stage .a-hot{color:var(--glod-a)}
+.a-stage .a-lede,.a-stage .sechead p{color:var(--natt-dampad)}
+.a-stage .a-eyebrow{color:var(--glod-ljus)}
 .a-stage .a-how div{background:color-mix(in srgb,var(--a-card) 88%, transparent);border-color:var(--a-line);color:var(--a-cardink);transition:background 1.1s,border-color 1.1s,color 1.1s}
 .a-stage .a-how b{color:var(--a-accent);transition:color 1.1s}
-.a-stage .a-fineprint,.a-stage .a-empty,.a-stage .a-fcap{color:var(--a-soft);transition:color 1.1s}
+.a-stage .a-fcap{color:var(--natt-dampad)}
 /* Fyra fynd i ett femkolumnsrutnät lämnade ett tomt hål till höger under
    hjältekortet. auto-fit fäller tomma spår, maxbredden hindrar ett ensamt
    kort från att sträckas över hela raden, och raden centreras. */
 .a-stage .auction-grid{grid-template-columns:repeat(auto-fit,minmax(210px,260px));justify-content:center}
-.a-stage .a-sold li{border-color:var(--a-line)}
-.a-stage .a-sold a{color:var(--a-ink);transition:color 1.1s}
-.a-stage .a-sold span{color:var(--a-soft)}
+.a-stage .a-sold li{border-color:rgba(255,255,255,.1)}
+.a-stage .a-sold a{color:var(--natt-ljus)}
+.a-stage .a-sold a:hover{color:var(--glod-ljus)}
+.a-stage .a-sold span{color:var(--natt-dampad)}
+.a-stage .a-sold b{color:var(--natt-ljus)}
+.a-stage .a-sold em{color:#8EDBA9}
 .a-stage.a-final .a-sold em{color:var(--a-gold)}
 
 /* Stubinen */
@@ -3826,11 +3879,20 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
 .a-climax-inner{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;text-align:center;
   background:linear-gradient(100deg,#2a0f04,#5a1e06);border:1px solid #7a3312;border-radius:var(--r-lg);padding:13px 22px;
   box-shadow:0 20px 50px -20px rgba(255,90,20,.6), inset 0 0 30px rgba(255,120,40,.12)}
-.a-climax-badge{font-weight:900;font-size:var(--text-xs);letter-spacing:.06em;color:#fff;background:var(--sale-fill);
-  padding:6px 13px;border-radius:var(--r-pill);animation:aPulseBadge 1.3s ease-in-out infinite}
+/* Pulsen går bara medan bannern syns, och bara på grafikkortet: märket
+   skalas och en ring skalas och tonas ut (transform och opacity). Förut
+   animerades box-shadow utan slut, också de elva timmar om dagen då bannern
+   står dold, och sidan målades om i varje bildruta (mätt 2026-11-26). */
+.a-climax-badge{position:relative;font-weight:900;font-size:var(--text-xs);letter-spacing:.06em;color:#fff;background:var(--sale-fill);
+  padding:6px 13px;border-radius:var(--r-pill);box-shadow:var(--e1)}
+.a-climax-badge::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  box-shadow:0 0 0 3px rgba(248,72,72,.55);opacity:0}
+.a-climax.show .a-climax-badge{animation:aPulseBadge 1.3s ease-in-out infinite}
+.a-climax.show .a-climax-badge::after{animation:aBadgeRing 1.3s ease-out infinite}
 .a-climax-txt{color:#FFE7CE;font-size:var(--text-sm);font-weight:600}
 .a-climax-txt b{color:var(--a-gold);font-variant-numeric:tabular-nums}
-@keyframes aPulseBadge{0%,100%{transform:scale(1);box-shadow:var(--e1)}50%{transform:scale(1.06);box-shadow:0 0 0 10px rgba(248,72,72,0)}}
+@keyframes aPulseBadge{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+@keyframes aBadgeRing{0%{transform:scale(1);opacity:.85}70%,100%{transform:scale(1.4,1.7);opacity:0}}
 
 /* Odometern */
 .a-odo{display:inline-flex;align-items:flex-start;overflow:hidden;height:1em;line-height:1;vertical-align:baseline}
@@ -3884,7 +3946,10 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
   background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);pointer-events:none}
 .a-stage.a-final .a-hc-btn::after{animation:aShine 2.3s ease-in-out infinite}
 .a-stage.a-final .a-hc-btn{animation:aBtnGlow 1.6s ease-in-out infinite}
-@keyframes aShine{0%,52%{left:-60%}100%{left:135%}}
+/* Svepet flyttas med transform, inte left: left lägger om sidan i varje
+   bildruta. 610 % av svepets bredd (32 % av knappen) är 195 % av knappen,
+   samma väg som förut från −60 % till 135 %. */
+@keyframes aShine{0%,52%{transform:translateX(0) skewX(-18deg)}100%{transform:translateX(610%) skewX(-18deg)}}
 @keyframes aBtnGlow{0%,100%{box-shadow:var(--e3)}50%{box-shadow:var(--e3),0 0 0 5px rgba(255,122,47,.22),0 0 30px rgba(255,122,47,.55)}}
 
 /* Småkorten följer temperaturen + glöder sista timmen */
@@ -3898,7 +3963,16 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
 .a-stage .a-card .pimg::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;opacity:0;transition:opacity 1.2s;
   background:radial-gradient(120% 100% at 50% 0%, transparent 62%, rgba(50,15,2,.2) 100%);mix-blend-mode:multiply}
 .a-stage.a-final .a-card .pimg::after{opacity:1}
-.a-stage.a-final .a-card{box-shadow:var(--e4)}
+/* Korten står i hallens ljus, som brickorna i startsidans hjälte: ljus kant,
+   tät skugga där de möter golvet och studions glöd runt om. Sista timmen är
+   korten mörka (ember) och glöder orange. */
+.a-stage .a-card{border-color:rgba(255,255,255,.92);
+  box-shadow:0 0 0 1px rgba(var(--studio-ljus),.14),0 34px 40px -28px rgba(0,0,0,.98),0 0 100px -36px rgba(var(--studio-glod),.5)}
+@media (hover:hover){
+  .a-stage .a-card:hover{box-shadow:0 0 0 1px rgba(var(--studio-ljus),.4),0 44px 46px -28px rgba(0,0,0,.98),0 0 120px -30px rgba(var(--studio-glod),.62)}
+}
+.a-stage.a-final .a-card{border-color:var(--a-line);
+  box-shadow:0 0 0 1px rgba(255,120,50,.28),0 34px 40px -28px rgba(0,0,0,.98),0 0 90px -30px rgba(255,100,30,.55)}
 .a-stage .auction-price{color:var(--a-accent);transition:color 1.1s}
 .a-stage .auction-old{color:var(--a-soft);transition:color 1.1s}
 .a-stage .auction-timer{color:var(--a-cardink);background:color-mix(in srgb,var(--a-accent) 8%, var(--a-card));
@@ -3938,11 +4012,14 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
 @media (prefers-reduced-motion:reduce){.nav-adot::after{animation:none;opacity:0}}
 
 /* ── Fyndauktionen: flytande live-pill (endast mobil) ─────────────── */
+/* Pillen är ogenomskinlig och utan backdrop-filter. Den var 97 % täckande
+   med en oskärpa bakom: oskärpan syntes inte, men grafikkortet räknade om
+   den i varje bildruta medan sidan rullade under pillen (2026-11-26). */
 .a-live-bar{display:none}
 @media (max-width:600px){
   .a-live-bar{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:60;
     display:flex;align-items:center;gap:10px;padding:11px 16px;border-radius:var(--r-pill);
-    background:color-mix(in srgb,var(--a-card, #fff) 97%, transparent);backdrop-filter:blur(10px);
+    background:var(--a-card, #fff);
     border:1px solid color-mix(in srgb,var(--a-accent,var(--brand)) 30%, var(--a-line,var(--line)));
     box-shadow:var(--e3);
     opacity:0;transform:translateY(16px);pointer-events:none;
@@ -4024,9 +4101,13 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
 .a-stage .a-sechead{margin-bottom:32px}
 
 /* Progresslinje i live-pillen: hur långt in i timmen vi är (guld i ember). */
-.a-lb-progress{position:absolute;left:0;bottom:0;height:3px;border-radius:0 3px 3px 0;
+/* Linjen är full bredd och skalas (transform: scaleX i AuctionLiveBar). Förut
+   ändrades bredden varje sekund med en övergång på en sekund, så pillen
+   lades om i varje bildruta så länge sidan var öppen, också dold. Den rör
+   sig en tiondels pixel i sekunden, så ingen övergång behövs. */
+.a-lb-progress{position:absolute;left:0;bottom:0;width:100%;height:3px;border-radius:0 3px 3px 0;transform-origin:0 50%;
   background:linear-gradient(90deg,var(--a-accent2,#F47A35),var(--a-accent,var(--brand)));
-  opacity:.85;transition:width 1s linear}
+  opacity:.85}
 .a-stage.a-final .a-lb-progress{background:linear-gradient(90deg,#FFB300,#FF7A2F)}
 
 @media (max-width:600px){
@@ -4054,8 +4135,8 @@ body:has(.drawer.show) .cookiebar,body:has(.mobilemenu.open) .cookiebar{visibili
   .a-live-bar.show:active{transform:scale(.97)}
   .a-hc-btn:active{transform:scale(.96)}
 
-  /* Lättare glödblobbar på mobil (GPU-vänligt, samma stämning) */
-  .a-blob{width:60vw;height:60vw;filter:blur(56px)}
+  /* Glödblobbarna på mobil: större och svagare. Ingen oskärpa, se .a-blob ovan. */
+  .a-blob{width:60vw;height:60vw}
   .a-stage.a-final .a-blob{opacity:.38}
 }
 @media (max-width:600px) and (prefers-reduced-motion:reduce){

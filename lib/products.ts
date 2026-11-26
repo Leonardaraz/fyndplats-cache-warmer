@@ -798,30 +798,41 @@ export async function getProductImages(slug: string): Promise<Pick<Product, "img
 }
 
 /**
- * Aktuellt pris och lagerstatus för NÅGRA produkter, direkt från Wix — ett
- * uppslag per slug, parallellt.
+ * Aktuellt pris och lagerstatus för NÅGRA produkter, direkt från Wix: EN fråga
+ * per hundra fynd (getProdukterForSluggar), inte en per fynd.
  *
  * För Fyndauktionen. getProducts() håller katalogen i modulen så länge
  * instansen lever, men auktionspriset byts varje timme: en varm instans visade
  * då förra timmens pris på kortet medan nedräkningen gick vidare.
- * Saknas en produkt, eller fallerar uppslaget, utelämnas den; anroparen
+ * Saknas en produkt, eller fallerar frågan två gånger, utelämnas den; anroparen
  * faller då tillbaka på katalogen.
+ *
+ * ☠️ Förut ställdes en fråga per fynd, alla samtidigt: 100 frågor till Wix vid
+ * varje sidbygge med Black Weeks 100 fynd (en obegränsad fan-out, CLAUDE.md).
+ * Wix svarar på 100 adresser i en fråga (MAX_SLUGGAR_PER_UPPSLAG, kontrollerat
+ * mot butiken 2026-11-26: tre fynd och en påhittad adress gav exakt de tre).
  */
 export async function getFreshPrices(
   slugs: string[],
 ): Promise<Map<string, Pick<Product, "priceNum" | "inStock">>> {
   const out = new Map<string, Pick<Product, "priceNum" | "inStock">>();
   if (!wix || slugs.length === 0) return out;
+  const unika = [...new Set(slugs.filter(Boolean))];
+  const bitar: string[][] = [];
+  for (let i = 0; i < unika.length; i += MAX_SLUGGAR_PER_UPPSLAG) bitar.push(unika.slice(i, i + MAX_SLUGGAR_PER_UPPSLAG));
   await Promise.all(
-    slugs.map(async (slug) => {
+    bitar.map(async (bit) => {
+      const fraga = () => getProdukterForSluggar(bit);
+      let hittade: Product[];
       try {
-        const res: any = await (wix as any).products.queryProducts().eq("slug", slug).limit(1).find();
-        const item = res.items?.[0];
-        if (!item) return;
-        const p = mapProduct(item);
-        if (p.priceNum > 0) out.set(slug, { priceNum: p.priceNum, inStock: p.inStock });
+        hittade = await fraga().catch(fraga);
       } catch (e) {
-        console.warn(`[products] getFreshPrices(${slug}) föll:`, (e as Error).message);
+        console.warn(`[products] getFreshPrices: frågan om ${bit.length} fynd föll två gånger:`, (e as Error).message);
+        return;
+      }
+      const efterfragade = new Set(bit);
+      for (const p of hittade) {
+        if (efterfragade.has(p.slug) && p.priceNum > 0) out.set(p.slug, { priceNum: p.priceNum, inStock: p.inStock });
       }
     }),
   );
