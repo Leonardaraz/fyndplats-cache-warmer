@@ -27,12 +27,10 @@ body { font-family: 'Geist', sans-serif; color: var(--kram); -webkit-font-smooth
 /* scen 4: raknaren */
 #raknare { display: inline-flex; align-items: baseline; justify-content: center; }
 #raknare .siffror { display: inline-flex; font-family: 'Newsreader', serif; font-weight: 600; font-size: 248px; line-height: 1; letter-spacing: -0.04em;
-                    height: 1em; overflow: hidden; padding: 0 0.04em; }
-#raknare .kol { display: inline-block; height: 1em; overflow: hidden; }
-#raknare .remsa { display: flex; flex-direction: column; will-change: transform; }
-#raknare .remsa span { display: block; height: 1em; line-height: 1;
-                       background: linear-gradient(180deg, #FAE8B8 8%, #E9BE62 52%, #C98F2B 96%); -webkit-background-clip: text; background-clip: text;
-                       color: transparent; -webkit-text-fill-color: transparent; }
+                    font-variant-numeric: lining-nums tabular-nums; padding: 0 0.04em; }
+#raknare .plats { display: inline-block; width: 0.54em; text-align: center;
+                  background: linear-gradient(180deg, #FAE8B8 8%, #E9BE62 52%, #C98F2B 96%); -webkit-background-clip: text; background-clip: text;
+                  color: transparent; -webkit-text-fill-color: transparent; }
 #raknare .ord { font-family: 'Newsreader', serif; font-style: italic; font-weight: 520; font-size: 118px; letter-spacing: -0.02em; color: var(--kram);
                 margin-left: 0.2em; text-shadow: 0 2px 30px rgba(0,0,0,.55); }
 /* scen 6: slutbilden */
@@ -117,28 +115,16 @@ for (const b of BLOCK) {
   dom[b.id] = blk;
 }
 
-// ---- scen 4: raknaren som rullar upp till antalet
+// ---- scen 4: raknaren som raknar upp till antalet
 const s4 = el('div', 'block', null, { top: '292px' });
 const ogon4 = el('div', null, `<span class="mask"><span class="rad ogon" style="font-size:27px">${TXT.dag}</span></span>`, { marginBottom: '6px' });
 const rk = el('div', null, null, { id: 'raknare' });
 rk.id = 'raknare';
 const siffror = el('span', 'siffror');
-const SIFFROR = String(ANTAL).split('').map(Number);
-const remsor = [];
-SIFFROR.forEach((mal, i) => {
-  const kol = el('span', 'kol');
-  const remsa = el('span', 'remsa');
-  // remsan visar 0..9 i flera varv och slutar pa malsiffran
-  const varv = 1 + (SIFFROR.length - 1 - i);
-  const lista = [];
-  for (let v = 0; v < varv; v++) for (let d = 0; d < 10; d++) lista.push(d);
-  for (let d = 0; d <= mal; d++) lista.push(d);
-  if (i === 0 && SIFFROR.length > 1) lista.splice(0, lista.length, ...[0, ...Array.from({ length: mal }, (_, d) => d + 1)]);
-  remsa.innerHTML = lista.map((d) => `<span>${d}</span>`).join('');
-  kol.appendChild(remsa);
-  siffror.appendChild(kol);
-  remsor.push({ remsa, steg: lista.length - 1, kol, forst: i === 0 });
-});
+// raknaren raknar pa riktigt, 0 till antalet, med en fast plats per siffra sa att ordet "fynd" star still
+const N_POS = String(ANTAL).length;
+const platser = [];
+for (let i = 0; i < N_POS; i++) { const sp = el('span', 'plats', '\u00a0'); siffror.appendChild(sp); platser.push(sp); }
 rk.appendChild(siffror);
 rk.appendChild(el('span', 'ord', 'fynd'));
 s4.appendChild(ogon4);
@@ -189,16 +175,9 @@ window.satt = function (t) {
     const og = ogon4.querySelector('.rad');
     const ko = utExpo(led(t, 12.25, 12.85));
     og.style.transform = `translateY(${(1 - ko) * 112}%)`;
-    remsor.forEach((r) => {
-      const pos = r.steg * k;
-      r.remsa.style.transform = `translateY(${-pos}em)`;
-      // forsta siffran (hundratalet) syns forst nar raknaren narmar sig hundra
-      if (r.forst && SIFFROR.length > 2) {
-        const v = mjuk(led(k, 0.80, 0.97));
-        r.kol.style.width = (0.5 * v) + 'em';
-        r.kol.style.opacity = String(v);
-      }
-    });
+    const n = Math.min(ANTAL, Math.round(ANTAL * k));      // aldrig mer an antalet
+    const txt = String(n).padStart(N_POS, ' ');
+    platser.forEach((sp, i) => { const c = txt[i] === ' ' ? '\u00a0' : txt[i]; if (sp.textContent !== c) sp.textContent = c; });
   }
   // slutbilden
   {
