@@ -26,6 +26,10 @@ T_GLAS = 18.0
 T_RADER = [18.0, 19.0, 20.0]
 T_SJUNK = 21.0
 T_KUB_BITAR = [21.75, 21.875, 22.0]            # vanster, hoger, topp klickar pa plats
+# den hela kuben tar over fran ytorna en halv ruta fore sista klicket, mellan tva rutors slutartider
+F_KUB_BYTE = T_KUB_BITAR[2] * FPS - 0.5
+T_KUB_BYTE = F_KUB_BYTE / FPS
+KUB_BYTE_NYCKLAR = (F_KUB_BYTE - 0.05, F_KUB_BYTE + 0.05)
 T_KUB_FALL = 22.2
 T_KUB_LANDAR = 22.5
 T_SMALNAR = 24.5
@@ -89,8 +93,12 @@ def kub_bit(n: int, t: float, slut, fran, snurr) -> dict:
     """Kubens tre ytor flyger in var for sig och klickar pa plats. Nar den sista sitter tar den hela kuben over."""
     t1 = T_KUB_BITAR[n]
     t0 = t1 - 0.62
-    if t < t0 or t >= T_KUB_BITAR[2]:
+    if t < t0:
         return {"location": tuple(a + b for a, b in zip(slut, fran)), "rotation_euler": snurr, "scale": (0.0001,) * 3}
+    if t >= T_KUB_BYTE:
+        # ytan stannar dar den klickade fast. Flog den tillbaka till sin startpunkt syntes resan som
+        # en orange spokbild i rorelseoskarpan pa rutan fore bytet (ruta 659, 2026-11-26).
+        return {"location": tuple(slut), "rotation_euler": (0.0, 0.0, 0.0), "scale": (0.0001,) * 3}
     k = ut_back(led(t, t0, t1), 1.1)
     kr = ut_kub(led(t, t0, t1))
     return {"location": tuple(a + b * (1 - k) for a, b in zip(slut, fran)),
@@ -302,7 +310,7 @@ def bygg(tagning: str, look: dict | None = None) -> dict:
         nx, ny, nz = p.normal
         p.material_index = 1 if nz > 0.6 else 2 if ny < -0.6 else 3 if nx > 0.6 else 0
     hel.parent = kub
-    b3d.baka(hel, rutor, lambda t: {"scale": ((1.0,) * 3 if t >= T_KUB_BITAR[2] else (0.0001,) * 3)})
+    b3d.baka(hel, rutor, lambda t: {"scale": ((1.0,) * 3 if t >= T_KUB_BYTE else (0.0001,) * 3)}, extra=KUB_BYTE_NYCKLAR)
     # de tre ytorna som flyger in: vanster (normal -y), hoger (normal +x), topp
     bitar = [
         ("kub_bit_v", (S, T, S), (0, -S / 2 + T / 2, S / 2), m_v, (-3.4, -3.4, 0.7), (0.0, 0.0, math.radians(-150))),
@@ -312,7 +320,8 @@ def bygg(tagning: str, look: dict | None = None) -> dict:
     for n, (namn, storlek, slut, mat, fran, snurr) in enumerate(bitar):
         o = b3d.lada(namn, storlek, (0, 0, 0), mat, fas=0.008, coll=fasta)
         o.parent = kub
-        b3d.baka(o, rutor, lambda t, n=n, slut=slut, fran=fran, snurr=snurr: kub_bit(n, t, slut, fran, snurr))
+        b3d.baka(o, rutor, lambda t, n=n, slut=slut, fran=fran, snurr=snurr: kub_bit(n, t, slut, fran, snurr),
+                 extra=KUB_BYTE_NYCKLAR)
 
     # kubens stralkastare: tands nar brickorna sjunker, smalnar av i sista halvsekunden
     kubmal = b3d.tom("kubmal", (KUB_PLATS[0], KUB_PLATS[1], 0.45), ljus)

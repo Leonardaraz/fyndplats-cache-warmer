@@ -27,7 +27,7 @@ body { font-family: 'Geist', sans-serif; color: var(--kram); -webkit-font-smooth
 /* scen 4: raknaren */
 #raknare { display: inline-flex; align-items: baseline; justify-content: center; }
 #raknare .siffror { display: inline-flex; font-family: 'Newsreader', serif; font-weight: 600; font-size: 248px; line-height: 1; letter-spacing: -0.04em;
-                    font-variant-numeric: lining-nums tabular-nums; padding: 0 0.04em; }
+                    font-variant-numeric: lining-nums tabular-nums; padding: 0 0.04em; filter: drop-shadow(0 3px 24px rgba(0,0,0,.55)); }
 #raknare .plats { display: inline-block; width: 0.54em; text-align: center;
                   background: linear-gradient(180deg, #FAE8B8 8%, #E9BE62 52%, #C98F2B 96%); -webkit-background-clip: text; background-clip: text;
                   color: transparent; -webkit-text-fill-color: transparent; }
@@ -129,6 +129,11 @@ rk.appendChild(siffror);
 rk.appendChild(el('span', 'ord', 'fynd'));
 s4.appendChild(ogon4);
 s4.appendChild(rk);
+// nar kameran svanger mot forsta fyndet glider en lampramp upp bakom siffrorna: da morknar overkanten
+// (samtidigt som lamporna dampas i 3D), annars forsvinner guldet mot rampen i ett par rutor
+const skugga4 = el('div', 'skugga', null, { top: '0px', height: '820px',
+  background: 'linear-gradient(180deg, rgba(0,0,0,.74) 0%, rgba(0,0,0,.6) 46%, rgba(0,0,0,0) 100%)' });
+scen.appendChild(skugga4);
 scen.appendChild(s4);
 
 // ---- scen 6: slutbilden
@@ -166,6 +171,7 @@ window.satt = function (t) {
     const inne = t >= 12.02 && t <= 14.30;
     const ute = mjuk(led(t, 13.82, 14.10));
     s4.style.opacity = inne ? String(mjuk(led(t, 12.02, 12.22)) * (1 - ute)) : '0';
+    skugga4.style.opacity = String(mjuk(led(t, 13.36, 13.62)) * (1 - mjuk(led(t, 13.82, 14.16))));
     const k = utKub(led(t, T_RAKNARE[0], T_RAKNARE[1]));
     const tau = t - T_RAKNARE[1];
     const studs = tau >= 0 ? 1 + 0.07 * Math.exp(-tau * 9) * Math.cos(tau * 20) : 1;

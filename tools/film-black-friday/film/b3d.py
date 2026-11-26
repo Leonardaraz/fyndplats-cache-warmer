@@ -437,9 +437,14 @@ def nyckla(block, vag: str, f: int, varde=None, index: int = -1) -> None:
     block.keyframe_insert(vag, frame=f, index=index)
 
 
-def baka(obj, rutor, fn) -> None:
-    """fn(t) -> dict med t.ex. location/rotation_euler/scale. En nyckel per ruta, linjart emellan."""
-    for f in rutor:
+def baka(obj, rutor, fn, extra=()) -> None:
+    """fn(t) -> dict med t.ex. location/rotation_euler/scale. En nyckel per ruta, linjart emellan.
+
+    extra: delrutor (t.ex. 659.45 och 659.55) kring ett byte som ska ske mellan tva rutors slutartider.
+    Slutaren ar oppen f-0.25 till f+0.25, sa ett byte mitt emellan tva rutor syns aldrig. Utan de
+    extra nycklarna drar rorelseoskarpan ut bytet over en hel ruta, som en spokbild."""
+    alla = sorted(set(rutor) | {x for x in extra if min(rutor) <= x <= max(rutor)})
+    for f in alla:
         for vag, v in fn(f / FPS).items():
             setattr(obj, vag, v)
             obj.keyframe_insert(vag, frame=f)
