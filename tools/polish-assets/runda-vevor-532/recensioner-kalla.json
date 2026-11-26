@@ -1,0 +1,107 @@
+{
+  "9fadf8d7": {
+    "productId": "9fadf8d7-074d-4d93-b147-1118c30f24b3",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "b257106a": {
+    "productId": "b257106a-d78e-4937-a9a6-cae1caaabe2c",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-136q9re",
+        "betyg": 5,
+        "datum": "2026-10-14",
+        "foton": 0,
+        "text": "Nice and heavy and is built well. I like the soft jaw options that shipped with it. This is a great replacement from what we had before."
+      }
+    ]
+  },
+  "d0904207": {
+    "productId": "d0904207-8a07-400a-9265-b8b29c3e5d85",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-107r9qy",
+        "betyg": 5,
+        "datum": "2026-10-22",
+        "foton": 0,
+        "text": "I bought this to clean the rugs at work. We'd just been sweeping it w a regular broom, spreading dirt elsewhere. Only after 2 days the store is so much cleaner in general and my back doesn't hurt after using it. 10/10 would rescue this before my coworkers"
+      },
+      {
+        "id": "gen-oz0qqb",
+        "betyg": 5,
+        "datum": "2026-10-12",
+        "foton": 0,
+        "text": "I've been looking for one like this for years and I'm not disappointed with it. I use this at work."
+      },
+      {
+        "id": "gen-fmzfhm",
+        "betyg": 4,
+        "datum": "2026-09-13",
+        "foton": 0,
+        "text": "I bought 2, one for our camper and one for the little to use in the house. She loves pushing it around but on the hard floor it doesn’t work so well. In the description it says it can be used on all types of floors but it definitely works better on carpet."
+      }
+    ]
+  },
+  "0b9788c8": {
+    "productId": "0b9788c8-9e58-426a-9524-bf3b5fbcd625",
+    "synliga": 0,
+    "dolda": 2,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-we7m9a",
+        "betyg": 5,
+        "datum": "2026-07-29",
+        "foton": 0,
+        "text": "This ticked all the boxes to do our own tire-swaps with a new Tesla Model 3 - low profile to fit under the vehicle (along with the special Tesla jack pads) and the lifting capacity for the weight of the EV. The in-build support-rod adds peace of mind without having to pay extra for a special jack-stand that would otherwise be needed to handle the limited jacking points. Easy to use and works well, feels very robust."
+      },
+      {
+        "id": "gen-1excqpa",
+        "betyg": 5,
+        "datum": "2026-07-23",
+        "foton": 0,
+        "text": "materiel un peu lourd ( quand on le manipule tout seul ) mais très solide le levage est tres confortable Pour Moi TOP"
+      }
+    ]
+  },
+  "d7cea2ef": {
+    "productId": "d7cea2ef-09c8-4e73-85f7-2f72073d1737",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-12hquzn",
+        "betyg": 5,
+        "datum": "2026-07-02",
+        "foton": 0,
+        "text": "Arrival was a bit slow...but im extremely impressed with quality. And I am confident I can leave the trailer safely with out it being distributed.."
+      },
+      {
+        "id": "gen-fj0idy",
+        "betyg": 5,
+        "datum": "2026-06-16",
+        "foton": 0,
+        "text": "Great heavy lock really give me piece of mind leaving the trailer unattended"
+      }
+    ]
+  }
+}
