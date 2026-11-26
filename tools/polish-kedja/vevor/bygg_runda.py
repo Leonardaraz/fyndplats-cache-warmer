@@ -63,6 +63,7 @@ def main():
         assert not (set(p['alt']) & set(p.get('bort', {}))), (k, 'en position både behålls och stryks')
         status = p.get('status', 'utkast, publiceras')
         namn60 = re.sub(r'\b(\d{3})-(\d{3})\b', r'\1 till \2', d['name'][:60])   # utkastets namn med 100-600 lbf-ft blir 100 till 600: leak.py läser annars intervallet som en artikelnummerform
+        namn60 = re.sub(r'(?<=\d)[xX](?=\d)', ' x ', namn60)   # måttet 3,6x1,8 m blir 3,6 x 1,8 m: leak.py läser 6x1 som en artikelnummerform (runda 525)
         ut['ids.tsv'] += [rad(k, d['fullid'], f"{v['pris']} kr {namn60} ({status})")]
         ut['lager.tsv'] += [rad(k, d['lager'])]
         if sam:
