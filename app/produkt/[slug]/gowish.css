@@ -21,8 +21,10 @@
 .buy-rad .gowish-ikon:hover{border-color:#387ED4;background:#F2F8FF;color:#2D69B5}
 .buy-rad .gowish-ikon:active{background:#E6F1FF}
 .buy-rad .gowish-ikon:focus-visible{outline:none;box-shadow:var(--e-ring)}
-/* Smal telefon: lika smal som hjärtat där (48 px, se .buy-rad i app/globals.css). */
+/* Smal telefon: lika smal som hjärtat där (48 px, och 44 px under 360 px; se
+   .buy-rad i app/globals.css). */
 @media(max-width:420px){.buy-rad .gowish-ikon{width:48px}}
+@media(max-width:359px){.buy-rad .gowish-ikon{width:44px}}
 
 /* GoWish ruta. Skriptet lägger själv in en grundstil när rutan öppnas
    (#gowish-iframe-style). Reglerna här är resten av deras stilmall, ordagrant:

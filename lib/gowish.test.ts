@@ -226,6 +226,8 @@ describe("stilen: rutan har sin plats från början, och inget hämtas utifrån"
     }
     assert.match(globals, /@media\(max-width:420px\)\{[^@]*\.buy-rad \.fav-knapp\{width:48px\}/);
     assert.match(stil, /@media\(max-width:420px\)\{\.buy-rad \.gowish-ikon\{width:48px\}\}/);
+    assert.match(globals, /@media\(max-width:359px\)\{[^@]*\.buy-rad \.fav-knapp\{width:44px\}/);
+    assert.match(stil, /@media\(max-width:359px\)\{\.buy-rad \.gowish-ikon\{width:44px\}\}/);
     assert.match(stil, /\.buy-rad \.gowish-ikon:focus-visible\{outline:none;box-shadow:var\(--e-ring\)\}/);
   });
 

@@ -6957,18 +6957,30 @@ modul:
   gowish symbolen proffsigt"). Det är GoWish variant utan text
   (`gowishRoundedButton`, "en rund knapp bredvid din produkt" i deras guide),
   ritad som hjärtat: samma bredd, höjd, ram och hörn (`.fav-knapp`), och 48 px
-  bred på en telefon under 420 px. Deras moln står i GoWish mörkare blå
+  bred på en telefon under 420 px (44 px under 360 px). Deras moln står i GoWish mörkare blå
   (`#387ED4`, 4,1:1 mot vitt); deras ljusa blå (`#4397FF`) ger 2,95:1 och
   klarar inte 3:1 för en ikon som ensam säger vad knappen gör. Namnet "Lägg
   till i GoWish" står i `aria-label` och i `title`. Bara när varan finns i
   lager (`inStock`): en önskan om en slutsåld vara skickar den som ska köpa
   presenten till en sida utan köpknapp.
-- **Köpknappen har plats för sin text.** Med tre knappar i raden bröts "Lägg i
-  varukorgen" på två rader i 320–375 px. Köpknappen har därför 16 px luft på
-  sidorna i raden (12 px under 420 px), rutorna och hjärtat är 48 px där och
-  mellanrummen 8 px, och under 340 px står texten i 14 px. Mätt på en
-  produktsida 2026-11-26: en rad i 320–1 440 px, också "✓ Tillagd i
-  varukorgen" utom i 320 px.
+- **Köpknappen har plats för sin text, också den längsta.** Med tre knappar i
+  raden bröts "Lägg i varukorgen" på två rader i 320–375 px, och "✓ Tillagd i
+  varukorgen" (172 px i 16 px) bröts och gjorde raden 21 px högre i 320–359 px
+  medan bekräftelsen syntes. Köpknappen har därför 12 px luft på sidorna i
+  raden. Under 420 px är rutorna och hjärtat 48 px och mellanrummen 8 px, under
+  370 px mellanrummen 6 px och luften 8 px, och under 360 px rutorna 44 px,
+  luften 6 px och texten 14 px (`app/globals.css`, `.buy-rad`).
+  - Svept pixel för pixel 320–1 440 px på förhandsbygget 2026-11-26, med alla
+    fem texterna ("Lägg i varukorgen", "✓ Tillagd i varukorgen", "Lägger
+    till…", "Slut i denna variant", "Slutsåld"): en rad och samma höjd i
+    varje bredd. Minst 5,6 px över i 320 px, annars minst 10 px. Tablettens
+    smalaste köpknapp är 207 px vid 761 px.
+  - ☠️ Bocken i "✓ Tillagd" finns inte i Geist och ritas av ett systemtypsnitt
+    (Inter i provets Linux, 14 px bred i 16 px). En iPhone tar ett annat, så
+    marginalen är till för det. Ändras köpknappens text, luft eller
+    typsnitt: svep om alla bredder, inte bara 390 px.
+  - Bryt hellre än `white-space:nowrap`: med större text i telefonens
+    inställningar ska texten brytas, inte rinna ut över hjärtat.
 - Skriptet behandlar alla fem id:n lika, och ett tryck på molnet inne i
   knappen räknas som ett tryck på knappen (`closest("button")` i skriptet,
   läst 2026-11-26, samma version som 2026-11-25).
