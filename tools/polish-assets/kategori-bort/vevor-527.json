@@ -1,0 +1,28 @@
+{
+ "namn": "vevor-527",
+ "rader": [
+  {
+   "kort": "a3e3aff3",
+   "pid": "a3e3aff3-7a36-4d8b-8f86-000bfa069f8e",
+   "bort": [
+    "Bil & Garage > Vinschar",
+    "Bil & Garage"
+   ],
+   "behall": [
+    "Sport & Fritid",
+    "Sport & Fritid > Båt & vattensport"
+   ]
+  },
+  {
+   "kort": "ff997217",
+   "pid": "ff997217-2d1e-4706-8877-ade539bbd139",
+   "bort": [
+    "Hem & Inredning > Tvätt & städ"
+   ],
+   "behall": [
+    "Hem & Inredning",
+    "Hem & Inredning > Förvaring & Organisering"
+   ]
+  }
+ ]
+}
