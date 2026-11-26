@@ -52,7 +52,7 @@ def lampniva(k: int, t: float) -> float:
     v = 1.0 + 0.55 * math.exp(-tau * 11.0)
     v *= blanda(1.0, 0.62, mjuk(led(t, 13.5, 14.0)))      # lugnare bakgrund nar fynden visas
     v *= blanda(1.0, 0.80, mjuk(led(t, 17.6, 18.3)))
-    v *= blanda(1.0, 0.10, mjuk(led(t, T_SJUNK, T_SJUNK + 1.4)))
+    v *= blanda(1.0, 0.09, mjuk(led(t, T_SJUNK, T_SJUNK + 1.0)))
     v *= 1.0 - mjukare(led(t, T_SMALNAR, 25.0))
     return v
 
@@ -415,6 +415,9 @@ def kam_E(t: float) -> dict:
     # skarmens upp-riktning i varlden: flytta siktpunkten nerat langs den
     upp = (-math.sin(hojd) * math.sin(sida), math.sin(hojd) * math.cos(sida), math.cos(hojd))
     mal = tuple(m - E_MAL_NER * u for m, u in zip(mitt, upp))
+    # kameran foljer kuben i hojdled medan den svavar och faller, och landar med den
+    kub_z = kub_rot(t)["location"][2]
+    mal = (mal[0], mal[1], mal[2] + 0.85 * kub_z)
     tau = t - T_KUB_LANDAR
     if 0 <= tau < 0.6:
         a = 0.035 * math.exp(-tau * 9)

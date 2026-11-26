@@ -36,13 +36,13 @@ body { font-family: 'Geist', sans-serif; color: var(--kram); -webkit-font-smooth
 #raknare .ord { font-family: 'Newsreader', serif; font-style: italic; font-weight: 520; font-size: 118px; letter-spacing: -0.02em; color: var(--kram);
                 margin-left: 0.2em; text-shadow: 0 2px 30px rgba(0,0,0,.55); }
 /* scen 6: slutbilden */
-#marke { font-family: 'Geist', sans-serif; font-weight: 800; font-size: 136px; letter-spacing: -0.025em; line-height: 1; color: var(--kram);
+#marke { font-family: 'Geist', sans-serif; font-weight: 800; font-size: 128px; letter-spacing: -0.025em; line-height: 1; color: var(--kram);
          text-shadow: 0 2px 34px rgba(0,0,0,.6); }
 #slutrad { font-family: 'Newsreader', serif; font-weight: 520; font-size: 56px; letter-spacing: -0.012em; line-height: 1.1; white-space: nowrap; }
 #slutrad em { font-style: italic; background: linear-gradient(100deg, #F8E3AE 0%, #E9BE62 50%, #D9A53E 100%); -webkit-background-clip: text; background-clip: text;
               color: transparent; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 16px rgba(0,0,0,.55)); }
 #lank { display: inline-block; font-family: 'Geist', sans-serif; font-weight: 600; font-size: 44px; letter-spacing: -0.005em; color: var(--kram);
-        padding: 20px 46px 22px; border-radius: 999px; border: 2.5px solid rgba(233,190,98,.9); background: rgba(8,6,4,.42);
+        padding: 17px 44px 19px; border-radius: 999px; border: 2.5px solid rgba(233,190,98,.9); background: rgba(8,6,4,.42);
         text-shadow: 0 1px 14px rgba(0,0,0,.5); white-space: nowrap; }
 </style>
 </head>
@@ -88,7 +88,7 @@ const BLOCK = [
   { id: 's3b', in: 10.82, ut: 11.86, top: 304, glapp: 0.09, skugga: [0, 760, 0.78], rader: [
       { h: 'Varje fynd finns', px: 88 }, { h: '<em>bara en gång.</em>', px: 88 } ] },
   { id: 's4b', in: 14.02, ut: 17.72, top: 300, glapp: 0.08, rader: [
-      { ogon: TXT.dag, ner: 14 }, { h: `<em>${ANTAL} fynd</em> · start kl 07`, px: 60 } ] },
+      { ogon: TXT.dag, ner: 14, px: 27 }, { h: `<em>${ANTAL} fynd</em> · start kl 07`, px: 60 } ] },
   { id: 's5', in: 18.12, ut: 20.86, top: 318, glapp: 0.08, rader: [
       { ogon: 'Tryggt köp på Fyndplats' } ] },
 ];
@@ -118,7 +118,7 @@ for (const b of BLOCK) {
 
 // ---- scen 4: raknaren som rullar upp till antalet
 const s4 = el('div', 'block', null, { top: '292px' });
-const ogon4 = el('div', null, `<span class="mask"><span class="rad ogon">${TXT.dag}</span></span>`, { marginBottom: '6px' });
+const ogon4 = el('div', null, `<span class="mask"><span class="rad ogon" style="font-size:27px">${TXT.dag}</span></span>`, { marginBottom: '6px' });
 const rk = el('div', null, null, { id: 'raknare' });
 rk.id = 'raknare';
 const siffror = el('span', 'siffror');
@@ -145,13 +145,13 @@ s4.appendChild(rk);
 scen.appendChild(s4);
 
 // ---- scen 6: slutbilden
-const skugga6 = el('div', 'skugga', null, { top: '930px', height: '460px',
+const skugga6 = el('div', 'skugga', null, { top: '890px', height: '460px',
   background: 'radial-gradient(60% 50% at 50% 48%, rgba(0,0,0,.62) 0%, rgba(0,0,0,.42) 55%, rgba(0,0,0,0) 100%)' });
 scen.appendChild(skugga6);
-const s6 = el('div', 'block', null, { top: '986px', opacity: 1 });
+const s6 = el('div', 'block', null, { top: '946px', opacity: 1 });
 const m6 = el('div', null, '<span class="mask"><span class="rad" id="marke">Fyndplats</span></span>');
-const r6 = el('div', null, `<span class="mask"><span class="rad" id="slutrad">${TXT.slut}</span></span>`, { marginTop: '18px' });
-const l6 = el('div', null, '<span class="rad" id="lank">fyndplats.se/fyndauktion</span>', { marginTop: '34px' });
+const r6 = el('div', null, `<span class="mask"><span class="rad" id="slutrad">${TXT.slut}</span></span>`, { marginTop: '12px' });
+const l6 = el('div', null, '<span class="rad" id="lank">fyndplats.se/fyndauktion</span>', { marginTop: '26px' });
 s6.append(m6, r6, l6);
 scen.appendChild(s6);
 const slut = { marke: m6.querySelector('.rad'), rad: r6.querySelector('.rad'), lank: l6.querySelector('.rad') };

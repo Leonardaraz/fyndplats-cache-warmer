@@ -326,8 +326,11 @@ def bygg() -> np.ndarray:
     # ---- scen 3 (8,5-12): narbild, hjartslag, stampeln, tystnad
     m.lagg(bom(74, 36.7, 2.0, 0.15, 0.7), 8.5, 0.15, rum=0.3)
     m.lagg(ackord(["D3", "A3", "D4"], 2.6, 1.1, 0.5), 8.5, 0.30, 0.0, rum=0.6)
-    for t in (8.75, 9.5, 10.02):
-        m.lagg(hjartslag(), t, 0.48 if t < 10 else 0.56)
+    # hjartslagen foljer pulsen i nasta stegs timme (starkast vid 9,0 och 10,0 s); klockan tickar glest emellan
+    for t in (9.0, 10.0):
+        m.lagg(hjartslag(), t - 0.02, 0.50 if t < 10 else 0.58)
+    m.lagg(tick(True), 8.5, 0.30, -0.15, rum=0.4)
+    m.lagg(tick(False), 9.5, 0.22, 0.15, rum=0.45)
     spanning = matta(["A4", "Bb4"], 2.05, 1.7, 0.03, mork=2800)
     spanning *= (np.linspace(0, 1, len(spanning)) ** 2.0)[:, None]
     m.lagg(hp(spanning[:, 0], 300)[:, None] * np.ones((1, 2)), 8.47, 0.36, rum=0.6)

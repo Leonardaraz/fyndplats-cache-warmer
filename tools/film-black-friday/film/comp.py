@@ -219,7 +219,19 @@ def komponera(f: int, kvalitet: str, skala: float = 1.0, titlar: Path | None = N
     tagning = tagning_for(f)
     g = GRAD[tagning]
     t = f / 30.0
-    lager = las_bild(UT / "exr" / kvalitet / tagning, f)
+    # kvalitet kan vara flera nivaer, "final,skiss": den forsta som har rutan anvands
+    lager = None
+    for kv in kvalitet.split(","):
+        mapp = UT / "exr" / kv / tagning
+        fil = mapp / f"bild_{f:04d}.exr"
+        if fil.exists() and fil.stat().st_size > 0:
+            try:
+                lager = las_bild(mapp, f)
+                break
+            except Exception:
+                continue
+    if lager is None:
+        raise FileNotFoundError(f"ingen rendering for ruta {f}")
     w, h = int(round(BREDD * skala)), int(round(HOJD * skala))
     rgb = lager["rgb"]
     if rgb.shape[1] != w:
