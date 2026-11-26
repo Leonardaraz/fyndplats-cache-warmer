@@ -1,0 +1,76 @@
+{
+  "6a84ab4e": {
+    "productId": "6a84ab4e-796a-4db5-8750-ae1ac2addfc7",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": [
+      {
+        "id": "gen-amzy86",
+        "betyg": 4,
+        "datum": "2026-10-20",
+        "foton": 0,
+        "text": "Just what I expected, works great"
+      }
+    ]
+  },
+  "15a948b9": {
+    "productId": "15a948b9-e774-42b0-bceb-0227ba7eab1c",
+    "synliga": 0,
+    "dolda": 0,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 0,
+    "attBesluta": []
+  },
+  "b0e52add": {
+    "productId": "b0e52add-abe0-4b9c-baf7-de0488a1e0ae",
+    "synliga": 0,
+    "dolda": 4,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-15e99sk",
+        "betyg": 5,
+        "datum": "2026-09-28",
+        "foton": 0,
+        "text": "I was very satisfied with the quality of the hitch. I use it to pull a 35 foot trailer with 9000 lbs axles hauling tractors."
+      },
+      {
+        "id": "gen-j5v82s",
+        "betyg": 5,
+        "datum": "2026-03-26",
+        "foton": 0,
+        "text": "Satisfait du crochet, il répond à mes attentes pour mon usage."
+      },
+      {
+        "id": "gen-1di29iq",
+        "betyg": 5,
+        "datum": "2026-03-10",
+        "foton": 0,
+        "text": "Works great toeing the tote or honey pot to the dump station. I don't worry about the possibility of the honey pot getting away from my yow vehicle. A normal ball did have the honey pot come off."
+      }
+    ]
+  },
+  "cfb8dd7b": {
+    "productId": "cfb8dd7b-23fd-44f4-9db7-fc781668513d",
+    "synliga": 0,
+    "dolda": 5,
+    "kundVantar": 0,
+    "annanArtikel": 0,
+    "okandArtikel": 1,
+    "attBesluta": [
+      {
+        "id": "gen-mlmwj9",
+        "betyg": 4,
+        "datum": "2025-07-07",
+        "foton": 0,
+        "text": "this cart is actually really well built and rolls incredibly easy, I've used it around my mechanic shop a few weeks now and you honestly cant beat it for the price. a lot easier than taking my tool box around."
+      }
+    ]
+  }
+}
