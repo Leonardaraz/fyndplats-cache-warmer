@@ -45,12 +45,17 @@ export const GOWISH_SKRIPT_ID = "gowish-iframescript";
 export const GOWISH_REGION = "global";
 
 /**
- * Den grå varianten i guiden. Skriptet lyssnar på fem id:n (också med en siffra
- * efter): ov-onskeskyen-generated-wish-button, gowishRoundedButton,
- * gowishBlueButton, gowishWhiteButton och gowishDynamicButton.
+ * Den runda varianten i guiden, utan text, "bredvid din produkt" (Leonard
+ * 2026-11-26: "den varianten som är bara en ruta ... bredvid vår egen med
+ * gowish symbolen"). Skriptet lyssnar på fem id:n (också med en siffra efter):
+ * ov-onskeskyen-generated-wish-button, gowishRoundedButton, gowishBlueButton,
+ * gowishWhiteButton och gowishDynamicButton, och behandlar dem lika: id:t
+ * väljer bara utseendet i deras stilmall, som inte laddas här. Ett tryck på
+ * ikonen inne i knappen räknas som ett tryck på knappen (closest("button")).
  */
-export const GOWISH_KNAPP_ID = "gowishWhiteButton";
+export const GOWISH_KNAPP_ID = "gowishRoundedButton";
 
+/** Knappens namn för skärmläsare och i rutan som visas när pekaren vilar på den. */
 export const GOWISH_KNAPP_TEXT = "Lägg till i GoWish";
 
 // Samma adress som sidans canonical och og:url (app/produkt/[slug]/page.tsx).

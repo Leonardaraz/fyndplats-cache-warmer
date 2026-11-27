@@ -1,8 +1,12 @@
 "use client";
 // Fyndauktionens SCEN: äger dagsdramaturgin på klientklockan.
 //
-//   • Färgtemperatur: CSS-variabler (--a-*) interpoleras 07→18 (grädde → bärnsten),
-//     sista timmen 18–19 slår om till ember-läget (mörkt, glöd).
+//   • Hallen (Leonard 2026-11-26): scenen är ett mörkt rum i 3D, med vägg,
+//     golv och ljuskäglor (.a-rum, app/globals.css). Rummet står still medan
+//     fynden glider förbi. Ljuset blir starkare ju närmare kl 19 (--a-heat),
+//     och sista timmen glöder rummet i ember-lägets färger.
+//   • Korten följer dagen: --a-*-variablerna interpoleras 07→18 (vitt → varmt
+//     bärnsten), och sista timmen slår de om till ember-läget (mörkt, glöd).
 //   • Canvas: stigande glödpartiklar (mer ju hetare), gnistexplosion + blixtar
 //     vid tändningen 18:00, en blixt vid varje timslag när priset faller.
 //   • Hjärtslag: en knappt märkbar puls på innehållet vid varje timslag.
@@ -10,36 +14,57 @@
 // Allt är rent kosmetiskt — priserna ägs av servern (Wix är källan till
 // sanning), så en klient med fel klocka ser bara fel färg, aldrig fel pris.
 // prefers-reduced-motion ⇒ ingen canvas, inga pulser; färgläget sätts statiskt.
+//
+// ☠️ SNABBHETEN (mätt 2026-11-26 på www, iPhone 13 i Chromium med processorn
+// strypt fyra gånger): sidan höll huvudtråden upptagen HELA tiden, också när
+// ingen rörde den. Fem regler håller den lugn:
+// 1. --a-heat skrivs avrundat till hundradelar, och varje variabel skrivs bara
+//    när värdet ändrats. En variabel på scenen ärvs av hela sidan: när värmen
+//    skrevs med full precision varje sekund räknades stilen om för alla kort
+//    varje sekund. Nu byts den ungefär var sjunde minut.
+// 2. Värmen läses ur en variabel i skriptet, aldrig med getComputedStyle i
+//    varje bildruta. Det tvingade fram en stilomräkning i varje bildruta.
+// 3. Bildrutor ritas bara när det finns något att rita (värme, partiklar eller
+//    blixtar) och scenen syns. Annars står loopen still, och klockan väcker den.
+// 4. En glödprick är en färdig bild (en liten canvas) som ritas med drawImage,
+//    inte en ny radialgradient per prick och bildruta.
+// 5. En telefon ritar glöden i CSS-pixlar. Prickarna är mjuka, och dubbel
+//    täthet hade varit fyra gånger så många pixlar att rensa och lägga ihop i
+//    varje bildruta. Canvasen har ingen mix-blend-mode: mot hallens mörker ger
+//    vanlig blandning samma bild, utan att grafikkortet läser det som ligger under.
 
 import { useEffect, useRef } from "react";
 import { dayHeat, isDayOver, isFinalHour, hourIndex } from "../lib/auction-day";
 
-// Färgstopp för dagen (ljust läge) + ember-läget för sista timmen.
+// Kortens färgstopp under dagen, och ember-läget för sista timmen.
 const LIGHT = [
-  { t: 0, bg1: "#FFFFFF", bg2: "#FFF6EF", ink: "#241c16", soft: "#6b6157", accent: "#C2410C", card: "#ffffff", cardink: "#241c16", line: "#EFE7DE", glow: 0 },
-  { t: 0.5, bg1: "#FDEAD3", bg2: "#F6D6AE", ink: "#241206", soft: "#7a5c44", accent: "#E5560F", card: "#fffdfb", cardink: "#241206", line: "#F0D8BC", glow: 0.3 },
-  { t: 1, bg1: "#F7C888", bg2: "#E89A3C", ink: "#2a1305", soft: "#7c4a1f", accent: "#C93E08", card: "#fff7ee", cardink: "#2a1305", line: "#E9BE86", glow: 0.62 },
+  { t: 0, soft: "#6b6157", accent: "#C2410C", card: "#ffffff", cardink: "#241c16", line: "#EFE7DE" },
+  { t: 0.5, soft: "#7a5c44", accent: "#E5560F", card: "#fffdfb", cardink: "#241206", line: "#F0D8BC" },
+  { t: 1, soft: "#7c4a1f", accent: "#C93E08", card: "#fff7ee", cardink: "#2a1305", line: "#E9BE86" },
 ];
-const EMBER = { bg1: "#26100a", bg2: "#4a1c0a", ink: "#fff3e6", soft: "#e0ab7c", accent: "#FF7A2F", card: "#2a1109", cardink: "#ffe9d6", line: "#5f2c14", glow: 1 };
+const EMBER = { soft: "#e0ab7c", accent: "#FF7A2F", card: "#2a1109", cardink: "#ffe9d6", line: "#5f2c14" };
+type Palette = typeof EMBER;
+const FARGER = ["soft", "accent", "card", "cardink", "line"] as const;
 
 const hx = (h: string) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
 function mix(a: string, b: string, t: number): string {
   const A = hx(a), B = hx(b);
   return "#" + [0, 1, 2].map((i) => Math.round(A[i] + (B[i] - A[i]) * t).toString(16).padStart(2, "0")).join("");
 }
-type Palette = typeof EMBER;
 function paletteAt(p: number): Palette {
   let a = LIGHT[0], b = LIGHT[LIGHT.length - 1];
   for (let i = 0; i < LIGHT.length - 1; i++) if (p >= LIGHT[i].t && p <= LIGHT[i + 1].t) { a = LIGHT[i]; b = LIGHT[i + 1]; break; }
   const t = (p - a.t) / (b.t - a.t || 1);
-  const out = {} as Record<string, string | number>;
-  (["bg1", "bg2", "ink", "soft", "accent", "card", "cardink", "line"] as const).forEach((k) => (out[k] = mix(a[k], b[k], t)));
-  out.glow = a.glow + (b.glow - a.glow) * t;
-  return out as Palette;
+  const out = {} as Palette;
+  for (const k of FARGER) out[k] = mix(a[k], b[k], t);
+  return out;
 }
 
 type Particle = { x: number; y: number; vx: number; vy: number; r: number; life: number; burst?: boolean };
 type Bolt = { pts: [number, number][]; life: number };
+
+/** Glödprickens bild i pixlar, ritad om när värmen ändrats synbart (regel 4). */
+const PRICK = 64;
 
 export function AuctionStage({ startAt, children }: { startAt: string | null; children: React.ReactNode }) {
   const stageRef = useRef<HTMLDivElement>(null);
@@ -51,7 +76,8 @@ export function AuctionStage({ startAt, children }: { startAt: string | null; ch
     if (!stage || !canvas || !flash) return;
     const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const startMs = startAt ? Date.parse(startAt) : null;
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    // Regel 5: en telefon ritar glöden i CSS-pixlar.
+    const dpr = innerWidth < 600 ? 1 : Math.min(2, window.devicePixelRatio || 1);
 
     let parts: Particle[] = [];
     let bolts: Bolt[] = [];
@@ -59,12 +85,38 @@ export function AuctionStage({ startAt, children }: { startAt: string | null; ch
     let wasFinal = false;
     let raf = 0;
     let disposed = false;
+    // Regel 2: värmen bor här, satt av applyTheme.
+    let heat = 0;
+    // Regel 3: scenen i fönstret.
+    let synlig = true;
 
     const ctx = canvas.getContext("2d");
     let W = 0, H = 0;
-    const resize = () => { W = canvas.width = innerWidth * dpr; H = canvas.height = innerHeight * dpr; };
+    const resize = () => { W = canvas.width = Math.round(innerWidth * dpr); H = canvas.height = Math.round(innerHeight * dpr); };
     resize();
     addEventListener("resize", resize);
+
+    const prick = document.createElement("canvas");
+    prick.width = prick.height = PRICK;
+    const pctx = prick.getContext("2d");
+    let prickVarme = -1;
+    function ritaPrick(h: number) {
+      if (!pctx || h === prickVarme) return;
+      prickVarme = h;
+      const m = PRICK / 2;
+      pctx.clearRect(0, 0, PRICK, PRICK);
+      const g = pctx.createRadialGradient(m, m, 0, m, m, m);
+      g.addColorStop(0, `rgba(255,${Math.round(150 + 80 * h)},60,1)`);
+      g.addColorStop(1, "rgba(255,90,20,0)");
+      pctx.fillStyle = g;
+      pctx.fillRect(0, 0, PRICK, PRICK);
+    }
+
+    const behover = () =>
+      !disposed && !reduce && synlig && !document.hidden && (heat > 0 || parts.length > 0 || bolts.length > 0);
+    function vack() {
+      if (!raf && behover()) raf = requestAnimationFrame(tick);
+    }
 
     function burstAt(el: Element | null, n: number) {
       if (!el) return;
@@ -104,20 +156,24 @@ export function AuctionStage({ startAt, children }: { startAt: string | null; ch
       stage!.querySelectorAll(".a-card").forEach((el) => burstAt(el, 14));
     }
 
+    // Regel 1: en variabel skrivs bara när den ändrats.
+    const skrivet = new Map<string, string>();
+    const satt = (namn: string, varde: string) => {
+      if (skrivet.get(namn) === varde) return;
+      skrivet.set(namn, varde);
+      stage!.style.setProperty(namn, varde);
+    };
+
     function applyTheme(now: number) {
       // Efter 19:00: lugnt läge (isDayOver:s hela poäng — priserna är
       // återställda). dayHeat ligger annars kvar på 1 och sidan fortsatte se
       // "kokande het" ut hela kvällen fast auktionen var stängd.
       const over = isDayOver(startMs, now);
-      const heat = over ? 0 : dayHeat(startMs, now);
       const final = !over && isFinalHour(startMs, now);
+      heat = final ? 1 : over ? 0 : Math.round(dayHeat(startMs, now) * 100) / 100;
       const c = final ? EMBER : paletteAt(heat);
-      const s = stage!.style;
-      s.setProperty("--a-bg1", c.bg1); s.setProperty("--a-bg2", c.bg2);
-      s.setProperty("--a-ink", c.ink); s.setProperty("--a-soft", c.soft);
-      s.setProperty("--a-accent", c.accent); s.setProperty("--a-card", c.card);
-      s.setProperty("--a-cardink", c.cardink); s.setProperty("--a-line", c.line);
-      s.setProperty("--a-heat", String(final ? 1 : heat));
+      for (const k of FARGER) satt(`--a-${k}`, c[k]);
+      satt("--a-heat", String(heat));
       stage!.classList.toggle("a-final", final);
 
       if (!reduce) {
@@ -132,14 +188,15 @@ export function AuctionStage({ startAt, children }: { startAt: string | null; ch
         lastIdx = idx;
       }
       wasFinal = final;
+      vack();
     }
 
     applyTheme(Date.now());
     const themeTimer = setInterval(() => applyTheme(Date.now()), 1000);
 
     function tick() {
-      if (disposed || !ctx) return;
-      const heat = parseFloat(getComputedStyle(stage!).getPropertyValue("--a-heat")) || 0;
+      raf = 0;
+      if (!ctx || !behover()) return;
       ctx.clearRect(0, 0, W, H);
       // Mobiltrimmat: färre partiklar på små skärmar (svaga GPU:er) — samma känsla,
       // bråkdelen av arbetet. Caps längre ner skalas likadant.
@@ -148,18 +205,18 @@ export function AuctionStage({ startAt, children }: { startAt: string | null; ch
       for (let k = 0; k < spawn; k++)
         if (Math.random() < heat)
           parts.push({ x: Math.random() * W, y: H + 10, vx: (Math.random() - 0.5) * 0.6 * dpr, vy: -(0.6 + Math.random() * 1.6) * dpr * (0.6 + heat), r: (1 + Math.random() * 2.4) * dpr, life: 1 });
+      ritaPrick(Math.round(heat * 20) / 20);
       parts = parts.filter((p) => {
         p.x += p.vx; p.y += p.vy;
         if (p.burst) { p.vy += 0.12 * dpr; p.vx *= 0.985; p.life -= 0.014; }
         else p.life -= 0.006 + 0.004 * heat;
         if (p.life <= 0 || p.y < -30 || p.y > H + 40) return false;
-        const a = p.life * (p.burst ? 0.9 : 0.35 + 0.5 * heat);
-        const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 3);
-        g.addColorStop(0, `rgba(255,${Math.round(150 + 80 * heat)},60,${a})`);
-        g.addColorStop(1, "rgba(255,90,20,0)");
-        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 3, 0, 7); ctx.fill();
+        const R = p.r * 3;
+        ctx.globalAlpha = p.life * (p.burst ? 0.9 : 0.35 + 0.5 * heat);
+        ctx.drawImage(prick, p.x - R, p.y - R, R * 2, R * 2);
         return true;
       });
+      ctx.globalAlpha = 1;
       const cap = mobile ? 240 : 500;
       if (parts.length > cap) parts = parts.slice(-cap);
       if (bolts.length) {
@@ -176,20 +233,37 @@ export function AuctionStage({ startAt, children }: { startAt: string | null; ch
         bolts = bolts.filter((b) => (b.life -= 0.07) > 0);
         ctx.shadowBlur = 0;
       }
-      raf = requestAnimationFrame(tick);
+      // Regel 3: nästa bildruta bara om något finns kvar att rita. Rutan nyss
+      // rensades först, så en canvas som stannar är tom.
+      if (behover()) raf = requestAnimationFrame(tick);
     }
-    if (!reduce) raf = requestAnimationFrame(tick);
+
+    const io =
+      typeof IntersectionObserver === "function"
+        ? new IntersectionObserver((poster) => {
+            synlig = poster.some((p) => p.isIntersecting);
+            vack();
+          })
+        : null;
+    io?.observe(stage);
+    document.addEventListener("visibilitychange", vack);
 
     return () => {
       disposed = true;
       cancelAnimationFrame(raf);
       clearInterval(themeTimer);
       removeEventListener("resize", resize);
+      document.removeEventListener("visibilitychange", vack);
+      io?.disconnect();
     };
   }, [startAt]);
 
   return (
     <div ref={stageRef} className="a-stage" suppressHydrationWarning>
+      {/* Hallen: rummet bakom fynden (app/globals.css, "Hallen"). */}
+      <div className="a-rum" aria-hidden="true">
+        <div className="a-rum-vy" />
+      </div>
       <div className="a-blob a-b1" aria-hidden="true" />
       <div className="a-blob a-b2" aria-hidden="true" />
       <canvas ref={canvasRef} className="a-embers" aria-hidden="true" />

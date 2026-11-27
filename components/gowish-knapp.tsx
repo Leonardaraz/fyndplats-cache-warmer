@@ -2,9 +2,12 @@
 
 // components/gowish-knapp.tsx
 //
-// GoWish önskelistknapp under köpraden på produktsidan (Leonard 2026-11-25).
-// Vad GoWish skript gör, och varför deras stilmall inte laddas, står i
-// lib/gowish.ts.
+// GoWish önskelistknapp på produktsidan (Leonard 2026-11-25). Sedan 2026-11-26
+// en ruta med GoWish moln i köpraden, bredvid hjärtat: GoWish variant utan
+// text (gowishRoundedButton), i butikens form (Leonard: "den varianten som är
+// bara en ruta ... bredvid vår egen med gowish symbolen proffsigt"). Namnet
+// "Lägg till i GoWish" står i aria-label och i title. Vad GoWish skript gör,
+// och varför deras stilmall inte laddas, står i lib/gowish.ts.
 //
 // TVÅ LÄGEN, som Trustpilots knapp på omdömessidan
 // (components/trustpilot-insamling.tsx) och som sekretesspolicyn säger:
@@ -18,8 +21,8 @@
 //   ledig. next/script hämtar det en gång hur många produktsidor kunden än går
 //   mellan.
 //
-// Länken och knappen har samma klass och samma mått, så bytet mellan dem
-// flyttar ingenting på sidan.
+// Länken och knappen har samma klass och samma mått som hjärtat bredvid, så
+// bytet mellan dem flyttar ingenting på sidan.
 import Script from "next/script";
 import { useMarketingConsent } from "../lib/use-marketing-consent";
 import {
@@ -43,10 +46,10 @@ declare global {
   }
 }
 
-/** GoWish moln, ur deras egen ikon (dark_cloud.svg). Dekoration: knappens namn är texten. */
+/** GoWish moln, ur deras egen ikon (dark_cloud.svg). Dekoration: knappens namn står i aria-label. */
 function Moln() {
   return (
-    <svg viewBox="0 0 26 16" width="26" height="16" aria-hidden="true" focusable="false">
+    <svg viewBox="0 0 26 16" width="28" height="17" aria-hidden="true" focusable="false">
       <path
         fill="currentColor"
         fillRule="evenodd"
@@ -93,13 +96,16 @@ export function GowishKnapp({ slug }: { slug: string }) {
 
   if (!samtycke) {
     return (
-      <div className="pdp-gowish">
-        <a className="gowish-btn" href={reserv} target="_blank" rel="noopener noreferrer">
-          <Moln />
-          {GOWISH_KNAPP_TEXT}
-          <span className="sr-only"> (öppnas i en ny flik)</span>
-        </a>
-      </div>
+      <a
+        className="gowish-ikon"
+        href={reserv}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`${GOWISH_KNAPP_TEXT} (öppnas i en ny flik)`}
+        title={GOWISH_KNAPP_TEXT}
+      >
+        <Moln />
+      </a>
     );
   }
 
@@ -115,12 +121,19 @@ export function GowishKnapp({ slug }: { slug: string }) {
   };
 
   return (
-    <div className="pdp-gowish">
-      <button id={GOWISH_KNAPP_ID} className="gowish-btn" type="button" data-producturl={adress} onClick={tryck}>
+    <>
+      <button
+        id={GOWISH_KNAPP_ID}
+        className="gowish-ikon"
+        type="button"
+        data-producturl={adress}
+        onClick={tryck}
+        aria-label={GOWISH_KNAPP_TEXT}
+        title={GOWISH_KNAPP_TEXT}
+      >
         <Moln />
-        {GOWISH_KNAPP_TEXT}
       </button>
       <Script id={GOWISH_SKRIPT_ID} src={GOWISH_SKRIPT} strategy="lazyOnload" data-region={GOWISH_REGION} />
-    </div>
+    </>
   );
 }

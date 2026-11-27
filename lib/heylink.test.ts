@@ -8,7 +8,6 @@ import {
   HEYLINK_DAGAR,
   HEYLINK_NYCKEL,
   HEYLINK_SKICKAD,
-  HEYLINK_TAGG,
   giltigtKlickId,
   heylinkKop,
   klickIdUrSokdel,
@@ -170,7 +169,7 @@ describe("ordern till Heylink", () => {
 });
 
 // Komponenterna går inte att ladda här (React och "use client"), så proven läser källan.
-describe("☠️ Heylinks skript laddas bara på tacksidan, efter samtycke och bara för ett klick från GoWish", () => {
+describe("☠️ Heylinks skript används inte: köpet lämnas från servern, och tacksidan glömmer klicket", () => {
   const ROT = join(import.meta.dirname, "..");
   const kod = (rel: string) =>
     readFileSync(join(ROT, rel), "utf8")
@@ -188,42 +187,32 @@ describe("☠️ Heylinks skript laddas bara på tacksidan, efter samtycke och b
     return ut;
   }
 
-  it("skriptets adress står på ett enda ställe, och ingen annan fil nämner Heylinks servrar", () => {
-    assert.match(HEYLINK_TAGG, /^https:\/\/tag\.heylink\.com\/[0-9a-f-]{36}\/script\.js$/);
+  it("bara köpet från servern når Heylinks servrar, och ingen sida laddar deras skript", () => {
     const traffar: string[] = [];
     for (const dir of ["app", "components", "lib"]) {
       for (const fil of filer(join(ROT, dir))) {
-        if (/heylink\.com|heylinkapi\.com/.test(kod(fil.slice(ROT.length + 1)))) traffar.push(fil.slice(ROT.length + 1));
-      }
-    }
-    assert.deepEqual(traffar, ["lib/heylink.ts"]);
-  });
-
-  it("bara tacksidans komponent lägger in skriptet, och sätter ordern FÖRE det", () => {
-    const anvander: string[] = [];
-    for (const dir of ["app", "components", "lib"]) {
-      for (const fil of filer(join(ROT, dir))) {
         const rel = fil.slice(ROT.length + 1);
-        if (rel !== "lib/heylink.ts" && /\bHEYLINK_TAGG\b/.test(readFileSync(fil, "utf8"))) anvander.push(rel);
+        const t = kod(rel);
+        if (/heylink\.com|heylinkapi\.com/.test(t)) traffar.push(rel);
+        assert.doesNotMatch(t, /hlconversion|tag\.heylink/, `${rel} laddar Heylinks skript`);
       }
     }
-    assert.deepEqual(anvander, ["components/heylink-kop.tsx"]);
-    const t = kod("components/heylink-kop.tsx");
-    const order = t.indexOf("window.hlconversion = { ...kop, hltid: klickId };");
-    const skript = t.indexOf("document.head.appendChild(tagg)");
-    assert.ok(order > 0 && skript > order, "window.hlconversion sätts före skriptet");
-    assert.match(t, /if \(!kop \|\| !hasMarketingConsent\(\)\) return;/);
-    assert.match(t, /const marke = tolkaMarke\(window\.localStorage\.getItem\(HEYLINK_NYCKEL\), Date\.now\(\)\);\s*if \(!marke\) return;/);
-    assert.match(t, /if \(window\.localStorage\.getItem\(HEYLINK_SKICKAD\) === kop\.orderId\) return;/);
-    assert.match(t, /if \(document\.getElementById\(HEYLINK_TAGG_ID\)\) return;/);
-    assert.match(t, /"heylink:conversion",[\s\S]*?setItem\(HEYLINK_SKICKAD, kop\.orderId\);\s*window\.localStorage\.removeItem\(HEYLINK_NYCKEL\);[\s\S]*?\{ once: true \}/);
+    // lib/heylink-s2s.ts bär API-adressen för köpet från servern (2026-11-26).
+    assert.deepEqual(traffar, ["lib/heylink-s2s.ts"]);
   });
 
-  it("tacksidan bygger ordern bara med samtycke i kakan, och bara i produktion", () => {
+  it("tacksidan glömmer bara klicket: inget hämtas och inget skickas", () => {
+    const t = kod("components/heylink-glom.tsx");
+    assert.match(t, /if \(!glom\) return;\s*try \{\s*window\.localStorage\.removeItem\(HEYLINK_NYCKEL\);/);
+    assert.doesNotMatch(t, /createElement|<Script|fetch\(|sendBeacon|setItem/);
+  });
+
+  it("tacksidan glömmer klicket bara med samtycke i kakan och bara i produktion, och lämnar ingen order till webbläsaren", () => {
     const t = kod("app/tack/page.tsx");
-    assert.match(t, /const heylink = samtycke && produktion \? heylinkKop\(info, orderId\) : null;/);
+    assert.match(t, /const glomHeylinkKlick = samtycke && produktion;/);
     assert.match(t, /const produktion = \(process\.env\.VERCEL_ENV \|\| process\.env\.NODE_ENV \|\| ""\)\.trim\(\) === "production";/);
-    assert.match(t, /<HeylinkKop kop=\{heylink\} \/>/);
+    assert.match(t, /<HeylinkGlomKlick glom=\{glomHeylinkKlick\} \/>/);
+    assert.doesNotMatch(t, /heylinkKop\(/);
   });
 
   it("klicket fångas i layouten, sparas bara med samtycke och tas bort utan", () => {
@@ -244,7 +233,7 @@ describe("☠️ Heylinks skript laddas bara på tacksidan, efter samtycke och b
     const t = readFileSync(join(ROT, "app/sekretesspolicy/page.tsx"), "utf8");
     const punkt = t.split("\n").find((l) => l.includes("<strong>Heylink"));
     assert.ok(punkt, "punkten om Heylink saknas");
-    for (const ord of ["GoWish", "klick-id", "högst 30 dagar", "ordernumret", "vilka varor", "IP-adress", "skickas inte", "bara nödvändiga cookies"]) {
+    for (const ord of ["GoWish", "klick-id", "högst 30 dagar", "ordernumret", "vilka varor", "från vår server", "skript används inte", "skickas inte", "bara nödvändiga cookies"]) {
       assert.ok(punkt.includes(ord), ord);
     }
     assert.match(t, /marknadsföringscookies \(Meta, TikTok, Google och Heylink\)/);

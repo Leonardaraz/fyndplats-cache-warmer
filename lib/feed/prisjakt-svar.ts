@@ -79,7 +79,7 @@ function strommadeByte(byte: Uint8Array): ReadableStream<Uint8Array> {
  * /feed/<fil> till /feed/gz/<fil> för just de här, och app/feed/gz/[fil]
  * bygger just de här. lib/feed/prisjakt-svar.test.ts håller ihop de tre listorna.
  */
-export const KOMPRIMERADE_FLODEN = ["google.xml", "products.xml", "pricerunner.xml", "pinterest.xml", "gowish.xml"] as const;
+export const KOMPRIMERADE_FLODEN = ["google.xml", "products.xml", "pinterest.xml"] as const;
 
 /**
  * Sant när flödet saknar varor. Ett tomt flöde är aldrig rätt: det betyder att

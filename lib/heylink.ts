@@ -28,12 +28,14 @@
 //    i localStorage i 30 dagar, samma tid som Heylinks egen inställning
 //    (cookie_lifetime 2 592 000 s). Utan samtycke finns det bara i minnet så
 //    länge fliken lever, och sparas om besökaren samtycker senare.
-// 2. Heylinks skript laddas BARA på tacksidan, och bara när besökaren har ett
-//    sparat klick-id och har samtyckt (components/heylink-kop.tsx). Ordern
-//    sätts i window.hlconversion med klick-id:t före skriptet, så skriptet
-//    skickar den en gång. Tacksidans adress är ren: kassan landar alltid på
-//    /tack?orderId=… med en hel sidladdning (app/kassa/kassa.tsx).
-// 3. Ingen annan besökare får skriptet, och ingen annan order lämnar butiken.
+// 2. Kassan lägger klick-id:t på betalningen, och servern lämnar köpet till
+//    Heylink när ordern är klar (lib/heylink-s2s.ts, sedan 2026-11-26). Bara
+//    ett köp med klick från GoWish lämnar butiken.
+// 3. Heylinks skript används inte, på någon sida. Från 2026-11-25 laddades det
+//    på tacksidan, men GoWish skrev 2026-11-26 att skriptet som reserv bara
+//    fungerar om det ligger på alla sidor, och att det inte behövs alls med
+//    anropet från servern. Tacksidan glömmer bara klicket
+//    (components/heylink-glom.tsx): ett klick ger ett köp.
 //
 // ☠️ Det som då inte når Heylink är vilka andra annonsklick kunden gjort
 // (gclid, utm). Vill GoWish räkna bort köp där en annan kanal var sista
@@ -41,19 +43,17 @@
 //
 // Ren modul utan importer, så att node:test kan köra den.
 
-/** Heylinks skript för Fyndplats konto. Id:t i adressen är kontots, och är inte hemligt. */
-export const HEYLINK_TAGG = "https://tag.heylink.com/4ed94d17-6798-423e-a169-e87b70a2de2a/script.js";
-
-/** Id på skript-taggen, så att den aldrig läggs in två gånger. */
-export const HEYLINK_TAGG_ID = "heylink-tagg";
-
 /** Parametern Heylink lägger på adressen när någon klickar sig hit från GoWish. */
 export const HEYLINK_PARAM = "hltid";
 
 /** localStorage: klick-id:t och när det fångades, som JSON {"id","t"}. */
 export const HEYLINK_NYCKEL = "fp_heylink";
 
-/** localStorage: ordernumret som senast lämnades till Heylink. Skyddar mot F5 på tacksidan. */
+/**
+ * localStorage: ordernumret som tacksidans skript senast lämnade (2026-11-25 till
+ * 2026-11-26). Skrivs inte längre; components/heylink-klick.tsx tar bort det
+ * utan samtycke, som klicket.
+ */
 export const HEYLINK_SKICKAD = "fp_heylink_order";
 
 /** Så länge gäller ett klick. Samma som cookie_lifetime i Heylinks skript för kontot. */
@@ -123,6 +123,15 @@ export function tolkaMarke(ratt: string | null | undefined, nu: number): Heylink
   if (!id || typeof t !== "number" || !Number.isFinite(t)) return null;
   if (t > nu + DYGN_MS || nu - t > HEYLINK_DAGAR * DYGN_MS) return null;
   return { id, t };
+}
+
+/**
+ * Klick-id:t som kassan skickar med betalningen (lib/heylink-s2s.ts): bara med
+ * samtycke och bara ett sparat klick som inte gått ut. Annars null, och då
+ * skickas ingenting.
+ */
+export function klickForKassan(ratt: string | null | undefined, samtycke: boolean, nu: number): string | null {
+  return samtycke ? (tolkaMarke(ratt, nu)?.id ?? null) : null;
 }
 
 /** Det tacksidan vet om ordern (lib/wix-orders.ts). Alla belopp i kronor. */

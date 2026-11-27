@@ -2,7 +2,7 @@
 // Kör: node --test --experimental-strip-types lib/feed/gowish.test.ts
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { gowishItem, gowishRakning, tillGowish, type GowishShipping } from "./gowish.ts";
 
@@ -150,22 +150,22 @@ describe("☠️ GoWish-flödet får EAN-kartan FLODE_GTIN och är inlagt övera
     assert.match(t, /tillGowish\(\s*googleXml,[\s\S]*?\},\s*gtinUrval\(googleXml, FLODE_GTIN\),?\s*\)/);
   });
 
-  it("rutten bygger med gowishXml ur Google-flödet och har en HEAD som aldrig bygger", () => {
-    const t = kod("app/feed/gowish.xml/route.ts");
-    assert.match(t, /const FIL = "gowish\.xml";/);
-    assert.match(t, /gowishXml\(await \(await googleFeed\(\)\)\.text\(\)\)/);
-    const head = t.slice(t.indexOf("export async function HEAD"));
-    assert.match(head, /huvudsvar\(/);
-    assert.doesNotMatch(head, /googleFeed\(|gowishXml\(/);
+  // ☠️ Den öppna adressen /feed/gowish.xml är stängd sedan 2026-11-26: GoWish
+  // läsare (onskeskyen-import) hämtar den hemliga adressen (lib/feed/hemlig-adress.ts),
+  // och GoWish skrev "The new feed has been implemented". Flödet byggs bara av
+  // den hemliga rutten och jobbet, och sparas så att adressen svarar direkt.
+  it("☠️ den öppna adressen är stängd: ingen rutt, ingen komprimerad tvilling, ingen värmning", () => {
+    assert.equal(existsSync(join(ROT, "app/feed/gowish.xml")), false);
+    assert.doesNotMatch(kod("lib/feed/prisjakt-svar.ts"), /KOMPRIMERADE_FLODEN = \[[^\]]*"gowish\.xml"/);
+    assert.doesNotMatch(kod("next.config.ts"), /komprimeradeFloden = \[[^\]]*"gowish\.xml"/);
+    assert.doesNotMatch(kod("lib/flodesvarmning.ts"), /\/feed\/gowish\.xml/);
+    assert.doesNotMatch(kod("lib/feed/byggare.ts"), /gowish/);
   });
 
-  it("flödet står i alla listor: komprimerade, sparade, omskrivningen, värmningen, byggarna och jobbet", () => {
-    assert.match(kod("lib/feed/prisjakt-svar.ts"), /KOMPRIMERADE_FLODEN = \[[^\]]*"gowish\.xml"[^\]]*\] as const/);
+  it("flödet byggs och sparas av jobbet och byggs av den hemliga rutten, med samma byggare", () => {
     assert.match(kod("lib/feed/flodeslager.ts"), /LAGRADE_FLODEN = \[[^\]]*"gowish\.xml"[^\]]*\] as const/);
-    assert.match(kod("next.config.ts"), /komprimeradeFloden = \[[^\]]*"gowish\.xml"[^\]]*\]/);
-    assert.match(kod("lib/flodesvarmning.ts"), /"\/feed\/gowish\.xml",/);
-    assert.match(kod("lib/feed/byggare.ts"), /"gowish\.xml": \(\) => gowish\(\),/);
     assert.match(kod("app/api/cron/farska-floden/route.ts"), /"gowish\.xml": gowishXml,/);
+    assert.match(kod("app/feed/[fil]/route.ts"), /"gowish\.xml": gowishXml,/);
   });
 
   it("Google-flödet läser fortfarande ingen EAN-karta", () => {

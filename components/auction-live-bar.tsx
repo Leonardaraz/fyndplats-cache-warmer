@@ -61,7 +61,7 @@ export function AuctionLiveBar({ a }: { a: LiveAuctionView }) {
 
   return (
     <a ref={ref} className={`a-live-bar${scrolled ? " show" : ""}`} href={`/produkt/${a.slug}`} aria-hidden={!scrolled} tabIndex={scrolled ? undefined : -1}>
-      <span className="a-lb-progress" style={{ width: `${progress}%` }} aria-hidden="true" />
+      <span className="a-lb-progress" style={{ transform: `scaleX(${progress / 100})` }} aria-hidden="true" />
       <span className="a-lb-flame" aria-hidden="true">🔥</span>
       {/* 30-dagarspriset står UNDER priset, inte bredvid: på en rad åt det
           nedräkningens plats, och "faller om 24 min" kapades till "falle…"

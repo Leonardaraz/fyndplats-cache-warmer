@@ -1,0 +1,239 @@
+/* Fyndauktionens reklamfilm i en skärm (components/fyndfilm.tsx).
+   Skärmen står vinklad i riktigt perspektiv, med glaskant, glöd och en
+   ljuspöl under sig, som varorna i startsidans studio. Färgerna är studions
+   variabler (--studio-ljus, --studio-glod), så Black Week-temat gör den guld.
+   Inget filter och ingen blandning: skärmen ritas som en yta.
+
+   Bredderna måste stämma med SIZES i fyndfilm.tsx. */
+
+.skarm {
+  --ff-b: 118px;
+  position: relative;
+  display: block;
+  flex: 0 0 auto;
+  width: var(--ff-b);
+  aspect-ratio: 9 / 16;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  perspective: 900px;
+  -webkit-tap-highlight-color: transparent;
+}
+/* Ljuspölen under skärmen. */
+.skarm::after {
+  content: "";
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  bottom: -20px;
+  height: 24px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(var(--studio-ljus, 255, 226, 200), 0.34), rgba(var(--studio-ljus, 255, 226, 200), 0) 100%);
+  pointer-events: none;
+}
+
+.ram {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #060504;
+  transform: rotateY(-11deg) rotateX(3deg);
+  transform-origin: 50% 60%;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.16),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 34px 44px -26px rgba(0, 0, 0, 0.98),
+    0 0 90px -20px rgba(var(--studio-glod, 200, 124, 68), 0.6);
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s;
+}
+.still,
+.video {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* Filmen tonas in först när den spelar (fyndfilm.tsx, sak 3). */
+.video {
+  opacity: 0;
+  transition: opacity 0.6s;
+}
+.skarm[data-spelar] .video {
+  opacity: 1;
+}
+/* Glasets glans: ljus från vänster överkant. */
+.glans {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(118deg, rgba(255, 255, 255, 0.17) 0%, rgba(255, 255, 255, 0.05) 26%, rgba(255, 255, 255, 0) 44%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+/* ── Studion: knappen som spelar med ljud ─────────────────────────── */
+.studio {
+  --ff-b: 236px;
+  cursor: pointer;
+}
+.studio:focus-visible {
+  outline: none;
+}
+.studio:focus-visible .ram {
+  box-shadow:
+    0 0 0 3px var(--glod-ljus, #FFC29A),
+    0 34px 44px -26px rgba(0, 0, 0, 0.98),
+    0 0 90px -20px rgba(var(--studio-glod, 200, 124, 68), 0.6);
+}
+@media (hover: hover) and (pointer: fine) {
+  .studio:hover .ram {
+    transform: rotateY(-6deg) rotateX(2deg) translateY(-4px);
+    box-shadow:
+      0 0 0 1px rgba(var(--studio-ljus, 255, 226, 200), 0.42),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.09),
+      0 42px 50px -26px rgba(0, 0, 0, 0.98),
+      0 0 110px -18px rgba(var(--studio-glod, 200, 124, 68), 0.75);
+  }
+}
+.spela {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px 7px 9px;
+  border-radius: 999px;
+  background: rgba(8, 6, 4, 0.72);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2), 0 6px 16px -6px rgba(0, 0, 0, 0.8);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+.spela svg {
+  flex: 0 0 auto;
+  color: var(--glod-ljus, #FFC29A);
+}
+.spelaTid {
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.72);
+  font-weight: 600;
+}
+
+/* ── Bandet på startsidan ─────────────────────────────────────────── */
+.band {
+  --ff-b: 118px;
+}
+
+/* ── Lagret med ljud ──────────────────────────────────────────────── */
+.spelare {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
+  background: rgba(6, 5, 4, 0.94);
+  animation: ffIn 0.22s ease-out;
+}
+@keyframes ffIn {
+  from {
+    opacity: 0;
+  }
+}
+.spelarRam {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  max-height: 100%;
+}
+.stang {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.stang:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+.stang:focus-visible {
+  outline: 3px solid var(--glod-ljus, #FFC29A);
+  outline-offset: 2px;
+}
+.stor {
+  display: block;
+  /* Höjden räcker för stängknappen ovanför. dvh där den finns (Safari 15.4+),
+     annars vh. */
+  height: min(calc(100vh - 88px), calc((100vw - 24px) * 16 / 9));
+  height: min(calc(100dvh - 88px), calc((100vw - 24px) * 16 / 9));
+  width: auto;
+  max-width: calc(100vw - 24px);
+  aspect-ratio: 9 / 16;
+  border-radius: 14px;
+  background: #000;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12), 0 30px 80px -20px rgba(0, 0, 0, 0.9);
+}
+
+/* ── Mobilen ──────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .studio {
+    --ff-b: 150px;
+  }
+}
+@media (max-width: 600px) {
+  .studio {
+    --ff-b: 96px;
+  }
+  .band {
+    --ff-b: 92px;
+  }
+  .ram {
+    border-radius: 11px;
+    transform: rotateY(-9deg) rotateX(2deg);
+  }
+  /* På en smal skärm får bara spelikonen och tiden plats. */
+  .spela {
+    bottom: 8px;
+    padding: 6px 9px 6px 7px;
+    gap: 4px;
+    font-size: 11px;
+  }
+  .spelaText {
+    display: none;
+  }
+}
+
+/* Mindre rörelse: skärmen står rak, inget svävar och ingen toning. */
+@media (prefers-reduced-motion: reduce) {
+  .ram,
+  .studio:hover .ram {
+    transform: none;
+    transition: none;
+  }
+  .video {
+    transition: none;
+  }
+  .spelare {
+    animation: none;
+  }
+}

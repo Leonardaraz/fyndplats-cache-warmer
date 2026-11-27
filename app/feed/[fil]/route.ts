@@ -1,14 +1,16 @@
 // GET och HEAD /feed/<fil>
 //
 // De hemliga adresserna. Varje annat filnamn svarar 404. De öppna flödena
-// (google.xml, pricerunner.xml, gowish.xml …) har egna rutter, och Next låter
-// dem gå före den här.
+// (google.xml, products.xml, pinterest.xml) har egna rutter, och Next låter dem
+// gå före den här. PriceRunner- och GoWish-flödet har bara sina hemliga
+// adresser sedan 2026-11-26, så /feed/pricerunner.xml och /feed/gowish.xml
+// svarar 404 härifrån.
 //
 //   /feed/prisjakt-<kod>.xml      Prisjakt-flödet MED märke och artikelnummer.
 //                                 Koden är PRISJAKT_FLODE_KOD i Vercel
 //                                 (lib/feed/prisjakt-adress.ts).
-//   /feed/pricerunner-<kod>.xml   PriceRunner-flödet, samma som på den öppna
-//   /feed/gowish-<kod>.xml        adressen, och GoWish-flödet. Koderna är
+//   /feed/pricerunner-<kod>.xml   PriceRunner-flödet och GoWish-flödet, utan
+//   /feed/gowish-<kod>.xml        artikelnummer. Koderna är
 //                                 PRICERUNNER_FLODE_KOD och GOWISH_FLODE_KOD
 //                                 (lib/feed/hemlig-adress.ts, Leonard 2026-11-26).
 //
@@ -37,7 +39,7 @@
 // än tre timmar. /api/cron/farska-floden bygger kopiorna varannan timme med
 // samma byggare, utan att känna till någon adress. Bara när ingen kopia duger
 // byggs flödet här, och det som byggdes sparas efter svaret. PriceRunner- och
-// GoWish-flödet har samma kopia på den hemliga och den öppna adressen.
+// GoWish-flödet har bara den hemliga adressen och läser jobbets kopia.
 
 import { GET as googleFeed } from "../google.xml/route";
 import { arHemligPrisjaktFil, prisjaktKod } from "@/lib/feed/prisjakt-adress";
@@ -66,7 +68,7 @@ const NAMN = "det hemliga Prisjakt-flödet";
 /** CDN:en ger det gamla flödet i ett dygn om ett nytt bygge faller (503). */
 const VID_FEL = "stale-if-error=86400";
 
-/** PriceRunner- och GoWish-flödet ur Google-flödets XML: samma byggare som de öppna rutterna och jobbet. */
+/** PriceRunner- och GoWish-flödet ur Google-flödets XML: samma byggare som jobbet. */
 const UR_GOOGLE: Record<HemligtFlode, (googleXml: string) => string> = {
   "pricerunner.xml": pricerunnerXml,
   "gowish.xml": gowishXml,
@@ -102,8 +104,7 @@ function kanInteByggas(): Response {
 
 /**
  * PriceRunner- eller GoWish-flödet på sin hemliga adress: kopian när den duger,
- * annars ett bygge som sparas efter svaret. Samma svar som den öppna adressen
- * ger, med namnet i loggen i stället för adressen.
+ * annars ett bygge som sparas efter svaret. Loggen bär namnet, aldrig adressen.
  */
 async function harlettFlode(flode: HemligtFlode, namn: string, request: Request): Promise<Response> {
   const kopia = await anvandbarKopia(flode, request, namn);

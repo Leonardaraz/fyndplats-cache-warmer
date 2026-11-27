@@ -53,9 +53,10 @@ describe("värdena är GoWish egna, ur deras guide och deras skript", () => {
     assert.equal(GOWISH_REGION, "global");
   });
 
-  it("knappens id är ett av de fem skriptet lyssnar på", () => {
+  it("knappens id är ett av de fem skriptet lyssnar på: den runda varianten utan text", () => {
     const LYSSNAR = ["ov-onskeskyen-generated-wish-button", "gowishRoundedButton", "gowishBlueButton", "gowishWhiteButton", "gowishDynamicButton"];
     assert.ok(LYSSNAR.includes(GOWISH_KNAPP_ID));
+    assert.equal(GOWISH_KNAPP_ID, "gowishRoundedButton");
     assert.equal(GOWISH_KNAPP_TEXT, "Lägg till i GoWish");
   });
 });
@@ -101,7 +102,7 @@ describe("två lägen: en länk utan samtycke, GoWish ruta med", () => {
   });
 
   it("utan samtycke: en länk till GoWish egen sida i en ny flik, och ingenting annat", () => {
-    assert.match(utan, /<a className="gowish-btn" href=\{reserv\} target="_blank" rel="noopener noreferrer">/);
+    assert.match(utan, /<a\s+className="gowish-ikon"\s+href=\{reserv\}\s+target="_blank"\s+rel="noopener noreferrer"/);
     assert.match(knapp, /const reserv = gowishReservadress\(adress\);/);
     // Varken skriptet eller GoWish id finns i den grenen: skriptet står efter den.
     assert.doesNotMatch(utan, /<Script|GOWISH_KNAPP_ID|<button|data-producturl/);
@@ -109,19 +110,23 @@ describe("två lägen: en länk utan samtycke, GoWish ruta med", () => {
     assert.ok(knapp.indexOf("<Script") > knapp.indexOf("const tryck"));
   });
 
-  it("länken säger att den öppnar en ny flik, också för den som inte ser den", () => {
-    assert.match(utan, /\{GOWISH_KNAPP_TEXT\}\s*<span className="sr-only"> \(öppnas i en ny flik\)<\/span>/);
+  // Rutan har ingen synlig text (Leonard 2026-11-26: "bara en ruta ... med
+  // gowish symbolen"). Namnet står i aria-label och, för musen, i title.
+  it("länken heter Lägg till i GoWish och säger att den öppnar en ny flik, också för den som inte ser den", () => {
+    assert.match(utan, /aria-label=\{`\$\{GOWISH_KNAPP_TEXT\} \(öppnas i en ny flik\)`\}\s+title=\{GOWISH_KNAPP_TEXT\}/);
   });
 
-  it("med samtycke: en riktig knapp med GoWish id och klass, och varans adress i data-producturl", () => {
-    assert.match(med, /<button id=\{GOWISH_KNAPP_ID\} className="gowish-btn" type="button" data-producturl=\{adress\} onClick=\{tryck\}>/);
+  it("med samtycke: en riktig knapp med GoWish id, varans adress i data-producturl och ett namn", () => {
+    assert.match(
+      med,
+      /<button\s+id=\{GOWISH_KNAPP_ID\}\s+className="gowish-ikon"\s+type="button"\s+data-producturl=\{adress\}\s+onClick=\{tryck\}\s+aria-label=\{GOWISH_KNAPP_TEXT\}\s+title=\{GOWISH_KNAPP_TEXT\}\s*>/,
+    );
     assert.match(knapp, /const adress = gowishProduktadress\(slug\);/);
-    assert.match(med, /\{GOWISH_KNAPP_TEXT\}/);
   });
 
-  // Molnet är dekoration: knappens namn är texten.
+  // Molnet är dekoration: knappens namn står i aria-label.
   it("ikonen är dold för skärmläsare, i båda lägena", () => {
-    assert.match(knapp, /<svg viewBox="0 0 26 16" width="26" height="16" aria-hidden="true" focusable="false">/);
+    assert.match(knapp, /<svg viewBox="0 0 26 16" width="28" height="17" aria-hidden="true" focusable="false">/);
     assert.match(utan, /<Moln \/>/);
     assert.match(med, /<Moln \/>/);
   });
@@ -156,13 +161,17 @@ describe("skriptet: efter laddningen, och bara där knappen finns", () => {
   });
 });
 
-describe("produktsidan: knappen står under köpraden", () => {
-  it("direkt efter köpraden, före bevakningen och leveransrutan", () => {
+describe("produktsidan: rutan står i köpraden, bredvid hjärtat", () => {
+  it("i köpraden efter hjärtat, före bevakningen och leveransrutan", () => {
     const rad = vy.indexOf('<div className="buy-rad">');
+    const hjarta = vy.indexOf("<FavoritKnapp", rad);
     const gowish = vy.indexOf("<GowishKnapp slug={slug} />");
+    const radSlut = vy.indexOf("</div>", gowish);
     const bevaka = vy.indexOf("<RestockForm productId={productId} />");
     const leverans = vy.indexOf("<DeliveryEstimate showStock />");
-    assert.ok(rad > -1 && rad < gowish && gowish < bevaka && bevaka < leverans);
+    assert.ok(rad > -1 && rad < hjarta && hjarta < gowish && gowish < radSlut && radSlut < bevaka && bevaka < leverans);
+    // Ingen annan div öppnas mellan hjärtat och rutan: den står i köpraden.
+    assert.doesNotMatch(vy.slice(hjarta, gowish), /<div/);
     assert.equal(vy.split("<GowishKnapp").length - 1, 1, "en knapp, inte en till i den fasta köpraden");
   });
 
@@ -200,18 +209,33 @@ describe("sekretesspolicyn säger vad knappen gör", () => {
   });
 });
 
-describe("stilen: knappen har sin plats från början, och inget hämtas utifrån", () => {
+describe("stilen: rutan har sin plats från början, och inget hämtas utifrån", () => {
   // Länken och knappen delar klassen: en regel, samma mått, ingen förskjutning när de byts.
   it("länken och knappen har samma regel, utan understrykning", () => {
-    assert.match(stil, /\.pdp-gowish \.gowish-btn\{[^}]*text-decoration:none;cursor:pointer;/);
-    assert.doesNotMatch(stil, /\.pdp-gowish (a|button)\b/);
+    assert.match(stil, /\.buy-rad \.gowish-ikon\{[^}]*text-decoration:none;cursor:pointer;/);
+    assert.doesNotMatch(stil, /\.gowish-ikon (a|button)\b|\.pdp-gowish|\.gowish-btn/);
   });
 
-  it("knappen har en fast höjd och butikens ram, hörn och typsnitt", () => {
-    assert.match(stil, /\.pdp-gowish \.gowish-btn\{[^}]*min-height:46px;[^}]*border:1\.5px solid #D8CFC5;border-radius:var\(--r-md\);background:#fff;color:var\(--ink\);\s*font:inherit;/);
-    assert.match(stil, /\.pdp-gowish \.gowish-btn\{[^}]*width:100%;max-width:404px;/);
-    assert.match(stil, /@media\(max-width:760px\)\{\s*\.pdp-gowish \.gowish-btn\{max-width:none;min-height:48px\}\s*\}/);
-    assert.match(stil, /\.pdp-gowish \.gowish-btn:focus-visible\{outline:none;box-shadow:var\(--e-ring\)\}/);
+  it("samma ruta som hjärtat: bredd, höjd, ram och hörn, också på en smal telefon", () => {
+    const globals = las("app", "globals.css");
+    // Hjärtats egen regel står först på raden (mobilens 48 px står i en mediefråga).
+    const hjarta = (globals.match(/(?:^|\n)\.fav-knapp\{[^}]*\}/) || [""])[0];
+    for (const del of ["width:54px", "min-height:52px", "border:1.5px solid #D8CFC5", "border-radius:var(--r-md)", "background:#fff"]) {
+      assert.ok(hjarta.includes(del), `hjärtat: ${del}`);
+      assert.ok((stil.match(/\.buy-rad \.gowish-ikon\{[^}]*\}/) || [""])[0].includes(del), `rutan: ${del}`);
+    }
+    assert.match(globals, /@media\(max-width:420px\)\{[^@]*\.buy-rad \.fav-knapp\{width:48px\}/);
+    assert.match(stil, /@media\(max-width:420px\)\{\.buy-rad \.gowish-ikon\{width:48px\}\}/);
+    assert.match(globals, /@media\(max-width:359px\)\{[^@]*\.buy-rad \.fav-knapp\{width:44px\}/);
+    assert.match(stil, /@media\(max-width:359px\)\{\.buy-rad \.gowish-ikon\{width:44px\}\}/);
+    assert.match(stil, /\.buy-rad \.gowish-ikon:focus-visible\{outline:none;box-shadow:var\(--e-ring\)\}/);
+  });
+
+  // GoWish ljusa blå (#4397FF) ger 2,95:1 mot vitt; en ikon som ensam bär
+  // knappens betydelse behöver 3:1. Den mörkare tonen ur deras knapp ger 4,1:1.
+  it("molnet står i GoWish mörkare blå, som klarar 3:1 mot vitt", () => {
+    assert.match(stil, /\.buy-rad \.gowish-ikon\{[^}]*color:#387ED4;/);
+    assert.doesNotMatch(stil, /#4397FF/i);
   });
 
   // GoWish egen stilmall börjar med @import av ett typsnitt från

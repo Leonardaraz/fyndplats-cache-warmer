@@ -1,6 +1,7 @@
 // lib/feed/gowish.ts
 //
-// GoWish-flödet (/feed/gowish.xml, Leonard 2026-11-25). GoWish bad om butikens
+// GoWish-flödet (Leonard 2026-11-25; sedan 2026-11-26 bara på den hemliga
+// adressen, lib/feed/hemlig-adress.ts). GoWish bad om butikens
 // Google Shopping-flöde i XML, och Leonard om att det ska bära alla EAN-koder,
 // som PriceRunner-flödet. Flödet byggs därför OVANPÅ Google-flödet, som
 // PriceRunner-, Prisjakt- och Pinterest-flödena, och är Google-flödet som det

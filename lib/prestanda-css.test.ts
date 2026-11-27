@@ -18,9 +18,11 @@ test("ingen keyframe animerar background-position", () => {
 test("oändliga animationer rör bara transform och opacity", () => {
   // Sidhuvudets auktionsprick pulserade med box-shadow utan slut och målade om
   // huvudet varje bildruta, 07–19 på varje sida (2026-10-01). Auktionssidans
-  // egna effekter körs bara där och undantas.
+  // SISTA TIMMEN-märke, knappsvep och knappglöd pulserade likadant och går
+  // sedan 2026-11-26 med transform och opacity (lib/hallen.test.ts). Inga
+  // undantag kvar.
   const css = readFileSync("app/globals.css", "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-  const AUKTIONSSIDAN = new Set(["aPulseBadge", "aShine", "aBtnGlow"]);
+  const AUKTIONSSIDAN = new Set<string>();
   const kf = new Map<string, string>();
   for (const m of css.matchAll(/@keyframes\s+([\w-]+)\s*\{((?:[^{}]*\{[^{}]*\})*[^{}]*)\}/g)) kf.set(m[1], m[2]);
   const dyra: string[] = [];

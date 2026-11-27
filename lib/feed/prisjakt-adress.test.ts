@@ -76,10 +76,8 @@ describe("den hemliga adressen i repot", () => {
     assert.match(las("app/feed/[fil]/route.ts"), /hamtaPrisjaktArtiklar/);
     for (const p of [
       "app/feed/google.xml/route.ts",
-      "app/feed/pricerunner.xml/route.ts",
       "app/feed/products.xml/route.ts",
       "app/feed/pinterest.xml/route.ts",
-      "app/feed/gowish.xml/route.ts",
       "app/feed/gz/[fil]/route.ts",
       "lib/feed/harledda.ts",
     ]) {

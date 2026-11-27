@@ -1,8 +1,12 @@
-// POST /api/kassa/stripe/forbered  { cartId, epost, fornamn, efternamn, telefon, gata, co?, postnr, ort, kupong?, avsiktId? }
+// POST /api/kassa/stripe/forbered  { cartId, epost, fornamn, efternamn, telefon, gata, co?, postnr, ort, kupong?, avsiktId?, hltid? }
 //
 // Stripe-kassans första steg: formuläret → Wix räkning → en PaymentIntent på
 // Wix total, som kundens betalfält (Stripe Payment Element) använder. Inget
 // dras och ingen order skapas här. Flödet och skälen: lib/kassa/flode.ts.
+//
+// hltid är Heylinks klick-id när kunden kom från GoWish (lib/heylink-s2s.ts).
+// Det läggs på betalningen bara när samtyckeskakan säger ja till alla cookies,
+// också om sidan skickade det: sidan frågar webbläsaren, servern kakan.
 
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
@@ -12,6 +16,8 @@ import { forberedStripe, medForsprang, medTider, tidrad } from "@/lib/kassa/flod
 import { stripeKassa } from "@/lib/kassa/stripe-kassa";
 import { harStripe, StripeFel } from "@/lib/kassa/stripe";
 import { webblasarsort } from "@/lib/kassa/stripe-klient";
+import { CONSENT_COOKIE, marketingConsentFromCookie } from "@/lib/consent";
+import { giltigtKlickId } from "@/lib/heylink";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -28,7 +34,9 @@ export async function POST(req: Request) {
   // den är cachad en minut, och när kunden fyllt i formuläret var den oftast
   // kall, 0,2–0,3 s före allt annat (mätt 2026-11-07). Läsningarna har ingen
   // verkan; svaren är desamma och i samma ordning som förut.
-  const provkaka = (await cookies()).get(PROV_KAKA)?.value;
+  const kakor = await cookies();
+  const provkaka = kakor.get(PROV_KAKA)?.value;
+  const samtycke = marketingConsentFromCookie(kakor.get(CONSENT_COOKIE)?.value);
   const lage = kassaLage();
   let body: Record<string, unknown> | null = null;
   try {
@@ -39,6 +47,7 @@ export async function POST(req: Request) {
   const cartId = typeof body?.cartId === "string" ? body.cartId : "";
   const prov = body ? provaKassa(body) : null;
   const avsiktId = typeof body?.avsiktId === "string" && /^pi_[A-Za-z0-9]+$/.test(body.avsiktId) ? body.avsiktId : null;
+  const hltid = samtycke ? giltigtKlickId(body?.hltid) : null;
   const tider: Record<string, number[]> = {};
   const start = Date.now();
   const deps = body && GUID.test(cartId) && prov?.ok ? medForsprang(medTider(stripeKassa, tider), cartId, avsiktId) : null;
@@ -49,7 +58,7 @@ export async function POST(req: Request) {
   if (!deps) return svar({ ok: false, kod: "fel", meddelanden: ["Formuläret kom inte fram. Försök igen."] }, 400);
 
   try {
-    const utfall = await forberedStripe(deps, { cartId, kund: prov.varden, avsiktId });
+    const utfall = await forberedStripe(deps, { cartId, kund: prov.varden, avsiktId, hltid });
     console.info(`[kassa] stripe förbered ${utfall.ok ? "ok" : `stopp ${utfall.kod}`} på ${Date.now() - start} ms: ${tidrad(tider)} [${webblasarsort(req.headers.get("user-agent"))}]`);
     return svar(utfall, utfall.ok ? 200 : 409);
   } catch (e) {

@@ -3,7 +3,8 @@
 // Hjältens varuvägg följer muspekaren några grader (Leonard 2026-11-17:
 // "finslipa den till max"). Väggen står vinklad i CSS (app/startsida.css,
 // "Studion"); här sätts bara två tal, --hx och --hy (−1 till 1), som CSS:en
-// räknar om till grader. Utan skriptet står väggen i sitt viloläge.
+// räknar in i varje brickas 2D-matris (lib/hero-vagg.ts). Utan skriptet står
+// väggen i sitt viloläge.
 //
 // Tre saker som inte ska ändras:
 // 1. Talen sätts på .heromosaic, inte på .hero. En egen variabel ärvs, så på

@@ -85,7 +85,7 @@ describe("katalogen i minnet förnyas för flödena", () => {
 });
 
 describe("de stora flödena byggs vid anrop och skickas komprimerade", () => {
-  for (const fil of ["google.xml", "products.xml", "pricerunner.xml"]) {
+  for (const fil of ["google.xml", "products.xml"]) {
     it(`/feed/${fil}`, () => {
       const kalla = las("app", "feed", fil, "route.ts");
       assert.match(kalla, /^export const dynamic = "force-dynamic";$/m);

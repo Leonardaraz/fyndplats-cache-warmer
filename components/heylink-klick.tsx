@@ -3,8 +3,8 @@
 // components/heylink-klick.tsx
 //
 // Fångar Heylinks klick-id (?hltid=…) när någon landar från GoWish
-// (Leonard 2026-11-25). Vad Heylinks skript gör, och varför det inte ligger på
-// varje sida som deras guide säger, står i lib/heylink.ts.
+// (Leonard 2026-11-25). Vad Heylinks skript gör, och varför det inte används,
+// står i lib/heylink.ts.
 //
 // - Id:t läses EN gång, när sidan laddas: det är bara landningen som bär det.
 // - Utan samtycke till alla cookies sparas ingenting. Id:t finns då bara i
@@ -13,11 +13,11 @@
 // - Med samtycke sparas id:t i localStorage (HEYLINK_NYCKEL) med tiden, och
 //   gäller i HEYLINK_DAGAR. Ett nytt klick skriver över det gamla.
 // - Har besökaren INTE samtyckt tas ett sparat klick bort, och ordernumret som
-//   tacksidan kom ihåg: de får inte ligga kvar efter att någon bytt till "bara
-//   nödvändiga".
+//   tacksidans skript kom ihåg till 2026-11-26: de får inte ligga kvar efter
+//   att någon bytt till "bara nödvändiga".
 //
-// Inget hämtas från Heylink här, och inget skickas dit. Det gör bara tacksidan
-// (components/heylink-kop.tsx).
+// Inget hämtas från Heylink här, och inget skickas dit. Kassan lägger klicket
+// på betalningen, och servern lämnar köpet (lib/heylink-s2s.ts).
 import { useEffect } from "react";
 import { hasMarketingConsent } from "../lib/consent";
 import { useMarketingConsent } from "../lib/use-marketing-consent";

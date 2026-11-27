@@ -1086,6 +1086,152 @@ matchar antalet som erbjuds hela tiden".
   också med tre siffror) och att inget fast antal står i sidan, korten eller blogginlägget.
   Elva inlagda fel fälldes alla.
 
+## Fyndauktionen: studion och reklamfilmen (Leonard 2026-11-26)
+
+Leonard laddade upp en reklamfilm i Wix Media ("fyndplats-black-friday-torsdag.mp4",
+25 s, stående 9:16, svart och guld) och frågade var den kan göra reklam för auktionen,
+och om auktionssidan kan få "en mer premium 3d kodad studio look". Båda kom med i
+mergen natten mot fredag 27 november.
+
+**Filmen** (`lib/fyndfilm.ts`, `components/fyndfilm.tsx`) står på två ställen:
+
+- **Startsidans auktionsband**, där den gör reklam: en vinklad skärm inne i bandet
+  som spelar utan ljud, med rubriken "Priset sjunker varje timme" och en guldknapp
+  (`app/startsida.css`, "Auktionsbandet med reklamfilmen"). Skärmen är dekor i bandets
+  länk (`aria-hidden`). ☠️ Den sticker inte ut ur bandet: först stack den upp ovanför
+  (och på datorn under) det mörka bandet, och Leonard såg det som ett fel
+  (2026-11-26). Nu har den 18 px luft runt om, bandet är så högt som skärmen kräver
+  (246 px på datorn, oförändrat på mobilen) och texten står samlad i mitten bredvid
+  den. `lib/fyndfilm.test.ts` fäller en marginal på skärmen.
+- **Auktionssidans studio**: till höger om rubriken på dator och surfplatta, i
+  rubrikens övre högra hörn på mobilen (utanför flödet, så att dagens fynd står lika
+  högt som utan film). Ett tryck spelar filmen med ljud i ett lager över sidan.
+
+☠️ **Filmen nämner "fredag 27 november" och "100 fynd", och har därför ett slut**
+(`FYNDFILM.slutarMs`, fredag kl 19 svensk tid). Efter det ritas den ingenstans:
+servern låter bli, och en sida som ligger kvar i cachen (startsidan lever en timme)
+släcker filmen själv med klientens klocka (`useClientNow`). Butikens egna texter runt
+filmen nämner aldrig antalet fynd (regeln ovan). En ny film läggs in genom att byta
+`FYNDFILM`: fil-id ur Wix Media, längd, stillbild och slut.
+
+☠️ **Stillbilden är f000**, filmens första bild (rubriken och trappan). f002 är
+räkneverket mitt i en siffra ("64 fynd").
+
+Hur skärmen hämtar (mätt 2026-11-26: 360p 1,5 MB, 480p 2,0 MB, 720p 3,4 MB, 1080p
+19 MB; Wix "720p" är 406×720 för en stående film):
+
+- Ingenting förrän skärmen syns: ingen `src` i sidan, `preload="none"`, stillbilden lat
+  i bandet.
+- Utan ljud, bara medan skärmen och fliken syns, den minsta fil som räcker och aldrig
+  1080p (`skarmKalla`): 360p på en telefon, 480p eller 720p på en dator.
+- Aldrig för den som bett om mindre rörelse eller sparar data: då står stillbilden kvar.
+- Filmen tonas in först när den spelar (`playing`). Med strömspar på en iPhone spelar
+  den inte, och då står stillbilden kvar i stället för en svart ruta.
+- Lagret med ljud läggs i sidan med `flushSync` innan `play()` anropas, i samma tryck
+  (samma regel som produktvideon), och ligger i `<body>` (`createPortal`). Det tar
+  `valjKalla` (1080p på en telefon och på en dator, 720p i sparläge), stänger på Stäng,
+  Escape, ett klick utanför och när filmen är slut, och Tab stannar i det.
+
+**Studion** (`app/fyndauktion/fyndauktion.module.css`, "Studion"): toppen av sidan
+är en fotostudio som startsidans hjälte, i ren CSS: väggen, en ljuskägla från taket
+(ett andra ljus på filmen), golvet med en ljuspöl, och dagens hetaste fynd (eller
+kortet i tomt läge) står på golvet med studions skugga och glöd. Färgerna är nattens
+och studions variabler, så Black Week-temat gör den svart och guld. Dagen syns i
+ljuset: käglan blir starkare ju närmare kl 19 (`--a-heat`), och sista timmen glöder
+orden i ember-lägets färger. Studion har ingen egen bakgrund sedan samma kväll: den står
+i hallen, scenens mörka rum, som fortsätter bakom rutnätet, stegen och de sålda (nästa
+avsnitt).
+
+- ☠️ **Studion är en egen sektion, och mobilens fasta pill (`AuctionLiveBar`) ligger i
+  sektionen under.** Studions innehåll ligger över ljuset och golvet (`z-index: 1`), och
+  i den staplingsordningen hade pillen hamnat under rutnätet.
+- ☠️ **Ett rutnätsbarn med auto-marginaler krymper till sitt innehåll.** Kortet i tomt
+  läge och sista timmens banner fick `width: 100%` i studion med film (surfplattan
+  visade kortet 578 px brett).
+- Glödpartiklarna ritas bakom sidans innehåll. Sedan hallen kom syns de i hela scenen,
+  också i studion. Blixtarna vid timslaget och sista timmens vinjett syns som förut.
+
+Mätt 2026-11-26 mot ett lokalt bygge (tomt läge, utan auktionsdata): skärmen spelar 360p
+på mobil och surfplatta och 480p på dator, lagret spelar 1080p med ljud, Escape och
+klick utanför stänger och fokus går tillbaka, mindre rörelse hämtar ingen video, ingen
+sidscroll på 19 bredder (320–1 920 px), axe-core utan fel i studion på mobil och dator.
+Startsidans band och studion med dagens fynd provades i förhandsbygget (riktig data).
+**Inte provat:** Safari och en riktig iPhone (perspektivet, inline-spelningen och
+ljudet i lagret).
+
+## Fyndauktionen: hallen och sidans snabbhet (Leonard 2026-11-26)
+
+Leonard samma kväll: "Kolla om du kan få bakrunden att bli 3d kodad premium loook och
+att sidan är hastighetsootimerad till nattens merge." Bakgrunden under studion var
+krämen från 2026-11-19, och sidan var tung på en telefon.
+
+**Hallen** (`.a-rum` i `app/globals.css`, ritad av `components/auction-stage.tsx`):
+hela scenen är ett mörkt rum i 3D, samma som studion överst. Väggen har två ljuskäglor
+från taket, en ljus linje där väggen möter golvet, ljuspölar på golvet och en varm glöd
+längst fram. Rummet står still medan fynden glider förbi, och det är rörelsen mellan dem
+som ger djupet. Glödpartiklarna stiger framför rummet och bakom korten. Färgerna är
+studions (`--natt`, `--studio-ljus`, `--studio-glod`), så Black Week gör rummet svart och
+guld. Rummets ljus blir starkare ju närmare kl 19 (`--a-heat`), och sista timmen glöder
+det orange. Korten står i studions ljus (ljus kant, tät skugga och glöd, som brickorna i
+startsidans hjälte) och följer dagens färger som förut. Texten i hallen är ljus, stegen
+står på en glasskiva, nyhetsbrevet står på hallens golv, och sidfoten tar vid direkt.
+
+- ☠️ **Rummet målas en gång.** Ingen animation, inget filter och ingen blandning i det:
+  en rörlig effekt i ett lager som täcker hela fönstret målas om i varje bildruta.
+- ☠️ **Rummet är `position: sticky` i ett lager lika stort som scenen, inte fixed.** Det
+  slutar där scenen slutar av sig självt. Det fungerar bara för att `html` och `body`
+  klipper med `overflow-x: clip`. Med `hidden` blir `body` en rullningsruta, och sticky
+  slutar fungera utan att något felar.
+- Scenens krämvariabler (`--a-bg1`, `--a-bg2`) och den oanvända `--a-ink` är borta, ur
+  CSS:en och ur skriptets färgsteg.
+
+**Snabbheten.** Mätt på www före ändringen (iPhone 13 i Chromium, processorn strypt
+fyra gånger, tre laddningar): huvudtråden var upptagen 1 000 ms per sekund när sidan
+bara låg öppen, stilen räknades om 80–120 ms per sekund, och blockeringen under
+laddningen (TBT) var 1,7–2,3 s. Orsakerna och vad som gjordes:
+
+1. `--a-heat` skrevs med full precision varje sekund på scenen. En variabel där ärvs av
+   hela sidan, så stilen räknades om för alla kort varje sekund. Nu avrundas den till
+   hundradelar och skrivs bara när den ändrats, liksom kortens färger.
+2. Glödloopen läste värmen med `getComputedStyle` i varje bildruta och ritade dygnet
+   runt, också före 07 och efter 19 då det inte fanns något att rita. Nu bor värmen i
+   skriptet, och loopen står still när det inte finns värme, partiklar eller blixtar,
+   när scenen inte syns och när fliken är dold. Klockan väcker den.
+3. Varje glödprick fick en ny radialgradient i varje bildruta. Nu är pricken en färdig
+   bild som ritas med `drawImage`.
+4. Glödcanvasen ritades i dubbel täthet med `mix-blend-mode: screen` över hela fönstret.
+   En telefon ritar nu i CSS-pixlar, och blandningen är borta (mot hallens mörker ger
+   vanlig blandning samma bild).
+5. SISTA TIMMEN-märket pulserade med `box-shadow` hela dagen, också de elva timmar då
+   bannern är dold. Nu pulserar det bara när bannern syns, med transform och opacity.
+   Samma sak med tomma lägets prick.
+6. Pillens linje på mobilen ändrade bredd varje sekund med en övergång på en sekund, så
+   pillen lades om i varje bildruta. Nu skalas den, utan övergång. Pillens oskärpa bakom
+   (`backdrop-filter`) syntes inte genom 97 % täckning och är borta.
+7. Luntan går i halvminutstakt i stället för sekundtakt (den flyttar sig en pixel i
+   minuten).
+8. Blobbarna var oskärpade med `filter: blur()` och drev dygnet runt fast de bara syns
+   sista timmen. Nu är mjukheten en toning, och de rör sig bara sista timmen.
+9. Knappens ljussvep sista timmen flyttas med transform i stället för `left`, och
+   knappens glöd är en skugga i ett omslag (`.a-hc-cta::before`) som tonas med
+   opacity. Den pulserande `box-shadow` på knappen stod ensam för två tredjedelar av
+   huvudtrådens tid sista timmen (förhandsbygget, 834 ms/s med och 233 ms/s utan).
+   `lib/prestanda-css.test.ts` har inga undantag kvar.
+10. ☠️ **Fyndens färska priser hämtas i en fråga per hundra fynd** (`getFreshPrices`
+    genom favoriternas `getProdukterForSluggar`), inte en fråga per fynd. Med Black
+    Weeks 100 fynd ställde varje sidbygge 100 frågor till Wix samtidigt. En fråga som
+    fallerar prövas en gång till; fallerar den igen visar kortet katalogens pris.
+    Kontrollerat mot butiken: tre fynd och en påhittad adress i samma fråga gav exakt de
+    tre.
+
+11. Sista timmens banner och luntan ritas av servern med sidans tid (`nuMs`), och
+    första renderingen i webbläsaren använder samma tid. Förut ritades de först efter
+    mount: sista timmen fälldes bannern ut när sidan redan stod, och dagens fynd
+    hoppade ner 129 px på en telefon (CLS 0,13). Utanför sista timmen står bannern
+    tom i HTML:en.
+
+`lib/hallen.test.ts` håller reglerna.
+
 ## Googles ?srsltid= tas bort ur adressfältet (2026-09-30)
 
 Merchant Centers automatiska taggning lägger `?srsltid=…` på varje länk från
@@ -1413,22 +1559,37 @@ Regler som har prov (`lib/feed/hemlig-adress.test.ts`):
   och med samma byggare. Artikelnumren hämtas bara för Prisjakts adress.
 - Ingen fil i repot bär en adress på formen `pricerunner-<lång kod>.xml`.
 
-### ☠️ De öppna adresserna står kvar tills läsarna har bytt
+### ☠️ De öppna adresserna stängdes när läsarna hade bytt (2026-11-26)
 
-`/feed/pricerunner.xml` och `/feed/gowish.xml` svarar som förut. Leonard hade
-redan mejlat GoWish den öppna adressen, och PriceRunner läser sin. Att stänga
-dem i samma deploy hade tagit flödet från båda.
+De öppna adresserna fick stå kvar tills läsaren hämtade den hemliga: att
+stänga dem i samma deploy som de hemliga kom hade tagit flödet från läsarna.
+Båda är stängda nu och svarar 404 (från `app/feed/[fil]`):
 
-Så stängs de, när Leonard har bytt adress hos PriceRunner och GoWish:
+- **`/feed/gowish.xml`**: GoWish läsare (`onskeskyen-import/1.0.0`) hämtade
+  den hemliga adressen 09:12 UTC, och GoWish skrev "The new feed has been
+  implemented as well".
+- **`/feed/pricerunner.xml`**: PriceRunners läsare hämtade den hemliga
+  adressen 10:08 UTC (Mozilla/5.0, Dublin, som deras läsare av den öppna), och
+  PriceRunner skrev "Nu har vi bytt till den nya feeden".
 
-1. Läs butikens logg efter `det hemliga PriceRunner-flödet` och `det hemliga
-   GoWish-flödet`: raden ska bära läsarens eget namn, inte vårt.
-2. Ta bort rutterna `app/feed/pricerunner.xml` och `app/feed/gowish.xml`, och
-   namnen ur `KOMPRIMERADE_FLODEN`, omskrivningen i `next.config.ts` och
-   `BYGGARE`. Kopiorna byggs fortfarande av `/api/cron/farska-floden`
-   (`UR_GOOGLE`), och den hemliga rutten bygger med samma funktioner.
+Rutterna, de komprimerade tvillingarna, omskrivningen och värmningen är borta.
+Flödena byggs och sparas fortfarande av jobbet (`LAGRADE_FLODEN`,
+`UR_GOOGLE`), och den hemliga rutten bygger med samma funktioner.
+`LAGRADE_FLODEN` får därför bära ett flöde som inte står i
+`KOMPRIMERADE_FLODEN`, när det är ett hemligt (`HEMLIGA_FLODEN`). Prov:
+`lib/feed/gowish.test.ts` och `lib/feed/pricerunner.test.ts` fäller om en
+öppen rutt, tvilling, omskrivning eller värmning kommer tillbaka.
+
+Så stängs ett öppet flöde när läsaren har bytt till en hemlig adress:
+
+1. Läs butikens logg efter flödets namn (`det hemliga PriceRunner-flödet`):
+   raden ska bära läsarens eget namn, inte vårt (`fyndplats-flodesvarmning`)
+   och inte en länkförhandsvisning (`Slackbot-LinkExpanding`).
+2. Ta bort rutten under `app/feed/`, och namnet ur `KOMPRIMERADE_FLODEN`,
+   omskrivningen i `next.config.ts` och `BYGGARE`. Låt det stå kvar i
+   `LAGRADE_FLODEN` och jobbets `UR_GOOGLE`.
 3. `lib/flodesvarmning.ts` hämtar de öppna adresserna för att värma CDN:en:
-   ta bort dem där också.
+   ta bort det där också.
 
 ### Inte gjort, och inte mätt
 
@@ -3689,10 +3850,12 @@ tappade kontrasten, och scenen blev platt. Jag hade läst "passar inte in
 jämfört med våra andra sidor" som "gör den vit som de andra", utan att fråga.
 Frågan var tonen, inte att sidan har en egen värme.
 
-Auktionens första färgsteg står på två ställen som måste vara lika: `.a-stage`
+Auktionens första färgsteg stod på två ställen som måste vara lika: `.a-stage`
 i `app/globals.css` och `LIGHT[0]` i `components/auction-stage.tsx`. Värmen
 under dagen (07 till 19, och glöden sista timmen) är kvar: det är auktionens
-egen dramaturgi, och den börjar nu från butikens kräm.
+egen dramaturgi, och den började från butikens kräm. **Ersatt 2026-11-26:**
+scenen är hallen, ett mörkt rum ("Fyndauktionen: hallen och sidans snabbhet").
+Krämvariablerna är borta, och dagens värme syns i rummets ljus och i korten.
 
 ## Sökrutan: två bokstäver är början på ett ord (2026-11-19)
 
@@ -4347,6 +4510,9 @@ Han valde Studio bland fyra förslag och svart och guld bland två.
 - Varuväggen står vinklad mot texten i riktigt perspektiv på dator och speglas
   i golvet (`-webkit-box-reflect`). På mobilen står brickorna upprätt och var
   och en bär sin egen spegling.
+  ☠️ Sedan 2026-11-26 sitter vinkeln som en 2D-matris på varje bricka, inte
+  som 3D på väggen, för skarpa bilder (se "Startsidans hjälte: samma vinklade
+  vägg, skarpa bilder").
 - Brickorna har ljus kant upptill och varmare ton nedtill, siffrorna ligger på
   en glasskiva, knappen har ljus ovankant och mörk underkant, och orden
   "tryggt köp" glöder svagt.
@@ -4607,8 +4773,11 @@ sju regler för en önskelista inför julen.
   sidan reserverar, i husstilen från tullinlägget. Allt viktigt står i
   mittkvadraten (x 427–1 372): bloggkortet beskär till 1:1 och startsidans
   kort till 4:3, och båda tar bara mitten. **Bilden i texten**
-  (`/blog-onskelista-steg.webp`) är 1 200 × 1 200, eftersom inläggets
-  bildrutor visas kvadratiska.
+  (`/blog-onskelista-steg-2.webp`) är 1 200 × 1 200, eftersom inläggets
+  bildrutor visas kvadratiska. Den ritades om 2026-11-26, när GoWish-knappen
+  blev en ruta bredvid hjärtat, och fick ett nytt namn så att ingen cache
+  visar den gamla. Texten säger var rutan sitter och att man trycker på
+  molnet.
 - ☠️ **Inget står efter sista svaret under "## Vanliga frågor".** `extractFaq`
   (`lib/local-blog.ts`) lägger varje rad efter sista frågan i sista svaret
   tills nästa `##`, så en avslutande länkrad hamnar i FAQPage. Inlägget slutar
@@ -6013,7 +6182,8 @@ Fjärrkontroll" (2 419 kr, "Ingen direktlänk till produkten": vi betalar inte
 för länken). Leonard skrev namnet i butikens sökruta och fick "Inga produkter
 matchade". Frågan: kan kunden söka på PriceRunners namn här och hitta varan?
 
-PriceRunner känner oss genom det publika flödet (`/feed/pricerunner.xml`) och
+PriceRunner känner oss genom vårt flöde (sedan 2026-11-26 bara på den hemliga
+adressen) och
 parar ihop varorna på GTIN med sina egna produktsidor. Namnet på sidan är
 PriceRunners, och det börjar med leverantörens märke. Våra namn är omskrivna:
 varan heter "Elbil barn SUV 12V – svart åkbil med fjärrkontroll, MP3 och
@@ -6769,7 +6939,7 @@ modul:
 
 | | Utan samtycke till alla cookies | Med samtycke |
 |---|---|---|
-| Elementet | en länk, `<a class="gowish-btn">`, till GoWish egen sida i en ny flik | GoWish knapp, `<button id="gowishWhiteButton" class="gowish-btn">` |
+| Elementet | en länk, `<a class="gowish-ikon">`, till GoWish egen sida i en ny flik | GoWish knapp, `<button id="gowishRoundedButton" class="gowish-ikon">` |
 | Hämtas från GoWish före klick | ingenting | skriptet, efter att sidan laddat klart (`strategy="lazyOnload"`) |
 | Klicket | GoWish sida med varan öppnas i en ny flik | GoWish ruta ovanpå sidan, på telefon först appen |
 
@@ -6789,11 +6959,38 @@ modul:
 
 ### Knappen och rutan
 
-- **Under köpraden**, lika bred som köpknappen och hjärtat tillsammans, med
-  butikens ram, hörn och typsnitt. Det är den grå varianten i GoWish guide
-  (`gowishWhiteButton`) med deras moln, texten "Lägg till i GoWish". Bara när
-  varan finns i lager (`inStock`): en önskan om en slutsåld vara skickar den
-  som ska köpa presenten till en sida utan köpknapp.
+- **En ruta i köpraden, bredvid hjärtat** (Leonard 2026-11-26: "jag vill ha
+  den varianten som är bara en ruta tack som kan va bredvid vår egen med
+  gowish symbolen proffsigt"). Det är GoWish variant utan text
+  (`gowishRoundedButton`, "en rund knapp bredvid din produkt" i deras guide),
+  ritad som hjärtat: samma bredd, höjd, ram och hörn (`.fav-knapp`), och 48 px
+  bred på en telefon under 420 px (44 px under 360 px). Deras moln står i GoWish mörkare blå
+  (`#387ED4`, 4,1:1 mot vitt); deras ljusa blå (`#4397FF`) ger 2,95:1 och
+  klarar inte 3:1 för en ikon som ensam säger vad knappen gör. Namnet "Lägg
+  till i GoWish" står i `aria-label` och i `title`. Bara när varan finns i
+  lager (`inStock`): en önskan om en slutsåld vara skickar den som ska köpa
+  presenten till en sida utan köpknapp.
+- **Köpknappen har plats för sin text, också den längsta.** Med tre knappar i
+  raden bröts "Lägg i varukorgen" på två rader i 320–375 px, och "✓ Tillagd i
+  varukorgen" (172 px i 16 px) bröts och gjorde raden 21 px högre i 320–359 px
+  medan bekräftelsen syntes. Köpknappen har därför 12 px luft på sidorna i
+  raden. Under 420 px är rutorna och hjärtat 48 px och mellanrummen 8 px, under
+  370 px mellanrummen 6 px och luften 8 px, och under 360 px rutorna 44 px,
+  luften 6 px och texten 14 px (`app/globals.css`, `.buy-rad`).
+  - Svept pixel för pixel 320–1 440 px på förhandsbygget 2026-11-26, med alla
+    fem texterna ("Lägg i varukorgen", "✓ Tillagd i varukorgen", "Lägger
+    till…", "Slut i denna variant", "Slutsåld"): en rad och samma höjd i
+    varje bredd. Minst 5,6 px över i 320 px, annars minst 10 px. Tablettens
+    smalaste köpknapp är 207 px vid 761 px.
+  - ☠️ Bocken i "✓ Tillagd" finns inte i Geist och ritas av ett systemtypsnitt
+    (Inter i provets Linux, 14 px bred i 16 px). En iPhone tar ett annat, så
+    marginalen är till för det. Ändras köpknappens text, luft eller
+    typsnitt: svep om alla bredder, inte bara 390 px.
+  - Bryt hellre än `white-space:nowrap`: med större text i telefonens
+    inställningar ska texten brytas, inte rinna ut över hjärtat.
+- Skriptet behandlar alla fem id:n lika, och ett tryck på molnet inne i
+  knappen räknas som ett tryck på knappen (`closest("button")` i skriptet,
+  läst 2026-11-26, samma version som 2026-11-25).
 - ☠️ **GoWish stilmall laddas inte.** `gowish-iframe.css` börjar med
   `@import` av typsnittet Geist från en fjärde part (fonts.cdnfonts.com) och
   pekar ut ikoner i deras lagring, på varje sidvisning och i vägen för
@@ -6832,7 +7029,8 @@ Mot det lokala bygget, med GoWish riktiga skript och riktiga ruta:
   rutan ryms i alla.
 - **Förskjutning vid laddning** (CLS): 0 på datorn i båda lägena, 0,0015 på
   telefonen i båda (kom från en annan del av sidan). Länken och knappen har
-  samma mått och samma plats under köpraden.
+  samma mått och samma plats (mätt 2026-11-25, då under köpraden; sedan
+  2026-11-26 en ruta i köpraden, med samma regel).
 - axe (WCAG 2.1 A och AA) på knappen i båda lägena: inga fel.
 
 ### ☠️ Tre saker i GoWish eget skript, som inte går att rätta härifrån
@@ -6902,7 +7100,18 @@ sidan man hamnar på. Skriptet har inget språkval (bara region: `global`,
   (nedan) är det som märker det, inte `npm test`.
 - Appen på telefonen har sitt eget språk och berörs inte.
 
-## Heylink: GoWish spårning, bara på tacksidan (Leonard 2026-11-25)
+## Heylink: GoWish spårning (Leonard 2026-11-25; skriptet borttaget 2026-11-26)
+
+☠️ **Heylinks skript används inte längre, på någon sida (2026-11-26).** Köpet
+lämnas från servern (se "Köpet från servern" nedan). GoWish svarade samma dag:
+"If you have the server-to-server implementation active, the script isn't
+necessary at all. However, the standard guide with the script won't work
+unless the script is active on all pages." Tacksidans skript var alltså ingen
+reserv, och Leonard: "gör vi inte mer än det krävs för det ska fungera".
+`components/heylink-kop.tsx` är borttagen. Tacksidan glömmer bara klicket
+(`components/heylink-glom.tsx`), så att ett klick ger ett köp, och ingen order
+går längre till webbläsaren för Heylinks skull. Det som står nedan om
+tacksidans skript är historik från 2026-11-25.
 
 GoWish mäter köpen som deras besökare gör hos oss genom Heylink. Deras mejl
 bad om två saker ur guiden (docs.heylink.com/inbound/tracking-guide): skriptet
@@ -6971,7 +7180,8 @@ klicket måste deras skript ligga på varje sida, och det är Leonards beslut.
 Ett köp där tacksidan öppnas i en annan webbläsare än den kunden landade i
 (Klarnas app som går tillbaka till Safari från en app-webbläsare) rapporteras
 inte heller: klicket ligger i den första webbläsarens lagring. Det kräver
-Heylinks server-till-server-anrop, och till det en nyckel från dem.
+Heylinks server-till-server-anrop, och till det en nyckel från dem. Det är
+byggt sedan 2026-11-26: se nästa avsnitt.
 
 Sekretesspolicyn har en punkt om Heylink, och cookie-stycket nämner dem.
 Prov: `lib/heylink.test.ts` (25). I webbläsaren, mot det lokala bygget med en
@@ -6982,6 +7192,66 @@ utan klick, med frakt, med gammalt klick, med redan lämnad order och F5.
 hos GoWish. Det enda som frågats hos Heylink är om adressen tar emot anrop från
 butikens domän (en förfrågan utan innehåll: 204, alla ursprung tillåtna). **Inte provat:** ett riktigt köp via en länk från GoWish. Heylinks
 kontaktperson gör ett provköp när mejlet är besvarat.
+
+### Köpet från servern: Heylinks server-till-server-anrop (Leonard 2026-11-26)
+
+GoWish svarade 2026-11-26: "If possible, we would prefer the server-side
+solution", med en nyckel. Heylinks dokumentation (docs.heylink.com/inbound/
+advertiser-callback och /inbound/api-server2server, byggs med JavaScript och
+svarar 404 på en vanlig hämtning: läs dem i en webbläsare):
+
+- `POST https://heylinkapi.com/connect/v1/callbacks/advertisers?secretKey=…&pageUrl=…`
+  med köpet som JSON: `hltid`, `consentStatus`, `orderId`, `orderSubTotal`,
+  `orderTotal`, `orderTax`, `orderShippingSubTotal`, `orderTaxRate`,
+  `orderCurrencyCode`, `orderItems`. Svar 200 `{ data: { success: true } }`.
+- "You should save the value of the hltid parameter in a cookie or local
+  session, in order to pass it back to the Heylink API." Deras skript behövs
+  inte för anropet.
+- "Implementing both will not result in duplicates - only 1 purchase per
+  session will be approved." Tacksidans skript stod först kvar som reserv,
+  men GoWish skrev att det bara fungerar om det ligger på alla sidor, och det
+  togs bort samma dag (se början av Heylink-avsnittet).
+
+Så går det till (`lib/heylink-s2s.ts`):
+
+1. **Kassan skickar klick-id:t med betalningen** (`hltid` till
+   `/api/kassa/stripe/forbered`, `heylinkKlick` i `app/kassa/kassa.tsx`): bara
+   med samtycke enligt webbläsaren och ett sparat klick som inte gått ut
+   (`klickForKassan`). Servern tar det bara när samtyckeskakan också säger ja,
+   och lägger det i PaymentIntentens `metadata.hltid` (`avsiktParametrar`). En
+   uppdaterad betalning utan klick får `hltid: ""`, som tar bort ett gammalt.
+2. **När ordern är klar** skickar servern köpet, sist i `slutforStripe`
+   (`rapporteraKop`), bara i det anrop som gjorde ordern klar: ett nytt anrop
+   för samma betalning svarar tidigare (wixOrderId, låset `klar`). Det gäller
+   också webhooken, så köpet kommer fram när kunden aldrig når tacksidan
+   (Klarna-appen) och när en annonsblockerare stoppar Heylinks skript.
+3. **Köpet räknas som på tacksidan**: ordern läses ur Wix
+   (`fetchWixOrderInfo`) och räknas med `heylinkKop`, plus `hltid`,
+   `consentStatus: "marketing"` och `orderTaxRate: 25`.
+4. **Efter svaret** (`after`), så att kassan aldrig väntar. Bara i produktion
+   (`arProduktion`): ett förhandsbygges kassa går mot skarpa nycklar.
+
+☠️ **Nyckeln står i adressen.** Den finns bara i Vercel, som känslig variabel
+`HEYLINK_SECRET_KEY` i produktion (inte i förhandsbyggen). Adressen loggas
+aldrig, varje felmeddelande tvättas från nyckeln (`tvatta`), och loggraden
+bär ordernumret och Heylinks status: `[heylink] köp 10234 skickat till
+Heylink (200)`. Ett prov fäller om något i repot liknar nyckeln (64
+hextecken), om nyckeln läses någon annanstans än i
+`lib/kassa/stripe-kassa.ts` eller om en loggrad där bär den.
+
+**Inte provat:** ett riktigt anrop till Heylink. Det vore ett påhittat köp hos
+GoWish, och dokumentationen har inget provläge. Kvittot är GoWish provköp, och
+raden `[heylink] köp … skickat` i loggen. Wix kassa (reservvägen) har inget
+anrop från servern, och sedan skriptet togs bort når ett köp där inte Heylink.
+Vägen används nästan aldrig (0 rader i loggen sedan 2026-11-25).
+
+**Leonards beslut, inte byggt:** GoWish skrev också "Our script needs to be
+active on all pages after consent is given for it to work as expected." Det
+gäller deras skript, inte anropet. Skriptet på varje sida samlar annonsklick
+(`gclid`, `fbclid`, `utm`) och sidan besökaren kom från för varje besökare med
+samtycke, och skickar varje order det ser, också utan klick från GoWish.
+GoWish svarade 2026-11-26 att skriptet inte behövs alls med anropet från
+servern. Det byggs alltså inte.
 
 ## GoWish-flödet: Google-flödet med EAN (Leonard 2026-11-25)
 
@@ -7228,6 +7498,83 @@ fram innan provet tittade. Andra gången gick det igenom (se nedan).
   en ruta på 91 × 120). Det är tyngd, inte suddighet, och är inte rört.
 - Bloggomslagen som ligger i `/public` (`blog-*.jpg`) skickas i full storlek
   (1 800 × 945 px) till en ruta på 267 px. Inte rört.
+
+## Startsidans hjälte: samma vinklade vägg, skarpa bilder (Leonard 2026-11-26)
+
+Leonard, med en skärmbild av hjältens tre brickor inringade: "vi gjorde
+bilderna skarpare på dator igår men det känns som att bilderna på startsidans
+hero sektion är fortfarande inte skarpa kan du kolla?" Och när väggen först
+rätades upp: "jag vill ha allt med samma utseende premium deluxe men bara
+bilderna skarpare".
+
+**Filerna var inte felet, 3D-väggen var det.** Väggen stod vinklad som en yta
+i 3D (`perspective(1500px) rotateY(-8deg) rotateX(2deg)` kring 50 % 55 %).
+En sådan yta ritas först som en bild och skalas sedan om av grafikkortet, och
+Chrome ritade dessutom ytan i för låg upplösning: på dubbel täthet förlorade
+bilderna mer än lutningen ensam förklarar. Kantskärpa (Laplace-varians, som i
+"Bildernas skärpa på datorn") i en skärmbild av varje bricka.
+
+Prövat på www, i procent av dagens skärpa (bilder):
+
+| Sätt | 1x | 2x |
+|---|---|---|
+| Rak vägg (ingen vinkel) | 186–298 % | 594–966 % |
+| Halva vinkeln (4 grader) | 93–108 % | 93–120 % |
+| Vinkel utan övergång, eller med `will-change` | 100 % | 100 % |
+| 3D per bricka med väggens vridpunkt (exakt samma form) | 99–101 % | 328–466 % |
+| Dessutom `will-change` på bilderna | 100 % | 132–170 % |
+| Spegling på varje bricka i stället för väggen | 99–100 % | 100 % |
+| Starkare skärpning hos Wix (usm 1,2–2,0) | 113–130 % | inte mätt |
+| **2D-matris per bricka (det som gäller)** | **186–291 %** | **623–904 %** |
+
+**Det som gäller:** varje bricka har den 2D-matris som bäst följer väggens
+projektion, kring väggens vridpunkt (`lib/hero-vagg.ts`, minsta kvadrat över
+hörn, kantmitter och mitt). En 2D-matris ritas direkt med bilden ur filen,
+utan en omskalad mellanbild. Muspekarens lutning (`--hx`, `--hy` från
+`components/hero-lutning.tsx`) ingår linjärt i matrisens tal, och entrén
+reser brickan kring dess nederkant inne i väggens vinkel (`brickaResVagg`) och
+landar på matrisen utan hopp. CSS:en i `app/startsida.css` är utskriven ur
+`lib/hero-vagg.ts` (`node --experimental-strip-types lib/hero-vagg.ts`), och
+`lib/hero-vagg.test.ts` fäller om de går isär.
+
+Mätt mot ett lokalt bygge, samma sida med 3D-väggen pålagd som jämförelse
+(`hero-skarpa/lokalt2.cjs` i sessionens arbetsmapp, 37 av 37):
+
+| Skärm | Bilderna | Priserna och texten | Avvikelse i utseende |
+|---|---|---|---|
+| 1 440 px, 1x | 2,0–2,8 gånger skarpare | 1,6–2,3 gånger | 2,6 av 255 |
+| 1 440 px, 125 % | 2,2–2,7 gånger | 2,2–3,2 gånger | 3,0 av 255 |
+| 1 440 px, 2x | 6,2–9,4 gånger | 5,1–6,5 gånger | 3,3 av 255 |
+
+Avvikelsen är medelskillnaden per pixel i en nedskalad bild av hjältens högra
+halva; rak vägg gav 7–8. Hover, muspekaren och entrén fungerar, brickan är
+skarp när pekaren står still (94–104 % av viloläget) och mobilen är orörd.
+
+☠️ **Formen är nästan, inte exakt, densamma.** En 2D-matris kan inte göra en
+bricka till ett trapets. Den stora brickans vänsterkant är 12 px kortare än
+högerkanten i 3D men lika lång här, och hörnen hamnar som mest 3,7 px fel (de
+små brickorna 1,5 px). Vill man ha trapetset tillbaka kostar det skärpan på
+vanliga skärmar och i 125 %, där 3D per bricka inte hjälper alls.
+
+Regler:
+
+- ☠️ Ingen `will-change`, ingen `translate3d` och ingen egen spegling på
+  brickorna på dator. Alla tre gör brickan till en egen yta, och då är
+  suddigheten tillbaka (mätt). Under en övergång (hover, muspekaren) är
+  brickan en egen yta en stund, och skarp igen när den står still.
+- ☠️ Speglingen sitter kvar på väggen, och väggen har en genomskinlig kant på
+  24 px i sidled som tas tillbaka med negativ marginal. Speglingen och dess
+  mask slutar vid väggens kant, och utan kanten kapades speglingen av brickan
+  längst till höger rakt av.
+- Ändras väggens vinkel, vridpunkt, rutnät eller mått: ändra `VAGG` eller
+  `brickor()` i `lib/hero-vagg.ts`, kör filen och klistra in CSS:en.
+- Matriserna är räknade för väggens stora mått (511 × 468 px, från 1 265 px
+  fönsterbredd). I smalare fönster avviker de under 2 px från en exakt
+  räkning, vilket inte syns.
+- Halloween-temats dekor på `.heromosaic::before` och `::after` lutade förr
+  med väggen och står nu rak. Temat är inte aktivt nu; titta på det före
+  nästa oktober.
+- Inte provat: Safari och Firefox, och en riktig skärm. Bara Chromium är mätt.
 
 ## Klarna på telefonen: kunden kom tillbaka utan godkänd betalning och fick börja om (2026-11-24)
 

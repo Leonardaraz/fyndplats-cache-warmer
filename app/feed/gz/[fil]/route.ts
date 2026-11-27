@@ -4,16 +4,14 @@
 // CDN:en håller en kopia av: en enda, lika för alla läsare.
 //
 // Ingen läsare har adressen. next.config.ts skriver om /feed/google.xml,
-// /feed/products.xml, /feed/pricerunner.xml och /feed/pinterest.xml hit för den
-// som tar emot gzip,
-// och /api/cron/farska-floden hämtar dem varannan timme så att kopian finns.
+// /feed/products.xml och /feed/pinterest.xml hit för den som tar emot gzip, och /api/cron/farska-floden hämtar dem varannan timme så att kopian finns.
 // Varför det är två adresser i stället för Vary: Accept-Encoding står i
 // lib/feed/prisjakt-svar.ts (mätt 2026-11-11: en kopia per rubriksträng).
 //
 // Flödet byggs av den vanliga ruttens GET utan anrop (lib/feed/byggare.ts), som
-// Prisjakt- och PriceRunner-rutterna gör, så det finns en enda byggare per flöde.
+// de hemliga adresserna gör, så det finns en enda byggare per flöde.
 //
-// ☠️ Flödena i LAGRADE_FLODEN (Google, PriceRunner, Pinterest) svarar ur den
+// ☠️ Flödena i LAGRADE_FLODEN (här Google och Pinterest) svarar ur den
 // sparade kopian i Vercels Runtime Cache när den är yngre än tre timmar, och
 // byggs bara när den saknas (lib/feed/flodeslager.ts). CDN:en behåller inte ett
 // flöde som hämtas en gång om dygnet (mätt 2026-11-15), så utan kopian väntade

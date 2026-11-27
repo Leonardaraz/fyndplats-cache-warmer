@@ -566,7 +566,7 @@ test("☠️ rutan räknar om förslagen för ordet som står i den", async () =
   assert.doesNotMatch(ruta, /^import [^\n]*useSearchParams/m);
 });
 
-test("filterlådan är vit som de andra lådorna, och auktionens viloläge är butikens egen kräm", async () => {
+test("filterlådan är vit som de andra lådorna, och auktionens gamla persika kommer inte tillbaka", async () => {
   const { readFileSync } = await import("node:fs");
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
   const regel = (borjan: string) => css.slice(css.indexOf(borjan), css.indexOf("}", css.indexOf(borjan)));
@@ -575,13 +575,14 @@ test("filterlådan är vit som de andra lådorna, och auktionens viloläge är b
     assert.match(regel(b), /background:#fff/, b);
     assert.doesNotMatch(regel(b), /var\(--warm\)/, b);
   }
-  // Auktionsscenens första steg står på två ställen och måste vara samma färger:
-  // vitt överst som tonar till butikens kräm (--warm), inte den gamla persikan
-  // och inte helt vitt (prövat och förkastat samma natt).
-  assert.match(css, /--a-bg1:#FFFFFF; --a-bg2:#FFF6EF;/);
+  // Auktionsscenen var butikens kräm den här natten. Sedan 2026-11-26 är den
+  // hallen, ett mörkt rum (Leonard: "bakrunden ... 3d kodad premium loook",
+  // lib/hallen.test.ts), och scenens bakgrundsvariabler är borta. Den gamla
+  // gulbeige persikan får fortfarande inte komma tillbaka.
   assert.match(css, /--warm:#FFF6EF;/);
   const scen = readFileSync(new URL("../components/auction-stage.tsx", import.meta.url), "utf8");
-  assert.match(scen, /\{ t: 0, bg1: "#FFFFFF", bg2: "#FFF6EF", /);
+  assert.doesNotMatch(css, /--a-bg1|--a-bg2/);
+  assert.doesNotMatch(scen, /bg1:|bg2:/);
   assert.doesNotMatch(css + scen, /FCEFE0/i);
 });
 

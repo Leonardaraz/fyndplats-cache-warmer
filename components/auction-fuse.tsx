@@ -5,12 +5,16 @@
 import { AUCTION_DAY_MS } from "../lib/auction-day";
 import { useClientNow } from "./use-client-now";
 
-export function AuctionFuse({ startAt }: { startAt: string | null }) {
-  // Renderas först efter mount: bredden beror på klockan och skulle annars
-  // ge server/klient-hydration-mismatch. Sekundtakten är sidans gemensamma
-  // klocka, samma slag som korten (lib/delad-klocka.ts).
-  const { nowMs: now, mounted } = useClientNow(0, 1000);
-  if (!startAt || !mounted) return null;
+export function AuctionFuse({ startAt, nuMs }: { startAt: string | null; nuMs: number }) {
+  // Servern ritar luntan med tiden när sidan byggs (nuMs), och den första
+  // renderingen i webbläsaren använder samma tid, så att HTML:en och
+  // hydreringen är lika. Förut ritades den först efter mount och sköt ner allt
+  // under sig (2026-11-26). Klockan är sidans gemensamma (lib/delad-klocka.ts),
+  // i halvminutstakt: luntan är tolv timmar lång och flyttar sig ungefär en
+  // pixel i minuten, så sekundtakten lade bara om den varje sekund utan att
+  // något syntes.
+  const { nowMs: now } = useClientNow(nuMs, 30_000);
+  if (!startAt) return null;
   const p = Math.min(1, Math.max(0, (now - Date.parse(startAt)) / AUCTION_DAY_MS));
   return (
     <div className="a-fuse" aria-hidden="true" suppressHydrationWarning>
