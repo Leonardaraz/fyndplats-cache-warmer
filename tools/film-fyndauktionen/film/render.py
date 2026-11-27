@@ -62,7 +62,8 @@ def installningar(sc, kvalitet: str, volym: bool, over: dict | None = None) -> N
     r.resolution_percentage = int(round((vskala if volym else skala) * 100))
     r.use_persistent_data = True
     r.use_motion_blur = True
-    r.motion_blur_shutter = 0.5
+    # en halv ruta som standard; kranakningen i trappan (A) far kortare slutare sa att prisskylten gar att lasa
+    r.motion_blur_shutter = over.get("slutare", 0.5)
     r.motion_blur_position = "CENTER"
     r.film_transparent = False
     r.threads_mode = "AUTO"

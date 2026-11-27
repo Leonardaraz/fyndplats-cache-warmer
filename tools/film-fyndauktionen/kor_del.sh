@@ -4,6 +4,8 @@
 cd "$(dirname "$0")"
 KV="$1"; T="$2"; FRAN="$3"; TILL="$4"; PASS="${5:-bada}"
 OVER=""
+# trappans kranakning (A) far kortare slutare, sa att prisskylten gar att lasa medan kameran foljer varan
+if [ "$KV" = "final" ] && [ "$T" = "A" ]; then OVER='{"slutare":0.3}'; fi
 if [ "$KV" = "final" ] && [ "$T" = "C" ]; then OVER='{"spp":24,"troskel":0.08}'; fi
 if [ "$KV" = "final" ] && [ "$T" = "D" ]; then OVER='{"spp":24,"troskel":0.08,"skala":0.85}'; fi
 find out/exr -name "*.exr" -size 0 -delete 2>/dev/null

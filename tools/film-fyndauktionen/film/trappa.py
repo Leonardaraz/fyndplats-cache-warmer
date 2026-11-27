@@ -519,8 +519,10 @@ def kam_A(t: float) -> dict:
     sk = _skak(t)
     an = _andas(t, 0.010)
     p = varulage(t)
+    # skarpan ligger mellan varan och prisskylten framfor den, sa att priset gar att lasa aven i kranakningen
+    fokus = (p["x"] + 0.45 * SKYLT_LAGE[0], p["y"] - 0.1 + 0.45 * (SKYLT_LAGE[1] + 0.1), p["z"] + 0.42)
     return {"pos": tuple(a + b + c for a, b, c in zip(pos, sk, an)), "mal": mal, "lins": lins, "blandare": 2.4,
-            "fokus": (p["x"], p["y"] - 0.1, p["z"] + 0.6)}
+            "fokus": fokus}
 
 
 # Narbilden: fatoljen och skylten under rubrikerna, timmen 15 till vanster, och skylten (dar SALD slar ned)
