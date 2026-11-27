@@ -23,7 +23,8 @@ PLAKETT_B, PLAKETT_H = 0.66, 0.20
 PLATSER = [(-1.95, -3.9), (-0.65, -1.3), (0.65, 1.3), (1.95, 3.9)]   # en diagonal som gar bakat at hoger
 STARTVINKEL = [-62.0, 58.0, -48.0, 64.0]                              # varorna innan de vander sig mot kameran
 SALDA = {1: 15.25, 3: 17.25}                                         # vara -> tiden da SALD slar ned
-SPOTNIVA = [1.0, 0.8, 0.5, 0.55]                                     # ljusa varor (sidobordet) far mindre ljus
+SPOTNIVA = [1.0, 0.8, 0.25, 0.25]                                    # ljust tra och ljus sten far mindre ljus an guld
+FRAMNIVA = [1.0, 1.0, 0.25, 0.25]                                    # framljuset vid varje vara, samma skal
 LAMP_Z = 6.4
 
 # ---- tider ----
@@ -418,7 +419,7 @@ def bygg(tagning: str, look: dict | None = None) -> dict:
             fram_mal.location = (kv["mal"][0], kv["mal"][1], 0.6)
         fram.keyframe_insert("location", frame=f)
         fram_mal.keyframe_insert("location", frame=f)
-        fram.data.energy = E_FRAM * mjuk(led(t, 13.4, 14.0)) * (1 - mjuk(led(t, 17.7, 18.2)))
+        fram.data.energy = E_FRAM * framniva(t) * mjuk(led(t, 13.4, 14.0)) * (1 - mjuk(led(t, 17.7, 18.2)))
         fram.data.keyframe_insert("energy", frame=f)
         kant.data.energy = E_KANT * mjuk(led(t, 12.0, 13.0)) * (1 - mjuk(led(t, T_SJUNK, T_SJUNK + 0.8)))
         kant.data.keyframe_insert("energy", frame=f)
@@ -436,8 +437,10 @@ def bygg(tagning: str, look: dict | None = None) -> dict:
 
 
 # ------------------------------------------------------------------ kameror
-VID_POS = ((-2.0, -8.8, 2.4), (-1.7, -7.9, 2.0))
-VID_MAL = ((0.4, -0.6, 0.85), (0.2, -1.6, 0.8))
+# vidbilden: raden av piedestaler ligger mitt i bild, fran den narmaste nere till vanster till den bortersta
+# uppe till hoger, och rubriken har morker ovanfor sig
+VID_POS = ((-2.0, -8.8, 2.4), (-1.8, -8.1, 2.15))
+VID_MAL = ((-1.0, -0.3, 0.45), (-1.15, -1.0, 0.5))
 NER = (13.35, 14.02)          # kameran gar fram till forsta fyndet
 NARA_AVST = 3.55
 NARA_Z = 1.05
@@ -458,6 +461,24 @@ def _vara_lage(t: float) -> tuple[float, float, float]:
         k = in_ut_kub(led(t, T_VAROR[n] - 0.46, T_VAROR[n] - 0.02))
         x, y, h = blanda(x, PLATSER[n][0], k), blanda(y, PLATSER[n][1], k), blanda(h, _varans_hojd(n), k)
     return x, y, h
+
+
+def _varuindex(t: float) -> float:
+    """Vilken vara kameran star vid, som ett tal: 1.5 ar mitt emellan vara 1 och 2 (samma tider som _vara_lage)."""
+    i = 0.0
+    for n in range(1, len(PLATSER)):
+        if t < T_VAROR[n] - 0.46:
+            break
+        i = (n - 1) + in_ut_kub(led(t, T_VAROR[n] - 0.46, T_VAROR[n] - 0.02))
+    return i
+
+
+def framniva(t: float) -> float:
+    """Framljusets styrka vid den vara kameran star vid: guldet behover mycket, ljust tra och ljus sten lite."""
+    i = _varuindex(t)
+    lo = min(int(i), len(FRAMNIVA) - 1)
+    hi = min(lo + 1, len(FRAMNIVA) - 1)
+    return blanda(FRAMNIVA[lo], FRAMNIVA[hi], i - lo)
 
 
 def kam_CD(t: float) -> dict:

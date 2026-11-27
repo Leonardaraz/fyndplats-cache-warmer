@@ -78,6 +78,14 @@ Takten är 120 slag i minuten (`film/common.py`).
   varan, vridplattan och skylten, och kantljusen är dämpade.
 - **Spotljus med radie syns i blanka golv.** Deras egen ljuskälla speglades som en ljus fläck.
   Därför har spotljusen `visible_glossy = False`.
+- **Guld behöver fyra gånger så mycket ljus som ljust trä och vit sten.** Metall syns genom det
+  den speglar, men en matt ljus yta kastar tillbaka nästan allt ljus. Med samma ljus som
+  satsborden blev bänken laxrosa neon och sidobordet en vit lampa. Varje vara i
+  visningsrummet har därför en egen nivå på spotljuset och framljuset (`SPOTNIVA` och
+  `FRAMNIVA` i `film/hall.py`). Framljuset byter nivå medan kameran åker mellan varorna.
+- **Rör man ljuset i en tagning, rendera om grannen som delar kameraåkningen.** Visningsrummet
+  (C) och glasskivan (D) är samma åkning, så ett ljus som ändras i C ger annars ett hopp vid
+  ruta 540.
 - **Ett typsnitt i cachen dör med scenen.** `b3d.typsnitt` laddar om ett typsnitt som en ny
   scen (`ny_scen`) har tagit bort, så att flera tagningar kan byggas i samma process.
 - **Modeller i kod blir skarpa och exakta.** Mått från produktsidan, riktiga material och
