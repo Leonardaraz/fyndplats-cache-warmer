@@ -1,9 +1,10 @@
-"""Bygger textkorten som sitter pa foremal i 3D-scenerna: prisskylten i trappan, plaketterna pa
+"""Bygger textkorten som sitter pa foremal i 3D-scenerna: prisskyltarna i trappan, plaketterna pa
 visningsrummets piedestaler och glasskivans rader.
 
-Priserna ar butikens ordinarie pris vid inspelningen (assets/products/varor.json, fran film.varudata), och
-skylten och plaketterna sager "Exempel": filmen anvands aret runt, och da ska den vara arlig aven nar
-varan har salts eller priset andrats.
+Startpriserna ar butikens ordinarie pris vid inspelningen (assets/products/varor.json, fran film.varudata).
+Skylten i trappan visar sedan exempelvarans pris for varje timme kl 08-15, raknat som auktionen raknar det
+(film.prisstege), aldrig golvet. Skylten och plaketterna sager "Exempel": filmen anvands aret runt, och da
+ska den vara arlig aven nar varan har salts eller priset andrats.
 """
 from __future__ import annotations
 
@@ -40,18 +41,27 @@ def _pris_html(p: dict, px: int) -> str:
             f'{tal}<span style="font-size:.42em;letter-spacing:0;margin-left:.16em">kr</span></div>')
 
 
+def skyltpriser() -> list[int]:
+    """Exempelvarans pris kl 07 ... 15, som auktionen raknar det (film.prisstege)."""
+    from .prisstege import timpriser
+    return timpriser(int(round(float(varor()[val()["trappa"]]["pris"]))))
+
+
 def spec() -> list[dict]:
     alla, v = varor(), val()
-    hjalte = alla[v["trappa"]]
-    kort = [{
-        "id": "prisskylt", "w": 1160, "h": 670, "bakgrund": "#ffffff",
-        "html": f"""
-          <div style="font:600 40px Geist;letter-spacing:.3em;color:{GULDBRUN};opacity:.72;text-transform:uppercase;margin-right:-.3em">Exempel</div>
-          <div style="font:650 74px Geist;letter-spacing:.16em;color:{GULDBRUN};text-transform:uppercase;margin:14px -.16em 0 0">Startpris kl 07</div>
-          <div style="width:150px;height:6px;background:{GULDBRUN};opacity:.5;margin:30px 0 20px"></div>
-          {_pris_html(hjalte, 236)}
-        """,
-    }]
+    kort = []
+    # prisskylten som foljer varan nedfor trappan: en per timme, kl 07 ar startpriset
+    for k, kr in enumerate(skyltpriser()):
+        rubrik = "Startpris kl 07" if k == 0 else f"Kl {7 + k:02d}"
+        kort.append({
+            "id": f"skylt{7 + k:02d}", "w": 1180, "h": 680, "bakgrund": "#ffffff",
+            "html": f"""
+              <div style="font:600 38px Geist;letter-spacing:.3em;color:{GULDBRUN};opacity:.72;text-transform:uppercase;margin-right:-.3em">Exempel</div>
+              <div style="font:650 70px Geist;letter-spacing:.16em;color:{GULDBRUN};text-transform:uppercase;margin:12px -.16em 0 0">{rubrik}</div>
+              <div style="width:150px;height:6px;background:{GULDBRUN};opacity:.5;margin:26px 0 18px"></div>
+              {_pris_html({"pris": kr}, 262)}
+            """,
+        })
     # plaketterna pa piedestalerna i visningsrummet: "Exempel · Startpris kl 07" och priset
     for n, h in enumerate(v["hall"]):
         p = alla[h]
@@ -88,6 +98,8 @@ def main() -> None:
     mal.mkdir(parents=True, exist_ok=True)
     fil = mal / "spec.json"
     fil.write_text(json.dumps(spec(), ensure_ascii=False), encoding="utf-8")
+    # priserna som skyltarna byggs av: prisvakten jamfor dem med butiken och auktionens regler fore leverans
+    (mal / "skyltpriser.json").write_text(json.dumps(skyltpriser()), encoding="utf-8")
     subprocess.run(["node", str(ROT / "titles" / "tex.js"), str(fil), str(mal)], check=True)
 
 

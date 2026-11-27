@@ -14,7 +14,7 @@ import cv2
 import numpy as np
 import OpenEXR
 
-from .common import BREDD, HOJD, TAGNINGAR, UT
+from .common import BREDD, HOJD, TAGNINGAR, UT, blanda, led, mjuk, mjukare
 
 cv2.setNumThreads(4)
 
@@ -184,6 +184,20 @@ _stoft: dict = {}
 _kamfn: dict = {}
 
 
+# Visningsrummet (C) far ett lyft: mest i vidbilden, lite i narbilderna. Det gar tillbaka till 1,0 nar
+# glasskivan reser sig (17,6-18,3 s), sa att overgangen till glasskivan (D, samma kameraakning) blir mjuk.
+RUM_LYFT = {"vid": 1.30, "nara": 1.10}
+
+
+def exponering(tagning: str, t: float) -> float:
+    e = GRAD[tagning]["exponering"]
+    if tagning in ("C", "D"):
+        from .hall import NER
+        lyft = blanda(RUM_LYFT["vid"], RUM_LYFT["nara"], mjukare(led(t, *NER)))
+        e *= blanda(lyft, 1.0, mjuk(led(t, 17.6, 18.3)))
+    return e
+
+
 def tagning_for(f: int) -> str:
     for namn, info in TAGNINGAR.items():
         if info["rutor"][0] <= f <= info["rutor"][1]:
@@ -252,7 +266,7 @@ def komponera(f: int, kvalitet: str, skala: float = 1.0, titlar: Path | None = N
         rgb = rgb + v * g["volym"]
     if stoft and g["stoft"] > 0:
         rgb = rgb + _stoftlager(tagning, t, w, h, lager, g["stoft"])
-    rgb = rgb * g["exponering"]
+    rgb = rgb * exponering(tagning, t)
     rgb = glod(rgb, g["glod"])
     rgb = rgb * vinjett(h, w)
     skarm = agx(rgb) if ton == "agx" else filmkurva(srgb_oetf(neutral(rgb)), 1.10, 1.06)
@@ -286,8 +300,23 @@ def _arbeta(arg):
     return f, till_8bit(bild, f).tobytes()
 
 
+def tolka_rutor(text: str) -> list[int]:
+    """'0-359,630-749' -> [0, 1, ..., 359, 630, ..., 749]"""
+    ut: list[int] = []
+    for del_ in text.split(","):
+        a, _, b = del_.strip().partition("-")
+        ut.extend(range(int(a), int(b or a) + 1))
+    return ut
+
+
+# Kortversionen (16 s): trappan och narbilden, sedan kuben. Ljudet till den ar `film.audio --kort`.
+KORTVERSION = "0-359,630-749"
+
+
 def gor_film(kvalitet: str, mal: Path, skala: float = 1.0, fran: int = 0, till: int = 749, titlar: Path | None = None,
-             ljud: Path | None = None, crf: int = 14, ton: str = "neutral", arbetare: int = 4) -> None:
+             ljud: Path | None = None, crf: int = 14, ton: str = "neutral", arbetare: int = 4,
+             rutor: list[int] | None = None) -> None:
+    """rutor: en egen ordning av bildrutor (kortversionen). Ljudet ska da vara gjort for just den ordningen."""
     import subprocess
     from multiprocessing import Pool
     w, h = int(round(BREDD * skala)), int(round(HOJD * skala))
@@ -296,7 +325,7 @@ def gor_film(kvalitet: str, mal: Path, skala: float = 1.0, fran: int = 0, till: 
     mal.parent.mkdir(parents=True, exist_ok=True)
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{w}x{h}", "-r", "30", "-i", "-"]
     if ljud is not None:
-        cmd += ["-ss", f"{fran / 30:.4f}", "-i", str(ljud)]
+        cmd += ["-ss", f"{(0 if rutor else fran) / 30:.4f}", "-i", str(ljud)]
     cmd += ["-vf", "scale=out_color_matrix=bt709:out_range=tv", "-c:v", "libx264", "-preset", "slow", "-crf", str(crf),
             "-maxrate", "16M", "-bufsize", "32M", "-profile:v", "high", "-level:v", "4.2", "-g", "30", "-keyint_min", "30",
             "-sc_threshold", "0", "-bf", "2", "-pix_fmt", "yuv420p",
@@ -305,13 +334,14 @@ def gor_film(kvalitet: str, mal: Path, skala: float = 1.0, fran: int = 0, till: 
         cmd += ["-c:a", "aac", "-b:a", "256k", "-ar", "48000", "-shortest"]
     cmd += [str(mal)]
     ff = subprocess.Popen(cmd, stdin=subprocess.PIPE)
-    uppgifter = [(f, kvalitet, skala, str(titlar) if titlar else None, ton) for f in range(fran, till + 1)]
+    ordning = rutor if rutor else list(range(fran, till + 1))
+    uppgifter = [(f, kvalitet, skala, str(titlar) if titlar else None, ton) for f in ordning]
     with Pool(arbetare) as pool:
         for f, data in pool.imap(_arbeta, uppgifter, chunksize=4):
             ff.stdin.write(data)
     ff.stdin.close()
     ff.wait()
-    print(f"film klar: {mal} ({till - fran + 1} rutor, {w}x{h})")
+    print(f"film klar: {mal} ({len(ordning)} rutor, {w}x{h})")
 
 
 def main(argv=None) -> None:
@@ -329,6 +359,7 @@ def main(argv=None) -> None:
     ap.add_argument("--ljud", default=None)
     ap.add_argument("--crf", type=int, default=14)
     ap.add_argument("--utan-stoft", action="store_true")
+    ap.add_argument("--rutor", default=None, help=f"egen ordning av rutor, t.ex. kortversionen {KORTVERSION}")
     a = ap.parse_args(argv)
     titlar = Path(a.titlar) if a.titlar else None
     if a.lage == "still":
@@ -340,7 +371,7 @@ def main(argv=None) -> None:
         print(f"sparad {mal}")
     else:
         gor_film(a.kvalitet, Path(a.ut) if a.ut else UT / f"film_{a.kvalitet}.mp4", a.skala, a.fran, a.till, titlar,
-                 Path(a.ljud) if a.ljud else None, a.crf, a.ton)
+                 Path(a.ljud) if a.ljud else None, a.crf, a.ton, rutor=tolka_rutor(a.rutor) if a.rutor else None)
 
 
 if __name__ == "__main__":

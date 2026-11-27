@@ -136,8 +136,6 @@ def bygg(tagning: str, volym: bool, look: dict | None = None):
     if info["set"] == "trappa":
         from . import trappa
         look = dict(look or {})
-        if tagning == "B":
-            look.setdefault("utan_skylt", True)
         d = trappa.bygg(trappa.las_produkt(), look)
         sc = d["scen"]
         satt_kamera(sc, "kam" + tagning, trappa.kam_A if tagning == "A" else trappa.kam_B, rutor)

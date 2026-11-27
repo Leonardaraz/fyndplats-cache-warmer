@@ -45,14 +45,19 @@ lärdomarna, och den här filen säger i vilken ordning du gör saker.
    `film.koll` på den färdiga filmen. Förklara varje flaggad ruta innan du levererar. Ett menat
    ljushopp (stämpel, klipp, kamerasväng) ser i siffrorna ut precis som ett fel.
 8. **Leverans:** `./leverans.sh`. Det kör prisvakten först och stoppar om ett pris inte är
-   butikens. Sedan gör det filmerna med och utan ljud, 4:5, omslaget och kontrollen. Skicka
-   filerna med SendUserFile och föreslå inläggstext.
+   butikens eller en timpris-skylt inte är auktionens. Sedan gör det filmerna med och utan
+   ljud, 4:5, kortversionen på 16 s i samma format, omslaget och kontrollen. Skicka filerna med
+   SendUserFile och föreslå inläggstext.
 
 ## Regler som gäller filmen
 
-- **Inga påhittade priser.** Bara butikens ordinarie pris, som "Startpris". Visas ett pris i en
-  film som ska användas länge står det "Exempel" vid det. Aldrig "förr och nu" och aldrig lägre
-  priser. Auktionens golv och prisstege läses inte och visas inte.
+- **Inga påhittade priser.** Startpriset är butikens ordinarie pris. Visas ett pris i en film
+  som ska användas länge står det "Exempel" vid det. Aldrig "förr och nu".
+- **Timpriser bara som auktionen ger dem** (Leonard 2026-11-27). Exempelvarans pris för varje
+  timme får visas, räknat med auktionens egen formel och det tak som gäller i drift
+  (`film/prisstege.py`). Stäm av mot varans stege i auktionens kö. Golvet kl 18 visas aldrig.
+  Filmen visar aldrig större rabatt än en kund kan få, inte heller om Leonard ber om det: då blir
+  reklamen vilseledande enligt marknadsföringslagen. Säg det och erbjud de riktiga stegen.
 - **Inga leverantörsnamn.** Leverantörens varumärken och artikelnummer förekommer aldrig: inte
   i bild, text eller filnamn, och inte i commits eller loggar.
 - **Märkets färger och typsnitt.** Svart #050505, guld #D9A53E–#F5DA98, kräm #FBF6EC. Orange

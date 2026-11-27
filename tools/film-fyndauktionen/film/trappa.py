@@ -3,7 +3,9 @@
 Varan sjalv, en riktig 3D-modell (film/modeller), star pa en vridplatta overst i trappan och kliver ett steg
 ned per timme. Ett enda huvudljus gar som en sol bakom den, fran vanster bakifran pa morgonen till hoger
 bakifran pa eftermiddagen, sa att varans egen skugga sveper nedfor trappan som en klockvisare. Sedan:
-"Vagar du vanta?" och SALD-stampeln pa sattsteget framfor varan.
+En prisskylt star bredvid vridplattan och foljer med i varje kliv: den visar exempelvarans pris for varje
+timme, raknat som auktionen raknar det (film/prisstege.py). Sedan "Vagar du vanta?", och SALD-stampeln
+slar ned pa skylten.
 """
 from __future__ import annotations
 
@@ -38,7 +40,16 @@ T_NARBILD = 8.5
 T_STAMPEL = 10.5
 STAMPEL_FLYG = 0.20
 T_SLOCKNAR = 11.5
-VRID = (-38.0, 0.0, 3.55)   # vridplattan: fran -38 grader till 0, klar 3,55 s (fore forsta klivet)
+VRID = (-125.0, 0.0, 2.9)   # vridplattan: varan snurrar in fran profilen och bromsar in mot kameran, klar 2,9 s
+
+# ---- prisskylten: star pa stegets yta bredvid vridplattan, framfor varans vanstra sida, och foljer med i
+# varje kliv (barn till vridplattans mitt, men den snurrar inte med) ----
+SKYLT_LAGE = (-0.48, -0.38)          # relativt vridplattans mitt (x, y)
+SKYLT_B, SKYLT_H = 0.60, 0.34
+SKYLT_VINKEL = (-8.0, 0.0, 10.0)     # lutar bakat och vrider sig lite mot kameran
+SKYLT_FOT = 0.022 + 0.008            # foten och glappet under kortet
+SKYLT_PRIS_Z = SKYLT_FOT + SKYLT_H * 0.38   # mitt pa priset (nedre delen av kortet): dar SALD slar ned
+STAMPEL_SKALA = 0.80                 # stampeln tacker priset pa skylten
 
 VILA = 0.05              # sa svagt gloder en timme som inte har tants
 SOL_AVSTAND = 15.0
@@ -65,6 +76,38 @@ def landningstid(k: int) -> float:
 def vridvinkel(t: float) -> float:
     a0, a1, t1 = VRID
     return math.radians(blanda(a0, a1, ut_kub(led(t, 0.0, t1))))
+
+
+def prisbyte_ruta(k: int) -> float:
+    """Halvrutan da skylten byter till timme k (1..ANTAL_KLIV): strax fore rutan da varan landar,
+    mellan tva rutors slutartider (slutaren ar oppen f-0.25 till f+0.25), sa att bytet aldrig syns som en spokbild."""
+    return round(landningstid(k) * FPS) - 0.5
+
+
+def skylt_timme(t: float) -> int:
+    """Vilken timme skylten visar vid tiden t: 0 = kl 07 (startpriset) ... ANTAL_KLIV = kl 15."""
+    f = t * FPS
+    return sum(1 for k in range(1, ANTAL_KLIV + 1) if f >= prisbyte_ruta(k))
+
+
+PRISBYTE_NYCKLAR = tuple(x for k in range(1, ANTAL_KLIV + 1) for x in (prisbyte_ruta(k) - 0.05, prisbyte_ruta(k) + 0.05))
+
+
+def _vrid_xyz(p, vinkel_grader) -> tuple[float, float, float]:
+    """Roterar en punkt som Blender gor med euler XYZ (forst X, sedan Y, sedan Z)."""
+    x, y, z = p
+    ax, ay, az = (math.radians(v) for v in vinkel_grader)
+    y, z = y * math.cos(ax) - z * math.sin(ax), y * math.sin(ax) + z * math.cos(ax)
+    x, z = x * math.cos(ay) + z * math.sin(ay), -x * math.sin(ay) + z * math.cos(ay)
+    x, y = x * math.cos(az) - y * math.sin(az), x * math.sin(az) + y * math.cos(az)
+    return x, y, z
+
+
+def stampel_varld() -> tuple[float, float, float]:
+    """Var SALD-stampeln landar i varlden (pa skyltens pris, nar varan star pa sista steget)."""
+    lokal = _vrid_xyz((0.0, -0.036, SKYLT_PRIS_Z), SKYLT_VINKEL)
+    return (PRODUKT_X + SKYLT_LAGE[0] + lokal[0], steg_y(ANTAL_KLIV) + SKYLT_LAGE[1] + lokal[1],
+            steg_z(ANTAL_KLIV) + lokal[2])
 
 
 def varulage(t: float) -> dict:
@@ -241,26 +284,31 @@ def bygg(produkt: dict, look: dict | None = None) -> dict:
     vara = modeller.bygg(produkt["slug"], fasta)
     _centrera_pa(vara, vrid)
 
-    # ---------- prisskylten vid oversta steget: "Exempel · Startpris kl 07"
-    skylt_rot = b3d.tom("skylt_rot", (-0.98, steg_y(0) - 0.12, steg_z(0)), fasta)
-    sk_b, sk_h = 0.86, 0.50
-    sk = b3d.rundad_skiva("skylt", sk_b, sk_h, 0.02, 0.018, m_kram, fas=0.003, coll=fasta)
-    sk_ram = b3d.rundad_skiva("skylt_ram", sk_b + 0.016, sk_h + 0.016, 0.028, 0.026, m_guld, fas=0.002, coll=fasta,
-                              hal=(sk_b - 0.004, sk_h - 0.004, 0.016))
-    sk_fot = b3d.lada("skylt_fot", (0.34, 0.12, 0.022), (0, 0, 0.011), m_guld_borstat, fas=0.004, coll=fasta)
+    # ---------- prisskylten bredvid vridplattan: foljer med i varje kliv och visar timmens pris
+    skylt_rot = b3d.tom("skylt_rot", (SKYLT_LAGE[0], SKYLT_LAGE[1], 0.0), fasta)
+    sk_b, sk_h = SKYLT_B, SKYLT_H
+    sk = b3d.rundad_skiva("skylt", sk_b, sk_h, 0.02, 0.016, m_kram, fas=0.003, coll=fasta)
+    sk_ram = b3d.rundad_skiva("skylt_ram", sk_b + 0.016, sk_h + 0.016, 0.028, 0.024, m_guld, fas=0.002, coll=fasta,
+                              hal=(sk_b - 0.004, sk_h - 0.004, 0.014))
+    sk_fot = b3d.lada("skylt_fot", (0.26, 0.11, 0.022), (0, 0, 0.011), m_guld_borstat, fas=0.004, coll=fasta)
     for o in (sk, sk_ram):
-        o.location = (0, 0, 0.022 + 0.008 + sk_h / 2)
-    skylt_tex = UT / "tex" / "prisskylt.png"
-    if skylt_tex.exists():
-        m_sk = b3d.bildlack("skylt_tryck", b3d.bild(skylt_tex), ton=hex_lin("#FBF6EC"), strav=0.42)
-        tryck = b3d.plan_xz("skylt_tryck", sk_b - 0.012, sk_h - 0.012, m_sk, fasta)
-        tryck.location = (0, -0.0108, 0.022 + 0.008 + sk_h / 2)
-        tryck.parent = skylt_rot
+        o.location = (0, 0, SKYLT_FOT + sk_h / 2)
+    tryck = []
+    for k in range(ANTAL_KLIV + 1):
+        tex = UT / "tex" / f"skylt{7 + k:02d}.png"
+        if not tex.exists():
+            raise SystemExit(f"saknar {tex.name}: kor python -m film.texturer")
+        m_sk = b3d.bildlack(f"skylt_tryck{k}", b3d.bild(tex), ton=hex_lin("#FBF6EC"), strav=0.42)
+        pl = b3d.plan_xz(f"skylt_tryck{k}", sk_b - 0.012, sk_h - 0.012, m_sk, fasta)
+        pl.location = (0, -0.0108, SKYLT_FOT + sk_h / 2)
+        pl.parent = skylt_rot
+        tryck.append(pl)
     for o in (sk, sk_ram, sk_fot):
         o.parent = skylt_rot
-    skylt_rot.rotation_euler = (math.radians(-8), 0, math.radians(10))
+    skylt_rot.rotation_euler = tuple(math.radians(v) for v in SKYLT_VINKEL)
+    skylt_rot.parent = rot
 
-    # ---------- stampeln SALD: orange platta i loggans farg, slar ned pa sattsteget framfor varan
+    # ---------- stampeln SALD: orange platta i loggans farg, slar ned pa prisskylten och tacker priset
     m_stampel = b3d.principled("stampel", tuple(c * 0.22 for c in hex_lin("#FE6D22")), 0.0, 0.34,
                                **{"Coat Weight": 1.0, "Coat Roughness": 0.06,
                                   "Emission Color": (*hex_lin("#FE6D22"), 1), "Emission Strength": look.get("stampel_glod", 0.72)})
@@ -277,19 +325,22 @@ def bygg(produkt: dict, look: dict | None = None) -> dict:
     st_linje.location = (0, -st_t / 2 - 0.001, 0)
     for o in (st_platta, st_text, st_linje):
         o.parent = st_rot
-    st_ys, st_z = sattsteg(ANTAL_KLIV)
-    st_y = st_ys - st_t / 2 - 0.004
+    # stampeln ar barn till skylten: den landar platt mot kortet, over priset, och gungar med nar traffen
+    # far varan och skylten att ga till
+    st_rot.parent = skylt_rot
+    st_y = -0.010 - st_t / 2 - 0.006       # framfor kortet och ramen
+    st_z = SKYLT_PRIS_Z
     st_vinkel = math.radians(-6.0)
 
     def stampel_fn(t):
         t0 = T_STAMPEL - STAMPEL_FLYG
         if t < t0:
-            return {"location": (PRODUKT_X, st_y - 8.0, st_z), "rotation_euler": (0, st_vinkel, 0), "scale": (0.0001,) * 3}
+            return {"location": (0.0, st_y - 8.0, st_z), "rotation_euler": (0, st_vinkel, 0), "scale": (0.0001,) * 3}
         k = in_kub(led(t, t0, T_STAMPEL))
         tau = t - T_STAMPEL
         tryck_in = 0.0 if tau < 0 else 0.06 * math.exp(-tau * 30)      # liten studs i skalan vid traffen
-        sk_ = blanda(2.7, 1.0, k) * (1 + tryck_in)
-        return {"location": (PRODUKT_X + blanda(0.3, 0.0, k), blanda(st_y - 3.6, st_y, k), blanda(st_z + 0.6, st_z, k)),
+        sk_ = STAMPEL_SKALA * blanda(2.7, 1.0, k) * (1 + tryck_in)
+        return {"location": (blanda(0.3, 0.0, k), blanda(st_y - 3.6, st_y, k), blanda(st_z + 0.6, st_z, k)),
                 "rotation_euler": (0, blanda(math.radians(30.0), st_vinkel, k), 0), "scale": (sk_,) * 3}
 
     # ---------- ljus
@@ -347,6 +398,11 @@ def bygg(produkt: dict, look: dict | None = None) -> dict:
     b3d.baka(rot, rutor, rot_fn)
     b3d.baka(vrid, rutor, lambda t: {"rotation_euler": (0, 0, vridvinkel(t))})
     b3d.baka(st_rot, rutor, stampel_fn)
+    # skylten byter pris nar varan landar pa nasta steg: bara ett tryck syns at gangen, och bytet sker
+    # mellan tva rutors slutartider (PRISBYTE_NYCKLAR)
+    for k, pl in enumerate(tryck):
+        b3d.baka(pl, rutor, lambda t, k=k: {"scale": (1.0,) * 3 if skylt_timme(t) == k else (0.0001,) * 3},
+                 extra=PRISBYTE_NYCKLAR)
 
     bana = ljusmalbana()
     lampor = [solen, fram, bak] + kanter
@@ -436,22 +492,27 @@ def foljd(t: float) -> tuple[float, float, float]:
     return _FOLJD[f]
 
 
-# Oppningen: varan stor pa vridplattan, lagt och snett framifran. Sedan lyfter kameran och foljer varan nedfor
-# trappan, med trappan och timmarna under den och rubriken ovanfor.
-A_NARA = {"pos": (1.95, -4.9, 0.20), "mal": (0.18, 0.0, 0.66), "lins": 62.0}
+# Oppningen: varan stor pa vridplattan, lagt och snett framifran, med prisskylten nere till vanster. Kameran
+# aker in och glider at sidan medan varan snurrar in, sa att det hander nagot fran forsta rutan. Sedan lyfter
+# kameran och foljer varan nedfor trappan, med trappan och timmarna under den och rubriken ovanfor.
+A_NARA = {"pos": (1.95, -4.9, 0.20), "mal": (-0.10, 0.0, 0.62), "lins": 62.0}
 A_VID = {"pos": (2.9, -7.8, 2.35), "mal": (-0.30, -1.05, 0.25), "lins": 52.0}
 A_LYFT = (2.35, 3.85)
+A_START = 1.20      # forsta rutan star 20 % langre bort och aker in till A_NARA
+A_DRIFT = 0.50      # sidoglidning under oppningen (meter)
 
 
 def kam_A(t: float) -> dict:
     fx, fy, fz = foljd(t)
     w = mjukare(led(t, *A_LYFT))
-    rel_pos = blanda(A_NARA["pos"], A_VID["pos"], w)
+    inat = blanda(A_START, 1.0, ut_kub(led(t, 0.0, A_LYFT[0])))
+    nara = (A_NARA["pos"][0] * inat, A_NARA["pos"][1] * inat, A_NARA["pos"][2])
+    rel_pos = blanda(nara, A_VID["pos"], w)
     rel_mal = blanda(A_NARA["mal"], A_VID["mal"], w)
     bage = math.sin(math.pi * w)
     rel_pos = (rel_pos[0] + 0.45 * bage, rel_pos[1] - 0.3 * bage, rel_pos[2] + 0.35 * bage)
-    # en langsam drift under oppningen, sa att vridplattans rorelse far djup
-    drift = 0.25 * (1 - w) * led(t, 0.0, A_LYFT[0])
+    # sidoglidningen under oppningen ger vridplattans rorelse djup
+    drift = A_DRIFT * (1 - w) * led(t, 0.0, A_LYFT[0])
     pos = (fx + rel_pos[0] - drift, fy + rel_pos[1], fz + rel_pos[2])
     mal = (fx + rel_mal[0], fy + rel_mal[1], fz + rel_mal[2])
     lins = math.exp(blanda(math.log(A_NARA["lins"]), math.log(A_VID["lins"]), w))
@@ -462,8 +523,11 @@ def kam_A(t: float) -> dict:
             "fokus": (p["x"], p["y"] - 0.1, p["z"] + 0.6)}
 
 
-B_POS = ((1.05, -4.75, 1.05), (0.85, -4.15, 0.98))     # relativt varans plats pa steg 15
-B_MAL = (-0.58, -0.70, -0.06)
+# Narbilden: fatoljen och skylten under rubrikerna, timmen 15 till vanster, och skylten (dar SALD slar ned)
+# mitt i bild. Inget viktigt nere till hoger, dar apparnas knappar ligger.
+B_POS = ((-0.10, -4.90, 1.95), (-0.15, -4.40, 1.85))   # relativt varans plats pa steg 15
+B_MAL = (-0.45, -0.40, 0.50)
+B_LINS = 42.0
 
 
 def kam_B(t: float) -> dict:
@@ -474,5 +538,5 @@ def kam_B(t: float) -> dict:
     mal = tuple(b + r for b, r in zip(bas, B_MAL))
     sk = _skak(t)
     an = _andas(t, 0.008)
-    return {"pos": tuple(a + b + c for a, b, c in zip(pos, sk, an)), "mal": mal, "lins": 46.0, "blandare": 2.2,
-            "fokus": (PRODUKT_X, steg_y(ANTAL_KLIV) - 0.2, steg_z(ANTAL_KLIV) + 0.5)}
+    return {"pos": tuple(a + b + c for a, b, c in zip(pos, sk, an)), "mal": mal, "lins": B_LINS, "blandare": 2.2,
+            "fokus": (PRODUKT_X - 0.25, steg_y(ANTAL_KLIV) - 0.30, steg_z(ANTAL_KLIV) + 0.35)}

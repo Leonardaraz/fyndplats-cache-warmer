@@ -78,9 +78,10 @@ class Stoft:
             for k in range(1, T.ANTAL_KLIV + 1):
                 mitt = np.array([T.PRODUKT_X, T.steg_y(k), T.steg_z(k) + 0.01])
                 self.skurar.append(self._skur(rng, 46, T.landningstid(k), mitt, (0.45, 0.40, 0.0), fart=(0.3, 1.3), upp=(0.15, 0.9), liv=(0.35, 0.8), styrka=0.5))
-            ys, zs = T.sattsteg(T.ANTAL_KLIV)
-            st = np.array([T.PRODUKT_X, ys - 0.05, zs])
-            self.skurar.append(self._skur(rng, 420, T.T_STAMPEL, st, (0.38, 0.01, 0.14), fart=(0.5, 3.6), upp=(-0.3, 2.2), liv=(0.5, 1.5), styrka=1.5,
+            # SALD slar ned pa prisskylten: skuren runt stampelns kanter, dar den traffar
+            st = np.array(T.stampel_varld()) + np.array([0.0, -0.03, 0.0])
+            b, h = 0.74 * T.STAMPEL_SKALA / 2, 0.27 * T.STAMPEL_SKALA / 2
+            self.skurar.append(self._skur(rng, 420, T.T_STAMPEL, st, (b, 0.01, h), fart=(0.5, 3.6), upp=(-0.3, 2.2), liv=(0.5, 1.5), styrka=1.5,
                                           mot_kamera=2.4, kant=True))
         else:
             from . import hall as H

@@ -3,13 +3,15 @@
 Reklamfilmen för Fyndauktionen som går att använda året runt: inget datum, ingen säsong och
 inget antal fynd. Filmen är en auktionsdag i en svart studio.
 
-- **Trappan:** varan själv, en riktig 3D-modell, står på en vridplatta överst i guldtrappan och
-  kliver ett steg ned per timme. Ett enda huvudljus går som en sol bakom den från kl 07 och
-  framåt, så att varans egen skugga sveper över trappan som en visare.
-- **Visningsrummet:** efter "Vågar du vänta?" och SÅLD visar det dagens fynd på piedestaler,
-  och kvällsljuset kommer.
+- **Trappan:** varan själv, en riktig 3D-modell, snurrar in på en vridplatta överst i guldtrappan och
+  kliver ett steg ned per timme. En prisskylt följer med och visar timmens pris. Ett enda huvudljus
+  går som en sol bakom den från kl 07 och framåt, så att varans egen skugga sveper över trappan
+  som en visare.
+- **Närbilden:** "Vågar du vänta?", och SÅLD slår ned på prisskylten.
+- **Visningsrummet:** dagens fynd på piedestaler, en av dem säljs, och kvällsljuset kommer.
 - **Slutet:** löftena på glasskivan och kuben, och sista rutorna tonar över till första så att
   filmen loopar.
+- **Kortversionen (16 s):** trappan, närbilden och kuben, för annonser.
 
 Byggd på verktyget från Black Friday-filmen (`tools/film-black-friday/`, Pristrappan). Det nya här:
 
@@ -20,6 +22,8 @@ Byggd på verktyget från Black Friday-filmen (`tools/film-black-friday/`, Prist
 | Bilder av varje modell från fyra vinklar bredvid produktbilden | `film/modellprov.py` |
 | Provrutor: en tagning byggs en gång och flera rutor renderas och sätts ihop med texterna | `film/provruta.py` |
 | Dagens klocka och solens bana (riktning, höjd, färgtemperatur) | `common.klocka()`, `common.sol()` |
+| Exempelvarans timpriser, räknade som auktionen räknar dem (taket läses ur motorn) | `film/prisstege.py` |
+| Kortversionen: en egen ordning av rutor och ett ljud med samma klipp | `comp --rutor`, `audio --kort` |
 
 ## Det filmen påstår ska gå att belägga
 
@@ -28,10 +32,16 @@ Byggd på verktyget från Black Friday-filmen (`tools/film-black-friday/`, Prist
   en gång, och nya fynd kommer varje dag.
 - **Exempelvarorna:** de finns i butiken och i auktionens kö, och alla kostar under 2 000 kr
   (`pristak.ts`).
-- **Priserna:** priset i bild är butikens ordinarie pris vid inspelningen (`film.prisvakt` vid
-  leveransen). Skylten och plaketterna säger "Exempel", så filmen är ärlig även när varan sålts
-  eller priset ändrats.
-- **Inga lägre priser:** de visas aldrig, och auktionens golv och prisstege läses inte.
+- **Priserna:** startpriserna är butikens ordinarie pris vid inspelningen. Skylten och plaketterna
+  säger "Exempel", så filmen är ärlig även när varan sålts eller priset ändrats.
+- **Timpriserna på skylten** (Leonard 2026-11-27: "du får ha priser med") är exempelvarans
+  riktiga priser kl 07–15, räknade med auktionens egen formel och det tak som gäller i drift
+  (`film/prisstege.py` läser `MAX_DISCOUNT` ur `lib/auction/engine.ts` på `origin/main`). De
+  stämdes av mot varans egen stege i auktionens kö. Golvet kl 18 visas aldrig.
+- **Aldrig större rabatt än auktionen ger.** Leonard ville visa ett tak på 25 % i filmen medan
+  motorn har 15 %. Det gjordes inte: då visar filmen ett pris ingen kund kan få. Med dagens
+  steg håller filmen även om taket höjs, eftersom kunderna då får mer än filmen visar.
+  `film.prisvakt` stoppar leveransen om skyltens priser inte är auktionens.
 - **Inga leverantörsnamn:** leverantörens varumärken och artikelnummer förekommer inte, varken
   i bild, text eller filnamn.
 
@@ -50,8 +60,12 @@ node titles/rendera.js out/titlar        # texterna
 $PY -m film.provruta --tagning A --rutor 0,105,240 --kvalitet utkast   # nyckelrutor att granska
 ./kor.sh skiss A B C D E                 # skiss av hela filmen (ca 1 s per ruta)
 ./kor_del.sh final A 0 120 bada          # slutkvalitet i delar: ett bakgrundsjobb stoppas efter 2 h
-./leverans.sh                            # prisvakt, ljud, film med och utan ljud, 4:5 och omslag i leverans/
+./leverans.sh                            # prisvakt, ljud, 25 s och 16 s med och utan ljud, 4:5 och omslag i leverans/
 ```
+
+Kortversionen för hand: `$PY -m film.audio --kort` och sedan
+`$PY -m film.comp film --rutor 0-359,630-749 --ljud out/ljud-16s.wav ...`. Klippet går från
+mörker till mörker (närbilden släcks vid 11,5 s, och kuben börjar svart).
 
 En ny vara får en modul i `film/modeller/` med produktsidans mått och en rad i
 `film/modeller/__init__.py`. Varans framsida pekar mot −Y, och golvet är z = 0.
@@ -60,10 +74,10 @@ En ny vara får en modul i `film/modeller/` med produktsidans mått och en rad i
 
 | Tid | Bild | Tagning |
 | :-- | :-- | :-- |
-| 0–2,5 s | Kl 07: spotljuset, fåtöljen vrider sig på vridplattan överst i trappan | A |
-| 2,5–8,5 s | Kranåkning och följekamera: fåtöljen kliver 07→15, solen vandrar bakom den | A |
-| 8,5–12 s | Närbild, "Vågar du vänta?", SÅLD på sättsteget framför | B |
-| 12–18 s | Visningsrummet: spotljusen tänds, varorna vänder sig, SÅLD på två plaketter i kvällsljuset | C |
+| 0–2,5 s | Kl 07: fåtöljen snurrar in på vridplattan, kameran åker in, skylten visar startpriset | A |
+| 2,5–8,5 s | Kranåkning och följekamera: fåtöljen kliver 07→15, skylten byter pris vid varje kliv, solen vandrar bakom | A |
+| 8,5–12 s | Närbild, "Vågar du vänta?", SÅLD slår ned på prisskylten | B |
+| 12–18 s | Visningsrummet: spotljusen tänds, varorna vänder sig, SÅLD på lampans plakett i kvällsljuset | C |
 | 18–21 s | Glasskivan med de tre löftena | D |
 | 21–25 s | Kl 19: ljuset släcks, kuben landar, slutbilden. Sista 0,4 s tonar över till början | E |
 
@@ -86,6 +100,16 @@ Takten är 120 slag i minuten (`film/common.py`).
 - **Rör man ljuset i en tagning, rendera om grannen som delar kameraåkningen.** Visningsrummet
   (C) och glasskivan (D) är samma åkning, så ett ljus som ändras i C ger annars ett hopp vid
   ruta 540.
+- **Det ska hända något i första rutan.** Fåtöljen vred sig först bara 38° och kameran stod
+  nästan still, och det är just där folk scrollar förbi. Nu snurrar den in från profilen medan
+  kameran åker in, och priset syns redan i första rutan.
+- **Det viktigaste hålls borta från apparnas knappar nere till höger.** SÅLD hamnade i
+  högerkanten. Nu landar stämpeln mitt i bild, på prisskylten. Kameran räknades ut genom att
+  projicera fåtöljen, skylten och siffrorna på bildytan innan något renderades.
+- **En skylt som byter pris byter mellan två slutartider**, med `baka`-nycklar på halva rutor
+  (`PRISBYTE_NYCKLAR`), på samma sätt som kuben. Annars syns två priser på samma gång.
+- **En stämpel tappar verkan om den upprepas.** Tre SÅLD på sju sekunder blev en; filmen har nu
+  två, i närbilden och på lampan.
 - **Ett typsnitt i cachen dör med scenen.** `b3d.typsnitt` laddar om ett typsnitt som en ny
   scen (`ny_scen`) har tagit bort, så att flera tagningar kan byggas i samma process.
 - **Modeller i kod blir skarpa och exakta.** Mått från produktsidan, riktiga material och

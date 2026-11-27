@@ -56,20 +56,33 @@ def ton_ner(f0: float, f1: float, langd: float, fall: float) -> np.ndarray:
 
 
 class Mix:
-    """Stereobuss med torrt ljud och en sandning till rumsklangen."""
+    """Stereobuss med torrt ljud och en sandning till rumsklangen.
 
-    def __init__(self):
-        self.torr = np.zeros((N, 2))
-        self.rum = np.zeros((N, 2))
+    klipp = (fran, till) gor kortversionen: ljud som borjar mellan fran och till tas bort, och allt efter
+    flyttas fram lika mycket. Svansarna fran det som borjat fore klippet klingar ut over det.
+    """
+
+    def __init__(self, langd: float = LANGD, klipp: tuple[float, float] | None = None):
+        self.n = int(round(langd * SR))
+        self.klipp = klipp
+        self.torr = np.zeros((self.n, 2))
+        self.rum = np.zeros((self.n, 2))
 
     def lagg(self, x: np.ndarray, t: float, styrka: float = 1.0, pan: float = 0.0, rum: float = 0.0) -> None:
+        if self.klipp:
+            a, b = self.klipp
+            if a <= t < b:
+                return
+            if t >= b:
+                t -= b - a
+        n = self.n
         i = int(round(t * SR))
-        if i >= N:
+        if i >= n:
             return
         if i < 0:
             x = x[-i:]
             i = 0
-        x = x[: N - i]
+        x = x[: n - i]
         if x.ndim == 1:
             v, h = math.cos((pan + 1) * math.pi / 4), math.sin((pan + 1) * math.pi / 4)
             st = np.column_stack([x * v, x * h]) * math.sqrt(2)
@@ -282,6 +295,15 @@ def kublandning() -> np.ndarray:
     return np.tanh(x * 1.15)
 
 
+def flipp() -> np.ndarray:
+    """Prisskylten byter pris: ett torrt, mekaniskt flipp, som en fallbladsskylt."""
+    langd = 0.07
+    t = tidsaxel(langd)
+    x = bp(brus(langd), 2200, 6500) * (np.exp(-t / 0.004) + 0.45 * np.exp(-np.maximum(t - 0.022, 0) / 0.004) * (t > 0.022))
+    x += 0.25 * np.sin(2 * math.pi * 1250 * t) * np.exp(-t / 0.008)
+    return x * np.minimum(1, t / 0.0004)
+
+
 def klack(f: float) -> np.ndarray:
     """Kubens ytor klickar ihop: kort, tonande klack."""
     langd = 0.35
@@ -293,8 +315,14 @@ def klack(f: float) -> np.ndarray:
 
 
 # ------------------------------------------------------------------ partituret
-def bygg() -> np.ndarray:
-    m = Mix()
+# Kortversionen (16 s): trappan och narbilden (0-12 s) och sedan kuben (21-25 s). Klippet i bild gar
+# fran ruta 359 till 630; ljudet hoppar over scen 4-5 och flyttar scen 6 (som borjar 20,9 s) 9 s framat.
+KORT_LANGD = 16.0
+KORT_KLIPP = (12.0, 20.9)
+
+
+def bygg(kort: bool = False) -> np.ndarray:
+    m = Mix(KORT_LANGD, KORT_KLIPP) if kort else Mix()
 
     # ---- scen 1 (0-2,5): ljuset tands, basen vaknar, klockan borjar ticka
     m.lagg(strombrytare(), 0.0, 0.85, 0.0, rum=0.5)
@@ -302,6 +330,8 @@ def bygg() -> np.ndarray:
     m.lagg(ackord(["D3", "A3", "D4", "F4"], 3.0, 1.5, 0.5), 0.03, 0.30, 0.0, rum=0.7)
     m.lagg(matta(["D2", "A2", "D3"], 9.2, 1.6, 1.2, mork=750), 0.0, 0.13)
     m.lagg(matta(["F3", "A3"], 6.6, 2.5, 0.8, mork=1500), 2.5, 0.09, rum=0.4)
+    # varan snurrar in pa vridplattan: ett mjukt luftdrag som saktar in
+    m.lagg(svep(1.1, 260, 1700, 320, 0.22), 0.0, 0.17, 0.1, rum=0.45)
 
     # klockan: tick pa varje slag, tock pa vartannat (0,5 s mellan slagen)
     for i in range(1, 17):
@@ -322,6 +352,7 @@ def bygg() -> np.ndarray:
         m.lagg(klubba(TON[ton] / 2, 1.2, 0.40, 0.5), t, 0.14, 0.0, rum=0.4)
         m.lagg(bas(TON[b], 0.9, 0.42), t, 0.15)
         m.lagg(svep(0.26, 500, 2400, 900, 0.75), t - 0.27, 0.06, rum=0.3)             # brickans luftdrag fore landningen
+        m.lagg(flipp(), t + 0.015, 0.20, -0.35, rum=0.25)                               # skylten byter till timmens pris
 
     # ---- scen 3 (8,5-12): narbild, hjartslag, stampeln, tystnad
     m.lagg(bom(74, 36.7, 2.0, 0.15, 0.7), 8.5, 0.15, rum=0.3)
@@ -366,8 +397,9 @@ def bygg() -> np.ndarray:
         m.lagg(tick(False), t + 0.5, 0.30, 0.2, rum=0.3)
     for t in (13.0,):
         m.lagg(tick(True), t, 0.20, -0.2, rum=0.3)
-    # SALD pa tva av varorna nar kvallen kommer (hall.SALDA)
-    for t in (15.25, 17.25):
+    # SALD pa en av varorna nar kvallen kommer: samma tider som stamplarna i bild (hall.SALDA)
+    from .hall import SALDA
+    for t in sorted(SALDA.values()):
         m.lagg(svep(0.28, 300, 3400, 1100, 0.85), t - 0.29, 0.36, rum=0.3)
         m.lagg(stampel(), t, 0.66, 0.1, rum=0.32)
 
@@ -407,10 +439,10 @@ def bygg() -> np.ndarray:
         mix[:, k] = mix[:, k] - 0.30 * lp(mix[:, k], 170, 2) + 0.75 * hp(mix[:, k], 1700, 1) + 0.5 * hp(mix[:, k], 5000, 1)
     # latt kompression pa summan: tar ner de hogsta topparna utan att pumpa
     niva = np.abs(mix).max(axis=1)
-    kuv = np.zeros(N)
+    kuv = np.zeros(len(mix))
     a_in, a_ut = math.exp(-1 / (0.003 * SR)), math.exp(-1 / (0.15 * SR))
     v = 0.0
-    for i in range(N):
+    for i in range(len(mix)):
         x = niva[i]
         v = a_in * v + (1 - a_in) * x if x > v else a_ut * v + (1 - a_ut) * x
         kuv[i] = v
@@ -426,9 +458,13 @@ def bygg() -> np.ndarray:
     return mix
 
 
-def main() -> None:
-    mix = bygg()
-    mal = UT / "ljud.wav"
+def main(argv=None) -> None:
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--kort", action="store_true", help="kortversionen pa 16 s: out/ljud-16s.wav")
+    a = ap.parse_args(argv)
+    mix = bygg(kort=a.kort)
+    mal = UT / ("ljud-16s.wav" if a.kort else "ljud.wav")
     mal.parent.mkdir(parents=True, exist_ok=True)
     wavfile.write(str(mal), SR, (mix * 32767).astype(np.int16))
     rms = 20 * math.log10(np.sqrt(np.mean(mix**2)) + 1e-12)
