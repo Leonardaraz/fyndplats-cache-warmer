@@ -1,7 +1,7 @@
 #!/bin/bash
 # Bygger leveransfilerna ur de renderade bildrutorna: ./leverans.sh
 # En version for aret runt: film med ljud, samma film utan ljud, en 4:5-version for flodet och en omslagsbild.
-# Dessutom kortversionen pa 16 s (trappan, "Vagar du vanta?", SALD och kuben) for annonser, i samma tre format.
+# Dessutom kortversionen pa ca 16 s (trappan, "Vagar du vanta?", SALD och kuben) for annonser, i samma tre format.
 cd "$(dirname "$0")"
 PY=/opt/render-venv/bin/python
 KV="${KVALITET:-final}"
@@ -29,7 +29,7 @@ $PY -m film.comp film --kvalitet "$KV" --titlar out/titlar --ljud out/ljud.wav -
 utan_ljud "$UT"; fyra_fem "$UT"
 
 KORT=leverans/fyndplats-fyndauktionen-16s
-$PY -m film.comp film --kvalitet "$KV" --titlar out/titlar --ljud out/ljud-16s.wav --rutor 0-359,630-749 --ut "$KORT.mp4" | tail -1
+$PY -m film.comp film --kvalitet "$KV" --titlar out/titlar --ljud out/ljud-16s.wav --rutor 0-359,640-749 --ut "$KORT.mp4" | tail -1
 utan_ljud "$KORT"; fyra_fem "$KORT"
 
 $PY -m film.omslag --kvalitet "$KV" --ruta 50 | tail -1

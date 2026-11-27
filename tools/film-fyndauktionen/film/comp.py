@@ -309,8 +309,9 @@ def tolka_rutor(text: str) -> list[int]:
     return ut
 
 
-# Kortversionen (16 s): trappan och narbilden, sedan kuben. Ljudet till den ar `film.audio --kort`.
-KORTVERSION = "0-359,630-749"
+# Kortversionen (ca 16 s): trappan och narbilden, sedan kuben fran forsta biten (ruta 640, innan dess syns
+# visningsrummets sista piedestal i halvmorkret). Ljudet till den ar `film.audio --kort`.
+KORTVERSION = "0-359,640-749"
 
 
 def gor_film(kvalitet: str, mal: Path, skala: float = 1.0, fran: int = 0, till: int = 749, titlar: Path | None = None,

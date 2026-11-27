@@ -64,8 +64,9 @@ $PY -m film.provruta --tagning A --rutor 0,105,240 --kvalitet utkast   # nyckelr
 ```
 
 Kortversionen för hand: `$PY -m film.audio --kort` och sedan
-`$PY -m film.comp film --rutor 0-359,630-749 --ljud out/ljud-16s.wav ...`. Klippet går från
-mörker till mörker (närbilden släcks vid 11,5 s, och kuben börjar svart).
+`$PY -m film.comp film --rutor 0-359,640-749 --ljud out/ljud-16s.wav ...`, 15,7 s. Klippet går
+från mörker till kubens första bit (närbilden släcks vid 11,5 s). Före ruta 640 syns visningsrummets
+sista piedestal i halvmörkret, och den hör inte hemma i kortversionen.
 
 En ny vara får en modul i `film/modeller/` med produktsidans mått och en rad i
 `film/modeller/__init__.py`. Varans framsida pekar mot −Y, och golvet är z = 0.

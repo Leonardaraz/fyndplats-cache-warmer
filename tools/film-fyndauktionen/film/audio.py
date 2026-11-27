@@ -315,10 +315,12 @@ def klack(f: float) -> np.ndarray:
 
 
 # ------------------------------------------------------------------ partituret
-# Kortversionen (16 s): trappan och narbilden (0-12 s) och sedan kuben (21-25 s). Klippet i bild gar
-# fran ruta 359 till 630; ljudet hoppar over scen 4-5 och flyttar scen 6 (som borjar 20,9 s) 9 s framat.
-KORT_LANGD = 16.0
-KORT_KLIPP = (12.0, 20.9)
+# Kortversionen (ca 16 s): trappan och narbilden (0-12 s) och sedan kuben fran forsta biten (21,33-25 s).
+# Klippet i bild gar fran ruta 359 till 640 (comp.KORTVERSION); ljudet hoppar over allt som borjar daremellan
+# och flyttar resten lika mycket framat.
+KORT_FORSTA_KUBRUTA = 640
+KORT_LANGD = (360 + 750 - KORT_FORSTA_KUBRUTA) / 30
+KORT_KLIPP = (12.0, KORT_FORSTA_KUBRUTA / 30)
 
 
 def bygg(kort: bool = False) -> np.ndarray:
