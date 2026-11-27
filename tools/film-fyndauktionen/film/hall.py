@@ -23,6 +23,7 @@ PLAKETT_B, PLAKETT_H = 0.66, 0.20
 PLATSER = [(-1.95, -3.9), (-0.65, -1.3), (0.65, 1.3), (1.95, 3.9)]   # en diagonal som gar bakat at hoger
 STARTVINKEL = [-62.0, 58.0, -48.0, 64.0]                              # varorna innan de vander sig mot kameran
 SALDA = {1: 15.25, 3: 17.25}                                         # vara -> tiden da SALD slar ned
+SPOTNIVA = [1.0, 0.8, 0.5, 0.55]                                     # ljusa varor (sidobordet) far mindre ljus
 LAMP_Z = 6.4
 
 # ---- tider ----
@@ -200,6 +201,7 @@ def bygg(tagning: str, look: dict | None = None) -> dict:
     pb, pd, ph = PIEDESTAL
     varor = _val()
     vridar = []
+    varudelar = []          # framljuset lyser bara pa varorna: inte pa plaketterna, glaset eller stamplarna
     for n, (x, y) in enumerate(PLATSER):
         sank = b3d.tom(f"piedestal{n}", (x, y, 0), fasta)
         b3d.baka(sank, rutor, lambda t, n=n, x=x, y=y: {"location": (x, y, sjunk(n, t))})
@@ -213,7 +215,8 @@ def bygg(tagning: str, look: dict | None = None) -> dict:
         tex = UT / "tex" / f"kort{n}.png"
         delar_ = [kropp, topp, skiva, kant, vrid]
         if tex.exists():
-            m_kort = b3d.bildlack(f"plakett{n}", b3d.bild(tex), ton=hex_lin("#FBF6EC"), strav=0.42)
+            m_kort = b3d.bildlack(f"plakett{n}", b3d.bild(tex), ton=tuple(c * 0.9 for c in hex_lin("#FBF6EC")), strav=0.42,
+                                  sken=look.get("plakett_sken", 0.22))
             kort = b3d.plan_xz(f"plakett{n}", PLAKETT_B, PLAKETT_H, m_kort, fasta)
             kort.location = (0, -pd / 2 - 0.0035, (ph - PLATTA) / 2)
             ram = b3d.rundad_skiva(f"plakett_ram{n}", PLAKETT_B + 0.02, PLAKETT_H + 0.02, 0.006, 0.012, m_guld, fas=0.0015,
@@ -224,6 +227,7 @@ def bygg(tagning: str, look: dict | None = None) -> dict:
             o.parent = sank
         vara = modeller.bygg(varor[n], fasta)
         _centrera_pa(vara, vrid)
+        varudelar.extend([o for o in [vara] + list(vara.children_recursive) if o.type == "MESH"])
         b3d.baka(vrid, rutor, lambda t, n=n: {"rotation_euler": (0, 0, vandning(n, t))})
         vridar.append(vrid)
 
@@ -260,25 +264,37 @@ def bygg(tagning: str, look: dict | None = None) -> dict:
         glas.visible_shadow = False
         glas.visible_glossy = False      # annars speglas lampglaset som en ljus flack i det blanka golvet
         hus.visible_camera = False
-        sp = b3d.spot(f"lampa{k}", (x + 0.35, y - 1.5, LAMP_Z - 0.02), 1.0, look.get("spotkagla", 22.0), mjukhet=0.32,
+        sp = b3d.spot(f"lampa{k}", (x + 0.35, y - 1.5, LAMP_Z - 0.02), 1.0, look.get("spotkagla", 27.0), mjukhet=0.32,
                       radie=0.08, farg=(1.0, 0.90, 0.76), coll=ljus)
         b3d.sikta_fast(sp, (x, y, PIEDESTAL[2] + 0.5))
         sp.visible_glossy = False        # spotljusets kalla speglas annars som en ljus flack i golvet
         lampor.append((sp, glas))
-    E_LAMPA = look.get("e_lampa", 4200.0)
+    E_LAMPA = look.get("e_lampa", 5600.0)
 
     # ---------- kvallssolen fran sidan: lag, varm, och den kastar varornas skuggor over golvet
     solmal = b3d.tom("solmal", (0.0, 0.0, 0.6), ljus)
     solen = b3d.spot("sol", (12, 6, 3), 1.0, look.get("solkagla", 34.0), mjukhet=0.4, radie=0.3, farg=(1.0, 0.8, 0.6), coll=ljus)
     b3d.sikta(solen, solmal)
+    solen.visible_glossy = False     # solens kalla speglades som en ljus flack i det blanka golvet
     E_SOL = look.get("e_sol", 9000.0)
 
     # ---------- framljus som foljer kameran och lyser upp varan den star vid
     fram_mal = b3d.tom("fram_mal", coll=ljus)
     fram = b3d.ytljus("framljus", (0, -12, 3.2), 1.0, (1.6, 1.6), farg=(1.0, 0.95, 0.88), spridning=50, coll=ljus)
-    fram.visible_glossy = False
     b3d.sikta(fram, fram_mal)
-    E_FRAM = look.get("e_fram", 150.0)
+    mottagare = bpy.data.collections.new("fram_mottagare")
+    for o in varudelar:
+        mottagare.objects.link(o)
+    # framljuset syns i varornas speglingar (guld och glas behover nagot ljust att spegla), men lyser
+    # bara pa varorna: plaketterna, glaset och stamplarna nas inte
+    fram.light_linking.receiver_collection = mottagare
+    E_FRAM = look.get("e_fram", 140.0)
+    # stor varm ljuslada bakom raden: kantljus i guldet och glaset, ocksa den bara pa varorna
+    kant = b3d.ytljus("kantljus", (0.6, 10.5, 5.2), 1.0, (8.0, 2.4), farg=(1.0, 0.86, 0.66), coll=ljus)
+    b3d.sikta_fast(kant, (0.0, 0.0, 0.8))
+    kant.light_linking.receiver_collection = mottagare
+    kant.visible_camera = False
+    E_KANT = look.get("e_kant", 700.0)
 
     # ---------- glasskivan med tre rader
     m_glas = b3d.principled("rokglas", (0.62, 0.60, 0.56), 0.0, 0.03,
@@ -383,7 +399,7 @@ def bygg(tagning: str, look: dict | None = None) -> dict:
         t = f / FPS
         for k, (la, glas) in enumerate(lampor):
             niva = lampniva(k, t)
-            la.data.energy = E_LAMPA * niva
+            la.data.energy = E_LAMPA * niva * SPOTNIVA[k]
             la.data.keyframe_insert("energy", frame=f)
             glas.color[3] = niva
             glas.keyframe_insert("color", frame=f, index=3)
@@ -404,6 +420,8 @@ def bygg(tagning: str, look: dict | None = None) -> dict:
         fram_mal.keyframe_insert("location", frame=f)
         fram.data.energy = E_FRAM * mjuk(led(t, 13.4, 14.0)) * (1 - mjuk(led(t, 17.7, 18.2)))
         fram.data.keyframe_insert("energy", frame=f)
+        kant.data.energy = E_KANT * mjuk(led(t, 12.0, 13.0)) * (1 - mjuk(led(t, T_SJUNK, T_SJUNK + 0.8)))
+        kant.data.keyframe_insert("energy", frame=f)
         pa = mjuk(led(t, T_SJUNK, T_SJUNK + 0.5))
         smal = mjukare(led(t, T_SMALNAR, 25.0))
         blixt = 1 + (0.8 * math.exp(-(t - T_KUB_LANDAR) * 10) if t >= T_KUB_LANDAR else 0.0)
@@ -418,8 +436,8 @@ def bygg(tagning: str, look: dict | None = None) -> dict:
 
 
 # ------------------------------------------------------------------ kameror
-VID_POS = ((-2.4, -10.2, 2.9), (-2.0, -9.0, 2.4))
-VID_MAL = ((0.35, -0.4, 0.8), (0.1, -1.4, 0.75))
+VID_POS = ((-2.0, -8.8, 2.4), (-1.7, -7.9, 2.0))
+VID_MAL = ((0.4, -0.6, 0.85), (0.2, -1.6, 0.8))
 NER = (13.35, 14.02)          # kameran gar fram till forsta fyndet
 NARA_AVST = 3.55
 NARA_Z = 1.05

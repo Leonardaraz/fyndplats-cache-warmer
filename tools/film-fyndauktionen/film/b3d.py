@@ -136,8 +136,9 @@ def lack(namn: str, farg, strav=0.4, klarlack=1.0, klarlack_strav=0.04) -> bpy.t
     )
 
 
-def bildlack(namn: str, bild: bpy.types.Image, ton=(1, 1, 1), strav=0.4) -> bpy.types.Material:
-    """Lackad yta med ett foto tryckt pa: fotot multipliceras med lackens ton."""
+def bildlack(namn: str, bild: bpy.types.Image, ton=(1, 1, 1), strav=0.4, sken: float = 0.0) -> bpy.types.Material:
+    """Lackad yta med ett foto tryckt pa: fotot multipliceras med lackens ton. sken > 0 later trycket lysa
+    svagt av sig sjalvt, sa att en plakett gar att lasa jamnt utan att ett framljus blaser ut den."""
     m, nt, b, _ = _nytt_material(namn)
     tex = nt.nodes.new("ShaderNodeTexImage")
     tex.image = bild
@@ -153,6 +154,9 @@ def bildlack(namn: str, bild: bpy.types.Image, ton=(1, 1, 1), strav=0.4) -> bpy.
     b.inputs["Roughness"].default_value = strav
     b.inputs["Coat Weight"].default_value = 1.0
     b.inputs["Coat Roughness"].default_value = 0.04
+    if sken > 0:
+        nt.links.new(mx.outputs["Result"], b.inputs["Emission Color"])
+        b.inputs["Emission Strength"].default_value = sken
     return m
 
 
