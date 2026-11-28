@@ -28,13 +28,13 @@
 // 5. Lagret ligger i <body> (createPortal). Inne i studion hade sidhuvudet
 //    kunnat lägga sig över stängknappen, och en video med kontroller får inte
 //    ligga i en knapp.
-// 6. Efter filmens slut (lib/fyndfilm.ts, slutarMs) ritas ingenting, också
-//    när sidan legat kvar i en cache: klockan är klientens efter första
-//    renderingen (useClientNow), serverns i den.
+// 6. En film med slut (lib/fyndfilm.ts, slutarMs) ritas inte efter slutet,
+//    också när sidan legat kvar i en cache: klockan är klientens efter första
+//    renderingen (useClientNow), serverns i den. Årsfilmen har inget slut.
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal, flushSync } from "react-dom";
-import { type Fyndfilm, filmKallor, filmStillbild, skarmKalla } from "../lib/fyndfilm";
+import { type Fyndfilm, aktivFilm, filmKallor, filmStillbild, skarmKalla } from "../lib/fyndfilm";
 import { langdTal, langdText, valjKalla } from "../lib/produkt-video";
 import { prefersDataSaving } from "../lib/gallery-preload";
 import { useClientNow } from "./use-client-now";
@@ -60,9 +60,9 @@ const ingenRorelse = () =>
   typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export function FyndFilm({ film, lage, nuMs }: { film: Fyndfilm; lage: Lage; nuMs: number }) {
-  // Minuttakt räcker: filmen slutar på en hel timme.
+  // Minuttakt räcker: en film med slut slutar på en hel timme.
   const { nowMs } = useClientNow(nuMs, 60_000);
-  if (!(nowMs < film.slutarMs)) return null;
+  if (!aktivFilm(nowMs, film)) return null;
   return <Skarm film={film} lage={lage} />;
 }
 

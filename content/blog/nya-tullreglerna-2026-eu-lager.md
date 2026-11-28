@@ -4,7 +4,7 @@ slug: nya-tullreglerna-2026-eu-lager
 meta_description: "Sedan 1 juli 2026 kostar varje vara i ett paket utifrån EU 3 euro i tull, och från 1 november 2 euro till. Hos Fyndplats skickas allt från EU-lager."
 category: Guider
 publish_date: 2026-06-30
-updated_date: 2026-11-10
+updated_date: 2026-11-28
 cover: /blog-eu-tull-2026.jpg
 alt: "Två kort: ett paket utifrån EU kostar 5 euro mer per vara i tull och avgift, ett paket från EU-lager 0 kronor"
 ---
@@ -30,7 +30,7 @@ Du betalar avgifterna antingen i butikens kassa eller i efterhand, på en faktur
 ## Därför påverkas du inte hos Fyndplats
 
 > ### Vårt EU-löfte
-> Alla våra produkter skickas från lager inom EU, aldrig direkt från länder utanför EU.
+> Alla våra varor skickas från lager inom EU. Därför tillkommer ingen importtull eller förtullningsavgift.
 
 Det betyder för dig som kund:
 

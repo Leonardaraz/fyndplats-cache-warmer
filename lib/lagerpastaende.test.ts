@@ -55,6 +55,30 @@ test("ingen text påstår att Fyndplats har ett eget lager", () => {
   assert.deepEqual(bad, []);
 });
 
+test("☠️ ingen text säger \"aldrig direkt från länder utanför\" (Leonard 2026-11-28)", () => {
+  // Leonard: "det låter inte bra". Löftet sägs positivt i stället (nästa prov).
+  // Integritetstexternas "överföring utanför EU/EES" handlar om personuppgifter
+  // och fångas inte: mönstret kräver "från länder utanför" eller "skickar aldrig".
+  const bad: string[] = [];
+  for (const { p, t } of ALL) {
+    const m = t.match(/aldrig[^.]{0,30}från länder utanför|skickar aldrig direkt/gi);
+    if (m) bad.push(`${p}: ${[...new Set(m)].join(", ")}`);
+  }
+  assert.deepEqual(bad, []);
+});
+
+test("löftet står med Leonards mening på Om oss, garantisidan, Vanliga frågor och tullinlägget", () => {
+  const MENING = "Alla våra varor skickas från lager inom EU. Därför tillkommer ingen importtull eller förtullningsavgift.";
+  for (const fil of [
+    "app/omoss/page.tsx",
+    "app/eu-lager-garanti/page.tsx",
+    "app/vanliga-fragor/page.tsx",
+    "content/blog/nya-tullreglerna-2026-eu-lager.md",
+  ]) {
+    assert.ok(prose(readFileSync(fil, "utf8")).includes(MENING), fil);
+  }
+});
+
 test("företagsadressen kallas aldrig lager", () => {
   // Bergviksgatan 10 får stå som företagsadress — e-handelslagen kräver att den
   // finns — men den får inte beskrivas som ett lager.

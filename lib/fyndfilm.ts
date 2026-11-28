@@ -1,25 +1,35 @@
 // lib/fyndfilm.ts
 //
-// Reklamfilmen för fyndauktionen (Leonard 2026-11-26). Ett klipp i butikens
-// Wix Media, "fyndplats-black-friday-torsdag.mp4": 25 sekunder, stående 9:16,
-// svart och guld. Det visar hur auktionen går till (startpris kl 07, ett steg
-// ner varje timme, varje fynd finns en gång) och slutar med
-// fyndplats.se/fyndauktion.
+// Reklamfilmen för fyndauktionen. Sedan 2026-11-28 årsfilmen
+// "fyndplats-fyndauktionen.mp4" i Media Managers mapp Reklamfilmer (Leonard:
+// "anpassad för året runt"): 25 sekunder med ljud, stående 9:16 (1080 × 1920),
+// svart och guld, byggd med tools/film-fyndauktionen på main (#943). Den visar
+// hur auktionen går till (startpris kl 07, ett steg ner varje timme, varje fynd
+// finns en gång, nya fynd varje dag kl 07–19) och tryggheten (fri frakt över
+// 499 kr, 30 dagars öppet köp). Dess sista bildrutor tonar över i den första,
+// så den loopar utan skarv när den spelar utan ljud.
 //
 // Filmen står på två ställen (components/fyndfilm.tsx):
 // - i startsidans auktionsband, som en skärm som spelar utan ljud och leder
 //   till auktionen (det är där filmen gör reklam),
 // - i auktionssidans studio, där ett tryck spelar den med ljud.
+// Båda skärmarna är stående, så det är 9:16-filmen som spelar.
+// "fyndplats-fyndauktionen-4x5.mp4" (b379ce_15d5786804cb46c8b4d6918904f3836a)
+// är samma film beskuren till 4:5, för en yta som är bred snarare än hög.
 //
-// ☠️ FILMEN NÄMNER ETT DATUM OCH ETT ANTAL ("fredag 27 november", "100 fynd").
-// Därför har den ett slut: efter `slutarMs` visas den ingenstans, varken från
-// servern eller i en sida som legat kvar i en cache (klienten släcker den
-// själv). Butikens egna texter runt filmen nämner aldrig antalet fynd
-// (Leonards regel 2026-11-21, lib/auction-beskrivning.ts).
+// Årsfilmen nämner inget datum och inget antal fynd, och har därför inget slut
+// (`slutarMs: null`). ☠️ En film som nämner ett datum eller ett antal ska ha
+// ett slut: efter `slutarMs` visas den ingenstans, varken från servern eller i
+// en sida som legat kvar i en cache (klienten släcker den själv). Så gick
+// Black Friday-filmen (b379ce_131b1c66dcb64ff9a14c95ae49807131, "fredag 27
+// november", "100 fynd"), som slutade fredag 27 november kl 19. Butikens egna
+// texter runt filmen nämner aldrig antalet fynd (Leonards regel 2026-11-21,
+// lib/auction-beskrivning.ts).
 //
-// ☠️ Stillbilden är f000, filmens första bild: rubriken och trappan. f002
-// visar räkneverket mitt i en siffra ("64 fynd"), och den bilden får aldrig
-// stå som stillbild.
+// ☠️ Stillbilden är filmens omslag, en egen bild
+// ("fyndplats-fyndauktionen-omslag.jpg", 1080 × 1920), aldrig en av Wix
+// automatiska bildrutor (f000–f003): en ruta mitt i en film kan visa en
+// prisskylt eller ett räkneverk mitt i ett byte.
 //
 // LÖVMODUL med flit: bara typimporter, så att `node --test` kan ladda den.
 
@@ -30,28 +40,26 @@ export interface Fyndfilm {
   id: string;
   /** Längd i hela sekunder. */
   langdSek: number;
-  /** Vilken av Wix fyra stillbilder (f000–f003) som visas innan filmen spelar. */
-  stillbild: "f000" | "f001" | "f002" | "f003";
-  /** När filmen slutar visas, ms sedan epoken (UTC). */
-  slutarMs: number;
+  /** Omslaget, en stående bild i Wix Media Manager (id med filändelse). Visas innan filmen spelar. */
+  omslag: string;
+  /** När filmen slutar visas, ms sedan epoken (UTC). null: filmen gäller året runt. */
+  slutarMs: number | null;
   /** Vad filmen är. Knappens och spelarens namn för skärmläsare. */
   namn: string;
 }
 
 export const FYNDFILM: Fyndfilm = {
-  id: "b379ce_131b1c66dcb64ff9a14c95ae49807131",
+  id: "b379ce_8b8f49a744af4c1f97c59a11866af4dd",
   langdSek: 25,
-  stillbild: "f000",
-  // Fredag 27 november kl 19 svensk tid (18:00 UTC): Black Friday-auktionen
-  // stänger, och filmens datum och antal gäller inte längre.
-  slutarMs: Date.UTC(2026, 10, 27, 18, 0, 0),
-  namn: "Filmen om Black Friday på Fyndauktionen",
+  omslag: "b379ce_1d95b733fe224497876b412cf4d679ea~mv2.jpg",
+  slutarMs: null,
+  namn: "Filmen om Fyndauktionen",
 };
 
 /**
  * Wix filer för en stående film. Wix räknar "720p" på höjden: filen är
- * 406×720, inte 720×1280. Mätt för den här filmen 2026-11-26: 360p 1,5 MB,
- * 480p 2,0 MB, 720p 3,4 MB, 1080p 19 MB.
+ * 406×720, inte 720×1280. Mätt för årsfilmen 2026-11-28: 360p 1,5 MB,
+ * 480p 2,0 MB, 720p 3,5 MB, 1080p 19 MB (Black Friday-filmen var lika stor).
  */
 const STORLEKAR = [
   { namn: "360p", bredd: 202, hojd: 360 },
@@ -73,13 +81,13 @@ export function filmKallor(film: Fyndfilm): VideoKalla[] {
 }
 
 /**
- * Stillbilden i den storlek skärmen behöver (Wix skalar den, och enc_auto ger
- * avif eller webp när webbläsaren tar emot det).
+ * Stillbilden (filmens omslag) i den storlek skärmen behöver (Wix skalar den,
+ * och enc_auto ger avif eller webp när webbläsaren tar emot det).
  */
 export function filmStillbild(film: Fyndfilm, bredd: number): string {
   const b = Math.max(1, Math.round(bredd));
   const h = Math.round((b * 16) / 9);
-  return `https://static.wixstatic.com/media/${film.id}${film.stillbild}.jpg/v1/fill/w_${b},h_${h},al_c,q_80,enc_auto/fyndfilm.jpg`;
+  return `https://static.wixstatic.com/media/${film.omslag}/v1/fill/w_${b},h_${h},al_c,q_80,enc_auto/fyndfilm.jpg`;
 }
 
 /**
@@ -95,8 +103,9 @@ export function skarmKalla(kallor: readonly VideoKalla[], behovPx: number): Vide
   return inom.find((k) => k.bredd >= mal) ?? inom[inom.length - 1];
 }
 
-/** Filmen om den ska visas nu, annars null. */
+/** Filmen om den ska visas nu, annars null. En film utan slut visas alltid. */
 export function aktivFilm(nuMs: number, film: Fyndfilm | null = FYNDFILM): Fyndfilm | null {
   if (!film) return null;
+  if (film.slutarMs === null) return film;
   return Number.isFinite(nuMs) && nuMs < film.slutarMs ? film : null;
 }

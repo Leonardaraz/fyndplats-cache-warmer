@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { jsonLdString } from "../../lib/seo";
-import { EU_STOCK_NOTE, FREE_SHIPPING_OVER_KR } from "../../lib/shipping";
+import { FREE_SHIPPING_OVER_KR } from "../../lib/shipping";
 import s from "./eu-lager-garanti.module.css";
 
 // EU-lager & tull (2026-09-30). Samma innehåll som förut, i Om oss-sidans
@@ -75,7 +75,7 @@ const faqs: { q: string; a: string }[] = [
   },
   {
     q: "Hur vet jag att en vara skickas från EU?",
-    a: "Du behöver inte kontrollera själv – det gäller hela vårt sortiment. Vi tar bara in produkter som redan finns i lager inom EU, aldrig direkt från länder utanför EU.",
+    a: "Du behöver inte kontrollera själv – det gäller hela vårt sortiment. Alla våra varor skickas från lager inom EU. Därför tillkommer ingen importtull eller förtullningsavgift.",
   },
 ];
 
@@ -96,7 +96,7 @@ const jsonLd = {
       headline: "EU-lager-garanti – inga nya tullavgifter på din beställning",
       description: DESC,
       datePublished: "2026-06-30",
-      dateModified: "2026-09-30",
+      dateModified: "2026-11-28",
       author: { "@id": "https://www.fyndplats.se/#organization" },
       publisher: { "@id": "https://www.fyndplats.se/#organization" },
       mainEntityOfPage: { "@type": "WebPage", "@id": URL },
@@ -142,10 +142,7 @@ export default function EuLagerGaranti() {
             <aside className={s.lofte} aria-label="Vårt löfte">
               <span className="om-ikon"><Svg d={Ikon.eu} /></span>
               <h2>Vårt löfte</h2>
-              <p>
-                Vi skickar enbart varor som redan finns i lager inom EU – aldrig direkt från länder utanför EU.{" "}
-                {EU_STOCK_NOTE}
-              </p>
+              <p>Alla våra varor skickas från lager inom EU. Därför tillkommer ingen importtull eller förtullningsavgift.</p>
             </aside>
           </div>
         </section>

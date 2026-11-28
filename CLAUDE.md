@@ -1086,12 +1086,13 @@ matchar antalet som erbjuds hela tiden".
   också med tre siffror) och att inget fast antal står i sidan, korten eller blogginlägget.
   Elva inlagda fel fälldes alla.
 
-## Fyndauktionen: studion och reklamfilmen (Leonard 2026-11-26)
+## Fyndauktionen: studion och reklamfilmen (Leonard 2026-11-26, årsfilmen 2026-11-28)
 
 Leonard laddade upp en reklamfilm i Wix Media ("fyndplats-black-friday-torsdag.mp4",
 25 s, stående 9:16, svart och guld) och frågade var den kan göra reklam för auktionen,
 och om auktionssidan kan få "en mer premium 3d kodad studio look". Båda kom med i
-mergen natten mot fredag 27 november.
+mergen natten mot fredag 27 november. Sedan 2026-11-28 spelar årsfilmen på samma
+ställen (nedan).
 
 **Filmen** (`lib/fyndfilm.ts`, `components/fyndfilm.tsx`) står på två ställen:
 
@@ -1107,18 +1108,33 @@ mergen natten mot fredag 27 november.
   rubrikens övre högra hörn på mobilen (utanför flödet, så att dagens fynd står lika
   högt som utan film). Ett tryck spelar filmen med ljud i ett lager över sidan.
 
-☠️ **Filmen nämner "fredag 27 november" och "100 fynd", och har därför ett slut**
-(`FYNDFILM.slutarMs`, fredag kl 19 svensk tid). Efter det ritas den ingenstans:
-servern låter bli, och en sida som ligger kvar i cachen (startsidan lever en timme)
-släcker filmen själv med klientens klocka (`useClientNow`). Butikens egna texter runt
-filmen nämner aldrig antalet fynd (regeln ovan). En ny film läggs in genom att byta
-`FYNDFILM`: fil-id ur Wix Media, längd, stillbild och slut.
+**Årsfilmen sedan 2026-11-28.** Leonard: "kan vi ha denna film istället nu som ruta
+i våran fyndplatsaktion sida och startsidan, som vi hade för blackfriday klippet men
+denna som vi gjort nu är anpassad för året runt". Filmen är
+"fyndplats-fyndauktionen.mp4" i Media Managers mapp Reklamfilmer: 25 s med ljud,
+stående 9:16 (1080 × 1920), byggd med `tools/film-fyndauktionen` på main (#943). Den
+visar hur auktionen går till och slutar med "Fri frakt över 499 kr" och "30 dagars
+öppet köp" (stämmer med köpvillkoren). Den nämner inget datum och inget antal fynd.
+Samma mapp har en 4:5-version för en yta som är bred snarare än hög, men båda
+skärmarna är stående, så det är 9:16-filmen som spelar. Den startar utan ljud
+(webbläsarna tillåter bara det), och ljudet sätts på med ett tryck i studion.
 
-☠️ **Stillbilden är f000**, filmens första bild (rubriken och trappan). f002 är
-räkneverket mitt i en siffra ("64 fynd").
+☠️ **En film som nämner ett datum eller ett antal har ett slut**
+(`FYNDFILM.slutarMs`). Efter det ritas den ingenstans: servern låter bli, och en sida
+som ligger kvar i cachen (startsidan lever en timme) släcker filmen själv med
+klientens klocka (`useClientNow`, samma `aktivFilm` som servern). Black
+Friday-filmen ("fredag 27 november", "100 fynd") slutade fredag 27 november kl 19.
+Årsfilmen har `slutarMs: null` och visas året runt. Butikens egna texter runt filmen
+nämner aldrig antalet fynd (regeln ovan). En ny film läggs in genom att byta
+`FYNDFILM`: fil-id ur Wix Media, längd, omslag och slut.
 
-Hur skärmen hämtar (mätt 2026-11-26: 360p 1,5 MB, 480p 2,0 MB, 720p 3,4 MB, 1080p
-19 MB; Wix "720p" är 406×720 för en stående film):
+☠️ **Stillbilden är filmens omslag** ("fyndplats-fyndauktionen-omslag.jpg",
+1080 × 1920), aldrig en av Wix automatiska bildrutor (f000–f003). En ruta mitt i en
+film kan visa en prisskylt eller ett räkneverk mitt i ett byte (Black Friday-filmens
+f002 visade "64 fynd").
+
+Hur skärmen hämtar (mätt för årsfilmen 2026-11-28: 360p 1,5 MB, 480p 2,0 MB, 720p
+3,5 MB, 1080p 19 MB; Wix "720p" är 406×720 för en stående film):
 
 - Ingenting förrän skärmen syns: ingen `src` i sidan, `preload="none"`, stillbilden lat
   i bandet.

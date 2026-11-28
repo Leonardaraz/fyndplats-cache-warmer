@@ -101,7 +101,7 @@ function FRAGOR(betyg: string): { q: string; a: string }[] {
     },
     {
       q: "Varifrån skickas varorna?",
-      a: "Från våra leverantörers och logistikpartners lager inom EU, aldrig direkt från länder utanför EU. Därför tillkommer ingen importtull. Leveranstiden är normalt 3–6 arbetsdagar.",
+      a: "Alla våra varor skickas från lager inom EU, hos våra leverantörer och logistikpartners. Därför tillkommer ingen importtull eller förtullningsavgift. Leveranstiden är normalt 3–6 arbetsdagar.",
     },
     {
       q: "Har ni en fysisk butik?",
@@ -221,7 +221,7 @@ export default async function OmOss() {
                 <span className="om-ikon"><Svg d={Ikon.eu} /></span>
                 <div>
                   <h3>Skickas från lager inom EU</h3>
-                  <p>Alla varor skickas från lager inom EU, aldrig direkt från länder utanför. Därför tillkommer ingen importtull eller förtullningsavgift.</p>
+                  <p>Alla våra varor skickas från lager inom EU. Därför tillkommer ingen importtull eller förtullningsavgift.</p>
                 </div>
               </div>
             </div>

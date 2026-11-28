@@ -10,23 +10,28 @@ const ROT = join(import.meta.dirname, "..");
 const kod = (rel: string) => readFileSync(join(ROT, rel), "utf8");
 const utanKommentarer = (t: string) => t.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
-describe("filmens slut", () => {
-  it("☠️ filmen slutar när Black Friday-auktionen stänger: fredag 27 november kl 19 svensk tid", () => {
-    const svensk = new Intl.DateTimeFormat("sv-SE", {
-      timeZone: "Europe/Stockholm",
-      dateStyle: "short",
-      timeStyle: "short",
-    }).format(new Date(FYNDFILM.slutarMs));
-    assert.equal(svensk, "2026-11-27 19:00");
+describe("när filmen visas", () => {
+  it("årsfilmen är fyndplats-fyndauktionen.mp4: 25 s, utan datum och antal i namnet (Leonard 2026-11-28)", () => {
+    assert.equal(FYNDFILM.id, "b379ce_8b8f49a744af4c1f97c59a11866af4dd");
+    assert.equal(FYNDFILM.langdSek, 25);
+    assert.doesNotMatch(FYNDFILM.namn, /black|friday|week|\d/i);
   });
 
-  it("visas före slutet och aldrig efter", () => {
-    assert.equal(aktivFilm(FYNDFILM.slutarMs - 1), FYNDFILM);
-    assert.equal(aktivFilm(Date.UTC(2026, 10, 27, 2, 5)), FYNDFILM, "efter nattens deploy");
-    assert.equal(aktivFilm(FYNDFILM.slutarMs), null);
-    assert.equal(aktivFilm(FYNDFILM.slutarMs + 3_600_000), null);
-    assert.equal(aktivFilm(Number.NaN), null);
+  it("årsfilmen har inget slut och visas året runt", () => {
+    assert.equal(FYNDFILM.slutarMs, null);
+    for (const nu of [Date.UTC(2026, 10, 28, 9), Date.UTC(2027, 5, 21, 12), Date.UTC(2027, 11, 24, 23, 59)]) {
+      assert.equal(aktivFilm(nu), FYNDFILM);
+    }
     assert.equal(aktivFilm(0, null), null);
+  });
+
+  it("☠️ en film med datum eller antal har ett slut: visas före det och aldrig efter", () => {
+    const slut = Date.UTC(2026, 10, 27, 18, 0, 0);
+    const daterad = { ...FYNDFILM, slutarMs: slut };
+    assert.equal(aktivFilm(slut - 1, daterad), daterad);
+    assert.equal(aktivFilm(slut, daterad), null);
+    assert.equal(aktivFilm(slut + 3_600_000, daterad), null);
+    assert.equal(aktivFilm(Number.NaN, daterad), null);
   });
 });
 
@@ -51,11 +56,11 @@ describe("filerna", () => {
     assert.equal(skarmKalla([], 100), null);
   });
 
-  it("☠️ stillbilden är filmens första bild, aldrig räkneverket mitt i en siffra (f002)", () => {
-    assert.equal(FYNDFILM.stillbild, "f000");
+  it("☠️ stillbilden är filmens omslag, aldrig en av Wix bildrutor ur filmen (f000–f003)", () => {
+    assert.equal(FYNDFILM.omslag, "b379ce_1d95b733fe224497876b412cf4d679ea~mv2.jpg");
     const u = filmStillbild(FYNDFILM, 280);
-    assert.match(u, /^https:\/\/static\.wixstatic\.com\/media\/b379ce_[0-9a-f]{32}f000\.jpg\/v1\/fill\/w_280,h_498,al_c,q_80,enc_auto\/fyndfilm\.jpg$/);
-    assert.doesNotMatch(u, /f002/);
+    assert.equal(u, "https://static.wixstatic.com/media/b379ce_1d95b733fe224497876b412cf4d679ea~mv2.jpg/v1/fill/w_280,h_498,al_c,q_80,enc_auto/fyndfilm.jpg");
+    assert.doesNotMatch(u, /f00[0-3]\.jpg/);
   });
 });
 
@@ -91,8 +96,8 @@ describe("skärmen i webbläsaren", () => {
     assert.match(t, /document\.body,\s*\)/);
   });
 
-  it("efter filmens slut ritas ingenting, också ur en sida i cachen", () => {
-    assert.match(t, /const \{ nowMs \} = useClientNow\(nuMs, 60_000\);\s*if \(!\(nowMs < film\.slutarMs\)\) return null;/);
+  it("en film med slut ritas inte efter slutet, också ur en sida i cachen (samma regel som servern)", () => {
+    assert.match(t, /const \{ nowMs \} = useClientNow\(nuMs, 60_000\);\s*if \(!aktivFilm\(nowMs, film\)\) return null;/);
   });
 
   it("bandets skärm är dekor i länken; studions är en knapp med namn", () => {

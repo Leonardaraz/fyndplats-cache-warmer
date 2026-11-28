@@ -93,7 +93,7 @@ test("tullinlägget: uppdaterat, utan handplockade produkter och med frågor och
   const p = await getLocalPost("nya-tullreglerna-2026-eu-lager");
   assert.ok(p, "inlägget ska finnas");
   assert.equal(p.date, "2026-06-30");
-  assert.equal(p.updated, "2026-11-10");
+  assert.equal(p.updated, "2026-11-28");
   // De tre handplockade varorna stod kvar i månader, och en av dem var slutsåld.
   assert.deepEqual(p.products, []);
   assert.ok(!p.contentHtml.includes("blog-product-img"));

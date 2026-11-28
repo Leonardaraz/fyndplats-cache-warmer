@@ -83,11 +83,11 @@ const AMNEN: Amne[] = [
     kort: "Tull",
     rubrik: "EU-lager & tull",
     ikon: Ikon.eu,
-    intro: "Alla varor skickas från lager inom EU, aldrig direkt från länder utanför EU.",
+    intro: "Alla våra varor skickas från lager inom EU. Därför tillkommer ingen importtull eller förtullningsavgift.",
     lankar: [{ href: "/eu-lager-garanti", text: "EU-lager & tull" }],
     fragor: [
       { q: "Måste jag betala tull eller importavgift på min beställning?", a: "Nej. Alla våra produkter skickas från lager inom EU, så EU:s nya importtull och förtullningsavgift för paket som skickas in i EU utifrån (från 1 juli 2026) tillkommer inte på din beställning. Moms (25 %) ingår alltid i priset du ser, och frakten är fri över 499 kr – under det visas fraktavgiften tydligt i kassan. Mer om detta finns på sidan EU-lager & tull (fyndplats.se/eu-lager-garanti)." },
-      { q: "Varifrån skickas varorna – skickas något från ett land utanför EU?", a: "Alla våra produkter kommer garanterat från lager inom EU. Vi skickar aldrig direkt från länder utanför EU, så du slipper ny importtull, förtullningsavgift och extra väntan i tull." },
+      { q: "Varifrån skickas varorna?", a: "Alla våra varor skickas från lager inom EU. Därför tillkommer ingen importtull eller förtullningsavgift, och paketet fastnar inte i tullen." },
     ],
   },
   {
