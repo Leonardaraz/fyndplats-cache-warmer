@@ -46,7 +46,10 @@ def spec(variant: str) -> dict:
         <div class="ogon">Fyndplats<span class="streck"></span>Fyndauktionen</div>
         <div class="h" style="margin-top:18px">Priset sjunker</div>
         <div class="h"><em>varje timme.</em></div>
-        <div style="margin-top:26px"><span class="piller">{RADER[variant]}</span></div>
+      </div>
+      <!-- pillret pa det morka sattsteget under varan: inte over varan, och innanfor 4:5-utsnittet (y 285-1635) -->
+      <div style="position:absolute;left:0;top:1462px;width:1080px;text-align:center">
+        <span class="piller">{RADER[variant]}</span>
       </div>
     """
     return {"id": f"omslag_{variant}", "w": 1080, "h": 1920, "html": html, "css": CSS}

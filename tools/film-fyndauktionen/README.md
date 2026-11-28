@@ -109,6 +109,20 @@ Takten är 120 slag i minuten (`film/common.py`).
   projicera fåtöljen, skylten och siffrorna på bildytan innan något renderades.
 - **En skylt som byter pris byter mellan två slutartider**, med `baka`-nycklar på halva rutor
   (`PRISBYTE_NYCKLAR`), på samma sätt som kuben. Annars syns två priser på samma gång.
+- **Rörelseoskärpa, inte skärpedjup, gjorde skylten suddig i kranåkningen.** Kameran följer varan i
+  cirka 2,4 m/s. Med en halv rutas slutare blev det runt 14 px oskärpa. Tagning A renderas därför med
+  slutaren 0,3 ruta (`over["slutare"]`, som `kor.sh` och `kor_del.sh` skickar för A i slutkvalitet).
+  Att flytta skärpan hjälpte inte. Mät innan du ändrar.
+- **AAC-kodaren slår över på diskant.** Kubens landning gav +1,8 dBFS true peak i kortversionen, ur
+  en källa som toppar på −4,8. Ett lågpass på 16 kHz före kodningen (`comp.gor_film`) gav −4,2 dBFS
+  och samma ljudstyrka. Mät true peak på den färdiga filen (`ffmpeg -af ebur128=peak=true`), inte
+  bara på WAV-filen.
+- **Glas är dyrt att rendera.** Glasskivan (D) tog 43,5 s per ruta i slutkvalitet, inte 25, och
+  delen med C 480–539 och hela D stoppades vid tvåtimmarsgränsen. Volympasset fortsatte där det
+  slutade. Räkna med cirka 40 s per ruta för C och D, 55–60 s för A och B och 36 s för E, plus
+  10 s per ruta för volympasset.
+- **Omslagets piller ska inte ligga över varan.** Det ligger nu på det mörka sättsteget under
+  fåtöljen, inom 4:5-utsnittet.
 - **En stämpel tappar verkan om den upprepas.** Tre SÅLD på sju sekunder blev en; filmen har nu
   två, i närbilden och på lampan.
 - **Ett typsnitt i cachen dör med scenen.** `b3d.typsnitt` laddar om ett typsnitt som en ny

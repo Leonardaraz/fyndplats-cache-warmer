@@ -332,7 +332,9 @@ def gor_film(kvalitet: str, mal: Path, skala: float = 1.0, fran: int = 0, till: 
             "-sc_threshold", "0", "-bf", "2", "-pix_fmt", "yuv420p",
             "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709", "-color_range", "tv", "-movflags", "+faststart"]
     if ljud is not None:
-        cmd += ["-c:a", "aac", "-b:a", "256k", "-ar", "48000", "-shortest"]
+        # lagpass 16 kHz fore AAC: utan det slar kodaren over pa diskantrika transienter (kubens landning gav
+        # +1,8 dBFS true peak ur en kalla som toppar pa -4,8). Med filtret: -4,2 dBFS och samma ljudstyrka.
+        cmd += ["-af", "lowpass=f=16000", "-c:a", "aac", "-b:a", "256k", "-ar", "48000", "-shortest"]
     cmd += [str(mal)]
     ff = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     ordning = rutor if rutor else list(range(fran, till + 1))
