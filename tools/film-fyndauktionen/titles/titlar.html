@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<title>Pristrappan – texter</title>
+<style>
+@font-face { font-family: 'Newsreader'; src: url('../assets/fonts/Newsreader-VF.ttf'); font-weight: 200 800; font-style: normal; }
+@font-face { font-family: 'Newsreader'; src: url('../assets/fonts/Newsreader-Italic-VF.ttf'); font-weight: 200 800; font-style: italic; }
+@font-face { font-family: 'Geist'; src: url('../assets/fonts/Geist-VF.ttf'); font-weight: 100 900; font-style: normal; }
+:root { --kram: #FBF6EC; --guld: #D9A53E; --guld-ljus: #F5DA98; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { background: transparent; width: 1080px; height: 1920px; overflow: hidden; }
+body { font-family: 'Geist', sans-serif; color: var(--kram); -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision; font-optical-sizing: auto; }
+#scen { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: hidden; }
+.skugga { position: absolute; left: 0; width: 1080px; pointer-events: none; opacity: 0; }
+.block { position: absolute; left: 0; width: 1080px; text-align: center; opacity: 0; will-change: transform, opacity; }
+.mask { display: block; overflow: hidden; padding: 0.08em 0.12em 0.16em; margin: -0.08em 0 -0.16em; }
+.rad { display: inline-block; will-change: transform; }
+.h { font-family: 'Newsreader', Georgia, serif; font-weight: 560; letter-spacing: -0.026em; line-height: 1.04; color: var(--kram);
+     text-shadow: 0 2px 30px rgba(0,0,0,.55), 0 0 2px rgba(0,0,0,.35); white-space: nowrap; }
+.h em { font-style: italic; font-weight: 520; letter-spacing: -0.02em; padding-right: 0.06em;
+        background: linear-gradient(100deg, #F8E3AE 0%, #E9BE62 46%, #D9A53E 100%); -webkit-background-clip: text; background-clip: text;
+        color: transparent; -webkit-text-fill-color: transparent; text-shadow: none; filter: drop-shadow(0 2px 18px rgba(0,0,0,.5)); }
+.ogon { font-family: 'Geist', sans-serif; font-weight: 600; font-size: 30px; letter-spacing: 0.22em; text-transform: uppercase; color: #E9BE62;
+        text-shadow: 0 1px 18px rgba(0,0,0,.6); white-space: nowrap; padding-left: 0.22em; }
+.ogon .streck { display: inline-block; width: 46px; height: 2px; background: #E9BE62; vertical-align: middle; margin: 0 20px 6px; opacity: .85; }
+/* scen 6: slutbilden */
+#marke { font-family: 'Geist', sans-serif; font-weight: 800; font-size: 128px; letter-spacing: -0.025em; line-height: 1; color: var(--kram);
+         text-shadow: 0 2px 34px rgba(0,0,0,.6); }
+#slutrad { font-family: 'Newsreader', serif; font-weight: 520; font-size: 56px; letter-spacing: -0.012em; line-height: 1.1; white-space: nowrap; }
+#slutrad em { font-style: italic; background: linear-gradient(100deg, #F8E3AE 0%, #E9BE62 50%, #D9A53E 100%); -webkit-background-clip: text; background-clip: text;
+              color: transparent; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 16px rgba(0,0,0,.55)); }
+#lank { display: inline-block; font-family: 'Geist', sans-serif; font-weight: 600; font-size: 44px; letter-spacing: -0.005em; color: var(--kram);
+        padding: 17px 44px 19px; border-radius: 999px; border: 2.5px solid rgba(233,190,98,.9); background: rgba(8,6,4,.42);
+        text-shadow: 0 1px 14px rgba(0,0,0,.5); white-space: nowrap; }
+</style>
+</head>
+<body>
+<div id="scen"></div>
+<script>
+const P = new URLSearchParams(location.hash.slice(1));
+// en enda version: filmen anvands aret runt, utan datum och utan antal fynd
+const TXT = { slut: 'Fyndauktionen · <em>varje dag kl 07–19</em>' };
+
+const kl = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const led = (t, a, b) => kl((t - a) / (b - a));
+const utExpo = (x) => (x >= 1 ? 1 : 1 - Math.pow(2, -10 * kl(x)));
+const utKub = (x) => 1 - Math.pow(1 - kl(x), 3);
+const inKub = (x) => Math.pow(kl(x), 3);
+const mjuk = (x) => { x = kl(x); return x * x * (3 - 2 * x); };
+const utBack = (x, s = 1.4) => { x = kl(x); return 1 + (s + 1) * Math.pow(x - 1, 3) + s * Math.pow(x - 1, 2); };
+
+const scen = document.getElementById('scen');
+function el(tagg, klass, html, stil) {
+  const e = document.createElement(tagg);
+  if (klass) e.className = klass;
+  if (html != null) e.innerHTML = html;
+  if (stil) Object.assign(e.style, stil);
+  return e;
+}
+
+// ---- vanliga textblock: rader som glider upp ur en mask, en i taget
+const BLOCK = [
+  { id: 's1', in: -0.9, ut: 2.28, top: 296, glapp: 0.10, rader: [
+      { ogon: 'Fyndplats <span class="streck"></span> Fyndauktionen', ner: 30 },
+      { h: 'Priset sjunker', px: 112 }, { h: '<em>varje timme.</em>', px: 112 } ] },
+  { id: 's2a', in: 3.05, ut: 5.18, top: 300, glapp: 0.10, skugga: [0, 700, 0.62], rader: [
+      { h: 'Kl 07 startar fyndet', px: 84 }, { h: 'på <em>ordinarie pris.</em>', px: 84 } ] },
+  { id: 's2b', in: 5.40, ut: 8.32, top: 300, glapp: 0.10, skugga: [0, 700, 0.62], rader: [
+      { h: 'Varje timme går priset', px: 84 }, { h: '<em>ner ett steg.</em>', px: 84 } ] },
+  { id: 's3a', in: 8.72, ut: 10.36, top: 318, glapp: 0.08, skugga: [0, 760, 0.78], rader: [
+      { h: '<em>Vågar du vänta?</em>', px: 122 } ] },
+  { id: 's3b', in: 10.82, ut: 11.86, top: 304, glapp: 0.09, skugga: [0, 760, 0.78], rader: [
+      { h: 'Varje fynd finns', px: 88 }, { h: '<em>bara en gång.</em>', px: 88 } ] },
+  { id: 's4', in: 12.10, ut: 13.82, top: 296, glapp: 0.10, skugga: [0, 820, 0.70], rader: [
+      { ogon: 'Fyndauktionen', ner: 30 },
+      { h: 'Nya fynd', px: 118 }, { h: '<em>varje dag.</em>', px: 118 } ] },
+  { id: 's4b', in: 14.02, ut: 17.72, top: 300, glapp: 0.08, rader: [
+      { ogon: 'Fyndauktionen', ner: 14, px: 27 }, { h: '<em>Nya fynd</em> varje dag kl 07', px: 60 } ] },
+  { id: 's5', in: 18.12, ut: 20.62, top: 318, glapp: 0.08, rader: [
+      { ogon: 'Tryggt köp på Fyndplats' } ] },
+];
+
+const dom = {};
+for (const b of BLOCK) {
+  if (b.skugga) {
+    const s = el('div', 'skugga', null, { top: b.skugga[0] + 'px', height: b.skugga[1] + 'px',
+      background: `linear-gradient(180deg, rgba(0,0,0,${b.skugga[2]}) 0%, rgba(0,0,0,${b.skugga[2] * 0.82}) 42%, rgba(0,0,0,0) 100%)` });
+    scen.appendChild(s);
+    b._skugga = s;
+  }
+  const blk = el('div', 'block', null, { top: b.top + 'px' });
+  b._rader = [];
+  for (const r of b.rader) {
+    const mask = el('span', 'mask');
+    const rad = el('span', r.ogon ? 'rad ogon' : 'rad h', r.ogon || r.h, r.px ? { fontSize: r.px + 'px' } : null);
+    mask.appendChild(rad);
+    const hall = el('div', null, null, r.ner ? { marginBottom: r.ner + 'px' } : null);
+    hall.appendChild(mask);
+    blk.appendChild(hall);
+    b._rader.push(rad);
+  }
+  scen.appendChild(blk);
+  dom[b.id] = blk;
+}
+
+// ---- scen 6: slutbilden
+const skugga6 = el('div', 'skugga', null, { top: '890px', height: '460px',
+  background: 'radial-gradient(60% 50% at 50% 48%, rgba(0,0,0,.62) 0%, rgba(0,0,0,.42) 55%, rgba(0,0,0,0) 100%)' });
+scen.appendChild(skugga6);
+const s6 = el('div', 'block', null, { top: '946px', opacity: 1 });
+const m6 = el('div', null, '<span class="mask"><span class="rad" id="marke">Fyndplats</span></span>');
+const r6 = el('div', null, `<span class="mask"><span class="rad" id="slutrad">${TXT.slut}</span></span>`, { marginTop: '12px' });
+const l6 = el('div', null, '<span class="rad" id="lank">fyndplats.se/fyndauktion</span>', { marginTop: '26px' });
+s6.append(m6, r6, l6);
+scen.appendChild(s6);
+const slut = { marke: m6.querySelector('.rad'), rad: r6.querySelector('.rad'), lank: l6.querySelector('.rad') };
+
+const T_SLUT = 22.62;               // strax efter att kuben landat
+
+window.satt = function (t) {
+  for (const b of BLOCK) {
+    const blk = dom[b.id];
+    const ute = mjuk(led(t, b.ut, b.ut + 0.30));
+    const synlig = t >= b.in - 0.02 && t <= b.ut + 0.32;
+    blk.style.opacity = synlig ? String(1 - ute) : '0';
+    blk.style.transform = `translateY(${-16 * ute}px)`;
+    blk.style.filter = ute > 0 ? `blur(${5 * ute}px)` : 'none';
+    b._rader.forEach((rad, i) => {
+      const k = utExpo(led(t, b.in + i * b.glapp, b.in + i * b.glapp + 0.62));
+      rad.style.transform = `translateY(${(1 - k) * 112}%)`;
+      rad.style.opacity = String(kl(k * 3));
+    });
+    if (b._skugga) b._skugga.style.opacity = String(mjuk(led(t, b.in - 0.1, b.in + 0.35)) * (1 - mjuk(led(t, b.ut, b.ut + 0.35))));
+  }
+  // slutbilden
+  {
+    const delar = [[slut.marke, 0.0, 'mask'], [slut.rad, 0.20, 'mask'], [slut.lank, 0.42, 'fri']];
+    s6.style.opacity = t >= T_SLUT - 0.05 ? '1' : '0';
+    for (const [e, d, typ] of delar) {
+      const k = utExpo(led(t, T_SLUT + d, T_SLUT + d + 0.7));
+      if (typ === 'mask') { e.style.transform = `translateY(${(1 - k) * 112}%)`; e.style.opacity = String(kl(k * 3)); }
+      else { e.style.transform = `translateY(${(1 - k) * 26}px) scale(${0.96 + 0.04 * k})`; e.style.opacity = String(kl(k * 1.6)); }
+    }
+    skugga6.style.opacity = String(mjuk(led(t, T_SLUT - 0.1, T_SLUT + 0.5)));
+  }
+};
+window.satt(0);
+</script>
+</body>
+</html>
